@@ -105,10 +105,7 @@ class Dictionaries(object):
                 self.changed = True
             fId = self.featureIdDict[f]
             fIds.append(fId)
-        if len(fIds) == 1:
-            return fIds[0]
-        else:
-            return fIds
+        return fIds
 
     def get_features(self,line):
         featureNames = [f.strip() for f in line[1].split()]
@@ -119,8 +116,8 @@ class Dictionaries(object):
             if len(tmp) == 2:
                 fn = tmp[0]
                 weight = float(tmp[1])
-            fId = self.add_feature(tmp[0])
-            features[fId] = weight
+            fIds = self.add_feature(tmp[0])
+            features[fIds[0]] = (weight,fIds[1:])
             #features[fId] = 1.0 ###
         return features
 
