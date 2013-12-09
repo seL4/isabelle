@@ -519,6 +519,7 @@ fun mesh_facts _ max_facts [(_, (sels, unks))] =
             |> map snd |> take max_facts
     end
 
+val default_weight = 1.0
 fun free_feature_of s = ("f" ^ s, 40.0 (* FUDGE *))
 fun thy_feature_of s = ("y" ^ s, 8.0 (* FUDGE *))
 fun type_feature_of s = ("t" ^ s, 4.0 (* FUDGE *))
@@ -642,20 +643,20 @@ fun term_features_of ctxt thy_name num_facts const_tab term_max_depth type_max_d
         if is_widely_irrelevant_const s then [] else [(massage_long_name s, weight_of_const s)]
       | pattify_term _ _ (Free (s, T)) =
         maybe_singleton_str pat_var_prefix (crude_str_of_typ T)
-        |> map (rpair 0.0)
+        |> map (rpair 1.0)
         |> (if member (op =) fixes s then
               cons (free_feature_of (massage_long_name
                   (thy_name ^ Long_Name.separator ^ s)))
             else
               I)
       | pattify_term _ _ (Var (_, T)) =
-        maybe_singleton_str pat_var_prefix (crude_str_of_typ T) |> map (rpair 0.0)
+        maybe_singleton_str pat_var_prefix (crude_str_of_typ T) |> map (rpair default_weight)
       | pattify_term Ts _ (Bound j) =
-        maybe_singleton_str pat_var_prefix (crude_str_of_typ (nth Ts j)) |> map (rpair 0.0)
+        maybe_singleton_str pat_var_prefix (crude_str_of_typ (nth Ts j)) |> map (rpair default_weight)
       | pattify_term Ts depth (t $ u) =
         let
           val ps = take max_pat_breadth (pattify_term Ts depth t)
-          val qs = take max_pat_breadth (("", 0.0) :: pattify_term Ts (depth - 1) u)
+          val qs = take max_pat_breadth (("", default_weight) :: pattify_term Ts (depth - 1) u)
         in
           map_product (fn ppw as (p, pw) =>
               fn ("", _) => ppw
