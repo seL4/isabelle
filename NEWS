@@ -24,6 +24,9 @@ Open text buffers take precedence over copies within the file-system.
 
 *** HOL ***
 
+* Code generations are provided for make, fields, extend and truncate
+operations on records.
+
 * Qualified constant names Wellfounded.acc, Wellfounded.accp.
 INCOMPATIBILITY.
 
