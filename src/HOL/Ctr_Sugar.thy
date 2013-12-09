@@ -25,7 +25,7 @@ declare [[coercion_args case_cons - -]]
 declare [[coercion_args case_abs -]]
 declare [[coercion_args case_elem - +]]
 
-ML_file "Tools/case_translation.ML"
+ML_file "Tools/Ctr_Sugar/case_translation.ML"
 setup Case_Translation.setup
 
 lemma iffI_np: "\<lbrakk>x \<Longrightarrow> \<not> y; \<not> x \<Longrightarrow> y\<rbrakk> \<Longrightarrow> \<not> x \<longleftrightarrow> y"
@@ -36,9 +36,9 @@ lemma iff_contradict:
 "\<not> Q \<Longrightarrow> P \<longleftrightarrow> Q \<Longrightarrow> P \<Longrightarrow> R"
 by blast+
 
-ML_file "Tools/ctr_sugar_util.ML"
-ML_file "Tools/ctr_sugar_tactics.ML"
-ML_file "Tools/ctr_sugar_code.ML"
-ML_file "Tools/ctr_sugar.ML"
+ML_file "Tools/Ctr_Sugar/ctr_sugar_util.ML"
+ML_file "Tools/Ctr_Sugar/ctr_sugar_tactics.ML"
+ML_file "Tools/Ctr_Sugar/ctr_sugar_code.ML"
+ML_file "Tools/Ctr_Sugar/ctr_sugar.ML"
 
 end

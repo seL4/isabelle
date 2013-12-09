@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/ctr_sugar_code.ML
+(*  Title:      HOL/Tools/Ctr_Sugar/ctr_sugar_code.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Stefan Berghofer, TU Muenchen

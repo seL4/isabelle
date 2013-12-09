@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/case_translation.ML
+(*  Title:      HOL/Tools/Ctr_Sugar/case_translation.ML
     Author:     Konrad Slind, Cambridge University Computer Laboratory
     Author:     Stefan Berghofer, TU Muenchen
     Author:     Dmitriy Traytel, TU Muenchen

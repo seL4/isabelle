@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/ctr_sugar_util.ML
+(*  Title:      HOL/Tools/Ctr_Sugar/ctr_sugar_util.ML
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012, 2013
