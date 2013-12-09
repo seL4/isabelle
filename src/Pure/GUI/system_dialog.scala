@@ -72,7 +72,7 @@ class System_Dialog extends Build.Progress
   private class Window extends Frame
   {
     title = _title
-    iconImage = GUI.isabelle_image()
+    peer.setIconImages(GUI.isabelle_images())
 
 
     /* text */

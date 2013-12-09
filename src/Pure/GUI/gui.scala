@@ -13,6 +13,7 @@ import java.awt.font.{TextAttribute, TransformAttribute, FontRenderContext, Line
 import java.awt.geom.AffineTransform
 import javax.swing.{ImageIcon, JOptionPane, UIManager, JLayeredPane, JFrame, JWindow}
 
+import scala.collection.convert.WrapAsJava
 import scala.swing.{ComboBox, TextArea, ScrollPane}
 import scala.swing.event.SelectionChanged
 
@@ -129,7 +130,14 @@ object GUI
   def isabelle_icon(): ImageIcon =
     new ImageIcon(getClass.getClassLoader.getResource("isabelle/isabelle_transparent-32.gif"))
 
+  def isabelle_icons(): List[ImageIcon] =
+    for (icon <- List("isabelle/isabelle_transparent-32.gif", "isabelle/isabelle_transparent.gif"))
+      yield new ImageIcon(getClass.getClassLoader.getResource(icon))
+
   def isabelle_image(): Image = isabelle_icon().getImage
+
+  def isabelle_images(): java.util.List[Image] =
+    WrapAsJava.seqAsJavaList(isabelle_icons.map(_.getImage))
 
 
   /* component hierachy */
