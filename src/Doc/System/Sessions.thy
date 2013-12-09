@@ -139,7 +139,7 @@ text {* See @{file "~~/src/HOL/ROOT"} for a diversity of practically
   quasi-hierarchic naming conventions like @{text "HOL\<dash>SPARK"},
   @{text "HOL\<dash>SPARK\<dash>Examples"}.  An alternative is to use
   unqualified names that are relatively long and descriptive, as in
-  the Archive of Formal Proofs (@{url "http://afp.sf.net"}), for
+  the Archive of Formal Proofs (@{url "http://afp.sourceforge.net"}), for
   example. *}
 
 
