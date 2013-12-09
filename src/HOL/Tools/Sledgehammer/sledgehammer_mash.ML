@@ -616,6 +616,8 @@ fun sort_of_type alg T =
     cls_of [] (Graph.maximals graph)
   end
 
+val generalize_goal = false
+
 fun term_features_of ctxt thy_name num_facts const_tab term_max_depth type_max_depth in_goal ts =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -670,11 +672,13 @@ fun term_features_of ctxt thy_name num_facts const_tab term_max_depth type_max_d
           []
         else
           let
-            fun strs_of_sort S =
-              S |> (if in_goal then Sorts.complete_sort alg else single o hd)
-                |> map massage_long_name
+            val strs_of_sort =
+              (if generalize_goal andalso in_goal then Sorts.complete_sort alg
+               else single o hd)
+              #> map massage_long_name
             fun strs_of_type_arg (T as Type (s, _)) =
-                massage_long_name s :: (if in_goal then strs_of_sort (sort_of_type alg T) else [])
+                massage_long_name s ::
+                (if generalize_goal andalso in_goal then strs_of_sort (sort_of_type alg T) else [])
               | strs_of_type_arg (TFree (s, S)) = strs_of_sort S
               | strs_of_type_arg (TVar (s, S)) = strs_of_sort S
 
