@@ -21,12 +21,12 @@ open Sledgehammer_Proof
 open Sledgehammer_Preplay
 
 fun variants (Let _) = raise Fail "Sledgehammer_Try0: variants"
-  | variants (Prove (qs, xs, l, t, subproofs, By (facts, _))) =
+  | variants (Prove (qs, xs, l, t, subproofs, (facts, _))) =
       let
         val methods = [SimpM, FastforceM, AutoM, ArithM, ForceM, BlastM]
-        fun step method = Prove (qs, xs, l, t, subproofs, By (facts, method))
+        fun step method = Prove (qs, xs, l, t, subproofs, (facts, method))
         (*fun step_without_facts method =
-          Prove (qs, xs, l, t, subproofs, By (no_facts, method))*)
+          Prove (qs, xs, l, t, subproofs, (no_facts, method))*)
       in
         (* FIXME *)
         (* There seems to be a bias for methods earlier in the list, so we put

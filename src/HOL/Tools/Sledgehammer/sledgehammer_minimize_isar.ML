@@ -24,14 +24,14 @@ val slack = 1.3
 
 fun min_deps_of_step (_ : preplay_interface) (step as Let _) = step
   | min_deps_of_step {get_preplay_time, set_preplay_time, preplay_quietly, ...}
-      (step as Prove (qs, xs, l, t, subproofs, By ((lfs, gfs), method))) =
+      (step as Prove (qs, xs, l, t, subproofs, ((lfs, gfs), method))) =
   (case get_preplay_time l of
     (* don't touch steps that time out or fail; minimizing won't help *)
     (true, _) => step
   | (false, time) =>
     let
       fun mk_step_lfs_gfs lfs gfs =
-        Prove (qs, xs, l, t, subproofs, By ((lfs, gfs), method))
+        Prove (qs, xs, l, t, subproofs, ((lfs, gfs), method))
       val mk_step_gfs_lfs = curry (swap #> uncurry mk_step_lfs_gfs)
 
       fun minimize_facts _ time min_facts [] = (time, min_facts)
@@ -90,14 +90,14 @@ fun minimize_dependencies_and_remove_unrefed_steps isar_try0 preplay_interface
       |> do_refed_step'
 
     and do_refed_step' (Let _) = raise Fail "Sledgehammer_Minimize_Isar"
-      | do_refed_step' (Prove (qs, xs, l, t, subproofs, By ((lfs, gfs), m))) =
+      | do_refed_step' (Prove (qs, xs, l, t, subproofs, ((lfs, gfs), m))) =
         let
           val (refed, subproofs) =
             map do_proof subproofs
             |> split_list
             |>> Ord_List.unions label_ord
             |>> add_lfs lfs
-          val step = Prove (qs, xs, l, t, subproofs, By ((lfs, gfs), m))
+          val step = Prove (qs, xs, l, t, subproofs, ((lfs, gfs), m))
         in
           (refed, step)
         end

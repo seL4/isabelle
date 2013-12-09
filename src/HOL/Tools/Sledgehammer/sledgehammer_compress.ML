@@ -101,13 +101,13 @@ fun update_steps steps updates =
 
 (* tries merging the first step into the second step *)
 fun try_merge
-  (Prove (_, Fix [], lbl1, _, [], By ((lfs1, gfs1), MetisM)))
-  (Prove (qs2, fix, lbl2, t, subproofs, By ((lfs2, gfs2), MetisM))) =
+  (Prove (_, [], lbl1, _, [], ((lfs1, gfs1), MetisM)))
+  (Prove (qs2, fix, lbl2, t, subproofs, ((lfs2, gfs2), MetisM))) =
       let
         val lfs = remove (op =) lbl1 lfs2 |> union (op =) lfs1
         val gfs = union (op =) gfs1 gfs2
       in
-        SOME (Prove (qs2, fix, lbl2, t, subproofs, By ((lfs, gfs), MetisM)))
+        SOME (Prove (qs2, fix, lbl2, t, subproofs, ((lfs, gfs), MetisM)))
       end
   | try_merge _ _ = NONE
 
@@ -148,7 +148,7 @@ fun compress_proof isar_compress
          replace_successor: label -> label list -> label -> unit) =
       let
         fun add_refs (Let _) tab = tab
-          | add_refs (Prove (_, _, v, _, _, By ((lfs, _), _))) tab =
+          | add_refs (Prove (_, _, v, _, _, ((lfs, _), _))) tab =
               fold (fn key => Canonical_Lbl_Tab.cons_list (key, v)) lfs tab
 
         val tab =
@@ -177,16 +177,13 @@ fun compress_proof isar_compress
     fun elim_subproofs' time qs fix l t lfs gfs subs nontriv_subs =
       if null subs orelse not (compress_further ()) then
         (set_preplay_time l (false, time);
-         Prove (qs, fix, l, t, List.revAppend (nontriv_subs, subs),
-                By ((lfs, gfs), MetisM)))
+         Prove (qs, fix, l, t, List.revAppend (nontriv_subs, subs), ((lfs, gfs), MetisM)))
       else
         case subs of
-          ((sub as Proof(_, Assume assms, sub_steps)) :: subs) =>
+          ((sub as Proof (_, assms, sub_steps)) :: subs) =>
             (let
-
               (* trivial subproofs have exactly one Prove step *)
-              val SOME (Prove (_, Fix [], l', _, [],
-                By ((lfs', gfs'), MetisM))) = (try the_single) sub_steps
+              val SOME (Prove (_, [], l', _, [], ((lfs', gfs'), MetisM))) = try the_single sub_steps
 
               (* only touch proofs that can be preplayed sucessfully *)
               val (false, time') = get_preplay_time l'
@@ -197,7 +194,7 @@ fun compress_proof isar_compress
                 subtract (op =) (map fst assms) lfs'
                 |> union (op =) lfs
               val gfs'' = union (op =) gfs' gfs
-              val by = By ((lfs'', gfs''), MetisM)
+              val by = ((lfs'', gfs''), MetisM)
               val step'' = Prove (qs, fix, l, t, subs'', by)
 
               (* check if the modified step can be preplayed fast enough *)
@@ -216,7 +213,7 @@ fun compress_proof isar_compress
 
     fun elim_subproofs (step as Let _) = step
       | elim_subproofs
-        (step as Prove (qs, fix, l, t, subproofs, By ((lfs, gfs), MetisM))) =
+        (step as Prove (qs, fix, l, t, subproofs, ((lfs, gfs), MetisM))) =
           if subproofs = [] then step else
             case get_preplay_time l of
               (true, _) => step (* timeout or fail *)
@@ -273,8 +270,7 @@ fun compress_proof isar_compress
               map (curry Time.+ timeslice #> time_mult merge_timeout_slack)
                 succ_times
 
-            val ((cand as Prove (_, _, l, _, _,
-              By ((lfs, _), MetisM))) :: steps') = drop i steps
+            val ((cand as Prove (_, _, l, _, _, ((lfs, _), MetisM))) :: steps') = drop i steps
 
             (* FIXME: debugging *)
             val _ = (if (label_of_step cand |> the) <> l then

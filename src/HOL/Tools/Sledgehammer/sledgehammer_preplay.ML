@@ -101,11 +101,13 @@ fun resolve_fact_names ctxt names =
 
 (* turn terms/proofs into theorems *)
 fun thm_of_term ctxt = Skip_Proof.make_thm (Proof_Context.theory_of ctxt)
-fun thm_of_proof ctxt (Proof (Fix fixed_frees, Assume assms, steps)) =
+
+fun thm_of_proof ctxt (Proof (fixed_frees, assms, steps)) =
   let
-    val concl = (case try List.last steps of
-                  SOME (Prove (_, Fix [], _, t, _, _)) => t
-                | _ => raise Fail "preplay error: malformed subproof")
+    val concl = 
+      (case try List.last steps of
+        SOME (Prove (_, [], _, t, _, _)) => t
+      | _ => raise Fail "preplay error: malformed subproof")
     val var_idx = maxidx_of_term concl + 1
     fun var_of_free (x, T) = Var((x, var_idx), T)
     val substitutions =
@@ -135,7 +137,7 @@ fun tac_of_method method type_enc lam_trans ctxt facts =
 (* main function for preplaying isar_steps; may throw exceptions *)
 fun preplay_raw _ _ _ _ _ (Let _) = zero_preplay_time
   | preplay_raw debug type_enc lam_trans ctxt timeout
-      (Prove (_, Fix xs, _, t, subproofs, By (fact_names, proof_method))) =
+      (Prove (_, xs, _, t, subproofs, (fact_names, proof_method))) =
   let
     val (prop, obtain) =
       (case xs of
@@ -201,7 +203,7 @@ fun enrich_context proof ctxt =
 
     val enrich_with_assms = fold (uncurry enrich_with_fact)
 
-    fun enrich_with_proof (Proof (_, Assume assms, isar_steps)) =
+    fun enrich_with_proof (Proof (_, assms, isar_steps)) =
       enrich_with_assms assms #> fold enrich_with_step isar_steps
 
     and enrich_with_step (Let _) = I

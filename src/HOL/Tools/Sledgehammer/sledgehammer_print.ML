@@ -251,7 +251,7 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
         #> add_suffix " = "
         #> add_term t2
         #> add_suffix "\n"
-      | add_step ind (Prove (qs, Fix xs, l, t, subproofs, By (facts, method))) =
+      | add_step ind (Prove (qs, xs, l, t, subproofs, (facts, method))) =
         (case xs of
           [] => (* have *)
             add_step_pre ind qs subproofs
@@ -274,23 +274,16 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
 
     and add_steps ind = fold (add_step ind)
 
-    and of_proof ind ctxt (Proof (Fix xs, Assume assms, steps)) =
-      ("", ctxt)
-      |> add_fix ind xs
-      |> add_assms ind assms
-      |> add_steps ind steps
-      |> fst
-
+    and of_proof ind ctxt (Proof (xs, assms, steps)) =
+      ("", ctxt) |> add_fix ind xs |> add_assms ind assms |> add_steps ind steps |> fst
   in
-    (* FIXME: sh_try0 might produce one-step proofs that are better than the
-       Metis one-liners *)
-    (* One-step proofs are pointless; better use the Metis one-liner
-       directly. *)
-    (*case proof of
-      Proof (Fix [], Assume [], [Prove (_, Fix [], _, _, [], _)]) => ""
-    | _ =>*) (if i <> 1 then "prefer " ^ string_of_int i ^ "\n" else "") ^
-            of_indent 0 ^ "proof -\n" ^ of_proof 1 ctxt proof ^
-            of_indent 0 ^ (if n <> 1 then "next" else "qed")
+    (* One-step Metis proofs are pointless; better use the one-liner directly. *)
+    (case proof of
+      Proof ([], [], [Prove (_, [], _, _, [], (_, MetisM))]) => ""
+    | _ =>
+      (if i <> 1 then "prefer " ^ string_of_int i ^ "\n" else "") ^
+      of_indent 0 ^ "proof -\n" ^ of_proof 1 ctxt proof ^
+      of_indent 0 ^ (if n <> 1 then "next" else "qed"))
   end
 
 end;
