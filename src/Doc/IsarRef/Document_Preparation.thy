@@ -125,6 +125,7 @@ text {*
     @{antiquotation_def ML_type} & : & @{text antiquotation} \\
     @{antiquotation_def ML_struct} & : & @{text antiquotation} \\
     @{antiquotation_def "file"} & : & @{text antiquotation} \\
+    @{antiquotation_def "url"} & : & @{text antiquotation} \\
   \end{matharray}
 
   The overall content of an Isabelle/Isar theory may alternate between
@@ -175,7 +176,8 @@ text {*
       @@{antiquotation ML_op} options @{syntax name} |
       @@{antiquotation ML_type} options @{syntax name} |
       @@{antiquotation ML_struct} options @{syntax name} |
-      @@{antiquotation \"file\"} options @{syntax name}
+      @@{antiquotation \"file\"} options @{syntax name} |
+      @@{antiquotation url} options @{syntax name}
     ;
     options: '[' (option * ',') ']'
     ;
@@ -266,6 +268,9 @@ text {*
 
   \item @{text "@{file path}"} checks that @{text "path"} refers to a
   file (or directory) and prints it verbatim.
+
+  \item @{text "@{url name}"} produces markup for the given URL, which
+  results in an active hyperlink within the text.
 
   \end{description}
 *}

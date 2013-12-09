@@ -135,6 +135,17 @@ class JEdit_Editor extends Editor[View]
     }
   }
 
+  override def hyperlink_url(name: String): Hyperlink =
+    new Hyperlink {
+      def follow(view: View) =
+        default_thread_pool.submit(() =>
+          try { Isabelle_System.open(name) }
+          catch {
+            case exn: Throwable =>
+              GUI.error_dialog(view, "System error", GUI.scrollable_text(Exn.message(exn)))
+          })
+    }
+
   override def hyperlink_file(file_name: String, line: Int = 0, column: Int = 0): Hyperlink =
     new Hyperlink { def follow(view: View) = goto(view, file_name, line, column) }
 

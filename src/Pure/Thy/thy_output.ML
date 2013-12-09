@@ -661,4 +661,12 @@ val _ = Theory.setup
 
 end;
 
+
+(* URLs *)
+
+val _ = Theory.setup
+  (antiquotation (Binding.name "url") (Scan.lift (Parse.position Parse.name))
+    (fn {context = ctxt, ...} => fn (name, pos) =>
+      (Position.report pos (Markup.url name); enclose "\\url{" "}" name)));
+
 end;

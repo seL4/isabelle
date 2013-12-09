@@ -34,6 +34,7 @@ sig
   val position_properties: string list
   val positionN: string val position: T
   val pathN: string val path: string -> T
+  val urlN: string val url: string -> T
   val indentN: string
   val blockN: string val block: int -> T
   val widthN: string
@@ -258,9 +259,10 @@ val position_properties = [lineN, offsetN, end_offsetN] @ position_properties';
 val (positionN, position) = markup_elem "position";
 
 
-(* path *)
+(* external resources *)
 
 val (pathN, path) = markup_string "path" nameN;
+val (urlN, url) = markup_string "url" nameN;
 
 
 (* pretty printing *)

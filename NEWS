@@ -4,6 +4,12 @@ Isabelle NEWS -- history user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** General ***
+
+* Document antiquotation @{url} produces markup for the given URL,
+which results in an active hyperlink within the text.
+
+
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
 * Auxiliary files ('ML_file' etc.) are managed by the Prover IDE.

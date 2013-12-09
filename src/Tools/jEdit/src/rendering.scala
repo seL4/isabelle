@@ -202,8 +202,9 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   private val highlight_include =
     Set(Markup.SORT, Markup.TYP, Markup.TERM, Markup.PROP, Markup.ML_TYPING, Markup.TOKEN_RANGE,
-      Markup.ENTITY, Markup.PATH, Markup.SORTING, Markup.TYPING, Markup.FREE, Markup.SKOLEM,
-      Markup.BOUND, Markup.VAR, Markup.TFREE, Markup.TVAR, Markup.ML_SOURCE, Markup.DOCUMENT_SOURCE)
+      Markup.ENTITY, Markup.PATH, Markup.URL, Markup.SORTING, Markup.TYPING, Markup.FREE,
+      Markup.SKOLEM, Markup.BOUND, Markup.VAR, Markup.TFREE, Markup.TVAR, Markup.ML_SOURCE,
+      Markup.DOCUMENT_SOURCE)
 
   def highlight(range: Text.Range): Option[Text.Info[Color]] =
   {
@@ -217,7 +218,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   }
 
 
-  private val hyperlink_include = Set(Markup.ENTITY, Markup.PATH)
+  private val hyperlink_include = Set(Markup.ENTITY, Markup.PATH, Markup.URL)
 
   def hyperlink(range: Text.Range): Option[Text.Info[PIDE.editor.Hyperlink]] =
   {
@@ -228,6 +229,10 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
           if Path.is_ok(name) =>
             val jedit_file = PIDE.thy_load.append(snapshot.node_name.master_dir, Path.explode(name))
             val link = PIDE.editor.hyperlink_file(jedit_file)
+            Some(Text.Info(snapshot.convert(info_range), link) :: links)
+
+          case (links, Text.Info(info_range, XML.Elem(Markup.Url(name), _))) =>
+            val link = PIDE.editor.hyperlink_url(name)
             Some(Text.Info(snapshot.convert(info_range), link) :: links)
 
           case (links, Text.Info(info_range, XML.Elem(Markup(Markup.ENTITY, props), _)))
@@ -335,7 +340,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   private val tooltip_elements =
     Set(Markup.TIMING, Markup.ENTITY, Markup.SORTING, Markup.TYPING,
-      Markup.ML_TYPING, Markup.PATH) ++ tooltips.keys
+      Markup.ML_TYPING, Markup.PATH, Markup.URL) ++ tooltips.keys
 
   private def pretty_typing(kind: String, body: XML.Body): XML.Tree =
     Pretty.block(XML.Text(kind) :: Pretty.Break(1) :: body)
@@ -371,6 +376,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
           if Path.is_ok(name) =>
             val jedit_file = PIDE.thy_load.append(snapshot.node_name.master_dir, Path.explode(name))
             Some(add(prev, r, (true, XML.Text("file " + quote(jedit_file)))))
+          case (prev, Text.Info(r, XML.Elem(Markup.Url(name), _))) =>
+            Some(add(prev, r, (true, XML.Text("URL " + quote(name)))))
           case (prev, Text.Info(r, XML.Elem(Markup(name, _), body)))
           if name == Markup.SORTING || name == Markup.TYPING =>
             Some(add(prev, r, (true, pretty_typing("::", body))))

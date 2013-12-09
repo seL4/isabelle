@@ -67,7 +67,7 @@ object Markup
   val POSITION = "position"
 
 
-  /* path */
+  /* external resources */
 
   val PATH = "path"
 
@@ -76,6 +76,17 @@ object Markup
     def unapply(markup: Markup): Option[String] =
       markup match {
         case Markup(PATH, Name(name)) => Some(name)
+        case _ => None
+      }
+  }
+
+  val URL = "url"
+
+  object Url
+  {
+    def unapply(markup: Markup): Option[String] =
+      markup match {
+        case Markup(URL, Name(name)) => Some(name)
         case _ => None
       }
   }
