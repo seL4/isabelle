@@ -336,7 +336,13 @@ fun isar_proof_text ctxt isar_proofs
           #> relabel_proof
         val (preplay_interface as {overall_preplay_stats, ...}, isar_proof) =
           refute_graph
+(*
+          |> tap (tracing o prefix "REFUTE: " o string_of_refute_graph)
+*)
           |> redirect_graph axioms tainted bot
+(*
+          |> tap (tracing o prefix "DIRECT: " o string_of_direct_proof)
+*)
           |> isar_proof_of_direct_proof
           |> relabel_proof_canonically
           |> `(proof_preplay_interface debug ctxt metis_type_enc metis_lam_trans do_preplay
