@@ -1,6 +1,6 @@
 (*  Title:      HOL/Tools/Sledgehammer/sledgehammer_preplay.ML
-    Author:     Jasmin Blanchette, TU Muenchen
     Author:     Steffen Juilf Smolka, TU Muenchen
+    Author:     Jasmin Blanchette, TU Muenchen
 
 Preplaying of isar proofs.
 *)
@@ -235,7 +235,6 @@ fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay
       overall_preplay_stats = K (zero_preplay_time, false)}
   else
     let
-
       (* add local proof facts to context *)
       val ctxt = enrich_context proof ctxt
 
@@ -254,9 +253,9 @@ fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay
 
       (* preplay steps treating exceptions like timeouts *)
       fun preplay_quietly timeout step =
-        case preplay true timeout step of
+        (case preplay true timeout step of
           PplSucc preplay_time => preplay_time
-        | PplFail _ => (true, timeout)
+        | PplFail _ => (true, timeout))
 
       val preplay_tab =
         let
@@ -277,9 +276,8 @@ fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay
 
       fun get_preplay_result lbl =
         Canonical_Lbl_Tab.lookup (!preplay_tab) lbl |> the |> Lazy.force
-        handle
-          Option.Option =>
-            raise Fail "Sledgehammer_Preplay: preplay time table"
+        handle Option.Option =>
+          raise Fail "Sledgehammer_Preplay: preplay time table"
 
       fun set_preplay_result lbl result =
         preplay_tab :=
@@ -298,20 +296,20 @@ fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay
             try (label_of_step #> the #> get_preplay_result) step
             |> the_default (PplSucc zero_preplay_time)
           fun do_step step =
-            case result_of_step step of
+            (case result_of_step step of
               PplSucc preplay_time => apfst (add_preplay_time preplay_time)
-            | PplFail _ => apsnd (K true)
+            | PplFail _ => apsnd (K true))
         in
           fold_isar_steps do_step steps (zero_preplay_time, false)
         end
 
     in
-      { get_preplay_result = get_preplay_result,
-        set_preplay_result = set_preplay_result,
-        get_preplay_time = get_preplay_time,
-        set_preplay_time = set_preplay_time,
-        preplay_quietly = preplay_quietly,
-        overall_preplay_stats = overall_preplay_stats}
+      {get_preplay_result = get_preplay_result,
+       set_preplay_result = set_preplay_result,
+       get_preplay_time = get_preplay_time,
+       set_preplay_time = set_preplay_time,
+       preplay_quietly = preplay_quietly,
+       overall_preplay_stats = overall_preplay_stats}
     end
 
 end;

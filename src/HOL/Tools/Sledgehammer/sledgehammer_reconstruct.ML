@@ -64,10 +64,8 @@ fun replace_dependencies_in_line p (name, role, t, rule, deps) =
    clsarity). *)
 fun is_only_type_information t = t aconv @{term True}
 
-fun s_maybe_not role = role <> Conjecture ? s_not
-
 fun is_same_inference (role, t) (_, role', t', _, _) =
-  s_maybe_not role t aconv s_maybe_not role' t'
+  (t |> role = Conjecture ? s_not) aconv (t' |> role' = Conjecture ? s_not)
 
 (* Discard facts; consolidate adjacent lines that prove the same formula, since
    they differ only in type information.*)
@@ -86,11 +84,12 @@ fun add_line (name as (_, ss), role, t, rule, []) lines =
     (* Type information will be deleted later; skip repetition test. *)
     if is_only_type_information t then
       line :: lines
-    (* Is there a repetition? If so, replace later line by earlier one. *)
-    else case take_prefix (not o is_same_inference (role, t)) lines of
-      (_, []) => line :: lines
-    | (pre, (name', _, _, _, _) :: post) =>
-      line :: pre @ map (replace_dependencies_in_line (name', [name])) post
+    else
+      (* Is there a repetition? If so, replace later line by earlier one. *)
+      (case take_prefix (not o is_same_inference (role, t)) lines of
+        (_, []) => line :: lines
+      | (pre, (name', _, _, _, _) :: post) =>
+        line :: pre @ map (replace_dependencies_in_line (name', [name])) post)
 
 (* Recursively delete empty lines (type information) from the proof. *)
 fun add_nontrivial_line (line as (name, _, t, _, [])) lines =
@@ -201,6 +200,7 @@ val chain_direct_proof =
   in chain_proof end
 
 fun maybe_mk_Trueprop t = t |> fastype_of t = HOLogic.boolT ? HOLogic.mk_Trueprop
+val maybe_dest_Trueprop = perhaps (try HOLogic.dest_Trueprop)
 
 type isar_params =
   bool * bool * string * string * Time.time option * real * bool * (term, string) atp_step list *
@@ -239,7 +239,7 @@ fun isar_proof_text ctxt isar_proofs
         val assms = map_filter (get_role (curry (op =) Hypothesis)) atp_proof
         val lems =
           map_filter (get_role (curry (op =) Lemma)) atp_proof
-          |> map (fn (l, t) => Prove ([], [], l, t, [], (([], []), ArithM)))
+          |> map (fn (l, t) => Prove ([], [], l, maybe_mk_Trueprop t, [], (([], []), ArithM)))
 
         val bot = atp_proof |> List.last |> #1
 
@@ -258,7 +258,7 @@ fun isar_proof_text ctxt isar_proofs
           |> fold (fn (name as (s, _), role, t, rule, _) =>
                       Symtab.update_new (s, (rule,
                         t |> (if is_clause_tainted [name] then
-                                s_maybe_not role
+                                role <> Conjecture ? (maybe_dest_Trueprop #> s_not)
                                 #> fold exists_of (map Var (Term.add_vars t []))
                               else
                                 I))))
@@ -268,12 +268,14 @@ fun isar_proof_text ctxt isar_proofs
             Option.map (is_skolemize_rule o fst) (Symtab.lookup steps s) = SOME true
           | is_clause_skolemize_rule _ = false
 
-        (* The assumptions and conjecture are "prop"s; the other formulas are "bool"s. *)
+        (* The assumptions and conjecture are "prop"s; the other formulas are "bool"s (for ATPs) or
+           "prop"s (for Z3). TODO: Always use "prop". *)
         fun prop_of_clause [(num, _)] =
             Symtab.lookup steps num |> the |> snd |> maybe_mk_Trueprop |> close_form
           | prop_of_clause names =
             let
-              val lits = map snd (map_filter (Symtab.lookup steps o fst) names)
+              val lits =
+                map (maybe_dest_Trueprop o snd) (map_filter (Symtab.lookup steps o fst) names)
             in
               case List.partition (can HOLogic.dest_not) lits of
                 (negs as _ :: _, pos as _ :: _) =>
@@ -305,7 +307,7 @@ fun isar_proof_text ctxt isar_proofs
               fun do_rest l step = isar_steps outer (SOME l) (step :: accum) infs
             in
               if is_clause_tainted c then
-                case gamma of
+                (case gamma of
                   [g] =>
                   if is_clause_skolemize_rule g andalso is_clause_tainted g then
                     let
@@ -315,7 +317,7 @@ fun isar_proof_text ctxt isar_proofs
                     end
                   else
                     do_rest l (prove [] by)
-                | _ => do_rest l (prove [] by)
+                | _ => do_rest l (prove [] by))
               else
                 if is_clause_skolemize_rule c then
                   do_rest l (Prove ([], skolems_of t, l, t, [], by))
@@ -350,13 +352,14 @@ fun isar_proof_text ctxt isar_proofs
         val (preplay_interface as {overall_preplay_stats, ...}, isar_proof) =
           refute_graph
 (*
-          |> tap (tracing o prefix "REFUTE: " o string_of_refute_graph)
+          |> tap (tracing o prefix "REFUTE GRAPH: " o string_of_refute_graph)
 *)
           |> redirect_graph axioms tainted bot
 (*
-          |> tap (tracing o prefix "DIRECT: " o string_of_direct_proof)
+          |> tap (tracing o prefix "DIRECT PROOF: " o string_of_direct_proof)
 *)
           |> isar_proof_of_direct_proof
+          |> postprocess_remove_unreferenced_steps I
           |> relabel_proof_canonically
           |> `(proof_preplay_interface debug ctxt metis_type_enc metis_lam_trans do_preplay
                preplay_timeout)
@@ -365,7 +368,7 @@ fun isar_proof_text ctxt isar_proofs
           |> compress_proof (if isar_proofs = SOME true then isar_compress else 1000.0)
                preplay_interface
           |> isar_try0 ? try0 preplay_timeout preplay_interface
-          |> minimize_dependencies_and_remove_unrefed_steps isar_try0 preplay_interface
+          |> postprocess_remove_unreferenced_steps (isar_try0 ? min_deps_of_step preplay_interface)
           |> `overall_preplay_stats
           ||> clean_up_labels_in_proof
         val isar_text =

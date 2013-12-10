@@ -17,46 +17,40 @@ end;
 structure Sledgehammer_Try0 : SLEDGEHAMMER_TRY0 =
 struct
 
+open Sledgehammer_Util
 open Sledgehammer_Proof
 open Sledgehammer_Preplay
 
-fun variants (Let _) = raise Fail "Sledgehammer_Try0: variants"
-  | variants (Prove (qs, xs, l, t, subproofs, (facts, _))) =
-      let
-        val methods = [SimpM, FastforceM, AutoM, ArithM, ForceM, BlastM]
-        fun step method = Prove (qs, xs, l, t, subproofs, (facts, method))
-        (*fun step_without_facts method =
-          Prove (qs, xs, l, t, subproofs, (no_facts, method))*)
-      in
-        (* FIXME *)
-        (* There seems to be a bias for methods earlier in the list, so we put
-           the variants using no facts first. *)
-        (*map step_without_facts methods @*) map step methods
-      end
+val variant_methods = [SimpM, AutoM, ArithM, FastforceM, BlastM, ForceM, MetisM]
+
+fun variants_of_step (Let _) = raise Fail "Sledgehammer_Try0: variants_of_step"
+  | variants_of_step (Prove (qs, xs, l, t, subproofs, (facts, meth))) =
+    variant_methods
+    |> remove (op =) meth
+    |> map (fn meth' => Prove (qs, xs, l, t, subproofs, (facts, meth')))
+
+val slack = seconds 0.05
 
 fun try0_step _ _ (step as Let _) = step
-  | try0_step preplay_timeout ({preplay_quietly, get_preplay_time,
-    set_preplay_time, ...} : preplay_interface)
-    (step as Prove (_, _, l, _, _, _)) =
-      let
+  | try0_step preplay_timeout
+      ({preplay_quietly, get_preplay_time, set_preplay_time, ...} : preplay_interface)
+      (step as Prove (_, _, l, _, _, _)) =
+    let
+      val timeout =
+        (case get_preplay_time l of
+          (true, _) => preplay_timeout
+        | (false, t) => Time.+ (t, slack))
 
-        val timeout =
-          case get_preplay_time l of
-            (true, _) => preplay_timeout
-          | (false, t) => t
+      fun try_variant variant =
+        (case preplay_quietly timeout variant of
+          (true, _) => NONE
+        | time as (false, _) => SOME (variant, time))
+    in
+      (case Par_List.get_some try_variant (variants_of_step step) of
+        SOME (step, time) => (set_preplay_time l time; step)
+      | NONE => step)
+    end
 
-        fun try_variant variant =
-           case preplay_quietly timeout variant of
-             (true, _) => NONE
-           | time as (false, _) => SOME (variant, time)
-
-      in
-        case Par_List.get_some try_variant (variants step) of
-          SOME (step, time) => (set_preplay_time l time; step)
-        | NONE => step
-      end
-
-fun try0 preplay_timeout preplay_interface proof =
-     map_isar_steps (try0_step preplay_timeout preplay_interface) proof
+val try0 = map_isar_steps oo try0_step
 
 end;
