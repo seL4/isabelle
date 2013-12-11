@@ -67,6 +67,12 @@ fun is_only_type_information t = t aconv @{term True}
 fun is_same_inference (role, t) (_, role', t', _, _) =
   (t |> role = Conjecture ? s_not) aconv (t' |> role' = Conjecture ? s_not)
 
+fun is_False t = t aconv @{term False} orelse t aconv @{prop False}
+
+fun truncate_at_false [] = []
+  | truncate_at_false ((line as (_, role, t, _, _)) :: lines) =
+    line :: (if role <> Conjecture andalso is_False t then [] else truncate_at_false lines)
+
 (* Discard facts; consolidate adjacent lines that prove the same formula, since
    they differ only in type information.*)
 fun add_line (name as (_, ss), role, t, rule, []) lines =
@@ -226,6 +232,7 @@ fun isar_proof_text ctxt isar_proofs
       let
         val atp_proof =
           atp_proof
+          |> truncate_at_false
           |> rpair [] |-> fold_rev add_line
           |> rpair [] |-> fold_rev add_nontrivial_line
           |> rpair (0, [])
