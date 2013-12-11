@@ -155,6 +155,7 @@ in
 
 fun toplevel_loop in_stream {init = do_init, welcome, sync, secure} =
  (Context.set_thread_data NONE;
+  Multithreading.max_threads_update (Options.default_int "threads");
   if do_init then init () else ();
   Output.Internal.protocol_message_fn := protocol_message;
   if welcome then writeln (Session.welcome ()) else ();

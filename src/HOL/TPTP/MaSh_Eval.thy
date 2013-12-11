@@ -17,7 +17,7 @@ sledgehammer_params
 declare [[sledgehammer_instantiate_inducts = false]]
 
 ML {*
-!Multithreading.max_threads
+Multithreading.max_threads_value ()
 *}
 
 ML {*

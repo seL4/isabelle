@@ -25,21 +25,6 @@ end;
 structure Multithreading: MULTITHREADING =
 struct
 
-(* options *)
-
-val available = true;
-
-val max_threads = ref 1;
-
-fun max_threads_value () =
-  let val m = ! max_threads in
-    if m > 0 then m
-    else Int.min (Int.max (Thread.numProcessors (), 1), 8)
-  end;
-
-fun enabled () = max_threads_value () > 1;
-
-
 (* thread attributes *)
 
 val no_interrupts =
@@ -88,6 +73,37 @@ fun interruptible f x = with_attributes public_interrupts (fn _ => f x);
 fun uninterruptible f x =
   with_attributes no_interrupts (fn atts =>
     f (fn g => fn y => with_attributes atts (fn _ => g y)) x);
+
+
+(* options *)
+
+val available = true;
+
+fun max_threads_result m =
+  if m > 0 then m
+  else
+    let val n =
+      (case Thread.numPhysicalProcessors () of
+        SOME n => n
+      | NONE => Thread.numProcessors ())
+    in Int.min (Int.max (n, 1), 8) end;
+
+val max_threads = ref 1;
+
+fun max_threads_value () = ! max_threads;
+
+fun max_threads_update m = max_threads := max_threads_result m;
+
+fun max_threads_setmp m f x =
+  uninterruptible (fn restore_attributes => fn () =>
+    let
+      val max_threads_orig = ! max_threads;
+      val _ = max_threads_update m;
+      val result = Exn.capture (restore_attributes f) x;
+      val _ = max_threads := max_threads_orig;
+    in Exn.release result end) ();
+
+fun enabled () = max_threads_value () > 1;
 
 
 (* synchronous wait *)

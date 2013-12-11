@@ -76,10 +76,13 @@ then use "ML/exn_properties_polyml.ML"
 else use "ML/exn_properties_dummy.ML";
 
 if ML_System.name = "polyml-5.5.1"
+  orelse ML_System.name = "polyml-5.5.2"
 then use "ML/exn_trace_polyml-5.5.1.ML"
 else ();
 
-if ML_System.name = "polyml-5.5.0" orelse ML_System.name = "polyml-5.5.1"
+if ML_System.name = "polyml-5.5.0"
+  orelse ML_System.name = "polyml-5.5.1"
+  orelse ML_System.name = "polyml-5.5.2"
 then use "ML/ml_statistics_polyml-5.5.0.ML"
 else use "ML/ml_statistics_dummy.ML";
 
@@ -347,5 +350,4 @@ val use_thy = use_thys o single;
 val cd = File.cd o Path.explode;
 
 Proofterm.proofs := 0;
-Multithreading.max_threads := 0;
 

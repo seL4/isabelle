@@ -158,7 +158,7 @@ if (defined $be_quiet and $be_quiet ne "") {
 if ($output_log) { print "Mirabelle: $thy_file\n"; }
 
 my $result = system "\"$ENV{'ISABELLE_PROCESS'}\" " .
-  "-o quick_and_dirty -e 'Unsynchronized.setmp Multithreading.max_threads 1 use_thy \"$path/$new_thy_name\" handle _ => exit 1;\n' -q $mirabelle_logic" . $quiet;
+  "-o quick_and_dirty -e 'Multithreading.max_threads_setmp 1 use_thy \"$path/$new_thy_name\" handle _ => exit 1;\n' -q $mirabelle_logic" . $quiet;
 
 if ($output_log) {
   my $outcome = ($result ? "failure" : "success");
