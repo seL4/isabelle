@@ -13,24 +13,13 @@ imports "../BNF"
 begin
 
 codatatype (sset: 'a) stream (map: smap rel: stream_all2) =
-  Stream (shd: 'a) (stl: "'a stream") (infixr "##" 65)
-
-code_datatype Stream
-
-lemma stream_case_cert:
-  assumes "CASE \<equiv> case_stream c"
-  shows "CASE (a ## s) \<equiv> c a s"
-  using assms by simp_all
-
-setup {*
-  Code.add_case @{thm stream_case_cert}
-*}
+  SCons (shd: 'a) (stl: "'a stream") (infixr "##" 65)
 
 (*for code generation only*)
 definition smember :: "'a \<Rightarrow> 'a stream \<Rightarrow> bool" where
   [code_abbrev]: "smember x s \<longleftrightarrow> x \<in> sset s"
 
-lemma smember_code[code, simp]: "smember x (Stream y s) = (if x = y then True else smember x s)"
+lemma smember_code[code, simp]: "smember x (y ## s) = (if x = y then True else smember x s)"
   unfolding smember_def by auto
 
 hide_const (open) smember
@@ -41,8 +30,8 @@ theorem sset_induct:
     \<forall>y \<in> sset s. P y s"
   apply (rule stream.dtor_set_induct)
   apply (auto simp add: shd_def stl_def fsts_def snds_def split_beta)
-  apply (metis Stream_def fst_conv stream.case stream.dtor_ctor stream.exhaust)
-  by (metis Stream_def sndI stl_def stream.collapse stream.dtor_ctor)
+  apply (metis SCons_def fst_conv stream.case stream.dtor_ctor stream.exhaust)
+  by (metis SCons_def sndI stl_def stream.collapse stream.dtor_ctor)
 
 lemma smap_simps[simp]:
   "shd (smap f s) = f (shd s)" "stl (smap f s) = smap f (stl s)"
@@ -223,8 +212,8 @@ lemma sdrop_add[simp]: "sdrop n (sdrop m s) = sdrop (m + n) s"
 partial_function (tailrec) sdrop_while :: "('a \<Rightarrow> bool) \<Rightarrow> 'a stream \<Rightarrow> 'a stream" where 
   "sdrop_while P s = (if P (shd s) then sdrop_while P (stl s) else s)"
 
-lemma sdrop_while_Stream[code]:
-  "sdrop_while P (Stream a s) = (if P a then sdrop_while P s else Stream a s)"
+lemma sdrop_while_SCons[code]:
+  "sdrop_while P (a ## s) = (if P a then sdrop_while P s else a ## s)"
   by (subst sdrop_while.simps) simp
 
 lemma sdrop_while_sdrop_LEAST:
@@ -249,9 +238,9 @@ primcorec sfilter where
 
 lemma sfilter_Stream: "sfilter P (x ## s) = (if P x then x ## sfilter P s else sfilter P s)"
 proof (cases "P x")
-  case True thus ?thesis by (subst sfilter.ctr) (simp add: sdrop_while_Stream)
+  case True thus ?thesis by (subst sfilter.ctr) (simp add: sdrop_while_SCons)
 next
-  case False thus ?thesis by (subst (1 2) sfilter.ctr) (simp add: sdrop_while_Stream)
+  case False thus ?thesis by (subst (1 2) sfilter.ctr) (simp add: sdrop_while_SCons)
 qed
 
 
@@ -274,6 +263,7 @@ subsection {* recurring stream out of a list *}
 primcorec cycle :: "'a list \<Rightarrow> 'a stream" where
   "shd (cycle xs) = hd xs"
 | "stl (cycle xs) = cycle (tl xs @ [hd xs])"
+
 lemma cycle_decomp: "u \<noteq> [] \<Longrightarrow> cycle u = u @- cycle u"
 proof (coinduction arbitrary: u)
   case Eq_stream then show ?case using stream.collapse[of "cycle u"]
@@ -371,7 +361,7 @@ abbreviation "fromN \<equiv> siterate Suc"
 abbreviation "nats \<equiv> fromN 0"
 
 lemma sset_fromN[simp]: "sset (fromN n) = {n ..}"
-  by (auto simp add: sset_siterate) arith
+  by (auto simp add: sset_siterate le_iff_add)
 
 
 subsection {* flatten a stream of lists *}
@@ -512,7 +502,7 @@ primcorec szip where
   "shd (szip s1 s2) = (shd s1, shd s2)"
 | "stl (szip s1 s2) = szip (stl s1) (stl s2)"
 
-lemma szip_unfold[code]: "szip (Stream a s1) (Stream b s2) = Stream (a, b) (szip s1 s2)"
+lemma szip_unfold[code]: "szip (a ## s1) (b ## s2) = (a, b) ## (szip s1 s2)"
   by (subst szip.ctr) simp
 
 lemma snth_szip[simp]: "szip s1 s2 !! n = (s1 !! n, s2 !! n)"
@@ -526,7 +516,7 @@ primcorec smap2 where
 | "stl (smap2 f s1 s2) = smap2 f (stl s1) (stl s2)"
 
 lemma smap2_unfold[code]:
-  "smap2 f (Stream a s1) (Stream b s2) = Stream (f a b) (smap2 f s1 s2)"
+  "smap2 f (a ## s1) (b ## s2) = f a b ## (smap2 f s1 s2)"
   by (subst smap2.ctr) simp
 
 lemma smap2_szip:
