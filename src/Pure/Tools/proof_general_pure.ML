@@ -161,9 +161,11 @@ val _ =
     "Record full proof objects internally";
 
 val _ =
-  ProofGeneral.preference_int ProofGeneral.category_proof
+  ProofGeneral.preference ProofGeneral.category_proof
     NONE
-    Multithreading.max_threads
+    (Markup.print_int o Multithreading.max_threads_value)
+    (Multithreading.max_threads_update o Markup.parse_int)
+    ProofGeneral.pgipint
     "max-threads"
     "Maximum number of threads";
 
@@ -172,7 +174,7 @@ val _ =
     NONE
     (fn () => Markup.print_bool (! Goal.parallel_proofs >= 1))
     (fn s => Goal.parallel_proofs := (if Markup.parse_bool s then 1 else 0))
-    ProofGeneral.pgipbool
+    ProofGeneral.pgipint
     "parallel-proofs"
     "Check proofs in parallel";
 

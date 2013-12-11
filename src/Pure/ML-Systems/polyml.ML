@@ -4,6 +4,25 @@
 Compatibility wrapper for Poly/ML.
 *)
 
+(* ML system operations *)
+
+use "ML-Systems/ml_system.ML";
+
+if ML_System.name = "polyml-5.3.0"
+then use "ML-Systems/share_common_data_polyml-5.3.0.ML"
+else ();
+
+structure ML_System =
+struct
+
+open ML_System;
+
+fun share_common_data () = PolyML.shareCommonData PolyML.rootFunction;
+val save_state = PolyML.SaveState.saveState;
+
+end;
+
+
 (* exceptions *)
 
 fun reraise exn =
@@ -25,6 +44,9 @@ then ()
 else use "ML-Systems/single_assignment_polyml.ML";
 
 open Thread;
+if ML_System.name = "polyml-5.5.2" then ()
+else use "ML-Systems/thread_physical_processors.ML";
+
 use "ML-Systems/multithreading.ML";
 use "ML-Systems/multithreading_polyml.ML";
 
@@ -54,25 +76,6 @@ val implode = SML90.implode;
 val io_buffer_size = 4096;
 
 fun quit () = exit 0;
-
-
-(* ML system operations *)
-
-use "ML-Systems/ml_system.ML";
-
-if ML_System.name = "polyml-5.3.0"
-then use "ML-Systems/share_common_data_polyml-5.3.0.ML"
-else ();
-
-structure ML_System =
-struct
-
-open ML_System;
-
-fun share_common_data () = PolyML.shareCommonData PolyML.rootFunction;
-val save_state = PolyML.SaveState.saveState;
-
-end;
 
 
 (* ML runtime system *)

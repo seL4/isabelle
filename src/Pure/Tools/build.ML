@@ -107,7 +107,7 @@ fun use_theories last_timing options =
         (space_explode "," (Options.string options "print_mode") @ print_mode_value ())
     |> Unsynchronized.setmp Goal.parallel_proofs (Options.int options "parallel_proofs")
     |> Unsynchronized.setmp Multithreading.trace (Options.int options "threads_trace")
-    |> Unsynchronized.setmp Multithreading.max_threads (Options.int options "threads")
+    |> Multithreading.max_threads_setmp (Options.int options "threads")
     |> Unsynchronized.setmp Future.ML_statistics true
     |> Unsynchronized.setmp Pretty.margin_default (Options.int options "pretty_margin")
     |> Unsynchronized.setmp Toplevel.timing (Options.bool options "timing");
@@ -167,7 +167,7 @@ fun build args_file = Command_Line.tool (fn () =>
           (List.app (use_theories_condition last_timing)
             |> session_timing name verbose
             |> Unsynchronized.setmp Output.Internal.protocol_message_fn protocol_message
-            |> Unsynchronized.setmp Multithreading.max_threads (Options.int options "threads")
+            |> Multithreading.max_threads_setmp (Options.int options "threads")
             |> Exn.capture);
       val res2 = Exn.capture Session.finish ();
       val _ = Par_Exn.release_all [res1, res2];
