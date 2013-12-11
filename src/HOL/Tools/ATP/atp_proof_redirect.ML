@@ -39,8 +39,7 @@ sig
   val string_of_refute_graph : refute_graph -> string
   val redirect_sequent : atom list -> atom -> ref_sequent -> direct_sequent
   val direct_graph : direct_sequent list -> direct_graph
-  val redirect_graph :
-    atom list -> atom list -> atom -> refute_graph -> direct_proof
+  val redirect_graph : atom list -> atom list -> atom -> refute_graph -> direct_proof
   val succedent_of_cases : (clause * direct_inference list) list -> clause
   val string_of_direct_proof : direct_proof -> string
 end;
@@ -82,7 +81,9 @@ fun make_refute_graph bot infers =
     fun add_infer (froms, to) = fold (add_edge to) froms
     val graph = fold add_infer infers Atom_Graph.empty
     val reachable = Atom_Graph.all_preds graph [bot]
-  in graph |> Atom_Graph.restrict (member (is_equal o Atom.ord) reachable) end
+  in
+    graph |> Atom_Graph.restrict (member (is_equal o Atom.ord) reachable)
+  end
 
 fun axioms_of_refute_graph refute_graph conjs =
   subtract atom_eq conjs (Atom_Graph.minimals refute_graph)
@@ -91,17 +92,16 @@ fun tainted_atoms_of_refute_graph refute_graph =
   Atom_Graph.all_succs refute_graph
 
 fun sequents_of_refute_graph refute_graph =
-  map (`(Atom_Graph.immediate_preds refute_graph))
-      (filter_out (Atom_Graph.is_minimal refute_graph)
-                  (Atom_Graph.keys refute_graph))
+  Atom_Graph.keys refute_graph
+  |> filter_out (Atom_Graph.is_minimal refute_graph)
+  |> map (`(Atom_Graph.immediate_preds refute_graph))
 
 val string_of_context = map Atom.string_of #> space_implode ", "
 
 fun string_of_sequent (gamma, c) =
   string_of_context gamma ^ " \<turnstile> " ^ Atom.string_of c
 
-fun string_of_refute_graph refute_graph =
-  refute_graph |> sequents_of_refute_graph |> map string_of_sequent |> cat_lines
+val string_of_refute_graph = sequents_of_refute_graph #> map string_of_sequent #> cat_lines
 
 fun redirect_sequent tainted bot (gamma, c) =
   if member atom_eq tainted c then
@@ -131,28 +131,15 @@ fun dest_Have (Have z) = z
   | dest_Have _ = raise Fail "non-Have"
 
 fun enrich_Have nontrivs trivs (cs, c) =
-  (cs |> map (fn c => if member clause_eq nontrivs c then disj (c :: trivs)
-                      else c),
+  Have (cs |> map (fn c => if member clause_eq nontrivs c then disj (c :: trivs) else c),
    disj (c :: trivs))
-  |> Have
 
-fun s_cases cases =
-  case cases |> List.partition (null o snd) of
-    (trivs, nontrivs as [(nontriv0, proof)]) =>
-    if forall (can dest_Have) proof then
-      let val seqs = proof |> map dest_Have in
-        seqs |> map (enrich_Have (nontriv0 :: map snd seqs) (map fst trivs))
-      end
-    else
-      [Cases nontrivs]
-  | (_, nontrivs) => [Cases nontrivs]
+fun s_cases cases = [Cases (filter_out (null o snd) cases)]
 
-fun descendants direct_graph =
-  these o try (Atom_Graph.all_succs direct_graph) o single
+fun descendants direct_graph = these o try (Atom_Graph.all_succs direct_graph) o single
 
 fun zones_of 0 _ = []
-  | zones_of n (bs :: bss) =
-    (fold (subtract atom_eq) bss) bs :: zones_of (n - 1) (bss @ [bs])
+  | zones_of n (bs :: bss) = (fold (subtract atom_eq) bss) bs :: zones_of (n - 1) (bss @ [bs])
 
 fun redirect_graph axioms tainted bot refute_graph =
   let
@@ -165,13 +152,12 @@ fun redirect_graph axioms tainted bot refute_graph =
       else if length c < 2 then
         let
           val proved = c @ proved
-          val provable =
-            filter (fn (gamma, _) => subset atom_eq (gamma, proved)) seqs
+          val provable = filter (fn (gamma, _) => subset atom_eq (gamma, proved)) seqs
           val horn_provable = filter (fn (_, [_]) => true | _ => false) provable
           val seq as (gamma, c) =
-            case horn_provable @ provable of
+            (case horn_provable @ provable of
               [] => raise Fail "ill-formed refutation graph"
-            | next :: _ => next
+            | next :: _ => next)
         in
           Have (map single gamma, c) ::
           redirect c proved (filter (curry (not o direct_sequent_eq) seq) seqs)
@@ -183,10 +169,10 @@ fun redirect_graph axioms tainted bot refute_graph =
           val zones = zones_of (length c) (map (descendants direct_graph) c)
           val subseqss = map (subsequents seqs) zones
           val seqs = fold (subtract direct_sequent_eq) subseqss seqs
-          val cases =
-            map2 (fn l => fn subseqs => ([l], redirect [l] proved subseqs))
-                 c subseqss
-        in s_cases cases @ redirect (succedent_of_cases cases) proved seqs end
+          val cases = map2 (fn l => fn subseqs => ([l], redirect [l] proved subseqs)) c subseqss
+        in
+          s_cases cases @ redirect (succedent_of_cases cases) proved seqs
+        end
   in redirect [] axioms seqs end
 
 fun indent 0 = ""
