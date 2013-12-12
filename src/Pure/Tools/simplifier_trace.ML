@@ -18,7 +18,7 @@ val simp_trace_test =
   Attrib.setup_config_bool @{binding simp_trace_test} (K false)
 
 val _ = Theory.setup
-  (Simplifier.map_theory_simpset (Simplifier.set_trace_ops
+  (Simplifier.set_trace_ops
    {trace_invoke = fn {depth, term} => fn ctxt =>
       (if Config.get ctxt simp_trace_test then
         tracing ("Simplifier invocation " ^ string_of_int depth ^ ": " ^
@@ -27,7 +27,7 @@ val _ = Theory.setup
     trace_apply = fn args => fn ctxt => fn cont =>
       (if Config.get ctxt simp_trace_test then
         tracing ("Simplifier " ^ @{make_string} args)
-       else (); cont ctxt)}))
+       else (); cont ctxt)})
 
 
 (* PIDE protocol *)

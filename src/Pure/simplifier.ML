@@ -48,7 +48,7 @@ sig
   val set_termless: (term * term -> bool) -> Proof.context -> Proof.context
   val set_subgoaler: (Proof.context -> int -> tactic) -> Proof.context -> Proof.context
   type trace_ops
-  val set_trace_ops: trace_ops -> Proof.context -> Proof.context
+  val set_trace_ops: trace_ops -> theory -> theory
   val simproc_global_i: theory -> string -> term list ->
     (Proof.context -> term -> thm option) -> simproc
   val simproc_global: theory -> string -> string list ->
