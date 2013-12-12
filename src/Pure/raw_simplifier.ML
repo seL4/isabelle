@@ -1311,11 +1311,6 @@ fun rewrite_cterm mode prover raw_ctxt raw_ct =
       Theory.subthy (theory_of_cterm ct, thy) orelse
         raise CTERM ("rewrite_cterm: bad background theory", [ct]);
 
-    val depth = simp_depth ctxt;
-    val _ =
-      if depth mod 20 = 0 then
-        Context_Position.if_visible ctxt warning ("Simplification depth " ^ string_of_int depth)
-      else ();
     val _ = trace_cterm ctxt false (fn () => "SIMPLIFIER INVOKED ON THE FOLLOWING TERM:") ct;
     val _ = check_bounds ctxt ct;
   in bottomc (mode, Option.map Drule.flexflex_unique oo prover, maxidx) ctxt ct end;
