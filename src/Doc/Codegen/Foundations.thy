@@ -93,7 +93,7 @@ text {*
 *}
 
 
-subsection {* The preprocessor \label{sec:preproc} *}
+subsection {* The pre- and postprocessor \label{sec:preproc} *}
 
 text {*
   Before selected function theorems are turned into abstract code, a
@@ -101,56 +101,54 @@ text {*
   \emph{preprocessing}.  The preprocessor consists of two
   components: a \emph{simpset} and \emph{function transformers}.
 
-  The \emph{simpset} can apply the full generality of the Isabelle
+  The preprocessor simpset has a disparate brother, the
+  \emph{postprocessor simpset}.
+  In the theory-to-code scenario depicted in the picture 
+  above, it plays no role.  But if generated code is used
+  to evaluate expressions (cf.~\secref{sec:evaluation}), the
+  postprocessor simpset is applied to the resulting expression before this
+  is turned back.
+
+  The pre- and postprocessor \emph{simpsets} can apply the
+  full generality of the Isabelle
   simplifier.  Due to the interpretation of theorems as code
   equations, rewrites are applied to the right hand side and the
   arguments of the left hand side of an equation, but never to the
-  constant heading the left hand side.  An important special case are
-  \emph{unfold theorems}, which may be declared and removed using the
-  @{attribute code_unfold} or \emph{@{attribute code_unfold} del}
-  attribute, respectively.
+  constant heading the left hand side.
 
-  Some common applications:
+  Pre- and postprocessor can be setup to broker between
+  expressions suitable for logical reasoning and expressions 
+  suitable for execution.  As example, take list membership; logically
+  is is just expressed as @{term "x \<in> set xs"}.  But for execution
+  the intermediate set is not desirable.  Hence the following
+  specification:
 *}
 
-text_raw {*
-  \begin{itemize}
-*}
+definition %quote member :: "'a list \<Rightarrow> 'a \<Rightarrow> bool"
+where
+  [code_abbrev]: "member xs x \<longleftrightarrow> x \<in> set xs"
 
 text {*
-     \item replacing non-executable constructs by executable ones:
-*}     
+  \noindent The \emph{@{attribute code_abbrev} attribute} declares
+  its theorem a rewrite rule for the postprocessor and the symmetric
+  of its theorem as rewrite rule for the preprocessor.  Together,
+  this has the effect that expressions @{thm (rhs) member_def [no_vars]}
+  are replaced by @{thm (lhs) member_def [no_vars]} in generated code, but
+  are turned back into @{thm (rhs) member_def [no_vars]} if generated
+  code is used for evaluation.
 
-lemma %quote [code_unfold]:
-  "x \<in> set xs \<longleftrightarrow> List.member xs x" by (fact in_set_member)
+  Rewrite rules for pre- or postprocessor may be
+  declared independently using \emph{@{attribute code_unfold}}
+  or \emph{@{attribute code_post}} respectively.
 
-text {*
-     \item replacing executable but inconvenient constructs:
-*}
-
-lemma %quote [code_unfold]:
-  "xs = [] \<longleftrightarrow> List.null xs" by (fact eq_Nil_null)
-
-text {*
-     \item eliminating disturbing expressions:
-*}
-
-lemma %quote [code_unfold]:
-  "1 = Suc 0" by (fact One_nat_def)
-
-text_raw {*
-  \end{itemize}
-*}
-
-text {*
-  \noindent \emph{Function transformers} provide a very general
+  \emph{Function transformers} provide a very general
   interface, transforming a list of function theorems to another list
   of function theorems, provided that neither the heading constant nor
   its type change.  The @{term "0\<Colon>nat"} / @{const Suc} pattern
   used in theory @{text Code_Abstract_Nat} (see \secref{abstract_nat})
   uses this interface.
 
-  \noindent The current setup of the preprocessor may be inspected
+  \noindent The current setup of the pre- and postprocessor may be inspected
   using the @{command_def print_codeproc} command.  @{command_def
   code_thms} (see \secref{sec:equations}) provides a convenient
   mechanism to inspect the impact of a preprocessor setup on code
