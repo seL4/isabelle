@@ -107,6 +107,7 @@ ML_file "Tools/rule_insts.ML";
 ML_file "Tools/find_theorems.ML"
 ML_file "Tools/find_consts.ML"
 ML_file "Tools/proof_general_pure.ML"
+ML_file "Tools/simplifier_trace.ML"
 
 
 section {* Further content for the Pure theory *}

@@ -328,7 +328,7 @@ and require_thy document last_timing initiators dir (str, require_pos) tasks =
 
           val (current, deps, theory_pos, imports, keywords) = check_deps dir' name
             handle ERROR msg => cat_error msg
-              (loader_msg "the error(s) above occurred while examining theory" [name] ^
+              (loader_msg "the error(s) above occurred for theory" [name] ^
                 Position.here require_pos ^ required_by "\n" initiators);
 
           val parents = map (base_name o #1) imports;

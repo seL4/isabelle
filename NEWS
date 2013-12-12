@@ -12,6 +12,10 @@ which results in an active hyperlink within the text.
 * Document antiquotation @{file_unchecked} is like @{file}, but does
 not check existence within the file-system.
 
+* Discontinued legacy_isub_isup, which was a temporary Isabelle/ML
+workaround in Isabelle2013-1.  The prover process no longer accepts
+old identifier syntax with \<^isub> or \<^isup>.
+
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 

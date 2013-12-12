@@ -81,12 +81,7 @@ val available = true;
 
 fun max_threads_result m =
   if m > 0 then m
-  else
-    let val n =
-      (case Thread.numPhysicalProcessors () of
-        SOME n => n
-      | NONE => Thread.numProcessors ())
-    in Int.min (Int.max (n, 1), 8) end;
+  else Int.min (Int.max (Thread.numProcessors (), 1), 8);
 
 val max_threads = ref 1;
 
