@@ -89,8 +89,7 @@ class Thy_Info(thy_load: Thy_Load)
     else if (thy_load.loaded_theories(name.theory)) required + name
     else {
       def message: String =
-        "The error(s) above occurred while examining theory " +
-          quote(name.theory) + required_by(initiators)
+        "The error(s) above occurred for theory " + quote(name.theory) + required_by(initiators)
 
       try {
         if (initiators.contains(name)) error(cycle_msg(initiators))
