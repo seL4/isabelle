@@ -1114,25 +1114,26 @@ fun bottomc ((simprem, useprem, mutsimp), prover, maxidx) =
                     | SOME thm' => SOME (Thm.transitive thm thm'))
                   end
               | _  =>
-                  let fun appc () =
-                        let
-                          val (tskel, uskel) =
-                            (case skel of
-                              tskel $ uskel => (tskel, uskel)
-                            | _ => (skel0, skel0));
-                          val (ct, cu) = Thm.dest_comb t0;
-                        in
-                          (case botc tskel ctxt ct of
-                            SOME thm1 =>
-                              (case botc uskel ctxt cu of
-                                SOME thm2 => SOME (Thm.combination thm1 thm2)
-                              | NONE => SOME (Thm.combination thm1 (Thm.reflexive cu)))
-                          | NONE =>
-                              (case botc uskel ctxt cu of
-                                SOME thm1 => SOME (Thm.combination (Thm.reflexive ct) thm1)
-                              | NONE => NONE))
-                        end
-                      val (h, ts) = strip_comb t;
+                  let
+                    fun appc () =
+                      let
+                        val (tskel, uskel) =
+                          (case skel of
+                            tskel $ uskel => (tskel, uskel)
+                          | _ => (skel0, skel0));
+                        val (ct, cu) = Thm.dest_comb t0;
+                      in
+                        (case botc tskel ctxt ct of
+                          SOME thm1 =>
+                            (case botc uskel ctxt cu of
+                              SOME thm2 => SOME (Thm.combination thm1 thm2)
+                            | NONE => SOME (Thm.combination thm1 (Thm.reflexive cu)))
+                        | NONE =>
+                            (case botc uskel ctxt cu of
+                              SOME thm1 => SOME (Thm.combination (Thm.reflexive ct) thm1)
+                            | NONE => NONE))
+                      end;
+                    val (h, ts) = strip_comb t;
                   in
                     (case cong_name h of
                       SOME a =>
@@ -1177,20 +1178,22 @@ fun bottomc ((simprem, useprem, mutsimp), prover, maxidx) =
     and disch r prem eq =
       let
         val (lhs, rhs) = Thm.dest_equals (Thm.cprop_of eq);
-        val eq' = Thm.implies_elim (Thm.instantiate
-          ([], [(cA, prem), (cB, lhs), (cC, rhs)]) Drule.imp_cong)
-          (Thm.implies_intr prem eq)
+        val eq' =
+          Thm.implies_elim
+            (Thm.instantiate ([], [(cA, prem), (cB, lhs), (cC, rhs)]) Drule.imp_cong)
+            (Thm.implies_intr prem eq);
       in
         if not r then eq'
         else
           let
             val (prem', concl) = Thm.dest_implies lhs;
-            val (prem'', _) = Thm.dest_implies rhs
-          in Thm.transitive (Thm.transitive
-            (Thm.instantiate ([], [(cA, prem'), (cB, prem), (cC, concl)])
-               Drule.swap_prems_eq) eq')
-            (Thm.instantiate ([], [(cA, prem), (cB, prem''), (cC, concl)])
-               Drule.swap_prems_eq)
+            val (prem'', _) = Thm.dest_implies rhs;
+          in
+            Thm.transitive
+              (Thm.transitive
+                (Thm.instantiate ([], [(cA, prem'), (cB, prem), (cC, concl)]) Drule.swap_prems_eq)
+                eq')
+              (Thm.instantiate ([], [(cA, prem), (cB, prem''), (cC, concl)]) Drule.swap_prems_eq)
           end
       end
 
@@ -1200,19 +1203,19 @@ fun bottomc ((simprem, useprem, mutsimp), prover, maxidx) =
             val ctxt' = add_rrules (rev rrss, rev asms) ctxt;
             val concl' =
               Drule.mk_implies (prem, the_default concl (Option.map Thm.rhs_of eq));
-            val dprem = Option.map (disch false prem)
+            val dprem = Option.map (disch false prem);
           in
             (case rewritec (prover, maxidx) ctxt' concl' of
               NONE => rebuild prems concl' rrss asms ctxt (dprem eq)
-            | SOME (eq', _) => transitive2 (fold (disch false)
-                  prems (the (transitive3 (dprem eq) eq')))
-                (mut_impc0 (rev prems) (Thm.rhs_of eq') (rev rrss) (rev asms) ctxt))
+            | SOME (eq', _) =>
+                transitive2 (fold (disch false) prems (the (transitive3 (dprem eq) eq')))
+                  (mut_impc0 (rev prems) (Thm.rhs_of eq') (rev rrss) (rev asms) ctxt))
           end
 
     and mut_impc0 prems concl rrss asms ctxt =
       let
         val prems' = strip_imp_prems concl;
-        val (rrss', asms') = split_list (map (rules_of_prem ctxt) prems')
+        val (rrss', asms') = split_list (map (rules_of_prem ctxt) prems');
       in
         mut_impc (prems @ prems') (strip_imp_concl concl) (rrss @ rrss')
           (asms @ asms') [] [] [] [] ctxt ~1 ~1
