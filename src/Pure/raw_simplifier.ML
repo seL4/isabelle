@@ -73,10 +73,6 @@ sig
   include BASIC_RAW_SIMPLIFIER
   exception SIMPLIFIER of string * thm
   val internal_ss: simpset ->
-   {rules: rrule Net.net,
-    prems: thm list,
-    bounds: int * ((string * typ) * string) list,
-    depth: int * bool Unsynchronized.ref} *
    {congs: (cong_name * thm) list * cong_name list,
     procs: proc Net.net,
     mk_rews:
@@ -287,7 +283,7 @@ datatype simpset =
     loop_tacs: (string * (Proof.context -> int -> tactic)) list,
     solvers: solver list * solver list};
 
-fun internal_ss (Simpset args) = args;
+fun internal_ss (Simpset (_, ss2)) = ss2;
 
 fun make_ss1 (rules, prems, bounds, depth) =
   {rules = rules, prems = prems, bounds = bounds, depth = depth};
