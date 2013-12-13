@@ -47,6 +47,21 @@ structure String_Redirect = ATP_Proof_Redirect(
 
 open String_Redirect
 
+fun maybe_mk_Trueprop t = t |> fastype_of t = HOLogic.boolT ? HOLogic.mk_Trueprop
+val maybe_dest_Trueprop = perhaps (try HOLogic.dest_Trueprop)
+
+val e_skolemize_rule = "skolemize"
+val vampire_skolemisation_rule = "skolemisation"
+(* TODO: Use "Z3_Proof.string_of_rule" once it is moved to Isabelle *)
+val z3_skolemize_rule = "skolemize"
+val z3_hypothesis_rule = "hypothesis"
+val z3_lemma_rule = "lemma"
+val z3_intro_def_rule = "intro-def"
+val z3_apply_def_rule = "apply-def"
+
+val is_skolemize_rule =
+  member (op =) [e_skolemize_rule, vampire_skolemisation_rule, z3_skolemize_rule]
+
 fun raw_label_of_num num = (num, 0)
 
 fun label_of_clause [(num, _)] = raw_label_of_num num
@@ -60,42 +75,38 @@ fun replace_one_dependency (old, new) dep =
 fun replace_dependencies_in_line p (name, role, t, rule, deps) =
   (name, role, t, rule, fold (union (op =) o replace_one_dependency p) deps [])
 
+fun inline_z3_defs _ [] = []
+  | inline_z3_defs defs ((line as (name, role, t, rule, deps)) :: lines) =
+    if rule = z3_intro_def_rule then
+      let val def = t |> maybe_dest_Trueprop |> HOLogic.dest_eq |> swap in
+        inline_z3_defs (insert (op =) def defs)
+          (map (replace_dependencies_in_line (name, [])) lines)
+      end
+    else if rule = z3_apply_def_rule then
+      inline_z3_defs defs (map (replace_dependencies_in_line (name, [])) lines)
+    else
+      (name, role, Term.subst_atomic defs t, rule, deps) :: inline_z3_defs defs lines
+
+fun inline_z3_hypotheses lines = lines
+
 (* No "real" literals means only type information (tfree_tcs, clsrel, or
    clsarity). *)
 fun is_only_type_information t = t aconv @{term True}
 
-fun is_same_inference (role, t) (_, role', t', _, _) =
-  (t |> role = Conjecture ? s_not) aconv (t' |> role' = Conjecture ? s_not)
-
-fun is_False t = t aconv @{term False} orelse t aconv @{prop False}
-
-fun truncate_at_false [] = []
-  | truncate_at_false ((line as (_, role, t, _, _)) :: lines) =
-    line :: (if role <> Conjecture andalso is_False t then [] else truncate_at_false lines)
-
 (* Discard facts; consolidate adjacent lines that prove the same formula, since
    they differ only in type information.*)
-fun add_line (name as (_, ss), role, t, rule, []) lines =
+fun add_line (line as (name as (_, ss), role, t, rule, [])) lines =
     (* No dependencies: lemma (for Z3), fact, conjecture, or (for Vampire)
        internal facts or definitions. *)
     if role = Lemma orelse role = Conjecture orelse role = Negated_Conjecture orelse
        role = Hypothesis then
-      (name, role, t, rule, []) :: lines
+      line :: lines
     else if role = Axiom then
       (* Facts are not proof lines. *)
       lines |> is_only_type_information t ? map (replace_dependencies_in_line (name, []))
     else
       map (replace_dependencies_in_line (name, [])) lines
-  | add_line (line as (name, role, t, _, _)) lines =
-    (* Type information will be deleted later; skip repetition test. *)
-    if is_only_type_information t then
-      line :: lines
-    else
-      (* Is there a repetition? If so, replace later line by earlier one. *)
-      (case take_prefix (not o is_same_inference (role, t)) lines of
-        (_, []) => line :: lines
-      | (pre, (name', _, _, _, _) :: post) =>
-        line :: pre @ map (replace_dependencies_in_line (name', [name])) post)
+  | add_line line lines = line :: lines
 
 (* Recursively delete empty lines (type information) from the proof. *)
 fun add_nontrivial_line (line as (name, _, t, _, [])) lines =
@@ -104,19 +115,13 @@ fun add_nontrivial_line (line as (name, _, t, _, [])) lines =
 and delete_dependency name lines =
   fold_rev add_nontrivial_line (map (replace_dependencies_in_line (name, [])) lines) []
 
-val e_skolemize_rule = "skolemize"
-val vampire_skolemisation_rule = "skolemisation"
-
-val is_skolemize_rule = member (op =) [e_skolemize_rule, vampire_skolemisation_rule]
-
 fun add_desired_lines res [] = rev res
   | add_desired_lines res ((name as (_, ss), role, t, rule, deps) :: lines) =
     if role <> Plain orelse is_skolemize_rule rule orelse
        (* the last line must be kept *)
        null lines orelse
-       (not (is_only_type_information t) andalso
-        null (Term.add_tvars t []) andalso
-        length deps >= 2 andalso
+       (not (is_only_type_information t) andalso null (Term.add_tvars t [])
+        andalso length deps >= 2 andalso
         (* don't keep next to last line, which usually results in a trivial step *)
         not (can the_single lines)) then
       add_desired_lines ((name, role, t, rule, deps) :: res) lines
@@ -205,9 +210,6 @@ val chain_direct_proof =
     and chain_proofs proofs = map (chain_proof) proofs
   in chain_proof end
 
-fun maybe_mk_Trueprop t = t |> fastype_of t = HOLogic.boolT ? HOLogic.mk_Trueprop
-val maybe_dest_Trueprop = perhaps (try HOLogic.dest_Trueprop)
-
 type isar_params =
   bool * bool * string * string * Time.time option * real * bool * (term, string) atp_step list *
   thm
@@ -232,7 +234,8 @@ fun isar_proof_text ctxt isar_proofs
       let
         val atp_proof =
           atp_proof
-          |> truncate_at_false
+          |> inline_z3_defs []
+          |> inline_z3_hypotheses
           |> rpair [] |-> fold_rev add_line
           |> rpair [] |-> fold_rev add_nontrivial_line
           |> add_desired_lines []
