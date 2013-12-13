@@ -459,7 +459,7 @@ structure Data = Generic_Data
 
 fun bnf_of ctxt =
   Symtab.lookup (Data.get (Context.Proof ctxt))
-  #> Option.map (morph_bnf (Morphism.thm_morphism (Thm.transfer (Proof_Context.theory_of ctxt))));
+  #> Option.map (morph_bnf (Morphism.transfer_morphism (Proof_Context.theory_of ctxt)));
 
 
 (* Utilities *)

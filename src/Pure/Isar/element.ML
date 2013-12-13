@@ -391,7 +391,7 @@ fun instT_thm thy env th =
     in if null subst then th else th |> hyps_rule (instantiate_tfrees thy subst) end;
 
 fun instT_morphism thy env =
-  Morphism.morphism
+  Morphism.morphism "Element.instT"
    {binding = [],
     typ = [instT_type env],
     term = [instT_term env],
@@ -434,7 +434,7 @@ fun inst_thm thy (envT, env) th =
     end;
 
 fun inst_morphism thy (envT, env) =
-  Morphism.morphism
+  Morphism.morphism "Element.inst"
    {binding = [],
     typ = [instT_type envT],
     term = [inst_term (envT, env)],
@@ -449,14 +449,14 @@ fun satisfy_thm witns thm =
       NONE => I
     | SOME w => Thm.implies_intr hyp #> compose_witness w)) (#hyps (Thm.crep_thm thm));
 
-val satisfy_morphism = Morphism.thm_morphism o satisfy_thm;
+val satisfy_morphism = Morphism.thm_morphism "Element.satisfy" o satisfy_thm;
 
 
 (* rewriting with equalities *)
 
 fun eq_morphism _ [] = NONE
   | eq_morphism thy thms =
-      SOME (Morphism.morphism
+      SOME (Morphism.morphism "Element.eq_morphism"
        {binding = [],
         typ = [],
         term = [Raw_Simplifier.rewrite_term thy thms []],

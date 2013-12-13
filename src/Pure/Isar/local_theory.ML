@@ -189,7 +189,8 @@ val restore_naming = map_naming o K o naming_of;
 
 fun standard_morphism lthy ctxt =
   Proof_Context.norm_export_morphism lthy ctxt $>
-  Morphism.binding_morphism (Name_Space.transform_binding (naming_of lthy));
+  Morphism.binding_morphism "Local_Theory.standard_binding"
+    (Name_Space.transform_binding (naming_of lthy));
 
 fun standard_form lthy ctxt x =
   Morphism.form (Morphism.transform (standard_morphism lthy ctxt) x);
