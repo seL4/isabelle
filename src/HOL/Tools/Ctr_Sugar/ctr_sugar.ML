@@ -125,7 +125,7 @@ fun morph_ctr_sugar phi {ctrs, casex, discs, selss, exhaust, nchotomy, injects, 
    case_eq_ifs = map (Morphism.thm phi) case_eq_ifs};
 
 val transfer_ctr_sugar =
-  morph_ctr_sugar o Morphism.thm_morphism o Thm.transfer o Proof_Context.theory_of;
+  morph_ctr_sugar o Morphism.transfer_morphism o Proof_Context.theory_of;
 
 structure Data = Generic_Data
 (

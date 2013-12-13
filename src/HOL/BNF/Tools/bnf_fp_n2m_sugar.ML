@@ -52,7 +52,7 @@ fun morph_n2m_sugar phi (fp_sugars, (lfp_sugar_thms_opt, gfp_sugar_thms_opt)) =
     Option.map (morph_gfp_sugar_thms phi) gfp_sugar_thms_opt));
 
 val transfer_n2m_sugar =
-  morph_n2m_sugar o Morphism.thm_morphism o Thm.transfer o Proof_Context.theory_of;
+  morph_n2m_sugar o Morphism.transfer_morphism o Proof_Context.theory_of;
 
 fun n2m_sugar_of ctxt =
   Typtab.lookup (Data.get (Context.Proof ctxt))
@@ -127,7 +127,7 @@ fun mutualize_fp_sugars fp bs fpTs get_indices callssss fp_sugars0 no_defs_lthy0
     fun target_ctr_sugar_of_fp_sugar fpT ({T, index, ctr_sugars, ...} : fp_sugar) =
       let
         val rho = Vartab.fold (cons o apsnd snd) (Sign.typ_match thy (T, fpT) Vartab.empty) [];
-        val phi = Morphism.term_morphism (Term.subst_TVars rho);
+        val phi = Morphism.term_morphism "BNF" (Term.subst_TVars rho);
       in
         morph_ctr_sugar phi (nth ctr_sugars index)
       end;
