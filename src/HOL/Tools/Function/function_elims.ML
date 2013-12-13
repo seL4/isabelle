@@ -53,13 +53,13 @@ fun propagate_tac i thm =
     asm_lr_simp_tac ss i thm
   end;
 
-val eqBoolI = @{lemma "!!P. P ==> P = True" "!!P. ~P ==> P = False" by iprover+};
+val eq_boolI = @{lemma "!!P. P ==> P = True" "!!P. ~P ==> P = False" by iprover+};
 val boolE = @{thms HOL.TrueE HOL.FalseE};
 val boolD = @{lemma "!!P. True = P ==> P" "!!P. False = P ==> ~P" by iprover+};
-val eqBool = @{thms HOL.eq_True HOL.eq_False HOL.not_False_eq_True HOL.not_True_eq_False};
+val eq_bool = @{thms HOL.eq_True HOL.eq_False HOL.not_False_eq_True HOL.not_True_eq_False};
 
 fun bool_subst_tac ctxt i =
-  REPEAT (EqSubst.eqsubst_asm_tac ctxt [1] eqBool i)
+  REPEAT (EqSubst.eqsubst_asm_tac ctxt [1] eq_bool i)
   THEN REPEAT (dresolve_tac boolD i)
   THEN REPEAT (eresolve_tac boolE i)
 
@@ -69,7 +69,7 @@ fun mk_bool_elims ctxt elim =
     fun mk_bool_elim b =
       elim
       |> Thm.forall_elim b
-      |> Tactic.rule_by_tactic ctxt (TRY (resolve_tac eqBoolI 1))
+      |> Tactic.rule_by_tactic ctxt (TRY (resolve_tac eq_boolI 1))
       |> Tactic.rule_by_tactic ctxt tac;
   in
     map mk_bool_elim [@{cterm True}, @{cterm False}]
@@ -81,8 +81,7 @@ fun mk_partial_elim_rules ctxt result =
   let
     val thy = Proof_Context.theory_of ctxt;
 
-    val FunctionResult {fs, G, R, dom, psimps, simple_pinducts, cases,
-      termination, domintros, ...} = result;
+    val FunctionResult {fs, R, dom, psimps, cases, ...} = result;
     val n_fs = length fs;
 
     fun mk_partial_elim_rule (idx, f) =
@@ -93,7 +92,7 @@ fun mk_partial_elim_rules ctxt result =
           | mk_funeq n (Type (@{type_name "fun"}, [S, T])) (acc_vars, acc_lhs) =
               let val xn = Free ("x" ^ Int.toString n, S)
               in mk_funeq (n - 1) T (xn :: acc_vars, acc_lhs $ xn) end
-          | mk_funeq _ _ _ = raise (TERM ("Not a function.", [f]));
+          | mk_funeq _ _ _ = raise TERM ("Not a function.", [f]);
 
         val f_simps =
           filter (fn r =>
@@ -121,20 +120,18 @@ fun mk_partial_elim_rules ctxt result =
         val asms = [cprop, cterm_of thy (HOLogic.mk_Trueprop (dom $ sumtree_inj))];
         val asms_thms = map Thm.assume asms;
 
-        fun prep_subgoal i =
+        fun prep_subgoal_tac i =
           REPEAT (eresolve_tac @{thms Pair_inject} i)
           THEN Method.insert_tac (case asms_thms of thm :: thms => (thm RS sym) :: thms) i
           THEN propagate_tac i
           THEN TRY ((EqSubst.eqsubst_asm_tac ctxt [1] psimps i) THEN atac i)
           THEN bool_subst_tac ctxt i;
 
-      val tac = ALLGOALS prep_subgoal;
-
       val elim_stripped =
         nth cases idx
         |> Thm.forall_elim @{cterm "P::bool"}
         |> Thm.forall_elim (cterm_of thy args)
-        |> Tactic.rule_by_tactic ctxt tac
+        |> Tactic.rule_by_tactic ctxt (ALLGOALS prep_subgoal_tac)
         |> fold_rev Thm.implies_intr asms
         |> Thm.forall_intr (cterm_of thy rhs_var);
 
