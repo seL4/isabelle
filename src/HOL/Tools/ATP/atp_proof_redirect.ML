@@ -79,6 +79,7 @@ fun make_refute_graph bot infers =
       #> Atom_Graph.default_node (to, ())
       #> Atom_Graph.add_edge_acyclic (from, to)
     fun add_infer (froms, to) = fold (add_edge to) froms
+
     val graph = fold add_infer infers Atom_Graph.empty
     val reachable = Atom_Graph.all_preds graph [bot]
   in
@@ -88,8 +89,7 @@ fun make_refute_graph bot infers =
 fun axioms_of_refute_graph refute_graph conjs =
   subtract atom_eq conjs (Atom_Graph.minimals refute_graph)
 
-fun tainted_atoms_of_refute_graph refute_graph =
-  Atom_Graph.all_succs refute_graph
+fun tainted_atoms_of_refute_graph refute_graph = Atom_Graph.all_succs refute_graph
 
 fun sequents_of_refute_graph refute_graph =
   Atom_Graph.keys refute_graph
@@ -101,7 +101,8 @@ val string_of_context = map Atom.string_of #> space_implode ", "
 fun string_of_sequent (gamma, c) =
   string_of_context gamma ^ " \<turnstile> " ^ Atom.string_of c
 
-val string_of_refute_graph = sequents_of_refute_graph #> map string_of_sequent #> cat_lines
+fun string_of_refute_graph refute_graph =
+  refute_graph |> sequents_of_refute_graph |> map string_of_sequent |> cat_lines
 
 fun redirect_sequent tainted bot (gamma, c) =
   if member atom_eq tainted c then
@@ -117,7 +118,9 @@ fun direct_graph seqs =
       #> Atom_Graph.default_node (to, ())
       #> Atom_Graph.add_edge_acyclic (from, to)
     fun add_seq (gamma, c) = fold (fn l => fold (add_edge l) c) gamma
-  in Atom_Graph.empty |> fold add_seq seqs end
+  in
+    fold add_seq seqs Atom_Graph.empty
+  end
 
 fun disj cs = fold (union atom_eq) cs [] |> sort Atom.ord
 
@@ -143,9 +146,9 @@ fun zones_of 0 _ = []
 
 fun redirect_graph axioms tainted bot refute_graph =
   let
-    val seqs =
-      map (redirect_sequent tainted bot) (sequents_of_refute_graph refute_graph)
+    val seqs = map (redirect_sequent tainted bot) (sequents_of_refute_graph refute_graph)
     val direct_graph = direct_graph seqs
+
     fun redirect c proved seqs =
       if null seqs then
         []
@@ -173,7 +176,9 @@ fun redirect_graph axioms tainted bot refute_graph =
         in
           s_cases cases @ redirect (succedent_of_cases cases) proved seqs
         end
-  in redirect [] axioms seqs end
+  in
+    redirect [] axioms seqs
+  end
 
 fun indent 0 = ""
   | indent n = "  " ^ indent (n - 1)
@@ -193,8 +198,7 @@ and string_of_inference depth (Have seq) =
     indent depth ^ string_of_rich_sequent "\<triangleright>" seq
   | string_of_inference depth (Cases cases) =
     indent depth ^ "[\n" ^
-    space_implode ("\n" ^ indent depth ^ "|\n")
-                  (map (string_of_case depth) cases) ^ "\n" ^
+    space_implode ("\n" ^ indent depth ^ "|\n") (map (string_of_case depth) cases) ^ "\n" ^
     indent depth ^ "]"
 
 and string_of_subproof depth = cat_lines o map (string_of_inference depth)
