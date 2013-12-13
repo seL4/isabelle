@@ -424,8 +424,7 @@ fun implode_pseudo_utf8 (cs as ["\192", c]) =
 
 val scan_encoded_newline =
   $$ "\^M" -- $$ "\n" >> K "\n" ||
-  $$ "\^M" >> K "\n" ||
-  Scan.this_string "\\<^newline>" >> K "\n";  (*Proof General legacy*)
+  $$ "\^M" >> K "\n";
 
 val scan_raw =
   Scan.this_string "raw:" ^^ (Scan.many raw_chr >> implode) ||

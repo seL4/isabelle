@@ -51,7 +51,7 @@ object Symbol
       case _ => !s.endsWith(">") || s == "\\<>" || s == "\\<^>"
     }
 
-  def is_physical_newline(s: Symbol): Boolean =
+  def is_newline(s: Symbol): Boolean =
     s == "\n" || s == "\r" || s == "\r\n"
 
   class Matcher(text: CharSequence)
@@ -102,7 +102,7 @@ object Symbol
   {
     var (line, column) = pos
     for (sym <- iterator(text)) {
-      if (is_physical_newline(sym)) { line += 1; column = 1 }
+      if (is_newline(sym)) { line += 1; column = 1 }
       else column += 1
     }
     (line, column)
@@ -358,7 +358,7 @@ object Symbol
       "\\<Xi>", "\\<Pi>", "\\<Sigma>", "\\<Upsilon>", "\\<Phi>",
       "\\<Psi>", "\\<Omega>")
 
-    val blanks = recode_set(" ", "\t", "\n", "\u000B", "\f", "\r", "\r\n", "\\<^newline>")
+    val blanks = recode_set(" ", "\t", "\n", "\u000B", "\f", "\r", "\r\n")
 
     val sym_chars =
       Set("!", "#", "$", "%", "&", "*", "+", "-", "/", "<", "=", ">", "?", "@", "^", "_", "|", "~")

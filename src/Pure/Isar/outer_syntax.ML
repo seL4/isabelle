@@ -267,13 +267,15 @@ fun parse pos str =
 type isar =
   (Toplevel.transition, (Toplevel.transition option,
     (Token.T, (Token.T option, (Token.T, (Token.T,
-      (Symbol_Pos.T, Position.T * (Symbol.symbol, (string, unit) Source.source)
+      (Symbol_Pos.T,
+        Position.T * (Symbol.symbol, (Symbol.symbol, (string, unit) Source.source) Source.source)
   Source.source) Source.source) Source.source) Source.source)
   Source.source) Source.source) Source.source) Source.source;
 
 fun isar in_stream term : isar =
   Source.tty in_stream
   |> Symbol.source
+  |> Source.map_filter (fn "\\<^newline>" => SOME "\n" | s => SOME s)  (*Proof General legacy*)
   |> Token.source {do_recover = SOME true} Keyword.get_lexicons Position.none
   |> toplevel_source term (SOME true) lookup_commands_dynamic;
 
