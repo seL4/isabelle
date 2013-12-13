@@ -171,7 +171,7 @@ end;
 
 (* Instantiation morphism *)
 
-fun inst_morph (parm_names, parm_types) ((prfx, mandatory), insts') ctxt =
+fun inst_morphism (parm_names, parm_types) ((prfx, mandatory), insts') ctxt =
   let
     (* parameters *)
     val type_parm_names = fold Term.add_tfreesT parm_types [] |> map fst;
@@ -192,7 +192,7 @@ fun inst_morph (parm_names, parm_types) ((prfx, mandatory), insts') ctxt =
     val inst = Symtab.make insts'';
   in
     (Element.inst_morphism (Proof_Context.theory_of ctxt) (instT, inst) $>
-      Morphism.binding_morphism (Binding.prefix mandatory prfx), ctxt')
+      Morphism.binding_morphism "Expression.inst" (Binding.prefix mandatory prfx), ctxt')
   end;
 
 
@@ -299,7 +299,7 @@ fun finish_inst ctxt (loc, (prfx, inst)) =
   let
     val thy = Proof_Context.theory_of ctxt;
     val (parm_names, parm_types) = Locale.params_of thy loc |> map #1 |> split_list;
-    val (morph, _) = inst_morph (parm_names, parm_types) (prfx, inst) ctxt;
+    val (morph, _) = inst_morphism (parm_names, parm_types) (prfx, inst) ctxt;
   in (loc, morph) end;
 
 fun finish_fixes (parms: (string * typ) list) = map (fn (binding, _, mx) =>
@@ -368,7 +368,7 @@ fun prep_full_context_statement
         val insts' = insts @ [(loc, (prfx, inst''))];
         val (insts'', _, _, _) = check_autofix insts' [] [] ctxt;
         val inst''' = insts'' |> List.last |> snd |> snd;
-        val (morph, _) = inst_morph (parm_names, parm_types) (prfx, inst''') ctxt;
+        val (morph, _) = inst_morphism (parm_names, parm_types) (prfx, inst''') ctxt;
         val ctxt'' = Locale.activate_declarations (loc, morph) ctxt;
       in (i + 1, insts', ctxt'') end;
 
@@ -513,7 +513,8 @@ fun prep_goal_expression prep expression context =
     val exp_term = Term_Subst.zero_var_indexes o Morphism.term export;
     val exp_typ = Logic.type_map exp_term;
     val export' =
-      Morphism.morphism {binding = [], typ = [exp_typ], term = [exp_term], fact = [exp_fact]};
+      Morphism.morphism "Expression.prep_goal"
+        {binding = [], typ = [exp_typ], term = [exp_term], fact = [exp_fact]};
   in ((propss, deps, export'), goal_ctxt) end;
 
 in

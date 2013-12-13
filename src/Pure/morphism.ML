@@ -16,23 +16,24 @@ end
 signature MORPHISM =
 sig
   include BASIC_MORPHISM
-  type 'a funs = ('a -> 'a) list
+  exception MORPHISM of string * exn
+  val pretty: morphism -> Pretty.T
   val binding: morphism -> binding -> binding
   val typ: morphism -> typ -> typ
   val term: morphism -> term -> term
   val fact: morphism -> thm list -> thm list
   val thm: morphism -> thm -> thm
   val cterm: morphism -> cterm -> cterm
-  val morphism:
-   {binding: binding funs,
-    typ: typ funs,
-    term: term funs,
-    fact: thm list funs} -> morphism
-  val binding_morphism: (binding -> binding) -> morphism
-  val typ_morphism: (typ -> typ) -> morphism
-  val term_morphism: (term -> term) -> morphism
-  val fact_morphism: (thm list -> thm list) -> morphism
-  val thm_morphism: (thm -> thm) -> morphism
+  val morphism: string ->
+   {binding: (binding -> binding) list,
+    typ: (typ -> typ) list,
+    term: (term -> term) list,
+    fact: (thm list -> thm list) list} -> morphism
+  val binding_morphism: string -> (binding -> binding) -> morphism
+  val typ_morphism: string -> (typ -> typ) -> morphism
+  val term_morphism: string -> (term -> term) -> morphism
+  val fact_morphism: string -> (thm list -> thm list) -> morphism
+  val thm_morphism: string -> (thm -> thm) -> morphism
   val transfer_morphism: theory -> morphism
   val identity: morphism
   val compose: morphism -> morphism -> morphism
@@ -43,16 +44,30 @@ end;
 structure Morphism: MORPHISM =
 struct
 
-type 'a funs = ('a -> 'a) list;
-fun apply fs = fold_rev (fn f => fn x => f x) fs;
+(* named functions *)
+
+type 'a funs = (string * ('a -> 'a)) list;
+
+exception MORPHISM of string * exn;
+
+fun app (name, f) x = f x
+  handle exn => if Exn.is_interrupt exn then reraise exn else raise MORPHISM (name, exn);
+
+fun apply fs = fold_rev app fs;
+
+
+(* type morphism *)
 
 datatype morphism = Morphism of
- {binding: binding funs,
+ {names: string list,
+  binding: binding funs,
   typ: typ funs,
   term: term funs,
   fact: thm list funs};
 
 type declaration = morphism -> Context.generic -> Context.generic;
+
+fun pretty (Morphism {names, ...}) = Pretty.enum ";" "{" "}" (map Pretty.str (rev names));
 
 fun binding (Morphism {binding, ...}) = apply binding;
 fun typ (Morphism {typ, ...}) = apply typ;
@@ -61,22 +76,36 @@ fun fact (Morphism {fact, ...}) = apply fact;
 val thm = singleton o fact;
 val cterm = Drule.cterm_rule o thm;
 
-val morphism = Morphism;
 
-fun binding_morphism binding = morphism {binding = [binding], typ = [], term = [], fact = []};
-fun typ_morphism typ = morphism {binding = [], typ = [typ], term = [], fact = []};
-fun term_morphism term = morphism {binding = [], typ = [], term = [term], fact = []};
-fun fact_morphism fact = morphism {binding = [], typ = [], term = [], fact = [fact]};
-fun thm_morphism thm = morphism {binding = [], typ = [], term = [], fact = [map thm]};
-val transfer_morphism = thm_morphism o Thm.transfer;
+fun morphism a {binding, typ, term, fact} =
+  Morphism {
+    names = if a = "" then [] else [a],
+    binding = map (pair a) binding,
+    typ = map (pair a) typ,
+    term = map (pair a) term,
+    fact = map (pair a) fact};
 
-val identity = morphism {binding = [], typ = [], term = [], fact = []};
+fun binding_morphism a binding = morphism a {binding = [binding], typ = [], term = [], fact = []};
+fun typ_morphism a typ = morphism a {binding = [], typ = [typ], term = [], fact = []};
+fun term_morphism a term = morphism a {binding = [], typ = [], term = [term], fact = []};
+fun fact_morphism a fact = morphism a {binding = [], typ = [], term = [], fact = [fact]};
+fun thm_morphism a thm = morphism a {binding = [], typ = [], term = [], fact = [map thm]};
+val transfer_morphism = thm_morphism "transfer" o Thm.transfer;
+
+val identity = morphism "" {binding = [], typ = [], term = [], fact = []};
+
+
+(* morphism combinators *)
 
 fun compose
-    (Morphism {binding = binding1, typ = typ1, term = term1, fact = fact1})
-    (Morphism {binding = binding2, typ = typ2, term = term2, fact = fact2}) =
-  morphism {binding = binding1 @ binding2, typ = typ1 @ typ2,
-    term = term1 @ term2, fact = fact1 @ fact2};
+    (Morphism {names = names1, binding = binding1, typ = typ1, term = term1, fact = fact1})
+    (Morphism {names = names2, binding = binding2, typ = typ2, term = term2, fact = fact2}) =
+  Morphism {
+    names = names1 @ names2,
+    binding = binding1 @ binding2,
+    typ = typ1 @ typ2,
+    term = term1 @ term2,
+    fact = fact1 @ fact2};
 
 fun phi1 $> phi2 = compose phi2 phi1;
 

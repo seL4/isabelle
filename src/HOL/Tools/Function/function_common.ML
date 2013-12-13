@@ -189,8 +189,11 @@ fun lift_morphism thy f =
   let
     fun term t = Thm.term_of (Drule.cterm_rule f (Thm.cterm_of thy t))
   in
-    Morphism.thm_morphism f $> Morphism.term_morphism term
-    $> Morphism.typ_morphism (Logic.type_map term)
+    Morphism.morphism "lift_morphism"
+      {binding = [],
+       typ = [Logic.type_map term],
+       term = [term],
+       fact = [map f]}
   end
 
 fun import_function_data t ctxt =

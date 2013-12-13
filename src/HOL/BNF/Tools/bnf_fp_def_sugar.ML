@@ -156,7 +156,7 @@ fun morph_fp_sugar phi ({T, fp, index, pre_bnfs, nested_bnfs, nesting_bnfs, fp_r
    sel_co_iterssss = map (map (map (map (Morphism.thm phi)))) sel_co_iterssss};
 
 val transfer_fp_sugar =
-  morph_fp_sugar o Morphism.thm_morphism o Thm.transfer o Proof_Context.theory_of;
+  morph_fp_sugar o Morphism.transfer_morphism o Proof_Context.theory_of;
 
 structure Data = Generic_Data
 (
@@ -344,7 +344,7 @@ fun morph_lfp_sugar_thms phi ((inducts, induct, induct_attrs), (foldss, recss, i
    (map (map (Morphism.thm phi)) foldss, map (map (Morphism.thm phi)) recss, iter_attrs));
 
 val transfer_lfp_sugar_thms =
-  morph_lfp_sugar_thms o Morphism.thm_morphism o Thm.transfer o Proof_Context.theory_of;
+  morph_lfp_sugar_thms o Morphism.transfer_morphism o Proof_Context.theory_of;
 
 type gfp_sugar_thms =
   ((thm list * thm) list * Args.src list)
@@ -368,7 +368,7 @@ fun morph_gfp_sugar_thms phi ((coinducts_pairs, coinduct_attrs),
     map (map (map (Morphism.thm phi))) sel_corecsss, sel_iter_attrs));
 
 val transfer_gfp_sugar_thms =
-  morph_gfp_sugar_thms o Morphism.thm_morphism o Thm.transfer o Proof_Context.theory_of;
+  morph_gfp_sugar_thms o Morphism.transfer_morphism o Proof_Context.theory_of;
 
 fun mk_iter_fun_arg_types0 n ms = map2 dest_tupleT ms o dest_sumTN_balanced n o domain_type;
 

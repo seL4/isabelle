@@ -328,6 +328,7 @@ toplevel_pp ["Path", "T"] "Path.pretty";
 toplevel_pp ["SHA1", "digest"] "Pretty.str o quote o SHA1.rep";
 toplevel_pp ["Proof", "state"] "(fn _: Proof.state => Pretty.str \"<Proof.state>\")";
 toplevel_pp ["Toplevel", "state"] "Toplevel.pretty_abstract";
+toplevel_pp ["Morphism", "morphism"] "Morphism.pretty";
 
 if ML_System.is_polyml then use "ML/install_pp_polyml.ML" else ();
 
