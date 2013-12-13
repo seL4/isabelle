@@ -109,7 +109,7 @@ fun mk_partial_elim_rules ctxt result =
           |> HOLogic.dest_Trueprop
           |> snd o fst o dest_funprop
           |> length;
-        val (free_vars,prop,ranT) = mk_funeq arity (fastype_of f) ([], f);
+        val (free_vars, prop, ranT) = mk_funeq arity (fastype_of f) ([], f);
         val (rhs_var, arg_vars) = (case free_vars of x :: xs => (x, rev xs));
         val args = HOLogic.mk_tuple arg_vars;
         val domT = R |> dest_Free |> snd |> hd o snd o dest_Type;
@@ -143,7 +143,7 @@ fun mk_partial_elim_rules ctxt result =
 
       fun unstrip rl =
         rl
-        |> (fn thm => List.foldr (uncurry Thm.forall_intr) thm (map cert arg_vars))
+        |> fold_rev (Thm.forall_intr o cert) arg_vars
         |> Thm.forall_intr @{cterm "P::bool"};
     in
       map unstrip (elim_stripped :: bool_elims)
