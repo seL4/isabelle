@@ -33,7 +33,7 @@ fun dest_funprop (Const (@{const_name HOL.eq}, _) $ lhs $ rhs) = (strip_comb lhs
 
 local
 
-fun propagate_tac i thm =
+fun propagate_tac ctxt i =
   let
     fun inspect eq =
       (case eq of
@@ -46,11 +46,11 @@ fun propagate_tac i thm =
       (if inspect (prop_of thm) then [thm RS eq_reflection]
        else [Thm.symmetric (thm RS eq_reflection)])
       handle Match => [];
-    val ss =
-      Simplifier.global_context (Thm.theory_of_thm thm) empty_ss
+    val simpset =
+      empty_simpset ctxt
       |> Simplifier.set_mksimps (K mk_eq);
   in
-    asm_lr_simp_tac ss i thm
+    asm_lr_simp_tac simpset i
   end;
 
 val eq_boolI = @{lemma "!!P. P ==> P = True" "!!P. ~P ==> P = False" by iprover+};
@@ -80,6 +80,7 @@ in
 fun mk_partial_elim_rules ctxt result =
   let
     val thy = Proof_Context.theory_of ctxt;
+    val cert = cterm_of thy;
 
     val FunctionResult {fs, R, dom, psimps, cases, ...} = result;
     val n_fs = length fs;
@@ -115,25 +116,25 @@ fun mk_partial_elim_rules ctxt result =
 
         val sumtree_inj = SumTree.mk_inj domT n_fs (idx+1) args;
 
-        val cprop = cterm_of thy prop;
+        val cprop = cert prop;
 
-        val asms = [cprop, cterm_of thy (HOLogic.mk_Trueprop (dom $ sumtree_inj))];
+        val asms = [cprop, cert (HOLogic.mk_Trueprop (dom $ sumtree_inj))];
         val asms_thms = map Thm.assume asms;
 
         fun prep_subgoal_tac i =
           REPEAT (eresolve_tac @{thms Pair_inject} i)
           THEN Method.insert_tac (case asms_thms of thm :: thms => (thm RS sym) :: thms) i
-          THEN propagate_tac i
+          THEN propagate_tac ctxt i
           THEN TRY ((EqSubst.eqsubst_asm_tac ctxt [1] psimps i) THEN atac i)
           THEN bool_subst_tac ctxt i;
 
       val elim_stripped =
         nth cases idx
         |> Thm.forall_elim @{cterm "P::bool"}
-        |> Thm.forall_elim (cterm_of thy args)
+        |> Thm.forall_elim (cert args)
         |> Tactic.rule_by_tactic ctxt (ALLGOALS prep_subgoal_tac)
         |> fold_rev Thm.implies_intr asms
-        |> Thm.forall_intr (cterm_of thy rhs_var);
+        |> Thm.forall_intr (cert rhs_var);
 
       val bool_elims =
         (case ranT of
@@ -142,7 +143,7 @@ fun mk_partial_elim_rules ctxt result =
 
       fun unstrip rl =
         rl
-        |> (fn thm => List.foldr (uncurry Thm.forall_intr) thm (map (cterm_of thy) arg_vars))
+        |> (fn thm => List.foldr (uncurry Thm.forall_intr) thm (map cert arg_vars))
         |> Thm.forall_intr @{cterm "P::bool"};
     in
       map unstrip (elim_stripped :: bool_elims)
