@@ -14,7 +14,7 @@ imports
   Word_Miscellaneous
 begin
 
-text {* see @{text "Examples/WordExamples.thy"} for examples *}
+text {* See @{file "Examples/WordExamples.thy"} for examples. *}
 
 subsection {* Type definition *}
 
