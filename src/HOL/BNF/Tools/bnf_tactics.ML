@@ -45,7 +45,7 @@ fun fo_rtac thm = Subgoal.FOCUS (fn {concl, ...} =>
     rtac (Drule.instantiate_normalize insts thm) 1
   end);
 
-fun mk_unfold_thms_then_tac lthy defs tac x = unfold_thms_tac lthy defs THEN tac x;
+fun mk_unfold_thms_then_tac ctxt defs tac x = unfold_thms_tac ctxt defs THEN tac x;
 
 (*transforms f (g x) = h (k x) into f o g = h o k using first order matches for f, g, h, and k*)
 fun mk_pointfree ctxt thm = thm

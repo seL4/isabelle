@@ -393,11 +393,11 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
         val rews = map mk_meta_eq (@{thm fst_conv} :: @{thm snd_conv} :: rec_thms);
         val thm = Goal.prove_global thy []
           (map attach_typeS prems) (attach_typeS concl)
-          (fn {prems, ...} => EVERY
+          (fn {context = ctxt, prems} => EVERY
           [rtac (#raw_induct ind_info) 1,
-           rewrite_goals_tac rews,
+           rewrite_goals_tac ctxt rews,
            REPEAT ((resolve_tac prems THEN_ALL_NEW EVERY'
-             [K (rewrite_goals_tac rews), Object_Logic.atomize_prems_tac,
+             [K (rewrite_goals_tac ctxt rews), Object_Logic.atomize_prems_tac ctxt,
               DEPTH_SOLVE_1 o FIRST' [atac, etac allE, etac impE]]) 1)]);
         val (thm', thy') = Global_Theory.store_thm (Binding.qualified_name (space_implode "_"
           (Long_Name.qualify qualifier "induct" :: vs' @ Ps @ ["correctness"])), thm) thy;
@@ -459,8 +459,8 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
             [cut_tac (hd prems) 1,
              etac elimR 1,
              ALLGOALS (asm_simp_tac (put_simpset HOL_basic_ss ctxt)),
-             rewrite_goals_tac rews,
-             REPEAT ((resolve_tac prems THEN_ALL_NEW (Object_Logic.atomize_prems_tac THEN'
+             rewrite_goals_tac ctxt rews,
+             REPEAT ((resolve_tac prems THEN_ALL_NEW (Object_Logic.atomize_prems_tac ctxt THEN'
                DEPTH_SOLVE_1 o FIRST' [atac, etac allE, etac impE])) 1)]);
         val (thm', thy') = Global_Theory.store_thm (Binding.qualified_name (space_implode "_"
           (name_of_thm elim :: vs @ Ps @ ["correctness"])), thm) thy

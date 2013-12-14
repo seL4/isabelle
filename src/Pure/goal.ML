@@ -49,7 +49,7 @@ sig
   val conjunction_tac: int -> tactic
   val precise_conjunction_tac: int -> int -> tactic
   val recover_conjunction_tac: tactic
-  val norm_hhf_tac: int -> tactic
+  val norm_hhf_tac: Proof.context -> int -> tactic
   val assume_rule_tac: Proof.context -> int -> tactic
 end;
 
@@ -317,11 +317,11 @@ fun CONJUNCTS tac =
 
 (* hhf normal form *)
 
-val norm_hhf_tac =
+fun norm_hhf_tac ctxt =
   rtac Drule.asm_rl  (*cheap approximation -- thanks to builtin Logic.flatten_params*)
   THEN' SUBGOAL (fn (t, i) =>
     if Drule.is_norm_hhf t then all_tac
-    else rewrite_goal_tac Drule.norm_hhf_eqs i);
+    else rewrite_goal_tac ctxt Drule.norm_hhf_eqs i);
 
 
 (* non-atomic goal assumptions *)
@@ -330,7 +330,7 @@ fun non_atomic (Const ("==>", _) $ _ $ _) = true
   | non_atomic (Const ("all", _) $ _) = true
   | non_atomic _ = false;
 
-fun assume_rule_tac ctxt = norm_hhf_tac THEN' CSUBGOAL (fn (goal, i) =>
+fun assume_rule_tac ctxt = norm_hhf_tac ctxt THEN' CSUBGOAL (fn (goal, i) =>
   let
     val ((_, goal'), ctxt') = Variable.focus_cterm goal ctxt;
     val goal'' = Drule.cterm_rule (singleton (Variable.export ctxt' ctxt)) goal';

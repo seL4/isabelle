@@ -219,8 +219,8 @@ fun prove_casesrule ctxt (pred, (pre_cases_rule, nparams)) cases_rule =
           |> snd |> Vartab.dest |> map (pairself (cterm_of thy) o term_pair_of)
         val (cases, (eqs, prems)) = apsnd (chop (nargs - nparams)) (chop n prems)
         val case_th =
-          rewrite_rule (@{thm Predicate.eq_is_eq} :: map meta_eq_of eqs) (nth cases (i - 1))
-        val prems' = maps (dest_conjunct_prem o rewrite_rule tuple_rew_rules) prems
+          rewrite_rule ctxt (@{thm Predicate.eq_is_eq} :: map meta_eq_of eqs) (nth cases (i - 1))
+        val prems' = maps (dest_conjunct_prem o rewrite_rule ctxt tuple_rew_rules) prems
         val pats = map (swap o HOLogic.dest_eq o HOLogic.dest_Trueprop) (take nargs (prems_of case_th))
         val case_th' = Thm.instantiate ([], inst_of_matches pats) case_th
           OF (replicate nargs @{thm refl})
@@ -236,7 +236,7 @@ fun prove_casesrule ctxt (pred, (pre_cases_rule, nparams)) cases_rule =
       (PEEK nprems_of
         (fn n =>
           ALLGOALS (fn i =>
-            rewrite_goal_tac [@{thm split_paired_all}] i
+            rewrite_goal_tac ctxt [@{thm split_paired_all}] i
             THEN (SUBPROOF (instantiate i n) ctxt i))))
   in
     Goal.prove ctxt (Term.add_free_names cases_rule []) [] cases_rule (fn _ => tac)

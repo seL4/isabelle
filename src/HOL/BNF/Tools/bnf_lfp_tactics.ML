@@ -567,7 +567,7 @@ fun mk_ctor_induct2_tac cTs cts ctor_induct weak_ctor_inducts {context = ctxt, p
       EVERY' [rtac allI, fo_rtac induct ctxt,
         select_prem_tac n (dtac @{thm meta_spec2}) i,
         REPEAT_DETERM_N n o
-          EVERY' [dtac meta_mp THEN_ALL_NEW Goal.norm_hhf_tac,
+          EVERY' [dtac meta_mp THEN_ALL_NEW Goal.norm_hhf_tac ctxt,
             REPEAT_DETERM o dtac @{thm meta_spec}, etac (spec RS meta_mp), atac],
         atac];
   in

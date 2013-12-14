@@ -82,7 +82,7 @@ fun mp_step n th = if (n=0) then th else (mp_step (n-1) th) RS mp;
 
 
 fun mir_tac ctxt q = 
-    Object_Logic.atomize_prems_tac
+    Object_Logic.atomize_prems_tac ctxt
         THEN' simp_tac (put_simpset HOL_basic_ss ctxt
           addsimps [@{thm "abs_ge_zero"}] addsimps @{thms simp_thms})
         THEN' (REPEAT_DETERM o split_tac [@{thm "split_min"}, @{thm "split_max"}, @{thm "abs_split"}])

@@ -68,10 +68,11 @@ fun mk_meta_eq r = case concl_of r of
   |   _ => r RS P_imp_P_eq_True
 
 (*Is this the best way to invoke the simplifier??*)
-fun rewrite L = rewrite_rule (map mk_meta_eq (filter_out id_thm L))
+fun rewrite ctxt L = rewrite_rule ctxt (map mk_meta_eq (filter_out id_thm L))
 
 fun join_assums th =
   let val thy = Thm.theory_of_thm th
+      val ctxt = Proof_Context.init_global thy
       val tych = cterm_of thy
       val {lhs,rhs} = USyntax.dest_eq(#2 (USyntax.strip_forall (concl th)))
       val cntxtl = (#1 o USyntax.strip_imp) lhs  (* cntxtl should = cntxtr *)
@@ -80,7 +81,7 @@ fun join_assums th =
   in
     Rules.GEN_ALL
       (Rules.DISCH_ALL
-         (rewrite (map (Rules.ASSUME o tych) cntxt) (Rules.SPEC_ALL th)))
+         (rewrite ctxt (map (Rules.ASSUME o tych) cntxt) (Rules.SPEC_ALL th)))
   end
   val gen_all = USyntax.gen_all
 in
@@ -139,7 +140,7 @@ fun simplify_defn strict thy ctxt congs wfs id pats def0 =
    let
        val def = Thm.unvarify_global def0 RS meta_eq_to_obj_eq
        val {rules,rows,TCs,full_pats_TCs} =
-           Prim.post_definition congs (thy, (def, pats))
+           Prim.post_definition congs thy ctxt (def, pats)
        val {lhs=f,rhs} = USyntax.dest_eq (concl def)
        val (_,[R,_]) = USyntax.strip_comb rhs
        val dummy = Prim.trace_thms "congs =" congs
@@ -149,9 +150,9 @@ fun simplify_defn strict thy ctxt congs wfs id pats def0 =
                {f = f, R = R, rules = rules,
                 full_pats_TCs = full_pats_TCs,
                 TCs = TCs}
-       val rules' = map (Drule.export_without_context o Object_Logic.rulify_no_asm)
+       val rules' = map (Drule.export_without_context o Object_Logic.rulify_no_asm ctxt)
                         (Rules.CONJUNCTS rules)
-         in  {induct = meta_outer ctxt (Object_Logic.rulify_no_asm (induction RS spec')),
+         in  {induct = meta_outer ctxt (Object_Logic.rulify_no_asm ctxt (induction RS spec')),
         rules = ListPair.zip(rules', rows),
         tcs = (termination_goals rules') @ tcs}
    end
@@ -170,7 +171,7 @@ local
     | solve_eq _ (th, [a], i) = [(a, i)]
     | solve_eq ctxt (th, splitths, i) =
       (writeln "Proving unsplit equation...";
-      [((Drule.export_without_context o Object_Logic.rulify_no_asm)
+      [((Drule.export_without_context o Object_Logic.rulify_no_asm ctxt)
           (CaseSplit.splitto ctxt splitths th), i)])
       handle ERROR s => 
              (warning ("recdef (solve_eq): " ^ s); map (fn x => (x,i)) splitths);

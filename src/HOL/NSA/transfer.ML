@@ -58,11 +58,11 @@ fun transfer_thm_of ctxt ths t =
     val meta = Local_Defs.meta_rewrite_rule ctxt;
     val ths' = map meta ths;
     val unfolds' = map meta unfolds and refolds' = map meta refolds;
-    val (_$_$t') = concl_of (Raw_Simplifier.rewrite true unfolds' (cterm_of thy t))
+    val (_$_$t') = concl_of (Raw_Simplifier.rewrite ctxt true unfolds' (cterm_of thy t))
     val u = unstar_term consts t'
     val tac =
-      rewrite_goals_tac (ths' @ refolds' @ unfolds') THEN
-      ALLGOALS Object_Logic.full_atomize_tac THEN
+      rewrite_goals_tac ctxt (ths' @ refolds' @ unfolds') THEN
+      ALLGOALS (Object_Logic.full_atomize_tac ctxt) THEN
       match_tac [transitive_thm] 1 THEN
       resolve_tac [@{thm transfer_start}] 1 THEN
       REPEAT_ALL_NEW (resolve_tac intros) 1 THEN
@@ -76,7 +76,7 @@ fun transfer_tac ctxt ths =
               val tr = transfer_thm_of ctxt ths t
               val (_$l$r) = concl_of tr;
               val trs = if l aconv r then [] else [tr];
-            in rewrite_goals_tac trs th end))
+            in rewrite_goals_tac ctxt trs th end))
 
 local
 

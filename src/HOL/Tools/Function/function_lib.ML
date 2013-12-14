@@ -107,12 +107,14 @@ fun dest_binop_list cn (t as (Const (n, _) $ a $ b)) =
 
 fun regroup_conv neu cn ac is ct =
  let
+   val thy = theory_of_cterm ct
+   val ctxt = Proof_Context.init_global thy  (* FIXME proper context!? *)
+
    val mk = HOLogic.mk_binop cn
    val t = term_of ct
    val xs = dest_binop_list cn t
    val js = subtract (op =) is (0 upto (length xs) - 1)
    val ty = fastype_of t
-   val thy = theory_of_cterm ct
  in
    Goal.prove_internal []
      (cterm_of thy
@@ -122,7 +124,7 @@ fun regroup_conv neu cn ac is ct =
           else if null js
             then mk (foldr1 mk (map (nth xs) is), Const (neu, ty))
             else mk (foldr1 mk (map (nth xs) is), foldr1 mk (map (nth xs) js)))))
-     (K (rewrite_goals_tac ac
+     (K (rewrite_goals_tac ctxt ac
          THEN rtac Drule.reflexive_thm 1))
  end
 

@@ -2920,7 +2920,7 @@ structure Parametric_Ferrante_Rackoff =
 struct
 
 fun tactic ctxt alternative T ps = 
-  Object_Logic.full_atomize_tac
+  Object_Logic.full_atomize_tac ctxt
   THEN' CSUBGOAL (fn (g, i) =>
     let
       val th = frpar_oracle (ctxt, alternative, T, ps, g)

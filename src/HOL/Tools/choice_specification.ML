@@ -113,6 +113,8 @@ fun unvarify_global t fmap =
 
 fun process_spec axiomatic cos alt_props thy =
     let
+        val ctxt = Proof_Context.init_global thy
+
         fun zip3 [] [] [] = []
           | zip3 (x::xs) (y::ys) (z::zs) = (x,y,z)::zip3 xs ys zs
           | zip3 _ _ _ = error "Choice_Specification.process_spec internal error"
@@ -122,7 +124,7 @@ fun process_spec axiomatic cos alt_props thy =
           | myfoldr f [] = error "Choice_Specification.process_spec internal error"
 
         val rew_imps = alt_props |>
-          map (Object_Logic.atomize o Thm.cterm_of thy o Syntax.read_prop_global thy o snd)
+          map (Object_Logic.atomize ctxt o Thm.cterm_of thy o Syntax.read_prop_global thy o snd)
         val props' = rew_imps |>
           map (HOLogic.dest_Trueprop o term_of o snd o Thm.dest_equals o cprop_of)
 

@@ -245,8 +245,10 @@ fun distill ctxt fixes eqs =
       let
         val frees = fold (Variable.add_free_names ctxt) eqs [];
         val rewrites = rec_rewrites' @ map (snd o snd) defs;
-        fun tac _ = EVERY [rewrite_goals_tac rewrites, rtac refl 1];
-      in map (fn eq => Goal.prove ctxt frees [] eq tac) eqs end;
+      in
+        map (fn eq => Goal.prove ctxt frees [] eq
+          (fn {context = ctxt', ...} => EVERY [rewrite_goals_tac ctxt' rewrites, rtac refl 1])) eqs
+      end;
   in ((prefix, (fs, defs)), prove) end
   handle PrimrecError (msg, some_eqn) =>
     error ("Primrec definition error:\n" ^ msg ^

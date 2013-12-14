@@ -193,7 +193,7 @@ val is_equality_lemma =
     by (unfold is_equality_def, rule, drule meta_spec,
       erule meta_mp, rule refl, simp)}
 
-fun gen_abstract_equalities (dest : term -> term * (term -> term)) thm =
+fun gen_abstract_equalities ctxt (dest : term -> term * (term -> term)) thm =
   let
     val thy = Thm.theory_of_thm thm
     val prop = Thm.prop_of thm
@@ -212,7 +212,7 @@ fun gen_abstract_equalities (dest : term -> term * (term -> term)) thm =
     val prop1 = mk_prop' (Term.subst_atomic (eq_consts ~~ frees) t)
     val prop2 = fold Logic.all frees (Logic.list_implies (prems, prop1))
     val cprop = Thm.cterm_of thy prop2
-    val equal_thm = Raw_Simplifier.rewrite false [is_equality_lemma] cprop
+    val equal_thm = Raw_Simplifier.rewrite ctxt false [is_equality_lemma] cprop
     fun forall_elim thm = Thm.forall_elim_vars (Thm.maxidx_of thm + 1) thm
   in
     forall_elim (thm COMP (equal_thm COMP @{thm equal_elim_rule2}))
@@ -234,11 +234,11 @@ fun abstract_equalities_transfer ctxt thm =
       Conv.fconv_rule (transfer_rel_conv (bottom_rewr_conv (get_relator_eq ctxt))) thm
       handle CTERM _ => thm
   in
-    gen_abstract_equalities dest contracted_eq_thm
+    gen_abstract_equalities ctxt dest contracted_eq_thm
   end
 
-fun abstract_equalities_relator_eq rel_eq_thm =
-  gen_abstract_equalities (fn x => (x, I))
+fun abstract_equalities_relator_eq ctxt rel_eq_thm =
+  gen_abstract_equalities ctxt (fn x => (x, I))
     (rel_eq_thm RS @{thm is_equality_def [THEN iffD2]})
 
 fun abstract_equalities_domain ctxt thm =
@@ -256,7 +256,7 @@ fun abstract_equalities_domain ctxt thm =
     val contracted_eq_thm = 
       Conv.fconv_rule (transfer_rel_conv (bottom_rewr_conv (get_relator_eq ctxt))) thm
   in
-    gen_abstract_equalities dest contracted_eq_thm
+    gen_abstract_equalities ctxt dest contracted_eq_thm
   end 
 
 
@@ -288,7 +288,7 @@ fun subst_terms tab t =
           | t => t)
   end
 
-fun gen_abstract_domains (dest : term -> term * (term -> term)) thm =
+fun gen_abstract_domains ctxt (dest : term -> term * (term -> term)) thm =
   let
     val thy = Thm.theory_of_thm thm
     val prop = Thm.prop_of thm
@@ -305,14 +305,14 @@ fun gen_abstract_domains (dest : term -> term * (term -> term)) thm =
     val prop1 = fold Logic.all frees (Logic.list_implies (prems, mk_prop' t'))
     val prop2 = Logic.list_rename_params (rev names) prop1
     val cprop = Thm.cterm_of thy prop2
-    val equal_thm = Raw_Simplifier.rewrite false [Domainp_lemma] cprop
+    val equal_thm = Raw_Simplifier.rewrite ctxt false [Domainp_lemma] cprop
     fun forall_elim thm = Thm.forall_elim_vars (Thm.maxidx_of thm + 1) thm;
   in
     forall_elim (thm COMP (equal_thm COMP @{thm equal_elim_rule2}))
   end
     handle TERM _ => thm
 
-fun abstract_domains_transfer thm =
+fun abstract_domains_transfer ctxt thm =
   let
     fun dest prop =
       let
@@ -324,7 +324,7 @@ fun abstract_domains_transfer thm =
           Logic.list_implies (prems, HOLogic.mk_Trueprop (rel $ x' $ y)))
       end
   in
-    gen_abstract_domains dest thm
+    gen_abstract_domains ctxt dest thm
   end
 
 fun detect_transfer_rules thm =
@@ -587,11 +587,11 @@ fun transfer_tac equiv ctxt i =
         handle TERM (_, ts) => raise TERM (err_msg, ts)
   in
     EVERY
-      [rewrite_goal_tac pre_simps i THEN
+      [rewrite_goal_tac ctxt pre_simps i THEN
        SUBGOAL main_tac i,
        (* FIXME: rewrite_goal_tac does unwanted eta-contraction *)
-       rewrite_goal_tac post_simps i,
-       Goal.norm_hhf_tac i]
+       rewrite_goal_tac ctxt post_simps i,
+       Goal.norm_hhf_tac ctxt i]
   end
 
 fun transfer_prover_tac ctxt = SUBGOAL (fn (t, i) =>
@@ -626,7 +626,7 @@ fun transferred ctxt extra_rules thm =
                 |> map (fn v as ((a, _), S) => (v, TFree (a, S)))
     val thm2 = thm1
       |> Thm.certify_instantiate (instT, [])
-      |> Raw_Simplifier.rewrite_rule pre_simps
+      |> Raw_Simplifier.rewrite_rule ctxt pre_simps
     val ctxt' = Variable.declare_names (Thm.full_prop_of thm2) ctxt
     val t = HOLogic.dest_Trueprop (Thm.concl_of thm2)
     val rule = transfer_rule_of_lhs ctxt' t
@@ -641,7 +641,7 @@ fun transferred ctxt extra_rules thm =
     val tnames = map (fst o dest_TFree o snd) instT
   in
     thm3
-      |> Raw_Simplifier.rewrite_rule post_simps
+      |> Raw_Simplifier.rewrite_rule ctxt' post_simps
       |> Raw_Simplifier.norm_hhf
       |> Drule.generalize (tnames, [])
       |> Drule.zero_var_indexes
@@ -662,7 +662,7 @@ fun untransferred ctxt extra_rules thm =
                 |> map (fn v as ((a, _), S) => (v, TFree (a, S)))
     val thm2 = thm1
       |> Thm.certify_instantiate (instT, [])
-      |> Raw_Simplifier.rewrite_rule pre_simps
+      |> Raw_Simplifier.rewrite_rule ctxt pre_simps
     val ctxt' = Variable.declare_names (Thm.full_prop_of thm2) ctxt
     val t = HOLogic.dest_Trueprop (Thm.concl_of thm2)
     val rule = transfer_rule_of_term ctxt' true t
@@ -677,7 +677,7 @@ fun untransferred ctxt extra_rules thm =
     val tnames = map (fst o dest_TFree o snd) instT
   in
     thm3
-      |> Raw_Simplifier.rewrite_rule post_simps
+      |> Raw_Simplifier.rewrite_rule ctxt' post_simps
       |> Raw_Simplifier.norm_hhf
       |> Drule.generalize (tnames, [])
       |> Drule.zero_var_indexes
@@ -700,8 +700,8 @@ val transfer_prover_method : (Proof.context -> Proof.method) context_parser =
 
 (* Attribute for transfer rules *)
 
-fun prep_rule ctxt thm = 
-  (abstract_domains_transfer o abstract_equalities_transfer ctxt o Conv.fconv_rule prep_conv) thm
+fun prep_rule ctxt = 
+  abstract_domains_transfer ctxt o abstract_equalities_transfer ctxt o Conv.fconv_rule prep_conv
 
 val transfer_add =
   Thm.declaration_attribute (fn thm => fn ctxt => 
@@ -742,10 +742,14 @@ val untransferred_attribute_parser =
 val relator_eq_setup =
   let
     val name = @{binding relator_eq}
-    fun add_thm thm = Data.map (map_relator_eq (Item_Net.update thm))
-      #> Data.map (map_relator_eq_raw (Item_Net.update (abstract_equalities_relator_eq thm)))
-    fun del_thm thm = Data.map (map_relator_eq (Item_Net.remove thm))
-      #> Data.map (map_relator_eq_raw (Item_Net.remove (abstract_equalities_relator_eq thm)))
+    fun add_thm thm context = context
+      |> Data.map (map_relator_eq (Item_Net.update thm))
+      |> Data.map (map_relator_eq_raw
+          (Item_Net.update (abstract_equalities_relator_eq (Context.proof_of context) thm)))
+    fun del_thm thm context = context
+      |> Data.map (map_relator_eq (Item_Net.remove thm))
+      |> Data.map (map_relator_eq_raw
+          (Item_Net.remove (abstract_equalities_relator_eq (Context.proof_of context) thm)))
     val add = Thm.declaration_attribute add_thm
     val del = Thm.declaration_attribute del_thm
     val text = "declaration of relator equality rule (used by transfer method)"

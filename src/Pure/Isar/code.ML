@@ -1130,9 +1130,12 @@ fun case_cong thy case_const (num_args, (pos, _)) =
     fun mk_prem z = Free (z, T_cong);
     fun mk_concl z = list_comb (Const (case_const, T), map2 (curry Free) (ws @ z :: vs) Ts);
     val (prem, concl) = pairself Logic.mk_equals (pairself mk_prem (x, y), pairself mk_concl (x, y));
-    fun tac { context, prems } = Simplifier.rewrite_goals_tac prems
-      THEN ALLGOALS (Proof_Context.fact_tac [Drule.reflexive_thm]);
-  in Goal.prove_sorry_global thy (x :: y :: zs) [prem] concl tac end;
+  in
+    Goal.prove_sorry_global thy (x :: y :: zs) [prem] concl
+      (fn {context = ctxt', prems} =>
+        Simplifier.rewrite_goals_tac ctxt' prems
+        THEN ALLGOALS (Proof_Context.fact_tac ctxt' [Drule.reflexive_thm]))
+  end;
 
 fun add_case thm thy =
   let

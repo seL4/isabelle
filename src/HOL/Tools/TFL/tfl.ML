@@ -12,7 +12,7 @@ sig
   type pattern
   val mk_functional: theory -> term list -> {functional: term, pats: pattern list}
   val wfrec_definition0: theory -> string -> term -> term -> theory * thm
-  val post_definition: thm list -> theory * (thm * pattern list) ->
+  val post_definition: thm list -> theory -> Proof.context -> thm * pattern list ->
    {rules: thm,
     rows: int list,
     TCs: term list list,
@@ -415,7 +415,7 @@ end;
 
 fun givens pats = map pat_of (filter given pats);
 
-fun post_definition meta_tflCongs (theory, (def, pats)) =
+fun post_definition meta_tflCongs theory ctxt (def, pats) =
  let val tych = Thry.typecheck theory
      val f = #lhs(USyntax.dest_eq(concl def))
      val corollary = Rules.MATCH_MP Thms.WFREC_COROLLARY def
@@ -440,7 +440,7 @@ fun post_definition meta_tflCongs (theory, (def, pats)) =
      val extract = Rules.CONTEXT_REWRITE_RULE
                      (f, [R], @{thm cut_apply}, meta_tflCongs @ context_congs)
      val (rules, TCs) = ListPair.unzip (map extract corollaries')
-     val rules0 = map (rewrite_rule [Thms.CUT_DEF]) rules
+     val rules0 = map (rewrite_rule ctxt [Thms.CUT_DEF]) rules
      val mk_cond_rule = Rules.FILTER_DISCH_ALL(not o curry (op aconv) WFR)
      val rules1 = Rules.LIST_CONJ(map mk_cond_rule rules0)
  in
@@ -460,7 +460,8 @@ fun post_definition meta_tflCongs (theory, (def, pats)) =
  *---------------------------------------------------------------------------*)
 
 fun wfrec_eqns thy fid tflCongs eqns =
- let val {lhs,rhs} = USyntax.dest_eq (hd eqns)
+ let val ctxt = Proof_Context.init_global thy
+     val {lhs,rhs} = USyntax.dest_eq (hd eqns)
      val (f,args) = USyntax.strip_comb lhs
      val (fname,fty) = dest_atom f
      val (SV,a) = front_last args    (* SV = schematic variables *)
@@ -493,7 +494,7 @@ fun wfrec_eqns thy fid tflCongs eqns =
      val R1 = USyntax.rand WFR
      val corollary' = Rules.UNDISCH (Rules.UNDISCH WFREC_THM)
      val corollaries = map (fn pat => Rules.SPEC (tych pat) corollary') given_pats
-     val corollaries' = map (rewrite_rule case_rewrites) corollaries
+     val corollaries' = map (rewrite_rule ctxt case_rewrites) corollaries
      fun extract X = Rules.CONTEXT_REWRITE_RULE
                        (f, R1::SV, @{thm cut_apply}, tflCongs@context_congs) X
  in {proto_def = proto_def,
@@ -625,6 +626,7 @@ fun alpha_ex_unroll (xlist, tm) =
 
 fun mk_case ty_info usednames thy =
  let
+ val ctxt = Proof_Context.init_global thy
  val divide = ipartition (gvvariant usednames)
  val tych = Thry.typecheck thy
  fun tych_binding(x,y) = (tych x, tych y)
@@ -657,7 +659,7 @@ fun mk_case ty_info usednames thy =
                                    (new_formals, disjuncts)
             val constraints = map #1 existentials
             val vexl = map #2 existentials
-            fun expnd tm (pats,(th,b)) = (pats, (Rules.SUBS [Rules.ASSUME (tych tm)] th, b))
+            fun expnd tm (pats,(th,b)) = (pats, (Rules.SUBS ctxt [Rules.ASSUME (tych tm)] th, b))
             val news = map (fn (nf,rows,c) => {path = nf@rstp,
                                                rows = map (expnd c) rows})
                            (Utils.zip3 new_formals groups constraints)
@@ -675,7 +677,8 @@ fun mk_case ty_info usednames thy =
 
 
 fun complete_cases thy =
- let val tych = Thry.typecheck thy
+ let val ctxt = Proof_Context.init_global thy
+     val tych = Thry.typecheck thy
      val ty_info = Thry.induct_info thy
  in fn pats =>
  let val names = List.foldr Misc_Legacy.add_term_names [] pats
@@ -691,7 +694,7 @@ fun complete_cases thy =
      val rows = map (fn x => ([x], (th0,[]))) pats
  in
  Rules.GEN (tych a)
-       (Rules.RIGHT_ASSOC
+       (Rules.RIGHT_ASSOC ctxt
           (Rules.CHOOSE(tych v, ex_th0)
                 (mk_case ty_info (vname::aname::names)
                  thy {path=[v], rows=rows})))
@@ -826,7 +829,8 @@ fun LEFT_ABS_VSTRUCT tych thm =
  * the antecedent of Rinduct.
  *---------------------------------------------------------------------------*)
 fun mk_induction thy {fconst, R, SV, pat_TCs_list} =
-let val tych = Thry.typecheck thy
+let val ctxt = Proof_Context.init_global thy
+    val tych = Thry.typecheck thy
     val Sinduction = Rules.UNDISCH (Rules.ISPEC (tych R) Thms.WF_INDUCTION_THM)
     val (pats,TCsl) = ListPair.unzip pat_TCs_list
     val case_thm = complete_cases thy pats
@@ -848,7 +852,7 @@ let val tych = Thry.typecheck thy
           domain)
     val vtyped = tych v
     val substs = map (Rules.SYM o Rules.ASSUME o tych o (curry HOLogic.mk_eq v)) pats
-    val proved_cases1 = ListPair.map (fn (th,th') => Rules.SUBS[th]th')
+    val proved_cases1 = ListPair.map (fn (th,th') => Rules.SUBS ctxt [th]th')
                           (substs, proved_cases)
     val abs_cases = map (LEFT_ABS_VSTRUCT tych) proved_cases1
     val dant = Rules.GEN vtyped (Rules.DISJ_CASESL (Rules.ISPEC vtyped case_thm) abs_cases)

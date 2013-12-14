@@ -71,10 +71,10 @@ fun lift_meta_eq_to_obj_eq i st =
         Goal.prove_global (Thm.theory_of_thm st) []
           [mk_simp_implies @{prop "(x::'a) == y"}]
           (mk_simp_implies @{prop "(x::'a) = y"})
-          (fn {prems, ...} => EVERY
-           [rewrite_goals_tac @{thms simp_implies_def},
+          (fn {context = ctxt, prems} => EVERY
+           [rewrite_goals_tac ctxt @{thms simp_implies_def},
             REPEAT (ares_tac (@{thm meta_eq_to_obj_eq} ::
-              map (rewrite_rule @{thms simp_implies_def}) prems) 1)])
+              map (rewrite_rule ctxt @{thms simp_implies_def}) prems) 1)])
       end
   end;
 

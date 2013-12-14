@@ -6,10 +6,10 @@ Basic arithmetic for natural numbers.
 
 signature NAT_ARITH =
 sig
-  val cancel_diff_conv: conv
-  val cancel_eq_conv: conv
-  val cancel_le_conv: conv
-  val cancel_less_conv: conv
+  val cancel_diff_conv: Proof.context -> conv
+  val cancel_eq_conv: Proof.context -> conv
+  val cancel_le_conv: Proof.context -> conv
+  val cancel_less_conv: Proof.context -> conv
 end;
 
 structure Nat_Arith: NAT_ARITH =
@@ -26,9 +26,9 @@ val rule0 = @{lemma "(a::'a::comm_monoid_add) == a + 0"
 
 val norm_rules = map mk_meta_eq @{thms add_0_left add_0_right}
 
-fun move_to_front path = Conv.every_conv
+fun move_to_front ctxt path = Conv.every_conv
     [Conv.rewr_conv (Library.foldl (op RS) (rule0, path)),
-     Conv.arg_conv (Raw_Simplifier.rewrite false norm_rules)]
+     Conv.arg_conv (Raw_Simplifier.rewrite ctxt false norm_rules)]
 
 fun add_atoms path (Const (@{const_name Groups.plus}, _) $ x $ y) =
       add_atoms (add1::path) x #> add_atoms (add2::path) y
@@ -54,12 +54,12 @@ fun find_common ord xs ys =
     find (sort ord' xs) (sort ord' ys)
   end
 
-fun cancel_conv rule ct =
+fun cancel_conv rule ctxt ct =
   let
     val ((_, lhs), rhs) = (apfst dest_comb o dest_comb) (Thm.term_of ct)
     val (lpath, rpath) = find_common Term_Ord.term_ord (atoms lhs) (atoms rhs)
-    val lconv = move_to_front lpath
-    val rconv = move_to_front rpath
+    val lconv = move_to_front ctxt lpath
+    val rconv = move_to_front ctxt rpath
     val conv1 = Conv.combination_conv (Conv.arg_conv lconv) rconv
     val conv = conv1 then_conv Conv.rewr_conv rule
   in conv ct end

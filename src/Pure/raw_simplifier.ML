@@ -57,13 +57,13 @@ sig
   val setSolver: Proof.context * solver -> Proof.context
   val addSolver: Proof.context * solver -> Proof.context
 
-  val rewrite_rule: thm list -> thm -> thm
-  val rewrite_goals_rule: thm list -> thm -> thm
-  val rewrite_goals_tac: thm list -> tactic
-  val rewrite_goal_tac: thm list -> int -> tactic
-  val prune_params_tac: tactic
-  val fold_rule: thm list -> thm -> thm
-  val fold_goals_tac: thm list -> tactic
+  val rewrite_rule: Proof.context -> thm list -> thm -> thm
+  val rewrite_goals_rule: Proof.context -> thm list -> thm -> thm
+  val rewrite_goals_tac: Proof.context -> thm list -> tactic
+  val rewrite_goal_tac: Proof.context -> thm list -> int -> tactic
+  val prune_params_tac: Proof.context -> tactic
+  val fold_rule: Proof.context -> thm list -> thm -> thm
+  val fold_goals_tac: Proof.context -> thm list -> tactic
   val norm_hhf: thm -> thm
   val norm_hhf_protect: thm -> thm
 end;
@@ -126,7 +126,7 @@ sig
     (Proof.context -> thm -> thm option) -> Proof.context -> thm -> thm
   val generic_rewrite_goal_tac: bool * bool * bool ->
     (Proof.context -> tactic) -> Proof.context -> int -> tactic
-  val rewrite: bool -> thm list -> conv
+  val rewrite: Proof.context -> bool -> thm list -> conv
 end;
 
 structure Raw_Simplifier: RAW_SIMPLIFIER =
@@ -1366,12 +1366,12 @@ fun rewrite_cterm mode prover raw_ctxt raw_ct =
 val simple_prover =
   SINGLE o (fn ctxt => ALLGOALS (resolve_tac (prems_of ctxt)));
 
-fun rewrite _ [] ct = Thm.reflexive ct
-  | rewrite full thms ct =
+fun rewrite _ _ [] = Thm.reflexive
+  | rewrite ctxt full thms =
       rewrite_cterm (full, false, false) simple_prover
-        (global_context (Thm.theory_of_cterm ct) empty_ss addsimps thms) ct;
+        (empty_simpset ctxt addsimps thms);
 
-val rewrite_rule = Conv.fconv_rule o rewrite true;
+fun rewrite_rule ctxt = Conv.fconv_rule o rewrite ctxt true;
 
 (*simple term rewriting -- no proof*)
 fun rewrite_term thy rules procs =
@@ -1380,15 +1380,15 @@ fun rewrite_term thy rules procs =
 fun rewrite_thm mode prover ctxt = Conv.fconv_rule (rewrite_cterm mode prover ctxt);
 
 (*Rewrite the subgoals of a proof state (represented by a theorem)*)
-fun rewrite_goals_rule thms th =
+fun rewrite_goals_rule ctxt thms th =
   Conv.fconv_rule (Conv.prems_conv ~1 (rewrite_cterm (true, true, true) simple_prover
-    (global_context (Thm.theory_of_thm th) empty_ss addsimps thms))) th;
+    (empty_simpset ctxt addsimps thms))) th;
 
 
 (** meta-rewriting tactics **)
 
 (*Rewrite all subgoals*)
-fun rewrite_goals_tac defs = PRIMITIVE (rewrite_goals_rule defs);
+fun rewrite_goals_tac ctxt defs = PRIMITIVE (rewrite_goals_rule ctxt defs);
 
 (*Rewrite one subgoal*)
 fun generic_rewrite_goal_tac mode prover_tac ctxt i thm =
@@ -1396,12 +1396,12 @@ fun generic_rewrite_goal_tac mode prover_tac ctxt i thm =
     Seq.single (Conv.gconv_rule (rewrite_cterm mode (SINGLE o prover_tac) ctxt) i thm)
   else Seq.empty;
 
-fun rewrite_goal_tac rews i st =
+fun rewrite_goal_tac ctxt rews =
   generic_rewrite_goal_tac (true, false, false) (K no_tac)
-    (global_context (Thm.theory_of_thm st) empty_ss addsimps rews) i st;
+    (empty_simpset ctxt addsimps rews);
 
 (*Prunes all redundant parameters from the proof state by rewriting.*)
-val prune_params_tac = rewrite_goals_tac [Drule.triv_forall_equality];
+fun prune_params_tac ctxt = rewrite_goals_tac ctxt [Drule.triv_forall_equality];
 
 
 (* for folding definitions, handling critical pairs *)
@@ -1422,8 +1422,8 @@ fun sort_lhs_depths defs =
 
 val rev_defs = sort_lhs_depths o map Thm.symmetric;
 
-fun fold_rule defs = fold rewrite_rule (rev_defs defs);
-fun fold_goals_tac defs = EVERY (map rewrite_goals_tac (rev_defs defs));
+fun fold_rule ctxt defs = fold (rewrite_rule ctxt) (rev_defs defs);
+fun fold_goals_tac ctxt defs = EVERY (map (rewrite_goals_tac ctxt) (rev_defs defs));
 
 
 (* HHF normal form: !! before ==>, outermost !! generalized *)

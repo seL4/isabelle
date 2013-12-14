@@ -17,7 +17,7 @@ sig
     (term * term) * Proof.context
   val export: Proof.context -> Proof.context -> thm -> (thm list * thm list) * thm
   val export_cterm: Proof.context -> Proof.context -> cterm -> (thm list * thm list) * cterm
-  val contract: thm list -> cterm -> thm -> thm
+  val contract: Proof.context -> thm list -> cterm -> thm -> thm
   val print_rules: Proof.context -> unit
   val defn_add: attribute
   val defn_del: attribute
@@ -162,8 +162,8 @@ fun export inner outer =    (*beware of closure sizes*)
 fun export_cterm inner outer ct =
   export inner outer (Drule.mk_term ct) ||> Drule.dest_term;
 
-fun contract defs ct th =
-  th COMP (Raw_Simplifier.rewrite true defs ct COMP_INCR Drule.equal_elim_rule2);
+fun contract ctxt defs ct th =
+  th COMP (Raw_Simplifier.rewrite ctxt true defs ct COMP_INCR Drule.equal_elim_rule2);
 
 
 
@@ -200,7 +200,7 @@ val meta_rewrite_rule = Conv.fconv_rule o meta_rewrite_conv;
 
 (* rewriting with object-level rules *)
 
-fun meta f ctxt = f o map (meta_rewrite_rule ctxt);
+fun meta f ctxt = f ctxt o map (meta_rewrite_rule ctxt);
 
 val unfold       = meta Raw_Simplifier.rewrite_rule;
 val unfold_goals = meta Raw_Simplifier.rewrite_goals_rule;
@@ -220,10 +220,12 @@ fun derived_def ctxt conditional prop =
       |> conditional ? Logic.strip_imp_concl
       |> (abs_def o #2 o cert_def ctxt);
     fun prove ctxt' def =
-      Goal.prove ctxt' (Variable.add_free_names ctxt' prop []) [] prop (K (ALLGOALS
-        (CONVERSION (meta_rewrite_conv ctxt') THEN'
-          rewrite_goal_tac [def] THEN'
-          resolve_tac [Drule.reflexive_thm])))
+      Goal.prove ctxt' (Variable.add_free_names ctxt' prop []) [] prop
+        (fn {context = ctxt'', ...} =>
+          ALLGOALS
+            (CONVERSION (meta_rewrite_conv ctxt'') THEN'
+              rewrite_goal_tac ctxt'' [def] THEN'
+              resolve_tac [Drule.reflexive_thm]))
       handle ERROR msg => cat_error msg "Failed to prove definitional specification";
   in (((c, T), rhs), prove) end;
 

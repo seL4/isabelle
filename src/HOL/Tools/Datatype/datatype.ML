@@ -32,8 +32,6 @@ struct
 val distinct_lemma = @{lemma "f x \<noteq> f y ==> x \<noteq> y" by iprover};
 val (_ $ (_ $ (_ $ (distinct_f $ _) $ _))) = hd (prems_of distinct_lemma);
 
-val collect_simp = rewrite_rule [mk_meta_eq mem_Collect_eq];
-
 fun exh_thm_of (dt_info : Datatype_Aux.info Symtab.table) tname =
   #exhaust (the (Symtab.lookup dt_info tname));
 
@@ -271,6 +269,8 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
 
     val _ = Datatype_Aux.message config "Proving isomorphism properties ...";
 
+    val collect_simp = rewrite_rule (Proof_Context.init_global thy4) [mk_meta_eq mem_Collect_eq];
+
     val newT_iso_axms = typedefs |> map (fn (_, (_, {Abs_inverse, Rep_inverse, Rep, ...})) =>
       (collect_simp Abs_inverse, Rep_inverse, collect_simp Rep));
 
@@ -355,7 +355,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
         val rewrites = def_thms @ map mk_meta_eq rec_rewrites;
         val char_thms' =
           map (fn eqn => Goal.prove_sorry_global thy' [] [] eqn
-            (fn _ => EVERY [rewrite_goals_tac rewrites, rtac refl 1])) eqns;
+            (fn {context = ctxt, ...} => EVERY [rewrite_goals_tac ctxt rewrites, rtac refl 1])) eqns;
 
       in (thy', char_thms' @ char_thms) end;
 
@@ -418,13 +418,13 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
           Goal.prove_sorry_global thy5 [] []
             (HOLogic.mk_Trueprop (Datatype_Aux.mk_conj ind_concl1))
             (fn {context = ctxt, ...} => EVERY
-              [(Datatype_Aux.ind_tac induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
+              [(Datatype_Aux.ind_tac induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac ctxt) 1,
                REPEAT (EVERY
                  [rtac allI 1, rtac impI 1,
                   Datatype_Aux.exh_tac (exh_thm_of dt_info) 1,
                   REPEAT (EVERY
                     [hyp_subst_tac ctxt 1,
-                     rewrite_goals_tac rewrites,
+                     rewrite_goals_tac ctxt rewrites,
                      REPEAT (dresolve_tac [In0_inject, In1_inject] 1),
                      (eresolve_tac [In0_not_In1 RS notE, In1_not_In0 RS notE] 1)
                      ORELSE (EVERY
@@ -443,9 +443,10 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
         val elem_thm =
           Goal.prove_sorry_global thy5 [] []
             (HOLogic.mk_Trueprop (Datatype_Aux.mk_conj ind_concl2))
-            (fn _ =>
-              EVERY [(Datatype_Aux.ind_tac induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
-                rewrite_goals_tac rewrites,
+            (fn {context = ctxt, ...} =>
+              EVERY [
+                (Datatype_Aux.ind_tac induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac ctxt) 1,
+                rewrite_goals_tac ctxt rewrites,
                 REPEAT ((resolve_tac rep_intrs THEN_ALL_NEW
                   ((REPEAT o etac allE) THEN' ares_tac elem_thms)) 1)]);
 
@@ -480,11 +481,11 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
       else
         drop (length newTs) (Datatype_Aux.split_conj_thm
           (Goal.prove_sorry_global thy5 [] [] iso_t (fn {context = ctxt, ...} => EVERY
-             [(Datatype_Aux.ind_tac rep_induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
+             [(Datatype_Aux.ind_tac rep_induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac ctxt) 1,
               REPEAT (rtac TrueI 1),
-              rewrite_goals_tac (mk_meta_eq @{thm choice_eq} ::
+              rewrite_goals_tac ctxt (mk_meta_eq @{thm choice_eq} ::
                 Thm.symmetric (mk_meta_eq @{thm fun_eq_iff}) :: range_eqs),
-              rewrite_goals_tac (map Thm.symmetric range_eqs),
+              rewrite_goals_tac ctxt (map Thm.symmetric range_eqs),
               REPEAT (EVERY
                 [REPEAT (eresolve_tac ([rangeE, ex1_implies_ex RS exE] @
                    maps (mk_funs_inv thy5 o #1) newT_iso_axms) 1),
@@ -511,9 +512,9 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
         val rewrites = @{thm o_def} :: constr_defs @ map (mk_meta_eq o #2) newT_iso_axms;
       in
         Goal.prove_sorry_global thy5 [] [] eqn
-        (fn _ => EVERY
+        (fn {context = ctxt, ...} => EVERY
           [resolve_tac inj_thms 1,
-           rewrite_goals_tac rewrites,
+           rewrite_goals_tac ctxt rewrites,
            rtac refl 3,
            resolve_tac rep_intrs 2,
            REPEAT (resolve_tac iso_elem_thms 1)])
@@ -634,7 +635,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
       (fn {context = ctxt, prems, ...} =>
         EVERY
           [rtac indrule_lemma' 1,
-           (Datatype_Aux.ind_tac rep_induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
+           (Datatype_Aux.ind_tac rep_induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac ctxt) 1,
            EVERY (map (fn (prem, r) => (EVERY
              [REPEAT (eresolve_tac Abs_inverse_thms 1),
               simp_tac (put_simpset HOL_basic_ss ctxt

@@ -249,16 +249,16 @@ fun make_last i th =
    "P ==> ~ False ==> False" is rewritten to "P ==> False", not to "~ P". We
    don't use this trick in general because it makes the proof object uglier than
    necessary. FIXME. *)
-fun negate_head th =
+fun negate_head ctxt th =
   if exists (fn t => t aconv @{prop "~ False"}) (prems_of th) then
     (th RS @{thm select_FalseI})
-    |> fold (rewrite_rule o single)
+    |> fold (rewrite_rule ctxt o single)
             @{thms not_atomize_select atomize_not_select}
   else
-    th |> fold (rewrite_rule o single) @{thms not_atomize atomize_not}
+    th |> fold (rewrite_rule ctxt o single) @{thms not_atomize atomize_not}
 
 (* Maps the clause  [P1,...Pn]==>False to [P1,...,P(i-1),P(i+1),...Pn] ==> ~P *)
-val select_literal = negate_head oo make_last
+fun select_literal ctxt = negate_head ctxt oo make_last
 
 fun resolve_inference ctxt type_enc concealed sym_tab th_pairs atom th1 th2 =
   let
@@ -293,7 +293,7 @@ fun resolve_inference ctxt type_enc concealed sym_tab th_pairs atom th1 th2 =
               i_th2)
            | j2 =>
              (trace_msg ctxt (fn () => "  index th2: " ^ string_of_int j2);
-              resolve_inc_tyvars thy (select_literal j1 i_th1) j2 i_th2
+              resolve_inc_tyvars thy (select_literal ctxt j1 i_th1) j2 i_th2
               handle TERM (s, _) =>
                      raise METIS_RECONSTRUCT ("resolve_inference", s)))
       end
@@ -448,7 +448,7 @@ fun resynchronize ctxt fol_th th =
                            |> distinct Term.aconv_untyped
         val goal = Logic.list_implies (prems, concl)
         val tac = cut_tac th 1
-                  THEN rewrite_goals_tac @{thms not_not [THEN eq_reflection]}
+                  THEN rewrite_goals_tac ctxt @{thms not_not [THEN eq_reflection]}
                   THEN ALLGOALS assume_tac
       in
         if length prems = length prems0 then

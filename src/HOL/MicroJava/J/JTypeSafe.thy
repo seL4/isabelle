@@ -325,7 +325,7 @@ apply( case_tac "x2")
   apply(  fast intro: hext_trans)
 
 
-apply( tactic prune_params_tac)
+apply( tactic "prune_params_tac @{context}")
 -- "Level 52"
 
 -- "1 Call"

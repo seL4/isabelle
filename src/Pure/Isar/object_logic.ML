@@ -21,14 +21,14 @@ sig
   val declare_atomize: attribute
   val declare_rulify: attribute
   val atomize_term: theory -> term -> term
-  val atomize: conv
-  val atomize_prems: conv
-  val atomize_prems_tac: int -> tactic
-  val full_atomize_tac: int -> tactic
+  val atomize: Proof.context -> conv
+  val atomize_prems: Proof.context -> conv
+  val atomize_prems_tac: Proof.context -> int -> tactic
+  val full_atomize_tac: Proof.context -> int -> tactic
   val rulify_term: theory -> term -> term
-  val rulify_tac: int -> tactic
-  val rulify: thm -> thm
-  val rulify_no_asm: thm -> thm
+  val rulify_tac: Proof.context -> int -> tactic
+  val rulify: Proof.context -> thm -> thm
+  val rulify_no_asm: Proof.context -> thm -> thm
   val rule_format: attribute
   val rule_format_no_asm: attribute
 end;
@@ -182,32 +182,31 @@ val _ = Theory.setup (fold add_rulify Drule.norm_hhf_eqs);
 fun atomize_term thy =
   drop_judgment thy o Raw_Simplifier.rewrite_term thy (get_atomize thy) [];
 
-fun atomize ct =
-  Raw_Simplifier.rewrite true (get_atomize (Thm.theory_of_cterm ct)) ct;
+fun atomize ctxt =
+  Raw_Simplifier.rewrite ctxt true (get_atomize (Proof_Context.theory_of ctxt));
 
-fun atomize_prems ct =
+fun atomize_prems ctxt ct =
   if Logic.has_meta_prems (Thm.term_of ct) then
-    Conv.params_conv ~1 (K (Conv.prems_conv ~1 atomize))
-      (Proof_Context.init_global (Thm.theory_of_cterm ct)) ct
+    Conv.params_conv ~1 (Conv.prems_conv ~1 o atomize) ctxt ct
   else Conv.all_conv ct;
 
-val atomize_prems_tac = CONVERSION atomize_prems;
-val full_atomize_tac = CONVERSION atomize;
+val atomize_prems_tac = CONVERSION o atomize_prems;
+val full_atomize_tac = CONVERSION o atomize;
 
 
 (* rulify *)
 
 fun rulify_term thy = Raw_Simplifier.rewrite_term thy (get_rulify thy) [];
-fun rulify_tac i st = rewrite_goal_tac (get_rulify (Thm.theory_of_thm st)) i st;
+fun rulify_tac ctxt = rewrite_goal_tac ctxt (get_rulify (Proof_Context.theory_of ctxt));
 
-fun gen_rulify full thm =
-  Conv.fconv_rule (Raw_Simplifier.rewrite full (get_rulify (Thm.theory_of_thm thm))) thm
-  |> Drule.gen_all |> Thm.strip_shyps |> Drule.zero_var_indexes;
+fun gen_rulify full ctxt =
+  Conv.fconv_rule (Raw_Simplifier.rewrite ctxt full (get_rulify (Proof_Context.theory_of ctxt)))
+  #> Drule.gen_all #> Thm.strip_shyps #> Drule.zero_var_indexes;
 
 val rulify = gen_rulify true;
 val rulify_no_asm = gen_rulify false;
 
-val rule_format = Thm.rule_attribute (K rulify);
-val rule_format_no_asm = Thm.rule_attribute (K rulify_no_asm);
+val rule_format = Thm.rule_attribute (rulify o Context.proof_of);
+val rule_format_no_asm = Thm.rule_attribute (rulify_no_asm o Context.proof_of);
 
 end;

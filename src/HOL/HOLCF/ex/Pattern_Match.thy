@@ -411,8 +411,8 @@ fun prove
     : thm =
   let
     fun tac {prems, context} =
-      rewrite_goals_tac defs THEN
-      EVERY (tacs {prems = map (rewrite_rule defs) prems, context = context})
+      rewrite_goals_tac context defs THEN
+      EVERY (tacs {prems = map (rewrite_rule context defs) prems, context = context})
   in
     Goal.prove_global thy [] [] goal tac
   end;

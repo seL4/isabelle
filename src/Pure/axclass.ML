@@ -291,11 +291,17 @@ fun inst_thms thy =
 
 fun get_inst_tyco consts = try (#1 o dest_Type o the_single o Consts.typargs consts);
 
-fun unoverload thy = rewrite_rule (inst_thms thy);
-fun overload thy = rewrite_rule (map Thm.symmetric (inst_thms thy));
+fun unoverload thy =
+  rewrite_rule (Proof_Context.init_global thy) (inst_thms thy);
 
-fun unoverload_conv thy = Raw_Simplifier.rewrite true (inst_thms thy);
-fun overload_conv thy = Raw_Simplifier.rewrite true (map Thm.symmetric (inst_thms thy));
+fun overload thy =
+  rewrite_rule (Proof_Context.init_global thy) (map Thm.symmetric (inst_thms thy));
+
+fun unoverload_conv thy =
+  Raw_Simplifier.rewrite (Proof_Context.init_global thy) true (inst_thms thy);
+
+fun overload_conv thy =
+  Raw_Simplifier.rewrite (Proof_Context.init_global thy) true (map Thm.symmetric (inst_thms thy));
 
 fun lookup_inst_param consts params (c, T) =
   (case get_inst_tyco consts (c, T) of

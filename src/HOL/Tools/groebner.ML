@@ -928,7 +928,7 @@ fun presimplify ctxt add_thms del_thms =
     delsimps del_thms addsimps add_thms);
 
 fun ring_tac add_ths del_ths ctxt =
-  Object_Logic.full_atomize_tac
+  Object_Logic.full_atomize_tac ctxt
   THEN' presimplify ctxt add_ths del_ths
   THEN' CSUBGOAL (fn (p, i) =>
     rtac (let val form = Object_Logic.dest_judgment p
@@ -970,7 +970,7 @@ fun ideal_tac add_ths del_ths ctxt =
    end
   in
      clarify_tac (put_claset claset ctxt) i
-     THEN Object_Logic.full_atomize_tac i
+     THEN Object_Logic.full_atomize_tac ctxt i
      THEN asm_full_simp_tac (put_simpset (#poly_eq_ss thy) ctxt) i
      THEN clarify_tac (put_claset claset ctxt) i
      THEN (REPEAT (CONVERSION (#unwind_conv thy ctxt) i))

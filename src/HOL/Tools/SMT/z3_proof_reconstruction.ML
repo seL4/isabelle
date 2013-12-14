@@ -38,16 +38,19 @@ local
     val merge = Net.merge eq
   )
 
-  val prep = `Thm.prop_of o rewrite_rule [Z3_Proof_Literals.rewrite_true]
+  fun prep context =
+    `Thm.prop_of o rewrite_rule (Context.proof_of context) [Z3_Proof_Literals.rewrite_true]
 
-  fun ins thm net = Net.insert_term eq (prep thm) net handle Net.INSERT => net
-  fun del thm net = Net.delete_term eq (prep thm) net handle Net.DELETE => net
+  fun ins thm context =
+    context |> Z3_Rules.map (fn net => Net.insert_term eq (prep context thm) net handle Net.INSERT => net)
+  fun rem thm context =
+    context |> Z3_Rules.map (fn net => Net.delete_term eq (prep context thm) net handle Net.DELETE => net)
 
-  val add = Thm.declaration_attribute (Z3_Rules.map o ins)
-  val del = Thm.declaration_attribute (Z3_Rules.map o del)
+  val add = Thm.declaration_attribute ins
+  val del = Thm.declaration_attribute rem
 in
 
-val add_z3_rule = Z3_Rules.map o ins
+val add_z3_rule = ins
 
 fun by_schematic_rule ctxt ct =
   the (Z3_Proof_Tools.net_instance (Z3_Rules.get (Context.Proof ctxt)) ct)

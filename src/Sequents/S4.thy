@@ -43,7 +43,8 @@ structure S4_Prover = Modal_ProverFun
 )
 *}
 
-method_setup S4_solve = {* Scan.succeed (K (SIMPLE_METHOD (S4_Prover.solve_tac 2))) *}
+method_setup S4_solve =
+  {* Scan.succeed (fn ctxt => SIMPLE_METHOD (S4_Prover.solve_tac ctxt 2)) *}
 
 
 (* Theorems of system T from Hughes and Cresswell and Hailpern, LNCS 129 *)

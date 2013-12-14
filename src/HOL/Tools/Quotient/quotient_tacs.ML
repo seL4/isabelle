@@ -40,10 +40,10 @@ fun mk_minimal_simpset ctxt =
 (* composition of two theorems, used in maps *)
 fun OF1 thm1 thm2 = thm2 RS thm1
 
-fun atomize_thm thm =
+fun atomize_thm ctxt thm =
   let
     val thm' = Thm.legacy_freezeT (forall_intr_vars thm) (* FIXME/TODO: is this proper Isar-technology? no! *)
-    val thm'' = Object_Logic.atomize (cprop_of thm')
+    val thm'' = Object_Logic.atomize ctxt (cprop_of thm')
   in
     @{thm equal_elim_rule1} OF [thm'', thm']
   end
@@ -480,7 +480,7 @@ fun lambda_prs_simple_conv ctxt ctrm =
         val tinst = [NONE, NONE, SOME (cterm_of thy r1), NONE, SOME (cterm_of thy a2)]
         val thm1 = Drule.instantiate' tyinst tinst @{thm lambda_prs[THEN eq_reflection]}
         val thm2 = solve_quotient_assm ctxt (solve_quotient_assm ctxt thm1)
-        val thm3 = rewrite_rule @{thms id_apply[THEN eq_reflection]} thm2
+        val thm3 = rewrite_rule ctxt @{thms id_apply[THEN eq_reflection]} thm2
         val (insp, inst) =
           if ty_c = ty_d
           then make_inst_id (term_of (Thm.lhs_of thm3)) (term_of ctrm)
@@ -635,7 +635,7 @@ fun descend_procedure_tac ctxt simps =
     val simpset = (mk_minimal_simpset ctxt) addsimps (simps @ default_unfolds)
   in
     full_simp_tac simpset
-    THEN' Object_Logic.full_atomize_tac
+    THEN' Object_Logic.full_atomize_tac ctxt
     THEN' gen_frees_tac ctxt
     THEN' SUBGOAL (fn (goal, i) =>
       let
@@ -652,7 +652,7 @@ fun descend_tac ctxt simps =
     val mk_tac_raw =
       descend_procedure_tac ctxt simps
       THEN' RANGE
-        [Object_Logic.rulify_tac THEN' (K all_tac),
+        [Object_Logic.rulify_tac ctxt THEN' (K all_tac),
          regularize_tac ctxt,
          all_injection_tac ctxt,
          clean_tac ctxt]
@@ -685,7 +685,7 @@ fun partiality_descend_procedure_tac ctxt simps =
     val simpset = (mk_minimal_simpset ctxt) addsimps (simps @ default_unfolds)
   in
     full_simp_tac simpset
-    THEN' Object_Logic.full_atomize_tac
+    THEN' Object_Logic.full_atomize_tac ctxt
     THEN' gen_frees_tac ctxt
     THEN' SUBGOAL (fn (goal, i) =>
       let
@@ -702,7 +702,7 @@ fun partiality_descend_tac ctxt simps =
     val mk_tac_raw =
       partiality_descend_procedure_tac ctxt simps
       THEN' RANGE
-        [Object_Logic.rulify_tac THEN' (K all_tac),
+        [Object_Logic.rulify_tac ctxt THEN' (K all_tac),
          all_injection_tac ctxt,
          clean_tac ctxt]
   in
@@ -720,7 +720,7 @@ fun lift_procedure_tac ctxt simps rthm =
     val simpset = (mk_minimal_simpset ctxt) addsimps (simps @ default_unfolds)
   in
     full_simp_tac simpset
-    THEN' Object_Logic.full_atomize_tac
+    THEN' Object_Logic.full_atomize_tac ctxt
     THEN' gen_frees_tac ctxt
     THEN' SUBGOAL (fn (goal, i) =>
       let
@@ -730,7 +730,7 @@ fun lift_procedure_tac ctxt simps rthm =
           rthm |> full_simplify simpset
                |> Drule.eta_contraction_rule
                |> Thm.forall_intr_frees
-               |> atomize_thm
+               |> atomize_thm ctxt
 
         val rule = procedure_inst ctxt (prop_of rthm') goal
       in

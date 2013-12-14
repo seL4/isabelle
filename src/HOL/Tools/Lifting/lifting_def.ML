@@ -85,7 +85,7 @@ fun generate_parametric_transfer_rule ctxt transfer_rule parametric_transfer_rul
       in
         Conv.fconv_rule 
           ((Conv.concl_conv (nprems_of inst_thm) o HOLogic.Trueprop_conv o Conv.fun2_conv o Conv.arg1_conv)
-            (Raw_Simplifier.rewrite false (Transfer.get_sym_relator_eq ctxt))) inst_thm
+            (Raw_Simplifier.rewrite ctxt false (Transfer.get_sym_relator_eq ctxt))) inst_thm
       end
 
     fun inst_relcomppI thy ant1 ant2 =
@@ -482,7 +482,7 @@ fun mk_readable_rsp_thm_eq tm lthy =
     val eq_thm = 
       (simp_conv then_conv univq_prenex_conv then_conv beta_conv then_conv unfold_ret_val_invs) ctm
   in
-    Object_Logic.rulify(eq_thm RS Drule.equal_elim_rule2)
+    Object_Logic.rulify lthy (eq_thm RS Drule.equal_elim_rule2)
   end
 
 fun rename_to_tnames ctxt term =
@@ -533,7 +533,8 @@ fun lift_def_cmd (raw_var, rhs_raw, par_xthms) lthy =
           fun after_qed' thm_list lthy = 
             let
               val internal_rsp_thm = Goal.prove lthy [] [] internal_rsp_tm 
-                  (fn _ => rtac readable_rsp_thm_eq 1 THEN Proof_Context.fact_tac (hd thm_list) 1)
+                  (fn {context = ctxt, ...} =>
+                    rtac readable_rsp_thm_eq 1 THEN Proof_Context.fact_tac ctxt (hd thm_list) 1)
             in
               after_qed internal_rsp_thm lthy
             end

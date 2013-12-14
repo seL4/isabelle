@@ -27,6 +27,9 @@ fun tname_of (Type (s, _)) = s
 
 fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Datatype.info) is thy =
   let
+    val ctxt = Proof_Context.init_global thy;
+    val cert = cterm_of thy;
+
     val recTs = Datatype_Aux.get_rec_types descr;
     val pnames =
       if length descr = 1 then ["P"]
@@ -104,7 +107,6 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Datatype.info) is 
         (map (fn ((((i, _), T), U), tname) =>
           make_pred i U T (mk_proj i is r) (Free (tname, T)))
             (descr ~~ recTs ~~ rec_result_Ts ~~ tnames)));
-    val cert = cterm_of thy;
     val inst = map (pairself cert) (map head_of (HOLogic.dest_conj
       (HOLogic.dest_Trueprop (concl_of induct))) ~~ ps);
 
@@ -112,10 +114,10 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Datatype.info) is 
       Goal.prove_internal (map cert prems) (cert concl)
         (fn prems =>
            EVERY [
-            rewrite_goals_tac (map mk_meta_eq [@{thm fst_conv}, @{thm snd_conv}]),
+            rewrite_goals_tac ctxt (map mk_meta_eq [@{thm fst_conv}, @{thm snd_conv}]),
             rtac (cterm_instantiate inst induct) 1,
-            ALLGOALS Object_Logic.atomize_prems_tac,
-            rewrite_goals_tac (@{thm o_def} :: map mk_meta_eq rec_rewrites),
+            ALLGOALS (Object_Logic.atomize_prems_tac ctxt),
+            rewrite_goals_tac ctxt (@{thm o_def} :: map mk_meta_eq rec_rewrites),
             REPEAT ((resolve_tac prems THEN_ALL_NEW (fn i =>
               REPEAT (etac allE i) THEN atac i)) 1)])
       |> Drule.export_without_context;

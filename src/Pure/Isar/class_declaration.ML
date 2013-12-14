@@ -58,7 +58,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
             (_, NONE) => all_tac
           | (_, SOME intro) => ALLGOALS (rtac intro));
         val tac = loc_intro_tac
-          THEN ALLGOALS (Proof_Context.fact_tac (sup_axioms @ the_list assm_axiom));
+          THEN ALLGOALS (Proof_Context.fact_tac empty_ctxt (sup_axioms @ the_list assm_axiom));
       in Element.prove_witness empty_ctxt prop tac end) some_prop;
     val some_axiom = Option.map Element.conclude_witness some_witn;
 
@@ -77,8 +77,10 @@ fun calculate thy class sups base_sort param_map assm_axiom =
             SOME eq_morph => const_morph $> eq_morph
           | NONE => const_morph);
         val thm'' = Morphism.thm const_eq_morph thm';
-        val tac = ALLGOALS (Proof_Context.fact_tac [thm'']);
-      in Goal.prove_sorry_global thy [] [] (Thm.prop_of thm'') (K tac) end;
+      in
+        Goal.prove_sorry_global thy [] [] (Thm.prop_of thm'')
+          (fn {context = ctxt, ...} => ALLGOALS (Proof_Context.fact_tac ctxt [thm'']))
+      end;
     val some_assm_intro = Option.map prove_assm_intro (fst (Locale.intros_of thy class));
 
     (* of_class *)

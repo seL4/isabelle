@@ -280,7 +280,7 @@ fun mk_dstnct_thms ctxt defs inj_rls xs =
     fun mk_dstnct_thm rls s =
       Goal.prove_global thy [] [] (Syntax.read_prop ctxt s)
         (fn _ =>
-          rewrite_goals_tac defs THEN
+          rewrite_goals_tac ctxt defs THEN
           simp_tac (ctxt addsimps (rls @ inj_rls)) 1)
   in map (mk_dstnct_thm ccl_dstncts) (mk_dstnct_rls thy xs) end
 

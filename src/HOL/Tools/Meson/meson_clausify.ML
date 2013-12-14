@@ -193,6 +193,8 @@ fun c_variant_abs_multi (ct0, vars) =
    Example: "EX x. x : A & x ~: B ==> sko A B : A & sko A B ~: B"  [.] *)
 fun old_skolem_theorem_of_def thy rhs0 =
   let
+    val ctxt = Proof_Context.init_global thy  (* FIXME proper context!? *)
+
     val rhs = rhs0 |> Type.legacy_freeze_thaw |> #1 |> cterm_of thy
     val rhs' = rhs |> Thm.dest_comb |> snd
     val (ch, frees) = c_variant_abs_multi (rhs', [])
@@ -208,8 +210,8 @@ fun old_skolem_theorem_of_def thy rhs0 =
       Drule.list_comb (rhs, frees)
       |> Drule.beta_conv cabs |> Thm.apply cTrueprop
     fun tacf [prem] =
-      rewrite_goals_tac @{thms skolem_def [abs_def]}
-      THEN rtac ((prem |> rewrite_rule @{thms skolem_def [abs_def]})
+      rewrite_goals_tac ctxt @{thms skolem_def [abs_def]}
+      THEN rtac ((prem |> rewrite_rule ctxt @{thms skolem_def [abs_def]})
                  RS Global_Theory.get_thm thy "Hilbert_Choice.someI_ex") 1
   in
     Goal.prove_internal [ex_tm] conc tacf
@@ -308,7 +310,7 @@ fun nnf_axiom choice_ths new_skolem ax_no th ctxt =
          |> zero_var_indexes
          |> new_skolem ? forall_intr_vars
     val (th, ctxt) = Variable.import true [th] ctxt |>> snd |>> the_single
-    val th = th |> Conv.fconv_rule Object_Logic.atomize
+    val th = th |> Conv.fconv_rule (Object_Logic.atomize ctxt)
                 |> cong_extensionalize_thm thy
                 |> abs_extensionalize_thm ctxt
                 |> make_nnf ctxt

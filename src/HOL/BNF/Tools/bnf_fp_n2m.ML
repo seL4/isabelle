@@ -168,7 +168,7 @@ fun construct_mutualized_fp fp fpTs fp_sugars bs resBs (resDs, Dss) bnfs lthy =
             cterm_instantiate_pos cts rel_xtor_co_induct_thm
             |> unfold_thms lthy (@{thms le_fun_def le_bool_def all_simps(1,2)[symmetric]} @ rel_eqs)
             |> funpow (2 * n) (fn thm => thm RS spec)
-            |> Conv.fconv_rule Object_Logic.atomize
+            |> Conv.fconv_rule (Object_Logic.atomize lthy)
             |> funpow n (fn thm => thm RS mp)
           end);
 

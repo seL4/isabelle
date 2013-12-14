@@ -31,7 +31,7 @@ sig
   val make_nested: term -> theory * term ->
     ((string * string list) * string list) list -> cases
   val apply: term list -> T -> T
-  val consume: thm list -> thm list -> ('a * int) * thm ->
+  val consume: Proof.context -> thm list -> thm list -> ('a * int) * thm ->
     (('a * (int * thm list)) * thm) Seq.seq
   val get_consumes: thm -> int
   val put_consumes: int option -> thm -> thm
@@ -203,24 +203,24 @@ fun (tac1 THEN_ALL_NEW_CASES tac2) i st =
 
 local
 
-fun unfold_prems n defs th =
+fun unfold_prems ctxt n defs th =
   if null defs then th
-  else Conv.fconv_rule (Conv.prems_conv n (Raw_Simplifier.rewrite true defs)) th;
+  else Conv.fconv_rule (Conv.prems_conv n (Raw_Simplifier.rewrite ctxt true defs)) th;
 
-fun unfold_prems_concls defs th =
+fun unfold_prems_concls ctxt defs th =
   if null defs orelse not (can Logic.dest_conjunction (Thm.concl_of th)) then th
   else
     Conv.fconv_rule
       (Conv.concl_conv ~1 (Conjunction.convs
-        (Conv.prems_conv ~1 (Raw_Simplifier.rewrite true defs)))) th;
+        (Conv.prems_conv ~1 (Raw_Simplifier.rewrite ctxt true defs)))) th;
 
 in
 
-fun consume defs facts ((xx, n), th) =
+fun consume ctxt defs facts ((xx, n), th) =
   let val m = Int.min (length facts, n) in
     th
-    |> unfold_prems n defs
-    |> unfold_prems_concls defs
+    |> unfold_prems ctxt n defs
+    |> unfold_prems_concls ctxt defs
     |> Drule.multi_resolve (take m facts)
     |> Seq.map (pair (xx, (n - m, drop m facts)))
   end;

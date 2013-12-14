@@ -98,7 +98,7 @@ fun gen_induct_tac ctxt0 varss opt_rules i st =
             (_, rule) :: _ => rule
           | [] => raise THM ("No induction rules", 0, [])));
 
-    val rule' = rule |> Conv.fconv_rule (Conv.concl_conv ~1 Object_Logic.atomize);
+    val rule' = rule |> Conv.fconv_rule (Conv.concl_conv ~1 (Object_Logic.atomize ctxt));
     val _ = Method.trace ctxt [rule'];
 
     val concls = Logic.dest_conjunctions (Thm.concl_of rule);

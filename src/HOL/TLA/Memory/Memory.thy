@@ -223,11 +223,11 @@ lemma RNext_enabled: "!!p. !l. basevars (mm!l, rtrner ch!p, rs!p) ==>
   apply (auto simp: enabled_disj [try_rewrite] intro!: RWRNext_enabled [temp_use])
   apply (case_tac "arg (ch w p)")
    apply (tactic {* action_simp_tac (@{context} addsimps [@{thm Read_def},
-     temp_rewrite @{thm enabled_ex}]) [@{thm ReadInner_enabled}, exI] [] 1 *})
+     temp_rewrite @{context} @{thm enabled_ex}]) [@{thm ReadInner_enabled}, exI] [] 1 *})
    apply (force dest: base_pair [temp_use])
   apply (erule contrapos_np)
   apply (tactic {* action_simp_tac (@{context} addsimps [@{thm Write_def},
-    temp_rewrite @{thm enabled_ex}])
+    temp_rewrite @{context} @{thm enabled_ex}])
     [@{thm WriteInner_enabled}, exI] [] 1 *})
   done
 

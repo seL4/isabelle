@@ -203,7 +203,7 @@ fun preprocess options (constname, specs) thy =
     SOME specss => (specss, thy)
   | NONE =>*)
     let
-      val ctxt = Proof_Context.init_global thy
+      val ctxt = Proof_Context.init_global thy  (* FIXME proper context!? *)
       val intros =
         if forall is_pred_equation specs then 
           map (split_conjuncts_in_assms ctxt) (introrulify thy (map (rewrite ctxt) specs))
@@ -213,7 +213,7 @@ fun preprocess options (constname, specs) thy =
           error ("unexpected specification for constant " ^ quote constname ^ ":\n"
             ^ commas (map (quote o Display.string_of_thm_global thy) specs))
       val if_beta = @{lemma "(if c then x else y) z = (if c then x z else y z)" by simp}
-      val intros = map (rewrite_rule [if_beta RS @{thm eq_reflection}]) intros
+      val intros = map (rewrite_rule ctxt [if_beta RS @{thm eq_reflection}]) intros
       val _ = print_specs options thy "normalized intros" intros
       (*val intros = maps (split_cases thy) intros*)
       val (intros', (local_defs, thy')) = flatten_intros constname intros thy

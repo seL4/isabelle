@@ -470,15 +470,15 @@ fun prove_finite_take_induct
     fun prove_finite_thm (absT, finite_const) =
       let
         val goal = mk_trp (finite_const $ Free ("x", absT))
-        val tac =
+        fun tac ctxt =
             EVERY [
-            rewrite_goals_tac finite_defs,
+            rewrite_goals_tac ctxt finite_defs,
             rtac @{thm lub_ID_finite} 1,
             resolve_tac chain_take_thms 1,
             resolve_tac lub_take_thms 1,
             resolve_tac decisive_thms 1]
       in
-        Goal.prove_global thy [] [] goal (K tac)
+        Goal.prove_global thy [] [] goal (tac o #context)
       end
     val finite_thms =
         map prove_finite_thm (absTs ~~ finite_consts)

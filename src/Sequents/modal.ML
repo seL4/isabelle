@@ -19,7 +19,7 @@ sig
     val rule_tac   : thm list -> int ->tactic
     val step_tac   : int -> tactic
     val solven_tac : int -> int -> tactic
-    val solve_tac  : int -> tactic
+    val solve_tac  : Proof.context -> int -> tactic
 end;
 
 functor Modal_ProverFun (Modal_Rule: MODAL_PROVER_RULE) : MODAL_PROVER = 
@@ -78,7 +78,7 @@ fun solven_tac d n state = state |>
                  ((fres_unsafe_tac n  THEN UPTOGOAL n (solven_tac d)) APPEND
                    (fres_bound_tac n  THEN UPTOGOAL n (solven_tac (d-1)))));
 
-fun solve_tac d = rewrite_goals_tac Modal_Rule.rewrite_rls THEN solven_tac d 1;
+fun solve_tac ctxt d = rewrite_goals_tac ctxt Modal_Rule.rewrite_rls THEN solven_tac d 1;
 
 fun step_tac n = 
     COND (has_fewer_prems 1) all_tac 

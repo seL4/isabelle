@@ -443,18 +443,18 @@ end;
 
 local
 
-fun finish_tac 0 = K all_tac
-  | finish_tac n =
-      Goal.norm_hhf_tac THEN'
+fun finish_tac _ 0 = K all_tac
+  | finish_tac ctxt n =
+      Goal.norm_hhf_tac ctxt THEN'
       SUBGOAL (fn (goal, i) =>
         if can Logic.unprotect (Logic.strip_assums_concl goal) then
-          etac Drule.protectI i THEN finish_tac (n - 1) i
-        else finish_tac (n - 1) (i + 1));
+          etac Drule.protectI i THEN finish_tac ctxt (n - 1) i
+        else finish_tac ctxt (n - 1) (i + 1));
 
-fun goal_tac rule =
-  Goal.norm_hhf_tac THEN'
+fun goal_tac ctxt rule =
+  Goal.norm_hhf_tac ctxt THEN'
   rtac rule THEN'
-  finish_tac (Thm.nprems_of rule);
+  finish_tac ctxt (Thm.nprems_of rule);
 
 fun FINDGOAL tac st =
   let fun find i n = if i > n then Seq.fail else Seq.APPEND (tac i, find (i + 1) n)
@@ -465,7 +465,7 @@ in
 fun refine_goals print_rule inner raw_rules state =
   let
     val (outer, (_, goal)) = get_goal state;
-    fun refine rule st = (print_rule outer rule; FINDGOAL (goal_tac rule) st);
+    fun refine rule st = (print_rule outer rule; FINDGOAL (goal_tac outer rule) st);
   in
     raw_rules
     |> Proof_Context.goal_export inner outer

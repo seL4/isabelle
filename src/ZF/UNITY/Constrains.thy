@@ -479,7 +479,7 @@ fun constrains_tac ctxt =
                                    @{thm constrains_imp_Constrains}] 1),
               rtac @{thm constrainsI} 1,
               (* Three subgoals *)
-              rewrite_goal_tac [@{thm st_set_def}] 3,
+              rewrite_goal_tac ctxt [@{thm st_set_def}] 3,
               REPEAT (force_tac ctxt 2),
               full_simp_tac (ctxt addsimps (Program_Defs.get ctxt)) 1,
               ALLGOALS (clarify_tac ctxt),
