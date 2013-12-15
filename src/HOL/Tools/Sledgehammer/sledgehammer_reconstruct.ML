@@ -323,10 +323,10 @@ fun isar_proof_text ctxt isar_proofs
               val lits =
                 map (maybe_dest_Trueprop o snd) (map_filter (Symtab.lookup steps o fst) names)
             in
-              case List.partition (can HOLogic.dest_not) lits of
+              (case List.partition (can HOLogic.dest_not) lits of
                 (negs as _ :: _, pos as _ :: _) =>
                 s_imp (Library.foldr1 s_conj (map HOLogic.dest_not negs), Library.foldr1 s_disj pos)
-              | _ => fold (curry s_disj) lits @{term False}
+              | _ => fold (curry s_disj) lits @{term False})
             end
             |> HOLogic.mk_Trueprop |> close_form
 
@@ -380,15 +380,9 @@ fun isar_proof_text ctxt isar_proofs
         and isar_proof outer fix assms lems infs =
           Proof (fix, assms, lems @ isar_steps outer NONE [] infs)
 
-        val isar_proof_of_direct_proof = isar_proof true params assms lems
-
         (* 60 seconds seems like a good interpreation of "no timeout" *)
         val preplay_timeout = preplay_timeout |> the_default (seconds 60.0)
 
-        val clean_up_labels_in_proof =
-          chain_direct_proof
-          #> kill_useless_labels_in_proof
-          #> relabel_proof
         val (preplay_interface as {overall_preplay_stats, ...}, isar_proof) =
           refute_graph
 (*
@@ -398,11 +392,12 @@ fun isar_proof_text ctxt isar_proofs
 (*
           |> tap (tracing o prefix "Direct proof: " o string_of_direct_proof)
 *)
-          |> isar_proof_of_direct_proof
+          |> isar_proof true params assms lems
           |> postprocess_remove_unreferenced_steps I
           |> relabel_proof_canonically
           |> `(proof_preplay_interface debug ctxt metis_type_enc metis_lam_trans do_preplay
                preplay_timeout)
+
         val ((preplay_time, preplay_fail), isar_proof) =
           isar_proof
           |> compress_proof (if isar_proofs = SOME true then isar_compress else 1000.0)
@@ -410,11 +405,14 @@ fun isar_proof_text ctxt isar_proofs
           |> isar_try0 ? try0 preplay_timeout preplay_interface
           |> postprocess_remove_unreferenced_steps (isar_try0 ? min_deps_of_step preplay_interface)
           |> `overall_preplay_stats
-          ||> clean_up_labels_in_proof
+          ||> (chain_direct_proof
+            #> kill_useless_labels_in_proof
+            #> relabel_proof)
+
         val isar_text =
           string_of_proof ctxt metis_type_enc metis_lam_trans subgoal subgoal_count isar_proof
       in
-        case isar_text of
+        (case isar_text of
           "" =>
           if isar_proofs = SOME true then
             "\nNo structured proof available (proof too simple)."
@@ -437,24 +435,23 @@ fun isar_proof_text ctxt isar_proofs
           in
             "\n\nStructured proof" ^ (commas msg |> not (null msg) ? enclose " (" ")") ^ ":\n" ^
             Active.sendback_markup [Markup.padding_command] isar_text
-          end
+          end)
       end
     val isar_proof =
       if debug then
         isar_proof_of ()
-      else case try isar_proof_of () of
-        SOME s => s
-      | NONE => if isar_proofs = SOME true then
-                  "\nWarning: The Isar proof construction failed."
-                else
-                  ""
+      else
+        (case try isar_proof_of () of
+          SOME s => s
+        | NONE =>
+          if isar_proofs = SOME true then "\nWarning: The Isar proof construction failed." else "")
   in one_line_proof ^ isar_proof end
 
 fun isar_proof_would_be_a_good_idea preplay =
-  case preplay of
+  (case preplay of
     Played (reconstr, _) => reconstr = SMT
   | Trust_Playable _ => false
-  | Failed_to_Play _ => true
+  | Failed_to_Play _ => true)
 
 fun proof_text ctxt isar_proofs isar_params num_chained
                (one_line_params as (preplay, _, _, _, _, _)) =

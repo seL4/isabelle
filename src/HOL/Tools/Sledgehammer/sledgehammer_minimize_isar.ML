@@ -55,17 +55,18 @@ fun postprocess_remove_unreferenced_steps postproc_step =
       let val (refed, steps) = do_steps steps in
         (refed, Proof (fix, assms, steps))
       end
-    and do_steps steps =
-      let
-        (* the last step is always implicitly referenced *)
-        val (steps, (refed, concl)) =
-          split_last steps
-          ||> do_refed_step
-      in
-        fold_rev do_step steps (refed, [concl])
-      end
+    and do_steps [] = ([], [])
+      | do_steps steps =
+        let
+          (* the last step is always implicitly referenced *)
+          val (steps, (refed, concl)) =
+            split_last steps
+            ||> do_refed_step
+        in
+          fold_rev do_step steps (refed, [concl])
+        end
     and do_step step (refed, accu) =
-      case label_of_step step of
+      (case label_of_step step of
         NONE => (refed, step :: accu)
       | SOME l =>
           if Ord_List.member label_ord refed l then
@@ -73,7 +74,7 @@ fun postprocess_remove_unreferenced_steps postproc_step =
             |>> Ord_List.union label_ord refed
             ||> (fn x => x :: accu)
           else
-            (refed, accu)
+            (refed, accu))
     and do_refed_step step = step |> postproc_step |> do_refed_step'
     and do_refed_step' (Let _) = raise Fail "Sledgehammer_Minimize_Isar"
       | do_refed_step' (Prove (qs, xs, l, t, subproofs, ((lfs, gfs), m))) =

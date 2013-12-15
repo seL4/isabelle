@@ -76,9 +76,10 @@ fun make_refute_graph bot infers =
   let
     fun add_edge to from =
       Atom_Graph.default_node (from, ())
-      #> Atom_Graph.default_node (to, ())
       #> Atom_Graph.add_edge_acyclic (from, to)
-    fun add_infer (froms, to) = fold (add_edge to) froms
+    fun add_infer (froms, to) =
+      Atom_Graph.default_node (to, ())
+      #> fold (add_edge to) froms
 
     val graph = fold add_infer infers Atom_Graph.empty
     val reachable = Atom_Graph.all_preds graph [bot]

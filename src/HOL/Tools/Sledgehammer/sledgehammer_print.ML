@@ -279,7 +279,8 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
   in
     (* One-step Metis proofs are pointless; better use the one-liner directly. *)
     (case proof of
-      Proof ([], [], [Prove (_, [], _, _, [], (_, MetisM))]) => ""
+      Proof ([], [], []) => "" (* degenerate case: the conjecture is "True" with Z3 *)
+    | Proof ([], [], [Prove (_, [], _, _, [], (_, MetisM))]) => ""
     | _ =>
       (if i <> 1 then "prefer " ^ string_of_int i ^ "\n" else "") ^
       of_indent 0 ^ "proof -\n" ^ of_proof 1 ctxt proof ^
