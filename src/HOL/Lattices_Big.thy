@@ -127,7 +127,7 @@ qed
 
 end
 
-locale semilattice_order_set = semilattice_order + semilattice_set
+locale semilattice_order_set = binary?: semilattice_order + semilattice_set
 begin
 
 lemma bounded_iff:
@@ -251,7 +251,7 @@ qed
 
 end
 
-locale semilattice_order_neutr_set = semilattice_neutr_order + semilattice_neutr_set
+locale semilattice_order_neutr_set = binary?: semilattice_neutr_order + semilattice_neutr_set
 begin
 
 lemma bounded_iff:
@@ -425,24 +425,23 @@ text {*
 context lattice
 begin
 
-lemma Inf_le_Sup [simp]: "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> \<Sqinter>\<^sub>f\<^sub>i\<^sub>nA \<le> \<Squnion>\<^sub>f\<^sub>i\<^sub>nA"
-apply(subgoal_tac "EX a. a:A")
-prefer 2 apply blast
-apply(erule exE)
-apply(rule order_trans)
-apply(erule (1) Inf_fin.coboundedI)
-apply(erule (1) Sup_fin.coboundedI)
-done
+lemma Inf_fin_le_Sup_fin [simp]: 
+  assumes "finite A" and "A \<noteq> {}"
+  shows "\<Sqinter>\<^sub>f\<^sub>i\<^sub>nA \<le> \<Squnion>\<^sub>f\<^sub>i\<^sub>nA"
+proof -
+  from `A \<noteq> {}` obtain a where "a \<in> A" by blast
+  with `finite A` have "\<Sqinter>\<^sub>f\<^sub>i\<^sub>nA \<le> a" by (rule Inf_fin.coboundedI)
+  moreover from `finite A` `a \<in> A` have "a \<le> \<Squnion>\<^sub>f\<^sub>i\<^sub>nA" by (rule Sup_fin.coboundedI)
+  ultimately show ?thesis by (rule order_trans)
+qed
 
 lemma sup_Inf_absorb [simp]:
-  "finite A \<Longrightarrow> a \<in> A \<Longrightarrow> sup a (\<Sqinter>\<^sub>f\<^sub>i\<^sub>nA) = a"
-apply(subst sup_commute)
-apply(simp add: sup_absorb2 Inf_fin.coboundedI)
-done
+  "finite A \<Longrightarrow> a \<in> A \<Longrightarrow> \<Sqinter>\<^sub>f\<^sub>i\<^sub>nA \<squnion> a = a"
+  by (rule sup_absorb2) (rule Inf_fin.coboundedI)
 
 lemma inf_Sup_absorb [simp]:
-  "finite A \<Longrightarrow> a \<in> A \<Longrightarrow> inf a (\<Squnion>\<^sub>f\<^sub>i\<^sub>nA) = a"
-by (simp add: inf_absorb1 Sup_fin.coboundedI)
+  "finite A \<Longrightarrow> a \<in> A \<Longrightarrow> a \<sqinter> \<Squnion>\<^sub>f\<^sub>i\<^sub>nA = a"
+  by (rule inf_absorb1) (rule Sup_fin.coboundedI)
 
 end
 

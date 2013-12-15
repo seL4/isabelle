@@ -20,8 +20,8 @@ begin
 interpretation comp_fun_commute f
   by default (simp add: fun_eq_iff left_commute)
 
-interpretation comp_fun_commute "f \<circ> g"
-  by (rule comp_comp_fun_commute)
+interpretation comp?: comp_fun_commute "f \<circ> g"
+  by (fact comp_comp_fun_commute)
 
 definition F :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b set \<Rightarrow> 'a"
 where
