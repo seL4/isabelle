@@ -132,7 +132,7 @@ and succedent_of_case (c, []) = c
   | succedent_of_case (_, infs) = succedent_of_inference (List.last infs)
 and succedent_of_cases cases = disj (map succedent_of_case cases)
 
-fun s_cases cases = [Cases (filter_out (null o snd) cases)]
+fun s_cases cases = [Cases cases]
 
 fun descendants direct_graph = these o try (Atom_Graph.all_succs direct_graph) o single
 
@@ -183,7 +183,7 @@ fun string_of_clause [] = "\<bottom>"
 
 fun string_of_rich_sequent ch (id, (cs, c)) =
   (if null cs then "" else commas (map string_of_clause cs) ^ " ") ^ ch ^ " " ^ string_of_clause c ^
-  " (* " ^ Atom.string_of id ^ "*)"
+  " (* " ^ Atom.string_of id ^ " *)"
 
 fun string_of_case depth (c, proof) =
   indent (depth + 1) ^ "[" ^ string_of_clause c ^ "]"

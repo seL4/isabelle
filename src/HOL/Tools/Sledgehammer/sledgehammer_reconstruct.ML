@@ -16,10 +16,9 @@ sig
     bool * bool * string * string * Time.time option * real * bool * (term, string) atp_step list *
     thm
 
-  val isar_proof_text :
-    Proof.context -> bool option -> isar_params -> one_line_params -> string
-  val proof_text :
-    Proof.context -> bool option -> (unit -> isar_params) -> int -> one_line_params -> string
+  val isar_proof_text : Proof.context -> bool option -> isar_params -> one_line_params -> string
+  val proof_text : Proof.context -> bool option -> (unit -> isar_params) -> int ->
+    one_line_params -> string
 end;
 
 structure Sledgehammer_Reconstruct : SLEDGEHAMMER_RECONSTRUCT =
@@ -382,7 +381,8 @@ fun isar_proof_text ctxt isar_proofs
               val l = label_of_clause c
               val t = prop_of_clause c
               val step =
-                Prove (maybe_show outer c [], [], l, t, map isar_case cases,
+                Prove (maybe_show outer c [], [], l, t,
+                  map isar_case (filter_out (null o snd) cases),
                   ((the_list predecessor, []), MetisM))
             in
               isar_steps outer (SOME l) (step :: accum) infs
@@ -445,6 +445,7 @@ fun isar_proof_text ctxt isar_proofs
             Active.sendback_markup [Markup.padding_command] isar_text
           end)
       end
+
     val isar_proof =
       if debug then
         isar_proof_of ()
