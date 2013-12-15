@@ -207,8 +207,8 @@ fun prove_primrec_thms (config : Datatype_Aux.config) new_type_names descr
           (HOLogic.mk_Trueprop (Datatype_Aux.mk_conj rec_unique_ts))
           (fn {context = ctxt, ...} =>
             #1 (fold (mk_unique_tac ctxt) (descr' ~~ rec_elims ~~ recTs ~~ rec_result_Ts)
-              (((rtac induct' THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1 THEN
-                  rewrite_goals_tac [mk_meta_eq @{thm choice_eq}], rec_intrs)))))
+              (((rtac induct' THEN_ALL_NEW Object_Logic.atomize_prems_tac ctxt) 1 THEN
+                  rewrite_goals_tac ctxt [mk_meta_eq @{thm choice_eq}], rec_intrs)))))
       end;
 
     val rec_total_thms = map (fn r => r RS @{thm theI'}) rec_unique_thms;
@@ -247,8 +247,8 @@ fun prove_primrec_thms (config : Datatype_Aux.config) new_type_names descr
     val rec_thms =
       map (fn t =>
         Goal.prove_sorry_global thy2 [] [] t
-          (fn _ => EVERY
-            [rewrite_goals_tac reccomb_defs,
+          (fn {context = ctxt, ...} => EVERY
+            [rewrite_goals_tac ctxt reccomb_defs,
              rtac @{thm the1_equality} 1,
              resolve_tac rec_unique_thms 1,
              resolve_tac rec_intrs 1,
@@ -327,8 +327,8 @@ fun prove_case_thms (config : Datatype_Aux.config)
     val case_thms =
       (map o map) (fn t =>
           Goal.prove_sorry_global thy2 [] [] t
-            (fn _ =>
-              EVERY [rewrite_goals_tac (case_defs @ map mk_meta_eq primrec_thms), rtac refl 1]))
+            (fn {context = ctxt, ...} =>
+              EVERY [rewrite_goals_tac ctxt (case_defs @ map mk_meta_eq primrec_thms), rtac refl 1]))
         (Datatype_Prop.make_cases case_names descr thy2);
   in
     thy2

@@ -110,7 +110,7 @@ sig
     (term list list * (Proof.context -> Proof.context)) * Proof.context
   val bind_propp_schematic_i: (term * term list) list list -> Proof.context ->
     (term list list * (Proof.context -> Proof.context)) * Proof.context
-  val fact_tac: thm list -> int -> tactic
+  val fact_tac: Proof.context -> thm list -> int -> tactic
   val some_fact_tac: Proof.context -> int -> tactic
   val get_fact: Proof.context -> Facts.ref -> thm list
   val get_fact_single: Proof.context -> Facts.ref -> thm
@@ -889,12 +889,12 @@ fun comp_incr_tac [] _ = no_tac
 
 in
 
-fun fact_tac facts = Goal.norm_hhf_tac THEN' comp_incr_tac facts;
+fun fact_tac ctxt facts = Goal.norm_hhf_tac ctxt THEN' comp_incr_tac facts;
 
 fun potential_facts ctxt prop =
   Facts.could_unify (facts_of ctxt) (Term.strip_all_body prop);
 
-fun some_fact_tac ctxt = SUBGOAL (fn (goal, i) => fact_tac (potential_facts ctxt goal) i);
+fun some_fact_tac ctxt = SUBGOAL (fn (goal, i) => fact_tac ctxt (potential_facts ctxt goal) i);
 
 end;
 
@@ -913,7 +913,7 @@ fun retrieve_thms pick ctxt (Facts.Fact s) =
 
         val (prop', _) = Term.replace_dummy_patterns prop (Variable.maxidx_of ctxt + 1);
         fun prove_fact th =
-          Goal.prove ctxt [] [] prop' (K (ALLGOALS (fact_tac [th])));
+          Goal.prove ctxt [] [] prop' (K (ALLGOALS (fact_tac ctxt [th])));
         val results = map_filter (try prove_fact) (potential_facts ctxt prop');
         val res =
           (case distinct Thm.eq_thm_prop results of

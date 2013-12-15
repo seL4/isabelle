@@ -135,8 +135,8 @@ datatype isa_thm =
   Isa_Raw of thm
 
 val proxy_defs = map (fst o snd o snd) proxy_table
-val prepare_helper =
-  Meson.make_meta_clause #> rewrite_rule (map safe_mk_meta_eq proxy_defs)
+fun prepare_helper ctxt =
+  Meson.make_meta_clause #> rewrite_rule ctxt (map safe_mk_meta_eq proxy_defs)
 
 fun metis_term_of_atp type_enc (ATerm ((s, []), tms)) =
   if is_tptp_variable s then
@@ -160,7 +160,7 @@ fun metis_literal_of_atp type_enc (AConn (ANot, [phi])) =
 fun metis_literals_of_atp type_enc (AConn (AOr, phis)) =
     maps (metis_literals_of_atp type_enc) phis
   | metis_literals_of_atp type_enc phi = [metis_literal_of_atp type_enc phi]
-fun metis_axiom_of_atp type_enc clauses (Formula ((ident, _), _, phi, _, _)) =
+fun metis_axiom_of_atp ctxt type_enc clauses (Formula ((ident, _), _, phi, _, _)) =
     let
       fun some isa =
         SOME (phi |> metis_literals_of_atp type_enc
@@ -178,7 +178,7 @@ fun metis_axiom_of_atp type_enc clauses (Formula ((ident, _), _, phi, _, _)) =
           nth (AList.lookup (op =) helper_table (const, needs_fairly_sound)
                |> the)
               (the (Int.fromString j) - 1)
-          |> snd |> prepare_helper
+          |> snd |> prepare_helper ctxt
           |> Isa_Raw |> some
         | _ => raise Fail ("malformed helper identifier " ^ quote ident)
       else case try (unprefix fact_prefix) ident of
@@ -196,7 +196,7 @@ fun metis_axiom_of_atp type_enc clauses (Formula ((ident, _), _, phi, _, _)) =
         end
       | NONE => TrueI |> Isa_Raw |> some
     end
-  | metis_axiom_of_atp _ _ _ = raise Fail "not CNF -- expected formula"
+  | metis_axiom_of_atp _ _ _ _ = raise Fail "not CNF -- expected formula"
 
 fun eliminate_lam_wrappers (Const (@{const_name Metis.lambda}, _) $ t) =
     eliminate_lam_wrappers t
@@ -249,7 +249,7 @@ fun prepare_metis_problem ctxt type_enc lam_trans conj_clauses fact_clauses =
     (* "rev" is for compatibility with existing proof scripts. *)
     val axioms =
       atp_problem
-      |> maps (map_filter (metis_axiom_of_atp type_enc clauses) o snd) |> rev
+      |> maps (map_filter (metis_axiom_of_atp ctxt type_enc clauses) o snd) |> rev
     fun ord_info () = atp_problem_term_order_info atp_problem
   in (sym_tab, axioms, ord_info, (lifted, old_skolems)) end
 

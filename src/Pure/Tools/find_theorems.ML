@@ -237,7 +237,9 @@ fun filter_solves ctxt goal =
       Seq.take (Options.default_int @{option find_theorems_tac_limit}) o etac thm i;
     fun try_thm thm =
       if Thm.no_prems thm then rtac thm 1 goal'
-      else (limited_etac thm THEN_ALL_NEW (Goal.norm_hhf_tac THEN' Method.assm_tac ctxt')) 1 goal';
+      else
+        (limited_etac thm THEN_ALL_NEW (Goal.norm_hhf_tac ctxt' THEN' Method.assm_tac ctxt'))
+          1 goal';
   in
     fn Internal (_, thm) =>
         if is_some (Seq.pull (try_thm thm))

@@ -829,6 +829,7 @@ fun create_nom_typedecls ak_names thy =
        (* instantiations.                                                 *)
        val (_, thy33) =
          let
+             val ctxt32 = Proof_Context.init_global thy32;
 
              (* takes a theorem thm and a list of theorems [t1,..,tn]            *)
              (* produces a list of theorems of the form [t1 RS thm,..,tn RS thm] *) 
@@ -918,7 +919,7 @@ fun create_nom_typedecls ak_names thy =
             ||>> add_thmss_string
               let
                 val thms1 = inst_pt_at [all_eqvt];
-                val thms2 = map (fold_rule [inductive_forall_def]) thms1
+                val thms2 = map (fold_rule ctxt32 [inductive_forall_def]) thms1
               in
                 [(("all_eqvt", thms1 @ thms2), [NominalThmDecls.eqvt_force_add])]
               end

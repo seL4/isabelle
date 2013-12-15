@@ -25,7 +25,7 @@ sig
   val elim: thm list -> method
   val unfold: thm list -> Proof.context -> method
   val fold: thm list -> Proof.context -> method
-  val atomize: bool -> method
+  val atomize: bool -> Proof.context -> method
   val this: method
   val fact: thm list -> Proof.context -> method
   val assm_tac: Proof.context -> int -> tactic
@@ -33,14 +33,14 @@ sig
   val assumption: Proof.context -> method
   val rule_trace: bool Config.T
   val trace: Proof.context -> thm list -> unit
-  val rule_tac: thm list -> thm list -> int -> tactic
-  val some_rule_tac: thm list -> Proof.context -> thm list -> int -> tactic
+  val rule_tac: Proof.context -> thm list -> thm list -> int -> tactic
+  val some_rule_tac: Proof.context -> thm list -> thm list -> int -> tactic
   val intros_tac: thm list -> thm list -> tactic
   val try_intros_tac: thm list -> thm list -> tactic
-  val rule: thm list -> method
-  val erule: int -> thm list -> method
-  val drule: int -> thm list -> method
-  val frule: int -> thm list -> method
+  val rule: Proof.context -> thm list -> method
+  val erule: Proof.context -> int -> thm list -> method
+  val drule: Proof.context -> int -> thm list -> method
+  val frule: Proof.context -> int -> thm list -> method
   val set_tactic: (thm list -> tactic) -> Proof.context -> Proof.context
   val tactic: string * Position.T -> Proof.context -> method
   val raw_tactic: string * Position.T -> Proof.context -> method
@@ -147,8 +147,10 @@ fun fold_meth ths ctxt = SIMPLE_METHOD (CHANGED_PROP (Local_Defs.fold_tac ctxt t
 
 (* atomize rule statements *)
 
-fun atomize false = SIMPLE_METHOD' (CHANGED_PROP o Object_Logic.atomize_prems_tac)
-  | atomize true = RAW_METHOD (K (HEADGOAL (CHANGED_PROP o Object_Logic.full_atomize_tac)));
+fun atomize false ctxt =
+      SIMPLE_METHOD' (CHANGED_PROP o Object_Logic.atomize_prems_tac ctxt)
+  | atomize true ctxt =
+      RAW_METHOD (K (HEADGOAL (CHANGED_PROP o Object_Logic.full_atomize_tac ctxt)));
 
 
 (* this -- resolve facts directly *)
@@ -159,7 +161,7 @@ val this = METHOD (EVERY o map (HEADGOAL o rtac));
 (* fact -- composition by facts from context *)
 
 fun fact [] ctxt = SIMPLE_METHOD' (Proof_Context.some_fact_tac ctxt)
-  | fact rules _ = SIMPLE_METHOD' (Proof_Context.fact_tac rules);
+  | fact rules ctxt = SIMPLE_METHOD' (Proof_Context.fact_tac ctxt rules);
 
 
 (* assumption *)
@@ -208,31 +210,31 @@ fun trace ctxt rules =
 
 local
 
-fun gen_rule_tac tac rules facts =
+fun gen_rule_tac tac ctxt rules facts =
   (fn i => fn st =>
     if null facts then tac rules i st
     else Seq.maps (fn rule => (tac o single) rule i st) (Drule.multi_resolves facts rules))
-  THEN_ALL_NEW Goal.norm_hhf_tac;
+  THEN_ALL_NEW Goal.norm_hhf_tac ctxt;
 
-fun gen_arule_tac tac j rules facts =
-  EVERY' (gen_rule_tac tac rules facts :: replicate j assume_tac);
+fun gen_arule_tac tac ctxt j rules facts =
+  EVERY' (gen_rule_tac tac ctxt rules facts :: replicate j assume_tac);
 
-fun gen_some_rule_tac tac arg_rules ctxt facts = SUBGOAL (fn (goal, i) =>
+fun gen_some_rule_tac tac ctxt arg_rules facts = SUBGOAL (fn (goal, i) =>
   let
     val rules =
       if not (null arg_rules) then arg_rules
       else flat (Context_Rules.find_rules false facts goal ctxt)
-  in trace ctxt rules; tac rules facts i end);
+  in trace ctxt rules; tac ctxt rules facts i end);
 
-fun meth tac x = METHOD (HEADGOAL o tac x);
-fun meth' tac x y = METHOD (HEADGOAL o tac x y);
+fun meth tac x y = METHOD (HEADGOAL o tac x y);
+fun meth' tac x y z = METHOD (HEADGOAL o tac x y z);
 
 in
 
 val rule_tac = gen_rule_tac resolve_tac;
 val rule = meth rule_tac;
 val some_rule_tac = gen_some_rule_tac rule_tac;
-val some_rule = meth' some_rule_tac;
+val some_rule = meth some_rule_tac;
 
 val erule = meth' (gen_arule_tac eresolve_tac);
 val drule = meth' (gen_arule_tac dresolve_tac);
@@ -390,9 +392,9 @@ end;
 
 (* extra rule methods *)
 
-fun xrule_meth m =
+fun xrule_meth meth =
   Scan.lift (Scan.optional (Args.parens Parse.nat) 0) -- Attrib.thms >>
-  (fn (n, ths) => K (m n ths));
+  (fn (n, ths) => fn ctxt => meth ctxt n ths);
 
 
 (* outer parser *)
@@ -451,9 +453,10 @@ val _ = Theory.setup
     "repeatedly apply elimination rules" #>
   setup (Binding.name "unfold") (Attrib.thms >> unfold_meth) "unfold definitions" #>
   setup (Binding.name "fold") (Attrib.thms >> fold_meth) "fold definitions" #>
-  setup (Binding.name "atomize") (Scan.lift (Args.mode "full") >> (K o atomize))
+  setup (Binding.name "atomize") (Scan.lift (Args.mode "full") >> atomize)
     "present local premises as object-level statements" #>
-  setup (Binding.name "rule") (Attrib.thms >> some_rule) "apply some intro/elim rule" #>
+  setup (Binding.name "rule") (Attrib.thms >> (fn ths => fn ctxt => some_rule ctxt ths))
+    "apply some intro/elim rule" #>
   setup (Binding.name "erule") (xrule_meth erule) "apply rule in elimination manner (improper)" #>
   setup (Binding.name "drule") (xrule_meth drule) "apply rule in destruct manner (improper)" #>
   setup (Binding.name "frule") (xrule_meth frule) "apply rule in forward manner (improper)" #>

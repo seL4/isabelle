@@ -180,6 +180,7 @@ fun specialize_fixp_induct ctxt args fT fT_uc F curry uncurry mono_thm f_def rul
     val ([P], ctxt') = Variable.variant_fixes ["P"] ctxt
     val P_inst = Abs ("f", fT_uc, Free (P, fT --> HOLogic.boolT) $ (curry $ Bound 0))
   in 
+    (* FIXME ctxt vs. ctxt' (!?) *)
     rule
     |> cterm_instantiate' [SOME (cert uncurry), NONE, SOME (cert curry), NONE, SOME (cert P_inst)]
     |> Tactic.rule_by_tactic ctxt
@@ -188,7 +189,7 @@ fun specialize_fixp_induct ctxt args fT fT_uc F curry uncurry mono_thm f_def rul
        THEN Simplifier.full_simp_tac (put_simpset curry_uncurry_ss ctxt) 5) (* simplify induction step *)
     |> (fn thm => thm OF [mono_thm, f_def])
     |> Conv.fconv_rule (Conv.concl_conv ~1    (* simplify conclusion *)
-         (Raw_Simplifier.rewrite false [mk_meta_eq @{thm Product_Type.curry_split}])) 
+         (Raw_Simplifier.rewrite ctxt false [mk_meta_eq @{thm Product_Type.curry_split}]))
     |> singleton (Variable.export ctxt' ctxt)
   end
 

@@ -53,9 +53,9 @@ fun coinduction_tac ctxt raw_vars opt_raw_thm prems st =
     val cases = Rule_Cases.get raw_thm |> fst
   in
     NO_CASES (HEADGOAL (
-      Object_Logic.rulify_tac THEN'
+      Object_Logic.rulify_tac ctxt THEN'
       Method.insert_tac prems THEN'
-      Object_Logic.atomize_prems_tac THEN'
+      Object_Logic.atomize_prems_tac ctxt THEN'
       DELETE_PREMS_AFTER skip (Subgoal.FOCUS (fn {concl, context = ctxt, params, prems, ...} =>
         let
           val vars = raw_vars @ map (term_of o snd) params;
@@ -110,7 +110,7 @@ fun coinduction_tac ctxt raw_vars opt_raw_thm prems st =
                         unfold_thms_tac ctxt eqs
                       end)) ctxt)))])
         end) ctxt) THEN'
-      K (prune_params_tac))) st
+      K (prune_params_tac ctxt))) st
     |> Seq.maps (fn (_, st) =>
       CASES (Rule_Cases.make_common (Proof_Context.theory_of ctxt, prop_of st) cases) all_tac st)
   end;

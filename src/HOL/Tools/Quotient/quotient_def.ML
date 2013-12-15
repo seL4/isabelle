@@ -129,7 +129,7 @@ fun mk_readable_rsp_thm_eq tm lthy =
     val eq_thm = 
       (simp_conv then_conv univq_prenex_conv then_conv beta_conv then_conv unfold_ret_val_invs) ctm
   in
-    Object_Logic.rulify (eq_thm RS Drule.equal_elim_rule2)
+    Object_Logic.rulify lthy (eq_thm RS Drule.equal_elim_rule2)
   end
 
 
@@ -187,7 +187,7 @@ fun gen_quotient_def prep_vars prep_term (raw_var, (attr, (lhs_raw, rhs_raw))) l
           case thm_list of
             [] => the maybe_proven_rsp_thm
           | [[thm]] => Goal.prove ctxt [] [] internal_rsp_tm 
-            (fn _ => rtac readable_rsp_thm_eq 1 THEN Proof_Context.fact_tac [thm] 1)
+            (fn _ => rtac readable_rsp_thm_eq 1 THEN Proof_Context.fact_tac ctxt [thm] 1)
       in
         snd (add_quotient_def ((var, attr), (lhs, rhs)) internal_rsp_thm lthy)
       end

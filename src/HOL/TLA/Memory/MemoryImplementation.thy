@@ -233,7 +233,7 @@ ML {*
 
 setup {* map_theory_simpset (fn ctxt => ctxt addSSolver fast_solver) *}
 
-ML {* val temp_elim = make_elim o temp_use *}
+ML {* val temp_elim = make_elim oo temp_use *}
 
 
 
@@ -352,7 +352,7 @@ lemma S1Hist: "|- [HNext rmhist p]_(c p,r p,m p,rmhist!p) & $(S1 rmhist p)
          --> unchanged (rmhist!p)"
   by (tactic {* action_simp_tac (@{context} addsimps [@{thm HNext_def}, @{thm S_def},
     @{thm S1_def}, @{thm MemReturn_def}, @{thm RPCFail_def}, @{thm MClkReply_def},
-    @{thm Return_def}]) [] [temp_use @{thm squareE}] 1 *})
+    @{thm Return_def}]) [] [temp_use @{context} @{thm squareE}] 1 *})
 
 
 (* ------------------------------ State S2 ---------------------------------------- *)
@@ -566,7 +566,8 @@ lemma Step1_2_1: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
          & ~unchanged (e p, c p, r p, m p, rmhist!p)  & $S1 rmhist p
          --> (S2 rmhist p)$ & ENext p & unchanged (c p, r p, m p)"
   apply (tactic {* action_simp_tac (@{context} addsimps [@{thm ImpNext_def}]) []
-      (map temp_elim [@{thm S1ClerkUnch}, @{thm S1RPCUnch}, @{thm S1MemUnch}, @{thm S1Hist}]) 1 *})
+      (map (temp_elim @{context})
+        [@{thm S1ClerkUnch}, @{thm S1RPCUnch}, @{thm S1MemUnch}, @{thm S1Hist}]) 1 *})
    using [[fast_solver]]
    apply (auto elim!: squareE [temp_use] intro!: S1Env [temp_use])
   done
@@ -576,7 +577,8 @@ lemma Step1_2_2: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
          --> (S3 rmhist p)$ & MClkFwd memCh crCh cst p
              & unchanged (e p, r p, m p, rmhist!p)"
   apply (tactic {* action_simp_tac (@{context} addsimps [@{thm ImpNext_def}]) []
-    (map temp_elim [@{thm S2EnvUnch}, @{thm S2RPCUnch}, @{thm S2MemUnch}, @{thm S2Hist}]) 1 *})
+    (map (temp_elim @{context})
+      [@{thm S2EnvUnch}, @{thm S2RPCUnch}, @{thm S2MemUnch}, @{thm S2Hist}]) 1 *})
    using [[fast_solver]]
    apply (auto elim!: squareE [temp_use] intro!: S2Clerk [temp_use] S2Forward [temp_use])
   done
@@ -586,9 +588,10 @@ lemma Step1_2_3: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
          --> ((S4 rmhist p)$ & RPCFwd crCh rmCh rst p & unchanged (e p, c p, m p, rmhist!p))
              | ((S6 rmhist p)$ & RPCFail crCh rmCh rst p & unchanged (e p, c p, m p))"
   apply (tactic {* action_simp_tac (@{context} addsimps [@{thm ImpNext_def}]) []
-    (map temp_elim [@{thm S3EnvUnch}, @{thm S3ClerkUnch}, @{thm S3MemUnch}]) 1 *})
+    (map (temp_elim @{context}) [@{thm S3EnvUnch}, @{thm S3ClerkUnch}, @{thm S3MemUnch}]) 1 *})
   apply (tactic {* action_simp_tac @{context} []
-    (@{thm squareE} :: map temp_elim [@{thm S3RPC}, @{thm S3Forward}, @{thm S3Fail}]) 1 *})
+    (@{thm squareE} ::
+      map (temp_elim @{context}) [@{thm S3RPC}, @{thm S3Forward}, @{thm S3Fail}]) 1 *})
    apply (auto dest!: S3Hist [temp_use])
   done
 
@@ -599,9 +602,10 @@ lemma Step1_2_4: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
              | ((S4 rmhist p)$ & (? l. Write rmCh mm ires p l) & unchanged (e p, c p, r p, rmhist!p))
              | ((S5 rmhist p)$ & MemReturn rmCh ires p & unchanged (e p, c p, r p))"
   apply (tactic {* action_simp_tac (@{context} addsimps [@{thm ImpNext_def}]) []
-    (map temp_elim [@{thm S4EnvUnch}, @{thm S4ClerkUnch}, @{thm S4RPCUnch}]) 1 *})
+    (map (temp_elim @{context}) [@{thm S4EnvUnch}, @{thm S4ClerkUnch}, @{thm S4RPCUnch}]) 1 *})
   apply (tactic {* action_simp_tac (@{context} addsimps [@{thm RNext_def}]) []
-    (@{thm squareE} :: map temp_elim [@{thm S4Read}, @{thm S4Write}, @{thm S4Return}]) 1 *})
+    (@{thm squareE} ::
+      map (temp_elim @{context}) [@{thm S4Read}, @{thm S4Write}, @{thm S4Return}]) 1 *})
   apply (auto dest!: S4Hist [temp_use])
   done
 
@@ -610,8 +614,8 @@ lemma Step1_2_5: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
          --> ((S6 rmhist p)$ & RPCReply crCh rmCh rst p & unchanged (e p, c p, m p))
              | ((S6 rmhist p)$ & RPCFail crCh rmCh rst p & unchanged (e p, c p, m p))"
   apply (tactic {* action_simp_tac (@{context} addsimps [@{thm ImpNext_def}]) []
-    (map temp_elim [@{thm S5EnvUnch}, @{thm S5ClerkUnch}, @{thm S5MemUnch}, @{thm S5Hist}]) 1 *})
-  apply (tactic {* action_simp_tac @{context} [] [@{thm squareE}, temp_elim @{thm S5RPC}] 1 *})
+    (map (temp_elim @{context}) [@{thm S5EnvUnch}, @{thm S5ClerkUnch}, @{thm S5MemUnch}, @{thm S5Hist}]) 1 *})
+  apply (tactic {* action_simp_tac @{context} [] [@{thm squareE}, temp_elim @{context} @{thm S5RPC}] 1 *})
    using [[fast_solver]]
    apply (auto elim!: squareE [temp_use] dest!: S5Reply [temp_use] S5Fail [temp_use])
   done
@@ -621,9 +625,9 @@ lemma Step1_2_6: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
          --> ((S1 rmhist p)$ & MClkReply memCh crCh cst p & unchanged (e p, r p, m p))
              | ((S3 rmhist p)$ & MClkRetry memCh crCh cst p & unchanged (e p,r p,m p,rmhist!p))"
   apply (tactic {* action_simp_tac (@{context} addsimps [@{thm ImpNext_def}]) []
-    (map temp_elim [@{thm S6EnvUnch}, @{thm S6RPCUnch}, @{thm S6MemUnch}]) 1 *})
+    (map (temp_elim @{context}) [@{thm S6EnvUnch}, @{thm S6RPCUnch}, @{thm S6MemUnch}]) 1 *})
   apply (tactic {* action_simp_tac @{context} []
-    (@{thm squareE} :: map temp_elim [@{thm S6Clerk}, @{thm S6Retry}, @{thm S6Reply}]) 1 *})
+    (@{thm squareE} :: map (temp_elim @{context}) [@{thm S6Clerk}, @{thm S6Retry}, @{thm S6Reply}]) 1 *})
      apply (auto dest: S6Hist [temp_use])
   done
 
@@ -795,8 +799,8 @@ fun split_idle_tac ctxt =
   SELECT_GOAL
    (TRY (rtac @{thm actionI} 1) THEN
     Induct_Tacs.case_tac ctxt "(s,t) |= unchanged (e p, c p, r p, m p, rmhist!p)" 1 THEN
-    rewrite_goals_tac @{thms action_rews} THEN
-    forward_tac [temp_use @{thm Step1_4_7}] 1 THEN
+    rewrite_goals_tac ctxt @{thms action_rews} THEN
+    forward_tac [temp_use ctxt @{thm Step1_4_7}] 1 THEN
     asm_full_simp_tac ctxt 1);
 *}
 
@@ -898,7 +902,7 @@ lemma S1_successors: "|- $S1 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m 
 lemma S1_RNextdisabled: "|- S1 rmhist p -->
          ~Enabled (<RNext memCh mm (resbar rmhist) p>_(rtrner memCh!p, resbar rmhist!p))"
   apply (tactic {* action_simp_tac (@{context} addsimps [@{thm angle_def},
-    @{thm S_def}, @{thm S1_def}]) [notI] [@{thm enabledE}, temp_elim @{thm Memoryidle}] 1 *})
+    @{thm S_def}, @{thm S1_def}]) [notI] [@{thm enabledE}, temp_elim @{context} @{thm Memoryidle}] 1 *})
   apply force
   done
 
@@ -1103,7 +1107,7 @@ lemma S6_live: "|- [](ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p) & $(I
    apply (erule InfiniteEnsures)
     apply assumption
    apply (tactic {* action_simp_tac @{context} []
-     (map temp_elim [@{thm MClkReplyS6}, @{thm S6MClkReply_successors}]) 1 *})
+     (map (temp_elim @{context}) [@{thm MClkReplyS6}, @{thm S6MClkReply_successors}]) 1 *})
   apply (auto simp: SF_def)
   apply (erule contrapos_np)
   apply (auto intro!: S6MClkReply_enabled [temp_use] elim!: STL4E [temp_use] DmdImplE [temp_use])
@@ -1190,7 +1194,7 @@ lemma S1Infinite: "[| sigma |= ~S1 rmhist p ~> S6 rmhist p;
       ==> sigma |= []<>S1 rmhist p"
   apply (rule classical)
   apply (tactic {* asm_lr_simp_tac (@{context} addsimps
-    [temp_use @{thm NotBox}, temp_rewrite @{thm NotDmd}]) 1 *})
+    [temp_use @{context} @{thm NotBox}, temp_rewrite @{context} @{thm NotDmd}]) 1 *})
   apply (auto elim!: leadsto_infinite [temp_use] mp dest!: DBImplBD [temp_use])
   done
 

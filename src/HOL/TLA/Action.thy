@@ -108,23 +108,26 @@ ML {*
    "world" parameter of the form (s,t) and apply additional rewrites.
 *)
 
-fun action_unlift th =
-  (rewrite_rule @{thms action_rews} (th RS @{thm actionD}))
-    handle THM _ => int_unlift th;
+fun action_unlift ctxt th =
+  (rewrite_rule ctxt @{thms action_rews} (th RS @{thm actionD}))
+    handle THM _ => int_unlift ctxt th;
 
 (* Turn  |- A = B  into meta-level rewrite rule  A == B *)
 val action_rewrite = int_rewrite
 
-fun action_use th =
+fun action_use ctxt th =
     case (concl_of th) of
       Const _ $ (Const ("Intensional.Valid", _) $ _) =>
-              (flatten (action_unlift th) handle THM _ => th)
+              (flatten (action_unlift ctxt th) handle THM _ => th)
     | _ => th;
 *}
 
-attribute_setup action_unlift = {* Scan.succeed (Thm.rule_attribute (K action_unlift)) *}
-attribute_setup action_rewrite = {* Scan.succeed (Thm.rule_attribute (K action_rewrite)) *}
-attribute_setup action_use = {* Scan.succeed (Thm.rule_attribute (K action_use)) *}
+attribute_setup action_unlift =
+  {* Scan.succeed (Thm.rule_attribute (action_unlift o Context.proof_of)) *}
+attribute_setup action_rewrite =
+  {* Scan.succeed (Thm.rule_attribute (action_rewrite o Context.proof_of)) *}
+attribute_setup action_use =
+  {* Scan.succeed (Thm.rule_attribute (action_use o Context.proof_of)) *}
 
 
 (* =========================== square / angle brackets =========================== *)
@@ -258,11 +261,11 @@ ML {*
    should plug in only "very safe" rules that can be applied blindly.
    Note that it applies whatever simplifications are currently active.
 *)
-fun action_simp_tac ss intros elims =
+fun action_simp_tac ctxt intros elims =
     asm_full_simp_tac
-         (ss setloop (fn _ => (resolve_tac ((map action_use intros)
+         (ctxt setloop (fn _ => (resolve_tac ((map (action_use ctxt) intros)
                                     @ [refl,impI,conjI,@{thm actionI},@{thm intI},allI]))
-                      ORELSE' (eresolve_tac ((map action_use elims)
+                      ORELSE' (eresolve_tac ((map (action_use ctxt) elims)
                                              @ [conjE,disjE,exE]))));
 *}
 

@@ -65,14 +65,14 @@ fun build_concl_prems thm1 thm2 ctxt =
     (concl, prems)
   end
 
-fun case_product_tac prems struc thm1 thm2 =
+fun case_product_tac ctxt prems struc thm1 thm2 =
   let
     val (p_cons1 :: p_cons2 :: premss) = unflat struc prems
     val thm2' = thm2 OF p_cons2
   in
     rtac (thm1 OF p_cons1)
      THEN' EVERY' (map (fn p =>
-       rtac thm2' THEN' EVERY' (map (Proof_Context.fact_tac o single) p)) premss)
+       rtac thm2' THEN' EVERY' (map (Proof_Context.fact_tac ctxt o single) p)) premss)
   end
 
 fun combine ctxt thm1 thm2 =
@@ -80,8 +80,9 @@ fun combine ctxt thm1 thm2 =
     val ((i_thm1, i_thm2), ctxt') = inst_thms thm1 thm2 ctxt
     val (concl, prems_rich) = build_concl_prems i_thm1 i_thm2 ctxt'
   in
-    Goal.prove ctxt' [] (flat prems_rich) concl (fn {prems, ...} =>
-      case_product_tac prems prems_rich i_thm1 i_thm2 1)
+    Goal.prove ctxt' [] (flat prems_rich) concl
+      (fn {context = ctxt'', prems} =>
+        case_product_tac ctxt'' prems prems_rich i_thm1 i_thm2 1)
     |> singleton (Variable.export ctxt' ctxt)
   end
 

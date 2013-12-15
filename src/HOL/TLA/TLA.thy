@@ -118,25 +118,30 @@ ML {*
    functions defined in theory Intensional in that they introduce a
    "world" parameter of type "behavior".
 *)
-fun temp_unlift th =
-  (rewrite_rule @{thms action_rews} (th RS @{thm tempD})) handle THM _ => action_unlift th;
+fun temp_unlift ctxt th =
+  (rewrite_rule ctxt @{thms action_rews} (th RS @{thm tempD}))
+    handle THM _ => action_unlift ctxt th;
 
 (* Turn  |- F = G  into meta-level rewrite rule  F == G *)
 val temp_rewrite = int_rewrite
 
-fun temp_use th =
+fun temp_use ctxt th =
   case (concl_of th) of
     Const _ $ (Const (@{const_name Intensional.Valid}, _) $ _) =>
-            ((flatten (temp_unlift th)) handle THM _ => th)
+            ((flatten (temp_unlift ctxt th)) handle THM _ => th)
   | _ => th;
 
-fun try_rewrite th = temp_rewrite th handle THM _ => temp_use th;
+fun try_rewrite ctxt th = temp_rewrite ctxt th handle THM _ => temp_use ctxt th;
 *}
 
-attribute_setup temp_unlift = {* Scan.succeed (Thm.rule_attribute (K temp_unlift)) *}
-attribute_setup temp_rewrite = {* Scan.succeed (Thm.rule_attribute (K temp_rewrite)) *}
-attribute_setup temp_use = {* Scan.succeed (Thm.rule_attribute (K temp_use)) *}
-attribute_setup try_rewrite = {* Scan.succeed (Thm.rule_attribute (K try_rewrite)) *}
+attribute_setup temp_unlift =
+  {* Scan.succeed (Thm.rule_attribute (temp_unlift o Context.proof_of)) *}
+attribute_setup temp_rewrite =
+  {* Scan.succeed (Thm.rule_attribute (temp_rewrite o Context.proof_of)) *}
+attribute_setup temp_use =
+  {* Scan.succeed (Thm.rule_attribute (temp_use o Context.proof_of)) *}
+attribute_setup try_rewrite =
+  {* Scan.succeed (Thm.rule_attribute (try_rewrite o Context.proof_of)) *}
 
 
 (* ------------------------------------------------------------------------- *)
@@ -584,7 +589,7 @@ fun inv_tac ctxt =
     (EVERY
      [auto_tac ctxt,
       TRY (merge_box_tac 1),
-      rtac (temp_use @{thm INV1}) 1, (* fail if the goal is not a box *)
+      rtac (temp_use ctxt @{thm INV1}) 1, (* fail if the goal is not a box *)
       TRYALL (etac @{thm Stable})]);
 
 (* auto_inv_tac applies inv_tac and then tries to attack the subgoals

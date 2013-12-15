@@ -41,14 +41,14 @@ datatype cl_prf =
 
 val is_atomic = not o exists_Const (member (op =) Data.operator_names o #1);
 
-fun rulify_elim_conv ct =
+fun rulify_elim_conv ctxt ct =
   if is_atomic (Logic.strip_imp_concl (term_of ct)) then Conv.all_conv ct
   else Conv.concl_conv (length (Logic.strip_imp_prems (term_of ct)))
     (Conv.rewr_conv (Thm.symmetric Data.atomize_elimL) then_conv
-     Raw_Simplifier.rewrite true (map Thm.symmetric
+     Raw_Simplifier.rewrite ctxt true (map Thm.symmetric
        [Data.atomize_exL, Data.atomize_conjL, Data.atomize_disjL])) ct
 
-fun rulify_elim th = Simplifier.norm_hhf (Conv.fconv_rule rulify_elim_conv th);
+fun rulify_elim ctxt th = Simplifier.norm_hhf (Conv.fconv_rule (rulify_elim_conv ctxt) th);
 
 (* Decompose elimination rule of the form
    A1 ==> ... ==> Am ==> (!!xs1. Bs1 ==> P) ==> ... ==> (!!xsn. Bsn ==> P) ==> P
@@ -66,9 +66,9 @@ fun dest_elim prop =
        (map snd (Logic.strip_params t), Logic.strip_assums_hyp t)) prems2)
   end;
 
-fun mk_rule th =
+fun mk_rule ctxt th =
   let
-    val th' = rulify_elim th;
+    val th' = rulify_elim ctxt th;
     val (prems, cases) = dest_elim (prop_of th')
   in (th', prems, cases) end;
 
@@ -208,19 +208,19 @@ and thm_of_case_prf thy goal asms ((params, prf), (_, asms')) =
 
 (** external interface **)
 
-fun coherent_tac ctxt rules = SUBPROOF (fn {prems, concl, params, context, ...} =>
-  rtac (rulify_elim_conv concl RS Drule.equal_elim_rule2) 1 THEN
-  SUBPROOF (fn {prems = prems', concl, context, ...} =>
+fun coherent_tac ctxt rules = SUBPROOF (fn {prems, concl, params, context = ctxt', ...} =>
+  rtac (rulify_elim_conv ctxt' concl RS Drule.equal_elim_rule2) 1 THEN
+  SUBPROOF (fn {prems = prems', concl, context = ctxt'', ...} =>
     let val xs = map (term_of o #2) params @
-      map (fn (_, s) => Free (s, the (Variable.default_type context s)))
-        (rev (Variable.dest_fixes context))  (* FIXME !? *)
+      map (fn (_, s) => Free (s, the (Variable.default_type ctxt'' s)))
+        (rev (Variable.dest_fixes ctxt''))  (* FIXME !? *)
     in
-      case valid context (map mk_rule (prems' @ prems @ rules)) (term_of concl)
+      case valid ctxt'' (map (mk_rule ctxt'') (prems' @ prems @ rules)) (term_of concl)
            (mk_dom xs) Net.empty 0 0 of
          NONE => no_tac
        | SOME prf =>
-           rtac (thm_of_cl_prf (Proof_Context.theory_of context) concl [] prf) 1
-    end) context 1) ctxt;
+           rtac (thm_of_cl_prf (Proof_Context.theory_of ctxt'') concl [] prf) 1
+    end) ctxt' 1) ctxt;
 
 val setup = Method.setup @{binding coherent}
   (Attrib.thms >> (fn rules => fn ctxt =>

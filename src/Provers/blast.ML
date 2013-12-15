@@ -1265,7 +1265,7 @@ fun raw_blast start ctxt lim st =
 
 fun depth_tac ctxt lim i st =
   SELECT_GOAL
-    (Object_Logic.atomize_prems_tac 1 THEN
+    (Object_Logic.atomize_prems_tac ctxt 1 THEN
       raw_blast (Timing.start ()) ctxt lim) i st;
 
 fun blast_tac ctxt i st =
@@ -1274,7 +1274,7 @@ fun blast_tac ctxt i st =
     val lim = Config.get ctxt depth_limit;
   in
     SELECT_GOAL
-     (Object_Logic.atomize_prems_tac 1 THEN
+     (Object_Logic.atomize_prems_tac ctxt 1 THEN
       DEEPEN (1, lim) (fn m => fn _ => raw_blast start ctxt m) 0 1) i st
   end;
 

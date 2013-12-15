@@ -938,7 +938,7 @@ CSUBGOAL (fn (P,i) =>
 fun elim_denom_tac ctxt i = REPEAT (elim_one_denom_tac ctxt i);
 
 fun sos_tac print_cert prover ctxt =
-  Object_Logic.full_atomize_tac THEN'
+  Object_Logic.full_atomize_tac ctxt THEN'
   elim_denom_tac ctxt THEN'
   core_sos_tac print_cert prover ctxt;
 

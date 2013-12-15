@@ -456,11 +456,16 @@ val satisfy_morphism = Morphism.thm_morphism "Element.satisfy" o satisfy_thm;
 
 fun eq_morphism _ [] = NONE
   | eq_morphism thy thms =
-      SOME (Morphism.morphism "Element.eq_morphism"
-       {binding = [],
-        typ = [],
-        term = [Raw_Simplifier.rewrite_term thy thms []],
-        fact = [map (rewrite_rule thms)]});
+      let
+        (* FIXME proper context!? *)
+        fun rewrite th = rewrite_rule (Proof_Context.init_global (Thm.theory_of_thm th)) thms th;
+        val phi =
+          Morphism.morphism "Element.eq_morphism"
+           {binding = [],
+            typ = [],
+            term = [Raw_Simplifier.rewrite_term thy thms []],
+            fact = [map rewrite]};
+      in SOME phi end;
 
 
 

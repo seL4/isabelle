@@ -91,30 +91,30 @@ text {* Rewriting normalizes a given term (theorem or goal) by
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML rewrite_rule: "thm list -> thm -> thm"} \\
-  @{index_ML rewrite_goals_rule: "thm list -> thm -> thm"} \\
-  @{index_ML rewrite_goal_tac: "thm list -> int -> tactic"} \\
-  @{index_ML rewrite_goals_tac: "thm list -> tactic"} \\
-  @{index_ML fold_goals_tac: "thm list -> tactic"} \\
+  @{index_ML rewrite_rule: "Proof.context -> thm list -> thm -> thm"} \\
+  @{index_ML rewrite_goals_rule: "Proof.context -> thm list -> thm -> thm"} \\
+  @{index_ML rewrite_goal_tac: "Proof.context -> thm list -> int -> tactic"} \\
+  @{index_ML rewrite_goals_tac: "Proof.context -> thm list -> tactic"} \\
+  @{index_ML fold_goals_tac: "Proof.context -> thm list -> tactic"} \\
   \end{mldecls}
 
   \begin{description}
 
-  \item @{ML rewrite_rule}~@{text "rules thm"} rewrites the whole
+  \item @{ML rewrite_rule}~@{text "ctxt rules thm"} rewrites the whole
   theorem by the given rules.
 
-  \item @{ML rewrite_goals_rule}~@{text "rules thm"} rewrites the
+  \item @{ML rewrite_goals_rule}~@{text "ctxt rules thm"} rewrites the
   outer premises of the given theorem.  Interpreting the same as a
   goal state (\secref{sec:tactical-goals}) it means to rewrite all
   subgoals (in the same manner as @{ML rewrite_goals_tac}).
 
-  \item @{ML rewrite_goal_tac}~@{text "rules i"} rewrites subgoal
+  \item @{ML rewrite_goal_tac}~@{text "ctxt rules i"} rewrites subgoal
   @{text "i"} by the given rewrite rules.
 
-  \item @{ML rewrite_goals_tac}~@{text "rules"} rewrites all subgoals
+  \item @{ML rewrite_goals_tac}~@{text "ctxt rules"} rewrites all subgoals
   by the given rewrite rules.
 
-  \item @{ML fold_goals_tac}~@{text "rules"} essentially uses @{ML
+  \item @{ML fold_goals_tac}~@{text "ctxt rules"} essentially uses @{ML
   rewrite_goals_tac} with the symmetric form of each member of @{text
   "rules"}, re-ordered to fold longer expression first.  This supports
   to idea to fold primitive definitions that appear in expended form

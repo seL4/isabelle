@@ -288,8 +288,8 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
     Goal.prove_global thy1 [] []
       (Ind_Syntax.traceIt "next case equation = " thy1 (mk_case_eqn arg))
       (*Proves a single case equation.  Could use simp_tac, but it's slower!*)
-      (fn _ => EVERY
-        [rewrite_goals_tac [con_def],
+      (fn {context = ctxt, ...} => EVERY
+        [rewrite_goals_tac ctxt [con_def],
          rtac case_trans 1,
          REPEAT
            (resolve_tac [@{thm refl}, split_trans,
@@ -353,9 +353,9 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
       val ctxt = Proof_Context.init_global thy;
     in
       Goal.prove_global thy [] [] (Syntax.read_prop ctxt s)
-        (fn _ => EVERY
-         [rewrite_goals_tac con_defs,
-          fast_tac (put_claset ZF_cs ctxt addSEs free_SEs @ Su.free_SEs) 1])
+        (fn {context = ctxt', ...} => EVERY
+         [rewrite_goals_tac ctxt' con_defs,
+          fast_tac (put_claset ZF_cs ctxt' addSEs free_SEs @ Su.free_SEs) 1])
     end;
 
   val simps = case_eqns @ recursor_eqns;

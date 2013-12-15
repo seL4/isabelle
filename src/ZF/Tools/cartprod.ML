@@ -51,9 +51,9 @@ signature CARTPROD =            (** Derived syntactic functions for produts **)
   val mk_prod : typ * typ -> typ
   val mk_tuple : term -> typ -> term list -> term
   val pseudo_type : term -> typ
-  val remove_split : thm -> thm
+  val remove_split : Proof.context -> thm -> thm
   val split_const : typ -> term
-  val split_rule_var : term * typ * thm -> thm
+  val split_rule_var : Proof.context -> term * typ * thm -> thm
   end;
 
 
@@ -100,18 +100,18 @@ fun mk_tuple pair (Type("*", [T1,T2])) tms =
   | mk_tuple pair T (t::_) = t;
 
 (*Attempts to remove occurrences of split, and pair-valued parameters*)
-val remove_split = rewrite_rule [Pr.split_eq];
+fun remove_split ctxt = rewrite_rule ctxt [Pr.split_eq];
 
 (*Uncurries any Var according to its "pseudo-product type" T1 in the rule*)
-fun split_rule_var (Var(v,_), Type("fun",[T1,T2]), rl) =
+fun split_rule_var ctxt (Var(v,_), Type("fun",[T1,T2]), rl) =
       let val T' = factors T1 ---> T2
           val newt = ap_split T1 T2 (Var(v,T'))
           val cterm = Thm.cterm_of (Thm.theory_of_thm rl)
       in
-          remove_split (Drule.instantiate_normalize ([], [(cterm (Var(v, Ind_Syntax.iT-->T2)), 
+          remove_split ctxt (Drule.instantiate_normalize ([], [(cterm (Var(v, Ind_Syntax.iT-->T2)), 
                                            cterm newt)]) rl)
       end
-  | split_rule_var (t,T,rl) = rl;
+  | split_rule_var _ (t,T,rl) = rl;
 
 end;
 

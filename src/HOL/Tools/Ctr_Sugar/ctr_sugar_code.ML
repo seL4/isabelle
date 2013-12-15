@@ -40,7 +40,7 @@ fun mk_case_certificate thy raw_thms =
   in
     thms
     |> Conjunction.intr_balanced
-    |> rewrite_rule [Thm.symmetric (Thm.assume assum)]
+    |> rewrite_rule (Proof_Context.init_global thy) [Thm.symmetric (Thm.assume assum)]
     |> Thm.implies_intr assum
     |> Thm.generalize ([], params) 0
     |> Axclass.unoverload thy
@@ -94,14 +94,14 @@ fun add_equality fcT fcT_name As ctrs inject_thms distinct_thms =
         (def, lthy')
       end;
 
-    fun tac thms = Class.intro_classes_tac [] THEN ALLGOALS (Proof_Context.fact_tac thms);
+    fun tac ctxt thms = Class.intro_classes_tac [] THEN ALLGOALS (Proof_Context.fact_tac ctxt thms);
 
     val qualify =
       Binding.qualify true (Long_Name.base_name fcT_name) o Binding.qualify true eqN o Binding.name;
   in
     Class.instantiation ([fcT_name], map dest_TFree As, [HOLogic.class_equal])
     #> add_def
-    #-> Class.prove_instantiation_exit_result (map o Morphism.thm) (K tac) o single
+    #-> Class.prove_instantiation_exit_result (map o Morphism.thm) tac o single
     #-> fold Code.del_eqn
     #> `(mk_free_ctr_equations fcT ctrs inject_thms distinct_thms)
     #-> (fn (thms, thm) => Global_Theory.note_thmss Thm.lemmaK

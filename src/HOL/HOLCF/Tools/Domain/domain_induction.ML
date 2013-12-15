@@ -161,12 +161,12 @@ let
               val simplify = asm_simp_tac (put_simpset HOL_basic_ss ctxt addsimps rules)
               fun arg_tac (lazy, _) =
                   rtac (if lazy then allI else case_UU_allI) 1
-              val tacs =
-                  rewrite_goals_tac @{thms atomize_all atomize_imp} ::
+              fun tacs ctxt =
+                  rewrite_goals_tac ctxt @{thms atomize_all atomize_imp} ::
                   map arg_tac args @
                   [REPEAT (rtac impI 1), ALLGOALS simplify]
             in
-              Goal.prove ctxt [] [] subgoal (K (EVERY tacs))
+              Goal.prove ctxt [] [] subgoal (EVERY o tacs o #context)
             end
           fun eq_thms (p, cons) = map (con_thm p) cons
           val conss = map #con_specs constr_infos
@@ -321,7 +321,7 @@ let
       val rules = @{thm Rep_cfun_strict1} :: take_0_thms
       fun tacf {prems, context = ctxt} =
         let
-          val prem' = rewrite_rule [bisim_def_thm] (hd prems)
+          val prem' = rewrite_rule ctxt [bisim_def_thm] (hd prems)
           val prems' = Project_Rule.projections ctxt prem'
           val dests = map (fn th => th RS spec RS spec RS mp) prems'
           fun one_tac (dest, rews) =

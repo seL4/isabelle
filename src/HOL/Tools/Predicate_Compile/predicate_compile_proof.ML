@@ -79,11 +79,11 @@ fun prove_param options ctxt nargs t deriv =
          @{thm split_eta}, @{thm split_beta}, @{thm fst_conv},
          @{thm snd_conv}, @{thm pair_collapse}, @{thm Product_Type.split_conv}]) 1
     | Free _ =>
-      Subgoal.FOCUS_PREMS (fn {context, params = params, prems, asms, concl, schematics} =>
+      Subgoal.FOCUS_PREMS (fn {context = ctxt', params = params, prems, asms, concl, schematics} =>
         let
           val prems' = maps dest_conjunct_prem (take nargs prems)
         in
-          rewrite_goal_tac (map (fn th => th RS @{thm sym} RS @{thm eq_reflection}) prems') 1
+          rewrite_goal_tac ctxt' (map (fn th => th RS @{thm sym} RS @{thm eq_reflection}) prems') 1
         end) ctxt 1
     | Abs _ => raise Fail "prove_param: No valid parameter term"
   in
@@ -118,7 +118,7 @@ fun prove_expr options ctxt nargs (premposition : int) (t, deriv) =
       end
   | (Free _, _) =>
     print_tac options "proving parameter call.."
-    THEN Subgoal.FOCUS_PREMS (fn {context, params, prems, asms, concl, schematics} =>
+    THEN Subgoal.FOCUS_PREMS (fn {context = ctxt', params, prems, asms, concl, schematics} =>
         let
           val param_prem = nth prems premposition
           val (param, _) = strip_comb (HOLogic.dest_Trueprop (prop_of param_prem))
@@ -126,7 +126,7 @@ fun prove_expr options ctxt nargs (premposition : int) (t, deriv) =
           fun param_rewrite prem =
             param = snd (HOLogic.dest_eq (HOLogic.dest_Trueprop (prop_of prem)))
           val SOME rew_eq = find_first param_rewrite prems'
-          val param_prem' = rewrite_rule
+          val param_prem' = rewrite_rule ctxt'
             (map (fn th => th RS @{thm eq_reflection})
               [rew_eq RS @{thm sym}, @{thm split_beta}, @{thm fst_conv}, @{thm snd_conv}])
             param_prem
@@ -168,7 +168,7 @@ fun prove_match options ctxt nargs out_ts =
                 let
                   val prems' = maps dest_conjunct_prem (take nargs prems)
                 in
-                  rewrite_goal_tac
+                  rewrite_goal_tac ctxt
                     (map (fn th => th RS @{thm sym} RS @{thm eq_reflection}) prems') 1
                 end
              THEN REPEAT_DETERM (rtac @{thm refl} 1))
@@ -205,12 +205,12 @@ fun prove_clause options ctxt nargs mode (_, clauses) (ts, moded_ps) =
       THEN asm_full_simp_tac (put_simpset HOL_basic_ss' ctxt) 1
       THEN print_tac options "before single intro rule"
       THEN Subgoal.FOCUS_PREMS
-             (fn {context, params, prems, asms, concl, schematics} =>
-              let
-                val prems' = maps dest_conjunct_prem (take nargs prems)
-              in
-                rewrite_goal_tac (map (fn th => th RS @{thm sym} RS @{thm eq_reflection}) prems') 1
-              end) ctxt 1
+         (fn {context = ctxt', params, prems, asms, concl, schematics} =>
+          let
+            val prems' = maps dest_conjunct_prem (take nargs prems)
+          in
+            rewrite_goal_tac ctxt' (map (fn th => th RS @{thm sym} RS @{thm eq_reflection}) prems') 1
+          end) ctxt 1
       THEN (rtac (if null clause_out_ts then @{thm singleI_unit} else @{thm singleI}) 1)
     | prove_prems out_ts ((p, deriv) :: ps) =
       let
@@ -293,7 +293,7 @@ fun prove_one_direction options ctxt clauses preds pred mode moded_clauses =
     val nargs = length (binder_types T)
     val pred_case_rule = the_elim_of ctxt pred
   in
-    REPEAT_DETERM (CHANGED (rewrite_goals_tac @{thms split_paired_all}))
+    REPEAT_DETERM (CHANGED (rewrite_goals_tac ctxt @{thms split_paired_all}))
     THEN print_tac options "before applying elim rule"
     THEN etac (predfun_elim_of ctxt pred mode) 1
     THEN etac pred_case_rule 1
@@ -370,7 +370,7 @@ fun prove_expr2 options ctxt (t, deriv) =
           val ho_args = ho_args_of mode args
         in
           etac @{thm bindE} 1
-          THEN (REPEAT_DETERM (CHANGED (rewrite_goals_tac @{thms split_paired_all})))
+          THEN (REPEAT_DETERM (CHANGED (rewrite_goals_tac ctxt @{thms split_paired_all})))
           THEN print_tac options "prove_expr2-before"
           THEN etac (predfun_elim_of ctxt name mode) 1
           THEN print_tac options "prove_expr2"
@@ -483,11 +483,11 @@ fun prove_other_direction options ctxt pred mode moded_clauses =
       THEN (prove_clause2 options ctxt pred mode clause i)
   in
     (DETERM (TRY (rtac @{thm unit.induct} 1)))
-     THEN (REPEAT_DETERM (CHANGED (rewrite_goals_tac @{thms split_paired_all})))
+     THEN (REPEAT_DETERM (CHANGED (rewrite_goals_tac ctxt @{thms split_paired_all})))
      THEN (rtac (predfun_intro_of ctxt pred mode) 1)
      THEN (REPEAT_DETERM (rtac @{thm refl} 2))
-     THEN (if null moded_clauses then
-         etac @{thm botE} 1
+     THEN (
+       if null moded_clauses then etac @{thm botE} 1
        else EVERY (map2 prove_clause moded_clauses (1 upto (length moded_clauses))))
   end;
 

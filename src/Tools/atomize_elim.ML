@@ -59,8 +59,8 @@ fun rearrange_prems_conv pi ct =
    (EX x y z. ...) | ... | (EX a b c. ...)
 *)
 fun atomize_elim_conv ctxt ct =
-    (forall_conv (K (prems_conv ~1 Object_Logic.atomize_prems)) ctxt
-    then_conv Raw_Simplifier.rewrite true (AtomizeElimData.get ctxt)
+    (forall_conv (prems_conv ~1 o Object_Logic.atomize_prems o snd) ctxt
+    then_conv Raw_Simplifier.rewrite ctxt true (AtomizeElimData.get ctxt)
     then_conv (fn ct' => if can Object_Logic.dest_judgment ct'
                          then all_conv ct'
                          else raise CTERM ("atomize_elim", [ct', ct])))

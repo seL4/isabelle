@@ -87,7 +87,7 @@ fun nominal_induct_tac ctxt simp def_insts avoiding fixings rules facts =
     val cert = Thm.cterm_of thy;
 
     val ((insts, defs), defs_ctxt) = fold_map Induct.add_defs def_insts ctxt |>> split_list;
-    val atomized_defs = map (map (Conv.fconv_rule Induct.atomize_cterm)) defs;
+    val atomized_defs = map (map (Conv.fconv_rule (Induct.atomize_cterm ctxt))) defs;
 
     val finish_rule =
       split_all_tuples defs_ctxt
@@ -101,7 +101,7 @@ fun nominal_induct_tac ctxt simp def_insts avoiding fixings rules facts =
     (fn i => fn st =>
       rules
       |> inst_mutual_rule ctxt insts avoiding
-      |> Rule_Cases.consume (flat defs) facts
+      |> Rule_Cases.consume ctxt (flat defs) facts
       |> Seq.maps (fn (((cases, concls), (more_consumes, more_facts)), rule) =>
         (PRECISE_CONJUNCTS (length concls) (ALLGOALS (fn j =>
           (CONJUNCTS (ALLGOALS
@@ -118,10 +118,10 @@ fun nominal_induct_tac ctxt simp def_insts avoiding fixings rules facts =
                  else
                    Induct.arbitrary_tac defs_ctxt k xs)
             end)
-          THEN' Induct.inner_atomize_tac) j))
-        THEN' Induct.atomize_tac) i st |> Seq.maps (fn st' =>
+          THEN' Induct.inner_atomize_tac defs_ctxt) j))
+        THEN' Induct.atomize_tac ctxt) i st |> Seq.maps (fn st' =>
             Induct.guess_instance ctxt
-              (finish_rule (Induct.internalize more_consumes rule)) i st'
+              (finish_rule (Induct.internalize ctxt more_consumes rule)) i st'
             |> Seq.maps (fn rule' =>
               CASES (rule_cases ctxt rule' cases)
                 (rtac (rename_params_rule false [] rule') i THEN
@@ -129,7 +129,7 @@ fun nominal_induct_tac ctxt simp def_insts avoiding fixings rules facts =
     THEN_ALL_NEW_CASES
       ((if simp then Induct.simplify_tac ctxt THEN' (TRY o Induct.trivial_tac)
         else K all_tac)
-       THEN_ALL_NEW Induct.rulify_tac)
+       THEN_ALL_NEW Induct.rulify_tac ctxt)
   end;
 
 

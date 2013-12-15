@@ -427,9 +427,9 @@ fun rawsat_tac ctxt i =
 (*      subgoal                                                              *)
 (* ------------------------------------------------------------------------- *)
 
-val pre_cnf_tac =
+fun pre_cnf_tac ctxt =
   rtac ccontr THEN'
-  Object_Logic.atomize_prems_tac THEN'
+  Object_Logic.atomize_prems_tac ctxt THEN'
   CONVERSION Drule.beta_eta_conversion;
 
 (* ------------------------------------------------------------------------- *)
@@ -460,7 +460,7 @@ fun cnfxsat_tac ctxt i =
 (* ------------------------------------------------------------------------- *)
 
 fun sat_tac ctxt i =
-  pre_cnf_tac i THEN cnf.cnf_rewrite_tac ctxt i THEN cnfsat_tac ctxt i;
+  pre_cnf_tac ctxt i THEN cnf.cnf_rewrite_tac ctxt i THEN cnfsat_tac ctxt i;
 
 (* ------------------------------------------------------------------------- *)
 (* satx_tac: tactic for calling an external SAT solver, taking as input an   *)
@@ -469,6 +469,6 @@ fun sat_tac ctxt i =
 (* ------------------------------------------------------------------------- *)
 
 fun satx_tac ctxt i =
-  pre_cnf_tac i THEN cnf.cnfx_rewrite_tac ctxt i THEN cnfxsat_tac ctxt i;
+  pre_cnf_tac ctxt i THEN cnf.cnfx_rewrite_tac ctxt i THEN cnfxsat_tac ctxt i;
 
 end;

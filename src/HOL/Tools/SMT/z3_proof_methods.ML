@@ -68,7 +68,7 @@ val disjE = @{lemma "~P | Q ==> P ==> Q" by fast}
 fun prove_inj_prop ctxt def lhs =
   let
     val (ct, ctxt') = SMT_Utils.dest_all_cabs (Thm.rhs_of def) ctxt
-    val rule = disjE OF [Object_Logic.rulify (Thm.assume lhs)]
+    val rule = disjE OF [Object_Logic.rulify ctxt (Thm.assume lhs)]
   in
     Goal.init (mk_inj_prop ctxt' (Thm.dest_arg ct))
     |> apply (rtac @{thm injI})
@@ -94,7 +94,7 @@ fun expand thm ct =
 
 fun prove_lhs ctxt rhs =
   let
-    val eq = Thm.symmetric (mk_meta_eq (Object_Logic.rulify (Thm.assume rhs)))
+    val eq = Thm.symmetric (mk_meta_eq (Object_Logic.rulify ctxt (Thm.assume rhs)))
     val conv = SMT_Utils.binders_conv (K (expand eq)) ctxt
   in
     Z3_Proof_Tools.by_tac (

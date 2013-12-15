@@ -1616,9 +1616,9 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
 
     val split_meta = timeit_msg ctxt "record extension split_meta proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [] split_meta_prop
-        (fn _ =>
+        (fn {context = ctxt, ...} =>
           EVERY1
-           [rtac @{thm equal_intr_rule}, Goal.norm_hhf_tac,
+           [rtac @{thm equal_intr_rule}, Goal.norm_hhf_tac ctxt,
             etac @{thm meta_allE}, atac,
             rtac (@{thm prop_subst} OF [surject]),
             REPEAT o etac @{thm meta_allE}, atac]));
@@ -1742,12 +1742,13 @@ fun add_code ext_tyco vs extT ext simps inject thy =
         HOLogic.mk_Trueprop (HOLogic.mk_eq
           (Const (@{const_name HOL.equal}, extT --> extT --> HOLogic.boolT),
            Const (@{const_name HOL.eq}, extT --> extT --> HOLogic.boolT)));
-      fun tac eq_def =
+      fun tac ctxt eq_def =
         Class.intro_classes_tac []
-        THEN rewrite_goals_tac [Simpdata.mk_eq eq_def]
+        THEN rewrite_goals_tac ctxt [Simpdata.mk_eq eq_def]
         THEN ALLGOALS (rtac @{thm refl});
       fun mk_eq thy eq_def =
-        rewrite_rule [Axclass.unoverload thy (Thm.symmetric (Simpdata.mk_eq eq_def))] inject;
+        rewrite_rule (Proof_Context.init_global thy)
+          [Axclass.unoverload thy (Thm.symmetric (Simpdata.mk_eq eq_def))] inject;
       fun mk_eq_refl thy =
         @{thm equal_refl}
         |> Thm.instantiate
@@ -1765,8 +1766,7 @@ fun add_code ext_tyco vs extT ext simps inject thy =
       |-> (fn eq => Specification.definition
             (NONE, (Attrib.empty_binding, eq)))
       |-> (fn (_, (_, eq_def)) =>
-         Class.prove_instantiation_exit_result Morphism.thm
-            (fn _ => fn eq_def => tac eq_def) eq_def)
+         Class.prove_instantiation_exit_result Morphism.thm tac eq_def)
       |-> (fn eq_def => fn thy =>
             thy |> Code.del_eqn eq_def |> Code.add_default_eqn (mk_eq thy eq_def))
       |> (fn thy => Code.add_nbe_default_eqn (mk_eq_refl thy) thy)
@@ -2139,18 +2139,18 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
 
     val split_meta = timeit_msg ctxt "record split_meta proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [] split_meta_prop
-        (fn _ =>
+        (fn {context = ctxt', ...} =>
           EVERY1
-           [rtac @{thm equal_intr_rule}, Goal.norm_hhf_tac,
+           [rtac @{thm equal_intr_rule}, Goal.norm_hhf_tac ctxt',
             etac @{thm meta_allE}, atac,
             rtac (@{thm prop_subst} OF [surjective]),
             REPEAT o etac @{thm meta_allE}, atac]));
 
     val split_object = timeit_msg ctxt "record split_object proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [] split_object_prop
-        (fn _ =>
+        (fn {context = ctxt, ...} =>
           rtac @{lemma "Trueprop A == Trueprop B ==> A = B" by (rule iffI) unfold} 1 THEN
-          rewrite_goals_tac @{thms atomize_all [symmetric]} THEN
+          rewrite_goals_tac ctxt @{thms atomize_all [symmetric]} THEN
           rtac split_meta 1));
 
     val split_ex = timeit_msg ctxt "record split_ex proof:" (fn () =>

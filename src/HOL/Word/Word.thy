@@ -14,7 +14,7 @@ imports
   Word_Miscellaneous
 begin
 
-text {* see @{text "Examples/WordExamples.thy"} for examples *}
+text {* See @{file "Examples/WordExamples.thy"} for examples. *}
 
 subsection {* Type definition *}
 
@@ -1463,7 +1463,7 @@ fun uint_arith_tacs ctxt =
         (put_simpset HOL_ss ctxt
           |> fold Splitter.add_split @{thms uint_splits}
           |> fold Simplifier.add_cong @{thms power_False_cong})),
-      rewrite_goals_tac @{thms word_size}, 
+      rewrite_goals_tac ctxt @{thms word_size}, 
       ALLGOALS  (fn n => REPEAT (resolve_tac [allI, impI] n) THEN      
                          REPEAT (etac conjE n) THEN
                          REPEAT (dtac @{thm word_of_int_inverse} n 
@@ -1964,7 +1964,7 @@ fun unat_arith_tacs ctxt =
         (put_simpset HOL_ss ctxt
           |> fold Splitter.add_split @{thms unat_splits}
           |> fold Simplifier.add_cong @{thms power_False_cong})),
-      rewrite_goals_tac @{thms word_size}, 
+      rewrite_goals_tac ctxt @{thms word_size}, 
       ALLGOALS  (fn n => REPEAT (resolve_tac [allI, impI] n) THEN      
                          REPEAT (etac conjE n) THEN
                          REPEAT (dtac @{thm of_nat_inverse} n THEN atac n)),

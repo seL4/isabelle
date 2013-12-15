@@ -590,10 +590,10 @@ fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
       fold expand_term_const (map (map (Logic.dest_equals o Thm.prop_of)) set_unfoldss);
     val expand_rels =
       fold expand_term_const (map (single o Logic.dest_equals o Thm.prop_of) rel_unfolds);
-    val unfold_maps = fold (unfold_thms lthy o single) map_unfolds;
-    val unfold_sets = fold (unfold_thms lthy) set_unfoldss;
-    val unfold_rels = unfold_thms lthy rel_unfolds;
-    val unfold_all = unfold_sets o unfold_maps o unfold_rels;
+    fun unfold_maps ctxt = fold (unfold_thms ctxt o single) map_unfolds;
+    fun unfold_sets ctxt = fold (unfold_thms ctxt) set_unfoldss;
+    fun unfold_rels ctxt = unfold_thms ctxt rel_unfolds;
+    fun unfold_all ctxt = unfold_sets ctxt o unfold_maps ctxt o unfold_rels ctxt;
     val bnf_map = expand_maps (mk_map_of_bnf Ds As Bs bnf);
     val bnf_sets = map (expand_maps o expand_sets)
       (mk_sets_of_bnf (replicate live Ds) (replicate live As) bnf);
@@ -627,7 +627,7 @@ fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
       map (fn thm => @{thm ordLeq_ordIso_trans} OF [thm, bd_ordIso]) (set_bd_of_bnf bnf);
 
     fun mk_tac thm {context = ctxt, prems = _} =
-      (rtac (unfold_all thm) THEN'
+      (rtac (unfold_all ctxt thm) THEN'
       SOLVE o REPEAT_DETERM o (atac ORELSE' Goal.assume_rule_tac ctxt)) 1;
 
     val tacs = zip_axioms (mk_tac (map_id0_of_bnf bnf)) (mk_tac (map_comp0_of_bnf bnf))
@@ -638,7 +638,8 @@ fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
 
     val bnf_wits = map snd (mk_wits_of_bnf (replicate nwits Ds) (replicate nwits As) bnf);
 
-    fun wit_tac _ = mk_simple_wit_tac (map unfold_all (wit_thms_of_bnf bnf));
+    fun wit_tac {context = ctxt, prems = _} =
+      mk_simple_wit_tac (map (unfold_all ctxt) (wit_thms_of_bnf bnf));
 
     val (bnf', lthy') =
       bnf_def Hardly_Inline (user_policy Dont_Note) qualify tacs wit_tac (SOME deads)

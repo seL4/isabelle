@@ -101,8 +101,8 @@ fun prove
     : thm =
   let
     fun tac {prems, context} =
-      rewrite_goals_tac defs THEN
-      EVERY (tacs {prems = map (rewrite_rule defs) prems, context = context})
+      rewrite_goals_tac context defs THEN
+      EVERY (tacs {prems = map (rewrite_rule context defs) prems, context = context})
   in
     Goal.prove_global thy [] [] goal tac
   end
@@ -213,8 +213,10 @@ fun add_constructors
           in (n2, mk_ssumT (t1, t2)) end
       val ct = ctyp_of thy (snd (cons2typ 1 spec'))
       val thm1 = instantiate' [SOME ct] [] @{thm exh_start}
-      val thm2 = rewrite_rule (map mk_meta_eq @{thms ex_bottom_iffs}) thm1
-      val thm3 = rewrite_rule [mk_meta_eq @{thm conj_assoc}] thm2
+      val thm2 = rewrite_rule (Proof_Context.init_global thy)
+        (map mk_meta_eq @{thms ex_bottom_iffs}) thm1
+      val thm3 = rewrite_rule (Proof_Context.init_global thy)
+        [mk_meta_eq @{thm conj_assoc}] thm2
 
       val y = Free ("y", lhsT)
       fun one_con (con, args) =
@@ -225,15 +227,15 @@ fun add_constructors
         in Library.foldr mk_ex (vs, conj) end
       val goal = mk_trp (foldr1 mk_disj (mk_undef y :: map one_con spec'))
       (* first rules replace "y = bottom \/ P" with "rep$y = bottom \/ P" *)
-      val tacs = [
+      fun tacs {context = ctxt, prems} = [
           rtac (iso_locale RS @{thm iso.casedist_rule}) 1,
-          rewrite_goals_tac [mk_meta_eq (iso_locale RS @{thm iso.iso_swap})],
+          rewrite_goals_tac ctxt [mk_meta_eq (iso_locale RS @{thm iso.iso_swap})],
           rtac thm3 1]
     in
-      val nchotomy = prove thy con_betas goal (K tacs)
+      val nchotomy = prove thy con_betas goal tacs
       val exhaust =
           (nchotomy RS @{thm exh_casedist0})
-          |> rewrite_rule @{thms exh_casedists}
+          |> rewrite_rule (Proof_Context.init_global thy) @{thms exh_casedists}
           |> Drule.zero_var_indexes
     end
 

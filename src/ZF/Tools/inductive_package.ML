@@ -214,7 +214,7 @@ let
 
   (*Type-checking is hardest aspect of proof;
     disjIn selects the correct disjunct after unfolding*)
-  fun intro_tacsf disjIn =
+  fun intro_tacsf disjIn ctxt =
     [DETERM (stac unfold 1),
      REPEAT (resolve_tac [@{thm Part_eqI}, @{thm CollectI}] 1),
      (*Now 2-3 subgoals: typechecking, the disjunction, perhaps equality.*)
@@ -223,7 +223,7 @@ let
        backtracking may occur if the premises have extra variables!*)
      DEPTH_SOLVE_1 (resolve_tac [@{thm refl}, @{thm exI}, @{thm conjI}] 2 APPEND assume_tac 2),
      (*Now solve the equations like Tcons(a,f) = Inl(?b4)*)
-     rewrite_goals_tac con_defs,
+     rewrite_goals_tac ctxt con_defs,
      REPEAT (rtac @{thm refl} 2),
      (*Typechecking; this can fail*)
      if !Ind_Syntax.trace then print_tac "The type-checking subgoal:"
@@ -246,7 +246,7 @@ let
     (intr_tms, map intro_tacsf (mk_disj_rls (length intr_tms)))
     |> ListPair.map (fn (t, tacs) =>
       Goal.prove_global thy1 [] [] t
-        (fn _ => EVERY (rewrite_goals_tac part_rec_defs :: tacs)));
+        (fn {context = ctxt, ...} => EVERY (rewrite_goals_tac ctxt part_rec_defs :: tacs ctxt)));
 
   (********)
   val dummy = writeln "  Proving the elimination rule...";
@@ -255,9 +255,9 @@ let
   fun basic_elim_tac ctxt =
       REPEAT (SOMEGOAL (eresolve_tac (Ind_Syntax.elim_rls @ Su.free_SEs)
                 ORELSE' bound_hyp_subst_tac ctxt))
-      THEN prune_params_tac
+      THEN prune_params_tac ctxt
           (*Mutual recursion: collapse references to Part(D,h)*)
-      THEN (PRIMITIVE (fold_rule part_rec_defs));
+      THEN (PRIMITIVE (fold_rule ctxt part_rec_defs));
 
   (*Elimination*)
   val elim =
@@ -337,8 +337,8 @@ let
      val quant_induct =
        Goal.prove_global thy1 [] ind_prems
          (FOLogic.mk_Trueprop (Ind_Syntax.mk_all_imp (big_rec_tm, pred)))
-         (fn {prems, ...} => EVERY
-           [rewrite_goals_tac part_rec_defs,
+         (fn {context = ctxt, prems} => EVERY
+           [rewrite_goals_tac ctxt part_rec_defs,
             rtac (@{thm impI} RS @{thm allI}) 1,
             DETERM (etac raw_induct 1),
             (*Push Part inside Collect*)
@@ -349,7 +349,7 @@ let
               some premise involves disjunction.*)
             REPEAT (FIRSTGOAL (eresolve_tac [@{thm CollectE}, @{thm exE}, @{thm conjE}]
                                ORELSE' (bound_hyp_subst_tac ctxt1))),
-            ind_tac (rev (map (rewrite_rule part_rec_defs) prems)) (length prems)]);
+            ind_tac (rev (map (rewrite_rule ctxt part_rec_defs) prems)) (length prems)]);
 
      val dummy =
       if ! Ind_Syntax.trace then
@@ -422,9 +422,9 @@ let
           (writeln "  Proving the mutual induction rule...";
            Goal.prove_global thy1 [] []
              (Logic.mk_implies (induct_concl, mutual_induct_concl))
-             (fn _ => EVERY
-               [rewrite_goals_tac part_rec_defs,
-                REPEAT (rewrite_goals_tac [Pr.split_eq] THEN lemma_tac 1)]))
+             (fn {context = ctxt, ...} => EVERY
+               [rewrite_goals_tac ctxt part_rec_defs,
+                REPEAT (rewrite_goals_tac ctxt [Pr.split_eq] THEN lemma_tac 1)]))
        else (writeln "  [ No mutual induction rule needed ]"; @{thm TrueI});
 
      val dummy =
@@ -452,15 +452,15 @@ let
                    RLN (2,[@{thm rev_subsetD}]);
 
      (*Minimizes backtracking by delivering the correct premise to each goal*)
-     fun mutual_ind_tac [] 0 = all_tac
-       | mutual_ind_tac(prem::prems) i =
+     fun mutual_ind_tac _ [] 0 = all_tac
+       | mutual_ind_tac ctxt (prem::prems) i =
            DETERM
             (SELECT_GOAL
                (
                 (*Simplify the assumptions and goal by unfolding Part and
                   using freeness of the Sum constructors; proves all but one
                   conjunct by contradiction*)
-                rewrite_goals_tac all_defs  THEN
+                rewrite_goals_tac ctxt all_defs  THEN
                 simp_tac (mut_ss addsimps [@{thm Part_iff}]) 1  THEN
                 IF_UNSOLVED (*simp_tac may have finished it off!*)
                   ((*simplify assumptions*)
@@ -471,20 +471,20 @@ let
                    THEN
                    (*unpackage and use "prem" in the corresponding place*)
                    REPEAT (rtac @{thm impI} 1)  THEN
-                   rtac (rewrite_rule all_defs prem) 1  THEN
+                   rtac (rewrite_rule ctxt all_defs prem) 1  THEN
                    (*prem must not be REPEATed below: could loop!*)
                    DEPTH_SOLVE (FIRSTGOAL (ares_tac [@{thm impI}] ORELSE'
                                            eresolve_tac (@{thm conjE} :: @{thm mp} :: cmonos))))
                ) i)
-            THEN mutual_ind_tac prems (i-1);
+            THEN mutual_ind_tac ctxt prems (i-1);
 
      val mutual_induct_fsplit =
        if need_mutual then
          Goal.prove_global thy1 [] (map (induct_prem (rec_tms~~preds)) intr_tms)
            mutual_induct_concl
-           (fn {prems, ...} => EVERY
+           (fn {context = ctxt, prems} => EVERY
              [rtac (quant_induct RS lemma) 1,
-              mutual_ind_tac (rev prems) (length prems)])
+              mutual_ind_tac ctxt (rev prems) (length prems)])
        else @{thm TrueI};
 
      (** Uncurrying the predicate in the ordinary induction rule **)
@@ -502,9 +502,11 @@ let
 
      val Const (@{const_name Trueprop}, _) $ (pred_var $ _) = concl_of induct0
 
-     val induct = CP.split_rule_var(pred_var, elem_type-->FOLogic.oT, induct0)
-                  |> Drule.export_without_context
-     and mutual_induct = CP.remove_split mutual_induct_fsplit
+     val induct =
+       CP.split_rule_var (Proof_Context.init_global thy)
+        (pred_var, elem_type-->FOLogic.oT, induct0)
+       |> Drule.export_without_context
+     and mutual_induct = CP.remove_split (Proof_Context.init_global thy) mutual_induct_fsplit
 
      val ([induct', mutual_induct'], thy') =
        thy

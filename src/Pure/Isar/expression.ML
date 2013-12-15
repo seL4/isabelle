@@ -619,7 +619,7 @@ fun atomize_spec thy ts =
     val bodyT = Term.fastype_of body;
   in
     if bodyT = propT then (t, propT, Thm.reflexive (Thm.cterm_of thy t))
-    else (body, bodyT, Object_Logic.atomize (Thm.cterm_of thy t))
+    else (body, bodyT, Object_Logic.atomize (Proof_Context.init_global thy) (Thm.cterm_of thy t))
   end;
 
 (* achieve plain syntax for locale predicates (without "PROP") *)
@@ -669,20 +669,22 @@ fun def_pred binding parms defs ts norm_ts thy =
 
     val cert = Thm.cterm_of defs_thy;
 
-    val intro = Goal.prove_global defs_thy [] norm_ts statement (fn _ =>
-      rewrite_goals_tac [pred_def] THEN
-      compose_tac (false, body_eq RS Drule.equal_elim_rule1, 1) 1 THEN
-      compose_tac (false, Conjunction.intr_balanced (map (Thm.assume o cert) norm_ts), 0) 1);
+    val intro = Goal.prove_global defs_thy [] norm_ts statement
+      (fn {context = ctxt, ...} =>
+        rewrite_goals_tac ctxt [pred_def] THEN
+        compose_tac (false, body_eq RS Drule.equal_elim_rule1, 1) 1 THEN
+        compose_tac (false, Conjunction.intr_balanced (map (Thm.assume o cert) norm_ts), 0) 1);
 
     val conjuncts =
-      (Drule.equal_elim_rule2 OF [body_eq, rewrite_rule [pred_def] (Thm.assume (cert statement))])
+      (Drule.equal_elim_rule2 OF
+        [body_eq, rewrite_rule defs_ctxt [pred_def] (Thm.assume (cert statement))])
       |> Conjunction.elim_balanced (length ts);
 
     val (_, axioms_ctxt) = defs_ctxt
       |> Assumption.add_assumes (maps (#hyps o Thm.crep_thm) (defs @ conjuncts));
     val axioms = ts ~~ conjuncts |> map (fn (t, ax) =>
       Element.prove_witness axioms_ctxt t
-       (rewrite_goals_tac defs THEN compose_tac (false, ax, 0) 1));
+       (rewrite_goals_tac axioms_ctxt defs THEN compose_tac (false, ax, 0) 1));
   in ((statement, intro, axioms), defs_thy) end;
 
 in
@@ -849,7 +851,7 @@ fun note_eqns_register note activate deps witss eqns attrss export export' ctxt 
     val dep_morphs = map2 (fn (dep, morph) => fn wits =>
       (dep, morph $> Element.satisfy_morphism (map (Element.transform_witness export') wits))) deps witss;
     fun activate' dep_morph ctxt = activate dep_morph
-      (Option.map (rpair true) (Element.eq_morphism (Proof_Context.theory_of ctxt) eqns')) export ctxt;
+        (Option.map (rpair true) (Element.eq_morphism (Proof_Context.theory_of ctxt) eqns')) export ctxt;
   in
     ctxt'
     |> fold activate' dep_morphs

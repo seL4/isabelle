@@ -130,7 +130,7 @@ fun mk_induct_discharge_prem_tac ctxt nn n set_maps pre_set_defs m k kks =
       REPEAT_DETERM_N m o (dtac meta_spec THEN' rotate_tac ~1)]) THEN
     EVERY [REPEAT_DETERM_N r
         (HEADGOAL (rotate_tac ~1 THEN' dtac meta_mp THEN' rotate_tac 1) THEN prefer_tac 2),
-      if r > 0 then ALLGOALS Goal.norm_hhf_tac else all_tac, HEADGOAL atac,
+      if r > 0 then ALLGOALS (Goal.norm_hhf_tac ctxt) else all_tac, HEADGOAL atac,
       mk_induct_leverage_prem_prems_tac ctxt nn kks set_maps pre_set_defs]
   end;
 

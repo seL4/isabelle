@@ -305,7 +305,7 @@ fun wf_union_tac ctxt st =
   in
     (PRIMITIVE (Drule.cterm_instantiate [(cert rel, cert relation)])
      THEN ALLGOALS (fn i => if i = 1 then all_tac else solve_membership_tac i)
-     THEN rewrite_goal_tac Un_aci_simps 1) st  (* eliminate duplicates *)
+     THEN rewrite_goal_tac ctxt Un_aci_simps 1) st  (* eliminate duplicates *)
   end
 
 end

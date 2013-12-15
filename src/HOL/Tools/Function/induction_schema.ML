@@ -38,12 +38,12 @@ datatype ind_scheme = IndScheme of
   branches: scheme_branch list,
   cases: scheme_case list}
 
-val ind_atomize = Raw_Simplifier.rewrite true @{thms induct_atomize}
-val ind_rulify = Raw_Simplifier.rewrite true @{thms induct_rulify}
+fun ind_atomize ctxt = Raw_Simplifier.rewrite ctxt true @{thms induct_atomize}
+fun ind_rulify ctxt = Raw_Simplifier.rewrite ctxt true @{thms induct_rulify}
 
 fun meta thm = thm RS eq_reflection
 
-val sum_prod_conv = Raw_Simplifier.rewrite true
+fun sum_prod_conv ctxt = Raw_Simplifier.rewrite ctxt true
   (map meta (@{thm split_conv} :: @{thms sum.cases}))
 
 fun term_conv thy cv t =
@@ -187,13 +187,15 @@ fun mk_ineqs R (IndScheme {T, cases, branches}) =
   end
 
 
-fun mk_ind_goal thy branches =
+fun mk_ind_goal ctxt branches =
   let
+    val thy = Proof_Context.theory_of ctxt
+
     fun brnch (SchemeBranch { P, xs, ws, Cs, ... }) =
       HOLogic.mk_Trueprop (list_comb (P, map Free xs))
       |> fold_rev (curry Logic.mk_implies) Cs
       |> fold_rev (Logic.all o Free) ws
-      |> term_conv thy ind_atomize
+      |> term_conv thy (ind_atomize ctxt)
       |> Object_Logic.drop_judgment thy
       |> HOLogic.tupled_lambda (foldr1 HOLogic.mk_prod (map Free xs))
   in
@@ -203,6 +205,9 @@ fun mk_ind_goal thy branches =
 fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
   (IndScheme {T, cases=scases, branches}) =
   let
+    val thy = Proof_Context.theory_of ctxt
+    val cert = cterm_of thy
+
     val n = length branches
     val scases_idx = map_index I scases
 
@@ -210,10 +215,7 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
       SumTree.mk_inj T n (i + 1) (foldr1 HOLogic.mk_prod ts)
     val P_of = nth (map (fn (SchemeBranch { P, ... }) => P) branches)
 
-    val thy = Proof_Context.theory_of ctxt
-    val cert = cterm_of thy
-
-    val P_comp = mk_ind_goal thy branches
+    val P_comp = mk_ind_goal ctxt branches
 
     (* Inductive Hypothesis: !!z. (z,x):R ==> P z *)
     val ihyp = Logic.all_const T $ Abs ("z", T,
@@ -270,8 +272,8 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
                 sih
                 |> Thm.forall_elim (cert (inject idx rcargs))
                 |> Thm.elim_implies (import ineq) (* Psum rcargs *)
-                |> Conv.fconv_rule sum_prod_conv
-                |> Conv.fconv_rule ind_rulify
+                |> Conv.fconv_rule (sum_prod_conv ctxt)
+                |> Conv.fconv_rule (ind_rulify ctxt)
                 |> (fn th => th COMP ipres) (* P rs *)
                 |> fold_rev (Thm.implies_intr o cprop_of) cGas
                 |> fold_rev Thm.forall_intr cGvs
@@ -312,8 +314,9 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
 
         val Pxs = cert (HOLogic.mk_Trueprop (P_comp $ x))
           |> Goal.init
-          |> (Simplifier.rewrite_goals_tac (map meta (branch_hyp :: @{thm split_conv} :: @{thms sum.cases}))
-              THEN CONVERSION ind_rulify 1)
+          |> (Simplifier.rewrite_goals_tac ctxt
+                (map meta (branch_hyp :: @{thm split_conv} :: @{thms sum.cases}))
+              THEN CONVERSION (ind_rulify ctxt) 1)
           |> Seq.hd
           |> Thm.elim_implies (Conv.fconv_rule Drule.beta_eta_conversion bstep)
           |> Goal.finish ctxt
@@ -375,7 +378,7 @@ fun mk_ind_tac comp_tac pres_tac term_tac ctxt facts =
         indthm
         |> Drule.instantiate' [] [SOME inst]
         |> simplify (put_simpset SumTree.sumcase_split_ss ctxt'')
-        |> Conv.fconv_rule ind_rulify
+        |> Conv.fconv_rule (ind_rulify ctxt'')
       end
 
     val res = Conjunction.intr_balanced (map_index project branches)

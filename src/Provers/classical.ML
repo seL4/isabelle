@@ -166,7 +166,13 @@ fun classical_rule rule =
   else rule;
 
 (*flatten nested meta connectives in prems*)
-val flat_rule = Conv.fconv_rule (Conv.prems_conv ~1 Object_Logic.atomize_prems);
+fun flat_rule opt_context th =
+  let
+    val ctxt =
+      (case opt_context of
+        NONE => Proof_Context.init_global (Thm.theory_of_thm th)
+      | SOME context => Context.proof_of context);
+  in Conv.fconv_rule (Conv.prems_conv ~1 (Object_Logic.atomize_prems ctxt)) th end;
 
 
 (*** Useful tactics for classical reasoning ***)
@@ -325,7 +331,7 @@ fun addSI w context th
   if warn_rules context "Ignoring duplicate safe introduction (intro!)\n" safeIs th then cs
   else
     let
-      val th' = flat_rule th;
+      val th' = flat_rule context th;
       val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
         List.partition Thm.no_prems [th'];
       val nI = Item_Net.length safeIs + 1;
@@ -354,7 +360,7 @@ fun addSE w context th
     error ("Ill-formed elimination rule\n" ^ string_of_thm context th)
   else
     let
-      val th' = classical_rule (flat_rule th);
+      val th' = classical_rule (flat_rule context th);
       val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
         List.partition (fn rl => nprems_of rl=1) [th'];
       val nI = Item_Net.length safeIs;
@@ -386,7 +392,7 @@ fun addI w context th
   if warn_rules context "Ignoring duplicate introduction (intro)\n" hazIs th then cs
   else
     let
-      val th' = flat_rule th;
+      val th' = flat_rule context th;
       val nI = Item_Net.length hazIs + 1;
       val nE = Item_Net.length hazEs;
       val _ = warn_claset context th cs;
@@ -415,7 +421,7 @@ fun addE w context th
     error ("Ill-formed elimination rule\n" ^ string_of_thm context th)
   else
     let
-      val th' = classical_rule (flat_rule th);
+      val th' = classical_rule (flat_rule context th);
       val nI = Item_Net.length hazIs;
       val nE = Item_Net.length hazEs + 1;
       val _ = warn_claset context th cs;
@@ -443,12 +449,12 @@ fun addD w context th = addE w context (make_elim context th);
         to insert.
 ***)
 
-fun delSI th
+fun delSI context th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
   if Item_Net.member safeIs th then
     let
-      val th' = flat_rule th;
+      val th' = flat_rule context th;
       val (safe0_rls, safep_rls) = List.partition Thm.no_prems [th'];
     in
       CS
@@ -466,12 +472,12 @@ fun delSI th
     end
   else cs;
 
-fun delSE th
+fun delSE context th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
   if Item_Net.member safeEs th then
     let
-      val th' = classical_rule (flat_rule th);
+      val th' = classical_rule (flat_rule context th);
       val (safe0_rls, safep_rls) = List.partition (fn rl => nprems_of rl = 1) [th'];
     in
       CS
@@ -493,7 +499,7 @@ fun delI context th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
   if Item_Net.member hazIs th then
-    let val th' = flat_rule th in
+    let val th' = flat_rule context th in
       CS
        {haz_netpair = delete ([th'], []) haz_netpair,
         dup_netpair = delete ([dup_intr th'], []) dup_netpair,
@@ -511,11 +517,11 @@ fun delI context th
   handle THM ("RSN: no unifiers", _, _) => (*from dup_intr*)  (* FIXME !? *)
     error ("Ill-formed introduction rule\n" ^ string_of_thm context th);
 
-fun delE th
+fun delE context th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
   if Item_Net.member hazEs th then
-    let val th' = classical_rule (flat_rule th) in
+    let val th' = classical_rule (flat_rule context th) in
       CS
        {haz_netpair = delete ([], [th']) haz_netpair,
         dup_netpair = delete ([], [dup_elim th']) dup_netpair,
@@ -537,7 +543,11 @@ fun delrule context th (cs as CS {safeIs, safeEs, hazIs, hazEs, ...}) =
     if Item_Net.member safeIs th orelse Item_Net.member safeEs th orelse
       Item_Net.member hazIs th orelse Item_Net.member hazEs th orelse
       Item_Net.member safeEs th' orelse Item_Net.member hazEs th'
-    then delSI th (delSE th (delI context th (delE th (delSE th' (delE th' cs)))))
+    then
+      delSI context th
+        (delSE context th
+          (delI context th
+            (delE context th (delSE context th' (delE context th' cs)))))
     else (warn_thm context "Undeclared classical rule\n" th; cs)
   end;
 
@@ -774,24 +784,24 @@ fun slow_step_tac ctxt i =
 
 (*Dumb but fast*)
 fun fast_tac ctxt =
-  Object_Logic.atomize_prems_tac THEN' SELECT_GOAL (DEPTH_SOLVE (step_tac ctxt 1));
+  Object_Logic.atomize_prems_tac ctxt THEN' SELECT_GOAL (DEPTH_SOLVE (step_tac ctxt 1));
 
 (*Slower but smarter than fast_tac*)
 fun best_tac ctxt =
-  Object_Logic.atomize_prems_tac THEN'
+  Object_Logic.atomize_prems_tac ctxt THEN'
   SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, Data.sizef) (step_tac ctxt 1));
 
 (*even a bit smarter than best_tac*)
 fun first_best_tac ctxt =
-  Object_Logic.atomize_prems_tac THEN'
+  Object_Logic.atomize_prems_tac ctxt THEN'
   SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, Data.sizef) (FIRSTGOAL (step_tac ctxt)));
 
 fun slow_tac ctxt =
-  Object_Logic.atomize_prems_tac THEN'
+  Object_Logic.atomize_prems_tac ctxt THEN'
   SELECT_GOAL (DEPTH_SOLVE (slow_step_tac ctxt 1));
 
 fun slow_best_tac ctxt =
-  Object_Logic.atomize_prems_tac THEN'
+  Object_Logic.atomize_prems_tac ctxt THEN'
   SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, Data.sizef) (slow_step_tac ctxt 1));
 
 
@@ -800,13 +810,13 @@ fun slow_best_tac ctxt =
 val weight_ASTAR = 5;
 
 fun astar_tac ctxt =
-  Object_Logic.atomize_prems_tac THEN'
+  Object_Logic.atomize_prems_tac ctxt THEN'
   SELECT_GOAL
     (ASTAR (has_fewer_prems 1, fn lev => fn thm => Data.sizef thm + weight_ASTAR * lev)
       (step_tac ctxt 1));
 
 fun slow_astar_tac ctxt =
-  Object_Logic.atomize_prems_tac THEN'
+  Object_Logic.atomize_prems_tac ctxt THEN'
   SELECT_GOAL
     (ASTAR (has_fewer_prems 1, fn lev => fn thm => Data.sizef thm + weight_ASTAR * lev)
       (slow_step_tac ctxt 1));
@@ -901,12 +911,12 @@ fun some_rule_tac ctxt facts = SUBGOAL (fn (goal, i) =>
   in
     fn st => Seq.maps (fn rule => rtac rule i st) ruleq
   end)
-  THEN_ALL_NEW Goal.norm_hhf_tac;
+  THEN_ALL_NEW Goal.norm_hhf_tac ctxt;
 
 in
 
 fun rule_tac ctxt [] facts = some_rule_tac ctxt facts
-  | rule_tac _ rules facts = Method.rule_tac rules facts;
+  | rule_tac ctxt rules facts = Method.rule_tac ctxt rules facts;
 
 fun default_tac ctxt rules facts =
   HEADGOAL (rule_tac ctxt rules facts) ORELSE
@@ -941,7 +951,7 @@ val setup_methods =
     (Attrib.thms >> (fn rules => fn ctxt => METHOD (HEADGOAL o rule_tac ctxt rules)))
     "apply some intro/elim rule (potentially classical)" #>
   Method.setup @{binding contradiction}
-    (Scan.succeed (K (Method.rule [Data.not_elim, Drule.rotate_prems 1 Data.not_elim])))
+    (Scan.succeed (fn ctxt => Method.rule ctxt [Data.not_elim, Drule.rotate_prems 1 Data.not_elim]))
     "proof by contradiction" #>
   Method.setup @{binding clarify} (cla_method' (CHANGED_PROP oo clarify_tac))
     "repeatedly apply safe steps" #>

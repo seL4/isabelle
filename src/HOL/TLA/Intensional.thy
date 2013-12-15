@@ -243,12 +243,12 @@ ML {*
    |- F --> G  becomes   F w --> G w
 *)
 
-fun int_unlift th =
-  rewrite_rule @{thms intensional_rews} (th RS @{thm intD} handle THM _ => th);
+fun int_unlift ctxt th =
+  rewrite_rule ctxt @{thms intensional_rews} (th RS @{thm intD} handle THM _ => th);
 
 (* Turn  |- F = G  into meta-level rewrite rule  F == G *)
-fun int_rewrite th =
-  zero_var_indexes (rewrite_rule @{thms intensional_rews} (th RS @{thm inteq_reflection}))
+fun int_rewrite ctxt th =
+  zero_var_indexes (rewrite_rule ctxt @{thms intensional_rews} (th RS @{thm inteq_reflection}))
 
 (* flattening turns "-->" into "==>" and eliminates conjunctions in the
    antecedent. For example,
@@ -282,17 +282,20 @@ fun flatten t =
     hflatten t
   end
 
-fun int_use th =
+fun int_use ctxt th =
     case (concl_of th) of
       Const _ $ (Const ("Intensional.Valid", _) $ _) =>
-              (flatten (int_unlift th) handle THM _ => th)
+              (flatten (int_unlift ctxt th) handle THM _ => th)
     | _ => th
 *}
 
-attribute_setup int_unlift = {* Scan.succeed (Thm.rule_attribute (K int_unlift)) *}
-attribute_setup int_rewrite = {* Scan.succeed (Thm.rule_attribute (K int_rewrite)) *}
+attribute_setup int_unlift =
+  {* Scan.succeed (Thm.rule_attribute (int_unlift o Context.proof_of)) *}
+attribute_setup int_rewrite =
+  {* Scan.succeed (Thm.rule_attribute (int_rewrite o Context.proof_of)) *}
 attribute_setup flatten = {* Scan.succeed (Thm.rule_attribute (K flatten)) *}
-attribute_setup int_use = {* Scan.succeed (Thm.rule_attribute (K int_use)) *}
+attribute_setup int_use =
+  {* Scan.succeed (Thm.rule_attribute (int_use o Context.proof_of)) *}
 
 lemma Not_Rall: "|- (~(! x. F x)) = (? x. ~F x)"
   by (simp add: Valid_def)

@@ -656,7 +656,7 @@ fun default_intro_tac ctxt [] =
   | default_intro_tac _ _ = no_tac;
 
 fun default_tac rules ctxt facts =
-  HEADGOAL (Method.some_rule_tac rules ctxt facts) ORELSE
+  HEADGOAL (Method.some_rule_tac ctxt rules facts) ORELSE
     default_intro_tac ctxt facts;
 
 val _ = Theory.setup

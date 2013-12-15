@@ -115,6 +115,11 @@ without Isar context nor antiquotations.  Potential INCOMPATIBILITY.
 Note that 'ML_file' is the canonical command to load ML files into the
 formal context.
 
+* Proper context for basic Simplifier operations: rewrite_rule,
+rewrite_goals_rule, rewrite_goals_tac etc. INCOMPATIBILITY, need to
+pass runtime Proof.context (and ensure that the simplified entity
+actually belongs to it).
+
 
 *** System ***
 

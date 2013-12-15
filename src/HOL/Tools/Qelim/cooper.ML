@@ -865,19 +865,19 @@ fun tac elim add_ths del_ths = Subgoal.FOCUS_PARAMS (fn {context = ctxt, ...} =>
     val aprems = Arith_Data.get_arith_facts ctxt
   in
     Method.insert_tac aprems
-    THEN_ALL_NEW Object_Logic.full_atomize_tac
+    THEN_ALL_NEW Object_Logic.full_atomize_tac ctxt
     THEN_ALL_NEW CONVERSION Thm.eta_long_conversion
     THEN_ALL_NEW simp_tac simpset_ctxt
     THEN_ALL_NEW (TRY o generalize_tac (int_nat_terms ctxt))
-    THEN_ALL_NEW Object_Logic.full_atomize_tac
+    THEN_ALL_NEW Object_Logic.full_atomize_tac ctxt
     THEN_ALL_NEW (thin_prems_tac ctxt (is_relevant ctxt))
-    THEN_ALL_NEW Object_Logic.full_atomize_tac
+    THEN_ALL_NEW Object_Logic.full_atomize_tac ctxt
     THEN_ALL_NEW div_mod_tac ctxt
     THEN_ALL_NEW splits_tac ctxt
     THEN_ALL_NEW simp_tac simpset_ctxt
     THEN_ALL_NEW CONVERSION Thm.eta_long_conversion
     THEN_ALL_NEW nat_to_int_tac ctxt
-    THEN_ALL_NEW (core_tac ctxt)
+    THEN_ALL_NEW core_tac ctxt
     THEN_ALL_NEW finish_tac elim
   end 1);
 

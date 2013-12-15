@@ -65,7 +65,7 @@ fun reflexive_or_trivial_of_metis ctxt type_enc sym_tab concealed mth =
 fun lam_lifted_of_metis ctxt type_enc sym_tab concealed mth =
   let
     val thy = Proof_Context.theory_of ctxt
-    val tac = rewrite_goals_tac @{thms lambda_def [abs_def]} THEN rtac refl 1
+    val tac = rewrite_goals_tac ctxt @{thms lambda_def [abs_def]} THEN rtac refl 1
     val t = hol_clause_of_metis ctxt type_enc sym_tab concealed mth
     val ct = cterm_of thy (HOLogic.mk_Trueprop t)
   in Goal.prove_internal [] ct (K tac) |> Meson.make_meta_clause end

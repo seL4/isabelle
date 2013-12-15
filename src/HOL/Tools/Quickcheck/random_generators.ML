@@ -107,7 +107,7 @@ fun random_aux_primrec eq lthy =
     fun tac ctxt =
       ALLGOALS (rtac rule)
       THEN ALLGOALS (simp_tac (put_simpset rew_ss ctxt))
-      THEN (ALLGOALS (Proof_Context.fact_tac eqs2))
+      THEN (ALLGOALS (Proof_Context.fact_tac ctxt eqs2))
     val simp = Goal.prove_sorry lthy' [v] [] eq (tac o #context);
   in (simp, lthy') end;
 
@@ -166,7 +166,7 @@ fun random_aux_specification prfx name eqs lthy =
     fun prove_simps proto_simps lthy =
       let
         val ext_simps = map (fn thm => fun_cong OF [fun_cong OF [thm]]) proto_simps;
-        val tac = ALLGOALS (Proof_Context.fact_tac ext_simps);
+        val tac = ALLGOALS (Proof_Context.fact_tac lthy ext_simps);
       in (map (fn prop => Goal.prove_sorry lthy vs [] prop (K tac)) eqs, lthy) end;
     val b = Binding.conceal (Binding.qualify true prfx
       (Binding.qualify true name (Binding.name "simps")));

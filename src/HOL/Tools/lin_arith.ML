@@ -871,8 +871,9 @@ fun raw_tac ctxt ex =
 
 in
 
-fun gen_tac ex ctxt = FIRST' [simple_tac ctxt,
-  Object_Logic.full_atomize_tac THEN' (REPEAT_DETERM o rtac impI) THEN' raw_tac ctxt ex];
+fun gen_tac ex ctxt =
+  FIRST' [simple_tac ctxt,
+    Object_Logic.full_atomize_tac ctxt THEN' (REPEAT_DETERM o rtac impI) THEN' raw_tac ctxt ex];
 
 val tac = gen_tac true;
 

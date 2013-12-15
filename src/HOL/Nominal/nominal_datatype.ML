@@ -134,7 +134,7 @@ val at_fin_set_supp = @{thm at_fin_set_supp};
 val at_fin_set_fresh = @{thm at_fin_set_fresh};
 val abs_fun_eq1 = @{thm abs_fun_eq1};
 
-val collect_simp = rewrite_rule [mk_meta_eq mem_Collect_eq];
+fun collect_simp ctxt = rewrite_rule ctxt [mk_meta_eq mem_Collect_eq];
 
 fun mk_perm Ts t u =
   let
@@ -595,10 +595,12 @@ fun gen_nominal_datatype prep_specs config dts thy =
         end))
         (types_syntax ~~ tyvars ~~ List.take (rep_set_names'' ~~ recTs', length new_type_names));
 
+    val ctxt6 = Proof_Context.init_global thy6;
+
     val perm_defs = map snd typedefs;
-    val Abs_inverse_thms = map (collect_simp o #Abs_inverse o snd o fst) typedefs;
+    val Abs_inverse_thms = map (collect_simp ctxt6 o #Abs_inverse o snd o fst) typedefs;
     val Rep_inverse_thms = map (#Rep_inverse o snd o fst) typedefs;
-    val Rep_thms = map (collect_simp o #Rep o snd o fst) typedefs;
+    val Rep_thms = map (collect_simp ctxt6 o #Rep o snd o fst) typedefs;
 
 
     (** prove that new types are in class pt_<name> **)
@@ -616,7 +618,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
             (Sign.intern_type thy name,
               map (inter_sort thy sort o snd) tvs, [pt_class])
             (fn ctxt => EVERY [Class.intro_classes_tac [],
-              rewrite_goals_tac [perm_def],
+              rewrite_goals_tac ctxt [perm_def],
               asm_full_simp_tac (ctxt addsimps [Rep_inverse]) 1,
               asm_full_simp_tac (ctxt addsimps
                 [Rep RS perm_closed RS Abs_inverse]) 1,
@@ -645,7 +647,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
             (Sign.intern_type thy name,
               map (inter_sort thy sort o snd) tvs, [cp_class])
             (fn ctxt => EVERY [Class.intro_classes_tac [],
-              rewrite_goals_tac [perm_def],
+              rewrite_goals_tac ctxt [perm_def],
               asm_full_simp_tac (ctxt addsimps
                 ((Rep RS perm_closed1 RS Abs_inverse) ::
                  (if atom1 = atom2 then []
@@ -783,7 +785,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
         new_type_names ~~ newTs ~~ newTs' ~~ constr_syntax)
       (thy7, [], [], []);
 
-    val abs_inject_thms = map (collect_simp o #Abs_inject o snd o fst) typedefs
+    val abs_inject_thms = map (collect_simp ctxt6 o #Abs_inject o snd o fst) typedefs
     val rep_inject_thms = map (#Rep_inject o snd o fst) typedefs
 
     (* prove theorem  Rep_i (Constr_j ...) = Constr'_j ...  *)
@@ -792,9 +794,9 @@ fun gen_nominal_datatype prep_specs config dts thy =
       let
         val inj_thms = map (fn r => r RS iffD1) abs_inject_thms;
         val rewrites = constr_defs @ map mk_meta_eq Rep_inverse_thms
-      in Goal.prove_global_future thy8 [] [] eqn (fn _ => EVERY
+      in Goal.prove_global_future thy8 [] [] eqn (fn {context = ctxt, ...} => EVERY
         [resolve_tac inj_thms 1,
-         rewrite_goals_tac rewrites,
+         rewrite_goals_tac ctxt rewrites,
          rtac refl 3,
          resolve_tac rep_intrs 2,
          REPEAT (resolve_tac Rep_thms 1)])
@@ -1043,7 +1045,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
       (Logic.strip_imp_prems dt_induct_prop) (Logic.strip_imp_concl dt_induct_prop)
       (fn {prems, context = ctxt} => EVERY
         [rtac indrule_lemma' 1,
-         (Datatype_Aux.ind_tac rep_induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
+         (Datatype_Aux.ind_tac rep_induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac ctxt) 1,
          EVERY (map (fn (prem, r) => (EVERY
            [REPEAT (eresolve_tac Abs_inverse_thms' 1),
             simp_tac (put_simpset HOL_basic_ss ctxt addsimps [Thm.symmetric r]) 1,
@@ -2017,8 +2019,8 @@ fun gen_nominal_datatype prep_specs config dts thy =
         Goal.prove_global_future thy12 []
           (map (augment_sort thy12 fs_cp_sort) prems')
           (augment_sort thy12 fs_cp_sort concl')
-          (fn {prems, ...} => EVERY
-            [rewrite_goals_tac reccomb_defs,
+          (fn {context = ctxt, prems} => EVERY
+            [rewrite_goals_tac ctxt reccomb_defs,
              rtac @{thm the1_equality} 1,
              solve rec_unique_thms prems 1,
              resolve_tac rec_intrs 1,

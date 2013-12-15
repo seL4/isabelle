@@ -42,14 +42,14 @@ sig
   val DISJ_CASESL: thm -> thm list -> thm
 
   val list_beta_conv: cterm -> cterm list -> thm
-  val SUBS: thm list -> thm -> thm
+  val SUBS: Proof.context -> thm list -> thm -> thm
   val simpl_conv: Proof.context -> thm list -> cterm -> thm
 
   val rbeta: thm -> thm
   val tracing: bool Unsynchronized.ref
   val CONTEXT_REWRITE_RULE: term * term list * thm * thm list
                              -> thm -> thm * term list
-  val RIGHT_ASSOC: thm -> thm
+  val RIGHT_ASSOC: Proof.context -> thm -> thm
 
   val prove: bool -> cterm * tactic -> thm
 end;
@@ -417,8 +417,8 @@ fun IT_EXISTS blist th =
  *        Rewriting
  *---------------------------------------------------------------------------*)
 
-fun SUBS thl =
-  rewrite_rule (map (fn th => th RS eq_reflection handle THM _ => th) thl);
+fun SUBS ctxt thl =
+  rewrite_rule ctxt (map (fn th => th RS eq_reflection handle THM _ => th) thl);
 
 val rew_conv = Raw_Simplifier.rewrite_cterm (true, false, false) (K (K NONE));
 
@@ -426,7 +426,7 @@ fun simpl_conv ctxt thl ctm =
  rew_conv (ctxt addsimps thl) ctm RS meta_eq_to_obj_eq;
 
 
-val RIGHT_ASSOC = rewrite_rule [Thms.disj_assoc];
+fun RIGHT_ASSOC ctxt = rewrite_rule ctxt [Thms.disj_assoc];
 
 
 
@@ -602,24 +602,24 @@ end end;
  *  the wrong word to use).
  *---------------------------------------------------------------------------*)
 
-fun VSTRUCT_ELIM tych a vstr th =
+fun VSTRUCT_ELIM ctxt tych a vstr th =
   let val L = USyntax.free_vars_lr vstr
       val bind1 = tych (HOLogic.mk_Trueprop (HOLogic.mk_eq(a,vstr)))
-      val thm1 = Thm.implies_intr bind1 (SUBS [SYM(Thm.assume bind1)] th)
+      val thm1 = Thm.implies_intr bind1 (SUBS ctxt [SYM(Thm.assume bind1)] th)
       val thm2 = forall_intr_list (map tych L) thm1
       val thm3 = forall_elim_list (XFILL tych a vstr) thm2
   in refl RS
-     rewrite_rule [Thm.symmetric (@{thm surjective_pairing} RS eq_reflection)] thm3
+     rewrite_rule ctxt [Thm.symmetric (@{thm surjective_pairing} RS eq_reflection)] thm3
   end;
 
-fun PGEN tych a vstr th =
+fun PGEN ctxt tych a vstr th =
   let val a1 = tych a
       val vstr1 = tych vstr
   in
   Thm.forall_intr a1
      (if (is_Free vstr)
       then cterm_instantiate [(vstr1,a1)] th
-      else VSTRUCT_ELIM tych a vstr th)
+      else VSTRUCT_ELIM ctxt tych a vstr th)
   end;
 
 
@@ -701,7 +701,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                   val impth = implies_intr_list ants1 QeeqQ3
                   val impth1 = impth RS meta_eq_to_obj_eq
                   (* Need to abstract *)
-                  val ant_th = Utils.itlist2 (PGEN tych) args vstrl impth1
+                  val ant_th = Utils.itlist2 (PGEN ctxt' tych) args vstrl impth1
               in ant_th COMP thm
               end
              fun q_eliminate (thm,imp,thy) =

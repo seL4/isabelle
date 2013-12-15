@@ -552,9 +552,9 @@ val presimplified_consts =
    @{const_name Let}]
 
 fun presimplify ctxt =
-  rewrite_rule (map safe_mk_meta_eq nnf_simps)
+  rewrite_rule ctxt (map safe_mk_meta_eq nnf_simps)
   #> simplify (put_simpset nnf_ss ctxt)
-  #> rewrite_rule @{thms Let_def [abs_def]}
+  #> rewrite_rule ctxt @{thms Let_def [abs_def]}
 
 fun make_nnf ctxt th = case prems_of th of
     [] => th |> presimplify ctxt |> make_nnf1 ctxt
@@ -706,7 +706,7 @@ fun skolemize_prems_tac ctxt prems =
   Function mkcl converts theorems to clauses.*)
 fun MESON preskolem_tac mkcl cltac ctxt i st =
   SELECT_GOAL
-    (EVERY [Object_Logic.atomize_prems_tac 1,
+    (EVERY [Object_Logic.atomize_prems_tac ctxt 1,
             rtac ccontr 1,
             preskolem_tac,
             Subgoal.FOCUS (fn {context = ctxt', prems = negs, ...} =>
