@@ -14,8 +14,7 @@ sig
   val new_skolem : bool Config.T
   val advisory_simp : bool Config.T
   val type_has_top_sort : typ -> bool
-  val metis_tac :
-    string list -> string -> Proof.context -> thm list -> int -> tactic
+  val metis_tac : string list -> string -> Proof.context -> thm list -> int -> tactic
   val metis_lam_transs : string list
   val parse_metis_options : (string list option * string option) parser
   val setup : theory -> theory
@@ -29,15 +28,12 @@ open ATP_Proof_Reconstruct
 open Metis_Generate
 open Metis_Reconstruct
 
-val new_skolem =
-  Attrib.setup_config_bool @{binding metis_new_skolem} (K false)
-val advisory_simp =
-  Attrib.setup_config_bool @{binding metis_advisory_simp} (K true)
+val new_skolem = Attrib.setup_config_bool @{binding metis_new_skolem} (K false)
+val advisory_simp = Attrib.setup_config_bool @{binding metis_advisory_simp} (K true)
 
 (* Designed to work also with monomorphic instances of polymorphic theorems. *)
 fun have_common_thm ths1 ths2 =
-  exists (member (Term.aconv_untyped o pairself prop_of) ths1)
-         (map Meson.make_meta_clause ths2)
+  exists (member (Term.aconv_untyped o pairself prop_of) ths1) (map Meson.make_meta_clause ths2)
 
 (*Determining which axiom clauses are actually used*)
 fun used_axioms axioms (th, Metis_Proof.Axiom _) = SOME (lookth axioms th)
@@ -297,8 +293,7 @@ fun method default_type_encs ((override_type_encs, lam_trans), ths) ctxt facts =
     val lam_trans = lam_trans |> the_default default_metis_lam_trans
   in
     HEADGOAL (Method.insert_tac nonschem_facts THEN'
-              CHANGED_PROP o generic_metis_tac type_encs lam_trans ctxt
-                                               (schem_facts @ ths))
+      CHANGED_PROP o generic_metis_tac type_encs lam_trans ctxt (schem_facts @ ths))
   end
 
 val metis_lam_transs = [hide_lamsN, liftingN, combsN]
@@ -307,9 +302,9 @@ fun set_opt _ x NONE = SOME x
   | set_opt get x (SOME x0) =
     error ("Cannot specify both " ^ quote (get x0) ^ " and " ^ quote (get x) ^
            ".")
+
 fun consider_opt s =
-  if member (op =) metis_lam_transs s then apsnd (set_opt I s)
-  else apfst (set_opt hd [s])
+  if member (op =) metis_lam_transs s then apsnd (set_opt I s) else apfst (set_opt hd [s])
 
 val parse_metis_options =
   Scan.optional

@@ -244,8 +244,8 @@ type isar_params =
   thm
 
 fun isar_proof_text ctxt isar_proofs
-    (debug, verbose, metis_type_enc, metis_lam_trans, preplay_timeout, isar_compress,
-     isar_try0, atp_proof, goal)
+    (debug, verbose, metis_type_enc, metis_lam_trans, preplay_timeout, isar_compress, isar_try0,
+     atp_proof, goal)
     (one_line_params as (_, _, _, _, subgoal, subgoal_count)) =
   let
     val (params, hyp_ts, concl_t) = strip_subgoal goal subgoal ctxt

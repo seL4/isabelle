@@ -465,8 +465,7 @@ fun repair_name "$true" = "c_True"
 
 fun infer_formula_types ctxt =
   Type.constraint HOLogic.boolT
-  #> Syntax.check_term
-         (Proof_Context.set_mode Proof_Context.mode_schematic ctxt)
+  #> Syntax.check_term (Proof_Context.set_mode Proof_Context.mode_schematic ctxt)
 
 val combinator_table =
   [(@{const_name Meson.COMBI}, @{thm Meson.COMBI_def [abs_def]}),
@@ -481,51 +480,52 @@ fun uncombine_term thy =
       | aux (Abs (s, T, t')) = Abs (s, T, aux t')
       | aux (t as Const (x as (s, _))) =
         (case AList.lookup (op =) combinator_table s of
-           SOME thm => thm |> prop_of |> specialize_type thy x
-                           |> Logic.dest_equals |> snd
-         | NONE => t)
+          SOME thm => thm |> prop_of |> specialize_type thy x |> Logic.dest_equals |> snd
+        | NONE => t)
       | aux t = t
   in aux end
 
 fun unlift_term lifted =
   map_aterms (fn t as Const (s, _) =>
                  if String.isPrefix lam_lifted_prefix s then
-                   case AList.lookup (op =) lifted s of
-                     SOME t =>
-                     (* FIXME: do something about the types *)
-                     unlift_term lifted t
-                   | NONE => t
+                   (* FIXME: do something about the types *)
+                   (case AList.lookup (op =) lifted s of
+                     SOME t => unlift_term lifted t
+                   | NONE => t)
                  else
                    t
                | t => t)
 
-fun decode_line ctxt lifted sym_tab (name, role, u, rule, deps) =
+fun termify_line ctxt lifted sym_tab (name, role, u, rule, deps) =
   let
     val thy = Proof_Context.theory_of ctxt
-    val t =
-      u |> prop_of_atp ctxt true sym_tab
-        |> uncombine_term thy
-        |> unlift_term lifted
-        |> infer_formula_types ctxt
-  in (name, role, t, rule, deps) end
+    val t = u
+      |> prop_of_atp ctxt true sym_tab
+      |> uncombine_term thy
+      |> unlift_term lifted
+      |> infer_formula_types ctxt
+  in
+    (name, role, t, rule, deps)
+  end
 
 val waldmeister_conjecture_num = "1.0.0.0"
 
-fun repair_waldmeister_endgame arg =
+fun repair_waldmeister_endgame proof =
   let
-    fun do_tail (name, _, t, rule, deps) =
-      (name, Negated_Conjecture, s_not t, rule, deps)
-    fun do_body [] = []
-      | do_body ((line as ((num, _), _, _, _, _)) :: lines) =
-        if num = waldmeister_conjecture_num then map do_tail (line :: lines)
-        else line :: do_body lines
-  in do_body arg end
+    fun repair_tail (name, _, t, rule, deps) = (name, Negated_Conjecture, s_not t, rule, deps)
+    fun repair_body [] = []
+      | repair_body ((line as ((num, _), _, _, _, _)) :: lines) =
+        if num = waldmeister_conjecture_num then map repair_tail (line :: lines)
+        else line :: repair_body lines
+  in
+    repair_body proof
+  end
 
 fun termify_atp_proof ctxt pool lifted sym_tab =
   clean_up_atp_proof_dependencies
   #> nasty_atp_proof pool
   #> map_term_names_in_atp_proof repair_name
-  #> map (decode_line ctxt lifted sym_tab)
+  #> map (termify_line ctxt lifted sym_tab)
   #> repair_waldmeister_endgame
 
 fun factify_atp_proof fact_names hyp_ts concl_t atp_proof =
