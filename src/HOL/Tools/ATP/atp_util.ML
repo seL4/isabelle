@@ -36,6 +36,7 @@ sig
   val s_disj : term * term -> term
   val s_imp : term * term -> term
   val s_iff : term * term -> term
+  val s_not_prop : term -> term
   val close_form : term -> term
   val hol_close_form_prefix : string
   val hol_close_form : term -> term
@@ -292,22 +293,27 @@ fun s_disj (@{const False}, t2) = t2
   | s_disj (@{const True}, _) = @{const True}
   | s_disj (_, @{const True}) = @{const True}
   | s_disj (t1, t2) = if t1 aconv t2 then t1 else HOLogic.mk_disj (t1, t2)
+
 fun s_imp (@{const True}, t2) = t2
   | s_imp (t1, @{const False}) = s_not t1
   | s_imp (@{const False}, _) = @{const True}
   | s_imp (_, @{const True}) = @{const True}
   | s_imp p = HOLogic.mk_imp p
+
 fun s_iff (@{const True}, t2) = t2
   | s_iff (t1, @{const True}) = t1
   | s_iff (@{const False}, t2) = s_not t2
   | s_iff (t1, @{const False}) = s_not t1
   | s_iff (t1, t2) = HOLogic.eq_const HOLogic.boolT $ t1 $ t2
 
-(* cf. "close_form" in "refute.ML" *)
+fun s_not_prop (@{const Trueprop} $ t) = @{const Trueprop} $ s_not t
+  | s_not_prop (@{const "==>"} $ t $ @{prop False}) = t
+  | s_not_prop t = @{const "==>"} $ t $ @{prop False}
+
 fun close_form t =
   fold (fn ((s, i), T) => fn t' =>
-           Logic.all_const T $ Abs (s, T, abstract_over (Var ((s, i), T), t')))
-       (Term.add_vars t []) t
+      Logic.all_const T $ Abs (s, T, abstract_over (Var ((s, i), T), t')))
+    (Term.add_vars t []) t
 
 val hol_close_form_prefix = "ATP.close_form."
 

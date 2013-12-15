@@ -504,6 +504,7 @@ fun termify_line ctxt lifted sym_tab (name, role, u, rule, deps) =
       |> uncombine_term thy
       |> unlift_term lifted
       |> infer_formula_types ctxt
+      |> HOLogic.mk_Trueprop
   in
     (name, role, t, rule, deps)
   end

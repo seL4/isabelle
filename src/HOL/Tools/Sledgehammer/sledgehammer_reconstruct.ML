@@ -47,9 +47,6 @@ structure String_Redirect = ATP_Proof_Redirect(
 
 open String_Redirect
 
-fun maybe_mk_Trueprop t = t |> fastype_of t = HOLogic.boolT ? HOLogic.mk_Trueprop
-val maybe_dest_Trueprop = perhaps (try HOLogic.dest_Trueprop)
-
 val e_skolemize_rule = "skolemize"
 val vampire_skolemisation_rule = "skolemisation"
 (* TODO: Use "Z3_Proof.string_of_rule" once it is moved to Isabelle *)
@@ -81,7 +78,7 @@ fun replace_dependencies_in_line p (name, role, t, rule, deps) =
 fun inline_z3_defs _ [] = []
   | inline_z3_defs defs ((line as (name, role, t, rule, deps)) :: lines) =
     if rule = z3_intro_def_rule then
-      let val def = t |> maybe_dest_Trueprop |> HOLogic.dest_eq |> swap in
+      let val def = t |> HOLogic.dest_Trueprop |> HOLogic.dest_eq |> swap in
         inline_z3_defs (insert (op =) def defs)
           (map (replace_dependencies_in_line (name, [])) lines)
       end
@@ -286,7 +283,7 @@ fun isar_proof_text ctxt isar_proofs
                 else if is_arith_rule rule then ([], ArithM)
                 else ([], AutoM)
             in
-              Prove ([], skos, l, maybe_mk_Trueprop t, [], (([], []), meth))
+              Prove ([], skos, l, t, [], (([], []), meth))
             end)
 
         val bot = atp_proof |> List.last |> #1
@@ -306,7 +303,7 @@ fun isar_proof_text ctxt isar_proofs
           |> fold (fn (name as (s, _), role, t, rule, _) =>
                       Symtab.update_new (s, (rule,
                         t |> (if is_clause_tainted [name] then
-                                role <> Conjecture ? (maybe_dest_Trueprop #> s_not)
+                                role <> Conjecture ? s_not_prop
                                 #> fold exists_of (map Var (Term.add_vars t []))
                               else
                                 I))))
@@ -314,14 +311,11 @@ fun isar_proof_text ctxt isar_proofs
 
         val rule_of_clause_id = fst o the o Symtab.lookup steps o fst
 
-        (* The assumptions and conjecture are "prop"s; the other formulas are "bool"s (for ATPs) or
-           "prop"s (for Z3). TODO: Always use "prop". *)
-        fun prop_of_clause [(num, _)] =
-            Symtab.lookup steps num |> the |> snd |> maybe_mk_Trueprop |> close_form
+        fun prop_of_clause [(num, _)] = Symtab.lookup steps num |> the |> snd |> close_form
           | prop_of_clause names =
             let
               val lits =
-                map (maybe_dest_Trueprop o snd) (map_filter (Symtab.lookup steps o fst) names)
+                map (HOLogic.dest_Trueprop o snd) (map_filter (Symtab.lookup steps o fst) names)
             in
               (case List.partition (can HOLogic.dest_not) lits of
                 (negs as _ :: _, pos as _ :: _) =>

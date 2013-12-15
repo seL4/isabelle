@@ -393,21 +393,7 @@ fun actual_params ctxt override =
 (* ------------------------------------------------------------------------- *)
 
 val typ_of_dtyp = Nitpick_Util.typ_of_dtyp
-
-(* ------------------------------------------------------------------------- *)
-(* close_form: universal closure over schematic variables in 't'             *)
-(* ------------------------------------------------------------------------- *)
-
-(* Term.term -> Term.term *)
-
-fun close_form t =
-  let
-    val vars = sort_wrt (fst o fst) (Term.add_vars t [])
-  in
-    fold (fn ((x, i), T) => fn t' =>
-      Logic.all_const T $ Abs (x, T, abstract_over (Var ((x, i), T), t'))) vars t
-  end;
-
+val close_form = ATP_Util.close_form
 val monomorphic_term = ATP_Util.monomorphic_term
 val specialize_type = ATP_Util.specialize_type
 
