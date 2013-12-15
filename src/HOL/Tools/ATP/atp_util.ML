@@ -283,11 +283,13 @@ fun s_not (Const (@{const_name All}, T) $ Abs (s, T', t')) =
   | s_not (@{const True}) = @{const False}
   | s_not (@{const Not} $ t) = t
   | s_not t = @{const Not} $ t
+
 fun s_conj (@{const True}, t2) = t2
   | s_conj (t1, @{const True}) = t1
   | s_conj (@{const False}, _) = @{const False}
   | s_conj (_, @{const False}) = @{const False}
   | s_conj (t1, t2) = if t1 aconv t2 then t1 else HOLogic.mk_conj (t1, t2)
+
 fun s_disj (@{const False}, t2) = t2
   | s_disj (t1, @{const False}) = t1
   | s_disj (@{const True}, _) = @{const True}

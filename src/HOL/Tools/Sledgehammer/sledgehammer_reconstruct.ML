@@ -89,11 +89,10 @@ fun inline_z3_defs _ [] = []
 
 fun alist_cons_list eq (k, v) = AList.map_default eq (k, []) (cons v)
 
-(* FIXME: use "prop_of_clause" defined below *)
 fun add_z3_hypotheses [] = I
   | add_z3_hypotheses hyps =
     HOLogic.dest_Trueprop
-    #> curry HOLogic.mk_imp (Library.foldr1 HOLogic.mk_conj (map HOLogic.dest_Trueprop hyps))
+    #> curry s_imp (Library.foldr1 s_conj (map HOLogic.dest_Trueprop hyps))
     #> HOLogic.mk_Trueprop
 
 fun inline_z3_hypotheses _ _ [] = []
@@ -115,12 +114,22 @@ fun inline_z3_hypotheses _ _ [] = []
           end
       end
 
-(* No "real" literals means only type information (tfree_tcs, clsrel, or
-   clsarity). *)
-fun is_only_type_information t = t aconv @{term True}
+fun simplify_prop (@{const Not} $ t) = s_not (simplify_prop t)
+  | simplify_prop (@{const conj} $ t $ u) = s_conj (simplify_prop t, simplify_prop u)
+  | simplify_prop (@{const disj} $ t $ u) = s_disj (simplify_prop t, simplify_prop u)
+  | simplify_prop (@{const implies} $ t $ u) = s_imp (simplify_prop t, simplify_prop u)
+  | simplify_prop (@{const HOL.eq (bool)} $ t $ u) = s_iff (simplify_prop t, simplify_prop u)
+  | simplify_prop (t $ u) = simplify_prop t $ simplify_prop u
+  | simplify_prop (Abs (s, T, t)) = Abs (s, T, simplify_prop t)
+  | simplify_prop t = t
 
-(* Discard facts; consolidate adjacent lines that prove the same formula, since
-   they differ only in type information.*)
+fun simplify_line (name, role, t, rule, deps) = (name, role, simplify_prop t, rule, deps)
+
+(* No "real" literals means only type information (tfree_tcs, clsrel, or clsarity). *)
+fun is_only_type_information t = t aconv @{prop True}
+
+(* Discard facts; consolidate adjacent lines that prove the same formula, since they differ only in
+   type information.*)
 fun add_line_pass1 (line as (name as (_, ss), role, t, rule, [])) lines =
     (* No dependencies: lemma (for Z3), fact, conjecture, or (for Vampire)
        internal facts or definitions. *)
@@ -134,7 +143,8 @@ fun add_line_pass1 (line as (name as (_, ss), role, t, rule, [])) lines =
       map (replace_dependencies_in_line (name, [])) lines
   | add_line_pass1 line lines = line :: lines
 
-(* Recursively delete empty lines (type information) from the proof. *)
+(* Recursively delete empty lines (type information) from the proof.
+   (FIXME: needed? And why is "delete_dependency" so complicated?) *)
 fun add_line_pass2 (line as (name, _, t, _, [])) lines =
     if is_only_type_information t then delete_dependency name lines else line :: lines
   | add_line_pass2 line lines = line :: lines
@@ -142,7 +152,7 @@ and delete_dependency name lines =
   fold_rev add_line_pass2 (map (replace_dependencies_in_line (name, [])) lines) []
 
 fun add_line_pass3 res [] = rev res
-  | add_line_pass3 res ((line as (name as (_, ss), role, t, rule, deps)) :: lines) =
+  | add_line_pass3 res ((name as (_, ss), role, t, rule, deps) :: lines) =
     if role <> Plain orelse is_skolemize_rule rule orelse is_arith_rule rule orelse
        (* the last line must be kept *)
        null lines orelse
@@ -150,7 +160,7 @@ fun add_line_pass3 res [] = rev res
         andalso length deps >= 2 andalso
         (* don't keep next to last line, which usually results in a trivial step *)
         not (can the_single lines)) then
-      add_line_pass3 (line :: res) lines
+      add_line_pass3 ((name, role, simplify_prop t, rule, deps) :: res) lines
     else
       add_line_pass3 res (map (replace_dependencies_in_line (name, deps)) lines)
 
@@ -161,8 +171,10 @@ val add_labels_of_proof =
 fun kill_useless_labels_in_proof proof =
   let
     val used_ls = add_labels_of_proof proof []
+
     fun kill_label l = if member (op =) used_ls l then l else no_label
     fun kill_assms assms = map (apfst kill_label) assms
+
     fun kill_step (Prove (qs, xs, l, t, subproofs, by)) =
         Prove (qs, xs, kill_label l, t, map kill_proof subproofs, by)
       | kill_step step = step
@@ -172,18 +184,16 @@ fun kill_useless_labels_in_proof proof =
     kill_proof proof
   end
 
-fun prefix_of_depth n = replicate_string (n + 1)
-
 val assume_prefix = "a"
 val have_prefix = "f"
 
 val relabel_proof =
   let
-    fun fresh_label depth prefix (old as (l, subst, next)) =
+    fun fresh_label depth prefix (accum as (l, subst, next)) =
       if l = no_label then
-        old
+        accum
       else
-        let val l' = (prefix_of_depth depth prefix, next) in
+        let val l' = (replicate_string (depth + 1) prefix, next) in
           (l', (l, l') :: subst, next + 1)
         end
 
@@ -264,6 +274,7 @@ fun isar_proof_text ctxt isar_proofs
         val atp_proof =
           atp_proof
           |> inline_z3_defs []
+          |> map simplify_line
           |> inline_z3_hypotheses [] []
           |> rpair [] |-> fold_rev add_line_pass1
           |> rpair [] |-> fold_rev add_line_pass2
@@ -301,21 +312,21 @@ fun isar_proof_text ctxt isar_proofs
         val steps =
           Symtab.empty
           |> fold (fn (name as (s, _), role, t, rule, _) =>
-                      Symtab.update_new (s, (rule,
-                        t |> (if is_clause_tainted [name] then
-                                role <> Conjecture ? s_not_prop
-                                #> fold exists_of (map Var (Term.add_vars t []))
-                              else
-                                I))))
-                  atp_proof
+              Symtab.update_new (s, (rule, t
+                |> (if is_clause_tainted [name] then
+                      role <> Conjecture ? s_not_prop
+                      #> fold exists_of (map Var (Term.add_vars t []))
+                    else
+                      I))))
+            atp_proof
 
         val rule_of_clause_id = fst o the o Symtab.lookup steps o fst
 
         fun prop_of_clause [(num, _)] = Symtab.lookup steps num |> the |> snd |> close_form
           | prop_of_clause names =
             let
-              val lits =
-                map (HOLogic.dest_Trueprop o snd) (map_filter (Symtab.lookup steps o fst) names)
+              val lits = map (HOLogic.dest_Trueprop o snd)
+                (map_filter (Symtab.lookup steps o fst) names)
             in
               (case List.partition (can HOLogic.dest_not) lits of
                 (negs as _ :: _, pos as _ :: _) =>
@@ -405,9 +416,7 @@ fun isar_proof_text ctxt isar_proofs
           |> isar_try0 ? try0 preplay_timeout preplay_interface
           |> postprocess_remove_unreferenced_steps (isar_try0 ? min_deps_of_step preplay_interface)
           |> `overall_preplay_stats
-          ||> (chain_direct_proof
-            #> kill_useless_labels_in_proof
-            #> relabel_proof)
+          ||> (chain_direct_proof #> kill_useless_labels_in_proof #> relabel_proof)
 
         val isar_text =
           string_of_proof ctxt metis_type_enc metis_lam_trans subgoal subgoal_count isar_proof
