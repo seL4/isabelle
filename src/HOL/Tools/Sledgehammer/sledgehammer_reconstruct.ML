@@ -129,7 +129,7 @@ fun simplify_line (name, role, t, rule, deps) = (name, role, simplify_prop t, ru
 fun is_only_type_information t = t aconv @{prop True}
 
 (* Discard facts; consolidate adjacent lines that prove the same formula, since they differ only in
-   type information.*)
+   type information. *)
 fun add_line_pass1 (line as (name as (_, ss), role, t, rule, [])) lines =
     (* No dependencies: lemma (for Z3), fact, conjecture, or (for Vampire)
        internal facts or definitions. *)
@@ -211,7 +211,7 @@ val relabel_proof =
         let
           val (l, subst, next) = (l, subst, next) |> fresh_label depth have_prefix
           val sub = relabel_proofs subst depth sub
-          val by = by |> relabel_byline subst
+          val by = apfst (relabel_facts subst) by
         in
           Prove (qs, xs, l, t, sub, by) :: relabel_steps subst depth next steps
         end
@@ -221,7 +221,6 @@ val relabel_proof =
       let val (assms, subst) = relabel_assms subst depth assms in
         Proof (fix, assms, relabel_steps subst depth 1 steps)
       end
-    and relabel_byline subst byline = apfst (relabel_facts subst) byline
     and relabel_proofs subst depth = map (relabel_proof subst (depth + 1))
   in
     relabel_proof [] 0
