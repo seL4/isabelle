@@ -22,7 +22,7 @@ sig
     Proof.context -> bool option -> (unit -> isar_params) -> int -> one_line_params -> string
 end;
 
-structure Sledgehammer_Reconstruct (* ### : SLEDGEHAMMER_RECONSTRUCT *) =
+structure Sledgehammer_Reconstruct : SLEDGEHAMMER_RECONSTRUCT =
 struct
 
 open ATP_Util
@@ -53,7 +53,7 @@ val maybe_dest_Trueprop = perhaps (try HOLogic.dest_Trueprop)
 val e_skolemize_rule = "skolemize"
 val vampire_skolemisation_rule = "skolemisation"
 (* TODO: Use "Z3_Proof.string_of_rule" once it is moved to Isabelle *)
-val z3_skolemize_rule = "skolemize"
+val z3_skolemize_rule = "sk"
 val z3_hypothesis_rule = "hypothesis"
 val z3_lemma_rule = "lemma"
 val z3_intro_def_rule = "intro-def"
@@ -253,8 +253,11 @@ fun isar_proof_text ctxt isar_proofs
     val one_line_proof = one_line_proof_text 0 one_line_params
     val do_preplay = preplay_timeout <> SOME Time.zeroTime
 
-    fun get_role keep_role ((num, _), role, t, _, _) =
-      if keep_role role then SOME (raw_label_of_num num, t) else NONE
+    val is_fixed = Variable.is_declared ctxt orf can Name.dest_skolem
+    fun skolems_of t = Term.add_frees t [] |> filter_out (is_fixed o fst) |> rev
+
+    fun get_role keep_role ((num, _), role, t, rule, _) =
+      if keep_role role then SOME ((raw_label_of_num num, t), rule) else NONE
 
     fun isar_proof_of () =
       let
@@ -270,10 +273,14 @@ fun isar_proof_text ctxt isar_proofs
           map_filter (fn (name, role, _, _, _) =>
               if member (op =) [Conjecture, Negated_Conjecture] role then SOME name else NONE)
             atp_proof
-        val assms = map_filter (get_role (curry (op =) Hypothesis)) atp_proof
+        val assms = map_filter (Option.map fst o get_role (curry (op =) Hypothesis)) atp_proof
         val lems =
           map_filter (get_role (curry (op =) Lemma)) atp_proof
-          |> map (fn (l, t) => Prove ([], [], l, maybe_mk_Trueprop t, [], (([], []), ArithM)))
+          |> map (fn ((l, t), rule) =>
+            if is_skolemize_rule rule then
+              Prove ([], skolems_of t, l, maybe_mk_Trueprop t, [], (([], []), MetisM))
+            else
+              Prove ([], [], l, maybe_mk_Trueprop t, [], (([], []), ArithM)))
 
         val bot = atp_proof |> List.last |> #1
 
@@ -318,9 +325,6 @@ fun isar_proof_text ctxt isar_proofs
             end
             |> HOLogic.mk_Trueprop |> close_form
 
-        val is_fixed = Variable.is_declared ctxt orf can Name.dest_skolem
-        fun skolems_of t = Term.add_frees t [] |> filter_out (is_fixed o fst) |> rev
-
         fun maybe_show outer c =
           (outer andalso length c = 1 andalso subset (op =) (c, conjs)) ? cons Show
 
@@ -344,19 +348,16 @@ fun isar_proof_text ctxt isar_proofs
                 (case gamma of
                   [g] =>
                   if is_clause_skolemize_rule g andalso is_clause_tainted g then
-                    let
-                      val subproof = Proof (skolems_of (prop_of_clause g), [], rev accum)
-                    in
+                    let val subproof = Proof (skolems_of (prop_of_clause g), [], rev accum) in
                       isar_steps outer (SOME l) [prove [subproof] (no_facts, MetisM)] []
                     end
                   else
                     do_rest l (prove [] by)
                 | _ => do_rest l (prove [] by))
               else
-                if is_clause_skolemize_rule c then
-                  do_rest l (Prove ([], skolems_of t, l, t, [], by))
-                else
-                  do_rest l (prove [] by)
+                (if is_clause_skolemize_rule c then Prove ([], skolems_of t, l, t, [], by)
+                 else prove [] by)
+                |> do_rest l
             end
           | isar_steps outer predecessor accum (Cases cases :: infs) =
             let
@@ -386,11 +387,11 @@ fun isar_proof_text ctxt isar_proofs
         val (preplay_interface as {overall_preplay_stats, ...}, isar_proof) =
           refute_graph
 (*
-          |> tap (tracing o prefix "REFUTE GRAPH: " o string_of_refute_graph)
+          |> tap (tracing o prefix "Refute graph: " o string_of_refute_graph)
 *)
           |> redirect_graph axioms tainted bot
 (*
-          |> tap (tracing o prefix "DIRECT PROOF: " o string_of_direct_proof)
+          |> tap (tracing o prefix "Direct proof: " o string_of_direct_proof)
 *)
           |> isar_proof_of_direct_proof
           |> postprocess_remove_unreferenced_steps I
