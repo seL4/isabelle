@@ -5,7 +5,7 @@
 header {* Equivalence Relations in Higher-Order Set Theory *}
 
 theory Equiv_Relations
-imports Big_Operators Relation
+imports Groups_Big Relation
 begin
 
 subsection {* Equivalence relations -- set version *}
