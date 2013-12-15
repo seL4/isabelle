@@ -53,11 +53,12 @@ val maybe_dest_Trueprop = perhaps (try HOLogic.dest_Trueprop)
 val e_skolemize_rule = "skolemize"
 val vampire_skolemisation_rule = "skolemisation"
 (* TODO: Use "Z3_Proof.string_of_rule" once it is moved to Isabelle *)
-val z3_skolemize_rule = "sk"
-val z3_hypothesis_rule = "hypothesis"
-val z3_lemma_rule = "lemma"
-val z3_intro_def_rule = "intro-def"
 val z3_apply_def_rule = "apply-def"
+val z3_hypothesis_rule = "hypothesis"
+val z3_intro_def_rule = "intro-def"
+val z3_lemma_rule = "lemma"
+val z3_skolemize_rule = "sk"
+val z3_th_lemma_rule = "th-lemma"
 
 val is_skolemize_rule =
   member (op =) [e_skolemize_rule, vampire_skolemisation_rule, z3_skolemize_rule]
@@ -277,10 +278,14 @@ fun isar_proof_text ctxt isar_proofs
         val lems =
           map_filter (get_role (curry (op =) Lemma)) atp_proof
           |> map (fn ((l, t), rule) =>
-            if is_skolemize_rule rule then
-              Prove ([], skolems_of t, l, maybe_mk_Trueprop t, [], (([], []), MetisM))
-            else
-              Prove ([], [], l, maybe_mk_Trueprop t, [], (([], []), ArithM)))
+            let
+              val (skos, meth) =
+                if is_skolemize_rule rule then (skolems_of t, MetisM)
+                else if rule = z3_th_lemma_rule then ([], ArithM)
+                else ([], SimpM)
+            in
+              Prove ([], skos, l, maybe_mk_Trueprop t, [], (([], []), meth))
+            end)
 
         val bot = atp_proof |> List.last |> #1
 
