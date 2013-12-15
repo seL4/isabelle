@@ -63,6 +63,8 @@ val z3_th_lemma_rule = "th-lemma"
 val is_skolemize_rule =
   member (op =) [e_skolemize_rule, vampire_skolemisation_rule, z3_skolemize_rule]
 
+val is_arith_rule = String.isPrefix z3_th_lemma_rule
+
 fun raw_label_of_num num = (num, 0)
 
 fun label_of_clause [(num, _)] = raw_label_of_num num
@@ -122,38 +124,38 @@ fun is_only_type_information t = t aconv @{term True}
 
 (* Discard facts; consolidate adjacent lines that prove the same formula, since
    they differ only in type information.*)
-fun add_line (line as (name as (_, ss), role, t, rule, [])) lines =
+fun add_line_pass1 (line as (name as (_, ss), role, t, rule, [])) lines =
     (* No dependencies: lemma (for Z3), fact, conjecture, or (for Vampire)
        internal facts or definitions. *)
     if role = Lemma orelse role = Conjecture orelse role = Negated_Conjecture orelse
-       role = Hypothesis then
+       role = Hypothesis orelse is_arith_rule rule then
       line :: lines
     else if role = Axiom then
       (* Facts are not proof lines. *)
       lines |> is_only_type_information t ? map (replace_dependencies_in_line (name, []))
     else
       map (replace_dependencies_in_line (name, [])) lines
-  | add_line line lines = line :: lines
+  | add_line_pass1 line lines = line :: lines
 
 (* Recursively delete empty lines (type information) from the proof. *)
-fun add_nontrivial_line (line as (name, _, t, _, [])) lines =
+fun add_line_pass2 (line as (name, _, t, _, [])) lines =
     if is_only_type_information t then delete_dependency name lines else line :: lines
-  | add_nontrivial_line line lines = line :: lines
+  | add_line_pass2 line lines = line :: lines
 and delete_dependency name lines =
-  fold_rev add_nontrivial_line (map (replace_dependencies_in_line (name, [])) lines) []
+  fold_rev add_line_pass2 (map (replace_dependencies_in_line (name, [])) lines) []
 
-fun add_desired_lines res [] = rev res
-  | add_desired_lines res ((name as (_, ss), role, t, rule, deps) :: lines) =
-    if role <> Plain orelse is_skolemize_rule rule orelse
+fun add_line_pass3 res [] = rev res
+  | add_line_pass3 res ((line as (name as (_, ss), role, t, rule, deps)) :: lines) =
+    if role <> Plain orelse is_skolemize_rule rule orelse is_arith_rule rule orelse
        (* the last line must be kept *)
        null lines orelse
        (not (is_only_type_information t) andalso null (Term.add_tvars t [])
         andalso length deps >= 2 andalso
         (* don't keep next to last line, which usually results in a trivial step *)
         not (can the_single lines)) then
-      add_desired_lines ((name, role, t, rule, deps) :: res) lines
+      add_line_pass3 (line :: res) lines
     else
-      add_desired_lines res (map (replace_dependencies_in_line (name, deps)) lines)
+      add_line_pass3 res (map (replace_dependencies_in_line (name, deps)) lines)
 
 val add_labels_of_proof =
   steps_of_proof
@@ -266,9 +268,9 @@ fun isar_proof_text ctxt isar_proofs
           atp_proof
           |> inline_z3_defs []
           |> inline_z3_hypotheses [] []
-          |> rpair [] |-> fold_rev add_line
-          |> rpair [] |-> fold_rev add_nontrivial_line
-          |> add_desired_lines []
+          |> rpair [] |-> fold_rev add_line_pass1
+          |> rpair [] |-> fold_rev add_line_pass2
+          |> add_line_pass3 []
 
         val conjs =
           map_filter (fn (name, role, _, _, _) =>
@@ -281,8 +283,8 @@ fun isar_proof_text ctxt isar_proofs
             let
               val (skos, meth) =
                 if is_skolemize_rule rule then (skolems_of t, MetisM)
-                else if rule = z3_th_lemma_rule then ([], ArithM)
-                else ([], SimpM)
+                else if is_arith_rule rule then ([], ArithM)
+                else ([], AutoM)
             in
               Prove ([], skos, l, maybe_mk_Trueprop t, [], (([], []), meth))
             end)
@@ -310,9 +312,7 @@ fun isar_proof_text ctxt isar_proofs
                                 I))))
                   atp_proof
 
-        fun is_clause_skolemize_rule [(s, _)] =
-            Option.map (is_skolemize_rule o fst) (Symtab.lookup steps s) = SOME true
-          | is_clause_skolemize_rule _ = false
+        val rule_of_clause_id = fst o the o Symtab.lookup steps o fst
 
         (* The assumptions and conjecture are "prop"s; the other formulas are "bool"s (for ATPs) or
            "prop"s (for Z3). TODO: Always use "prop". *)
@@ -337,22 +337,28 @@ fun isar_proof_text ctxt isar_proofs
             accum
             |> (if tainted = [] then
                   cons (Prove (if outer then [Show] else [], [], no_label, concl_t, [],
-                               (([the predecessor], []), MetisM)))
+                               ((the_list predecessor, []), MetisM)))
                 else
                   I)
             |> rev
-          | isar_steps outer _ accum (Have (gamma, c) :: infs) =
+          | isar_steps outer _ accum (Have (id, (gamma, c)) :: infs) =
             let
               val l = label_of_clause c
               val t = prop_of_clause c
-              val by = (fold add_fact_of_dependencies gamma no_facts, MetisM)
+              val rule = rule_of_clause_id id
+              val skolem = is_skolemize_rule rule
+
               fun prove sub by = Prove (maybe_show outer c [], [], l, t, sub, by)
               fun do_rest l step = isar_steps outer (SOME l) (step :: accum) infs
+
+              val deps = fold add_fact_of_dependencies gamma no_facts
+              val meth = if is_arith_rule rule then ArithM else MetisM
+              val by = (deps, meth)
             in
               if is_clause_tainted c then
                 (case gamma of
                   [g] =>
-                  if is_clause_skolemize_rule g andalso is_clause_tainted g then
+                  if skolem andalso is_clause_tainted g then
                     let val subproof = Proof (skolems_of (prop_of_clause g), [], rev accum) in
                       isar_steps outer (SOME l) [prove [subproof] (no_facts, MetisM)] []
                     end
@@ -360,7 +366,7 @@ fun isar_proof_text ctxt isar_proofs
                     do_rest l (prove [] by)
                 | _ => do_rest l (prove [] by))
               else
-                (if is_clause_skolemize_rule c then Prove ([], skolems_of t, l, t, [], by)
+                (if skolem then Prove ([], skolems_of t, l, t, [], by)
                  else prove [] by)
                 |> do_rest l
             end

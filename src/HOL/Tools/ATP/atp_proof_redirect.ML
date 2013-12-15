@@ -17,14 +17,14 @@ sig
 
   structure Atom_Graph : GRAPH
 
-  type ref_sequent = atom list * atom
+  type refute_sequent = atom list * atom
   type refute_graph = unit Atom_Graph.T
 
   type clause = atom list
-  type direct_sequent = atom list * clause
+  type direct_sequent = atom * (atom list * clause)
   type direct_graph = unit Atom_Graph.T
 
-  type rich_sequent = clause list * clause
+  type rich_sequent = atom * (clause list * clause)
 
   datatype direct_inference =
     Have of rich_sequent |
@@ -35,9 +35,9 @@ sig
   val make_refute_graph : atom -> (atom list * atom) list -> refute_graph
   val axioms_of_refute_graph : refute_graph -> atom list -> atom list
   val tainted_atoms_of_refute_graph : refute_graph -> atom list -> atom list
-  val sequents_of_refute_graph : refute_graph -> ref_sequent list
+  val sequents_of_refute_graph : refute_graph -> refute_sequent list
   val string_of_refute_graph : refute_graph -> string
-  val redirect_sequent : atom list -> atom -> ref_sequent -> direct_sequent
+  val redirect_sequent : atom list -> atom -> refute_sequent -> direct_sequent
   val direct_graph : direct_sequent list -> direct_graph
   val redirect_graph : atom list -> atom list -> atom -> refute_graph -> direct_proof
   val succedent_of_cases : (clause * direct_inference list) list -> clause
@@ -51,14 +51,14 @@ type atom = Atom.key
 
 structure Atom_Graph = Graph(Atom)
 
-type ref_sequent = atom list * atom
+type refute_sequent = atom list * atom
 type refute_graph = unit Atom_Graph.T
 
 type clause = atom list
-type direct_sequent = atom list * clause
+type direct_sequent = atom * (atom list * clause)
 type direct_graph = unit Atom_Graph.T
 
-type rich_sequent = clause list * clause
+type rich_sequent = atom * (clause list * clause)
 
 datatype direct_inference =
   Have of rich_sequent |
@@ -69,7 +69,7 @@ type direct_proof = direct_inference list
 val atom_eq = is_equal o Atom.ord
 val clause_ord = dict_ord Atom.ord
 val clause_eq = is_equal o clause_ord
-val direct_sequent_ord = prod_ord clause_ord clause_ord
+val direct_sequent_ord = prod_ord clause_ord clause_ord o pairself snd
 val direct_sequent_eq = is_equal o direct_sequent_ord
 
 fun make_refute_graph bot infers =
@@ -106,11 +106,12 @@ fun string_of_refute_graph refute_graph =
   refute_graph |> sequents_of_refute_graph |> map string_of_sequent |> cat_lines
 
 fun redirect_sequent tainted bot (gamma, c) =
-  if member atom_eq tainted c then
-    gamma |> List.partition (not o member atom_eq tainted)
-          |>> not (atom_eq (c, bot)) ? cons c
-  else
-    (gamma, [c])
+  (c,
+   if member atom_eq tainted c then
+     gamma |> List.partition (not o member atom_eq tainted)
+           |>> not (atom_eq (c, bot)) ? cons c
+   else
+     (gamma, [c]))
 
 fun direct_graph seqs =
   let
@@ -118,25 +119,18 @@ fun direct_graph seqs =
       Atom_Graph.default_node (from, ())
       #> Atom_Graph.default_node (to, ())
       #> Atom_Graph.add_edge_acyclic (from, to)
-    fun add_seq (gamma, c) = fold (fn l => fold (add_edge l) c) gamma
+    fun add_seq (_, (gamma, c)) = fold (fn l => fold (add_edge l) c) gamma
   in
     fold add_seq seqs Atom_Graph.empty
   end
 
 fun disj cs = fold (union atom_eq) cs [] |> sort Atom.ord
 
-fun succedent_of_inference (Have (_, c)) = c
+fun succedent_of_inference (Have (_, (_, c))) = c
   | succedent_of_inference (Cases cases) = succedent_of_cases cases
 and succedent_of_case (c, []) = c
   | succedent_of_case (_, infs) = succedent_of_inference (List.last infs)
 and succedent_of_cases cases = disj (map succedent_of_case cases)
-
-fun dest_Have (Have z) = z
-  | dest_Have _ = raise Fail "non-Have"
-
-fun enrich_Have nontrivs trivs (cs, c) =
-  Have (cs |> map (fn c => if member clause_eq nontrivs c then disj (c :: trivs) else c),
-   disj (c :: trivs))
 
 fun s_cases cases = [Cases (filter_out (null o snd) cases)]
 
@@ -156,20 +150,20 @@ fun redirect_graph axioms tainted bot refute_graph =
       else if length c < 2 then
         let
           val proved = c @ proved
-          val provable = filter (fn (gamma, _) => subset atom_eq (gamma, proved)) seqs
-          val horn_provable = filter (fn (_, [_]) => true | _ => false) provable
-          val seq as (gamma, c) =
+          val provable = filter (fn (_, (gamma, _)) => subset atom_eq (gamma, proved)) seqs
+          val horn_provable = filter (fn (_, (_, [_])) => true | _ => false) provable
+          val seq as (id, (gamma, c)) =
             (case horn_provable @ provable of
               [] => raise Fail "ill-formed refutation graph"
             | next :: _ => next)
         in
-          Have (map single gamma, c) ::
+          Have (id, (map single gamma, c)) ::
           redirect c proved (filter (curry (not o direct_sequent_eq) seq) seqs)
         end
       else
         let
           fun subsequents seqs zone =
-            filter (fn (gamma, _) => subset atom_eq (gamma, zone @ proved)) seqs
+            filter (fn (_, (gamma, _)) => subset atom_eq (gamma, zone @ proved)) seqs
           val zones = zones_of (length c) (map (descendants direct_graph) c)
           val subseqss = map (subsequents seqs) zones
           val seqs = fold (subtract direct_sequent_eq) subseqss seqs
@@ -187,9 +181,9 @@ fun indent 0 = ""
 fun string_of_clause [] = "\<bottom>"
   | string_of_clause ls = space_implode " \<or> " (map Atom.string_of ls)
 
-fun string_of_rich_sequent ch ([], c) = ch ^ " " ^ string_of_clause c
-  | string_of_rich_sequent ch (cs, c) =
-    commas (map string_of_clause cs) ^ " " ^ ch ^ " " ^ string_of_clause c
+fun string_of_rich_sequent ch (id, (cs, c)) =
+  (if null cs then "" else commas (map string_of_clause cs) ^ " ") ^ ch ^ " " ^ string_of_clause c ^
+  " (* " ^ Atom.string_of id ^ "*)"
 
 fun string_of_case depth (c, proof) =
   indent (depth + 1) ^ "[" ^ string_of_clause c ^ "]"
