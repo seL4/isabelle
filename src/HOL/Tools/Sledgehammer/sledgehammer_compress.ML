@@ -76,18 +76,15 @@ fun update_steps steps updates =
     | _ => raise Fail "Sledgehammer_Compress: update_steps")
   end
 
-(* tries merging the first step into the second step *)
-fun try_merge (Prove (_, [], lbl1, _, [], ((lfs1, gfs1), meth1)))
+(* Tries merging the first step into the second step. Arbitrarily picks the second step's method. *)
+fun try_merge (Prove (_, [], lbl1, _, [], ((lfs1, gfs1), _)))
       (Prove (qs2, fix, lbl2, t, subproofs, ((lfs2, gfs2), meth2))) =
-    if meth1 = meth2 then
-      let
-        val lfs = remove (op =) lbl1 lfs2 |> union (op =) lfs1
-        val gfs = union (op =) gfs1 gfs2
-      in
-        SOME (Prove (qs2, fix, lbl2, t, subproofs, ((lfs, gfs), meth1)))
-      end
-    else
-      NONE
+    let
+      val lfs = remove (op =) lbl1 lfs2 |> union (op =) lfs1
+      val gfs = union (op =) gfs1 gfs2
+    in
+      SOME (Prove (qs2, fix, lbl2, t, subproofs, ((lfs, gfs), meth2)))
+    end
   | try_merge _ _ = NONE
 
 val compress_degree = 2
