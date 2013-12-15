@@ -22,7 +22,7 @@ sig
     Proof.context -> bool option -> (unit -> isar_params) -> int -> one_line_params -> string
 end;
 
-structure Sledgehammer_Reconstruct : SLEDGEHAMMER_RECONSTRUCT =
+structure Sledgehammer_Reconstruct (* ### : SLEDGEHAMMER_RECONSTRUCT *) =
 struct
 
 open ATP_Util
@@ -87,7 +87,33 @@ fun inline_z3_defs _ [] = []
     else
       (name, role, Term.subst_atomic defs t, rule, deps) :: inline_z3_defs defs lines
 
-fun inline_z3_hypotheses lines = lines
+fun alist_cons_list eq (k, v) = AList.map_default eq (k, []) (cons v)
+
+(* FIXME: use "prop_of_clause" defined below *)
+fun add_z3_hypotheses [] = I
+  | add_z3_hypotheses hyps =
+    HOLogic.dest_Trueprop
+    #> curry HOLogic.mk_imp (Library.foldr1 HOLogic.mk_conj (map HOLogic.dest_Trueprop hyps))
+    #> HOLogic.mk_Trueprop
+
+fun inline_z3_hypotheses _ _ [] = []
+  | inline_z3_hypotheses hyp_names hyps ((name, role, t, rule, deps) :: lines) =
+    if rule = z3_hypothesis_rule then
+      inline_z3_hypotheses (name :: hyp_names) (alist_cons_list (op =) (t, name) hyps) lines
+    else
+      let val deps' = subtract (op =) hyp_names deps in
+        if rule = z3_lemma_rule then
+          (name, role, t, rule, deps') :: inline_z3_hypotheses hyp_names hyps lines
+        else
+          let
+            val add_hyps = filter_out (null o inter (op =) deps o snd) hyps
+            val t' = add_z3_hypotheses (map fst add_hyps) t
+            val deps' = subtract (op =) hyp_names deps
+            val hyps' = fold (AList.update (op =) o apsnd (insert (op =) name)) add_hyps hyps
+          in
+            (name, role, t', rule, deps') :: inline_z3_hypotheses hyp_names hyps' lines
+          end
+      end
 
 (* No "real" literals means only type information (tfree_tcs, clsrel, or
    clsarity). *)
@@ -235,7 +261,7 @@ fun isar_proof_text ctxt isar_proofs
         val atp_proof =
           atp_proof
           |> inline_z3_defs []
-          |> inline_z3_hypotheses
+          |> inline_z3_hypotheses [] []
           |> rpair [] |-> fold_rev add_line
           |> rpair [] |-> fold_rev add_nontrivial_line
           |> add_desired_lines []
