@@ -28,6 +28,9 @@ Open text buffers take precedence over copies within the file-system.
 
 *** HOL ***
 
+* Theorem disambiguation Inf_le_Sup (on finite sets) ~> Inf_fin_le_Sup_fin.
+INCOMPATBILITY.
+
 * Code generations are provided for make, fields, extend and truncate
 operations on records.
 

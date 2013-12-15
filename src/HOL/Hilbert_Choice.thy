@@ -6,7 +6,7 @@
 header {* Hilbert's Epsilon-Operator and the Axiom of Choice *}
 
 theory Hilbert_Choice
-imports Nat Wellfounded Big_Operators
+imports Nat Wellfounded Lattices_Big Metis
 keywords "specification" "ax_specification" :: thy_goal
 begin
 
