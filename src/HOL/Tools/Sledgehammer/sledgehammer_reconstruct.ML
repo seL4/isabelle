@@ -436,8 +436,7 @@ fun isar_proof_text ctxt isar_proofs
                else
                  []) @
               (if do_preplay then
-                [(if preplay_fail then "may fail, " else "") ^
-                   string_of_preplay_time preplay_time]
+                [(if preplay_fail then "may fail, " else "") ^ string_of_ext_time preplay_time]
                else
                  [])
           in

@@ -2,7 +2,7 @@
     Author:     Steffen Juilf Smolka, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
 
-Preplaying of isar proofs.
+Preplaying of Isar proofs.
 *)
 
 signature SLEDGEHAMMER_PREPLAY =
@@ -11,24 +11,21 @@ sig
   type isar_step = Sledgehammer_Proof.isar_step
   type label = Sledgehammer_Proof.label
 
-  eqtype preplay_time
-
   type preplay_result
 
   val trace: bool Config.T
-  val zero_preplay_time: preplay_time
-  val some_preplay_time: preplay_time
-  val add_preplay_time: preplay_time -> preplay_time -> preplay_time
-  val string_of_preplay_time: preplay_time -> string
+  val zero_preplay_time: bool * Time.time
+  val some_preplay_time: bool * Time.time
+  val add_preplay_time: bool * Time.time -> bool * Time.time -> bool * Time.time
 
   type preplay_interface =
     {get_preplay_result: label -> preplay_result,
      set_preplay_result: label -> preplay_result -> unit,
-     get_preplay_time: label -> preplay_time,
-     set_preplay_time: label -> preplay_time -> unit,
-     preplay_quietly: Time.time -> isar_step -> preplay_time,
+     get_preplay_time: label -> bool * Time.time,
+     set_preplay_time: label -> bool * Time.time -> unit,
+     preplay_quietly: Time.time -> isar_step -> bool * Time.time,
      (* the returned flag signals a preplay failure *)
-     overall_preplay_stats: isar_proof -> preplay_time * bool}
+     overall_preplay_stats: isar_proof -> (bool * Time.time) * bool}
 
   val proof_preplay_interface: bool -> Proof.context -> string -> string -> bool -> Time.time ->
     isar_proof -> preplay_interface
@@ -37,33 +34,25 @@ end;
 structure Sledgehammer_Preplay : SLEDGEHAMMER_PREPLAY =
 struct
 
+open ATP_Util
 open Sledgehammer_Util
 open Sledgehammer_Proof
 
-val trace =
-  Attrib.setup_config_bool @{binding sledgehammer_preplay_trace} (K false)
-
-(* The boolean flag encodes whether the time is exact (false) or an lower bound
-   (true):
-      (t, false) = "t ms"
-      (t, true)  = "> t ms" *)
-type preplay_time = bool * Time.time
+val trace = Attrib.setup_config_bool @{binding sledgehammer_preplay_trace} (K false)
 
 datatype preplay_result =
-  Preplay_Success of preplay_time |
+  Preplay_Success of bool * Time.time |
   Preplay_Failure of exn
 
 val zero_preplay_time = (false, Time.zeroTime) (* 0 ms *)
 val some_preplay_time = (true, Time.zeroTime)  (* > 0 ms *)
 
-fun add_preplay_time (b1, t1) (b2, t2) = (b1 orelse b2, Time.+(t1,t2))
-
-val string_of_preplay_time = ATP_Util.string_of_ext_time
+fun add_preplay_time (b1, t1) (b2, t2) = (b1 orelse b2, Time.+ (t1, t2))
 
 fun preplay_trace ctxt assms concl time =
   let
     val ctxt = ctxt |> Config.put show_markup true
-    val time = "[" ^ (string_of_preplay_time time) ^ "]" |> Pretty.str
+    val time = "[" ^ string_of_ext_time time ^ "]" |> Pretty.str
     val nr_of_assms = length assms
     val assms = assms
       |> map (Display.pretty_thm ctxt)
@@ -117,22 +106,22 @@ fun tac_of_method method type_enc lam_trans ctxt facts =
   (case method of
     MetisM => Metis_Tactic.metis_tac [type_enc] lam_trans ctxt facts
   | _ =>
-      Method.insert_tac facts THEN'
-      (case method of
-        SimpM => Simplifier.asm_full_simp_tac
-      | AutoM => Clasimp.auto_tac #> K
-      | FastforceM => Clasimp.fast_force_tac
-      | ForceM => Clasimp.force_tac
-      | ArithM => Arith_Data.arith_tac
-      | BlastM => blast_tac
-      | _ => raise Fail "Sledgehammer_Preplay: tac_of_method") ctxt)
+    Method.insert_tac facts THEN'
+    (case method of
+      SimpM => Simplifier.asm_full_simp_tac
+    | AutoM => Clasimp.auto_tac #> K
+    | FastforceM => Clasimp.fast_force_tac
+    | ForceM => Clasimp.force_tac
+    | ArithM => Arith_Data.arith_tac
+    | BlastM => blast_tac
+    | _ => raise Fail "Sledgehammer_Preplay: tac_of_method") ctxt)
 
 (* main function for preplaying Isar steps; may throw exceptions *)
 fun preplay_raw _ _ _ _ _ (Let _) = zero_preplay_time
   | preplay_raw debug type_enc lam_trans ctxt timeout
       (step as Prove (_, xs, _, t, subproofs, (fact_names, meth))) =
     let
-      val prop =
+      val goal =
         (case xs of
           [] => t
         | _ =>
@@ -152,19 +141,18 @@ fun preplay_raw _ _ _ _ _ (Let _) = zero_preplay_time
 
       val facts = map (thm_of_proof ctxt) subproofs @ resolve_fact_names ctxt fact_names
 
-      val ctxt = ctxt
-        |> Config.put Metis_Tactic.verbose debug
-        |> Config.put Lin_Arith.verbose debug
+      val ctxt' = ctxt
+        |> debug ? (Config.put Metis_Tactic.verbose true #> Config.put Lin_Arith.verbose true)
         |> use_metis_new_skolem step ? Config.put Metis_Tactic.new_skolem true
 
-      val goal = Goal.prove (Config.put Metis_Tactic.verbose debug ctxt) [] [] prop
+      val prove = Goal.prove ctxt' [] [] goal
 
       fun tac {context = ctxt, ...} = HEADGOAL (tac_of_method meth type_enc lam_trans ctxt facts)
-      fun run_tac () = goal tac handle ERROR msg => error ("Preplay error: " ^ msg)
+      fun run_tac () = prove tac handle ERROR msg => error ("Preplay error: " ^ msg)
 
       val preplay_time = take_time timeout run_tac ()
     in
-      (if Config.get ctxt trace then preplay_trace ctxt facts prop preplay_time else ();
+      (if Config.get ctxt trace then preplay_trace ctxt facts goal preplay_time else ();
        preplay_time)
     end
 
@@ -174,11 +162,11 @@ fun preplay_raw _ _ _ _ _ (Let _) = zero_preplay_time
 type preplay_interface =
   {get_preplay_result: label -> preplay_result,
    set_preplay_result: label -> preplay_result -> unit,
-   get_preplay_time: label -> preplay_time,
-   set_preplay_time: label -> preplay_time -> unit,
-   preplay_quietly: Time.time -> isar_step -> preplay_time,
+   get_preplay_time: label -> bool * Time.time,
+   set_preplay_time: label -> bool * Time.time -> unit,
+   preplay_quietly: Time.time -> isar_step -> bool * Time.time,
    (* the returned flag signals a preplay failure *)
-   overall_preplay_stats: isar_proof -> preplay_time * bool}
+   overall_preplay_stats: isar_proof -> (bool * Time.time) * bool}
 
 fun enrich_context_with_local_facts proof ctxt =
   let
@@ -202,7 +190,7 @@ fun enrich_context_with_local_facts proof ctxt =
    to preplay results. The preplay results are caluclated lazyly and cached to avoid repeated
    calculation.
 
-   Precondition: The proof must be labeled canocially; cf.
+   Precondition: The proof must be labeled canonically; cf.
    "Slegehammer_Proof.relabel_proof_canonically". *)
 fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay preplay_timeout proof =
   if not do_preplay then
@@ -218,8 +206,7 @@ fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay preplay_tim
       val ctxt = enrich_context_with_local_facts proof ctxt
 
       fun preplay quietly timeout step =
-        preplay_raw debug type_enc lam_trans ctxt timeout step
-        |> Preplay_Success
+        Preplay_Success (preplay_raw debug type_enc lam_trans ctxt timeout step)
         handle exn =>
                if Exn.is_interrupt exn then
                  reraise exn
@@ -239,11 +226,11 @@ fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay preplay_tim
       val preplay_tab =
         let
           fun add_step_to_tab step tab =
-            case label_of_step step of
-              NONE => tab
-            | SOME l =>
-              Canonical_Lbl_Tab.update_new
-                (l, (fn () => preplay false preplay_timeout step) |> Lazy.lazy) tab
+            (case label_of_step step of
+               NONE => tab
+             | SOME l =>
+               Canonical_Lbl_Tab.update_new
+                 (l, (fn () => preplay false preplay_timeout step) |> Lazy.lazy) tab)
             handle Canonical_Lbl_Tab.DUP _ => raise Fail "Sledgehammer_Preplay: preplay time table"
         in
           Canonical_Lbl_Tab.empty
@@ -263,20 +250,19 @@ fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay preplay_tim
           Preplay_Success preplay_time => preplay_time
         | Preplay_Failure _ => some_preplay_time)
 
-      fun set_preplay_time l time = set_preplay_result l (Preplay_Success time)
+      fun set_preplay_time l = set_preplay_result l o Preplay_Success
+
+      val result_of_step =
+        try (label_of_step #> the #> get_preplay_result)
+        #> the_default (Preplay_Success zero_preplay_time)
+
+      fun do_step step =
+        (case result_of_step step of
+          Preplay_Success preplay_time => apfst (add_preplay_time preplay_time)
+        | Preplay_Failure _ => apsnd (K true))
 
       fun overall_preplay_stats (Proof (_, _, steps)) =
-        let
-          fun result_of_step step =
-            try (label_of_step #> the #> get_preplay_result) step
-            |> the_default (Preplay_Success zero_preplay_time)
-          fun do_step step =
-            (case result_of_step step of
-              Preplay_Success preplay_time => apfst (add_preplay_time preplay_time)
-            | Preplay_Failure _ => apsnd (K true))
-        in
-          fold_isar_steps do_step steps (zero_preplay_time, false)
-        end
+        fold_isar_steps do_step steps (zero_preplay_time, false)
     in
       {get_preplay_result = get_preplay_result,
        set_preplay_result = set_preplay_result,
