@@ -452,7 +452,8 @@ lemma compute_float_times[code]: "Float m1 e1 * Float m2 e2 = Float (m1 * m2) (e
 hide_fact (open) compute_float_times
 
 lemma compute_float_plus[code]: "Float m1 e1 + Float m2 e2 =
-  (if e1 \<le> e2 then Float (m1 + m2 * 2^nat (e2 - e1)) e1
+  (if m1 = 0 then Float m2 e2 else if m2 = 0 then Float m1 e1 else
+  if e1 \<le> e2 then Float (m1 + m2 * 2^nat (e2 - e1)) e1
               else Float (m2 + m1 * 2^nat (e1 - e2)) e2)"
   by transfer (simp add: field_simps powr_realpow[symmetric] powr_divide2[symmetric])
 hide_fact (open) compute_float_plus
