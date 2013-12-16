@@ -449,42 +449,23 @@ proof (rule ccontr, unfold ex_in_conv[symmetric])
     using `t \<in> f` assms(4) by auto
 qed
 
+lemma interval_bounds:
+  fixes a b::"'a::ordered_euclidean_space"
+  shows "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i \<Longrightarrow> Inf {a..b} = a" "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i \<Longrightarrow> Sup {a..b} = b"
+  by (auto simp: eucl_le[where 'a='a])
 
-subsection {* Bounds on intervals where they exist. *}
-
-definition interval_upperbound :: "('a::ordered_euclidean_space) set \<Rightarrow> 'a"
-  where "interval_upperbound s = (\<Sum>i\<in>Basis. (SUP x:s. x\<bullet>i) *\<^sub>R i)"
-
-definition interval_lowerbound :: "('a::ordered_euclidean_space) set \<Rightarrow> 'a"
-  where "interval_lowerbound s = (\<Sum>i\<in>Basis. (INF x:s. x\<bullet>i) *\<^sub>R i)"
-
-lemma interval_upperbound[simp]:
-  "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i \<Longrightarrow>
-    interval_upperbound {a..b} = (b::'a::ordered_euclidean_space)"
-  unfolding interval_upperbound_def euclidean_representation_setsum
-  by (auto simp del: ex_simps simp add: Bex_def ex_simps[symmetric] eucl_le[where 'a='a] SUP_def
-           intro!: cSup_eq)
-
-lemma interval_lowerbound[simp]:
-  "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i \<Longrightarrow>
-    interval_lowerbound {a..b} = (a::'a::ordered_euclidean_space)"
-  unfolding interval_lowerbound_def euclidean_representation_setsum
-  by (auto simp del: ex_simps simp add: Bex_def ex_simps[symmetric] eucl_le[where 'a='a] INF_def
-           intro!: cInf_eq)
-
-lemmas interval_bounds = interval_upperbound interval_lowerbound
-
-lemma interval_bounds'[simp]:
+lemma interval_bounds':
+  fixes a b::"'a::ordered_euclidean_space"
   assumes "{a..b} \<noteq> {}"
-  shows "interval_upperbound {a..b} = b"
-    and "interval_lowerbound {a..b} = a"
-  using assms unfolding interval_ne_empty by auto
-
+  shows "Sup {a..b} = b"
+    and "Inf {a..b} = a"
+  using assms
+  by (auto simp: eucl_le[where 'a='a])
 
 subsection {* Content (length, area, volume...) of an interval. *}
 
 definition "content (s::('a::ordered_euclidean_space) set) =
-  (if s = {} then 0 else (\<Prod>i\<in>Basis. (interval_upperbound s)\<bullet>i - (interval_lowerbound s)\<bullet>i))"
+  (if s = {} then 0 else (\<Prod>i\<in>Basis. (Sup s)\<bullet>i - (Inf s)\<bullet>i))"
 
 lemma interval_not_empty: "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i \<Longrightarrow> {a..b::'a::ordered_euclidean_space} \<noteq> {}"
   unfolding interval_eq_empty unfolding not_ex not_less by auto
@@ -494,7 +475,7 @@ lemma content_closed_interval:
   assumes "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i"
   shows "content {a..b} = (\<Prod>i\<in>Basis. b\<bullet>i - a\<bullet>i)"
   using interval_not_empty[OF assms]
-  unfolding content_def interval_upperbound[OF assms] interval_lowerbound[OF assms]
+  unfolding content_def
   by auto
 
 lemma content_closed_interval':
@@ -518,77 +499,23 @@ proof -
 qed
 
 lemma content_unit[intro]: "content{0..One::'a::ordered_euclidean_space} = 1"
-proof -
-  have *: "\<forall>i\<in>Basis. (0::'a)\<bullet>i \<le> (One::'a)\<bullet>i"
-    by auto
-  have "0 \<in> {0..One::'a}"
-    unfolding mem_interval by auto
-  then show ?thesis
-    unfolding content_def interval_bounds[OF *] using setprod_1 by auto
-qed
+  by (auto simp: content_def eucl_le[where 'a='a])
 
 lemma content_pos_le[intro]:
   fixes a::"'a::ordered_euclidean_space"
   shows "0 \<le> content {a..b}"
-proof (cases "{a..b} = {}")
-  case False
-  then have *: "\<forall>i\<in>Basis. a \<bullet> i \<le> b \<bullet> i"
-    unfolding interval_ne_empty .
-  have "(\<Prod>i\<in>Basis. interval_upperbound {a..b} \<bullet> i - interval_lowerbound {a..b} \<bullet> i) \<ge> 0"
-    apply (rule setprod_nonneg)
-    unfolding interval_bounds[OF *]
-    using *
-    apply (erule_tac x=x in ballE)
-    apply auto
-    done
-  then show ?thesis
-    unfolding content_def by (auto simp del:interval_bounds')
-next
-  case True
-  then show ?thesis
-    unfolding content_def by auto
-qed
+  by (auto simp: content_def eucl_le[where 'a='a] intro!: setprod_nonneg)
 
 lemma content_pos_lt:
   fixes a :: "'a::ordered_euclidean_space"
   assumes "\<forall>i\<in>Basis. a\<bullet>i < b\<bullet>i"
   shows "0 < content {a..b}"
-proof -
-  have help_lemma1: "\<forall>i\<in>Basis. a\<bullet>i < b\<bullet>i \<Longrightarrow> \<forall>i\<in>Basis. a\<bullet>i \<le> ((b\<bullet>i)::real)"
-    apply rule
-    apply (erule_tac x=i in ballE)
-    apply auto
-    done
-  show ?thesis
-    unfolding content_closed_interval[OF help_lemma1[OF assms]]
-    apply (rule setprod_pos)
-    using assms
-    apply (erule_tac x=x in ballE)
-    apply auto
-    done
-qed
+  using assms
+  by (auto simp: content_def eucl_le[where 'a='a] intro!: setprod_pos)
 
 lemma content_eq_0:
   "content{a..b::'a::ordered_euclidean_space} = 0 \<longleftrightarrow> (\<exists>i\<in>Basis. b\<bullet>i \<le> a\<bullet>i)"
-proof (cases "{a..b} = {}")
-  case True
-  then show ?thesis
-    unfolding content_def if_P[OF True]
-    unfolding interval_eq_empty
-    apply -
-    apply (rule, erule bexE)
-    apply (rule_tac x = i in bexI)
-    apply auto
-    done
-next
-  case False
-  then have "\<forall>i\<in>Basis. b \<bullet> i \<ge> a \<bullet> i"
-    unfolding interval_eq_empty not_ex not_less
-    by fastforce
-  then show ?thesis
-    unfolding content_def if_not_P[OF False] setprod_zero_iff[OF finite_Basis]
-    by (auto intro!: bexI)
-qed
+  by (auto intro!: bexI simp: content_def eucl_le[where 'a='a])
 
 lemma cond_cases: "(P \<Longrightarrow> Q x) \<Longrightarrow> (\<not> P \<Longrightarrow> Q y) \<Longrightarrow> Q (if P then x else y)"
   by auto
@@ -620,36 +547,13 @@ lemma content_empty [simp]: "content {} = 0"
 lemma content_subset:
   assumes "{a..b} \<subseteq> {c..d}"
   shows "content {a..b::'a::ordered_euclidean_space} \<le> content {c..d}"
-proof (cases "{a..b} = {}")
-  case True
-  then show ?thesis
-    using content_pos_le[of c d] by auto
-next
-  case False
-  then have ab_ne: "\<forall>i\<in>Basis. a \<bullet> i \<le> b \<bullet> i"
-    unfolding interval_ne_empty by auto
-  then have ab_ab: "a\<in>{a..b}" "b\<in>{a..b}"
-    unfolding mem_interval by auto
-  have "{c..d} \<noteq> {}" using assms False by auto
-  then have cd_ne: "\<forall>i\<in>Basis. c \<bullet> i \<le> d \<bullet> i"
-    using assms unfolding interval_ne_empty by auto
-  show ?thesis
-    unfolding content_def
-    unfolding interval_bounds[OF ab_ne] interval_bounds[OF cd_ne]
-    unfolding if_not_P[OF False] if_not_P[OF `{c..d} \<noteq> {}`]
-    apply (rule setprod_mono)
-    apply rule
-  proof
-    fix i :: 'a
-    assume i: "i \<in> Basis"
-    show "0 \<le> b \<bullet> i - a \<bullet> i"
-      using ab_ne[THEN bspec, OF i] i by auto
-    show "b \<bullet> i - a \<bullet> i \<le> d \<bullet> i - c \<bullet> i"
-      using assms[unfolded subset_eq mem_interval,rule_format,OF ab_ab(2),of i]
-      using assms[unfolded subset_eq mem_interval,rule_format,OF ab_ab(1),of i]
-      using i by auto
-  qed
-qed
+proof cases
+  assume "{a..b} \<noteq> {}"
+  with assms have "c \<le> a" "a \<le> b" "b \<le> d" "b + c \<le> d + a" by (auto intro: add_mono)
+  hence "b - a \<le> d - c" "c \<le> d" by (auto simp add: algebra_simps)
+  thus ?thesis
+    by (auto simp: content_def eucl_le[where 'a='a] inner_diff_left intro!: setprod_nonneg setprod_mono)
+qed auto
 
 lemma content_lt_nz: "0 < content {a..b} \<longleftrightarrow> content {a..b} \<noteq> 0"
   unfolding content_pos_lt_eq content_eq_0 unfolding not_ex not_le by fastforce
@@ -4153,8 +4057,8 @@ qed
 subsection {* Points of division of a partition. *}
 
 definition "division_points (k::('a::ordered_euclidean_space) set) d =
-  {(j,x). j \<in> Basis \<and> (interval_lowerbound k)\<bullet>j < x \<and> x < (interval_upperbound k)\<bullet>j \<and>
-    (\<exists>i\<in>d. (interval_lowerbound i)\<bullet>j = x \<or> (interval_upperbound i)\<bullet>j = x)}"
+  {(j,x). j \<in> Basis \<and> (Inf k)\<bullet>j < x \<and> x < (Sup k)\<bullet>j \<and>
+    (\<exists>i\<in>d. (Inf i)\<bullet>j = x \<or> (Sup i)\<bullet>j = x)}"
 
 lemma division_points_finite:
   fixes i :: "'a::ordered_euclidean_space set"
@@ -4162,8 +4066,8 @@ lemma division_points_finite:
   shows "finite (division_points i d)"
 proof -
   note assm = division_ofD[OF assms]
-  let ?M = "\<lambda>j. {(j,x)|x. (interval_lowerbound i)\<bullet>j < x \<and> x < (interval_upperbound i)\<bullet>j \<and>
-    (\<exists>i\<in>d. (interval_lowerbound i)\<bullet>j = x \<or> (interval_upperbound i)\<bullet>j = x)}"
+  let ?M = "\<lambda>j. {(j,x)|x. (Inf i)\<bullet>j < x \<and> x < (Sup i)\<bullet>j \<and>
+    (\<exists>i\<in>d. (Inf i)\<bullet>j = x \<or> (Sup i)\<bullet>j = x)}"
   have *: "division_points i d = \<Union>(?M ` Basis)"
     unfolding division_points_def by auto
   show ?thesis
@@ -4182,7 +4086,7 @@ lemma division_points_subset:
 proof -
   note assm = division_ofD[OF assms(1)]
   have *: "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i"
-    "\<forall>i\<in>Basis. a\<bullet>i \<le> (\<Sum>i\<in>Basis. (if i = k then min (b \<bullet> k) c else b \<bullet> i) *\<^sub>R i) \<bullet> i"
+    "\<forall>i\<in>Basis. a\<bullet>i \<le> (\<Sum>i\<in>Basis. (if i = k then min (b \<bullet> k) c else  b \<bullet> i) *\<^sub>R i) \<bullet> i"
     "\<forall>i\<in>Basis. (\<Sum>i\<in>Basis. (if i = k then max (a \<bullet> k) c else a \<bullet> i) *\<^sub>R i) \<bullet> i \<le> b\<bullet>i"
     "min (b \<bullet> k) c = c" "max (a \<bullet> k) c = c"
     using assms using less_imp_le by auto
@@ -4200,7 +4104,7 @@ proof -
     fix i l x
     assume as:
       "a \<bullet> fst x < snd x" "snd x < (if fst x = k then c else b \<bullet> fst x)"
-      "interval_lowerbound i \<bullet> fst x = snd x \<or> interval_upperbound i \<bullet> fst x = snd x"
+      "Inf i \<bullet> fst x = snd x \<or> Sup i \<bullet> fst x = snd x"
       "i = l \<inter> {x. x \<bullet> k \<le> c}" "l \<in> d" "l \<inter> {x. x \<bullet> k \<le> c} \<noteq> {}"
       and fstx: "fst x \<in> Basis"
     from assm(4)[OF this(5)] guess u v apply-by(erule exE)+ note l=this
@@ -4208,7 +4112,7 @@ proof -
       using as(6) unfolding l interval_split[OF k] interval_ne_empty as .
     have **: "\<forall>i\<in>Basis. u\<bullet>i \<le> v\<bullet>i"
       using l using as(6) unfolding interval_ne_empty[symmetric] by auto
-    show "\<exists>i\<in>d. interval_lowerbound i \<bullet> fst x = snd x \<or> interval_upperbound i \<bullet> fst x = snd x"
+    show "\<exists>i\<in>d. Inf i \<bullet> fst x = snd x \<or> Sup i \<bullet> fst x = snd x"
       apply (rule bexI[OF _ `l \<in> d`])
       using as(1-3,5) fstx
       unfolding l interval_bounds[OF **] interval_bounds[OF *] interval_split[OF k] as
@@ -4231,7 +4135,7 @@ proof -
     fix i l x
     assume as:
       "(if fst x = k then c else a \<bullet> fst x) < snd x" "snd x < b \<bullet> fst x"
-      "interval_lowerbound i \<bullet> fst x = snd x \<or> interval_upperbound i \<bullet> fst x = snd x"
+      "Inf i \<bullet> fst x = snd x \<or> Sup i \<bullet> fst x = snd x"
       "i = l \<inter> {x. c \<le> x \<bullet> k}" "l \<in> d" "l \<inter> {x. c \<le> x \<bullet> k} \<noteq> {}"
       and fstx: "fst x \<in> Basis"
     from assm(4)[OF this(5)] guess u v by (elim exE) note l=this
@@ -4239,7 +4143,7 @@ proof -
       using as(6) unfolding l interval_split[OF k] interval_ne_empty as .
     have **: "\<forall>i\<in>Basis. u\<bullet>i \<le> v\<bullet>i"
       using l using as(6) unfolding interval_ne_empty[symmetric] by auto
-    show "\<exists>i\<in>d. interval_lowerbound i \<bullet> fst x = snd x \<or> interval_upperbound i \<bullet> fst x = snd x"
+    show "\<exists>i\<in>d. Inf i \<bullet> fst x = snd x \<or> Sup i \<bullet> fst x = snd x"
       apply (rule bexI[OF _ `l \<in> d`])
       using as(1-3,5) fstx
       unfolding l interval_bounds[OF **] interval_bounds[OF *] interval_split[OF k] as
@@ -4255,7 +4159,7 @@ lemma division_points_psubset:
   assumes "d division_of {a..b}"
     and "\<forall>i\<in>Basis. a\<bullet>i < b\<bullet>i"  "a\<bullet>k < c" "c < b\<bullet>k"
     and "l \<in> d"
-    and "interval_lowerbound l\<bullet>k = c \<or> interval_upperbound l\<bullet>k = c"
+    and "Inf l\<bullet>k = c \<or> Sup l\<bullet>k = c"
     and k: "k \<in> Basis"
   shows "division_points ({a..b} \<inter> {x. x\<bullet>k \<le> c}) {l \<inter> {x. x\<bullet>k \<le> c} | l. l\<in>d \<and> l \<inter> {x. x\<bullet>k \<le> c} \<noteq> {}} \<subset>
       division_points ({a..b}) d" (is "?D1 \<subset> ?D")
@@ -4275,8 +4179,8 @@ proof -
     unfolding mem_interval
     apply auto
     done
-  have *: "interval_upperbound ({a..b} \<inter> {x. x \<bullet> k \<le> interval_upperbound l \<bullet> k}) \<bullet> k = interval_upperbound l \<bullet> k"
-    "interval_upperbound ({a..b} \<inter> {x. x \<bullet> k \<le> interval_lowerbound l \<bullet> k}) \<bullet> k = interval_lowerbound l \<bullet> k"
+  have *: "Sup ({a..b} \<inter> {x. x \<bullet> k \<le> Sup l \<bullet> k}) \<bullet> k = Sup l \<bullet> k"
+    "Sup ({a..b} \<inter> {x. x \<bullet> k \<le> Inf l \<bullet> k}) \<bullet> k = Inf l \<bullet> k"
     unfolding interval_split[OF k]
     apply (subst interval_bounds)
     prefer 3
@@ -4289,9 +4193,9 @@ proof -
     using assms(2-)
     apply -
     apply (erule disjE)
-    apply (rule_tac x="(k,(interval_lowerbound l)\<bullet>k)" in exI)
+    apply (rule_tac x="(k,(Inf l)\<bullet>k)" in exI)
     defer
-    apply (rule_tac x="(k,(interval_upperbound l)\<bullet>k)" in exI)
+    apply (rule_tac x="(k,(Sup l)\<bullet>k)" in exI)
     unfolding division_points_def
     unfolding interval_bounds[OF ab]
     apply (auto simp add:*)
@@ -4304,8 +4208,8 @@ proof -
     apply auto
     done
 
-  have *: "interval_lowerbound ({a..b} \<inter> {x. x \<bullet> k \<ge> interval_lowerbound l \<bullet> k}) \<bullet> k = interval_lowerbound l \<bullet> k"
-    "interval_lowerbound ({a..b} \<inter> {x. x \<bullet> k \<ge> interval_upperbound l \<bullet> k}) \<bullet> k = interval_upperbound l \<bullet> k"
+  have *: "Inf ({a..b} \<inter> {x. x \<bullet> k \<ge> Inf l \<bullet> k}) \<bullet> k = Inf l \<bullet> k"
+    "Inf ({a..b} \<inter> {x. x \<bullet> k \<ge> Sup l \<bullet> k}) \<bullet> k = Sup l \<bullet> k"
     unfolding interval_split[OF k]
     apply (subst interval_bounds)
     prefer 3
@@ -4318,9 +4222,9 @@ proof -
     using assms(2-)
     apply -
     apply (erule disjE)
-    apply (rule_tac x="(k,(interval_lowerbound l)\<bullet>k)" in exI)
+    apply (rule_tac x="(k,(Inf l)\<bullet>k)" in exI)
     defer
-    apply (rule_tac x="(k,(interval_upperbound l)\<bullet>k)" in exI)
+    apply (rule_tac x="(k,(Sup l)\<bullet>k)" in exI)
     unfolding division_points_def
     unfolding interval_bounds[OF ab]
     apply (auto simp add:*)
@@ -5450,8 +5354,8 @@ next
     have *: "Basis = insert k (Basis - {k})"
       using k by auto
     have **: "{a..b} \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d} \<noteq> {} \<Longrightarrow>
-      (\<Prod>i\<in>Basis - {k}. interval_upperbound ({a..b} \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) \<bullet> i -
-        interval_lowerbound ({a..b} \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) \<bullet> i) =
+      (\<Prod>i\<in>Basis - {k}. Sup ({a..b} \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) \<bullet> i -
+        Inf ({a..b} \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) \<bullet> i) =
       (\<Prod>i\<in>Basis - {k}. b\<bullet>i - a\<bullet>i)"
       apply (rule setprod_cong)
       apply (rule refl)
@@ -6584,19 +6488,13 @@ qed
 
 subsection {* Special case of additivity we need for the FCT. *}
 
-lemma interval_bound_sing[simp]:
-  "interval_upperbound {a} = a"
-  "interval_lowerbound {a} = a"
-  unfolding interval_upperbound_def interval_lowerbound_def SUP_def INF_def
-  by (auto simp: euclidean_representation)
-
 lemma additive_tagged_division_1:
   fixes f :: "real \<Rightarrow> 'a::real_normed_vector"
   assumes "a \<le> b"
     and "p tagged_division_of {a..b}"
-  shows "setsum (\<lambda>(x,k). f(interval_upperbound k) - f(interval_lowerbound k)) p = f b - f a"
+  shows "setsum (\<lambda>(x,k). f(Sup k) - f(Inf k)) p = f b - f a"
 proof -
-  let ?f = "(\<lambda>k::(real) set. if k = {} then 0 else f(interval_upperbound k) - f(interval_lowerbound k))"
+  let ?f = "(\<lambda>k::(real) set. if k = {} then 0 else f(Sup k) - f(Inf k))"
   have ***: "\<forall>i\<in>Basis. a \<bullet> i \<le> b \<bullet> i"
     using assms by auto
   have *: "operative op + ?f"
@@ -6680,8 +6578,8 @@ subsection {* Fundamental theorem of calculus. *}
 lemma interval_bounds_real:
   fixes q b :: real
   assumes "a \<le> b"
-  shows "interval_upperbound {a..b} = b"
-    and "interval_lowerbound {a..b} = a"
+  shows "Sup {a..b} = b"
+    and "Inf {a..b} = a"
   apply (rule_tac[!] interval_bounds)
   using assms
   apply auto
@@ -6745,13 +6643,13 @@ proof safe
         unfolding k subset_eq
         apply (auto simp add:dist_real_def)
         done
-      also have "\<dots> \<le> e * (interval_upperbound k - interval_lowerbound k)"
+      also have "\<dots> \<le> e * (Sup k - Inf k)"
         unfolding k interval_bounds_real[OF *]
         using xk(1)
         unfolding k
         by (auto simp add: dist_real_def field_simps)
-      finally show "norm (content k *\<^sub>R f' x - (f (interval_upperbound k) - f (interval_lowerbound k))) \<le>
-        e * (interval_upperbound k - interval_lowerbound k)"
+      finally show "norm (content k *\<^sub>R f' x - (f (Sup k) - f (Inf k))) \<le>
+        e * (Sup k - Inf k)"
         unfolding k interval_bounds_real[OF *] content_real[OF *] .
     qed
   qed
@@ -7626,7 +7524,7 @@ lemma additive_tagged_division_1':
   fixes f :: "real \<Rightarrow> 'a::real_normed_vector"
   assumes "a \<le> b"
     and "p tagged_division_of {a..b}"
-  shows "setsum (\<lambda>(x,k). f (interval_upperbound k) - f(interval_lowerbound k)) p = f b - f a"
+  shows "setsum (\<lambda>(x,k). f (Sup k) - f(Inf k)) p = f b - f a"
   using additive_tagged_division_1[OF _ assms(2), of f]
   using assms(1)
   by auto
@@ -7871,8 +7769,8 @@ proof -
       proof (rule ccontr)
         fix x k
         assume as: "(x, k) \<in> p"
-          "e * (interval_upperbound k -  interval_lowerbound k) / 2 <
-            norm (content k *\<^sub>R f' x - (f (interval_upperbound k) - f (interval_lowerbound k)))"
+          "e * (Sup k -  Inf k) / 2 <
+            norm (content k *\<^sub>R f' x - (f (Sup k) - f (Inf k)))"
         from p(4)[OF this(1)] guess u v by (elim exE) note k=this
         then have "u \<le> v" and uv: "{u, v} \<subseteq> {u..v}"
           using p(2)[OF as(1)] by auto
@@ -7933,13 +7831,13 @@ proof -
         from p(4)[OF this] guess u v by (elim exE) note uv=this
         with p(2)[OF xk] have "{u..v} \<noteq> {}"
           by auto
-        then show "0 \<le> e * ((interval_upperbound k) - (interval_lowerbound k))"
+        then show "0 \<le> e * ((Sup k) - (Inf k))"
           unfolding uv using e by (auto simp add: field_simps)
       next
         have *: "\<And>s f t e. setsum f s = setsum f t \<Longrightarrow> norm (setsum f t) \<le> e \<Longrightarrow> norm (setsum f s) \<le> e"
           by auto
         show "norm (\<Sum>(x, k)\<in>p \<inter> ?A. content k *\<^sub>R f' x -
-          (f ((interval_upperbound k)) - f ((interval_lowerbound k)))) \<le> e * (b - a) / 2"
+          (f ((Sup k)) - f ((Inf k)))) \<le> e * (b - a) / 2"
           apply (rule *[where t="p \<inter> {t. fst t \<in> {a, b} \<and> content(snd t) \<noteq> 0}"])
           apply (rule setsum_mono_zero_right[OF pA(2)])
           defer
@@ -7957,7 +7855,7 @@ proof -
             using xk
             unfolding uv content_eq_0 interval_eq_empty
             by auto
-          then show "content k *\<^sub>R (f' (x)) - (f ((interval_upperbound k)) - f ((interval_lowerbound k))) = 0"
+          then show "content k *\<^sub>R (f' (x)) - (f ((Sup k)) - f ((Inf k))) = 0"
             using xk unfolding uv by auto
         next
           have *: "p \<inter> {t. fst t \<in> {a, b} \<and> content(snd t) \<noteq> 0} =
@@ -8090,8 +7988,8 @@ proof -
             qed
 
             let ?a = a and ?b = b (* a is something else while proofing the next theorem. *)
-            show "\<forall>x. x \<in> ?B a \<longrightarrow> norm ((\<lambda>(x, k). content k *\<^sub>R f' x - (f (interval_upperbound k) -
-              f (interval_lowerbound k))) x) \<le> e * (b - a) / 4"
+            show "\<forall>x. x \<in> ?B a \<longrightarrow> norm ((\<lambda>(x, k). content k *\<^sub>R f' x - (f (Sup k) -
+              f (Inf k))) x) \<le> e * (b - a) / 4"
               apply rule
               apply rule
               unfolding mem_Collect_eq
@@ -8123,7 +8021,7 @@ proof -
                 done
             qed
             show "\<forall>x. x \<in> ?B b \<longrightarrow> norm ((\<lambda>(x, k). content k *\<^sub>R f' x -
-              (f (interval_upperbound k) - f (interval_lowerbound k))) x) \<le> e * (b - a) / 4"
+              (f (Sup k) - f (Inf k))) x) \<le> e * (b - a) / 4"
               apply rule
               apply rule
               unfolding mem_Collect_eq
