@@ -20,14 +20,8 @@ sig
     Prove of isar_qualifier list * (string * typ) list * label * term * isar_proof list *
       (facts * proof_method)
   and proof_method =
-    MetisM |
-    SimpM |
-    AutoM |
-    FastforceM |
-    ForceM |
-    ArithM |
-    BlastM |
-    MesonM
+    Metis_Method | Simp_Method | Auto_Method | Fastforce_Method | Force_Method | Arith_Method |
+    Blast_Method | Meson_Method
 
   val no_label : label
   val no_facts : facts
@@ -49,8 +43,7 @@ sig
   val use_metis_new_skolem : isar_step -> bool
 
   val fold_isar_step : (isar_step -> 'a -> 'a) -> isar_step -> 'a -> 'a
-  val fold_isar_steps :
-    (isar_step -> 'a -> 'a) -> isar_step list -> 'a -> 'a
+  val fold_isar_steps : (isar_step -> 'a -> 'a) -> isar_step list -> 'a -> 'a
 
   val map_isar_steps : (isar_step -> isar_step) -> isar_proof -> isar_proof
 
@@ -78,14 +71,8 @@ and isar_step =
   Prove of isar_qualifier list * (string * typ) list * label * term * isar_proof list *
     (facts * proof_method)
 and proof_method =
-  MetisM |
-  SimpM |
-  AutoM |
-  FastforceM |
-  ForceM |
-  ArithM |
-  BlastM |
-  MesonM
+  Metis_Method | Simp_Method | Auto_Method | Fastforce_Method | Force_Method | Arith_Method |
+  Blast_Method | Meson_Method
 
 val no_label = ("", ~1)
 val no_facts = ([],[])
@@ -112,24 +99,25 @@ fun byline_of_step (Prove (_, _, _, _, _, byline)) = SOME byline
 fun proof_method_of_step (Prove (_, _, _, _, _, (_, method))) = SOME method
   | proof_method_of_step _ = NONE
 
+(* The new skolemizer puts the arguments in the same order as the ATPs (E and Vampire -- but see
+   also "atp_proof_reconstruct.ML" concerning Vampire). *)
 fun use_metis_new_skolem (Prove (_, xs, _, _, _, (_, meth))) =
-    meth = MetisM andalso exists (fn (_, T) => length (binder_types T) > 1) xs
+    meth = Metis_Method andalso exists (fn (_, T) => length (binder_types T) > 1) xs
   | use_metis_new_skolem _ = false
 
 fun fold_isar_steps f = fold (fold_isar_step f)
-and fold_isar_step f step s =
-  fold (steps_of_proof #> fold_isar_steps f)
-       (these (subproofs_of_step step)) s
-    |> f step
+and fold_isar_step f step =
+  fold (steps_of_proof #> fold_isar_steps f) (these (subproofs_of_step step))
+  #> f step
 
-fun map_isar_steps f proof =
+fun map_isar_steps f =
   let
     fun do_proof (Proof (fix, assms, steps)) = Proof (fix, assms, map do_step steps)
     and do_step (step as Let _) = f step
       | do_step (Prove (qs, xs, l, t, subproofs, by)) =
         f (Prove (qs, xs, l, t, map do_proof subproofs, by))
   in
-    do_proof proof
+    do_proof
   end
 
 val add_proof_steps = fold_isar_steps (fn Prove _ => Integer.add 1 | _ => I)

@@ -21,7 +21,9 @@ open Sledgehammer_Util
 open Sledgehammer_Proof
 open Sledgehammer_Preplay
 
-val variant_methods = [SimpM, AutoM, ArithM, FastforceM, BlastM, ForceM, MetisM, MesonM]
+val variant_methods =
+  [Simp_Method, Auto_Method, Arith_Method, Fastforce_Method, Blast_Method, Force_Method,
+   Metis_Method, Meson_Method]
 
 fun variants_of_step (Let _) = raise Fail "Sledgehammer_Try0: variants_of_step"
   | variants_of_step (Prove (qs, xs, l, t, subproofs, (facts, meth))) =

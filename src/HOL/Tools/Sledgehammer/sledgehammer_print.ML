@@ -174,20 +174,20 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
 
     fun by_method meth = "by " ^
       (case meth of
-        SimpM => "simp"
-      | AutoM => "auto"
-      | FastforceM => "fastforce"
-      | ForceM => "force"
-      | ArithM => "arith"
-      | BlastM => "blast"
-      | MesonM => "meson"
+        Simp_Method => "simp"
+      | Auto_Method => "auto"
+      | Fastforce_Method => "fastforce"
+      | Force_Method => "force"
+      | Arith_Method => "arith"
+      | Blast_Method => "blast"
+      | Meson_Method => "meson"
       | _ => raise Fail "Sledgehammer_Print: by_method")
 
     fun using_facts [] [] = ""
       | using_facts ls ss =
           "using " ^ space_implode " " (map string_of_label ls @ ss) ^ " "
 
-    fun of_method ls ss MetisM =
+    fun of_method ls ss Metis_Method =
         reconstructor_command (Metis (type_enc, lam_trans)) 1 1 [] 0 (ls, ss)
       | of_method ls ss meth = using_facts ls ss ^ by_method meth
 
@@ -254,21 +254,16 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
       | add_step ind (step as Prove (qs, xs, l, t, subproofs, (facts, meth))) =
         (case xs of
           [] => (* have *)
-            add_step_pre ind qs subproofs
-            #> add_suffix (of_prove qs (length subproofs) ^ " ")
-            #> add_step_post ind l t facts meth ""
+          add_step_pre ind qs subproofs
+          #> add_suffix (of_prove qs (length subproofs) ^ " ")
+          #> add_step_post ind l t facts meth ""
         | _ => (* obtain *)
-            add_step_pre ind qs subproofs
-            #> add_suffix (of_obtain qs (length subproofs) ^ " ")
-            #> add_frees xs
-            #> add_suffix " where "
-            (* The new skolemizer puts the arguments in the same order as the ATPs (E and Vampire --
-               but see also "atp_proof_reconstruct.ML" regarding Vampire). *)
-            #> add_step_post ind l t facts meth
-                 (if use_metis_new_skolem step then
-                    "using [[metis_new_skolem]] "
-                  else
-                    ""))
+          add_step_pre ind qs subproofs
+          #> add_suffix (of_obtain qs (length subproofs) ^ " ")
+          #> add_frees xs
+          #> add_suffix " where "
+          #> add_step_post ind l t facts meth
+               (if use_metis_new_skolem step then "using [[metis_new_skolem]] " else ""))
 
     and add_steps ind = fold (add_step ind)
 
@@ -278,7 +273,7 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
     (* One-step Metis proofs are pointless; better use the one-liner directly. *)
     (case proof of
       Proof ([], [], []) => "" (* degenerate case: the conjecture is "True" with Z3 *)
-    | Proof ([], [], [Prove (_, [], _, _, [], (_, MetisM))]) => ""
+    | Proof ([], [], [Prove (_, [], _, _, [], (_, Metis_Method))]) => ""
     | _ =>
       (if i <> 1 then "prefer " ^ string_of_int i ^ "\n" else "") ^
       of_indent 0 ^ "proof -\n" ^ of_proof 1 ctxt proof ^

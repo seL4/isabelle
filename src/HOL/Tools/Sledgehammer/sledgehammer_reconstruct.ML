@@ -288,9 +288,9 @@ fun isar_proof_text ctxt isar_proofs
           |> map (fn ((l, t), rule) =>
             let
               val (skos, meth) =
-                if is_skolemize_rule rule then (skolems_of t, MetisM)
-                else if is_arith_rule rule then ([], ArithM)
-                else ([], AutoM)
+                if is_skolemize_rule rule then (skolems_of t, Metis_Method)
+                else if is_arith_rule rule then ([], Arith_Method)
+                else ([], Auto_Method)
             in
               Prove ([], skos, l, t, [], (([], []), meth))
             end)
@@ -340,7 +340,7 @@ fun isar_proof_text ctxt isar_proofs
             accum
             |> (if tainted = [] then
                   cons (Prove (if outer then [Show] else [], [], no_label, concl_t, [],
-                               ((the_list predecessor, []), MetisM)))
+                               ((the_list predecessor, []), Metis_Method)))
                 else
                   I)
             |> rev
@@ -355,7 +355,7 @@ fun isar_proof_text ctxt isar_proofs
               fun do_rest l step = isar_steps outer (SOME l) (step :: accum) infs
 
               val deps = fold add_fact_of_dependencies gamma no_facts
-              val meth = if is_arith_rule rule then ArithM else MetisM
+              val meth = if is_arith_rule rule then Arith_Method else Metis_Method
               val by = (deps, meth)
             in
               if is_clause_tainted c then
@@ -363,15 +363,13 @@ fun isar_proof_text ctxt isar_proofs
                   [g] =>
                   if skolem andalso is_clause_tainted g then
                     let val subproof = Proof (skolems_of (prop_of_clause g), [], rev accum) in
-                      isar_steps outer (SOME l) [prove [subproof] (no_facts, MetisM)] []
+                      isar_steps outer (SOME l) [prove [subproof] (no_facts, Metis_Method)] []
                     end
                   else
                     do_rest l (prove [] by)
                 | _ => do_rest l (prove [] by))
               else
-                (if skolem then Prove ([], skolems_of t, l, t, [], by)
-                 else prove [] by)
-                |> do_rest l
+                do_rest l (if skolem then Prove ([], skolems_of t, l, t, [], by) else prove [] by)
             end
           | isar_steps outer predecessor accum (Cases cases :: infs) =
             let
@@ -383,14 +381,14 @@ fun isar_proof_text ctxt isar_proofs
               val step =
                 Prove (maybe_show outer c [], [], l, t,
                   map isar_case (filter_out (null o snd) cases),
-                  ((the_list predecessor, []), MetisM))
+                  ((the_list predecessor, []), Metis_Method))
             in
               isar_steps outer (SOME l) (step :: accum) infs
             end
         and isar_proof outer fix assms lems infs =
           Proof (fix, assms, lems @ isar_steps outer NONE [] infs)
 
-        (* 60 seconds seems like a good interpreation of "no timeout" *)
+        (* 60 seconds seems like a reasonable interpreation of "no timeout" *)
         val preplay_timeout = preplay_timeout |> the_default (seconds 60.0)
 
         val (preplay_interface as {overall_preplay_stats, ...}, isar_proof) =

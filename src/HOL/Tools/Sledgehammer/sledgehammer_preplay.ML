@@ -104,17 +104,17 @@ fun thm_of_proof ctxt (Proof (fixed_frees, assms, steps)) =
 
 fun tac_of_method method type_enc lam_trans ctxt facts =
   (case method of
-    MetisM => Metis_Tactic.metis_tac [type_enc] lam_trans ctxt facts
-  | MesonM => Meson.meson_tac ctxt facts
+    Metis_Method => Metis_Tactic.metis_tac [type_enc] lam_trans ctxt facts
+  | Meson_Method => Meson.meson_tac ctxt facts
   | _ =>
     Method.insert_tac facts THEN'
     (case method of
-      SimpM => Simplifier.asm_full_simp_tac ctxt
-    | AutoM => K (Clasimp.auto_tac ctxt)
-    | FastforceM => Clasimp.fast_force_tac ctxt
-    | ForceM => Clasimp.force_tac ctxt
-    | ArithM => Arith_Data.arith_tac ctxt
-    | BlastM => blast_tac ctxt
+      Simp_Method => Simplifier.asm_full_simp_tac ctxt
+    | Auto_Method => K (Clasimp.auto_tac ctxt)
+    | Fastforce_Method => Clasimp.fast_force_tac ctxt
+    | Force_Method => Clasimp.force_tac ctxt
+    | Arith_Method => Arith_Data.arith_tac ctxt
+    | Blast_Method => blast_tac ctxt
     | _ => raise Fail "Sledgehammer_Preplay: tac_of_method"))
 
 (* main function for preplaying Isar steps; may throw exceptions *)
