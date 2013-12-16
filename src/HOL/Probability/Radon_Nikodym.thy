@@ -686,7 +686,7 @@ proof -
   from choice[OF this[unfolded Bex_def]]
   obtain f where borel: "\<And>i. f i \<in> borel_measurable M" "\<And>i x. 0 \<le> f i x"
     and f_density: "\<And>i. density (?M i) (f i) = ?N i"
-    by auto
+    by force
   { fix A i assume A: "A \<in> sets M"
     with Q borel have "(\<integral>\<^sup>+x. f i x * indicator (Q i \<inter> A) x \<partial>M) = emeasure (density (?M i) (f i)) A"
       by (auto simp add: emeasure_density positive_integral_density subset_eq

@@ -5,7 +5,7 @@
 header {* Pointwise order on product types *}
 
 theory Product_Order
-imports Product_plus
+imports Product_plus Conditionally_Complete_Lattices
 begin
 
 subsection {* Pointwise ordering *}
@@ -54,7 +54,7 @@ instance prod :: (order, order) order
 
 subsection {* Binary infimum and supremum *}
 
-instantiation prod :: (semilattice_inf, semilattice_inf) semilattice_inf
+instantiation prod :: (inf, inf) inf
 begin
 
 definition
@@ -69,12 +69,14 @@ lemma fst_inf [simp]: "fst (inf x y) = inf (fst x) (fst y)"
 lemma snd_inf [simp]: "snd (inf x y) = inf (snd x) (snd y)"
   unfolding inf_prod_def by simp
 
-instance
-  by default auto
-
+instance proof qed
 end
 
-instantiation prod :: (semilattice_sup, semilattice_sup) semilattice_sup
+instance prod :: (semilattice_inf, semilattice_inf) semilattice_inf
+  by default auto
+
+
+instantiation prod :: (sup, sup) sup
 begin
 
 definition
@@ -89,10 +91,11 @@ lemma fst_sup [simp]: "fst (sup x y) = sup (fst x) (fst y)"
 lemma snd_sup [simp]: "snd (sup x y) = sup (snd x) (snd y)"
   unfolding sup_prod_def by simp
 
-instance
-  by default auto
-
+instance proof qed
 end
+
+instance prod :: (semilattice_sup, semilattice_sup) semilattice_sup
+  by default auto
 
 instance prod :: (lattice, lattice) lattice ..
 
@@ -154,20 +157,32 @@ instance prod :: (boolean_algebra, boolean_algebra) boolean_algebra
 
 subsection {* Complete lattice operations *}
 
-instantiation prod :: (complete_lattice, complete_lattice) complete_lattice
+instantiation prod :: (Inf, Inf) Inf
+begin
+
+definition
+  "Inf A = (INF x:A. fst x, INF x:A. snd x)"
+
+instance proof qed
+end
+
+instantiation prod :: (Sup, Sup) Sup
 begin
 
 definition
   "Sup A = (SUP x:A. fst x, SUP x:A. snd x)"
 
-definition
-  "Inf A = (INF x:A. fst x, INF x:A. snd x)"
+instance proof qed
+end
 
-instance
+instance prod :: (conditionally_complete_lattice, conditionally_complete_lattice)
+    conditionally_complete_lattice
+  by default (force simp: less_eq_prod_def Inf_prod_def Sup_prod_def bdd_below_def bdd_above_def
+    INF_def SUP_def intro!: cInf_lower cSup_upper cInf_greatest cSup_least)+
+
+instance prod :: (complete_lattice, complete_lattice) complete_lattice
   by default (simp_all add: less_eq_prod_def Inf_prod_def Sup_prod_def
     INF_lower SUP_upper le_INF_iff SUP_le_iff bot_prod_def top_prod_def)
-
-end
 
 lemma fst_Sup: "fst (Sup A) = (SUP x:A. fst x)"
   unfolding Sup_prod_def by simp

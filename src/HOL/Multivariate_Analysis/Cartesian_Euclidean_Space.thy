@@ -58,7 +58,7 @@ instantiation vec :: (ord, finite) ord
 begin
 
 definition "x \<le> y \<longleftrightarrow> (\<forall>i. x$i \<le> y$i)"
-definition "x < y \<longleftrightarrow> (\<forall>i. x$i < y$i)"
+definition "x < (y::'a^'b) \<longleftrightarrow> x \<le> y \<and> \<not> y \<le> x"
 instance ..
 
 end
@@ -77,10 +77,11 @@ qed
 
 end
 
-instantiation vec :: (linorder, cart_one) linorder
-begin
+instance vec:: (order, finite) order
+  by default (auto simp: less_eq_vec_def less_vec_def vec_eq_iff
+      intro: order.trans order.antisym order.strict_implies_order)
 
-instance
+instance vec :: (linorder, cart_one) linorder
 proof
   obtain a :: 'b where all: "\<And>P. (\<forall>i. P i) \<longleftrightarrow> P a"
   proof -
@@ -89,17 +90,12 @@ proof
     then have "\<And>P. (\<forall>i\<in>UNIV. P i) \<longleftrightarrow> P b" by auto
     then show thesis by (auto intro: that)
   qed
-
+  fix x y :: "'a^'b::cart_one"
   note [simp] = less_eq_vec_def less_vec_def all vec_eq_iff field_simps
-  fix x y z :: "'a^'b::cart_one"
-  show "x \<le> x" "(x < y) = (x \<le> y \<and> \<not> y \<le> x)" "x \<le> y \<or> y \<le> x" by auto
-  { assume "x\<le>y" "y\<le>z" then show "x\<le>z" by auto }
-  { assume "x\<le>y" "y\<le>x" then show "x=y" by auto }
+  show "x \<le> y \<or> y \<le> x" by auto
 qed
 
-end
-
-text{* Constant Vectors *} 
+text{* Constant Vectors *}
 
 definition "vec x = (\<chi> i. x)"
 
@@ -332,14 +328,24 @@ lemma setsum_norm_allsubsets_bound_cart:
   using setsum_norm_allsubsets_bound[OF assms]
   by (simp add: DIM_cart Basis_real_def)
 
-instance vec :: (ordered_euclidean_space, finite) ordered_euclidean_space
-proof
-  fix x y::"'a^'b"
-  show "(x \<le> y) = (\<forall>i\<in>Basis. x \<bullet> i \<le> y \<bullet> i)"
-    unfolding less_eq_vec_def apply(subst eucl_le) by (simp add: Basis_vec_def inner_axis)
-  show"(x < y) = (\<forall>i\<in>Basis. x \<bullet> i < y \<bullet> i)"
-    unfolding less_vec_def apply(subst eucl_less) by (simp add: Basis_vec_def inner_axis)
-qed
+instantiation vec :: (ordered_euclidean_space, finite) ordered_euclidean_space
+begin
+
+definition "inf x y = (\<chi> i. inf (x $ i) (y $ i))"
+definition "sup x y = (\<chi> i. sup (x $ i) (y $ i))"
+definition "Inf X = (\<chi> i. (INF x:X. x $ i))"
+definition "Sup X = (\<chi> i. (SUP x:X. x $ i))"
+definition "abs x = (\<chi> i. abs (x $ i))"
+
+instance
+  apply default
+  unfolding euclidean_representation_setsum'
+  apply (auto simp: less_eq_vec_def inf_vec_def sup_vec_def Inf_vec_def Sup_vec_def inner_axis
+    Basis_vec_def inner_Basis_inf_left inner_Basis_sup_left inner_Basis_INF_left
+    inner_Basis_SUP_left eucl_le[where 'a='a] less_le_not_le abs_vec_def abs_inner)
+  done
+
+end
 
 subsection {* Matrix operations *}
 
@@ -970,8 +976,6 @@ lemma interval_sing:
   fixes a :: "'a::linorder^'n"
   shows "{a .. a} = {a} \<and> {a<..<a} = {}"
   apply (auto simp add: set_eq_iff less_vec_def less_eq_vec_def vec_eq_iff)
-  apply (simp add: order_eq_iff)
-  apply (auto simp add: not_less less_imp_le)
   done
 
 lemma interval_open_subset_closed_cart:

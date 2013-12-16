@@ -220,8 +220,7 @@ abbreviation One :: "'a::euclidean_space"
   where "One \<equiv> \<Sum>Basis"
 
 lemma empty_as_interval: "{} = {One..(0::'a::ordered_euclidean_space)}"
-  apply (auto simp: eucl_le[where 'a='a])
-  by (metis (mono_tags) eucl_less eucl_less_not_refl order.strict_trans2 zero_less_one)
+  by (auto simp: eucl_le[where 'a='a])
 
 lemma interior_subset_union_intervals:
   assumes "i = {a..b::'a::ordered_euclidean_space}"
@@ -1030,14 +1029,14 @@ proof
       then show "\<exists>a b. k = {a..b}"
         by auto
       have "k \<subseteq> {a..b} \<and> k \<noteq> {}"
-      proof (simp add: k interval_eq_empty subset_interval not_less, safe)
+      proof (simp add: k interval_eq_empty subset_interval not_less eucl_le[where 'a='a], safe)
         fix i :: 'a
         assume i: "i \<in> Basis"
         with f have "f i = (a, c) \<or> f i = (c, d) \<or> f i = (d, b)"
           by (auto simp: PiE_iff)
         with i ord[of i]
         show "a \<bullet> i \<le> fst (f i) \<bullet> i" "snd (f i) \<bullet> i \<le> b \<bullet> i" "fst (f i) \<bullet> i \<le> snd (f i) \<bullet> i"
-          by (auto simp: subset_iff eucl_le[where 'a='a])
+          by auto
       qed
       then show "k \<noteq> {}" "k \<subseteq> {a .. b}"
         by auto
@@ -1116,7 +1115,7 @@ next
       using p(4)[OF goal1] by blast
     have *: "{c..d} \<subseteq> {a..b}" "{c..d} \<noteq> {}"
       using p(2,3)[OF goal1, unfolded k] using assms(2)
-        by auto
+      by (blast intro: order.trans)+
     obtain q where "q division_of {a..b}" "{c..d} \<in> q"
       by (rule partial_division_extend_1[OF *])
     then show ?case
@@ -2025,9 +2024,9 @@ lemma interval_bisection_step:
     and "\<forall>i\<in>Basis. a\<bullet>i \<le> c\<bullet>i \<and> c\<bullet>i \<le> d\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i \<and> 2 * (d\<bullet>i - c\<bullet>i) \<le> b\<bullet>i - a\<bullet>i"
 proof -
   have "{a..b} \<noteq> {}"
-    using assms(1,3) by auto
+    using assms(1,3) by metis
   then have ab: "\<And>i. i\<in>Basis \<Longrightarrow> a \<bullet> i \<le> b \<bullet> i"
-    by (auto simp: interval_eq_empty not_le)
+    by (auto simp: eucl_le[where 'a='a])
   {
     fix f
     have "finite f \<Longrightarrow>
@@ -2346,15 +2345,8 @@ proof -
     qed simp
   } note ABsubset = this
   have "\<exists>a. \<forall>n. a\<in>{A n..B n}"
-    apply (rule decreasing_closed_nest[rule_format,OF closed_interval _ ABsubset interv])
-  proof -
-    fix n
-    show "{A n..B n} \<noteq> {}"
-      apply (cases "0 < n")
-      using AB(3)[of "n - 1"] assms(1,3) AB(1-2)
-      apply auto
-      done
-  qed auto
+    by (rule decreasing_closed_nest[rule_format,OF closed_interval _ ABsubset interv])
+      (metis nat.exhaust AB(1-3) assms(1,3))
   then obtain x0 where x0: "\<And>n. x0 \<in> {A n..B n}"
     by blast
   show thesis
@@ -3723,7 +3715,7 @@ proof -
     apply (rule tagged_division_union[OF assms(1-2)])
     unfolding interval_split[OF k] interior_closed_interval
     using k
-    apply (auto simp add: eucl_less[where 'a='a] interval elim!: ballE[where x=k])
+    apply (auto simp add: interval elim!: ballE[where x=k])
     done
 qed
 
@@ -8787,8 +8779,7 @@ proof -
     proof -
       case goal1
       then have *: "box c d = {}"
-        using interval_open_subset_closed
-        by auto
+        by (metis bot.extremum_uniqueI interval_open_subset_closed)
       show ?thesis
         using assms(1)
         unfolding *

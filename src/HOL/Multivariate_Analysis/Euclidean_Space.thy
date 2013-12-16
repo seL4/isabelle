@@ -75,6 +75,10 @@ lemma (in euclidean_space) euclidean_representation_setsum:
   "(\<Sum>i\<in>Basis. f i *\<^sub>R i) = b \<longleftrightarrow> (\<forall>i\<in>Basis. f i = inner b i)"
   by (subst euclidean_eq_iff) simp
 
+lemma (in euclidean_space) euclidean_representation_setsum':
+  "b = (\<Sum>i\<in>Basis. f i *\<^sub>R i) \<longleftrightarrow> (\<forall>i\<in>Basis. f i = inner b i)"
+  by (auto simp add: euclidean_representation_setsum[symmetric])
+
 lemma (in euclidean_space) euclidean_representation: "(\<Sum>b\<in>Basis. inner x b *\<^sub>R b) = x"
   unfolding euclidean_representation_setsum by simp
 

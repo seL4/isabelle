@@ -8,6 +8,7 @@ theory Linear_Algebra
 imports
   Euclidean_Space
   "~~/src/HOL/Library/Infinite_Set"
+  "~~/src/HOL/Library/Product_Order"
 begin
 
 lemma cond_application_beta: "(if b then f else g) x = (if b then f x else g x)"
@@ -2881,9 +2882,9 @@ text {* Prove that it differs only up to a bound from Euclidean norm. *}
 lemma infnorm_le_norm: "infnorm x \<le> norm x"
   by (simp add: Basis_le_norm infnorm_Max)
 
-lemma euclidean_inner: "inner x y = (\<Sum>b\<in>Basis. (x \<bullet> b) * (y \<bullet> b))"
-  by (subst (1 2) euclidean_representation[symmetric, where 'a='a])
-     (simp add: inner_setsum_left inner_setsum_right setsum_cases inner_Basis ac_simps if_distrib)
+lemma (in euclidean_space) euclidean_inner: "inner x y = (\<Sum>b\<in>Basis. (x \<bullet> b) * (y \<bullet> b))"
+  by (subst (1 2) euclidean_representation[symmetric])
+    (simp add: inner_setsum_left inner_setsum_right setsum_cases inner_Basis ac_simps if_distrib)
 
 lemma norm_le_infnorm:
   fixes x :: "'a::euclidean_space"
@@ -3111,39 +3112,104 @@ lemma norm_cauchy_schwarz_equal: "abs (x \<bullet> y) = norm x * norm y \<longle
 
 subsection {* An ordering on euclidean spaces that will allow us to talk about intervals *}
 
-class ordered_euclidean_space = ord + euclidean_space +
+class ordered_euclidean_space = ord + inf + sup + abs + Inf + Sup + euclidean_space +
   assumes eucl_le: "x \<le> y \<longleftrightarrow> (\<forall>i\<in>Basis. x \<bullet> i \<le> y \<bullet> i)"
-    and eucl_less: "x < y \<longleftrightarrow> (\<forall>i\<in>Basis. x \<bullet> i < y \<bullet> i)"
-
-lemma eucl_less_not_refl[simp, intro!]: "\<not> x < (x::'a::ordered_euclidean_space)"
-  unfolding eucl_less[where 'a='a] by auto
-
-lemma euclidean_trans[trans]:
-  fixes x y z :: "'a::ordered_euclidean_space"
-  shows "x < y \<Longrightarrow> y < z \<Longrightarrow> x < z"
-    and "x \<le> y \<Longrightarrow> y < z \<Longrightarrow> x < z"
-    and "x \<le> y \<Longrightarrow> y \<le> z \<Longrightarrow> x \<le> z"
-  unfolding eucl_less[where 'a='a] eucl_le[where 'a='a]
-  by (fast intro: less_trans, fast intro: le_less_trans,
-    fast intro: order_trans)
-
-lemma atLeastAtMost_singleton_euclidean[simp]:
-  fixes a :: "'a::ordered_euclidean_space"
-  shows "{a .. a} = {a}"
-  by (force simp: eucl_le[where 'a='a] euclidean_eq_iff[where 'a='a])
-
-instance real :: ordered_euclidean_space
-  by default auto
-
-instantiation prod :: (ordered_euclidean_space, ordered_euclidean_space) ordered_euclidean_space
+  assumes eucl_less_le_not_le: "x < y \<longleftrightarrow> x \<le> y \<and> \<not> y \<le> x"
+  assumes eucl_inf: "inf x y = (\<Sum>i\<in>Basis. inf (x \<bullet> i) (y \<bullet> i) *\<^sub>R i)"
+  assumes eucl_sup: "sup x y = (\<Sum>i\<in>Basis. sup (x \<bullet> i) (y \<bullet> i) *\<^sub>R i)"
+  assumes eucl_Inf: "Inf X = (\<Sum>i\<in>Basis. (INF x:X. x \<bullet> i) *\<^sub>R i)"
+  assumes eucl_Sup: "Sup X = (\<Sum>i\<in>Basis. (SUP x:X. x \<bullet> i) *\<^sub>R i)"
+  assumes eucl_abs: "abs x = (\<Sum>i\<in>Basis. abs (x \<bullet> i) *\<^sub>R i)"
 begin
 
-definition "x \<le> (y::('a\<times>'b)) \<longleftrightarrow> (\<forall>i\<in>Basis. x \<bullet> i \<le> y \<bullet> i)"
-definition "x < (y::('a\<times>'b)) \<longleftrightarrow> (\<forall>i\<in>Basis. x \<bullet> i < y \<bullet> i)"
+subclass order
+  by default
+    (auto simp: eucl_le eucl_less_le_not_le intro!: euclidean_eqI antisym intro: order.trans)
 
-instance
-  by default (auto simp: less_prod_def less_eq_prod_def)
+subclass ordered_ab_group_add_abs
+  by default (auto simp: eucl_le inner_add_left eucl_abs abs_leI)
+
+subclass lattice
+  by default (auto simp: eucl_inf eucl_sup eucl_le)
+
+subclass distrib_lattice
+  by default (auto simp: eucl_inf eucl_sup sup_inf_distrib1 intro!: euclidean_eqI)
+
+subclass conditionally_complete_lattice
+proof
+  fix z::'a and X::"'a set"
+  assume "X \<noteq> {}"
+  hence "\<And>i. (\<lambda>x. x \<bullet> i) ` X \<noteq> {}" by simp
+  thus "(\<And>x. x \<in> X \<Longrightarrow> z \<le> x) \<Longrightarrow> z \<le> Inf X" "(\<And>x. x \<in> X \<Longrightarrow> x \<le> z) \<Longrightarrow> Sup X \<le> z"
+    by (auto simp: eucl_Inf eucl_Sup eucl_le Inf_class.INF_def Sup_class.SUP_def
+      intro!: cInf_greatest cSup_least)
+qed (force intro!: cInf_lower cSup_upper
+      simp: bdd_below_def bdd_above_def preorder_class.bdd_below_def preorder_class.bdd_above_def
+        eucl_Inf eucl_Sup eucl_le Inf_class.INF_def Sup_class.SUP_def)+
+
+lemma inner_Basis_inf_left: "i \<in> Basis \<Longrightarrow> inf x y \<bullet> i = inf (x \<bullet> i) (y \<bullet> i)"
+  and inner_Basis_sup_left: "i \<in> Basis \<Longrightarrow> sup x y \<bullet> i = sup (x \<bullet> i) (y \<bullet> i)"
+  by (simp_all add: eucl_inf eucl_sup inner_setsum_left inner_Basis if_distrib setsum_delta
+      cong: if_cong)
+
+lemma inner_Basis_INF_left: "i \<in> Basis \<Longrightarrow> (INF x:X. f x) \<bullet> i = (INF x:X. f x \<bullet> i)"
+  and inner_Basis_SUP_left: "i \<in> Basis \<Longrightarrow> (SUP x:X. f x) \<bullet> i = (SUP x:X. f x \<bullet> i)"
+  by (simp_all add: INF_def SUP_def eucl_Sup eucl_Inf)
+
+lemma abs_inner: "i \<in> Basis \<Longrightarrow> abs x \<bullet> i = abs (x \<bullet> i)"
+  by (auto simp: eucl_abs)
+
+lemma
+  abs_scaleR: "\<bar>a *\<^sub>R b\<bar> = \<bar>a\<bar> *\<^sub>R \<bar>b\<bar>"
+  by (auto simp: eucl_abs abs_mult intro!: euclidean_eqI)
+
+lemma interval_inner_leI:
+  assumes "x \<in> {a .. b}" "0 \<le> i"
+  shows "a\<bullet>i \<le> x\<bullet>i" "x\<bullet>i \<le> b\<bullet>i"
+  using assms
+  unfolding euclidean_inner[of a i] euclidean_inner[of x i] euclidean_inner[of b i]
+  by (auto intro!: setsum_mono mult_right_mono simp: eucl_le)
+
+lemma inner_nonneg_nonneg:
+  shows "0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> 0 \<le> a \<bullet> b"
+  using interval_inner_leI[of a 0 a b]
+  by auto
+
+lemma inner_Basis_mono:
+  shows "a \<le> b \<Longrightarrow> c \<in> Basis  \<Longrightarrow> a \<bullet> c \<le> b \<bullet> c"
+  by (simp add: eucl_le)
+
+lemma Basis_nonneg[intro, simp]: "i \<in> Basis \<Longrightarrow> 0 \<le> i"
+  by (auto simp: eucl_le inner_Basis)
 
 end
 
+lemma (in order) atLeastatMost_empty'[simp]:
+  "(~ a <= b) \<Longrightarrow> {a..b} = {}"
+  by (auto)
+
+instance real :: ordered_euclidean_space
+  by default (auto simp: INF_def SUP_def)
+
+lemma in_Basis_prod_iff:
+  fixes i::"'a::euclidean_space*'b::euclidean_space"
+  shows "i \<in> Basis \<longleftrightarrow> fst i = 0 \<and> snd i \<in> Basis \<or> snd i = 0 \<and> fst i \<in> Basis"
+  by (cases i) (auto simp: Basis_prod_def)
+
+instantiation prod::(abs, abs) abs
+begin
+
+definition "abs x = (abs (fst x), abs (snd x))"
+
+instance proof qed
 end
+
+instance prod :: (ordered_euclidean_space, ordered_euclidean_space) ordered_euclidean_space
+  by default
+    (auto intro!: add_mono simp add: euclidean_representation_setsum'  Ball_def inner_prod_def
+      in_Basis_prod_iff inner_Basis_inf_left inner_Basis_sup_left inner_Basis_INF_left Inf_prod_def
+      inner_Basis_SUP_left Sup_prod_def less_prod_def less_eq_prod_def eucl_le[where 'a='a]
+      eucl_le[where 'a='b] abs_prod_def abs_inner)
+
+end
+
