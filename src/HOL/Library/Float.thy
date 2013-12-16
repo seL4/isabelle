@@ -1326,6 +1326,203 @@ lemma compute_float_round_up[code]:
     cong del: if_weak_cong)
 hide_fact (open) compute_float_round_up
 
+lemma round_up_mono: "x \<le> y \<Longrightarrow> round_up p x \<le> round_up p y"
+  by (auto intro!: ceiling_mono simp: round_up_def)
+
+lemma truncate_up_nonneg_mono:
+  assumes "0 \<le> x" "x \<le> y"
+  shows "truncate_up prec x \<le> truncate_up prec y"
+proof -
+  {
+    assume "\<lfloor>log 2 x\<rfloor> = \<lfloor>log 2 y\<rfloor>"
+    hence ?thesis
+      using assms
+      by (auto simp: truncate_up_def round_up_def intro!: ceiling_mono)
+  } moreover {
+    assume "0 < x"
+    hence "log 2 x \<le> log 2 y" using assms by auto
+    moreover
+    assume "\<lfloor>log 2 x\<rfloor> \<noteq> \<lfloor>log 2 y\<rfloor>"
+    ultimately have logless: "log 2 x < log 2 y" and flogless: "\<lfloor>log 2 x\<rfloor> < \<lfloor>log 2 y\<rfloor>"
+      unfolding atomize_conj
+      by (metis floor_less_cancel linorder_cases not_le)
+    have "truncate_up prec x =
+      real \<lceil>x * 2 powr real (int prec - \<lfloor>log 2 x\<rfloor> - 1)\<rceil> * 2 powr - real (int prec - \<lfloor>log 2 x\<rfloor> - 1)"
+      using assms by (simp add: truncate_up_def round_up_def)
+    also have "\<lceil>x * 2 powr real (int prec - \<lfloor>log 2 x\<rfloor> - 1)\<rceil> \<le> (2 ^ prec)"
+    proof (unfold ceiling_le_eq)
+      have "x * 2 powr real (int prec - \<lfloor>log 2 x\<rfloor> - 1) \<le> x * (2 powr real prec / (2 powr log 2 x))"
+        using real_of_int_floor_add_one_ge[of "log 2 x"] assms
+        by (auto simp add: algebra_simps powr_divide2 intro!: mult_left_mono)
+      thus "x * 2 powr real (int prec - \<lfloor>log 2 x\<rfloor> - 1) \<le> real ((2::int) ^ prec)"
+        using `0 < x` by (simp add: powr_realpow)
+    qed
+    hence "real \<lceil>x * 2 powr real (int prec - \<lfloor>log 2 x\<rfloor> - 1)\<rceil> \<le> 2 powr int prec"
+      by (auto simp: powr_realpow)
+    also
+    have "2 powr - real (int prec - \<lfloor>log 2 x\<rfloor> - 1) \<le> 2 powr - real (int prec - \<lfloor>log 2 y\<rfloor>)"
+      using logless flogless by (auto intro!: floor_mono)
+    also have "2 powr real (int prec) \<le> 2 powr (log 2 y + real (int prec - \<lfloor>log 2 y\<rfloor>))"
+      using assms `0 < x`
+      by (auto simp: algebra_simps)
+    finally have "truncate_up prec x \<le> 2 powr (log 2 y + real (int prec - \<lfloor>log 2 y\<rfloor>)) * 2 powr - real (int prec - \<lfloor>log 2 y\<rfloor>)"
+      by simp
+    also have "\<dots> = 2 powr (log 2 y + real (int prec - \<lfloor>log 2 y\<rfloor>) - real (int prec - \<lfloor>log 2 y\<rfloor>))"
+      by (subst powr_add[symmetric]) simp
+    also have "\<dots> = y"
+      using `0 < x` assms
+      by (simp add: powr_add)
+    also have "\<dots> \<le> truncate_up prec y"
+      by (rule truncate_up)
+    finally have ?thesis .
+  } moreover {
+    assume "~ 0 < x"
+    hence ?thesis
+      using assms
+      by (auto intro!: truncate_up_le)
+  } ultimately show ?thesis
+    by blast
+qed
+
+lemma truncate_up_nonpos: "x \<le> 0 \<Longrightarrow> truncate_up prec x \<le> 0"
+  by (auto simp: truncate_up_def round_up_def intro!: mult_nonpos_nonneg)
+
+lemma truncate_down_nonpos: "x \<le> 0 \<Longrightarrow> truncate_down prec x \<le> 0"
+  by (auto simp: truncate_down_def round_down_def intro!: mult_nonpos_nonneg
+    order_le_less_trans[of _ 0, OF mult_nonpos_nonneg])
+
+lemma truncate_up_switch_sign_mono:
+  assumes "x \<le> 0" "0 \<le> y"
+  shows "truncate_up prec x \<le> truncate_up prec y"
+proof -
+  note truncate_up_nonpos[OF `x \<le> 0`]
+  also note truncate_up_le[OF `0 \<le> y`]
+  finally show ?thesis .
+qed
+
+lemma truncate_down_zeroprec_mono:
+  assumes "0 < x" "x \<le> y"
+  shows "truncate_down 0 x \<le> truncate_down 0 y"
+proof -
+  have "x * 2 powr (- real \<lfloor>log 2 x\<rfloor> - 1) = x * inverse (2 powr ((real \<lfloor>log 2 x\<rfloor> + 1)))"
+    by (simp add: powr_divide2[symmetric] powr_add powr_minus inverse_eq_divide)
+  also have "\<dots> = 2 powr (log 2 x - (real \<lfloor>log 2 x\<rfloor>) - 1)"
+    using `0 < x`
+    by (auto simp: inverse_eq_divide field_simps powr_add powr_divide2[symmetric])
+  also have "\<dots> < 2 powr 0"
+    using real_of_int_floor_add_one_gt
+    unfolding neg_less_iff_less
+    by (intro powr_less_mono) (auto simp: algebra_simps)
+  finally have "\<lfloor>x * 2 powr (- real \<lfloor>log 2 x\<rfloor> - 1)\<rfloor> < 1"
+    unfolding less_ceiling_eq real_of_int_minus real_of_one
+    by simp
+  moreover
+  have "0 \<le> \<lfloor>x * 2 powr (- real \<lfloor>log 2 x\<rfloor> - 1)\<rfloor>"
+    using `x > 0` by (auto intro: mult_nonneg_nonneg)
+  ultimately have "\<lfloor>x * 2 powr (- real \<lfloor>log 2 x\<rfloor> - 1)\<rfloor> \<in> {0 ..< 1}"
+    by simp
+  also have "\<dots> \<subseteq> {0}" by auto
+  finally have "\<lfloor>x * 2 powr (- real \<lfloor>log 2 x\<rfloor> - 1)\<rfloor> = 0" by simp
+  with assms show ?thesis
+    by (auto simp: truncate_down_def round_down_def intro!: mult_nonneg_nonneg)
+qed
+
+lemma truncate_down_nonneg: "0 \<le> y \<Longrightarrow> 0 \<le> truncate_down prec y"
+  by (auto simp: truncate_down_def round_down_def intro!: mult_nonneg_nonneg)
+
+lemma truncate_down_zero: "truncate_down prec 0 = 0"
+  by (auto simp: truncate_down_def round_down_def intro!: mult_nonneg_nonneg)
+
+lemma truncate_down_switch_sign_mono:
+  assumes "x \<le> 0" "0 \<le> y"
+  assumes "x \<le> y"
+  shows "truncate_down prec x \<le> truncate_down prec y"
+proof -
+  note truncate_down_nonpos[OF `x \<le> 0`]
+  also note truncate_down_nonneg[OF `0 \<le> y`]
+  finally show ?thesis .
+qed
+
+lemma truncate_up_uminus_truncate_down:
+  "truncate_up prec x = - truncate_down prec (- x)"
+  "truncate_up prec (-x) = - truncate_down prec x"
+  by (auto simp: truncate_up_def round_up_def truncate_down_def round_down_def ceiling_def)
+
+lemma truncate_down_uminus_truncate_up:
+  "truncate_down prec x = - truncate_up prec (- x)"
+  "truncate_down prec (-x) = - truncate_up prec x"
+  by (auto simp: truncate_up_def round_up_def truncate_down_def round_down_def ceiling_def)
+
+lemma truncate_down_nonneg_mono:
+  assumes "0 \<le> x" "x \<le> y"
+  shows "truncate_down prec x \<le> truncate_down prec y"
+proof -
+  {
+    assume "0 < x" "prec = 0"
+    with assms have ?thesis
+      by (simp add: truncate_down_zeroprec_mono)
+  } moreover {
+    assume "~ 0 < x"
+    with assms have "x = 0" "0 \<le> y" by simp_all
+    hence ?thesis
+      by (auto simp add: truncate_down_zero intro!: truncate_down_nonneg)
+  } moreover {
+    assume "\<lfloor>log 2 \<bar>x\<bar>\<rfloor> = \<lfloor>log 2 \<bar>y\<bar>\<rfloor>"
+    hence ?thesis
+      using assms
+      by (auto simp: truncate_down_def round_down_def intro!: floor_mono)
+  } moreover {
+    assume "0 < x"
+    hence "log 2 x \<le> log 2 y" "0 < y" "0 \<le> y" using assms by auto
+    moreover
+    assume "\<lfloor>log 2 \<bar>x\<bar>\<rfloor> \<noteq> \<lfloor>log 2 \<bar>y\<bar>\<rfloor>"
+    ultimately have logless: "log 2 x < log 2 y" and flogless: "\<lfloor>log 2 x\<rfloor> < \<lfloor>log 2 y\<rfloor>"
+      unfolding atomize_conj abs_of_pos[OF `0 < x`] abs_of_pos[OF `0 < y`]
+      by (metis floor_less_cancel linorder_cases not_le)
+    assume "prec \<noteq> 0" hence [simp]: "prec \<ge> Suc 0" by auto
+    have "2 powr (prec - 1) \<le> y * 2 powr real (prec - 1) / (2 powr log 2 y)"
+      using `0 < y`
+      by simp
+    also have "\<dots> \<le> y * 2 powr real prec / (2 powr (real \<lfloor>log 2 y\<rfloor> + 1))"
+      using `0 \<le> y` `0 \<le> x` assms(2)
+      by (auto intro!: powr_mono mult_nonneg_nonneg mult_pos_pos divide_left_mono
+        simp: real_of_nat_diff powr_add
+        powr_divide2[symmetric])
+    also have "\<dots> = y * 2 powr real prec / (2 powr real \<lfloor>log 2 y\<rfloor> * 2)"
+      by (auto simp: powr_add)
+    finally have "(2 ^ (prec - 1)) \<le> \<lfloor>y * 2 powr real (int prec - \<lfloor>log 2 \<bar>y\<bar>\<rfloor> - 1)\<rfloor>"
+      using `0 \<le> y`
+      by (auto simp: powr_divide2[symmetric] le_floor_eq powr_realpow)
+    hence "(2 ^ (prec - 1)) * 2 powr - real (int prec - \<lfloor>log 2 \<bar>y\<bar>\<rfloor> - 1) \<le> truncate_down prec y"
+      by (auto simp: truncate_down_def round_down_def)
+    moreover
+    {
+      have "x = 2 powr (log 2 \<bar>x\<bar>)" using `0 < x` by simp
+      also have "\<dots> \<le> (2 ^ (prec )) * 2 powr - real (int prec - \<lfloor>log 2 \<bar>x\<bar>\<rfloor> - 1)"
+        using real_of_int_floor_add_one_ge[of "log 2 \<bar>x\<bar>"]
+        by (auto simp: powr_realpow[symmetric] powr_add[symmetric] algebra_simps)
+      also
+      have "2 powr - real (int prec - \<lfloor>log 2 \<bar>x\<bar>\<rfloor> - 1) \<le> 2 powr - real (int prec - \<lfloor>log 2 \<bar>y\<bar>\<rfloor>)"
+        using logless flogless `x > 0` `y > 0`
+        by (auto intro!: floor_mono)
+      finally have "x \<le> (2 ^ (prec - 1)) * 2 powr - real (int prec - \<lfloor>log 2 \<bar>y\<bar>\<rfloor> - 1)"
+        by (auto simp: powr_realpow[symmetric] powr_divide2[symmetric] assms real_of_nat_diff)
+    } ultimately have ?thesis
+      by (metis dual_order.trans truncate_down)
+  } ultimately show ?thesis by blast
+qed
+
+lemma truncate_down_mono: "x \<le> y \<Longrightarrow> truncate_down p x \<le> truncate_down p y"
+  apply (cases "0 \<le> x")
+  apply (rule truncate_down_nonneg_mono, assumption+)
+  apply (simp add: truncate_down_uminus_truncate_up)
+  apply (cases "0 \<le> y")
+  apply (auto intro: truncate_up_nonneg_mono truncate_up_switch_sign_mono)
+  done
+
+lemma truncate_up_mono: "x \<le> y \<Longrightarrow> truncate_up p x \<le> truncate_up p y"
+  by (simp add: truncate_up_uminus_truncate_down truncate_down_mono)
+
 lemma Float_le_zero_iff: "Float a b \<le> 0 \<longleftrightarrow> a \<le> 0"
  apply (auto simp: zero_float_def mult_le_0_iff)
  using powr_gt_zero[of 2 b] by simp
