@@ -231,8 +231,7 @@ datatype source =
 val dummy_phi = AAtom (ATerm (("", []), []))
 val dummy_inference = Inference_Source ("", [])
 
-(* "skip_term" is there to cope with Waldmeister nonsense such as
-   "theory(equality)". *)
+(* "skip_term" is there to cope with Waldmeister nonsense such as "theory(equality)". *)
 fun parse_dependency x =
   (parse_inference_source >> snd
    || scan_general_id --| skip_term >> single) x

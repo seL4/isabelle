@@ -46,7 +46,7 @@ structure String_Redirect = ATP_Proof_Redirect(
 
 open String_Redirect
 
-val e_skolemize_rule = "skolemize"
+val e_skolemize_rules = ["skolemize", "shift_quantors"]
 val vampire_skolemisation_rule = "skolemisation"
 (* TODO: Use "Z3_Proof.string_of_rule" once it is moved to Isabelle *)
 val z3_apply_def_rule = "apply-def"
@@ -56,9 +56,9 @@ val z3_lemma_rule = "lemma"
 val z3_skolemize_rule = "sk"
 val z3_th_lemma_rule = "th-lemma"
 
-val is_skolemize_rule =
-  member (op =) [e_skolemize_rule, vampire_skolemisation_rule, z3_skolemize_rule]
+val skolemize_rules = e_skolemize_rules @ [vampire_skolemisation_rule, z3_skolemize_rule]
 
+val is_skolemize_rule = member (op =) skolemize_rules
 val is_arith_rule = String.isPrefix z3_th_lemma_rule
 
 fun raw_label_of_num num = (num, 0)
