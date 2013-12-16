@@ -534,7 +534,7 @@ proof -
       moreover have "?DIV \<le> real x / ?fR" by (rule float_divl)
       ultimately have "real ?DIV \<le> 1" unfolding divide_le_eq_1_pos[OF `0 < real ?fR`, symmetric] by auto
 
-      have "0 \<le> real ?DIV" using float_divl_lower_bound[OF `0 \<le> x` `0 < ?fR`] unfolding less_eq_float_def by auto
+      have "0 \<le> real ?DIV" using float_divl_lower_bound[OF `0 \<le> x`] `0 < ?fR` unfolding less_eq_float_def by auto
 
       have "(Float 1 1 * ?lb_horner ?DIV) \<le> 2 * arctan (float_divl prec x ?fR)"
         using arctan_0_1_bounds[OF `0 \<le> real ?DIV` `real ?DIV \<le> 1`] by auto

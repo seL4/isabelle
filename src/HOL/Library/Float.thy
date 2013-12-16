@@ -555,28 +555,36 @@ subsection {* Rounding Floats *}
 lift_definition float_up :: "int \<Rightarrow> float \<Rightarrow> float" is round_up by simp
 declare float_up.rep_eq[simp]
 
-lemma float_up_correct:
-  shows "real (float_up e f) - real f \<in> {0..2 powr -e}"
+lemma round_up_correct:
+  shows "round_up e f - f \<in> {0..2 powr -e}"
 unfolding atLeastAtMost_iff
 proof
   have "round_up e f - f \<le> round_up e f - round_down e f" using round_down by simp
   also have "\<dots> \<le> 2 powr -e" using round_up_diff_round_down by simp
-  finally show "real (float_up e f) - real f \<le> 2 powr real (- e)"
+  finally show "round_up e f - f \<le> 2 powr real (- e)"
     by simp
 qed (simp add: algebra_simps round_up)
+
+lemma float_up_correct:
+  shows "real (float_up e f) - real f \<in> {0..2 powr -e}"
+  by transfer (rule round_up_correct)
 
 lift_definition float_down :: "int \<Rightarrow> float \<Rightarrow> float" is round_down by simp
 declare float_down.rep_eq[simp]
 
-lemma float_down_correct:
-  shows "real f - real (float_down e f) \<in> {0..2 powr -e}"
+lemma round_down_correct:
+  shows "f - (round_down e f) \<in> {0..2 powr -e}"
 unfolding atLeastAtMost_iff
 proof
   have "f - round_down e f \<le> round_up e f - round_down e f" using round_up by simp
   also have "\<dots> \<le> 2 powr -e" using round_up_diff_round_down by simp
-  finally show "real f - real (float_down e f) \<le> 2 powr real (- e)"
+  finally show "f - round_down e f \<le> 2 powr real (- e)"
     by simp
 qed (simp add: algebra_simps round_down)
+
+lemma float_down_correct:
+  shows "real f - real (float_down e f) \<in> {0..2 powr -e}"
+  by transfer (rule round_down_correct)
 
 lemma compute_float_down[code]:
   "float_down p (Float m e) =
@@ -601,6 +609,15 @@ next
        (auto simp add: round_down_def field_simps powr_add powr_minus inverse_eq_divide)
 qed
 hide_fact (open) compute_float_down
+
+lemma abs_round_down_le: "\<bar>f - (round_down e f)\<bar> \<le> 2 powr -e"
+  using round_down_correct[of f e] by simp
+
+lemma abs_round_up_le: "\<bar>f - (round_up e f)\<bar> \<le> 2 powr -e"
+  using round_up_correct[of e f] by simp
+
+lemma round_down_nonneg: "0 \<le> s \<Longrightarrow> 0 \<le> round_down p s"
+  by (auto simp: round_down_def intro!: mult_nonneg_nonneg)
 
 lemma ceil_divide_floor_conv:
 assumes "b \<noteq> 0"
@@ -1006,8 +1023,12 @@ hide_fact (open) compute_rapprox_rat
 
 subsection {* Division *}
 
-lift_definition float_divl :: "nat \<Rightarrow> float \<Rightarrow> float \<Rightarrow> float" is
-  "\<lambda>(prec::nat) a b. round_down (prec + \<lfloor> log 2 \<bar>b\<bar> \<rfloor> - \<lfloor> log 2 \<bar>a\<bar> \<rfloor>) (a / b)" by simp
+definition "real_divl prec a b = round_down (int prec + \<lfloor> log 2 \<bar>b\<bar> \<rfloor> - \<lfloor> log 2 \<bar>a\<bar> \<rfloor>) (a / b)"
+
+definition "real_divr prec a b = round_up (int prec + \<lfloor> log 2 \<bar>b\<bar> \<rfloor> - \<lfloor> log 2 \<bar>a\<bar> \<rfloor>) (a / b)"
+
+lift_definition float_divl :: "nat \<Rightarrow> float \<Rightarrow> float \<Rightarrow> float" is real_divl
+  by (simp add: real_divl_def)
 
 lemma compute_float_divl[code]:
   "float_divl prec (Float m1 s1) (Float m2 s2) = lapprox_rat prec m1 m2 * Float 1 (s1 - s2)"
@@ -1022,12 +1043,13 @@ proof cases
 
   show ?thesis
     using not_0
-    by (transfer fixing: m1 s1 m2 s2 prec) (unfold eq1 eq2 round_down_shift, simp add: field_simps)
-qed (transfer, auto)
+    by (transfer fixing: m1 s1 m2 s2 prec) (unfold eq1 eq2 round_down_shift real_divl_def,
+      simp add: field_simps)
+qed (transfer, auto simp: real_divl_def)
 hide_fact (open) compute_float_divl
 
-lift_definition float_divr :: "nat \<Rightarrow> float \<Rightarrow> float \<Rightarrow> float" is
-  "\<lambda>(prec::nat) a b. round_up (prec + \<lfloor> log 2 \<bar>b\<bar> \<rfloor> - \<lfloor> log 2 \<bar>a\<bar> \<rfloor>) (a / b)" by simp
+lift_definition float_divr :: "nat \<Rightarrow> float \<Rightarrow> float \<Rightarrow> float" is real_divr
+  by (simp add: real_divr_def)
 
 lemma compute_float_divr[code]:
   "float_divr prec (Float m1 s1) (Float m2 s2) = rapprox_rat prec m1 m2 * Float 1 (s1 - s2)"
@@ -1042,8 +1064,9 @@ proof cases
 
   show ?thesis
     using not_0
-    by (transfer fixing: m1 s1 m2 s2 prec) (unfold eq1 eq2 round_up_shift, simp add: field_simps)
-qed (transfer, auto)
+    by (transfer fixing: m1 s1 m2 s2 prec) (unfold eq1 eq2 round_up_shift real_divr_def,
+      simp add: field_simps)
+qed (transfer, auto simp: real_divr_def)
 hide_fact (open) compute_float_divr
 
 subsection {* Lemmas needed by Approximate *}
@@ -1123,12 +1146,22 @@ lemma rapprox_rat_nonpos_pos:
   unfolding rapprox_rat_def round_up_def
   by (auto simp: field_simps mult_le_0_iff)
 
+lemma real_divl: "real_divl prec x y \<le> x / y"
+  by (simp add: real_divl_def round_down)
+
+lemma real_divr: "x / y \<le> real_divr prec x y"
+  using round_up by (simp add: real_divr_def)
+
 lemma float_divl: "real (float_divl prec x y) \<le> real x / real y"
-  by transfer (simp add: round_down)
+  by transfer (rule real_divl)
+
+lemma real_divl_lower_bound:
+  "0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> 0 \<le> real_divl prec x y"
+  by (simp add: real_divl_def round_down_def zero_le_mult_iff zero_le_divide_iff)
 
 lemma float_divl_lower_bound:
-  "0 \<le> x \<Longrightarrow> 0 < y \<Longrightarrow> 0 \<le> real (float_divl prec x y)"
-  by transfer (simp add: round_down_def zero_le_mult_iff zero_le_divide_iff)
+  "0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> 0 \<le> real (float_divl prec x y)"
+  by transfer (rule real_divl_lower_bound)
 
 lemma exponent_1: "exponent 1 = 0"
   using exponent_float[of 1 0] by (simp add: one_float_def)
@@ -1157,10 +1190,10 @@ proof (cases "x = 0", simp)
   finally show ?thesis by (simp add: powr_add)
 qed
 
-lemma float_divl_pos_less1_bound:
-  "0 < real x \<Longrightarrow> real x < 1 \<Longrightarrow> prec \<ge> 1 \<Longrightarrow> 1 \<le> real (float_divl prec 1 x)"
-proof transfer
-  fix prec :: nat and x :: real assume x: "0 < x" "x < 1" "x \<in> float" and prec: "1 \<le> prec"
+lemma real_divl_pos_less1_bound:
+  "0 < x \<Longrightarrow> x < 1 \<Longrightarrow> prec \<ge> 1 \<Longrightarrow> 1 \<le> real_divl prec 1 x"
+proof (unfold real_divl_def)
+  fix prec :: nat and x :: real assume x: "0 < x" "x < 1" and prec: "1 \<le> prec"
   def p \<equiv> "int prec + \<lfloor>log 2 \<bar>x\<bar>\<rfloor>"
   show "1 \<le> round_down (int prec + \<lfloor>log 2 \<bar>x\<bar>\<rfloor> - \<lfloor>log 2 \<bar>1\<bar>\<rfloor>) (1 / x) "
   proof cases
@@ -1203,35 +1236,71 @@ proof transfer
   qed
 qed
 
-lemma float_divr: "real x / real y \<le> real (float_divr prec x y)"
-  using round_up by transfer simp
+lemma float_divl_pos_less1_bound:
+  "0 < real x \<Longrightarrow> real x < 1 \<Longrightarrow> prec \<ge> 1 \<Longrightarrow> 1 \<le> real (float_divl prec 1 x)"
+  by (transfer, rule real_divl_pos_less1_bound)
 
-lemma float_divr_pos_less1_lower_bound: assumes "0 < x" and "x < 1" shows "1 \<le> float_divr prec 1 x"
+lemma float_divr: "real x / real y \<le> real (float_divr prec x y)"
+  by transfer (rule real_divr)
+
+lemma real_divr_pos_less1_lower_bound: assumes "0 < x" and "x < 1" shows "1 \<le> real_divr prec 1 x"
 proof -
-  have "1 \<le> 1 / real x" using `0 < x` and `x < 1` by auto
-  also have "\<dots> \<le> real (float_divr prec 1 x)" using float_divr[where x=1 and y=x] by auto
+  have "1 \<le> 1 / x" using `0 < x` and `x < 1` by auto
+  also have "\<dots> \<le> real_divr prec 1 x" using real_divr[where x=1 and y=x] by auto
   finally show ?thesis by auto
 qed
 
+lemma float_divr_pos_less1_lower_bound: "0 < x \<Longrightarrow> x < 1 \<Longrightarrow> 1 \<le> float_divr prec 1 x"
+  by transfer (rule real_divr_pos_less1_lower_bound)
+
+lemma real_divr_nonpos_pos_upper_bound:
+  "x \<le> 0 \<Longrightarrow> 0 < y \<Longrightarrow> real_divr prec x y \<le> 0"
+  by (auto simp: field_simps mult_le_0_iff divide_le_0_iff round_up_def real_divr_def)
+
 lemma float_divr_nonpos_pos_upper_bound:
   "real x \<le> 0 \<Longrightarrow> 0 < real y \<Longrightarrow> real (float_divr prec x y) \<le> 0"
-  by transfer (auto simp: field_simps mult_le_0_iff divide_le_0_iff round_up_def)
+  by transfer (rule real_divr_nonpos_pos_upper_bound)
+
+lemma real_divr_nonneg_neg_upper_bound:
+  "0 \<le> x \<Longrightarrow> y < 0 \<Longrightarrow> real_divr prec x y \<le> 0"
+  by (auto simp: field_simps mult_le_0_iff zero_le_mult_iff divide_le_0_iff round_up_def real_divr_def)
 
 lemma float_divr_nonneg_neg_upper_bound:
   "0 \<le> real x \<Longrightarrow> real y < 0 \<Longrightarrow> real (float_divr prec x y) \<le> 0"
-  by transfer (auto simp: field_simps mult_le_0_iff zero_le_mult_iff divide_le_0_iff round_up_def)
+  by transfer (rule real_divr_nonneg_neg_upper_bound)
 
-lift_definition float_round_up :: "nat \<Rightarrow> float \<Rightarrow> float" is
-  "\<lambda>(prec::nat) x. round_up (prec - \<lfloor>log 2 \<bar>x\<bar>\<rfloor> - 1) x" by simp
+definition truncate_down::"nat \<Rightarrow> real \<Rightarrow> real" where
+  "truncate_down prec x = round_down (prec - \<lfloor>log 2 \<bar>x\<bar>\<rfloor> - 1) x"
+
+lemma truncate_down: "truncate_down prec x \<le> x"
+  using round_down by (simp add: truncate_down_def)
+
+lemma truncate_down_le: "x \<le> y \<Longrightarrow> truncate_down prec x \<le> y"
+  by (rule order_trans[OF truncate_down])
+
+definition truncate_up::"nat \<Rightarrow> real \<Rightarrow> real" where
+  "truncate_up prec x = round_up (prec - \<lfloor>log 2 \<bar>x\<bar>\<rfloor> - 1) x"
+
+lemma truncate_up: "x \<le> truncate_up prec x"
+  using round_up by (simp add: truncate_up_def)
+
+lemma truncate_up_le: "x \<le> y \<Longrightarrow> x \<le> truncate_up prec y"
+  by (rule order_trans[OF _ truncate_up])
+
+lemma truncate_up_zero[simp]: "truncate_up prec 0 = 0"
+  by (simp add: truncate_up_def)
+
+lift_definition float_round_up :: "nat \<Rightarrow> float \<Rightarrow> float" is truncate_up
+  by (simp add: truncate_up_def)
 
 lemma float_round_up: "real x \<le> real (float_round_up prec x)"
-  using round_up by transfer simp
+  using truncate_up by transfer simp
 
-lift_definition float_round_down :: "nat \<Rightarrow> float \<Rightarrow> float" is
-  "\<lambda>(prec::nat) x. round_down (prec - \<lfloor>log 2 \<bar>x\<bar>\<rfloor> - 1) x" by simp
+lift_definition float_round_down :: "nat \<Rightarrow> float \<Rightarrow> float" is truncate_down
+  by (simp add: truncate_down_def)
 
 lemma float_round_down: "real (float_round_down prec x) \<le> real x"
-  using round_down by transfer simp
+  using truncate_down by transfer simp
 
 lemma floor_add2[simp]: "\<lfloor> real i + x \<rfloor> = i + \<lfloor> x \<rfloor>"
   using floor_add[of x i] by (simp del: floor_add add: ac_simps)
@@ -1241,7 +1310,8 @@ lemma compute_float_round_down[code]:
     if 0 < d then let P = 2^nat d ; n = m div P in Float n (e + d)
              else Float m e)"
   using Float.compute_float_down[of "prec - bitlen \<bar>m\<bar> - e" m e, symmetric]
-  by transfer (simp add: field_simps abs_mult log_mult bitlen_def cong del: if_weak_cong)
+  by transfer (simp add: field_simps abs_mult log_mult bitlen_def truncate_down_def
+    cong del: if_weak_cong)
 hide_fact (open) compute_float_round_down
 
 lemma compute_float_round_up[code]:
@@ -1251,7 +1321,8 @@ lemma compute_float_round_up[code]:
               else Float m e)"
   using Float.compute_float_up[of "prec - bitlen \<bar>m\<bar> - e" m e, symmetric]
   unfolding Let_def
-  by transfer (simp add: field_simps abs_mult log_mult bitlen_def cong del: if_weak_cong)
+  by transfer (simp add: field_simps abs_mult log_mult bitlen_def truncate_up_def
+    cong del: if_weak_cong)
 hide_fact (open) compute_float_round_up
 
 lemma Float_le_zero_iff: "Float a b \<le> 0 \<longleftrightarrow> a \<le> 0"
