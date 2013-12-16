@@ -79,7 +79,70 @@ lemma inner_Basis_mono:
 lemma Basis_nonneg[intro, simp]: "i \<in> Basis \<Longrightarrow> 0 \<le> i"
   by (auto simp: eucl_le inner_Basis)
 
+lemma Sup_eq_maximum_componentwise:
+  fixes s::"'a set"
+  assumes i: "\<And>b. b \<in> Basis \<Longrightarrow> X \<bullet> b = i b \<bullet> b"
+  assumes sup: "\<And>b x. b \<in> Basis \<Longrightarrow> x \<in> s \<Longrightarrow> x \<bullet> b \<le> X \<bullet> b"
+  assumes i_s: "\<And>b. b \<in> Basis \<Longrightarrow> (i b \<bullet> b) \<in> (\<lambda>x. x \<bullet> b) ` s"
+  shows "Sup s = X"
+  using assms
+  unfolding eucl_Sup euclidean_representation_setsum
+  by (auto simp: Sup_class.SUP_def intro!: conditionally_complete_lattice_class.cSup_eq_maximum)
+
+lemma Inf_eq_minimum_componentwise:
+  assumes i: "\<And>b. b \<in> Basis \<Longrightarrow> X \<bullet> b = i b \<bullet> b"
+  assumes sup: "\<And>b x. b \<in> Basis \<Longrightarrow> x \<in> s \<Longrightarrow> X \<bullet> b \<le> x \<bullet> b"
+  assumes i_s: "\<And>b. b \<in> Basis \<Longrightarrow> (i b \<bullet> b) \<in> (\<lambda>x. x \<bullet> b) ` s"
+  shows "Inf s = X"
+  using assms
+  unfolding eucl_Inf euclidean_representation_setsum
+  by (auto simp: Inf_class.INF_def intro!: conditionally_complete_lattice_class.cInf_eq_minimum)
+
 end
+
+lemma
+  compact_attains_Inf_componentwise:
+  fixes b::"'a::ordered_euclidean_space"
+  assumes "b \<in> Basis" assumes "X \<noteq> {}" "compact X"
+  obtains x where "x \<in> X" "x \<bullet> b = Inf X \<bullet> b" "\<And>y. y \<in> X \<Longrightarrow> x \<bullet> b \<le> y \<bullet> b"
+proof atomize_elim
+  let ?proj = "(\<lambda>x. x \<bullet> b) ` X"
+  from assms have "compact ?proj" "?proj \<noteq> {}"
+    by (auto intro!: compact_continuous_image continuous_on_intros)
+  from compact_attains_inf[OF this]
+  obtain s x
+    where s: "s\<in>(\<lambda>x. x \<bullet> b) ` X" "\<And>t. t\<in>(\<lambda>x. x \<bullet> b) ` X \<Longrightarrow> s \<le> t"
+      and x: "x \<in> X" "s = x \<bullet> b" "\<And>y. y \<in> X \<Longrightarrow> x \<bullet> b \<le> y \<bullet> b"
+    by auto
+  hence "Inf ?proj = x \<bullet> b"
+    by (auto intro!: conditionally_complete_lattice_class.cInf_eq_minimum)
+  hence "x \<bullet> b = Inf X \<bullet> b"
+    by (auto simp: eucl_Inf Inf_class.INF_def inner_setsum_left inner_Basis if_distrib `b \<in> Basis`
+      setsum_delta cong: if_cong)
+  with x show "\<exists>x. x \<in> X \<and> x \<bullet> b = Inf X \<bullet> b \<and> (\<forall>y. y \<in> X \<longrightarrow> x \<bullet> b \<le> y \<bullet> b)" by blast
+qed
+
+lemma
+  compact_attains_Sup_componentwise:
+  fixes b::"'a::ordered_euclidean_space"
+  assumes "b \<in> Basis" assumes "X \<noteq> {}" "compact X"
+  obtains x where "x \<in> X" "x \<bullet> b = Sup X \<bullet> b" "\<And>y. y \<in> X \<Longrightarrow> y \<bullet> b \<le> x \<bullet> b"
+proof atomize_elim
+  let ?proj = "(\<lambda>x. x \<bullet> b) ` X"
+  from assms have "compact ?proj" "?proj \<noteq> {}"
+    by (auto intro!: compact_continuous_image continuous_on_intros)
+  from compact_attains_sup[OF this]
+  obtain s x
+    where s: "s\<in>(\<lambda>x. x \<bullet> b) ` X" "\<And>t. t\<in>(\<lambda>x. x \<bullet> b) ` X \<Longrightarrow> t \<le> s"
+      and x: "x \<in> X" "s = x \<bullet> b" "\<And>y. y \<in> X \<Longrightarrow> y \<bullet> b \<le> x \<bullet> b"
+    by auto
+  hence "Sup ?proj = x \<bullet> b"
+    by (auto intro!: cSup_eq_maximum)
+  hence "x \<bullet> b = Sup X \<bullet> b"
+    by (auto simp: eucl_Sup[where 'a='a] SUP_def inner_setsum_left inner_Basis if_distrib `b \<in> Basis`
+      setsum_delta cong: if_cong)
+  with x show "\<exists>x. x \<in> X \<and> x \<bullet> b = Sup X \<bullet> b \<and> (\<forall>y. y \<in> X \<longrightarrow> y \<bullet> b \<le> x \<bullet> b)" by blast
+qed
 
 lemma (in order) atLeastatMost_empty'[simp]:
   "(~ a <= b) \<Longrightarrow> {a..b} = {}"
@@ -649,6 +712,12 @@ lemma inter_interval_mixed_eq_empty:
   unfolding closure_open_interval[OF assms, symmetric]
   unfolding open_inter_closure_eq_empty[OF open_interval] ..
 
+lemma diameter_closed_interval:
+  fixes a b::"'a::ordered_euclidean_space"
+  shows "a \<le> b \<Longrightarrow> diameter {a..b} = dist a b"
+  by (force simp add: diameter_def SUP_def intro!: cSup_eq_maximum setL2_mono
+     simp: euclidean_dist_l2[where 'a='a] eucl_le[where 'a='a] dist_norm)
+
 text {* Intervals in general, including infinite and mixtures of open and closed. *}
 
 definition "is_interval (s::('a::euclidean_space) set) \<longleftrightarrow>
@@ -668,6 +737,52 @@ lemma is_interval_univ:
  "is_interval UNIV"
   unfolding is_interval_def
   by simp
+
+lemma mem_is_intervalI:
+  assumes "is_interval s"
+  assumes "a \<in> s" "b \<in> s"
+  assumes "\<And>i. i \<in> Basis \<Longrightarrow> a \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> b \<bullet> i \<or> b \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> a \<bullet> i"
+  shows "x \<in> s"
+  by (rule assms(1)[simplified is_interval_def, rule_format, OF assms(2,3,4)])
+
+lemma interval_subst:
+  fixes S::"'a::ordered_euclidean_space set"
+  assumes "is_interval S"
+  assumes "x \<in> S" "y j \<in> S"
+  assumes "j \<in> Basis"
+  shows "(\<Sum>i\<in>Basis. (if i = j then y i \<bullet> i else x \<bullet> i) *\<^sub>R i) \<in> S"
+  by (rule mem_is_intervalI[OF assms(1,2)]) (auto simp: assms)
+
+lemma mem_interval_componentwiseI:
+  fixes S::"'a::ordered_euclidean_space set"
+  assumes "is_interval S"
+  assumes "\<And>i. i \<in> Basis \<Longrightarrow> x \<bullet> i \<in> ((\<lambda>x. x \<bullet> i) ` S)"
+  shows "x \<in> S"
+proof -
+  from assms have "\<forall>i \<in> Basis. \<exists>s \<in> S. x \<bullet> i = s \<bullet> i"
+    by auto
+  with finite_Basis obtain s and bs::"'a list" where
+    s: "\<And>i. i \<in> Basis \<Longrightarrow> x \<bullet> i = s i \<bullet> i" "\<And>i. i \<in> Basis \<Longrightarrow> s i \<in> S" and
+    bs: "set bs = Basis" "distinct bs"
+    by (metis finite_distinct_list)
+  from nonempty_Basis s obtain j where j: "j \<in> Basis" "s j \<in> S" by blast
+  def y \<equiv> "list_rec
+    (s j)
+    (\<lambda>j _ Y. (\<Sum>i\<in>Basis. (if i = j then s i \<bullet> i else Y \<bullet> i) *\<^sub>R i))"
+  have "x = (\<Sum>i\<in>Basis. (if i \<in> set bs then s i \<bullet> i else s j \<bullet> i) *\<^sub>R i)"
+    using bs by (auto simp add: s(1)[symmetric] euclidean_representation)
+  also have [symmetric]: "y bs = \<dots>"
+    using bs(2) bs(1)[THEN equalityD1]
+    by (induct bs) (auto simp: y_def euclidean_representation intro!: euclidean_eqI[where 'a='a])
+  also have "y bs \<in> S"
+    using bs(1)[THEN equalityD1]
+    apply (induct bs)
+    apply (auto simp: y_def j)
+    apply (rule interval_subst[OF assms(1)])
+    apply (auto simp: s)
+    done
+  finally show ?thesis .
+qed
 
 text{* Instantiation for intervals on @{text ordered_euclidean_space} *}
 

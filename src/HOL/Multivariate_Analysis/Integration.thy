@@ -222,6 +222,9 @@ abbreviation One :: "'a::euclidean_space"
 lemma empty_as_interval: "{} = {One..(0::'a::ordered_euclidean_space)}"
   by (auto simp: eucl_le[where 'a='a])
 
+lemma One_nonneg: "0 \<le> (One::'a::ordered_euclidean_space)"
+  by (auto intro: setsum_nonneg)
+
 lemma interior_subset_union_intervals:
   assumes "i = {a..b::'a::ordered_euclidean_space}"
     and "j = {c..d}"
