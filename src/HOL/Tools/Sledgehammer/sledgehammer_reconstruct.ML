@@ -7,6 +7,7 @@ Isar proof reconstruction from ATP proofs.
 
 signature SLEDGEHAMMER_RECONSTRUCT =
 sig
+  type atp_step_name = ATP_Proof.atp_step_name
   type ('a, 'b) atp_step = ('a, 'b) ATP_Proof.atp_step
   type 'a atp_proof = 'a ATP_Proof.atp_proof
   type stature = ATP_Problem_Generate.stature
@@ -16,6 +17,8 @@ sig
     bool * bool * string * string * Time.time option * real * bool * (term, string) atp_step list *
     thm
 
+  val replace_dependencies_in_line : atp_step_name * atp_step_name list -> ('a, 'b) atp_step ->
+    ('a, 'b) atp_step
   val isar_proof_text : Proof.context -> bool option -> isar_params -> one_line_params -> string
   val proof_text : Proof.context -> bool option -> (unit -> isar_params) -> int ->
     one_line_params -> string
@@ -49,10 +52,6 @@ open String_Redirect
 val e_skolemize_rules = ["skolemize", "shift_quantors"]
 val vampire_skolemisation_rule = "skolemisation"
 (* TODO: Use "Z3_Proof.string_of_rule" once it is moved to Isabelle *)
-val z3_apply_def_rule = "apply-def"
-val z3_hypothesis_rule = "hypothesis"
-val z3_intro_def_rule = "intro-def"
-val z3_lemma_rule = "lemma"
 val z3_skolemize_rule = "sk"
 val z3_th_lemma_rule = "th-lemma"
 
@@ -71,58 +70,8 @@ fun add_fact_of_dependencies [(_, ss as _ :: _)] = apsnd (union (op =) ss)
 
 fun replace_one_dependency (old, new) dep =
   if is_same_atp_step dep old then new else [dep]
-fun replace_dependencies_in_line p (name, role, t, rule, deps) =
-  (name, role, t, rule, fold (union (op =) o replace_one_dependency p) deps [])
-
-fun inline_z3_defs _ [] = []
-  | inline_z3_defs defs ((line as (name, role, t, rule, deps)) :: lines) =
-    if rule = z3_intro_def_rule then
-      let val def = t |> HOLogic.dest_Trueprop |> HOLogic.dest_eq |> swap in
-        inline_z3_defs (insert (op =) def defs)
-          (map (replace_dependencies_in_line (name, [])) lines)
-      end
-    else if rule = z3_apply_def_rule then
-      inline_z3_defs defs (map (replace_dependencies_in_line (name, [])) lines)
-    else
-      (name, role, Term.subst_atomic defs t, rule, deps) :: inline_z3_defs defs lines
-
-fun alist_cons_list eq (k, v) = AList.map_default eq (k, []) (cons v)
-
-fun add_z3_hypotheses [] = I
-  | add_z3_hypotheses hyps =
-    HOLogic.dest_Trueprop
-    #> curry s_imp (Library.foldr1 s_conj (map HOLogic.dest_Trueprop hyps))
-    #> HOLogic.mk_Trueprop
-
-fun inline_z3_hypotheses _ _ [] = []
-  | inline_z3_hypotheses hyp_names hyps ((name, role, t, rule, deps) :: lines) =
-    if rule = z3_hypothesis_rule then
-      inline_z3_hypotheses (name :: hyp_names) (alist_cons_list (op =) (t, name) hyps) lines
-    else
-      let val deps' = subtract (op =) hyp_names deps in
-        if rule = z3_lemma_rule then
-          (name, role, t, rule, deps') :: inline_z3_hypotheses hyp_names hyps lines
-        else
-          let
-            val add_hyps = filter_out (null o inter (op =) deps o snd) hyps
-            val t' = add_z3_hypotheses (map fst add_hyps) t
-            val deps' = subtract (op =) hyp_names deps
-            val hyps' = fold (AList.update (op =) o apsnd (insert (op =) name)) add_hyps hyps
-          in
-            (name, role, t', rule, deps') :: inline_z3_hypotheses hyp_names hyps' lines
-          end
-      end
-
-fun simplify_prop (@{const Not} $ t) = s_not (simplify_prop t)
-  | simplify_prop (@{const conj} $ t $ u) = s_conj (simplify_prop t, simplify_prop u)
-  | simplify_prop (@{const disj} $ t $ u) = s_disj (simplify_prop t, simplify_prop u)
-  | simplify_prop (@{const implies} $ t $ u) = s_imp (simplify_prop t, simplify_prop u)
-  | simplify_prop (@{const HOL.eq (bool)} $ t $ u) = s_iff (simplify_prop t, simplify_prop u)
-  | simplify_prop (t $ u) = simplify_prop t $ simplify_prop u
-  | simplify_prop (Abs (s, T, t)) = Abs (s, T, simplify_prop t)
-  | simplify_prop t = t
-
-fun simplify_line (name, role, t, rule, deps) = (name, role, simplify_prop t, rule, deps)
+fun replace_dependencies_in_line oldnew (name, role, t, rule, deps) =
+  (name, role, t, rule, fold (union (op =) o replace_one_dependency oldnew) deps [])
 
 (* No "real" literals means only type information (tfree_tcs, clsrel, or clsarity). *)
 fun is_only_type_information t = t aconv @{prop True}
@@ -150,8 +99,8 @@ fun add_line_pass2 (line as (name, _, t, _, [])) lines =
 and delete_dependency name lines =
   fold_rev add_line_pass2 (map (replace_dependencies_in_line (name, [])) lines) []
 
-fun add_line_pass3 res [] = rev res
-  | add_line_pass3 res ((name as (_, ss), role, t, rule, deps) :: lines) =
+fun add_lines_pass3 res [] = rev res
+  | add_lines_pass3 res ((name as (_, ss), role, t, rule, deps) :: lines) =
     if role <> Plain orelse is_skolemize_rule rule orelse is_arith_rule rule orelse
        (* the last line must be kept *)
        null lines orelse
@@ -159,9 +108,9 @@ fun add_line_pass3 res [] = rev res
         andalso length deps >= 2 andalso
         (* don't keep next to last line, which usually results in a trivial step *)
         not (can the_single lines)) then
-      add_line_pass3 ((name, role, simplify_prop t, rule, deps) :: res) lines
+      add_lines_pass3 ((name, role, t, rule, deps) :: res) lines
     else
-      add_line_pass3 res (map (replace_dependencies_in_line (name, deps)) lines)
+      add_lines_pass3 res (map (replace_dependencies_in_line (name, deps)) lines)
 
 val add_labels_of_proof =
   steps_of_proof
@@ -283,12 +232,9 @@ fun isar_proof_text ctxt isar_proofs
       let
         val atp_proof =
           atp_proof
-          |> inline_z3_defs []
-          |> map simplify_line
-          |> inline_z3_hypotheses [] []
           |> rpair [] |-> fold_rev add_line_pass1
           |> rpair [] |-> fold_rev add_line_pass2
-          |> add_line_pass3 []
+          |> add_lines_pass3 []
 
         val conjs =
           map_filter (fn (name, role, _, _, _) =>
