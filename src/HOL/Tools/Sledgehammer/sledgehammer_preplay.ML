@@ -105,6 +105,9 @@ fun thm_of_proof ctxt (Proof (fixed_frees, assms, steps)) =
 fun tac_of_method meth type_enc lam_trans ctxt facts =
   (case meth of
     Metis_Method => Metis_Tactic.metis_tac [type_enc] lam_trans ctxt facts
+  | Metis_New_Skolem_Method =>
+    tac_of_method Metis_Method type_enc lam_trans (Config.put Metis_Tactic.new_skolem true ctxt)
+      facts
   | Meson_Method => Meson.meson_tac ctxt facts
   | _ =>
     Method.insert_tac facts THEN'
@@ -120,7 +123,7 @@ fun tac_of_method meth type_enc lam_trans ctxt facts =
 (* main function for preplaying Isar steps; may throw exceptions *)
 fun preplay_raw _ _ _ _ _ (Let _) = zero_preplay_time
   | preplay_raw debug type_enc lam_trans ctxt timeout
-      (step as Prove (_, xs, _, t, subproofs, (fact_names, meth :: _))) =
+      (step as Prove (_, xs, _, t, subproofs, (fact_names, (meth :: _) :: _))) =
     let
       val goal =
         (case xs of
@@ -144,7 +147,6 @@ fun preplay_raw _ _ _ _ _ (Let _) = zero_preplay_time
 
       val ctxt' = ctxt
         |> debug ? (Config.put Metis_Tactic.verbose true #> Config.put Lin_Arith.verbose true)
-        |> use_metis_new_skolem step ? Config.put Metis_Tactic.new_skolem true
 
       val prove = Goal.prove ctxt' [] [] goal
 

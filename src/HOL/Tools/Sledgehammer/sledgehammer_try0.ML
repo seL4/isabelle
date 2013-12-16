@@ -21,8 +21,8 @@ open Sledgehammer_Util
 open Sledgehammer_Proof
 open Sledgehammer_Preplay
 
-fun variants_of_step (Prove (qs, xs, l, t, subproofs, (facts, _ :: meths))) =
-    map (fn meth => Prove (qs, xs, l, t, subproofs, (facts, [meth]))) meths
+fun variants_of_step (Prove (qs, xs, l, t, subproofs, (facts, methss))) =
+    map (fn meth => Prove (qs, xs, l, t, subproofs, (facts, [[meth]]))) (tl (flat methss))
   | variants_of_step _ = raise Fail "Sledgehammer_Try0: variants_of_step"
 
 val slack = seconds 0.05

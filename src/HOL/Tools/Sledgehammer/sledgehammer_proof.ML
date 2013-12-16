@@ -18,10 +18,10 @@ sig
   and isar_step =
     Let of term * term |
     Prove of isar_qualifier list * (string * typ) list * label * term * isar_proof list *
-      (facts * proof_method list)
+      (facts * proof_method list list)
   and proof_method =
-    Metis_Method | Simp_Method | Auto_Method | Fastforce_Method | Force_Method | Arith_Method |
-    Blast_Method | Meson_Method
+    Metis_Method | Metis_New_Skolem_Method | Simp_Method | Auto_Method | Fastforce_Method |
+    Force_Method | Arith_Method | Blast_Method | Meson_Method
 
   val no_label : label
   val no_facts : facts
@@ -38,8 +38,7 @@ sig
 
   val label_of_step : isar_step -> label option
   val subproofs_of_step : isar_step -> isar_proof list option
-  val byline_of_step : isar_step -> (facts * proof_method list) option
-  val use_metis_new_skolem : isar_step -> bool
+  val byline_of_step : isar_step -> (facts * proof_method list list) option
 
   val fold_isar_step : (isar_step -> 'a -> 'a) -> isar_step -> 'a -> 'a
   val fold_isar_steps : (isar_step -> 'a -> 'a) -> isar_step list -> 'a -> 'a
@@ -68,10 +67,10 @@ datatype isar_proof =
 and isar_step =
   Let of term * term |
   Prove of isar_qualifier list * (string * typ) list * label * term * isar_proof list *
-    (facts * proof_method list)
+    (facts * proof_method list list)
 and proof_method =
-  Metis_Method | Simp_Method | Auto_Method | Fastforce_Method | Force_Method | Arith_Method |
-  Blast_Method | Meson_Method
+  Metis_Method | Metis_New_Skolem_Method | Simp_Method | Auto_Method | Fastforce_Method |
+  Force_Method | Arith_Method | Blast_Method | Meson_Method
 
 val no_label = ("", ~1)
 val no_facts = ([],[])
@@ -95,16 +94,9 @@ fun subproofs_of_step (Prove (_, _, _, _, subproofs, _)) = SOME subproofs
 fun byline_of_step (Prove (_, _, _, _, _, byline)) = SOME byline
   | byline_of_step _ = NONE
 
-(* The new skolemizer puts the arguments in the same order as the ATPs (E and Vampire -- but see
-   also "atp_proof_reconstruct.ML" concerning Vampire). *)
-fun use_metis_new_skolem (Prove (_, xs, _, _, _, (_, meth :: _))) =
-    meth = Metis_Method andalso exists (fn (_, T) => length (binder_types T) > 1) xs
-  | use_metis_new_skolem _ = false
-
 fun fold_isar_steps f = fold (fold_isar_step f)
 and fold_isar_step f step =
-  fold (steps_of_proof #> fold_isar_steps f) (these (subproofs_of_step step))
-  #> f step
+  fold (steps_of_proof #> fold_isar_steps f) (these (subproofs_of_step step)) #> f step
 
 fun map_isar_steps f =
   let

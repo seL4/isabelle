@@ -12,11 +12,8 @@ sig
   type one_line_params = Sledgehammer_Reconstructor.one_line_params
 
   val string_of_reconstructor : reconstructor -> string
-
   val one_line_proof_text : int -> one_line_params -> string
-
-  val string_of_proof :
-    Proof.context -> string -> string -> int -> int -> isar_proof -> string
+  val string_of_proof : Proof.context -> string -> string -> int -> int -> isar_proof -> string
 end;
 
 structure Sledgehammer_Print : SLEDGEHAMMER_PRINT =
@@ -34,10 +31,8 @@ open Sledgehammer_Annotate
 
 (** reconstructors **)
 
-fun string_of_reconstructor (Metis (type_enc, lam_trans)) =
-    metis_call type_enc lam_trans
+fun string_of_reconstructor (Metis (type_enc, lam_trans)) = metis_call type_enc lam_trans
   | string_of_reconstructor SMT = smtN
-
 
 
 (** one-liner reconstructor proofs **)
@@ -59,8 +54,7 @@ fun apply_on_subgoal _ 1 = "by "
     "prefer " ^ string_of_int i ^ " " ^ apply_on_subgoal 1 n
 
 fun using_labels [] = ""
-  | using_labels ls =
-    "using " ^ space_implode " " (map string_of_label ls) ^ " "
+  | using_labels ls = "using " ^ space_implode " " (map string_of_label ls) ^ " "
 
 fun command_call name [] =
     name |> not (Symbol_Pos.is_identifier name) ? enclose "(" ")"
@@ -68,8 +62,7 @@ fun command_call name [] =
 
 fun reconstructor_command reconstr i n used_chaineds num_chained (ls, ss) =
   (* unusing_chained_facts used_chaineds num_chained ^ *)
-  using_labels ls ^ apply_on_subgoal i n ^
-  command_call (string_of_reconstructor reconstr) ss
+  using_labels ls ^ apply_on_subgoal i n ^ command_call (string_of_reconstructor reconstr) ss
 
 fun try_command_line banner time command =
   banner ^ ": " ^
@@ -105,8 +98,7 @@ fun one_line_proof_text num_chained
       | Failed_to_Play reconstr => (true, reconstr, NONE)
     val try_line =
       ([], map fst extra)
-      |> reconstructor_command reconstr subgoal subgoal_count (map fst chained)
-                               num_chained
+      |> reconstructor_command reconstr subgoal subgoal_count (map fst chained) num_chained
       |> (if failed then
             enclose "One-line proof reconstruction failed: "
                      ".\n(Invoking \"sledgehammer\" with \"[strict]\" might \
@@ -186,16 +178,18 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
     fun using_facts [] [] = ""
       | using_facts ls ss = "using " ^ space_implode " " (map string_of_label ls @ ss) ^ " "
 
-    fun of_method ls ss Metis_Method =
-        reconstructor_command (Metis (type_enc, lam_trans)) 1 1 [] 0 (ls, ss)
+    fun of_metis ls ss = reconstructor_command (Metis (type_enc, lam_trans)) 1 1 [] 0 (ls, ss)
+
+    fun of_method ls ss Metis_Method = of_metis ls ss
+      | of_method ls ss Metis_New_Skolem_Method = "using [[metis_new_skolem]] " ^ of_metis ls ss
       | of_method ls ss meth = using_facts ls ss ^ by_method meth
 
-    fun of_byline ind options (ls, ss) meth =
+    fun of_byline ind (ls, ss) meth =
       let
         val ls = ls |> sort_distinct label_ord
         val ss = ss |> sort_distinct string_ord
       in
-        "\n" ^ of_indent (ind + 1) ^ options ^ of_method ls ss meth
+        "\n" ^ of_indent (ind + 1) ^ of_method ls ss meth
       end
 
     fun of_free (s, T) =
@@ -218,10 +212,10 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
 
     fun add_assms ind assms = fold (add_assm ind) assms
 
-    fun add_step_post ind l t facts meth options =
+    fun add_step_post ind l t facts meth =
       add_suffix (of_label l)
       #> add_term t
-      #> add_suffix (of_byline ind options facts meth ^ "\n")
+      #> add_suffix (of_byline ind facts meth ^ "\n")
 
     fun of_subproof ind ctxt proof =
       let
@@ -231,8 +225,7 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
         val suffix = " }"
       in
         replicate_string (ind * indent_size - size prefix) " " ^ prefix ^
-        String.extract (s, ind * indent_size,
-                        SOME (size s - ind * indent_size - 1)) ^
+        String.extract (s, ind * indent_size, SOME (size s - ind * indent_size - 1)) ^
         suffix ^ "\n"
       end
     and of_subproofs _ _ _ [] = ""
@@ -247,19 +240,15 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
         #> add_suffix " = "
         #> add_term t2
         #> add_suffix "\n"
-      | add_step ind (step as Prove (qs, xs, l, t, subproofs, (facts, meth :: _))) =
-        (case xs of
-          [] => (* have *)
-          add_step_pre ind qs subproofs
-          #> add_suffix (of_have qs (length subproofs) ^ " ")
-          #> add_step_post ind l t facts meth ""
-        | _ => (* obtain *)
-          add_step_pre ind qs subproofs
-          #> add_suffix (of_obtain qs (length subproofs) ^ " ")
-          #> add_frees xs
-          #> add_suffix " where "
-          #> add_step_post ind l t facts meth
-            (if use_metis_new_skolem step then "using [[metis_new_skolem]] " else ""))
+      | add_step ind (step as Prove (qs, xs, l, t, subproofs, (facts, (meth :: _) :: _))) =
+        add_step_pre ind qs subproofs
+        #> (case xs of
+            [] => add_suffix (of_have qs (length subproofs) ^ " ")
+          | _ =>
+            add_suffix (of_obtain qs (length subproofs) ^ " ")
+            #> add_frees xs
+            #> add_suffix " where ")
+        #> add_step_post ind l t facts meth
     and add_steps ind = fold (add_step ind)
     and of_proof ind ctxt (Proof (xs, assms, steps)) =
       ("", ctxt) |> add_fix ind xs |> add_assms ind assms |> add_steps ind steps |> fst
@@ -267,7 +256,7 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
     (* One-step Metis proofs are pointless; better use the one-liner directly. *)
     (case proof of
       Proof ([], [], []) => "" (* degenerate case: the conjecture is "True" with Z3 *)
-    | Proof ([], [], [Prove (_, [], _, _, [], (_, Metis_Method :: _))]) => ""
+    | Proof ([], [], [Prove (_, [], _, _, [], (_, (Metis_Method :: _) :: _))]) => ""
     | _ =>
       (if i <> 1 then "prefer " ^ string_of_int i ^ "\n" else "") ^
       of_indent 0 ^ "proof -\n" ^ of_proof 1 ctxt proof ^
