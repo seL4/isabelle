@@ -468,8 +468,7 @@ fun core_inference inf fact = ((fact, [fact]), Unknown, dummy_phi, inf, [])
 (* Syntax: core(<name>,[<name>,...,<name>]). *)
 fun parse_z3_tptp_line x =
   (scan_general_id --| $$ "," --| $$ "[" -- parse_dependencies --| $$ "]"
-   >> (fn (name, names) =>
-          (("", name :: names), Unknown, dummy_phi, z3_tptp_coreN, []))) x
+   >> (fn (name, names) => (("", name :: names), Unknown, dummy_phi, z3_tptp_coreN, []))) x
 
 (* Syntax: <name> *)
 fun parse_satallax_line x =

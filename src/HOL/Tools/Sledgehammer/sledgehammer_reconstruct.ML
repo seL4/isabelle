@@ -17,8 +17,6 @@ sig
     bool * bool * string * string * Time.time option * real * bool * (term, string) atp_step list *
     thm
 
-  val replace_dependencies_in_line : atp_step_name * atp_step_name list -> ('a, 'b) atp_step ->
-    ('a, 'b) atp_step
   val isar_proof_text : Proof.context -> bool option -> isar_params -> one_line_params -> string
   val proof_text : Proof.context -> bool option -> (unit -> isar_params) -> int ->
     one_line_params -> string
@@ -55,7 +53,8 @@ val vampire_skolemisation_rule = "skolemisation"
 val z3_skolemize_rule = "sk"
 val z3_th_lemma_rule = "th-lemma"
 
-val skolemize_rules = e_skolemize_rules @ [vampire_skolemisation_rule, z3_skolemize_rule]
+val skolemize_rules =
+  e_skolemize_rules @ [spass_skolemize_rule, vampire_skolemisation_rule, z3_skolemize_rule]
 
 val is_skolemize_rule = member (op =) skolemize_rules
 val is_arith_rule = String.isPrefix z3_th_lemma_rule
@@ -67,11 +66,6 @@ fun label_of_clause [(num, _)] = raw_label_of_num num
 
 fun add_fact_of_dependencies [(_, ss as _ :: _)] = apsnd (union (op =) ss)
   | add_fact_of_dependencies names = apfst (insert (op =) (label_of_clause names))
-
-fun replace_one_dependency (old, new) dep =
-  if is_same_atp_step dep old then new else [dep]
-fun replace_dependencies_in_line oldnew (name, role, t, rule, deps) =
-  (name, role, t, rule, fold (union (op =) o replace_one_dependency oldnew) deps [])
 
 (* No "real" literals means only type information (tfree_tcs, clsrel, or clsarity). *)
 fun is_only_type_information t = t aconv @{prop True}

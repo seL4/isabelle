@@ -847,6 +847,7 @@ fun run_atp mode name
                     val atp_proof =
                       atp_proof
                       |> termify_atp_proof ctxt pool lifted sym_tab
+                      |> introduce_spass_skolem
                       |> factify_atp_proof fact_names hyp_ts concl_t
                   in
                     (debug, verbose, metis_type_enc, metis_lam_trans, preplay_timeout,

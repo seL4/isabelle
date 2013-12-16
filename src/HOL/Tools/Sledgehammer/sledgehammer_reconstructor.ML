@@ -19,9 +19,7 @@ sig
     Failed_to_Play of reconstructor
 
   type minimize_command = string list -> string
-
-  type one_line_params =
-    play * string * (string * stature) list * minimize_command * int * int
+  type one_line_params = play * string * (string * stature) list * minimize_command * int * int
 
   val smtN : string
 end;
@@ -41,9 +39,7 @@ datatype play =
   Failed_to_Play of reconstructor
 
 type minimize_command = string list -> string
-
-type one_line_params =
-  play * string * (string * stature) list * minimize_command * int * int
+type one_line_params = play * string * (string * stature) list * minimize_command * int * int
 
 val smtN = "smt"
 

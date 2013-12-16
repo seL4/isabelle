@@ -11,9 +11,11 @@ sig
   type ('a, 'b) atp_term = ('a, 'b) ATP_Problem.atp_term
   type ('a, 'b, 'c, 'd) atp_formula = ('a, 'b, 'c, 'd) ATP_Problem.atp_formula
   type stature = ATP_Problem_Generate.stature
+  type atp_step_name = ATP_Proof.atp_step_name
   type ('a, 'b) atp_step = ('a, 'b) ATP_Proof.atp_step
   type 'a atp_proof = 'a ATP_Proof.atp_proof
 
+  val spass_skolemize_rule : string
   val metisN : string
   val full_typesN : string
   val partial_typesN : string
@@ -25,6 +27,7 @@ sig
   val full_type_encs : string list
   val partial_type_encs : string list
   val default_metis_lam_trans : string
+
   val metis_call : string -> string -> string
   val forall_of : term -> term -> term
   val exists_of : term -> term -> term
@@ -40,8 +43,11 @@ sig
     'a atp_proof -> string list option
   val lam_trans_of_atp_proof : string atp_proof -> string -> string
   val is_typed_helper_used_in_atp_proof : string atp_proof -> bool
+  val replace_dependencies_in_line : atp_step_name * atp_step_name list -> ('a, 'b) atp_step ->
+    ('a, 'b) atp_step
   val termify_atp_proof : Proof.context -> string Symtab.table -> (string * term) list ->
     int Symtab.table -> string atp_proof -> (term, string) atp_step list
+  val introduce_spass_skolem : (term, string) atp_step list -> (term, string) atp_step list
   val factify_atp_proof : (string * 'a) list vector -> term list -> term ->
     (term, string) atp_step list -> (term, string) atp_step list
 end;
@@ -53,6 +59,9 @@ open ATP_Util
 open ATP_Problem
 open ATP_Proof
 open ATP_Problem_Generate
+
+val spass_input_rule = "Inp"
+val spass_skolemize_rule = "__Sko" (* arbitrary *)
 
 val metisN = "metis"
 
@@ -174,8 +183,8 @@ fun slack_fastype_of t = fastype_of t handle TERM _ => HOLogic.typeT
 fun loose_aconv (Free (s, _), Free (s', _)) = s = s'
   | loose_aconv (t, t') = t aconv t'
 
-(* SPASS (3.8ds) and Vampire (2.6) pass arguments to Skolem functions in reverse order. *)
-val rev_skolem_prefixes = ["skf", "sK"]
+val spass_skolem_prefix = "sk" (* "skc" or "skf" *)
+val vampire_skolem_prefix = "sK"
 
 (* First-order translation. No types are known for variables. "HOLogic.typeT"
    should allow them to be inferred. *)
@@ -269,7 +278,10 @@ fun term_of_atp ctxt textual sym_tab =
               [(s, ())] |> Variable.variant_frees ctxt [] |> hd |> fst
             val term_ts =
               map (do_term [] NONE) us
-              |> exists (fn pre => String.isPrefix pre s) rev_skolem_prefixes ? rev
+              (* SPASS (3.8ds) and Vampire (2.6) pass arguments to Skolem functions in reverse
+                 order, which is incompatible with the new Metis skolemizer. *)
+              |> exists (fn pre => String.isPrefix pre s)
+                [spass_skolem_prefix, vampire_skolem_prefix] ? rev
             val ts = term_ts @ extra_ts
             val T =
               case opt_T of
@@ -450,6 +462,10 @@ val is_typed_helper_name =
 fun is_typed_helper_used_in_atp_proof atp_proof =
   is_axiom_used_in_proof is_typed_helper_name atp_proof
 
+fun replace_one_dependency (old, new) dep = if is_same_atp_step dep old then new else [dep]
+fun replace_dependencies_in_line old_new (name, role, t, rule, deps) =
+  (name, role, t, rule, fold (union (op =) o replace_one_dependency old_new) deps [])
+
 fun repair_name "$true" = "c_True"
   | repair_name "$false" = "c_False"
   | repair_name "$$e" = tptp_equal (* seen in Vampire proofs *)
@@ -527,6 +543,58 @@ fun termify_atp_proof ctxt pool lifted sym_tab =
   #> map (termify_line ctxt lifted sym_tab)
   #> repair_waldmeister_endgame
 
+fun introduce_spass_skolem [] = []
+  | introduce_spass_skolem (proof as (_, _, _, rule1, _) :: _) =
+    if rule1 = spass_input_rule then
+      let
+        fun add_sko (Free (s, _)) = String.isPrefix spass_skolem_prefix s ? insert (op =) s
+          | add_sko _ = I
+
+        (* union-find would be faster *)
+        fun add_cycle _ [] = I
+          | add_cycle name ss =
+            fold (fn s => Graph.default_node (s, ())) ss
+            #> fold Graph.add_edge (ss ~~ tl ss @ [hd ss])
+
+        val (input_steps, other_steps) = List.partition (null o #5) proof
+
+        val skoss = map (fn (_, _, t, _, _) => Term.fold_aterms add_sko t []) input_steps
+        val skoss_input_steps = filter_out (null o fst) (skoss ~~ input_steps)
+
+        val groups =
+          Graph.empty
+          |> fold (fn (skos, (name, _, _, _, _)) => add_cycle name skos) skoss_input_steps
+          |> Graph.strong_conn
+
+        fun step_name_of_group skos = (implode skos, [])
+        fun in_group group = member (op =) group o hd
+        fun group_of sko = the (find_first (fn group => in_group group sko) groups)
+
+        fun new_step group skoss_steps =
+          let
+            val t =
+              skoss_steps
+              |> map (snd #> #3 #> HOLogic.dest_Trueprop)
+              |> Library.foldr1 s_conj
+              |> HOLogic.mk_Trueprop
+            val deps = map (snd #> #1) skoss_steps
+          in
+            (step_name_of_group group, Plain, t, spass_skolemize_rule, deps)
+          end
+
+        val sko_steps =
+          map (fn group => new_step group (filter (in_group group o fst) skoss_input_steps)) groups
+
+        val old_news =
+          map (fn (skos, (name, _, _, _, _)) => (name, [step_name_of_group (group_of skos)]))
+            skoss_input_steps
+        val repair_deps = fold replace_dependencies_in_line old_news
+      in
+        input_steps @ sko_steps @ map repair_deps other_steps
+      end
+  else
+    proof
+
 fun factify_atp_proof fact_names hyp_ts concl_t atp_proof =
   let
     fun factify_step ((num, ss), role, t, rule, deps) =
@@ -548,7 +616,8 @@ fun factify_atp_proof fact_names hyp_ts concl_t atp_proof =
 
     fun repair_dep (num, ss) = (num, the_default ss (AList.lookup (op =) names num))
     fun repair_deps (name, role, t, rule, deps) = (name, role, t, rule, map repair_dep deps)
-
-  in map repair_deps atp_proof end
+  in
+    map repair_deps atp_proof
+  end
 
 end;
