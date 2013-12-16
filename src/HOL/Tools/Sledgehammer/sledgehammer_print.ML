@@ -180,6 +180,7 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
       | ForceM => "force"
       | ArithM => "arith"
       | BlastM => "blast"
+      | MesonM => "meson"
       | _ => raise Fail "Sledgehammer_Print: by_method")
 
     fun using_facts [] [] = ""

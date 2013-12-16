@@ -26,7 +26,8 @@ sig
     FastforceM |
     ForceM |
     ArithM |
-    BlastM
+    BlastM |
+    MesonM
 
   val no_label : label
   val no_facts : facts
@@ -83,7 +84,8 @@ and proof_method =
   FastforceM |
   ForceM |
   ArithM |
-  BlastM
+  BlastM |
+  MesonM
 
 val no_label = ("", ~1)
 val no_facts = ([],[])
