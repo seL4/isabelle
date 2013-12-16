@@ -45,6 +45,7 @@ sig
   val subproofs_of_step : isar_step -> isar_proof list option
   val byline_of_step : isar_step -> (facts * proof_method) option
   val proof_method_of_step : isar_step -> proof_method option
+  val use_metis_new_skolem : isar_step -> bool
 
   val fold_isar_step : (isar_step -> 'a -> 'a) -> isar_step -> 'a -> 'a
   val fold_isar_steps :
@@ -59,7 +60,6 @@ sig
   val relabel_proof_canonically : isar_proof -> isar_proof
 
   structure Canonical_Lbl_Tab : TABLE
-
 end;
 
 structure Sledgehammer_Proof : SLEDGEHAMMER_PROOF =
@@ -109,6 +109,10 @@ fun byline_of_step (Prove (_, _, _, _, _, byline)) = SOME byline
 
 fun proof_method_of_step (Prove (_, _, _, _, _, (_, method))) = SOME method
   | proof_method_of_step _ = NONE
+
+fun use_metis_new_skolem (Prove (_, xs, _, _, _, (_, meth))) =
+    meth = MetisM andalso exists (fn (_, T) => length (binder_types T) > 1) xs
+  | use_metis_new_skolem _ = false
 
 fun fold_isar_steps f = fold (fold_isar_step f)
 and fold_isar_step f step s =

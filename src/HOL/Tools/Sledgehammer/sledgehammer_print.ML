@@ -172,8 +172,8 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
             |> maybe_quote),
        ctxt |> Variable.auto_fixes term)
 
-    fun by_method method = "by " ^
-      (case method of
+    fun by_method meth = "by " ^
+      (case meth of
         SimpM => "simp"
       | AutoM => "auto"
       | FastforceM => "fastforce"
@@ -187,16 +187,15 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
           "using " ^ space_implode " " (map string_of_label ls @ ss) ^ " "
 
     fun of_method ls ss MetisM =
-          reconstructor_command (Metis (type_enc, lam_trans)) 1 1 [] 0 (ls, ss)
-      | of_method ls ss method =
-          using_facts ls ss ^ by_method method
+        reconstructor_command (Metis (type_enc, lam_trans)) 1 1 [] 0 (ls, ss)
+      | of_method ls ss meth = using_facts ls ss ^ by_method meth
 
-    fun of_byline ind options (ls, ss) method =
+    fun of_byline ind options (ls, ss) meth =
       let
         val ls = ls |> sort_distinct label_ord
         val ss = ss |> sort_distinct string_ord
       in
-        "\n" ^ of_indent (ind + 1) ^ options ^ of_method ls ss method
+        "\n" ^ of_indent (ind + 1) ^ options ^ of_method ls ss meth
       end
 
     fun of_free (s, T) =
@@ -219,10 +218,10 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
 
     fun add_assms ind assms = fold (add_assm ind) assms
 
-    fun add_step_post ind l t facts method options =
+    fun add_step_post ind l t facts meth options =
       add_suffix (of_label l)
       #> add_term t
-      #> add_suffix (of_byline ind options facts method ^ "\n")
+      #> add_suffix (of_byline ind options facts meth ^ "\n")
 
     fun of_subproof ind ctxt proof =
       let
@@ -251,23 +250,21 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
         #> add_suffix " = "
         #> add_term t2
         #> add_suffix "\n"
-      | add_step ind (Prove (qs, xs, l, t, subproofs, (facts, method))) =
+      | add_step ind (step as Prove (qs, xs, l, t, subproofs, (facts, meth))) =
         (case xs of
           [] => (* have *)
             add_step_pre ind qs subproofs
             #> add_suffix (of_prove qs (length subproofs) ^ " ")
-            #> add_step_post ind l t facts method ""
+            #> add_step_post ind l t facts meth ""
         | _ => (* obtain *)
             add_step_pre ind qs subproofs
             #> add_suffix (of_obtain qs (length subproofs) ^ " ")
             #> add_frees xs
             #> add_suffix " where "
-            (* The new skolemizer puts the arguments in the same order as the
-               ATPs (E and Vampire -- but see also "atp_proof_reconstruct.ML"
-               regarding Vampire). *)
-            #> add_step_post ind l t facts method
-                 (if exists (fn (_, T) => length (binder_types T) > 1) xs
-                  andalso method = MetisM then
+            (* The new skolemizer puts the arguments in the same order as the ATPs (E and Vampire --
+               but see also "atp_proof_reconstruct.ML" regarding Vampire). *)
+            #> add_step_post ind l t facts meth
+                 (if use_metis_new_skolem step then
                     "using [[metis_new_skolem]] "
                   else
                     ""))
