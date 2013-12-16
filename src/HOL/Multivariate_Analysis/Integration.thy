@@ -220,7 +220,8 @@ abbreviation One :: "'a::euclidean_space"
   where "One \<equiv> \<Sum>Basis"
 
 lemma empty_as_interval: "{} = {One..(0::'a::ordered_euclidean_space)}"
-  by (auto simp: set_eq_iff eucl_le[where 'a='a] intro!: bexI[OF _ SOME_Basis])
+  apply (auto simp: eucl_le[where 'a='a])
+  by (metis (mono_tags) eucl_less eucl_less_not_refl order.strict_trans2 zero_less_one)
 
 lemma interior_subset_union_intervals:
   assumes "i = {a..b::'a::ordered_euclidean_space}"
@@ -230,11 +231,11 @@ lemma interior_subset_union_intervals:
     and "interior i \<inter> interior j = {}"
   shows "interior i \<subseteq> interior s"
 proof -
-  have "{a<..<b} \<inter> {c..d} = {}"
+  have "box a b \<inter> {c..d} = {}"
     using inter_interval_mixed_eq_empty[of c d a b] and assms(3,5)
     unfolding assms(1,2) interior_closed_interval by auto
   moreover
-  have "{a<..<b} \<subseteq> {c..d} \<union> s"
+  have "box a b \<subseteq> {c..d} \<union> s"
     apply (rule order_trans,rule interval_open_subset_closed)
     using assms(4) unfolding assms(1,2)
     apply auto
@@ -310,9 +311,9 @@ proof (rule ccontr, unfold ex_in_conv[symmetric])
         then show ?thesis by auto
       next
         case True show ?thesis
-        proof (cases "x\<in>{a<..<b}")
+        proof (cases "x\<in>box a b")
           case True
-          then obtain d where "0 < d \<and> ball x d \<subseteq> {a<..<b}"
+          then obtain d where "0 < d \<and> ball x d \<subseteq> box a b"
             unfolding open_contains_ball_eq[OF open_interval,rule_format] ..
           then show ?thesis
             apply (rule_tac x=i in bexI, rule_tac x=x in exI, rule_tac x="min d e" in exI)
@@ -1114,7 +1115,8 @@ next
     obtain c d where k: "k = {c..d}"
       using p(4)[OF goal1] by blast
     have *: "{c..d} \<subseteq> {a..b}" "{c..d} \<noteq> {}"
-      using p(2,3)[OF goal1, unfolded k] using assms(2) by auto
+      using p(2,3)[OF goal1, unfolded k] using assms(2)
+        by auto
     obtain q where "q division_of {a..b}" "{c..d} \<in> q"
       by (rule partial_division_extend_1[OF *])
     then show ?case
@@ -1324,7 +1326,7 @@ proof -
       apply (rule assm(1)) unfolding Union_insert
       using assm(2-4) as
       apply -
-      apply (fastforce dest: assm(5))+
+      apply (fast dest: assm(5))+
       done
   next
     assume as: "p \<noteq> {}" "interior {a..b} \<noteq> {}" "{a..b} \<noteq> {}"
@@ -2149,7 +2151,7 @@ proof -
       unfolding s t interior_closed_interval
     proof (rule *)
       fix x
-      assume "x \<in> {c<..<d}" "x \<in> {e<..<f}"
+      assume "x \<in> box c d" "x \<in> box e f"
       then have x: "c\<bullet>i < d\<bullet>i" "e\<bullet>i < f\<bullet>i" "c\<bullet>i < f\<bullet>i" "e\<bullet>i < d\<bullet>i"
         unfolding mem_interval using i'
         apply -
@@ -3274,7 +3276,7 @@ next
   then have "{a .. b} = {}"
     unfolding interval_eq_empty by (auto simp: eucl_le[where 'a='a] not_le)
   then show ?thesis
-    by auto
+    by (auto simp: not_le)
 qed
 
 lemma division_split_left_inj:
@@ -3405,7 +3407,7 @@ proof (rule_tac[!] division_ofI)
       apply -
       prefer 3
       apply (subst interval_split[OF k])
-      apply auto
+      apply (auto intro: order.trans)
       done
     fix k'
     assume "k' \<in> ?p1"
@@ -3426,7 +3428,7 @@ proof (rule_tac[!] division_ofI)
       apply -
       prefer 3
       apply (subst interval_split[OF k])
-      apply auto
+      apply (auto intro: order.trans)
       done
     fix k'
     assume "k' \<in> ?p2"
@@ -3721,7 +3723,7 @@ proof -
     apply (rule tagged_division_union[OF assms(1-2)])
     unfolding interval_split[OF k] interior_closed_interval
     using k
-    apply (auto simp add: eucl_less[where 'a='a] elim!: ballE[where x=k])
+    apply (auto simp add: eucl_less[where 'a='a] interval elim!: ballE[where x=k])
     done
 qed
 
@@ -6248,10 +6250,10 @@ lemma integrable_spike_finite:
 
 subsection {* In particular, the boundary of an interval is negligible. *}
 
-lemma negligible_frontier_interval: "negligible({a::'a::ordered_euclidean_space..b} - {a<..<b})"
+lemma negligible_frontier_interval: "negligible({a::'a::ordered_euclidean_space..b} - box a b)"
 proof -
   let ?A = "\<Union>((\<lambda>k. {x. x\<bullet>k = a\<bullet>k} \<union> {x::'a. x\<bullet>k = b\<bullet>k}) ` Basis)"
-  have "{a..b} - {a<..<b} \<subseteq> ?A"
+  have "{a..b} - box a b \<subseteq> ?A"
     apply rule unfolding Diff_iff mem_interval
     apply simp
     apply(erule conjE bexE)+
@@ -6267,7 +6269,7 @@ proof -
 qed
 
 lemma has_integral_spike_interior:
-  assumes "\<forall>x\<in>{a<..<b}. g x = f x"
+  assumes "\<forall>x\<in>box a b. g x = f x"
     and "(f has_integral y) ({a..b})"
   shows "(g has_integral y) {a..b}"
   apply (rule has_integral_spike[OF negligible_frontier_interval _ assms(2)])
@@ -6276,7 +6278,7 @@ lemma has_integral_spike_interior:
   done
 
 lemma has_integral_spike_interior_eq:
-  assumes "\<forall>x\<in>{a<..<b}. g x = f x"
+  assumes "\<forall>x\<in>box a b. g x = f x"
   shows "(f has_integral y) {a..b} \<longleftrightarrow> (g has_integral y) {a..b}"
   apply rule
   apply (rule_tac[!] has_integral_spike_interior)
@@ -6285,7 +6287,7 @@ lemma has_integral_spike_interior_eq:
   done
 
 lemma integrable_spike_interior:
-  assumes "\<forall>x\<in>{a<..<b}. g x = f x"
+  assumes "\<forall>x\<in>box a b. g x = f x"
     and "f integrable_on {a..b}"
   shows "g integrable_on {a..b}"
   using assms
@@ -7029,7 +7031,7 @@ proof -
     then show "f integrable_on k"
       apply safe
       apply (rule d[THEN conjunct2,rule_format,of x])
-      apply auto
+      apply (auto intro: order.trans)
       done
   qed
 qed
@@ -7650,7 +7652,7 @@ lemma fundamental_theorem_of_calculus_interior:
   fixes f :: "real \<Rightarrow> 'a::real_normed_vector"
   assumes "a \<le> b"
     and "continuous_on {a..b} f"
-    and "\<forall>x\<in>{a<..<b}. (f has_vector_derivative f'(x)) (at x)"
+    and "\<forall>x\<in>box a b. (f has_vector_derivative f'(x)) (at x)"
   shows "(f' has_integral (f b - f a)) {a..b}"
 proof -
   {
@@ -7682,7 +7684,7 @@ proof -
   note assms(3)[unfolded has_vector_derivative_def has_derivative_at_alt ball_conj_distrib]
   note conjunctD2[OF this]
   note bounded=this(1) and this(2)
-  from this(2) have "\<forall>x\<in>{a<..<b}. \<exists>d>0. \<forall>y. norm (y - x) < d \<longrightarrow>
+  from this(2) have "\<forall>x\<in>box a b. \<exists>d>0. \<forall>y. norm (y - x) < d \<longrightarrow>
     norm (f y - f x - (y - x) *\<^sub>R f' x) \<le> e/2 * norm (y - x)"
     apply -
     apply safe
@@ -7885,8 +7887,8 @@ proof -
         note result = as(2)[unfolded k interval_bounds_real[OF this(1)] content_real[OF this(1)]]
 
         assume as': "x \<noteq> a" "x \<noteq> b"
-        then have "x \<in> {a<..<b}"
-          using p(2-3)[OF as(1)] by auto
+        then have "x \<in> box a b"
+          using p(2-3)[OF as(1)] by (auto simp: interval)
         note  * = d(2)[OF this]
         have "norm ((v - u) *\<^sub>R f' (x) - (f (v) - f (u))) =
           norm ((f (u) - f (x) - (u - x) *\<^sub>R f' (x)) - (f (v) - f (x) - (v - x) *\<^sub>R f' (x)))"
@@ -8047,13 +8049,13 @@ proof -
               assume k: "(a, k) \<in> p" "(a, k') \<in> p" "content k \<noteq> 0" "content k' \<noteq> 0"
               guess v using pa[OF k(1)] .. note v = conjunctD2[OF this]
               guess v' using pa[OF k(2)] .. note v' = conjunctD2[OF this] let ?v = "min v v'"
-              have "{a <..< ?v} \<subseteq> k \<inter> k'"
-                unfolding v v' by (auto simp add:)
+              have "box a ?v \<subseteq> k \<inter> k'"
+                unfolding v v' by (auto simp add: interval)
               note interior_mono[OF this,unfolded interior_inter]
-              moreover have "(a + ?v)/2 \<in> { a <..< ?v}"
+              moreover have "(a + ?v)/2 \<in> box a ?v"
                 using k(3-)
                 unfolding v v' content_eq_0 not_le
-                by (auto simp add: not_le)
+                by (auto simp add: interval)
               ultimately have "(a + ?v)/2 \<in> interior k \<inter> interior k'"
                 unfolding interior_open[OF open_interval] by auto
               then have *: "k = k'"
@@ -8078,11 +8080,11 @@ proof -
               guess v using pb[OF k(1)] .. note v = conjunctD2[OF this]
               guess v' using pb[OF k(2)] .. note v' = conjunctD2[OF this]
               let ?v = "max v v'"
-              have "{?v <..< b} \<subseteq> k \<inter> k'"
-                unfolding v v' by auto
+              have "box ?v b \<subseteq> k \<inter> k'"
+                unfolding v v' by (auto simp: interval)
                 note interior_mono[OF this,unfolded interior_inter]
-              moreover have " ((b + ?v)/2) \<in> {?v <..<  b}"
-                using k(3-) unfolding v v' content_eq_0 not_le by auto
+              moreover have " ((b + ?v)/2) \<in> box ?v b"
+                using k(3-) unfolding v v' content_eq_0 not_le by (auto simp: interval)
               ultimately have " ((b + ?v)/2) \<in> interior k \<inter> interior k'"
                 unfolding interior_open[OF open_interval] by auto
               then have *: "k = k'"
@@ -8175,7 +8177,7 @@ lemma fundamental_theorem_of_calculus_interior_strong:
   assumes "finite s"
     and "a \<le> b"
     and "continuous_on {a..b} f"
-    and "\<forall>x\<in>{a<..<b} - s. (f has_vector_derivative f'(x)) (at x)"
+    and "\<forall>x\<in>box a b - s. (f has_vector_derivative f'(x)) (at x)"
   shows "(f' has_integral (f b - f a)) {a..b}"
   using assms
 proof (induct "card s" arbitrary: s a b)
@@ -8196,7 +8198,7 @@ next
     done
   note cs = this[rule_format]
   show ?case
-  proof (cases "c \<in> {a<..<b}")
+  proof (cases "c \<in> box a b")
     case False
     then show ?thesis
       apply -
@@ -8213,7 +8215,7 @@ next
       by auto
     case True
     then have "a \<le> c" "c \<le> b"
-      by auto
+      by (auto simp: interval)
     then show ?thesis
       apply (subst *)
       apply (rule has_integral_combine)
@@ -8225,15 +8227,15 @@ next
       show "continuous_on {a..c} f" "continuous_on {c..b} f"
         apply (rule_tac[!] continuous_on_subset[OF Suc(5)])
         using True
-        apply auto
+        apply (auto simp: interval)
         done
-      let ?P = "\<lambda>i j. \<forall>x\<in>{i<..<j} - s'. (f has_vector_derivative f' x) (at x)"
+      let ?P = "\<lambda>i j. \<forall>x\<in>box i j - s'. (f has_vector_derivative f' x) (at x)"
       show "?P a c" "?P c b"
         apply safe
         apply (rule_tac[!] Suc(6)[rule_format])
         using True
         unfolding cs
-        apply auto
+        apply (auto simp: interval)
         done
     qed auto
   qed
@@ -8248,7 +8250,7 @@ lemma fundamental_theorem_of_calculus_strong:
   shows "(f' has_integral (f(b) - f(a))) {a..b}"
   apply (rule fundamental_theorem_of_calculus_interior_strong[OF assms(1-3), of f'])
   using assms(4)
-  apply auto
+  apply (auto simp: interval)
   done
 
 lemma indefinite_integral_continuous_left:
@@ -8609,7 +8611,7 @@ proof -
     apply (rule open_interval)
     apply (rule has_derivative_within_subset[where s="{a..b}"])
     using assms(4) assms(5)
-    apply auto
+    apply (auto simp: interval)
     done
   note this[unfolded *]
   note has_integral_unique[OF has_integral_0 this]
@@ -8773,9 +8775,9 @@ lemma has_integral_restrict_open_subinterval:
   fixes f :: "'a::ordered_euclidean_space \<Rightarrow> 'b::banach"
   assumes "(f has_integral i) {c..d}"
     and "{c..d} \<subseteq> {a..b}"
-  shows "((\<lambda>x. if x \<in> {c<..<d} then f x else 0) has_integral i) {a..b}"
+  shows "((\<lambda>x. if x \<in> box c d then f x else 0) has_integral i) {a..b}"
 proof -
-  def g \<equiv> "\<lambda>x. if x \<in>{c<..<d} then f x else 0"
+  def g \<equiv> "\<lambda>x. if x \<in>box c d then f x else 0"
   {
     presume *: "{c..d} \<noteq> {} \<Longrightarrow> ?thesis"
     show ?thesis
@@ -8784,7 +8786,7 @@ proof -
       apply assumption
     proof -
       case goal1
-      then have *: "{c<..<d} = {}"
+      then have *: "box c d = {}"
         using interval_open_subset_closed
         by auto
       show ?thesis
@@ -9812,7 +9814,7 @@ proof -
     from d(5)[OF goal1] show ?case
       unfolding obt interior_closed_interval
       apply -
-      apply (rule negligible_subset[of "({a..b}-{a<..<b}) \<union> ({c..d}-{c<..<d})"])
+      apply (rule negligible_subset[of "({a..b}-box a b) \<union> ({c..d}-box c d)"])
       apply (rule negligible_union negligible_frontier_interval)+
       apply auto
       done
@@ -9944,7 +9946,7 @@ proof safe
   case goal1
   note tagged_division_ofD(3-4)[OF assms(2) this]
   then show ?case
-    using integrable_subinterval[OF assms(1)] by auto
+    using integrable_subinterval[OF assms(1)] by blast
 qed
 
 lemma integral_combine_tagged_division_topdown:

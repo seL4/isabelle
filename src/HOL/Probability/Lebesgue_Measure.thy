@@ -916,16 +916,15 @@ lemma sets_product_borel:
 proof (subst sigma_prod_algebra_sigma_eq[where S="\<lambda>_ i::nat. {..<real i}" and E="\<lambda>_. range lessThan", OF I])
   show "sigma_sets (space (Pi\<^sub>M I (\<lambda>i. lborel))) {Pi\<^sub>E I F |F. \<forall>i\<in>I. F i \<in> range lessThan} = ?G"
     by (intro arg_cong2[where f=sigma_sets]) (auto simp: space_PiM image_iff bchoice_iff)
-qed (auto simp: borel_eq_lessThan reals_Archimedean2)
+qed (auto simp: borel_eq_lessThan eucl_lessThan reals_Archimedean2)
 
 lemma measurable_e2p[measurable]:
   "e2p \<in> measurable (borel::'a::ordered_euclidean_space measure) (\<Pi>\<^sub>M (i::'a)\<in>Basis. (lborel :: real measure))"
 proof (rule measurable_sigma_sets[OF sets_product_borel])
   fix A :: "('a \<Rightarrow> real) set" assume "A \<in> {\<Pi>\<^sub>E (i::'a)\<in>Basis. {..<x i} |x. True} "
   then obtain x where  "A = (\<Pi>\<^sub>E (i::'a)\<in>Basis. {..<x i})" by auto
-  then have "e2p -` A = {..< (\<Sum>i\<in>Basis. x i *\<^sub>R i) :: 'a}"
-    using DIM_positive by (auto simp add: set_eq_iff e2p_def
-      euclidean_eq_iff[where 'a='a] eucl_less[where 'a='a])
+  then have "e2p -` A = {y :: 'a. eucl_less y (\<Sum>i\<in>Basis. x i *\<^sub>R i)}"
+    using DIM_positive by (auto simp add: set_eq_iff e2p_def eucl_less_def)
   then show "e2p -` A \<inter> space (borel::'a measure) \<in> sets borel" by simp
 qed (auto simp: e2p_def)
 

@@ -3366,18 +3366,21 @@ proof -
   ultimately show ?thesis by auto
 qed
 
+lemma box_real: "box a b = {a<..<b::real}"
+  by (force simp add: box_def)
+
 lemma rel_interior_real_interval:
   fixes a b :: real
   assumes "a < b"
   shows "rel_interior {a..b} = {a<..<b}"
 proof -
-  have "{a<..<b} \<noteq> {}"
+  have "box a b \<noteq> {}"
     using assms
     unfolding set_eq_iff
-    by (auto intro!: exI[of _ "(a + b) / 2"])
+    by (auto intro!: exI[of _ "(a + b) / 2"] simp: box_def)
   then show ?thesis
     using interior_rel_interior_gen[of "{a..b}", symmetric]
-    by (simp split: split_if_asm add: interior_closed_interval)
+    by (simp split: split_if_asm add: interior_closed_interval box_real)
 qed
 
 lemma rel_interior_real_semiline:
@@ -5666,7 +5669,7 @@ lemma is_interval_connected:
   shows "is_interval s \<Longrightarrow> connected s"
   using is_interval_convex convex_connected by auto
 
-lemma convex_interval: "convex {a .. b}" "convex {a<..<b::'a::ordered_euclidean_space}"
+lemma convex_interval: "convex {a .. b}" "convex (box a (b::'a::ordered_euclidean_space))"
   apply (rule_tac[!] is_interval_convex)
   using is_interval_interval
   apply auto

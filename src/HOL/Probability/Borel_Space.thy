@@ -237,18 +237,25 @@ lemma [measurable]:
   by (blast intro: borel_open borel_closed open_lessThan open_greaterThan open_greaterThanLessThan
                    closed_atMost closed_atLeast closed_atLeastAtMost)+
 
+notation
+  eucl_less (infix "<e" 50)
+
+lemma box_oc: "{x. a <e x \<and> x \<le> b} = {x. a <e x} \<inter> {..b}"
+  and box_co: "{x. a \<le> x \<and> x <e b} = {a..} \<inter> {x. x <e b}"
+  by auto
+
 lemma eucl_ivals[measurable]:
   fixes a b :: "'a\<Colon>ordered_euclidean_space"
-  shows "{..< a} \<in> sets borel"
-    and "{a <..} \<in> sets borel"
-    and "{a<..<b} \<in> sets borel"
+  shows "{x. x <e a} \<in> sets borel"
+    and "{x. a <e x} \<in> sets borel"
+    and "box a b \<in> sets borel"
     and "{..a} \<in> sets borel"
     and "{a..} \<in> sets borel"
     and "{a..b} \<in> sets borel"
-    and  "{a<..b} \<in> sets borel"
-    and "{a..<b} \<in> sets borel"
-  unfolding greaterThanAtMost_def atLeastLessThan_def
-  by (blast intro: borel_open borel_closed)+
+    and  "{x. a <e x \<and> x \<le> b} \<in> sets borel"
+    and "{x. a \<le> x \<and>  x <e b} \<in> sets borel"
+  unfolding box_oc box_co
+  by (auto intro: borel_open borel_closed)
 
 lemma open_Collect_less:
   fixes f g :: "'i::topological_space \<Rightarrow> 'a :: {dense_linorder, linorder_topology}"
@@ -375,11 +382,6 @@ proof (rule borel_eq_sigmaI1[OF borel_def])
     done
 qed (auto simp: box_def)
 
-lemma borel_eq_greaterThanLessThan:
-  "borel = sigma UNIV (range (\<lambda> (a, b). {a <..< b} :: 'a \<Colon> ordered_euclidean_space set))"
-  unfolding borel_eq_box apply (rule arg_cong2[where f=sigma])
-  by (auto simp: box_def image_iff mem_interval set_eq_iff simp del: greaterThanLessThan_iff)
-
 lemma halfspace_gt_in_halfspace:
   assumes i: "i \<in> A"
   shows "{x\<Colon>'a. a < x \<bullet> i} \<in> 
@@ -484,15 +486,15 @@ proof (rule borel_eq_sigmaI4[OF borel_eq_halfspace_le])
 qed auto
 
 lemma borel_eq_greaterThan:
-  "borel = sigma UNIV (range (\<lambda>a\<Colon>'a\<Colon>ordered_euclidean_space. {a<..}))"
+  "borel = sigma UNIV (range (\<lambda>a\<Colon>'a\<Colon>ordered_euclidean_space. {x. a <e x}))"
   (is "_ = ?SIGMA")
 proof (rule borel_eq_sigmaI4[OF borel_eq_halfspace_le])
   fix a :: real and i :: 'a assume "(a, i) \<in> UNIV \<times> Basis"
   then have i: "i \<in> Basis" by auto
   have "{x::'a. x\<bullet>i \<le> a} = UNIV - {x::'a. a < x\<bullet>i}" by auto
   also have *: "{x::'a. a < x\<bullet>i} =
-      (\<Union>k::nat. {\<Sum>n\<in>Basis. (if n = i then a else -real k) *\<^sub>R n <..})" using i
-  proof (safe, simp_all add: eucl_less[where 'a='a] split: split_if_asm)
+      (\<Union>k::nat. {x. (\<Sum>n\<in>Basis. (if n = i then a else -real k) *\<^sub>R n) <e x})" using i
+  proof (safe, simp_all add: eucl_less_def split: split_if_asm)
     fix x :: 'a
     from reals_Archimedean2[of "Max ((\<lambda>i. -x\<bullet>i)`Basis)"]
     guess k::nat .. note k = this
@@ -511,14 +513,14 @@ proof (rule borel_eq_sigmaI4[OF borel_eq_halfspace_le])
 qed auto
 
 lemma borel_eq_lessThan:
-  "borel = sigma UNIV (range (\<lambda>a\<Colon>'a\<Colon>ordered_euclidean_space. {..<a}))"
+  "borel = sigma UNIV (range (\<lambda>a\<Colon>'a\<Colon>ordered_euclidean_space. {x. x <e a}))"
   (is "_ = ?SIGMA")
 proof (rule borel_eq_sigmaI4[OF borel_eq_halfspace_ge])
   fix a :: real and i :: 'a assume "(a, i) \<in> UNIV \<times> Basis"
   then have i: "i \<in> Basis" by auto
   have "{x::'a. a \<le> x\<bullet>i} = UNIV - {x::'a. x\<bullet>i < a}" by auto
-  also have *: "{x::'a. x\<bullet>i < a} = (\<Union>k::nat. {..< \<Sum>n\<in>Basis. (if n = i then a else real k) *\<^sub>R n})" using `i\<in> Basis`
-  proof (safe, simp_all add: eucl_less[where 'a='a] split: split_if_asm)
+  also have *: "{x::'a. x\<bullet>i < a} = (\<Union>k::nat. {x. x <e (\<Sum>n\<in>Basis. (if n = i then a else real k) *\<^sub>R n)})" using `i\<in> Basis`
+  proof (safe, simp_all add: eucl_less_def split: split_if_asm)
     fix x :: 'a
     from reals_Archimedean2[of "Max ((\<lambda>i. x\<bullet>i)`Basis)"]
     guess k::nat .. note k = this
@@ -532,7 +534,7 @@ proof (rule borel_eq_sigmaI4[OF borel_eq_halfspace_ge])
   finally show "{x. a \<le> x\<bullet>i} \<in> ?SIGMA"
     apply (simp only:)
     apply (safe intro!: sets.countable_UN sets.Diff)
-    apply (auto intro: sigma_sets_top)
+    apply (auto intro: sigma_sets_top )
     done
 qed auto
 
@@ -558,6 +560,9 @@ proof (rule borel_eq_sigmaI5[OF borel_eq_atMost])
        (auto intro!: sigma_sets_top)
 qed auto
 
+lemma eucl_lessThan: "{x::real. x <e a} = lessThan a"
+  by (simp add: eucl_less_def lessThan_def)
+
 lemma borel_eq_atLeastLessThan:
   "borel = sigma UNIV (range (\<lambda>(a, b). {a ..< b :: real}))" (is "_ = ?SIGMA")
 proof (rule borel_eq_sigmaI5[OF borel_eq_lessThan])
@@ -565,8 +570,8 @@ proof (rule borel_eq_sigmaI5[OF borel_eq_lessThan])
   fix x :: real
   have "{..<x} = (\<Union>i::nat. {-real i ..< x})"
     by (auto simp: move_uminus real_arch_simple)
-  then show "{..< x} \<in> ?SIGMA"
-    by (auto intro: sigma_sets.intros)
+  then show "{y. y <e x} \<in> ?SIGMA"
+    by (auto intro: sigma_sets.intros simp: eucl_lessThan)
 qed auto
 
 lemma borel_eq_closed: "borel = sigma UNIV (Collect closed)"
@@ -1194,5 +1199,8 @@ lemma borel_measurable_suminf[measurable (raw)]:
   assumes f[measurable]: "\<And>i. f i \<in> borel_measurable M"
   shows "(\<lambda>x. suminf (\<lambda>i. f i x)) \<in> borel_measurable M"
   unfolding suminf_def sums_def[abs_def] lim_def[symmetric] by simp
+
+no_notation
+  eucl_less (infix "<e" 50)
 
 end

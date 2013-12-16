@@ -4241,7 +4241,7 @@ proof -
   have "{a..b} \<noteq> {}"
     using assms by auto
   with i have *: "a\<bullet>i \<le> b\<bullet>i" "u\<bullet>i \<le> v\<bullet>i"
-    using assms(2) by (auto simp add: interval_eq_empty not_less)
+    using assms(2) by (auto simp add: interval_eq_empty interval)
   have x: "a\<bullet>i\<le>x\<bullet>i" "x\<bullet>i\<le>b\<bullet>i"
     using assms(1)[unfolded mem_interval] using i by auto
   have "0 \<le> (x \<bullet> i - a \<bullet> i) / (b \<bullet> i - a \<bullet> i) * (v \<bullet> i - u \<bullet> i)"

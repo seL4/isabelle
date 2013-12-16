@@ -80,7 +80,7 @@ proof (rule ccontr)
   } note x0 = this
   have 21: "\<And>i::2. i \<noteq> 1 \<Longrightarrow> i = 2"
     using UNIV_2 by auto
-  have 1: "{- 1<..<1::real^2} \<noteq> {}"
+  have 1: "box (- 1) (1::real^2) \<noteq> {}"
     unfolding interval_eq_empty_cart by auto
   have 2: "continuous_on {- 1..1} (negatex \<circ> sqprojection \<circ> ?F)"
     apply (intro continuous_on_intros continuous_on_component)
@@ -344,7 +344,7 @@ proof -
     by auto
 next
   have "{a..b} \<noteq> {}"
-    using assms(3) using path_image_nonempty by auto
+    using assms(3) using path_image_nonempty[of f] by auto
   then have "a \<le> b"
     unfolding interval_eq_empty_cart less_eq_vec_def by (auto simp add: not_less)
   then show "a$1 = b$1 \<or> a$2 = b$2 \<or> (a$1 < b$1 \<and> a$2 < b$2)"
@@ -646,7 +646,7 @@ lemma fashoda_interlace:
   obtains z where "z \<in> path_image f" and "z \<in> path_image g"
 proof -
   have "{a..b} \<noteq> {}"
-    using path_image_nonempty using assms(3) by auto
+    using path_image_nonempty[of f] using assms(3) by auto
   note ab=this[unfolded interval_eq_empty_cart not_ex forall_2 not_less]
   have "pathstart f \<in> {a..b}"
     and "pathfinish f \<in> {a..b}"
@@ -692,7 +692,7 @@ proof -
       using ab startfin abab assms(3)
       using assms(9-)
       unfolding assms
-      apply (auto simp add: field_simps)
+      apply (auto simp add: field_simps interval)
       done
     then show "path_image ?P1 \<subseteq> {?a .. ?b}" .
     have "path_image ?P2 \<subseteq> {?a .. ?b}"
@@ -704,7 +704,7 @@ proof -
       using ab startfin abab assms(4)
       using assms(9-)
       unfolding assms
-      apply (auto simp add: field_simps)
+      apply (auto simp add: field_simps interval)
       done
     then show "path_image ?P2 \<subseteq> {?a .. ?b}" .
     show "a $ 1 - 2 = a $ 1 - 2"
