@@ -448,6 +448,37 @@ lemma scaleR_mono':
   "a \<le> b \<Longrightarrow> c \<le> d \<Longrightarrow> 0 \<le> a \<Longrightarrow> 0 \<le> c \<Longrightarrow> a *\<^sub>R c \<le> b *\<^sub>R d"
   by (rule scaleR_mono) (auto intro: order.trans)
 
+lemma pos_le_divideRI:
+  assumes "0 < c"
+  assumes "c *\<^sub>R a \<le> b"
+  shows "a \<le> b /\<^sub>R c"
+proof -
+  from scaleR_left_mono[OF assms(2)] assms(1)
+  have "c *\<^sub>R a /\<^sub>R c \<le> b /\<^sub>R c"
+    by simp
+  with assms show ?thesis
+    by (simp add: scaleR_one scaleR_scaleR inverse_eq_divide)
+qed
+
+lemma pos_le_divideR_eq:
+  assumes "0 < c"
+  shows "a \<le> b /\<^sub>R c \<longleftrightarrow> c *\<^sub>R a \<le> b"
+proof rule
+  assume "a \<le> b /\<^sub>R c"
+  from scaleR_left_mono[OF this] assms
+  have "c *\<^sub>R a \<le> c *\<^sub>R (b /\<^sub>R c)"
+    by simp
+  with assms show "c *\<^sub>R a \<le> b"
+    by (simp add: scaleR_one scaleR_scaleR inverse_eq_divide)
+qed (rule pos_le_divideRI[OF assms])
+
+lemma scaleR_image_atLeastAtMost:
+  "c > 0 \<Longrightarrow> scaleR c ` {x..y} = {c *\<^sub>R x..c *\<^sub>R y}"
+  apply (auto intro!: scaleR_left_mono)
+  apply (rule_tac x = "inverse c *\<^sub>R xa" in image_eqI)
+  apply (simp_all add: pos_le_divideR_eq[symmetric] scaleR_scaleR scaleR_one)
+  done
+
 end
 
 lemma scaleR_nonneg_nonneg: "0 \<le> a \<Longrightarrow> 0 \<le> (x::'a::ordered_real_vector) \<Longrightarrow> 0 \<le> a *\<^sub>R x"
