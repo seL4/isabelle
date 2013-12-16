@@ -102,13 +102,13 @@ fun thm_of_proof ctxt (Proof (fixed_frees, assms, steps)) =
     |> Skip_Proof.make_thm thy
   end
 
-fun tac_of_method method type_enc lam_trans ctxt facts =
-  (case method of
+fun tac_of_method meth type_enc lam_trans ctxt facts =
+  (case meth of
     Metis_Method => Metis_Tactic.metis_tac [type_enc] lam_trans ctxt facts
   | Meson_Method => Meson.meson_tac ctxt facts
   | _ =>
     Method.insert_tac facts THEN'
-    (case method of
+    (case meth of
       Simp_Method => Simplifier.asm_full_simp_tac ctxt
     | Auto_Method => K (Clasimp.auto_tac ctxt)
     | Fastforce_Method => Clasimp.fast_force_tac ctxt
@@ -120,7 +120,7 @@ fun tac_of_method method type_enc lam_trans ctxt facts =
 (* main function for preplaying Isar steps; may throw exceptions *)
 fun preplay_raw _ _ _ _ _ (Let _) = zero_preplay_time
   | preplay_raw debug type_enc lam_trans ctxt timeout
-      (step as Prove (_, xs, _, t, subproofs, (fact_names, meth))) =
+      (step as Prove (_, xs, _, t, subproofs, (fact_names, meth :: _))) =
     let
       val goal =
         (case xs of

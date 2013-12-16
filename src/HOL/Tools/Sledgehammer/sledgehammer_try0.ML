@@ -1,9 +1,9 @@
 (*  Title:      HOL/Tools/Sledgehammer/sledgehammer_try0.ML
-    Author:     Jasmin Blanchette, TU Muenchen
     Author:     Steffen Juilf Smolka, TU Muenchen
+    Author:     Jasmin Blanchette, TU Muenchen
 
-Try replacing calls to metis with calls to other proof methods in order to
-speed up proofs, eliminate dependencies, and repair broken proof steps.
+Try replacing calls to metis with calls to other proof methods to speed up proofs, eliminate
+dependencies, and repair broken proof steps.
 *)
 
 signature SLEDGEHAMMER_TRY0 =
@@ -21,15 +21,9 @@ open Sledgehammer_Util
 open Sledgehammer_Proof
 open Sledgehammer_Preplay
 
-val variant_methods =
-  [Simp_Method, Auto_Method, Arith_Method, Fastforce_Method, Blast_Method, Force_Method,
-   Metis_Method, Meson_Method]
-
-fun variants_of_step (Let _) = raise Fail "Sledgehammer_Try0: variants_of_step"
-  | variants_of_step (Prove (qs, xs, l, t, subproofs, (facts, meth))) =
-    variant_methods
-    |> remove (op =) meth
-    |> map (fn meth' => Prove (qs, xs, l, t, subproofs, (facts, meth')))
+fun variants_of_step (Prove (qs, xs, l, t, subproofs, (facts, _ :: meths))) =
+    map (fn meth => Prove (qs, xs, l, t, subproofs, (facts, [meth]))) meths
+  | variants_of_step _ = raise Fail "Sledgehammer_Try0: variants_of_step"
 
 val slack = seconds 0.05
 

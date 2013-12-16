@@ -155,7 +155,7 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
 
     fun of_thus_hence qs = if member (op =) qs Show then "thus" else "hence"
 
-    fun of_prove qs nr =
+    fun of_have qs nr =
       if nr > 1 orelse (nr = 1 andalso member (op =) qs Then) then
         "ultimately " ^ of_show_have qs
       else if nr=1 orelse member (op =) qs Then then
@@ -184,8 +184,7 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
       | _ => raise Fail "Sledgehammer_Print: by_method")
 
     fun using_facts [] [] = ""
-      | using_facts ls ss =
-          "using " ^ space_implode " " (map string_of_label ls @ ss) ^ " "
+      | using_facts ls ss = "using " ^ space_implode " " (map string_of_label ls @ ss) ^ " "
 
     fun of_method ls ss Metis_Method =
         reconstructor_command (Metis (type_enc, lam_trans)) 1 1 [] 0 (ls, ss)
@@ -236,26 +235,23 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
                         SOME (size s - ind * indent_size - 1)) ^
         suffix ^ "\n"
       end
-
     and of_subproofs _ _ _ [] = ""
       | of_subproofs ind ctxt qs subproofs =
         (if member (op =) qs Then then of_moreover ind else "") ^
         space_implode (of_moreover ind) (map (of_subproof ind ctxt) subproofs)
-
     and add_step_pre ind qs subproofs (s, ctxt) =
       (s ^ of_subproofs ind ctxt qs subproofs ^ of_indent ind, ctxt)
-
     and add_step ind (Let (t1, t2)) =
         add_suffix (of_indent ind ^ "let ")
         #> add_term t1
         #> add_suffix " = "
         #> add_term t2
         #> add_suffix "\n"
-      | add_step ind (step as Prove (qs, xs, l, t, subproofs, (facts, meth))) =
+      | add_step ind (step as Prove (qs, xs, l, t, subproofs, (facts, meth :: _))) =
         (case xs of
           [] => (* have *)
           add_step_pre ind qs subproofs
-          #> add_suffix (of_prove qs (length subproofs) ^ " ")
+          #> add_suffix (of_have qs (length subproofs) ^ " ")
           #> add_step_post ind l t facts meth ""
         | _ => (* obtain *)
           add_step_pre ind qs subproofs
@@ -263,17 +259,15 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
           #> add_frees xs
           #> add_suffix " where "
           #> add_step_post ind l t facts meth
-               (if use_metis_new_skolem step then "using [[metis_new_skolem]] " else ""))
-
+            (if use_metis_new_skolem step then "using [[metis_new_skolem]] " else ""))
     and add_steps ind = fold (add_step ind)
-
     and of_proof ind ctxt (Proof (xs, assms, steps)) =
       ("", ctxt) |> add_fix ind xs |> add_assms ind assms |> add_steps ind steps |> fst
   in
     (* One-step Metis proofs are pointless; better use the one-liner directly. *)
     (case proof of
       Proof ([], [], []) => "" (* degenerate case: the conjecture is "True" with Z3 *)
-    | Proof ([], [], [Prove (_, [], _, _, [], (_, Metis_Method))]) => ""
+    | Proof ([], [], [Prove (_, [], _, _, [], (_, Metis_Method :: _))]) => ""
     | _ =>
       (if i <> 1 then "prefer " ^ string_of_int i ^ "\n" else "") ^
       of_indent 0 ^ "proof -\n" ^ of_proof 1 ctxt proof ^
