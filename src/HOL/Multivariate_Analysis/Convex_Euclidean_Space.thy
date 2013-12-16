@@ -7,7 +7,7 @@ header {* Convex sets, functions and related things. *}
 
 theory Convex_Euclidean_Space
 imports
-  Topology_Euclidean_Space
+  Ordered_Euclidean_Space
   "~~/src/HOL/Library/Convex"
   "~~/src/HOL/Library/Set_Algebras"
 begin
@@ -342,11 +342,6 @@ qed
 
 lemma if_smult: "(if P then x else (y::real)) *\<^sub>R v = (if P then x *\<^sub>R v else y *\<^sub>R v)"
   by auto
-
-lemma image_smult_interval:
-  "(\<lambda>x. m *\<^sub>R (x::'a::ordered_euclidean_space)) ` {a..b} =
-    (if {a..b} = {} then {} else if 0 \<le> m then {m *\<^sub>R a..m *\<^sub>R b} else {m *\<^sub>R b..m *\<^sub>R a})"
-  using image_affinity_interval[of m 0 a b] by auto
 
 lemma dist_triangle_eq:
   fixes x y z :: "'a::real_inner"
