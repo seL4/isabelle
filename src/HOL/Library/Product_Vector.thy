@@ -44,7 +44,7 @@ subsection {* Product is a topological space *}
 instantiation prod :: (topological_space, topological_space) topological_space
 begin
 
-definition open_prod_def:
+definition open_prod_def[code del]:
   "open (S :: ('a \<times> 'b) set) \<longleftrightarrow>
     (\<forall>x\<in>S. \<exists>A B. open A \<and> open B \<and> x \<in> A \<times> B \<and> A \<times> B \<subseteq> S)"
 
@@ -86,6 +86,8 @@ next
 qed
 
 end
+
+code_abort "open::('a::topological_space*'b::topological_space) set \<Rightarrow> bool"
 
 lemma open_Times: "open S \<Longrightarrow> open T \<Longrightarrow> open (S \<times> T)"
 unfolding open_prod_def by auto
@@ -257,7 +259,7 @@ subsection {* Product is a metric space *}
 instantiation prod :: (metric_space, metric_space) metric_space
 begin
 
-definition dist_prod_def:
+definition dist_prod_def[code del]:
   "dist x y = sqrt ((dist (fst x) (fst y))\<^sup>2 + (dist (snd x) (snd y))\<^sup>2)"
 
 lemma dist_Pair_Pair: "dist (a, b) (c, d) = sqrt ((dist a c)\<^sup>2 + (dist b d)\<^sup>2)"
@@ -344,6 +346,8 @@ qed
 
 end
 
+code_abort "dist::('a::metric_space*'b::metric_space)\<Rightarrow>('a*'b) \<Rightarrow> real"
+
 lemma Cauchy_fst: "Cauchy X \<Longrightarrow> Cauchy (\<lambda>n. fst (X n))"
   unfolding Cauchy_def by (fast elim: le_less_trans [OF dist_fst_le])
 
@@ -388,7 +392,7 @@ subsection {* Product is a normed vector space *}
 instantiation prod :: (real_normed_vector, real_normed_vector) real_normed_vector
 begin
 
-definition norm_prod_def:
+definition norm_prod_def[code del]:
   "norm x = sqrt ((norm (fst x))\<^sup>2 + (norm (snd x))\<^sup>2)"
 
 definition sgn_prod_def:
@@ -421,6 +425,8 @@ instance proof
 qed
 
 end
+
+code_abort "norm::('a::real_normed_vector*'b::real_normed_vector) \<Rightarrow> real"
 
 instance prod :: (banach, banach) banach ..
 
