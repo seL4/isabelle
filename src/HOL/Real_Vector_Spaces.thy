@@ -431,6 +431,121 @@ lemma Reals_induct [case_names of_real, induct set: Reals]:
   "q \<in> \<real> \<Longrightarrow> (\<And>r. P (of_real r)) \<Longrightarrow> P q"
   by (rule Reals_cases) auto
 
+subsection {* Ordered real vector spaces *}
+
+class ordered_real_vector = real_vector + ordered_ab_group_add +
+  assumes scaleR_left_mono: "x \<le> y \<Longrightarrow> 0 \<le> a \<Longrightarrow> a *\<^sub>R x \<le> a *\<^sub>R y"
+  assumes scaleR_right_mono: "a \<le> b \<Longrightarrow> 0 \<le> x \<Longrightarrow> a *\<^sub>R x \<le> b *\<^sub>R x"
+begin
+
+lemma scaleR_mono:
+  "a \<le> b \<Longrightarrow> x \<le> y \<Longrightarrow> 0 \<le> b \<Longrightarrow> 0 \<le> x \<Longrightarrow> a *\<^sub>R x \<le> b *\<^sub>R y"
+apply (erule scaleR_right_mono [THEN order_trans], assumption)
+apply (erule scaleR_left_mono, assumption)
+done
+
+lemma scaleR_mono':
+  "a \<le> b \<Longrightarrow> c \<le> d \<Longrightarrow> 0 \<le> a \<Longrightarrow> 0 \<le> c \<Longrightarrow> a *\<^sub>R c \<le> b *\<^sub>R d"
+  by (rule scaleR_mono) (auto intro: order.trans)
+
+end
+
+lemma scaleR_nonneg_nonneg: "0 \<le> a \<Longrightarrow> 0 \<le> (x::'a::ordered_real_vector) \<Longrightarrow> 0 \<le> a *\<^sub>R x"
+  using scaleR_left_mono [of 0 x a]
+  by simp
+
+lemma scaleR_nonneg_nonpos: "0 \<le> a \<Longrightarrow> (x::'a::ordered_real_vector) \<le> 0 \<Longrightarrow> a *\<^sub>R x \<le> 0"
+  using scaleR_left_mono [of x 0 a] by simp
+
+lemma scaleR_nonpos_nonneg: "a \<le> 0 \<Longrightarrow> 0 \<le> (x::'a::ordered_real_vector) \<Longrightarrow> a *\<^sub>R x \<le> 0"
+  using scaleR_right_mono [of a 0 x] by simp
+
+lemma split_scaleR_neg_le: "(0 \<le> a & x \<le> 0) | (a \<le> 0 & 0 \<le> x) \<Longrightarrow>
+  a *\<^sub>R (x::'a::ordered_real_vector) \<le> 0"
+  by (auto simp add: scaleR_nonneg_nonpos scaleR_nonpos_nonneg)
+
+lemma le_add_iff1:
+  fixes c d e::"'a::ordered_real_vector"
+  shows "a *\<^sub>R e + c \<le> b *\<^sub>R e + d \<longleftrightarrow> (a - b) *\<^sub>R e + c \<le> d"
+  by (simp add: algebra_simps)
+
+lemma le_add_iff2:
+  fixes c d e::"'a::ordered_real_vector"
+  shows "a *\<^sub>R e + c \<le> b *\<^sub>R e + d \<longleftrightarrow> c \<le> (b - a) *\<^sub>R e + d"
+  by (simp add: algebra_simps)
+
+lemma scaleR_left_mono_neg:
+  fixes a b::"'a::ordered_real_vector"
+  shows "b \<le> a \<Longrightarrow> c \<le> 0 \<Longrightarrow> c *\<^sub>R a \<le> c *\<^sub>R b"
+  apply (drule scaleR_left_mono [of _ _ "- c"])
+  apply simp_all
+  done
+
+lemma scaleR_right_mono_neg:
+  fixes c::"'a::ordered_real_vector"
+  shows "b \<le> a \<Longrightarrow> c \<le> 0 \<Longrightarrow> a *\<^sub>R c \<le> b *\<^sub>R c"
+  apply (drule scaleR_right_mono [of _ _ "- c"])
+  apply simp_all
+  done
+
+lemma scaleR_nonpos_nonpos: "a \<le> 0 \<Longrightarrow> (b::'a::ordered_real_vector) \<le> 0 \<Longrightarrow> 0 \<le> a *\<^sub>R b"
+using scaleR_right_mono_neg [of a 0 b] by simp
+
+lemma split_scaleR_pos_le:
+  fixes b::"'a::ordered_real_vector"
+  shows "(0 \<le> a \<and> 0 \<le> b) \<or> (a \<le> 0 \<and> b \<le> 0) \<Longrightarrow> 0 \<le> a *\<^sub>R b"
+  by (auto simp add: scaleR_nonneg_nonneg scaleR_nonpos_nonpos)
+
+lemma zero_le_scaleR_iff:
+  fixes b::"'a::ordered_real_vector"
+  shows "0 \<le> a *\<^sub>R b \<longleftrightarrow> 0 < a \<and> 0 \<le> b \<or> a < 0 \<and> b \<le> 0 \<or> a = 0" (is "?lhs = ?rhs")
+proof cases
+  assume "a \<noteq> 0"
+  show ?thesis
+  proof
+    assume lhs: ?lhs
+    {
+      assume "0 < a"
+      with lhs have "inverse a *\<^sub>R 0 \<le> inverse a *\<^sub>R (a *\<^sub>R b)"
+        by (intro scaleR_mono) auto
+      hence ?rhs using `0 < a`
+        by simp
+    } moreover {
+      assume "0 > a"
+      with lhs have "- inverse a *\<^sub>R 0 \<le> - inverse a *\<^sub>R (a *\<^sub>R b)"
+        by (intro scaleR_mono) auto
+      hence ?rhs using `0 > a`
+        by simp
+    } ultimately show ?rhs using `a \<noteq> 0` by arith
+  qed (auto simp: not_le `a \<noteq> 0` intro!: split_scaleR_pos_le)
+qed simp
+
+lemma scaleR_le_0_iff:
+  fixes b::"'a::ordered_real_vector"
+  shows "a *\<^sub>R b \<le> 0 \<longleftrightarrow> 0 < a \<and> b \<le> 0 \<or> a < 0 \<and> 0 \<le> b \<or> a = 0"
+  by (insert zero_le_scaleR_iff [of "-a" b]) force
+
+lemma scaleR_le_cancel_left:
+  fixes b::"'a::ordered_real_vector"
+  shows "c *\<^sub>R a \<le> c *\<^sub>R b \<longleftrightarrow> (0 < c \<longrightarrow> a \<le> b) \<and> (c < 0 \<longrightarrow> b \<le> a)"
+  by (auto simp add: neq_iff scaleR_left_mono scaleR_left_mono_neg
+    dest: scaleR_left_mono[where a="inverse c"] scaleR_left_mono_neg[where c="inverse c"])
+
+lemma scaleR_le_cancel_left_pos:
+  fixes b::"'a::ordered_real_vector"
+  shows "0 < c \<Longrightarrow> c *\<^sub>R a \<le> c *\<^sub>R b \<longleftrightarrow> a \<le> b"
+  by (auto simp: scaleR_le_cancel_left)
+
+lemma scaleR_le_cancel_left_neg:
+  fixes b::"'a::ordered_real_vector"
+  shows "c < 0 \<Longrightarrow> c *\<^sub>R a \<le> c *\<^sub>R b \<longleftrightarrow> b \<le> a"
+  by (auto simp: scaleR_le_cancel_left)
+
+lemma scaleR_left_le_one_le:
+  fixes x::"'a::ordered_real_vector" and a::real
+  shows "0 \<le> x \<Longrightarrow> a \<le> 1 \<Longrightarrow> a *\<^sub>R x \<le> x"
+  using scaleR_right_mono[of a 1 x] by simp
+
 
 subsection {* Real normed vector spaces *}
 

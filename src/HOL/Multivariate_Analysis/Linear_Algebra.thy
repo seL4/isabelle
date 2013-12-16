@@ -3129,6 +3129,9 @@ subclass order
 subclass ordered_ab_group_add_abs
   by default (auto simp: eucl_le inner_add_left eucl_abs abs_leI)
 
+subclass ordered_real_vector
+  by default (auto simp: eucl_le intro!: mult_left_mono mult_right_mono)
+
 subclass lattice
   by default (auto simp: eucl_inf eucl_sup eucl_le)
 
