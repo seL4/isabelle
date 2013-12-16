@@ -324,8 +324,10 @@ fun isar_proof_text ctxt isar_proofs
           |> fold (fn (name as (s, _), role, t, rule, _) =>
               Symtab.update_new (s, (rule, t
                 |> (if is_clause_tainted [name] then
-                      role <> Conjecture ? s_not_prop
+                      HOLogic.dest_Trueprop
+                      #> role <> Conjecture ? s_not
                       #> fold exists_of (map Var (Term.add_vars t []))
+                      #> HOLogic.mk_Trueprop
                     else
                       I))))
             atp_proof

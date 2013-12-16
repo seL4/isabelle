@@ -36,7 +36,6 @@ sig
   val s_disj : term * term -> term
   val s_imp : term * term -> term
   val s_iff : term * term -> term
-  val s_not_prop : term -> term
   val close_form : term -> term
   val hol_close_form_prefix : string
   val hol_close_form : term -> term
@@ -307,10 +306,6 @@ fun s_iff (@{const True}, t2) = t2
   | s_iff (@{const False}, t2) = s_not t2
   | s_iff (t1, @{const False}) = s_not t1
   | s_iff (t1, t2) = HOLogic.eq_const HOLogic.boolT $ t1 $ t2
-
-fun s_not_prop (@{const Trueprop} $ t) = @{const Trueprop} $ s_not t
-  | s_not_prop (@{const "==>"} $ t $ @{prop False}) = t
-  | s_not_prop t = @{const "==>"} $ t $ @{prop False}
 
 fun close_form t =
   fold (fn ((s, i), T) => fn t' =>

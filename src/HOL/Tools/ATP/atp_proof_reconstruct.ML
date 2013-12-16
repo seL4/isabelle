@@ -334,9 +334,8 @@ fun prop_of_atp ctxt textual sym_tab phi =
       | AQuant (q, (s, _) :: xs, phi') =>
         do_formula pos (AQuant (q, xs, phi'))
         (* FIXME: TFF *)
-        #>> quantify_over_var
-              (case q of AForall => forall_of | AExists => exists_of)
-              (s |> textual ? repair_var_name)
+        #>> quantify_over_var (case q of AForall => forall_of | AExists => exists_of)
+          (s |> textual ? repair_var_name)
       | AConn (ANot, [phi']) => do_formula (not pos) phi' #>> s_not
       | AConn (c, [phi1, phi2]) =>
         do_formula (pos |> c = AImplies ? not) phi1
