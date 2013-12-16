@@ -130,8 +130,8 @@ fun is_only_type_information t = t aconv @{prop True}
 (* Discard facts; consolidate adjacent lines that prove the same formula, since they differ only in
    type information. *)
 fun add_line_pass1 (line as (name as (_, ss), role, t, rule, [])) lines =
-    (* No dependencies: lemma (for Z3), fact, conjecture, or (for Vampire)
-       internal facts or definitions. *)
+    (* No dependencies: lemma (for Z3), fact, conjecture, or (for Vampire) internal facts or
+       definitions. *)
     if role = Lemma orelse role = Conjecture orelse role = Negated_Conjecture orelse
        role = Hypothesis orelse is_arith_rule rule then
       line :: lines

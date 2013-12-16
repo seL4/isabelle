@@ -174,7 +174,8 @@ fun slack_fastype_of t = fastype_of t handle TERM _ => HOLogic.typeT
 fun loose_aconv (Free (s, _), Free (s', _)) = s = s'
   | loose_aconv (t, t') = t aconv t'
 
-val vampire_skolem_prefix = "sK"
+(* SPASS (3.8ds) and Vampire (2.6) pass arguments to Skolem functions in reverse order. *)
+val rev_skolem_prefixes = ["skf", "sK"]
 
 (* First-order translation. No types are known for variables. "HOLogic.typeT"
    should allow them to be inferred. *)
@@ -268,9 +269,7 @@ fun term_of_atp ctxt textual sym_tab =
               [(s, ())] |> Variable.variant_frees ctxt [] |> hd |> fst
             val term_ts =
               map (do_term [] NONE) us
-              (* Vampire (2.6) passes arguments to Skolem functions in reverse
-                 order *)
-              |> String.isPrefix vampire_skolem_prefix s ? rev
+              |> exists (fn pre => String.isPrefix pre s) rev_skolem_prefixes ? rev
             val ts = term_ts @ extra_ts
             val T =
               case opt_T of
