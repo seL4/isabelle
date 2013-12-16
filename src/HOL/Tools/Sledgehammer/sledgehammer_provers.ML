@@ -394,8 +394,7 @@ fun timed_reconstructor reconstr debug timeout ths =
 fun is_fact_chained ((_, (sc, _)), _) = sc = Chained
 
 fun filter_used_facts keep_chained used =
-  filter ((member (op =) used o fst) orf
-          (if keep_chained then is_fact_chained else K false))
+  filter ((member (op =) used o fst) orf (if keep_chained then is_fact_chained else K false))
 
 fun play_one_line_proof mode debug verbose timeout pairs state i preferred
                         reconstrs =
