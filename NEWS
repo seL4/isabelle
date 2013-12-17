@@ -110,6 +110,15 @@ INCOMPATIBILITY
   - Fixed soundness bug whereby mutually recursive datatypes could take
     infinite values.
 
+* HOL-Multivariate_Analysis:
+  - type class ordered_real_vector for ordered vector spaces
+  - changed order of ordered_euclidean_space to be compatible with
+    pointwise ordering on products. Therefore instance of
+    conditionally_complete_lattice and ordered_real_vector.
+    INCOMPATIBILITY: use box instead of greaterThanLessThan or
+    explicit set-comprehensions with eucl_less for other (half-) open
+    intervals.
+
 
 *** ML ***
 
