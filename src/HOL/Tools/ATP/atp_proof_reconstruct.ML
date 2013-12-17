@@ -86,10 +86,10 @@ val default_metis_lam_trans = combsN
 fun metis_call type_enc lam_trans =
   let
     val type_enc =
-      case AList.find (fn (enc, encs) => enc = hd encs) type_enc_aliases
+      (case AList.find (fn (enc, encs) => enc = hd encs) type_enc_aliases
                       type_enc of
         [alias] => alias
-      | _ => type_enc
+      | _ => type_enc)
     val opts = [] |> type_enc <> partial_typesN ? cons type_enc
                   |> lam_trans <> default_metis_lam_trans ? cons lam_trans
   in metisN ^ (if null opts then "" else " (" ^ commas opts ^ ")") end
@@ -116,28 +116,27 @@ exception SAME of unit
    constrained by information from type literals, or by type inference. *)
 fun typ_of_atp ctxt (u as ATerm ((a, _), us)) =
   let val Ts = map (typ_of_atp ctxt) us in
-    case unprefix_and_unascii type_const_prefix a of
+    (case unprefix_and_unascii type_const_prefix a of
       SOME b => Type (invert_const b, Ts)
     | NONE =>
       if not (null us) then
         raise ATP_TERM [u]  (* only "tconst"s have type arguments *)
-      else case unprefix_and_unascii tfree_prefix a of
-        SOME b => make_tfree ctxt b
-      | NONE =>
-        (* Could be an Isabelle variable or a variable from the ATP, say "X1"
-           or "_5018". Sometimes variables from the ATP are indistinguishable
-           from Isabelle variables, which forces us to use a type parameter in
-           all cases. *)
-        (a |> perhaps (unprefix_and_unascii tvar_prefix), HOLogic.typeS)
-        |> Type_Infer.param 0
+      else
+        (case unprefix_and_unascii tfree_prefix a of
+          SOME b => make_tfree ctxt b
+        | NONE =>
+          (* The term could be an Isabelle variable or a variable from the ATP, say "X1" or "_5018".
+             Sometimes variables from the ATP are indistinguishable from Isabelle variables, which
+             forces us to use a type parameter in all cases. *)
+          (a |> perhaps (unprefix_and_unascii tvar_prefix), HOLogic.typeS)
+          |> Type_Infer.param 0))
   end
 
-(* Type class literal applied to a type. Returns triple of polarity, class,
-   type. *)
+(* Type class literal applied to a type. Returns triple of polarity, class, type. *)
 fun type_constraint_of_term ctxt (u as ATerm ((a, _), us)) =
-  case (unprefix_and_unascii class_prefix a, map (typ_of_atp ctxt) us) of
+  (case (unprefix_and_unascii class_prefix a, map (typ_of_atp ctxt) us) of
     (SOME b, [T]) => (b, T)
-  | _ => raise ATP_TERM [u]
+  | _ => raise ATP_TERM [u])
 
 (* Accumulate type constraints in a formula: negative type literals. *)
 fun add_var (key, z)  = Vartab.map_default (key, []) (cons z)
@@ -150,21 +149,18 @@ fun repair_var_name s =
     fun subscript_name s n = s ^ nat_subscript n
     val s = s |> String.map Char.toLower
   in
-    case space_explode "_" s of
-      [_] => (case take_suffix Char.isDigit (String.explode s) of
-                (cs1 as _ :: _, cs2 as _ :: _) =>
-                subscript_name (String.implode cs1)
-                               (the (Int.fromString (String.implode cs2)))
-              | (_, _) => s)
-    | [s1, s2] => (case Int.fromString s2 of
-                     SOME n => subscript_name s1 n
-                   | NONE => s)
-    | _ => s
+    (case space_explode "_" s of
+      [_] =>
+      (case take_suffix Char.isDigit (String.explode s) of
+        (cs1 as _ :: _, cs2 as _ :: _) =>
+        subscript_name (String.implode cs1) (the (Int.fromString (String.implode cs2)))
+      | (_, _) => s)
+    | [s1, s2] => (case Int.fromString s2 of SOME n => subscript_name s1 n | NONE => s)
+    | _ => s)
   end
 
-(* The number of type arguments of a constant, zero if it's monomorphic. For
-   (instances of) Skolem pseudoconstants, this information is encoded in the
-   constant name. *)
+(* The number of type arguments of a constant, zero if it's monomorphic. For (instances of) Skolem
+   pseudoconstants, this information is encoded in the constant name. *)
 fun robust_const_num_type_args thy s =
   if String.isPrefix skolem_const_prefix s then
     s |> Long_Name.explode |> List.last |> Int.fromString |> the
@@ -182,18 +178,17 @@ fun loose_aconv (Free (s, _), Free (s', _)) = s = s'
 val spass_skolem_prefix = "sk" (* "skc" or "skf" *)
 val vampire_skolem_prefix = "sK"
 
-(* First-order translation. No types are known for variables. "HOLogic.typeT"
-   should allow them to be inferred. *)
+(* First-order translation. No types are known for variables. "HOLogic.typeT" should allow them to
+   be inferred. *)
 fun term_of_atp ctxt textual sym_tab =
   let
     val thy = Proof_Context.theory_of ctxt
-    (* For Metis, we use 1 rather than 0 because variable references in clauses
-       may otherwise conflict with variable constraints in the goal. At least,
-       type inference often fails otherwise. See also "axiom_inference" in
-       "Metis_Reconstruct". *)
+    (* For Metis, we use 1 rather than 0 because variable references in clauses may otherwise
+       conflict with variable constraints in the goal. At least, type inference often fails
+       otherwise. See also "axiom_inference" in "Metis_Reconstruct". *)
     val var_index = if textual then 0 else 1
     fun do_term extra_ts opt_T u =
-      case u of
+      (case u of
         ATerm ((s, _), us) =>
         if s = ""
           then error "Isar proof reconstruction failed because the ATP proof \
@@ -208,93 +203,89 @@ fun term_of_atp ctxt textual sym_tab =
             else
               list_comb (Const (@{const_name HOL.eq}, HOLogic.typeT), ts)
           end
-        else case unprefix_and_unascii const_prefix s of
-          SOME s' =>
-          let
-            val ((s', s''), mangled_us) =
-              s' |> unmangled_const |>> `invert_const
-          in
-            if s' = type_tag_name then
-              case mangled_us @ us of
-                [typ_u, term_u] =>
-                do_term extra_ts (SOME (typ_of_atp ctxt typ_u)) term_u
-              | _ => raise ATP_TERM us
-            else if s' = predicator_name then
-              do_term [] (SOME @{typ bool}) (hd us)
-            else if s' = app_op_name then
-              let val extra_t = do_term [] NONE (List.last us) in
-                do_term (extra_t :: extra_ts)
-                        (case opt_T of
-                           SOME T => SOME (slack_fastype_of extra_t --> T)
-                         | NONE => NONE)
-                        (nth us (length us - 2))
-              end
-            else if s' = type_guard_name then
-              @{const True} (* ignore type predicates *)
-            else
-              let
-                val new_skolem = String.isPrefix new_skolem_const_prefix s''
-                val num_ty_args =
-                  length us - the_default 0 (Symtab.lookup sym_tab s)
-                val (type_us, term_us) =
-                  chop num_ty_args us |>> append mangled_us
-                val term_ts = map (do_term [] NONE) term_us
-                val T =
-                  (if not (null type_us) andalso
-                      robust_const_num_type_args thy s' = length type_us then
-                     let val Ts = type_us |> map (typ_of_atp ctxt) in
-                       if new_skolem then
-                         SOME (Type_Infer.paramify_vars (tl Ts ---> hd Ts))
-                       else if textual then
-                         try (Sign.const_instance thy) (s', Ts)
-                       else
-                         NONE
-                     end
-                   else
-                     NONE)
-                  |> (fn SOME T => T
-                       | NONE => map slack_fastype_of term_ts --->
-                                 (case opt_T of
-                                    SOME T => T
-                                  | NONE => HOLogic.typeT))
-                val t =
-                  if new_skolem then
-                    Var ((new_skolem_var_name_of_const s'', var_index), T)
-                  else
-                    Const (unproxify_const s', T)
-              in list_comb (t, term_ts @ extra_ts) end
-          end
-        | NONE => (* a free or schematic variable *)
-          let
-            (* This assumes that distinct names are mapped to distinct names by
-               "Variable.variant_frees". This does not hold in general but
-               should hold for ATP-generated Skolem function names, since these
-               end with a digit and "variant_frees" appends letters. *)
-            fun fresh_up s =
-              [(s, ())] |> Variable.variant_frees ctxt [] |> hd |> fst
-            val term_ts =
-              map (do_term [] NONE) us
-              (* SPASS (3.8ds) and Vampire (2.6) pass arguments to Skolem functions in reverse
-                 order, which is incompatible with the new Metis skolemizer. *)
-              |> exists (fn pre => String.isPrefix pre s)
-                [spass_skolem_prefix, vampire_skolem_prefix] ? rev
-            val ts = term_ts @ extra_ts
-            val T =
-              case opt_T of
-                SOME T => map slack_fastype_of term_ts ---> T
-              | NONE => map slack_fastype_of ts ---> HOLogic.typeT
-            val t =
-              case unprefix_and_unascii fixed_var_prefix s of
-                SOME s => Free (s, T)
-              | NONE =>
-                case unprefix_and_unascii schematic_var_prefix s of
-                  SOME s => Var ((s, var_index), T)
+        else
+          (case unprefix_and_unascii const_prefix s of
+            SOME s' =>
+            let
+              val ((s', s''), mangled_us) =
+                s' |> unmangled_const |>> `invert_const
+            in
+              if s' = type_tag_name then
+                (case mangled_us @ us of
+                  [typ_u, term_u] => do_term extra_ts (SOME (typ_of_atp ctxt typ_u)) term_u
+                | _ => raise ATP_TERM us)
+              else if s' = predicator_name then
+                do_term [] (SOME @{typ bool}) (hd us)
+              else if s' = app_op_name then
+                let val extra_t = do_term [] NONE (List.last us) in
+                  do_term (extra_t :: extra_ts)
+                          (case opt_T of
+                             SOME T => SOME (slack_fastype_of extra_t --> T)
+                           | NONE => NONE)
+                          (nth us (length us - 2))
+                end
+              else if s' = type_guard_name then
+                @{const True} (* ignore type predicates *)
+              else
+                let
+                  val new_skolem = String.isPrefix new_skolem_const_prefix s''
+                  val num_ty_args =
+                    length us - the_default 0 (Symtab.lookup sym_tab s)
+                  val (type_us, term_us) =
+                    chop num_ty_args us |>> append mangled_us
+                  val term_ts = map (do_term [] NONE) term_us
+                  val T =
+                    (if not (null type_us) andalso
+                        robust_const_num_type_args thy s' = length type_us then
+                       let val Ts = type_us |> map (typ_of_atp ctxt) in
+                         if new_skolem then
+                           SOME (Type_Infer.paramify_vars (tl Ts ---> hd Ts))
+                         else if textual then
+                           try (Sign.const_instance thy) (s', Ts)
+                         else
+                           NONE
+                       end
+                     else
+                       NONE)
+                    |> (fn SOME T => T
+                         | NONE =>
+                           map slack_fastype_of term_ts ---> the_default HOLogic.typeT opt_T)
+                  val t =
+                    if new_skolem then Var ((new_skolem_var_name_of_const s'', var_index), T)
+                    else Const (unproxify_const s', T)
+                in list_comb (t, term_ts @ extra_ts) end
+            end
+          | NONE => (* a free or schematic variable *)
+            let
+              (* This assumes that distinct names are mapped to distinct names by
+                 "Variable.variant_frees". This does not hold in general but
+                 should hold for ATP-generated Skolem function names, since these
+                 end with a digit and "variant_frees" appends letters. *)
+              fun fresh_up s =
+                [(s, ())] |> Variable.variant_frees ctxt [] |> hd |> fst
+              val term_ts =
+                map (do_term [] NONE) us
+                (* SPASS (3.8ds) and Vampire (2.6) pass arguments to Skolem functions in reverse
+                   order, which is incompatible with the new Metis skolemizer. *)
+                |> exists (fn pre => String.isPrefix pre s)
+                  [spass_skolem_prefix, vampire_skolem_prefix] ? rev
+              val ts = term_ts @ extra_ts
+              val T =
+                (case opt_T of
+                  SOME T => map slack_fastype_of term_ts ---> T
+                | NONE => map slack_fastype_of ts ---> HOLogic.typeT)
+              val t =
+                (case unprefix_and_unascii fixed_var_prefix s of
+                  SOME s => Free (s, T)
                 | NONE =>
-                  if textual andalso not (is_tptp_variable s) then
-                    Free (s |> textual ? (repair_var_name #> fresh_up), T)
-                  else
-                    Var ((s |> textual ? repair_var_name, var_index), T)
-          in list_comb (t, ts) end
+                  (case unprefix_and_unascii schematic_var_prefix s of
+                    SOME s => Var ((s, var_index), T)
+                  | NONE =>
+                    if textual andalso not (is_tptp_variable s) then
+                      Free (s |> textual ? (repair_var_name #> fresh_up), T)
+                    else
+                      Var ((s |> textual ? repair_var_name, var_index), T)))
+            in list_comb (t, ts) end))
   in do_term [] end
 
 fun term_of_atom ctxt textual sym_tab pos (u as ATerm ((s, _), _)) =
@@ -325,9 +316,7 @@ fun quantify_over_var quant_of var_s t =
     val vars = [] |> Term.add_vars t |> filter (fn ((s, _), _) => s = var_s)
     val normTs = vars |> AList.group (op =) |> map (apsnd hd)
     fun norm_var_types (Var (x, T)) =
-        Var (x, case AList.lookup (op =) normTs x of
-                  NONE => T
-                | SOME T' => T')
+        Var (x, (case AList.lookup (op =) normTs x of NONE => T | SOME T' => T'))
       | norm_var_types t = t
   in t |> map_aterms norm_var_types |> fold_rev quant_of (map Var normTs) end
 
@@ -336,7 +325,7 @@ fun quantify_over_var quant_of var_s t =
 fun prop_of_atp ctxt textual sym_tab phi =
   let
     fun do_formula pos phi =
-      case phi of
+      (case phi of
         AQuant (_, [], phi) => do_formula pos phi
       | AQuant (q, (s, _) :: xs, phi') =>
         do_formula pos (AQuant (q, xs, phi'))
@@ -354,8 +343,10 @@ fun prop_of_atp ctxt textual sym_tab phi =
              | AIff => s_iff
              | ANot => raise Fail "impossible connective")
       | AAtom tm => term_of_atom ctxt textual sym_tab pos tm
-      | _ => raise ATP_FORMULA [phi]
-  in repair_tvar_sorts (do_formula true phi Vartab.empty) end
+      | _ => raise ATP_FORMULA [phi])
+  in
+    repair_tvar_sorts (do_formula true phi Vartab.empty)
+  end
 
 fun find_first_in_list_vector vec key =
   Vector.foldl (fn (ps, NONE) => AList.lookup (op =) ps key
@@ -364,19 +355,19 @@ fun find_first_in_list_vector vec key =
 val unprefix_fact_number = space_implode "_" o tl o space_explode "_"
 
 fun resolve_one_named_fact fact_names s =
-  case try (unprefix fact_prefix) s of
+  (case try (unprefix fact_prefix) s of
     SOME s' =>
     let val s' = s' |> unprefix_fact_number |> unascii_of in
       s' |> find_first_in_list_vector fact_names |> Option.map (pair s')
     end
-  | NONE => NONE
+  | NONE => NONE)
 
 fun resolve_fact fact_names = map_filter (resolve_one_named_fact fact_names)
 
 fun resolve_one_named_conjecture s =
-  case try (unprefix conjecture_prefix) s of
+  (case try (unprefix conjecture_prefix) s of
     SOME s' => Int.fromString s'
-  | NONE => NONE
+  | NONE => NONE)
 
 val resolve_conjecture = map_filter resolve_one_named_conjecture
 
@@ -406,15 +397,13 @@ fun add_fact ctxt fact_names ((_, ss), _, _, rule, deps) =
   (if rule = leo2_extcnf_equal_neg_rule then
      insert (op =) (ext_name ctxt, (Global, General))
    else if rule = leo2_unfold_def_rule then
-     (* LEO 1.3.3 does not record definitions properly, leading to missing
-        dependencies in the TSTP proof. Remove the next line once this is
-        fixed. *)
+     (* LEO 1.3.3 does not record definitions properly, leading to missing dependencies in the TSTP
+        proof. Remove the next line once this is fixed. *)
      add_non_rec_defs fact_names
    else if rule = agsyhol_core_rule orelse rule = satallax_core_rule then
      (fn [] =>
-         (* agsyHOL and Satallax don't include definitions in their
-            unsatisfiable cores, so we assume the worst and include them all
-            here. *)
+         (* agsyHOL and Satallax don't include definitions in their unsatisfiable cores, so we
+            assume the worst and include them all here. *)
          [(ext_name ctxt, (Global, General))] |> add_non_rec_defs fact_names
        | facts => facts)
    else
@@ -445,12 +434,12 @@ fun is_lam_lifted s =
 val is_combinator_def = String.isPrefix (helper_prefix ^ combinator_prefix)
 
 fun lam_trans_of_atp_proof atp_proof default =
-  case (is_axiom_used_in_proof is_combinator_def atp_proof,
+  (case (is_axiom_used_in_proof is_combinator_def atp_proof,
         is_axiom_used_in_proof is_lam_lifted atp_proof) of
     (false, false) => default
   | (false, true) => liftingN
 (*  | (true, true) => combs_and_liftingN -- not supported by "metis" *)
-  | (true, _) => combsN
+  | (true, _) => combsN)
 
 val is_typed_helper_name =
   String.isPrefix helper_prefix andf String.isSuffix typed_helper_suffix
