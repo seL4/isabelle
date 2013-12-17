@@ -89,7 +89,7 @@ lemma [code]:
   "k < l \<longleftrightarrow> (of_int k :: integer) < of_int l"
   by transfer rule
 
-lemma (in ring_1) of_int_code:
+lemma (in ring_1) of_int_code_if:
   "of_int k = (if k = 0 then 0
      else if k < 0 then - of_int (- k)
      else let
@@ -99,11 +99,11 @@ lemma (in ring_1) of_int_code:
 proof -
   from mod_div_equality have *: "of_int k = of_int (k div 2 * 2 + k mod 2)" by simp
   show ?thesis
-    by (simp add: Let_def divmod_int_mod_div not_mod_2_eq_0_eq_1
-      of_int_add [symmetric]) (simp add: * mult_commute)
+    by (simp add: Let_def divmod_int_mod_div of_int_add [symmetric])
+      (simp add: * mult_commute)
 qed
 
-declare of_int_code [code]
+declare of_int_code_if [code]
 
 lemma [code]:
   "nat = nat_of_integer \<circ> of_int"

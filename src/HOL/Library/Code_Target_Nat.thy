@@ -78,7 +78,7 @@ lemma [code abstract]:
 
 lemma [code]:
   "Divides.divmod_nat m n = (m div n, m mod n)"
-  by (simp add: prod_eq_iff)
+  by (fact divmod_nat_div_mod)
 
 lemma [code]:
   "HOL.equal m n = HOL.equal (of_nat m :: integer) (of_nat n)"
@@ -96,7 +96,7 @@ lemma num_of_nat_code [code]:
   "num_of_nat = num_of_integer \<circ> of_nat"
   by transfer (simp add: fun_eq_iff)
 
-lemma (in semiring_1) of_nat_code:
+lemma (in semiring_1) of_nat_code_if:
   "of_nat n = (if n = 0 then 0
      else let
        (m, q) = divmod_nat n 2;
@@ -105,12 +105,11 @@ lemma (in semiring_1) of_nat_code:
 proof -
   from mod_div_equality have *: "of_nat n = of_nat (n div 2 * 2 + n mod 2)" by simp
   show ?thesis
-    by (simp add: Let_def divmod_nat_div_mod mod_2_not_eq_zero_eq_one_nat
-      of_nat_add [symmetric])
+    by (simp add: Let_def divmod_nat_div_mod of_nat_add [symmetric])
       (simp add: * mult_commute of_nat_mult add_commute)
 qed
 
-declare of_nat_code [code]
+declare of_nat_code_if [code]
 
 definition int_of_nat :: "nat \<Rightarrow> int" where
   [code_abbrev]: "int_of_nat = of_nat"
@@ -134,13 +133,13 @@ lemma term_of_nat_code [code]:
            [typerep.Typerep (STR ''Code_Numeral.integer'') [],
          typerep.Typerep (STR ''Nat.nat'') []]))
      (term_of_class.term_of (integer_of_nat n))"
-by(simp add: term_of_anything)
+  by (simp add: term_of_anything)
 
 lemma nat_of_integer_code_post [code_post]:
   "nat_of_integer 0 = 0"
   "nat_of_integer 1 = 1"
   "nat_of_integer (numeral k) = numeral k"
-by(transfer, simp)+
+  by (transfer, simp)+
 
 code_identifier
   code_module Code_Target_Nat \<rightharpoonup>
