@@ -455,9 +455,16 @@ fun activate_facts export dep context =
   end;
 
 fun init name thy =
-  activate_all name thy Element.init (Morphism.transfer_morphism o Context.theory_of)
-    (empty_idents, Context.Proof (Proof_Context.init_global thy))
-  |-> Idents.put |> Context.proof_of;
+  let
+    val context = Context.Proof (Proof_Context.init_global thy);
+    val marked = Idents.get context;
+    val (marked', context') = activate_all name thy Element.init
+      (Morphism.transfer_morphism o Context.theory_of) (empty_idents, context)
+  in
+    context'
+    |> Idents.put (merge_idents (marked, marked'))
+    |> Context.proof_of
+  end;
 
 
 (*** Add and extend registrations ***)
