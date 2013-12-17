@@ -41,6 +41,12 @@ sig
   type 'a atp_proof =
     (('a, 'a, ('a, 'a) atp_term, 'a) atp_formula, string) atp_step list
 
+  val agsyhol_core_rule : string
+  val satallax_core_rule : string
+  val spass_input_rule : string
+  val spass_skolemize_rule : string
+  val z3_tptp_core_rule : string
+
   val short_output : bool -> string -> string
   val string_of_atp_failure : atp_failure -> string
   val extract_important_message : string -> string
@@ -51,9 +57,6 @@ sig
     -> string * atp_failure option
   val is_same_atp_step : atp_step_name -> atp_step_name -> bool
   val scan_general_id : string list -> string * string list
-  val agsyhol_coreN : string
-  val satallax_coreN : string
-  val z3_tptp_coreN : string
   val parse_formula :
     string list
     -> (string, 'a, (string, 'a) atp_term, string) atp_formula * string list
@@ -71,6 +74,12 @@ struct
 
 open ATP_Util
 open ATP_Problem
+
+val agsyhol_core_rule = "__agsyhol_core" (* arbitrary *)
+val satallax_core_rule = "__satallax_core" (* arbitrary *)
+val spass_input_rule = "Inp"
+val spass_skolemize_rule = "__Sko" (* arbitrary *)
+val z3_tptp_core_rule = "__z3_tptp_core" (* arbitrary *)
 
 exception UNRECOGNIZED_ATP_PROOF of unit
 
@@ -103,9 +112,8 @@ val missing_message_tail =
   " appears to be missing. You will need to install it if you want to invoke \
   \remote provers."
 
-fun involving [] = ""
-  | involving ss =
-    " involving " ^ space_implode " " (Try.serial_commas "and" (map quote ss))
+fun from_lemmas [] = ""
+  | from_lemmas ss = " from " ^ space_implode " " (Try.serial_commas "and" (map quote ss))
 
 fun string_of_atp_failure Unprovable = "The generated problem is unprovable."
   | string_of_atp_failure GaveUp = "The prover gave up."
@@ -115,10 +123,10 @@ fun string_of_atp_failure Unprovable = "The generated problem is unprovable."
     "The prover claims the conjecture is a theorem but provided an incomplete \
     \(or unparsable) proof."
   | string_of_atp_failure (UnsoundProof (false, ss)) =
-    "The prover derived \"False\" using" ^ involving ss ^
+    "The prover derived \"False\"" ^ from_lemmas ss ^
     ". Specify a sound type encoding or omit the \"type_enc\" option."
   | string_of_atp_failure (UnsoundProof (true, ss)) =
-    "The prover derived \"False\" using" ^ involving ss ^
+    "The prover derived \"False\"" ^ from_lemmas ss ^
     ". This could be due to inconsistent axioms (including \"sorry\"s) or to \
     \a bug in Sledgehammer. If the problem persists, please contact the \
     \Isabelle developers."
@@ -152,20 +160,19 @@ val tstp_important_message_delims =
   ("% SZS start RequiredInformation", "% SZS end RequiredInformation")
 
 fun extract_important_message output =
-  case extract_delimited tstp_important_message_delims output of
+  (case extract_delimited tstp_important_message_delims output of
     "" => ""
   | s => s |> space_explode "\n" |> filter_out (curry (op =) "")
            |> map (perhaps (try (unprefix "%")))
            |> map (perhaps (try (unprefix " ")))
-           |> space_implode "\n " |> quote
+           |> space_implode "\n " |> quote)
 
 (* Splits by the first possible of a list of delimiters. *)
 fun extract_tstplike_proof delims output =
-  case pairself (find_first (fn s => String.isSubstring s output))
+  (case pairself (find_first (fn s => String.isSubstring s output))
                 (ListPair.unzip delims) of
-    (SOME begin_delim, SOME end_delim) =>
-    extract_delimited (begin_delim, end_delim) output
-  | _ => ""
+    (SOME begin_delim, SOME end_delim) => extract_delimited (begin_delim, end_delim) output
+  | _ => "")
 
 fun extract_known_atp_failure known_failures output =
   known_failures
@@ -174,13 +181,13 @@ fun extract_known_atp_failure known_failures output =
 
 fun extract_tstplike_proof_and_outcome verbose proof_delims known_failures
                                        output =
-  case (extract_tstplike_proof proof_delims output,
+  (case (extract_tstplike_proof proof_delims output,
         extract_known_atp_failure known_failures output) of
     (_, SOME ProofIncomplete) => ("", NONE)
   | ("", SOME ProofMissing) => ("", NONE)
   | ("", NONE) => ("", SOME (UnknownError (short_output verbose output)))
   | res as ("", _) => res
-  | (tstplike_proof, _) => (tstplike_proof, NONE)
+  | (tstplike_proof, _) => (tstplike_proof, NONE))
 
 type atp_step_name = string * string list
 
@@ -191,10 +198,9 @@ val vampire_fact_prefix = "f"
 fun vampire_step_name_ord p =
   let val q = pairself fst p in
     (* The "unprefix" part is to cope with Vampire's output. *)
-    case pairself (Int.fromString
-                   o perhaps (try (unprefix vampire_fact_prefix))) q of
+    (case pairself (Int.fromString o perhaps (try (unprefix vampire_fact_prefix))) q of
       (SOME i, SOME j) => int_ord (i, j)
-    | _ => raise Fail "not Vampire"
+    | _ => raise Fail "not Vampire")
   end
 
 type ('a, 'b) atp_step =
@@ -278,8 +284,7 @@ fun parse_atom x =
         | (u1, SOME (neg, u2)) =>
           AAtom (ATerm (("equal", []), [u1, u2])) |> is_some neg ? mk_anot)) x
 
-(* TPTP formulas are fully parenthesized, so we don't need to worry about
-   operator precedence. *)
+(* TPTP formulas are fully parenthesized, so we don't need to worry about operator precedence. *)
 fun parse_literal x =
   ((Scan.repeat ($$ tptp_not) >> length)
       -- ($$ "(" |-- parse_formula --| $$ ")"
@@ -322,7 +327,7 @@ fun is_same_term subst tm1 tm2 =
   let
     fun do_term_pair _ NONE = NONE
       | do_term_pair (ATerm ((s1, _), tm1), ATerm ((s2, _), tm2)) (SOME subst) =
-        case pairself is_tptp_variable (s1, s2) of
+        (case pairself is_tptp_variable (s1, s2) of
           (true, true) =>
           (case AList.lookup (op =) subst s1 of
              SOME s2' => if s2' = s2 then SOME subst else NONE
@@ -334,8 +339,10 @@ fun is_same_term subst tm1 tm2 =
             SOME subst |> fold do_term_pair (tm1 ~~ tm2)
           else
             NONE
-        | _ => NONE
-  in SOME subst |> do_term_pair (tm1, tm2) |> is_some end
+        | _ => NONE)
+  in
+    SOME subst |> do_term_pair (tm1, tm2) |> is_some
+  end
 
 fun is_same_formula comm subst (AQuant (q1, xs1, phi1)) (AQuant (q2, xs2, phi2)) =
     q1 = q2 andalso length xs1 = length xs2 andalso
@@ -370,8 +377,7 @@ fun role_of_tptp_string "axiom" = Axiom
   | role_of_tptp_string "plain" = Plain
   | role_of_tptp_string _ = Unknown
 
-(* Syntax: (cnf|fof|tff|thf)\(<num>, <formula_role>,
-            <formula> <extra_arguments>\).
+(* Syntax: (cnf|fof|tff|thf)\(<num>, <formula_role>, <formula> <extra_arguments>\).
    The <num> could be an identifier, but we assume integers. *)
 fun parse_tstp_line problem =
   ((Scan.this_string tptp_cnf || Scan.this_string tptp_fof
@@ -383,17 +389,16 @@ fun parse_tstp_line problem =
           let
             val ((name, phi), rule, deps) =
               (* Waldmeister isn't exactly helping. *)
-              case deps of
+              (case deps of
                 File_Source (_, SOME s) =>
                 (if s = waldmeister_conjecture_name then
-                   case find_formula_in_problem problem (mk_anot phi) of
+                   (case find_formula_in_problem problem (mk_anot phi) of
                      (* Waldmeister hack: Get the original orientation of the
                         equation to avoid confusing Isar. *)
                      [(s, phi')] =>
                      ((num, [s]),
-                      phi |> not (is_same_formula false [] (mk_anot phi) phi')
-                             ? commute_eq)
-                   | _ => ((num, []), phi)
+                      phi |> not (is_same_formula false [] (mk_anot phi) phi') ? commute_eq)
+                   | _ => ((num, []), phi))
                  else
                    ((num, [s |> perhaps (try (unprefix tofof_fact_prefix))]),
                     phi),
@@ -401,18 +406,18 @@ fun parse_tstp_line problem =
               | File_Source _ =>
                 (((num, phi |> find_formula_in_problem problem |> map fst),
                   phi), "", [])
-              | Inference_Source (rule, deps) => (((num, []), phi), rule, deps)
+              | Inference_Source (rule, deps) => (((num, []), phi), rule, deps))
             fun mk_step () =
               (name, role_of_tptp_string role, phi, rule, map (rpair []) deps)
           in
-            case role_of_tptp_string role of
+            (case role_of_tptp_string role of
               Definition =>
               (case phi of
                  AAtom (ATerm (("equal", []), _)) =>
                  (* Vampire's equality proxy axiom *)
                  (name, Definition, phi, rule, map (rpair []) deps)
                | _ => mk_step ())
-            | _ => mk_step ()
+            | _ => mk_step ())
           end)
 
 (**** PARSING OF SPASS OUTPUT ****)
@@ -444,38 +449,57 @@ fun parse_horn_clause x =
    >> (mk_horn o apfst (op @))) x
 
 val parse_spass_debug =
-  Scan.option ($$ "(" |-- Scan.repeat (scan_general_id --| Scan.option ($$ ","))
-               --| $$ ")")
+  Scan.option ($$ "(" |-- Scan.repeat (scan_general_id --| Scan.option ($$ ",")) --| $$ ")")
 
-(* Syntax: <num>[0:<inference><annotations>] <atoms> || <atoms> -> <atoms>.
+(* Syntax: <num>[0:<inference><annotations>] <atoms> || <atoms> -> <atoms> .
            derived from formulae <ident>* *)
 fun parse_spass_line x =
-  (parse_spass_debug |-- scan_general_id --| $$ "[" --|
-     Scan.many1 Symbol.is_digit --| $$ ":" -- Symbol.scan_ascii_id
-     -- parse_spass_annotations --| $$ "]"
-     -- parse_horn_clause --| $$ "."
+  (parse_spass_debug |-- scan_general_id --| $$ "[" --| Scan.many1 Symbol.is_digit --| $$ ":"
+     -- Symbol.scan_ascii_id -- parse_spass_annotations --| $$ "]" -- parse_horn_clause --| $$ "."
      -- Scan.option (Scan.this_string "derived from formulae "
                      |-- Scan.repeat (scan_general_id --| Scan.option ($$ " ")))
    >> (fn ((((num, rule), deps), u), names) =>
           ((num, these names), Unknown, u, rule, map (rpair []) deps))) x
 
-val agsyhol_coreN = "__agsyhol_core" (* arbitrary *)
-val satallax_coreN = "__satallax_core" (* arbitrary *)
-val z3_tptp_coreN = "__z3_tptp_core" (* arbitrary *)
+fun parse_spass_pirate_dependency x = (Scan.option ($$ "-") |-- scan_general_id) x
+fun parse_spass_pirate_dependencies x =
+  (parse_spass_pirate_dependency ::: Scan.repeat ($$ "," |-- parse_spass_pirate_dependency)) x
+fun parse_spass_pirate_file_source x =
+  ((Scan.this_string "Input" || Scan.this_string "Conj") |-- $$ "(" |-- scan_general_id
+     --| $$ ")") x
+fun parse_spass_pirate_inference_source x =
+  (scan_general_id |-- $$ "(" -- parse_spass_pirate_dependencies --| $$ ")") x
+fun parse_spass_pirate_source x =
+  (parse_spass_pirate_file_source >> (fn s => File_Source ("", SOME s))
+   || parse_spass_pirate_inference_source >> Inference_Source) x
+
+(* Syntax: <num> <stuff> || <atoms> -> <atoms> . origin\(<origin>\) *)
+fun parse_spass_pirate_line x =
+  (scan_general_id --| Scan.repeat (~$$ "|") -- parse_horn_clause --| $$ "."
+     --| Scan.this_string "origin" --| $$ "(" -- parse_spass_pirate_source --| $$ ")"
+   >> (fn ((((num, u), source))) =>
+     let
+       val (names, rule, deps) =
+         (case source of
+           File_Source (_, SOME s) => ([s], spass_input_rule, [])
+         | Inference_Source (rule, deps) => ([], rule, deps))
+     in
+       ((num, names), Unknown, u, rule, map (rpair []) deps)
+     end)) x
 
 fun core_inference inf fact = ((fact, [fact]), Unknown, dummy_phi, inf, [])
 
 (* Syntax: core(<name>,[<name>,...,<name>]). *)
 fun parse_z3_tptp_line x =
   (scan_general_id --| $$ "," --| $$ "[" -- parse_dependencies --| $$ "]"
-   >> (fn (name, names) => (("", name :: names), Unknown, dummy_phi, z3_tptp_coreN, []))) x
+   >> (fn (name, names) => (("", name :: names), Unknown, dummy_phi, z3_tptp_core_rule, []))) x
 
 (* Syntax: <name> *)
 fun parse_satallax_line x =
-  (scan_general_id --| Scan.option ($$ " ") >> core_inference satallax_coreN) x
+  (scan_general_id --| Scan.option ($$ " ") >> core_inference satallax_core_rule) x
 
 fun parse_line problem =
-  parse_tstp_line problem || parse_spass_line || parse_z3_tptp_line
+  parse_tstp_line problem || parse_spass_line || parse_spass_pirate_line || parse_z3_tptp_line
   || parse_satallax_line
 fun parse_proof problem =
   strip_spaces_except_between_idents
@@ -486,20 +510,19 @@ fun parse_proof problem =
   #> fst
 
 fun core_of_agsyhol_proof s =
-  case split_lines s of
+  (case split_lines s of
     "The transformed problem consists of the following conjectures:" :: conj ::
-    _ :: proof_term :: _ =>
-    SOME (unprefix " " conj :: find_enclosed "<<" ">>" proof_term)
-  | _ => NONE
+    _ :: proof_term :: _ => SOME (unprefix " " conj :: find_enclosed "<<" ">>" proof_term)
+  | _ => NONE)
 
 fun atp_proof_of_tstplike_proof _ "" = []
   | atp_proof_of_tstplike_proof problem tstp =
-    case core_of_agsyhol_proof tstp of
-      SOME facts => facts |> map (core_inference agsyhol_coreN)
+    (case core_of_agsyhol_proof tstp of
+      SOME facts => facts |> map (core_inference agsyhol_core_rule)
     | NONE =>
       tstp ^ "$"  (* the $ sign acts as a sentinel (FIXME: needed?) *)
       |> parse_proof problem
-      |> perhaps (try (sort (vampire_step_name_ord o pairself #1)))
+      |> perhaps (try (sort (vampire_step_name_ord o pairself #1))))
 
 fun clean_up_dependencies _ [] = []
   | clean_up_dependencies seen ((name, role, u, rule, deps) :: steps) =

@@ -15,7 +15,6 @@ sig
   type ('a, 'b) atp_step = ('a, 'b) ATP_Proof.atp_step
   type 'a atp_proof = 'a ATP_Proof.atp_proof
 
-  val spass_skolemize_rule : string
   val metisN : string
   val full_typesN : string
   val partial_typesN : string
@@ -59,9 +58,6 @@ open ATP_Util
 open ATP_Problem
 open ATP_Proof
 open ATP_Problem_Generate
-
-val spass_input_rule = "Inp"
-val spass_skolemize_rule = "__Sko" (* arbitrary *)
 
 val metisN = "metis"
 
@@ -414,7 +410,7 @@ fun add_fact ctxt fact_names ((_, ss), _, _, rule, deps) =
         dependencies in the TSTP proof. Remove the next line once this is
         fixed. *)
      add_non_rec_defs fact_names
-   else if rule = agsyhol_coreN orelse rule = satallax_coreN then
+   else if rule = agsyhol_core_rule orelse rule = satallax_core_rule then
      (fn [] =>
          (* agsyHOL and Satallax don't include definitions in their
             unsatisfiable cores, so we assume the worst and include them all

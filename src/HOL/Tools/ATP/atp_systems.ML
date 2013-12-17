@@ -62,7 +62,7 @@ sig
   val satallaxN : string
   val snarkN : string
   val spassN : string
-  val spass_polyN : string
+  val spass_pirateN : string
   val vampireN : string
   val waldmeisterN : string
   val z3_tptpN : string
@@ -173,7 +173,7 @@ val leo2N = "leo2"
 val satallaxN = "satallax"
 val snarkN = "snark"
 val spassN = "spass"
-val spass_polyN = "spass_poly"
+val spass_pirateN = "spass_pirate"
 val vampireN = "vampire"
 val waldmeisterN = "waldmeister"
 val z3_tptpN = "z3_tptp"
@@ -654,14 +654,21 @@ fun dummy_config prem_role format type_enc uncurried_aliases : atp_config =
    best_max_new_mono_instances = default_max_new_mono_instances}
 
 val dummy_thf_format = THF (Polymorphic, THF_With_Choice)
-val dummy_thf_config =
-  dummy_config Hypothesis dummy_thf_format "poly_native_higher" false
+val dummy_thf_config = dummy_config Hypothesis dummy_thf_format "poly_native_higher" false
 val dummy_thf = (dummy_thfN, fn () => dummy_thf_config)
 
-val spass_poly_format = DFG Polymorphic
-val spass_poly_config =
-  dummy_config (#prem_role spass_config) spass_poly_format "tc_native" true
-val spass_poly = (spass_polyN, fn () => spass_poly_config)
+val spass_pirate_format = DFG Polymorphic
+val remote_spass_pirate_config =
+  {exec = K (["ISABELLE_ATP"], ["scripts/remote_spass_pirate"]),
+   arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
+     string_of_int (to_secs 1 timeout) ^ " " ^ file_name,
+   proof_delims = [("Involved clauses:", "Involved clauses:")],
+   known_failures = known_szs_status_failures,
+   prem_role = #prem_role spass_config,
+   best_slices = K [(1.0, (((200, ""), spass_pirate_format, "tc_native", combsN, true), ""))],
+   best_max_mono_iters = default_max_mono_iters,
+   best_max_new_mono_instances = default_max_new_mono_instances}
+val remote_spass_pirate = (remote_prefix ^ spass_pirateN, fn () => remote_spass_pirate_config)
 
 
 (* Remote ATP invocation via SystemOnTPTP *)
@@ -693,29 +700,27 @@ fun get_remote_system name versions =
                      |> `(`(find_remote_system name versions)))
 
 fun the_remote_system name versions =
-  case get_remote_system name versions of
+  (case get_remote_system name versions of
     (SOME sys, _) => sys
-  | (NONE, []) => error ("SystemOnTPTP is not available.")
+  | (NONE, []) => error "SystemOnTPTP is not available."
   | (NONE, syss) =>
-    case syss |> filter_out (String.isPrefix "%")
-              |> filter_out (curry (op =) "") of
-      [] => error ("SystemOnTPTP is currently not available.")
+    (case syss |> filter_out (String.isPrefix "%") |> filter_out (curry (op =) "") of
+      [] => error "SystemOnTPTP is currently not available."
     | [msg] => error ("SystemOnTPTP is currently not available: " ^ msg ^ ".")
     | syss =>
-      error ("System " ^ quote name ^ " is not available at SystemOnTPTP.\n" ^
-             "(Available systems: " ^ commas_quote syss ^ ".)")
+      error ("System " ^ quote name ^ " is not available at SystemOnTPTP.\n(Available systems: " ^
+        commas_quote syss ^ ".)")))
 
 val max_remote_secs = 240 (* give Geoff Sutcliffe's servers a break *)
 
 fun remote_config system_name system_versions proof_delims known_failures
                   prem_role best_slice : atp_config =
   {exec = K (["ISABELLE_ATP"], ["scripts/remote_atp"]),
-   arguments = fn _ => fn _ => fn command => fn timeout => fn file_name =>
-       fn _ =>
-       (if command <> "" then "-c " ^ quote command ^ " " else "") ^
-       "-s " ^ the_remote_system system_name system_versions ^ " " ^
-       "-t " ^ string_of_int (Int.min (max_remote_secs, to_secs 1 timeout)) ^
-       " " ^ file_name,
+   arguments = fn _ => fn _ => fn command => fn timeout => fn file_name => fn _ =>
+     (if command <> "" then "-c " ^ quote command ^ " " else "") ^
+     "-s " ^ the_remote_system system_name system_versions ^ " " ^
+     "-t " ^ string_of_int (Int.min (max_remote_secs, to_secs 1 timeout)) ^
+     " " ^ file_name,
    proof_delims = union (op =) tstp_proof_delims proof_delims,
    known_failures = known_failures @ known_perl_failures @ known_says_failures,
    prem_role = prem_role,
@@ -788,7 +793,7 @@ fun add_atp (name, config) thy =
   handle Symtab.DUP name => error ("Duplicate ATP: " ^ quote name ^ ".")
 
 fun get_atp thy name =
-  the (Symtab.lookup (Data.get thy) name) |> fst
+  fst (the (Symtab.lookup (Data.get thy) name))
   handle Option.Option => error ("Unknown ATP: " ^ name ^ ".")
 
 val supported_atps = Symtab.keys o Data.get
@@ -804,25 +809,20 @@ fun refresh_systems_on_tptp () =
 fun effective_term_order ctxt atp =
   let val ord = Config.get ctxt term_order in
     if ord = smartN then
-      let val is_spass = (atp = spassN orelse atp = spass_polyN) in
-        {is_lpo = false, gen_weights = is_spass, gen_prec = is_spass,
-         gen_simp = false}
-      end
+      {is_lpo = false, gen_weights = (atp = spassN), gen_prec = (atp = spassN),
+       gen_simp = String.isSuffix spass_pirateN atp}
     else
       let val is_lpo = String.isSubstring lpoN ord in
-        {is_lpo = is_lpo,
-         gen_weights = not is_lpo andalso String.isSubstring xweightsN ord,
-         gen_prec = String.isSubstring xprecN ord,
-         gen_simp = String.isSubstring xsimpN ord}
+        {is_lpo = is_lpo, gen_weights = not is_lpo andalso String.isSubstring xweightsN ord,
+         gen_prec = String.isSubstring xprecN ord, gen_simp = String.isSubstring xsimpN ord}
       end
   end
 
 val atps =
-  [agsyhol, alt_ergo, e, e_males, e_par, iprover, iprover_eq, leo2, satallax,
-   spass, spass_poly, vampire, z3_tptp, dummy_thf, remote_agsyhol, remote_e,
-   remote_e_sine, remote_e_tofof, remote_iprover, remote_iprover_eq,
-   remote_leo2, remote_satallax, remote_vampire, remote_snark,
-   remote_waldmeister]
+  [agsyhol, alt_ergo, e, e_males, e_par, iprover, iprover_eq, leo2, satallax, spass, vampire,
+   z3_tptp, dummy_thf, remote_agsyhol, remote_e, remote_e_sine, remote_e_tofof, remote_iprover,
+   remote_iprover_eq, remote_leo2, remote_satallax, remote_vampire, remote_snark,
+   remote_spass_pirate, remote_waldmeister]
 
 val setup = fold add_atp atps
 
