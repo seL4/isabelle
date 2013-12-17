@@ -2698,10 +2698,8 @@ fun undeclared_in_problem problem =
       | do_term _ (AAbs (((_, ty), tm), args)) =
         do_type ty #> do_term false tm #> fold (do_term false) args
     fun do_formula (ATyQuant (_, xs, phi)) =
-        fold (do_type o fst) xs #> fold (fold do_class o snd) xs
-        #> do_formula phi
-      | do_formula (AQuant (_, xs, phi)) =
-        fold do_type (map_filter snd xs) #> do_formula phi
+        fold (do_type o fst) xs #> fold (fold do_class o snd) xs #> do_formula phi
+      | do_formula (AQuant (_, xs, phi)) = fold do_type (map_filter snd xs) #> do_formula phi
       | do_formula (AConn (_, phis)) = fold do_formula phis
       | do_formula (AAtom tm) = do_term true tm
     fun do_line (Class_Decl (_, _, cls)) = fold do_class cls
@@ -2709,8 +2707,7 @@ fun undeclared_in_problem problem =
       | do_line (Sym_Decl (_, _, ty)) = do_type ty
       | do_line (Datatype_Decl (_, xs, ty, tms)) =
         fold do_bound_tvars xs #> do_type ty #> fold (do_term false) tms
-      | do_line (Class_Memb (_, xs, ty, cl)) =
-        fold do_bound_tvars xs #> do_type ty #> do_class cl
+      | do_line (Class_Memb (_, xs, ty, cl)) = fold do_bound_tvars xs #> do_type ty #> do_class cl
       | do_line (Formula (_, _, phi, _, _)) = do_formula phi
     val ((cls, tys), syms) = declared_in_atp_problem problem
   in
