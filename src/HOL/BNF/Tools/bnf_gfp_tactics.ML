@@ -11,8 +11,6 @@ signature BNF_GFP_TACTICS =
 sig
   val mk_Lev_sbd_tac: Proof.context -> cterm option list -> thm list -> thm list ->
     thm list list -> tactic
-  val mk_bd_card_order_tac: thm -> tactic
-  val mk_bd_cinfinite_tac: thm -> tactic
   val mk_bis_Gr_tac: thm -> thm list -> thm list -> thm list -> thm list ->
     {prems: 'a, context: Proof.context} -> tactic
   val mk_bis_O_tac: Proof.context -> int -> thm -> thm list -> thm list -> tactic
@@ -1134,16 +1132,8 @@ fun mk_col_bd_tac m j cts rec_0s rec_Sucs sbd_Card_order sbd_Cinfinite set_sbdss
 
 fun mk_set_bd_tac sbd_Cinfinite hset_def col_bd =
   EVERY' (map rtac [ordIso_ordLeq_trans, @{thm card_of_ordIso_subst}, hset_def,
-    ctrans, @{thm UNION_Cinfinite_bound}, ordIso_ordLeq_trans, @{thm card_of_nat},
-    @{thm natLeq_ordLeq_cinfinite}, sbd_Cinfinite, ballI, col_bd, sbd_Cinfinite,
-    @{thm infinite_ordLeq_cexp}, sbd_Cinfinite]) 1;
-
-fun mk_bd_card_order_tac sbd_card_order =
-  EVERY' (map rtac [@{thm card_order_cexp}, sbd_card_order, sbd_card_order]) 1;
-
-fun mk_bd_cinfinite_tac sbd_Cinfinite =
-  EVERY' (map rtac [@{thm cinfinite_cexp}, @{thm ctwo_ordLeq_Cinfinite},
-    sbd_Cinfinite, sbd_Cinfinite]) 1;
+    @{thm UNION_Cinfinite_bound}, ordIso_ordLeq_trans, @{thm card_of_nat},
+    @{thm natLeq_ordLeq_cinfinite}, sbd_Cinfinite, ballI, col_bd, sbd_Cinfinite]) 1;
 
 fun mk_pickWP_assms_tac set_incl_hsets set_incl_hins map_eq =
   let

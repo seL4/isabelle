@@ -728,8 +728,7 @@ fun mk_set_map0_tac set_nat =
   EVERY' (map rtac [ext, trans, o_apply, sym, trans, o_apply, set_nat]) 1;
 
 fun mk_bd_card_order_tac bd_card_orders =
-  (rtac @{thm card_order_cpow} THEN'
-    CONJ_WRAP_GEN' (rtac @{thm card_order_csum}) rtac bd_card_orders) 1;
+  CONJ_WRAP_GEN' (rtac @{thm card_order_csum}) rtac bd_card_orders 1;
 
 fun mk_wpull_tac wpull =
   EVERY' [rtac ssubst, rtac @{thm wpull_def}, rtac allI, rtac allI,

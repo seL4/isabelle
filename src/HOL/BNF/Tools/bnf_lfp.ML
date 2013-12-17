@@ -1497,14 +1497,6 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
 
         val timer = time (timer "map functions for the new datatypes");
 
-        val bd = mk_cpow sum_bd;
-        val bd_Cinfinite = sum_Cinfinite RS @{thm Cinfinite_cpow};
-        fun mk_cpow_bd thm = @{thm ordLeq_transitive} OF
-          [thm, sum_Card_order RS @{thm cpow_greater_eq}];
-        val set_bd_cpowss = map (map mk_cpow_bd) set_bd_sumss;
-
-        val timer = time (timer "bounds for the new datatypes");
-
         val ls = 1 upto m;
         val setsss = map (mk_setss o mk_set_Ts) passiveAs;
         val map_setss = map (fn T => map2 (fn Ds =>
@@ -1602,7 +1594,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
 
         val set_bd_thmss =
           let
-            fun mk_set_bd z set = mk_ordLeq (mk_card_of (set $ z)) bd;
+            fun mk_set_bd z set = mk_ordLeq (mk_card_of (set $ z)) sum_bd;
 
             fun mk_cphi z set = certify lthy (Term.absfree (dest_Free z) (mk_set_bd z set));
 
@@ -1616,7 +1608,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
                 HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
                   (map2 mk_set_bd Izs sets))) setss_by_range;
 
-            fun mk_tac induct = mk_set_bd_tac m (rtac induct) bd_Cinfinite set_bd_cpowss;
+            fun mk_tac induct = mk_set_bd_tac m (rtac induct) sum_Cinfinite set_bd_sumss;
             val thms =
               map4 (fn goal => fn ctor_sets => fn induct => fn i =>
                 singleton (Proof_Context.export names_lthy lthy)
@@ -1707,7 +1699,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
         val map_cong0_tacs = map (mk_map_cong0_tac m) map_cong0_thms;
         val set_nat_tacss = map (map (K o mk_set_map0_tac)) (transpose set_map0_thmss);
         val bd_co_tacs = replicate n (K (mk_bd_card_order_tac bd_card_orders));
-        val bd_cinf_tacs = replicate n (K (rtac (bd_Cinfinite RS conjunct1) 1));
+        val bd_cinf_tacs = replicate n (K (rtac (sum_Cinfinite RS conjunct1) 1));
         val set_bd_tacss = map (map (fn thm => K (rtac thm 1))) (transpose set_bd_thmss);
         val map_wpull_tacs = map (K o mk_wpull_tac) map_wpull_thms;
 
@@ -1753,7 +1745,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
               fn T => fn wits => fn lthy =>
             bnf_def Dont_Inline (user_policy Note_Some) I tacs wit_tac (SOME deads)
               map_b rel_b set_bs
-              ((((((b, T), fold_rev Term.absfree fs' mapx), sets), bd), wits), NONE)
+              ((((((b, T), fold_rev Term.absfree fs' mapx), sets), sum_bd), wits), NONE)
               lthy
             |> register_bnf (Local_Theory.full_name lthy b))
           tacss bs map_bs rel_bs set_bss fs_maps setss_by_bnf Ts ctor_witss lthy;

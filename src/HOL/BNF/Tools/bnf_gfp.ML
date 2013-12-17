@@ -2236,10 +2236,6 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
 
         val timer = time (timer "map functions for the new codatatypes");
 
-        val bd = mk_cexp sbd sbd;
-
-        val timer = time (timer "bounds for the new codatatypes");
-
         val setss_by_bnf = map (fn i => map2 (mk_hset dtors i) ls passiveAs) ks;
         val setss_by_bnf' = map (fn i => map2 (mk_hset dtor's i) ls passiveBs) ks;
         val setss_by_range = transpose setss_by_bnf;
@@ -2476,8 +2472,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
         val set_nat_tacss =
           map2 (map2 (K oo mk_set_map0_tac)) hset_defss (transpose col_natural_thmss);
 
-        val bd_co_tacs = replicate n (K (mk_bd_card_order_tac sbd_card_order));
-        val bd_cinf_tacs = replicate n (K (mk_bd_cinfinite_tac sbd_Cinfinite));
+        val bd_co_tacs = replicate n (K (rtac sbd_card_order 1));
+        val bd_cinf_tacs = replicate n (K (rtac (sbd_Cinfinite RS conjunct1) 1));
 
         val set_bd_tacss =
           map2 (map2 (K oo mk_set_bd_tac sbd_Cinfinite)) hset_defss (transpose col_bd_thmss);
@@ -2682,7 +2678,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
               fn T => fn (thms, wits) => fn lthy =>
             bnf_def Dont_Inline (user_policy Note_Some) I tacs (wit_tac thms) (SOME deads) map_b
               rel_b set_bs
-              ((((((b, T), fold_rev Term.absfree fs' mapx), sets), bd), wits), NONE) lthy
+              ((((((b, T), fold_rev Term.absfree fs' mapx), sets), sbd), wits), NONE) lthy
             |> register_bnf (Local_Theory.full_name lthy b))
           tacss bs map_bs rel_bs set_bss fs_maps setss_by_bnf Ts all_witss lthy;
 
