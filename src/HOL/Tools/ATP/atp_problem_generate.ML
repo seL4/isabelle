@@ -1958,6 +1958,10 @@ val pull_and_reorder_definitions =
         end
   in List.partition (curry (op =) Definition o #role) #>> reorder [] #> op @ end
 
+fun s_not_prop (@{const Trueprop} $ t) = @{const Trueprop} $ s_not t
+  | s_not_prop (@{const "==>"} $ t $ @{prop False}) = t
+  | s_not_prop t = @{const "==>"} $ t $ @{prop False}
+
 fun translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts
                        concl_t facts =
   let

@@ -82,8 +82,7 @@ fun split_used_facts facts =
         |> pairself (sort_distinct (string_ord o pairself fst))
 
 fun one_line_proof_text num_chained
-        (preplay, banner, used_facts, minimize_command, subgoal,
-         subgoal_count) =
+    (preplay, banner, used_facts, minimize_command, subgoal, subgoal_count) =
   let
     val (chained, extra) = split_used_facts used_facts
     val (failed, reconstr, ext_time) =
@@ -91,10 +90,9 @@ fun one_line_proof_text num_chained
         Played (reconstr, time) => (false, reconstr, (SOME (false, time)))
       | Trust_Playable (reconstr, time) =>
         (false, reconstr,
-         case time of
+         (case time of
            NONE => NONE
-         | SOME time =>
-           if time = Time.zeroTime then NONE else SOME (true, time))
+         | SOME time => if time = Time.zeroTime then NONE else SOME (true, time)))
       | Failed_to_Play reconstr => (true, reconstr, NONE)
     val try_line =
       ([], map fst extra)
@@ -105,9 +103,9 @@ fun one_line_proof_text num_chained
                      \solve this.)"
           else
             try_command_line banner ext_time)
-  in try_line ^ minimize_line minimize_command (map fst (extra @ chained)) end
-
-
+  in
+    try_line ^ minimize_line minimize_command (map fst (extra @ chained))
+  end
 
 
 (** detailed Isar proofs **)

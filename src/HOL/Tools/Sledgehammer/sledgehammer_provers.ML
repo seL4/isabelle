@@ -394,8 +394,7 @@ fun timed_reconstructor reconstr debug timeout ths =
 fun is_fact_chained ((_, (sc, _)), _) = sc = Chained
 
 fun filter_used_facts keep_chained used =
-  filter ((member (op =) used o fst) orf
-          (if keep_chained then is_fact_chained else K false))
+  filter ((member (op =) used o fst) orf (if keep_chained then is_fact_chained else K false))
 
 fun play_one_line_proof mode debug verbose timeout pairs state i preferred
                         reconstrs =
@@ -847,6 +846,7 @@ fun run_atp mode name
                     val atp_proof =
                       atp_proof
                       |> termify_atp_proof ctxt pool lifted sym_tab
+                      |> introduce_spass_skolem
                       |> factify_atp_proof fact_names hyp_ts concl_t
                   in
                     (debug, verbose, metis_type_enc, metis_lam_trans, preplay_timeout,

@@ -108,13 +108,17 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, slice,
             tag_list 1 facts
             |> map (fn (j, fact) => fact |> apsnd (K j))
             |> filter_used_facts false used_facts
+            |> distinct (eq_fst (op =))
             |> map (prefix "@" o string_of_int o snd)
 
           fun filter_info (fact_filter, facts) =
             let
               val indices = find_indices facts
-              val unknowns = replicate (num_used_facts - length indices) "?"
-            in (commas (indices @ unknowns), fact_filter) end
+              (* "Int.max" is there for robustness -- it shouldn't be necessary *)
+              val unknowns = replicate (Int.max (0, num_used_facts - length indices)) "?"
+            in
+              (commas (indices @ unknowns), fact_filter)
+            end
 
           val filter_infos =
             map filter_info (("actual", used_from) :: factss)
