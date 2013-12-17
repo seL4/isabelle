@@ -172,7 +172,42 @@ lemma card_of_Sigma_ordLeq_Cinfinite:
 unfolding cinfinite_def by (blast intro: card_of_Sigma_ordLeq_infinite_Field)
 
 
+lemma card_order_cexp:
+  assumes "card_order r1" "card_order r2"
+  shows "card_order (r1 ^c r2)"
+proof -
+  have "Field r1 = UNIV" "Field r2 = UNIV" using assms card_order_on_Card_order by auto
+  thus ?thesis unfolding cexp_def Func_def by (simp add: card_of_card_order_on)
+qed
+
+lemma Cinfinite_ordLess_cexp:
+  assumes r: "Cinfinite r"
+  shows "r <o r ^c r"
+proof -
+  have "r <o ctwo ^c r" using r by (simp only: ordLess_ctwo_cexp)
+  also have "ctwo ^c r \<le>o r ^c r"
+    by (rule cexp_mono1[OF ctwo_ordLeq_Cinfinite]) (auto simp: r ctwo_not_czero Card_order_ctwo)
+  finally show ?thesis .
+qed
+
+lemma infinite_ordLeq_cexp:
+  assumes "Cinfinite r"
+  shows "r \<le>o r ^c r"
+by (rule ordLess_imp_ordLeq[OF Cinfinite_ordLess_cexp[OF assms]])
+
+
 subsection {* Powerset *}
+
+definition cpow where "cpow r = |Pow (Field r)|"
+
+lemma card_order_cpow: "card_order r \<Longrightarrow> card_order (cpow r)"
+by (simp only: cpow_def Field_card_order Pow_UNIV card_of_card_order_on)
+
+lemma cpow_greater_eq: "Card_order r \<Longrightarrow> r \<le>o cpow r"
+by (rule ordLess_imp_ordLeq) (simp only: cpow_def Card_order_Pow)
+
+lemma Cinfinite_cpow: "Cinfinite r \<Longrightarrow> Cinfinite (cpow r)"
+unfolding cpow_def cinfinite_def by (metis Field_card_of card_of_Card_order infinite_Pow)
 
 lemma Card_order_cpow: "Card_order (cpow r)"
 unfolding cpow_def by (rule card_of_Card_order)

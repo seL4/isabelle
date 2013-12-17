@@ -1369,6 +1369,14 @@ assumes "surj f"
 shows "|B| \<le>o |f -` B|"
 by (metis assms card_of_vimage subset_UNIV)
 
+lemma infinite_Pow:
+assumes "\<not> finite A"
+shows "\<not> finite (Pow A)"
+proof-
+  have "|A| \<le>o |Pow A|" by (metis card_of_Pow ordLess_imp_ordLeq)
+  thus ?thesis by (metis assms finite_Pow_iff)
+qed
+
 (* bounded powerset *)
 definition Bpow where
 "Bpow r A \<equiv> {X . X \<subseteq> A \<and> |X| \<le>o r}"

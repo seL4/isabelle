@@ -12,7 +12,6 @@ sig
 
   val mk_bij_betw: term -> term -> term -> term
   val mk_cardSuc: term -> term
-  val mk_cpow: term -> term
   val mk_inver: term -> term -> term -> term
   val mk_not_empty: term -> term
   val mk_not_eq: term -> term -> term
@@ -48,10 +47,6 @@ fun mk_relChain r f =
 fun mk_cardSuc r =
   let val T = fst (dest_relT (fastype_of r));
   in Const (@{const_name cardSuc}, mk_relT (T, T) --> mk_relT (`I (HOLogic.mk_setT T))) $ r end;
-
-fun mk_cpow r =
-  let val T = fst (dest_relT (fastype_of r));
-  in Const (@{const_name cpow}, mk_relT (T, T) --> mk_relT (`I (HOLogic.mk_setT T))) $ r end;
 
 fun mk_bij_betw f A B =
  Const (@{const_name bij_betw},

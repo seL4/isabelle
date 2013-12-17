@@ -486,15 +486,6 @@ corollary Card_order_Pow:
 using card_of_Pow card_of_Field_ordIso ordIso_ordLess_trans ordIso_symmetric by blast
 
 
-lemma infinite_Pow:
-assumes "\<not> finite A"
-shows "\<not> finite (Pow A)"
-proof-
-  have "|A| \<le>o |Pow A|" by (metis card_of_Pow ordLess_imp_ordLeq)
-  thus ?thesis by (metis assms finite_Pow_iff)
-qed
-
-
 lemma card_of_Plus1: "|A| \<le>o |A <+> B|"
 proof-
   have "Inl ` A \<le> A <+> B" by auto
