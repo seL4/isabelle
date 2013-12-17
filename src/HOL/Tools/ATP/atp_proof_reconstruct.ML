@@ -570,7 +570,7 @@ fun introduce_spass_skolem [] = []
         fun in_group group = member (op =) group o hd
         fun group_of sko = the (find_first (fn group => in_group group sko) groups)
 
-        fun new_step group skoss_steps =
+        fun new_step group (skoss_steps : ('a * (term, 'b) atp_step) list) =
           let
             val t =
               skoss_steps
