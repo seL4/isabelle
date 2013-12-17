@@ -1,3 +1,2 @@
 #!/usr/bin/env bash
-curl -F file=@"$2" "http://91.228.53.68:8080/solve/pirate/"$1"s" \
-  | sed "s/Invovled clauses/Involved clauses/"
+curl -F file=@"$2" "http://91.228.53.68:8080/solve/pirate/"$1"s"
