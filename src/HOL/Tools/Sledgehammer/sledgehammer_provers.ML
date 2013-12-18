@@ -84,8 +84,7 @@ sig
   val SledgehammerN : string
   val plain_metis : reconstructor
   val select_smt_solver : string -> Proof.context -> Proof.context
-  val extract_reconstructor :
-    params -> reconstructor -> string * (string * string list) list
+  val extract_reconstructor : params -> reconstructor -> string * (string * string list) list
   val is_reconstructor : string -> bool
   val is_atp : theory -> string -> bool
   val is_smt_prover : Proof.context -> string -> bool
@@ -719,8 +718,7 @@ fun run_atp mode name
             val ord = effective_term_order ctxt name
             val full_proof = isar_proofs |> the_default (mode = Minimize)
             val args =
-              arguments ctxt full_proof extra
-                        (slice_timeout |> the_default one_day)
+              arguments ctxt full_proof extra (slice_timeout |> the_default one_day)
                         (File.shell_path prob_path) (ord, ord_info, sel_weights)
             val command =
               "(exec 2>&1; " ^ File.shell_path command0 ^ " " ^ args ^ " " ^ ")"
@@ -728,26 +726,18 @@ fun run_atp mode name
             val _ =
               atp_problem
               |> lines_of_atp_problem format ord ord_info
-              |> cons ("% " ^ command ^ "\n" ^
-                (if comment = "" then "" else "% " ^ comment ^ "\n"))
+              |> cons ("% " ^ command ^ "\n" ^ (if comment = "" then "" else "% " ^ comment ^ "\n"))
               |> File.write_list prob_path
             val ((output, run_time), (atp_proof, outcome)) =
-              time_limit generous_slice_timeout Isabelle_System.bash_output
-                         command
-              |>> (if overlord then
-                     prefix ("% " ^ command ^ "\n% " ^ timestamp () ^ "\n")
-                   else
-                     I)
+              time_limit generous_slice_timeout Isabelle_System.bash_output command
+              |>> (if overlord then prefix ("% " ^ command ^ "\n% " ^ timestamp () ^ "\n") else I)
               |> fst |> split_time
               |> (fn accum as (output, _) =>
                      (accum,
-                      extract_tstplike_proof_and_outcome verbose proof_delims
-                                                         known_failures output
+                      extract_tstplike_proof_and_outcome verbose proof_delims known_failures output
                       |>> atp_proof_of_tstplike_proof atp_problem
-                      handle UNRECOGNIZED_ATP_PROOF () =>
-                             ([], SOME ProofIncomplete)))
-              handle TimeLimit.TimeOut =>
-                     (("", the slice_timeout), ([], SOME TimedOut))
+                      handle UNRECOGNIZED_ATP_PROOF () => ([], SOME ProofIncomplete)))
+              handle TimeLimit.TimeOut => (("", the slice_timeout), ([], SOME TimedOut))
             val outcome =
               case outcome of
                 NONE =>

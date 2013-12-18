@@ -8,6 +8,7 @@ Basic proof reconstruction from ATP proofs.
 
 signature ATP_PROOF_RECONSTRUCT =
 sig
+  type 'a atp_type = 'a ATP_Problem.atp_type
   type ('a, 'b) atp_term = ('a, 'b) ATP_Problem.atp_term
   type ('a, 'b, 'c, 'd) atp_formula = ('a, 'b, 'c, 'd) ATP_Problem.atp_formula
   type stature = ATP_Problem_Generate.stature
@@ -32,9 +33,9 @@ sig
   val exists_of : term -> term -> term
   val unalias_type_enc : string -> string list
   val term_of_atp : Proof.context -> bool -> int Symtab.table -> typ option ->
-    (string, string) atp_term -> term
+    (string, string atp_type) atp_term -> term
   val prop_of_atp : Proof.context -> bool -> int Symtab.table ->
-    (string, string, (string, string) atp_term, string) atp_formula -> term
+    (string, string, (string, string atp_type) atp_term, string) atp_formula -> term
 
   val used_facts_in_atp_proof :
     Proof.context -> (string * stature) list vector -> string atp_proof -> (string * stature) list
@@ -107,20 +108,20 @@ fun make_tfree ctxt w =
     TFree (ww, the_default HOLogic.typeS (Variable.def_sort ctxt (ww, ~1)))
   end
 
-exception ATP_TERM of (string, string) atp_term list
+exception ATP_TERM of (string, string atp_type) atp_term list
 exception ATP_FORMULA of
-    (string, string, (string, string) atp_term, string) atp_formula list
+  (string, string, (string, string atp_type) atp_term, string) atp_formula list
 exception SAME of unit
 
-(* Type variables are given the basic sort "HOL.type". Some will later be
-   constrained by information from type literals, or by type inference. *)
+(* Type variables are given the basic sort "HOL.type". Some will later be constrained by information
+   from type literals, or by type inference. *)
 fun typ_of_atp ctxt (u as ATerm ((a, _), us)) =
   let val Ts = map (typ_of_atp ctxt) us in
     (case unprefix_and_unascii type_const_prefix a of
       SOME b => Type (invert_const b, Ts)
     | NONE =>
       if not (null us) then
-        raise ATP_TERM [u]  (* only "tconst"s have type arguments *)
+        raise ATP_TERM [u] (* only "tconst"s have type arguments *)
       else
         (case unprefix_and_unascii tfree_prefix a of
           SOME b => make_tfree ctxt b
@@ -320,8 +321,8 @@ fun quantify_over_var quant_of var_s t =
       | norm_var_types t = t
   in t |> map_aterms norm_var_types |> fold_rev quant_of (map Var normTs) end
 
-(* Interpret an ATP formula as a HOL term, extracting sort constraints as they
-   appear in the formula. *)
+(* Interpret an ATP formula as a HOL term, extracting sort constraints as they appear in the
+   formula. *)
 fun prop_of_atp ctxt textual sym_tab phi =
   let
     fun do_formula pos phi =
@@ -337,11 +338,11 @@ fun prop_of_atp ctxt textual sym_tab phi =
         do_formula (pos |> c = AImplies ? not) phi1
         ##>> do_formula pos phi2
         #>> (case c of
-               AAnd => s_conj
-             | AOr => s_disj
-             | AImplies => s_imp
-             | AIff => s_iff
-             | ANot => raise Fail "impossible connective")
+              AAnd => s_conj
+            | AOr => s_disj
+            | AImplies => s_imp
+            | AIff => s_iff
+            | ANot => raise Fail "impossible connective")
       | AAtom tm => term_of_atom ctxt textual sym_tab pos tm
       | _ => raise ATP_FORMULA [phi])
   in

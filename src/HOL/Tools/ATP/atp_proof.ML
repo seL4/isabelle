@@ -8,6 +8,7 @@ Abstract representation of ATP proofs and TSTP/SPASS syntax.
 
 signature ATP_PROOF =
 sig
+  type 'a atp_type = 'a ATP_Problem.atp_type
   type ('a, 'b) atp_term = ('a, 'b) ATP_Problem.atp_term
   type atp_formula_role = ATP_Problem.atp_formula_role
   type ('a, 'b, 'c, 'd) atp_formula = ('a, 'b, 'c, 'd) ATP_Problem.atp_formula
@@ -38,8 +39,7 @@ sig
   type ('a, 'b) atp_step =
     atp_step_name * atp_formula_role * 'a * 'b * atp_step_name list
 
-  type 'a atp_proof =
-    (('a, 'a, ('a, 'a) atp_term, 'a) atp_formula, string) atp_step list
+  type 'a atp_proof = (('a, 'a, ('a, 'a atp_type) atp_term, 'a) atp_formula, string) atp_step list
 
   val agsyhol_core_rule : string
   val satallax_core_rule : string
@@ -50,23 +50,18 @@ sig
   val short_output : bool -> string -> string
   val string_of_atp_failure : atp_failure -> string
   val extract_important_message : string -> string
-  val extract_known_atp_failure :
-    (atp_failure * string) list -> string -> atp_failure option
+  val extract_known_atp_failure : (atp_failure * string) list -> string -> atp_failure option
   val extract_tstplike_proof_and_outcome :
     bool -> (string * string) list -> (atp_failure * string) list -> string
     -> string * atp_failure option
   val is_same_atp_step : atp_step_name -> atp_step_name -> bool
   val scan_general_id : string list -> string * string list
-  val parse_formula :
-    string list
-    -> (string, 'a, (string, 'a) atp_term, string) atp_formula * string list
-  val atp_proof_of_tstplike_proof :
-    string atp_problem -> string -> string atp_proof
+  val parse_formula : string list ->
+    (string, string atp_type, (string, string atp_type) atp_term, string) atp_formula * string list
+  val atp_proof_of_tstplike_proof : string atp_problem -> string -> string atp_proof
   val clean_up_atp_proof_dependencies : string atp_proof -> string atp_proof
-  val map_term_names_in_atp_proof :
-    (string -> string) -> string atp_proof -> string atp_proof
-  val nasty_atp_proof :
-    string Symtab.table -> string atp_proof -> string atp_proof
+  val map_term_names_in_atp_proof : (string -> string) -> string atp_proof -> string atp_proof
+  val nasty_atp_proof : string Symtab.table -> string atp_proof -> string atp_proof
 end;
 
 structure ATP_Proof : ATP_PROOF =
@@ -203,11 +198,9 @@ fun vampire_step_name_ord p =
     | _ => raise Fail "not Vampire")
   end
 
-type ('a, 'b) atp_step =
-  atp_step_name * atp_formula_role * 'a * 'b * atp_step_name list
+type ('a, 'b) atp_step = atp_step_name * atp_formula_role * 'a * 'b * atp_step_name list
 
-type 'a atp_proof =
-  (('a, 'a, ('a, 'a) atp_term, 'a) atp_formula, string) atp_step list
+type 'a atp_proof = (('a, 'a, ('a, 'a atp_type) atp_term, 'a) atp_formula, string) atp_step list
 
 (**** PARSING OF TSTP FORMAT ****)
 
@@ -245,8 +238,7 @@ fun parse_dependency x =
   (parse_inference_source >> snd
    || scan_general_id --| skip_term >> single) x
 and parse_dependencies x =
-  (parse_dependency ::: Scan.repeat ($$ "," |-- parse_dependency)
-   >> flat) x
+  (parse_dependency ::: Scan.repeat ($$ "," |-- parse_dependency) >> flat) x
 and parse_file_source x =
   (Scan.this_string "file" |-- $$ "(" |-- scan_general_id
    -- Scan.option ($$ "," |-- scan_general_id) --| $$ ")") x
@@ -266,19 +258,28 @@ and parse_source x =
 
 fun list_app (f, args) = fold (fn arg => fn f => ATerm ((tptp_app, []), [f, arg])) args f
 
+fun parse_sort x = scan_general_id x
+and parse_sorts x = (parse_sort ::: Scan.repeat ($$ "&" |-- parse_sort)) x
+
+fun parse_type x =
+  (scan_general_id --| Scan.option ($$ "{" |-- parse_sorts --| $$ "}")
+    -- Scan.optional ($$ "(" |-- parse_types --| $$ ")") []
+   >> AType) x
+and parse_types x = (parse_type ::: Scan.repeat ($$ "," |-- parse_type)) x
+
 (* We currently ignore TFF and THF types. *)
-fun parse_type_stuff x = Scan.repeat (($$ tptp_has_type || $$ tptp_fun_type) |-- parse_arg) x
+fun parse_type_signature x = Scan.repeat (($$ tptp_has_type || $$ tptp_fun_type) |-- parse_arg) x
 and parse_arg x =
-  ($$ "(" |-- parse_term --| $$ ")" --| parse_type_stuff
-   || scan_general_id --| parse_type_stuff
-        -- Scan.optional ($$ "(" |-- parse_terms --| $$ ")") []
-      >> (ATerm o apfst (rpair []))) x
+  ($$ "(" |-- parse_term --| $$ ")" --| parse_type_signature
+   || scan_general_id --| parse_type_signature
+       -- Scan.optional ($$ "<" |-- parse_types --| $$ ">") []
+       -- Scan.optional ($$ "(" |-- parse_terms --| $$ ")") []
+     >> ATerm) x
 and parse_term x = (parse_arg -- Scan.repeat ($$ tptp_app |-- parse_arg) >> list_app) x
 and parse_terms x = (parse_term ::: Scan.repeat ($$ "," |-- parse_term)) x
 
 fun parse_atom x =
-  (parse_term -- Scan.option (Scan.option ($$ tptp_not_infix) --| $$ tptp_equal
-                              -- parse_term)
+  (parse_term -- Scan.option (Scan.option ($$ tptp_not_infix) --| $$ tptp_equal -- parse_term)
    >> (fn (u1, NONE) => AAtom u1
         | (u1, SOME (neg, u2)) =>
           AAtom (ATerm (("equal", []), [u1, u2])) |> is_some neg ? mk_anot)) x
@@ -424,8 +425,7 @@ fun parse_tstp_line problem =
 val parse_dot_name = scan_general_id --| $$ "." --| scan_general_id
 
 val parse_spass_annotations =
-  Scan.optional ($$ ":" |-- Scan.repeat (parse_dot_name
-                                         --| Scan.option ($$ ","))) []
+  Scan.optional ($$ ":" |-- Scan.repeat (parse_dot_name --| Scan.option ($$ ","))) []
 
 (* It is not clear why some literals are followed by sequences of stars and/or
    pluses. We ignore them. *)
@@ -460,7 +460,7 @@ fun parse_spass_line x =
 
 fun parse_spass_pirate_dependency x = (Scan.option ($$ "-") |-- scan_general_id) x
 fun parse_spass_pirate_dependencies x =
-  (parse_spass_pirate_dependency ::: Scan.repeat ($$ "," |-- parse_spass_pirate_dependency)) x
+  Scan.repeat (parse_spass_pirate_dependency --| Scan.option ($$ "," || $$ " ")) x
 fun parse_spass_pirate_file_source x =
   ((Scan.this_string "Input" || Scan.this_string "Conj") |-- $$ "(" |-- scan_general_id
      --| $$ ")") x
@@ -517,28 +517,37 @@ fun atp_proof_of_tstplike_proof _ "" = []
     (case core_of_agsyhol_proof tstp of
       SOME facts => facts |> map (core_inference agsyhol_core_rule)
     | NONE =>
-      tstp ^ "$"  (* the $ sign acts as a sentinel (FIXME: needed?) *)
+      tstp ^ "$" (* the $ sign acts as a sentinel (FIXME: needed?) *)
       |> parse_proof problem
       |> perhaps (try (sort (vampire_step_name_ord o pairself #1))))
 
 fun clean_up_dependencies _ [] = []
   | clean_up_dependencies seen ((name, role, u, rule, deps) :: steps) =
-    (name, role, u, rule,
-     map_filter (fn dep => find_first (is_same_atp_step dep) seen) deps) ::
+    (name, role, u, rule, map_filter (fn dep => find_first (is_same_atp_step dep) seen) deps) ::
     clean_up_dependencies (name :: seen) steps
 
 fun clean_up_atp_proof_dependencies proof = clean_up_dependencies [] proof
 
 fun map_term_names_in_atp_proof f =
   let
-    fun do_term (ATerm ((s, tys), ts)) = ATerm ((f s, tys), map do_term ts)
-    fun do_formula (AQuant (q, xs, phi)) =
-        AQuant (q, map (apfst f) xs, do_formula phi)
-      | do_formula (AConn (c, phis)) = AConn (c, map do_formula phis)
-      | do_formula (AAtom t) = AAtom (do_term t)
-    fun do_step (name, role, phi, rule, deps) =
-      (name, role, do_formula phi, rule, deps)
-  in map do_step end
+    fun map_type (AType (s, tys)) = AType (f s, map map_type tys)
+      | map_type (AFun (ty, ty')) = AFun (map_type ty, map_type ty')
+      | map_type (APi (ss, ty)) = APi (map f ss, map_type ty)
+
+    fun map_term (ATerm ((s, tys), ts)) = ATerm ((f s, map map_type tys), map map_term ts)
+      | map_term (AAbs (((s, ty), tm), args)) =
+        AAbs (((f s, map_type ty), map_term tm), map map_term args)
+
+    fun map_formula (AQuant (q, xs, phi)) =
+        AQuant (q, map (apfst f) xs, map_formula phi)
+      | map_formula (AConn (c, phis)) = AConn (c, map map_formula phis)
+      | map_formula (AAtom t) = AAtom (map_term t)
+
+    fun map_step (name, role, phi, rule, deps) =
+      (name, role, map_formula phi, rule, deps)
+  in
+    map map_step
+  end
 
 fun nasty_name pool s = s |> Symtab.lookup pool |> the_default s
 
