@@ -31,7 +31,7 @@ sig
 
   val mk_permute_in_alt_tac: ''a list -> ''a list -> tactic
 
-  val mk_map_wpull_tac: thm -> thm list -> thm -> tactic
+  val mk_le_rel_OO_tac: thm -> thm -> thm list -> tactic
   val mk_simple_rel_OO_Grp_tac: thm -> thm -> tactic
   val mk_simple_wit_tac: thm list -> tactic
 end;
@@ -241,10 +241,8 @@ fun mk_permute_in_alt_tac src dest =
   mk_rotate_eq_tac (rtac refl) trans @{thm conj_assoc} @{thm conj_commute} @{thm conj_cong}
     dest src) 1;
 
-fun mk_map_wpull_tac comp_in_alt inner_map_wpulls outer_map_wpull =
-  (rtac (@{thm wpull_cong} OF (replicate 3 comp_in_alt)) THEN' rtac outer_map_wpull) 1 THEN
-  WRAP (fn thm => rtac thm 1 THEN REPEAT_DETERM (atac 1)) (K all_tac) inner_map_wpulls all_tac THEN
-  TRY (REPEAT_DETERM (atac 1 ORELSE rtac @{thm wpull_id} 1));
+fun mk_le_rel_OO_tac outer_le_rel_OO outer_rel_mono inner_le_rel_OOs =
+  EVERY' (map rtac (@{thm order_trans} :: outer_le_rel_OO :: outer_rel_mono :: inner_le_rel_OOs)) 1;
 
 fun mk_simple_rel_OO_Grp_tac rel_OO_Grp in_alt_thm =
   rtac (trans OF [rel_OO_Grp, in_alt_thm RS @{thm OO_Grp_cong} RS sym]) 1;

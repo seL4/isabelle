@@ -11,9 +11,6 @@ theory BNF_Comp
 imports Basic_BNFs
 begin
 
-lemma wpull_id: "wpull UNIV B1 B2 id id id id"
-unfolding wpull_def by simp
-
 lemma empty_natural: "(\<lambda>_. {}) o f = image g o (\<lambda>_. {})"
 by (rule ext) simp
 

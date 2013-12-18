@@ -17,17 +17,6 @@ begin
 definition collect where
 "collect F x = (\<Union>f \<in> F. f x)"
 
-(* Weak pullbacks: *)
-definition wpull where
-"wpull A B1 B2 f1 f2 p1 p2 \<longleftrightarrow>
- (\<forall> b1 b2. b1 \<in> B1 \<and> b2 \<in> B2 \<and> f1 b1 = f2 b2 \<longrightarrow> (\<exists> a \<in> A. p1 a = b1 \<and> p2 a = b2))"
-
-(* Weak pseudo-pullbacks *)
-definition wppull where
-"wppull A B1 B2 f1 f2 e1 e2 p1 p2 \<longleftrightarrow>
- (\<forall> b1 b2. b1 \<in> B1 \<and> b2 \<in> B2 \<and> f1 b1 = f2 b2 \<longrightarrow>
-           (\<exists> a \<in> A. e1 (p1 a) = e1 b1 \<and> e2 (p2 a) = e2 b2))"
-
 lemma fstI: "x = (y, z) \<Longrightarrow> fst x = y"
 by simp
 

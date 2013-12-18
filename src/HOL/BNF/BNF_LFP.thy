@@ -224,6 +224,10 @@ lemma meta_spec2:
   shows "PROP P x y"
 by (rule `(\<And>x y. PROP P x y)`)
 
+lemma nchotomy_relcomppE:
+  "\<lbrakk>\<And>y. \<exists>x. y = f x; (r OO s) a c; (\<And>b. r a (f b) \<Longrightarrow> s (f b) c \<Longrightarrow> P)\<rbrakk> \<Longrightarrow> P"
+  by (metis relcompp.cases)
+
 lemma vimage2p_fun_rel: "(fun_rel (vimage2p f g R) R) f g"
   unfolding fun_rel_def vimage2p_def by auto
 

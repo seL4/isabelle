@@ -17,9 +17,6 @@ imports BNF_Def
   Main
 begin
 
-lemma wpull_Grp_def: "wpull A B1 B2 f1 f2 p1 p2 \<longleftrightarrow> Grp B1 f1 OO (Grp B2 f2)\<inverse>\<inverse> \<le> (Grp A p1)\<inverse>\<inverse> OO Grp A p2"
-  unfolding wpull_def Grp_def by auto
-
 bnf ID: 'a
   map: "id :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
   sets: "\<lambda>x. {x}"
@@ -34,7 +31,7 @@ bnf DEADID: 'a
   map: "id :: 'a \<Rightarrow> 'a"
   bd: "natLeq +c |UNIV :: 'a set|"
   rel: "op = :: 'a \<Rightarrow> 'a \<Rightarrow> bool"
-by (auto simp add: wpull_Grp_def Grp_def
+by (auto simp add: Grp_def
   card_order_csum natLeq_card_order card_of_card_order_on
   cinfinite_csum natLeq_cinfinite)
 
@@ -93,47 +90,9 @@ next
     apply (rule finite_iff_ordLess_natLeq[THEN iffD1])
     by (simp add: setr_def split: sum.split)
 next
-  fix A1 A2 B11 B12 B21 B22 f11 f12 f21 f22 p11 p12 p21 p22
-  assume "wpull A1 B11 B21 f11 f21 p11 p21" "wpull A2 B12 B22 f12 f22 p12 p22"
-  hence
-    pull1: "\<And>b1 b2. \<lbrakk>b1 \<in> B11; b2 \<in> B21; f11 b1 = f21 b2\<rbrakk> \<Longrightarrow> \<exists>a \<in> A1. p11 a = b1 \<and> p21 a = b2"
-    and pull2: "\<And>b1 b2. \<lbrakk>b1 \<in> B12; b2 \<in> B22; f12 b1 = f22 b2\<rbrakk> \<Longrightarrow> \<exists>a \<in> A2. p12 a = b1 \<and> p22 a = b2"
-    unfolding wpull_def by blast+
-  show "wpull {x. setl x \<subseteq> A1 \<and> setr x \<subseteq> A2}
-  {x. setl x \<subseteq> B11 \<and> setr x \<subseteq> B12} {x. setl x \<subseteq> B21 \<and> setr x \<subseteq> B22}
-  (sum_map f11 f12) (sum_map f21 f22) (sum_map p11 p12) (sum_map p21 p22)"
-    (is "wpull ?in ?in1 ?in2 ?mapf1 ?mapf2 ?mapp1 ?mapp2")
-  proof (unfold wpull_def)
-    { fix B1 B2
-      assume *: "B1 \<in> ?in1" "B2 \<in> ?in2" "?mapf1 B1 = ?mapf2 B2"
-      have "\<exists>A \<in> ?in. ?mapp1 A = B1 \<and> ?mapp2 A = B2"
-      proof (cases B1)
-        case (Inl b1)
-        { fix b2 assume "B2 = Inr b2"
-          with Inl *(3) have False by simp
-        } then obtain b2 where Inl': "B2 = Inl b2" by (cases B2) (simp, blast)
-        with Inl * have "b1 \<in> B11" "b2 \<in> B21" "f11 b1 = f21 b2"
-        by (simp add: setl_def)+
-        with pull1 obtain a where "a \<in> A1" "p11 a = b1" "p21 a = b2" by blast+
-        with Inl Inl' have "Inl a \<in> ?in" "?mapp1 (Inl a) = B1 \<and> ?mapp2 (Inl a) = B2"
-        by (simp add: sum_set_defs)+
-        thus ?thesis by blast
-      next
-        case (Inr b1)
-        { fix b2 assume "B2 = Inl b2"
-          with Inr *(3) have False by simp
-        } then obtain b2 where Inr': "B2 = Inr b2" by (cases B2) (simp, blast)
-        with Inr * have "b1 \<in> B12" "b2 \<in> B22" "f12 b1 = f22 b2"
-        by (simp add: sum_set_defs)+
-        with pull2 obtain a where "a \<in> A2" "p12 a = b1" "p22 a = b2" by blast+
-        with Inr Inr' have "Inr a \<in> ?in" "?mapp1 (Inr a) = B1 \<and> ?mapp2 (Inr a) = B2"
-        by (simp add: sum_set_defs)+
-        thus ?thesis by blast
-      qed
-    }
-    thus "\<forall>B1 B2. B1 \<in> ?in1 \<and> B2 \<in> ?in2 \<and> ?mapf1 B1 = ?mapf2 B2 \<longrightarrow>
-      (\<exists>A \<in> ?in. ?mapp1 A = B1 \<and> ?mapp2 A = B2)" by fastforce
-  qed
+  fix R1 R2 S1 S2
+  show "sum_rel R1 R2 OO sum_rel S1 S2 \<le> sum_rel (R1 OO S1) (R2 OO S2)"
+    by (auto simp: sum_rel_def split: sum.splits)
 next
   fix R S
   show "sum_rel R S =
@@ -187,12 +146,8 @@ next
   show "|{snd x}| \<le>o natLeq"
     by (metis ordLess_imp_ordLeq finite_iff_ordLess_natLeq finite.emptyI finite_insert)
 next
-  fix A1 A2 B11 B12 B21 B22 f11 f12 f21 f22 p11 p12 p21 p22
-  assume "wpull A1 B11 B21 f11 f21 p11 p21" "wpull A2 B12 B22 f12 f22 p12 p22"
-  thus "wpull {x. {fst x} \<subseteq> A1 \<and> {snd x} \<subseteq> A2}
-    {x. {fst x} \<subseteq> B11 \<and> {snd x} \<subseteq> B12} {x. {fst x} \<subseteq> B21 \<and> {snd x} \<subseteq> B22}
-   (map_pair f11 f12) (map_pair f21 f22) (map_pair p11 p12) (map_pair p21 p22)"
-    unfolding wpull_def by simp fast
+  fix R1 R2 S1 S2
+  show "prod_rel R1 R2 OO prod_rel S1 S2 \<le> prod_rel (R1 OO S1) (R2 OO S2)" by auto
 next
   fix R S
   show "prod_rel R S =
@@ -200,26 +155,6 @@ next
         Grp {x. {fst x} \<subseteq> Collect (split R) \<and> {snd x} \<subseteq> Collect (split S)} (map_pair snd snd)"
   unfolding prod_set_defs prod_rel_def Grp_def relcompp.simps conversep.simps fun_eq_iff
   by auto
-qed
-
-(* Categorical version of pullback: *)
-lemma wpull_cat:
-assumes p: "wpull A B1 B2 f1 f2 p1 p2"
-and c: "f1 o q1 = f2 o q2"
-and r: "range q1 \<subseteq> B1" "range q2 \<subseteq> B2"
-obtains h where "range h \<subseteq> A \<and> q1 = p1 o h \<and> q2 = p2 o h"
-proof-
-  have *: "\<forall>d. \<exists>a \<in> A. p1 a = q1 d & p2 a = q2 d"
-  proof safe
-    fix d
-    have "f1 (q1 d) = f2 (q2 d)" using c unfolding comp_def[abs_def] by (rule fun_cong)
-    moreover
-    have "q1 d : B1" "q2 d : B2" using r unfolding image_def by auto
-    ultimately show "\<exists>a \<in> A. p1 a = q1 d \<and> p2 a = q2 d"
-      using p unfolding wpull_def by auto
-  qed
-  then obtain h where "!! d. h d \<in> A & p1 (h d) = q1 d & p2 (h d) = q2 d" by metis
-  thus ?thesis using that by fastforce
 qed
 
 bnf "'a \<Rightarrow> 'b"
@@ -255,16 +190,8 @@ next
   also have "?U \<le>o natLeq +c ?U" by (rule ordLeq_csum2) (rule card_of_Card_order)
   finally show "|range f| \<le>o natLeq +c ?U" .
 next
-  fix A B1 B2 f1 f2 p1 p2 assume p: "wpull A B1 B2 f1 f2 p1 p2"
-  show "wpull {h. range h \<subseteq> A} {g1. range g1 \<subseteq> B1} {g2. range g2 \<subseteq> B2}
-    (op \<circ> f1) (op \<circ> f2) (op \<circ> p1) (op \<circ> p2)"
-  unfolding wpull_def
-  proof safe
-    fix g1 g2 assume r: "range g1 \<subseteq> B1" "range g2 \<subseteq> B2"
-    and c: "f1 \<circ> g1 = f2 \<circ> g2"
-    show "\<exists>h \<in> {h. range h \<subseteq> A}. p1 \<circ> h = g1 \<and> p2 \<circ> h = g2"
-    using wpull_cat[OF p c r] by simp metis
-  qed
+  fix R S
+  show "fun_rel op = R OO fun_rel op = S \<le> fun_rel op = (R OO S)" by (auto simp: fun_rel_def)
 next
   fix R
   show "fun_rel op = R =

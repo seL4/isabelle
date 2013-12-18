@@ -45,6 +45,7 @@ sig
     'a list -> 'b list -> 'c list -> 'd list -> 'e list -> 'f list -> 'g list -> 'h list ->
     'i list -> 'j -> 'k list * 'j
   val split_list4: ('a * 'b * 'c * 'd) list -> 'a list * 'b list * 'c list * 'd list
+  val split_list5: ('a * 'b * 'c * 'd * 'e) list -> 'a list * 'b list * 'c list * 'd list * 'e list
   val find_indices: ('b * 'a -> bool) -> 'a list -> 'b list -> int list
 
   val mk_TFreess: int list -> Proof.context -> typ list list * Proof.context
@@ -98,7 +99,6 @@ sig
   val mk_ordLeq: term -> term -> term
   val mk_rel_comp: term * term -> term
   val mk_rel_compp: term * term -> term
-  val mk_wpull: term -> term -> term -> term -> term -> (term * term) option -> term -> term -> term
 
   (*parameterized terms*)
   val mk_nthN: int -> term -> int -> term
@@ -251,6 +251,11 @@ fun split_list4 [] = ([], [], [], [])
   | split_list4 ((x1, x2, x3, x4) :: xs) =
     let val (xs1, xs2, xs3, xs4) = split_list4 xs;
     in (x1 :: xs1, x2 :: xs2, x3 :: xs3, x4 :: xs4) end;
+
+fun split_list5 [] = ([], [], [], [], [])
+  | split_list5 ((x1, x2, x3, x4, x5) :: xs) =
+    let val (xs1, xs2, xs3, xs4, xs5) = split_list5 xs;
+    in (x1 :: xs1, x2 :: xs2, x3 :: xs3, x4 :: xs4, x5 :: xs5) end;
 
 val parse_binding_colon = parse_binding --| @{keyword ":"};
 val parse_opt_binding_colon = Scan.optional parse_binding_colon Binding.empty;
@@ -458,39 +463,6 @@ fun mk_in As sets T =
     if length sets > 0
     then HOLogic.mk_Collect ("x", T, foldr1 (HOLogic.mk_conj) (map2 in_single sets As))
     else HOLogic.mk_UNIV T
-  end;
-
-fun mk_wpull A B1 B2 f1 f2 pseudo p1 p2 =
-  let
-    val AT = fastype_of A;
-    val BT1 = fastype_of B1;
-    val BT2 = fastype_of B2;
-    val FT1 = fastype_of f1;
-    val FT2 = fastype_of f2;
-    val PT1 = fastype_of p1;
-    val PT2 = fastype_of p2;
-    val T1 = HOLogic.dest_setT BT1;
-    val T2 = HOLogic.dest_setT BT2;
-    val domP = domain_type PT1;
-    val ranF = range_type FT1;
-    val _ = if is_some pseudo orelse
-               (HOLogic.dest_setT AT = domP andalso
-               domain_type FT1 = T1 andalso
-               domain_type FT2 = T2 andalso
-               domain_type PT2 = domP andalso
-               range_type PT1 = T1 andalso
-               range_type PT2 = T2 andalso
-               range_type FT2 = ranF)
-      then () else raise TYPE ("mk_wpull", [BT1, BT2, FT1, FT2, PT1, PT2], []);
-  in
-    (case pseudo of
-      NONE => Const (@{const_name wpull},
-        AT --> BT1 --> BT2 --> FT1 --> FT2 --> PT1 --> PT2 --> HOLogic.boolT) $
-        A $ B1 $ B2 $ f1 $ f2 $ p1 $ p2
-    | SOME (e1, e2) => Const (@{const_name wppull},
-        AT --> BT1 --> BT2 --> FT1 --> FT2 --> fastype_of e1 --> fastype_of e2 -->
-          PT1 --> PT2 --> HOLogic.boolT) $
-        A $ B1 $ B2 $ f1 $ f2 $ e1 $ e2 $ p1 $ p2)
   end;
 
 fun mk_leq t1 t2 =

@@ -24,14 +24,12 @@ sig
   val mk_fromCard: term -> term -> term
   val mk_list_rec: term -> term -> term
   val mk_nat_rec: term -> term -> term
-  val mk_pickWP: term -> term -> term -> term -> term -> term
   val mk_prefCl: term -> term
   val mk_prefixeq: term -> term -> term
   val mk_proj: term -> term
   val mk_quotient: term -> term -> term
   val mk_shift: term -> term -> term
   val mk_size: term -> term
-  val mk_thePull: term -> term -> term -> term -> term
   val mk_toCard: term -> term -> term
   val mk_undefined: typ -> term
   val mk_univ: term -> term
@@ -158,29 +156,6 @@ fun mk_list_rec Nil Cons =
     val (U, consT) = `(Term.domain_type) (fastype_of Cons);
   in
     Const (@{const_name list_rec}, T --> consT --> HOLogic.listT U --> T) $ Nil $ Cons
-  end;
-
-fun mk_thePull B1 B2 f1 f2 =
-  let
-    val fT1 = fastype_of f1;
-    val fT2 = fastype_of f2;
-    val BT1 = domain_type fT1;
-    val BT2 = domain_type fT2;
-  in
-    Const (@{const_name thePull}, HOLogic.mk_setT BT1 --> HOLogic.mk_setT BT2 --> fT1 --> fT2 -->
-      mk_relT (BT1, BT2)) $ B1 $ B2 $ f1 $ f2
-  end;
-
-fun mk_pickWP A f1 f2 b1 b2 =
-  let
-    val fT1 = fastype_of f1;
-    val fT2 = fastype_of f2;
-    val AT = domain_type fT1;
-    val BT1 = range_type fT1;
-    val BT2 = range_type fT2;
-  in
-    Const (@{const_name pickWP}, HOLogic.mk_setT AT --> fT1 --> fT2 --> BT1 --> BT2 --> AT) $
-      A $ f1 $ f2 $ b1 $ b2
   end;
 
 fun mk_InN_not_InM 1 _ = @{thm Inl_not_Inr}

@@ -11,7 +11,6 @@ sig
   include CTR_SUGAR_GENERAL_TACTICS
 
   val fo_rtac: thm -> Proof.context -> int -> tactic
-  val mk_unfold_thms_then_tac: Proof.context -> thm list -> ('a -> tactic) -> 'a -> tactic
 
   val mk_flatten_assoc_tac: (int -> tactic) -> thm -> thm -> thm -> tactic
   val mk_rotate_eq_tac: (int -> tactic) -> thm -> thm -> thm -> thm -> ''a list -> ''a list ->
@@ -44,8 +43,6 @@ fun fo_rtac thm = Subgoal.FOCUS (fn {concl, ...} =>
   in
     rtac (Drule.instantiate_normalize insts thm) 1
   end);
-
-fun mk_unfold_thms_then_tac ctxt defs tac x = unfold_thms_tac ctxt defs THEN tac x;
 
 (*transforms f (g x) = h (k x) into f o g = h o k using first order matches for f, g, h, and k*)
 fun mk_pointfree ctxt thm = thm

@@ -37,12 +37,12 @@ sig
   val mk_fold_transfer_tac: int -> thm -> thm list -> thm list ->
     {prems: thm list, context: Proof.context} -> tactic
   val mk_least_min_alg_tac: thm -> thm -> tactic
-  val mk_lfp_map_wpull_tac: Proof.context -> int -> (int -> tactic) -> thm list -> thm list ->
-    thm list list -> thm list list list -> thm list -> tactic
+  val mk_le_rel_OO_tac: int -> thm -> thm list -> thm list -> thm list -> thm list ->
+    {prems: 'a, context: Proof.context} -> tactic
   val mk_map_comp0_tac: thm list -> thm list -> thm -> int -> tactic
   val mk_map_id0_tac: thm list -> thm -> tactic
   val mk_map_tac: int -> int -> thm -> thm -> thm -> tactic
-  val mk_ctor_map_unique_tac: thm -> thm list -> {prems: thm list, context: Proof.context} -> tactic
+  val mk_ctor_map_unique_tac: thm -> thm list -> Proof.context -> tactic
   val mk_mcong_tac: (int -> tactic) -> thm list list list -> thm list -> thm list ->
     {prems: 'a, context: Proof.context} -> tactic
   val mk_min_algs_card_of_tac: ctyp -> cterm -> int -> thm -> thm list -> thm list -> thm -> thm ->
@@ -69,13 +69,12 @@ sig
   val mk_rec_unique_mor_tac: thm list -> thm list -> thm -> {prems: 'a, context: Proof.context} ->
     tactic
   val mk_set_bd_tac: int -> (int -> tactic) -> thm -> thm list list -> thm list -> int ->
-    {prems: 'a, context: Proof.context} -> tactic
+    Proof.context -> tactic
   val mk_set_nat_tac: int -> (int -> tactic) -> thm list list -> thm list -> cterm list ->
     thm list -> int -> {prems: 'a, context: Proof.context} -> tactic
   val mk_set_map0_tac: thm -> tactic
   val mk_set_tac: thm -> tactic
   val mk_wit_tac: Proof.context -> int -> thm list -> thm list -> tactic
-  val mk_wpull_tac: thm -> tactic
 end;
 
 structure BNF_LFP_Tactics : BNF_LFP_TACTICS =
@@ -584,7 +583,7 @@ fun mk_map_tac m n foldx map_comp_id map_cong0 =
     REPEAT_DETERM_N n o (EVERY' (map rtac [trans, o_apply, id_apply])),
     rtac sym, rtac o_apply] 1;
 
-fun mk_ctor_map_unique_tac fold_unique sym_map_comps {context = ctxt, prems = _} =
+fun mk_ctor_map_unique_tac fold_unique sym_map_comps ctxt =
   rtac fold_unique 1 THEN
   unfold_thms_tac ctxt (sym_map_comps @ @{thms o_assoc[symmetric] id_o o_id}) THEN
   ALLGOALS atac;
@@ -624,7 +623,7 @@ fun mk_set_nat_tac m induct_tac set_mapss
     (induct_tac THEN' EVERY' (map4 mk_set_nat csets ctor_maps ctor_sets set_mapss)) 1
   end;
 
-fun mk_set_bd_tac m induct_tac bd_Cinfinite set_bdss ctor_sets i {context = ctxt, prems = _} =
+fun mk_set_bd_tac m induct_tac bd_Cinfinite set_bdss ctor_sets i ctxt =
   let
     val n = length ctor_sets;
 
@@ -658,49 +657,18 @@ fun mk_mcong_tac induct_tac set_setsss map_cong0s ctor_maps {context = ctxt, pre
     (induct_tac THEN' EVERY' (map3 mk_map_cong0 ctor_maps map_cong0s set_setsss)) 1
   end;
 
-fun mk_lfp_map_wpull_tac ctxt m induct_tac wpulls ctor_maps ctor_setss set_setsss ctor_injects =
-  let
-    val n = length wpulls;
-    val ks = 1 upto n;
-    val ls = 1 upto m;
-
-    fun use_pass_asm thm = rtac conjI THEN' etac (thm RS subset_trans);
-    fun use_act_asm thm = etac (thm RS subset_trans) THEN' atac;
-
-    fun useIH set_sets i = EVERY' [rtac ssubst, rtac @{thm wpull_def},
-       REPEAT_DETERM_N m o etac thin_rl, select_prem_tac n (dtac asm_rl) i,
-       rtac allI, rtac allI, rtac impI, REPEAT_DETERM o etac conjE,
-       REPEAT_DETERM o dtac @{thm meta_spec},
-       dtac meta_mp, atac,
-       dtac meta_mp, atac, etac mp,
-       rtac conjI, rtac CollectI, CONJ_WRAP' use_act_asm set_sets,
-       rtac conjI, rtac CollectI, CONJ_WRAP' use_act_asm set_sets,
-       atac];
-
-    fun mk_subset thm = EVERY' [rtac ord_eq_le_trans, rtac thm, rtac @{thm Un_least}, atac,
-      REPEAT_DETERM_N (n - 1) o rtac @{thm Un_least},
-      REPEAT_DETERM_N n o
-        EVERY' [rtac @{thm UN_least}, rtac CollectE, etac set_rev_mp, atac,
-          REPEAT_DETERM o etac conjE, atac]];
-
-    fun mk_wpull wpull ctor_map ctor_sets set_setss ctor_inject =
-      EVERY' [rtac impI, REPEAT_DETERM o eresolve_tac [CollectE, conjE],
-        rtac rev_mp, rtac wpull,
-        EVERY' (map (fn i => REPEAT_DETERM_N (i - 1) o etac thin_rl THEN' atac) ls),
-        EVERY' (map2 useIH (transpose (map tl set_setss)) ks),
-        rtac impI, REPEAT_DETERM_N (m + n) o etac thin_rl,
-        dtac @{thm subst[OF wpull_def, of "%x. x"]}, etac allE, etac allE, etac impE,
-        rtac conjI, rtac CollectI, EVERY' (map (use_pass_asm o hd) set_setss),
-          CONJ_WRAP' (K (rtac subset_refl)) ks,
-        rtac conjI, rtac CollectI, EVERY' (map (use_pass_asm o hd) set_setss),
-          CONJ_WRAP' (K (rtac subset_refl)) ks,
-        rtac subst, rtac ctor_inject, rtac trans, rtac sym, rtac ctor_map,
-        rtac trans, atac, rtac ctor_map, REPEAT_DETERM o eresolve_tac [CollectE, conjE, bexE],
-        hyp_subst_tac ctxt, rtac bexI, rtac conjI, rtac ctor_map, rtac ctor_map, rtac CollectI,
-        CONJ_WRAP' mk_subset ctor_sets];
-  in
-    (induct_tac THEN' EVERY' (map5 mk_wpull wpulls ctor_maps ctor_setss set_setsss ctor_injects)) 1
-  end;
+fun mk_le_rel_OO_tac m induct ctor_nchotomys ctor_Irels rel_mono_strongs rel_OOs 
+    {context = ctxt, prems = _} =
+  EVERY' (rtac induct ::
+  map4 (fn nchotomy => fn Irel => fn rel_mono => fn rel_OO =>
+    EVERY' [rtac impI, etac (nchotomy RS @{thm nchotomy_relcomppE}),
+      REPEAT_DETERM_N 2 o dtac (Irel RS iffD1), rtac (Irel RS iffD2),
+      rtac rel_mono, rtac (rel_OO RS @{thm predicate2_eqD} RS iffD2),
+      rtac @{thm relcomppI}, atac, atac,
+      REPEAT_DETERM_N m o EVERY' [rtac ballI, rtac ballI, rtac impI, atac],
+      REPEAT_DETERM_N (length rel_OOs) o
+        EVERY' [rtac ballI, rtac ballI, Goal.assume_rule_tac ctxt]])
+  ctor_nchotomys ctor_Irels rel_mono_strongs rel_OOs) 1;
 
 (* BNF tactics *)
 
@@ -729,10 +697,6 @@ fun mk_set_map0_tac set_nat =
 
 fun mk_bd_card_order_tac bd_card_orders =
   CONJ_WRAP_GEN' (rtac @{thm card_order_csum}) rtac bd_card_orders 1;
-
-fun mk_wpull_tac wpull =
-  EVERY' [rtac ssubst, rtac @{thm wpull_def}, rtac allI, rtac allI,
-    rtac wpull, REPEAT_DETERM o atac] 1;
 
 fun mk_wit_tac ctxt n ctor_set wit =
   REPEAT_DETERM (atac 1 ORELSE

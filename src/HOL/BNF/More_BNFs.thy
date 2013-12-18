@@ -50,18 +50,9 @@ next
   show "|Option.set x| \<le>o natLeq"
     by (cases x) (simp_all add: ordLess_imp_ordLeq finite_iff_ordLess_natLeq[symmetric])
 next
-  fix A B1 B2 f1 f2 p1 p2
-  assume wpull: "wpull A B1 B2 f1 f2 p1 p2"
-  show "wpull {x. Option.set x \<subseteq> A} {x. Option.set x \<subseteq> B1} {x. Option.set x \<subseteq> B2}
-    (Option.map f1) (Option.map f2) (Option.map p1) (Option.map p2)"
-    (is "wpull ?A ?B1 ?B2 ?f1 ?f2 ?p1 ?p2")
-    unfolding wpull_def
-  proof (intro strip, elim conjE)
-    fix b1 b2
-    assume "b1 \<in> ?B1" "b2 \<in> ?B2" "?f1 b1 = ?f2 b2"
-    thus "\<exists>a \<in> ?A. ?p1 a = b1 \<and> ?p2 a = b2" using wpull
-      unfolding wpull_def by (cases b2) (auto 4 5)
-  qed
+  fix R S
+  show "option_rel R OO option_rel S \<le> option_rel (R OO S)"
+    by (auto simp: option_rel_def split: option.splits)
 next
   fix z
   assume "z \<in> Option.set None"
@@ -74,28 +65,6 @@ next
   unfolding option_rel_def Grp_def relcompp.simps conversep.simps fun_eq_iff prod.cases
   by (auto simp: trans[OF eq_commute option_map_is_None] trans[OF eq_commute option_map_eq_Some]
            split: option.splits)
-qed
-
-lemma wpull_map:
-  assumes "wpull A B1 B2 f1 f2 p1 p2"
-  shows "wpull {x. set x \<subseteq> A} {x. set x \<subseteq> B1} {x. set x \<subseteq> B2} (map f1) (map f2) (map p1) (map p2)"
-    (is "wpull ?A ?B1 ?B2 _ _ _ _")
-proof (unfold wpull_def)
-  { fix as bs assume *: "as \<in> ?B1" "bs \<in> ?B2" "map f1 as = map f2 bs"
-    hence "length as = length bs" by (metis length_map)
-    hence "\<exists>zs \<in> ?A. map p1 zs = as \<and> map p2 zs = bs" using *
-    proof (induct as bs rule: list_induct2)
-      case (Cons a as b bs)
-      hence "a \<in> B1" "b \<in> B2" "f1 a = f2 b" by auto
-      with assms obtain z where "z \<in> A" "p1 z = a" "p2 z = b" unfolding wpull_def by blast
-      moreover
-      from Cons obtain zs where "zs \<in> ?A" "map p1 zs = as" "map p2 zs = bs" by auto
-      ultimately have "z # zs \<in> ?A" "map p1 (z # zs) = a # as \<and> map p2 (z # zs) = b # bs" by auto
-      thus ?case by (rule_tac x = "z # zs" in bexI)
-    qed simp
-  }
-  thus "\<forall>as bs. as \<in> ?B1 \<and> bs \<in> ?B2 \<and> map f1 as = map f2 bs \<longrightarrow>
-    (\<exists>zs \<in> ?A. map p1 zs = as \<and> map p2 zs = bs)" by blast
 qed
 
 bnf "'a list"
@@ -125,49 +94,20 @@ next
   show "|set x| \<le>o natLeq"
     by (metis List.finite_set finite_iff_ordLess_natLeq ordLess_imp_ordLeq)
 next
+  fix R S
+  show "list_all2 R OO list_all2 S \<le> list_all2 (R OO S)"
+    by (metis list_all2_OO order_refl)
+next
   fix R
   show "list_all2 R =
          (Grp {x. set x \<subseteq> {(x, y). R x y}} (map fst))\<inverse>\<inverse> OO
          Grp {x. set x \<subseteq> {(x, y). R x y}} (map snd)"
     unfolding list_all2_def[abs_def] Grp_def fun_eq_iff relcompp.simps conversep.simps
     by (force simp: zip_map_fst_snd)
-qed (simp add: wpull_map)+
+qed simp_all
 
 
 (* Finite sets *)
-
-lemma wpull_image:
-  assumes "wpull A B1 B2 f1 f2 p1 p2"
-  shows "wpull (Pow A) (Pow B1) (Pow B2) (image f1) (image f2) (image p1) (image p2)"
-unfolding wpull_def Pow_def Bex_def mem_Collect_eq proof clarify
-  fix Y1 Y2 assume Y1: "Y1 \<subseteq> B1" and Y2: "Y2 \<subseteq> B2" and EQ: "f1 ` Y1 = f2 ` Y2"
-  def X \<equiv> "{a \<in> A. p1 a \<in> Y1 \<and> p2 a \<in> Y2}"
-  show "\<exists>X\<subseteq>A. p1 ` X = Y1 \<and> p2 ` X = Y2"
-  proof (rule exI[of _ X], intro conjI)
-    show "p1 ` X = Y1"
-    proof
-      show "Y1 \<subseteq> p1 ` X"
-      proof safe
-        fix y1 assume y1: "y1 \<in> Y1"
-        then obtain y2 where y2: "y2 \<in> Y2" and eq: "f1 y1 = f2 y2" using EQ by auto
-        then obtain x where "x \<in> A" and "p1 x = y1" and "p2 x = y2"
-        using assms y1 Y1 Y2 unfolding wpull_def by blast
-        thus "y1 \<in> p1 ` X" unfolding X_def using y1 y2 by auto
-      qed
-    qed(unfold X_def, auto)
-    show "p2 ` X = Y2"
-    proof
-      show "Y2 \<subseteq> p2 ` X"
-      proof safe
-        fix y2 assume y2: "y2 \<in> Y2"
-        then obtain y1 where y1: "y1 \<in> Y1" and eq: "f1 y1 = f2 y2" using EQ by force
-        then obtain x where "x \<in> A" and "p1 x = y1" and "p2 x = y2"
-        using assms y2 Y1 Y2 unfolding wpull_def by blast
-        thus "y2 \<in> p2 ` X" unfolding X_def using y1 y2 by auto
-      qed
-    qed(unfold X_def, auto)
-  qed(unfold X_def, auto)
-qed
 
 context
 includes fset.lifting
@@ -206,31 +146,6 @@ next
   by (transfer, clarsimp, metis fst_conv)
 qed
 
-lemma wpull_fimage:
-  assumes "wpull A B1 B2 f1 f2 p1 p2"
-  shows "wpull {x. fset x \<subseteq> A} {x. fset x \<subseteq> B1} {x. fset x \<subseteq> B2}
-              (fimage f1) (fimage f2) (fimage p1) (fimage p2)"
-unfolding wpull_def Pow_def Bex_def mem_Collect_eq proof clarify
-  fix y1 y2
-  assume Y1: "fset y1 \<subseteq> B1" and Y2: "fset y2 \<subseteq> B2"
-  assume "fimage f1 y1 = fimage f2 y2"
-  hence EQ: "f1 ` (fset y1) = f2 ` (fset y2)" by transfer simp
-  with Y1 Y2 obtain X where X: "X \<subseteq> A" and Y1: "p1 ` X = fset y1" and Y2: "p2 ` X = fset y2"
-    using wpull_image[OF assms] unfolding wpull_def Pow_def
-    by (auto elim!: allE[of _ "fset y1"] allE[of _ "fset y2"])
-  have "\<forall> y1' \<in> fset y1. \<exists> x. x \<in> X \<and> y1' = p1 x" using Y1 by auto
-  then obtain q1 where q1: "\<forall> y1' \<in> fset y1. q1 y1' \<in> X \<and> y1' = p1 (q1 y1')" by metis
-  have "\<forall> y2' \<in> fset y2. \<exists> x. x \<in> X \<and> y2' = p2 x" using Y2 by auto
-  then obtain q2 where q2: "\<forall> y2' \<in> fset y2. q2 y2' \<in> X \<and> y2' = p2 (q2 y2')" by metis
-  def X' \<equiv> "q1 ` (fset y1) \<union> q2 ` (fset y2)"
-  have X': "X' \<subseteq> A" and Y1: "p1 ` X' = fset y1" and Y2: "p2 ` X' = fset y2"
-  using X Y1 Y2 q1 q2 unfolding X'_def by auto
-  have fX': "finite X'" unfolding X'_def by transfer simp
-  then obtain x where X'eq: "X' = fset x" by transfer simp
-  show "\<exists>x. fset x \<subseteq> A \<and> fimage p1 x = y1 \<and> fimage p2 x = y2"
-     using X' Y1 Y2 by (auto simp: X'eq intro!: exI[of _ "x"]) (transfer, blast)+
-qed
-
 bnf "'a fset"
   map: fimage
   sets: fset 
@@ -245,7 +160,7 @@ apply -
       apply (rule natLeq_card_order)
      apply (rule natLeq_cinfinite)
     apply transfer apply (metis ordLess_imp_ordLeq finite_iff_ordLess_natLeq)
-  apply (erule wpull_fimage)
+   apply (fastforce simp: fset_rel_alt)
  apply (simp add: Grp_def relcompp.simps conversep.simps fun_eq_iff fset_rel_alt fset_rel_aux) 
 apply transfer apply simp
 done
@@ -550,6 +465,62 @@ proof-
   show ?thesis unfolding A using finite_cartesian_product[OF assms] by auto
 qed
 
+(* Weak pullbacks: *)
+definition wpull where
+"wpull A B1 B2 f1 f2 p1 p2 \<longleftrightarrow>
+ (\<forall> b1 b2. b1 \<in> B1 \<and> b2 \<in> B2 \<and> f1 b1 = f2 b2 \<longrightarrow> (\<exists> a \<in> A. p1 a = b1 \<and> p2 a = b2))"
+
+(* Weak pseudo-pullbacks *)
+definition wppull where
+"wppull A B1 B2 f1 f2 e1 e2 p1 p2 \<longleftrightarrow>
+ (\<forall> b1 b2. b1 \<in> B1 \<and> b2 \<in> B2 \<and> f1 b1 = f2 b2 \<longrightarrow>
+           (\<exists> a \<in> A. e1 (p1 a) = e1 b1 \<and> e2 (p2 a) = e2 b2))"
+
+
+(* The pullback of sets *)
+definition thePull where
+"thePull B1 B2 f1 f2 = {(b1,b2). b1 \<in> B1 \<and> b2 \<in> B2 \<and> f1 b1 = f2 b2}"
+
+lemma wpull_thePull:
+"wpull (thePull B1 B2 f1 f2) B1 B2 f1 f2 fst snd"
+unfolding wpull_def thePull_def by auto
+
+lemma wppull_thePull:
+assumes "wppull A B1 B2 f1 f2 e1 e2 p1 p2"
+shows
+"\<exists> j. \<forall> a' \<in> thePull B1 B2 f1 f2.
+   j a' \<in> A \<and>
+   e1 (p1 (j a')) = e1 (fst a') \<and> e2 (p2 (j a')) = e2 (snd a')"
+(is "\<exists> j. \<forall> a' \<in> ?A'. ?phi a' (j a')")
+proof(rule bchoice[of ?A' ?phi], default)
+  fix a' assume a': "a' \<in> ?A'"
+  hence "fst a' \<in> B1" unfolding thePull_def by auto
+  moreover
+  from a' have "snd a' \<in> B2" unfolding thePull_def by auto
+  moreover have "f1 (fst a') = f2 (snd a')"
+  using a' unfolding csquare_def thePull_def by auto
+  ultimately show "\<exists> ja'. ?phi a' ja'"
+  using assms unfolding wppull_def by blast
+qed
+
+lemma wpull_wppull:
+assumes wp: "wpull A' B1 B2 f1 f2 p1' p2'" and
+1: "\<forall> a' \<in> A'. j a' \<in> A \<and> e1 (p1 (j a')) = e1 (p1' a') \<and> e2 (p2 (j a')) = e2 (p2' a')"
+shows "wppull A B1 B2 f1 f2 e1 e2 p1 p2"
+unfolding wppull_def proof safe
+  fix b1 b2
+  assume b1: "b1 \<in> B1" and b2: "b2 \<in> B2" and f: "f1 b1 = f2 b2"
+  then obtain a' where a': "a' \<in> A'" and b1: "b1 = p1' a'" and b2: "b2 = p2' a'"
+  using wp unfolding wpull_def by blast
+  show "\<exists>a\<in>A. e1 (p1 a) = e1 b1 \<and> e2 (p2 a) = e2 b2"
+  apply (rule bexI[of _ "j a'"]) unfolding b1 b2 using a' 1 by auto
+qed
+
+lemma wppull_fstOp_sndOp:
+shows "wppull (Collect (split (P OO Q))) (Collect (split P)) (Collect (split Q))
+  snd fst fst snd (fstOp P Q) (sndOp P Q)"
+using pick_middlep unfolding wppull_def fstOp_def sndOp_def relcompp.simps by auto
+
 lemma wpull_mmap:
 fixes A :: "'a set" and B1 :: "'b1 set" and B2 :: "'b2 set"
 assumes wp: "wpull A B1 B2 f1 f2 p1 p2"
@@ -781,18 +752,33 @@ lemma set_of_bd: "|set_of x| \<le>o natLeq"
   by transfer
     (auto intro!: ordLess_imp_ordLeq simp: finite_iff_ordLess_natLeq[symmetric] multiset_def)
 
+lemma wppull_mmap:
+  assumes "wppull A B1 B2 f1 f2 e1 e2 p1 p2"
+  shows "wppull {M. set_of M \<subseteq> A} {N1. set_of N1 \<subseteq> B1} {N2. set_of N2 \<subseteq> B2}
+    (mmap f1) (mmap f2) (mmap e1) (mmap e2) (mmap p1) (mmap p2)"
+proof -
+  from assms obtain j where j: "\<forall>a'\<in>thePull B1 B2 f1 f2.
+    j a' \<in> A \<and> e1 (p1 (j a')) = e1 (fst a') \<and> e2 (p2 (j a')) = e2 (snd a')" 
+    by (blast dest: wppull_thePull)
+  then show ?thesis
+    by (intro wpull_wppull[OF wpull_mmap[OF wpull_thePull], of _ _ _ _ "mmap j"])
+      (auto simp: o_eq_dest_lhs[OF mmap_comp[symmetric]] o_eq_dest[OF set_of_mmap]
+        intro!: mmap_cong simp del: mem_set_of_iff simp: mem_set_of_iff[symmetric])
+qed
+
 bnf "'a multiset"
   map: mmap
   sets: set_of 
   bd: natLeq
   wits: "{#}"
 by (auto simp add: mmap_id0 mmap_comp set_of_mmap natLeq_card_order natLeq_cinfinite set_of_bd
-  intro: mmap_cong wpull_mmap)
+  Grp_def relcompp.simps intro: mmap_cong)
+  (metis wppull_mmap[OF wppull_fstOp_sndOp, unfolded wppull_def
+    o_eq_dest_lhs[OF mmap_comp[symmetric]] fstOp_def sndOp_def o_def, simplified])
 
 inductive rel_multiset' where
-Zero: "rel_multiset' R {#} {#}"
-|
-Plus: "\<lbrakk>R a b; rel_multiset' R M N\<rbrakk> \<Longrightarrow> rel_multiset' R (M + {#a#}) (N + {#b#})"
+  Zero[intro]: "rel_multiset' R {#} {#}"
+| Plus[intro]: "\<lbrakk>R a b; rel_multiset' R M N\<rbrakk> \<Longrightarrow> rel_multiset' R (M + {#a#}) (N + {#b#})"
 
 lemma map_multiset_Zero_iff[simp]: "mmap f M = {#} \<longleftrightarrow> M = {#}"
 by (metis image_is_empty multiset.set_map set_of_eq_empty_iff)
@@ -998,8 +984,6 @@ theorems rel_multiset_induct[case_names empty add, induct pred: rel_multiset] =
 (* Advanced relator customization *)
 
 (* Set vs. sum relators: *)
-(* FIXME: All such facts should be declared as simps: *)
-declare sum_rel_simps[simp]
 
 lemma set_rel_sum_rel[simp]: 
 "set_rel (sum_rel \<chi> \<phi>) A1 A2 \<longleftrightarrow> 

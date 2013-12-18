@@ -254,29 +254,6 @@ lemma fromCard_toCard:
 "\<lbrakk>|A| \<le>o r; Card_order r; b \<in> A\<rbrakk> \<Longrightarrow> fromCard A r (toCard A r b) = b"
 unfolding fromCard_def by (rule some_equality) (auto simp add: toCard_inj)
 
-(* pick according to the weak pullback *)
-definition pickWP where
-"pickWP A p1 p2 b1 b2 \<equiv> SOME a. a \<in> A \<and> p1 a = b1 \<and> p2 a = b2"
-
-lemma pickWP_pred:
-assumes "wpull A B1 B2 f1 f2 p1 p2" and
-"b1 \<in> B1" and "b2 \<in> B2" and "f1 b1 = f2 b2"
-shows "\<exists> a. a \<in> A \<and> p1 a = b1 \<and> p2 a = b2"
-using assms unfolding wpull_def by blast
-
-lemma pickWP_raw:
-assumes "wpull A B1 B2 f1 f2 p1 p2" and
-"b1 \<in> B1" and "b2 \<in> B2" and "f1 b1 = f2 b2"
-shows "pickWP A p1 p2 b1 b2 \<in> A
-       \<and> p1 (pickWP A p1 p2 b1 b2) = b1
-       \<and> p2 (pickWP A p1 p2 b1 b2) = b2"
-unfolding pickWP_def using assms someI_ex[OF pickWP_pred] by fastforce
-
-lemmas pickWP =
-  pickWP_raw[THEN conjunct1]
-  pickWP_raw[THEN conjunct2, THEN conjunct1]
-  pickWP_raw[THEN conjunct2, THEN conjunct2]
-
 lemma Inl_Field_csum: "a \<in> Field r \<Longrightarrow> Inl a \<in> Field (r +c s)"
 unfolding Field_card_of csum_def by auto
 

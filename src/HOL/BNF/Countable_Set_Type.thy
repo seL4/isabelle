@@ -176,31 +176,9 @@ next
 next
   fix C show "|rcset C| \<le>o natLeq" by transfer (unfold countable_card_le_natLeq)
 next
-  fix A B1 B2 f1 f2 p1 p2
-  assume wp: "wpull A B1 B2 f1 f2 p1 p2"
-  show "wpull {x. rcset x \<subseteq> A} {x. rcset x \<subseteq> B1} {x. rcset x \<subseteq> B2}
-              (cimage f1) (cimage f2) (cimage p1) (cimage p2)"
-  unfolding wpull_def proof safe
-    fix y1 y2
-    assume Y1: "rcset y1 \<subseteq> B1" and Y2: "rcset y2 \<subseteq> B2"
-    assume "cimage f1 y1 = cimage f2 y2"
-    hence EQ: "f1 ` (rcset y1) = f2 ` (rcset y2)" by transfer
-    with Y1 Y2 obtain X where X: "X \<subseteq> A"
-    and Y1: "p1 ` X = rcset y1" and Y2: "p2 ` X = rcset y2"
-    using wpull_image[OF wp] unfolding wpull_def Pow_def Bex_def mem_Collect_eq
-      by (auto elim!: allE[of _ "rcset y1"] allE[of _ "rcset y2"])
-    have "\<forall> y1' \<in> rcset y1. \<exists> x. x \<in> X \<and> y1' = p1 x" using Y1 by auto
-    then obtain q1 where q1: "\<forall> y1' \<in> rcset y1. q1 y1' \<in> X \<and> y1' = p1 (q1 y1')" by metis
-    have "\<forall> y2' \<in> rcset y2. \<exists> x. x \<in> X \<and> y2' = p2 x" using Y2 by auto
-    then obtain q2 where q2: "\<forall> y2' \<in> rcset y2. q2 y2' \<in> X \<and> y2' = p2 (q2 y2')" by metis
-    def X' \<equiv> "q1 ` (rcset y1) \<union> q2 ` (rcset y2)"
-    have X': "X' \<subseteq> A" and Y1: "p1 ` X' = rcset y1" and Y2: "p2 ` X' = rcset y2"
-    using X Y1 Y2 q1 q2 unfolding X'_def by fast+
-    have fX': "countable X'" unfolding X'_def by simp
-    then obtain x where X'eq: "X' = rcset x" by transfer blast
-    show "\<exists>x\<in>{x. rcset x \<subseteq> A}. cimage p1 x = y1 \<and> cimage p2 x = y2"
-      using X' Y1 Y2 unfolding X'eq by (intro bexI[of _ "x"]) (transfer, auto)
-  qed
+  fix R S
+  show "cset_rel R OO cset_rel S \<le> cset_rel (R OO S)"
+    unfolding cset_rel_def[abs_def] by fast
 next
   fix R
   show "cset_rel R =

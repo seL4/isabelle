@@ -14,7 +14,7 @@ imports Countable_Set_Type BNF_LFP BNF_GFP BNF_Decl
 begin
 
 hide_const (open) image2 image2p vimage2p Gr Grp collect fsts snds setl setr 
-  convol thePull pick_middlep fstOp sndOp csquare inver
-  image2 relImage relInvImage prefCl PrefCl Succ Shift shift
+  convol pick_middlep fstOp sndOp csquare inver relImage relInvImage
+  prefCl PrefCl Succ Shift shift
 
 end
