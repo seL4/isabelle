@@ -200,7 +200,7 @@ val metislike_methodss =
   [[Metis_Method, Simp_Method, Auto_Method, Arith_Method, Blast_Method, Fastforce_Method,
     Force_Method], [Meson_Method]]
 val rewrite_methodss =
-  [[Simp_Method, Auto_Method, Fastforce_Method, Force_Method, Metis_Method], [Meson_Method]]
+  [[Auto_Method, Simp_Method, Fastforce_Method, Force_Method, Metis_Method], [Meson_Method]]
 val skolem_methodss = [[Metis_Method, Blast_Method], [Metis_New_Skolem_Method], [Meson_Method]]
 
 fun isar_proof_text ctxt isar_proofs
