@@ -220,15 +220,15 @@ val scan_general_id =
 val skip_term =
   let
     fun skip _ accum [] = (accum, [])
-      | skip n accum (s :: ss) =
+      | skip n accum (ss as s :: ss') =
         if s = "," andalso n = 0 then
           (accum, ss)
         else if member (op =) [")", "]", ">", "}"] s then
-          if n = 0 then (accum, ss) else skip (n - 1) (s :: accum) ss
+          if n = 0 then (accum, ss) else skip (n - 1) (s :: accum) ss'
         else if member (op =) ["(", "[", "<", "{"] s then
-          skip (n + 1) (s :: accum) ss
+          skip (n + 1) (s :: accum) ss'
         else
-          skip n (s :: accum) ss
+          skip n (s :: accum) ss'
   in
     skip 0 [] #>> (rev #> implode)
   end
