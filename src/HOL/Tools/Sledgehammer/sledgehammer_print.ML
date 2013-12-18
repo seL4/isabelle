@@ -238,7 +238,7 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
         #> add_suffix " = "
         #> add_term t2
         #> add_suffix "\n"
-      | add_step ind (step as Prove (qs, xs, l, t, subproofs, (facts, (meth :: _) :: _))) =
+      | add_step ind (Prove (qs, xs, l, t, subproofs, (facts, (meth :: _) :: _))) =
         add_step_pre ind qs subproofs
         #> (case xs of
             [] => add_suffix (of_have qs (length subproofs) ^ " ")

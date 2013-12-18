@@ -220,15 +220,18 @@ val scan_general_id =
 val skip_term =
   let
     fun skip _ accum [] = (accum, [])
-      | skip 0 accum (ss as "," :: _) = (accum, ss)
-      | skip 0 accum (ss as ")" :: _) = (accum, ss)
-      | skip 0 accum (ss as "]" :: _) = (accum, ss)
-      | skip n accum ((s as "(") :: ss) = skip (n + 1) (s :: accum) ss
-      | skip n accum ((s as "[") :: ss) = skip (n + 1) (s :: accum) ss
-      | skip n accum ((s as "]") :: ss) = skip (n - 1) (s :: accum) ss
-      | skip n accum ((s as ")") :: ss) = skip (n - 1) (s :: accum) ss
-      | skip n accum (s :: ss) = skip n (s :: accum) ss
-  in skip 0 [] #>> (rev #> implode) end
+      | skip n accum (s :: ss) =
+        if s = "," andalso n = 0 then
+          (accum, ss)
+        else if member (op =) [")", "]", ">", "}"] s then
+          if n = 0 then (accum, ss) else skip (n - 1) (s :: accum) ss
+        else if member (op =) ["(", "[", "<", "{"] s then
+          skip (n + 1) (s :: accum) ss
+        else
+          skip n (s :: accum) ss
+  in
+    skip 0 [] #>> (rev #> implode)
+  end
 
 datatype source =
   File_Source of string * string option |
@@ -261,21 +264,17 @@ and parse_source x =
    || scan_general_id >> (fn s => Inference_Source ("", [s])) (* for E *)
    || skip_term >> K dummy_inference) x
 
-fun list_app (f, args) =
-  fold (fn arg => fn f => ATerm ((tptp_app, []), [f, arg])) args f
+fun list_app (f, args) = fold (fn arg => fn f => ATerm ((tptp_app, []), [f, arg])) args f
 
 (* We currently ignore TFF and THF types. *)
-fun parse_type_stuff x =
-  Scan.repeat (($$ tptp_has_type || $$ tptp_fun_type) |-- parse_arg) x
+fun parse_type_stuff x = Scan.repeat (($$ tptp_has_type || $$ tptp_fun_type) |-- parse_arg) x
 and parse_arg x =
   ($$ "(" |-- parse_term --| $$ ")" --| parse_type_stuff
    || scan_general_id --| parse_type_stuff
         -- Scan.optional ($$ "(" |-- parse_terms --| $$ ")") []
       >> (ATerm o apfst (rpair []))) x
-and parse_term x =
-  (parse_arg -- Scan.repeat ($$ tptp_app |-- parse_arg) >> list_app) x
-and parse_terms x =
-  (parse_term ::: Scan.repeat ($$ "," |-- parse_term)) x
+and parse_term x = (parse_arg -- Scan.repeat ($$ tptp_app |-- parse_arg) >> list_app) x
+and parse_terms x = (parse_term ::: Scan.repeat ($$ "," |-- parse_term)) x
 
 fun parse_atom x =
   (parse_term -- Scan.option (Scan.option ($$ tptp_not_infix) --| $$ tptp_equal
@@ -311,9 +310,7 @@ and parse_formula x =
 and parse_quantified_formula x =
   (($$ tptp_forall >> K AForall || $$ tptp_exists >> K AExists)
    --| $$ "[" -- parse_terms --| $$ "]" --| $$ ":" -- parse_literal
-   >> (fn ((q, ts), phi) =>
-          (* We ignore TFF and THF types for now. *)
-          AQuant (q, map (fn ATerm ((s, []), _) => (s, NONE)) ts, phi))) x
+   >> (fn ((q, ts), phi) => AQuant (q, map (fn ATerm ((s, []), _) => (s, NONE)) ts, phi))) x
 
 val parse_tstp_extra_arguments =
   Scan.optional ($$ "," |-- parse_source --| Scan.option ($$ "," |-- skip_term))
@@ -351,9 +348,9 @@ fun is_same_formula comm subst (AQuant (q1, xs1, phi1)) (AQuant (q2, xs2, phi2))
     c1 = c2 andalso length phis1 = length phis2 andalso
     forall (uncurry (is_same_formula comm subst)) (phis1 ~~ phis2)
   | is_same_formula comm subst
-        (AAtom (tm1 as ATerm (("equal", []), [tm11, tm12]))) (AAtom tm2) =
+        (AAtom (tm1 as ATerm (("equal", tys), [tm11, tm12]))) (AAtom tm2) =
     is_same_term subst tm1 tm2 orelse
-    (comm andalso is_same_term subst (ATerm (("equal", []), [tm12, tm11])) tm2)
+    (comm andalso is_same_term subst (ATerm (("equal", tys), [tm12, tm11])) tm2)
   | is_same_formula _ subst (AAtom tm1) (AAtom tm2) = is_same_term subst tm1 tm2
   | is_same_formula _ _ _ _ = false
 
@@ -361,11 +358,13 @@ fun matching_formula_line_identifier phi (Formula ((ident, _), _, phi', _, _)) =
     if is_same_formula true [] phi phi' then SOME (ident, phi') else NONE
   | matching_formula_line_identifier _ _ = NONE
 
-fun find_formula_in_problem problem phi =
-  problem |> maps snd |> map_filter (matching_formula_line_identifier phi)
-          |> try (single o hd) |> the_default []
+fun find_formula_in_problem phi =
+  maps snd
+  #> map_filter (matching_formula_line_identifier phi)
+  #> try (single o hd)
+  #> the_default []
 
-fun commute_eq (AAtom (ATerm ((s, []), tms))) = AAtom (ATerm ((s, []), rev tms))
+fun commute_eq (AAtom (ATerm ((s, tys), tms))) = AAtom (ATerm ((s, tys), rev tms))
   | commute_eq _ = raise Fail "expected equation"
 
 fun role_of_tptp_string "axiom" = Axiom
@@ -392,7 +391,7 @@ fun parse_tstp_line problem =
               (case deps of
                 File_Source (_, SOME s) =>
                 (if s = waldmeister_conjecture_name then
-                   (case find_formula_in_problem problem (mk_anot phi) of
+                   (case find_formula_in_problem (mk_anot phi) problem of
                      (* Waldmeister hack: Get the original orientation of the
                         equation to avoid confusing Isar. *)
                      [(s, phi')] =>
@@ -404,16 +403,14 @@ fun parse_tstp_line problem =
                     phi),
                  "", [])
               | File_Source _ =>
-                (((num, phi |> find_formula_in_problem problem |> map fst),
-                  phi), "", [])
+                (((num, map fst (find_formula_in_problem phi problem)), phi), "", [])
               | Inference_Source (rule, deps) => (((num, []), phi), rule, deps))
-            fun mk_step () =
-              (name, role_of_tptp_string role, phi, rule, map (rpair []) deps)
+            fun mk_step () = (name, role_of_tptp_string role, phi, rule, map (rpair []) deps)
           in
             (case role_of_tptp_string role of
               Definition =>
               (case phi of
-                 AAtom (ATerm (("equal", []), _)) =>
+                 AAtom (ATerm (("equal", _), _)) =>
                  (* Vampire's equality proxy axiom *)
                  (name, Definition, phi, rule, map (rpair []) deps)
                | _ => mk_step ())

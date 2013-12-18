@@ -679,8 +679,8 @@ fun term_features_of ctxt thy_name num_facts const_tab term_max_depth type_max_d
             fun strs_of_type_arg (T as Type (s, _)) =
                 massage_long_name s ::
                 (if generalize_goal andalso in_goal then strs_of_sort (sort_of_type alg T) else [])
-              | strs_of_type_arg (TFree (s, S)) = strs_of_sort S
-              | strs_of_type_arg (TVar (s, S)) = strs_of_sort S
+              | strs_of_type_arg (TFree (_, S)) = strs_of_sort S
+              | strs_of_type_arg (TVar (_, S)) = strs_of_sort S
 
             val typargss =
               these (try (Sign.const_typargs thy) x)
