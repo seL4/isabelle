@@ -77,4 +77,7 @@ proof(rule strengthen_pre)
   show "\<turnstile> {wp c Q} c {Q}" by(rule wp_is_pre)
 qed
 
+corollary hoare_sound_complete: "\<turnstile> {P}c{Q} \<longleftrightarrow> \<Turnstile> {P}c{Q}"
+by (metis hoare_complete hoare_sound)
+
 end
