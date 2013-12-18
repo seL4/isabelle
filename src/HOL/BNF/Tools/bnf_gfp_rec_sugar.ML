@@ -488,6 +488,8 @@ type coeqn_data_sel = {
   ctr: term,
   sel: term,
   rhs_term: term,
+  maybe_ctr_rhs: term option,
+  maybe_code_rhs: term option,
   user_eqn: term
 };
 
@@ -557,8 +559,8 @@ fun dissect_coeqn_disc seq fun_names (basic_ctr_specss : basic_corec_ctr_spec li
     }, matchedsss')
   end;
 
-fun dissect_coeqn_sel fun_names (basic_ctr_specss : basic_corec_ctr_spec list list) eqn'
-    maybe_of_spec eqn =
+fun dissect_coeqn_sel fun_names (basic_ctr_specss : basic_corec_ctr_spec list list) maybe_ctr_rhs
+    maybe_code_rhs eqn' maybe_of_spec eqn =
   let
     val (lhs, rhs) = HOLogic.dest_eq eqn
       handle TERM _ =>
@@ -584,6 +586,8 @@ fun dissect_coeqn_sel fun_names (basic_ctr_specss : basic_corec_ctr_spec list li
       ctr = ctr,
       sel = sel,
       rhs_term = rhs,
+      maybe_ctr_rhs = maybe_ctr_rhs,
+      maybe_code_rhs = maybe_code_rhs,
       user_eqn = user_eqn
     }
   end;
@@ -616,7 +620,8 @@ val _ = tracing ("reduced\n    " ^ Syntax.string_of_term @{context} concl ^ "\nt
 *)
 
     val eqns_data_sel =
-      map (dissect_coeqn_sel fun_names basic_ctr_specss eqn' (SOME ctr)) sel_concls;
+      map (dissect_coeqn_sel fun_names basic_ctr_specss
+        (SOME (abstract (List.rev fun_args) rhs)) maybe_code_rhs eqn' (SOME ctr)) sel_concls;
   in
     (the_list maybe_eqn_data_disc @ eqns_data_sel, matchedsss')
   end;
@@ -670,7 +675,7 @@ fun dissect_coeqn lthy seq has_call fun_names (basic_ctr_specss : basic_corec_ct
       dissect_coeqn_disc seq fun_names basic_ctr_specss NONE NONE prems concl matchedsss
       |>> single
     else if member (op =) sels head then
-      ([dissect_coeqn_sel fun_names basic_ctr_specss eqn' maybe_of_spec concl], matchedsss)
+      ([dissect_coeqn_sel fun_names basic_ctr_specss NONE NONE eqn' maybe_of_spec concl], matchedsss)
     else if is_Free head andalso member (op =) fun_names (fst (dest_Free head)) andalso
       member (op =) ctrs (head_of (unfold_let (the maybe_rhs))) then
       dissect_coeqn_ctr seq fun_names basic_ctr_specss eqn' NONE prems concl matchedsss
@@ -807,6 +812,7 @@ fun mk_real_disc_eqns fun_binding arg_Ts ({ctr_specs, ...} : corec_spec)
         |> the o find_first (fn idx => not (exists (equal idx o #ctr_no) disc_eqns));
       val fun_args = (try (#fun_args o hd) disc_eqns, try (#fun_args o hd) sel_eqns)
         |> the_default (map (curry Free Name.uu) arg_Ts) o merge_options;
+      val maybe_sel_eqn = find_first (equal (Binding.name_of fun_binding) o #fun_name) sel_eqns;
       val extra_disc_eqn = {
         fun_name = Binding.name_of fun_binding,
         fun_T = arg_Ts ---> body_type (fastype_of (#ctr (hd ctr_specs))),
@@ -816,8 +822,8 @@ fun mk_real_disc_eqns fun_binding arg_Ts ({ctr_specs, ...} : corec_spec)
         disc = #disc (nth ctr_specs n),
         prems = maps (s_not_conj o #prems) disc_eqns,
         auto_gen = true,
-        maybe_ctr_rhs = NONE,
-        maybe_code_rhs = NONE,
+        maybe_ctr_rhs = Option.map #maybe_ctr_rhs maybe_sel_eqn |> the_default NONE,
+        maybe_code_rhs = Option.map #maybe_ctr_rhs maybe_sel_eqn |> the_default NONE,
         user_eqn = undef_const};
     in
       chop n disc_eqns ||> cons extra_disc_eqn |> (op @)
@@ -1002,7 +1008,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                 (find_first (equal ctr o #ctr) disc_eqns, find_first (equal ctr o #ctr) sel_eqns)
                 |>> Option.map (fn x => (#fun_name x, #fun_T x, #fun_args x, #prems x,
                   #maybe_ctr_rhs x))
-                ||> Option.map (fn x => (#fun_name x, #fun_T x, #fun_args x, [], NONE))
+                ||> Option.map (fn x => (#fun_name x, #fun_T x, #fun_args x, [], #maybe_ctr_rhs x))
                 |> the o merge_options;
               val m = length prems;
               val t = (if is_some maybe_rhs then the maybe_rhs else
@@ -1032,7 +1038,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
               (find_first (member (op =) (map #ctr ctr_specs) o #ctr) disc_eqns,
                find_first (member (op =) (map #ctr ctr_specs) o #ctr) sel_eqns)
               |>> Option.map (fn x => (#fun_name x, #fun_T x, #fun_args x, #maybe_code_rhs x))
-              ||> Option.map (fn x => (#fun_name x, #fun_T x, #fun_args x, NONE))
+              ||> Option.map (fn x => (#fun_name x, #fun_T x, #fun_args x, #maybe_code_rhs x))
               |> merge_options;
           in
             (case maybe_fun_data of
