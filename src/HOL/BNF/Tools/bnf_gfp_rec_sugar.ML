@@ -765,7 +765,9 @@ fun build_codefs lthy bs mxs has_call arg_Tss (corec_specs : corec_spec list)
     val ctr_specss = map #ctr_specs corec_specs;
     val corec_args = hd corecs
       |> fst o split_last o binder_types o fastype_of
-      |> map (Const o pair @{const_name undefined})
+      |> map (fn T => if range_type T = @{typ bool}
+          then Abs (Name.uu_, domain_type T, @{term False})
+          else Const (@{const_name undefined}, T))
       |> fold2 (fold o build_corec_arg_disc) ctr_specss disc_eqnss
       |> fold2 (fold o build_corec_args_sel lthy has_call) sel_eqnss ctr_specss;
     fun currys [] t = t
@@ -922,8 +924,8 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
       let
         val def_thms = map (snd o snd) def_thms';
 
-        val maybe_exh_thms = if exhaustive andalso is_none maybe_tac then
-          map SOME (hd thmss'') else map (K NONE) def_thms;
+        val maybe_exh_thms = if not exhaustive then map (K NONE) def_thms else
+          map SOME (if is_none maybe_tac then hd thmss'' else exh_taut_thms);
         val thmss' = if exhaustive andalso is_none maybe_tac then tl thmss'' else thmss'';
 
         val exclss' = map (op ~~) (goal_idxss ~~ thmss');
@@ -1070,6 +1072,8 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                     in
                       let
                         val rhs = (if exhaustive
+                              orelse map_filter (try (fst o the)) maybe_ctr_conds_argss
+                                |> forall (equal [])
                               orelse forall is_some maybe_ctr_conds_argss
                                 andalso exists #auto_gen disc_eqns then
                             split_last (map_filter I maybe_ctr_conds_argss) ||> snd
