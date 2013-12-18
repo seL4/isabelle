@@ -3031,43 +3031,6 @@ lemma open_delete:
   shows "open s \<Longrightarrow> open (s - {x})"
   by (simp add: open_Diff)
 
-text{* Finite intersection property *}
-
-lemma inj_setminus: "inj_on uminus (A::'a set set)"
-  by (auto simp: inj_on_def)
-
-lemma compact_fip:
-  "compact U \<longleftrightarrow>
-    (\<forall>A. (\<forall>a\<in>A. closed a) \<longrightarrow> (\<forall>B \<subseteq> A. finite B \<longrightarrow> U \<inter> \<Inter>B \<noteq> {}) \<longrightarrow> U \<inter> \<Inter>A \<noteq> {})"
-  (is "_ \<longleftrightarrow> ?R")
-proof (safe intro!: compact_eq_heine_borel[THEN iffD2])
-  fix A
-  assume "compact U"
-    and A: "\<forall>a\<in>A. closed a" "U \<inter> \<Inter>A = {}"
-    and fi: "\<forall>B \<subseteq> A. finite B \<longrightarrow> U \<inter> \<Inter>B \<noteq> {}"
-  from A have "(\<forall>a\<in>uminus`A. open a) \<and> U \<subseteq> \<Union>(uminus`A)"
-    by auto
-  with `compact U` obtain B where "B \<subseteq> A" "finite (uminus`B)" "U \<subseteq> \<Union>(uminus`B)"
-    unfolding compact_eq_heine_borel by (metis subset_image_iff)
-  with fi[THEN spec, of B] show False
-    by (auto dest: finite_imageD intro: inj_setminus)
-next
-  fix A
-  assume ?R
-  assume "\<forall>a\<in>A. open a" "U \<subseteq> \<Union>A"
-  then have "U \<inter> \<Inter>(uminus`A) = {}" "\<forall>a\<in>uminus`A. closed a"
-    by auto
-  with `?R` obtain B where "B \<subseteq> A" "finite (uminus`B)" "U \<inter> \<Inter>(uminus`B) = {}"
-    by (metis subset_image_iff)
-  then show "\<exists>T\<subseteq>A. finite T \<and> U \<subseteq> \<Union>T"
-    by  (auto intro!: exI[of _ B] inj_setminus dest: finite_imageD)
-qed
-
-lemma compact_imp_fip:
-  "compact s \<Longrightarrow> \<forall>t \<in> f. closed t \<Longrightarrow> \<forall>f'. finite f' \<and> f' \<subseteq> f \<longrightarrow> (s \<inter> (\<Inter> f') \<noteq> {}) \<Longrightarrow>
-    s \<inter> (\<Inter> f) \<noteq> {}"
-  unfolding compact_fip by auto
-
 text{*Compactness expressed with filters*}
 
 definition "filter_from_subbase B = Abs_filter (\<lambda>P. \<exists>X \<subseteq> B. finite X \<and> Inf X \<le> P)"
