@@ -658,7 +658,7 @@ val dummy_thf_config = dummy_config Hypothesis dummy_thf_format "poly_native_hig
 val dummy_thf = (dummy_thfN, fn () => dummy_thf_config)
 
 val spass_pirate_format = DFG Polymorphic
-val remote_spass_pirate_config =
+val remote_spass_pirate_config : atp_config =
   {exec = K (["ISABELLE_ATP"], ["scripts/remote_spass_pirate"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
      string_of_int (to_secs 1 timeout) ^ " " ^ file_name,

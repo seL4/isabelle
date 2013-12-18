@@ -72,7 +72,7 @@ fun is_only_type_information t = t aconv @{prop True}
 
 (* Discard facts; consolidate adjacent lines that prove the same formula, since they differ only in
    type information. *)
-fun add_line_pass1 (line as (name as (_, ss), role, t, rule, [])) lines =
+fun add_line_pass1 (line as (name, role, t, rule, [])) lines =
     (* No dependencies: lemma (for Z3), fact, conjecture, or (for Vampire) internal facts or
        definitions. *)
     if role = Lemma orelse role = Conjecture orelse role = Negated_Conjecture orelse
@@ -94,7 +94,7 @@ and delete_dependency name lines =
   fold_rev add_line_pass2 (map (replace_dependencies_in_line (name, [])) lines) []
 
 fun add_lines_pass3 res [] = rev res
-  | add_lines_pass3 res ((name as (_, ss), role, t, rule, deps) :: lines) =
+  | add_lines_pass3 res ((name, role, t, rule, deps) :: lines) =
     if role <> Plain orelse is_skolemize_rule rule orelse is_arith_rule rule orelse
        (* the last line must be kept *)
        null lines orelse
@@ -200,7 +200,7 @@ val metislike_methodss =
   [[Metis_Method, Simp_Method, Auto_Method, Arith_Method, Blast_Method, Fastforce_Method,
     Force_Method], [Meson_Method]]
 val rewrite_methodss =
-  [[Simp_Method, Auto_Method, Fastforce_Method, Force_Method, Metis_Method], [Meson_Method]]
+  [[Auto_Method, Simp_Method, Fastforce_Method, Force_Method, Metis_Method], [Meson_Method]]
 val skolem_methodss = [[Metis_Method, Blast_Method], [Metis_New_Skolem_Method], [Meson_Method]]
 
 fun isar_proof_text ctxt isar_proofs
@@ -208,7 +208,7 @@ fun isar_proof_text ctxt isar_proofs
      atp_proof, goal)
     (one_line_params as (_, _, _, _, subgoal, subgoal_count)) =
   let
-    val (params, hyp_ts, concl_t) = strip_subgoal goal subgoal ctxt
+    val (params, _, concl_t) = strip_subgoal goal subgoal ctxt
     val (_, ctxt) =
       params
       |> map (fn (s, T) => (Binding.name s, SOME T, NoSyn))

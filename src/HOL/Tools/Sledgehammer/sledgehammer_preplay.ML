@@ -123,7 +123,7 @@ fun tac_of_method meth type_enc lam_trans ctxt facts =
 (* main function for preplaying Isar steps; may throw exceptions *)
 fun preplay_raw _ _ _ _ _ (Let _) = zero_preplay_time
   | preplay_raw debug type_enc lam_trans ctxt timeout
-      (step as Prove (_, xs, _, t, subproofs, (fact_names, (meth :: _) :: _))) =
+      (Prove (_, xs, _, t, subproofs, (fact_names, (meth :: _) :: _))) =
     let
       val goal =
         (case xs of

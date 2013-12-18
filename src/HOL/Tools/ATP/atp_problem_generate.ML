@@ -261,9 +261,9 @@ val prefixed_type_tag_name = const_prefix ^ type_tag_name
 
 (*Escaping of special characters.
   Alphanumeric characters are left unchanged.
-  The character _ goes to __
+  The character _ goes to __.
   Characters in the range ASCII space to / go to _A to _P, respectively.
-  Other characters go to _nnn where nnn is the decimal ASCII code.*)
+  Other characters go to _nnn where nnn is the decimal ASCII code. *)
 val upper_a_minus_space = Char.ord #"A" - Char.ord #" "
 
 fun ascii_of_char c =
@@ -571,19 +571,17 @@ fun robust_const_type_args thy (s, T) =
   else
     (s, T) |> Sign.const_typargs thy
 
-(* Converts an Isabelle/HOL term (with combinators) into an intermediate term.
-   Also accumulates sort infomation. *)
+(* Converts an Isabelle/HOL term (with combinators) into an intermediate term. Also accumulates sort
+   infomation. *)
 fun iterm_of_term thy type_enc bs (P $ Q) =
     let
       val (P', P_atomics_Ts) = iterm_of_term thy type_enc bs P
       val (Q', Q_atomics_Ts) = iterm_of_term thy type_enc bs Q
     in (IApp (P', Q'), union (op =) P_atomics_Ts Q_atomics_Ts) end
   | iterm_of_term thy type_enc _ (Const (c, T)) =
-    (IConst (`(make_fixed_const (SOME type_enc)) c, T,
-             robust_const_type_args thy (c, T)),
+    (IConst (`(make_fixed_const (SOME type_enc)) c, T, robust_const_type_args thy (c, T)),
      atomic_types_of T)
-  | iterm_of_term _ _ _ (Free (s, T)) =
-    (IConst (`make_fixed_var s, T, []), atomic_types_of T)
+  | iterm_of_term _ _ _ (Free (s, T)) = (IConst (`make_fixed_var s, T, []), atomic_types_of T)
   | iterm_of_term _ type_enc _ (Var (v as (s, _), T)) =
     (if String.isPrefix Meson_Clausify.new_skolem_var_prefix s then
        let
@@ -600,7 +598,9 @@ fun iterm_of_term thy type_enc bs (P $ Q) =
       val s = vary s
       val name = `make_bound_var s
       val (tm, atomic_Ts) = iterm_of_term thy type_enc ((s, (name, T)) :: bs) t
-    in (IAbs ((name, T), tm), union (op =) atomic_Ts (atomic_types_of T)) end
+    in
+      (IAbs ((name, T), tm), union (op =) atomic_Ts (atomic_types_of T))
+    end
 
 (* "_query" and "_at" are for the ASCII-challenged Metis and Mirabelle. *)
 val queries = ["?", "_query"]
@@ -836,8 +836,8 @@ type ifact =
    atomic_types : typ list}
 
 fun update_iformula f ({name, stature, role, iformula, atomic_types} : ifact) =
-  {name = name, stature = stature, role = role, iformula = f iformula,
-   atomic_types = atomic_types} : ifact
+  {name = name, stature = stature, role = role, iformula = f iformula, atomic_types = atomic_types}
+  : ifact
 
 fun ifact_lift f ({iformula, ...} : ifact) = f iformula
 
@@ -1007,9 +1007,7 @@ fun class_atoms type_enc (cls, T) =
   map (fn cl => class_atom type_enc (cl, T)) cls
 
 fun class_membs_of_types type_enc add_sorts_on_typ Ts =
-  [] |> (polymorphism_of_type_enc type_enc <> Type_Class_Polymorphic andalso
-         level_of_type_enc type_enc <> No_Types)
-        ? fold add_sorts_on_typ Ts
+  [] |> level_of_type_enc type_enc <> No_Types ? fold add_sorts_on_typ Ts
 
 fun mk_aconns c = split_last #> uncurry (fold_rev (mk_aconn c))
 
@@ -1780,22 +1778,22 @@ val completish_helper_table =
   |> map (apsnd (map (apsnd zero_var_indexes)))
 
 fun bound_tvars type_enc sorts Ts =
-  case filter is_TVar Ts of
+  (case filter is_TVar Ts of
     [] => I
   | Ts =>
-    (sorts ? mk_ahorn (Ts |> class_membs_of_types type_enc add_sorts_on_tvar
-                          |> map (class_atom type_enc)))
+    ((sorts andalso polymorphism_of_type_enc type_enc <> Type_Class_Polymorphic)
+     ? mk_ahorn (Ts
+       |> class_membs_of_types type_enc add_sorts_on_tvar
+       |> map (class_atom type_enc)))
     #> (case type_enc of
-          Native (_, poly, _) =>
-          mk_atyquant AForall
-              (map (fn TVar (z as (_, S)) =>
-                       (AType (tvar_name z, []),
-                        if poly = Type_Class_Polymorphic then
-                          map (`make_class) (normalize_classes S)
-                        else
-                          [])) Ts)
-        | _ =>
-          mk_aquant AForall (map (fn TVar z => (tvar_name z, NONE)) Ts))
+         Native (_, poly, _) =>
+         mk_atyquant AForall (map (fn TVar (z as (_, S)) =>
+           (AType (tvar_name z, []),
+            if poly = Type_Class_Polymorphic then
+              map (`make_class) (normalize_classes S)
+            else
+              [])) Ts)
+        | _ => mk_aquant AForall (map (fn TVar z => (tvar_name z, NONE)) Ts)))
 
 fun eq_formula type_enc atomic_Ts bounds pred_sym tm1 tm2 =
   (if pred_sym then AConn (AIff, [AAtom tm1, AAtom tm2])
@@ -2218,8 +2216,7 @@ fun line_of_conjecture ctxt mono type_enc
 fun lines_of_free_types type_enc (facts : ifact list) =
   if is_type_enc_polymorphic type_enc then
     let
-      val type_classes =
-        (polymorphism_of_type_enc type_enc = Type_Class_Polymorphic)
+      val type_classes = (polymorphism_of_type_enc type_enc = Type_Class_Polymorphic)
       fun line j (cl, T) =
         if type_classes then
           Class_Memb (class_memb_prefix ^ string_of_int j, [],
@@ -2230,7 +2227,9 @@ fun lines_of_free_types type_enc (facts : ifact list) =
       val membs =
         fold (union (op =)) (map #atomic_types facts) []
         |> class_membs_of_types type_enc add_sorts_on_tfree
-    in map2 line (0 upto length membs - 1) membs end
+    in
+      map2 line (0 upto length membs - 1) membs
+    end
   else
     []
 
@@ -2403,8 +2402,7 @@ fun line_of_guards_mono_type ctxt mono type_enc T =
 
 fun line_of_tags_mono_type ctxt mono type_enc T =
   let val x_var = ATerm ((`make_bound_var "X", []), []) in
-    Formula ((tags_sym_formula_prefix ^ ascii_of (mangled_type type_enc T), ""),
-             Axiom,
+    Formula ((tags_sym_formula_prefix ^ ascii_of (mangled_type type_enc T), ""), Axiom,
              eq_formula type_enc (atomic_types_of T) [] false
                   (tag_with_type ctxt mono type_enc NONE T x_var) x_var,
              NONE, isabelle_info non_rec_defN helper_rank)

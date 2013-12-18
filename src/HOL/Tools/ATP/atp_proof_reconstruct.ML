@@ -536,8 +536,8 @@ fun introduce_spass_skolem [] = []
           | add_sko _ = I
 
         (* union-find would be faster *)
-        fun add_cycle _ [] = I
-          | add_cycle name ss =
+        fun add_cycle [] = I
+          | add_cycle ss =
             fold (fn s => Graph.default_node (s, ())) ss
             #> fold Graph.add_edge (ss ~~ tl ss @ [hd ss])
 
@@ -545,11 +545,7 @@ fun introduce_spass_skolem [] = []
 
         val skoss = map (fn (_, _, t, _, _) => Term.fold_aterms add_sko t []) input_steps
         val skoss_input_steps = filter_out (null o fst) (skoss ~~ input_steps)
-
-        val groups =
-          Graph.empty
-          |> fold (fn (skos, (name, _, _, _, _)) => add_cycle name skos) skoss_input_steps
-          |> Graph.strong_conn
+        val groups = Graph.strong_conn (fold add_cycle skoss Graph.empty)
 
         fun step_name_of_group skos = (implode skos, [])
         fun in_group group = member (op =) group o hd
@@ -582,7 +578,7 @@ fun introduce_spass_skolem [] = []
 
 fun factify_atp_proof fact_names hyp_ts concl_t atp_proof =
   let
-    fun factify_step ((num, ss), role, t, rule, deps) =
+    fun factify_step ((num, ss), _, t, rule, deps) =
       let
         val (ss', role', t') =
           (case resolve_conjecture ss of
