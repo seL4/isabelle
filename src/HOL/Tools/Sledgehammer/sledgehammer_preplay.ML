@@ -149,12 +149,12 @@ fun preplay_raw _ _ _ _ _ (Let _) = zero_preplay_time
       val ctxt' = ctxt
         |> debug ? (Config.put Metis_Tactic.verbose true #> Config.put Lin_Arith.verbose true)
 
-      val prove = Goal.prove ctxt' [] [] goal
+      fun prove () =
+        Goal.prove ctxt' [] [] goal (fn {context = ctxt, ...} =>
+          HEADGOAL (tac_of_method meth type_enc lam_trans ctxt facts))
+        handle ERROR msg => error ("Preplay error: " ^ msg)
 
-      fun tac {context = ctxt, ...} = HEADGOAL (tac_of_method meth type_enc lam_trans ctxt facts)
-      fun run_tac () = prove tac handle ERROR msg => error ("Preplay error: " ^ msg)
-
-      val preplay_time = take_time timeout run_tac ()
+      val preplay_time = take_time timeout prove ()
     in
       (if Config.get ctxt trace then preplay_trace ctxt facts goal preplay_time else ();
        preplay_time)
