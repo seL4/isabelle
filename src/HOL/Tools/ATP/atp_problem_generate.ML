@@ -2577,8 +2577,7 @@ fun undeclared_in_problem problem =
       | do_type (AFun (ty1, ty2)) = do_type ty1 #> do_type ty2
       | do_type (APi (_, ty)) = do_type ty
     fun do_term pred_sym (ATerm ((name, tys), tms)) =
-        apsnd (do_sym name
-                   (fn _ => default_type pred_sym (length tys) (length tms)))
+        apsnd (do_sym name (fn _ => default_type pred_sym (length tys) (length tms)))
         #> fold do_type tys #> fold (do_term false) tms
       | do_term _ (AAbs (((_, ty), tm), args)) =
         do_type ty #> do_term false tm #> fold (do_term false) args
@@ -2608,17 +2607,11 @@ fun declare_undeclared_in_problem heading problem =
     val ((cls, tys), syms) = undeclared_in_problem problem
     val decls =
       Symtab.fold (fn (_, (("", ""), _)) => I (* already declared *)
-                    | (s, (cls, ())) =>
-                      cons (Class_Decl (class_decl_prefix ^ s, cls, [])))
-                  cls [] @
+                    | (s, (cls, ())) => cons (Class_Decl (class_decl_prefix ^ s, cls, []))) cls [] @
       Symtab.fold (fn (_, (("", ""), _)) => I (* already declared *)
-                    | (s, (ty, ary)) =>
-                      cons (Type_Decl (type_decl_prefix ^ s, ty, ary)))
-                  tys [] @
+                    | (s, (ty, ary)) => cons (Type_Decl (type_decl_prefix ^ s, ty, ary))) tys [] @
       Symtab.fold (fn (_, (("", ""), _)) => I (* already declared *)
-                    | (s, (sym, ty)) =>
-                      cons (Sym_Decl (sym_decl_prefix ^ s, sym, ty ())))
-                  syms []
+                    | (s, (sym, ty)) => cons (Sym_Decl (sym_decl_prefix ^ s, sym, ty ()))) syms []
   in (heading, decls) :: problem end
 
 fun all_ctrss_of_datatypes ctxt =
@@ -2653,14 +2646,13 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
     val mono = conjs @ facts |> mononotonicity_info_of_facts ctxt type_enc completish
     val ctrss = all_ctrss_of_datatypes ctxt
     fun firstorderize in_helper =
-      firstorderize_fact thy ctrss type_enc
-          (uncurried_aliases andalso not in_helper) completish sym_tab0
+      firstorderize_fact thy ctrss type_enc (uncurried_aliases andalso not in_helper) completish
+        sym_tab0
     val (conjs, facts) = (conjs, facts) |> pairself (map (firstorderize false))
     val (ho_stuff, sym_tab) =
       sym_table_of_facts ctxt type_enc Min_App_Op conjs facts
     val (uncurried_alias_eq_tms, uncurried_alias_eq_lines) =
-      uncurried_alias_lines_of_sym_table ctxt ctrss mono type_enc
-                                         uncurried_aliases sym_tab0 sym_tab
+      uncurried_alias_lines_of_sym_table ctxt ctrss mono type_enc uncurried_aliases sym_tab0 sym_tab
     val (_, sym_tab) =
       (ho_stuff, sym_tab)
       |> fold (add_iterm_syms_to_sym_table ctxt Min_App_Op false false)
@@ -2670,9 +2662,7 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
               |> map (firstorderize true)
     val all_facts = helpers @ conjs @ facts
     val mono_Ts = monotonic_types_of_facts ctxt mono type_enc all_facts
-    val datatypes =
-      datatypes_of_sym_table ctxt ctrss format type_enc uncurried_aliases
-                             sym_tab
+    val datatypes = datatypes_of_sym_table ctxt ctrss format type_enc uncurried_aliases sym_tab
     val class_decl_lines = decl_lines_of_classes type_enc classes
     val sym_decl_lines =
       (conjs, helpers @ facts, uncurried_alias_eq_tms)
@@ -2691,8 +2681,7 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
     val tcon_lines = map (line_of_tcon_clause type_enc) tcon_clauses
     val helper_lines =
       0 upto length helpers - 1 ~~ helpers
-      |> map (line_of_fact ctxt helper_prefix I (K "") false true mono type_enc
-                           (K default_rank))
+      |> map (line_of_fact ctxt helper_prefix I (K "") false true mono type_enc (K default_rank))
     val free_type_lines = lines_of_free_types type_enc (facts @ conjs)
     val conj_lines = map (line_of_conjecture ctxt mono type_enc) conjs
     (* Reordering these might confuse the proof reconstruction code. *)
@@ -2706,18 +2695,17 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
        (free_typesN, free_type_lines),
        (conjsN, conj_lines)]
     val problem =
-      problem |> (case format of
-                    CNF => ensure_cnf_problem
-                  | CNF_UEQ => filter_cnf_ueq_problem
-                  | FOF => I
-                  | _ => declare_undeclared_in_problem implicit_declsN)
+      problem
+      |> (case format of
+           CNF => ensure_cnf_problem
+         | CNF_UEQ => filter_cnf_ueq_problem
+         | FOF => I
+         | _ => declare_undeclared_in_problem implicit_declsN)
     val (problem, pool) = problem |> nice_atp_problem readable_names format
-    fun add_sym_ary (s, {min_ary, ...} : sym_info) =
-      min_ary > 0 ? Symtab.insert (op =) (s, min_ary)
+    fun add_sym_ary (s, {min_ary, ...} : sym_info) = min_ary > 0 ? Symtab.insert (op =) (s, min_ary)
   in
-    (problem, pool |> Option.map snd |> the_default Symtab.empty,
-     fact_names |> Vector.fromList, lifted,
-     Symtab.empty |> Symtab.fold add_sym_ary sym_tab)
+    (problem, pool |> Option.map snd |> the_default Symtab.empty, fact_names |> Vector.fromList,
+     lifted, Symtab.empty |> Symtab.fold add_sym_ary sym_tab)
   end
 
 (* FUDGE *)
@@ -2731,8 +2719,7 @@ val type_info_default_weight = 0.8
 fun atp_problem_selection_weights problem =
   let
     fun add_term_weights weight (ATerm ((s, _), tms)) =
-        is_tptp_user_symbol s ? Symtab.default (s, weight)
-        #> fold (add_term_weights weight) tms
+        is_tptp_user_symbol s ? Symtab.default (s, weight) #> fold (add_term_weights weight) tms
       | add_term_weights weight (AAbs ((_, tm), args)) =
         add_term_weights weight tm #> fold (add_term_weights weight) args
     fun add_line_weights weight (Formula (_, _, phi, _, _)) =
@@ -2770,13 +2757,11 @@ fun may_be_app s args = String.isPrefix app_op_name s andalso length args = 2
 fun may_be_predicator s =
   member (op =) [predicator_name, prefixed_predicator_name] s
 
-fun strip_predicator (tm as ATerm ((s, _), [tm'])) =
-    if may_be_predicator s then tm' else tm
+fun strip_predicator (tm as ATerm ((s, _), [tm'])) = if may_be_predicator s then tm' else tm
   | strip_predicator tm = tm
 
 fun make_head_roll (ATerm ((s, _), tms)) =
-    if may_be_app s tms then make_head_roll (hd tms) ||> append (tl tms)
-    else (s, tms)
+    if may_be_app s tms then make_head_roll (hd tms) ||> append (tl tms) else (s, tms)
   | make_head_roll _ = ("", [])
 
 fun strip_up_to_predicator (ATyQuant (_, _, phi)) = strip_up_to_predicator phi
