@@ -916,22 +916,22 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
       |> map (map (apsnd (rpair [] o snd)) o filter (is_none o fst o snd))
       |> split_list o map split_list;
 
-    val exh_props = if not exhaustive then [] else
+    val exhaust_props = if not exhaustive then [] else
       map (HOLogic.mk_Trueprop o mk_disjs o map (mk_conjs o #prems)) disc_eqnss
       |> map2 ((fn {fun_args, ...} =>
         curry Logic.list_all (map dest_Free fun_args)) o hd) disc_eqnss;
-    val exh_taut_thms = if exhaustive andalso is_some maybe_tac then
-        map (fn t => Goal.prove lthy [] [] t (the maybe_tac) |> Thm.close_derivation) exh_props
+    val exhaust_taut_thms = if exhaustive andalso is_some maybe_tac then
+        map (fn t => Goal.prove lthy [] [] t (the maybe_tac) |> Thm.close_derivation) exhaust_props
       else [];
     val goalss = if exhaustive andalso is_none maybe_tac then
-      map (rpair []) exh_props :: goalss' else goalss';
+      map (rpair []) exhaust_props :: goalss' else goalss';
 
     fun prove thmss'' def_thms' lthy =
       let
         val def_thms = map (snd o snd) def_thms';
 
-        val maybe_exh_thms = if not exhaustive then map (K NONE) def_thms else
-          map SOME (if is_none maybe_tac then hd thmss'' else exh_taut_thms);
+        val maybe_exhaust_thms = if not exhaustive then map (K NONE) def_thms else
+          map SOME (if is_none maybe_tac then hd thmss'' else exhaust_taut_thms);
         val thmss' = if exhaustive andalso is_none maybe_tac then tl thmss'' else thmss'';
 
         val exclss' = map (op ~~) (goal_idxss ~~ thmss');
@@ -1032,7 +1032,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                 |> single
             end;
 
-        fun prove_code disc_eqns sel_eqns maybe_exh ctr_alist ctr_specs =
+        fun prove_code disc_eqns sel_eqns maybe_exhaust ctr_alist ctr_specs =
           let
             val maybe_fun_data =
               (find_first (member (op =) (map #ctr ctr_specs) o #ctr) disc_eqns,
@@ -1108,7 +1108,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                       case_thms_of_term lthy bound_Ts raw_rhs;
 
                     val raw_code_thm = mk_primcorec_raw_code_of_ctr_tac lthy distincts discIs
-                        sel_splits sel_split_asms ms ctr_thms maybe_exh
+                        sel_splits sel_split_asms ms ctr_thms maybe_exhaust
                       |> K |> Goal.prove lthy [] [] raw_t
                       |> Thm.close_derivation;
                   in
@@ -1129,7 +1129,8 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
           ctr_specss;
         val ctr_thmss = map (map snd) ctr_alists;
 
-        val code_thmss = map5 prove_code disc_eqnss sel_eqnss maybe_exh_thms ctr_alists ctr_specss;
+        val code_thmss = map5 prove_code disc_eqnss sel_eqnss maybe_exhaust_thms ctr_alists
+          ctr_specss;
 
         val simp_thmss = map2 append disc_thmss sel_thmss
 

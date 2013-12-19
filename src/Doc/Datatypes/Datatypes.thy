@@ -467,7 +467,7 @@ The syntactic entity \synt{target} can be used to specify a local
 context---e.g., @{text "(in linorder)"}. It is documented in the Isar reference
 manual \cite{isabelle-isar-ref}.
 %
-The optional target is optionally followed by datatype-specific options:
+The optional target is potentially followed by datatype-specific options:
 
 \begin{itemize}
 \setlength{\itemsep}{0pt}
@@ -2251,7 +2251,7 @@ text {*
   @{syntax_def pcr_formula}: thmdecl? prop (@'of' (term * ))?
 "}
 
-The optional target is optionally followed by a corecursion-specific option:
+The optional target is potentially followed by a corecursion-specific option:
 
 \begin{itemize}
 \setlength{\itemsep}{0pt}
