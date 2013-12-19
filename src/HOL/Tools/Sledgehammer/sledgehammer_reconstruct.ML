@@ -402,12 +402,12 @@ fun isar_proof_text ctxt isar_proofs
           if isar_proofs = SOME true then "\nWarning: The Isar proof construction failed." else "")
   in one_line_proof ^ isar_proof end
 
-fun isar_proof_would_be_a_good_idea preplay =
-  (case preplay of
-    Played (reconstr, _) => reconstr = SMT
-  | Not_Played _ => false
+fun isar_proof_would_be_a_good_idea (reconstr, play) =
+  (case play of
+    Played _ => reconstr = SMT
   | Play_Timed_Out _ => true
-  | Play_Failed _ => true)
+  | Play_Failed => true
+  | Not_Played => false)
 
 fun proof_text ctxt isar_proofs isar_params num_chained
                (one_line_params as (preplay, _, _, _, _, _)) =

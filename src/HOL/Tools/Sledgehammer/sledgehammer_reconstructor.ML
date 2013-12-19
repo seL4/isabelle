@@ -13,14 +13,15 @@ sig
     Metis of string * string |
     SMT
 
-  datatype play =
-    Played of reconstructor * Time.time |
-    Not_Played of reconstructor |
-    Play_Timed_Out of reconstructor * Time.time |
-    Play_Failed of reconstructor
+  datatype play_outcome =
+    Played of Time.time |
+    Play_Timed_Out of Time.time |
+    Play_Failed |
+    Not_Played
 
   type minimize_command = string list -> string
-  type one_line_params = play * string * (string * stature) list * minimize_command * int * int
+  type one_line_params =
+    (reconstructor * play_outcome) * string * (string * stature) list * minimize_command * int * int
 
   val smtN : string
 end;
@@ -34,14 +35,15 @@ datatype reconstructor =
   Metis of string * string |
   SMT
 
-datatype play =
-  Played of reconstructor * Time.time |
-  Not_Played of reconstructor |
-  Play_Timed_Out of reconstructor * Time.time |
-  Play_Failed of reconstructor
+datatype play_outcome =
+  Played of Time.time |
+  Play_Timed_Out of Time.time |
+  Play_Failed |
+  Not_Played
 
 type minimize_command = string list -> string
-type one_line_params = play * string * (string * stature) list * minimize_command * int * int
+type one_line_params =
+  (reconstructor * play_outcome) * string * (string * stature) list * minimize_command * int * int
 
 val smtN = "smt"
 

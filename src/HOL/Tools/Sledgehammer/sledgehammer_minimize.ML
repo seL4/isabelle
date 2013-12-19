@@ -8,7 +8,8 @@ Minimization of fact list for Metis using external provers.
 signature SLEDGEHAMMER_MINIMIZE =
 sig
   type stature = ATP_Problem_Generate.stature
-  type play = Sledgehammer_Reconstructor.play
+  type reconstructor = Sledgehammer_Reconstructor.reconstructor
+  type play_outcome = Sledgehammer_Reconstructor.play_outcome
   type mode = Sledgehammer_Provers.mode
   type params = Sledgehammer_Provers.params
   type prover = Sledgehammer_Provers.prover
@@ -16,12 +17,12 @@ sig
   val binary_min_facts : int Config.T
   val auto_minimize_min_facts : int Config.T
   val auto_minimize_max_time : real Config.T
-  val minimize_facts :
-    (thm list -> unit) -> string -> params -> bool -> int -> int
-    -> Proof.state -> thm -> play Lazy.lazy option
-    -> ((string * stature) * thm list) list
-    -> ((string * stature) * thm list) list option
-       * (play Lazy.lazy * (play -> string) * string)
+  val minimize_facts : (thm list -> unit) -> string -> params -> bool -> int -> int ->
+    Proof.state -> thm -> (reconstructor * play_outcome) Lazy.lazy option ->
+    ((string * stature) * thm list) list ->
+    ((string * stature) * thm list) list option
+    * ((reconstructor * play_outcome) Lazy.lazy * ((reconstructor * play_outcome) -> string)
+       * string)
   val get_minimizing_prover : Proof.context -> mode -> (thm list -> unit) -> string -> prover
   val run_minimize : params -> (thm list -> unit) -> int -> (Facts.ref * Attrib.src list) list ->
     Proof.state -> unit
@@ -53,11 +54,10 @@ fun n_facts names =
 
 fun print silent f = if silent then () else Output.urgent_message (f ())
 
-fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters,
-                 max_new_mono_instances, type_enc, strict, lam_trans,
-                 uncurried_aliases, isar_proofs, isar_compress, isar_try0,
-                 preplay_timeout, ...} : params)
-               silent (prover : prover) timeout i n state goal facts =
+fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new_mono_instances,
+      type_enc, strict, lam_trans, uncurried_aliases, isar_proofs, isar_compress, isar_try0,
+      preplay_timeout, ...} : params)
+    silent (prover : prover) timeout i n state goal facts =
   let
     val _ =
       print silent (fn () =>
@@ -220,7 +220,7 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
           "Timeout: You can increase the time limit using the \"timeout\" option (e.g., \
           \timeout = " ^ string_of_int (10 + Time.toMilliseconds timeout div 1000) ^ "\").", ""))
      | {preplay, message, ...} => (NONE, (preplay, prefix "Prover error: " o message, "")))
-    handle ERROR msg => (NONE, (Lazy.value (Play_Failed plain_metis), fn _ => "Error: " ^ msg, ""))
+    handle ERROR msg => (NONE, (Lazy.value (plain_metis, Play_Failed), fn _ => "Error: " ^ msg, ""))
   end
 
 fun adjust_reconstructor_params override_params
@@ -270,7 +270,7 @@ fun maybe_minimize ctxt mode do_learn name
               fun prover_fast_enough () = can_min_fast_enough run_time
             in
               (case Lazy.force preplay of
-                 Played (reconstr as Metis _, timeout) =>
+                 (reconstr as Metis _, Played timeout) =>
                  if isar_proofs = SOME true then
                    (* Cheat: Assume the selected ATP is as fast as "metis" for the goal it proved
                       itself. *)
@@ -281,7 +281,7 @@ fun maybe_minimize ctxt mode do_learn name
                                   adjust_reconstructor_params override_params params))
                  else
                    (prover_fast_enough (), (name, params))
-               | Played (SMT, timeout) =>
+               | (SMT, Played timeout) =>
                  (* Cheat: Assume the original prover is as fast as "smt" for the goal it proved
                     itself. *)
                  (can_min_fast_enough timeout, (name, params))
@@ -294,9 +294,8 @@ fun maybe_minimize ctxt mode do_learn name
       val (used_facts, (preplay, message, _)) =
         if minimize then
           minimize_facts do_learn minimize_name params
-              (not verbose orelse (mode <> Normal andalso mode <> MaSh)) subgoal
-              subgoal_count state goal (SOME preplay)
-              (filter_used_facts true used_facts (map (apsnd single) used_from))
+            (not verbose orelse (mode <> Normal andalso mode <> MaSh)) subgoal subgoal_count state
+            goal (SOME preplay) (filter_used_facts true used_facts (map (apsnd single) used_from))
           |>> Option.map (map fst)
         else
           (SOME used_facts, (preplay, message, ""))

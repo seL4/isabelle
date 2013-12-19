@@ -82,15 +82,15 @@ fun split_used_facts facts =
         |> pairself (sort_distinct (string_ord o pairself fst))
 
 fun one_line_proof_text num_chained
-    (preplay, banner, used_facts, minimize_command, subgoal, subgoal_count) =
+    ((reconstr, play), banner, used_facts, minimize_command, subgoal, subgoal_count) =
   let
     val (chained, extra) = split_used_facts used_facts
-    val (failed, reconstr, ext_time) =
-      (case preplay of
-        Played (reconstr, time) => (false, reconstr, (SOME (false, time)))
-      | Not_Played reconstr => (false, reconstr, NONE)
-      | Play_Timed_Out (reconstr, time) => (false, reconstr, SOME (true, time))
-      | Play_Failed reconstr => (true, reconstr, NONE))
+    val (failed, ext_time) =
+      (case play of
+        Played time => (false, (SOME (false, time)))
+      | Play_Timed_Out time => (false, SOME (true, time))
+      | Play_Failed => (true, NONE)
+      | Not_Played => (false, NONE))
     val try_line =
       ([], map fst extra)
       |> reconstructor_command reconstr subgoal subgoal_count (map fst chained) num_chained
@@ -111,10 +111,9 @@ val indent_size = 2
 
 fun string_of_proof ctxt type_enc lam_trans i n proof =
   let
+    (* Make sure only type constraints inserted by the type annotation code are printed. *)
     val ctxt =
-      (* make sure type constraint are actually printed *)
       ctxt |> Config.put show_markup false
-      (* make sure only type constraints inserted by sh_annotate are printed *)
            |> Config.put Printer.show_type_emphasis false
            |> Config.put show_types false
            |> Config.put show_sorts false
@@ -195,9 +194,10 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
       (s ^ space_implode " and " (map of_free xs), ctxt |> register_fixes xs)
 
     fun add_fix _ [] = I
-      | add_fix ind xs = add_suffix (of_indent ind ^ "fix ")
-                        #> add_frees xs
-                        #> add_suffix "\n"
+      | add_fix ind xs =
+        add_suffix (of_indent ind ^ "fix ")
+        #> add_frees xs
+        #> add_suffix "\n"
 
     fun add_assm ind (l, t) =
       add_suffix (of_indent ind ^ "assume " ^ of_label l)

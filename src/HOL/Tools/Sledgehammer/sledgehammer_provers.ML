@@ -13,7 +13,7 @@ sig
   type type_enc = ATP_Problem_Generate.type_enc
   type fact = Sledgehammer_Fact.fact
   type reconstructor = Sledgehammer_Reconstructor.reconstructor
-  type play = Sledgehammer_Reconstructor.play
+  type play_outcome = Sledgehammer_Reconstructor.play_outcome
   type minimize_command = Sledgehammer_Reconstructor.minimize_command
 
   datatype mode = Auto_Try | Try | Normal | MaSh | Auto_Minimize | Minimize
@@ -57,8 +57,8 @@ sig
      used_facts : (string * stature) list,
      used_from : fact list,
      run_time : Time.time,
-     preplay : play Lazy.lazy,
-     message : play -> string,
+     preplay : (reconstructor * play_outcome) Lazy.lazy,
+     message : reconstructor * play_outcome -> string,
      message_tail : string}
 
   type prover =
@@ -298,8 +298,8 @@ type prover_result =
    used_facts : (string * stature) list,
    used_from : fact list,
    run_time : Time.time,
-   preplay : play Lazy.lazy,
-   message : play -> string,
+   preplay : (reconstructor * play_outcome) Lazy.lazy,
+   message : reconstructor * play_outcome -> string,
    message_tail : string}
 
 type prover =
@@ -358,18 +358,13 @@ fun bunch_of_reconstructors needs_full_types lam_trans =
      Metis (really_full_type_enc, lam_trans true),
      SMT]
 
-fun extract_reconstructor ({type_enc, lam_trans, ...} : params)
-                          (Metis (type_enc', lam_trans')) =
+fun extract_reconstructor ({type_enc, lam_trans, ...} : params) (Metis (type_enc', lam_trans')) =
     let
       val override_params =
-        (if is_none type_enc andalso type_enc' = hd partial_type_encs then
-           []
-         else
-           [("type_enc", [hd (unalias_type_enc type_enc')])]) @
-        (if is_none lam_trans andalso lam_trans' = default_metis_lam_trans then
-           []
-         else
-           [("lam_trans", [lam_trans'])])
+        (if is_none type_enc andalso type_enc' = hd partial_type_encs then []
+         else [("type_enc", [hd (unalias_type_enc type_enc')])]) @
+        (if is_none lam_trans andalso lam_trans' = default_metis_lam_trans then []
+         else [("lam_trans", [lam_trans'])])
     in (metisN, override_params) end
   | extract_reconstructor _ SMT = (smtN, [])
 
@@ -382,8 +377,7 @@ fun timed_apply timeout tac state i =
     TimeLimit.timeLimit timeout (try (Seq.pull o full_tac)) goal
   end
 
-fun tac_of_reconstructor (Metis (type_enc, lam_trans)) =
-    metis_tac [type_enc] lam_trans
+fun tac_of_reconstructor (Metis (type_enc, lam_trans)) = metis_tac [type_enc] lam_trans
   | tac_of_reconstructor SMT = SMT_Solver.smt_tac
 
 fun timed_reconstructor reconstr debug timeout ths =
@@ -404,13 +398,13 @@ fun play_one_line_proof mode debug verbose timeout pairs state i preferred recon
       else List.last reconstrs
   in
     if timeout = Time.zeroTime then
-      Not_Played (get_preferred reconstrs)
+      (get_preferred reconstrs, Not_Played)
     else
       let
         val _ = if mode = Minimize then Output.urgent_message "Preplaying proof..." else ()
         val ths = pairs |> sort_wrt (fst o fst) |> map snd
-        fun play [] [] = Play_Failed (get_preferred reconstrs)
-          | play timed_outs [] = Play_Timed_Out (get_preferred timed_outs, timeout)
+        fun play [] [] = (get_preferred reconstrs, Play_Failed)
+          | play timed_outs [] = (get_preferred timed_outs, Play_Timed_Out timeout)
           | play timed_out (reconstr :: reconstrs) =
             let
               val _ =
@@ -422,11 +416,13 @@ fun play_one_line_proof mode debug verbose timeout pairs state i preferred recon
               val timer = Timer.startRealTimer ()
             in
               case timed_reconstructor reconstr debug timeout ths state i of
-                SOME (SOME _) => Played (reconstr, Timer.checkRealTimer timer)
+                SOME (SOME _) => (reconstr, Played (Timer.checkRealTimer timer))
               | _ => play timed_out reconstrs
             end
             handle TimeLimit.TimeOut => play (reconstr :: timed_out) reconstrs
-      in play [] reconstrs end
+      in
+        play [] reconstrs
+      end
   end
 
 
@@ -511,17 +507,15 @@ fun isar_proof_reconstructor ctxt name =
 
 (* See the analogous logic in the function "maybe_minimize" in
   "sledgehammer_minimize.ML". *)
-fun choose_minimize_command ctxt (params as {isar_proofs, ...}) minimize_command
-                            name preplay =
+fun choose_minimize_command ctxt (params as {isar_proofs, ...}) minimize_command name preplay =
   let
-    val maybe_isar_name =
-      name |> isar_proofs = SOME true ? isar_proof_reconstructor ctxt
+    val maybe_isar_name = name |> isar_proofs = SOME true ? isar_proof_reconstructor ctxt
     val (min_name, override_params) =
-      case preplay of
-        Played (reconstr, _) =>
+      (case preplay of
+        (reconstr, Played _) =>
         if isar_proofs = SOME true then (maybe_isar_name, [])
         else extract_reconstructor params reconstr
-      | _ => (maybe_isar_name, [])
+      | _ => (maybe_isar_name, []))
   in minimize_command override_params min_name end
 
 val max_fact_instances = 10 (* FUDGE *)
@@ -551,14 +545,13 @@ val mono_max_privileged_facts = 10
 val max_fact_factor_fudge = 5
 
 fun run_atp mode name
-        ({exec, arguments, proof_delims, known_failures, prem_role, best_slices,
-          best_max_mono_iters, best_max_new_mono_instances, ...} : atp_config)
-        (params as {debug, verbose, overlord, type_enc, strict, lam_trans,
-                    uncurried_aliases, fact_filter, max_facts, max_mono_iters,
-                    max_new_mono_instances, isar_proofs, isar_compress,
-                    isar_try0, slice, timeout, preplay_timeout, ...})
-        minimize_command
-        ({comment, state, goal, subgoal, subgoal_count, factss, ...} : prover_problem) =
+    ({exec, arguments, proof_delims, known_failures, prem_role, best_slices, best_max_mono_iters,
+      best_max_new_mono_instances, ...} : atp_config)
+    (params as {debug, verbose, overlord, type_enc, strict, lam_trans, uncurried_aliases,
+       fact_filter, max_facts, max_mono_iters, max_new_mono_instances, isar_proofs, isar_compress,
+       isar_try0, slice, timeout, preplay_timeout, ...})
+    minimize_command
+    ({comment, state, goal, subgoal, subgoal_count, factss, ...} : prover_problem) =
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
@@ -776,7 +769,7 @@ fun run_atp mode name
       else
         ""
     val (used_facts, preplay, message, message_tail) =
-      case outcome of
+      (case outcome of
         NONE =>
         let
           val used_facts = used_facts_in_atp_proof ctxt fact_names atp_proof
@@ -787,20 +780,13 @@ fun run_atp mode name
         in
           (used_facts,
            Lazy.lazy (fn () =>
-             let
-               val used_pairs =
-                 used_from |> filter_used_facts false used_facts
-             in
-               play_one_line_proof mode debug verbose preplay_timeout
-                   used_pairs state subgoal (hd reconstrs) reconstrs
+             let val used_pairs = used_from |> filter_used_facts false used_facts in
+               play_one_line_proof mode debug verbose preplay_timeout used_pairs state subgoal
+                 (hd reconstrs) reconstrs
              end),
            fn preplay =>
               let
-                val _ =
-                  if verbose then
-                    Output.urgent_message "Generating proof text..."
-                  else
-                    ()
+                val _ = if verbose then Output.urgent_message "Generating proof text..." else ()
                 fun isar_params () =
                   let
                     val metis_type_enc =
@@ -824,25 +810,18 @@ fun run_atp mode name
               in
                 proof_text ctxt isar_proofs isar_params num_chained one_line_params
               end,
-           (if verbose then
-              "\nATP real CPU time: " ^ string_of_time run_time ^ "."
-            else
-              "") ^
+           (if verbose then "\nATP real CPU time: " ^ string_of_time run_time ^ "." else "") ^
            (if important_message <> "" then
-              "\n\nImportant message from Dr. Geoff Sutcliffe:\n" ^
-              important_message
+              "\n\nImportant message from Dr. Geoff Sutcliffe:\n" ^ important_message
             else
               ""))
         end
       | SOME failure =>
-        ([], Lazy.value (Play_Failed plain_metis), fn _ => string_of_atp_failure failure, "")
+        ([], Lazy.value (plain_metis, Play_Failed), fn _ => string_of_atp_failure failure, ""))
   in
-    {outcome = outcome, used_facts = used_facts, used_from = used_from,
-     run_time = run_time, preplay = preplay, message = message,
-     message_tail = message_tail}
+    {outcome = outcome, used_facts = used_facts, used_from = used_from, run_time = run_time,
+     preplay = preplay, message = message, message_tail = message_tail}
   end
-
-fun rotate_one (x :: xs) = xs @ [x]
 
 (* "SMT_Failure.Abnormal_Termination" carries the solver's return code. Until
    these are sorted out properly in the SMT module, we have to interpret these
@@ -962,7 +941,7 @@ fun smt_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instanc
               Real.ceil (Config.get ctxt smt_slice_fact_frac * Real.fromInt num_facts)
             val weighted_factss as (new_fact_filter, _) :: _ =
               weighted_factss
-              |> rotate_one
+              |> (fn (x :: xs) => xs @ [x])
               |> app_hd (apsnd (take new_num_facts))
             val show_filter = fact_filter <> new_fact_filter
             fun num_of_facts fact_filter num_facts =
@@ -983,15 +962,15 @@ fun smt_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instanc
             do_slice timeout (slice + 1) outcome0 time_so_far weighted_factss
           end
         else
-          {outcome = if is_none outcome then NONE else the outcome0,
-           used_facts = used_facts, used_from = map (apsnd snd) weighted_facts,
-           run_time = time_so_far}
+          {outcome = if is_none outcome then NONE else the outcome0, used_facts = used_facts,
+           used_from = map (apsnd snd) weighted_facts, run_time = time_so_far}
       end
-  in do_slice timeout 1 NONE Time.zeroTime end
+  in
+    do_slice timeout 1 NONE Time.zeroTime
+  end
 
-fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
-        minimize_command
-        ({state, goal, subgoal, subgoal_count, factss, ...} : prover_problem) =
+fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...}) minimize_command
+    ({state, goal, subgoal, subgoal_count, factss, ...} : prover_problem) =
   let
     val ctxt = Proof.context_of state
     fun weight_facts facts =
@@ -1016,19 +995,15 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
             let
               val one_line_params =
                 (preplay, proof_banner mode name, used_facts,
-                 choose_minimize_command ctxt params minimize_command name
-                                         preplay,
+                 choose_minimize_command ctxt params minimize_command name preplay,
                  subgoal, subgoal_count)
               val num_chained = length (#facts (Proof.goal state))
             in
               one_line_proof_text num_chained one_line_params
             end,
-         if verbose then
-           "\nSMT solver real CPU time: " ^ string_of_time run_time ^ "."
-         else
-           "")
+         if verbose then "\nSMT solver real CPU time: " ^ string_of_time run_time ^ "." else "")
       | SOME failure =>
-        (Lazy.value (Play_Failed plain_metis),
+        (Lazy.value (plain_metis, Play_Failed),
          fn _ => string_of_atp_failure failure, "")
   in
     {outcome = outcome, used_facts = used_facts, used_from = used_from,
@@ -1052,20 +1027,19 @@ fun run_reconstructor mode name
         raise Fail ("unknown reconstructor: " ^ quote name)
     val used_facts = facts |> map fst
   in
-    case play_one_line_proof (if mode = Minimize then Normal else mode) debug
+    (case play_one_line_proof (if mode = Minimize then Normal else mode) debug
                              verbose timeout facts state subgoal reconstr
                              [reconstr] of
-      play as Played (_, time) =>
-      {outcome = NONE, used_facts = used_facts, used_from = facts,
-       run_time = time, preplay = Lazy.value play,
+      play as (_, Played time) =>
+      {outcome = NONE, used_facts = used_facts, used_from = facts, run_time = time,
+       preplay = Lazy.value play,
        message =
          fn play =>
             let
               val (_, override_params) = extract_reconstructor params reconstr
               val one_line_params =
-                (play, proof_banner mode name, used_facts,
-                 minimize_command override_params name, subgoal,
-                 subgoal_count)
+                (play, proof_banner mode name, used_facts, minimize_command override_params name,
+                 subgoal, subgoal_count)
               val num_chained = length (#facts (Proof.goal state))
             in
               one_line_proof_text num_chained one_line_params
@@ -1073,12 +1047,12 @@ fun run_reconstructor mode name
        message_tail = ""}
     | play =>
       let
-        val failure = case play of Play_Failed _ => GaveUp | _ => TimedOut
+        val failure = (case play of (_, Play_Failed) => GaveUp | _ => TimedOut)
       in
         {outcome = SOME failure, used_facts = [], used_from = [],
          run_time = Time.zeroTime, preplay = Lazy.value play,
          message = fn _ => string_of_atp_failure failure, message_tail = ""}
-      end
+      end)
   end
 
 fun get_prover ctxt mode name =
