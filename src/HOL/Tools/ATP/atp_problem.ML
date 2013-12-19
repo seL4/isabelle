@@ -370,7 +370,7 @@ val suffix_type_of_types =
 
 fun str_of_type format ty =
   let
-    val dfg = case format of DFG _ => true | _ => false
+    val dfg = (case format of DFG _ => true | _ => false)
     fun str _ (AType ((s, _), [])) =
         if dfg andalso s = tptp_individual_type then dfg_individual_type else s
       | str _ (AType ((s, _), tys)) =
@@ -430,16 +430,16 @@ fun tptp_string_of_term _ (ATerm ((s, []), [])) = s
         space_implode (" " ^ tptp_equal ^ " ") (map of_term ts)
         |> is_format_higher_order format ? parens
       else if s = tptp_ho_forall orelse s = tptp_ho_exists then
-        case ts of
+        (case ts of
           [AAbs (((s', ty), tm), [])] =>
           (* Use syntactic sugar "!" and "?" instead of "!!" and "??" whenever
              possible, to work around LEO-II 1.2.8 parser limitation. *)
           tptp_string_of_formula format
               (AQuant (if s = tptp_ho_forall then AForall else AExists,
                       [(s', SOME ty)], AAtom tm))
-        | _ => app ()
+        | _ => app ())
       else if s = tptp_choice then
-        case ts of
+        (case ts of
           [AAbs (((s', ty), tm), args)] =>
           (* There is code in "ATP_Problem_Generate" to ensure that "Eps" is
              always applied to an abstraction. *)
@@ -447,20 +447,16 @@ fun tptp_string_of_term _ (ATerm ((s, []), [])) = s
               (tptp_choice ^ "[" ^ s' ^ " : " ^ of_type ty ^
                "]: " ^ of_term tm ^ ""
                |> parens) (map of_term args)
-        | _ => app ()
+        | _ => app ())
       else if s = tptp_not then
         (* agsyHOL doesn't like negations applied like this: "~ @ t". *)
-        case ts of
-          [t] => s ^ " " ^ (of_term t |> parens) |> parens
-        | _ => s
+        (case ts of [t] => s ^ " " ^ (of_term t |> parens) |> parens | _ => s)
       else if member (op =) [tptp_and, tptp_or, tptp_implies, tptp_if, tptp_iff,
                              tptp_not_iff, tptp_equal] s then
         (* agsyHOL doesn't like connectives applied like this: "& @ t1 @ t2". *)
-        case ts of
-          [t1, t2] =>
-          (of_term t1 |> parens) ^ " " ^ s ^ " " ^ (of_term t2 |> parens)
-          |> parens
-        | _ => app ()
+        (case ts of
+          [t1, t2] => (of_term t1 |> parens) ^ " " ^ s ^ " " ^ (of_term t2 |> parens) |> parens
+        | _ => app ())
       else
         app ()
     end
@@ -556,15 +552,12 @@ fun dfg_string_of_formula poly gen_simp info =
       | str_of_bound_typ (ty, cls) = str_of_typ ty ^ " : " ^ dfg_class_inter cls
     fun suffix_tag top_level s =
       if top_level then
-        case extract_isabelle_status info of
+        (case extract_isabelle_status info of
           SOME s' =>
-          if s' = non_rec_defN then
-            s ^ ":lt"
-          else if (s' = simpN orelse s' = rec_defN) andalso gen_simp then
-            s ^ ":lr"
-          else
-            s
-        | NONE => s
+          if s' = non_rec_defN then s ^ ":lt"
+          else if (s' = simpN orelse s' = rec_defN) andalso gen_simp then s ^ ":lr"
+          else s
+        | NONE => s)
       else
         s
     fun str_of_atom top_level (ATerm ((s, tys), tms)) =
@@ -862,26 +855,25 @@ fun nice_name _ (full_name, _) NONE = (full_name, NONE)
   | nice_name protect (full_name, desired_name) (SOME the_pool) =
     if is_built_in_tptp_symbol full_name then
       (full_name, SOME the_pool)
-    else case Symtab.lookup (fst the_pool) full_name of
-      SOME nice_name => (nice_name, SOME the_pool)
-    | NONE =>
-      let
-        val nice_prefix = readable_name protect full_name desired_name
-        fun add j =
-          let
-            val nice_name =
-              nice_prefix ^ (if j = 1 then "" else string_of_int j)
-          in
-            case Symtab.lookup (snd the_pool) nice_name of
-              SOME full_name' =>
-              if full_name = full_name' then (nice_name, the_pool)
-              else add (j + 1)
-            | NONE =>
-              (nice_name,
-               (Symtab.update_new (full_name, nice_name) (fst the_pool),
-                Symtab.update_new (nice_name, full_name) (snd the_pool)))
-          end
-      in add 1 |> apsnd SOME end
+    else
+      (case Symtab.lookup (fst the_pool) full_name of
+        SOME nice_name => (nice_name, SOME the_pool)
+      | NONE =>
+        let
+          val nice_prefix = readable_name protect full_name desired_name
+          fun add j =
+            let
+              val nice_name = nice_prefix ^ (if j = 1 then "" else string_of_int j)
+            in
+              (case Symtab.lookup (snd the_pool) nice_name of
+                SOME full_name' =>
+                if full_name = full_name' then (nice_name, the_pool) else add (j + 1)
+              | NONE =>
+                (nice_name,
+                 (Symtab.update_new (full_name, nice_name) (fst the_pool),
+                  Symtab.update_new (nice_name, full_name) (snd the_pool))))
+            end
+        in add 1 |> apsnd SOME end)
 
 fun avoid_clash_with_alt_ergo_type_vars s =
   if is_tptp_variable s then s else s ^ "_"
@@ -903,10 +895,10 @@ fun nice_atp_problem readable_names format problem =
     val empty_pool =
       if readable_names then SOME (Symtab.empty, Symtab.empty) else NONE
     val avoid_clash =
-      case format of
+      (case format of
         TFF Polymorphic => avoid_clash_with_alt_ergo_type_vars
       | DFG _ => avoid_clash_with_dfg_keywords
-      | _ => I
+      | _ => I)
     val nice_name = nice_name avoid_clash
 
     fun nice_bound_tvars xs =

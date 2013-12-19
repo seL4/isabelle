@@ -171,10 +171,10 @@ fun polymorphism_of_type_enc (Native (_, poly, _)) = poly
   | polymorphism_of_type_enc (Tags (poly, _)) = poly
 
 fun is_type_enc_polymorphic type_enc =
-  case polymorphism_of_type_enc type_enc of
+  (case polymorphism_of_type_enc type_enc of
     Raw_Polymorphic _ => true
   | Type_Class_Polymorphic => true
-  | _ => false
+  | _ => false)
 
 fun is_type_enc_mangling type_enc =
   polymorphism_of_type_enc type_enc = Mangled_Monomorphic
@@ -295,9 +295,9 @@ val unascii_of =
           un (Char.chr (Char.ord c - upper_a_minus_space) :: rcs) cs
         else
           let val digits = List.take (c :: cs, 3) handle General.Subscript => [] in
-            case Int.fromString (String.implode digits) of
+            (case Int.fromString (String.implode digits) of
               SOME n => un (Char.chr n :: rcs) (List.drop (cs, 2))
-            | NONE => un (c :: #"_" :: rcs) cs (* ERROR *)
+            | NONE => un (c :: #"_" :: rcs) cs (* ERROR *))
           end
       | un rcs (c :: cs) = un (c :: rcs) cs
   in un [] o String.explode end
@@ -365,9 +365,9 @@ val invert_const = perhaps (Symtab.lookup const_trans_table_inv)
 val unproxify_const = perhaps (Symtab.lookup const_trans_table_unprox)
 
 fun lookup_const c =
-  case Symtab.lookup const_trans_table c of
+  (case Symtab.lookup const_trans_table c of
     SOME c' => c'
-  | NONE => ascii_of c
+  | NONE => ascii_of c)
 
 fun ascii_of_indexname (v, 0) = ascii_of v
   | ascii_of_indexname (v, i) = ascii_of v ^ "_" ^ string_of_int i
@@ -608,80 +608,77 @@ fun try_unsuffixes ss s =
 
 fun type_enc_of_string strictness s =
   (case try (unprefix "tc_") s of
-     SOME s => (SOME Type_Class_Polymorphic, s)
-   | NONE =>
-       case try (unprefix "poly_") s of
-         (* It's still unclear whether all TFF1 implementations will support
-            type signatures such as "!>[A : $tType] : $o", with phantom type
-            variables. *)
-         SOME s => (SOME (Raw_Polymorphic With_Phantom_Type_Vars), s)
-       | NONE =>
-         case try (unprefix "raw_mono_") s of
-           SOME s => (SOME Raw_Monomorphic, s)
-         | NONE =>
-           case try (unprefix "mono_") s of
-             SOME s => (SOME Mangled_Monomorphic, s)
-           | NONE => (NONE, s))
+    SOME s => (SOME Type_Class_Polymorphic, s)
+  | NONE =>
+    (case try (unprefix "poly_") s of
+      (* It's still unclear whether all TFF1 implementations will support
+         type signatures such as "!>[A : $tType] : $o", with phantom type
+         variables. *)
+      SOME s => (SOME (Raw_Polymorphic With_Phantom_Type_Vars), s)
+    | NONE =>
+      (case try (unprefix "raw_mono_") s of
+        SOME s => (SOME Raw_Monomorphic, s)
+      | NONE =>
+        (case try (unprefix "mono_") s of
+          SOME s => (SOME Mangled_Monomorphic, s)
+        | NONE => (NONE, s)))))
   ||> (fn s =>
-          case try_unsuffixes queries s of
-          SOME s =>
-          (case try_unsuffixes queries s of
-             SOME s => (Nonmono_Types (strictness, Non_Uniform), s)
-           | NONE => (Nonmono_Types (strictness, Uniform), s))
-         | NONE =>
-           (case try_unsuffixes ats s of
-              SOME s => (Undercover_Types, s)
-            | NONE => (All_Types, s)))
+       (case try_unsuffixes queries s of
+         SOME s =>
+         (case try_unsuffixes queries s of
+           SOME s => (Nonmono_Types (strictness, Non_Uniform), s)
+         | NONE => (Nonmono_Types (strictness, Uniform), s))
+        | NONE =>
+          (case try_unsuffixes ats s of
+            SOME s => (Undercover_Types, s)
+          | NONE => (All_Types, s))))
   |> (fn (poly, (level, core)) =>
-         case (core, (poly, level)) of
-           ("native", (SOME poly, _)) =>
-           (case (poly, level) of
-              (Mangled_Monomorphic, _) =>
-              if is_type_level_uniform level then
-                Native (First_Order, Mangled_Monomorphic, level)
-              else
-                raise Same.SAME
-            | (Raw_Monomorphic, _) => raise Same.SAME
-            | (poly, All_Types) => Native (First_Order, poly, All_Types))
-         | ("native_higher", (SOME poly, _)) =>
-           (case (poly, level) of
-              (_, Nonmono_Types _) => raise Same.SAME
-            | (_, Undercover_Types) => raise Same.SAME
-            | (Mangled_Monomorphic, _) =>
-              if is_type_level_uniform level then
-                Native (Higher_Order THF_With_Choice, Mangled_Monomorphic,
-                        level)
-              else
-                raise Same.SAME
-            | (poly as Raw_Polymorphic _, All_Types) =>
-              Native (Higher_Order THF_With_Choice, poly, All_Types)
-            | _ => raise Same.SAME)
-         | ("guards", (SOME poly, _)) =>
-           if (poly = Mangled_Monomorphic andalso
-               level = Undercover_Types) orelse
-              poly = Type_Class_Polymorphic then
-             raise Same.SAME
-           else
-             Guards (poly, level)
-         | ("tags", (SOME poly, _)) =>
-           if (poly = Mangled_Monomorphic andalso
-               level = Undercover_Types) orelse
-              poly = Type_Class_Polymorphic then
-             raise Same.SAME
-           else
-             Tags (poly, level)
-         | ("args", (SOME poly, All_Types (* naja *))) =>
-           if poly = Type_Class_Polymorphic then raise Same.SAME
-           else Guards (poly, Const_Types Without_Ctr_Optim)
-         | ("args", (SOME poly, Nonmono_Types (_, Uniform) (* naja *))) =>
-           if poly = Mangled_Monomorphic orelse
-              poly = Type_Class_Polymorphic then
-             raise Same.SAME
-           else
-             Guards (poly, Const_Types With_Ctr_Optim)
-         | ("erased", (NONE, All_Types (* naja *))) =>
-           Guards (Raw_Polymorphic With_Phantom_Type_Vars, No_Types)
-         | _ => raise Same.SAME)
+        (case (core, (poly, level)) of
+          ("native", (SOME poly, _)) =>
+          (case (poly, level) of
+            (Mangled_Monomorphic, _) =>
+            if is_type_level_uniform level then Native (First_Order, Mangled_Monomorphic, level)
+            else raise Same.SAME
+          | (Raw_Monomorphic, _) => raise Same.SAME
+          | (poly, All_Types) => Native (First_Order, poly, All_Types))
+        | ("native_higher", (SOME poly, _)) =>
+          (case (poly, level) of
+            (_, Nonmono_Types _) => raise Same.SAME
+          | (_, Undercover_Types) => raise Same.SAME
+          | (Mangled_Monomorphic, _) =>
+            if is_type_level_uniform level then
+              Native (Higher_Order THF_With_Choice, Mangled_Monomorphic, level)
+            else
+              raise Same.SAME
+           | (poly as Raw_Polymorphic _, All_Types) =>
+             Native (Higher_Order THF_With_Choice, poly, All_Types)
+           | _ => raise Same.SAME)
+        | ("guards", (SOME poly, _)) =>
+          if (poly = Mangled_Monomorphic andalso
+              level = Undercover_Types) orelse
+             poly = Type_Class_Polymorphic then
+            raise Same.SAME
+          else
+            Guards (poly, level)
+        | ("tags", (SOME poly, _)) =>
+          if (poly = Mangled_Monomorphic andalso
+              level = Undercover_Types) orelse
+             poly = Type_Class_Polymorphic then
+            raise Same.SAME
+          else
+            Tags (poly, level)
+        | ("args", (SOME poly, All_Types (* naja *))) =>
+          if poly = Type_Class_Polymorphic then raise Same.SAME
+          else Guards (poly, Const_Types Without_Ctr_Optim)
+        | ("args", (SOME poly, Nonmono_Types (_, Uniform) (* naja *))) =>
+          if poly = Mangled_Monomorphic orelse
+             poly = Type_Class_Polymorphic then
+            raise Same.SAME
+          else
+            Guards (poly, Const_Types With_Ctr_Optim)
+        | ("erased", (NONE, All_Types (* naja *))) =>
+          Guards (Raw_Polymorphic With_Phantom_Type_Vars, No_Types)
+        | _ => raise Same.SAME))
   handle Same.SAME => error ("Unknown type encoding: " ^ quote s ^ ".")
 
 fun adjust_order THF_Without_Choice (Higher_Order _) =
@@ -711,7 +708,7 @@ fun adjust_type_enc (THF (Polymorphic, choice)) (Native (order, poly, level)) =
   | adjust_type_enc _ type_enc = type_enc
 
 fun is_lambda_free t =
-  case t of
+  (case t of
     @{const Not} $ t1 => is_lambda_free t1
   | Const (@{const_name All}, _) $ Abs (_, _, t') => is_lambda_free t'
   | Const (@{const_name All}, _) $ t1 => is_lambda_free t1
@@ -722,7 +719,7 @@ fun is_lambda_free t =
   | @{const HOL.implies} $ t1 $ t2 => is_lambda_free t1 andalso is_lambda_free t2
   | Const (@{const_name HOL.eq}, Type (_, [@{typ bool}, _])) $ t1 $ t2 =>
     is_lambda_free t1 andalso is_lambda_free t2
-  | _ => not (exists_subterm (fn Abs _ => true | _ => false) t)
+  | _ => not (exists_subterm (fn Abs _ => true | _ => false) t))
 
 fun simple_translate_lambdas do_lambdas ctxt t =
   if is_lambda_free t then
@@ -730,28 +727,22 @@ fun simple_translate_lambdas do_lambdas ctxt t =
   else
     let
       fun trans Ts t =
-        case t of
+        (case t of
           @{const Not} $ t1 => @{const Not} $ trans Ts t1
         | (t0 as Const (@{const_name All}, _)) $ Abs (s, T, t') =>
           t0 $ Abs (s, T, trans (T :: Ts) t')
-        | (t0 as Const (@{const_name All}, _)) $ t1 =>
-          trans Ts (t0 $ eta_expand Ts t1 1)
+        | (t0 as Const (@{const_name All}, _)) $ t1 => trans Ts (t0 $ eta_expand Ts t1 1)
         | (t0 as Const (@{const_name Ex}, _)) $ Abs (s, T, t') =>
           t0 $ Abs (s, T, trans (T :: Ts) t')
-        | (t0 as Const (@{const_name Ex}, _)) $ t1 =>
-          trans Ts (t0 $ eta_expand Ts t1 1)
-        | (t0 as @{const HOL.conj}) $ t1 $ t2 =>
-          t0 $ trans Ts t1 $ trans Ts t2
-        | (t0 as @{const HOL.disj}) $ t1 $ t2 =>
-          t0 $ trans Ts t1 $ trans Ts t2
-        | (t0 as @{const HOL.implies}) $ t1 $ t2 =>
-          t0 $ trans Ts t1 $ trans Ts t2
-        | (t0 as Const (@{const_name HOL.eq}, Type (_, [@{typ bool}, _])))
-            $ t1 $ t2 =>
+        | (t0 as Const (@{const_name Ex}, _)) $ t1 => trans Ts (t0 $ eta_expand Ts t1 1)
+        | (t0 as @{const HOL.conj}) $ t1 $ t2 => t0 $ trans Ts t1 $ trans Ts t2
+        | (t0 as @{const HOL.disj}) $ t1 $ t2 => t0 $ trans Ts t1 $ trans Ts t2
+        | (t0 as @{const HOL.implies}) $ t1 $ t2 => t0 $ trans Ts t1 $ trans Ts t2
+        | (t0 as Const (@{const_name HOL.eq}, Type (_, [@{typ bool}, _]))) $ t1 $ t2 =>
           t0 $ trans Ts t1 $ trans Ts t2
         | _ =>
           if not (exists_subterm (fn Abs _ => true | _ => false) t) then t
-          else t |> Envir.eta_contract |> do_lambdas ctxt Ts
+          else t |> Envir.eta_contract |> do_lambdas ctxt Ts)
       val (t, ctxt') = Variable.import_terms true [t] ctxt |>> the_single
     in t |> trans [] |> singleton (Variable.export_terms ctxt' ctxt) end
 
@@ -853,50 +844,51 @@ fun filter_type_args thy ctrss type_enc s ary T_args =
   let val poly = polymorphism_of_type_enc type_enc in
     if s = type_tag_name then (* FIXME: why not "type_guard_name" as well? *)
       T_args
-    else case type_enc of
-      Native (_, Raw_Polymorphic _, _) => T_args
-    | Native (_, Type_Class_Polymorphic, _) => T_args
-    | _ =>
-      let
-        fun gen_type_args _ _ [] = []
-          | gen_type_args keep strip_ty T_args =
-            let
-              val U = robust_const_type thy s
-              val (binder_Us, body_U) = strip_ty U
-              val in_U_vars = fold Term.add_tvarsT binder_Us []
-              val out_U_vars = Term.add_tvarsT body_U []
-              fun filt (U_var, T) =
-                if keep (member (op =) in_U_vars U_var,
-                         member (op =) out_U_vars U_var) then
-                  T
-                else
-                  dummyT
-              val U_args = (s, U) |> robust_const_type_args thy
-            in map (filt o apfst dest_TVar) (U_args ~~ T_args) end
-            handle TYPE _ => T_args
-        fun is_always_ctr (s', T') =
-          s' = s andalso type_equiv thy (T', robust_const_type thy s')
-        val noninfer_type_args = gen_type_args (not o fst) (chop_fun ary)
-        val ctr_infer_type_args = gen_type_args fst strip_type
-        val level = level_of_type_enc type_enc
-      in
-        if level = No_Types orelse s = @{const_name HOL.eq} orelse
-           (case level of Const_Types _ => s = app_op_name | _ => false) then
-          []
-        else if poly = Mangled_Monomorphic then
-          T_args
-        else if level = All_Types then
-          case type_enc of
-            Guards _ => noninfer_type_args T_args
-          | Tags _ => []
-        else if level = Undercover_Types then
-          noninfer_type_args T_args
-        else if level <> Const_Types Without_Ctr_Optim andalso
-                exists (exists is_always_ctr) ctrss then
-          ctr_infer_type_args T_args
-        else
-          T_args
-      end
+    else
+      (case type_enc of
+        Native (_, Raw_Polymorphic _, _) => T_args
+      | Native (_, Type_Class_Polymorphic, _) => T_args
+      | _ =>
+        let
+          fun gen_type_args _ _ [] = []
+            | gen_type_args keep strip_ty T_args =
+              let
+                val U = robust_const_type thy s
+                val (binder_Us, body_U) = strip_ty U
+                val in_U_vars = fold Term.add_tvarsT binder_Us []
+                val out_U_vars = Term.add_tvarsT body_U []
+                fun filt (U_var, T) =
+                  if keep (member (op =) in_U_vars U_var,
+                           member (op =) out_U_vars U_var) then
+                    T
+                  else
+                    dummyT
+                val U_args = (s, U) |> robust_const_type_args thy
+              in map (filt o apfst dest_TVar) (U_args ~~ T_args) end
+              handle TYPE _ => T_args
+          fun is_always_ctr (s', T') =
+            s' = s andalso type_equiv thy (T', robust_const_type thy s')
+          val noninfer_type_args = gen_type_args (not o fst) (chop_fun ary)
+          val ctr_infer_type_args = gen_type_args fst strip_type
+          val level = level_of_type_enc type_enc
+        in
+          if level = No_Types orelse s = @{const_name HOL.eq} orelse
+             (case level of Const_Types _ => s = app_op_name | _ => false) then
+            []
+          else if poly = Mangled_Monomorphic then
+            T_args
+          else if level = All_Types then
+            (case type_enc of
+              Guards _ => noninfer_type_args T_args
+            | Tags _ => [])
+          else if level = Undercover_Types then
+            noninfer_type_args T_args
+          else if level <> Const_Types Without_Ctr_Optim andalso
+                  exists (exists is_always_ctr) ctrss then
+            ctr_infer_type_args T_args
+          else
+            T_args
+        end)
   end
 
 val fused_infinite_type_name = "ATP.fused_inf" (* shouldn't clash *)
@@ -1045,10 +1037,10 @@ fun add_iterm_vars bounds (IApp (tm1, tm2)) =
 fun aliased_uncurried ary (s, s') =
   (s ^ ascii_of_uncurried_alias_sep ^ string_of_int ary, s' ^ string_of_int ary)
 fun unaliased_uncurried (s, s') =
-  case space_explode uncurried_alias_sep s of
+  (case space_explode uncurried_alias_sep s of
     [_] => (s, s')
   | [s1, s2] => (s1, unsuffix s2 s')
-  | _ => raise Fail "ill-formed explicit application alias"
+  | _ => raise Fail "ill-formed explicit application alias")
 
 fun raw_mangled_const_name type_name ty_args (s, s') =
   let
@@ -1106,39 +1098,39 @@ fun introduce_proxies_in_iterm type_enc =
         IApp (intro top_level (tm2 :: args) tm1, intro false [] tm2)
       | intro top_level args (IConst (name as (s, _), T, T_args)) =
         (case proxify_const s of
-           SOME proxy_base =>
-           if top_level orelse is_type_enc_higher_order type_enc then
-             case (top_level, s) of
-               (_, "c_False") => IConst (`I tptp_false, T, [])
-             | (_, "c_True") => IConst (`I tptp_true, T, [])
-             | (false, "c_Not") => IConst (`I tptp_not, T, [])
-             | (false, "c_conj") => IConst (`I tptp_and, T, [])
-             | (false, "c_disj") => IConst (`I tptp_or, T, [])
-             | (false, "c_implies") => IConst (`I tptp_implies, T, [])
-             | (false, "c_All") => tweak_ho_quant tptp_ho_forall T args
-             | (false, "c_Ex") => tweak_ho_quant tptp_ho_exists T args
-             | (false, s) =>
-               if is_tptp_equal s then
-                 if length args = 2 then
-                   IConst (`I tptp_equal, T, [])
-                 else
-                   (* Eta-expand partially applied THF equality, because the
-                      LEO-II and Satallax parsers complain about not being able to
-                      infer the type of "=". *)
-                   let val i_T = domain_type T in
-                     IAbs ((`I "Y", i_T),
-                           IAbs ((`I "Z", i_T),
-                                 IApp (IApp (IConst (`I tptp_equal, T, []),
-                                             IConst (`I "Y", i_T, [])),
-                                       IConst (`I "Z", i_T, []))))
-                   end
-               else
-                 IConst (name, T, [])
-             | _ => IConst (name, T, [])
-           else
-             IConst (proxy_base |>> prefix const_prefix, T, T_args)
-          | NONE => if s = tptp_choice then tweak_ho_quant tptp_choice T args
-                    else IConst (name, T, T_args))
+          SOME proxy_base =>
+          if top_level orelse is_type_enc_higher_order type_enc then
+            (case (top_level, s) of
+              (_, "c_False") => IConst (`I tptp_false, T, [])
+            | (_, "c_True") => IConst (`I tptp_true, T, [])
+            | (false, "c_Not") => IConst (`I tptp_not, T, [])
+            | (false, "c_conj") => IConst (`I tptp_and, T, [])
+            | (false, "c_disj") => IConst (`I tptp_or, T, [])
+            | (false, "c_implies") => IConst (`I tptp_implies, T, [])
+            | (false, "c_All") => tweak_ho_quant tptp_ho_forall T args
+            | (false, "c_Ex") => tweak_ho_quant tptp_ho_exists T args
+            | (false, s) =>
+              if is_tptp_equal s then
+                if length args = 2 then
+                  IConst (`I tptp_equal, T, [])
+                else
+                  (* Eta-expand partially applied THF equality, because the
+                     LEO-II and Satallax parsers complain about not being able to
+                     infer the type of "=". *)
+                  let val i_T = domain_type T in
+                    IAbs ((`I "Y", i_T),
+                          IAbs ((`I "Z", i_T),
+                                IApp (IApp (IConst (`I tptp_equal, T, []),
+                                            IConst (`I "Y", i_T, [])),
+                                      IConst (`I "Z", i_T, []))))
+                  end
+              else
+                IConst (name, T, [])
+            | _ => IConst (name, T, []))
+          else
+            IConst (proxy_base |>> prefix const_prefix, T, T_args)
+         | NONE => if s = tptp_choice then tweak_ho_quant tptp_choice T args
+                   else IConst (name, T, T_args))
       | intro _ _ (IAbs (bound, tm)) = IAbs (bound, intro false [] tm)
       | intro _ _ tm = tm
   in intro true [] end
@@ -1164,13 +1156,9 @@ fun mangle_type_args_in_iterm type_enc =
 
 fun filter_type_args_in_const _ _ _ _ _ [] = []
   | filter_type_args_in_const thy ctrss type_enc ary s T_args =
-    case unprefix_and_unascii const_prefix s of
-      NONE =>
-      if level_of_type_enc type_enc = No_Types orelse s = tptp_choice then []
-      else T_args
-    | SOME s'' =>
-      filter_type_args thy ctrss type_enc (unmangled_invert_const s'') ary
-                       T_args
+    (case unprefix_and_unascii const_prefix s of
+      NONE => if level_of_type_enc type_enc = No_Types orelse s = tptp_choice then [] else T_args
+    | SOME s'' => filter_type_args thy ctrss type_enc (unmangled_invert_const s'') ary T_args)
 
 fun filter_type_args_in_iterm thy ctrss type_enc =
   let
@@ -1207,24 +1195,21 @@ fun iformula_of_prop ctxt type_enc iff_for_eq =
     and do_conn bs c pos1 t1 pos2 t2 =
       do_formula bs pos1 t1 ##>> do_formula bs pos2 t2 #>> uncurry (mk_aconn c)
     and do_formula bs pos t =
-      case t of
+      (case t of
         @{const Trueprop} $ t1 => do_formula bs pos t1
       | @{const Not} $ t1 => do_formula bs (Option.map not pos) t1 #>> mk_anot
-      | Const (@{const_name All}, _) $ Abs (s, T, t') =>
-        do_quant bs AForall pos s T t'
+      | Const (@{const_name All}, _) $ Abs (s, T, t') => do_quant bs AForall pos s T t'
       | (t0 as Const (@{const_name All}, _)) $ t1 =>
         do_formula bs pos (t0 $ eta_expand (map (snd o snd) bs) t1 1)
-      | Const (@{const_name Ex}, _) $ Abs (s, T, t') =>
-        do_quant bs AExists pos s T t'
+      | Const (@{const_name Ex}, _) $ Abs (s, T, t') => do_quant bs AExists pos s T t'
       | (t0 as Const (@{const_name Ex}, _)) $ t1 =>
         do_formula bs pos (t0 $ eta_expand (map (snd o snd) bs) t1 1)
       | @{const HOL.conj} $ t1 $ t2 => do_conn bs AAnd pos t1 pos t2
       | @{const HOL.disj} $ t1 $ t2 => do_conn bs AOr pos t1 pos t2
-      | @{const HOL.implies} $ t1 $ t2 =>
-        do_conn bs AImplies (Option.map not pos) t1 pos t2
+      | @{const HOL.implies} $ t1 $ t2 => do_conn bs AImplies (Option.map not pos) t1 pos t2
       | Const (@{const_name HOL.eq}, Type (_, [@{typ bool}, _])) $ t1 $ t2 =>
         if iff_for_eq then do_conn bs AIff NONE t1 NONE t2 else do_term bs t
-      | _ => do_term bs t
+      | _ => do_term bs t)
   in do_formula [] end
 
 fun presimplify_term ctxt t =
@@ -1311,10 +1296,10 @@ fun make_fact ctxt format type_enc iff_for_eq
       else
         Axiom
   in
-    case t |> make_formula ctxt format type_enc iff_for_eq name stature role of
+    (case t |> make_formula ctxt format type_enc iff_for_eq name stature role of
       formula as {iformula = AAtom (IConst ((s, _), _, _)), ...} =>
       if s = tptp_true then NONE else SOME formula
-    | formula => SOME formula
+    | formula => SOME formula)
   end
 
 fun make_conjecture ctxt format type_enc =
@@ -1337,12 +1322,11 @@ fun make_conjecture ctxt format type_enc =
 
 fun tvar_footprint thy s ary =
   (case unprefix_and_unascii const_prefix s of
-     SOME s =>
-     let fun tvars_of T = [] |> Term.add_tvarsT T |> map fst in
-       s |> unmangled_invert_const |> robust_const_type thy |> chop_fun ary
-         |> fst |> map tvars_of
-     end
-   | NONE => [])
+    SOME s =>
+    let fun tvars_of T = [] |> Term.add_tvarsT T |> map fst in
+      s |> unmangled_invert_const |> robust_const_type thy |> chop_fun ary |> fst |> map tvars_of
+    end
+  | NONE => [])
   handle TYPE _ => []
 
 fun type_arg_cover thy pos s ary =
@@ -1418,20 +1402,18 @@ datatype site =
 fun should_tag_with_type _ _ _ (Top_Level _) _ _ = false
   | should_tag_with_type ctxt mono (Tags (_, level)) site u T =
     let val thy = Proof_Context.theory_of ctxt in
-      case level of
+      (case level of
         Nonmono_Types (_, Non_Uniform) =>
         (case (site, is_maybe_universal_var u) of
-           (Eq_Arg pos, true) =>
-           (pos <> SOME false orelse tag_neg_vars) andalso
-           should_encode_type ctxt mono level T
-         | _ => false)
+          (Eq_Arg pos, true) =>
+          (pos <> SOME false orelse tag_neg_vars) andalso should_encode_type ctxt mono level T
+        | _ => false)
       | Undercover_Types =>
         (case (site, is_maybe_universal_var u) of
-           (Eq_Arg pos, true) => pos <> SOME false
-         | (Arg (s, j, ary), true) =>
-           member (op =) (type_arg_cover thy NONE s ary) j
-         | _ => false)
-      | _ => should_encode_type ctxt mono level T
+          (Eq_Arg pos, true) => pos <> SOME false
+        | (Arg (s, j, ary), true) => member (op =) (type_arg_cover thy NONE s ary) j
+        | _ => false)
+      | _ => should_encode_type ctxt mono level T)
     end
   | should_tag_with_type _ _ _ _ _ _ = false
 
@@ -1452,18 +1434,14 @@ type sym_info =
 
 fun default_sym_tab_entries type_enc =
   (make_fixed_const NONE @{const_name undefined},
-       {pred_sym = false, min_ary = 0, max_ary = 0, types = [],
-        in_conj = false}) ::
+     {pred_sym = false, min_ary = 0, max_ary = 0, types = [], in_conj = false}) ::
   ([tptp_false, tptp_true]
-   |> map (rpair {pred_sym = true, min_ary = 0, max_ary = 0, types = [],
-                  in_conj = false})) @
+   |> map (rpair {pred_sym = true, min_ary = 0, max_ary = 0, types = [], in_conj = false})) @
   ([tptp_equal, tptp_old_equal]
-   |> map (rpair {pred_sym = true, min_ary = 2, max_ary = 2, types = [],
-                  in_conj = false}))
+   |> map (rpair {pred_sym = true, min_ary = 2, max_ary = 2, types = [], in_conj = false}))
   |> not (is_type_enc_higher_order type_enc)
-     ? cons (prefixed_predicator_name,
-             {pred_sym = true, min_ary = 1, max_ary = 1, types = [],
-              in_conj = false})
+    ? cons (prefixed_predicator_name,
+      {pred_sym = true, min_ary = 1, max_ary = 1, types = [], in_conj = false})
 
 datatype app_op_level =
   Min_App_Op |
@@ -1477,8 +1455,7 @@ fun add_iterm_syms_to_sym_table ctxt app_op_level conj_fact =
     fun consider_var_ary const_T var_T max_ary =
       let
         fun iter ary T =
-          if ary = max_ary orelse type_instance thy var_T T orelse
-             type_instance thy T var_T then
+          if ary = max_ary orelse type_instance thy var_T T orelse type_instance thy T var_T then
             ary
           else
             iter (ary + 1) (range_type T)
@@ -1490,95 +1467,80 @@ fun add_iterm_syms_to_sym_table ctxt app_op_level conj_fact =
         let
           val bool_vars' =
             bool_vars orelse
-            (app_op_level = Sufficient_App_Op_And_Predicator andalso
-             body_type T = @{typ bool})
+            (app_op_level = Sufficient_App_Op_And_Predicator andalso body_type T = @{typ bool})
           fun repair_min_ary {pred_sym, min_ary, max_ary, types, in_conj} =
             {pred_sym = pred_sym andalso not bool_vars',
              min_ary = fold (fn T' => consider_var_ary T' T) types min_ary,
              max_ary = max_ary, types = types, in_conj = in_conj}
-          val fun_var_Ts' =
-            fun_var_Ts |> can dest_funT T ? insert_type thy I T
+          val fun_var_Ts' = fun_var_Ts |> can dest_funT T ? insert_type thy I T
         in
-          if bool_vars' = bool_vars andalso
-             pointer_eq (fun_var_Ts', fun_var_Ts) then
-            accum
-          else
-            ((bool_vars', fun_var_Ts'), Symtab.map (K repair_min_ary) sym_tab)
+          if bool_vars' = bool_vars andalso pointer_eq (fun_var_Ts', fun_var_Ts) then accum
+          else ((bool_vars', fun_var_Ts'), Symtab.map (K repair_min_ary) sym_tab)
         end
       else
         accum
-    fun add_iterm_syms top_level tm
-                       (accum as ((bool_vars, fun_var_Ts), sym_tab)) =
+    fun add_iterm_syms top_level tm (accum as ((bool_vars, fun_var_Ts), sym_tab)) =
       let val (head, args) = strip_iterm_comb tm in
         (case head of
-           IConst ((s, _), T, _) =>
-           if is_maybe_universal_name s then
-             add_universal_var T accum
-           else if String.isPrefix exist_bound_var_prefix s then
-             accum
-           else
-             let val ary = length args in
-               ((bool_vars, fun_var_Ts),
-                case Symtab.lookup sym_tab s of
-                  SOME {pred_sym, min_ary, max_ary, types, in_conj} =>
-                  let
-                    val pred_sym =
-                      pred_sym andalso top_level andalso not bool_vars
-                    val types' = types |> insert_type thy I T
-                    val in_conj = in_conj orelse conj_fact
-                    val min_ary =
-                      if (app_op_level = Sufficient_App_Op orelse
-                          app_op_level = Sufficient_App_Op_And_Predicator)
-                         andalso not (pointer_eq (types', types)) then
-                        fold (consider_var_ary T) fun_var_Ts min_ary
-                      else
-                        min_ary
-                  in
-                    Symtab.update (s, {pred_sym = pred_sym,
-                                       min_ary = Int.min (ary, min_ary),
-                                       max_ary = Int.max (ary, max_ary),
-                                       types = types', in_conj = in_conj})
-                                  sym_tab
-                  end
-                | NONE =>
-                  let
-                    val max_ary =
-                      case unprefix_and_unascii const_prefix s of
-                        SOME s =>
-                        (if String.isSubstring uncurried_alias_sep s then
-                           ary
-                         else case try (ary_of o robust_const_type thy
-                                        o unmangled_invert_const) s of
-                           SOME ary0 => Int.min (ary0, ary)
-                         | NONE => ary)
-                      | NONE => ary
-                    val pred_sym = top_level andalso max_ary = ary andalso not bool_vars
-                    val min_ary =
-                      case app_op_level of
-                        Min_App_Op => max_ary
-                      | Full_App_Op_And_Predicator => 0
-                      | _ => fold (consider_var_ary T) fun_var_Ts max_ary
-                  in
-                    Symtab.update_new (s,
-                        {pred_sym = pred_sym, min_ary = min_ary,
-                         max_ary = max_ary, types = [T], in_conj = conj_fact})
-                        sym_tab
-                  end)
-             end
-         | IVar (_, T) => add_universal_var T accum
-         | IAbs ((_, T), tm) =>
-           accum |> add_universal_var T |> add_iterm_syms false tm
-         | _ => accum)
+          IConst ((s, _), T, _) =>
+          if is_maybe_universal_name s then
+            add_universal_var T accum
+          else if String.isPrefix exist_bound_var_prefix s then
+            accum
+          else
+            let val ary = length args in
+              ((bool_vars, fun_var_Ts),
+               (case Symtab.lookup sym_tab s of
+                 SOME {pred_sym, min_ary, max_ary, types, in_conj} =>
+                 let
+                   val pred_sym = pred_sym andalso top_level andalso not bool_vars
+                   val types' = types |> insert_type thy I T
+                   val in_conj = in_conj orelse conj_fact
+                   val min_ary =
+                     if (app_op_level = Sufficient_App_Op orelse
+                         app_op_level = Sufficient_App_Op_And_Predicator)
+                        andalso not (pointer_eq (types', types)) then
+                       fold (consider_var_ary T) fun_var_Ts min_ary
+                     else
+                       min_ary
+                 in
+                   Symtab.update (s, {pred_sym = pred_sym, min_ary = Int.min (ary, min_ary),
+                     max_ary = Int.max (ary, max_ary), types = types', in_conj = in_conj}) sym_tab
+                 end
+               | NONE =>
+                 let
+                   val max_ary =
+                     (case unprefix_and_unascii const_prefix s of
+                       SOME s =>
+                       (if String.isSubstring uncurried_alias_sep s then
+                          ary
+                        else
+                          (case try (ary_of o robust_const_type thy o unmangled_invert_const) s of
+                            SOME ary0 => Int.min (ary0, ary)
+                          | NONE => ary))
+                     | NONE => ary)
+                   val pred_sym = top_level andalso max_ary = ary andalso not bool_vars
+                   val min_ary =
+                     (case app_op_level of
+                       Min_App_Op => max_ary
+                     | Full_App_Op_And_Predicator => 0
+                     | _ => fold (consider_var_ary T) fun_var_Ts max_ary)
+                 in
+                   Symtab.update_new (s, {pred_sym = pred_sym, min_ary = min_ary, max_ary = max_ary,
+                     types = [T], in_conj = conj_fact}) sym_tab
+                 end))
+            end
+        | IVar (_, T) => add_universal_var T accum
+        | IAbs ((_, T), tm) => accum |> add_universal_var T |> add_iterm_syms false tm
+        | _ => accum)
         |> fold (add_iterm_syms false) args
       end
   in add_iterm_syms end
 
 fun sym_table_of_facts ctxt type_enc app_op_level conjs facts =
   let
-    fun add_iterm_syms conj_fact =
-      add_iterm_syms_to_sym_table ctxt app_op_level conj_fact true
-    fun add_fact_syms conj_fact =
-      ifact_lift (formula_fold NONE (K (add_iterm_syms conj_fact)))
+    fun add_iterm_syms conj_fact = add_iterm_syms_to_sym_table ctxt app_op_level conj_fact true
+    fun add_fact_syms conj_fact = ifact_lift (formula_fold NONE (K (add_iterm_syms conj_fact)))
   in
     ((false, []), Symtab.empty)
     |> fold (add_fact_syms true) conjs
@@ -1587,10 +1549,10 @@ fun sym_table_of_facts ctxt type_enc app_op_level conjs facts =
   end
 
 fun min_ary_of sym_tab s =
-  case Symtab.lookup sym_tab s of
+  (case Symtab.lookup sym_tab s of
     SOME ({min_ary, ...} : sym_info) => min_ary
   | NONE =>
-    case unprefix_and_unascii const_prefix s of
+    (case unprefix_and_unascii const_prefix s of
       SOME s =>
       let val s = s |> unmangled_invert_const in
         if s = predicator_name then 1
@@ -1598,27 +1560,23 @@ fun min_ary_of sym_tab s =
         else if s = type_guard_name then 1
         else 0
       end
-    | NONE => 0
+    | NONE => 0))
 
 (* True if the constant ever appears outside of the top-level position in
    literals, or if it appears with different arities (e.g., because of different
    type instantiations). If false, the constant always receives all of its
    arguments and is used as a predicate. *)
 fun is_pred_sym sym_tab s =
-  case Symtab.lookup sym_tab s of
-    SOME ({pred_sym, min_ary, max_ary, ...} : sym_info) =>
-    pred_sym andalso min_ary = max_ary
-  | NONE => false
+  (case Symtab.lookup sym_tab s of
+    SOME ({pred_sym, min_ary, max_ary, ...} : sym_info) => pred_sym andalso min_ary = max_ary
+  | NONE => false)
 
-val fTrue_iconst =
-  IConst ((const_prefix ^ "fTrue", @{const_name ATP.fTrue}), @{typ bool}, [])
-val predicator_iconst =
-  IConst (`(make_fixed_const NONE) predicator_name, @{typ "bool => bool"}, [])
+val fTrue_iconst = IConst ((const_prefix ^ "fTrue", @{const_name ATP.fTrue}), @{typ bool}, [])
+val predicator_iconst = IConst (`(make_fixed_const NONE) predicator_name, @{typ "bool => bool"}, [])
 
 fun predicatify completish tm =
   if completish then
-    IApp (IApp (IConst (`I tptp_equal, @{typ "bool => bool => bool"}, []), tm),
-          fTrue_iconst)
+    IApp (IApp (IConst (`I tptp_equal, @{typ "bool => bool => bool"}, []), tm), fTrue_iconst)
   else
     IApp (predicator_iconst, tm)
 
@@ -1641,7 +1599,7 @@ fun firstorderize_fact thy ctrss type_enc uncurried_aliases completish sym_tab =
     fun list_app_ops (head, args) = fold do_app args head
     fun introduce_app_ops tm =
       let val (head, args) = tm |> strip_iterm_comb ||> map introduce_app_ops in
-        case head of
+        (case head of
           IConst (name as (s, _), T, T_args) =>
           let
             val min_ary = min_ary_of sym_tab s
@@ -1656,34 +1614,31 @@ fun firstorderize_fact thy ctrss type_enc uncurried_aliases completish sym_tab =
                      function type, are possible.) *)
                   val official_ary =
                     if is_type_enc_polymorphic type_enc then
-                      case unprefix_and_unascii const_prefix s of
+                      (case unprefix_and_unascii const_prefix s of
                         SOME s' =>
-                        (case try (ary_of o robust_const_type thy)
-                                  (invert_const s') of
-                           SOME ary => ary
-                         | NONE => min_ary)
-                      | NONE => min_ary
+                        (case try (ary_of o robust_const_type thy) (invert_const s') of
+                          SOME ary => ary
+                        | NONE => min_ary)
+                      | NONE => min_ary)
                     else
                       1000000000 (* irrealistically big arity *)
                 in Int.min (ary, official_ary) end
               else
                 min_ary
             val head =
-              if ary = min_ary then head
-              else IConst (aliased_uncurried ary name, T, T_args)
+              if ary = min_ary then head else IConst (aliased_uncurried ary name, T, T_args)
           in
             args |> chop ary |>> list_app head |> list_app_ops
           end
-        | _ => list_app_ops (head, args)
+        | _ => list_app_ops (head, args))
       end
     fun introduce_predicators tm =
-      case strip_iterm_comb tm of
+      (case strip_iterm_comb tm of
         (IConst ((s, _), _, _), _) =>
         if is_pred_sym sym_tab s then tm else predicatify completish tm
-      | _ => predicatify completish tm
+      | _ => predicatify completish tm)
     val do_iterm =
-      not (is_type_enc_higher_order type_enc)
-      ? (introduce_app_ops #> introduce_predicators)
+      not (is_type_enc_higher_order type_enc) ? (introduce_app_ops #> introduce_predicators)
       #> filter_type_args_in_iterm thy ctrss type_enc
   in update_iformula (formula_map do_iterm) end
 
@@ -1715,12 +1670,10 @@ val helper_table =
            fNot_def [THEN Meson.iff_to_disjD, THEN conjunct2]}
     |> map (pair Non_Rec_Def)),
    (("fconj", false),
-    @{lemma "~ P | ~ Q | fconj P Q" "~ fconj P Q | P" "~ fconj P Q | Q"
-        by (unfold fconj_def) fast+}
+    @{lemma "~ P | ~ Q | fconj P Q" "~ fconj P Q | P" "~ fconj P Q | Q" by (unfold fconj_def) fast+}
     |> map (pair General)),
    (("fdisj", false),
-    @{lemma "~ P | fdisj P Q" "~ Q | fdisj P Q" "~ fdisj P Q | P | Q"
-        by (unfold fdisj_def) fast+}
+    @{lemma "~ P | fdisj P Q" "~ Q | fdisj P Q" "~ fdisj P Q | P | Q" by (unfold fdisj_def) fast+}
     |> map (pair General)),
    (("fimplies", false),
     @{lemma "P | fimplies P Q" "~ Q | fimplies P Q" "~ fimplies P Q | ~ P | Q"
@@ -1735,10 +1688,8 @@ val helper_table =
     |> map (pair General)),
    (* Partial characterization of "fAll" and "fEx". A complete characterization
       would require the axiom of choice for replay with Metis. *)
-   (("fAll", false),
-    [(General, @{lemma "~ fAll P | P x" by (auto simp: fAll_def)})]),
-   (("fEx", false),
-    [(General, @{lemma "~ P x | fEx P" by (auto simp: fEx_def)})])]
+   (("fAll", false), [(General, @{lemma "~ fAll P | P x" by (auto simp: fAll_def)})]),
+   (("fEx", false), [(General, @{lemma "~ P x | fEx P" by (auto simp: fEx_def)})])]
   |> map (apsnd (map (apsnd zero_var_indexes)))
 
 val completish_helper_table =
@@ -1748,20 +1699,16 @@ val completish_helper_table =
    ((app_op_name, true),
     [(General, @{lemma "EX x. ~ f x = g x | f = g" by blast}),
      (General, @{lemma "EX p. (p x <-> p y) --> x = y" by blast})]),
-   (("fconj", false),
-    @{thms fconj_table fconj_laws fdisj_laws} |> map (pair Non_Rec_Def)),
-   (("fdisj", false),
-    @{thms fdisj_table fconj_laws fdisj_laws} |> map (pair Non_Rec_Def)),
+   (("fconj", false), @{thms fconj_table fconj_laws fdisj_laws} |> map (pair Non_Rec_Def)),
+   (("fdisj", false), @{thms fdisj_table fconj_laws fdisj_laws} |> map (pair Non_Rec_Def)),
    (("fimplies", false),
     @{thms fimplies_table fconj_laws fdisj_laws fimplies_laws}
     |> map (pair Non_Rec_Def)),
    (("fequal", false),
     (@{thms fequal_table} |> map (pair Non_Rec_Def)) @
     (@{thms fequal_laws} |> map (pair General))),
-   (("fAll", false),
-    @{thms fAll_table fComp_law fAll_law fEx_law} |> map (pair Non_Rec_Def)),
-   (("fEx", false),
-    @{thms fEx_table fComp_law fAll_law fEx_law} |> map (pair Non_Rec_Def))]
+   (("fAll", false), @{thms fAll_table fComp_law fAll_law fEx_law} |> map (pair Non_Rec_Def)),
+   (("fEx", false), @{thms fEx_table fComp_law fAll_law fEx_law} |> map (pair Non_Rec_Def))]
   |> map (apsnd (map (apsnd zero_var_indexes)))
 
 fun bound_tvars type_enc sorts Ts =
@@ -1796,16 +1743,14 @@ fun rank_of_fact_num n j = min_rank + (max_rank - min_rank) * j div n
 val type_tag = `(make_fixed_const NONE) type_tag_name
 
 fun could_specialize_helpers type_enc =
-  not (is_type_enc_polymorphic type_enc) andalso
-  level_of_type_enc type_enc <> No_Types
+  not (is_type_enc_polymorphic type_enc) andalso level_of_type_enc type_enc <> No_Types
 
 fun should_specialize_helper type_enc t =
-  could_specialize_helpers type_enc andalso
-  not (null (Term.hidden_polymorphism t))
+  could_specialize_helpers type_enc andalso not (null (Term.hidden_polymorphism t))
 
 fun add_helper_facts_of_sym ctxt format type_enc completish
                             (s, {types, ...} : sym_info) =
-  case unprefix_and_unascii const_prefix s of
+  (case unprefix_and_unascii const_prefix s of
     SOME mangled_s =>
     let
       val thy = Proof_Context.theory_of ctxt
@@ -1816,10 +1761,9 @@ fun add_helper_facts_of_sym ctxt format type_enc completish
         (if needs_sound then typed_helper_suffix else untyped_helper_suffix)
       fun specialize_helper t T =
         if unmangled_s = app_op_name then
-          let
-            val tyenv =
-              Sign.typ_match thy (alpha_to_beta, domain_type T) Vartab.empty
-          in monomorphic_term tyenv t end
+          let val tyenv = Sign.typ_match thy (alpha_to_beta, domain_type T) Vartab.empty in
+            monomorphic_term tyenv t
+          end
         else
           specialize_type thy (invert_const unmangled_s, T) t
       fun dub_and_inst needs_sound ((status, t), j) =
@@ -1845,7 +1789,7 @@ fun add_helper_facts_of_sym ctxt format type_enc completish
                  |> union (op = o pairself #iformula))
            (if completish then completish_helper_table else helper_table)
     end
-  | NONE => I
+  | NONE => I)
 fun helper_facts_of_sym_table ctxt format type_enc completish sym_tab =
   Symtab.fold_rev (add_helper_facts_of_sym ctxt format type_enc completish)
                   sym_tab []
@@ -1908,9 +1852,9 @@ fun trans_lams_of_string ctxt type_enc lam_trans =
     #> lift_lams_part_2 ctxt
   else if lam_trans = combs_or_liftingN then
     lift_lams_part_1 ctxt type_enc
-    ##> map (fn t => case head_of (strip_qnt_body @{const_name All} t) of
+    ##> map (fn t => (case head_of (strip_qnt_body @{const_name All} t) of
                        @{term "op =::bool => bool => bool"} => t
-                     | _ => introduce_combinators ctxt (intentionalize_def t))
+                     | _ => introduce_combinators ctxt (intentionalize_def t)))
     #> lift_lams_part_2 ctxt
   else if lam_trans = keep_lamsN then
     map (Envir.eta_contract) #> rpair []
@@ -1924,9 +1868,9 @@ val pull_and_reorder_definitions =
       | add_consts (IConst (name, _, _)) = insert (op =) name
       | add_consts (IVar _) = I
     fun consts_of_hs l_or_r ({iformula, ...} : ifact) =
-      case iformula of
+      (case iformula of
         AAtom (IApp (IApp (IConst _, t), u)) => add_consts (l_or_r (t, u)) []
-      | _ => []
+      | _ => [])
     (* Quadratic, but usually OK. *)
     fun reorder [] [] = []
       | reorder (fact :: skipped) [] =
@@ -1951,17 +1895,14 @@ fun translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts
     val thy = Proof_Context.theory_of ctxt
     val trans_lams = trans_lams_of_string ctxt type_enc lam_trans
     val fact_ts = facts |> map snd
-    (* Remove existing facts from the conjecture, as this can dramatically
-       boost an ATP's performance (for some reason). *)
-    val hyp_ts =
-      hyp_ts
-      |> map (fn t => if member (op aconv) fact_ts t then @{prop True} else t)
+    (* Remove existing facts from the conjecture, as this can dramatically boost an ATP's
+       performance (for some reason). *)
+    val hyp_ts = hyp_ts |> map (fn t => if member (op aconv) fact_ts t then @{prop True} else t)
     val facts = facts |> map (apsnd (pair Axiom))
     val conjs =
       map (pair prem_role) hyp_ts @ [(Conjecture, s_not_prop concl_t)]
       |> map (apsnd freeze_term)
-      |> map2 (pair o rpair (Local, General) o string_of_int)
-              (0 upto length hyp_ts)
+      |> map2 (pair o rpair (Local, General) o string_of_int) (0 upto length hyp_ts)
     val ((conjs, facts), lam_facts) =
       (conjs, facts)
       |> presimp ? pairself (map (apsnd (apsnd (presimp_prop ctxt type_enc))))
@@ -1978,11 +1919,9 @@ fun translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts
       facts |> map_filter (fn (name, (_, t)) =>
                               make_fact ctxt format type_enc true (name, t))
             |> pull_and_reorder_definitions
-    val fact_names =
-      facts |> map (fn {name, stature, ...} : ifact => (name, stature))
+    val fact_names = facts |> map (fn {name, stature, ...} : ifact => (name, stature))
     val lifted = lam_facts |> map (extract_lambda_def o snd o snd)
-    val lam_facts =
-      lam_facts |> map_filter (make_fact ctxt format type_enc true o apsnd snd)
+    val lam_facts = lam_facts |> map_filter (make_fact ctxt format type_enc true o apsnd snd)
     val all_ts = concl_t :: hyp_ts @ fact_ts
     val subs = tfree_classes_of_terms all_ts
     val supers = tvar_classes_of_terms all_ts
@@ -2004,8 +1943,7 @@ fun type_guard_iterm type_enc T tm =
 
 fun is_var_positively_naked_in_term _ (SOME false) _ accum = accum
   | is_var_positively_naked_in_term name _ (ATerm (((s, _), _), tms)) accum =
-    accum orelse
-    (is_tptp_equal s andalso member (op =) tms (ATerm ((name, []), [])))
+    accum orelse (is_tptp_equal s andalso member (op =) tms (ATerm ((name, []), [])))
   | is_var_positively_naked_in_term _ _ _ _ = true
 
 fun is_var_undercover_in_term thy name pos tm accum =
@@ -2027,13 +1965,12 @@ fun is_var_undercover_in_term thy name pos tm accum =
 
 fun should_guard_var_in_formula thy level pos phi (SOME true) name =
     (case level of
-       All_Types => true
-     | Undercover_Types =>
-       formula_fold pos (is_var_undercover_in_term thy name) phi false
-     | Nonmono_Types (_, Uniform) => true
-     | Nonmono_Types (_, Non_Uniform) =>
-       formula_fold pos (is_var_positively_naked_in_term name) phi false
-     | _ => false)
+      All_Types => true
+    | Undercover_Types => formula_fold pos (is_var_undercover_in_term thy name) phi false
+    | Nonmono_Types (_, Uniform) => true
+    | Nonmono_Types (_, Non_Uniform) =>
+      formula_fold pos (is_var_positively_naked_in_term name) phi false
+    | _ => false)
   | should_guard_var_in_formula _ _ _ _ _ _ = true
 
 fun always_guard_var_in_formula _ _ _ _ _ _ = true
@@ -2066,19 +2003,14 @@ and atp_term_of_iterm ctxt mono type_enc pos =
     fun term site u =
       let
         val (head, args) = strip_iterm_comb u
-        val pos =
-          case site of
-            Top_Level pos => pos
-          | Eq_Arg pos => pos
-          | _ => NONE
+        val pos = (case site of Top_Level pos => pos | Eq_Arg pos => pos | _ => NONE)
         val T = ityp_of u
         val t =
-          case head of
+          (case head of
             IConst (name as (s, _), _, T_args) =>
             let
               val ary = length args
-              fun arg_site j =
-                if is_tptp_equal s then Eq_Arg pos else Arg (s, j, ary)
+              fun arg_site j = if is_tptp_equal s then Eq_Arg pos else Arg (s, j, ary)
             in
               map2 (fn j => term (arg_site j)) (0 upto ary - 1) args
               |> mk_aterm type_enc name T_args
@@ -2091,7 +2023,7 @@ and atp_term_of_iterm ctxt mono type_enc pos =
                      term Elsewhere tm), map (term Elsewhere) args)
             else
               raise Fail "unexpected lambda-abstraction"
-          | IApp _ => raise Fail "impossible \"IApp\""
+          | IApp _ => raise Fail "impossible \"IApp\"")
         val tag = should_tag_with_type ctxt mono type_enc site u T
       in t |> tag ? tag_with_type ctxt mono type_enc pos T end
   in term (Top_Level pos) end
@@ -2227,38 +2159,32 @@ fun decl_line_of_class phantoms s =
   end
 
 fun decl_lines_of_classes type_enc =
-  case type_enc of
-    Native (_, Raw_Polymorphic phantoms, _) =>
-    map (decl_line_of_class phantoms)
-  | _ => K []
+  (case type_enc of
+    Native (_, Raw_Polymorphic phantoms, _) => map (decl_line_of_class phantoms)
+  | _ => K [])
 
 fun sym_decl_table_of_facts thy type_enc sym_tab (conjs, facts, extra_tms) =
   let
     fun add_iterm_syms tm =
       let val (head, args) = strip_iterm_comb tm in
         (case head of
-           IConst ((s, s'), T, T_args) =>
-           let
-             val (pred_sym, in_conj) =
-               case Symtab.lookup sym_tab s of
-                 SOME ({pred_sym, in_conj, ...} : sym_info) =>
-                 (pred_sym, in_conj)
-               | NONE => (false, false)
-             val decl_sym =
-               (case type_enc of
-                  Guards _ => not pred_sym
-                | _ => true) andalso
-               is_tptp_user_symbol s
-           in
-             if decl_sym then
-               Symtab.map_default (s, [])
-                   (insert_type thy #3 (s', T_args, T, pred_sym, length args,
-                                        in_conj))
-             else
-               I
-           end
-         | IAbs (_, tm) => add_iterm_syms tm
-         | _ => I)
+          IConst ((s, s'), T, T_args) =>
+          let
+            val (pred_sym, in_conj) =
+              (case Symtab.lookup sym_tab s of
+                SOME ({pred_sym, in_conj, ...} : sym_info) => (pred_sym, in_conj)
+              | NONE => (false, false))
+            val decl_sym =
+              (case type_enc of Guards _ => not pred_sym | _ => true) andalso is_tptp_user_symbol s
+          in
+            if decl_sym then
+              Symtab.map_default (s, [])
+                (insert_type thy #3 (s', T_args, T, pred_sym, length args, in_conj))
+            else
+              I
+          end
+        | IAbs (_, tm) => add_iterm_syms tm
+        | _ => I)
         #> fold add_iterm_syms args
       end
     val add_fact_syms = ifact_lift (formula_fold NONE (K add_iterm_syms))
@@ -2303,10 +2229,7 @@ fun sym_decl_table_of_facts thy type_enc sym_tab (conjs, facts, extra_tms) =
 (* We add "bool" in case the helper "True_or_False" is included later. *)
 fun default_mono level completish =
   {maybe_finite_Ts = [@{typ bool}],
-   surely_infinite_Ts =
-     case level of
-       Nonmono_Types (Strict, _) => []
-     | _ => known_infinite_types,
+   surely_infinite_Ts = (case level of Nonmono_Types (Strict, _) => [] | _ => known_infinite_types),
    maybe_nonmono_Ts = [if completish then tvar_a else @{typ bool}]}
 
 (* This inference is described in section 4 of Blanchette et al., "Encoding
@@ -2317,7 +2240,7 @@ fun add_iterm_mononotonicity_info _ _ (SOME false) _ mono = mono
         (mono as {maybe_finite_Ts, surely_infinite_Ts, maybe_nonmono_Ts}) =
     let val thy = Proof_Context.theory_of ctxt in
       if is_tptp_equal s andalso exists is_maybe_universal_var [tm1, tm2] then
-        case level of
+        (case level of
           Nonmono_Types (strictness, _) =>
           if exists (type_instance thy T) surely_infinite_Ts orelse
              member (type_equiv thy) maybe_finite_Ts T then
@@ -2331,7 +2254,7 @@ fun add_iterm_mononotonicity_info _ _ (SOME false) _ mono = mono
             {maybe_finite_Ts = maybe_finite_Ts |> insert (type_equiv thy) T,
              surely_infinite_Ts = surely_infinite_Ts,
              maybe_nonmono_Ts = maybe_nonmono_Ts |> insert_type thy I T}
-        | _ => mono
+        | _ => mono)
       else
         mono
     end
@@ -2390,10 +2313,10 @@ fun line_of_tags_mono_type ctxt mono type_enc T =
   end
 
 fun lines_of_mono_types ctxt mono type_enc =
-  case type_enc of
+  (case type_enc of
     Native _ => K []
   | Guards _ => map (line_of_guards_mono_type ctxt mono type_enc)
-  | Tags _ => map (line_of_tags_mono_type ctxt mono type_enc)
+  | Tags _ => map (line_of_tags_mono_type ctxt mono type_enc))
 
 fun decl_line_of_sym ctxt mono type_enc s (s', T_args, T, pred_sym, ary, _) =
   let
@@ -2401,13 +2324,14 @@ fun decl_line_of_sym ctxt mono type_enc s (s', T_args, T, pred_sym, ary, _) =
     val (T, T_args) =
       if null T_args then
         (T, [])
-      else case unprefix_and_unascii const_prefix s of
-        SOME s' =>
-        let
-          val s' = s' |> unmangled_invert_const
-          val T = s' |> robust_const_type thy
-        in (T, robust_const_type_args thy (s', T)) end
-      | NONE => raise Fail "unexpected type arguments"
+      else
+        (case unprefix_and_unascii const_prefix s of
+          SOME s' =>
+          let
+            val s' = s' |> unmangled_invert_const
+            val T = s' |> robust_const_type thy
+          in (T, robust_const_type_args thy (s', T)) end
+        | NONE => raise Fail "unexpected type arguments")
   in
     Sym_Decl (sym_decl_prefix ^ s, (s, s'),
               T |> fused_type ctxt mono (level_of_type_enc type_enc) ary
@@ -2428,14 +2352,13 @@ fun line_of_guards_sym_decl ctxt mono type_enc n s j
     val bounds =
       bound_names ~~ arg_Ts |> map (fn (name, T) => IConst (name, T, []))
     val bound_Ts =
-      case level_of_type_enc type_enc of
+      (case level_of_type_enc type_enc of
         All_Types => if null T_args then replicate ary NONE else map SOME arg_Ts
       | Undercover_Types =>
         let val cover = type_arg_cover thy NONE s ary in
-          map2 (fn j => if member (op =) cover j then SOME else K NONE)
-               (0 upto ary - 1) arg_Ts
+          map2 (fn j => if member (op =) cover j then SOME else K NONE) (0 upto ary - 1) arg_Ts
         end
-      | _ => replicate ary NONE
+      | _ => replicate ary NONE)
   in
     Formula ((guards_sym_formula_prefix ^ s ^
               (if n > 1 then "_" ^ string_of_int j else ""), ""),
@@ -2487,39 +2410,32 @@ fun result_type_of_decl (_, _, T, _, ary, _) = chop_fun ary T |> snd
 
 fun rationalize_decls thy (decls as decl :: (decls' as _ :: _)) =
     let
-      val T = result_type_of_decl decl
-              |> map_type_tvar (fn (z, _) => TVar (z, HOLogic.typeS))
+      val T = result_type_of_decl decl |> map_type_tvar (fn (z, _) => TVar (z, HOLogic.typeS))
     in
-      if forall (type_generalization thy T o result_type_of_decl) decls' then
-        [decl]
-      else
-        decls
+      if forall (type_generalization thy T o result_type_of_decl) decls' then [decl]
+      else decls
     end
   | rationalize_decls _ decls = decls
 
 fun lines_of_sym_decls ctxt mono type_enc (s, decls) =
-  case type_enc of
+  (case type_enc of
     Native _ => [decl_line_of_sym ctxt mono type_enc s (hd decls)]
   | Guards (_, level) =>
     let
       val thy = Proof_Context.theory_of ctxt
       val decls = decls |> rationalize_decls thy
       val n = length decls
-      val decls =
-        decls |> filter (should_encode_type ctxt mono level
-                         o result_type_of_decl)
+      val decls = decls |> filter (should_encode_type ctxt mono level o result_type_of_decl)
     in
-      (0 upto length decls - 1, decls)
-      |-> map2 (line_of_guards_sym_decl ctxt mono type_enc n s)
+      (0 upto length decls - 1, decls) |-> map2 (line_of_guards_sym_decl ctxt mono type_enc n s)
     end
   | Tags (_, level) =>
     if is_type_level_uniform level then
       []
     else
       let val n = length decls in
-        (0 upto n - 1 ~~ decls)
-        |> maps (lines_of_tags_sym_decl ctxt mono type_enc n s)
-      end
+        (0 upto n - 1 ~~ decls) |> maps (lines_of_tags_sym_decl ctxt mono type_enc n s)
+      end)
 
 fun lines_of_sym_decl_table ctxt mono type_enc mono_Ts sym_decl_tab =
   let
@@ -2537,18 +2453,14 @@ fun datatypes_of_sym_table ctxt ctrss (DFG Polymorphic) (type_enc as Native _)
           let
             val s' = make_fixed_const (SOME type_enc) s
             val ary = ary_of T
-            fun mk name =
-              mk_aterm type_enc name (robust_const_type_args thy (s, T)) []
+            fun mk name = mk_aterm type_enc name (robust_const_type_args thy (s, T)) []
           in
-            case Symtab.lookup sym_tab s' of
+            (case Symtab.lookup sym_tab s' of
               NONE => NONE
             | SOME ({min_ary, ...} : sym_info) =>
-              if ary = min_ary then
-                SOME (mk (s', s))
-              else if uncurried_aliases then
-                SOME (mk (aliased_uncurried ary (s', s)))
-              else
-                NONE
+              if ary = min_ary then SOME (mk (s', s))
+              else if uncurried_aliases then SOME (mk (aliased_uncurried ary (s', s)))
+              else NONE)
           end
         fun datatype_of_ctrs (ctrs as (_, T1) :: _) =
           let val ctrs' = map do_ctr ctrs in
@@ -2579,7 +2491,7 @@ fun do_uncurried_alias_lines_of_sym ctxt ctrss mono type_enc sym_tab0 sym_tab
         val thy = Proof_Context.theory_of ctxt
         val (role, maybe_negate) = honor_conj_sym_role in_conj
         val base_name = base_s0 |> `(make_fixed_const (SOME type_enc))
-        val T = case types of [T] => T | _ => robust_const_type thy base_s0
+        val T = (case types of [T] => T | _ => robust_const_type thy base_s0)
         val T_args = robust_const_type_args thy (base_s0, T)
         val (base_name as (base_s, _), T_args) =
           mangle_type_args_in_const type_enc base_name T_args
@@ -2604,40 +2516,34 @@ fun do_uncurried_alias_lines_of_sym ctxt ctrss mono type_enc sym_tab0 sym_tab
           |> filter_ty_args
         val do_bound_type = do_bound_type ctxt mono type_enc
         val eq =
-          eq_formula type_enc (atomic_types_of T)
-                     (map (apsnd do_bound_type) bounds) false
-                     (atp_term_of tm1) (atp_term_of tm2)
+          eq_formula type_enc (atomic_types_of T) (map (apsnd do_bound_type) bounds) false
+            (atp_term_of tm1) (atp_term_of tm2)
       in
         ([tm1, tm2],
-         [Formula ((uncurried_alias_eq_prefix ^ s2, ""), role,
-                   eq |> maybe_negate, NONE,
-                   isabelle_info non_rec_defN helper_rank)])
+         [Formula ((uncurried_alias_eq_prefix ^ s2, ""), role, eq |> maybe_negate, NONE,
+            isabelle_info non_rec_defN helper_rank)])
         |> (if ary - 1 = base_ary orelse Symtab.defined sym_tab s1 then I
             else pair_append (do_alias (ary - 1)))
       end
   in do_alias end
 fun uncurried_alias_lines_of_sym ctxt ctrss mono type_enc sym_tab0 sym_tab
         (s, {min_ary, types, in_conj, ...} : sym_info) =
-  case unprefix_and_unascii const_prefix s of
+  (case unprefix_and_unascii const_prefix s of
     SOME mangled_s =>
     if String.isSubstring uncurried_alias_sep mangled_s then
-      let
-        val base_s0 = mangled_s |> unmangled_invert_const
-      in
-        do_uncurried_alias_lines_of_sym ctxt ctrss mono type_enc sym_tab0
-                                        sym_tab base_s0 types in_conj min_ary
+      let val base_s0 = mangled_s |> unmangled_invert_const in
+        do_uncurried_alias_lines_of_sym ctxt ctrss mono type_enc sym_tab0 sym_tab base_s0 types
+          in_conj min_ary
       end
     else
       ([], [])
-  | NONE => ([], [])
-fun uncurried_alias_lines_of_sym_table ctxt ctrss mono type_enc
-                                       uncurried_aliases sym_tab0 sym_tab =
+  | NONE => ([], []))
+fun uncurried_alias_lines_of_sym_table ctxt ctrss mono type_enc uncurried_aliases sym_tab0 sym_tab =
   ([], [])
   |> uncurried_aliases
-     ? Symtab.fold_rev
-           (pair_append
-            o uncurried_alias_lines_of_sym ctxt ctrss mono type_enc sym_tab0
-                                           sym_tab) sym_tab
+    ? Symtab.fold_rev
+        (pair_append o uncurried_alias_lines_of_sym ctxt ctrss mono type_enc sym_tab0 sym_tab)
+        sym_tab
 
 val implicit_declsN = "Could-be-implicit typings"
 val explicit_declsN = "Explicit typings"
@@ -2909,29 +2815,29 @@ fun atp_problem_term_order_info problem =
     fun add_intro_deps pred (Formula (_, role, phi, _, info)) =
         if pred (role, info) then
           let val (hyps, concl) = strip_ahorn_etc phi in
-            case make_head_roll concl of
+            (case make_head_roll concl of
               (head, args as _ :: _) => fold (add_term_deps head) (hyps @ args)
-            | _ => I
+            | _ => I)
           end
         else
           I
       | add_intro_deps _ _ = I
     fun add_atom_eq_deps (SOME true) (ATerm ((s, _), [lhs as _, rhs])) =
         if is_tptp_equal s then
-          case make_head_roll lhs of
+          (case make_head_roll lhs of
             (head, args as _ :: _) => fold (add_term_deps head) (rhs :: args)
-          | _ => I
+          | _ => I)
         else
           I
       | add_atom_eq_deps _ _ = I
     fun add_eq_deps pred (Formula (_, role, phi, _, info)) =
         if pred (role, info) then
-          case strip_iff_etc phi of
+          (case strip_iff_etc phi of
             ([lhs], rhs) =>
             (case make_head_roll lhs of
-               (head, args as _ :: _) => fold (add_term_deps head) (rhs @ args)
-             | _ => I)
-          | _ => formula_fold (SOME (role <> Conjecture)) add_atom_eq_deps phi
+              (head, args as _ :: _) => fold (add_term_deps head) (rhs @ args)
+            | _ => I)
+          | _ => formula_fold (SOME (role <> Conjecture)) add_atom_eq_deps phi)
         else
           I
       | add_eq_deps _ _ = I

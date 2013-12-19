@@ -71,11 +71,9 @@ fun try_command_line banner time command =
 
 fun minimize_line _ [] = ""
   | minimize_line minimize_command ss =
-    case minimize_command ss of
+    (case minimize_command ss of
       "" => ""
-    | command =>
-      "\nTo minimize: " ^
-      Active.sendback_markup [Markup.padding_command] command ^ "."
+    | command => "\nTo minimize: " ^ Active.sendback_markup [Markup.padding_command] command ^ ".")
 
 fun split_used_facts facts =
   facts |> List.partition (fn (_, (sc, _)) => sc = Chained)
