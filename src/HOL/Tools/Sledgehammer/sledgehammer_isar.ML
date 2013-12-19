@@ -120,8 +120,7 @@ val negated_alias_params =
    ("dont_try0_isar", "isar_try0")]
 
 val params_not_for_minimize =
-  ["blocking", "fact_filter", "max_facts", "fact_thresholds", "slice",
-   "minimize"];
+  ["blocking", "fact_filter", "max_facts", "fact_thresholds", "slice", "minimize"];
 
 val property_dependent_params = ["provers", "timeout"]
 
@@ -225,40 +224,40 @@ fun extract_params mode default_params override_params =
     val lookup = Option.map implode_param o AList.lookup (op =) raw_params
     val lookup_string = the_default "" o lookup
     fun general_lookup_bool option default_value name =
-      case lookup name of
+      (case lookup name of
         SOME s => parse_bool_option option name s
-      | NONE => default_value
+      | NONE => default_value)
     val lookup_bool = the o general_lookup_bool false (SOME false)
     fun lookup_time name =
-      case lookup name of
-        SOME s => parse_time_option name s
-      | NONE => NONE
+      (case lookup name of
+        SOME s => parse_time name s
+      | NONE => Time.zeroTime)
     fun lookup_int name =
-      case lookup name of
+      (case lookup name of
         NONE => 0
-      | SOME s => case Int.fromString s of
-                    SOME n => n
-                  | NONE => error ("Parameter " ^ quote name ^
-                                   " must be assigned an integer value.")
+      | SOME s =>
+        (case Int.fromString s of
+          SOME n => n
+        | NONE => error ("Parameter " ^ quote name ^ " must be assigned an integer value.")))
     fun lookup_real name =
-      case lookup name of
+      (case lookup name of
         NONE => 0.0
-      | SOME s => case Real.fromString s of
-                    SOME n => n
-                  | NONE => error ("Parameter " ^ quote name ^
-                                   " must be assigned a real value.")
+      | SOME s =>
+        (case Real.fromString s of
+          SOME n => n
+        | NONE => error ("Parameter " ^ quote name ^ " must be assigned a real value.")))
     fun lookup_real_pair name =
-      case lookup name of
+      (case lookup name of
         NONE => (0.0, 0.0)
-      | SOME s => case s |> space_explode " " |> map Real.fromString of
-                    [SOME r1, SOME r2] => (r1, r2)
-                  | _ => error ("Parameter " ^ quote name ^
-                                " must be assigned a pair of floating-point \
-                                \values (e.g., \"0.6 0.95\")")
+      | SOME s =>
+        (case s |> space_explode " " |> map Real.fromString of
+          [SOME r1, SOME r2] => (r1, r2)
+        | _ => error ("Parameter " ^ quote name ^ " must be assigned a pair of floating-point \
+                 \values (e.g., \"0.6 0.95\")")))
     fun lookup_option lookup' name =
-      case lookup name of
+      (case lookup name of
         SOME "smart" => NONE
-      | _ => SOME (lookup' name)
+      | _ => SOME (lookup' name))
     val debug = mode <> Auto_Try andalso lookup_bool "debug"
     val verbose = debug orelse (mode <> Auto_Try andalso lookup_bool "verbose")
     val overlord = lookup_bool "overlord"
@@ -291,9 +290,8 @@ fun extract_params mode default_params override_params =
     val isar_try0 = lookup_bool "isar_try0"
     val slice = mode <> Auto_Try andalso lookup_bool "slice"
     val minimize = if mode = Auto_Try then NONE else lookup_option lookup_bool "minimize"
-    val timeout = if mode = Auto_Try then NONE else lookup_time "timeout"
-    val preplay_timeout =
-      if mode = Auto_Try then SOME Time.zeroTime else lookup_time "preplay_timeout"
+    val timeout = lookup_time "timeout"
+    val preplay_timeout = if mode = Auto_Try then Time.zeroTime else lookup_time "preplay_timeout"
     val expect = lookup_string "expect"
   in
     {debug = debug, verbose = verbose, overlord = overlord, spy = spy, blocking = blocking,

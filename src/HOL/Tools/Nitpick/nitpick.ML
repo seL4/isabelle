@@ -43,8 +43,8 @@ sig
      peephole_optim: bool,
      datatype_sym_break: int,
      kodkod_sym_break: int,
-     timeout: Time.time option,
-     tac_timeout: Time.time option,
+     timeout: Time.time,
+     tac_timeout: Time.time,
      max_threads: int,
      show_datatypes: bool,
      show_skolems: bool,
@@ -129,8 +129,8 @@ type params =
    peephole_optim: bool,
    datatype_sym_break: int,
    kodkod_sym_break: int,
-   timeout: Time.time option,
-   tac_timeout: Time.time option,
+   timeout: Time.time,
+   tac_timeout: Time.time,
    max_threads: int,
    show_datatypes: bool,
    show_skolems: bool,
@@ -193,14 +193,10 @@ fun kodkodi_too_old_message () = "The installed Kodkodi version is too old."
 val max_unsound_delay_ms = 200
 val max_unsound_delay_percent = 2
 
-fun unsound_delay_for_timeout NONE = max_unsound_delay_ms
-  | unsound_delay_for_timeout (SOME timeout) =
-    Int.max (0, Int.min (max_unsound_delay_ms,
-                         Time.toMilliseconds timeout
-                         * max_unsound_delay_percent div 100))
-
-fun passed_deadline NONE = false
-  | passed_deadline (SOME time) = Time.compare (Time.now (), time) <> LESS
+fun unsound_delay_for_timeout timeout =
+  Int.max (0, Int.min (max_unsound_delay_ms,
+                       Time.toMilliseconds timeout
+                       * max_unsound_delay_percent div 100))
 
 fun none_true assigns = forall (not_equal (SOME true) o snd) assigns
 
@@ -258,7 +254,10 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
     val print_v = pprint_v o K o plazy
 
     fun check_deadline () =
-      if passed_deadline deadline then raise TimeLimit.TimeOut else ()
+      if Time.compare (Time.now (), deadline) <> LESS then
+        raise TimeLimit.TimeOut
+      else
+        ()
 
     val (def_assm_ts, nondef_assm_ts) =
       if assms orelse mode <> Normal then (def_assm_ts, nondef_assm_ts)
@@ -385,8 +384,8 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
        (not (is_pure_typedef ctxt T) orelse is_univ_typedef ctxt T)) orelse
       is_number_type ctxt T orelse is_bit_type T
     fun is_type_actually_monotonic T =
-      time_limit tac_timeout (formulas_monotonic hol_ctxt binarize T)
-                 (nondef_ts, def_ts)
+      TimeLimit.timeLimit tac_timeout (formulas_monotonic hol_ctxt binarize T)
+                          (nondef_ts, def_ts)
       handle TimeLimit.TimeOut => false
     fun is_type_kind_of_monotonic T =
       case triple_lookup (type_match thy) monos T of
@@ -579,8 +578,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
         val bit_width = if bits = 0 then 16 else bits + 1
         val delay =
           if unsound then
-            Option.map (fn time => Time.- (time, Time.now ())) deadline
-            |> unsound_delay_for_timeout
+            unsound_delay_for_timeout (Time.- (deadline, Time.now ()))
           else
             0
         val settings = [("solver", commas_quote kodkod_sat_solver),
@@ -1075,10 +1073,9 @@ fun pick_nits_in_term state (params as {debug, timeout, expect, ...}) mode i n
     else
       let
         val unknown_outcome = (unknownN, state)
-        val deadline = Option.map (curry Time.+ (Time.now ())) timeout
+        val deadline = Time.+ (Time.now (), timeout)
         val outcome as (outcome_code, _) =
-          time_limit (if debug orelse is_none timeout then NONE
-                      else SOME (Time.+ (the timeout, timeout_bonus)))
+          TimeLimit.timeLimit (Time.+ (timeout, timeout_bonus))
               (pick_them_nits_in_term deadline state params mode i n step subst
                                       def_assm_ts nondef_assm_ts) orig_t
           handle TOO_LARGE (_, details) =>

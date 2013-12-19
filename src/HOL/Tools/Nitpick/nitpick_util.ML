@@ -51,7 +51,7 @@ sig
   val serial_commas : string -> string list -> string list
   val pretty_serial_commas : string -> Pretty.T list -> Pretty.T list
   val parse_bool_option : bool -> string -> string -> bool option
-  val parse_time_option : string -> string -> Time.time option
+  val parse_time : string -> string -> Time.time
   val string_of_time : Time.time -> string
   val nat_subscript : int -> string
   val flip_polarity : polarity -> polarity
@@ -71,8 +71,7 @@ sig
   val monomorphic_term : Type.tyenv -> term -> term
   val specialize_type : theory -> string * typ -> term -> term
   val eta_expand : typ list -> term -> int -> term
-  val time_limit : Time.time option -> ('a -> 'b) -> 'a -> 'b
-  val DETERM_TIMEOUT : Time.time option -> tactic -> tactic
+  val DETERM_TIMEOUT : Time.time -> tactic -> tactic
   val indent_size : int
   val pstrs : string -> Pretty.T list
   val unyxml : string -> string
@@ -238,7 +237,7 @@ fun pretty_serial_commas _ [] = []
     p :: Pretty.str "," :: Pretty.brk 1 :: pretty_serial_commas conj ps
 
 val parse_bool_option = Sledgehammer_Util.parse_bool_option
-val parse_time_option = Sledgehammer_Util.parse_time_option
+val parse_time = Sledgehammer_Util.parse_time
 val string_of_time = ATP_Util.string_of_time
 
 val subscript = implode o map (prefix "\<^sub>") o Symbol.explode
@@ -296,10 +295,9 @@ fun get_class_def thy class =
 val monomorphic_term = ATP_Util.monomorphic_term
 val specialize_type = ATP_Util.specialize_type
 val eta_expand = ATP_Util.eta_expand
-val time_limit = Sledgehammer_Util.time_limit
 
 fun DETERM_TIMEOUT delay tac st =
-  Seq.of_list (the_list (time_limit delay (fn () => SINGLE tac st) ()))
+  Seq.of_list (the_list (TimeLimit.timeLimit delay (fn () => SINGLE tac st) ()))
 
 val indent_size = 2
 

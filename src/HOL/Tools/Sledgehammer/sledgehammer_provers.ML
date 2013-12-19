@@ -40,8 +40,8 @@ sig
      isar_try0 : bool,
      slice : bool,
      minimize : bool option,
-     timeout : Time.time option,
-     preplay_timeout : Time.time option,
+     timeout : Time.time,
+     preplay_timeout : Time.time,
      expect : string}
 
   type prover_problem =
@@ -281,8 +281,8 @@ type params =
    isar_try0 : bool,
    slice : bool,
    minimize : bool option,
-   timeout : Time.time option,
-   preplay_timeout : Time.time option,
+   timeout : Time.time,
+   preplay_timeout : Time.time,
    expect : string}
 
 type prover_problem =
@@ -378,7 +378,9 @@ fun timed_apply timeout tac state i =
   let
     val {context = ctxt, facts, goal} = Proof.goal state
     val full_tac = Method.insert_tac facts i THEN tac ctxt i
-  in time_limit timeout (try (Seq.pull o full_tac)) goal end
+  in
+    TimeLimit.timeLimit timeout (try (Seq.pull o full_tac)) goal
+  end
 
 fun tac_of_reconstructor (Metis (type_enc, lam_trans)) =
     metis_tac [type_enc] lam_trans
@@ -401,24 +403,20 @@ fun play_one_line_proof mode debug verbose timeout pairs state i preferred recon
       if member (op =) reconstrs preferred then preferred
       else List.last reconstrs
   in
-    if timeout = SOME Time.zeroTime then
+    if timeout = Time.zeroTime then
       Play_Timed_Out (get_preferred reconstrs, Time.zeroTime)
     else
       let
         val _ = if mode = Minimize then Output.urgent_message "Preplaying proof..." else ()
         val ths = pairs |> sort_wrt (fst o fst) |> map snd
         fun play [] [] = Play_Failed (get_preferred reconstrs)
-          | play timed_outs [] =
-            Play_Timed_Out (get_preferred timed_outs, timeout |> the_default Time.zeroTime (* wrong *))
+          | play timed_outs [] = Play_Timed_Out (get_preferred timed_outs, timeout)
           | play timed_out (reconstr :: reconstrs) =
             let
               val _ =
                 if verbose then
-                  "Trying \"" ^ string_of_reconstructor reconstr ^ "\"" ^
-                  (case timeout of
-                     SOME timeout => " for " ^ string_of_time timeout
-                   | NONE => "") ^ "..."
-                  |> Output.urgent_message
+                  Output.urgent_message ("Trying \"" ^ string_of_reconstructor reconstr ^
+                    "\" for " ^ string_of_time timeout ^ "...")
                 else
                   ()
               val timer = Timer.startRealTimer ()
@@ -664,27 +662,20 @@ fun run_atp mode name
             val sound = is_type_enc_sound type_enc
             val real_ms = Real.fromInt o Time.toMilliseconds
             val slice_timeout =
-              case time_left of
-                SOME time_left =>
-                ((real_ms time_left
-                  |> (if slice < num_actual_slices - 1 then
-                        curry Real.min (time_frac * real_ms (the timeout))
-                      else
-                        I))
-                 * 0.001)
-                |> seconds |> SOME
-              | NONE => NONE
+              (real_ms time_left
+               |> (if slice < num_actual_slices - 1 then
+                     curry Real.min (time_frac * real_ms timeout)
+                   else
+                     I))
+              * 0.001
+              |> seconds
             val generous_slice_timeout =
-              if mode = MaSh then NONE
-              else Option.map (curry Time.+ atp_timeout_slack) slice_timeout
+              if mode = MaSh then one_day else Time.+ (slice_timeout, atp_timeout_slack)
             val _ =
               if debug then
                 quote name ^ " slice #" ^ string_of_int (slice + 1) ^
                 " with " ^ string_of_int num_facts ^ " fact" ^
-                plural_s num_facts ^
-                (case slice_timeout of
-                   SOME timeout => " for " ^ string_of_time timeout
-                 | NONE => "") ^ "..."
+                plural_s num_facts ^ " for " ^ string_of_time slice_timeout ^ "..."
                 |> Output.urgent_message
               else
                 ()
@@ -715,8 +706,8 @@ fun run_atp mode name
             val ord = effective_term_order ctxt name
             val full_proof = isar_proofs |> the_default (mode = Minimize)
             val args =
-              arguments ctxt full_proof extra (slice_timeout |> the_default one_day)
-                        (File.shell_path prob_path) (ord, ord_info, sel_weights)
+              arguments ctxt full_proof extra slice_timeout (File.shell_path prob_path)
+                (ord, ord_info, sel_weights)
             val command =
               "(exec 2>&1; " ^ File.shell_path command0 ^ " " ^ args ^ " " ^ ")"
               |> enclose "TIMEFORMAT='%3R'; { time " " ; }"
@@ -726,7 +717,7 @@ fun run_atp mode name
               |> cons ("% " ^ command ^ "\n" ^ (if comment = "" then "" else "% " ^ comment ^ "\n"))
               |> File.write_list prob_path
             val ((output, run_time), (atp_proof, outcome)) =
-              time_limit generous_slice_timeout Isabelle_System.bash_output command
+              TimeLimit.timeLimit generous_slice_timeout Isabelle_System.bash_output command
               |>> (if overlord then prefix ("% " ^ command ^ "\n% " ^ timestamp () ^ "\n") else I)
               |> fst |> split_time
               |> (fn accum as (output, _) =>
@@ -734,7 +725,7 @@ fun run_atp mode name
                       extract_tstplike_proof_and_outcome verbose proof_delims known_failures output
                       |>> atp_proof_of_tstplike_proof atp_problem
                       handle UNRECOGNIZED_ATP_PROOF () => ([], SOME ProofIncomplete)))
-              handle TimeLimit.TimeOut => (("", the slice_timeout), ([], SOME TimedOut))
+              handle TimeLimit.TimeOut => (("", slice_timeout), ([], SOME TimedOut))
             val outcome =
               case outcome of
                 NONE =>
@@ -759,13 +750,9 @@ fun run_atp mode name
         fun maybe_run_slice slice
                 (result as (cache, (_, run_time0, _, _, SOME _))) =
             let
-              val time_left =
-                Option.map
-                    (fn timeout => Time.- (timeout, Timer.checkRealTimer timer))
-                    timeout
+              val time_left = Time.- (timeout, Timer.checkRealTimer timer)
             in
-              if time_left <> NONE andalso
-                 Time.<= (the time_left, Time.zeroTime) then
+              if Time.<= (time_left, Time.zeroTime) then
                 result
               else
                 run_slice time_left cache slice
@@ -935,24 +922,21 @@ fun smt_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instanc
       let
         val timer = Timer.startRealTimer ()
         val slice_timeout =
-          if slice < max_slices andalso timeout <> NONE then
-            let val ms = timeout |> the |> Time.toMilliseconds in
+          if slice < max_slices then
+            let val ms = Time.toMilliseconds timeout in
               Int.min (ms,
                   Int.max (1000 * Config.get ctxt smt_slice_min_secs,
                       Real.ceil (Config.get ctxt smt_slice_time_frac
                                  * Real.fromInt ms)))
-              |> Time.fromMilliseconds |> SOME
+              |> Time.fromMilliseconds
             end
           else
             timeout
         val num_facts = length weighted_facts
         val _ =
           if debug then
-            quote name ^ " slice " ^ string_of_int slice ^ " with " ^
-            string_of_int num_facts ^ " fact" ^ plural_s num_facts ^
-            (case slice_timeout of
-               SOME timeout => " for " ^ string_of_time timeout
-             | NONE => "") ^ "..."
+            quote name ^ " slice " ^ string_of_int slice ^ " with " ^ string_of_int num_facts ^
+            " fact" ^ plural_s num_facts ^ " for " ^ string_of_time slice_timeout
             |> Output.urgent_message
           else
             ()
@@ -961,7 +945,7 @@ fun smt_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instanc
           if debug then Output.urgent_message "Invoking SMT solver..." else ()
         val (outcome, used_facts) =
           SMT_Solver.smt_filter_preprocess ctxt [] goal weighted_facts i
-          |> SMT_Solver.smt_filter_apply (slice_timeout |> the_default one_day)
+          |> SMT_Solver.smt_filter_apply slice_timeout
           |> (fn {outcome, used_facts} => (outcome, used_facts))
           handle exn => if Exn.is_interrupt exn then
                           reraise exn
@@ -979,18 +963,13 @@ fun smt_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instanc
           | SOME (SMT_Failure.Abnormal_Termination _) => true (* kind of *)
           | SOME SMT_Failure.Out_Of_Memory => true
           | SOME (SMT_Failure.Other_Failure _) => true
-        val timeout =
-          Option.map
-              (fn timeout => Time.- (timeout, Timer.checkRealTimer timer))
-              timeout
+        val timeout = Time.- (timeout, Timer.checkRealTimer timer)
       in
-        if too_many_facts_perhaps andalso slice < max_slices andalso
-           num_facts > 0 andalso
-           (timeout = NONE orelse Time.> (the timeout, Time.zeroTime)) then
+        if too_many_facts_perhaps andalso slice < max_slices andalso num_facts > 0 andalso
+           Time.> (timeout, Time.zeroTime) then
           let
             val new_num_facts =
-              Real.ceil (Config.get ctxt smt_slice_fact_frac
-                         * Real.fromInt num_facts)
+              Real.ceil (Config.get ctxt smt_slice_fact_frac * Real.fromInt num_facts)
             val weighted_factss as (new_fact_filter, _) :: _ =
               weighted_factss
               |> rotate_one

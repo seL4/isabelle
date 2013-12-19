@@ -1070,7 +1070,7 @@ fun launch_thread timeout task =
 
 fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) t facts used_ths =
   if is_mash_enabled () then
-    launch_thread (timeout |> the_default one_day) (fn () =>
+    launch_thread timeout (fn () =>
         let
           val thy = Proof_Context.theory_of ctxt
           val feats = features_of ctxt thy 0 Symtab.empty (Local, General) false [t] |> map fst
@@ -1095,12 +1095,11 @@ fun sendback sub =
 val commit_timeout = seconds 30.0
 
 (* The timeout is understood in a very relaxed fashion. *)
-fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
-                     save auto_level run_prover learn_timeout facts =
+fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover save auto_level
+    run_prover learn_timeout facts =
   let
     val timer = Timer.startRealTimer ()
-    fun next_commit_time () =
-      Time.+ (Timer.checkRealTimer timer, commit_timeout)
+    fun next_commit_time () = Time.+ (Timer.checkRealTimer timer, commit_timeout)
     val {access_G, ...} = peek_state ctxt overlord I
     val is_in_access_G = is_fact_in_graph access_G o snd
     val no_new_facts = forall is_in_access_G facts
@@ -1182,10 +1181,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
                   (commit false learns [] []; ([], next_commit_time ()))
                 else
                   (learns, next_commit)
-              val timed_out =
-                case learn_timeout of
-                  SOME timeout => Time.> (Timer.checkRealTimer timer, timeout)
-                | NONE => false
+              val timed_out = Time.> (Timer.checkRealTimer timer, learn_timeout)
             in (learns, (n, next_commit, timed_out)) end
         val n =
           if no_new_facts then
@@ -1215,10 +1211,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
                    ([], [], next_commit_time ()))
                 else
                   (relearns, flops, next_commit)
-              val timed_out =
-                case learn_timeout of
-                  SOME timeout => Time.> (Timer.checkRealTimer timer, timeout)
-                | NONE => false
+              val timed_out = Time.> (Timer.checkRealTimer timer, learn_timeout)
             in ((relearns, flops), (n, next_commit, timed_out)) end
         val n =
           if not run_prover then
@@ -1267,15 +1260,13 @@ fun mash_learn ctxt (params as {provers, timeout, ...}) fact_override chained ru
     val num_facts = length facts
     val prover = hd provers
     fun learn auto_level run_prover =
-      mash_learn_facts ctxt params prover true auto_level run_prover NONE facts
+      mash_learn_facts ctxt params prover true auto_level run_prover one_year facts
       |> Output.urgent_message
   in
     if run_prover then
-      ("MaShing through " ^ string_of_int num_facts ^ " fact" ^
-       plural_s num_facts ^ " for automatic proofs (" ^ quote prover ^
-       (case timeout of
-          SOME timeout => " timeout: " ^ string_of_time timeout
-        | NONE => "") ^ ").\n\nCollecting Isar proofs first..."
+      ("MaShing through " ^ string_of_int num_facts ^ " fact" ^ plural_s num_facts ^
+       " for automatic proofs (" ^ quote prover ^ " timeout: " ^ string_of_time timeout ^
+       ").\n\nCollecting Isar proofs first..."
        |> Output.urgent_message;
        learn 1 false;
        "Now collecting automatic proofs. This may take several hours. You can \
@@ -1305,10 +1296,8 @@ val max_facts_to_learn_before_query = 100
    Sledgehammer and Try. *)
 val min_secs_for_learning = 15
 
-fun relevant_facts ctxt
-        (params as {overlord, blocking, learn, fact_filter, timeout, ...})
-        prover max_facts ({add, only, ...} : fact_override) hyp_ts concl_t
-        facts =
+fun relevant_facts ctxt (params as {overlord, blocking, learn, fact_filter, timeout, ...}) prover
+    max_facts ({add, only, ...} : fact_override) hyp_ts concl_t facts =
   if not (subset (op =) (the_list fact_filter, fact_filters)) then
     error ("Unknown fact filter: " ^ quote (the fact_filter) ^ ".")
   else if only then
@@ -1320,16 +1309,11 @@ fun relevant_facts ctxt
   else
     let
       fun maybe_launch_thread () =
-        if not blocking andalso
-           not (Async_Manager.has_running_threads MaShN) andalso
-           (timeout = NONE orelse
-            Time.toSeconds (the timeout) >= min_secs_for_learning) then
-          let
-            val timeout = Option.map (time_mult learn_timeout_slack) timeout
-          in
-            launch_thread (timeout |> the_default one_day)
-                (fn () => (true, mash_learn_facts ctxt params prover true 2
-                                                  false timeout facts))
+        if not blocking andalso not (Async_Manager.has_running_threads MaShN) andalso
+           Time.toSeconds timeout >= min_secs_for_learning then
+          let val timeout = time_mult learn_timeout_slack timeout in
+            launch_thread timeout
+              (fn () => (true, mash_learn_facts ctxt params prover true 2 false timeout facts))
           end
         else
           ()

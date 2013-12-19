@@ -9,7 +9,7 @@ for dealing with Isar proof texts.
 signature SLEDGEHAMMER_PROOF =
 sig
   type label = string * int
-  type facts = label list * string list (* local & global facts *)
+  type facts = label list * string list (* local and global facts *)
 
   datatype isar_qualifier = Show | Then
 

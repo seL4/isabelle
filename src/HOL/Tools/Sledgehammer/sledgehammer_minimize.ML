@@ -61,13 +61,8 @@ fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters,
   let
     val _ =
       print silent (fn () =>
-          "Testing " ^ n_facts (map fst facts) ^
-          (if verbose then
-             case timeout of
-               SOME timeout => " (timeout: " ^ string_of_time timeout ^ ")"
-             | _ => ""
-           else
-             "") ^ "...")
+        "Testing " ^ n_facts (map fst facts) ^
+        (if verbose then " (timeout: " ^ string_of_time timeout ^ ")" else "") ^ "...")
     val facts = facts |> maps (fn (n, ths) => map (pair n) ths)
     val params =
       {debug = debug, verbose = verbose, overlord = overlord, spy = spy, blocking = true,
@@ -103,11 +98,9 @@ fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters,
    part of the timeout. *)
 val slack_msecs = 200
 
-fun new_timeout NONE _ = NONE
-  | new_timeout (SOME timeout) run_time =
-    Int.min (Time.toMilliseconds timeout,
-             Time.toMilliseconds run_time + slack_msecs)
-    |> Time.fromMilliseconds |> SOME
+fun new_timeout timeout run_time =
+  Int.min (Time.toMilliseconds timeout, Time.toMilliseconds run_time + slack_msecs)
+  |> Time.fromMilliseconds
 
 (* The linear algorithm usually outperforms the binary algorithm when over 60%
    of the facts are actually needed. The binary algorithm is much more
@@ -128,14 +121,15 @@ fun linear_minimize test timeout result xs =
   let
     fun min _ [] p = p
       | min timeout (x :: xs) (seen, result) =
-        case test timeout (xs @ seen) of
-          result as {outcome = NONE, used_facts, run_time, ...}
-          : prover_result =>
+        (case test timeout (xs @ seen) of
+          result as {outcome = NONE, used_facts, run_time, ...} : prover_result =>
           min (new_timeout timeout run_time)
               (filter_used_facts true used_facts xs)
               (filter_used_facts false used_facts seen, result)
-        | _ => min timeout xs (x :: seen, result)
-  in min timeout xs ([], result) end
+        | _ => min timeout xs (x :: seen, result))
+  in
+    min timeout xs ([], result)
+  end
 
 fun binary_minimize test timeout result xs =
   let
@@ -188,8 +182,8 @@ fun binary_minimize test timeout result xs =
     | p => p
   end
 
-fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
-                   i n state goal preplay0 facts =
+fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent i n state goal
+    preplay0 facts =
   let
     val ctxt = Proof.context_of state
     val prover = get_prover ctxt (if silent then Auto_Minimize else Minimize) prover_name
@@ -222,24 +216,18 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
            message, message_tail))
        end
      | {outcome = SOME TimedOut, preplay, ...} =>
-       (NONE,
-        (preplay,
-         fn _ =>
-            "Timeout: You can increase the time limit using the \"timeout\" \
-            \option (e.g., \"timeout = " ^
-            string_of_int (10 + Time.toMilliseconds
-                (timeout |> the_default (seconds 60.0)) div 1000) ^
-            "\").", ""))
+       (NONE, (preplay, fn _ =>
+          "Timeout: You can increase the time limit using the \"timeout\" option (e.g., \
+          \timeout = " ^ string_of_int (10 + Time.toMilliseconds timeout div 1000) ^ "\").", ""))
      | {preplay, message, ...} => (NONE, (preplay, prefix "Prover error: " o message, "")))
     handle ERROR msg => (NONE, (Lazy.value (Play_Failed plain_metis), fn _ => "Error: " ^ msg, ""))
   end
 
 fun adjust_reconstructor_params override_params
-        ({debug, verbose, overlord, spy, blocking, provers, type_enc, strict,
-         lam_trans, uncurried_aliases, learn, fact_filter, max_facts,
-         fact_thresholds, max_mono_iters, max_new_mono_instances, isar_proofs,
-         isar_compress, isar_try0, slice, minimize, timeout, preplay_timeout,
-         expect} : params) =
+    ({debug, verbose, overlord, spy, blocking, provers, type_enc, strict, lam_trans,
+      uncurried_aliases, learn, fact_filter, max_facts, fact_thresholds, max_mono_iters,
+      max_new_mono_instances, isar_proofs, isar_compress, isar_try0, slice, minimize, timeout,
+      preplay_timeout, expect} : params) =
   let
     fun lookup_override name default_value =
       case AList.lookup (op =) override_params name of
@@ -284,20 +272,18 @@ fun maybe_minimize ctxt mode do_learn name
               (case Lazy.force preplay of
                  Played (reconstr as Metis _, timeout) =>
                  if isar_proofs = SOME true then
-                   (* Cheat: Assume the selected ATP is as fast as "metis" for
-                      the goal it proved itself. *)
-                   (can_min_fast_enough timeout,
-                    (isar_proof_reconstructor ctxt name, params))
+                   (* Cheat: Assume the selected ATP is as fast as "metis" for the goal it proved
+                      itself. *)
+                   (can_min_fast_enough timeout, (isar_proof_reconstructor ctxt name, params))
                  else if can_min_fast_enough timeout then
                    (true, extract_reconstructor params reconstr
                           ||> (fn override_params =>
-                                  adjust_reconstructor_params override_params
-                                      params))
+                                  adjust_reconstructor_params override_params params))
                  else
                    (prover_fast_enough (), (name, params))
                | Played (SMT, timeout) =>
-                 (* Cheat: Assume the original prover is as fast as "smt" for
-                    the goal it proved itself *)
+                 (* Cheat: Assume the original prover is as fast as "smt" for the goal it proved
+                    itself. *)
                  (can_min_fast_enough timeout, (name, params))
                | _ => (prover_fast_enough (), (name, params)),
                preplay)

@@ -29,7 +29,7 @@ sig
      star_linear_preds: bool,
      total_consts: bool option,
      needs: term list option,
-     tac_timeout: Time.time option,
+     tac_timeout: Time.time,
      evals: term list,
      case_names: (string * int) list,
      def_tables: const_table * const_table,
@@ -271,7 +271,7 @@ type hol_context =
    star_linear_preds: bool,
    total_consts: bool option,
    needs: term list option,
-   tac_timeout: Time.time option,
+   tac_timeout: Time.time,
    evals: term list,
    case_names: (string * int) list,
    def_tables: const_table * const_table,
@@ -2069,8 +2069,7 @@ fun terminates_by ctxt timeout goal tac =
        #> the #> Goal.finish ctxt) goal
 
 val max_cached_wfs = 50
-val cached_timeout =
-  Synchronized.var "Nitpick_HOL.cached_timeout" (SOME Time.zeroTime)
+val cached_timeout = Synchronized.var "Nitpick_HOL.cached_timeout" Time.zeroTime
 val cached_wf_props =
   Synchronized.var "Nitpick_HOL.cached_wf_props" ([] : (term * bool) list)
 

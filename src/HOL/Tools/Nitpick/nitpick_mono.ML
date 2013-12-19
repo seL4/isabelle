@@ -533,9 +533,9 @@ fun print_solution asgs =
                              string_for_vars ", " (sort int_ord xs))
        |> space_implode "\n"))
 
-(* The ML solver timeout should correspond more or less to the overhead of
-   invoking an external prover. *)
-val ml_solver_timeout = SOME (seconds 0.02)
+(* The ML solver timeout should correspond more or less to the overhead of invoking an external
+   prover. *)
+val ml_solver_timeout = seconds 0.02
 
 fun solve tac_timeout max_var (comps, clauses) =
   let
@@ -560,11 +560,12 @@ fun solve tac_timeout max_var (comps, clauses) =
           |> List.partition (member (op =) ["dptsat", "dpll"] o fst)
         val res =
           if null nonml_solvers then
-            time_limit tac_timeout (snd (hd ml_solvers)) prop
+            TimeLimit.timeLimit tac_timeout (snd (hd ml_solvers)) prop
           else
-            time_limit ml_solver_timeout (snd (hd ml_solvers)) prop
+            TimeLimit.timeLimit ml_solver_timeout (snd (hd ml_solvers)) prop
             handle TimeLimit.TimeOut =>
-                   time_limit tac_timeout (SatSolver.invoke_solver "auto") prop
+                   TimeLimit.timeLimit tac_timeout
+                                       (SatSolver.invoke_solver "auto") prop
       in
         case res of
           SatSolver.SATISFIABLE assigns => do_assigns assigns

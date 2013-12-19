@@ -226,8 +226,8 @@ fun extract_params ctxt mode default_params override_params =
       lookup_assigns read prefix "" (space_explode " ")
     fun lookup_time name =
       case lookup name of
-        SOME s => parse_time_option name s
-      | NONE => NONE
+        SOME s => parse_time name s
+      | NONE => Time.zeroTime
     val read_type_polymorphic =
       Syntax.read_typ ctxt #> Logic.mk_type
       #> singleton (Variable.polymorphic ctxt) #> Logic.dest_type
@@ -269,7 +269,7 @@ fun extract_params ctxt mode default_params override_params =
     val peephole_optim = lookup_bool "peephole_optim"
     val datatype_sym_break = lookup_int "datatype_sym_break"
     val kodkod_sym_break = lookup_int "kodkod_sym_break"
-    val timeout = if mode = Auto_Try then NONE else lookup_time "timeout"
+    val timeout = lookup_time "timeout"
     val tac_timeout = lookup_time "tac_timeout"
     val max_threads =
       if mode = Normal then Int.max (0, lookup_int "max_threads") else 1

@@ -19,10 +19,9 @@ sig
   val timeoutN : string
   val unknownN : string
   val string_of_factss : (string * fact list) list -> string
-  val run_sledgehammer :
-    params -> mode -> (string -> unit) option -> int -> fact_override
-    -> ((string * string list) list -> string -> minimize_command)
-    -> Proof.state -> bool * (string * Proof.state)
+  val run_sledgehammer : params -> mode -> (string -> unit) option -> int -> fact_override ->
+    ((string * string list) list -> string -> minimize_command) -> Proof.state ->
+    bool * (string * Proof.state)
 end;
 
 structure Sledgehammer_Run : SLEDGEHAMMER_RUN =
@@ -65,13 +64,13 @@ fun prover_description ctxt ({verbose, blocking, ...} : params) name num_facts i
    (if blocking then "."
     else "\n" ^ Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i))))
 
-fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, timeout, expect, ...})
-        mode output_result minimize_command only learn
-        {comment, state, goal, subgoal, subgoal_count, factss as (_, facts) :: _} name =
+fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, timeout, expect, ...}) mode
+    output_result minimize_command only learn
+    {comment, state, goal, subgoal, subgoal_count, factss as (_, facts) :: _} name =
   let
     val ctxt = Proof.context_of state
 
-    val hard_timeout = time_mult 3.0 (timeout |> the_default one_day)
+    val hard_timeout = time_mult 3.0 timeout
     val _ = spying spy (fn () => (state, subgoal, name, "Launched"));
     val birth_time = Time.now ()
     val death_time = Time.+ (birth_time, hard_timeout)
@@ -173,7 +172,7 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, timeout,
       in (outcome_code, message) end
   in
     if mode = Auto_Try then
-      let val (outcome_code, message) = time_limit timeout go () in
+      let val (outcome_code, message) = TimeLimit.timeLimit timeout go () in
         (outcome_code,
          state
          |> outcome_code = someN

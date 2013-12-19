@@ -1892,9 +1892,8 @@ The descriptions below refer to the following syntactic quantities:
 \item[\labelitemi] \qtybf{int\_range}: An integer (e.g., 3) or a range
 of nonnegative integers (e.g., $1$--$4$). The range symbol `--' can be entered as \texttt{-} (hyphen) or \texttt{\char`\\\char`\<emdash\char`\>}.
 \item[\labelitemi] \qtybf{int\_seq}: A comma-separated sequence of ranges of integers (e.g.,~1{,}3{,}\allowbreak6--8).
-\item[\labelitemi] \qtybf{float\_or\_none}: An integer (e.g., 60) or floating-point number
-(e.g., 0.5) expressing a number of seconds, or the keyword \textit{none}
-($\infty$ seconds).
+\item[\labelitemi] \qtybf{float}: An floating-point number (e.g., 0.5 or 60)
+expressing a number of seconds.
 \item[\labelitemi] \qtybf{const\/}: The name of a HOL constant.
 \item[\labelitemi] \qtybf{term}: A HOL term (e.g., ``$f~x$'').
 \item[\labelitemi] \qtybf{term\_list\/}: A space-separated list of HOL terms (e.g.,
@@ -2531,7 +2530,7 @@ cores available. The option is implicitly set to 1 for automatic runs.
 \label{timeouts}
 
 \begin{enum}
-\opdefault{timeout}{float\_or\_none}{\upshape 30}
+\opdefault{timeout}{float}{\upshape 30}
 Specifies the maximum number of seconds that the \textbf{nitpick} command should
 spend looking for a counterexample. Nitpick tries to honor this constraint as
 well as it can but offers no guarantees. For automatic runs, the ``Auto Time
@@ -2541,7 +2540,7 @@ instead.
 \nopagebreak
 {\small See also \textit{max\_threads} (\S\ref{optimizations}).}
 
-\opdefault{tac\_timeout}{float\_or\_none}{\upshape 0.5}
+\opdefault{tac\_timeout}{float}{\upshape 0.5}
 Specifies the maximum number of seconds that should be used by internal
 tactics---\textit{lexicographic\_order} and \textit{size\_change} when checking
 whether a (co)in\-duc\-tive predicate is well-founded, \textit{auto} tactic when

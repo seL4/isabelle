@@ -176,7 +176,7 @@ fun evaluate_mash_suggestions ctxt params range linearize methods prob_dir_name
        "slice" |> not slice ? prefix "dont_",
        "type_enc = " ^ the_default "smart" type_enc,
        "lam_trans = " ^ the_default "smart" lam_trans,
-       "timeout = " ^ ATP_Util.string_of_time (the_default one_year timeout),
+       "timeout = " ^ ATP_Util.string_of_time timeout,
        "instantiate_inducts" |> not inst_inducts ? prefix "dont_"]
     val _ = print " * * *";
     val _ = print ("Options: " ^ commas options);

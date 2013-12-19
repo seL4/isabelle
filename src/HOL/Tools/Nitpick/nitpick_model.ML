@@ -41,7 +41,7 @@ sig
     -> nut list -> nut list -> nut NameTable.table -> Kodkod.raw_bound list
     -> Pretty.T * bool
   val prove_hol_model :
-    scope -> Time.time option -> nut list -> nut list -> nut NameTable.table
+    scope -> Time.time -> nut list -> nut list -> nut NameTable.table
     -> Kodkod.raw_bound list -> term -> bool option
 end;
 

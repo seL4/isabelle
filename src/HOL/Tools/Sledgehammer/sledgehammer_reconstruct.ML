@@ -14,8 +14,7 @@ sig
   type one_line_params = Sledgehammer_Reconstructor.one_line_params
 
   type isar_params =
-    bool * bool * string * string * Time.time option * real * bool * (term, string) atp_step list *
-    thm
+    bool * bool * string * string * Time.time * real * bool * (term, string) atp_step list * thm
 
   val isar_proof_text : Proof.context -> bool option -> isar_params -> one_line_params -> string
   val proof_text : Proof.context -> bool option -> (unit -> isar_params) -> int ->
@@ -190,8 +189,7 @@ val chain_direct_proof =
   end
 
 type isar_params =
-  bool * bool * string * string * Time.time option * real * bool * (term, string) atp_step list *
-  thm
+  bool * bool * string * string * Time.time * real * bool * (term, string) atp_step list * thm
 
 val arith_methodss =
   [[Arith_Method, Simp_Method, Auto_Method, Fastforce_Method, Blast_Method, Force_Method,
@@ -214,7 +212,7 @@ fun isar_proof_text ctxt isar_proofs
       |> map (fn (s, T) => (Binding.name s, SOME T, NoSyn))
       |> (fn fixes => ctxt |> Variable.set_body false |> Proof_Context.add_fixes fixes)
     val one_line_proof = one_line_proof_text 0 one_line_params
-    val do_preplay = preplay_timeout <> SOME Time.zeroTime
+    val do_preplay = preplay_timeout <> Time.zeroTime
 
     val is_fixed = Variable.is_declared ctxt orf can Name.dest_skolem
     fun skolems_of t = Term.add_frees t [] |> filter_out (is_fixed o fst) |> rev
@@ -341,9 +339,6 @@ fun isar_proof_text ctxt isar_proofs
             end
         and isar_proof outer fix assms lems infs =
           Proof (fix, assms, lems @ isar_steps outer NONE [] infs)
-
-        (* 60 seconds seems like a reasonable interpreation of "no timeout" *)
-        val preplay_timeout = preplay_timeout |> the_default (seconds 60.0)
 
         val (preplay_interface as {overall_preplay_stats, ...}, isar_proof) =
           refute_graph

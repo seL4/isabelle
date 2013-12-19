@@ -17,15 +17,13 @@ sig
   val infinite_timeout : Time.time
   val time_mult : real -> Time.time -> Time.time
   val parse_bool_option : bool -> string -> string -> bool option
-  val parse_time_option : string -> string -> Time.time option
+  val parse_time : string -> string -> Time.time
   val subgoal_count : Proof.state -> int
   val reserved_isar_keyword_table : unit -> unit Symtab.table
-  val thms_in_proof :
-    (string Symtab.table * string Symtab.table) option -> thm -> string list
+  val thms_in_proof : (string Symtab.table * string Symtab.table) option -> thm -> string list
   val thms_of_name : Proof.context -> string -> thm list
   val one_day : Time.time
   val one_year : Time.time
-  val time_limit : Time.time option -> ('a -> 'b) -> 'a -> 'b
   val with_vanilla_print_mode : ('a -> 'b) -> 'a -> 'b
   val hackish_string_of_term : Proof.context -> term -> string
   val spying : bool -> (unit -> Proof.state * int * string * string) -> unit
@@ -86,15 +84,14 @@ fun parse_bool_option option name s =
 val has_junk =
   exists (fn s => not (Symbol.is_digit s) andalso s <> ".") o raw_explode (* FIXME Symbol.explode (?) *)
 
-fun parse_time_option _ "none" = NONE
-  | parse_time_option name s =
-    let val secs = if has_junk s then NONE else Real.fromString s in
-      if is_none secs orelse Real.< (the secs, 0.0) then
-        error ("Parameter " ^ quote name ^ " must be assigned a nonnegative \
-               \number of seconds (e.g., \"60\", \"0.5\") or \"none\".")
-      else
-        SOME (seconds (the secs))
-    end
+fun parse_time name s =
+  let val secs = if has_junk s then NONE else Real.fromString s in
+    if is_none secs orelse Real.< (the secs, 0.0) then
+      error ("Parameter " ^ quote name ^ " must be assigned a nonnegative \
+             \number of seconds (e.g., \"60\", \"0.5\") or \"none\".")
+    else
+      seconds (the secs)
+  end
 
 val subgoal_count = Try.subgoal_count
 
@@ -143,9 +140,6 @@ fun thms_of_name ctxt name =
 
 val one_day = seconds (24.0 * 60.0 * 60.0)
 val one_year = seconds (365.0 * 24.0 * 60.0 * 60.0)
-
-fun time_limit NONE = I
-  | time_limit (SOME delay) = TimeLimit.timeLimit delay
 
 fun with_vanilla_print_mode f x =
   Print_Mode.setmp (filter (curry (op =) Symbol.xsymbolsN)

@@ -789,13 +789,11 @@ The descriptions below refer to the following syntactic quantities:
 \item[\labelitemi] \qtybf{smart\_bool\/}: \textit{true}, \textit{false}, or
 \textit{smart}.
 \item[\labelitemi] \qtybf{int\/}: An integer.
-%\item[\labelitemi] \qtybf{float\/}: A floating-point number (e.g., 2.5).
+\item[\labelitemi] \qtybf{float}: A floating-point number (e.g., 2.5 or 60)
+expressing a number of seconds.
 \item[\labelitemi] \qtybf{float\_pair\/}: A pair of floating-point numbers
 (e.g., 0.6 0.95).
 \item[\labelitemi] \qtybf{smart\_int\/}: An integer or \textit{smart}.
-\item[\labelitemi] \qtybf{float\_or\_none\/}: A floating-point number (e.g., 60 or
-0.5) expressing a number of seconds, or the keyword \textit{none} ($\infty$
-seconds).
 \end{enum}
 
 Default values are indicated in curly brackets (\textrm{\{\}}). Boolean options
@@ -1356,11 +1354,11 @@ is useful for regression testing.
 \label{timeouts}
 
 \begin{enum}
-\opdefault{timeout}{float\_or\_none}{\upshape 30}
+\opdefault{timeout}{float}{\upshape 30}
 Specifies the maximum number of seconds that the automatic provers should spend
 searching for a proof. This excludes problem preparation and is a soft limit.
 
-\opdefault{preplay\_timeout}{float\_or\_none}{\upshape 3}
+\opdefault{preplay\_timeout}{float}{\upshape 3}
 Specifies the maximum number of seconds that \textit{metis} or \textit{smt}
 should spend trying to ``preplay'' the found proof. If this option is set to 0,
 no preplaying takes place, and no timing information is displayed next to the

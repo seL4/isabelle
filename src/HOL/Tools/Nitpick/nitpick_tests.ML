@@ -211,11 +211,11 @@ fun problem_for_nut ctxt (name, u) =
 
 fun run_all_tests () =
   let
-    val {debug, overlord, ...} = Nitpick_Isar.default_params @{theory} []
+    val {debug, overlord, timeout, ...} = Nitpick_Isar.default_params @{theory} []
     val max_threads = 1
     val max_solutions = 1
   in
-    case Kodkod.solve_any_problem debug overlord NONE max_threads max_solutions
+    case Kodkod.solve_any_problem debug overlord timeout max_threads max_solutions
                                   (map (problem_for_nut @{context}) tests) of
       Kodkod.Normal ([], _, _) => ()
     | _ => error "Tests failed."
