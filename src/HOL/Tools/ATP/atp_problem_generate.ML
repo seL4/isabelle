@@ -439,8 +439,8 @@ val tvar_a = TVar tvar_a_z
 val tvar_a_name = tvar_name tvar_a_z
 val itself_name = `make_fixed_type_const @{type_name itself}
 val TYPE_name = `(make_fixed_const NONE) @{const_name TYPE}
-val tvar_a_atype = AType (tvar_a_name, [])
-val a_itself_atype = AType (itself_name, [tvar_a_atype])
+val tvar_a_atype = AType ((tvar_a_name, []), [])
+val a_itself_atype = AType ((itself_name, []), [tvar_a_atype])
 
 (** Definitions and functions for FOL clauses and formulas for TPTP **)
 
@@ -479,8 +479,7 @@ fun all_class_pairs _ _ [] = ([], [])
   | all_class_pairs thy tycons cls =
     let
       fun maybe_insert_class s =
-        (s <> class_of_types andalso not (member (op =) cls s))
-        ? insert (op =) s
+        (s <> class_of_types andalso not (member (op =) cls s)) ? insert (op =) s
       val pairs = class_pairs thy tycons cls
       val new_cls =
         [] |> fold (fold (fold (fold maybe_insert_class) o snd) o snd) pairs
@@ -495,12 +494,10 @@ fun tcon_clause _ _ [] = []
     else if member (op =) seen cl then
       (* multiple clauses for the same (tycon, cl) pair *)
       make_axiom_tcon_clause (tcons,
-          lookup_const tcons ^ "___" ^ ascii_of cl ^ "_" ^ string_of_int n,
-          ar) ::
+        lookup_const tcons ^ "___" ^ ascii_of cl ^ "_" ^ string_of_int n, ar) ::
       tcon_clause seen (n + 1) ((tcons, ars) :: rest)
     else
-      make_axiom_tcon_clause (tcons, lookup_const tcons ^ "___" ^ ascii_of cl,
-                              ar) ::
+      make_axiom_tcon_clause (tcons, lookup_const tcons ^ "___" ^ ascii_of cl, ar) ::
       tcon_clause (cl :: seen) n ((tcons, ars) :: rest)
 
 fun make_tcon_clauses thy tycons =
@@ -905,28 +902,26 @@ fun filter_type_args thy ctrss type_enc s ary T_args =
 val fused_infinite_type_name = "ATP.fused_inf" (* shouldn't clash *)
 val fused_infinite_type = Type (fused_infinite_type_name, [])
 
-fun raw_ho_type_of_typ type_enc =
+fun raw_atp_type_of_typ type_enc =
   let
     fun term (Type (s, Ts)) =
-      AType (case (is_type_enc_higher_order type_enc, s) of
+      AType ((case (is_type_enc_higher_order type_enc, s) of
                (true, @{type_name bool}) => `I tptp_bool_type
              | (true, @{type_name fun}) => `I tptp_fun_type
-             | _ => if s = fused_infinite_type_name andalso
-                       is_type_enc_native type_enc then
-                      `I tptp_individual_type
-                    else
-                      `make_fixed_type_const s,
-             map term Ts)
-    | term (TFree (s, _)) = AType (`make_tfree s, [])
-    | term (TVar z) = AType (tvar_name z, [])
+             | _ =>
+               if s = fused_infinite_type_name andalso is_type_enc_native type_enc then
+                 `I tptp_individual_type
+               else
+                 `make_fixed_type_const s, []), map term Ts)
+    | term (TFree (s, _)) = AType ((`make_tfree s, []), [])
+    | term (TVar (z as (_, S))) = AType ((tvar_name z, []), [])
   in term end
 
-fun atp_term_of_ho_type (AType (name, tys)) =
-    ATerm ((name, []), map atp_term_of_ho_type tys)
-  | atp_term_of_ho_type _ = raise Fail "unexpected type"
+fun atp_term_of_atp_type (AType ((name, _), tys)) = ATerm ((name, []), map atp_term_of_atp_type tys)
+  | atp_term_of_atp_type _ = raise Fail "unexpected type"
 
-fun ho_type_of_type_arg type_enc T =
-  if T = dummyT then NONE else SOME (raw_ho_type_of_typ type_enc T)
+fun atp_type_of_type_arg type_enc T =
+  if T = dummyT then NONE else SOME (raw_atp_type_of_typ type_enc T)
 
 (* This shouldn't clash with anything else. *)
 val uncurried_alias_sep = "\000"
@@ -934,29 +929,23 @@ val mangled_type_sep = "\001"
 
 val ascii_of_uncurried_alias_sep = ascii_of uncurried_alias_sep
 
-fun generic_mangled_type_name f (AType (name, [])) = f name
-  | generic_mangled_type_name f (AType (name, tys)) =
-    f name ^ "(" ^ space_implode "," (map (generic_mangled_type_name f) tys)
-    ^ ")"
+fun generic_mangled_type_name f (AType ((name, _), [])) = f name
+  | generic_mangled_type_name f (AType ((name, _), tys)) =
+    f name ^ "(" ^ space_implode "," (map (generic_mangled_type_name f) tys) ^ ")"
   | generic_mangled_type_name _ _ = raise Fail "unexpected type"
 
-fun mangled_type type_enc =
-  generic_mangled_type_name fst o raw_ho_type_of_typ type_enc
+fun mangled_type type_enc = generic_mangled_type_name fst o raw_atp_type_of_typ type_enc
 
 fun make_native_type s =
-  if s = tptp_bool_type orelse s = tptp_fun_type orelse
-     s = tptp_individual_type then
-    s
-  else
-    native_type_prefix ^ ascii_of s
+  if s = tptp_bool_type orelse s = tptp_fun_type orelse s = tptp_individual_type then s
+  else native_type_prefix ^ ascii_of s
 
-fun native_ho_type_of_raw_ho_type type_enc pred_sym ary =
+fun native_atp_type_of_raw_atp_type type_enc pred_sym ary =
   let
     fun to_mangled_atype ty =
-      AType ((make_native_type (generic_mangled_type_name fst ty),
-              generic_mangled_type_name snd ty), [])
-    fun to_poly_atype (AType (name, tys)) =
-        AType (name, map to_poly_atype tys)
+      AType (((make_native_type (generic_mangled_type_name fst ty),
+               generic_mangled_type_name snd ty), []), [])
+    fun to_poly_atype (AType ((name, clss), tys)) = AType ((name, clss), map to_poly_atype tys)
       | to_poly_atype _ = raise Fail "unexpected type"
     val to_atype =
       if is_type_enc_polymorphic type_enc then to_poly_atype
@@ -965,14 +954,13 @@ fun native_ho_type_of_raw_ho_type type_enc pred_sym ary =
     fun to_fo 0 ty = if pred_sym then bool_atype else to_atype ty
       | to_fo ary (AType (_, tys)) = to_afun to_atype (to_fo (ary - 1)) tys
       | to_fo _ _ = raise Fail "unexpected type"
-    fun to_ho (ty as AType ((s, _), tys)) =
+    fun to_ho (ty as AType (((s, _), _), tys)) =
         if s = tptp_fun_type then to_afun to_ho to_ho tys else to_atype ty
       | to_ho _ = raise Fail "unexpected type"
   in if is_type_enc_higher_order type_enc then to_ho else to_fo ary end
 
-fun native_ho_type_of_typ type_enc pred_sym ary =
-  native_ho_type_of_raw_ho_type type_enc pred_sym ary
-  o raw_ho_type_of_typ type_enc
+fun native_atp_type_of_typ type_enc pred_sym ary =
+  native_atp_type_of_raw_atp_type type_enc pred_sym ary o raw_atp_type_of_typ type_enc
 
 (* Make atoms for sorted type variables. *)
 fun generic_add_sorts_on_type _ [] = I
@@ -986,10 +974,9 @@ fun add_sorts_on_tvar (T as TVar (_, S)) = generic_add_sorts_on_type T S
 
 fun process_type_args type_enc T_args =
   if is_type_enc_native type_enc then
-    (map (native_ho_type_of_typ type_enc false 0) T_args, [])
+    (map (native_atp_type_of_typ type_enc false 0) T_args, [])
   else
-    ([], map_filter (Option.map atp_term_of_ho_type
-                     o ho_type_of_type_arg type_enc) T_args)
+    ([], map_filter (Option.map atp_term_of_atp_type o atp_type_of_type_arg type_enc) T_args)
 
 fun class_atom type_enc (cl, T) =
   let
@@ -998,9 +985,9 @@ fun class_atom type_enc (cl, T) =
     val tm_args =
       tm_args @
       (case type_enc of
-         Native (First_Order, Raw_Polymorphic Without_Phantom_Type_Vars, _) =>
-         [ATerm ((TYPE_name, ty_args), [])]
-       | _ => [])
+        Native (First_Order, Raw_Polymorphic Without_Phantom_Type_Vars, _) =>
+        [ATerm ((TYPE_name, ty_args), [])]
+      | _ => [])
   in AAtom (ATerm ((cl, ty_args), tm_args)) end
 
 fun class_atoms type_enc (cls, T) =
@@ -1070,7 +1057,7 @@ fun raw_mangled_const_name type_name ty_args (s, s') =
                ty_args ""
   in (s ^ type_suffix fst ascii_of, s' ^ type_suffix snd I) end
 fun mangled_const_name type_enc =
-  map_filter (ho_type_of_type_arg type_enc)
+  map_filter (atp_type_of_type_arg type_enc)
   #> raw_mangled_const_name generic_mangled_type_name
 
 val parse_mangled_ident =
@@ -1788,11 +1775,9 @@ fun bound_tvars type_enc sorts Ts =
     #> (case type_enc of
          Native (_, poly, _) =>
          mk_atyquant AForall (map (fn TVar (z as (_, S)) =>
-           (AType (tvar_name z, []),
-            if poly = Type_Class_Polymorphic then
-              map (`make_class) (normalize_classes S)
-            else
-              [])) Ts)
+           (AType ((tvar_name z, []), []),
+            if poly = Type_Class_Polymorphic then map (`make_class) (normalize_classes S)
+            else [])) Ts)
         | _ => mk_aquant AForall (map (fn TVar z => (tvar_name z, NONE)) Ts)))
 
 fun eq_formula type_enc atomic_Ts bounds pred_sym tm1 tm2 =
@@ -2065,11 +2050,10 @@ fun mk_aterm type_enc name T_args args =
   end
 
 fun do_bound_type ctxt mono type_enc =
-  case type_enc of
+  (case type_enc of
     Native (_, _, level) =>
-    fused_type ctxt mono level 0 #> native_ho_type_of_typ type_enc false 0
-    #> SOME
-  | _ => K NONE
+    fused_type ctxt mono level 0 #> native_atp_type_of_typ type_enc false 0 #> SOME
+  | _ => K NONE)
 
 fun tag_with_type ctxt mono type_enc pos T tm =
   IConst (type_tag, T --> T, [T])
@@ -2103,7 +2087,7 @@ and atp_term_of_iterm ctxt mono type_enc pos =
             map (term Elsewhere) args |> mk_aterm type_enc name []
           | IAbs ((name, T), tm) =>
             if is_type_enc_higher_order type_enc then
-              AAbs (((name, native_ho_type_of_typ type_enc true 0 T), (* FIXME? why "true"? *)
+              AAbs (((name, native_atp_type_of_typ type_enc true 0 T), (* FIXME? why "true"? *)
                      term Elsewhere tm), map (term Elsewhere) args)
             else
               raise Fail "unexpected lambda-abstraction"
@@ -2130,8 +2114,7 @@ and formula_of_iformula ctxt mono type_enc should_guard_var =
       else
         NONE
     fun do_formula pos (ATyQuant (q, xs, phi)) =
-        ATyQuant (q, map (apfst (native_ho_type_of_typ type_enc false 0)) xs,
-                  do_formula pos phi)
+        ATyQuant (q, map (apfst (native_atp_type_of_typ type_enc false 0)) xs, do_formula pos phi)
       | do_formula pos (AQuant (q, xs, phi)) =
         let
           val phi = phi |> do_formula pos
@@ -2193,10 +2176,8 @@ fun lines_of_subclass_pair type_enc (sub, supers) =
 fun line_of_tcon_clause type_enc (name, prems, (cl, T)) =
   if polymorphism_of_type_enc type_enc = Type_Class_Polymorphic then
     Class_Memb (class_memb_prefix ^ name,
-                map (fn (cls, T) =>
-                        (T |> dest_TVar |> tvar_name, map (`make_class) cls))
-                    prems,
-                native_ho_type_of_typ type_enc false 0 T, `make_class cl)
+      map (fn (cls, T) => (T |> dest_TVar |> tvar_name, map (`make_class) cls)) prems,
+      native_atp_type_of_typ type_enc false 0 T, `make_class cl)
   else
     Formula ((tcon_clause_prefix ^ name, ""), Axiom,
              mk_ahorn (maps (class_atoms type_enc) prems)
@@ -2220,10 +2201,10 @@ fun lines_of_free_types type_enc (facts : ifact list) =
       fun line j (cl, T) =
         if type_classes then
           Class_Memb (class_memb_prefix ^ string_of_int j, [],
-                      native_ho_type_of_typ type_enc false 0 T, `make_class cl)
+            native_atp_type_of_typ type_enc false 0 T, `make_class cl)
         else
           Formula ((tfree_clause_prefix ^ string_of_int j, ""), Hypothesis,
-                   class_atom type_enc (cl, T), NONE, [])
+            class_atom type_enc (cl, T), NONE, [])
       val membs =
         fold (union (op =)) (map #atomic_types facts) []
         |> class_membs_of_types type_enc add_sorts_on_tfree
@@ -2430,7 +2411,7 @@ fun decl_line_of_sym ctxt mono type_enc s (s', T_args, T, pred_sym, ary, _) =
   in
     Sym_Decl (sym_decl_prefix ^ s, (s, s'),
               T |> fused_type ctxt mono (level_of_type_enc type_enc) ary
-                |> native_ho_type_of_typ type_enc pred_sym ary
+                |> native_atp_type_of_typ type_enc pred_sym ary
                 |> not (null T_args)
                    ? curry APi (map (tvar_name o dest_TVar) T_args))
   end
@@ -2572,7 +2553,7 @@ fun datatypes_of_sym_table ctxt ctrss (DFG Polymorphic) (type_enc as Native _)
         fun datatype_of_ctrs (ctrs as (_, T1) :: _) =
           let val ctrs' = map do_ctr ctrs in
             if forall is_some ctrs' then
-              SOME (native_ho_type_of_typ type_enc false 0 (body_type T1), map_filter I ctrs')
+              SOME (native_atp_type_of_typ type_enc false 0 (body_type T1), map_filter I ctrs')
             else
               NONE
           end
@@ -2583,8 +2564,8 @@ fun datatypes_of_sym_table ctxt ctrss (DFG Polymorphic) (type_enc as Native _)
       []
   | datatypes_of_sym_table _ _ _ _ _ _ = []
 
-fun decl_line_of_datatype (ty as AType ((_, s'), ty_args), ctrs) =
-  let val xs = map (fn AType (name, []) => name) ty_args in
+fun decl_line_of_datatype (ty as AType (((_, s'), _), ty_args), ctrs) =
+  let val xs = map (fn AType ((name, _), []) => name) ty_args in
     Datatype_Decl (datatype_decl_prefix ^ ascii_of s', map (rpair []) xs, ty, ctrs)
   end
 
@@ -2685,7 +2666,7 @@ fun undeclared_in_problem problem =
       if is_tptp_user_symbol s then Symtab.default (s, (name, value)) else I
     fun do_class name = apfst (apfst (do_sym name ()))
     val do_bound_tvars = fold do_class o snd
-    fun do_type (AType (name, tys)) =
+    fun do_type (AType ((name, _), tys)) =
         apfst (apsnd (do_sym name (length tys))) #> fold do_type tys
       | do_type (AFun (ty1, ty2)) = do_type ty1 #> do_type ty2
       | do_type (APi (_, ty)) = do_type ty

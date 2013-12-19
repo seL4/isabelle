@@ -108,15 +108,21 @@ fun make_tfree ctxt w =
     TFree (ww, the_default HOLogic.typeS (Variable.def_sort ctxt (ww, ~1)))
   end
 
+exception ATP_CLASS of string list
 exception ATP_TYPE of string atp_type list
 exception ATP_TERM of (string, string atp_type) atp_term list
 exception ATP_FORMULA of
   (string, string, (string, string atp_type) atp_term, string) atp_formula list
 exception SAME of unit
 
+fun class_of_atp_class cls =
+  (case unprefix_and_unascii class_prefix cls of
+    SOME s => s
+  | NONE => raise ATP_CLASS [cls])
+
 (* Type variables are given the basic sort "HOL.type". Some will later be constrained by information
    from type literals, or by type inference. *)
-fun typ_of_atp_type ctxt (ty as AType (a, tys)) =
+fun typ_of_atp_type ctxt (ty as AType ((a, clss), tys)) =
   let val Ts = map (typ_of_atp_type ctxt) tys in
     (case unprefix_and_unascii type_const_prefix a of
       SOME b => Type (invert_const b, Ts)
@@ -130,10 +136,12 @@ fun typ_of_atp_type ctxt (ty as AType (a, tys)) =
           (* The term could be an Isabelle variable or a variable from the ATP, say "X1" or "_5018".
              Sometimes variables from the ATP are indistinguishable from Isabelle variables, which
              forces us to use a type parameter in all cases. *)
-          Type_Infer.param 0 (a |> perhaps (unprefix_and_unascii tvar_prefix), HOLogic.typeS)))
+          Type_Infer.param 0 (a |> perhaps (unprefix_and_unascii tvar_prefix),
+            (if null clss then HOLogic.typeS
+             else map class_of_atp_class clss))))
   end
 
-fun atp_type_of_atp_term (ATerm ((s, _), us)) = AType (s, map atp_type_of_atp_term us)
+fun atp_type_of_atp_term (ATerm ((s, _), us)) = AType ((s, []), map atp_type_of_atp_term us)
 
 fun typ_of_atp_term ctxt = typ_of_atp_type ctxt o atp_type_of_atp_term
 

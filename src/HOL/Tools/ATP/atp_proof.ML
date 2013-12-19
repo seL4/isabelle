@@ -258,11 +258,11 @@ and parse_source x =
 
 fun list_app (f, args) = fold (fn arg => fn f => ATerm ((tptp_app, []), [f, arg])) args f
 
-fun parse_sort x = scan_general_id x
-and parse_sorts x = (parse_sort ::: Scan.repeat ($$ "&" |-- parse_sort)) x
+fun parse_class x = scan_general_id x
+and parse_classes x = (parse_class ::: Scan.repeat ($$ "&" |-- parse_class)) x
 
 fun parse_type x =
-  (scan_general_id --| Scan.option ($$ "{" |-- parse_sorts --| $$ "}")
+  (scan_general_id -- Scan.optional ($$ "{" |-- parse_classes --| $$ "}") []
     -- Scan.optional ($$ "(" |-- parse_types --| $$ ")") []
    >> AType) x
 and parse_types x = (parse_type ::: Scan.repeat ($$ "," |-- parse_type)) x
@@ -530,7 +530,7 @@ fun clean_up_atp_proof_dependencies proof = clean_up_dependencies [] proof
 
 fun map_term_names_in_atp_proof f =
   let
-    fun map_type (AType (s, tys)) = AType (f s, map map_type tys)
+    fun map_type (AType ((s, clss), tys)) = AType ((f s, map f clss), map map_type tys)
       | map_type (AFun (ty, ty')) = AFun (map_type ty, map_type ty')
       | map_type (APi (ss, ty)) = APi (map f ss, map_type ty)
 

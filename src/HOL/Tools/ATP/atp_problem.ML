@@ -21,7 +21,7 @@ sig
     AAtom of 'c
 
   datatype 'a atp_type =
-    AType of 'a * 'a atp_type list |
+    AType of ('a * 'a list) * 'a atp_type list |
     AFun of 'a atp_type * 'a atp_type |
     APi of 'a list * 'a atp_type
 
@@ -165,7 +165,7 @@ datatype ('a, 'b, 'c, 'd) atp_formula =
   AAtom of 'c
 
 datatype 'a atp_type =
-  AType of 'a * 'a atp_type list |
+  AType of ('a * 'a list) * 'a atp_type list |
   AFun of 'a atp_type * 'a atp_type |
   APi of 'a list * 'a atp_type
 
@@ -273,8 +273,8 @@ fun is_built_in_tptp_symbol s =
 fun is_tptp_variable s = s <> "" andalso Char.isUpper (String.sub (s, 0))
 val is_tptp_user_symbol = not o (is_tptp_variable orf is_built_in_tptp_symbol)
 
-val bool_atype = AType (`I tptp_bool_type, [])
-val individual_atype = AType (`I tptp_individual_type, [])
+val bool_atype = AType ((`I tptp_bool_type, []), [])
+val individual_atype = AType ((`I tptp_individual_type, []), [])
 
 fun raw_polarities_of_conn ANot = (SOME false, NONE)
   | raw_polarities_of_conn AAnd = (SOME true, SOME true)
@@ -324,8 +324,7 @@ fun strip_afun (AFun (ty1, ty2)) = strip_afun ty2 |>> cons ty1
 
 fun strip_atype ty = ty |> strip_api ||> strip_afun
 
-fun is_function_atype ty =
-  snd (snd (strip_atype ty)) <> AType (tptp_bool_type, [])
+fun is_function_atype ty = snd (snd (strip_atype ty)) <> AType ((tptp_bool_type, []), [])
 fun is_predicate_atype ty = not (is_function_atype ty)
 fun is_nontrivial_predicate_atype (AType _) = false
   | is_nontrivial_predicate_atype ty = is_predicate_atype ty
@@ -356,9 +355,9 @@ fun tptp_string_of_app _ func [] = func
 fun uncurry_type (APi (tys, ty)) = APi (tys, uncurry_type ty)
   | uncurry_type (ty as AFun (ty1 as AType _, ty2)) =
     (case uncurry_type ty2 of
-       AFun (ty' as AType (s, tys), ty) =>
-       AFun (AType (tptp_product_type,
-                    ty1 :: (if s = tptp_product_type then tys else [ty'])), ty)
+       AFun (ty' as AType ((s, _), tys), ty) =>
+       AFun (AType ((tptp_product_type, []),
+         ty1 :: (if s = tptp_product_type then tys else [ty'])), ty)
      | _ => ty)
   | uncurry_type (ty as AType _) = ty
   | uncurry_type _ =
@@ -372,9 +371,9 @@ val suffix_type_of_types =
 fun str_of_type format ty =
   let
     val dfg = case format of DFG _ => true | _ => false
-    fun str _ (AType (s, [])) =
+    fun str _ (AType ((s, _), [])) =
         if dfg andalso s = tptp_individual_type then dfg_individual_type else s
-      | str _ (AType (s, tys)) =
+      | str _ (AType ((s, _), tys)) =
         let val ss = tys |> map (str false) in
           if s = tptp_product_type then
             ss |> space_implode
@@ -411,8 +410,7 @@ fun string_of_bound_var format (s, ty) =
   s ^
   (if is_format_typed format then
      " " ^ tptp_has_type ^ " " ^
-     (ty |> the_default (AType (tptp_individual_type, []))
-         |> string_of_type format)
+     (ty |> the_default (AType ((tptp_individual_type, []), [])) |> string_of_type format)
    else
      "")
 
@@ -507,7 +505,7 @@ fun tptp_string_of_format CNF = tptp_cnf
   | tptp_string_of_format (THF _) = tptp_thf
   | tptp_string_of_format (DFG _) = raise Fail "non-TPTP format"
 
-val atype_of_types = AType (tptp_type_of_types, [])
+val atype_of_types = AType ((tptp_type_of_types, []), [])
 
 fun nary_type_decl_type n = funpow n (curry AFun atype_of_types) atype_of_types
 
@@ -910,21 +908,22 @@ fun nice_atp_problem readable_names format problem =
       | DFG _ => avoid_clash_with_dfg_keywords
       | _ => I
     val nice_name = nice_name avoid_clash
+
     fun nice_bound_tvars xs =
       fold_map (nice_name o fst) xs
       ##>> fold_map (fold_map nice_name o snd) xs
       #>> op ~~
-    fun nice_type (AType (name, tys)) =
-        nice_name name ##>> fold_map nice_type tys #>> AType
+
+    fun nice_type (AType ((name, clss), tys)) =
+        nice_name name ##>> fold_map nice_name clss ##>> fold_map nice_type tys #>> AType
       | nice_type (AFun (ty1, ty2)) = nice_type ty1 ##>> nice_type ty2 #>> AFun
-      | nice_type (APi (names, ty)) =
-        fold_map nice_name names ##>> nice_type ty #>> APi
+      | nice_type (APi (names, ty)) = fold_map nice_name names ##>> nice_type ty #>> APi
+
     fun nice_term (ATerm ((name, tys), ts)) =
-        nice_name name ##>> fold_map nice_type tys ##>> fold_map nice_term ts
-        #>> ATerm
+        nice_name name ##>> fold_map nice_type tys ##>> fold_map nice_term ts #>> ATerm
       | nice_term (AAbs (((name, ty), tm), args)) =
-        nice_name name ##>> nice_type ty ##>> nice_term tm
-        ##>> fold_map nice_term args #>> AAbs
+        nice_name name ##>> nice_type ty ##>> nice_term tm ##>> fold_map nice_term args #>> AAbs
+
     fun nice_formula (ATyQuant (q, xs, phi)) =
         fold_map (nice_type o fst) xs
         ##>> fold_map (fold_map nice_name o snd) xs
@@ -939,14 +938,14 @@ fun nice_atp_problem readable_names format problem =
       | nice_formula (AConn (c, phis)) =
         fold_map nice_formula phis #>> curry AConn c
       | nice_formula (AAtom tm) = nice_term tm #>> AAtom
+
     fun nice_line (Class_Decl (ident, cl, cls)) =
         nice_name cl ##>> fold_map nice_name cls
         #>> (fn (cl, cls) => Class_Decl (ident, cl, cls))
       | nice_line (Type_Decl (ident, ty, ary)) =
         nice_name ty #>> (fn ty => Type_Decl (ident, ty, ary))
       | nice_line (Sym_Decl (ident, sym, ty)) =
-        nice_name sym ##>> nice_type ty
-        #>> (fn (sym, ty) => Sym_Decl (ident, sym, ty))
+        nice_name sym ##>> nice_type ty #>> (fn (sym, ty) => Sym_Decl (ident, sym, ty))
       | nice_line (Datatype_Decl (ident, xs, ty, tms)) =
         nice_bound_tvars xs ##>> nice_type ty ##>> fold_map nice_term tms
         #>> (fn ((xs, ty), tms) => Datatype_Decl (ident, xs, ty, tms))
@@ -954,11 +953,12 @@ fun nice_atp_problem readable_names format problem =
         nice_bound_tvars xs ##>> nice_type ty ##>> nice_name cl
         #>> (fn ((xs, ty), cl) => Class_Memb (ident, xs, ty, cl))
       | nice_line (Formula (ident, kind, phi, source, info)) =
-        nice_formula phi
-        #>> (fn phi => Formula (ident, kind, phi, source, info))
+        nice_formula phi #>> (fn phi => Formula (ident, kind, phi, source, info))
+
     fun nice_problem problem =
-      fold_map (fn (heading, lines) =>
-                   fold_map nice_line lines #>> pair heading) problem
-  in nice_problem problem empty_pool end
+      fold_map (fn (heading, lines) => fold_map nice_line lines #>> pair heading) problem
+  in
+    nice_problem problem empty_pool
+  end
 
 end;
