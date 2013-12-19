@@ -36,8 +36,8 @@ fun min_deps_of_step (_ : preplay_interface) (step as Let _) = step
         fun minimize_facts _ time min_facts [] = (time, min_facts)
           | minimize_facts mk_step time min_facts (f :: facts) =
             (case preplay_quietly (Time.+ (time, slack)) (mk_step (min_facts @ facts)) of
-              (true, _) => minimize_facts mk_step time (f :: min_facts) facts
-            | (false, time) => minimize_facts mk_step time min_facts facts)
+              Preplay_Success (false, time) => minimize_facts mk_step time min_facts facts
+            | _ => minimize_facts mk_step time (f :: min_facts) facts)
 
         val (time, min_lfs) = minimize_facts (mk_step_gfs_lfs gfs) time [] lfs
         val (time, min_gfs) = minimize_facts (mk_step_lfs_gfs min_lfs) time [] gfs

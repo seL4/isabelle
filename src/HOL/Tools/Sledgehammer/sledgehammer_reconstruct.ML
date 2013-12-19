@@ -355,7 +355,7 @@ fun isar_proof_text ctxt isar_proofs
           |> `(proof_preplay_interface debug ctxt metis_type_enc metis_lam_trans do_preplay
                preplay_timeout)
 
-        val ((preplay_time, preplay_fail), isar_proof) =
+        val (preplay_result, isar_proof) =
           isar_proof
           |> compress_proof (if isar_proofs = SOME true then isar_compress else 1000.0)
                preplay_interface
@@ -383,7 +383,9 @@ fun isar_proof_text ctxt isar_proofs
                else
                  []) @
               (if do_preplay then
-                [(if preplay_fail then "may fail, " else "") ^ string_of_ext_time preplay_time]
+                [(case preplay_result of
+                   Preplay_Success ext_time => string_of_ext_time ext_time
+                 | Preplay_Failure => "may fail")]
                else
                  [])
           in

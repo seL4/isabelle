@@ -158,7 +158,7 @@ fun compress_proof isar_compress
 
               (* check if the modified step can be preplayed fast enough *)
               val timeout = time_mult merge_timeout_slack (Time.+(time, time'))
-              val (false, time'') = preplay_quietly timeout step''
+              val Preplay_Success (false, time'') = preplay_quietly timeout step''
 
             in
               decrement_step_count (); (* l' successfully eliminated! *)
@@ -232,17 +232,17 @@ fun compress_proof isar_compress
               val succs' = map (try_merge cand #> the) succs
 
               (* TODO: should be lazy: stop preplaying as soon as one step fails/times out *)
-              val preplay_times = map2 preplay_quietly timeouts succs'
+              val preplay_results = map2 preplay_quietly timeouts succs'
 
               (* ensure none of the modified successors timed out *)
-              val false = List.exists fst preplay_times
+              val true = List.all (fn Preplay_Success _ => true) preplay_results
 
               val (steps1, _ :: steps2) = chop i steps
               (* replace successors with their modified versions *)
               val steps2 = update_steps steps2 succs'
             in
               decrement_step_count (); (* candidate successfully eliminated *)
-              map2 (fn l => set_preplay_result l o Preplay_Success) succ_lbls preplay_times;
+              map2 set_preplay_result succ_lbls preplay_results;
               map (replace_successor l succ_lbls) lfs;
               (* removing the step would mess up the indices -> replace with dummy step instead *)
               steps1 @ dummy_isar_step :: steps2

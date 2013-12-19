@@ -16,14 +16,12 @@ sig
     Preplay_Failure
 
   val trace: bool Config.T
-  val add_preplay_time: bool * Time.time -> bool * Time.time -> bool * Time.time
 
   type preplay_interface =
     {get_preplay_result: label -> preplay_result,
      set_preplay_result: label -> preplay_result -> unit,
-     preplay_quietly: Time.time -> isar_step -> bool * Time.time,
-     (* the returned flag signals a preplay failure *)
-     overall_preplay_stats: isar_proof -> (bool * Time.time) * bool}
+     preplay_quietly: Time.time -> isar_step -> preplay_result,
+     overall_preplay_stats: isar_proof -> preplay_result}
 
   val proof_preplay_interface: bool -> Proof.context -> string -> string -> bool -> Time.time ->
     isar_proof -> preplay_interface
@@ -43,8 +41,6 @@ datatype preplay_result =
   Preplay_Failure
 
 val zero_preplay_time = (false, Time.zeroTime) (* 0 ms *)
-
-fun add_preplay_time (b1, t1) (b2, t2) = (b1 orelse b2, Time.+ (t1, t2))
 
 fun preplay_trace ctxt assms concl time =
   let
@@ -163,9 +159,8 @@ fun preplay_raw _ _ _ _ _ (Let _) = zero_preplay_time
 type preplay_interface =
   {get_preplay_result: label -> preplay_result,
    set_preplay_result: label -> preplay_result -> unit,
-   preplay_quietly: Time.time -> isar_step -> bool * Time.time,
-   (* the returned flag signals a preplay failure *)
-   overall_preplay_stats: isar_proof -> (bool * Time.time) * bool}
+   preplay_quietly: Time.time -> isar_step -> preplay_result,
+   overall_preplay_stats: isar_proof -> preplay_result}
 
 fun enrich_context_with_local_facts proof ctxt =
   let
@@ -185,6 +180,10 @@ fun enrich_context_with_local_facts proof ctxt =
     enrich_with_proof proof ctxt
   end
 
+fun merge_preplay_results (Preplay_Success (b1, t1)) (Preplay_Success (b2, t2)) =
+    Preplay_Success (b1 orelse b2, Time.+ (t1, t2))
+  | merge_preplay_results _ _ = Preplay_Failure
+
 (* Given a proof, produces an imperative preplay interface with a shared table mapping from labels
    to preplay results. The preplay results are caluclated lazyly and cached to avoid repeated
    calculation.
@@ -196,8 +195,8 @@ fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay preplay_tim
     (* the dont_preplay option pretends that everything works just fine *)
     {get_preplay_result = K (Preplay_Success zero_preplay_time),
      set_preplay_result = K (K ()),
-     preplay_quietly = K (K zero_preplay_time),
-     overall_preplay_stats = K (zero_preplay_time, false)} : preplay_interface
+     preplay_quietly = K (K (Preplay_Success zero_preplay_time)),
+     overall_preplay_stats = K (Preplay_Success zero_preplay_time)} : preplay_interface
   else
     let
       val ctxt = enrich_context_with_local_facts proof ctxt
@@ -216,10 +215,7 @@ fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay preplay_tim
                  Preplay_Failure)
 
       (* preplay steps treating exceptions like timeouts *)
-      fun preplay_quietly timeout step =
-        (case preplay true timeout step of
-          Preplay_Success preplay_time => preplay_time
-        | Preplay_Failure => (true, timeout))
+      fun preplay_quietly timeout = preplay true timeout
 
       val preplay_tab =
         let
@@ -247,13 +243,9 @@ fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay preplay_tim
         try (label_of_step #> the #> get_preplay_result)
         #> the_default (Preplay_Success zero_preplay_time)
 
-      fun do_step step =
-        (case result_of_step step of
-          Preplay_Success preplay_time => apfst (add_preplay_time preplay_time)
-        | Preplay_Failure => apsnd (K true))
-
       fun overall_preplay_stats (Proof (_, _, steps)) =
-        fold_isar_steps do_step steps (zero_preplay_time, false)
+        Preplay_Success (false, Time.zeroTime)
+        |> fold_isar_steps (merge_preplay_results o result_of_step) steps
     in
       {get_preplay_result = get_preplay_result,
        set_preplay_result = set_preplay_result,
