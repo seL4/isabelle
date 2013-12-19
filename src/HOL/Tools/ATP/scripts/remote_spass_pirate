@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-curl -F file=@"$2" "http://91.228.53.68:51642/solve/pirate/"$1"s"
+curl -s -F file=@"$2" "http://91.228.53.68:51642/solve/pirate/"$1"s"
