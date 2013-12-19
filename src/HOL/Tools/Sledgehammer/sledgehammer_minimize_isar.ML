@@ -25,11 +25,10 @@ open Sledgehammer_Preplay
 val slack = seconds 0.1
 
 fun min_deps_of_step (_ : preplay_interface) (step as Let _) = step
-  | min_deps_of_step {get_preplay_time, set_preplay_time, preplay_quietly, ...}
+  | min_deps_of_step {get_preplay_result, set_preplay_result, preplay_quietly, ...}
       (step as Prove (qs, xs, l, t, subproofs, ((lfs, gfs), meth))) =
-    (case get_preplay_time l of
-      (true, _) => step (* don't touch steps that time out or fail *)
-    | (false, time) =>
+    (case get_preplay_result l of
+      Preplay_Success (false, time) =>
       let
         fun mk_step_lfs_gfs lfs gfs = Prove (qs, xs, l, t, subproofs, ((lfs, gfs), meth))
         val mk_step_gfs_lfs = curry (swap #> uncurry mk_step_lfs_gfs)
@@ -43,8 +42,9 @@ fun min_deps_of_step (_ : preplay_interface) (step as Let _) = step
         val (time, min_lfs) = minimize_facts (mk_step_gfs_lfs gfs) time [] lfs
         val (time, min_gfs) = minimize_facts (mk_step_lfs_gfs min_lfs) time [] gfs
       in
-        set_preplay_time l (false, time); mk_step_lfs_gfs min_lfs min_gfs
-      end)
+        set_preplay_result l (Preplay_Success (false, time)); mk_step_lfs_gfs min_lfs min_gfs
+      end
+    | _ => step (* don't touch steps that time out or fail *))
 
 fun postprocess_remove_unreferenced_steps postproc_step =
   let

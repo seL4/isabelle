@@ -29,13 +29,13 @@ val slack = seconds 0.05
 
 fun try0_step _ _ (step as Let _) = step
   | try0_step preplay_timeout
-      ({preplay_quietly, get_preplay_time, set_preplay_time, ...} : preplay_interface)
+      ({preplay_quietly, get_preplay_result, set_preplay_result, ...} : preplay_interface)
       (step as Prove (_, _, l, _, _, _)) =
     let
       val timeout =
-        (case get_preplay_time l of
-          (true, _) => preplay_timeout
-        | (false, t) => Time.+ (t, slack))
+        (case get_preplay_result l of
+          Preplay_Success (false, t) => Time.+ (t, slack)
+        | _ => preplay_timeout)
 
       fun try_variant variant =
         (case preplay_quietly timeout variant of
@@ -43,7 +43,7 @@ fun try0_step _ _ (step as Let _) = step
         | time as (false, _) => SOME (variant, time))
     in
       (case Par_List.get_some try_variant (variants_of_step step) of
-        SOME (step, time) => (set_preplay_time l time; step)
+        SOME (step, time) => (set_preplay_result l (Preplay_Success time); step)
       | NONE => step)
     end
 

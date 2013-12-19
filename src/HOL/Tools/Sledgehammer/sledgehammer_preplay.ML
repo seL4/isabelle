@@ -11,18 +11,16 @@ sig
   type isar_step = Sledgehammer_Proof.isar_step
   type label = Sledgehammer_Proof.label
 
-  type preplay_result
+  datatype preplay_result =
+    Preplay_Success of bool * Time.time |
+    Preplay_Failure
 
   val trace: bool Config.T
-  val zero_preplay_time: bool * Time.time
-  val some_preplay_time: bool * Time.time
   val add_preplay_time: bool * Time.time -> bool * Time.time -> bool * Time.time
 
   type preplay_interface =
     {get_preplay_result: label -> preplay_result,
      set_preplay_result: label -> preplay_result -> unit,
-     get_preplay_time: label -> bool * Time.time,
-     set_preplay_time: label -> bool * Time.time -> unit,
      preplay_quietly: Time.time -> isar_step -> bool * Time.time,
      (* the returned flag signals a preplay failure *)
      overall_preplay_stats: isar_proof -> (bool * Time.time) * bool}
@@ -45,7 +43,6 @@ datatype preplay_result =
   Preplay_Failure
 
 val zero_preplay_time = (false, Time.zeroTime) (* 0 ms *)
-val some_preplay_time = (true, Time.zeroTime)  (* > 0 ms *)
 
 fun add_preplay_time (b1, t1) (b2, t2) = (b1 orelse b2, Time.+ (t1, t2))
 
@@ -166,8 +163,6 @@ fun preplay_raw _ _ _ _ _ (Let _) = zero_preplay_time
 type preplay_interface =
   {get_preplay_result: label -> preplay_result,
    set_preplay_result: label -> preplay_result -> unit,
-   get_preplay_time: label -> bool * Time.time,
-   set_preplay_time: label -> bool * Time.time -> unit,
    preplay_quietly: Time.time -> isar_step -> bool * Time.time,
    (* the returned flag signals a preplay failure *)
    overall_preplay_stats: isar_proof -> (bool * Time.time) * bool}
@@ -201,8 +196,6 @@ fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay preplay_tim
     (* the dont_preplay option pretends that everything works just fine *)
     {get_preplay_result = K (Preplay_Success zero_preplay_time),
      set_preplay_result = K (K ()),
-     get_preplay_time = K zero_preplay_time,
-     set_preplay_time = K (K ()),
      preplay_quietly = K (K zero_preplay_time),
      overall_preplay_stats = K (zero_preplay_time, false)} : preplay_interface
   else
@@ -250,13 +243,6 @@ fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay preplay_tim
       fun set_preplay_result l result =
         preplay_tab := Canonical_Lbl_Tab.update (l, Lazy.value result) (!preplay_tab)
 
-      fun get_preplay_time l =
-        (case get_preplay_result l of
-          Preplay_Success preplay_time => preplay_time
-        | Preplay_Failure => some_preplay_time)
-
-      fun set_preplay_time l = set_preplay_result l o Preplay_Success
-
       val result_of_step =
         try (label_of_step #> the #> get_preplay_result)
         #> the_default (Preplay_Success zero_preplay_time)
@@ -271,8 +257,6 @@ fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay preplay_tim
     in
       {get_preplay_result = get_preplay_result,
        set_preplay_result = set_preplay_result,
-       get_preplay_time = get_preplay_time,
-       set_preplay_time = set_preplay_time,
        preplay_quietly = preplay_quietly,
        overall_preplay_stats = overall_preplay_stats}
     end
