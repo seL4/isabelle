@@ -208,8 +208,7 @@ fun term_of_atp ctxt textual sym_tab =
           @{const True} (* ignore TPTP type information *)
         else if s = tptp_equal then
           let val ts = map (do_term [] NONE) us in
-            if textual andalso length ts = 2 andalso
-               loose_aconv (hd ts, List.last ts) then
+            if textual andalso length ts = 2 andalso loose_aconv (hd ts, List.last ts) then
               @{const True}
             else
               list_comb (Const (@{const_name HOL.eq}, HOLogic.typeT), ts)
@@ -263,9 +262,9 @@ fun term_of_atp ctxt textual sym_tab =
           | NONE => (* a free or schematic variable *)
             let
               (* This assumes that distinct names are mapped to distinct names by
-                 "Variable.variant_frees". This does not hold in general but
-                 should hold for ATP-generated Skolem function names, since these
-                 end with a digit and "variant_frees" appends letters. *)
+                 "Variable.variant_frees". This does not hold in general but should hold for
+                 ATP-generated Skolem function names, since these end with a digit and
+                 "variant_frees" appends letters. *)
               fun fresh_up s =
                 [(s, ())] |> Variable.variant_frees ctxt [] |> hd |> fst
               val term_ts =
@@ -278,7 +277,9 @@ fun term_of_atp ctxt textual sym_tab =
               val T =
                 (case opt_T of
                   SOME T => map slack_fastype_of term_ts ---> T
-                | NONE => map slack_fastype_of ts ---> HOLogic.typeT)
+                | NONE =>
+                  map slack_fastype_of ts --->
+                  (case tys of [ty] => typ_of_atp_type ctxt ty | _ => HOLogic.typeT))
               val t =
                 (case unprefix_and_unascii fixed_var_prefix s of
                   SOME s => Free (s, T)
