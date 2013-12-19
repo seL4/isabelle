@@ -342,7 +342,7 @@ fun isar_proof_text ctxt isar_proofs
         and isar_proof outer fix assms lems infs =
           Proof (fix, assms, lems @ isar_steps outer NONE [] infs)
 
-        val (preplay_interface as {overall_preplay_stats, ...}, isar_proof) =
+        val (preplay_interface as {overall_preplay_outcome, ...}, isar_proof) =
           refute_graph
 (*
           |> tap (tracing o prefix "Refute graph: " o string_of_refute_graph)
@@ -363,7 +363,7 @@ fun isar_proof_text ctxt isar_proofs
                preplay_interface
           |> isar_try0 ? try0 preplay_timeout preplay_interface
           |> postprocess_remove_unreferenced_steps (isar_try0 ? min_deps_of_step preplay_interface)
-          |> `overall_preplay_stats
+          |> `overall_preplay_outcome
           ||> (chain_direct_proof #> kill_useless_labels_in_proof #> relabel_proof)
 
         val isar_text =

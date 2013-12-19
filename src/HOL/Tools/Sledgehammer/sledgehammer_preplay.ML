@@ -18,7 +18,7 @@ sig
     {get_preplay_outcome: label -> play_outcome,
      set_preplay_outcome: label -> play_outcome -> unit,
      preplay_quietly: Time.time -> isar_step -> play_outcome,
-     overall_preplay_stats: isar_proof -> play_outcome}
+     overall_preplay_outcome: isar_proof -> play_outcome}
 
   val proof_preplay_interface: bool -> Proof.context -> string -> string -> bool -> Time.time ->
     isar_proof -> preplay_interface
@@ -151,7 +151,7 @@ type preplay_interface =
   {get_preplay_outcome: label -> play_outcome,
    set_preplay_outcome: label -> play_outcome -> unit,
    preplay_quietly: Time.time -> isar_step -> play_outcome,
-   overall_preplay_stats: isar_proof -> play_outcome}
+   overall_preplay_outcome: isar_proof -> play_outcome}
 
 fun enrich_context_with_local_facts proof ctxt =
   let
@@ -173,7 +173,8 @@ fun enrich_context_with_local_facts proof ctxt =
 
 fun merge_preplay_outcomes _ Play_Failed = Play_Failed
   | merge_preplay_outcomes Play_Failed _ = Play_Failed
-  | merge_preplay_outcomes (Play_Timed_Out t1) (Play_Timed_Out t2) = Play_Timed_Out (Time.+ (t1, t2))
+  | merge_preplay_outcomes (Play_Timed_Out t1) (Play_Timed_Out t2) =
+    Play_Timed_Out (Time.+ (t1, t2))
   | merge_preplay_outcomes (Played t1) (Play_Timed_Out t2) = Play_Timed_Out (Time.+ (t1, t2))
   | merge_preplay_outcomes (Play_Timed_Out t1) (Played t2) = Play_Timed_Out (Time.+ (t1, t2))
   | merge_preplay_outcomes (Played t1) (Played t2) = Played (Time.+ (t1, t2))
@@ -190,7 +191,7 @@ fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay preplay_tim
     {get_preplay_outcome = K (Played Time.zeroTime),
      set_preplay_outcome = K (K ()),
      preplay_quietly = K (K (Played Time.zeroTime)),
-     overall_preplay_stats = K (Played Time.zeroTime)} : preplay_interface
+     overall_preplay_outcome = K (Played Time.zeroTime)} : preplay_interface
   else
     let
       val ctxt = enrich_context_with_local_facts proof ctxt
@@ -215,10 +216,10 @@ fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay preplay_tim
         let
           fun add_step_to_tab step tab =
             (case label_of_step step of
-               NONE => tab
-             | SOME l =>
-               Canonical_Lbl_Tab.update_new
-                 (l, (fn () => preplay false preplay_timeout step) |> Lazy.lazy) tab)
+              NONE => tab
+            | SOME l =>
+              Canonical_Lbl_Tab.update_new
+                (l, (fn () => preplay false preplay_timeout step) |> Lazy.lazy) tab)
             handle Canonical_Lbl_Tab.DUP _ => raise Fail "Sledgehammer_Preplay: preplay time table"
         in
           Canonical_Lbl_Tab.empty
@@ -237,13 +238,13 @@ fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay preplay_tim
         try (label_of_step #> the #> get_preplay_outcome)
         #> the_default (Played Time.zeroTime)
 
-      fun overall_preplay_stats (Proof (_, _, steps)) =
+      fun overall_preplay_outcome (Proof (_, _, steps)) =
         fold_isar_steps (merge_preplay_outcomes o result_of_step) steps (Played Time.zeroTime)
     in
       {get_preplay_outcome = get_preplay_outcome,
        set_preplay_outcome = set_preplay_outcome,
        preplay_quietly = preplay_quietly,
-       overall_preplay_stats = overall_preplay_stats}
+       overall_preplay_outcome = overall_preplay_outcome}
     end
 
 end;
