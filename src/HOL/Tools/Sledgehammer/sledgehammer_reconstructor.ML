@@ -15,7 +15,7 @@ sig
 
   datatype play =
     Played of reconstructor * Time.time |
-    Play_Timed_Out of reconstructor * Time.time option |
+    Play_Timed_Out of reconstructor * Time.time |
     Play_Failed of reconstructor
 
   type minimize_command = string list -> string
@@ -35,7 +35,7 @@ datatype reconstructor =
 
 datatype play =
   Played of reconstructor * Time.time |
-  Play_Timed_Out of reconstructor * Time.time option |
+  Play_Timed_Out of reconstructor * Time.time |
   Play_Failed of reconstructor
 
 type minimize_command = string list -> string

@@ -192,25 +192,21 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
                    i n state goal preplay0 facts =
   let
     val ctxt = Proof.context_of state
-    val prover =
-      get_prover ctxt (if silent then Auto_Minimize else Minimize) prover_name
+    val prover = get_prover ctxt (if silent then Auto_Minimize else Minimize) prover_name
     fun test timeout = test_facts params silent prover timeout i n state goal
     val (chained, non_chained) = List.partition is_fact_chained facts
     (* Push chained facts to the back, so that they are less likely to be
        kicked out by the linear minimization algorithm. *)
     val facts = non_chained @ chained
   in
-    (print silent (fn () => "Sledgehammer minimizer: " ^
-                            quote prover_name ^ ".");
+    (print silent (fn () => "Sledgehammer minimizer: " ^ quote prover_name ^ ".");
      case test timeout facts of
        result as {outcome = NONE, used_facts, run_time, ...} =>
        let
          val facts = filter_used_facts true used_facts facts
          val min =
-           if length facts >= Config.get ctxt binary_min_facts then
-             binary_minimize
-           else
-             linear_minimize
+           if length facts >= Config.get ctxt binary_min_facts then binary_minimize
+           else linear_minimize
          val (min_facts, {preplay, message, message_tail, ...}) =
            min test (new_timeout timeout run_time) result facts
        in
@@ -221,10 +217,8 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
                | n => "\n(including " ^ string_of_int n ^ " chained)") ^ ".");
          (if learn then do_learn (maps snd min_facts) else ());
          (SOME min_facts,
-          (if is_some preplay0 andalso length min_facts = length facts then
-             the preplay0
-           else
-             preplay,
+          (if is_some preplay0 andalso length min_facts = length facts then the preplay0
+           else preplay,
            message, message_tail))
        end
      | {outcome = SOME TimedOut, preplay, ...} =>
@@ -236,10 +230,8 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
             string_of_int (10 + Time.toMilliseconds
                 (timeout |> the_default (seconds 60.0)) div 1000) ^
             "\").", ""))
-     | {preplay, message, ...} =>
-       (NONE, (preplay, prefix "Prover error: " o message, "")))
-    handle ERROR msg =>
-           (NONE, (Lazy.value (Play_Failed plain_metis), fn _ => "Error: " ^ msg, ""))
+     | {preplay, message, ...} => (NONE, (preplay, prefix "Prover error: " o message, "")))
+    handle ERROR msg => (NONE, (Lazy.value (Play_Failed plain_metis), fn _ => "Error: " ^ msg, ""))
   end
 
 fun adjust_reconstructor_params override_params

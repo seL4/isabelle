@@ -395,23 +395,21 @@ fun is_fact_chained ((_, (sc, _)), _) = sc = Chained
 fun filter_used_facts keep_chained used =
   filter ((member (op =) used o fst) orf (if keep_chained then is_fact_chained else K false))
 
-fun play_one_line_proof mode debug verbose timeout pairs state i preferred
-                        reconstrs =
+fun play_one_line_proof mode debug verbose timeout pairs state i preferred reconstrs =
   let
     fun get_preferred reconstrs =
       if member (op =) reconstrs preferred then preferred
       else List.last reconstrs
   in
     if timeout = SOME Time.zeroTime then
-      Play_Timed_Out (get_preferred reconstrs, NONE)
+      Play_Timed_Out (get_preferred reconstrs, Time.zeroTime)
     else
       let
-        val _ =
-          if mode = Minimize then Output.urgent_message "Preplaying proof..."
-          else ()
+        val _ = if mode = Minimize then Output.urgent_message "Preplaying proof..." else ()
         val ths = pairs |> sort_wrt (fst o fst) |> map snd
         fun play [] [] = Play_Failed (get_preferred reconstrs)
-          | play timed_outs [] = Play_Timed_Out (get_preferred timed_outs, timeout)
+          | play timed_outs [] =
+            Play_Timed_Out (get_preferred timed_outs, timeout |> the_default Time.zeroTime (* wrong *))
           | play timed_out (reconstr :: reconstrs) =
             let
               val _ =
