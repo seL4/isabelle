@@ -108,6 +108,7 @@ fun make_tfree ctxt w =
     TFree (ww, the_default HOLogic.typeS (Variable.def_sort ctxt (ww, ~1)))
   end
 
+exception ATP_TYPE of string atp_type list
 exception ATP_TERM of (string, string atp_type) atp_term list
 exception ATP_FORMULA of
   (string, string, (string, string atp_type) atp_term, string) atp_formula list
@@ -115,13 +116,13 @@ exception SAME of unit
 
 (* Type variables are given the basic sort "HOL.type". Some will later be constrained by information
    from type literals, or by type inference. *)
-fun typ_of_atp ctxt (u as ATerm ((a, _), us)) =
-  let val Ts = map (typ_of_atp ctxt) us in
+fun typ_of_atp_type ctxt (ty as AType (a, tys)) =
+  let val Ts = map (typ_of_atp_type ctxt) tys in
     (case unprefix_and_unascii type_const_prefix a of
       SOME b => Type (invert_const b, Ts)
     | NONE =>
-      if not (null us) then
-        raise ATP_TERM [u] (* only "tconst"s have type arguments *)
+      if not (null tys) then
+        raise ATP_TYPE [ty] (* only "tconst"s have type arguments *)
       else
         (case unprefix_and_unascii tfree_prefix a of
           SOME b => make_tfree ctxt b
@@ -129,13 +130,16 @@ fun typ_of_atp ctxt (u as ATerm ((a, _), us)) =
           (* The term could be an Isabelle variable or a variable from the ATP, say "X1" or "_5018".
              Sometimes variables from the ATP are indistinguishable from Isabelle variables, which
              forces us to use a type parameter in all cases. *)
-          (a |> perhaps (unprefix_and_unascii tvar_prefix), HOLogic.typeS)
-          |> Type_Infer.param 0))
+          Type_Infer.param 0 (a |> perhaps (unprefix_and_unascii tvar_prefix), HOLogic.typeS)))
   end
+
+fun atp_type_of_atp_term (ATerm ((s, _), us)) = AType (s, map atp_type_of_atp_term us)
+
+fun typ_of_atp_term ctxt = typ_of_atp_type ctxt o atp_type_of_atp_term
 
 (* Type class literal applied to a type. Returns triple of polarity, class, type. *)
 fun type_constraint_of_term ctxt (u as ATerm ((a, _), us)) =
-  (case (unprefix_and_unascii class_prefix a, map (typ_of_atp ctxt) us) of
+  (case (unprefix_and_unascii class_prefix a, map (typ_of_atp_term ctxt) us) of
     (SOME b, [T]) => (b, T)
   | _ => raise ATP_TERM [u])
 
@@ -190,7 +194,7 @@ fun term_of_atp ctxt textual sym_tab =
     val var_index = if textual then 0 else 1
     fun do_term extra_ts opt_T u =
       (case u of
-        ATerm ((s, _), us) =>
+        ATerm ((s, tys), us) =>
         if s = ""
           then error "Isar proof reconstruction failed because the ATP proof \
                      \contains unparsable material."
@@ -207,13 +211,10 @@ fun term_of_atp ctxt textual sym_tab =
         else
           (case unprefix_and_unascii const_prefix s of
             SOME s' =>
-            let
-              val ((s', s''), mangled_us) =
-                s' |> unmangled_const |>> `invert_const
-            in
+            let val ((s', s''), mangled_us) = s' |> unmangled_const |>> `invert_const in
               if s' = type_tag_name then
                 (case mangled_us @ us of
-                  [typ_u, term_u] => do_term extra_ts (SOME (typ_of_atp ctxt typ_u)) term_u
+                  [typ_u, term_u] => do_term extra_ts (SOME (typ_of_atp_term ctxt typ_u)) term_u
                 | _ => raise ATP_TERM us)
               else if s' = predicator_name then
                 do_term [] (SOME @{typ bool}) (hd us)
@@ -230,22 +231,19 @@ fun term_of_atp ctxt textual sym_tab =
               else
                 let
                   val new_skolem = String.isPrefix new_skolem_const_prefix s''
-                  val num_ty_args =
-                    length us - the_default 0 (Symtab.lookup sym_tab s)
-                  val (type_us, term_us) =
-                    chop num_ty_args us |>> append mangled_us
+                  val num_ty_args = length us - the_default 0 (Symtab.lookup sym_tab s)
+                  val (type_us, term_us) = chop num_ty_args us |>> append mangled_us
                   val term_ts = map (do_term [] NONE) term_us
+
+                  val Ts = map (typ_of_atp_type ctxt) tys @ map (typ_of_atp_term ctxt) type_us
                   val T =
-                    (if not (null type_us) andalso
-                        robust_const_num_type_args thy s' = length type_us then
-                       let val Ts = type_us |> map (typ_of_atp ctxt) in
-                         if new_skolem then
-                           SOME (Type_Infer.paramify_vars (tl Ts ---> hd Ts))
-                         else if textual then
-                           try (Sign.const_instance thy) (s', Ts)
-                         else
-                           NONE
-                       end
+                    (if not (null Ts) andalso robust_const_num_type_args thy s' = length Ts then
+                       if new_skolem then
+                         SOME (Type_Infer.paramify_vars (tl Ts ---> hd Ts))
+                       else if textual then
+                         try (Sign.const_instance thy) (s', Ts)
+                       else
+                         NONE
                      else
                        NONE)
                     |> (fn SOME T => T
@@ -377,8 +375,7 @@ fun is_axiom_used_in_proof pred =
 
 fun add_non_rec_defs fact_names accum =
   Vector.foldl (fn (facts, facts') =>
-      union (op =) (filter (fn (_, (_, status)) => status = Non_Rec_Def) facts)
-            facts')
+      union (op =) (filter (fn (_, (_, status)) => status = Non_Rec_Def) facts) facts')
     accum fact_names
 
 val isa_ext = Thm.get_name_hint @{thm ext}
@@ -501,6 +498,7 @@ fun termify_line ctxt lifted sym_tab (name, role, u, rule, deps) =
     val thy = Proof_Context.theory_of ctxt
     val t = u
       |> prop_of_atp ctxt true sym_tab
+|> tap (fn t => tracing ("termify_line: " ^ Syntax.string_of_term ctxt t)) (*###*)
       |> uncombine_term thy
       |> unlift_term lifted
       |> infer_formula_types ctxt

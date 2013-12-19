@@ -727,22 +727,16 @@ fun run_atp mode name
                       handle UNRECOGNIZED_ATP_PROOF () => ([], SOME ProofIncomplete)))
               handle TimeLimit.TimeOut => (("", slice_timeout), ([], SOME TimedOut))
             val outcome =
-              case outcome of
+              (case outcome of
                 NONE =>
                 (case used_facts_in_unsound_atp_proof ctxt fact_names atp_proof
                       |> Option.map (sort string_ord) of
                    SOME facts =>
-                   let
-                     val failure =
-                       UnsoundProof (is_type_enc_sound type_enc, facts)
-                   in
-                     if debug then
-                       (warning (string_of_atp_failure failure); NONE)
-                     else
-                       SOME failure
+                   let val failure = UnsoundProof (is_type_enc_sound type_enc, facts) in
+                     if debug then (warning (string_of_atp_failure failure); NONE) else SOME failure
                    end
                  | NONE => NONE)
-              | _ => outcome
+              | _ => outcome)
           in
             ((SOME key, value), (output, run_time, facts, atp_proof, outcome))
           end
@@ -756,10 +750,8 @@ fun run_atp mode name
                 result
               else
                 run_slice time_left cache slice
-                |> (fn (cache, (output, run_time, used_from, atp_proof,
-                                outcome)) =>
-                       (cache, (output, Time.+ (run_time0, run_time), used_from,
-                                atp_proof, outcome)))
+                |> (fn (cache, (output, run_time, used_from, atp_proof, outcome)) =>
+                  (cache, (output, Time.+ (run_time0, run_time), used_from, atp_proof, outcome)))
             end
           | maybe_run_slice _ result = result
       in
@@ -790,10 +782,8 @@ fun run_atp mode name
           val used_facts = used_facts_in_atp_proof ctxt fact_names atp_proof
           val needs_full_types = is_typed_helper_used_in_atp_proof atp_proof
           val reconstrs =
-            bunch_of_reconstructors needs_full_types
-                (lam_trans_of_atp_proof atp_proof
-                 o (fn desperate => if desperate then hide_lamsN
-                                    else default_metis_lam_trans))
+            bunch_of_reconstructors needs_full_types (lam_trans_of_atp_proof atp_proof
+              o (fn desperate => if desperate then hide_lamsN else default_metis_lam_trans))
         in
           (used_facts,
            Lazy.lazy (fn () =>
