@@ -464,7 +464,7 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
     fun failed failure =
       ({outcome = SOME failure, used_facts = [], used_from = [],
         run_time = Time.zeroTime,
-        preplay = Lazy.value (Sledgehammer_Reconstructor.Failed_to_Play
+        preplay = Lazy.value (Sledgehammer_Reconstructor.Play_Failed
           Sledgehammer_Provers.plain_metis),
         message = K "", message_tail = ""}, ~1)
     val ({outcome, used_facts, run_time, preplay, message, message_tail, ...}

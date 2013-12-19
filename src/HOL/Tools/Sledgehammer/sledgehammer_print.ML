@@ -88,12 +88,12 @@ fun one_line_proof_text num_chained
     val (failed, reconstr, ext_time) =
       case preplay of
         Played (reconstr, time) => (false, reconstr, (SOME (false, time)))
-      | Trust_Playable (reconstr, time) =>
+      | Play_Timed_Out (reconstr, time) =>
         (false, reconstr,
          (case time of
            NONE => NONE
          | SOME time => if time = Time.zeroTime then NONE else SOME (true, time)))
-      | Failed_to_Play reconstr => (true, reconstr, NONE)
+      | Play_Failed reconstr => (true, reconstr, NONE)
     val try_line =
       ([], map fst extra)
       |> reconstructor_command reconstr subgoal subgoal_count (map fst chained) num_chained

@@ -1,6 +1,6 @@
 (*  Title:      HOL/Tools/Sledgehammer/sledgehammer_compress.ML
-    Author:     Jasmin Blanchette, TU Muenchen
     Author:     Steffen Juilf Smolka, TU Muenchen
+    Author:     Jasmin Blanchette, TU Muenchen
 
 Compression of isar proofs by merging steps.
 Only proof steps using the same proof method are merged.
@@ -170,13 +170,13 @@ fun compress_proof isar_compress
           | _ => raise Fail "Sledgehammer_Compress: elim_subproofs'")
 
       fun elim_subproofs (step as Let _) = step
-        | elim_subproofs
-          (step as Prove (qs, fix, l, t, subproofs, ((lfs, gfs), meth))) =
-            if subproofs = [] then step else
-              case get_preplay_time l of
-                (true, _) => step (* timeout or fail *)
-              | (false, time) =>
-                  elim_subproofs' time qs fix l t lfs gfs meth subproofs []
+        | elim_subproofs (step as Prove (qs, fix, l, t, subproofs, ((lfs, gfs), meth))) =
+          if subproofs = [] then
+            step
+          else
+            (case get_preplay_time l of
+              (true, _) => step (* timeout or fail *)
+            | (false, time) => elim_subproofs' time qs fix l t lfs gfs meth subproofs [])
 
       (** top_level compression: eliminate steps by merging them into their
           successors **)
@@ -229,8 +229,7 @@ fun compress_proof isar_compress
               val succs = collect_successors steps' succ_lbls
               val succs' = map (try_merge cand #> the) succs
 
-              (* TODO: should be lazy: stop preplaying as soon as one step
-                 fails/times out *)
+              (* TODO: should be lazy: stop preplaying as soon as one step fails/times out *)
               val preplay_times = map2 preplay_quietly timeouts succs'
 
               (* ensure none of the modified successors timed out *)
@@ -243,8 +242,7 @@ fun compress_proof isar_compress
               decrement_step_count (); (* candidate successfully eliminated *)
               map2 set_preplay_time succ_lbls preplay_times;
               map (replace_successor l succ_lbls) lfs;
-              (* removing the step would mess up the indices
-                 -> replace with dummy step instead *)
+              (* removing the step would mess up the indices -> replace with dummy step instead *)
               steps1 @ dummy_isar_step :: steps2
             end
             handle Bind => steps

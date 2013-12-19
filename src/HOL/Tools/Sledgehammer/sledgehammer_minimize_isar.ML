@@ -28,8 +28,7 @@ fun min_deps_of_step (_ : preplay_interface) (step as Let _) = step
   | min_deps_of_step {get_preplay_time, set_preplay_time, preplay_quietly, ...}
       (step as Prove (qs, xs, l, t, subproofs, ((lfs, gfs), meth))) =
     (case get_preplay_time l of
-      (* don't touch steps that time out or fail; minimizing won't help (not true -- FIXME) *)
-      (true, _) => step
+      (true, _) => step (* don't touch steps that time out or fail *)
     | (false, time) =>
       let
         fun mk_step_lfs_gfs lfs gfs = Prove (qs, xs, l, t, subproofs, ((lfs, gfs), meth))
@@ -69,12 +68,12 @@ fun postprocess_remove_unreferenced_steps postproc_step =
       (case label_of_step step of
         NONE => (refed, step :: accu)
       | SOME l =>
-          if Ord_List.member label_ord refed l then
-            do_refed_step step
-            |>> Ord_List.union label_ord refed
-            ||> (fn x => x :: accu)
-          else
-            (refed, accu))
+        if Ord_List.member label_ord refed l then
+          do_refed_step step
+          |>> Ord_List.union label_ord refed
+          ||> (fn x => x :: accu)
+        else
+          (refed, accu))
     and do_refed_step step = step |> postproc_step |> do_refed_step'
     and do_refed_step' (Let _) = raise Fail "Sledgehammer_Minimize_Isar"
       | do_refed_step' (Prove (qs, xs, l, t, subproofs, ((lfs, gfs), m))) =

@@ -132,9 +132,10 @@ fun preplay_raw _ _ _ _ _ (Let _) = zero_preplay_time
           (* proof obligation: !!thesis. (!!x. A x ==> thesis) ==> thesis
              (cf. "~~/src/Pure/Isar/obtain.ML") *)
           let
-            val thesis = Term.Free ("thesis", HOLogic.boolT)
+            (* FIXME: generate fresh name *)
+            val thesis = Free ("thesis", HOLogic.boolT)
             val thesis_prop = thesis |> HOLogic.mk_Trueprop
-            val frees = map Term.Free xs
+            val frees = map Free xs
 
             (* !!x1..xn. t ==> thesis (xs = [x1, .., xn]) *)
             val inner_prop = fold_rev Logic.all frees (Logic.mk_implies (t, thesis_prop))

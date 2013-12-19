@@ -239,8 +239,7 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
      | {preplay, message, ...} =>
        (NONE, (preplay, prefix "Prover error: " o message, "")))
     handle ERROR msg =>
-           (NONE, (Lazy.value (Failed_to_Play plain_metis),
-            fn _ => "Error: " ^ msg, ""))
+           (NONE, (Lazy.value (Play_Failed plain_metis), fn _ => "Error: " ^ msg, ""))
   end
 
 fun adjust_reconstructor_params override_params

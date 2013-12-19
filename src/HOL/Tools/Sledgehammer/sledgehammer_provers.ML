@@ -403,16 +403,15 @@ fun play_one_line_proof mode debug verbose timeout pairs state i preferred
       else List.last reconstrs
   in
     if timeout = SOME Time.zeroTime then
-      Trust_Playable (get_preferred reconstrs, NONE)
+      Play_Timed_Out (get_preferred reconstrs, NONE)
     else
       let
         val _ =
           if mode = Minimize then Output.urgent_message "Preplaying proof..."
           else ()
         val ths = pairs |> sort_wrt (fst o fst) |> map snd
-        fun play [] [] = Failed_to_Play (get_preferred reconstrs)
-          | play timed_outs [] =
-            Trust_Playable (get_preferred timed_outs, timeout)
+        fun play [] [] = Play_Failed (get_preferred reconstrs)
+          | play timed_outs [] = Play_Timed_Out (get_preferred timed_outs, timeout)
           | play timed_out (reconstr :: reconstrs) =
             let
               val _ =
@@ -861,8 +860,7 @@ fun run_atp mode name
               ""))
         end
       | SOME failure =>
-        ([], Lazy.value (Failed_to_Play plain_metis),
-         fn _ => string_of_atp_failure failure, "")
+        ([], Lazy.value (Play_Failed plain_metis), fn _ => string_of_atp_failure failure, "")
   in
     {outcome = outcome, used_facts = used_facts, used_from = used_from,
      run_time = run_time, preplay = preplay, message = message,
@@ -1063,7 +1061,7 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
          else
            "")
       | SOME failure =>
-        (Lazy.value (Failed_to_Play plain_metis),
+        (Lazy.value (Play_Failed plain_metis),
          fn _ => string_of_atp_failure failure, "")
   in
     {outcome = outcome, used_facts = used_facts, used_from = used_from,
@@ -1108,7 +1106,7 @@ fun run_reconstructor mode name
        message_tail = ""}
     | play =>
       let
-        val failure = case play of Failed_to_Play _ => GaveUp | _ => TimedOut
+        val failure = case play of Play_Failed _ => GaveUp | _ => TimedOut
       in
         {outcome = SOME failure, used_facts = [], used_from = [],
          run_time = Time.zeroTime, preplay = Lazy.value play,
