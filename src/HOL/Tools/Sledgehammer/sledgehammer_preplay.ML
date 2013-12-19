@@ -42,7 +42,7 @@ val trace = Attrib.setup_config_bool @{binding sledgehammer_preplay_trace} (K fa
 
 datatype preplay_result =
   Preplay_Success of bool * Time.time |
-  Preplay_Failure of exn
+  Preplay_Failure
 
 val zero_preplay_time = (false, Time.zeroTime) (* 0 ms *)
 val some_preplay_time = (true, Time.zeroTime)  (* > 0 ms *)
@@ -214,18 +214,19 @@ fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay preplay_tim
         handle exn =>
                if Exn.is_interrupt exn then
                  reraise exn
-               else if not quietly andalso debug then
-                 (warning ("Preplay failure:\n  " ^ @{make_string} step ^ "\n  " ^
-                    @{make_string} exn);
-                  Preplay_Failure exn)
                else
-                 Preplay_Failure exn
+                (if not quietly andalso debug then
+                   warning ("Preplay failure:\n  " ^ @{make_string} step ^ "\n  " ^
+                     @{make_string} exn)
+                 else
+                   ();
+                 Preplay_Failure)
 
       (* preplay steps treating exceptions like timeouts *)
       fun preplay_quietly timeout step =
         (case preplay true timeout step of
           Preplay_Success preplay_time => preplay_time
-        | Preplay_Failure _ => (true, timeout))
+        | Preplay_Failure => (true, timeout))
 
       val preplay_tab =
         let
@@ -252,7 +253,7 @@ fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay preplay_tim
       fun get_preplay_time l =
         (case get_preplay_result l of
           Preplay_Success preplay_time => preplay_time
-        | Preplay_Failure _ => some_preplay_time)
+        | Preplay_Failure => some_preplay_time)
 
       fun set_preplay_time l = set_preplay_result l o Preplay_Success
 
@@ -263,7 +264,7 @@ fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay preplay_tim
       fun do_step step =
         (case result_of_step step of
           Preplay_Success preplay_time => apfst (add_preplay_time preplay_time)
-        | Preplay_Failure _ => apsnd (K true))
+        | Preplay_Failure => apsnd (K true))
 
       fun overall_preplay_stats (Proof (_, _, steps)) =
         fold_isar_steps do_step steps (zero_preplay_time, false)
