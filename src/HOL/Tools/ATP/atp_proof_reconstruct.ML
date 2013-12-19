@@ -498,7 +498,6 @@ fun termify_line ctxt lifted sym_tab (name, role, u, rule, deps) =
     val thy = Proof_Context.theory_of ctxt
     val t = u
       |> prop_of_atp ctxt true sym_tab
-|> tap (fn t => tracing ("termify_line: " ^ Syntax.string_of_term ctxt t)) (*###*)
       |> uncombine_term thy
       |> unlift_term lifted
       |> infer_formula_types ctxt
