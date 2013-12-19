@@ -88,8 +88,8 @@ fun one_line_proof_text num_chained
     val (failed, reconstr, ext_time) =
       (case preplay of
         Played (reconstr, time) => (false, reconstr, (SOME (false, time)))
-      | Play_Timed_Out (reconstr, time) =>
-        (false, reconstr, if time = Time.zeroTime then NONE else SOME (true, time))
+      | Not_Played reconstr => (false, reconstr, NONE)
+      | Play_Timed_Out (reconstr, time) => (false, reconstr, SOME (true, time))
       | Play_Failed reconstr => (true, reconstr, NONE))
     val try_line =
       ([], map fst extra)

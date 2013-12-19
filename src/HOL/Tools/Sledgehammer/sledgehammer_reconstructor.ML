@@ -15,6 +15,7 @@ sig
 
   datatype play =
     Played of reconstructor * Time.time |
+    Not_Played of reconstructor |
     Play_Timed_Out of reconstructor * Time.time |
     Play_Failed of reconstructor
 
@@ -35,6 +36,7 @@ datatype reconstructor =
 
 datatype play =
   Played of reconstructor * Time.time |
+  Not_Played of reconstructor |
   Play_Timed_Out of reconstructor * Time.time |
   Play_Failed of reconstructor
 

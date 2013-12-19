@@ -405,7 +405,8 @@ fun isar_proof_text ctxt isar_proofs
 fun isar_proof_would_be_a_good_idea preplay =
   (case preplay of
     Played (reconstr, _) => reconstr = SMT
-  | Play_Timed_Out _ => false
+  | Not_Played _ => false
+  | Play_Timed_Out _ => true
   | Play_Failed _ => true)
 
 fun proof_text ctxt isar_proofs isar_params num_chained

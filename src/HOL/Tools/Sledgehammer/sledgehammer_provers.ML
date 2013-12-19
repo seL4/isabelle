@@ -404,7 +404,7 @@ fun play_one_line_proof mode debug verbose timeout pairs state i preferred recon
       else List.last reconstrs
   in
     if timeout = Time.zeroTime then
-      Play_Timed_Out (get_preferred reconstrs, Time.zeroTime)
+      Not_Played (get_preferred reconstrs)
     else
       let
         val _ = if mode = Minimize then Output.urgent_message "Preplaying proof..." else ()
