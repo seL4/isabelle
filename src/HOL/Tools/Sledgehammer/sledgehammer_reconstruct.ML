@@ -212,7 +212,9 @@ fun isar_proof_text ctxt isar_proofs
       |> map (fn (s, T) => (Binding.name s, SOME T, NoSyn))
       |> (fn fixes => ctxt |> Variable.set_body false |> Proof_Context.add_fixes fixes)
     val one_line_proof = one_line_proof_text 0 one_line_params
+
     val do_preplay = preplay_timeout <> Time.zeroTime
+    val isar_try0 = isar_try0 andalso do_preplay
 
     val is_fixed = Variable.is_declared ctxt orf can Name.dest_skolem
     fun skolems_of t = Term.add_frees t [] |> filter_out (is_fixed o fst) |> rev
@@ -355,7 +357,7 @@ fun isar_proof_text ctxt isar_proofs
           |> `(proof_preplay_interface debug ctxt metis_type_enc metis_lam_trans do_preplay
                preplay_timeout)
 
-        val (preplay_result, isar_proof) =
+        val (play_outcome, isar_proof) =
           isar_proof
           |> compress_proof (if isar_proofs = SOME true then isar_compress else 1000.0)
                preplay_interface
@@ -377,17 +379,12 @@ fun isar_proof_text ctxt isar_proofs
           let
             val msg =
               (if verbose then
-                let
-                  val num_steps = add_proof_steps (steps_of_proof isar_proof) 0
-                in [string_of_int num_steps ^ " step" ^ plural_s num_steps] end
+                let val num_steps = add_proof_steps (steps_of_proof isar_proof) 0 in
+                  [string_of_int num_steps ^ " step" ^ plural_s num_steps]
+                end
                else
                  []) @
-              (if do_preplay then
-                [(case preplay_result of
-                   Preplay_Success ext_time => string_of_ext_time ext_time
-                 | Preplay_Failure => "may fail")]
-               else
-                 [])
+              (if do_preplay then [string_of_play_outcome play_outcome] else [])
           in
             "\n\nStructured proof" ^ (commas msg |> not (null msg) ? enclose " (" ")") ^ ":\n" ^
             Active.sendback_markup [Markup.padding_command] isar_text

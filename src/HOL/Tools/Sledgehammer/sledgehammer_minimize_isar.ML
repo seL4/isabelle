@@ -19,16 +19,17 @@ structure Sledgehammer_Minimize_Isar : SLEDGEHAMMER_MINIMIZE_ISAR =
 struct
 
 open Sledgehammer_Util
+open Sledgehammer_Reconstructor
 open Sledgehammer_Proof
 open Sledgehammer_Preplay
 
 val slack = seconds 0.1
 
 fun min_deps_of_step (_ : preplay_interface) (step as Let _) = step
-  | min_deps_of_step {get_preplay_result, set_preplay_result, preplay_quietly, ...}
+  | min_deps_of_step {get_preplay_outcome, set_preplay_outcome, preplay_quietly, ...}
       (step as Prove (qs, xs, l, t, subproofs, ((lfs, gfs), meth))) =
-    (case get_preplay_result l of
-      Preplay_Success (false, time) =>
+    (case get_preplay_outcome l of
+      Played time =>
       let
         fun mk_step_lfs_gfs lfs gfs = Prove (qs, xs, l, t, subproofs, ((lfs, gfs), meth))
         val mk_step_gfs_lfs = curry (swap #> uncurry mk_step_lfs_gfs)
@@ -36,13 +37,13 @@ fun min_deps_of_step (_ : preplay_interface) (step as Let _) = step
         fun minimize_facts _ time min_facts [] = (time, min_facts)
           | minimize_facts mk_step time min_facts (f :: facts) =
             (case preplay_quietly (Time.+ (time, slack)) (mk_step (min_facts @ facts)) of
-              Preplay_Success (false, time) => minimize_facts mk_step time min_facts facts
+              Played time => minimize_facts mk_step time min_facts facts
             | _ => minimize_facts mk_step time (f :: min_facts) facts)
 
         val (time, min_lfs) = minimize_facts (mk_step_gfs_lfs gfs) time [] lfs
         val (time, min_gfs) = minimize_facts (mk_step_lfs_gfs min_lfs) time [] gfs
       in
-        set_preplay_result l (Preplay_Success (false, time)); mk_step_lfs_gfs min_lfs min_gfs
+        set_preplay_outcome l (Played time); mk_step_lfs_gfs min_lfs min_gfs
       end
     | _ => step (* don't touch steps that time out or fail *))
 

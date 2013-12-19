@@ -18,6 +18,7 @@ structure Sledgehammer_Compress : SLEDGEHAMMER_COMPRESS =
 struct
 
 open Sledgehammer_Util
+open Sledgehammer_Reconstructor
 open Sledgehammer_Proof
 open Sledgehammer_Preplay
 
@@ -93,7 +94,7 @@ val merge_timeout_slack = 1.2
 (* Precondition: The proof must be labeled canonically
    (cf. "Slegehammer_Proof.relabel_proof_canonically"). *)
 fun compress_proof isar_compress
-    ({get_preplay_result, set_preplay_result, preplay_quietly, ...} : preplay_interface) proof =
+    ({get_preplay_outcome, set_preplay_outcome, preplay_quietly, ...} : preplay_interface) proof =
   if isar_compress <= 1.0 then
     proof
   else
@@ -135,7 +136,7 @@ fun compress_proof isar_compress
 
       fun elim_subproofs' time qs fix l t lfs gfs meth subs nontriv_subs =
         if null subs orelse not (compress_further ()) then
-          (set_preplay_result l (Preplay_Success (false, time));
+          (set_preplay_outcome l (Played time);
            Prove (qs, fix, l, t, List.revAppend (nontriv_subs, subs), ((lfs, gfs), meth)))
         else
           (case subs of
@@ -145,7 +146,7 @@ fun compress_proof isar_compress
               val SOME (Prove (_, [], l', _, [], ((lfs', gfs'), _))) = try the_single sub_steps
 
               (* only touch proofs that can be preplayed sucessfully *)
-              val Preplay_Success (false, time') = get_preplay_result l'
+              val Played time' = get_preplay_outcome l'
 
               (* merge steps *)
               val subs'' = subs @ nontriv_subs
@@ -158,7 +159,7 @@ fun compress_proof isar_compress
 
               (* check if the modified step can be preplayed fast enough *)
               val timeout = time_mult merge_timeout_slack (Time.+(time, time'))
-              val Preplay_Success (false, time'') = preplay_quietly timeout step''
+              val Played time'' = preplay_quietly timeout step''
 
             in
               decrement_step_count (); (* l' successfully eliminated! *)
@@ -174,9 +175,8 @@ fun compress_proof isar_compress
           if subproofs = [] then
             step
           else
-            (case get_preplay_result l of
-              Preplay_Success (false, time) =>
-              elim_subproofs' time qs fix l t lfs gfs meth subproofs []
+            (case get_preplay_outcome l of
+              Played time => elim_subproofs' time qs fix l t lfs gfs meth subproofs []
             | _ => step)
 
       (** top_level compression: eliminate steps by merging them into their
@@ -211,10 +211,10 @@ fun compress_proof isar_compress
           fun try_eliminate (i, l, _) succ_lbls steps =
             let
               (* only touch steps that can be preplayed successfully *)
-              val Preplay_Success (false, time) = get_preplay_result l
+              val Played time = get_preplay_outcome l
 
               val succ_times =
-                map (get_preplay_result #> (fn Preplay_Success (false, t) => t)) succ_lbls
+                map (get_preplay_outcome #> (fn Played t => t)) succ_lbls
               val timeslice = time_mult (1.0 / (Real.fromInt (length succ_lbls))) time
               val timeouts =
                 map (curry Time.+ timeslice #> time_mult merge_timeout_slack) succ_times
@@ -232,17 +232,17 @@ fun compress_proof isar_compress
               val succs' = map (try_merge cand #> the) succs
 
               (* TODO: should be lazy: stop preplaying as soon as one step fails/times out *)
-              val preplay_results = map2 preplay_quietly timeouts succs'
+              val play_outcomes = map2 preplay_quietly timeouts succs'
 
               (* ensure none of the modified successors timed out *)
-              val true = List.all (fn Preplay_Success _ => true) preplay_results
+              val true = List.all (fn Played _ => true) play_outcomes
 
               val (steps1, _ :: steps2) = chop i steps
               (* replace successors with their modified versions *)
               val steps2 = update_steps steps2 succs'
             in
               decrement_step_count (); (* candidate successfully eliminated *)
-              map2 set_preplay_result succ_lbls preplay_results;
+              map2 set_preplay_outcome succ_lbls play_outcomes;
               map (replace_successor l succ_lbls) lfs;
               (* removing the step would mess up the indices -> replace with dummy step instead *)
               steps1 @ dummy_isar_step :: steps2

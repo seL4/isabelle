@@ -19,6 +19,8 @@ sig
     Play_Failed |
     Not_Played
 
+  val string_of_play_outcome: play_outcome -> string
+
   type minimize_command = string list -> string
   type one_line_params =
     (reconstructor * play_outcome) * string * (string * stature) list * minimize_command * int * int
@@ -29,6 +31,7 @@ end;
 structure Sledgehammer_Reconstructor : SLEDGEHAMMER_RECONSTRUCTOR =
 struct
 
+open ATP_Util
 open ATP_Problem_Generate
 
 datatype reconstructor =
@@ -40,6 +43,11 @@ datatype play_outcome =
   Play_Timed_Out of Time.time |
   Play_Failed |
   Not_Played
+
+fun string_of_play_outcome (Played time) = string_of_ext_time (false, time)
+  | string_of_play_outcome (Play_Timed_Out time) = string_of_ext_time (true, time) ^ ", timed out"
+  | string_of_play_outcome Play_Failed = "failed"
+  | string_of_play_outcome _ = "unknown"
 
 type minimize_command = string list -> string
 type one_line_params =

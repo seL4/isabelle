@@ -18,6 +18,7 @@ structure Sledgehammer_Try0 : SLEDGEHAMMER_TRY0 =
 struct
 
 open Sledgehammer_Util
+open Sledgehammer_Reconstructor
 open Sledgehammer_Proof
 open Sledgehammer_Preplay
 
@@ -29,21 +30,21 @@ val slack = seconds 0.05
 
 fun try0_step _ _ (step as Let _) = step
   | try0_step preplay_timeout
-      ({get_preplay_result, set_preplay_result, preplay_quietly, ...} : preplay_interface)
+      ({get_preplay_outcome, set_preplay_outcome, preplay_quietly, ...} : preplay_interface)
       (step as Prove (_, _, l, _, _, _)) =
     let
       val timeout =
-        (case get_preplay_result l of
-          Preplay_Success (false, t) => Time.+ (t, slack)
+        (case get_preplay_outcome l of
+          Played time => Time.+ (time, slack)
         | _ => preplay_timeout)
 
       fun try_variant variant =
         (case preplay_quietly timeout variant of
-          result as Preplay_Success _ => SOME (variant, result)
+          result as Played _ => SOME (variant, result)
         | _ => NONE)
     in
       (case Par_List.get_some try_variant (variants_of_step step) of
-        SOME (step', result) => (set_preplay_result l result; step')
+        SOME (step', result) => (set_preplay_outcome l result; step')
       | NONE => step)
     end
 

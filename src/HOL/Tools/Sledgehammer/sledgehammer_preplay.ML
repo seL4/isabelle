@@ -7,21 +7,18 @@ Preplaying of Isar proofs.
 
 signature SLEDGEHAMMER_PREPLAY =
 sig
+  type play_outcome = Sledgehammer_Reconstructor.play_outcome
   type isar_proof = Sledgehammer_Proof.isar_proof
   type isar_step = Sledgehammer_Proof.isar_step
   type label = Sledgehammer_Proof.label
 
-  datatype preplay_result =
-    Preplay_Success of bool * Time.time |
-    Preplay_Failure
-
   val trace: bool Config.T
 
   type preplay_interface =
-    {get_preplay_result: label -> preplay_result,
-     set_preplay_result: label -> preplay_result -> unit,
-     preplay_quietly: Time.time -> isar_step -> preplay_result,
-     overall_preplay_stats: isar_proof -> preplay_result}
+    {get_preplay_outcome: label -> play_outcome,
+     set_preplay_outcome: label -> play_outcome -> unit,
+     preplay_quietly: Time.time -> isar_step -> play_outcome,
+     overall_preplay_stats: isar_proof -> play_outcome}
 
   val proof_preplay_interface: bool -> Proof.context -> string -> string -> bool -> Time.time ->
     isar_proof -> preplay_interface
@@ -32,20 +29,15 @@ struct
 
 open ATP_Util
 open Sledgehammer_Util
+open Sledgehammer_Reconstructor
 open Sledgehammer_Proof
 
 val trace = Attrib.setup_config_bool @{binding sledgehammer_preplay_trace} (K false)
 
-datatype preplay_result =
-  Preplay_Success of bool * Time.time |
-  Preplay_Failure
-
-val zero_preplay_time = (false, Time.zeroTime) (* 0 ms *)
-
-fun preplay_trace ctxt assms concl time =
+fun preplay_trace ctxt assms concl result =
   let
     val ctxt = ctxt |> Config.put show_markup true
-    val time = "[" ^ string_of_ext_time time ^ "]" |> Pretty.str
+    val time = "[" ^ string_of_play_outcome result ^ "]" |> Pretty.str
     val nr_of_assms = length assms
     val assms = assms
       |> map (Display.pretty_thm ctxt)
@@ -65,9 +57,8 @@ fun preplay_trace ctxt assms concl time =
 
 fun take_time timeout tac arg =
   let val timing = Timing.start () in
-    (TimeLimit.timeLimit timeout tac arg;
-     Timing.result timing |> #cpu |> pair false)
-    handle TimeLimit.TimeOut => (true, timeout)
+    (TimeLimit.timeLimit timeout tac arg; Played (#cpu (Timing.result timing)))
+    handle TimeLimit.TimeOut => Play_Timed_Out timeout
   end
 
 fun resolve_fact_names ctxt names =
@@ -114,7 +105,7 @@ fun tac_of_method meth type_enc lam_trans ctxt facts =
     | _ => raise Fail "Sledgehammer_Preplay: tac_of_method"))
 
 (* main function for preplaying Isar steps; may throw exceptions *)
-fun preplay_raw _ _ _ _ _ (Let _) = zero_preplay_time
+fun preplay_raw _ _ _ _ _ (Let _) = Played Time.zeroTime
   | preplay_raw debug type_enc lam_trans ctxt timeout
       (Prove (_, xs, _, t, subproofs, (fact_names, (meth :: _) :: _))) =
     let
@@ -147,20 +138,20 @@ fun preplay_raw _ _ _ _ _ (Let _) = zero_preplay_time
           HEADGOAL (tac_of_method meth type_enc lam_trans ctxt facts))
         handle ERROR msg => error ("Preplay error: " ^ msg)
 
-      val preplay_time = take_time timeout prove ()
+      val play_outcome = take_time timeout prove ()
     in
-      (if Config.get ctxt trace then preplay_trace ctxt facts goal preplay_time else ();
-       preplay_time)
+      (if Config.get ctxt trace then preplay_trace ctxt facts goal play_outcome else ();
+       play_outcome)
     end
 
 
 (*** proof preplay interface ***)
 
 type preplay_interface =
-  {get_preplay_result: label -> preplay_result,
-   set_preplay_result: label -> preplay_result -> unit,
-   preplay_quietly: Time.time -> isar_step -> preplay_result,
-   overall_preplay_stats: isar_proof -> preplay_result}
+  {get_preplay_outcome: label -> play_outcome,
+   set_preplay_outcome: label -> play_outcome -> unit,
+   preplay_quietly: Time.time -> isar_step -> play_outcome,
+   overall_preplay_stats: isar_proof -> play_outcome}
 
 fun enrich_context_with_local_facts proof ctxt =
   let
@@ -180,9 +171,12 @@ fun enrich_context_with_local_facts proof ctxt =
     enrich_with_proof proof ctxt
   end
 
-fun merge_preplay_results (Preplay_Success (b1, t1)) (Preplay_Success (b2, t2)) =
-    Preplay_Success (b1 orelse b2, Time.+ (t1, t2))
-  | merge_preplay_results _ _ = Preplay_Failure
+fun merge_preplay_outcomes _ Play_Failed = Play_Failed
+  | merge_preplay_outcomes Play_Failed _ = Play_Failed
+  | merge_preplay_outcomes (Play_Timed_Out t1) (Play_Timed_Out t2) = Play_Timed_Out (Time.+ (t1, t2))
+  | merge_preplay_outcomes (Played t1) (Play_Timed_Out t2) = Play_Timed_Out (Time.+ (t1, t2))
+  | merge_preplay_outcomes (Play_Timed_Out t1) (Played t2) = Play_Timed_Out (Time.+ (t1, t2))
+  | merge_preplay_outcomes (Played t1) (Played t2) = Played (Time.+ (t1, t2))
 
 (* Given a proof, produces an imperative preplay interface with a shared table mapping from labels
    to preplay results. The preplay results are caluclated lazyly and cached to avoid repeated
@@ -192,17 +186,17 @@ fun merge_preplay_results (Preplay_Success (b1, t1)) (Preplay_Success (b2, t2)) 
    "Slegehammer_Proof.relabel_proof_canonically". *)
 fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay preplay_timeout proof =
   if not do_preplay then
-    (* the dont_preplay option pretends that everything works just fine *)
-    {get_preplay_result = K (Preplay_Success zero_preplay_time),
-     set_preplay_result = K (K ()),
-     preplay_quietly = K (K (Preplay_Success zero_preplay_time)),
-     overall_preplay_stats = K (Preplay_Success zero_preplay_time)} : preplay_interface
+    (* the "dont_preplay" option pretends that everything works just fine *)
+    {get_preplay_outcome = K (Played Time.zeroTime),
+     set_preplay_outcome = K (K ()),
+     preplay_quietly = K (K (Played Time.zeroTime)),
+     overall_preplay_stats = K (Played Time.zeroTime)} : preplay_interface
   else
     let
       val ctxt = enrich_context_with_local_facts proof ctxt
 
       fun preplay quietly timeout step =
-        Preplay_Success (preplay_raw debug type_enc lam_trans ctxt timeout step)
+        preplay_raw debug type_enc lam_trans ctxt timeout step
         handle exn =>
                if Exn.is_interrupt exn then
                  reraise exn
@@ -212,7 +206,7 @@ fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay preplay_tim
                      @{make_string} exn)
                  else
                    ();
-                 Preplay_Failure)
+                 Play_Failed)
 
       (* preplay steps treating exceptions like timeouts *)
       fun preplay_quietly timeout = preplay true timeout
@@ -232,23 +226,22 @@ fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay preplay_tim
           |> Unsynchronized.ref
         end
 
-      fun get_preplay_result l =
+      fun get_preplay_outcome l =
         Canonical_Lbl_Tab.lookup (!preplay_tab) l |> the |> Lazy.force
         handle Option.Option => raise Fail "Sledgehammer_Preplay: preplay time table"
 
-      fun set_preplay_result l result =
+      fun set_preplay_outcome l result =
         preplay_tab := Canonical_Lbl_Tab.update (l, Lazy.value result) (!preplay_tab)
 
       val result_of_step =
-        try (label_of_step #> the #> get_preplay_result)
-        #> the_default (Preplay_Success zero_preplay_time)
+        try (label_of_step #> the #> get_preplay_outcome)
+        #> the_default (Played Time.zeroTime)
 
       fun overall_preplay_stats (Proof (_, _, steps)) =
-        Preplay_Success (false, Time.zeroTime)
-        |> fold_isar_steps (merge_preplay_results o result_of_step) steps
+        fold_isar_steps (merge_preplay_outcomes o result_of_step) steps (Played Time.zeroTime)
     in
-      {get_preplay_result = get_preplay_result,
-       set_preplay_result = set_preplay_result,
+      {get_preplay_outcome = get_preplay_outcome,
+       set_preplay_outcome = set_preplay_outcome,
        preplay_quietly = preplay_quietly,
        overall_preplay_stats = overall_preplay_stats}
     end

@@ -1027,9 +1027,8 @@ fun run_reconstructor mode name
         raise Fail ("unknown reconstructor: " ^ quote name)
     val used_facts = facts |> map fst
   in
-    (case play_one_line_proof (if mode = Minimize then Normal else mode) debug
-                             verbose timeout facts state subgoal reconstr
-                             [reconstr] of
+    (case play_one_line_proof (if mode = Minimize then Normal else mode) debug verbose timeout facts
+       state subgoal reconstr [reconstr] of
       play as (_, Played time) =>
       {outcome = NONE, used_facts = used_facts, used_from = facts, run_time = time,
        preplay = Lazy.value play,
