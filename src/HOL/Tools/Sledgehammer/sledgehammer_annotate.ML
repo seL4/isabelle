@@ -94,7 +94,6 @@ fun match_types ctxt t1 t2 =
 (* (3) handle trivial tfrees  *)
 fun handle_trivial_tfrees ctxt (t', subst) =
   let
-
     val add_tfree_names =
       snd #> snd #> fold_atyps (fn TFree (x, _) => cons x | _ => I)
 
@@ -134,8 +133,7 @@ fun handle_trivial_tfrees ctxt (t', subst) =
 
 (* (4) Typing-spot table *)
 local
-fun key_of_atype (TVar (z, _)) =
-    Ord_List.insert indexname_ord z
+fun key_of_atype (TVar (z, _)) = Ord_List.insert indexname_ord z
   | key_of_atype _ = I
 fun key_of_type T = fold_atyps key_of_atype T []
 fun update_tab t T (tab, pos) =
@@ -180,8 +178,7 @@ fun reverse_greedy typing_spot_tab =
 fun introduce_annotations subst spots t t' =
   let
     fun subst_atype (T as TVar (idxn, S)) subst =
-        (Envir.subst_type subst T,
-         Vartab.update (idxn, (S, dummyT)) subst)
+        (Envir.subst_type subst T, Vartab.update (idxn, (S, dummyT)) subst)
       | subst_atype T subst = (T, subst)
     val subst_type = fold_map_atypes subst_atype
     fun collect_annot _ T (subst, cp, ps as p :: ps', annots) =
@@ -195,8 +192,7 @@ fun introduce_annotations subst spots t t' =
     val (_, _, _, annots) =
       post_fold_term_type collect_annot (subst, 0, spots, []) t'
     fun insert_annot t _ (cp, annots as (p, T) :: annots') =
-        if p <> cp then (t, (cp + 1, annots))
-        else (Type.constraint T t, (cp + 1, annots'))
+        if p <> cp then (t, (cp + 1, annots)) else (Type.constraint T t, (cp + 1, annots'))
       | insert_annot t _ x = (t, x)
   in
     t |> post_traverse_term_type insert_annot (0, rev annots)

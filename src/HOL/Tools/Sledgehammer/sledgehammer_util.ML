@@ -142,8 +142,7 @@ val one_day = seconds (24.0 * 60.0 * 60.0)
 val one_year = seconds (365.0 * 24.0 * 60.0 * 60.0)
 
 fun with_vanilla_print_mode f x =
-  Print_Mode.setmp (filter (curry (op =) Symbol.xsymbolsN)
-                           (print_mode_value ())) f x
+  Print_Mode.setmp (filter (curry (op =) Symbol.xsymbolsN) (print_mode_value ())) f x
 
 fun hackish_string_of_term ctxt =
   with_vanilla_print_mode (Syntax.string_of_term ctxt) #> simplify_spaces

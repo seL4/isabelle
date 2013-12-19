@@ -87,8 +87,7 @@ val default_metis_lam_trans = combsN
 fun metis_call type_enc lam_trans =
   let
     val type_enc =
-      (case AList.find (fn (enc, encs) => enc = hd encs) type_enc_aliases
-                      type_enc of
+      (case AList.find (fn (enc, encs) => enc = hd encs) type_enc_aliases type_enc of
         [alias] => alias
       | _ => type_enc)
     val opts = [] |> type_enc <> partial_typesN ? cons type_enc
@@ -136,9 +135,8 @@ fun typ_of_atp_type ctxt (ty as AType ((a, clss), tys)) =
           (* The term could be an Isabelle variable or a variable from the ATP, say "X1" or "_5018".
              Sometimes variables from the ATP are indistinguishable from Isabelle variables, which
              forces us to use a type parameter in all cases. *)
-          Type_Infer.param 0 (a |> perhaps (unprefix_and_unascii tvar_prefix),
-            (if null clss then HOLogic.typeS
-             else map class_of_atp_class clss))))
+          Type_Infer.param 0 ("'" ^ perhaps (unprefix_and_unascii tvar_prefix) a,
+            (if null clss then HOLogic.typeS else map class_of_atp_class clss))))
   end
 
 fun atp_type_of_atp_term (ATerm ((s, _), us)) = AType ((s, []), map atp_type_of_atp_term us)

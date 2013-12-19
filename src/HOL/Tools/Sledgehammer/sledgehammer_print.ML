@@ -145,7 +145,7 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
     fun of_have qs nr =
       if nr > 1 orelse (nr = 1 andalso member (op =) qs Then) then
         "ultimately " ^ of_show_have qs
-      else if nr=1 orelse member (op =) qs Then then
+      else if nr = 1 orelse member (op =) qs Then then
         of_thus_hence qs
       else
         of_show_have qs
@@ -189,8 +189,7 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
 
     fun of_free (s, T) =
       maybe_quote s ^ " :: " ^
-      maybe_quote (simplify_spaces (with_vanilla_print_mode
-        (Syntax.string_of_typ ctxt) T))
+      maybe_quote (simplify_spaces (with_vanilla_print_mode (Syntax.string_of_typ ctxt) T))
 
     fun add_frees xs (s, ctxt) =
       (s ^ space_implode " and " (map of_free xs), ctxt |> register_fixes xs)
