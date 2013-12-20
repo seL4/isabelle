@@ -34,6 +34,7 @@ open BNF_GFP_Rec_Sugar_Tactics
 val codeN = "code"
 val ctrN = "ctr"
 val discN = "disc"
+val excludeN = "exclude"
 val selN = "sel"
 
 val nitpicksimp_attrs = @{attributes [nitpick_simp]};
@@ -784,7 +785,7 @@ val _ = tracing ("corecursor arguments:\n    \<cdot> " ^
  space_implode "\n    \<cdot> " (map (Syntax.string_of_term lthy) corec_args));
 *)
 
-    val exclss' =
+    val excludess' =
       disc_eqnss
       |> map (map (fn x => (#fun_args x, #ctr_no x, #prems x, #auto_gen x))
         #> fst o (fn xs => fold_map (fn x => fn ys => ((x, ys), ys @ [x])) xs [])
@@ -801,7 +802,7 @@ val _ = tracing ("corecursor arguments:\n    \<cdot> " ^
     |> Syntax.check_terms lthy
     |> map3 (fn b => fn mx => fn t => ((b, mx), ((Binding.conceal (Thm.def_binding b), []), t)))
       bs mxs
-    |> rpair exclss'
+    |> rpair excludess'
   end;
 
 fun mk_real_disc_eqns fun_binding arg_Ts ({ctr_specs, ...} : corec_spec)
@@ -897,22 +898,22 @@ val _ = tracing ("callssss = " ^ @{make_string} callssss);
 
     val arg_Tss = map (binder_types o snd o fst) fixes;
     val disc_eqnss = map5 mk_real_disc_eqns bs arg_Tss corec_specs sel_eqnss disc_eqnss';
-    val (defs, exclss') =
+    val (defs, excludess') =
       build_codefs lthy' bs mxs has_call arg_Tss corec_specs disc_eqnss sel_eqnss;
 
-    fun excl_tac (c, c', a) =
+    fun exclude_tac (c, c', a) =
       if a orelse c = c' orelse seq then SOME (K (HEADGOAL (mk_primcorec_assumption_tac lthy [])))
       else maybe_tac;
 
 (*
 val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
- space_implode "\n    \<cdot> " (maps (map (Syntax.string_of_term lthy o snd)) exclss'));
+ space_implode "\n    \<cdot> " (maps (map (Syntax.string_of_term lthy o snd)) excludess'));
 *)
 
-    val exclss'' = exclss' |> map (map (fn (idx, t) =>
-      (idx, (Option.map (Goal.prove lthy [] [] t #> Thm.close_derivation) (excl_tac idx), t))));
-    val taut_thmss = map (map (apsnd (the o fst)) o filter (is_some o fst o snd)) exclss'';
-    val (goal_idxss, goalss') = exclss''
+    val excludess'' = excludess' |> map (map (fn (idx, t) =>
+      (idx, (Option.map (Goal.prove lthy [] [] t #> Thm.close_derivation) (exclude_tac idx), t))));
+    val taut_thmss = map (map (apsnd (the o fst)) o filter (is_some o fst o snd)) excludess'';
+    val (goal_idxss, goalss') = excludess''
       |> map (map (apsnd (rpair [] o snd)) o filter (is_none o fst o snd))
       |> split_list o map split_list;
 
@@ -932,16 +933,17 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
 
         val maybe_exhaust_thms = if not exhaustive then map (K NONE) def_thms else
           map SOME (if is_none maybe_tac then hd thmss'' else exhaust_taut_thms);
-        val thmss' = if exhaustive andalso is_none maybe_tac then tl thmss'' else thmss'';
+        val exclude_thmss = if exhaustive andalso is_none maybe_tac then tl thmss'' else thmss'';
 
-        val exclss' = map (op ~~) (goal_idxss ~~ thmss');
-        fun mk_exclsss excls n =
-          (excls, map (fn k => replicate k [TrueI] @ replicate (n - k) []) (0 upto n - 1))
+        val excludess' = map (op ~~) (goal_idxss ~~ exclude_thmss);
+        fun mk_excludesss excludes n =
+          (excludes, map (fn k => replicate k [TrueI] @ replicate (n - k) []) (0 upto n - 1))
           |-> fold (fn ((c, c', _), thm) => nth_map c (nth_map c' (K [thm])));
-        val exclssss = (exclss' ~~ taut_thmss |> map (op @), fun_names ~~ corec_specs)
-          |-> map2 (fn excls => fn (_, {ctr_specs, ...}) => mk_exclsss excls (length ctr_specs));
+        val excludessss = (excludess' ~~ taut_thmss |> map (op @), fun_names ~~ corec_specs)
+          |-> map2 (fn excludes => fn (_, {ctr_specs, ...}) =>
+            mk_excludesss excludes (length ctr_specs));
 
-        fun prove_disc ({ctr_specs, ...} : corec_spec) exclsss
+        fun prove_disc ({ctr_specs, ...} : corec_spec) excludesss
             ({fun_name, fun_T, fun_args, ctr_no, prems, ...} : coeqn_data_disc) =
           if Term.aconv_untyped (#disc (nth ctr_specs ctr_no), @{term "\<lambda>x. x = x"}) then
             []
@@ -958,7 +960,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                 |> curry Logic.list_all (map dest_Free fun_args);
             in
               if prems = [@{term False}] then [] else
-              mk_primcorec_disc_tac lthy def_thms disc_corec k m exclsss
+              mk_primcorec_disc_tac lthy def_thms disc_corec k m excludesss
               |> K |> Goal.prove lthy [] [] t
               |> Thm.close_derivation
               |> pair (#disc (nth ctr_specs ctr_no))
@@ -966,7 +968,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
             end;
 
         fun prove_sel ({nested_map_idents, nested_map_comps, ctr_specs, ...} : corec_spec)
-            (disc_eqns : coeqn_data_disc list) exclsss
+            (disc_eqns : coeqn_data_disc list) excludesss
             ({fun_name, fun_T, fun_args, ctr, sel, rhs_term, ...} : coeqn_data_sel) =
           let
             val SOME ctr_spec = find_first (equal ctr o #ctr) ctr_specs;
@@ -987,7 +989,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
             val (distincts, _, sel_splits, sel_split_asms) = case_thms_of_term lthy [] rhs_term;
           in
             mk_primcorec_sel_tac lthy def_thms distincts sel_splits sel_split_asms nested_map_idents
-              nested_map_comps sel_corec k m exclsss
+              nested_map_comps sel_corec k m excludesss
             |> K |> Goal.prove lthy [] [] t
             |> Thm.close_derivation
             |> pair sel
@@ -1120,8 +1122,8 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
               end)
           end;
 
-        val disc_alists = map3 (maps oo prove_disc) corec_specs exclssss disc_eqnss;
-        val sel_alists = map4 (map ooo prove_sel) corec_specs disc_eqnss exclssss sel_eqnss;
+        val disc_alists = map3 (maps oo prove_disc) corec_specs excludessss disc_eqnss;
+        val sel_alists = map4 (map ooo prove_sel) corec_specs disc_eqnss excludessss sel_eqnss;
         val disc_thmss = map (map snd) disc_alists;
         val sel_thmss = map (map snd) sel_alists;
 
@@ -1141,6 +1143,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
            (codeN, code_thmss, code_nitpicksimp_attrs),
            (ctrN, ctr_thmss, []),
            (discN, disc_thmss, simp_attrs),
+           (excludeN, exclude_thmss, []),
            (exhaustN, map the_list maybe_exhaust_thms, []),
            (selN, sel_thmss, simp_attrs),
            (simpsN, simp_thmss, []),
