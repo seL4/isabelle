@@ -166,8 +166,8 @@ fun mk_coinduct_distinct_ctrs_tac ctxt discs discs' =
 fun mk_coinduct_discharge_prem_tac ctxt rel_eqs' nn kk n pre_rel_def dtor_ctor exhaust ctr_defs
     discss selss =
   let val ks = 1 upto n in
-    EVERY' ([rtac allI, rtac allI, rtac impI, select_prem_tac nn (dtac meta_spec) kk, dtac
-        meta_spec, dtac meta_mp, atac, rtac exhaust, K (HEADGOAL (inst_as_projs_tac ctxt)),
+    EVERY' ([rtac allI, rtac allI, rtac impI, select_prem_tac nn (dtac meta_spec) kk,
+        dtac meta_spec, dtac meta_mp, atac, rtac exhaust, K (HEADGOAL (inst_as_projs_tac ctxt)),
         hyp_subst_tac ctxt] @
       map4 (fn k => fn ctr_def => fn discs => fn sels =>
         EVERY' ([rtac exhaust, K (inst_as_projs_tac ctxt 2)] @
