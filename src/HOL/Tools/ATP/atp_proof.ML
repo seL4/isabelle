@@ -465,7 +465,7 @@ fun parse_spass_pirate_file_source x =
   ((Scan.this_string "Input" || Scan.this_string "Conj") |-- $$ "(" |-- scan_general_id
      --| $$ ")") x
 fun parse_spass_pirate_inference_source x =
-  (scan_general_id |-- $$ "(" -- parse_spass_pirate_dependencies --| $$ ")") x
+  (scan_general_id -- ($$ "(" |-- parse_spass_pirate_dependencies --| $$ ")")) x
 fun parse_spass_pirate_source x =
   (parse_spass_pirate_file_source >> (fn s => File_Source ("", SOME s))
    || parse_spass_pirate_inference_source >> Inference_Source) x

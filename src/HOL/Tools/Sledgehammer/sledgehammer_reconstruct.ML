@@ -47,6 +47,7 @@ structure String_Redirect = ATP_Proof_Redirect(
 open String_Redirect
 
 val e_skolemize_rules = ["skolemize", "shift_quantors"]
+val spass_pirate_datatype_rule = "DT"
 val vampire_skolemisation_rule = "skolemisation"
 (* TODO: Use "Z3_Proof.string_of_rule" once it is moved to Isabelle *)
 val z3_skolemize_rule = "sk"
@@ -57,6 +58,7 @@ val skolemize_rules =
 
 val is_skolemize_rule = member (op =) skolemize_rules
 val is_arith_rule = String.isPrefix z3_th_lemma_rule
+val is_datatype_rule = String.isPrefix spass_pirate_datatype_rule
 
 fun raw_label_of_num num = (num, 0)
 
@@ -95,6 +97,7 @@ and delete_dependency name lines =
 fun add_lines_pass3 res [] = rev res
   | add_lines_pass3 res ((name, role, t, rule, deps) :: lines) =
     if role <> Plain orelse is_skolemize_rule rule orelse is_arith_rule rule orelse
+       is_datatype_rule rule orelse
        (* the last line must be kept *)
        null lines orelse
        (not (is_only_type_information t) andalso null (Term.add_tvars t [])
@@ -194,6 +197,7 @@ type isar_params =
 val arith_methodss =
   [[Arith_Method, Simp_Method, Auto_Method, Fastforce_Method, Blast_Method, Force_Method,
     Metis_Method], [Meson_Method]]
+val datatype_methodss = [[Auto_Method, Simp_Method, Blast_Method]]
 val metislike_methodss =
   [[Metis_Method, Simp_Method, Auto_Method, Arith_Method, Blast_Method, Fastforce_Method,
     Force_Method], [Meson_Method]]
@@ -309,7 +313,10 @@ fun isar_proof_text ctxt isar_proofs
               fun do_rest l step = isar_steps outer (SOME l) (step :: accum) infs
 
               val deps = fold add_fact_of_dependencies gamma no_facts
-              val methss = if is_arith_rule rule then arith_methodss else metislike_methodss
+              val methss =
+                if is_arith_rule rule then arith_methodss
+                else if is_datatype_rule rule then datatype_methodss
+                else metislike_methodss
               val by = (deps, methss)
             in
               if is_clause_tainted c then
