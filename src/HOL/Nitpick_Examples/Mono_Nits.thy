@@ -24,6 +24,7 @@ val thy = @{theory}
 val ctxt = @{context}
 val stds = [(NONE, true)]
 val subst = []
+val tac_timeout = seconds 1.0
 val case_names = case_const_names ctxt stds
 val defs = all_defs_of thy subst
 val nondefs = all_nondefs_of ctxt subst
@@ -40,7 +41,7 @@ val hol_ctxt as {thy, ...} : hol_context =
    stds = stds, wfs = [], user_axioms = NONE, debug = false,
    whacks = [], binary_ints = SOME false, destroy_constrs = true,
    specialize = false, star_linear_preds = false, total_consts = NONE,
-   needs = NONE, tac_timeout = NONE, evals = [], case_names = case_names,
+   needs = NONE, tac_timeout = tac_timeout, evals = [], case_names = case_names,
    def_tables = def_tables, nondef_table = nondef_table, nondefs = nondefs,
    simp_table = simp_table, psimp_table = psimp_table,
    choice_spec_table = choice_spec_table, intro_table = intro_table,
@@ -141,8 +142,8 @@ ML_val {* nonmono @{prop "A = (\<lambda>x::'a. True) \<and> A = (\<lambda>x. Fal
 ML_val {* nonmono @{prop "\<forall>F f g (h\<Colon>'a set). F f \<and> F g \<and> \<not> a \<in> f \<and> a \<in> g \<longrightarrow> F h"} *}
 
 ML {*
-val preproc_timeout = SOME (seconds 5.0)
-val mono_timeout = SOME (seconds 1.0)
+val preproc_timeout = seconds 5.0
+val mono_timeout = seconds 1.0
 
 fun all_unconcealed_theorems_of thy =
   let val facts = Global_Theory.facts_of thy in
@@ -172,8 +173,8 @@ fun check_formulas tsp =
       Nitpick_Mono.formulas_monotonic hol_ctxt binarize T tsp
     val free_Ts = fold Term.add_tfrees (op @ tsp) [] |> map TFree
     val (mono_free_Ts, nonmono_free_Ts) =
-      time_limit mono_timeout (List.partition is_type_actually_monotonic)
-                 free_Ts
+      TimeLimit.timeLimit mono_timeout
+          (List.partition is_type_actually_monotonic) free_Ts
   in
     if not (null mono_free_Ts) then "MONO"
     else if not (null nonmono_free_Ts) then "NONMONO"
@@ -192,7 +193,8 @@ fun check_theory thy =
         val t = th |> prop_of |> Type.legacy_freeze |> close_form
         val neg_t = Logic.mk_implies (t, @{prop False})
         val (nondef_ts, def_ts, _, _, _, _) =
-          time_limit preproc_timeout (preprocess_formulas hol_ctxt []) neg_t
+          TimeLimit.timeLimit preproc_timeout (preprocess_formulas hol_ctxt [])
+                              neg_t
         val res = name ^ ": " ^ check_formulas (nondef_ts, def_ts)
       in File.append path (res ^ "\n"); writeln res end
       handle TimeLimit.TimeOut => ()
