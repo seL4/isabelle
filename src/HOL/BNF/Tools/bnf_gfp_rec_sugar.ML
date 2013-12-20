@@ -1141,6 +1141,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
            (codeN, code_thmss, code_nitpicksimp_attrs),
            (ctrN, ctr_thmss, []),
            (discN, disc_thmss, simp_attrs),
+           (exhaustN, map the_list maybe_exhaust_thms, []),
            (selN, sel_thmss, simp_attrs),
            (simpsN, simp_thmss, []),
            (strong_coinductN, map (if n2m then single else K []) strong_coinduct_thms, [])]
