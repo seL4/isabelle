@@ -197,7 +197,7 @@ type isar_params =
 val arith_methodss =
   [[Arith_Method, Simp_Method, Auto_Method, Fastforce_Method, Blast_Method, Force_Method,
     Metis_Method], [Meson_Method]]
-val datatype_methodss = [[Auto_Method, Simp_Method, Blast_Method]]
+val datatype_methodss = [[Simp_Size_Method, Simp_Method]]
 val metislike_methodss =
   [[Metis_Method, Simp_Method, Auto_Method, Arith_Method, Blast_Method, Fastforce_Method,
     Force_Method], [Meson_Method]]

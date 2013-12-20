@@ -97,6 +97,8 @@ fun tac_of_method meth type_enc lam_trans ctxt facts =
     Method.insert_tac facts THEN'
     (case meth of
       Simp_Method => Simplifier.asm_full_simp_tac ctxt
+    | Simp_Size_Method =>
+      Simplifier.asm_full_simp_tac (Simplifier.add_simp @{thm size_ne_size_imp_ne} ctxt)
     | Auto_Method => K (Clasimp.auto_tac ctxt)
     | Fastforce_Method => Clasimp.fast_force_tac ctxt
     | Force_Method => Clasimp.force_tac ctxt

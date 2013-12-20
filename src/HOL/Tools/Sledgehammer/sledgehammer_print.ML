@@ -159,6 +159,7 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
     fun by_method meth = "by " ^
       (case meth of
         Simp_Method => "simp"
+      | Simp_Size_Method => "(simp add: size_ne_size_imp_ne)"
       | Auto_Method => "auto"
       | Fastforce_Method => "fastforce"
       | Force_Method => "force"
