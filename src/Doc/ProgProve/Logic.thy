@@ -335,7 +335,7 @@ Isabelle replaces all free variables @{text x} by so called \concept{unknowns}
 @{text "?x"}. We can see this clearly in rule @{thm[source] conjI}.
 These unknowns can later be instantiated explicitly or implicitly:
 \begin{itemize}
-\item By hand, using @{text of}.
+\item By hand, using \concept{@{text of}}.
 The expression @{text"conjI[of \"a=b\" \"False\"]"}
 instantiates the unknowns in @{thm[source] conjI} from left to right with the
 two formulas @{text"a=b"} and @{text False}, yielding the rule
@@ -352,8 +352,8 @@ unifying @{text"?P \<and> ?Q"} with \mbox{@{prop"a=b \<and> False"}} instantiate
 \end{itemize}
 We need not instantiate all unknowns. If we want to skip a particular one we
 can just write @{text"_"} instead, for example @{text "conjI[of _ \"False\"]"}.
-Unknowns can also be instantiated by name, for example
-@{text "conjI[where ?P = \"a=b\" and ?Q = \"False\"]"}.
+Unknowns can also be instantiated by name using \concept{@{text "where"}}, for example
+@{text "conjI[where ?P = \"a=b\""} \isacom{and} @{text"?Q = \"False\"]"}.
 
 
 \subsection{Rule Application}
@@ -437,8 +437,8 @@ Of course this is just an example and could be proved by @{text arith}, too.
 
 Forward proof means deriving new theorems from old theorems. We have already
 seen a very simple form of forward proof: the @{text of} operator for
-instantiating unknowns in a theorem. The big brother of @{text of} is @{text
-OF} for applying one theorem to others. Given a theorem @{prop"A \<Longrightarrow> B"} called
+instantiating unknowns in a theorem. The big brother of @{text of} is
+\concept{@{text OF}} for applying one theorem to others. Given a theorem @{prop"A \<Longrightarrow> B"} called
 @{text r} and a theorem @{text A'} called @{text r'}, the theorem @{text
 "r[OF r']"} is the result of applying @{text r} to @{text r'}, where @{text
 r} should be viewed as a function taking a theorem @{text A} and returning
