@@ -116,7 +116,7 @@ the diagonal set @{term"{x. x \<notin> f x}"}, the key idea in the proof.
 If you wonder why @{text 2} directly implies @{text False}: from @{text 2}
 it follows that @{prop"a \<notin> f a \<longleftrightarrow> a \<in> f a"}.
 
-\subsection{@{text this}, @{text then}, @{text hence} and @{text thus}}
+\subsection{@{text this}, \isacom{then}, \isacom{hence} and \isacom{thus}}
 
 Labels should be avoided. They interrupt the flow of the reader who has to
 scan the context for the point where the label was introduced. Ideally, the
@@ -141,10 +141,10 @@ steps into one.
 To compact the text further, Isar has a few convenient abbreviations:
 \medskip
 
-\begin{tabular}{rcl}
-\isacom{then} &=& \isacom{from} @{text this}\\
-\isacom{thus} &=& \isacom{then} \isacom{show}\\
-\isacom{hence} &=& \isacom{then} \isacom{have}
+\begin{tabular}{r@ {\quad=\quad}l}
+\isacom{then} & \isacom{from} @{text this}\\
+\isacom{thus} & \isacom{then} \isacom{show}\\
+\isacom{hence} & \isacom{then} \isacom{have}
 \end{tabular}
 \medskip
 
@@ -164,11 +164,11 @@ text{*
 There are two further linguistic variations:
 \medskip
 
-\begin{tabular}{rcl}
+\begin{tabular}{r@ {\quad=\quad}l}
 (\isacom{have}$\mid$\isacom{show}) \ \textit{prop} \ \isacom{using} \ \textit{facts}
-&=&
+&
 \isacom{from} \ \textit{facts} \ (\isacom{have}$\mid$\isacom{show}) \ \textit{prop}\\
-\isacom{with} \ \textit{facts} &=& \isacom{from} \ \textit{facts} \isa{this}
+\isacom{with} \ \textit{facts} & \isacom{from} \ \textit{facts} \isa{this}
 \end{tabular}
 \medskip
 
