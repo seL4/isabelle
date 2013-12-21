@@ -918,23 +918,49 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
       |> map (map (apsnd (rpair [] o snd)) o filter (is_none o fst o snd))
       |> split_list o map split_list;
 
-    val nchotomy_props = if not exhaustive then [] else
-      map (HOLogic.mk_Trueprop o mk_disjs o map (mk_conjs o #prems)) disc_eqnss
-      |> map2 ((fn {fun_args, ...} =>
-        curry Logic.list_all (map dest_Free fun_args)) o hd) disc_eqnss;
-    val nchotomy_taut_thms = if exhaustive andalso is_some maybe_tac then
-        map (fn t => Goal.prove lthy [] [] t (the maybe_tac) |> Thm.close_derivation) nchotomy_props
-      else [];
-    val goalss = if exhaustive andalso is_none maybe_tac then
-      map (rpair []) nchotomy_props :: goalss' else goalss';
+    val list_all_fun_args =
+      map2 ((fn {fun_args, ...} => curry Logic.list_all (map dest_Free fun_args)) o hd) disc_eqnss;
+
+    val nchotomy_goals =
+      if exhaustive then
+        map (HOLogic.mk_Trueprop o mk_disjs o map (mk_conjs o #prems)) disc_eqnss
+        |> list_all_fun_args
+      else
+        [];
+    val nchotomy_taut_thms =
+      if exhaustive andalso is_some maybe_tac then
+        map (fn t => Goal.prove lthy [] [] t (the maybe_tac) |> Thm.close_derivation) nchotomy_goals
+      else
+        [];
+    val goalss =
+      if exhaustive andalso is_none maybe_tac then map (rpair []) nchotomy_goals :: goalss'
+      else goalss';
+
+    val p = Var (("P", 0), HOLogic.boolT); (* safe since there are no other variables around *)
+
+    fun mk_imp_p Qs = Logic.list_implies (Qs, HOLogic.mk_Trueprop p);
 
     fun prove thmss'' def_thms' lthy =
       let
         val def_thms = map (snd o snd) def_thms';
 
-        val maybe_nchotomy_thms = if not exhaustive then map (K NONE) def_thms else
-          map SOME (if is_none maybe_tac then hd thmss'' else nchotomy_taut_thms);
+        val maybe_nchotomy_thms =
+          if exhaustive then map SOME (if is_none maybe_tac then hd thmss'' else nchotomy_taut_thms)
+          else map (K NONE) def_thms;
         val exclude_thmss = if exhaustive andalso is_none maybe_tac then tl thmss'' else thmss'';
+
+        val maybe_exhaust_thms =
+          if exhaustive then
+            map (mk_imp_p o map (mk_imp_p o map HOLogic.mk_Trueprop o #prems)) disc_eqnss
+            |> list_all_fun_args
+            |> map3 (fn disc_eqns => fn SOME nchotomy_thm => fn goal =>
+                mk_primcorec_exhaust_tac (length disc_eqns) nchotomy_thm
+                |> K |> Goal.prove lthy [] [] goal
+                |> Thm.close_derivation
+                |> SOME)
+              disc_eqnss maybe_nchotomy_thms
+          else
+            map (K NONE) def_thms;
 
         val excludess' = map (op ~~) (goal_idxss ~~ exclude_thmss);
         fun mk_excludesss excludes n =
@@ -1145,6 +1171,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
            (ctrN, ctr_thmss, []),
            (discN, disc_thmss, simp_attrs),
            (excludeN, exclude_thmss, []),
+           (exhaustN, map the_list maybe_exhaust_thms, []),
            (nchotomyN, map the_list maybe_nchotomy_thms, []),
            (selN, sel_thmss, simp_attrs),
            (simpsN, simp_thmss, []),

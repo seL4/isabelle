@@ -12,6 +12,7 @@ sig
   val mk_primcorec_ctr_of_dtr_tac: Proof.context -> int -> thm -> thm option -> thm list -> tactic
   val mk_primcorec_disc_tac: Proof.context -> thm list -> thm -> int -> int -> thm list list list ->
     tactic
+  val mk_primcorec_exhaust_tac: int -> thm -> tactic
   val mk_primcorec_raw_code_of_ctr_tac: Proof.context -> thm list -> thm list -> thm list ->
     thm list -> int list -> thm list -> thm option -> tactic
   val mk_primcorec_sel_tac: Proof.context -> thm list -> thm list -> thm list -> thm list ->
@@ -30,6 +31,16 @@ val neq_eq_eq_contradict = @{thm neq_eq_eq_contradict};
 val split_if = @{thm split_if};
 val split_if_asm = @{thm split_if_asm};
 val split_connectI = @{thms allI impI conjI};
+
+fun mk_primcorec_exhaust_tac n nchotomy =
+  let val ks = 1 upto n in
+    HEADGOAL (cut_tac nchotomy THEN'
+     EVERY' (map (fn k =>
+        (if k < n then etac disjE else K all_tac) THEN'
+        REPEAT o (etac conjE THEN' dtac meta_mp THEN' atac) THEN'
+        dtac meta_mp THEN' atac THEN' atac)
+      ks))
+  end;
 
 fun mk_primcorec_assumption_tac ctxt discIs =
   SELECT_GOAL (unfold_thms_tac ctxt

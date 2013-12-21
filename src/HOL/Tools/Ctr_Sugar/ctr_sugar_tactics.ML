@@ -97,10 +97,8 @@ fun mk_expand_tac ctxt n ms udisc_exhaust vdisc_exhaust uncollapses disc_exclude
   else
     let val ks = 1 upto n in
       HEADGOAL (rtac udisc_exhaust THEN'
-        EVERY' (map5 (fn k => fn m => fn disc_excludess => fn disc_excludess' =>
-            fn uuncollapse =>
-          EVERY' [rtac (uuncollapse RS trans) THEN' TRY o atac,
-            rtac sym, rtac vdisc_exhaust,
+        EVERY' (map5 (fn k => fn m => fn disc_excludess => fn disc_excludess' => fn uuncollapse =>
+          EVERY' [rtac (uuncollapse RS trans) THEN' TRY o atac, rtac sym, rtac vdisc_exhaust,
             EVERY' (map4 (fn k' => fn disc_excludes => fn disc_excludes' => fn vuncollapse =>
               EVERY'
                 (if k' = k then
