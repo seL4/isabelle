@@ -126,7 +126,11 @@ fun mk_primcorec_raw_code_of_ctr_tac ctxt distincts discIs splits split_asms ms 
         NONE => (ms, f_ctrs)
       | SOME nchotomy =>
         (ms |> split_last ||> K [n - 1] |> op @,
-         f_ctrs |> split_last ||> (fn thm => [rulify_nchotomy n nchotomy RS thm]) |> op @));
+         f_ctrs
+         |> split_last
+         ||> unfold_thms ctxt @{thms atomize_conjL}
+         ||> (fn thm => [rulify_nchotomy n nchotomy RS thm])
+         |> op @));
   in
     EVERY (map2 (mk_primcorec_raw_code_of_ctr_single_tac ctxt distincts discIs splits split_asms)
       ms' f_ctrs') THEN
