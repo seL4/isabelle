@@ -35,6 +35,7 @@ val codeN = "code"
 val ctrN = "ctr"
 val discN = "disc"
 val excludeN = "exclude"
+val nchotomyN = "nchotomy"
 val selN = "sel"
 
 val nitpicksimp_attrs = @{attributes [nitpick_simp]};
@@ -917,22 +918,22 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
       |> map (map (apsnd (rpair [] o snd)) o filter (is_none o fst o snd))
       |> split_list o map split_list;
 
-    val exhaust_props = if not exhaustive then [] else
+    val nchotomy_props = if not exhaustive then [] else
       map (HOLogic.mk_Trueprop o mk_disjs o map (mk_conjs o #prems)) disc_eqnss
       |> map2 ((fn {fun_args, ...} =>
         curry Logic.list_all (map dest_Free fun_args)) o hd) disc_eqnss;
-    val exhaust_taut_thms = if exhaustive andalso is_some maybe_tac then
-        map (fn t => Goal.prove lthy [] [] t (the maybe_tac) |> Thm.close_derivation) exhaust_props
+    val nchotomy_taut_thms = if exhaustive andalso is_some maybe_tac then
+        map (fn t => Goal.prove lthy [] [] t (the maybe_tac) |> Thm.close_derivation) nchotomy_props
       else [];
     val goalss = if exhaustive andalso is_none maybe_tac then
-      map (rpair []) exhaust_props :: goalss' else goalss';
+      map (rpair []) nchotomy_props :: goalss' else goalss';
 
     fun prove thmss'' def_thms' lthy =
       let
         val def_thms = map (snd o snd) def_thms';
 
-        val maybe_exhaust_thms = if not exhaustive then map (K NONE) def_thms else
-          map SOME (if is_none maybe_tac then hd thmss'' else exhaust_taut_thms);
+        val maybe_nchotomy_thms = if not exhaustive then map (K NONE) def_thms else
+          map SOME (if is_none maybe_tac then hd thmss'' else nchotomy_taut_thms);
         val exclude_thmss = if exhaustive andalso is_none maybe_tac then tl thmss'' else thmss'';
 
         val excludess' = map (op ~~) (goal_idxss ~~ exclude_thmss);
@@ -1034,7 +1035,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                 |> single
             end;
 
-        fun prove_code disc_eqns sel_eqns maybe_exhaust ctr_alist ctr_specs =
+        fun prove_code disc_eqns sel_eqns maybe_nchotomy ctr_alist ctr_specs =
           let
             val maybe_fun_data =
               (find_first (member (op =) (map #ctr ctr_specs) o #ctr) disc_eqns,
@@ -1110,7 +1111,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                       case_thms_of_term lthy bound_Ts raw_rhs;
 
                     val raw_code_thm = mk_primcorec_raw_code_of_ctr_tac lthy distincts discIs
-                        sel_splits sel_split_asms ms ctr_thms maybe_exhaust
+                        sel_splits sel_split_asms ms ctr_thms maybe_nchotomy
                       |> K |> Goal.prove lthy [] [] raw_t
                       |> Thm.close_derivation;
                   in
@@ -1131,7 +1132,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
           ctr_specss;
         val ctr_thmss = map (map snd) ctr_alists;
 
-        val code_thmss = map5 prove_code disc_eqnss sel_eqnss maybe_exhaust_thms ctr_alists
+        val code_thmss = map5 prove_code disc_eqnss sel_eqnss maybe_nchotomy_thms ctr_alists
           ctr_specss;
 
         val simp_thmss = map2 append disc_thmss sel_thmss
@@ -1144,7 +1145,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
            (ctrN, ctr_thmss, []),
            (discN, disc_thmss, simp_attrs),
            (excludeN, exclude_thmss, []),
-           (exhaustN, map the_list maybe_exhaust_thms, []),
+           (nchotomyN, map the_list maybe_nchotomy_thms, []),
            (selN, sel_thmss, simp_attrs),
            (simpsN, simp_thmss, []),
            (strong_coinductN, map (if n2m then single else K []) strong_coinduct_thms, [])]

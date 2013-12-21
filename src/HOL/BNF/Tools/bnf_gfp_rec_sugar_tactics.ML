@@ -115,18 +115,18 @@ fun mk_primcorec_raw_code_of_ctr_single_tac ctxt distincts discIs splits split_a
        (TRY o dresolve_tac discIs) THEN' etac notE THEN' atac)))))
   end;
 
-fun rulify_exhaust n = funpow (n - 1) (fn thm => thm RS @{thm Meson.make_pos_rule'});
+fun rulify_nchotomy n = funpow (n - 1) (fn thm => thm RS @{thm Meson.make_pos_rule'});
 
 fun mk_primcorec_raw_code_of_ctr_tac ctxt distincts discIs splits split_asms ms f_ctrs
-    maybe_exhaust =
+    maybe_nchotomy =
   let
     val n = length ms;
     val (ms', f_ctrs') =
-      (case maybe_exhaust of
+      (case maybe_nchotomy of
         NONE => (ms, f_ctrs)
-      | SOME exhaust =>
+      | SOME nchotomy =>
         (ms |> split_last ||> K [n - 1] |> op @,
-         f_ctrs |> split_last ||> (fn thm => [rulify_exhaust n exhaust RS thm]) |> op @));
+         f_ctrs |> split_last ||> (fn thm => [rulify_nchotomy n nchotomy RS thm]) |> op @));
   in
     EVERY (map2 (mk_primcorec_raw_code_of_ctr_single_tac ctxt distincts discIs splits split_asms)
       ms' f_ctrs') THEN
