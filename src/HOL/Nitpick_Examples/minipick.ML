@@ -429,11 +429,11 @@ fun kodkod_problem_from_term ctxt total raw_card raw_infinite t =
 
 fun solve_any_kodkod_problem thy problems =
   let
-    val {debug, overlord, ...} = Nitpick_Isar.default_params thy []
+    val {debug, overlord, timeout, ...} = Nitpick_Isar.default_params thy []
     val max_threads = 1
     val max_solutions = 1
   in
-    case solve_any_problem debug overlord NONE max_threads max_solutions
+    case solve_any_problem debug overlord timeout max_threads max_solutions
                            problems of
       JavaNotFound => "unknown"
     | JavaTooOld => "unknown"
