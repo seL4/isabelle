@@ -142,11 +142,11 @@ lemma map_entry_code [code]: "map_entry k f m = (case lookup m k of None \<Right
 definition map_default :: "'a \<Rightarrow> 'b \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) mapping \<Rightarrow> ('a, 'b) mapping" where
   "map_default k v f m = map_entry k f (default k v m)" 
 
-lift_definition assoc_list_to_mapping :: "('k \<times> 'v) list \<Rightarrow> ('k, 'v) mapping"
+lift_definition of_alist :: "('k \<times> 'v) list \<Rightarrow> ('k, 'v) mapping"
 is map_of parametric map_of_transfer .
 
-lemma assoc_list_to_mapping_code [code]:
-  "assoc_list_to_mapping xs = foldr (\<lambda>(k, v) m. update k v m) xs empty"
+lemma of_alist_code [code]:
+  "of_alist xs = foldr (\<lambda>(k, v) m. update k v m) xs empty"
 by transfer(simp add: map_add_map_of_foldr[symmetric])
 
 instantiation mapping :: (type, type) equal
@@ -364,7 +364,7 @@ subsection {* Code generator setup *}
 code_datatype empty update
 
 hide_const (open) empty is_empty rep lookup update delete ordered_keys keys size
-  replace default map_entry map_default tabulate bulkload map
+  replace default map_entry map_default tabulate bulkload map of_alist
 
 end
 
