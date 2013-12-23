@@ -2,9 +2,7 @@ theory BExp imports AExp begin
 
 subsection "Boolean Expressions"
 
-text_raw{*\snip{BExpbexpdef}{0}{1}{% *}
 datatype bexp = Bc bool | Not bexp | And bexp bexp | Less aexp aexp
-text_raw{*}%endsnip*}
 
 text_raw{*\snip{BExpbvaldef}{1}{2}{% *}
 fun bval :: "bexp \<Rightarrow> state \<Rightarrow> bool" where
