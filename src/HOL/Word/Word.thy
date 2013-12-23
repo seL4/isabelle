@@ -390,16 +390,16 @@ definition
 
 definition
   word_set_bit_def: "set_bit a n x =
-   word_of_int (bin_sc n (If x 1 0) (uint a))"
+   word_of_int (bin_sc n x (uint a))"
 
 definition
   word_set_bits_def: "(BITS n. f n) = of_bl (bl_of_nth (len_of TYPE ('a)) f)"
 
 definition
-  word_lsb_def: "lsb a \<longleftrightarrow> bin_last (uint a) = 1"
+  word_lsb_def: "lsb a \<longleftrightarrow> bin_last (uint a)"
 
 definition shiftl1 :: "'a word \<Rightarrow> 'a word" where
-  "shiftl1 w = word_of_int (uint w BIT 0)"
+  "shiftl1 w = word_of_int (uint w BIT False)"
 
 definition shiftr1 :: "'a word \<Rightarrow> 'a word" where
   -- "shift right as unsigned or as signed, ie logical or arithmetic"
@@ -2524,15 +2524,15 @@ lemma nth_sint:
   by (clarsimp simp add: nth_sbintr word_test_bit_def [symmetric])
 
 lemma word_lsb_numeral [simp]:
-  "lsb (numeral bin :: 'a :: len word) = (bin_last (numeral bin) = 1)"
+  "lsb (numeral bin :: 'a :: len word) \<longleftrightarrow> bin_last (numeral bin)"
   unfolding word_lsb_alt test_bit_numeral by simp
 
 lemma word_lsb_neg_numeral [simp]:
-  "lsb (- numeral bin :: 'a :: len word) = (bin_last (- numeral bin) = 1)"
+  "lsb (- numeral bin :: 'a :: len word) \<longleftrightarrow> bin_last (- numeral bin)"
   unfolding word_lsb_alt test_bit_neg_numeral by simp
 
 lemma set_bit_word_of_int:
-  "set_bit (word_of_int x) n b = word_of_int (bin_sc n (if b then 1 else 0) x)"
+  "set_bit (word_of_int x) n b = word_of_int (bin_sc n b x)"
   unfolding word_set_bit_def
   apply (rule word_eqI)
   apply (simp add: word_size bin_nth_sc_gen word_ubin.eq_norm nth_bintr)
@@ -2540,28 +2540,28 @@ lemma set_bit_word_of_int:
 
 lemma word_set_numeral [simp]:
   "set_bit (numeral bin::'a::len0 word) n b = 
-    word_of_int (bin_sc n (if b then 1 else 0) (numeral bin))"
+    word_of_int (bin_sc n b (numeral bin))"
   unfolding word_numeral_alt by (rule set_bit_word_of_int)
 
 lemma word_set_neg_numeral [simp]:
   "set_bit (- numeral bin::'a::len0 word) n b = 
-    word_of_int (bin_sc n (if b then 1 else 0) (- numeral bin))"
+    word_of_int (bin_sc n b (- numeral bin))"
   unfolding word_neg_numeral_alt by (rule set_bit_word_of_int)
 
 lemma word_set_bit_0 [simp]:
-  "set_bit 0 n b = word_of_int (bin_sc n (if b then 1 else 0) 0)"
+  "set_bit 0 n b = word_of_int (bin_sc n b 0)"
   unfolding word_0_wi by (rule set_bit_word_of_int)
 
 lemma word_set_bit_1 [simp]:
-  "set_bit 1 n b = word_of_int (bin_sc n (if b then 1 else 0) 1)"
+  "set_bit 1 n b = word_of_int (bin_sc n b 1)"
   unfolding word_1_wi by (rule set_bit_word_of_int)
 
 lemma setBit_no [simp]:
-  "setBit (numeral bin) n = word_of_int (bin_sc n 1 (numeral bin))"
+  "setBit (numeral bin) n = word_of_int (bin_sc n True (numeral bin))"
   by (simp add: setBit_def)
 
 lemma clearBit_no [simp]:
-  "clearBit (numeral bin) n = word_of_int (bin_sc n 0 (numeral bin))"
+  "clearBit (numeral bin) n = word_of_int (bin_sc n False (numeral bin))"
   by (simp add: clearBit_def)
 
 lemma to_bl_n1: 
@@ -2645,7 +2645,6 @@ lemma word_clr_le:
   fixes w :: "'a::len0 word"
   shows "w >= set_bit w n False"
   apply (unfold word_set_bit_def word_le_def word_ubin.eq_norm)
-  apply simp
   apply (rule order_trans)
    apply (rule bintr_bin_clr_le)
   apply simp
@@ -2655,7 +2654,6 @@ lemma word_set_ge:
   fixes w :: "'a::len word"
   shows "w <= set_bit w n True"
   apply (unfold word_set_bit_def word_le_def word_ubin.eq_norm)
-  apply simp
   apply (rule order_trans [OF _ bintr_bin_set_ge])
   apply simp
   done
@@ -2663,7 +2661,7 @@ lemma word_set_ge:
 
 subsection {* Shifting, Rotating, and Splitting Words *}
 
-lemma shiftl1_wi [simp]: "shiftl1 (word_of_int w) = word_of_int (w BIT 0)"
+lemma shiftl1_wi [simp]: "shiftl1 (word_of_int w) = word_of_int (w BIT False)"
   unfolding shiftl1_def
   apply (simp add: word_ubin.norm_eq_iff [symmetric] word_ubin.eq_norm)
   apply (subst refl [THEN bintrunc_BIT_I, symmetric])
@@ -2682,10 +2680,10 @@ lemma shiftl1_neg_numeral [simp]:
 lemma shiftl1_0 [simp] : "shiftl1 0 = 0"
   unfolding shiftl1_def by simp
 
-lemma shiftl1_def_u: "shiftl1 w = word_of_int (uint w BIT 0)"
+lemma shiftl1_def_u: "shiftl1 w = word_of_int (uint w BIT False)"
   by (simp only: shiftl1_def) (* FIXME: duplicate *)
 
-lemma shiftl1_def_s: "shiftl1 w = word_of_int (sint w BIT 0)"
+lemma shiftl1_def_s: "shiftl1 w = word_of_int (sint w BIT False)"
   unfolding shiftl1_def Bit_B0 wi_hom_syms by simp
 
 lemma shiftr1_0 [simp]: "shiftr1 0 = 0"

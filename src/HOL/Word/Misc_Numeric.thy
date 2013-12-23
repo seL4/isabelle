@@ -22,6 +22,11 @@ lemma min_minus [simp] : "min m (m - k) = (m - k :: nat)" by arith
   
 lemmas min_minus' [simp] = trans [OF min_max.inf_commute min_minus]
 
+lemma mod_2_neq_1_eq_eq_0:
+  fixes k :: int
+  shows "k mod 2 \<noteq> 1 \<longleftrightarrow> k mod 2 = 0"
+  by arith
+
 lemma z1pmod2:
   "(2 * b + 1) mod 2 = (1::int)" by arith
 
