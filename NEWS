@@ -28,8 +28,11 @@ Open text buffers take precedence over copies within the file-system.
 
 *** HOL ***
 
+* Word library: bit representations prefer type bool over type bit.
+INCOMPATIBILITY.
+
 * Theorem disambiguation Inf_le_Sup (on finite sets) ~> Inf_fin_le_Sup_fin.
-INCOMPATBILITY.
+INCOMPATIBILITY.
 
 * Code generations are provided for make, fields, extend and truncate
 operations on records.
