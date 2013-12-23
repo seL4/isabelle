@@ -367,8 +367,8 @@ subsection {* Representation of polynomials by lists of coefficients *}
 
 primrec Poly :: "'a::zero list \<Rightarrow> 'a poly"
 where
-  "Poly [] = 0"
-| "Poly (a # as) = pCons a (Poly as)"
+  [code_post]: "Poly [] = 0"
+| [code_post]: "Poly (a # as) = pCons a (Poly as)"
 
 lemma Poly_replicate_0 [simp]:
   "Poly (replicate n 0) = 0"
