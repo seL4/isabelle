@@ -9,7 +9,7 @@
 header "Bool lists and integers"
 
 theory Bool_List_Representation
-imports Bit_Int
+imports Bits_Int
 begin
 
 definition map2 :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'c list"

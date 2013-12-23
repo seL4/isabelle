@@ -4,7 +4,7 @@
 
 header {* Syntactic classes for bitwise operations *}
 
-theory Bit_Operations
+theory Bits
 imports Main
 begin
 

@@ -4,8 +4,8 @@
 
 header {* Bit operations in $\cal Z_2$ *}
 
-theory Bit_Bit
-imports Bit_Operations "~~/src/HOL/Library/Bit"
+theory Bits_Bit
+imports Bits "~~/src/HOL/Library/Bit"
 begin
 
 instantiation bit :: bit

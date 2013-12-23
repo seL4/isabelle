@@ -8,7 +8,7 @@ theory Word
 imports
   Type_Length
   "~~/src/HOL/Library/Boolean_Algebra"
-  Bit_Bit
+  Bits_Bit
   Bool_List_Representation
   Misc_Typedef
   Word_Miscellaneous

@@ -6,7 +6,7 @@ Comparison on bit operations on integers.
 *)
 
 theory Bit_Comparison
-imports Type_Length Bit_Operations Bit_Int
+imports Bits_Int
 begin
 
 lemma AND_lower [simp]:
