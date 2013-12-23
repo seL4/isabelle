@@ -482,25 +482,30 @@ lemma bin_sc_numeral [simp]:
 
 subsection {* Splitting and concatenation *}
 
-definition bin_rcat :: "nat \<Rightarrow> int list \<Rightarrow> int" where
+definition bin_rcat :: "nat \<Rightarrow> int list \<Rightarrow> int"
+where
   "bin_rcat n = foldl (\<lambda>u v. bin_cat u n v) 0"
 
-fun bin_rsplit_aux :: "nat \<Rightarrow> nat \<Rightarrow> int \<Rightarrow> int list \<Rightarrow> int list" where
+fun bin_rsplit_aux :: "nat \<Rightarrow> nat \<Rightarrow> int \<Rightarrow> int list \<Rightarrow> int list"
+where
   "bin_rsplit_aux n m c bs =
     (if m = 0 | n = 0 then bs else
       let (a, b) = bin_split n c 
       in bin_rsplit_aux n (m - n) a (b # bs))"
 
-definition bin_rsplit :: "nat \<Rightarrow> nat \<times> int \<Rightarrow> int list" where
+definition bin_rsplit :: "nat \<Rightarrow> nat \<times> int \<Rightarrow> int list"
+where
   "bin_rsplit n w = bin_rsplit_aux n (fst w) (snd w) []"
 
-fun bin_rsplitl_aux :: "nat \<Rightarrow> nat \<Rightarrow> int \<Rightarrow> int list \<Rightarrow> int list" where
+fun bin_rsplitl_aux :: "nat \<Rightarrow> nat \<Rightarrow> int \<Rightarrow> int list \<Rightarrow> int list"
+where
   "bin_rsplitl_aux n m c bs =
     (if m = 0 | n = 0 then bs else
       let (a, b) = bin_split (min m n) c 
       in bin_rsplitl_aux n (m - n) a (b # bs))"
 
-definition bin_rsplitl :: "nat \<Rightarrow> nat \<times> int \<Rightarrow> int list" where
+definition bin_rsplitl :: "nat \<Rightarrow> nat \<times> int \<Rightarrow> int list"
+where
   "bin_rsplitl n w = bin_rsplitl_aux n (fst w) (snd w) []"
 
 declare bin_rsplit_aux.simps [simp del]

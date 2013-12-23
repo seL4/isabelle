@@ -10,7 +10,8 @@ begin
 
 subsection {* Constructors and destructors for binary integers *}
 
-definition Bit :: "int \<Rightarrow> bool \<Rightarrow> int" (infixl "BIT" 90) where
+definition Bit :: "int \<Rightarrow> bool \<Rightarrow> int" (infixl "BIT" 90)
+where
   "k BIT b = (if b then 1 else 0) + k + k"
 
 lemma Bit_B0:
@@ -27,14 +28,16 @@ lemma Bit_B0_2t: "k BIT False = 2 * k"
 lemma Bit_B1_2t: "k BIT True = 2 * k + 1"
   by (rule trans, rule Bit_B1) simp
 
-definition bin_last :: "int \<Rightarrow> bool" where
+definition bin_last :: "int \<Rightarrow> bool"
+where
   "bin_last w \<longleftrightarrow> w mod 2 = 1"
 
 lemma bin_last_odd:
   "bin_last = odd"
   by (rule ext) (simp add: bin_last_def even_def)
 
-definition bin_rest :: "int \<Rightarrow> int" where
+definition bin_rest :: "int \<Rightarrow> int"
+where
   "bin_rest w = w div 2"
 
 lemma bin_rl_simp [simp]:
@@ -271,7 +274,8 @@ lemmas bin_nth_simps =
 
 subsection {* Truncating binary integers *}
 
-definition bin_sign :: "int \<Rightarrow> int" where
+definition bin_sign :: "int \<Rightarrow> int"
+where
   bin_sign_def: "bin_sign k = (if k \<ge> 0 then 0 else - 1)"
 
 lemma bin_sign_simps [simp]:

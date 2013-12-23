@@ -31,27 +31,33 @@ lemma map2_Cons [simp, code]:
 
 subsection {* Operations on lists of booleans *}
 
-primrec bl_to_bin_aux :: "bool list \<Rightarrow> int \<Rightarrow> int" where
+primrec bl_to_bin_aux :: "bool list \<Rightarrow> int \<Rightarrow> int"
+where
   Nil: "bl_to_bin_aux [] w = w"
   | Cons: "bl_to_bin_aux (b # bs) w = 
       bl_to_bin_aux bs (w BIT b)"
 
-definition bl_to_bin :: "bool list \<Rightarrow> int" where
+definition bl_to_bin :: "bool list \<Rightarrow> int"
+where
   bl_to_bin_def: "bl_to_bin bs = bl_to_bin_aux bs 0"
 
-primrec bin_to_bl_aux :: "nat \<Rightarrow> int \<Rightarrow> bool list \<Rightarrow> bool list" where
+primrec bin_to_bl_aux :: "nat \<Rightarrow> int \<Rightarrow> bool list \<Rightarrow> bool list"
+where
   Z: "bin_to_bl_aux 0 w bl = bl"
   | Suc: "bin_to_bl_aux (Suc n) w bl =
       bin_to_bl_aux n (bin_rest w) ((bin_last w) # bl)"
 
-definition bin_to_bl :: "nat \<Rightarrow> int \<Rightarrow> bool list" where
+definition bin_to_bl :: "nat \<Rightarrow> int \<Rightarrow> bool list"
+where
   bin_to_bl_def : "bin_to_bl n w = bin_to_bl_aux n w []"
 
-primrec bl_of_nth :: "nat \<Rightarrow> (nat \<Rightarrow> bool) \<Rightarrow> bool list" where
+primrec bl_of_nth :: "nat \<Rightarrow> (nat \<Rightarrow> bool) \<Rightarrow> bool list"
+where
   Suc: "bl_of_nth (Suc n) f = f n # bl_of_nth n f"
   | Z: "bl_of_nth 0 f = []"
 
-primrec takefill :: "'a \<Rightarrow> nat \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+primrec takefill :: "'a \<Rightarrow> nat \<Rightarrow> 'a list \<Rightarrow> 'a list"
+where
   Z: "takefill fill 0 xs = []"
   | Suc: "takefill fill (Suc n) xs = (
       case xs of [] => fill # takefill fill n xs
@@ -65,21 +71,25 @@ text {*
   assuming input list(s) the same length, and don't extend them. 
 *}
 
-primrec rbl_succ :: "bool list => bool list" where
+primrec rbl_succ :: "bool list => bool list"
+where
   Nil: "rbl_succ Nil = Nil"
   | Cons: "rbl_succ (x # xs) = (if x then False # rbl_succ xs else True # xs)"
 
-primrec rbl_pred :: "bool list => bool list" where
+primrec rbl_pred :: "bool list => bool list"
+where
   Nil: "rbl_pred Nil = Nil"
   | Cons: "rbl_pred (x # xs) = (if x then False # xs else True # rbl_pred xs)"
 
-primrec rbl_add :: "bool list => bool list => bool list" where
+primrec rbl_add :: "bool list => bool list => bool list"
+where
   -- "result is length of first arg, second arg may be longer"
   Nil: "rbl_add Nil x = Nil"
   | Cons: "rbl_add (y # ys) x = (let ws = rbl_add ys (tl x) in 
     (y ~= hd x) # (if hd x & y then rbl_succ ws else ws))"
 
-primrec rbl_mult :: "bool list => bool list => bool list" where
+primrec rbl_mult :: "bool list => bool list => bool list"
+where
   -- "result is length of first arg, second arg may be longer"
   Nil: "rbl_mult Nil x = Nil"
   | Cons: "rbl_mult (y # ys) x = (let ws = False # rbl_mult ys x in 
