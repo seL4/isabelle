@@ -31,27 +31,33 @@ lemma map2_Cons [simp, code]:
 
 subsection {* Operations on lists of booleans *}
 
-primrec bl_to_bin_aux :: "bool list \<Rightarrow> int \<Rightarrow> int" where
+primrec bl_to_bin_aux :: "bool list \<Rightarrow> int \<Rightarrow> int"
+where
   Nil: "bl_to_bin_aux [] w = w"
   | Cons: "bl_to_bin_aux (b # bs) w = 
-      bl_to_bin_aux bs (w BIT (if b then 1 else 0))"
+      bl_to_bin_aux bs (w BIT b)"
 
-definition bl_to_bin :: "bool list \<Rightarrow> int" where
+definition bl_to_bin :: "bool list \<Rightarrow> int"
+where
   bl_to_bin_def: "bl_to_bin bs = bl_to_bin_aux bs 0"
 
-primrec bin_to_bl_aux :: "nat \<Rightarrow> int \<Rightarrow> bool list \<Rightarrow> bool list" where
+primrec bin_to_bl_aux :: "nat \<Rightarrow> int \<Rightarrow> bool list \<Rightarrow> bool list"
+where
   Z: "bin_to_bl_aux 0 w bl = bl"
   | Suc: "bin_to_bl_aux (Suc n) w bl =
-      bin_to_bl_aux n (bin_rest w) ((bin_last w = 1) # bl)"
+      bin_to_bl_aux n (bin_rest w) ((bin_last w) # bl)"
 
-definition bin_to_bl :: "nat \<Rightarrow> int \<Rightarrow> bool list" where
+definition bin_to_bl :: "nat \<Rightarrow> int \<Rightarrow> bool list"
+where
   bin_to_bl_def : "bin_to_bl n w = bin_to_bl_aux n w []"
 
-primrec bl_of_nth :: "nat \<Rightarrow> (nat \<Rightarrow> bool) \<Rightarrow> bool list" where
+primrec bl_of_nth :: "nat \<Rightarrow> (nat \<Rightarrow> bool) \<Rightarrow> bool list"
+where
   Suc: "bl_of_nth (Suc n) f = f n # bl_of_nth n f"
   | Z: "bl_of_nth 0 f = []"
 
-primrec takefill :: "'a \<Rightarrow> nat \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+primrec takefill :: "'a \<Rightarrow> nat \<Rightarrow> 'a list \<Rightarrow> 'a list"
+where
   Z: "takefill fill 0 xs = []"
   | Suc: "takefill fill (Suc n) xs = (
       case xs of [] => fill # takefill fill n xs
@@ -65,21 +71,25 @@ text {*
   assuming input list(s) the same length, and don't extend them. 
 *}
 
-primrec rbl_succ :: "bool list => bool list" where
+primrec rbl_succ :: "bool list => bool list"
+where
   Nil: "rbl_succ Nil = Nil"
   | Cons: "rbl_succ (x # xs) = (if x then False # rbl_succ xs else True # xs)"
 
-primrec rbl_pred :: "bool list => bool list" where
+primrec rbl_pred :: "bool list => bool list"
+where
   Nil: "rbl_pred Nil = Nil"
   | Cons: "rbl_pred (x # xs) = (if x then False # xs else True # rbl_pred xs)"
 
-primrec rbl_add :: "bool list => bool list => bool list" where
+primrec rbl_add :: "bool list => bool list => bool list"
+where
   -- "result is length of first arg, second arg may be longer"
   Nil: "rbl_add Nil x = Nil"
   | Cons: "rbl_add (y # ys) x = (let ws = rbl_add ys (tl x) in 
     (y ~= hd x) # (if hd x & y then rbl_succ ws else ws))"
 
-primrec rbl_mult :: "bool list => bool list => bool list" where
+primrec rbl_mult :: "bool list => bool list => bool list"
+where
   -- "result is length of first arg, second arg may be longer"
   Nil: "rbl_mult Nil x = Nil"
   | Cons: "rbl_mult (y # ys) x = (let ws = False # rbl_mult ys x in 
@@ -106,7 +116,7 @@ lemma bin_to_bl_aux_one_minus_simp [simp]:
 
 lemma bin_to_bl_aux_Bit_minus_simp [simp]:
   "0 < n ==> bin_to_bl_aux n (w BIT b) bl = 
-    bin_to_bl_aux (n - 1) w ((b = 1) # bl)"
+    bin_to_bl_aux (n - 1) w (b # bl)"
   by (cases n) auto
 
 lemma bin_to_bl_aux_Bit0_minus_simp [simp]:
@@ -253,8 +263,7 @@ lemma bl_sbin_sign_aux:
   apply (induct n arbitrary: w bs)
    apply clarsimp
    apply (cases w rule: bin_exhaust)
-   apply (simp split add : bit.split)
-  apply clarsimp
+   apply simp
   done
     
 lemma bl_sbin_sign: 
@@ -317,7 +326,6 @@ lemma bl_to_bin_lt2p_aux:
   apply (induct bs arbitrary: w)
    apply clarsimp
   apply clarsimp
-  apply safe
   apply (drule meta_spec, erule xtrans(8) [rotated], simp add: Bit_def)+
   done
 
@@ -334,9 +342,9 @@ lemma bl_to_bin_ge2p_aux:
   apply (induct bs arbitrary: w)
    apply clarsimp
   apply clarsimp
-  apply safe
    apply (drule meta_spec, erule order_trans [rotated],
           simp add: Bit_B0_2t Bit_B1_2t algebra_simps)+
+   apply (simp add: Bit_def)
   done
 
 lemma bl_to_bin_ge0: "bl_to_bin bs >= 0"
@@ -422,15 +430,15 @@ lemma hd_butlast: "size xs > 1 ==> hd (butlast xs) = hd xs"
   by (cases xs) auto
 
 lemma last_bin_last': 
-  "size xs > 0 \<Longrightarrow> last xs = (bin_last (bl_to_bin_aux xs w) = 1)" 
+  "size xs > 0 \<Longrightarrow> last xs \<longleftrightarrow> bin_last (bl_to_bin_aux xs w)" 
   by (induct xs arbitrary: w) auto
 
 lemma last_bin_last: 
-  "size xs > 0 ==> last xs = (bin_last (bl_to_bin xs) = 1)" 
+  "size xs > 0 ==> last xs \<longleftrightarrow> bin_last (bl_to_bin xs)" 
   unfolding bl_to_bin_def by (erule last_bin_last')
   
 lemma bin_last_last: 
-  "bin_last w = (if last (bin_to_bl (Suc n) w) then 1 else 0)" 
+  "bin_last w \<longleftrightarrow> last (bin_to_bl (Suc n) w)" 
   apply (unfold bin_to_bl_def)
   apply simp
   apply (auto simp add: bin_to_bl_aux_alt)
@@ -447,7 +455,7 @@ lemma bl_xor_aux_bin:
   apply (case_tac w rule: bin_exhaust)
   apply clarsimp
   apply (case_tac b)
-  apply (case_tac ba, safe, simp_all)+
+  apply auto
   done
 
 lemma bl_or_aux_bin:
@@ -458,8 +466,6 @@ lemma bl_or_aux_bin:
   apply (case_tac v rule: bin_exhaust)
   apply (case_tac w rule: bin_exhaust)
   apply clarsimp
-  apply (case_tac b)
-  apply (case_tac ba, safe, simp_all)+
   done
     
 lemma bl_and_aux_bin:
@@ -846,7 +852,7 @@ lemma rbl_mult_gt:
 lemmas rbl_mult_Suc = lessI [THEN rbl_mult_gt]
 
 lemma rbbl_Cons: 
-  "b # rev (bin_to_bl n x) = rev (bin_to_bl (Suc n) (x BIT If b 1 0))"
+  "b # rev (bin_to_bl n x) = rev (bin_to_bl (Suc n) (x BIT b))"
   apply (unfold bin_to_bl_def)
   apply simp
   apply (simp add: bin_to_bl_aux_alt)

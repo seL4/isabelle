@@ -35,7 +35,8 @@ lemma uint_idem:
   shows "uint w mod 2 ^ len_of TYPE('a) = uint w"
   using uint_nonnegative uint_bounded by (rule mod_pos_pos_trivial)
 
-definition word_of_int :: "int \<Rightarrow> 'a\<Colon>len0 word" where
+definition word_of_int :: "int \<Rightarrow> 'a\<Colon>len0 word"
+where
   -- {* representation of words using unsigned or signed bins, 
         only difference in these is the type class *}
   "word_of_int k = Abs_word (k mod 2 ^ len_of TYPE('a))" 
@@ -72,7 +73,8 @@ declare uint_word_of_int [code abstract]
 instantiation word :: (len0) equal
 begin
 
-definition equal_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> bool" where
+definition equal_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> bool"
+where
   "equal_word k l \<longleftrightarrow> HOL.equal (uint k) (uint l)"
 
 instance proof
@@ -101,31 +103,39 @@ no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
 subsection {* Type conversions and casting *}
 
-definition sint :: "'a :: len word => int" where
+definition sint :: "'a :: len word => int"
+where
   -- {* treats the most-significant-bit as a sign bit *}
   sint_uint: "sint w = sbintrunc (len_of TYPE ('a) - 1) (uint w)"
 
-definition unat :: "'a :: len0 word => nat" where
+definition unat :: "'a :: len0 word => nat"
+where
   "unat w = nat (uint w)"
 
-definition uints :: "nat => int set" where
+definition uints :: "nat => int set"
+where
   -- "the sets of integers representing the words"
   "uints n = range (bintrunc n)"
 
-definition sints :: "nat => int set" where
+definition sints :: "nat => int set"
+where
   "sints n = range (sbintrunc (n - 1))"
 
-definition unats :: "nat => nat set" where
+definition unats :: "nat => nat set"
+where
   "unats n = {i. i < 2 ^ n}"
 
-definition norm_sint :: "nat => int => int" where
+definition norm_sint :: "nat => int => int"
+where
   "norm_sint n w = (w + 2 ^ (n - 1)) mod 2 ^ n - 2 ^ (n - 1)"
 
-definition scast :: "'a :: len word => 'b :: len word" where
+definition scast :: "'a :: len word => 'b :: len word"
+where
   -- "cast a word to a different length"
   "scast w = word_of_int (sint w)"
 
-definition ucast :: "'a :: len0 word => 'b :: len0 word" where
+definition ucast :: "'a :: len0 word => 'b :: len0 word"
+where
   "ucast w = word_of_int (uint w)"
 
 instantiation word :: (len0) size
@@ -138,29 +148,37 @@ instance ..
 
 end
 
-definition source_size :: "('a :: len0 word => 'b) => nat" where
+definition source_size :: "('a :: len0 word => 'b) => nat"
+where
   -- "whether a cast (or other) function is to a longer or shorter length"
   "source_size c = (let arb = undefined ; x = c arb in size arb)"  
 
-definition target_size :: "('a => 'b :: len0 word) => nat" where
+definition target_size :: "('a => 'b :: len0 word) => nat"
+where
   "target_size c = size (c undefined)"
 
-definition is_up :: "('a :: len0 word => 'b :: len0 word) => bool" where
+definition is_up :: "('a :: len0 word => 'b :: len0 word) => bool"
+where
   "is_up c \<longleftrightarrow> source_size c <= target_size c"
 
-definition is_down :: "('a :: len0 word => 'b :: len0 word) => bool" where
+definition is_down :: "('a :: len0 word => 'b :: len0 word) => bool"
+where
   "is_down c \<longleftrightarrow> target_size c <= source_size c"
 
-definition of_bl :: "bool list => 'a :: len0 word" where
+definition of_bl :: "bool list => 'a :: len0 word"
+where
   "of_bl bl = word_of_int (bl_to_bin bl)"
 
-definition to_bl :: "'a :: len0 word => bool list" where
+definition to_bl :: "'a :: len0 word => bool list"
+where
   "to_bl w = bin_to_bl (len_of TYPE ('a)) (uint w)"
 
-definition word_reverse :: "'a :: len0 word => 'a word" where
+definition word_reverse :: "'a :: len0 word => 'a word"
+where
   "word_reverse w = of_bl (rev (to_bl w))"
 
-definition word_int_case :: "(int => 'b) => ('a :: len0 word) => 'b" where
+definition word_int_case :: "(int => 'b) => ('a :: len0 word) => 'b" 
+where
   "word_int_case f w = f (uint w)"
 
 translations
@@ -232,7 +250,8 @@ qed
 subsection {* Correspondence relation for theorem transfer *}
 
 definition cr_word :: "int \<Rightarrow> 'a::len0 word \<Rightarrow> bool"
-  where "cr_word \<equiv> (\<lambda>x y. word_of_int x = y)"
+where
+  "cr_word = (\<lambda>x y. word_of_int x = y)"
 
 lemma Quotient_word:
   "Quotient (\<lambda>x y. bintrunc (len_of TYPE('a)) x = bintrunc (len_of TYPE('a)) y)
@@ -341,7 +360,8 @@ lemma word_of_int: "of_int = word_of_int"
   apply (simp add: word_of_nat wi_hom_sub)
   done
 
-definition udvd :: "'a::len word => 'a::len word => bool" (infixl "udvd" 50) where
+definition udvd :: "'a::len word => 'a::len word => bool" (infixl "udvd" 50)
+where
   "a udvd b = (EX n>=0. uint b = n * uint a)"
 
 
@@ -361,10 +381,12 @@ instance
 
 end
 
-definition word_sle :: "'a :: len word => 'a word => bool" ("(_/ <=s _)" [50, 51] 50) where
+definition word_sle :: "'a :: len word => 'a word => bool" ("(_/ <=s _)" [50, 51] 50)
+where
   "a <=s b = (sint a <= sint b)"
 
-definition word_sless :: "'a :: len word => 'a word => bool" ("(_/ <s _)" [50, 51] 50) where
+definition word_sless :: "'a :: len word => 'a word => bool" ("(_/ <s _)" [50, 51] 50)
+where
   "(x <s y) = (x <=s y & x ~= y)"
 
 
@@ -390,18 +412,20 @@ definition
 
 definition
   word_set_bit_def: "set_bit a n x =
-   word_of_int (bin_sc n (If x 1 0) (uint a))"
+   word_of_int (bin_sc n x (uint a))"
 
 definition
   word_set_bits_def: "(BITS n. f n) = of_bl (bl_of_nth (len_of TYPE ('a)) f)"
 
 definition
-  word_lsb_def: "lsb a \<longleftrightarrow> bin_last (uint a) = 1"
+  word_lsb_def: "lsb a \<longleftrightarrow> bin_last (uint a)"
 
-definition shiftl1 :: "'a word \<Rightarrow> 'a word" where
-  "shiftl1 w = word_of_int (uint w BIT 0)"
+definition shiftl1 :: "'a word \<Rightarrow> 'a word"
+where
+  "shiftl1 w = word_of_int (uint w BIT False)"
 
-definition shiftr1 :: "'a word \<Rightarrow> 'a word" where
+definition shiftr1 :: "'a word \<Rightarrow> 'a word"
+where
   -- "shift right as unsigned or as signed, ie logical or arithmetic"
   "shiftr1 w = word_of_int (bin_rest (uint w))"
 
@@ -434,76 +458,95 @@ instance ..
 
 end
 
-definition setBit :: "'a :: len0 word => nat => 'a word" where 
+definition setBit :: "'a :: len0 word => nat => 'a word"
+where 
   "setBit w n = set_bit w n True"
 
-definition clearBit :: "'a :: len0 word => nat => 'a word" where
+definition clearBit :: "'a :: len0 word => nat => 'a word"
+where
   "clearBit w n = set_bit w n False"
 
 
 subsection "Shift operations"
 
-definition sshiftr1 :: "'a :: len word => 'a word" where 
+definition sshiftr1 :: "'a :: len word => 'a word"
+where 
   "sshiftr1 w = word_of_int (bin_rest (sint w))"
 
-definition bshiftr1 :: "bool => 'a :: len word => 'a word" where
+definition bshiftr1 :: "bool => 'a :: len word => 'a word"
+where
   "bshiftr1 b w = of_bl (b # butlast (to_bl w))"
 
-definition sshiftr :: "'a :: len word => nat => 'a word" (infixl ">>>" 55) where
+definition sshiftr :: "'a :: len word => nat => 'a word" (infixl ">>>" 55)
+where
   "w >>> n = (sshiftr1 ^^ n) w"
 
-definition mask :: "nat => 'a::len word" where
+definition mask :: "nat => 'a::len word"
+where
   "mask n = (1 << n) - 1"
 
-definition revcast :: "'a :: len0 word => 'b :: len0 word" where
+definition revcast :: "'a :: len0 word => 'b :: len0 word"
+where
   "revcast w =  of_bl (takefill False (len_of TYPE('b)) (to_bl w))"
 
-definition slice1 :: "nat => 'a :: len0 word => 'b :: len0 word" where
+definition slice1 :: "nat => 'a :: len0 word => 'b :: len0 word"
+where
   "slice1 n w = of_bl (takefill False n (to_bl w))"
 
-definition slice :: "nat => 'a :: len0 word => 'b :: len0 word" where
+definition slice :: "nat => 'a :: len0 word => 'b :: len0 word"
+where
   "slice n w = slice1 (size w - n) w"
 
 
 subsection "Rotation"
 
-definition rotater1 :: "'a list => 'a list" where
+definition rotater1 :: "'a list => 'a list"
+where
   "rotater1 ys = 
     (case ys of [] => [] | x # xs => last ys # butlast ys)"
 
-definition rotater :: "nat => 'a list => 'a list" where
+definition rotater :: "nat => 'a list => 'a list"
+where
   "rotater n = rotater1 ^^ n"
 
-definition word_rotr :: "nat => 'a :: len0 word => 'a :: len0 word" where
+definition word_rotr :: "nat => 'a :: len0 word => 'a :: len0 word"
+where
   "word_rotr n w = of_bl (rotater n (to_bl w))"
 
-definition word_rotl :: "nat => 'a :: len0 word => 'a :: len0 word" where
+definition word_rotl :: "nat => 'a :: len0 word => 'a :: len0 word"
+where
   "word_rotl n w = of_bl (rotate n (to_bl w))"
 
-definition word_roti :: "int => 'a :: len0 word => 'a :: len0 word" where
+definition word_roti :: "int => 'a :: len0 word => 'a :: len0 word"
+where
   "word_roti i w = (if i >= 0 then word_rotr (nat i) w
                     else word_rotl (nat (- i)) w)"
 
 
 subsection "Split and cat operations"
 
-definition word_cat :: "'a :: len0 word => 'b :: len0 word => 'c :: len0 word" where
+definition word_cat :: "'a :: len0 word => 'b :: len0 word => 'c :: len0 word"
+where
   "word_cat a b = word_of_int (bin_cat (uint a) (len_of TYPE ('b)) (uint b))"
 
-definition word_split :: "'a :: len0 word => ('b :: len0 word) * ('c :: len0 word)" where
+definition word_split :: "'a :: len0 word => ('b :: len0 word) * ('c :: len0 word)"
+where
   "word_split a = 
    (case bin_split (len_of TYPE ('c)) (uint a) of 
      (u, v) => (word_of_int u, word_of_int v))"
 
-definition word_rcat :: "'a :: len0 word list => 'b :: len0 word" where
+definition word_rcat :: "'a :: len0 word list => 'b :: len0 word"
+where
   "word_rcat ws = 
   word_of_int (bin_rcat (len_of TYPE ('a)) (map uint ws))"
 
-definition word_rsplit :: "'a :: len0 word => 'b :: len word list" where
+definition word_rsplit :: "'a :: len0 word => 'b :: len word list"
+where
   "word_rsplit w = 
   map word_of_int (bin_rsplit (len_of TYPE ('b)) (len_of TYPE ('a), uint w))"
 
-definition max_word :: "'a::len word" -- "Largest representable machine integer." where
+definition max_word :: "'a::len word" -- "Largest representable machine integer."
+where
   "max_word = word_of_int (2 ^ len_of TYPE('a) - 1)"
 
 (* FIXME: only provide one theorem name *)
@@ -2524,15 +2567,15 @@ lemma nth_sint:
   by (clarsimp simp add: nth_sbintr word_test_bit_def [symmetric])
 
 lemma word_lsb_numeral [simp]:
-  "lsb (numeral bin :: 'a :: len word) = (bin_last (numeral bin) = 1)"
+  "lsb (numeral bin :: 'a :: len word) \<longleftrightarrow> bin_last (numeral bin)"
   unfolding word_lsb_alt test_bit_numeral by simp
 
 lemma word_lsb_neg_numeral [simp]:
-  "lsb (- numeral bin :: 'a :: len word) = (bin_last (- numeral bin) = 1)"
+  "lsb (- numeral bin :: 'a :: len word) \<longleftrightarrow> bin_last (- numeral bin)"
   unfolding word_lsb_alt test_bit_neg_numeral by simp
 
 lemma set_bit_word_of_int:
-  "set_bit (word_of_int x) n b = word_of_int (bin_sc n (if b then 1 else 0) x)"
+  "set_bit (word_of_int x) n b = word_of_int (bin_sc n b x)"
   unfolding word_set_bit_def
   apply (rule word_eqI)
   apply (simp add: word_size bin_nth_sc_gen word_ubin.eq_norm nth_bintr)
@@ -2540,28 +2583,28 @@ lemma set_bit_word_of_int:
 
 lemma word_set_numeral [simp]:
   "set_bit (numeral bin::'a::len0 word) n b = 
-    word_of_int (bin_sc n (if b then 1 else 0) (numeral bin))"
+    word_of_int (bin_sc n b (numeral bin))"
   unfolding word_numeral_alt by (rule set_bit_word_of_int)
 
 lemma word_set_neg_numeral [simp]:
   "set_bit (- numeral bin::'a::len0 word) n b = 
-    word_of_int (bin_sc n (if b then 1 else 0) (- numeral bin))"
+    word_of_int (bin_sc n b (- numeral bin))"
   unfolding word_neg_numeral_alt by (rule set_bit_word_of_int)
 
 lemma word_set_bit_0 [simp]:
-  "set_bit 0 n b = word_of_int (bin_sc n (if b then 1 else 0) 0)"
+  "set_bit 0 n b = word_of_int (bin_sc n b 0)"
   unfolding word_0_wi by (rule set_bit_word_of_int)
 
 lemma word_set_bit_1 [simp]:
-  "set_bit 1 n b = word_of_int (bin_sc n (if b then 1 else 0) 1)"
+  "set_bit 1 n b = word_of_int (bin_sc n b 1)"
   unfolding word_1_wi by (rule set_bit_word_of_int)
 
 lemma setBit_no [simp]:
-  "setBit (numeral bin) n = word_of_int (bin_sc n 1 (numeral bin))"
+  "setBit (numeral bin) n = word_of_int (bin_sc n True (numeral bin))"
   by (simp add: setBit_def)
 
 lemma clearBit_no [simp]:
-  "clearBit (numeral bin) n = word_of_int (bin_sc n 0 (numeral bin))"
+  "clearBit (numeral bin) n = word_of_int (bin_sc n False (numeral bin))"
   by (simp add: clearBit_def)
 
 lemma to_bl_n1: 
@@ -2645,7 +2688,6 @@ lemma word_clr_le:
   fixes w :: "'a::len0 word"
   shows "w >= set_bit w n False"
   apply (unfold word_set_bit_def word_le_def word_ubin.eq_norm)
-  apply simp
   apply (rule order_trans)
    apply (rule bintr_bin_clr_le)
   apply simp
@@ -2655,7 +2697,6 @@ lemma word_set_ge:
   fixes w :: "'a::len word"
   shows "w <= set_bit w n True"
   apply (unfold word_set_bit_def word_le_def word_ubin.eq_norm)
-  apply simp
   apply (rule order_trans [OF _ bintr_bin_set_ge])
   apply simp
   done
@@ -2663,7 +2704,7 @@ lemma word_set_ge:
 
 subsection {* Shifting, Rotating, and Splitting Words *}
 
-lemma shiftl1_wi [simp]: "shiftl1 (word_of_int w) = word_of_int (w BIT 0)"
+lemma shiftl1_wi [simp]: "shiftl1 (word_of_int w) = word_of_int (w BIT False)"
   unfolding shiftl1_def
   apply (simp add: word_ubin.norm_eq_iff [symmetric] word_ubin.eq_norm)
   apply (subst refl [THEN bintrunc_BIT_I, symmetric])
@@ -2682,10 +2723,10 @@ lemma shiftl1_neg_numeral [simp]:
 lemma shiftl1_0 [simp] : "shiftl1 0 = 0"
   unfolding shiftl1_def by simp
 
-lemma shiftl1_def_u: "shiftl1 w = word_of_int (uint w BIT 0)"
+lemma shiftl1_def_u: "shiftl1 w = word_of_int (uint w BIT False)"
   by (simp only: shiftl1_def) (* FIXME: duplicate *)
 
-lemma shiftl1_def_s: "shiftl1 w = word_of_int (sint w BIT 0)"
+lemma shiftl1_def_s: "shiftl1 w = word_of_int (sint w BIT False)"
   unfolding shiftl1_def Bit_B0 wi_hom_syms by simp
 
 lemma shiftr1_0 [simp]: "shiftr1 0 = 0"
@@ -3969,9 +4010,6 @@ lemmas rotater_add = rotater_eqs (2)
 
 subsubsection "map, map2, commuting with rotate(r)"
 
-lemma last_map: "xs ~= [] \<Longrightarrow> last (map f xs) = f (last xs)"
-  by (induct xs) auto
-
 lemma butlast_map:
   "xs ~= [] \<Longrightarrow> butlast (map f xs) = map f (butlast xs)"
   by (induct xs) auto
@@ -4538,7 +4576,8 @@ lemma word_induct2 [induct type]:
 
 subsection {* Recursion combinator for words *}
 
-definition word_rec :: "'a \<Rightarrow> ('b::len word \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'b word \<Rightarrow> 'a" where
+definition word_rec :: "'a \<Rightarrow> ('b::len word \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'b word \<Rightarrow> 'a"
+where
   "word_rec forZero forSuc n = nat_rec forZero (forSuc \<circ> of_nat) (unat n)"
 
 lemma word_rec_0: "word_rec z s 0 = z"

@@ -20,10 +20,10 @@ proof (induct x arbitrary: y rule: bin_induct)
   proof (cases y rule: bin_exhaust)
     case (1 bin' bit')
     from 3 have "0 \<le> bin"
-      by (simp add: Bit_def bitval_def split add: bit.split_asm)
+      by (cases bit) (simp_all add: Bit_def)
     then have "0 \<le> bin AND bin'" by (rule 3)
     with 1 show ?thesis
-      by simp (simp add: Bit_def bitval_def split add: bit.split)
+      by simp (simp add: Bit_def)
   qed
 next
   case 2
@@ -41,12 +41,12 @@ proof (induct x arbitrary: y rule: bin_induct)
   proof (cases y rule: bin_exhaust)
     case (1 bin' bit')
     from 3 have "0 \<le> bin"
-      by (simp add: Bit_def bitval_def split add: bit.split_asm)
+      by (cases bit) (simp_all add: Bit_def)
     moreover from 1 3 have "0 \<le> bin'"
-      by (simp add: Bit_def bitval_def split add: bit.split_asm)
+      by (cases bit') (simp_all add: Bit_def)
     ultimately have "0 \<le> bin OR bin'" by (rule 3)
     with 1 show ?thesis
-      by simp (simp add: Bit_def bitval_def split add: bit.split)
+      by simp (simp add: Bit_def)
   qed
 qed simp_all
 
@@ -61,12 +61,12 @@ proof (induct x arbitrary: y rule: bin_induct)
   proof (cases y rule: bin_exhaust)
     case (1 bin' bit')
     from 3 have "0 \<le> bin"
-      by (simp add: Bit_def bitval_def split add: bit.split_asm)
+      by (cases bit) (simp_all add: Bit_def)
     moreover from 1 3 have "0 \<le> bin'"
-      by (simp add: Bit_def bitval_def split add: bit.split_asm)
+      by (cases bit') (simp_all add: Bit_def)
     ultimately have "0 \<le> bin XOR bin'" by (rule 3)
     with 1 show ?thesis
-      by simp (simp add: Bit_def bitval_def split add: bit.split)
+      by simp (simp add: Bit_def)
   qed
 next
   case 2
@@ -84,10 +84,10 @@ proof (induct x arbitrary: y rule: bin_induct)
   proof (cases y rule: bin_exhaust)
     case (1 bin' bit')
     from 3 have "0 \<le> bin"
-      by (simp add: Bit_def bitval_def split add: bit.split_asm)
+      by (cases bit) (simp_all add: Bit_def)
     then have "bin AND bin' \<le> bin" by (rule 3)
     with 1 show ?thesis
-      by simp (simp add: Bit_def bitval_def split add: bit.split)
+      by simp (simp add: Bit_def)
   qed
 next
   case 2
@@ -108,10 +108,10 @@ proof (induct y arbitrary: x rule: bin_induct)
   proof (cases x rule: bin_exhaust)
     case (1 bin' bit')
     from 3 have "0 \<le> bin"
-      by (simp add: Bit_def bitval_def split add: bit.split_asm)
+      by (cases bit) (simp_all add: Bit_def)
     then have "bin' AND bin \<le> bin" by (rule 3)
     with 1 show ?thesis
-      by simp (simp add: Bit_def bitval_def split add: bit.split)
+      by simp (simp add: Bit_def)
   qed
 next
   case 2
@@ -135,21 +135,21 @@ proof (induct x arbitrary: y n rule: bin_induct)
     proof (cases n)
       case 0
       with 3 have "bin BIT bit = 0" by simp
-      then have "bin = 0" "bit = 0"
-        by (auto simp add: Bit_def bitval_def split add: bit.split_asm) arith
+      then have "bin = 0" and "\<not> bit"
+        by (auto simp add: Bit_def split: if_splits) arith
       then show ?thesis using 0 1 `y < 2 ^ n`
         by simp
     next
       case (Suc m)
       from 3 have "0 \<le> bin"
-        by (simp add: Bit_def bitval_def split add: bit.split_asm)
+        by (cases bit) (simp_all add: Bit_def)
       moreover from 3 Suc have "bin < 2 ^ m"
-        by (simp add: Bit_def bitval_def split add: bit.split_asm)
+        by (cases bit) (simp_all add: Bit_def)
       moreover from 1 3 Suc have "bin' < 2 ^ m"
-        by (simp add: Bit_def bitval_def split add: bit.split_asm)
+        by (cases bit') (simp_all add: Bit_def)
       ultimately have "bin OR bin' < 2 ^ m" by (rule 3)
       with 1 Suc show ?thesis
-        by simp (simp add: Bit_def bitval_def split add: bit.split)
+        by simp (simp add: Bit_def)
     qed
   qed
 qed simp_all
@@ -168,21 +168,21 @@ proof (induct x arbitrary: y n rule: bin_induct)
     proof (cases n)
       case 0
       with 3 have "bin BIT bit = 0" by simp
-      then have "bin = 0" "bit = 0"
-        by (auto simp add: Bit_def bitval_def split add: bit.split_asm) arith
+      then have "bin = 0" and "\<not> bit"
+        by (auto simp add: Bit_def split: if_splits) arith
       then show ?thesis using 0 1 `y < 2 ^ n`
         by simp
     next
       case (Suc m)
       from 3 have "0 \<le> bin"
-        by (simp add: Bit_def bitval_def split add: bit.split_asm)
+        by (cases bit) (simp_all add: Bit_def)
       moreover from 3 Suc have "bin < 2 ^ m"
-        by (simp add: Bit_def bitval_def split add: bit.split_asm)
+        by (cases bit) (simp_all add: Bit_def)
       moreover from 1 3 Suc have "bin' < 2 ^ m"
-        by (simp add: Bit_def bitval_def split add: bit.split_asm)
+        by (cases bit') (simp_all add: Bit_def)
       ultimately have "bin XOR bin' < 2 ^ m" by (rule 3)
       with 1 Suc show ?thesis
-        by simp (simp add: Bit_def bitval_def split add: bit.split)
+        by simp (simp add: Bit_def)
     qed
   qed
 next
