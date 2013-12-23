@@ -4010,9 +4010,6 @@ lemmas rotater_add = rotater_eqs (2)
 
 subsubsection "map, map2, commuting with rotate(r)"
 
-lemma last_map: "xs ~= [] \<Longrightarrow> last (map f xs) = f (last xs)"
-  by (induct xs) auto
-
 lemma butlast_map:
   "xs ~= [] \<Longrightarrow> butlast (map f xs) = map f (butlast xs)"
   by (induct xs) auto
