@@ -327,7 +327,7 @@ qed
 
 lemma pCons_induct [case_names 0 pCons, induct type: poly]:
   assumes zero: "P 0"
-  assumes pCons: "\<And>a p. P p \<Longrightarrow> P (pCons a p)"
+  assumes pCons: "\<And>a p. a \<noteq> 0 \<or> p \<noteq> 0 \<Longrightarrow> P p \<Longrightarrow> P (pCons a p)"
   shows "P p"
 proof (induct p rule: measure_induct_rule [where f=degree])
   case (less p)
@@ -345,8 +345,14 @@ proof (induct p rule: measure_induct_rule [where f=degree])
     then show "P q"
       by (rule less.hyps)
   qed
-  then have "P (pCons a q)"
-    by (rule pCons)
+  have "P (pCons a q)"
+  proof (cases "a \<noteq> 0 \<or> q \<noteq> 0")
+    case True
+    with `P q` show ?thesis by (auto intro: pCons)
+  next
+    case False
+    with zero show ?thesis by simp
+  qed
   then show ?case
     using `p = pCons a q` by simp
 qed
@@ -412,7 +418,7 @@ lemma not_0_cCons_eq [simp]:
 
 lemma Poly_coeffs [simp, code abstype]:
   "Poly (coeffs p) = p"
-  by (induct p) (simp_all add: cCons_def)
+  by (induct p) auto
 
 lemma coeffs_Poly [simp]:
   "coeffs (Poly as) = strip_while (HOL.eq 0) as"
@@ -778,7 +784,7 @@ lemma coeffs_uminus [code abstract]:
 lemma [code]:
   fixes p q :: "'a::ab_group_add poly"
   shows "p - q = p + - q"
-  by simp
+  by (fact ab_add_uminus_conv_diff)
 
 lemma poly_add [simp]: "poly (p + q) x = poly p x + poly q x"
   apply (induct p arbitrary: q, simp)
