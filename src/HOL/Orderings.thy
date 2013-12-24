@@ -1155,7 +1155,7 @@ end
 lemma min_absorb1: "x \<le> y \<Longrightarrow> min x y = x"
 by (simp add: min_def)
 
-lemma max_absorb2: "x \<le> y ==> max x y = y"
+lemma max_absorb2: "x \<le> y \<Longrightarrow> max x y = y"
 by (simp add: max_def)
 
 lemma min_absorb2: "(y\<Colon>'a\<Colon>order) \<le> x \<Longrightarrow> min x y = y"

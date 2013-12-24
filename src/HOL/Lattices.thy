@@ -190,7 +190,7 @@ lemma le_infI2:
   by (rule order_trans) auto
 
 lemma le_infI: "x \<sqsubseteq> a \<Longrightarrow> x \<sqsubseteq> b \<Longrightarrow> x \<sqsubseteq> a \<sqinter> b"
-  by (rule inf_greatest) (* FIXME: duplicate lemma *)
+  by (fact inf_greatest) (* FIXME: duplicate lemma *)
 
 lemma le_infE: "x \<sqsubseteq> a \<sqinter> b \<Longrightarrow> (x \<sqsubseteq> a \<Longrightarrow> x \<sqsubseteq> b \<Longrightarrow> P) \<Longrightarrow> P"
   by (blast intro: order_trans inf_le1 inf_le2)
@@ -226,7 +226,7 @@ lemma le_supI2:
 
 lemma le_supI:
   "a \<sqsubseteq> x \<Longrightarrow> b \<sqsubseteq> x \<Longrightarrow> a \<squnion> b \<sqsubseteq> x"
-  by (rule sup_least) (* FIXME: duplicate lemma *)
+  by (fact sup_least) (* FIXME: duplicate lemma *)
 
 lemma le_supE:
   "a \<squnion> b \<sqsubseteq> x \<Longrightarrow> (a \<sqsubseteq> x \<Longrightarrow> b \<sqsubseteq> x \<Longrightarrow> P) \<Longrightarrow> P"
@@ -856,16 +856,16 @@ lemma inf2E: "(A \<sqinter> B) x y \<Longrightarrow> (A x y \<Longrightarrow> B 
   by (simp add: inf_fun_def)
 
 lemma inf1D1: "(A \<sqinter> B) x \<Longrightarrow> A x"
-  by (simp add: inf_fun_def)
+  by (rule inf1E)
 
 lemma inf2D1: "(A \<sqinter> B) x y \<Longrightarrow> A x y"
-  by (simp add: inf_fun_def)
+  by (rule inf2E)
 
 lemma inf1D2: "(A \<sqinter> B) x \<Longrightarrow> B x"
-  by (simp add: inf_fun_def)
+  by (rule inf1E)
 
 lemma inf2D2: "(A \<sqinter> B) x y \<Longrightarrow> B x y"
-  by (simp add: inf_fun_def)
+  by (rule inf2E)
 
 lemma sup1I1: "A x \<Longrightarrow> (A \<squnion> B) x"
   by (simp add: sup_fun_def)

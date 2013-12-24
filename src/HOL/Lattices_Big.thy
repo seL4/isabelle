@@ -373,12 +373,8 @@ qed
 
 lemmas le_maxI1 = min_max.sup_ge1
 lemmas le_maxI2 = min_max.sup_ge2
- 
-lemmas min_ac = min_max.inf_assoc min_max.inf_commute
-  min.left_commute
-
-lemmas max_ac = min_max.sup_assoc min_max.sup_commute
-  max.left_commute
+lemmas min_ac = min.assoc min_max.inf_commute min.left_commute
+lemmas max_ac = min_max.sup_assoc min_max.sup_commute max.left_commute
 
 end
 
