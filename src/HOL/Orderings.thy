@@ -342,47 +342,6 @@ lemma dual_linorder:
   "class.linorder (op \<ge>) (op >)"
 by (rule class.linorder.intro, rule dual_order) (unfold_locales, rule linear)
 
-
-text {* min/max *}
-
-definition (in ord) min :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-  "min a b = (if a \<le> b then a else b)"
-
-definition (in ord) max :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-  "max a b = (if a \<le> b then b else a)"
-
-lemma min_le_iff_disj:
-  "min x y \<le> z \<longleftrightarrow> x \<le> z \<or> y \<le> z"
-unfolding min_def using linear by (auto intro: order_trans)
-
-lemma le_max_iff_disj:
-  "z \<le> max x y \<longleftrightarrow> z \<le> x \<or> z \<le> y"
-unfolding max_def using linear by (auto intro: order_trans)
-
-lemma min_less_iff_disj:
-  "min x y < z \<longleftrightarrow> x < z \<or> y < z"
-unfolding min_def le_less using less_linear by (auto intro: less_trans)
-
-lemma less_max_iff_disj:
-  "z < max x y \<longleftrightarrow> z < x \<or> z < y"
-unfolding max_def le_less using less_linear by (auto intro: less_trans)
-
-lemma min_less_iff_conj [simp]:
-  "z < min x y \<longleftrightarrow> z < x \<and> z < y"
-unfolding min_def le_less using less_linear by (auto intro: less_trans)
-
-lemma max_less_iff_conj [simp]:
-  "max x y < z \<longleftrightarrow> x < z \<and> y < z"
-unfolding max_def le_less using less_linear by (auto intro: less_trans)
-
-lemma split_min [no_atp]:
-  "P (min i j) \<longleftrightarrow> (i \<le> j \<longrightarrow> P i) \<and> (\<not> i \<le> j \<longrightarrow> P j)"
-by (simp add: min_def)
-
-lemma split_max [no_atp]:
-  "P (max i j) \<longleftrightarrow> (i \<le> j \<longrightarrow> P j) \<and> (\<not> i \<le> j \<longrightarrow> P i)"
-by (simp add: max_def)
-
 end
 
 
@@ -1028,7 +987,7 @@ qed
 *)
 
 
-subsection {* Monotonicity, least value operator and min/max *}
+subsection {* Monotonicity *}
 
 context order
 begin
@@ -1139,6 +1098,52 @@ lemma strict_mono_less:
   shows "f x < f y \<longleftrightarrow> x < y"
   using assms
     by (auto simp add: less_le Orderings.less_le strict_mono_eq strict_mono_less_eq)
+
+end
+
+
+subsection {* min and max *}
+
+definition (in ord) min :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+  "min a b = (if a \<le> b then a else b)"
+
+definition (in ord) max :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+  "max a b = (if a \<le> b then b else a)"
+
+context linorder
+begin
+
+lemma min_le_iff_disj:
+  "min x y \<le> z \<longleftrightarrow> x \<le> z \<or> y \<le> z"
+unfolding min_def using linear by (auto intro: order_trans)
+
+lemma le_max_iff_disj:
+  "z \<le> max x y \<longleftrightarrow> z \<le> x \<or> z \<le> y"
+unfolding max_def using linear by (auto intro: order_trans)
+
+lemma min_less_iff_disj:
+  "min x y < z \<longleftrightarrow> x < z \<or> y < z"
+unfolding min_def le_less using less_linear by (auto intro: less_trans)
+
+lemma less_max_iff_disj:
+  "z < max x y \<longleftrightarrow> z < x \<or> z < y"
+unfolding max_def le_less using less_linear by (auto intro: less_trans)
+
+lemma min_less_iff_conj [simp]:
+  "z < min x y \<longleftrightarrow> z < x \<and> z < y"
+unfolding min_def le_less using less_linear by (auto intro: less_trans)
+
+lemma max_less_iff_conj [simp]:
+  "max x y < z \<longleftrightarrow> x < z \<and> y < z"
+unfolding max_def le_less using less_linear by (auto intro: less_trans)
+
+lemma split_min [no_atp]:
+  "P (min i j) \<longleftrightarrow> (i \<le> j \<longrightarrow> P i) \<and> (\<not> i \<le> j \<longrightarrow> P j)"
+by (simp add: min_def)
+
+lemma split_max [no_atp]:
+  "P (max i j) \<longleftrightarrow> (i \<le> j \<longrightarrow> P j) \<and> (\<not> i \<le> j \<longrightarrow> P i)"
+by (simp add: max_def)
 
 lemma min_of_mono:
   fixes f :: "'a \<Rightarrow> 'b\<Colon>linorder"
@@ -1503,7 +1508,7 @@ lemma le_funE: "f \<le> g \<Longrightarrow> (f x \<le> g x \<Longrightarrow> P) 
   unfolding le_fun_def by simp
 
 lemma le_funD: "f \<le> g \<Longrightarrow> f x \<le> g x"
-  unfolding le_fun_def by simp
+  by (rule le_funE)
 
 
 subsection {* Order on unary and binary predicates *}
