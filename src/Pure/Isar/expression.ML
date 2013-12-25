@@ -869,9 +869,6 @@ fun generic_interpretation prep_expr prep_prop prep_attr setup_proof note activa
 
 (* various flavours of interpretation *)
 
-fun assert_not_theory lthy = if Named_Target.is_theory lthy
-  then error "Not possible on level of global theory" else ();
-
 fun gen_interpret prep_expr prep_prop prep_attr expression raw_eqns int state =
   let
     val _ = Proof.assert_forward_or_chain state;
@@ -897,7 +894,8 @@ fun gen_interpretation prep_expr prep_prop prep_attr expression raw_eqns lthy =
 
 fun gen_sublocale prep_expr prep_prop prep_attr expression raw_eqns lthy =
   let
-    val _ = assert_not_theory lthy;
+    val _ = if Named_Target.is_theory lthy
+      then error "Not possible on level of global theory" else ();
     val locale = Named_Target.the_name lthy;
   in
     lthy
@@ -931,13 +929,9 @@ fun permanent_interpretation expression raw_eqns lthy =
   end;
 
 fun ephemeral_interpretation expression raw_eqns lthy =
-  let
-    val _ = assert_not_theory lthy;
-  in
-    lthy
-    |> generic_interpretation cert_goal_expression (K I) (K I) Element.witness_proof_eqs
-        Local_Theory.notes_kind Local_Theory.activate expression raw_eqns
-  end;
+  lthy
+  |> generic_interpretation cert_goal_expression (K I) (K I) Element.witness_proof_eqs
+      Local_Theory.notes_kind Local_Theory.activate expression raw_eqns
 
 fun interpret x = gen_interpret cert_goal_expression (K I) (K I) x;
 fun interpret_cmd x =
