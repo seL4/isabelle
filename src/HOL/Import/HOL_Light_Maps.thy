@@ -175,11 +175,11 @@ lemma DEF_GT[import_const ">" : "Orderings.ord_class.greater"]:
 
 lemma DEF_MAX[import_const "MAX"]:
   "max = (\<lambda>x y :: nat. if x \<le> y then y else x)"
-  by (auto simp add: min_max.le_iff_sup fun_eq_iff)
+  by (auto simp add: max.absorb_iff2 fun_eq_iff)
 
 lemma DEF_MIN[import_const "MIN"]:
   "min = (\<lambda>x y :: nat. if x \<le> y then x else y)"
-  by (auto simp add: min_max.le_iff_inf fun_eq_iff)
+  by (auto simp add: min.absorb_iff1 fun_eq_iff)
 
 lemma EVEN[import_const "EVEN" : "Parity.even_odd_class.even"]:
   "even (id 0\<Colon>nat) = True \<and> (\<forall>n. even (Suc n) = (\<not> even n))"

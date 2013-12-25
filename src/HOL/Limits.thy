@@ -125,7 +125,7 @@ lemma Bseq_def: "Bseq X \<longleftrightarrow> (\<exists>K>0. \<forall>n. norm (X
 proof safe
   fix N K assume "0 < K" "\<forall>n\<ge>N. norm (X n) \<le> K"
   then show "\<exists>K>0. \<forall>n. norm (X n) \<le> K"
-    by (intro exI[of _ "max (Max (norm ` X ` {..N})) K"] min_max.less_supI2)
+    by (intro exI[of _ "max (Max (norm ` X ` {..N})) K"] max.strict_coboundedI2)
        (auto intro!: imageI not_less[where 'a=nat, THEN iffD1] Max_ge simp: le_max_iff_disj)
 qed auto
 

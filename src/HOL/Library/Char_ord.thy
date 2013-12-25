@@ -32,7 +32,7 @@ definition
   "(sup \<Colon> nibble \<Rightarrow> _) = max"
 
 instance proof
-qed (auto simp add: inf_nibble_def sup_nibble_def min_max.sup_inf_distrib1)
+qed (auto simp add: inf_nibble_def sup_nibble_def max_min_distrib2)
 
 end
 
@@ -90,7 +90,7 @@ definition
   "(sup \<Colon> char \<Rightarrow> _) = max"
 
 instance proof
-qed (auto simp add: inf_char_def sup_char_def min_max.sup_inf_distrib1)
+qed (auto simp add: inf_char_def sup_char_def max_min_distrib2)
 
 end
 

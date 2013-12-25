@@ -569,13 +569,13 @@ lemma bintr_uint:
   shows "len_of TYPE('a) \<le> n \<Longrightarrow> bintrunc n (uint w) = uint w"
   apply (subst word_ubin.norm_Rep [symmetric]) 
   apply (simp only: bintrunc_bintrunc_min word_size)
-  apply (simp add: min_max.inf_absorb2)
+  apply (simp add: min.absorb2)
   done
 
 lemma wi_bintr:
   "len_of TYPE('a::len0) \<le> n \<Longrightarrow>
     word_of_int (bintrunc n w) = (word_of_int w :: 'a word)"
-  by (clarsimp simp add: word_ubin.norm_eq_iff [symmetric] min_max.inf_absorb1)
+  by (clarsimp simp add: word_ubin.norm_eq_iff [symmetric] min.absorb1)
 
 lemma td_ext_sbin: 
   "td_ext (sint :: 'a word => int) word_of_int (sints (len_of TYPE('a::len))) 
@@ -3692,7 +3692,7 @@ lemma word_cat_hom:
   word_of_int (bin_cat w (size b) (uint b))"
   apply (unfold word_cat_def word_size) 
   apply (clarsimp simp add: word_ubin.norm_eq_iff [symmetric]
-      word_ubin.eq_norm bintr_cat min_max.inf_absorb1)
+      word_ubin.eq_norm bintr_cat min.absorb1)
   done
 
 lemma word_cat_split_alt:

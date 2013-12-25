@@ -48,19 +48,19 @@ next
 next
   case (IfTrue b s c1)
   hence "max (sec b) l \<turnstile> c1" by auto
-  hence "l \<turnstile> c1" by (metis le_maxI2 anti_mono)
+  hence "l \<turnstile> c1" by (metis max.cobounded2 anti_mono)
   thus ?case using IfTrue.IH by metis
 next
   case (IfFalse b s c2)
   hence "max (sec b) l \<turnstile> c2" by auto
-  hence "l \<turnstile> c2" by (metis le_maxI2 anti_mono)
+  hence "l \<turnstile> c2" by (metis max.cobounded2 anti_mono)
   thus ?case using IfFalse.IH by metis
 next
   case WhileFalse thus ?case by auto
 next
   case (WhileTrue b s1 c)
   hence "max (sec b) l \<turnstile> c" by auto
-  hence "l \<turnstile> c" by (metis le_maxI2 anti_mono)
+  hence "l \<turnstile> c" by (metis max.cobounded2 anti_mono)
   thus ?case using WhileTrue by metis
 qed
 
@@ -200,8 +200,8 @@ apply(induction rule: sec_type.induct)
 apply (metis Skip')
 apply (metis Assign')
 apply (metis Seq')
-apply (metis min_max.inf_sup_ord(3) min_max.sup_absorb2 nat_le_linear If' anti_mono')
-by (metis less_or_eq_imp_le min_max.sup_absorb1 min_max.sup_absorb2 nat_le_linear While' anti_mono')
+apply (metis min_max.inf_sup_ord(3) max.absorb2 nat_le_linear If' anti_mono')
+by (metis less_or_eq_imp_le max.absorb1 max.absorb2 nat_le_linear While' anti_mono')
 
 
 lemma sec_type'_sec_type: "l \<turnstile>' c \<Longrightarrow> l \<turnstile> c"
@@ -209,8 +209,8 @@ apply(induction rule: sec_type'.induct)
 apply (metis Skip)
 apply (metis Assign)
 apply (metis Seq)
-apply (metis min_max.sup_absorb2 If)
-apply (metis min_max.sup_absorb2 While)
+apply (metis max.absorb2 If)
+apply (metis max.absorb2 While)
 by (metis anti_mono)
 
 subsection "A Bottom-Up Typing System"
@@ -233,15 +233,15 @@ lemma sec_type2_sec_type': "\<turnstile> c : l \<Longrightarrow> l \<turnstile>'
 apply(induction rule: sec_type2.induct)
 apply (metis Skip')
 apply (metis Assign' eq_imp_le)
-apply (metis Seq' anti_mono' min_max.inf_le1 min_max.inf_le2)
-apply (metis If' anti_mono' min_max.inf_absorb2 min_max.le_iff_inf nat_le_linear)
+apply (metis Seq' anti_mono' min.cobounded1 min.cobounded2)
+apply (metis If' anti_mono' min.absorb2 min.absorb_iff1 nat_le_linear)
 by (metis While')
 
 lemma sec_type'_sec_type2: "l \<turnstile>' c \<Longrightarrow> \<exists> l' \<ge> l. \<turnstile> c : l'"
 apply(induction rule: sec_type'.induct)
 apply (metis Skip2 le_refl)
 apply (metis Assign2)
-apply (metis Seq2 min_max.inf_greatest)
+apply (metis Seq2 min.boundedI)
 apply (metis If2 inf_greatest inf_nat_def le_trans)
 apply (metis While2 le_trans)
 by (metis le_trans)

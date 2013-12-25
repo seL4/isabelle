@@ -324,7 +324,7 @@ proof -
         using `incseq F1` `incseq F2` unfolding incseq_def
         by (force split: split_max)+
       then have "(fst x, snd x) \<in> F1 (max i j) \<times> F2 (max i j)"
-        by (intro SigmaI) (auto simp add: min_max.sup_commute)
+        by (intro SigmaI) (auto simp add: max.commute)
       then show "x \<in> (\<Union>i. ?F i)" by auto
     qed
     then show "(\<Union>i. ?F i) = space M1 \<times> space M2"

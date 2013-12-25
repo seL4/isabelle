@@ -65,7 +65,7 @@ done
 lemma "mk_total_program (UNIV, {range(%t.(t, max (ftime t) (gtime t)))}, UNIV)
        \<in> {m} co (maxfg m)"
 apply (simp add: mk_total_program_def) 
-apply (simp add: constrains_def maxfg_def gasc min_max.sup_absorb2)
+apply (simp add: constrains_def maxfg_def gasc max.absorb2)
 done
 
 (*This one is  t := t+1 if t <max (ftime t) (gtime t) *)
@@ -73,7 +73,7 @@ lemma  "mk_total_program
           (UNIV, { {(t, Suc t) | t. t < max (ftime t) (gtime t)} }, UNIV)   
        \<in> {m} co (maxfg m)"
 apply (simp add: mk_total_program_def) 
-apply (simp add: constrains_def maxfg_def gasc min_max.sup_absorb2)
+apply (simp add: constrains_def maxfg_def gasc max.absorb2)
 done
 
 

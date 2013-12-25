@@ -459,7 +459,7 @@ lemmas evaln_nonstrict_Suc = evaln_nonstrict [OF _ le_refl [THEN le_SucI]]
 
 lemma evaln_max2: "\<lbrakk>G\<turnstile>s1 \<midarrow>t1\<succ>\<midarrow>n1\<rightarrow> (w1, s1'); G\<turnstile>s2 \<midarrow>t2\<succ>\<midarrow>n2\<rightarrow> (w2, s2')\<rbrakk> \<Longrightarrow> 
              G\<turnstile>s1 \<midarrow>t1\<succ>\<midarrow>max n1 n2\<rightarrow> (w1, s1') \<and> G\<turnstile>s2 \<midarrow>t2\<succ>\<midarrow>max n1 n2\<rightarrow> (w2, s2')"
-by (fast intro: le_maxI1 le_maxI2)
+by (fast intro: max.cobounded1 max.cobounded2)
 
 corollary evaln_max2E [consumes 2]:
   "\<lbrakk>G\<turnstile>s1 \<midarrow>t1\<succ>\<midarrow>n1\<rightarrow> (w1, s1'); G\<turnstile>s2 \<midarrow>t2\<succ>\<midarrow>n2\<rightarrow> (w2, s2'); 
@@ -473,7 +473,7 @@ lemma evaln_max3:
  G\<turnstile>s2 \<midarrow>t2\<succ>\<midarrow>max (max n1 n2) n3\<rightarrow> (w2, s2') \<and> 
  G\<turnstile>s3 \<midarrow>t3\<succ>\<midarrow>max (max n1 n2) n3\<rightarrow> (w3, s3')"
 apply (drule (1) evaln_max2, erule thin_rl)
-apply (fast intro!: le_maxI1 le_maxI2)
+apply (fast intro!: max.cobounded1 max.cobounded2)
 done
 
 corollary evaln_max3E: 
@@ -489,10 +489,10 @@ by (drule (2) evaln_max3) simp
 lemma le_max3I1: "(n2::nat) \<le> max n1 (max n2 n3)"
 proof -
   have "n2 \<le> max n2 n3"
-    by (rule le_maxI1)
+    by (rule max.cobounded1)
   also
   have "max n2 n3 \<le> max n1 (max n2 n3)"
-    by (rule le_maxI2)
+    by (rule max.cobounded2)
   finally
   show ?thesis .
 qed
@@ -500,10 +500,10 @@ qed
 lemma le_max3I2: "(n3::nat) \<le> max n1 (max n2 n3)"
 proof -
   have "n3 \<le> max n2 n3"
-    by (rule le_maxI2)
+    by (rule max.cobounded2)
   also
   have "max n2 n3 \<le> max n1 (max n2 n3)"
-    by (rule le_maxI2)
+    by (rule max.cobounded2)
   finally
   show ?thesis .
 qed
@@ -568,13 +568,13 @@ next
         then (G\<turnstile>s1 \<midarrow>c\<midarrow>n2\<rightarrow> s2 \<and> 
               G\<turnstile>(abupd (absorb (Cont l)) s2)\<midarrow>l\<bullet> While(e) c\<midarrow>n2\<rightarrow> s3)
         else s3 = s1"
-    by simp (iprover intro: evaln_nonstrict le_maxI1 le_maxI2)
+    by simp (iprover intro: evaln_nonstrict max.cobounded1 max.cobounded2)
   ultimately
   have "G\<turnstile>Norm s0 \<midarrow>l\<bullet> While(e) c\<midarrow>max n1 n2\<rightarrow> s3"
     apply -
     apply (rule evaln.Loop)
-    apply   (iprover intro: evaln_nonstrict intro: le_maxI1)
-    apply   (auto intro: evaln_nonstrict intro: le_maxI2)
+    apply   (iprover intro: evaln_nonstrict intro: max.cobounded1)
+    apply   (auto intro: evaln_nonstrict intro: max.cobounded2)
     done
   then show ?case ..
 next
@@ -603,7 +603,7 @@ next
     by fastforce 
   ultimately
   have "G\<turnstile>Norm s0 \<midarrow>Try c1 Catch(catchC vn) c2\<midarrow>max n1 n2\<rightarrow> s3"
-    by (auto intro!: evaln.Try le_maxI1 le_maxI2)
+    by (auto intro!: evaln.Try max.cobounded1 max.cobounded2)
   then show ?case ..
 next
   case (Fin s0 c1 x1 s1 c2 s2 s3)
@@ -629,7 +629,7 @@ next
               \<midarrow>(if C = Object then Skip else Init (super c))\<midarrow>n\<rightarrow> s1 \<and>
                    G\<turnstile>set_lvars empty s1 \<midarrow>init c\<midarrow>n\<rightarrow> s2 \<and> 
                    s3 = restore_lvars s1 s2)"
-    by (auto intro: evaln_nonstrict le_maxI1 le_maxI2)
+    by (auto intro: evaln_nonstrict max.cobounded1 max.cobounded2)
   ultimately have "G\<turnstile>Norm s0 \<midarrow>Init C\<midarrow>n\<rightarrow> s3"
     by (rule evaln.Init)
   then show ?case ..
@@ -755,7 +755,7 @@ next
   ultimately
   have "G\<turnstile>Norm s0 \<midarrow>{accC',statT,mode}e\<cdot>mn( {pTs'}args)-\<succ>v\<midarrow>max n1 (max n2 m)\<rightarrow> 
             (set_lvars (locals (store s2))) s4"
-    by (auto intro!: evaln.Call le_maxI1 le_max3I1 le_max3I2)
+    by (auto intro!: evaln.Call max.cobounded1 le_max3I1 le_max3I2)
   thus ?case ..
 next
   case (Methd s0 D sig v s1)

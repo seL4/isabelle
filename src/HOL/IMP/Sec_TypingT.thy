@@ -41,12 +41,12 @@ next
 next
   case (IfTrue b s c1)
   hence "max (sec b) l \<turnstile> c1" by auto
-  hence "l \<turnstile> c1" by (metis le_maxI2 anti_mono)
+  hence "l \<turnstile> c1" by (metis max.cobounded2 anti_mono)
   thus ?case using IfTrue.IH by metis
 next
   case (IfFalse b s c2)
   hence "max (sec b) l \<turnstile> c2" by auto
-  hence "l \<turnstile> c2" by (metis le_maxI2 anti_mono)
+  hence "l \<turnstile> c2" by (metis max.cobounded2 anti_mono)
   thus ?case using IfFalse.IH by metis
 next
   case WhileFalse thus ?case by auto
@@ -61,7 +61,7 @@ apply(induction arbitrary: s rule: sec_type.induct)
 apply (metis big_step.Skip)
 apply (metis big_step.Assign)
 apply (metis big_step.Seq)
-apply (metis IfFalse IfTrue le0 le_antisym le_maxI2)
+apply (metis IfFalse IfTrue le0 le_antisym max.cobounded2)
 apply simp
 done
 
@@ -190,7 +190,7 @@ apply(induction rule: sec_type.induct)
 apply (metis Skip')
 apply (metis Assign')
 apply (metis Seq')
-apply (metis min_max.inf_sup_ord(3) min_max.sup_absorb2 nat_le_linear If' anti_mono')
+apply (metis min_max.inf_sup_ord(3) max.absorb2 nat_le_linear If' anti_mono')
 by (metis While')
 
 
@@ -200,7 +200,7 @@ apply(induction rule: sec_type'.induct)
 apply (metis Skip)
 apply (metis Assign)
 apply (metis Seq)
-apply (metis min_max.sup_absorb2 If)
+apply (metis max.absorb2 If)
 apply (metis While)
 by (metis anti_mono)
 

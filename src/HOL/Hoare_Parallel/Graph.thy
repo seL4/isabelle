@@ -182,7 +182,7 @@ done
 
 subsubsection{* Graph 3 *}
 
-declare min_max.inf_absorb1 [simp] min_max.inf_absorb2 [simp]
+declare min.absorb1 [simp] min.absorb2 [simp]
 
 lemma Graph3: 
   "\<lbrakk> T\<in>Reach E; R<length E \<rbrakk> \<Longrightarrow> Reach(E[R:=(fst(E!R),T)]) \<subseteq> Reach E"
@@ -304,7 +304,7 @@ apply(case_tac "length path")
 apply force
 done
 
-declare min_max.inf_absorb1 [simp del] min_max.inf_absorb2 [simp del]
+declare min.absorb1 [simp del] min.absorb2 [simp del]
 
 subsubsection {* Graph 5 *}
 

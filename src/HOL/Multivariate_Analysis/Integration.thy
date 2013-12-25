@@ -2723,7 +2723,7 @@ proof -
     show ?case
       apply (rule_tac x="max B1 B2" in exI)
       apply rule
-      apply (rule min_max.less_supI1)
+      apply (rule max.strict_coboundedI1)
       apply (rule B1)
       apply rule
       apply rule
@@ -9576,7 +9576,7 @@ proof -
     show ?case
       apply (rule_tac x="max B1 B2" in exI)
       apply safe
-      apply (rule min_max.less_supI1)
+      apply (rule max.strict_coboundedI1)
       apply (rule B1)
     proof -
       fix a b c d :: 'n

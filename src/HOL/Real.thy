@@ -632,7 +632,7 @@ definition
   "(sup :: real \<Rightarrow> real \<Rightarrow> real) = max"
 
 instance proof
-qed (auto simp add: inf_real_def sup_real_def min_max.sup_inf_distrib1)
+qed (auto simp add: inf_real_def sup_real_def max_min_distrib2)
 
 end
 

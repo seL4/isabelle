@@ -20,7 +20,7 @@ lemmas rev_min_pm1 [simp] = trans [OF add_commute rev_min_pm]
 
 lemma min_minus [simp] : "min m (m - k) = (m - k :: nat)" by arith
   
-lemmas min_minus' [simp] = trans [OF min_max.inf_commute min_minus]
+lemmas min_minus' [simp] = trans [OF min.commute min_minus]
 
 lemma mod_2_neq_1_eq_eq_0:
   fixes k :: int

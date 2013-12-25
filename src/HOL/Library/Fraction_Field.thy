@@ -424,7 +424,7 @@ definition sup_fract_def:
 instance
   by intro_classes
     (auto simp add: abs_fract_def sgn_fract_def
-      min_max.sup_inf_distrib1 inf_fract_def sup_fract_def)
+      max_min_distrib2 inf_fract_def sup_fract_def)
 
 end
 

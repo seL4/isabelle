@@ -1622,7 +1622,7 @@ next
         then have "range f = {0}"
           by auto
         with True show "c * SUPR UNIV f \<le> y"
-          using * by (auto simp: SUP_def min_max.sup_absorb1)
+          using * by (auto simp: SUP_def max.absorb1)
       next
         case False
         then obtain i where "f i \<noteq> 0"
@@ -1779,7 +1779,7 @@ proof (rule antisym)
   proof (cases a)
     case PInf with `A \<noteq> {}`
     show ?thesis
-      by (auto simp: image_constant min_max.sup_absorb1)
+      by (auto simp: image_constant max.absorb1)
   next
     case (real r)
     then have **: "op + (- a) ` op + a ` A = A"

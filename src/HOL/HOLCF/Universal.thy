@@ -802,7 +802,7 @@ proof
       by (simp add: approximants_def approx_below)
     moreover from x y have "x \<sqsubseteq> ?z \<and> y \<sqsubseteq> ?z"
       by (simp add: approximants_def compact_le_def)
-         (metis i j monofun_cfun chain_mono chain_approx le_maxI1 le_maxI2)
+         (metis i j monofun_cfun chain_mono chain_approx max.cobounded1 max.cobounded2)
     ultimately show "\<exists>z \<in> approximants w. x \<sqsubseteq> z \<and> y \<sqsubseteq> z" ..
   next
     fix x y :: "'a compact_basis"

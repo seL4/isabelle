@@ -118,8 +118,8 @@ proof (rule below_antisym)
     apply (rule lub_below [OF 2])
     apply (rule below_lub [OF 3])
     apply (rule below_trans)
-    apply (rule chain_mono [OF 1 le_maxI1])
-    apply (rule chain_mono [OF 2 le_maxI2])
+    apply (rule chain_mono [OF 1 max.cobounded1])
+    apply (rule chain_mono [OF 2 max.cobounded2])
     done
   show "(\<Squnion>i. Y i i) \<sqsubseteq> (\<Squnion>i. \<Squnion>j. Y i j)"
     apply (rule lub_mono [OF 3 4])

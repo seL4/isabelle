@@ -371,10 +371,10 @@ proof -
     by (simp only: min_max.Sup_fin_def Max_def)
 qed
 
-lemmas le_maxI1 = min_max.sup_ge1
-lemmas le_maxI2 = min_max.sup_ge2
-lemmas min_ac = min.assoc min_max.inf_commute min.left_commute
-lemmas max_ac = min_max.sup_assoc min_max.sup_commute max.left_commute
+lemmas le_maxI1 = max.cobounded1
+lemmas le_maxI2 = max.cobounded2
+lemmas min_ac = min.assoc min.commute min.left_commute
+lemmas max_ac = max.assoc max.commute max.left_commute
 
 end
 

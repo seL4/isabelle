@@ -55,7 +55,7 @@ definition
   "(sup :: 'a \<times> 'b \<Rightarrow> _ \<Rightarrow> _) = max"
 
 instance
-  by default (auto simp add: inf_prod_def sup_prod_def min_max.sup_inf_distrib1)
+  by default (auto simp add: inf_prod_def sup_prod_def max_min_distrib2)
 
 end
 

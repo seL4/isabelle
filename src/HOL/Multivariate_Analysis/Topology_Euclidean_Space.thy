@@ -2527,7 +2527,7 @@ lemma bounded_Un[simp]: "bounded (S \<union> T) \<longleftrightarrow> bounded S 
   apply (drule (1) bspec)
   apply simp
   apply (drule (1) bspec)
-  apply (rule min_max.le_supI2)
+  apply (rule max.coboundedI2)
   apply (erule order_trans [OF dist_triangle add_left_mono])
   done
 

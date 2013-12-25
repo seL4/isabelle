@@ -379,7 +379,7 @@ proof (cases s)
   with Pair 
   have "?app s \<Longrightarrow> ?P s" by (simp only:)
   moreover
-  have "?P s \<Longrightarrow> ?app s" by (clarsimp simp add: min_max.inf_absorb2)
+  have "?P s \<Longrightarrow> ?app s" by (clarsimp simp add: min.absorb2)
   ultimately
   show ?thesis by (rule iffI) 
 qed 

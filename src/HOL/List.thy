@@ -2065,13 +2065,13 @@ done
 
 lemma butlast_take:
   "n <= length xs ==> butlast (take n xs) = take (n - 1) xs"
-by (simp add: butlast_conv_take min_max.inf_absorb1 min_max.inf_absorb2)
+by (simp add: butlast_conv_take min.absorb1 min.absorb2)
 
 lemma butlast_drop: "butlast (drop n xs) = drop n (butlast xs)"
 by (simp add: butlast_conv_take drop_take add_ac)
 
 lemma take_butlast: "n < length xs ==> take n (butlast xs) = take n xs"
-by (simp add: butlast_conv_take min_max.inf_absorb1)
+by (simp add: butlast_conv_take min.absorb1)
 
 lemma drop_butlast: "drop n (butlast xs) = butlast (drop n xs)"
 by (simp add: butlast_conv_take drop_take add_ac)

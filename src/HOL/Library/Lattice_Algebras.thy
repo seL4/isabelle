@@ -384,7 +384,7 @@ lemma sup_eq_if:
 proof -
   note add_le_cancel_right [of a a "- a", symmetric, simplified]
   moreover note add_le_cancel_right [of "-a" a a, symmetric, simplified]
-  then show ?thesis by (auto simp: sup_max min_max.sup_absorb1 min_max.sup_absorb2)
+  then show ?thesis by (auto simp: sup_max max.absorb1 max.absorb2)
 qed
 
 lemma abs_if_lattice:

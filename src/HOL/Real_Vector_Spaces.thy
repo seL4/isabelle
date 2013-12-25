@@ -1097,12 +1097,12 @@ proof -
   show ?thesis
   proof (intro exI impI conjI allI)
     show "0 < max 1 K"
-      by (rule order_less_le_trans [OF zero_less_one le_maxI1])
+      by (rule order_less_le_trans [OF zero_less_one max.cobounded1])
   next
     fix x
     have "norm (f x) \<le> norm x * K" using K .
     also have "\<dots> \<le> norm x * max 1 K"
-      by (rule mult_left_mono [OF le_maxI2 norm_ge_zero])
+      by (rule mult_left_mono [OF max.cobounded2 norm_ge_zero])
     finally show "norm (f x) \<le> norm x * max 1 K" .
   qed
 qed
@@ -1138,9 +1138,9 @@ lemma pos_bounded:
   "\<exists>K>0. \<forall>a b. norm (a ** b) \<le> norm a * norm b * K"
 apply (cut_tac bounded, erule exE)
 apply (rule_tac x="max 1 K" in exI, safe)
-apply (rule order_less_le_trans [OF zero_less_one le_maxI1])
+apply (rule order_less_le_trans [OF zero_less_one max.cobounded1])
 apply (drule spec, drule spec, erule order_trans)
-apply (rule mult_left_mono [OF le_maxI2])
+apply (rule mult_left_mono [OF max.cobounded2])
 apply (intro mult_nonneg_nonneg norm_ge_zero)
 done
 

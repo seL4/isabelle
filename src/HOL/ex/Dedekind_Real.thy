@@ -220,7 +220,7 @@ definition
 
 instance
   by intro_classes
-    (auto simp add: inf_preal_def sup_preal_def min_max.sup_inf_distrib1)
+    (auto simp add: inf_preal_def sup_preal_def max_min_distrib2)
 
 end
 
@@ -1555,7 +1555,7 @@ definition
   "(sup \<Colon> real \<Rightarrow> real \<Rightarrow> real) = max"
 
 instance
-  by default (auto simp add: inf_real_def sup_real_def min_max.sup_inf_distrib1)
+  by default (auto simp add: inf_real_def sup_real_def max_min_distrib2)
 
 end
 

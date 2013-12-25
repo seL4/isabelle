@@ -795,7 +795,7 @@ proof -
 
     { fix z
       from F(4)[of z] have "F i z \<le> ereal (f z)"
-        by (metis SUP_upper UNIV_I ereal_max_0 min_max.sup_absorb2 nonneg)
+        by (metis SUP_upper UNIV_I ereal_max_0 max.absorb2 nonneg)
       with F(5)[of i z] have "real (F i z) \<le> f z"
         by (cases "F i z") simp_all }
     note F_bound = this

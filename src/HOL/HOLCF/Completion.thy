@@ -62,8 +62,8 @@ lemma ideal_UN:
  apply (rule idealI)
    apply (cut_tac idealD1 [OF ideal_A], fast)
   apply (clarify, rename_tac i j)
-  apply (drule subsetD [OF chain_A [OF le_maxI1]])
-  apply (drule subsetD [OF chain_A [OF le_maxI2]])
+  apply (drule subsetD [OF chain_A [OF max.cobounded1]])
+  apply (drule subsetD [OF chain_A [OF max.cobounded2]])
   apply (drule (1) idealD2 [OF ideal_A])
   apply blast
  apply clarify

@@ -187,7 +187,7 @@ definition
 
 instance
   by default
-     (auto simp add: inf_int_def sup_int_def min_max.sup_inf_distrib1)
+     (auto simp add: inf_int_def sup_int_def max_min_distrib2)
 
 end
 

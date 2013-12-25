@@ -41,7 +41,7 @@ lemma nat_of_le_len_of [simp]:
 
 lemma min_len_of_nat_of [simp]:
   "min (len_of TYPE('a)) (nat_of (n::('a::len) sat)) = nat_of n"
-  by (rule min_max.inf_absorb2 [OF nat_of_le_len_of])
+  by (rule min.absorb2 [OF nat_of_le_len_of])
 
 lemma min_nat_of_len_of [simp]:
   "min (nat_of (n::('a::len) sat)) (len_of TYPE('a)) = nat_of n"
@@ -61,7 +61,7 @@ definition
   less_sat_def: "x < y \<longleftrightarrow> nat_of x < nat_of y"
 
 instance
-by default (auto simp add: less_eq_sat_def less_sat_def not_le sat_eq_iff min_max.le_infI1 nat_mult_commute)
+by default (auto simp add: less_eq_sat_def less_sat_def not_le sat_eq_iff min.coboundedI1 nat_mult_commute)
 
 end
 
@@ -117,14 +117,14 @@ instance proof
       case True thus ?thesis by (simp add: sat_eq_iff)
     next
       case False with `a \<noteq> 0` show ?thesis
-        by (simp add: sat_eq_iff nat_mult_min_left nat_mult_min_right mult_assoc min_max.inf_assoc min_max.inf_absorb2)
+        by (simp add: sat_eq_iff nat_mult_min_left nat_mult_min_right mult_assoc min.assoc min.absorb2)
     qed
   qed
 next
   fix a :: "('a::len) sat"
   show "1 * a = a"
     apply (simp add: sat_eq_iff)
-    apply (metis One_nat_def len_gt_0 less_Suc0 less_zeroE linorder_not_less min_max.le_iff_inf min_nat_of_len_of nat_mult_1_right nat_mult_commute)
+    apply (metis One_nat_def len_gt_0 less_Suc0 less_zeroE linorder_not_less min.absorb_iff1 min_nat_of_len_of nat_mult_1_right nat_mult_commute)
     done
 next
   fix a b c :: "('a::len) sat"
@@ -133,7 +133,7 @@ next
     case True thus ?thesis by (simp add: sat_eq_iff)
   next
     case False thus ?thesis
-      by (simp add: sat_eq_iff nat_mult_min_left add_mult_distrib min_add_distrib_left min_add_distrib_right min_max.inf_assoc min_max.inf_absorb2)
+      by (simp add: sat_eq_iff nat_mult_min_left add_mult_distrib min_add_distrib_left min_add_distrib_right min.assoc min.absorb2)
   qed
 qed (simp_all add: sat_eq_iff mult.commute)
 
@@ -143,7 +143,7 @@ instantiation sat :: (len) ordered_comm_semiring
 begin
 
 instance
-by default (auto simp add: less_eq_sat_def less_sat_def not_le sat_eq_iff min_max.le_infI1 nat_mult_commute)
+by default (auto simp add: less_eq_sat_def less_sat_def not_le sat_eq_iff min.coboundedI1 nat_mult_commute)
 
 end
 
@@ -202,7 +202,7 @@ definition
   "top = Sat (len_of TYPE('a))"
 
 instance proof
-qed (simp_all add: inf_sat_def sup_sat_def bot_sat_def top_sat_def min_max.sup_inf_distrib1,
+qed (simp_all add: inf_sat_def sup_sat_def bot_sat_def top_sat_def max_min_distrib2,
   simp_all add: less_eq_sat_def)
 
 end
@@ -243,7 +243,7 @@ proof
   note finite
   moreover assume "x \<in> A"
   ultimately show "Inf A \<le> x"
-    by (induct A) (auto intro: min_max.le_infI2)
+    by (induct A) (auto intro: min.coboundedI2)
 next
   fix z :: "'a sat"
   fix A :: "'a sat set"
@@ -256,7 +256,7 @@ next
   note finite
   moreover assume "x \<in> A"
   ultimately show "x \<le> Sup A"
-    by (induct A) (auto intro: min_max.le_supI2)
+    by (induct A) (auto intro: max.coboundedI2)
 next
   fix z :: "'a sat"
   fix A :: "'a sat set"

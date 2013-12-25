@@ -906,7 +906,7 @@ lemma bin_cat_foldl_lem:
   apply (drule meta_spec)
   apply (erule trans)
   apply (drule_tac x = "bin_cat y n a" in meta_spec)
-  apply (simp add : bin_cat_assoc_sym min_max.inf_absorb2)
+  apply (simp add : bin_cat_assoc_sym min.absorb2)
   done
 
 lemma bin_rcat_bl:

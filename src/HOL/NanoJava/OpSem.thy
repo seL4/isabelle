@@ -86,15 +86,15 @@ lemmas eval_mono = exec_eval_mono [THEN conjunct2, rule_format]
 
 lemma exec_exec_max: "\<lbrakk>s1 -c1-    n1   \<rightarrow> t1 ; s2 -c2-       n2\<rightarrow> t2\<rbrakk> \<Longrightarrow> 
                        s1 -c1-max n1 n2\<rightarrow> t1 \<and> s2 -c2-max n1 n2\<rightarrow> t2"
-by (fast intro: exec_mono le_maxI1 le_maxI2)
+by (fast intro: exec_mono max.cobounded1 max.cobounded2)
 
 lemma eval_exec_max: "\<lbrakk>s1 -c-    n1   \<rightarrow> t1 ; s2 -e\<succ>v-       n2\<rightarrow> t2\<rbrakk> \<Longrightarrow> 
                        s1 -c-max n1 n2\<rightarrow> t1 \<and> s2 -e\<succ>v-max n1 n2\<rightarrow> t2"
-by (fast intro: eval_mono exec_mono le_maxI1 le_maxI2)
+by (fast intro: eval_mono exec_mono max.cobounded1 max.cobounded2)
 
 lemma eval_eval_max: "\<lbrakk>s1 -e1\<succ>v1-    n1   \<rightarrow> t1 ; s2 -e2\<succ>v2-       n2\<rightarrow> t2\<rbrakk> \<Longrightarrow> 
                        s1 -e1\<succ>v1-max n1 n2\<rightarrow> t1 \<and> s2 -e2\<succ>v2-max n1 n2\<rightarrow> t2"
-by (fast intro: eval_mono le_maxI1 le_maxI2)
+by (fast intro: eval_mono max.cobounded1 max.cobounded2)
 
 lemma eval_eval_exec_max: 
  "\<lbrakk>s1 -e1\<succ>v1-n1\<rightarrow> t1; s2 -e2\<succ>v2-n2\<rightarrow> t2; s3 -c-n3\<rightarrow> t3\<rbrakk> \<Longrightarrow> 
@@ -102,7 +102,7 @@ lemma eval_eval_exec_max:
    s2 -e2\<succ>v2-max (max n1 n2) n3\<rightarrow> t2 \<and> 
    s3 -c    -max (max n1 n2) n3\<rightarrow> t3"
 apply (drule (1) eval_eval_max, erule thin_rl)
-by (fast intro: exec_mono eval_mono le_maxI1 le_maxI2)
+by (fast intro: exec_mono eval_mono max.cobounded1 max.cobounded2)
 
 lemma Impl_body_eq: "(\<lambda>t. \<exists>n. Z -Impl M-n\<rightarrow> t) = (\<lambda>t. \<exists>n. Z -body M-n\<rightarrow> t)"
 apply (rule ext)

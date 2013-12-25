@@ -171,7 +171,7 @@ lemma bigo_plus_eq: "ALL x. 0 <= f x ==> ALL x. 0 <= g x ==>
   apply (subgoal_tac "c <= max c ca")
   apply (erule order_less_le_trans)
   apply assumption
-  apply (rule le_maxI1)
+  apply (rule max.cobounded1)
   apply clarify
   apply (drule_tac x = "xa" in spec)+
   apply (subgoal_tac "0 <= f xa + g xa")
@@ -184,12 +184,12 @@ lemma bigo_plus_eq: "ALL x. 0 <= f x ==> ALL x. 0 <= g x ==>
   apply (subgoal_tac "c * f xa <= max c ca * f xa")
   apply (force)
   apply (rule mult_right_mono)
-  apply (rule le_maxI1)
+  apply (rule max.cobounded1)
   apply assumption
   apply (subgoal_tac "ca * g xa <= max c ca * g xa")
   apply (force)
   apply (rule mult_right_mono)
-  apply (rule le_maxI2)
+  apply (rule max.cobounded2)
   apply assumption
   apply (rule abs_triangle_ineq)
   apply (rule add_nonneg_nonneg)
@@ -770,7 +770,7 @@ lemma bigo_lesso2: "f =o g +o O(h) ==>
   apply (rule bigo_lesseq4)
   apply (erule set_plus_imp_minus)
   apply (rule allI)
-  apply (rule le_maxI2)
+  apply (rule max.cobounded2)
   apply (rule allI)
   apply (subst fun_diff_def)
   apply (case_tac "0 <= k x - g x")
@@ -794,7 +794,7 @@ lemma bigo_lesso3: "f =o g +o O(h) ==>
   apply (rule bigo_lesseq4)
   apply (erule set_plus_imp_minus)
   apply (rule allI)
-  apply (rule le_maxI2)
+  apply (rule max.cobounded2)
   apply (rule allI)
   apply (subst fun_diff_def)
   apply (case_tac "0 <= f x - k x")
@@ -836,7 +836,7 @@ lemma bigo_lesso5: "f <o g =o O(h) ==>
   apply (subgoal_tac "abs(max (f x - g x) 0) = max (f x - g x) 0")
   apply (clarsimp simp add: algebra_simps) 
   apply (rule abs_of_nonneg)
-  apply (rule le_maxI2)
+  apply (rule max.cobounded2)
   done
 
 lemma lesso_add: "f <o g =o O(h) ==>

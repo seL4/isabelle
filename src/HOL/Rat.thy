@@ -494,7 +494,7 @@ definition
   "(sup :: rat \<Rightarrow> rat \<Rightarrow> rat) = max"
 
 instance proof
-qed (auto simp add: inf_rat_def sup_rat_def min_max.sup_inf_distrib1)
+qed (auto simp add: inf_rat_def sup_rat_def max_min_distrib2)
 
 end
 

@@ -1252,7 +1252,7 @@ next
           h (coeff P p i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) \<oplus>\<^bsub>S\<^esub>
         (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R q} \<union> {deg R q<..max (deg R p) (deg R q)}.
           h (coeff P q i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"
-      by (simp only: ivl_disj_un_one le_maxI1 le_maxI2)
+      by (simp only: ivl_disj_un_one max.cobounded1 max.cobounded2)
     also from R S have "... =
       (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R p}. h (coeff P p i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i) \<oplus>\<^bsub>S\<^esub>
       (\<Oplus>\<^bsub>S\<^esub> i \<in> {..deg R q}. h (coeff P q i) \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> i)"

@@ -273,8 +273,8 @@ apply (rule compactI2)
 apply (erule list_chain_cases)
 apply (auto simp add: lub_Cons dest!: compactD2)
 apply (rename_tac i j, rule_tac x="max i j" in exI)
-apply (drule (1) below_trans [OF _ chain_mono [OF _ le_maxI1]])
-apply (drule (1) below_trans [OF _ chain_mono [OF _ le_maxI2]])
+apply (drule (1) below_trans [OF _ chain_mono [OF _ max.cobounded1]])
+apply (drule (1) below_trans [OF _ chain_mono [OF _ max.cobounded2]])
 apply (erule (1) conjI)
 done
 

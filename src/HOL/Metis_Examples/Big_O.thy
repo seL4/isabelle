@@ -212,8 +212,8 @@ apply (subgoal_tac "0 <= f xa + g xa")
   apply (metis abs_triangle_ineq)
  apply (metis add_nonneg_nonneg)
 apply (rule add_mono)
- apply (metis le_maxI2 linorder_linear min_max.sup_absorb1 mult_right_mono xt1(6))
-by (metis le_maxI2 linorder_not_le mult_le_cancel_right order_trans)
+ apply (metis max.cobounded2 linorder_linear max.absorb1 mult_right_mono xt1(6))
+by (metis max.cobounded2 linorder_not_le mult_le_cancel_right order_trans)
 
 lemma bigo_bounded_alt: "\<forall>x. 0 <= f x \<Longrightarrow> \<forall>x. f x <= c * g x \<Longrightarrow> f : O(g)"
 apply (auto simp add: bigo_def)
@@ -658,7 +658,7 @@ apply (unfold lesso_def)
 apply (subgoal_tac "(\<lambda>x. max (f x - g x) 0) = 0")
  apply (metis bigo_zero)
 by (metis (lifting, no_types) func_zero le_fun_def le_iff_diff_le_0
-      min_max.sup_absorb2 order_eq_iff)
+      max.absorb2 order_eq_iff)
 
 lemma bigo_lesso2: "f =o g +o O(h) \<Longrightarrow>
     \<forall>x. 0 <= k x \<Longrightarrow> \<forall>x. k x <= f x \<Longrightarrow>
@@ -667,15 +667,15 @@ lemma bigo_lesso2: "f =o g +o O(h) \<Longrightarrow>
   apply (rule bigo_lesseq4)
   apply (erule set_plus_imp_minus)
   apply (rule allI)
-  apply (rule le_maxI2)
+  apply (rule max.cobounded2)
   apply (rule allI)
   apply (subst fun_diff_def)
 apply (erule thin_rl)
 (* sledgehammer *)
 apply (case_tac "0 <= k x - g x")
  apply (metis (lifting) abs_le_D1 linorder_linear min_diff_distrib_left
-          min_max.inf_absorb1 min_max.inf_absorb2 min_max.sup_absorb1)
-by (metis abs_ge_zero le_cases min_max.sup_absorb2)
+          min.absorb1 min.absorb2 max.absorb1)
+by (metis abs_ge_zero le_cases max.absorb2)
 
 lemma bigo_lesso3: "f =o g +o O(h) \<Longrightarrow>
     \<forall>x. 0 <= k x \<Longrightarrow> \<forall>x. g x <= k x \<Longrightarrow>
@@ -684,7 +684,7 @@ apply (unfold lesso_def)
 apply (rule bigo_lesseq4)
   apply (erule set_plus_imp_minus)
  apply (rule allI)
- apply (rule le_maxI2)
+ apply (rule max.cobounded2)
 apply (rule allI)
 apply (subst fun_diff_def)
 apply (erule thin_rl)
@@ -695,7 +695,7 @@ apply (case_tac "0 <= f x - k x")
   apply (drule_tac x = x in spec) back
   apply (metis diff_less_0_iff_less linorder_not_le not_leE xt1(12) xt1(6))
  apply (metis add_minus_cancel diff_le_eq le_diff_eq uminus_add_conv_diff)
-by (metis abs_ge_zero linorder_linear min_max.sup_absorb1 min_max.sup_commute)
+by (metis abs_ge_zero linorder_linear max.absorb1 max.commute)
 
 lemma bigo_lesso4:
   "f <o g =o O(k\<Colon>'a=>'b\<Colon>{linordered_field}) \<Longrightarrow>
