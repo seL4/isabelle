@@ -4,7 +4,7 @@ theory RG_Hoare imports RG_Tran begin
 
 subsection {* Proof System for Component Programs *}
 
-declare Un_subset_iff [simp del] le_sup_iff [simp del]
+declare Un_subset_iff [simp del] sup.bounded_iff [simp del]
 
 definition stable :: "'a set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> bool" where  
   "stable \<equiv> \<lambda>f g. (\<forall>x y. x \<in> f \<longrightarrow> (x, y) \<in> g \<longrightarrow> y \<in> f)" 

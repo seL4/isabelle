@@ -98,14 +98,14 @@ lemma boundedE:
   obtains "a \<preceq> b" and "a \<preceq> c"
   using assms by (blast intro: trans cobounded1 cobounded2)
 
-lemma bounded_iff (* [simp] CANDIDATE *):
+lemma bounded_iff [simp]:
   "a \<preceq> b * c \<longleftrightarrow> a \<preceq> b \<and> a \<preceq> c"
   by (blast intro: boundedI elim: boundedE)
 
 lemma strict_boundedE:
   assumes "a \<prec> b * c"
   obtains "a \<prec> b" and "a \<prec> c"
-  using assms by (auto simp add: commute strict_iff_order bounded_iff elim: orderE intro!: that)+
+  using assms by (auto simp add: commute strict_iff_order elim: orderE intro!: that)+
 
 lemma coboundedI1:
   "a \<preceq> c \<Longrightarrow> a * b \<preceq> c"
@@ -128,10 +128,10 @@ lemma mono: "a \<preceq> c \<Longrightarrow> b \<preceq> d \<Longrightarrow> a *
   by (blast intro: boundedI coboundedI1 coboundedI2)
 
 lemma absorb1: "a \<preceq> b \<Longrightarrow> a * b = a"
-  by (rule antisym) (auto simp add: bounded_iff refl)
+  by (rule antisym) (auto simp add: refl)
 
 lemma absorb2: "b \<preceq> a \<Longrightarrow> a * b = b"
-  by (rule antisym) (auto simp add: bounded_iff refl)
+  by (rule antisym) (auto simp add: refl)
 
 lemma absorb_iff1: "a \<preceq> b \<longleftrightarrow> a * b = a"
   using order_iff by auto
@@ -210,13 +210,13 @@ lemma le_infI: "x \<sqsubseteq> a \<Longrightarrow> x \<sqsubseteq> b \<Longrigh
 lemma le_infE: "x \<sqsubseteq> a \<sqinter> b \<Longrightarrow> (x \<sqsubseteq> a \<Longrightarrow> x \<sqsubseteq> b \<Longrightarrow> P) \<Longrightarrow> P"
   by (blast intro: order_trans inf_le1 inf_le2)
 
-lemma le_inf_iff [simp]:
+lemma le_inf_iff:
   "x \<sqsubseteq> y \<sqinter> z \<longleftrightarrow> x \<sqsubseteq> y \<and> x \<sqsubseteq> z"
   by (blast intro: le_infI elim: le_infE)
 
 lemma le_iff_inf:
   "x \<sqsubseteq> y \<longleftrightarrow> x \<sqinter> y = x"
-  by (auto intro: le_infI1 antisym dest: eq_iff [THEN iffD1])
+  by (auto intro: le_infI1 antisym dest: eq_iff [THEN iffD1] simp add: le_inf_iff)
 
 lemma inf_mono: "a \<sqsubseteq> c \<Longrightarrow> b \<sqsubseteq> d \<Longrightarrow> a \<sqinter> b \<sqsubseteq> c \<sqinter> d"
   by (fast intro: inf_greatest le_infI1 le_infI2)
@@ -247,13 +247,13 @@ lemma le_supE:
   "a \<squnion> b \<sqsubseteq> x \<Longrightarrow> (a \<sqsubseteq> x \<Longrightarrow> b \<sqsubseteq> x \<Longrightarrow> P) \<Longrightarrow> P"
   by (blast intro: order_trans sup_ge1 sup_ge2)
 
-lemma le_sup_iff [simp]:
+lemma le_sup_iff:
   "x \<squnion> y \<sqsubseteq> z \<longleftrightarrow> x \<sqsubseteq> z \<and> y \<sqsubseteq> z"
   by (blast intro: le_supI elim: le_supE)
 
 lemma le_iff_sup:
   "x \<sqsubseteq> y \<longleftrightarrow> x \<squnion> y = y"
-  by (auto intro: le_supI2 antisym dest: eq_iff [THEN iffD1])
+  by (auto intro: le_supI2 antisym dest: eq_iff [THEN iffD1] simp add: le_sup_iff)
 
 lemma sup_mono: "a \<sqsubseteq> c \<Longrightarrow> b \<sqsubseteq> d \<Longrightarrow> a \<squnion> b \<sqsubseteq> c \<squnion> d"
   by (fast intro: sup_least le_supI1 le_supI2)
@@ -275,11 +275,11 @@ sublocale inf!: semilattice inf
 proof
   fix a b c
   show "(a \<sqinter> b) \<sqinter> c = a \<sqinter> (b \<sqinter> c)"
-    by (rule antisym) (auto intro: le_infI1 le_infI2)
+    by (rule antisym) (auto intro: le_infI1 le_infI2 simp add: le_inf_iff)
   show "a \<sqinter> b = b \<sqinter> a"
-    by (rule antisym) auto
+    by (rule antisym) (auto simp add: le_inf_iff)
   show "a \<sqinter> a = a"
-    by (rule antisym) auto
+    by (rule antisym) (auto simp add: le_inf_iff)
 qed
 
 sublocale inf!: semilattice_order inf less_eq less
@@ -320,11 +320,11 @@ sublocale sup!: semilattice sup
 proof
   fix a b c
   show "(a \<squnion> b) \<squnion> c = a \<squnion> (b \<squnion> c)"
-    by (rule antisym) (auto intro: le_supI1 le_supI2)
+    by (rule antisym) (auto intro: le_supI1 le_supI2 simp add: le_sup_iff)
   show "a \<squnion> b = b \<squnion> a"
-    by (rule antisym) auto
+    by (rule antisym) (auto simp add: le_sup_iff)
   show "a \<squnion> a = a"
-    by (rule antisym) auto
+    by (rule antisym) (auto simp add: le_sup_iff)
 qed
 
 sublocale sup!: semilattice_order sup greater_eq greater

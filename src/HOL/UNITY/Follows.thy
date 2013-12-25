@@ -158,7 +158,7 @@ done
 lemma Follows_Un: 
     "[| F \<in> f' Fols f;  F \<in> g' Fols g |]  
      ==> F \<in> (%s. (f' s) \<union> (g' s)) Fols (%s. (f s) \<union> (g s))"
-apply (simp add: Follows_def Increasing_Un Always_Un del: Un_subset_iff le_sup_iff, auto)
+apply (simp add: Follows_def Increasing_Un Always_Un del: Un_subset_iff sup.bounded_iff, auto)
 apply (rule LeadsTo_Trans)
 apply (blast intro: Follows_Un_lemma)
 (*Weakening is used to exchange Un's arguments*)
