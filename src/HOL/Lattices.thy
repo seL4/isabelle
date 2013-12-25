@@ -98,7 +98,7 @@ lemma boundedE:
   obtains "a \<preceq> b" and "a \<preceq> c"
   using assms by (blast intro: trans cobounded1 cobounded2)
 
-lemma bounded_iff:
+lemma bounded_iff (* [simp] CANDIDATE *):
   "a \<preceq> b * c \<longleftrightarrow> a \<preceq> b \<and> a \<preceq> c"
   by (blast intro: boundedI elim: boundedE)
 
@@ -115,14 +115,29 @@ lemma coboundedI2:
   "b \<preceq> c \<Longrightarrow> a * b \<preceq> c"
   by (rule trans) auto
 
+lemma strict_coboundedI1:
+  "a \<prec> c \<Longrightarrow> a * b \<prec> c"
+  using irrefl
+    by (auto intro: not_eq_order_implies_strict coboundedI1 strict_implies_order elim: strict_boundedE)
+
+lemma strict_coboundedI2:
+  "b \<prec> c \<Longrightarrow> a * b \<prec> c"
+  using strict_coboundedI1 [of b c a] by (simp add: commute)
+
 lemma mono: "a \<preceq> c \<Longrightarrow> b \<preceq> d \<Longrightarrow> a * b \<preceq> c * d"
   by (blast intro: boundedI coboundedI1 coboundedI2)
 
 lemma absorb1: "a \<preceq> b \<Longrightarrow> a * b = a"
-  by (rule antisym) (auto simp add: refl bounded_iff)
+  by (rule antisym) (auto simp add: bounded_iff refl)
 
 lemma absorb2: "b \<preceq> a \<Longrightarrow> a * b = b"
-  by (rule antisym) (auto simp add: refl bounded_iff)
+  by (rule antisym) (auto simp add: bounded_iff refl)
+
+lemma absorb_iff1: "a \<preceq> b \<longleftrightarrow> a * b = a"
+  using order_iff by auto
+
+lemma absorb_iff2: "b \<preceq> a \<longleftrightarrow> a * b = b"
+  using order_iff by (auto simp add: commute)
 
 end
 
