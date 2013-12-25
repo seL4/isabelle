@@ -355,9 +355,7 @@ fun gen_subclass prep_class do_proof before_exit raw_sup lthy =
     val some_prop = try the_single props;
     val some_dep_morph = try the_single (map snd deps);
     fun after_qed some_wit =
-      Proof_Context.background_theory (Class.register_subclass (sub, sup)
-        some_dep_morph some_wit export)
-      #> Proof_Context.theory_of #> Named_Target.init before_exit sub;
+      Class.register_subclass (sub, sup) some_dep_morph some_wit export;
   in do_proof after_qed some_prop goal_ctxt end;
 
 fun user_proof after_qed some_prop =

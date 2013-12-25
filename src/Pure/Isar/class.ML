@@ -44,7 +44,7 @@ sig
   val classrel: class * class -> theory -> Proof.state
   val classrel_cmd: xstring * xstring -> theory -> Proof.state
   val register_subclass: class * class -> morphism option -> Element.witness option
-    -> morphism -> theory -> theory
+    -> morphism -> local_theory -> local_theory
 
   (*tactics*)
   val intro_classes_tac: thm list -> tactic
@@ -245,30 +245,6 @@ fun register_operation class (c, (t, some_def)) thy =
     |> activate_defs class (the_list some_def)
   end;
 
-fun register_subclass (sub, sup) some_dep_morph some_witn export thy =
-  let
-    val intros = (snd o rules thy) sup :: map_filter I
-      [Option.map (Drule.export_without_context_open o Element.conclude_witness) some_witn,
-        (fst o rules thy) sub];
-    val classrel =
-      Goal.prove_sorry_global thy [] [] (Logic.mk_classrel (sub, sup))
-        (K (EVERY (map (TRYALL o rtac) intros)));
-    val diff_sort = Sign.complete_sort thy [sup]
-      |> subtract (op =) (Sign.complete_sort thy [sub])
-      |> filter (is_class thy);
-    val add_dependency =
-      (case some_dep_morph of
-        SOME dep_morph => Locale.add_dependency sub
-          (sup, dep_morph $> Element.satisfy_morphism (the_list some_witn)) NONE export
-      | NONE => I);
-  in
-    thy
-    |> Axclass.add_classrel classrel
-    |> Class_Data.map (Graph.add_edge (sub, sup))
-    |> activate_defs sub (these_defs thy diff_sort)
-    |> add_dependency
-  end;
-
 
 (** classes and class target **)
 
@@ -314,6 +290,11 @@ fun synchronize_class_syntax sort base_sort ctxt =
     |> Overloading.set_primary_constraints
   end;
 
+fun synchronize_class_syntax_target class lthy =
+  lthy
+  |> Local_Theory.map_contexts
+      (K (synchronize_class_syntax [class] (base_sort (Proof_Context.theory_of lthy) class)));
+
 fun redeclare_operations thy sort =
   fold (redeclare_const thy o fst) (these_operations thy sort);
 
@@ -336,11 +317,9 @@ val class_prefix = Logic.const_of_class o Long_Name.base_name;
 
 local
 
-fun target_extension f class lthy =
-  lthy
-  |> Local_Theory.raw_theory f
-  |> Local_Theory.map_contexts
-      (K (synchronize_class_syntax [class] (base_sort (Proof_Context.theory_of lthy) class)));
+fun target_extension f class =
+  Local_Theory.raw_theory f
+  #> synchronize_class_syntax_target class;
 
 fun target_const class ((c, mx), (type_params, term_params, dict)) thy =
   let
@@ -394,7 +373,33 @@ fun abbrev class prmode arg = target_extension (target_abbrev class prmode arg) 
 end;
 
 
-(* simple subclasses *)
+(* subclasses *)
+
+fun register_subclass (sub, sup) some_dep_morph some_witn export lthy =
+  let
+    val thy = Proof_Context.theory_of lthy;
+    val intros = (snd o rules thy) sup :: map_filter I
+      [Option.map (Drule.export_without_context_open o Element.conclude_witness) some_witn,
+        (fst o rules thy) sub];
+    val classrel =
+      Goal.prove_sorry_global thy [] [] (Logic.mk_classrel (sub, sup))
+        (K (EVERY (map (TRYALL o rtac) intros)));
+    val diff_sort = Sign.complete_sort thy [sup]
+      |> subtract (op =) (Sign.complete_sort thy [sub])
+      |> filter (is_class thy);
+    fun add_dependency some_wit = case some_dep_morph of
+        SOME dep_morph => Generic_Target.locale_dependency sub
+          (sup, dep_morph $> Element.satisfy_morphism (the_list some_witn)) NONE export
+      | NONE => I;
+  in
+    lthy
+    |> Local_Theory.raw_theory
+      (Axclass.add_classrel classrel
+      #> Class_Data.map (Graph.add_edge (sub, sup))
+      #> activate_defs sub (these_defs thy diff_sort))
+    |> add_dependency some_witn
+    |> synchronize_class_syntax_target sub
+  end;
 
 local
 
