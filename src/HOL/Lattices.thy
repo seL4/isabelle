@@ -743,6 +743,24 @@ lemma max_less_iff_conj [simp]:
   "max x y < z \<longleftrightarrow> x < z \<and> y < z"
   unfolding max_def le_less using less_linear by (auto intro: less_trans)
 
+lemma min_max_distrib1:
+  "min (max b c) a = max (min b a) (min c a)"
+  by (auto simp add: min_def max_def not_le dest: le_less_trans less_trans intro: antisym)
+
+lemma min_max_distrib2:
+  "min a (max b c) = max (min a b) (min a c)"
+  by (auto simp add: min_def max_def not_le dest: le_less_trans less_trans intro: antisym)
+
+lemma max_min_distrib1:
+  "max (min b c) a = min (max b a) (max c a)"
+  by (auto simp add: min_def max_def not_le dest: le_less_trans less_trans intro: antisym)
+
+lemma max_min_distrib2:
+  "max a (min b c) = min (max a b) (max a c)"
+  by (auto simp add: min_def max_def not_le dest: le_less_trans less_trans intro: antisym)
+
+lemmas min_max_distribs = min_max_distrib1 min_max_distrib2 max_min_distrib1 max_min_distrib2
+
 lemma split_min [no_atp]:
   "P (min i j) \<longleftrightarrow> (i \<le> j \<longrightarrow> P i) \<and> (\<not> i \<le> j \<longrightarrow> P j)"
   by (simp add: min_def)
