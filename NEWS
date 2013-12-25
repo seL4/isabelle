@@ -28,6 +28,61 @@ Open text buffers take precedence over copies within the file-system.
 
 *** HOL ***
 
+* Abolished slightly odd global lattice interpretation for min/max.
+
+Fact consolidations:
+    min_max.inf_assoc ~> min.assoc
+    min_max.inf_commute ~> min.commute
+    min_max.inf_left_commute ~> min.left_commute
+    min_max.inf_idem ~> min.idem
+    min_max.inf_left_idem ~> min.left_idem
+    min_max.inf_right_idem ~> min.right_idem
+    min_max.sup_assoc ~> max.assoc
+    min_max.sup_commute ~> max.commute
+    min_max.sup_left_commute ~> max.left_commute
+    min_max.sup_idem ~> max.idem
+    min_max.sup_left_idem ~> max.left_idem
+    min_max.sup_inf_distrib1 ~> max_min_distrib2
+    min_max.sup_inf_distrib2 ~> max_min_distrib1
+    min_max.inf_sup_distrib1 ~> min_max_distrib2
+    min_max.inf_sup_distrib2 ~> min_max_distrib1
+    min_max.distrib ~> min_max_distribs
+    min_max.inf_absorb1 ~> min.absorb1
+    min_max.inf_absorb2 ~> min.absorb2
+    min_max.sup_absorb1 ~> max.absorb1
+    min_max.sup_absorb2 ~> max.absorb2
+    min_max.le_iff_inf ~> min.absorb_iff1
+    min_max.le_iff_sup ~> max.absorb_iff2
+    min_max.inf_le1 ~> min.cobounded1
+    min_max.inf_le2 ~> min.cobounded2
+    le_maxI1, min_max.sup_ge1 ~> max.cobounded1
+    le_maxI2, min_max.sup_ge2 ~> max.cobounded2
+    min_max.le_infI1 ~> min.coboundedI1
+    min_max.le_infI2 ~> min.coboundedI2
+    min_max.le_supI1 ~> max.coboundedI1
+    min_max.le_supI2 ~> max.coboundedI2
+    min_max.less_infI1 ~> min.strict_coboundedI1
+    min_max.less_infI2 ~> min.strict_coboundedI2
+    min_max.less_supI1 ~> max.strict_coboundedI1
+    min_max.less_supI2 ~> max.strict_coboundedI2
+    min_max.inf_mono ~> min.mono
+    min_max.sup_mono ~> max.mono
+    min_max.le_infI, min_max.inf_greatest ~> min.boundedI
+    min_max.le_supI, min_max.sup_least ~> max.boundedI
+    min_max.le_inf_iff ~> min.bounded_iff
+    min_max.le_sup_iff ~> max.bounded_iff
+
+For min_max.inf_sup_aci, prefer (one of) min.commute, min.assoc,
+min.left_commute, min.left_idem, max.commute, max.assoc,
+max.left_commute, max.left_idem directly.
+
+For min_max.inf_sup_ord, prefer (one of) min.cobounded1, min.cobounded2,
+max.cobounded1m max.cobounded2 directly.
+
+For min_ac or max_ac, prefor more general collection ac_simps.
+
+INCOMPATBILITY. 
+
 * Word library: bit representations prefer type bool over type bit.
 INCOMPATIBILITY.
 

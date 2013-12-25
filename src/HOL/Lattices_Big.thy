@@ -308,15 +308,6 @@ notation Groups.one ("1")
 
 subsection {* Lattice operations on finite sets *}
 
-text {*
-  For historic reasons, there is the sublocale dependency from @{class distrib_lattice}
-  to @{class linorder}.  This is badly designed: both should depend on a common abstract
-  distributive lattice rather than having this non-subclass dependecy between two
-  classes.  But for the moment we have to live with it.  This forces us to setup
-  this sublocale dependency simultaneously with the lattice operations on finite
-  sets, to avoid garbage.
-*}
-
 definition (in semilattice_inf) Inf_fin :: "'a set \<Rightarrow> 'a" ("\<Sqinter>\<^sub>f\<^sub>i\<^sub>n_" [900] 900)
 where
   "Inf_fin = semilattice_set.F inf"
@@ -324,62 +315,6 @@ where
 definition (in semilattice_sup) Sup_fin :: "'a set \<Rightarrow> 'a" ("\<Squnion>\<^sub>f\<^sub>i\<^sub>n_" [900] 900)
 where
   "Sup_fin = semilattice_set.F sup"
-
-context linorder
-begin
-
-definition Min :: "'a set \<Rightarrow> 'a"
-where
-  "Min = semilattice_set.F min"
-
-definition Max :: "'a set \<Rightarrow> 'a"
-where
-  "Max = semilattice_set.F max"
-
-sublocale Min!: semilattice_order_set min less_eq less
-  + Max!: semilattice_order_set max greater_eq greater
-where
-  "semilattice_set.F min = Min"
-  and "semilattice_set.F max = Max"
-proof -
-  show "semilattice_order_set min less_eq less" by default (auto simp add: min_def)
-  then interpret Min!: semilattice_order_set min less_eq less .
-  show "semilattice_order_set max greater_eq greater" by default (auto simp add: max_def)
-  then interpret Max!: semilattice_order_set max greater_eq greater .
-  from Min_def show "semilattice_set.F min = Min" by rule
-  from Max_def show "semilattice_set.F max = Max" by rule
-qed
-
-
-text {* An aside: @{const min}/@{const max} on linear orders as special case of @{const inf}/@{const sup} *}
-
-sublocale min_max!: distrib_lattice min less_eq less max
-where
-  "semilattice_inf.Inf_fin min = Min"
-  and "semilattice_sup.Sup_fin max = Max"
-proof -
-  show "class.distrib_lattice min less_eq less max"
-  proof
-    fix x y z
-    show "max x (min y z) = min (max x y) (max x z)"
-      by (auto simp add: min_def max_def)
-  qed (auto simp add: min_def max_def not_le less_imp_le)
-  then interpret min_max!: distrib_lattice min less_eq less max .
-  show "semilattice_inf.Inf_fin min = Min"
-    by (simp only: min_max.Inf_fin_def Min_def)
-  show "semilattice_sup.Sup_fin max = Max"
-    by (simp only: min_max.Sup_fin_def Max_def)
-qed
-
-lemmas le_maxI1 = max.cobounded1
-lemmas le_maxI2 = max.cobounded2
-lemmas min_ac = min.assoc min.commute min.left_commute
-lemmas max_ac = max.assoc max.commute max.left_commute
-
-end
-
-
-text {* Lattice operations proper *}
 
 sublocale semilattice_inf < Inf_fin!: semilattice_order_set inf less_eq less
 where
@@ -398,18 +333,6 @@ proof -
   then interpret Sup_fin!: semilattice_order_set sup greater_eq greater .
   from Sup_fin_def show "semilattice_set.F sup = Sup_fin" by rule
 qed
-
-
-text {* An aside again: @{const Min}/@{const Max} on linear orders as special case of @{const Inf_fin}/@{const Sup_fin} *}
-
-lemma Inf_fin_Min:
-  "Inf_fin = (Min :: 'a::{semilattice_inf, linorder} set \<Rightarrow> 'a)"
-  by (simp add: Inf_fin_def Min_def inf_min)
-
-lemma Sup_fin_Max:
-  "Sup_fin = (Max :: 'a::{semilattice_sup, linorder} set \<Rightarrow> 'a)"
-  by (simp add: Sup_fin_def Max_def sup_max)
-
 
 
 subsection {* Infimum and Supremum over non-empty sets *}
@@ -546,6 +469,43 @@ end
 
 
 subsection {* Minimum and Maximum over non-empty sets *}
+
+context linorder
+begin
+
+definition Min :: "'a set \<Rightarrow> 'a"
+where
+  "Min = semilattice_set.F min"
+
+definition Max :: "'a set \<Rightarrow> 'a"
+where
+  "Max = semilattice_set.F max"
+
+sublocale Min!: semilattice_order_set min less_eq less
+  + Max!: semilattice_order_set max greater_eq greater
+where
+  "semilattice_set.F min = Min"
+  and "semilattice_set.F max = Max"
+proof -
+  show "semilattice_order_set min less_eq less" by default (auto simp add: min_def)
+  then interpret Min!: semilattice_order_set min less_eq less .
+  show "semilattice_order_set max greater_eq greater" by default (auto simp add: max_def)
+  then interpret Max!: semilattice_order_set max greater_eq greater .
+  from Min_def show "semilattice_set.F min = Min" by rule
+  from Max_def show "semilattice_set.F max = Max" by rule
+qed
+
+end
+
+text {* An aside: @{const Min}/@{const Max} on linear orders as special case of @{const Inf_fin}/@{const Sup_fin} *}
+
+lemma Inf_fin_Min:
+  "Inf_fin = (Min :: 'a::{semilattice_inf, linorder} set \<Rightarrow> 'a)"
+  by (simp add: Inf_fin_def Min_def inf_min)
+
+lemma Sup_fin_Max:
+  "Sup_fin = (Max :: 'a::{semilattice_sup, linorder} set \<Rightarrow> 'a)"
+  by (simp add: Sup_fin_def Max_def sup_max)
 
 context linorder
 begin
@@ -826,3 +786,4 @@ qed
 end
 
 end
+

@@ -944,7 +944,7 @@ apply (rule_tac mt="mt1 @ [Some sttp1]" in wt_instr_prefix)
   apply assumption+ apply (rule HOL.refl)
   apply (simp (no_asm_simp))
   apply (simp (no_asm_simp) add: max_ssize_def)
-  apply (simp add: max_of_list_def max_ac)
+  apply (simp add: max_of_list_def ac_simps)
   apply arith
   apply (simp (no_asm_simp))+
 
@@ -961,7 +961,7 @@ apply (simp add: max_ssize_def) apply (simp (no_asm_simp))
 apply (subgoal_tac "((mt2 @ [Some sttp2]) ! length bc2) = Some sttp2")
 apply (simp only:)
 apply (rule check_type_mono) apply assumption
-apply (simp (no_asm_simp) add: max_ssize_def max_ac)
+apply (simp (no_asm_simp) add: max_ssize_def ac_simps)
 apply (simp add: nth_append)
 
 apply (erule conjE)+

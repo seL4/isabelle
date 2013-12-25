@@ -190,7 +190,7 @@ apply(induction rule: sec_type.induct)
 apply (metis Skip')
 apply (metis Assign')
 apply (metis Seq')
-apply (metis min_max.inf_sup_ord(3) max.absorb2 nat_le_linear If' anti_mono')
+apply (metis max.commute max.absorb_iff2 nat_le_linear If' anti_mono')
 by (metis While')
 
 

@@ -80,7 +80,7 @@ qed
 lemma depth_reflect: "depth (reflect t) = depth t"
 apply (induct t)
  apply (metis depth.simps(1) reflect.simps(1))
-by (metis depth.simps(2) min_max.inf_sup_aci(5) reflect.simps(2))
+by (metis depth.simps(2) max.commute reflect.simps(2))
 
 text {*
 The famous relationship between the numbers of leaves and nodes.

@@ -1270,7 +1270,7 @@ lemma transpose_mult_matrix:
   apply (simp add: Rep_matrix_inject[THEN sym])
   apply (rule ext)+
   using assms
-  apply (simp add: Rep_mult_matrix max_ac)
+  apply (simp add: Rep_mult_matrix ac_simps)
   done
 
 lemma column_transpose_matrix: "column_of_matrix (transpose_matrix A) n = transpose_matrix (row_of_matrix A n)"
