@@ -712,9 +712,56 @@ end
 
 subsection {* @{text "min/max"} as special case of lattice *}
 
-sublocale linorder < min!: semilattice_order min less_eq less
+context linorder
+begin
+
+sublocale min!: semilattice_order min less_eq less
   + max!: semilattice_order max greater_eq greater
   by default (auto simp add: min_def max_def)
+
+lemma min_le_iff_disj:
+  "min x y \<le> z \<longleftrightarrow> x \<le> z \<or> y \<le> z"
+  unfolding min_def using linear by (auto intro: order_trans)
+
+lemma le_max_iff_disj:
+  "z \<le> max x y \<longleftrightarrow> z \<le> x \<or> z \<le> y"
+  unfolding max_def using linear by (auto intro: order_trans)
+
+lemma min_less_iff_disj:
+  "min x y < z \<longleftrightarrow> x < z \<or> y < z"
+  unfolding min_def le_less using less_linear by (auto intro: less_trans)
+
+lemma less_max_iff_disj:
+  "z < max x y \<longleftrightarrow> z < x \<or> z < y"
+  unfolding max_def le_less using less_linear by (auto intro: less_trans)
+
+lemma min_less_iff_conj [simp]:
+  "z < min x y \<longleftrightarrow> z < x \<and> z < y"
+  unfolding min_def le_less using less_linear by (auto intro: less_trans)
+
+lemma max_less_iff_conj [simp]:
+  "max x y < z \<longleftrightarrow> x < z \<and> y < z"
+  unfolding max_def le_less using less_linear by (auto intro: less_trans)
+
+lemma split_min [no_atp]:
+  "P (min i j) \<longleftrightarrow> (i \<le> j \<longrightarrow> P i) \<and> (\<not> i \<le> j \<longrightarrow> P j)"
+  by (simp add: min_def)
+
+lemma split_max [no_atp]:
+  "P (max i j) \<longleftrightarrow> (i \<le> j \<longrightarrow> P j) \<and> (\<not> i \<le> j \<longrightarrow> P i)"
+  by (simp add: max_def)
+
+lemma min_of_mono:
+  fixes f :: "'a \<Rightarrow> 'b\<Colon>linorder"
+  shows "mono f \<Longrightarrow> min (f m) (f n) = f (min m n)"
+  by (auto simp: mono_def Orderings.min_def min_def intro: Orderings.antisym)
+
+lemma max_of_mono:
+  fixes f :: "'a \<Rightarrow> 'b\<Colon>linorder"
+  shows "mono f \<Longrightarrow> max (f m) (f n) = f (max m n)"
+  by (auto simp: mono_def Orderings.max_def max_def intro: Orderings.antisym)
+
+end
 
 lemma inf_min: "inf = (min \<Colon> 'a\<Colon>{semilattice_inf, linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
   by (auto intro: antisym simp add: min_def fun_eq_iff)
