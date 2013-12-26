@@ -1085,6 +1085,9 @@ locale folding =
   assumes comp_fun_commute: "f y \<circ> f x = f x \<circ> f y"
 begin
 
+interpretation comp_fun_commute f
+  by default (insert comp_fun_commute, simp add: fun_eq_iff)
+
 definition F :: "'a set \<Rightarrow> 'b"
 where
   eq_fold: "F A = fold f z A"
@@ -1101,8 +1104,6 @@ lemma insert [simp]:
   assumes "finite A" and "x \<notin> A"
   shows "F (insert x A) = f x (F A)"
 proof -
-  interpret comp_fun_commute f
-    by default (insert comp_fun_commute, simp add: fun_eq_iff)
   from fold_insert assms
   have "fold f z (insert x A) = f x (fold f z A)" by simp
   with `finite A` show ?thesis by (simp add: eq_fold fun_eq_iff)
@@ -1134,12 +1135,13 @@ begin
 
 declare insert [simp del]
 
+interpretation comp_fun_idem f
+  by default (insert comp_fun_commute comp_fun_idem, simp add: fun_eq_iff)
+
 lemma insert_idem [simp]:
   assumes "finite A"
   shows "F (insert x A) = f x (F A)"
 proof -
-  interpret comp_fun_idem f
-    by default (insert comp_fun_commute comp_fun_idem, simp add: fun_eq_iff)
   from fold_insert_idem assms
   have "fold f z (insert x A) = f x (fold f z A)" by simp
   with `finite A` show ?thesis by (simp add: eq_fold fun_eq_iff)

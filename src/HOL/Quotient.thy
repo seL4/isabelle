@@ -46,75 +46,94 @@ lemma Quotient3I:
   shows "Quotient3 R Abs Rep"
   using assms unfolding Quotient3_def by blast
 
-lemma Quotient3_abs_rep:
+context
+  fixes R Abs Rep
   assumes a: "Quotient3 R Abs Rep"
-  shows "Abs (Rep a) = a"
+begin
+
+lemma Quotient3_abs_rep:
+  "Abs (Rep a) = a"
   using a
   unfolding Quotient3_def
   by simp
 
 lemma Quotient3_rep_reflp:
-  assumes a: "Quotient3 R Abs Rep"
-  shows "R (Rep a) (Rep a)"
+  "R (Rep a) (Rep a)"
   using a
   unfolding Quotient3_def
   by blast
 
 lemma Quotient3_rel:
-  assumes a: "Quotient3 R Abs Rep"
-  shows "R r r \<and> R s s \<and> Abs r = Abs s \<longleftrightarrow> R r s" -- {* orientation does not loop on rewriting *}
+  "R r r \<and> R s s \<and> Abs r = Abs s \<longleftrightarrow> R r s" -- {* orientation does not loop on rewriting *}
   using a
   unfolding Quotient3_def
   by blast
 
 lemma Quotient3_refl1: 
-  assumes a: "Quotient3 R Abs Rep" 
-  shows "R r s \<Longrightarrow> R r r"
+  "R r s \<Longrightarrow> R r r"
   using a unfolding Quotient3_def 
   by fast
 
 lemma Quotient3_refl2: 
-  assumes a: "Quotient3 R Abs Rep" 
-  shows "R r s \<Longrightarrow> R s s"
+  "R r s \<Longrightarrow> R s s"
   using a unfolding Quotient3_def 
   by fast
 
 lemma Quotient3_rel_rep:
-  assumes a: "Quotient3 R Abs Rep"
-  shows "R (Rep a) (Rep b) \<longleftrightarrow> a = b"
+  "R (Rep a) (Rep b) \<longleftrightarrow> a = b"
   using a
   unfolding Quotient3_def
   by metis
 
 lemma Quotient3_rep_abs:
-  assumes a: "Quotient3 R Abs Rep"
-  shows "R r r \<Longrightarrow> R (Rep (Abs r)) r"
+  "R r r \<Longrightarrow> R (Rep (Abs r)) r"
   using a unfolding Quotient3_def
   by blast
 
 lemma Quotient3_rel_abs:
-  assumes a: "Quotient3 R Abs Rep"
-  shows "R r s \<Longrightarrow> Abs r = Abs s"
+  "R r s \<Longrightarrow> Abs r = Abs s"
   using a unfolding Quotient3_def
   by blast
 
 lemma Quotient3_symp:
-  assumes a: "Quotient3 R Abs Rep"
-  shows "symp R"
+  "symp R"
   using a unfolding Quotient3_def using sympI by metis
 
 lemma Quotient3_transp:
-  assumes a: "Quotient3 R Abs Rep"
-  shows "transp R"
+  "transp R"
   using a unfolding Quotient3_def using transpI by (metis (full_types))
 
 lemma Quotient3_part_equivp:
-  assumes a: "Quotient3 R Abs Rep"
-  shows "part_equivp R"
-by (metis Quotient3_rep_reflp Quotient3_symp Quotient3_transp a part_equivpI)
+  "part_equivp R"
+  by (metis Quotient3_rep_reflp Quotient3_symp Quotient3_transp part_equivpI)
+
+lemma abs_o_rep:
+  "Abs o Rep = id"
+  unfolding fun_eq_iff
+  by (simp add: Quotient3_abs_rep)
+
+lemma equals_rsp:
+  assumes b: "R xa xb" "R ya yb"
+  shows "R xa ya = R xb yb"
+  using b Quotient3_symp Quotient3_transp
+  by (blast elim: sympE transpE)
+
+lemma rep_abs_rsp:
+  assumes b: "R x1 x2"
+  shows "R x1 (Rep (Abs x2))"
+  using b Quotient3_rel Quotient3_abs_rep Quotient3_rep_reflp
+  by metis
+
+lemma rep_abs_rsp_left:
+  assumes b: "R x1 x2"
+  shows "R (Rep (Abs x1)) x2"
+  using b Quotient3_rel Quotient3_abs_rep Quotient3_rep_reflp
+  by metis
+
+end
 
 lemma identity_quotient3:
-  shows "Quotient3 (op =) id id"
+  "Quotient3 (op =) id id"
   unfolding Quotient3_def id_def
   by blast
 
@@ -157,19 +176,6 @@ proof -
  ultimately show ?thesis by (intro Quotient3I) (assumption+)
 qed
 
-lemma abs_o_rep:
-  assumes a: "Quotient3 R Abs Rep"
-  shows "Abs o Rep = id"
-  unfolding fun_eq_iff
-  by (simp add: Quotient3_abs_rep[OF a])
-
-lemma equals_rsp:
-  assumes q: "Quotient3 R Abs Rep"
-  and     a: "R xa xb" "R ya yb"
-  shows "R xa ya = R xb yb"
-  using a Quotient3_symp[OF q] Quotient3_transp[OF q]
-  by (blast elim: sympE transpE)
-
 lemma lambda_prs:
   assumes q1: "Quotient3 R1 Abs1 Rep1"
   and     q2: "Quotient3 R2 Abs2 Rep2"
@@ -185,20 +191,6 @@ lemma lambda_prs1:
   unfolding fun_eq_iff
   using Quotient3_abs_rep[OF q1] Quotient3_abs_rep[OF q2]
   by simp
-
-lemma rep_abs_rsp:
-  assumes q: "Quotient3 R Abs Rep"
-  and     a: "R x1 x2"
-  shows "R x1 (Rep (Abs x2))"
-  using a Quotient3_rel[OF q] Quotient3_abs_rep[OF q] Quotient3_rep_reflp[OF q]
-  by metis
-
-lemma rep_abs_rsp_left:
-  assumes q: "Quotient3 R Abs Rep"
-  and     a: "R x1 x2"
-  shows "R (Rep (Abs x1)) x2"
-  using a Quotient3_rel[OF q] Quotient3_abs_rep[OF q] Quotient3_rep_reflp[OF q]
-  by metis
 
 text{*
   In the following theorem R1 can be instantiated with anything,

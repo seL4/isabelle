@@ -197,14 +197,14 @@ lemma lcm_ge_0_int [simp]: "lcm (x::int) y >= 0"
   by (simp add: lcm_int_def)
 
 (* was gcd_0, etc. *)
-lemma gcd_0_nat [simp]: "gcd (x::nat) 0 = x"
+lemma gcd_0_nat: "gcd (x::nat) 0 = x"
   by simp
 
 (* was igcd_0, etc. *)
 lemma gcd_0_int [simp]: "gcd (x::int) 0 = abs x"
   by (unfold gcd_int_def, auto)
 
-lemma gcd_0_left_nat [simp]: "gcd 0 (x::nat) = x"
+lemma gcd_0_left_nat: "gcd 0 (x::nat) = x"
   by simp
 
 lemma gcd_0_left_int [simp]: "gcd 0 (x::int) = abs x"
@@ -243,7 +243,7 @@ text {*
 lemma gcd_dvd1_nat [iff]: "(gcd (m::nat)) n dvd m"
   and gcd_dvd2_nat [iff]: "(gcd m n) dvd n"
   apply (induct m n rule: gcd_nat_induct)
-  apply (simp_all add: gcd_non_0_nat)
+  apply (simp_all add: gcd_non_0_nat gcd_0_nat)
   apply (blast dest: dvd_mod_imp_dvd)
 done
 
@@ -278,7 +278,7 @@ lemma gcd_le2_int [simp]: "b > 0 \<Longrightarrow> gcd (a::int) b \<le> b"
   by (rule zdvd_imp_le, auto)
 
 lemma gcd_greatest_nat: "(k::nat) dvd m \<Longrightarrow> k dvd n \<Longrightarrow> k dvd gcd m n"
-by (induct m n rule: gcd_nat_induct) (simp_all add: gcd_non_0_nat dvd_mod)
+by (induct m n rule: gcd_nat_induct) (simp_all add: gcd_non_0_nat dvd_mod gcd_0_nat)
 
 lemma gcd_greatest_int:
   "(k::int) dvd m \<Longrightarrow> k dvd n \<Longrightarrow> k dvd gcd m n"
@@ -307,25 +307,6 @@ lemma gcd_pos_nat [simp]: "(gcd (m::nat) n > 0) = (m ~= 0 | n ~= 0)"
 lemma gcd_pos_int [simp]: "(gcd (m::int) n > 0) = (m ~= 0 | n ~= 0)"
   by (insert gcd_zero_int [of m n], insert gcd_ge_0_int [of m n], arith)
 
-interpretation gcd_nat: abel_semigroup "gcd :: nat \<Rightarrow> nat \<Rightarrow> nat"
-proof
-qed (auto intro: dvd_antisym dvd_trans)
-
-interpretation gcd_int: abel_semigroup "gcd :: int \<Rightarrow> int \<Rightarrow> int"
-proof
-qed (simp_all add: gcd_int_def gcd_nat.assoc gcd_nat.commute gcd_nat.left_commute)
-
-lemmas gcd_assoc_nat = gcd_nat.assoc
-lemmas gcd_commute_nat = gcd_nat.commute
-lemmas gcd_left_commute_nat = gcd_nat.left_commute
-lemmas gcd_assoc_int = gcd_int.assoc
-lemmas gcd_commute_int = gcd_int.commute
-lemmas gcd_left_commute_int = gcd_int.left_commute
-
-lemmas gcd_ac_nat = gcd_assoc_nat gcd_commute_nat gcd_left_commute_nat
-
-lemmas gcd_ac_int = gcd_assoc_int gcd_commute_int gcd_left_commute_int
-
 lemma gcd_unique_nat: "(d::nat) dvd a \<and> d dvd b \<and>
     (\<forall>e. e dvd a \<and> e dvd b \<longrightarrow> e dvd d) \<longleftrightarrow> d = gcd a b"
   apply auto
@@ -343,18 +324,40 @@ apply (rule iffI)
  apply (auto intro: gcd_greatest_int)
 done
 
+interpretation gcd_nat: abel_semigroup "gcd :: nat \<Rightarrow> nat \<Rightarrow> nat"
+  + gcd_nat: semilattice_neutr_order "gcd :: nat \<Rightarrow> nat \<Rightarrow> nat" 0 "op dvd" "(\<lambda>m n. m dvd n \<and> \<not> n dvd m)"
+apply default
+apply (auto intro: dvd_antisym dvd_trans)[4]
+apply (metis dvd.dual_order.refl gcd_unique_nat)
+apply (auto intro: dvdI elim: dvdE)
+done
+
+interpretation gcd_int: abel_semigroup "gcd :: int \<Rightarrow> int \<Rightarrow> int"
+proof
+qed (simp_all add: gcd_int_def gcd_nat.assoc gcd_nat.commute gcd_nat.left_commute)
+
+lemmas gcd_assoc_nat = gcd_nat.assoc
+lemmas gcd_commute_nat = gcd_nat.commute
+lemmas gcd_left_commute_nat = gcd_nat.left_commute
+lemmas gcd_assoc_int = gcd_int.assoc
+lemmas gcd_commute_int = gcd_int.commute
+lemmas gcd_left_commute_int = gcd_int.left_commute
+
+lemmas gcd_ac_nat = gcd_assoc_nat gcd_commute_nat gcd_left_commute_nat
+
+lemmas gcd_ac_int = gcd_assoc_int gcd_commute_int gcd_left_commute_int
+
 lemma gcd_proj1_if_dvd_nat [simp]: "(x::nat) dvd y \<Longrightarrow> gcd x y = x"
-by (metis dvd.eq_iff gcd_unique_nat)
+  by (fact gcd_nat.absorb1)
 
 lemma gcd_proj2_if_dvd_nat [simp]: "(y::nat) dvd x \<Longrightarrow> gcd x y = y"
-by (metis dvd.eq_iff gcd_unique_nat)
+  by (fact gcd_nat.absorb2)
 
-lemma gcd_proj1_if_dvd_int[simp]: "x dvd y \<Longrightarrow> gcd (x::int) y = abs x"
-by (metis abs_dvd_iff abs_eq_0 gcd_0_left_int gcd_abs_int gcd_unique_int)
+lemma gcd_proj1_if_dvd_int [simp]: "x dvd y \<Longrightarrow> gcd (x::int) y = abs x"
+  by (metis abs_dvd_iff gcd_0_left_int gcd_abs_int gcd_unique_int)
 
-lemma gcd_proj2_if_dvd_int[simp]: "y dvd x \<Longrightarrow> gcd (x::int) y = abs y"
-by (metis gcd_proj1_if_dvd_int gcd_commute_int)
-
+lemma gcd_proj2_if_dvd_int [simp]: "y dvd x \<Longrightarrow> gcd (x::int) y = abs y"
+  by (metis gcd_proj1_if_dvd_int gcd_commute_int)
 
 text {*
   \medskip Multiplication laws
@@ -1391,12 +1394,17 @@ lemma lcm_unique_int: "d >= 0 \<and> (a::int) dvd d \<and> b dvd d \<and>
   by (auto intro: dvd_antisym [transferred] lcm_least_int)
 
 interpretation lcm_nat: abel_semigroup "lcm :: nat \<Rightarrow> nat \<Rightarrow> nat"
+  + lcm_nat: semilattice_neutr "lcm :: nat \<Rightarrow> nat \<Rightarrow> nat" 1
 proof
   fix n m p :: nat
   show "lcm (lcm n m) p = lcm n (lcm m p)"
     by (rule lcm_unique_nat [THEN iffD1]) (metis dvd.order_trans lcm_unique_nat)
   show "lcm m n = lcm n m"
     by (simp add: lcm_nat_def gcd_commute_nat field_simps)
+  show "lcm m m = m"
+    by (metis dvd.order_refl lcm_unique_nat)
+  show "lcm m 1 = m"
+    by (metis dvd.dual_order.refl lcm_unique_nat one_dvd)
 qed
 
 interpretation lcm_int: abel_semigroup "lcm :: int \<Rightarrow> int \<Rightarrow> int"
@@ -1478,10 +1486,6 @@ by (auto simp add: abs_mult_self trans [OF lcm_unique_int eq_commute, symmetric]
 
 subsection {* The complete divisibility lattice *}
 
-lemma semilattice_neutr_set_lcm_one_nat:
-  "semilattice_neutr_set lcm (1::nat)"
-  by default simp_all
-
 interpretation gcd_semilattice_nat: semilattice_inf gcd "op dvd" "(%m n::nat. m dvd n & ~ n dvd m)"
 proof
   case goal3 thus ?case by(metis gcd_unique_nat)
@@ -1508,28 +1512,19 @@ begin
 definition
   "Lcm (M::nat set) = (if finite M then semilattice_neutr_set.F lcm 1 M else 0)"
 
+interpretation semilattice_neutr_set lcm "1::nat" ..
+
 lemma Lcm_nat_infinite:
   "\<not> finite M \<Longrightarrow> Lcm M = (0::nat)"
   by (simp add: Lcm_nat_def)
 
 lemma Lcm_nat_empty:
   "Lcm {} = (1::nat)"
-proof -
-  interpret semilattice_neutr_set lcm "1::nat"
-    by (fact semilattice_neutr_set_lcm_one_nat)
-  show ?thesis by (simp add: Lcm_nat_def)
-qed
+  by (simp add: Lcm_nat_def)
 
 lemma Lcm_nat_insert:
   "Lcm (insert n M) = lcm (n::nat) (Lcm M)"
-proof (cases "finite M")
-  interpret semilattice_neutr_set lcm "1::nat"
-    by (fact semilattice_neutr_set_lcm_one_nat)
-  case True
-  then show ?thesis by (simp add: Lcm_nat_def)
-next
-  case False then show ?thesis by (simp add: Lcm_nat_infinite)
-qed
+  by (cases "finite M") (simp_all add: Lcm_nat_def Lcm_nat_infinite)
 
 definition
   "Gcd (M::nat set) = Lcm {d. \<forall>m\<in>M. d dvd m}"
@@ -1587,7 +1582,7 @@ proof -
 qed
 
 lemma Lcm_empty_nat: "Lcm {} = (1::nat)"
-  by (fact gcd_lcm_complete_lattice_nat.Sup_empty) (* already simp *)
+  by (fact Lcm_nat_empty)
 
 lemma Gcd_empty_nat: "Gcd {} = (0::nat)"
   by (fact gcd_lcm_complete_lattice_nat.Inf_empty) (* already simp *)
@@ -1687,6 +1682,7 @@ by (induct x y rule: nat_gcd.induct)
 
 lemma lcm_eq_nitpick_lcm [nitpick_unfold]: "lcm x y = Nitpick.nat_lcm x y"
 by (simp only: lcm_nat_def Nitpick.nat_lcm_def gcd_eq_nitpick_gcd)
+
 
 subsubsection {* Setwise gcd and lcm for integers *}
 
