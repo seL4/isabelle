@@ -245,7 +245,7 @@ lemma bl_to_bin_rep_False: "bl_to_bin (replicate n False) = 0"
 
 lemma len_bin_to_bl_aux: 
   "length (bin_to_bl_aux n w bs) = n + length bs"
-  by (induct n arbitrary: w bs) auto
+  by (fact size_bin_to_bl_aux)
 
 lemma len_bin_to_bl [simp]: "length (bin_to_bl n w) = n"
   by (fact size_bin_to_bl) (* FIXME: duplicate *)

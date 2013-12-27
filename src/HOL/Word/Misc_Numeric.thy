@@ -8,7 +8,7 @@ theory Misc_Numeric
 imports Main Parity
 begin
 
-declare iszero_0 [iff]
+declare iszero_0 [intro]
 
 lemma min_pm [simp]: "min a b + (a - b) = (a :: nat)" by arith
   
@@ -25,10 +25,11 @@ lemmas min_minus' [simp] = trans [OF min.commute min_minus]
 lemma mod_2_neq_1_eq_eq_0:
   fixes k :: int
   shows "k mod 2 \<noteq> 1 \<longleftrightarrow> k mod 2 = 0"
-  by arith
+  by (fact not_mod_2_eq_1_eq_0)
 
 lemma z1pmod2:
-  "(2 * b + 1) mod 2 = (1::int)" by arith
+  "(2 * b + 1) mod 2 = (1::int)"
+  by arith
 
 lemma emep1:
   "even n ==> even d ==> 0 <= d ==> (n + 1) mod (d :: int) = (n mod d) + 1"
@@ -61,7 +62,7 @@ lemma int_mod_ge': "b < 0 ==> 0 < (n :: int) ==> b + n <= b mod n"
 
 lemma zless2:
   "0 < (2 :: int)"
-  by arith
+  by (fact zero_less_numeral)
 
 lemma zless2p:
   "0 < (2 ^ n :: int)"
