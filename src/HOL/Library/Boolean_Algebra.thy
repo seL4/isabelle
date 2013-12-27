@@ -24,15 +24,13 @@ locale boolean =
   assumes disj_zero_right [simp]: "x \<squnion> \<zero> = x"
   assumes conj_cancel_right [simp]: "x \<sqinter> \<sim> x = \<zero>"
   assumes disj_cancel_right [simp]: "x \<squnion> \<sim> x = \<one>"
+begin
 
-sublocale boolean < conj!: abel_semigroup conj proof
+sublocale conj!: abel_semigroup conj proof
 qed (fact conj_assoc conj_commute)+
 
-sublocale boolean < disj!: abel_semigroup disj proof
+sublocale disj!: abel_semigroup disj proof
 qed (fact disj_assoc disj_commute)+
-
-context boolean
-begin
 
 lemmas conj_left_commute = conj.left_commute
 
@@ -185,8 +183,9 @@ subsection {* Symmetric Difference *}
 locale boolean_xor = boolean +
   fixes xor :: "'a => 'a => 'a"  (infixr "\<oplus>" 65)
   assumes xor_def: "x \<oplus> y = (x \<sqinter> \<sim> y) \<squnion> (\<sim> x \<sqinter> y)"
+begin
 
-sublocale boolean_xor < xor!: abel_semigroup xor proof
+sublocale xor!: abel_semigroup xor proof
   fix x y z :: 'a
   let ?t = "(x \<sqinter> y \<sqinter> z) \<squnion> (x \<sqinter> \<sim> y \<sqinter> \<sim> z) \<squnion>
             (\<sim> x \<sqinter> y \<sqinter> \<sim> z) \<squnion> (\<sim> x \<sqinter> \<sim> y \<sqinter> z)"
@@ -200,9 +199,6 @@ sublocale boolean_xor < xor!: abel_semigroup xor proof
   show "x \<oplus> y = y \<oplus> x"
     by (simp only: xor_def conj_commute disj_commute)
 qed
-
-context boolean_xor
-begin
 
 lemmas xor_assoc = xor.assoc
 lemmas xor_commute = xor.commute

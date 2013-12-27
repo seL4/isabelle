@@ -452,17 +452,15 @@ locale constr_dense_linorder = linorder_no_lb + linorder_no_ub +
   fixes between
   assumes between_less: "less x y \<Longrightarrow> less x (between x y) \<and> less (between x y) y"
     and between_same: "between x x = x"
+begin
 
-sublocale  constr_dense_linorder < dlo: unbounded_dense_linorder 
+sublocale dlo: unbounded_dense_linorder 
   apply unfold_locales
   using gt_ex lt_ex between_less
   apply auto
   apply (rule_tac x="between x y" in exI)
   apply simp
   done
-
-context constr_dense_linorder
-begin
 
 lemma rinf_U[no_atp]:
   assumes fU: "finite U"

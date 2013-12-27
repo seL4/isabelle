@@ -195,13 +195,9 @@ begin
 lemma less_le: "x < y \<longleftrightarrow> x \<le> y \<and> x \<noteq> y"
   by (auto simp add: less_le_not_le intro: antisym)
 
-end
-
-sublocale order < order!: ordering less_eq less +  dual_order!: ordering greater_eq greater
+sublocale order!: ordering less_eq less +  dual_order!: ordering greater_eq greater
   by default (auto intro: antisym order_trans simp add: less_le)
 
-context order
-begin
 
 text {* Reflexivity. *}
 
@@ -1130,12 +1126,10 @@ class bot =
 
 class order_bot = order + bot +
   assumes bot_least: "\<bottom> \<le> a"
-
-sublocale order_bot < bot!: ordering_top greater_eq greater bot
-  by default (fact bot_least)
-
-context order_bot
 begin
+
+sublocale bot!: ordering_top greater_eq greater bot
+  by default (fact bot_least)
 
 lemma le_bot:
   "a \<le> \<bottom> \<Longrightarrow> a = \<bottom>"
@@ -1160,12 +1154,10 @@ class top =
 
 class order_top = order + top +
   assumes top_greatest: "a \<le> \<top>"
-
-sublocale order_top < top!: ordering_top less_eq less top
-  by default (fact top_greatest)
-
-context order_top
 begin
+
+sublocale top!: ordering_top less_eq less top
+  by default (fact top_greatest)
 
 lemma top_le:
   "\<top> \<le> a \<Longrightarrow> a = \<top>"

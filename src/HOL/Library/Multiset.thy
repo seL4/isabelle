@@ -1159,24 +1159,20 @@ end
 notation times (infixl "*" 70)
 notation Groups.one ("1")
 
-definition (in comm_monoid_add) msetsum :: "'a multiset \<Rightarrow> 'a"
+context comm_monoid_add
+begin
+
+definition msetsum :: "'a multiset \<Rightarrow> 'a"
 where
   "msetsum = comm_monoid_mset.F plus 0"
 
-definition (in comm_monoid_mult) msetprod :: "'a multiset \<Rightarrow> 'a"
-where
-  "msetprod = comm_monoid_mset.F times 1"
-
-sublocale comm_monoid_add < msetsum!: comm_monoid_mset plus 0
+sublocale msetsum!: comm_monoid_mset plus 0
 where
   "comm_monoid_mset.F plus 0 = msetsum"
 proof -
   show "comm_monoid_mset plus 0" ..
   from msetsum_def show "comm_monoid_mset.F plus 0 = msetsum" ..
 qed
-
-context comm_monoid_add
-begin
 
 lemma setsum_unfold_msetsum:
   "setsum f A = msetsum (image_mset f (multiset_of_set A))"
@@ -1203,16 +1199,20 @@ syntax (HTML output)
 translations
   "SUM i :# A. b" == "CONST msetsum_image (\<lambda>i. b) A"
 
-sublocale comm_monoid_mult < msetprod!: comm_monoid_mset times 1
+context comm_monoid_mult
+begin
+
+definition msetprod :: "'a multiset \<Rightarrow> 'a"
+where
+  "msetprod = comm_monoid_mset.F times 1"
+
+sublocale msetprod!: comm_monoid_mset times 1
 where
   "comm_monoid_mset.F times 1 = msetprod"
 proof -
   show "comm_monoid_mset times 1" ..
   from msetprod_def show "comm_monoid_mset.F times 1 = msetprod" ..
 qed
-
-context comm_monoid_mult
-begin
 
 lemma msetprod_empty:
   "msetprod {#} = 1"

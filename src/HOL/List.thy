@@ -5018,10 +5018,13 @@ lists. Warning: in most cases it is not a good idea to convert from
 sets to lists but one should convert in the other direction (via
 @{const set}). *}
 
-definition (in linorder) sorted_list_of_set :: "'a set \<Rightarrow> 'a list" where
+context linorder
+begin
+
+definition sorted_list_of_set :: "'a set \<Rightarrow> 'a list" where
   "sorted_list_of_set = folding.F insort []"
 
-sublocale linorder < sorted_list_of_set!: folding insort Nil
+sublocale sorted_list_of_set!: folding insort Nil
 where
   "folding.F insort [] = sorted_list_of_set"
 proof -
@@ -5030,21 +5033,17 @@ proof -
   show "folding.F insort [] = sorted_list_of_set" by (simp only: sorted_list_of_set_def)
 qed
 
-context linorder
-begin
-
 lemma sorted_list_of_set_empty:
   "sorted_list_of_set {} = []"
   by (fact sorted_list_of_set.empty)
 
 lemma sorted_list_of_set_insert [simp]:
-  assumes "finite A"
-  shows "sorted_list_of_set (insert x A) = insort x (sorted_list_of_set (A - {x}))"
-  using assms by (fact sorted_list_of_set.insert_remove)
+  "finite A \<Longrightarrow> sorted_list_of_set (insert x A) = insort x (sorted_list_of_set (A - {x}))"
+  by (fact sorted_list_of_set.insert_remove)
 
 lemma sorted_list_of_set_eq_Nil_iff [simp]:
   "finite A \<Longrightarrow> sorted_list_of_set A = [] \<longleftrightarrow> A = {}"
-  using assms by (auto simp: sorted_list_of_set.remove)
+  by (auto simp: sorted_list_of_set.remove)
 
 lemma sorted_list_of_set [simp]:
   "finite A \<Longrightarrow> set (sorted_list_of_set A) = A \<and> sorted (sorted_list_of_set A) 

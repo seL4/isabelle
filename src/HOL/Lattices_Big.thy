@@ -308,15 +308,14 @@ notation Groups.one ("1")
 
 subsection {* Lattice operations on finite sets *}
 
-definition (in semilattice_inf) Inf_fin :: "'a set \<Rightarrow> 'a" ("\<Sqinter>\<^sub>f\<^sub>i\<^sub>n_" [900] 900)
+context semilattice_inf
+begin
+
+definition Inf_fin :: "'a set \<Rightarrow> 'a" ("\<Sqinter>\<^sub>f\<^sub>i\<^sub>n_" [900] 900)
 where
   "Inf_fin = semilattice_set.F inf"
 
-definition (in semilattice_sup) Sup_fin :: "'a set \<Rightarrow> 'a" ("\<Squnion>\<^sub>f\<^sub>i\<^sub>n_" [900] 900)
-where
-  "Sup_fin = semilattice_set.F sup"
-
-sublocale semilattice_inf < Inf_fin!: semilattice_order_set inf less_eq less
+sublocale Inf_fin!: semilattice_order_set inf less_eq less
 where
   "semilattice_set.F inf = Inf_fin"
 proof -
@@ -325,7 +324,16 @@ proof -
   from Inf_fin_def show "semilattice_set.F inf = Inf_fin" by rule
 qed
 
-sublocale semilattice_sup < Sup_fin!: semilattice_order_set sup greater_eq greater
+end
+
+context semilattice_sup
+begin
+
+definition Sup_fin :: "'a set \<Rightarrow> 'a" ("\<Squnion>\<^sub>f\<^sub>i\<^sub>n_" [900] 900)
+where
+  "Sup_fin = semilattice_set.F sup"
+
+sublocale Sup_fin!: semilattice_order_set sup greater_eq greater
 where
   "semilattice_set.F sup = Sup_fin"
 proof -
@@ -334,12 +342,10 @@ proof -
   from Sup_fin_def show "semilattice_set.F sup = Sup_fin" by rule
 qed
 
+end
+
 
 subsection {* Infimum and Supremum over non-empty sets *}
-
-text {*
-  After this non-regular bootstrap, things continue canonically.
-*}
 
 context lattice
 begin
@@ -449,7 +455,7 @@ begin
 
 lemma Inf_fin_Inf:
   assumes "finite A" and "A \<noteq> {}"
-  shows "\<Sqinter>\<^sub>f\<^sub>i\<^sub>nA = Inf A"
+  shows "\<Sqinter>\<^sub>f\<^sub>i\<^sub>nA = \<Sqinter>A"
 proof -
   from assms obtain b B where "A = insert b B" and "finite B" by auto
   then show ?thesis
@@ -458,7 +464,7 @@ qed
 
 lemma Sup_fin_Sup:
   assumes "finite A" and "A \<noteq> {}"
-  shows "\<Squnion>\<^sub>f\<^sub>i\<^sub>nA = Sup A"
+  shows "\<Squnion>\<^sub>f\<^sub>i\<^sub>nA = \<Squnion>A"
 proof -
   from assms obtain b B where "A = insert b B" and "finite B" by auto
   then show ?thesis
