@@ -384,13 +384,13 @@ lemmas bin_trunc_or = bin_trunc_ao(2) [THEN bintr_bintr_i]
 
 subsection {* Setting and clearing bits *}
 
+(** nth bit, set/clear **)
+
 primrec
   bin_sc :: "nat => bool => int => int"
 where
   Z: "bin_sc 0 b w = bin_rest w BIT b"
   | Suc: "bin_sc (Suc n) b w = bin_sc n b (bin_rest w) BIT bin_last w"
-
-(** nth bit, set/clear **)
 
 lemma bin_nth_sc [simp]: 
   "bin_nth (bin_sc n b w) n \<longleftrightarrow> b"

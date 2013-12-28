@@ -9,7 +9,7 @@
 header "Bool lists and integers"
 
 theory Bool_List_Representation
-imports Bits_Int
+imports Main Bits_Int
 begin
 
 definition map2 :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'c list"
@@ -1140,5 +1140,43 @@ lemma bin_rsplit_len_indep:
   apply (erule bin_rsplit_aux_len_indep)
   apply (rule refl)
   done
+
+
+text {* Even more bit operations *}
+
+instantiation int :: bitss
+begin
+
+definition [iff]:
+  "i !! n \<longleftrightarrow> bin_nth i n"
+
+definition
+  "lsb i = (i :: int) !! 0"
+
+definition
+  "set_bit i n b = bin_sc n b i"
+
+definition
+  "set_bits f =
+  (if \<exists>n. \<forall>n'\<ge>n. \<not> f n' then 
+     let n = LEAST n. \<forall>n'\<ge>n. \<not> f n'
+     in bl_to_bin (rev (map f [0..<n]))
+   else if \<exists>n. \<forall>n'\<ge>n. f n' then
+     let n = LEAST n. \<forall>n'\<ge>n. f n'
+     in sbintrunc n (bl_to_bin (True # rev (map f [0..<n])))
+   else 0 :: int)"
+
+definition
+  "shiftl x n = (x :: int) * 2 ^ n"
+
+definition
+  "shiftr x n = (x :: int) div 2 ^ n"
+
+definition
+  "msb x \<longleftrightarrow> (x :: int) < 0"
+
+instance ..
+
+end
 
 end
