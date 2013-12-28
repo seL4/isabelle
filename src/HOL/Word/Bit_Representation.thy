@@ -52,7 +52,7 @@ lemma bin_rest_BIT [simp]: "bin_rest (x BIT b) = x"
 
 lemma bin_last_BIT [simp]: "bin_last (x BIT b) = b"
   unfolding bin_last_def Bit_def
-  by (cases b, simp_all add: z1pmod2)
+  by (cases b) simp_all
 
 lemma BIT_eq_iff [iff]: "u BIT b = v BIT c \<longleftrightarrow> u = v \<and> b = c"
   apply (auto simp add: Bit_def)
@@ -151,7 +151,7 @@ lemma mult_BIT_simps [simp]:
 lemma B_mod_2': 
   "X = 2 ==> (w BIT True) mod X = 1 & (w BIT False) mod X = 0"
   apply (simp (no_asm) only: Bit_B0 Bit_B1)
-  apply (simp add: z1pmod2)
+  apply simp
   done
 
 lemma bin_ex_rl: "EX w b. w BIT b = bin"
@@ -169,8 +169,6 @@ lemma bin_exhaust:
 primrec bin_nth where
   Z: "bin_nth w 0 \<longleftrightarrow> bin_last w"
   | Suc: "bin_nth w (Suc n) \<longleftrightarrow> bin_nth (bin_rest w) n"
-
-find_theorems "bin_rest _ = _"
 
 lemma bin_abs_lem:
   "bin = (w BIT b) ==> bin ~= -1 --> bin ~= 0 -->
@@ -314,7 +312,7 @@ lemma sbintrunc_mod2p: "sbintrunc n w = (w + 2 ^ n) mod 2 ^ (Suc n) - 2 ^ n"
    apply (subst mod_add_left_eq)
    apply (simp add: bin_last_def)
    apply arith
-  apply (simp add: bin_last_def bin_rest_def Bit_def mod_2_neq_1_eq_eq_0)
+  apply (simp add: bin_last_def bin_rest_def Bit_def)
   apply (clarsimp simp: mod_mult_mult1 [symmetric] 
          zmod_zdiv_equality [THEN diff_eq_eq [THEN iffD2 [THEN sym]]])
   apply (rule trans [symmetric, OF _ emep1])
