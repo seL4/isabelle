@@ -377,5 +377,31 @@ lemma nonneg_mod_div:
   apply (auto intro: pos_imp_zdiv_nonneg_iff [THEN iffD2])
   done
 
+declare iszero_0 [intro]
+
+lemma min_pm [simp]:
+  "min a b + (a - b) = (a :: nat)"
+  by arith
+  
+lemma min_pm1 [simp]:
+  "a - b + min a b = (a :: nat)"
+  by arith
+
+lemma rev_min_pm [simp]:
+  "min b a + (a - b) = (a :: nat)"
+  by arith
+
+lemma rev_min_pm1 [simp]:
+  "a - b + min b a = (a :: nat)"
+  by arith
+
+lemma min_minus [simp]:
+  "min m (m - k) = (m - k :: nat)"
+  by arith
+  
+lemma min_minus' [simp]:
+  "min (m - k) m = (m - k :: nat)"
+  by arith
+
 end
 
