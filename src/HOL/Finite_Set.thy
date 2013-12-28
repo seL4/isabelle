@@ -1085,7 +1085,7 @@ locale folding =
   assumes comp_fun_commute: "f y \<circ> f x = f x \<circ> f y"
 begin
 
-interpretation comp_fun_commute f
+interpretation fold?: comp_fun_commute f
   by default (insert comp_fun_commute, simp add: fun_eq_iff)
 
 definition F :: "'a set \<Rightarrow> 'b"
@@ -1135,7 +1135,7 @@ begin
 
 declare insert [simp del]
 
-interpretation comp_fun_idem f
+interpretation fold?: comp_fun_idem f
   by default (insert comp_fun_commute comp_fun_idem, simp add: fun_eq_iff)
 
 lemma insert_idem [simp]:
