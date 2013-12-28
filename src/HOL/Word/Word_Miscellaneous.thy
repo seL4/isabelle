@@ -253,14 +253,6 @@ lemma mod_nat_sub:
   "(x :: nat) < z ==> (x - y) mod z = x - y"
   by (rule nat_mod_eq') arith
 
-lemma int_mod_lem: 
-  "(0 :: int) < n ==> (0 <= b & b < n) = (b mod n = b)"
-  apply safe
-    apply (erule (1) mod_pos_pos_trivial)
-   apply (erule_tac [!] subst)
-   apply auto
-  done
-
 lemma int_mod_eq:
   "(0 :: int) <= b ==> b < n ==> a mod n = b mod n ==> a mod n = b"
   by clarsimp (rule mod_pos_pos_trivial)

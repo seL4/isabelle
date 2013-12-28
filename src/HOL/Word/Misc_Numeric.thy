@@ -10,17 +10,29 @@ begin
 
 declare iszero_0 [intro]
 
-lemma min_pm [simp]: "min a b + (a - b) = (a :: nat)" by arith
+lemma min_pm [simp]:
+  "min a b + (a - b) = (a :: nat)"
+  by arith
   
-lemmas min_pm1 [simp] = trans [OF add_commute min_pm]
+lemma min_pm1 [simp]:
+  "a - b + min a b = (a :: nat)"
+  by arith
 
-lemma rev_min_pm [simp]: "min b a + (a - b) = (a::nat)" by arith
+lemma rev_min_pm [simp]:
+  "min b a + (a - b) = (a :: nat)"
+  by arith
 
-lemmas rev_min_pm1 [simp] = trans [OF add_commute rev_min_pm]
+lemma rev_min_pm1 [simp]:
+  "a - b + min b a = (a :: nat)"
+  by arith
 
-lemma min_minus [simp] : "min m (m - k) = (m - k :: nat)" by arith
+lemma min_minus [simp]:
+  "min m (m - k) = (m - k :: nat)"
+  by arith
   
-lemmas min_minus' [simp] = trans [OF min.commute min_minus]
+lemma min_minus' [simp]:
+  "min (m - k) m = (m - k :: nat)"
+  by arith
 
 lemma mod_2_neq_1_eq_eq_0:
   fixes k :: int
@@ -28,37 +40,30 @@ lemma mod_2_neq_1_eq_eq_0:
   by (fact not_mod_2_eq_1_eq_0)
 
 lemma z1pmod2:
-  "(2 * b + 1) mod 2 = (1::int)"
+  fixes b :: int
+  shows "(2 * b + 1) mod 2 = (1::int)"
+  by arith
+
+lemma diff_le_eq':
+  "a - b \<le> c \<longleftrightarrow> a \<le> b + (c::int)"
   by arith
 
 lemma emep1:
-  "even n ==> even d ==> 0 <= d ==> (n + 1) mod (d :: int) = (n mod d) + 1"
-  apply (simp add: add_commute)
-  apply (safe dest!: even_equiv_def [THEN iffD1])
-  apply (subst pos_zmod_mult_2)
-   apply arith
-  apply (simp add: mod_mult_mult1)
- done
+  fixes n d :: int
+  shows "even n \<Longrightarrow> even d \<Longrightarrow> 0 \<le> d \<Longrightarrow> (n + 1) mod d = (n mod d) + 1"
+  by (auto simp add: pos_zmod_mult_2 add_commute even_equiv_def)
 
-lemma int_mod_lem: 
-  "(0 :: int) < n ==> (0 <= b & b < n) = (b mod n = b)"
-  apply safe
-    apply (erule (1) mod_pos_pos_trivial)
-   apply (erule_tac [!] subst)
-   apply auto
-  done
+lemma int_mod_ge:
+  "a < n \<Longrightarrow> 0 < (n :: int) \<Longrightarrow> a \<le> a mod n"
+  by (metis dual_order.trans le_cases mod_pos_pos_trivial pos_mod_conj)
 
-lemma int_mod_ge: "a < n ==> 0 < (n :: int) ==> a <= a mod n"
-  apply (cases "0 <= a")
-   apply (drule (1) mod_pos_pos_trivial)
-   apply simp
-  apply (rule order_trans [OF _ pos_mod_sign])
-   apply simp
-  apply assumption
-  done
+lemma int_mod_ge':
+  "b < 0 \<Longrightarrow> 0 < (n :: int) \<Longrightarrow> b + n \<le> b mod n"
+  by (metis add_less_same_cancel2 int_mod_ge mod_add_self2)
 
-lemma int_mod_ge': "b < 0 ==> 0 < (n :: int) ==> b + n <= b mod n"
-  by (rule int_mod_ge [where a = "b + n" and n = n, simplified])
+lemma int_mod_le':
+  "(0::int) \<le> b - n \<Longrightarrow> b mod n \<le> b - n"
+  by (metis minus_mod_self2 zmod_le_nonneg_dividend)
 
 lemma zless2:
   "0 < (2 :: int)"
@@ -72,13 +77,8 @@ lemma zle2p:
   "0 \<le> (2 ^ n :: int)"
   by arith
 
-lemma int_mod_le': "(0::int) <= b - n ==> b mod n <= b - n"
-  using zmod_le_nonneg_dividend [of "b - n" "n"] by simp
-
-lemma diff_le_eq': "(a - b \<le> c) = (a \<le> b + (c::int))" by arith
-
 lemma m1mod2k:
-  "-1 mod 2 ^ n = (2 ^ n - 1 :: int)"
+  "- 1 mod 2 ^ n = (2 ^ n - 1 :: int)"
   using zless2p by (rule zmod_minus1)
 
 lemma p1mod22k':
@@ -91,26 +91,12 @@ lemma p1mod22k:
   shows "(2 * b + 1) mod (2 * 2 ^ n) = 2 * (b mod 2 ^ n) + 1"
   by (simp add: p1mod22k' add_commute)
 
-lemma lrlem':
-  assumes d: "(i::nat) \<le> j \<or> m < j'"
-  assumes R1: "i * k \<le> j * k \<Longrightarrow> R"
-  assumes R2: "Suc m * k' \<le> j' * k' \<Longrightarrow> R"
-  shows "R" using d
+lemma int_mod_lem: 
+  "(0 :: int) < n ==> (0 <= b & b < n) = (b mod n = b)"
   apply safe
-   apply (rule R1, erule mult_le_mono1)
-  apply (rule R2, erule Suc_le_eq [THEN iffD2 [THEN mult_le_mono1]])
-  done
-
-lemma lrlem: "(0::nat) < sc ==>
-    (sc - n + (n + lb * n) <= m * n) = (sc + lb * n <= m * n)"
-  apply safe
-   apply arith
-  apply (case_tac "sc >= n")
-   apply arith
-  apply (insert linorder_le_less_linear [of m lb])
-  apply (erule_tac k=n and k'=n in lrlem')
-   apply arith
-  apply simp
+    apply (erule (1) mod_pos_pos_trivial)
+   apply (erule_tac [!] subst)
+   apply auto
   done
 
 end

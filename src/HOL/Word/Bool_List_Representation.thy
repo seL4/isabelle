@@ -1062,10 +1062,35 @@ lemma bin_rsplit_rcat [rule_format] :
 lemma bin_rsplit_aux_len_le [rule_format] :
   "\<forall>ws m. n \<noteq> 0 \<longrightarrow> ws = bin_rsplit_aux n nw w bs \<longrightarrow>
     length ws \<le> m \<longleftrightarrow> nw + length bs * n \<le> m * n"
-  apply (induct n nw w bs rule: bin_rsplit_aux.induct)
-  apply (subst bin_rsplit_aux.simps)
-  apply (simp add: lrlem Let_def split: prod.split)
-  done
+proof -
+  { fix i j j' k k' m :: nat and R
+    assume d: "(i::nat) \<le> j \<or> m < j'"
+    assume R1: "i * k \<le> j * k \<Longrightarrow> R"
+    assume R2: "Suc m * k' \<le> j' * k' \<Longrightarrow> R"
+    have "R" using d
+      apply safe
+       apply (rule R1, erule mult_le_mono1)
+      apply (rule R2, erule Suc_le_eq [THEN iffD2 [THEN mult_le_mono1]])
+      done
+  } note A = this
+  { fix sc m n lb :: nat
+    have "(0::nat) < sc \<Longrightarrow> sc - n + (n + lb * n) \<le> m * n \<longleftrightarrow> sc + lb * n \<le> m * n"
+      apply safe
+       apply arith
+      apply (case_tac "sc >= n")
+       apply arith
+      apply (insert linorder_le_less_linear [of m lb])
+      apply (erule_tac k2=n and k'2=n in A)
+       apply arith
+      apply simp
+      done
+  } note B = this
+  show ?thesis
+    apply (induct n nw w bs rule: bin_rsplit_aux.induct)
+    apply (subst bin_rsplit_aux.simps)
+    apply (simp add: B Let_def split: prod.split)
+    done
+qed
 
 lemma bin_rsplit_len_le: 
   "n \<noteq> 0 --> ws = bin_rsplit n (nw, w) --> (length ws <= m) = (nw <= m * n)"
