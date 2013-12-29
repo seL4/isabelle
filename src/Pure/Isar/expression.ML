@@ -904,15 +904,9 @@ fun gen_sublocale prep_expr prep_prop prep_attr expression raw_eqns lthy =
   end;
   
 fun gen_sublocale_global prep_expr prep_loc prep_prop prep_attr before_exit raw_locale expression raw_eqns thy =
-  let
-    val locale = prep_loc thy raw_locale;
-    val add_dependency_global = Proof_Context.background_theory ooo Locale.add_dependency locale;
-  in
-    thy
-    |> Named_Target.init before_exit locale
-    |> generic_interpretation prep_expr prep_prop prep_attr Element.witness_proof_eqs
-        Local_Theory.notes_kind add_dependency_global expression raw_eqns
-  end;
+  thy
+  |> Named_Target.init before_exit (prep_loc thy raw_locale)
+  |> gen_sublocale prep_expr prep_prop prep_attr expression raw_eqns
 
 in
 
