@@ -819,7 +819,7 @@ local
 
 (* reading *)
 
-fun read_with_extended_syntax prep_prop deps ctxt props =
+fun prep_with_extended_syntax prep_prop deps ctxt props =
   let
     val deps_ctxt = fold Locale.activate_declarations deps ctxt;
   in
@@ -827,14 +827,17 @@ fun read_with_extended_syntax prep_prop deps ctxt props =
       |> Variable.export_terms deps_ctxt ctxt
   end;
 
-fun read_interpretation prep_expr prep_prop prep_attr expression raw_eqns initial_ctxt =
+fun prep_interpretation prep_expr prep_prop prep_attr expression raw_eqns initial_ctxt =
   let
     val ((propss, deps, export), expr_ctxt) = prep_expr expression initial_ctxt;
-    val eqns = read_with_extended_syntax prep_prop deps expr_ctxt raw_eqns;
+    val eqns = prep_with_extended_syntax prep_prop deps expr_ctxt raw_eqns;
     val attrss = map (apsnd (map (prep_attr (Proof_Context.theory_of initial_ctxt))) o fst) raw_eqns;
     val goal_ctxt = fold Variable.auto_fixes eqns expr_ctxt;
     val export' = Variable.export_morphism goal_ctxt expr_ctxt;
   in (((propss, deps, export, export'), (eqns, attrss)), goal_ctxt) end;
+
+val cert_interpretation = prep_interpretation cert_goal_expression (K I) (K I);
+val read_interpretation = prep_interpretation read_goal_expression Syntax.parse_prop Attrib.intern_src;
 
 
 (* generic interpretation machinery *)
@@ -857,19 +860,19 @@ fun note_eqns_register note activate deps witss eqns attrss export export' ctxt 
     |> fold activate' dep_morphs
   end;
 
-fun generic_interpretation prep_expr prep_prop prep_attr setup_proof note activate
+fun generic_interpretation prep_interpretation setup_proof note activate
     expression raw_eqns initial_ctxt = 
   let
     val (((propss, deps, export, export'), (eqns, attrss)), goal_ctxt) = 
-      read_interpretation prep_expr prep_prop prep_attr expression raw_eqns initial_ctxt;
+      prep_interpretation expression raw_eqns initial_ctxt;
     fun after_qed witss eqns =
       note_eqns_register note activate deps witss eqns attrss export export';
   in setup_proof after_qed propss eqns goal_ctxt end;
 
 
-(* various flavours of interpretation *)
+(* first dimension: proof vs. local theory *)
 
-fun gen_interpret prep_expr prep_prop prep_attr expression raw_eqns int state =
+fun gen_interpret prep_interpretation expression raw_eqns int state =
   let
     val _ = Proof.assert_forward_or_chain state;
     val ctxt = Proof.context_of state;
@@ -877,71 +880,61 @@ fun gen_interpret prep_expr prep_prop prep_attr expression raw_eqns int state =
     fun setup_proof after_qed propss eqns goal_ctxt = 
       Element.witness_local_proof_eqs (lift_after_qed after_qed) "interpret" propss eqns goal_ctxt int state;
   in
-    generic_interpretation prep_expr prep_prop prep_attr setup_proof
+    generic_interpretation prep_interpretation setup_proof
       Attrib.local_notes (Context.proof_map ooo Locale.add_registration) expression raw_eqns ctxt
   end;
 
-fun gen_interpretation prep_expr prep_prop prep_attr expression raw_eqns lthy =
-  if Named_Target.is_theory lthy
-  then 
-    lthy
-    |> generic_interpretation prep_expr prep_prop prep_attr Element.witness_proof_eqs
-        Local_Theory.notes_kind Generic_Target.theory_registration expression raw_eqns
-  else
-    lthy
-    |> generic_interpretation prep_expr prep_prop prep_attr Element.witness_proof_eqs
-        Local_Theory.notes_kind Local_Theory.activate expression raw_eqns;
+fun gen_local_theory_interpretation prep_interpretation activate expression raw_eqns lthy =
+  generic_interpretation prep_interpretation Element.witness_proof_eqs
+    Local_Theory.notes_kind (activate lthy) expression raw_eqns lthy;
 
-fun gen_sublocale prep_expr prep_prop prep_attr expression raw_eqns lthy =
+
+(* second dimension: relation to underlying target *)
+
+fun subscribe lthy =
+  if Named_Target.is_theory lthy
+  then Generic_Target.theory_registration
+  else Generic_Target.locale_dependency (Named_Target.the_name lthy);
+
+fun subscribe_or_activate lthy =
+  if Named_Target.is_theory lthy
+  then subscribe lthy
+  else Local_Theory.activate;
+
+fun subscribe_locale_only lthy =
   let
     val _ = if Named_Target.is_theory lthy
       then error "Not possible on level of global theory" else ();
-    val locale = Named_Target.the_name lthy;
-  in
-    lthy
-    |> generic_interpretation prep_expr prep_prop prep_attr Element.witness_proof_eqs
-        Local_Theory.notes_kind (Generic_Target.locale_dependency locale) expression raw_eqns
-  end;
-  
-fun gen_sublocale_global prep_expr prep_loc prep_prop prep_attr before_exit raw_locale expression raw_eqns thy =
+  in subscribe lthy end;
+
+
+(* special case: global sublocale command *)
+
+fun gen_sublocale_global prep_loc prep_interpretation before_exit raw_locale expression raw_eqns thy =
   thy
   |> Named_Target.init before_exit (prep_loc thy raw_locale)
-  |> gen_sublocale prep_expr prep_prop prep_attr expression raw_eqns
+  |> gen_local_theory_interpretation prep_interpretation subscribe_locale_only expression raw_eqns
 
 in
 
-fun permanent_interpretation expression raw_eqns lthy =
-  let
-    val _ = Local_Theory.assert_bottom true lthy;
-    val target = Named_Target.the_name lthy;
-    val subscribe = if target = "" then Generic_Target.theory_registration
-      else Generic_Target.locale_dependency target;
-  in
-    lthy
-    |> generic_interpretation cert_goal_expression (K I) (K I) Element.witness_proof_eqs
-        Local_Theory.notes_kind subscribe expression raw_eqns
-  end;
 
-fun ephemeral_interpretation expression raw_eqns lthy =
-  lthy
-  |> generic_interpretation cert_goal_expression (K I) (K I) Element.witness_proof_eqs
-      Local_Theory.notes_kind Local_Theory.activate expression raw_eqns
+(* interfaces *)
 
-fun interpret x = gen_interpret cert_goal_expression (K I) (K I) x;
-fun interpret_cmd x =
-  gen_interpret read_goal_expression Syntax.parse_prop Attrib.intern_src x;
+fun interpret x = gen_interpret cert_interpretation x;
+fun interpret_cmd x = gen_interpret read_interpretation x;
 
-fun interpretation x = gen_interpretation cert_goal_expression (K I) (K I) x;
-fun interpretation_cmd x =
-  gen_interpretation read_goal_expression Syntax.parse_prop Attrib.intern_src x;
+fun permanent_interpretation x = gen_local_theory_interpretation cert_interpretation subscribe x;
 
-fun sublocale x = gen_sublocale cert_goal_expression (K I) (K I) x;
-fun sublocale_cmd x =
-  gen_sublocale read_goal_expression Syntax.parse_prop Attrib.intern_src x;
+fun ephemeral_interpretation x = gen_local_theory_interpretation cert_interpretation (K Local_Theory.activate) x;
 
-fun sublocale_global x = gen_sublocale_global cert_goal_expression (K I) (K I) (K I) x;
-fun sublocale_global_cmd x =
-  gen_sublocale_global read_goal_expression Locale.check Syntax.parse_prop Attrib.intern_src x;
+fun interpretation x = gen_local_theory_interpretation cert_interpretation subscribe_or_activate x;
+fun interpretation_cmd x = gen_local_theory_interpretation read_interpretation subscribe_or_activate x;
+
+fun sublocale x = gen_local_theory_interpretation cert_interpretation subscribe_locale_only x;
+fun sublocale_cmd x = gen_local_theory_interpretation read_interpretation subscribe_locale_only x;
+
+fun sublocale_global x = gen_sublocale_global (K I) cert_interpretation x;
+fun sublocale_global_cmd x = gen_sublocale_global Locale.check read_interpretation x;
 
 end;
 
