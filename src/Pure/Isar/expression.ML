@@ -851,7 +851,7 @@ fun note_eqns_register note activate deps witss eqns attrss export export' ctxt 
     val dep_morphs = map2 (fn (dep, morph) => fn wits =>
       (dep, morph $> Element.satisfy_morphism (map (Element.transform_witness export') wits))) deps witss;
     fun activate' dep_morph ctxt = activate dep_morph
-        (Option.map (rpair true) (Element.eq_morphism (Proof_Context.theory_of ctxt) eqns')) export ctxt;
+      (Option.map (rpair true) (Element.eq_morphism (Proof_Context.theory_of ctxt) eqns')) export ctxt;
   in
     ctxt'
     |> fold activate' dep_morphs
