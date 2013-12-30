@@ -38,7 +38,10 @@ text {* The @{tool_def jedit} tool invokes a version of
   option bypasses the session build dialog.
 
   The @{verbatim "-m"} option specifies additional print modes for the
-  prover process.
+  prover process.  Note that the system option @{system_option
+  jedit_print_mode} allows to do the same persistently (e.g.\ via the
+  Plugin Options dialog of Isabelle/jEdit), without requiring
+  command-line invocation.
 
   The @{verbatim "-J"} and @{verbatim "-j"} options allow to pass
   additional low-level options to the JVM or jEdit, respectively.  The

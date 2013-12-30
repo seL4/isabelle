@@ -3,6 +3,9 @@
 public option jedit_logic : string = ""
   -- "default logic session"
 
+public option jedit_print_mode : string = ""
+  -- "default print modes for output, separated by commas (change requires restart)"
+
 public option jedit_auto_load : bool = false
   -- "load all required files automatically to resolve theory imports"
 

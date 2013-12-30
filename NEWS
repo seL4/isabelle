@@ -25,6 +25,11 @@ Open text buffers take precedence over copies within the file-system.
 * Document panel: simplied interaction where every single mouse click
 (re)opens document via desktop environment or as jEdit buffer.
 
+* Option "jedit_print_mode" (see also "Plugin Options / Isabelle /
+General") allows to specify additional print modes for the prover
+process, without requiring old-fashioned command-line invocation of
+"isabelle jedit -m MODE".
+
 
 *** HOL ***
 
