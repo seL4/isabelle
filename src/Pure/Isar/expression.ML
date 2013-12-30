@@ -413,7 +413,7 @@ fun prep_full_context_statement
     val deps = map (finish_inst ctxt6) insts;
     val elems'' = map (finish_elem (ctxt1, ctxt6) parms do_close) elems';
 
-  in ((fixed, deps, elems'', concl), (parms, ctxt7)) end
+  in ((fixed, deps, elems'', concl), (parms, ctxt7)) end;
 
 in
 
@@ -836,13 +836,17 @@ fun prep_interpretation prep_expr prep_prop prep_attr expression raw_eqns initia
     val export' = Variable.export_morphism goal_ctxt expr_ctxt;
   in (((propss, deps, export, export'), (eqns, attrss)), goal_ctxt) end;
 
-val cert_interpretation = prep_interpretation cert_goal_expression (K I) (K I);
-val read_interpretation = prep_interpretation read_goal_expression Syntax.parse_prop Attrib.intern_src;
+val cert_interpretation =
+  prep_interpretation cert_goal_expression (K I) (K I);
+
+val read_interpretation =
+  prep_interpretation read_goal_expression Syntax.parse_prop Attrib.intern_src;
 
 
 (* generic interpretation machinery *)
 
-fun meta_rewrite eqns ctxt = (map (Local_Defs.meta_rewrite_rule ctxt #> Drule.abs_def) (maps snd eqns), ctxt);
+fun meta_rewrite eqns ctxt =
+  (map (Local_Defs.meta_rewrite_rule ctxt #> Drule.abs_def) (maps snd eqns), ctxt);
 
 fun note_eqns_register note activate deps witss eqns attrss export export' ctxt =
   let
@@ -851,19 +855,23 @@ fun note_eqns_register note activate deps witss eqns attrss export export' ctxt 
     val (eqns', ctxt') = ctxt
       |> note Thm.lemmaK facts
       |-> meta_rewrite;
-    val dep_morphs = map2 (fn (dep, morph) => fn wits =>
-      (dep, morph $> Element.satisfy_morphism (map (Element.transform_witness export') wits))) deps witss;
-    fun activate' dep_morph ctxt = activate dep_morph
-      (Option.map (rpair true) (Element.eq_morphism (Proof_Context.theory_of ctxt) eqns')) export ctxt;
+    val dep_morphs =
+      map2 (fn (dep, morph) => fn wits =>
+          (dep, morph $> Element.satisfy_morphism (map (Element.transform_witness export') wits)))
+        deps witss;
+    fun activate' dep_morph ctxt =
+      activate dep_morph
+        (Option.map (rpair true) (Element.eq_morphism (Proof_Context.theory_of ctxt) eqns'))
+        export ctxt;
   in
     ctxt'
     |> fold activate' dep_morphs
   end;
 
 fun generic_interpretation prep_interpretation setup_proof note activate
-    expression raw_eqns initial_ctxt = 
+    expression raw_eqns initial_ctxt =
   let
-    val (((propss, deps, export, export'), (eqns, attrss)), goal_ctxt) = 
+    val (((propss, deps, export, export'), (eqns, attrss)), goal_ctxt) =
       prep_interpretation expression raw_eqns initial_ctxt;
     fun after_qed witss eqns =
       note_eqns_register note activate deps witss eqns attrss export export';
@@ -876,9 +884,11 @@ fun gen_interpret prep_interpretation expression raw_eqns int state =
   let
     val _ = Proof.assert_forward_or_chain state;
     val ctxt = Proof.context_of state;
-    fun lift_after_qed after_qed witss eqns = Proof.map_context (after_qed witss eqns) #> Proof.reset_facts;
-    fun setup_proof after_qed propss eqns goal_ctxt = 
-      Element.witness_local_proof_eqs (lift_after_qed after_qed) "interpret" propss eqns goal_ctxt int state;
+    fun lift_after_qed after_qed witss eqns =
+      Proof.map_context (after_qed witss eqns) #> Proof.reset_facts;
+    fun setup_proof after_qed propss eqns goal_ctxt =
+      Element.witness_local_proof_eqs (lift_after_qed after_qed) "interpret"
+        propss eqns goal_ctxt int state;
   in
     generic_interpretation prep_interpretation setup_proof
       Attrib.local_notes (Context.proof_map ooo Locale.add_registration) expression raw_eqns ctxt
@@ -910,7 +920,8 @@ fun subscribe_locale_only lthy =
 
 (* special case: global sublocale command *)
 
-fun gen_sublocale_global prep_loc prep_interpretation before_exit raw_locale expression raw_eqns thy =
+fun gen_sublocale_global prep_loc prep_interpretation
+    before_exit raw_locale expression raw_eqns thy =
   thy
   |> Named_Target.init before_exit (prep_loc thy raw_locale)
   |> gen_local_theory_interpretation prep_interpretation subscribe_locale_only expression raw_eqns
@@ -923,15 +934,21 @@ in
 fun interpret x = gen_interpret cert_interpretation x;
 fun interpret_cmd x = gen_interpret read_interpretation x;
 
-fun permanent_interpretation x = gen_local_theory_interpretation cert_interpretation subscribe x;
+fun permanent_interpretation x =
+  gen_local_theory_interpretation cert_interpretation subscribe x;
 
-fun ephemeral_interpretation x = gen_local_theory_interpretation cert_interpretation (K Local_Theory.activate) x;
+fun ephemeral_interpretation x =
+  gen_local_theory_interpretation cert_interpretation (K Local_Theory.activate) x;
 
-fun interpretation x = gen_local_theory_interpretation cert_interpretation subscribe_or_activate x;
-fun interpretation_cmd x = gen_local_theory_interpretation read_interpretation subscribe_or_activate x;
+fun interpretation x =
+  gen_local_theory_interpretation cert_interpretation subscribe_or_activate x;
+fun interpretation_cmd x =
+  gen_local_theory_interpretation read_interpretation subscribe_or_activate x;
 
-fun sublocale x = gen_local_theory_interpretation cert_interpretation subscribe_locale_only x;
-fun sublocale_cmd x = gen_local_theory_interpretation read_interpretation subscribe_locale_only x;
+fun sublocale x =
+  gen_local_theory_interpretation cert_interpretation subscribe_locale_only x;
+fun sublocale_cmd x =
+  gen_local_theory_interpretation read_interpretation subscribe_locale_only x;
 
 fun sublocale_global x = gen_sublocale_global (K I) cert_interpretation x;
 fun sublocale_global_cmd x = gen_sublocale_global Locale.check read_interpretation x;
