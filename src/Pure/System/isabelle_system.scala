@@ -303,7 +303,7 @@ object Isabelle_System
     private val pid = stdout.readLine
 
     private def kill_cmd(signal: String): Int =
-      execute(true, "/bin/bash", "-c", "kill -" + signal + " -" + pid).waitFor
+      execute(true, "/usr/bin/env", "bash", "-c", "kill -" + signal + " -" + pid).waitFor
 
     private def kill(signal: String): Boolean =
     {
