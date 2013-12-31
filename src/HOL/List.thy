@@ -2822,18 +2822,13 @@ lemma inter_coset_fold [code]:
   "A \<inter> List.coset xs = fold Set.remove xs A"
   by (simp add: Diff_eq [symmetric] minus_set_fold)
 
-lemma (in semilattice_set) set_eq_fold:
+lemma (in semilattice_set) set_eq_fold [code]:
   "F (set (x # xs)) = fold f xs x"
 proof -
   interpret comp_fun_idem f
     by default (simp_all add: fun_eq_iff left_commute)
   show ?thesis by (simp add: eq_fold fold_set_fold)
 qed
-
-declare Inf_fin.set_eq_fold [code]
-declare Sup_fin.set_eq_fold [code]
-declare Min.set_eq_fold [code]
-declare Max.set_eq_fold [code]
 
 lemma (in complete_lattice) Inf_set_fold:
   "Inf (set xs) = fold inf xs top"
