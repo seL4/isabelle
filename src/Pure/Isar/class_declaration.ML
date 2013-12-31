@@ -368,9 +368,11 @@ fun tactic_proof tac after_qed some_prop ctxt =
 
 in
 
-val subclass = gen_subclass (K I) user_proof;
 fun prove_subclass before_exit tac = gen_subclass (K I) (tactic_proof tac) before_exit;
-val subclass_cmd = gen_subclass (Proof_Context.read_class o Proof_Context.init_global) user_proof;
+
+fun subclass x = gen_subclass (K I) user_proof x;
+fun subclass_cmd x =
+  gen_subclass (Proof_Context.read_class o Proof_Context.init_global) user_proof x;
 
 end; (*local*)
 
