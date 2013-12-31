@@ -27,14 +27,11 @@ sig
   val const_typ_eqn: theory -> thm -> string * typ
   val expand_eta: theory -> int -> thm -> thm
   type cert
-  val empty_cert: theory -> string -> cert
-  val cert_of_eqns: theory -> string -> (thm * bool) list -> cert
   val constrain_cert: theory -> sort list -> cert -> cert
   val conclude_cert: cert -> cert
   val typargs_deps_of_cert: theory -> cert -> (string * sort) list * (string * typ list) list
   val equations_of_cert: theory -> cert -> ((string * sort) list * typ)
     * (((term * string option) list * (term * string option)) * (thm option * bool)) list
-  val bare_thms_of_cert: theory -> cert -> thm list
   val pretty_cert: theory -> cert -> Pretty.T list
 
   (*executable code*)
@@ -863,13 +860,6 @@ fun pretty_cert thy (cert as Equations _) =
       [Syntax.pretty_term_global thy (Logic.varify_types_global t)]
   | pretty_cert thy (Abstract (abs_thm, _)) =
       [(Display.pretty_thm_global thy o Axclass.overload thy o Thm.varifyT_global) abs_thm];
-
-fun bare_thms_of_cert thy (cert as Equations _) =
-      (map_filter (fn (_, (some_thm, proper)) => if proper then some_thm else NONE)
-        o snd o equations_of_cert thy) cert
-  | bare_thms_of_cert thy (Projection _) = []
-  | bare_thms_of_cert thy (Abstract (abs_thm, tyco)) =
-      [Thm.varifyT_global (snd (concretify_abs thy tyco abs_thm))];
 
 end;
 
