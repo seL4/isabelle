@@ -214,7 +214,7 @@ fun old_skolem_theorem_of_def thy rhs0 =
       THEN rtac ((prem |> rewrite_rule ctxt @{thms skolem_def [abs_def]})
                  RS Global_Theory.get_thm thy "Hilbert_Choice.someI_ex") 1
   in
-    Goal.prove_internal [ex_tm] conc tacf
+    Goal.prove_internal ctxt [ex_tm] conc tacf
     |> forall_intr_list frees
     |> Thm.forall_elim_vars 0  (*Introduce Vars, but don't discharge defs.*)
     |> Thm.varifyT_global

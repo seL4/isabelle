@@ -123,7 +123,7 @@ fun import_export_proof ctxt (name, raw_th) =
     val cert = Thm.cterm_of thy;
 
     (*export assumes/defines*)
-    val th = Goal.norm_result raw_th;
+    val th = Goal.norm_result ctxt raw_th;
     val ((defs, asms), th') = Local_Defs.export ctxt thy_ctxt th;
     val asms' = map (rewrite_rule ctxt (Drule.norm_hhf_eqs @ defs)) asms;
 
@@ -154,7 +154,7 @@ fun import_export_proof ctxt (name, raw_th) =
       (fold (curry op COMP) asms' result'
         handle THM _ => raise THM ("Failed to re-import result", 0, result' :: asms'))
       |> Local_Defs.contract ctxt defs (Thm.cprop_of th)
-      |> Goal.norm_result
+      |> Goal.norm_result ctxt
       |> Global_Theory.name_thm false false name;
 
   in (result'', result) end;

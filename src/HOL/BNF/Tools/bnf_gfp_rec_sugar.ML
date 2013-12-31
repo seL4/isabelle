@@ -1215,7 +1215,7 @@ fun add_primcorec_ursive_cmd maybe_tac opts (raw_fixes, raw_specs') lthy =
 val add_primcorecursive_cmd = (fn (goalss, after_qed, lthy) =>
   lthy
   |> Proof.theorem NONE after_qed goalss
-  |> Proof.refine (Method.primitive_text I)
+  |> Proof.refine (Method.primitive_text (K I))
   |> Seq.hd) ooo add_primcorec_ursive_cmd NONE;
 
 val add_primcorec_cmd = (fn (goalss, after_qed, lthy) =>

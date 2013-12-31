@@ -48,7 +48,7 @@ fun rulify_elim_conv ctxt ct =
      Raw_Simplifier.rewrite ctxt true (map Thm.symmetric
        [Data.atomize_exL, Data.atomize_conjL, Data.atomize_disjL])) ct
 
-fun rulify_elim ctxt th = Simplifier.norm_hhf (Conv.fconv_rule (rulify_elim_conv ctxt) th);
+fun rulify_elim ctxt th = Simplifier.norm_hhf ctxt (Conv.fconv_rule (rulify_elim_conv ctxt) th);
 
 (* Decompose elimination rule of the form
    A1 ==> ... ==> Am ==> (!!xs1. Bs1 ==> P) ==> ... ==> (!!xsn. Bsn ==> P) ==> P

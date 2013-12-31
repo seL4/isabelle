@@ -9,7 +9,7 @@ sig
   type export = bool -> cterm list -> (thm -> thm) * (term -> term)
   val assume_export: export
   val presume_export: export
-  val assume: cterm -> thm
+  val assume: Proof.context -> cterm -> thm
   val all_assms_of: Proof.context -> cterm list
   val all_prems_of: Proof.context -> thm list
   val check_hyps: Proof.context -> thm -> thm
@@ -48,7 +48,7 @@ fun assume_export is_goal asms =
 *)
 fun presume_export _ = assume_export false;
 
-val assume = Raw_Simplifier.norm_hhf o Thm.assume;
+fun assume ctxt = Raw_Simplifier.norm_hhf ctxt o Thm.assume;
 
 
 
@@ -97,10 +97,11 @@ fun local_prems_of inner outer =
 
 (* add assumptions *)
 
-fun add_assms export new_asms =
-  let val new_prems = map assume new_asms in
-    map_data (fn (asms, prems) => (asms @ [(export, new_asms)], prems @ new_prems)) #>
-    pair new_prems
+fun add_assms export new_asms ctxt =
+  let val new_prems = map (assume ctxt) new_asms in
+    ctxt
+    |> map_data (fn (asms, prems) => (asms @ [(export, new_asms)], prems @ new_prems))
+    |> pair new_prems
   end;
 
 val add_assumes = add_assms assume_export;
@@ -109,9 +110,9 @@ val add_assumes = add_assms assume_export;
 (* export *)
 
 fun export is_goal inner outer =
-  Raw_Simplifier.norm_hhf_protect #>
+  Raw_Simplifier.norm_hhf_protect inner #>
   fold_rev (fn (e, As) => #1 (e is_goal As)) (local_assumptions_of inner outer) #>
-  Raw_Simplifier.norm_hhf_protect;
+  Raw_Simplifier.norm_hhf_protect outer;
 
 fun export_term inner outer =
   fold_rev (fn (e, As) => #2 (e false As)) (local_assumptions_of inner outer);

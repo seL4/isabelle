@@ -693,7 +693,8 @@ in
 
 fun define_preds binding parms (((exts, exts'), (ints, ints')), defs) thy =
   let
-    val defs' = map (cterm_of thy #> Assumption.assume #> Drule.abs_def) defs;
+    val ctxt = Proof_Context.init_global thy;
+    val defs' = map (cterm_of thy #> Assumption.assume ctxt #> Drule.abs_def) defs;
 
     val (a_pred, a_intro, a_axioms, thy'') =
       if null exts then (NONE, NONE, [], thy)
@@ -717,13 +718,15 @@ fun define_preds binding parms (((exts, exts'), (ints, ints')), defs) thy =
           val ((statement, intro, axioms), thy''') =
             thy''
             |> def_pred binding parms defs' (ints @ the_list a_pred) (ints' @ the_list a_pred);
+          val ctxt''' = Proof_Context.init_global thy''';
           val (_, thy'''') =
             thy'''
             |> Sign.qualified_path true binding
             |> Global_Theory.note_thmss ""
                  [((Binding.conceal (Binding.name introN), []), [([intro], [Locale.intro_add])]),
                   ((Binding.conceal (Binding.name axiomsN), []),
-                    [(map (Drule.export_without_context o Element.conclude_witness) axioms, [])])]
+                    [(map (Drule.export_without_context o Element.conclude_witness ctxt''') axioms,
+                      [])])]
             ||> Sign.restore_naming thy''';
         in (SOME statement, SOME intro, axioms, thy'''') end;
   in ((a_pred, a_intro, a_axioms), (b_pred, b_intro, b_axioms), thy'''') end;
@@ -740,9 +743,9 @@ fun assumes_to_notes (Assumes asms) axms =
       |> apfst (curry Notes "")
   | assumes_to_notes e axms = (e, axms);
 
-fun defines_to_notes thy (Defines defs) =
+fun defines_to_notes ctxt (Defines defs) =
       Notes ("", map (fn (a, (def, _)) =>
-        (a, [([Assumption.assume (cterm_of thy def)],
+        (a, [([Assumption.assume ctxt (cterm_of (Proof_Context.theory_of ctxt) def)],
           [(Attrib.internal o K) Locale.witness_add])])) defs)
   | defines_to_notes _ e = e;
 
@@ -770,6 +773,7 @@ fun gen_add_locale prep_decl
       else raw_predicate_binding;
     val ((a_statement, a_intro, a_axioms), (b_statement, b_intro, b_axioms), thy') =
       define_preds predicate_binding parms text thy;
+    val pred_ctxt = Proof_Context.init_global thy';
 
     val a_satisfy = Element.satisfy_morphism a_axioms;
     val b_satisfy = Element.satisfy_morphism b_axioms;
@@ -782,20 +786,21 @@ fun gen_add_locale prep_decl
     val notes =
       if is_some asm then
         [("", [((Binding.conceal (Binding.suffix_name ("_" ^ axiomsN) binding), []),
-          [([Assumption.assume (cterm_of thy' (the asm))],
+          [([Assumption.assume pred_ctxt (cterm_of thy' (the asm))],
             [(Attrib.internal o K) Locale.witness_add])])])]
       else [];
 
     val notes' = body_elems |>
-      map (defines_to_notes thy') |>
+      map (defines_to_notes pred_ctxt) |>
       map (Element.transform_ctxt a_satisfy) |>
-      (fn elems => fold_map assumes_to_notes elems (map Element.conclude_witness a_axioms)) |>
+      (fn elems =>
+        fold_map assumes_to_notes elems (map (Element.conclude_witness pred_ctxt) a_axioms)) |>
       fst |>
       map (Element.transform_ctxt b_satisfy) |>
       map_filter (fn Notes notes => SOME notes | _ => NONE);
 
     val deps' = map (fn (l, morph) => (l, morph $> b_satisfy)) deps;
-    val axioms = map Element.conclude_witness b_axioms;
+    val axioms = map (Element.conclude_witness pred_ctxt) b_axioms;
 
     val loc_ctxt = thy'
       |> Locale.register_locale binding (extraTs, params)

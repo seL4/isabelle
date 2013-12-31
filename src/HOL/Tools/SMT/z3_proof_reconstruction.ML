@@ -315,7 +315,7 @@ end
 
 (* distributivity of | over & *)
 fun distributivity ctxt = Thm o try_apply ctxt [] [
-  named ctxt "fast" (Z3_Proof_Tools.by_tac (HOL_fast_tac ctxt))]
+  named ctxt "fast" (Z3_Proof_Tools.by_tac ctxt (HOL_fast_tac ctxt))]
     (* FIXME: not very well tested *)
 
 
@@ -371,7 +371,7 @@ in
 fun def_axiom ctxt = Thm o try_apply ctxt [] [
   named ctxt "conj/disj/distinct" prove_def_axiom,
   Z3_Proof_Tools.by_abstraction 0 (true, false) ctxt [] (fn ctxt' =>
-    named ctxt' "simp+fast" (Z3_Proof_Tools.by_tac (simp_fast_tac ctxt')))]
+    named ctxt' "simp+fast" (Z3_Proof_Tools.by_tac ctxt (simp_fast_tac ctxt')))]
 end
 
 
@@ -425,23 +425,23 @@ local
   fun nnf_quant_tac_varified vars eq =
     nnf_quant_tac (Z3_Proof_Tools.varify vars eq)
 
-  fun nnf_quant vars qs p ct =
+  fun nnf_quant ctxt vars qs p ct =
     Z3_Proof_Tools.as_meta_eq ct
-    |> Z3_Proof_Tools.by_tac (nnf_quant_tac_varified vars (meta_eq_of p) qs)
+    |> Z3_Proof_Tools.by_tac ctxt (nnf_quant_tac_varified vars (meta_eq_of p) qs)
 
   fun prove_nnf ctxt = try_apply ctxt [] [
     named ctxt "conj/disj" Z3_Proof_Literals.prove_conj_disj_eq,
     Z3_Proof_Tools.by_abstraction 0 (true, false) ctxt [] (fn ctxt' =>
-      named ctxt' "simp+fast" (Z3_Proof_Tools.by_tac (simp_fast_tac ctxt')))]
+      named ctxt' "simp+fast" (Z3_Proof_Tools.by_tac ctxt' (simp_fast_tac ctxt')))]
 in
 fun nnf ctxt vars ps ct =
   (case SMT_Utils.term_of ct of
     _ $ (l as Const _ $ Abs _) $ (r as Const _ $ Abs _) =>
       if l aconv r
       then MetaEq (Thm.reflexive (Thm.dest_arg (Thm.dest_arg ct)))
-      else MetaEq (nnf_quant vars quant_rules1 (hd ps) ct)
+      else MetaEq (nnf_quant ctxt vars quant_rules1 (hd ps) ct)
   | _ $ (@{const Not} $ (Const _ $ Abs _)) $ (Const _ $ Abs _) =>
-      MetaEq (nnf_quant vars quant_rules2 (hd ps) ct)
+      MetaEq (nnf_quant ctxt vars quant_rules2 (hd ps) ct)
   | _ =>
       let
         val nnf_rewr_conv = Conv.arg_conv (Conv.arg_conv
@@ -555,25 +555,25 @@ local
     @{lemma "(!!x. P x == Q x) ==> (ALL x. P x) == (ALL x. Q x)" by simp},
     @{lemma "(!!x. P x == Q x) ==> (EX x. P x) == (EX x. Q x)" by simp}]
 in
-fun quant_intro vars p ct =
+fun quant_intro ctxt vars p ct =
   let
     val thm = meta_eq_of p
     val rules' = Z3_Proof_Tools.varify vars thm :: rules
     val cu = Z3_Proof_Tools.as_meta_eq ct
     val tac = REPEAT_ALL_NEW (match_tac rules')
-  in MetaEq (Z3_Proof_Tools.by_tac tac cu) end
+  in MetaEq (Z3_Proof_Tools.by_tac ctxt tac cu) end
 end
 
 
 (* |- ((ALL x. P x) | Q) = (ALL x. P x | Q) *)
 fun pull_quant ctxt = Thm o try_apply ctxt [] [
-  named ctxt "fast" (Z3_Proof_Tools.by_tac (HOL_fast_tac ctxt))]
+  named ctxt "fast" (Z3_Proof_Tools.by_tac ctxt (HOL_fast_tac ctxt))]
     (* FIXME: not very well tested *)
 
 
 (* |- (ALL x. P x & Q x) = ((ALL x. P x) & (ALL x. Q x)) *)
 fun push_quant ctxt = Thm o try_apply ctxt [] [
-  named ctxt "fast" (Z3_Proof_Tools.by_tac (HOL_fast_tac ctxt))]
+  named ctxt "fast" (Z3_Proof_Tools.by_tac ctxt (HOL_fast_tac ctxt))]
     (* FIXME: not very well tested *)
 
 
@@ -590,14 +590,14 @@ local
       THEN' elim_unused_tac)) i st
 in
 
-val elim_unused_vars = Thm o Z3_Proof_Tools.by_tac elim_unused_tac
+fun elim_unused_vars ctxt = Thm o Z3_Proof_Tools.by_tac ctxt elim_unused_tac
 
 end
 
 
 (* |- (ALL x1 ... xn. ~(x1 = t1 & ... xn = tn) | P x1 ... xn) = P t1 ... tn *)
 fun dest_eq_res ctxt = Thm o try_apply ctxt [] [
-  named ctxt "fast" (Z3_Proof_Tools.by_tac (HOL_fast_tac ctxt))]
+  named ctxt "fast" (Z3_Proof_Tools.by_tac ctxt (HOL_fast_tac ctxt))]
     (* FIXME: not very well tested *)
 
 
@@ -605,7 +605,7 @@ fun dest_eq_res ctxt = Thm o try_apply ctxt [] [
 local
   val rule = @{lemma "~ P x | Q ==> ~(ALL x. P x) | Q" by fast}
 in
-val quant_inst = Thm o Z3_Proof_Tools.by_tac (
+fun quant_inst ctxt = Thm o Z3_Proof_Tools.by_tac ctxt (
   REPEAT_ALL_NEW (match_tac [rule])
   THEN' rtac @{thm excluded_middle})
 end
@@ -656,7 +656,7 @@ end
 (* theory lemmas: linear arithmetic, arrays *)
 fun th_lemma ctxt simpset thms = Thm o try_apply ctxt thms [
   Z3_Proof_Tools.by_abstraction 0 (false, true) ctxt thms (fn ctxt' =>
-    Z3_Proof_Tools.by_tac (
+    Z3_Proof_Tools.by_tac ctxt' (
       NAMED ctxt' "arith" (Arith_Data.arith_tac ctxt')
       ORELSE' NAMED ctxt' "simp+arith" (
         Simplifier.asm_full_simp_tac (put_simpset simpset ctxt')
@@ -716,20 +716,20 @@ val abstraction_depth = 3
 fun rewrite simpset ths ct ctxt =
   apfst Thm (declare_hyps ctxt (with_conv ctxt ths (try_apply ctxt [] [
     named ctxt "conj/disj/distinct" prove_conj_disj_eq,
-    named ctxt "pull-ite" Z3_Proof_Methods.prove_ite,
+    named ctxt "pull-ite" Z3_Proof_Methods.prove_ite ctxt,
     Z3_Proof_Tools.by_abstraction 0 (true, false) ctxt [] (fn ctxt' =>
-      Z3_Proof_Tools.by_tac (
+      Z3_Proof_Tools.by_tac ctxt' (
         NAMED ctxt' "simp (logic)" (Simplifier.simp_tac (put_simpset simpset ctxt'))
         THEN_ALL_NEW NAMED ctxt' "fast (logic)" (fast_tac ctxt'))),
     Z3_Proof_Tools.by_abstraction 0 (false, true) ctxt [] (fn ctxt' =>
-      Z3_Proof_Tools.by_tac (
+      Z3_Proof_Tools.by_tac ctxt' (
         (rtac @{thm iff_allI} ORELSE' K all_tac)
         THEN' NAMED ctxt' "simp (theory)" (Simplifier.simp_tac (put_simpset simpset ctxt'))
         THEN_ALL_NEW (
           NAMED ctxt' "fast (theory)" (HOL_fast_tac ctxt')
           ORELSE' NAMED ctxt' "arith (theory)" (Arith_Data.arith_tac ctxt')))),
     Z3_Proof_Tools.by_abstraction 0 (true, true) ctxt [] (fn ctxt' =>
-      Z3_Proof_Tools.by_tac (
+      Z3_Proof_Tools.by_tac ctxt' (
         (rtac @{thm iff_allI} ORELSE' K all_tac)
         THEN' NAMED ctxt' "simp (full)" (Simplifier.simp_tac (put_simpset simpset ctxt'))
         THEN_ALL_NEW (
@@ -738,7 +738,7 @@ fun rewrite simpset ths ct ctxt =
     named ctxt "injectivity" (Z3_Proof_Methods.prove_injectivity ctxt),
     Z3_Proof_Tools.by_abstraction abstraction_depth (true, true) ctxt []
       (fn ctxt' =>
-        Z3_Proof_Tools.by_tac (
+        Z3_Proof_Tools.by_tac ctxt' (
           (rtac @{thm iff_allI} ORELSE' K all_tac)
           THEN' NAMED ctxt' "simp (deepen)" (Simplifier.simp_tac (put_simpset simpset ctxt'))
           THEN_ALL_NEW (
@@ -815,12 +815,12 @@ local
     | (Z3_Proof_Parser.Commutativity, _) => (commutativity ct, cxp)
 
       (* quantifier rules *)
-    | (Z3_Proof_Parser.Quant_Intro, [(p, _)]) => (quant_intro vars p ct, cxp)
+    | (Z3_Proof_Parser.Quant_Intro, [(p, _)]) => (quant_intro cx vars p ct, cxp)
     | (Z3_Proof_Parser.Pull_Quant, _) => (pull_quant cx ct, cxp)
     | (Z3_Proof_Parser.Push_Quant, _) => (push_quant cx ct, cxp)
-    | (Z3_Proof_Parser.Elim_Unused_Vars, _) => (elim_unused_vars ct, cxp)
+    | (Z3_Proof_Parser.Elim_Unused_Vars, _) => (elim_unused_vars cx ct, cxp)
     | (Z3_Proof_Parser.Dest_Eq_Res, _) => (dest_eq_res cx ct, cxp)
-    | (Z3_Proof_Parser.Quant_Inst, _) => (quant_inst ct, cxp)
+    | (Z3_Proof_Parser.Quant_Inst, _) => (quant_inst cx ct, cxp)
     | (Z3_Proof_Parser.Skolemize, _) => skolemize vars ct cx ||> rpair ptab
 
       (* theory rules *)
@@ -861,17 +861,17 @@ local
   fun discharge_assms_tac rules =
     REPEAT (HEADGOAL (resolve_tac rules ORELSE' SOLVED' discharge_sk_tac))
     
-  fun discharge_assms rules thm =
-    if Thm.nprems_of thm = 0 then Goal.norm_result thm
+  fun discharge_assms ctxt rules thm =
+    if Thm.nprems_of thm = 0 then Goal.norm_result ctxt thm
     else
       (case Seq.pull (discharge_assms_tac rules thm) of
-        SOME (thm', _) => Goal.norm_result thm'
+        SOME (thm', _) => Goal.norm_result ctxt thm'
       | NONE => raise THM ("failed to discharge premise", 1, [thm]))
 
   fun discharge rules outer_ctxt (p, (inner_ctxt, _)) =
     thm_of p
     |> singleton (Proof_Context.export inner_ctxt outer_ctxt)
-    |> discharge_assms (make_discharge_rules rules)
+    |> discharge_assms outer_ctxt (make_discharge_rules rules)
 in
 
 fun reconstruct outer_ctxt recon output =

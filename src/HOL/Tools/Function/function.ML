@@ -166,7 +166,7 @@ fun gen_function do_print prep default_constraint fixspec eqns config lthy =
   in
     lthy'
     |> Proof.theorem NONE (snd oo afterqed) [[(Logic.unprotect (concl_of goal_state), [])]]
-    |> Proof.refine (Method.primitive_text (K goal_state)) |> Seq.hd
+    |> Proof.refine (Method.primitive_text (K (K goal_state))) |> Seq.hd
   end
 
 val function =
@@ -252,7 +252,7 @@ fun gen_termination prep_term raw_term_opt lthy =
        [((Binding.empty, [Context_Rules.intro_bang (SOME 1)]), [([allI], [])])] |> snd
     |> Proof_Context.note_thmss ""
        [((Binding.name "termination", [Context_Rules.intro_bang (SOME 0)]),
-         [([Goal.norm_result termination], [])])] |> snd
+         [([Goal.norm_result lthy termination], [])])] |> snd
     |> Proof.theorem NONE (snd oo afterqed) [[(goal, [])]]
   end
 

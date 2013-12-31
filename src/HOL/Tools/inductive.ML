@@ -357,7 +357,7 @@ fun rulify ctxt =
   hol_simplify ctxt inductive_conj
   #> hol_simplify ctxt inductive_rulify
   #> hol_simplify ctxt inductive_rulify_fallback
-  #> Simplifier.norm_hhf;
+  #> Simplifier.norm_hhf ctxt;
 
 end;
 

@@ -116,7 +116,7 @@ fun regroup_conv neu cn ac is ct =
    val js = subtract (op =) is (0 upto (length xs) - 1)
    val ty = fastype_of t
  in
-   Goal.prove_internal []
+   Goal.prove_internal ctxt []
      (cterm_of thy
        (Logic.mk_equals (t,
           if null is

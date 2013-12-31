@@ -279,7 +279,7 @@ text {*
 text %mlref {*
   \begin{mldecls}
   @{index_ML_type Assumption.export} \\
-  @{index_ML Assumption.assume: "cterm -> thm"} \\
+  @{index_ML Assumption.assume: "Proof.context -> cterm -> thm"} \\
   @{index_ML Assumption.add_assms:
     "Assumption.export ->
   cterm list -> Proof.context -> thm list * Proof.context"} \\
@@ -296,7 +296,7 @@ text %mlref {*
   and the @{ML_type "cterm list"} the collection of assumptions to be
   discharged simultaneously.
 
-  \item @{ML Assumption.assume}~@{text "A"} turns proposition @{text
+  \item @{ML Assumption.assume}~@{text "ctxt A"} turns proposition @{text
   "A"} into a primitive assumption @{text "A \<turnstile> A'"}, where the
   conclusion @{text "A'"} is in HHF normal form.
 

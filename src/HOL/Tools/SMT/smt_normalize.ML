@@ -480,7 +480,7 @@ local
       val eq = SMT_Utils.mk_cequals lhs (Numeral.mk_cnumber @{ctyp int} i)
       val tac =
         Simplifier.simp_tac (put_simpset HOL_ss ctxt addsimps [@{thm Int.int_numeral}]) 1
-    in Goal.norm_result (Goal.prove_internal [] eq (K tac)) end
+    in Goal.norm_result ctxt (Goal.prove_internal ctxt [] eq (K tac)) end
 
   fun ite_conv cv1 cv2 =
     Conv.combination_conv (Conv.combination_conv (Conv.arg_conv cv1) cv2) cv2

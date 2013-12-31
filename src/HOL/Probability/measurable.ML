@@ -153,9 +153,8 @@ val split_countable_tac =
 
 fun measurable_tac' ctxt facts =
   let
-
     val imported_thms =
-      (maps (import_theorem (Context.Proof ctxt) o Simplifier.norm_hhf) facts) @ get_all ctxt
+      (maps (import_theorem (Context.Proof ctxt) o Simplifier.norm_hhf ctxt) facts) @ get_all ctxt
 
     fun debug_facts msg () =
       msg ^ " + " ^ Pretty.str_of (Pretty.list "[" "]"

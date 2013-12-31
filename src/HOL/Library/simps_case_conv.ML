@@ -143,7 +143,7 @@ fun to_case ctxt ths =
           tac ctxt {splits=split_thms, intros=ths, defs=def_thms})
   in th
     |> singleton (Proof_Context.export ctxt3 ctxt)
-    |> Goal.norm_result
+    |> Goal.norm_result ctxt
   end
 
 end

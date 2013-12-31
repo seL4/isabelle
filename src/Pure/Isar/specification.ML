@@ -391,7 +391,8 @@ fun gen_theorem schematic prep_bundle prep_att prep_stmt
 
     fun after_qed' results goal_ctxt' =
       let
-        val results' = burrow (map Goal.norm_result o Proof_Context.export goal_ctxt' lthy) results;
+        val results' =
+          burrow (map (Goal.norm_result lthy) o Proof_Context.export goal_ctxt' lthy) results;
         val (res, lthy') =
           if forall (Attrib.is_empty_binding o fst) stmt then (map (pair "") results', lthy)
           else

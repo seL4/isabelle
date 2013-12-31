@@ -185,7 +185,7 @@ fun prepare_typedef prep_term (name, raw_args, mx) raw_set opt_morphs lthy =
       let
         val cert = Thm.cterm_of (Proof_Context.theory_of lthy1);
         val typedef' = inhabited RS typedef;
-        fun make th = Goal.norm_result (typedef' RS th);
+        fun make th = Goal.norm_result lthy1 (typedef' RS th);
         val (((((((((((_, [type_definition]), Rep), Rep_inverse), Abs_inverse), Rep_inject),
             Abs_inject), Rep_cases), Abs_cases), Rep_induct), Abs_induct), lthy2) = lthy1
           |> Local_Theory.note ((typedef_name, []), [typedef'])
@@ -239,7 +239,7 @@ fun add_typedef typ set opt_morphs tac lthy =
       prepare_typedef Syntax.check_term typ set opt_morphs lthy;
     val inhabited =
       Goal.prove lthy' [] [] goal (K tac)
-      |> Goal.norm_result |> Thm.close_derivation;
+      |> Goal.norm_result lthy' |> Thm.close_derivation;
   in typedef_result inhabited lthy' end;
 
 fun add_typedef_global typ set opt_morphs tac =

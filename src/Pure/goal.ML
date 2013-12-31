@@ -23,12 +23,12 @@ sig
   val conclude: thm -> thm
   val check_finished: Proof.context -> thm -> thm
   val finish: Proof.context -> thm -> thm
-  val norm_result: thm -> thm
+  val norm_result: Proof.context -> thm -> thm
   val skip_proofs_enabled: unit -> bool
   val future_enabled: int -> bool
   val future_enabled_timing: Time.time -> bool
   val future_result: Proof.context -> thm future -> term -> thm
-  val prove_internal: cterm list -> cterm -> (thm list -> tactic) -> thm
+  val prove_internal: Proof.context -> cterm list -> cterm -> (thm list -> tactic) -> thm
   val is_schematic: term -> bool
   val prove_multi: Proof.context -> string list -> term list -> term list ->
     ({prems: thm list, context: Proof.context} -> tactic) -> thm list
@@ -98,9 +98,9 @@ fun finish ctxt = check_finished ctxt #> conclude;
 
 (* normal form *)
 
-val norm_result =
+fun norm_result ctxt =
   Drule.flexflex_unique
-  #> Raw_Simplifier.norm_hhf_protect
+  #> Raw_Simplifier.norm_hhf_protect ctxt
   #> Thm.strip_shyps
   #> Drule.zero_var_indexes;
 
@@ -166,8 +166,8 @@ fun future_result ctxt result prop =
 
 (* prove_internal -- minimal checks, no normalization of result! *)
 
-fun prove_internal casms cprop tac =
-  (case SINGLE (tac (map Assumption.assume casms)) (init cprop) of
+fun prove_internal ctxt casms cprop tac =
+  (case SINGLE (tac (map (Assumption.assume ctxt) casms)) (init cprop) of
     SOME th => Drule.implies_intr_list casms
       (finish (Syntax.init_pretty_global (Thm.theory_of_thm th)) th)
   | NONE => error "Tactic failed");
@@ -336,7 +336,7 @@ fun assume_rule_tac ctxt = norm_hhf_tac ctxt THEN' CSUBGOAL (fn (goal, i) =>
     val goal'' = Drule.cterm_rule (singleton (Variable.export ctxt' ctxt)) goal';
     val Rs = filter (non_atomic o Thm.term_of) (Drule.strip_imp_prems goal'');
     val tacs = Rs |> map (fn R =>
-      etac (Raw_Simplifier.norm_hhf (Thm.trivial R)) THEN_ALL_NEW assume_tac);
+      etac (Raw_Simplifier.norm_hhf ctxt (Thm.trivial R)) THEN_ALL_NEW assume_tac);
   in fold_rev (curry op APPEND') tacs (K no_tac) i end);
 
 

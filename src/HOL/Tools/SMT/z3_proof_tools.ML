@@ -21,7 +21,7 @@ sig
   val varify: string list -> thm -> thm
   val unfold_eqs: Proof.context -> thm list -> conv
   val match_instantiate: (cterm -> cterm) -> cterm -> thm -> thm
-  val by_tac: (int -> tactic) -> cterm -> thm
+  val by_tac: Proof.context -> (int -> tactic) -> cterm -> thm
   val make_hyp_def: thm -> Proof.context -> thm * Proof.context
   val by_abstraction: int -> bool * bool -> Proof.context -> thm list ->
     (Proof.context -> cterm -> thm) -> cterm -> thm
@@ -105,7 +105,7 @@ fun unfold_eqs _ [] = Conv.all_conv
 fun match_instantiate f ct thm =
   Thm.instantiate (Thm.match (f (Thm.cprop_of thm), ct)) thm
 
-fun by_tac tac ct = Goal.norm_result (Goal.prove_internal [] ct (K (tac 1)))
+fun by_tac ctxt tac ct = Goal.norm_result ctxt (Goal.prove_internal ctxt [] ct (K (tac 1)))
 
 (*
    |- c x == t x ==> P (c x)

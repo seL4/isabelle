@@ -44,7 +44,7 @@ sig
     string -> term list list -> term list -> Proof.context -> bool -> Proof.state ->
     Proof.state
   val transform_witness: morphism -> witness -> witness
-  val conclude_witness: witness -> thm
+  val conclude_witness: Proof.context -> witness -> thm
   val pretty_witness: Proof.context -> witness -> Pretty.T
   val instT_morphism: theory -> typ Symtab.table -> morphism
   val inst_morphism: theory -> typ Symtab.table * term Symtab.table -> morphism
@@ -223,7 +223,7 @@ fun pretty_statement ctxt kind raw_th =
   let
     val thy = Proof_Context.theory_of ctxt;
 
-    val (th, is_elim) = standard_elim (Raw_Simplifier.norm_hhf raw_th);
+    val (th, is_elim) = standard_elim (Raw_Simplifier.norm_hhf ctxt raw_th);
     val ((_, [th']), ctxt') = Variable.import true [th] (Variable.set_body true ctxt);
     val prop = Thm.prop_of th';
     val (prems, concl) = Logic.strip_horn prop;
@@ -316,8 +316,8 @@ fun compose_witness (Witness (_, th)) r =
         (Thm.instantiate (Thm.match (Thm.cprop_of th', A)) th'))
   end;
 
-fun conclude_witness (Witness (_, th)) =
-  Thm.close_derivation (Raw_Simplifier.norm_hhf_protect (Goal.conclude th));
+fun conclude_witness ctxt (Witness (_, th)) =
+  Thm.close_derivation (Raw_Simplifier.norm_hhf_protect ctxt (Goal.conclude th));
 
 fun pretty_witness ctxt witn =
   let val prt_term = Pretty.quote o Syntax.pretty_term ctxt in

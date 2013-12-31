@@ -7,7 +7,7 @@ Proof methods for Z3 proof reconstruction.
 signature Z3_PROOF_METHODS =
 sig
   val prove_injectivity: Proof.context -> cterm -> thm
-  val prove_ite: cterm -> thm
+  val prove_ite: Proof.context -> cterm -> thm
 end
 
 structure Z3_Proof_Methods: Z3_PROOF_METHODS =
@@ -30,8 +30,8 @@ fun pull_ites_conv ct =
   (Conv.rewr_conv pull_ite then_conv
    Conv.binop_conv (Conv.try_conv pull_ites_conv)) ct
 
-val prove_ite =
-  Z3_Proof_Tools.by_tac (
+fun prove_ite ctxt =
+  Z3_Proof_Tools.by_tac ctxt (
     CONVERSION (Conv.arg_conv (Conv.arg1_conv pull_ites_conv))
     THEN' rtac @{thm refl})
 
@@ -68,17 +68,17 @@ val disjE = @{lemma "~P | Q ==> P ==> Q" by fast}
 fun prove_inj_prop ctxt def lhs =
   let
     val (ct, ctxt') = SMT_Utils.dest_all_cabs (Thm.rhs_of def) ctxt
-    val rule = disjE OF [Object_Logic.rulify ctxt (Thm.assume lhs)]
+    val rule = disjE OF [Object_Logic.rulify ctxt' (Thm.assume lhs)]
   in
     Goal.init (mk_inj_prop ctxt' (Thm.dest_arg ct))
     |> apply (rtac @{thm injI})
     |> apply (Tactic.solve_tac [rule, rule RS @{thm sym}])
-    |> Goal.norm_result o Goal.finish ctxt'
+    |> Goal.norm_result ctxt' o Goal.finish ctxt'
     |> singleton (Variable.export ctxt' ctxt)
   end
 
 fun prove_rhs ctxt def lhs =
-  Z3_Proof_Tools.by_tac (
+  Z3_Proof_Tools.by_tac ctxt (
     CONVERSION (Conv.top_sweep_conv (K (Conv.rewr_conv def)) ctxt)
     THEN' REPEAT_ALL_NEW (match_tac @{thms allI})
     THEN' rtac (@{thm inv_f_f} OF [prove_inj_prop ctxt def lhs]))
@@ -97,7 +97,7 @@ fun prove_lhs ctxt rhs =
     val eq = Thm.symmetric (mk_meta_eq (Object_Logic.rulify ctxt (Thm.assume rhs)))
     val conv = SMT_Utils.binders_conv (K (expand eq)) ctxt
   in
-    Z3_Proof_Tools.by_tac (
+    Z3_Proof_Tools.by_tac ctxt (
       CONVERSION (SMT_Utils.prop_conv conv)
       THEN' Simplifier.simp_tac (put_simpset HOL_ss ctxt))
   end
@@ -140,7 +140,7 @@ fun norm_conv ctxt =
 in
 
 fun prove_injectivity ctxt =
-  Z3_Proof_Tools.by_tac (
+  Z3_Proof_Tools.by_tac ctxt (
     CONVERSION (SMT_Utils.prop_conv (norm_conv ctxt))
     THEN' CSUBGOAL (uncurry (rtac o prove_inj_eq ctxt)))
 

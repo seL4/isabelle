@@ -54,7 +54,7 @@ sig
     Try of text |
     Repeat1 of text |
     Select_Goals of int * text
-  val primitive_text: (thm -> thm) -> text
+  val primitive_text: (Proof.context -> thm -> thm) -> text
   val succeed_text: text
   val default_text: text
   val this_text: text
@@ -293,7 +293,7 @@ datatype text =
   Repeat1 of text |
   Select_Goals of int * text;
 
-fun primitive_text r = Basic (K (SIMPLE_METHOD (PRIMITIVE r)));
+fun primitive_text r = Basic (SIMPLE_METHOD o PRIMITIVE o r);
 val succeed_text = Basic (K succeed);
 val default_text = Source (Args.src (("default", []), Position.none));
 val this_text = Basic (K this);

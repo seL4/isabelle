@@ -1075,12 +1075,12 @@ text {*
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML Simplifier.norm_hhf: "thm -> thm"} \\
+  @{index_ML Simplifier.norm_hhf: "Proof.context -> thm -> thm"} \\
   \end{mldecls}
 
   \begin{description}
 
-  \item @{ML Simplifier.norm_hhf}~@{text thm} normalizes the given
+  \item @{ML Simplifier.norm_hhf}~@{text "ctxt thm"} normalizes the given
   theorem according to the canonical form specified above.  This is
   occasionally helpful to repair some low-level tools that do not
   handle Hereditary Harrop Formulae properly.

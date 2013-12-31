@@ -517,7 +517,7 @@ fun upt_conv ctxt ct =
                      |> Thm.apply @{cterm Trueprop};
       in
         try (fn () =>
-          Goal.prove_internal [] prop 
+          Goal.prove_internal ctxt [] prop 
             (K (REPEAT_DETERM (resolve_tac @{thms upt_eq_list_intros} 1
                 ORELSE simp_tac (put_simpset word_ss ctxt) 1))) |> mk_meta_eq) ()
       end
@@ -535,7 +535,7 @@ fun word_len_simproc_fn ctxt ct =
         val n = Numeral.mk_cnumber @{ctyp nat} (Word_Lib.dest_binT T);
         val prop = Thm.mk_binop @{cterm "op = :: nat => _"} ct n
                  |> Thm.apply @{cterm Trueprop};
-      in Goal.prove_internal [] prop (K (simp_tac (put_simpset word_ss ctxt) 1))
+      in Goal.prove_internal ctxt [] prop (K (simp_tac (put_simpset word_ss ctxt) 1))
              |> mk_meta_eq |> SOME end
     handle TERM _ => NONE | TYPE _ => NONE)
   | _ => NONE;
@@ -561,14 +561,14 @@ fun nat_get_Suc_simproc_fn n_sucs ctxt ct =
     val _ = if arg = arg' then raise TERM ("", []) else ();
     fun propfn g = HOLogic.mk_eq (g arg, g arg')
       |> HOLogic.mk_Trueprop |> cterm_of thy;
-    val eq1 = Goal.prove_internal [] (propfn I)
+    val eq1 = Goal.prove_internal ctxt [] (propfn I)
       (K (simp_tac (put_simpset word_ss ctxt) 1));
-  in Goal.prove_internal [] (propfn (curry (op $) f))
+  in Goal.prove_internal ctxt [] (propfn (curry (op $) f))
       (K (simp_tac (put_simpset HOL_ss ctxt addsimps [eq1]) 1))
        |> mk_meta_eq |> SOME end
     handle TERM _ => NONE;
 
-fun nat_get_Suc_simproc n_sucs thy cts = Simplifier.make_simproc
+fun nat_get_Suc_simproc n_sucs cts = Simplifier.make_simproc
   {lhss = map (fn t => Thm.apply t @{cpat "?n :: nat"}) cts,
    name = "nat_get_Suc", identifier = [],
    proc = K (nat_get_Suc_simproc_fn n_sucs)};
@@ -601,7 +601,7 @@ val expand_word_eq_sss =
                                 takefill_last_simps drop_nonempty_simps
                                 rev_bl_order_simps}
           addsimprocs [expand_upt_simproc,
-                       nat_get_Suc_simproc 4 @{theory}
+                       nat_get_Suc_simproc 4
                          [@{cpat replicate}, @{cpat "takefill ?x"},
                           @{cpat drop}, @{cpat "bin_to_bl"},
                           @{cpat "takefill_last ?x"},

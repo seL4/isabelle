@@ -379,7 +379,7 @@ fun register_subclass (sub, sup) some_dep_morph some_witn export lthy =
   let
     val thy = Proof_Context.theory_of lthy;
     val intros = (snd o rules thy) sup :: map_filter I
-      [Option.map (Drule.export_without_context_open o Element.conclude_witness) some_witn,
+      [Option.map (Drule.export_without_context_open o Element.conclude_witness lthy) some_witn,
         (fst o rules thy) sub];
     val classrel =
       Goal.prove_sorry_global thy [] [] (Logic.mk_classrel (sub, sup))

@@ -31,7 +31,7 @@ type focus = {context: Proof.context, params: (string * cterm) list, prems: thm 
 
 fun gen_focus (do_prems, do_concl) ctxt i raw_st =
   let
-    val st = Simplifier.norm_hhf_protect raw_st;
+    val st = Simplifier.norm_hhf_protect ctxt raw_st;
     val ((schematic_types, [st']), ctxt1) = Variable.importT [st] ctxt;
     val ((params, goal), ctxt2) = Variable.focus_cterm (Thm.cprem_of st' i) ctxt1;
 

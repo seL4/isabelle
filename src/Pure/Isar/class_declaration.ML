@@ -60,7 +60,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
         val tac = loc_intro_tac
           THEN ALLGOALS (Proof_Context.fact_tac empty_ctxt (sup_axioms @ the_list assm_axiom));
       in Element.prove_witness empty_ctxt prop tac end) some_prop;
-    val some_axiom = Option.map Element.conclude_witness some_witn;
+    val some_axiom = Option.map (Element.conclude_witness empty_ctxt) some_witn;
 
     (* canonical interpretation *)
     val base_morph = inst_morph

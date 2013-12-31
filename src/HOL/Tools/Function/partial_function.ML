@@ -265,7 +265,7 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
       |> HOLogic.mk_Trueprop
       |> Logic.all x_uc;
 
-    val mono_thm = Goal.prove_internal [] (cert mono_goal)
+    val mono_thm = Goal.prove_internal lthy [] (cert mono_goal)
         (K (mono_tac lthy 1))
     val inst_mono_thm = Thm.forall_elim (cert x_uc) mono_thm
 

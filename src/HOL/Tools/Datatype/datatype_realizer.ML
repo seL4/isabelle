@@ -111,7 +111,7 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Datatype.info) is 
       (HOLogic.dest_Trueprop (concl_of induct))) ~~ ps);
 
     val thm =
-      Goal.prove_internal (map cert prems) (cert concl)
+      Goal.prove_internal ctxt (map cert prems) (cert concl)
         (fn prems =>
            EVERY [
             rewrite_goals_tac ctxt (map mk_meta_eq [@{thm fst_conv}, @{thm snd_conv}]),
@@ -161,6 +161,7 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Datatype.info) is 
 
 fun make_casedists ({index, descr, case_name, case_rewrites, exhaust, ...} : Datatype.info) thy =
   let
+    val ctxt = Proof_Context.init_global thy;
     val cert = cterm_of thy;
     val rT = TFree ("'P", HOLogic.typeS);
     val rT' = TVar (("'P", 0), HOLogic.typeS);
@@ -188,7 +189,7 @@ fun make_casedists ({index, descr, case_name, case_rewrites, exhaust, ...} : Dat
     val y' = Free ("y", T);
 
     val thm =
-      Goal.prove_internal (map cert prems)
+      Goal.prove_internal ctxt (map cert prems)
         (cert (HOLogic.mk_Trueprop (Free ("P", rT --> HOLogic.boolT) $ list_comb (r, rs @ [y']))))
         (fn prems =>
            EVERY [

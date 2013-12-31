@@ -637,12 +637,12 @@ fun transferred ctxt extra_rules thm =
           (SOLVED' (REPEAT_ALL_NEW (resolve_tac rules)
             THEN_ALL_NEW (DETERM o eq_tac eq_rules)))) 1
         handle TERM (_, ts) => raise TERM (err_msg, ts)
-    val thm3 = Goal.prove_internal [] @{cpat "Trueprop ?P"} (K tac)
+    val thm3 = Goal.prove_internal ctxt' [] @{cpat "Trueprop ?P"} (K tac)
     val tnames = map (fst o dest_TFree o snd) instT
   in
     thm3
       |> Raw_Simplifier.rewrite_rule ctxt' post_simps
-      |> Raw_Simplifier.norm_hhf
+      |> Simplifier.norm_hhf ctxt'
       |> Drule.generalize (tnames, [])
       |> Drule.zero_var_indexes
   end
@@ -673,12 +673,12 @@ fun untransferred ctxt extra_rules thm =
           (SOLVED' (REPEAT_ALL_NEW (resolve_tac rules)
             THEN_ALL_NEW (DETERM o eq_tac eq_rules)))) 1
         handle TERM (_, ts) => raise TERM (err_msg, ts)
-    val thm3 = Goal.prove_internal [] @{cpat "Trueprop ?P"} (K tac)
+    val thm3 = Goal.prove_internal ctxt' [] @{cpat "Trueprop ?P"} (K tac)
     val tnames = map (fst o dest_TFree o snd) instT
   in
     thm3
       |> Raw_Simplifier.rewrite_rule ctxt' post_simps
-      |> Raw_Simplifier.norm_hhf
+      |> Simplifier.norm_hhf ctxt'
       |> Drule.generalize (tnames, [])
       |> Drule.zero_var_indexes
   end

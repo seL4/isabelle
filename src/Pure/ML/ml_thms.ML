@@ -97,7 +97,7 @@ val _ = Theory.setup
             val ctxt = Context.proof_of context;
 
             val propss = burrow (map (rpair []) o Syntax.read_props ctxt) raw_propss;
-            val prep_result = Goal.norm_result #> not is_open ? Thm.close_derivation;
+            val prep_result = Goal.norm_result ctxt #> not is_open ? Thm.close_derivation;
             fun after_qed res goal_ctxt =
               Proof_Context.put_thms false (Auto_Bind.thisN,
                 SOME (map prep_result (Proof_Context.export goal_ctxt ctxt (flat res)))) goal_ctxt;

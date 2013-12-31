@@ -194,7 +194,8 @@ fun result tac facts ctxt =
     val rule =
       (case SINGLE (Method.insert_tac facts 1 THEN tac thesis_ctxt) (Goal.init (cert thesis)) of
         NONE => raise THM ("Obtain.result: tactic failed", 0, facts)
-      | SOME th => check_result ctxt thesis (Raw_Simplifier.norm_hhf (Goal.conclude th)));
+      | SOME th =>
+          check_result thesis_ctxt thesis (Raw_Simplifier.norm_hhf thesis_ctxt (Goal.conclude th)));
 
     val closed_rule = Thm.forall_intr (cert (Free thesis_var)) rule;
     val ((_, [rule']), ctxt') = Variable.import false [closed_rule] ctxt;
@@ -300,8 +301,10 @@ fun gen_guess prep_vars raw_vars int state =
     val goal = Var (("guess", 0), propT);
     fun print_result ctxt' (k, [(s, [_, th])]) =
       Proof_Display.print_results Markup.state int ctxt' (k, [(s, [th])]);
-    val before_qed = SOME (Method.primitive_text (Goal.conclude #> Raw_Simplifier.norm_hhf #>
-        (fn th => Goal.protect 0 (Conjunction.intr (Drule.mk_term (Thm.cprop_of th)) th))));
+    val before_qed =
+      Method.primitive_text (fn ctxt =>
+        Goal.conclude #> Raw_Simplifier.norm_hhf ctxt #>
+          (fn th => Goal.protect 0 (Conjunction.intr (Drule.mk_term (Thm.cprop_of th)) th)));
     fun after_qed [[_, res]] =
       Proof.end_block #> guess_context (check_result ctxt thesis res);
   in
@@ -311,8 +314,8 @@ fun gen_guess prep_vars raw_vars int state =
     |> Proof.fix [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)]
     |> Proof.chain_facts chain_facts
     |> Proof.local_goal print_result (K I) (pair o rpair I)
-      "guess" before_qed after_qed [(Thm.empty_binding, [Logic.mk_term goal, goal])]
-    |> Proof.refine (Method.primitive_text (K (Goal.init (cert thesis)))) |> Seq.hd
+      "guess" (SOME before_qed) after_qed [(Thm.empty_binding, [Logic.mk_term goal, goal])]
+    |> Proof.refine (Method.primitive_text (fn _ => fn _ => Goal.init (cert thesis))) |> Seq.hd
   end;
 
 in

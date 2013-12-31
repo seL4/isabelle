@@ -738,7 +738,7 @@ fun thin_prems_tac ctxt P =
       if ntac then no_tac
       else
         (case try (fn () =>
-            Goal.prove_internal [] g (K (blast_tac (put_claset HOL_cs ctxt) 1))) () of
+            Goal.prove_internal ctxt [] g (K (blast_tac (put_claset HOL_cs ctxt) 1))) () of
           NONE => no_tac
         | SOME r => rtac r i)
     end)

@@ -64,8 +64,8 @@ sig
   val prune_params_tac: Proof.context -> tactic
   val fold_rule: Proof.context -> thm list -> thm -> thm
   val fold_goals_tac: Proof.context -> thm list -> tactic
-  val norm_hhf: thm -> thm
-  val norm_hhf_protect: thm -> thm
+  val norm_hhf: Proof.context -> thm -> thm
+  val norm_hhf_protect: Proof.context -> thm -> thm
 end;
 
 signature RAW_SIMPLIFIER =
@@ -1430,12 +1430,11 @@ fun fold_goals_tac ctxt defs = EVERY (map (rewrite_goals_tac ctxt) (rev_defs def
 
 local
 
-fun gen_norm_hhf ss th =
+fun gen_norm_hhf ss ctxt th =
   (if Drule.is_norm_hhf (Thm.prop_of th) then th
    else
     Conv.fconv_rule
-      (rewrite_cterm (true, false, false) (K (K NONE))
-        (global_context (Thm.theory_of_thm th) ss)) th)
+      (rewrite_cterm (true, false, false) (K (K NONE)) (put_simpset ss ctxt)) th)
   |> Thm.adjust_maxidx_thm ~1
   |> Drule.gen_all;
 
