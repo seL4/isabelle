@@ -1258,7 +1258,6 @@ fun raw_blast start ctxt lim st =
           end
   in
     prove (state, start, [initBranch (mkGoal concl :: hyps, lim)], cont)
-    |> Seq.maps Thm.flexflex_rule
   end
   handle PROVE => Seq.empty
     | TRANS s => (if Config.get ctxt trace then warning ("Blast: " ^ s) else (); Seq.empty);
