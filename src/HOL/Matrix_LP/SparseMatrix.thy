@@ -240,7 +240,6 @@ lemma sorted_addmult_spvec: "sorted_spvec a \<Longrightarrow> sorted_spvec b \<L
 
 fun mult_spvec_spmat :: "('a::lattice_ring) spvec \<Rightarrow> 'a spvec \<Rightarrow> 'a spmat  \<Rightarrow> 'a spvec"
 where
-(* recdef mult_spvec_spmat "measure (% (c, arr, brr). (length arr) + (length brr))" *)
   "mult_spvec_spmat c [] brr = c"
 | "mult_spvec_spmat c arr [] = c"
 | "mult_spvec_spmat c ((i,a)#arr) ((j,b)#brr) = (

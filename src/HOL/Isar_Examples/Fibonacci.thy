@@ -2,7 +2,7 @@
     Author:     Gertrud Bauer
     Copyright   1999 Technische Universitaet Muenchen
 
-The Fibonacci function.  Demonstrates the use of recdef.  Original
+The Fibonacci function.  Original
 tactic script by Lawrence C Paulson.
 
 Fibonacci numbers: proofs of laws taken from
