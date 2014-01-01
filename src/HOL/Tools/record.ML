@@ -1556,6 +1556,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
       typ_thy
       |> Sign.declare_const_global ((ext_binding, ext_type), NoSyn) |> snd
       |> Global_Theory.add_defs false [((Thm.def_binding ext_binding, ext_spec), [])]);
+    val defs_ctxt = Proof_Context.init_global defs_thy;
 
 
     (* prepare propositions *)
@@ -1583,7 +1584,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
       in Logic.mk_equals (Logic.all s (P $ s), fold_rev Logic.all vars_more (P $ ext)) end;
 
     val inject = timeit_msg ctxt "record extension inject proof:" (fn () =>
-      simplify (Simplifier.global_context defs_thy HOL_ss)
+      simplify (put_simpset HOL_ss defs_ctxt)
         (Goal.prove_sorry_global defs_thy [] [] inject_prop
           (fn {context = ctxt, ...} =>
             simp_tac (put_simpset HOL_basic_ss ctxt addsimps [ext_def]) 1 THEN
@@ -1605,7 +1606,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
         val cterm_ext = cterm_of defs_thy ext;
         val start = named_cterm_instantiate [("y", cterm_ext)] surject_assist_idE;
         val tactic1 =
-          simp_tac (Simplifier.global_context defs_thy HOL_basic_ss addsimps [ext_def]) 1 THEN
+          simp_tac (put_simpset HOL_basic_ss defs_ctxt addsimps [ext_def]) 1 THEN
           REPEAT_ALL_NEW Iso_Tuple_Support.iso_tuple_intros_tac 1;
         val tactic2 = REPEAT (rtac surject_assistI 1 THEN rtac refl 1);
         val [halfway] = Seq.list_of (tactic1 start);
@@ -1838,6 +1839,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
       thy
       |> Sign.qualified_path false binding
       |> extension_definition extension_name fields alphas_ext zeta moreT more vars;
+    val ext_ctxt = Proof_Context.init_global ext_thy;
 
     val _ = timing_msg ctxt "record preparing definitions";
     val Type extension_scheme = extT;
@@ -1935,7 +1937,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
           val init_thm = named_cterm_instantiate insts updacc_eq_triv;
           val terminal = rtac updacc_eq_idI 1 THEN rtac refl 1;
           val tactic =
-            simp_tac (Simplifier.global_context ext_thy HOL_basic_ss addsimps ext_defs) 1 THEN
+            simp_tac (put_simpset HOL_basic_ss ext_ctxt addsimps ext_defs) 1 THEN
             REPEAT (Iso_Tuple_Support.iso_tuple_intros_tac 1 ORELSE terminal);
           val updaccs = Seq.list_of (tactic init_thm);
         in
@@ -2010,6 +2012,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
                 map (rpair [Code.add_default_eqn_attribute]
                 o apfst (Binding.conceal o Binding.name))) (*FIXME Spec_Rules (?)*)
             [make_spec, fields_spec, extend_spec, truncate_spec]);
+    val defs_ctxt = Proof_Context.init_global defs_thy;
 
     (* prepare propositions *)
     val _ = timing_msg ctxt "record preparing propositions";
@@ -2078,7 +2081,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
 
     val record_ss = get_simpset defs_thy;
     val sel_upd_ctxt =
-      Simplifier.global_context defs_thy record_ss
+      put_simpset record_ss defs_ctxt
         addsimps (sel_defs @ accessor_thms @ upd_defs @ updator_thms);
 
     val (sel_convs, upd_convs) =
@@ -2092,7 +2095,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
     val (fold_congs, unfold_congs) = timeit_msg ctxt "record upd fold/unfold congs:" (fn () =>
       let
         val symdefs = map Thm.symmetric (sel_defs @ upd_defs);
-        val fold_ctxt = Simplifier.global_context defs_thy HOL_basic_ss addsimps symdefs;
+        val fold_ctxt = put_simpset HOL_basic_ss defs_ctxt addsimps symdefs;
         val ua_congs = map (Drule.export_without_context o simplify fold_ctxt) upd_acc_cong_assists;
       in (ua_congs RL [updacc_foldE], ua_congs RL [updacc_unfoldE]) end);
 

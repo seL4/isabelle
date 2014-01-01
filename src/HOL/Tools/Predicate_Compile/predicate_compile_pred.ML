@@ -185,12 +185,12 @@ fun rewrite ctxt =
   #> Conv.fconv_rule (nnf_conv ctxt)
   #> Simplifier.simplify (put_simpset HOL_basic_ss ctxt addsimps [@{thm ex_disj_distrib}])
 
-fun rewrite_intros thy =
-  Simplifier.full_simplify (Simplifier.global_context thy HOL_basic_ss addsimps [@{thm all_not_ex}])
+fun rewrite_intros ctxt =
+  Simplifier.full_simplify (put_simpset HOL_basic_ss ctxt addsimps [@{thm all_not_ex}])
   #> Simplifier.full_simplify
-    (Simplifier.global_context thy HOL_basic_ss
+    (put_simpset HOL_basic_ss ctxt
       addsimps (tl @{thms bool_simps}) addsimps @{thms nnf_simps})
-  #> split_conjuncts_in_assms (Proof_Context.init_global thy)
+  #> split_conjuncts_in_assms ctxt
 
 fun print_specs options thy msg ths =
   if show_intermediate_results options then
@@ -208,7 +208,7 @@ fun preprocess options (constname, specs) thy =
         if forall is_pred_equation specs then 
           map (split_conjuncts_in_assms ctxt) (introrulify thy (map (rewrite ctxt) specs))
         else if forall (is_intro constname) specs then
-          map (rewrite_intros thy) specs
+          map (rewrite_intros ctxt) specs
         else
           error ("unexpected specification for constant " ^ quote constname ^ ":\n"
             ^ commas (map (quote o Display.string_of_thm_global thy) specs))

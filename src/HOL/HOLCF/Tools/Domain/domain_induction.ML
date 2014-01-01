@@ -71,9 +71,9 @@ let
           val rules =
               [abs_inverse] @ con_betas @ @{thms take_con_rules}
               @ take_Suc_thms @ deflation_thms @ deflation_take_thms
-          val tac = simp_tac (Simplifier.global_context thy HOL_basic_ss addsimps rules) 1
+          fun tac ctxt = simp_tac (put_simpset HOL_basic_ss ctxt addsimps rules) 1
         in
-          Goal.prove_global thy [] [] goal (K tac)
+          Goal.prove_global thy [] [] goal (tac o #context)
         end
       val take_apps = map prove_take_app con_specs
     in

@@ -143,7 +143,8 @@ fun term_of_conv_resubst thy conv t =
     val resubst = curry (Term.betapplys o swap) all_vars;
   in (resubst, term_of_conv thy conv (fold_rev lambda all_vars t)) end;
 
-fun lift_ss_conv f ss ct = f (Simplifier.global_context (theory_of_cterm ct) ss) ct;
+fun lift_ss_conv f ss ct =  (* FIXME proper context!? *)
+  f (Proof_Context.init_global (theory_of_cterm ct) |> put_simpset ss) ct;
 
 fun preprocess_conv thy =
   let

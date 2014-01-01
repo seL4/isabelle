@@ -158,7 +158,7 @@ fun add_fixdefs
     fun prove_proj (lhs, rhs) =
       let
         fun tac ctxt = rewrite_goals_tac ctxt fixdef_thms THEN
-          (simp_tac (Simplifier.global_context thy beta_ss)) 1
+          (simp_tac (put_simpset beta_ss ctxt)) 1
         val goal = Logic.mk_equals (lhs, rhs)
       in Goal.prove_global thy [] [] goal (tac o #context) end
     val proj_thms = map prove_proj projs
