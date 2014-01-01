@@ -1096,7 +1096,8 @@ fun add_eqn_maybe_abs thm thy =
     | NONE => thy;
 
 fun del_eqn thm thy = case mk_eqn_liberal thy thm
- of SOME (thm, _) => let
+ of SOME (thm, _) =>
+      let
         fun del_eqn' (Default _) = initial_fun_spec
           | del_eqn' (Eqns eqns) =
               Eqns (filter_out (fn (thm', _) => Thm.eq_thm_prop (thm, thm')) eqns)
