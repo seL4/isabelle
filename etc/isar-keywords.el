@@ -1,6 +1,6 @@
 ;;
 ;; Keyword classification tables for Isabelle/Isar.
-;; Generated from HOL + HOL-Auth + HOL-BNF + HOL-BNF-LFP + HOL-Bali + HOL-Decision_Procs + HOL-IMP + HOL-Imperative_HOL + HOL-Import + HOL-Library + HOL-Mutabelle + HOL-Nominal + HOL-Proofs + HOL-Proofs-Extraction + HOL-SPARK + HOL-Statespace + HOL-TPTP + HOL-Word-SMT_Examples + HOL-ex + HOLCF + Pure.
+;; Generated from HOL + HOL-Auth + HOL-BNF + HOL-BNF-FP + HOL-Bali + HOL-Decision_Procs + HOL-IMP + HOL-Imperative_HOL + HOL-Import + HOL-Library + HOL-Mutabelle + HOL-Nominal + HOL-Proofs + HOL-Proofs-Extraction + HOL-SPARK + HOL-Statespace + HOL-TPTP + HOL-Word-SMT_Examples + HOL-ex + HOLCF + Pure.
 ;; *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT ***
 ;;
 
@@ -33,6 +33,7 @@
     "axiomatization"
     "back"
     "bnf"
+    "bnf_decl"
     "boogie_file"
     "bundle"
     "by"
@@ -46,7 +47,6 @@
     "classes"
     "classrel"
     "codatatype"
-    "code_abort"
     "code_class"
     "code_const"
     "code_datatype"
@@ -486,6 +486,7 @@
     "atom_decl"
     "attribute_setup"
     "axiomatization"
+    "bnf_decl"
     "boogie_file"
     "bundle"
     "case_of_simps"
@@ -493,7 +494,6 @@
     "classes"
     "classrel"
     "codatatype"
-    "code_abort"
     "code_class"
     "code_const"
     "code_datatype"
