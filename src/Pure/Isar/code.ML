@@ -178,7 +178,7 @@ datatype fun_spec = Default of (thm * bool) list * (thm * bool) list lazy
   | Proj of term * string
   | Abstr of thm * string;
 
-val empty_fun_spec = Default ([], Lazy.value []);
+val initial_fun_spec = Default ([], Lazy.value []);
 
 fun is_default (Default _) = true
   | is_default _ = false;
@@ -223,7 +223,7 @@ fun merge_spec (Spec { history_concluded = _, functions = functions1,
     val invalidated_case_consts = union (op =) (case_consts_of' types1) (case_consts_of' types2)
       |> subtract (op =) (maps case_consts_of all_datatype_specs)
     val functions = Symtab.join (K merge_functions) (functions1, functions2)
-      |> fold (fn c => Symtab.map_entry c (apfst (K (true, empty_fun_spec)))) all_constructors;
+      |> fold (fn c => Symtab.map_entry c (apfst (K (true, initial_fun_spec)))) all_constructors;
     val cases = (Symtab.merge (K true) (cases1, cases2)
       |> fold Symtab.delete invalidated_case_consts, Symtab.merge (K true) (undefs1, undefs2));
   in make_spec (false, (functions, (types, cases))) end;
@@ -295,7 +295,7 @@ val the_exec : theory -> spec = fst o Code_Data.get;
 fun map_exec_purge f = Code_Data.map (fn (exec, _) => (f exec, empty_dataref ()));
 
 fun change_fun_spec c f = (map_exec_purge o map_functions
-  o (Symtab.map_default (c, ((false, empty_fun_spec), [])))
+  o (Symtab.map_default (c, ((false, initial_fun_spec), [])))
     o apfst) (fn (_, spec) => (true, f spec));
 
 
@@ -869,7 +869,7 @@ end;
 fun retrieve_raw thy c =
   Symtab.lookup ((the_functions o the_exec) thy) c
   |> Option.map (snd o fst)
-  |> the_default empty_fun_spec
+  |> the_default initial_fun_spec
 
 fun eqn_conv conv ct =
   let
@@ -1097,14 +1097,14 @@ fun add_eqn_maybe_abs thm thy =
 
 fun del_eqn thm thy = case mk_eqn_liberal thy thm
  of SOME (thm, _) => let
-        fun del_eqn' (Default _) = empty_fun_spec
+        fun del_eqn' (Default _) = initial_fun_spec
           | del_eqn' (Eqns eqns) =
               Eqns (filter_out (fn (thm', _) => Thm.eq_thm_prop (thm, thm')) eqns)
           | del_eqn' spec = spec
       in change_fun_spec (const_eqn thy thm) del_eqn' thy end
   | NONE => thy;
 
-fun del_eqns c = change_fun_spec c (K empty_fun_spec);
+fun del_eqns c = change_fun_spec c (K initial_fun_spec);
 
 
 (* cases *)
