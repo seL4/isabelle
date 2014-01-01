@@ -33,10 +33,10 @@ process, without requiring old-fashioned command-line invocation of
 
 *** HOL ***
 
-* "declare [[code abort: …]]" replaces "code_abort …".
+* "declare [[code abort: ...]]" replaces "code_abort ...".
 INCOMPATIBILITY.
 
-* "declare [[code drop: …]]" drops all code equations associated
+* "declare [[code drop: ...]]" drops all code equations associated
 with the given constants.
 
 * Abolished slightly odd global lattice interpretation for min/max.
@@ -121,7 +121,7 @@ INCOMPATIBILITY.
   * When devising rule sets for number calculation, consider the
     following canonical cases: 0, 1, numeral _, - 1, - numeral _.
   * HOLogic.dest_number also recognizes numerals in non-canonical forms
-    like "numeral One", "- numeral One", "- 0" and even "- … - _".
+    like "numeral One", "- numeral One", "- 0" and even "- ... - _".
   * Syntax for negative numerals is mere input syntax.
 INCOMPATBILITY.
 
@@ -155,7 +155,7 @@ a) Arbitrary failing proof not involving "diff_def":
 Consider simplification with algebra_simps or field_simps.
 
 b) Lifting rules from addition to subtraction:
-Try with "using <rule for addition> of [… "- _" …]" by simp".
+Try with "using <rule for addition> of [... "- _" ...]" by simp".
 
 c) Simplification with "diff_def": just drop "diff_def".
 Consider simplification with algebra_simps or field_simps;
