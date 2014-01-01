@@ -406,8 +406,10 @@ val to_set_att = Thm.rule_attribute o to_set;
 
 (**** preprocessor for code generator ****)
 
-fun codegen_preproc thy =
+(* FIXME unused!? *)
+fun codegen_preproc thy =  (* FIXME proper context!? *)
   let
+    val ctxt = Proof_Context.init_global thy;
     val {to_pred_simps, set_arities, pred_arities, ...} =
       Data.get (Context.Theory thy);
     fun preproc thm =
@@ -417,7 +419,7 @@ fun codegen_preproc thy =
             forall is_none xs) arities) (prop_of thm)
       then
         thm |>
-        Simplifier.full_simplify (Simplifier.global_context thy HOL_basic_ss addsimprocs
+        Simplifier.full_simplify (put_simpset HOL_basic_ss ctxt addsimprocs
           [to_pred_simproc (mem_Collect_eq :: @{thm split_conv} :: to_pred_simps)]) |>
         eta_contract_thm (is_pred pred_arities)
       else thm

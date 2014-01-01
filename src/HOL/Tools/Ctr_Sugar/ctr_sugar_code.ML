@@ -66,12 +66,11 @@ fun mk_free_ctr_equations fcT ctrs inject_thms distinct_thms thy =
     val distinct_goals = maps (massage_distinct o monomorphic_prop_of) distinct_thms;
     val refl_goal = HOLogic.mk_Trueprop (true_eq (Free ("x", fcT), Free ("x", fcT)));
 
-    val simp_ctxt =
-      Simplifier.global_context thy HOL_basic_ss
-        addsimps (map Simpdata.mk_eq (@{thms equal eq_True} @ inject_thms @ distinct_thms));
-
     fun prove goal =
-      Goal.prove_sorry_global thy [] [] goal (K (ALLGOALS (simp_tac simp_ctxt)))
+      Goal.prove_sorry_global thy [] [] goal (fn {context = ctxt, ...} =>
+        ALLGOALS (simp_tac
+          (put_simpset HOL_basic_ss ctxt
+            addsimps (map Simpdata.mk_eq (@{thms equal eq_True} @ inject_thms @ distinct_thms)))))
       |> Simpdata.mk_eq;
   in
     (map prove (triv_inject_goals @ inject_goals @ distinct_goals), prove refl_goal)

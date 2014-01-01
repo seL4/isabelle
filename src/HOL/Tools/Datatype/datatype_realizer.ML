@@ -195,8 +195,8 @@ fun make_casedists ({index, descr, case_name, case_rewrites, exhaust, ...} : Dat
            EVERY [
             rtac (cterm_instantiate [(cert y, cert y')] exhaust) 1,
             ALLGOALS (EVERY'
-              [asm_simp_tac (Simplifier.global_context thy HOL_basic_ss addsimps case_rewrites),
-               resolve_tac prems, asm_simp_tac (Simplifier.global_context thy HOL_basic_ss)])])
+              [asm_simp_tac (put_simpset HOL_basic_ss ctxt addsimps case_rewrites),
+               resolve_tac prems, asm_simp_tac (put_simpset HOL_basic_ss ctxt)])])
       |> Drule.export_without_context;
 
     val exh_name = Thm.derivation_name exhaust;

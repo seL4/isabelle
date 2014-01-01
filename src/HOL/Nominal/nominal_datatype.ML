@@ -1523,7 +1523,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
             (augment_sort thy1 pt_cp_sort
               (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj (map HOLogic.mk_imp ps))))
             (fn {context = ctxt, ...} => rtac rec_induct 1 THEN REPEAT
-               (simp_tac (Simplifier.global_context thy11 HOL_basic_ss
+               (simp_tac (put_simpset HOL_basic_ss ctxt
                   addsimps flat perm_simps'
                   addsimprocs [NominalPermeq.perm_simproc_app]) 1 THEN
                 (resolve_tac rec_intrs THEN_ALL_NEW
@@ -1925,9 +1925,9 @@ fun gen_nominal_datatype prep_specs config dts thy =
                       in
                         Goal.prove context'' [] []
                           (HOLogic.mk_Trueprop (fresh_const aT rT $ b $ lhs'))
-                          (fn _ => EVERY
+                          (fn {context = ctxt, ...} => EVERY
                              [cut_facts_tac [th'] 1,
-                              full_simp_tac (Simplifier.global_context thy11 HOL_ss  (* FIXME context'' (!?) *)
+                              full_simp_tac (put_simpset HOL_ss ctxt
                                 addsimps rec_eqns @ pi1_pi2_eqs @ perm_swap
                                 addsimprocs [NominalPermeq.perm_simproc_app]) 1,
                               full_simp_tac (put_simpset HOL_ss context'' addsimps (calc_atm @

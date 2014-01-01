@@ -8,5 +8,4 @@ src/HOL/Library/Sum_of_Squares
 src/HOL/Tools
 src/HOL/Tools/ATP
 src/HOL/Tools/Sledgehammer/MaSh
-src/HOL/Tools/SMT
 src/HOL/TPTP

@@ -271,7 +271,7 @@ fun prove_strong_ind s avoids ctxt =
     val perm_pi_simp = Global_Theory.get_thms thy "perm_pi_simp";
     val pt2_atoms = map (fn aT => Global_Theory.get_thm thy
       ("pt_" ^ Long_Name.base_name (fst (dest_Type aT)) ^ "2")) atomTs;
-    val eqvt_ss = simpset_of (Simplifier.global_context thy HOL_basic_ss
+    val eqvt_ss = simpset_of (put_simpset HOL_basic_ss (Proof_Context.init_global thy)
       addsimps (eqvt_thms @ perm_pi_simp @ pt2_atoms)
       addsimprocs [mk_perm_bool_simproc [@{const_name Fun.id}],
         NominalPermeq.perm_simproc_app, NominalPermeq.perm_simproc_fun]);
@@ -452,13 +452,14 @@ fun prove_strong_ind s avoids ctxt =
                    concl))
           in map mk_prem prems end) cases_prems;
 
-    val cases_eqvt_simpset = Simplifier.global_context thy HOL_ss
+    val cases_eqvt_simpset = put_simpset HOL_ss (Proof_Context.init_global thy)
       addsimps eqvt_thms @ swap_simps @ perm_pi_simp
       addsimprocs [NominalPermeq.perm_simproc_app,
         NominalPermeq.perm_simproc_fun];
 
     val simp_fresh_atm = map
-      (Simplifier.simplify (Simplifier.global_context thy HOL_basic_ss addsimps fresh_atm));
+      (Simplifier.simplify (put_simpset HOL_basic_ss (Proof_Context.init_global thy)
+        addsimps fresh_atm));
 
     fun mk_cases_proof ((((name, thss), elim), (prem, args, concl, (prems, ctxt'))),
         prems') =
@@ -608,7 +609,7 @@ fun prove_eqvt s xatoms ctxt =
          atoms)
       end;
     val perm_pi_simp = Global_Theory.get_thms thy "perm_pi_simp";
-    val eqvt_simpset = Simplifier.global_context thy HOL_basic_ss addsimps
+    val eqvt_simpset = put_simpset HOL_basic_ss (Proof_Context.init_global thy) addsimps
       (NominalThmDecls.get_eqvt_thms ctxt @ perm_pi_simp) addsimprocs
       [mk_perm_bool_simproc names,
        NominalPermeq.perm_simproc_app, NominalPermeq.perm_simproc_fun];

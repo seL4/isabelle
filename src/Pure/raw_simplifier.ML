@@ -40,7 +40,6 @@ sig
   val mk_simproc: string -> cterm list -> (Proof.context -> term -> thm option) -> simproc
   val simpset_of: Proof.context -> simpset
   val put_simpset: simpset -> Proof.context -> Proof.context
-  val global_context: theory -> simpset -> Proof.context
   val simpset_map: Proof.context -> (Proof.context -> Proof.context) -> simpset -> simpset
   val map_theory_simpset: (Proof.context -> Proof.context) -> theory -> theory
   val empty_simpset: Proof.context -> Proof.context
@@ -387,8 +386,6 @@ fun put_simpset ss = map_simpset (fn context_ss =>
     val Simpset ({rules, prems, ...}, ss2) = ss;  (* FIXME prems from context (!?) *)
     val Simpset ({bounds, depth, ...}, _) = context_ss;
   in Simpset (make_ss1 (rules, prems, bounds, depth), ss2) end);
-
-fun global_context thy ss = Proof_Context.init_global thy |> put_simpset ss;
 
 val empty_simpset = put_simpset empty_ss;
 
