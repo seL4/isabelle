@@ -294,8 +294,8 @@ val the_exec : theory -> spec = fst o Code_Data.get;
 
 fun map_exec_purge f = Code_Data.map (fn (exec, _) => (f exec, empty_dataref ()));
 
-fun change_fun_spec delete c f = (map_exec_purge o map_functions
-  o (if delete then Symtab.map_entry c else Symtab.map_default (c, ((false, empty_fun_spec), [])))
+fun change_fun_spec c f = (map_exec_purge o map_functions
+  o (Symtab.map_default (c, ((false, empty_fun_spec), [])))
     o apfst) (fn (_, spec) => (true, f spec));
 
 
@@ -1057,13 +1057,13 @@ fun gen_add_eqn default (raw_thm, proper) thy =
       | add_eqn' true fun_spec = fun_spec
       | add_eqn' false (Eqns eqns) = Eqns (update_subsume true (thm, proper) eqns)
       | add_eqn' false _ = Eqns [(thm, proper)];
-  in change_fun_spec false c (add_eqn' default) thy end;
+  in change_fun_spec c (add_eqn' default) thy end;
 
 fun gen_add_abs_eqn raw_thm thy =
   let
     val (abs_thm, tyco) = apfst Thm.close_derivation raw_thm;
     val c = const_abs_eqn thy abs_thm;
-  in change_fun_spec false c (K (Abstr (abs_thm, tyco))) thy end;
+  in change_fun_spec c (K (Abstr (abs_thm, tyco))) thy end;
 
 fun add_eqn thm thy =
   gen_add_eqn false (mk_eqn thy (thm, true)) thy;
@@ -1101,10 +1101,10 @@ fun del_eqn thm thy = case mk_eqn_liberal thy thm
           | del_eqn' (Eqns eqns) =
               Eqns (filter_out (fn (thm', _) => Thm.eq_thm_prop (thm, thm')) eqns)
           | del_eqn' spec = spec
-      in change_fun_spec true (const_eqn thy thm) del_eqn' thy end
+      in change_fun_spec (const_eqn thy thm) del_eqn' thy end
   | NONE => thy;
 
-fun del_eqns c = change_fun_spec true c (K empty_fun_spec);
+fun del_eqns c = change_fun_spec c (K empty_fun_spec);
 
 
 (* cases *)
@@ -1217,7 +1217,7 @@ fun add_abstype proto_thm thy =
   in
     thy
     |> register_type (tyco, (vs, Abstractor (abs_ty, (rep, cert))))
-    |> change_fun_spec false rep
+    |> change_fun_spec rep
       (K (Proj (Logic.varify_types_global (mk_proj tyco vs ty abs rep), tyco)))
     |> Abstype_Interpretation.data (tyco, serial ())
   end;
