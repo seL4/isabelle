@@ -10,8 +10,7 @@ begin
 
 code_datatype int_of_integer
 
-lemma [code, code del]:
-  "integer_of_int = integer_of_int" ..
+declare [[code drop: integer_of_int]]
 
 lemma [code]:
   "integer_of_int (int_of_integer k) = k"
@@ -57,8 +56,7 @@ lemma [code]:
   "Int.dup k = int_of_integer (Code_Numeral.dup (of_int k))"
   by transfer simp
 
-lemma [code, code del]:
-  "Int.sub = Int.sub" ..
+declare [[code drop: Int.sub]]
 
 lemma [code]:
   "k * l = int_of_integer (of_int k * of_int l)"
