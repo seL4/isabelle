@@ -31,7 +31,7 @@ sig
   val conclude_cert: cert -> cert
   val typargs_deps_of_cert: theory -> cert -> (string * sort) list * (string * typ list) list
   val equations_of_cert: theory -> cert -> ((string * sort) list * typ)
-    * (((term * string option) list * (term * string option)) * (thm option * bool)) list
+    * (((term * string option) list * (term * string option)) * (thm option * bool)) list option
   val pretty_cert: theory -> cert -> Pretty.T list
 
   (*executable code*)
@@ -55,6 +55,7 @@ sig
   val add_nbe_default_eqn_attrib: Attrib.src
   val del_eqn: thm -> theory -> theory
   val del_eqns: string -> theory -> theory
+  val del_exception: string -> theory -> theory
   val add_case: thm -> theory -> theory
   val add_undefined: string -> theory -> theory
   val get_type: theory -> string
@@ -175,6 +176,7 @@ datatype fun_spec = Default of (thm * bool) list * (thm * bool) list lazy
       (* (cache for default equations, lazy computation of default equations)
          -- helps to restore natural order of default equations *)
   | Eqns of (thm * bool) list
+  | None
   | Proj of term * string
   | Abstr of thm * string;
 
@@ -719,12 +721,13 @@ fun add_rhss_of_eqn thy t =
 
 val dest_eqn = apfst (snd o strip_comb) o Logic.dest_equals o Logic.unvarify_global;
 
-abstype cert = Equations of thm * bool list
+abstype cert = Nothing of thm
+  | Equations of thm * bool list
   | Projection of term * string
   | Abstract of thm * string
 with
 
-fun empty_cert thy c = 
+fun dummy_thm thy c =
   let
     val raw_ty = devarify (const_typ thy c);
     val (vs, _) = typscheme thy (c, raw_ty);
@@ -737,9 +740,11 @@ fun empty_cert thy c =
     val the_sort = the o AList.lookup (op =) (map fst vs ~~ sortargs);
     val ty = map_type_tfree (fn (v, _) => TFree (v, the_sort v)) raw_ty
     val chead = build_head thy (c, ty);
-  in Equations (Thm.weaken chead Drule.dummy_thm, []) end;
+  in Thm.weaken chead Drule.dummy_thm end;
 
-fun cert_of_eqns thy c [] = empty_cert thy c
+fun nothing_cert thy c = Nothing (dummy_thm thy c);
+
+fun cert_of_eqns thy c [] = Equations (dummy_thm thy c, [])
   | cert_of_eqns thy c raw_eqns = 
       let
         val eqns = burrow_fst (canonize_thms thy) raw_eqns;
@@ -780,38 +785,51 @@ fun cert_of_abs thy tyco c raw_abs_thm =
         ^ string_of_const thy c ^ "\n" ^ Display.string_of_thm_global thy abs_thm);
   in Abstract (Thm.legacy_freezeT abs_thm, tyco) end;
 
-fun constrain_cert thy sorts (Equations (cert_thm, propers)) =
-      let
-        val ((vs, _), head) = get_head thy cert_thm;
-        val (subst, cert_thm') = cert_thm
-          |> Thm.implies_intr head
-          |> constrain_thm thy vs sorts;
-        val head' = Thm.term_of head
-          |> subst
-          |> Thm.cterm_of thy;
-        val cert_thm'' = cert_thm'
-          |> Thm.elim_implies (Thm.assume head');
-      in Equations (cert_thm'', propers) end
+fun constrain_cert_thm thy sorts cert_thm =
+  let
+    val ((vs, _), head) = get_head thy cert_thm;
+    val (subst, cert_thm') = cert_thm
+      |> Thm.implies_intr head
+      |> constrain_thm thy vs sorts;
+    val head' = Thm.term_of head
+      |> subst
+      |> Thm.cterm_of thy;
+    val cert_thm'' = cert_thm'
+      |> Thm.elim_implies (Thm.assume head');
+  in cert_thm'' end;
+
+fun constrain_cert thy sorts (Nothing cert_thm) =
+      Nothing (constrain_cert_thm thy sorts cert_thm)
+  | constrain_cert thy sorts (Equations (cert_thm, propers)) =
+      Equations (constrain_cert_thm thy sorts cert_thm, propers)
   | constrain_cert thy _ (cert as Projection _) =
       cert
   | constrain_cert thy sorts (Abstract (abs_thm, tyco)) =
       Abstract (snd (constrain_thm thy (fst (typscheme_abs thy abs_thm)) sorts abs_thm), tyco);
 
-fun conclude_cert (Equations (cert_thm, propers)) =
-      (Equations (Thm.close_derivation cert_thm, propers))
+fun conclude_cert (Nothing cert_thm) =
+      Nothing (Thm.close_derivation cert_thm)
+  | conclude_cert (Equations (cert_thm, propers)) =
+      Equations (Thm.close_derivation cert_thm, propers)
   | conclude_cert (cert as Projection _) =
       cert
   | conclude_cert (Abstract (abs_thm, tyco)) =
-      (Abstract (Thm.close_derivation abs_thm, tyco));
+      Abstract (Thm.close_derivation abs_thm, tyco);
 
-fun typscheme_of_cert thy (Equations (cert_thm, _)) =
+fun typscheme_of_cert thy (Nothing cert_thm) =
+      fst (get_head thy cert_thm)
+  | typscheme_of_cert thy (Equations (cert_thm, _)) =
       fst (get_head thy cert_thm)
   | typscheme_of_cert thy (Projection (proj, _)) =
       typscheme_projection thy proj
   | typscheme_of_cert thy (Abstract (abs_thm, _)) =
       typscheme_abs thy abs_thm;
 
-fun typargs_deps_of_cert thy (Equations (cert_thm, propers)) =
+fun typargs_deps_of_cert thy (Nothing cert_thm) =
+      let
+        val vs = (fst o fst) (get_head thy cert_thm);
+      in (vs, []) end
+  | typargs_deps_of_cert thy (Equations (cert_thm, propers)) =
       let
         val vs = (fst o fst) (get_head thy cert_thm);
         val equations = if null propers then [] else
@@ -826,7 +844,9 @@ fun typargs_deps_of_cert thy (Equations (cert_thm, propers)) =
         val (_, concrete_thm) = concretify_abs thy tyco abs_thm;
       in (vs, add_rhss_of_eqn thy (Logic.unvarify_types_global (Thm.prop_of concrete_thm)) []) end;
 
-fun equations_of_cert thy (cert as Equations (cert_thm, propers)) =
+fun equations_of_cert thy (cert as Nothing _) =
+      (typscheme_of_cert thy cert, NONE)
+  | equations_of_cert thy (cert as Equations (cert_thm, propers)) =
       let
         val tyscm = typscheme_of_cert thy cert;
         val thms = if null propers then [] else
@@ -835,27 +855,29 @@ fun equations_of_cert thy (cert as Equations (cert_thm, propers)) =
           |> Thm.varifyT_global
           |> Conjunction.elim_balanced (length propers);
         fun abstractions (args, rhs) = (map (rpair NONE) args, (rhs, NONE));
-      in (tyscm, map (abstractions o dest_eqn o Thm.prop_of) thms ~~ (map SOME thms ~~ propers)) end
+      in (tyscm, SOME (map (abstractions o dest_eqn o Thm.prop_of) thms ~~ (map SOME thms ~~ propers))) end
   | equations_of_cert thy (Projection (t, tyco)) =
       let
         val (_, ((abs, _), _)) = get_abstype_spec thy tyco;
         val tyscm = typscheme_projection thy t;
         val t' = Logic.varify_types_global t;
         fun abstractions (args, rhs) = (map (rpair (SOME abs)) args, (rhs, NONE));
-      in (tyscm, [((abstractions o dest_eqn) t', (NONE, true))]) end
+      in (tyscm, SOME [((abstractions o dest_eqn) t', (NONE, true))]) end
   | equations_of_cert thy (Abstract (abs_thm, tyco)) =
       let
         val tyscm = typscheme_abs thy abs_thm;
         val (abs, concrete_thm) = concretify_abs thy tyco abs_thm;
         fun abstractions (args, rhs) = (map (rpair NONE) args, (rhs, (SOME abs)));
       in
-        (tyscm, [((abstractions o dest_eqn o Thm.prop_of) concrete_thm,
+        (tyscm, SOME [((abstractions o dest_eqn o Thm.prop_of) concrete_thm,
           (SOME (Thm.varifyT_global abs_thm), true))])
       end;
 
-fun pretty_cert thy (cert as Equations _) =
+fun pretty_cert thy (cert as Nothing _) =
+      [Pretty.str "(not implemented)"]
+  | pretty_cert thy (cert as Equations _) =
       (map_filter (Option.map (Display.pretty_thm_global thy o Axclass.overload thy) o fst o snd)
-         o snd o equations_of_cert thy) cert
+         o these o snd o equations_of_cert thy) cert
   | pretty_cert thy (Projection (t, _)) =
       [Syntax.pretty_term_global thy (Logic.varify_types_global t)]
   | pretty_cert thy (Abstract (abs_thm, _)) =
@@ -869,7 +891,7 @@ end;
 fun retrieve_raw thy c =
   Symtab.lookup ((the_functions o the_exec) thy) c
   |> Option.map (snd o fst)
-  |> the_default initial_fun_spec
+  |> the_default None
 
 fun eqn_conv conv ct =
   let
@@ -893,12 +915,12 @@ fun cert_of_eqns_preprocess thy functrans ss c =
 
 fun get_cert thy { functrans, ss } c =
   case retrieve_raw thy c
-   of Default (_, eqns_lazy) => Lazy.force eqns_lazy
+   of Default (eqns, eqns_lazy) => Lazy.force eqns_lazy
         |> cert_of_eqns_preprocess thy functrans ss c
     | Eqns eqns => eqns
         |> cert_of_eqns_preprocess thy functrans ss c
-    | Proj (_, tyco) =>
-        cert_of_proj thy c tyco
+    | None => nothing_cert thy c
+    | Proj (_, tyco) => cert_of_proj thy c tyco
     | Abstr (abs_thm, tyco) => abs_thm
         |> Thm.transfer thy
         |> rewrite_eqn thy Conv.arg_conv ss
@@ -966,6 +988,7 @@ fun print_codesetup thy =
     fun pretty_function (const, Default (_, eqns_lazy)) =
           pretty_equations const (map fst (Lazy.force eqns_lazy))
       | pretty_function (const, Eqns eqns) = pretty_equations const (map fst eqns)
+      | pretty_function (const, None) = pretty_equations const []
       | pretty_function (const, Proj (proj, _)) = Pretty.block
           [Pretty.str (string_of_const thy const), Pretty.fbrk, Syntax.pretty_term ctxt proj]
       | pretty_function (const, Abstr (thm, _)) = pretty_equations const [thm];
@@ -1054,6 +1077,7 @@ fun gen_add_eqn default (raw_thm, proper) thy =
       (eqns, Lazy.lazy (fn () => fold (update_subsume false) eqns []))
     fun add_eqn' true (Default (eqns, _)) = Default (natural_order ((thm, proper) :: eqns))
           (*this restores the natural order and drops syntactic redundancies*)
+      | add_eqn' true None = Default (natural_order [(thm, proper)])
       | add_eqn' true fun_spec = fun_spec
       | add_eqn' false (Eqns eqns) = Eqns (update_subsume true (thm, proper) eqns)
       | add_eqn' false _ = Eqns [(thm, proper)];
@@ -1100,12 +1124,16 @@ fun del_eqn thm thy = case mk_eqn_liberal thy thm
       let
         fun del_eqn' (Default _) = initial_fun_spec
           | del_eqn' (Eqns eqns) =
-              Eqns (filter_out (fn (thm', _) => Thm.eq_thm_prop (thm, thm')) eqns)
+              let
+                val eqns' = filter_out (fn (thm', _) => Thm.eq_thm_prop (thm, thm')) eqns
+              in if null eqns' then None else Eqns eqns' end
           | del_eqn' spec = spec
       in change_fun_spec (const_eqn thy thm) del_eqn' thy end
   | NONE => thy;
 
-fun del_eqns c = change_fun_spec c (K initial_fun_spec);
+fun del_eqns c = change_fun_spec c (K None);
+
+fun del_exception c = change_fun_spec c (K (Eqns []));
 
 
 (* cases *)
@@ -1229,12 +1257,16 @@ fun add_abstype proto_thm thy =
 val _ = Theory.setup
   (let
     fun mk_attribute f = Thm.declaration_attribute (fn thm => Context.mapping (f thm) I);
+    fun mk_const_attribute f cs =
+      mk_attribute (K (fold (fn c => fn thy => f (read_const thy c) thy) cs));
     val code_attribute_parser =
-      Args.del |-- Scan.succeed (mk_attribute del_eqn)
-      || Args.$$$ "equation" |-- Scan.succeed (mk_attribute add_eqn)
+      Args.$$$ "equation" |-- Scan.succeed (mk_attribute add_eqn)
       || Args.$$$ "nbe" |-- Scan.succeed (mk_attribute add_nbe_eqn)
       || Args.$$$ "abstype" |-- Scan.succeed (mk_attribute add_abstype)
       || Args.$$$ "abstract" |-- Scan.succeed (mk_attribute add_abs_eqn)
+      || Args.del |-- Scan.succeed (mk_attribute del_eqn)
+      || Args.$$$ "drop" -- Args.colon |-- (Scan.repeat1 Parse.term >> mk_const_attribute del_eqns)
+      || Args.$$$ "abort" -- Args.colon |-- (Scan.repeat1 Parse.term >> mk_const_attribute del_exception)
       || Scan.succeed (mk_attribute add_eqn_maybe_abs);
   in
     Datatype_Interpretation.init

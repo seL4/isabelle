@@ -369,12 +369,12 @@ fun project_program thy abortable names_hidden names1 program2 =
     val names2 = subtract (op =) names_hidden names1;
     val program3 = Graph.restrict (not o member (op =) names_hidden) program2;
     val names4 = Graph.all_succs program3 names2;
-    val empty_funs = filter_out (member (op =) abortable)
-      (Code_Thingol.empty_funs program3);
+    val unimplemented = filter_out (member (op =) abortable)
+      (Code_Thingol.unimplemented program3);
     val _ =
-      if null empty_funs then ()
+      if null unimplemented then ()
       else error ("No code equations for " ^
-        commas (map (Proof_Context.extern_const ctxt) empty_funs));
+        commas (map (Proof_Context.extern_const ctxt) unimplemented));
     val program4 = Graph.restrict (member (op =) names4) program3;
   in (names4, program4) end;
 
@@ -500,9 +500,9 @@ end; (* local *)
 
 (* code generation *)
 
-fun transitivly_non_empty_funs thy naming program =
+fun implemented_functions thy naming program =
   let
-    val cs = subtract (op =) (abort_allowed thy) (Code_Thingol.empty_funs program);
+    val cs = subtract (op =) (abort_allowed thy) (Code_Thingol.unimplemented program);
     val names = map_filter (Code_Thingol.lookup_const naming) cs;
   in subtract (op =) (Graph.all_preds program names) (Graph.keys program) end;
 
@@ -510,7 +510,7 @@ fun read_const_exprs thy cs =
   let
     val (cs1, cs2) = Code_Thingol.read_const_exprs thy cs;
     val (names2, (naming, program)) = Code_Thingol.consts_program thy true cs2;
-    val names3 = transitivly_non_empty_funs thy naming program;
+    val names3 = implemented_functions thy naming program;
     val cs3 = map_filter (fn (c, name) =>
       if member (op =) names3 name then SOME c else NONE) (cs2 ~~ names2);
   in union (op =) cs3 cs1 end;

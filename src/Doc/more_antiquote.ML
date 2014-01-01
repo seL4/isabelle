@@ -35,6 +35,7 @@ fun pretty_code_thm src ctxt raw_const =
     val thms = Code_Preproc.cert eqngr const
       |> Code.equations_of_cert thy
       |> snd
+      |> these
       |> map_filter (fn (_, (some_thm, proper)) => if proper then some_thm else NONE)
       |> map (holize o no_vars ctxt o Axclass.overload thy);
   in Thy_Output.output ctxt (Thy_Output.maybe_pretty_source pretty_thm ctxt src thms) end;

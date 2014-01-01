@@ -68,7 +68,7 @@ sig
   val ensure_declared_const: theory -> string -> naming -> string * naming
 
   datatype stmt =
-      NoStmt
+      NoStmt of string
     | Fun of string * ((typscheme * ((iterm list * iterm) * (thm option * bool)) list) * thm option)
     | Datatype of string * (vname list *
         ((string * vname list (*type argument wrt. canonical order*)) * itype list) list)
@@ -81,7 +81,7 @@ sig
         inst_params: ((string * (const * int)) * (thm * bool)) list,
         superinst_params: ((string * (const * int)) * (thm * bool)) list };
   type program = stmt Graph.T
-  val empty_funs: program -> string list
+  val unimplemented: program -> string list
   val map_terms_bottom_up: (iterm -> iterm) -> iterm -> iterm
   val map_terms_stmt: (iterm -> iterm) -> stmt -> stmt
   val is_constr: program -> string -> bool
@@ -419,7 +419,7 @@ end; (* local *)
 
 type typscheme = (vname * sort) list * itype;
 datatype stmt =
-    NoStmt
+    NoStmt of string
   | Fun of string * ((typscheme * ((iterm list * iterm) * (thm option * bool)) list) * thm option)
   | Datatype of string * (vname list * ((string * vname list) * itype list) list)
   | Datatypecons of string * string
@@ -433,8 +433,8 @@ datatype stmt =
 
 type program = stmt Graph.T;
 
-fun empty_funs program =
-  Graph.fold (fn (_, (Fun (c, ((_, []), _)), _)) => cons c | _ => I) program [];
+fun unimplemented program =
+  Graph.fold (fn (_, (NoStmt c, _)) => cons c | _ => I) program [];
 
 fun map_terms_bottom_up f (t as IConst _) = f t
   | map_terms_bottom_up f (t as IVar _) = f t
@@ -450,7 +450,7 @@ fun map_terms_bottom_up f (t as IConst _) = f t
 fun map_classparam_instances_as_term f =
   (map o apfst o apsnd o apfst) (fn const => case f (IConst const) of IConst const' => const')
 
-fun map_terms_stmt f NoStmt = NoStmt
+fun map_terms_stmt f (NoStmt c) = (NoStmt c)
   | map_terms_stmt f (Fun (c, ((tysm, eqs), case_cong))) = Fun (c, ((tysm, (map o apfst)
       (fn (ts, t) => (map f ts, f t)) eqs), case_cong))
   | map_terms_stmt f (stmt as Datatype _) = stmt
@@ -546,7 +546,7 @@ fun ensure_stmt lookup declare generate thing (dep, (naming, program)) =
       |> pair name
     else
       program
-      |> Graph.default_node (name, NoStmt)
+      |> Graph.default_node (name, NoStmt "")
       |> add_dep name
       |> pair naming'
       |> curry generate (SOME name)
@@ -651,17 +651,20 @@ and ensure_const thy algbr eqngr permissive c =
     fun stmt_classparam class =
       ensure_class thy algbr eqngr permissive class
       #>> (fn class => Classparam (c, class));
-    fun stmt_fun cert =
-      let
-        val ((vs, ty), eqns) = Code.equations_of_cert thy cert;
-        val eqns' = annotate_eqns thy algbr eqngr (c, ty) eqns
-        val some_case_cong = Code.get_case_cong thy c;
-      in
-        fold_map (translate_tyvar_sort thy algbr eqngr permissive) vs
-        ##>> translate_typ thy algbr eqngr permissive ty
-        ##>> translate_eqns thy algbr eqngr permissive eqns'
-        #>> (fn info => Fun (c, (info, some_case_cong)))
-      end;
+    fun stmt_fun cert = case Code.equations_of_cert thy cert
+     of (_, NONE) => pair (NoStmt c)
+      | ((vs, ty), SOME eqns) =>
+          let
+            val eqns' = annotate_eqns thy algbr eqngr (c, ty) eqns
+            val some_case_cong = Code.get_case_cong thy c;
+          in
+            fold_map (translate_tyvar_sort thy algbr eqngr permissive) vs
+            ##>> translate_typ thy algbr eqngr permissive ty
+            ##>> translate_eqns thy algbr eqngr permissive eqns'
+            #>>
+             (fn (_, NONE) => NoStmt c
+               | (tyscm, SOME eqns) => Fun (c, ((tyscm, eqns), some_case_cong)))
+          end;
     val stmt_const = case Code.get_type_of_constr_or_abstr thy c
      of SOME (tyco, _) => stmt_datatypecons tyco
       | NONE => (case Axclass.class_of_param thy c
@@ -762,7 +765,6 @@ and translate_eqn thy algbr eqngr permissive ((args, (rhs, some_abs)), (some_thm
   #>> rpair (some_thm, proper)
 and translate_eqns thy algbr eqngr permissive eqns =
   maybe_permissive (fold_map (translate_eqn thy algbr eqngr permissive) eqns)
-  #>> these
 and translate_const thy algbr eqngr permissive some_thm ((c, ty), some_abs) =
   let
     val _ = if (case some_abs of NONE => true | SOME abs => not (c = abs))

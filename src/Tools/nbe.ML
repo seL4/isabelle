@@ -415,7 +415,9 @@ fun dummy_const c dss =
   IConst { name = c, typargs = [], dicts = dss,
     dom = [], range = ITyVar "", annotate = false };
 
-fun eqns_of_stmt (_, Code_Thingol.Fun (_, ((_, []), _))) =
+fun eqns_of_stmt (_, Code_Thingol.NoStmt _) =
+      []
+  | eqns_of_stmt (_, Code_Thingol.Fun (_, ((_, []), _))) =
       []
   | eqns_of_stmt (const, Code_Thingol.Fun (_, (((vs, _), eqns), _))) =
       [(const, (vs, map fst eqns))]
@@ -519,7 +521,8 @@ fun term_of_univ thy program idx_tab t =
       | is_dict (DFree _) = true
       | is_dict _ = false;
     fun const_of_idx idx = (case (Graph.get_node program o the o Inttab.lookup idx_tab) idx
-     of Code_Thingol.Fun (c, _) => c
+     of Code_Thingol.NoStmt c => c
+      | Code_Thingol.Fun (c, _) => c
       | Code_Thingol.Datatypecons (c, _) => c
       | Code_Thingol.Classparam (c, _) => c);
     fun of_apps bounds (t, ts) =
