@@ -968,7 +968,7 @@ done
 
 end
 
-code_abort "open :: real set \<Rightarrow> bool"
+declare [[code abort: "open :: real set \<Rightarrow> bool"]]
 
 instance real :: linorder_topology
 proof

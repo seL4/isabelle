@@ -1832,7 +1832,7 @@ setup {*
   #> Code.add_undefined @{const_name undefined}
 *}
 
-code_abort undefined
+declare [[code abort: undefined]]
 
 
 subsubsection {* Generic code generator target languages *}

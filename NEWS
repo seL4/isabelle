@@ -33,6 +33,12 @@ process, without requiring old-fashioned command-line invocation of
 
 *** HOL ***
 
+* "declare [[code abort: …]]" replaces "code_abort …".
+INCOMPATIBILITY.
+
+* "declare [[code drop: …]]" drops all code equations associated
+with the given constants.
+
 * Abolished slightly odd global lattice interpretation for min/max.
 
 Fact consolidations:

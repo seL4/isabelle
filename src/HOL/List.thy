@@ -6133,7 +6133,7 @@ definition "Bleast S P = (LEAST x. x \<in> S \<and> P x)"
 
 definition "abort_Bleast S P = (LEAST x. x \<in> S \<and> P x)"
 
-code_abort abort_Bleast
+declare [[code abort: abort_Bleast]]
 
 lemma Bleast_code [code]:
  "Bleast (set xs) P = (case filter P (sort xs) of

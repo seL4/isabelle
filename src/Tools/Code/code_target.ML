@@ -64,7 +64,6 @@ sig
   val add_instance_syntax: string -> class * string -> unit option -> theory -> theory
   val add_reserved: string -> string -> theory -> theory
   val add_include: string -> string * (string * string list) option -> theory -> theory
-  val allow_abort: string -> theory -> theory
 
   val codegen_tool: string (*theory name*) -> string (*export_code expr*) -> unit
 
@@ -231,23 +230,20 @@ fun the_printings (Target { printings, ... }) = printings;
 
 structure Targets = Theory_Data
 (
-  type T = (target Symtab.table * string list) * int;
-  val empty = ((Symtab.empty, []), 80);
+  type T = target Symtab.table * int;
+  val empty = (Symtab.empty, 80);
   val extend = I;
-  fun merge (((target1, exc1), width1), ((target2, exc2), width2)) : T =
-    ((Symtab.join (merge_target true) (target1, target2),
-      Library.merge (op =) (exc1, exc2)), Int.max (width1, width2));
+  fun merge ((target1, width1), (target2, width2)) : T =
+    (Symtab.join (merge_target true) (target1, target2), Int.max (width1, width2));
 );
 
-val abort_allowed = snd o fst o Targets.get;
-
-fun assert_target thy target = if Symtab.defined ((fst o fst) (Targets.get thy)) target
+fun assert_target thy target = if Symtab.defined (fst (Targets.get thy)) target
   then target
   else error ("Unknown code target language: " ^ quote target);
 
 fun put_target (target, seri) thy =
   let
-    val lookup_target = Symtab.lookup ((fst o fst) (Targets.get thy));
+    val lookup_target = Symtab.lookup (fst (Targets.get thy));
     val _ = case seri
      of Extension (super, _) => if is_some (lookup_target super) then ()
           else error ("Unknown code target language: " ^ quote super)
@@ -263,7 +259,7 @@ fun put_target (target, seri) thy =
       else ();
   in
     thy
-    |> (Targets.map o apfst o apfst o Symtab.update)
+    |> (Targets.map o apfst o Symtab.update)
         (target, make_target ((serial (), seri),
           ([], (Code_Symbol.empty_data, Code_Symbol.empty_data))))
   end;
@@ -277,7 +273,7 @@ fun map_target_data target f thy =
     val _ = assert_target thy target;
   in
     thy
-    |> (Targets.map o apfst o apfst o Symtab.map_entry target o map_target o apsnd) f
+    |> (Targets.map o apfst o Symtab.map_entry target o map_target o apsnd) f
   end;
 
 fun map_reserved target =
@@ -296,7 +292,7 @@ fun set_default_code_width k = (Targets.map o apsnd) (K k);
 
 fun the_fundamental thy =
   let
-    val ((targets, _), _) = Targets.get thy;
+    val (targets, _) = Targets.get thy;
     fun fundamental target = case Symtab.lookup targets target
      of SOME data => (case the_description data
          of Fundamental data => data
@@ -308,7 +304,7 @@ fun the_literals thy = #literals o the_fundamental thy;
 
 fun collapse_hierarchy thy =
   let
-    val ((targets, _), _) = Targets.get thy;
+    val (targets, _) = Targets.get thy;
     fun collapse target =
       let
         val data = case Symtab.lookup targets target
@@ -326,9 +322,9 @@ local
 
 fun activate_target thy target =
   let
-    val ((_, abortable), default_width) = Targets.get thy;
+    val (_, default_width) = Targets.get thy;
     val (modify, data) = collapse_hierarchy thy target;
-  in (default_width, abortable, data, modify) end;
+  in (default_width, data, modify) end;
 
 fun activate_const_syntax thy literals cs_data naming =
   (Symtab.empty, naming)
@@ -363,14 +359,13 @@ fun activate_symbol_syntax thy literals naming printings =
       (const_syntax, tyco_syntax, class_syntax))
   end;
 
-fun project_program thy abortable names_hidden names1 program2 =
+fun project_program thy names_hidden names1 program2 =
   let
     val ctxt = Proof_Context.init_global thy;
     val names2 = subtract (op =) names_hidden names1;
     val program3 = Graph.restrict (not o member (op =) names_hidden) program2;
     val names4 = Graph.all_succs program3 names2;
-    val unimplemented = filter_out (member (op =) abortable)
-      (Code_Thingol.unimplemented program3);
+    val unimplemented = Code_Thingol.unimplemented program3;
     val _ =
       if null unimplemented then ()
       else error ("No code equations for " ^
@@ -378,12 +373,12 @@ fun project_program thy abortable names_hidden names1 program2 =
     val program4 = Graph.restrict (member (op =) names4) program3;
   in (names4, program4) end;
 
-fun prepare_serializer thy abortable (serializer : serializer) literals reserved identifiers
+fun prepare_serializer thy (serializer : serializer) literals reserved identifiers
     printings module_name args naming proto_program names =
   let
     val (names_hidden, (const_syntax, tyco_syntax, class_syntax)) =
       activate_symbol_syntax thy literals naming printings;
-    val (names_all, program) = project_program thy abortable names_hidden names proto_program;
+    val (names_all, program) = project_program thy names_hidden names proto_program;
     fun select_include (name, (content, cs)) =
       if null cs orelse exists (fn c => case Code_Thingol.lookup_const naming c
        of SOME name => member (op =) names_all name
@@ -405,11 +400,11 @@ fun prepare_serializer thy abortable (serializer : serializer) literals reserved
 
 fun mount_serializer thy target some_width module_name args naming program names =
   let
-    val (default_width, abortable, data, modify) = activate_target thy target;
+    val (default_width, data, modify) = activate_target thy target;
     val serializer = case the_description data
      of Fundamental seri => #serializer seri;
     val (prepared_serializer, prepared_program) =
-      prepare_serializer thy abortable serializer (the_literals thy target)
+      prepare_serializer thy serializer (the_literals thy target)
         (the_reserved data) (the_identifiers data) (the_printings data)
         module_name args naming (modify naming program) names
     val width = the_default default_width some_width;
@@ -502,7 +497,7 @@ end; (* local *)
 
 fun implemented_functions thy naming program =
   let
-    val cs = subtract (op =) (abort_allowed thy) (Code_Thingol.unimplemented program);
+    val cs = Code_Thingol.unimplemented program;
     val names = map_filter (Code_Thingol.lookup_const naming) cs;
   in subtract (op =) (Graph.all_preds program names) (Graph.keys program) end;
 
@@ -699,14 +694,6 @@ fun gen_add_include prep_const target (name, some_content) thy =
     target name some_content thy;
 
 
-(* abortable constants *)
-
-fun gen_allow_abort prep_const raw_c thy =
-  let
-    val c = prep_const thy raw_c;
-  in thy |> (Targets.map o apfst o apsnd) (insert (op =) c) end;
-
-
 (* concrete syntax *)
 
 local
@@ -732,14 +719,12 @@ val add_tyco_syntax = gen_add_tyco_syntax cert_tyco;
 val add_class_syntax = gen_add_class_syntax cert_class;
 val add_instance_syntax = gen_add_instance_syntax cert_inst;
 val add_include = gen_add_include (K I);
-val allow_abort = gen_allow_abort (K I);
 
 val add_const_syntax_cmd = gen_add_const_syntax Code.read_const;
 val add_tyco_syntax_cmd = gen_add_tyco_syntax read_tyco;
 val add_class_syntax_cmd = gen_add_class_syntax read_class;
 val add_instance_syntax_cmd = gen_add_instance_syntax read_inst;
 val add_include_cmd = gen_add_include Code.read_const;
-val allow_abort_cmd = gen_allow_abort Code.read_const;
 
 fun parse_args f args =
   case Scan.read Token.stopper f args
@@ -840,11 +825,6 @@ val _ =
         | s => Scan.optional (@{keyword "attach"} |-- Scan.repeat1 Parse.term) [] >> pair s >> SOME))
       >> (fn ((target, name), content_consts) =>
           (Toplevel.theory o add_include_cmd target) (name, content_consts)));
-
-val _ =
-  Outer_Syntax.command @{command_spec "code_abort"}
-    "permit constant to be implemented as program abort"
-    (Scan.repeat1 Parse.term >> (Toplevel.theory o fold allow_abort_cmd));
 
 val _ =
   Outer_Syntax.command @{command_spec "export_code"} "generate executable code for constants"

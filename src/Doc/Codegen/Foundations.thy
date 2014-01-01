@@ -308,10 +308,11 @@ text {*
   of as function definitions which always fail,
   since there is never a successful pattern match on the left hand
   side.  In order to categorise a constant into that category
-  explicitly, use @{command_def "code_abort"}:
+  explicitly, use the @{attribute code} attribute with
+  @{text abort}:
 *}
 
-code_abort %quote empty_queue
+declare %quote [[code abort: empty_queue]]
 
 text {*
   \noindent Then the code generator will just insert an error or
@@ -324,9 +325,9 @@ text %quotetypewriter {*
 
 text {*
   \noindent This feature however is rarely needed in practice.  Note
-  also that the HOL default setup already declares @{const undefined}
-  as @{command "code_abort"}, which is most likely to be used in such
-  situations.
+  also that the HOL default setup already declares @{const undefined},
+  which is most likely to be used in such situations, as
+  @{text "code abort"}.
 *}
 
 

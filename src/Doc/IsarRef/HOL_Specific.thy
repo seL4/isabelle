@@ -2391,7 +2391,6 @@ text {* For validation purposes, it is often useful to \emph{execute}
   \begin{matharray}{rcl}
     @{command_def (HOL) "export_code"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{attribute_def (HOL) code} & : & @{text attribute} \\
-    @{command_def (HOL) "code_abort"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "code_datatype"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "print_codesetup"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{attribute_def (HOL) code_unfold} & : & @{text attribute} \\
@@ -2435,10 +2434,8 @@ text {* For validation purposes, it is often useful to \emph{execute}
     target: 'SML' | 'OCaml' | 'Haskell' | 'Scala' | 'Eval'
     ;
 
-    @@{attribute (HOL) code} ( 'del' | 'equation' | 'abstype' | 'abstract' )?
-    ;
-
-    @@{command (HOL) code_abort} ( const + )
+    @@{attribute (HOL) code} ( 'del' | 'equation' | 'abstype' | 'abstract'
+      | 'drop:' ( const + ) | 'abort:' ( const + ) )?
     ;
 
     @@{command (HOL) code_datatype} ( const + )
@@ -2600,12 +2597,14 @@ text {* For validation purposes, it is often useful to \emph{execute}
   of the underlying equation.  Variant @{text "code del"}
   deselects a code equation for code generation.
 
+  Variants @{text "code drop:"} and @{text "code abort:"} take
+  a list of constant as arguments and drop all code equations declared
+  for them.  In the case of {text abort}, these constants then are
+  are not required to have a definition by means of code equations;
+  if needed these are implemented by program abort (exception) instead.
+
   Usually packages introducing code equations provide a reasonable
   default setup for selection.  
-
-  \item @{command (HOL) "code_abort"} declares constants which are not
-  required to have a definition by means of code equations; if needed
-  these are implemented by program abort instead.
 
   \item @{command (HOL) "code_datatype"} specifies a constructor set
   for a logical type.

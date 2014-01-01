@@ -87,7 +87,7 @@ qed
 
 end
 
-code_abort "open::('a::topological_space*'b::topological_space) set \<Rightarrow> bool"
+declare [[code abort: "open::('a::topological_space*'b::topological_space) set \<Rightarrow> bool"]]
 
 lemma open_Times: "open S \<Longrightarrow> open T \<Longrightarrow> open (S \<times> T)"
 unfolding open_prod_def by auto
@@ -346,7 +346,7 @@ qed
 
 end
 
-code_abort "dist::('a::metric_space*'b::metric_space)\<Rightarrow>('a*'b) \<Rightarrow> real"
+declare [[code abort: "dist::('a::metric_space*'b::metric_space)\<Rightarrow>('a*'b) \<Rightarrow> real"]]
 
 lemma Cauchy_fst: "Cauchy X \<Longrightarrow> Cauchy (\<lambda>n. fst (X n))"
   unfolding Cauchy_def by (fast elim: le_less_trans [OF dist_fst_le])
@@ -426,7 +426,7 @@ qed
 
 end
 
-code_abort "norm::('a::real_normed_vector*'b::real_normed_vector) \<Rightarrow> real"
+declare [[code abort: "norm::('a::real_normed_vector*'b::real_normed_vector) \<Rightarrow> real"]]
 
 instance prod :: (banach, banach) banach ..
 

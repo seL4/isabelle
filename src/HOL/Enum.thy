@@ -116,7 +116,7 @@ proof -
     unfolding enum_the_def by (auto split: list.split)
 qed
 
-code_abort enum_the
+declare [[code abort: enum_the]]
 
 code_printing
   constant enum_the \<rightharpoonup> (Eval) "(fn '_ => raise Match)"
