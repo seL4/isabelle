@@ -348,6 +348,7 @@ fun basic_corec_specs_of ctxt res_T =
         fun mk_spec ctr disc sels = {ctr = substA ctr, disc = substA disc, sels = map substA sels};
       in
         map3 mk_spec ctrs discs selss
+        handle ListPair.UnequalLengths => not_codatatype ctxt res_T
       end)
   | _ => not_codatatype ctxt res_T);
 
