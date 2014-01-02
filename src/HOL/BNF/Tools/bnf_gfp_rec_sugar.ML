@@ -811,7 +811,7 @@ val _ = tracing ("corecursor arguments:\n    \<cdot> " ^
 fun mk_actual_disc_eqns fun_binding arg_Ts exhaustive ({ctr_specs, ...} : corec_spec)
     (sel_eqns : coeqn_data_sel list) (disc_eqns : coeqn_data_disc list) =
   let val num_disc_eqns = length disc_eqns in
-    if num_disc_eqns < length ctr_specs - 1 andalso num_disc_eqns > 1 then
+    if (exhaustive andalso num_disc_eqns <> 0) orelse num_disc_eqns <> length ctr_specs - 1 then
       disc_eqns
     else
       let
