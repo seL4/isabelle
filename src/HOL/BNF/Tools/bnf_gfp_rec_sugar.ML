@@ -496,7 +496,7 @@ datatype coeqn_data =
   Disc of coeqn_data_disc |
   Sel of coeqn_data_sel;
 
-fun dissect_coeqn_disc seq fun_names (basic_ctr_specss : basic_corec_ctr_spec list list)
+fun dissect_coeqn_disc sequential fun_names (basic_ctr_specss : basic_corec_ctr_spec list list)
     maybe_ctr_rhs maybe_code_rhs prems' concl matchedsss =
   let
     fun find_subterm p =
@@ -532,11 +532,11 @@ fun dissect_coeqn_disc seq fun_names (basic_ctr_specss : basic_corec_ctr_spec li
     val matchedss = AList.lookup (op =) matchedsss fun_name |> the_default [];
     val prems = map (abstract (List.rev fun_args)) prems';
     val real_prems =
-      (if catch_all orelse seq then maps s_not_conj matchedss else []) @
+      (if catch_all orelse sequential then maps s_not_conj matchedss else []) @
       (if catch_all then [] else prems);
 
     val matchedsss' = AList.delete (op =) fun_name matchedsss
-      |> cons (fun_name, if seq then matchedss @ [prems] else matchedss @ [real_prems]);
+      |> cons (fun_name, if sequential then matchedss @ [prems] else matchedss @ [real_prems]);
 
     val user_eqn =
       (real_prems, concl)
@@ -591,7 +591,7 @@ fun dissect_coeqn_sel fun_names (basic_ctr_specss : basic_corec_ctr_spec list li
     }
   end;
 
-fun dissect_coeqn_ctr seq fun_names (basic_ctr_specss : basic_corec_ctr_spec list list) eqn'
+fun dissect_coeqn_ctr sequential fun_names (basic_ctr_specss : basic_corec_ctr_spec list list) eqn'
     maybe_code_rhs prems concl matchedsss =
   let
     val (lhs, rhs) = HOLogic.dest_eq concl;
@@ -604,7 +604,7 @@ fun dissect_coeqn_ctr seq fun_names (basic_ctr_specss : basic_corec_ctr_spec lis
     val disc_concl = betapply (disc, lhs);
     val (maybe_eqn_data_disc, matchedsss') = if length basic_ctr_specs = 1
       then (NONE, matchedsss)
-      else apfst SOME (dissect_coeqn_disc seq fun_names basic_ctr_specss
+      else apfst SOME (dissect_coeqn_disc sequential fun_names basic_ctr_specss
           (SOME (abstract (List.rev fun_args) rhs)) maybe_code_rhs prems disc_concl matchedsss);
 
     val sel_concls = sels ~~ ctr_args
@@ -650,8 +650,8 @@ fun dissect_coeqn_code lthy has_call fun_names basic_ctr_specss eqn' concl match
       ctr_premss ctr_concls matchedsss
   end;
 
-fun dissect_coeqn lthy seq has_call fun_names (basic_ctr_specss : basic_corec_ctr_spec list list)
-    eqn' maybe_of_spec matchedsss =
+fun dissect_coeqn lthy sequential has_call fun_names
+    (basic_ctr_specss : basic_corec_ctr_spec list list) eqn' maybe_of_spec matchedsss =
   let
     val eqn = drop_All eqn'
       handle TERM _ => primcorec_error_eqn "malformed function equation" eqn';
@@ -671,13 +671,14 @@ fun dissect_coeqn lthy seq has_call fun_names (basic_ctr_specss : basic_corec_ct
     if member (op =) discs head orelse
       is_some maybe_rhs andalso
         member (op =) (filter (null o binder_types o fastype_of) ctrs) (the maybe_rhs) then
-      dissect_coeqn_disc seq fun_names basic_ctr_specss NONE NONE prems concl matchedsss
+      dissect_coeqn_disc sequential fun_names basic_ctr_specss NONE NONE prems concl matchedsss
       |>> single
     else if member (op =) sels head then
-      ([dissect_coeqn_sel fun_names basic_ctr_specss NONE NONE eqn' maybe_of_spec concl], matchedsss)
+      ([dissect_coeqn_sel fun_names basic_ctr_specss NONE NONE eqn' maybe_of_spec concl],
+       matchedsss)
     else if is_Free head andalso member (op =) fun_names (fst (dest_Free head)) andalso
       member (op =) ctrs (head_of (unfold_let (the maybe_rhs))) then
-      dissect_coeqn_ctr seq fun_names basic_ctr_specss eqn' NONE prems concl matchedsss
+      dissect_coeqn_ctr sequential fun_names basic_ctr_specss eqn' NONE prems concl matchedsss
     else if is_Free head andalso member (op =) fun_names (fst (dest_Free head)) andalso
       null prems then
       dissect_coeqn_code lthy has_call fun_names basic_ctr_specss eqn' concl matchedsss
@@ -852,14 +853,14 @@ fun add_primcorec_ursive maybe_tac opts fixes specs maybe_of_specs lthy =
         [] => ()
       | (b, _) :: _ => primcorec_error ("type of " ^ Binding.print b ^ " contains top sort"));
 
-    val seq = member (op =) opts Sequential_Option;
+    val sequential = member (op =) opts Sequential_Option;
     val exhaustive = member (op =) opts Exhaustive_Option;
 
     val fun_names = map Binding.name_of bs;
     val basic_ctr_specss = map (basic_corec_specs_of lthy) res_Ts;
     val has_call = exists_subterm (map (fst #>> Binding.name_of #> Free) fixes |> member (op =));
     val eqns_data =
-      fold_map2 (dissect_coeqn lthy seq has_call fun_names basic_ctr_specss) (map snd specs)
+      fold_map2 (dissect_coeqn lthy sequential has_call fun_names basic_ctr_specss) (map snd specs)
         maybe_of_specs []
       |> flat o fst;
 
@@ -903,8 +904,10 @@ val _ = tracing ("callssss = " ^ @{make_string} callssss);
       build_codefs lthy' bs mxs has_call arg_Tss corec_specs disc_eqnss sel_eqnss;
 
     fun exclude_tac (c, c', a) =
-      if a orelse c = c' orelse seq then SOME (K (HEADGOAL (mk_primcorec_assumption_tac lthy [])))
-      else maybe_tac;
+      if a orelse c = c' orelse sequential then
+        SOME (K (HEADGOAL (mk_primcorec_assumption_tac lthy [])))
+      else
+        maybe_tac;
 
 (*
 val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
