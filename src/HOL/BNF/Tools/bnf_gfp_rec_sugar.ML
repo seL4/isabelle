@@ -939,7 +939,8 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
         disc_eqnss;
 
     val syntactic_exhaustives =
-      map (fn disc_eqns => forall (null o #prems) disc_eqns orelse exists #auto_gen disc_eqns)
+      map (fn disc_eqns => forall (null o #prems orf is_some o #maybe_code_rhs) disc_eqns
+          orelse exists #auto_gen disc_eqns)
         disc_eqnss;
     val de_facto_exhaustives =
       map2 (fn b => fn b' => b orelse b') exhaustives syntactic_exhaustives;
