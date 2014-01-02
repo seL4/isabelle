@@ -2806,8 +2806,8 @@ val _ =
     (parse_co_datatype_cmd Greatest_FP construct_gfp);
 
 val option_parser = Parse.group (fn () => "option")
-  ((Parse.reserved "sequential" >> K Option_Sequential)
-  || (Parse.reserved "exhaustive" >> K Option_Exhaustive))
+  ((Parse.reserved "sequential" >> K Sequential_Option)
+  || (Parse.reserved "exhaustive" >> K Exhaustive_Option))
 
 val where_alt_specs_of_parser = Parse.where_ |-- Parse.!!! (Parse.enum1 "|"
   (Parse_Spec.spec -- Scan.option (Parse.reserved "of" |-- Parse.const)));

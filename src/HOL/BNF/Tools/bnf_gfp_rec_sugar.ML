@@ -8,9 +8,8 @@ Corecursor sugar.
 
 signature BNF_GFP_REC_SUGAR =
 sig
-  datatype primcorec_option =
-    Option_Sequential |
-    Option_Exhaustive
+  datatype primcorec_option = Sequential_Option | Exhaustive_Option
+
   val add_primcorecursive_cmd: primcorec_option list ->
     (binding * string option * mixfix) list * ((Attrib.binding * string) * string option) list ->
     Proof.context -> Proof.state
@@ -48,9 +47,7 @@ fun primcorec_error str = raise Primcorec_Error (str, []);
 fun primcorec_error_eqn str eqn = raise Primcorec_Error (str, [eqn]);
 fun primcorec_error_eqns str eqns = raise Primcorec_Error (str, eqns);
 
-datatype primcorec_option =
-  Option_Sequential |
-  Option_Exhaustive
+datatype primcorec_option = Sequential_Option | Exhaustive_Option;
 
 datatype corec_call =
   Dummy_No_Corec of int |
@@ -852,8 +849,8 @@ fun add_primcorec_ursive maybe_tac opts fixes specs maybe_of_specs lthy =
         [] => ()
       | (b, _) :: _ => primcorec_error ("type of " ^ Binding.print b ^ " contains top sort"));
 
-    val seq = member (op =) opts Option_Sequential;
-    val exhaustive = member (op =) opts Option_Exhaustive;
+    val seq = member (op =) opts Sequential_Option;
+    val exhaustive = member (op =) opts Exhaustive_Option;
 
     val fun_names = map Binding.name_of bs;
     val basic_ctr_specss = map (basic_corec_specs_of lthy) res_Ts;

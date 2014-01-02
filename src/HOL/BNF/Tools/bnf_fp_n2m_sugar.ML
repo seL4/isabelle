@@ -336,7 +336,7 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts get_indices actual_callssss0 lth
             if exists (exists_subtype_in seen) mutual_Ts then
               (case gen_rhss_in gen_seen rho mutual_Ts of
                 [] => fresh_tyargs ()
-              | gen_tyargss as gen_tyargs :: gen_tyargss_tl =>
+              | gen_tyargs :: gen_tyargss_tl =>
                 let
                   val unify_pairs = split_list (maps (curry (op ~~) gen_tyargs) gen_tyargss_tl);
                   val mgu = Type.raw_unifys unify_pairs Vartab.empty;

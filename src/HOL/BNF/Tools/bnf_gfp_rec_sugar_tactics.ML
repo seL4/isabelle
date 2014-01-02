@@ -12,6 +12,7 @@ sig
   val mk_primcorec_ctr_of_dtr_tac: Proof.context -> int -> thm -> thm option -> thm list -> tactic
   val mk_primcorec_disc_tac: Proof.context -> thm list -> thm -> int -> int -> thm list list list ->
     tactic
+  val mk_primcorec_disc_iff_tac: Proof.context -> int -> thm -> thm list -> thm list list -> tactic
   val mk_primcorec_exhaust_tac: int -> thm -> tactic
   val mk_primcorec_raw_code_of_ctr_tac: Proof.context -> thm list -> thm list -> thm list ->
     thm list -> int list -> thm list -> thm option -> tactic
@@ -25,6 +26,7 @@ struct
 open BNF_Util
 open BNF_Tactics
 
+val atomize_conjL = @{thm atomize_conjL};
 val falseEs = @{thms not_TrueE FalseE};
 val Let_def = @{thm Let_def};
 val neq_eq_eq_contradict = @{thm neq_eq_eq_contradict};
@@ -73,6 +75,15 @@ fun mk_primcorec_prelude ctxt defs thm =
 
 fun mk_primcorec_disc_tac ctxt defs disc_corec k m exclsss =
   mk_primcorec_prelude ctxt defs disc_corec THEN mk_primcorec_cases_tac ctxt k m exclsss;
+
+fun mk_primcorec_disc_iff_tac ctxt k exhaust discs disc_excludess =
+  HEADGOAL (rtac iffI THEN'
+    rtac exhaust THEN'
+    EVERY' (map2 (fn disc => fn [] => REPEAT_DETERM o (atac ORELSE' etac conjI)
+        | [disc_exclude] =>
+          dtac disc THEN' (REPEAT_DETERM o atac) THEN' dtac disc_exclude THEN' etac notE THEN' atac)
+      discs disc_excludess) THEN'
+    etac (unfold_thms ctxt [atomize_conjL] (nth discs (k - 1))));
 
 fun mk_primcorec_sel_tac ctxt defs distincts splits split_asms map_idents map_comps f_sel k m
     exclsss =
@@ -139,7 +150,7 @@ fun mk_primcorec_raw_code_of_ctr_tac ctxt distincts discIs splits split_asms ms 
         (ms |> split_last ||> K [n - 1] |> op @,
          f_ctrs
          |> split_last
-         ||> unfold_thms ctxt @{thms atomize_conjL}
+         ||> unfold_thms ctxt [atomize_conjL]
          ||> (fn thm => [rulify_nchotomy n nchotomy RS thm])
          |> op @));
   in
