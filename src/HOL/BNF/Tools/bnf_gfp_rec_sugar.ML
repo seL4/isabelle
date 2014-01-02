@@ -850,6 +850,10 @@ fun find_corec_calls ctxt has_call basic_ctr_specs ({ctr, sel, rhs_term, ...} : 
 fun applied_fun_of fun_name fun_T fun_args =
   list_comb (Free (fun_name, fun_T), map Bound (length fun_args - 1 downto 0));
 
+fun is_trivial_implies thm =
+  op aconv (Logic.dest_implies (Thm.prop_of thm))
+  handle TERM _ => false;
+
 fun add_primcorec_ursive maybe_tac opts fixes specs maybe_of_specs lthy =
   let
     val thy = Proof_Context.theory_of lthy;
@@ -933,9 +937,9 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
       |> map (map (apsnd (rpair [] o snd)) o filter (is_none o fst o snd))
       |> split_list o map split_list;
 
-    val list_all_fun_args =
+    fun list_all_fun_args extras =
       map2 (fn [] => I
-          | {fun_args, ...} :: _ => map (curry Logic.list_all (map dest_Free fun_args)))
+          | {fun_args, ...} :: _ => map (curry Logic.list_all (extras @ map dest_Free fun_args)))
         disc_eqnss;
 
     val syntactic_exhaustives =
@@ -951,7 +955,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
     val nchotomy_goalss =
       map2 (fn false => K [] | true => single o HOLogic.mk_Trueprop o mk_dnf o map #prems)
         de_facto_exhaustives disc_eqnss
-      |> list_all_fun_args
+      |> list_all_fun_args []
     val nchotomy_taut_thmss =
       map2 (fn syntactic_exhaustive =>
           (case maybe_tac of
@@ -969,12 +973,6 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
         else
           I);
 
-    val p = Var (("P", 0), HOLogic.boolT); (* safe since there are no other variables around *)
-
-    fun mk_imp_p Qs = Logic.list_implies (Qs, HOLogic.mk_Trueprop p);
-
-    val p_imp_p = mk_imp_p [mk_imp_p []];
-
     fun prove thmss'' def_thms' lthy =
       let
         val def_thms = map (snd o snd) def_thms';
@@ -985,17 +983,22 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
 
         val exhaust_thmss =
           map2 (fn false => K []
-              | true => single o mk_imp_p o map (mk_imp_p o map HOLogic.mk_Trueprop o #prems))
+              | true => fn disc_eqns as {fun_args, ...} :: _ =>
+                let
+                  val p = Bound (length fun_args);
+                  fun mk_imp_p Qs = Logic.list_implies (Qs, HOLogic.mk_Trueprop p);
+                in
+                  [mk_imp_p (map (mk_imp_p o map HOLogic.mk_Trueprop o #prems) disc_eqns)]
+                end)
             de_facto_exhaustives disc_eqnss
-          |> list_all_fun_args
+          |> list_all_fun_args [("P", HOLogic.boolT)]
           |> map3 (fn disc_eqns => fn [] => K []
               | [nchotomy_thm] => fn [goal] =>
                 [mk_primcorec_exhaust_tac (length disc_eqns) nchotomy_thm
                  |> K |> Goal.prove lthy [] [] goal
                  |> Thm.close_derivation])
             disc_eqnss nchotomy_thmss;
-        val nontriv_exhaust_thmss =
-          map (filter_out (fn thm => prop_of thm aconv p_imp_p)) exhaust_thmss;
+        val nontriv_exhaust_thmss = map (filter_out is_trivial_implies) exhaust_thmss;
 
         val excludess' = map (op ~~) (goal_idxss ~~ exclude_thmss);
         fun mk_excludesss excludes n =

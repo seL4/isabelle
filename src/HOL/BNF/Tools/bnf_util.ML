@@ -130,7 +130,6 @@ sig
   val mk_sym: thm -> thm
   val mk_trans: thm -> thm -> thm
 
-  val is_triv_implies: thm -> bool
   val is_refl: thm -> bool
   val is_concl_refl: thm -> bool
   val no_refl: thm list -> thm list
@@ -568,10 +567,6 @@ in
     | mk_UnIN n 1 = Library.foldr1 (op RS o swap) (replicate (n - 1) @{thm UnI1})
     | mk_UnIN n m = mk_UnIN' (n - m)
 end;
-
-fun is_triv_implies thm =
-  op aconv (Logic.dest_implies (Thm.prop_of thm))
-  handle TERM _ => false;
 
 fun is_refl_prop t =
   op aconv (HOLogic.dest_eq (HOLogic.dest_Trueprop t))

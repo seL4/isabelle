@@ -1020,10 +1020,10 @@ fun prepare_def const_policy mk_fact_policy qualify prep_typ prep_term Ds_opt ma
         map wit_goal (0 upto live - 1)
       end;
 
-    val trivial_wit_tac = mk_trivial_wit_tac bnf_wit_defs;
+    val triv_wit_tac = mk_trivial_wit_tac bnf_wit_defs;
 
     val wit_goalss =
-      (if null raw_wits then SOME trivial_wit_tac else NONE, map mk_wit_goals bnf_wit_As);
+      (if null raw_wits then SOME triv_wit_tac else NONE, map mk_wit_goals bnf_wit_As);
 
     fun after_qed mk_wit_thms thms lthy =
       let
