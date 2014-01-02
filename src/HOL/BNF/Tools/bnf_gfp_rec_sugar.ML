@@ -1197,7 +1197,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                 []
               else
                 mk_primcorec_disc_iff_tac lthy (ctr_no + 1) (the_single exhaust_thms) discs
-                  disc_excludess
+                  (flat disc_excludess)
                 |> K |> Goal.prove lthy [] [] goal
                 |> Thm.close_derivation
                 |> single
