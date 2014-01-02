@@ -937,8 +937,8 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
         disc_eqnss;
 
     val nchotomy_goalss =
-      map2 (fn false => K []
-        | true => single o HOLogic.mk_Trueprop o mk_dnf o map #prems) exhaustives disc_eqnss
+      map2 (fn false => K [] | true => single o HOLogic.mk_Trueprop o mk_dnf o map #prems)
+        de_facto_exhaustives disc_eqnss
       |> list_all_fun_args
     val nchotomy_taut_thmss =
       (case maybe_tac of
@@ -963,7 +963,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
         val exhaust_thmss =
           map2 (fn false => K []
               | true => single o mk_imp_p o map (mk_imp_p o map HOLogic.mk_Trueprop o #prems))
-            exhaustives disc_eqnss
+            de_facto_exhaustives disc_eqnss
           |> list_all_fun_args
           |> map3 (fn disc_eqns => fn [] => K []
               | [nchotomy_thm] => fn [goal] =>
