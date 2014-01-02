@@ -30,6 +30,10 @@ sig
   val map13: ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> 'h -> 'i -> 'j -> 'k -> 'l -> 'm -> 'n) ->
     'a list -> 'b list -> 'c list -> 'd list -> 'e list -> 'f list -> 'g list -> 'h list ->
     'i list -> 'j list -> 'k list -> 'l list -> 'm list -> 'n list
+  val map14:
+    ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> 'h -> 'i -> 'j -> 'k -> 'l -> 'm -> 'n -> 'o) ->
+    'a list -> 'b list -> 'c list -> 'd list -> 'e list -> 'f list -> 'g list -> 'h list ->
+    'i list -> 'j list -> 'k list -> 'l list -> 'm list -> 'n list -> 'o list
   val fold_map4: ('a -> 'b -> 'c -> 'd -> 'e -> 'f * 'e) ->
     'a list -> 'b list -> 'c list -> 'd list -> 'e -> 'f list * 'e
   val fold_map5: ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g * 'f) ->
@@ -166,36 +170,43 @@ fun map8 _ [] [] [] [] [] [] [] [] = []
   | map8 _ _ _ _ _ _ _ _ _ = raise ListPair.UnequalLengths;
 
 fun map9 _ [] [] [] [] [] [] [] [] [] = []
-  | map9 f (x1::x1s) (x2::x2s) (x3::x3s) (x4::x4s) (x5::x5s)
-      (x6::x6s) (x7::x7s) (x8::x8s) (x9::x9s) =
+  | map9 f (x1::x1s) (x2::x2s) (x3::x3s) (x4::x4s) (x5::x5s) (x6::x6s) (x7::x7s) (x8::x8s)
+      (x9::x9s) =
     f x1 x2 x3 x4 x5 x6 x7 x8 x9 :: map9 f x1s x2s x3s x4s x5s x6s x7s x8s x9s
   | map9 _ _ _ _ _ _ _ _ _ _ = raise ListPair.UnequalLengths;
 
 fun map10 _ [] [] [] [] [] [] [] [] [] [] = []
-  | map10 f (x1::x1s) (x2::x2s) (x3::x3s) (x4::x4s) (x5::x5s)
-      (x6::x6s) (x7::x7s) (x8::x8s) (x9::x9s) (x10::x10s) =
+  | map10 f (x1::x1s) (x2::x2s) (x3::x3s) (x4::x4s) (x5::x5s) (x6::x6s) (x7::x7s) (x8::x8s)
+      (x9::x9s) (x10::x10s) =
     f x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 :: map10 f x1s x2s x3s x4s x5s x6s x7s x8s x9s x10s
   | map10 _ _ _ _ _ _ _ _ _ _ _ = raise ListPair.UnequalLengths;
 
 fun map11 _ [] [] [] [] [] [] [] [] [] [] [] = []
-  | map11 f (x1::x1s) (x2::x2s) (x3::x3s) (x4::x4s) (x5::x5s)
-      (x6::x6s) (x7::x7s) (x8::x8s) (x9::x9s) (x10::x10s) (x11::x11s) =
+  | map11 f (x1::x1s) (x2::x2s) (x3::x3s) (x4::x4s) (x5::x5s) (x6::x6s) (x7::x7s) (x8::x8s)
+      (x9::x9s) (x10::x10s) (x11::x11s) =
     f x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 :: map11 f x1s x2s x3s x4s x5s x6s x7s x8s x9s x10s x11s
   | map11 _ _ _ _ _ _ _ _ _ _ _ _ = raise ListPair.UnequalLengths;
 
 fun map12 _ [] [] [] [] [] [] [] [] [] [] [] [] = []
-  | map12 f (x1::x1s) (x2::x2s) (x3::x3s) (x4::x4s) (x5::x5s)
-      (x6::x6s) (x7::x7s) (x8::x8s) (x9::x9s) (x10::x10s) (x11::x11s) (x12::x12s) =
+  | map12 f (x1::x1s) (x2::x2s) (x3::x3s) (x4::x4s) (x5::x5s) (x6::x6s) (x7::x7s) (x8::x8s)
+      (x9::x9s) (x10::x10s) (x11::x11s) (x12::x12s) =
     f x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 ::
       map12 f x1s x2s x3s x4s x5s x6s x7s x8s x9s x10s x11s x12s
   | map12 _ _ _ _ _ _ _ _ _ _ _ _ _ = raise ListPair.UnequalLengths;
 
 fun map13 _ [] [] [] [] [] [] [] [] [] [] [] [] [] = []
-  | map13 f (x1::x1s) (x2::x2s) (x3::x3s) (x4::x4s) (x5::x5s)
-      (x6::x6s) (x7::x7s) (x8::x8s) (x9::x9s) (x10::x10s) (x11::x11s) (x12::x12s) (x13::x13s) =
+  | map13 f (x1::x1s) (x2::x2s) (x3::x3s) (x4::x4s) (x5::x5s) (x6::x6s) (x7::x7s) (x8::x8s)
+      (x9::x9s) (x10::x10s) (x11::x11s) (x12::x12s) (x13::x13s) =
     f x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 ::
       map13 f x1s x2s x3s x4s x5s x6s x7s x8s x9s x10s x11s x12s x13s
   | map13 _ _ _ _ _ _ _ _ _ _ _ _ _ _ = raise ListPair.UnequalLengths;
+
+fun map14 _ [] [] [] [] [] [] [] [] [] [] [] [] [] [] = []
+  | map14 f (x1::x1s) (x2::x2s) (x3::x3s) (x4::x4s) (x5::x5s) (x6::x6s) (x7::x7s) (x8::x8s)
+      (x9::x9s) (x10::x10s) (x11::x11s) (x12::x12s) (x13::x13s) (x14::x14s) =
+    f x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 ::
+      map14 f x1s x2s x3s x4s x5s x6s x7s x8s x9s x10s x11s x12s x13s x14s
+  | map14 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ = raise ListPair.UnequalLengths;
 
 fun fold_map4 _ [] [] [] [] acc = ([], acc)
   | fold_map4 f (x1::x1s) (x2::x2s) (x3::x3s) (x4::x4s) acc =

@@ -76,18 +76,18 @@ fun mk_primcorec_prelude ctxt defs thm =
 fun mk_primcorec_disc_tac ctxt defs disc_corec k m exclsss =
   mk_primcorec_prelude ctxt defs disc_corec THEN mk_primcorec_cases_tac ctxt k m exclsss;
 
-fun mk_primcorec_disc_iff_tac ctxt k exhaust discs disc_excludess =
+fun mk_primcorec_disc_iff_tac ctxt k fun_exhaust fun_discs disc_excludess =
   HEADGOAL (rtac iffI THEN'
-    rtac exhaust THEN'
+    rtac fun_exhaust THEN'
     EVERY' (map2 (fn disc => fn [] => REPEAT_DETERM o (atac ORELSE' etac conjI)
         | [disc_exclude] =>
           dtac disc THEN' (REPEAT_DETERM o atac) THEN' dtac disc_exclude THEN' etac notE THEN' atac)
-      discs disc_excludess) THEN'
-    etac (unfold_thms ctxt [atomize_conjL] (nth discs (k - 1))));
+      fun_discs disc_excludess) THEN'
+    etac (unfold_thms ctxt [atomize_conjL] (nth fun_discs (k - 1))));
 
-fun mk_primcorec_sel_tac ctxt defs distincts splits split_asms map_idents map_comps f_sel k m
+fun mk_primcorec_sel_tac ctxt defs distincts splits split_asms map_idents map_comps fun_sel k m
     exclsss =
-  mk_primcorec_prelude ctxt defs (f_sel RS trans) THEN
+  mk_primcorec_prelude ctxt defs (fun_sel RS trans) THEN
   mk_primcorec_cases_tac ctxt k m exclsss THEN
   HEADGOAL (REPEAT_DETERM o (rtac refl ORELSE' rtac ext ORELSE'
     eresolve_tac falseEs ORELSE'
@@ -97,12 +97,12 @@ fun mk_primcorec_sel_tac ctxt defs distincts splits split_asms map_idents map_co
     eresolve_tac (map (fn thm => thm RS neq_eq_eq_contradict) distincts) THEN' atac ORELSE'
     etac notE THEN' atac ORELSE'
     (CHANGED o SELECT_GOAL (unfold_thms_tac ctxt
-      (@{thms id_def o_def split_def sum.cases} @ map_comps @ map_idents)))));
+       (@{thms id_def o_def split_def sum.cases} @ map_comps @ map_idents)))));
 
-fun mk_primcorec_ctr_of_dtr_tac ctxt m collapse maybe_disc_f sel_fs =
-  HEADGOAL (rtac ((if null sel_fs then collapse else collapse RS sym) RS trans) THEN'
-    (the_default (K all_tac) (Option.map rtac maybe_disc_f)) THEN' REPEAT_DETERM_N m o atac) THEN
-  unfold_thms_tac ctxt (Let_def :: sel_fs) THEN HEADGOAL (rtac refl);
+fun mk_primcorec_ctr_of_dtr_tac ctxt m collapse maybe_disc_fun sel_funs =
+  HEADGOAL (rtac ((if null sel_funs then collapse else collapse RS sym) RS trans) THEN'
+    (the_default (K all_tac) (Option.map rtac maybe_disc_fun)) THEN' REPEAT_DETERM_N m o atac) THEN
+  unfold_thms_tac ctxt (Let_def :: sel_funs) THEN HEADGOAL (rtac refl);
 
 fun inst_split_eq ctxt split =
   (case prop_of split of
@@ -119,13 +119,13 @@ fun inst_split_eq ctxt split =
 fun distinct_in_prems_tac distincts =
   eresolve_tac (map (fn thm => thm RS neq_eq_eq_contradict) distincts) THEN' atac;
 
-fun mk_primcorec_raw_code_of_ctr_single_tac ctxt distincts discIs splits split_asms m f_ctr =
+fun mk_primcorec_raw_code_of_ctr_single_tac ctxt distincts discIs splits split_asms m fun_ctr =
   let
     val splits' =
       map (fn th => th RS iffD2) (@{thm split_if_eq2} :: map (inst_split_eq ctxt) splits)
   in
     HEADGOAL (REPEAT o (resolve_tac (splits' @ split_connectI))) THEN
-    mk_primcorec_prelude ctxt [] (f_ctr RS trans) THEN
+    mk_primcorec_prelude ctxt [] (fun_ctr RS trans) THEN
     HEADGOAL ((REPEAT_DETERM_N m o mk_primcorec_assumption_tac ctxt discIs) THEN'
       SELECT_GOAL (SOLVE (HEADGOAL (REPEAT_DETERM o
       (rtac refl ORELSE' atac ORELSE'
@@ -139,23 +139,23 @@ fun mk_primcorec_raw_code_of_ctr_single_tac ctxt distincts discIs splits split_a
 
 fun rulify_nchotomy n = funpow (n - 1) (fn thm => thm RS @{thm Meson.make_pos_rule'});
 
-fun mk_primcorec_raw_code_of_ctr_tac ctxt distincts discIs splits split_asms ms f_ctrs
+fun mk_primcorec_raw_code_of_ctr_tac ctxt distincts discIs splits split_asms ms fun_ctrs
     maybe_nchotomy =
   let
     val n = length ms;
-    val (ms', f_ctrs') =
+    val (ms', fun_ctrs') =
       (case maybe_nchotomy of
-        NONE => (ms, f_ctrs)
+        NONE => (ms, fun_ctrs)
       | SOME nchotomy =>
         (ms |> split_last ||> K [n - 1] |> op @,
-         f_ctrs
+         fun_ctrs
          |> split_last
          ||> unfold_thms ctxt [atomize_conjL]
          ||> (fn thm => [rulify_nchotomy n nchotomy RS thm])
          |> op @));
   in
     EVERY (map2 (mk_primcorec_raw_code_of_ctr_single_tac ctxt distincts discIs splits split_asms)
-      ms' f_ctrs') THEN
+      ms' fun_ctrs') THEN
     IF_UNSOLVED (unfold_thms_tac ctxt @{thms Code.abort_def} THEN
       HEADGOAL (REPEAT_DETERM o resolve_tac (refl :: split_connectI)))
   end;
