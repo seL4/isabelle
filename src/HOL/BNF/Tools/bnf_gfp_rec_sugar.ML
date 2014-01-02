@@ -36,7 +36,6 @@ val ctrN = "ctr"
 val discN = "disc"
 val disc_iffN = "disc_iff"
 val excludeN = "exclude"
-val nchotomyN = "nchotomy"
 val selN = "sel"
 
 val nitpicksimp_attrs = @{attributes [nitpick_simp]};
@@ -1226,7 +1225,6 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
            (disc_iffN, disc_iff_thmss, []),
            (excludeN, exclude_thmss, []),
            (exhaustN, exhaust_thmss, []),
-           (nchotomyN, nchotomy_thmss, []),
            (selN, sel_thmss, simp_attrs),
            (simpsN, simp_thmss, []),
            (strong_coinductN, map (if n2m then single else K []) strong_coinduct_thms, [])]
