@@ -40,8 +40,8 @@ fun mk_primcorec_exhaust_tac n nchotomy =
       cut_tac nchotomy THEN'
       EVERY' (map (fn k =>
           (if k < n then etac disjE else K all_tac) THEN'
-          REPEAT o (etac conjE THEN' dtac meta_mp THEN' atac) THEN'
-          dtac meta_mp THEN' atac THEN' atac)
+          REPEAT o (dtac meta_mp THEN' atac THEN' atac ORELSE'
+            etac conjE THEN' dtac meta_mp THEN' atac))
         ks))
   end;
 
