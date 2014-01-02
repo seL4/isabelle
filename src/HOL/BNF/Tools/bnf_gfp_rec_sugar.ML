@@ -496,7 +496,7 @@ datatype coeqn_data =
   Disc of coeqn_data_disc |
   Sel of coeqn_data_sel;
 
-fun dissect_coeqn_disc sequential fun_names (basic_ctr_specss : basic_corec_ctr_spec list list)
+fun dissect_coeqn_disc fun_names sequentials (basic_ctr_specss : basic_corec_ctr_spec list list)
     maybe_ctr_rhs maybe_code_rhs prems' concl matchedsss =
   let
     fun find_subterm p =
@@ -510,7 +510,8 @@ fun dissect_coeqn_disc sequential fun_names (basic_ctr_specss : basic_corec_ctr_
       |> the
       handle Option.Option => primcorec_error_eqn "malformed discriminator formula" concl;
     val ((fun_name, fun_T), fun_args) = strip_comb applied_fun |>> dest_Free;
-    val SOME basic_ctr_specs = AList.lookup (op =) (fun_names ~~ basic_ctr_specss) fun_name;
+    val SOME (sequential, basic_ctr_specs) =
+      AList.lookup (op =) (fun_names ~~ (sequentials ~~ basic_ctr_specss)) fun_name;
 
     val discs = map #disc basic_ctr_specs;
     val ctrs = map #ctr basic_ctr_specs;
@@ -591,7 +592,7 @@ fun dissect_coeqn_sel fun_names (basic_ctr_specss : basic_corec_ctr_spec list li
     }
   end;
 
-fun dissect_coeqn_ctr sequential fun_names (basic_ctr_specss : basic_corec_ctr_spec list list) eqn'
+fun dissect_coeqn_ctr fun_names sequentials (basic_ctr_specss : basic_corec_ctr_spec list list) eqn'
     maybe_code_rhs prems concl matchedsss =
   let
     val (lhs, rhs) = HOLogic.dest_eq concl;
@@ -604,7 +605,7 @@ fun dissect_coeqn_ctr sequential fun_names (basic_ctr_specss : basic_corec_ctr_s
     val disc_concl = betapply (disc, lhs);
     val (maybe_eqn_data_disc, matchedsss') = if length basic_ctr_specs = 1
       then (NONE, matchedsss)
-      else apfst SOME (dissect_coeqn_disc sequential fun_names basic_ctr_specss
+      else apfst SOME (dissect_coeqn_disc fun_names sequentials basic_ctr_specss
           (SOME (abstract (List.rev fun_args) rhs)) maybe_code_rhs prems disc_concl matchedsss);
 
     val sel_concls = sels ~~ ctr_args
@@ -644,13 +645,15 @@ fun dissect_coeqn_code lthy has_call fun_names basic_ctr_specss eqn' concl match
           if ctr' = ctr then nth args n else Const (@{const_name undefined}, T)) [] rhs')
         |> curry list_comb ctr
         |> curry HOLogic.mk_eq lhs);
+
+    val sequentials = replicate (length fun_names) false;
   in
-    fold_map2 (dissect_coeqn_ctr false fun_names basic_ctr_specss eqn'
+    fold_map2 (dissect_coeqn_ctr fun_names sequentials basic_ctr_specss eqn'
         (SOME (abstract (List.rev fun_args) rhs)))
       ctr_premss ctr_concls matchedsss
   end;
 
-fun dissect_coeqn lthy sequential has_call fun_names
+fun dissect_coeqn lthy has_call fun_names sequentials
     (basic_ctr_specss : basic_corec_ctr_spec list list) eqn' maybe_of_spec matchedsss =
   let
     val eqn = drop_All eqn'
@@ -671,14 +674,14 @@ fun dissect_coeqn lthy sequential has_call fun_names
     if member (op =) discs head orelse
       is_some maybe_rhs andalso
         member (op =) (filter (null o binder_types o fastype_of) ctrs) (the maybe_rhs) then
-      dissect_coeqn_disc sequential fun_names basic_ctr_specss NONE NONE prems concl matchedsss
+      dissect_coeqn_disc fun_names sequentials basic_ctr_specss NONE NONE prems concl matchedsss
       |>> single
     else if member (op =) sels head then
       ([dissect_coeqn_sel fun_names basic_ctr_specss NONE NONE eqn' maybe_of_spec concl],
        matchedsss)
     else if is_Free head andalso member (op =) fun_names (fst (dest_Free head)) andalso
       member (op =) ctrs (head_of (unfold_let (the maybe_rhs))) then
-      dissect_coeqn_ctr sequential fun_names basic_ctr_specss eqn' NONE prems concl matchedsss
+      dissect_coeqn_ctr fun_names sequentials basic_ctr_specss eqn' NONE prems concl matchedsss
     else if is_Free head andalso member (op =) fun_names (fst (dest_Free head)) andalso
       null prems then
       dissect_coeqn_code lthy has_call fun_names basic_ctr_specss eqn' concl matchedsss
@@ -853,14 +856,18 @@ fun add_primcorec_ursive maybe_tac opts fixes specs maybe_of_specs lthy =
         [] => ()
       | (b, _) :: _ => primcorec_error ("type of " ^ Binding.print b ^ " contains top sort"));
 
-    val sequential = member (op =) opts Sequential_Option;
-    val exhaustive = member (op =) opts Exhaustive_Option;
+    val actual_nn = length bs;
+
+    val exhaustive = member (op =) opts Exhaustive_Option; (*###*)
+
+    val sequentials = replicate actual_nn (member (op =) opts Sequential_Option);
+    val exhaustives = replicate actual_nn (member (op =) opts Exhaustive_Option);
 
     val fun_names = map Binding.name_of bs;
     val basic_ctr_specss = map (basic_corec_specs_of lthy) res_Ts;
     val has_call = exists_subterm (map (fst #>> Binding.name_of #> Free) fixes |> member (op =));
     val eqns_data =
-      fold_map2 (dissect_coeqn lthy sequential has_call fun_names basic_ctr_specss) (map snd specs)
+      fold_map2 (dissect_coeqn lthy has_call fun_names sequentials basic_ctr_specss) (map snd specs)
         maybe_of_specs []
       |> flat o fst;
 
@@ -880,7 +887,6 @@ val _ = tracing ("callssss = " ^ @{make_string} callssss);
     val ((n2m, corec_specs', _, coinduct_thm, strong_coinduct_thm, coinduct_thms,
           strong_coinduct_thms), lthy') =
       corec_specs_of bs arg_Ts res_Ts (get_indices fixes) callssss lthy;
-    val actual_nn = length bs;
     val corec_specs = take actual_nn corec_specs'; (*FIXME*)
     val ctr_specss = map #ctr_specs corec_specs;
 
@@ -903,7 +909,7 @@ val _ = tracing ("callssss = " ^ @{make_string} callssss);
     val (defs, excludess') =
       build_codefs lthy' bs mxs has_call arg_Tss corec_specs disc_eqnss sel_eqnss;
 
-    fun exclude_tac (c, c', a) =
+    fun exclude_tac sequential (c, c', a) =
       if a orelse c = c' orelse sequential then
         SOME (K (HEADGOAL (mk_primcorec_assumption_tac lthy [])))
       else
@@ -914,9 +920,10 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
  space_implode "\n    \<cdot> " (maps (map (Syntax.string_of_term lthy o snd)) excludess'));
 *)
 
-    val excludess'' = excludess' |> map (map (fn (idx, goal) =>
-      (idx, (Option.map (Goal.prove lthy [] [] goal #> Thm.close_derivation) (exclude_tac idx),
-         goal))));
+    val excludess'' = map2 (fn sequential => map (fn (idx, goal) =>
+        (idx, (Option.map (Goal.prove lthy [] [] goal #> Thm.close_derivation)
+           (exclude_tac sequential idx), goal))))
+      sequentials excludess';
     val taut_thmss = map (map (apsnd (the o fst)) o filter (is_some o fst o snd)) excludess'';
     val (goal_idxss, goalss') = excludess''
       |> map (map (apsnd (rpair [] o snd)) o filter (is_none o fst o snd))
