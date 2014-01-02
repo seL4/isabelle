@@ -160,7 +160,7 @@ fun mk_primcorec_raw_code_of_ctr_tac ctxt distincts discIs splits split_asms ms 
          fun_ctrs
          |> split_last
          ||> unfold_thms ctxt [atomize_conjL]
-         ||> (fn thm => [rulify_nchotomy n nchotomy RS thm])
+         ||> (fn thm => [rulify_nchotomy n nchotomy RS thm] handle THM _ => [thm])
          |> op @));
   in
     EVERY (map2 (mk_primcorec_raw_code_of_ctr_single_tac ctxt distincts discIs splits split_asms)
