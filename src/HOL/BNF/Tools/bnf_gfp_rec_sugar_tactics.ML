@@ -77,15 +77,17 @@ fun mk_primcorec_prelude ctxt defs thm =
 fun mk_primcorec_disc_tac ctxt defs disc_corec k m exclsss =
   mk_primcorec_prelude ctxt defs disc_corec THEN mk_primcorec_cases_tac ctxt k m exclsss;
 
+fun disc_same_tac i st = (atac ORELSE' rtac TrueI ORELSE' etac conjI THEN' disc_same_tac) i st;
+
 fun mk_primcorec_disc_iff_tac ctxt fun_exhaust fun_disc fun_discs disc_excludes =
   HEADGOAL (rtac iffI THEN'
     rtac fun_exhaust THEN'
     EVERY' (map (fn fun_disc' =>
         if Thm.eq_thm (fun_disc', fun_disc) then
-          REPEAT_DETERM o (atac ORELSE' rtac TrueI ORELSE' etac conjI)
+          disc_same_tac
         else
-          dtac fun_disc' THEN' (REPEAT_DETERM o atac) THEN' dresolve_tac disc_excludes THEN'
-          etac notE THEN' atac)
+          dtac fun_disc' THEN' (REPEAT_DETERM o atac) THEN'
+          DETERM o (dresolve_tac disc_excludes THEN' etac notE THEN' atac))
       fun_discs) THEN'
     rtac (unfold_thms ctxt [atomize_conjL] fun_disc) THEN_MAYBE' atac);
 
