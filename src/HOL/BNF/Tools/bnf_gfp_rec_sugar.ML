@@ -21,6 +21,7 @@ end;
 structure BNF_GFP_Rec_Sugar : BNF_GFP_REC_SUGAR =
 struct
 
+open Ctr_Sugar_General_Tactics
 open Ctr_Sugar
 open BNF_Util
 open BNF_Def
@@ -532,15 +533,15 @@ fun dissect_coeqn_disc fun_names sequentials (basic_ctr_specss : basic_corec_ctr
     val catch_all = try (fst o dest_Free o the_single) prems' = SOME Name.uu_;
     val matchedss = AList.lookup (op =) matchedsss fun_name |> the_default [];
     val prems = map (abstract (List.rev fun_args)) prems';
-    val real_prems =
+    val actual_prems =
       (if catch_all orelse sequential then maps s_not_conj matchedss else []) @
       (if catch_all then [] else prems);
 
     val matchedsss' = AList.delete (op =) fun_name matchedsss
-      |> cons (fun_name, if sequential then matchedss @ [prems] else matchedss @ [real_prems]);
+      |> cons (fun_name, if sequential then matchedss @ [prems] else matchedss @ [actual_prems]);
 
     val user_eqn =
-      (real_prems, concl)
+      (actual_prems, concl)
       |>> map HOLogic.mk_Trueprop ||> HOLogic.mk_Trueprop o abstract (List.rev fun_args)
       |> curry Logic.list_all (map dest_Free fun_args) o Logic.list_implies;
   in
@@ -551,7 +552,7 @@ fun dissect_coeqn_disc fun_names sequentials (basic_ctr_specss : basic_corec_ctr
       ctr = ctr,
       ctr_no = ctr_no,
       disc = disc,
-      prems = real_prems,
+      prems = actual_prems,
       auto_gen = catch_all,
       maybe_ctr_rhs = maybe_ctr_rhs,
       maybe_code_rhs = maybe_code_rhs,
@@ -807,9 +808,11 @@ val _ = tracing ("corecursor arguments:\n    \<cdot> " ^
     |> rpair excludess'
   end;
 
-fun mk_real_disc_eqns fun_binding arg_Ts ({ctr_specs, ...} : corec_spec)
+fun mk_actual_disc_eqns fun_binding arg_Ts exhaustive ({ctr_specs, ...} : corec_spec)
     (sel_eqns : coeqn_data_sel list) (disc_eqns : coeqn_data_disc list) =
-  if length disc_eqns <> length ctr_specs - 1 then disc_eqns else
+  if exhaustive orelse length disc_eqns <> length ctr_specs - 1 then
+    disc_eqns
+  else
     let
       val n = 0 upto length ctr_specs
         |> the o find_first (fn idx => not (exists (equal idx o #ctr_no) disc_eqns));
@@ -903,7 +906,8 @@ val _ = tracing ("callssss = " ^ @{make_string} callssss);
       |> map (flat o snd);
 
     val arg_Tss = map (binder_types o snd o fst) fixes;
-    val disc_eqnss = map5 mk_real_disc_eqns bs arg_Tss corec_specs sel_eqnss disc_eqnss';
+    val disc_eqnss = map6 mk_actual_disc_eqns bs arg_Tss exhaustives corec_specs sel_eqnss
+      disc_eqnss';
     val (defs, excludess') =
       build_codefs lthy' bs mxs has_call arg_Tss corec_specs disc_eqnss sel_eqnss;
 
@@ -927,26 +931,39 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
       |> map (map (apsnd (rpair [] o snd)) o filter (is_none o fst o snd))
       |> split_list o map split_list;
 
-    val de_facto_exhaustives =
-      map2 (fn exhaustive => fn disc_eqns =>
-          exhaustive orelse forall (null o #prems) disc_eqns orelse exists #auto_gen disc_eqns)
-        exhaustives disc_eqnss;
-      
     val list_all_fun_args =
       map2 ((fn {fun_args, ...} => map (curry Logic.list_all (map dest_Free fun_args))) o hd)
         disc_eqnss;
+
+    val syntactic_exhaustives =
+      map (fn disc_eqns => forall (null o #prems) disc_eqns orelse exists #auto_gen disc_eqns)
+        disc_eqnss;
+    val de_facto_exhaustives =
+      map2 (fn b => fn b' => b orelse b') exhaustives syntactic_exhaustives;
+
+    fun map_prove_with_tac tac =
+      map (fn goal => Goal.prove lthy [] [] goal tac |> Thm.close_derivation);
 
     val nchotomy_goalss =
       map2 (fn false => K [] | true => single o HOLogic.mk_Trueprop o mk_dnf o map #prems)
         de_facto_exhaustives disc_eqnss
       |> list_all_fun_args
     val nchotomy_taut_thmss =
-      (case maybe_tac of
-        SOME tac => map (map (fn goal => Goal.prove lthy [] [] goal tac |> Thm.close_derivation))
-          nchotomy_goalss
-      | NONE => []);
+      map2 (fn syntactic_exhaustive =>
+          (case maybe_tac of
+            SOME tac => map_prove_with_tac tac
+          | NONE =>
+            if syntactic_exhaustive then
+              map_prove_with_tac (fn {context = ctxt, ...} => HEADGOAL (clean_blast_tac ctxt))
+            else
+              K []))
+        syntactic_exhaustives nchotomy_goalss;
     val goalss = goalss'
-      |> (if is_none maybe_tac then append (map (map (rpair [])) nchotomy_goalss) else I);
+      |> (if is_none maybe_tac then
+          append (map2 (fn true => K [] | false => map (rpair [])) syntactic_exhaustives
+            nchotomy_goalss)
+        else
+          I);
 
     val p = Var (("P", 0), HOLogic.boolT); (* safe since there are no other variables around *)
 
@@ -956,8 +973,8 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
       let
         val def_thms = map (snd o snd) def_thms';
 
-        val nchotomy_thmss =
-          if is_none maybe_tac then take actual_nn thmss'' else nchotomy_taut_thmss;
+        val nchotomy_thmss = nchotomy_taut_thmss
+          |> (if is_none maybe_tac then map2 append (take actual_nn thmss'') else I);
         val exclude_thmss = thmss'' |> is_none maybe_tac ? drop actual_nn;
 
         val exhaust_thmss =
@@ -1074,7 +1091,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                 |> single
             end;
 
-        fun prove_code de_facto_exhaustive disc_eqns sel_eqns nchotomys ctr_alist ctr_specs =
+        fun prove_code exhaustive disc_eqns sel_eqns nchotomys ctr_alist ctr_specs =
           let
             val maybe_fun_data =
               (find_first (member (op =) (map #ctr ctr_specs) o #ctr) disc_eqns,
@@ -1098,7 +1115,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                       val cond_ctrs =
                         fold_rev_corec_code_rhs lthy (K oo (cons oo pair)) bound_Ts raw_rhs [];
                       val ctr_thms = map (the o AList.lookup (op =) ctr_alist o snd) cond_ctrs;
-                    in SOME (rhs, raw_rhs, ctr_thms) end
+                    in SOME (false, rhs, raw_rhs, ctr_thms) end
                   | NONE =>
                     let
                       fun prove_code_ctr {ctr, sels, ...} =
@@ -1116,24 +1133,28 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                             SOME (prems, t)
                           end;
                       val maybe_ctr_conds_argss = map prove_code_ctr ctr_specs;
+                      val exhaustive_code =
+                        exhaustive
+                        orelse forall null (map_filter (try (fst o the)) maybe_ctr_conds_argss)
+                        orelse forall is_some maybe_ctr_conds_argss
+                          andalso exists #auto_gen disc_eqns;
+                      val rhs =
+                        (if exhaustive_code then
+                           split_last (map_filter I maybe_ctr_conds_argss) ||> snd
+                         else
+                           Const (@{const_name Code.abort}, @{typ String.literal} -->
+                               (@{typ unit} --> body_type fun_T) --> body_type fun_T) $
+                             HOLogic.mk_literal fun_name $
+                             absdummy @{typ unit} (incr_boundvars 1 lhs)
+                           |> pair (map_filter I maybe_ctr_conds_argss))
+                         |-> fold_rev (fn (prems, u) => mk_If (s_conjs prems) u)
                     in
-                      let
-                        val rhs =
-                          (if de_facto_exhaustive then
-                             split_last (map_filter I maybe_ctr_conds_argss) ||> snd
-                           else
-                             Const (@{const_name Code.abort}, @{typ String.literal} -->
-                                 (@{typ unit} --> body_type fun_T) --> body_type fun_T) $
-                               HOLogic.mk_literal fun_name $
-                               absdummy @{typ unit} (incr_boundvars 1 lhs)
-                             |> pair (map_filter I maybe_ctr_conds_argss))
-                           |-> fold_rev (fn (prems, u) => mk_If (s_conjs prems) u)
-                      in SOME (rhs, rhs, map snd ctr_alist) end
+                      SOME (exhaustive_code, rhs, rhs, map snd ctr_alist)
                     end);
               in
                 (case maybe_rhs_info of
                   NONE => []
-                | SOME (rhs, raw_rhs, ctr_thms) =>
+                | SOME (exhaustive_code, rhs, raw_rhs, ctr_thms) =>
                   let
                     val ms = map (Logic.count_prems o prop_of) ctr_thms;
                     val (raw_goal, goal) = (raw_rhs, rhs)
@@ -1143,7 +1164,8 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                       case_thms_of_term lthy bound_Ts raw_rhs;
 
                     val raw_code_thm = mk_primcorec_raw_code_of_ctr_tac lthy distincts discIs
-                        sel_splits sel_split_asms ms ctr_thms (try the_single nchotomys)
+                        sel_splits sel_split_asms ms ctr_thms
+                        (if exhaustive_code then try the_single nchotomys else NONE)
                       |> K |> Goal.prove lthy [] [] raw_goal
                       |> Thm.close_derivation;
                   in
@@ -1167,7 +1189,6 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
           else
             let
               val {disc, disc_excludess, ...} = nth ctr_specs ctr_no;
-              val m = length prems;
               val goal =
                 mk_Trueprop_eq (applied_fun_of fun_name fun_T fun_args |> curry betapply disc,
                   mk_conjs prems)
@@ -1190,8 +1211,8 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
           ctr_specss;
         val ctr_thmss = map (map snd) ctr_alists;
 
-        val code_thmss = map6 prove_code de_facto_exhaustives disc_eqnss sel_eqnss nchotomy_thmss
-          ctr_alists ctr_specss;
+        val code_thmss = map6 prove_code exhaustives disc_eqnss sel_eqnss nchotomy_thmss ctr_alists
+          ctr_specss;
 
         val simp_thmss = map2 append disc_thmss sel_thmss
 

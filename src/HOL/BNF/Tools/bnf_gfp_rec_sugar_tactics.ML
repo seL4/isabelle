@@ -36,12 +36,13 @@ val split_connectI = @{thms allI impI conjI};
 
 fun mk_primcorec_exhaust_tac n nchotomy =
   let val ks = 1 upto n in
-    HEADGOAL (cut_tac nchotomy THEN'
-     EVERY' (map (fn k =>
-        (if k < n then etac disjE else K all_tac) THEN'
-        REPEAT o (etac conjE THEN' dtac meta_mp THEN' atac) THEN'
-        dtac meta_mp THEN' atac THEN' atac)
-      ks))
+    HEADGOAL (atac ORELSE'
+      cut_tac nchotomy THEN'
+      EVERY' (map (fn k =>
+          (if k < n then etac disjE else K all_tac) THEN'
+          REPEAT o (etac conjE THEN' dtac meta_mp THEN' atac) THEN'
+          dtac meta_mp THEN' atac THEN' atac)
+        ks))
   end;
 
 fun mk_primcorec_assumption_tac ctxt discIs =
