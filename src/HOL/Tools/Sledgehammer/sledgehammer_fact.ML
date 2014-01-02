@@ -246,6 +246,9 @@ fun combine_interests Deal_Breaker _ = Deal_Breaker
   | combine_interests _ Interesting = Interesting
   | combine_interests Boring Boring = Boring
 
+val type_has_top_sort =
+  exists_subtype (fn TFree (_, []) => true | TVar (_, []) => true | _ => false)
+
 fun is_likely_tautology_too_meta_or_too_technical th =
   let
     fun is_interesting_subterm (Const (s, _)) =

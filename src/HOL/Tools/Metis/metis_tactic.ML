@@ -13,7 +13,6 @@ sig
   val verbose : bool Config.T
   val new_skolem : bool Config.T
   val advisory_simp : bool Config.T
-  val type_has_top_sort : typ -> bool
   val metis_tac : string list -> string -> Proof.context -> thm list -> int -> tactic
   val metis_lam_transs : string list
   val parse_metis_options : (string list option * string option) parser
@@ -250,9 +249,6 @@ fun preskolem_tac ctxt st0 =
    else
      all_tac) st0
 
-val type_has_top_sort =
-  exists_subtype (fn TFree (_, []) => true | TVar (_, []) => true | _ => false)
-
 fun generic_metis_tac type_encs lam_trans ctxt ths i st0 =
   let
     val _ = trace_msg ctxt (fn () =>
@@ -262,12 +258,7 @@ fun generic_metis_tac type_encs lam_trans ctxt ths i st0 =
     fun tac clause =
       resolve_tac (FOL_SOLVE type_encs lam_trans ctxt clause ths) 1
   in
-    if exists_type type_has_top_sort (prop_of st0) then
-      verbose_warning ctxt "Proof state contains the universal sort {}"
-    else
-      ();
-    Meson.MESON (preskolem_tac ctxt)
-        (maps (neg_clausify ctxt (lam_trans = combsN))) tac ctxt i st0
+    Meson.MESON (preskolem_tac ctxt) (maps (neg_clausify ctxt (lam_trans = combsN))) tac ctxt i st0
   end
 
 fun metis_tac [] = generic_metis_tac partial_type_encs
