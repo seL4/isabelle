@@ -86,12 +86,12 @@ fun mk_primcorec_disc_iff_tac ctxt k fun_exhaust fun_discs disc_excludes =
       rtac fun_exhaust THEN'
       EVERY' (map2 (fn k' => fn disc =>
           if k' = k then
-            REPEAT_DETERM o (atac ORELSE' etac conjI)
+            REPEAT_DETERM o (atac ORELSE' rtac TrueI ORELSE' etac conjI)
           else
             dtac disc THEN' (REPEAT_DETERM o atac) THEN' dresolve_tac disc_excludes THEN'
             etac notE THEN' atac)
         ks fun_discs) THEN'
-      etac (unfold_thms ctxt [atomize_conjL] (nth fun_discs (k - 1))))
+      rtac (unfold_thms ctxt [atomize_conjL] (nth fun_discs (k - 1))) THEN_MAYBE' atac)
   end;
 
 fun mk_primcorec_sel_tac ctxt defs distincts splits split_asms map_idents map_comps fun_sel k m

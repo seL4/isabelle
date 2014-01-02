@@ -968,6 +968,8 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
 
     fun mk_imp_p Qs = Logic.list_implies (Qs, HOLogic.mk_Trueprop p);
 
+    val p_imp_p = mk_imp_p [mk_imp_p []];
+
     fun prove thmss'' def_thms' lthy =
       let
         val def_thms = map (snd o snd) def_thms';
@@ -987,6 +989,8 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                  |> K |> Goal.prove lthy [] [] goal
                  |> Thm.close_derivation])
             disc_eqnss nchotomy_thmss;
+        val nontriv_exhaust_thmss =
+          map (filter_out (fn thm => prop_of thm aconv p_imp_p)) exhaust_thmss;
 
         val excludess' = map (op ~~) (goal_idxss ~~ exclude_thmss);
         fun mk_excludesss excludes n =
@@ -1224,7 +1228,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
            (discN, disc_thmss, simp_attrs),
            (disc_iffN, disc_iff_thmss, []),
            (excludeN, exclude_thmss, []),
-           (exhaustN, exhaust_thmss, []),
+           (exhaustN, nontriv_exhaust_thmss, []),
            (selN, sel_thmss, simp_attrs),
            (simpsN, simp_thmss, []),
            (strong_coinductN, map (if n2m then single else K []) strong_coinduct_thms, [])]
