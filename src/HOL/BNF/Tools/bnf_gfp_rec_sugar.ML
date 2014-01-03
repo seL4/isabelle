@@ -979,6 +979,9 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
           |> (if is_none tac_opt then map2 append (take actual_nn thmss'') else I);
         val exclude_thmss = thmss'' |> is_none tac_opt ? drop actual_nn;
 
+        val ps =
+          Variable.variant_frees lthy (maps (maps #fun_args) disc_eqnss) [("P", HOLogic.boolT)];
+
         val exhaust_thmss =
           map2 (fn false => K []
               | true => fn disc_eqns as {fun_args, ...} :: _ =>
@@ -989,7 +992,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                   [mk_imp_p (map (mk_imp_p o map HOLogic.mk_Trueprop o #prems) disc_eqns)]
                 end)
             de_facto_exhaustives disc_eqnss
-          |> list_all_fun_args [("P", HOLogic.boolT)]
+          |> list_all_fun_args ps
           |> map3 (fn disc_eqns as {fun_args, ...} :: _ => fn [] => K []
               | [nchotomy_thm] => fn [goal] =>
                 [mk_primcorec_exhaust_tac lthy ("" (* for "P" *) :: map (fst o dest_Free) fun_args)
