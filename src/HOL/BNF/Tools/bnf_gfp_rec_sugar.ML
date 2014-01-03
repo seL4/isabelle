@@ -77,6 +77,7 @@ type corec_ctr_spec =
 
 type corec_spec =
   {corec: term,
+   disc_exhausts: thm list,
    nested_map_idents: thm list,
    nested_map_comps: thm list,
    ctr_specs: corec_ctr_spec list};
@@ -443,6 +444,7 @@ fun corec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
           disc_co_itersss = disc_coitersss, sel_co_iterssss = sel_coiterssss, ...} : fp_sugar)
         p_is q_isss f_isss f_Tsss =
       {corec = mk_co_iter thy Greatest_FP (substAT T) perm_Cs' (co_rec_of (nth coiterss index)),
+       disc_exhausts = #disc_exhausts (nth ctr_sugars index),
        nested_map_idents = map (unfold_thms lthy @{thms id_def} o map_id0_of_bnf) nested_bnfs,
        nested_map_comps = map map_comp_of_bnf nested_bnfs,
        ctr_specs = mk_ctr_specs index ctr_sugars p_is q_isss f_isss f_Tsss coiter_thmsss
@@ -958,15 +960,16 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
         de_facto_exhaustives disc_eqnss
       |> list_all_fun_args []
     val nchotomy_taut_thmss =
-      map2 (fn syntactic_exhaustive =>
+      map3 (fn {disc_exhausts, ...} => fn syntactic_exhaustive =>
           (case maybe_tac of
             SOME tac => map_prove_with_tac tac
           | NONE =>
             if syntactic_exhaustive then
-              map_prove_with_tac (fn {context = ctxt, ...} => HEADGOAL (clean_blast_tac ctxt))
+              map_prove_with_tac (fn {context = ctxt, ...} =>
+                mk_primcorec_nchotomy_tac ctxt disc_exhausts)
             else
               K []))
-        syntactic_exhaustives nchotomy_goalss;
+        corec_specs syntactic_exhaustives nchotomy_goalss;
     val goalss = goalss'
       |> (if is_none maybe_tac then
           append (map2 (fn true => K [] | false => map (rpair [])) syntactic_exhaustives
@@ -1291,6 +1294,6 @@ val add_primcorec_cmd = (fn (goalss, after_qed, lthy) =>
   lthy
   |> after_qed (map (fn [] => []
       | _ => primcorec_error "need exclusiveness proofs - use primcorecursive instead of primcorec")
-    goalss)) ooo add_primcorec_ursive_cmd (SOME (fn {context = ctxt, ...} => auto_tac ctxt));
+    goalss)) ooo add_primcorec_ursive_cmd (SOME (auto_tac o #context));
 
 end;
