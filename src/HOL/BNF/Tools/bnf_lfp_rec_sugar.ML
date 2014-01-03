@@ -289,9 +289,9 @@ fun rewrite_map_arg get_ctr_pos rec_type res_type =
   let
     val pT = HOLogic.mk_prodT (rec_type, res_type);
 
-    val maybe_suc = Option.map (fn x => x + 1);
     fun subst d (t as Bound d') = t |> d = SOME d' ? curry (op $) (fst_const pT)
-      | subst d (Abs (v, T, b)) = Abs (v, if d = SOME ~1 then pT else T, subst (maybe_suc d) b)
+      | subst d (Abs (v, T, b)) =
+        Abs (v, if d = SOME ~1 then pT else T, subst (Option.map (Integer.add 1) d) b)
       | subst d t =
         let
           val (u, vs) = strip_comb t;
@@ -355,8 +355,8 @@ fun subst_rec_calls lthy get_ctr_pos has_call ctr_args mutual_calls nested_calls
   end;
 
 fun build_rec_arg lthy (funs_data : eqn_data list list) has_call (ctr_spec : rec_ctr_spec)
-    (maybe_eqn_data : eqn_data option) =
-  (case maybe_eqn_data of
+    (eqn_data_opt : eqn_data option) =
+  (case eqn_data_opt of
     NONE => undef_const
   | SOME {ctr_args, left_args, right_args, rhs_term = t, ...} =>
     let

@@ -478,8 +478,8 @@ type coeqn_data_disc = {
   disc: term,
   prems: term list,
   auto_gen: bool,
-  maybe_ctr_rhs: term option,
-  maybe_code_rhs: term option,
+  ctr_rhs_opt: term option,
+  code_rhs_opt: term option,
   user_eqn: term
 };
 
@@ -490,8 +490,8 @@ type coeqn_data_sel = {
   ctr: term,
   sel: term,
   rhs_term: term,
-  maybe_ctr_rhs: term option,
-  maybe_code_rhs: term option,
+  ctr_rhs_opt: term option,
+  code_rhs_opt: term option,
   user_eqn: term
 };
 
@@ -500,7 +500,7 @@ datatype coeqn_data =
   Sel of coeqn_data_sel;
 
 fun dissect_coeqn_disc fun_names sequentials (basic_ctr_specss : basic_corec_ctr_spec list list)
-    maybe_ctr_rhs maybe_code_rhs prems' concl matchedsss =
+    ctr_rhs_opt code_rhs_opt prems' concl matchedsss =
   let
     fun find_subterm p =
       let (* FIXME \<exists>? *)
@@ -556,14 +556,14 @@ fun dissect_coeqn_disc fun_names sequentials (basic_ctr_specss : basic_corec_ctr
       disc = disc,
       prems = actual_prems,
       auto_gen = catch_all,
-      maybe_ctr_rhs = maybe_ctr_rhs,
-      maybe_code_rhs = maybe_code_rhs,
+      ctr_rhs_opt = ctr_rhs_opt,
+      code_rhs_opt = code_rhs_opt,
       user_eqn = user_eqn
     }, matchedsss')
   end;
 
-fun dissect_coeqn_sel fun_names (basic_ctr_specss : basic_corec_ctr_spec list list) maybe_ctr_rhs
-    maybe_code_rhs eqn' maybe_of_spec eqn =
+fun dissect_coeqn_sel fun_names (basic_ctr_specss : basic_corec_ctr_spec list list) ctr_rhs_opt
+    code_rhs_opt eqn' of_spec_opt eqn =
   let
     val (lhs, rhs) = HOLogic.dest_eq eqn
       handle TERM _ =>
@@ -576,7 +576,7 @@ fun dissect_coeqn_sel fun_names (basic_ctr_specss : basic_corec_ctr_spec list li
       handle Option.Option =>
         primcorec_error_eqn "malformed selector argument in left-hand side" eqn;
     val {ctr, ...} =
-      (case maybe_of_spec of
+      (case of_spec_opt of
         SOME of_spec => the (find_first (curry (op =) of_spec o #ctr) basic_ctr_specs)
       | NONE => filter (exists (curry (op =) sel) o #sels) basic_ctr_specs |> the_single
           handle List.Empty => primcorec_error_eqn "ambiguous selector - use \"of\"" eqn);
@@ -589,14 +589,14 @@ fun dissect_coeqn_sel fun_names (basic_ctr_specss : basic_corec_ctr_spec list li
       ctr = ctr,
       sel = sel,
       rhs_term = rhs,
-      maybe_ctr_rhs = maybe_ctr_rhs,
-      maybe_code_rhs = maybe_code_rhs,
+      ctr_rhs_opt = ctr_rhs_opt,
+      code_rhs_opt = code_rhs_opt,
       user_eqn = user_eqn
     }
   end;
 
 fun dissect_coeqn_ctr fun_names sequentials (basic_ctr_specss : basic_corec_ctr_spec list list) eqn'
-    maybe_code_rhs prems concl matchedsss =
+    code_rhs_opt prems concl matchedsss =
   let
     val (lhs, rhs) = HOLogic.dest_eq concl;
     val (fun_name, fun_args) = strip_comb lhs |>> fst o dest_Free;
@@ -606,17 +606,17 @@ fun dissect_coeqn_ctr fun_names sequentials (basic_ctr_specss : basic_corec_ctr_
       handle Option.Option => primcorec_error_eqn "not a constructor" ctr;
 
     val disc_concl = betapply (disc, lhs);
-    val (maybe_eqn_data_disc, matchedsss') = if length basic_ctr_specs = 1
+    val (eqn_data_disc_opt, matchedsss') = if length basic_ctr_specs = 1
       then (NONE, matchedsss)
       else apfst SOME (dissect_coeqn_disc fun_names sequentials basic_ctr_specss
-          (SOME (abstract (List.rev fun_args) rhs)) maybe_code_rhs prems disc_concl matchedsss);
+          (SOME (abstract (List.rev fun_args) rhs)) code_rhs_opt prems disc_concl matchedsss);
 
     val sel_concls = sels ~~ ctr_args
       |> map (fn (sel, ctr_arg) => HOLogic.mk_eq (betapply (sel, lhs), ctr_arg));
 
 (*
 val _ = tracing ("reduced\n    " ^ Syntax.string_of_term @{context} concl ^ "\nto\n    \<cdot> " ^
- (is_some maybe_eqn_data_disc ? K (Syntax.string_of_term @{context} disc_concl ^ "\n    \<cdot> ")) "" ^
+ (is_some eqn_data_disc_opt ? K (Syntax.string_of_term @{context} disc_concl ^ "\n    \<cdot> ")) "" ^
  space_implode "\n    \<cdot> " (map (Syntax.string_of_term @{context}) sel_concls) ^
  "\nfor premise(s)\n    \<cdot> " ^
  space_implode "\n    \<cdot> " (map (Syntax.string_of_term @{context}) prems));
@@ -624,9 +624,9 @@ val _ = tracing ("reduced\n    " ^ Syntax.string_of_term @{context} concl ^ "\nt
 
     val eqns_data_sel =
       map (dissect_coeqn_sel fun_names basic_ctr_specss
-        (SOME (abstract (List.rev fun_args) rhs)) maybe_code_rhs eqn' (SOME ctr)) sel_concls;
+        (SOME (abstract (List.rev fun_args) rhs)) code_rhs_opt eqn' (SOME ctr)) sel_concls;
   in
-    (the_list maybe_eqn_data_disc @ eqns_data_sel, matchedsss')
+    (the_list eqn_data_disc_opt @ eqns_data_sel, matchedsss')
   end;
 
 fun dissect_coeqn_code lthy has_call fun_names basic_ctr_specss eqn' concl matchedsss =
@@ -657,7 +657,7 @@ fun dissect_coeqn_code lthy has_call fun_names basic_ctr_specss eqn' concl match
   end;
 
 fun dissect_coeqn lthy has_call fun_names sequentials
-    (basic_ctr_specss : basic_corec_ctr_spec list list) eqn' maybe_of_spec matchedsss =
+    (basic_ctr_specss : basic_corec_ctr_spec list list) eqn' of_spec_opt matchedsss =
   let
     val eqn = drop_All eqn'
       handle TERM _ => primcorec_error_eqn "malformed function equation" eqn';
@@ -668,22 +668,22 @@ fun dissect_coeqn lthy has_call fun_names sequentials
       |> perhaps (try HOLogic.dest_not) |> perhaps (try (fst o HOLogic.dest_eq))
       |> head_of;
 
-    val maybe_rhs = concl |> perhaps (try HOLogic.dest_not) |> try (snd o HOLogic.dest_eq);
+    val rhs_opt = concl |> perhaps (try HOLogic.dest_not) |> try (snd o HOLogic.dest_eq);
 
     val discs = maps (map #disc) basic_ctr_specss;
     val sels = maps (maps #sels) basic_ctr_specss;
     val ctrs = maps (map #ctr) basic_ctr_specss;
   in
     if member (op =) discs head orelse
-      is_some maybe_rhs andalso
-        member (op =) (filter (null o binder_types o fastype_of) ctrs) (the maybe_rhs) then
+      is_some rhs_opt andalso
+        member (op =) (filter (null o binder_types o fastype_of) ctrs) (the rhs_opt) then
       dissect_coeqn_disc fun_names sequentials basic_ctr_specss NONE NONE prems concl matchedsss
       |>> single
     else if member (op =) sels head then
-      ([dissect_coeqn_sel fun_names basic_ctr_specss NONE NONE eqn' maybe_of_spec concl],
+      ([dissect_coeqn_sel fun_names basic_ctr_specss NONE NONE eqn' of_spec_opt concl],
        matchedsss)
     else if is_Free head andalso member (op =) fun_names (fst (dest_Free head)) andalso
-      member (op =) ctrs (head_of (unfold_let (the maybe_rhs))) then
+      member (op =) ctrs (head_of (unfold_let (the rhs_opt))) then
       dissect_coeqn_ctr fun_names sequentials basic_ctr_specss eqn' NONE prems concl matchedsss
     else if is_Free head andalso member (op =) fun_names (fst (dest_Free head)) andalso
       null prems then
@@ -821,7 +821,7 @@ fun mk_actual_disc_eqns fun_binding arg_Ts exhaustive ({ctr_specs, ...} : corec_
           |> the o find_first (fn idx => not (exists (curry (op =) idx o #ctr_no) disc_eqns));
         val fun_args = (try (#fun_args o hd) disc_eqns, try (#fun_args o hd) sel_eqns)
           |> the_default (map (curry Free Name.uu) arg_Ts) o merge_options;
-        val maybe_sel_eqn =
+        val sel_eqn_opt =
           find_first (curry (op =) (Binding.name_of fun_binding) o #fun_name) sel_eqns;
         val extra_disc_eqn = {
           fun_name = Binding.name_of fun_binding,
@@ -832,8 +832,8 @@ fun mk_actual_disc_eqns fun_binding arg_Ts exhaustive ({ctr_specs, ...} : corec_
           disc = #disc (nth ctr_specs n),
           prems = maps (s_not_conj o #prems) disc_eqns,
           auto_gen = true,
-          maybe_ctr_rhs = Option.map #maybe_ctr_rhs maybe_sel_eqn |> the_default NONE,
-          maybe_code_rhs = Option.map #maybe_ctr_rhs maybe_sel_eqn |> the_default NONE,
+          ctr_rhs_opt = Option.map #ctr_rhs_opt sel_eqn_opt |> the_default NONE,
+          code_rhs_opt = Option.map #ctr_rhs_opt sel_eqn_opt |> the_default NONE,
           user_eqn = undef_const};
       in
         chop n disc_eqns ||> cons extra_disc_eqn |> (op @)
@@ -857,7 +857,7 @@ fun is_trivial_implies thm =
   op aconv (Logic.dest_implies (Thm.prop_of thm))
   handle TERM _ => false;
 
-fun add_primcorec_ursive maybe_tac opts fixes specs maybe_of_specs lthy =
+fun add_primcorec_ursive tac_opt opts fixes specs of_specs_opt lthy =
   let
     val thy = Proof_Context.theory_of lthy;
 
@@ -878,7 +878,7 @@ fun add_primcorec_ursive maybe_tac opts fixes specs maybe_of_specs lthy =
     val has_call = exists_subterm (map (fst #>> Binding.name_of #> Free) fixes |> member (op =));
     val eqns_data =
       fold_map2 (dissect_coeqn lthy has_call fun_names sequentials basic_ctr_specss) (map snd specs)
-        maybe_of_specs []
+        of_specs_opt []
       |> flat o fst;
 
     val callssss =
@@ -924,7 +924,7 @@ val _ = tracing ("callssss = " ^ @{make_string} callssss);
       if a orelse c = c' orelse sequential then
         SOME (K (HEADGOAL (mk_primcorec_assumption_tac lthy [])))
       else
-        maybe_tac;
+        tac_opt;
 
 (*
 val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
@@ -946,7 +946,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
         disc_eqnss;
 
     val syntactic_exhaustives =
-      map (fn disc_eqns => forall (null o #prems orf is_some o #maybe_code_rhs) disc_eqns
+      map (fn disc_eqns => forall (null o #prems orf is_some o #code_rhs_opt) disc_eqns
           orelse exists #auto_gen disc_eqns)
         disc_eqnss;
     val de_facto_exhaustives =
@@ -965,7 +965,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
               mk_primcorec_nchotomy_tac ctxt disc_exhausts))
         corec_specs syntactic_exhaustives nchotomy_goalss;
     val goalss = goalss'
-      |> (if is_none maybe_tac then
+      |> (if is_none tac_opt then
           append (map2 (fn true => K [] | false => map (rpair [])) syntactic_exhaustives
             nchotomy_goalss)
         else
@@ -976,8 +976,8 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
         val def_thms = map (snd o snd) def_thms';
 
         val nchotomy_thmss = nchotomy_taut_thmss
-          |> (if is_none maybe_tac then map2 append (take actual_nn thmss'') else I);
-        val exclude_thmss = thmss'' |> is_none maybe_tac ? drop actual_nn;
+          |> (if is_none tac_opt then map2 append (take actual_nn thmss'') else I);
+        val exclude_thmss = thmss'' |> is_none tac_opt ? drop actual_nn;
 
         val exhaust_thmss =
           map2 (fn false => K []
@@ -1072,30 +1072,30 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
               |> exists (null o snd)
           then [] else
             let
-              val (fun_name, fun_T, fun_args, prems, maybe_rhs) =
+              val (fun_name, fun_T, fun_args, prems, rhs_opt) =
                 (find_first (curry (op =) ctr o #ctr) disc_eqns,
                  find_first (curry (op =) ctr o #ctr) sel_eqns)
                 |>> Option.map (fn x => (#fun_name x, #fun_T x, #fun_args x, #prems x,
-                  #maybe_ctr_rhs x))
-                ||> Option.map (fn x => (#fun_name x, #fun_T x, #fun_args x, [], #maybe_ctr_rhs x))
+                  #ctr_rhs_opt x))
+                ||> Option.map (fn x => (#fun_name x, #fun_T x, #fun_args x, [], #ctr_rhs_opt x))
                 |> the o merge_options;
               val m = length prems;
               val goal =
-                (if is_some maybe_rhs then
-                   the maybe_rhs
-                 else
-                   filter (curry (op =) ctr o #ctr) sel_eqns
-                   |> fst o finds ((op =) o apsnd #sel) sels
-                   |> map (snd #> (fn [x] => (List.rev (#fun_args x), #rhs_term x)) #-> abstract)
-                   |> curry list_comb ctr)
+                (case rhs_opt of
+                  SOME rhs => rhs
+                | NONE =>
+                  filter (curry (op =) ctr o #ctr) sel_eqns
+                  |> fst o finds ((op =) o apsnd #sel) sels
+                  |> map (snd #> (fn [x] => (List.rev (#fun_args x), #rhs_term x)) #-> abstract)
+                  |> curry list_comb ctr)
                 |> curry mk_Trueprop_eq (applied_fun_of fun_name fun_T fun_args)
                 |> curry Logic.list_implies (map HOLogic.mk_Trueprop prems)
                 |> curry Logic.list_all (map dest_Free fun_args);
-              val maybe_disc_thm = AList.lookup (op =) disc_alist disc;
+              val disc_thm_opt = AList.lookup (op =) disc_alist disc;
               val sel_thms = map snd (filter (member (op =) sels o fst) sel_alist);
             in
               if prems = [@{term False}] then [] else
-                mk_primcorec_ctr_of_dtr_tac lthy m collapse maybe_disc_thm sel_thms
+                mk_primcorec_ctr_of_dtr_tac lthy m collapse disc_thm_opt sel_thms
                 |> K |> Goal.prove lthy [] [] goal
                 |> Thm.close_derivation
                 |> pair ctr
@@ -1104,22 +1104,22 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
 
         fun prove_code exhaustive disc_eqns sel_eqns nchotomys ctr_alist ctr_specs =
           let
-            val maybe_fun_data =
+            val fun_data_opt =
               (find_first (member (op =) (map #ctr ctr_specs) o #ctr) disc_eqns,
                find_first (member (op =) (map #ctr ctr_specs) o #ctr) sel_eqns)
-              |>> Option.map (fn x => (#fun_name x, #fun_T x, #fun_args x, #maybe_code_rhs x))
-              ||> Option.map (fn x => (#fun_name x, #fun_T x, #fun_args x, #maybe_code_rhs x))
+              |>> Option.map (fn x => (#fun_name x, #fun_T x, #fun_args x, #code_rhs_opt x))
+              ||> Option.map (fn x => (#fun_name x, #fun_T x, #fun_args x, #code_rhs_opt x))
               |> merge_options;
           in
-            (case maybe_fun_data of
+            (case fun_data_opt of
               NONE => []
-            | SOME (fun_name, fun_T, fun_args, maybe_rhs) =>
+            | SOME (fun_name, fun_T, fun_args, rhs_opt) =>
               let
                 val bound_Ts = List.rev (map fastype_of fun_args);
 
                 val lhs = applied_fun_of fun_name fun_T fun_args;
-                val maybe_rhs_info =
-                  (case maybe_rhs of
+                val rhs_info_opt =
+                  (case rhs_opt of
                     SOME rhs =>
                     let
                       val raw_rhs = expand_corec_code_rhs lthy has_call bound_Ts rhs;
@@ -1143,27 +1143,27 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                           in
                             SOME (prems, t)
                           end;
-                      val maybe_ctr_conds_argss = map prove_code_ctr ctr_specs;
+                      val ctr_conds_argss_opt = map prove_code_ctr ctr_specs;
                       val exhaustive_code =
                         exhaustive
-                        orelse forall null (map_filter (try (fst o the)) maybe_ctr_conds_argss)
-                        orelse forall is_some maybe_ctr_conds_argss
+                        orelse forall null (map_filter (try (fst o the)) ctr_conds_argss_opt)
+                        orelse forall is_some ctr_conds_argss_opt
                           andalso exists #auto_gen disc_eqns;
                       val rhs =
                         (if exhaustive_code then
-                           split_last (map_filter I maybe_ctr_conds_argss) ||> snd
+                           split_last (map_filter I ctr_conds_argss_opt) ||> snd
                          else
                            Const (@{const_name Code.abort}, @{typ String.literal} -->
                                (@{typ unit} --> body_type fun_T) --> body_type fun_T) $
                              HOLogic.mk_literal fun_name $
                              absdummy @{typ unit} (incr_boundvars 1 lhs)
-                           |> pair (map_filter I maybe_ctr_conds_argss))
+                           |> pair (map_filter I ctr_conds_argss_opt))
                          |-> fold_rev (fn (prems, u) => mk_If (s_conjs prems) u)
                     in
                       SOME (exhaustive_code, rhs, rhs, map snd ctr_alist)
                     end);
               in
-                (case maybe_rhs_info of
+                (case rhs_info_opt of
                   NONE => []
                 | SOME (exhaustive_code, rhs, raw_rhs, ctr_thms) =>
                   let
@@ -1263,13 +1263,13 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
     (goalss, after_qed, lthy')
   end;
 
-fun add_primcorec_ursive_cmd maybe_tac opts (raw_fixes, raw_specs') lthy =
+fun add_primcorec_ursive_cmd tac_opt opts (raw_fixes, raw_specs') lthy =
   let
-    val (raw_specs, maybe_of_specs) =
+    val (raw_specs, of_specs_opt) =
       split_list raw_specs' ||> map (Option.map (Syntax.read_term lthy));
     val ((fixes, specs), _) = Specification.read_spec raw_fixes raw_specs lthy;
   in
-    add_primcorec_ursive maybe_tac opts fixes specs maybe_of_specs lthy
+    add_primcorec_ursive tac_opt opts fixes specs of_specs_opt lthy
     handle ERROR str => primcorec_error str
   end
   handle Primcorec_Error (str, eqns) =>

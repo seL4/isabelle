@@ -130,9 +130,9 @@ fun mk_primcorec_sel_tac ctxt defs distincts splits split_asms map_idents map_co
     (CHANGED o SELECT_GOAL (unfold_thms_tac ctxt
        (@{thms id_def o_def split_def sum.cases} @ map_comps @ map_idents)))));
 
-fun mk_primcorec_ctr_of_dtr_tac ctxt m collapse maybe_disc_fun sel_funs =
+fun mk_primcorec_ctr_of_dtr_tac ctxt m collapse disc_fun_opt sel_funs =
   HEADGOAL (rtac ((if null sel_funs then collapse else collapse RS sym) RS trans) THEN'
-    (the_default (K all_tac) (Option.map rtac maybe_disc_fun)) THEN' REPEAT_DETERM_N m o atac) THEN
+    (the_default (K all_tac) (Option.map rtac disc_fun_opt)) THEN' REPEAT_DETERM_N m o atac) THEN
   unfold_thms_tac ctxt (Let_def :: sel_funs) THEN HEADGOAL (rtac refl);
 
 fun inst_split_eq ctxt split =
@@ -168,11 +168,11 @@ fun mk_primcorec_raw_code_of_ctr_single_tac ctxt distincts discIs splits split_a
 fun rulify_nchotomy n = funpow (n - 1) (fn thm => thm RS @{thm Meson.make_pos_rule'});
 
 fun mk_primcorec_raw_code_of_ctr_tac ctxt distincts discIs splits split_asms ms fun_ctrs
-    maybe_nchotomy =
+    nchotomy_opt =
   let
     val n = length ms;
     val (ms', fun_ctrs') =
-      (case maybe_nchotomy of
+      (case nchotomy_opt of
         NONE => (ms, fun_ctrs)
       | SOME nchotomy =>
         (ms |> split_last ||> K [n - 1] |> op @,
