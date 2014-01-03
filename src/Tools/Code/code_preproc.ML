@@ -143,14 +143,15 @@ fun term_of_conv_resubst thy conv t =
     val resubst = curry (Term.betapplys o swap) all_vars;
   in (resubst, term_of_conv thy conv (fold_rev lambda all_vars t)) end;
 
-fun lift_ss_conv f ss ct =  (* FIXME proper context!? *)
-  f (Proof_Context.init_global (theory_of_cterm ct) |> put_simpset ss) ct;
+fun global_simpset_context thy ss =
+  Proof_Context.init_global thy
+  |> put_simpset ss;
 
 fun preprocess_conv thy =
   let
-    val pre = (#pre o the_thmproc) thy;
+    val pre = global_simpset_context thy ((#pre o the_thmproc) thy);
   in
-    lift_ss_conv Simplifier.rewrite pre
+    Simplifier.rewrite pre
     #> trans_conv_rule (Axclass.unoverload_conv thy)
   end;
 
@@ -158,10 +159,10 @@ fun preprocess_term thy = term_of_conv_resubst thy (preprocess_conv thy);
 
 fun postprocess_conv thy =
   let
-    val post = (#post o the_thmproc) thy;
+    val post = global_simpset_context thy ((#post o the_thmproc) thy);
   in
     Axclass.overload_conv thy
-    #> trans_conv_rule (lift_ss_conv Simplifier.rewrite post)
+    #> trans_conv_rule (Simplifier.rewrite post)
   end;
 
 fun postprocess_term thy = term_of_conv thy (postprocess_conv thy);
