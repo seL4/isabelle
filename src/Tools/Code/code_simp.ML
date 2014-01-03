@@ -34,7 +34,7 @@ fun map_ss f thy = Simpset.map (simpset_map (Proof_Context.init_global thy) f) t
 fun simpset_default thy = the_default (Simpset.get thy);
 
 
-(* diagonstic *)
+(* diagnostic *)
 
 val trace = Attrib.setup_config_bool @{binding "code_simp_trace"} (K false);
 
