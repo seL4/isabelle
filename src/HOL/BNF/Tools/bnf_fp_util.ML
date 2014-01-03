@@ -138,6 +138,8 @@ sig
   val mk_sumTN: typ list -> typ
   val mk_sumTN_balanced: typ list -> typ
 
+  val mk_proj: typ -> int -> int -> term
+
   val mk_convol: term * term -> term
 
   val Inl_const: typ -> typ -> term
@@ -373,6 +375,11 @@ fun dest_tupleT 0 @{typ unit} = []
 
 val mk_sumTN = Library.foldr1 mk_sumT;
 val mk_sumTN_balanced = Balanced_Tree.make mk_sumT;
+
+fun mk_proj T n k =
+  let val (binders, _) = strip_typeN n T in
+    fold_rev (fn T => fn t => Abs (Name.uu, T, t)) binders (Bound (n - k - 1))
+  end;
 
 fun mk_convol (f, g) =
   let

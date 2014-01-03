@@ -12,8 +12,9 @@ sig
   val mk_primcorec_ctr_of_dtr_tac: Proof.context -> int -> thm -> thm option -> thm list -> tactic
   val mk_primcorec_disc_tac: Proof.context -> thm list -> thm -> int -> int -> thm list list list ->
     tactic
-  val mk_primcorec_disc_iff_tac: Proof.context -> thm -> thm -> thm list list -> thm list -> tactic
-  val mk_primcorec_exhaust_tac: int -> thm -> tactic
+  val mk_primcorec_disc_iff_tac: Proof.context -> string list -> thm -> thm -> thm list list ->
+    thm list -> tactic
+  val mk_primcorec_exhaust_tac: Proof.context -> string list -> int -> thm -> tactic
   val mk_primcorec_raw_code_of_ctr_tac: Proof.context -> thm list -> thm list -> thm list ->
     thm list -> int list -> thm list -> thm option -> tactic
   val mk_primcorec_sel_tac: Proof.context -> thm list -> thm list -> thm list -> thm list ->
@@ -25,6 +26,7 @@ struct
 
 open BNF_Util
 open BNF_Tactics
+open BNF_FP_Util
 
 val atomize_conjL = @{thm atomize_conjL};
 val falseEs = @{thms not_TrueE FalseE};
@@ -34,10 +36,28 @@ val split_if = @{thm split_if};
 val split_if_asm = @{thm split_if_asm};
 val split_connectI = @{thms allI impI conjI};
 
-fun mk_primcorec_exhaust_tac n nchotomy =
+fun exhaust_inst_as_projs ctxt frees thm =
+  let
+    val num_frees = length frees;
+    val fs = Term.add_vars (prop_of thm) [] |> filter (can dest_funT o snd);
+    fun find s = find_index (curry (op =) s) frees;
+    fun mk_cfp (f as ((s, _), T)) =
+      (certify ctxt (Var f), certify ctxt (mk_proj T num_frees (find s)));
+    val cfps = map mk_cfp fs;
+  in
+    Drule.cterm_instantiate cfps thm
+  end;
+
+val exhaust_inst_as_projs_tac = PRIMITIVE oo exhaust_inst_as_projs;
+
+fun distinct_in_prems_tac distincts =
+  eresolve_tac (map (fn thm => thm RS neq_eq_eq_contradict) distincts) THEN' atac;
+
+fun mk_primcorec_exhaust_tac ctxt frees n nchotomy =
   let val ks = 1 upto n in
     HEADGOAL (atac ORELSE'
       cut_tac nchotomy THEN'
+      K (exhaust_inst_as_projs_tac ctxt frees) THEN'
       EVERY' (map (fn k =>
           (if k < n then etac disjE else K all_tac) THEN'
           REPEAT o (dtac meta_mp THEN' atac ORELSE'
@@ -78,9 +98,10 @@ fun mk_primcorec_prelude ctxt defs thm =
 fun mk_primcorec_disc_tac ctxt defs disc_corec k m exclsss =
   mk_primcorec_prelude ctxt defs disc_corec THEN mk_primcorec_cases_tac ctxt k m exclsss;
 
-fun mk_primcorec_disc_iff_tac ctxt fun_exhaust fun_disc fun_discss disc_excludes =
+fun mk_primcorec_disc_iff_tac ctxt frees fun_exhaust fun_disc fun_discss disc_excludes =
   HEADGOAL (rtac iffI THEN'
     rtac fun_exhaust THEN'
+    K (exhaust_inst_as_projs_tac ctxt frees) THEN'
     EVERY' (map (fn [] => etac FalseE
         | [fun_disc'] =>
           if Thm.eq_thm (fun_disc', fun_disc) then
@@ -121,9 +142,6 @@ fun inst_split_eq ctxt split =
       Thm.generalize ([], [s]) (Thm.maxidx_of split' + 1) split'
     end
   | _ => split);
-
-fun distinct_in_prems_tac distincts =
-  eresolve_tac (map (fn thm => thm RS neq_eq_eq_contradict) distincts) THEN' atac;
 
 fun mk_primcorec_raw_code_of_ctr_single_tac ctxt distincts discIs splits split_asms m fun_ctr =
   let
