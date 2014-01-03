@@ -960,15 +960,9 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
         de_facto_exhaustives disc_eqnss
       |> list_all_fun_args []
     val nchotomy_taut_thmss =
-      map3 (fn {disc_exhausts, ...} => fn syntactic_exhaustive =>
-          (case maybe_tac of
-            SOME tac => map_prove_with_tac tac
-          | NONE =>
-            if syntactic_exhaustive then
-              map_prove_with_tac (fn {context = ctxt, ...} =>
-                mk_primcorec_nchotomy_tac ctxt disc_exhausts)
-            else
-              K []))
+      map3 (fn {disc_exhausts, ...} => fn false => K []
+          | true => map_prove_with_tac (fn {context = ctxt, ...} =>
+              mk_primcorec_nchotomy_tac ctxt disc_exhausts))
         corec_specs syntactic_exhaustives nchotomy_goalss;
     val goalss = goalss'
       |> (if is_none maybe_tac then

@@ -55,7 +55,7 @@ fun distinct_in_prems_tac distincts =
   eresolve_tac (map (fn thm => thm RS neq_eq_eq_contradict) distincts) THEN' atac;
 
 fun mk_primcorec_nchotomy_tac ctxt disc_exhausts =
-  HEADGOAL (clean_blast_tac ctxt);
+  HEADGOAL (Method.insert_tac disc_exhausts THEN' clean_blast_tac ctxt);
 
 fun mk_primcorec_exhaust_tac ctxt frees n nchotomy =
   let val ks = 1 upto n in
