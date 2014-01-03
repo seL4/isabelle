@@ -56,18 +56,16 @@ fun hhf_concl_conv cv ctxt ct =
     Conv.arg_conv (Conv.abs_conv (hhf_concl_conv cv o snd) ctxt) ct
   | _ => Conv.concl_conv ~1 cv ct);
 
-fun inst_as_projs ctxt k thm =
+fun co_induct_inst_as_projs ctxt k thm =
   let
-    val fs =
-      Term.add_vars (prop_of thm) []
+    val fs = Term.add_vars (prop_of thm) []
       |> filter (fn (_, Type (@{type_name fun}, [_, T'])) => T' <> HOLogic.boolT | _ => false);
-    val cfs =
-      map (fn f as (_, T) => (certify ctxt (Var f), certify ctxt (mk_proj T k))) fs;
+    val cfs = map (fn f as (_, T) => (certify ctxt (Var f), certify ctxt (mk_proj T k))) fs;
   in
     Drule.cterm_instantiate cfs thm
   end;
 
-val inst_as_projs_tac = PRIMITIVE oo inst_as_projs;
+val co_induct_inst_as_projs_tac = PRIMITIVE oo co_induct_inst_as_projs;
 
 fun mk_exhaust_tac ctxt n ctr_defs ctor_iff_dtor sumEN' =
   unfold_thms_tac ctxt (ctor_iff_dtor :: ctr_defs) THEN HEADGOAL (rtac sumEN') THEN
@@ -136,8 +134,8 @@ fun mk_induct_discharge_prem_tac ctxt nn n set_maps pre_set_defs m k kks =
 
 fun mk_induct_tac ctxt nn ns mss kkss ctr_defs ctor_induct' set_maps pre_set_defss =
   let val n = Integer.sum ns in
-    unfold_thms_tac ctxt ctr_defs THEN
-    HEADGOAL (rtac ctor_induct' THEN' inst_as_projs_tac ctxt) THEN
+    unfold_thms_tac ctxt ctr_defs THEN HEADGOAL (rtac ctor_induct') THEN
+    co_induct_inst_as_projs_tac ctxt 1 THEN
     EVERY (map4 (EVERY oooo map3 o mk_induct_discharge_prem_tac ctxt nn n set_maps) pre_set_defss
       mss (unflat mss (1 upto n)) kkss)
   end;
@@ -167,10 +165,10 @@ fun mk_coinduct_discharge_prem_tac ctxt rel_eqs' nn kk n pre_rel_def dtor_ctor e
     discss selss =
   let val ks = 1 upto n in
     EVERY' ([rtac allI, rtac allI, rtac impI, select_prem_tac nn (dtac meta_spec) kk,
-        dtac meta_spec, dtac meta_mp, atac, rtac exhaust, K (HEADGOAL (inst_as_projs_tac ctxt)),
+        dtac meta_spec, dtac meta_mp, atac, rtac exhaust, K (co_induct_inst_as_projs_tac ctxt 1),
         hyp_subst_tac ctxt] @
       map4 (fn k => fn ctr_def => fn discs => fn sels =>
-        EVERY' ([rtac exhaust, K (inst_as_projs_tac ctxt 2)] @
+        EVERY' ([rtac exhaust, K (co_induct_inst_as_projs_tac ctxt 2)] @
           map2 (fn k' => fn discs' =>
             if k' = k then
               mk_coinduct_same_ctr_tac ctxt rel_eqs' pre_rel_def dtor_ctor ctr_def discs sels
