@@ -6,7 +6,7 @@ begin
 
 type_synonym 'a st_rep = "(vname * 'a) list"
 
-fun fun_rep :: "('a::order_top) st_rep \<Rightarrow> vname \<Rightarrow> 'a" where
+fun fun_rep :: "('a::top) st_rep \<Rightarrow> vname \<Rightarrow> 'a" where
 "fun_rep [] = (\<lambda>x. \<top>)" |
 "fun_rep ((x,a)#ps) = (fun_rep ps) (x := a)"
 
@@ -14,23 +14,23 @@ lemma fun_rep_map_of[code]: --"original def is too slow"
   "fun_rep ps = (%x. case map_of ps x of None \<Rightarrow> \<top> | Some a \<Rightarrow> a)"
 by(induction ps rule: fun_rep.induct) auto
 
-definition eq_st :: "('a::order_top) st_rep \<Rightarrow> 'a st_rep \<Rightarrow> bool" where
+definition eq_st :: "('a::top) st_rep \<Rightarrow> 'a st_rep \<Rightarrow> bool" where
 "eq_st S1 S2 = (fun_rep S1 = fun_rep S2)"
 
 hide_type st  --"hide previous def to avoid long names"
 
-quotient_type 'a st = "('a::order_top) st_rep" / eq_st
+quotient_type 'a st = "('a::top) st_rep" / eq_st
 morphisms rep_st St
 by (metis eq_st_def equivpI reflpI sympI transpI)
 
-lift_definition update :: "('a::order_top) st \<Rightarrow> vname \<Rightarrow> 'a \<Rightarrow> 'a st"
+lift_definition update :: "('a::top) st \<Rightarrow> vname \<Rightarrow> 'a \<Rightarrow> 'a st"
   is "\<lambda>ps x a. (x,a)#ps"
 by(auto simp: eq_st_def)
 
-lift_definition "fun" :: "('a::order_top) st \<Rightarrow> vname \<Rightarrow> 'a" is fun_rep
+lift_definition "fun" :: "('a::top) st \<Rightarrow> vname \<Rightarrow> 'a" is fun_rep
 by(simp add: eq_st_def)
 
-definition show_st :: "vname set \<Rightarrow> ('a::order_top) st \<Rightarrow> (vname * 'a)set" where
+definition show_st :: "vname set \<Rightarrow> ('a::top) st \<Rightarrow> (vname * 'a)set" where
 "show_st X S = (\<lambda>x. (x, fun S x)) ` X"
 
 definition "show_acom C = map_acom (Option.map (show_st (vars(strip C)))) C"
@@ -39,10 +39,10 @@ definition "show_acom_opt = Option.map show_acom"
 lemma fun_update[simp]: "fun (update S x y) = (fun S)(x:=y)"
 by transfer auto
 
-definition \<gamma>_st :: "(('a::order_top) \<Rightarrow> 'b set) \<Rightarrow> 'a st \<Rightarrow> (vname \<Rightarrow> 'b) set" where
+definition \<gamma>_st :: "(('a::top) \<Rightarrow> 'b set) \<Rightarrow> 'a st \<Rightarrow> (vname \<Rightarrow> 'b) set" where
 "\<gamma>_st \<gamma> F = {f. \<forall>x. f x \<in> \<gamma>(fun F x)}"
 
-instantiation st :: ("{order,order_top}") order
+instantiation st :: (order_top) order
 begin
 
 definition less_eq_st_rep :: "'a st_rep \<Rightarrow> 'a st_rep \<Rightarrow> bool" where
@@ -83,7 +83,7 @@ end
 lemma le_st_iff: "(F \<le> G) = (\<forall>x. fun F x \<le> fun G x)"
 by transfer (rule less_eq_st_rep_iff)
 
-fun map2_st_rep :: "('a::order_top \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a st_rep \<Rightarrow> 'a st_rep \<Rightarrow> 'a st_rep" where
+fun map2_st_rep :: "('a::top \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a st_rep \<Rightarrow> 'a st_rep \<Rightarrow> 'a st_rep" where
 "map2_st_rep f [] ps2 = map (%(x,y). (x, f \<top> y)) ps2" |
 "map2_st_rep f ((x,y)#ps1) ps2 =
   (let y2 = fun_rep ps2 x
