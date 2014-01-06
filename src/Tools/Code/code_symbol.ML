@@ -10,7 +10,11 @@ sig
   datatype ('a, 'b, 'c, 'd, 'e, 'f) attr =
     Constant of 'a | Type_Constructor of 'b | Type_Class of 'c |
     Class_Relation of 'd  | Class_Instance of 'e | Module of 'f
-  type symbol = (string, string, class, string * class, class * class, string) attr
+  type symbol = (string, string, class, class * class, string * class, string) attr
+  structure Graph: GRAPH;
+  val plain_name: Proof.context -> symbol -> string
+  val tyco_fun: string
+  val quote_symbol: Proof.context -> symbol -> string
   val map_attr: ('a -> 'g) -> ('b -> 'h) -> ('c -> 'i) -> ('d -> 'j) -> ('e -> 'k) -> ('f -> 'l)
     -> ('a, 'b, 'c, 'd, 'e, 'f) attr -> ('g, 'h, 'i, 'j, 'k, 'l) attr
   val maps_attr: ('a -> 'g list) -> ('b -> 'h list)
@@ -39,7 +43,6 @@ sig
   val dest_class_relation_data: ('a, 'b, 'c, 'd, 'e, 'f) data -> ((class * class) * 'd) list
   val dest_class_instance_data: ('a, 'b, 'c, 'd, 'e, 'f) data -> ((string * class) * 'e) list
   val dest_module_data: ('a, 'b, 'c, 'd, 'e, 'f) data -> (string * 'f) list
-  val quote_symbol: Proof.context -> symbol -> string
 end;
 
 structure Code_Symbol : CODE_SYMBOL =
@@ -51,6 +54,73 @@ datatype ('a, 'b, 'c, 'd, 'e, 'f) attr =
   Constant of 'a | Type_Constructor of 'b | Type_Class of 'c | Class_Relation of 'd  | Class_Instance of 'e | Module of 'f;
 
 type symbol = (string, string, class, string * class, class * class, string) attr;
+
+fun symbol_ord (Constant c1, Constant c2) = fast_string_ord (c1, c2)
+  | symbol_ord (Constant _, _) = GREATER
+  | symbol_ord (_, Constant _) = LESS
+  | symbol_ord (Type_Constructor tyco1, Type_Constructor tyco2) = fast_string_ord (tyco1, tyco2)
+  | symbol_ord (Type_Constructor _, _) = GREATER
+  | symbol_ord (_, Type_Constructor _) = LESS
+  | symbol_ord (Type_Class class1, Type_Class class2) = fast_string_ord (class1, class2)
+  | symbol_ord (Type_Class _, _) = GREATER
+  | symbol_ord (_, Type_Class _) = LESS
+  | symbol_ord (Class_Relation classrel1, Class_Relation classrel2) =
+      prod_ord fast_string_ord fast_string_ord (classrel1, classrel2)
+  | symbol_ord (Class_Relation _, _) = GREATER
+  | symbol_ord (_, Class_Relation _) = LESS
+  | symbol_ord (Class_Instance inst1, Class_Instance inst2) =
+      prod_ord fast_string_ord fast_string_ord (inst1, inst2)
+  | symbol_ord (Class_Instance _, _) = GREATER
+  | symbol_ord (_, Class_Instance _) = LESS
+  | symbol_ord (Module name1, Module name2) = fast_string_ord (name1, name2);
+
+structure Graph = Graph(type key = symbol val ord = symbol_ord);
+
+local
+  fun thyname_of_type thy = #theory_name o Name_Space.the_entry (Sign.type_space thy);
+  fun thyname_of_class thy = #theory_name o Name_Space.the_entry (Sign.class_space thy);
+  fun thyname_of_instance thy inst = case Axclass.thynames_of_arity thy inst
+   of [] => error ("No such instance: " ^ quote (fst inst ^ " :: " ^  snd inst))
+    | thyname :: _ => thyname;
+  fun thyname_of_const thy c = case Axclass.class_of_param thy c
+   of SOME class => thyname_of_class thy class
+    | NONE => (case Code.get_type_of_constr_or_abstr thy c
+       of SOME (tyco, _) => thyname_of_type thy tyco
+        | NONE => #theory_name (Name_Space.the_entry (Sign.const_space thy) c));
+  fun base_rel (x, y) = Long_Name.base_name y ^ "_" ^ Long_Name.base_name x;
+  fun plainify ctxt get_prefix get_basename thing =
+    Long_Name.append (get_prefix (Proof_Context.theory_of ctxt) thing)
+      (Name.desymbolize false (get_basename thing));
+in
+
+fun plain_name ctxt (Constant "==>") =
+      plainify ctxt thyname_of_const (K "follows") "==>"
+  | plain_name ctxt (Constant "==") =
+      plainify ctxt thyname_of_const (K "meta_eq") "=="
+  | plain_name ctxt (Constant c) =
+      plainify ctxt thyname_of_const Long_Name.base_name c
+  | plain_name ctxt (Type_Constructor "fun") =
+      plainify ctxt thyname_of_type (K "fun") "fun"
+  | plain_name ctxt (Type_Constructor tyco) =
+      plainify ctxt thyname_of_type Long_Name.base_name tyco
+  | plain_name ctxt (Type_Class class) =
+      plainify ctxt thyname_of_class Long_Name.base_name class
+  | plain_name ctxt (Class_Relation classrel) =
+      plainify ctxt (fn thy => fn (class, _) => thyname_of_class thy class) base_rel classrel
+  | plain_name ctxt (Class_Instance inst) =
+      plainify ctxt thyname_of_instance base_rel inst;
+
+val tyco_fun = plain_name @{context} (Type_Constructor "fun");
+
+end;
+
+fun quote_symbol ctxt (Constant c) = quote (Code.string_of_const (Proof_Context.theory_of ctxt) c)
+  | quote_symbol ctxt (Type_Constructor tyco) = "type " ^ quote (Proof_Context.extern_type ctxt tyco)
+  | quote_symbol ctxt (Type_Class class) = "class " ^ quote (Proof_Context.extern_class ctxt class)
+  | quote_symbol ctxt (Class_Relation (sub, super)) =
+      quote (Proof_Context.extern_class ctxt sub) ^ " < " ^ quote (Proof_Context.extern_class ctxt super)
+  | quote_symbol ctxt (Class_Instance (tyco, class)) =
+      quote (Proof_Context.extern_type ctxt tyco) ^ " :: " ^ quote (Proof_Context.extern_class ctxt class);
 
 fun map_attr const tyco class classrel inst module (Constant x) = Constant (const x)
   | map_attr const tyco class classrel inst module (Type_Constructor x) = Type_Constructor (tyco x)
@@ -133,13 +203,5 @@ fun dest_type_class_data x = (Symtab.dest o #type_class o dest_data) x;
 fun dest_class_relation_data x = (Symreltab.dest o #class_relation o dest_data) x;
 fun dest_class_instance_data x = (Symreltab.dest o #class_instance o dest_data) x;
 fun dest_module_data x = (Symtab.dest o #module o dest_data) x;
-
-fun quote_symbol ctxt (Constant c) = quote (Code.string_of_const (Proof_Context.theory_of ctxt) c)
-  | quote_symbol ctxt (Type_Constructor tyco) = "type " ^ quote (Proof_Context.extern_type ctxt tyco)
-  | quote_symbol ctxt (Type_Class class) = "class " ^ quote (Proof_Context.extern_class ctxt class)
-  | quote_symbol ctxt (Class_Relation (sub, super)) =
-      quote (Proof_Context.extern_class ctxt sub) ^ " < " ^ quote (Proof_Context.extern_class ctxt super)
-  | quote_symbol ctxt (Class_Instance (tyco, class)) =
-      quote (Proof_Context.extern_type ctxt tyco) ^ " :: " ^ quote (Proof_Context.extern_class ctxt class);
 
 end;
