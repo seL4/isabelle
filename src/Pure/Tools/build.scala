@@ -117,7 +117,8 @@ object Build
         (Graph.string[Session_Info] /: infos) {
           case (graph, (name, info)) =>
             if (graph.defined(name))
-              error("Duplicate session " + quote(name) + Position.here(info.pos))
+              error("Duplicate session " + quote(name) + Position.here(info.pos) +
+                Position.here(graph.get_node(name).pos))
             else graph.new_node(name, info)
         }
       val graph2 =

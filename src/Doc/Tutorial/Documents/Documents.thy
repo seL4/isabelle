@@ -343,7 +343,8 @@ text {*
   session is derived from a single parent, usually an object-logic
   image like \texttt{HOL}.  This results in an overall tree structure,
   which is reflected by the output location in the file system
-  (usually rooted at \verb,~/.isabelle/IsabelleXXXX/browser_info,).
+  (the root directory is determined by the Isabelle settings variable
+  \verb,ISABELLE_BROWSER_INFO,).
 
   \medskip The easiest way to manage Isabelle sessions is via
   \texttt{isabelle mkroot} (to generate an initial session source

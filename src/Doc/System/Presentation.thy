@@ -310,7 +310,7 @@ text {* Invoking @{tool latex} by hand may be occasionally useful when
   inspect {\LaTeX} runs in further detail, e.g.\ like this:
 
 \begin{ttbox}
-  cd ~/.isabelle/IsabelleXXXX/browser_info/Unsorted/Test/document
+  cd "$(isabelle getenv -b ISABELLE_BROWSER_INFO)/Unsorted/Test/document"
   isabelle latex -o pdf
 \end{ttbox}
 *}

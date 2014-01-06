@@ -101,14 +101,10 @@ text {* Isabelle executables need to be run within a proper settings
   before --- usually to something like @{verbatim
   "$USER_HOME/.isabelle/IsabelleXXXX"}.
   
-  Thus individual users may override the site-wide defaults.  See also
-  file @{file "$ISABELLE_HOME/etc/user-settings.sample"} in the
-  distribution.  Typically, a user settings file would contain only a
-  few lines, just the assigments that are really changed.  One should
-  definitely \emph{not} start with a full copy the basic @{file
-  "$ISABELLE_HOME/etc/settings"}. This could cause very annoying
-  maintainance problems later, when the Isabelle installation is
-  updated or changed otherwise.
+  Thus individual users may override the site-wide defaults.
+  Typically, a user settings file contains only a few lines, with some
+  assignments that are actually changed.  Never copy the central
+  @{file "$ISABELLE_HOME/etc/settings"} file!
   
   \end{enumerate}
 
