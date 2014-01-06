@@ -5,7 +5,7 @@
 # Important notes:
 #   * See the "system" manual for explanations on Isabelle settings
 #   * DO NOT EDIT the repository copy of this file!
-#   * DO NOT COPY this file into your ~/.isabelle directory!
+#   * DO NOT COPY this file into your $ISABELLE_HOME_USER directory!
 
 ###
 ### Isabelle/Scala
