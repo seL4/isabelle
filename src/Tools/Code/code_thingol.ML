@@ -277,13 +277,10 @@ local
     | NONE => (case Code.get_type_of_constr_or_abstr thy c
        of SOME (tyco, _) => thyname_of_type thy tyco
         | NONE => #theory_name (Name_Space.the_entry (Sign.const_space thy) c));
-  fun purify_base "==>" = "follows"
-    | purify_base "==" = "meta_eq"
-    | purify_base s = Name.desymbolize false s;
   fun namify thy get_basename get_thyname name =
     let
       val prefix = get_thyname thy name;
-      val base = (purify_base o get_basename) name;
+      val base = (Name.desymbolize false o get_basename) name;
     in Long_Name.append prefix base end;
 in
 
@@ -296,7 +293,9 @@ fun namify_tyco thy "fun" = "Pure.fun"
   | namify_tyco thy tyco = namify thy Long_Name.base_name thyname_of_type tyco;
 fun namify_instance thy = namify thy (fn (class, tyco) => 
   Long_Name.base_name class ^ "_" ^ Long_Name.base_name tyco) thyname_of_instance;
-fun namify_const thy = namify thy Long_Name.base_name thyname_of_const;
+fun namify_const thy "==>" = "Pure.follows"
+  | namify_const thy "==" = "Pure.meta_eq"
+  | namify_const thy c = namify thy Long_Name.base_name thyname_of_const c;
 
 end; (* local *)
 
