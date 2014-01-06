@@ -1,11 +1,12 @@
 # -*- shell-script -*- :mode=shellscript:
 #
-# Isabelle settings -- distribution defaults.
+# Isabelle system settings.
 #
 # Important notes:
 #   * See the "system" manual for explanations on Isabelle settings
+#   * User settings go into $ISABELLE_HOME_USER/etc/settings
 #   * DO NOT EDIT the repository copy of this file!
-#   * DO NOT COPY this file into your $ISABELLE_HOME_USER directory!
+#   * DO NOT COPY this file into the $ISABELLE_HOME_USER directory!
 
 ###
 ### Isabelle/Scala
