@@ -11,7 +11,7 @@ sig
   val get_info: theory -> class -> info
   val class_of_param: theory -> string -> class option
   val instance_name: string * class -> string
-  val thynames_of_arity: theory -> class * string -> string list
+  val thynames_of_arity: theory -> string * class -> string list
   val param_of_inst: theory -> string * string -> string
   val inst_of_param: theory -> string -> (string * string) option
   val unoverload: theory -> thm -> thm
@@ -216,7 +216,7 @@ fun the_arity thy (a, Ss, c) =
   | NONE => error ("Unproven type arity " ^
       Syntax.string_of_arity (Proof_Context.init_global thy) (a, Ss, [c])));
 
-fun thynames_of_arity thy (c, a) =
+fun thynames_of_arity thy (a, c) =
   Symtab.lookup_list (proven_arities_of thy) a
   |> map_filter (fn ((c', _), (_, name)) => if c = c' then SOME name else NONE)
   |> rev;
