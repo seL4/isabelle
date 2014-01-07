@@ -15,9 +15,11 @@ datatype 'a acom =
   While 'a bexp 'a "('a acom)" 'a
     ("({_}//WHILE _//DO ({_}//_)//{_})"  [0, 0, 0, 61, 0] 61)
 
+notation com.SKIP ("SKIP")
+
 text_raw{*\snip{stripdef}{1}{1}{% *}
 fun strip :: "'a acom \<Rightarrow> com" where
-"strip (SKIP {P}) = com.SKIP" |
+"strip (SKIP {P}) = SKIP" |
 "strip (x ::= e {P}) = x ::= e" |
 "strip (C\<^sub>1;;C\<^sub>2) = strip C\<^sub>1;; strip C\<^sub>2" |
 "strip (IF b THEN {P\<^sub>1} C\<^sub>1 ELSE {P\<^sub>2} C\<^sub>2 {P}) =
@@ -27,7 +29,7 @@ text_raw{*}%endsnip*}
 
 text_raw{*\snip{asizedef}{1}{1}{% *}
 fun asize :: "com \<Rightarrow> nat" where
-"asize com.SKIP = 1" |
+"asize SKIP = 1" |
 "asize (x ::= e) = 1" |
 "asize (C\<^sub>1;;C\<^sub>2) = asize C\<^sub>1 + asize C\<^sub>2" |
 "asize (IF b THEN C\<^sub>1 ELSE C\<^sub>2) = asize C\<^sub>1 + asize C\<^sub>2 + 3" |
@@ -39,7 +41,7 @@ definition shift :: "(nat \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> nat 
 "shift f n = (\<lambda>p. f(p+n))"
 
 fun annotate :: "(nat \<Rightarrow> 'a) \<Rightarrow> com \<Rightarrow> 'a acom" where
-"annotate f com.SKIP = SKIP {f 0}" |
+"annotate f SKIP = SKIP {f 0}" |
 "annotate f (x ::= e) = x ::= e {f 0}" |
 "annotate f (c\<^sub>1;;c\<^sub>2) = annotate f c\<^sub>1;; annotate (shift f (asize c\<^sub>1)) c\<^sub>2" |
 "annotate f (IF b THEN c\<^sub>1 ELSE c\<^sub>2) =
@@ -131,7 +133,7 @@ apply(auto simp: anno_def nth_append nth_Cons' size_annos)
 done
 
 lemma strip_eq_SKIP:
-  "strip C = com.SKIP \<longleftrightarrow> (EX P. C = SKIP {P})"
+  "strip C = SKIP \<longleftrightarrow> (EX P. C = SKIP {P})"
 by (cases C) simp_all
 
 lemma strip_eq_Assign:

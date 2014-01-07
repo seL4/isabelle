@@ -14,11 +14,12 @@ datatype acom =
   Aif bexp acom acom     ("(IF _/ THEN _/ ELSE _)"  [0, 0, 61] 61) |
   Awhile assn bexp acom  ("({_}/ WHILE _/ DO _)"  [0, 0, 61] 61)
 
+notation com.SKIP ("SKIP")
 
 text{* Strip annotations: *}
 
 fun strip :: "acom \<Rightarrow> com" where
-"strip SKIP = com.SKIP" |
+"strip SKIP = SKIP" |
 "strip (x ::= a) = (x ::= a)" |
 "strip (C\<^sub>1;; C\<^sub>2) = (strip C\<^sub>1;; strip C\<^sub>2)" |
 "strip (IF b THEN C\<^sub>1 ELSE C\<^sub>2) = (IF b THEN strip C\<^sub>1 ELSE strip C\<^sub>2)" |
