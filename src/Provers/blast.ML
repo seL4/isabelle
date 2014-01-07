@@ -480,9 +480,11 @@ fun rot_subgoals_tac (rot, rl) =
 end;
 
 
+fun cond_tracing true msg = tracing (msg ())
+  | cond_tracing false _ = ();
+
 fun TRACE ctxt rl tac i st =
-  if Config.get ctxt trace then (writeln (Display.string_of_thm ctxt rl); tac i st)
-  else tac i st;
+  (cond_tracing (Config.get ctxt trace) (fn () => Display.string_of_thm ctxt rl); tac i st);
 
 (*Resolution/matching tactics: if upd then the proof state may be updated.
   Matching makes the tactics more deterministic in the presence of Vars.*)
@@ -502,13 +504,14 @@ fun fromRule (state as State {ctxt, ...}) vars rl =
   in Option.SOME (trl, tac) end
   handle
     ElimBadPrem => (*reject: prems don't preserve conclusion*)
-      (warning ("Ignoring weak elimination rule\n" ^ Display.string_of_thm ctxt rl);
-        Option.NONE)
-  | ElimBadConcl => (*ignore: conclusion is not just a variable*)
-      (if Config.get ctxt trace then
-        (warning ("Ignoring ill-formed elimination rule:\n" ^
-          "conclusion should be a variable\n" ^ Display.string_of_thm ctxt rl))
+      (if Context_Position.is_visible ctxt then
+        warning ("Ignoring weak elimination rule\n" ^ Display.string_of_thm ctxt rl)
        else ();
+       Option.NONE)
+  | ElimBadConcl => (*ignore: conclusion is not just a variable*)
+      (cond_tracing (Config.get ctxt trace)
+        (fn () => "Ignoring ill-formed elimination rule:\n" ^
+          "conclusion should be a variable\n" ^ Display.string_of_thm ctxt rl);
        Option.NONE);
 
 
@@ -635,40 +638,37 @@ fun traceTerm ctxt t =
 
 
 (*Print tracing information at each iteration of prover*)
-fun tracing (State {ctxt, fullTrace, ...}) brs =
-  let fun printPairs (((G,_)::_,_)::_)  = Output.tracing (traceTerm ctxt G)
-        | printPairs (([],(H,_)::_)::_) = Output.tracing (traceTerm ctxt H ^ "\t (Unsafe)")
+fun trace_prover (State {ctxt, fullTrace, ...}) brs =
+  let fun printPairs (((G,_)::_,_)::_)  = tracing (traceTerm ctxt G)
+        | printPairs (([],(H,_)::_)::_) = tracing (traceTerm ctxt H ^ "\t (Unsafe)")
         | printPairs _                 = ()
       fun printBrs (brs0 as {pairs, lits, lim, ...} :: brs) =
             (fullTrace := brs0 :: !fullTrace;
-             List.app (fn _ => Output.tracing "+") brs;
-             Output.tracing (" [" ^ string_of_int lim ^ "] ");
+             List.app (fn _ => tracing "+") brs;
+             tracing (" [" ^ string_of_int lim ^ "] ");
              printPairs pairs;
-             writeln"")
+             tracing "")
   in if Config.get ctxt trace then printBrs (map normBr brs) else () end;
-
-fun traceMsg true s = writeln s
-  | traceMsg false _ = ();
 
 (*Tracing: variables updated in the last branch operation?*)
 fun traceVars (State {ctxt, ntrail, trail, ...}) ntrl =
   if Config.get ctxt trace then
       (case !ntrail-ntrl of
             0 => ()
-          | 1 => Output.tracing "\t1 variable UPDATED:"
-          | n => Output.tracing ("\t" ^ string_of_int n ^ " variables UPDATED:");
+          | 1 => tracing "\t1 variable UPDATED:"
+          | n => tracing ("\t" ^ string_of_int n ^ " variables UPDATED:");
        (*display the instantiations themselves, though no variable names*)
-       List.app (fn v => Output.tracing ("   " ^ string_of ctxt 4 (the (!v))))
+       List.app (fn v => tracing ("   " ^ string_of ctxt 4 (the (!v))))
            (List.take(!trail, !ntrail-ntrl));
-       writeln "")
+       tracing "")
     else ();
 
 (*Tracing: how many new branches are created?*)
 fun traceNew true prems =
       (case length prems of
-        0 => Output.tracing "branch closed by rule"
-      | 1 => Output.tracing "branch extended (1 new subgoal)"
-      | n => Output.tracing ("branch split: "^ string_of_int n ^ " new subgoals"))
+        0 => tracing "branch closed by rule"
+      | 1 => tracing "branch extended (1 new subgoal)"
+      | n => tracing ("branch split: "^ string_of_int n ^ " new subgoals"))
   | traceNew _ _ = ();
 
 
@@ -766,7 +766,7 @@ fun equalSubst ctxt (G, {pairs, lits, vars, lim}) =
             end
       val (changed, lits') = List.foldr subLit ([], []) lits
       val (changed', pairs') = List.foldr subFrame (changed, []) pairs
-  in  if Config.get ctxt trace then writeln ("Substituting " ^ traceTerm ctxt u ^
+  in  if Config.get ctxt trace then tracing ("Substituting " ^ traceTerm ctxt u ^
                               " for " ^ traceTerm ctxt t ^ " in branch" )
       else ();
       {pairs = (changed',[])::pairs',   (*affected formulas, and others*)
@@ -834,7 +834,7 @@ fun prune _ (1, nxtVars, choices) = choices  (*DON'T prune at very end: allow
                 let val ll = length last
                     and lc = length choices
                 in if Config.get ctxt trace andalso ll<lc then
-                    (writeln("Pruning " ^ string_of_int(lc-ll) ^ " levels");
+                    (tracing ("Pruning " ^ string_of_int(lc-ll) ^ " levels");
                      last)
                    else last
                 end
@@ -854,8 +854,8 @@ fun nextVars ({pairs, lits, vars, lim} :: _) = map Var vars
   | nextVars []                              = [];
 
 fun backtrack trace (choices as (ntrl, nbrs, exn)::_) =
-      (if trace then (writeln ("Backtracking; now there are " ^ string_of_int nbrs ^ " branches"))
-       else ();
+      (cond_tracing trace
+        (fn () => "Backtracking; now there are " ^ string_of_int nbrs ^ " branches");
        raise exn)
   | backtrack _ _ = raise PROVE;
 
@@ -903,7 +903,7 @@ and matchs [] [] = true
 
 fun printStats (State {ntried, nclosed, ...}) (b, start, tacs) =
   if b then
-    writeln (Timing.message (Timing.result start) ^ " for search.  Closed: "
+    tracing (Timing.message (Timing.result start) ^ " for search.  Closed: "
              ^ string_of_int (!nclosed) ^
              " tried: " ^ string_of_int (!ntried) ^
              " tactics: " ^ string_of_int (length tacs))
@@ -977,7 +977,7 @@ fun prove (state, start, brs, cont) =
                                  brs))
                           else (*prems non-null*)
                           if lim'<0 (*faster to kill ALL the alternatives*)
-                          then (traceMsg trace "Excessive branching: KILLED";
+                          then (cond_tracing trace (fn () => "Excessive branching: KILLED");
                                 clearTo state ntrl;  raise NEWBRANCHES)
                           else
                             (ntried := !ntried + length prems - 1;
@@ -999,7 +999,7 @@ fun prove (state, start, brs, cont) =
                         NONE     => closeF Ls
                       | SOME tac =>
                             let val choices' =
-                                    (if trace then (Output.tracing "branch closed";
+                                    (if trace then (tracing "branch closed";
                                                      traceVars state ntrl)
                                                else ();
                                      prune state (nbrs, nxtVars,
@@ -1017,8 +1017,9 @@ fun prove (state, start, brs, cont) =
                     closeF (map fst br)
                       handle CLOSEF => closeF (map fst haz)
                         handle CLOSEF => closeFl pairs
-          in tracing state brs0;
-             if lim<0 then (traceMsg trace "Limit reached.  "; backtrack trace choices)
+          in
+             trace_prover state brs0;
+             if lim<0 then (cond_tracing trace (fn () => "Limit reached."); backtrack trace choices)
              else
              prv (Data.hyp_subst_tac trace :: tacs,
                   brs0::trs,  choices,
@@ -1032,14 +1033,14 @@ fun prove (state, start, brs, cont) =
                   handle NEWBRANCHES =>
                    (case netMkRules state G vars hazList of
                        [] => (*there are no plausible haz rules*)
-                             (traceMsg trace "moving formula to literals";
+                             (cond_tracing trace (fn () => "moving formula to literals");
                               prv (tacs, brs0::trs, choices,
                                    {pairs = (br,haz)::pairs,
                                     lits  = addLit(G,lits),
                                     vars  = vars,
                                     lim   = lim}  :: brs))
                     | _ => (*G admits some haz rules: try later*)
-                           (traceMsg trace "moving formula to haz list";
+                           (cond_tracing trace (fn () => "moving formula to haz list");
                             prv (if isGoal G then negOfGoal_tac ctxt :: tacs
                                              else tacs,
                                  brs0::trs,
@@ -1126,12 +1127,12 @@ fun prove (state, start, brs, cont) =
                      in
                        if lim'<0 andalso not (null prems)
                        then (*it's faster to kill ALL the alternatives*)
-                           (traceMsg trace "Excessive branching: KILLED";
+                           (cond_tracing trace (fn () => "Excessive branching: KILLED");
                             clearTo state ntrl;  raise NEWBRANCHES)
                        else
                          traceNew trace prems;
-                         if trace andalso dup then Output.tracing " (duplicating)" else ();
-                         if trace andalso recur then Output.tracing " (recursive)" else ();
+                         cond_tracing (trace andalso dup) (fn () => " (duplicating)");
+                         cond_tracing (trace andalso recur) (fn () => " (recursive)");
                          traceVars state ntrl;
                          if null prems then nclosed := !nclosed + 1
                          else ntried := !ntried + length prems - 1;
@@ -1147,8 +1148,9 @@ fun prove (state, start, brs, cont) =
                                    backtrack trace choices
                      end
                     else deeper grls
-          in tracing state brs0;
-             if lim<1 then (traceMsg trace "Limit reached.  "; backtrack trace choices)
+          in
+             trace_prover state brs0;
+             if lim<1 then (cond_tracing trace (fn () => "Limit reached."); backtrack trace choices)
              else deeper rules
              handle NEWBRANCHES =>
                  (*cannot close branch: move H to literals*)
@@ -1248,19 +1250,17 @@ fun raw_blast start ctxt lim st =
           let val start = Timing.start ()
           in
           case Seq.pull(EVERY' (rev tacs) 1 st) of
-              NONE => (writeln ("PROOF FAILED for depth " ^
-                                string_of_int lim);
+              NONE => (cond_tracing trace (fn () => "PROOF FAILED for depth " ^ string_of_int lim);
                        backtrack trace choices)
-            | cell => (if trace orelse stats
-                       then writeln (Timing.message (Timing.result start) ^ " for reconstruction")
-                       else ();
+            | cell => (cond_tracing (trace orelse stats)
+                        (fn () => Timing.message (Timing.result start) ^ " for reconstruction");
                        Seq.make(fn()=> cell))
           end
   in
     prove (state, start, [initBranch (mkGoal concl :: hyps, lim)], cont)
   end
   handle PROVE => Seq.empty
-    | TRANS s => (if Config.get ctxt trace then warning ("Blast: " ^ s) else (); Seq.empty);
+    | TRANS s => (cond_tracing (Config.get ctxt trace) (fn () => "Blast: " ^ s); Seq.empty);
 
 fun depth_tac ctxt lim i st =
   SELECT_GOAL
