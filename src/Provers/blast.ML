@@ -633,14 +633,14 @@ fun traceTerm ctxt t =
   in
       case topType thy t' of
           NONE   => stm   (*no type to attach*)
-        | SOME T => stm ^ "\t:: " ^ Syntax.string_of_typ ctxt T
+        | SOME T => stm ^ " :: " ^ Syntax.string_of_typ ctxt T
   end;
 
 
 (*Print tracing information at each iteration of prover*)
 fun trace_prover (State {ctxt, fullTrace, ...}) brs =
   let fun printPairs (((G,_)::_,_)::_)  = tracing (traceTerm ctxt G)
-        | printPairs (([],(H,_)::_)::_) = tracing (traceTerm ctxt H ^ "\t (Unsafe)")
+        | printPairs (([],(H,_)::_)::_) = tracing (traceTerm ctxt H ^ "  (Unsafe)")
         | printPairs _                 = ()
       fun printBrs (brs0 as {pairs, lits, lim, ...} :: brs) =
             (fullTrace := brs0 :: !fullTrace;
@@ -655,8 +655,8 @@ fun traceVars (State {ctxt, ntrail, trail, ...}) ntrl =
   if Config.get ctxt trace then
       (case !ntrail-ntrl of
             0 => ()
-          | 1 => tracing "\t1 variable UPDATED:"
-          | n => tracing ("\t" ^ string_of_int n ^ " variables UPDATED:");
+          | 1 => tracing " 1 variable UPDATED:"
+          | n => tracing (" " ^ string_of_int n ^ " variables UPDATED:");
        (*display the instantiations themselves, though no variable names*)
        List.app (fn v => tracing ("   " ^ string_of ctxt 4 (the (!v))))
            (List.take(!trail, !ntrail-ntrl));
