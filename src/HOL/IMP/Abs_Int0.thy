@@ -219,8 +219,7 @@ by(simp add: \<gamma>_fun_def)
 lemma gamma_Step_subcomm:
   assumes "!!x e S. f1 x e (\<gamma>\<^sub>o S) \<subseteq> \<gamma>\<^sub>o (f2 x e S)"  "!!b S. g1 b (\<gamma>\<^sub>o S) \<subseteq> \<gamma>\<^sub>o (g2 b S)"
   shows "Step f1 g1 (\<gamma>\<^sub>o S) (\<gamma>\<^sub>c C) \<le> \<gamma>\<^sub>c (Step f2 g2 S C)"
-proof(induction C arbitrary: S)
-qed  (auto simp: mono_gamma_o assms)
+by (induction C arbitrary: S) (auto simp: mono_gamma_o assms)
 
 lemma step_step': "step (\<gamma>\<^sub>o S) (\<gamma>\<^sub>c C) \<le> \<gamma>\<^sub>c (step' S C)"
 unfolding step_def step'_def
