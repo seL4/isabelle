@@ -55,7 +55,7 @@ fun try_prove_reflexivity ctxt prop =
   transfer_rule - of the form T t f
   parametric_transfer_rule - of the form par_R t' t
   
-  Result: par_T t' f, after substituing op= for relations in par_T that relate
+  Result: par_T t' f, after substituing op= for relations in par_R that relate
     a type constructor to the same type constructor, it is a merge of (par_R' OO T) t' f
     using Lifting_Term.merge_transfer_relations
 *)
