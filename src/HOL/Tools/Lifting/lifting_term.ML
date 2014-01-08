@@ -126,17 +126,6 @@ fun get_rel_distr_rules ctxt s tm =
 
 fun is_id_quot thm = (prop_of thm = prop_of @{thm identity_quotient})
 
-fun check_raw_types (provided_rty_name, rty_of_qty_name) qty_name =
-  if provided_rty_name <> rty_of_qty_name then
-    raise QUOT_THM_INTERNAL (Pretty.block 
-        [Pretty.str ("The type " ^ quote provided_rty_name),
-         Pretty.brk 1,
-         Pretty.str ("is not a raw type for the quotient type " ^ quote qty_name ^ ";"),
-         Pretty.brk 1,
-         Pretty.str ("the correct raw type is " ^ quote rty_of_qty_name ^ ".")])
-  else
-    ()
-
 fun zip_Tvars ctxt type_name rty_Tvars qty_Tvars =
   case try (get_rel_quot_thm ctxt) type_name of
     NONE => rty_Tvars ~~ qty_Tvars
@@ -192,14 +181,32 @@ fun zip_Tvars ctxt type_name rty_Tvars qty_Tvars =
           rel_quot_thm_prems
       end
 
-fun instantiate_rtys ctxt  (Type (rty_name, _)) (qty as Type (qty_name, _)) =
+fun instantiate_rtys ctxt rty (qty as Type (qty_name, _)) =
   let
     val quot_thm = get_quot_thm ctxt qty_name
-    val (Type (rs, rtys), qty_pat) = quot_thm_rty_qty quot_thm
-    val _ = check_raw_types (rty_name, rs) qty_name
+    val ((rty_pat as Type (_, rty_pat_tys)), qty_pat) = quot_thm_rty_qty quot_thm
+    
+    fun inst_rty (Type (s, tys), Type (s', tys')) = 
+        if s = s' then Type (s', map inst_rty (tys ~~ tys'))
+        else raise QUOT_THM_INTERNAL (Pretty.block 
+          [Pretty.str "The type",
+           Pretty.brk 1,
+           Syntax.pretty_typ ctxt rty,
+           Pretty.brk 1,
+           Pretty.str ("is not a raw type for the quotient type " ^ quote qty_name ^ ";"),
+           Pretty.brk 1,
+           Pretty.str "the correct raw type must be an instance of",
+           Pretty.brk 1,
+           Syntax.pretty_typ ctxt rty_pat])
+      | inst_rty (t as Type (_, _), TFree _) = t
+      | inst_rty ((TVar _), rty) = rty
+      | inst_rty ((TFree _), rty) = rty
+      | inst_rty (_, _) = error "check_raw_types: we should not be here"
+
+    val (Type (_, rtys')) = inst_rty (rty_pat, rty)
     val qtyenv = match ctxt equiv_match_err qty_pat qty
   in
-    map (Envir.subst_type qtyenv) rtys
+    (rtys', map (Envir.subst_type qtyenv) rty_pat_tys)
   end
   | instantiate_rtys _ _ _ = error "instantiate_rtys: not Type"
 
@@ -219,8 +226,8 @@ fun prove_schematic_quot_thm ctxt (rty, qty) =
         end
       else
         let
-          val rtys' = instantiate_rtys ctxt rty qty
-          val args = map (prove_schematic_quot_thm ctxt) (tys ~~ rtys')
+          val (rtys, rtys') = instantiate_rtys ctxt rty qty
+          val args = map (prove_schematic_quot_thm ctxt) (rtys ~~ rtys')
         in
           if forall is_id_quot args
           then
@@ -544,7 +551,7 @@ fun parametrize_transfer_rule ctxt thm =
               else
                 all_args_conv parametrize_relation_conv ctm
             else
-              if forall op= (rargs ~~ (instantiate_rtys ctxt rty qty)) then
+              if forall op= (op~~ (instantiate_rtys ctxt rty qty)) then
                 let
                   val pcr_cr_eq = (Thm.symmetric o mk_meta_eq) (get_pcr_cr_eq ctxt q)
                 in
