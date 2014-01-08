@@ -165,10 +165,13 @@ fun zip_Tvars ctxt type_name rty_Tvars qty_Tvars =
         val qty = Type (type_name, qty_Tvars)
         val rel_quot_thm_concl = (Logic.strip_imp_concl o prop_of) rel_quot_thm
         val schematic_rel_absT = quot_term_absT rel_quot_thm_concl;
-        val ctxt' = Variable.declare_typ schematic_rel_absT ctxt
-        val thy = Proof_Context.theory_of ctxt'
+        val thy = Proof_Context.theory_of ctxt
         val absT = rty --> qty
-        val schematic_absT = Logic.type_map (singleton (Variable.polymorphic ctxt')) absT
+        val schematic_absT = 
+          absT 
+          |> Logic.type_map (singleton (Variable.polymorphic ctxt))
+          |> Logic.incr_tvar (maxidx_of_typ schematic_rel_absT + 1) 
+            (* because absT can already contain schematic variables from rty patterns *)
         val maxidx = Term.maxidx_of_typs [schematic_rel_absT, schematic_absT]
         val _ = Sign.typ_unify thy (schematic_rel_absT, schematic_absT) (Vartab.empty,maxidx)
           handle Type.TUNIFY => equiv_univ_err ctxt schematic_rel_absT schematic_absT
