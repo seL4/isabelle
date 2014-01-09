@@ -1920,14 +1920,12 @@ a tree with a single, infinite branch from a stream:
 
 text {*
 \noindent
-Fortunately, it is easy to prove the following lemma, where the corecursive call
-is moved inside the lazy list constructor, thereby eliminating the need for
-@{const lmap}:
+A more natural syntax, also supported by Isabelle, is to move corecursive calls
+under constructors:
 *}
 
-    lemma tree\<^sub>i\<^sub>i_of_stream_alt:
+    primcorec (*<*)(in late) (*>*)tree\<^sub>i\<^sub>i_of_stream :: "'a stream \<Rightarrow> 'a tree\<^sub>i\<^sub>i" where
       "tree\<^sub>i\<^sub>i_of_stream s = Node\<^sub>i\<^sub>i (shd s) (LCons (tree\<^sub>i\<^sub>i_of_stream (stl s)) LNil)"
-    by (subst tree\<^sub>i\<^sub>i_of_stream.code) simp
 
 text {*
 The next example illustrates corecursion through functions, which is a bit

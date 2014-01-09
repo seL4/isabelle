@@ -78,6 +78,7 @@ type corec_ctr_spec =
 type corec_spec =
   {corec: term,
    disc_exhausts: thm list,
+   nested_maps: thm list,
    nested_map_idents: thm list,
    nested_map_comps: thm list,
    ctr_specs: corec_ctr_spec list};
@@ -279,23 +280,37 @@ fun massage_nested_corec_call ctxt has_call raw_massage_call bound_Ts U t =
     fun massage_call bound_Ts U T =
       massage_let_if_case ctxt has_call (fn bound_Ts => fn t =>
         if has_call t then
-          (case t of
-            Const (@{const_name prod_case}, _) $ t' =>
-            let
-              val U' = curried_type U;
-              val T' = curried_type T;
-            in
-              Const (@{const_name prod_case}, U' --> U) $ massage_call bound_Ts U' T' t'
-            end
-          | t1 $ t2 =>
-            (if has_call t2 then
-              massage_mutual_call bound_Ts U T t
-            else
-              massage_map bound_Ts U T t1 $ t2
-              handle AINT_NO_MAP _ => massage_mutual_call bound_Ts U T t)
-          | Abs (s, T', t') =>
-            Abs (s, T', massage_call (T' :: bound_Ts) (range_type U) (range_type T) t')
-          | _ => massage_mutual_call bound_Ts U T t)
+          (case U of
+            Type (s, Us) =>
+            (case try (dest_ctr ctxt s) t of
+              SOME (f, args) =>
+              let
+                val typof = curry fastype_of1 bound_Ts;
+                val f' = mk_ctr Us f
+                val f'_T = typof f';
+                val arg_Ts = map typof args;
+              in
+                Term.list_comb (f', map3 (massage_call bound_Ts) (binder_types f'_T) arg_Ts args)
+              end
+            | NONE =>
+              (case t of
+                Const (@{const_name prod_case}, _) $ t' =>
+                let
+                  val U' = curried_type U;
+                  val T' = curried_type T;
+                in
+                  Const (@{const_name prod_case}, U' --> U) $ massage_call bound_Ts U' T' t'
+                end
+              | t1 $ t2 =>
+                (if has_call t2 then
+                  massage_mutual_call bound_Ts U T t
+                else
+                  massage_map bound_Ts U T t1 $ t2
+                  handle AINT_NO_MAP _ => massage_mutual_call bound_Ts U T t)
+              | Abs (s, T', t') =>
+                Abs (s, T', massage_call (T' :: bound_Ts) (range_type U) (range_type T) t')
+              | _ => massage_mutual_call bound_Ts U T t))
+          | _ => ill_formed_corec_call ctxt t)
         else
           build_map_Inl (T, U) $ t) bound_Ts;
 
@@ -354,6 +369,12 @@ fun basic_corec_specs_of ctxt res_T =
         handle ListPair.UnequalLengths => not_codatatype ctxt res_T
       end)
   | _ => not_codatatype ctxt res_T);
+
+fun map_thms_of_typ ctxt (Type (s, _)) =
+    (case fp_sugar_of ctxt s of
+      SOME {index, mapss, ...} => nth mapss index
+    | NONE => [])
+  | map_thms_of_typ _ _ = [];
 
 fun corec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
   let
@@ -447,6 +468,7 @@ fun corec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
         p_is q_isss f_isss f_Tsss =
       {corec = mk_co_iter thy Greatest_FP (substAT T) perm_Cs' (co_rec_of (nth coiterss index)),
        disc_exhausts = #disc_exhausts (nth ctr_sugars index),
+       nested_maps = maps (map_thms_of_typ lthy o T_of_bnf) nested_bnfs,
        nested_map_idents = map (unfold_thms lthy @{thms id_def} o map_id0_of_bnf) nested_bnfs,
        nested_map_comps = map map_comp_of_bnf nested_bnfs,
        ctr_specs = mk_ctr_specs index ctr_sugars p_is q_isss f_isss f_Tsss coiter_thmsss
@@ -1047,8 +1069,8 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                 |> single
             end;
 
-        fun prove_sel ({nested_map_idents, nested_map_comps, ctr_specs, ...} : corec_spec)
-            (disc_eqns : coeqn_data_disc list) excludesss
+        fun prove_sel ({nested_maps, nested_map_idents, nested_map_comps, ctr_specs, ...}
+              : corec_spec) (disc_eqns : coeqn_data_disc list) excludesss
             ({fun_name, fun_T, fun_args, ctr, sel, rhs_term, eqn_pos, ...} : coeqn_data_sel) =
           let
             val SOME ctr_spec = find_first (curry (op =) ctr o #ctr) ctr_specs;
@@ -1068,8 +1090,8 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
               |> curry Logic.list_all (map dest_Free fun_args);
             val (distincts, _, sel_splits, sel_split_asms) = case_thms_of_term lthy [] rhs_term;
           in
-            mk_primcorec_sel_tac lthy def_thms distincts sel_splits sel_split_asms nested_map_idents
-              nested_map_comps sel_corec k m excludesss
+            mk_primcorec_sel_tac lthy def_thms distincts sel_splits sel_split_asms nested_maps
+              nested_map_idents nested_map_comps sel_corec k m excludesss
             |> K |> Goal.prove_sorry lthy [] [] goal
             |> Thm.close_derivation
             |> pair sel

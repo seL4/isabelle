@@ -19,7 +19,7 @@ sig
   val mk_primcorec_raw_code_of_ctr_tac: Proof.context -> thm list -> thm list -> thm list ->
     thm list -> int list -> thm list -> thm option -> tactic
   val mk_primcorec_sel_tac: Proof.context -> thm list -> thm list -> thm list -> thm list ->
-    thm list -> thm list -> thm -> int -> int -> thm list list list -> tactic
+    thm list -> thm list -> thm list -> thm -> int -> int -> thm list list list -> tactic
 end;
 
 structure BNF_GFP_Rec_Sugar_Tactics : BNF_GFP_REC_SUGAR_TACTICS =
@@ -122,8 +122,8 @@ fun mk_primcorec_disc_iff_tac ctxt frees fun_exhaust fun_disc fun_discss disc_ex
       fun_discss) THEN'
     rtac (unfold_thms ctxt [atomize_conjL] fun_disc) THEN_MAYBE' atac);
 
-fun mk_primcorec_sel_tac ctxt defs distincts splits split_asms map_idents map_comps fun_sel k m
-    exclsss =
+fun mk_primcorec_sel_tac ctxt defs distincts splits split_asms mapsx map_idents map_comps fun_sel k
+    m exclsss =
   prelude_tac ctxt defs (fun_sel RS trans) THEN
   cases_tac ctxt k m exclsss THEN
   HEADGOAL (REPEAT_DETERM o (rtac refl ORELSE' rtac ext ORELSE'
@@ -133,8 +133,8 @@ fun mk_primcorec_sel_tac ctxt defs distincts splits split_asms map_idents map_co
     Splitter.split_tac (split_if :: splits) ORELSE'
     eresolve_tac (map (fn thm => thm RS neq_eq_eq_contradict) distincts) THEN' atac ORELSE'
     etac notE THEN' atac ORELSE'
-    (CHANGED o SELECT_GOAL (unfold_thms_tac ctxt
-       (@{thms fst_conv snd_conv id_def o_def split_def sum.cases} @ map_comps @ map_idents)))));
+    (CHANGED o SELECT_GOAL (unfold_thms_tac ctxt (@{thms fst_conv snd_conv id_def o_def split_def
+       sum.cases} @ mapsx @ map_comps @ map_idents)))));
 
 fun mk_primcorec_ctr_tac ctxt m collapse disc_fun_opt sel_funs =
   HEADGOAL (rtac ((if null sel_funs then collapse else collapse RS sym) RS trans) THEN'
