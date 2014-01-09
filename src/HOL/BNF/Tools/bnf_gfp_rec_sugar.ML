@@ -850,17 +850,17 @@ fun mk_actual_disc_eqns fun_binding arg_Ts exhaustive ({ctr_specs, ...} : corec_
       let
         val n = 0 upto length ctr_specs
           |> the o find_first (fn idx => not (exists (curry (op =) idx o #ctr_no) disc_eqns));
+        val {ctr, disc, ...} = nth ctr_specs n;
         val fun_args = (try (#fun_args o hd) disc_eqns, try (#fun_args o hd) sel_eqns)
           |> the_default (map (curry Free Name.uu) arg_Ts) o merge_options;
-        val sel_eqn_opt =
-          find_first (curry (op =) (Binding.name_of fun_binding) o #fun_name) sel_eqns;
+        val sel_eqn_opt = find_first (equal ctr o #ctr) sel_eqns;
         val extra_disc_eqn = {
           fun_name = Binding.name_of fun_binding,
           fun_T = arg_Ts ---> body_type (fastype_of (#ctr (hd ctr_specs))),
           fun_args = fun_args,
-          ctr = #ctr (nth ctr_specs n),
+          ctr = ctr,
           ctr_no = n,
-          disc = #disc (nth ctr_specs n),
+          disc = disc,
           prems = maps (s_not_conj o #prems) disc_eqns,
           auto_gen = true,
           ctr_rhs_opt = Option.map #ctr_rhs_opt sel_eqn_opt |> the_default NONE,
