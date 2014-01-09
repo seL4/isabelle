@@ -511,9 +511,9 @@ fun prepare_primrec fixes specs lthy =
             (#user_eqn x, length (#left_args x) + length (#right_args x), #rec_thm y)))
           |> map (fn (user_eqn, num_extra_args, rec_thm) =>
             mk_primrec_tac lthy num_extra_args nested_map_idents nested_map_comps def_thms rec_thm
-            |> K |> Goal.prove lthy [] [] user_eqn
+            |> K |> Goal.prove_sorry lthy [] [] user_eqn
             |> Thm.close_derivation);
-        val poss = find_indices (fn (x, y) => #ctr x = #ctr y) fun_data eqns_data;
+        val poss = find_indices (op = o pairself #ctr) fun_data eqns_data;
       in
         (poss, simp_thmss)
       end;
