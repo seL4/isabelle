@@ -719,7 +719,7 @@ fun dissect_coeqn lthy has_call fun_names sequentials
         dissect_coeqn_code lthy has_call fun_names basic_ctr_specss eqn_pos eqn0 concl matchedsss
         |>> flat
       else
-        primcorec_error_eqn "malformed constructor or code view equation" eqn
+        primcorec_error_eqn "cannot mix constructor and code views (see manual for details)" eqn
     else
       primcorec_error_eqn "malformed function equation" eqn
   end;
