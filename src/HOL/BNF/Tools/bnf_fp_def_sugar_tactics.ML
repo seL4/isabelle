@@ -43,8 +43,6 @@ val sum_prod_thms_set0 =
 val sum_prod_thms_set = @{thms UN_compreh_eq_eq} @ sum_prod_thms_set0;
 val sum_prod_thms_rel = @{thms prod_rel_simp sum_rel_simps id_apply};
 
-val ss_if_True_False = simpset_of (ss_only @{thms if_True if_False} @{context});
-
 fun hhf_concl_conv cv ctxt ct =
   (case Thm.term_of ct of
     Const (@{const_name all}, _) $ Abs _ =>
@@ -94,6 +92,7 @@ fun mk_iter_tac pre_map_defs map_idents iter_defs ctor_iter ctr_def ctxt =
     iter_unfold_thms) THEN HEADGOAL (rtac refl);
 
 val coiter_unfold_thms = @{thms id_def} @ sum_prod_thms_map;
+val ss_if_True_False = simpset_of (ss_only @{thms if_True if_False} @{context});
 
 fun mk_coiter_tac coiter_defs map_idents ctor_dtor_coiter pre_map_def ctr_def ctxt =
   unfold_thms_tac ctxt (ctr_def :: coiter_defs) THEN

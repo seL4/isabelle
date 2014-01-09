@@ -1112,7 +1112,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
               val sel_thms = map snd (filter (member (op =) sels o fst) sel_alist);
             in
               if prems = [@{term False}] then [] else
-                mk_primcorec_ctr_of_dtr_tac lthy m collapse disc_thm_opt sel_thms
+                mk_primcorec_ctr_tac lthy m collapse disc_thm_opt sel_thms
                 |> K |> Goal.prove_sorry lthy [] [] goal
                 |> Thm.close_derivation
                 |> pair ctr
@@ -1211,7 +1211,6 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
         val sel_alists = map4 (map ooo prove_sel) corec_specs disc_eqnss excludessss sel_eqnss;
         val disc_thmss = map (map snd o order_list_duplicates o flat) disc_alistss;
         val disc_thmsss' = map (map (map (snd o snd))) disc_alistss;
-        val disc_thmss' = map flat disc_thmsss';
         val sel_thmss = map (map snd o order_list_duplicates) sel_alists;
 
         fun prove_disc_iff ({ctr_specs, ...} : corec_spec) exhaust_thms disc_thmss' disc_thms
