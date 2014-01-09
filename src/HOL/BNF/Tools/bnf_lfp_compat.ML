@@ -39,21 +39,19 @@ fun datatype_new_compat_cmd raw_fpT_names lthy =
     val (fpT_names as fpT_name1 :: _) =
       map (fst o dest_Type o Proof_Context.read_type_name_proper lthy false) raw_fpT_names;
 
-    val Ss = Sign.arity_sorts thy fpT_name1 HOLogic.typeS;
-
-    val (unsorted_As, _) = lthy |> mk_TFrees (length Ss);
-    val As = map2 resort_tfree Ss unsorted_As;
-
     fun lfp_sugar_of s =
       (case fp_sugar_of lthy s of
         SOME (fp_sugar as {fp = Least_FP, ...}) => fp_sugar
       | _ => not_datatype s);
 
-    val {fp_res = {Ts = fpTs0, ...}, ...} = lfp_sugar_of fpT_name1;
+    val {ctr_sugars, ...} = lfp_sugar_of fpT_name1;
+    val fpTs0 as Type (_, var_As) :: _ = map (body_type o fastype_of o hd o #ctrs) ctr_sugars;
     val fpT_names' = map (fst o dest_Type) fpTs0;
 
     val _ = eq_set (op =) (fpT_names, fpT_names') orelse not_mutually_recursive fpT_names;
 
+    val (unsorted_As, _) = lthy |> mk_TFrees (length var_As);
+    val As = map2 (resort_tfree o Type.sort_of_atyp) var_As unsorted_As;
     val fpTs as fpT1 :: _ = map (fn s => Type (s, As)) fpT_names';
 
     fun add_nested_types_of (T as Type (s, _)) seen =
