@@ -568,7 +568,7 @@ fun dissect_coeqn_disc fun_names sequentials (basic_ctr_specss : basic_corec_ctr
   end;
 
 fun dissect_coeqn_sel fun_names (basic_ctr_specss : basic_corec_ctr_spec list list) eqn_pos
-    ctr_rhs_opt code_rhs_opt eqn' of_spec_opt eqn =
+    ctr_rhs_opt code_rhs_opt eqn0 of_spec_opt eqn =
   let
     val (lhs, rhs) = HOLogic.dest_eq eqn
       handle TERM _ =>
@@ -585,7 +585,7 @@ fun dissect_coeqn_sel fun_names (basic_ctr_specss : basic_corec_ctr_spec list li
         SOME of_spec => the (find_first (curry (op =) of_spec o #ctr) basic_ctr_specs)
       | NONE => filter (exists (curry (op =) sel) o #sels) basic_ctr_specs |> the_single
           handle List.Empty => primcorec_error_eqn "ambiguous selector - use \"of\"" eqn);
-    val user_eqn = drop_All eqn';
+    val user_eqn = drop_All eqn0;
   in
     Sel {
       fun_name = fun_name,
@@ -602,7 +602,7 @@ fun dissect_coeqn_sel fun_names (basic_ctr_specss : basic_corec_ctr_spec list li
   end;
 
 fun dissect_coeqn_ctr fun_names sequentials (basic_ctr_specss : basic_corec_ctr_spec list list)
-    eqn_pos eqn' code_rhs_opt prems concl matchedsss =
+    eqn_pos eqn0 code_rhs_opt prems concl matchedsss =
   let
     val (lhs, rhs) = HOLogic.dest_eq concl;
     val (fun_name, fun_args) = strip_comb lhs |>> fst o dest_Free;
@@ -630,12 +630,12 @@ val _ = tracing ("reduced\n    " ^ Syntax.string_of_term @{context} concl ^ "\nt
 
     val eqns_data_sel =
       map (dissect_coeqn_sel fun_names basic_ctr_specss eqn_pos
-        (SOME (abstract (List.rev fun_args) rhs)) code_rhs_opt eqn' (SOME ctr)) sel_concls;
+        (SOME (abstract (List.rev fun_args) rhs)) code_rhs_opt eqn0 (SOME ctr)) sel_concls;
   in
     (the_list eqn_data_disc_opt @ eqns_data_sel, matchedsss')
   end;
 
-fun dissect_coeqn_code lthy has_call fun_names basic_ctr_specss eqn_pos eqn' concl matchedsss =
+fun dissect_coeqn_code lthy has_call fun_names basic_ctr_specss eqn_pos eqn0 concl matchedsss =
   let
     val (lhs, (rhs', rhs)) = HOLogic.dest_eq concl ||> `(expand_corec_code_rhs lthy has_call []);
     val (fun_name, fun_args) = strip_comb lhs |>> fst o dest_Free;
@@ -657,16 +657,16 @@ fun dissect_coeqn_code lthy has_call fun_names basic_ctr_specss eqn_pos eqn' con
 
     val sequentials = replicate (length fun_names) false;
   in
-    fold_map2 (dissect_coeqn_ctr fun_names sequentials basic_ctr_specss eqn_pos eqn'
+    fold_map2 (dissect_coeqn_ctr fun_names sequentials basic_ctr_specss eqn_pos eqn0
         (SOME (abstract (List.rev fun_args) rhs)))
       ctr_premss ctr_concls matchedsss
   end;
 
 fun dissect_coeqn lthy has_call fun_names sequentials
-    (basic_ctr_specss : basic_corec_ctr_spec list list) (eqn_pos, eqn') of_spec_opt matchedsss =
+    (basic_ctr_specss : basic_corec_ctr_spec list list) (eqn_pos, eqn0) of_spec_opt matchedsss =
   let
-    val eqn = drop_All eqn'
-      handle TERM _ => primcorec_error_eqn "malformed function equation" eqn';
+    val eqn = drop_All eqn0
+      handle TERM _ => primcorec_error_eqn "malformed function equation" eqn0;
     val (prems, concl) = Logic.strip_horn eqn
       |> apfst (map HOLogic.dest_Trueprop) o apsnd HOLogic.dest_Trueprop;
 
@@ -681,20 +681,23 @@ fun dissect_coeqn lthy has_call fun_names sequentials
     val ctrs = maps (map #ctr) basic_ctr_specss;
   in
     if member (op =) discs head orelse
-      is_some rhs_opt andalso
-        member (op =) (filter (null o binder_types o fastype_of) ctrs) (the rhs_opt) then
-      dissect_coeqn_disc fun_names sequentials basic_ctr_specss eqn_pos NONE NONE prems concl matchedsss
+        is_some rhs_opt andalso
+          member (op =) (filter (null o binder_types o fastype_of) ctrs) (the rhs_opt) then
+      dissect_coeqn_disc fun_names sequentials basic_ctr_specss eqn_pos NONE NONE prems concl
+        matchedsss
       |>> single
     else if member (op =) sels head then
-      ([dissect_coeqn_sel fun_names basic_ctr_specss eqn_pos NONE NONE eqn' of_spec_opt concl],
+      ([dissect_coeqn_sel fun_names basic_ctr_specss eqn_pos NONE NONE eqn0 of_spec_opt concl],
        matchedsss)
-    else if is_Free head andalso member (op =) fun_names (fst (dest_Free head)) andalso
-      member (op =) ctrs (head_of (unfold_let (the rhs_opt))) then
-      dissect_coeqn_ctr fun_names sequentials basic_ctr_specss eqn_pos eqn' NONE prems concl matchedsss
-    else if is_Free head andalso member (op =) fun_names (fst (dest_Free head)) andalso
-      null prems then
-      dissect_coeqn_code lthy has_call fun_names basic_ctr_specss eqn_pos eqn' concl matchedsss
-      |>> flat
+    else if is_Free head andalso member (op =) fun_names (fst (dest_Free head)) then
+      if member (op =) ctrs (head_of (unfold_let (the rhs_opt))) then
+        dissect_coeqn_ctr fun_names sequentials basic_ctr_specss eqn_pos eqn0
+          (if null prems then SOME eqn0 else NONE) prems concl matchedsss
+      else if null prems then
+        dissect_coeqn_code lthy has_call fun_names basic_ctr_specss eqn_pos eqn0 concl matchedsss
+        |>> flat
+      else
+        primcorec_error_eqn "malformed constructor or code view equation" eqn
     else
       primcorec_error_eqn "malformed function equation" eqn
   end;
@@ -939,7 +942,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
 *)
 
     val excludess'' = map2 (fn sequential => map (fn (idx, goal) =>
-        (idx, (Option.map (Goal.prove lthy [] [] goal #> Thm.close_derivation)
+        (idx, (Option.map (Goal.prove_sorry lthy [] [] goal #> Thm.close_derivation)
            (exclude_tac sequential idx), goal))))
       sequentials excludess';
     val taut_thmss = map (map (apsnd (the o fst)) o filter (is_some o fst o snd)) excludess'';
@@ -960,7 +963,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
       map2 (fn b => fn b' => b orelse b') exhaustives syntactic_exhaustives;
 
     fun map_prove_with_tac tac =
-      map (fn goal => Goal.prove lthy [] [] goal tac |> Thm.close_derivation);
+      map (fn goal => Goal.prove_sorry lthy [] [] goal tac |> Thm.close_derivation);
 
     val nchotomy_goalss =
       map2 (fn false => K [] | true => single o HOLogic.mk_Trueprop o mk_dnf o map #prems)
@@ -1004,7 +1007,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
               | [nchotomy_thm] => fn [goal] =>
                 [mk_primcorec_exhaust_tac lthy ("" (* for "P" *) :: map (fst o dest_Free) fun_args)
                    (length disc_eqns) nchotomy_thm
-                 |> K |> Goal.prove lthy [] [] goal
+                 |> K |> Goal.prove_sorry lthy [] [] goal
                  |> Thm.close_derivation])
             disc_eqnss nchotomy_thmss;
         val nontriv_exhaust_thmss = map (filter_out is_trivial_implies) exhaust_thmss;
@@ -1037,7 +1040,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                 []
               else
                 mk_primcorec_disc_tac lthy def_thms disc_corec k m excludesss
-                |> K |> Goal.prove lthy [] [] goal
+                |> K |> Goal.prove_sorry lthy [] [] goal
                 |> Thm.close_derivation
                 |> pair (#disc (nth ctr_specs ctr_no))
                 |> pair eqn_pos
@@ -1067,7 +1070,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
           in
             mk_primcorec_sel_tac lthy def_thms distincts sel_splits sel_split_asms nested_map_idents
               nested_map_comps sel_corec k m excludesss
-            |> K |> Goal.prove lthy [] [] goal
+            |> K |> Goal.prove_sorry lthy [] [] goal
             |> Thm.close_derivation
             |> pair sel
             |> pair eqn_pos
@@ -1081,8 +1084,9 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
             orelse
               filter (curry (op =) ctr o #ctr) sel_eqns
               |> fst o finds ((op =) o apsnd #sel) sels
-              |> exists (null o snd)
-          then [] else
+              |> exists (null o snd) then
+            []
+          else
             let
               val (fun_name, fun_T, fun_args, prems, rhs_opt, eqn_pos) =
                 (find_first (curry (op =) ctr o #ctr) disc_eqns,
@@ -1109,7 +1113,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
             in
               if prems = [@{term False}] then [] else
                 mk_primcorec_ctr_of_dtr_tac lthy m collapse disc_thm_opt sel_thms
-                |> K |> Goal.prove lthy [] [] goal
+                |> K |> Goal.prove_sorry lthy [] [] goal
                 |> Thm.close_derivation
                 |> pair ctr
                 |> pair eqn_pos
@@ -1191,11 +1195,11 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                     val raw_code_thm = mk_primcorec_raw_code_of_ctr_tac lthy distincts discIs
                         sel_splits sel_split_asms ms ctr_thms
                         (if exhaustive_code then try the_single nchotomys else NONE)
-                      |> K |> Goal.prove lthy [] [] raw_goal
+                      |> K |> Goal.prove_sorry lthy [] [] raw_goal
                       |> Thm.close_derivation;
                   in
                     mk_primcorec_code_of_raw_code_tac lthy distincts sel_splits raw_code_thm
-                    |> K |> Goal.prove lthy [] [] goal
+                    |> K |> Goal.prove_sorry lthy [] [] goal
                     |> Thm.close_derivation
                     |> single
                   end)
@@ -1227,7 +1231,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
               else
                 mk_primcorec_disc_iff_tac lthy (map (fst o dest_Free) fun_args)
                   (the_single exhaust_thms) (the_single disc_thms) disc_thmss' (flat disc_excludess)
-                |> K |> Goal.prove lthy [] [] goal
+                |> K |> Goal.prove_sorry lthy [] [] goal
                 |> Thm.close_derivation
                 |> pair eqn_pos
                 |> single
