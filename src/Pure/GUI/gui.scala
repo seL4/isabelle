@@ -8,6 +8,7 @@ Basic GUI tools (for AWT/Swing).
 package isabelle
 
 
+import java.lang.{ClassLoader, ClassNotFoundException, NoSuchMethodException}
 import java.awt.{Image, Component, Container, Toolkit, Window, Font}
 import java.awt.font.{TextAttribute, TransformAttribute, FontRenderContext, LineMetrics}
 import java.awt.geom.AffineTransform
@@ -36,6 +37,26 @@ object GUI
   def is_macos_laf(): Boolean =
     Platform.is_macos &&
     UIManager.getSystemLookAndFeelClassName() == UIManager.getLookAndFeel.getClass.getName
+
+
+  /* X11 window manager */
+
+  def window_manager(): Option[String] =
+  {
+    try {
+      val XWM = Class.forName("sun.awt.X11.XWM", true, ClassLoader.getSystemClassLoader)
+      val getWM = XWM.getDeclaredMethod("getWM")
+      getWM.setAccessible(true)
+      getWM.invoke(null) match {
+        case null => None
+        case wm => Some(wm.toString)
+      }
+    }
+    catch {
+      case _: ClassNotFoundException => None
+      case _: NoSuchMethodException => None
+    }
+  }
 
 
   /* simple dialogs */
