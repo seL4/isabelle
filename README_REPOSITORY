@@ -1,13 +1,13 @@
 Important notes on Mercurial repository access for Isabelle
 ===========================================================
 
-Quick start in 25min
+Quick start in 30min
 --------------------
 
 1a. Linux and Mac OS X: ensure that Perl (with libwww) and Mercurial (hg)
     is installed (see also http://www.selenic.com/mercurial)
 
-1b. Windows: ensure that Cygwin with Mercurial and Perl is installed (see
+1b. Windows: ensure that Cygwin with Perl and Mercurial is installed (see
     also http://www.cygwin.com)
 
 2. Clone repository (bash shell commands):
