@@ -36,6 +36,7 @@ val neq_eq_eq_contradict = @{thm neq_eq_eq_contradict};
 val split_if = @{thm split_if};
 val split_if_asm = @{thm split_if_asm};
 val split_connectI = @{thms allI impI conjI};
+val unfold_lets = @{thms Let_def[abs_def] split_beta}
 
 fun exhaust_inst_as_projs ctxt frees thm =
   let
@@ -133,7 +134,7 @@ fun mk_primcorec_sel_tac ctxt defs distincts splits split_asms map_idents map_co
 fun mk_primcorec_ctr_of_dtr_tac ctxt m collapse disc_fun_opt sel_funs =
   HEADGOAL (rtac ((if null sel_funs then collapse else collapse RS sym) RS trans) THEN'
     (the_default (K all_tac) (Option.map rtac disc_fun_opt)) THEN' REPEAT_DETERM_N m o atac) THEN
-  unfold_thms_tac ctxt (Let_def :: sel_funs) THEN HEADGOAL (rtac refl);
+  unfold_thms_tac ctxt (unfold_lets @ sel_funs) THEN HEADGOAL (rtac refl);
 
 fun inst_split_eq ctxt split =
   (case prop_of split of
