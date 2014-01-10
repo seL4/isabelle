@@ -1041,7 +1041,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
         val excludess' = map (op ~~) (goal_idxss ~~ exclude_thmss);
         fun mk_excludesss excludes n =
           fold (fn ((c, c', _), thm) => nth_map c (nth_map c' (K [thm])))
-            excludes (map (fn k => replicate k [TrueI] @ replicate (n - k) []) (0 upto n - 1));
+            excludes (map (fn k => replicate k [asm_rl] @ replicate (n - k) []) (0 upto n - 1));
         val excludessss =
           map2 (fn excludes => mk_excludesss excludes o length o #ctr_specs)
             (map2 append excludess' taut_thmss) corec_specs;
