@@ -64,18 +64,19 @@ fun prepare_decl prepare_constraint prepare_typ raw_vars b mx user_mapb user_rel
 
     fun mk_wits_tac set_maps = K (TRYALL Goal.conjunction_tac) THEN' the triv_tac_opt set_maps;
     val wit_goals = map Logic.mk_conjunction_balanced wit_goalss;
-    fun mk_wit_thms set_maps =
-      Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced wit_goals) (mk_wits_tac set_maps)
-        |> Conjunction.elim_balanced (length wit_goals)
-        |> map2 (Conjunction.elim_balanced o length) wit_goalss
-        |> map (map (Thm.close_derivation o Thm.forall_elim_vars 0));
 
     val ((_, [thms]), (lthy_old, lthy)) = Local_Theory.background_theory_result
       (Specification.axiomatization [] [((mk_b "axioms" Binding.empty, []), goals)]) lthy
       ||> `Local_Theory.restore;
+
+    fun mk_wit_thms set_maps =
+      Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced wit_goals) (mk_wits_tac set_maps)
+      |> Conjunction.elim_balanced (length wit_goals)
+      |> map2 (Conjunction.elim_balanced o length) wit_goalss
+      |> map (map (Thm.close_derivation o Thm.forall_elim_vars 0));
     val phi = Proof_Context.export_morphism lthy_old lthy;
   in
-    BNF_Def.register_bnf key (after_qed mk_wit_thms (map single  (Morphism.fact phi thms)) lthy)
+    BNF_Def.register_bnf key (after_qed mk_wit_thms (map single (Morphism.fact phi thms)) lthy)
   end;
 
 val bnf_decl = prepare_decl (K I) (K I);
