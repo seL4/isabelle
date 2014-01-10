@@ -215,6 +215,8 @@ fun prove_common immediate pri ctxt xs asms props tac =
         NONE => err "Tactic failed"
       | SOME st =>
           let
+            val _ =
+              Theory.subthy (theory_of_thm st, thy) orelse err "Bad background theory of goal state";
             val res =
               (finish ctxt' st
                 |> Drule.flexflex_unique
