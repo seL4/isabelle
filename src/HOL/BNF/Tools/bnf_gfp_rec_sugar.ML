@@ -605,7 +605,7 @@ fun dissect_coeqn_sel fun_names (basic_ctr_specss : basic_corec_ctr_spec list li
         SOME of_spec => the (find_first (curry (op =) of_spec o #ctr) basic_ctr_specs)
       | NONE => filter (exists (curry (op =) sel) o #sels) basic_ctr_specs |> the_single
           handle List.Empty => primcorec_error_eqn "ambiguous selector - use \"of\"" eqn);
-    val user_eqn = drop_All eqn0;
+    val user_eqn = drop_all eqn0;
   in
     Sel {
       fun_name = fun_name,
@@ -664,8 +664,7 @@ fun dissect_coeqn_code lthy has_call fun_names basic_ctr_specss eqn_pos eqn0 con
     val SOME basic_ctr_specs = AList.lookup (op =) (fun_names ~~ basic_ctr_specss) fun_name;
 
     val cond_ctrs = fold_rev_corec_code_rhs lthy (fn cs => fn ctr => fn _ =>
-        if member ((op =) o apsnd #ctr) basic_ctr_specs ctr
-        then cons (ctr, cs)
+        if member ((op =) o apsnd #ctr) basic_ctr_specs ctr then cons (ctr, cs)
         else primcorec_error_eqn "not a constructor" ctr) [] rhs' []
       |> AList.group (op =);
 
@@ -687,7 +686,7 @@ fun dissect_coeqn_code lthy has_call fun_names basic_ctr_specss eqn_pos eqn0 con
 fun dissect_coeqn lthy has_call fun_names sequentials
     (basic_ctr_specss : basic_corec_ctr_spec list list) (eqn_pos, eqn0) of_spec_opt matchedsss =
   let
-    val eqn = drop_All eqn0
+    val eqn = drop_all eqn0
       handle TERM _ => primcorec_error_eqn "malformed function equation" eqn0;
     val (prems, concl) = Logic.strip_horn eqn
       |> apfst (map HOLogic.dest_Trueprop) o apsnd HOLogic.dest_Trueprop;
@@ -714,7 +713,10 @@ fun dissect_coeqn lthy has_call fun_names sequentials
     else if is_Free head andalso member (op =) fun_names (fst (dest_Free head)) then
       if member (op =) ctrs (head_of (unfold_let (the rhs_opt))) then
         dissect_coeqn_ctr fun_names sequentials basic_ctr_specss eqn_pos eqn0
-          (if null prems then SOME (snd (HOLogic.dest_eq (HOLogic.dest_Trueprop eqn))) else NONE)
+          (if null prems then
+             SOME (snd (HOLogic.dest_eq (HOLogic.dest_Trueprop (Logic.strip_assums_concl eqn0))))
+           else
+             NONE)
           prems concl matchedsss
       else if null prems then
         dissect_coeqn_code lthy has_call fun_names basic_ctr_specss eqn_pos eqn0 concl matchedsss
@@ -866,7 +868,7 @@ fun mk_actual_disc_eqns fun_binding arg_Ts exhaustive ({ctr_specs, ...} : corec_
           auto_gen = true,
           ctr_rhs_opt = Option.map #ctr_rhs_opt sel_eqn_opt |> the_default NONE,
           code_rhs_opt = Option.map #ctr_rhs_opt sel_eqn_opt |> the_default NONE,
-          eqn_pos = Option.map (curry (op +) 1 o #eqn_pos) sel_eqn_opt |> the_default 100000 (*###*),
+          eqn_pos = Option.map (curry (op +) 1 o #eqn_pos) sel_eqn_opt |> the_default 100000 (* FIXME *),
           user_eqn = undef_const};
       in
         chop n disc_eqns ||> cons extra_disc_eqn |> (op @)

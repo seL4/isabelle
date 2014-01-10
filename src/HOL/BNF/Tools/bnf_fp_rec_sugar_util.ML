@@ -15,7 +15,7 @@ sig
   val find_index_eq: ''a list -> ''a -> int
   val finds: ('a * 'b -> bool) -> 'a list -> 'b list -> ('a * 'b list) list * 'b list
 
-  val drop_All: term -> term
+  val drop_all: term -> term
 
   val mk_partial_compN: int -> typ -> term -> term
   val mk_partial_comp: typ -> typ -> term -> term
@@ -38,7 +38,7 @@ fun find_index_eq hs h = find_index (curry (op =) h) hs;
 
 fun finds eq = fold_map (fn x => List.partition (curry eq x) #>> pair x);
 
-fun drop_All t =
+fun drop_all t =
   subst_bounds (strip_qnt_vars @{const_name all} t |> map Free |> rev,
     strip_qnt_body @{const_name all} t);
 

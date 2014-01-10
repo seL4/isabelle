@@ -237,7 +237,7 @@ type eqn_data = {
 
 fun dissect_eqn lthy fun_names eqn' =
   let
-    val eqn = drop_All eqn' |> HOLogic.dest_Trueprop
+    val eqn = drop_all eqn' |> HOLogic.dest_Trueprop
       handle TERM _ =>
         primrec_error_eqn "malformed function equation (expected \"lhs = rhs\")" eqn';
     val (lhs, rhs) = HOLogic.dest_eq eqn
