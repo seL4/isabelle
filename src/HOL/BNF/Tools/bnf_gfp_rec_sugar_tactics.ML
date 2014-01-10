@@ -118,10 +118,13 @@ fun mk_primcorec_disc_iff_tac ctxt fun_exhaust_frees fun_exhaust fun_discs fun_d
           if eq_list Thm.eq_thm (fun_discs', fun_discs) then
             REPEAT_DETERM o etac conjI THEN' (atac ORELSE' rtac TrueI)
           else
-            rtac FalseE THEN' rotate_tac 1 THEN' dtac fun_disc' THEN' REPEAT_DETERM o atac THEN'
+            rtac FalseE THEN'
+            (rotate_tac 1 THEN' dtac fun_disc' THEN' REPEAT_DETERM o atac ORELSE'
+             cut_tac fun_disc') THEN'
             dresolve_tac disc_excludes THEN' etac notE THEN' atac)
       fun_discss) THEN'
-    resolve_tac (map (unfold_thms ctxt [atomize_conjL]) fun_discs) THEN_MAYBE' atac);
+    (etac FalseE ORELSE'
+     resolve_tac (map (unfold_thms ctxt [atomize_conjL]) fun_discs) THEN_MAYBE' atac));
 
 fun mk_primcorec_sel_tac ctxt defs distincts splits split_asms mapsx map_idents map_comps fun_sel k
     m excludesss =
