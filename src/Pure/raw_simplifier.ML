@@ -604,26 +604,26 @@ fun orient_rrule ctxt (thm, name) =
     else rrule_eq_True ctxt thm name lhs elhs rhs thm
   end;
 
-fun extract_rews (ctxt, thms) =
+fun extract_rews ctxt thms =
   let val Simpset (_, {mk_rews = {mk, ...}, ...}) = simpset_of ctxt
   in maps (fn thm => map (rpair (Thm.get_name_hint thm)) (mk ctxt thm)) thms end;
 
-fun extract_safe_rrules (ctxt, thm) =
-  maps (orient_rrule ctxt) (extract_rews (ctxt, [thm]));
+fun extract_safe_rrules ctxt thm =
+  maps (orient_rrule ctxt) (extract_rews ctxt [thm]);
 
 
 (* add/del rules explicitly *)
 
-fun comb_simps comb mk_rrule (ctxt, thms) =
+fun comb_simps ctxt comb mk_rrule thms =
   let
-    val rews = extract_rews (ctxt, thms);
+    val rews = extract_rews ctxt thms;
   in fold (fold comb o mk_rrule) rews ctxt end;
 
 fun ctxt addsimps thms =
-  comb_simps insert_rrule (mk_rrule ctxt) (ctxt, thms);
+  comb_simps ctxt insert_rrule (mk_rrule ctxt) thms;
 
 fun ctxt delsimps thms =
-  comb_simps del_rrule (map mk_rrule2 o mk_rrule ctxt) (ctxt, thms);
+  comb_simps ctxt del_rrule (map mk_rrule2 o mk_rrule ctxt) thms;
 
 fun add_simp thm ctxt = ctxt addsimps [thm];
 fun del_simp thm ctxt = ctxt delsimps [thm];
@@ -1197,7 +1197,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, maxidx) =
         prem; ([], NONE))
       else
         let val asm = Thm.assume prem
-        in (extract_safe_rrules (ctxt, asm), SOME asm) end
+        in (extract_safe_rrules ctxt asm, SOME asm) end
 
     and add_rrules (rrss, asms) ctxt =
       (fold o fold) insert_rrule rrss ctxt |> add_prems (map_filter I asms)
