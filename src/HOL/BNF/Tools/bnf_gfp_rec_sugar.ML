@@ -989,9 +989,14 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
         de_facto_exhaustives disc_eqnss
       |> list_all_fun_args []
     val nchotomy_taut_thmss =
-      map3 (fn {disc_exhausts, ...} => fn false => K []
-          | true => map_prove_with_tac (fn {context = ctxt, ...} =>
-              mk_primcorec_nchotomy_tac ctxt disc_exhausts))
+      map3 (fn {disc_exhausts, ...} => fn syntactic_exhaustive =>
+          if syntactic_exhaustive then
+            map_prove_with_tac (fn {context = ctxt, ...} =>
+              mk_primcorec_nchotomy_tac ctxt disc_exhausts)
+          else
+            (case tac_opt of
+              SOME tac => map_prove_with_tac tac
+            | NONE => K []))
         corec_specs syntactic_exhaustives nchotomy_goalss;
     val goalss = goalss'
       |> (if is_none tac_opt then
@@ -1004,9 +1009,11 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
       let
         val def_thms = map (snd o snd) def_thms';
 
-        val nchotomy_thmss = nchotomy_taut_thmss
-          |> (if is_none tac_opt then map2 append (take actual_nn thmss'') else I);
-        val exclude_thmss = thmss'' |> is_none tac_opt ? drop actual_nn;
+        val (nchotomy_thmss, exclude_thmss) =
+          if is_none tac_opt then
+            (map2 append (take actual_nn thmss'') nchotomy_taut_thmss, drop actual_nn thmss'')
+          else
+            (nchotomy_taut_thmss, thmss'');
 
         val ps =
           Variable.variant_frees lthy (maps (maps #fun_args) disc_eqnss) [("P", HOLogic.boolT)];
@@ -1329,7 +1336,7 @@ val add_primcorecursive_cmd = (fn (goalss, after_qed, lthy) =>
 val add_primcorec_cmd = (fn (goalss, after_qed, lthy) =>
   lthy
   |> after_qed (map (fn [] => []
-      | _ => primcorec_error "need exclusiveness proofs - use primcorecursive instead of primcorec")
+      | _ => error "\"auto\" failed -- use \"primcorecursive\" instead of \"primcorec\"")
     goalss)) ooo add_primcorec_ursive_cmd (SOME (auto_tac o #context));
 
 end;
