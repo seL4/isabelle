@@ -43,19 +43,21 @@ object GUI
 
   def window_manager(): Option[String] =
   {
-    try {
-      val XWM = Class.forName("sun.awt.X11.XWM", true, ClassLoader.getSystemClassLoader)
-      val getWM = XWM.getDeclaredMethod("getWM")
-      getWM.setAccessible(true)
-      getWM.invoke(null) match {
-        case null => None
-        case wm => Some(wm.toString)
+    if (Platform.is_windows || Platform.is_macos) None
+    else
+      try {
+        val XWM = Class.forName("sun.awt.X11.XWM", true, ClassLoader.getSystemClassLoader)
+        val getWM = XWM.getDeclaredMethod("getWM")
+        getWM.setAccessible(true)
+        getWM.invoke(null) match {
+          case null => None
+          case wm => Some(wm.toString)
+        }
       }
-    }
-    catch {
-      case _: ClassNotFoundException => None
-      case _: NoSuchMethodException => None
-    }
+      catch {
+        case _: ClassNotFoundException => None
+        case _: NoSuchMethodException => None
+      }
   }
 
 
