@@ -632,9 +632,11 @@ fun dissect_coeqn_ctr fun_names sequentials (basic_ctr_specss : basic_corec_ctr_
       handle Option.Option => primcorec_error_eqn "not a constructor" ctr;
 
     val disc_concl = betapply (disc, lhs);
-    val (eqn_data_disc_opt, matchedsss') = if length basic_ctr_specs = 1
-      then (NONE, matchedsss)
-      else apfst SOME (dissect_coeqn_disc fun_names sequentials basic_ctr_specss eqn_pos
+    val (eqn_data_disc_opt, matchedsss') =
+      if null (tl basic_ctr_specs) then
+        (NONE, matchedsss)
+      else
+        apfst SOME (dissect_coeqn_disc fun_names sequentials basic_ctr_specss eqn_pos
           (SOME (abstract (List.rev fun_args) rhs)) code_rhs_opt prems disc_concl matchedsss);
 
     val sel_concls = sels ~~ ctr_args
@@ -1243,7 +1245,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
         fun prove_disc_iff ({ctr_specs, ...} : corec_spec) exhaust_thms disc_thmss'
             (({fun_args = exhaust_fun_args, ...} : coeqn_data_disc) :: _) disc_thms
             ({fun_name, fun_T, fun_args, ctr_no, prems, eqn_pos, ...} : coeqn_data_disc) =
-          if null exhaust_thms then
+          if null exhaust_thms orelse null (tl ctr_specs) then
             []
           else
             let
