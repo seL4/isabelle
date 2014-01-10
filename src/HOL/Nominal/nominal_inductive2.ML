@@ -335,13 +335,13 @@ fun prove_strong_ind s alt_name avoids ctxt =
           (map Bound (length pTs - 1 downto 0));
         val _ $ (f $ (_ $ pi $ l) $ r) = prop_of th2
         val th2' =
-          Goal.prove ctxt [] []
+          Goal.prove ctxt' [] []
             (Logic.list_all (map (pair "pi") pTs, HOLogic.mk_Trueprop
                (f $ fold_rev (NominalDatatype.mk_perm (rev pTs))
                   (pis1 @ pi :: pis2) l $ r)))
             (fn _ => cut_facts_tac [th2] 1 THEN
-               full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps perm_set_forget) 1) |>
-          Simplifier.simplify (put_simpset eqvt_ss ctxt)
+               full_simp_tac (put_simpset HOL_basic_ss ctxt' addsimps perm_set_forget) 1) |>
+          Simplifier.simplify (put_simpset eqvt_ss ctxt')
       in
         (freshs @ [term_of cx],
          ths1 @ ths, ths2 @ [th1], ths3 @ [th2'], ctxt')
@@ -401,16 +401,16 @@ fun prove_strong_ind s alt_name avoids ctxt =
                    (map (fold_rev (NominalDatatype.mk_perm [])
                       (pis' @ pis) #> cterm_of thy) params' @ [cterm_of thy z]);
                  fun mk_pi th =
-                   Simplifier.simplify (put_simpset HOL_basic_ss ctxt addsimps [@{thm id_apply}]
+                   Simplifier.simplify (put_simpset HOL_basic_ss ctxt' addsimps [@{thm id_apply}]
                        addsimprocs [NominalDatatype.perm_simproc])
-                     (Simplifier.simplify (put_simpset eqvt_ss ctxt)
+                     (Simplifier.simplify (put_simpset eqvt_ss ctxt')
                        (fold_rev (mk_perm_bool o cterm_of thy)
                          (pis' @ pis) th));
                  val gprems2 = map (fn (th, t) =>
                    if null (preds_of ps t) then mk_pi th
                    else
-                     mk_pi (the (map_thm ctxt (inst_conj_all names ps (rev pis''))
-                       (inst_conj_all_tac ctxt (length pis'')) monos (SOME t) th)))
+                     mk_pi (the (map_thm ctxt' (inst_conj_all names ps (rev pis''))
+                       (inst_conj_all_tac ctxt' (length pis'')) monos (SOME t) th)))
                    (gprems ~~ oprems);
                  val perm_freshs_freshs' = map (fn (th, (_, T)) =>
                    th RS the (AList.lookup op = perm_freshs_freshs T))

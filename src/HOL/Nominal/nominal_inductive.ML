@@ -343,19 +343,19 @@ fun prove_strong_ind s avoids ctxt =
                     map (fold_rev (NominalDatatype.mk_perm [])
                       (rev pis' @ pis)) params' @ [z])) ihyp;
                  fun mk_pi th =
-                   Simplifier.simplify (put_simpset HOL_basic_ss ctxt addsimps [@{thm id_apply}]
+                   Simplifier.simplify (put_simpset HOL_basic_ss ctxt' addsimps [@{thm id_apply}]
                        addsimprocs [NominalDatatype.perm_simproc])
-                     (Simplifier.simplify (put_simpset eqvt_ss ctxt)
+                     (Simplifier.simplify (put_simpset eqvt_ss ctxt')
                        (fold_rev (mk_perm_bool o cterm_of thy)
                          (rev pis' @ pis) th));
                  val (gprems1, gprems2) = split_list
                    (map (fn (th, t) =>
                       if null (preds_of ps t) then (SOME th, mk_pi th)
                       else
-                        (map_thm ctxt (split_conj (K o I) names)
+                        (map_thm ctxt' (split_conj (K o I) names)
                            (etac conjunct1 1) monos NONE th,
-                         mk_pi (the (map_thm ctxt (inst_conj_all names ps (rev pis''))
-                           (inst_conj_all_tac ctxt (length pis'')) monos (SOME t) th))))
+                         mk_pi (the (map_thm ctxt' (inst_conj_all names ps (rev pis''))
+                           (inst_conj_all_tac ctxt' (length pis'')) monos (SOME t) th))))
                       (gprems ~~ oprems)) |>> map_filter I;
                  val vc_compat_ths' = map (fn th =>
                    let
@@ -625,9 +625,9 @@ fun prove_eqvt s xatoms ctxt =
           in error ("Could not prove equivariance for introduction rule\n" ^
             Syntax.string_of_term ctxt''' t ^ "\n" ^ s)
           end;
-        val res = SUBPROOF (fn {prems, params, ...} =>
+        val res = SUBPROOF (fn {context = ctxt'', prems, params, ...} =>
           let
-            val prems' = map (fn th => the_default th (map_thm ctxt'
+            val prems' = map (fn th => the_default th (map_thm ctxt''
               (split_conj (K I) names) (etac conjunct2 1) monos NONE th)) prems;
             val prems'' = map (fn th => Simplifier.simplify eqvt_simpset
               (mk_perm_bool (cterm_of thy pi) th)) prems';
