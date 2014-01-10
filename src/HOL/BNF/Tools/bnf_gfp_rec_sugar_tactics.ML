@@ -88,25 +88,25 @@ fun same_case_tac ctxt m =
   HEADGOAL (if m = 0 then rtac TrueI
     else REPEAT_DETERM_N (m - 1) o (rtac conjI THEN' case_atac ctxt) THEN' case_atac ctxt);
 
-fun different_case_tac ctxt m excl =
+fun different_case_tac ctxt m exclude =
   HEADGOAL (if m = 0 then
       mk_primcorec_assumption_tac ctxt []
     else
-      dtac excl THEN' (REPEAT_DETERM_N (m - 1) o case_atac ctxt) THEN'
+      dtac exclude THEN' (REPEAT_DETERM_N (m - 1) o case_atac ctxt) THEN'
       mk_primcorec_assumption_tac ctxt []);
 
-fun cases_tac ctxt k m exclsss =
-  let val n = length exclsss in
+fun cases_tac ctxt k m excludesss =
+  let val n = length excludesss in
     EVERY (map (fn [] => if k = n then all_tac else same_case_tac ctxt m
-        | [excl] => different_case_tac ctxt m excl)
-      (take k (nth exclsss (k - 1))))
+        | [exclude] => different_case_tac ctxt m exclude)
+      (take k (nth excludesss (k - 1))))
   end;
 
 fun prelude_tac ctxt defs thm =
   unfold_thms_tac ctxt defs THEN HEADGOAL (rtac thm) THEN unfold_thms_tac ctxt unfold_lets;
 
-fun mk_primcorec_disc_tac ctxt defs disc_corec k m exclsss =
-  prelude_tac ctxt defs disc_corec THEN cases_tac ctxt k m exclsss;
+fun mk_primcorec_disc_tac ctxt defs disc_corec k m excludesss =
+  prelude_tac ctxt defs disc_corec THEN cases_tac ctxt k m excludesss;
 
 fun mk_primcorec_disc_iff_tac ctxt fun_exhaust_frees fun_exhaust fun_discs fun_discss
     disc_excludes =
@@ -124,9 +124,9 @@ fun mk_primcorec_disc_iff_tac ctxt fun_exhaust_frees fun_exhaust fun_discs fun_d
     resolve_tac (map (unfold_thms ctxt [atomize_conjL]) fun_discs) THEN_MAYBE' atac);
 
 fun mk_primcorec_sel_tac ctxt defs distincts splits split_asms mapsx map_idents map_comps fun_sel k
-    m exclsss =
+    m excludesss =
   prelude_tac ctxt defs (fun_sel RS trans) THEN
-  cases_tac ctxt k m exclsss THEN
+  cases_tac ctxt k m excludesss THEN
   HEADGOAL (REPEAT_DETERM o (rtac refl ORELSE' rtac ext ORELSE'
     eresolve_tac falseEs ORELSE'
     resolve_tac split_connectI ORELSE'
