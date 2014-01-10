@@ -10,9 +10,9 @@ sig
   val assume_export: export
   val presume_export: export
   val assume: Proof.context -> cterm -> thm
+  val assume_hyps: cterm -> Proof.context -> thm * Proof.context
   val all_assms_of: Proof.context -> cterm list
   val all_prems_of: Proof.context -> thm list
-  val check_hyps: Proof.context -> thm -> thm
   val local_assms_of: Proof.context -> Proof.context -> cterm list
   val local_prems_of: Proof.context -> Proof.context -> thm list
   val add_assms: export -> cterm list -> Proof.context -> thm list * Proof.context
@@ -48,7 +48,12 @@ fun assume_export is_goal asms =
 *)
 fun presume_export _ = assume_export false;
 
+
 fun assume ctxt = Raw_Simplifier.norm_hhf ctxt o Thm.assume;
+
+fun assume_hyps ct ctxt =
+  let val (th, ctxt') = Thm.assume_hyps ct ctxt
+  in (Raw_Simplifier.norm_hhf ctxt' th, ctxt') end;
 
 
 
@@ -76,13 +81,6 @@ val all_assumptions_of = #assms o rep_data;
 val all_assms_of = maps #2 o all_assumptions_of;
 val all_prems_of = #prems o rep_data;
 
-fun check_hyps ctxt th =
-  let
-    val extra_hyps = subtract (op aconv) (map Thm.term_of (all_assms_of ctxt)) (Thm.hyps_of th);
-    val _ = null extra_hyps orelse
-      error ("Additional hypotheses:\n" ^ cat_lines (map (Syntax.string_of_term ctxt) extra_hyps));
-  in th end;
-
 
 (* local assumptions *)
 
@@ -98,8 +96,8 @@ fun local_prems_of inner outer =
 (* add assumptions *)
 
 fun add_assms export new_asms ctxt =
-  let val new_prems = map (assume ctxt) new_asms in
-    ctxt
+  let val (new_prems, ctxt') = fold_map assume_hyps new_asms ctxt in
+    ctxt'
     |> map_data (fn (asms, prems) => (asms @ [(export, new_asms)], prems @ new_prems))
     |> pair new_prems
   end;

@@ -187,8 +187,7 @@ fun recover_mutual_psimp all_orig_fdefs parts ctxt (fname, _, _, args, rhs)
       | [cond] => (Thm.implies_elim psimp (Thm.assume cond), Thm.implies_intr cond)
       | _ => raise General.Fail "Too many conditions"
 
-    val (_, simp_ctxt) = ctxt
-      |> Assumption.add_assumes (#hyps (Thm.crep_thm simp))
+    val simp_ctxt = fold Thm.declare_hyps (#hyps (Thm.crep_thm simp)) ctxt
   in
     Goal.prove simp_ctxt [] []
       (HOLogic.Trueprop $ HOLogic.mk_eq (list_comb (f, args), rhs))

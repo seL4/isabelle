@@ -52,6 +52,9 @@ sig
   val full_rules: thm Item_Net.T
   val intro_rules: thm Item_Net.T
   val elim_rules: thm Item_Net.T
+  val declare_hyps: cterm -> Proof.context -> Proof.context
+  val assume_hyps: cterm -> Proof.context -> thm * Proof.context
+  val check_hyps: Proof.context -> thm -> thm
   val elim_implies: thm -> thm -> thm
   val forall_elim_var: int -> thm -> thm
   val forall_elim_vars: int -> thm -> thm
@@ -256,6 +259,30 @@ val merge_thms = merge eq_thm_prop;
 val full_rules = Item_Net.init eq_thm_prop (single o Thm.full_prop_of);
 val intro_rules = Item_Net.init eq_thm_prop (single o Thm.concl_of);
 val elim_rules = Item_Net.init eq_thm_prop (single o Thm.major_prem_of);
+
+
+
+(** declared hyps **)
+
+structure Hyps = Proof_Data
+(
+  type T = Termtab.set;
+  fun init _ : T = Termtab.empty;
+);
+
+fun declare_hyps ct ctxt =
+  if Theory.subthy (theory_of_cterm ct, Proof_Context.theory_of ctxt) then
+    Hyps.map (Termtab.update (term_of ct, ())) ctxt
+  else raise CTERM ("assume_hyps: bad background theory", [ct]);
+
+fun assume_hyps ct ctxt = (Thm.assume ct, declare_hyps ct ctxt);
+
+fun check_hyps ctxt th =
+  let
+    val undeclared = filter_out (Termtab.defined (Hyps.get ctxt)) (Thm.hyps_of th);
+    val _ = null undeclared orelse
+      error ("Undeclared hypotheses:\n" ^ cat_lines (map (Syntax.string_of_term ctxt) undeclared));
+  in th end;
 
 
 

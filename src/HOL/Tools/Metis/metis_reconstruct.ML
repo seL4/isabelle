@@ -425,16 +425,17 @@ fun resynchronize ctxt fol_th th =
         val (prems0, concl) = th |> prop_of |> Logic.strip_horn
         val prems = prems0 |> map normalize_literal |> distinct Term.aconv_untyped
         val goal = Logic.list_implies (prems, concl)
+        val ctxt' = fold Thm.declare_hyps (#hyps (Thm.crep_thm th)) ctxt
         val tac =
           cut_tac th 1
-          THEN rewrite_goals_tac ctxt @{thms not_not [THEN eq_reflection]}
+          THEN rewrite_goals_tac ctxt' @{thms not_not [THEN eq_reflection]}
           THEN ALLGOALS assume_tac
       in
         if length prems = length prems0 then
           raise METIS_RECONSTRUCT ("resynchronize", "Out of sync")
         else
-          Goal.prove ctxt [] [] goal (K tac)
-          |> resynchronize ctxt fol_th
+          Goal.prove ctxt' [] [] goal (K tac)
+          |> resynchronize ctxt' fol_th
       end
   end
 
@@ -722,8 +723,9 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
         THEN TRY (REPEAT_ALL_NEW (etac @{thm exE}) 1)
       fun rotation_of_subgoal i =
         find_index (fn (_, (subgoal_no, _)) => subgoal_no = i) substs
+      val ctxt' = fold Thm.declare_hyps (#hyps (Thm.crep_thm prems_imp_false)) ctxt
     in
-      Goal.prove ctxt [] [] @{prop False}
+      Goal.prove ctxt' [] [] @{prop False}
           (K (DETERM (EVERY (map (cut_and_ex_tac o fst o the o nth axioms o fst
                                   o fst) ax_counts)
                       THEN rename_tac outer_param_names 1
@@ -736,9 +738,9 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
                        THEN PRIMITIVE (unify_first_prem_with_concl thy i)
                        THEN assume_tac i
                        THEN flexflex_tac)))
-      handle ERROR _ =>
-             error ("Cannot replay Metis proof in Isabelle:\n\
-                    \Error when discharging Skolem assumptions.")
+      handle ERROR msg =>
+        cat_error msg
+          "Cannot replay Metis proof in Isabelle: error when discharging Skolem assumptions."
     end
 
 end;

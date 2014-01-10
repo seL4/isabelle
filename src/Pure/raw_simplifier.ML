@@ -1190,14 +1190,14 @@ fun bottomc ((simprem, useprem, mutsimp), prover, maxidx) =
       if mutsimp then mut_impc0 [] ct [] [] ctxt
       else nonmut_impc ct ctxt
 
-    and rules_of_prem ctxt prem =
+    and rules_of_prem prem ctxt =
       if maxidx_of_term (term_of prem) <> ~1
       then (trace_cterm ctxt true
         (fn () => "Cannot add premise as rewrite rule because it contains (type) unknowns:")
-        prem; ([], NONE))
+        prem; (([], NONE), ctxt))
       else
-        let val asm = Thm.assume prem
-        in (extract_safe_rrules ctxt asm, SOME asm) end
+        let val (asm, ctxt') = Thm.assume_hyps prem ctxt
+        in ((extract_safe_rrules ctxt' asm, SOME asm), ctxt') end
 
     and add_rrules (rrss, asms) ctxt =
       (fold o fold) insert_rrule rrss ctxt |> add_prems (map_filter I asms)
@@ -1242,10 +1242,10 @@ fun bottomc ((simprem, useprem, mutsimp), prover, maxidx) =
     and mut_impc0 prems concl rrss asms ctxt =
       let
         val prems' = strip_imp_prems concl;
-        val (rrss', asms') = split_list (map (rules_of_prem ctxt) prems');
+        val ((rrss', asms'), ctxt') = fold_map rules_of_prem prems' ctxt |>> split_list;
       in
         mut_impc (prems @ prems') (strip_imp_concl concl) (rrss @ rrss')
-          (asms @ asms') [] [] [] [] ctxt ~1 ~1
+          (asms @ asms') [] [] [] [] ctxt' ~1 ~1
       end
 
     and mut_impc [] concl [] [] prems' rrss' asms' eqns ctxt changed k =
@@ -1270,7 +1270,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, maxidx) =
               val tprems = map term_of prems;
               val i = 1 + fold Integer.max (map (fn p =>
                 find_index (fn q => q aconv p) tprems) (Thm.hyps_of eqn)) ~1;
-              val (rrs', asm') = rules_of_prem ctxt prem';
+              val ((rrs', asm'), ctxt') = rules_of_prem prem' ctxt;
             in
               mut_impc prems concl rrss asms (prem' :: prems')
                 (rrs' :: rrss') (asm' :: asms')
@@ -1278,7 +1278,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, maxidx) =
                   (take i prems)
                   (Drule.imp_cong_rule eqn (Thm.reflexive (Drule.list_implies
                     (drop i prems, concl))))) :: eqns)
-                ctxt (length prems') ~1
+                ctxt' (length prems') ~1
             end)
 
     (*legacy code -- only for backwards compatibility*)
@@ -1289,7 +1289,9 @@ fun bottomc ((simprem, useprem, mutsimp), prover, maxidx) =
         val prem1 = the_default prem (Option.map Thm.rhs_of thm1);
         val ctxt1 =
           if not useprem then ctxt
-          else add_rrules (apsnd single (apfst single (rules_of_prem ctxt prem1))) ctxt
+          else
+            let val ((rrs, asm), ctxt') = rules_of_prem prem1 ctxt
+            in add_rrules ([rrs], [asm]) ctxt' end;
       in
         (case botc skel0 ctxt1 conc of
           NONE =>
