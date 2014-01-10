@@ -11,7 +11,6 @@ theory Cardinal_Arithmetic
 imports Cardinal_Arithmetic_FP Cardinal_Order_Relation
 begin
 
-
 subsection {* Binary sum *}
 
 lemma csum_Cnotzero2:
@@ -33,11 +32,39 @@ by (simp add: cone_not_czero Card_order_cone)
 lemma cone_ordLeq_ctwo: "cone \<le>o ctwo"
 unfolding cone_def ctwo_def card_of_ordLeq[symmetric] by auto
 
+lemma csum_czero1: "Card_order r \<Longrightarrow> r +c czero =o r"
+  unfolding czero_def csum_def Field_card_of
+  by (rule ordIso_transitive[OF ordIso_symmetric[OF card_of_Plus_empty1] card_of_Field_ordIso])
+
+lemma csum_czero2: "Card_order r \<Longrightarrow> czero +c r =o r"
+  unfolding czero_def csum_def Field_card_of
+  by (rule ordIso_transitive[OF ordIso_symmetric[OF card_of_Plus_empty2] card_of_Field_ordIso])
+
 
 subsection {* Product *}
 
 lemma Times_cprod: "|A \<times> B| =o |A| *c |B|"
 by (simp only: cprod_def Field_card_of card_of_refl)
+
+lemma card_of_Times_singleton:
+fixes A :: "'a set"
+shows "|A \<times> {x}| =o |A|"
+proof -
+  def f \<equiv> "\<lambda>(a::'a,b::'b). (a)"
+  have "A \<subseteq> f ` (A <*> {x})" unfolding f_def by (auto simp: image_iff)
+  hence "bij_betw f (A <*> {x}) A"  unfolding bij_betw_def inj_on_def f_def by fastforce
+  thus ?thesis using card_of_ordIso by blast
+qed
+
+lemma cprod_assoc: "(r *c s) *c t =o r *c s *c t"
+  unfolding cprod_def Field_card_of by (rule card_of_Times_assoc)
+
+lemma cprod_czero: "r *c czero =o czero"
+  unfolding cprod_def czero_def Field_card_of by (simp add: card_of_empty_ordIso)
+
+lemma cprod_cone: "Card_order r \<Longrightarrow> r *c cone =o r"
+  unfolding cprod_def cone_def Field_card_of
+  by (drule card_of_Field_ordIso) (erule ordIso_transitive[OF card_of_Times_singleton])
 
 lemma cprod_cong2: "p2 =o r2 \<Longrightarrow> q *c p2 =o q *c r2"
 by (simp only: cprod_def ordIso_Times_cong2)
@@ -47,6 +74,9 @@ unfolding cprod_def by (metis Card_order_Times1 czeroI)
 
 lemma cprod_infinite: "Cinfinite r \<Longrightarrow> r *c r =o r"
 using cprod_infinite1' Cinfinite_Cnotzero ordLeq_refl by blast
+
+lemma cprod_mono: "\<lbrakk>p1 \<le>o r1; p2 \<le>o r2\<rbrakk> \<Longrightarrow> p1 *c p2 \<le>o r1 *c r2"
+  by (rule ordLeq_transitive[OF cprod_mono1 cprod_mono2])
 
 
 subsection {* Exponentiation *}
@@ -112,7 +142,7 @@ proof (rule ccontr)
 qed
 
 lemma cone_ordLeq_cexp: "cone \<le>o r1 \<Longrightarrow> cone \<le>o r1 ^c r2"
-by (simp add: cexp_def cone_def Func_non_emp card_of_singl_ordLeq cone_ordLeq_iff_Field)
+by (simp add: cexp_def cone_def Func_non_emp cone_ordLeq_iff_Field)
 
 lemma Card_order_czero: "Card_order czero"
 by (simp only: card_of_Card_order czero_def)
@@ -177,7 +207,7 @@ lemma card_order_cexp:
   shows "card_order (r1 ^c r2)"
 proof -
   have "Field r1 = UNIV" "Field r2 = UNIV" using assms card_order_on_Card_order by auto
-  thus ?thesis unfolding cexp_def Func_def by (simp add: card_of_card_order_on)
+  thus ?thesis unfolding cexp_def Func_def by simp
 qed
 
 lemma Cinfinite_ordLess_cexp:
@@ -194,6 +224,58 @@ lemma infinite_ordLeq_cexp:
   assumes "Cinfinite r"
   shows "r \<le>o r ^c r"
 by (rule ordLess_imp_ordLeq[OF Cinfinite_ordLess_cexp[OF assms]])
+
+lemma czero_cexp: "Cnotzero r \<Longrightarrow> czero ^c r =o czero"
+  by (drule Cnotzero_imp_not_empty) (simp add: cexp_def czero_def card_of_empty_ordIso)
+
+lemma Func_singleton: 
+fixes x :: 'b and A :: "'a set"
+shows "|Func A {x}| =o |{x}|"
+proof (rule ordIso_symmetric)
+  def f \<equiv> "\<lambda>y a. if y = x \<and> a \<in> A then x else undefined"
+  have "Func A {x} \<subseteq> f ` {x}" unfolding f_def Func_def by (force simp: fun_eq_iff)
+  hence "bij_betw f {x} (Func A {x})" unfolding bij_betw_def inj_on_def f_def Func_def
+    by (auto split: split_if_asm)
+  thus "|{x}| =o |Func A {x}|" using card_of_ordIso by blast
+qed
+
+lemma cone_cexp: "cone ^c r =o cone"
+  unfolding cexp_def cone_def Field_card_of by (rule Func_singleton)
+
+lemma card_of_Func_squared:
+  fixes A :: "'a set"
+  shows "|Func (UNIV :: bool set) A| =o |A \<times> A|"
+proof (rule ordIso_symmetric)
+  def f \<equiv> "\<lambda>(x::'a,y) b. if A = {} then undefined else if b then x else y"
+  have "Func (UNIV :: bool set) A \<subseteq> f ` (A \<times> A)" unfolding f_def Func_def
+    by (auto simp: image_iff fun_eq_iff split: option.splits split_if_asm) blast
+  hence "bij_betw f (A \<times> A) (Func (UNIV :: bool set) A)"
+    unfolding bij_betw_def inj_on_def f_def Func_def by (auto simp: fun_eq_iff)
+  thus "|A \<times> A| =o |Func (UNIV :: bool set) A|" using card_of_ordIso by blast
+qed
+
+lemma cexp_ctwo: "r ^c ctwo =o r *c r"
+  unfolding cexp_def ctwo_def cprod_def Field_card_of by (rule card_of_Func_squared)
+
+lemma card_of_Func_Plus:
+  fixes A :: "'a set" and B :: "'b set" and C :: "'c set"
+  shows "|Func (A <+> B) C| =o |Func A C \<times> Func B C|"
+proof (rule ordIso_symmetric)
+  def f \<equiv> "\<lambda>(g :: 'a => 'c, h::'b \<Rightarrow> 'c) ab. case ab of Inl a \<Rightarrow> g a | Inr b \<Rightarrow> h b"
+  def f' \<equiv> "\<lambda>(f :: ('a + 'b) \<Rightarrow> 'c). (\<lambda>a. f (Inl a), \<lambda>b. f (Inr b))"
+  have "f ` (Func A C \<times> Func B C) \<subseteq> Func (A <+> B) C"
+    unfolding Func_def f_def by (force split: sum.splits)
+  moreover have "f' ` Func (A <+> B) C \<subseteq> Func A C \<times> Func B C" unfolding Func_def f'_def by force
+  moreover have "\<forall>a \<in> Func A C \<times> Func B C. f' (f a) = a" unfolding f'_def f_def Func_def by auto
+  moreover have "\<forall>a' \<in> Func (A <+> B) C. f (f' a') = a'" unfolding f'_def f_def Func_def
+    by (auto split: sum.splits)
+  ultimately have "bij_betw f (Func A C \<times> Func B C) (Func (A <+> B) C)"
+    by (intro bij_betw_byWitness[of _ f' f])
+  thus "|Func A C \<times> Func B C| =o |Func (A <+> B) C|" using card_of_ordIso by blast
+qed
+
+lemma cexp_csum: "r ^c (s +c t) =o r ^c s *c r ^c t"
+  unfolding cexp_def cprod_def csum_def Field_card_of by (rule card_of_Func_Plus)
 
 
 subsection {* Powerset *}
@@ -217,5 +299,106 @@ unfolding cpow_def by (metis Card_order_Pow cardSuc_ordLess_ordLeq card_of_Card_
 
 lemma cpow_cexp_ctwo: "cpow r =o ctwo ^c r"
 unfolding cpow_def ctwo_def cexp_def Field_card_of by (rule card_of_Pow_Func)
+
+subsection {* Inverse image *}
+
+lemma vimage_ordLeq:
+assumes "|A| \<le>o k" and "\<forall> a \<in> A. |vimage f {a}| \<le>o k" and "Cinfinite k"
+shows "|vimage f A| \<le>o k"
+proof-
+  have "vimage f A = (\<Union> a \<in> A. vimage f {a})" by auto
+  also have "|\<Union> a \<in> A. vimage f {a}| \<le>o k"
+  using UNION_Cinfinite_bound[OF assms] .
+  finally show ?thesis .
+qed
+
+subsection {* Maximum *}
+
+definition cmax where
+  "cmax r s =
+    (if cinfinite r \<or> cinfinite s then czero +c r +c s
+     else natLeq_on (max (card (Field r)) (card (Field s))) +c czero)"
+
+lemma cmax_com: "cmax r s =o cmax s r"
+  unfolding cmax_def
+  by (auto simp: max.commute intro: csum_cong2[OF csum_com] csum_cong2[OF czero_ordIso])
+
+lemma cmax1:
+  assumes "Card_order r" "Card_order s" "s \<le>o r"
+  shows "cmax r s =o r"
+unfolding cmax_def proof (split if_splits, intro conjI impI)
+  assume "cinfinite r \<or> cinfinite s"
+  hence Cinf: "Cinfinite r" using assms(1,3) by (metis cinfinite_mono)
+  have "czero +c r +c s =o r +c s" by (rule csum_czero2[OF Card_order_csum])
+  also have "r +c s =o r" by (rule csum_absorb1[OF Cinf assms(3)])
+  finally show "czero +c r +c s =o r" .
+next
+  assume "\<not> (cinfinite r \<or> cinfinite s)"
+  hence fin: "finite (Field r)" and "finite (Field s)" unfolding cinfinite_def by simp_all
+  moreover
+  { from assms(2) have "|Field s| =o s" by (rule card_of_Field_ordIso)
+    also from assms(3) have "s \<le>o r" .
+    also from assms(1) have "r =o |Field r|" by (rule ordIso_symmetric[OF card_of_Field_ordIso])
+    finally have "|Field s| \<le>o |Field r|" .
+  }
+  ultimately have "card (Field s) \<le> card (Field r)" by (subst sym[OF finite_card_of_iff_card2])
+  hence "max (card (Field r)) (card (Field s)) = card (Field r)" by (rule max_absorb1)
+  hence "natLeq_on (max (card (Field r)) (card (Field s))) +c czero =
+    natLeq_on (card (Field r)) +c czero" by simp
+  also have "\<dots> =o natLeq_on (card (Field r))" by (rule csum_czero1[OF natLeq_on_Card_order])
+  also have "natLeq_on (card (Field r)) =o |Field r|"
+    by (rule ordIso_symmetric[OF finite_imp_card_of_natLeq_on[OF fin]])
+  also from assms(1) have "|Field r| =o r" by (rule card_of_Field_ordIso)
+  finally show "natLeq_on (max (card (Field r)) (card (Field s))) +c czero =o r" .
+qed
+
+lemma cmax2:
+  assumes "Card_order r" "Card_order s" "r \<le>o s"
+  shows "cmax r s =o s"
+  by (metis assms cmax1 cmax_com ordIso_transitive)
+
+lemma csum_absorb2: "Cinfinite r2 \<Longrightarrow> r1 \<le>o r2 \<Longrightarrow> r1 +c r2 =o r2"
+  by (metis csum_absorb2')
+
+lemma cprod_infinite2': "\<lbrakk>Cnotzero r1; Cinfinite r2; r1 \<le>o r2\<rbrakk> \<Longrightarrow> r1 *c r2 =o r2"
+  unfolding ordIso_iff_ordLeq
+  by (intro conjI cprod_cinfinite_bound ordLeq_cprod2 ordLeq_refl)
+    (auto dest!: ordIso_imp_ordLeq not_ordLeq_ordLess simp: czero_def Card_order_empty)
+
+context
+  fixes r s
+  assumes r: "Cinfinite r"
+  and     s: "Cinfinite s"
+begin
+
+lemma cmax_csum: "cmax r s =o r +c s"
+proof (cases "r \<le>o s")
+  case True
+  hence "cmax r s =o s" by (metis cmax2 r s)
+  also have "s =o r +c s" by (metis True csum_absorb2 ordIso_symmetric s)
+  finally show ?thesis .
+next
+  case False
+  hence "s \<le>o r" by (metis ordLeq_total r s card_order_on_def)
+  hence "cmax r s =o r" by (metis cmax1 r s)
+  also have "r =o r +c s" by (metis `s \<le>o r` csum_absorb1 ordIso_symmetric r)
+  finally show ?thesis .
+qed
+
+lemma cmax_cprod: "cmax r s =o r *c s"
+proof (cases "r \<le>o s")
+  case True
+  hence "cmax r s =o s" by (metis cmax2 r s)
+  also have "s =o r *c s" by (metis Cinfinite_Cnotzero True cprod_infinite2' ordIso_symmetric r s)
+  finally show ?thesis .
+next
+  case False
+  hence "s \<le>o r" by (metis ordLeq_total r s card_order_on_def)
+  hence "cmax r s =o r" by (metis cmax1 r s)
+  also have "r =o r *c s" by (metis Cinfinite_Cnotzero `s \<le>o r` cprod_infinite1' ordIso_symmetric r s)
+  finally show ?thesis .
+qed
+
+end
 
 end

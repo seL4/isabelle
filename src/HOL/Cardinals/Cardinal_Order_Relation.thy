@@ -67,8 +67,6 @@ declare
   cardSuc_finite[simp]
   card_of_Plus_ordLeq_infinite_Field[simp]
   curr_in[intro, simp]
-  Func_empty[simp]
-  Func_is_emp[simp]
 
 
 subsection {* Cardinal of a set *}
@@ -418,8 +416,7 @@ shows "|SIGMA i : I. A (f i)| =o |SIGMA j : J. B j|"
 proof-
   have "\<forall>i \<in> I. |A(f i)| =o |B(f i)|"
   using ISO BIJ unfolding bij_betw_def by blast
-  hence "|SIGMA i : I. A (f i)| =o |SIGMA i : I. B (f i)|"
-  using card_of_Sigma_cong1 by metis
+  hence "|SIGMA i : I. A (f i)| =o |SIGMA i : I. B (f i)|" by (rule card_of_Sigma_cong1)
   moreover have "|SIGMA i : I. B (f i)| =o |SIGMA j : J. B j|"
   using BIJ card_of_Sigma_cong2 by blast
   ultimately show ?thesis using ordIso_transitive by blast
@@ -1173,9 +1170,8 @@ qed
 
 lemma natLeq_on_ordLeq_less:
 "((natLeq_on m) <o (natLeq_on n)) = (m < n)"
-using not_ordLeq_iff_ordLess[of "natLeq_on m" "natLeq_on n"]
-  natLeq_on_Well_order natLeq_on_ordLeq_less_eq
-by fastforce
+using not_ordLeq_iff_ordLess[OF natLeq_on_Well_order natLeq_on_Well_order, of n m]
+   natLeq_on_ordLeq_less_eq[of n m] by linarith
 
 lemma ordLeq_natLeq_on_imp_finite:
 assumes "|A| \<le>o natLeq_on n"
@@ -1298,7 +1294,7 @@ proof-
      hence 4: "m \<le> n" using 2 by force
      (*  *)
      have "bij_betw f (Field r') (f ` (Field r'))"
-     using 1 WELL embed_inj_on unfolding bij_betw_def by force
+     using WELL embed_inj_on[OF _ 1] unfolding bij_betw_def by blast
      moreover have "finite(f ` (Field r'))" using 3 finite_atLeastLessThan[of 0 m] by force
      ultimately have 5: "finite (Field r') \<and> card(Field r') = card (f ` (Field r'))"
      using bij_betw_same_card bij_betw_finite by metis
@@ -1547,8 +1543,6 @@ proof-
   ultimately show ?thesis by (metis ordIso_ordLeq_trans)
 qed
 
-lemma Func_emp2[simp]: "A \<noteq> {} \<Longrightarrow> Func A {} = {}" by auto
-
 lemma empty_in_Func[simp]:
 "B \<noteq> {} \<Longrightarrow> (\<lambda>x. undefined) \<in> Func {} B"
 unfolding Func_def by auto
@@ -1582,5 +1576,334 @@ lemma infinite_Func:
 assumes A: "\<not>finite A" and B: "{b1,b2} \<subseteq> B" "b1 \<noteq> b2"
 shows "\<not>finite (Func A B)"
 using ordLeq_Func[OF B] by (metis A card_of_ordLeq_finite)
+
+section {* Infinite cardinals are limit ordinals *}
+
+lemma card_order_infinite_isLimOrd:
+assumes c: "Card_order r" and i: "\<not>finite (Field r)"
+shows "isLimOrd r"
+proof-
+  have 0: "wo_rel r" and 00: "Well_order r"
+  using c unfolding card_order_on_def wo_rel_def by auto
+  hence rr: "Refl r" by (metis wo_rel.REFL)
+  show ?thesis unfolding wo_rel.isLimOrd_def[OF 0] wo_rel.isSuccOrd_def[OF 0] proof safe
+    fix j assume j: "j \<in> Field r" and jm: "\<forall>i\<in>Field r. (i, j) \<in> r"
+    def p \<equiv> "Restr r (Field r - {j})"
+    have fp: "Field p = Field r - {j}"
+    unfolding p_def apply(rule Refl_Field_Restr2[OF rr]) by auto
+    have of: "ofilter r (Field p)" unfolding wo_rel.ofilter_def[OF 0] proof safe
+      fix a x assume a: "a \<in> Field p" and "x \<in> under r a"
+      hence x: "(x,a) \<in> r" "x \<in> Field r" unfolding rel.under_def Field_def by auto
+      moreover have a: "a \<noteq> j" "a \<in> Field r" "(a,j) \<in> r" using a jm  unfolding fp by auto
+      ultimately have "x \<noteq> j" using j jm  by (metis 0 wo_rel.max2_def wo_rel.max2_equals1)
+      thus "x \<in> Field p" using x unfolding fp by auto
+    qed(unfold p_def Field_def, auto)
+    have "p <o r" using j ofilter_ordLess[OF 00 of] unfolding fp p_def[symmetric] by auto
+    hence 2: "|Field p| <o r" using c by (metis Cardinal_Order_Relation_FP.ordLess_Field)
+    have "|Field p| =o |Field r|" unfolding fp using i by (metis infinite_card_of_diff_singl)
+    also have "|Field r| =o r"
+    using c by (metis card_of_unique ordIso_symmetric)
+    finally have "|Field p| =o r" .
+    with 2 show False by (metis not_ordLess_ordIso)
+  qed
+qed
+
+lemma insert_Chain:
+assumes "Refl r" "C \<in> Chains r" and "i \<in> Field r" and "\<And>j. j \<in> C \<Longrightarrow> (j,i) \<in> r \<or> (i,j) \<in> r"
+shows "insert i C \<in> Chains r"
+using assms unfolding Chains_def by (auto dest: refl_onD)
+
+lemma Collect_insert: "{R j |j. j \<in> insert j1 J} = insert (R j1) {R j |j. j \<in> J}"
+by auto
+
+lemma Field_init_seg_of[simp]:
+"Field init_seg_of = UNIV"
+unfolding Field_def init_seg_of_def by auto
+
+lemma refl_init_seg_of[intro, simp]: "refl init_seg_of"
+unfolding refl_on_def Field_def by auto
+
+lemma regular_all_ex:
+assumes r: "Card_order r"   "regular r"
+and As: "\<And> i j b. b \<in> B \<Longrightarrow> (i,j) \<in> r \<Longrightarrow> P i b \<Longrightarrow> P j b"
+and Bsub: "\<forall> b \<in> B. \<exists> i \<in> Field r. P i b"
+and cardB: "|B| <o r"
+shows "\<exists> i \<in> Field r. \<forall> b \<in> B. P i b"
+proof-
+  let ?As = "\<lambda>i. {b \<in> B. P i b}"
+  have "EX i : Field r. B \<le> ?As i"
+  apply(rule regular_UNION) using assms unfolding relChain_def by auto
+  thus ?thesis by auto
+qed
+
+lemma relChain_stabilize:
+assumes rc: "relChain r As" and AsB: "(\<Union> i \<in> Field r. As i) \<subseteq> B" and Br: "|B| <o r"
+and ir: "\<not>finite (Field r)" and cr: "Card_order r"
+shows "\<exists> i \<in> Field r. As (succ r i) = As i"
+proof(rule ccontr, auto)
+  have 0: "wo_rel r" and 00: "Well_order r"
+  unfolding wo_rel_def by (metis card_order_on_well_order_on cr)+
+  have L: "isLimOrd r" using ir cr by (metis card_order_infinite_isLimOrd)
+  have AsBs: "(\<Union> i \<in> Field r. As (succ r i)) \<subseteq> B"
+  using AsB L apply safe by (metis "0" UN_I set_mp wo_rel.isLimOrd_succ)
+  assume As_s: "\<forall>i\<in>Field r. As (succ r i) \<noteq> As i"
+  have 1: "\<forall>i j. (i,j) \<in> r \<and> i \<noteq> j \<longrightarrow> As i \<subset> As j"
+  proof safe
+    fix i j assume 1: "(i, j) \<in> r" "i \<noteq> j" and Asij: "As i = As j"
+    hence rij: "(succ r i, j) \<in> r" by (metis "0" wo_rel.succ_smallest)
+    hence "As (succ r i) \<subseteq> As j" using rc unfolding relChain_def by auto
+    moreover
+    {have "(i,succ r i) \<in> r" apply(rule wo_rel.succ_in[OF 0])
+     using 1 unfolding rel.aboveS_def by auto
+     hence "As i \<subset> As (succ r i)" using As_s rc rij unfolding relChain_def Field_def by auto
+    }
+    ultimately show False unfolding Asij by auto
+  qed (insert rc, unfold relChain_def, auto)
+  hence "\<forall> i \<in> Field r. \<exists> a. a \<in> As (succ r i) - As i"
+  using wo_rel.succ_in[OF 0] AsB
+  by(metis 0 card_order_infinite_isLimOrd cr ir psubset_imp_ex_mem
+            wo_rel.isLimOrd_aboveS wo_rel.succ_diff)
+  then obtain f where f: "\<forall> i \<in> Field r. f i \<in> As (succ r i) - As i" by metis
+  have "inj_on f (Field r)" unfolding inj_on_def proof safe
+    fix i j assume ij: "i \<in> Field r" "j \<in> Field r" and fij: "f i = f j"
+    show "i = j"
+    proof(cases rule: wo_rel.cases_Total3[OF 0], safe)
+      assume "(i, j) \<in> r" and ijd: "i \<noteq> j"
+      hence rij: "(succ r i, j) \<in> r" by (metis "0" wo_rel.succ_smallest)
+      hence "As (succ r i) \<subseteq> As j" using rc unfolding relChain_def by auto
+      thus "i = j" using ij ijd fij f by auto
+    next
+      assume "(j, i) \<in> r" and ijd: "i \<noteq> j"
+      hence rij: "(succ r j, i) \<in> r" by (metis "0" wo_rel.succ_smallest)
+      hence "As (succ r j) \<subseteq> As i" using rc unfolding relChain_def by auto
+      thus "j = i" using ij ijd fij f by fastforce
+    qed(insert ij, auto)
+  qed
+  moreover have "f ` (Field r) \<subseteq> B" using f AsBs by auto
+  moreover have "|B| <o |Field r|" using Br cr by (metis card_of_unique ordLess_ordIso_trans)
+  ultimately show False unfolding card_of_ordLess[symmetric] by auto
+qed
+
+section {* Regular vs. Stable Cardinals *}
+
+definition stable :: "'a rel \<Rightarrow> bool"
+where
+"stable r \<equiv> \<forall>(A::'a set) (F :: 'a \<Rightarrow> 'a set).
+               |A| <o r \<and> (\<forall>a \<in> A. |F a| <o r)
+               \<longrightarrow> |SIGMA a : A. F a| <o r"
+
+lemma regular_stable:
+assumes cr: "Card_order r" and ir: "\<not>finite (Field r)" and reg: "regular r"
+shows "stable r"
+unfolding stable_def proof safe
+  fix A :: "'a set" and F :: "'a \<Rightarrow> 'a set" assume A: "|A| <o r" and F: "\<forall>a\<in>A. |F a| <o r"
+  {assume "r \<le>o |Sigma A F|"
+   hence "|Field r| \<le>o |Sigma A F|" using card_of_Field_ordIso[OF cr]
+   by (metis Field_card_of card_of_cong ordLeq_iff_ordLess_or_ordIso ordLeq_ordLess_trans)
+   moreover have Fi: "Field r \<noteq> {}" using ir by auto
+   ultimately obtain f where f: "f ` Sigma A F = Field r" using card_of_ordLeq2 by metis
+   have r: "wo_rel r" using cr unfolding card_order_on_def wo_rel_def by auto
+   {fix a assume a: "a \<in> A"
+    def L \<equiv> "{(a,u) | u. u \<in> F a}"
+    have fL: "f ` L \<subseteq> Field r" using f a unfolding L_def by auto
+    have "|L| =o |F a|" unfolding L_def card_of_ordIso[symmetric]
+    apply(rule exI[of _ snd]) unfolding bij_betw_def inj_on_def by (auto simp: image_def)
+    hence "|L| <o r" using F a ordIso_ordLess_trans[of "|L|" "|F a|"] unfolding L_def by auto
+    hence "|f ` L| <o r" using ordLeq_ordLess_trans[OF card_of_image, of "L"] unfolding L_def by auto
+    hence "\<not> cofinal (f ` L) r" using reg fL unfolding regular_def by (metis not_ordLess_ordIso)
+    then obtain k where k: "k \<in> Field r" and "\<forall> l \<in> L. \<not> (f l \<noteq> k \<and> (k, f l) \<in> r)"
+    unfolding cofinal_def image_def by auto
+    hence "\<exists> k \<in> Field r. \<forall> l \<in> L. (f l, k) \<in> r" using r by (metis fL image_subset_iff wo_rel.in_notinI)
+    hence "\<exists> k \<in> Field r. \<forall> u \<in> F a. (f (a,u), k) \<in> r" unfolding L_def by auto
+   }
+   then obtain gg where gg: "\<forall> a \<in> A. \<forall> u \<in> F a. (f (a,u), gg a) \<in> r" by metis
+   obtain j0 where j0: "j0 \<in> Field r" using Fi by auto
+   def g \<equiv> "\<lambda> a. if F a \<noteq> {} then gg a else j0"
+   have g: "\<forall> a \<in> A. \<forall> u \<in> F a. (f (a,u),g a) \<in> r" using gg unfolding g_def by auto
+   hence 1: "Field r \<subseteq> (\<Union> a \<in> A. under r (g a))"
+   using f[symmetric] unfolding rel.under_def image_def by auto
+   have gA: "g ` A \<subseteq> Field r" using gg j0 unfolding Field_def g_def by auto
+   moreover have "cofinal (g ` A) r" unfolding cofinal_def proof safe
+     fix i assume "i \<in> Field r"
+     then obtain j where ij: "(i,j) \<in> r" "i \<noteq> j" using cr ir by (metis infinite_Card_order_limit)
+     hence "j \<in> Field r" by (metis card_order_on_def cr rel.well_order_on_domain)
+     then obtain a where a: "a \<in> A" and j: "(j, g a) \<in> r" using 1 unfolding rel.under_def by auto
+     hence "(i, g a) \<in> r" using ij wo_rel.TRANS[OF r] unfolding trans_def by blast
+     moreover have "i \<noteq> g a"
+     using ij j r unfolding wo_rel_def unfolding well_order_on_def linear_order_on_def
+     partial_order_on_def antisym_def by auto
+     ultimately show "\<exists>j\<in>g ` A. i \<noteq> j \<and> (i, j) \<in> r" using a by auto
+   qed
+   ultimately have "|g ` A| =o r" using reg unfolding regular_def by auto
+   moreover have "|g ` A| \<le>o |A|" by (metis card_of_image)
+   ultimately have False using A by (metis not_ordLess_ordIso ordLeq_ordLess_trans)
+  }
+  thus "|Sigma A F| <o r"
+  using cr not_ordLess_iff_ordLeq by (metis card_of_Well_order card_order_on_well_order_on)
+qed
+
+lemma stable_regular:
+assumes cr: "Card_order r" and ir: "\<not>finite (Field r)" and st: "stable r"
+shows "regular r"
+unfolding regular_def proof safe
+  fix K assume K: "K \<subseteq> Field r" and cof: "cofinal K r"
+  have "|K| \<le>o r" using K by (metis card_of_Field_ordIso card_of_mono1 cr ordLeq_ordIso_trans)
+  moreover
+  {assume Kr: "|K| <o r"
+   then obtain f where "\<forall> a \<in> Field r. f a \<in> K \<and> a \<noteq> f a \<and> (a, f a) \<in> r"
+   using cof unfolding cofinal_def by metis
+   hence "Field r \<subseteq> (\<Union> a \<in> K. underS r a)" unfolding rel.underS_def by auto
+   hence "r \<le>o |\<Union> a \<in> K. underS r a|" using cr
+   by (metis Card_order_iff_ordLeq_card_of card_of_mono1 ordLeq_transitive)
+   also have "|\<Union> a \<in> K. underS r a| \<le>o |SIGMA a: K. underS r a|" by (rule card_of_UNION_Sigma)
+   also
+   {have "\<forall> a \<in> K. |underS r a| <o r" using K by (metis card_of_underS cr subsetD)
+    hence "|SIGMA a: K. underS r a| <o r" using st Kr unfolding stable_def by auto
+   }
+   finally have "r <o r" .
+   hence False by (metis ordLess_irreflexive)
+  }
+  ultimately show "|K| =o r" by (metis ordLeq_iff_ordLess_or_ordIso)
+qed
+
+(* Note that below the types of A and F are now unconstrained: *)
+lemma stable_elim:
+assumes ST: "stable r" and A_LESS: "|A| <o r" and
+        F_LESS: "\<And> a. a \<in> A \<Longrightarrow> |F a| <o r"
+shows "|SIGMA a : A. F a| <o r"
+proof-
+  obtain A' where 1: "A' < Field r \<and> |A'| <o r" and 2: " |A| =o |A'|"
+  using internalize_card_of_ordLess[of A r] A_LESS by blast
+  then obtain G where 3: "bij_betw G A' A"
+  using card_of_ordIso  ordIso_symmetric by blast
+  (*  *)
+  {fix a assume "a \<in> A"
+   hence "\<exists>B'. B' \<le> Field r \<and> |F a| =o |B'| \<and> |B'| <o r"
+   using internalize_card_of_ordLess[of "F a" r] F_LESS by blast
+  }
+  then obtain F' where
+  temp: "\<forall>a \<in> A. F' a \<le> Field r \<and> |F a| =o |F' a| \<and> |F' a| <o r"
+  using bchoice[of A "\<lambda> a B'. B' \<le> Field r \<and> |F a| =o |B'| \<and> |B'| <o r"] by blast
+  hence 4: "\<forall>a \<in> A. F' a \<le> Field r \<and> |F' a| <o r" by auto
+  have 5: "\<forall>a \<in> A. |F' a| =o |F a|" using temp ordIso_symmetric by auto
+  (*  *)
+  have "\<forall>a' \<in> A'. F'(G a') \<le> Field r \<and> |F'(G a')| <o r"
+  using 3 4 bij_betw_ball[of G A' A] by auto
+  hence "|SIGMA a' : A'. F'(G a')| <o r"
+  using ST 1 unfolding stable_def by auto
+  moreover have "|SIGMA a' : A'. F'(G a')| =o |SIGMA a : A. F a|"
+  using card_of_Sigma_cong[of G A' A F' F] 5 3 by blast
+  ultimately show ?thesis using ordIso_symmetric ordIso_ordLess_trans by blast
+qed
+
+lemma stable_natLeq: "stable natLeq"
+proof(unfold stable_def, safe)
+  fix A :: "'a set" and F :: "'a \<Rightarrow> 'a set"
+  assume "|A| <o natLeq" and "\<forall>a\<in>A. |F a| <o natLeq"
+  hence "finite A \<and> (\<forall>a \<in> A. finite(F a))"
+  by (auto simp add: finite_iff_ordLess_natLeq)
+  hence "finite(Sigma A F)" by (simp only: finite_SigmaI[of A F])
+  thus "|Sigma A F | <o natLeq"
+  by (auto simp add: finite_iff_ordLess_natLeq)
+qed
+
+corollary regular_natLeq: "regular natLeq"
+using stable_regular[OF natLeq_Card_order _ stable_natLeq] Field_natLeq by simp
+
+lemma stable_cardSuc:
+assumes CARD: "Card_order r" and INF: "\<not>finite (Field r)"
+shows "stable(cardSuc r)"
+using infinite_cardSuc_regular regular_stable
+by (metis CARD INF cardSuc_Card_order cardSuc_finite)
+
+lemma stable_UNION:
+assumes ST: "stable r" and A_LESS: "|A| <o r" and
+        F_LESS: "\<And> a. a \<in> A \<Longrightarrow> |F a| <o r"
+shows "|\<Union> a \<in> A. F a| <o r"
+proof-
+  have "|\<Union> a \<in> A. F a| \<le>o |SIGMA a : A. F a|"
+  using card_of_UNION_Sigma by blast
+  thus ?thesis using assms stable_elim ordLeq_ordLess_trans by blast
+qed
+
+lemma stable_ordIso1:
+assumes ST: "stable r" and ISO: "r' =o r"
+shows "stable r'"
+proof(unfold stable_def, auto)
+  fix A::"'b set" and F::"'b \<Rightarrow> 'b set"
+  assume "|A| <o r'" and "\<forall>a \<in> A. |F a| <o r'"
+  hence "( |A| <o r) \<and> (\<forall>a \<in> A. |F a| <o r)"
+  using ISO ordLess_ordIso_trans by blast
+  hence "|SIGMA a : A. F a| <o r" using assms stable_elim by blast
+  thus "|SIGMA a : A. F a| <o r'"
+  using ISO ordIso_symmetric ordLess_ordIso_trans by blast
+qed
+
+lemma stable_ordIso2:
+assumes ST: "stable r" and ISO: "r =o r'"
+shows "stable r'"
+using assms stable_ordIso1 ordIso_symmetric by blast
+
+lemma stable_ordIso:
+assumes "r =o r'"
+shows "stable r = stable r'"
+using assms stable_ordIso1 stable_ordIso2 by blast
+
+lemma stable_nat: "stable |UNIV::nat set|"
+using stable_natLeq card_of_nat stable_ordIso by auto
+
+text{* Below, the type of "A" is not important -- we just had to choose an appropriate
+   type to make "A" possible. What is important is that arbitrarily large
+   \<not>finite sets of stable cardinality exist. *}
+
+lemma infinite_stable_exists:
+assumes CARD: "\<forall>r \<in> R. Card_order (r::'a rel)"
+shows "\<exists>(A :: (nat + 'a set)set).
+          \<not>finite A \<and> stable |A| \<and> (\<forall>r \<in> R. r <o |A| )"
+proof-
+  have "\<exists>(A :: (nat + 'a set)set).
+          \<not>finite A \<and> stable |A| \<and> |UNIV::'a set| <o |A|"
+  proof(cases "finite (UNIV::'a set)")
+    assume Case1: "finite (UNIV::'a set)"
+    let ?B = "UNIV::nat set"
+    have "\<not>finite(?B <+> {})" using finite_Plus_iff by blast
+    moreover
+    have "stable |?B|" using stable_natLeq card_of_nat stable_ordIso1 by blast
+    hence "stable |?B <+> {}|" using stable_ordIso card_of_Plus_empty1 by blast
+    moreover
+    have "\<not>finite(Field |?B| ) \<and> finite(Field |UNIV::'a set| )" using Case1 by simp
+    hence "|UNIV::'a set| <o |?B|" by (simp add: finite_ordLess_infinite)
+    hence "|UNIV::'a set| <o |?B <+> {}|" using card_of_Plus_empty1 ordLess_ordIso_trans by blast
+    ultimately show ?thesis by blast
+  next
+    assume Case1: "\<not>finite (UNIV::'a set)"
+    hence *: "\<not>finite(Field |UNIV::'a set| )" by simp
+    let ?B = "Field(cardSuc |UNIV::'a set| )"
+    have 0: "|?B| =o |{} <+> ?B|" using card_of_Plus_empty2 by blast
+    have 1: "\<not>finite ?B" using Case1 card_of_cardSuc_finite by blast
+    hence 2: "\<not>finite({} <+> ?B)" using 0 card_of_ordIso_finite by blast
+    have "|?B| =o cardSuc |UNIV::'a set|"
+    using card_of_Card_order cardSuc_Card_order card_of_Field_ordIso by blast
+    moreover have "stable(cardSuc |UNIV::'a set| )"
+    using stable_cardSuc * card_of_Card_order by blast
+    ultimately have "stable |?B|" using stable_ordIso by blast
+    hence 3: "stable |{} <+> ?B|" using stable_ordIso 0 by blast
+    have "|UNIV::'a set| <o cardSuc |UNIV::'a set|"
+    using card_of_Card_order cardSuc_greater by blast
+    moreover have "|?B| =o  cardSuc |UNIV::'a set|"
+    using card_of_Card_order cardSuc_Card_order  card_of_Field_ordIso by blast
+    ultimately have "|UNIV::'a set| <o |?B|"
+    using ordIso_symmetric ordLess_ordIso_trans by blast
+    hence "|UNIV::'a set| <o |{} <+> ?B|" using 0 ordLess_ordIso_trans by blast
+    thus ?thesis using 2 3 by blast
+  qed
+  thus ?thesis using CARD card_of_UNIV2 ordLeq_ordLess_trans by blast
+qed
+
+corollary infinite_regular_exists:
+assumes CARD: "\<forall>r \<in> R. Card_order (r::'a rel)"
+shows "\<exists>(A :: (nat + 'a set)set).
+          \<not>finite A \<and> regular |A| \<and> (\<forall>r \<in> R. r <o |A| )"
+using infinite_stable_exists[OF CARD] stable_regular by (metis Field_card_of card_of_card_order_on)
 
 end

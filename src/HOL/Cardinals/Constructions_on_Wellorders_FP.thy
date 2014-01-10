@@ -1617,5 +1617,158 @@ proof-
   ultimately show ?thesis by blast
 qed
 
+definition Func where
+"Func A B = {f . (\<forall> a \<in> A. f a \<in> B) \<and> (\<forall> a. a \<notin> A \<longrightarrow> f a = undefined)}"
+
+lemma Func_empty:
+"Func {} B = {\<lambda>x. undefined}"
+unfolding Func_def by auto
+
+lemma Func_elim:
+assumes "g \<in> Func A B" and "a \<in> A"
+shows "\<exists> b. b \<in> B \<and> g a = b"
+using assms unfolding Func_def by (cases "g a = undefined") auto
+
+definition curr where
+"curr A f \<equiv> \<lambda> a. if a \<in> A then \<lambda>b. f (a,b) else undefined"
+
+lemma curr_in:
+assumes f: "f \<in> Func (A <*> B) C"
+shows "curr A f \<in> Func A (Func B C)"
+using assms unfolding curr_def Func_def by auto
+
+lemma curr_inj:
+assumes "f1 \<in> Func (A <*> B) C" and "f2 \<in> Func (A <*> B) C"
+shows "curr A f1 = curr A f2 \<longleftrightarrow> f1 = f2"
+proof safe
+  assume c: "curr A f1 = curr A f2"
+  show "f1 = f2"
+  proof (rule ext, clarify)
+    fix a b show "f1 (a, b) = f2 (a, b)"
+    proof (cases "(a,b) \<in> A <*> B")
+      case False
+      thus ?thesis using assms unfolding Func_def by auto
+    next
+      case True hence a: "a \<in> A" and b: "b \<in> B" by auto
+      thus ?thesis
+      using c unfolding curr_def fun_eq_iff by(elim allE[of _ a]) simp
+    qed
+  qed
+qed
+
+lemma curr_surj:
+assumes "g \<in> Func A (Func B C)"
+shows "\<exists> f \<in> Func (A <*> B) C. curr A f = g"
+proof
+  let ?f = "\<lambda> ab. if fst ab \<in> A \<and> snd ab \<in> B then g (fst ab) (snd ab) else undefined"
+  show "curr A ?f = g"
+  proof (rule ext)
+    fix a show "curr A ?f a = g a"
+    proof (cases "a \<in> A")
+      case False
+      hence "g a = undefined" using assms unfolding Func_def by auto
+      thus ?thesis unfolding curr_def using False by simp
+    next
+      case True
+      obtain g1 where "g1 \<in> Func B C" and "g a = g1"
+      using assms using Func_elim[OF assms True] by blast
+      thus ?thesis using True unfolding Func_def curr_def by auto
+    qed
+  qed
+  show "?f \<in> Func (A <*> B) C" using assms unfolding Func_def mem_Collect_eq by auto
+qed
+
+lemma bij_betw_curr:
+"bij_betw (curr A) (Func (A <*> B) C) (Func A (Func B C))"
+unfolding bij_betw_def inj_on_def image_def
+apply (intro impI conjI ballI)
+apply (erule curr_inj[THEN iffD1], assumption+)
+apply auto
+apply (erule curr_in)
+using curr_surj by blast
+
+definition Func_map where
+"Func_map B2 f1 f2 g b2 \<equiv> if b2 \<in> B2 then f1 (g (f2 b2)) else undefined"
+
+lemma Func_map:
+assumes g: "g \<in> Func A2 A1" and f1: "f1 ` A1 \<subseteq> B1" and f2: "f2 ` B2 \<subseteq> A2"
+shows "Func_map B2 f1 f2 g \<in> Func B2 B1"
+using assms unfolding Func_def Func_map_def mem_Collect_eq by auto
+
+lemma Func_non_emp:
+assumes "B \<noteq> {}"
+shows "Func A B \<noteq> {}"
+proof-
+  obtain b where b: "b \<in> B" using assms by auto
+  hence "(\<lambda> a. if a \<in> A then b else undefined) \<in> Func A B" unfolding Func_def by auto
+  thus ?thesis by blast
+qed
+
+lemma Func_is_emp:
+"Func A B = {} \<longleftrightarrow> A \<noteq> {} \<and> B = {}" (is "?L \<longleftrightarrow> ?R")
+proof
+  assume L: ?L
+  moreover {assume "A = {}" hence False using L Func_empty by auto}
+  moreover {assume "B \<noteq> {}" hence False using L Func_non_emp by metis}
+  ultimately show ?R by blast
+next
+  assume R: ?R
+  moreover
+  {fix f assume "f \<in> Func A B"
+   moreover obtain a where "a \<in> A" using R by blast
+   ultimately obtain b where "b \<in> B" unfolding Func_def by blast
+   with R have False by blast
+  }
+  thus ?L by blast
+qed
+
+lemma Func_map_surj:
+assumes B1: "f1 ` A1 = B1" and A2: "inj_on f2 B2" "f2 ` B2 \<subseteq> A2"
+and B2A2: "B2 = {} \<Longrightarrow> A2 = {}"
+shows "Func B2 B1 = Func_map B2 f1 f2 ` Func A2 A1"
+proof(cases "B2 = {}")
+  case True
+  thus ?thesis using B2A2 by (auto simp: Func_empty Func_map_def)
+next
+  case False note B2 = False
+  show ?thesis
+  proof safe
+    fix h assume h: "h \<in> Func B2 B1"
+    def j1 \<equiv> "inv_into A1 f1"
+    have "\<forall> a2 \<in> f2 ` B2. \<exists> b2. b2 \<in> B2 \<and> f2 b2 = a2" by blast
+    then obtain k where k: "\<forall> a2 \<in> f2 ` B2. k a2 \<in> B2 \<and> f2 (k a2) = a2" by metis
+    {fix b2 assume b2: "b2 \<in> B2"
+     hence "f2 (k (f2 b2)) = f2 b2" using k A2(2) by auto
+     moreover have "k (f2 b2) \<in> B2" using b2 A2(2) k by auto
+     ultimately have "k (f2 b2) = b2" using b2 A2(1) unfolding inj_on_def by blast
+    } note kk = this
+    obtain b22 where b22: "b22 \<in> B2" using B2 by auto
+    def j2 \<equiv> "\<lambda> a2. if a2 \<in> f2 ` B2 then k a2 else b22"
+    have j2A2: "j2 ` A2 \<subseteq> B2" unfolding j2_def using k b22 by auto
+    have j2: "\<And> b2. b2 \<in> B2 \<Longrightarrow> j2 (f2 b2) = b2"
+    using kk unfolding j2_def by auto
+    def g \<equiv> "Func_map A2 j1 j2 h"
+    have "Func_map B2 f1 f2 g = h"
+    proof (rule ext)
+      fix b2 show "Func_map B2 f1 f2 g b2 = h b2"
+      proof(cases "b2 \<in> B2")
+        case True
+        show ?thesis
+        proof (cases "h b2 = undefined")
+          case True
+          hence b1: "h b2 \<in> f1 ` A1" using h `b2 \<in> B2` unfolding B1 Func_def by auto
+          show ?thesis using A2 f_inv_into_f[OF b1]
+            unfolding True g_def Func_map_def j1_def j2[OF `b2 \<in> B2`] by auto
+        qed(insert A2 True j2[OF True] h B1, unfold j1_def g_def Func_def Func_map_def,
+          auto intro: f_inv_into_f)
+      qed(insert h, unfold Func_def Func_map_def, auto)
+    qed
+    moreover have "g \<in> Func A2 A1" unfolding g_def apply(rule Func_map[OF h])
+    using inv_into_into j2A2 B1 A2 inv_into_into
+    unfolding j1_def image_def by fast+
+    ultimately show "h \<in> Func_map B2 f1 f2 ` Func A2 A1"
+    unfolding Func_map_def[abs_def] unfolding image_def by auto
+  qed(insert B1 Func_map[OF _ _ A2(2)], auto)
+qed
 
 end
