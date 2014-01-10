@@ -215,11 +215,13 @@ fun prove_common immediate pri ctxt xs asms props tac =
         NONE => err "Tactic failed"
       | SOME st =>
           let
+            val _ =
+              Theory.subthy (theory_of_thm st, thy) orelse err "Bad background theory of goal state";
             val res =
               (finish ctxt' st
                 |> Drule.flexflex_unique
                 |> Thm.check_shyps sorts
-                (* |> Assumption.check_hyps ctxt' FIXME *))
+                (* |> Thm.check_hyps ctxt' *) (* FIXME *))
               handle THM (msg, _, _) => err msg | ERROR msg => err msg;
           in
             if Unify.matches_list thy [Thm.term_of stmt] [Thm.prop_of res] then res

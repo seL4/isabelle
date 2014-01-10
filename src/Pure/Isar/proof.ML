@@ -481,6 +481,8 @@ fun conclude_goal ctxt goal propss =
   let
     val thy = Proof_Context.theory_of ctxt;
 
+    val _ =
+      Theory.subthy (theory_of_thm goal, thy) orelse error "Bad background theory of goal state";
     val _ = Thm.no_prems goal orelse error (Proof_Display.string_of_goal ctxt goal);
 
     fun lost_structure () = error ("Lost goal structure:\n" ^ Display.string_of_thm ctxt goal);
@@ -490,7 +492,7 @@ fun conclude_goal ctxt goal propss =
         handle THM _ => lost_structure ())
       |> Drule.flexflex_unique
       |> Thm.check_shyps (Variable.sorts_of ctxt)
-      |> Assumption.check_hyps ctxt;
+      |> Thm.check_hyps ctxt;
 
     val goal_propss = filter_out null propss;
     val results =
