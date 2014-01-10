@@ -1040,11 +1040,11 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
 
         val excludess' = map (op ~~) (goal_idxss ~~ exclude_thmss);
         fun mk_excludesss excludes n =
-          (excludes, map (fn k => replicate k [TrueI] @ replicate (n - k) []) (0 upto n - 1))
-          |-> fold (fn ((c, c', _), thm) => nth_map c (nth_map c' (K [thm])));
-        val excludessss = (excludess' ~~ taut_thmss |> map (op @), fun_names ~~ corec_specs)
-          |-> map2 (fn excludes => fn (_, {ctr_specs, ...}) =>
-            mk_excludesss excludes (length ctr_specs));
+          fold (fn ((c, c', _), thm) => nth_map c (nth_map c' (K [thm])))
+            excludes (map (fn k => replicate k [TrueI] @ replicate (n - k) []) (0 upto n - 1));
+        val excludessss =
+          map2 (fn excludes => mk_excludesss excludes o length o #ctr_specs)
+            (map2 append excludess' taut_thmss) corec_specs;
 
         fun prove_disc ({ctr_specs, ...} : corec_spec) excludesss
             ({fun_name, fun_T, fun_args, ctr_no, prems, eqn_pos, ...} : coeqn_data_disc) =
