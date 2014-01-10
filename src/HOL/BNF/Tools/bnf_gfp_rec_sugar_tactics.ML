@@ -12,7 +12,7 @@ sig
   val mk_primcorec_ctr_tac: Proof.context -> int -> thm -> thm option -> thm list -> tactic
   val mk_primcorec_disc_tac: Proof.context -> thm list -> thm -> int -> int -> thm list list list ->
     tactic
-  val mk_primcorec_disc_iff_tac: Proof.context -> string list -> thm -> thm -> thm list list ->
+  val mk_primcorec_disc_iff_tac: Proof.context -> string list -> thm -> thm list -> thm list list ->
     thm list -> tactic
   val mk_primcorec_exhaust_tac: Proof.context -> string list -> int -> thm -> tactic
   val mk_primcorec_nchotomy_tac: Proof.context -> thm list -> tactic
@@ -108,19 +108,20 @@ fun prelude_tac ctxt defs thm =
 fun mk_primcorec_disc_tac ctxt defs disc_corec k m exclsss =
   prelude_tac ctxt defs disc_corec THEN cases_tac ctxt k m exclsss;
 
-fun mk_primcorec_disc_iff_tac ctxt fun_exhaust_frees fun_exhaust fun_disc fun_discss disc_excludes =
+fun mk_primcorec_disc_iff_tac ctxt fun_exhaust_frees fun_exhaust fun_discs fun_discss
+    disc_excludes =
   HEADGOAL (rtac iffI THEN'
     rtac fun_exhaust THEN'
     K (exhaust_inst_as_projs_tac ctxt fun_exhaust_frees) THEN'
     EVERY' (map (fn [] => etac FalseE
-        | [fun_disc'] =>
-          if Thm.eq_thm (fun_disc', fun_disc) then
+        | fun_discs' as [fun_disc'] =>
+          if eq_list Thm.eq_thm (fun_discs', fun_discs) then
             REPEAT_DETERM o etac conjI THEN' (atac ORELSE' rtac TrueI)
           else
             rtac FalseE THEN' rotate_tac 1 THEN' dtac fun_disc' THEN' REPEAT_DETERM o atac THEN'
             dresolve_tac disc_excludes THEN' etac notE THEN' atac)
       fun_discss) THEN'
-    rtac (unfold_thms ctxt [atomize_conjL] fun_disc) THEN_MAYBE' atac);
+    resolve_tac (map (unfold_thms ctxt [atomize_conjL]) fun_discs) THEN_MAYBE' atac);
 
 fun mk_primcorec_sel_tac ctxt defs distincts splits split_asms mapsx map_idents map_comps fun_sel k
     m exclsss =

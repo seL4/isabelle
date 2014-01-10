@@ -1237,7 +1237,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
         fun prove_disc_iff ({ctr_specs, ...} : corec_spec) exhaust_thms disc_thmss'
             (({fun_args = exhaust_fun_args, ...} : coeqn_data_disc) :: _) disc_thms
             ({fun_name, fun_T, fun_args, ctr_no, prems, eqn_pos, ...} : coeqn_data_disc) =
-          if null disc_thms orelse null exhaust_thms then
+          if null exhaust_thms then
             []
           else
             let
@@ -1247,17 +1247,14 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                   mk_conjs prems)
                 |> curry Logic.list_all (map dest_Free fun_args);
             in
-              if prems = [@{term False}] then
-                []
-              else
-                mk_primcorec_disc_iff_tac lthy (map (fst o dest_Free) exhaust_fun_args)
-                  (the_single exhaust_thms) (the_single disc_thms) disc_thmss' (flat disc_excludess)
-                |> K |> Goal.prove_sorry lthy [] [] goal
-                |> Thm.close_derivation
-                |> fold (fn rule => perhaps (try (fn thm => thm RS rule)))
-                  @{thms eqTrueE eq_False[THEN iffD1] notnotD}
-                |> pair eqn_pos
-                |> single
+              mk_primcorec_disc_iff_tac lthy (map (fst o dest_Free) exhaust_fun_args)
+                (the_single exhaust_thms) disc_thms disc_thmss' (flat disc_excludess)
+              |> K |> Goal.prove_sorry lthy [] [] goal
+              |> Thm.close_derivation
+              |> fold (fn rule => perhaps (try (fn thm => thm RS rule)))
+                @{thms eqTrueE eq_False[THEN iffD1] notnotD}
+              |> pair eqn_pos
+              |> single
             end;
 
         val disc_iff_thmss = map6 (flat ooo map2 oooo prove_disc_iff) corec_specs exhaust_thmss
