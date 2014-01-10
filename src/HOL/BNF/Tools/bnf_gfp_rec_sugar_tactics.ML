@@ -8,7 +8,7 @@ Tactics for corecursor sugar.
 signature BNF_GFP_REC_SUGAR_TACTICS =
 sig
   val mk_primcorec_assumption_tac: Proof.context -> thm list -> int -> tactic
-  val mk_primcorec_code_of_raw_code_tac: Proof.context -> thm list -> thm list -> thm -> tactic
+  val mk_primcorec_code_tac: Proof.context -> thm list -> thm list -> thm -> tactic
   val mk_primcorec_ctr_tac: Proof.context -> int -> thm -> thm option -> thm list -> tactic
   val mk_primcorec_disc_tac: Proof.context -> thm list -> thm -> int -> int -> thm list list list ->
     tactic
@@ -16,8 +16,8 @@ sig
     thm list -> tactic
   val mk_primcorec_exhaust_tac: Proof.context -> string list -> int -> thm -> tactic
   val mk_primcorec_nchotomy_tac: Proof.context -> thm list -> tactic
-  val mk_primcorec_raw_code_of_ctr_tac: Proof.context -> thm list -> thm list -> thm list ->
-    thm list -> int list -> thm list -> thm option -> tactic
+  val mk_primcorec_raw_code_tac: Proof.context -> thm list -> thm list -> thm list -> thm list ->
+    int list -> thm list -> thm option -> tactic
   val mk_primcorec_sel_tac: Proof.context -> thm list -> thm list -> thm list -> thm list ->
     thm list -> thm list -> thm list -> thm -> int -> int -> thm list list list -> tactic
 end;
@@ -157,7 +157,7 @@ fun inst_split_eq ctxt split =
     end
   | _ => split);
 
-fun raw_code_of_ctr_single_tac ctxt distincts discIs splits split_asms m fun_ctr =
+fun raw_code_single_tac ctxt distincts discIs splits split_asms m fun_ctr =
   let
     val splits' =
       map (fn th => th RS iffD2) (@{thm split_if_eq2} :: map (inst_split_eq ctxt) splits)
@@ -177,8 +177,7 @@ fun raw_code_of_ctr_single_tac ctxt distincts discIs splits split_asms m fun_ctr
 
 fun rulify_nchotomy n = funpow (n - 1) (fn thm => thm RS @{thm Meson.make_pos_rule'});
 
-fun mk_primcorec_raw_code_of_ctr_tac ctxt distincts discIs splits split_asms ms fun_ctrs
-    nchotomy_opt =
+fun mk_primcorec_raw_code_tac ctxt distincts discIs splits split_asms ms fun_ctrs nchotomy_opt =
   let
     val n = length ms;
     val (ms', fun_ctrs') =
@@ -192,13 +191,12 @@ fun mk_primcorec_raw_code_of_ctr_tac ctxt distincts discIs splits split_asms ms 
          ||> (fn thm => [rulify_nchotomy n nchotomy RS thm] handle THM _ => [thm])
          |> op @));
   in
-    EVERY (map2 (raw_code_of_ctr_single_tac ctxt distincts discIs splits split_asms)
-      ms' fun_ctrs') THEN
+    EVERY (map2 (raw_code_single_tac ctxt distincts discIs splits split_asms) ms' fun_ctrs') THEN
     IF_UNSOLVED (unfold_thms_tac ctxt @{thms Code.abort_def} THEN
       HEADGOAL (REPEAT_DETERM o resolve_tac (refl :: split_connectI)))
   end;
 
-fun mk_primcorec_code_of_raw_code_tac ctxt distincts splits raw =
+fun mk_primcorec_code_tac ctxt distincts splits raw =
   HEADGOAL (rtac raw ORELSE' rtac (raw RS trans) THEN'
     SELECT_GOAL (unfold_thms_tac ctxt unfold_lets) THEN' REPEAT_DETERM o
     (rtac refl ORELSE' atac ORELSE'

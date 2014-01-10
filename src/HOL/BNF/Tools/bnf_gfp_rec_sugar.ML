@@ -1172,7 +1172,8 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                       val raw_rhs = expand_corec_code_rhs lthy has_call bound_Ts rhs;
                       val cond_ctrs =
                         fold_rev_corec_code_rhs lthy (K oo (cons oo pair)) bound_Ts raw_rhs [];
-                      val ctr_thms = map (the o AList.lookup (op =) ctr_alist o snd) cond_ctrs;
+                      val ctr_thms =
+                        map (the_default FalseE o AList.lookup (op =) ctr_alist o snd) cond_ctrs;
                     in SOME (false, rhs, raw_rhs, ctr_thms) end
                   | NONE =>
                     let
@@ -1221,13 +1222,13 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                     val (distincts, discIs, sel_splits, sel_split_asms) =
                       case_thms_of_term lthy bound_Ts raw_rhs;
 
-                    val raw_code_thm = mk_primcorec_raw_code_of_ctr_tac lthy distincts discIs
-                        sel_splits sel_split_asms ms ctr_thms
+                    val raw_code_thm = mk_primcorec_raw_code_tac lthy distincts discIs sel_splits
+                        sel_split_asms ms ctr_thms
                         (if exhaustive_code then try the_single nchotomys else NONE)
                       |> K |> Goal.prove_sorry lthy [] [] raw_goal
                       |> Thm.close_derivation;
                   in
-                    mk_primcorec_code_of_raw_code_tac lthy distincts sel_splits raw_code_thm
+                    mk_primcorec_code_tac lthy distincts sel_splits raw_code_thm
                     |> K |> Goal.prove_sorry lthy [] [] goal
                     |> Thm.close_derivation
                     |> single
