@@ -150,6 +150,9 @@ lemma fun_rel_iff_leq_vimage2p: "(fun_rel R S) f g = (R \<le> vimage2p f g S)"
 lemma convol_image_vimage2p: "<f o fst, g o snd> ` Collect (split (vimage2p f g R)) \<subseteq> Collect (split R)"
   unfolding vimage2p_def convol_def by auto
 
+lemma vimage2p_Grp: "vimage2p f g P = Grp UNIV f OO P OO (Grp UNIV g)\<inverse>\<inverse>"
+  unfolding vimage2p_def Grp_def by auto
+
 (*FIXME: duplicates lemma from Record.thy*)
 lemma o_eq_dest_lhs: "a o b = c \<Longrightarrow> a (b v) = c v"
   by clarsimp

@@ -731,6 +731,7 @@ session "HOL-BNF-Examples" in "BNF/Examples" = "HOL-BNF" +
     "Derivation_Trees/Gram_Lang"
     "Derivation_Trees/Parallel"
     Koenig
+    Stream_Processor
   theories [condition = ISABELLE_FULL_TEST]
     Misc_Codatatype
     Misc_Datatype
