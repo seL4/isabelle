@@ -712,7 +712,8 @@ fun dissect_coeqn lthy has_call fun_names sequentials
     else if is_Free head andalso member (op =) fun_names (fst (dest_Free head)) then
       if member (op =) ctrs (head_of (unfold_let (the rhs_opt))) then
         dissect_coeqn_ctr fun_names sequentials basic_ctr_specss eqn_pos eqn0
-          (if null prems then SOME eqn0 else NONE) prems concl matchedsss
+          (if null prems then SOME (snd (HOLogic.dest_eq (HOLogic.dest_Trueprop eqn))) else NONE)
+          prems concl matchedsss
       else if null prems then
         dissect_coeqn_code lthy has_call fun_names basic_ctr_specss eqn_pos eqn0 concl matchedsss
         |>> flat
