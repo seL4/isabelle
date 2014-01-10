@@ -52,7 +52,8 @@ sig
   val name_of_ctr: term -> string
   val name_of_disc: term -> string
   val dest_ctr: Proof.context -> string -> term -> term * term list
-  val dest_case: Proof.context -> string -> typ list -> term -> (term list * term list) option
+  val dest_case: Proof.context -> string -> typ list -> term ->
+    (ctr_sugar * term list * term list) option
 
   val wrap_free_constructors: ({prems: thm list, context: Proof.context} -> tactic) list list ->
     (((bool * (bool * bool)) * term list) * binding) *
@@ -266,7 +267,7 @@ fun dest_case ctxt s Ts t =
   (case Term.strip_comb t of
     (Const (c, _), args as _ :: _) =>
     (case ctr_sugar_of ctxt s of
-      SOME {casex = Const (case_name, _), discs = discs0, selss = selss0, ...} =>
+      SOME (ctr_sugar as {casex = Const (case_name, _), discs = discs0, selss = selss0, ...}) =>
       if case_name = c then
         let val n = length discs0 in
           if n < length args then
@@ -278,7 +279,7 @@ fun dest_case ctxt s Ts t =
               val branch_argss = map (fn sels => map (rapp obj) sels @ leftovers) selss;
               val branches' = map2 (curry Term.betapplys) branches branch_argss;
             in
-              SOME (conds, branches')
+              SOME (ctr_sugar, conds, branches')
             end
           else
             NONE

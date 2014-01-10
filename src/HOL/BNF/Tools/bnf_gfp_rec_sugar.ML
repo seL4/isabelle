@@ -158,10 +158,10 @@ fun fold_rev_let_if_case ctxt f bound_Ts t =
             (case fastype_of1 (bound_Ts, nth args n) of
               Type (s, Ts) =>
               (case dest_case ctxt s Ts t of
-                NONE => apsnd (f conds t)
-              | SOME (conds', branches) =>
-                apfst (cons s) o fold_rev (uncurry fld)
-                  (map (append conds o conjuncts_s) conds' ~~ branches))
+                SOME (ctr_sugar as {sel_splits = _ :: _, ...}, conds', branches) =>
+                apfst (cons ctr_sugar) o fold_rev (uncurry fld)
+                  (map (append conds o conjuncts_s) conds' ~~ branches)
+              | _ => apsnd (f conds t))
             | _ => apsnd (f conds t))
           else
             apsnd (f conds t)
@@ -171,7 +171,10 @@ fun fold_rev_let_if_case ctxt f bound_Ts t =
     fld [] t o pair []
   end;
 
-fun case_of ctxt = ctr_sugar_of ctxt #> Option.map (fst o dest_Const o #casex);
+fun case_of ctxt s =
+  (case ctr_sugar_of ctxt s of
+    SOME {casex = Const (s', _), sel_splits = _ :: _, ...} => SOME s'
+  | _ => NONE);
 
 fun massage_let_if_case ctxt has_call massage_leaf =
   let
@@ -319,8 +322,6 @@ fun massage_nested_corec_call ctxt has_call raw_massage_call bound_Ts U t =
     if has_call t then massage_call bound_Ts U T t else build_map_Inl (T, U) $ t
   end;
 
-val fold_rev_corec_call = fold_rev_let_if_case;
-
 fun expand_to_ctr_term ctxt s Ts t =
   (case ctr_sugar_of ctxt s of
     SOME {ctrs, casex, ...} =>
@@ -342,10 +343,7 @@ fun fold_rev_corec_code_rhs ctxt f =
   snd ooo fold_rev_let_if_case ctxt (fn conds => uncurry (f conds) o Term.strip_comb);
 
 fun case_thms_of_term ctxt bound_Ts t =
-  let
-    val (caseT_names, _) = fold_rev_let_if_case ctxt (K (K I)) bound_Ts t ();
-    val ctr_sugars = map (the o ctr_sugar_of ctxt) caseT_names;
-  in
+  let val (ctr_sugars, _) = fold_rev_let_if_case ctxt (K (K I)) bound_Ts t () in
     (maps #distincts ctr_sugars, maps #discIs ctr_sugars, maps #sel_splits ctr_sugars,
      maps #sel_split_asms ctr_sugars)
   end;
@@ -876,7 +874,7 @@ fun find_corec_calls ctxt has_call basic_ctr_specs ({ctr, sel, rhs_term, ...} : 
   let
     val sel_no = find_first (curry (op =) ctr o #ctr) basic_ctr_specs
       |> find_index (curry (op =) sel) o #sels o the;
-    fun find t = if has_call t then snd (fold_rev_corec_call ctxt (K cons) [] t []) else [];
+    fun find t = if has_call t then snd (fold_rev_let_if_case ctxt (K cons) [] t []) else [];
   in
     find rhs_term
     |> K |> nth_map sel_no |> AList.map_entry (op =) ctr
