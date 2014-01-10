@@ -201,6 +201,7 @@ its homologue from the @{theory Option} theory:
 
 (*<*)
     hide_const None Some
+    hide_type option
 (*>*)
     datatype_new 'a option = None | Some 'a
 

@@ -108,10 +108,10 @@ fun prelude_tac ctxt defs thm =
 fun mk_primcorec_disc_tac ctxt defs disc_corec k m exclsss =
   prelude_tac ctxt defs disc_corec THEN cases_tac ctxt k m exclsss;
 
-fun mk_primcorec_disc_iff_tac ctxt frees fun_exhaust fun_disc fun_discss disc_excludes =
+fun mk_primcorec_disc_iff_tac ctxt fun_exhaust_frees fun_exhaust fun_disc fun_discss disc_excludes =
   HEADGOAL (rtac iffI THEN'
     rtac fun_exhaust THEN'
-    K (exhaust_inst_as_projs_tac ctxt frees) THEN'
+    K (exhaust_inst_as_projs_tac ctxt fun_exhaust_frees) THEN'
     EVERY' (map (fn [] => etac FalseE
         | [fun_disc'] =>
           if Thm.eq_thm (fun_disc', fun_disc) then

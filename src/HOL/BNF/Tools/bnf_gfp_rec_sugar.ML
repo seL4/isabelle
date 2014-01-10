@@ -850,22 +850,22 @@ fun mk_actual_disc_eqns fun_binding arg_Ts exhaustive ({ctr_specs, ...} : corec_
       let
         val n = 0 upto length ctr_specs
           |> the o find_first (fn idx => not (exists (curry (op =) idx o #ctr_no) disc_eqns));
+        val {ctr, disc, ...} = nth ctr_specs n;
         val fun_args = (try (#fun_args o hd) disc_eqns, try (#fun_args o hd) sel_eqns)
           |> the_default (map (curry Free Name.uu) arg_Ts) o merge_options;
-        val sel_eqn_opt =
-          find_first (curry (op =) (Binding.name_of fun_binding) o #fun_name) sel_eqns;
+        val sel_eqn_opt = find_first (equal ctr o #ctr) sel_eqns;
         val extra_disc_eqn = {
           fun_name = Binding.name_of fun_binding,
           fun_T = arg_Ts ---> body_type (fastype_of (#ctr (hd ctr_specs))),
           fun_args = fun_args,
-          ctr = #ctr (nth ctr_specs n),
+          ctr = ctr,
           ctr_no = n,
-          disc = #disc (nth ctr_specs n),
+          disc = disc,
           prems = maps (s_not_conj o #prems) disc_eqns,
           auto_gen = true,
           ctr_rhs_opt = Option.map #ctr_rhs_opt sel_eqn_opt |> the_default NONE,
           code_rhs_opt = Option.map #ctr_rhs_opt sel_eqn_opt |> the_default NONE,
-          eqn_pos = Option.map (curry (op +) 1 o #eqn_pos) sel_eqn_opt |> the_default 1000 (*###*),
+          eqn_pos = Option.map (curry (op +) 1 o #eqn_pos) sel_eqn_opt |> the_default 100000 (*###*),
           user_eqn = undef_const};
       in
         chop n disc_eqns ||> cons extra_disc_eqn |> (op @)
@@ -1235,7 +1235,8 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
         val disc_thmsss' = map (map (map (snd o snd))) disc_alistss;
         val sel_thmss = map (map snd o order_list_duplicates) sel_alists;
 
-        fun prove_disc_iff ({ctr_specs, ...} : corec_spec) exhaust_thms disc_thmss' disc_thms
+        fun prove_disc_iff ({ctr_specs, ...} : corec_spec) exhaust_thms disc_thmss'
+            (({fun_args = exhaust_fun_args, ...} : coeqn_data_disc) :: _) disc_thms
             ({fun_name, fun_T, fun_args, ctr_no, prems, eqn_pos, ...} : coeqn_data_disc) =
           if null disc_thms orelse null exhaust_thms then
             []
@@ -1250,7 +1251,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
               if prems = [@{term False}] then
                 []
               else
-                mk_primcorec_disc_iff_tac lthy (map (fst o dest_Free) fun_args)
+                mk_primcorec_disc_iff_tac lthy (map (fst o dest_Free) exhaust_fun_args)
                   (the_single exhaust_thms) (the_single disc_thms) disc_thmss' (flat disc_excludess)
                 |> K |> Goal.prove_sorry lthy [] [] goal
                 |> Thm.close_derivation
@@ -1258,8 +1259,8 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                 |> single
             end;
 
-        val disc_iff_thmss = map5 (flat ooo map2 ooo prove_disc_iff) corec_specs exhaust_thmss
-          disc_thmsss' disc_thmsss' disc_eqnss
+        val disc_iff_thmss = map6 (flat ooo map2 oooo prove_disc_iff) corec_specs exhaust_thmss
+          disc_thmsss' disc_eqnss disc_thmsss' disc_eqnss
           |> map order_list_duplicates;
 
         val ctr_alists = map5 (maps oooo prove_ctr) disc_alists (map (map snd) sel_alists) disc_eqnss
