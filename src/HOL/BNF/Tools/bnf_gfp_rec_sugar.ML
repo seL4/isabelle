@@ -1254,6 +1254,8 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                   (the_single exhaust_thms) (the_single disc_thms) disc_thmss' (flat disc_excludess)
                 |> K |> Goal.prove_sorry lthy [] [] goal
                 |> Thm.close_derivation
+                |> fold (fn rule => perhaps (try (fn thm => thm RS rule)))
+                  @{thms eqTrueE eq_False[THEN iffD1] notnotD}
                 |> pair eqn_pos
                 |> single
             end;
@@ -1270,7 +1272,9 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
         val code_thmss = map6 prove_code exhaustives disc_eqnss sel_eqnss nchotomy_thmss ctr_thmss'
           ctr_specss;
 
-        val simp_thmss = map2 append disc_thmss sel_thmss;
+        val disc_iff_or_disc_thmss =
+          map2 (fn [] => I | disc_iffs => K disc_iffs) disc_iff_thmss disc_thmss;
+        val simp_thmss = map2 append disc_iff_or_disc_thmss sel_thmss;
 
         val common_name = mk_common_name fun_names;
 
