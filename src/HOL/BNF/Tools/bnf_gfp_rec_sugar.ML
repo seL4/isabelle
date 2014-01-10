@@ -886,8 +886,7 @@ fun applied_fun_of fun_name fun_T fun_args =
   list_comb (Free (fun_name, fun_T), map Bound (length fun_args - 1 downto 0));
 
 fun is_trivial_implies thm =
-  op aconv (Logic.dest_implies (Thm.prop_of thm))
-  handle TERM _ => false;
+  uncurry (member (op aconv)) (Logic.strip_horn (Thm.prop_of thm));
 
 fun add_primcorec_ursive tac_opt opts fixes specs of_specs_opt lthy =
   let
