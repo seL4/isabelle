@@ -1854,7 +1854,7 @@ using stable_natLeq card_of_nat stable_ordIso by auto
 
 text{* Below, the type of "A" is not important -- we just had to choose an appropriate
    type to make "A" possible. What is important is that arbitrarily large
-   \<not>finite sets of stable cardinality exist. *}
+   infinite sets of stable cardinality exist. *}
 
 lemma infinite_stable_exists:
 assumes CARD: "\<forall>r \<in> R. Card_order (r::'a rel)"
