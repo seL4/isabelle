@@ -220,7 +220,7 @@ fun prove_common immediate pri ctxt xs asms props tac =
               (finish ctxt' st
                 |> Drule.flexflex_unique
                 |> Thm.check_shyps sorts
-                (* |> Thm.check_hyps (Context.Proof ctxt') *) (* FIXME *))
+                |> Thm.check_hyps (Context.Proof ctxt'))
               handle THM (msg, _, _) => err msg | ERROR msg => err msg;
           in
             if Unify.matches_list thy [Thm.term_of stmt] [Thm.prop_of res] then res
