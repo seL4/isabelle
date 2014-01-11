@@ -103,7 +103,8 @@ fun generate_parametric_transfer_rule ctxt transfer_rule parametric_transfer_rul
         Drule.cterm_instantiate subst relcomppI
       end
 
-    fun zip_transfer_rules ctxt thm =       let
+    fun zip_transfer_rules ctxt thm =
+      let
         val thy = Proof_Context.theory_of ctxt
         fun mk_POS ty = Const (@{const_name POS}, ty --> ty --> HOLogic.boolT)
         val rel = (Thm.dest_fun2 o Thm.dest_arg o cprop_of) thm
@@ -122,7 +123,8 @@ fun generate_parametric_transfer_rule ctxt transfer_rule parametric_transfer_rul
     val (fixed_thm, ctxt) = yield_singleton (apfst snd oo Variable.import true) preprocessed_thm ctxt
     val assms = cprems_of fixed_thm
     val add_transfer_rule = Thm.attribute_declaration Transfer.transfer_add
-    val ctxt = Context.proof_map(fold (add_transfer_rule o Thm.assume) assms) ctxt
+    val (prems, ctxt) = fold_map Thm.assume_hyps assms ctxt
+    val ctxt = Context.proof_map (fold add_transfer_rule prems) ctxt
     val zipped_thm =
       fixed_thm
       |> undisch_all
