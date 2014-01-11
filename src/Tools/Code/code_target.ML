@@ -511,7 +511,6 @@ fun read_const_exprs thy cs =
   in union (op =) cs3 cs1 end;
 
 fun prep_destination "" = NONE
-  | prep_destination "-" = (legacy_feature "drop \"file\" argument entirely instead of \"-\""; NONE)
   | prep_destination s = SOME (Path.explode s);
 
 fun export_code thy cs seris =
