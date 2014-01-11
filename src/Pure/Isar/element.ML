@@ -473,16 +473,18 @@ fun eq_morphism _ [] = NONE
 
 (* init *)
 
-fun init (Fixes fixes) = Context.map_proof (Proof_Context.add_fixes fixes #> #2)
-  | init (Constrains _) = I
-  | init (Assumes asms) = Context.map_proof (fn ctxt =>
+local
+
+fun init0 (Fixes fixes) = Context.map_proof (Proof_Context.add_fixes fixes #> #2)
+  | init0 (Constrains _) = I
+  | init0 (Assumes asms) = Context.map_proof (fn ctxt =>
       let
         val asms' = Attrib.map_specs (map (Attrib.attribute ctxt)) asms;
         val (_, ctxt') = ctxt
           |> fold Variable.auto_fixes (maps (map #1 o #2) asms')
           |> Proof_Context.add_assms_i Assumption.assume_export asms';
       in ctxt' end)
-  | init (Defines defs) = Context.map_proof (fn ctxt =>
+  | init0 (Defines defs) = Context.map_proof (fn ctxt =>
       let
         val defs' = Attrib.map_specs (map (Attrib.attribute ctxt)) defs;
         val asms = defs' |> map (fn (b, (t, ps)) =>
@@ -492,7 +494,17 @@ fun init (Fixes fixes) = Context.map_proof (Proof_Context.add_fixes fixes #> #2)
           |> fold Variable.auto_fixes (map #1 asms)
           |> Proof_Context.add_assms_i Local_Defs.def_export (map #2 asms);
       in ctxt' end)
-  | init (Notes (kind, facts)) = Attrib.generic_notes kind facts #> #2;
+  | init0 (Notes (kind, facts)) = Attrib.generic_notes kind facts #> #2;
+
+in
+
+fun init elem context =
+  context
+  |> Context.mapping I Thm.unchecked_hyps
+  |> init0 elem
+  |> Context.mapping I (fn ctxt => Thm.restore_hyps (Context.proof_of context) ctxt);
+
+end;
 
 
 (* activate *)
