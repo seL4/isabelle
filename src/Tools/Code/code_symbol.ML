@@ -12,9 +12,9 @@ sig
     Class_Relation of 'd  | Class_Instance of 'e | Module of 'f
   type symbol = (string, string, class, class * class, string * class, string) attr
   structure Graph: GRAPH;
-  val plain_name: Proof.context -> symbol -> string
-  val tyco_fun: string
+  val default_name: Proof.context -> symbol -> string * string
   val quote_symbol: Proof.context -> symbol -> string
+  val tyco_fun: string
   val map_attr: ('a -> 'g) -> ('b -> 'h) -> ('c -> 'i) -> ('d -> 'j) -> ('e -> 'k) -> ('f -> 'l)
     -> ('a, 'b, 'c, 'd, 'e, 'f) attr -> ('g, 'h, 'i, 'j, 'k, 'l) attr
   val maps_attr: ('a -> 'g list) -> ('b -> 'h list)
@@ -89,28 +89,28 @@ local
         | NONE => #theory_name (Name_Space.the_entry (Sign.const_space thy) c));
   fun base_rel (x, y) = Long_Name.base_name y ^ "_" ^ Long_Name.base_name x;
   fun plainify ctxt get_prefix get_basename thing =
-    Long_Name.append (get_prefix (Proof_Context.theory_of ctxt) thing)
-      (Name.desymbolize false (get_basename thing));
+    (get_prefix (Proof_Context.theory_of ctxt) thing,
+      Name.desymbolize false (get_basename thing));
 in
 
-fun plain_name ctxt (Constant "==>") =
+fun default_name ctxt (Constant "==>") =
       plainify ctxt thyname_of_const (K "follows") "==>"
-  | plain_name ctxt (Constant "==") =
+  | default_name ctxt (Constant "==") =
       plainify ctxt thyname_of_const (K "meta_eq") "=="
-  | plain_name ctxt (Constant c) =
+  | default_name ctxt (Constant c) =
       plainify ctxt thyname_of_const Long_Name.base_name c
-  | plain_name ctxt (Type_Constructor "fun") =
+  | default_name ctxt (Type_Constructor "fun") =
       plainify ctxt thyname_of_type (K "fun") "fun"
-  | plain_name ctxt (Type_Constructor tyco) =
+  | default_name ctxt (Type_Constructor tyco) =
       plainify ctxt thyname_of_type Long_Name.base_name tyco
-  | plain_name ctxt (Type_Class class) =
+  | default_name ctxt (Type_Class class) =
       plainify ctxt thyname_of_class Long_Name.base_name class
-  | plain_name ctxt (Class_Relation classrel) =
+  | default_name ctxt (Class_Relation classrel) =
       plainify ctxt (fn thy => fn (class, _) => thyname_of_class thy class) base_rel classrel
-  | plain_name ctxt (Class_Instance inst) =
+  | default_name ctxt (Class_Instance inst) =
       plainify ctxt thyname_of_instance base_rel inst;
 
-val tyco_fun = plain_name @{context} (Type_Constructor "fun");
+val tyco_fun = (uncurry Long_Name.append o default_name @{context}) (Type_Constructor "fun");
 
 end;
 
