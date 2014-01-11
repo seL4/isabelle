@@ -168,8 +168,7 @@ fun future_result ctxt result prop =
 
 fun prove_internal ctxt casms cprop tac =
   (case SINGLE (tac (map (Assumption.assume ctxt) casms)) (init cprop) of
-    SOME th => Drule.implies_intr_list casms
-      (finish (Syntax.init_pretty_global (Thm.theory_of_thm th)) th)
+    SOME th => Drule.implies_intr_list casms (finish ctxt th)
   | NONE => error "Tactic failed");
 
 
