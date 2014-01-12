@@ -31,6 +31,14 @@ process, without requiring old-fashioned command-line invocation of
 "isabelle jedit -m MODE".
 
 
+*** Pure ***
+
+* More thorough check of proof context for goal statements and
+attributed fact expressions: background theory, declared hyps,
+declared variable names.  Potential INCOMPATIBILITY, tools need to
+observe standard context discipline.
+
+
 *** HOL ***
 
 * "declare [[code abort: ...]]" replaces "code_abort ...".
