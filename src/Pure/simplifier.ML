@@ -31,7 +31,6 @@ sig
   val map_ss: (Proof.context -> Proof.context) -> Context.generic -> Context.generic
   val pretty_simpset: Proof.context -> Pretty.T
   val default_mk_sym: Proof.context -> thm -> thm option
-  val debug_bounds: bool Unsynchronized.ref
   val prems_of: Proof.context -> thm list
   val add_simp: thm -> Proof.context -> Proof.context
   val del_simp: thm -> Proof.context -> Proof.context

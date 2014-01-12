@@ -114,7 +114,6 @@ sig
   val simp_trace_raw: Config.raw
   val simp_debug_raw: Config.raw
   val add_prems: thm list -> Proof.context -> Proof.context
-  val debug_bounds: bool Unsynchronized.ref
   val set_reorient: (Proof.context -> term list -> term -> term -> bool) ->
     Proof.context -> Proof.context
   val set_solvers: solver list -> Proof.context -> Proof.context
@@ -317,14 +316,16 @@ fun dest_ss (Simpset ({rules, ...}, {congs, procs, loop_tacs, solvers, ...})) =
 
 (* empty *)
 
-fun init_ss mk_rews termless subgoal_tac solvers =
-  make_simpset ((Net.empty, [], (0, []), (0, Unsynchronized.ref false)),
+fun init_ss bounds depth mk_rews termless subgoal_tac solvers =
+  make_simpset ((Net.empty, [], bounds, depth),
     (([], []), Net.empty, mk_rews, termless, subgoal_tac, [], solvers));
 
 fun default_mk_sym _ th = SOME (th RS Drule.symmetric_thm);
 
 val empty_ss =
   init_ss
+    (0, [])
+    (0, Unsynchronized.ref false)
     {mk = fn _ => fn th => if can Logic.dest_equals (Thm.concl_of th) then [th] else [],
       mk_cong = K I,
       mk_sym = default_mk_sym,
@@ -398,8 +399,8 @@ fun map_theory_simpset f thy =
 fun map_ss f = Context.mapping (map_theory_simpset f) f;
 
 val clear_simpset =
-  map_simpset (fn Simpset (_, {mk_rews, termless, subgoal_tac, solvers, ...}) =>
-    init_ss mk_rews termless subgoal_tac solvers);
+  map_simpset (fn Simpset ({bounds, depth, ...}, {mk_rews, termless, subgoal_tac, solvers, ...}) =>
+    init_ss bounds depth mk_rews termless subgoal_tac solvers);
 
 
 (* simp depth *)
@@ -1321,27 +1322,6 @@ fun bottomc ((simprem, useprem, mutsimp), prover, maxidx) =
     prover: how to solve premises in conditional rewrites and congruences
 *)
 
-val debug_bounds = Unsynchronized.ref false;
-
-fun check_bounds ctxt ct =
-  if ! debug_bounds then
-    let
-      val Simpset ({bounds = (_, bounds), ...}, _) = simpset_of ctxt;
-      val bs =
-        fold_aterms
-          (fn Free (x, _) =>
-            if Name.is_bound x andalso not (AList.defined eq_bound bounds x)
-            then insert (op =) x else I
-          | _ => I) (term_of ct) [];
-    in
-      if null bs then ()
-      else
-        print_term ctxt true
-          (fn () => "Simplifier: term contains loose bounds: " ^ commas_quote bs)
-          (Thm.term_of ct)
-    end
-  else ();
-
 fun rewrite_cterm mode prover raw_ctxt raw_ct =
   let
     val thy = Proof_Context.theory_of raw_ctxt;
@@ -1359,7 +1339,6 @@ fun rewrite_cterm mode prover raw_ctxt raw_ct =
       |> (fn ctxt => trace_invoke {depth = simp_depth ctxt, term = Thm.term_of ct} ctxt);
 
     val _ = trace_cterm ctxt false (fn () => "SIMPLIFIER INVOKED ON THE FOLLOWING TERM:") ct;
-    val _ = check_bounds ctxt ct;
   in bottomc (mode, Option.map Drule.flexflex_unique oo prover, maxidx) ctxt ct end;
 
 val simple_prover =
