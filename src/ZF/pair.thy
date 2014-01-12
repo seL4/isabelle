@@ -19,17 +19,17 @@ setup {*
 ML {* val ZF_ss = simpset_of @{context} *}
 
 simproc_setup defined_Bex ("\<exists>x\<in>A. P(x) & Q(x)") = {*
-  let
-    val unfold_bex_tac = unfold_tac @{thms Bex_def};
-    fun prove_bex_tac ctxt = unfold_bex_tac ctxt THEN Quantifier1.prove_one_point_ex_tac;
-  in fn _ => fn ctxt => Quantifier1.rearrange_bex (prove_bex_tac ctxt) ctxt end
+  fn _ => Quantifier1.rearrange_bex
+    (fn ctxt =>
+      unfold_tac ctxt @{thms Bex_def} THEN
+      Quantifier1.prove_one_point_ex_tac)
 *}
 
 simproc_setup defined_Ball ("\<forall>x\<in>A. P(x) \<longrightarrow> Q(x)") = {*
-  let
-    val unfold_ball_tac = unfold_tac @{thms Ball_def};
-    fun prove_ball_tac ctxt = unfold_ball_tac ctxt THEN Quantifier1.prove_one_point_all_tac;
-  in fn _ => fn ctxt => Quantifier1.rearrange_ball (prove_ball_tac ctxt) ctxt end
+  fn _ => Quantifier1.rearrange_ball
+    (fn ctxt =>
+      unfold_tac ctxt @{thms Ball_def} THEN
+      Quantifier1.prove_one_point_all_tac)
 *}
 
 

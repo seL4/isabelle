@@ -782,7 +782,7 @@ fun mk_ctor_rel_tac ctxt in_Irels i in_rel map_comp0 map_cong0 ctor_map ctor_set
 fun mk_rel_induct_tac m ctor_induct2 ks ctor_rels rel_mono_strongs {context = ctxt, prems = IHs} =
   let val n = length ks;
   in
-    unfold_tac @{thms le_fun_def le_bool_def all_simps(1,2)[symmetric]} ctxt THEN
+    unfold_tac ctxt @{thms le_fun_def le_bool_def all_simps(1,2)[symmetric]} THEN
     EVERY' [REPEAT_DETERM o rtac allI, rtac ctor_induct2,
       EVERY' (map3 (fn IH => fn ctor_rel => fn rel_mono_strong =>
         EVERY' [rtac impI, dtac (ctor_rel RS iffD1), rtac (IH RS @{thm spec2} RS mp),

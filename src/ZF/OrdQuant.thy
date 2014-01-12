@@ -368,17 +368,17 @@ declaration {* fn _ =>
 text {* Setting up the one-point-rule simproc *}
 
 simproc_setup defined_rex ("\<exists>x[M]. P(x) & Q(x)") = {*
-  let
-    val unfold_rex_tac = unfold_tac @{thms rex_def};
-    fun prove_rex_tac ctxt = unfold_rex_tac ctxt THEN Quantifier1.prove_one_point_ex_tac;
-  in fn _ => fn ctxt => Quantifier1.rearrange_bex (prove_rex_tac ctxt) ctxt end
+  fn _ => Quantifier1.rearrange_bex
+    (fn ctxt =>
+      unfold_tac ctxt @{thms rex_def} THEN
+      Quantifier1.prove_one_point_ex_tac)
 *}
 
 simproc_setup defined_rall ("\<forall>x[M]. P(x) \<longrightarrow> Q(x)") = {*
-  let
-    val unfold_rall_tac = unfold_tac @{thms rall_def};
-    fun prove_rall_tac ctxt = unfold_rall_tac ctxt THEN Quantifier1.prove_one_point_all_tac;
-  in fn _ => fn ctxt => Quantifier1.rearrange_ball (prove_rall_tac ctxt) ctxt end
+  fn _ => Quantifier1.rearrange_ball
+    (fn ctxt =>
+      unfold_tac ctxt @{thms rall_def} THEN
+      Quantifier1.prove_one_point_all_tac)
 *}
 
 end
