@@ -432,7 +432,7 @@ fun post_definition meta_tflCongs theory ctxt (def, pats) =
        not simplified. Otherwise large examples (Red-Black trees) are too
        slow.*)
      val case_simpset =
-       put_simpset HOL_basic_ss (Proof_Context.init_global theory)
+       put_simpset HOL_basic_ss ctxt
           addsimps case_rewrites
           |> fold (Simplifier.add_cong o #weak_case_cong o snd)
               (Symtab.dest (Datatype.get_all theory))
