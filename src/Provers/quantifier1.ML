@@ -68,9 +68,9 @@ sig
   val prove_one_point_ex_tac: tactic
   val rearrange_all: Proof.context -> cterm -> thm option
   val rearrange_ex: Proof.context -> cterm -> thm option
-  val rearrange_ball: tactic -> Proof.context -> cterm -> thm option
-  val rearrange_bex: tactic -> Proof.context -> cterm -> thm option
-  val rearrange_Collect: tactic -> Proof.context -> cterm -> thm option
+  val rearrange_ball: (Proof.context -> tactic) -> Proof.context -> cterm -> thm option
+  val rearrange_bex: (Proof.context -> tactic) -> Proof.context -> cterm -> thm option
+  val rearrange_Collect: (Proof.context -> tactic) -> Proof.context -> cterm -> thm option
 end;
 
 functor Quantifier1(Data: QUANTIFIER1_DATA): QUANTIFIER1 =
@@ -120,12 +120,13 @@ fun extract_quant extract q =
       | exqu xs P = extract (null xs) xs P
   in exqu [] end;
 
-fun prove_conv tac ctxt tu =
+fun prove_conv ctxt tu tac =
   let
     val (goal, ctxt') =
       yield_singleton (Variable.import_terms true) (Logic.mk_equals tu) ctxt;
     val thm =
-      Goal.prove ctxt' [] [] goal (K (rtac Data.iff_reflection 1 THEN tac));
+      Goal.prove ctxt' [] [] goal
+        (fn {context = ctxt'', ...} => rtac Data.iff_reflection 1 THEN tac ctxt'');
   in singleton (Variable.export ctxt' ctxt) thm end;
 
 fun qcomm_tac qcomm qI i = REPEAT_DETERM (rtac qcomm i THEN rtac qI i);
@@ -178,7 +179,7 @@ fun rearrange_all ctxt ct =
         NONE => NONE
       | SOME (xs, eq, Q) =>
           let val R = quantify all x T xs (Data.imp $ eq $ Q)
-          in SOME (prove_conv prove_one_point_all_tac ctxt (F, R)) end)
+          in SOME (prove_conv ctxt (F, R) (K prove_one_point_all_tac)) end)
   | _ => NONE);
 
 fun rearrange_ball tac ctxt ct =
@@ -190,7 +191,7 @@ fun rearrange_ball tac ctxt ct =
           if not (null xs) then NONE
           else
             let val R = Data.imp $ eq $ Q
-            in SOME (prove_conv tac ctxt (F, Ball $ A $ Abs (x, T, R))) end)
+            in SOME (prove_conv ctxt (F, Ball $ A $ Abs (x, T, R)) tac) end)
   | _ => NONE);
 
 fun rearrange_ex ctxt ct =
@@ -200,7 +201,7 @@ fun rearrange_ex ctxt ct =
         NONE => NONE
       | SOME (xs, eq, Q) =>
           let val R = quantify ex x T xs (Data.conj $ eq $ Q)
-          in SOME (prove_conv prove_one_point_ex_tac ctxt (F, R)) end)
+          in SOME (prove_conv ctxt (F, R) (K prove_one_point_ex_tac)) end)
   | _ => NONE);
 
 fun rearrange_bex tac ctxt ct =
@@ -210,7 +211,7 @@ fun rearrange_bex tac ctxt ct =
         NONE => NONE
       | SOME (xs, eq, Q) =>
           if not (null xs) then NONE
-          else SOME (prove_conv tac ctxt (F, Bex $ A $ Abs (x, T, Data.conj $ eq $ Q))))
+          else SOME (prove_conv ctxt (F, Bex $ A $ Abs (x, T, Data.conj $ eq $ Q)) tac))
   | _ => NONE);
 
 fun rearrange_Collect tac ctxt ct =
@@ -220,7 +221,7 @@ fun rearrange_Collect tac ctxt ct =
         NONE => NONE
       | SOME (_, eq, Q) =>
           let val R = Collect $ Abs (x, T, Data.conj $ eq $ Q)
-          in SOME (prove_conv tac ctxt (F, R)) end)
+          in SOME (prove_conv ctxt (F, R) tac) end)
   | _ => NONE);
 
 end;

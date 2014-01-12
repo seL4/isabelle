@@ -492,7 +492,7 @@ fun conclude_goal ctxt goal propss =
         handle THM _ => lost_structure ())
       |> Drule.flexflex_unique
       |> Thm.check_shyps (Variable.sorts_of ctxt)
-      |> Thm.check_hyps ctxt;
+      |> Thm.check_hyps (Context.Proof ctxt);
 
     val goal_propss = filter_out null propss;
     val results =

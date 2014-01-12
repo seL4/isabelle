@@ -186,10 +186,10 @@ fun mk_rel_OO_le_tac rel_OO_Grps rel_eq map_cong0 map_comp set_maps
 fun mk_rel_mono_strong_tac in_rel set_maps {context = ctxt, prems = _} =
   if null set_maps then atac 1
   else
-    unfold_tac [in_rel] ctxt THEN
+    unfold_tac ctxt [in_rel] THEN
     REPEAT_DETERM (eresolve_tac [exE, CollectE, conjE] 1) THEN
     hyp_subst_tac ctxt 1 THEN
-    unfold_tac set_maps ctxt THEN
+    unfold_tac ctxt set_maps THEN
     EVERY' [rtac exI, rtac @{thm conjI[OF CollectI conjI[OF refl refl]]},
       CONJ_WRAP' (K (etac @{thm Collect_split_mono_strong} THEN' atac)) set_maps] 1;
 

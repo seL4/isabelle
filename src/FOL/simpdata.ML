@@ -123,7 +123,7 @@ val FOL_basic_ss =
   |> Simplifier.set_mkcong mk_meta_cong
   |> simpset_of;
 
-fun unfold_tac ths ctxt =
+fun unfold_tac ctxt ths =
   ALLGOALS (full_simp_tac (clear_simpset (put_simpset FOL_basic_ss ctxt) addsimps ths));
 
 

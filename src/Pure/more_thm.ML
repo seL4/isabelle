@@ -54,7 +54,9 @@ sig
   val elim_rules: thm Item_Net.T
   val declare_hyps: cterm -> Proof.context -> Proof.context
   val assume_hyps: cterm -> Proof.context -> thm * Proof.context
-  val check_hyps: Proof.context -> thm -> thm
+  val unchecked_hyps: Proof.context -> Proof.context
+  val restore_hyps: Proof.context -> Proof.context -> Proof.context
+  val check_hyps: Context.generic -> thm -> thm
   val elim_implies: thm -> thm -> thm
   val forall_elim_var: int -> thm -> thm
   val forall_elim_vars: int -> thm -> thm
@@ -266,23 +268,40 @@ val elim_rules = Item_Net.init eq_thm_prop (single o Thm.major_prem_of);
 
 structure Hyps = Proof_Data
 (
-  type T = Termtab.set;
-  fun init _ : T = Termtab.empty;
+  type T = Termtab.set * bool;
+  fun init _ : T = (Termtab.empty, true);
 );
 
 fun declare_hyps ct ctxt =
   if Theory.subthy (theory_of_cterm ct, Proof_Context.theory_of ctxt) then
-    Hyps.map (Termtab.update (term_of ct, ())) ctxt
+    (Hyps.map o apfst) (Termtab.update (term_of ct, ())) ctxt
   else raise CTERM ("assume_hyps: bad background theory", [ct]);
 
 fun assume_hyps ct ctxt = (Thm.assume ct, declare_hyps ct ctxt);
 
-fun check_hyps ctxt th =
+val unchecked_hyps = (Hyps.map o apsnd) (K false);
+fun restore_hyps ctxt = (Hyps.map o apsnd) (K (#2 (Hyps.get ctxt)));
+
+fun check_hyps context th =
   let
-    val undeclared = filter_out (Termtab.defined (Hyps.get ctxt)) (Thm.hyps_of th);
-    val _ = null undeclared orelse
-      error ("Undeclared hypotheses:\n" ^ cat_lines (map (Syntax.string_of_term ctxt) undeclared));
-  in th end;
+    val declared_hyps =
+      (case context of
+        Context.Theory _ => K false
+      | Context.Proof ctxt =>
+          (case Hyps.get ctxt of
+            (_, false) => K true
+          | (hyps, _) => Termtab.defined hyps));
+    val undeclared = filter_out declared_hyps (Thm.hyps_of th);
+  in
+    if null undeclared then th
+    else
+      let
+        val ctxt = Context.cases Syntax.init_pretty_global I context;
+      in
+        error (Pretty.string_of (Pretty.big_list "Undeclared hyps:"
+          (map (Pretty.item o single o Syntax.pretty_term ctxt) undeclared)))
+      end
+  end;
 
 
 
@@ -434,7 +453,7 @@ fun declaration_attribute f (x, th) = (SOME (f th x), NONE);
 fun mixed_attribute f (x, th) = let val (x', th') = f (x, th) in (SOME x', SOME th') end;
 
 fun apply_attribute (att: attribute) th x =
-  let val (x', th') = att (x, Thm.transfer (Context.theory_of x) th)
+  let val (x', th') = att (x, check_hyps x (Thm.transfer (Context.theory_of x) th))
   in (the_default th th', the_default x x') end;
 
 fun attribute_declaration att th x = #2 (apply_attribute att th x);

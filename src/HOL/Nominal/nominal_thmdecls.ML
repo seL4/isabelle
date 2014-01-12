@@ -12,6 +12,7 @@ data-slot.
 
 signature NOMINAL_THMDECLS =
 sig
+  val nominal_eqvt_debug: bool Config.T
   val eqvt_add: attribute
   val eqvt_del: attribute
   val eqvt_force_add: attribute
@@ -69,7 +70,6 @@ fun prove_eqvt_tac ctxt orig_thm pi pi' =
 
 fun get_derived_thm ctxt hyp concl orig_thm pi typi =
   let
-    val thy = Proof_Context.theory_of ctxt;
     val pi' = Var (pi, typi);
     val lhs = Const (@{const_name "perm"}, typi --> HOLogic.boolT --> HOLogic.boolT) $ pi' $ hyp;
     val ([goal_term, pi''], ctxt') = Variable.import_terms false

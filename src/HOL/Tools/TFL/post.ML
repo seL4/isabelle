@@ -70,9 +70,8 @@ fun mk_meta_eq r = case concl_of r of
 (*Is this the best way to invoke the simplifier??*)
 fun rewrite ctxt L = rewrite_rule ctxt (map mk_meta_eq (filter_out id_thm L))
 
-fun join_assums th =
+fun join_assums ctxt th =
   let val thy = Thm.theory_of_thm th
-      val ctxt = Proof_Context.init_global thy
       val tych = cterm_of thy
       val {lhs,rhs} = USyntax.dest_eq(#2 (USyntax.strip_forall (concl th)))
       val cntxtl = (#1 o USyntax.strip_imp) lhs  (* cntxtl should = cntxtr *)
@@ -101,7 +100,7 @@ fun proof_stage strict ctxt wfs theory {f, R, rules, full_pats_TCs, TCs} =
                      if (id_thm th) then (So, Si, th::St) else
                      if (solved th) then (th::So, Si, St)
                      else (So, th::Si, St)) nested_tcs ([],[],[])
-              val simplified' = map join_assums simplified
+              val simplified' = map (join_assums ctxt) simplified
               val dummy = (Prim.trace_thms "solved =" solved;
                            Prim.trace_thms "simplified' =" simplified')
               val rewr = full_simplify (ctxt addsimps (solved @ simplified'));
@@ -189,9 +188,9 @@ end;
 fun define_i strict ctxt congs wfs fid R eqs thy =
   let val {functional,pats} = Prim.mk_functional thy eqs
       val (thy, def) = Prim.wfrec_definition0 thy fid R functional
-      val ctxt' = Proof_Context.transfer thy ctxt
+      val ctxt = Proof_Context.transfer thy ctxt
       val (lhs, _) = Logic.dest_equals (prop_of def)
-      val {induct, rules, tcs} = simplify_defn strict thy ctxt' congs wfs fid pats def
+      val {induct, rules, tcs} = simplify_defn strict thy ctxt congs wfs fid pats def
       val rules' = 
           if strict then derive_init_eqs ctxt rules eqs
           else rules

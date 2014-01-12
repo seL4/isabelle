@@ -580,7 +580,7 @@ fun prove_strong_ind s avoids ctxt =
       (map (map (rulify_term thy #> rpair [])) vc_compat)
   end;
 
-fun prove_eqvt s xatoms ctxt =
+fun prove_eqvt s xatoms ctxt =  (* FIXME ctxt should be called lthy *)
   let
     val thy = Proof_Context.theory_of ctxt;
     val ({names, ...}, {raw_induct, intrs, elims, ...}) =
@@ -609,21 +609,21 @@ fun prove_eqvt s xatoms ctxt =
          atoms)
       end;
     val perm_pi_simp = Global_Theory.get_thms thy "perm_pi_simp";
-    val eqvt_simpset = put_simpset HOL_basic_ss (Proof_Context.init_global thy) addsimps
-      (NominalThmDecls.get_eqvt_thms ctxt @ perm_pi_simp) addsimprocs
-      [mk_perm_bool_simproc names,
-       NominalPermeq.perm_simproc_app, NominalPermeq.perm_simproc_fun];
     val (([t], [pi]), ctxt') = ctxt |>
       Variable.import_terms false [concl_of raw_induct] ||>>
       Variable.variant_fixes ["pi"];
+    val eqvt_simpset = put_simpset HOL_basic_ss ctxt' addsimps
+      (NominalThmDecls.get_eqvt_thms ctxt' @ perm_pi_simp) addsimprocs
+      [mk_perm_bool_simproc names,
+       NominalPermeq.perm_simproc_app, NominalPermeq.perm_simproc_fun];
     val ps = map (fst o HOLogic.dest_imp)
       (HOLogic.dest_conj (HOLogic.dest_Trueprop t));
-    fun eqvt_tac ctxt'' pi (intr, vs) st =
+    fun eqvt_tac pi (intr, vs) st =
       let
         fun eqvt_err s =
-          let val ([t], ctxt''') = Variable.import_terms true [prop_of intr] ctxt
+          let val ([t], ctxt'') = Variable.import_terms true [prop_of intr] ctxt'
           in error ("Could not prove equivariance for introduction rule\n" ^
-            Syntax.string_of_term ctxt''' t ^ "\n" ^ s)
+            Syntax.string_of_term ctxt'' t ^ "\n" ^ s)
           end;
         val res = SUBPROOF (fn {context = ctxt'', prems, params, ...} =>
           let
@@ -639,7 +639,7 @@ fun prove_eqvt s xatoms ctxt =
       in
         case (Seq.pull res handle THM (s, _, _) => eqvt_err s) of
           NONE => eqvt_err ("Rule does not match goal\n" ^
-            Syntax.string_of_term ctxt'' (hd (prems_of st)))
+            Syntax.string_of_term ctxt' (hd (prems_of st)))
         | SOME (th, _) => Seq.single th
       end;
     val thss = map (fn atom =>
@@ -654,9 +654,9 @@ fun prove_eqvt s xatoms ctxt =
               HOLogic.mk_imp (p, list_comb (h, ts1 @
                 map (NominalDatatype.mk_perm [] pi') ts2))
             end) ps)))
-          (fn {context, ...} => EVERY (rtac raw_induct 1 :: map (fn intr_vs =>
+          (fn _ => EVERY (rtac raw_induct 1 :: map (fn intr_vs =>
               full_simp_tac eqvt_simpset 1 THEN
-              eqvt_tac context pi' intr_vs) intrs')) |>
+              eqvt_tac pi' intr_vs) intrs')) |>
           singleton (Proof_Context.export ctxt' ctxt)))
       end) atoms
   in
