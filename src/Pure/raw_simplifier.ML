@@ -70,7 +70,7 @@ end;
 signature RAW_SIMPLIFIER =
 sig
   include BASIC_RAW_SIMPLIFIER
-  exception SIMPLIFIER of string * thm
+  exception SIMPLIFIER of string * thm list
   type trace_ops
   val set_trace_ops: trace_ops -> theory -> theory
   val internal_ss: simpset ->
@@ -436,7 +436,7 @@ fun simp_depth ctxt =
 
 (* diagnostics *)
 
-exception SIMPLIFIER of string * thm;
+exception SIMPLIFIER of string * thm list;
 
 val simp_debug_raw = Config.declare "simp_debug" (K (Config.Bool false));
 val simp_debug = Config.bool simp_debug_raw;
@@ -541,7 +541,7 @@ fun decomp_simp thm =
     val prems = Logic.strip_imp_prems prop;
     val concl = Drule.strip_imp_concl (Thm.cprop_of thm);
     val (lhs, rhs) = Thm.dest_equals concl handle TERM _ =>
-      raise SIMPLIFIER ("Rewrite rule not a meta-equality", thm);
+      raise SIMPLIFIER ("Rewrite rule not a meta-equality", [thm]);
     val elhs = Thm.dest_arg (Thm.cprop_of (Thm.eta_conversion lhs));
     val erhs = Envir.eta_contract (term_of rhs);
     val perm =
@@ -554,7 +554,7 @@ end;
 
 fun decomp_simp' thm =
   let val (_, lhs, _, rhs, _) = decomp_simp thm in
-    if Thm.nprems_of thm > 0 then raise SIMPLIFIER ("Bad conditional rewrite rule", thm)
+    if Thm.nprems_of thm > 0 then raise SIMPLIFIER ("Bad conditional rewrite rule", [thm])
     else (lhs, rhs)
   end;
 
@@ -666,10 +666,10 @@ fun add_eqcong thm ctxt = ctxt |> map_simpset2
   (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
     let
       val (lhs, _) = Logic.dest_equals (Thm.concl_of thm)
-        handle TERM _ => raise SIMPLIFIER ("Congruence not a meta-equality", thm);
+        handle TERM _ => raise SIMPLIFIER ("Congruence not a meta-equality", [thm]);
     (*val lhs = Envir.eta_contract lhs;*)
       val a = the (cong_name (head_of lhs)) handle Option.Option =>
-        raise SIMPLIFIER ("Congruence must start with a constant or free variable", thm);
+        raise SIMPLIFIER ("Congruence must start with a constant or free variable", [thm]);
       val (xs, weak) = congs;
       val _ =
         if AList.defined (op =) xs a then
@@ -684,10 +684,10 @@ fun del_eqcong thm ctxt = ctxt |> map_simpset2
   (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
     let
       val (lhs, _) = Logic.dest_equals (Thm.concl_of thm)
-        handle TERM _ => raise SIMPLIFIER ("Congruence not a meta-equality", thm);
+        handle TERM _ => raise SIMPLIFIER ("Congruence not a meta-equality", [thm]);
     (*val lhs = Envir.eta_contract lhs;*)
       val a = the (cong_name (head_of lhs)) handle Option.Option =>
-        raise SIMPLIFIER ("Congruence must start with a constant", thm);
+        raise SIMPLIFIER ("Congruence must start with a constant", [thm]);
       val (xs, _) = congs;
       val xs' = filter_out (fn (x : cong_name, _) => x = a) xs;
       val weak' = xs' |> map_filter (fn (a, thm) =>
