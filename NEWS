@@ -34,9 +34,10 @@ process, without requiring old-fashioned command-line invocation of
 *** Pure ***
 
 * More thorough check of proof context for goal statements and
-attributed fact expressions: background theory, declared hyps,
-declared variable names.  Potential INCOMPATIBILITY, tools need to
-observe standard context discipline.
+attributed fact expressions (concerning background theory, declared
+hyps).  Potential INCOMPATIBILITY, tools need to observe standard
+context discipline.  See also Assumption.add_assumes and the more
+primitive Thm.assume_hyps.
 
 
 *** HOL ***
