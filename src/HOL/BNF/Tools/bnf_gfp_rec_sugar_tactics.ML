@@ -143,7 +143,7 @@ fun mk_primcorec_sel_tac ctxt defs distincts splits split_asms mapsx map_idents 
 fun mk_primcorec_ctr_tac ctxt m collapse disc_fun_opt sel_funs =
   HEADGOAL (rtac ((if null sel_funs then collapse else collapse RS sym) RS trans) THEN'
     (the_default (K all_tac) (Option.map rtac disc_fun_opt)) THEN' REPEAT_DETERM_N m o atac) THEN
-  unfold_thms_tac ctxt (unfold_lets @ sel_funs) THEN HEADGOAL (rtac refl);
+  unfold_thms_tac ctxt (@{thm split_def} :: unfold_lets @ sel_funs) THEN HEADGOAL (rtac refl);
 
 fun inst_split_eq ctxt split =
   (case prop_of split of
