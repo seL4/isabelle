@@ -111,29 +111,28 @@ datatype z3_non_commercial =
 
 
 local
-  val flagN = "Z3_NON_COMMERCIAL"
+  val flagN = @{option z3_non_commercial}
 
   val accepted = member (op =) ["yes", "Yes", "YES"]
   val declined = member (op =) ["no", "No", "NO"]
 in
 
 fun z3_non_commercial () =
-  if accepted (getenv flagN) then Z3_Non_Commercial_Accepted
-  else if declined (getenv flagN) then Z3_Non_Commercial_Declined
+  if accepted (Options.default_string flagN) then Z3_Non_Commercial_Accepted
+  else if declined (Options.default_string flagN) then Z3_Non_Commercial_Declined
   else Z3_Non_Commercial_Unknown
 
 fun if_z3_non_commercial f =
   (case z3_non_commercial () of
     Z3_Non_Commercial_Accepted => f ()
   | Z3_Non_Commercial_Declined =>
-      error ("The SMT solver Z3 may only be used for non-commercial " ^
-        "applications.")
+      error (Pretty.string_of (Pretty.para
+        "The SMT solver Z3 may only be used for non-commercial applications."))
   | Z3_Non_Commercial_Unknown =>
-      error ("The SMT solver Z3 is not activated. To activate it, set\n" ^
-        "the environment variable " ^ quote flagN ^ " to " ^ quote "yes" ^ ",\n" ^
-        "and restart the Isabelle system." ^
-        (if getenv "Z3_COMPONENT" = "" then ""
-         else "\nSee also " ^ Path.print (Path.expand (Path.explode "$Z3_COMPONENT/etc/settings")))))
+      error (Pretty.string_of (Pretty.para
+        ("The SMT solver Z3 is not activated. To activate it, set the Isabelle \
+         \system option " ^ quote flagN ^ " to \"yes\" (e.g. via \
+         \the Isabelle/jEdit menu Plugin Options / Isabelle / General)."))))
 
 end
 

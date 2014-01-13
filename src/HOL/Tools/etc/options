@@ -29,3 +29,6 @@ section "Miscellaneous Tools"
 public option sledgehammer_timeout : int = 30
   -- "ATPs will be interrupted after this time (in seconds)"
 
+public option z3_non_commercial : string = "unknown"
+  -- "status of Z3 activation for non-commercial use (yes, no, unknown)"
+

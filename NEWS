@@ -42,6 +42,11 @@ primitive Thm.assume_hyps.
 
 *** HOL ***
 
+* Activation of Z3 now works via "z3_non_commercial" system option
+(without requiring restart), instead of former settings variable
+"Z3_NON_COMMERCIAL".  The option can be edited in Isabelle/jEdit menu
+Plugin Options / Isabelle / General.
+
 * "declare [[code abort: ...]]" replaces "code_abort ...".
 INCOMPATIBILITY.
 
