@@ -133,14 +133,14 @@ fun massage_nested_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
     massage_call
   end;
 
-fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
+fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy0 =
   let
-    val thy = Proof_Context.theory_of lthy;
+    val thy = Proof_Context.theory_of lthy0;
 
     val ((missing_arg_Ts, perm0_kks,
           fp_sugars as {nested_bnfs, fp_res = {xtor_co_iterss = ctor_iters1 :: _, ...},
-            co_inducts = [induct_thm], ...} :: _, (lfp_sugar_thms, _)), lthy') =
-      nested_to_mutual_fps Least_FP bs arg_Ts get_indices callssss0 lthy;
+            co_inducts = [induct_thm], ...} :: _, (lfp_sugar_thms, _)), lthy) =
+      nested_to_mutual_fps Least_FP bs arg_Ts get_indices callssss0 lthy0;
 
     val perm_fp_sugars = sort (int_ord o pairself #index) fp_sugars;
 
@@ -214,8 +214,7 @@ fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
        nested_map_comps = map map_comp_of_bnf nested_bnfs,
        ctr_specs = mk_ctr_specs index ctr_sugars iter_thmsss};
   in
-    ((is_some lfp_sugar_thms, map mk_spec fp_sugars, missing_arg_Ts, induct_thm, induct_thms),
-     lthy')
+    ((is_some lfp_sugar_thms, map mk_spec fp_sugars, missing_arg_Ts, induct_thm, induct_thms), lthy)
   end;
 
 val undef_const = Const (@{const_name undefined}, dummyT);

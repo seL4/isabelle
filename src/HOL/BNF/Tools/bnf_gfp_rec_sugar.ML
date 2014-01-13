@@ -374,14 +374,14 @@ fun map_thms_of_typ ctxt (Type (s, _)) =
     | NONE => [])
   | map_thms_of_typ _ _ = [];
 
-fun corec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
+fun corec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy0 =
   let
-    val thy = Proof_Context.theory_of lthy;
+    val thy = Proof_Context.theory_of lthy0;
 
     val ((missing_res_Ts, perm0_kks,
           fp_sugars as {nested_bnfs, fp_res = {xtor_co_iterss = dtor_coiters1 :: _, ...},
-            co_inducts = coinduct_thms, ...} :: _, (_, gfp_sugar_thms)), lthy') =
-      nested_to_mutual_fps Greatest_FP bs res_Ts get_indices callssss0 lthy;
+            co_inducts = coinduct_thms, ...} :: _, (_, gfp_sugar_thms)), lthy) =
+      nested_to_mutual_fps Greatest_FP bs res_Ts get_indices callssss0 lthy0;
 
     val perm_fp_sugars = sort (int_ord o pairself #index) fp_sugars;
 
@@ -474,12 +474,13 @@ fun corec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy =
   in
     ((is_some gfp_sugar_thms, map5 mk_spec fp_sugars p_iss q_issss f_issss f_Tssss, missing_res_Ts,
       co_induct_of coinduct_thms, strong_co_induct_of coinduct_thms, co_induct_of coinduct_thmss,
-      strong_co_induct_of coinduct_thmss), lthy')
+      strong_co_induct_of coinduct_thmss), lthy)
   end;
 
 val undef_const = Const (@{const_name undefined}, dummyT);
 
 val abs_tuple = HOLogic.tupled_lambda o HOLogic.mk_tuple;
+
 fun abstract vs =
   let fun a n (t $ u) = a n t $ a n u
         | a n (Abs (v, T, b)) = Abs (v, T, a (n + 1) b)
