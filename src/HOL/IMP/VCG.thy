@@ -37,26 +37,26 @@ fun pre :: "acom \<Rightarrow> assn \<Rightarrow> assn" where
 
 text{* Verification condition: *}
 
-fun vc :: "acom \<Rightarrow> assn \<Rightarrow> assn" where
-"vc SKIP Q = (\<lambda>s. True)" |
-"vc (x ::= a) Q = (\<lambda>s. True)" |
-"vc (C\<^sub>1;; C\<^sub>2) Q = (\<lambda>s. vc C\<^sub>1 (pre C\<^sub>2 Q) s \<and> vc C\<^sub>2 Q s)" |
-"vc (IF b THEN C\<^sub>1 ELSE C\<^sub>2) Q = (\<lambda>s. vc C\<^sub>1 Q s \<and> vc C\<^sub>2 Q s)" |
+fun vc :: "acom \<Rightarrow> assn \<Rightarrow> bool" where
+"vc SKIP Q = True" |
+"vc (x ::= a) Q = True" |
+"vc (C\<^sub>1;; C\<^sub>2) Q = (vc C\<^sub>1 (pre C\<^sub>2 Q) \<and> vc C\<^sub>2 Q)" |
+"vc (IF b THEN C\<^sub>1 ELSE C\<^sub>2) Q = (vc C\<^sub>1 Q \<and> vc C\<^sub>2 Q)" |
 "vc ({I} WHILE b DO C) Q =
-  (\<lambda>s. (I s \<and> bval b s \<longrightarrow> pre C I s) \<and>
-       (I s \<and> \<not> bval b s \<longrightarrow> Q s) \<and>
-       vc C I s)"
+  ((\<forall>s. (I s \<and> bval b s \<longrightarrow> pre C I s) \<and>
+        (I s \<and> \<not> bval b s \<longrightarrow> Q s)) \<and>
+    vc C I)"
 
 
 text {* Soundness: *}
 
-lemma vc_sound: "\<forall>s. vc C Q s \<Longrightarrow> \<turnstile> {pre C Q} strip C {Q}"
+lemma vc_sound: "vc C Q \<Longrightarrow> \<turnstile> {pre C Q} strip C {Q}"
 proof(induction C arbitrary: Q)
   case (Awhile I b C)
   show ?case
   proof(simp, rule While')
-    from `\<forall>s. vc (Awhile I b C) Q s`
-    have vc: "\<forall>s. vc C I s" and IQ: "\<forall>s. I s \<and> \<not> bval b s \<longrightarrow> Q s" and
+    from `vc (Awhile I b C) Q`
+    have vc: "vc C I" and IQ: "\<forall>s. I s \<and> \<not> bval b s \<longrightarrow> Q s" and
          pre: "\<forall>s. I s \<and> bval b s \<longrightarrow> pre C I s" by simp_all
     have "\<turnstile> {pre C I} strip C {I}" by(rule Awhile.IH[OF vc])
     with pre show "\<turnstile> {\<lambda>s. I s \<and> bval b s} strip C {I}"
@@ -66,7 +66,7 @@ proof(induction C arbitrary: Q)
 qed (auto intro: hoare.conseq)
 
 corollary vc_sound':
-  "\<lbrakk> \<forall>s. vc C Q s; \<forall>s. P s \<longrightarrow> pre C Q s \<rbrakk> \<Longrightarrow> \<turnstile> {P} strip C {Q}"
+  "\<lbrakk> vc C Q; \<forall>s. P s \<longrightarrow> pre C Q s \<rbrakk> \<Longrightarrow> \<turnstile> {P} strip C {Q}"
 by (metis strengthen_pre vc_sound)
 
 
@@ -79,13 +79,13 @@ proof (induction C arbitrary: P P' s)
 qed simp_all
 
 lemma vc_mono:
-  "\<forall>s. P s \<longrightarrow> P' s \<Longrightarrow> vc C P s \<Longrightarrow> vc C P' s"
+  "\<forall>s. P s \<longrightarrow> P' s \<Longrightarrow> vc C P \<Longrightarrow> vc C P'"
 proof(induction C arbitrary: P P')
   case Aseq thus ?case by simp (metis pre_mono)
 qed simp_all
 
 lemma vc_complete:
- "\<turnstile> {P}c{Q} \<Longrightarrow> \<exists>C. strip C = c \<and> (\<forall>s. vc C Q s) \<and> (\<forall>s. P s \<longrightarrow> pre C Q s)"
+ "\<turnstile> {P}c{Q} \<Longrightarrow> \<exists>C. strip C = c \<and> vc C Q \<and> (\<forall>s. P s \<longrightarrow> pre C Q s)"
   (is "_ \<Longrightarrow> \<exists>C. ?G P c Q C")
 proof (induction rule: hoare.induct)
   case Skip
