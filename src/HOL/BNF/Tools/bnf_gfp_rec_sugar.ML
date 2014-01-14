@@ -892,7 +892,7 @@ fun applied_fun_of fun_name fun_T fun_args =
 fun is_trivial_implies thm =
   uncurry (member (op aconv)) (Logic.strip_horn (Thm.prop_of thm));
 
-fun add_primcorec_ursive tac_opt opts fixes specs of_specs_opt lthy =
+fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
   let
     val thy = Proof_Context.theory_of lthy;
 
@@ -955,7 +955,11 @@ val _ = tracing ("callssss = " ^ @{make_string} callssss);
     val (defs, excludess') =
       build_codefs lthy' bs mxs has_call arg_Tss corec_specs disc_eqnss sel_eqnss;
 
-    fun exclude_tac sequential (c, c', a) =
+    val tac_opts =
+      map (fn {code_rhs_opt, ...} :: _ =>
+        if auto orelse is_some code_rhs_opt then SOME (auto_tac o #context) else NONE) disc_eqnss;
+
+    fun exclude_tac tac_opt sequential (c, c', a) =
       if a orelse c = c' orelse sequential then
         SOME (K (HEADGOAL (mk_primcorec_assumption_tac lthy [])))
       else
@@ -966,12 +970,12 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
  space_implode "\n    \<cdot> " (maps (map (Syntax.string_of_term lthy o snd)) excludess'));
 *)
 
-    val excludess'' = map2 (fn sequential => map (fn (idx, goal) =>
+    val excludess'' = map3 (fn tac_opt => fn sequential => map (fn (idx, goal) =>
         (idx, (Option.map (Goal.prove_sorry lthy [] [] goal #> Thm.close_derivation)
-           (exclude_tac sequential idx), goal))))
-      sequentials excludess';
+           (exclude_tac tac_opt sequential idx), goal))))
+      tac_opts sequentials excludess';
     val taut_thmss = map (map (apsnd (the o fst)) o filter (is_some o fst o snd)) excludess'';
-    val (goal_idxss, goalss') = excludess''
+    val (goal_idxss, exclude_goalss) = excludess''
       |> map (map (apsnd (rpair [] o snd)) o filter (is_none o fst o snd))
       |> split_list o map split_list;
 
@@ -992,7 +996,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
         de_facto_exhaustives disc_eqnss
       |> list_all_fun_args []
     val nchotomy_taut_thmss =
-      map5 (fn {disc_exhausts = res_disc_exhausts, ...} => fn arg_Ts =>
+      map6 (fn tac_opt => fn {disc_exhausts = res_disc_exhausts, ...} => fn arg_Ts =>
           fn {code_rhs_opt, ...} :: _ => fn [] => K []
             | [goal] => fn true =>
               let
@@ -1007,29 +1011,25 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
               (case tac_opt of
                 SOME tac => [Goal.prove_sorry lthy [] [] goal tac |> Thm.close_derivation]
               | NONE => []))
-        corec_specs arg_Tss disc_eqnss nchotomy_goalss syntactic_exhaustives;
+        tac_opts corec_specs arg_Tss disc_eqnss nchotomy_goalss syntactic_exhaustives;
 
     val syntactic_exhaustives =
       map (fn disc_eqns => forall (null o #prems orf is_some o #code_rhs_opt) disc_eqns
           orelse exists #auto_gen disc_eqns)
         disc_eqnss;
 
-    val goalss = goalss'
-      |> (if is_none tac_opt then
-          append (map2 (fn true => K [] | false => map (rpair [])) syntactic_exhaustives
-            nchotomy_goalss)
-        else
-          I);
+    val nchotomy_goalss =
+      map2 (fn (NONE, false) => map (rpair []) | _ => K []) (tac_opts ~~ syntactic_exhaustives)
+        nchotomy_goalss;
+
+    val goalss = nchotomy_goalss @ exclude_goalss;
 
     fun prove thmss'' def_thms' lthy =
       let
         val def_thms = map (snd o snd) def_thms';
 
         val (nchotomy_thmss, exclude_thmss) =
-          if is_none tac_opt then
-            (map2 append (take actual_nn thmss'') nchotomy_taut_thmss, drop actual_nn thmss'')
-          else
-            (nchotomy_taut_thmss, thmss'');
+          (map2 append (take actual_nn thmss'') nchotomy_taut_thmss, drop actual_nn thmss'');
 
         val ps =
           Variable.variant_frees lthy (maps (maps #fun_args) disc_eqnss) [("P", HOLogic.boolT)];
@@ -1329,13 +1329,13 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
     (goalss, after_qed, lthy')
   end;
 
-fun add_primcorec_ursive_cmd tac_opt opts (raw_fixes, raw_specs') lthy =
+fun add_primcorec_ursive_cmd auto opts (raw_fixes, raw_specs') lthy =
   let
     val (raw_specs, of_specs_opt) =
       split_list raw_specs' ||> map (Option.map (Syntax.read_term lthy));
     val ((fixes, specs), _) = Specification.read_spec raw_fixes raw_specs lthy;
   in
-    add_primcorec_ursive tac_opt opts fixes specs of_specs_opt lthy
+    add_primcorec_ursive auto opts fixes specs of_specs_opt lthy
     handle ERROR str => primcorec_error str
   end
   handle Primcorec_Error (str, eqns) =>
@@ -1348,12 +1348,12 @@ val add_primcorecursive_cmd = (fn (goalss, after_qed, lthy) =>
   lthy
   |> Proof.theorem NONE after_qed goalss
   |> Proof.refine (Method.primitive_text (K I))
-  |> Seq.hd) ooo add_primcorec_ursive_cmd NONE;
+  |> Seq.hd) ooo add_primcorec_ursive_cmd false;
 
 val add_primcorec_cmd = (fn (goalss, after_qed, lthy) =>
   lthy
   |> after_qed (map (fn [] => []
       | _ => error "\"auto\" failed -- use \"primcorecursive\" instead of \"primcorec\"")
-    goalss)) ooo add_primcorec_ursive_cmd (SOME (auto_tac o #context));
+    goalss)) ooo add_primcorec_ursive_cmd true;
 
 end;
