@@ -646,6 +646,7 @@ fun term_to_ast idents is_syntax_const ctxt trf tm =
     tm
     |> mark_aprop
     |> show_types ? prune_types ctxt
+    |> Variable.revert_bounds ctxt
     |> mark_atoms idents is_syntax_const ctxt
     |> ast_of
   end;
