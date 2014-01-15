@@ -111,16 +111,21 @@ datatype z3_non_commercial =
 
 
 local
-  val flagN = @{option z3_non_commercial}
-
   val accepted = member (op =) ["yes", "Yes", "YES"]
   val declined = member (op =) ["no", "No", "NO"]
 in
 
 fun z3_non_commercial () =
-  if accepted (Options.default_string flagN) then Z3_Non_Commercial_Accepted
-  else if declined (Options.default_string flagN) then Z3_Non_Commercial_Declined
-  else Z3_Non_Commercial_Unknown
+  let
+    val flag1 = Options.default_string @{option z3_non_commercial}
+    val flag2 = getenv "Z3_NON_COMMERCIAL"
+  in
+    if accepted flag1 then Z3_Non_Commercial_Accepted
+    else if declined flag1 then Z3_Non_Commercial_Declined
+    else if accepted flag2 then Z3_Non_Commercial_Accepted
+    else if declined flag2 then Z3_Non_Commercial_Declined
+    else Z3_Non_Commercial_Unknown
+  end
 
 fun if_z3_non_commercial f =
   (case z3_non_commercial () of
@@ -131,7 +136,7 @@ fun if_z3_non_commercial f =
   | Z3_Non_Commercial_Unknown =>
       error (Pretty.string_of (Pretty.para
         ("The SMT solver Z3 is not activated. To activate it, set the Isabelle \
-         \system option " ^ quote flagN ^ " to \"yes\" (e.g. via \
+         \system option \"z3_non_commercial\" to \"yes\" (e.g. via \
          \the Isabelle/jEdit menu Plugin Options / Isabelle / General)."))))
 
 end
