@@ -347,6 +347,7 @@
 \<cedilla>              code: 0x0000b8
 \<hungarumlaut>         code: 0x0002dd
 \<some>                 code: 0x0003f5
+\<newline>              code: 0x0023ce
 \<^sub>                 code: 0x0021e9  group: control  font: IsabelleText
 \<^sup>                 code: 0x0021e7  group: control  font: IsabelleText
 \<^bold>                code: 0x002759  group: control  font: IsabelleText

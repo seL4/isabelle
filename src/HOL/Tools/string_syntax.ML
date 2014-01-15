@@ -28,16 +28,21 @@ fun dest_nib (Ast.Constant s) =
 (* char *)
 
 fun mk_char s =
-  if Symbol.is_ascii s then
-    Ast.Appl [Ast.Constant @{const_syntax Char}, mk_nib (ord s div 16), mk_nib (ord s mod 16)]
-  else error ("Non-ASCII symbol: " ^ quote s);
+  let
+    val c =
+      if Symbol.is_ascii s then ord s
+      else if s = "\<newline>" then 10
+      else error ("Bad character: " ^ quote s);
+  in Ast.Appl [Ast.Constant @{const_syntax Char}, mk_nib (c div 16), mk_nib (c mod 16)] end;
 
 val specials = raw_explode "\\\"`'";
 
 fun dest_chr c1 c2 =
   let val c = chr (dest_nib c1 * 16 + dest_nib c2) in
     if not (member (op =) specials c) andalso Symbol.is_ascii c andalso Symbol.is_printable c
-    then c else raise Match
+    then c
+    else if c = "\n" then "\<newline>"
+    else raise Match
   end;
 
 fun dest_char (Ast.Appl [Ast.Constant @{const_syntax Char}, c1, c2]) = dest_chr c1 c2

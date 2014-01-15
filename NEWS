@@ -42,6 +42,9 @@ primitive Thm.assume_hyps.
 
 *** HOL ***
 
+* The symbol "\<newline>" may be used within char or string literals
+to represent (Char Nibble0 NibbleA), i.e. ASCII newline.
+
 * Activation of Z3 now works via "z3_non_commercial" system option
 (without requiring restart), instead of former settings variable
 "Z3_NON_COMMERCIAL".  The option can be edited in Isabelle/jEdit menu

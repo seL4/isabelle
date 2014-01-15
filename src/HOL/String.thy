@@ -148,7 +148,7 @@ definition
   "Enum.enum = [Char Nibble0 Nibble0, Char Nibble0 Nibble1, Char Nibble0 Nibble2,
   Char Nibble0 Nibble3, Char Nibble0 Nibble4, Char Nibble0 Nibble5,
   Char Nibble0 Nibble6, Char Nibble0 Nibble7, Char Nibble0 Nibble8,
-  Char Nibble0 Nibble9, Char Nibble0 NibbleA, Char Nibble0 NibbleB,
+  Char Nibble0 Nibble9, CHR ''\<newline>'', Char Nibble0 NibbleB,
   Char Nibble0 NibbleC, Char Nibble0 NibbleD, Char Nibble0 NibbleE,
   Char Nibble0 NibbleF, Char Nibble1 Nibble0, Char Nibble1 Nibble1,
   Char Nibble1 Nibble2, Char Nibble1 Nibble3, Char Nibble1 Nibble4,
