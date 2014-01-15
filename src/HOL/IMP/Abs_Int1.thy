@@ -100,7 +100,7 @@ end
 subsubsection "Termination"
 
 locale Measure1 =
-fixes m :: "'av::{order,order_top} \<Rightarrow> nat"
+fixes m :: "'av::order_top \<Rightarrow> nat"
 fixes h :: "nat"
 assumes h: "m x \<le> h"
 begin
