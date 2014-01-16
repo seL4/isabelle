@@ -1,6 +1,6 @@
 (*  Title:      HOL/Finite_Set.thy
     Author:     Tobias Nipkow, Lawrence C Paulson and Markus Wenzel
-                with contributions by Jeremy Avigad
+                with contributions by Jeremy Avigad and Andrei Popescu
 *)
 
 header {* Finite sets *}
@@ -1574,6 +1574,11 @@ lemma bij_betw_finite:
   shows "finite A \<longleftrightarrow> finite B"
 using assms unfolding bij_betw_def
 using finite_imageD[of f A] by auto
+
+lemma inj_on_finite:
+assumes "inj_on f A" "f ` A \<le> B" "finite B"
+shows "finite A"
+using assms finite_imageD finite_subset by blast
 
 
 subsubsection {* Pigeonhole Principles *}

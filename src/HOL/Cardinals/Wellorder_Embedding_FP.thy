@@ -8,7 +8,7 @@ Well-order embeddings (FP).
 header {* Well-Order Embeddings (FP) *}
 
 theory Wellorder_Embedding_FP
-imports Zorn Fun_More_FP Wellorder_Relation_FP
+imports Zorn Wellorder_Relation_FP
 begin
 
 

@@ -8,7 +8,7 @@ More on injections, bijections and inverses.
 header {* More on Injections, Bijections and Inverses *}
 
 theory Fun_More
-imports Fun_More_FP Main
+imports Main
 begin
 
 

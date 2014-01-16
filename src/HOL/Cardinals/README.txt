@@ -149,7 +149,7 @@ theory for just a couple of minor facts.
 Notes for anyone who would like to enrich these theories in the future
 --------------------------------------------------------------------------------------
 
-Theory Fun_More (and Fun_More_FP):
+Theory Fun_More:
 - Careful: "inj" is an abbreviation for "inj_on UNIV", while  
   "bij" is not an abreviation for "bij_betw UNIV UNIV", but 
   a defined constant; there is no "surj_betw", but only "surj". 
