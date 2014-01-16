@@ -8,7 +8,7 @@ Greatest fixed point operation on bounded natural functors.
 header {* Greatest Fixed Point Operation on Bounded Natural Functors *}
 
 theory BNF_GFP
-imports BNF_FP_Base Equiv_Relations_More List_Prefix
+imports BNF_FP_Base
 keywords
   "codatatype" :: thy_decl and
   "primcorecursive" :: thy_goal and
@@ -292,6 +292,56 @@ lemma fun_rel_iff_geq_image2p: "(fun_rel R S) f g = (image2p f g R \<le> S)"
 
 lemma fun_rel_image2p: "(fun_rel R (image2p f g R)) f g"
   unfolding fun_rel_def image2p_def by auto
+
+
+subsection {* Equivalence relations, quotients, and Hilbert's choice *}
+
+lemma equiv_Eps_in:
+"\<lbrakk>equiv A r; X \<in> A//r\<rbrakk> \<Longrightarrow> Eps (%x. x \<in> X) \<in> X"
+apply (rule someI2_ex)
+using in_quotient_imp_non_empty by blast
+
+lemma equiv_Eps_preserves:
+assumes ECH: "equiv A r" and X: "X \<in> A//r"
+shows "Eps (%x. x \<in> X) \<in> A"
+apply (rule in_mono[rule_format])
+ using assms apply (rule in_quotient_imp_subset)
+by (rule equiv_Eps_in) (rule assms)+
+
+lemma proj_Eps:
+assumes "equiv A r" and "X \<in> A//r"
+shows "proj r (Eps (%x. x \<in> X)) = X"
+unfolding proj_def proof auto
+  fix x assume x: "x \<in> X"
+  thus "(Eps (%x. x \<in> X), x) \<in> r" using assms equiv_Eps_in in_quotient_imp_in_rel by fast
+next
+  fix x assume "(Eps (%x. x \<in> X),x) \<in> r"
+  thus "x \<in> X" using in_quotient_imp_closed[OF assms equiv_Eps_in[OF assms]] by fast
+qed
+
+definition univ where "univ f X == f (Eps (%x. x \<in> X))"
+
+lemma univ_commute:
+assumes ECH: "equiv A r" and RES: "f respects r" and x: "x \<in> A"
+shows "(univ f) (proj r x) = f x"
+unfolding univ_def proof -
+  have prj: "proj r x \<in> A//r" using x proj_preserves by fast
+  hence "Eps (%y. y \<in> proj r x) \<in> A" using ECH equiv_Eps_preserves by fast
+  moreover have "proj r (Eps (%y. y \<in> proj r x)) = proj r x" using ECH prj proj_Eps by fast
+  ultimately have "(x, Eps (%y. y \<in> proj r x)) \<in> r" using x ECH proj_iff by fast
+  thus "f (Eps (%y. y \<in> proj r x)) = f x" using RES unfolding congruent_def by fastforce
+qed
+
+lemma univ_preserves:
+assumes ECH: "equiv A r" and RES: "f respects r" and
+        PRES: "\<forall> x \<in> A. f x \<in> B"
+shows "\<forall> X \<in> A//r. univ f X \<in> B"
+proof
+  fix X assume "X \<in> A//r"
+  then obtain x where x: "x \<in> A" and X: "X = proj r x" using ECH proj_image[of r A] by blast
+  hence "univ f X = f x" using assms univ_commute by fastforce
+  thus "univ f X \<in> B" using x PRES by simp
+qed
 
 ML_file "Tools/bnf_gfp_rec_sugar_tactics.ML"
 ML_file "Tools/bnf_gfp_rec_sugar.ML"

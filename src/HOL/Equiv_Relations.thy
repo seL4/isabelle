@@ -160,6 +160,7 @@ apply(simp add:quotient_def inj_on_def)
 apply blast
 done
 
+
 subsection {* Defining unary operations upon equivalence classes *}
 
 text{*A congruence-preserving function*}
@@ -352,6 +353,54 @@ apply(subst card_UN_disjoint)
  apply(fastforce simp add:inj_on_def)
 apply simp
 done
+
+
+subsection {* Projection *}
+
+definition proj where "proj r x = r `` {x}"
+
+lemma proj_preserves:
+"x \<in> A \<Longrightarrow> proj r x \<in> A//r"
+unfolding proj_def by (rule quotientI)
+
+lemma proj_in_iff:
+assumes "equiv A r"
+shows "(proj r x \<in> A//r) = (x \<in> A)"
+apply(rule iffI, auto simp add: proj_preserves)
+unfolding proj_def quotient_def proof clarsimp
+  fix y assume y: "y \<in> A" and "r `` {x} = r `` {y}"
+  moreover have "y \<in> r `` {y}" using assms y unfolding equiv_def refl_on_def by blast
+  ultimately have "(x,y) \<in> r" by blast
+  thus "x \<in> A" using assms unfolding equiv_def refl_on_def by blast
+qed
+
+lemma proj_iff:
+"\<lbrakk>equiv A r; {x,y} \<subseteq> A\<rbrakk> \<Longrightarrow> (proj r x = proj r y) = ((x,y) \<in> r)"
+by (simp add: proj_def eq_equiv_class_iff)
+
+(*
+lemma in_proj: "\<lbrakk>equiv A r; x \<in> A\<rbrakk> \<Longrightarrow> x \<in> proj r x"
+unfolding proj_def equiv_def refl_on_def by blast
+*)
+
+lemma proj_image: "(proj r) ` A = A//r"
+unfolding proj_def[abs_def] quotient_def by blast
+
+lemma in_quotient_imp_non_empty:
+"\<lbrakk>equiv A r; X \<in> A//r\<rbrakk> \<Longrightarrow> X \<noteq> {}"
+unfolding quotient_def using equiv_class_self by fast
+
+lemma in_quotient_imp_in_rel:
+"\<lbrakk>equiv A r; X \<in> A//r; {x,y} \<subseteq> X\<rbrakk> \<Longrightarrow> (x,y) \<in> r"
+using quotient_eq_iff[THEN iffD1] by fastforce
+
+lemma in_quotient_imp_closed:
+"\<lbrakk>equiv A r; X \<in> A//r; x \<in> X; (x,y) \<in> r\<rbrakk> \<Longrightarrow> y \<in> X"
+unfolding quotient_def equiv_def trans_def by blast
+
+lemma in_quotient_imp_subset:
+"\<lbrakk>equiv A r; X \<in> A//r\<rbrakk> \<Longrightarrow> X \<subseteq> A"
+using assms in_quotient_imp_in_rel equiv_type by fastforce
 
 
 subsection {* Equivalence relations -- predicate version *}
