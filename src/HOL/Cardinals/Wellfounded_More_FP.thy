@@ -8,7 +8,7 @@ More on well-founded relations (FP).
 header {* More on Well-Founded Relations (FP) *}
 
 theory Wellfounded_More_FP
-imports Order_Relation_More_FP "~~/src/HOL/Library/Wfrec"
+imports Wfrec Order_Relation_More_FP
 begin
 
 
@@ -98,7 +98,7 @@ proof-
   let ?phi = "\<lambda> A. A \<noteq> {} \<longrightarrow> (\<exists>a \<in> A. \<forall>a' \<in> A. \<not> (a',a) \<in> r)"
   have "wf r = (\<forall>A. ?phi A)"
   by (auto simp: ex_in_conv [THEN sym], erule wfE_min, assumption, blast)
-     (rule wfI_min, metis)
+     (rule wfI_min, fast)
   (*  *)
   also have "(\<forall>A. ?phi A) = (\<forall>B \<le> Field r. ?phi B)"
   proof
@@ -151,7 +151,7 @@ proof(cases "r \<le> Id")
   moreover
   {fix A assume *: "A \<le> Field r" and **: "A \<noteq> {}"
    obtain a where 1: "r = {} \<or> r = {(a,a)}" using LI
-   unfolding order_on_defs using Case1 rel.Total_subset_Id by metis
+   unfolding order_on_defs using Case1 rel.Total_subset_Id by auto
    hence "A = {a} \<and> r = {(a,a)}" using * ** unfolding Field_def by blast
    hence "\<exists>a \<in> A. \<forall>a' \<in> A. (a,a') \<in> r" using 1 by blast
   }

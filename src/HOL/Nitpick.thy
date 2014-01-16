@@ -8,7 +8,7 @@ Nitpick: Yet another counterexample generator for Isabelle/HOL.
 header {* Nitpick: Yet Another Counterexample Generator for Isabelle/HOL *}
 
 theory Nitpick
-imports Map Record Sledgehammer
+imports Map Record Sledgehammer Wfrec
 keywords "nitpick" :: diag and "nitpick_params" :: thy_decl
 begin
 
@@ -197,6 +197,15 @@ definition less_eq_frac :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where
 definition of_frac :: "'a \<Rightarrow> 'b\<Colon>{inverse,ring_1}" where
 "of_frac q \<equiv> of_int (num q) / of_int (denom q)"
 
+axiomatization wf_wfrec :: "('a \<times> 'a) set \<Rightarrow> (('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
+
+definition wf_wfrec' :: "('a \<times> 'a) set \<Rightarrow> (('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" where
+[nitpick_simp]: "wf_wfrec' R F x = F (cut (wf_wfrec R F) R x) x"
+
+definition wfrec' ::  "('a \<times> 'a) set \<Rightarrow> (('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" where
+"wfrec' R F x \<equiv> if wf R then wf_wfrec' R F x
+                else THE y. wfrec_rel R (%f x. F (cut f R x) x) x y"
+
 ML_file "Tools/Nitpick/kodkod.ML"
 ML_file "Tools/Nitpick/kodkod_sat.ML"
 ML_file "Tools/Nitpick/nitpick_util.ML"
@@ -218,14 +227,17 @@ setup {*
     [(@{const_name card}, @{const_name card'}),
      (@{const_name setsum}, @{const_name setsum'}),
      (@{const_name fold_graph}, @{const_name fold_graph'}),
-     (@{const_name wf}, @{const_name wf'})]
+     (@{const_name wf}, @{const_name wf'}),
+     (@{const_name wf_wfrec}, @{const_name wf_wfrec'}),
+     (@{const_name wfrec}, @{const_name wfrec'})]
 *}
 
 hide_const (open) unknown is_unknown bisim bisim_iterator_max Quot safe_The
     FunBox PairBox Word prod refl' wf' card' setsum'
     fold_graph' nat_gcd nat_lcm int_gcd int_lcm Frac Abs_Frac Rep_Frac zero_frac
     one_frac num denom norm_frac frac plus_frac times_frac uminus_frac
-    number_of_frac inverse_frac less_frac less_eq_frac of_frac
+    number_of_frac inverse_frac less_frac less_eq_frac of_frac wf_wfrec wf_wfrec
+    wfrec'
 hide_type (open) bisim_iterator fun_box pair_box unsigned_bit signed_bit word
 hide_fact (open) Ex1_unfold rtrancl_unfold rtranclp_unfold tranclp_unfold
     prod_def refl'_def wf'_def card'_def setsum'_def
@@ -233,6 +245,7 @@ hide_fact (open) Ex1_unfold rtrancl_unfold rtranclp_unfold tranclp_unfold
     list_size_simp nat_gcd_def nat_lcm_def int_gcd_def int_lcm_def Frac_def
     zero_frac_def one_frac_def num_def denom_def norm_frac_def frac_def
     plus_frac_def times_frac_def uminus_frac_def number_of_frac_def
-    inverse_frac_def less_frac_def less_eq_frac_def of_frac_def
+    inverse_frac_def less_frac_def less_eq_frac_def of_frac_def wf_wfrec'_def
+    wfrec'_def
 
 end

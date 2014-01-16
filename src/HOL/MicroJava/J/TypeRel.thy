@@ -5,7 +5,7 @@
 header {* \isaheader{Relations between Java Types} *}
 
 theory TypeRel
-imports Decl "~~/src/HOL/Library/Wfrec"
+imports Decl
 begin
 
 -- "direct subclass, cf. 8.1.3"

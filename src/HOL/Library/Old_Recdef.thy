@@ -5,7 +5,7 @@
 header {* TFL: recursive function definitions *}
 
 theory Old_Recdef
-imports Wfrec
+imports Main
 keywords
   "recdef" "defer_recdef" :: thy_decl and
   "recdef_tc" :: thy_goal and

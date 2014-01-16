@@ -4,7 +4,9 @@
 
 header "Type relations"
 
-theory TypeRel imports Decl "~~/src/HOL/Library/Wfrec" begin
+theory TypeRel
+imports Decl
+begin
 
 text{* Direct subclass relation *}
 

@@ -1832,7 +1832,7 @@ fun unfold_defs_in_term
                                    "too many nested definitions (" ^
                                    string_of_int depth ^ ") while expanding " ^
                                    quote s)
-                else if s = "Wfrec.wfrec'" (* FIXME unchecked! *) then
+                else if s = @{const_name wfrec'} then
                   (do_term (depth + 1) Ts (s_betapplys Ts (def, ts)), [])
                 else if not unfold andalso
                      size_of_term def > def_inline_threshold () then

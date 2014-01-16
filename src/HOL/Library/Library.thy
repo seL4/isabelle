@@ -63,7 +63,6 @@ imports
   Sublist
   Sum_of_Squares
   Transitive_Closure_Table
-  Wfrec
   While_Combinator
   Zorn
 begin
