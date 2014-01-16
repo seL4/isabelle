@@ -5,7 +5,7 @@
 header {* Zorn's Lemma *}
 
 theory Zorn_Lemma
-imports "~~/src/HOL/Library/Zorn"
+imports Main
 begin
 
 text {*

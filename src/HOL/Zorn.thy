@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/Zorn.thy
+(*  Title:      HOL/Zorn.thy
     Author:     Jacques D. Fleuriot
     Author:     Tobias Nipkow, TUM
     Author:     Christian Sternagel, JAIST
@@ -10,7 +10,7 @@ The well-ordering theorem.
 header {* Zorn's Lemma *}
 
 theory Zorn
-imports Main
+imports Order_Relation Hilbert_Choice
 begin
 
 subsection {* Zorn's Lemma for the Subset Relation *}

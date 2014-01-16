@@ -64,7 +64,6 @@ imports
   Sum_of_Squares
   Transitive_Closure_Table
   While_Combinator
-  Zorn
 begin
 end
 (*>*)

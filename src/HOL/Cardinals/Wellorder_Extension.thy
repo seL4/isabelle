@@ -5,7 +5,7 @@
 header {* Extending Well-founded Relations to Wellorders *}
 
 theory Wellorder_Extension
-imports "~~/src/HOL/Library/Zorn" Order_Union
+imports Zorn Order_Union
 begin
 
 subsection {* Extending Well-founded Relations to Wellorders *}

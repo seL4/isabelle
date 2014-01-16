@@ -5,7 +5,7 @@
 header {* Vector spaces *}
 
 theory Vector_Space
-imports Complex_Main Bounds "~~/src/HOL/Library/Zorn"
+imports Complex_Main Bounds
 begin
 
 subsection {* Signature *}

@@ -7,7 +7,7 @@
 header {* Filters and Ultrafilters *}
 
 theory Filter
-imports "~~/src/HOL/Library/Zorn" "~~/src/HOL/Library/Infinite_Set"
+imports "~~/src/HOL/Library/Infinite_Set"
 begin
 
 subsection {* Definitions and basic properties *}

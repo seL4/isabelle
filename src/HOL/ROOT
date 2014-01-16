@@ -61,7 +61,7 @@ session "HOL-Hahn_Banach" in Hahn_Banach = HOL +
 
     This is the proof of the Hahn-Banach theorem for real vectorspaces,
     following H. Heuser, Funktionalanalysis, p. 228 -232. The Hahn-Banach
-    theorem is one of the fundamental theorems of functioal analysis. It is a
+    theorem is one of the fundamental theorems of functional analysis. It is a
     conclusion of Zorn's lemma.
 
     Two different formaulations of the theorem are presented, one for general

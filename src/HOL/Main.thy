@@ -1,7 +1,7 @@
 header {* Main HOL *}
 
 theory Main
-imports Predicate_Compile Nitpick Extraction Lifting_Sum List_Prefix Coinduction Order_Relation
+imports Predicate_Compile Nitpick Extraction Lifting_Sum List_Prefix Coinduction Zorn
 begin
 
 text {*
