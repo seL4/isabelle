@@ -497,5 +497,6 @@ lemma equivp_transp:
   "equivp R \<Longrightarrow> R x y \<Longrightarrow> R y z \<Longrightarrow> R x z"
   by (erule equivpE, erule transpE)
 
-end
+hide_const (open) proj
 
+end

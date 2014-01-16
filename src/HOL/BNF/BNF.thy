@@ -15,6 +15,6 @@ begin
 
 hide_const (open) image2 image2p vimage2p Gr Grp collect fsts snds setl setr 
   convol pick_middlep fstOp sndOp csquare inver relImage relInvImage
-  prefCl PrefCl Succ Shift shift
+  prefCl PrefCl Succ Shift shift proj
 
 end

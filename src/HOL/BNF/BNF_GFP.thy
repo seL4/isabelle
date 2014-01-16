@@ -15,6 +15,10 @@ keywords
   "primcorec" :: thy_decl
 begin
 
+setup {*
+Sign.const_alias @{binding proj} @{const_name Equiv_Relations.proj}
+*}
+
 lemma not_TrueE: "\<not> True \<Longrightarrow> P"
 by (erule notE, rule TrueI)
 
