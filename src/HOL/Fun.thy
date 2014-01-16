@@ -1,6 +1,7 @@
 (*  Title:      HOL/Fun.thy
     Author:     Tobias Nipkow, Cambridge University Computer Laboratory
-    Copyright   1994  University of Cambridge
+    Author:     Andrei Popescu, TU Muenchen
+    Copyright   1994, 2012
 *)
 
 header {* Notions about functions *}
@@ -296,7 +297,7 @@ lemma inj_img_insertE:
   assumes "inj_on f A"
   assumes "x \<notin> B" and "insert x B = f ` A"
   obtains x' A' where "x' \<notin> A'" and "A = insert x' A'"
-    and "x = f x'" and "B = f ` A'" 
+    and "x = f x'" and "B = f ` A'"
 proof -
   from assms have "x \<in> f ` A" by auto
   then obtain x' where *: "x' \<in> A" "x = f x'" by auto
@@ -574,6 +575,68 @@ lemma (in ordered_ab_group_add) inj_uminus[simp, intro]: "inj_on uminus A"
 
 lemma (in linorder) strict_mono_imp_inj_on: "strict_mono f \<Longrightarrow> inj_on f A"
   by (auto intro!: inj_onI dest: strict_mono_eq)
+
+lemma bij_betw_byWitness:
+assumes LEFT: "\<forall>a \<in> A. f'(f a) = a" and
+        RIGHT: "\<forall>a' \<in> A'. f(f' a') = a'" and
+        IM1: "f ` A \<le> A'" and IM2: "f' ` A' \<le> A"
+shows "bij_betw f A A'"
+using assms
+proof(unfold bij_betw_def inj_on_def, safe)
+  fix a b assume *: "a \<in> A" "b \<in> A" and **: "f a = f b"
+  have "a = f'(f a) \<and> b = f'(f b)" using * LEFT by simp
+  with ** show "a = b" by simp
+next
+  fix a' assume *: "a' \<in> A'"
+  hence "f' a' \<in> A" using IM2 by blast
+  moreover
+  have "a' = f(f' a')" using * RIGHT by simp
+  ultimately show "a' \<in> f ` A" by blast
+qed
+
+corollary notIn_Un_bij_betw:
+assumes NIN: "b \<notin> A" and NIN': "f b \<notin> A'" and
+       BIJ: "bij_betw f A A'"
+shows "bij_betw f (A \<union> {b}) (A' \<union> {f b})"
+proof-
+  have "bij_betw f {b} {f b}"
+  unfolding bij_betw_def inj_on_def by simp
+  with assms show ?thesis
+  using bij_betw_combine[of f A A' "{b}" "{f b}"] by blast
+qed
+
+lemma notIn_Un_bij_betw3:
+assumes NIN: "b \<notin> A" and NIN': "f b \<notin> A'"
+shows "bij_betw f A A' = bij_betw f (A \<union> {b}) (A' \<union> {f b})"
+proof
+  assume "bij_betw f A A'"
+  thus "bij_betw f (A \<union> {b}) (A' \<union> {f b})"
+  using assms notIn_Un_bij_betw[of b A f A'] by blast
+next
+  assume *: "bij_betw f (A \<union> {b}) (A' \<union> {f b})"
+  have "f ` A = A'"
+  proof(auto)
+    fix a assume **: "a \<in> A"
+    hence "f a \<in> A' \<union> {f b}" using * unfolding bij_betw_def by blast
+    moreover
+    {assume "f a = f b"
+     hence "a = b" using * ** unfolding bij_betw_def inj_on_def by blast
+     with NIN ** have False by blast
+    }
+    ultimately show "f a \<in> A'" by blast
+  next
+    fix a' assume **: "a' \<in> A'"
+    hence "a' \<in> f`(A \<union> {b})"
+    using * by (auto simp add: bij_betw_def)
+    then obtain a where 1: "a \<in> A \<union> {b} \<and> f a = a'" by blast
+    moreover
+    {assume "a = b" with 1 ** NIN' have False by blast
+    }
+    ultimately have "a \<in> A" by blast
+    with 1 show "a' \<in> f ` A" by blast
+  qed
+  thus "bij_betw f A A'" using * bij_betw_subset[of f "A \<union> {b}" _ A] by blast
+qed
 
 
 subsection{*Function Updating*}
@@ -856,4 +919,3 @@ lemmas image_compose = image_comp
 lemmas vimage_compose = vimage_comp
 
 end
-

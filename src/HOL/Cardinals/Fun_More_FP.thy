@@ -18,89 +18,16 @@ mainly concerning injections, bijections, inverses and (numeric) cardinals of
 finite sets. *}
 
 
-subsection {* Purely functional properties  *}
-
-
-(*2*)lemma bij_betw_id_iff:
-"(A = B) = (bij_betw id A B)"
-by(simp add: bij_betw_def)
-
-
-(*2*)lemma bij_betw_byWitness:
-assumes LEFT: "\<forall>a \<in> A. f'(f a) = a" and
-        RIGHT: "\<forall>a' \<in> A'. f(f' a') = a'" and
-        IM1: "f ` A \<le> A'" and IM2: "f' ` A' \<le> A"
-shows "bij_betw f A A'"
-using assms
-proof(unfold bij_betw_def inj_on_def, safe)
-  fix a b assume *: "a \<in> A" "b \<in> A" and **: "f a = f b"
-  have "a = f'(f a) \<and> b = f'(f b)" using * LEFT by simp
-  with ** show "a = b" by simp
-next
-  fix a' assume *: "a' \<in> A'"
-  hence "f' a' \<in> A" using IM2 by blast
-  moreover
-  have "a' = f(f' a')" using * RIGHT by simp
-  ultimately show "a' \<in> f ` A" by blast
-qed
-
-
-(*3*)corollary notIn_Un_bij_betw:
-assumes NIN: "b \<notin> A" and NIN': "f b \<notin> A'" and
-       BIJ: "bij_betw f A A'"
-shows "bij_betw f (A \<union> {b}) (A' \<union> {f b})"
-proof-
-  have "bij_betw f {b} {f b}"
-  unfolding bij_betw_def inj_on_def by simp
-  with assms show ?thesis
-  using bij_betw_combine[of f A A' "{b}" "{f b}"] by blast
-qed
-
-
-(*1*)lemma notIn_Un_bij_betw3:
-assumes NIN: "b \<notin> A" and NIN': "f b \<notin> A'"
-shows "bij_betw f A A' = bij_betw f (A \<union> {b}) (A' \<union> {f b})"
-proof
-  assume "bij_betw f A A'"
-  thus "bij_betw f (A \<union> {b}) (A' \<union> {f b})"
-  using assms notIn_Un_bij_betw[of b A f A'] by blast
-next
-  assume *: "bij_betw f (A \<union> {b}) (A' \<union> {f b})"
-  have "f ` A = A'"
-  proof(auto)
-    fix a assume **: "a \<in> A"
-    hence "f a \<in> A' \<union> {f b}" using * unfolding bij_betw_def by blast
-    moreover
-    {assume "f a = f b"
-     hence "a = b" using * ** unfolding bij_betw_def inj_on_def by blast
-     with NIN ** have False by blast
-    }
-    ultimately show "f a \<in> A'" by blast
-  next
-    fix a' assume **: "a' \<in> A'"
-    hence "a' \<in> f`(A \<union> {b})"
-    using * by (auto simp add: bij_betw_def)
-    then obtain a where 1: "a \<in> A \<union> {b} \<and> f a = a'" by blast
-    moreover
-    {assume "a = b" with 1 ** NIN' have False by blast
-    }
-    ultimately have "a \<in> A" by blast
-    with 1 show "a' \<in> f ` A" by blast
-  qed
-  thus "bij_betw f A A'" using * bij_betw_subset[of f "A \<union> {b}" _ A] by blast
-qed
-
-
 subsection {* Properties involving finite and infinite sets *}
 
 
-(*3*)lemma inj_on_finite:
+lemma inj_on_finite:
 assumes "inj_on f A" "f ` A \<le> B" "finite B"
 shows "finite A"
 using assms by (metis finite_imageD finite_subset)
 
 
-(*3*)lemma infinite_imp_bij_betw:
+lemma infinite_imp_bij_betw:
 assumes INF: "\<not> finite A"
 shows "\<exists>h. bij_betw h A (A - {a})"
 proof(cases "a \<in> A")
@@ -179,7 +106,7 @@ find_theorems "\<not> finite _"
 qed
 
 
-(*3*)lemma infinite_imp_bij_betw2:
+lemma infinite_imp_bij_betw2:
 assumes INF: "\<not> finite A"
 shows "\<exists>h. bij_betw h A (A \<union> {a})"
 proof(cases "a \<in> A")
@@ -199,19 +126,19 @@ qed
 subsection {* Properties involving Hilbert choice *}
 
 
-(*2*)lemma bij_betw_inv_into_left:
+lemma bij_betw_inv_into_left:
 assumes BIJ: "bij_betw f A A'" and IN: "a \<in> A"
 shows "(inv_into A f) (f a) = a"
 using assms unfolding bij_betw_def
 by clarify (rule inv_into_f_f)
 
-(*2*)lemma bij_betw_inv_into_right:
+lemma bij_betw_inv_into_right:
 assumes "bij_betw f A A'" "a' \<in> A'"
 shows "f(inv_into A f a') = a'"
 using assms unfolding bij_betw_def using f_inv_into_f by force
 
 
-(*1*)lemma bij_betw_inv_into_subset:
+lemma bij_betw_inv_into_subset:
 assumes BIJ: "bij_betw f A A'" and
         SUB: "B \<le> A" and IM: "f ` B = B'"
 shows "bij_betw (inv_into A f) B' B"
