@@ -18,13 +18,24 @@ as {\em non-strict relations},
 i.e., as containing the diagonals of their fields. *}
 
 
-locale wo_rel = rel + assumes WELL: "Well_order r"
+locale wo_rel =
+  fixes r :: "'a rel"
+  assumes WELL: "Well_order r"
 begin
 
 text{* The following context encompasses all this section. In other words,
 for the whole section, we consider a fixed well-order relation @{term "r"}. *}
 
 (* context wo_rel  *)
+
+abbreviation under where "under \<equiv> Order_Relation_More_FP.under r"
+abbreviation underS where "underS \<equiv> Order_Relation_More_FP.underS r"
+abbreviation Under where "Under \<equiv> Order_Relation_More_FP.Under r"
+abbreviation UnderS where "UnderS \<equiv> Order_Relation_More_FP.UnderS r"
+abbreviation above where "above \<equiv> Order_Relation_More_FP.above r"
+abbreviation aboveS where "aboveS \<equiv> Order_Relation_More_FP.aboveS r"
+abbreviation Above where "Above \<equiv> Order_Relation_More_FP.Above r"
+abbreviation AboveS where "AboveS \<equiv> Order_Relation_More_FP.AboveS r"
 
 
 subsection {* Auxiliaries *}
@@ -109,7 +120,7 @@ proof-
   let ?rS = "r - Id"
   have "adm_wf (r - Id) H"
   unfolding adm_wf_def
-  using ADM adm_wo_def[of H] underS_def by auto
+  using ADM adm_wo_def[of H] underS_def[of r] by auto
   hence "wfrec ?rS H = H (wfrec ?rS H)"
   using WF wfrec_fixpoint[of ?rS H] by simp
   thus ?thesis unfolding worec_def .
@@ -327,7 +338,7 @@ assumes SUB: "B \<le> Field r" and ABOVES: "AboveS B \<noteq> {}"
 shows "suc B \<in> AboveS B"
 proof(unfold suc_def)
   have "AboveS B \<le> Field r"
-  using AboveS_Field by auto
+  using AboveS_Field[of r] by auto
   thus "minim (AboveS B) \<in> AboveS B"
   using assms by (simp add: minim_in)
 qed
@@ -340,7 +351,7 @@ shows "suc B \<noteq> b \<and> (b,suc B) \<in> r"
 proof-
   from assms suc_AboveS
   have "suc B \<in> AboveS B" by simp
-  with IN AboveS_def show ?thesis by simp
+  with IN AboveS_def[of r] show ?thesis by simp
 qed
 
 
@@ -349,7 +360,7 @@ assumes ABOVES: "a \<in> AboveS B"
 shows "(suc B,a) \<in> r"
 proof(unfold suc_def)
   have "AboveS B \<le> Field r"
-  using AboveS_Field by auto
+  using AboveS_Field[of r] by auto
   thus "(minim (AboveS B),a) \<in> r"
   using assms minim_least by simp
 qed
@@ -361,7 +372,7 @@ shows "suc B \<in> Field r"
 proof-
   have "suc B \<in> AboveS B" using suc_AboveS assms by simp
   thus ?thesis
-  using assms AboveS_Field by auto
+  using assms AboveS_Field[of r] by auto
 qed
 
 
@@ -371,7 +382,7 @@ assumes SUB: "B \<le> Field r" and ABV: "a \<in> AboveS B" and
 shows "a = suc B"
 proof(unfold suc_def)
   have "AboveS B \<le> Field r"
-  using AboveS_Field[of B] by auto
+  using AboveS_Field[of r B] by auto
   thus "a = minim (AboveS B)"
   using assms equals_minim
   by simp
@@ -383,17 +394,17 @@ assumes IN: "a \<in> Field r"
 shows "a = suc (underS a)"
 proof-
   have "underS a \<le> Field r"
-  using underS_Field by auto
+  using underS_Field[of r] by auto
   moreover
   have "a \<in> AboveS (underS a)"
-  using in_AboveS_underS IN by auto
+  using in_AboveS_underS IN by fast
   moreover
   have "\<forall>a' \<in> AboveS (underS a). (a,a') \<in> r"
   proof(clarify)
     fix a'
     assume *: "a' \<in> AboveS (underS a)"
     hence **: "a' \<in> Field r"
-    using AboveS_Field by auto
+    using AboveS_Field by fast
     {assume "(a,a') \<notin> r"
      hence "a' = a \<or> (a',a) \<in> r"
      using TOTAL IN ** by (auto simp add: total_on_def)
@@ -407,7 +418,7 @@ proof-
       hence "a' \<in> underS a"
       unfolding underS_def by simp
       hence "a' \<notin> AboveS (underS a)"
-      using AboveS_disjoint by blast
+      using AboveS_disjoint by fast
       with * have False by simp
      }
      ultimately have "(a,a') \<in> r" by blast
@@ -486,7 +497,7 @@ next
          hence "(?a,x) \<in> r"
          using TOTAL total_on_def[of "Field r" r]
                2 4 11 12 by auto
-         hence "?a \<in> under x" using under_def by auto
+         hence "?a \<in> under x" using under_def[of r] by auto
          hence "?a \<in> A" using ** 13 by blast
          with 4 have False by simp
         }
@@ -527,7 +538,7 @@ proof
   thus "(\<Union> a \<in> A. under a) \<le> A" by blast
 next
   have "\<forall>a \<in> A. a \<in> under a"
-  using REFL Refl_under_in assms ofilter_def by blast
+  using REFL Refl_under_in[of r] assms ofilter_def[of A] by blast
   thus "A \<le> (\<Union> a \<in> A. under a)" by blast
 qed
 
@@ -562,13 +573,13 @@ next
     }
     moreover
     {assume "(a,b) \<in> r"
-     with underS_incr TRANS ANTISYM 1 2
+     with underS_incr[of r] TRANS ANTISYM 1 2
      have "A \<le> B" by auto
      hence ?thesis by auto
     }
     moreover
      {assume "(b,a) \<in> r"
-     with underS_incr TRANS ANTISYM 1 2
+     with underS_incr[of r] TRANS ANTISYM 1 2
      have "B \<le> A" by auto
      hence ?thesis by auto
     }
@@ -582,7 +593,7 @@ assumes "ofilter A"
 shows "A \<union> (AboveS A) = Field r"
 proof
   show "A \<union> (AboveS A) \<le> Field r"
-  using assms ofilter_def AboveS_Field by auto
+  using assms ofilter_def AboveS_Field[of r] by auto
 next
   {fix x assume *: "x \<in> Field r" and **: "x \<notin> A"
    {fix y assume ***: "y \<in> A"
@@ -592,7 +603,7 @@ next
      have "y \<in> Field r" using assms ofilter_def *** by auto
      ultimately have "(x,y) \<in> r"
      using 1 * TOTAL total_on_def[of _ r] by auto
-     with *** assms ofilter_def under_def have "x \<in> A" by auto
+     with *** assms ofilter_def under_def[of r] have "x \<in> A" by auto
      with ** have False by contradiction
     }
     hence "(y,x) \<in> r" by blast
@@ -610,7 +621,7 @@ assumes OF: "ofilter A" and ABOVE_NE: "AboveS A \<noteq> {}" and
 shows "b \<in> A"
 proof-
   have *: "suc A \<in> Field r \<and> b \<in> Field r"
-  using WELL REL well_order_on_domain by auto
+  using WELL REL well_order_on_domain[of "Field r"] by auto
   {assume **: "b \<notin> A"
    hence "b \<in> AboveS A"
    using OF * ofilter_AboveS_Field by auto

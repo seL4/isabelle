@@ -40,20 +40,20 @@ qed
 lemma under_underS_bij_betw:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and
         IN: "a \<in> Field r" and IN': "f a \<in> Field r'" and
-        BIJ: "bij_betw f (rel.underS r a) (rel.underS r' (f a))"
-shows "bij_betw f (rel.under r a) (rel.under r' (f a))"
+        BIJ: "bij_betw f (underS r a) (underS r' (f a))"
+shows "bij_betw f (under r a) (under r' (f a))"
 proof-
-  have "a \<notin> rel.underS r a \<and> f a \<notin> rel.underS r' (f a)"
-  unfolding rel.underS_def by auto
+  have "a \<notin> underS r a \<and> f a \<notin> underS r' (f a)"
+  unfolding underS_def by auto
   moreover
   {have "Refl r \<and> Refl r'" using WELL WELL'
    by (auto simp add: order_on_defs)
-   hence "rel.under r a = rel.underS r a \<union> {a} \<and>
-          rel.under r' (f a) = rel.underS r' (f a) \<union> {f a}"
-   using IN IN' by(auto simp add: rel.Refl_under_underS)
+   hence "under r a = underS r a \<union> {a} \<and>
+          under r' (f a) = underS r' (f a) \<union> {f a}"
+   using IN IN' by(auto simp add: Refl_under_underS)
   }
   ultimately show ?thesis
-  using BIJ notIn_Un_bij_betw[of a "rel.underS r a" f "rel.underS r' (f a)"] by auto
+  using BIJ notIn_Un_bij_betw[of a "underS r a" f "underS r' (f a)"] by auto
 qed
 
 
@@ -75,7 +75,7 @@ and an isomorphism (operator @{text "iso"}) is a bijective embedding.   *}
 
 definition embed :: "'a rel \<Rightarrow> 'a' rel \<Rightarrow> ('a \<Rightarrow> 'a') \<Rightarrow> bool"
 where
-"embed r r' f \<equiv> \<forall>a \<in> Field r. bij_betw f (rel.under r a) (rel.under r' (f a))"
+"embed r r' f \<equiv> \<forall>a \<in> Field r. bij_betw f (under r a) (under r' (f a))"
 
 
 lemmas embed_defs = embed_def embed_def[abs_def]
@@ -133,11 +133,11 @@ proof-
   using WELL by (auto simp add: wo_rel_def)
   hence 1: "Refl r"
   by (auto simp add: wo_rel.REFL)
-  hence "a \<in> rel.under r a" using IN rel.Refl_under_in by fastforce
-  hence "f a \<in> rel.under r' (f a)"
+  hence "a \<in> under r a" using IN Refl_under_in by fastforce
+  hence "f a \<in> under r' (f a)"
   using EMB IN by (auto simp add: embed_def bij_betw_def)
   thus ?thesis unfolding Field_def
-  by (auto simp: rel.under_def)
+  by (auto simp: under_def)
 qed
 
 
@@ -147,16 +147,16 @@ assumes WELL: "Well_order r" and
 shows "embed r r'' (f' o f)"
 proof(unfold embed_def, auto)
   fix a assume *: "a \<in> Field r"
-  hence "bij_betw f (rel.under r a) (rel.under r' (f a))"
+  hence "bij_betw f (under r a) (under r' (f a))"
   using embed_def[of r] EMB by auto
   moreover
   {have "f a \<in> Field r'"
    using EMB WELL * by (auto simp add: embed_in_Field)
-   hence "bij_betw f' (rel.under r' (f a)) (rel.under r'' (f' (f a)))"
+   hence "bij_betw f' (under r' (f a)) (under r'' (f' (f a)))"
    using embed_def[of r'] EMB' by auto
   }
   ultimately
-  show "bij_betw (f' \<circ> f) (rel.under r a) (rel.under r'' (f'(f a)))"
+  show "bij_betw (f' \<circ> f) (under r a) (under r'' (f'(f a)))"
   by(auto simp add: bij_betw_trans)
 qed
 
@@ -190,14 +190,14 @@ proof-
   show ?thesis  using Well' WELL EMB 0 embed_Field[of r r' f]
   proof(unfold wo_rel.ofilter_def, auto simp add: image_def)
     fix a b'
-    assume *: "a \<in> A" and **: "b' \<in> rel.under r' (f a)"
+    assume *: "a \<in> A" and **: "b' \<in> under r' (f a)"
     hence "a \<in> Field r" using 0 by auto
-    hence "bij_betw f (rel.under r a) (rel.under r' (f a))"
+    hence "bij_betw f (under r a) (under r' (f a))"
     using * EMB by (auto simp add: embed_def)
-    hence "f`(rel.under r a) = rel.under r' (f a)"
+    hence "f`(under r a) = under r' (f a)"
     by (simp add: bij_betw_def)
-    with ** image_def[of f "rel.under r a"] obtain b where
-    1: "b \<in> rel.under r a \<and> b' = f b" by blast
+    with ** image_def[of f "under r a"] obtain b where
+    1: "b \<in> under r a \<and> b' = f b" by blast
     hence "b \<in> A" using Well * OF
     by (auto simp add: wo_rel.ofilter_def)
     with 1 show "\<exists>b \<in> A. b' = f b" by blast
@@ -224,14 +224,14 @@ proof(unfold compat_def, clarify)
   fix a b
   assume *: "(a,b) \<in> r"
   hence 1: "b \<in> Field r" using Field_def[of r] by blast
-  have "a \<in> rel.under r b"
-  using * rel.under_def[of r] by simp
-  hence "f a \<in> rel.under r' (f b)"
+  have "a \<in> under r b"
+  using * under_def[of r] by simp
+  hence "f a \<in> under r' (f b)"
   using EMB embed_def[of r r' f]
-        bij_betw_def[of f "rel.under r b" "rel.under r' (f b)"]
-        image_def[of f "rel.under r b"] 1 by auto
+        bij_betw_def[of f "under r b" "under r' (f b)"]
+        image_def[of f "under r b"] 1 by auto
   thus "(f a, f b) \<in> r'"
-  by (auto simp add: rel.under_def)
+  by (auto simp add: under_def)
 qed
 
 
@@ -252,16 +252,16 @@ proof(unfold inj_on_def, clarify)
   hence 1: "a \<in> Field r \<and> b \<in> Field r"
   unfolding Field_def by auto
   {assume "(a,b) \<in> r"
-   hence "a \<in> rel.under r b \<and> b \<in> rel.under r b"
-   using Refl by(auto simp add: rel.under_def refl_on_def)
+   hence "a \<in> under r b \<and> b \<in> under r b"
+   using Refl by(auto simp add: under_def refl_on_def)
    hence "a = b"
    using EMB 1 ***
    by (auto simp add: embed_def bij_betw_def inj_on_def)
   }
   moreover
   {assume "(b,a) \<in> r"
-   hence "a \<in> rel.under r a \<and> b \<in> rel.under r a"
-   using Refl by(auto simp add: rel.under_def refl_on_def)
+   hence "a \<in> under r a \<and> b \<in> under r a"
+   using Refl by(auto simp add: under_def refl_on_def)
    hence "a = b"
    using EMB 1 ***
    by (auto simp add: embed_def bij_betw_def inj_on_def)
@@ -275,19 +275,19 @@ qed
 lemma embed_underS:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and
         EMB: "embed r r' f" and IN: "a \<in> Field r"
-shows "bij_betw f (rel.underS r a) (rel.underS r' (f a))"
+shows "bij_betw f (underS r a) (underS r' (f a))"
 proof-
-  have "bij_betw f (rel.under r a) (rel.under r' (f a))"
+  have "bij_betw f (under r a) (under r' (f a))"
   using assms by (auto simp add: embed_def)
   moreover
   {have "f a \<in> Field r'" using assms  embed_Field[of r r' f] by auto
-   hence "rel.under r a = rel.underS r a \<union> {a} \<and>
-          rel.under r' (f a) = rel.underS r' (f a) \<union> {f a}"
-   using assms by (auto simp add: order_on_defs rel.Refl_under_underS)
+   hence "under r a = underS r a \<union> {a} \<and>
+          under r' (f a) = underS r' (f a) \<union> {f a}"
+   using assms by (auto simp add: order_on_defs Refl_under_underS)
   }
   moreover
-  {have "a \<notin> rel.underS r a \<and> f a \<notin> rel.underS r' (f a)"
-   unfolding rel.underS_def by blast
+  {have "a \<notin> underS r a \<and> f a \<notin> underS r' (f a)"
+   unfolding underS_def by blast
   }
   ultimately show ?thesis
   by (auto simp add: notIn_Un_bij_betw3)
@@ -325,20 +325,20 @@ proof(auto simp add: embed_compat embed_inj_on embed_Field_ofilter,
   unfolding Field_def by auto
   have "f a \<in> f`(Field r)"
   using **** by auto
-  hence 2: "rel.under r' (f a) \<le> f`(Field r)"
+  hence 2: "under r' (f a) \<le> f`(Field r)"
   using Well' *** wo_rel.ofilter_def[of r' "f`(Field r)"] by fastforce
   (* Main proof *)
-  show "bij_betw f (rel.under r a) (rel.under r' (f a))"
+  show "bij_betw f (under r a) (under r' (f a))"
   proof(unfold bij_betw_def, auto)
-    show  "inj_on f (rel.under r a)"
-    using * by (metis (no_types) rel.under_Field subset_inj_on)
+    show  "inj_on f (under r a)"
+    using * by (metis (no_types) under_Field subset_inj_on)
   next
-    fix b assume "b \<in> rel.under r a"
-    thus "f b \<in> rel.under r' (f a)"
-    unfolding rel.under_def using **
+    fix b assume "b \<in> under r a"
+    thus "f b \<in> under r' (f a)"
+    unfolding under_def using **
     by (auto simp add: compat_def)
   next
-    fix b' assume *****: "b' \<in> rel.under r' (f a)"
+    fix b' assume *****: "b' \<in> under r' (f a)"
     hence "b' \<in> f`(Field r)"
     using 2 by auto
     with Field_def[of r] obtain b where
@@ -349,7 +349,7 @@ proof(auto simp add: embed_compat embed_inj_on embed_Field_ofilter,
        with ** 4 have "(f a, b'): r'"
        by (auto simp add: compat_def)
        with ***** Antisym' have "f a = b'"
-       by(auto simp add: rel.under_def antisym_def)
+       by(auto simp add: under_def antisym_def)
        with 3 **** 4 * have "a = b"
        by(auto simp add: inj_on_def)
       }
@@ -361,15 +361,15 @@ proof(auto simp add: embed_compat embed_inj_on embed_Field_ofilter,
       ultimately
       show ?thesis using Total **** 3 by (fastforce simp add: total_on_def)
     qed
-    with 4 show  "b' \<in> f`(rel.under r a)"
-    unfolding rel.under_def by auto
+    with 4 show  "b' \<in> f`(under r a)"
+    unfolding under_def by auto
   qed
 qed
 
 
 lemma inv_into_ofilter_embed:
 assumes WELL: "Well_order r" and OF: "wo_rel.ofilter r A" and
-        BIJ: "\<forall>b \<in> A. bij_betw f (rel.under r b) (rel.under r' (f b))" and
+        BIJ: "\<forall>b \<in> A. bij_betw f (under r b) (under r' (f b))" and
         IMAGE: "f ` A = Field r'"
 shows "embed r' r (inv_into A f)"
 proof-
@@ -390,16 +390,16 @@ proof-
     using * ** Well OF by (auto simp add: wo_rel.ofilter_def)
     moreover
     {assume "(b1,b2) \<in> r"
-     hence "b1 \<in> rel.under r b2 \<and> b2 \<in> rel.under r b2"
-     unfolding rel.under_def using 11 Refl
+     hence "b1 \<in> under r b2 \<and> b2 \<in> under r b2"
+     unfolding under_def using 11 Refl
      by (auto simp add: refl_on_def)
      hence "b1 = b2" using BIJ * ** ***
      by (simp add: bij_betw_def inj_on_def)
     }
     moreover
      {assume "(b2,b1) \<in> r"
-     hence "b1 \<in> rel.under r b1 \<and> b2 \<in> rel.under r b1"
-     unfolding rel.under_def using 11 Refl
+     hence "b1 \<in> under r b1 \<and> b2 \<in> under r b1"
+     unfolding under_def using 11 Refl
      by (auto simp add: refl_on_def)
      hence "b1 = b2" using BIJ * ** ***
      by (simp add: bij_betw_def inj_on_def)
@@ -411,20 +411,20 @@ proof-
   (*  *)
   let ?f' = "(inv_into A f)"
   (*  *)
-  have 2: "\<forall>b \<in> A. bij_betw ?f' (rel.under r' (f b)) (rel.under r b)"
+  have 2: "\<forall>b \<in> A. bij_betw ?f' (under r' (f b)) (under r b)"
   proof(clarify)
     fix b assume *: "b \<in> A"
-    hence "rel.under r b \<le> A"
+    hence "under r b \<le> A"
     using Well OF by(auto simp add: wo_rel.ofilter_def)
     moreover
-    have "f ` (rel.under r b) = rel.under r' (f b)"
+    have "f ` (under r b) = under r' (f b)"
     using * BIJ by (auto simp add: bij_betw_def)
     ultimately
-    show "bij_betw ?f' (rel.under r' (f b)) (rel.under r b)"
+    show "bij_betw ?f' (under r' (f b)) (under r b)"
     using 1 by (auto simp add: bij_betw_inv_into_subset)
   qed
   (*  *)
-  have 3: "\<forall>b' \<in> Field r'. bij_betw ?f' (rel.under r' b') (rel.under r (?f' b'))"
+  have 3: "\<forall>b' \<in> Field r'. bij_betw ?f' (under r' b') (under r (?f' b'))"
   proof(clarify)
     fix b' assume *: "b' \<in> Field r'"
     have "b' = f (?f' b')" using * 1
@@ -435,7 +435,7 @@ proof-
      with 31 have "?f' b' \<in> A" by auto
     }
     ultimately
-    show  "bij_betw ?f' (rel.under r' b') (rel.under r (?f' b'))"
+    show  "bij_betw ?f' (under r' b') (under r (?f' b'))"
     using 2 by auto
   qed
   (*  *)
@@ -445,10 +445,10 @@ qed
 
 lemma inv_into_underS_embed:
 assumes WELL: "Well_order r" and
-        BIJ: "\<forall>b \<in> rel.underS r a. bij_betw f (rel.under r b) (rel.under r' (f b))" and
+        BIJ: "\<forall>b \<in> underS r a. bij_betw f (under r b) (under r' (f b))" and
         IN: "a \<in> Field r" and
-        IMAGE: "f ` (rel.underS r a) = Field r'"
-shows "embed r' r (inv_into (rel.underS r a) f)"
+        IMAGE: "f ` (underS r a) = Field r'"
+shows "embed r' r (inv_into (underS r a) f)"
 using assms
 by(auto simp add: wo_rel_def wo_rel.underS_ofilter inv_into_ofilter_embed)
 
@@ -458,7 +458,7 @@ assumes WELL: "Well_order r" and EMB: "embed r r' f" and
         IMAGE: "Field r' \<le> f ` (Field r)"
 shows "embed r' r (inv_into (Field r) f)"
 proof-
-  have "(\<forall>b \<in> Field r. bij_betw f (rel.under r b) (rel.under r' (f b)))"
+  have "(\<forall>b \<in> Field r. bij_betw f (under r b) (under r' (f b)))"
   using EMB by (auto simp add: embed_def)
   moreover
   have "f ` (Field r) \<le> Field r'"
@@ -511,101 +511,101 @@ lemma wellorders_totally_ordered_aux:
 fixes r ::"'a rel"  and r'::"'a' rel" and
       f :: "'a \<Rightarrow> 'a'" and a::'a
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and IN: "a \<in> Field r" and
-        IH: "\<forall>b \<in> rel.underS r a. bij_betw f (rel.under r b) (rel.under r' (f b))" and
-        NOT: "f ` (rel.underS r a) \<noteq> Field r'" and SUC: "f a = wo_rel.suc r' (f`(rel.underS r a))"
-shows "bij_betw f (rel.under r a) (rel.under r' (f a))"
+        IH: "\<forall>b \<in> underS r a. bij_betw f (under r b) (under r' (f b))" and
+        NOT: "f ` (underS r a) \<noteq> Field r'" and SUC: "f a = wo_rel.suc r' (f`(underS r a))"
+shows "bij_betw f (under r a) (under r' (f a))"
 proof-
   (* Preliminary facts *)
   have Well: "wo_rel r" using WELL unfolding wo_rel_def .
   hence Refl: "Refl r" using wo_rel.REFL[of r] by auto
   have Trans: "trans r" using Well wo_rel.TRANS[of r] by auto
   have Well': "wo_rel r'" using WELL' unfolding wo_rel_def .
-  have OF: "wo_rel.ofilter r (rel.underS r a)"
+  have OF: "wo_rel.ofilter r (underS r a)"
   by (auto simp add: Well wo_rel.underS_ofilter)
-  hence UN: "rel.underS r a = (\<Union>  b \<in> rel.underS r a. rel.under r b)"
-  using Well wo_rel.ofilter_under_UNION[of r "rel.underS r a"] by blast
-  (* Gather facts about elements of rel.underS r a *)
-  {fix b assume *: "b \<in> rel.underS r a"
-   hence t0: "(b,a) \<in> r \<and> b \<noteq> a" unfolding rel.underS_def by auto
+  hence UN: "underS r a = (\<Union>  b \<in> underS r a. under r b)"
+  using Well wo_rel.ofilter_under_UNION[of r "underS r a"] by blast
+  (* Gather facts about elements of underS r a *)
+  {fix b assume *: "b \<in> underS r a"
+   hence t0: "(b,a) \<in> r \<and> b \<noteq> a" unfolding underS_def by auto
    have t1: "b \<in> Field r"
-   using * rel.underS_Field[of r a] by auto
-   have t2: "f`(rel.under r b) = rel.under r' (f b)"
+   using * underS_Field[of r a] by auto
+   have t2: "f`(under r b) = under r' (f b)"
    using IH * by (auto simp add: bij_betw_def)
-   hence t3: "wo_rel.ofilter r' (f`(rel.under r b))"
+   hence t3: "wo_rel.ofilter r' (f`(under r b))"
    using Well' by (auto simp add: wo_rel.under_ofilter)
-   have "f`(rel.under r b) \<le> Field r'"
-   using t2 by (auto simp add: rel.under_Field)
+   have "f`(under r b) \<le> Field r'"
+   using t2 by (auto simp add: under_Field)
    moreover
-   have "b \<in> rel.under r b"
-   using t1 by(auto simp add: Refl rel.Refl_under_in)
+   have "b \<in> under r b"
+   using t1 by(auto simp add: Refl Refl_under_in)
    ultimately
    have t4:  "f b \<in> Field r'" by auto
-   have "f`(rel.under r b) = rel.under r' (f b) \<and>
-         wo_rel.ofilter r' (f`(rel.under r b)) \<and>
+   have "f`(under r b) = under r' (f b) \<and>
+         wo_rel.ofilter r' (f`(under r b)) \<and>
          f b \<in> Field r'"
    using t2 t3 t4 by auto
   }
   hence bFact:
-  "\<forall>b \<in> rel.underS r a. f`(rel.under r b) = rel.under r' (f b) \<and>
-                       wo_rel.ofilter r' (f`(rel.under r b)) \<and>
+  "\<forall>b \<in> underS r a. f`(under r b) = under r' (f b) \<and>
+                       wo_rel.ofilter r' (f`(under r b)) \<and>
                        f b \<in> Field r'" by blast
   (*  *)
-  have subField: "f`(rel.underS r a) \<le> Field r'"
+  have subField: "f`(underS r a) \<le> Field r'"
   using bFact by blast
   (*  *)
-  have OF': "wo_rel.ofilter r' (f`(rel.underS r a))"
+  have OF': "wo_rel.ofilter r' (f`(underS r a))"
   proof-
-    have "f`(rel.underS r a) = f`(\<Union>  b \<in> rel.underS r a. rel.under r b)"
+    have "f`(underS r a) = f`(\<Union>  b \<in> underS r a. under r b)"
     using UN by auto
-    also have "\<dots> = (\<Union>  b \<in> rel.underS r a. f`(rel.under r b))" by blast
-    also have "\<dots> = (\<Union>  b \<in> rel.underS r a. (rel.under r' (f b)))"
+    also have "\<dots> = (\<Union>  b \<in> underS r a. f`(under r b))" by blast
+    also have "\<dots> = (\<Union>  b \<in> underS r a. (under r' (f b)))"
     using bFact by auto
     finally
-    have "f`(rel.underS r a) = (\<Union>  b \<in> rel.underS r a. (rel.under r' (f b)))" .
+    have "f`(underS r a) = (\<Union>  b \<in> underS r a. (under r' (f b)))" .
     thus ?thesis
     using Well' bFact
-          wo_rel.ofilter_UNION[of r' "rel.underS r a" "\<lambda> b. rel.under r' (f b)"] by fastforce
+          wo_rel.ofilter_UNION[of r' "underS r a" "\<lambda> b. under r' (f b)"] by fastforce
   qed
   (*  *)
-  have "f`(rel.underS r a) \<union> rel.AboveS r' (f`(rel.underS r a)) = Field r'"
+  have "f`(underS r a) \<union> AboveS r' (f`(underS r a)) = Field r'"
   using Well' OF' by (auto simp add: wo_rel.ofilter_AboveS_Field)
-  hence NE: "rel.AboveS r' (f`(rel.underS r a)) \<noteq> {}"
+  hence NE: "AboveS r' (f`(underS r a)) \<noteq> {}"
   using subField NOT by blast
   (* Main proof *)
-  have INCL1: "f`(rel.underS r a) \<le> rel.underS r' (f a) "
+  have INCL1: "f`(underS r a) \<le> underS r' (f a) "
   proof(auto)
-    fix b assume *: "b \<in> rel.underS r a"
+    fix b assume *: "b \<in> underS r a"
     have "f b \<noteq> f a \<and> (f b, f a) \<in> r'"
     using subField Well' SUC NE *
-          wo_rel.suc_greater[of r' "f`(rel.underS r a)" "f b"] by force
-    thus "f b \<in> rel.underS r' (f a)"
-    unfolding rel.underS_def by simp
+          wo_rel.suc_greater[of r' "f`(underS r a)" "f b"] by force
+    thus "f b \<in> underS r' (f a)"
+    unfolding underS_def by simp
   qed
   (*  *)
-  have INCL2: "rel.underS r' (f a) \<le> f`(rel.underS r a)"
+  have INCL2: "underS r' (f a) \<le> f`(underS r a)"
   proof
-    fix b' assume "b' \<in> rel.underS r' (f a)"
+    fix b' assume "b' \<in> underS r' (f a)"
     hence "b' \<noteq> f a \<and> (b', f a) \<in> r'"
-    unfolding rel.underS_def by simp
-    thus "b' \<in> f`(rel.underS r a)"
+    unfolding underS_def by simp
+    thus "b' \<in> f`(underS r a)"
     using Well' SUC NE OF'
-          wo_rel.suc_ofilter_in[of r' "f ` rel.underS r a" b'] by auto
+          wo_rel.suc_ofilter_in[of r' "f ` underS r a" b'] by auto
   qed
   (*  *)
-  have INJ: "inj_on f (rel.underS r a)"
+  have INJ: "inj_on f (underS r a)"
   proof-
-    have "\<forall>b \<in> rel.underS r a. inj_on f (rel.under r b)"
+    have "\<forall>b \<in> underS r a. inj_on f (under r b)"
     using IH by (auto simp add: bij_betw_def)
     moreover
-    have "\<forall>b. wo_rel.ofilter r (rel.under r b)"
+    have "\<forall>b. wo_rel.ofilter r (under r b)"
     using Well by (auto simp add: wo_rel.under_ofilter)
     ultimately show  ?thesis
     using WELL bFact UN
-          UNION_inj_on_ofilter[of r "rel.underS r a" "\<lambda>b. rel.under r b" f]
+          UNION_inj_on_ofilter[of r "underS r a" "\<lambda>b. under r b" f]
     by auto
   qed
   (*  *)
-  have BIJ: "bij_betw f (rel.underS r a) (rel.underS r' (f a))"
+  have BIJ: "bij_betw f (underS r a) (underS r' (f a))"
   unfolding bij_betw_def
   using INJ INCL1 INCL2 by auto
   (*  *)
@@ -622,14 +622,14 @@ fixes r ::"'a rel"  and r'::"'a' rel" and
       f :: "'a \<Rightarrow> 'a'" and g :: "'a \<Rightarrow> bool"  and a::'a
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and
 MAIN1:
-  "\<And> a. (False \<notin> g`(rel.underS r a) \<and> f`(rel.underS r a) \<noteq> Field r'
-          \<longrightarrow> f a = wo_rel.suc r' (f`(rel.underS r a)) \<and> g a = True)
+  "\<And> a. (False \<notin> g`(underS r a) \<and> f`(underS r a) \<noteq> Field r'
+          \<longrightarrow> f a = wo_rel.suc r' (f`(underS r a)) \<and> g a = True)
          \<and>
-         (\<not>(False \<notin> (g`(rel.underS r a)) \<and> f`(rel.underS r a) \<noteq> Field r')
+         (\<not>(False \<notin> (g`(underS r a)) \<and> f`(underS r a) \<noteq> Field r')
           \<longrightarrow> g a = False)" and
-MAIN2: "\<And> a. a \<in> Field r \<and> False \<notin> g`(rel.under r a) \<longrightarrow>
-              bij_betw f (rel.under r a) (rel.under r' (f a))" and
-Case: "a \<in> Field r \<and> False \<in> g`(rel.under r a)"
+MAIN2: "\<And> a. a \<in> Field r \<and> False \<notin> g`(under r a) \<longrightarrow>
+              bij_betw f (under r a) (under r' (f a))" and
+Case: "a \<in> Field r \<and> False \<in> g`(under r a)"
 shows "\<exists>f'. embed r' r f'"
 proof-
   have Well: "wo_rel r" using WELL unfolding wo_rel_def .
@@ -638,13 +638,13 @@ proof-
   have Antisym: "antisym r" using Well wo_rel.ANTISYM[of r] by auto
   have Well': "wo_rel r'" using WELL' unfolding wo_rel_def .
   (*  *)
-  have 0: "rel.under r a = rel.underS r a \<union> {a}"
-  using Refl Case by(auto simp add: rel.Refl_under_underS)
+  have 0: "under r a = underS r a \<union> {a}"
+  using Refl Case by(auto simp add: Refl_under_underS)
   (*  *)
   have 1: "g a = False"
   proof-
     {assume "g a \<noteq> False"
-     with 0 Case have "False \<in> g`(rel.underS r a)" by blast
+     with 0 Case have "False \<in> g`(underS r a)" by blast
      with MAIN1 have "g a = False" by blast}
     thus ?thesis by blast
   qed
@@ -653,12 +653,12 @@ proof-
   (*  *)
   have 2: "?A \<noteq> {} \<and> ?A \<le> Field r" using Case 1 by blast
   (*  *)
-  have 3: "False \<notin> g`(rel.underS r ?a)"
+  have 3: "False \<notin> g`(underS r ?a)"
   proof
-    assume "False \<in> g`(rel.underS r ?a)"
-    then obtain b where "b \<in> rel.underS r ?a" and 31: "g b = False" by auto
+    assume "False \<in> g`(underS r ?a)"
+    then obtain b where "b \<in> underS r ?a" and 31: "g b = False" by auto
     hence 32: "(b,?a) \<in> r \<and> b \<noteq> ?a"
-    by (auto simp add: rel.underS_def)
+    by (auto simp add: underS_def)
     hence "b \<in> Field r" unfolding Field_def by auto
     with 31 have "b \<in> ?A" by auto
     hence "(?a,b) \<in> r" using wo_rel.minim_least 2 Well by fastforce
@@ -672,25 +672,25 @@ proof-
   (*   *)
   have 5: "g ?a = False" using temp by blast
   (*  *)
-  have 6: "f`(rel.underS r ?a) = Field r'"
+  have 6: "f`(underS r ?a) = Field r'"
   using MAIN1[of ?a] 3 5 by blast
   (*  *)
-  have 7: "\<forall>b \<in> rel.underS r ?a. bij_betw f (rel.under r b) (rel.under r' (f b))"
+  have 7: "\<forall>b \<in> underS r ?a. bij_betw f (under r b) (under r' (f b))"
   proof
-    fix b assume as: "b \<in> rel.underS r ?a"
+    fix b assume as: "b \<in> underS r ?a"
     moreover
-    have "wo_rel.ofilter r (rel.underS r ?a)"
+    have "wo_rel.ofilter r (underS r ?a)"
     using Well by (auto simp add: wo_rel.underS_ofilter)
     ultimately
-    have "False \<notin> g`(rel.under r b)" using 3 Well by (subst (asm) wo_rel.ofilter_def) fast+
+    have "False \<notin> g`(under r b)" using 3 Well by (subst (asm) wo_rel.ofilter_def) fast+
     moreover have "b \<in> Field r"
-    unfolding Field_def using as by (auto simp add: rel.underS_def)
+    unfolding Field_def using as by (auto simp add: underS_def)
     ultimately
-    show "bij_betw f (rel.under r b) (rel.under r' (f b))"
+    show "bij_betw f (under r b) (under r' (f b))"
     using MAIN2 by auto
   qed
   (*  *)
-  have "embed r' r (inv_into (rel.underS r ?a) f)"
+  have "embed r' r (inv_into (underS r ?a) f)"
   using WELL WELL' 7 4 6 inv_into_underS_embed[of r ?a f r'] by auto
   thus ?thesis
   unfolding embed_def by blast
@@ -709,18 +709,18 @@ proof-
   have Well': "wo_rel r'" using WELL' unfolding wo_rel_def .
   (* Main proof *)
   obtain H where H_def: "H =
-  (\<lambda>h a. if False \<notin> (snd o h)`(rel.underS r a) \<and> (fst o h)`(rel.underS r a) \<noteq> Field r'
-                then (wo_rel.suc r' ((fst o h)`(rel.underS r a)), True)
+  (\<lambda>h a. if False \<notin> (snd o h)`(underS r a) \<and> (fst o h)`(underS r a) \<noteq> Field r'
+                then (wo_rel.suc r' ((fst o h)`(underS r a)), True)
                 else (undefined, False))" by blast
   have Adm: "wo_rel.adm_wo r H"
   using Well
   proof(unfold wo_rel.adm_wo_def, clarify)
     fix h1::"'a \<Rightarrow> 'a' * bool" and h2::"'a \<Rightarrow> 'a' * bool" and x
-    assume "\<forall>y\<in>rel.underS r x. h1 y = h2 y"
-    hence "\<forall>y\<in>rel.underS r x. (fst o h1) y = (fst o h2) y \<and>
+    assume "\<forall>y\<in>underS r x. h1 y = h2 y"
+    hence "\<forall>y\<in>underS r x. (fst o h1) y = (fst o h2) y \<and>
                           (snd o h1) y = (snd o h2) y" by auto
-    hence "(fst o h1)`(rel.underS r x) = (fst o h2)`(rel.underS r x) \<and>
-           (snd o h1)`(rel.underS r x) = (snd o h2)`(rel.underS r x)"
+    hence "(fst o h1)`(underS r x) = (fst o h2)`(underS r x) \<and>
+           (snd o h1)`(underS r x) = (snd o h2)`(underS r x)"
       by (auto simp add: image_def)
     thus "H h1 x = H h2 x" by (simp add: H_def del: not_False_in_image_Ball)
   qed
@@ -729,21 +729,21 @@ proof-
   where h_def: "h = wo_rel.worec r H" and
         f_def: "f = fst o h" and g_def: "g = snd o h" by blast
   obtain test where test_def:
-  "test = (\<lambda> a. False \<notin> (g`(rel.underS r a)) \<and> f`(rel.underS r a) \<noteq> Field r')" by blast
+  "test = (\<lambda> a. False \<notin> (g`(underS r a)) \<and> f`(underS r a) \<noteq> Field r')" by blast
   (*  *)
   have *: "\<And> a. h a  = H h a"
   using Adm Well wo_rel.worec_fixpoint[of r H] by (simp add: h_def)
   have Main1:
-  "\<And> a. (test a \<longrightarrow> f a = wo_rel.suc r' (f`(rel.underS r a)) \<and> g a = True) \<and>
+  "\<And> a. (test a \<longrightarrow> f a = wo_rel.suc r' (f`(underS r a)) \<and> g a = True) \<and>
          (\<not>(test a) \<longrightarrow> g a = False)"
   proof-  (* How can I prove this withou fixing a? *)
-    fix a show "(test a \<longrightarrow> f a = wo_rel.suc r' (f`(rel.underS r a)) \<and> g a = True) \<and>
+    fix a show "(test a \<longrightarrow> f a = wo_rel.suc r' (f`(underS r a)) \<and> g a = True) \<and>
                 (\<not>(test a) \<longrightarrow> g a = False)"
     using *[of a] test_def f_def g_def H_def by auto
   qed
   (*  *)
-  let ?phi = "\<lambda> a. a \<in> Field r \<and> False \<notin> g`(rel.under r a) \<longrightarrow>
-                   bij_betw f (rel.under r a) (rel.under r' (f a))"
+  let ?phi = "\<lambda> a. a \<in> Field r \<and> False \<notin> g`(under r a) \<longrightarrow>
+                   bij_betw f (under r a) (under r' (f a))"
   have Main2: "\<And> a. ?phi a"
   proof-
     fix a show "?phi a"
@@ -752,46 +752,46 @@ proof-
       fix a
       assume IH: "\<forall>b. b \<noteq> a \<and> (b,a) \<in> r \<longrightarrow> ?phi b" and
              *: "a \<in> Field r" and
-             **: "False \<notin> g`(rel.under r a)"
-      have 1: "\<forall>b \<in> rel.underS r a. bij_betw f (rel.under r b) (rel.under r' (f b))"
+             **: "False \<notin> g`(under r a)"
+      have 1: "\<forall>b \<in> underS r a. bij_betw f (under r b) (under r' (f b))"
       proof(clarify)
-        fix b assume ***: "b \<in> rel.underS r a"
-        hence 0: "(b,a) \<in> r \<and> b \<noteq> a" unfolding rel.underS_def by auto
+        fix b assume ***: "b \<in> underS r a"
+        hence 0: "(b,a) \<in> r \<and> b \<noteq> a" unfolding underS_def by auto
         moreover have "b \<in> Field r"
-        using *** rel.underS_Field[of r a] by auto
-        moreover have "False \<notin> g`(rel.under r b)"
-        using 0 ** Trans rel.under_incr[of r b a] by auto
-        ultimately show "bij_betw f (rel.under r b) (rel.under r' (f b))"
+        using *** underS_Field[of r a] by auto
+        moreover have "False \<notin> g`(under r b)"
+        using 0 ** Trans under_incr[of r b a] by auto
+        ultimately show "bij_betw f (under r b) (under r' (f b))"
         using IH by auto
       qed
       (*  *)
-      have 21: "False \<notin> g`(rel.underS r a)"
-      using ** rel.underS_subset_under[of r a] by auto
-      have 22: "g`(rel.under r a) \<le> {True}" using ** by auto
-      moreover have 23: "a \<in> rel.under r a"
-      using Refl * by (auto simp add: rel.Refl_under_in)
+      have 21: "False \<notin> g`(underS r a)"
+      using ** underS_subset_under[of r a] by auto
+      have 22: "g`(under r a) \<le> {True}" using ** by auto
+      moreover have 23: "a \<in> under r a"
+      using Refl * by (auto simp add: Refl_under_in)
       ultimately have 24: "g a = True" by blast
-      have 2: "f`(rel.underS r a) \<noteq> Field r'"
+      have 2: "f`(underS r a) \<noteq> Field r'"
       proof
-        assume "f`(rel.underS r a) = Field r'"
+        assume "f`(underS r a) = Field r'"
         hence "g a = False" using Main1 test_def by blast
         with 24 show False using ** by blast
       qed
       (*  *)
-      have 3: "f a = wo_rel.suc r' (f`(rel.underS r a))"
+      have 3: "f a = wo_rel.suc r' (f`(underS r a))"
       using 21 2 Main1 test_def by blast
       (*  *)
-      show "bij_betw f (rel.under r a) (rel.under r' (f a))"
+      show "bij_betw f (under r a) (under r' (f a))"
       using WELL  WELL' 1 2 3 *
             wellorders_totally_ordered_aux[of r r' a f] by auto
     qed
   qed
   (*  *)
-  let ?chi = "(\<lambda> a. a \<in> Field r \<and> False \<in> g`(rel.under r a))"
+  let ?chi = "(\<lambda> a. a \<in> Field r \<and> False \<in> g`(under r a))"
   show ?thesis
   proof(cases "\<exists>a. ?chi a")
     assume "\<not> (\<exists>a. ?chi a)"
-    hence "\<forall>a \<in> Field r.  bij_betw f (rel.under r a) (rel.under r' (f a))"
+    hence "\<forall>a \<in> Field r.  bij_betw f (under r a) (under r' (f a))"
     using Main2 by blast
     thus ?thesis unfolding embed_def by blast
   next
@@ -817,16 +817,16 @@ embeddings of opposite directions are mutually inverse. *}
 lemma embed_determined:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and
         EMB: "embed r r' f" and IN: "a \<in> Field r"
-shows "f a = wo_rel.suc r' (f`(rel.underS r a))"
+shows "f a = wo_rel.suc r' (f`(underS r a))"
 proof-
-  have "bij_betw f (rel.underS r a) (rel.underS r' (f a))"
+  have "bij_betw f (underS r a) (underS r' (f a))"
   using assms by (auto simp add: embed_underS)
-  hence "f`(rel.underS r a) = rel.underS r' (f a)"
+  hence "f`(underS r a) = underS r' (f a)"
   by (auto simp add: bij_betw_def)
   moreover
   {have "f a \<in> Field r'" using IN
    using EMB WELL embed_Field[of r r' f] by auto
-   hence "f a = wo_rel.suc r' (rel.underS r' (f a))"
+   hence "f a = wo_rel.suc r' (underS r' (f a))"
    using WELL' by (auto simp add: wo_rel_def wo_rel.suc_underS)
   }
   ultimately show ?thesis by simp
@@ -841,9 +841,9 @@ proof(rule wo_rel.well_order_induct[of r], auto simp add: WELL wo_rel_def)
   fix a
   assume IH: "\<forall>b. b \<noteq> a \<and> (b,a): r \<longrightarrow> b \<in> Field r \<longrightarrow> f b = g b" and
          *: "a \<in> Field r"
-  hence "\<forall>b \<in> rel.underS r a. f b = g b"
-  unfolding rel.underS_def by (auto simp add: Field_def)
-  hence "f`(rel.underS r a) = g`(rel.underS r a)" by force
+  hence "\<forall>b \<in> underS r a. f b = g b"
+  unfolding underS_def by (auto simp add: Field_def)
+  hence "f`(underS r a) = g`(underS r a)" by force
   thus "f a = g a"
   using assms * embed_determined[of r r' f a] embed_determined[of r r' g a] by auto
 qed
@@ -1083,28 +1083,28 @@ next
 next
   assume *: "bij_betw f (Field r) (Field r')" and
          **: "\<forall>a\<in>Field r. \<forall>b\<in>Field r. ((a, b) \<in> r) = ((f a, f b) \<in> r')"
-  have 1: "\<And> a. rel.under r a \<le> Field r \<and> rel.under r' (f a) \<le> Field r'"
-  by (auto simp add: rel.under_Field)
+  have 1: "\<And> a. under r a \<le> Field r \<and> under r' (f a) \<le> Field r'"
+  by (auto simp add: under_Field)
   have 2: "inj_on f (Field r)" using * by (auto simp add: bij_betw_def)
   {fix a assume ***: "a \<in> Field r"
-   have "bij_betw f (rel.under r a) (rel.under r' (f a))"
+   have "bij_betw f (under r a) (under r' (f a))"
    proof(unfold bij_betw_def, auto)
-     show "inj_on f (rel.under r a)"
+     show "inj_on f (under r a)"
      using 1 2 by (metis subset_inj_on)
    next
-     fix b assume "b \<in> rel.under r a"
+     fix b assume "b \<in> under r a"
      hence "a \<in> Field r \<and> b \<in> Field r \<and> (b,a) \<in> r"
-     unfolding rel.under_def by (auto simp add: Field_def Range_def Domain_def)
-     with 1 ** show "f b \<in> rel.under r' (f a)"
-     unfolding rel.under_def by auto
+     unfolding under_def by (auto simp add: Field_def Range_def Domain_def)
+     with 1 ** show "f b \<in> under r' (f a)"
+     unfolding under_def by auto
    next
-     fix b' assume "b' \<in> rel.under r' (f a)"
-     hence 3: "(b',f a) \<in> r'" unfolding rel.under_def by simp
+     fix b' assume "b' \<in> under r' (f a)"
+     hence 3: "(b',f a) \<in> r'" unfolding under_def by simp
      hence "b' \<in> Field r'" unfolding Field_def by auto
      with * obtain b where "b \<in> Field r \<and> f b = b'"
      unfolding bij_betw_def by force
      with 3 ** ***
-     show "b' \<in> f ` (rel.under r a)" unfolding rel.under_def by blast
+     show "b' \<in> f ` (under r a)" unfolding under_def by blast
    qed
   }
   thus "embed r r' f" unfolding embed_def using * by auto

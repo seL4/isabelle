@@ -148,7 +148,7 @@ proof -
   have "compat r (r +o r') Inl" unfolding compat_def osum_def by auto
   moreover
   have "ofilter (r +o r') (Inl ` Field r)"
-    unfolding wo_rel.ofilter_def[unfolded wo_rel_def, OF 1] Field_osum rel.under_def
+    unfolding wo_rel.ofilter_def[unfolded wo_rel_def, OF 1] Field_osum under_def
     unfolding osum_def Field_def by auto
   ultimately show ?thesis using assms by (auto simp add: embed_iff_compat_inj_on_ofilter)
 qed
@@ -322,7 +322,7 @@ proof -
   from r' have "compat r (r *o r') ?f"  unfolding compat_def oprod_def by auto
   moreover
   from * have "ofilter (r *o r') (?f ` Field r)"
-    unfolding wo_rel.ofilter_def[unfolded wo_rel_def, OF 1] Field_oprod rel.under_def
+    unfolding wo_rel.ofilter_def[unfolded wo_rel_def, OF 1] Field_oprod under_def
     unfolding oprod_def by auto (auto simp: image_iff Field_def)
   moreover have "inj_on ?f (Field r)" unfolding inj_on_def by auto
   ultimately show ?thesis using assms by (auto simp add: embed_iff_compat_inj_on_ofilter)
@@ -924,11 +924,11 @@ lemma Field_ozero[simp]: "Field ozero = {}"
 
 lemma iso_ozero_empty[simp]: "r =o ozero = (r = {})"
   unfolding ozero_def ordIso_def iso_def[abs_def] embed_def bij_betw_def 
-  by (auto dest: rel.well_order_on_domain)
+  by (auto dest: well_order_on_domain)
 
 lemma ozero_ordLeq: 
 assumes "Well_order r"  shows "ozero \<le>o r"
-using assms unfolding ozero_def ordLeq_def embed_def[abs_def] rel.under_def by auto
+using assms unfolding ozero_def ordLeq_def embed_def[abs_def] under_def by auto
 
 definition "oone = {((),())}"
 
@@ -942,10 +942,10 @@ lemma Field_oone[simp]: "Field oone = {()}"
 lemma oone_ordIso: "oone =o {(x,x)}"
   unfolding ordIso_def oone_def well_order_on_def linear_order_on_def partial_order_on_def
     preorder_on_def total_on_def refl_on_def trans_def antisym_def
-  by (auto simp: iso_def embed_def bij_betw_def rel.under_def inj_on_def intro!: exI[of _ "\<lambda>_. x"])
+  by (auto simp: iso_def embed_def bij_betw_def under_def inj_on_def intro!: exI[of _ "\<lambda>_. x"])
 
 lemma osum_ordLeqR: "Well_order r \<Longrightarrow> Well_order s \<Longrightarrow> s \<le>o r +o s"
-  unfolding ordLeq_def2 rel.underS_def
+  unfolding ordLeq_def2 underS_def
   by (auto intro!: exI[of _ Inr] osum_Well_order) (auto simp add: osum_def Field_def)
 
 lemma osum_congL:
@@ -1043,7 +1043,7 @@ proof -
     unfolding Field_oprod iso_def bij_betw_def inj_on_def by fastforce
   with f have "bij_betw ?f (Field ?L) (Field ?R)"
     unfolding Field_oprod iso_def bij_betw_def by (auto intro!: map_pair_surj_on)
-  moreover from f rel.well_order_on_domain[OF r] have "compat ?L ?R ?f"
+  moreover from f well_order_on_domain[OF r] have "compat ?L ?R ?f"
     unfolding iso_iff3[OF r s] compat_def oprod_def bij_betw_def
     by (auto simp: map_pair_imageI dest: inj_onD)
   ultimately have "iso ?L ?R ?f" by (subst iso_iff3) (auto intro: oprod_Well_order r s t)
@@ -1057,7 +1057,7 @@ using ordIso_transitive[OF oprod_congL[OF assms(1)] oprod_congR[OF assms(2)]]
   assms[unfolded ordIso_def] by auto
 
 lemma Field_singleton[simp]: "Field {(z,z)} = {z}"
-  by (metis rel.well_order_on_Field well_order_on_singleton)
+  by (metis well_order_on_Field well_order_on_singleton)
 
 lemma zero_singleton[simp]: "zero {(z,z)} = z"
   using wo_rel.zero_in_Field[unfolded wo_rel_def, of "{(z, z)}"] well_order_on_singleton[of z]
@@ -1077,7 +1077,7 @@ proof -
   then obtain x where "x \<in> Field r" by auto
   with * have Fr: "Field r = {x}" by auto
   interpret r: wo_rel r by unfold_locales (rule r)
-  from Fr r.well_order_on_domain[OF r] refl_onD[OF r.REFL, of x] have r_def: "r = {(x, x)}" by fast
+  from Fr well_order_on_domain[OF r] refl_onD[OF r.REFL, of x] have r_def: "r = {(x, x)}" by fast
   interpret wo_rel2 r s by unfold_locales (rule r, rule s)
   have "bij_betw (\<lambda>x. ()) (Field ?L) (Field ?R)"
     unfolding bij_betw_def Field_oexp by (auto simp: r_def FinFunc_singleton)
@@ -1138,7 +1138,7 @@ proof -
   interpret t!: wo_rel t by unfold_locales (rule t)
   interpret rt!: wo_rel ?R by unfold_locales (rule osum_Well_order[OF r t])
   from *(3) have "ofilter ?R (?f ` Field ?L)"
-    unfolding t.ofilter_def rt.ofilter_def Field_osum image_Un image_image rel.under_def
+    unfolding t.ofilter_def rt.ofilter_def Field_osum image_Un image_image under_def
     by (auto simp: osum_def intro!: imageI) (auto simp: Field_def)
   ultimately have "embed ?L ?R ?f" using embed_iff_compat_inj_on_ofilter[of ?L ?R ?f]
     by (auto intro: osum_Well_order r s t)
@@ -1157,7 +1157,7 @@ proof -
   let ?f = "sum_map f id"
   from f have "\<forall>a\<in>Field (r +o t).
      ?f a \<in> Field (s +o t) \<and> ?f ` underS (r +o t) a \<subseteq> underS (s +o t) (?f a)"
-     unfolding Field_osum rel.underS_def by (fastforce simp: osum_def)
+     unfolding Field_osum underS_def by (fastforce simp: osum_def)
   thus ?thesis unfolding ordLeq_def2 by (auto intro: osum_Well_order r s t)
 qed
 
@@ -1199,13 +1199,13 @@ proof -
   from *(1) have "inj_on ?f (Field ?L)" unfolding Field_oprod inj_on_def by fastforce
   moreover
   from *(2,4) the_inv_into_f_f[OF *(1)] have "compat ?L ?R ?f" unfolding compat_def oprod_def
-    by auto (metis rel.well_order_on_domain t, metis rel.well_order_on_domain s)
+    by auto (metis well_order_on_domain t, metis well_order_on_domain s)
   moreover
   interpret t!: wo_rel t by unfold_locales (rule t)
   interpret rt!: wo_rel ?R by unfold_locales (rule oprod_Well_order[OF r t])
   from *(3) have "ofilter ?R (?f ` Field ?L)"
-    unfolding t.ofilter_def rt.ofilter_def Field_oprod rel.under_def
-    by (auto simp: oprod_def image_iff) (fast | metis r rel.well_order_on_domain)+
+    unfolding t.ofilter_def rt.ofilter_def Field_oprod under_def
+    by (auto simp: oprod_def image_iff) (fast | metis r well_order_on_domain)+
   ultimately have "embed ?L ?R ?f" using embed_iff_compat_inj_on_ofilter[of ?L ?R ?f]
     by (auto intro: oprod_Well_order r s t)
   moreover
@@ -1226,7 +1226,7 @@ proof -
   let ?f = "map_pair f id"
   from f have "\<forall>a\<in>Field (r *o t).
      ?f a \<in> Field (s *o t) \<and> ?f ` underS (r *o t) a \<subseteq> underS (s *o t) (?f a)"
-     unfolding Field_oprod rel.underS_def unfolding map_pair_def oprod_def by auto
+     unfolding Field_oprod underS_def unfolding map_pair_def oprod_def by auto
   thus ?thesis unfolding ordLeq_def2 by (auto intro: oprod_Well_order r s t)
 qed
 
@@ -1269,7 +1269,7 @@ qed
 
 lemma ozero_oexp: "\<not> (s =o ozero) \<Longrightarrow> ozero ^o s =o ozero"
   unfolding oexp_def[OF ozero_Well_order s] FinFunc_def
-  by simp (metis Func_emp2 bot.extremum_uniqueI emptyE rel.well_order_on_domain s subrelI)
+  by simp (metis Func_emp2 bot.extremum_uniqueI emptyE well_order_on_domain s subrelI)
       
 lemma oone_oexp: "oone ^o s =o oone" (is "?L =o ?R")
   by (rule oone_ordIso_oexp[OF ordIso_reflexive[OF oone_Well_order] s])
@@ -1326,7 +1326,7 @@ proof -
   qed
   moreover
   from FLR have "ofilter ?R (F ` Field ?L)"
-  unfolding rexpt.ofilter_def rel.under_def rs.Field_oexp rt.Field_oexp unfolding rt.oexp_def
+  unfolding rexpt.ofilter_def under_def rs.Field_oexp rt.Field_oexp unfolding rt.oexp_def
   proof (safe elim!: imageI)
     fix g h assume gh: "g \<in> FinFunc r s" "h \<in> FinFunc r t" "F g \<in> FinFunc r t"
       "let m = t.max_fun_diff h (F g) in (h m, F g m) \<in> r"
@@ -1348,7 +1348,7 @@ proof -
           assume "(t.max_fun_diff h (F g), z) \<notin> t"
           hence "(z, t.max_fun_diff h (F g)) \<in> t" using t.in_notinI[of "t.max_fun_diff h (F g)" z]
             z max_Field by auto
-          hence "z \<in> f ` Field s" using *(3) max_f_Field unfolding t.ofilter_def rel.under_def
+          hence "z \<in> f ` Field s" using *(3) max_f_Field unfolding t.ofilter_def under_def
             by fastforce
           with z show False by blast
         qed
@@ -1356,9 +1356,9 @@ proof -
           z max_f_Field unfolding F_def by auto
       } note ** = this
       with *(3) gh(2) have "h = F (\<lambda>x. if x \<in> Field s then h (f x) else undefined)" using invff
-        unfolding F_def fun_eq_iff FinFunc_def Func_def Let_def t.ofilter_def rel.under_def by auto
+        unfolding F_def fun_eq_iff FinFunc_def Func_def Let_def t.ofilter_def under_def by auto
       moreover from gh(2) *(1,3) have "(\<lambda>x. if x \<in> Field s then h (f x) else undefined) \<in> FinFunc r s"
-        unfolding FinFunc_def Func_def fin_support_def support_def t.ofilter_def rel.under_def
+        unfolding FinFunc_def Func_def fin_support_def support_def t.ofilter_def under_def
         by (auto intro: subset_inj_on elim!: finite_imageD[OF finite_subset[rotated]])
       ultimately show "?thesis" by (rule image_eqI)
     qed simp
@@ -1396,7 +1396,7 @@ proof -
   interpret t!: wo_rel t by unfold_locales (rule t)
   show ?thesis
   proof (cases "t = {}")
-    case True thus ?thesis using r s unfolding ordLeq_def2 rel.underS_def by auto
+    case True thus ?thesis using r s unfolding ordLeq_def2 underS_def by auto
   next
     case False thus ?thesis
     proof (cases "r = {}")
@@ -1408,9 +1408,9 @@ proof -
       hence f_underS: "\<forall>a\<in>Field r. f a \<in> Field s \<and> f ` underS r a \<subseteq> underS s (f a)"
         using embed_in_Field[OF rt.rWELL f] embed_underS2[OF rt.rWELL st.rWELL f] by auto
       from f `t \<noteq> {}` False have *: "Field r \<noteq> {}" "Field s \<noteq> {}" "Field t \<noteq> {}"
-        unfolding Field_def embed_def rel.under_def bij_betw_def by auto
+        unfolding Field_def embed_def under_def bij_betw_def by auto
       with f obtain x where "s.zero = f x" "x \<in> Field r" unfolding embed_def bij_betw_def
-        using embed_in_Field[OF r.WELL f] s.zero_under set_mp[OF r.under_Field] by blast
+        using embed_in_Field[OF r.WELL f] s.zero_under set_mp[OF under_Field[of r]] by blast
       with f have fz: "f r.zero = s.zero" and inj: "inj_on f (Field r)" and compat: "compat r s f"
         unfolding embed_iff_compat_inj_on_ofilter[OF r s] compat_def
         by (fastforce intro: s.leq_zero_imp)+
@@ -1424,11 +1424,11 @@ proof -
         proof safe
           fix h
           assume h_underS: "h \<in> underS (r ^o t) g"
-          hence "h \<in> Field (r ^o t)" unfolding rel.underS_def Field_def by auto
+          hence "h \<in> Field (r ^o t)" unfolding underS_def Field_def by auto
           with fz f_underS have Field_fh: "?f h \<in> Field (s ^o t)"
             unfolding st.Field_oexp rt.Field_oexp FinFunc_def Func_def fin_support_def support_def
             by (auto elim!: finite_subset[rotated])
-          from h_underS have "h \<noteq> g" and hg: "(h, g) \<in> rt.oexp" unfolding rel.underS_def by auto
+          from h_underS have "h \<noteq> g" and hg: "(h, g) \<in> rt.oexp" unfolding underS_def by auto
           with f inj have neq: "?f h \<noteq> ?f g"
             unfolding fun_eq_iff inj_on_def rt.oexp_def Option.map_def FinFunc_def Func_def Let_def
             by simp metis
@@ -1440,7 +1440,7 @@ proof -
           with Field_fg Field_fh hg fz f_underS compat neq have "(?f h, ?f g) \<in> st.oexp"
              using rt.max_fun_diff[OF `h \<noteq> g`] rt.max_fun_diff_in[OF `h \<noteq> g`] unfolding st.Field_oexp
              unfolding rt.oexp_def st.oexp_def Let_def compat_def by auto
-          ultimately show "?f h \<in> underS (s ^o t) (?f g)" unfolding rel.underS_def by auto
+          ultimately show "?f h \<in> underS (s ^o t) (?f g)" unfolding underS_def by auto
         qed
         ultimately have "?f g \<in> Field (s ^o t) \<and> ?f ` underS (r ^o t) g \<subseteq> underS (s ^o t) (?f g)"
           by blast
@@ -1457,11 +1457,11 @@ proof -
   interpret rs!: wo_rel2 r s by unfold_locales (rule r, rule s)
   interpret r!: wo_rel r by unfold_locales (rule r)
   interpret s!: wo_rel s by unfold_locales (rule s)
-  from assms rel.well_order_on_domain[OF r] obtain x where
+  from assms well_order_on_domain[OF r] obtain x where
     x: "x \<in> Field r" "r.zero \<in> Field r" "x \<noteq> r.zero"
-    unfolding ordLess_def oone_def embedS_def[abs_def] bij_betw_def embed_def rel.under_def
+    unfolding ordLess_def oone_def embedS_def[abs_def] bij_betw_def embed_def under_def
     by (auto simp: image_def)
-      (metis equals0D insert_not_empty r.under_def r.zero_in_Field rel.under_empty)
+       (metis (lifting) equals0D mem_Collect_eq r.zero_in_Field singletonI)
   let ?f = "\<lambda>a b. if b \<in> Field s then if b = a then x else r.zero else undefined"
   from x(3) have SUPP: "\<And>y. y \<in> Field s \<Longrightarrow> rs.SUPP (?f y) = {y}" unfolding support_def by auto
   { fix y assume y: "y \<in> Field s"
@@ -1472,7 +1472,7 @@ proof -
     proof safe
       fix z
       assume "z \<in> underS s y"
-      hence z: "z \<noteq> y" "(z, y) \<in> s" "z \<in> Field s" unfolding rel.underS_def Field_def by auto
+      hence z: "z \<noteq> y" "(z, y) \<in> s" "z \<in> Field s" unfolding underS_def Field_def by auto
       from x(3) y z(1,3) have "?f z \<noteq> ?f y" unfolding fun_eq_iff by auto
       moreover
       { from x(1,2) have "?f z \<in> FinFunc r s" "?f y \<in> FinFunc r s"
@@ -1484,7 +1484,7 @@ proof -
         ultimately have "(?f z, ?f y) \<in> rs.oexp" using y x(1)
           unfolding rs.oexp_def Let_def by auto
       }
-      ultimately show "?f z \<in> underS (r ^o s) (?f y)" unfolding rel.underS_def by blast
+      ultimately show "?f z \<in> underS (r ^o s) (?f y)" unfolding underS_def by blast
     qed
     ultimately have "?f y \<in> Field (r ^o s) \<and> ?f ` underS s y \<subseteq> underS (r ^o s) (?f y)" by blast
   }

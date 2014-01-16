@@ -1012,11 +1012,11 @@ unfolding wo_rel_def using natLeq_Well_order .
 
 lemma natLeq_ofilter_less: "ofilter natLeq {0 ..< n}"
 by(auto simp add: natLeq_wo_rel wo_rel.ofilter_def,
-   simp add: Field_natLeq, unfold rel.under_def, auto)
+   simp add: Field_natLeq, unfold under_def, auto)
 
 lemma natLeq_ofilter_leq: "ofilter natLeq {0 .. n}"
 by(auto simp add: natLeq_wo_rel wo_rel.ofilter_def,
-   simp add: Field_natLeq, unfold rel.under_def, auto)
+   simp add: Field_natLeq, unfold under_def, auto)
 
 lemma natLeq_UNIV_ofilter: "wo_rel.ofilter natLeq UNIV"
 using natLeq_wo_rel Field_natLeq wo_rel.Field_ofilter[of natLeq] by auto
@@ -1047,7 +1047,7 @@ lemma natLeq_ofilter_iff:
 proof(rule iffI)
   assume "ofilter natLeq A"
   hence "\<forall>m n. n \<in> A \<and> m \<le> n \<longrightarrow> m \<in> A"
-  by(auto simp add: natLeq_wo_rel wo_rel.ofilter_def rel.under_def)
+  by(auto simp add: natLeq_wo_rel wo_rel.ofilter_def under_def)
   thus "A = UNIV \<or> (\<exists>n. A = {0 ..< n})" using closed_nat_set_iff by blast
 next
   assume "A = UNIV \<or> (\<exists>n. A = {0 ..< n})"
@@ -1056,22 +1056,22 @@ next
 qed
 
 lemma natLeq_under_leq: "under natLeq n = {0 .. n}"
-unfolding rel.under_def by auto
+unfolding under_def by auto
 
 lemma natLeq_on_ofilter_less_eq:
 "n \<le> m \<Longrightarrow> wo_rel.ofilter (natLeq_on m) {0 ..< n}"
 apply (auto simp add: natLeq_on_wo_rel wo_rel.ofilter_def)
 apply (simp add: Field_natLeq_on)
-by (auto simp add: rel.under_def)
+by (auto simp add: under_def)
 
 lemma natLeq_on_ofilter_iff:
 "wo_rel.ofilter (natLeq_on m) A = (\<exists>n \<le> m. A = {0 ..< n})"
 proof(rule iffI)
   assume *: "wo_rel.ofilter (natLeq_on m) A"
   hence 1: "A \<le> {0..<m}"
-  by (auto simp add: natLeq_on_wo_rel wo_rel.ofilter_def rel.under_def Field_natLeq_on)
+  by (auto simp add: natLeq_on_wo_rel wo_rel.ofilter_def under_def Field_natLeq_on)
   hence "\<forall>n1 n2. n2 \<in> A \<and> n1 \<le> n2 \<longrightarrow> n1 \<in> A"
-  using * by(fastforce simp add: natLeq_on_wo_rel wo_rel.ofilter_def rel.under_def)
+  using * by(fastforce simp add: natLeq_on_wo_rel wo_rel.ofilter_def under_def)
   hence "A = UNIV \<or> (\<exists>n. A = {0 ..< n})" using closed_nat_set_iff by blast
   thus "\<exists>n \<le> m. A = {0 ..< n}" using 1 atLeastLessThan_less_eq by blast
 next
@@ -1086,7 +1086,7 @@ by (auto simp add: natLeq_on_ofilter_less_eq)
 lemma natLeq_on_ofilter_less:
 "n < m \<Longrightarrow> ofilter (natLeq_on m) {0 .. n}"
 by(auto simp add: natLeq_on_wo_rel wo_rel.ofilter_def,
-   simp add: Field_natLeq_on, unfold rel.under_def, auto)
+   simp add: Field_natLeq_on, unfold under_def, auto)
 
 lemma natLeq_on_ordLess_natLeq: "natLeq_on n <o natLeq"
 using Field_natLeq Field_natLeq_on[of n]
@@ -1331,13 +1331,13 @@ subsection {* Others *}
 lemma under_mono[simp]:
 assumes "Well_order r" and "(i,j) \<in> r"
 shows "under r i \<subseteq> under r j"
-using assms unfolding rel.under_def order_on_defs
+using assms unfolding under_def order_on_defs
 trans_def by blast
 
 lemma underS_under:
 assumes "i \<in> Field r"
 shows "underS r i = under r i - {i}"
-using assms unfolding rel.underS_def rel.under_def by auto
+using assms unfolding underS_def under_def by auto
 
 lemma relChain_under:
 assumes "Well_order r"
@@ -1593,7 +1593,7 @@ proof-
     unfolding p_def apply(rule Refl_Field_Restr2[OF rr]) by auto
     have of: "ofilter r (Field p)" unfolding wo_rel.ofilter_def[OF 0] proof safe
       fix a x assume a: "a \<in> Field p" and "x \<in> under r a"
-      hence x: "(x,a) \<in> r" "x \<in> Field r" unfolding rel.under_def Field_def by auto
+      hence x: "(x,a) \<in> r" "x \<in> Field r" unfolding under_def Field_def by auto
       moreover have a: "a \<noteq> j" "a \<in> Field r" "(a,j) \<in> r" using a jm  unfolding fp by auto
       ultimately have "x \<noteq> j" using j jm  by (metis 0 wo_rel.max2_def wo_rel.max2_equals1)
       thus "x \<in> Field p" using x unfolding fp by auto
@@ -1654,7 +1654,7 @@ proof(rule ccontr, auto)
     hence "As (succ r i) \<subseteq> As j" using rc unfolding relChain_def by auto
     moreover
     {have "(i,succ r i) \<in> r" apply(rule wo_rel.succ_in[OF 0])
-     using 1 unfolding rel.aboveS_def by auto
+     using 1 unfolding aboveS_def by auto
      hence "As i \<subset> As (succ r i)" using As_s rc rij unfolding relChain_def Field_def by auto
     }
     ultimately show False unfolding Asij by auto
@@ -1721,13 +1721,13 @@ unfolding stable_def proof safe
    def g \<equiv> "\<lambda> a. if F a \<noteq> {} then gg a else j0"
    have g: "\<forall> a \<in> A. \<forall> u \<in> F a. (f (a,u),g a) \<in> r" using gg unfolding g_def by auto
    hence 1: "Field r \<subseteq> (\<Union> a \<in> A. under r (g a))"
-   using f[symmetric] unfolding rel.under_def image_def by auto
+   using f[symmetric] unfolding under_def image_def by auto
    have gA: "g ` A \<subseteq> Field r" using gg j0 unfolding Field_def g_def by auto
    moreover have "cofinal (g ` A) r" unfolding cofinal_def proof safe
      fix i assume "i \<in> Field r"
      then obtain j where ij: "(i,j) \<in> r" "i \<noteq> j" using cr ir by (metis infinite_Card_order_limit)
-     hence "j \<in> Field r" by (metis card_order_on_def cr rel.well_order_on_domain)
-     then obtain a where a: "a \<in> A" and j: "(j, g a) \<in> r" using 1 unfolding rel.under_def by auto
+     hence "j \<in> Field r" by (metis card_order_on_def cr well_order_on_domain)
+     then obtain a where a: "a \<in> A" and j: "(j, g a) \<in> r" using 1 unfolding under_def by auto
      hence "(i, g a) \<in> r" using ij wo_rel.TRANS[OF r] unfolding trans_def by blast
      moreover have "i \<noteq> g a"
      using ij j r unfolding wo_rel_def unfolding well_order_on_def linear_order_on_def
@@ -1752,7 +1752,7 @@ unfolding regular_def proof safe
   {assume Kr: "|K| <o r"
    then obtain f where "\<forall> a \<in> Field r. f a \<in> K \<and> a \<noteq> f a \<and> (a, f a) \<in> r"
    using cof unfolding cofinal_def by metis
-   hence "Field r \<subseteq> (\<Union> a \<in> K. underS r a)" unfolding rel.underS_def by auto
+   hence "Field r \<subseteq> (\<Union> a \<in> K. underS r a)" unfolding underS_def by auto
    hence "r \<le>o |\<Union> a \<in> K. underS r a|" using cr
    by (metis Card_order_iff_ordLeq_card_of card_of_mono1 ordLeq_transitive)
    also have "|\<Union> a \<in> K. underS r a| \<le>o |SIGMA a: K. underS r a|" by (rule card_of_UNION_Sigma)

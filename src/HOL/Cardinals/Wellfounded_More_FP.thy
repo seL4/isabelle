@@ -151,7 +151,7 @@ proof(cases "r \<le> Id")
   moreover
   {fix A assume *: "A \<le> Field r" and **: "A \<noteq> {}"
    obtain a where 1: "r = {} \<or> r = {(a,a)}" using LI
-   unfolding order_on_defs using Case1 rel.Total_subset_Id by auto
+   unfolding order_on_defs using Case1 Total_subset_Id by auto
    hence "A = {a} \<and> r = {(a,a)}" using * ** unfolding Field_def by blast
    hence "\<exists>a \<in> A. \<forall>a' \<in> A. (a,a') \<in> r" using 1 by blast
   }
@@ -169,7 +169,7 @@ next
       hence "\<exists>a \<in> A. \<forall>a' \<in> A. (a',a) \<notin> r - Id"
       using 1 * unfolding wf_eq_minimal2 by simp
       moreover have "\<forall>a \<in> A. \<forall>a' \<in> A. ((a,a') \<in> r) = ((a',a) \<notin> r - Id)"
-      using rel.Linear_order_in_diff_Id[of r] ** LI by blast
+      using Linear_order_in_diff_Id[of r] ** LI by blast
       ultimately show "\<exists>a \<in> A. \<forall>a' \<in> A. (a,a') \<in> r" by blast
     qed
   next
@@ -180,7 +180,7 @@ next
       hence "\<exists>a \<in> A. \<forall>a' \<in> A. (a,a') \<in> r"
       using 1 * by simp
       moreover have "\<forall>a \<in> A. \<forall>a' \<in> A. ((a,a') \<in> r) = ((a',a) \<notin> r - Id)"
-      using rel.Linear_order_in_diff_Id[of r] ** LI mono_Field[of "r - Id" r] by blast
+      using Linear_order_in_diff_Id[of r] ** LI mono_Field[of "r - Id" r] by blast
       ultimately show "\<exists>a \<in> A. \<forall>a' \<in> A. (a',a) \<notin> r - Id" by blast
     qed
   qed

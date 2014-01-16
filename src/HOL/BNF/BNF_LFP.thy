@@ -30,14 +30,14 @@ by auto
 lemma prop_restrict: "\<lbrakk>x \<in> Z; Z \<subseteq> {x. x \<in> X \<and> P x}\<rbrakk> \<Longrightarrow> P x"
 by auto
 
-lemma underS_I: "\<lbrakk>i \<noteq> j; (i, j) \<in> R\<rbrakk> \<Longrightarrow> i \<in> rel.underS R j"
-unfolding rel.underS_def by simp
+lemma underS_I: "\<lbrakk>i \<noteq> j; (i, j) \<in> R\<rbrakk> \<Longrightarrow> i \<in> underS R j"
+unfolding underS_def by simp
 
-lemma underS_E: "i \<in> rel.underS R j \<Longrightarrow> i \<noteq> j \<and> (i, j) \<in> R"
-unfolding rel.underS_def by simp
+lemma underS_E: "i \<in> underS R j \<Longrightarrow> i \<noteq> j \<and> (i, j) \<in> R"
+unfolding underS_def by simp
 
-lemma underS_Field: "i \<in> rel.underS R j \<Longrightarrow> i \<in> Field R"
-unfolding rel.underS_def Field_def by auto
+lemma underS_Field: "i \<in> underS R j \<Longrightarrow> i \<in> Field R"
+unfolding underS_def Field_def by auto
 
 lemma FieldI2: "(i, j) \<in> R \<Longrightarrow> j \<in> Field R"
 unfolding Field_def by auto

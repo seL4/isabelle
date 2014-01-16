@@ -178,7 +178,7 @@ proof -
     where "p \<subseteq> w" and wo: "Well_order w" by blast
   let ?A = "UNIV - Field w"
   from well_order_on [of ?A] obtain w' where wo': "well_order_on ?A w'" ..
-  have [simp]: "Field w' = ?A" using rel.well_order_on_Well_order [OF wo'] by simp
+  have [simp]: "Field w' = ?A" using well_order_on_Well_order [OF wo'] by simp
   have *: "Field w \<inter> Field w' = {}" by simp
   let ?w = "w \<union>o w'"
   have "p \<subseteq> ?w" using `p \<subseteq> w` by (auto simp: Osum_def)

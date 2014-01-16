@@ -34,7 +34,7 @@ fun mk_rapp arg T = Term.absdummy (fastype_of arg --> T) (Bound 0 $ arg);
 
 fun mk_underS r =
   let val T = fst (dest_relT (fastype_of r));
-  in Const (@{const_name rel.underS}, mk_relT (T, T) --> T --> HOLogic.mk_setT T) $ r end;
+  in Const (@{const_name underS}, mk_relT (T, T) --> T --> HOLogic.mk_setT T) $ r end;
 
 fun mk_worec r f =
   let val (A, AB) = apfst domain_type (dest_funT (fastype_of f));

@@ -37,7 +37,7 @@ shows "f = worec H"
 proof-
   have "adm_wf (r - Id) H"
   unfolding adm_wf_def
-  using ADM adm_wo_def[of H] underS_def by auto
+  using ADM adm_wo_def[of H] underS_def[of r] by auto
   hence "f = wfrec (r - Id) H"
   using fp WF wfrec_unique_fixpoint[of "r - Id" H] by simp
   thus ?thesis unfolding worec_def .
@@ -97,7 +97,7 @@ proof-
   have "Under A \<le> under (minim A)"
   proof
     fix x assume "x \<in> Under A"
-    with 1 Under_def have "(x,minim A) \<in> r" by auto
+    with 1 Under_def[of r] have "(x,minim A) \<in> r" by auto
     thus "x \<in> under(minim A)" unfolding under_def by simp
   qed
   (*  *)
@@ -133,7 +133,7 @@ proof-
   have "UnderS A \<le> underS (minim A)"
   proof
     fix x assume "x \<in> UnderS A"
-    with 1 UnderS_def have "x \<noteq> minim A \<and> (x,minim A) \<in> r" by auto
+    with 1 UnderS_def[of r] have "x \<noteq> minim A \<and> (x,minim A) \<in> r" by auto
     thus "x \<in> underS(minim A)" unfolding underS_def by simp
   qed
   (*  *)
@@ -173,7 +173,7 @@ assumes SUB: "B \<le> Field r" and ABOVE: "Above B \<noteq> {}"
 shows "supr B \<in> Above B"
 proof(unfold supr_def)
   have "Above B \<le> Field r"
-  using Above_Field by auto
+  using Above_Field[of r] by auto
   thus "minim (Above B) \<in> Above B"
   using assms by (simp add: minim_in)
 qed
@@ -185,7 +185,7 @@ shows "(b, supr B) \<in> r"
 proof-
   from assms supr_Above
   have "supr B \<in> Above B" by simp
-  with IN Above_def show ?thesis by simp
+  with IN Above_def[of r] show ?thesis by simp
 qed
 
 lemma supr_least_Above:
@@ -194,7 +194,7 @@ assumes SUB: "B \<le> Field r" and
 shows "(supr B, a) \<in> r"
 proof(unfold supr_def)
   have "Above B \<le> Field r"
-  using Above_Field by auto
+  using Above_Field[of r] by auto
   thus "(minim (Above B), a) \<in> r"
   using assms minim_least
   by simp
@@ -211,7 +211,7 @@ assumes SUB: "B \<le> Field r" and ABV: "a \<in> Above B" and
 shows "a = supr B"
 proof(unfold supr_def)
   have "Above B \<le> Field r"
-  using Above_Field by auto
+  using Above_Field[of r] by auto
   thus "a = minim (Above B)"
   using assms equals_minim by simp
 qed
@@ -236,7 +236,7 @@ assumes "B \<le> Field r" and  "Above B \<noteq> {}"
 shows "supr B \<in> Field r"
 proof-
   have "supr B \<in> Above B" using supr_Above assms by simp
-  thus ?thesis using assms Above_Field by auto
+  thus ?thesis using assms Above_Field[of r] by auto
 qed
 
 lemma supr_above_Above:
@@ -264,13 +264,13 @@ assumes IN: "a \<in> Field r"
 shows "a = supr (under a)"
 proof-
   have "under a \<le> Field r"
-  using under_Field by auto
+  using under_Field[of r] by auto
   moreover
   have "under a \<noteq> {}"
-  using IN Refl_under_in REFL by auto
+  using IN Refl_under_in[of r] REFL by auto
   moreover
   have "a \<in> Above (under a)"
-  using in_Above_under IN by auto
+  using in_Above_under[of _ r] IN by auto
   moreover
   have "\<forall>a' \<in> Above (under a). (a,a') \<in> r"
   proof(unfold Above_def under_def, auto)
@@ -347,7 +347,7 @@ assumes IN: "a \<in> Field r" and ABOVE_NE: "aboveS a \<noteq> {}" and
 shows "a' = a \<or> (a',a) \<in> r"
 proof-
   have *: "suc {a} \<in> Field r \<and> a' \<in> Field r"
-  using WELL REL well_order_on_domain by auto
+  using WELL REL well_order_on_domain by metis
   {assume **: "a' \<noteq> a"
    hence "(a,a') \<in> r \<or> (a',a) \<in> r"
    using TOTAL IN * by (auto simp add: total_on_def)
@@ -369,7 +369,7 @@ assumes IN: "a \<in> Field r" and ABV: "aboveS a \<noteq> {}"
 shows "underS (suc {a}) = under a"
 proof-
   have 1: "AboveS {a} \<noteq> {}"
-  using ABV aboveS_AboveS_singl by auto
+  using ABV aboveS_AboveS_singl[of r] by auto
   have 2: "a \<noteq> suc {a} \<and> (a,suc {a}) \<in> r"
   using suc_greater[of "{a}" a] IN 1 by auto
   (*   *)
@@ -408,12 +408,12 @@ shows "ofilter(Under A)"
 proof(unfold ofilter_def, auto)
   fix x assume "x \<in> Under A"
   thus "x \<in> Field r"
-  using Under_Field assms by auto
+  using Under_Field[of r] assms by auto
 next
   fix a x
   assume "a \<in> Under A" and "x \<in> under a"
   thus "x \<in> Under A"
-  using TRANS under_Under_trans by auto
+  using TRANS under_Under_trans[of r] by auto
 qed
 
 lemma ofilter_UnderS[simp]:
@@ -422,12 +422,12 @@ shows "ofilter(UnderS A)"
 proof(unfold ofilter_def, auto)
   fix x assume "x \<in> UnderS A"
   thus "x \<in> Field r"
-  using UnderS_Field assms by auto
+  using UnderS_Field[of r] assms by auto
 next
   fix a x
   assume "a \<in> UnderS A" and "x \<in> under a"
   thus "x \<in> UnderS A"
-  using TRANS ANTISYM under_UnderS_trans by auto
+  using TRANS ANTISYM under_UnderS_trans[of r] by auto
 qed
 
 lemma ofilter_Int[simp]: "\<lbrakk>ofilter A; ofilter B\<rbrakk> \<Longrightarrow> ofilter(A Int B)"
@@ -469,7 +469,7 @@ proof
   (* Main proof *)
   fix x assume "x \<in> Under(Under A)"
   with 1 have 1: "(x,minim A) \<in> r"
-  using Under_def by auto
+  using Under_def[of r] by auto
   with Field_def have "x \<in> Field r" by fastforce
   moreover
   {fix y assume *: "y \<in> A"
@@ -506,7 +506,7 @@ proof-
     hence "(suc A,x) \<in> r"
     using suc_least_AboveS by auto
     moreover
-    have "(x,suc A) \<in> r" using * under_def by auto
+    have "(x,suc A) \<in> r" using * under_def[of r] by auto
     ultimately show "x = suc A"
     using ANTISYM antisym_def[of r] by auto
   qed

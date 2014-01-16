@@ -41,7 +41,7 @@ proof(unfold embed_def, auto)
   using EMB unfolding embed_def by simp
   moreover
   {have "under r a \<le> Field r"
-   by (auto simp add: rel.under_Field)
+   by (auto simp add: under_Field)
    hence "\<And> b. b \<in> under r a \<Longrightarrow> f b = g b"
    using EQ by blast
   }
@@ -80,10 +80,10 @@ corollary one_set_greater:
 proof-
   obtain r where "well_order_on A r" by (fastforce simp add: well_order_on)
   hence 1: "A = Field r \<and> Well_order r"
-  using rel.well_order_on_Well_order by auto
+  using well_order_on_Well_order by auto
   obtain r' where 2: "well_order_on A' r'" by (fastforce simp add: well_order_on)
   hence 2: "A' = Field r' \<and> Well_order r'"
-  using rel.well_order_on_Well_order by auto
+  using well_order_on_Well_order by auto
   hence "(\<exists>f. embed r r' f) \<or> (\<exists>g. embed r' r g)"
   using 1 2 by (auto simp add: wellorders_totally_ordered)
   moreover

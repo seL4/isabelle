@@ -216,7 +216,7 @@ proof-
   moreover
   have "ofilter (r Osum r') (Field r)"
   using 1 proof(auto simp add: wo_rel_def wo_rel.ofilter_def
-                               Field_Osum rel.under_def)
+                               Field_Osum under_def)
     fix a b assume 2: "a \<in> Field r" and 3: "(b,a) \<in> r Osum r'"
     moreover
     {assume "(b,a) \<in> r'"
@@ -251,13 +251,13 @@ proof-
   then obtain r'' where "well_order_on (f ` A) r''" and 1: "r =o r''"
   using WELL  Well_order_iso_copy by blast
   hence 2: "Well_order r'' \<and> Field r'' = (f ` A)"
-  using rel.well_order_on_Well_order by blast
+  using well_order_on_Well_order by blast
   (*  *)
   let ?C = "B - (f ` A)"
   obtain r''' where "well_order_on ?C r'''"
   using well_order_on by blast
   hence 3: "Well_order r''' \<and> Field r''' = ?C"
-  using rel.well_order_on_Well_order by blast
+  using well_order_on_Well_order by blast
   (*  *)
   let ?r' = "r'' Osum r'''"
   have "Field r'' Int Field r''' = {}"
@@ -479,15 +479,10 @@ proof(rule ccontr, auto)
   have bb: "b \<in> Field r" using bA unfolding underS_def Field_def by auto
   assume "\<forall>a\<in>A.  b \<notin> under a"
   hence 0: "\<forall>a \<in> A. a \<in> underS b" using A bA unfolding underS_def
-  by simp (metis (lifting) bb max2_def max2_greater mem_Collect_eq rel.under_def set_rev_mp)
-  have "(suc A, b) \<in> r" apply(rule suc_least[OF A bb]) using 0 unfolding rel.underS_def by auto
+  by simp (metis (lifting) bb max2_def max2_greater mem_Collect_eq under_def set_rev_mp)
+  have "(suc A, b) \<in> r" apply(rule suc_least[OF A bb]) using 0 unfolding underS_def by auto
   thus False using bA unfolding underS_def by simp (metis ANTISYM antisymD)
 qed
-
-lemma (in rel) AboveS_underS:
-assumes "i \<in> Field r"
-shows "i \<in> AboveS (underS i)"
-using assms unfolding AboveS_def underS_def by auto
 
 lemma (in wo_rel) in_underS_supr:
 assumes j: "j \<in> underS i" and i: "i \<in> A" and A: "A \<subseteq> Field r" and AA: "Above A \<noteq> {}"
@@ -495,7 +490,7 @@ shows "j \<in> underS (supr A)"
 proof-
   have "(i,supr A) \<in> r" using supr_greater[OF A AA i] .
   thus ?thesis using j unfolding underS_def
-  by simp (metis REFL TRANS max2_def max2_equals1 rel.refl_on_domain transD)
+  by simp (metis REFL TRANS max2_def max2_equals1 refl_on_domain transD)
 qed
 
 lemma inj_on_Field:
@@ -530,7 +525,7 @@ unfolding Chains_def proof safe
   and init: "(R ja, R j) \<notin> init_seg_of"
   hence jja: "{j,ja} \<subseteq> Field r" and j: "j \<in> Field r" and ja: "ja \<in> Field r"
   and jjai: "(j,i) \<in> r" "(ja,i) \<in> r"
-  and i: "i \<notin> {j,ja}" unfolding Field_def rel.underS_def by auto
+  and i: "i \<notin> {j,ja}" unfolding Field_def underS_def by auto
   have jj: "(j,j) \<in> r" and jaja: "(ja,ja) \<in> r" using j ja by (metis in_notinI)+
   show "R j initial_segment_of R ja"
   using jja init jjai i
@@ -544,7 +539,7 @@ unfolding Chains_def proof safe
   fix j ja assume jS: "j \<in> Field r" and jaS: "ja \<in> Field r"
   and init: "(R ja, R j) \<notin> init_seg_of"
   hence jja: "{j,ja} \<subseteq> Field r" and j: "j \<in> Field r" and ja: "ja \<in> Field r"
-  unfolding Field_def rel.underS_def by auto
+  unfolding Field_def underS_def by auto
   have jj: "(j,j) \<in> r" and jaja: "(ja,ja) \<in> r" using j ja by (metis in_notinI)+
   show "R j initial_segment_of R ja"
   using jja init
@@ -700,8 +695,8 @@ lemma less_succ[simp]:
 assumes "aboveS i \<noteq> {}"
 shows "(j, succ i) \<in> r \<longleftrightarrow> (j,i) \<in> r \<or> j = succ i"
 apply safe
-  apply (metis WELL assms in_notinI rel.well_order_on_domain suc_singl_pred succ_def succ_in_diff)
-  apply (metis (hide_lams, full_types) REFL TRANS assms max2_def max2_equals1 rel.refl_on_domain succ_in_Field succ_not_in transD)
+  apply (metis WELL assms in_notinI well_order_on_domain suc_singl_pred succ_def succ_in_diff)
+  apply (metis (hide_lams, full_types) REFL TRANS assms max2_def max2_equals1 refl_on_domain succ_in_Field succ_not_in transD)
   apply (metis assms in_notinI succ_in_Field)
 done
 
@@ -926,7 +921,7 @@ using assms unfolding oproj_def by auto
 lemma oproj_under: 
 assumes f:  "oproj r s f" and a: "a \<in> under r a'"
 shows "f a \<in> under s (f a')"
-using oproj_in[OF f] a unfolding rel.under_def by auto
+using oproj_in[OF f] a unfolding under_def by auto
 
 (* An ordinal is embedded in another whenever it is embedded as an order 
 (not necessarily as initial segment):*)
@@ -950,55 +945,55 @@ proof-
      and IH1a: "\<And> a1. a1 \<in> underS r a \<Longrightarrow> inj_on g (under r a1)"
      and IH1b: "\<And> a1. a1 \<in> underS r a \<Longrightarrow> g ` under r a1 = under s (g a1)"
      and IH2: "\<And> a1. a1 \<in> underS r a \<Longrightarrow> g a1 \<in> under s (f a1)"
-     unfolding rel.underS_def Field_def bij_betw_def by auto
+     unfolding underS_def Field_def bij_betw_def by auto
      have fa: "f a \<in> Field s" using f[OF a] by auto
      have g: "g a = suc s (g ` underS r a)" 
      using r.worec_fixpoint[OF adm] unfolding g_def fun_eq_iff by simp
      have A0: "g ` underS r a \<subseteq> Field s" 
-     using IH1b by (metis IH2 image_subsetI in_mono rel.under_Field)
+     using IH1b by (metis IH2 image_subsetI in_mono under_Field)
      {fix a1 assume a1: "a1 \<in> underS r a"
       from IH2[OF this] have "g a1 \<in> under s (f a1)" .
       moreover have "f a1 \<in> underS s (f a)" using f[OF a] a1 by auto
-      ultimately have "g a1 \<in> underS s (f a)" by (metis s.ANTISYM s.TRANS rel.under_underS_trans)
+      ultimately have "g a1 \<in> underS s (f a)" by (metis s.ANTISYM s.TRANS under_underS_trans)
      }
-     hence "f a \<in> AboveS s (g ` underS r a)" unfolding rel.AboveS_def 
-     using fa by simp (metis (lifting, full_types) mem_Collect_eq rel.underS_def)
+     hence "f a \<in> AboveS s (g ` underS r a)" unfolding AboveS_def 
+     using fa by simp (metis (lifting, full_types) mem_Collect_eq underS_def)
      hence A: "AboveS s (g ` underS r a) \<noteq> {}" by auto
      have B: "\<And> a1. a1 \<in> underS r a \<Longrightarrow> g a1 \<in> underS s (g a)"
      unfolding g apply(rule s.suc_underS[OF A0 A]) by auto
      {fix a1 a2 assume a2: "a2 \<in> underS r a" and 1: "a1 \<in> underS r a2"
       hence a12: "{a1,a2} \<subseteq> under r a2" and "a1 \<noteq> a2" using r.REFL a
-      unfolding rel.underS_def rel.under_def refl_on_def Field_def by auto 
+      unfolding underS_def under_def refl_on_def Field_def by auto 
       hence "g a1 \<noteq> g a2" using IH1a[OF a2] unfolding inj_on_def by auto
       hence "g a1 \<in> underS s (g a2)" using IH1b[OF a2] a12 
-      unfolding rel.underS_def rel.under_def by auto
+      unfolding underS_def under_def by auto
      } note C = this
      have ga: "g a \<in> Field s" unfolding g using s.suc_inField[OF A0 A] .
      have aa: "a \<in> under r a" 
-     using a r.REFL unfolding rel.under_def rel.underS_def refl_on_def by auto
+     using a r.REFL unfolding under_def underS_def refl_on_def by auto
      show ?case proof safe
        show "bij_betw g (under r a) (under s (g a))" unfolding bij_betw_def proof safe
          show "inj_on g (under r a)" proof(rule r.inj_on_Field)
            fix a1 a2 assume "a1 \<in> under r a" and a2: "a2 \<in> under r a" and a1: "a1 \<in> underS r a2"
            hence a22: "a2 \<in> under r a2" and a12: "a1 \<in> under r a2" "a1 \<noteq> a2"
-           using a r.REFL unfolding rel.under_def rel.underS_def refl_on_def by auto
+           using a r.REFL unfolding under_def underS_def refl_on_def by auto
            show "g a1 \<noteq> g a2"
            proof(cases "a2 = a")
              case False hence "a2 \<in> underS r a" 
-             using a2 unfolding rel.underS_def rel.under_def by auto 
+             using a2 unfolding underS_def under_def by auto 
              from IH1a[OF this] show ?thesis using a12 a22 unfolding inj_on_def by auto
-           qed(insert B a1, unfold rel.underS_def, auto)
-         qed(unfold rel.under_def Field_def, auto)
+           qed(insert B a1, unfold underS_def, auto)
+         qed(unfold under_def Field_def, auto)
        next
          fix a1 assume a1: "a1 \<in> under r a" 
          show "g a1 \<in> under s (g a)"
          proof(cases "a1 = a")
            case True thus ?thesis 
-           using ga s.REFL unfolding refl_on_def rel.under_def by auto
+           using ga s.REFL unfolding refl_on_def under_def by auto
          next
            case False
-           hence a1: "a1 \<in> underS r a" using a1 unfolding rel.underS_def rel.under_def by auto 
-           thus ?thesis using B unfolding rel.underS_def rel.under_def by auto
+           hence a1: "a1 \<in> underS r a" using a1 unfolding underS_def under_def by auto 
+           thus ?thesis using B unfolding underS_def under_def by auto
          qed
        next
          fix b1 assume b1: "b1 \<in> under s (g a)"
@@ -1007,12 +1002,12 @@ proof-
            case True thus ?thesis using aa by auto
          next
            case False 
-           hence "b1 \<in> underS s (g a)" using b1 unfolding rel.underS_def rel.under_def by auto
+           hence "b1 \<in> underS s (g a)" using b1 unfolding underS_def under_def by auto
            from s.underS_suc[OF this[unfolded g] A0]
            obtain a1 where a1: "a1 \<in> underS r a" and b1: "b1 \<in> under s (g a1)" by auto
            obtain a2 where "a2 \<in> under r a1" and b1: "b1 = g a2" using IH1b[OF a1] b1 by auto
            hence "a2 \<in> under r a" using a1 
-           by (metis r.ANTISYM r.TRANS in_mono rel.underS_subset_under rel.under_underS_trans)
+           by (metis r.ANTISYM r.TRANS in_mono underS_subset_under under_underS_trans)
            thus ?thesis using b1 by auto
          qed
        qed
@@ -1022,9 +1017,9 @@ proof-
          then obtain a1 where a1: "b1 = g a1" and a1: "a1 \<in> underS r a" by auto
          hence "b1 \<in> underS s (f a)" 
          using a by (metis `\<And>a1. a1 \<in> underS r a \<Longrightarrow> g a1 \<in> underS s (f a)`)
-         thus "f a \<noteq> b1 \<and> (b1, f a) \<in> s" unfolding rel.underS_def by auto
+         thus "f a \<noteq> b1 \<and> (b1, f a) \<in> s" unfolding underS_def by auto
        qed(insert fa, auto)
-       thus "g a \<in> under s (f a)" unfolding rel.under_def by auto
+       thus "g a \<in> under s (f a)" unfolding under_def by auto
      qed
    qed
   }
@@ -1046,7 +1041,7 @@ by (subst (asm) iso_iff3) (auto simp: bij_betw_def)
 theorem oproj_embed:
 assumes r: "Well_order r" and s: "Well_order s" and f: "oproj r s f"
 shows "\<exists> g. embed s r g"
-proof (rule embedI[OF s r, of "inv_into (Field r) f"], unfold rel.underS_def, safe)
+proof (rule embedI[OF s r, of "inv_into (Field r) f"], unfold underS_def, safe)
   fix b assume "b \<in> Field s"
   thus "inv_into (Field r) f b \<in> Field r" using oproj_Field2[OF f] by (metis imageI inv_into_into)
 next

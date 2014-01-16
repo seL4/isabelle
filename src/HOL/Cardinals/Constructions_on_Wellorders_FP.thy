@@ -116,12 +116,12 @@ by (auto simp add: wo_rel_def wo_rel.ofilter_def wo_rel.REFL Refl_Field_Restr2)
 
 lemma ofilter_Restr_under:
 assumes WELL: "Well_order r" and OF: "wo_rel.ofilter r A" and IN: "a \<in> A"
-shows "rel.under (Restr r A) a = rel.under r a"
+shows "under (Restr r A) a = under r a"
 using assms wo_rel_def
-proof(auto simp add: wo_rel.ofilter_def rel.under_def)
+proof(auto simp add: wo_rel.ofilter_def under_def)
   fix b assume *: "a \<in> A" and "(b,a) \<in> r"
-  hence "b \<in> rel.under r a \<and> a \<in> Field r"
-  unfolding rel.under_def using Field_def by fastforce
+  hence "b \<in> under r a \<and> a \<in> Field r"
+  unfolding under_def using Field_def by fastforce
   thus "b \<in> A" using * assms by (auto simp add: wo_rel_def wo_rel.ofilter_def)
 qed
 
@@ -137,7 +137,7 @@ proof
     by (auto simp add: wo_rel_def wo_rel.ofilter_def)
   next
     fix a assume "a \<in> Field (Restr r A)"
-    thus "bij_betw id (rel.under (Restr r A) a) (rel.under r a)" using assms *
+    thus "bij_betw id (under (Restr r A) a) (under r a)" using assms *
     by (simp add: ofilter_Restr_under Field_Restr_ofilter)
   qed
 next
@@ -148,13 +148,13 @@ next
   {fix a assume "a \<in> A"
    hence "a \<in> Field(Restr r A)" using * assms
    by (simp add: order_on_defs Refl_Field_Restr2)
-   hence "bij_betw id (rel.under (Restr r A) a) (rel.under r a)"
+   hence "bij_betw id (under (Restr r A) a) (under r a)"
    using * unfolding embed_def by auto
-   hence "rel.under r a \<le> rel.under (Restr r A) a"
+   hence "under r a \<le> under (Restr r A) a"
    unfolding bij_betw_def by auto
-   also have "\<dots> \<le> Field(Restr r A)" by (simp add: rel.under_Field)
+   also have "\<dots> \<le> Field(Restr r A)" by (simp add: under_Field)
    also have "\<dots> \<le> A" by (simp add: Field_Restr_subset)
-   finally have "rel.under r a \<le> A" .
+   finally have "under r a \<le> A" .
   }
   thus "wo_rel.ofilter r A" using assms * by (simp add: wo_rel_def wo_rel.ofilter_def)
 qed
@@ -173,13 +173,13 @@ proof-
   by (simp add: Well_order_Restr wo_rel_def)
   (* Main proof *)
   show ?thesis using WellB assms
-  proof(auto simp add: wo_rel.ofilter_def rel.under_def)
+  proof(auto simp add: wo_rel.ofilter_def under_def)
     fix a assume "a \<in> A" and *: "a \<in> B"
     hence "a \<in> Field r" using OFA Well by (auto simp add: wo_rel.ofilter_def)
     with * show "a \<in> Field ?rB" using Field by auto
   next
     fix a b assume "a \<in> A" and "(b,a) \<in> r"
-    thus "b \<in> A" using Well OFA by (auto simp add: wo_rel.ofilter_def rel.under_def)
+    thus "b \<in> A" using Well OFA by (auto simp add: wo_rel.ofilter_def under_def)
   qed
 qed
 
@@ -312,12 +312,12 @@ proof-
     assume *: "wo_rel.ofilter r A" "A \<noteq> Field r" and
            **: "wo_rel.ofilter r B" "B \<noteq> Field r" and ***: "A < B"
     then obtain a and b where 0: "a \<in> Field r \<and> b \<in> Field r" and
-                         1: "A = rel.underS r a \<and> B = rel.underS r b"
+                         1: "A = underS r a \<and> B = underS r b"
     using Well by (auto simp add: wo_rel.ofilter_underS_Field)
     hence "a \<noteq> b" using *** by auto
     moreover
     have "(a,b) \<in> r" using 0 1 Lo ***
-    by (auto simp add: rel.underS_incl_iff)
+    by (auto simp add: underS_incl_iff)
     moreover
     have "a = wo_rel.suc r A \<and> b = wo_rel.suc r B"
     using Well 0 1 by (simp add: wo_rel.suc_underS)
@@ -714,10 +714,10 @@ by (simp add: ofilter_subset_ordLess wo_rel.Field_ofilter
 
 corollary underS_Restr_ordLess:
 assumes "Well_order r" and "Field r \<noteq> {}"
-shows "Restr r (rel.underS r a) <o r"
+shows "Restr r (underS r a) <o r"
 proof-
-  have "rel.underS r a < Field r" using assms
-  by (simp add: rel.underS_Field3)
+  have "underS r a < Field r" using assms
+  by (simp add: underS_Field3)
   thus ?thesis using assms
   by (simp add: ofilter_ordLess wo_rel.underS_ofilter wo_rel_def)
 qed
@@ -772,10 +772,10 @@ qed
 
 lemma ordLess_iff_ordIso_Restr:
 assumes WELL: "Well_order r" and WELL': "Well_order r'"
-shows "(r' <o r) = (\<exists>a \<in> Field r. r' =o Restr r (rel.underS r a))"
+shows "(r' <o r) = (\<exists>a \<in> Field r. r' =o Restr r (underS r a))"
 proof(auto)
-  fix a assume *: "a \<in> Field r" and **: "r' =o Restr r (rel.underS r a)"
-  hence "Restr r (rel.underS r a) <o r" using WELL underS_Restr_ordLess[of r] by blast
+  fix a assume *: "a \<in> Field r" and **: "r' =o Restr r (underS r a)"
+  hence "Restr r (underS r a) <o r" using WELL underS_Restr_ordLess[of r] by blast
   thus "r' <o r" using ** ordIso_ordLess_trans by blast
 next
   assume "r' <o r"
@@ -783,7 +783,7 @@ next
                       2: "embed r' r f \<and> f ` (Field r') \<noteq> Field r"
   unfolding ordLess_def embedS_def[abs_def] bij_betw_def using embed_inj_on by blast
   hence "wo_rel.ofilter r (f ` (Field r'))" using embed_Field_ofilter by blast
-  then obtain a where 3: "a \<in> Field r" and 4: "rel.underS r a = f ` (Field r')"
+  then obtain a where 3: "a \<in> Field r" and 4: "underS r a = f ` (Field r')"
   using 1 2 by (auto simp add: wo_rel.ofilter_underS_Field wo_rel_def)
   have "iso r' (Restr r (f ` (Field r'))) f"
   using embed_implies_iso_Restr 2 assms by blast
@@ -791,8 +791,8 @@ next
   using WELL Well_order_Restr by blast
   ultimately have "r' =o Restr r (f ` (Field r'))"
   using WELL' unfolding ordIso_def by auto
-  hence "r' =o Restr r (rel.underS r a)" using 4 by auto
-  thus "\<exists>a \<in> Field r. r' =o Restr r (rel.underS r a)" using 3 by auto
+  hence "r' =o Restr r (underS r a)" using 4 by auto
+  thus "\<exists>a \<in> Field r. r' =o Restr r (underS r a)" using 3 by auto
 qed
 
 
@@ -801,13 +801,13 @@ lemma internalize_ordLess:
 proof
   assume *: "r' <o r"
   hence 0: "Well_order r \<and> Well_order r'" unfolding ordLess_def by auto
-  with * obtain a where 1: "a \<in> Field r" and 2: "r' =o Restr r (rel.underS r a)"
+  with * obtain a where 1: "a \<in> Field r" and 2: "r' =o Restr r (underS r a)"
   using ordLess_iff_ordIso_Restr by blast
-  let ?p = "Restr r (rel.underS r a)"
-  have "wo_rel.ofilter r (rel.underS r a)" using 0
+  let ?p = "Restr r (underS r a)"
+  have "wo_rel.ofilter r (underS r a)" using 0
   by (simp add: wo_rel_def wo_rel.underS_ofilter)
-  hence "Field ?p = rel.underS r a" using 0 Field_Restr_ofilter by blast
-  hence "Field ?p < Field r" using rel.underS_Field2 1 by fast
+  hence "Field ?p = underS r a" using 0 Field_Restr_ofilter by blast
+  hence "Field ?p < Field r" using underS_Field2 1 by fast
   moreover have "?p <o r" using underS_Restr_ordLess[of r a] 0 1 by blast
   ultimately
   show "\<exists>p. Field p < Field r \<and> r' =o p \<and> p <o r" using 2 by blast
@@ -840,18 +840,18 @@ qed
 
 lemma ordLeq_iff_ordLess_Restr:
 assumes WELL: "Well_order r" and WELL': "Well_order r'"
-shows "(r \<le>o r') = (\<forall>a \<in> Field r. Restr r (rel.underS r a) <o r')"
+shows "(r \<le>o r') = (\<forall>a \<in> Field r. Restr r (underS r a) <o r')"
 proof(auto)
   assume *: "r \<le>o r'"
   fix a assume "a \<in> Field r"
-  hence "Restr r (rel.underS r a) <o r"
+  hence "Restr r (underS r a) <o r"
   using WELL underS_Restr_ordLess[of r] by blast
-  thus "Restr r (rel.underS r a) <o r'"
+  thus "Restr r (underS r a) <o r'"
   using * ordLess_ordLeq_trans by blast
 next
-  assume *: "\<forall>a \<in> Field r. Restr r (rel.underS r a) <o r'"
+  assume *: "\<forall>a \<in> Field r. Restr r (underS r a) <o r'"
   {assume "r' <o r"
-   then obtain a where "a \<in> Field r \<and> r' =o Restr r (rel.underS r a)"
+   then obtain a where "a \<in> Field r \<and> r' =o Restr r (underS r a)"
    using assms ordLess_iff_ordIso_Restr by blast
    hence False using * not_ordLess_ordIso ordIso_symmetric by blast
   }
@@ -879,14 +879,14 @@ assumes FIN: "finite A" and
 shows "r =o r'"
 proof-
   have 0: "Well_order r \<and> Well_order r' \<and> Field r = A \<and> Field r' = A"
-  using assms rel.well_order_on_Well_order by blast
+  using assms well_order_on_Well_order by blast
   moreover
   have "\<forall>r r'. well_order_on A r \<and> well_order_on A r' \<and> r \<le>o r'
                   \<longrightarrow> r =o r'"
   proof(clarify)
     fix r r' assume *: "well_order_on A r" and **: "well_order_on A r'"
     have 2: "Well_order r \<and> Well_order r' \<and> Field r = A \<and> Field r' = A"
-    using * ** rel.well_order_on_Well_order by blast
+    using * ** well_order_on_Well_order by blast
     assume "r \<le>o r'"
     then obtain f where 1: "embed r r' f" and
                         "inj_on f A \<and> f ` A \<le> A"
@@ -1137,7 +1137,7 @@ shows "\<exists>r'. well_order_on A' r' \<and> r =o r'"
 proof-
    let ?r' = "dir_image r f"
    have 1: "A = Field r \<and> Well_order r"
-   using WELL rel.well_order_on_Well_order by blast
+   using WELL well_order_on_Well_order by blast
    hence 2: "iso r ?r' f"
    using dir_image_iso using BIJ unfolding bij_betw_def by auto
    hence "f ` (Field r) = Field ?r'" using 1 iso_iff[of r ?r'] by blast
@@ -1576,7 +1576,7 @@ qed
 lemma bsqr_ofilter:
 assumes WELL: "Well_order r" and
         OF: "wo_rel.ofilter (bsqr r) D" and SUB: "D < Field r \<times> Field r" and
-        NE: "\<not> (\<exists>a. Field r = rel.under r a)"
+        NE: "\<not> (\<exists>a. Field r = under r a)"
 shows "\<exists>A. wo_rel.ofilter r A \<and> A < Field r \<and> D \<le> A \<times> A"
 proof-
   let ?r' = "bsqr r"
@@ -1587,17 +1587,17 @@ proof-
   (*  *)
   have "D < Field ?r'" unfolding Field_bsqr using SUB .
   with OF obtain a1 and a2 where
-  "(a1,a2) \<in> Field ?r'" and 1: "D = rel.underS ?r' (a1,a2)"
+  "(a1,a2) \<in> Field ?r'" and 1: "D = underS ?r' (a1,a2)"
   using Well' wo_rel.ofilter_underS_Field[of ?r' D] by auto
   hence 2: "{a1,a2} \<le> Field r" unfolding Field_bsqr by auto
   let ?m = "wo_rel.max2 r a1 a2"
-  have "D \<le> (rel.under r ?m) \<times> (rel.under r ?m)"
+  have "D \<le> (under r ?m) \<times> (under r ?m)"
   proof(unfold 1)
     {fix b1 b2
      let ?n = "wo_rel.max2 r b1 b2"
-     assume "(b1,b2) \<in> rel.underS ?r' (a1,a2)"
+     assume "(b1,b2) \<in> underS ?r' (a1,a2)"
      hence 3: "((b1,b2),(a1,a2)) \<in> ?r'"
-     unfolding rel.underS_def by blast
+     unfolding underS_def by blast
      hence "(?n,?m) \<in> r" using WELL by (simp add: bsqr_max2)
      moreover
      {have "(b1,b2) \<in> Field ?r'" using 3 unfolding Field_def by auto
@@ -1607,13 +1607,13 @@ proof-
      }
      ultimately have "(b1,?m) \<in> r \<and> (b2,?m) \<in> r"
      using Trans trans_def[of r] by blast
-     hence "(b1,b2) \<in> (rel.under r ?m) \<times> (rel.under r ?m)" unfolding rel.under_def by simp}
-     thus "rel.underS ?r' (a1,a2) \<le> (rel.under r ?m) \<times> (rel.under r ?m)" by auto
+     hence "(b1,b2) \<in> (under r ?m) \<times> (under r ?m)" unfolding under_def by simp}
+     thus "underS ?r' (a1,a2) \<le> (under r ?m) \<times> (under r ?m)" by auto
   qed
-  moreover have "wo_rel.ofilter r (rel.under r ?m)"
+  moreover have "wo_rel.ofilter r (under r ?m)"
   using Well by (simp add: wo_rel.under_ofilter)
-  moreover have "rel.under r ?m < Field r"
-  using NE rel.under_Field[of r ?m] by blast
+  moreover have "under r ?m < Field r"
+  using NE under_Field[of r ?m] by blast
   ultimately show ?thesis by blast
 qed
 

@@ -59,7 +59,7 @@ using assms unfolding card_order_on_def by simp
 
 lemma card_order_on_Card_order:
 "card_order_on A r \<Longrightarrow> A = Field r \<and> Card_order r"
-unfolding card_order_on_def using rel.well_order_on_Field by blast
+unfolding card_order_on_def using well_order_on_Field by blast
 
 
 text{* The existence of a cardinal relation on any given set (which will mean
@@ -77,7 +77,7 @@ theorem card_order_on: "\<exists>r. card_order_on A r"
 proof-
   obtain R where R_def: "R = {r. well_order_on A r}" by blast
   have 1: "R \<noteq> {} \<and> (\<forall>r \<in> R. Well_order r)"
-  using well_order_on[of A] R_def rel.well_order_on_Well_order by blast
+  using well_order_on[of A] R_def well_order_on_Well_order by blast
   hence "\<exists>r \<in> R. \<forall>r' \<in> R. r \<le>o r'"
   using  exists_minim_Well_order[of R] by auto
   thus ?thesis using R_def unfolding card_order_on_def by auto
@@ -98,7 +98,7 @@ using ISO unfolding ordIso_def
 proof(unfold card_order_on_def, auto)
   fix p' assume "well_order_on (Field r') p'"
   hence 0: "Well_order p' \<and> Field p' = Field r'"
-  using rel.well_order_on_Well_order by blast
+  using well_order_on_Well_order by blast
   obtain f where 1: "iso r' r f" and 2: "Well_order r \<and> Well_order r'"
   using ISO unfolding ordIso_def by auto
   hence 3: "inj_on f (Field r') \<and> f ` (Field r') = Field r"
@@ -143,7 +143,7 @@ using card_of_card_order_on card_order_on_def by blast
 
 lemma Field_card_of: "Field |A| = A"
 using card_of_card_order_on[of A] unfolding card_order_on_def
-using rel.well_order_on_Field by blast
+using well_order_on_Field by blast
 
 
 lemma card_of_Card_order: "Card_order |A|"
@@ -273,7 +273,7 @@ proof-
   obtain f where
   1: "well_order_on (Field r) r \<and> well_order_on (Field r) r \<and> embed r r' f"
   using assms unfolding ordLeq_def
-  by (auto simp add: rel.well_order_on_Well_order)
+  by (auto simp add: well_order_on_Well_order)
   hence "inj_on f (Field r) \<and> f ` (Field r) \<le> Field r'"
   by (auto simp add: embed_inj_on embed_Field)
   thus "|Field r| \<le>o |Field r'|" using card_of_ordLeq by blast
@@ -285,7 +285,7 @@ by (simp add: ordIso_iff_ordLeq card_of_mono2)
 
 
 lemma card_of_Field_ordLess: "Well_order r \<Longrightarrow> |Field r| \<le>o r"
-using card_of_least card_of_well_order_on rel.well_order_on_Well_order by blast
+using card_of_least card_of_well_order_on well_order_on_Well_order by blast
 
 
 lemma card_of_Field_ordIso:
@@ -321,16 +321,16 @@ qed
 
 lemma Card_order_iff_Restr_underS:
 assumes "Well_order r"
-shows "Card_order r = (\<forall>a \<in> Field r. Restr r (rel.underS r a) <o |Field r| )"
+shows "Card_order r = (\<forall>a \<in> Field r. Restr r (underS r a) <o |Field r| )"
 using assms unfolding Card_order_iff_ordLeq_card_of
 using ordLeq_iff_ordLess_Restr card_of_Well_order by blast
 
 
 lemma card_of_underS:
 assumes r: "Card_order r" and a: "a : Field r"
-shows "|rel.underS r a| <o r"
+shows "|underS r a| <o r"
 proof-
-  let ?A = "rel.underS r a"  let ?r' = "Restr r ?A"
+  let ?A = "underS r a"  let ?r' = "Restr r ?A"
   have 1: "Well_order r"
   using r unfolding card_order_on_def by simp
   have "Well_order ?r'" using 1 Well_order_Restr by auto
@@ -355,7 +355,7 @@ assumes "r <o r'"
 shows "|Field r| <o r'"
 proof-
   have "well_order_on (Field r) r" using assms unfolding ordLess_def
-  by (auto simp add: rel.well_order_on_Well_order)
+  by (auto simp add: well_order_on_Well_order)
   hence "|Field r| \<le>o r" using card_of_least by blast
   thus ?thesis using assms ordLeq_ordLess_trans by blast
 qed
@@ -937,35 +937,35 @@ limit ordinals: *}
 
 lemma Card_order_infinite_not_under:
 assumes CARD: "Card_order r" and INF: "\<not>finite (Field r)"
-shows "\<not> (\<exists>a. Field r = rel.under r a)"
+shows "\<not> (\<exists>a. Field r = under r a)"
 proof(auto)
   have 0: "Well_order r \<and> wo_rel r \<and> Refl r"
   using CARD unfolding wo_rel_def card_order_on_def order_on_defs by auto
-  fix a assume *: "Field r = rel.under r a"
+  fix a assume *: "Field r = under r a"
   show False
   proof(cases "a \<in> Field r")
     assume Case1: "a \<notin> Field r"
-    hence "rel.under r a = {}" unfolding Field_def rel.under_def by auto
+    hence "under r a = {}" unfolding Field_def under_def by auto
     thus False using INF *  by auto
   next
-    let ?r' = "Restr r (rel.underS r a)"
+    let ?r' = "Restr r (underS r a)"
     assume Case2: "a \<in> Field r"
-    hence 1: "rel.under r a = rel.underS r a \<union> {a} \<and> a \<notin> rel.underS r a"
-    using 0 rel.Refl_under_underS rel.underS_notIn by metis
-    have 2: "wo_rel.ofilter r (rel.underS r a) \<and> rel.underS r a < Field r"
+    hence 1: "under r a = underS r a \<union> {a} \<and> a \<notin> underS r a"
+    using 0 Refl_under_underS underS_notIn by metis
+    have 2: "wo_rel.ofilter r (underS r a) \<and> underS r a < Field r"
     using 0 wo_rel.underS_ofilter * 1 Case2 by fast
     hence "?r' <o r" using 0 using ofilter_ordLess by blast
     moreover
-    have "Field ?r' = rel.underS r a \<and> Well_order ?r'"
+    have "Field ?r' = underS r a \<and> Well_order ?r'"
     using  2 0 Field_Restr_ofilter[of r] Well_order_Restr[of r] by blast
-    ultimately have "|rel.underS r a| <o r" using ordLess_Field[of ?r'] by auto
-    moreover have "|rel.under r a| =o r" using * CARD card_of_Field_ordIso[of r] by auto
-    ultimately have "|rel.underS r a| <o |rel.under r a|"
+    ultimately have "|underS r a| <o r" using ordLess_Field[of ?r'] by auto
+    moreover have "|under r a| =o r" using * CARD card_of_Field_ordIso[of r] by auto
+    ultimately have "|underS r a| <o |under r a|"
     using ordIso_symmetric ordLess_ordIso_trans by blast
     moreover
-    {have "\<exists>f. bij_betw f (rel.under r a) (rel.underS r a)"
+    {have "\<exists>f. bij_betw f (under r a) (underS r a)"
      using infinite_imp_bij_betw[of "Field r" a] INF * 1 by auto
-     hence "|rel.under r a| =o |rel.underS r a|" using card_of_ordIso by blast
+     hence "|under r a| =o |underS r a|" using card_of_ordIso by blast
     }
     ultimately show False using not_ordLess_ordIso ordIso_symmetric by blast
   qed
@@ -977,13 +977,13 @@ assumes r: "Card_order r" and "\<not>finite (Field r)"
 and a: "a : Field r"
 shows "EX b : Field r. a \<noteq> b \<and> (a,b) : r"
 proof-
-  have "Field r \<noteq> rel.under r a"
+  have "Field r \<noteq> under r a"
   using assms Card_order_infinite_not_under by blast
-  moreover have "rel.under r a \<le> Field r"
-  using rel.under_Field .
-  ultimately have "rel.under r a < Field r" by blast
+  moreover have "under r a \<le> Field r"
+  using under_Field .
+  ultimately have "under r a < Field r" by blast
   then obtain b where 1: "b : Field r \<and> ~ (b,a) : r"
-  unfolding rel.under_def by blast
+  unfolding under_def by blast
   moreover have ba: "b \<noteq> a"
   using 1 r unfolding card_order_on_def well_order_on_def
   linear_order_on_def partial_order_on_def preorder_on_def refl_on_def by auto
@@ -1036,7 +1036,7 @@ proof-
     using 7 unfolding bij_betw_def using 6 3 embed_inj_on 4 by auto
     hence temp2: "wo_rel.ofilter ?r' ?B \<and> ?B < ?A \<times> ?A"
     using 4 wo_rel_def[of ?r'] wo_rel.ofilter_def[of ?r' ?B] by blast
-    have "\<not> (\<exists>a. Field r = rel.under r a)"
+    have "\<not> (\<exists>a. Field r = under r a)"
     using 1 unfolding phi_def using Card_order_infinite_not_under[of r] by auto
     then obtain A1 where temp3: "wo_rel.ofilter r A1 \<and> A1 < ?A" and 9: "?B \<le> A1 \<times> A1"
     using temp2 3 bsqr_ofilter[of r ?B] by blast
@@ -1332,8 +1332,8 @@ lemma Field_natLeq_on: "Field (natLeq_on n) = {x. x < n}"
 unfolding Field_def by auto
 
 
-lemma natLeq_underS_less: "rel.underS natLeq n = {x. x < n}"
-unfolding rel.underS_def by auto
+lemma natLeq_underS_less: "underS natLeq n = {x. x < n}"
+unfolding underS_def by auto
 
 
 lemma Restr_natLeq: "Restr natLeq {x. x < n} = natLeq_on n"
@@ -1341,7 +1341,7 @@ by force
 
 
 lemma Restr_natLeq2:
-"Restr natLeq (rel.underS natLeq n) = natLeq_on n"
+"Restr natLeq (underS natLeq n) = natLeq_on n"
 by (auto simp add: Restr_natLeq natLeq_underS_less)
 
 
@@ -1728,7 +1728,7 @@ proof-
     using r' by (simp add: card_of_Field_ordIso[of ?r'])
     finally have "|K| \<le>o ?r'" .
     moreover
-    {let ?L = "UN j : K. rel.underS ?r' j"
+    {let ?L = "UN j : K. underS ?r' j"
      let ?J = "Field r"
      have rJ: "r =o |?J|"
      using r_card card_of_Field_ordIso ordIso_symmetric by blast
@@ -1736,11 +1736,11 @@ proof-
      hence "|K| <=o r" using r' card_of_Card_order[of K] by blast
      hence "|K| \<le>o |?J|" using rJ ordLeq_ordIso_trans by blast
      moreover
-     {have "ALL j : K. |rel.underS ?r' j| <o ?r'"
+     {have "ALL j : K. |underS ?r' j| <o ?r'"
       using r' 1 by (auto simp: card_of_underS)
-      hence "ALL j : K. |rel.underS ?r' j| \<le>o r"
+      hence "ALL j : K. |underS ?r' j| \<le>o r"
       using r' card_of_Card_order by blast
-      hence "ALL j : K. |rel.underS ?r' j| \<le>o |?J|"
+      hence "ALL j : K. |underS ?r' j| \<le>o |?J|"
       using rJ ordLeq_ordIso_trans by blast
      }
      ultimately have "|?L| \<le>o |?J|"
@@ -1750,7 +1750,7 @@ proof-
      moreover
      {
       have "Field ?r' \<le> ?L"
-      using 2 unfolding rel.underS_def cofinal_def by auto
+      using 2 unfolding underS_def cofinal_def by auto
       hence "|Field ?r'| \<le>o |?L|" by (simp add: card_of_mono1)
       hence "?r' \<le>o |?L|"
       using 22 ordIso_ordLeq_trans ordIso_symmetric by blast
