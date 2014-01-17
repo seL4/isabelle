@@ -791,7 +791,7 @@ text %mlantiq {*
   ;
   @@{ML_antiquotation thms} thmrefs
   ;
-  @@{ML_antiquotation lemma} ('(' @'open' ')')? ((prop +) + @'and') \\
+  @@{ML_antiquotation lemma} ('(' @'open' ')')? ((prop +) + @'and') \<newline>
     @'by' method method?
   "}
 

@@ -190,7 +190,8 @@ text {*
     ;
     @@{command def} (def + @'and')
     ;
-    def: @{syntax thmdecl}? \\ @{syntax name} ('==' | '\<equiv>') @{syntax term} @{syntax term_pat}?
+    def: @{syntax thmdecl}? \<newline>
+      @{syntax name} ('==' | '\<equiv>') @{syntax term} @{syntax term_pat}?
   "}
 
   \begin{description}
@@ -1303,10 +1304,11 @@ text {*
   command.
 
   @{rail "
-    @@{method cases} ('(' 'no_simp' ')')? \\
+    @@{method cases} ('(' 'no_simp' ')')? \<newline>
       (@{syntax insts} * @'and') rule?
     ;
-    (@@{method induct} | @@{method induction}) ('(' 'no_simp' ')')? (definsts * @'and') \\ arbitrary? taking? rule?
+    (@@{method induct} | @@{method induction})
+      ('(' 'no_simp' ')')? (definsts * @'and') \<newline> arbitrary? taking? rule?
     ;
     @@{method coinduct} @{syntax insts} taking rule?
     ;

@@ -24,7 +24,7 @@ text {*
     (@@{command print_theory} | @@{command print_theorems}) ('!'?)
     ;
 
-    @@{command find_theorems} ('(' @{syntax nat}? 'with_dups'? ')')? \\ (thmcriterion * )
+    @@{command find_theorems} ('(' @{syntax nat}? 'with_dups'? ')')? \<newline> (thmcriterion * )
     ;
     thmcriterion: ('-'?) ('name' ':' @{syntax nameref} | 'intro' | 'elim' | 'dest' |
       'solves' | 'simp' ':' @{syntax term} | @{syntax term})

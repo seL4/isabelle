@@ -561,9 +561,9 @@ text {*
 
   @{rail "
     (@@{command type_notation} | @@{command no_type_notation}) @{syntax target}?
-      @{syntax mode}? \\ (@{syntax nameref} @{syntax mixfix} + @'and')
+      @{syntax mode}? \<newline> (@{syntax nameref} @{syntax mixfix} + @'and')
     ;
-    (@@{command notation} | @@{command no_notation}) @{syntax target}? @{syntax mode}? \\
+    (@@{command notation} | @@{command no_notation}) @{syntax target}? @{syntax mode}? \<newline>
       (@{syntax nameref} @{syntax mixfix} + @'and')
     ;
     @@{command write} @{syntax mode}? (@{syntax nameref} @{syntax mixfix} + @'and')

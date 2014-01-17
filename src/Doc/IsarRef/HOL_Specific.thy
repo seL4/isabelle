@@ -99,8 +99,8 @@ text {*
   @{rail "
     (@@{command (HOL) inductive} | @@{command (HOL) inductive_set} |
       @@{command (HOL) coinductive} | @@{command (HOL) coinductive_set})
-    @{syntax target}? \\
-    @{syntax \"fixes\"} (@'for' @{syntax \"fixes\"})? (@'where' clauses)? \\
+    @{syntax target}? \<newline>
+    @{syntax \"fixes\"} (@'for' @{syntax \"fixes\"})? (@'where' clauses)? \<newline>
     (@'monos' @{syntax thmrefs})?
     ;
     clauses: (@{syntax thmdecl}? @{syntax prop} + '|')
@@ -268,7 +268,7 @@ text {*
     @@{command (HOL) primrec} @{syntax target}? @{syntax \"fixes\"} @'where' equations
     ;
     (@@{command (HOL) fun} | @@{command (HOL) function}) @{syntax target}? functionopts?
-      @{syntax \"fixes\"} \\ @'where' equations
+      @{syntax \"fixes\"} \<newline> @'where' equations
     ;
 
     equations: (@{syntax thmdecl}? @{syntax prop} + '|')
@@ -576,7 +576,7 @@ text {*
 
   @{rail "
     @@{command (HOL) partial_function} @{syntax target}?
-      '(' @{syntax nameref} ')' @{syntax \"fixes\"} \\
+      '(' @{syntax nameref} ')' @{syntax \"fixes\"} \<newline>
       @'where' @{syntax thmdecl}? @{syntax prop}
   "}
 
@@ -650,7 +650,7 @@ text {*
   (HOL) "function"} or @{command (HOL) "fun"} should be used instead.
 
   @{rail "
-    @@{command (HOL) recdef} ('(' @'permissive' ')')? \\
+    @@{command (HOL) recdef} ('(' @'permissive' ')')? \<newline>
       @{syntax name} @{syntax term} (@{syntax prop} +) hints?
     ;
     recdeftc @{syntax thmdecl}? tc
@@ -874,7 +874,7 @@ text {*
   \end{matharray}
 
   @{rail "
-    @@{command (HOL) record} @{syntax typespec_sorts} '=' \\
+    @@{command (HOL) record} @{syntax typespec_sorts} '=' \<newline>
       (@{syntax type} '+')? (constdecl +)
     ;
     constdecl: @{syntax name} '::' @{syntax type} @{syntax mixfix}?
@@ -1268,13 +1268,13 @@ text {*
   @{rail "
     @@{command (HOL) quotient_type} (spec);
 
-    spec: @{syntax typespec} @{syntax mixfix}? '=' \\
-     @{syntax type} '/' ('partial' ':')? @{syntax term} \\
+    spec: @{syntax typespec} @{syntax mixfix}? '=' \<newline>
+     @{syntax type} '/' ('partial' ':')? @{syntax term} \<newline>
      (@'morphisms' @{syntax name} @{syntax name})? (@'parametric' @{syntax thmref})?;
   "}
 
   @{rail "
-    @@{command (HOL) quotient_definition} constdecl? @{syntax thmdecl}? \\
+    @@{command (HOL) quotient_definition} constdecl? @{syntax thmdecl}? \<newline>
     @{syntax term} 'is' @{syntax term};
 
     constdecl: @{syntax name} ('::' @{syntax type})? @{syntax mixfix}?
@@ -1401,7 +1401,7 @@ text {*
 
   @{rail "
   (@@{command (HOL) specification} | @@{command (HOL) ax_specification})
-    '(' (decl +) ')' \\ (@{syntax thmdecl}? @{syntax prop} +)
+    '(' (decl +) ')' \<newline> (@{syntax thmdecl}? @{syntax prop} +)
   ;
   decl: ((@{syntax name} ':')? @{syntax term} '(' @'overloaded' ')'?)
   "}
@@ -1627,12 +1627,12 @@ text {*
   \end{matharray}
 
   @{rail "
-    @@{command (HOL) setup_lifting} ('(' 'no_code' ')')? \\
+    @@{command (HOL) setup_lifting} ('(' 'no_code' ')')? \<newline>
       @{syntax thmref} @{syntax thmref}? (@'parametric' @{syntax thmref})?;
   "}
 
   @{rail "
-    @@{command (HOL) lift_definition} @{syntax name} '::' @{syntax type}  @{syntax mixfix}? \\
+    @@{command (HOL) lift_definition} @{syntax name} '::' @{syntax type}  @{syntax mixfix}? \<newline>
       'is' @{syntax term} (@'parametric' @{syntax thmref})?;
   "}
 
@@ -2165,7 +2165,7 @@ text {*
       @@{command (HOL) nitpick_params}) ( '[' args ']' )?
     ;
 
-    @@{command (HOL) quickcheck_generator} @{syntax nameref} \\
+    @@{command (HOL) quickcheck_generator} @{syntax nameref} \<newline>
       'operations:' ( @{syntax term} +)
     ;
 
@@ -2414,8 +2414,8 @@ text {* For validation purposes, it is often useful to \emph{execute}
   \end{matharray}
 
   @{rail "
-    @@{command (HOL) export_code} ( constexpr + ) \\
-       ( ( @'in' target ( @'module_name' @{syntax string} ) ? \\
+    @@{command (HOL) export_code} ( constexpr + ) \<newline>
+       ( ( @'in' target ( @'module_name' @{syntax string} ) ? \<newline>
         ( @'file' @{syntax string} ) ? ( '(' args ')' ) ?) + ) ?
     ;
 
@@ -2480,27 +2480,27 @@ text {* For validation purposes, it is often useful to \emph{execute}
     syntax: @{syntax string} | ( @'infix' | @'infixl' | @'infixr' ) @{syntax nat} @{syntax string}
     ;
 
-    printing_const: symbol_const ( '\<rightharpoonup>' | '=>' ) \\
+    printing_const: symbol_const ( '\<rightharpoonup>' | '=>' ) \<newline>
       ( '(' target ')' syntax ? + @'and' )
     ;
 
-    printing_typeconstructor: symbol_typeconstructor ( '\<rightharpoonup>' | '=>' ) \\
+    printing_typeconstructor: symbol_typeconstructor ( '\<rightharpoonup>' | '=>' ) \<newline>
       ( '(' target ')' syntax ? + @'and' )
     ;
 
-    printing_class: symbol_class ( '\<rightharpoonup>' | '=>' )  \\
+    printing_class: symbol_class ( '\<rightharpoonup>' | '=>' ) \<newline>
       ( '(' target ')' @{syntax string} ? + @'and' )
     ;
 
-    printing_class_relation: symbol_class_relation ( '\<rightharpoonup>' | '=>' )  \\
+    printing_class_relation: symbol_class_relation ( '\<rightharpoonup>' | '=>' ) \<newline>
       ( '(' target ')' @{syntax string} ? + @'and' )
     ;
 
-    printing_class_instance: symbol_class_instance ( '\<rightharpoonup>' | '=>' )  \\
+    printing_class_instance: symbol_class_instance ( '\<rightharpoonup>' | '=>' ) \<newline>
       ( '(' target ')' '-' ? + @'and' )
     ;
 
-    printing_module: symbol_module ( '\<rightharpoonup>' | '=>' )  \\
+    printing_module: symbol_module ( '\<rightharpoonup>' | '=>' ) \<newline>
       ( '(' target ')' ( @{syntax string} ( @'attach' ( const + ) ) ? ) ? + @'and' )
     ;
 
@@ -2509,19 +2509,19 @@ text {* For validation purposes, it is often useful to \emph{execute}
       | printing_module ) + '|' )
     ;
 
-    @@{command (HOL) code_const} (const + @'and') \\
+    @@{command (HOL) code_const} (const + @'and') \<newline>
       ( ( '(' target ( syntax ? + @'and' ) ')' ) + )
     ;
 
-    @@{command (HOL) code_type} (typeconstructor + @'and') \\
+    @@{command (HOL) code_type} (typeconstructor + @'and') \<newline>
       ( ( '(' target ( syntax ? + @'and' ) ')' ) + )
     ;
 
-    @@{command (HOL) code_class} (class + @'and') \\
-      ( ( '(' target \\ ( @{syntax string} ? + @'and' ) ')' ) + )
+    @@{command (HOL) code_class} (class + @'and') \<newline>
+      ( ( '(' target \<newline> ( @{syntax string} ? + @'and' ) ')' ) + )
     ;
 
-    @@{command (HOL) code_instance} (( typeconstructor '::' class ) + @'and') \\
+    @@{command (HOL) code_instance} (( typeconstructor '::' class ) + @'and') \<newline>
       ( ( '(' target ( '-' ? + @'and' ) ')' ) + )
     ;
 
@@ -2530,7 +2530,7 @@ text {* For validation purposes, it is often useful to \emph{execute}
 
     @@{command (HOL) code_identifier} ( ( symbol_const | symbol_typeconstructor
       | symbol_class | symbol_class_relation | symbol_class_instance
-      | symbol_module ) ( '\<rightharpoonup>' | '=>' ) \\
+      | symbol_module ) ( '\<rightharpoonup>' | '=>' ) \<newline>
       ( '(' target ')' @{syntax string} ? + @'and' ) + '|' )
     ;
 
@@ -2540,16 +2540,16 @@ text {* For validation purposes, it is often useful to \emph{execute}
     @@{command (HOL) code_monad} const const target
     ;
 
-    @@{command (HOL) code_reflect} @{syntax string} \\
-      ( @'datatypes' ( @{syntax string} '=' ( '_' | ( @{syntax string} + '|' ) + @'and' ) ) ) ? \\
+    @@{command (HOL) code_reflect} @{syntax string} \<newline>
+      ( @'datatypes' ( @{syntax string} '=' ( '_' | ( @{syntax string} + '|' ) + @'and' ) ) ) ? \<newline>
       ( @'functions' ( @{syntax string} + ) ) ? ( @'file' @{syntax string} ) ?
     ;
 
-    @@{command (HOL) code_pred} \\( '(' @'modes' ':' modedecl ')')? \\ const
+    @@{command (HOL) code_pred} \<newline> ('(' @'modes' ':' modedecl ')')? \<newline> const
     ;
 
-    modedecl: (modes | ((const ':' modes) \\
-         (@'and' ((const ':' modes @'and') +))?))
+    modedecl: (modes | ((const ':' modes) \<newline>
+        (@'and' ((const ':' modes @'and') +))?))
     ;
 
     modes: mode @'as' const

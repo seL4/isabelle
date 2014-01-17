@@ -524,12 +524,10 @@ text {*
 
   @{rail "A B C"}
 
-  \item Linebreak @{verbatim "\\\\"} inside
-  concatenation\footnote{Strictly speaking, this is only a single
-  backslash, but the enclosing @{syntax string} syntax requires a
-  second one for escaping.} @{verbatim "A B C \\\\ D E F"}
+  \item Newline inside concatenation
+  @{verbatim "A B C \<newline> D E F"}
 
-  @{rail "A B C \\ D E F"}
+  @{rail "A B C \<newline> D E F"}
 
   \item Variants @{verbatim "A | B | C"}
 

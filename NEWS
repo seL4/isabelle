@@ -16,6 +16,10 @@ not check existence within the file-system.
 workaround in Isabelle2013-1.  The prover process no longer accepts
 old identifier syntax with \<^isub> or \<^isup>.
 
+* Syntax of document antiquotation @{rail} now uses \<newline> instead
+of "\\", to avoid the optical illusion of escaped backslash within
+string token.  Minor INCOMPATIBILITY.
+
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 

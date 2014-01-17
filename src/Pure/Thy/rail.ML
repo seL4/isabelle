@@ -61,7 +61,8 @@ fun token k ss = [Token (Symbol_Pos.range ss, (k, Symbol_Pos.content ss))];
 val scan_space = Scan.many1 (Symbol.is_blank o Symbol_Pos.symbol);
 
 val scan_keyword =
-  Scan.one (member (op =) ["|", "*", "+", "?", "(", ")", "\\", ";", ":", "@"] o Symbol_Pos.symbol);
+  Scan.one
+    (member (op =) ["|", "*", "+", "?", "(", ")", "\\<newline>", ";", ":", "@"] o Symbol_Pos.symbol);
 
 val err_prefix = "Rail lexical error: ";
 
@@ -174,7 +175,7 @@ and body2 x = (Scan.repeat1 body3 >> cat) x
 and body3 x = (body4 :|-- (fn a => $$$ "?" >> K (maybe a) || Scan.succeed a)) x
 and body4 x =
  ($$$ "(" |-- !!! (body0 --| $$$ ")") ||
-  $$$ "\\" >> K (Newline 0) ||
+  $$$ "\\<newline>" >> K (Newline 0) ||
   ident >> Nonterminal ||
   at_mode -- string >> Terminal ||
   at_mode -- antiq >> Antiquote) x

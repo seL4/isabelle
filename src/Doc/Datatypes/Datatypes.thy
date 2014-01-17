@@ -458,7 +458,7 @@ text {*
 \end{matharray}
 
 @{rail "
-  @@{command datatype_new} target? @{syntax dt_options}? \\
+  @@{command datatype_new} target? @{syntax dt_options}? \<newline>
     (@{syntax dt_name} '=' (@{syntax ctor} + '|') + @'and')
   ;
   @{syntax_def dt_options}: '(' (('no_discs_sels' | 'no_code' | 'rep_compat') + ',') ')'
@@ -511,7 +511,7 @@ Inside a mutually recursive specification, all defined datatypes must
 mention exactly the same type variables in the same order.
 
 @{rail "
-  @{syntax_def ctor}: (name ':')? name (@{syntax ctor_arg} * ) \\
+  @{syntax_def ctor}: (name ':')? name (@{syntax ctor_arg} * ) \<newline>
     @{syntax dt_sel_defaults}? mixfix?
 "}
 
@@ -1353,7 +1353,7 @@ text {*
 \end{matharray}
 
 @{rail "
-  @@{command primrec_new} target? fixes \\ @'where' (@{syntax pr_equation} + '|')
+  @@{command primrec_new} target? fixes \<newline> @'where' (@{syntax pr_equation} + '|')
   ;
   @{syntax_def pr_equation}: thmdecl? prop
 "}
@@ -1575,7 +1575,7 @@ text {*
 \end{matharray}
 
 @{rail "
-  @@{command codatatype} target? \\
+  @@{command codatatype} target? \<newline>
     (@{syntax dt_name} '=' (@{syntax ctor} + '|') + @'and')
 "}
 
@@ -2242,7 +2242,8 @@ text {*
 \end{matharray}
 
 @{rail "
-  (@@{command primcorec} | @@{command primcorecursive}) target? \\ @{syntax pcr_option}? fixes @'where'
+  (@@{command primcorec} | @@{command primcorecursive}) target? \<newline>
+    @{syntax pcr_option}? fixes @'where'
     (@{syntax pcr_formula} + '|')
   ;
   @{syntax_def pcr_option}: '(' ('sequential' | 'exhaustive') ')'
@@ -2325,8 +2326,8 @@ text {*
 \end{matharray}
 
 @{rail "
-  @@{command bnf} target? (name ':')? typ \\
-    'map:' term ('sets:' (term +))? 'bd:' term \\
+  @@{command bnf} target? (name ':')? typ \<newline>
+    'map:' term ('sets:' (term +))? 'bd:' term \<newline>
     ('wits:' (term +))? ('rel:' term)?
 "}
 *}
@@ -2416,7 +2417,7 @@ text {*
 \end{matharray}
 
 @{rail "
-  @@{command wrap_free_constructors} target? @{syntax dt_options} \\
+  @@{command wrap_free_constructors} target? @{syntax dt_options} \<newline>
     term_list name @{syntax wfc_discs_sels}?
   ;
   @{syntax_def wfc_discs_sels}: name_list (name_list_list name_term_list_list? )?

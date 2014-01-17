@@ -202,7 +202,7 @@ text {*
   \end{matharray}
 
   @{rail "
-    @@{method subst} ('(' 'asm' ')')? \\ ('(' (@{syntax nat}+) ')')? @{syntax thmref}
+    @@{method subst} ('(' 'asm' ')')? \<newline> ('(' (@{syntax nat}+) ')')? @{syntax thmref}
     ;
     @@{method split} @{syntax thmrefs}
   "}
@@ -306,7 +306,7 @@ text {*
 
   @{rail "
     (@@{method rule_tac} | @@{method erule_tac} | @@{method drule_tac} |
-      @@{method frule_tac} | @@{method cut_tac} | @@{method thin_tac}) @{syntax goal_spec}? \\
+      @@{method frule_tac} | @@{method cut_tac} | @@{method thin_tac}) @{syntax goal_spec}? \<newline>
     ( dynamic_insts @'in' @{syntax thmref} | @{syntax thmrefs} )
     ;
     @@{method subgoal_tac} @{syntax goal_spec}? (@{syntax prop} +)
@@ -925,7 +925,7 @@ text {* Simplification procedures are ML functions that produce proven
 
   @{rail "
     @@{command simproc_setup} @{syntax name} '(' (@{syntax term} + '|') ')' '='
-      @{syntax text} \\ (@'identifier' (@{syntax nameref}+))?
+      @{syntax text} \<newline> (@'identifier' (@{syntax nameref}+))?
     ;
 
     @@{attribute simproc} (('add' ':')? | 'del' ':') (@{syntax name}+)

@@ -51,7 +51,7 @@ text {*
   admissible.
 
   @{rail "
-    @@{command theory} @{syntax name} imports keywords? \\ @'begin'
+    @@{command theory} @{syntax name} imports keywords? \<newline> @'begin'
     ;
     imports: @'imports' (@{syntax name} +)
     ;
@@ -211,7 +211,7 @@ text {*
   locale interpretation (\secref{sec:locale}).
 
   @{rail "
-    @@{command bundle} @{syntax target}? \\
+    @@{command bundle} @{syntax target}? \<newline>
     @{syntax name} '=' @{syntax thmrefs} (@'for' (@{syntax vars} + @'and'))?
     ;
     (@@{command include} | @@{command including}) (@{syntax nameref}+)
@@ -277,10 +277,10 @@ text {*
   @{rail "
     @@{command axiomatization} @{syntax \"fixes\"}? (@'where' specs)?
     ;
-    @@{command definition} @{syntax target}? \\
+    @@{command definition} @{syntax target}? \<newline>
       (decl @'where')? @{syntax thmdecl}? @{syntax prop}
     ;
-    @@{command abbreviation} @{syntax target}? @{syntax mode}? \\
+    @@{command abbreviation} @{syntax target}? @{syntax mode}? \<newline>
       (decl @'where')? @{syntax prop}
     ;
 
@@ -366,7 +366,7 @@ text {*
 
   @{rail "
     (@@{command declaration} | @@{command syntax_declaration})
-      ('(' @'pervasive' ')')? \\ @{syntax target}? @{syntax text}
+      ('(' @'pervasive' ')')? \<newline> @{syntax target}? @{syntax text}
     ;
     @@{command declare} @{syntax target}? (@{syntax thmrefs} + @'and')
   "}
@@ -635,7 +635,7 @@ text {*
     ;
     @@{command interpret} @{syntax locale_expr} equations?
     ;
-    @@{command sublocale} (@{syntax nameref} ('<' | '\<subseteq>'))? @{syntax locale_expr} \\
+    @@{command sublocale} (@{syntax nameref} ('<' | '\<subseteq>'))? @{syntax locale_expr} \<newline>
       equations?
     ;
     @@{command print_dependencies} '!'? @{syntax locale_expr}
@@ -1260,7 +1260,7 @@ text {*
   \end{matharray}
 
   @{rail "
-    (@@{command lemmas} | @@{command theorems}) @{syntax target}? \\
+    (@@{command lemmas} | @@{command theorems}) @{syntax target}? \<newline>
       (@{syntax thmdef}? @{syntax thmrefs} + @'and')
       (@'for' (@{syntax vars} + @'and'))?
   "}
