@@ -28,6 +28,7 @@ sig
   val relN: string
   val setN: string
   val mk_setN: int -> string
+  val mk_witN: int -> string
 
   val map_of_bnf: bnf -> term
   val sets_of_bnf: bnf -> term list

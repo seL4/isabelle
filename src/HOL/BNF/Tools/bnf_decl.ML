@@ -8,7 +8,7 @@ Axiomatic declaration of bounded natural functors.
 signature BNF_DECL =
 sig
   val bnf_decl: (binding option * (typ * sort)) list -> binding -> mixfix -> binding -> binding ->
-    local_theory -> BNF_Def.bnf * local_theory
+    typ list -> local_theory -> BNF_Def.bnf * local_theory
 end
 
 structure BNF_Decl : BNF_DECL =
@@ -17,7 +17,7 @@ struct
 open BNF_Util
 open BNF_Def
 
-fun prepare_decl prepare_constraint prepare_typ raw_vars b mx user_mapb user_relb lthy =
+fun prepare_decl prepare_constraint prepare_typ raw_vars b mx user_mapb user_relb user_witTs lthy =
   let
    fun prepare_type_arg (set_opt, (ty, c)) =
       let val s = fst (dest_TFree (prepare_typ lthy ty)) in
@@ -50,23 +50,34 @@ fun prepare_decl prepare_constraint prepare_typ raw_vars b mx user_mapb user_rel
     val bdb = mk_b "bd" Binding.empty;
     val setbs = map2 (fn b => fn i => mk_b (BNF_Def.mk_setN i) b) user_setbs
       (if live = 1 then [0] else 1 upto live);
+
+    val witTs = map (prepare_typ lthy) user_witTs;
+    val nwits = length witTs;
+    val witbs = map (fn i => mk_b (BNF_Def.mk_witN i) Binding.empty)
+      (if nwits = 1 then [0] else 1 upto nwits);
+
     val lthy = Local_Theory.background_theory
       (Sign.add_consts_i ((mapb, mapT, NoSyn) :: (bdb, bdT, NoSyn) ::
-        map2 (fn b => fn T => (b, T, NoSyn)) setbs setTs))
+        map2 (fn b => fn T => (b, T, NoSyn)) setbs setTs @
+        map2 (fn b => fn T => (b, T, NoSyn)) witbs witTs))
       lthy;
     val Fmap = Const (Local_Theory.full_name lthy mapb, mapT);
     val Fsets = map2 (fn setb => fn setT =>
       Const (Local_Theory.full_name lthy setb, setT)) setbs setTs;
     val Fbd = Const (Local_Theory.full_name lthy bdb, bdT);
+    val Fwits = map2 (fn witb => fn witT =>
+      Const (Local_Theory.full_name lthy witb, witT)) witbs witTs;
     val (key, goals, (triv_tac_opt, wit_goalss), after_qed, lthy, _) =
       prepare_def Do_Inline (user_policy Note_Some) I (K I) (K I) (SOME (map TFree deads))
-      user_mapb user_relb user_setbs ((((((Binding.empty, T), Fmap), Fsets), Fbd), []), NONE) lthy;
+      user_mapb user_relb user_setbs ((((((Binding.empty, T), Fmap), Fsets), Fbd), Fwits), NONE)
+      lthy;
 
     fun mk_wits_tac set_maps = K (TRYALL Goal.conjunction_tac) THEN' the triv_tac_opt set_maps;
     val wit_goals = map Logic.mk_conjunction_balanced wit_goalss;
+    val all_goalss = map single goals @ (if nwits > 0 then wit_goalss else []);
 
-    val ((_, [thms]), (lthy_old, lthy)) = Local_Theory.background_theory_result
-      (Specification.axiomatization [] [((mk_b "axioms" Binding.empty, []), goals)]) lthy
+    val (((_, [raw_thms])), (lthy_old, lthy)) = Local_Theory.background_theory_result
+      (Specification.axiomatization [] [((mk_b "axioms" Binding.empty, []), flat all_goalss)]) lthy
       ||> `Local_Theory.restore;
 
     fun mk_wit_thms set_maps =
@@ -75,8 +86,9 @@ fun prepare_decl prepare_constraint prepare_typ raw_vars b mx user_mapb user_rel
       |> map2 (Conjunction.elim_balanced o length) wit_goalss
       |> map (map (Thm.close_derivation o Thm.forall_elim_vars 0));
     val phi = Proof_Context.export_morphism lthy_old lthy;
+    val thms = unflat all_goalss (Morphism.fact phi raw_thms);
   in
-    BNF_Def.register_bnf key (after_qed mk_wit_thms (map single (Morphism.fact phi thms)) lthy)
+    BNF_Def.register_bnf key (after_qed mk_wit_thms thms lthy)
   end;
 
 val bnf_decl = prepare_decl (K I) (K I);
@@ -84,14 +96,22 @@ val bnf_decl = prepare_decl (K I) (K I);
 fun read_constraint _ NONE = HOLogic.typeS
   | read_constraint ctxt (SOME s) = Syntax.read_sort ctxt s;
 
-val bnf_decl_cmd = prepare_decl read_constraint Syntax.parse_typ;
+val bnf_decl_cmd = prepare_decl read_constraint Syntax.read_typ;
+
+val parse_witTs =
+  @{keyword "["} |-- (Parse.short_ident --| @{keyword ":"} -- Scan.repeat Parse.typ
+    >> (fn ("wits", Ts) => Ts
+         | (s, _) => error ("Unknown label " ^ quote s ^ " (expected \"wits\")"))) --|
+  @{keyword "]"} || Scan.succeed [];
 
 val parse_bnf_decl =
-  parse_type_args_named_constrained -- parse_binding -- parse_map_rel_bindings -- Parse.opt_mixfix;
+  parse_type_args_named_constrained -- parse_binding -- parse_map_rel_bindings --
+    parse_witTs -- Parse.opt_mixfix;
 
 val _ =
   Outer_Syntax.local_theory @{command_spec "bnf_decl"} "bnf declaration"
     (parse_bnf_decl >> 
-      (fn (((bsTs, b), (mapb, relb)), mx) => bnf_decl_cmd bsTs b mx mapb relb #> snd));
+      (fn ((((bsTs, b), (mapb, relb)), witTs), mx) =>
+         bnf_decl_cmd bsTs b mx mapb relb witTs #> snd));
 
 end;
