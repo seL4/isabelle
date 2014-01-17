@@ -856,8 +856,8 @@ fun check_conv ctxt msg thm thm' =
     let
       val _ $ _ $ prop0 = Thm.prop_of thm;
       val _ =
-        warning
-         (print_thm ctxt "Simplifier: proved wrong theorem (bad subgoaler?)" ("", thm') ^ "\n" ^
+        cond_tracing ctxt (fn () =>
+          print_thm ctxt "Proved wrong theorem (bad subgoaler?)" ("", thm') ^ "\n" ^
           print_term ctxt "Should have proved:" prop0);
     in NONE end;
 
