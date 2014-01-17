@@ -405,16 +405,6 @@ val simp_trace_depth_limit_raw = Config.declare "simp_trace_depth_limit"
   (fn _ => Config.Int (! simp_trace_depth_limit_default));
 val simp_trace_depth_limit = Config.int simp_trace_depth_limit_raw;
 
-fun trace_depth ctxt msg =
-  let
-    val Simpset ({depth = (depth, exceeded), ...}, _) = simpset_of ctxt;
-    val depth_limit = Config.get ctxt simp_trace_depth_limit;
-  in
-    if depth > depth_limit then
-      if ! exceeded then () else (tracing "simp_trace_depth_limit exceeded!"; exceeded := true)
-    else (tracing (enclose "[" "]" (string_of_int depth) ^ msg); exceeded := false)
-  end;
-
 fun inc_simp_depth ctxt =
   ctxt |> map_simpset1 (fn (rules, prems, (depth, exceeded)) =>
     (rules, prems,
@@ -438,32 +428,26 @@ val simp_trace_default = Unsynchronized.ref false;
 val simp_trace_raw = Config.declare "simp_trace" (fn _ => Config.Bool (! simp_trace_default));
 val simp_trace = Config.bool simp_trace_raw;
 
-fun if_enabled ctxt flag f = if Config.get ctxt flag then f ctxt else ();
+fun cond_warning ctxt msg =
+  if Context_Position.is_visible ctxt then warning (msg ()) else ();
 
-fun prnt ctxt warn a = if warn then warning a else trace_depth ctxt a;
+fun cond_tracing ctxt flag msg =
+  if Config.get ctxt flag then
+    let
+      val Simpset ({depth = (depth, exceeded), ...}, _) = simpset_of ctxt;
+      val depth_limit = Config.get ctxt simp_trace_depth_limit;
+    in
+      if depth > depth_limit then
+        if ! exceeded then () else (tracing "simp_trace_depth_limit exceeded!"; exceeded := true)
+      else (tracing (enclose "[" "]" (string_of_int depth) ^ msg ()); exceeded := false)
+    end
+  else ();
 
-fun print_term ctxt warn a t = prnt ctxt warn (a () ^ "\n" ^ Syntax.string_of_term ctxt t);
+fun print_term ctxt s t =
+  s ^ "\n" ^ Syntax.string_of_term ctxt t;
 
-fun debug ctxt warn a = if_enabled ctxt simp_debug (fn _ => prnt ctxt warn (a ()));
-fun trace ctxt warn a = if_enabled ctxt simp_trace (fn _ => prnt ctxt warn (a ()));
-
-fun debug_term ctxt warn a t = if_enabled ctxt simp_debug (fn _ => print_term ctxt warn a t);
-fun trace_term ctxt warn a t = if_enabled ctxt simp_trace (fn _ => print_term ctxt warn a t);
-
-fun trace_cterm ctxt warn a ct =
-  if_enabled ctxt simp_trace (fn _ => print_term ctxt warn a (Thm.term_of ct));
-
-fun trace_thm ctxt a th =
-  if_enabled ctxt simp_trace (fn _ => print_term ctxt false a (Thm.full_prop_of th));
-
-fun trace_named_thm ctxt a (th, name) =
-  if_enabled ctxt simp_trace (fn _ =>
-    print_term ctxt false
-      (fn () => if name = "" then a () else a () ^ " " ^ quote name ^ ":")
-      (Thm.full_prop_of th));
-
-fun warn_thm ctxt a th = print_term ctxt true a (Thm.full_prop_of th);
-fun cond_warn_thm ctxt a th = Context_Position.if_visible ctxt (fn () => warn_thm ctxt a th) ();
+fun print_thm ctxt s (name, th) =
+  print_term ctxt (if name = "" then s else s ^ " " ^ quote name ^ ":") (Thm.full_prop_of th);
 
 
 
@@ -483,16 +467,19 @@ fun add_prems ths =
 fun del_rrule (rrule as {thm, elhs, ...}) ctxt =
   ctxt |> map_simpset1 (fn (rules, prems, depth) =>
     (Net.delete_term eq_rrule (term_of elhs, rrule) rules, prems, depth))
-  handle Net.DELETE => (cond_warn_thm ctxt (fn () => "Rewrite rule not in simpset:") thm; ctxt);
+  handle Net.DELETE =>
+    (cond_warning ctxt (fn () => print_thm ctxt "Rewrite rule not in simpset:" ("", thm)); ctxt);
 
 fun insert_rrule (rrule as {thm, name, ...}) ctxt =
- (trace_named_thm ctxt (fn () => "Adding rewrite rule") (thm, name);
+ (cond_tracing ctxt simp_trace (fn () => print_thm ctxt "Adding rewrite rule" (name, thm));
   ctxt |> map_simpset1 (fn (rules, prems, depth) =>
     let
       val rrule2 as {elhs, ...} = mk_rrule2 rrule;
       val rules' = Net.insert_term eq_rrule (term_of elhs, rrule2) rules;
     in (rules', prems, depth) end)
-  handle Net.INSERT => (cond_warn_thm ctxt (fn () => "Ignoring duplicate rewrite rule:") thm; ctxt));
+  handle Net.INSERT =>
+    (cond_warning ctxt (fn () => print_thm ctxt "Ignoring duplicate rewrite rule:" ("", thm));
+      ctxt));
 
 local
 
@@ -644,8 +631,7 @@ fun add_eqcong thm ctxt = ctxt |> map_simpset2
       val (xs, weak) = congs;
       val _ =
         if AList.defined (op =) xs a then
-          Context_Position.if_visible ctxt
-            warning ("Overwriting congruence rule for " ^ quote (#2 a))
+          cond_warning ctxt (fn () => "Overwriting congruence rule for " ^ quote (#2 a))
         else ();
       val xs' = AList.update (op =) (a, thm) xs;
       val weak' = if is_full_cong thm then weak else a :: weak;
@@ -694,7 +680,7 @@ fun make_simproc {name, lhss, proc, identifier} =
 
 fun mk_simproc name lhss proc =
   make_simproc {name = name, lhss = lhss, proc = fn _ => fn ctxt => fn ct =>
-    proc ctxt (Thm.term_of ct), identifier = []};
+    proc ctxt (term_of ct), identifier = []};
 
 (* FIXME avoid global thy and Logic.varify_global *)
 fun simproc_global_i thy name = mk_simproc name o map (Thm.cterm_of thy o Logic.varify_global);
@@ -704,14 +690,15 @@ fun simproc_global thy name = simproc_global_i thy name o map (Syntax.read_term_
 local
 
 fun add_proc (proc as Proc {name, lhs, ...}) ctxt =
- (trace_cterm ctxt false (fn () => "Adding simplification procedure " ^ quote name ^ " for") lhs;
+ (cond_tracing ctxt simp_trace (fn () =>
+    print_term ctxt ("Adding simplification procedure " ^ quote name ^ " for") (term_of lhs));
   ctxt |> map_simpset2
     (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
       (congs, Net.insert_term eq_proc (term_of lhs, proc) procs,
         mk_rews, termless, subgoal_tac, loop_tacs, solvers))
   handle Net.INSERT =>
-    (Context_Position.if_visible ctxt
-      warning ("Ignoring duplicate simplification procedure " ^ quote name); ctxt));
+    (cond_warning ctxt (fn () => "Ignoring duplicate simplification procedure " ^ quote name);
+      ctxt));
 
 fun del_proc (proc as Proc {name, lhs, ...}) ctxt =
   ctxt |> map_simpset2
@@ -719,8 +706,8 @@ fun del_proc (proc as Proc {name, lhs, ...}) ctxt =
       (congs, Net.delete_term eq_proc (term_of lhs, proc) procs,
         mk_rews, termless, subgoal_tac, loop_tacs, solvers))
   handle Net.DELETE =>
-    (Context_Position.if_visible ctxt
-      warning ("Simplification procedure " ^ quote name ^ " not in simpset"); ctxt);
+    (cond_warning ctxt (fn () => "Simplification procedure " ^ quote name ^ " not in simpset");
+      ctxt);
 
 fun prep_procs (Simproc {name, lhss, proc, id}) =
   lhss |> map (fn lhs => Proc {name = name, lhs = lhs, proc = Morphism.form proc, id = id});
@@ -797,10 +784,8 @@ fun ctxt delloop name = ctxt |>
   map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
     (congs, procs, mk_rews, termless, subgoal_tac,
      (if AList.defined (op =) loop_tacs name then ()
-      else
-        Context_Position.if_visible ctxt
-          warning ("No such looper in simpset: " ^ quote name);
-        AList.delete (op =) name loop_tacs), solvers));
+      else cond_warning ctxt (fn () => "No such looper in simpset: " ^ quote name);
+      AList.delete (op =) name loop_tacs), solvers));
 
 fun ctxt setSSolver solver = ctxt |> map_simpset2
   (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, (unsafe_solvers, _)) =>
@@ -861,15 +846,18 @@ fun check_conv ctxt msg thm thm' =
     val thm'' = Thm.transitive thm thm' handle THM _ =>
      Thm.transitive thm (Thm.transitive
        (Thm.symmetric (Drule.beta_eta_conversion (Thm.lhs_of thm'))) thm')
-  in if msg then trace_thm ctxt (fn () => "SUCCEEDED") thm' else (); SOME thm'' end
+    val _ =
+      if msg then cond_tracing ctxt simp_trace (fn () => print_thm ctxt "SUCCEEDED" ("", thm'))
+      else ();
+  in SOME thm'' end
   handle THM _ =>
     let
       val _ $ _ $ prop0 = Thm.prop_of thm;
-    in
-      trace_thm ctxt (fn () => "Proved wrong thm (Check subgoaler?)") thm';
-      trace_term ctxt false (fn () => "Should have proved:") prop0;
-      NONE
-    end;
+      val _ =
+        warning
+         (print_thm ctxt "Simplifier: proved wrong theorem (bad subgoaler?)" ("", thm') ^ "\n" ^
+          print_term ctxt "Should have proved:" prop0);
+    in NONE end;
 
 
 (* mk_procrule *)
@@ -877,7 +865,7 @@ fun check_conv ctxt msg thm thm' =
 fun mk_procrule ctxt thm =
   let val (prems, lhs, elhs, rhs, _) = decomp_simp thm in
     if rewrite_rule_extra_vars prems lhs rhs
-    then (cond_warn_thm ctxt (fn () => "Extra vars on rhs:") thm; [])
+    then (cond_warning ctxt (fn () => print_thm ctxt "Extra vars on rhs:" ("", thm)); [])
     else [mk_rrule2 {thm = thm, name = "", lhs = lhs, elhs = elhs, perm = false}]
   end;
 
@@ -946,32 +934,33 @@ fun rewritec (prover, maxt) ctxt t =
       in
         if perm andalso not (termless (rhs', lhs'))
         then
-         (trace_named_thm ctxt (fn () => "Cannot apply permutative rewrite rule") (thm, name);
-          trace_thm ctxt (fn () => "Term does not become smaller:") thm';
+         (cond_tracing ctxt simp_trace (fn () =>
+            print_thm ctxt "Cannot apply permutative rewrite rule" (name, thm) ^ "\n" ^
+            print_thm ctxt "Term does not become smaller:" ("", thm'));
           NONE)
         else
-         (trace_named_thm ctxt (fn () => "Applying instance of rewrite rule") (thm, name);
+         (cond_tracing ctxt simp_trace (fn () =>
+            print_thm ctxt "Applying instance of rewrite rule" (name, thm));
           if unconditional
           then
-           (trace_thm ctxt (fn () => "Rewriting:") thm';
+           (cond_tracing ctxt simp_trace (fn () => print_thm ctxt "Rewriting:" ("", thm'));
             trace_apply trace_args ctxt (fn ctxt' =>
               let
                 val lr = Logic.dest_equals prop;
                 val SOME thm'' = check_conv ctxt' false eta_thm thm';
               in SOME (thm'', uncond_skel (congs, lr)) end))
           else
-           (trace_thm ctxt (fn () => "Trying to rewrite:") thm';
+           (cond_tracing ctxt simp_trace (fn () => print_thm ctxt "Trying to rewrite:" ("", thm'));
             if simp_depth ctxt > Config.get ctxt simp_depth_limit
             then
-              let
-                val s = "simp_depth_limit exceeded - giving up";
-                val _ = trace ctxt false (fn () => s);
-                val _ = Context_Position.if_visible ctxt warning s;
-              in NONE end
+             (cond_tracing ctxt simp_trace (fn () => "simp_depth_limit exceeded - giving up");
+               NONE)
             else
               trace_apply trace_args ctxt (fn ctxt' =>
                 (case prover ctxt' thm' of
-                  NONE => (trace_thm ctxt' (fn () => "FAILED") thm'; NONE)
+                  NONE =>
+                    (cond_tracing ctxt' simp_trace (fn () => print_thm ctxt' "FAILED" ("", thm'));
+                      NONE)
                 | SOME thm2 =>
                     (case check_conv ctxt' true eta_thm thm2 of
                       NONE => NONE
@@ -1002,16 +991,21 @@ fun rewritec (prover, maxt) ctxt t =
 
     fun proc_rews [] = NONE
       | proc_rews (Proc {name, proc, lhs, ...} :: ps) =
-          if Pattern.matches (Proof_Context.theory_of ctxt) (Thm.term_of lhs, Thm.term_of t) then
-            (debug_term ctxt false (fn () => "Trying procedure " ^ quote name ^ " on:") eta_t;
+          if Pattern.matches (Proof_Context.theory_of ctxt) (term_of lhs, term_of t) then
+            (cond_tracing ctxt simp_debug (fn () =>
+              print_term ctxt ("Trying procedure " ^ quote name ^ " on:") eta_t);
              (case proc ctxt eta_t' of
-               NONE => (debug ctxt false (fn () => "FAILED"); proc_rews ps)
+               NONE => (cond_tracing ctxt simp_debug (fn () => "FAILED"); proc_rews ps)
              | SOME raw_thm =>
-                 (trace_thm ctxt (fn () => "Procedure " ^ quote name ^ " produced rewrite rule:")
-                   raw_thm;
+                 (cond_tracing ctxt simp_trace (fn () =>
+                    print_thm ctxt ("Procedure " ^ quote name ^ " produced rewrite rule:")
+                      ("", raw_thm));
                   (case rews (mk_procrule ctxt raw_thm) of
-                    NONE => (trace_cterm ctxt true (fn () => "IGNORED result of simproc " ^ quote name ^
-                      " -- does not match") t; proc_rews ps)
+                    NONE =>
+                     (cond_tracing ctxt simp_trace (fn () =>
+                        print_term ctxt ("IGNORED result of simproc " ^ quote name ^
+                            " -- does not match") (Thm.term_of t));
+                      proc_rews ps)
                   | some => some))))
           else proc_rews ps;
   in
@@ -1034,8 +1028,11 @@ fun congc prover ctxt maxt cong t =
     (* Thm.match can raise Pattern.MATCH;
        is handled when congc is called *)
     val thm' = Thm.instantiate insts (Thm.rename_boundvars (term_of rlhs) (term_of t) rthm);
-    val _ = trace_thm ctxt (fn () => "Applying congruence rule:") thm';
-    fun err (msg, thm) = (trace_thm ctxt (fn () => msg) thm; NONE);
+    val _ =
+      cond_tracing ctxt simp_trace (fn () =>
+        print_thm ctxt "Applying congruence rule:" ("", thm'));
+    fun err (msg, thm) =
+      (cond_tracing ctxt simp_trace (fn () => print_thm ctxt msg ("", thm)); NONE);
   in
     (case prover thm' of
       NONE => err ("Congruence proof failed.  Could not prove", thm')
@@ -1088,7 +1085,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, maxidx) =
                 let
                     val (b, ctxt') = Variable.next_bound (a, T) ctxt;
                     val (v, t') = Thm.dest_abs (SOME b) t0;
-                    val b' = #1 (Term.dest_Free (Thm.term_of v));
+                    val b' = #1 (Term.dest_Free (term_of v));
                     val _ =
                       if b <> b' then
                         warning ("Simplifier: renamed bound variable " ^
@@ -1162,9 +1159,11 @@ fun bottomc ((simprem, useprem, mutsimp), prover, maxidx) =
 
     and rules_of_prem prem ctxt =
       if maxidx_of_term (term_of prem) <> ~1
-      then (trace_cterm ctxt true
-        (fn () => "Cannot add premise as rewrite rule because it contains (type) unknowns:")
-        prem; (([], NONE), ctxt))
+      then
+       (cond_tracing ctxt simp_trace (fn () =>
+          print_term ctxt "Cannot add premise as rewrite rule because it contains (type) unknowns:"
+            (term_of prem));
+        (([], NONE), ctxt))
       else
         let val (asm, ctxt') = Thm.assume_hyps prem ctxt
         in ((extract_safe_rrules ctxt' asm, SOME asm), ctxt') end
@@ -1305,9 +1304,11 @@ fun rewrite_cterm mode prover raw_ctxt raw_ct =
       raw_ctxt
       |> Context_Position.set_visible false
       |> inc_simp_depth
-      |> (fn ctxt => trace_invoke {depth = simp_depth ctxt, term = Thm.term_of ct} ctxt);
+      |> (fn ctxt => trace_invoke {depth = simp_depth ctxt, term = term_of ct} ctxt);
 
-    val _ = trace_cterm ctxt false (fn () => "SIMPLIFIER INVOKED ON THE FOLLOWING TERM:") ct;
+    val _ =
+      cond_tracing ctxt simp_trace (fn () =>
+        print_term ctxt "SIMPLIFIER INVOKED ON THE FOLLOWING TERM:" (term_of ct));
   in bottomc (mode, Option.map Drule.flexflex_unique oo prover, maxidx) ctxt ct end;
 
 val simple_prover =
