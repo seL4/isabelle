@@ -167,7 +167,7 @@ Theory Fun_More:
 - In subsection "Other facts": 
 -- Does the lemma "atLeastLessThan_injective" already exist anywhere? 
 
-Theory Order_Relation_More (and Order_Relation_More_FP):
+Theory Order_Relation_More (and Order_Relation):
 - In subsection "Auxiliaries": 
 -- Recall the lemmas "order_on_defs", "Field_def", "Domain_def", "Range_def", "converse_def". 
 -- Recall that "refl_on r A" forces r to not be defined outside A.  

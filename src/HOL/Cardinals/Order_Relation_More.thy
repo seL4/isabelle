@@ -8,7 +8,7 @@ Basics on order-like relations.
 header {* Basics on Order-Like Relations *}
 
 theory Order_Relation_More
-imports Order_Relation_More_FP Main
+imports Main
 begin
 
 

@@ -8,7 +8,7 @@ More on well-founded relations (FP).
 header {* More on Well-Founded Relations (FP) *}
 
 theory Wellfounded_More_FP
-imports Wfrec Order_Relation_More_FP
+imports Wfrec Order_Relation
 begin
 
 

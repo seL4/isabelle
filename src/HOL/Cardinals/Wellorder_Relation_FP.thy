@@ -28,14 +28,14 @@ for the whole section, we consider a fixed well-order relation @{term "r"}. *}
 
 (* context wo_rel  *)
 
-abbreviation under where "under \<equiv> Order_Relation_More_FP.under r"
-abbreviation underS where "underS \<equiv> Order_Relation_More_FP.underS r"
-abbreviation Under where "Under \<equiv> Order_Relation_More_FP.Under r"
-abbreviation UnderS where "UnderS \<equiv> Order_Relation_More_FP.UnderS r"
-abbreviation above where "above \<equiv> Order_Relation_More_FP.above r"
-abbreviation aboveS where "aboveS \<equiv> Order_Relation_More_FP.aboveS r"
-abbreviation Above where "Above \<equiv> Order_Relation_More_FP.Above r"
-abbreviation AboveS where "AboveS \<equiv> Order_Relation_More_FP.AboveS r"
+abbreviation under where "under \<equiv> Order_Relation.under r"
+abbreviation underS where "underS \<equiv> Order_Relation.underS r"
+abbreviation Under where "Under \<equiv> Order_Relation.Under r"
+abbreviation UnderS where "UnderS \<equiv> Order_Relation.UnderS r"
+abbreviation above where "above \<equiv> Order_Relation.above r"
+abbreviation aboveS where "aboveS \<equiv> Order_Relation.aboveS r"
+abbreviation Above where "Above \<equiv> Order_Relation.Above r"
+abbreviation AboveS where "AboveS \<equiv> Order_Relation.AboveS r"
 
 
 subsection {* Auxiliaries *}
