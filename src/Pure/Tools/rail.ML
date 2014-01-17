@@ -1,4 +1,4 @@
-(*  Title:      Pure/Thy/rail.ML
+(*  Title:      Pure/Tools/rail.ML
     Author:     Michael Kerscher, TU München
     Author:     Makarius
 
@@ -62,7 +62,7 @@ val scan_space = Scan.many1 (Symbol.is_blank o Symbol_Pos.symbol);
 
 val scan_keyword =
   Scan.one
-    (member (op =) ["|", "*", "+", "?", "(", ")", "\\<newline>", ";", ":", "@"] o Symbol_Pos.symbol);
+    (member (op =) ["|", "*", "+", "?", "(", ")", "\<newline>", ";", ":", "@"] o Symbol_Pos.symbol);
 
 val err_prefix = "Rail lexical error: ";
 
@@ -175,7 +175,7 @@ and body2 x = (Scan.repeat1 body3 >> cat) x
 and body3 x = (body4 :|-- (fn a => $$$ "?" >> K (maybe a) || Scan.succeed a)) x
 and body4 x =
  ($$$ "(" |-- !!! (body0 --| $$$ ")") ||
-  $$$ "\\<newline>" >> K (Newline 0) ||
+  $$$ "\<newline>" >> K (Newline 0) ||
   ident >> Nonterminal ||
   at_mode -- string >> Terminal ||
   at_mode -- antiq >> Antiquote) x
@@ -265,7 +265,7 @@ fun output_rules state rules =
 in
 
 val _ = Theory.setup
-  (Thy_Output.antiquotation (Binding.name "rail")
+  (Thy_Output.antiquotation @{binding rail}
     (Scan.lift (Parse.source_position Parse.string))
     (fn {state, ...} => output_rules state o read));
 

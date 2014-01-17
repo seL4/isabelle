@@ -103,6 +103,7 @@ theory Pure
 begin
 
 ML_file "Isar/isar_syn.ML"
+ML_file "Tools/rail.ML"
 ML_file "Tools/rule_insts.ML";
 ML_file "Tools/find_theorems.ML"
 ML_file "Tools/find_consts.ML"

@@ -281,7 +281,6 @@ use "PIDE/query_operation.ML";
 use "Thy/thy_load.ML";
 use "Thy/thy_info.ML";
 use "PIDE/document.ML";
-use "Thy/rail.ML";
 
 (*theory and proof operations*)
 use "Thy/thm_deps.ML";
