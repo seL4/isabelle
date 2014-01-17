@@ -188,7 +188,7 @@ Theory Wellorder_Relation (and Wellorder_Relation_FP):
   Should we define all constants from "wo_rel" in "rel" instead, 
   so that their outside definition not be conditional in "wo_rel r"? 
 
-Theory Wellfounded_More (and Wellfounded_More_FP):
+Theory Wellfounded_More:
   Recall the lemmas "wfrec" and "wf_induct". 
 
 Theory Wellorder_Embedding (and Wellorder_Embedding_FP):

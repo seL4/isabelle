@@ -8,7 +8,7 @@ Well-order relations (FP).
 header {* Well-Order Relations (FP) *}
 
 theory Wellorder_Relation_FP
-imports Wellfounded_More_FP
+imports Order_Relation
 begin
 
 

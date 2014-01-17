@@ -3,6 +3,7 @@
     Author:     Lawrence C Paulson
     Author:     Konrad Slind
     Author:     Alexander Krauss
+    Author:     Andrei Popescu, TU Muenchen
 *)
 
 header {*Well-founded Recursion*}
