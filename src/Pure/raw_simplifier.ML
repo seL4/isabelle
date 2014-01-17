@@ -431,7 +431,7 @@ val simp_trace = Config.bool simp_trace_raw;
 fun cond_warning ctxt msg =
   if Context_Position.is_visible ctxt then warning (msg ()) else ();
 
-fun cond_tracing ctxt flag msg =
+fun cond_tracing' ctxt flag msg =
   if Config.get ctxt flag then
     let
       val Simpset ({depth = (depth, exceeded), ...}, _) = simpset_of ctxt;
@@ -442,6 +442,8 @@ fun cond_tracing ctxt flag msg =
       else (tracing (enclose "[" "]" (string_of_int depth) ^ msg ()); exceeded := false)
     end
   else ();
+
+fun cond_tracing ctxt = cond_tracing' ctxt simp_trace;
 
 fun print_term ctxt s t =
   s ^ "\n" ^ Syntax.string_of_term ctxt t;
@@ -471,7 +473,7 @@ fun del_rrule (rrule as {thm, elhs, ...}) ctxt =
     (cond_warning ctxt (fn () => print_thm ctxt "Rewrite rule not in simpset:" ("", thm)); ctxt);
 
 fun insert_rrule (rrule as {thm, name, ...}) ctxt =
- (cond_tracing ctxt simp_trace (fn () => print_thm ctxt "Adding rewrite rule" (name, thm));
+ (cond_tracing ctxt (fn () => print_thm ctxt "Adding rewrite rule" (name, thm));
   ctxt |> map_simpset1 (fn (rules, prems, depth) =>
     let
       val rrule2 as {elhs, ...} = mk_rrule2 rrule;
@@ -690,7 +692,7 @@ fun simproc_global thy name = simproc_global_i thy name o map (Syntax.read_term_
 local
 
 fun add_proc (proc as Proc {name, lhs, ...}) ctxt =
- (cond_tracing ctxt simp_trace (fn () =>
+ (cond_tracing ctxt (fn () =>
     print_term ctxt ("Adding simplification procedure " ^ quote name ^ " for") (term_of lhs));
   ctxt |> map_simpset2
     (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
@@ -847,7 +849,7 @@ fun check_conv ctxt msg thm thm' =
      Thm.transitive thm (Thm.transitive
        (Thm.symmetric (Drule.beta_eta_conversion (Thm.lhs_of thm'))) thm')
     val _ =
-      if msg then cond_tracing ctxt simp_trace (fn () => print_thm ctxt "SUCCEEDED" ("", thm'))
+      if msg then cond_tracing ctxt (fn () => print_thm ctxt "SUCCEEDED" ("", thm'))
       else ();
   in SOME thm'' end
   handle THM _ =>
@@ -934,33 +936,29 @@ fun rewritec (prover, maxt) ctxt t =
       in
         if perm andalso not (termless (rhs', lhs'))
         then
-         (cond_tracing ctxt simp_trace (fn () =>
+         (cond_tracing ctxt (fn () =>
             print_thm ctxt "Cannot apply permutative rewrite rule" (name, thm) ^ "\n" ^
             print_thm ctxt "Term does not become smaller:" ("", thm'));
           NONE)
         else
-         (cond_tracing ctxt simp_trace (fn () =>
+         (cond_tracing ctxt (fn () =>
             print_thm ctxt "Applying instance of rewrite rule" (name, thm));
           if unconditional
           then
-           (cond_tracing ctxt simp_trace (fn () => print_thm ctxt "Rewriting:" ("", thm'));
+           (cond_tracing ctxt (fn () => print_thm ctxt "Rewriting:" ("", thm'));
             trace_apply trace_args ctxt (fn ctxt' =>
               let
                 val lr = Logic.dest_equals prop;
                 val SOME thm'' = check_conv ctxt' false eta_thm thm';
               in SOME (thm'', uncond_skel (congs, lr)) end))
           else
-           (cond_tracing ctxt simp_trace (fn () => print_thm ctxt "Trying to rewrite:" ("", thm'));
+           (cond_tracing ctxt (fn () => print_thm ctxt "Trying to rewrite:" ("", thm'));
             if simp_depth ctxt > Config.get ctxt simp_depth_limit
-            then
-             (cond_tracing ctxt simp_trace (fn () => "simp_depth_limit exceeded - giving up");
-               NONE)
+            then (cond_tracing ctxt (fn () => "simp_depth_limit exceeded - giving up"); NONE)
             else
               trace_apply trace_args ctxt (fn ctxt' =>
                 (case prover ctxt' thm' of
-                  NONE =>
-                    (cond_tracing ctxt' simp_trace (fn () => print_thm ctxt' "FAILED" ("", thm'));
-                      NONE)
+                  NONE => (cond_tracing ctxt' (fn () => print_thm ctxt' "FAILED" ("", thm')); NONE)
                 | SOME thm2 =>
                     (case check_conv ctxt' true eta_thm thm2 of
                       NONE => NONE
@@ -992,17 +990,17 @@ fun rewritec (prover, maxt) ctxt t =
     fun proc_rews [] = NONE
       | proc_rews (Proc {name, proc, lhs, ...} :: ps) =
           if Pattern.matches (Proof_Context.theory_of ctxt) (term_of lhs, term_of t) then
-            (cond_tracing ctxt simp_debug (fn () =>
+            (cond_tracing' ctxt simp_debug (fn () =>
               print_term ctxt ("Trying procedure " ^ quote name ^ " on:") eta_t);
              (case proc ctxt eta_t' of
-               NONE => (cond_tracing ctxt simp_debug (fn () => "FAILED"); proc_rews ps)
+               NONE => (cond_tracing' ctxt simp_debug (fn () => "FAILED"); proc_rews ps)
              | SOME raw_thm =>
-                 (cond_tracing ctxt simp_trace (fn () =>
+                 (cond_tracing ctxt (fn () =>
                     print_thm ctxt ("Procedure " ^ quote name ^ " produced rewrite rule:")
                       ("", raw_thm));
                   (case rews (mk_procrule ctxt raw_thm) of
                     NONE =>
-                     (cond_tracing ctxt simp_trace (fn () =>
+                     (cond_tracing ctxt (fn () =>
                         print_term ctxt ("IGNORED result of simproc " ^ quote name ^
                             " -- does not match") (Thm.term_of t));
                       proc_rews ps)
@@ -1029,10 +1027,8 @@ fun congc prover ctxt maxt cong t =
        is handled when congc is called *)
     val thm' = Thm.instantiate insts (Thm.rename_boundvars (term_of rlhs) (term_of t) rthm);
     val _ =
-      cond_tracing ctxt simp_trace (fn () =>
-        print_thm ctxt "Applying congruence rule:" ("", thm'));
-    fun err (msg, thm) =
-      (cond_tracing ctxt simp_trace (fn () => print_thm ctxt msg ("", thm)); NONE);
+      cond_tracing ctxt (fn () => print_thm ctxt "Applying congruence rule:" ("", thm'));
+    fun err (msg, thm) = (cond_tracing ctxt (fn () => print_thm ctxt msg ("", thm)); NONE);
   in
     (case prover thm' of
       NONE => err ("Congruence proof failed.  Could not prove", thm')
@@ -1160,7 +1156,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, maxidx) =
     and rules_of_prem prem ctxt =
       if maxidx_of_term (term_of prem) <> ~1
       then
-       (cond_tracing ctxt simp_trace (fn () =>
+       (cond_tracing ctxt (fn () =>
           print_term ctxt "Cannot add premise as rewrite rule because it contains (type) unknowns:"
             (term_of prem));
         (([], NONE), ctxt))
@@ -1307,7 +1303,7 @@ fun rewrite_cterm mode prover raw_ctxt raw_ct =
       |> (fn ctxt => trace_invoke {depth = simp_depth ctxt, term = term_of ct} ctxt);
 
     val _ =
-      cond_tracing ctxt simp_trace (fn () =>
+      cond_tracing ctxt (fn () =>
         print_term ctxt "SIMPLIFIER INVOKED ON THE FOLLOWING TERM:" (term_of ct));
   in bottomc (mode, Option.map Drule.flexflex_unique oo prover, maxidx) ctxt ct end;
 
