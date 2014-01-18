@@ -23,6 +23,7 @@ object Scan
   case object Finished extends Context
   case class Quoted(quote: String) extends Context
   case object Verbatim extends Context
+  case class Cartouche(depth: Int) extends Context
   case class Comment(depth: Int) extends Context
 
 
@@ -274,6 +275,72 @@ object Scan
       "{*" ~ verbatim_body ^^ { case x ~ y => x + y }
 
 
+    /* nested text cartouches */
+
+    private def cartouche_depth(depth: Int): Parser[(String, Int)] = new Parser[(String, Int)]
+    {
+      require(depth >= 0)
+
+      def apply(in: Input) =
+      {
+        val start = in.offset
+        val end = in.source.length
+        val matcher = new Symbol.Matcher(in.source)
+
+        var i = start
+        var d = depth
+        var finished = false
+        while (!finished) {
+          if (i < end) {
+            val n = matcher(i, end)
+            val sym = in.source.subSequence(i, i + n).toString
+
+            if (Symbol.is_open(sym)) { i += n; d += 1 }
+            else if (d > 0) {
+              i += n
+              if (Symbol.is_close(sym)) d -= 1
+            }
+            else finished = true
+          }
+          else finished = true
+        }
+        if (i == start) Failure("bad input", in)
+        else Success((in.source.subSequence(start, i).toString, d), in.drop(i - start))
+      }
+    }.named("cartouche_depth")
+
+    def cartouche: Parser[String] =
+      cartouche_depth(0) ^? { case (x, d) if d == 0 => x }
+
+    def cartouche_context(ctxt: Context): Parser[(String, Context)] =
+    {
+      val depth =
+        ctxt match {
+          case Finished => 0
+          case Cartouche(d) => d
+          case _ => -1
+        }
+      if (depth >= 0)
+        cartouche_depth(depth) ^^
+          { case (x, 0) => (x, Finished)
+            case (x, d) => (x, Cartouche(d)) }
+      else failure("")
+    }
+
+    val recover_cartouche: Parser[String] =
+      cartouche_depth(0) ^^ (_._1)
+
+    def cartouche_content(source: String): String =
+    {
+      def err(): Nothing = error("Malformed text cartouche: " + quote(source))
+      val source1 =
+        Library.try_unprefix(Symbol.open_decoded, source) orElse
+          Library.try_unprefix(Symbol.open, source) getOrElse err()
+      Library.try_unsuffix(Symbol.close_decoded, source1) orElse
+        Library.try_unsuffix(Symbol.close, source1) getOrElse err()
+    }
+
+
     /* nested comments */
 
     private def comment_depth(depth: Int): Parser[(String, Int)] = new Parser[(String, Int)]
@@ -309,11 +376,6 @@ object Scan
     def comment: Parser[String] =
       comment_depth(0) ^? { case (x, d) if d == 0 => x }
 
-    def comment_content(source: String): String =
-    {
-      require(parseAll(comment, source).successful)
-      source.substring(2, source.length - 2)
-    }
     def comment_context(ctxt: Context): Parser[(String, Context)] =
     {
       val depth =
@@ -332,6 +394,12 @@ object Scan
     val recover_comment: Parser[String] =
       comment_depth(0) ^^ (_._1)
 
+    def comment_content(source: String): String =
+    {
+      require(parseAll(comment, source).successful)
+      source.substring(2, source.length - 2)
+    }
+
 
     /* outer syntax tokens */
 
@@ -340,9 +408,10 @@ object Scan
       val string = quoted("\"") ^^ (x => Token(Token.Kind.STRING, x))
       val alt_string = quoted("`") ^^ (x => Token(Token.Kind.ALT_STRING, x))
       val verb = verbatim ^^ (x => Token(Token.Kind.VERBATIM, x))
+      val cart = cartouche ^^ (x => Token(Token.Kind.CARTOUCHE, x))
       val cmt = comment ^^ (x => Token(Token.Kind.COMMENT, x))
 
-      string | (alt_string | (verb | cmt))
+      string | (alt_string | (verb | (cart | cmt)))
     }
 
     private def other_token(is_command: String => Boolean)
@@ -380,8 +449,10 @@ object Scan
       val space = many1(Symbol.is_blank) ^^ (x => Token(Token.Kind.SPACE, x))
 
       val recover_delimited =
-        (recover_quoted("\"") | (recover_quoted("`") | (recover_verbatim | recover_comment))) ^^
-          (x => Token(Token.Kind.ERROR, x))
+        (recover_quoted("\"") |
+          (recover_quoted("`") |
+            (recover_verbatim |
+              (recover_cartouche | recover_comment)))) ^^ (x => Token(Token.Kind.ERROR, x))
 
       val bad = one(_ => true) ^^ (x => Token(Token.Kind.ERROR, x))
 
@@ -400,10 +471,11 @@ object Scan
       val alt_string =
         quoted_context("`", ctxt) ^^ { case (x, c) => (Token(Token.Kind.ALT_STRING, x), c) }
       val verb = verbatim_context(ctxt) ^^ { case (x, c) => (Token(Token.Kind.VERBATIM, x), c) }
+      val cart = cartouche_context(ctxt) ^^ { case (x, c) => (Token(Token.Kind.CARTOUCHE, x), c) }
       val cmt = comment_context(ctxt) ^^ { case (x, c) => (Token(Token.Kind.COMMENT, x), c) }
       val other = other_token(is_command) ^^ { case x => (x, Finished) }
 
-      string | (alt_string | (verb | (cmt | other)))
+      string | (alt_string | (verb | (cart | (cmt | other))))
     }
   }
 }

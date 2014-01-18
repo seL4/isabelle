@@ -125,6 +125,8 @@ fun output_basic tok =
         val ants = Antiquote.read (Symbol_Pos.explode (txt, pos), pos);
         val out = implode (map output_syms_antiq ants);
       in enclose "{\\isacharverbatimopen}" "{\\isacharverbatimclose}" out end
+    else if Token.is_kind Token.Cartouche tok then
+      enclose "{\\isacartoucheopen}" "{\\isacartoucheclose}" (output_syms s)
     else output_syms s
   end;
 

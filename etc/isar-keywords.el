@@ -38,6 +38,7 @@
     "bundle"
     "by"
     "cannot_undo"
+    "cartouche"
     "case"
     "case_of_simps"
     "cd"
@@ -389,6 +390,7 @@
 (defconst isar-keywords-diag
   '("ML_command"
     "ML_val"
+    "cartouche"
     "class_deps"
     "code_deps"
     "code_thms"

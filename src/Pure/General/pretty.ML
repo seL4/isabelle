@@ -51,6 +51,7 @@ sig
   val block_enclose: T * T -> T list -> T
   val quote: T -> T
   val backquote: T -> T
+  val cartouche: T -> T
   val separate: string -> T list -> T list
   val commas: T list -> T list
   val enclose: string -> string -> T list -> T
@@ -182,6 +183,7 @@ fun block_enclose (prt1, prt2) prts = chunks [block (fbreaks (prt1 :: prts)), pr
 
 fun quote prt = blk (1, [str "\"", prt, str "\""]);
 fun backquote prt = blk (1, [str "`", prt, str "`"]);
+fun cartouche prt = blk (1, [str "\\<open>", prt, str "\\<close>"]);
 
 fun separate sep prts =
   flat (Library.separate [str sep, brk 1] (map single prts));

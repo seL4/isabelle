@@ -30,6 +30,7 @@ body { background-color: #FFFFFF; }
 .literal        { font-weight: bold; }
 .delimiter      { }
 .inner_string   { color: #D2691E; }
+.inner_cartouche { color: #CC6600; }
 .inner_comment  { color: #8B0000; }
 
 .bold           { font-weight: bold; }
@@ -40,6 +41,7 @@ body { background-color: #FFFFFF; }
 .string         { color: #008B00; }
 .altstring      { color: #8B8B00; }
 .verbatim       { color: #00008B; }
+.cartouche      { color: #CC6600; }
 .comment        { color: #8B0000; }
 .control        { background-color: #FF6A6A; }
 .bad            { background-color: #FF6A6A; }

@@ -366,6 +366,12 @@ object Symbol
     val symbolic = recode_set((for { (sym, _) <- symbols; if raw_symbolic(sym) } yield sym): _*)
 
 
+    /* cartouches */
+
+    val open_decoded = decode(open)
+    val close_decoded = decode(close)
+
+
     /* control symbols */
 
     val ctrl_decoded: Set[Symbol] =
@@ -420,11 +426,28 @@ object Symbol
   def is_letdig(sym: Symbol): Boolean = is_letter(sym) || is_digit(sym) || is_quasi(sym)
   def is_blank(sym: Symbol): Boolean = symbols.blanks.contains(sym)
 
-  def is_symbolic_char(sym: Symbol): Boolean = symbols.sym_chars.contains(sym)
-  def is_symbolic(sym: Symbol): Boolean = raw_symbolic(sym) || symbols.symbolic.contains(sym)
+
+  /* cartouches */
+
+  val open = "\\<open>"
+  val close = "\\<close>"
+
+  def open_decoded: Symbol = symbols.open_decoded
+  def close_decoded: Symbol = symbols.close_decoded
+
+  def is_open(sym: Symbol): Boolean = sym == open_decoded || sym == open
+  def is_close(sym: Symbol): Boolean = sym == close_decoded || sym == close
+
+
+  /* symbols for symbolic identifiers */
 
   private def raw_symbolic(sym: Symbol): Boolean =
     sym.startsWith("\\<") && sym.endsWith(">") && !sym.startsWith("\\<^")
+
+  def is_symbolic(sym: Symbol): Boolean =
+    !is_open(sym) && !is_close(sym) && (raw_symbolic(sym) || symbols.symbolic.contains(sym))
+
+  def is_symbolic_char(sym: Symbol): Boolean = symbols.sym_chars.contains(sym)
 
 
   /* control symbols */
@@ -433,7 +456,7 @@ object Symbol
     sym.startsWith("\\<^") || symbols.ctrl_decoded.contains(sym)
 
   def is_controllable(sym: Symbol): Boolean =
-    !is_blank(sym) && !is_ctrl(sym) && !is_malformed(sym)
+    !is_blank(sym) && !is_ctrl(sym) && !is_open(sym) && !is_close(sym) && !is_malformed(sym)
 
   def sub_decoded: Symbol = symbols.sub_decoded
   def sup_decoded: Symbol = symbols.sup_decoded

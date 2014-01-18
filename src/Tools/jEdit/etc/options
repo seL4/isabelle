@@ -92,6 +92,7 @@ option bound_color : string = "008000FF"
 option var_color : string = "00009BFF"
 option inner_numeral_color : string = "FF0000FF"
 option inner_quoted_color : string = "D2691EFF"
+option inner_cartouche_color : string = "CC6600FF"
 option inner_comment_color : string = "8B0000FF"
 option dynamic_color : string = "7BA428FF"
 

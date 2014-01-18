@@ -227,7 +227,7 @@ fun goal_spec x = Scan.lift (Scan.optional goal (fn tac => tac 1)) x;
 
 val argument_kinds =
  [Token.Ident, Token.LongIdent, Token.SymIdent, Token.Var, Token.TypeIdent, Token.TypeVar,
-  Token.Nat, Token.Float, Token.String, Token.AltString, Token.Verbatim];
+  Token.Nat, Token.Float, Token.String, Token.AltString, Token.Cartouche, Token.Verbatim];
 
 fun parse_args is_symid =
   let

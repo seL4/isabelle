@@ -99,6 +99,7 @@ object Rendering
       Token.Kind.STRING -> LITERAL1,
       Token.Kind.ALT_STRING -> LITERAL2,
       Token.Kind.VERBATIM -> COMMENT3,
+      Token.Kind.CARTOUCHE -> COMMENT4,
       Token.Kind.SPACE -> NULL,
       Token.Kind.COMMENT -> COMMENT1,
       Token.Kind.ERROR -> INVALID
@@ -156,6 +157,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val var_color = color_value("var_color")
   val inner_numeral_color = color_value("inner_numeral_color")
   val inner_quoted_color = color_value("inner_quoted_color")
+  val inner_cartouche_color = color_value("inner_cartouche_color")
   val inner_comment_color = color_value("inner_comment_color")
   val dynamic_color = color_value("dynamic_color")
 
@@ -593,6 +595,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       Markup.BOUND -> bound_color,
       Markup.VAR -> var_color,
       Markup.INNER_STRING -> inner_quoted_color,
+      Markup.INNER_CARTOUCHE -> inner_cartouche_color,
       Markup.INNER_COMMENT -> inner_comment_color,
       Markup.DYNAMIC_FACT -> dynamic_color,
       Markup.ML_KEYWORD -> keyword1_color,

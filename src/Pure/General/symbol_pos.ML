@@ -13,6 +13,7 @@ sig
   val $$$ : Symbol.symbol -> T list -> T list * T list
   val ~$$$ : Symbol.symbol -> T list -> T list * T list
   val content: T list -> string
+  val range: T list -> Position.range
   val is_eof: T -> bool
   val stopper: T Scan.stopper
   val !!! : Scan.message -> (T list -> 'a) -> T list -> 'a
@@ -27,6 +28,12 @@ sig
   val quote_string_q: string -> string
   val quote_string_qq: string -> string
   val quote_string_bq: string -> string
+  val scan_cartouche: (string -> (T list -> T list * T list) -> T list -> T list * T list) ->
+    T list -> T list * T list
+  val scan_cartouche_body: (string -> (T list -> T list * T list) -> T list -> T list * T list) ->
+    T list -> T list * T list
+  val recover_cartouche: T list -> T list * T list
+  val cartouche_content: T list -> T list
   val scan_comment: (string -> (T list -> T list * T list) -> T list -> T list * T list) ->
     T list -> T list * T list
   val scan_comment_body: (string -> (T list -> T list * T list) -> T list -> T list * T list) ->
@@ -36,7 +43,6 @@ sig
     (T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source
   type text = string
   val implode: T list -> text
-  val range: T list -> Position.range
   val implode_range: Position.T -> Position.T -> T list -> text * Position.range
   val explode: text * Position.T -> T list
   val scan_ident: T list -> T list * T list
@@ -53,6 +59,11 @@ type T = Symbol.symbol * Position.T;
 fun symbol ((s, _): T) = s;
 
 val content = implode o map symbol;
+
+fun range (syms as (_, pos) :: _) =
+      let val pos' = List.last syms |-> Position.advance
+      in Position.range pos pos' end
+  | range [] = Position.no_range;
 
 
 (* stopper *)
@@ -81,6 +92,7 @@ fun !!! text scan =
 
 fun change_prompt scan = Scan.prompt "# " scan;
 
+fun $$ s = Scan.one (fn x => symbol x = s);
 fun $$$ s = Scan.one (fn x => symbol x = s) >> single;
 fun ~$$$ s = Scan.one (fn x => symbol x <> s) >> single;
 
@@ -147,6 +159,47 @@ val quote_string_bq = quote_string "`";
 end;
 
 
+(* nested text cartouches *)
+
+local
+
+val scan_cart =
+  Scan.depend (fn (d: int) => $$ "\\<open>" >> pair (d + 1)) ||
+  Scan.depend (fn 0 => Scan.fail | d => $$ "\\<close>" >> pair (d - 1)) ||
+  Scan.lift (Scan.one (fn (s, _) => s <> "\\<close>" andalso Symbol.is_regular s));
+
+val scan_carts = Scan.pass 0 (Scan.repeat scan_cart);
+
+val scan_body = change_prompt scan_carts;
+
+in
+
+fun scan_cartouche cut =
+  $$ "\\<open>" ::: cut "unclosed text cartouche" (scan_body @@@ $$$ "\\<close>");
+
+fun scan_cartouche_body cut =
+  $$ "\\<open>" |-- cut "unclosed text cartouche" (scan_body --| $$ "\\<close>");
+
+val recover_cartouche =
+  $$$ "\\<open>" @@@ scan_carts;
+
+end;
+
+fun cartouche_content syms =
+  let
+    fun err () =
+      error ("Malformed text cartouche: " ^ quote (content syms) ^
+        Position.here (Position.set_range (range syms)));
+  in
+    (case syms of
+      ("\\<open>", _) :: rest =>
+        (case rev rest of
+          ("\\<close>", _) :: rrest => rev rrest
+        | _ => err ())
+    | _ => err ())
+  end;
+
+
 (* ML-style comments *)
 
 local
@@ -195,11 +248,6 @@ fun pad [] = []
       in s1 :: replicate d Symbol.DEL @ pad rest end;
 
 val implode = implode o pad;
-
-fun range (syms as (_, pos) :: _) =
-      let val pos' = List.last syms |-> Position.advance
-      in Position.range pos pos' end
-  | range [] = Position.no_range;
 
 fun implode_range pos1 pos2 syms =
   let val syms' = (("", pos1) :: syms @ [("", pos2)])

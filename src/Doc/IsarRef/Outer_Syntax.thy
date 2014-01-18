@@ -147,6 +147,7 @@ text {* The outer lexical syntax consists of three main categories of
     @{syntax_def typevar} & = & @{verbatim "?"}@{text "typefree  |  "}@{verbatim "?"}@{text typefree}@{verbatim "."}@{text nat} \\
     @{syntax_def string} & = & @{verbatim "\""} @{text "\<dots>"} @{verbatim "\""} \\
     @{syntax_def altstring} & = & @{verbatim "`"} @{text "\<dots>"} @{verbatim "`"} \\
+    @{syntax_def cartouche} & = & @{verbatim "\<open>"} @{text "\<dots>"} @{verbatim "\<close>"} \\
     @{syntax_def verbatim} & = & @{verbatim "{*"} @{text "\<dots>"} @{verbatim "*"}@{verbatim "}"} \\[1ex]
 
     @{text letter} & = & @{text "latin  |  "}@{verbatim "\\"}@{verbatim "<"}@{text latin}@{verbatim ">"}@{text "  |  "}@{verbatim "\\"}@{verbatim "<"}@{text "latin latin"}@{verbatim ">"}@{text "  |  greek  |"} \\
@@ -190,6 +191,11 @@ text {* The outer lexical syntax consists of three main categories of
   way to escape ``@{verbatim "*"}@{verbatim "}"}''.  If the quoted
   text is {\LaTeX} source, one may usually add some blank or comment
   to avoid the critical character sequence.
+
+  A @{syntax_ref cartouche} consists of arbitrary text, with properly
+  balanced blocks of ``@{verbatim "\<open>"}~@{text "\<dots>"}~@{verbatim
+  "\<close>"}''.  Note that the rendering of cartouche delimiters is
+  usually like this: ``@{text "\<open> \<dots> \<close>"}''.
 
   Source comments take the form @{verbatim "(*"}~@{text
   "\<dots>"}~@{verbatim "*)"} and may be nested, although the user-interface

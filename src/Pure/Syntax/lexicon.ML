@@ -25,7 +25,7 @@ sig
   val is_tid: string -> bool
   datatype token_kind =
     Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy |
-    NumSy | FloatSy | XNumSy | StrSy | Space | Comment | EOF
+    NumSy | FloatSy | XNumSy | StrSy | Cartouche | Space | Comment | EOF
   datatype token = Token of token_kind * string * Position.range
   val str_of_token: token -> string
   val pos_of_token: token -> Position.T
@@ -120,7 +120,7 @@ fun is_tid s =
 
 datatype token_kind =
   Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy |
-  NumSy | FloatSy | XNumSy | StrSy | Space | Comment | EOF;
+  NumSy | FloatSy | XNumSy | StrSy | Cartouche | Space | Comment | EOF;
 
 datatype token = Token of token_kind * string * Position.range;
 
@@ -160,7 +160,8 @@ val terminal_kinds =
   ("num_token", NumSy),
   ("float_token", FloatSy),
   ("xnum_token", XNumSy),
-  ("str_token", StrSy)];
+  ("str_token", StrSy),
+  ("cartouche", Cartouche)];
 
 val terminals = map #1 terminal_kinds;
 val is_terminal = member (op =) terminals;
@@ -175,13 +176,14 @@ fun literal_markup s =
 
 val token_kind_markup =
  fn TFreeSy => Markup.tfree
-  | TVarSy  => Markup.tvar
-  | NumSy   => Markup.numeral
+  | TVarSy => Markup.tvar
+  | NumSy => Markup.numeral
   | FloatSy => Markup.numeral
-  | XNumSy  => Markup.numeral
-  | StrSy   => Markup.inner_string
+  | XNumSy => Markup.numeral
+  | StrSy => Markup.inner_string
+  | Cartouche => Markup.inner_cartouche
   | Comment => Markup.inner_comment
-  | _       => Markup.empty;
+  | _ => Markup.empty;
 
 fun report_of_token (Token (kind, s, (pos, _))) =
   let val markup = if kind = Literal then literal_markup s else token_kind_markup kind
@@ -267,6 +269,7 @@ fun tokenize lex xids syms =
     val scan_lit = Scan.literal lex >> token Literal;
 
     val scan_token =
+      Symbol_Pos.scan_cartouche !!! >> token Cartouche ||
       Symbol_Pos.scan_comment !!! >> token Comment ||
       Scan.max token_leq scan_lit scan_val ||
       scan_str >> token StrSy ||

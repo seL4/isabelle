@@ -26,6 +26,7 @@ object Token
     val STRING = Value("string")
     val ALT_STRING = Value("back-quoted string")
     val VERBATIM = Value("verbatim text")
+    val CARTOUCHE = Value("cartouche")
     val SPACE = Value("white space")
     val COMMENT = Value("comment text")
     val ERROR = Value("bad input")
@@ -74,6 +75,7 @@ sealed case class Token(val kind: Token.Kind.Value, val source: String)
     kind == Token.Kind.STRING ||
     kind == Token.Kind.ALT_STRING ||
     kind == Token.Kind.VERBATIM ||
+    kind == Token.Kind.CARTOUCHE ||
     kind == Token.Kind.COMMENT
   def is_ident: Boolean = kind == Token.Kind.IDENT
   def is_sym_ident: Boolean = kind == Token.Kind.SYM_IDENT
@@ -107,6 +109,7 @@ sealed case class Token(val kind: Token.Kind.Value, val source: String)
     if (kind == Token.Kind.STRING) Scan.Lexicon.empty.quoted_content("\"", source)
     else if (kind == Token.Kind.ALT_STRING) Scan.Lexicon.empty.quoted_content("`", source)
     else if (kind == Token.Kind.VERBATIM) Scan.Lexicon.empty.verbatim_content(source)
+    else if (kind == Token.Kind.CARTOUCHE) Scan.Lexicon.empty.cartouche_content(source)
     else if (kind == Token.Kind.COMMENT) Scan.Lexicon.empty.comment_content(source)
     else source
 

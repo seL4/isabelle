@@ -56,6 +56,7 @@ val token_kind_markup =
   | Token.String        => (Markup.string, "")
   | Token.AltString     => (Markup.altstring, "")
   | Token.Verbatim      => (Markup.verbatim, "")
+  | Token.Cartouche     => (Markup.cartouche, "")
   | Token.Space         => (Markup.empty, "")
   | Token.Comment       => (Markup.comment, "")
   | Token.InternalValue => (Markup.empty, "")

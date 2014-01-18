@@ -133,6 +133,7 @@ object Markup
   val LITERAL = "literal"
   val DELIMITER = "delimiter"
   val INNER_STRING = "inner_string"
+  val INNER_CARTOUCHE = "inner_cartouche"
   val INNER_COMMENT = "inner_comment"
 
   val TOKEN_RANGE = "token_range"
@@ -190,6 +191,7 @@ object Markup
   val STRING = "string"
   val ALTSTRING = "altstring"
   val VERBATIM = "verbatim"
+  val CARTOUCHE = "cartouche"
   val COMMENT = "comment"
   val CONTROL = "control"
 

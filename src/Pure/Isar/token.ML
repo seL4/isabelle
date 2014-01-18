@@ -8,7 +8,7 @@ signature TOKEN =
 sig
   datatype kind =
     Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
-    Nat | Float | String | AltString | Verbatim | Space | Comment | InternalValue |
+    Nat | Float | String | AltString | Verbatim | Cartouche | Space | Comment | InternalValue |
     Error of string | Sync | EOF
   type file = {src_path: Path.T, text: string, pos: Position.T}
   datatype value =
@@ -100,7 +100,7 @@ datatype slot =
 
 datatype kind =
   Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
-  Nat | Float | String | AltString | Verbatim | Space | Comment | InternalValue |
+  Nat | Float | String | AltString | Verbatim | Cartouche | Space | Comment | InternalValue |
   Error of string | Sync | EOF;
 
 datatype T = Token of (Symbol_Pos.text * Position.range) * (kind * string) * slot;
@@ -119,6 +119,7 @@ val str_of_kind =
   | String => "string"
   | AltString => "back-quoted string"
   | Verbatim => "verbatim text"
+  | Cartouche => "cartouche"
   | Space => "white space"
   | Comment => "comment text"
   | InternalValue => "internal value"
@@ -221,6 +222,7 @@ fun unparse (Token (_, (kind, x), _)) =
     String => Symbol_Pos.quote_string_qq x
   | AltString => Symbol_Pos.quote_string_bq x
   | Verbatim => enclose "{*" "*}" x
+  | Cartouche => cartouche x
   | Comment => enclose "(*" "*)" x
   | Sync => ""
   | EOF => ""
@@ -300,16 +302,14 @@ fun !!! msg = Symbol_Pos.!!! (fn () => err_prefix ^ msg);
 
 (* scan symbolic idents *)
 
-val is_sym_char = member (op =) (raw_explode "!#$%&*+-/<=>?@^_|~");
-
 val scan_symid =
-  Scan.many1 (is_sym_char o Symbol_Pos.symbol) ||
+  Scan.many1 (Symbol.is_symbolic_char o Symbol_Pos.symbol) ||
   Scan.one (Symbol.is_symbolic o Symbol_Pos.symbol) >> single;
 
 fun is_symid str =
   (case try Symbol.explode str of
-    SOME [s] => Symbol.is_symbolic s orelse is_sym_char s
-  | SOME ss => forall is_sym_char ss
+    SOME [s] => Symbol.is_symbolic s orelse Symbol.is_symbolic_char s
+  | SOME ss => forall Symbol.is_symbolic_char ss
   | _ => false);
 
 fun ident_or_symbolic "begin" = false
@@ -331,6 +331,12 @@ val scan_verbatim =
 
 val recover_verbatim =
   $$$ "{" @@@ $$$ "*" @@@ (Scan.repeat scan_verb >> flat);
+
+
+(* scan cartouche *)
+
+val scan_cartouche =
+  Symbol_Pos.scan_pos -- (Symbol_Pos.scan_cartouche_body !!! -- Symbol_Pos.scan_pos);
 
 
 (* scan space *)
@@ -367,6 +373,7 @@ fun scan (lex1, lex2) = !!! "bad input"
   (Symbol_Pos.scan_string_qq err_prefix >> token_range String ||
     Symbol_Pos.scan_string_bq err_prefix >> token_range AltString ||
     scan_verbatim >> token_range Verbatim ||
+    scan_cartouche >> token_range Cartouche ||
     scan_comment >> token_range Comment ||
     scan_space >> token Space ||
     Scan.one (Symbol.is_sync o Symbol_Pos.symbol) >> (token Sync o single) ||
@@ -387,6 +394,7 @@ fun recover msg =
   (Symbol_Pos.recover_string_qq ||
     Symbol_Pos.recover_string_bq ||
     recover_verbatim ||
+    Symbol_Pos.recover_cartouche ||
     Symbol_Pos.recover_comment ||
     Scan.one (Symbol.is_regular o Symbol_Pos.symbol) >> single)
   >> (single o token (Error msg));

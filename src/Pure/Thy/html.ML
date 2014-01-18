@@ -188,6 +188,8 @@ local
     ("\\<longleftrightarrow>", (3, "&lt;-&gt;")),
     ("\\<longrightarrow>", (3, "--&gt;")),
     ("\\<rightarrow>", (2, "-&gt;")),
+    ("\\<open>", (1, "&#8249;")),
+    ("\\<close>", (1, "&#8250;")),
     ("\\<^bsub>", (0, hidden "&#8664;" ^ "<sub>")),
     ("\\<^esub>", (0, hidden "&#8665;" ^ "</sub>")),
     ("\\<^bsup>", (0, hidden "&#8663;" ^ "<sup>")),

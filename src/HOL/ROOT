@@ -562,6 +562,7 @@ session "HOL-ex" in ex = HOL +
     SVC_Oracle
     Simps_Case_Conv_Examples
     ML
+    Cartouche_Examples
   theories [skip_proofs = false]
     Meson_Test
   theories [condition = SVC_HOME]

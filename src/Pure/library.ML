@@ -139,6 +139,7 @@ sig
   val enclose: string -> string -> string -> string
   val unenclose: string -> string
   val quote: string -> string
+  val cartouche: string -> string
   val space_implode: string -> string list -> string
   val commas: string list -> string
   val commas_quote: string list -> string
@@ -728,6 +729,8 @@ fun unenclose str = String.substring (str, 1, size str - 2);
 
 (*simple quoting (does not escape special chars)*)
 val quote = enclose "\"" "\"";
+
+val cartouche = enclose "\\<open>" "\\<close>";
 
 fun space_implode a bs = implode (separate a bs);
 

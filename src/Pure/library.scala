@@ -110,6 +110,9 @@ object Library
   def try_unprefix(prfx: String, s: String): Option[String] =
     if (s.startsWith(prfx)) Some(s.substring(prfx.length)) else None
 
+  def try_unsuffix(sffx: String, s: String): Option[String] =
+    if (s.endsWith(sffx)) Some(s.substring(0, s.length - sffx.length)) else None
+
   def trim_line(s: String): String =
     if (s.endsWith("\r\n")) s.substring(0, s.length - 2)
     else if (s.endsWith("\r") || s.endsWith("\n")) s.substring(0, s.length - 1)

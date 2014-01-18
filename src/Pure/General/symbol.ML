@@ -13,6 +13,7 @@ sig
   val is_char: symbol -> bool
   val is_utf8: symbol -> bool
   val is_symbolic: symbol -> bool
+  val is_symbolic_char: symbol -> bool
   val is_printable: symbol -> bool
   val eof: symbol
   val is_eof: symbol -> bool
@@ -98,12 +99,17 @@ fun is_char s = size s = 1;
 
 fun is_utf8 s = size s > 0 andalso forall_string (fn c => ord c >= 128) s;
 
-fun is_symbolic s =
+fun raw_symbolic s =
   String.isPrefix "\\<" s andalso String.isSuffix ">" s andalso not (String.isPrefix "\\<^" s);
+
+fun is_symbolic s =
+  s <> "\\<open>" andalso s <> "\\<close>" andalso raw_symbolic s;
+
+val is_symbolic_char = member (op =) (raw_explode "!#$%&*+-/<=>?@^_|~");
 
 fun is_printable s =
   if is_char s then ord space <= ord s andalso ord s <= ord "~"
-  else is_utf8 s orelse is_symbolic s;
+  else is_utf8 s orelse raw_symbolic s;
 
 
 (* input source control *)
@@ -517,7 +523,7 @@ fun strip_blanks s =
 
 fun symbolic_end (_ :: "\\<^sub>" :: _) = true
   | symbolic_end ("'" :: ss) = symbolic_end ss
-  | symbolic_end (s :: _) = is_symbolic s
+  | symbolic_end (s :: _) = raw_symbolic s
   | symbolic_end [] = false;
 
 fun bump_init str =

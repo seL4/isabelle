@@ -59,6 +59,7 @@ sig
   val literalN: string val literal: T
   val delimiterN: string val delimiter: T
   val inner_stringN: string val inner_string: T
+  val inner_cartoucheN: string val inner_cartouche: T
   val inner_commentN: string val inner_comment: T
   val token_rangeN: string val token_range: T
   val sortN: string val sort: T
@@ -92,6 +93,7 @@ sig
   val stringN: string val string: T
   val altstringN: string val altstring: T
   val verbatimN: string val verbatim: T
+  val cartoucheN: string val cartouche: T
   val commentN: string val comment: T
   val controlN: string val control: T
   val tokenN: string val token: Properties.T -> T
@@ -307,6 +309,7 @@ val (numeralN, numeral) = markup_elem "numeral";
 val (literalN, literal) = markup_elem "literal";
 val (delimiterN, delimiter) = markup_elem "delimiter";
 val (inner_stringN, inner_string) = markup_elem "inner_string";
+val (inner_cartoucheN, inner_cartouche) = markup_elem "inner_cartouche";
 val (inner_commentN, inner_comment) = markup_elem "inner_comment";
 
 val (token_rangeN, token_range) = markup_elem "token_range";
@@ -361,6 +364,7 @@ val (commandN, command) = markup_elem "command";
 val (stringN, string) = markup_elem "string";
 val (altstringN, altstring) = markup_elem "altstring";
 val (verbatimN, verbatim) = markup_elem "verbatim";
+val (cartoucheN, cartouche) = markup_elem "cartouche";
 val (commentN, comment) = markup_elem "comment";
 val (controlN, control) = markup_elem "control";
 
