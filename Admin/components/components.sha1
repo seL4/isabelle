@@ -54,8 +54,8 @@ b3d776e6744f0cd2773d467bc2cfe1de3d1ca2fd  polyml-5.5.0-3.tar.gz
 36f78f27291a9ceb13bf1120b62a45625afd44a6  polyml-5.5.1.tar.gz
 8ee375cfc38972f080dbc78f07b68dac03efe968  ProofGeneral-3.7.1.1.tar.gz
 847b52c0676b5eb0fbf0476f64fc08c2d72afd0c  ProofGeneral-4.1.tar.gz
-8472221c876a430cde325841ce52893328302712  ProofGeneral-4.2.tar.gz
 8e0b2b432755ef11d964e20637d1bc567d1c0477  ProofGeneral-4.2-1.tar.gz
+8472221c876a430cde325841ce52893328302712  ProofGeneral-4.2.tar.gz
 0885e1f1d8feaca78d2f204b6487e6eec6dfab4b  scala-2.10.0.tar.gz
 f7dc7a4e1aea46408fd6e44b8cfacb33af61afbc  scala-2.10.1.tar.gz
 207e4916336335386589c918c5e3f3dcc14698f2  scala-2.10.2.tar.gz
@@ -77,6 +77,6 @@ c3f5285481a95fde3c1961595b4dd0311ee7ac1f  windows_app-20131201.tar.gz
 1c36a840320dfa9bac8af25fc289a4df5ea3eccb  xz-java-1.2-1.tar.gz
 2ae13aa17d0dc95ce254a52f1dba10929763a10d  xz-java-1.2.tar.gz
 4530a1aa6f4498ee3d78d6000fa71a3f63bd077f  yices-1.0.28.tar.gz
-12ae71acde43bd7bed1e005c43034b208c0cba4c  z3-3.2.tar.gz
 3a8f77822278fe9250890e357248bc678d8fac95  z3-3.2-1.tar.gz
+12ae71acde43bd7bed1e005c43034b208c0cba4c  z3-3.2.tar.gz
 d94a716502c8503d63952bcb4d4176fac8b28704  z3-4.0.tar.gz
