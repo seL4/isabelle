@@ -48,33 +48,23 @@ translations
   "_bind (CONST DUMMY # p) e" <= "_bind p (CONST tl e)"
 
 (* type constraints with spacing *)
-setup {*
-let
-  val typ = Simple_Syntax.read_typ;
-in
-  Sign.del_modesyntax_i (Symbol.xsymbolsN, false)
-   [("_constrain", typ "logic => type => logic", Mixfix ("_\<Colon>_", [4, 0], 3)),
-    ("_constrain", typ "prop' => type => prop'", Mixfix ("_\<Colon>_", [4, 0], 3))] #>
-  Sign.add_modesyntax_i (Symbol.xsymbolsN, false)
-   [("_constrain", typ "logic => type => logic", Mixfix ("_ \<Colon>  _", [4, 0], 3)),
-    ("_constrain", typ "prop' => type => prop'", Mixfix ("_ \<Colon> _", [4, 0], 3))]
-end
-*}
+
+no_syntax (xsymbols output)
+  "_constrain" :: "logic => type => logic"  ("_\<Colon>_" [4, 0] 3)
+  "_constrain" :: "prop' => type => prop'"  ("_\<Colon>_" [4, 0] 3)
+
+syntax (xsymbols output)
+  "_constrain" :: "logic => type => logic"  ("_ \<Colon> _" [4, 0] 3)
+  "_constrain" :: "prop' => type => prop'"  ("_ \<Colon> _" [4, 0] 3)
+
 
 (* sorts as intersections *)
-setup {*
-let
-  val sortT = Type ("sort", []); (*FIXME*)
-  val classesT = Type ("classes", []); (*FIXME*)
-in
-  Sign.add_modesyntax_i (Symbol.xsymbolsN, false) [
-    ("_topsort", sortT, Mixfix ("\<top>", [], 1000)),
-    ("_sort", classesT --> sortT, Mixfix ("'(_')", [], 1000)),
-    ("_classes", Lexicon.idT --> classesT --> classesT, Mixfix ("_ \<inter> _", [], 1000)),
-    ("_classes", Lexicon.longidT --> classesT --> classesT, Mixfix ("_ \<inter> _", [], 1000))
-  ]
-end
-*}
+
+syntax (xsymbols output)
+  "_topsort" :: "sort"  ("\<top>" 1000)
+  "_sort" :: "classes => sort"  ("'(_')" 1000)
+  "_classes" :: "id => classes => classes"  ("_ \<inter> _" 1000)
+  "_classes" :: "longid => classes => classes"  ("_ \<inter> _" 1000)
 
 end
 (*>*)
