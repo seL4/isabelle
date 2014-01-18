@@ -31,7 +31,7 @@ parse_translation {*
       let
         val c =
           if Symbol.is_ascii s then ord s
-          else if s = "" then 10
+          else if s = "\<newline>" then 10
           else error ("String literal contains illegal symbol: " ^ quote s ^ Position.here pos);
       in Syntax.const @{const_syntax Char} $ mk_nib (c div 16) $ mk_nib (c mod 16) end;
 
