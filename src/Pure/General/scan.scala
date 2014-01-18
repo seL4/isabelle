@@ -171,13 +171,10 @@ object Scan
           var i = start
           var count = 0
           var finished = false
-          while (!finished) {
-            if (i < end && count < max_count) {
-              val n = matcher(i, end)
-              val sym = in.source.subSequence(i, i + n).toString
-              if (pred(sym)) { i += n; count += 1 }
-              else finished = true
-            }
+          while (!finished && i < end && count < max_count) {
+            val n = matcher(i, end)
+            val sym = in.source.subSequence(i, i + n).toString
+            if (pred(sym)) { i += n; count += 1 }
             else finished = true
           }
           if (count < min_count) Failure("bad input", in)
@@ -290,18 +287,11 @@ object Scan
         var i = start
         var d = depth
         var finished = false
-        while (!finished) {
-          if (i < end) {
-            val n = matcher(i, end)
-            val sym = in.source.subSequence(i, i + n).toString
-
-            if (Symbol.is_open(sym)) { i += n; d += 1 }
-            else if (d > 0) {
-              i += n
-              if (Symbol.is_close(sym)) d -= 1
-            }
-            else finished = true
-          }
+        while (!finished && i < end) {
+          val n = matcher(i, end)
+          val sym = in.source.subSequence(i, i + n).toString
+          if (Symbol.is_open(sym)) { i += n; d += 1 }
+          else if (d > 0) { i += n; if (Symbol.is_close(sym)) d -= 1 }
           else finished = true
         }
         if (i == start) Failure("bad input", in)
