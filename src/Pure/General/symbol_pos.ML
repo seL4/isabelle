@@ -4,8 +4,6 @@
 Symbols with explicit position information.
 *)
 
-val legacy_isub_isup = Unsynchronized.ref false;
-
 signature SYMBOL_POS =
 sig
   type T = Symbol.symbol * Position.T

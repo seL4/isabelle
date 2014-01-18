@@ -71,12 +71,6 @@ sealed case class Token(val kind: Token.Kind.Value, val source: String)
   def is_command: Boolean = kind == Token.Kind.COMMAND
   def is_keyword: Boolean = kind == Token.Kind.KEYWORD
   def is_operator: Boolean = is_keyword && !Symbol.is_ascii_identifier(source)
-  def is_delimited: Boolean =
-    kind == Token.Kind.STRING ||
-    kind == Token.Kind.ALT_STRING ||
-    kind == Token.Kind.VERBATIM ||
-    kind == Token.Kind.CARTOUCHE ||
-    kind == Token.Kind.COMMENT
   def is_ident: Boolean = kind == Token.Kind.IDENT
   def is_sym_ident: Boolean = kind == Token.Kind.SYM_IDENT
   def is_string: Boolean = kind == Token.Kind.STRING

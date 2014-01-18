@@ -34,11 +34,6 @@ sig
   val eof: token
   val is_eof: token -> bool
   val stopper: token Scan.stopper
-  val idT: typ
-  val longidT: typ
-  val varT: typ
-  val tidT: typ
-  val tvarT: typ
   val terminals: string list
   val is_terminal: string -> bool
   val literal_markup: string -> Markup.T
@@ -144,12 +139,6 @@ val stopper = Scan.stopper (K eof) is_eof;
 
 
 (* terminal arguments *)
-
-val idT = Type ("id", []);
-val longidT = Type ("longid", []);
-val varT = Type ("var", []);
-val tidT = Type ("tid", []);
-val tvarT = Type ("tvar", []);
 
 val terminal_kinds =
  [("id", IdentSy),
