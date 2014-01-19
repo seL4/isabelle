@@ -65,7 +65,7 @@ ML {*
 @{assert} (is_some (try (auto_prove @{context}) an_fmlas) = false)
 *}
 
-sledgehammer_params [provers = remote_z3, debug]
+sledgehammer_params [provers = z3, debug]
 ML {*
 @{assert} (is_some (try (sh_prove @{context}) an_fmlas) = true)
 *}

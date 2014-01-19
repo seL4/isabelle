@@ -1,5 +1,0 @@
-# -*- shell-script -*- :mode=shellscript:
-
-ISABELLE_SMT_REMOTE="$ISABELLE_HOME/src/HOL/Tools/SMT/lib/scripts/remote_smt"
-ISABELLE_SMT_REMOTE_URL="http://smt.in.tum.de/smt"
-

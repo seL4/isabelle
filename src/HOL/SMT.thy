@@ -204,9 +204,9 @@ behaviour.  They can be passed to the solver by setting the following
 options.
 *}
 
-declare [[ cvc3_options = "", remote_cvc3_options = "" ]]
+declare [[ cvc3_options = "" ]]
 declare [[ yices_options = "" ]]
-declare [[ z3_options = "", remote_z3_options = "" ]]
+declare [[ z3_options = "" ]]
 
 text {*
 Enable the following option to use built-in support for datatypes and

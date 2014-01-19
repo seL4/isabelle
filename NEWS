@@ -196,6 +196,8 @@ more syntax-directed proof rules; the case of the empty chain
 shows up as additional case in fixpoint induction proofs.
 INCOMPATIBILITY
 
+* Removed solvers remote_cvc3 and remote_z3. Use cvc3 and z3 instead.
+
 * Nitpick:
   - Fixed soundness bug whereby mutually recursive datatypes could take
     infinite values.

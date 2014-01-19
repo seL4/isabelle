@@ -20,23 +20,9 @@ struct
 
 (* helper functions *)
 
-val remote_prefix = "remote_"
-fun make_name is_remote name = name |> is_remote ? prefix remote_prefix
+fun make_avail name () = getenv (name ^ "_SOLVER") <> ""
 
-fun make_local_avail name () = getenv (name ^ "_SOLVER") <> ""
-fun make_remote_avail name () = getenv (name ^ "_REMOTE_SOLVER") <> ""
-fun make_avail is_remote name =
-  if is_remote then make_remote_avail name
-  else make_local_avail name orf make_remote_avail name
-
-fun make_local_command name () = [getenv (name ^ "_SOLVER")]
-fun make_remote_command name () =
-  [getenv "ISABELLE_SMT_REMOTE", getenv (name ^ "_REMOTE_SOLVER")]
-fun make_command is_remote name =
-  if is_remote then make_remote_command name
-  else (fn () =>
-    if make_local_avail name () then make_local_command name ()
-    else make_remote_command name ())
+fun make_command name () = [getenv (name ^ "_SOLVER")]
 
 fun outcome_of unsat sat unknown solver_name line =
   if String.isPrefix unsat line then SMT_Solver.Unsat
@@ -62,34 +48,31 @@ local
     "-seed", string_of_int (Config.get ctxt SMT_Config.random_seed),
     "-lang", "smtlib", "-output-lang", "presentation",
     "-timeout", string_of_int (Real.ceil (Config.get ctxt SMT_Config.timeout))]
-
-  fun mk is_remote = {
-    name = make_name is_remote "cvc3",
-    class = K SMTLIB_Interface.smtlibC,
-    avail = make_avail is_remote "CVC3",
-    command = make_command is_remote "CVC3",
-    options = cvc3_options,
-    default_max_relevant = 400 (* FUDGE *),
-    supports_filter = false,
-    outcome =
-      on_first_line (outcome_of "Unsatisfiable." "Satisfiable." "Unknown."),
-    cex_parser = NONE,
-    reconstruct = NONE }
 in
 
-fun cvc3 () = mk false
-fun remote_cvc3 () = mk true
+val cvc3: SMT_Solver.solver_config = {
+  name = "cvc3",
+  class = K SMTLIB_Interface.smtlibC,
+  avail = make_avail "CVC3",
+  command = make_command "CVC3",
+  options = cvc3_options,
+  default_max_relevant = 400 (* FUDGE *),
+  supports_filter = false,
+  outcome =
+    on_first_line (outcome_of "Unsatisfiable." "Satisfiable." "Unknown."),
+  cex_parser = NONE,
+  reconstruct = NONE }
 
 end
 
 
 (* Yices *)
 
-fun yices () = {
+val yices: SMT_Solver.solver_config = {
   name = "yices",
   class = K SMTLIB_Interface.smtlibC,
-  avail = make_local_avail "YICES",
-  command = make_local_command "YICES",
+  avail = make_avail "YICES",
+  command = make_command "YICES",
   options = (fn ctxt => [
     "--rand-seed=" ^ string_of_int (Config.get ctxt SMT_Config.random_seed),
     "--timeout=" ^
@@ -146,8 +129,7 @@ val z3_with_extensions =
   Attrib.setup_config_bool @{binding z3_with_extensions} (K false)
 
 local
-  fun z3_make_command is_remote name () =
-    if_z3_non_commercial (make_command is_remote name)
+  fun z3_make_command name () = if_z3_non_commercial (make_command name)
 
   fun z3_options ctxt =
     ["-rs:" ^ string_of_int (Config.get ctxt SMT_Config.random_seed),
@@ -181,22 +163,19 @@ local
   fun select_class ctxt =
     if Config.get ctxt z3_with_extensions then Z3_Interface.smtlib_z3C
     else SMTLIB_Interface.smtlibC
-
-  fun mk is_remote = {
-    name = make_name is_remote "z3",
-    class = select_class,
-    avail = make_avail is_remote "Z3",
-    command = z3_make_command is_remote "Z3",
-    options = z3_options,
-    default_max_relevant = 350 (* FUDGE *),
-    supports_filter = true,
-    outcome = z3_on_first_or_last_line,
-    cex_parser = SOME Z3_Model.parse_counterex,
-    reconstruct = SOME Z3_Proof_Reconstruction.reconstruct }
 in
 
-fun z3 () = mk false
-fun remote_z3 () = mk true
+val z3: SMT_Solver.solver_config = {
+  name = "z3",
+  class = select_class,
+  avail = make_avail "Z3",
+  command = z3_make_command "Z3",
+  options = z3_options,
+  default_max_relevant = 350 (* FUDGE *),
+  supports_filter = true,
+  outcome = z3_on_first_or_last_line,
+  cex_parser = SOME Z3_Model.parse_counterex,
+  reconstruct = SOME Z3_Proof_Reconstruction.reconstruct }
 
 end
 
@@ -204,10 +183,8 @@ end
 (* overall setup *)
 
 val setup =
-  SMT_Solver.add_solver (cvc3 ()) #>
-  SMT_Solver.add_solver (remote_cvc3 ()) #>
-  SMT_Solver.add_solver (yices ()) #>
-  SMT_Solver.add_solver (z3 ()) #>
-  SMT_Solver.add_solver (remote_z3 ())
+  SMT_Solver.add_solver cvc3 #>
+  SMT_Solver.add_solver yices #>
+  SMT_Solver.add_solver z3
 
 end
