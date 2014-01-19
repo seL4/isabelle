@@ -82,6 +82,9 @@ struct
 end;
 *}
 
+
+subsection {* Explicit version: method with cartouche argument *}
+
 method_setup ml_tactic = {*
   Scan.lift Args.cartouche_source_position
     >> (fn arg => fn ctxt => SIMPLE_METHOD (ML_Tactic.ml_tactic arg ctxt))
@@ -99,5 +102,23 @@ lemma "A \<and> B \<longrightarrow> B \<and> A" by (ml_tactic \<open>blast_tac c
 ML {* @{lemma "A \<and> B \<longrightarrow> B \<and> A" by (ml_tactic \<open>blast_tac ctxt 1\<close>)} *}
 
 text {* @{ML "@{lemma \"A \<and> B \<longrightarrow> B \<and> A\" by (ml_tactic \<open>blast_tac ctxt 1\<close>)}"} *}
+
+
+subsection {* Implicit version: method with special name "cartouche" (dynamic!) *}
+
+method_setup "cartouche" = {*
+  Scan.lift Args.cartouche_source_position
+    >> (fn arg => fn ctxt => SIMPLE_METHOD (ML_Tactic.ml_tactic arg ctxt))
+*}
+
+lemma "A \<and> B \<longrightarrow> B \<and> A"
+  apply \<open>rtac @{thm impI} 1\<close>
+  apply \<open>etac @{thm conjE} 1\<close>
+  apply \<open>rtac @{thm conjI} 1\<close>
+  apply \<open>ALLGOALS atac\<close>
+  done
+
+lemma "A \<and> B \<longrightarrow> B \<and> A"
+  by (\<open>rtac @{thm impI} 1\<close>, \<open>etac @{thm conjE} 1\<close>, \<open>rtac @{thm conjI} 1\<close>, \<open>atac 1\<close>+)
 
 end

@@ -406,6 +406,9 @@ local
 
 fun meth4 x =
  (Parse.position (Parse.xname >> rpair []) >> (Source o Args.src) ||
+  (* FIXME implicit "cartouche" method (experimental, undocumented) *)
+  Scan.ahead Parse.cartouche |-- Parse.not_eof >> (fn tok =>
+    Source (Args.src (("cartouche", [tok]), Token.position_of tok))) ||
   Parse.$$$ "(" |-- Parse.!!! (meth0 --| Parse.$$$ ")")) x
 and meth3 x =
  (meth4 --| Parse.$$$ "?" >> Try ||
