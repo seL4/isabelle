@@ -348,8 +348,8 @@
 \<hungarumlaut>         code: 0x0002dd
 \<some>                 code: 0x0003f5
 \<newline>              code: 0x0023ce
-\<open>                 code: 0x002039  abbrev: <<  font: IsabelleText
-\<close>                code: 0x00203a  abbrev: >>  font: IsabelleText
+\<open>                 code: 0x002039  group: punctuation  font: IsabelleText  abbrev: <<
+\<close>                code: 0x00203a  group: punctuation  font: IsabelleText  abbrev: >>
 \<^sub>                 code: 0x0021e9  group: control  font: IsabelleText
 \<^sup>                 code: 0x0021e7  group: control  font: IsabelleText
 \<^bold>                code: 0x002759  group: control  font: IsabelleText
