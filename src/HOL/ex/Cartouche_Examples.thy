@@ -58,4 +58,46 @@ term "STR \<open>\<close>"
 term "STR \<open>abc\<close>"
 lemma "STR \<open>abc\<close> @ STR \<open>xyz\<close> = STR \<open>abcxyz\<close>" by simp
 
+
+subsection {* Proof method syntax *}
+
+ML {*
+structure ML_Tactic:
+sig
+  val set: (Proof.context -> tactic) -> Proof.context -> Proof.context
+  val ml_tactic: string * Position.T -> Proof.context -> tactic
+end =
+struct
+  structure Data = Proof_Data(type T = Proof.context -> tactic fun init _ = K no_tac);
+
+  val set = Data.put;
+
+  fun ml_tactic (txt, pos) ctxt =
+    let
+      val ctxt' = ctxt |> Context.proof_map
+        (ML_Context.expression pos
+          "fun tactic (ctxt : Proof.context) : tactic"
+          "Context.map_proof (ML_Tactic.set tactic)" (ML_Lex.read pos txt));
+    in Data.get ctxt' ctxt end;
+end;
+*}
+
+method_setup ml_tactic = {*
+  Scan.lift Args.cartouche_source_position
+    >> (fn arg => fn ctxt => SIMPLE_METHOD (ML_Tactic.ml_tactic arg ctxt))
+*}
+
+lemma "A \<and> B \<longrightarrow> B \<and> A"
+  apply (ml_tactic \<open>rtac @{thm impI} 1\<close>)
+  apply (ml_tactic \<open>etac @{thm conjE} 1\<close>)
+  apply (ml_tactic \<open>rtac @{thm conjI} 1\<close>)
+  apply (ml_tactic \<open>ALLGOALS atac\<close>)
+  done
+
+lemma "A \<and> B \<longrightarrow> B \<and> A" by (ml_tactic \<open>blast_tac ctxt 1\<close>)
+
+ML {* @{lemma "A \<and> B \<longrightarrow> B \<and> A" by (ml_tactic \<open>blast_tac ctxt 1\<close>)} *}
+
+text {* @{ML "@{lemma \"A \<and> B \<longrightarrow> B \<and> A\" by (ml_tactic \<open>blast_tac ctxt 1\<close>)}"} *}
+
 end
