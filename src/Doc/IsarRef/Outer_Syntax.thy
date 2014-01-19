@@ -401,7 +401,7 @@ text {* Attributes have their own ``semi-inner'' syntax, in the sense
   @{rail "
     @{syntax_def atom}: @{syntax nameref} | @{syntax typefree} |
       @{syntax typevar} | @{syntax var} | @{syntax nat} | @{syntax float} |
-      @{syntax keyword}
+      @{syntax keyword} | @{syntax cartouche}
     ;
     arg: @{syntax atom} | '(' @{syntax args} ')' | '[' @{syntax args} ']'
     ;

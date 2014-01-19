@@ -29,6 +29,8 @@ sig
   val bracks: 'a parser -> 'a parser
   val mode: string -> bool parser
   val maybe: 'a parser -> 'a option parser
+  val cartouche_source: string parser
+  val cartouche_source_position: (Symbol_Pos.text * Position.T) parser
   val name_source: string parser
   val name_source_position: (Symbol_Pos.text * Position.T) parser
   val name: string parser
@@ -147,6 +149,10 @@ fun parens scan = $$$ "(" |-- scan --| $$$ ")";
 fun bracks scan = $$$ "[" |-- scan --| $$$ "]";
 fun mode s = Scan.optional (parens ($$$ s) >> K true) false;
 fun maybe scan = $$$ "_" >> K NONE || scan >> SOME;
+
+val cartouche = token Parse.cartouche;
+val cartouche_source = cartouche >> Token.source_of;
+val cartouche_source_position = cartouche >> Token.source_position_of;
 
 val name_source = named >> Token.source_of;
 val name_source_position = named >> Token.source_position_of;
