@@ -11,6 +11,7 @@ sig
     Constant of 'a | Type_Constructor of 'b | Type_Class of 'c |
     Class_Relation of 'd  | Class_Instance of 'e | Module of 'f
   type symbol = (string, string, class, class * class, string * class, string) attr
+  structure Table: TABLE;
   structure Graph: GRAPH;
   val default_name: Proof.context -> symbol -> string * string
   val quote_symbol: Proof.context -> symbol -> string
@@ -74,6 +75,7 @@ fun symbol_ord (Constant c1, Constant c2) = fast_string_ord (c1, c2)
   | symbol_ord (_, Class_Instance _) = LESS
   | symbol_ord (Module name1, Module name2) = fast_string_ord (name1, name2);
 
+structure Table = Table(type key = symbol val ord = symbol_ord);
 structure Graph = Graph(type key = symbol val ord = symbol_ord);
 
 local
