@@ -60,6 +60,7 @@ sig
   val nat_T : typ
   val int_T : typ
   val simple_string_of_typ : typ -> string
+  val num_binder_types : typ -> int
   val is_real_constr : theory -> string * typ -> bool
   val typ_of_dtyp : Datatype.descr -> (Datatype.dtyp * typ) list -> Datatype.dtyp -> typ
   val varify_type : Proof.context -> typ -> typ
@@ -253,9 +254,11 @@ val bool_T = @{typ bool}
 val nat_T = @{typ nat}
 val int_T = @{typ int}
 
-fun simple_string_of_typ (Type (s, _))     = s
-  | simple_string_of_typ (TFree (s, _))    = s
+fun simple_string_of_typ (Type (s, _)) = s
+  | simple_string_of_typ (TFree (s, _)) = s
   | simple_string_of_typ (TVar ((s, _), _)) = s
+
+val num_binder_types = BNF_Util.num_binder_types
 
 fun is_real_constr thy (s, T) =
   case body_type T of
