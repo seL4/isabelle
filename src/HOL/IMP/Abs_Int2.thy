@@ -74,14 +74,14 @@ by(cases S)(auto simp add: aval'_correct split: option.splits)
 
 subsubsection "Backward analysis"
 
-fun inv_aval'' :: "aexp \<Rightarrow> 'av \<Rightarrow> 'av st option \<Rightarrow> 'av st option" where
-"inv_aval'' (N n) a S = (if test_num' n a then S else None)" |
-"inv_aval'' (V x) a S = (case S of None \<Rightarrow> None | Some S \<Rightarrow>
+fun inv_aval' :: "aexp \<Rightarrow> 'av \<Rightarrow> 'av st option \<Rightarrow> 'av st option" where
+"inv_aval' (N n) a S = (if test_num' n a then S else None)" |
+"inv_aval' (V x) a S = (case S of None \<Rightarrow> None | Some S \<Rightarrow>
   let a' = fun S x \<sqinter> a in
   if a' = \<bottom> then None else Some(update S x a'))" |
-"inv_aval'' (Plus e1 e2) a S =
+"inv_aval' (Plus e1 e2) a S =
  (let (a1,a2) = inv_plus' a (aval'' e1 S) (aval'' e2 S)
-  in inv_aval'' e1 a1 (inv_aval'' e2 a2 S))"
+  in inv_aval' e1 a1 (inv_aval' e2 a2 S))"
 
 text{* The test for @{const bot} in the @{const V}-case is important: @{const
 bot} indicates that a variable has no possible values, i.e.\ that the current
@@ -93,17 +93,17 @@ which contains @{const bot} values, may produce too large a result, thus
 making the analysis less precise. *}
 
 
-fun inv_bval'' :: "bexp \<Rightarrow> bool \<Rightarrow> 'av st option \<Rightarrow> 'av st option" where
-"inv_bval'' (Bc v) res S = (if v=res then S else None)" |
-"inv_bval'' (Not b) res S = inv_bval'' b (\<not> res) S" |
-"inv_bval'' (And b1 b2) res S =
-  (if res then inv_bval'' b1 True (inv_bval'' b2 True S)
-   else inv_bval'' b1 False S \<squnion> inv_bval'' b2 False S)" |
-"inv_bval'' (Less e1 e2) res S =
+fun inv_bval' :: "bexp \<Rightarrow> bool \<Rightarrow> 'av st option \<Rightarrow> 'av st option" where
+"inv_bval' (Bc v) res S = (if v=res then S else None)" |
+"inv_bval' (Not b) res S = inv_bval' b (\<not> res) S" |
+"inv_bval' (And b1 b2) res S =
+  (if res then inv_bval' b1 True (inv_bval' b2 True S)
+   else inv_bval' b1 False S \<squnion> inv_bval' b2 False S)" |
+"inv_bval' (Less e1 e2) res S =
   (let (a1,a2) = inv_less' res (aval'' e1 S) (aval'' e2 S)
-   in inv_aval'' e1 a1 (inv_aval'' e2 a2 S))"
+   in inv_aval' e1 a1 (inv_aval' e2 a2 S))"
 
-lemma inv_aval''_correct: "s : \<gamma>\<^sub>o S \<Longrightarrow> aval e s : \<gamma> a \<Longrightarrow> s : \<gamma>\<^sub>o (inv_aval'' e a S)"
+lemma inv_aval'_correct: "s : \<gamma>\<^sub>o S \<Longrightarrow> aval e s : \<gamma> a \<Longrightarrow> s : \<gamma>\<^sub>o (inv_aval' e a S)"
 proof(induction e arbitrary: a S)
   case N thus ?case by simp (metis test_num')
 next
@@ -122,7 +122,7 @@ next
     by (auto split: prod.split)
 qed
 
-lemma inv_bval''_correct: "s : \<gamma>\<^sub>o S \<Longrightarrow> bv = bval b s \<Longrightarrow> s : \<gamma>\<^sub>o(inv_bval'' b bv S)"
+lemma inv_bval'_correct: "s : \<gamma>\<^sub>o S \<Longrightarrow> bv = bval b s \<Longrightarrow> s : \<gamma>\<^sub>o(inv_bval' b bv S)"
 proof(induction b arbitrary: S bv)
   case Bc thus ?case by simp
 next
@@ -133,12 +133,12 @@ next
 next
   case (Less e1 e2) thus ?case
     by(auto split: prod.split)
-      (metis (lifting) inv_aval''_correct aval''_correct inv_less')
+      (metis (lifting) inv_aval'_correct aval''_correct inv_less')
 qed
 
 definition "step' = Step
   (\<lambda>x e S. case S of None \<Rightarrow> None | Some S \<Rightarrow> Some(update S x (aval' e S)))
-  (\<lambda>b S. inv_bval'' b True S)"
+  (\<lambda>b S. inv_bval' b True S)"
 
 definition AI :: "com \<Rightarrow> 'av st option acom option" where
 "AI c = pfp (step' \<top>) (bot c)"
@@ -146,23 +146,23 @@ definition AI :: "com \<Rightarrow> 'av st option acom option" where
 lemma strip_step'[simp]: "strip(step' S c) = strip c"
 by(simp add: step'_def)
 
-lemma top_on_inv_aval'': "\<lbrakk> top_on_opt S X;  vars e \<subseteq> -X \<rbrakk> \<Longrightarrow> top_on_opt (inv_aval'' e a S) X"
+lemma top_on_inv_aval': "\<lbrakk> top_on_opt S X;  vars e \<subseteq> -X \<rbrakk> \<Longrightarrow> top_on_opt (inv_aval' e a S) X"
 by(induction e arbitrary: a S) (auto simp: Let_def split: option.splits prod.split)
 
-lemma top_on_inv_bval'': "\<lbrakk>top_on_opt S X; vars b \<subseteq> -X\<rbrakk> \<Longrightarrow> top_on_opt (inv_bval'' b r S) X"
-by(induction b arbitrary: r S) (auto simp: top_on_inv_aval'' top_on_sup split: prod.split)
+lemma top_on_inv_bval': "\<lbrakk>top_on_opt S X; vars b \<subseteq> -X\<rbrakk> \<Longrightarrow> top_on_opt (inv_bval' b r S) X"
+by(induction b arbitrary: r S) (auto simp: top_on_inv_aval' top_on_sup split: prod.split)
 
 lemma top_on_step': "top_on_acom C (- vars C) \<Longrightarrow> top_on_acom (step' \<top> C) (- vars C)"
 unfolding step'_def
 by(rule top_on_Step)
-  (auto simp add: top_on_top top_on_inv_bval'' split: option.split)
+  (auto simp add: top_on_top top_on_inv_bval' split: option.split)
 
 subsubsection "Correctness"
 
 lemma step_step': "step (\<gamma>\<^sub>o S) (\<gamma>\<^sub>c C) \<le> \<gamma>\<^sub>c (step' S C)"
 unfolding step_def step'_def
 by(rule gamma_Step_subcomm)
-  (auto simp: intro!: aval'_correct inv_bval''_correct in_gamma_update split: option.splits)
+  (auto simp: intro!: aval'_correct inv_bval'_correct in_gamma_update split: option.splits)
 
 lemma AI_correct: "AI c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^sub>c C"
 proof(simp add: CS_def AI_def)
@@ -204,7 +204,7 @@ apply(cases S2)
  apply simp
 by (simp add: mono_aval')
 
-lemma mono_inv_aval'': "r1 \<le> r2 \<Longrightarrow> S1 \<le> S2 \<Longrightarrow> inv_aval'' e r1 S1 \<le> inv_aval'' e r2 S2"
+lemma mono_inv_aval': "r1 \<le> r2 \<Longrightarrow> S1 \<le> S2 \<Longrightarrow> inv_aval' e r1 S1 \<le> inv_aval' e r2 S2"
 apply(induction e arbitrary: r1 r2 S1 S2)
    apply(auto simp: test_num' Let_def inf_mono split: option.splits prod.splits)
    apply (metis mono_gamma subsetD)
@@ -213,19 +213,19 @@ apply(induction e arbitrary: r1 r2 S1 S2)
 apply(metis mono_aval'' mono_inv_plus'[simplified less_eq_prod_def] fst_conv snd_conv)
 done
 
-lemma mono_inv_bval'': "S1 \<le> S2 \<Longrightarrow> inv_bval'' b bv S1 \<le> inv_bval'' b bv S2"
+lemma mono_inv_bval': "S1 \<le> S2 \<Longrightarrow> inv_bval' b bv S1 \<le> inv_bval' b bv S2"
 apply(induction b arbitrary: bv S1 S2)
    apply(simp)
   apply(simp)
  apply simp
  apply(metis order_trans[OF _ sup_ge1] order_trans[OF _ sup_ge2])
 apply (simp split: prod.splits)
-apply(metis mono_aval'' mono_inv_aval'' mono_inv_less'[simplified less_eq_prod_def] fst_conv snd_conv)
+apply(metis mono_aval'' mono_inv_aval' mono_inv_less'[simplified less_eq_prod_def] fst_conv snd_conv)
 done
 
 theorem mono_step': "S1 \<le> S2 \<Longrightarrow> C1 \<le> C2 \<Longrightarrow> step' S1 C1 \<le> step' S2 C2"
 unfolding step'_def
-by(rule mono2_Step) (auto simp: mono_aval' mono_inv_bval'' split: option.split)
+by(rule mono2_Step) (auto simp: mono_aval' mono_inv_bval' split: option.split)
 
 lemma mono_step'_top: "C1 \<le> C2 \<Longrightarrow> step' \<top> C1 \<le> step' \<top> C2"
 by (metis mono_step' order_refl)
