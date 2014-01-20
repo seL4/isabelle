@@ -37,7 +37,7 @@ session Codegen (doc) in "Codegen" = "HOL-Library" +
     "document/root.tex"
     "document/style.sty"
 
-session Datatypes (doc) in "Datatypes" = "HOL-BNF" +
+session Datatypes (doc) in "Datatypes" = HOL +
   options [document_variants = "datatypes"]
   theories [document = false] Setup
   theories Datatypes

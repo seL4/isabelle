@@ -8,7 +8,11 @@ Tutorial for (co)datatype definitions with the new package.
 *)
 
 theory Datatypes
-imports Setup "~~/src/HOL/Library/Simps_Case_Conv"
+imports
+  Setup
+  "~~/src/HOL/BNF/BNF_Decl"
+  "~~/src/HOL/BNF/More_BNFs"
+  "~~/src/HOL/Library/Simps_Case_Conv"
 begin
 
 section {* Introduction
@@ -74,20 +78,10 @@ allow infinite paths. Orthogonally, the nodes in the first and third types have
 finitely many direct subtrees, whereas those of the second and fourth may have
 infinite branching.
 
-To use the package, it is necessary to import the @{theory BNF} theory, which
-can be precompiled into the \texttt{HOL-BNF} image. The following commands show
-how to launch jEdit/PIDE with the image loaded and how to build the image
-without launching jEdit:
-*}
+The package is part of @{theory Main}. Additional functionality is provided by
+the theories @{theory BNF_Decl} and @{theory More_BNFs}, located in the
+@{text "~~/src/HOL/BNF"} directory.
 
-text {*
-\noindent
-\ \ \ \ \texttt{isabelle jedit -l HOL-BNF} \\
-\noindent
-\hbox{}\ \ \ \ \texttt{isabelle build -b HOL-BNF}
-*}
-
-text {*
 The package, like its predecessor, fully adheres to the LCF philosophy
 \cite{mgordon79}: The characteristic theorems associated with the specified
 (co)datatypes are derived rather than introduced axiomatically.%
@@ -2512,7 +2506,7 @@ text {*
 Tobias Nipkow and Makarius Wenzel encouraged us to implement the new
 (co)datatype package. Andreas Lochbihler provided lots of comments on earlier
 versions of the package, especially for the coinductive part. Brian Huffman
-suggested major simplifications to the internal constructions, much of which has
+suggested major simplifications to the internal constructions, many of which has
 yet to be implemented. Florian Haftmann and Christian Urban provided general
 advice on Isabelle and package writing. Stefan Milius and Lutz Schr\"oder
 found an elegant proof to eliminate one of the BNF assumptions. Andreas
