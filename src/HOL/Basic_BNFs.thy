@@ -12,8 +12,6 @@ header {* Registration of Basic Types as Bounded Natural Functors *}
 theory Basic_BNFs
 imports BNF_Def
    (*FIXME: define relators here, reuse in Lifting_* once this theory is in HOL*)
-  Lifting_Sum
-  Lifting_Product
 begin
 
 bnf ID: 'a
@@ -41,6 +39,21 @@ definition setr :: "'a + 'b \<Rightarrow> 'b set" where
 "setr x = (case x of Inr z => {z} | _ => {})"
 
 lemmas sum_set_defs = setl_def[abs_def] setr_def[abs_def]
+
+definition
+   sum_rel :: "('a \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> 'a + 'b \<Rightarrow> 'c + 'd \<Rightarrow> bool"
+where
+   "sum_rel R1 R2 x y =
+     (case (x, y) of (Inl x, Inl y) \<Rightarrow> R1 x y
+     | (Inr x, Inr y) \<Rightarrow> R2 x y
+     | _ \<Rightarrow> False)"
+
+lemma sum_rel_simps[simp]:
+  "sum_rel R1 R2 (Inl a1) (Inl b1) = R1 a1 b1"
+  "sum_rel R1 R2 (Inl a1) (Inr b2) = False"
+  "sum_rel R1 R2 (Inr a2) (Inl b1) = False"
+  "sum_rel R1 R2 (Inr a2) (Inr b2) = R2 a2 b2"
+  unfolding sum_rel_def by simp_all
 
 bnf "'a + 'b"
   map: sum_map
@@ -108,6 +121,15 @@ definition snds :: "'a \<times> 'b \<Rightarrow> 'b set" where
 "snds x = {snd x}"
 
 lemmas prod_set_defs = fsts_def[abs_def] snds_def[abs_def]
+
+definition
+  prod_rel :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('c \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> 'a \<times> 'c \<Rightarrow> 'b \<times> 'd \<Rightarrow> bool"
+where
+  "prod_rel R1 R2 = (\<lambda>(a, b) (c, d). R1 a c \<and> R2 b d)"
+
+lemma prod_rel_apply [simp]:
+  "prod_rel R1 R2 (a, b) (c, d) \<longleftrightarrow> R1 a c \<and> R2 b d"
+  by (simp add: prod_rel_def)
 
 bnf "'a \<times> 'b"
   map: map_pair

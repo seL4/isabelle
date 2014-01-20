@@ -10,7 +10,7 @@ Shared fixed point operations on bounded natural functors.
 header {* Shared Fixed Point Operations on Bounded Natural Functors *}
 
 theory BNF_FP_Base
-imports BNF_Comp Ctr_Sugar
+imports BNF_Comp
 begin
 
 lemma mp_conj: "(P \<longrightarrow> Q) \<and> R \<Longrightarrow> P \<Longrightarrow> R \<and> Q"
@@ -97,17 +97,6 @@ lemma sum_set_simps:
 "setr (Inl x) = {}"
 "setr (Inr x) = {x}"
 unfolding sum_set_defs by simp+
-
-lemma prod_rel_simp:
-"prod_rel P Q (x, y) (x', y') \<longleftrightarrow> P x x' \<and> Q y y'"
-unfolding prod_rel_def by simp
-
-lemma sum_rel_simps:
-"sum_rel P Q (Inl x) (Inl x') \<longleftrightarrow> P x x'"
-"sum_rel P Q (Inr y) (Inr y') \<longleftrightarrow> Q y y'"
-"sum_rel P Q (Inl x) (Inr y') \<longleftrightarrow> False"
-"sum_rel P Q (Inr y) (Inl x') \<longleftrightarrow> False"
-unfolding sum_rel_def by simp+
 
 lemma spec2: "\<forall>x y. P x y \<Longrightarrow> P x y"
 by blast

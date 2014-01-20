@@ -484,9 +484,6 @@ by (auto intro: reflpI)
 
 text {* Proving a parametrized correspondence relation *}
 
-lemma eq_OO: "op= OO R = R"
-unfolding OO_def by metis
-
 definition POS :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool" where
 "POS A B \<equiv> A \<le> B"
 

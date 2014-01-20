@@ -5,25 +5,10 @@
 header {* Setup for Lifting/Transfer for the sum type *}
 
 theory Lifting_Sum
-imports Lifting
+imports Lifting Basic_BNFs
 begin
 
 subsection {* Relator and predicator properties *}
-
-definition
-   sum_rel :: "('a \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> 'a + 'b \<Rightarrow> 'c + 'd \<Rightarrow> bool"
-where
-   "sum_rel R1 R2 x y =
-     (case (x, y) of (Inl x, Inl y) \<Rightarrow> R1 x y
-     | (Inr x, Inr y) \<Rightarrow> R2 x y
-     | _ \<Rightarrow> False)"
-
-lemma sum_rel_simps[simp]:
-  "sum_rel R1 R2 (Inl a1) (Inl b1) = R1 a1 b1"
-  "sum_rel R1 R2 (Inl a1) (Inr b2) = False"
-  "sum_rel R1 R2 (Inr a2) (Inl b1) = False"
-  "sum_rel R1 R2 (Inr a2) (Inr b2) = R2 a2 b2"
-  unfolding sum_rel_def by simp_all
 
 abbreviation (input) "sum_pred \<equiv> sum_case"
 

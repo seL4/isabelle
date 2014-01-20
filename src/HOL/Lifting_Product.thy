@@ -5,22 +5,13 @@
 header {* Setup for Lifting/Transfer for the product type *}
 
 theory Lifting_Product
-imports Lifting
+imports Lifting Basic_BNFs
 begin
 
 subsection {* Relator and predicator properties *}
 
-definition
-  prod_rel :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('c \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> 'a \<times> 'c \<Rightarrow> 'b \<times> 'd \<Rightarrow> bool"
-where
-  "prod_rel R1 R2 = (\<lambda>(a, b) (c, d). R1 a c \<and> R2 b d)"
-
 definition prod_pred :: "('a \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
 where "prod_pred R1 R2 = (\<lambda>(a, b). R1 a \<and> R2 b)"
-
-lemma prod_rel_apply [simp]:
-  "prod_rel R1 R2 (a, b) (c, d) \<longleftrightarrow> R1 a c \<and> R2 b d"
-  by (simp add: prod_rel_def)
 
 lemma prod_pred_apply [simp]:
   "prod_pred P1 P2 (a, b) \<longleftrightarrow> P1 a \<and> P2 b"

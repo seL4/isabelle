@@ -41,7 +41,7 @@ val sum_prod_thms_set0 =
       Union_Un_distrib collect_def[abs_def] image_def o_apply map_pair_simp
       mem_Collect_eq mem_UN_compreh_eq prod_set_simps sum_map.simps sum_set_simps};
 val sum_prod_thms_set = @{thms UN_compreh_eq_eq} @ sum_prod_thms_set0;
-val sum_prod_thms_rel = @{thms prod_rel_simp sum_rel_simps id_apply};
+val sum_prod_thms_rel = @{thms prod_rel_apply sum_rel_simps id_apply};
 
 fun hhf_concl_conv cv ctxt ct =
   (case Thm.term_of ct of

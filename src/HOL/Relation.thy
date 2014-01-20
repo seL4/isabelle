@@ -624,6 +624,9 @@ lemma relcomp_unfold:
   "r O s = {(x, z). \<exists>y. (x, y) \<in> r \<and> (y, z) \<in> s}"
   by (auto simp add: set_eq_iff)
 
+lemma eq_OO: "op= OO R = R"
+by blast
+
 
 subsubsection {* Converse *}
 
