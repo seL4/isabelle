@@ -9,7 +9,7 @@ Finitely branching possibly infinite trees, with sets of children.
 header {* Finitely Branching Possibly Infinite Trees, with Sets of Children *}
 
 theory TreeFsetI
-imports "../BNF"
+imports "~~/src/HOL/Library/More_BNFs"
 begin
 
 hide_fact (open) Lifting_Product.prod_rel_def

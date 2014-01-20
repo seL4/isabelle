@@ -10,7 +10,7 @@ Miscellaneous datatype definitions.
 header {* Miscellaneous Datatype Definitions *}
 
 theory Misc_Datatype
-imports "../BNF"
+imports "~~/src/HOL/Library/More_BNFs"
 begin
 
 datatype_new simple = X1 | X2 | X3 | X4

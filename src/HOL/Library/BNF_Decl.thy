@@ -13,6 +13,6 @@ keywords
   "bnf_decl" :: thy_decl
 begin
 
-ML_file "Tools/bnf_decl.ML"
+ML_file "bnf_decl.ML"
 
 end

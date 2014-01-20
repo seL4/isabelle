@@ -9,7 +9,7 @@ Finite lists.
 header {* Finite Lists *}
 
 theory ListF
-imports "../BNF"
+imports Main
 begin
 
 datatype_new 'a listF (map: mapF rel: relF) =

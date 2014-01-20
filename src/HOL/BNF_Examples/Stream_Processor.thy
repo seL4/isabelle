@@ -9,7 +9,7 @@ Stream processors---a syntactic representation of continuous functions on stream
 header {* Stream Processors *}
 
 theory Stream_Processor
-imports Stream "../BNF_Decl"
+imports Stream "~~/src/HOL/Library/BNF_Decl"
 begin
 
 section {* Continuous Functions on Streams *}

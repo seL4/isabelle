@@ -9,7 +9,7 @@ Infinite streams.
 header {* Infinite Streams *}
 
 theory Stream
-imports "~~/Library/Nat_Bijection"
+imports "~~/src/HOL/Library/Nat_Bijection"
 begin
 
 codatatype (sset: 'a) stream (map: smap rel: stream_all2) =
