@@ -336,7 +336,8 @@ val recover_verbatim =
 (* scan cartouche *)
 
 val scan_cartouche =
-  Symbol_Pos.scan_pos -- (Symbol_Pos.scan_cartouche_body !!! -- Symbol_Pos.scan_pos);
+  Symbol_Pos.scan_pos --
+    ((Symbol_Pos.scan_cartouche !!! >> Symbol_Pos.cartouche_content) -- Symbol_Pos.scan_pos);
 
 
 (* scan space *)

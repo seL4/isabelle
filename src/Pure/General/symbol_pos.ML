@@ -29,8 +29,6 @@ sig
   val quote_string_bq: string -> string
   val scan_cartouche: (string -> (T list -> T list * T list) -> T list -> T list * T list) ->
     T list -> T list * T list
-  val scan_cartouche_body: (string -> (T list -> T list * T list) -> T list -> T list * T list) ->
-    T list -> T list * T list
   val recover_cartouche: T list -> T list * T list
   val cartouche_content: T list -> T list
   val scan_comment: (string -> (T list -> T list * T list) -> T list -> T list * T list) ->
@@ -162,29 +160,20 @@ end;
 
 (* nested text cartouches *)
 
-local
-
-val scan_cart =
-  Scan.depend (fn (d: int) => $$ "\\<open>" >> pair (d + 1)) ||
-  Scan.depend (fn 0 => Scan.fail | d => $$ "\\<close>" >> pair (d - 1)) ||
-  Scan.lift (Scan.one (fn (s, _) => s <> "\\<close>" andalso Symbol.is_regular s));
-
-val scan_carts = Scan.pass 0 (Scan.repeat scan_cart);
-
-val scan_body = change_prompt scan_carts;
-
-in
+val scan_cartouche_depth =
+  Scan.repeat1 (Scan.depend (fn (d: int) =>
+    $$ "\\<open>" >> pair (d + 1) ||
+      (if d > 0 then
+        Scan.one (fn (s, _) => s <> "\\<close>" andalso Symbol.is_regular s) >> pair d ||
+        $$ "\\<close>" >> pair (d - 1)
+      else Scan.fail)));
 
 fun scan_cartouche cut =
-  $$ "\\<open>" ::: cut "unclosed text cartouche" (scan_body @@@ $$$ "\\<close>");
+  Scan.ahead ($$ "\\<open>") |--
+    cut "unclosed text cartouche"
+      (change_prompt (Scan.provide (fn d => d = 0) 0 scan_cartouche_depth));
 
-fun scan_cartouche_body cut =
-  $$ "\\<open>" |-- cut "unclosed text cartouche" (scan_body --| $$ "\\<close>");
-
-val recover_cartouche =
-  $$$ "\\<open>" @@@ scan_carts;
-
-end;
+val recover_cartouche = Scan.pass 0 scan_cartouche_depth;
 
 fun cartouche_content syms =
   let
