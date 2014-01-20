@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF/Examples/Misc_Primrec.thy
+(*  Title:      HOL/BNF_Examples/Misc_Primrec.thy
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2013
 

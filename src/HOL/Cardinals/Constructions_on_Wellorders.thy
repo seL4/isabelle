@@ -8,7 +8,8 @@ Constructions on wellorders.
 header {* Constructions on Wellorders *}
 
 theory Constructions_on_Wellorders
-imports BNF_Constructions_on_Wellorders Wellorder_Embedding Order_Union Cardinal_Notations
+imports
+  BNF_Constructions_on_Wellorders Wellorder_Embedding Order_Union "../Library/Cardinal_Notations"
 begin
 
 declare

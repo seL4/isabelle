@@ -699,13 +699,6 @@ session "HOL-Cardinals" in Cardinals = HOL +
     "document/root.tex"
     "document/root.bib"
 
-session "HOL-BNF" in BNF = HOL +
-  description {*
-    Bounded Natural Functors for (Co)datatypes, Including More BNFs.
-  *}
-  options [document = false]
-  theories BNF
-
 session "HOL-BNF_Examples" in BNF_Examples = HOL +
   description {*
     Examples for Bounded Natural Functors.

@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF/Basic_BNFs.thy
+(*  Title:      HOL/Basic_BNFs.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Andrei Popescu, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen

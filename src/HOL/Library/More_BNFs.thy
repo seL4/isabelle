@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF/More_BNFs.thy
+(*  Title:      HOL/Library/More_BNFs.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Andrei Popescu, TU Muenchen
     Author:     Andreas Lochbihler, Karlsruhe Institute of Technology
@@ -11,10 +11,7 @@ Registration of various types as bounded natural functors.
 header {* Registration of Various Types as Bounded Natural Functors *}
 
 theory More_BNFs
-imports
-  "~~/src/HOL/Cardinals/Cardinal_Notations"
-  "~~/src/HOL/Library/FSet"
-  "~~/src/HOL/Library/Multiset"
+imports FSet Multiset Cardinal_Notations
 begin
 
 abbreviation "Grp \<equiv> BNF_Util.Grp"

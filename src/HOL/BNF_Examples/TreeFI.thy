@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF/Examples/TreeFI.thy
+(*  Title:      HOL/BNF_Examples/TreeFI.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012

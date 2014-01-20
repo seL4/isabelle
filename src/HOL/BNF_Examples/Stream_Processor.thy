@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF/Examples/Stream_Processor.thy
+(*  Title:      HOL/BNF_Examples/Stream_Processor.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2014

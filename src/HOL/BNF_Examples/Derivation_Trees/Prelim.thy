@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF/Examples/Derivation_Trees/Prelim.thy
+(*  Title:      HOL/BNF_Examples/Derivation_Trees/Prelim.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
@@ -8,7 +8,7 @@ Preliminaries.
 header {* Preliminaries *}
 
 theory Prelim
-imports "../../BNF/More_BNFs"
+imports "~~/src/HOL/Library/More_BNFs"
 begin
 
 declare fset_to_fset[simp]

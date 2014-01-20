@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF/Examples/Derivation_Trees/Gram_Lang.thy
+(*  Title:      HOL/BNF_Examples/Derivation_Trees/Gram_Lang.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 

@@ -5,13 +5,14 @@ imports
   BigO
   Binomial
   Bit
+  BNF_Decl
   Boolean_Algebra
   Char_ord
   Continuity
   ContNotDenum
   Convex
   Countable
-  Countable_Set
+  Countable_Set_Type
   Debug
   Diagonal_Subsequence
   Dlist
@@ -37,6 +38,7 @@ imports
   Kleene_Algebra
   Mapping
   Monad_Syntax
+  More_BNFs
   Multiset
   Numeral_Type
   OptionalSugar

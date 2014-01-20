@@ -1,4 +1,4 @@
-(*  Title:      HOL/Cardinals/Cardinal_Notations.thy
+(*  Title:      HOL/Library/Cardinal_Notations.thy
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2013
 

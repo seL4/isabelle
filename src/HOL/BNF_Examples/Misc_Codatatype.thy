@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF/Examples/Misc_Codatatype.thy
+(*  Title:      HOL/BNF_Examples/Misc_Codatatype.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Andrei Popescu, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen

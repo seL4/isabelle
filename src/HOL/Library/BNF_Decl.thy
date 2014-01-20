@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF/BNF_Decl.thy
+(*  Title:      HOL/Library/BNF_Decl.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Copyright   2013
 
@@ -8,7 +8,7 @@ Axiomatic declaration of bounded natural functors.
 header {* Axiomatic declaration of Bounded Natural Functors *}
 
 theory BNF_Decl
-imports BNF_Def
+imports Main
 keywords
   "bnf_decl" :: thy_decl
 begin

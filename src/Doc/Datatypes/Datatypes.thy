@@ -10,8 +10,8 @@ Tutorial for (co)datatype definitions with the new package.
 theory Datatypes
 imports
   Setup
-  "~~/src/HOL/BNF/BNF_Decl"
-  "~~/src/HOL/BNF/More_BNFs"
+  "~~/src/HOL/Library/BNF_Decl"
+  "~~/src/HOL/Library/More_BNFs"
   "~~/src/HOL/Library/Simps_Case_Conv"
 begin
 
@@ -80,7 +80,7 @@ infinite branching.
 
 The package is part of @{theory Main}. Additional functionality is provided by
 the theories @{theory BNF_Decl} and @{theory More_BNFs}, located in the
-@{text "~~/src/HOL/BNF"} directory.
+directory \verb|~~/src/HOL/Library|.
 
 The package, like its predecessor, fully adheres to the LCF philosophy
 \cite{mgordon79}: The characteristic theorems associated with the specified
@@ -1023,7 +1023,7 @@ subsection {* Introductory Examples
 text {*
 Primitive recursion is illustrated through concrete examples based on the
 datatypes defined in Section~\ref{ssec:datatype-introductory-examples}. More
-examples can be found in the directory \verb|~~/src/HOL/BNF/Examples|.
+examples can be found in the directory \verb|~~/src/HOL/BNF_Examples|.
 *}
 
 
@@ -1715,7 +1715,7 @@ Corecursive functions can be specified using the @{command primcorec} and
 \keyw{prim\-corec\-ursive} commands, which support primitive corecursion, or
 using the more general \keyw{partial\_function} command. Here, the focus is on
 the first two. More examples can be found in the directory
-\verb|~~/src/HOL/BNF/Examples|.
+\verb|~~/src/HOL/BNF_Examples|.
 
 Whereas recursive functions consume datatypes one constructor at a time,
 corecursive functions construct codatatypes one constructor at a time.
@@ -1759,7 +1759,7 @@ subsection {* Introductory Examples
 text {*
 Primitive corecursion is illustrated through concrete examples based on the
 codatatypes defined in Section~\ref{ssec:codatatype-introductory-examples}. More
-examples can be found in the directory \verb|~~/src/HOL/BNF/Examples|. The code
+examples can be found in the directory \verb|~~/src/HOL/BNF_Examples|. The code
 view is favored in the examples below. Sections
 \ref{ssec:primrec-constructor-view} and \ref{ssec:primrec-destructor-view}
 present the same examples expressed using the constructor and destructor views.
@@ -2297,8 +2297,8 @@ subsection {* Introductory Example
   \label{ssec:bnf-introductory-example} *}
 
 text {*
-More examples in \verb|~~/src/HOL/BNF/Basic_BNFs.thy| and
-\verb|~~/src/HOL/BNF/More_BNFs.thy|.
+More examples in \verb|~~/src/HOL/Basic_BNFs.thy| and
+\verb|~~/src/HOL/Library/More_BNFs.thy|.
 
 %Mention distinction between live and dead type arguments;
 %  * and existence of map, set for those

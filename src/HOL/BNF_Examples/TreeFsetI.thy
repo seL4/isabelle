@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF/Examples/TreeFsetI.thy
+(*  Title:      HOL/BNF_Examples/TreeFsetI.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012

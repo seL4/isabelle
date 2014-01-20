@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF/Countable_Set_Type.thy
+(*  Title:      HOL/Library/Countable_Set_Type.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
@@ -8,9 +8,7 @@ Type of (at most) countable sets.
 header {* Type of (at Most) Countable Sets *}
 
 theory Countable_Set_Type
-imports
-  "~~/src/HOL/Cardinals/Cardinal_Notations"
-  "~~/src/HOL/Library/Countable_Set"
+imports Countable_Set Cardinal_Notations
 begin
 
 abbreviation "Grp \<equiv> BNF_Util.Grp"
