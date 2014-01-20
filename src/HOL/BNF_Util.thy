@@ -30,7 +30,7 @@ definition "Gr A f = {(a, f a) | a. a \<in> A}"
 
 definition "Grp A f = (\<lambda>a b. b = f a \<and> a \<in> A)"
 
-ML_file "Tools/bnf_util.ML"
-ML_file "Tools/bnf_tactics.ML"
+ML_file "Tools/BNF/bnf_util.ML"
+ML_file "Tools/BNF/bnf_tactics.ML"
 
 end

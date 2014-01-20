@@ -566,8 +566,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
         mk_nthN n (Term.list_comb (Const (nth hset_recs (j - 1), hset_recT), args)) i
       end;
 
-    val hset_rec_0ss = mk_rec_simps n @{thm nat_rec_0} hset_rec_defs;
-    val hset_rec_Sucss = mk_rec_simps n @{thm nat_rec_Suc} hset_rec_defs;
+    val hset_rec_0ss = mk_rec_simps n @{thm nat_rec_0_imp} hset_rec_defs;
+    val hset_rec_Sucss = mk_rec_simps n @{thm nat_rec_Suc_imp} hset_rec_defs;
     val hset_rec_0ss' = transpose hset_rec_0ss;
     val hset_rec_Sucss' = transpose hset_rec_Sucss;
 
@@ -1261,8 +1261,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
         mk_nthN n (Term.list_comb (Const (Lev, LevT), ss) $ nat) i
       end;
 
-    val Lev_0s = flat (mk_rec_simps n @{thm nat_rec_0} [Lev_def]);
-    val Lev_Sucs = flat (mk_rec_simps n @{thm nat_rec_Suc} [Lev_def]);
+    val Lev_0s = flat (mk_rec_simps n @{thm nat_rec_0_imp} [Lev_def]);
+    val Lev_Sucs = flat (mk_rec_simps n @{thm nat_rec_Suc_imp} [Lev_def]);
 
     val rv_bind = mk_internal_b rvN;
     val rv_name = Binding.name_of rv_bind;
@@ -1307,8 +1307,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
         mk_nthN n (Term.list_comb (Const (rv, rvT), ss) $ kl) i
       end;
 
-    val rv_Nils = flat (mk_rec_simps n @{thm list_rec_Nil} [rv_def]);
-    val rv_Conss = flat (mk_rec_simps n @{thm list_rec_Cons} [rv_def]);
+    val rv_Nils = flat (mk_rec_simps n @{thm list_rec_Nil_imp} [rv_def]);
+    val rv_Conss = flat (mk_rec_simps n @{thm list_rec_Cons_imp} [rv_def]);
 
     val beh_binds = mk_internal_bs behN;
     fun beh_bind i = nth beh_binds (i - 1);

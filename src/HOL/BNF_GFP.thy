@@ -10,7 +10,7 @@ Greatest fixed point operation on bounded natural functors.
 header {* Greatest Fixed Point Operation on Bounded Natural Functors *}
 
 theory BNF_GFP
-imports BNF_FP_Base
+imports BNF_FP_Base List_Prefix
 keywords
   "codatatype" :: thy_decl and
   "primcorecursive" :: thy_goal and
@@ -266,16 +266,16 @@ unfolding Field_card_of csum_def by auto
 lemma Inr_Field_csum: "a \<in> Field s \<Longrightarrow> Inr a \<in> Field (r +c s)"
 unfolding Field_card_of csum_def by auto
 
-lemma nat_rec_0: "f = nat_rec f1 (%n rec. f2 n rec) \<Longrightarrow> f 0 = f1"
+lemma nat_rec_0_imp: "f = nat_rec f1 (%n rec. f2 n rec) \<Longrightarrow> f 0 = f1"
 by auto
 
-lemma nat_rec_Suc: "f = nat_rec f1 (%n rec. f2 n rec) \<Longrightarrow> f (Suc n) = f2 n (f n)"
+lemma nat_rec_Suc_imp: "f = nat_rec f1 (%n rec. f2 n rec) \<Longrightarrow> f (Suc n) = f2 n (f n)"
 by auto
 
-lemma list_rec_Nil: "f = list_rec f1 (%x xs rec. f2 x xs rec) \<Longrightarrow> f [] = f1"
+lemma list_rec_Nil_imp: "f = list_rec f1 (%x xs rec. f2 x xs rec) \<Longrightarrow> f [] = f1"
 by auto
 
-lemma list_rec_Cons: "f = list_rec f1 (%x xs rec. f2 x xs rec) \<Longrightarrow> f (x # xs) = f2 x xs (f xs)"
+lemma list_rec_Cons_imp: "f = list_rec f1 (%x xs rec. f2 x xs rec) \<Longrightarrow> f (x # xs) = f2 x xs (f xs)"
 by auto
 
 lemma not_arg_cong_Inr: "x \<noteq> y \<Longrightarrow> Inr x \<noteq> Inr y"
@@ -349,10 +349,10 @@ proof
   thus "univ f X \<in> B" using x PRES by simp
 qed
 
-ML_file "Tools/bnf_gfp_rec_sugar_tactics.ML"
-ML_file "Tools/bnf_gfp_rec_sugar.ML"
-ML_file "Tools/bnf_gfp_util.ML"
-ML_file "Tools/bnf_gfp_tactics.ML"
-ML_file "Tools/bnf_gfp.ML"
+ML_file "Tools/BNF/bnf_gfp_rec_sugar_tactics.ML"
+ML_file "Tools/BNF/bnf_gfp_rec_sugar.ML"
+ML_file "Tools/BNF/bnf_gfp_util.ML"
+ML_file "Tools/BNF/bnf_gfp_tactics.ML"
+ML_file "Tools/BNF/bnf_gfp.ML"
 
 end

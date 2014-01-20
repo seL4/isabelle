@@ -14,7 +14,6 @@ imports BNF_Def
    (*FIXME: define relators here, reuse in Lifting_* once this theory is in HOL*)
   Lifting_Sum
   Lifting_Product
-  Main
 begin
 
 bnf ID: 'a

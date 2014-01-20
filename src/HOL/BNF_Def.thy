@@ -157,7 +157,7 @@ lemma vimage2p_Grp: "vimage2p f g P = Grp UNIV f OO P OO (Grp UNIV g)\<inverse>\
 lemma o_eq_dest_lhs: "a o b = c \<Longrightarrow> a (b v) = c v"
   by clarsimp
 
-ML_file "Tools/bnf_def_tactics.ML"
-ML_file "Tools/bnf_def.ML"
+ML_file "Tools/BNF/bnf_def_tactics.ML"
+ML_file "Tools/BNF/bnf_def.ML"
 
 end

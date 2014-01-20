@@ -10,7 +10,7 @@ Shared fixed point operations on bounded natural functors.
 header {* Shared Fixed Point Operations on Bounded Natural Functors *}
 
 theory BNF_FP_Base
-imports BNF_Comp Ctr_Sugar
+imports Nitpick BNF_Comp Ctr_Sugar
 begin
 
 lemma mp_conj: "(P \<longrightarrow> Q) \<and> R \<Longrightarrow> P \<Longrightarrow> R \<and> Q"
@@ -159,12 +159,12 @@ lemma Grp_id_mono_subst: "(\<And>x y. Grp P id x y \<Longrightarrow> Grp Q id (f
    (\<And>x. x \<in> P \<Longrightarrow> f x \<in> Q)"
   unfolding Grp_def by rule auto
 
-ML_file "Tools/bnf_fp_util.ML"
-ML_file "Tools/bnf_fp_def_sugar_tactics.ML"
-ML_file "Tools/bnf_fp_def_sugar.ML"
-ML_file "Tools/bnf_fp_n2m_tactics.ML"
-ML_file "Tools/bnf_fp_n2m.ML"
-ML_file "Tools/bnf_fp_n2m_sugar.ML"
-ML_file "Tools/bnf_fp_rec_sugar_util.ML"
+ML_file "Tools/BNF/bnf_fp_util.ML"
+ML_file "Tools/BNF/bnf_fp_def_sugar_tactics.ML"
+ML_file "Tools/BNF/bnf_fp_def_sugar.ML"
+ML_file "Tools/BNF/bnf_fp_n2m_tactics.ML"
+ML_file "Tools/BNF/bnf_fp_n2m.ML"
+ML_file "Tools/BNF/bnf_fp_n2m_sugar.ML"
+ML_file "Tools/BNF/bnf_fp_rec_sugar_util.ML"
 
 end

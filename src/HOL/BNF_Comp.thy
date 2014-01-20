@@ -70,7 +70,7 @@ unfolding Grp_def fun_eq_iff relcompp.simps by auto
 lemma OO_Grp_cong: "A = B \<Longrightarrow> (Grp A f)^--1 OO Grp A g = (Grp B f)^--1 OO Grp B g"
 by simp
 
-ML_file "Tools/bnf_comp_tactics.ML"
-ML_file "Tools/bnf_comp.ML"
+ML_file "Tools/BNF/bnf_comp_tactics.ML"
+ML_file "Tools/BNF/bnf_comp.ML"
 
 end

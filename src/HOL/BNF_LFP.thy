@@ -234,10 +234,10 @@ lemma vimage2p_fun_rel: "(fun_rel (vimage2p f g R) R) f g"
 lemma predicate2D_vimage2p: "\<lbrakk>R \<le> vimage2p f g S; R x y\<rbrakk> \<Longrightarrow> S (f x) (g y)"
   unfolding vimage2p_def by auto
 
-ML_file "Tools/bnf_lfp_rec_sugar.ML"
-ML_file "Tools/bnf_lfp_util.ML"
-ML_file "Tools/bnf_lfp_tactics.ML"
-ML_file "Tools/bnf_lfp.ML"
-ML_file "Tools/bnf_lfp_compat.ML"
+ML_file "Tools/BNF/bnf_lfp_rec_sugar.ML"
+ML_file "Tools/BNF/bnf_lfp_util.ML"
+ML_file "Tools/BNF/bnf_lfp_tactics.ML"
+ML_file "Tools/BNF/bnf_lfp.ML"
+ML_file "Tools/BNF/bnf_lfp_compat.ML"
 
 end
