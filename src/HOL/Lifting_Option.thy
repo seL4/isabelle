@@ -5,7 +5,7 @@
 header {* Setup for Lifting/Transfer for the option type *}
 
 theory Lifting_Option
-imports Lifting Option
+imports Lifting Partial_Function
 begin
 
 subsection {* Relator and predicator properties *}
@@ -115,4 +115,3 @@ lemma option_bind_transfer [transfer_rule]:
 end
 
 end
-
