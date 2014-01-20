@@ -11,6 +11,15 @@ theory Cardinal_Arithmetic
 imports BNF_Cardinal_Arithmetic Cardinal_Order_Relation
 begin
 
+notation ordLeq2 (infix "<=o" 50) and
+  ordLeq3 (infix "\<le>o" 50) and
+  ordLess2 (infix "<o" 50) and
+  ordIso2 (infix "=o" 50) and
+  csum (infixr "+c" 65) and
+  cprod (infixr "*c" 80) and
+  cexp (infixr "^c" 90)
+
+
 subsection {* Binary sum *}
 
 lemma csum_Cnotzero2:

@@ -173,7 +173,7 @@ next
     {from NE obtain a where "a \<in> A" by blast
      with * have "x \<in> underS r a" by simp
      hence "x \<in> Field r"
-     using underS_Field[of r a] by auto
+     using underS_Field[of _ r a] by auto
     }
     ultimately show "x \<in> UnderS r A"
     unfolding UnderS_def by auto

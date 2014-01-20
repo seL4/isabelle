@@ -18,10 +18,10 @@ no_notation
   sup (infixl "\<squnion>" 65) and
   Inf ("\<Sqinter>_" [900] 900) and
   Sup ("\<Squnion>_" [900] 900) and
-  ordLeq2 ("<=o") and
-  ordLeq3 ("\<le>o") and
-  ordLess2 ("<o") and
-  ordIso2 ("=o") and
+  ordLeq2 (infix "<=o" 50) and
+  ordLeq3 (infix "\<le>o" 50) and
+  ordLess2 (infix "<o" 50) and
+  ordIso2 (infix "=o" 50) and
   csum (infixr "+c" 65) and
   cprod (infixr "*c" 80) and
   cexp (infixr "^c" 90)
