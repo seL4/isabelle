@@ -176,6 +176,65 @@ lemma mlex_eq [code]:
   "f <*mlex*> R = {(x, y). f x < f y \<or> (f x \<le> f y \<and> (x, y) \<in> R)}"
   by (auto simp add: mlex_prod_def)
 
+
+subsubsection {* Bounded accessible part *}
+
+primrec bacc :: "('a \<times> 'a) set \<Rightarrow> nat \<Rightarrow> 'a set" 
+where
+  "bacc r 0 = {x. \<forall> y. (y, x) \<notin> r}"
+| "bacc r (Suc n) = (bacc r n \<union> {x. \<forall>y. (y, x) \<in> r \<longrightarrow> y \<in> bacc r n})"
+
+lemma bacc_subseteq_acc:
+  "bacc r n \<subseteq> Wellfounded.acc r"
+  by (induct n) (auto intro: acc.intros)
+
+lemma bacc_mono:
+  "n \<le> m \<Longrightarrow> bacc r n \<subseteq> bacc r m"
+  by (induct rule: dec_induct) auto
+  
+lemma bacc_upper_bound:
+  "bacc (r :: ('a \<times> 'a) set)  (card (UNIV :: 'a::finite set)) = (\<Union>n. bacc r n)"
+proof -
+  have "mono (bacc r)" unfolding mono_def by (simp add: bacc_mono)
+  moreover have "\<forall>n. bacc r n = bacc r (Suc n) \<longrightarrow> bacc r (Suc n) = bacc r (Suc (Suc n))" by auto
+  moreover have "finite (range (bacc r))" by auto
+  ultimately show ?thesis
+   by (intro finite_mono_strict_prefix_implies_finite_fixpoint)
+     (auto intro: finite_mono_remains_stable_implies_strict_prefix)
+qed
+
+lemma acc_subseteq_bacc:
+  assumes "finite r"
+  shows "Wellfounded.acc r \<subseteq> (\<Union>n. bacc r n)"
+proof
+  fix x
+  assume "x : Wellfounded.acc r"
+  then have "\<exists> n. x : bacc r n"
+  proof (induct x arbitrary: rule: acc.induct)
+    case (accI x)
+    then have "\<forall>y. \<exists> n. (y, x) \<in> r --> y : bacc r n" by simp
+    from choice[OF this] obtain n where n: "\<forall>y. (y, x) \<in> r \<longrightarrow> y \<in> bacc r (n y)" ..
+    obtain n where "\<And>y. (y, x) : r \<Longrightarrow> y : bacc r n"
+    proof
+      fix y assume y: "(y, x) : r"
+      with n have "y : bacc r (n y)" by auto
+      moreover have "n y <= Max ((%(y, x). n y) ` r)"
+        using y `finite r` by (auto intro!: Max_ge)
+      note bacc_mono[OF this, of r]
+      ultimately show "y : bacc r (Max ((%(y, x). n y) ` r))" by auto
+    qed
+    then show ?case
+      by (auto simp add: Let_def intro!: exI[of _ "Suc n"])
+  qed
+  then show "x : (UN n. bacc r n)" by auto
+qed
+
+lemma acc_bacc_eq:
+  fixes A :: "('a :: finite \<times> 'a) set"
+  assumes "finite A"
+  shows "Wellfounded.acc A = bacc A (card (UNIV :: 'a set))"
+  using assms by (metis acc_subseteq_bacc bacc_subseteq_acc bacc_upper_bound order_eq_iff)
+
 lemma [code]:
   fixes xs :: "('a::finite \<times> 'a) list"
   shows "Wellfounded.acc (set xs) = bacc (set xs) (card_UNIV TYPE('a))"
@@ -641,4 +700,3 @@ hide_type (open) finite_1 finite_2 finite_3 finite_4 finite_5
 hide_const (open) enum enum_all enum_ex all_n_lists ex_n_lists ntrancl
 
 end
-
