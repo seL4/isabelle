@@ -11,7 +11,6 @@ theory Wellorder_Embedding
 imports BNF_Wellorder_Embedding Fun_More Wellorder_Relation
 begin
 
-
 subsection {* Auxiliaries *}
 
 lemma UNION_bij_betw_ofilter:

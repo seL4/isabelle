@@ -65,6 +65,12 @@ lemma comp_eq_elim:
   "a o b = c o d \<Longrightarrow> ((\<And>v. a (b v) = c (d v)) \<Longrightarrow> R) \<Longrightarrow> R"
   by (simp add: fun_eq_iff) 
 
+lemma comp_eq_dest_lhs: "a o b = c \<Longrightarrow> a (b v) = c v"
+  by clarsimp
+
+lemma comp_eq_id_dest: "a o b = id o c \<Longrightarrow> a (b v) = c v"
+  by clarsimp
+
 lemma image_comp:
   "(f o g) ` r = f ` (g ` r)"
   by auto
@@ -915,6 +921,8 @@ lemmas id_o = id_comp
 lemmas o_id = comp_id
 lemmas o_eq_dest = comp_eq_dest
 lemmas o_eq_elim = comp_eq_elim
+lemmas o_eq_dest_lhs = comp_eq_dest_lhs
+lemmas o_eq_id_dest = comp_eq_id_dest
 lemmas image_compose = image_comp
 lemmas vimage_compose = vimage_comp
 

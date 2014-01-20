@@ -24,11 +24,11 @@ definition "unfold rt ct \<equiv> unfold_dtree rt (the_inv fset o ct)"
 definition "corec rt ct \<equiv> corec_dtree rt (the_inv fset o ct)"
 
 lemma finite_cont[simp]: "finite (cont tr)"
-  unfolding cont_def o_apply by (cases tr, clarsimp)
+  unfolding cont_def comp_apply by (cases tr, clarsimp)
 
 lemma Node_root_cont[simp]:
   "Node (root tr) (cont tr) = tr"
-  unfolding Node_def cont_def o_apply
+  unfolding Node_def cont_def comp_apply
   apply (rule trans[OF _ dtree.collapse])
   apply (rule arg_cong2[OF refl the_inv_into_f_f[unfolded inj_on_def]])
   apply (simp_all add: fset_inject)

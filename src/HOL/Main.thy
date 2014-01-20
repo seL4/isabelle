@@ -24,7 +24,8 @@ no_notation
   ordIso2 (infix "=o" 50) and
   csum (infixr "+c" 65) and
   cprod (infixr "*c" 80) and
-  cexp (infixr "^c" 90)
+  cexp (infixr "^c" 90) and
+  convol ("<_ , _>")
 
 no_syntax (xsymbols)
   "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Sqinter>_./ _)" [0, 10] 10)

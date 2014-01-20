@@ -16,8 +16,8 @@ keywords
   "bnf" :: thy_goal
 begin
 
-lemma collect_o: "collect F o g = collect ((\<lambda>f. f o g) ` F)"
-  by (rule ext) (auto simp only: o_apply collect_def)
+lemma collect_comp: "collect F o g = collect ((\<lambda>f. f o g) ` F)"
+  by (rule ext) (auto simp only: comp_apply collect_def)
 
 definition convol ("<_ , _>") where
 "<f , g> \<equiv> %a. (f a, g a)"
@@ -67,10 +67,10 @@ lemma GrpE: "Grp A f x y \<Longrightarrow> (\<lbrakk>f x = y; x \<in> A\<rbrakk>
 unfolding Grp_def by auto
 
 lemma Collect_split_Grp_eqD: "z \<in> Collect (split (Grp A f)) \<Longrightarrow> (f \<circ> fst) z = snd z"
-unfolding Grp_def o_def by auto
+unfolding Grp_def comp_def by auto
 
 lemma Collect_split_Grp_inD: "z \<in> Collect (split (Grp A f)) \<Longrightarrow> fst z \<in> A"
-unfolding Grp_def o_def by auto
+unfolding Grp_def comp_def by auto
 
 definition "pick_middlep P Q a c = (SOME b. P a b \<and> Q b c)"
 
@@ -152,10 +152,6 @@ lemma convol_image_vimage2p: "<f o fst, g o snd> ` Collect (split (vimage2p f g 
 
 lemma vimage2p_Grp: "vimage2p f g P = Grp UNIV f OO P OO (Grp UNIV g)\<inverse>\<inverse>"
   unfolding vimage2p_def Grp_def by auto
-
-(*FIXME: duplicates lemma from Record.thy*)
-lemma o_eq_dest_lhs: "a o b = c \<Longrightarrow> a (b v) = c v"
-  by clarsimp
 
 ML_file "Tools/BNF/bnf_def_tactics.ML"
 ML_file "Tools/BNF/bnf_def.ML"

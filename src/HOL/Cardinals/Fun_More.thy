@@ -11,7 +11,6 @@ theory Fun_More
 imports Main
 begin
 
-
 subsection {* Purely functional properties  *}
 
 (* unused *)

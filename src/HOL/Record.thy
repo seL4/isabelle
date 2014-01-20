@@ -411,12 +411,6 @@ lemma prop_subst: "s = t \<Longrightarrow> PROP P t \<Longrightarrow> PROP P s"
 lemma K_record_comp: "(\<lambda>x. c) \<circ> f = (\<lambda>x. c)"
   by (simp add: comp_def)
 
-lemma o_eq_dest_lhs: "a o b = c \<Longrightarrow> a (b v) = c v"
-  by clarsimp
-
-lemma o_eq_id_dest: "a o b = id o c \<Longrightarrow> a (b v) = c v"
-  by clarsimp
-
 
 subsection {* Concrete record syntax *}
 

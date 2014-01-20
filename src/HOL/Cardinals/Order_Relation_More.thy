@@ -11,7 +11,6 @@ theory Order_Relation_More
 imports Main
 begin
 
-
 subsection {* The upper and lower bounds operators  *}
 
 lemma aboveS_subset_above: "aboveS r a \<le> above r a"

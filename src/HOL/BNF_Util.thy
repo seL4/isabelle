@@ -22,7 +22,7 @@ by simp
 lemma sndI: "x = (y, z) \<Longrightarrow> snd x = z"
 by simp
 
-lemma bijI: "\<lbrakk>\<And>x y. (f x = f y) = (x = y); \<And>y. \<exists>x. y = f x\<rbrakk> \<Longrightarrow> bij f"
+lemma bijI': "\<lbrakk>\<And>x y. (f x = f y) = (x = y); \<And>y. \<exists>x. y = f x\<rbrakk> \<Longrightarrow> bij f"
 unfolding bij_def inj_on_def by auto blast
 
 (* Operator: *)

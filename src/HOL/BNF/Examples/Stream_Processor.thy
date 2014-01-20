@@ -62,7 +62,7 @@ primcorec sp\<^sub>\<nu>_comp (infixl "o\<^sub>\<nu>" 65) where
   "out (sp o\<^sub>\<nu> sp') = map_sp\<^sub>\<mu> id (\<lambda>(sp, sp'). sp o\<^sub>\<nu> sp') (out sp o\<^sub>\<mu> out sp')"
 
 lemma run\<^sub>\<nu>_sp\<^sub>\<nu>_comp: "run\<^sub>\<nu> (sp o\<^sub>\<nu> sp') = run\<^sub>\<nu> sp o run\<^sub>\<nu> sp'"
-proof (rule ext, unfold o_apply)
+proof (rule ext, unfold comp_apply)
   fix s
   show "run\<^sub>\<nu> (sp o\<^sub>\<nu> sp') s = run\<^sub>\<nu> sp (run\<^sub>\<nu> sp' s)"
   proof (coinduction arbitrary: sp sp' s)
@@ -95,7 +95,7 @@ primcorec sp\<^sub>\<nu>_comp2 (infixl "o\<^sup>*\<^sub>\<nu>" 65) where
   "out (sp o\<^sup>*\<^sub>\<nu> sp') = map_sp\<^sub>\<mu> id (\<lambda>(sp, sp'). sp o\<^sup>*\<^sub>\<nu> sp') (out sp o\<^sup>*\<^sub>\<mu> out sp')"
 
 lemma run\<^sub>\<nu>_sp\<^sub>\<nu>_comp2: "run\<^sub>\<nu> (sp o\<^sup>*\<^sub>\<nu> sp') = run\<^sub>\<nu> sp o run\<^sub>\<nu> sp'"
-proof (rule ext, unfold o_apply)
+proof (rule ext, unfold comp_apply)
   fix s
   show "run\<^sub>\<nu> (sp o\<^sup>*\<^sub>\<nu> sp') s = run\<^sub>\<nu> sp (run\<^sub>\<nu> sp' s)"
   proof (coinduction arbitrary: sp sp' s)
@@ -157,16 +157,16 @@ definition \<theta> :: "('p,'a) F * 'b \<Rightarrow> ('p,'a * 'b) F" where
 
 (* The strength laws for \<theta>: *)
 lemma \<theta>_natural: "F id (map_pair f g) o \<theta> = \<theta> o map_pair (F id f) g"
-  unfolding \<theta>_def F.map_comp o_def id_apply convol_def map_pair_def split_beta fst_conv snd_conv ..
+  unfolding \<theta>_def F.map_comp comp_def id_apply convol_def map_pair_def split_beta fst_conv snd_conv ..
 
 definition assl :: "'a * ('b * 'c) \<Rightarrow> ('a * 'b) * 'c" where
   "assl abc = ((fst abc, fst (snd abc)), snd (snd abc))"
 
 lemma \<theta>_rid: "F id fst o \<theta> = fst"
-  unfolding \<theta>_def F.map_comp F.map_id o_def id_apply convol_def fst_conv sym[OF id_def] ..
+  unfolding \<theta>_def F.map_comp F.map_id comp_def id_apply convol_def fst_conv sym[OF id_def] ..
 
 lemma \<theta>_assl: "F id assl o \<theta> = \<theta> o map_pair \<theta> id o assl"
-  unfolding assl_def \<theta>_def F.map_comp o_def id_apply convol_def map_pair_def split fst_conv snd_conv ..
+  unfolding assl_def \<theta>_def F.map_comp comp_def id_apply convol_def map_pair_def split fst_conv snd_conv ..
 
 datatype_new ('a, 'b, 'c) spF\<^sub>\<mu> = GetF "'a \<Rightarrow> ('a, 'b, 'c) spF\<^sub>\<mu>" | PutF "('b,'c) F"
 codatatype ('a, 'b) spF\<^sub>\<nu> = InF (outF: "('a, 'b, ('a, 'b) spF\<^sub>\<nu>) spF\<^sub>\<mu>")

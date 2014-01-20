@@ -480,7 +480,7 @@ lemma wf_deftr: "wf (deftr n)"
 proof-
   {fix tr assume "\<exists> n. tr = deftr n" hence "wf tr"
    apply(induct rule: wf_raw_coind) apply safe
-   unfolding deftr_simps image_compose[symmetric] sum_map.comp id_o
+   unfolding deftr_simps image_compose[symmetric] sum_map.comp id_comp
    root_o_deftr sum_map.id image_id id_apply apply(rule S_P)
    unfolding inj_on_def by auto
   }
@@ -517,7 +517,7 @@ unfolding comp_def root_hsubst ..
 lemma cont_hsubst_eq[simp]:
 assumes "root tr = root tr0"
 shows "cont (hsubst tr) = (id \<oplus> hsubst) ` (cont tr0)"
-apply(subst id_o[symmetric, of id]) unfolding id_o
+apply(subst id_comp[symmetric, of id]) unfolding id_comp
 using unfold(2)[of hsubst_c tr hsubst_r, OF finite_hsubst_c]
 unfolding hsubst_def hsubst_c_def using assms by simp
 
@@ -529,7 +529,7 @@ apply(rule dtree_cong) using assms cont_hsubst_eq by auto
 lemma cont_hsubst_neq[simp]:
 assumes "root tr \<noteq> root tr0"
 shows "cont (hsubst tr) = (id \<oplus> hsubst) ` (cont tr)"
-apply(subst id_o[symmetric, of id]) unfolding id_o
+apply(subst id_comp[symmetric, of id]) unfolding id_comp
 using unfold(2)[of hsubst_c tr hsubst_r, OF finite_hsubst_c]
 unfolding hsubst_def hsubst_c_def using assms by simp
 
@@ -960,7 +960,7 @@ unfolding root_H_pick root_pick[OF assms] ..
 
 lemma cont_H[simp]:
 "cont (H n) = (id \<oplus> (H o root)) ` cont (pick n)"
-apply(subst id_o[symmetric, of id]) unfolding sum_map.comp[symmetric]
+apply(subst id_comp[symmetric, of id]) unfolding sum_map.comp[symmetric]
 unfolding image_compose unfolding H_c_def[symmetric]
 using unfold(2)[of H_c n H_r, OF finite_H_c]
 unfolding H_def ..
@@ -989,7 +989,7 @@ proof-
        obtain tr2' where tr2: "tr2 = H (root tr2')"
        and tr2': "Inr tr2' \<in> cont (pick n1)"
        using tr2 Inr_cont_H[of n1]
-       unfolding tr1 image_def o_def using vimage_eq by auto
+       unfolding tr1 image_def comp_def using vimage_eq by auto
        have "inItr UNIV tr0 (root tr2')"
        using inItr.Base inItr.Ind n1 pick subtr_inItr tr2' by (metis iso_tuple_UNIV_I)
        thus "\<exists>n2. inItr UNIV tr0 n2 \<and> tr2 = H n2" using tr2 by blast
@@ -1005,7 +1005,7 @@ shows "(id \<oplus> (root \<circ> H \<circ> root)) t_tr = (id \<oplus> root) t_t
 using assms apply(cases t_tr)
   apply (metis (lifting) sum_map.simps(1))
   using pick H_def H_r_def unfold(1)
-      inItr.Base o_apply subtr_StepL subtr_inItr sum_map.simps(2)
+      inItr.Base comp_apply subtr_StepL subtr_inItr sum_map.simps(2)
   by (metis UNIV_I)
 
 lemma H_P:
@@ -1013,7 +1013,7 @@ assumes tr0: "wf tr0" and n: "inItr UNIV tr0 n"
 shows "(n, (id \<oplus> root) ` cont (H n)) \<in> P" (is "?L \<in> P")
 proof-
   have "?L = (n, (id \<oplus> root) ` cont (pick n))"
-  unfolding cont_H image_compose[symmetric] sum_map.comp id_o o_assoc
+  unfolding cont_H image_compose[symmetric] sum_map.comp id_comp comp_assoc
   unfolding Pair_eq apply(rule conjI[OF refl]) apply(rule image_cong[OF refl])
   by(rule root_H_root[OF n])
   moreover have "... \<in> P" by (metis (lifting) wf_pick root_pick wf_P n tr0)

@@ -11,7 +11,6 @@ theory Wellfounded_More
 imports Wellfounded Order_Relation_More
 begin
 
-
 subsection {* Well-founded recursion via genuine fixpoints *}
 
 (*2*)lemma adm_wf_unique_fixpoint:

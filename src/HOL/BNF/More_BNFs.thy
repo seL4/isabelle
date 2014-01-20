@@ -17,6 +17,16 @@ imports
   "~~/src/HOL/Library/Multiset"
 begin
 
+notation
+  ordLeq2 (infix "<=o" 50) and
+  ordLeq3 (infix "\<le>o" 50) and
+  ordLess2 (infix "<o" 50) and
+  ordIso2 (infix "=o" 50) and
+  csum (infixr "+c" 65) and
+  cprod (infixr "*c" 80) and
+  cexp (infixr "^c" 90) and
+  convol ("<_ , _>")
+
 lemma option_rec_conv_option_case: "option_rec = option_case"
 by (simp add: fun_eq_iff split: option.split)
 
@@ -84,7 +94,7 @@ next
   thus "map f x = map g x" by simp
 next
   fix f
-  show "set o map f = image f o set" by (rule ext, unfold o_apply, rule set_map)
+  show "set o map f = image f o set" by (rule ext, unfold comp_apply, rule set_map)
 next
   show "card_order natLeq" by (rule natLeq_card_order)
 next
@@ -237,7 +247,7 @@ proof (intro ext multiset_eqI)
   also have "... = setsum (\<lambda> b. setsum (count f) (?As b)) ?B" unfolding comp_def ..
   finally have "setsum (count f) ?A = setsum (\<lambda> b. setsum (count f) (?As b)) ?B" .
   thus "count (mmap (h2 \<circ> h1) f) c = count ((mmap h2 \<circ> mmap h1) f) c"
-    by transfer (unfold o_apply, blast)
+    by transfer (unfold comp_apply, blast)
 qed
 
 lemma mmap_cong:
@@ -255,7 +265,7 @@ lemma set_of_transfer[transfer_rule]: "(pcr_multiset op = ===> op =) (\<lambda>f
 end
 
 lemma set_of_mmap: "set_of o mmap h = image h o set_of"
-proof (rule ext, unfold o_apply)
+proof (rule ext, unfold comp_apply)
   fix M show "set_of (mmap h M) = h ` set_of M"
     by transfer (auto simp add: multiset_def setsum_gt_0_iff)
 qed
@@ -687,7 +697,7 @@ unfolding wpull_def proof (safe, unfold Bex_def mem_Collect_eq)
         case True
         def c \<equiv> "f1 b1"
         have c: "c \<in> set_of P" and b1: "b1 \<in> set1 c"
-          unfolding set1_def c_def P1 using True by (auto simp: o_eq_dest[OF set_of_mmap])
+          unfolding set1_def c_def P1 using True by (auto simp: comp_eq_dest[OF set_of_mmap])
         with sM(1) have "setsum (count M) ?K = setsum (count M) {a. p1 a = b1 \<and> a \<in> SET}"
           by transfer (force intro: setsum_mono_zero_cong_left split: split_if_asm)
         also have "... = setsum (count M) ((\<lambda> b2. u c b1 b2) ` (set2 c))"
@@ -723,7 +733,7 @@ next
         case True
         def c \<equiv> "f2 b2"
         have c: "c \<in> set_of P" and b2: "b2 \<in> set2 c"
-          unfolding set2_def c_def P2 using True by (auto simp: o_eq_dest[OF set_of_mmap])
+          unfolding set2_def c_def P2 using True by (auto simp: comp_eq_dest[OF set_of_mmap])
         with sM(1) have "setsum (count M) ?K = setsum (count M) {a. p2 a = b2 \<and> a \<in> SET}"
           by transfer (force intro: setsum_mono_zero_cong_left split: split_if_asm)
         also have "... = setsum (count M) ((\<lambda> b1. u c b1 b2) ` (set1 c))"
@@ -738,7 +748,7 @@ next
           apply(rule setsum_reindex)
           using inj unfolding inj_on_def inj2_def using b2 c u(2) by blast
         also have "... = setsum (\<lambda> b1. count M (u c b1 b2)) (set1 c)" by simp
-        also have "... = count N2 b2" unfolding ss2[OF c b2, symmetric] o_def
+        also have "... = count N2 b2" unfolding ss2[OF c b2, symmetric] comp_def
           apply(rule setsum_cong[OF refl]) apply (transfer fixing: Ms u c b2 set1)
           using True h_u1[OF c _ b2] u(2,3)[OF c _ b2] u_SET[OF c _ b2] set1_def by fastforce
         finally show ?thesis .
@@ -762,7 +772,7 @@ proof -
     by (blast dest: wppull_thePull)
   then show ?thesis
     by (intro wpull_wppull[OF wpull_mmap[OF wpull_thePull], of _ _ _ _ "mmap j"])
-      (auto simp: o_eq_dest_lhs[OF mmap_comp[symmetric]] o_eq_dest[OF set_of_mmap]
+      (auto simp: comp_eq_dest_lhs[OF mmap_comp[symmetric]] comp_eq_dest[OF set_of_mmap]
         intro!: mmap_cong simp del: mem_set_of_iff simp: mem_set_of_iff[symmetric])
 qed
 
@@ -774,7 +784,7 @@ bnf "'a multiset"
 by (auto simp add: mmap_id0 mmap_comp set_of_mmap natLeq_card_order natLeq_cinfinite set_of_bd
   Grp_def relcompp.simps intro: mmap_cong)
   (metis wppull_mmap[OF wppull_fstOp_sndOp, unfolded wppull_def
-    o_eq_dest_lhs[OF mmap_comp[symmetric]] fstOp_def sndOp_def o_def, simplified])
+    o_eq_dest_lhs[OF mmap_comp[symmetric]] fstOp_def sndOp_def comp_def, simplified])
 
 inductive rel_multiset' where
   Zero[intro]: "rel_multiset' R {#} {#}"

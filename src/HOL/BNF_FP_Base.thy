@@ -35,7 +35,7 @@ lemma prod_all_impI_step: "(\<And>x. \<forall>y. P (x, y) \<longrightarrow> Q (x
 by auto
 
 lemma pointfree_idE: "f \<circ> g = id \<Longrightarrow> f (g x) = x"
-unfolding o_def fun_eq_iff by simp
+unfolding comp_def fun_eq_iff by simp
 
 lemma o_bij:
   assumes gf: "g \<circ> f = id" and fg: "f \<circ> g = id"
@@ -113,16 +113,16 @@ lemma spec2: "\<forall>x y. P x y \<Longrightarrow> P x y"
 by blast
 
 lemma rewriteR_comp_comp: "\<lbrakk>g o h = r\<rbrakk> \<Longrightarrow> f o g o h = f o r"
-  unfolding o_def fun_eq_iff by auto
+  unfolding comp_def fun_eq_iff by auto
 
 lemma rewriteR_comp_comp2: "\<lbrakk>g o h = r1 o r2; f o r1 = l\<rbrakk> \<Longrightarrow> f o g o h = l o r2"
-  unfolding o_def fun_eq_iff by auto
+  unfolding comp_def fun_eq_iff by auto
 
 lemma rewriteL_comp_comp: "\<lbrakk>f o g = l\<rbrakk> \<Longrightarrow> f o (g o h) = l o h"
-  unfolding o_def fun_eq_iff by auto
+  unfolding comp_def fun_eq_iff by auto
 
 lemma rewriteL_comp_comp2: "\<lbrakk>f o g = l1 o l2; l2 o h = r\<rbrakk> \<Longrightarrow> f o (g o h) = l1 o r"
-  unfolding o_def fun_eq_iff by auto
+  unfolding comp_def fun_eq_iff by auto
 
 lemma convol_o: "<f, g> o h = <f o h, g o h>"
   unfolding convol_def by auto
@@ -131,16 +131,16 @@ lemma map_pair_o_convol: "map_pair h1 h2 o <f, g> = <h1 o f, h2 o g>"
   unfolding convol_def by auto
 
 lemma map_pair_o_convol_id: "(map_pair f id \<circ> <id , g>) x = <id \<circ> f , g> x"
-  unfolding map_pair_o_convol id_o o_id ..
+  unfolding map_pair_o_convol id_comp comp_id ..
 
 lemma o_sum_case: "h o sum_case f g = sum_case (h o f) (h o g)"
-  unfolding o_def by (auto split: sum.splits)
+  unfolding comp_def by (auto split: sum.splits)
 
 lemma sum_case_o_sum_map: "sum_case f g o sum_map h1 h2 = sum_case (f o h1) (g o h2)"
-  unfolding o_def by (auto split: sum.splits)
+  unfolding comp_def by (auto split: sum.splits)
 
 lemma sum_case_o_sum_map_id: "(sum_case id g o sum_map f id) x = sum_case (f o id) g x"
-  unfolding sum_case_o_sum_map id_o o_id ..
+  unfolding sum_case_o_sum_map id_comp comp_id ..
 
 lemma fun_rel_def_butlast:
   "(fun_rel R (fun_rel S T)) f g = (\<forall>x y. R x y \<longrightarrow> (fun_rel S T) (f x) (g y))"

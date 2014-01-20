@@ -15,10 +15,10 @@ lemma empty_natural: "(\<lambda>_. {}) o f = image g o (\<lambda>_. {})"
 by (rule ext) simp
 
 lemma Union_natural: "Union o image (image f) = image f o Union"
-by (rule ext) (auto simp only: o_apply)
+by (rule ext) (auto simp only: comp_apply)
 
 lemma in_Union_o_assoc: "x \<in> (Union o gset o gmap) A \<Longrightarrow> x \<in> (Union o (gset o gmap)) A"
-by (unfold o_assoc)
+by (unfold comp_assoc)
 
 lemma comp_single_set_bd:
   assumes fbd_Card_order: "Card_order fbd" and
@@ -58,7 +58,7 @@ lemma UN_image_subset: "\<Union>(f ` g x) \<subseteq> X = (g x \<subseteq> {x. f
 by blast
 
 lemma comp_set_bd_Union_o_collect: "|\<Union>\<Union>((\<lambda>f. f x) ` X)| \<le>o hbd \<Longrightarrow> |(Union \<circ> collect X) x| \<le>o hbd"
-by (unfold o_apply collect_def SUP_def)
+by (unfold comp_apply collect_def SUP_def)
 
 lemma wpull_cong:
 "\<lbrakk>A' = A; B1' = B1; B2' = B2; wpull A B1 B2 f1 f2 p1 p2\<rbrakk> \<Longrightarrow> wpull A' B1' B2' f1 f2 p1 p2"
