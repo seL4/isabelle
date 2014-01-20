@@ -81,14 +81,14 @@ datatype clause_info = ClauseInfo of
 (* Theory dependencies. *)
 val acc_induct_rule = @{thm accp_induct_rule}
 
-val ex1_implies_ex = @{thm FunDef.fundef_ex1_existence}
-val ex1_implies_un = @{thm FunDef.fundef_ex1_uniqueness}
-val ex1_implies_iff = @{thm FunDef.fundef_ex1_iff}
+val ex1_implies_ex = @{thm Fun_Def.fundef_ex1_existence}
+val ex1_implies_un = @{thm Fun_Def.fundef_ex1_uniqueness}
+val ex1_implies_iff = @{thm Fun_Def.fundef_ex1_iff}
 
 val acc_downward = @{thm accp_downward}
 val accI = @{thm accp.accI}
 val case_split = @{thm HOL.case_split}
-val fundef_default_value = @{thm FunDef.fundef_default_value}
+val fundef_default_value = @{thm Fun_Def.fundef_default_value}
 val not_acc_down = @{thm not_accp_down}
 
 
@@ -494,7 +494,7 @@ fun define_graph Gname fvar domT ranT clauses RCss lthy =
 fun define_function fdefname (fname, mixfix) domT ranT G default lthy =
   let
     val f_def =
-      Abs ("x", domT, Const (@{const_name FunDef.THE_default}, ranT --> (ranT --> boolT) --> ranT)
+      Abs ("x", domT, Const (@{const_name Fun_Def.THE_default}, ranT --> (ranT --> boolT) --> ranT)
         $ (default $ Bound 0) $ Abs ("y", ranT, G $ Bound 1 $ Bound 0))
       |> Syntax.check_term lthy
   in
@@ -718,8 +718,8 @@ fun mk_domain_intro ctxt (Globals {domT, ...}) R R_cases clause =
 (** Termination rule **)
 
 val wf_induct_rule = @{thm Wellfounded.wfP_induct_rule}
-val wf_in_rel = @{thm FunDef.wf_in_rel}
-val in_rel_def = @{thm FunDef.in_rel_def}
+val wf_in_rel = @{thm Fun_Def.wf_in_rel}
+val in_rel_def = @{thm Fun_Def.in_rel_def}
 
 fun mk_nest_term_case ctxt globals R' ihyp clause =
   let
@@ -780,7 +780,7 @@ fun mk_nest_term_rule ctxt globals R R_cases clauses =
     val R' = Free ("R", fastype_of R)
 
     val Rrel = Free ("R", HOLogic.mk_setT (HOLogic.mk_prodT (domT, domT)))
-    val inrel_R = Const (@{const_name FunDef.in_rel},
+    val inrel_R = Const (@{const_name Fun_Def.in_rel},
       HOLogic.mk_setT (HOLogic.mk_prodT (domT, domT)) --> fastype_of R) $ Rrel
 
     val wfR' = HOLogic.mk_Trueprop (Const (@{const_name Wellfounded.wfP},

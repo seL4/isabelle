@@ -35,6 +35,8 @@ sig
 
   val rewrite_by_tree : Proof.context -> term -> thm -> (thm * thm) list ->
     ctx_tree -> thm * (thm * thm) list
+
+  val setup : theory -> theory
 end
 
 structure Function_Ctx_Tree : FUNCTION_CTXTREE =
@@ -285,5 +287,9 @@ fun rewrite_by_tree ctxt h ih x tr =
   in
     rewrite_help [] [] x tr
   end
+
+val setup =
+  Attrib.setup @{binding fundef_cong} (Attrib.add_del cong_add cong_del)
+    "declaration of congruence rule for function definitions"
 
 end

@@ -8,9 +8,7 @@ Definition of bounded natural functors.
 header {* Definition of Bounded Natural Functors *}
 
 theory BNF_Def
-imports BNF_Util
-   (*FIXME: register fundef_cong attribute in an interpretation to remove this dependency*)
-  FunDef
+imports BNF_Util Fun_Def_Base
 keywords
   "print_bnfs" :: diag and
   "bnf" :: thy_goal

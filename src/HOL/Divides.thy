@@ -1062,10 +1062,10 @@ lemma divmod_nat_rel_mult2_eq:
    \<Longrightarrow> divmod_nat_rel a (b * c) (q div c, b *(q mod c) + r)"
 by (auto simp add: mult_ac divmod_nat_rel_def add_mult_distrib2 [symmetric] mod_lemma)
 
-lemma div_mult2_eq: "a div (b*c) = (a div b) div (c::nat)"
+lemma div_mult2_eq: "a div (b * c) = (a div b) div (c::nat)"
 by (force simp add: divmod_nat_rel [THEN divmod_nat_rel_mult2_eq, THEN div_nat_unique])
 
-lemma mod_mult2_eq: "a mod (b*c) = b*(a div b mod c) + a mod (b::nat)"
+lemma mod_mult2_eq: "a mod (b * c) = b * (a div b mod c) + a mod (b::nat)"
 by (auto simp add: mult_commute divmod_nat_rel [THEN divmod_nat_rel_mult2_eq, THEN mod_nat_unique])
 
 
@@ -2136,7 +2136,7 @@ lemma zmod_zdiv_equality':
   using mod_div_equality [of m n] by arith
 
 
-subsubsection {* Proving  @{term "a div (b*c) = (a div b) div c"} *}
+subsubsection {* Proving  @{term "a div (b * c) = (a div b) div c"} *}
 
 (*The condition c>0 seems necessary.  Consider that 7 div ~6 = ~2 but
   7 div 2 div ~3 = 3 div ~3 = ~1.  The subcase (a div b) mod c = 0 seems
@@ -2144,7 +2144,7 @@ subsubsection {* Proving  @{term "a div (b*c) = (a div b) div c"} *}
 
 text{*first, four lemmas to bound the remainder for the cases b<0 and b>0 *}
 
-lemma zmult2_lemma_aux1: "[| (0::int) < c;  b < r;  r \<le> 0 |] ==> b*c < b*(q mod c) + r"
+lemma zmult2_lemma_aux1: "[| (0::int) < c;  b < r;  r \<le> 0 |] ==> b * c < b * (q mod c) + r"
 apply (subgoal_tac "b * (c - q mod c) < r * 1")
  apply (simp add: algebra_simps)
 apply (rule order_le_less_trans)

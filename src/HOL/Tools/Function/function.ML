@@ -278,10 +278,7 @@ val setup_case_cong = Datatype.interpretation (K (fold add_case_cong))
 (* setup *)
 
 val setup =
-  Attrib.setup @{binding fundef_cong}
-    (Attrib.add_del Function_Ctx_Tree.cong_add Function_Ctx_Tree.cong_del)
-    "declaration of congruence rule for function definitions"
-  #> setup_case_cong
+  setup_case_cong
   #> Function_Common.Termination_Simps.setup
 
 val get_congs = Function_Ctx_Tree.get_function_congs

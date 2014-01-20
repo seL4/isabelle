@@ -827,8 +827,8 @@ text{* Any subset of an interval of natural numbers the size of the
 subset is exactly that interval. *}
 
 lemma subset_card_intvl_is_intvl:
-  assumes "A \<subseteq> {k..<k+card A}"
-  shows "A = {k..<k+card A}"
+  assumes "A \<subseteq> {k..<k + card A}"
+  shows "A = {k..<k + card A}"
 proof (cases "finite A")
   case True
   from this and assms show ?thesis
@@ -837,7 +837,7 @@ proof (cases "finite A")
   next
     case (insert b A)
     hence *: "b \<notin> A" by auto
-    with insert have "A <= {k..<k+card A}" and "b = k+card A"
+    with insert have "A <= {k..<k + card A}" and "b = k + card A"
       by fastforce+
     with insert * show ?case by auto
   qed

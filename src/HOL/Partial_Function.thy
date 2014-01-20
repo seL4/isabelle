@@ -5,11 +5,10 @@
 header {* Partial Function Definitions *}
 
 theory Partial_Function
-imports Complete_Partial_Order Option
+imports Complete_Partial_Order Fun_Def_Base Option
 keywords "partial_function" :: thy_decl
 begin
 
-ML_file "Tools/Function/function_lib.ML"
 ML_file "Tools/Function/partial_function.ML"
 setup Partial_Function.setup
 

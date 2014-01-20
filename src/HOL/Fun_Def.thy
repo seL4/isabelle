@@ -1,15 +1,15 @@
-(*  Title:      HOL/FunDef.thy
+(*  Title:      HOL/Fun_Def.thy
     Author:     Alexander Krauss, TU Muenchen
 *)
 
 header {* Function Definitions and Termination Proofs *}
 
-theory FunDef
-imports Partial_Function SAT Wellfounded
+theory Fun_Def
+imports Partial_Function SAT
 keywords "function" "termination" :: thy_goal and "fun" "fun_cases" :: thy_decl
 begin
 
-subsection {* Definitions with default value. *}
+subsection {* Definitions with default value *}
 
 definition
   THE_default :: "'a \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a" where
@@ -82,8 +82,6 @@ lemma wf_in_rel:
   "wf R \<Longrightarrow> wfP (in_rel R)"
   by (simp add: wfP_def)
 
-ML_file "Tools/Function/function_common.ML"
-ML_file "Tools/Function/context_tree.ML"
 ML_file "Tools/Function/function_core.ML"
 ML_file "Tools/Function/sum_tree.ML"
 ML_file "Tools/Function/mutual.ML"

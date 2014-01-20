@@ -17,15 +17,8 @@ lemma prod_pred_apply [simp]:
   "prod_pred P1 P2 (a, b) \<longleftrightarrow> P1 a \<and> P2 b"
   by (simp add: prod_pred_def)
 
-lemma prod_rel_eq [relator_eq]:
-  shows "prod_rel (op =) (op =) = (op =)"
-  by (simp add: fun_eq_iff)
-
-lemma prod_rel_mono[relator_mono]:
-  assumes "A \<le> C"
-  assumes "B \<le> D"
-  shows "(prod_rel A B) \<le> (prod_rel C D)"
-using assms by (auto simp: prod_rel_def)
+lemmas prod_rel_eq[relator_eq] = prod.rel_eq
+lemmas prod_rel_mono[relator_mono] = prod.rel_mono
 
 lemma prod_rel_OO[relator_distr]:
   "(prod_rel A B) OO (prod_rel C D) = prod_rel (A OO C) (B OO D)"
