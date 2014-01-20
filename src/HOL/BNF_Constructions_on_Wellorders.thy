@@ -2,10 +2,10 @@
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
-Constructions on wellorders (BNF).
+Constructions on wellorders as needed by bounded natural functors.
 *)
 
-header {* Constructions on Wellorders (BNF) *}
+header {* Constructions on Wellorders as Needed by Bounded Natural Functors *}
 
 theory BNF_Constructions_on_Wellorders
 imports BNF_Wellorder_Embedding

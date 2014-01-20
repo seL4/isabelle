@@ -2,10 +2,10 @@
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
-Cardinal-order relations (BNF).
+Cardinal-order relations as needed by bounded natural functors.
 *)
 
-header {* Cardinal-Order Relations (BNF) *}
+header {* Cardinal-Order Relations as Needed by Bounded Natural Functors *}
 
 theory BNF_Cardinal_Order_Relation
 imports BNF_Constructions_on_Wellorders

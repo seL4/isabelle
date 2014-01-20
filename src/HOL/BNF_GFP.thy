@@ -1,6 +1,8 @@
-(*  Title:      HOL/BNF/BNF_GFP.thy
+(*  Title:      HOL/BNF_GFP.thy
     Author:     Dmitriy Traytel, TU Muenchen
-    Copyright   2012
+    Author:     Lorenz Panny, TU Muenchen
+    Author:     Jasmin Blanchette, TU Muenchen
+    Copyright   2012, 2013
 
 Greatest fixed point operation on bounded natural functors.
 *)

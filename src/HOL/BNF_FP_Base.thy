@@ -1,10 +1,10 @@
-(*  Title:      HOL/BNF/BNF_FP_Base.thy
+(*  Title:      HOL/BNF_FP_Base.thy
     Author:     Lorenz Panny, TU Muenchen
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012, 2013
 
-Shared fixed point operations on bounded natural functors, including
+Shared fixed point operations on bounded natural functors.
 *)
 
 header {* Shared Fixed Point Operations on Bounded Natural Functors *}

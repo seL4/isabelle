@@ -2,10 +2,10 @@
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
-Well-order embeddings (BNF).
+Well-order embeddings as needed by bounded natural functors.
 *)
 
-header {* Well-Order Embeddings (BNF) *}
+header {* Well-Order Embeddings as Needed by Bounded Natural Functors *}
 
 theory BNF_Wellorder_Embedding
 imports Zorn BNF_Wellorder_Relation

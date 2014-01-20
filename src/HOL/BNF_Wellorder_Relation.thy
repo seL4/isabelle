@@ -2,10 +2,10 @@
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
-Well-order relations (BNF).
+Well-order relations as needed by bounded natural functors.
 *)
 
-header {* Well-Order Relations (BNF) *}
+header {* Well-Order Relations as Needed by Bounded Natural Functors *}
 
 theory BNF_Wellorder_Relation
 imports Order_Relation

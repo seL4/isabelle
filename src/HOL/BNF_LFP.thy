@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF/BNF_LFP.thy
+(*  Title:      HOL/BNF_LFP.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Lorenz Panny, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen

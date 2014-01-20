@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF/BNF_Def.thy
+(*  Title:      HOL/BNF_Def.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Copyright   2012
 
