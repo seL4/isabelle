@@ -1623,8 +1623,8 @@ unfolding Field_def init_seg_of_def by auto
 lemma refl_init_seg_of[intro, simp]: "refl init_seg_of"
 unfolding refl_on_def Field_def by auto
 
-lemma regular_all_ex:
-assumes r: "Card_order r"   "regular r"
+lemma regularCard_all_ex:
+assumes r: "Card_order r"   "regularCard r"
 and As: "\<And> i j b. b \<in> B \<Longrightarrow> (i,j) \<in> r \<Longrightarrow> P i b \<Longrightarrow> P j b"
 and Bsub: "\<forall> b \<in> B. \<exists> i \<in> Field r. P i b"
 and cardB: "|B| <o r"
@@ -1632,7 +1632,7 @@ shows "\<exists> i \<in> Field r. \<forall> b \<in> B. P i b"
 proof-
   let ?As = "\<lambda>i. {b \<in> B. P i b}"
   have "EX i : Field r. B \<le> ?As i"
-  apply(rule regular_UNION) using assms unfolding relChain_def by auto
+  apply(rule regularCard_UNION) using assms unfolding relChain_def by auto
   thus ?thesis by auto
 qed
 
@@ -1692,8 +1692,8 @@ where
                |A| <o r \<and> (\<forall>a \<in> A. |F a| <o r)
                \<longrightarrow> |SIGMA a : A. F a| <o r"
 
-lemma regular_stable:
-assumes cr: "Card_order r" and ir: "\<not>finite (Field r)" and reg: "regular r"
+lemma regularCard_stable:
+assumes cr: "Card_order r" and ir: "\<not>finite (Field r)" and reg: "regularCard r"
 shows "stable r"
 unfolding stable_def proof safe
   fix A :: "'a set" and F :: "'a \<Rightarrow> 'a set" assume A: "|A| <o r" and F: "\<forall>a\<in>A. |F a| <o r"
@@ -1710,7 +1710,7 @@ unfolding stable_def proof safe
     apply(rule exI[of _ snd]) unfolding bij_betw_def inj_on_def by (auto simp: image_def)
     hence "|L| <o r" using F a ordIso_ordLess_trans[of "|L|" "|F a|"] unfolding L_def by auto
     hence "|f ` L| <o r" using ordLeq_ordLess_trans[OF card_of_image, of "L"] unfolding L_def by auto
-    hence "\<not> cofinal (f ` L) r" using reg fL unfolding regular_def by (metis not_ordLess_ordIso)
+    hence "\<not> cofinal (f ` L) r" using reg fL unfolding regularCard_def by (metis not_ordLess_ordIso)
     then obtain k where k: "k \<in> Field r" and "\<forall> l \<in> L. \<not> (f l \<noteq> k \<and> (k, f l) \<in> r)"
     unfolding cofinal_def image_def by auto
     hence "\<exists> k \<in> Field r. \<forall> l \<in> L. (f l, k) \<in> r" using r by (metis fL image_subset_iff wo_rel.in_notinI)
@@ -1734,7 +1734,7 @@ unfolding stable_def proof safe
      partial_order_on_def antisym_def by auto
      ultimately show "\<exists>j\<in>g ` A. i \<noteq> j \<and> (i, j) \<in> r" using a by auto
    qed
-   ultimately have "|g ` A| =o r" using reg unfolding regular_def by auto
+   ultimately have "|g ` A| =o r" using reg unfolding regularCard_def by auto
    moreover have "|g ` A| \<le>o |A|" by (metis card_of_image)
    ultimately have False using A by (metis not_ordLess_ordIso ordLeq_ordLess_trans)
   }
@@ -1742,10 +1742,10 @@ unfolding stable_def proof safe
   using cr not_ordLess_iff_ordLeq by (metis card_of_Well_order card_order_on_well_order_on)
 qed
 
-lemma stable_regular:
+lemma stable_regularCard:
 assumes cr: "Card_order r" and ir: "\<not>finite (Field r)" and st: "stable r"
-shows "regular r"
-unfolding regular_def proof safe
+shows "regularCard r"
+unfolding regularCard_def proof safe
   fix K assume K: "K \<subseteq> Field r" and cof: "cofinal K r"
   have "|K| \<le>o r" using K by (metis card_of_Field_ordIso card_of_mono1 cr ordLeq_ordIso_trans)
   moreover
@@ -1807,13 +1807,13 @@ proof(unfold stable_def, safe)
   by (auto simp add: finite_iff_ordLess_natLeq)
 qed
 
-corollary regular_natLeq: "regular natLeq"
-using stable_regular[OF natLeq_Card_order _ stable_natLeq] Field_natLeq by simp
+corollary regularCard_natLeq: "regularCard natLeq"
+using stable_regularCard[OF natLeq_Card_order _ stable_natLeq] Field_natLeq by simp
 
 lemma stable_cardSuc:
 assumes CARD: "Card_order r" and INF: "\<not>finite (Field r)"
 shows "stable(cardSuc r)"
-using infinite_cardSuc_regular regular_stable
+using infinite_cardSuc_regularCard regularCard_stable
 by (metis CARD INF cardSuc_Card_order cardSuc_finite)
 
 lemma stable_UNION:
@@ -1900,10 +1900,10 @@ proof-
   thus ?thesis using CARD card_of_UNIV2 ordLeq_ordLess_trans by blast
 qed
 
-corollary infinite_regular_exists:
+corollary infinite_regularCard_exists:
 assumes CARD: "\<forall>r \<in> R. Card_order (r::'a rel)"
 shows "\<exists>(A :: (nat + 'a set)set).
-          \<not>finite A \<and> regular |A| \<and> (\<forall>r \<in> R. r <o |A| )"
-using infinite_stable_exists[OF CARD] stable_regular by (metis Field_card_of card_of_card_order_on)
+          \<not>finite A \<and> regularCard |A| \<and> (\<forall>r \<in> R. r <o |A| )"
+using infinite_stable_exists[OF CARD] stable_regularCard by (metis Field_card_of card_of_card_order_on)
 
 end

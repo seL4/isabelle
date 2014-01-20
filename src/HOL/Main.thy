@@ -11,11 +11,6 @@ text {*
 
 text {* See further \cite{Nipkow-et-al:2002:tutorial} *}
 
-hide_const (open)
-  image2 image2p vimage2p Gr Grp collect fsts snds setl setr
-  convol pick_middlep fstOp sndOp csquare inver relImage relInvImage
-  prefCl PrefCl Succ Shift shift proj
-
 no_notation
   bot ("\<bottom>") and
   top ("\<top>") and
@@ -32,6 +27,11 @@ no_notation
   cprod (infixr "*c" 80) and
   cexp (infixr "^c" 90) and
   convol ("<_ , _>")
+
+hide_const (open)
+  image2 image2p vimage2p Gr Grp collect fsts snds setl setr
+  convol pick_middlep fstOp sndOp csquare inver relImage relInvImage
+  prefCl PrefCl Succ Shift shift proj
 
 no_syntax (xsymbols)
   "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Sqinter>_./ _)" [0, 10] 10)

@@ -681,8 +681,6 @@ end (* context *)
 
 subsection{* Regular Trees *}
 
-hide_const regular
-
 definition "reg f tr \<equiv> \<forall> tr'. subtr UNIV tr' tr \<longrightarrow> tr' = f (root tr')"
 definition "regular tr \<equiv> \<exists> f. reg f tr"
 

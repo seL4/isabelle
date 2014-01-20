@@ -1504,16 +1504,16 @@ definition cofinal where
 "cofinal A r \<equiv>
  ALL a : Field r. EX b : A. a \<noteq> b \<and> (a,b) : r"
 
-definition regular where
-"regular r \<equiv>
+definition regularCard where
+"regularCard r \<equiv>
  ALL K. K \<le> Field r \<and> cofinal K r \<longrightarrow> |K| =o r"
 
 definition relChain where
 "relChain r As \<equiv>
  ALL i j. (i,j) \<in> r \<longrightarrow> As i \<le> As j"
 
-lemma regular_UNION:
-assumes r: "Card_order r"   "regular r"
+lemma regularCard_UNION:
+assumes r: "Card_order r"   "regularCard r"
 and As: "relChain r As"
 and Bsub: "B \<le> (UN i : Field r. As i)"
 and cardB: "|B| <o r"
@@ -1537,7 +1537,7 @@ proof-
      with b show "\<exists>b\<in>B. i \<noteq> f b \<and> (i, f b) \<in> r" by blast
    qed
    moreover have "?K \<le> Field r" using f by blast
-   ultimately have "|?K| =o r" using 2 r unfolding regular_def by blast
+   ultimately have "|?K| =o r" using 2 r unfolding regularCard_def by blast
    moreover
    {
     have "|?K| <=o |B|" using card_of_image .
@@ -1548,16 +1548,16 @@ proof-
   thus ?thesis by blast
 qed
 
-lemma infinite_cardSuc_regular:
+lemma infinite_cardSuc_regularCard:
 assumes r_inf: "\<not>finite (Field r)" and r_card: "Card_order r"
-shows "regular (cardSuc r)"
+shows "regularCard (cardSuc r)"
 proof-
   let ?r' = "cardSuc r"
   have r': "Card_order ?r'"
   "!! p. Card_order p \<longrightarrow> (p \<le>o r) = (p <o ?r')"
   using r_card by (auto simp: cardSuc_Card_order cardSuc_ordLeq_ordLess)
   show ?thesis
-  unfolding regular_def proof auto
+  unfolding regularCard_def proof auto
     fix K assume 1: "K \<le> Field ?r'" and 2: "cofinal K ?r'"
     hence "|K| \<le>o |Field ?r'|" by (simp only: card_of_mono1)
     also have 22: "|Field ?r'| =o ?r'"
@@ -1610,10 +1610,10 @@ proof-
   have "Card_order ?r' \<and> |B| <o ?r'"
   using r cardB cardSuc_ordLeq_ordLess cardSuc_Card_order
   card_of_Card_order by blast
-  moreover have "regular ?r'"
-  using assms by(simp add: infinite_cardSuc_regular)
+  moreover have "regularCard ?r'"
+  using assms by(simp add: infinite_cardSuc_regularCard)
   ultimately show ?thesis
-  using As Bsub cardB regular_UNION by blast
+  using As Bsub cardB regularCard_UNION by blast
 qed
 
 
