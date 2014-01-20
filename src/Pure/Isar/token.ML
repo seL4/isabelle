@@ -321,15 +321,15 @@ fun ident_or_symbolic "begin" = false
 (* scan verbatim text *)
 
 val scan_verb =
-  $$$ "*" --| Scan.ahead (~$$$ "}") ||
+  $$$ "*" --| Scan.ahead (~$$ "}") ||
   Scan.one (fn (s, _) => s <> "*" andalso Symbol.is_regular s) >> single;
 
 val scan_verbatim =
-  Scan.ahead ($$$ "{" -- $$$ "*") |--
+  Scan.ahead ($$ "{" -- $$ "*") |--
     !!! "unclosed verbatim text"
-      ((Symbol_Pos.scan_pos --| $$$ "{" --| $$$ "*") --
+      ((Symbol_Pos.scan_pos --| $$ "{" --| $$ "*") --
         Symbol_Pos.change_prompt
-          ((Scan.repeat scan_verb >> flat) -- ($$$ "*" |-- $$$ "}" |-- Symbol_Pos.scan_pos)));
+          ((Scan.repeat scan_verb >> flat) -- ($$ "*" |-- $$ "}" |-- Symbol_Pos.scan_pos)));
 
 val recover_verbatim =
   $$$ "{" @@@ $$$ "*" @@@ (Scan.repeat scan_verb >> flat);

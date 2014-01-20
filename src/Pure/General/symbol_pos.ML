@@ -9,6 +9,7 @@ sig
   type T = Symbol.symbol * Position.T
   val symbol: T -> Symbol.symbol
   val $$ : Symbol.symbol -> T list -> T * T list
+  val ~$$ : Symbol.symbol -> T list -> T * T list
   val $$$ : Symbol.symbol -> T list -> T list * T list
   val ~$$$ : Symbol.symbol -> T list -> T list * T list
   val content: T list -> string
@@ -87,6 +88,8 @@ fun !!! text scan =
 fun change_prompt scan = Scan.prompt "# " scan;
 
 fun $$ s = Scan.one (fn x => symbol x = s);
+fun ~$$ s = Scan.one (fn x => symbol x <> s);
+
 fun $$$ s = Scan.one (fn x => symbol x = s) >> single;
 fun ~$$$ s = Scan.one (fn x => symbol x <> s) >> single;
 
@@ -278,6 +281,7 @@ end;
 structure Basic_Symbol_Pos =   (*not open by default*)
 struct
   val $$ = Symbol_Pos.$$;
+  val ~$$ = Symbol_Pos.~$$;
   val $$$ = Symbol_Pos.$$$;
   val ~$$$ = Symbol_Pos.~$$$;
 end;

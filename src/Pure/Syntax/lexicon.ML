@@ -210,11 +210,11 @@ fun predef_term s =
 (* str tokens *)
 
 val scan_chr =
-  $$$ "\\" |-- $$$ "'" ||
+  $$ "\\" |-- $$$ "'" ||
   Scan.one
     ((fn s => s <> "\\" andalso s <> "'" andalso Symbol.is_regular s) o
       Symbol_Pos.symbol) >> single ||
-  $$$ "'" --| Scan.ahead (~$$$ "'");
+  $$$ "'" --| Scan.ahead (~$$ "'");
 
 val scan_str =
   Scan.ahead ($$ "'" -- $$ "'") |--
@@ -222,7 +222,7 @@ val scan_str =
       ($$$ "'" @@@ $$$ "'" @@@ (Scan.repeat scan_chr >> flat) @@@ $$$ "'" @@@ $$$ "'");
 
 val scan_str_body =
-  Scan.ahead ($$$ "'" |-- $$$ "'") |--
+  Scan.ahead ($$ "'" |-- $$ "'") |--
     !!! "unclosed string literal"
       ($$ "'" |-- $$ "'" |-- (Scan.repeat scan_chr >> flat) --| $$ "'" --| $$ "'");
 
@@ -297,7 +297,7 @@ val scan_vname =
 
     val scan =
       (scan_id >> map Symbol_Pos.symbol) --
-      Scan.optional ($$$ "." |-- scan_nat >> (nat 0 o map Symbol_Pos.symbol)) ~1;
+      Scan.optional ($$ "." |-- scan_nat >> (nat 0 o map Symbol_Pos.symbol)) ~1;
   in
     scan >>
       (fn (cs, ~1) => chop_idx (rev cs) []
@@ -306,7 +306,7 @@ val scan_vname =
 
 in
 
-val scan_indexname = $$$ "'" |-- scan_vname >> (fn (x, i) => ("'" ^ x, i)) || scan_vname;
+val scan_indexname = $$ "'" |-- scan_vname >> (fn (x, i) => ("'" ^ x, i)) || scan_vname;
 
 end;
 
@@ -324,7 +324,7 @@ fun read_indexname s =
 fun read_var str =
   let
     val scan =
-      $$$ "?" |-- scan_indexname --| Scan.ahead (Scan.one Symbol_Pos.is_eof)
+      $$ "?" |-- scan_indexname --| Scan.ahead (Scan.one Symbol_Pos.is_eof)
         >> Syntax.var ||
       Scan.many (Symbol.is_regular o Symbol_Pos.symbol)
         >> (Syntax.free o implode o map Symbol_Pos.symbol);
@@ -334,7 +334,7 @@ fun read_var str =
 (* read_variable *)
 
 fun read_variable str =
-  let val scan = $$$ "?" |-- scan_indexname || scan_indexname
+  let val scan = $$ "?" |-- scan_indexname || scan_indexname
   in Scan.read Symbol_Pos.stopper scan (Symbol_Pos.explode (str, Position.none)) end;
 
 
