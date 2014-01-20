@@ -1,5 +1,5 @@
 (*  Title:      HOL/Library/LaTeXsugar.thy
-    Author:     Gerwin Klain, Tobias Nipkow, Norbert Schirmer
+    Author:     Gerwin Klein, Tobias Nipkow, Norbert Schirmer
     Copyright   2005 NICTA and TUM
 *)
 
