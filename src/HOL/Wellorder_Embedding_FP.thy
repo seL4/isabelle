@@ -1,4 +1,4 @@
-(*  Title:      HOL/Cardinals/Wellorder_Embedding_FP.thy
+(*  Title:      HOL/Wellorder_Embedding_FP.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 

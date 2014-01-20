@@ -1,4 +1,4 @@
-(*  Title:      HOL/Cardinals/Cardinal_Order_Relation_FP.thy
+(*  Title:      HOL/Cardinal_Order_Relation_FP.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 

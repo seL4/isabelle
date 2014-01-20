@@ -1,4 +1,4 @@
-(*  Title:      HOL/Cardinals/Cardinal_Arithmetic_FP.thy
+(*  Title:      HOL/Cardinal_Arithmetic_FP.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Copyright   2012
 

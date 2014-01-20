@@ -1,4 +1,4 @@
-(*  Title:      HOL/Cardinals/Constructions_on_Wellorders_FP.thy
+(*  Title:      HOL/Constructions_on_Wellorders_FP.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 

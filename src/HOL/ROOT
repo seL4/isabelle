@@ -688,14 +688,7 @@ session "HOL-Nominal-Examples" in "Nominal/Examples" = "HOL-Nominal" +
   theories Nominal_Examples
   theories [quick_and_dirty] VC_Condition
 
-session "HOL-Cardinals-FP" in Cardinals = HOL +
-  description {*
-    Ordinals and Cardinals, Theories Needed for BNF FP Constructions.
-  *}
-  options [document = false]
-  theories Cardinal_Arithmetic_FP
-
-session "HOL-Cardinals" in Cardinals = "HOL-Cardinals-FP" +
+session "HOL-Cardinals" in Cardinals = HOL +
   description {*
     Ordinals and Cardinals, Full Theories.
   *}
@@ -706,9 +699,9 @@ session "HOL-Cardinals" in Cardinals = "HOL-Cardinals-FP" +
     "document/root.tex"
     "document/root.bib"
 
-session "HOL-BNF-FP" in BNF = "HOL-Cardinals-FP" +
+session "HOL-BNF-FP" in BNF = HOL +
   description {*
-    Bounded Natural Functors for (Co)datatypes.
+    Bounded Natural Functors for (Co)datatypes, Fixpoints.
   *}
   options [document = false]
   theories BNF_LFP BNF_GFP
