@@ -8,7 +8,7 @@ Constructions on wellorders.
 header {* Constructions on Wellorders *}
 
 theory Constructions_on_Wellorders
-imports Constructions_on_Wellorders_FP Wellorder_Embedding Order_Union
+imports BNF_Constructions_on_Wellorders Wellorder_Embedding Order_Union
 begin
 
 declare

@@ -8,7 +8,7 @@ Cardinal arithmetic.
 header {* Cardinal Arithmetic  *}
 
 theory Cardinal_Arithmetic
-imports Cardinal_Arithmetic_FP Cardinal_Order_Relation
+imports BNF_Cardinal_Arithmetic Cardinal_Order_Relation
 begin
 
 subsection {* Binary sum *}

@@ -1,14 +1,14 @@
-(*  Title:      HOL/Cardinal_Order_Relation_FP.thy
+(*  Title:      HOL/BNF_Cardinal_Order_Relation.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
-Cardinal-order relations (FP).
+Cardinal-order relations (BNF).
 *)
 
-header {* Cardinal-Order Relations (FP) *}
+header {* Cardinal-Order Relations (BNF) *}
 
-theory Cardinal_Order_Relation_FP
-imports Constructions_on_Wellorders_FP
+theory BNF_Cardinal_Order_Relation
+imports BNF_Constructions_on_Wellorders
 begin
 
 text{* In this section, we define cardinal-order relations to be minim well-orders

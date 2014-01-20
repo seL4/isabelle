@@ -1,13 +1,13 @@
-(*  Title:      HOL/Wellorder_Relation_FP.thy
+(*  Title:      HOL/BNF_Wellorder_Relation.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
-Well-order relations (FP).
+Well-order relations (BNF).
 *)
 
-header {* Well-Order Relations (FP) *}
+header {* Well-Order Relations (BNF) *}
 
-theory Wellorder_Relation_FP
+theory BNF_Wellorder_Relation
 imports Order_Relation
 begin
 

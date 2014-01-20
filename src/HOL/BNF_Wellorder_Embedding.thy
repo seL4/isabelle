@@ -1,14 +1,14 @@
-(*  Title:      HOL/Wellorder_Embedding_FP.thy
+(*  Title:      HOL/BNF_Wellorder_Embedding.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
-Well-order embeddings (FP).
+Well-order embeddings (BNF).
 *)
 
-header {* Well-Order Embeddings (FP) *}
+header {* Well-Order Embeddings (BNF) *}
 
-theory Wellorder_Embedding_FP
-imports Zorn Wellorder_Relation_FP
+theory BNF_Wellorder_Embedding
+imports Zorn BNF_Wellorder_Relation
 begin
 
 

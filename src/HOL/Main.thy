@@ -1,7 +1,7 @@
 header {* Main HOL *}
 
 theory Main
-imports Predicate_Compile Nitpick Extraction Lifting_Sum List_Prefix Coinduction Cardinal_Arithmetic_FP
+imports Predicate_Compile Nitpick Extraction Lifting_Sum List_Prefix Coinduction BNF_Cardinal_Arithmetic
 begin
 
 text {*

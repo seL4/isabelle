@@ -9,7 +9,7 @@ Library for bounded natural functors.
 header {* Library for Bounded Natural Functors *}
 
 theory BNF_Util
-imports Cardinal_Arithmetic_FP
+imports BNF_Cardinal_Arithmetic
   Transfer (*FIXME: define fun_rel here, reuse in Transfer once this theory is in HOL*)
 begin
 

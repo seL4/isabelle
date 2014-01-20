@@ -8,7 +8,7 @@ Cardinal-order relations.
 header {* Cardinal-Order Relations *}
 
 theory Cardinal_Order_Relation
-imports Cardinal_Order_Relation_FP Constructions_on_Wellorders
+imports BNF_Cardinal_Order_Relation Constructions_on_Wellorders
 begin
 
 declare
@@ -1599,7 +1599,7 @@ proof-
       thus "x \<in> Field p" using x unfolding fp by auto
     qed(unfold p_def Field_def, auto)
     have "p <o r" using j ofilter_ordLess[OF 00 of] unfolding fp p_def[symmetric] by auto
-    hence 2: "|Field p| <o r" using c by (metis Cardinal_Order_Relation_FP.ordLess_Field)
+    hence 2: "|Field p| <o r" using c by (metis BNF_Cardinal_Order_Relation.ordLess_Field)
     have "|Field p| =o |Field r|" unfolding fp using i by (metis infinite_card_of_diff_singl)
     also have "|Field r| =o r"
     using c by (metis card_of_unique ordIso_symmetric)

@@ -1,14 +1,14 @@
-(*  Title:      HOL/Constructions_on_Wellorders_FP.thy
+(*  Title:      HOL/BNF_Constructions_on_Wellorders.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
-Constructions on wellorders (FP).
+Constructions on wellorders (BNF).
 *)
 
-header {* Constructions on Wellorders (FP) *}
+header {* Constructions on Wellorders (BNF) *}
 
-theory Constructions_on_Wellorders_FP
-imports Wellorder_Embedding_FP
+theory BNF_Constructions_on_Wellorders
+imports BNF_Wellorder_Embedding
 begin
 
 

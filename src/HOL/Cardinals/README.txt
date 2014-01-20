@@ -67,7 +67,7 @@ The "major" theories are:
      (natLeq) and the finite cardinals (natLeq_on n).
 ---- 6) Defines and proves the existence of successor cardinals.  
 
--- Cardinal_Arithmetic
+-- BNF_Cardinal_Arithmetic
 
 
 Here is a list of names of proved facts concerning cardinalities that are 
@@ -89,7 +89,7 @@ for "working mathematicians":
 Minor technicalities and naming issues:
 ---------------------------------------
 
-1. Most of the definitions and theorems are proved in files suffixed with "_FP".
+1. Most of the definitions and theorems are proved in files prefixed with "BNF_".
 Bootstrapping considerations (for the (co)datatype package) made this division
 desirable.
 
@@ -182,7 +182,7 @@ Theory Order_Relation_More (and Order_Relation):
    abbreviation "Linear_order r ≡ linear_order_on (Field r) r"
    abbreviation "Well_order r ≡ well_order_on (Field r) r"
 
-Theory Wellorder_Relation (and Wellorder_Relation_FP):
+Theory Wellorder_Relation (and BNF_Wellorder_Relation):
 - In subsection "Auxiliaries": recall lemmas "order_on_defs"
 - In subsection "The notions of maximum, minimum, supremum, successor and order filter": 
   Should we define all constants from "wo_rel" in "rel" instead, 
@@ -191,7 +191,7 @@ Theory Wellorder_Relation (and Wellorder_Relation_FP):
 Theory Wellfounded_More:
   Recall the lemmas "wfrec" and "wf_induct". 
 
-Theory Wellorder_Embedding (and Wellorder_Embedding_FP):
+Theory Wellorder_Embedding (and BNF_Wellorder_Embedding):
 - Recall "inj_on_def" and "bij_betw_def". 
 - Line 5 in the proof of lemma embed_in_Field: we have to figure out for this and many other 
   situations:  Why did it work without annotations to Refl_under_in?
@@ -201,7 +201,7 @@ Theory Wellorder_Embedding (and Wellorder_Embedding_FP):
   making impossible to debug theorem instantiations.  
 - At lemma "embed_unique": If we add the attribute "rule format" at lemma, we get an error at qed.
 
-Theory Constructions_on_Wellorders (and Constructions_on_Wellorders_FP):
+Theory Constructions_on_Wellorders (and BNF_Constructions_on_Wellorders):
 - Some of the lemmas in this section are about more general kinds of relations than 
   well-orders, but it is not clear whether they are useful in such more general contexts.
 - Recall that "equiv" does not have the "equiv_on" and "Equiv" versions, 
@@ -209,7 +209,7 @@ Theory Constructions_on_Wellorders (and Constructions_on_Wellorders_FP):
 - The lemmas "ord_trans" are not clearly useful together, as their employment within blast or auto 
 tends to diverge.  
 
-Theory Cardinal_Order_Relation (and Cardinal_Order_Relation_FP):
+Theory Cardinal_Order_Relation (and BNF_Cardinal_Order_Relation):
 - Careful: if "|..|" meets an outer parehthesis, an extra space needs to be inserted, as in
   "( |A| )". 
 - At lemma like ordLeq_Sigma_mono1: Not worth stating something like ordLeq_Sigma_mono2 -- 

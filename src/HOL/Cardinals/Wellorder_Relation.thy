@@ -8,7 +8,7 @@ Well-order relations.
 header {* Well-Order Relations *}
 
 theory Wellorder_Relation
-imports Wellorder_Relation_FP Wellfounded_More
+imports BNF_Wellorder_Relation Wellfounded_More
 begin
 
 context wo_rel

@@ -1,14 +1,14 @@
-(*  Title:      HOL/Cardinal_Arithmetic_FP.thy
+(*  Title:      HOL/BNF_Cardinal_Arithmetic.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Copyright   2012
 
-Cardinal arithmetic (FP).
+Cardinal arithmetic (BNF).
 *)
 
-header {* Cardinal Arithmetic (FP) *}
+header {* Cardinal Arithmetic (BNF) *}
 
-theory Cardinal_Arithmetic_FP
-imports Cardinal_Order_Relation_FP
+theory BNF_Cardinal_Arithmetic
+imports BNF_Cardinal_Order_Relation
 begin
 
 lemma dir_image: "\<lbrakk>\<And>x y. (f x = f y) = (x = y); Card_order r\<rbrakk> \<Longrightarrow> r =o dir_image r f"
