@@ -8,7 +8,7 @@ Preliminaries.
 header {* Preliminaries *}
 
 theory Prelim
-imports "../../BNF" "../../More_BNFs"
+imports "../../BNF/More_BNFs"
 begin
 
 declare fset_to_fset[simp]

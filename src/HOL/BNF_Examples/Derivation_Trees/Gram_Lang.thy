@@ -8,7 +8,7 @@ Language of a grammar.
 header {* Language of a Grammar *}
 
 theory Gram_Lang
-imports DTree
+imports DTree "~~/src/HOL/Library/Infinite_Set"
 begin
 
 
