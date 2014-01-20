@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF/Tools/bnf_fp_util.ML
+(*  Title:      HOL/Tools/BNF/bnf_fp_util.ML
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012, 2013

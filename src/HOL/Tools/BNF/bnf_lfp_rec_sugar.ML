@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF/Tools/bnf_lfp_rec_sugar.ML
+(*  Title:      HOL/Tools/BNF/bnf_lfp_rec_sugar.ML
     Author:     Lorenz Panny, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2013

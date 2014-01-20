@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF/Tools/bnf_gfp_rec_sugar_tactics.ML
+(*  Title:      HOL/Tools/BNF/bnf_gfp_rec_sugar_tactics.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2013
 

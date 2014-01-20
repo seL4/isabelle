@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF/Tools/bnf_fp_n2m_tactics.ML
+(*  Title:      HOL/Tools/BNF/bnf_fp_n2m_tactics.ML
     Author:     Dmitriy Traytel, TU Muenchen
     Copyright   2013
 

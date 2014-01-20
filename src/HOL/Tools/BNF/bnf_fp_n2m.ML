@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF/Tools/bnf_fp_n2m.ML
+(*  Title:      HOL/Tools/BNF/bnf_fp_n2m.ML
     Author:     Dmitriy Traytel, TU Muenchen
     Copyright   2013
 

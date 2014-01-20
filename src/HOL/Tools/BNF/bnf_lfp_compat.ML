@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF/Tools/bnf_lfp_compat.ML
+(*  Title:      HOL/Tools/BNF/bnf_lfp_compat.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2013
 

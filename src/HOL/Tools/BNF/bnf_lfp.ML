@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF/Tools/bnf_lfp.ML
+(*  Title:      HOL/Tools/BNF/bnf_lfp.ML
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012

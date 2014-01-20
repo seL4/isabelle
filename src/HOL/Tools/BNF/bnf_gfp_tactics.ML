@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF/Tools/bnf_gfp_tactics.ML
+(*  Title:      HOL/Tools/BNF/bnf_gfp_tactics.ML
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Andrei Popescu, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
