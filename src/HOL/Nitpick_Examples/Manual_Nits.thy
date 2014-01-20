@@ -12,7 +12,7 @@ header {* Examples from the Nitpick Manual *}
    suite. *)
 
 theory Manual_Nits
-imports Main Real "~~/src/HOL/Library/Quotient_Product" "~~/src/HOL/BNF/BNF"
+imports Main Real "~~/src/HOL/Library/Quotient_Product"
 begin
 
 chapter {* 2. First Steps *}

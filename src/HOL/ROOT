@@ -240,7 +240,7 @@ session "HOL-Metis_Examples" in Metis_Examples = HOL +
     Trans_Closure
     Sets
 
-session "HOL-BNF-Nitpick_Examples" in Nitpick_Examples = "HOL-BNF" +
+session "HOL-Nitpick_Examples" in Nitpick_Examples = HOL +
   description {*
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2009
