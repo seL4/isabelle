@@ -204,12 +204,14 @@ val scan_body = change_prompt scan_cmts;
 in
 
 fun scan_comment err_prefix =
-  $$$ "(" @@@ $$$ "*" @@@
-    !!! (fn () => err_prefix ^ "missing end of comment") (scan_body @@@ $$$ "*" @@@ $$$ ")");
+  Scan.ahead ($$ "(" -- $$ "*") |--
+    !!! (fn () => err_prefix ^ "unclosed comment")
+      ($$$ "(" @@@ $$$ "*" @@@ scan_body @@@ $$$ "*" @@@ $$$ ")");
 
 fun scan_comment_body err_prefix =
-  $$$ "(" |-- $$$ "*" |--
-    !!! (fn () => err_prefix ^ "missing end of comment") (scan_body --| $$$ "*" --| $$$ ")");
+  Scan.ahead ($$ "(" -- $$ "*") |--
+    !!! (fn () => err_prefix ^ "unclosed comment")
+      ($$ "(" |-- $$ "*" |-- scan_body --| $$ "*" --| $$ ")");
 
 val recover_comment =
   $$$ "(" @@@ $$$ "*" @@@ scan_cmts;

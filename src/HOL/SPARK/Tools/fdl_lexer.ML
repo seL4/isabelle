@@ -205,7 +205,7 @@ val any_line' =
 val any_line = whitespace' |-- any_line' --|
   newline >> (implode o map symbol);
 
-fun gen_comment a b = $$$ a |-- !!! "missing end of comment"
+fun gen_comment a b = $$$ a |-- !!! "unclosed comment"
   (Scan.repeat (Scan.unless ($$$ b) any) --| $$$ b) >> make_token Comment;
 
 val c_comment = gen_comment "/*" "*/";

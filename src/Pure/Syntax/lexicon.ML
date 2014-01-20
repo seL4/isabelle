@@ -217,12 +217,14 @@ val scan_chr =
   $$$ "'" --| Scan.ahead (~$$$ "'");
 
 val scan_str =
-  $$$ "'" @@@ $$$ "'" @@@ !!! "missing end of string"
-    ((Scan.repeat scan_chr >> flat) @@@ $$$ "'" @@@ $$$ "'");
+  Scan.ahead ($$ "'" -- $$ "'") |--
+    !!! "unclosed string literal"
+      ($$$ "'" @@@ $$$ "'" @@@ (Scan.repeat scan_chr >> flat) @@@ $$$ "'" @@@ $$$ "'");
 
 val scan_str_body =
-  $$$ "'" |-- $$$ "'" |-- !!! "missing end of string"
-    ((Scan.repeat scan_chr >> flat) --| $$$ "'" --| $$$ "'");
+  Scan.ahead ($$$ "'" |-- $$$ "'") |--
+    !!! "unclosed string literal"
+      ($$ "'" |-- $$ "'" |-- (Scan.repeat scan_chr >> flat) --| $$ "'" --| $$ "'");
 
 
 fun implode_str cs = enclose "''" "''" (implode (map (fn "'" => "\\'" | c => c) cs));
