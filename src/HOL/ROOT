@@ -706,7 +706,7 @@ session "HOL-BNF" in BNF = HOL +
   options [document = false]
   theories BNF
 
-session "HOL-BNF-Examples" in "BNF/Examples" = "HOL-BNF" +
+session "HOL-BNF_Examples" in BNF_Examples = HOL +
   description {*
     Examples for Bounded Natural Functors.
   *}
