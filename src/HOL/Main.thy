@@ -17,7 +17,14 @@ no_notation
   inf (infixl "\<sqinter>" 70) and
   sup (infixl "\<squnion>" 65) and
   Inf ("\<Sqinter>_" [900] 900) and
-  Sup ("\<Squnion>_" [900] 900)
+  Sup ("\<Squnion>_" [900] 900) and
+  ordLeq2 ("<=o") and
+  ordLeq3 ("\<le>o") and
+  ordLess2 ("<o") and
+  ordIso2 ("=o") and
+  csum (infixr "+c" 65) and
+  cprod (infixr "*c" 80) and
+  cexp (infixr "^c" 90)
 
 no_syntax (xsymbols)
   "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Sqinter>_./ _)" [0, 10] 10)
