@@ -6,15 +6,10 @@
 header {* Generic theorem transfer using relations *}
 
 theory Transfer
-imports Hilbert_Choice
+imports Hilbert_Choice Basic_BNFs
 begin
 
 subsection {* Relator for function space *}
-
-definition
-  fun_rel :: "('a \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('c \<Rightarrow> 'd) \<Rightarrow> bool"
-where
-  "fun_rel A B = (\<lambda>f g. \<forall>x y. A x y \<longrightarrow> B (f x) (g y))"
 
 locale lifting_syntax
 begin
@@ -26,32 +21,20 @@ context
 begin
 interpretation lifting_syntax .
 
-lemma fun_relI [intro]:
-  assumes "\<And>x y. A x y \<Longrightarrow> B (f x) (g y)"
-  shows "(A ===> B) f g"
-  using assms by (simp add: fun_rel_def)
-
-lemma fun_relD:
-  assumes "(A ===> B) f g" and "A x y"
-  shows "B (f x) (g y)"
-  using assms by (simp add: fun_rel_def)
-
 lemma fun_relD2:
-  assumes "(A ===> B) f g" and "A x x"
+  assumes "fun_rel A B f g" and "A x x"
   shows "B (f x) (g x)"
-  using assms unfolding fun_rel_def by auto
+  using assms by (rule fun_relD)
 
 lemma fun_relE:
-  assumes "(A ===> B) f g" and "A x y"
+  assumes "fun_rel A B f g" and "A x y"
   obtains "B (f x) (g y)"
   using assms by (simp add: fun_rel_def)
 
-lemma fun_rel_eq:
-  shows "((op =) ===> (op =)) = (op =)"
-  by (auto simp add: fun_eq_iff elim: fun_relE)
+lemmas fun_rel_eq = fun.rel_eq
 
 lemma fun_rel_eq_rel:
-  shows "((op =) ===> R) = (\<lambda>f g. \<forall>x. R (f x) (g x))"
+shows "fun_rel (op =) R = (\<lambda>f g. \<forall>x. R (f x) (g x))"
   by (simp add: fun_rel_def)
 
 

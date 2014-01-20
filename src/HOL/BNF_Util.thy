@@ -10,8 +10,22 @@ header {* Library for Bounded Natural Functors *}
 
 theory BNF_Util
 imports BNF_Cardinal_Arithmetic
-  Transfer (*FIXME: define fun_rel here, reuse in Transfer once this theory is in HOL*)
 begin
+
+definition
+  fun_rel :: "('a \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('c \<Rightarrow> 'd) \<Rightarrow> bool"
+where
+  "fun_rel A B = (\<lambda>f g. \<forall>x y. A x y \<longrightarrow> B (f x) (g y))"
+
+lemma fun_relI [intro]:
+  assumes "\<And>x y. A x y \<Longrightarrow> B (f x) (g y)"
+  shows "fun_rel A B f g"
+  using assms by (simp add: fun_rel_def)
+
+lemma fun_relD:
+  assumes "fun_rel A B f g" and "A x y"
+  shows "B (f x) (g y)"
+  using assms by (simp add: fun_rel_def)
 
 definition collect where
 "collect F x = (\<Union>f \<in> F. f x)"

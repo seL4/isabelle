@@ -12,19 +12,12 @@ subsection {* Relator and predicator properties *}
 
 abbreviation (input) "sum_pred \<equiv> sum_case"
 
-lemma sum_rel_eq [relator_eq]:
-  "sum_rel (op =) (op =) = (op =)"
-  by (simp add: sum_rel_def fun_eq_iff split: sum.split)
-
-lemma sum_rel_mono[relator_mono]:
-  assumes "A \<le> C"
-  assumes "B \<le> D"
-  shows "(sum_rel A B) \<le> (sum_rel C D)"
-using assms by (auto simp: sum_rel_def split: sum.splits)
+lemmas sum_rel_eq[relator_eq] = sum.rel_eq
+lemmas sum_rel_mono[relator_mono] = sum.rel_mono
 
 lemma sum_rel_OO[relator_distr]:
   "(sum_rel A B) OO (sum_rel C D) = sum_rel (A OO C) (B OO D)"
-by (rule ext)+ (auto simp add: sum_rel_def OO_def split_sum_ex split: sum.split)
+  by (rule ext)+ (auto simp add: sum_rel_def OO_def split_sum_ex split: sum.split)
 
 lemma Domainp_sum[relator_domain]:
   assumes "Domainp R1 = P1"
@@ -94,4 +87,3 @@ lemma sum_case_transfer [transfer_rule]:
 end
 
 end
-

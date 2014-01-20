@@ -11,7 +11,6 @@ header {* Registration of Basic Types as Bounded Natural Functors *}
 
 theory Basic_BNFs
 imports BNF_Def
-   (*FIXME: define relators here, reuse in Lifting_* once this theory is in HOL*)
 begin
 
 bnf ID: 'a

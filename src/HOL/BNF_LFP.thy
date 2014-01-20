@@ -222,7 +222,7 @@ by (erule wo_rel.well_order_induct)
 lemma meta_spec2:
   assumes "(\<And>x y. PROP P x y)"
   shows "PROP P x y"
-by (rule `(\<And>x y. PROP P x y)`)
+by (rule assms)
 
 lemma nchotomy_relcomppE:
   "\<lbrakk>\<And>y. \<exists>x. y = f x; (r OO s) a c; \<And>b. r a (f b) \<Longrightarrow> s (f b) c \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
@@ -234,10 +234,15 @@ lemma vimage2p_fun_rel: "fun_rel (vimage2p f g R) R f g"
 lemma predicate2D_vimage2p: "\<lbrakk>R \<le> vimage2p f g S; R x y\<rbrakk> \<Longrightarrow> S (f x) (g y)"
   unfolding vimage2p_def by auto
 
+lemma id_transfer: "fun_rel A A id id"
+unfolding fun_rel_def by simp
+
 ML_file "Tools/BNF/bnf_lfp_rec_sugar.ML"
 ML_file "Tools/BNF/bnf_lfp_util.ML"
 ML_file "Tools/BNF/bnf_lfp_tactics.ML"
 ML_file "Tools/BNF/bnf_lfp.ML"
 ML_file "Tools/BNF/bnf_lfp_compat.ML"
+
+hide_fact (open) id_transfer
 
 end
