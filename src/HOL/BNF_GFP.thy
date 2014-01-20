@@ -10,7 +10,7 @@ Greatest fixed point operation on bounded natural functors.
 header {* Greatest Fixed Point Operation on Bounded Natural Functors *}
 
 theory BNF_GFP
-imports BNF_FP_Base List_Prefix
+imports BNF_FP_Base List_Prefix String
 keywords
   "codatatype" :: thy_decl and
   "primcorecursive" :: thy_goal and

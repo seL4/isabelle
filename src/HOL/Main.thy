@@ -1,7 +1,7 @@
 header {* Main HOL *}
 
 theory Main
-imports Predicate_Compile Extraction Lifting_Sum List_Prefix Coinduction BNF_LFP BNF_GFP
+imports Predicate_Compile Extraction Lifting_Sum List_Prefix Coinduction Nitpick BNF_LFP BNF_GFP
 begin
 
 text {*

@@ -10,7 +10,7 @@ Shared fixed point operations on bounded natural functors.
 header {* Shared Fixed Point Operations on Bounded Natural Functors *}
 
 theory BNF_FP_Base
-imports Nitpick BNF_Comp Ctr_Sugar
+imports BNF_Comp Ctr_Sugar
 begin
 
 lemma mp_conj: "(P \<longrightarrow> Q) \<and> R \<Longrightarrow> P \<Longrightarrow> R \<and> Q"
