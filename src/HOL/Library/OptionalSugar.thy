@@ -1,5 +1,5 @@
 (*  Title:      HOL/Library/OptionalSugar.thy
-    Author:     Gerwin Klain, Tobias Nipkow
+    Author:     Gerwin Klein, Tobias Nipkow
     Copyright   2005 NICTA and TUM
 *)
 (*<*)
