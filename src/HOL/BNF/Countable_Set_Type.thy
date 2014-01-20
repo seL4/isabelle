@@ -9,10 +9,12 @@ header {* Type of (at Most) Countable Sets *}
 
 theory Countable_Set_Type
 imports
-  More_BNFs
-  "~~/src/HOL/Cardinals/Cardinals"
+  "~~/src/HOL/Cardinals/Cardinal_Notations"
   "~~/src/HOL/Library/Countable_Set"
 begin
+
+abbreviation "Grp \<equiv> BNF_Util.Grp"
+
 
 subsection{* Cardinal stuff *}
 
@@ -26,12 +28,8 @@ lemma countable_or_card_of:
 assumes "countable A"
 shows "(finite A \<and> |A| <o |UNIV::nat set| ) \<or>
        (infinite A  \<and> |A| =o |UNIV::nat set| )"
-proof (cases "finite A")
-  case True thus ?thesis by (metis finite_iff_cardOf_nat)
-next
-  case False with assms show ?thesis
-    by (metis countable_card_of_nat infinite_iff_card_of_nat ordIso_iff_ordLeq)
-qed
+by (metis assms countable_card_of_nat infinite_iff_card_of_nat ordIso_iff_ordLeq
+      ordLeq_iff_ordLess_or_ordIso)
 
 lemma countable_cases_card_of[elim]:
   assumes "countable A"
@@ -142,7 +140,7 @@ proof
   def R' \<equiv> "the_inv rcset (Collect (split R) \<inter> (rcset a \<times> rcset b))"
   (is "the_inv rcset ?L'")
   have L: "countable ?L'" by auto
-  hence *: "rcset R' = ?L'" unfolding R'_def using fset_to_fset by (intro rcset_to_rcset)
+  hence *: "rcset R' = ?L'" unfolding R'_def by (intro rcset_to_rcset)
   thus ?R unfolding Grp_def relcompp.simps conversep.simps
   proof (intro CollectI prod_caseI exI[of _ a] exI[of _ b] exI[of _ R'] conjI refl)
     from * `?L` show "a = cimage fst R'" by transfer (auto simp: image_def Collect_Int_Times)

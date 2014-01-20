@@ -10,7 +10,7 @@ Miscellaneous codatatype definitions.
 header {* Miscellaneous Codatatype Definitions *}
 
 theory Misc_Codatatype
-imports "../BNF"
+imports More_BNFs
 begin
 
 codatatype simple = X1 | X2 | X3 | X4

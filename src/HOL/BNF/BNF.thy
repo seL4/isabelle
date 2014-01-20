@@ -10,7 +10,7 @@ Bounded natural functors for (co)datatypes.
 header {* Bounded Natural Functors for (Co)datatypes *}
 
 theory BNF
-imports Countable_Set_Type BNF_Decl
+imports More_BNFs Countable_Set_Type BNF_Decl
 begin
 
 end

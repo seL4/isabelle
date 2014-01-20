@@ -8,14 +8,8 @@ Constructions on wellorders.
 header {* Constructions on Wellorders *}
 
 theory Constructions_on_Wellorders
-imports BNF_Constructions_on_Wellorders Wellorder_Embedding Order_Union
+imports BNF_Constructions_on_Wellorders Wellorder_Embedding Order_Union Cardinal_Notations
 begin
-
-notation
-  ordLeq2 (infix "<=o" 50) and
-  ordLeq3 (infix "\<le>o" 50) and
-  ordLess2 (infix "<o" 50) and
-  ordIso2 (infix "=o" 50)
 
 declare
   ordLeq_Well_order_simp[simp]

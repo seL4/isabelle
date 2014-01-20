@@ -12,20 +12,14 @@ header {* Registration of Various Types as Bounded Natural Functors *}
 
 theory More_BNFs
 imports
-  Basic_BNFs
+  "~~/src/HOL/Cardinals/Cardinal_Notations"
   "~~/src/HOL/Library/FSet"
   "~~/src/HOL/Library/Multiset"
 begin
 
-notation
-  ordLeq2 (infix "<=o" 50) and
-  ordLeq3 (infix "\<le>o" 50) and
-  ordLess2 (infix "<o" 50) and
-  ordIso2 (infix "=o" 50) and
-  csum (infixr "+c" 65) and
-  cprod (infixr "*c" 80) and
-  cexp (infixr "^c" 90) and
-  convol ("<_ , _>")
+abbreviation "Grp \<equiv> BNF_Util.Grp"
+abbreviation "fstOp \<equiv> BNF_Def.fstOp"
+abbreviation "sndOp \<equiv> BNF_Def.sndOp"
 
 lemma option_rec_conv_option_case: "option_rec = option_case"
 by (simp add: fun_eq_iff split: option.split)

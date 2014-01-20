@@ -1013,9 +1013,9 @@ assumes tr0: "wf tr0" and n: "inItr UNIV tr0 n"
 shows "(n, (id \<oplus> root) ` cont (H n)) \<in> P" (is "?L \<in> P")
 proof-
   have "?L = (n, (id \<oplus> root) ` cont (pick n))"
-  unfolding cont_H image_compose[symmetric] sum_map.comp id_comp comp_assoc
+  unfolding cont_H image_compose[symmetric] sum_map.comp id_comp comp_assoc[symmetric]
   unfolding Pair_eq apply(rule conjI[OF refl]) apply(rule image_cong[OF refl])
-  by(rule root_H_root[OF n])
+  by (rule root_H_root[OF n])
   moreover have "... \<in> P" by (metis (lifting) wf_pick root_pick wf_P n tr0)
   ultimately show ?thesis by simp
 qed

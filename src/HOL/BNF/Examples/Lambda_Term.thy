@@ -9,9 +9,10 @@ Lambda-terms.
 header {* Lambda-Terms *}
 
 theory Lambda_Term
-imports "../BNF"
+imports "../More_BNFs"
 begin
 
+thy_deps
 
 section {* Datatype definition *}
 
