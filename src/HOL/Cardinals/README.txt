@@ -67,7 +67,9 @@ The "major" theories are:
      (natLeq) and the finite cardinals (natLeq_on n).
 ---- 6) Defines and proves the existence of successor cardinals.  
 
--- BNF_Cardinal_Arithmetic
+Theory Ordinal_Arithmetic
+
+Theory Cardinal_Arithmetic (and BNF_Cardinal_Arithmetic)
 
 
 Here is a list of names of proved facts concerning cardinalities that are 
