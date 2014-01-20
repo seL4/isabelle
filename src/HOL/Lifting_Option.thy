@@ -5,7 +5,7 @@
 header {* Setup for Lifting/Transfer for the option type *}
 
 theory Lifting_Option
-imports Lifting
+imports Lifting Option
 begin
 
 subsection {* Relator and predicator properties *}

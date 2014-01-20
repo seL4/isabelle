@@ -6,7 +6,7 @@
 header {* Big infimum (minimum) and supremum (maximum) over finite (non-empty) sets *}
 
 theory Lattices_Big
-imports Finite_Set
+imports Finite_Set Option
 begin
 
 subsection {* Generic lattice operations over a set *}

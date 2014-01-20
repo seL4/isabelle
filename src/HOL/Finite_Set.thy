@@ -6,7 +6,7 @@
 header {* Finite sets *}
 
 theory Finite_Set
-imports Option Power
+imports Power
 begin
 
 subsection {* Predicate for finite sets *}
@@ -565,13 +565,6 @@ instance unit :: finite
 
 instance sum :: (finite, finite) finite
   by default (simp only: UNIV_Plus_UNIV [symmetric] finite_Plus finite)
-
-lemma finite_option_UNIV [simp]:
-  "finite (UNIV :: 'a option set) = finite (UNIV :: 'a set)"
-  by (auto simp add: UNIV_option_conv elim: finite_imageD intro: inj_Some)
-
-instance option :: (finite) finite
-  by default (simp add: UNIV_option_conv)
 
 
 subsection {* A basic fold functional for finite sets *}
@@ -1729,4 +1722,3 @@ qed
 hide_const (open) Finite_Set.fold
 
 end
-

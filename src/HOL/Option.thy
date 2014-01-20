@@ -5,7 +5,7 @@
 header {* Datatype option *}
 
 theory Option
-imports Datatype
+imports Datatype Finite_Set
 begin
 
 datatype 'a option = None | Some 'a
@@ -173,6 +173,16 @@ lemma these_not_empty_eq:
 
 hide_const (open) set map bind these
 hide_fact (open) map_cong bind_cong
+
+
+subsubsection {* Interaction with finite sets *}
+
+lemma finite_option_UNIV [simp]:
+  "finite (UNIV :: 'a option set) = finite (UNIV :: 'a set)"
+  by (auto simp add: UNIV_option_conv elim: finite_imageD intro: inj_Some)
+
+instance option :: (finite) finite
+  by default (simp add: UNIV_option_conv)
 
 
 subsubsection {* Code generator setup *}
