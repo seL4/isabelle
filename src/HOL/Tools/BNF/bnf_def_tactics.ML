@@ -47,7 +47,7 @@ val ord_le_eq_trans = @{thm ord_le_eq_trans};
 val conversep_shift = @{thm conversep_le_swap} RS iffD1;
 
 fun mk_map_id id = mk_trans (fun_cong OF [id]) @{thm id_apply};
-fun mk_map_comp comp = @{thm o_eq_dest_lhs} OF [mk_sym comp];
+fun mk_map_comp comp = @{thm comp_eq_dest_lhs} OF [mk_sym comp];
 fun mk_map_cong_tac ctxt cong0 =
   (hyp_subst_tac ctxt THEN' rtac cong0 THEN'
    REPEAT_DETERM o (dtac meta_spec THEN' etac meta_mp THEN' atac)) 1;
@@ -61,7 +61,7 @@ fun mk_in_mono_tac n = if n = 0 then rtac subset_UNIV 1
   (etac subset_trans THEN' atac) 1;
 
 fun mk_collect_set_map_tac set_map0s =
-  (rtac (@{thm collect_o} RS trans) THEN' rtac @{thm arg_cong[of _ _ collect]} THEN'
+  (rtac (@{thm collect_comp} RS trans) THEN' rtac @{thm arg_cong[of _ _ collect]} THEN'
   EVERY' (map (fn set_map0 =>
     rtac (mk_trans @{thm image_insert} @{thm arg_cong2[of _ _ _ _ insert]}) THEN'
     rtac set_map0) set_map0s) THEN'

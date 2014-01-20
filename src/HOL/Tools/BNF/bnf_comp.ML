@@ -302,8 +302,8 @@ fun kill_bnf qualify n bnf (unfold_set, lthy) = if n = 0 then (bnf, (unfold_set,
 
     fun map_id0_tac _ = rtac (map_id0_of_bnf bnf) 1;
     fun map_comp0_tac {context = ctxt, prems = _} =
-      unfold_thms_tac ctxt ((map_comp0_of_bnf bnf RS sym) :: @{thms o_assoc id_o o_id}) THEN
-      rtac refl 1;
+      unfold_thms_tac ctxt ((map_comp0_of_bnf bnf RS sym) ::
+        @{thms comp_assoc id_comp comp_id}) THEN rtac refl 1;
     fun map_cong0_tac {context = ctxt, prems = _} =
       mk_kill_map_cong0_tac ctxt n (live - n) (map_cong0_of_bnf bnf);
     val set_map0_tacs = map (fn thm => fn _ => rtac thm 1) (drop n (set_map0_of_bnf bnf));
@@ -394,8 +394,8 @@ fun lift_bnf qualify n bnf (unfold_set, lthy) = if n = 0 then (bnf, (unfold_set,
 
     fun map_id0_tac _ = rtac (map_id0_of_bnf bnf) 1;
     fun map_comp0_tac {context = ctxt, prems = _} =
-      unfold_thms_tac ctxt ((map_comp0_of_bnf bnf RS sym) :: @{thms o_assoc id_o o_id}) THEN
-      rtac refl 1;
+      unfold_thms_tac ctxt ((map_comp0_of_bnf bnf RS sym) ::
+        @{thms comp_assoc id_comp comp_id}) THEN rtac refl 1;
     fun map_cong0_tac {context = ctxt, prems = _} =
       rtac (map_cong0_of_bnf bnf) 1 THEN REPEAT_DETERM_N live (Goal.assume_rule_tac ctxt 1);
     val set_map0_tacs =

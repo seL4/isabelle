@@ -404,7 +404,7 @@ fun mk_mor_select_tac mor_def mor_cong mor_comp mor_incl_min_alg alg_def alg_sel
           EVERY' [rtac ord_eq_le_trans, resolve_tac set_map, rtac subset_trans,
             etac @{thm image_mono}, rtac @{thm image_Collect_subsetI}, etac bspec, atac]]];
   in
-    (rtac mor_cong THEN' REPEAT_DETERM_N n o (rtac sym THEN' rtac @{thm o_id}) THEN'
+    (rtac mor_cong THEN' REPEAT_DETERM_N n o (rtac sym THEN' rtac @{thm comp_id}) THEN'
     rtac (Thm.permute_prems 0 1 mor_comp) THEN' etac (Thm.permute_prems 0 1 mor_comp) THEN'
     stac mor_def THEN' rtac conjI THEN' fbetw_tac THEN' mor_tac THEN' rtac mor_incl_min_alg THEN'
     stac alg_def THEN' CONJ_WRAP' alg_epi_tac ((alg_sets ~~ str_init_defs) ~~ set_maps)) 1
@@ -585,7 +585,7 @@ fun mk_map_tac m n foldx map_comp_id map_cong0 =
 
 fun mk_ctor_map_unique_tac fold_unique sym_map_comps ctxt =
   rtac fold_unique 1 THEN
-  unfold_thms_tac ctxt (sym_map_comps @ @{thms o_assoc[symmetric] id_o o_id}) THEN
+  unfold_thms_tac ctxt (sym_map_comps @ @{thms comp_assoc id_comp comp_id}) THEN
   ALLGOALS atac;
 
 fun mk_set_tac foldx = EVERY' [rtac ext, rtac trans, rtac o_apply,
@@ -675,7 +675,7 @@ fun mk_le_rel_OO_tac m induct ctor_nchotomys ctor_Irels rel_mono_strongs rel_OOs
 fun mk_map_id0_tac map_id0s unique =
   (rtac sym THEN' rtac unique THEN'
   EVERY' (map (fn thm =>
-    EVERY' [rtac trans, rtac @{thm id_o}, rtac trans, rtac sym, rtac @{thm o_id},
+    EVERY' [rtac trans, rtac @{thm id_comp}, rtac trans, rtac sym, rtac @{thm comp_id},
       rtac (thm RS sym RS arg_cong)]) map_id0s)) 1;
 
 fun mk_map_comp0_tac map_comp0s ctor_maps unique iplus1 =
@@ -737,7 +737,7 @@ fun mk_ctor_rel_tac ctxt in_Irels i in_rel map_comp0 map_cong0 ctor_map ctor_set
         (in_Irels ~~ (active_set_map0s ~~ ctor_set_set_inclss)),
         CONJ_WRAP' (fn conv =>
           EVERY' [rtac trans, rtac map_comp0, rtac trans, rtac map_cong0,
-          REPEAT_DETERM_N m o rtac @{thm fun_cong[OF o_id]},
+          REPEAT_DETERM_N m o rtac @{thm fun_cong[OF comp_id]},
           REPEAT_DETERM_N n o EVERY' (map rtac [trans, o_apply, conv]),
           rtac (ctor_inject RS iffD1), rtac trans, rtac sym, rtac ctor_map,
           etac eq_arg_cong_ctor_dtor])
@@ -766,7 +766,7 @@ fun mk_ctor_rel_tac ctxt in_Irels i in_rel map_comp0 map_cong0 ctor_map ctor_set
         rtac conjI,
         REPEAT_DETERM_N 2 o EVERY' [rtac trans, rtac ctor_map, rtac (ctor_inject RS iffD2),
           rtac trans, rtac map_comp0, rtac trans, rtac map_cong0,
-          REPEAT_DETERM_N m o rtac @{thm fun_cong[OF o_id]},
+          REPEAT_DETERM_N m o rtac @{thm fun_cong[OF comp_id]},
           EVERY' (map (fn in_Irel => EVERY' [rtac trans, rtac o_apply, dtac set_rev_mp, atac,
             dtac @{thm ssubst_mem[OF pair_collapse]},
             REPEAT_DETERM o

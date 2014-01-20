@@ -58,7 +58,7 @@ fun mk_pointfree ctxt thm = thm
 
 fun mk_Abs_inj_thm inj = inj OF (replicate 2 UNIV_I);
 fun mk_Abs_bij_thm ctxt Abs_inj_thm surj = rule_by_tactic ctxt ((rtac surj THEN' etac exI) 1)
-  (Abs_inj_thm RS @{thm bijI});
+  (Abs_inj_thm RS @{thm bijI'});
 
 
 
@@ -95,7 +95,7 @@ fun mk_ctor_or_dtor_rel_tac srel_def IJrel_defs IJsrel_defs dtor_srel {context =
   rtac refl 1;
 
 fun mk_map_comp_id_tac map_comp0 =
-  (rtac trans THEN' rtac map_comp0 THEN' REPEAT_DETERM o stac @{thm o_id} THEN' rtac refl) 1;
+  (rtac trans THEN' rtac map_comp0 THEN' REPEAT_DETERM o stac @{thm comp_id} THEN' rtac refl) 1;
 
 fun mk_map_cong0_tac m map_cong0 {context = ctxt, prems = _} =
   EVERY' [rtac mp, rtac map_cong0,

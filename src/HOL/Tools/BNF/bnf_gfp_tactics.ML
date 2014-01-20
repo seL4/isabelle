@@ -247,7 +247,7 @@ fun mk_bis_rel_tac ctxt m bis_def rel_OO_Grps map_comp0s map_cong0s set_map0ss =
         EVERY' (map (fn thm =>
           EVERY' [rtac @{thm GrpI},
             rtac trans, rtac trans, rtac map_comp0, rtac map_cong0, REPEAT_DETERM_N m o rtac thm,
-            REPEAT_DETERM_N n o rtac (@{thm o_id} RS fun_cong), atac,
+            REPEAT_DETERM_N n o rtac (@{thm comp_id} RS fun_cong), atac,
             REPEAT_DETERM o eresolve_tac [CollectE, conjE], rtac CollectI,
             CONJ_WRAP' (fn (i, thm) =>
               if i <= m
@@ -267,11 +267,11 @@ fun mk_bis_rel_tac ctxt m bis_def rel_OO_Grps map_comp0s map_cong0s set_map0ss =
           @{thms GrpE relcomppE conversepE CollectE Collect_split_in_rel_leE}),
         hyp_subst_tac ctxt,
         rtac bexI, rtac conjI, rtac trans, rtac map_comp0, rtac trans, rtac map_cong0,
-        REPEAT_DETERM_N m o rtac (@{thm id_o} RS fun_cong),
-        REPEAT_DETERM_N n o rtac (@{thm o_id} RS fun_cong),
+        REPEAT_DETERM_N m o rtac (@{thm id_comp} RS fun_cong),
+        REPEAT_DETERM_N n o rtac (@{thm comp_id} RS fun_cong),
         atac, rtac trans, rtac map_comp0, rtac trans, rtac map_cong0,
-        REPEAT_DETERM_N m o rtac (@{thm id_o} RS fun_cong),
-        REPEAT_DETERM_N n o rtac (@{thm o_id} RS fun_cong),
+        REPEAT_DETERM_N m o rtac (@{thm id_comp} RS fun_cong),
+        REPEAT_DETERM_N n o rtac (@{thm comp_id} RS fun_cong),
         rtac trans, rtac map_cong0,
         REPEAT_DETERM_N m o EVERY' [rtac @{thm Id_onD'}, etac set_mp, atac],
         REPEAT_DETERM_N n o rtac refl,
@@ -983,8 +983,8 @@ fun mk_dtor_map_coinduct_tac m ks raw_coind bis_def =
 fun mk_map_tac m n cT unfold map_comp map_cong0 =
   EVERY' [rtac ext, rtac (o_apply RS trans RS sym), rtac (o_apply RS trans RS sym),
     rtac (unfold RS trans), rtac (Thm.permute_prems 0 1 (map_comp RS box_equals)), rtac map_cong0,
-    REPEAT_DETERM_N m o rtac (@{thm id_o} RS fun_cong),
-    REPEAT_DETERM_N n o rtac (@{thm o_id} RS fun_cong),
+    REPEAT_DETERM_N m o rtac (@{thm id_comp} RS fun_cong),
+    REPEAT_DETERM_N n o rtac (@{thm comp_id} RS fun_cong),
     rtac (o_apply RS (Drule.instantiate' [cT] [] arg_cong) RS sym)] 1;
 
 fun mk_set_le_tac n hset_minimal set_hsets set_hset_hsetss =
@@ -1010,9 +1010,10 @@ fun mk_map_comp0_tac maps map_comp0s map_unique =
   EVERY' [rtac map_unique,
     EVERY' (map2 (fn map_thm => fn map_comp0 =>
       EVERY' (map rtac
-        [@{thm o_assoc} RS trans,
+        [@{thm comp_assoc[symmetric]} RS trans,
         @{thm arg_cong2[of _ _ _ _ "op o"]} OF [map_thm, refl] RS trans,
-        @{thm o_assoc} RS sym RS trans, map_thm RS arg_cong RS trans, @{thm o_assoc} RS trans,
+        @{thm comp_assoc[symmetric]} RS sym RS trans, map_thm RS arg_cong RS trans,
+        @{thm comp_assoc[symmetric]} RS trans,
         @{thm arg_cong2[of _ _ _ _ "op o"]} OF [map_comp0 RS sym, refl]]))
     maps map_comp0s)] 1;
 
@@ -1053,7 +1054,7 @@ fun mk_mcong_tac ctxt m coinduct_tac map_comps dtor_maps map_cong0s set_map0ss s
 
 fun mk_dtor_map_unique_tac unfold_unique sym_map_comps ctxt =
   rtac unfold_unique 1 THEN
-  unfold_thms_tac ctxt (sym_map_comps @ @{thms o_assoc id_o o_id}) THEN
+  unfold_thms_tac ctxt (sym_map_comps @ @{thms comp_assoc[symmetric] id_comp comp_id}) THEN
   ALLGOALS (etac sym);
 
 fun mk_col_natural_tac cts rec_0s rec_Sucs dtor_maps set_map0ss
@@ -1157,7 +1158,7 @@ fun mk_dtor_rel_tac ctxt in_Jrels i in_rel map_comp0 map_cong0 dtor_map dtor_set
         (in_Jrels ~~ (active_set_map0s ~~ dtor_set_set_inclss)),
         CONJ_WRAP' (fn conv =>
           EVERY' [rtac trans, rtac map_comp0, rtac trans, rtac map_cong0,
-          REPEAT_DETERM_N m o rtac @{thm fun_cong[OF o_id]},
+          REPEAT_DETERM_N m o rtac @{thm fun_cong[OF comp_id]},
           REPEAT_DETERM_N n o EVERY' (map rtac [trans, o_apply, conv]),
           rtac trans, rtac sym, rtac dtor_map, rtac (dtor_inject RS iffD2), atac])
         @{thms fst_conv snd_conv}];
@@ -1187,7 +1188,7 @@ fun mk_dtor_rel_tac ctxt in_Jrels i in_rel map_comp0 map_cong0 dtor_map dtor_set
         rtac conjI,
         REPEAT_DETERM_N 2 o EVERY'[rtac (dtor_inject RS iffD1), rtac trans, rtac dtor_map,
           rtac box_equals, rtac map_comp0, rtac (dtor_ctor RS sym RS arg_cong), rtac trans,
-          rtac map_cong0, REPEAT_DETERM_N m o rtac @{thm fun_cong[OF o_id]},
+          rtac map_cong0, REPEAT_DETERM_N m o rtac @{thm fun_cong[OF comp_id]},
           EVERY' (map (fn in_Jrel => EVERY' [rtac trans, rtac o_apply, dtac set_rev_mp, atac,
             dtac @{thm ssubst_mem[OF pair_collapse]},
             REPEAT_DETERM o
@@ -1212,10 +1213,11 @@ fun mk_rel_coinduct_coind_tac m coinduct ks map_comp0s map_congs map_arg_congs s
           rtac exI, rtac conjI, rtac conjI,
           rtac (map_comp0 RS trans), rtac (dtor_map RS trans RS sym),
           rtac (dtor_unfold RS map_arg_cong RS trans), rtac (trans OF [map_comp0, map_cong]),
-          REPEAT_DETERM_N m o rtac @{thm trans[OF fun_cong[OF o_id] sym[OF fun_cong[OF id_o]]]},
+          REPEAT_DETERM_N m o
+            rtac @{thm trans[OF fun_cong[OF comp_id] sym[OF fun_cong[OF id_comp]]]},
           REPEAT_DETERM_N n o (rtac @{thm sym[OF trans[OF o_apply]]} THEN' rtac @{thm fst_conv}),
           rtac (map_comp0 RS trans), rtac (map_cong RS trans),
-          REPEAT_DETERM_N m o rtac @{thm fun_cong[OF id_o]},
+          REPEAT_DETERM_N m o rtac @{thm fun_cong[OF id_comp]},
           REPEAT_DETERM_N n o (rtac @{thm trans[OF o_apply]} THEN' rtac @{thm snd_conv}),
           etac (@{thm prod.cases} RS map_arg_cong RS trans),
           SELECT_GOAL (unfold_thms_tac ctxt @{thms prod.cases}), 

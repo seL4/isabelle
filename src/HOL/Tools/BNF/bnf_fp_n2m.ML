@@ -332,8 +332,8 @@ fun construct_mutualized_fp fp fpTs fp_sugars bs resBs (resDs, Dss) bnfs lthy =
         val fp_co_iter_o_mapss = steal #xtor_co_iter_o_map_thmss;
         val fp_fold_o_maps = map un_fold_of fp_co_iter_o_mapss |> unfold_map;
         val fp_rec_o_maps = map co_rec_of fp_co_iter_o_mapss |> unfold_map;
-        val fold_thms = fp_case fp @{thm o_assoc[symmetric]} @{thm o_assoc} ::
-          @{thms id_apply o_apply o_id id_o map_pair.comp map_pair.id sum_map.comp sum_map.id};
+        val fold_thms = fp_case fp @{thm comp_assoc} @{thm comp_assoc[symmetric]} :: @{thms id_apply
+          o_apply comp_id id_comp map_pair.comp map_pair.id sum_map.comp sum_map.id};
         val rec_thms = fold_thms @ fp_case fp
           @{thms fst_convol map_pair_o_convol convol_o}
           @{thms sum_case_o_inj(1) sum_case_o_sum_map o_sum_case};

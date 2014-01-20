@@ -44,8 +44,8 @@ open BNF_Tactics
 
 val Cnotzero_UNIV = @{thm Cnotzero_UNIV};
 val arg_cong_Union = @{thm arg_cong[of _ _ Union]};
+val comp_eq_dest_lhs = @{thm comp_eq_dest_lhs};
 val csum_Cnotzero1 = @{thm csum_Cnotzero1};
-val o_eq_dest_lhs = @{thm o_eq_dest_lhs};
 val trans_image_cong_o_apply = @{thm trans[OF image_cong[OF o_apply refl]]};
 val trans_o_apply = @{thm trans[OF o_apply]};
 
@@ -54,7 +54,7 @@ val trans_o_apply = @{thm trans[OF o_apply]};
 (* Composition *)
 
 fun mk_comp_set_alt_tac ctxt collect_set_map =
-  unfold_thms_tac ctxt @{thms sym[OF o_assoc]} THEN
+  unfold_thms_tac ctxt @{thms comp_assoc} THEN
   unfold_thms_tac ctxt [collect_set_map RS sym] THEN
   rtac refl 1;
 
@@ -64,7 +64,7 @@ fun mk_comp_map_id0_tac Gmap_id0 Gmap_cong0 map_id0s =
 
 fun mk_comp_map_comp0_tac Gmap_comp0 Gmap_cong0 map_comp0s =
   EVERY' ([rtac ext, rtac sym, rtac trans_o_apply,
-    rtac (Gmap_comp0 RS sym RS o_eq_dest_lhs RS trans), rtac Gmap_cong0] @
+    rtac (Gmap_comp0 RS sym RS comp_eq_dest_lhs RS trans), rtac Gmap_cong0] @
     map (fn thm => rtac (thm RS sym RS fun_cong)) map_comp0s) 1;
 
 fun mk_comp_set_map0_tac Gmap_comp0 Gmap_cong0 Gset_map0 set_map0s =
@@ -72,14 +72,14 @@ fun mk_comp_set_map0_tac Gmap_comp0 Gmap_cong0 Gset_map0 set_map0s =
     replicate 3 (rtac trans_o_apply) @
     [rtac (arg_cong_Union RS trans),
      rtac (@{thm arg_cong2[of _ _ _ _ collect, OF refl]} RS trans),
-     rtac (Gmap_comp0 RS sym RS o_eq_dest_lhs RS trans),
+     rtac (Gmap_comp0 RS sym RS comp_eq_dest_lhs RS trans),
      rtac Gmap_cong0] @
      map (fn thm => rtac (thm RS fun_cong)) set_map0s @
-     [rtac (Gset_map0 RS o_eq_dest_lhs), rtac sym, rtac trans_o_apply,
+     [rtac (Gset_map0 RS comp_eq_dest_lhs), rtac sym, rtac trans_o_apply,
      rtac trans_image_cong_o_apply, rtac trans_image_cong_o_apply,
-     rtac (@{thm image_cong} OF [Gset_map0 RS o_eq_dest_lhs RS arg_cong_Union, refl] RS trans),
+     rtac (@{thm image_cong} OF [Gset_map0 RS comp_eq_dest_lhs RS arg_cong_Union, refl] RS trans),
      rtac @{thm trans[OF comp_eq_dest[OF Union_natural[symmetric]]]}, rtac arg_cong_Union,
-     rtac @{thm trans[OF o_eq_dest_lhs[OF image_o_collect[symmetric]]]},
+     rtac @{thm trans[OF comp_eq_dest_lhs[OF image_o_collect[symmetric]]]},
      rtac @{thm fun_cong[OF arg_cong[of _ _ collect]]}] @
      [REPEAT_DETERM_N (length set_map0s) o EVERY' [rtac @{thm trans[OF image_insert]},
         rtac @{thm arg_cong2[of _ _ _ _ insert]}, rtac ext, rtac trans_o_apply,
