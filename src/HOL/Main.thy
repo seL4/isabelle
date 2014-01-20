@@ -11,6 +11,11 @@ text {*
 
 text {* See further \cite{Nipkow-et-al:2002:tutorial} *}
 
+hide_const (open)
+  image2 image2p vimage2p Gr Grp collect fsts snds setl setr
+  convol pick_middlep fstOp sndOp csquare inver relImage relInvImage
+  prefCl PrefCl Succ Shift shift proj
+
 no_notation
   bot ("\<bottom>") and
   top ("\<top>") and
