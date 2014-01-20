@@ -11,7 +11,6 @@ theory Cardinal_Order_Relation_FP
 imports Constructions_on_Wellorders_FP
 begin
 
-
 text{* In this section, we define cardinal-order relations to be minim well-orders
 on their field.  Then we define the cardinal of a set to be {\em some} cardinal-order
 relation on that set, which will be unique up to order isomorphism.  Then we study
@@ -37,7 +36,6 @@ any infinite set has the same cardinality (hence, is in bijection) with that set
 
 subsection {* Cardinal orders *}
 
-
 text{* A cardinal order in our setting shall be a well-order {\em minim} w.r.t. the
 order-embedding relation, @{text "\<le>o"} (which is the same as being {\em minimal} w.r.t. the
 strict order-embedding relation, @{text "<o"}), among all the well-orders on its field.  *}
@@ -46,21 +44,17 @@ definition card_order_on :: "'a set \<Rightarrow> 'a rel \<Rightarrow> bool"
 where
 "card_order_on A r \<equiv> well_order_on A r \<and> (\<forall>r'. well_order_on A r' \<longrightarrow> r \<le>o r')"
 
-
 abbreviation "Card_order r \<equiv> card_order_on (Field r) r"
 abbreviation "card_order r \<equiv> card_order_on UNIV r"
-
 
 lemma card_order_on_well_order_on:
 assumes "card_order_on A r"
 shows "well_order_on A r"
 using assms unfolding card_order_on_def by simp
 
-
 lemma card_order_on_Card_order:
 "card_order_on A r \<Longrightarrow> A = Field r \<and> Card_order r"
 unfolding card_order_on_def using well_order_on_Field by blast
-
 
 text{* The existence of a cardinal relation on any given set (which will mean
 that any set has a cardinal) follows from two facts:
@@ -72,7 +66,6 @@ such well-order, i.e., a cardinal order.
 \end{itemize}
 *}
 
-
 theorem card_order_on: "\<exists>r. card_order_on A r"
 proof-
   obtain R where R_def: "R = {r. well_order_on A r}" by blast
@@ -83,13 +76,11 @@ proof-
   thus ?thesis using R_def unfolding card_order_on_def by auto
 qed
 
-
 lemma card_order_on_ordIso:
 assumes CO: "card_order_on A r" and CO': "card_order_on A r'"
 shows "r =o r'"
 using assms unfolding card_order_on_def
 using ordIso_iff_ordLeq by blast
-
 
 lemma Card_order_ordIso:
 assumes CO: "Card_order r" and ISO: "r' =o r"
@@ -114,7 +105,6 @@ proof(unfold card_order_on_def, auto)
   using ISO 4 ordLeq_ordIso_trans ordIso_ordLeq_trans ordIso_symmetric by blast
 qed
 
-
 lemma Card_order_ordIso2:
 assumes CO: "Card_order r" and ISO: "r =o r'"
 shows "Card_order r'"
@@ -123,49 +113,38 @@ using assms Card_order_ordIso ordIso_symmetric by blast
 
 subsection {* Cardinal of a set *}
 
-
 text{* We define the cardinal of set to be {\em some} cardinal order on that set.
 We shall prove that this notion is unique up to order isomorphism, meaning
 that order isomorphism shall be the true identity of cardinals.  *}
 
-
 definition card_of :: "'a set \<Rightarrow> 'a rel" ("|_|" )
 where "card_of A = (SOME r. card_order_on A r)"
-
 
 lemma card_of_card_order_on: "card_order_on A |A|"
 unfolding card_of_def by (auto simp add: card_order_on someI_ex)
 
-
 lemma card_of_well_order_on: "well_order_on A |A|"
 using card_of_card_order_on card_order_on_def by blast
-
 
 lemma Field_card_of: "Field |A| = A"
 using card_of_card_order_on[of A] unfolding card_order_on_def
 using well_order_on_Field by blast
 
-
 lemma card_of_Card_order: "Card_order |A|"
 by (simp only: card_of_card_order_on Field_card_of)
-
 
 corollary ordIso_card_of_imp_Card_order:
 "r =o |A| \<Longrightarrow> Card_order r"
 using card_of_Card_order Card_order_ordIso by blast
 
-
 lemma card_of_Well_order: "Well_order |A|"
 using card_of_Card_order unfolding card_order_on_def by auto
-
 
 lemma card_of_refl: "|A| =o |A|"
 using card_of_Well_order ordIso_reflexive by blast
 
-
 lemma card_of_least: "well_order_on A r \<Longrightarrow> |A| \<le>o r"
 using card_of_card_order_on unfolding card_order_on_def by blast
-
 
 lemma card_of_ordIso:
 "(\<exists>f. bij_betw f A B) = ( |A| =o |B| )"
@@ -191,7 +170,6 @@ next
   hence "bij_betw f A B" unfolding iso_def Field_card_of by simp
   thus "\<exists>f. bij_betw f A B" by auto
 qed
-
 
 lemma card_of_ordLeq:
 "(\<exists>f. inj_on f A \<and> f ` A \<le> B) = ( |A| \<le>o |B| )"
@@ -221,11 +199,9 @@ next
   thus "\<exists>f. inj_on f A \<and> f ` A \<le> B" by auto
 qed
 
-
 lemma card_of_ordLeq2:
 "A \<noteq> {} \<Longrightarrow> (\<exists>g. g ` B = A) = ( |A| \<le>o |B| )"
 using card_of_ordLeq[of A B] inj_on_iff_surj[of A B] by auto
-
 
 lemma card_of_ordLess:
 "(\<not>(\<exists>f. inj_on f A \<and> f ` A \<le> B)) = ( |B| <o |A| )"
@@ -238,33 +214,27 @@ proof-
   finally show ?thesis .
 qed
 
-
 lemma card_of_ordLess2:
 "B \<noteq> {} \<Longrightarrow> (\<not>(\<exists>f. f ` A = B)) = ( |A| <o |B| )"
 using card_of_ordLess[of B A] inj_on_iff_surj[of B A] by auto
-
 
 lemma card_of_ordIsoI:
 assumes "bij_betw f A B"
 shows "|A| =o |B|"
 using assms unfolding card_of_ordIso[symmetric] by auto
 
-
 lemma card_of_ordLeqI:
 assumes "inj_on f A" and "\<And> a. a \<in> A \<Longrightarrow> f a \<in> B"
 shows "|A| \<le>o |B|"
 using assms unfolding card_of_ordLeq[symmetric] by auto
 
-
 lemma card_of_unique:
 "card_order_on A r \<Longrightarrow> r =o |A|"
 by (simp only: card_order_on_ordIso card_of_card_order_on)
 
-
 lemma card_of_mono1:
 "A \<le> B \<Longrightarrow> |A| \<le>o |B|"
 using inj_on_id[of A] card_of_ordLeq[of A B] by fastforce
-
 
 lemma card_of_mono2:
 assumes "r \<le>o r'"
@@ -279,14 +249,11 @@ proof-
   thus "|Field r| \<le>o |Field r'|" using card_of_ordLeq by blast
 qed
 
-
 lemma card_of_cong: "r =o r' \<Longrightarrow> |Field r| =o |Field r'|"
 by (simp add: ordIso_iff_ordLeq card_of_mono2)
 
-
 lemma card_of_Field_ordLess: "Well_order r \<Longrightarrow> |Field r| \<le>o r"
 using card_of_least card_of_well_order_on well_order_on_Well_order by blast
-
 
 lemma card_of_Field_ordIso:
 assumes "Card_order r"
@@ -299,11 +266,9 @@ proof-
   ultimately show ?thesis using card_order_on_ordIso by blast
 qed
 
-
 lemma Card_order_iff_ordIso_card_of:
 "Card_order r = (r =o |Field r| )"
 using ordIso_card_of_imp_Card_order card_of_Field_ordIso ordIso_symmetric by blast
-
 
 lemma Card_order_iff_ordLeq_card_of:
 "Card_order r = (r \<le>o |Field r| )"
@@ -318,13 +283,11 @@ proof-
   finally show ?thesis .
 qed
 
-
 lemma Card_order_iff_Restr_underS:
 assumes "Well_order r"
 shows "Card_order r = (\<forall>a \<in> Field r. Restr r (underS r a) <o |Field r| )"
 using assms unfolding Card_order_iff_ordLeq_card_of
 using ordLeq_iff_ordLess_Restr card_of_Well_order by blast
-
 
 lemma card_of_underS:
 assumes r: "Card_order r" and a: "a : Field r"
@@ -349,7 +312,6 @@ proof-
   finally show ?thesis .
 qed
 
-
 lemma ordLess_Field:
 assumes "r <o r'"
 shows "|Field r| <o r'"
@@ -359,7 +321,6 @@ proof-
   hence "|Field r| \<le>o r" using card_of_least by blast
   thus ?thesis using assms ordLeq_ordLess_trans by blast
 qed
-
 
 lemma internalize_card_of_ordLeq:
 "( |A| \<le>o r) = (\<exists>B \<le> Field r. |A| =o |B| \<and> |B| \<le>o r)"
@@ -377,15 +338,12 @@ next
   thus "|A| \<le>o r" using ordIso_ordLeq_trans by blast
 qed
 
-
 lemma internalize_card_of_ordLeq2:
 "( |A| \<le>o |C| ) = (\<exists>B \<le> C. |A| =o |B| \<and> |B| \<le>o |C| )"
 using internalize_card_of_ordLeq[of "A" "|C|"] Field_card_of[of C] by auto
 
 
-
 subsection {* Cardinals versus set operations on arbitrary sets *}
-
 
 text{* Here we embark in a long journey of simple results showing
 that the standard set-theoretic operations are well-behaved w.r.t. the notion of
@@ -393,10 +351,8 @@ cardinal -- essentially, this means that they preserve the ``cardinal identity"
 @{text "=o"} and are monotonic w.r.t. @{text "\<le>o"}.
 *}
 
-
 lemma card_of_empty: "|{}| \<le>o |A|"
 using card_of_ordLeq inj_on_id by blast
-
 
 lemma card_of_empty1:
 assumes "Well_order r \<or> Card_order r"
@@ -409,16 +365,13 @@ proof-
   ultimately show ?thesis using ordLeq_transitive by blast
 qed
 
-
 corollary Card_order_empty:
 "Card_order r \<Longrightarrow> |{}| \<le>o r" by (simp add: card_of_empty1)
-
 
 lemma card_of_empty2:
 assumes LEQ: "|A| =o |{}|"
 shows "A = {}"
 using assms card_of_ordIso[of A] bij_betw_empty2 by blast
-
 
 lemma card_of_empty3:
 assumes LEQ: "|A| \<le>o |{}|"
@@ -427,11 +380,9 @@ using assms
 by (simp add: ordIso_iff_ordLeq card_of_empty1 card_of_empty2
               ordLeq_Well_order_simp)
 
-
 lemma card_of_empty_ordIso:
 "|{}::'a set| =o |{}::'b set|"
 using card_of_ordIso unfolding bij_betw_def inj_on_def by blast
-
 
 lemma card_of_image:
 "|f ` A| <=o |A|"
@@ -442,7 +393,6 @@ proof(cases "A = {}", simp add: card_of_empty)
   using card_of_ordLeq2[of "f ` A" A] by auto
 qed
 
-
 lemma surj_imp_ordLeq:
 assumes "B <= f ` A"
 shows "|B| <=o |A|"
@@ -451,12 +401,10 @@ proof-
   thus ?thesis using card_of_image ordLeq_transitive by blast
 qed
 
-
 lemma card_of_ordLeqI2:
 assumes "B \<subseteq> f ` A"
 shows "|B| \<le>o |A|"
 using assms by (metis surj_imp_ordLeq)
-
 
 lemma card_of_singl_ordLeq:
 assumes "A \<noteq> {}"
@@ -469,22 +417,18 @@ proof-
   thus ?thesis using card_of_ordLeq by fast
 qed
 
-
 corollary Card_order_singl_ordLeq:
 "\<lbrakk>Card_order r; Field r \<noteq> {}\<rbrakk> \<Longrightarrow> |{b}| \<le>o r"
 using card_of_singl_ordLeq[of "Field r" b]
       card_of_Field_ordIso[of r] ordLeq_ordIso_trans by blast
 
-
 lemma card_of_Pow: "|A| <o |Pow A|"
 using card_of_ordLess2[of "Pow A" A]  Cantors_paradox[of A]
       Pow_not_empty[of A] by auto
 
-
 corollary Card_order_Pow:
 "Card_order r \<Longrightarrow> r <o |Pow(Field r)|"
 using card_of_Pow card_of_Field_ordIso ordIso_ordLess_trans ordIso_symmetric by blast
-
 
 lemma card_of_Plus1: "|A| \<le>o |A <+> B|"
 proof-
@@ -492,11 +436,9 @@ proof-
   thus ?thesis using inj_Inl[of A] card_of_ordLeq by blast
 qed
 
-
 corollary Card_order_Plus1:
 "Card_order r \<Longrightarrow> r \<le>o |(Field r) <+> B|"
 using card_of_Plus1 card_of_Field_ordIso ordIso_ordLeq_trans ordIso_symmetric by blast
-
 
 lemma card_of_Plus2: "|B| \<le>o |A <+> B|"
 proof-
@@ -504,11 +446,9 @@ proof-
   thus ?thesis using inj_Inr[of B] card_of_ordLeq by blast
 qed
 
-
 corollary Card_order_Plus2:
 "Card_order r \<Longrightarrow> r \<le>o |A <+> (Field r)|"
 using card_of_Plus2 card_of_Field_ordIso ordIso_ordLeq_trans ordIso_symmetric by blast
-
 
 lemma card_of_Plus_empty1: "|A| =o |A <+> {}|"
 proof-
@@ -516,13 +456,11 @@ proof-
   thus ?thesis using card_of_ordIso by auto
 qed
 
-
 lemma card_of_Plus_empty2: "|A| =o |{} <+> A|"
 proof-
   have "bij_betw Inr A ({} <+> A)" unfolding bij_betw_def inj_on_def by auto
   thus ?thesis using card_of_ordIso by auto
 qed
-
 
 lemma card_of_Plus_commute: "|A <+> B| =o |B <+> A|"
 proof-
@@ -532,7 +470,6 @@ proof-
   unfolding bij_betw_def inj_on_def by force
   thus ?thesis using card_of_ordIso by blast
 qed
-
 
 lemma card_of_Plus_assoc:
 fixes A :: "'a set" and B :: "'b set" and C :: "'c set"
@@ -571,7 +508,6 @@ proof -
   thus ?thesis using card_of_ordIso by blast
 qed
 
-
 lemma card_of_Plus_mono1:
 assumes "|A| \<le>o |B|"
 shows "|A <+> C| \<le>o |B <+> C|"
@@ -596,12 +532,10 @@ proof-
   thus ?thesis using card_of_ordLeq by metis
 qed
 
-
 corollary ordLeq_Plus_mono1:
 assumes "r \<le>o r'"
 shows "|(Field r) <+> C| \<le>o |(Field r') <+> C|"
 using assms card_of_mono2 card_of_Plus_mono1 by blast
-
 
 lemma card_of_Plus_mono2:
 assumes "|A| \<le>o |B|"
@@ -611,12 +545,10 @@ using assms card_of_Plus_mono1[of A B C]
       ordIso_ordLeq_trans[of "|C <+> A|"] ordLeq_ordIso_trans[of "|C <+> A|"]
 by blast
 
-
 corollary ordLeq_Plus_mono2:
 assumes "r \<le>o r'"
 shows "|A <+> (Field r)| \<le>o |A <+> (Field r')|"
 using assms card_of_mono2 card_of_Plus_mono2 by blast
-
 
 lemma card_of_Plus_mono:
 assumes "|A| \<le>o |B|" and "|C| \<le>o |D|"
@@ -624,48 +556,40 @@ shows "|A <+> C| \<le>o |B <+> D|"
 using assms card_of_Plus_mono1[of A B C] card_of_Plus_mono2[of C D B]
       ordLeq_transitive[of "|A <+> C|"] by blast
 
-
 corollary ordLeq_Plus_mono:
 assumes "r \<le>o r'" and "p \<le>o p'"
 shows "|(Field r) <+> (Field p)| \<le>o |(Field r') <+> (Field p')|"
 using assms card_of_mono2[of r r'] card_of_mono2[of p p'] card_of_Plus_mono by blast
-
 
 lemma card_of_Plus_cong1:
 assumes "|A| =o |B|"
 shows "|A <+> C| =o |B <+> C|"
 using assms by (simp add: ordIso_iff_ordLeq card_of_Plus_mono1)
 
-
 corollary ordIso_Plus_cong1:
 assumes "r =o r'"
 shows "|(Field r) <+> C| =o |(Field r') <+> C|"
 using assms card_of_cong card_of_Plus_cong1 by blast
-
 
 lemma card_of_Plus_cong2:
 assumes "|A| =o |B|"
 shows "|C <+> A| =o |C <+> B|"
 using assms by (simp add: ordIso_iff_ordLeq card_of_Plus_mono2)
 
-
 corollary ordIso_Plus_cong2:
 assumes "r =o r'"
 shows "|A <+> (Field r)| =o |A <+> (Field r')|"
 using assms card_of_cong card_of_Plus_cong2 by blast
-
 
 lemma card_of_Plus_cong:
 assumes "|A| =o |B|" and "|C| =o |D|"
 shows "|A <+> C| =o |B <+> D|"
 using assms by (simp add: ordIso_iff_ordLeq card_of_Plus_mono)
 
-
 corollary ordIso_Plus_cong:
 assumes "r =o r'" and "p =o p'"
 shows "|(Field r) <+> (Field p)| =o |(Field r') <+> (Field p')|"
 using assms card_of_cong[of r r'] card_of_cong[of p p'] card_of_Plus_cong by blast
-
 
 lemma card_of_Un_Plus_ordLeq:
 "|A \<union> B| \<le>o |A <+> B|"
@@ -675,7 +599,6 @@ proof-
    unfolding inj_on_def by auto
    thus ?thesis using card_of_ordLeq by blast
 qed
-
 
 lemma card_of_Times1:
 assumes "A \<noteq> {}"
@@ -687,7 +610,6 @@ proof(cases "B = {}", simp add: card_of_empty)
                      card_of_ordLeq[of B "B \<times> A"] * by blast
 qed
 
-
 lemma card_of_Times_commute: "|A \<times> B| =o |B \<times> A|"
 proof-
   let ?f = "\<lambda>(a::'a,b::'b). (b,a)"
@@ -696,29 +618,24 @@ proof-
   thus ?thesis using card_of_ordIso by blast
 qed
 
-
 lemma card_of_Times2:
 assumes "A \<noteq> {}"   shows "|B| \<le>o |A \<times> B|"
 using assms card_of_Times1[of A B] card_of_Times_commute[of B A]
       ordLeq_ordIso_trans by blast
-
 
 corollary Card_order_Times1:
 "\<lbrakk>Card_order r; B \<noteq> {}\<rbrakk> \<Longrightarrow> r \<le>o |(Field r) \<times> B|"
 using card_of_Times1[of B] card_of_Field_ordIso
       ordIso_ordLeq_trans ordIso_symmetric by blast
 
-
 corollary Card_order_Times2:
 "\<lbrakk>Card_order r; A \<noteq> {}\<rbrakk> \<Longrightarrow> r \<le>o |A \<times> (Field r)|"
 using card_of_Times2[of A] card_of_Field_ordIso
       ordIso_ordLeq_trans ordIso_symmetric by blast
 
-
 lemma card_of_Times3: "|A| \<le>o |A \<times> A|"
 using card_of_Times1[of A]
 by(cases "A = {}", simp add: card_of_empty, blast)
-
 
 lemma card_of_Plus_Times_bool: "|A <+> A| =o |A \<times> (UNIV::bool set)|"
 proof-
@@ -751,7 +668,6 @@ proof-
   thus ?thesis using card_of_ordIso by blast
 qed
 
-
 lemma card_of_Times_mono1:
 assumes "|A| \<le>o |B|"
 shows "|A \<times> C| \<le>o |B \<times> C|"
@@ -765,12 +681,10 @@ proof-
   thus ?thesis using card_of_ordLeq by metis
 qed
 
-
 corollary ordLeq_Times_mono1:
 assumes "r \<le>o r'"
 shows "|(Field r) \<times> C| \<le>o |(Field r') \<times> C|"
 using assms card_of_mono2 card_of_Times_mono1 by blast
-
 
 lemma card_of_Times_mono2:
 assumes "|A| \<le>o |B|"
@@ -780,12 +694,10 @@ using assms card_of_Times_mono1[of A B C]
       ordIso_ordLeq_trans[of "|C \<times> A|"] ordLeq_ordIso_trans[of "|C \<times> A|"]
 by blast
 
-
 corollary ordLeq_Times_mono2:
 assumes "r \<le>o r'"
 shows "|A \<times> (Field r)| \<le>o |A \<times> (Field r')|"
 using assms card_of_mono2 card_of_Times_mono2 by blast
-
 
 lemma card_of_Sigma_mono1:
 assumes "\<forall>i \<in> I. |A i| \<le>o |B i|"
@@ -801,16 +713,13 @@ proof-
   thus ?thesis using card_of_ordLeq by metis
 qed
 
-
 corollary card_of_Sigma_Times:
 "\<forall>i \<in> I. |A i| \<le>o |B| \<Longrightarrow> |SIGMA i : I. A i| \<le>o |I \<times> B|"
 using card_of_Sigma_mono1[of I A "\<lambda>i. B"] .
 
-
 lemma card_of_UNION_Sigma:
 "|\<Union>i \<in> I. A i| \<le>o |SIGMA i : I. A i|"
 using Ex_inj_on_UNION_Sigma[of I A] card_of_ordLeq by metis
-
 
 lemma card_of_bool:
 assumes "a1 \<noteq> a2"
@@ -842,7 +751,6 @@ proof-
   thus ?thesis using card_of_ordIso by blast
 qed
 
-
 lemma card_of_Plus_Times_aux:
 assumes A2: "a1 \<noteq> a2 \<and> {a1,a2} \<le> A" and
         LEQ: "|A| \<le>o |B|"
@@ -867,7 +775,6 @@ proof-
   by blast
 qed
 
-
 lemma card_of_Plus_Times:
 assumes A2: "a1 \<noteq> a2 \<and> {a1,a2} \<le> A" and
         B2: "b1 \<noteq> b2 \<and> {b1,b2} \<le> B"
@@ -889,7 +796,6 @@ proof-
         ordLeq_total[of "|A|"] by metis
 qed
 
-
 lemma card_of_ordLeq_finite:
 assumes "|A| \<le>o |B|" and "finite B"
 shows "finite A"
@@ -897,19 +803,16 @@ using assms unfolding ordLeq_def
 using embed_inj_on[of "|A|" "|B|"]  embed_Field[of "|A|" "|B|"]
       Field_card_of[of "A"] Field_card_of[of "B"] inj_on_finite[of _ "A" "B"] by fastforce
 
-
 lemma card_of_ordLeq_infinite:
 assumes "|A| \<le>o |B|" and "\<not> finite A"
 shows "\<not> finite B"
 using assms card_of_ordLeq_finite by auto
-
 
 lemma card_of_ordIso_finite:
 assumes "|A| =o |B|"
 shows "finite A = finite B"
 using assms unfolding ordIso_def iso_def[abs_def]
 by (auto simp: bij_betw_finite Field_card_of)
-
 
 lemma card_of_ordIso_finite_Field:
 assumes "Card_order r" and "r =o |A|"
@@ -919,14 +822,12 @@ using assms card_of_Field_ordIso card_of_ordIso_finite ordIso_equivalence by bla
 
 subsection {* Cardinals versus set operations involving infinite sets *}
 
-
 text{* Here we show that, for infinite sets, most set-theoretic constructions
 do not increase the cardinality.  The cornerstone for this is
 theorem @{text "Card_order_Times_same_infinite"}, which states that self-product
 does not increase cardinality -- the proof of this fact adapts a standard
 set-theoretic argument, as presented, e.g., in the proof of theorem 1.5.11
 at page 47 in \cite{card-book}. Then everything else follows fairly easily.  *}
-
 
 lemma infinite_iff_card_of_nat:
 "\<not> finite A \<longleftrightarrow> ( |UNIV::nat set| \<le>o |A| )"
@@ -971,7 +872,6 @@ proof(auto)
   qed
 qed
 
-
 lemma infinite_Card_order_limit:
 assumes r: "Card_order r" and "\<not>finite (Field r)"
 and a: "a : Field r"
@@ -992,7 +892,6 @@ proof-
   total_on_def by blast
   thus ?thesis using 1 ba by auto
 qed
-
 
 theorem Card_order_Times_same_infinite:
 assumes CO: "Card_order r" and INF: "\<not>finite(Field r)"
@@ -1069,7 +968,6 @@ proof-
   thus ?thesis using assms unfolding phi_def by blast
 qed
 
-
 corollary card_of_Times_same_infinite:
 assumes "\<not>finite A"
 shows "|A \<times> A| =o |A|"
@@ -1081,7 +979,6 @@ proof-
   using Card_order_Times_same_infinite[of ?r] assms by auto
   thus ?thesis using card_of_Times3 ordIso_iff_ordLeq by blast
 qed
-
 
 lemma card_of_Times_infinite:
 assumes INF: "\<not>finite A" and NE: "B \<noteq> {}" and LEQ: "|B| \<le>o |A|"
@@ -1099,7 +996,6 @@ proof-
   ultimately show ?thesis by (simp add: ordIso_iff_ordLeq)
 qed
 
-
 corollary Card_order_Times_infinite:
 assumes INF: "\<not>finite(Field r)" and CARD: "Card_order r" and
         NE: "Field p \<noteq> {}" and LEQ: "p \<le>o r"
@@ -1113,7 +1009,6 @@ proof-
         ordIso_transitive[of _ "|Field r|"] by blast
 qed
 
-
 lemma card_of_Sigma_ordLeq_infinite:
 assumes INF: "\<not>finite B" and
         LEQ_I: "|I| \<le>o |B|" and LEQ: "\<forall>i \<in> I. |A i| \<le>o |B|"
@@ -1126,7 +1021,6 @@ proof(cases "I = {}", simp add: card_of_empty)
   using INF * LEQ_I by (auto simp add: card_of_Times_infinite)
   ultimately show ?thesis using ordLeq_ordIso_trans by blast
 qed
-
 
 lemma card_of_Sigma_ordLeq_infinite_Field:
 assumes INF: "\<not>finite (Field r)" and r: "Card_order r" and
@@ -1143,12 +1037,10 @@ proof-
   thus ?thesis using 1 ordLeq_ordIso_trans by blast
 qed
 
-
 lemma card_of_Times_ordLeq_infinite_Field:
 "\<lbrakk>\<not>finite (Field r); |A| \<le>o r; |B| \<le>o r; Card_order r\<rbrakk>
  \<Longrightarrow> |A <*> B| \<le>o r"
 by(simp add: card_of_Sigma_ordLeq_infinite_Field)
-
 
 lemma card_of_Times_infinite_simps:
 "\<lbrakk>\<not>finite A; B \<noteq> {}; |B| \<le>o |A|\<rbrakk> \<Longrightarrow> |A \<times> B| =o |A|"
@@ -1156,7 +1048,6 @@ lemma card_of_Times_infinite_simps:
 "\<lbrakk>\<not>finite A; B \<noteq> {}; |B| \<le>o |A|\<rbrakk> \<Longrightarrow> |B \<times> A| =o |A|"
 "\<lbrakk>\<not>finite A; B \<noteq> {}; |B| \<le>o |A|\<rbrakk> \<Longrightarrow> |A| =o |B \<times> A|"
 by (auto simp add: card_of_Times_infinite ordIso_symmetric)
-
 
 lemma card_of_UNION_ordLeq_infinite:
 assumes INF: "\<not>finite B" and
@@ -1170,7 +1061,6 @@ proof(cases "I = {}", simp add: card_of_empty)
   using assms card_of_Sigma_ordLeq_infinite by blast
   ultimately show ?thesis using ordLeq_transitive by blast
 qed
-
 
 corollary card_of_UNION_ordLeq_infinite_Field:
 assumes INF: "\<not>finite (Field r)" and r: "Card_order r" and
@@ -1186,7 +1076,6 @@ proof-
   card_of_UNION_ordLeq_infinite by blast
   thus ?thesis using 1 ordLeq_ordIso_trans by blast
 qed
-
 
 lemma card_of_Plus_infinite1:
 assumes INF: "\<not>finite A" and LEQ: "|B| \<le>o |A|"
@@ -1226,19 +1115,16 @@ proof(cases "B = {}", simp add: card_of_Plus_empty1 card_of_Plus_empty2 ordIso_s
   qed
 qed
 
-
 lemma card_of_Plus_infinite2:
 assumes INF: "\<not>finite A" and LEQ: "|B| \<le>o |A|"
 shows "|B <+> A| =o |A|"
 using assms card_of_Plus_commute card_of_Plus_infinite1
 ordIso_equivalence by blast
 
-
 lemma card_of_Plus_infinite:
 assumes INF: "\<not>finite A" and LEQ: "|B| \<le>o |A|"
 shows "|A <+> B| =o |A| \<and> |B <+> A| =o |A|"
 using assms by (auto simp: card_of_Plus_infinite1 card_of_Plus_infinite2)
-
 
 corollary Card_order_Plus_infinite:
 assumes INF: "\<not>finite(Field r)" and CARD: "Card_order r" and
@@ -1256,7 +1142,6 @@ qed
 
 
 subsection {* The cardinal $\omega$ and the finite cardinals  *}
-
 
 text{* The cardinal $\omega$, of natural numbers, shall be the standard non-strict
 order relation on
@@ -1283,84 +1168,65 @@ qed
 
 subsubsection {* First as well-orders *}
 
-
 lemma Field_natLeq: "Field natLeq = (UNIV::nat set)"
 by(unfold Field_def, auto)
-
 
 lemma natLeq_Refl: "Refl natLeq"
 unfolding refl_on_def Field_def by auto
 
-
 lemma natLeq_trans: "trans natLeq"
 unfolding trans_def by auto
-
 
 lemma natLeq_Preorder: "Preorder natLeq"
 unfolding preorder_on_def
 by (auto simp add: natLeq_Refl natLeq_trans)
 
-
 lemma natLeq_antisym: "antisym natLeq"
 unfolding antisym_def by auto
-
 
 lemma natLeq_Partial_order: "Partial_order natLeq"
 unfolding partial_order_on_def
 by (auto simp add: natLeq_Preorder natLeq_antisym)
 
-
 lemma natLeq_Total: "Total natLeq"
 unfolding total_on_def by auto
-
 
 lemma natLeq_Linear_order: "Linear_order natLeq"
 unfolding linear_order_on_def
 by (auto simp add: natLeq_Partial_order natLeq_Total)
 
-
 lemma natLeq_natLess_Id: "natLess = natLeq - Id"
 by auto
-
 
 lemma natLeq_Well_order: "Well_order natLeq"
 unfolding well_order_on_def
 using natLeq_Linear_order wf_less natLeq_natLess_Id by auto
 
-
 lemma Field_natLeq_on: "Field (natLeq_on n) = {x. x < n}"
 unfolding Field_def by auto
-
 
 lemma natLeq_underS_less: "underS natLeq n = {x. x < n}"
 unfolding underS_def by auto
 
-
 lemma Restr_natLeq: "Restr natLeq {x. x < n} = natLeq_on n"
 by force
-
 
 lemma Restr_natLeq2:
 "Restr natLeq (underS natLeq n) = natLeq_on n"
 by (auto simp add: Restr_natLeq natLeq_underS_less)
 
-
 lemma natLeq_on_Well_order: "Well_order(natLeq_on n)"
 using Restr_natLeq[of n] natLeq_Well_order
       Well_order_Restr[of natLeq "{x. x < n}"] by auto
 
-
 corollary natLeq_on_well_order_on: "well_order_on {x. x < n} (natLeq_on n)"
 using natLeq_on_Well_order Field_natLeq_on by auto
-
 
 lemma natLeq_on_wo_rel: "wo_rel(natLeq_on n)"
 unfolding wo_rel_def using natLeq_on_Well_order .
 
 
-
 subsubsection {* Then as cardinals *}
-
 
 lemma natLeq_Card_order: "Card_order natLeq"
 proof(auto simp add: natLeq_Well_order
@@ -1373,17 +1239,14 @@ proof(auto simp add: natLeq_Well_order
         card_of_Well_order[of "UNIV::nat set"] natLeq_on_Well_order[of n] by auto
 qed
 
-
 corollary card_of_Field_natLeq:
 "|Field natLeq| =o natLeq"
 using Field_natLeq natLeq_Card_order Card_order_iff_ordIso_card_of[of natLeq]
       ordIso_symmetric[of natLeq] by blast
 
-
 corollary card_of_nat:
 "|UNIV::nat set| =o natLeq"
 using Field_natLeq card_of_Field_natLeq by auto
-
 
 corollary infinite_iff_natLeq_ordLeq:
 "\<not>finite A = ( natLeq \<le>o |A| )"
@@ -1398,11 +1261,9 @@ using infinite_iff_natLeq_ordLeq not_ordLeq_iff_ordLess
 
 subsection {* The successor of a cardinal *}
 
-
 text{* First we define @{text "isCardSuc r r'"}, the notion of @{text "r'"}
 being a successor cardinal of @{text "r"}. Although the definition does
 not require @{text "r"} to be a cardinal, only this case will be meaningful.  *}
-
 
 definition isCardSuc :: "'a rel \<Rightarrow> 'a set rel \<Rightarrow> bool"
 where
@@ -1410,21 +1271,17 @@ where
  Card_order r' \<and> r <o r' \<and>
  (\<forall>(r''::'a set rel). Card_order r'' \<and> r <o r'' \<longrightarrow> r' \<le>o r'')"
 
-
 text{* Now we introduce the cardinal-successor operator @{text "cardSuc"},
 by picking {\em some} cardinal-order relation fulfilling @{text "isCardSuc"}.
 Again, the picked item shall be proved unique up to order-isomorphism. *}
-
 
 definition cardSuc :: "'a rel \<Rightarrow> 'a set rel"
 where
 "cardSuc r \<equiv> SOME r'. isCardSuc r r'"
 
-
 lemma exists_minim_Card_order:
 "\<lbrakk>R \<noteq> {}; \<forall>r \<in> R. Card_order r\<rbrakk> \<Longrightarrow> \<exists>r \<in> R. \<forall>r' \<in> R. r \<le>o r'"
 unfolding card_order_on_def using exists_minim_Well_order by blast
-
 
 lemma exists_isCardSuc:
 assumes "Card_order r"
@@ -1438,28 +1295,23 @@ proof-
   thus ?thesis unfolding isCardSuc_def by auto
 qed
 
-
 lemma cardSuc_isCardSuc:
 assumes "Card_order r"
 shows "isCardSuc r (cardSuc r)"
 unfolding cardSuc_def using assms
 by (simp add: exists_isCardSuc someI_ex)
 
-
 lemma cardSuc_Card_order:
 "Card_order r \<Longrightarrow> Card_order(cardSuc r)"
 using cardSuc_isCardSuc unfolding isCardSuc_def by blast
-
 
 lemma cardSuc_greater:
 "Card_order r \<Longrightarrow> r <o cardSuc r"
 using cardSuc_isCardSuc unfolding isCardSuc_def by blast
 
-
 lemma cardSuc_ordLeq:
 "Card_order r \<Longrightarrow> r \<le>o cardSuc r"
 using cardSuc_greater ordLeq_iff_ordLess_or_ordIso by blast
-
 
 text{* The minimality property of @{text "cardSuc"} originally present in its definition
 is local to the type @{text "'a set rel"}, i.e., that of @{text "cardSuc r"}:  *}
@@ -1467,7 +1319,6 @@ is local to the type @{text "'a set rel"}, i.e., that of @{text "cardSuc r"}:  *
 lemma cardSuc_least_aux:
 "\<lbrakk>Card_order (r::'a rel); Card_order (r'::'a set rel); r <o r'\<rbrakk> \<Longrightarrow> cardSuc r \<le>o r'"
 using cardSuc_isCardSuc unfolding isCardSuc_def by blast
-
 
 text{* But from this we can infer general minimality: *}
 
@@ -1490,7 +1341,6 @@ proof-
   thus ?thesis using 0 ordLess_or_ordLeq by blast
 qed
 
-
 lemma cardSuc_ordLess_ordLeq:
 assumes CARD: "Card_order r" and CARD': "Card_order r'"
 shows "(r <o r') = (cardSuc r \<le>o r')"
@@ -1498,7 +1348,6 @@ proof(auto simp add: assms cardSuc_least)
   assume "cardSuc r \<le>o r'"
   thus "r <o r'" using assms cardSuc_greater ordLess_ordLeq_trans by blast
 qed
-
 
 lemma cardSuc_ordLeq_ordLess:
 assumes CARD: "Card_order r" and CARD': "Card_order r'"
@@ -1513,12 +1362,10 @@ proof-
   not_ordLeq_iff_ordLess[of r r'] not_ordLeq_iff_ordLess[of r' "cardSuc r"] by blast
 qed
 
-
 lemma cardSuc_mono_ordLeq:
 assumes CARD: "Card_order r" and CARD': "Card_order r'"
 shows "(cardSuc r \<le>o cardSuc r') = (r \<le>o r')"
 using assms cardSuc_ordLeq_ordLess cardSuc_ordLess_ordLeq cardSuc_Card_order by blast
-
 
 lemma cardSuc_invar_ordIso:
 assumes CARD: "Card_order r" and CARD': "Card_order r'"
@@ -1530,7 +1377,6 @@ proof-
   using ordIso_iff_ordLeq[of r r'] ordIso_iff_ordLeq
   using cardSuc_mono_ordLeq[of r r'] cardSuc_mono_ordLeq[of r' r] assms by blast
 qed
-
 
 lemma card_of_cardSuc_finite:
 "finite(Field(cardSuc |A| )) = finite A"
@@ -1551,7 +1397,6 @@ next
       by (metis cardSuc_ordLess_ordLeq card_of_Card_order card_of_Pow)
   qed
 qed
-
 
 lemma cardSuc_finite:
 assumes "Card_order r"
@@ -1575,7 +1420,6 @@ proof-
   using card_of_ordIso_finite by blast
   thus ?thesis by (simp only: card_of_cardSuc_finite)
 qed
-
 
 lemma card_of_Plus_ordLess_infinite:
 assumes INF: "\<not>finite C" and
@@ -1615,7 +1459,6 @@ next
   card_of_Well_order[of "A <+> B"] card_of_Well_order[of "C"] by auto
 qed
 
-
 lemma card_of_Plus_ordLess_infinite_Field:
 assumes INF: "\<not>finite (Field r)" and r: "Card_order r" and
         LESS1: "|A| <o r" and LESS2: "|B| <o r"
@@ -1630,7 +1473,6 @@ proof-
   card_of_Plus_ordLess_infinite by blast
   thus ?thesis using 1 ordLess_ordIso_trans by blast
 qed
-
 
 lemma card_of_Plus_ordLeq_infinite_Field:
 assumes r: "\<not>finite (Field r)" and A: "|A| \<le>o r" and B: "|B| \<le>o r"
@@ -1648,7 +1490,6 @@ proof-
   by (simp add: card_of_card_order_on Field_card_of cardSuc_ordLeq_ordLess)
 qed
 
-
 lemma card_of_Un_ordLeq_infinite_Field:
 assumes C: "\<not>finite (Field r)" and A: "|A| \<le>o r" and B: "|B| \<le>o r"
 and "Card_order r"
@@ -1657,19 +1498,15 @@ using assms card_of_Plus_ordLeq_infinite_Field card_of_Un_Plus_ordLeq
 ordLeq_transitive by fast
 
 
-
 subsection {* Regular cardinals *}
-
 
 definition cofinal where
 "cofinal A r \<equiv>
  ALL a : Field r. EX b : A. a \<noteq> b \<and> (a,b) : r"
 
-
 definition regular where
 "regular r \<equiv>
  ALL K. K \<le> Field r \<and> cofinal K r \<longrightarrow> |K| =o r"
-
 
 definition relChain where
 "relChain r As \<equiv>
@@ -1710,7 +1547,6 @@ proof-
   }
   thus ?thesis by blast
 qed
-
 
 lemma infinite_cardSuc_regular:
 assumes r_inf: "\<not>finite (Field r)" and r_card: "Card_order r"

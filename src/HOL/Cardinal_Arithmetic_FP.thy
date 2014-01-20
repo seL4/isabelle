@@ -11,7 +11,6 @@ theory Cardinal_Arithmetic_FP
 imports Cardinal_Order_Relation_FP
 begin
 
-(*library candidate*)
 lemma dir_image: "\<lbrakk>\<And>x y. (f x = f y) = (x = y); Card_order r\<rbrakk> \<Longrightarrow> r =o dir_image r f"
 by (rule dir_image_ordIso) (auto simp add: inj_on_def card_order_on_def)
 
@@ -31,23 +30,18 @@ proof -
   ultimately show ?thesis by auto
 qed
 
-(*library candidate*)
 lemma ordIso_refl: "Card_order r \<Longrightarrow> r =o r"
 by (rule card_order_on_ordIso)
 
-(*library candidate*)
 lemma ordLeq_refl: "Card_order r \<Longrightarrow> r \<le>o r"
 by (rule ordIso_imp_ordLeq, rule card_order_on_ordIso)
 
-(*library candidate*)
 lemma card_of_ordIso_subst: "A = B \<Longrightarrow> |A| =o |B|"
 by (simp only: ordIso_refl card_of_Card_order)
 
-(*library candidate*)
 lemma Field_card_order: "card_order r \<Longrightarrow> Field r = UNIV"
 using card_order_on_Card_order[of UNIV r] by simp
 
-(*library candidate*)
 lemma card_of_Times_Plus_distrib:
   "|A <*> (B <+> C)| =o |A <*> B <+> A <*> C|" (is "|?RHS| =o |?LHS|")
 proof -
@@ -56,7 +50,6 @@ proof -
   thus ?thesis using card_of_ordIso by blast
 qed
 
-(*library candidate*)
 lemma Func_Times_Range:
   "|Func A (B <*> C)| =o |Func A B <*> Func A C|" (is "|?LHS| =o |?RHS|")
 proof -
@@ -277,7 +270,7 @@ lemma cone_ordLeq_Cnotzero: "Cnotzero r \<Longrightarrow> cone \<le>o r"
 unfolding cone_def by (metis Card_order_singl_ordLeq czeroI)
 
 
-subsection{* Two *}
+subsection {* Two *}
 
 definition ctwo where
   "ctwo = |UNIV :: bool set|"
