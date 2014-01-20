@@ -8,6 +8,7 @@ signature SYMBOL_POS =
 sig
   type T = Symbol.symbol * Position.T
   val symbol: T -> Symbol.symbol
+  val $$ : Symbol.symbol -> T list -> T * T list
   val $$$ : Symbol.symbol -> T list -> T list * T list
   val ~$$$ : Symbol.symbol -> T list -> T list * T list
   val content: T list -> string
@@ -115,8 +116,10 @@ fun scan_str q err_prefix =
   Scan.one (fn (s, _) => s <> q andalso s <> "\\" andalso Symbol.is_regular s) >> single;
 
 fun scan_strs q err_prefix =
-  (scan_pos --| $$$ q) -- !!! (fn () => err_prefix ^ "missing quote at end of string")
-    (change_prompt ((Scan.repeat (scan_str q err_prefix) >> flat) -- ($$$ q |-- scan_pos)));
+  Scan.ahead ($$ q) |--
+    !!! (fn () => err_prefix ^ "unclosed string literal")
+      ((scan_pos --| $$$ q) --
+        (change_prompt ((Scan.repeat (scan_str q err_prefix) >> flat) -- ($$$ q |-- scan_pos))));
 
 fun recover_strs q =
   $$$ q @@@ (Scan.repeat (Scan.permissive (scan_str q "")) >> flat);
@@ -284,6 +287,7 @@ end;
 
 structure Basic_Symbol_Pos =   (*not open by default*)
 struct
+  val $$ = Symbol_Pos.$$;
   val $$$ = Symbol_Pos.$$$;
   val ~$$$ = Symbol_Pos.~$$$;
 end;
