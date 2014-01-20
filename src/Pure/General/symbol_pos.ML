@@ -27,14 +27,11 @@ sig
   val quote_string_q: string -> string
   val quote_string_qq: string -> string
   val quote_string_bq: string -> string
-  val scan_cartouche: (string -> (T list -> T list * T list) -> T list -> T list * T list) ->
-    T list -> T list * T list
+  val scan_cartouche: string -> T list -> T list * T list
   val recover_cartouche: T list -> T list * T list
   val cartouche_content: T list -> T list
-  val scan_comment: (string -> (T list -> T list * T list) -> T list -> T list * T list) ->
-    T list -> T list * T list
-  val scan_comment_body: (string -> (T list -> T list * T list) -> T list -> T list * T list) ->
-    T list -> T list * T list
+  val scan_comment: string -> T list -> T list * T list
+  val scan_comment_body: string -> T list -> T list * T list
   val recover_comment: T list -> T list * T list
   val source: Position.T -> (Symbol.symbol, 'a) Source.source ->
     (T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source
@@ -168,9 +165,9 @@ val scan_cartouche_depth =
         $$ "\\<close>" >> pair (d - 1)
       else Scan.fail)));
 
-fun scan_cartouche cut =
+fun scan_cartouche err_prefix =
   Scan.ahead ($$ "\\<open>") |--
-    cut "unclosed text cartouche"
+    !!! (fn () => err_prefix ^ "unclosed text cartouche")
       (change_prompt (Scan.provide (fn d => d = 0) 0 scan_cartouche_depth));
 
 val recover_cartouche = Scan.pass 0 scan_cartouche_depth;
@@ -206,11 +203,13 @@ val scan_body = change_prompt scan_cmts;
 
 in
 
-fun scan_comment cut =
-  $$$ "(" @@@ $$$ "*" @@@ cut "missing end of comment" (scan_body @@@ $$$ "*" @@@ $$$ ")");
+fun scan_comment err_prefix =
+  $$$ "(" @@@ $$$ "*" @@@
+    !!! (fn () => err_prefix ^ "missing end of comment") (scan_body @@@ $$$ "*" @@@ $$$ ")");
 
-fun scan_comment_body cut =
-  $$$ "(" |-- $$$ "*" |-- cut "missing end of comment" (scan_body --| $$$ "*" --| $$$ ")");
+fun scan_comment_body err_prefix =
+  $$$ "(" |-- $$$ "*" |--
+    !!! (fn () => err_prefix ^ "missing end of comment") (scan_body --| $$$ "*" --| $$$ ")");
 
 val recover_comment =
   $$$ "(" @@@ $$$ "*" @@@ scan_cmts;

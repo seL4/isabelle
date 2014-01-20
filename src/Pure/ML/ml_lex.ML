@@ -137,7 +137,9 @@ end;
 
 open Basic_Symbol_Pos;
 
-fun !!! msg = Symbol_Pos.!!! (fn () => "SML lexical error: " ^ msg);
+val err_prefix = "SML lexical error: ";
+
+fun !!! msg = Symbol_Pos.!!! (fn () => err_prefix ^ msg);
 
 
 (* blanks *)
@@ -261,7 +263,7 @@ val scan_ml =
  (scan_char >> token Char ||
   scan_string >> token String ||
   scan_blanks1 >> token Space ||
-  Symbol_Pos.scan_comment !!! >> token Comment ||
+  Symbol_Pos.scan_comment err_prefix >> token Comment ||
   Scan.max token_leq
    (scan_keyword >> token Keyword)
    (scan_word >> token Word ||

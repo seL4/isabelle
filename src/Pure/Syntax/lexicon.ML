@@ -87,7 +87,9 @@ end;
 
 open Basic_Symbol_Pos;
 
-fun !!! msg = Symbol_Pos.!!! (fn () => "Inner lexical error: " ^ msg);
+val err_prefix = "Inner lexical error: ";
+
+fun !!! msg = Symbol_Pos.!!! (fn () => err_prefix ^ msg);
 
 val scan_id = Symbol_Pos.scan_ident;
 val scan_longid = scan_id @@@ (Scan.repeat1 ($$$ "." @@@ scan_id) >> flat);
@@ -258,8 +260,8 @@ fun tokenize lex xids syms =
     val scan_lit = Scan.literal lex >> token Literal;
 
     val scan_token =
-      Symbol_Pos.scan_cartouche !!! >> token Cartouche ||
-      Symbol_Pos.scan_comment !!! >> token Comment ||
+      Symbol_Pos.scan_cartouche err_prefix >> token Cartouche ||
+      Symbol_Pos.scan_comment err_prefix >> token Comment ||
       Scan.max token_leq scan_lit scan_val ||
       scan_str >> token StrSy ||
       Scan.many1 (Symbol.is_blank o Symbol_Pos.symbol) >> token Space;

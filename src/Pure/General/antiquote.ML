@@ -50,7 +50,7 @@ val scan_txt =
 
 val scan_ant =
   Scan.trace (Symbol_Pos.scan_string_qq err_prefix || Symbol_Pos.scan_string_bq err_prefix) >> #2 ||
-  Scan.trace (Symbol_Pos.scan_cartouche (fn s => Symbol_Pos.!!! (fn () => err_prefix ^ s))) >> #2 ||
+  Scan.trace (Symbol_Pos.scan_cartouche err_prefix) >> #2 ||
   Scan.one (fn (s, _) => s <> "}" andalso Symbol.is_regular s) >> single;
 
 in
