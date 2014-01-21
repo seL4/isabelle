@@ -12,8 +12,6 @@ theory TreeFsetI
 imports "~~/src/HOL/Library/More_BNFs"
 begin
 
-hide_fact (open) Lifting_Product.prod_rel_def
-
 codatatype 'a treeFsetI = Tree (lab: 'a) (sub: "'a treeFsetI fset")
 
 (* tree map (contrived example): *)

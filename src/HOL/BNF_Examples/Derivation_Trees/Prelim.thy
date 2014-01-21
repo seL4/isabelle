@@ -11,6 +11,8 @@ theory Prelim
 imports "~~/src/HOL/Library/More_BNFs"
 begin
 
+notation BNF_Def.convol ("<_ , _>")
+
 declare fset_to_fset[simp]
 
 lemma fst_snd_convol_o[simp]: "<fst o s, snd o s> = s"

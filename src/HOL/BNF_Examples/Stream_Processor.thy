@@ -152,8 +152,10 @@ section {* Generalization to an Arbitrary BNF as Codomain *}
 
 bnf_decl ('a, 'b) F (map: F)
 
+notation BNF_Def.convol ("<_ , _>")
+
 definition \<theta> :: "('p,'a) F * 'b \<Rightarrow> ('p,'a * 'b) F" where
-   "\<theta> xb = F id <id, \<lambda> a. (snd xb)> (fst xb)"
+  "\<theta> xb = F id <id, \<lambda> a. (snd xb)> (fst xb)"
 
 (* The strength laws for \<theta>: *)
 lemma \<theta>_natural: "F id (map_pair f g) o \<theta> = \<theta> o map_pair (F id f) g"
