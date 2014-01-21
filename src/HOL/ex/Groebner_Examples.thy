@@ -12,7 +12,7 @@ subsection {* Basic examples *}
 
 lemma
   fixes x :: int
-  shows "x ^ 3 = x ^ 3" 
+  shows "x ^ 3 = x ^ 3"
   apply (tactic {* ALLGOALS (CONVERSION
     (Conv.arg_conv (Conv.arg1_conv (Semiring_Normalizer.semiring_normalize_conv @{context})))) *})
   by (rule refl)
@@ -45,10 +45,11 @@ lemma "(4::nat) + 4 = 3 + 5"
 lemma "(4::int) + 0 = 4"
   apply algebra?
   by simp
-
+term "op *c"
 lemma
   assumes "a * x\<^sup>2 + b * x + c = (0::int)" and "d * x\<^sup>2 + e * x + f = 0"
-  shows "d\<^sup>2*c\<^sup>2 - 2*d*c*a*f + a\<^sup>2 * f\<^sup>2 - e*d*b*c - e*b*a*f + a*e\<^sup>2*c + f*d*b\<^sup>2 = 0"
+  shows "d\<^sup>2 * c\<^sup>2 - 2 * d * c * a * f + a\<^sup>2 * f\<^sup>2 - e * d * b * c - e * b * a * f +
+    a * e\<^sup>2 * c + f * d * b\<^sup>2 = 0"
   using assms by algebra
 
 lemma "(x::int)^3  - x^2  - 5*x - 3 = 0 \<longleftrightarrow> (x = 3 \<or> x = -1)"
