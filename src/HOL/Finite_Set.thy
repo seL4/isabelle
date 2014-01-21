@@ -6,7 +6,7 @@
 header {* Finite sets *}
 
 theory Finite_Set
-imports Power
+imports Product_Type Sum_Type Nat
 begin
 
 subsection {* Predicate for finite sets *}
@@ -1509,9 +1509,6 @@ qed
 lemma card_UNIV_unit [simp]: "card (UNIV :: unit set) = 1"
   unfolding UNIV_unit by simp
 
-lemma card_UNIV_bool [simp]: "card (UNIV :: bool set) = 2"
-  unfolding UNIV_bool by simp
-
 
 subsubsection {* Cardinality of image *}
 
@@ -1638,25 +1635,6 @@ qed
 lemma card_Plus_conv_if:
   "card (A <+> B) = (if finite A \<and> finite B then card A + card B else 0)"
   by (auto simp add: card_Plus)
-
-
-subsubsection {* Cardinality of the Powerset *}
-
-lemma card_Pow: "finite A \<Longrightarrow> card (Pow A) = 2 ^ card A"
-proof (induct rule: finite_induct)
-  case empty 
-    show ?case by auto
-next
-  case (insert x A)
-  then have "inj_on (insert x) (Pow A)" 
-    unfolding inj_on_def by (blast elim!: equalityE)
-  then have "card (Pow A) + card (insert x ` Pow A) = 2 * 2 ^ card A" 
-    by (simp add: mult_2 card_image Pow_insert insert.hyps)
-  then show ?case using insert
-    apply (simp add: Pow_insert)
-    apply (subst card_Un_disjoint, auto)
-    done
-qed
 
 text {* Relates to equivalence classes.  Based on a theorem of F. Kamm\"uller.  *}
 

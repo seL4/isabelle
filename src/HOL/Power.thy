@@ -6,7 +6,7 @@
 header {* Exponentiation *}
 
 theory Power
-imports Num
+imports Num Equiv_Relations
 begin
 
 subsection {* Powers for Arbitrary Monoids *}
@@ -735,6 +735,66 @@ next
   qed
 qed
 
+subsubsection {* Cardinality of the Powerset *}
+
+lemma card_UNIV_bool [simp]: "card (UNIV :: bool set) = 2"
+  unfolding UNIV_bool by simp
+
+lemma card_Pow: "finite A \<Longrightarrow> card (Pow A) = 2 ^ card A"
+proof (induct rule: finite_induct)
+  case empty 
+    show ?case by auto
+next
+  case (insert x A)
+  then have "inj_on (insert x) (Pow A)" 
+    unfolding inj_on_def by (blast elim!: equalityE)
+  then have "card (Pow A) + card (insert x ` Pow A) = 2 * 2 ^ card A" 
+    by (simp add: mult_2 card_image Pow_insert insert.hyps)
+  then show ?case using insert
+    apply (simp add: Pow_insert)
+    apply (subst card_Un_disjoint, auto)
+    done
+qed
+
+subsubsection {* Generalized product over a set *}
+
+lemma setprod_constant: "finite A ==> (\<Prod>x\<in> A. (y::'a::{comm_monoid_mult})) = y^(card A)"
+apply (erule finite_induct)
+apply auto
+done
+
+lemma setprod_gen_delta:
+  assumes fS: "finite S"
+  shows "setprod (\<lambda>k. if k=a then b k else c) S = (if a \<in> S then (b a ::'a::comm_monoid_mult) * c^ (card S - 1) else c^ card S)"
+proof-
+  let ?f = "(\<lambda>k. if k=a then b k else c)"
+  {assume a: "a \<notin> S"
+    hence "\<forall> k\<in> S. ?f k = c" by simp
+    hence ?thesis  using a setprod_constant[OF fS, of c] by simp }
+  moreover 
+  {assume a: "a \<in> S"
+    let ?A = "S - {a}"
+    let ?B = "{a}"
+    have eq: "S = ?A \<union> ?B" using a by blast 
+    have dj: "?A \<inter> ?B = {}" by simp
+    from fS have fAB: "finite ?A" "finite ?B" by auto  
+    have fA0:"setprod ?f ?A = setprod (\<lambda>i. c) ?A"
+      apply (rule setprod_cong) by auto
+    have cA: "card ?A = card S - 1" using fS a by auto
+    have fA1: "setprod ?f ?A = c ^ card ?A"  unfolding fA0 apply (rule setprod_constant) using fS by auto
+    have "setprod ?f ?A * setprod ?f ?B = setprod ?f S"
+      using setprod_Un_disjoint[OF fAB dj, of ?f, unfolded eq[symmetric]]
+      by simp
+    then have ?thesis using a cA
+      by (simp add: fA1 field_simps cong add: setprod_cong cong del: if_weak_cong)}
+  ultimately show ?thesis by blast
+qed
+
+lemma Domain_dprod [simp]: "Domain (dprod r s) = uprod (Domain r) (Domain s)"
+  by auto
+
+lemma Domain_dsum [simp]: "Domain (dsum r s) = usum (Domain r) (Domain s)"
+  by auto
 
 subsection {* Code generator tweak *}
 

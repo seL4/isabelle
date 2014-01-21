@@ -1332,38 +1332,6 @@ proof (cases "finite A")
     by induct (auto simp add: field_simps abs_mult)
 qed auto
 
-lemma setprod_constant: "finite A ==> (\<Prod>x\<in> A. (y::'a::{comm_monoid_mult})) = y^(card A)"
-apply (erule finite_induct)
-apply auto
-done
-
-lemma setprod_gen_delta:
-  assumes fS: "finite S"
-  shows "setprod (\<lambda>k. if k=a then b k else c) S = (if a \<in> S then (b a ::'a::comm_monoid_mult) * c^ (card S - 1) else c^ card S)"
-proof-
-  let ?f = "(\<lambda>k. if k=a then b k else c)"
-  {assume a: "a \<notin> S"
-    hence "\<forall> k\<in> S. ?f k = c" by simp
-    hence ?thesis  using a setprod_constant[OF fS, of c] by simp }
-  moreover 
-  {assume a: "a \<in> S"
-    let ?A = "S - {a}"
-    let ?B = "{a}"
-    have eq: "S = ?A \<union> ?B" using a by blast 
-    have dj: "?A \<inter> ?B = {}" by simp
-    from fS have fAB: "finite ?A" "finite ?B" by auto  
-    have fA0:"setprod ?f ?A = setprod (\<lambda>i. c) ?A"
-      apply (rule setprod_cong) by auto
-    have cA: "card ?A = card S - 1" using fS a by auto
-    have fA1: "setprod ?f ?A = c ^ card ?A"  unfolding fA0 apply (rule setprod_constant) using fS by auto
-    have "setprod ?f ?A * setprod ?f ?B = setprod ?f S"
-      using setprod_Un_disjoint[OF fAB dj, of ?f, unfolded eq[symmetric]]
-      by simp
-    then have ?thesis using a cA
-      by (simp add: fA1 field_simps cong add: setprod_cong cong del: if_weak_cong)}
-  ultimately show ?thesis by blast
-qed
-
 lemma setprod_eq_1_iff [simp]:
   "finite F ==> setprod f F = 1 \<longleftrightarrow> (ALL a:F. f a = (1::nat))"
   by (induct set: finite) auto
