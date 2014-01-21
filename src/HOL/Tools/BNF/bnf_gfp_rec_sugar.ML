@@ -876,7 +876,8 @@ fun mk_actual_disc_eqns fun_binding arg_Ts exhaustive ({ctr_specs, ...} : corec_
       end
   end;
 
-fun find_corec_calls ctxt has_call basic_ctr_specs ({ctr, sel, rhs_term, ...} : coeqn_data_sel) =
+fun find_corec_calls ctxt has_call (basic_ctr_specs : basic_corec_ctr_spec list)
+    ({ctr, sel, rhs_term, ...} : coeqn_data_sel) =
   let
     val sel_no = find_first (curry (op =) ctr o #ctr) basic_ctr_specs
       |> find_index (curry (op =) sel) o #sels o the;
@@ -1162,7 +1163,8 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                 |> single
             end;
 
-        fun prove_code exhaustive disc_eqns sel_eqns nchotomys ctr_alist ctr_specs =
+        fun prove_code exhaustive (disc_eqns : coeqn_data_disc list)
+            (sel_eqns : coeqn_data_sel list) nchotomys ctr_alist ctr_specs =
           let
             val fun_data_opt =
               (find_first (member (op =) (map #ctr ctr_specs) o #ctr) disc_eqns,
@@ -1190,7 +1192,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                     in SOME (false, rhs, raw_rhs, ctr_thms) end
                   | NONE =>
                     let
-                      fun prove_code_ctr {ctr, sels, ...} =
+                      fun prove_code_ctr ({ctr, sels, ...} : corec_ctr_spec) =
                         if not (exists (curry (op =) ctr o fst) ctr_alist) then NONE else
                           let
                             val prems = find_first (curry (op =) ctr o #ctr) disc_eqns
