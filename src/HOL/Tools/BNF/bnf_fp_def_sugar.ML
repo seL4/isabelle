@@ -365,7 +365,7 @@ fun morph_gfp_sugar_thms phi ((coinducts_pairs, coinduct_attrs),
    (map (map (Morphism.thm phi)) disc_unfold_iffss, map (map (Morphism.thm phi)) disc_corec_iffss,
     disc_iter_iff_attrs),
    (map (map (map (Morphism.thm phi))) sel_unfoldsss,
-    map (map (map (Morphism.thm phi))) sel_corecsss, sel_iter_attrs));
+    map (map (map (Morphism.thm phi))) sel_corecsss, sel_iter_attrs)) : gfp_sugar_thms;
 
 val transfer_gfp_sugar_thms =
   morph_gfp_sugar_thms o Morphism.transfer_morphism o Proof_Context.theory_of;
