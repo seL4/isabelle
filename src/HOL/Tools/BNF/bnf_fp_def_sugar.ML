@@ -341,7 +341,8 @@ type lfp_sugar_thms =
 
 fun morph_lfp_sugar_thms phi ((inducts, induct, induct_attrs), (foldss, recss, iter_attrs)) =
   ((map (Morphism.thm phi) inducts, Morphism.thm phi induct, induct_attrs),
-   (map (map (Morphism.thm phi)) foldss, map (map (Morphism.thm phi)) recss, iter_attrs));
+   (map (map (Morphism.thm phi)) foldss, map (map (Morphism.thm phi)) recss, iter_attrs))
+  : lfp_sugar_thms;
 
 val transfer_lfp_sugar_thms =
   morph_lfp_sugar_thms o Morphism.transfer_morphism o Proof_Context.theory_of;
