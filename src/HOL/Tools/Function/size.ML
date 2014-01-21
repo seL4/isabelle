@@ -40,7 +40,7 @@ and size_of_type' f g h T = (case size_of_type f g h T of
       NONE => Abs ("x", T, HOLogic.zero)
     | SOME t => t);
 
-fun is_poly thy (Datatype.DtType (name, dts)) =
+fun is_poly thy (Datatype_Aux.DtType (name, dts)) =
       (case lookup_size thy name of
          NONE => false
        | SOME _ => exists (is_poly thy) dts)
@@ -48,13 +48,13 @@ fun is_poly thy (Datatype.DtType (name, dts)) =
 
 fun constrs_of thy name =
   let
-    val {descr, index, ...} = Datatype.the_info thy name
+    val {descr, index, ...} = Datatype_Data.the_info thy name
     val SOME (_, _, constrs) = AList.lookup op = descr index
   in constrs end;
 
 val app = curry (list_comb o swap);
 
-fun prove_size_thms (info : Datatype.info) new_type_names thy =
+fun prove_size_thms (info : Datatype_Aux.info) new_type_names thy =
   let
     val {descr, rec_names, rec_rewrites, induct, ...} = info;
     val l = length new_type_names;
@@ -219,7 +219,7 @@ fun prove_size_thms (info : Datatype.info) new_type_names thy =
 
 fun add_size_thms config (new_type_names as name :: _) thy =
   let
-    val info as {descr, ...} = Datatype.the_info thy name;
+    val info as {descr, ...} = Datatype_Data.the_info thy name;
     val prefix =
       Long_Name.map_base_name (K (space_implode "_" (map Long_Name.base_name new_type_names))) name;
     val no_size = exists (fn (_, (_, _, constrs)) => exists (fn (_, cargs) => exists (fn dt =>
@@ -237,6 +237,6 @@ fun add_size_thms config (new_type_names as name :: _) thy =
 
 val size_thms = snd oo (the oo lookup_size);
 
-val setup = Datatype.interpretation add_size_thms;
+val setup = Datatype_Data.interpretation add_size_thms;
 
 end;
