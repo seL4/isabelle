@@ -46,6 +46,51 @@ primitive Thm.assume_hyps.
 
 *** HOL ***
 
+* Moved new (co)datatype package and its dependencies from "HOL-BNF" to "HOL".
+  The "bnf", "wrap_free_constructors", "datatype_new", "codatatype",
+  "primrec_new", "primcorec", and "primcorecursive" command are now part of
+  "Main".
+  INCOMPATIBILITY.
+  Theory renamings:
+    FunDef.thy ~> Fun_Def.thy (and Fun_Def_Base.thy)
+    Library/Wfrec.thy ~> Wfrec.thy
+    Library/Zorn.thy ~> Zorn.thy
+    Cardinals/Order_Relation.thy ~> Order_Relation.thy
+    Library/Order_Union.thy ~> Cardinals/Order_Union.thy
+    Cardinals/Cardinal_Arithmetic_Base.thy ~> BNF_Cardinal_Arithmetic.thy
+    Cardinals/Cardinal_Order_Relation_Base.thy ~> BNF_Cardinal_Order_Relation.thy
+    Cardinals/Constructions_on_Wellorders_Base.thy ~> BNF_Constructions_on_Wellorders.thy
+    Cardinals/Wellorder_Embedding_Base.thy ~> BNF_Wellorder_Embedding.thy
+    Cardinals/Wellorder_Relation_Base.thy ~> BNF_Wellorder_Relation.thy
+    BNF/Ctr_Sugar.thy ~> Ctr_Sugar.thy
+    BNF/Basic_BNFs.thy ~> Basic_BNFs.thy
+    BNF/BNF_Comp.thy ~> BNF_Comp.thy
+    BNF/BNF_Def.thy ~> BNF_Def.thy
+    BNF/BNF_FP_Base.thy ~> BNF_FP_Base.thy
+    BNF/BNF_GFP.thy ~> BNF_GFP.thy
+    BNF/BNF_LFP.thy ~> BNF_LFP.thy
+    BNF/BNF_Util.thy ~> BNF_Util.thy
+    BNF/Coinduction.thy ~> Coinduction.thy
+    BNF/More_BNFs.thy ~> Library/More_BNFs.thy
+    BNF/Countable_Type.thy ~> Library/Countable_Set_Type.thy
+    BNF/Examples/* ~> BNF_Examples/*
+  New theories:
+    List_Prefix.thy (split from Library/Sublist.thy)
+    Wellorder_Extension.thy (split from Zorn.thy)
+    Library/Cardinal_Notations.thy
+    Library/BNF_Decl.thy
+    BNF_Examples/Misc_Primcorec.thy
+    BNF_Examples/Stream_Processor.thy
+  Discontinued theory:
+    BNF/BNF.thy
+    BNF/Equiv_Relations_More.thy
+
+* New theory:
+    Cardinals/Ordinal_Arithmetic.thy
+
+* Theory reorganizations:
+  * Big_Operators.thy ~> Groups_Big.thy and Lattices_Big.thy
+
 * The symbol "\<newline>" may be used within char or string literals
 to represent (Char Nibble0 NibbleA), i.e. ASCII newline.
 
