@@ -457,7 +457,9 @@ text {*
     @{antiquotation_def "rail"} & : & @{text antiquotation} \\
   \end{matharray}
 
-  @{rail \<open>'rail' (string | cartouche)\<close>}
+  @{rail \<open>
+    'rail' (@{syntax string} | @{syntax cartouche})
+  \<close>}
 
   The @{antiquotation rail} antiquotation allows to include syntax
   diagrams into Isabelle documents.  {\LaTeX} requires the style file
@@ -485,7 +487,7 @@ text {*
   The lexical syntax of @{text "identifier"} coincides with that of
   @{syntax ident} in regular Isabelle syntax, but @{text string} uses
   single quotes instead of double quotes of the standard @{syntax
-  string} category, to avoid extra escapes.
+  string} category.
 
   Each @{text rule} defines a formal language (with optional name),
   using a notation that is similar to EBNF or regular expressions with
