@@ -20,6 +20,9 @@ old identifier syntax with \<^isub> or \<^isup>.
 of "\\", to avoid the optical illusion of escaped backslash within
 string token.  Minor INCOMPATIBILITY.
 
+* Lexical syntax (inner and outer) supports text cartouches with
+arbitrary nesting, and without escapes of quotes etc.
+
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
