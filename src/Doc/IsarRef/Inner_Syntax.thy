@@ -46,7 +46,7 @@ text {*
   These diagnostic commands assist interactive development by printing
   internal logical entities in a human-readable fashion.
 
-  @{rail "
+  @{rail \<open>
     @@{command typ} @{syntax modes}? @{syntax type} ('::' @{syntax sort})?
     ;
     @@{command term} @{syntax modes}? @{syntax term}
@@ -59,9 +59,8 @@ text {*
     ;
     @@{command print_state} @{syntax modes}?
     ;
-
     @{syntax_def modes}: '(' (@{syntax name} + ) ')'
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -358,7 +357,7 @@ text {* Mixfix annotations specify concrete \emph{inner syntax} of
   to specify any context-free priority grammar, which is more general
   than the fixity declarations of ML and Prolog.
 
-  @{rail "
+  @{rail \<open>
     @{syntax_def mixfix}: '('
       @{syntax template} prios? @{syntax nat}? |
       (@'infix' | @'infixl' | @'infixr') @{syntax template} @{syntax nat} |
@@ -369,7 +368,7 @@ text {* Mixfix annotations specify concrete \emph{inner syntax} of
     template: string
     ;
     prios: '[' (@{syntax nat} + ',') ']'
-  "}
+  \<close>}
 
   The string given as @{text template} may include literal text,
   spacing, blocks, and arguments (denoted by ``@{text _}''); the
@@ -559,7 +558,7 @@ text {*
   allows to add or delete mixfix annotations for of existing logical
   entities within the current context.
 
-  @{rail "
+  @{rail \<open>
     (@@{command type_notation} | @@{command no_type_notation}) @{syntax target}?
       @{syntax mode}? \<newline> (@{syntax nameref} @{syntax mixfix} + @'and')
     ;
@@ -567,7 +566,7 @@ text {*
       (@{syntax nameref} @{syntax mixfix} + @'and')
     ;
     @@{command write} @{syntax mode}? (@{syntax nameref} @{syntax mixfix} + @'and')
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -1217,7 +1216,7 @@ text {*
   @{command translations}) are required to turn resulting parse trees
   into proper representations of formal entities again.
 
-  @{rail "
+  @{rail \<open>
     @@{command nonterminal} (@{syntax name} + @'and')
     ;
     (@@{command syntax} | @@{command no_syntax}) @{syntax mode}? (constdecl +)
@@ -1231,7 +1230,7 @@ text {*
     mode: ('(' ( @{syntax name} | @'output' | @{syntax name} @'output' ) ')')
     ;
     transpat: ('(' @{syntax nameref} ')')? @{syntax string}
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -1464,7 +1463,7 @@ text {*
   manipulations of inner syntax, at the expense of some complexity and
   obscurity in the implementation.
 
-  @{rail "
+  @{rail \<open>
   ( @@{command parse_ast_translation} | @@{command parse_translation} |
     @@{command print_translation} | @@{command typed_print_translation} |
     @@{command print_ast_translation}) @{syntax text}
@@ -1473,7 +1472,7 @@ text {*
    @@{ML_antiquotation type_syntax} |
    @@{ML_antiquotation const_syntax} |
    @@{ML_antiquotation syntax_const}) name
-  "}
+  \<close>}
 
   \begin{description}
 

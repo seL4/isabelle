@@ -266,7 +266,7 @@ in
 
 val _ = Theory.setup
   (Thy_Output.antiquotation @{binding rail}
-    (Scan.lift (Parse.source_position Parse.string))
+    (Scan.lift (Parse.source_position (Parse.string || Parse.cartouche)))
     (fn {state, ...} => output_rules state o read));
 
 end;

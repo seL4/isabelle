@@ -563,9 +563,9 @@ text %mlantiq {*
   @{ML_antiquotation_def attributes} & : & @{text ML_antiquotation} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
   @@{ML_antiquotation attributes} attributes
-  "}
+  \<close>}
 
   \begin{description}
 

@@ -666,9 +666,9 @@ text {* A very important consequence of embedding SML into Isar is the
   concept of \emph{ML antiquotation}.  The standard token language of
   ML is augmented by special syntactic entities of the following form:
 
-  @{rail "
+  @{rail \<open>
   @{syntax_def antiquote}: '@{' nameref args '}'
-  "}
+  \<close>}
 
   Here @{syntax nameref} and @{syntax args} are regular outer syntax
   categories \cite{isabelle-isar-ref}.  Attributes and proof methods
@@ -699,9 +699,9 @@ text %mlantiq {*
   @{ML_antiquotation_def "make_string"} & : & @{text ML_antiquotation} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
   @@{ML_antiquotation make_string}
-  "}
+  \<close>}
 
   \begin{description}
 
