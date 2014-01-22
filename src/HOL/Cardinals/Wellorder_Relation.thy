@@ -29,7 +29,7 @@ lemma cases_Total2:
 using TOTALS by auto
 
 
-subsection {* Well-founded induction and recursion adapted to non-strict well-order relations  *}
+subsection {* Well-founded induction and recursion adapted to non-strict well-order relations *}
 
 lemma worec_unique_fixpoint:
 assumes ADM: "adm_wo H" and fp: "f = H f"
@@ -60,7 +60,7 @@ next
 qed
 
 
-subsubsection{* Properties of minim *}
+subsubsection {* Properties of minim *}
 
 lemma minim_Under:
 "\<lbrakk>B \<le> Field r; B \<noteq> {}\<rbrakk> \<Longrightarrow> minim B \<in> Under B"
@@ -166,7 +166,7 @@ proof-
 qed
 
 
-subsubsection{* Properties of supr *}
+subsubsection {* Properties of supr *}
 
 lemma supr_Above:
 assumes SUB: "B \<le> Field r" and ABOVE: "Above B \<noteq> {}"
@@ -287,7 +287,7 @@ proof-
 qed
 
 
-subsubsection{* Properties of successor *}
+subsubsection {* Properties of successor *}
 
 lemma suc_least:
 "\<lbrakk>B \<le> Field r; a \<in> Field r; (\<And> b. b \<in> B \<Longrightarrow> a \<noteq> b \<and> (b,a) \<in> r)\<rbrakk>
@@ -454,7 +454,7 @@ using ofilter_under_UNION[of A]
 by(unfold Union_eq, auto)
 
 
-subsubsection{* Other properties *}
+subsubsection {* Other properties *}
 
 lemma Trans_Under_regressive:
 assumes NE: "A \<noteq> {}" and SUB: "A \<le> Field r"

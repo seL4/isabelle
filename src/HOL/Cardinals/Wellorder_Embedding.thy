@@ -103,7 +103,7 @@ corollary one_type_greater:
 using one_set_greater[of UNIV UNIV] by auto
 
 
-subsection {* Uniqueness of embeddings  *}
+subsection {* Uniqueness of embeddings *}
 
 lemma comp_embedS:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and WELL'': "Well_order r''"

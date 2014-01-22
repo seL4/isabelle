@@ -589,7 +589,6 @@ next
   qed
 qed
 
-
 definition oexp where
   "oexp = {(f, g) . f \<in> FINFUNC \<and> g \<in> FINFUNC \<and>
     ((let m = s.max_fun_diff f g in (f m, g m) \<in> r) \<or> f = g)}"

@@ -11,7 +11,7 @@ theory Fun_More
 imports Main
 begin
 
-subsection {* Purely functional properties  *}
+subsection {* Purely functional properties *}
 
 (* unused *)
 (*1*)lemma notIn_Un_bij_betw2:
@@ -130,7 +130,6 @@ qed
 
 subsection {* Properties involving Hilbert choice *}
 
-
 (*1*)lemma bij_betw_inv_into_LEFT:
 assumes BIJ: "bij_betw f A A'" and SUB: "B \<le> A"
 shows "(inv_into A f)`(f ` B) = B"
@@ -169,11 +168,9 @@ using finite_atLeastLessThan[of m] finite_atLeastLessThan[of n]
       card_atLeastLessThan[of m] card_atLeastLessThan[of n]
       bij_betw_iff_card[of "{0 ..< m}" "{0 ..< n}"] by auto
 
-
 (*2*)lemma atLeastLessThan_less_eq:
 "({0..<m} \<le> {0..<n}) = ((m::nat) \<le> n)"
 unfolding ivl_subset by arith
-
 
 (*2*)lemma atLeastLessThan_less_eq2:
 assumes "inj_on f {0..<(m::nat)} \<and> f ` {0..<m} \<le> {0..<n}"

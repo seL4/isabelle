@@ -9,7 +9,8 @@ header {* Constructions on Wellorders *}
 
 theory Constructions_on_Wellorders
 imports
-  BNF_Constructions_on_Wellorders Wellorder_Embedding Order_Union "../Library/Cardinal_Notations"
+  BNF_Constructions_on_Wellorders Wellorder_Embedding Order_Union
+  "../Library/Cardinal_Notations"
 begin
 
 declare
@@ -21,7 +22,8 @@ declare
 
 lemma Func_emp2[simp]: "A \<noteq> {} \<Longrightarrow> Func A {} = {}" by auto
 
-subsection {* Restriction to a set  *}
+
+subsection {* Restriction to a set *}
 
 lemma Restr_incr2:
 "r <= r' \<Longrightarrow> Restr r A <= Restr r' A"
@@ -53,7 +55,7 @@ lemma Restr_incr1:
 by blast
 
 
-subsection {* Order filters versus restrictions and embeddings  *}
+subsection {* Order filters versus restrictions and embeddings *}
 
 lemma ofilter_Restr:
 assumes WELL: "Well_order r" and
@@ -167,7 +169,7 @@ corollary under_Restr_ordLeq:
 by (auto simp add: ofilter_ordLeq wo_rel.under_ofilter wo_rel_def)
 
 
-subsection {* Copy via direct images  *}
+subsection {* Copy via direct images *}
 
 lemma Id_dir_image: "dir_image Id f \<le> Id"
 unfolding dir_image_def by auto
@@ -273,7 +275,7 @@ proof-
 qed
 
 
-subsection {* The maxim among a finite set of ordinals  *}
+subsection {* The maxim among a finite set of ordinals *}
 
 text {* The correct phrasing would be ``a maxim of ...", as @{text "\<le>o"} is only a preorder. *}
 
@@ -435,8 +437,7 @@ proof-
 qed
 
 
-
-section {* Limit and Succesor Ordinals *}
+subsection {* Limit and succesor ordinals *}
 
 lemma embed_underS2:
 assumes r: "Well_order r" and s: "Well_order s"  and g: "embed r s g" and a: "a \<in> Field r"
@@ -547,7 +548,7 @@ unfolding Chains_def proof safe
   by (elim cases_Total3 disjE) (auto elim: cases_Total3 intro!: assms simp: Field_def)
 qed
 
-subsection {* Successor and limit elements of an ordinal *}
+subsubsection {* Successor and limit elements of an ordinal *}
 
 definition "succ i \<equiv> suc {i}"
 
@@ -723,7 +724,7 @@ where
  else L f i"
 
 
-subsection {* Well-order recursion with (zero), succesor, and limit *}
+subsubsection {* Well-order recursion with (zero), succesor, and limit *}
 
 definition worecSL :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> (('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
 where "worecSL S L \<equiv> worec (mergeSL S L)"
@@ -818,7 +819,7 @@ proof-
 qed
 
 
-subsection {* Well-order succ-lim induction: *}
+subsubsection {* Well-order succ-lim induction *}
 
 lemma ord_cases:
 obtains j where "i = succ j" and "aboveS j \<noteq> {}"  | "isLim i"
@@ -886,7 +887,6 @@ proof-
   by (metis (lifting, full_types) a mem_Collect_eq succ_diff succ_in)
 qed
 
-
 end (* context wo_rel *)
 
 abbreviation "zero \<equiv> wo_rel.zero"
@@ -900,7 +900,8 @@ abbreviation "adm_woL \<equiv> wo_rel.adm_woL"
 abbreviation "worecSL \<equiv> wo_rel.worecSL"
 abbreviation "worecZSL \<equiv> wo_rel.worecZSL"
 
-section {* Projections of Wellorders *}
+
+subsection {* Projections of wellorders *}
  
 definition "oproj r s f \<equiv> Field s \<subseteq> f ` (Field r) \<and> compat r s f"
 

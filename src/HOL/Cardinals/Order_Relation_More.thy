@@ -11,7 +11,7 @@ theory Order_Relation_More
 imports Main
 begin
 
-subsection {* The upper and lower bounds operators  *}
+subsection {* The upper and lower bounds operators *}
 
 lemma aboveS_subset_above: "aboveS r a \<le> above r a"
 by(auto simp add: aboveS_def above_def)
@@ -572,7 +572,7 @@ proof-
 qed
 
 
-subsection {* Properties depending on more than one relation  *}
+subsection {* Properties depending on more than one relation *}
 
 lemma under_incr2:
 "r \<le> r' \<Longrightarrow> under r a \<le> under r' a"

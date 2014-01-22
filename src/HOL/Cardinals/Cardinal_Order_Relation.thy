@@ -376,12 +376,10 @@ proof-
   ultimately show ?thesis using ordLeq_transitive by blast
 qed
 
-
 lemma ordLeq_Sigma_mono1:
 assumes "\<forall>i \<in> I. p i \<le>o r i"
 shows "|SIGMA i : I. Field(p i)| \<le>o |SIGMA i : I. Field(r i)|"
 using assms by (auto simp add: card_of_Sigma_mono1)
-
 
 lemma ordLeq_Sigma_mono:
 assumes "inj_on f I" and "f ` I \<le> J" and
@@ -390,12 +388,10 @@ shows "|SIGMA i : I. Field(p(f i))| \<le>o |SIGMA j : J. Field(r j)|"
 using assms card_of_mono2 card_of_Sigma_mono
       [of f I J "\<lambda> i. Field(p i)" "\<lambda> j. Field(r j)"] by metis
 
-
 lemma card_of_Sigma_cong1:
 assumes "\<forall>i \<in> I. |A i| =o |B i|"
 shows "|SIGMA i : I. A i| =o |SIGMA i : I. B i|"
 using assms by (auto simp add: card_of_Sigma_mono1 ordIso_iff_ordLeq)
-
 
 lemma card_of_Sigma_cong2:
 assumes "bij_betw f (I::'i set) (J::'j set)"
@@ -884,7 +880,7 @@ using assms assms lists_infinite_bij_betw[of "UNIV::'a set"]
 using lists_UNIV by auto
 
 
-subsection {* Cardinals versus the set-of-finite-sets operator  *}
+subsection {* Cardinals versus the set-of-finite-sets operator *}
 
 definition Fpow :: "'a set \<Rightarrow> 'a set set"
 where "Fpow A \<equiv> {X. X \<le> A \<and> finite X}"
@@ -997,7 +993,7 @@ shows "\<exists>f. bij_betw f (Fpow A) A"
 using assms card_of_Fpow_infinite card_of_ordIso by blast
 
 
-subsection {* The cardinal $\omega$ and the finite cardinals  *}
+subsection {* The cardinal $\omega$ and the finite cardinals *}
 
 subsubsection {* First as well-orders *}
 
@@ -1119,12 +1115,10 @@ lemma ordIso_natLeq_infinite2:
 "natLeq =o |A| \<Longrightarrow> \<not>finite A"
 using ordIso_imp_ordLeq infinite_iff_natLeq_ordLeq by blast
 
-
 lemma ordIso_natLeq_on_imp_finite:
 "|A| =o natLeq_on n \<Longrightarrow> finite A"
 unfolding ordIso_def iso_def[abs_def]
 by (auto simp: Field_natLeq_on bij_betw_finite)
-
 
 lemma natLeq_on_Card_order: "Card_order (natLeq_on n)"
 proof(unfold card_order_on_def,
@@ -1135,19 +1129,16 @@ proof(unfold card_order_on_def,
         finite_well_order_on_ordIso ordIso_iff_ordLeq by blast
 qed
 
-
 corollary card_of_Field_natLeq_on:
 "|Field (natLeq_on n)| =o natLeq_on n"
 using Field_natLeq_on natLeq_on_Card_order
       Card_order_iff_ordIso_card_of[of "natLeq_on n"]
       ordIso_symmetric[of "natLeq_on n"] by blast
 
-
 corollary card_of_less:
 "|{0 ..< n}| =o natLeq_on n"
 using Field_natLeq_on card_of_Field_natLeq_on
 unfolding atLeast_0 atLeastLessThan_def lessThan_def Int_UNIV_left by auto
-
 
 lemma natLeq_on_ordLeq_less_eq:
 "((natLeq_on m) \<le>o (natLeq_on n)) = (m \<le> n)"
@@ -1166,7 +1157,6 @@ next
   thus "natLeq_on m \<le>o natLeq_on n"
   using card_of_less ordIso_ordLeq_trans ordLeq_ordIso_trans ordIso_symmetric by blast
 qed
-
 
 lemma natLeq_on_ordLeq_less:
 "((natLeq_on m) <o (natLeq_on n)) = (m < n)"
@@ -1203,7 +1193,6 @@ lemma finite_iff_card_of_natLeq_on:
 "finite A = (\<exists>n. |A| =o natLeq_on n)"
 using finite_imp_card_of_natLeq_on[of A]
 by(auto simp add: ordIso_natLeq_on_imp_finite)
-
 
 lemma finite_card_of_iff_card:
 assumes FIN: "finite A" and FIN': "finite B"
@@ -1577,7 +1566,8 @@ assumes A: "\<not>finite A" and B: "{b1,b2} \<subseteq> B" "b1 \<noteq> b2"
 shows "\<not>finite (Func A B)"
 using ordLeq_Func[OF B] by (metis A card_of_ordLeq_finite)
 
-section {* Infinite cardinals are limit ordinals *}
+
+subsection {* Infinite cardinals are limit ordinals *}
 
 lemma card_order_infinite_isLimOrd:
 assumes c: "Card_order r" and i: "\<not>finite (Field r)"
@@ -1684,7 +1674,8 @@ proof(rule ccontr, auto)
   ultimately show False unfolding card_of_ordLess[symmetric] by auto
 qed
 
-section {* Regular vs. Stable Cardinals *}
+
+subsection {* Regular vs. stable cardinals *}
 
 definition stable :: "'a rel \<Rightarrow> bool"
 where

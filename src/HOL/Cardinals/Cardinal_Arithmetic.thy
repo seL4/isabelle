@@ -5,7 +5,7 @@
 Cardinal arithmetic.
 *)
 
-header {* Cardinal Arithmetic  *}
+header {* Cardinal Arithmetic *}
 
 theory Cardinal_Arithmetic
 imports BNF_Cardinal_Arithmetic Cardinal_Order_Relation
@@ -200,7 +200,6 @@ by (metis Cinfinite_cexp)
 lemma card_of_Sigma_ordLeq_Cinfinite:
   "\<lbrakk>Cinfinite r; |I| \<le>o r; \<forall>i \<in> I. |A i| \<le>o r\<rbrakk> \<Longrightarrow> |SIGMA i : I. A i| \<le>o r"
 unfolding cinfinite_def by (blast intro: card_of_Sigma_ordLeq_infinite_Field)
-
 
 lemma card_order_cexp:
   assumes "card_order r1" "card_order r2"
