@@ -468,8 +468,11 @@ text {*
   example.
 
   The rail specification language is quoted here as Isabelle @{syntax
-  string}; it has its own grammar given below.
+  string} or text @{syntax "cartouche"}; it has its own grammar given
+  below.
 
+  \begingroup
+  \def\isasymnewline{\isatext{\tt\isacharbackslash<newline>}}
   @{rail \<open>
   rule? + ';'
   ;
@@ -483,6 +486,7 @@ text {*
     '@'? (string | @{syntax antiquotation}) |
     '\<newline>'
   \<close>}
+  \endgroup
 
   The lexical syntax of @{text "identifier"} coincides with that of
   @{syntax ident} in regular Isabelle syntax, but @{text string} uses

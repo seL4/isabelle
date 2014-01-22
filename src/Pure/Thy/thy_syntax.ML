@@ -158,12 +158,15 @@ fun clean_tokens toks =
   |> filter (fn (_, tok) => Token.is_proper tok)
   |> clean;
 
-fun find_file toks =
-  rev (clean_tokens toks) |> get_first (fn (i, tok) =>
-    if Token.is_name tok then
-      SOME (i, (Path.explode (Token.content_of tok), Token.position_of tok))
-        handle ERROR msg => error (msg ^ Token.pos_of tok)
-    else NONE);
+fun find_file ((_, tok) :: toks) =
+      if Token.is_command tok then
+        toks |> get_first (fn (i, tok) =>
+          if Token.is_name tok then
+            SOME (i, (Path.explode (Token.content_of tok), Token.position_of tok))
+              handle ERROR msg => error (msg ^ Token.pos_of tok)
+          else NONE)
+      else NONE
+  | find_file [] = NONE;
 
 in
 
@@ -171,7 +174,7 @@ fun resolve_files read_files span =
   (case span of
     Span (Command (cmd, pos), toks) =>
       if Keyword.is_theory_load cmd then
-        (case find_file toks of
+        (case find_file (clean_tokens toks) of
           NONE => error ("Bad file argument of command " ^ quote cmd ^ Position.here pos)
         | SOME (i, path) =>
             let

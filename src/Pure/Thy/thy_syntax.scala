@@ -235,8 +235,10 @@ object Thy_Syntax
         case t :: ts => t :: clean(ts)
         case Nil => Nil
       }
-    val clean_tokens = clean(tokens.filter(_.is_proper))
-    clean_tokens.reverse.find(_.is_name).map(_.content)
+    clean(tokens.filter(_.is_proper)) match {
+      case tok :: toks if tok.is_command => toks.find(_.is_name).map(_.content)
+      case _ => None
+    }
   }
 
   def span_files(syntax: Outer_Syntax, span: List[Token]): List[String] =
