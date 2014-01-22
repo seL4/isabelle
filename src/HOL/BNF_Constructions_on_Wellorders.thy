@@ -11,7 +11,6 @@ theory BNF_Constructions_on_Wellorders
 imports BNF_Wellorder_Embedding
 begin
 
-
 text {* In this section, we study basic constructions on well-orders, such as restriction to
 a set/order filter, copy via direct images, ordinal-like sum of disjoint well-orders,
 and bounded square.  We also define between well-orders
@@ -19,58 +18,47 @@ the relations @{text "ordLeq"}, of being embedded (abbreviated @{text "\<le>o"})
 @{text "ordLess"}, of being strictly embedded (abbreviated @{text "<o"}), and
 @{text "ordIso"}, of being isomorphic (abbreviated @{text "=o"}).  We study the
 connections between these relations, order filters, and the aforementioned constructions.
-A main result of this section is that @{text "<o"} is well-founded.  *}
+A main result of this section is that @{text "<o"} is well-founded. *}
 
 
-subsection {* Restriction to a set  *}
-
+subsection {* Restriction to a set *}
 
 abbreviation Restr :: "'a rel \<Rightarrow> 'a set \<Rightarrow> 'a rel"
 where "Restr r A \<equiv> r Int (A \<times> A)"
-
 
 lemma Restr_subset:
 "A \<le> B \<Longrightarrow> Restr (Restr r B) A = Restr r A"
 by blast
 
-
 lemma Restr_Field: "Restr r (Field r) = r"
 unfolding Field_def by auto
 
-
 lemma Refl_Restr: "Refl r \<Longrightarrow> Refl(Restr r A)"
 unfolding refl_on_def Field_def by auto
-
 
 lemma antisym_Restr:
 "antisym r \<Longrightarrow> antisym(Restr r A)"
 unfolding antisym_def Field_def by auto
 
-
 lemma Total_Restr:
 "Total r \<Longrightarrow> Total(Restr r A)"
 unfolding total_on_def Field_def by auto
-
 
 lemma trans_Restr:
 "trans r \<Longrightarrow> trans(Restr r A)"
 unfolding trans_def Field_def by blast
 
-
 lemma Preorder_Restr:
 "Preorder r \<Longrightarrow> Preorder(Restr r A)"
 unfolding preorder_on_def by (simp add: Refl_Restr trans_Restr)
-
 
 lemma Partial_order_Restr:
 "Partial_order r \<Longrightarrow> Partial_order(Restr r A)"
 unfolding partial_order_on_def by (simp add: Preorder_Restr antisym_Restr)
 
-
 lemma Linear_order_Restr:
 "Linear_order r \<Longrightarrow> Linear_order(Restr r A)"
 unfolding linear_order_on_def by (simp add: Partial_order_Restr Total_Restr)
-
 
 lemma Well_order_Restr:
 assumes "Well_order r"
@@ -83,20 +71,16 @@ proof-
   by (simp add: Linear_order_Restr)
 qed
 
-
 lemma Field_Restr_subset: "Field(Restr r A) \<le> A"
 by (auto simp add: Field_def)
-
 
 lemma Refl_Field_Restr:
 "Refl r \<Longrightarrow> Field(Restr r A) = (Field r) Int A"
 unfolding refl_on_def Field_def by blast
 
-
 lemma Refl_Field_Restr2:
 "\<lbrakk>Refl r; A \<le> Field r\<rbrakk> \<Longrightarrow> Field(Restr r A) = A"
 by (auto simp add: Refl_Field_Restr)
-
 
 lemma well_order_on_Restr:
 assumes WELL: "Well_order r" and SUB: "A \<le> Field r"
@@ -106,13 +90,11 @@ using Well_order_Restr[of r A] Refl_Field_Restr2[of r A]
      order_on_defs[of "Field r" r] by auto
 
 
-subsection {* Order filters versus restrictions and embeddings  *}
-
+subsection {* Order filters versus restrictions and embeddings *}
 
 lemma Field_Restr_ofilter:
 "\<lbrakk>Well_order r; wo_rel.ofilter r A\<rbrakk> \<Longrightarrow> Field(Restr r A) = A"
 by (auto simp add: wo_rel_def wo_rel.ofilter_def wo_rel.REFL Refl_Field_Restr2)
-
 
 lemma ofilter_Restr_under:
 assumes WELL: "Well_order r" and OF: "wo_rel.ofilter r A" and IN: "a \<in> A"
@@ -124,7 +106,6 @@ proof(auto simp add: wo_rel.ofilter_def under_def)
   unfolding under_def using Field_def by fastforce
   thus "b \<in> A" using * assms by (auto simp add: wo_rel_def wo_rel.ofilter_def)
 qed
-
 
 lemma ofilter_embed:
 assumes "Well_order r"
@@ -159,7 +140,6 @@ next
   thus "wo_rel.ofilter r A" using assms * by (simp add: wo_rel_def wo_rel.ofilter_def)
 qed
 
-
 lemma ofilter_Restr_Int:
 assumes WELL: "Well_order r" and OFA: "wo_rel.ofilter r A"
 shows "wo_rel.ofilter (Restr r B) (A Int B)"
@@ -183,7 +163,6 @@ proof-
   qed
 qed
 
-
 lemma ofilter_Restr_subset:
 assumes WELL: "Well_order r" and OFA: "wo_rel.ofilter r A" and SUB: "A \<le> B"
 shows "wo_rel.ofilter (Restr r B) A"
@@ -191,7 +170,6 @@ proof-
   have "A Int B = A" using SUB by blast
   thus ?thesis using assms ofilter_Restr_Int[of r A B] by auto
 qed
-
 
 lemma ofilter_subset_embed:
 assumes WELL: "Well_order r" and
@@ -231,7 +209,6 @@ proof-
   qed
 qed
 
-
 lemma ofilter_subset_embedS_iso:
 assumes WELL: "Well_order r" and
         OFA: "wo_rel.ofilter r A" and OFB: "wo_rel.ofilter r B"
@@ -255,13 +232,11 @@ proof-
         FieldA FieldB bij_betw_id_iff[of A B] by auto
 qed
 
-
 lemma ofilter_subset_embedS:
 assumes WELL: "Well_order r" and
         OFA: "wo_rel.ofilter r A" and OFB: "wo_rel.ofilter r B"
 shows "(A < B) = embedS (Restr r A) (Restr r B) id"
 using assms by (simp add: ofilter_subset_embedS_iso)
-
 
 lemma embed_implies_iso_Restr:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and
@@ -288,12 +263,10 @@ qed
 
 subsection {* The strict inclusion on proper ofilters is well-founded *}
 
-
 definition ofilterIncl :: "'a rel \<Rightarrow> 'a set rel"
 where
 "ofilterIncl r \<equiv> {(A,B). wo_rel.ofilter r A \<and> A \<noteq> Field r \<and>
                          wo_rel.ofilter r B \<and> B \<noteq> Field r \<and> A < B}"
-
 
 lemma wf_ofilterIncl:
 assumes WELL: "Well_order r"
@@ -329,9 +302,7 @@ proof-
 qed
 
 
-
 subsection {* Ordering the well-orders by existence of embeddings *}
-
 
 text {* We define three relations between well-orders:
 \begin{itemize}
@@ -345,19 +316,15 @@ These relations shall be proved to be inter-connected in a similar fashion as th
 @{text "\<le>"}, @{text "<"}, @{text "="} associated to a total order on a set.
 *}
 
-
 definition ordLeq :: "('a rel * 'a' rel) set"
 where
 "ordLeq = {(r,r'). Well_order r \<and> Well_order r' \<and> (\<exists>f. embed r r' f)}"
 
-
 abbreviation ordLeq2 :: "'a rel \<Rightarrow> 'a' rel \<Rightarrow> bool" (infix "<=o" 50)
 where "r <=o r' \<equiv> (r,r') \<in> ordLeq"
 
-
 abbreviation ordLeq3 :: "'a rel \<Rightarrow> 'a' rel \<Rightarrow> bool" (infix "\<le>o" 50)
 where "r \<le>o r' \<equiv> r <=o r'"
-
 
 definition ordLess :: "('a rel * 'a' rel) set"
 where
@@ -366,14 +333,12 @@ where
 abbreviation ordLess2 :: "'a rel \<Rightarrow> 'a' rel \<Rightarrow> bool" (infix "<o" 50)
 where "r <o r' \<equiv> (r,r') \<in> ordLess"
 
-
 definition ordIso :: "('a rel * 'a' rel) set"
 where
 "ordIso = {(r,r'). Well_order r \<and> Well_order r' \<and> (\<exists>f. iso r r' f)}"
 
 abbreviation ordIso2 :: "'a rel \<Rightarrow> 'a' rel \<Rightarrow> bool" (infix "=o" 50)
 where "r =o r' \<equiv> (r,r') \<in> ordIso"
-
 
 lemmas ordRels_def = ordLeq_def ordLess_def ordIso_def
 
@@ -382,17 +347,14 @@ assumes "r \<le>o r'"
 shows "Well_order r \<and> Well_order r'"
 using assms unfolding ordLeq_def by simp
 
-
 text{* Notice that the relations @{text "\<le>o"}, @{text "<o"}, @{text "=o"} connect well-orders
 on potentially {\em distinct} types. However, some of the lemmas below, including the next one,
 restrict implicitly the type of these relations to @{text "(('a rel) * ('a rel)) set"} , i.e.,
-to @{text "'a rel rel"}.  *}
-
+to @{text "'a rel rel"}. *}
 
 lemma ordLeq_reflexive:
 "Well_order r \<Longrightarrow> r \<le>o r"
 unfolding ordLeq_def using id_embed[of r] by blast
-
 
 lemma ordLeq_transitive[trans]:
 assumes *: "r \<le>o r'" and **: "r' \<le>o r''"
@@ -407,16 +369,13 @@ proof-
   thus "r \<le>o r''" unfolding ordLeq_def using 1 by auto
 qed
 
-
 lemma ordLeq_total:
 "\<lbrakk>Well_order r; Well_order r'\<rbrakk> \<Longrightarrow> r \<le>o r' \<or> r' \<le>o r"
 unfolding ordLeq_def using wellorders_totally_ordered by blast
 
-
 lemma ordIso_reflexive:
 "Well_order r \<Longrightarrow> r =o r"
 unfolding ordIso_def using id_iso[of r] by blast
-
 
 lemma ordIso_transitive[trans]:
 assumes *: "r =o r'" and **: "r' =o r''"
@@ -431,7 +390,6 @@ proof-
   thus "r =o r''" unfolding ordIso_def using 1 by auto
 qed
 
-
 lemma ordIso_symmetric:
 assumes *: "r =o r'"
 shows "r' =o r"
@@ -445,7 +403,6 @@ proof-
   thus "r' =o r" unfolding ordIso_def using 1 by (auto simp add: iso_def)
 qed
 
-
 lemma ordLeq_ordLess_trans[trans]:
 assumes "r \<le>o r'" and " r' <o r''"
 shows "r <o r''"
@@ -455,7 +412,6 @@ proof-
   thus ?thesis using assms unfolding ordLeq_def ordLess_def
   using embed_comp_embedS by blast
 qed
-
 
 lemma ordLess_ordLeq_trans[trans]:
 assumes "r <o r'" and " r' \<le>o r''"
@@ -467,7 +423,6 @@ proof-
   using embedS_comp_embed by blast
 qed
 
-
 lemma ordLeq_ordIso_trans[trans]:
 assumes "r \<le>o r'" and " r' =o r''"
 shows "r \<le>o r''"
@@ -477,7 +432,6 @@ proof-
   thus ?thesis using assms unfolding ordLeq_def ordIso_def
   using embed_comp_iso by blast
 qed
-
 
 lemma ordIso_ordLeq_trans[trans]:
 assumes "r =o r'" and " r' \<le>o r''"
@@ -489,7 +443,6 @@ proof-
   using iso_comp_embed by blast
 qed
 
-
 lemma ordLess_ordIso_trans[trans]:
 assumes "r <o r'" and " r' =o r''"
 shows "r <o r''"
@@ -500,7 +453,6 @@ proof-
   using embedS_comp_iso by blast
 qed
 
-
 lemma ordIso_ordLess_trans[trans]:
 assumes "r =o r'" and " r' <o r''"
 shows "r <o r''"
@@ -510,7 +462,6 @@ proof-
   thus ?thesis using assms unfolding ordLess_def ordIso_def
   using iso_comp_embedS by blast
 qed
-
 
 lemma ordLess_not_embed:
 assumes "r <o r'"
@@ -526,7 +477,6 @@ proof-
   }
   thus ?thesis by blast
 qed
-
 
 lemma ordLess_Field:
 assumes OL: "r1 <o r2" and EMB: "embed r1 r2 f"
@@ -545,7 +495,6 @@ proof-
   have "inj_on f ?A1" using EMB 0 by (simp add: embed_inj_on)
   ultimately show ?thesis by (simp add: bij_betw_def)
 qed
-
 
 lemma ordLess_iff:
 "r <o r' = (Well_order r \<and> Well_order r' \<and> \<not>(\<exists>f'. embed r' r f'))"
@@ -568,7 +517,6 @@ next
   unfolding ordLess_def using * by (fastforce simp add: embedS_def)
 qed
 
-
 lemma ordLess_irreflexive: "\<not> r <o r"
 proof
   assume "r <o r"
@@ -578,11 +526,9 @@ proof
   ultimately show False by blast
 qed
 
-
 lemma ordLeq_iff_ordLess_or_ordIso:
 "r \<le>o r' = (r <o r' \<or> r =o r')"
 unfolding ordRels_def embedS_defs iso_defs by blast
-
 
 lemma ordIso_iff_ordLeq:
 "(r =o r') = (r \<le>o r' \<and> r' \<le>o r)"
@@ -604,11 +550,9 @@ next
   thus "r =o r'" unfolding ordIso_def using 1 by auto
 qed
 
-
 lemma not_ordLess_ordLeq:
 "r <o r' \<Longrightarrow> \<not> r' \<le>o r"
 using ordLess_ordLeq_trans ordLess_irreflexive by blast
-
 
 lemma ordLess_or_ordLeq:
 assumes WELL: "Well_order r" and WELL': "Well_order r'"
@@ -624,45 +568,36 @@ proof-
   ultimately show ?thesis by blast
 qed
 
-
 lemma not_ordLess_ordIso:
 "r <o r' \<Longrightarrow> \<not> r =o r'"
 using assms ordLess_ordIso_trans ordIso_symmetric ordLess_irreflexive by blast
-
 
 lemma not_ordLeq_iff_ordLess:
 assumes WELL: "Well_order r" and WELL': "Well_order r'"
 shows "(\<not> r' \<le>o r) = (r <o r')"
 using assms not_ordLess_ordLeq ordLess_or_ordLeq by blast
 
-
 lemma not_ordLess_iff_ordLeq:
 assumes WELL: "Well_order r" and WELL': "Well_order r'"
 shows "(\<not> r' <o r) = (r \<le>o r')"
 using assms not_ordLess_ordLeq ordLess_or_ordLeq by blast
 
-
 lemma ordLess_transitive[trans]:
 "\<lbrakk>r <o r'; r' <o r''\<rbrakk> \<Longrightarrow> r <o r''"
 using assms ordLess_ordLeq_trans ordLeq_iff_ordLess_or_ordIso by blast
 
-
 corollary ordLess_trans: "trans ordLess"
 unfolding trans_def using ordLess_transitive by blast
 
-
 lemmas ordIso_equivalence = ordIso_transitive ordIso_reflexive ordIso_symmetric
-
 
 lemma ordIso_imp_ordLeq:
 "r =o r' \<Longrightarrow> r \<le>o r'"
 using ordIso_iff_ordLeq by blast
 
-
 lemma ordLess_imp_ordLeq:
 "r <o r' \<Longrightarrow> r \<le>o r'"
 using ordLeq_iff_ordLess_or_ordIso by blast
-
 
 lemma ofilter_subset_ordLeq:
 assumes WELL: "Well_order r" and
@@ -687,7 +622,6 @@ next
   wo_rel_def[of r] wo_rel.ofilter_linord[of r A B] by blast
 qed
 
-
 lemma ofilter_subset_ordLess:
 assumes WELL: "Well_order r" and
         OFA: "wo_rel.ofilter r A" and OFB: "wo_rel.ofilter r B"
@@ -705,12 +639,10 @@ proof-
   finally show ?thesis .
 qed
 
-
 lemma ofilter_ordLess:
 "\<lbrakk>Well_order r; wo_rel.ofilter r A\<rbrakk> \<Longrightarrow> (A < Field r) = (Restr r A <o r)"
 by (simp add: ofilter_subset_ordLess wo_rel.Field_ofilter
     wo_rel_def Restr_Field)
-
 
 corollary underS_Restr_ordLess:
 assumes "Well_order r" and "Field r \<noteq> {}"
@@ -721,7 +653,6 @@ proof-
   thus ?thesis using assms
   by (simp add: ofilter_ordLess wo_rel.underS_ofilter wo_rel_def)
 qed
-
 
 lemma embed_ordLess_ofilterIncl:
 assumes
@@ -769,7 +700,6 @@ proof-
   unfolding ofilterIncl_def by auto
 qed
 
-
 lemma ordLess_iff_ordIso_Restr:
 assumes WELL: "Well_order r" and WELL': "Well_order r'"
 shows "(r' <o r) = (\<exists>a \<in> Field r. r' =o Restr r (underS r a))"
@@ -795,7 +725,6 @@ next
   thus "\<exists>a \<in> Field r. r' =o Restr r (underS r a)" using 3 by auto
 qed
 
-
 lemma internalize_ordLess:
 "(r' <o r) = (\<exists>p. Field p < Field r \<and> r' =o p \<and> p <o r)"
 proof
@@ -815,7 +744,6 @@ next
   assume "\<exists>p. Field p < Field r \<and> r' =o p \<and> p <o r"
   thus "r' <o r" using ordIso_ordLess_trans by blast
 qed
-
 
 lemma internalize_ordLeq:
 "(r' \<le>o r) = (\<exists>p. Field p \<le> Field r \<and> r' =o p \<and> p \<le>o r)"
@@ -837,7 +765,6 @@ next
   thus "r' \<le>o r" using ordIso_ordLeq_trans by blast
 qed
 
-
 lemma ordLeq_iff_ordLess_Restr:
 assumes WELL: "Well_order r" and WELL': "Well_order r'"
 shows "(r \<le>o r') = (\<forall>a \<in> Field r. Restr r (underS r a) <o r')"
@@ -858,7 +785,6 @@ next
   thus "r \<le>o r'" using ordLess_or_ordLeq assms by blast
 qed
 
-
 lemma finite_ordLess_infinite:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and
         FIN: "finite(Field r)" and INF: "\<not>finite(Field r')"
@@ -871,7 +797,6 @@ proof-
   }
   thus ?thesis using WELL WELL' ordLess_or_ordLeq by blast
 qed
-
 
 lemma finite_well_order_on_ordIso:
 assumes FIN: "finite A" and
@@ -897,9 +822,7 @@ proof-
   ultimately show ?thesis using assms ordLeq_total ordIso_symmetric by metis
 qed
 
-
 subsection{* @{text "<o"} is well-founded *}
-
 
 text {* Of course, it only makes sense to state that the @{text "<o"} is well-founded
 on the restricted type @{text "'a rel rel"}.  We prove this by first showing that, for any set
@@ -907,10 +830,8 @@ of well-orders all embedded in a fixed well-order, the function mapping each wel
 in the set to an order filter of the fixed well-order is compatible w.r.t. to @{text "<o"} versus
 {\em strict inclusion}; and we already know that strict inclusion of order filters is well-founded. *}
 
-
 definition ord_to_filter :: "'a rel \<Rightarrow> 'a rel \<Rightarrow> 'a set"
 where "ord_to_filter r0 r \<equiv> (SOME f. embed r r0 f) ` (Field r)"
-
 
 lemma ord_to_filter_compat:
 "compat (ordLess Int (ordLess^-1``{r0} \<times> ordLess^-1``{r0}))
@@ -928,7 +849,6 @@ proof(unfold compat_def ord_to_filter_def, clarify)
   thus "(?f10 ` ?A1, ?f20 ` ?A2) \<in> ofilterIncl r0"
   using * ** by (simp add: embed_ordLess_ofilterIncl)
 qed
-
 
 theorem wf_ordLess: "wf ordLess"
 proof-
@@ -963,29 +883,23 @@ proof-
 qed
 
 
-
-subsection {* Copy via direct images  *}
-
+subsection {* Copy via direct images *}
 
 text{* The direct image operator is the dual of the inverse image operator @{text "inv_image"}
 from @{text "Relation.thy"}.  It is useful for transporting a well-order between
 different types. *}
 
-
 definition dir_image :: "'a rel \<Rightarrow> ('a \<Rightarrow> 'a') \<Rightarrow> 'a' rel"
 where
 "dir_image r f = {(f a, f b)| a b. (a,b) \<in> r}"
-
 
 lemma dir_image_Field:
 "Field(dir_image r f) \<le> f ` (Field r)"
 unfolding dir_image_def Field_def by auto
 
-
 lemma dir_image_minus_Id:
 "inj_on f (Field r) \<Longrightarrow> (dir_image r f) - Id = dir_image (r - Id) f"
 unfolding inj_on_def Field_def dir_image_def by auto
-
 
 lemma Refl_dir_image:
 assumes "Refl r"
@@ -1004,7 +918,6 @@ proof-
   by(unfold refl_on_def Field_def Domain_def Range_def, auto)
 qed
 
-
 lemma trans_dir_image:
 assumes TRANS: "trans r" and INJ: "inj_on f (Field r)"
 shows "trans(dir_image r f)"
@@ -1022,11 +935,9 @@ proof(unfold trans_def, auto)
   unfolding dir_image_def using 1 by auto
 qed
 
-
 lemma Preorder_dir_image:
 "\<lbrakk>Preorder r; inj_on f (Field r)\<rbrakk> \<Longrightarrow> Preorder (dir_image r f)"
 by (simp add: preorder_on_def Refl_dir_image trans_dir_image)
-
 
 lemma antisym_dir_image:
 assumes AN: "antisym r" and INJ: "inj_on f (Field r)"
@@ -1043,11 +954,9 @@ proof(unfold antisym_def, auto)
   thus "a' = b'" using 1 by auto
 qed
 
-
 lemma Partial_order_dir_image:
 "\<lbrakk>Partial_order r; inj_on f (Field r)\<rbrakk> \<Longrightarrow> Partial_order (dir_image r f)"
 by (simp add: partial_order_on_def Preorder_dir_image antisym_dir_image)
-
 
 lemma Total_dir_image:
 assumes TOT: "Total r" and INJ: "inj_on f (Field r)"
@@ -1064,11 +973,9 @@ proof(unfold total_on_def, intro ballI impI)
   using 1 unfolding dir_image_def by auto
 qed
 
-
 lemma Linear_order_dir_image:
 "\<lbrakk>Linear_order r; inj_on f (Field r)\<rbrakk> \<Longrightarrow> Linear_order (dir_image r f)"
 by (simp add: linear_order_on_def Partial_order_dir_image Total_dir_image)
-
 
 lemma wf_dir_image:
 assumes WF: "wf r" and INJ: "inj_on f (Field r)"
@@ -1095,7 +1002,6 @@ proof(unfold wf_eq_minimal2, intro allI impI, elim conjE)
   using A_def 1 by blast
 qed
 
-
 lemma Well_order_dir_image:
 "\<lbrakk>Well_order r; inj_on f (Field r)\<rbrakk> \<Longrightarrow> Well_order (dir_image r f)"
 using assms unfolding well_order_on_def
@@ -1104,32 +1010,26 @@ using Linear_order_dir_image[of r f] wf_dir_image[of "r - Id" f]
   subset_inj_on[of f "Field r" "Field(r - Id)"]
   mono_Field[of "r - Id" r] by auto
 
-
 lemma dir_image_Field2:
 "Refl r \<Longrightarrow> Field(dir_image r f) = f ` (Field r)"
 unfolding Field_def dir_image_def refl_on_def Domain_def Range_def by blast
-
 
 lemma dir_image_bij_betw:
 "\<lbrakk>Well_order r; inj_on f (Field r)\<rbrakk> \<Longrightarrow> bij_betw f (Field r) (Field (dir_image r f))"
 unfolding bij_betw_def
 by (simp add: dir_image_Field2 order_on_defs)
 
-
 lemma dir_image_compat:
 "compat r (dir_image r f) f"
 unfolding compat_def dir_image_def by auto
-
 
 lemma dir_image_iso:
 "\<lbrakk>Well_order r; inj_on f (Field r)\<rbrakk>  \<Longrightarrow> iso r (dir_image r f) f"
 using iso_iff3 dir_image_compat dir_image_bij_betw Well_order_dir_image by blast
 
-
 lemma dir_image_ordIso:
 "\<lbrakk>Well_order r; inj_on f (Field r)\<rbrakk>  \<Longrightarrow> r =o dir_image r f"
 unfolding ordIso_def using dir_image_iso Well_order_dir_image by blast
-
 
 lemma Well_order_iso_copy:
 assumes WELL: "well_order_on A r" and BIJ: "bij_betw f A A'"
@@ -1149,9 +1049,7 @@ proof-
 qed
 
 
-
-subsection {* Bounded square  *}
-
+subsection {* Bounded square *}
 
 text{* This construction essentially defines, for an order relation @{text "r"}, a lexicographic
 order @{text "bsqr r"} on @{text "(Field r) \<times> (Field r)"}, applying the
@@ -1168,7 +1066,6 @@ as that set. The essential property required there (and which is ensured by this
 construction) is that any proper order filter of the product order is included in a rectangle, i.e.,
 in a product of proper filters on the original relation (assumed to be a well-order). *}
 
-
 definition bsqr :: "'a rel => ('a * 'a)rel"
 where
 "bsqr r = {((a1,a2),(b1,b2)).
@@ -1178,7 +1075,6 @@ where
             wo_rel.max2 r a1 a2 = wo_rel.max2 r b1 b2 \<and> (a1,b1) \<in> r - Id \<or>
             wo_rel.max2 r a1 a2 = wo_rel.max2 r b1 b2 \<and> a1 = b1  \<and> (a2,b2) \<in> r - Id
            )}"
-
 
 lemma Field_bsqr:
 "Field (bsqr r) = Field r \<times> Field r"
@@ -1202,10 +1098,8 @@ next
   qed
 qed
 
-
 lemma bsqr_Refl: "Refl(bsqr r)"
 by(unfold refl_on_def Field_bsqr, auto simp add: bsqr_def)
-
 
 lemma bsqr_Trans:
 assumes "Well_order r"
@@ -1296,7 +1190,6 @@ proof(unfold trans_def, auto)
   qed
 qed
 
-
 lemma bsqr_antisym:
 assumes "Well_order r"
 shows "antisym (bsqr r)"
@@ -1366,7 +1259,6 @@ proof(unfold antisym_def, clarify)
     ultimately show ?thesis using 0 1 by blast
   qed
 qed
-
 
 lemma bsqr_Total:
 assumes "Well_order r"
@@ -1485,13 +1377,11 @@ proof-
   thus ?thesis unfolding total_on_def by fast
 qed
 
-
 lemma bsqr_Linear_order:
 assumes "Well_order r"
 shows "Linear_order(bsqr r)"
 unfolding order_on_defs
 using assms bsqr_Refl bsqr_Trans bsqr_antisym bsqr_Total by blast
-
 
 lemma bsqr_Well_order:
 assumes "Well_order r"
@@ -1557,7 +1447,6 @@ proof(simp add: bsqr_Linear_order Linear_order_Well_order_iff, intro allI impI)
   ultimately show "\<exists>d \<in> D. \<forall>d' \<in> D. (d,d') \<in> bsqr r" by fastforce
 qed
 
-
 lemma bsqr_max2:
 assumes WELL: "Well_order r" and LEQ: "((a1,a2),(b1,b2)) \<in> bsqr r"
 shows "(wo_rel.max2 r a1 a2, wo_rel.max2 r b1 b2) \<in> r"
@@ -1571,7 +1460,6 @@ proof-
   using LEQ unfolding bsqr_def by auto
   ultimately show ?thesis using WELL unfolding order_on_defs refl_on_def by auto
 qed
-
 
 lemma bsqr_ofilter:
 assumes WELL: "Well_order r" and

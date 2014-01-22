@@ -11,7 +11,6 @@ theory BNF_Wellorder_Embedding
 imports Zorn BNF_Wellorder_Relation
 begin
 
-
 text{* In this section, we introduce well-order {\em embeddings} and {\em isomorphisms} and
 prove their basic properties.  The notion of embedding is considered from the point
 of view of the theory of ordinals, and therefore requires the source to be injected
@@ -36,7 +35,6 @@ proof-
   by (auto simp add: inj_on_UNION_chain)
 qed
 
-
 lemma under_underS_bij_betw:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and
         IN: "a \<in> Field r" and IN': "f a \<in> Field r'" and
@@ -57,10 +55,8 @@ proof-
 qed
 
 
-
 subsection {* (Well-order) embeddings, strict embeddings, isomorphisms and order-compatible
-functions  *}
-
+functions *}
 
 text{* Standardly, a function is an embedding of a well-order in another if it injectively and
 order-compatibly maps the former into an order filter of the latter.
@@ -70,16 +66,13 @@ between the set of strict lower bounds of that element
 and the set of strict lower bounds of its image.  (Later we prove equivalence with
 the standard definition -- lemma @{text "embed_iff_compat_inj_on_ofilter"}.)
 A {\em strict embedding} (operator @{text "embedS"})  is a non-bijective embedding
-and an isomorphism (operator @{text "iso"}) is a bijective embedding.   *}
-
+and an isomorphism (operator @{text "iso"}) is a bijective embedding. *}
 
 definition embed :: "'a rel \<Rightarrow> 'a' rel \<Rightarrow> ('a \<Rightarrow> 'a') \<Rightarrow> bool"
 where
 "embed r r' f \<equiv> \<forall>a \<in> Field r. bij_betw f (under r a) (under r' (f a))"
 
-
 lemmas embed_defs = embed_def embed_def[abs_def]
-
 
 text {* Strict embeddings: *}
 
@@ -87,22 +80,17 @@ definition embedS :: "'a rel \<Rightarrow> 'a' rel \<Rightarrow> ('a \<Rightarro
 where
 "embedS r r' f \<equiv> embed r r' f \<and> \<not> bij_betw f (Field r) (Field r')"
 
-
 lemmas embedS_defs = embedS_def embedS_def[abs_def]
-
 
 definition iso :: "'a rel \<Rightarrow> 'a' rel \<Rightarrow> ('a \<Rightarrow> 'a') \<Rightarrow> bool"
 where
 "iso r r' f \<equiv> embed r r' f \<and> bij_betw f (Field r) (Field r')"
 
-
 lemmas iso_defs = iso_def iso_def[abs_def]
-
 
 definition compat :: "'a rel \<Rightarrow> 'a' rel \<Rightarrow> ('a \<Rightarrow> 'a') \<Rightarrow> bool"
 where
 "compat r r' f \<equiv> \<forall>a b. (a,b) \<in> r \<longrightarrow> (f a, f b) \<in> r'"
-
 
 lemma compat_wf:
 assumes CMP: "compat r r' f" and WF: "wf r'"
@@ -115,14 +103,11 @@ proof-
   using wf_inv_image[of r' f] wf_subset[of "inv_image r' f"] by auto
 qed
 
-
 lemma id_embed: "embed r r id"
 by(auto simp add: id_def embed_def bij_betw_def)
 
-
 lemma id_iso: "iso r r id"
 by(auto simp add: id_def embed_def iso_def bij_betw_def)
-
 
 lemma embed_in_Field:
 assumes WELL: "Well_order r" and
@@ -139,7 +124,6 @@ proof-
   thus ?thesis unfolding Field_def
   by (auto simp: under_def)
 qed
-
 
 lemma comp_embed:
 assumes WELL: "Well_order r" and
@@ -160,7 +144,6 @@ proof(unfold embed_def, auto)
   by(auto simp add: bij_betw_trans)
 qed
 
-
 lemma comp_iso:
 assumes WELL: "Well_order r" and
         EMB: "iso r r' f" and EMB': "iso r' r'' f'"
@@ -168,14 +151,11 @@ shows "iso r r'' (f' o f)"
 using assms unfolding iso_def
 by (auto simp add: comp_embed bij_betw_trans)
 
-
-text{* That @{text "embedS"} is also preserved by function composition shall be proved only later.  *}
-
+text{* That @{text "embedS"} is also preserved by function composition shall be proved only later. *}
 
 lemma embed_Field:
 "\<lbrakk>Well_order r; embed r r' f\<rbrakk> \<Longrightarrow> f`(Field r) \<le> Field r'"
 by (auto simp add: embed_in_Field)
-
 
 lemma embed_preserves_ofilter:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and
@@ -204,7 +184,6 @@ proof-
   qed
 qed
 
-
 lemma embed_Field_ofilter:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and
         EMB: "embed r r' f"
@@ -215,7 +194,6 @@ proof-
   with WELL WELL' EMB
   show ?thesis by (auto simp add: embed_preserves_ofilter)
 qed
-
 
 lemma embed_compat:
 assumes EMB: "embed r r' f"
@@ -233,7 +211,6 @@ proof(unfold compat_def, clarify)
   thus "(f a, f b) \<in> r'"
   by (auto simp add: under_def)
 qed
-
 
 lemma embed_inj_on:
 assumes WELL: "Well_order r" and EMB: "embed r r' f"
@@ -271,7 +248,6 @@ proof(unfold inj_on_def, clarify)
   by (auto simp add: total_on_def)
 qed
 
-
 lemma embed_underS:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and
         EMB: "embed r r' f" and IN: "a \<in> Field r"
@@ -292,7 +268,6 @@ proof-
   ultimately show ?thesis
   by (auto simp add: notIn_Un_bij_betw3)
 qed
-
 
 lemma embed_iff_compat_inj_on_ofilter:
 assumes WELL: "Well_order r" and WELL': "Well_order r'"
@@ -365,7 +340,6 @@ proof(auto simp add: embed_compat embed_inj_on embed_Field_ofilter,
     unfolding under_def by auto
   qed
 qed
-
 
 lemma inv_into_ofilter_embed:
 assumes WELL: "Well_order r" and OF: "wo_rel.ofilter r A" and
@@ -442,7 +416,6 @@ proof-
   thus ?thesis unfolding embed_def .
 qed
 
-
 lemma inv_into_underS_embed:
 assumes WELL: "Well_order r" and
         BIJ: "\<forall>b \<in> underS r a. bij_betw f (under r b) (under r' (f b))" and
@@ -451,7 +424,6 @@ assumes WELL: "Well_order r" and
 shows "embed r' r (inv_into (underS r a) f)"
 using assms
 by(auto simp add: wo_rel_def wo_rel.underS_ofilter inv_into_ofilter_embed)
-
 
 lemma inv_into_Field_embed:
 assumes WELL: "Well_order r" and EMB: "embed r r' f" and
@@ -468,7 +440,6 @@ proof-
   by(auto simp add: wo_rel_def wo_rel.Field_ofilter inv_into_ofilter_embed)
 qed
 
-
 lemma inv_into_Field_embed_bij_betw:
 assumes WELL: "Well_order r" and
         EMB: "embed r r' f" and BIJ: "bij_betw f (Field r) (Field r')"
@@ -481,11 +452,7 @@ proof-
 qed
 
 
-
-
-
 subsection {* Given any two well-orders, one can be embedded in the other *}
-
 
 text{* Here is an overview of the proof of of this fact, stated in theorem
 @{text "wellorders_totally_ordered"}:
@@ -505,7 +472,6 @@ text{* Here is an overview of the proof of of this fact, stated in theorem
    (the "good" segment of) @{text "f"} is the desired embedding from @{text "r'"} to @{text "r"}
    (lemma @{text "wellorders_totally_ordered_aux2"}).
 *}
-
 
 lemma wellorders_totally_ordered_aux:
 fixes r ::"'a rel"  and r'::"'a' rel" and
@@ -616,7 +582,6 @@ proof-
   using WELL WELL' IN BIJ under_underS_bij_betw[of r r' a f] by auto
 qed
 
-
 lemma wellorders_totally_ordered_aux2:
 fixes r ::"'a rel"  and r'::"'a' rel" and
       f :: "'a \<Rightarrow> 'a'" and g :: "'a \<Rightarrow> bool"  and a::'a
@@ -695,7 +660,6 @@ proof-
   thus ?thesis
   unfolding embed_def by blast
 qed
-
 
 theorem wellorders_totally_ordered:
 fixes r ::"'a rel"  and r'::"'a' rel"
@@ -805,14 +769,12 @@ proof-
 qed
 
 
-subsection {* Uniqueness of embeddings  *}
-
+subsection {* Uniqueness of embeddings *}
 
 text{* Here we show a fact complementary to the one from the previous subsection -- namely,
 that between any two well-orders there is {\em at most} one embedding, and is the one
 definable by the expected well-order recursive equation.  As a consequence, any two
 embeddings of opposite directions are mutually inverse. *}
-
 
 lemma embed_determined:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and
@@ -832,7 +794,6 @@ proof-
   ultimately show ?thesis by simp
 qed
 
-
 lemma embed_unique:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and
         EMBf: "embed r r' f" and EMBg: "embed r r' g"
@@ -847,7 +808,6 @@ proof(rule wo_rel.well_order_induct[of r], auto simp add: WELL wo_rel_def)
   thus "f a = g a"
   using assms * embed_determined[of r r' f a] embed_determined[of r r' g a] by auto
 qed
-
 
 lemma embed_bothWays_inverse:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and
@@ -870,7 +830,6 @@ proof-
   }
   ultimately show ?thesis by blast
 qed
-
 
 lemma embed_bothWays_bij_betw:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and
@@ -899,7 +858,6 @@ proof-
   qed
 qed
 
-
 lemma embed_bothWays_iso:
 assumes WELL: "Well_order r"  and WELL': "Well_order r'" and
         EMB: "embed r r' f" and EMB': "embed r' r g"
@@ -907,8 +865,7 @@ shows "iso r r' f"
 unfolding iso_def using assms by (auto simp add: embed_bothWays_bij_betw)
 
 
-subsection {* More properties of embeddings, strict embeddings and isomorphisms  *}
-
+subsection {* More properties of embeddings, strict embeddings and isomorphisms *}
 
 lemma embed_bothWays_Field_bij_betw:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and
@@ -923,7 +880,6 @@ proof-
   ultimately
   show ?thesis using bij_betw_byWitness[of "Field r" f' f "Field r'"] by auto
 qed
-
 
 lemma embedS_comp_embed:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and WELL'': "Well_order r''"
@@ -948,7 +904,6 @@ proof-
   ultimately show ?thesis unfolding embedS_def by auto
 qed
 
-
 lemma embed_comp_embedS:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and WELL'': "Well_order r''"
         and  EMB: "embed r r' f" and EMB': "embedS r' r'' f'"
@@ -972,14 +927,12 @@ proof-
   ultimately show ?thesis unfolding embedS_def by auto
 qed
 
-
 lemma embed_comp_iso:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and WELL'': "Well_order r''"
         and  EMB: "embed r r' f" and EMB': "iso r' r'' f'"
 shows "embed r r'' (f' o f)"
 using assms unfolding iso_def
 by (auto simp add: comp_embed)
-
 
 lemma iso_comp_embed:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and WELL'': "Well_order r''"
@@ -988,7 +941,6 @@ shows "embed r r'' (f' o f)"
 using assms unfolding iso_def
 by (auto simp add: comp_embed)
 
-
 lemma embedS_comp_iso:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and WELL'': "Well_order r''"
         and  EMB: "embedS r r' f" and EMB': "iso r' r'' f'"
@@ -996,14 +948,12 @@ shows "embedS r r'' (f' o f)"
 using assms unfolding iso_def
 by (auto simp add: embedS_comp_embed)
 
-
 lemma iso_comp_embedS:
 assumes WELL: "Well_order r" and WELL': "Well_order r'" and WELL'': "Well_order r''"
         and  EMB: "iso r r' f" and EMB': "embedS r' r'' f'"
 shows "embedS r r'' (f' o f)"
 using assms unfolding iso_def  using embed_comp_embedS
 by (auto simp add: embed_comp_embedS)
-
 
 lemma embedS_Field:
 assumes WELL: "Well_order r" and EMB: "embedS r r' f"
@@ -1020,7 +970,6 @@ proof-
   ultimately show ?thesis by blast
 qed
 
-
 lemma embedS_iff:
 assumes WELL: "Well_order r" and ISO: "embed r r' f"
 shows "embedS r r' f = (f ` (Field r) < Field r')"
@@ -1036,11 +985,9 @@ next
   using ISO by auto
 qed
 
-
 lemma iso_Field:
 "iso r r' f \<Longrightarrow> f ` (Field r) = Field r'"
 using assms by (auto simp add: iso_def bij_betw_def)
-
 
 lemma iso_iff:
 assumes "Well_order r"
@@ -1056,7 +1003,6 @@ next
   unfolding bij_betw_def by simp
   with * show "iso r r' f" unfolding iso_def by auto
 qed
-
 
 lemma iso_iff2:
 assumes "Well_order r"
@@ -1110,7 +1056,6 @@ next
   thus "embed r r' f" unfolding embed_def using * by auto
 qed
 
-
 lemma iso_iff3:
 assumes WELL: "Well_order r" and WELL': "Well_order r'"
 shows "iso r r' f = (bij_betw f (Field r) (Field r') \<and> compat r r' f)"
@@ -1139,7 +1084,5 @@ next
     using Well ** wo_rel.TOTAL[of r] total_on_def[of _ r] by blast
   qed
 qed
-
-
 
 end

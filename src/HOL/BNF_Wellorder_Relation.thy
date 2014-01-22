@@ -11,12 +11,10 @@ theory BNF_Wellorder_Relation
 imports Order_Relation
 begin
 
-
 text{* In this section, we develop basic concepts and results pertaining
 to well-order relations.  Note that we consider well-order relations
 as {\em non-strict relations},
 i.e., as containing the diagonals of their fields. *}
-
 
 locale wo_rel =
   fixes r :: "'a rel"
@@ -40,40 +38,31 @@ abbreviation AboveS where "AboveS \<equiv> Order_Relation.AboveS r"
 
 subsection {* Auxiliaries *}
 
-
 lemma REFL: "Refl r"
 using WELL order_on_defs[of _ r] by auto
-
 
 lemma TRANS: "trans r"
 using WELL order_on_defs[of _ r] by auto
 
-
 lemma ANTISYM: "antisym r"
 using WELL order_on_defs[of _ r] by auto
-
 
 lemma TOTAL: "Total r"
 using WELL order_on_defs[of _ r] by auto
 
-
 lemma TOTALS: "\<forall>a \<in> Field r. \<forall>b \<in> Field r. (a,b) \<in> r \<or> (b,a) \<in> r"
 using REFL TOTAL refl_on_def[of _ r] total_on_def[of _ r] by force
-
 
 lemma LIN: "Linear_order r"
 using WELL well_order_on_def[of _ r] by auto
 
-
 lemma WF: "wf (r - Id)"
 using WELL well_order_on_def[of _ r] by auto
-
 
 lemma cases_Total:
 "\<And> phi a b. \<lbrakk>{a,b} <= Field r; ((a,b) \<in> r \<Longrightarrow> phi a b); ((b,a) \<in> r \<Longrightarrow> phi a b)\<rbrakk>
              \<Longrightarrow> phi a b"
 using TOTALS by auto
-
 
 lemma cases_Total3:
 "\<And> phi a b. \<lbrakk>{a,b} \<le> Field r; ((a,b) \<in> r - Id \<or> (b,a) \<in> r - Id \<Longrightarrow> phi a b);
@@ -81,15 +70,13 @@ lemma cases_Total3:
 using TOTALS by auto
 
 
-subsection {* Well-founded induction and recursion adapted to non-strict well-order relations  *}
-
+subsection {* Well-founded induction and recursion adapted to non-strict well-order relations *}
 
 text{* Here we provide induction and recursion principles specific to {\em non-strict}
 well-order relations.
 Although minor variations of those for well-founded relations, they will be useful
 for doing away with the tediousness of
 having to take out the diagonal each time in order to switch to a well-founded relation. *}
-
 
 lemma well_order_induct:
 assumes IND: "\<And>x. \<forall>y. y \<noteq> x \<and> (y, x) \<in> r \<longrightarrow> P y \<Longrightarrow> P x"
@@ -100,18 +87,15 @@ proof-
   thus "P a" using WF wf_induct[of "r - Id" P a] by blast
 qed
 
-
 definition
 worec :: "(('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
 where
 "worec F \<equiv> wfrec (r - Id) F"
 
-
 definition
 adm_wo :: "(('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> bool"
 where
 "adm_wo H \<equiv> \<forall>f g x. (\<forall>y \<in> underS x. f y = g y) \<longrightarrow> H f x = H g x"
-
 
 lemma worec_fixpoint:
 assumes ADM: "adm_wo H"
@@ -127,8 +111,7 @@ proof-
 qed
 
 
-subsection {* The notions of maximum, minimum, supremum, successor and order filter  *}
-
+subsection {* The notions of maximum, minimum, supremum, successor and order filter *}
 
 text{*
 We define the successor {\em of a set}, and not of an element (the latter is of course
@@ -141,17 +124,14 @@ The minimum is only meaningful for non-empty sets, and the successor is only
 meaningful for sets for which strict upper bounds exist.
 Order filters for well-orders are also known as ``initial segments". *}
 
-
 definition max2 :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
 where "max2 a b \<equiv> if (a,b) \<in> r then b else a"
-
 
 definition isMinim :: "'a set \<Rightarrow> 'a \<Rightarrow> bool"
 where "isMinim A b \<equiv> b \<in> A \<and> (\<forall>a \<in> A. (b,a) \<in> r)"
 
 definition minim :: "'a set \<Rightarrow> 'a"
 where "minim A \<equiv> THE b. isMinim A b"
-
 
 definition supr :: "'a set \<Rightarrow> 'a"
 where "supr A \<equiv> minim (Above A)"
@@ -165,7 +145,6 @@ where
 
 
 subsubsection {* Properties of max2 *}
-
 
 lemma max2_greater_among:
 assumes "a \<in> Field r" and "b \<in> Field r"
@@ -191,25 +170,21 @@ proof-
   total_on_def[of "Field r" r] by blast
 qed
 
-
 lemma max2_greater:
 assumes "a \<in> Field r" and "b \<in> Field r"
 shows "(a, max2 a b) \<in> r \<and> (b, max2 a b) \<in> r"
 using assms by (auto simp add: max2_greater_among)
-
 
 lemma max2_among:
 assumes "a \<in> Field r" and "b \<in> Field r"
 shows "max2 a b \<in> {a, b}"
 using assms max2_greater_among[of a b] by simp
 
-
 lemma max2_equals1:
 assumes "a \<in> Field r" and "b \<in> Field r"
 shows "(max2 a b = a) = ((b,a) \<in> r)"
 using assms ANTISYM unfolding antisym_def using TOTALS
 by(auto simp add: max2_def max2_among)
-
 
 lemma max2_equals2:
 assumes "a \<in> Field r" and "b \<in> Field r"
@@ -219,7 +194,6 @@ unfolding max2_def by auto
 
 
 subsubsection {* Existence and uniqueness for isMinim and well-definedness of minim *}
-
 
 lemma isMinim_unique:
 assumes MINIM: "isMinim B a" and MINIM': "isMinim B a'"
@@ -239,7 +213,6 @@ proof-
   ultimately
   show ?thesis using ANTISYM antisym_def[of r] by blast
 qed
-
 
 lemma Well_order_isMinim_exists:
 assumes SUB: "B \<le> Field r" and NE: "B \<noteq> {}"
@@ -269,7 +242,6 @@ proof-
   qed
 qed
 
-
 lemma minim_isMinim:
 assumes SUB: "B \<le> Field r" and NE: "B \<noteq> {}"
 shows "isMinim B (minim B)"
@@ -284,9 +256,7 @@ proof-
   unfolding minim_def using theI[of ?phi b] by blast
 qed
 
-
 subsubsection{* Properties of minim *}
-
 
 lemma minim_in:
 assumes "B \<le> Field r" and "B \<noteq> {}"
@@ -297,7 +267,6 @@ proof-
   thus ?thesis by (simp add: isMinim_def)
 qed
 
-
 lemma minim_inField:
 assumes "B \<le> Field r" and "B \<noteq> {}"
 shows "minim B \<in> Field r"
@@ -305,7 +274,6 @@ proof-
   have "minim B \<in> B" using assms by (simp add: minim_in)
   thus ?thesis using assms by blast
 qed
-
 
 lemma minim_least:
 assumes  SUB: "B \<le> Field r" and IN: "b \<in> B"
@@ -315,7 +283,6 @@ proof-
   have "isMinim B (minim B)" by auto
   thus ?thesis by (auto simp add: isMinim_def IN)
 qed
-
 
 lemma equals_minim:
 assumes SUB: "B \<le> Field r" and IN: "a \<in> B" and
@@ -329,9 +296,7 @@ proof-
   using isMinim_unique by auto
 qed
 
-
 subsubsection{* Properties of successor *}
-
 
 lemma suc_AboveS:
 assumes SUB: "B \<le> Field r" and ABOVES: "AboveS B \<noteq> {}"
@@ -343,7 +308,6 @@ proof(unfold suc_def)
   using assms by (simp add: minim_in)
 qed
 
-
 lemma suc_greater:
 assumes SUB: "B \<le> Field r" and ABOVES: "AboveS B \<noteq> {}" and
         IN: "b \<in> B"
@@ -353,7 +317,6 @@ proof-
   have "suc B \<in> AboveS B" by simp
   with IN AboveS_def[of r] show ?thesis by simp
 qed
-
 
 lemma suc_least_AboveS:
 assumes ABOVES: "a \<in> AboveS B"
@@ -365,7 +328,6 @@ proof(unfold suc_def)
   using assms minim_least by simp
 qed
 
-
 lemma suc_inField:
 assumes "B \<le> Field r" and "AboveS B \<noteq> {}"
 shows "suc B \<in> Field r"
@@ -374,7 +336,6 @@ proof-
   thus ?thesis
   using assms AboveS_Field[of r] by auto
 qed
-
 
 lemma equals_suc_AboveS:
 assumes SUB: "B \<le> Field r" and ABV: "a \<in> AboveS B" and
@@ -387,7 +348,6 @@ proof(unfold suc_def)
   using assms equals_minim
   by simp
 qed
-
 
 lemma suc_underS:
 assumes IN: "a \<in> Field r"
@@ -432,7 +392,6 @@ qed
 
 subsubsection {* Properties of order filters *}
 
-
 lemma under_ofilter:
 "ofilter (under a)"
 proof(unfold ofilter_def under_def, auto simp add: Field_def)
@@ -441,7 +400,6 @@ proof(unfold ofilter_def under_def, auto simp add: Field_def)
   thus "(x,a) \<in> r"
   using TRANS trans_def[of r] by blast
 qed
-
 
 lemma underS_ofilter:
 "ofilter (underS a)"
@@ -456,11 +414,9 @@ next
   using TRANS trans_def[of r] by blast
 qed
 
-
 lemma Field_ofilter:
 "ofilter (Field r)"
 by(unfold ofilter_def under_def, auto simp add: Field_def)
-
 
 lemma ofilter_underS_Field:
 "ofilter A = ((\<exists>a \<in> Field r. A = underS a) \<or> (A = Field r))"
@@ -523,11 +479,9 @@ next
   qed
 qed
 
-
 lemma ofilter_UNION:
 "(\<And> i. i \<in> I \<Longrightarrow> ofilter(A i)) \<Longrightarrow> ofilter (\<Union> i \<in> I. A i)"
 unfolding ofilter_def by blast
-
 
 lemma ofilter_under_UNION:
 assumes "ofilter A"
@@ -542,9 +496,7 @@ next
   thus "A \<le> (\<Union> a \<in> A. under a)" by blast
 qed
 
-
 subsubsection{* Other properties *}
-
 
 lemma ofilter_linord:
 assumes OF1: "ofilter A" and OF2: "ofilter B"
@@ -587,7 +539,6 @@ next
   qed
 qed
 
-
 lemma ofilter_AboveS_Field:
 assumes "ofilter A"
 shows "A \<union> (AboveS A) = Field r"
@@ -614,7 +565,6 @@ next
   thus "Field r \<le> A \<union> (AboveS A)" by blast
 qed
 
-
 lemma suc_ofilter_in:
 assumes OF: "ofilter A" and ABOVE_NE: "AboveS A \<noteq> {}" and
         REL: "(b,suc A) \<in> r" and DIFF: "b \<noteq> suc A"
@@ -633,10 +583,6 @@ proof-
   thus ?thesis by blast
 qed
 
-
-
 end (* context wo_rel *)
-
-
 
 end

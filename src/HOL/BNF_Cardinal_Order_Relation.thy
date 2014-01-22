@@ -38,7 +38,7 @@ subsection {* Cardinal orders *}
 
 text{* A cardinal order in our setting shall be a well-order {\em minim} w.r.t. the
 order-embedding relation, @{text "\<le>o"} (which is the same as being {\em minimal} w.r.t. the
-strict order-embedding relation, @{text "<o"}), among all the well-orders on its field.  *}
+strict order-embedding relation, @{text "<o"}), among all the well-orders on its field. *}
 
 definition card_order_on :: "'a set \<Rightarrow> 'a rel \<Rightarrow> bool"
 where
@@ -115,7 +115,7 @@ subsection {* Cardinal of a set *}
 
 text{* We define the cardinal of set to be {\em some} cardinal order on that set.
 We shall prove that this notion is unique up to order isomorphism, meaning
-that order isomorphism shall be the true identity of cardinals.  *}
+that order isomorphism shall be the true identity of cardinals. *}
 
 definition card_of :: "'a set \<Rightarrow> 'a rel" ("|_|" )
 where "card_of A = (SOME r. card_order_on A r)"
@@ -827,7 +827,7 @@ do not increase the cardinality.  The cornerstone for this is
 theorem @{text "Card_order_Times_same_infinite"}, which states that self-product
 does not increase cardinality -- the proof of this fact adapts a standard
 set-theoretic argument, as presented, e.g., in the proof of theorem 1.5.11
-at page 47 in \cite{card-book}. Then everything else follows fairly easily.  *}
+at page 47 in \cite{card-book}. Then everything else follows fairly easily. *}
 
 lemma infinite_iff_card_of_nat:
 "\<not> finite A \<longleftrightarrow> ( |UNIV::nat set| \<le>o |A| )"
@@ -1141,13 +1141,13 @@ proof-
 qed
 
 
-subsection {* The cardinal $\omega$ and the finite cardinals  *}
+subsection {* The cardinal $\omega$ and the finite cardinals *}
 
 text{* The cardinal $\omega$, of natural numbers, shall be the standard non-strict
 order relation on
 @{text "nat"}, that we abbreviate by @{text "natLeq"}.  The finite cardinals
 shall be the restrictions of these relations to the numbers smaller than
-fixed numbers @{text "n"}, that we abbreviate by @{text "natLeq_on n"}.  *}
+fixed numbers @{text "n"}, that we abbreviate by @{text "natLeq_on n"}. *}
 
 abbreviation "(natLeq::(nat * nat) set) \<equiv> {(x,y). x \<le> y}"
 abbreviation "(natLess::(nat * nat) set) \<equiv> {(x,y). x < y}"
@@ -1263,7 +1263,7 @@ subsection {* The successor of a cardinal *}
 
 text{* First we define @{text "isCardSuc r r'"}, the notion of @{text "r'"}
 being a successor cardinal of @{text "r"}. Although the definition does
-not require @{text "r"} to be a cardinal, only this case will be meaningful.  *}
+not require @{text "r"} to be a cardinal, only this case will be meaningful. *}
 
 definition isCardSuc :: "'a rel \<Rightarrow> 'a set rel \<Rightarrow> bool"
 where
@@ -1314,7 +1314,7 @@ lemma cardSuc_ordLeq:
 using cardSuc_greater ordLeq_iff_ordLess_or_ordIso by blast
 
 text{* The minimality property of @{text "cardSuc"} originally present in its definition
-is local to the type @{text "'a set rel"}, i.e., that of @{text "cardSuc r"}:  *}
+is local to the type @{text "'a set rel"}, i.e., that of @{text "cardSuc r"}: *}
 
 lemma cardSuc_least_aux:
 "\<lbrakk>Card_order (r::'a rel); Card_order (r'::'a set rel); r <o r'\<rbrakk> \<Longrightarrow> cardSuc r \<le>o r'"
