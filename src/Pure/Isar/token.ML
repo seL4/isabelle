@@ -41,7 +41,7 @@ sig
   val is_space: T -> bool
   val is_blank: T -> bool
   val is_newline: T -> bool
-  val source_of: T -> string
+  val inner_syntax_of: T -> string
   val source_position_of: T -> Symbol_Pos.text * Position.T
   val content_of: T -> string
   val unparse: T -> string
@@ -206,7 +206,7 @@ fun is_newline (Token (_, (Space, x), _)) = String.isSuffix "\n" x
 
 (* token content *)
 
-fun source_of (Token ((source, (pos, _)), (_, x), _)) =
+fun inner_syntax_of (Token ((source, (pos, _)), (_, x), _)) =
   if YXML.detect x then x
   else YXML.string_of (XML.Elem (Markup.token (Position.properties_of pos), [XML.Text source]));
 

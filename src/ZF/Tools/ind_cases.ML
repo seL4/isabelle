@@ -57,7 +57,7 @@ fun inductive_cases args thy =
 
 val setup =
   Method.setup @{binding "ind_cases"}
-    (Scan.lift (Scan.repeat1 Args.name_source) >>
+    (Scan.lift (Scan.repeat1 Args.name_inner_syntax) >>
       (fn props => fn ctxt => Method.erule ctxt 0 (map (smart_cases ctxt) props)))
     "dynamic case analysis on sets";
 

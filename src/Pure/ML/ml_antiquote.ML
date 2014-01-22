@@ -99,14 +99,14 @@ val _ = Theory.setup
 
   value (Binding.name "cpat")
     (Args.context --
-      Scan.lift Args.name_source >> uncurry Proof_Context.read_term_pattern >> (fn t =>
+      Scan.lift Args.name_inner_syntax >> uncurry Proof_Context.read_term_pattern >> (fn t =>
         "Thm.cterm_of (Proof_Context.theory_of ML_context) " ^
           ML_Syntax.atomic (ML_Syntax.print_term t))));
 
 
 (* type classes *)
 
-fun class syn = Args.context -- Scan.lift Args.name_source >> (fn (ctxt, s) =>
+fun class syn = Args.context -- Scan.lift Args.name_inner_syntax >> (fn (ctxt, s) =>
   Proof_Context.read_class ctxt s
   |> syn ? Lexicon.mark_class
   |> ML_Syntax.print_string);
@@ -116,13 +116,13 @@ val _ = Theory.setup
   inline (Binding.name "class_syntax") (class true) #>
 
   inline (Binding.name "sort")
-    (Args.context -- Scan.lift Args.name_source >> (fn (ctxt, s) =>
+    (Args.context -- Scan.lift Args.name_inner_syntax >> (fn (ctxt, s) =>
       ML_Syntax.atomic (ML_Syntax.print_sort (Syntax.read_sort ctxt s)))));
 
 
 (* type constructors *)
 
-fun type_name kind check = Args.context -- Scan.lift (Parse.position Args.name_source)
+fun type_name kind check = Args.context -- Scan.lift (Parse.position Args.name_inner_syntax)
   >> (fn (ctxt, (s, pos)) =>
     let
       val Type (c, _) = Proof_Context.read_type_name_proper ctxt false s;
@@ -146,7 +146,7 @@ val _ = Theory.setup
 
 (* constants *)
 
-fun const_name check = Args.context -- Scan.lift (Parse.position Args.name_source)
+fun const_name check = Args.context -- Scan.lift (Parse.position Args.name_inner_syntax)
   >> (fn (ctxt, (s, pos)) =>
     let
       val Const (c, _) = Proof_Context.read_const_proper ctxt false s;
@@ -169,7 +169,7 @@ val _ = Theory.setup
       else error ("Unknown syntax const: " ^ quote c ^ Position.here pos))) #>
 
   inline (Binding.name "const")
-    (Args.context -- Scan.lift Args.name_source -- Scan.optional
+    (Args.context -- Scan.lift Args.name_inner_syntax -- Scan.optional
         (Scan.lift (Args.$$$ "(") |-- Parse.enum1' "," Args.typ --| Scan.lift (Args.$$$ ")")) []
       >> (fn ((ctxt, raw_c), Ts) =>
         let

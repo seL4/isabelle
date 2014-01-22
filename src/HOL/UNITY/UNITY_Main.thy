@@ -16,7 +16,7 @@ method_setup safety = {*
     "for proving safety properties"
 
 method_setup ensures_tac = {*
-  Args.goal_spec -- Scan.lift Args.name_source >>
+  Args.goal_spec -- Scan.lift Args.name_inner_syntax >>
   (fn (quant, s) => fn ctxt => SIMPLE_METHOD'' quant (ensures_tac ctxt s))
 *} "for proving progress properties"
 
