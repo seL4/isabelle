@@ -70,8 +70,9 @@ val _ = Theory.setup
         "args", "cargs", "pttrn", "pttrns", "idt", "idts", "aprop", "asms",
         "any", "prop'", "num_const", "float_const", "xnum_const", "num_position",
         "float_position", "xnum_position", "index", "struct", "tid_position",
-        "tvar_position", "id_position", "longid_position", "var_position", "str_position",
-        "cartouche_position", "type_name", "class_name"]))
+        "tvar_position", "id_position", "longid_position", "var_position",
+        "str_position", "string_position", "cartouche_position", "type_name",
+        "class_name"]))
   #> Sign.add_syntax_i (map (fn x => (x, typ "'a", NoSyn)) token_markers)
   #> Sign.add_syntax_i
    [("",            typ "prop' => prop",               Delimfix "_"),
@@ -155,6 +156,7 @@ val _ = Theory.setup
     ("_position",   typ "longid => longid_position",   Delimfix "_"),
     ("_position",   typ "var => var_position",         Delimfix "_"),
     ("_position",   typ "str_token => str_position",   Delimfix "_"),
+    ("_position",   typ "string_token => string_position", Delimfix "_"),
     ("_position",   typ "cartouche => cartouche_position", Delimfix "_"),
     ("_type_constraint_", typ "'a",                    NoSyn),
     ("_context_const", typ "id_position => logic",     Delimfix "CONST _"),

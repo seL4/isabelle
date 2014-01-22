@@ -43,6 +43,10 @@ hyps).  Potential INCOMPATIBILITY, tools need to observe standard
 context discipline.  See also Assumption.add_assumes and the more
 primitive Thm.assume_hyps.
 
+* Inner syntax token language allows regular quoted strings "..."
+(only makes sense in practice, if outer syntax is delimited
+differently).
+
 
 *** HOL ***
 
