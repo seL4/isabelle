@@ -419,7 +419,7 @@ text {*
   redundant locale instances are omitted.  A locale instance is
   redundant if it is subsumed by an instance encountered earlier.  A
   more detailed description of this process is available elsewhere
-  \cite{Ballarin2013}.
+  \cite{Ballarin2014}.
 *}
 
 
