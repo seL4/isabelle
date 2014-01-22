@@ -96,17 +96,17 @@ text {*
   introduction rule.  The default rule declarations of Isabelle/HOL
   already take care of most common situations.
 
-  @{rail "
+  @{rail \<open>
     (@@{command (HOL) inductive} | @@{command (HOL) inductive_set} |
       @@{command (HOL) coinductive} | @@{command (HOL) coinductive_set})
     @{syntax target}? \<newline>
-    @{syntax \"fixes\"} (@'for' @{syntax \"fixes\"})? (@'where' clauses)? \<newline>
+    @{syntax "fixes"} (@'for' @{syntax "fixes"})? (@'where' clauses)? \<newline>
     (@'monos' @{syntax thmrefs})?
     ;
     clauses: (@{syntax thmdecl}? @{syntax prop} + '|')
     ;
     @@{attribute (HOL) mono} (() | 'add' | 'del')
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -264,11 +264,11 @@ text {*
     @{command_def (HOL) "fun_cases"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
   \end{matharray}
 
-  @{rail "
-    @@{command (HOL) primrec} @{syntax target}? @{syntax \"fixes\"} @'where' equations
+  @{rail \<open>
+    @@{command (HOL) primrec} @{syntax target}? @{syntax "fixes"} @'where' equations
     ;
     (@@{command (HOL) fun} | @@{command (HOL) function}) @{syntax target}? functionopts?
-      @{syntax \"fixes\"} \<newline> @'where' equations
+      @{syntax "fixes"} \<newline> @'where' equations
     ;
 
     equations: (@{syntax thmdecl}? @{syntax prop} + '|')
@@ -278,7 +278,7 @@ text {*
     @@{command (HOL) termination} @{syntax term}?
     ;
     @@{command (HOL) fun_cases} (@{syntax thmdecl}? @{syntax prop} + @'and')
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -508,7 +508,7 @@ text {*
     @{method_def (HOL) induction_schema} & : & @{text method} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     @@{method (HOL) relation} @{syntax term}
     ;
     @@{method (HOL) lexicographic_order} (@{syntax clasimpmod} * )
@@ -518,7 +518,7 @@ text {*
     @@{method (HOL) induction_schema}
     ;
     orders: ( 'max' | 'min' | 'ms' ) *
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -574,11 +574,11 @@ text {*
     @{attribute_def (HOL) "partial_function_mono"} & : & @{text attribute} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     @@{command (HOL) partial_function} @{syntax target}?
-      '(' @{syntax nameref} ')' @{syntax \"fixes\"} \<newline>
+      '(' @{syntax nameref} ')' @{syntax "fixes"} \<newline>
       @'where' @{syntax thmdecl}? @{syntax prop}
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -649,7 +649,7 @@ text {*
   "recdef_tc"} for defining recursive are mostly obsolete; @{command
   (HOL) "function"} or @{command (HOL) "fun"} should be used instead.
 
-  @{rail "
+  @{rail \<open>
     @@{command (HOL) recdef} ('(' @'permissive' ')')? \<newline>
       @{syntax name} @{syntax term} (@{syntax prop} +) hints?
     ;
@@ -661,7 +661,7 @@ text {*
       (() | 'add' | 'del') ':' @{syntax thmrefs}) | @{syntax clasimpmod}
     ;
     tc: @{syntax nameref} ('(' @{syntax nat} ')')?
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -695,10 +695,10 @@ text {*
     @{attribute_def (HOL) recdef_wf} & : & @{text attribute} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     (@@{attribute (HOL) recdef_simp} | @@{attribute (HOL) recdef_cong} |
       @@{attribute (HOL) recdef_wf}) (() | 'add' | 'del')
-  "}
+  \<close>}
 *}
 
 
@@ -710,7 +710,7 @@ text {*
     @{command_def (HOL) "rep_datatype"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     @@{command (HOL) datatype} (spec + @'and')
     ;
     @@{command (HOL) rep_datatype} ('(' (@{syntax name} +) ')')? (@{syntax term} +)
@@ -719,7 +719,7 @@ text {*
     spec: @{syntax typespec_sorts} @{syntax mixfix}? '=' (cons + '|')
     ;
     cons: @{syntax name} (@{syntax type} * ) @{syntax mixfix}?
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -873,12 +873,12 @@ text {*
     @{command_def (HOL) "record"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     @@{command (HOL) record} @{syntax typespec_sorts} '=' \<newline>
       (@{syntax type} '+')? (constdecl +)
     ;
     constdecl: @{syntax name} '::' @{syntax type} @{syntax mixfix}?
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -1074,14 +1074,13 @@ text {*
   type_synonym} from Isabelle/Pure merely introduces syntactic
   abbreviations, without any logical significance.
 
-  @{rail "
+  @{rail \<open>
     @@{command (HOL) typedef} abs_type '=' rep_set
     ;
-
     abs_type: @{syntax typespec_sorts} @{syntax mixfix}?
     ;
     rep_set: @{syntax term} (@'morphisms' @{syntax name} @{syntax name})?
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -1198,10 +1197,9 @@ text {*
     @{command_def (HOL) "enriched_type"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     @@{command (HOL) enriched_type} (@{syntax name} ':')? @{syntax term}
-    ;
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -1265,28 +1263,26 @@ text {*
   packages. The user should consider using these two new packages for
   lifting definitions and transporting theorems.
 
-  @{rail "
-    @@{command (HOL) quotient_type} (spec);
-
+  @{rail \<open>
+    @@{command (HOL) quotient_type} (spec)
+    ;
     spec: @{syntax typespec} @{syntax mixfix}? '=' \<newline>
      @{syntax type} '/' ('partial' ':')? @{syntax term} \<newline>
-     (@'morphisms' @{syntax name} @{syntax name})? (@'parametric' @{syntax thmref})?;
-  "}
+     (@'morphisms' @{syntax name} @{syntax name})? (@'parametric' @{syntax thmref})?
+  \<close>}
 
-  @{rail "
+  @{rail \<open>
     @@{command (HOL) quotient_definition} constdecl? @{syntax thmdecl}? \<newline>
-    @{syntax term} 'is' @{syntax term};
-
+    @{syntax term} 'is' @{syntax term}
+    ;
     constdecl: @{syntax name} ('::' @{syntax type})? @{syntax mixfix}?
-  "}
+  \<close>}
 
-  @{rail "
+  @{rail \<open>
     @@{method (HOL) lifting} @{syntax thmrefs}?
     ;
-
     @@{method (HOL) lifting_setup} @{syntax thmrefs}?
-    ;
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -1399,12 +1395,12 @@ text {*
     @{command_def (HOL) "ax_specification"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
   \end{matharray}
 
-  @{rail "
-  (@@{command (HOL) specification} | @@{command (HOL) ax_specification})
-    '(' (decl +) ')' \<newline> (@{syntax thmdecl}? @{syntax prop} +)
-  ;
-  decl: ((@{syntax name} ':')? @{syntax term} '(' @'overloaded' ')'?)
-  "}
+  @{rail \<open>
+    (@@{command (HOL) specification} | @@{command (HOL) ax_specification})
+      '(' (decl +) ')' \<newline> (@{syntax thmdecl}? @{syntax prop} +)
+    ;
+    decl: ((@{syntax name} ':')? @{syntax term} '(' @'overloaded' ')'?)
+  \<close>}
 
   \begin{description}
 
@@ -1458,10 +1454,10 @@ text {*
   @{file "~~/src/HOL/ex/Adhoc_Overloading_Examples.thy"} and
   @{file "~~/src/HOL/Library/Monad_Syntax.thy"}.
 
-  @{rail "
+  @{rail \<open>
     (@@{command adhoc_overloading} | @@{command no_adhoc_overloading})
-    (@{syntax nameref} (@{syntax term} + ) + @'and')
-  "}
+      (@{syntax nameref} (@{syntax term} + ) + @'and')
+  \<close>}
 
   \begin{description}
 
@@ -1490,9 +1486,9 @@ text {*
     @{attribute_def (HOL) split_format}@{text "\<^sup>*"} & : & @{text attribute} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     @@{attribute (HOL) split_format} ('(' 'complete' ')')?
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -1626,27 +1622,27 @@ text {*
     @{attribute_def (HOL) "lifting_restore"} & : & @{text attribute} \\   
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     @@{command (HOL) setup_lifting} ('(' 'no_code' ')')? \<newline>
       @{syntax thmref} @{syntax thmref}? (@'parametric' @{syntax thmref})?;
-  "}
+  \<close>}
 
-  @{rail "
+  @{rail \<open>
     @@{command (HOL) lift_definition} @{syntax name} '::' @{syntax type}  @{syntax mixfix}? \<newline>
       'is' @{syntax term} (@'parametric' @{syntax thmref})?;
-  "}
+  \<close>}
 
-  @{rail "
+  @{rail \<open>
     @@{command (HOL) lifting_forget} @{syntax nameref};
-  "}
+  \<close>}
 
-  @{rail "
+  @{rail \<open>
     @@{command (HOL) lifting_update} @{syntax nameref};
-  "}
+  \<close>}
 
-  @{rail "
+  @{rail \<open>
     @@{attribute (HOL) lifting_restore} @{syntax thmref} (@{syntax thmref} @{syntax thmref})?;
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -1828,14 +1824,11 @@ text {*
   them as necessary when parsing a term. See
   \cite{traytel-berghofer-nipkow-2011} for details.
 
-  @{rail "
+  @{rail \<open>
     @@{attribute (HOL) coercion} (@{syntax term})?
     ;
-  "}
-  @{rail "
     @@{attribute (HOL) coercion_map} (@{syntax term})?
-    ;
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -1902,9 +1895,9 @@ text {*
     @{method_def (HOL) iprover} & : & @{text method} \\
   \end{matharray}
 
-  @{rail "
-    @@{method (HOL) iprover} ( @{syntax rulemod} * )
-  "}
+  @{rail \<open>
+    @@{method (HOL) iprover} (@{syntax rulemod} *)
+  \<close>}
 
   \begin{description}
 
@@ -1934,14 +1927,13 @@ text {*
     @{method_def (HOL) "metis"} & : & @{text method} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     @@{method (HOL) meson} @{syntax thmrefs}?
     ;
-
     @@{method (HOL) metis}
       ('(' ('partial_types' | 'full_types' | 'no_types' | @{syntax name}) ')')?
       @{syntax thmrefs}?
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -1968,13 +1960,13 @@ text {*
     @{attribute_def (HOL) algebra} & : & @{text attribute} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     @@{method (HOL) algebra}
       ('add' ':' @{syntax thmrefs})?
       ('del' ':' @{syntax thmrefs})?
     ;
     @@{attribute (HOL) algebra} (() | 'add' | 'del')
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -2051,9 +2043,9 @@ text {*
     @{method_def (HOL) "coherent"} & : & @{text method} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     @@{method (HOL) coherent} @{syntax thmrefs}?
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -2081,7 +2073,7 @@ text {*
     @{command_def (HOL) "sledgehammer_params"} & : & @{text "theory \<rightarrow> theory"}
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     @@{command (HOL) try}
     ;
 
@@ -2094,13 +2086,10 @@ text {*
 
     @@{command (HOL) sledgehammer_params} ( ( '[' args ']' ) ? )
     ;
-
     args: ( @{syntax name} '=' value + ',' )
     ;
-
     facts: '(' ( ( ( ( 'add' | 'del' ) ':' ) ? @{syntax thmrefs} ) + ) ? ')'
-    ;
-  "} % FIXME check args "value"
+  \<close>} % FIXME check args "value"
 
   \begin{description}
 
@@ -2150,7 +2139,7 @@ text {*
     @{command_def (HOL) "find_unused_assms"} & : & @{text "context \<rightarrow>"}
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     @@{command (HOL) value} ( '[' @{syntax name} ']' )? modes? @{syntax term}
     ;
 
@@ -2171,13 +2160,10 @@ text {*
 
     @@{command (HOL) find_unused_assms} @{syntax name}?
     ;
-
     modes: '(' (@{syntax name} +) ')'
     ;
-
     args: ( @{syntax name} '=' value + ',' )
-    ;
-  "} % FIXME check "value"
+  \<close>} % FIXME check "value"
 
   \begin{description}
 
@@ -2320,7 +2306,7 @@ text {*
     @{command_def (HOL) "inductive_cases"}@{text "\<^sup>*"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     @@{method (HOL) case_tac} @{syntax goal_spec}? @{syntax term} rule?
     ;
     @@{method (HOL) induct_tac} @{syntax goal_spec}? (@{syntax insts} * @'and') rule?
@@ -2329,9 +2315,8 @@ text {*
     ;
     @@{command (HOL) inductive_cases} (@{syntax thmdecl}? (@{syntax prop}+) + @'and')
     ;
-
     rule: 'rule' ':' @{syntax thmref}
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -2413,7 +2398,7 @@ text {* For validation purposes, it is often useful to \emph{execute}
     @{command_def (HOL) "code_pred"} & : & @{text "theory \<rightarrow> proof(prove)"}
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     @@{command (HOL) export_code} ( constexpr + ) \<newline>
        ( ( @'in' target ( @'module_name' @{syntax string} ) ? \<newline>
         ( @'file' @{syntax string} ) ? ( '(' args ')' ) ?) + ) ?
@@ -2553,7 +2538,7 @@ text {* For validation purposes, it is often useful to \emph{execute}
     ;
 
     modes: mode @'as' const
-  "}
+  \<close>}
 
   \begin{description}
 

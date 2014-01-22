@@ -24,8 +24,8 @@ sig
   val scan_tvar: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
   val is_tid: string -> bool
   datatype token_kind =
-    Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy |
-    NumSy | FloatSy | XNumSy | StrSy | Cartouche | Space | Comment | EOF
+    Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy | NumSy |
+    FloatSy | XNumSy | StrSy | StringSy | Cartouche | Space | Comment | EOF
   datatype token = Token of token_kind * string * Position.range
   val str_of_token: token -> string
   val pos_of_token: token -> Position.T
@@ -42,8 +42,10 @@ sig
   val matching_tokens: token * token -> bool
   val valued_token: token -> bool
   val predef_term: string -> token option
-  val implode_str: string list -> string
-  val explode_str: string -> string list
+  val implode_string: Symbol.symbol list -> string
+  val explode_string: string * Position.T -> Symbol_Pos.T list
+  val implode_str: Symbol.symbol list -> string
+  val explode_str: string * Position.T -> Symbol_Pos.T list
   val tokenize: Scan.lexicon -> bool -> Symbol_Pos.T list -> token list
   val read_indexname: string -> indexname
   val read_var: string -> term
@@ -87,7 +89,9 @@ end;
 
 open Basic_Symbol_Pos;
 
-fun !!! msg = Symbol_Pos.!!! (fn () => "Inner lexical error: " ^ msg);
+val err_prefix = "Inner lexical error: ";
+
+fun !!! msg = Symbol_Pos.!!! (fn () => err_prefix ^ msg);
 
 val scan_id = Symbol_Pos.scan_ident;
 val scan_longid = scan_id @@@ (Scan.repeat1 ($$$ "." @@@ scan_id) >> flat);
@@ -114,8 +118,8 @@ fun is_tid s =
 (** datatype token **)
 
 datatype token_kind =
-  Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy |
-  NumSy | FloatSy | XNumSy | StrSy | Cartouche | Space | Comment | EOF;
+  Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy | NumSy |
+  FloatSy | XNumSy | StrSy | StringSy | Cartouche | Space | Comment | EOF;
 
 datatype token = Token of token_kind * string * Position.range;
 
@@ -150,6 +154,7 @@ val terminal_kinds =
   ("float_token", FloatSy),
   ("xnum_token", XNumSy),
   ("str_token", StrSy),
+  ("string_token", StringSy),
   ("cartouche", Cartouche)];
 
 val terminals = map #1 terminal_kinds;
@@ -170,6 +175,7 @@ val token_kind_markup =
   | FloatSy => Markup.numeral
   | XNumSy => Markup.numeral
   | StrSy => Markup.inner_string
+  | StringSy => Markup.inner_string
   | Cartouche => Markup.inner_cartouche
   | Comment => Markup.inner_comment
   | _ => Markup.empty;
@@ -205,30 +211,45 @@ fun predef_term s =
   | NONE => NONE);
 
 
-(* str tokens *)
+
+(** string literals **)
+
+fun explode_literal scan_body (str, pos) =
+  (case Scan.read Symbol_Pos.stopper scan_body (Symbol_Pos.explode (str, pos)) of
+    SOME ss => ss
+  | _ => error (err_prefix ^ "malformed string literal " ^ quote str ^ Position.here pos));
+
+
+(* string *)
+
+val scan_string = Scan.trace (Symbol_Pos.scan_string_qq err_prefix) >> #2;
+val scan_string_body = Symbol_Pos.scan_string_qq err_prefix >> (#1 o #2);
+
+fun implode_string ss = quote (implode (map (fn "\"" => "\\\"" | s => s) ss));
+val explode_string = explode_literal scan_string_body;
+
+
+(* str *)
 
 val scan_chr =
-  $$$ "\\" |-- $$$ "'" ||
+  $$ "\\" |-- $$$ "'" ||
   Scan.one
     ((fn s => s <> "\\" andalso s <> "'" andalso Symbol.is_regular s) o
       Symbol_Pos.symbol) >> single ||
-  $$$ "'" --| Scan.ahead (~$$$ "'");
+  $$$ "'" --| Scan.ahead (~$$ "'");
 
 val scan_str =
-  $$$ "'" @@@ $$$ "'" @@@ !!! "missing end of string"
-    ((Scan.repeat scan_chr >> flat) @@@ $$$ "'" @@@ $$$ "'");
+  Scan.ahead ($$ "'" -- $$ "'") |--
+    !!! "unclosed string literal"
+      ($$$ "'" @@@ $$$ "'" @@@ (Scan.repeat scan_chr >> flat) @@@ $$$ "'" @@@ $$$ "'");
 
 val scan_str_body =
-  $$$ "'" |-- $$$ "'" |-- !!! "missing end of string"
-    ((Scan.repeat scan_chr >> flat) --| $$$ "'" --| $$$ "'");
+  Scan.ahead ($$ "'" |-- $$ "'") |--
+    !!! "unclosed string literal"
+      ($$ "'" |-- $$ "'" |-- (Scan.repeat scan_chr >> flat) --| $$ "'" --| $$ "'");
 
-
-fun implode_str cs = enclose "''" "''" (implode (map (fn "'" => "\\'" | c => c) cs));
-
-fun explode_str str =
-  (case Scan.read Symbol_Pos.stopper scan_str_body (Symbol_Pos.explode (str, Position.none)) of
-    SOME cs => map Symbol_Pos.symbol cs
-  | _ => error ("Inner lexical error: literal string expected at " ^ quote str));
+fun implode_str ss = enclose "''" "''" (implode (map (fn "'" => "\\'" | s => s) ss));
+val explode_str = explode_literal scan_str_body;
 
 
 
@@ -258,17 +279,18 @@ fun tokenize lex xids syms =
     val scan_lit = Scan.literal lex >> token Literal;
 
     val scan_token =
-      Symbol_Pos.scan_cartouche !!! >> token Cartouche ||
-      Symbol_Pos.scan_comment !!! >> token Comment ||
+      Symbol_Pos.scan_cartouche err_prefix >> token Cartouche ||
+      Symbol_Pos.scan_comment err_prefix >> token Comment ||
       Scan.max token_leq scan_lit scan_val ||
+      scan_string >> token StringSy ||
       scan_str >> token StrSy ||
       Scan.many1 (Symbol.is_blank o Symbol_Pos.symbol) >> token Space;
   in
     (case Scan.error
         (Scan.finite Symbol_Pos.stopper (Scan.repeat scan_token)) syms of
       (toks, []) => toks
-    | (_, ss) => error ("Inner lexical error at: " ^ Symbol_Pos.content ss ^
-        Position.here (#1 (Symbol_Pos.range ss))))
+    | (_, ss) =>
+        error (err_prefix ^ Symbol_Pos.content ss ^ Position.here (#1 (Symbol_Pos.range ss))))
   end;
 
 
@@ -293,7 +315,7 @@ val scan_vname =
 
     val scan =
       (scan_id >> map Symbol_Pos.symbol) --
-      Scan.optional ($$$ "." |-- scan_nat >> (nat 0 o map Symbol_Pos.symbol)) ~1;
+      Scan.optional ($$ "." |-- scan_nat >> (nat 0 o map Symbol_Pos.symbol)) ~1;
   in
     scan >>
       (fn (cs, ~1) => chop_idx (rev cs) []
@@ -302,7 +324,7 @@ val scan_vname =
 
 in
 
-val scan_indexname = $$$ "'" |-- scan_vname >> (fn (x, i) => ("'" ^ x, i)) || scan_vname;
+val scan_indexname = $$ "'" |-- scan_vname >> (fn (x, i) => ("'" ^ x, i)) || scan_vname;
 
 end;
 
@@ -320,7 +342,7 @@ fun read_indexname s =
 fun read_var str =
   let
     val scan =
-      $$$ "?" |-- scan_indexname --| Scan.ahead (Scan.one Symbol_Pos.is_eof)
+      $$ "?" |-- scan_indexname --| Scan.ahead (Scan.one Symbol_Pos.is_eof)
         >> Syntax.var ||
       Scan.many (Symbol.is_regular o Symbol_Pos.symbol)
         >> (Syntax.free o implode o map Symbol_Pos.symbol);
@@ -330,7 +352,7 @@ fun read_var str =
 (* read_variable *)
 
 fun read_variable str =
-  let val scan = $$$ "?" |-- scan_indexname || scan_indexname
+  let val scan = $$ "?" |-- scan_indexname || scan_indexname
   in Scan.read Symbol_Pos.stopper scan (Symbol_Pos.explode (str, Position.none)) end;
 
 

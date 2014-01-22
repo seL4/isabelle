@@ -85,7 +85,7 @@ val _ = Theory.setup
 
 val and_ = Args.$$$ "and";
 val by = Args.$$$ "by";
-val goal = Scan.unless (by || and_) Args.name_source;
+val goal = Scan.unless (by || and_) Args.name_inner_syntax;
 
 val _ = Theory.setup
   (ML_Context.add_antiq (Binding.name "lemma")

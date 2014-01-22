@@ -53,11 +53,11 @@ text {*
     @{command_def "notepad"} & : & @{text "local_theory \<rightarrow> proof(state)"} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     @@{command notepad} @'begin'
     ;
     @@{command end}
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -183,7 +183,7 @@ text {*
   exporting some result @{text "x \<equiv> t \<turnstile> \<phi>[x]"} yields @{text "\<turnstile>
   \<phi>[t]"}.
 
-  @{rail "
+  @{rail \<open>
     @@{command fix} (@{syntax vars} + @'and')
     ;
     (@@{command assume} | @@{command presume}) (@{syntax props} + @'and')
@@ -192,7 +192,7 @@ text {*
     ;
     def: @{syntax thmdecl}? \<newline>
       @{syntax name} ('==' | '\<equiv>') @{syntax term} @{syntax term_pat}?
-  "}
+  \<close>}
 
   \begin{description}
   
@@ -262,9 +262,9 @@ text {*
   input process just after type checking.  Also note that @{command
   "def"} does not support polymorphism.
 
-  @{rail "
+  @{rail \<open>
     @@{command let} ((@{syntax term} + @'and') '=' @{syntax term} + @'and')
-  "}
+  \<close>}
 
   The syntax of @{keyword "is"} patterns follows @{syntax term_pat} or
   @{syntax prop_pat} (see \secref{sec:term-decls}).
@@ -318,12 +318,12 @@ text {*
   to the most recently established facts, but only \emph{before}
   issuing a follow-up claim.
 
-  @{rail "
+  @{rail \<open>
     @@{command note} (@{syntax thmdef}? @{syntax thmrefs} + @'and')
     ;
     (@@{command from} | @@{command with} | @@{command using} | @@{command unfolding})
       (@{syntax thmrefs} + @'and')
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -429,7 +429,7 @@ text {*
   contexts of (essentially a big disjunction of eliminated parameters
   and assumptions, cf.\ \secref{sec:obtain}).
 
-  @{rail "
+  @{rail \<open>
     (@@{command lemma} | @@{command theorem} | @@{command corollary} |
      @@{command schematic_lemma} | @@{command schematic_theorem} |
      @@{command schematic_corollary}) @{syntax target}? (goal | longgoal)
@@ -441,12 +441,12 @@ text {*
   
     goal: (@{syntax props} + @'and')
     ;
-    longgoal: @{syntax thmdecl}? (@{syntax_ref \"includes\"}?) (@{syntax context_elem} * ) conclusion
+    longgoal: @{syntax thmdecl}? (@{syntax_ref "includes"}?) (@{syntax context_elem} * ) conclusion
     ;
     conclusion: @'shows' goal | @'obtains' (@{syntax parname}? case + '|')
     ;
     case: (@{syntax vars} + @'and') @'where' (@{syntax props} + @'and')
-  "}
+  \<close>}
 
   \begin{description}
   
@@ -541,12 +541,12 @@ text {* Proof methods are either basic ones, or expressions composed
   nameref}~@{syntax args} specifications.  Note that parentheses may
   be dropped for single method specifications (with no arguments).
 
-  @{rail "
+  @{rail \<open>
     @{syntax_def method}:
       (@{syntax nameref} | '(' methods ')') (() | '?' | '+' | '[' @{syntax nat}? ']')
     ;
     methods: (@{syntax nameref} @{syntax args} | @{syntax method}) + (',' | '|')
-  "}
+  \<close>}
 
   Proper Isar proof methods do \emph{not} admit arbitrary goal
   addressing, but refer either to the first sub-goal or all sub-goals
@@ -564,10 +564,10 @@ text {* Proof methods are either basic ones, or expressions composed
   all goals, and ``@{text "[n-]"}'' to all goals starting from @{text
   "n"}.
 
-  @{rail "
+  @{rail \<open>
     @{syntax_def goal_spec}:
       '[' (@{syntax nat} '-' @{syntax nat} | @{syntax nat} '-' | @{syntax nat} | '!' ) ']'
-  "}
+  \<close>}
 *}
 
 
@@ -621,15 +621,15 @@ text {*
   default terminal method.  Any remaining goals are always solved by
   assumption in the very last step.
 
-  @{rail "
+  @{rail \<open>
     @@{command proof} method?
     ;
     @@{command qed} method?
     ;
-    @@{command \"by\"} method method?
+    @@{command "by"} method method?
     ;
-    (@@{command \".\"} | @@{command \"..\"} | @@{command sorry})
-  "}
+    (@@{command "."} | @@{command ".."} | @@{command sorry})
+  \<close>}
 
   \begin{description}
   
@@ -706,7 +706,7 @@ text {*
     @{attribute_def "where"} & : & @{text attribute} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     @@{method fact} @{syntax thmrefs}?
     ;
     @@{method (Pure) rule} @{syntax thmrefs}?
@@ -723,10 +723,10 @@ text {*
     ;
     @@{attribute of} @{syntax insts} ('concl' ':' @{syntax insts})?
     ;
-    @@{attribute \"where\"}
+    @@{attribute "where"}
       ((@{syntax name} | @{syntax var} | @{syntax typefree} | @{syntax typevar}) '='
       (@{syntax type} | @{syntax term}) * @'and')
-  "}
+  \<close>}
 
   \begin{description}
   
@@ -846,13 +846,13 @@ text {*
     @{command_def "back"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow> proof"} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     ( @@{command apply} | @@{command apply_end} ) @{syntax method}
     ;
     @@{command defer} @{syntax nat}?
     ;
     @@{command prefer} @{syntax nat}
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -907,10 +907,9 @@ text {*
     @{command_def "method_setup"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     @@{command method_setup} @{syntax name} '=' @{syntax text} @{syntax text}?
-    ;
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -963,12 +962,12 @@ text {*
   later, provided that the corresponding parameters do \emph{not}
   occur in the conclusion.
 
-  @{rail "
+  @{rail \<open>
     @@{command obtain} @{syntax parname}? (@{syntax vars} + @'and')
       @'where' (@{syntax props} + @'and')
     ;
     @@{command guess} (@{syntax vars} + @'and')
-  "}
+  \<close>}
 
   The derived Isar command @{command "obtain"} is defined as follows
   (where @{text "b\<^sub>1, \<dots>, b\<^sub>k"} shall refer to (optional)
@@ -1078,11 +1077,11 @@ text {*
     @{command "ultimately"} & \equiv & @{command "moreover"}~@{command "from"}~@{text calculation} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     (@@{command also} | @@{command finally}) ('(' @{syntax thmrefs} ')')?
     ;
     @@{attribute trans} (() | 'add' | 'del')
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -1195,7 +1194,7 @@ text {*
   derived manually become ready to use in advanced case analysis
   later.
 
-  @{rail "
+  @{rail \<open>
     @@{command case} (caseref | '(' caseref (('_' | @{syntax name}) *) ')')
     ;
     caseref: nameref attributes?
@@ -1208,7 +1207,7 @@ text {*
     @@{attribute params} ((@{syntax name} * ) + @'and')
     ;
     @@{attribute consumes} @{syntax int}?
-  "}
+  \<close>}
 
   \begin{description}
   
@@ -1303,7 +1302,7 @@ text {*
   the names of the facts in the local context invoked by the @{command "case"}
   command.
 
-  @{rail "
+  @{rail \<open>
     @@{method cases} ('(' 'no_simp' ')')? \<newline>
       (@{syntax insts} * @'and') rule?
     ;
@@ -1322,7 +1321,7 @@ text {*
     arbitrary: 'arbitrary' ':' ((@{syntax term} * ) @'and' +)
     ;
     taking: 'taking' ':' @{syntax insts}
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -1499,7 +1498,7 @@ text {*
     @{attribute_def coinduct} & : & @{text attribute} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     @@{attribute cases} spec
     ;
     @@{attribute induct} spec
@@ -1508,7 +1507,7 @@ text {*
     ;
 
     spec: (('type' | 'pred' | 'set') ':' @{syntax nameref}) | 'del'
-  "}
+  \<close>}
 
   \begin{description}
 

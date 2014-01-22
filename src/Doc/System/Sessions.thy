@@ -48,7 +48,7 @@ text {* Session specifications reside in files called @{verbatim ROOT}
   mode @{verbatim "isabelle-root"} for session ROOT files, which is
   enabled by default for any file of that name.
 
-  @{rail "
+  @{rail \<open>
     @{syntax_def session_chapter}: @'chapter' @{syntax name}
     ;
 
@@ -73,7 +73,7 @@ text {* Session specifications reside in files called @{verbatim ROOT}
     theories: @'theories' opts? ( @{syntax name} * )
     ;
     files: @'files' ( @{syntax name} + )
-    "}
+  \<close>}
 
   \begin{description}
 

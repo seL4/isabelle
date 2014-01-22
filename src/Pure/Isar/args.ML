@@ -29,9 +29,9 @@ sig
   val bracks: 'a parser -> 'a parser
   val mode: string -> bool parser
   val maybe: 'a parser -> 'a option parser
-  val cartouche_source: string parser
+  val cartouche_inner_syntax: string parser
   val cartouche_source_position: (Symbol_Pos.text * Position.T) parser
-  val name_source: string parser
+  val name_inner_syntax: string parser
   val name_source_position: (Symbol_Pos.text * Position.T) parser
   val name: string parser
   val binding: binding parser
@@ -151,10 +151,10 @@ fun mode s = Scan.optional (parens ($$$ s) >> K true) false;
 fun maybe scan = $$$ "_" >> K NONE || scan >> SOME;
 
 val cartouche = token Parse.cartouche;
-val cartouche_source = cartouche >> Token.source_of;
+val cartouche_inner_syntax = cartouche >> Token.inner_syntax_of;
 val cartouche_source_position = cartouche >> Token.source_position_of;
 
-val name_source = named >> Token.source_of;
+val name_inner_syntax = named >> Token.inner_syntax_of;
 val name_source_position = named >> Token.source_position_of;
 
 val name = named >> Token.content_of;
@@ -182,11 +182,11 @@ val internal_fact = value (fn Token.Fact ths => ths);
 val internal_attribute = value (fn Token.Attribute att => att);
 
 fun named_text intern = internal_text || named >> evaluate Token.Text (intern o Token.content_of);
-fun named_typ readT = internal_typ || named >> evaluate Token.Typ (readT o Token.source_of);
-fun named_term read = internal_term || named >> evaluate Token.Term (read o Token.source_of);
+fun named_typ readT = internal_typ || named >> evaluate Token.Typ (readT o Token.inner_syntax_of);
+fun named_term read = internal_term || named >> evaluate Token.Term (read o Token.inner_syntax_of);
 
 fun named_fact get = internal_fact || named >> evaluate Token.Fact (get o Token.content_of) ||
-  alt_string >> evaluate Token.Fact (get o Token.source_of);
+  alt_string >> evaluate Token.Fact (get o Token.inner_syntax_of);
 
 fun named_attribute att =
   internal_attribute ||

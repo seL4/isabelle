@@ -8,6 +8,8 @@ signature SYMBOL_POS =
 sig
   type T = Symbol.symbol * Position.T
   val symbol: T -> Symbol.symbol
+  val $$ : Symbol.symbol -> T list -> T * T list
+  val ~$$ : Symbol.symbol -> T list -> T * T list
   val $$$ : Symbol.symbol -> T list -> T list * T list
   val ~$$$ : Symbol.symbol -> T list -> T list * T list
   val content: T list -> string
@@ -26,16 +28,11 @@ sig
   val quote_string_q: string -> string
   val quote_string_qq: string -> string
   val quote_string_bq: string -> string
-  val scan_cartouche: (string -> (T list -> T list * T list) -> T list -> T list * T list) ->
-    T list -> T list * T list
-  val scan_cartouche_body: (string -> (T list -> T list * T list) -> T list -> T list * T list) ->
-    T list -> T list * T list
+  val scan_cartouche: string -> T list -> T list * T list
   val recover_cartouche: T list -> T list * T list
   val cartouche_content: T list -> T list
-  val scan_comment: (string -> (T list -> T list * T list) -> T list -> T list * T list) ->
-    T list -> T list * T list
-  val scan_comment_body: (string -> (T list -> T list * T list) -> T list -> T list * T list) ->
-    T list -> T list * T list
+  val scan_comment: string -> T list -> T list * T list
+  val scan_comment_body: string -> T list -> T list * T list
   val recover_comment: T list -> T list * T list
   val source: Position.T -> (Symbol.symbol, 'a) Source.source ->
     (T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source
@@ -91,6 +88,8 @@ fun !!! text scan =
 fun change_prompt scan = Scan.prompt "# " scan;
 
 fun $$ s = Scan.one (fn x => symbol x = s);
+fun ~$$ s = Scan.one (fn x => symbol x <> s);
+
 fun $$$ s = Scan.one (fn x => symbol x = s) >> single;
 fun ~$$$ s = Scan.one (fn x => symbol x <> s) >> single;
 
@@ -115,8 +114,10 @@ fun scan_str q err_prefix =
   Scan.one (fn (s, _) => s <> q andalso s <> "\\" andalso Symbol.is_regular s) >> single;
 
 fun scan_strs q err_prefix =
-  (scan_pos --| $$$ q) -- !!! (fn () => err_prefix ^ "missing quote at end of string")
-    (change_prompt ((Scan.repeat (scan_str q err_prefix) >> flat) -- ($$$ q |-- scan_pos)));
+  Scan.ahead ($$ q) |--
+    !!! (fn () => err_prefix ^ "unclosed string literal")
+      ((scan_pos --| $$$ q) --
+        (change_prompt ((Scan.repeat (scan_str q err_prefix) >> flat) -- ($$$ q |-- scan_pos))));
 
 fun recover_strs q =
   $$$ q @@@ (Scan.repeat (Scan.permissive (scan_str q "")) >> flat);
@@ -159,29 +160,20 @@ end;
 
 (* nested text cartouches *)
 
-local
+val scan_cartouche_depth =
+  Scan.repeat1 (Scan.depend (fn (d: int) =>
+    $$ "\\<open>" >> pair (d + 1) ||
+      (if d > 0 then
+        Scan.one (fn (s, _) => s <> "\\<close>" andalso Symbol.is_regular s) >> pair d ||
+        $$ "\\<close>" >> pair (d - 1)
+      else Scan.fail)));
 
-val scan_cart =
-  Scan.depend (fn (d: int) => $$ "\\<open>" >> pair (d + 1)) ||
-  Scan.depend (fn 0 => Scan.fail | d => $$ "\\<close>" >> pair (d - 1)) ||
-  Scan.lift (Scan.one (fn (s, _) => s <> "\\<close>" andalso Symbol.is_regular s));
+fun scan_cartouche err_prefix =
+  Scan.ahead ($$ "\\<open>") |--
+    !!! (fn () => err_prefix ^ "unclosed text cartouche")
+      (change_prompt (Scan.provide (fn d => d = 0) 0 scan_cartouche_depth));
 
-val scan_carts = Scan.pass 0 (Scan.repeat scan_cart);
-
-val scan_body = change_prompt scan_carts;
-
-in
-
-fun scan_cartouche cut =
-  $$ "\\<open>" ::: cut "unclosed text cartouche" (scan_body @@@ $$$ "\\<close>");
-
-fun scan_cartouche_body cut =
-  $$ "\\<open>" |-- cut "unclosed text cartouche" (scan_body --| $$ "\\<close>");
-
-val recover_cartouche =
-  $$$ "\\<open>" @@@ scan_carts;
-
-end;
+val recover_cartouche = Scan.pass 0 scan_cartouche_depth;
 
 fun cartouche_content syms =
   let
@@ -214,11 +206,15 @@ val scan_body = change_prompt scan_cmts;
 
 in
 
-fun scan_comment cut =
-  $$$ "(" @@@ $$$ "*" @@@ cut "missing end of comment" (scan_body @@@ $$$ "*" @@@ $$$ ")");
+fun scan_comment err_prefix =
+  Scan.ahead ($$ "(" -- $$ "*") |--
+    !!! (fn () => err_prefix ^ "unclosed comment")
+      ($$$ "(" @@@ $$$ "*" @@@ scan_body @@@ $$$ "*" @@@ $$$ ")");
 
-fun scan_comment_body cut =
-  $$$ "(" |-- $$$ "*" |-- cut "missing end of comment" (scan_body --| $$$ "*" --| $$$ ")");
+fun scan_comment_body err_prefix =
+  Scan.ahead ($$ "(" -- $$ "*") |--
+    !!! (fn () => err_prefix ^ "unclosed comment")
+      ($$ "(" |-- $$ "*" |-- scan_body --| $$ "*" --| $$ ")");
 
 val recover_comment =
   $$$ "(" @@@ $$$ "*" @@@ scan_cmts;
@@ -284,6 +280,8 @@ end;
 
 structure Basic_Symbol_Pos =   (*not open by default*)
 struct
+  val $$ = Symbol_Pos.$$;
+  val ~$$ = Symbol_Pos.~$$;
   val $$$ = Symbol_Pos.$$$;
   val ~$$$ = Symbol_Pos.~$$$;
 end;

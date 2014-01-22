@@ -47,13 +47,13 @@ text {*
   markup commands, but have a different status within Isabelle/Isar
   syntax.
 
-  @{rail "
+  @{rail \<open>
     (@@{command chapter} | @@{command section} | @@{command subsection} |
       @@{command subsubsection} | @@{command text}) @{syntax target}? @{syntax text}
     ;
     (@@{command header} | @@{command text_raw} | @@{command sect} | @@{command subsect} |
       @@{command subsubsect} | @@{command txt} | @@{command txt_raw}) @{syntax text}
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -148,7 +148,7 @@ text {*
   context.
 
   %% FIXME less monolithic presentation, move to individual sections!?
-  @{rail "
+  @{rail \<open>
     '@{' antiquotation '}'
     ;
     @{syntax_def antiquotation}:
@@ -176,7 +176,7 @@ text {*
       @@{antiquotation ML_op} options @{syntax name} |
       @@{antiquotation ML_type} options @{syntax name} |
       @@{antiquotation ML_struct} options @{syntax name} |
-      @@{antiquotation \"file\"} options @{syntax name} |
+      @@{antiquotation "file"} options @{syntax name} |
       @@{antiquotation file_unchecked} options @{syntax name} |
       @@{antiquotation url} options @{syntax name}
     ;
@@ -187,7 +187,7 @@ text {*
     styles: '(' (style + ',') ')'
     ;
     style: (@{syntax name} +)
-  "}
+  \<close>}
 
   Note that the syntax of antiquotations may \emph{not} include source
   comments @{verbatim "(*"}~@{text "\<dots>"}~@{verbatim "*)"} nor verbatim
@@ -404,11 +404,11 @@ text {* Each Isabelle/Isar command may be decorated by additional
   presentation tags, to indicate some modification in the way it is
   printed in the document.
 
-  @{rail "
+  @{rail \<open>
     @{syntax_def tags}: ( tag * )
     ;
     tag: '%' (@{syntax ident} | @{syntax string})
-  "}
+  \<close>}
 
   Some tags are pre-declared for certain classes of commands, serving
   as default markup if no tags are given in the text:
@@ -457,7 +457,9 @@ text {*
     @{antiquotation_def "rail"} & : & @{text antiquotation} \\
   \end{matharray}
 
-  @{rail "'rail' string"}
+  @{rail \<open>
+    'rail' (@{syntax string} | @{syntax cartouche})
+  \<close>}
 
   The @{antiquotation rail} antiquotation allows to include syntax
   diagrams into Isabelle documents.  {\LaTeX} requires the style file
@@ -468,7 +470,7 @@ text {*
   The rail specification language is quoted here as Isabelle @{syntax
   string}; it has its own grammar given below.
 
-  @{rail "
+  @{rail \<open>
   rule? + ';'
   ;
   rule: ((identifier | @{syntax antiquotation}) ':')? body
@@ -479,13 +481,13 @@ text {*
   ;
   atom: '(' body? ')' | identifier |
     '@'? (string | @{syntax antiquotation}) |
-    '\\\\\\\\'
-  "}
+    '\<newline>'
+  \<close>}
 
   The lexical syntax of @{text "identifier"} coincides with that of
   @{syntax ident} in regular Isabelle syntax, but @{text string} uses
   single quotes instead of double quotes of the standard @{syntax
-  string} category, to avoid extra escapes.
+  string} category.
 
   Each @{text rule} defines a formal language (with optional name),
   using a notation that is similar to EBNF or regular expressions with
@@ -496,62 +498,62 @@ text {*
 
   \item Empty @{verbatim "()"}
 
-  @{rail "()"}
+  @{rail \<open>()\<close>}
 
   \item Nonterminal @{verbatim "A"}
 
-  @{rail "A"}
+  @{rail \<open>A\<close>}
 
   \item Nonterminal via Isabelle antiquotation
   @{verbatim "@{syntax method}"}
 
-  @{rail "@{syntax method}"}
+  @{rail \<open>@{syntax method}\<close>}
 
   \item Terminal @{verbatim "'xyz'"}
 
-  @{rail "'xyz'"}
+  @{rail \<open>'xyz'\<close>}
 
   \item Terminal in keyword style @{verbatim "@'xyz'"}
 
-  @{rail "@'xyz'"}
+  @{rail \<open>@'xyz'\<close>}
 
   \item Terminal via Isabelle antiquotation
   @{verbatim "@@{method rule}"}
 
-  @{rail "@@{method rule}"}
+  @{rail \<open>@@{method rule}\<close>}
 
   \item Concatenation @{verbatim "A B C"}
 
-  @{rail "A B C"}
+  @{rail \<open>A B C\<close>}
 
   \item Newline inside concatenation
   @{verbatim "A B C \<newline> D E F"}
 
-  @{rail "A B C \<newline> D E F"}
+  @{rail \<open>A B C \<newline> D E F\<close>}
 
   \item Variants @{verbatim "A | B | C"}
 
-  @{rail "A | B | C"}
+  @{rail \<open>A | B | C\<close>}
 
   \item Option @{verbatim "A ?"}
 
-  @{rail "A ?"}
+  @{rail \<open>A ?\<close>}
 
   \item Repetition @{verbatim "A *"}
 
-  @{rail "A *"}
+  @{rail \<open>A *\<close>}
 
   \item Repetition with separator @{verbatim "A * sep"}
 
-  @{rail "A * sep"}
+  @{rail \<open>A * sep\<close>}
 
   \item Strict repetition @{verbatim "A +"}
 
-  @{rail "A +"}
+  @{rail \<open>A +\<close>}
 
   \item Strict repetition with separator @{verbatim "A + sep"}
 
-  @{rail "A + sep"}
+  @{rail \<open>A + sep\<close>}
 
   \end{itemize}
 *}
@@ -564,10 +566,9 @@ text {*
     @{command_def "display_drafts"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     @@{command display_drafts} (@{syntax name} +)
-
-  "}
+  \<close>}
 
   \begin{description}
 

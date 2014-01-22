@@ -167,7 +167,7 @@ val not_eof = RESET_VALUE (Scan.one Token.not_eof);
 
 fun position scan = (Scan.ahead not_eof >> Token.position_of) -- scan >> Library.swap;
 fun source_position atom = Scan.ahead atom |-- not_eof >> Token.source_position_of;
-fun inner_syntax atom = Scan.ahead atom |-- not_eof >> Token.source_of;
+fun inner_syntax atom = Scan.ahead atom |-- not_eof >> Token.inner_syntax_of;
 
 fun kind k =
   group (fn () => Token.str_of_kind k)

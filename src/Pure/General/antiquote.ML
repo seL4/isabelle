@@ -45,20 +45,20 @@ local
 val err_prefix = "Antiquotation lexical error: ";
 
 val scan_txt =
-  $$$ "@" --| Scan.ahead (~$$$ "{") ||
+  $$$ "@" --| Scan.ahead (~$$ "{") ||
   Scan.one (fn (s, _) => s <> "@" andalso Symbol.is_regular s) >> single;
 
 val scan_ant =
   Scan.trace (Symbol_Pos.scan_string_qq err_prefix || Symbol_Pos.scan_string_bq err_prefix) >> #2 ||
-  Scan.trace (Symbol_Pos.scan_cartouche (fn s => Symbol_Pos.!!! (fn () => err_prefix ^ s))) >> #2 ||
+  Scan.trace (Symbol_Pos.scan_cartouche err_prefix) >> #2 ||
   Scan.one (fn (s, _) => s <> "}" andalso Symbol.is_regular s) >> single;
 
 in
 
 val scan_antiq =
-  Symbol_Pos.scan_pos -- ($$$ "@" |-- $$$ "{" |--
+  Symbol_Pos.scan_pos -- ($$ "@" |-- $$ "{" |--
     Symbol_Pos.!!! (fn () => err_prefix ^ "missing closing brace")
-      (Scan.repeat scan_ant -- ($$$ "}" |-- Symbol_Pos.scan_pos)))
+      (Scan.repeat scan_ant -- ($$ "}" |-- Symbol_Pos.scan_pos)))
   >> (fn (pos1, (body, pos2)) => (flat body, Position.range pos1 pos2));
 
 val scan_text = scan_antiq >> Antiq || Scan.repeat1 scan_txt >> (Text o flat);

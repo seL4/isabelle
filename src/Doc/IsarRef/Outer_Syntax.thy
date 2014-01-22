@@ -72,9 +72,9 @@ text {*
     @{command_def "help"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     @@{command help} (@{syntax name} * )
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -233,14 +233,14 @@ text {* Entity @{syntax name} usually refers to any name of types,
   Already existing objects are usually referenced by @{syntax
   nameref}.
 
-  @{rail "
+  @{rail \<open>
     @{syntax_def name}: @{syntax ident} | @{syntax symident} |
       @{syntax string} | @{syntax nat}
     ;
     @{syntax_def parname}: '(' @{syntax name} ')'
     ;
     @{syntax_def nameref}: @{syntax name} | @{syntax longident}
-  "}
+  \<close>}
 *}
 
 
@@ -250,11 +250,11 @@ text {* The outer lexical syntax (\secref{sec:outer-lex}) admits
   natural numbers and floating point numbers.  These are combined as
   @{syntax int} and @{syntax real} as follows.
 
-  @{rail "
+  @{rail \<open>
     @{syntax_def int}: @{syntax nat} | '-' @{syntax nat}
     ;
     @{syntax_def real}: @{syntax float} | @{syntax int}
-  "}
+  \<close>}
 
   Note that there is an overlap with the category @{syntax name},
   which also includes @{syntax nat}.
@@ -271,11 +271,11 @@ text {* Large chunks of plain @{syntax text} are usually given
   @{verbatim "--"}~@{syntax text}.  Any number of these may occur
   within Isabelle/Isar commands.
 
-  @{rail "
+  @{rail \<open>
     @{syntax_def text}: @{syntax verbatim} | @{syntax nameref}
     ;
     @{syntax_def comment}: '--' @{syntax text}
-  "}
+  \<close>}
 *}
 
 
@@ -288,13 +288,13 @@ text {*
   intersection of these classes.  The syntax of type arities is given
   directly at the outer level.
 
-  @{rail "
+  @{rail \<open>
     @{syntax_def classdecl}: @{syntax name} (('<' | '\<subseteq>') (@{syntax nameref} + ','))?
     ;
     @{syntax_def sort}: @{syntax nameref}
     ;
     @{syntax_def arity}: ('(' (@{syntax sort} + ',') ')')? @{syntax sort}
-  "}
+  \<close>}
 *}
 
 
@@ -314,38 +314,38 @@ text {*
   by commands or other keywords already (such as @{verbatim "="} or
   @{verbatim "+"}).
 
-  @{rail "
+  @{rail \<open>
     @{syntax_def type}: @{syntax nameref} | @{syntax typefree} |
       @{syntax typevar}
     ;
     @{syntax_def term}: @{syntax nameref} | @{syntax var}
     ;
     @{syntax_def prop}: @{syntax term}
-  "}
+  \<close>}
 
   Positional instantiations are indicated by giving a sequence of
   terms, or the placeholder ``@{text _}'' (underscore), which means to
   skip a position.
 
-  @{rail "
+  @{rail \<open>
     @{syntax_def inst}: '_' | @{syntax term}
     ;
     @{syntax_def insts}: (@{syntax inst} *)
-  "}
+  \<close>}
 
   Type declarations and definitions usually refer to @{syntax
   typespec} on the left-hand side.  This models basic type constructor
   application at the outer syntax level.  Note that only plain postfix
   notation is available here, but no infixes.
 
-  @{rail "
+  @{rail \<open>
     @{syntax_def typespec}:
       (() | @{syntax typefree} | '(' ( @{syntax typefree} + ',' ) ')') @{syntax name}
     ;
     @{syntax_def typespec_sorts}:
       (() | (@{syntax typefree} ('::' @{syntax sort})?) |
         '(' ( (@{syntax typefree} ('::' @{syntax sort})?) + ',' ) ')') @{syntax name}
-  "}
+  \<close>}
 *}
 
 
@@ -356,11 +356,11 @@ text {* Wherever explicit propositions (or term fragments) occur in a
   specified via patterns of the form ``@{text "(\<IS> p\<^sub>1 \<dots> p\<^sub>n)"}''.
   This works both for @{syntax term} and @{syntax prop}.
 
-  @{rail "
+  @{rail \<open>
     @{syntax_def term_pat}: '(' (@'is' @{syntax term} +) ')'
     ;
     @{syntax_def prop_pat}: '(' (@'is' @{syntax prop} +) ')'
-  "}
+  \<close>}
 
   \medskip Declarations of local variables @{text "x :: \<tau>"} and
   logical propositions @{text "a : \<phi>"} represent different views on
@@ -370,11 +370,11 @@ text {* Wherever explicit propositions (or term fragments) occur in a
   references of current facts).  In any case, Isar proof elements
   usually admit to introduce multiple such items simultaneously.
 
-  @{rail "
+  @{rail \<open>
     @{syntax_def vars}: (@{syntax name} +) ('::' @{syntax type})?
     ;
     @{syntax_def props}: @{syntax thmdecl}? (@{syntax prop} @{syntax prop_pat}? +)
-  "}
+  \<close>}
 
   The treatment of multiple declarations corresponds to the
   complementary focus of @{syntax vars} versus @{syntax props}.  In
@@ -398,7 +398,7 @@ text {* Attributes have their own ``semi-inner'' syntax, in the sense
   any atomic entity, including any @{syntax keyword} conforming to
   @{syntax symident}.
 
-  @{rail "
+  @{rail \<open>
     @{syntax_def atom}: @{syntax nameref} | @{syntax typefree} |
       @{syntax typevar} | @{syntax var} | @{syntax nat} | @{syntax float} |
       @{syntax keyword} | @{syntax cartouche}
@@ -408,7 +408,7 @@ text {* Attributes have their own ``semi-inner'' syntax, in the sense
     @{syntax_def args}: arg *
     ;
     @{syntax_def attributes}: '[' (@{syntax nameref} @{syntax args} * ',') ']'
-  "}
+  \<close>}
 
   Theorem specifications come in several flavors: @{syntax axmdecl}
   and @{syntax thmdecl} usually refer to axioms, assumptions or
@@ -443,7 +443,7 @@ text {* Attributes have their own ``semi-inner'' syntax, in the sense
   This form of in-place declarations is particularly useful with
   commands like @{command "declare"} and @{command "using"}.
 
-  @{rail "
+  @{rail \<open>
     @{syntax_def axmdecl}: @{syntax name} @{syntax attributes}? ':'
     ;
     @{syntax_def thmdecl}: thmbind ':'
@@ -460,7 +460,7 @@ text {* Attributes have their own ``semi-inner'' syntax, in the sense
     thmbind: @{syntax name} @{syntax attributes} | @{syntax name} | @{syntax attributes}
     ;
     selection: '(' ((@{syntax nat} | @{syntax nat} '-' @{syntax nat}?) + ',') ')'
-  "}
+  \<close>}
 *}
 
 end

@@ -451,12 +451,12 @@ text {*
   @{command_def "datatype_new"} & : & @{text "local_theory \<rightarrow> local_theory"}
 \end{matharray}
 
-@{rail "
+@{rail \<open>
   @@{command datatype_new} target? @{syntax dt_options}? \<newline>
     (@{syntax dt_name} '=' (@{syntax ctor} + '|') + @'and')
   ;
   @{syntax_def dt_options}: '(' (('no_discs_sels' | 'no_code' | 'rep_compat') + ',') ')'
-"}
+\<close>}
 
 The syntactic entity \synt{target} can be used to specify a local
 context---e.g., @{text "(in linorder)"}. It is documented in the Isar reference
@@ -485,13 +485,13 @@ Section~\ref{ssec:datatype-compatibility-issues} for details.
 The left-hand sides of the datatype equations specify the name of the type to
 define, its type parameters, and additional information:
 
-@{rail "
+@{rail \<open>
   @{syntax_def dt_name}: @{syntax tyargs}? name @{syntax map_rel}? mixfix?
   ;
   @{syntax_def tyargs}: typefree | '(' ((name ':')? typefree + ',') ')'
   ;
   @{syntax_def map_rel}: '(' ((('map' | 'rel') ':' name) +) ')'
-"}
+\<close>}
 
 \noindent
 The syntactic entity \synt{name} denotes an identifier, \synt{typefree}
@@ -504,10 +504,10 @@ names of the set functions (@{text set1_t}, \ldots, @{text setM_t}).
 Inside a mutually recursive specification, all defined datatypes must
 mention exactly the same type variables in the same order.
 
-@{rail "
+@{rail \<open>
   @{syntax_def ctor}: (name ':')? name (@{syntax ctor_arg} * ) \<newline>
     @{syntax dt_sel_defaults}? mixfix?
-"}
+\<close>}
 
 \medskip
 
@@ -517,9 +517,9 @@ constructor and the list of its argument types. An optional discriminator name
 can be supplied at the front to override the default name
 (@{text t.is_C\<^sub>j}).
 
-@{rail "
+@{rail \<open>
   @{syntax_def ctor_arg}: type | '(' name ':' type ')'
-"}
+\<close>}
 
 \medskip
 
@@ -529,9 +529,9 @@ name for the corresponding selector to override the default name
 (@{text un_C\<^sub>ji}). The same selector names can be reused for several
 constructors as long as they share the same type.
 
-@{rail "
+@{rail \<open>
   @{syntax_def dt_sel_defaults}: '(' 'defaults' (name ':' term +) ')'
-"}
+\<close>}
 
 \noindent
 Given a constructor
@@ -552,9 +552,9 @@ text {*
   @{command_def "datatype_new_compat"} & : & @{text "local_theory \<rightarrow> local_theory"}
 \end{matharray}
 
-@{rail "
+@{rail \<open>
   @@{command datatype_new_compat} names
-"}
+\<close>}
 
 \noindent
 The old datatype package provides some functionality that is not yet replicated
@@ -1346,11 +1346,11 @@ text {*
   @{command_def "primrec_new"} & : & @{text "local_theory \<rightarrow> local_theory"}
 \end{matharray}
 
-@{rail "
+@{rail \<open>
   @@{command primrec_new} target? fixes \<newline> @'where' (@{syntax pr_equation} + '|')
   ;
   @{syntax_def pr_equation}: thmdecl? prop
-"}
+\<close>}
 *}
 
 
@@ -1568,10 +1568,10 @@ text {*
   @{command_def "codatatype"} & : & @{text "local_theory \<rightarrow> local_theory"}
 \end{matharray}
 
-@{rail "
+@{rail \<open>
   @@{command codatatype} target? \<newline>
     (@{syntax dt_name} '=' (@{syntax ctor} + '|') + @'and')
-"}
+\<close>}
 
 \noindent
 Definitions of codatatypes have almost exactly the same syntax as for datatypes
@@ -2235,7 +2235,7 @@ text {*
   @{command_def "primcorecursive"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
 \end{matharray}
 
-@{rail "
+@{rail \<open>
   (@@{command primcorec} | @@{command primcorecursive}) target? \<newline>
     @{syntax pcr_option}? fixes @'where'
     (@{syntax pcr_formula} + '|')
@@ -2243,7 +2243,7 @@ text {*
   @{syntax_def pcr_option}: '(' ('sequential' | 'exhaustive') ')'
   ;
   @{syntax_def pcr_formula}: thmdecl? prop (@'of' (term * ))?
-"}
+\<close>}
 
 The optional target is potentially followed by a corecursion-specific option:
 
@@ -2319,11 +2319,11 @@ text {*
   @{command_def "bnf"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
 \end{matharray}
 
-@{rail "
+@{rail \<open>
   @@{command bnf} target? (name ':')? typ \<newline>
     'map:' term ('sets:' (term +))? 'bd:' term \<newline>
     ('wits:' (term +))? ('rel:' term)?
-"}
+\<close>}
 *}
 
 
@@ -2336,7 +2336,7 @@ text {*
   @{text "bnf_decl"} & : & @{text "local_theory \<rightarrow> local_theory"}
 \end{matharray}
 
-@{rail "
+@{rail \<open>
   @@{command bnf_decl} target? @{syntax dt_name}
   ;
   @{syntax_def dt_name}: @{syntax tyargs}? name @{syntax map_rel}? mixfix?
@@ -2344,7 +2344,7 @@ text {*
   @{syntax_def tyargs}: typefree | '(' (((name | '-') ':')? typefree + ',') ')'
   ;
   @{syntax_def map_rel}: '(' ((('map' | 'rel') ':' name) +) ')'
-"}
+\<close>}
 
 Declares a fresh type and fresh constants (map, set, relator, cardinal bound)
 and asserts the bnf properties for these constants as axioms. Additionally,
@@ -2364,9 +2364,9 @@ text {*
   @{command_def "print_bnfs"} & : & @{text "local_theory \<rightarrow>"}
 \end{matharray}
 
-@{rail "
+@{rail \<open>
   @@{command print_bnfs}
-"}
+\<close>}
 *}
 
 
@@ -2410,7 +2410,7 @@ text {*
   @{command_def "wrap_free_constructors"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
 \end{matharray}
 
-@{rail "
+@{rail \<open>
   @@{command wrap_free_constructors} target? @{syntax dt_options} \<newline>
     term_list name @{syntax wfc_discs_sels}?
   ;
@@ -2419,7 +2419,7 @@ text {*
   @{syntax_def name_term}: (name ':' term)
   ;
   X_list: '[' (X + ',') ']'
-"}
+\<close>}
 
 % options: no_discs_sels no_code rep_compat
 

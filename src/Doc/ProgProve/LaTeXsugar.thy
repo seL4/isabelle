@@ -52,7 +52,7 @@ setup{*
       end
   in
     Thy_Output.antiquotation @{binding "const_typ"}
-     (Scan.lift Args.name_source)
+     (Scan.lift Args.name_inner_syntax)
        (fn {source = src, context = ctxt, ...} => fn arg =>
           Thy_Output.output ctxt
             (Thy_Output.maybe_pretty_source pretty ctxt src [arg]))

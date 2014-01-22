@@ -137,7 +137,9 @@ end;
 
 open Basic_Symbol_Pos;
 
-fun !!! msg = Symbol_Pos.!!! (fn () => "SML lexical error: " ^ msg);
+val err_prefix = "SML lexical error: ";
+
+fun !!! msg = Symbol_Pos.!!! (fn () => err_prefix ^ msg);
 
 
 (* blanks *)
@@ -241,8 +243,9 @@ val recover_char =
   $$$ "#" @@@ $$$ "\"" @@@ scan_gaps @@@ Scan.optional (Scan.permissive scan_str @@@ scan_gaps) [];
 
 val scan_string =
-  $$$ "\"" @@@ !!! "missing quote at end of string"
-    ((Scan.repeat (scan_gap || scan_str) >> flat) @@@ $$$ "\"");
+  Scan.ahead ($$ "\"") |--
+    !!! "unclosed string literal"
+      ($$$ "\"" @@@ (Scan.repeat (scan_gap || scan_str) >> flat) @@@ $$$ "\"");
 
 val recover_string =
   $$$ "\"" @@@ (Scan.repeat (scan_gap || Scan.permissive scan_str) >> flat);
@@ -260,7 +263,7 @@ val scan_ml =
  (scan_char >> token Char ||
   scan_string >> token String ||
   scan_blanks1 >> token Space ||
-  Symbol_Pos.scan_comment !!! >> token Comment ||
+  Symbol_Pos.scan_comment err_prefix >> token Comment ||
   Scan.max token_leq
    (scan_keyword >> token Keyword)
    (scan_word >> token Word ||
@@ -304,9 +307,7 @@ fun read pos txt =
           (SOME (false, fn msg => recover msg >> map Antiquote.Text))
         |> Source.exhaust
         |> tap (Position.reports_text o Antiquote.reports_of (single o report_of_token))
-        |> tap (List.app (fn Antiquote.Text tok => (check_content_of tok; warn tok) | _ => ())))
-      handle ERROR msg =>
-        cat_error msg ("The error(s) above occurred in ML source" ^ Position.here pos);
+        |> tap (List.app (fn Antiquote.Text tok => (check_content_of tok; warn tok) | _ => ())));
   in input @ termination end;
 
 end;

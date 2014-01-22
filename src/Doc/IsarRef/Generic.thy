@@ -34,9 +34,9 @@ text {* For historical reasons, some tools cannot take the full proof
     @{command_def "print_options"} & : & @{text "context \<rightarrow>"} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     @{syntax name} ('=' ('true' | 'false' | @{syntax int} | @{syntax float} | @{syntax name}))?
-  "}
+  \<close>}
 
   \begin{description}
   
@@ -70,14 +70,14 @@ text {*
     @{method_def fail} & : & @{text method} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     (@@{method fold} | @@{method unfold} | @@{method insert}) @{syntax thmrefs}
     ;
     (@@{method erule} | @@{method drule} | @@{method frule})
       ('(' @{syntax nat} ')')? @{syntax thmrefs}
     ;
     (@@{method intro} | @@{method elim}) @{syntax thmrefs}?
-  "}
+  \<close>}
 
   \begin{description}
   
@@ -136,7 +136,7 @@ text {*
     @{attribute_def no_vars}@{text "\<^sup>*"} & : & @{text attribute} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     @@{attribute tagged} @{syntax name} @{syntax name}
     ;
     @@{attribute untagged} @{syntax name}
@@ -146,7 +146,7 @@ text {*
     (@@{attribute unfolded} | @@{attribute folded}) @{syntax thmrefs}
     ;
     @@{attribute rotated} @{syntax int}?
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -201,11 +201,11 @@ text {*
     @{method_def split} & : & @{text method} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     @@{method subst} ('(' 'asm' ')')? \<newline> ('(' (@{syntax nat}+) ')')? @{syntax thmref}
     ;
     @@{method split} @{syntax thmrefs}
-  "}
+  \<close>}
 
   These methods provide low-level facilities for equational reasoning
   that are intended for specialized applications only.  Normally,
@@ -304,7 +304,7 @@ text {*
     @{method_def raw_tactic}@{text "\<^sup>*"} & : & @{text method} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     (@@{method rule_tac} | @@{method erule_tac} | @@{method drule_tac} |
       @@{method frule_tac} | @@{method cut_tac} | @@{method thin_tac}) @{syntax goal_spec}? \<newline>
     ( dynamic_insts @'in' @{syntax thmref} | @{syntax thmrefs} )
@@ -319,7 +319,7 @@ text {*
     ;
 
     dynamic_insts: ((@{syntax name} '=' @{syntax term}) + @'and')
-  "}
+  \<close>}
 
 \begin{description}
 
@@ -406,7 +406,7 @@ text {*
     @{method_def simp_all} & : & @{text method} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     (@@{method simp} | @@{method simp_all}) opt? (@{syntax simpmod} * )
     ;
 
@@ -414,7 +414,7 @@ text {*
     ;
     @{syntax_def simpmod}: ('add' | 'del' | 'only' | 'split' (() | 'add' | 'del') |
       'cong' (() | 'add' | 'del')) ':' @{syntax thmrefs}
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -608,10 +608,10 @@ text {*
     @{command_def "print_simpset"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     (@@{attribute simp} | @@{attribute split} | @@{attribute cong})
       (() | 'add' | 'del')
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -923,13 +923,13 @@ text {* Simplification procedures are ML functions that produce proven
     simproc & : & @{text attribute} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     @@{command simproc_setup} @{syntax name} '(' (@{syntax term} + '|') ')' '='
       @{syntax text} \<newline> (@'identifier' (@{syntax nameref}+))?
     ;
 
     @@{attribute simproc} (('add' ':')? | 'del' ':') (@{syntax name}+)
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -1229,12 +1229,12 @@ text {*
     @{attribute_def simplified} & : & @{text attribute} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     @@{attribute simplified} opt? @{syntax thmrefs}?
     ;
 
     opt: '(' ('no_asm' | 'no_asm_simp' | 'no_asm_use') ')'
-  "}
+  \<close>}
 
   \begin{description}
   
@@ -1490,13 +1490,13 @@ text {* The proof tools of the Classical Reasoner depend on
     @{attribute_def swapped} & : & @{text attribute} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     (@@{attribute intro} | @@{attribute elim} | @@{attribute dest}) ('!' | () | '?') @{syntax nat}?
     ;
     @@{attribute rule} 'del'
     ;
     @@{attribute iff} (((() | 'add') '?'?) | 'del')
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -1562,9 +1562,9 @@ text {*
     @{method_def contradiction} & : & @{text method} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     @@{method rule} @{syntax thmrefs}?
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -1603,7 +1603,7 @@ text {*
     @{method_def deepen} & : & @{text method} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     @@{method blast} @{syntax nat}? (@{syntax clamod} * )
     ;
     @@{method auto} (@{syntax nat} @{syntax nat})? (@{syntax clasimpmod} * )
@@ -1624,7 +1624,7 @@ text {*
       ('cong' | 'split') (() | 'add' | 'del') |
       'iff' (((() | 'add') '?'?) | 'del') |
       (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del')) ':' @{syntax thmrefs}
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -1735,11 +1735,11 @@ text {* These proof methods may help in situations when the
     @{method_def clarsimp} & : & @{text method} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     (@@{method safe} | @@{method clarify}) (@{syntax clamod} * )
     ;
     @@{method clarsimp} (@{syntax clasimpmod} * )
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -1926,13 +1926,13 @@ text {*
   Generic tools may refer to the information provided by object-logic
   declarations internally.
 
-  @{rail "
+  @{rail \<open>
     @@{command judgment} @{syntax name} '::' @{syntax type} @{syntax mixfix}?
     ;
     @@{attribute atomize} ('(' 'full' ')')?
     ;
     @@{attribute rule_format} ('(' 'noasm' ')')?
-  "}
+  \<close>}
 
   \begin{description}
   

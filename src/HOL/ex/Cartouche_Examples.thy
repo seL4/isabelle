@@ -2,10 +2,12 @@ header {* Some examples with text cartouches *}
 
 theory Cartouche_Examples
 imports Main
-keywords "cartouche" :: diag
+keywords
+  "cartouche" "term_cartouche" :: diag and
+  "text_cartouche" :: thy_decl
 begin
 
-subsection {* Outer syntax *}
+subsection {* Outer syntax: cartouche within command syntax *}
 
 ML {*
   Outer_Syntax.improper_command @{command_spec "cartouche"} ""
@@ -17,12 +19,10 @@ cartouche \<open>abc\<close>
 cartouche \<open>abc \<open>\<alpha>\<beta>\<gamma>\<close> xzy\<close>
 
 
-subsection {* Inner syntax *}
+subsection {* Inner syntax: string literals via cartouche *}
 
-syntax "_string_cartouche" :: "cartouche_position \<Rightarrow> string"  ("STR _")
-
-parse_translation {*
-  let
+ML {*
+  local
     val mk_nib =
       Syntax.const o Lexicon.mark_const o
         fst o Term.dest_Const o HOLogic.mk_nibble;
@@ -39,27 +39,139 @@ parse_translation {*
       | mk_string (s :: ss) =
           Syntax.const @{const_syntax Cons} $ mk_char s $ mk_string ss;
 
-    fun string_tr ctxt args =
-      let fun err () = raise TERM ("string_tr", []) in
+  in
+    fun string_tr content args =
+      let fun err () = raise TERM ("string_tr", args) in
         (case args of
           [(c as Const (@{syntax_const "_constrain"}, _)) $ Free (s, _) $ p] =>
             (case Term_Position.decode_position p of
-              SOME (pos, _) =>
-                c $ mk_string (Symbol_Pos.cartouche_content (Symbol_Pos.explode (s, pos))) $ p
+              SOME (pos, _) => c $ mk_string (content (s, pos)) $ p
             | NONE => err ())
         | _ => err ())
       end;
-  in
-    [(@{syntax_const "_string_cartouche"}, string_tr)]
-  end
+  end;
+*}
+
+syntax "_STR_cartouche" :: "cartouche_position \<Rightarrow> string"  ("STR _")
+
+parse_translation {*
+  [(@{syntax_const "_STR_cartouche"},
+    K (string_tr (Symbol_Pos.cartouche_content o Symbol_Pos.explode)))]
 *}
 
 term "STR \<open>\<close>"
 term "STR \<open>abc\<close>"
-lemma "STR \<open>abc\<close> @ STR \<open>xyz\<close> = STR \<open>abcxyz\<close>" by simp
+term "STR \<open>abc\<close> @ STR \<open>xyz\<close>"
+term "STR \<open>\<newline>\<close>"
+term "STR \<open>\001\010\100\<close>"
 
 
-subsection {* Proof method syntax *}
+subsection {* Alternate outer and inner syntax: string literals *}
+
+subsubsection {* Nested quotes *}
+
+syntax "_STR_string" :: "string_position \<Rightarrow> string"  ("STR _")
+
+parse_translation {*
+  [(@{syntax_const "_STR_string"}, K (string_tr Lexicon.explode_string))]
+*}
+
+term "STR \"\""
+term "STR \"abc\""
+term "STR \"abc\" @ STR \"xyz\""
+term "STR \"\<newline>\""
+term "STR \"\001\010\100\""
+
+
+subsubsection {* Term cartouche and regular quotes *}
+
+ML {*
+  Outer_Syntax.improper_command @{command_spec "term_cartouche"} ""
+    (Parse.inner_syntax Parse.cartouche >> (fn s =>
+      Toplevel.keep (fn state =>
+        let
+          val ctxt = Toplevel.context_of state;
+          val t = Syntax.read_term ctxt s;
+        in writeln (Syntax.string_of_term ctxt t) end)))
+*}
+
+term_cartouche \<open>STR ""\<close>
+term_cartouche \<open>STR "abc"\<close>
+term_cartouche \<open>STR "abc" @ STR "xyz"\<close>
+term_cartouche \<open>STR "\<newline>"\<close>
+term_cartouche \<open>STR "\001\010\100"\<close>
+
+
+subsubsection {* Further nesting: antiquotations *}
+
+setup -- "ML antiquotation"
+{*
+  ML_Antiquote.inline @{binding term_cartouche}
+    (Args.context -- Scan.lift (Parse.inner_syntax Parse.cartouche) >>
+      (fn (ctxt, s) => ML_Syntax.atomic (ML_Syntax.print_term (Syntax.read_term ctxt s))))
+*}
+
+setup -- "document antiquotation"
+{*
+  Thy_Output.antiquotation @{binding ML_cartouche}
+    (Scan.lift Args.cartouche_source_position) (fn {context, ...} => fn (txt, pos) =>
+      let
+        val toks =
+          ML_Lex.read Position.none "fn _ => (" @
+          ML_Lex.read pos txt @
+          ML_Lex.read Position.none ");";
+        val _ = ML_Context.eval_in (SOME context) false pos toks;
+      in "" end);
+*}
+
+ML {*
+  @{term_cartouche \<open>STR ""\<close>};
+  @{term_cartouche \<open>STR "abc"\<close>};
+  @{term_cartouche \<open>STR "abc" @ STR "xyz"\<close>};
+  @{term_cartouche \<open>STR "\<newline>"\<close>};
+  @{term_cartouche \<open>STR "\001\010\100"\<close>};
+*}
+
+text {*
+  @{ML_cartouche
+    \<open>
+      (
+        @{term_cartouche \<open>STR ""\<close>};
+        @{term_cartouche \<open>STR "abc"\<close>};
+        @{term_cartouche \<open>STR "abc" @ STR "xyz"\<close>};
+        @{term_cartouche \<open>STR "\<newline>"\<close>};
+        @{term_cartouche \<open>STR "\001\010\100"\<close>}
+      )
+    \<close>
+  }
+*}
+
+
+subsubsection {* Uniform nesting of sub-languages: document source, ML, term, string literals *}
+
+ML {*
+  Outer_Syntax.command
+    @{command_spec "text_cartouche"} ""
+    (Parse.opt_target -- Parse.source_position Parse.cartouche >> Isar_Cmd.local_theory_markup)
+*}
+
+text_cartouche
+\<open>
+  @{ML_cartouche
+    \<open>
+      (
+        @{term_cartouche \<open>STR ""\<close>};
+        @{term_cartouche \<open>STR "abc"\<close>};
+        @{term_cartouche \<open>STR "abc" @ STR "xyz"\<close>};
+        @{term_cartouche \<open>STR "\<newline>"\<close>};
+        @{term_cartouche \<open>STR "\001\010\100"\<close>}
+      )
+    \<close>
+  }
+\<close>
+
+
+subsection {* Proof method syntax: ML tactic expression *}
 
 ML {*
 structure ML_Tactic:
@@ -83,7 +195,7 @@ end;
 *}
 
 
-subsection {* Explicit version: method with cartouche argument *}
+subsubsection {* Explicit version: method with cartouche argument *}
 
 method_setup ml_tactic = {*
   Scan.lift Args.cartouche_source_position
@@ -104,7 +216,7 @@ ML {* @{lemma "A \<and> B \<longrightarrow> B \<and> A" by (ml_tactic \<open>bla
 text {* @{ML "@{lemma \"A \<and> B \<longrightarrow> B \<and> A\" by (ml_tactic \<open>blast_tac ctxt 1\<close>)}"} *}
 
 
-subsection {* Implicit version: method with special name "cartouche" (dynamic!) *}
+subsubsection {* Implicit version: method with special name "cartouche" (dynamic!) *}
 
 method_setup "cartouche" = {*
   Scan.lift Args.cartouche_source_position

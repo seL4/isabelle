@@ -24,9 +24,9 @@ text {*
     @{attribute_def (ZF) TC} & : & @{text attribute} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     @@{attribute (ZF) TC} (() | 'add' | 'del')
-  "}
+  \<close>}
 
   \begin{description}
   
@@ -59,7 +59,7 @@ text {*
     @{command_def (ZF) "codatatype"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     (@@{command (ZF) inductive} | @@{command (ZF) coinductive}) domains intros hints
     ;
 
@@ -67,22 +67,22 @@ text {*
     ;
     intros: @'intros' (@{syntax thmdecl}? @{syntax prop} +)
     ;
-    hints: @{syntax (ZF) \"monos\"}? condefs? \<newline>
+    hints: @{syntax (ZF) "monos"}? condefs? \<newline>
       @{syntax (ZF) typeintros}? @{syntax (ZF) typeelims}?
     ;
-    @{syntax_def (ZF) \"monos\"}: @'monos' @{syntax thmrefs}
+    @{syntax_def (ZF) "monos"}: @'monos' @{syntax thmrefs}
     ;
     condefs: @'con_defs' @{syntax thmrefs}
     ;
     @{syntax_def (ZF) typeintros}: @'type_intros' @{syntax thmrefs}
     ;
     @{syntax_def (ZF) typeelims}: @'type_elims' @{syntax thmrefs}
-  "}
+  \<close>}
 
   In the following syntax specification @{text "monos"}, @{text
   typeintros}, and @{text typeelims} are the same as above.
 
-  @{rail "
+  @{rail \<open>
     (@@{command (ZF) datatype} | @@{command (ZF) codatatype}) domain? (dtspec + @'and') hints
     ;
 
@@ -92,8 +92,8 @@ text {*
     ;
     con: @{syntax name} ('(' (@{syntax term} ',' +) ')')?
     ;
-    hints: @{syntax (ZF) \"monos\"}? @{syntax (ZF) typeintros}? @{syntax (ZF) typeelims}?
-  "}
+    hints: @{syntax (ZF) "monos"}? @{syntax (ZF) typeintros}? @{syntax (ZF) typeelims}?
+  \<close>}
 
   See \cite{isabelle-ZF} for further information on inductive
   definitions in ZF, but note that this covers the old-style theory
@@ -108,9 +108,9 @@ text {*
     @{command_def (ZF) "primrec"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     @@{command (ZF) primrec} (@{syntax thmdecl}? @{syntax prop} +)
-  "}
+  \<close>}
 *}
 
 
@@ -127,14 +127,13 @@ text {*
     @{command_def (ZF) "inductive_cases"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     (@@{method (ZF) case_tac} | @@{method (ZF) induct_tac}) @{syntax goal_spec}? @{syntax name}
     ;
     @@{method (ZF) ind_cases} (@{syntax prop} +)
     ;
     @@{command (ZF) inductive_cases} (@{syntax thmdecl}? (@{syntax prop} +) + @'and')
-    ;
-  "}
+  \<close>}
 *}
 
 end

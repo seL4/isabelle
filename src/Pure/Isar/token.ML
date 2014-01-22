@@ -41,7 +41,7 @@ sig
   val is_space: T -> bool
   val is_blank: T -> bool
   val is_newline: T -> bool
-  val source_of: T -> string
+  val inner_syntax_of: T -> string
   val source_position_of: T -> Symbol_Pos.text * Position.T
   val content_of: T -> string
   val unparse: T -> string
@@ -116,10 +116,10 @@ val str_of_kind =
   | TypeVar => "schematic type variable"
   | Nat => "natural number"
   | Float => "floating-point number"
-  | String => "string"
+  | String => "quoted string"
   | AltString => "back-quoted string"
   | Verbatim => "verbatim text"
-  | Cartouche => "cartouche"
+  | Cartouche => "text cartouche"
   | Space => "white space"
   | Comment => "comment text"
   | InternalValue => "internal value"
@@ -206,7 +206,7 @@ fun is_newline (Token (_, (Space, x), _)) = String.isSuffix "\n" x
 
 (* token content *)
 
-fun source_of (Token ((source, (pos, _)), (_, x), _)) =
+fun inner_syntax_of (Token ((source, (pos, _)), (_, x), _)) =
   if YXML.detect x then x
   else YXML.string_of (XML.Elem (Markup.token (Position.properties_of pos), [XML.Text source]));
 
@@ -321,13 +321,15 @@ fun ident_or_symbolic "begin" = false
 (* scan verbatim text *)
 
 val scan_verb =
-  $$$ "*" --| Scan.ahead (~$$$ "}") ||
+  $$$ "*" --| Scan.ahead (~$$ "}") ||
   Scan.one (fn (s, _) => s <> "*" andalso Symbol.is_regular s) >> single;
 
 val scan_verbatim =
-  (Symbol_Pos.scan_pos --| $$$ "{" --| $$$ "*") -- !!! "missing end of verbatim text"
-    (Symbol_Pos.change_prompt
-      ((Scan.repeat scan_verb >> flat) -- ($$$ "*" |-- $$$ "}" |-- Symbol_Pos.scan_pos)));
+  Scan.ahead ($$ "{" -- $$ "*") |--
+    !!! "unclosed verbatim text"
+      ((Symbol_Pos.scan_pos --| $$ "{" --| $$ "*") --
+        Symbol_Pos.change_prompt
+          ((Scan.repeat scan_verb >> flat) -- ($$ "*" |-- $$ "}" |-- Symbol_Pos.scan_pos)));
 
 val recover_verbatim =
   $$$ "{" @@@ $$$ "*" @@@ (Scan.repeat scan_verb >> flat);
@@ -336,7 +338,8 @@ val recover_verbatim =
 (* scan cartouche *)
 
 val scan_cartouche =
-  Symbol_Pos.scan_pos -- (Symbol_Pos.scan_cartouche_body !!! -- Symbol_Pos.scan_pos);
+  Symbol_Pos.scan_pos --
+    ((Symbol_Pos.scan_cartouche err_prefix >> Symbol_Pos.cartouche_content) -- Symbol_Pos.scan_pos);
 
 
 (* scan space *)
@@ -351,7 +354,7 @@ val scan_space =
 (* scan comment *)
 
 val scan_comment =
-  Symbol_Pos.scan_pos -- (Symbol_Pos.scan_comment_body !!! -- Symbol_Pos.scan_pos);
+  Symbol_Pos.scan_pos -- (Symbol_Pos.scan_comment_body err_prefix -- Symbol_Pos.scan_pos);
 
 
 

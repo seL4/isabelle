@@ -20,7 +20,7 @@ text {*
     @{command_def "print_binds"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     (@@{command print_theory} | @@{command print_theorems}) ('!'?)
     ;
 
@@ -37,7 +37,7 @@ text {*
     @@{command thm_deps} @{syntax thmrefs}
     ;
     @@{command unused_thms} ((@{syntax name} +) '-' (@{syntax name} * ))?
-  "}
+  \<close>}
 
   These commands print certain parts of the theory and proof context.
   Note that there are some further ones available, such as for the set
@@ -121,9 +121,9 @@ text {*
     @{command_def "use_thy"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     (@@{command cd} | @@{command use_thy}) @{syntax name}
-  "}
+  \<close>}
 
   \begin{description}
 

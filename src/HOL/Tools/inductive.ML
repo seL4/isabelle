@@ -591,7 +591,7 @@ val inductive_cases_i = gen_inductive_cases (K I) Syntax.check_prop;
 
 val ind_cases_setup =
   Method.setup @{binding ind_cases}
-    (Scan.lift (Scan.repeat1 Args.name_source --
+    (Scan.lift (Scan.repeat1 Args.name_inner_syntax --
       Scan.optional (Args.$$$ "for" |-- Scan.repeat1 Args.binding) []) >>
       (fn (raw_props, fixes) => fn ctxt =>
         let

@@ -165,7 +165,7 @@ fun instantiate_tac ctxt args = PRIMITIVE (read_instantiate ctxt args);
 
 val _ = Theory.setup
   (Attrib.setup @{binding "where"}
-    (Scan.lift (Parse.and_list (Args.var -- (Args.$$$ "=" |-- Args.name_source))) >>
+    (Scan.lift (Parse.and_list (Args.var -- (Args.$$$ "=" |-- Args.name_inner_syntax))) >>
       (fn args =>
         Thm.rule_attribute (fn context => read_instantiate_mixed (Context.proof_of context) args)))
     "named instantiation of theorem");
@@ -175,7 +175,7 @@ val _ = Theory.setup
 
 local
 
-val inst = Args.maybe Args.name_source;
+val inst = Args.maybe Args.name_inner_syntax;
 val concl = Args.$$$ "concl" -- Args.colon;
 
 val insts =
@@ -320,7 +320,7 @@ fun subgoal_tac ctxt A = DETERM o res_inst_tac ctxt [(("psi", 0), A)] cut_rl;
 fun method inst_tac tac =
   Args.goal_spec --
   Scan.optional (Scan.lift
-    (Parse.and_list1 (Args.var -- (Args.$$$ "=" |-- Parse.!!! Args.name_source)) --|
+    (Parse.and_list1 (Args.var -- (Args.$$$ "=" |-- Parse.!!! Args.name_inner_syntax)) --|
       Args.$$$ "in")) [] --
   Attrib.thms >>
   (fn ((quant, insts), thms) => fn ctxt => METHOD (fn facts =>
@@ -347,12 +347,12 @@ val _ = Theory.setup
   Method.setup @{binding cut_tac} (method cut_inst_tac (K cut_rules_tac))
     "cut rule (dynamic instantiation)" #>
   Method.setup @{binding subgoal_tac}
-    (Args.goal_spec -- Scan.lift (Scan.repeat1 Args.name_source) >>
+    (Args.goal_spec -- Scan.lift (Scan.repeat1 Args.name_inner_syntax) >>
       (fn (quant, props) => fn ctxt =>
         SIMPLE_METHOD'' quant (EVERY' (map (subgoal_tac ctxt) props))))
     "insert subgoal (dynamic instantiation)" #>
   Method.setup @{binding thin_tac}
-    (Args.goal_spec -- Scan.lift Args.name_source >>
+    (Args.goal_spec -- Scan.lift Args.name_inner_syntax >>
       (fn (quant, prop) => fn ctxt => SIMPLE_METHOD'' quant (thin_tac ctxt prop)))
       "remove premise (dynamic instantiation)");
 

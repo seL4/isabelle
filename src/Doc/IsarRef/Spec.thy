@@ -50,7 +50,7 @@ text {*
   although some user-interfaces might pretend that trailing input is
   admissible.
 
-  @{rail "
+  @{rail \<open>
     @@{command theory} @{syntax name} imports keywords? \<newline> @'begin'
     ;
     imports: @'imports' (@{syntax name} +)
@@ -59,7 +59,7 @@ text {*
     ;
     keyword_decls: (@{syntax string} +)
       ('::' @{syntax name} @{syntax tags})? ('==' @{syntax name})?
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -121,13 +121,13 @@ text {*
   targets, like @{command "locale"}, @{command "class"}, @{command
   "instantiation"}, @{command "overloading"}.
 
-  @{rail "
+  @{rail \<open>
     @@{command context} @{syntax nameref} @'begin'
     ;
-    @@{command context} @{syntax_ref \"includes\"}? (@{syntax context_elem} * ) @'begin'
+    @@{command context} @{syntax_ref "includes"}? (@{syntax context_elem} * ) @'begin'
     ;
     @{syntax_def target}: '(' @'in' @{syntax nameref} ')'
-  "}
+  \<close>}
 
   \begin{description}
   
@@ -210,14 +210,14 @@ text {*
   without logical dependencies, which is in contrast to locales and
   locale interpretation (\secref{sec:locale}).
 
-  @{rail "
+  @{rail \<open>
     @@{command bundle} @{syntax target}? \<newline>
     @{syntax name} '=' @{syntax thmrefs} (@'for' (@{syntax vars} + @'and'))?
     ;
     (@@{command include} | @@{command including}) (@{syntax nameref}+)
     ;
-    @{syntax_def \"includes\"}: @'includes' (@{syntax nameref}+)
-  "}
+    @{syntax_def "includes"}: @'includes' (@{syntax nameref}+)
+  \<close>}
 
   \begin{description}
 
@@ -274,8 +274,8 @@ text {*
   "defs"} (see \secref{sec:consts}), and raw axioms.  In particular,
   type-inference covers the whole specification as usual.
 
-  @{rail "
-    @@{command axiomatization} @{syntax \"fixes\"}? (@'where' specs)?
+  @{rail \<open>
+    @@{command axiomatization} @{syntax "fixes"}? (@'where' specs)?
     ;
     @@{command definition} @{syntax target}? \<newline>
       (decl @'where')? @{syntax thmdecl}? @{syntax prop}
@@ -284,13 +284,13 @@ text {*
       (decl @'where')? @{syntax prop}
     ;
 
-    @{syntax_def \"fixes\"}: ((@{syntax name} ('::' @{syntax type})?
+    @{syntax_def "fixes"}: ((@{syntax name} ('::' @{syntax type})?
       @{syntax mixfix}? | @{syntax vars}) + @'and')
     ;
     specs: (@{syntax thmdecl}? @{syntax props} + @'and')
     ;
     decl: @{syntax name} ('::' @{syntax type})? @{syntax mixfix}?
-  "}
+  \<close>}
 
   \begin{description}
   
@@ -364,12 +364,12 @@ text {*
   case: it consists of a theorem which is applied to the context by
   means of an attribute.
 
-  @{rail "
+  @{rail \<open>
     (@@{command declaration} | @@{command syntax_declaration})
       ('(' @'pervasive' ')')? \<newline> @{syntax target}? @{syntax text}
     ;
     @@{command declare} @{syntax target}? (@{syntax thmrefs} + @'and')
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -431,8 +431,8 @@ text {*
   elements from the locale instances.  Redundant locale instances are
   omitted according to roundup.
 
-  @{rail "
-    @{syntax_def locale_expr}: (instance + '+') (@'for' (@{syntax \"fixes\"} + @'and'))?
+  @{rail \<open>
+    @{syntax_def locale_expr}: (instance + '+') (@'for' (@{syntax "fixes"} + @'and'))?
     ;
     instance: (qualifier ':')? @{syntax nameref} (pos_insts | named_insts)
     ;
@@ -441,7 +441,7 @@ text {*
     pos_insts: ('_' | @{syntax term})*
     ;
     named_insts: @'where' (@{syntax name} '=' @{syntax term} + @'and')
-  "}
+  \<close>}
 
   A locale instance consists of a reference to a locale and either
   positional or named parameter instantiations.  Identical
@@ -483,7 +483,7 @@ text {*
 
   \indexisarelem{fixes}\indexisarelem{constrains}\indexisarelem{assumes}
   \indexisarelem{defines}\indexisarelem{notes}
-  @{rail "
+  @{rail \<open>
     @@{command locale} @{syntax name} ('=' @{syntax locale})? @'begin'?
     ;
     @@{command print_locale} '!'? @{syntax nameref}
@@ -492,12 +492,12 @@ text {*
       @{syntax locale_expr} ('+' (@{syntax context_elem}+))?
     ;
     @{syntax_def context_elem}:
-      @'fixes' (@{syntax \"fixes\"} + @'and') |
+      @'fixes' (@{syntax "fixes"} + @'and') |
       @'constrains' (@{syntax name} '::' @{syntax type} + @'and') |
       @'assumes' (@{syntax props} + @'and') |
       @'defines' (@{syntax thmdecl}? @{syntax prop} @{syntax prop_pat}? + @'and') |
       @'notes' (@{syntax thmdef}? @{syntax thmrefs} + @'and')
-  "}
+  \<close>}
 
   \begin{description}
   
@@ -630,7 +630,7 @@ text {*
   "interpretation"}) and also within proof bodies (@{command
   "interpret"}).
 
-  @{rail "
+  @{rail \<open>
     @@{command interpretation} @{syntax locale_expr} equations?
     ;
     @@{command interpret} @{syntax locale_expr} equations?
@@ -644,7 +644,7 @@ text {*
     ;
 
     equations: @'where' (@{syntax thmdecl}? @{syntax prop} + @'and')
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -796,7 +796,7 @@ text {*
   (notably type-inference).  See \cite{isabelle-classes} for a short
   tutorial.
 
-  @{rail "
+  @{rail \<open>
     @@{command class} class_spec @'begin'?
     ;
     class_spec: @{syntax name} '='
@@ -809,7 +809,7 @@ text {*
       @{syntax nameref} ('<' | '\<subseteq>') @{syntax nameref} )
     ;
     @@{command subclass} @{syntax target}? @{syntax nameref}
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -968,11 +968,11 @@ text {*
   The @{command "overloading"} target provides a convenient view for
   end-users.
 
-  @{rail "
+  @{rail \<open>
     @@{command overloading} ( spec + ) @'begin'
     ;
     spec: @{syntax name} ( '==' | '\<equiv>' ) @{syntax term} ( '(' @'unchecked' ')' )?
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -1010,14 +1010,14 @@ text {*
     @{command_def "attribute_setup"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     @@{command ML_file} @{syntax name}
     ;
     (@@{command ML} | @@{command ML_prf} | @@{command ML_val} |
       @@{command ML_command} | @@{command setup} | @@{command local_setup}) @{syntax text}
     ;
     @@{command attribute_setup} @{syntax name} '=' @{syntax text} @{syntax text}?
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -1094,13 +1094,13 @@ text {*
     @{command_def "default_sort"} & : & @{text "local_theory \<rightarrow> local_theory"}
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     @@{command classes} (@{syntax classdecl} +)
     ;
     @@{command classrel} (@{syntax nameref} ('<' | '\<subseteq>') @{syntax nameref} + @'and')
     ;
     @@{command default_sort} @{syntax sort}
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -1141,13 +1141,13 @@ text {*
     @{command_def "arities"} & : & @{text "theory \<rightarrow> theory"} & (axiomatic!) \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     @@{command type_synonym} (@{syntax typespec} '=' @{syntax type} @{syntax mixfix}?)
     ;
     @@{command typedecl} @{syntax typespec} @{syntax mixfix}?
     ;
     @@{command arities} (@{syntax nameref} '::' @{syntax arity} +)
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -1219,13 +1219,13 @@ text {*
   corresponding occurrences on some right-hand side need to be an
   instance of this, general @{text "d :: \<alpha> \<times> \<beta>"} will be disallowed.
 
-  @{rail "
+  @{rail \<open>
     @@{command consts} ((@{syntax name} '::' @{syntax type} @{syntax mixfix}?) +)
     ;
     @@{command defs} opt? (@{syntax axmdecl} @{syntax prop} +)
     ;
     opt: '(' @'unchecked'? @'overloaded'? ')'
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -1259,11 +1259,11 @@ text {*
     @{command_def "theorems"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     (@@{command lemmas} | @@{command theorems}) @{syntax target}? \<newline>
       (@{syntax thmdef}? @{syntax thmrefs} + @'and')
       (@'for' (@{syntax vars} + @'and'))?
-  "}
+  \<close>}
 
   \begin{description}
   
@@ -1302,9 +1302,9 @@ text {*
   asserted, and records within the internal derivation object how
   presumed theorems depend on unproven suppositions.
 
-  @{rail "
+  @{rail \<open>
     @@{command oracle} @{syntax name} '=' @{syntax text}
-  "}
+  \<close>}
 
   \begin{description}
 
@@ -1333,10 +1333,10 @@ text {*
     @{command_def "hide_fact"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
-  @{rail "
+  @{rail \<open>
     ( @{command hide_class} | @{command hide_type} |
       @{command hide_const} | @{command hide_fact} ) ('(' @'open' ')')? (@{syntax nameref} + )
-  "}
+  \<close>}
 
   Isabelle organizes any kind of name declarations (of types,
   constants, theorems etc.) by separate hierarchically structured name
