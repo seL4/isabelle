@@ -150,7 +150,7 @@ text {*
 subsubsection {* Uniform nesting of sub-languages: document source, ML, term, string literals *}
 
 ML {*
-  Outer_Syntax.markup_command Thy_Output.MarkupEnv
+  Outer_Syntax.command
     @{command_spec "text_cartouche"} ""
     (Parse.opt_target -- Parse.source_position Parse.cartouche >> Isar_Cmd.local_theory_markup)
 *}
