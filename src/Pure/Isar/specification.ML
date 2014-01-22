@@ -234,10 +234,12 @@ val definition_cmd = gen_def read_free_spec;
 
 fun gen_abbrev prep mode (raw_var, raw_prop) int lthy =
   let
+    val lthy1 = lthy
+      |> Proof_Context.set_syntax_mode mode;
     val ((vars, [(_, prop)]), _) =
       prep (the_list raw_var) [(Attrib.empty_binding, raw_prop)]
-        (lthy |> Proof_Context.set_mode Proof_Context.mode_abbrev);
-    val ((x, T), rhs) = Local_Defs.abs_def (#2 (Local_Defs.cert_def lthy prop));
+        (lthy1 |> Proof_Context.set_mode Proof_Context.mode_abbrev);
+    val ((x, T), rhs) = Local_Defs.abs_def (#2 (Local_Defs.cert_def lthy1 prop));
     val var =
       (case vars of
         [] => (Binding.name x, NoSyn)
@@ -248,13 +250,12 @@ fun gen_abbrev prep mode (raw_var, raw_prop) int lthy =
               error ("Head of abbreviation " ^ quote x ^ " differs from declaration " ^ quote y ^
                 Position.here (Binding.pos_of b));
           in (b, mx) end);
-    val lthy' = lthy
-      |> Proof_Context.set_syntax_mode mode    (* FIXME ?!? *)
+    val lthy2 = lthy1
       |> Local_Theory.abbrev mode (var, rhs) |> snd
       |> Proof_Context.restore_syntax_mode lthy;
 
-    val _ = Proof_Display.print_consts int lthy' (K false) [(x, T)];
-  in lthy' end;
+    val _ = Proof_Display.print_consts int lthy2 (K false) [(x, T)];
+  in lthy2 end;
 
 val abbreviation = gen_abbrev check_free_spec;
 val abbreviation_cmd = gen_abbrev read_free_spec;
