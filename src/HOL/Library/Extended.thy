@@ -77,11 +77,15 @@ definition "0 = Fin(0::'a)"
 instance ..
 end
 
+declare zero_extended_def[symmetric, code_post]
+
 instantiation extended :: (one)one
 begin
 definition "1 = Fin(1::'a)"
 instance ..
 end
+
+declare one_extended_def[symmetric, code_post]
 
 instantiation extended :: (plus)plus
 begin
@@ -155,13 +159,13 @@ text{* Numerals: *}
 
 instance extended :: ("{ab_semigroup_add,one}")numeral ..
 
-lemma Fin_numeral: "Fin(numeral w) = numeral w"
+lemma Fin_numeral[code_post]: "Fin(numeral w) = numeral w"
   apply (induct w rule: num_induct)
   apply (simp only: numeral_One one_extended_def)
   apply (simp only: numeral_inc one_extended_def plus_extended.simps(1)[symmetric])
   done
 
-lemma Fin_neg_numeral: "Fin (- numeral w) = - numeral w"
+lemma Fin_neg_numeral[code_post]: "Fin (- numeral w) = - numeral w"
 by (simp only: Fin_numeral uminus_extended.simps[symmetric])
 
 
