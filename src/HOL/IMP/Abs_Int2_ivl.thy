@@ -6,11 +6,9 @@ begin
 
 subsection "Interval Analysis"
 
-text{* Drop @{const Fin} around numerals on output: *}
-translations
-"_Numeral i" <= "CONST Fin(_Numeral i)"
-"0" <= "CONST Fin 0"
-"1" <= "CONST Fin 1"
+text{* Drop @{const Fin} around numerals on output from value command: *}
+declare Fin_numeral[code_post] Fin_neg_numeral[code_post]
+  zero_extended_def[symmetric, code_post] one_extended_def[symmetric, code_post]
 
 type_synonym eint = "int extended"
 type_synonym eint2 = "eint * eint"
@@ -291,8 +289,8 @@ by transfer
 definition inv_less_ivl :: "bool \<Rightarrow> ivl \<Rightarrow> ivl \<Rightarrow> ivl * ivl" where
 "inv_less_ivl res iv1 iv2 =
   (if res
-   then (iv1 \<sqinter> (below iv2 - [Fin 1,Fin 1]),
-         iv2 \<sqinter> (above iv1 + [Fin 1,Fin 1]))
+   then (iv1 \<sqinter> (below iv2 - [1,1]),
+         iv2 \<sqinter> (above iv1 + [1,1]))
    else (iv1 \<sqinter> above iv2, iv2 \<sqinter> below iv1))"
 
 lemma above_nice: "above[l,h] = (if [l,h] = \<bottom> then \<bottom> else [l,\<infinity>])"
@@ -348,7 +346,7 @@ next
     by(simp add:  \<gamma>_uminus)
 next
   case goal3 thus ?case
-    unfolding inv_less_ivl_def minus_ivl_def
+    unfolding inv_less_ivl_def minus_ivl_def one_extended_def
     apply(clarsimp simp add: \<gamma>_inf split: if_splits)
     using gamma_plus'[of "i1+1" _ "-1"] gamma_plus'[of "i2 - 1" _ "1"]
     apply(simp add: \<gamma>_belowI[of i2] \<gamma>_aboveI[of i1]
