@@ -6,10 +6,6 @@ begin
 
 subsection "Interval Analysis"
 
-text{* Drop @{const Fin} around numerals on output from value command: *}
-declare Fin_numeral[code_post] Fin_neg_numeral[code_post]
-  zero_extended_def[symmetric, code_post] one_extended_def[symmetric, code_post]
-
 type_synonym eint = "int extended"
 type_synonym eint2 = "eint * eint"
 
