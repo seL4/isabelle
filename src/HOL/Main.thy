@@ -29,6 +29,7 @@ no_notation
   convol ("<_ , _>")
 
 hide_const (open)
+  czero cinfinite cfinite csum cone ctwo Csum cprod cexp
   image2 image2p vimage2p Gr Grp collect fsts snds setl setr
   convol pick_middlep fstOp sndOp csquare inver relImage relInvImage
   prefCl PrefCl Succ Shift shift proj

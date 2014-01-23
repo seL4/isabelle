@@ -17,8 +17,13 @@ notation
   ordLess2 (infix "<o" 50) and
   ordIso2 (infix "=o" 50) and
   card_of ("|_|") and
-  csum (infixr "+c" 65) and
-  cprod (infixr "*c" 80) and
-  cexp (infixr "^c" 90)
+  BNF_Cardinal_Arithmetic.csum (infixr "+c" 65) and
+  BNF_Cardinal_Arithmetic.cprod (infixr "*c" 80) and
+  BNF_Cardinal_Arithmetic.cexp (infixr "^c" 90)
+
+abbreviation "cinfinite \<equiv> BNF_Cardinal_Arithmetic.cinfinite"
+abbreviation "czero \<equiv> BNF_Cardinal_Arithmetic.czero"
+abbreviation "cone \<equiv> BNF_Cardinal_Arithmetic.cone"
+abbreviation "ctwo \<equiv> BNF_Cardinal_Arithmetic.ctwo"
 
 end
