@@ -502,6 +502,7 @@ session "HOL-ex" in ex = HOL +
     Serbian
     "~~/src/HOL/Library/FinFun_Syntax"
     "~~/src/HOL/Library/Refute"
+    Cartouche_Examples
   theories
     Iff_Oracle
     Coercion_Examples
@@ -562,7 +563,6 @@ session "HOL-ex" in ex = HOL +
     SVC_Oracle
     Simps_Case_Conv_Examples
     ML
-    Cartouche_Examples
   theories [skip_proofs = false]
     Meson_Test
   theories [condition = SVC_HOME]
