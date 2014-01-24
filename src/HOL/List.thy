@@ -5936,7 +5936,6 @@ lemma transfer_nat_int_fold1: "fold f l x =
 
 subsection {* Code generation *}
 
-
 text{* Optional tail recursive version of @{const map}. Can avoid
 stack overflow in some target languages. *}
 
@@ -6531,6 +6530,7 @@ lemma wf_set [code]:
   "wf (set xs) = acyclic (set xs)"
   by (simp add: wf_iff_acyclic_if_finite)
 
+
 subsection {* Setup for Lifting/Transfer *}
 
 subsubsection {* Relator and predicator properties *}
@@ -6878,5 +6878,47 @@ lemma listsum_transfer[transfer_rule]:
   by transfer_prover
 
 end
+
+
+subsection {* BNF setup *}
+
+bnf "'a list"
+  map: map
+  sets: set
+  bd: natLeq
+  wits: Nil
+  rel: list_all2
+proof -
+  show "map id = id" by (rule List.map.id)
+next
+  fix f g
+  show "map (g o f) = map g o map f" by (rule List.map.comp[symmetric])
+next
+  fix x f g
+  assume "\<And>z. z \<in> set x \<Longrightarrow> f z = g z"
+  thus "map f x = map g x" by simp
+next
+  fix f
+  show "set o map f = image f o set" by (rule ext, unfold comp_apply, rule set_map)
+next
+  show "card_order natLeq" by (rule natLeq_card_order)
+next
+  show "cinfinite natLeq" by (rule natLeq_cinfinite)
+next
+  fix x
+  show "|set x| \<le>o natLeq"
+    by (metis List.finite_set finite_iff_ordLess_natLeq ordLess_imp_ordLeq)
+next
+  fix R S
+  show "list_all2 R OO list_all2 S \<le> list_all2 (R OO S)"
+    by (metis list_all2_OO order_refl)
+next
+  fix R
+  show "list_all2 R =
+         (Grp {x. set x \<subseteq> {(x, y). R x y}} (map fst))\<inverse>\<inverse> OO
+         Grp {x. set x \<subseteq> {(x, y). R x y}} (map snd)"
+    unfolding list_all2_def[abs_def] Grp_def fun_eq_iff relcompp.simps conversep.simps
+    by (force simp: zip_map_fst_snd)
+qed simp
 
 end

@@ -9,7 +9,7 @@ Lambda-terms.
 header {* Lambda-Terms *}
 
 theory Lambda_Term
-imports "~~/src/HOL/Library/More_BNFs"
+imports "~~/src/HOL/Library/FSet"
 begin
 
 section {* Datatype definition *}
@@ -21,7 +21,7 @@ datatype_new 'a trm =
   Lt "('a \<times> 'a trm) fset" "'a trm"
 
 
-subsection{* Example: The set of all variables varsOf and free variables fvarsOf of a term: *}
+subsection {* Example: The set of all variables varsOf and free variables fvarsOf of a term *}
 
 primrec_new varsOf :: "'a trm \<Rightarrow> 'a set" where
   "varsOf (Var a) = {a}"
@@ -38,7 +38,7 @@ primrec_new fvarsOf :: "'a trm \<Rightarrow> 'a set" where
 
 lemma diff_Un_incl_triv: "\<lbrakk>A \<subseteq> D; C \<subseteq> E\<rbrakk> \<Longrightarrow> A - B \<union> C \<subseteq> D \<union> E" by blast
 
-lemma in_fmap_map_pair_fset_iff[simp]:
+lemma in_fimage_map_pair_fset_iff[simp]:
   "(x, y) |\<in>| fimage (map_pair f g) xts \<longleftrightarrow> (\<exists> t1 t2. (t1, t2) |\<in>| xts \<and> x = f t1 \<and> y = g t2)"
   by force
 

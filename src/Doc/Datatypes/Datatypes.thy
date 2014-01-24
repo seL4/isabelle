@@ -11,7 +11,7 @@ theory Datatypes
 imports
   Setup
   "~~/src/HOL/Library/BNF_Decl"
-  "~~/src/HOL/Library/More_BNFs"
+  "~~/src/HOL/Library/FSet"
   "~~/src/HOL/Library/Simps_Case_Conv"
 begin
 
@@ -79,8 +79,8 @@ finitely many direct subtrees, whereas those of the second and fourth may have
 infinite branching.
 
 The package is part of @{theory Main}. Additional functionality is provided by
-the theories @{theory BNF_Decl} and @{theory More_BNFs}, located in the
-directory \verb|~~/src/HOL/Library|.
+the theory @{theory BNF_Decl}, located in the directory
+\verb|~~/src/HOL/Library|.
 
 The package, like its predecessor, fully adheres to the LCF philosophy
 \cite{mgordon79}: The characteristic theorems associated with the specified
@@ -304,10 +304,17 @@ datatypes defined in terms of~@{text "\<Rightarrow>"}:
 
 text {*
 \noindent
-This is legal:
+The following definition of @{typ 'a}-branching trees is legal:
 *}
 
     datatype_new 'a ftree = FTLeaf 'a | FTNode "'a \<Rightarrow> 'a ftree"
+
+text {*
+\noindent
+And so is the definition of hereditarily finite sets:
+*}
+
+    datatype_new hfset = HFSet "hfset fset"
 
 text {*
 \noindent
@@ -2297,8 +2304,9 @@ subsection {* Introductory Example
   \label{ssec:bnf-introductory-example} *}
 
 text {*
-More examples in \verb|~~/src/HOL/Basic_BNFs.thy| and
-\verb|~~/src/HOL/Library/More_BNFs.thy|.
+More examples in \verb|~~/src/HOL/Basic_BNFs.thy|,
+\verb|~~/src/HOL/Library/FSet.thy|, and
+\verb|~~/src/HOL/Library/Multiset.thy|.
 
 %Mention distinction between live and dead type arguments;
 %  * and existence of map, set for those
@@ -2506,12 +2514,12 @@ text {*
 Tobias Nipkow and Makarius Wenzel encouraged us to implement the new
 (co)datatype package. Andreas Lochbihler provided lots of comments on earlier
 versions of the package, especially for the coinductive part. Brian Huffman
-suggested major simplifications to the internal constructions, many of which has
-yet to be implemented. Florian Haftmann and Christian Urban provided general
-advice on Isabelle and package writing. Stefan Milius and Lutz Schr\"oder
-found an elegant proof to eliminate one of the BNF assumptions. Andreas
-Lochbihler and Christian Sternagel suggested many textual improvements to this
-tutorial.
+suggested major simplifications to the internal constructions, many of which
+have yet to be implemented. Florian Haftmann and Christian Urban provided
+general advice on Isabelle and package writing. Stefan Milius and Lutz
+Schr\"oder found an elegant proof that eliminated one of the BNF proof
+obligations. Andreas Lochbihler and Christian Sternagel suggested many textual
+improvements to this tutorial.
 *}
 
 end
