@@ -1,12 +1,13 @@
 (*  Title:      HOL/Library/FSet.thy
     Author:     Ondrej Kuncar, TU Muenchen
     Author:     Cezary Kaliszyk and Christian Urban
+    Author:     Andrei Popescu, TU Muenchen
 *)
 
 header {* Type of finite sets defined as a subtype of sets *}
 
 theory FSet
-imports Main Conditionally_Complete_Lattices
+imports Conditionally_Complete_Lattices
 begin
 
 subsection {* Definition of the type *}
@@ -15,6 +16,7 @@ typedef 'a fset = "{A :: 'a set. finite A}"  morphisms fset Abs_fset
 by auto
 
 setup_lifting type_definition_fset
+
 
 subsection {* Basic operations and type class instantiations *}
 
@@ -148,6 +150,7 @@ end
 abbreviation fUNIV :: "'a::finite fset" where "fUNIV \<equiv> top"
 abbreviation fuminus :: "'a::finite fset \<Rightarrow> 'a fset" ("|-| _" [81] 80) where "|-| x \<equiv> uminus x"
 
+
 subsection {* Other operations *}
 
 lift_definition finsert :: "'a \<Rightarrow> 'a fset \<Rightarrow> 'a fset" is insert parametric Lifting_Set.insert_transfer
@@ -167,6 +170,7 @@ abbreviation notin_fset :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix 
 
 context
 begin
+
 interpretation lifting_syntax .
 
 lift_definition ffilter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a fset \<Rightarrow> 'a fset" is Set.filter 
@@ -202,6 +206,7 @@ lift_definition fBall :: "'a fset \<Rightarrow> ('a \<Rightarrow> bool) \<Righta
 lift_definition fBex :: "'a fset \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" is Bex parametric Bex_transfer ..
 
 lift_definition ffold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a fset \<Rightarrow> 'b" is Finite_Set.fold ..
+
 
 subsection {* Transferred lemmas from Set.thy *}
 
@@ -442,11 +447,13 @@ lemmas fbind_const = bind_const[Transfer.transferred]
 lemmas ffmember_filter[simp] = member_filter[Transfer.transferred]
 lemmas fequalityI = equalityI[Transfer.transferred]
 
+
 subsection {* Additional lemmas*}
 
 subsubsection {* @{text fsingleton} *}
 
 lemmas fsingletonE = fsingletonD [elim_format]
+
 
 subsubsection {* @{text femepty} *}
 
@@ -456,6 +463,7 @@ by transfer auto
 (* FIXME, transferred doesn't work here *)
 lemma femptyE [elim!]: "a |\<in>| {||} \<Longrightarrow> P"
   by simp
+
 
 subsubsection {* @{text fset} *}
 
@@ -479,6 +487,7 @@ lemmas union_fset[simp] = sup_fset.rep_eq
 
 lemmas minus_fset[simp] = minus_fset.rep_eq
 
+
 subsubsection {* @{text filter_fset} *}
 
 lemma subset_ffilter: 
@@ -494,6 +503,7 @@ lemma pfsubset_ffilter:
     ffilter P A |\<subset>| ffilter Q A"
   unfolding less_fset_def by (auto simp add: subset_ffilter eq_ffilter)
 
+
 subsubsection {* @{text finsert} *}
 
 (* FIXME, transferred doesn't work here *)
@@ -505,10 +515,12 @@ using assms by transfer (metis Set.set_insert finite_insert)
 lemma mk_disjoint_finsert: "a |\<in>| A \<Longrightarrow> \<exists>B. A = finsert a B \<and> a |\<notin>| B"
   by (rule_tac x = "A |-| {|a|}" in exI, blast)
 
+
 subsubsection {* @{text fimage} *}
 
 lemma subset_fimage_iff: "(B |\<subseteq>| f|`|A) = (\<exists> AA. AA |\<subseteq>| A \<and> B = f|`|AA)"
 by transfer (metis mem_Collect_eq rev_finite_subset subset_image_iff)
+
 
 subsubsection {* bounded quantification *}
 
@@ -539,6 +551,7 @@ apply (rule equal_intr_rule)
 by (transfer, simp)+
 
 end
+
 
 subsubsection {* @{text fcard} *}
 
@@ -622,6 +635,7 @@ by transfer (rule card_Diff1_le)
 lemma fcard_pfsubset: "A |\<subseteq>| B \<Longrightarrow> fcard A < fcard B \<Longrightarrow> A < B"
 by transfer (rule card_psubset)
 
+
 subsubsection {* @{text ffold} *}
 
 (* FIXME: improve transferred to handle bounded meta quantification *)
@@ -680,12 +694,14 @@ begin
 
 end
 
+
 subsection {* Choice in fsets *}
 
 lemma fset_choice: 
   assumes "\<forall>x. x |\<in>| A \<longrightarrow> (\<exists>y. P x y)"
   shows "\<exists>f. \<forall>x. x |\<in>| A \<longrightarrow> P x (f x)"
   using assms by transfer metis
+
 
 subsection {* Induction and Cases rules for fsets *}
 
@@ -751,6 +767,7 @@ lemma fset_induct2:
   apply (induct_tac xa rule: fset_induct_stronger)
   apply simp_all
   done
+
 
 subsection {* Setup for Lifting/Transfer *}
 
@@ -851,6 +868,7 @@ by (auto intro: right_total_fset_rel left_total_fset_rel iff: bi_total_iff)
 
 lemmas fset_invariant_commute [invariant_commute] = set_invariant_commute[Transfer.transferred]
 
+
 subsubsection {* Quotient theorem for the Lifting package *}
 
 lemma Quotient_fset_map[quot_map]:
@@ -858,6 +876,7 @@ lemma Quotient_fset_map[quot_map]:
   shows "Quotient (fset_rel R) (fimage Abs) (fimage Rep) (fset_rel T)"
   using assms unfolding Quotient_alt_def4
   by (simp add: fset_rel_OO[symmetric] fset_rel_conversep) (simp add: fset_rel_alt_def, blast)
+
 
 subsubsection {* Transfer rules for the Transfer package *}
 
@@ -970,5 +989,138 @@ end
 
 lifting_update fset.lifting
 lifting_forget fset.lifting
+
+
+subsection {* BNF setup *}
+
+context
+includes fset.lifting
+begin
+
+lemma fset_rel_alt:
+  "fset_rel R a b \<longleftrightarrow> (\<forall>t \<in> fset a. \<exists>u \<in> fset b. R t u) \<and> (\<forall>t \<in> fset b. \<exists>u \<in> fset a. R u t)"
+by transfer (simp add: set_rel_def)
+
+lemma fset_to_fset: "finite A \<Longrightarrow> fset (the_inv fset A) = A"
+apply (rule f_the_inv_into_f[unfolded inj_on_def])
+apply (simp add: fset_inject)
+apply (rule range_eqI Abs_fset_inverse[symmetric] CollectI)+
+.
+
+lemma fset_rel_aux:
+"(\<forall>t \<in> fset a. \<exists>u \<in> fset b. R t u) \<and> (\<forall>u \<in> fset b. \<exists>t \<in> fset a. R t u) \<longleftrightarrow>
+ ((BNF_Util.Grp {a. fset a \<subseteq> {(a, b). R a b}} (fimage fst))\<inverse>\<inverse> OO
+  BNF_Util.Grp {a. fset a \<subseteq> {(a, b). R a b}} (fimage snd)) a b" (is "?L = ?R")
+proof
+  assume ?L
+  def R' \<equiv> "the_inv fset (Collect (split R) \<inter> (fset a \<times> fset b))" (is "the_inv fset ?L'")
+  have "finite ?L'" by (intro finite_Int[OF disjI2] finite_cartesian_product) (transfer, simp)+
+  hence *: "fset R' = ?L'" unfolding R'_def by (intro fset_to_fset)
+  show ?R unfolding Grp_def relcompp.simps conversep.simps
+  proof (intro CollectI prod_caseI exI[of _ a] exI[of _ b] exI[of _ R'] conjI refl)
+    from * show "a = fimage fst R'" using conjunct1[OF `?L`]
+      by (transfer, auto simp add: image_def Int_def split: prod.splits)
+    from * show "b = fimage snd R'" using conjunct2[OF `?L`]
+      by (transfer, auto simp add: image_def Int_def split: prod.splits)
+  qed (auto simp add: *)
+next
+  assume ?R thus ?L unfolding Grp_def relcompp.simps conversep.simps
+  apply (simp add: subset_eq Ball_def)
+  apply (rule conjI)
+  apply (transfer, clarsimp, metis snd_conv)
+  by (transfer, clarsimp, metis fst_conv)
+qed
+
+bnf "'a fset"
+  map: fimage
+  sets: fset 
+  bd: natLeq
+  wits: "{||}"
+  rel: fset_rel
+apply -
+          apply transfer' apply simp
+         apply transfer' apply force
+        apply transfer apply force
+       apply transfer' apply force
+      apply (rule natLeq_card_order)
+     apply (rule natLeq_cinfinite)
+    apply transfer apply (metis ordLess_imp_ordLeq finite_iff_ordLess_natLeq)
+   apply (fastforce simp: fset_rel_alt)
+ apply (simp add: Grp_def relcompp.simps conversep.simps fun_eq_iff fset_rel_alt fset_rel_aux) 
+apply transfer apply simp
+done
+
+lemma fset_rel_fset: "set_rel \<chi> (fset A1) (fset A2) = fset_rel \<chi> A1 A2"
+  by transfer (rule refl)
+
+end
+
+lemmas [simp] = fset.map_comp fset.map_id fset.set_map
+
+
+subsection {* Advanced relator customization *}
+
+(* Set vs. sum relators: *)
+
+lemma set_rel_sum_rel[simp]: 
+"set_rel (sum_rel \<chi> \<phi>) A1 A2 \<longleftrightarrow> 
+ set_rel \<chi> (Inl -` A1) (Inl -` A2) \<and> set_rel \<phi> (Inr -` A1) (Inr -` A2)"
+(is "?L \<longleftrightarrow> ?Rl \<and> ?Rr")
+proof safe
+  assume L: "?L"
+  show ?Rl unfolding set_rel_def Bex_def vimage_eq proof safe
+    fix l1 assume "Inl l1 \<in> A1"
+    then obtain a2 where a2: "a2 \<in> A2" and "sum_rel \<chi> \<phi> (Inl l1) a2"
+    using L unfolding set_rel_def by auto
+    then obtain l2 where "a2 = Inl l2 \<and> \<chi> l1 l2" by (cases a2, auto)
+    thus "\<exists> l2. Inl l2 \<in> A2 \<and> \<chi> l1 l2" using a2 by auto
+  next
+    fix l2 assume "Inl l2 \<in> A2"
+    then obtain a1 where a1: "a1 \<in> A1" and "sum_rel \<chi> \<phi> a1 (Inl l2)"
+    using L unfolding set_rel_def by auto
+    then obtain l1 where "a1 = Inl l1 \<and> \<chi> l1 l2" by (cases a1, auto)
+    thus "\<exists> l1. Inl l1 \<in> A1 \<and> \<chi> l1 l2" using a1 by auto
+  qed
+  show ?Rr unfolding set_rel_def Bex_def vimage_eq proof safe
+    fix r1 assume "Inr r1 \<in> A1"
+    then obtain a2 where a2: "a2 \<in> A2" and "sum_rel \<chi> \<phi> (Inr r1) a2"
+    using L unfolding set_rel_def by auto
+    then obtain r2 where "a2 = Inr r2 \<and> \<phi> r1 r2" by (cases a2, auto)
+    thus "\<exists> r2. Inr r2 \<in> A2 \<and> \<phi> r1 r2" using a2 by auto
+  next
+    fix r2 assume "Inr r2 \<in> A2"
+    then obtain a1 where a1: "a1 \<in> A1" and "sum_rel \<chi> \<phi> a1 (Inr r2)"
+    using L unfolding set_rel_def by auto
+    then obtain r1 where "a1 = Inr r1 \<and> \<phi> r1 r2" by (cases a1, auto)
+    thus "\<exists> r1. Inr r1 \<in> A1 \<and> \<phi> r1 r2" using a1 by auto
+  qed
+next
+  assume Rl: "?Rl" and Rr: "?Rr"
+  show ?L unfolding set_rel_def Bex_def vimage_eq proof safe
+    fix a1 assume a1: "a1 \<in> A1"
+    show "\<exists> a2. a2 \<in> A2 \<and> sum_rel \<chi> \<phi> a1 a2"
+    proof(cases a1)
+      case (Inl l1) then obtain l2 where "Inl l2 \<in> A2 \<and> \<chi> l1 l2"
+      using Rl a1 unfolding set_rel_def by blast
+      thus ?thesis unfolding Inl by auto
+    next
+      case (Inr r1) then obtain r2 where "Inr r2 \<in> A2 \<and> \<phi> r1 r2"
+      using Rr a1 unfolding set_rel_def by blast
+      thus ?thesis unfolding Inr by auto
+    qed
+  next
+    fix a2 assume a2: "a2 \<in> A2"
+    show "\<exists> a1. a1 \<in> A1 \<and> sum_rel \<chi> \<phi> a1 a2"
+    proof(cases a2)
+      case (Inl l2) then obtain l1 where "Inl l1 \<in> A1 \<and> \<chi> l1 l2"
+      using Rl a2 unfolding set_rel_def by blast
+      thus ?thesis unfolding Inl by auto
+    next
+      case (Inr r2) then obtain r1 where "Inr r1 \<in> A1 \<and> \<phi> r1 r2"
+      using Rr a2 unfolding set_rel_def by blast
+      thus ?thesis unfolding Inr by auto
+    qed
+  qed
+qed
 
 end

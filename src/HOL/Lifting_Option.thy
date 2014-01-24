@@ -1,5 +1,6 @@
 (*  Title:      HOL/Lifting_Option.thy
     Author:     Brian Huffman and Ondrej Kuncar
+    Author:     Andreas Lochbihler, Karlsruhe Institute of Technology
 *)
 
 header {* Setup for Lifting/Transfer for the option type *}
@@ -113,5 +114,58 @@ lemma option_bind_transfer [transfer_rule]:
   unfolding fun_rel_def split_option_all by simp
 
 end
+
+
+subsubsection {* BNF setup *}
+
+lemma option_rec_conv_option_case: "option_rec = option_case"
+by (simp add: fun_eq_iff split: option.split)
+
+bnf "'a option"
+  map: Option.map
+  sets: Option.set
+  bd: natLeq
+  wits: None
+  rel: option_rel
+proof -
+  show "Option.map id = id" by (rule Option.map.id)
+next
+  fix f g
+  show "Option.map (g \<circ> f) = Option.map g \<circ> Option.map f"
+    by (auto simp add: fun_eq_iff Option.map_def split: option.split)
+next
+  fix f g x
+  assume "\<And>z. z \<in> Option.set x \<Longrightarrow> f z = g z"
+  thus "Option.map f x = Option.map g x"
+    by (simp cong: Option.map_cong)
+next
+  fix f
+  show "Option.set \<circ> Option.map f = op ` f \<circ> Option.set"
+    by fastforce
+next
+  show "card_order natLeq" by (rule natLeq_card_order)
+next
+  show "cinfinite natLeq" by (rule natLeq_cinfinite)
+next
+  fix x
+  show "|Option.set x| \<le>o natLeq"
+    by (cases x) (simp_all add: ordLess_imp_ordLeq finite_iff_ordLess_natLeq[symmetric])
+next
+  fix R S
+  show "option_rel R OO option_rel S \<le> option_rel (R OO S)"
+    by (auto simp: option_rel_def split: option.splits)
+next
+  fix z
+  assume "z \<in> Option.set None"
+  thus False by simp
+next
+  fix R
+  show "option_rel R =
+        (Grp {x. Option.set x \<subseteq> Collect (split R)} (Option.map fst))\<inverse>\<inverse> OO
+         Grp {x. Option.set x \<subseteq> Collect (split R)} (Option.map snd)"
+  unfolding option_rel_def Grp_def relcompp.simps conversep.simps fun_eq_iff prod.cases
+  by (auto simp: trans[OF eq_commute option_map_is_None] trans[OF eq_commute option_map_eq_Some]
+           split: option.splits)
+qed
 
 end

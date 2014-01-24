@@ -8,7 +8,7 @@ Preliminaries.
 header {* Preliminaries *}
 
 theory Prelim
-imports "~~/src/HOL/Library/More_BNFs"
+imports "~~/src/HOL/Library/FSet"
 begin
 
 notation BNF_Def.convol ("<_ , _>")

@@ -38,7 +38,6 @@ imports
   Kleene_Algebra
   Mapping
   Monad_Syntax
-  More_BNFs
   Multiset
   Numeral_Type
   OptionalSugar
