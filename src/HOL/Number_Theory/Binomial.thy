@@ -2,238 +2,638 @@
     Authors:    Lawrence C. Paulson, Jeremy Avigad, Tobias Nipkow
 
 Defines the "choose" function, and establishes basic properties.
-
-The original theory "Binomial" was by Lawrence C. Paulson, based on
-the work of Andy Gordon and Florian Kammueller. The approach here,
-which derives the definition of binomial coefficients in terms of the
-factorial function, is due to Jeremy Avigad. The binomial theorem was
-formalized by Tobias Nipkow.
 *)
 
 header {* Binomial *}
 
 theory Binomial
-imports Cong Fact
+imports Cong Fact Complex_Main
 begin
 
 
-subsection {* Main definitions *}
+text {* This development is based on the work of Andy Gordon and
+  Florian Kammueller. *}
 
-class binomial =
-  fixes binomial :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "choose" 65)
+subsection {* Basic definitions and lemmas *}
 
-(* definitions for the natural numbers *)
-
-instantiation nat :: binomial
-begin 
-
-fun binomial_nat :: "nat \<Rightarrow> nat \<Rightarrow> nat"
+primrec binomial :: "nat \<Rightarrow> nat \<Rightarrow> nat" (infixl "choose" 65)
 where
-  "binomial_nat n k =
-   (if k = 0 then 1 else
-    if n = 0 then 0 else
-      (binomial (n - 1) k) + (binomial (n - 1) (k - 1)))"
+  "0 choose k = (if k = 0 then 1 else 0)"
+| "Suc n choose k = (if k = 0 then 1 else (n choose (k - 1)) + (n choose k))"
 
-instance ..
+lemma binomial_n_0 [simp]: "(n choose 0) = 1"
+  by (cases n) simp_all
 
-end
+lemma binomial_0_Suc [simp]: "(0 choose Suc k) = 0"
+  by simp
 
-(* definitions for the integers *)
+lemma binomial_Suc_Suc [simp]: "(Suc n choose Suc k) = (n choose k) + (n choose Suc k)"
+  by simp
 
-instantiation int :: binomial
-begin 
+lemma choose_reduce_nat: 
+  "0 < (n::nat) \<Longrightarrow> 0 < k \<Longrightarrow>
+    (n choose k) = ((n - 1) choose k) + ((n - 1) choose (k - 1))"
+  by (metis Suc_diff_1 binomial.simps(2) nat_add_commute neq0_conv)
 
-definition binomial_int :: "int => int \<Rightarrow> int" where
-  "binomial_int n k =
-   (if n \<ge> 0 \<and> k \<ge> 0 then int (binomial (nat n) (nat k))
-    else 0)"
+lemma binomial_eq_0: "n < k \<Longrightarrow> n choose k = 0"
+  by (induct n arbitrary: k) auto
 
-instance ..
+declare binomial.simps [simp del]
 
-end
+lemma binomial_n_n [simp]: "n choose n = 1"
+  by (induct n) (simp_all add: binomial_eq_0)
+
+lemma binomial_Suc_n [simp]: "Suc n choose n = Suc n"
+  by (induct n) simp_all
+
+lemma binomial_1 [simp]: "n choose Suc 0 = n"
+  by (induct n) simp_all
+
+lemma zero_less_binomial: "k \<le> n \<Longrightarrow> n choose k > 0"
+  by (induct n k rule: diff_induct) simp_all
+
+lemma binomial_eq_0_iff [simp]: "n choose k = 0 \<longleftrightarrow> n < k"
+  by (metis binomial_eq_0 less_numeral_extra(3) not_less zero_less_binomial)
+
+lemma zero_less_binomial_iff [simp]: "n choose k > 0 \<longleftrightarrow> k \<le> n"
+  by (metis binomial_eq_0_iff not_less0 not_less zero_less_binomial)
+
+(*Might be more useful if re-oriented*)
+lemma Suc_times_binomial_eq:
+  "k \<le> n \<Longrightarrow> Suc n * (n choose k) = (Suc n choose Suc k) * Suc k"
+  apply (induct n arbitrary: k)
+   apply (simp add: binomial.simps)
+   apply (case_tac k)
+  apply (auto simp add: add_mult_distrib add_mult_distrib2 le_Suc_eq binomial_eq_0)
+  done
+
+text{*This is the well-known version, but it's harder to use because of the
+  need to reason about division.*}
+lemma binomial_Suc_Suc_eq_times:
+    "k \<le> n \<Longrightarrow> (Suc n choose Suc k) = (Suc n * (n choose k)) div Suc k"
+  by (simp add: Suc_times_binomial_eq del: mult_Suc mult_Suc_right)
+
+text{*Another version, with -1 instead of Suc.*}
+lemma times_binomial_minus1_eq:
+  "k \<le> n \<Longrightarrow> 0 < k \<Longrightarrow> (n choose k) * k = n * ((n - 1) choose (k - 1))"
+  using Suc_times_binomial_eq [where n = "n - 1" and k = "k - 1"]
+  by (auto split add: nat_diff_split)
 
 
-subsection {* Set up Transfer *}
+subsection {* Combinatorial theorems involving @{text "choose"} *}
 
-lemma transfer_nat_int_binomial:
-  "(n::int) >= 0 \<Longrightarrow> k >= 0 \<Longrightarrow> binomial (nat n) (nat k) = 
-      nat (binomial n k)"
-  unfolding binomial_int_def 
-  by auto
+text {*By Florian Kamm\"uller, tidied by LCP.*}
 
-lemma transfer_nat_int_binomial_closure:
-  "n >= (0::int) \<Longrightarrow> k >= 0 \<Longrightarrow> binomial n k >= 0"
-  by (auto simp add: binomial_int_def)
+lemma card_s_0_eq_empty: "finite A \<Longrightarrow> card {B. B \<subseteq> A & card B = 0} = 1"
+  by (simp cong add: conj_cong add: finite_subset [THEN card_0_eq])
 
-declare transfer_morphism_nat_int[transfer add return: 
-    transfer_nat_int_binomial transfer_nat_int_binomial_closure]
+lemma choose_deconstruct: "finite M \<Longrightarrow> x \<notin> M \<Longrightarrow>
+    {s. s \<subseteq> insert x M \<and> card s = Suc k} =
+    {s. s \<subseteq> M \<and> card s = Suc k} \<union> {s. \<exists>t. t \<subseteq> M \<and> card t = k \<and> s = insert x t}"
+  apply safe
+     apply (auto intro: finite_subset [THEN card_insert_disjoint])
+  by (metis (full_types) Diff_insert_absorb Set.set_insert Zero_neq_Suc card_Diff_singleton_if 
+     card_eq_0_iff diff_Suc_1 in_mono subset_insert_iff)
 
-lemma transfer_int_nat_binomial:
-  "binomial (int n) (int k) = int (binomial n k)"
-  unfolding fact_int_def binomial_int_def by auto
+lemma finite_bex_subset [simp]:
+  assumes "finite B"
+    and "\<And>A. A \<subseteq> B \<Longrightarrow> finite {x. P x A}"
+  shows "finite {x. \<exists>A \<subseteq> B. P x A}"
+  by (metis (no_types) assms finite_Collect_bounded_ex finite_Collect_subsets)
 
-lemma transfer_int_nat_binomial_closure:
-  "is_nat n \<Longrightarrow> is_nat k \<Longrightarrow> binomial n k >= 0"
-  by (auto simp add: binomial_int_def)
+text{*There are as many subsets of @{term A} having cardinality @{term k}
+ as there are sets obtained from the former by inserting a fixed element
+ @{term x} into each.*}
+lemma constr_bij:
+   "finite A \<Longrightarrow> x \<notin> A \<Longrightarrow>
+    card {B. \<exists>C. C \<subseteq> A \<and> card C = k \<and> B = insert x C} =
+    card {B. B \<subseteq> A & card(B) = k}"
+  apply (rule card_bij_eq [where f = "\<lambda>s. s - {x}" and g = "insert x"])
+  apply (auto elim!: equalityE simp add: inj_on_def)
+  apply (metis card_Diff_singleton_if finite_subset in_mono)
+  done
 
-declare transfer_morphism_int_nat[transfer add return: 
-    transfer_int_nat_binomial transfer_int_nat_binomial_closure]
+text {*
+  Main theorem: combinatorial statement about number of subsets of a set.
+*}
+
+theorem n_subsets: "finite A \<Longrightarrow> card {B. B \<subseteq> A \<and> card B = k} = (card A choose k)"
+proof (induct k arbitrary: A)
+  case 0 then show ?case by (simp add: card_s_0_eq_empty)
+next
+  case (Suc k)
+  show ?case using `finite A`
+  proof (induct A)
+    case empty show ?case by (simp add: card_s_0_eq_empty)
+  next
+    case (insert x A)
+    then show ?case using Suc.hyps
+      apply (simp add: card_s_0_eq_empty choose_deconstruct)
+      apply (subst card_Un_disjoint)
+         prefer 4 apply (force simp add: constr_bij)
+        prefer 3 apply force
+       prefer 2 apply (blast intro: finite_Pow_iff [THEN iffD2]
+         finite_subset [of _ "Pow (insert x F)", standard])
+      apply (blast intro: finite_Pow_iff [THEN iffD2, THEN [2] finite_subset])
+      done
+  qed
+qed
+
+
+subsection {* The binomial theorem (courtesy of Tobias Nipkow): *}
+
+text{* Avigad's version, generalized to any commutative ring *}
+theorem binomial_ring: "(a+b::'a::{comm_ring_1,power})^n = 
+  (\<Sum>k=0..n. (of_nat (n choose k)) * a^k * b^(n-k))" (is "?P n")
+proof (induct n)
+  case 0 then show "?P 0" by simp
+next
+  case (Suc n)
+  have decomp: "{0..n+1} = {0} Un {n+1} Un {1..n}"
+    by auto
+  have decomp2: "{0..n} = {0} Un {1..n}"
+    by auto
+  have "(a+b)^(n+1) = 
+      (a+b) * (\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n-k))"
+    using Suc.hyps by simp
+  also have "\<dots> = a*(\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n-k)) +
+                   b*(\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n-k))"
+    by (rule distrib)
+  also have "\<dots> = (\<Sum>k=0..n. of_nat (n choose k) * a^(k+1) * b^(n-k)) +
+                  (\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n-k+1))"
+    by (auto simp add: setsum_right_distrib mult_ac)
+  also have "\<dots> = (\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n+1-k)) +
+                  (\<Sum>k=1..n+1. of_nat (n choose (k - 1)) * a^k * b^(n+1-k))"
+    by (simp add:setsum_shift_bounds_cl_Suc_ivl Suc_diff_le field_simps  
+        del:setsum_cl_ivl_Suc)
+  also have "\<dots> = a^(n+1) + b^(n+1) +
+                  (\<Sum>k=1..n. of_nat (n choose (k - 1)) * a^k * b^(n+1-k)) +
+                  (\<Sum>k=1..n. of_nat (n choose k) * a^k * b^(n+1-k))"
+    by (simp add: decomp2)
+  also have
+      "\<dots> = a^(n+1) + b^(n+1) + 
+            (\<Sum>k=1..n. of_nat(n+1 choose k) * a^k * b^(n+1-k))"
+    by (auto simp add: field_simps setsum_addf [symmetric] choose_reduce_nat)
+  also have "\<dots> = (\<Sum>k=0..n+1. of_nat (n+1 choose k) * a^k * b^(n+1-k))"
+    using decomp by (simp add: field_simps)
+  finally show "?P (Suc n)" by simp
+qed
+
+text{* Original version for the naturals *}
+corollary binomial: "(a+b::nat)^n = (\<Sum>k=0..n. (of_nat (n choose k)) * a^k * b^(n-k))"
+    using binomial_ring [of "int a" "int b" n]
+  by (simp only: of_nat_add [symmetric] of_nat_mult [symmetric] of_nat_power [symmetric]
+           of_nat_setsum [symmetric]
+           of_nat_eq_iff of_nat_id)
+
+subsection{* Pochhammer's symbol : generalized rising factorial *}
+
+text {* See @{url "http://en.wikipedia.org/wiki/Pochhammer_symbol"} *}
+
+definition "pochhammer (a::'a::comm_semiring_1) n =
+  (if n = 0 then 1 else setprod (\<lambda>n. a + of_nat n) {0 .. n - 1})"
+
+lemma pochhammer_0 [simp]: "pochhammer a 0 = 1"
+  by (simp add: pochhammer_def)
+
+lemma pochhammer_1 [simp]: "pochhammer a 1 = a"
+  by (simp add: pochhammer_def)
+
+lemma pochhammer_Suc0 [simp]: "pochhammer a (Suc 0) = a"
+  by (simp add: pochhammer_def)
+
+lemma pochhammer_Suc_setprod: "pochhammer a (Suc n) = setprod (\<lambda>n. a + of_nat n) {0 .. n}"
+  by (simp add: pochhammer_def)
+
+lemma setprod_nat_ivl_Suc: "setprod f {0 .. Suc n} = setprod f {0..n} * f (Suc n)"
+proof -
+  have "{0..Suc n} = {0..n} \<union> {Suc n}" by auto
+  then show ?thesis by (simp add: field_simps)
+qed
+
+lemma setprod_nat_ivl_1_Suc: "setprod f {0 .. Suc n} = f 0 * setprod f {1.. Suc n}"
+proof -
+  have "{0..Suc n} = {0} \<union> {1 .. Suc n}" by auto
+  then show ?thesis by simp
+qed
+
+
+lemma pochhammer_Suc: "pochhammer a (Suc n) = pochhammer a n * (a + of_nat n)"
+proof (cases n)
+  case 0
+  then show ?thesis by simp
+next
+  case (Suc n)
+  show ?thesis unfolding Suc pochhammer_Suc_setprod setprod_nat_ivl_Suc ..
+qed
+
+lemma pochhammer_rec: "pochhammer a (Suc n) = a * pochhammer (a + 1) n"
+proof (cases "n = 0")
+  case True
+  then show ?thesis by (simp add: pochhammer_Suc_setprod)
+next
+  case False
+  have *: "finite {1 .. n}" "0 \<notin> {1 .. n}" by auto
+  have eq: "insert 0 {1 .. n} = {0..n}" by auto
+  have **: "(\<Prod>n\<in>{1\<Colon>nat..n}. a + of_nat n) = (\<Prod>n\<in>{0\<Colon>nat..n - 1}. a + 1 + of_nat n)"
+    apply (rule setprod_reindex_cong [where f = Suc])
+    using False
+    apply (auto simp add: fun_eq_iff field_simps)
+    done
+  show ?thesis
+    apply (simp add: pochhammer_def)
+    unfolding setprod_insert [OF *, unfolded eq]
+    using ** apply (simp add: field_simps)
+    done
+qed
+
+lemma pochhammer_fact: "of_nat (fact n) = pochhammer 1 n"
+  unfolding fact_altdef_nat
+  apply (cases n)
+   apply (simp_all add: of_nat_setprod pochhammer_Suc_setprod)
+  apply (rule setprod_reindex_cong[where f=Suc])
+    apply (auto simp add: fun_eq_iff)
+  done
+
+lemma pochhammer_of_nat_eq_0_lemma:
+  assumes "k > n"
+  shows "pochhammer (- (of_nat n :: 'a:: idom)) k = 0"
+proof (cases "n = 0")
+  case True
+  then show ?thesis
+    using assms by (cases k) (simp_all add: pochhammer_rec)
+next
+  case False
+  from assms obtain h where "k = Suc h" by (cases k) auto
+  then show ?thesis
+    by (simp add: pochhammer_Suc_setprod)
+       (metis Suc_leI Suc_le_mono assms atLeastAtMost_iff less_eq_nat.simps(1))
+qed
+
+lemma pochhammer_of_nat_eq_0_lemma':
+  assumes kn: "k \<le> n"
+  shows "pochhammer (- (of_nat n :: 'a:: {idom,ring_char_0})) k \<noteq> 0"
+proof (cases k)
+  case 0
+  then show ?thesis by simp
+next
+  case (Suc h)
+  then show ?thesis
+    apply (simp add: pochhammer_Suc_setprod)
+    using Suc kn apply (auto simp add: algebra_simps)
+    done
+qed
+
+lemma pochhammer_of_nat_eq_0_iff:
+  shows "pochhammer (- (of_nat n :: 'a:: {idom,ring_char_0})) k = 0 \<longleftrightarrow> k > n"
+  (is "?l = ?r")
+  using pochhammer_of_nat_eq_0_lemma[of n k, where ?'a='a]
+    pochhammer_of_nat_eq_0_lemma'[of k n, where ?'a = 'a]
+  by (auto simp add: not_le[symmetric])
+
+
+lemma pochhammer_eq_0_iff: "pochhammer a n = (0::'a::field_char_0) \<longleftrightarrow> (\<exists>k < n. a = - of_nat k)"
+  apply (auto simp add: pochhammer_of_nat_eq_0_iff)
+  apply (cases n)
+   apply (auto simp add: pochhammer_def algebra_simps group_add_class.eq_neg_iff_add_eq_0)
+  apply (metis leD not_less_eq)
+  done
+
+
+lemma pochhammer_eq_0_mono:
+  "pochhammer a n = (0::'a::field_char_0) \<Longrightarrow> m \<ge> n \<Longrightarrow> pochhammer a m = 0"
+  unfolding pochhammer_eq_0_iff by auto
+
+lemma pochhammer_neq_0_mono:
+  "pochhammer a m \<noteq> (0::'a::field_char_0) \<Longrightarrow> m \<ge> n \<Longrightarrow> pochhammer a n \<noteq> 0"
+  unfolding pochhammer_eq_0_iff by auto
+
+lemma pochhammer_minus:
+  assumes kn: "k \<le> n"
+  shows "pochhammer (- b) k = ((- 1) ^ k :: 'a::comm_ring_1) * pochhammer (b - of_nat k + 1) k"
+proof (cases k)
+  case 0
+  then show ?thesis by simp
+next
+  case (Suc h)
+  have eq: "((- 1) ^ Suc h :: 'a) = setprod (%i. - 1) {0 .. h}"
+    using setprod_constant[where A="{0 .. h}" and y="- 1 :: 'a"]
+    by auto
+  show ?thesis
+    unfolding Suc pochhammer_Suc_setprod eq setprod_timesf[symmetric]
+    apply (rule strong_setprod_reindex_cong[where f = "%i. h - i"])
+    using Suc
+    apply (auto simp add: inj_on_def image_def of_nat_diff)
+    apply (metis atLeast0AtMost atMost_iff diff_diff_cancel diff_le_self)
+    done
+qed
+
+lemma pochhammer_minus':
+  assumes kn: "k \<le> n"
+  shows "pochhammer (b - of_nat k + 1) k = ((- 1) ^ k :: 'a::comm_ring_1) * pochhammer (- b) k"
+  unfolding pochhammer_minus[OF kn, where b=b]
+  unfolding mult_assoc[symmetric]
+  unfolding power_add[symmetric]
+  by simp
+
+lemma pochhammer_same: "pochhammer (- of_nat n) n =
+    ((- 1) ^ n :: 'a::comm_ring_1) * of_nat (fact n)"
+  unfolding pochhammer_minus[OF le_refl[of n]]
+  by (simp add: of_nat_diff pochhammer_fact)
+
+
+subsection{* Generalized binomial coefficients *}
+
+definition gbinomial :: "'a::field_char_0 \<Rightarrow> nat \<Rightarrow> 'a" (infixl "gchoose" 65)
+  where "a gchoose n =
+    (if n = 0 then 1 else (setprod (\<lambda>i. a - of_nat i) {0 .. n - 1}) / of_nat (fact n))"
+
+lemma gbinomial_0 [simp]: "a gchoose 0 = 1" "0 gchoose (Suc n) = 0"
+  apply (simp_all add: gbinomial_def)
+  apply (subgoal_tac "(\<Prod>i\<Colon>nat\<in>{0\<Colon>nat..n}. - of_nat i) = (0::'b)")
+   apply (simp del:setprod_zero_iff)
+  apply simp
+  done
+
+lemma gbinomial_pochhammer: "a gchoose n = (- 1) ^ n * pochhammer (- a) n / of_nat (fact n)"
+proof (cases "n = 0")
+  case True
+  then show ?thesis by simp
+next
+  case False
+  from this setprod_constant[of "{0 .. n - 1}" "- (1:: 'a)"]
+  have eq: "(- (1\<Colon>'a)) ^ n = setprod (\<lambda>i. - 1) {0 .. n - 1}"
+    by auto
+  from False show ?thesis
+    by (simp add: pochhammer_def gbinomial_def field_simps
+      eq setprod_timesf[symmetric])
+qed
+
+lemma binomial_fact_lemma: "k \<le> n \<Longrightarrow> fact k * fact (n - k) * (n choose k) = fact n"
+proof (induct n arbitrary: k rule: nat_less_induct)
+  fix n k assume H: "\<forall>m<n. \<forall>x\<le>m. fact x * fact (m - x) * (m choose x) =
+                      fact m" and kn: "k \<le> n"
+  let ?ths = "fact k * fact (n - k) * (n choose k) = fact n"
+  { assume "n=0" then have ?ths using kn by simp }
+  moreover
+  { assume "k=0" then have ?ths using kn by simp }
+  moreover
+  { assume nk: "n=k" then have ?ths by simp }
+  moreover
+  { fix m h assume n: "n = Suc m" and h: "k = Suc h" and hm: "h < m"
+    from n have mn: "m < n" by arith
+    from hm have hm': "h \<le> m" by arith
+    from hm h n kn have km: "k \<le> m" by arith
+    have "m - h = Suc (m - Suc h)" using  h km hm by arith
+    with km h have th0: "fact (m - h) = (m - h) * fact (m - k)"
+      by simp
+    from n h th0
+    have "fact k * fact (n - k) * (n choose k) =
+        k * (fact h * fact (m - h) * (m choose h)) + 
+        (m - h) * (fact k * fact (m - k) * (m choose k))"
+      by (simp add: field_simps)
+    also have "\<dots> = (k + (m - h)) * fact m"
+      using H[rule_format, OF mn hm'] H[rule_format, OF mn km]
+      by (simp add: field_simps)
+    finally have ?ths using h n km by simp }
+  moreover have "n=0 \<or> k = 0 \<or> k = n \<or> (\<exists>m h. n = Suc m \<and> k = Suc h \<and> h < m)"
+    using kn by presburger
+  ultimately show ?ths by blast
+qed
+
+lemma binomial_fact:
+  assumes kn: "k \<le> n"
+  shows "(of_nat (n choose k) :: 'a::field_char_0) =
+    of_nat (fact n) / (of_nat (fact k) * of_nat (fact (n - k)))"
+  using binomial_fact_lemma[OF kn]
+  by (simp add: field_simps of_nat_mult [symmetric])
+
+lemma binomial_gbinomial: "of_nat (n choose k) = of_nat n gchoose k"
+proof -
+  { assume kn: "k > n"
+    then have ?thesis
+      by (subst binomial_eq_0[OF kn]) 
+         (simp add: gbinomial_pochhammer field_simps  pochhammer_of_nat_eq_0_iff) }
+  moreover
+  { assume "k=0" then have ?thesis by simp }
+  moreover
+  { assume kn: "k \<le> n" and k0: "k\<noteq> 0"
+    from k0 obtain h where h: "k = Suc h" by (cases k) auto
+    from h
+    have eq:"(- 1 :: 'a) ^ k = setprod (\<lambda>i. - 1) {0..h}"
+      by (subst setprod_constant) auto
+    have eq': "(\<Prod>i\<in>{0..h}. of_nat n + - (of_nat i :: 'a)) = (\<Prod>i\<in>{n - h..n}. of_nat i)"
+      apply (rule strong_setprod_reindex_cong[where f="op - n"])
+        using h kn
+        apply (simp_all add: inj_on_def image_iff Bex_def set_eq_iff)
+        apply clarsimp
+        apply presburger
+       apply presburger
+      apply (simp add: fun_eq_iff field_simps of_nat_add[symmetric] del: of_nat_add)
+      done
+    have th0: "finite {1..n - Suc h}" "finite {n - h .. n}"
+        "{1..n - Suc h} \<inter> {n - h .. n} = {}" and
+        eq3: "{1..n - Suc h} \<union> {n - h .. n} = {1..n}"
+      using h kn by auto
+    from eq[symmetric]
+    have ?thesis using kn
+      apply (simp add: binomial_fact[OF kn, where ?'a = 'a]
+        gbinomial_pochhammer field_simps pochhammer_Suc_setprod)
+      apply (simp add: pochhammer_Suc_setprod fact_altdef_nat h
+        of_nat_setprod setprod_timesf[symmetric] eq' del: One_nat_def power_Suc)
+      unfolding setprod_Un_disjoint[OF th0, unfolded eq3, of "of_nat:: nat \<Rightarrow> 'a"] eq[unfolded h]
+      unfolding mult_assoc[symmetric]
+      unfolding setprod_timesf[symmetric]
+      apply simp
+      apply (rule strong_setprod_reindex_cong[where f= "op - n"])
+        apply (auto simp add: inj_on_def image_iff Bex_def)
+       apply presburger
+      apply (subgoal_tac "(of_nat (n - x) :: 'a) = of_nat n - of_nat x")
+       apply simp
+      apply (rule of_nat_diff)
+      apply simp
+      done
+  }
+  moreover
+  have "k > n \<or> k = 0 \<or> (k \<le> n \<and> k \<noteq> 0)" by arith
+  ultimately show ?thesis by blast
+qed
+
+lemma gbinomial_1[simp]: "a gchoose 1 = a"
+  by (simp add: gbinomial_def)
+
+lemma gbinomial_Suc0[simp]: "a gchoose (Suc 0) = a"
+  by (simp add: gbinomial_def)
+
+lemma gbinomial_mult_1:
+  "a * (a gchoose n) =
+    of_nat n * (a gchoose n) + of_nat (Suc n) * (a gchoose (Suc n))"  (is "?l = ?r")
+proof -
+  have "?r = ((- 1) ^n * pochhammer (- a) n / of_nat (fact n)) * (of_nat n - (- a + of_nat n))"
+    unfolding gbinomial_pochhammer
+      pochhammer_Suc fact_Suc of_nat_mult right_diff_distrib power_Suc
+    by (simp add:  field_simps del: of_nat_Suc)
+  also have "\<dots> = ?l" unfolding gbinomial_pochhammer
+    by (simp add: field_simps)
+  finally show ?thesis ..
+qed
+
+lemma gbinomial_mult_1':
+    "(a gchoose n) * a = of_nat n * (a gchoose n) + of_nat (Suc n) * (a gchoose (Suc n))"
+  by (simp add: mult_commute gbinomial_mult_1)
+
+lemma gbinomial_Suc:
+    "a gchoose (Suc k) = (setprod (\<lambda>i. a - of_nat i) {0 .. k}) / of_nat (fact (Suc k))"
+  by (simp add: gbinomial_def)
+
+lemma gbinomial_mult_fact:
+  "(of_nat (fact (Suc k)) :: 'a) * ((a::'a::field_char_0) gchoose (Suc k)) =
+    (setprod (\<lambda>i. a - of_nat i) {0 .. k})"
+  by (simp_all add: gbinomial_Suc field_simps del: fact_Suc)
+
+lemma gbinomial_mult_fact':
+  "((a::'a::field_char_0) gchoose (Suc k)) * (of_nat (fact (Suc k)) :: 'a) =
+    (setprod (\<lambda>i. a - of_nat i) {0 .. k})"
+  using gbinomial_mult_fact[of k a]
+  by (subst mult_commute)
+
+
+lemma gbinomial_Suc_Suc:
+  "((a::'a::field_char_0) + 1) gchoose (Suc k) = a gchoose k + (a gchoose (Suc k))"
+proof (cases k)
+  case 0
+  then show ?thesis by simp
+next
+  case (Suc h)
+  have eq0: "(\<Prod>i\<in>{1..k}. (a + 1) - of_nat i) = (\<Prod>i\<in>{0..h}. a - of_nat i)"
+    apply (rule strong_setprod_reindex_cong[where f = Suc])
+      using Suc
+      apply auto
+    done
+
+  have "of_nat (fact (Suc k)) * (a gchoose k + (a gchoose (Suc k))) =
+    ((a gchoose Suc h) * of_nat (fact (Suc h)) * of_nat (Suc k)) + (\<Prod>i\<in>{0\<Colon>nat..Suc h}. a - of_nat i)"
+    apply (simp add: Suc field_simps del: fact_Suc)
+    unfolding gbinomial_mult_fact'
+    apply (subst fact_Suc)
+    unfolding of_nat_mult
+    apply (subst mult_commute)
+    unfolding mult_assoc
+    unfolding gbinomial_mult_fact
+    apply (simp add: field_simps)
+    done
+  also have "\<dots> = (\<Prod>i\<in>{0..h}. a - of_nat i) * (a + 1)"
+    unfolding gbinomial_mult_fact' setprod_nat_ivl_Suc
+    by (simp add: field_simps Suc)
+  also have "\<dots> = (\<Prod>i\<in>{0..k}. (a + 1) - of_nat i)"
+    using eq0
+    by (simp add: Suc setprod_nat_ivl_1_Suc)
+  also have "\<dots> = of_nat (fact (Suc k)) * ((a + 1) gchoose (Suc k))"
+    unfolding gbinomial_mult_fact ..
+  finally show ?thesis by (simp del: fact_Suc)
+qed
+
+
+lemma binomial_symmetric:
+  assumes kn: "k \<le> n"
+  shows "n choose k = n choose (n - k)"
+proof-
+  from kn have kn': "n - k \<le> n" by arith
+  from binomial_fact_lemma[OF kn] binomial_fact_lemma[OF kn']
+  have "fact k * fact (n - k) * (n choose k) =
+    fact (n - k) * fact (n - (n - k)) * (n choose (n - k))" by simp
+  then show ?thesis using kn by simp
+qed
+
+(* Contributed by Manuel Eberl *)
+(* Alternative definition of the binomial coefficient as \<Prod>i<k. (n - i) / (k - i) *)
+lemma binomial_altdef_of_nat:
+  fixes n k :: nat
+    and x :: "'a :: {field_char_0,field_inverse_zero}"
+  assumes "k \<le> n"
+  shows "of_nat (n choose k) = (\<Prod>i<k. of_nat (n - i) / of_nat (k - i) :: 'a)"
+proof (cases "0 < k")
+  case True
+  then have "(of_nat (n choose k) :: 'a) = (\<Prod>i<k. of_nat n - of_nat i) / of_nat (fact k)"
+    unfolding binomial_gbinomial gbinomial_def
+    by (auto simp: gr0_conv_Suc lessThan_Suc_atMost atLeast0AtMost)
+  also have "\<dots> = (\<Prod>i<k. of_nat (n - i) / of_nat (k - i) :: 'a)"
+    using `k \<le> n` unfolding fact_eq_rev_setprod_nat of_nat_setprod
+    by (auto simp add: setprod_dividef intro!: setprod_cong of_nat_diff[symmetric])
+  finally show ?thesis .
+next
+  case False
+  then show ?thesis by simp
+qed
+
+lemma binomial_ge_n_over_k_pow_k:
+  fixes k n :: nat
+    and x :: "'a :: linordered_field_inverse_zero"
+  assumes "0 < k"
+    and "k \<le> n"
+  shows "(of_nat n / of_nat k :: 'a) ^ k \<le> of_nat (n choose k)"
+proof -
+  have "(of_nat n / of_nat k :: 'a) ^ k = (\<Prod>i<k. of_nat n / of_nat k :: 'a)"
+    by (simp add: setprod_constant)
+  also have "\<dots> \<le> of_nat (n choose k)"
+    unfolding binomial_altdef_of_nat[OF `k\<le>n`]
+  proof (safe intro!: setprod_mono)
+    fix i :: nat
+    assume  "i < k"
+    from assms have "n * i \<ge> i * k" by simp
+    then have "n * k - n * i \<le> n * k - i * k" by arith
+    then have "n * (k - i) \<le> (n - i) * k"
+      by (simp add: diff_mult_distrib2 nat_mult_commute)
+    then have "of_nat n * of_nat (k - i) \<le> of_nat (n - i) * (of_nat k :: 'a)"
+      unfolding of_nat_mult[symmetric] of_nat_le_iff .
+    with assms show "of_nat n / of_nat k \<le> of_nat (n - i) / (of_nat (k - i) :: 'a)"
+      using `i < k` by (simp add: field_simps)
+  qed (simp add: zero_le_divide_iff)
+  finally show ?thesis .
+qed
+
+lemma binomial_le_pow:
+  assumes "r \<le> n"
+  shows "n choose r \<le> n ^ r"
+proof -
+  have "n choose r \<le> fact n div fact (n - r)"
+    using `r \<le> n` by (subst binomial_fact_lemma[symmetric]) auto
+  with fact_div_fact_le_pow [OF assms] show ?thesis by auto
+qed
+
+lemma binomial_altdef_nat: "(k::nat) \<le> n \<Longrightarrow>
+    n choose k = fact n div (fact k * fact (n - k))"
+ by (subst binomial_fact_lemma [symmetric]) auto
+
 
 
 subsection {* Binomial coefficients *}
 
-lemma choose_zero_nat [simp]: "(n::nat) choose 0 = 1"
-  by simp
-
-lemma choose_zero_int [simp]: "n \<ge> 0 \<Longrightarrow> (n::int) choose 0 = 1"
-  by (simp add: binomial_int_def)
-
-lemma zero_choose_nat [rule_format,simp]: "ALL (k::nat) > n. n choose k = 0"
-  by (induct n rule: induct'_nat, auto)
-
-lemma zero_choose_int [rule_format,simp]: "(k::int) > n \<Longrightarrow> n choose k = 0"
-  unfolding binomial_int_def
-  apply (cases "n < 0")
-  apply force
-  apply (simp del: binomial_nat.simps)
-  done
-
-lemma choose_reduce_nat: "(n::nat) > 0 \<Longrightarrow> 0 < k \<Longrightarrow>
-    (n choose k) = ((n - 1) choose k) + ((n - 1) choose (k - 1))"
-  by simp
-
-lemma choose_reduce_int: "(n::int) > 0 \<Longrightarrow> 0 < k \<Longrightarrow>
-    (n choose k) = ((n - 1) choose k) + ((n - 1) choose (k - 1))"
-  unfolding binomial_int_def
-  apply (subst choose_reduce_nat)
-    apply (auto simp del: binomial_nat.simps simp add: nat_diff_distrib)
-  done
-
-lemma choose_plus_one_nat: "((n::nat) + 1) choose (k + 1) = 
-    (n choose (k + 1)) + (n choose k)"
+lemma choose_plus_one_nat:
+     "((n::nat) + 1) choose (k + 1) =(n choose (k + 1)) + (n choose k)"
   by (simp add: choose_reduce_nat)
 
-lemma choose_Suc_nat: "(Suc n) choose (Suc k) = 
-    (n choose (Suc k)) + (n choose k)"
-  by (simp add: choose_reduce_nat One_nat_def)
+lemma choose_Suc_nat: 
+     "(Suc n) choose (Suc k) = (n choose (Suc k)) + (n choose k)"
+  by (simp add: choose_reduce_nat)
 
-lemma choose_plus_one_int: "n \<ge> 0 \<Longrightarrow> k \<ge> 0 \<Longrightarrow> ((n::int) + 1) choose (k + 1) = 
-    (n choose (k + 1)) + (n choose k)"
-  by (simp add: binomial_int_def choose_plus_one_nat nat_add_distrib del: binomial_nat.simps)
-
-declare binomial_nat.simps [simp del]
-
-lemma choose_self_nat [simp]: "((n::nat) choose n) = 1"
-  by (induct n rule: induct'_nat) (auto simp add: choose_plus_one_nat)
-
-lemma choose_self_int [simp]: "n \<ge> 0 \<Longrightarrow> ((n::int) choose n) = 1"
-  by (auto simp add: binomial_int_def)
-
-lemma choose_one_nat [simp]: "(n::nat) choose 1 = n"
-  by (induct n rule: induct'_nat) (auto simp add: choose_reduce_nat)
-
-lemma choose_one_int [simp]: "n \<ge> 0 \<Longrightarrow> (n::int) choose 1 = n"
-  by (auto simp add: binomial_int_def)
-
-lemma plus_one_choose_self_nat [simp]: "(n::nat) + 1 choose n = n + 1"
-  apply (induct n rule: induct'_nat, force)
-  apply (case_tac "n = 0")
-  apply auto
-  apply (subst choose_reduce_nat)
-  apply (auto simp add: One_nat_def)  
-  (* natdiff_cancel_numerals introduces Suc *)
-done
-
-lemma Suc_choose_self_nat [simp]: "(Suc n) choose n = Suc n"
-  using plus_one_choose_self_nat by (simp add: One_nat_def)
-
-lemma plus_one_choose_self_int [rule_format, simp]: 
-    "(n::int) \<ge> 0 \<longrightarrow> n + 1 choose n = n + 1"
-   by (auto simp add: binomial_int_def nat_add_distrib)
-
-(* bounded quantification doesn't work with the unicode characters? *)
-lemma choose_pos_nat [rule_format]: "ALL k <= (n::nat). 
-    ((n::nat) choose k) > 0"
-  apply (induct n rule: induct'_nat) 
-  apply force
-  apply clarify
-  apply (case_tac "k = 0")
-  apply force
-  apply (subst choose_reduce_nat)
-  apply auto
-  done
-
-lemma choose_pos_int: "n \<ge> 0 \<Longrightarrow> k >= 0 \<Longrightarrow> k \<le> n \<Longrightarrow>
-    ((n::int) choose k) > 0"
-  by (auto simp add: binomial_int_def choose_pos_nat)
+lemma choose_one: "(n::nat) choose 1 = n"
+  by simp
 
 lemma binomial_induct [rule_format]: "(ALL (n::nat). P n n) \<longrightarrow> 
-    (ALL n. P (n + 1) 0) \<longrightarrow> (ALL n. (ALL k < n. P n k \<longrightarrow> P n (k + 1) \<longrightarrow>
-    P (n + 1) (k + 1))) \<longrightarrow> (ALL k <= n. P n k)"
-  apply (induct n rule: induct'_nat)
+    (ALL n. P (Suc n) 0) \<longrightarrow> (ALL n. (ALL k < n. P n k \<longrightarrow> P n (Suc k) \<longrightarrow>
+    P (Suc n) (Suc k))) \<longrightarrow> (ALL k <= n. P n k)"
+  apply (induct n)
   apply auto
   apply (case_tac "k = 0")
   apply auto
-  apply (case_tac "k = n + 1")
+  apply (case_tac "k = Suc n")
   apply auto
-  apply (drule_tac x = n in spec) back back 
-  apply (drule_tac x = "k - 1" in spec) back back back
-  apply auto
-  done
-
-lemma choose_altdef_aux_nat: "(k::nat) \<le> n \<Longrightarrow> 
-    fact k * fact (n - k) * (n choose k) = fact n"
-  apply (rule binomial_induct [of _ k n])
-  apply auto
-proof -
-  fix k :: nat and n
-  assume less: "k < n"
-  assume ih1: "fact k * fact (n - k) * (n choose k) = fact n"
-  then have one: "fact (k + 1) * fact (n - k) * (n choose k) = (k + 1) * fact n"
-    by (subst fact_plus_one_nat, auto)
-  assume ih2: "fact (k + 1) * fact (n - (k + 1)) * (n choose (k + 1)) =  fact n"
-  with less have "fact (k + 1) * fact ((n - (k + 1)) + 1) * 
-      (n choose (k + 1)) = (n - k) * fact n"
-    by (subst (2) fact_plus_one_nat, auto)
-  with less have two: "fact (k + 1) * fact (n - k) * (n choose (k + 1)) = 
-      (n - k) * fact n" by simp
-  have "fact (k + 1) * fact (n - k) * (n + 1 choose (k + 1)) =
-      fact (k + 1) * fact (n - k) * (n choose (k + 1)) + 
-      fact (k + 1) * fact (n - k) * (n choose k)" 
-    by (subst choose_reduce_nat, auto simp add: field_simps)
-  also note one
-  also note two
-  also from less have "(n - k) * fact n + (k + 1) * fact n= fact (n + 1)" 
-    apply (subst fact_plus_one_nat)
-    apply (subst distrib_right [symmetric])
-    apply simp
-    done
-  finally show "fact (k + 1) * fact (n - k) * (n + 1 choose (k + 1)) = 
-    fact (n + 1)" .
-qed
-
-lemma choose_altdef_nat: "(k::nat) \<le> n \<Longrightarrow> 
-    n choose k = fact n div (fact k * fact (n - k))"
-  apply (frule choose_altdef_aux_nat)
-  apply (erule subst)
-  apply (simp add: mult_ac)
-  done
-
-
-lemma choose_altdef_int: 
-  assumes "(0::int) <= k" and "k <= n"
-  shows "n choose k = fact n div (fact k * fact (n - k))"
-  apply (subst tsub_eq [symmetric], rule assms)
-  apply (rule choose_altdef_nat [transferred])
-  using assms apply auto
+  apply (metis Suc_le_eq fact_nat.cases le_Suc_eq le_eq_less_or_eq)
   done
 
 lemma choose_dvd_nat: "(k::nat) \<le> n \<Longrightarrow> fact k * fact (n - k) dvd fact n"
-  unfolding dvd_def apply (frule choose_altdef_aux_nat)
-  (* why don't blast and auto get this??? *)
-  apply (rule exI)
-  apply (erule sym)
-  done
+by (metis binomial_fact_lemma dvd_def)
 
 lemma choose_dvd_int: 
   assumes "(0::int) <= k" and "k <= n"
@@ -242,125 +642,6 @@ lemma choose_dvd_int:
   apply (rule choose_dvd_nat [transferred])
   using assms apply auto
   done
-
-(* generalizes Tobias Nipkow's proof to any commutative semiring *)
-theorem binomial: "(a+b::'a::{comm_ring_1,power})^n = 
-  (SUM k=0..n. (of_nat (n choose k)) * a^k * b^(n-k))" (is "?P n")
-proof (induct n rule: induct'_nat)
-  show "?P 0" by simp
-next
-  fix n
-  assume ih: "?P n"
-  have decomp: "{0..n+1} = {0} Un {n+1} Un {1..n}"
-    by auto
-  have decomp2: "{0..n} = {0} Un {1..n}"
-    by auto
-  have decomp3: "{1..n+1} = {n+1} Un {1..n}"
-    by auto
-  have "(a+b)^(n+1) = 
-      (a+b) * (SUM k=0..n. of_nat (n choose k) * a^k * b^(n-k))"
-    using ih by simp
-  also have "... =  a*(SUM k=0..n. of_nat (n choose k) * a^k * b^(n-k)) +
-                   b*(SUM k=0..n. of_nat (n choose k) * a^k * b^(n-k))"
-    by (rule distrib)
-  also have "... = (SUM k=0..n. of_nat (n choose k) * a^(k+1) * b^(n-k)) +
-                  (SUM k=0..n. of_nat (n choose k) * a^k * b^(n-k+1))"
-    by (subst (1 2) power_plus_one, simp add: setsum_right_distrib mult_ac)
-  also have "... = (SUM k=0..n. of_nat (n choose k) * a^k * b^(n+1-k)) +
-                  (SUM k=1..n+1. of_nat (n choose (k - 1)) * a^k * b^(n+1-k))"
-    by (simp add:setsum_shift_bounds_cl_Suc_ivl Suc_diff_le
-      field_simps One_nat_def del:setsum_cl_ivl_Suc)
-  also have "... = a^(n+1) + b^(n+1) +
-                  (SUM k=1..n. of_nat (n choose (k - 1)) * a^k * b^(n+1-k)) +
-                  (SUM k=1..n. of_nat (n choose k) * a^k * b^(n+1-k))"
-    by (simp add: decomp2 decomp3)
-  also have
-      "... = a^(n+1) + b^(n+1) + 
-         (SUM k=1..n. of_nat(n+1 choose k) * a^k * b^(n+1-k))"
-    by (auto simp add: field_simps setsum_addf [symmetric]
-      choose_reduce_nat)
-  also have "... = (SUM k=0..n+1. of_nat (n+1 choose k) * a^k * b^(n+1-k))"
-    using decomp by (simp add: field_simps)
-  finally show "?P (n + 1)" by simp
-qed
-
-lemma card_subsets_nat:
-  fixes S :: "'a set"
-  shows "finite S \<Longrightarrow> card {T. T \<le> S \<and> card T = k} = card S choose k"
-proof (induct arbitrary: k set: finite)
-  case empty
-  show ?case by (auto simp add: Collect_conv_if)
-next
-  case (insert x F)
-  note iassms = insert(1,2)
-  note ih = insert(3)
-  show ?case
-  proof (induct k rule: induct'_nat)
-    case zero
-    from iassms have "{T. T \<le> (insert x F) \<and> card T = 0} = {{}}"
-      by (auto simp: finite_subset)
-    then show ?case by auto
-  next
-    case (plus1 k)
-    from iassms have fin: "finite (insert x F)" by auto
-    then have "{ T. T \<subseteq> insert x F \<and> card T = k + 1} =
-      {T. T \<le> F & card T = k + 1} Un 
-      {T. T \<le> insert x F & x : T & card T = k + 1}"
-      by auto
-    with iassms fin have "card ({T. T \<le> insert x F \<and> card T = k + 1}) = 
-      card ({T. T \<subseteq> F \<and> card T = k + 1}) + 
-      card ({T. T \<subseteq> insert x F \<and> x : T \<and> card T = k + 1})"
-      apply (subst card_Un_disjoint [symmetric])
-      apply auto
-        (* note: nice! Didn't have to say anything here *)
-      done
-    also from ih have "card ({T. T \<subseteq> F \<and> card T = k + 1}) = 
-      card F choose (k+1)" by auto
-    also have "card ({T. T \<subseteq> insert x F \<and> x : T \<and> card T = k + 1}) =
-      card ({T. T <= F & card T = k})"
-    proof -
-      let ?f = "%T. T Un {x}"
-      from iassms have "inj_on ?f {T. T <= F & card T = k}"
-        unfolding inj_on_def by auto
-      then have "card ({T. T <= F & card T = k}) = 
-        card(?f ` {T. T <= F & card T = k})"
-        by (rule card_image [symmetric])
-      also have "?f ` {T. T <= F & card T = k} = 
-        {T. T \<subseteq> insert x F \<and> x : T \<and> card T = k + 1}" (is "?L=?R")
-      proof-
-        { fix S assume "S \<subseteq> F"
-          then have "card(insert x S) = card S +1"
-            using iassms by (auto simp: finite_subset) }
-        moreover
-        { fix T assume 1: "T \<subseteq> insert x F" "x : T" "card T = k+1"
-          let ?S = "T - {x}"
-          have "?S <= F & card ?S = k \<and> T = insert x ?S"
-            using 1 fin by (auto simp: finite_subset) }
-        ultimately show ?thesis by(auto simp: image_def)
-      qed
-      finally show ?thesis by (rule sym)
-    qed
-    also from ih have "card ({T. T <= F & card T = k}) = card F choose k"
-      by auto
-    finally have "card ({T. T \<le> insert x F \<and> card T = k + 1}) = 
-      card F choose (k + 1) + (card F choose k)".
-    with iassms choose_plus_one_nat show ?case
-      by (auto simp del: card.insert)
-  qed
-qed
-
-lemma choose_le_pow:
-  assumes "r \<le> n" shows "n choose r \<le> n ^ r"
-proof -
-  have X: "\<And>r. r \<le> n \<Longrightarrow> \<Prod>{n - r..n} = (n - r) * \<Prod>{Suc (n - r)..n}"
-    by (subst setprod_insert[symmetric]) (auto simp: atLeastAtMost_insertL)
-  have "n choose r \<le> fact n div fact (n - r)"
-    using `r \<le> n` by (simp add: choose_altdef_nat div_le_mono2)
-  also have "\<dots> \<le> n ^ r" using `r \<le> n`
-    by (induct r rule: nat.induct)
-     (auto simp add: fact_div_fact Suc_diff_Suc X One_nat_def mult_le_mono)
- finally show ?thesis .
-qed
 
 lemma card_UNION:
   assumes "finite A" and "\<forall>k \<in> A. finite k"
@@ -384,12 +665,11 @@ proof -
     assume x: "x \<in> \<Union>A"
     def K \<equiv> "{X \<in> A. x \<in> X}"
     with `finite A` have K: "finite K" by auto
-
     let ?I = "\<lambda>i. {I. I \<subseteq> A \<and> card I = i \<and> x \<in> \<Inter>I}"
     have "inj_on snd (SIGMA i:{1..card A}. ?I i)"
       using assms by(auto intro!: inj_onI)
     moreover have [symmetric]: "snd ` (SIGMA i:{1..card A}. ?I i) = {I. I \<subseteq> A \<and> I \<noteq> {} \<and> x \<in> \<Inter>I}"
-      using assms by(auto intro!: rev_image_eqI[where x="(card a, a)", standard] simp add: card_gt_0_iff[folded Suc_le_eq] One_nat_def dest: finite_subset intro: card_mono)
+      using assms by(auto intro!: rev_image_eqI[where x="(card a, a)", standard] simp add: card_gt_0_iff[folded Suc_le_eq]  dest: finite_subset intro: card_mono)
     ultimately have "?lhs x = (\<Sum>(i, I)\<in>(SIGMA i:{1..card A}. ?I i). -1 ^ (i + 1))"
       by(rule setsum_reindex_cong[where f=snd]) fastforce
     also have "\<dots> = (\<Sum>i=1..card A. (\<Sum>I|I \<subseteq> A \<and> card I = i \<and> x \<in> \<Inter>I. -1 ^ (i + 1)))"
@@ -420,13 +700,13 @@ proof -
     also have "{I. I \<subseteq> K \<and> card I = 0} = {{}}" using assms
       by(auto simp add: card_eq_0_iff K_def dest: finite_subset)
     hence "?rhs = (\<Sum>i = 0..card K. -1 ^ (i + 1) * (\<Sum>I | I \<subseteq> K \<and> card I = i. 1 :: int)) + 1"
-      by(subst (2) setsum_head_Suc)(simp_all add: One_nat_def)
+      by(subst (2) setsum_head_Suc)(simp_all )
     also have "\<dots> = (\<Sum>i = 0..card K. -1 * (-1 ^ i * int (card K choose i))) + 1"
-      using K by(subst card_subsets_nat[symmetric]) simp_all
+      using K by(subst n_subsets[symmetric]) simp_all
     also have "\<dots> = - (\<Sum>i = 0..card K. -1 ^ i * int (card K choose i)) + 1"
       by(subst setsum_right_distrib[symmetric]) simp
     also have "\<dots> =  - ((-1 + 1) ^ card K) + 1"
-      by(subst binomial)(simp add: mult_ac)
+      by(subst binomial_ring)(simp add: mult_ac)
     also have "\<dots> = 1" using x K by(auto simp add: K_def card_gt_0_iff)
     finally show "?lhs x = 1" .
   qed

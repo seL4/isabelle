@@ -31,6 +31,8 @@ theory Primes
 imports "~~/src/HOL/GCD"
 begin
 
+declare One_nat_def [simp]
+
 class prime = one +
   fixes prime :: "'a \<Rightarrow> bool"
 
@@ -172,10 +174,7 @@ lemma prime_dvd_power_nat: "prime (p::nat) \<Longrightarrow> p dvd x^n \<Longrig
   by (induct n) auto
 
 lemma prime_dvd_power_int: "prime (p::int) \<Longrightarrow> p dvd x^n \<Longrightarrow> p dvd x"
-  apply (induct n)
-  apply (frule prime_ge_0_int)
-  apply auto
-  done
+  by (induct n) (auto simp: prime_ge_0_int)
 
 lemma prime_dvd_power_nat_iff: "prime (p::nat) \<Longrightarrow> n > 0 \<Longrightarrow>
     p dvd x^n \<longleftrightarrow> p dvd x"
@@ -198,7 +197,7 @@ lemma one_not_prime_nat [simp]: "~prime (1::nat)"
   by (simp add: prime_nat_def)
 
 lemma Suc_0_not_prime_nat [simp]: "~prime (Suc 0)"
-  by (simp add: prime_nat_def One_nat_def)
+  by (simp add: prime_nat_def)
 
 lemma one_not_prime_int [simp]: "~prime (1::int)"
   by (simp add: prime_int_def)
@@ -206,7 +205,7 @@ lemma one_not_prime_int [simp]: "~prime (1::int)"
 lemma prime_nat_code [code]:
     "prime (p::nat) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> {1<..<p}. ~ n dvd p)"
   apply (simp add: Ball_def)
-  apply (metis less_not_refl prime_nat_def dvd_triv_right not_prime_eq_prod_nat)
+  apply (metis One_nat_def less_not_refl prime_nat_def dvd_triv_right not_prime_eq_prod_nat)
   done
 
 lemma prime_nat_simp:
@@ -246,28 +245,16 @@ lemma "prime(997::int)" by eval
 
 
 lemma prime_imp_power_coprime_nat: "prime (p::nat) \<Longrightarrow> ~ p dvd a \<Longrightarrow> coprime a (p^m)"
-  apply (rule coprime_exp_nat)
-  apply (subst gcd_commute_nat)
-  apply (erule (1) prime_imp_coprime_nat)
-  done
+  by (metis coprime_exp_nat gcd_nat.commute prime_imp_coprime_nat)
 
 lemma prime_imp_power_coprime_int: "prime (p::int) \<Longrightarrow> ~ p dvd a \<Longrightarrow> coprime a (p^m)"
-  apply (rule coprime_exp_int)
-  apply (subst gcd_commute_int)
-  apply (erule (1) prime_imp_coprime_int)
-  done
+  by (metis coprime_exp_int gcd_int.commute prime_imp_coprime_int)
 
 lemma primes_coprime_nat: "prime (p::nat) \<Longrightarrow> prime q \<Longrightarrow> p \<noteq> q \<Longrightarrow> coprime p q"
-  apply (rule prime_imp_coprime_nat, assumption)
-  apply (unfold prime_nat_def)
-  apply auto
-  done
+  by (metis gcd_nat.absorb1 gcd_nat.absorb2 prime_imp_coprime_nat)
 
 lemma primes_coprime_int: "prime (p::int) \<Longrightarrow> prime q \<Longrightarrow> p \<noteq> q \<Longrightarrow> coprime p q"
-  apply (rule prime_imp_coprime_int, assumption)
-  apply (unfold prime_int_altdef)
-  apply (metis int_one_le_iff_zero_less less_le)
-  done
+  by (metis leD linear prime_gt_0_int prime_imp_coprime_int prime_int_altdef)
 
 lemma primes_imp_powers_coprime_nat:
     "prime (p::nat) \<Longrightarrow> prime q \<Longrightarrow> p ~= q \<Longrightarrow> coprime (p^m) (q^n)"
@@ -285,46 +272,6 @@ lemma prime_factor_nat: "n \<noteq> (1::nat) \<Longrightarrow> \<exists> p. prim
   apply (metis One_nat_def dvd.order_trans dvd_refl less_Suc0 linorder_neqE_nat
     nat_dvd_not_less neq0_conv prime_nat_def)
   done
-
-(* An Isar version:
-
-lemma prime_factor_b_nat:
-  fixes n :: nat
-  assumes "n \<noteq> 1"
-  shows "\<exists>p. prime p \<and> p dvd n"
-
-using `n ~= 1`
-proof (induct n rule: less_induct_nat)
-  fix n :: nat
-  assume "n ~= 1" and
-    ih: "\<forall>m<n. m \<noteq> 1 \<longrightarrow> (\<exists>p. prime p \<and> p dvd m)"
-  then show "\<exists>p. prime p \<and> p dvd n"
-  proof -
-  {
-    assume "n = 0"
-    moreover note two_is_prime_nat
-    ultimately have ?thesis
-      by (auto simp del: two_is_prime_nat)
-  }
-  moreover
-  {
-    assume "prime n"
-    then have ?thesis by auto
-  }
-  moreover
-  {
-    assume "n ~= 0" and "~ prime n"
-    with `n ~= 1` have "n > 1" by auto
-    with `~ prime n` and not_prime_eq_prod_nat obtain m k where
-      "n = m * k" and "1 < m" and "m < n" by blast
-    with ih obtain p where "prime p" and "p dvd m" by blast
-    with `n = m * k` have ?thesis by auto
-  }
-  ultimately show ?thesis by blast
-  qed
-qed
-
-*)
 
 text {* One property of coprimality is easier to prove via prime factors. *}
 

@@ -31,33 +31,8 @@ begin
 
 subsection {* Turn off @{text One_nat_def} *}
 
-lemma induct'_nat [case_names zero plus1, induct type: nat]:
-    "P (0::nat) \<Longrightarrow> (\<And>n. P n \<Longrightarrow> P (n + 1)) \<Longrightarrow> P n"
-  by (induct n) (simp_all add: One_nat_def)
-
-lemma cases_nat [case_names zero plus1, cases type: nat]:
-    "P (0::nat) \<Longrightarrow> (\<And>n. P (n + 1)) \<Longrightarrow> P n"
-  by (rule induct'_nat)
-
-lemma power_plus_one [simp]: "(x::'a::power)^(n + 1) = x * x^n"
-  by (simp add: One_nat_def)
-
 lemma power_eq_one_eq_nat [simp]: "((x::nat)^m = 1) = (m = 0 | x = 1)"
   by (induct m) auto
-
-lemma card_insert_if' [simp]: "finite A \<Longrightarrow>
-    card (insert x A) = (if x \<in> A then (card A) else (card A) + 1)"
-  by (auto simp add: insert_absorb)
-
-lemma nat_1' [simp]: "nat 1 = 1"
-  by simp
-
-(* For those annoying moments where Suc reappears, use Suc_eq_plus1 *)
-
-declare nat_1 [simp del]
-declare add_2_eq_Suc [simp del]
-declare add_2_eq_Suc' [simp del]
-
 
 declare mod_pos_pos_trivial [simp]
 
@@ -106,11 +81,8 @@ lemma transfer_nat_int_cong:
   "(x::int) >= 0 \<Longrightarrow> y >= 0 \<Longrightarrow> m >= 0 \<Longrightarrow>
     ([(nat x) = (nat y)] (mod (nat m))) = ([x = y] (mod m))"
   unfolding cong_int_def cong_nat_def
-  apply (auto simp add: nat_mod_distrib [symmetric])
-  apply (subst (asm) eq_nat_nat_iff)
-  apply (cases "m = 0", force, rule pos_mod_sign, force)+
-  apply assumption
-  done
+  by (metis Divides.transfer_int_nat_functions(2) nat_0_le nat_mod_distrib)
+
 
 declare transfer_morphism_nat_int[transfer add return:
     transfer_nat_int_cong]
@@ -138,7 +110,7 @@ lemma cong_1_nat [simp, presburger]: "[(a::nat) = b] (mod 1)"
   unfolding cong_nat_def by auto
 
 lemma cong_Suc_0_nat [simp, presburger]: "[(a::nat) = b] (mod Suc 0)"
-  unfolding cong_nat_def by (auto simp add: One_nat_def)
+  unfolding cong_nat_def by auto
 
 lemma cong_1_int [simp, presburger]: "[(a::int) = b] (mod 1)"
   unfolding cong_int_def by auto
@@ -171,32 +143,20 @@ lemma cong_trans_int [trans]:
 
 lemma cong_add_nat:
     "[(a::nat) = b] (mod m) \<Longrightarrow> [c = d] (mod m) \<Longrightarrow> [a + c = b + d] (mod m)"
-  apply (unfold cong_nat_def)
-  apply (subst (1 2) mod_add_eq)
-  apply simp
-  done
+  unfolding cong_nat_def  by (metis mod_add_cong)
 
 lemma cong_add_int:
     "[(a::int) = b] (mod m) \<Longrightarrow> [c = d] (mod m) \<Longrightarrow> [a + c = b + d] (mod m)"
-  apply (unfold cong_int_def)
-  apply (subst (1 2) mod_add_left_eq)
-  apply (subst (1 2) mod_add_right_eq)
-  apply simp
-  done
+  unfolding cong_int_def  by (metis mod_add_cong)
 
 lemma cong_diff_int:
     "[(a::int) = b] (mod m) \<Longrightarrow> [c = d] (mod m) \<Longrightarrow> [a - c = b - d] (mod m)"
-  apply (unfold cong_int_def)
-  apply (subst (1 2) mod_diff_eq)
-  apply simp
-  done
+  unfolding cong_int_def  by (metis mod_diff_cong) 
 
 lemma cong_diff_aux_int:
   "(a::int) >= c \<Longrightarrow> b >= d \<Longrightarrow> [(a::int) = b] (mod m) \<Longrightarrow>
       [c = d] (mod m) \<Longrightarrow> [tsub a c = tsub b d] (mod m)"
-  apply (subst (1 2) tsub_eq)
-  apply (auto intro: cong_diff_int)
-  done
+  by (metis cong_diff_int tsub_eq)
 
 lemma cong_diff_nat:
   assumes "(a::nat) >= c" and "b >= d" and "[a = b] (mod m)" and
@@ -206,19 +166,11 @@ lemma cong_diff_nat:
 
 lemma cong_mult_nat:
     "[(a::nat) = b] (mod m) \<Longrightarrow> [c = d] (mod m) \<Longrightarrow> [a * c = b * d] (mod m)"
-  apply (unfold cong_nat_def)
-  apply (subst (1 2) mod_mult_eq)
-  apply simp
-  done
+  unfolding cong_nat_def  by (metis mod_mult_cong) 
 
 lemma cong_mult_int:
     "[(a::int) = b] (mod m) \<Longrightarrow> [c = d] (mod m) \<Longrightarrow> [a * c = b * d] (mod m)"
-  apply (unfold cong_int_def)
-  apply (subst (1 2) mod_mult_right_eq)
-  apply (subst (1 2) mult_commute)
-  apply (subst (1 2) mod_mult_right_eq)
-  apply simp
-  done
+  unfolding cong_int_def  by (metis mod_mult_cong) 
 
 lemma cong_exp_nat: "[(x::nat) = y] (mod n) \<Longrightarrow> [x^k = y^k] (mod n)"
   by (induct k) (auto simp add: cong_mult_nat)
@@ -277,10 +229,7 @@ lemma cong_mult_self_int: "[(a::int) * m = 0] (mod m)"
   unfolding cong_int_def by auto
 
 lemma cong_eq_diff_cong_0_int: "[(a::int) = b] (mod m) = [a - b = 0] (mod m)"
-  apply (rule iffI)
-  apply (erule cong_diff_int [of a b m b b, simplified])
-  apply (erule cong_add_int [of "a - b" 0 m b b, simplified])
-  done
+  by (metis cong_add_int cong_diff_int cong_refl_int diff_add_cancel diff_self)
 
 lemma cong_eq_diff_cong_0_aux_int: "a >= b \<Longrightarrow>
     [(a::int) = b] (mod m) = [tsub a b = 0] (mod m)"
@@ -294,14 +243,7 @@ lemma cong_eq_diff_cong_0_nat:
 lemma cong_diff_cong_0'_nat:
   "[(x::nat) = y] (mod n) \<longleftrightarrow>
     (if x <= y then [y - x = 0] (mod n) else [x - y = 0] (mod n))"
-  apply (cases "y <= x")
-  apply (frule cong_eq_diff_cong_0_nat [where m = n])
-  apply auto [1]
-  apply (subgoal_tac "x <= y")
-  apply (frule cong_eq_diff_cong_0_nat [where m = n])
-  apply (subst cong_sym_eq_nat)
-  apply auto
-  done
+  by (metis cong_eq_diff_cong_0_nat cong_sym_nat nat_le_linear)
 
 lemma cong_altdef_nat: "(a::nat) >= b \<Longrightarrow> [a = b] (mod m) = (m dvd (a - b))"
   apply (subst cong_eq_diff_cong_0_nat, assumption)
@@ -447,12 +389,6 @@ lemma cong_minus_int [iff]: "[(a::int) = b] (mod -m) = [a = b] (mod m)"
   apply auto
   done
 
-lemma cong_zero_nat: "[(a::nat) = b] (mod 0) = (a = b)"
-  by auto
-
-lemma cong_zero_int: "[(a::int) = b] (mod 0) = (a = b)"
-  by auto
-
 (*
 lemma mod_dvd_mod_int:
     "0 < (m::int) \<Longrightarrow> m dvd b \<Longrightarrow> (a mod b mod m) = (a mod m)"
@@ -552,6 +488,9 @@ lemma cong_to_1_nat: "([(a::nat) = 1] (mod n)) \<Longrightarrow> (n dvd (a - 1))
   apply auto
   done
 
+lemma cong_0_1_nat': "[(0::nat) = Suc 0] (mod n) = (n = Suc 0)"
+  unfolding cong_nat_def by auto
+
 lemma cong_0_1_nat: "[(0::nat) = 1] (mod n) = (n = 1)"
   unfolding cong_nat_def by auto
 
@@ -565,7 +504,7 @@ lemma cong_to_1'_nat: "[(a::nat) = 1] (mod n) \<longleftrightarrow>
   apply (drule_tac x = "a - 1" in spec)
   apply force
   apply (cases "a = 0")
-  apply (auto simp add: cong_0_1_nat) [1]
+  apply (auto simp add: cong_0_1_nat') [1]
   apply (rule iffI)
   apply (drule cong_to_1_nat)
   apply (unfold dvd_def)
@@ -667,9 +606,10 @@ lemma cong_solve_coprime_int: "coprime (a::int) n \<Longrightarrow> EX x. [a * x
   apply auto
   done
 
-lemma coprime_iff_invertible_nat: "m > (1::nat) \<Longrightarrow> coprime a m = (EX x. [a * x = 1] (mod m))"
+lemma coprime_iff_invertible_nat: "m > Suc 0 \<Longrightarrow> coprime a m = (EX x. [a * x = Suc 0] (mod m))"
   apply (auto intro: cong_solve_coprime_nat)
-  apply (unfold cong_nat_def, auto intro: invertible_coprime_nat)
+  apply (metis cong_solve_nat gcd_nat.left_neutral nat_neq_iff)
+  apply (unfold cong_nat_def, auto intro: invertible_coprime_nat [unfolded One_nat_def])
   done
 
 lemma coprime_iff_invertible_int: "m > (1::int) \<Longrightarrow> coprime a m = (EX x. [a * x = 1] (mod m))"

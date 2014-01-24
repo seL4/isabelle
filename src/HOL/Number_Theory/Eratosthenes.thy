@@ -257,7 +257,7 @@ lemma set_primes_upto_sieve:
 proof (cases "n > 1")
   case False then have "n = 0 \<or> n = 1" by arith
   then show ?thesis
-    by (auto simp add: numbers_of_marks_sieve One_nat_def numeral_2_eq_2 set_primes_upto dest: prime_gt_Suc_0_nat)
+    by (auto simp add: numbers_of_marks_sieve numeral_2_eq_2 set_primes_upto dest: prime_gt_Suc_0_nat)
 next
   { fix m q
     assume "Suc (Suc 0) \<le> q"
@@ -280,9 +280,9 @@ next
     \<forall>m\<in>{Suc (Suc 0)..<Suc n}. m dvd q \<longrightarrow> q dvd m \<Longrightarrow>
     m dvd q \<Longrightarrow> m \<noteq> q \<Longrightarrow> m = 1" by auto
   case True then show ?thesis
-    apply (auto simp add: numbers_of_marks_sieve One_nat_def numeral_2_eq_2 set_primes_upto dest: prime_gt_Suc_0_nat)
-    apply (simp add: prime_nat_def dvd_def)
-    apply (auto simp add: prime_nat_def aux)
+    apply (auto simp add: numbers_of_marks_sieve numeral_2_eq_2 set_primes_upto dest: prime_gt_Suc_0_nat)
+    apply (metis One_nat_def Suc_le_eq less_not_refl prime_nat_def)
+    apply (metis One_nat_def Suc_le_eq aux prime_nat_def)
     done
 qed
 

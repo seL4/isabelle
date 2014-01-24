@@ -14,9 +14,6 @@ theory UniqueFactorization
 imports Cong "~~/src/HOL/Library/Multiset"
 begin
 
-(* inherited from Multiset *)
-declare One_nat_def [simp del] 
-
 (* As a simp or intro rule,
 
      prime p \<Longrightarrow> p > 0
@@ -290,9 +287,6 @@ lemma prime_factorization_int:
   using assms apply auto
   done
 
-lemma neq_zero_eq_gt_zero_nat: "((x::nat) ~= 0) = (x > 0)"
-  by auto
-
 lemma prime_factorization_unique_nat: 
   fixes f :: "nat \<Rightarrow> _"
   assumes S_eq: "S = {p. 0 < f p}" and "finite S"
@@ -412,18 +406,19 @@ lemma multiplicity_zero_nat [simp]: "multiplicity (p::nat) 0 = 0"
 lemma multiplicity_zero_int [simp]: "multiplicity (p::int) 0 = 0"
   by (simp add: multiplicity_int_def) 
 
-lemma multiplicity_one_nat [simp]: "multiplicity p (1::nat) = 0"
+lemma multiplicity_one_nat': "multiplicity p (1::nat) = 0"
   by (subst multiplicity_characterization_nat [where f = "%x. 0"], auto)
 
+lemma multiplicity_one_nat [simp]: "multiplicity p (Suc 0) = 0"
+  by (metis One_nat_def multiplicity_one_nat')
+
 lemma multiplicity_one_int [simp]: "multiplicity p (1::int) = 0"
-  by (simp add: multiplicity_int_def)
+  by (metis multiplicity_int_def multiplicity_one_nat' transfer_nat_int_numerals(2))
 
 lemma multiplicity_prime_nat [simp]: "prime (p::nat) \<Longrightarrow> multiplicity p p = 1"
   apply (subst multiplicity_characterization_nat [where f = "(%q. if q = p then 1 else 0)"])
   apply auto
-  apply (case_tac "x = p")
-  apply auto
-  done
+  by (metis (full_types) less_not_refl)
 
 lemma multiplicity_prime_int [simp]: "prime (p::int) \<Longrightarrow> multiplicity p p = 1"
   unfolding prime_int_def multiplicity_int_def by auto
@@ -433,9 +428,7 @@ lemma multiplicity_prime_power_nat [simp]: "prime (p::nat) \<Longrightarrow> mul
   apply auto
   apply (subst multiplicity_characterization_nat [where f = "(%q. if q = p then n else 0)"])
   apply auto
-  apply (case_tac "x = p")
-  apply auto
-  done
+  by (metis (full_types) less_not_refl)
 
 lemma multiplicity_prime_power_int [simp]: "prime (p::int) \<Longrightarrow> multiplicity p (p^n) = n"
   apply (frule prime_ge_0_int)
@@ -464,6 +457,7 @@ lemma multiplicity_not_factor_int [simp]:
   apply auto
   done
 
+(*FIXME: messy*)
 lemma multiplicity_product_aux_nat: "(k::nat) > 0 \<Longrightarrow> l > 0 \<Longrightarrow>
     (prime_factors k) Un (prime_factors l) = prime_factors (k * l) &
     (ALL p. multiplicity p k + multiplicity p l = multiplicity p (k * l))"
@@ -472,13 +466,13 @@ lemma multiplicity_product_aux_nat: "(k::nat) > 0 \<Longrightarrow> l > 0 \<Long
   apply auto
   apply (subst power_add)
   apply (subst setprod_timesf)
-  apply (rule arg_cong2)back back
+  apply (rule arg_cong2 [where f = "\<lambda>x y. x*y"])
   apply (subgoal_tac "prime_factors k Un prime_factors l = prime_factors k Un 
       (prime_factors l - prime_factors k)")
   apply (erule ssubst)
   apply (subst setprod_Un_disjoint)
   apply auto
-  apply(simp add: prime_factorization_nat)
+  apply (metis One_nat_def nat_mult_1_right prime_factorization_nat setprod.neutral_const)
   apply (subgoal_tac "prime_factors k Un prime_factors l = prime_factors l Un 
       (prime_factors k - prime_factors l)")
   apply (erule ssubst)
@@ -486,8 +480,8 @@ lemma multiplicity_product_aux_nat: "(k::nat) > 0 \<Longrightarrow> l > 0 \<Long
   apply auto
   apply (subgoal_tac "(\<Prod>p\<in>prime_factors k - prime_factors l. p ^ multiplicity p l) = 
       (\<Prod>p\<in>prime_factors k - prime_factors l. 1)")
-  apply (simp add: prime_factorization_nat)
-  apply (rule setprod_cong, auto)
+  apply auto
+  apply (metis One_nat_def nat_mult_1_right prime_factorization_nat setprod.neutral_const)
   done
 
 (* transfer doesn't have the same problem here with the right 
@@ -639,13 +633,13 @@ lemma dvd_prime_factors_nat [intro]:
     "0 < (y::nat) \<Longrightarrow> x dvd y \<Longrightarrow> prime_factors x <= prime_factors y"
   apply (simp only: prime_factors_altdef_nat)
   apply auto
-  apply (metis dvd_multiplicity_nat le_0_eq neq_zero_eq_gt_zero_nat)
+  apply (metis dvd_multiplicity_nat le_0_eq neq0_conv)
   done
 
 lemma dvd_prime_factors_int [intro]:
     "0 < (y::int) \<Longrightarrow> 0 <= x \<Longrightarrow> x dvd y \<Longrightarrow> prime_factors x <= prime_factors y"
   apply (auto simp add: prime_factors_altdef_int)
-  apply (metis dvd_multiplicity_int le_0_eq neq_zero_eq_gt_zero_nat)
+  apply (metis dvd_multiplicity_int le_0_eq neq0_conv)
   done
 
 lemma multiplicity_dvd_nat: "0 < (x::nat) \<Longrightarrow> 0 < y \<Longrightarrow> 
