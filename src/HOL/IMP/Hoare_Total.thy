@@ -209,4 +209,7 @@ apply(rule strengthen_pre[OF _ wpt_is_pre])
 apply(auto simp: hoare_tvalid_def wpt_def)
 done
 
+corollary hoaret_sound_complete: "\<turnstile>\<^sub>t {P}c{Q} \<longleftrightarrow> \<Turnstile>\<^sub>t {P}c{Q}"
+by (metis hoaret_sound hoaret_complete)
+
 end
