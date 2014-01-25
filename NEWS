@@ -53,6 +53,9 @@ differently).
 
 *** HOL ***
 
+* Simproc "finite_Collect" is no longer enabled by default, due to
+spurious crashes and other surprises.  Potential INCOMPATIBILITY.
+
 * Moved new (co)datatype package and its dependencies from "HOL-BNF" to "HOL".
   The "bnf", "wrap_free_constructors", "datatype_new", "codatatype",
   "primrec_new", "primcorec", and "primcorecursive" command are now part of
