@@ -108,7 +108,7 @@ sealed case class Token(val kind: Token.Kind.Value, val source: String)
     else source
 
   def text: (String, String) =
-    if (is_command && source == ";") ("terminator", "")
+    if (is_keyword && source == ";") ("terminator", "")
     else (kind.toString, source)
 }
 
