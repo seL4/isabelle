@@ -180,12 +180,12 @@ class Session(val thy_load: Thy_Load)
 
         case Text_Edits(previous, doc_blobs, text_edits, version_result) =>
           val prev = previous.get_finished
-          val (doc_edits, version) =
+          val (syntax_changed, doc_edits, version) =
             Timing.timeit("Thy_Load.text_edits", timing) {
               thy_load.text_edits(reparse_limit, prev, doc_blobs, text_edits)
             }
           version_result.fulfill(version)
-          sender ! Change(doc_blobs, doc_edits, prev, version)
+          sender ! Change(doc_blobs, syntax_changed, doc_edits, prev, version)
 
         case bad => System.err.println("change_parser: ignoring bad message " + bad)
       }
@@ -252,6 +252,7 @@ class Session(val thy_load: Thy_Load)
   private case class Cancel_Exec(exec_id: Document_ID.Exec)
   private case class Change(
     doc_blobs: Document.Blobs,
+    syntax_changed: Boolean,
     doc_edits: List[Document.Edit_Command],
     previous: Document.Version,
     version: Document.Version)
@@ -370,9 +371,7 @@ class Session(val thy_load: Thy_Load)
     def handle_change(change: Change)
     //{{{
     {
-      val previous = change.previous
-      val version = change.version
-      val doc_edits = change.doc_edits
+      val Change(doc_blobs, syntax_changed, doc_edits, previous, version) = change
 
       def id_command(command: Command)
       {
@@ -380,7 +379,7 @@ class Session(val thy_load: Thy_Load)
           digest <- command.blobs_digests
           if !global_state().defined_blob(digest)
         } {
-          change.doc_blobs.collectFirst({ case (_, b) if b.sha1_digest == digest => b }) match {
+          doc_blobs.collectFirst({ case (_, b) if b.sha1_digest == digest => b }) match {
             case Some(blob) =>
               global_state >> (_.define_blob(digest))
               prover.get.define_blob(blob)
@@ -401,6 +400,8 @@ class Session(val thy_load: Thy_Load)
       val assignment = global_state().the_assignment(previous).check_finished
       global_state >> (_.define_version(version, assignment))
       prover.get.update(previous.id, version.id, doc_edits)
+
+      if (syntax_changed) thy_load.syntax_changed()
     }
     //}}}
 
