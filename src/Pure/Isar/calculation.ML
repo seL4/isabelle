@@ -95,11 +95,11 @@ val symmetric = Thm.rule_attribute (fn x => fn th =>
 (* concrete syntax *)
 
 val _ = Theory.setup
- (Attrib.setup (Binding.name "trans") (Attrib.add_del trans_add trans_del)
+ (Attrib.setup @{binding trans} (Attrib.add_del trans_add trans_del)
     "declaration of transitivity rule" #>
-  Attrib.setup (Binding.name "sym") (Attrib.add_del sym_add sym_del)
+  Attrib.setup @{binding sym} (Attrib.add_del sym_add sym_del)
     "declaration of symmetry rule" #>
-  Attrib.setup (Binding.name "symmetric") (Scan.succeed symmetric)
+  Attrib.setup @{binding symmetric} (Scan.succeed symmetric)
     "resolution with symmetry rule" #>
   Global_Theory.add_thms
    [((Binding.empty, transitive_thm), [trans_add]),
@@ -196,5 +196,33 @@ fun collect final int state =
 
 val moreover = collect false;
 val ultimately = collect true;
+
+
+(* outer syntax *)
+
+val calc_args =
+  Scan.option (@{keyword "("} |-- Parse.!!! ((Parse_Spec.xthms1 --| @{keyword ")"})));
+
+val _ =
+  Outer_Syntax.command @{command_spec "also"} "combine calculation and current facts"
+    (calc_args >> (Toplevel.proofs' o also_cmd));
+
+val _ =
+  Outer_Syntax.command @{command_spec "finally"}
+    "combine calculation and current facts, exhibit result"
+    (calc_args >> (Toplevel.proofs' o finally_cmd));
+
+val _ =
+  Outer_Syntax.command @{command_spec "moreover"} "augment calculation by current facts"
+    (Scan.succeed (Toplevel.proof' moreover));
+
+val _ =
+  Outer_Syntax.command @{command_spec "ultimately"}
+    "augment calculation by current facts, exhibit result"
+    (Scan.succeed (Toplevel.proof' ultimately));
+
+val _ =
+  Outer_Syntax.improper_command @{command_spec "print_trans_rules"} "print transitivity rules"
+    (Scan.succeed (Toplevel.unknown_context o Toplevel.keep (print_rules o Toplevel.context_of)));
 
 end;

@@ -688,30 +688,6 @@ val _ =
       Toplevel.skip_proof (fn i => i + 1)));
 
 
-(* calculational proof commands *)
-
-val calc_args =
-  Scan.option (@{keyword "("} |-- Parse.!!! ((Parse_Spec.xthms1 --| @{keyword ")"})));
-
-val _ =
-  Outer_Syntax.command @{command_spec "also"} "combine calculation and current facts"
-    (calc_args >> (Toplevel.proofs' o Calculation.also_cmd));
-
-val _ =
-  Outer_Syntax.command @{command_spec "finally"}
-    "combine calculation and current facts, exhibit result"
-    (calc_args >> (Toplevel.proofs' o Calculation.finally_cmd));
-
-val _ =
-  Outer_Syntax.command @{command_spec "moreover"} "augment calculation by current facts"
-    (Scan.succeed (Toplevel.proof' Calculation.moreover));
-
-val _ =
-  Outer_Syntax.command @{command_spec "ultimately"}
-    "augment calculation by current facts, exhibit result"
-    (Scan.succeed (Toplevel.proof' Calculation.ultimately));
-
-
 (* proof navigation *)
 
 val _ =
@@ -845,11 +821,6 @@ val _ =
   Outer_Syntax.improper_command @{command_spec "print_rules"} "print intro/elim rules"
     (Scan.succeed (Toplevel.unknown_context o
       Toplevel.keep (Context_Rules.print_rules o Toplevel.context_of)));
-
-val _ =
-  Outer_Syntax.improper_command @{command_spec "print_trans_rules"} "print transitivity rules"
-    (Scan.succeed (Toplevel.unknown_context o
-      Toplevel.keep (Calculation.print_rules o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_methods"} "print methods of this theory"
