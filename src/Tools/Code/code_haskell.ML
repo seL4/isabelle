@@ -432,14 +432,14 @@ fun pretty_haskell_monad c_bind =
      of SOME ((pat, ty), t') =>
           SOME ((SOME ((pat, ty), true), t1), t')
       | NONE => NONE;
-    fun dest_monad c_bind_name (IConst { sym = Code_Symbol.Constant c, ... } `$ t1 `$ t2) =
-          if c = c_bind_name then dest_bind t1 t2
+    fun dest_monad (IConst { sym = Code_Symbol.Constant c, ... } `$ t1 `$ t2) =
+          if c = c_bind then dest_bind t1 t2
           else NONE
-      | dest_monad _ t = case Code_Thingol.split_let t
+      | dest_monad t = case Code_Thingol.split_let t
          of SOME (((pat, ty), tbind), t') =>
               SOME ((SOME ((pat, ty), false), tbind), t')
           | NONE => NONE;
-    fun implode_monad c_bind_name = Code_Thingol.unfoldr (dest_monad c_bind_name);
+    val implode_monad = Code_Thingol.unfoldr dest_monad;
     fun print_monad print_bind print_term (NONE, t) vars =
           (semicolon [print_term vars NOBR t], vars)
       | print_monad print_bind print_term (SOME ((bind, _), true), t) vars = vars
@@ -448,9 +448,9 @@ fun pretty_haskell_monad c_bind =
       | print_monad print_bind print_term (SOME ((bind, _), false), t) vars = vars
           |> print_bind NOBR bind
           |>> (fn p => semicolon [str "let", str "{", p, str "=", print_term vars NOBR t, str "}"]);
-    fun pretty _ [c_bind'] print_term thm vars fxy [(t1, _), (t2, _)] = case dest_bind t1 t2
+    fun pretty _ print_term thm vars fxy [(t1, _), (t2, _)] = case dest_bind t1 t2
      of SOME (bind, t') => let
-          val (binds, t'') = implode_monad c_bind' t'
+          val (binds, t'') = implode_monad t'
           val (ps, vars') = fold_map (print_monad (gen_print_bind (K print_term) thm) print_term)
             (bind :: binds) vars;
         in
@@ -459,7 +459,7 @@ fun pretty_haskell_monad c_bind =
         end
       | NONE => brackify_infix (1, L) fxy
           (print_term vars (INFX (1, L)) t1, str ">>=", print_term vars (INFX (1, X)) t2)
-  in (2, ([c_bind], pretty)) end;
+  in (2, pretty) end;
 
 fun add_monad target' raw_c_bind thy =
   let

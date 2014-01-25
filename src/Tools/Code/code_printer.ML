@@ -285,9 +285,9 @@ fun tuplify _ _ [] = NONE
 type simple_const_syntax = int * ((fixity -> iterm -> Pretty.T)
   -> fixity -> (iterm * itype) list -> Pretty.T);
 
-type complex_const_syntax = int * (string list * (literals -> string list
+type complex_const_syntax = int * (literals
   -> (var_ctxt -> fixity -> iterm -> Pretty.T)
-    -> thm option -> var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T));
+    -> thm option -> var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T);
 
 datatype const_syntax = plain_const_syntax of string
   | complex_const_syntax of complex_const_syntax;
@@ -297,7 +297,7 @@ fun requires_args (plain_const_syntax _) = 0
 
 fun simple_const_syntax syn =
   complex_const_syntax
-    (apsnd (fn f => ([], (fn _ => fn _ => fn print => fn _ => fn vars => f (print vars)))) syn);
+    (apsnd (fn f => fn _ => fn print => fn _ => fn vars => f (print vars)) syn);
 
 type activated_complex_const_syntax = int * ((var_ctxt -> fixity -> iterm -> Pretty.T)
   -> thm option -> var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T)
@@ -307,8 +307,8 @@ datatype activated_const_syntax = Plain_const_syntax of int * string
 
 fun activate_const_syntax thy literals c (plain_const_syntax s) =
       Plain_const_syntax (Code.args_number thy c, s)
-  | activate_const_syntax thy literals c (complex_const_syntax (n, (cs, f)))=
-      Complex_const_syntax (n, f literals cs);
+  | activate_const_syntax thy literals c (complex_const_syntax (n, f))=
+      Complex_const_syntax (n, f literals);
 
 fun gen_print_app print_app_expr print_term const_syntax some_thm vars fxy
     (app as ({ sym, dom, ... }, ts)) =
