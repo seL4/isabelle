@@ -13,9 +13,12 @@ sig
   type symbol = (string, string, class, class * class, string * class, string) attr
   structure Table: TABLE;
   structure Graph: GRAPH;
-  val default_name: Proof.context -> symbol -> string * string
-  val quote_symbol: Proof.context -> symbol -> string
-  val tyco_fun: string
+  val namespace_prefix: Proof.context -> symbol -> string
+  val base_name: symbol -> string
+  val quote: Proof.context -> symbol -> string
+  val marker: symbol -> string
+  val value: symbol
+  val is_value: symbol -> bool
   val map_attr: ('a -> 'g) -> ('b -> 'h) -> ('c -> 'i) -> ('d -> 'j) -> ('e -> 'k) -> ('f -> 'l)
     -> ('a, 'b, 'c, 'd, 'e, 'f) attr -> ('g, 'h, 'i, 'j, 'k, 'l) attr
   val maps_attr: ('a -> 'g list) -> ('b -> 'h list)
@@ -38,6 +41,8 @@ sig
   val lookup_class_instance_data: ('a, 'b, 'c, 'd, 'e, 'f) data -> string * class -> 'e option
   val lookup_module_data: ('a, 'b, 'c, 'd, 'e, 'f) data -> string -> 'f option
   val lookup: ('a, 'a, 'a, 'a, 'a, 'a) data -> symbol -> 'a option
+  val symbols_of: ('a, 'b, 'c, 'd, 'e, 'f) data -> symbol list
+  val mapped_const_data: (string -> 'a -> 'g) -> ('a, 'b, 'c, 'd, 'e, 'f) data -> 'g Symtab.table
   val dest_constant_data: ('a, 'b, 'c, 'd, 'e, 'f) data -> (string * 'a) list
   val dest_type_constructor_data: ('a, 'b, 'c, 'd, 'e, 'f) data -> (string * 'b) list
   val dest_type_class_data: ('a, 'b, 'c, 'd, 'e, 'f) data -> (class * 'c) list
@@ -89,40 +94,48 @@ local
     | NONE => (case Code.get_type_of_constr_or_abstr thy c
        of SOME (tyco, _) => thyname_of_type thy tyco
         | NONE => #theory_name (Name_Space.the_entry (Sign.const_space thy) c));
-  fun base_rel (x, y) = Long_Name.base_name y ^ "_" ^ Long_Name.base_name x;
-  fun plainify ctxt get_prefix get_basename thing =
-    (get_prefix (Proof_Context.theory_of ctxt) thing,
-      Name.desymbolize false (get_basename thing));
+  fun prefix thy (Constant "") = "Code"
+    | prefix thy (Constant c) = thyname_of_const thy c
+    | prefix thy (Type_Constructor tyco) = thyname_of_type thy tyco
+    | prefix thy (Type_Class class) = thyname_of_class thy class
+    | prefix thy (Class_Relation (class, _)) = thyname_of_class thy class
+    | prefix thy (Class_Instance inst) = thyname_of_instance thy inst;
+  val base = Name.desymbolize false o Long_Name.base_name;
+  fun base_rel (x, y) = base y ^ "_" ^ base x;
 in
 
-fun default_name ctxt (Constant "==>") =
-      plainify ctxt thyname_of_const (K "follows") "==>"
-  | default_name ctxt (Constant "==") =
-      plainify ctxt thyname_of_const (K "meta_eq") "=="
-  | default_name ctxt (Constant c) =
-      plainify ctxt thyname_of_const Long_Name.base_name c
-  | default_name ctxt (Type_Constructor "fun") =
-      plainify ctxt thyname_of_type (K "fun") "fun"
-  | default_name ctxt (Type_Constructor tyco) =
-      plainify ctxt thyname_of_type Long_Name.base_name tyco
-  | default_name ctxt (Type_Class class) =
-      plainify ctxt thyname_of_class Long_Name.base_name class
-  | default_name ctxt (Class_Relation classrel) =
-      plainify ctxt (fn thy => fn (class, _) => thyname_of_class thy class) base_rel classrel
-  | default_name ctxt (Class_Instance inst) =
-      plainify ctxt thyname_of_instance base_rel inst;
+fun base_name (Constant "") = "value"
+  | base_name (Constant "==>") = "follows"
+  | base_name (Constant "==") = "meta_eq"
+  | base_name (Constant c) = base c
+  | base_name (Type_Constructor tyco) = base tyco
+  | base_name (Type_Class class) = base class
+  | base_name (Class_Relation classrel) = base_rel classrel
+  | base_name (Class_Instance inst) = base_rel inst;
 
-val tyco_fun = (uncurry Long_Name.append o default_name @{context}) (Type_Constructor "fun");
+fun namespace_prefix ctxt = prefix (Proof_Context.theory_of ctxt);
+
+fun default_name ctxt sym = (namespace_prefix ctxt sym, base_name sym);
+
+val value = Constant "";
+fun is_value (Constant "") = true
+  | is_value _ = false;
 
 end;
 
-fun quote_symbol ctxt (Constant c) = quote (Code.string_of_const (Proof_Context.theory_of ctxt) c)
-  | quote_symbol ctxt (Type_Constructor tyco) = "type " ^ quote (Proof_Context.extern_type ctxt tyco)
-  | quote_symbol ctxt (Type_Class class) = "class " ^ quote (Proof_Context.extern_class ctxt class)
-  | quote_symbol ctxt (Class_Relation (sub, super)) =
-      quote (Proof_Context.extern_class ctxt sub) ^ " < " ^ quote (Proof_Context.extern_class ctxt super)
-  | quote_symbol ctxt (Class_Instance (tyco, class)) =
-      quote (Proof_Context.extern_type ctxt tyco) ^ " :: " ^ quote (Proof_Context.extern_class ctxt class);
+fun quote ctxt (Constant c) = Library.quote (Code.string_of_const (Proof_Context.theory_of ctxt) c)
+  | quote ctxt (Type_Constructor tyco) = "type " ^ Library.quote (Proof_Context.extern_type ctxt tyco)
+  | quote ctxt (Type_Class class) = "class " ^ Library.quote (Proof_Context.extern_class ctxt class)
+  | quote ctxt (Class_Relation (sub, super)) =
+      Library.quote (Proof_Context.extern_class ctxt sub) ^ " < " ^ Library.quote (Proof_Context.extern_class ctxt super)
+  | quote ctxt (Class_Instance (tyco, class)) =
+      Library.quote (Proof_Context.extern_type ctxt tyco) ^ " :: " ^ Library.quote (Proof_Context.extern_class ctxt class);
+
+fun marker (Constant c) = "CONST " ^ c
+  | marker (Type_Constructor tyco) = "TYPE " ^ tyco
+  | marker (Type_Class class) = "CLASS " ^ class
+  | marker (Class_Relation (sub, super)) = "CLASSREL " ^ sub ^ " < " ^ super
+  | marker (Class_Instance (tyco, class)) = "INSTANCE " ^ tyco ^ " :: " ^ class;
 
 fun map_attr const tyco class classrel inst module (Constant x) = Constant (const x)
   | map_attr const tyco class classrel inst module (Type_Constructor x) = Type_Constructor (tyco x)
@@ -198,6 +211,15 @@ fun lookup data (Constant x) = lookup_constant_data data x
   | lookup data (Class_Relation x) = lookup_class_relation_data data x
   | lookup data (Class_Instance x) = lookup_class_instance_data data x
   | lookup data (Module x) = lookup_module_data data x;
+
+fun symbols_of x = (map Constant o Symtab.keys o #constant o dest_data) x
+  @ (map Type_Constructor o Symtab.keys o #type_constructor o dest_data) x
+  @ (map Type_Class o Symtab.keys o #type_class o dest_data) x
+  @ (map Class_Relation o Symreltab.keys o #class_relation o dest_data) x
+  @ (map Class_Instance o Symreltab.keys o #class_instance o dest_data) x
+  @ (map Module o Symtab.keys o #module o dest_data) x;
+
+fun mapped_const_data f x = Symtab.map f ((#constant o dest_data) x);
 
 fun dest_constant_data x = (Symtab.dest o #constant o dest_data) x;
 fun dest_type_constructor_data x = (Symtab.dest o #type_constructor o dest_data) x;

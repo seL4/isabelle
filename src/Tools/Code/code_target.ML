@@ -11,26 +11,26 @@ sig
   val read_const_exprs: theory -> string list -> string list
 
   val export_code_for: theory -> Path.T option -> string -> int option -> string -> Token.T list
-    -> Code_Thingol.naming -> Code_Thingol.program -> string list -> unit
+    -> Code_Thingol.program -> Code_Symbol.symbol list -> unit
   val produce_code_for: theory -> string -> int option -> string -> Token.T list
-    -> Code_Thingol.naming -> Code_Thingol.program -> string list -> (string * string) list * string option list
+    -> Code_Thingol.program -> Code_Symbol.symbol list -> (string * string) list * string option list
   val present_code_for: theory -> string -> int option -> string -> Token.T list
-    -> Code_Thingol.naming -> Code_Thingol.program -> string list * string list -> string
+    -> Code_Thingol.program -> Code_Symbol.symbol list * Code_Symbol.symbol list -> string
   val check_code_for: theory -> string -> bool -> Token.T list
-    -> Code_Thingol.naming -> Code_Thingol.program -> string list -> unit
+    -> Code_Thingol.program -> Code_Symbol.symbol list -> unit
 
   val export_code: theory -> string list
     -> (((string * string) * Path.T option) * Token.T list) list -> unit
   val produce_code: theory -> string list
     -> string -> int option -> string -> Token.T list -> (string * string) list * string option list
-  val present_code: theory -> string list -> (Code_Thingol.naming -> string list)
+  val present_code: theory -> string list -> Code_Symbol.symbol list
     -> string -> int option -> string -> Token.T list -> string
   val check_code: theory -> string list
     -> ((string * bool) * Token.T list) list -> unit
 
   val generatedN: string
-  val evaluator: theory -> string -> Code_Thingol.naming -> Code_Thingol.program
-    -> string list -> ((string * class list) list * Code_Thingol.itype) * Code_Thingol.iterm
+  val evaluator: theory -> string -> Code_Thingol.program
+    -> Code_Symbol.symbol list -> ((string * class list) list * Code_Thingol.itype) * Code_Thingol.iterm
     -> (string * string) list * string
 
   type serializer
@@ -39,14 +39,14 @@ sig
     check: { env_var: string, make_destination: Path.T -> Path.T, make_command: string -> string } }
     -> theory -> theory
   val extend_target: string *
-      (string * (Code_Thingol.naming -> Code_Thingol.program -> Code_Thingol.program))
+      (string * (Code_Thingol.program -> Code_Thingol.program))
     -> theory -> theory
   val assert_target: theory -> string -> string
   val the_literals: theory -> string -> literals
   type serialization
   val parse_args: 'a parser -> Token.T list -> 'a
   val serialization: (int -> Path.T option -> 'a -> unit)
-    -> (string list -> int -> 'a -> (string * string) list * (string -> string option))
+    -> (Code_Symbol.symbol list -> int -> 'a -> (string * string) list * (Code_Symbol.symbol -> string option))
     -> 'a -> serialization
   val set_default_code_width: int -> theory -> theory
 
@@ -117,7 +117,7 @@ fun cert_inst thy (class, tyco) =
   (cert_class thy class, cert_tyco thy tyco);
 
 fun read_inst thy (raw_tyco, raw_class) =
-  (read_class thy raw_class, read_tyco thy raw_tyco);
+  (read_tyco thy raw_tyco, read_class thy raw_class);
 
 val parse_inst_ident = Parse.xname --| @{keyword "::"} -- Parse.class;
 
@@ -154,21 +154,21 @@ fun check_name is_module s =
 
 (* serialization: abstract nonsense to cover different destinies for generated code *)
 
-datatype destination = Export of Path.T option | Produce | Present of string list;
-type serialization = int -> destination -> ((string * string) list * (string -> string option)) option;
+datatype destination = Export of Path.T option | Produce | Present of Code_Symbol.symbol list;
+type serialization = int -> destination -> ((string * string) list * (Code_Symbol.symbol -> string option)) option;
 
 fun serialization output _ content width (Export some_path) =
       (output width some_path content; NONE)
   | serialization _ string content width Produce =
       string [] width content |> SOME
-  | serialization _ string content width (Present stmt_names) =
-     string stmt_names width content
+  | serialization _ string content width (Present syms) =
+     string syms width content
      |> (apfst o map o apsnd) (Pretty.output (SOME width) o Pretty.str)
      |> SOME;
 
 fun export some_path f = (f (Export some_path); ());
 fun produce f = the (f Produce);
-fun present stmt_names f = space_implode "\n\n" (map snd (fst (the (f (Present stmt_names)))));
+fun present syms f = space_implode "\n\n" (map snd (fst (the (f (Present syms)))));
 
 
 (* serializers: functions producing serializations *)
@@ -176,7 +176,6 @@ fun present stmt_names f = space_implode "\n\n" (map snd (fst (the (f (Present s
 type serializer = Token.T list
   -> Proof.context
   -> {
-    symbol_of: string -> Code_Symbol.symbol,
     module_name: string,
     reserved_syms: string list,
     identifiers: identifier_data,
@@ -193,7 +192,7 @@ datatype description =
       check: { env_var: string, make_destination: Path.T -> Path.T,
         make_command: string -> string } }
   | Extension of string *
-      (Code_Thingol.naming -> Code_Thingol.program -> Code_Thingol.program);
+      (Code_Thingol.program -> Code_Thingol.program);
 
 
 (** theory data **)
@@ -311,10 +310,10 @@ fun collapse_hierarchy thy =
          of SOME data => data
           | NONE => error ("Unknown code target language: " ^ quote target);
       in case the_description data
-       of Fundamental _ => (K I, data)
+       of Fundamental _ => (I, data)
         | Extension (super, modify) => let
             val (modify', data') = collapse super
-          in (fn naming => modify' naming #> modify naming, merge_target false target (data', data)) end
+          in (modify' #> modify, merge_target false target (data', data)) end
       end;
   in collapse end;
 
@@ -326,68 +325,37 @@ fun activate_target thy target =
     val (modify, data) = collapse_hierarchy thy target;
   in (default_width, data, modify) end;
 
-fun activate_const_syntax thy literals cs_data naming =
-  (Symtab.empty, naming)
-  |> fold_map (fn (c, data) => fn (tab, naming) =>
-      case Code_Thingol.lookup_const naming c
-       of SOME name => let
-              val (syn, naming') =
-                Code_Printer.activate_const_syntax thy literals c data naming
-            in (SOME name, (Symtab.update_new (name, syn) tab, naming')) end
-        | NONE => (NONE, (tab, naming))) cs_data
-  |>> map_filter I;
+fun activate_symbol_syntax thy literals printings =
+  (Code_Symbol.symbols_of printings,
+    (Symtab.lookup (Code_Symbol.mapped_const_data (Code_Printer.activate_const_syntax thy literals) printings),
+      Code_Symbol.lookup_type_constructor_data printings, Code_Symbol.lookup_type_class_data printings))
 
-fun activate_syntax lookup_name things =
-  Symtab.empty
-  |> fold_map (fn (thing_identifier, data) => fn tab => case lookup_name thing_identifier
-       of SOME name => (SOME name, Symtab.update_new (name, data) tab)
-        | NONE => (NONE, tab)) things
-  |>> map_filter I;
-
-fun activate_symbol_syntax thy literals naming printings =
-  let
-    val (names_const, (const_syntax, _)) =
-      activate_const_syntax thy literals (Code_Symbol.dest_constant_data printings) naming;
-    val (names_tyco, tyco_syntax) =
-      activate_syntax (Code_Thingol.lookup_tyco naming) (Code_Symbol.dest_type_constructor_data printings);
-    val (names_class, class_syntax) =
-      activate_syntax (Code_Thingol.lookup_class naming) (Code_Symbol.dest_type_class_data printings);
-    val names_inst = map_filter (Code_Thingol.lookup_instance naming o fst)
-      (Code_Symbol.dest_class_instance_data printings);
-  in
-    (names_const @ names_tyco @ names_class @ names_inst,
-      (Symtab.lookup const_syntax, Symtab.lookup tyco_syntax, Symtab.lookup class_syntax))
-  end;
-
-fun project_program thy names_hidden names1 program2 =
+fun project_program thy syms_hidden syms1 program2 =
   let
     val ctxt = Proof_Context.init_global thy;
-    val names2 = subtract (op =) names_hidden names1;
-    val program3 = Graph.restrict (not o member (op =) names_hidden) program2;
-    val names4 = Graph.all_succs program3 names2;
+    val syms2 = subtract (op =) syms_hidden syms1;
+    val program3 = Code_Symbol.Graph.restrict (not o member (op =) syms_hidden) program2;
+    val syms4 = Code_Symbol.Graph.all_succs program3 syms2;
     val unimplemented = Code_Thingol.unimplemented program3;
     val _ =
       if null unimplemented then ()
       else error ("No code equations for " ^
         commas (map (Proof_Context.extern_const ctxt) unimplemented));
-    val program4 = Graph.restrict (member (op =) names4) program3;
-  in (names4, program4) end;
+    val program4 = Code_Symbol.Graph.restrict (member (op =) syms4) program3;
+  in (syms4, program4) end;
 
 fun prepare_serializer thy (serializer : serializer) literals reserved identifiers
-    printings module_name args naming proto_program names =
+    printings module_name args proto_program syms =
   let
-    val (names_hidden, (const_syntax, tyco_syntax, class_syntax)) =
-      activate_symbol_syntax thy literals naming printings;
-    val (names_all, program) = project_program thy names_hidden names proto_program;
+    val (syms_hidden, (const_syntax, tyco_syntax, class_syntax)) =
+      activate_symbol_syntax thy literals printings;
+    val (syms_all, program) = project_program thy syms_hidden syms proto_program;
     fun select_include (name, (content, cs)) =
-      if null cs orelse exists (fn c => case Code_Thingol.lookup_const naming c
-       of SOME name => member (op =) names_all name
-        | NONE => false) cs
+      if null cs orelse exists (fn c => member (op =) syms_all (Code_Symbol.Constant c)) cs
       then SOME (name, content) else NONE;
     val includes = map_filter select_include (Code_Symbol.dest_module_data printings);
   in
     (serializer args (Proof_Context.init_global thy) {
-      symbol_of = Code_Thingol.symbol_of proto_program,
       module_name = module_name,
       reserved_syms = reserved,
       identifiers = identifiers,
@@ -398,7 +366,7 @@ fun prepare_serializer thy (serializer : serializer) literals reserved identifie
       program)
   end;
 
-fun mount_serializer thy target some_width module_name args naming program names =
+fun mount_serializer thy target some_width module_name args program syms =
   let
     val (default_width, data, modify) = activate_target thy target;
     val serializer = case the_description data
@@ -406,15 +374,15 @@ fun mount_serializer thy target some_width module_name args naming program names
     val (prepared_serializer, prepared_program) =
       prepare_serializer thy serializer (the_literals thy target)
         (the_reserved data) (the_identifiers data) (the_printings data)
-        module_name args naming (modify naming program) names
+        module_name args (modify program) syms
     val width = the_default default_width some_width;
   in (fn program => prepared_serializer program width, prepared_program) end;
 
-fun invoke_serializer thy target some_width module_name args naming program names =
+fun invoke_serializer thy target some_width module_name args program syms =
   let
     val check = if module_name = "" then I else check_name true;
     val (mounted_serializer, prepared_program) = mount_serializer thy
-      target some_width (check module_name) args naming program names;
+      target some_width (check module_name) args program syms;
   in mounted_serializer prepared_program end;
 
 fun assert_module_name "" = error "Empty module name not allowed here"
@@ -429,23 +397,23 @@ val generatedN = "Generated_Code";
 
 fun export_code_for thy some_path target some_width module_name args =
   export (using_master_directory thy some_path)
-  ooo invoke_serializer thy target some_width module_name args;
+  oo invoke_serializer thy target some_width module_name args;
 
 fun produce_code_for thy target some_width module_name args =
   let
     val serializer = invoke_serializer thy target some_width (assert_module_name module_name) args;
-  in fn naming => fn program => fn names =>
-    produce (serializer naming program names) |> apsnd (fn deresolve => map deresolve names)
+  in fn program => fn syms =>
+    produce (serializer program syms) |> apsnd (fn deresolve => map deresolve syms)
   end;
 
 fun present_code_for thy target some_width module_name args =
   let
     val serializer = invoke_serializer thy target some_width (assert_module_name module_name) args;
-  in fn naming => fn program => fn (names, selects) =>
-    present selects (serializer naming program names)
+  in fn program => fn (syms, selects) =>
+    present selects (serializer program syms)
   end;
 
-fun check_code_for thy target strict args naming program names_cs =
+fun check_code_for thy target strict args program syms =
   let
     val { env_var, make_destination, make_command } =
       (#check o the_fundamental thy) target;
@@ -453,7 +421,7 @@ fun check_code_for thy target strict args naming program names_cs =
       let
         val destination = make_destination p;
         val _ = export (SOME destination) (invoke_serializer thy target (SOME 80)
-          generatedN args naming program names_cs);
+          generatedN args program syms);
         val cmd = make_command generatedN;
       in
         if Isabelle_System.bash ("cd " ^ File.shell_path p ^ " && " ^ cmd ^ " 2>&1") <> 0
@@ -468,46 +436,38 @@ fun check_code_for thy target strict args naming program names_cs =
     else Isabelle_System.with_tmp_dir "Code_Test" ext_check
   end;
 
-fun evaluation mounted_serializer prepared_program consts ((vs, ty), t) =
+fun evaluation mounted_serializer prepared_program syms ((vs, ty), t) =
   let
     val _ = if Code_Thingol.contains_dict_var t then
       error "Term to be evaluated contains free dictionaries" else ();
     val v' = singleton (Name.variant_list (map fst vs)) "a";
     val vs' = (v', []) :: vs;
-    val ty' = Code_Thingol.fun_tyco `%% [ITyVar v', ty];
-    val value_name = "Value.value.value"
+    val ty' = ITyVar v' `-> ty;
     val program = prepared_program
-      |> Graph.new_node (value_name,
-          Code_Thingol.Fun (@{const_name dummy_pattern}, (((vs', ty'), [(([IVar NONE], t), (NONE, true))]), NONE)))
-      |> fold (curry (perhaps o try o Graph.add_edge) value_name) consts;
+      |> Code_Symbol.Graph.new_node (Code_Symbol.value,
+          Code_Thingol.Fun (((vs', ty'), [(([IVar NONE], t), (NONE, true))]), NONE))
+      |> fold (curry (perhaps o try o
+          Code_Symbol.Graph.add_edge) Code_Symbol.value) syms;
     val (program_code, deresolve) = produce (mounted_serializer program);
-    val value_name' = the (deresolve value_name);
-  in (program_code, value_name') end;
+    val value_name = the (deresolve Code_Symbol.value);
+  in (program_code, value_name) end;
 
-fun evaluator thy target naming program consts =
+fun evaluator thy target program syms =
   let
-    val (mounted_serializer, prepared_program) = mount_serializer thy
-      target NONE generatedN [] naming program consts;
-  in evaluation mounted_serializer prepared_program consts end;
+    val (mounted_serializer, prepared_program) =
+      mount_serializer thy target NONE generatedN [] program syms;
+  in evaluation mounted_serializer prepared_program syms end;
 
 end; (* local *)
 
 
 (* code generation *)
 
-fun implemented_functions thy naming program =
+fun read_const_exprs thy const_exprs =
   let
-    val cs = Code_Thingol.unimplemented program;
-    val names = map_filter (Code_Thingol.lookup_const naming) cs;
-  in subtract (op =) (Graph.all_preds program names) (Graph.keys program) end;
-
-fun read_const_exprs thy cs =
-  let
-    val (cs1, cs2) = Code_Thingol.read_const_exprs thy cs;
-    val (names2, (naming, program)) = Code_Thingol.consts_program thy true cs2;
-    val names3 = implemented_functions thy naming program;
-    val cs3 = map_filter (fn (c, name) =>
-      if member (op =) names3 name then SOME c else NONE) (cs2 ~~ names2);
+    val (cs1, cs2) = Code_Thingol.read_const_exprs thy const_exprs;
+    val program = Code_Thingol.consts_program thy true cs2;
+    val cs3 = Code_Thingol.implemented_deps program;
   in union (op =) cs3 cs1 end;
 
 fun prep_destination "" = NONE
@@ -515,9 +475,9 @@ fun prep_destination "" = NONE
 
 fun export_code thy cs seris =
   let
-    val (names_cs, (naming, program)) = Code_Thingol.consts_program thy false cs;
+    val program = Code_Thingol.consts_program thy false cs;
     val _ = map (fn (((target, module_name), some_path), args) =>
-      export_code_for thy some_path target NONE module_name args naming program names_cs) seris;
+      export_code_for thy some_path target NONE module_name args program (map Code_Symbol.Constant cs)) seris;
   in () end;
 
 fun export_code_cmd raw_cs seris thy = export_code thy (read_const_exprs thy raw_cs)
@@ -525,19 +485,19 @@ fun export_code_cmd raw_cs seris thy = export_code thy (read_const_exprs thy raw
 
 fun produce_code thy cs target some_width some_module_name args =
   let
-    val (names_cs, (naming, program)) = Code_Thingol.consts_program thy false cs;
-  in produce_code_for thy target some_width some_module_name args naming program names_cs end;
+    val program = Code_Thingol.consts_program thy false cs;
+  in produce_code_for thy target some_width some_module_name args program (map Code_Symbol.Constant cs) end;
 
-fun present_code thy cs names_stmt target some_width some_module_name args =
+fun present_code thy cs syms target some_width some_module_name args =
   let
-    val (names_cs, (naming, program)) = Code_Thingol.consts_program thy false cs;
-  in present_code_for thy target some_width some_module_name args naming program (names_cs, names_stmt naming) end;
+    val program = Code_Thingol.consts_program thy false cs;
+  in present_code_for thy target some_width some_module_name args program (map Code_Symbol.Constant cs, syms) end;
 
 fun check_code thy cs seris =
   let
-    val (names_cs, (naming, program)) = Code_Thingol.consts_program thy false cs;
+    val program = Code_Thingol.consts_program thy false cs;
     val _ = map (fn ((target, strict), args) =>
-      check_code_for thy target strict args naming program names_cs) seris;
+      check_code_for thy target strict args program (map Code_Symbol.Constant cs)) seris;
   in () end;
 
 fun check_code_cmd raw_cs seris thy = check_code thy (read_const_exprs thy raw_cs) seris;
@@ -547,22 +507,22 @@ local
 val parse_const_terms = Scan.repeat1 Args.term
   >> (fn ts => fn thy => map (Code.check_const thy) ts);
 
-fun parse_names category parse internalize lookup =
+fun parse_names category parse internalize mark_symbol =
   Scan.lift (Args.parens (Args.$$$ category)) |-- Scan.repeat1 parse
-  >> (fn xs => fn thy => fn naming => map_filter (lookup naming o internalize thy) xs);
+  >> (fn xs => fn thy => map (mark_symbol o internalize thy) xs);
 
 val parse_consts = parse_names "consts" Args.term
-  Code.check_const Code_Thingol.lookup_const;
+  Code.check_const Code_Symbol.Constant;
 
 val parse_types = parse_names "types" (Scan.lift Args.name)
-  Sign.intern_type Code_Thingol.lookup_tyco;
+  Sign.intern_type Code_Symbol.Type_Constructor;
 
 val parse_classes = parse_names "classes" (Scan.lift Args.name)
-  Sign.intern_class Code_Thingol.lookup_class;
+  Sign.intern_class Code_Symbol.Type_Class;
 
 val parse_instances = parse_names "instances" (Scan.lift (Args.name --| Args.$$$ "::" -- Args.name))
-  (fn thy => fn (raw_tyco, raw_class) => (Sign.intern_class thy raw_class, Sign.intern_type thy raw_tyco))
-    Code_Thingol.lookup_instance;
+  (fn thy => fn (raw_tyco, raw_class) => (Sign.intern_class thy raw_tyco, Sign.intern_type thy raw_class))
+    Code_Symbol.Class_Instance;
 
 in
 
@@ -574,7 +534,7 @@ val antiq_setup =
     (fn {context = ctxt, ...} => fn ((mk_cs, mk_stmtss), (target, some_width)) =>
       let val thy = Proof_Context.theory_of ctxt in
         present_code thy (mk_cs thy)
-          (fn naming => maps (fn f => f thy naming) mk_stmtss)
+          (maps (fn f => f thy) mk_stmtss)
           target some_width "Example" []
       end);
 

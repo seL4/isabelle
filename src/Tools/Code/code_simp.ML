@@ -52,7 +52,7 @@ fun set_trace ctxt =
 
 (* build simpset and conversion from program *)
 
-fun add_stmt (Code_Thingol.Fun (_, ((_, eqs), some_cong))) ss =
+fun add_stmt (Code_Thingol.Fun ((_, eqs), some_cong)) ss =
       ss
       |> fold Simplifier.add_simp ((map_filter (fst o snd)) eqs)
       |> fold Simplifier.add_cong (the_list some_cong)
@@ -61,7 +61,7 @@ fun add_stmt (Code_Thingol.Fun (_, ((_, eqs), some_cong))) ss =
       |> fold Simplifier.add_simp (map (fst o snd) inst_params)
   | add_stmt _ ss = ss;
 
-val add_program = Graph.fold (add_stmt o fst o snd);
+val add_program = Code_Symbol.Graph.fold (add_stmt o fst o snd);
 
 fun simp_ctxt_program thy some_ss program =
   simp_ctxt_default thy some_ss
@@ -77,7 +77,7 @@ fun conclude_tac thy some_ss =
 (* evaluation with dynamic code context *)
 
 fun dynamic_conv thy = Code_Thingol.dynamic_conv thy
-  (fn _ => fn program => fn _ => fn _ => rewrite_modulo thy NONE program);
+  (fn program => fn _ => fn _ => rewrite_modulo thy NONE program);
 
 fun dynamic_tac thy = CONVERSION (dynamic_conv thy) THEN' conclude_tac thy NONE (Proof_Context.init_global thy);
 

@@ -25,8 +25,8 @@ sig
   val semicolon: Pretty.T list -> Pretty.T
   val doublesemicolon: Pretty.T list -> Pretty.T
   val indent: int -> Pretty.T -> Pretty.T
-  val markup_stmt: string -> Pretty.T -> Pretty.T
-  val format: string list -> int -> Pretty.T -> string
+  val markup_stmt: Code_Symbol.symbol -> Pretty.T -> Pretty.T
+  val format: Code_Symbol.symbol list -> int -> Pretty.T -> string
 
   val first_upper: string -> string
   val first_lower: string -> string
@@ -36,7 +36,7 @@ sig
   val lookup_var: var_ctxt -> string -> string
   val intro_base_names: (string -> bool) -> (string -> string)
     -> string list -> var_ctxt -> var_ctxt
-  val intro_base_names_for: (string -> bool) -> (string -> string)
+  val intro_base_names_for: (string -> bool) -> (Code_Symbol.symbol -> string)
     -> iterm list -> var_ctxt -> var_ctxt
   val aux_params: var_ctxt -> iterm list list -> string list
 
@@ -81,7 +81,7 @@ sig
   val simple_const_syntax: simple_const_syntax -> const_syntax
   val complex_const_syntax: complex_const_syntax -> const_syntax
   val activate_const_syntax: theory -> literals
-    -> string -> const_syntax -> Code_Thingol.naming -> activated_const_syntax * Code_Thingol.naming
+    -> string -> const_syntax -> activated_const_syntax
   val gen_print_app: (thm option -> var_ctxt -> const * iterm list -> Pretty.T list)
     -> (thm option -> var_ctxt -> fixity -> iterm -> Pretty.T)
     -> (string -> activated_const_syntax option)
@@ -125,17 +125,18 @@ fun semicolon ps = Pretty.block [concat ps, str ";"];
 fun doublesemicolon ps = Pretty.block [concat ps, str ";;"];
 fun indent i = Print_Mode.setmp [] (Pretty.indent i);
 
-fun markup_stmt name = Print_Mode.setmp [code_presentationN]
-  (Pretty.mark (code_presentationN, [(stmt_nameN, name)]));
+fun markup_stmt sym = Print_Mode.setmp [code_presentationN]
+  (Pretty.mark (code_presentationN, [(stmt_nameN, Code_Symbol.marker sym)]));
 
 fun filter_presentation [] tree =
       Buffer.empty
       |> fold XML.add_content tree
-  | filter_presentation presentation_names tree =
+  | filter_presentation presentation_syms tree =
       let
+        val presentation_idents = map Code_Symbol.marker presentation_syms
         fun is_selected (name, attrs) =
           name = code_presentationN
-          andalso member (op =) presentation_names (the (Properties.get attrs stmt_nameN));
+          andalso member (op =) presentation_idents (the (Properties.get attrs stmt_nameN));
         fun add_content_with_space tree (is_first, buf) =
           buf
           |> not is_first ? Buffer.add "\n\n"
@@ -198,8 +199,8 @@ fun intro_base_names no_syntax deresolve =
 
 fun intro_base_names_for no_syntax deresolve ts =
   []
-  |> fold Code_Thingol.add_constnames ts 
-  |> intro_base_names no_syntax deresolve;
+  |> fold Code_Thingol.add_constsyms ts 
+  |> intro_base_names (fn Code_Symbol.Constant const => no_syntax const | _ => true) deresolve;
 
 
 (** pretty literals **)
@@ -304,30 +305,31 @@ type activated_complex_const_syntax = int * ((var_ctxt -> fixity -> iterm -> Pre
 datatype activated_const_syntax = Plain_const_syntax of int * string
   | Complex_const_syntax of activated_complex_const_syntax;
 
-fun activate_const_syntax thy literals c (plain_const_syntax s) naming =
-      (Plain_const_syntax (Code.args_number thy c, s), naming)
-  | activate_const_syntax thy literals c (complex_const_syntax (n, (cs, f))) naming =
-      fold_map (Code_Thingol.ensure_declared_const thy) cs naming
-      |-> (fn cs' => pair (Complex_const_syntax (n, f literals cs')));
+fun activate_const_syntax thy literals c (plain_const_syntax s) =
+      Plain_const_syntax (Code.args_number thy c, s)
+  | activate_const_syntax thy literals c (complex_const_syntax (n, (cs, f)))=
+      Complex_const_syntax (n, f literals cs);
 
 fun gen_print_app print_app_expr print_term const_syntax some_thm vars fxy
-    (app as ({ name = c, dom, ... }, ts)) =
-  case const_syntax c of
-    NONE => brackify fxy (print_app_expr some_thm vars app)
-  | SOME (Plain_const_syntax (_, s)) =>
-      brackify fxy (str s :: map (print_term some_thm vars BR) ts)
-  | SOME (Complex_const_syntax (k, print)) =>
-      let
-        fun print' fxy ts =
-          print (print_term some_thm) some_thm vars fxy (ts ~~ take k dom);
-      in
-        if k = length ts
-        then print' fxy ts
-        else if k < length ts
-        then case chop k ts of (ts1, ts2) =>
-          brackify fxy (print' APP ts1 :: map (print_term some_thm vars BR) ts2)
-        else print_term some_thm vars fxy (Code_Thingol.eta_expand k app)
-      end;
+    (app as ({ sym, dom, ... }, ts)) =
+  case sym of
+    Code_Symbol.Constant const => (case const_syntax const of
+      NONE => brackify fxy (print_app_expr some_thm vars app)
+    | SOME (Plain_const_syntax (_, s)) =>
+        brackify fxy (str s :: map (print_term some_thm vars BR) ts)
+    | SOME (Complex_const_syntax (k, print)) =>
+        let
+          fun print' fxy ts =
+            print (print_term some_thm) some_thm vars fxy (ts ~~ take k dom);
+        in
+          if k = length ts
+          then print' fxy ts
+          else if k < length ts
+          then case chop k ts of (ts1, ts2) =>
+            brackify fxy (print' APP ts1 :: map (print_term some_thm vars BR) ts2)
+          else print_term some_thm vars fxy (Code_Thingol.eta_expand k app)
+        end)
+  | _ => brackify fxy (print_app_expr some_thm vars app);
 
 fun gen_print_bind print_term thm (fxy : fixity) pat vars =
   let

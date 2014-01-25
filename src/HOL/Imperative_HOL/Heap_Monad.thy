@@ -671,25 +671,17 @@ let
 
 open Code_Thingol;
 
-fun imp_program naming =
+val imp_program =
   let
-    fun is_const c = case lookup_const naming c
-     of SOME c' => (fn c'' => c' = c'')
-      | NONE => K false;
-    val is_bind = is_const @{const_name bind};
-    val is_return = is_const @{const_name return};
+    val is_bind = curry (op =) @{const_name bind};
+    val is_return = curry (op =) @{const_name return};
     val dummy_name = "";
     val dummy_case_term = IVar NONE;
     (*assumption: dummy values are not relevant for serialization*)
-    val (unitt, unitT) = case lookup_const naming @{const_name Unity}
-     of SOME unit' =>
-          let
-            val unitT = the (lookup_tyco naming @{type_name unit}) `%% []
-          in
-            (IConst { name = unit', typargs = [], dicts = [], dom = [],
-              range = unitT, annotate = false }, unitT)
-          end
-      | NONE => error ("Must include " ^ @{const_name Unity} ^ " in generated constants.");
+    val unitT = @{type_name unit} `%% [];
+    val unitt =
+      IConst { sym = Code_Symbol.Constant @{const_name Unity}, typargs = [], dicts = [], dom = [],
+        range = unitT, annotate = false };
     fun dest_abs ((v, ty) `|=> t, _) = ((v, ty), t)
       | dest_abs (t, ty) =
           let
@@ -697,7 +689,7 @@ fun imp_program naming =
             val v = singleton (Name.variant_list vs) "x";
             val ty' = (hd o fst o unfold_fun) ty;
           in ((SOME v, ty'), t `$ IVar (SOME v)) end;
-    fun force (t as IConst { name = c, ... } `$ t') = if is_return c
+    fun force (t as IConst { sym = Code_Symbol.Constant c, ... } `$ t') = if is_return c
           then t' else t `$ unitt
       | force t = t `$ unitt;
     fun tr_bind'' [(t1, _), (t2, ty2)] =
@@ -705,13 +697,13 @@ fun imp_program naming =
         val ((v, ty), t) = dest_abs (t2, ty2);
       in ICase { term = force t1, typ = ty, clauses = [(IVar v, tr_bind' t)], primitive = dummy_case_term } end
     and tr_bind' t = case unfold_app t
-     of (IConst { name = c, dom = ty1 :: ty2 :: _, ... }, [x1, x2]) => if is_bind c
+     of (IConst { sym = Code_Symbol.Constant c, dom = ty1 :: ty2 :: _, ... }, [x1, x2]) => if is_bind c
           then tr_bind'' [(x1, ty1), (x2, ty2)]
           else force t
       | _ => force t;
     fun imp_monad_bind'' ts = (SOME dummy_name, unitT) `|=>
       ICase { term = IVar (SOME dummy_name), typ = unitT, clauses = [(unitt, tr_bind'' ts)], primitive = dummy_case_term }
-    fun imp_monad_bind' (const as { name = c, dom = dom, ... }) ts = if is_bind c then case (ts, dom)
+    fun imp_monad_bind' (const as { sym = Code_Symbol.Constant c, dom = dom, ... }) ts = if is_bind c then case (ts, dom)
        of ([t1, t2], ty1 :: ty2 :: _) => imp_monad_bind'' [(t1, ty1), (t2, ty2)]
         | ([t1, t2, t3], ty1 :: ty2 :: _) => imp_monad_bind'' [(t1, ty1), (t2, ty2)] `$ t3
         | (ts, _) => imp_monad_bind (eta_expand 2 (const, ts))
@@ -726,7 +718,7 @@ fun imp_program naming =
           ICase { term = imp_monad_bind t, typ = ty,
             clauses = (map o pairself) imp_monad_bind clauses, primitive = imp_monad_bind t0 };
 
-  in (Graph.map o K o map_terms_stmt) imp_monad_bind end;
+  in (Code_Symbol.Graph.map o K o map_terms_stmt) imp_monad_bind end;
 
 in
 
