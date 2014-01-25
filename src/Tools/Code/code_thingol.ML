@@ -23,7 +23,7 @@ sig
   datatype itype =
       `%% of string * itype list
     | ITyVar of vname;
-  type const = { sym: Code_Symbol.symbol, typargs: itype list, dicts: dict list list,
+  type const = { sym: Code_Symbol.T, typargs: itype list, dicts: dict list list,
     dom: itype list, range: itype, annotate: bool };
   datatype iterm =
       IConst of const
@@ -55,7 +55,7 @@ sig
   val is_IAbs: iterm -> bool
   val eta_expand: int -> const * iterm list -> iterm
   val contains_dict_var: iterm -> bool
-  val add_constsyms: iterm -> Code_Symbol.symbol list -> Code_Symbol.symbol list
+  val add_constsyms: iterm -> Code_Symbol.T list -> Code_Symbol.T list
   val add_tyconames: iterm -> string list -> string list
   val fold_varnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a
 
@@ -77,33 +77,35 @@ sig
   val implemented_deps: program -> string list
   val map_terms_bottom_up: (iterm -> iterm) -> iterm -> iterm
   val map_terms_stmt: (iterm -> iterm) -> stmt -> stmt
-  val is_constr: program -> Code_Symbol.symbol -> bool
+  val is_constr: program -> Code_Symbol.T -> bool
   val is_case: stmt -> bool
   val group_stmts: theory -> program
-    -> ((Code_Symbol.symbol * stmt) list * (Code_Symbol.symbol * stmt) list
-      * ((Code_Symbol.symbol * stmt) list * (Code_Symbol.symbol * stmt) list)) list
+    -> ((Code_Symbol.T * stmt) list * (Code_Symbol.T * stmt) list
+      * ((Code_Symbol.T * stmt) list * (Code_Symbol.T * stmt) list)) list
 
   val read_const_exprs: theory -> string list -> string list * string list
   val consts_program: theory -> bool -> string list -> program
   val dynamic_conv: theory -> (program
-    -> ((string * sort) list * typscheme) * iterm -> Code_Symbol.symbol list -> conv)
+    -> ((string * sort) list * typscheme) * iterm -> Code_Symbol.T list -> conv)
     -> conv
   val dynamic_value: theory -> ((term -> term) -> 'a -> 'a) -> (program
-    -> ((string * sort) list * typscheme) * iterm -> Code_Symbol.symbol list -> 'a)
+    -> ((string * sort) list * typscheme) * iterm -> Code_Symbol.T list -> 'a)
     -> term -> 'a
   val static_conv: theory -> string list -> (program -> string list
-    -> ((string * sort) list * typscheme) * iterm -> Code_Symbol.symbol list -> conv)
+    -> ((string * sort) list * typscheme) * iterm -> Code_Symbol.T list -> conv)
     -> conv
   val static_conv_simple: theory -> string list
     -> (program -> (string * sort) list -> term -> conv) -> conv
   val static_value: theory -> ((term -> term) -> 'a -> 'a) -> string list ->
     (program -> string list
-      -> ((string * sort) list * typscheme) * iterm -> Code_Symbol.symbol list -> 'a)
+      -> ((string * sort) list * typscheme) * iterm -> Code_Symbol.T list -> 'a)
     -> term -> 'a
 end;
 
 structure Code_Thingol: CODE_THINGOL =
 struct
+
+open Basic_Code_Symbol;
 
 (** auxiliary **)
 
@@ -147,7 +149,7 @@ fun unfold_fun_n n ty =
     val ty3 = Library.foldr (op `->) (tys2, ty1);
   in (tys3, ty3) end;
 
-type const = { sym: Code_Symbol.symbol, typargs: itype list, dicts: dict list list,
+type const = { sym: Code_Symbol.T, typargs: itype list, dicts: dict list list,
   dom: itype list, range: itype, annotate: bool };
 
 datatype iterm =
@@ -286,12 +288,12 @@ datatype stmt =
 type program = stmt Code_Symbol.Graph.T;
 
 fun unimplemented program =
-  Code_Symbol.Graph.fold (fn (Code_Symbol.Constant c, (NoStmt, _)) => cons c | _ => I) program [];
+  Code_Symbol.Graph.fold (fn (Constant c, (NoStmt, _)) => cons c | _ => I) program [];
 
 fun implemented_deps program =
   Code_Symbol.Graph.keys program
-  |> subtract (op =) (Code_Symbol.Graph.all_preds program (map Code_Symbol.Constant (unimplemented program)))
-  |> map_filter (fn Code_Symbol.Constant c => SOME c | _ => NONE);
+  |> subtract (op =) (Code_Symbol.Graph.all_preds program (map Constant (unimplemented program)))
+  |> map_filter (fn Constant c => SOME c | _ => NONE);
 
 fun map_terms_bottom_up f (t as IConst _) = f t
   | map_terms_bottom_up f (t as IVar _) = f t
@@ -466,7 +468,7 @@ fun ensure_tyco thy algbr eqngr permissive tyco =
         ##>> pair (map (unprefix "'" o fst) vs)
         ##>> fold_map (translate_typ thy algbr eqngr permissive) tys) cos
       #>> Datatype;
-  in ensure_stmt Code_Symbol.Type_Constructor stmt_datatype tyco end
+  in ensure_stmt Type_Constructor stmt_datatype tyco end
 and ensure_const thy algbr eqngr permissive c =
   let
     fun stmt_datatypecons tyco =
@@ -494,7 +496,7 @@ and ensure_const thy algbr eqngr permissive c =
       | NONE => (case Axclass.class_of_param thy c
          of SOME class => stmt_classparam class
           | NONE => stmt_fun (Code_Preproc.cert eqngr c))
-  in ensure_stmt Code_Symbol.Constant stmt_const c end
+  in ensure_stmt Constant stmt_const c end
 and ensure_class thy (algbr as (_, algebra)) eqngr permissive class =
   let
     val super_classes = (Sorts.minimize_sort algebra o Sorts.super_classes algebra) class;
@@ -505,14 +507,14 @@ and ensure_class thy (algbr as (_, algebra)) eqngr permissive class =
       ##>> fold_map (fn (c, ty) => ensure_const thy algbr eqngr permissive c
         ##>> translate_typ thy algbr eqngr permissive ty) cs
       #>> (fn info => Class (unprefix "'" Name.aT, info))
-  in ensure_stmt Code_Symbol.Type_Class stmt_class class end
+  in ensure_stmt Type_Class stmt_class class end
 and ensure_classrel thy algbr eqngr permissive (sub_class, super_class) =
   let
     val stmt_classrel =
       ensure_class thy algbr eqngr permissive sub_class
       ##>> ensure_class thy algbr eqngr permissive super_class
       #>> Classrel;
-  in ensure_stmt Code_Symbol.Class_Relation stmt_classrel (sub_class, super_class) end
+  in ensure_stmt Class_Relation stmt_classrel (sub_class, super_class) end
 and ensure_inst thy (algbr as (_, algebra)) eqngr permissive (tyco, class) =
   let
     val super_classes = (Sorts.minimize_sort algebra o Sorts.super_classes algebra) class;
@@ -552,7 +554,7 @@ and ensure_inst thy (algbr as (_, algebra)) eqngr permissive (tyco, class) =
       #>> (fn (((((class, tyco), vs), superinsts), inst_params), superinst_params) =>
           Classinst { class = class, tyco = tyco, vs = vs,
             superinsts = superinsts, inst_params = inst_params, superinst_params = superinst_params });
-  in ensure_stmt Code_Symbol.Class_Instance stmt_inst (tyco, class) end
+  in ensure_stmt Class_Instance stmt_inst (tyco, class) end
 and translate_typ thy algbr eqngr permissive (TFree (v, _)) =
       pair (ITyVar (unprefix "'" v))
   | translate_typ thy algbr eqngr permissive (Type (tyco, tys)) =
@@ -604,7 +606,7 @@ and translate_const thy algbr eqngr permissive some_thm ((c, ty), some_abs) =
     ##>> fold_map (translate_dicts thy algbr eqngr permissive some_thm) (typargs ~~ sorts)
     ##>> fold_map (translate_typ thy algbr eqngr permissive) (range :: dom)
     #>> (fn (((c, typargs), dss), range :: dom) =>
-      IConst { sym = Code_Symbol.Constant c, typargs = typargs, dicts = dss,
+      IConst { sym = Constant c, typargs = typargs, dicts = dss,
         dom = dom, range = range, annotate = annotate })
   end
 and translate_app_const thy algbr eqngr permissive some_thm ((c_ty, ts), some_abs) =
@@ -629,7 +631,7 @@ and translate_case thy algbr eqngr permissive some_thm (num_args, (t_pos, case_p
       let
         fun collapse_clause vs_map ts body =
           case body
-           of IConst { sym = Code_Symbol.Constant c, ... } => if member (op =) undefineds c
+           of IConst { sym = Constant c, ... } => if member (op =) undefineds c
                 then []
                 else [(ts, body)]
             | ICase { term = IVar (SOME v), clauses = clauses, ... } =>
@@ -747,7 +749,7 @@ fun consts_program thy permissive consts =
       if permissive then program
       else Code_Symbol.Graph.restrict
         (member (op =) (Code_Symbol.Graph.all_succs program
-          (map Code_Symbol.Constant consts))) program;
+          (map Constant consts))) program;
     fun generate_consts thy algebra eqngr =
       fold_map (ensure_const thy algebra eqngr permissive);
   in
@@ -766,7 +768,7 @@ fun ensure_value thy algbr eqngr t =
     val vs = fold_term_types (K (fold_atyps (insert (eq_fst op =)
       o dest_TFree))) t [];
     val t' = annotate thy algbr eqngr (@{const_name dummy_pattern}, ty) [] t;
-    val dummy_constant = Code_Symbol.Constant @{const_name dummy_pattern};
+    val dummy_constant = Constant @{const_name dummy_pattern};
     val stmt_value =
       fold_map (translate_tyvar_sort thy algbr eqngr false) vs
       ##>> translate_typ thy algbr eqngr false ty
@@ -783,7 +785,7 @@ fun ensure_value thy algbr eqngr t =
         val program3 = Code_Symbol.Graph.restrict (member (op =) deps_all) program2;
       in ((program3, ((vs_ty, t), deps)), (dep, program2)) end;
   in
-    ensure_stmt Code_Symbol.Constant stmt_value @{const_name dummy_pattern}
+    ensure_stmt Constant stmt_value @{const_name dummy_pattern}
     #> snd
     #> term_value
   end;

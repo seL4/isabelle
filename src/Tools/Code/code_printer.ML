@@ -25,8 +25,8 @@ sig
   val semicolon: Pretty.T list -> Pretty.T
   val doublesemicolon: Pretty.T list -> Pretty.T
   val indent: int -> Pretty.T -> Pretty.T
-  val markup_stmt: Code_Symbol.symbol -> Pretty.T -> Pretty.T
-  val format: Code_Symbol.symbol list -> int -> Pretty.T -> string
+  val markup_stmt: Code_Symbol.T -> Pretty.T -> Pretty.T
+  val format: Code_Symbol.T list -> int -> Pretty.T -> string
 
   val first_upper: string -> string
   val first_lower: string -> string
@@ -36,7 +36,7 @@ sig
   val lookup_var: var_ctxt -> string -> string
   val intro_base_names: (string -> bool) -> (string -> string)
     -> string list -> var_ctxt -> var_ctxt
-  val intro_base_names_for: (string -> bool) -> (Code_Symbol.symbol -> string)
+  val intro_base_names_for: (string -> bool) -> (Code_Symbol.T -> string)
     -> iterm list -> var_ctxt -> var_ctxt
   val aux_params: var_ctxt -> iterm list list -> string list
 
@@ -94,6 +94,7 @@ end;
 structure Code_Printer : CODE_PRINTER =
 struct
 
+open Basic_Code_Symbol;
 open Code_Thingol;
 
 (** generic nonsense *)
@@ -200,7 +201,7 @@ fun intro_base_names no_syntax deresolve =
 fun intro_base_names_for no_syntax deresolve ts =
   []
   |> fold Code_Thingol.add_constsyms ts 
-  |> intro_base_names (fn Code_Symbol.Constant const => no_syntax const | _ => true) deresolve;
+  |> intro_base_names (fn Constant const => no_syntax const | _ => true) deresolve;
 
 
 (** pretty literals **)
@@ -313,7 +314,7 @@ fun activate_const_syntax thy literals c (plain_const_syntax s) =
 fun gen_print_app print_app_expr print_term const_syntax some_thm vars fxy
     (app as ({ sym, dom, ... }, ts)) =
   case sym of
-    Code_Symbol.Constant const => (case const_syntax const of
+    Constant const => (case const_syntax const of
       NONE => brackify fxy (print_app_expr some_thm vars app)
     | SOME (Plain_const_syntax (_, s)) =>
         brackify fxy (str s :: map (print_term some_thm vars BR) ts)

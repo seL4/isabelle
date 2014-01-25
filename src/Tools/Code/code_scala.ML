@@ -15,6 +15,7 @@ struct
 
 val target = "Scala";
 
+open Basic_Code_Symbol;
 open Basic_Code_Thingol;
 open Code_Printer;
 
@@ -27,18 +28,18 @@ infixr 5 @|;
 fun print_scala_stmt tyco_syntax const_syntax reserved
     args_num is_constr (deresolve, deresolve_full) =
   let
-    val deresolve_const = deresolve o Code_Symbol.Constant;
-    val deresolve_tyco = deresolve o Code_Symbol.Type_Constructor;
-    val deresolve_class = deresolve o Code_Symbol.Type_Class;
+    val deresolve_const = deresolve o Constant;
+    val deresolve_tyco = deresolve o Type_Constructor;
+    val deresolve_class = deresolve o Type_Class;
     fun lookup_tyvar tyvars = lookup_var tyvars o first_upper;
     fun intro_tyvars vs = intro_vars (map (first_upper o fst) vs);
     fun print_tyco_expr tyvars fxy (sym, tys) = applify "[" "]"
           (print_typ tyvars NOBR) fxy ((str o deresolve) sym) tys
     and print_typ tyvars fxy (tyco `%% tys) = (case tyco_syntax tyco
-         of NONE => print_tyco_expr tyvars fxy (Code_Symbol.Type_Constructor tyco, tys)
+         of NONE => print_tyco_expr tyvars fxy (Type_Constructor tyco, tys)
           | SOME (_, print) => print (print_typ tyvars) fxy tys)
       | print_typ tyvars fxy (ITyVar v) = (str o lookup_tyvar tyvars) v;
-    fun print_dicttyp tyvars (class, ty) = print_tyco_expr tyvars NOBR (Code_Symbol.Type_Class class, [ty]);
+    fun print_dicttyp tyvars (class, ty) = print_tyco_expr tyvars NOBR (Type_Class class, [ty]);
     fun print_tupled_typ tyvars ([], ty) =
           print_typ tyvars NOBR ty
       | print_tupled_typ tyvars ([ty1], ty2) =
@@ -70,7 +71,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
           end
       | print_term tyvars is_pat some_thm vars fxy (ICase case_expr) =
           (case Code_Thingol.unfold_const_app (#primitive case_expr)
-           of SOME (app as ({ sym = Code_Symbol.Constant const, ... }, _)) =>
+           of SOME (app as ({ sym = Constant const, ... }, _)) =>
                 if is_none (const_syntax const)
                 then print_case tyvars some_thm vars fxy case_expr
                 else print_app tyvars is_pat some_thm vars fxy app
@@ -81,7 +82,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
         val k = length ts;
         val typargs' = if is_pat then [] else typargs;
         val syntax = case sym of
-            Code_Symbol.Constant const => const_syntax const
+            Constant const => const_syntax const
           | _ => NONE;
         val (l, print') = case syntax of
             NONE => (args_num sym, fn fxy => fn ts => gen_applify (is_constr sym) "(" ")"
@@ -151,7 +152,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
     fun print_defhead tyvars vars const vs params tys ty =
       Pretty.block [str "def ", constraint (applify "(" ")" (fn (param, ty) =>
         constraint ((str o lookup_var vars) param) (print_typ tyvars NOBR ty))
-          NOBR (print_context tyvars vs (Code_Symbol.Constant const)) (params ~~ tys)) (print_typ tyvars NOBR ty),
+          NOBR (print_context tyvars vs (Constant const)) (params ~~ tys)) (print_typ tyvars NOBR ty),
             str " ="];
     fun print_def const (vs, ty) [] =
           let
@@ -204,10 +205,10 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
                 str "match", str "{"], str "}")
               (map print_clause eqs)
           end;
-    val print_method = str o Library.enclose "`" "`" o deresolve_full o Code_Symbol.Constant;
-    fun print_stmt (Code_Symbol.Constant const, Code_Thingol.Fun (((vs, ty), raw_eqs), _)) =
+    val print_method = str o Library.enclose "`" "`" o deresolve_full o Constant;
+    fun print_stmt (Constant const, Code_Thingol.Fun (((vs, ty), raw_eqs), _)) =
           print_def const (vs, ty) (filter (snd o snd) raw_eqs)
-      | print_stmt (Code_Symbol.Type_Constructor tyco, Code_Thingol.Datatype (vs, cos)) =
+      | print_stmt (Type_Constructor tyco, Code_Thingol.Datatype (vs, cos)) =
           let
             val tyvars = intro_tyvars (map (rpair []) vs) reserved;
             fun print_co ((co, vs_args), tys) =
@@ -224,7 +225,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
               NOBR ((concat o map str) ["abstract", "sealed", "class", deresolve_tyco tyco]) vs
                 :: map print_co cos)
           end
-      | print_stmt (Code_Symbol.Type_Class class, Code_Thingol.Class (v, (classrels, classparams))) =
+      | print_stmt (Type_Class class, Code_Thingol.Class (v, (classrels, classparams))) =
           let
             val tyvars = intro_tyvars [(v, [class])] reserved;
             fun add_typarg s = Pretty.block
@@ -349,12 +350,12 @@ fun serialize_scala ctxt { module_name, reserved_syms, identifiers,
       scala_program_of_program ctxt module_name (Name.make_context reserved_syms) identifiers program;
 
     (* print statements *)
-    fun lookup_constr tyco constr = case Code_Symbol.Graph.get_node program (Code_Symbol.Type_Constructor tyco)
+    fun lookup_constr tyco constr = case Code_Symbol.Graph.get_node program (Type_Constructor tyco)
      of Code_Thingol.Datatype (_, constrs) =>
           the (AList.lookup (op = o apsnd fst) constrs constr);
-    fun classparams_of_class class = case Code_Symbol.Graph.get_node program (Code_Symbol.Type_Class class)
+    fun classparams_of_class class = case Code_Symbol.Graph.get_node program (Type_Class class)
      of Code_Thingol.Class (_, (_, classparams)) => classparams;
-    fun args_num (sym as Code_Symbol.Constant const) = case Code_Symbol.Graph.get_node program sym
+    fun args_num (sym as Constant const) = case Code_Symbol.Graph.get_node program sym
      of Code_Thingol.Fun (((_, ty), []), _) =>
           (length o fst o Code_Thingol.unfold_fun) ty
       | Code_Thingol.Fun ((_, ((ts, _), _) :: _), _) => length ts
@@ -422,7 +423,7 @@ val setup =
         make_destination = fn p => Path.append p (Path.explode "ROOT.scala"),
         make_command = fn _ =>
           "env JAVA_OPTS='-Xms128m -Xmx512m -Xss2m' \"$SCALA_HOME/bin/scalac\" ROOT.scala" } })
-  #> Code_Target.set_printings (Code_Symbol.Type_Constructor ("fun",
+  #> Code_Target.set_printings (Type_Constructor ("fun",
     [(target, SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
       brackify_infix (1, R) fxy (
         print_typ BR ty1 (*product type vs. tupled arguments!*),

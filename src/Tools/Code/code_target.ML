@@ -11,26 +11,26 @@ sig
   val read_const_exprs: theory -> string list -> string list
 
   val export_code_for: theory -> Path.T option -> string -> int option -> string -> Token.T list
-    -> Code_Thingol.program -> Code_Symbol.symbol list -> unit
+    -> Code_Thingol.program -> Code_Symbol.T list -> unit
   val produce_code_for: theory -> string -> int option -> string -> Token.T list
-    -> Code_Thingol.program -> Code_Symbol.symbol list -> (string * string) list * string option list
+    -> Code_Thingol.program -> Code_Symbol.T list -> (string * string) list * string option list
   val present_code_for: theory -> string -> int option -> string -> Token.T list
-    -> Code_Thingol.program -> Code_Symbol.symbol list * Code_Symbol.symbol list -> string
+    -> Code_Thingol.program -> Code_Symbol.T list * Code_Symbol.T list -> string
   val check_code_for: theory -> string -> bool -> Token.T list
-    -> Code_Thingol.program -> Code_Symbol.symbol list -> unit
+    -> Code_Thingol.program -> Code_Symbol.T list -> unit
 
   val export_code: theory -> string list
     -> (((string * string) * Path.T option) * Token.T list) list -> unit
   val produce_code: theory -> string list
     -> string -> int option -> string -> Token.T list -> (string * string) list * string option list
-  val present_code: theory -> string list -> Code_Symbol.symbol list
+  val present_code: theory -> string list -> Code_Symbol.T list
     -> string -> int option -> string -> Token.T list -> string
   val check_code: theory -> string list
     -> ((string * bool) * Token.T list) list -> unit
 
   val generatedN: string
   val evaluator: theory -> string -> Code_Thingol.program
-    -> Code_Symbol.symbol list -> ((string * class list) list * Code_Thingol.itype) * Code_Thingol.iterm
+    -> Code_Symbol.T list -> ((string * class list) list * Code_Thingol.itype) * Code_Thingol.iterm
     -> (string * string) list * string
 
   type serializer
@@ -46,7 +46,7 @@ sig
   type serialization
   val parse_args: 'a parser -> Token.T list -> 'a
   val serialization: (int -> Path.T option -> 'a -> unit)
-    -> (Code_Symbol.symbol list -> int -> 'a -> (string * string) list * (Code_Symbol.symbol -> string option))
+    -> (Code_Symbol.T list -> int -> 'a -> (string * string) list * (Code_Symbol.T -> string option))
     -> 'a -> serialization
   val set_default_code_width: int -> theory -> theory
 
@@ -73,6 +73,7 @@ end;
 structure Code_Target : CODE_TARGET =
 struct
 
+open Basic_Code_Symbol;
 open Basic_Code_Thingol;
 
 type literals = Code_Printer.literals;
@@ -154,8 +155,8 @@ fun check_name is_module s =
 
 (* serialization: abstract nonsense to cover different destinies for generated code *)
 
-datatype destination = Export of Path.T option | Produce | Present of Code_Symbol.symbol list;
-type serialization = int -> destination -> ((string * string) list * (Code_Symbol.symbol -> string option)) option;
+datatype destination = Export of Path.T option | Produce | Present of Code_Symbol.T list;
+type serialization = int -> destination -> ((string * string) list * (Code_Symbol.T -> string option)) option;
 
 fun serialization output _ content width (Export some_path) =
       (output width some_path content; NONE)
@@ -345,7 +346,7 @@ fun prepare_serializer thy (serializer : serializer) reserved identifiers
     val syms_hidden = Code_Symbol.symbols_of printings;
     val (syms_all, program) = project_program thy syms_hidden syms proto_program;
     fun select_include (name, (content, cs)) =
-      if null cs orelse exists (fn c => member (op =) syms_all (Code_Symbol.Constant c)) cs
+      if null cs orelse exists (fn c => member (op =) syms_all (Constant c)) cs
       then SOME (name, content) else NONE;
     val includes = map_filter select_include (Code_Symbol.dest_module_data printings);
   in
@@ -471,7 +472,7 @@ fun export_code thy cs seris =
   let
     val program = Code_Thingol.consts_program thy false cs;
     val _ = map (fn (((target, module_name), some_path), args) =>
-      export_code_for thy some_path target NONE module_name args program (map Code_Symbol.Constant cs)) seris;
+      export_code_for thy some_path target NONE module_name args program (map Constant cs)) seris;
   in () end;
 
 fun export_code_cmd raw_cs seris thy = export_code thy (read_const_exprs thy raw_cs)
@@ -480,18 +481,18 @@ fun export_code_cmd raw_cs seris thy = export_code thy (read_const_exprs thy raw
 fun produce_code thy cs target some_width some_module_name args =
   let
     val program = Code_Thingol.consts_program thy false cs;
-  in produce_code_for thy target some_width some_module_name args program (map Code_Symbol.Constant cs) end;
+  in produce_code_for thy target some_width some_module_name args program (map Constant cs) end;
 
 fun present_code thy cs syms target some_width some_module_name args =
   let
     val program = Code_Thingol.consts_program thy false cs;
-  in present_code_for thy target some_width some_module_name args program (map Code_Symbol.Constant cs, syms) end;
+  in present_code_for thy target some_width some_module_name args program (map Constant cs, syms) end;
 
 fun check_code thy cs seris =
   let
     val program = Code_Thingol.consts_program thy false cs;
     val _ = map (fn ((target, strict), args) =>
-      check_code_for thy target strict args program (map Code_Symbol.Constant cs)) seris;
+      check_code_for thy target strict args program (map Constant cs)) seris;
   in () end;
 
 fun check_code_cmd raw_cs seris thy = check_code thy (read_const_exprs thy raw_cs) seris;
@@ -506,17 +507,17 @@ fun parse_names category parse internalize mark_symbol =
   >> (fn xs => fn thy => map (mark_symbol o internalize thy) xs);
 
 val parse_consts = parse_names "consts" Args.term
-  Code.check_const Code_Symbol.Constant;
+  Code.check_const Constant;
 
 val parse_types = parse_names "types" (Scan.lift Args.name)
-  Sign.intern_type Code_Symbol.Type_Constructor;
+  Sign.intern_type Type_Constructor;
 
 val parse_classes = parse_names "classes" (Scan.lift Args.name)
-  Sign.intern_class Code_Symbol.Type_Class;
+  Sign.intern_class Type_Class;
 
 val parse_instances = parse_names "instances" (Scan.lift (Args.name --| Args.$$$ "::" -- Args.name))
   (fn thy => fn (raw_tyco, raw_class) => (Sign.intern_class thy raw_tyco, Sign.intern_type thy raw_class))
-    Code_Symbol.Class_Instance;
+    Class_Instance;
 
 in
 
@@ -630,19 +631,19 @@ fun gen_add_syntax Symbol prep_x prep_syn target raw_x some_raw_syn thy =
   in set_printing (target, Symbol (x, Option.map (prep_syn thy target x) some_raw_syn)) thy end;
 
 fun gen_add_const_syntax prep_const =
-  gen_add_syntax Code_Symbol.Constant prep_const check_const_syntax;
+  gen_add_syntax Constant prep_const check_const_syntax;
 
 fun gen_add_tyco_syntax prep_tyco =
-  gen_add_syntax Code_Symbol.Type_Constructor prep_tyco check_tyco_syntax;
+  gen_add_syntax Type_Constructor prep_tyco check_tyco_syntax;
 
 fun gen_add_class_syntax prep_class =
-  gen_add_syntax Code_Symbol.Type_Class prep_class ((K o K o K) I);
+  gen_add_syntax Type_Class prep_class ((K o K o K) I);
 
 fun gen_add_instance_syntax prep_inst =
-  gen_add_syntax Code_Symbol.Class_Instance prep_inst ((K o K o K) I);
+  gen_add_syntax Class_Instance prep_inst ((K o K o K) I);
 
 fun gen_add_include prep_const target (name, some_content) thy =
-  gen_add_syntax Code_Symbol.Module (K I)
+  gen_add_syntax Module (K I)
     (fn thy => fn _ => fn _ => fn (raw_content, raw_cs) => (Code_Printer.str raw_content, map (prep_const thy) raw_cs))
     target name some_content thy;
 
@@ -693,15 +694,15 @@ fun parse_single_symbol_pragma parse_keyword parse_isa parse_target =
 
 fun parse_symbol_pragma parse_const parse_tyco parse_class parse_classrel parse_inst parse_module =
   parse_single_symbol_pragma @{keyword "constant"} Parse.term parse_const
-    >> Code_Symbol.Constant
+    >> Constant
   || parse_single_symbol_pragma @{keyword "type_constructor"} Parse.type_const parse_tyco
-    >> Code_Symbol.Type_Constructor
+    >> Type_Constructor
   || parse_single_symbol_pragma @{keyword "type_class"} Parse.class parse_class
-    >> Code_Symbol.Type_Class
+    >> Type_Class
   || parse_single_symbol_pragma @{keyword "class_relation"} parse_classrel_ident parse_classrel
-    >> Code_Symbol.Class_Relation
+    >> Class_Relation
   || parse_single_symbol_pragma @{keyword "class_instance"} parse_inst_ident parse_inst
-    >> Code_Symbol.Class_Instance
+    >> Class_Instance
   || parse_single_symbol_pragma @{keyword "code_module"} Parse.name parse_module
     >> Code_Symbol.Module;
 

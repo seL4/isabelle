@@ -13,7 +13,7 @@ sig
     namify_stmt: Code_Thingol.stmt -> string -> 'a -> string * 'a,
     modify_stmt: Code_Thingol.stmt -> Code_Thingol.stmt option }
       -> Code_Thingol.program
-      -> { deresolver: string -> Code_Symbol.symbol -> string,
+      -> { deresolver: string -> Code_Symbol.T -> string,
            flat_program: flat_program }
 
   datatype ('a, 'b) node =
@@ -26,13 +26,13 @@ sig
     reserved: Name.context, identifiers: Code_Target.identifier_data,
     empty_nsp: 'c, namify_module: string -> 'c -> string * 'c,
     namify_stmt: Code_Thingol.stmt -> string -> 'c -> string * 'c,
-    cyclic_modules: bool, empty_data: 'b, memorize_data: Code_Symbol.symbol -> 'b -> 'b,
-    modify_stmts: (Code_Symbol.symbol * Code_Thingol.stmt) list -> 'a option list }
+    cyclic_modules: bool, empty_data: 'b, memorize_data: Code_Symbol.T -> 'b -> 'b,
+    modify_stmts: (Code_Symbol.T * Code_Thingol.stmt) list -> 'a option list }
       -> Code_Thingol.program
-      -> { deresolver: string list -> Code_Symbol.symbol -> string,
+      -> { deresolver: string list -> Code_Symbol.T -> string,
            hierarchical_program: ('a, 'b) hierarchical_program }
   val print_hierarchical: { print_module: string list -> string -> 'b -> 'c list -> 'c,
-    print_stmt: string list -> Code_Symbol.symbol * 'a -> 'c,
+    print_stmt: string list -> Code_Symbol.T * 'a -> 'c,
     lift_markup: (Pretty.T -> Pretty.T) -> 'c -> 'c }
       -> ('a, 'b) hierarchical_program -> 'c list
 end;
@@ -48,7 +48,7 @@ fun lookup_identifier identifiers sym =
 
 fun force_identifier ctxt fragments_tab force_module identifiers sym =
   case lookup_identifier identifiers sym of
-      NONE => ((the o Symtab.lookup fragments_tab o Code_Symbol.namespace_prefix ctxt) sym, Code_Symbol.base_name sym)
+      NONE => ((the o Symtab.lookup fragments_tab o Code_Symbol.default_prefix ctxt) sym, Code_Symbol.default_base sym)
     | SOME prefix_name => if null force_module then prefix_name
         else (force_module, snd prefix_name);
 
@@ -57,7 +57,7 @@ fun build_module_namespace ctxt { module_prefix, module_identifiers, reserved } 
     fun alias_fragments name = case module_identifiers name
      of SOME name' => Long_Name.explode name'
       | NONE => map (fn name => fst (Name.variant name reserved)) (Long_Name.explode name);
-    val module_names = Code_Symbol.Graph.fold (insert (op =) o Code_Symbol.namespace_prefix ctxt o fst) program [];
+    val module_names = Code_Symbol.Graph.fold (insert (op =) o Code_Symbol.default_prefix ctxt o fst) program [];
   in
     fold (fn name => Symtab.update (name, Long_Name.explode module_prefix @ alias_fragments name))
       module_names Symtab.empty
@@ -66,7 +66,7 @@ fun build_module_namespace ctxt { module_prefix, module_identifiers, reserved } 
 
 (** flat program structure **)
 
-type flat_program = ((string * Code_Thingol.stmt option) Code_Symbol.Graph.T * (string * Code_Symbol.symbol list) list) Graph.T;
+type flat_program = ((string * Code_Thingol.stmt option) Code_Symbol.Graph.T * (string * Code_Symbol.T list) list) Graph.T;
 
 fun flat_program ctxt { module_prefix, module_name, reserved,
     identifiers, empty_nsp, namify_stmt, modify_stmt } program =

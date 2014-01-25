@@ -249,11 +249,9 @@ in
 
 val univs_cookie = (Univs.get, put_result, name_put);
 
-val sloppy_name = Code_Symbol.base_name;
-
 fun nbe_fun idx_of 0 (Code_Symbol.Constant "") = "nbe_value"
   | nbe_fun idx_of i sym = "c_" ^ string_of_int (idx_of sym)
-      ^ "_" ^ sloppy_name sym ^ "_" ^ string_of_int i;
+      ^ "_" ^ Code_Symbol.default_base sym ^ "_" ^ string_of_int i;
 fun nbe_dict v n = "d_" ^ v ^ "_" ^ string_of_int n;
 fun nbe_bound v = "v_" ^ v;
 fun nbe_bound_optional NONE = "_"
@@ -266,7 +264,7 @@ fun nbe_apps t [] = t
 fun nbe_apps_local idx_of i c ts = nbe_fun idx_of i c `$` ml_list (rev ts);
 fun nbe_apps_constr idx_of c ts =
   let
-    val c' = if !trace then string_of_int (idx_of c) ^ " (*" ^ sloppy_name c ^ "*)"
+    val c' = if !trace then string_of_int (idx_of c) ^ " (*" ^ Code_Symbol.default_base c ^ "*)"
       else string_of_int (idx_of c);
   in name_const `$` ("(" ^ c' ^ ", " ^ ml_list (rev ts) ^ ")") end;
 
@@ -277,6 +275,7 @@ fun nbe_same (v1, v2) = "(" ^ name_same ^ " (" ^ nbe_bound v1 ^ ", " ^ nbe_bound
 
 end;
 
+open Basic_Code_Symbol;
 open Basic_Code_Thingol;
 
 
@@ -304,11 +303,11 @@ fun assemble_eqnss idx_of deps eqnss =
             else nbe_apps_constr idx_of sym ts'
       end
     and assemble_classrels classrels =
-      fold_rev (fn classrel => assemble_constapp (Code_Symbol.Class_Relation classrel) [] o single) classrels
+      fold_rev (fn classrel => assemble_constapp (Class_Relation classrel) [] o single) classrels
     and assemble_dict (Dict (classrels, x)) =
           assemble_classrels classrels (assemble_plain_dict x)
     and assemble_plain_dict (Dict_Const (inst, dss)) =
-          assemble_constapp (Code_Symbol.Class_Instance inst) dss []
+          assemble_constapp (Class_Instance inst) dss []
       | assemble_plain_dict (Dict_Var (v, (n, _))) =
           nbe_dict v n
 
@@ -429,7 +428,7 @@ fun eqns_of_stmt (_, Code_Thingol.NoStmt) =
       []
   | eqns_of_stmt (sym_class, Code_Thingol.Class (v, (classrels, classparams))) =
       let
-        val syms = map Code_Symbol.Class_Relation classrels @ map (Code_Symbol.Constant o fst) classparams;
+        val syms = map Class_Relation classrels @ map (Constant o fst) classparams;
         val params = Name.invent Name.context "d" (length syms);
         fun mk (k, sym) =
           (sym, ([(v, [])],
@@ -441,8 +440,8 @@ fun eqns_of_stmt (_, Code_Thingol.NoStmt) =
   | eqns_of_stmt (_, Code_Thingol.Classparam _) =
       []
   | eqns_of_stmt (sym_inst, Code_Thingol.Classinst { class, tyco, vs, superinsts, inst_params, ... }) =
-      [(sym_inst, (vs, [([], dummy_const (Code_Symbol.Type_Class class) [] `$$
-        map (fn (class, dss) => dummy_const (Code_Symbol.Class_Instance (tyco, class)) dss) superinsts
+      [(sym_inst, (vs, [([], dummy_const (Type_Class class) [] `$$
+        map (fn (class, dss) => dummy_const (Class_Instance (tyco, class)) dss) superinsts
         @ map (IConst o fst o snd o fst) inst_params)]))];
 
 
@@ -513,12 +512,12 @@ fun term_of_univ thy idx_tab t =
       | take_until f (x :: xs) = if f x then [] else x :: take_until f xs;
     fun is_dict (Const (idx, _)) =
           (case Inttab.lookup idx_tab idx of
-            SOME (Code_Symbol.Constant _) => false
+            SOME (Constant _) => false
           | _ => true)
       | is_dict (DFree _) = true
       | is_dict _ = false;
     fun const_of_idx idx =
-      case Inttab.lookup idx_tab idx of SOME (Code_Symbol.Constant const) => const;
+      case Inttab.lookup idx_tab idx of SOME (Constant const) => const;
     fun of_apps bounds (t, ts) =
       fold_map (of_univ bounds) ts
       #>> (fn ts' => list_comb (t, rev ts'))
@@ -568,7 +567,7 @@ fun eval_term thy (nbe_program, idx_tab) ((vs0, (vs, ty)), t) deps =
 
 structure Nbe_Functions = Code_Data
 (
-  type T = (Univ option * int) Code_Symbol.Graph.T * (int * Code_Symbol.symbol Inttab.table);
+  type T = (Univ option * int) Code_Symbol.Graph.T * (int * Code_Symbol.T Inttab.table);
   val empty = (Code_Symbol.Graph.empty, (0, Inttab.empty));
 );
 

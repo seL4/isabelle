@@ -5,20 +5,25 @@ Data related to symbols in programs: constants, type constructors, classes,
 class relations, class instances, modules.
 *)
 
-signature CODE_SYMBOL =
+signature BASIC_CODE_SYMBOL =
 sig
   datatype ('a, 'b, 'c, 'd, 'e, 'f) attr =
     Constant of 'a | Type_Constructor of 'b | Type_Class of 'c |
     Class_Relation of 'd  | Class_Instance of 'e | Module of 'f
-  type symbol = (string, string, class, class * class, string * class, string) attr
-  structure Table: TABLE;
-  structure Graph: GRAPH;
-  val namespace_prefix: Proof.context -> symbol -> string
-  val base_name: symbol -> string
-  val quote: Proof.context -> symbol -> string
-  val marker: symbol -> string
-  val value: symbol
-  val is_value: symbol -> bool
+end
+
+signature CODE_SYMBOL =
+sig
+  include BASIC_CODE_SYMBOL
+  type T = (string, string, class, class * class, string * class, string) attr
+  structure Table: TABLE
+  structure Graph: GRAPH
+  val default_base: T -> string
+  val default_prefix: Proof.context -> T -> string
+  val quote: Proof.context -> T -> string
+  val marker: T -> string
+  val value: T
+  val is_value: T -> bool
   val map_attr: ('a -> 'g) -> ('b -> 'h) -> ('c -> 'i) -> ('d -> 'j) -> ('e -> 'k) -> ('f -> 'l)
     -> ('a, 'b, 'c, 'd, 'e, 'f) attr -> ('g, 'h, 'i, 'j, 'k, 'l) attr
   val maps_attr: ('a -> 'g list) -> ('b -> 'h list)
@@ -40,8 +45,8 @@ sig
   val lookup_class_relation_data: ('a, 'b, 'c, 'd, 'e, 'f) data -> class * class -> 'd option
   val lookup_class_instance_data: ('a, 'b, 'c, 'd, 'e, 'f) data -> string * class -> 'e option
   val lookup_module_data: ('a, 'b, 'c, 'd, 'e, 'f) data -> string -> 'f option
-  val lookup: ('a, 'a, 'a, 'a, 'a, 'a) data -> symbol -> 'a option
-  val symbols_of: ('a, 'b, 'c, 'd, 'e, 'f) data -> symbol list
+  val lookup: ('a, 'a, 'a, 'a, 'a, 'a) data -> T -> 'a option
+  val symbols_of: ('a, 'b, 'c, 'd, 'e, 'f) data -> T list
   val dest_module_data: ('a, 'b, 'c, 'd, 'e, 'f) data -> (string * 'f) list
 end;
 
@@ -53,7 +58,7 @@ struct
 datatype ('a, 'b, 'c, 'd, 'e, 'f) attr =
   Constant of 'a | Type_Constructor of 'b | Type_Class of 'c | Class_Relation of 'd  | Class_Instance of 'e | Module of 'f;
 
-type symbol = (string, string, class, string * class, class * class, string) attr;
+type T = (string, string, class, string * class, class * class, string) attr;
 
 fun symbol_ord (Constant c1, Constant c2) = fast_string_ord (c1, c2)
   | symbol_ord (Constant _, _) = GREATER
@@ -74,8 +79,24 @@ fun symbol_ord (Constant c1, Constant c2) = fast_string_ord (c1, c2)
   | symbol_ord (_, Class_Instance _) = LESS
   | symbol_ord (Module name1, Module name2) = fast_string_ord (name1, name2);
 
-structure Table = Table(type key = symbol val ord = symbol_ord);
-structure Graph = Graph(type key = symbol val ord = symbol_ord);
+structure Table = Table(type key = T val ord = symbol_ord);
+structure Graph = Graph(type key = T val ord = symbol_ord);
+
+local
+  val base = Name.desymbolize false o Long_Name.base_name;
+  fun base_rel (x, y) = base y ^ "_" ^ base x;
+in
+
+fun default_base (Constant "") = "value"
+  | default_base (Constant "==>") = "follows"
+  | default_base (Constant "==") = "meta_eq"
+  | default_base (Constant c) = base c
+  | default_base (Type_Constructor tyco) = base tyco
+  | default_base (Type_Class class) = base class
+  | default_base (Class_Relation classrel) = base_rel classrel
+  | default_base (Class_Instance inst) = base_rel inst;
+
+end;
 
 local
   fun thyname_of_type thy = #theory_name o Name_Space.the_entry (Sign.type_space thy);
@@ -94,28 +115,15 @@ local
     | prefix thy (Type_Class class) = thyname_of_class thy class
     | prefix thy (Class_Relation (class, _)) = thyname_of_class thy class
     | prefix thy (Class_Instance inst) = thyname_of_instance thy inst;
-  val base = Name.desymbolize false o Long_Name.base_name;
-  fun base_rel (x, y) = base y ^ "_" ^ base x;
 in
 
-fun base_name (Constant "") = "value"
-  | base_name (Constant "==>") = "follows"
-  | base_name (Constant "==") = "meta_eq"
-  | base_name (Constant c) = base c
-  | base_name (Type_Constructor tyco) = base tyco
-  | base_name (Type_Class class) = base class
-  | base_name (Class_Relation classrel) = base_rel classrel
-  | base_name (Class_Instance inst) = base_rel inst;
+fun default_prefix ctxt = prefix (Proof_Context.theory_of ctxt);
 
-fun namespace_prefix ctxt = prefix (Proof_Context.theory_of ctxt);
-
-fun default_name ctxt sym = (namespace_prefix ctxt sym, base_name sym);
+end;
 
 val value = Constant "";
 fun is_value (Constant "") = true
   | is_value _ = false;
-
-end;
 
 fun quote ctxt (Constant c) = Library.quote (Code.string_of_const (Proof_Context.theory_of ctxt) c)
   | quote ctxt (Type_Constructor tyco) = "type " ^ Library.quote (Proof_Context.extern_type ctxt tyco)
@@ -216,3 +224,6 @@ fun symbols_of x = (map Constant o Symtab.keys o #constant o dest_data) x
 fun dest_module_data x = (Symtab.dest o #module o dest_data) x;
 
 end;
+
+
+structure Basic_Code_Symbol: BASIC_CODE_SYMBOL = Code_Symbol;
