@@ -136,10 +136,9 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
               );
             fun print_eqn ((ts, t), (some_thm, _)) =
               let
-                val consts = fold Code_Thingol.add_constnames (t :: ts) [];
                 val vars = reserved
-                  |> intro_base_names
-                      (is_none o const_syntax) deresolve consts
+                  |> intro_base_names_for (is_none o const_syntax)
+                      deresolve (t :: ts)
                   |> intro_vars ((fold o Code_Thingol.fold_varnames)
                       (insert (op =)) ts []);
               in

@@ -36,6 +36,8 @@ sig
   val lookup_var: var_ctxt -> string -> string
   val intro_base_names: (string -> bool) -> (string -> string)
     -> string list -> var_ctxt -> var_ctxt
+  val intro_base_names_for: (string -> bool) -> (string -> string)
+    -> iterm list -> var_ctxt -> var_ctxt
   val aux_params: var_ctxt -> iterm list list -> string list
 
   type literals
@@ -187,12 +189,17 @@ fun aux_params vars lhss =
     val vars' = intro_vars fished3 vars;
   in map (lookup_var vars') fished3 end;
 
-fun intro_base_names no_syntax deresolve names = names
-  |> map_filter (fn name => if no_syntax name then
+fun intro_base_names no_syntax deresolve =
+  map_filter (fn name => if no_syntax name then
       let val name' = deresolve name in
         if Long_Name.is_qualified name' then NONE else SOME name'
       end else NONE)
-  |> intro_vars;
+  #> intro_vars;
+
+fun intro_base_names_for no_syntax deresolve ts =
+  []
+  |> fold Code_Thingol.add_constnames ts 
+  |> intro_base_names no_syntax deresolve;
 
 
 (** pretty literals **)

@@ -178,10 +178,9 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
           let
             fun print_eqn definer ((ts, t), (some_thm, _)) =
               let
-                val consts = fold Code_Thingol.add_constnames (t :: ts) [];
                 val vars = reserved
-                  |> intro_base_names
-                       (is_none o const_syntax) deresolve consts
+                  |> intro_base_names_for (is_none o const_syntax)
+                       deresolve (t :: ts)
                   |> intro_vars ((fold o Code_Thingol.fold_varnames)
                        (insert (op =)) ts []);
                 val prolog = if needs_typ then
@@ -470,10 +469,9 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
           let
             fun print_eqn ((ts, t), (some_thm, _)) =
               let
-                val consts = fold Code_Thingol.add_constnames (t :: ts) [];
                 val vars = reserved
-                  |> intro_base_names
-                      (is_none o const_syntax) deresolve consts
+                  |> intro_base_names_for (is_none o const_syntax)
+                      deresolve (t :: ts)
                   |> intro_vars ((fold o Code_Thingol.fold_varnames)
                       (insert (op =)) ts []);
               in concat [
@@ -484,10 +482,9 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
               ] end;
             fun print_eqns is_pseudo [((ts, t), (some_thm, _))] =
                   let
-                    val consts = fold Code_Thingol.add_constnames (t :: ts) [];
                     val vars = reserved
-                      |> intro_base_names
-                          (is_none o const_syntax) deresolve consts
+                      |> intro_base_names_for (is_none o const_syntax)
+                          deresolve (t :: ts)
                       |> intro_vars ((fold o Code_Thingol.fold_varnames)
                           (insert (op =)) ts []);
                   in
@@ -510,10 +507,9 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
                   )
               | print_eqns _ (eqs as eq :: eqs') =
                   let
-                    val consts = fold Code_Thingol.add_constnames (map (snd o fst) eqs) [];
                     val vars = reserved
-                      |> intro_base_names
-                          (is_none o const_syntax) deresolve consts;
+                      |> intro_base_names_for (is_none o const_syntax)
+                           deresolve (map (snd o fst) eqs)
                     val dummy_parms = (map str o aux_params vars o map (fst o fst)) eqs;
                   in
                     Pretty.block (

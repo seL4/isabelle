@@ -167,11 +167,9 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
             val simple = case eqs
              of [((ts, _), _)] => forall Code_Thingol.is_IVar ts
               | _ => false;
-            val consts = fold Code_Thingol.add_constnames
-              (map (snd o fst) eqs) [];
             val vars1 = reserved
-              |> intro_base_names
-                   (is_none o const_syntax) deresolve consts
+              |> intro_base_names_for (is_none o const_syntax)
+                   deresolve (map (snd o fst) eqs);
             val params = if simple
               then (map (fn IVar (SOME x) => x) o fst o fst o hd) eqs
               else aux_params vars1 (map (fst o fst) eqs);
