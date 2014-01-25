@@ -42,12 +42,6 @@ sig
   val lookup_module_data: ('a, 'b, 'c, 'd, 'e, 'f) data -> string -> 'f option
   val lookup: ('a, 'a, 'a, 'a, 'a, 'a) data -> symbol -> 'a option
   val symbols_of: ('a, 'b, 'c, 'd, 'e, 'f) data -> symbol list
-  val mapped_const_data: (string -> 'a -> 'g) -> ('a, 'b, 'c, 'd, 'e, 'f) data -> 'g Symtab.table
-  val dest_constant_data: ('a, 'b, 'c, 'd, 'e, 'f) data -> (string * 'a) list
-  val dest_type_constructor_data: ('a, 'b, 'c, 'd, 'e, 'f) data -> (string * 'b) list
-  val dest_type_class_data: ('a, 'b, 'c, 'd, 'e, 'f) data -> (class * 'c) list
-  val dest_class_relation_data: ('a, 'b, 'c, 'd, 'e, 'f) data -> ((class * class) * 'd) list
-  val dest_class_instance_data: ('a, 'b, 'c, 'd, 'e, 'f) data -> ((string * class) * 'e) list
   val dest_module_data: ('a, 'b, 'c, 'd, 'e, 'f) data -> (string * 'f) list
 end;
 
@@ -219,13 +213,6 @@ fun symbols_of x = (map Constant o Symtab.keys o #constant o dest_data) x
   @ (map Class_Instance o Symreltab.keys o #class_instance o dest_data) x
   @ (map Module o Symtab.keys o #module o dest_data) x;
 
-fun mapped_const_data f x = Symtab.map f ((#constant o dest_data) x);
-
-fun dest_constant_data x = (Symtab.dest o #constant o dest_data) x;
-fun dest_type_constructor_data x = (Symtab.dest o #type_constructor o dest_data) x;
-fun dest_type_class_data x = (Symtab.dest o #type_class o dest_data) x;
-fun dest_class_relation_data x = (Symreltab.dest o #class_relation o dest_data) x;
-fun dest_class_instance_data x = (Symreltab.dest o #class_instance o dest_data) x;
 fun dest_module_data x = (Symtab.dest o #module o dest_data) x;
 
 end;

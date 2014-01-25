@@ -202,7 +202,7 @@ datatype target = Target of {
   description: description,
   reserved: string list,
   identifiers: identifier_data,
-  printings: (Code_Printer.const_syntax, Code_Printer.tyco_syntax, string, unit, unit,
+  printings: (Code_Printer.activated_const_syntax, Code_Printer.tyco_syntax, string, unit, unit,
     (Pretty.T * string list)) Code_Symbol.data
 };
 
@@ -325,11 +325,6 @@ fun activate_target thy target =
     val (modify, data) = collapse_hierarchy thy target;
   in (default_width, data, modify) end;
 
-fun activate_symbol_syntax thy literals printings =
-  (Code_Symbol.symbols_of printings,
-    (Symtab.lookup (Code_Symbol.mapped_const_data (Code_Printer.activate_const_syntax thy literals) printings),
-      Code_Symbol.lookup_type_constructor_data printings, Code_Symbol.lookup_type_class_data printings))
-
 fun project_program thy syms_hidden syms1 program2 =
   let
     val ctxt = Proof_Context.init_global thy;
@@ -344,11 +339,10 @@ fun project_program thy syms_hidden syms1 program2 =
     val program4 = Code_Symbol.Graph.restrict (member (op =) syms4) program3;
   in (syms4, program4) end;
 
-fun prepare_serializer thy (serializer : serializer) literals reserved identifiers
+fun prepare_serializer thy (serializer : serializer) reserved identifiers
     printings module_name args proto_program syms =
   let
-    val (syms_hidden, (const_syntax, tyco_syntax, class_syntax)) =
-      activate_symbol_syntax thy literals printings;
+    val syms_hidden = Code_Symbol.symbols_of printings;
     val (syms_all, program) = project_program thy syms_hidden syms proto_program;
     fun select_include (name, (content, cs)) =
       if null cs orelse exists (fn c => member (op =) syms_all (Code_Symbol.Constant c)) cs
@@ -360,9 +354,9 @@ fun prepare_serializer thy (serializer : serializer) literals reserved identifie
       reserved_syms = reserved,
       identifiers = identifiers,
       includes = includes,
-      const_syntax = const_syntax,
-      tyco_syntax = tyco_syntax,
-      class_syntax = class_syntax },
+      const_syntax = Code_Symbol.lookup_constant_data printings,
+      tyco_syntax = Code_Symbol.lookup_type_constructor_data printings,
+      class_syntax = Code_Symbol.lookup_type_class_data printings },
       program)
   end;
 
@@ -372,7 +366,7 @@ fun mount_serializer thy target some_width module_name args program syms =
     val serializer = case the_description data
      of Fundamental seri => #serializer seri;
     val (prepared_serializer, prepared_program) =
-      prepare_serializer thy serializer (the_literals thy target)
+      prepare_serializer thy serializer
         (the_reserved data) (the_identifiers data) (the_printings data)
         module_name args (modify program) syms
     val width = the_default default_width some_width;
@@ -559,12 +553,12 @@ fun add_reserved target sym thy =
 
 (* checking of syntax *)
 
-fun check_const_syntax thy c syn =
+fun check_const_syntax thy target c syn =
   if Code_Printer.requires_args syn > Code.args_number thy c
   then error ("Too many arguments in syntax for constant " ^ quote c)
-  else syn;
+  else Code_Printer.activate_const_syntax thy (the_literals thy target) c syn;
 
-fun check_tyco_syntax thy tyco syn =
+fun check_tyco_syntax thy target tyco syn =
   if fst syn <> Sign.arity_number thy tyco
   then error ("Number of arguments mismatch in syntax for type constructor " ^ quote tyco)
   else syn;
@@ -608,12 +602,12 @@ fun add_module_alias_cmd target aliasses thy =
 fun arrange_printings prep_const thy =
   let
     fun arrange check (sym, target_syns) =
-      map (fn (target, some_syn) => (target, (sym, Option.map (check thy sym) some_syn))) target_syns;
+      map (fn (target, some_syn) => (target, (sym, Option.map (check thy target sym) some_syn))) target_syns;
   in
     Code_Symbol.maps_attr'
       (arrange check_const_syntax) (arrange check_tyco_syntax)
-        (arrange ((K o K) I)) (arrange ((K o K) I)) (arrange ((K o K) I))
-        (arrange (fn thy => fn _ => fn (raw_content, raw_cs) =>
+        (arrange ((K o K o K) I)) (arrange ((K o K o K) I)) (arrange ((K o K o K) I))
+        (arrange (fn thy => fn _ => fn _ => fn (raw_content, raw_cs) =>
           (Code_Printer.str raw_content, map (prep_const thy) raw_cs)))
   end;
 
@@ -633,7 +627,7 @@ fun gen_add_syntax Symbol prep_x prep_syn target raw_x some_raw_syn thy =
   let
     val _ = legacy_feature "prefer \"code_printing\" for custom serialisations"
     val x = prep_x thy raw_x;
-  in set_printing (target, Symbol (x, Option.map (prep_syn thy x) some_raw_syn)) thy end;
+  in set_printing (target, Symbol (x, Option.map (prep_syn thy target x) some_raw_syn)) thy end;
 
 fun gen_add_const_syntax prep_const =
   gen_add_syntax Code_Symbol.Constant prep_const check_const_syntax;
@@ -642,14 +636,14 @@ fun gen_add_tyco_syntax prep_tyco =
   gen_add_syntax Code_Symbol.Type_Constructor prep_tyco check_tyco_syntax;
 
 fun gen_add_class_syntax prep_class =
-  gen_add_syntax Code_Symbol.Type_Class prep_class ((K o K) I);
+  gen_add_syntax Code_Symbol.Type_Class prep_class ((K o K o K) I);
 
 fun gen_add_instance_syntax prep_inst =
-  gen_add_syntax Code_Symbol.Class_Instance prep_inst ((K o K) I);
+  gen_add_syntax Code_Symbol.Class_Instance prep_inst ((K o K o K) I);
 
 fun gen_add_include prep_const target (name, some_content) thy =
   gen_add_syntax Code_Symbol.Module (K I)
-    (fn thy => fn _ => fn (raw_content, raw_cs) => (Code_Printer.str raw_content, map (prep_const thy) raw_cs))
+    (fn thy => fn _ => fn _ => fn (raw_content, raw_cs) => (Code_Printer.str raw_content, map (prep_const thy) raw_cs))
     target name some_content thy;
 
 
