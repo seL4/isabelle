@@ -284,8 +284,8 @@ lemmas bit1_induct [case_names of_int, induct type: bit1] = bit1.induct
 lemmas bit0_iszero_numeral [simp] = bit0.iszero_numeral
 lemmas bit1_iszero_numeral [simp] = bit1.iszero_numeral
 
-declare eq_numeral_iff_iszero [where 'a="('a::finite) bit0", standard, simp]
-declare eq_numeral_iff_iszero [where 'a="('a::finite) bit1", standard, simp]
+lemmas [simp] = eq_numeral_iff_iszero [where 'a="'a bit0"] for dummy :: "'a::finite"
+lemmas [simp] = eq_numeral_iff_iszero [where 'a="'a bit1"] for dummy :: "'a::finite"
 
 subsection {* Order instances *}
 
