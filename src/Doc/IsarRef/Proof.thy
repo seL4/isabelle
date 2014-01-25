@@ -721,11 +721,13 @@ text {*
     ;
     @@{attribute OF} @{syntax thmrefs}
     ;
-    @@{attribute of} @{syntax insts} ('concl' ':' @{syntax insts})?
+    @@{attribute of} @{syntax insts} ('concl' ':' @{syntax insts})? \<newline>
+      (@'for' (@{syntax vars} + @'and'))?
     ;
     @@{attribute "where"}
       ((@{syntax name} | @{syntax var} | @{syntax typefree} | @{syntax typevar}) '='
-      (@{syntax type} | @{syntax term}) * @'and')
+      (@{syntax type} | @{syntax term}) * @'and') \<newline>
+      (@'for' (@{syntax vars} + @'and'))?
   \<close>}
 
   \begin{description}
@@ -812,6 +814,10 @@ text {*
   left to right; ``@{text _}'' (underscore) indicates to skip a
   position.  Arguments following a ``@{text "concl:"}'' specification
   refer to positions of the conclusion of a rule.
+
+  An optional context of local variables @{text "\<FOR> x\<^sub>1 \<dots> x\<^sub>m"} may
+  be specified: the instantiated theorem is exported, and these
+  variables become schematic (usually with some shifting of indices).
   
   \item @{attribute "where"}~@{text "x\<^sub>1 = t\<^sub>1 \<AND> \<dots> x\<^sub>n = t\<^sub>n"}
   performs named instantiation of schematic type and term variables
@@ -820,6 +826,9 @@ text {*
   be omitted if the variable name is a plain identifier without index.
   As type instantiations are inferred from term instantiations,
   explicit type instantiations are seldom necessary.
+
+  An optional context of local variables @{text "\<FOR> x\<^sub>1 \<dots> x\<^sub>m"} may
+  be specified as for @{attribute "of"} above.
 
   \end{description}
 *}

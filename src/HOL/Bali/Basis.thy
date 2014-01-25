@@ -181,7 +181,7 @@ abbreviation the_In1r :: "('al + 'ar, 'b, 'c) sum3 \<Rightarrow> 'ar"
 ML {*
 fun sum3_instantiate ctxt thm = map (fn s =>
   simplify (ctxt delsimps [@{thm not_None_eq}])
-    (read_instantiate ctxt [(("t", 0), "In" ^ s ^ " ?x")] thm)) ["1l","2","3","1r"]
+    (read_instantiate ctxt [(("t", 0), "In" ^ s ^ " x")] ["x"] thm)) ["1l","2","3","1r"]
 *}
 (* e.g. lemmas is_stmt_rews = is_stmt_def [of "In1l x", simplified] *)
 

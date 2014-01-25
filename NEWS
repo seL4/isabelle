@@ -40,6 +40,10 @@ process, without requiring old-fashioned command-line invocation of
 
 *** Pure ***
 
+* Attributes "where" and "of" allow an optional context of local
+variables ('for' declaration): these variables become schematic in the
+instantiated theorem.
+
 * More thorough check of proof context for goal statements and
 attributed fact expressions (concerning background theory, declared
 hyps).  Potential INCOMPATIBILITY, tools need to observe standard
@@ -268,6 +272,13 @@ INCOMPATIBILITY
 
 
 *** ML ***
+
+* Proper context discipline for read_instantiate and instantiate_tac:
+variables that are meant to become schematic need to be given as
+fixed, and are generalized by the explicit context of local variables.
+This corresponds to Isar attributes "where" and "of" with 'for'
+declaration.  INCOMPATIBILITY, also due to potential change of indices
+of schematic variables.
 
 * Toplevel function "use" refers to raw ML bootstrap environment,
 without Isar context nor antiquotations.  Potential INCOMPATIBILITY.
