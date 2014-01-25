@@ -133,7 +133,7 @@ next
          prefer 4 apply (force simp add: constr_bij)
         prefer 3 apply force
        prefer 2 apply (blast intro: finite_Pow_iff [THEN iffD2]
-         finite_subset [of _ "Pow (insert x F)", standard])
+         finite_subset [of _ "Pow (insert x F)" for F])
       apply (blast intro: finite_Pow_iff [THEN iffD2, THEN [2] finite_subset])
       done
   qed
@@ -669,7 +669,9 @@ proof -
     have "inj_on snd (SIGMA i:{1..card A}. ?I i)"
       using assms by(auto intro!: inj_onI)
     moreover have [symmetric]: "snd ` (SIGMA i:{1..card A}. ?I i) = {I. I \<subseteq> A \<and> I \<noteq> {} \<and> x \<in> \<Inter>I}"
-      using assms by(auto intro!: rev_image_eqI[where x="(card a, a)", standard] simp add: card_gt_0_iff[folded Suc_le_eq]  dest: finite_subset intro: card_mono)
+      using assms by(auto intro!: rev_image_eqI[where x="(card a, a)" for a]
+        simp add: card_gt_0_iff[folded Suc_le_eq]
+        dest: finite_subset intro: card_mono)
     ultimately have "?lhs x = (\<Sum>(i, I)\<in>(SIGMA i:{1..card A}. ?I i). -1 ^ (i + 1))"
       by(rule setsum_reindex_cong[where f=snd]) fastforce
     also have "\<dots> = (\<Sum>i=1..card A. (\<Sum>I|I \<subseteq> A \<and> card I = i \<and> x \<in> \<Inter>I. -1 ^ (i + 1)))"

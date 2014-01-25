@@ -131,7 +131,7 @@ next
          prefer 4 apply (force simp add: constr_bij)
         prefer 3 apply force
        prefer 2 apply (blast intro: finite_Pow_iff [THEN iffD2]
-         finite_subset [of _ "Pow (insert x F)", standard])
+         finite_subset [of _ "Pow (insert x F)" for F])
       apply (blast intro: finite_Pow_iff [THEN iffD2, THEN [2] finite_subset])
       done
   qed

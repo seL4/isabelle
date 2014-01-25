@@ -93,7 +93,7 @@ subsection{*Function @{term knows}*}
 (*Simplifying   
  parts(insert X (knows Spy evs)) = parts{X} \<union> parts(knows Spy evs).
   This version won't loop with the simplifier.*)
-lemmas parts_insert_knows_A = parts_insert [of _ "knows A evs", standard]
+lemmas parts_insert_knows_A = parts_insert [of _ "knows A evs"] for A evs
 
 lemma knows_Spy_Says [simp]:
      "knows Spy (Says A B X # evs) = insert X (knows Spy evs)"
@@ -256,7 +256,7 @@ lemmas analz_mono_contra =
        knows_Spy_subset_knows_Spy_Notes [THEN analz_mono, THEN contra_subsetD]
        knows_Spy_subset_knows_Spy_Gets [THEN analz_mono, THEN contra_subsetD]
 
-lemmas analz_impI = impI [where P = "Y \<notin> analz (knows Spy evs)", standard]
+lemmas analz_impI = impI [where P = "Y \<notin> analz (knows Spy evs)"] for Y evs
 
 ML
 {*
@@ -290,7 +290,7 @@ method_setup analz_mono_contra = {*
 
 subsubsection{*Useful for case analysis on whether a hash is a spoof or not*}
 
-lemmas syan_impI = impI [where P = "Y \<notin> synth (analz (knows Spy evs))", standard]
+lemmas syan_impI = impI [where P = "Y \<notin> synth (analz (knows Spy evs))"] for Y evs
 
 ML
 {*

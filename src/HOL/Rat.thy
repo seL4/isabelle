@@ -622,8 +622,8 @@ declaration {*
     (* not needed because x < (y::int) can be rewritten as x + 1 <= y: of_int_less_iff RS iffD2 *)
   #> Lin_Arith.add_simps [@{thm neg_less_iff_less},
       @{thm True_implies_equals},
-      read_instantiate @{context} [(("a", 0), "(numeral ?v)")] @{thm distrib_left},
-      read_instantiate @{context} [(("a", 0), "(- numeral ?v)")] @{thm distrib_left},
+      @{thm distrib_left [where a = "numeral v" for v]},
+      @{thm distrib_left [where a = "- numeral v" for v]},
       @{thm divide_1}, @{thm divide_zero_left},
       @{thm times_divide_eq_right}, @{thm times_divide_eq_left},
       @{thm minus_divide_left} RS sym, @{thm minus_divide_right} RS sym,

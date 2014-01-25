@@ -1514,8 +1514,7 @@ proof -
     assume i: "i \<in> Basis"
     have "norm (\<Sum>x\<in>P. \<bar>f x \<bullet> i\<bar>) \<le>
       norm ((\<Sum>x\<in>P \<inter> - {x. f x \<bullet> i < 0}. f x) \<bullet> i) + norm ((\<Sum>x\<in>P \<inter> {x. f x \<bullet> i < 0}. f x) \<bullet> i)"
-      by (simp add: abs_real_def setsum_cases[OF fP] setsum_negf uminus_add_conv_diff
-            norm_triangle_ineq4 inner_setsum_left del: real_norm_def)
+      by (simp add: abs_real_def setsum_cases[OF fP] setsum_negf norm_triangle_ineq4 inner_setsum_left del: real_norm_def)
     also have "\<dots> \<le> e + e"
       unfolding real_norm_def
       by (intro add_mono norm_bound_Basis_le i fPs) auto
