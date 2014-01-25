@@ -356,7 +356,7 @@ fun activate_symbol_syntax thy literals naming printings =
       (Code_Symbol.dest_class_instance_data printings);
   in
     (names_const @ names_tyco @ names_class @ names_inst,
-      (const_syntax, tyco_syntax, class_syntax))
+      (Symtab.lookup const_syntax, Symtab.lookup tyco_syntax, Symtab.lookup class_syntax))
   end;
 
 fun project_program thy names_hidden names1 program2 =
@@ -392,9 +392,9 @@ fun prepare_serializer thy (serializer : serializer) literals reserved identifie
       reserved_syms = reserved,
       identifiers = identifiers,
       includes = includes,
-      const_syntax = Symtab.lookup const_syntax,
-      tyco_syntax = Symtab.lookup tyco_syntax,
-      class_syntax = Symtab.lookup class_syntax },
+      const_syntax = const_syntax,
+      tyco_syntax = tyco_syntax,
+      class_syntax = class_syntax },
       program)
   end;
 
