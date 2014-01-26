@@ -6,8 +6,6 @@ Rule instantiations -- operations within implicit rule / subgoal context.
 
 signature BASIC_RULE_INSTS =
 sig
-  val read_instantiate: Proof.context -> (indexname * string) list -> string list -> thm -> thm
-  val instantiate_tac: Proof.context -> (indexname * string) list -> string list -> tactic
   val res_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic
   val eres_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic
   val cut_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic
@@ -24,6 +22,8 @@ sig
     (binding * string option * mixfix) list -> thm -> thm
   val of_rule: Proof.context -> string option list * string option list ->
     (binding * string option * mixfix) list -> thm -> thm
+  val read_instantiate: Proof.context -> (indexname * string) list -> string list -> thm -> thm
+  val instantiate_tac: Proof.context -> (indexname * string) list -> string list -> tactic
   val make_elim_preserve: thm -> thm
   val method: (Proof.context -> (indexname * string) list -> thm -> int -> tactic) ->
     (Proof.context -> thm list -> int -> tactic) -> (Proof.context -> Proof.method) context_parser

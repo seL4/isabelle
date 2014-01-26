@@ -179,9 +179,11 @@ abbreviation the_In1r :: "('al + 'ar, 'b, 'c) sum3 \<Rightarrow> 'ar"
   where "the_In1r \<equiv> the_Inr \<circ> the_In1"
 
 ML {*
-fun sum3_instantiate ctxt thm = map (fn s =>
-  simplify (ctxt delsimps [@{thm not_None_eq}])
-    (read_instantiate ctxt [(("t", 0), "In" ^ s ^ " x")] ["x"] thm)) ["1l","2","3","1r"]
+fun sum3_instantiate ctxt thm =
+  map (fn s =>
+    simplify (ctxt delsimps @{thms not_None_eq})
+      (Rule_Insts.read_instantiate ctxt [(("t", 0), "In" ^ s ^ " x")] ["x"] thm))
+    ["1l","2","3","1r"]
 *}
 (* e.g. lemmas is_stmt_rews = is_stmt_def [of "In1l x", simplified] *)
 

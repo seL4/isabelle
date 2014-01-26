@@ -42,8 +42,9 @@ declare lvar_def [simp]
 
 ML {*
 fun inst1_tac ctxt s t xs st =
-  case AList.lookup (op =) (rev (Term.add_var_names (Thm.prop_of st) [])) s of
-  SOME i => instantiate_tac ctxt [((s, i), t)] xs st | NONE => Seq.empty;
+  (case AList.lookup (op =) (rev (Term.add_var_names (Thm.prop_of st) [])) s of
+    SOME i => Rule_Insts.instantiate_tac ctxt [((s, i), t)] xs st
+  | NONE => Seq.empty);
 
 val ax_tac =
   REPEAT o rtac allI THEN'

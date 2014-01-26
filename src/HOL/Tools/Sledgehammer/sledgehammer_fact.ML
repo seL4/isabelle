@@ -416,7 +416,7 @@ fun instantiate_induct_rule ctxt concl_prop p_name ((name, stature), th) ind_x =
                  |> hackish_string_of_term ctxt
   in
     ((fn () => name () ^ "[where " ^ p_name ^ " = " ^ quote p_inst ^ "]",
-      stature), th |> read_instantiate ctxt [((p_name, 0), p_inst)] [])
+      stature), th |> Rule_Insts.read_instantiate ctxt [((p_name, 0), p_inst)] [])
   end
 
 fun type_match thy (T1, T2) =

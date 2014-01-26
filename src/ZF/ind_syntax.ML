@@ -50,7 +50,7 @@ fun rule_concl_msg sign rl = rule_concl rl
 (*For deriving cases rules.  CollectD2 discards the domain, which is redundant;
   read_instantiate replaces a propositional variable by a formula variable*)
 val equals_CollectD =
-    read_instantiate @{context} [(("W", 0), "Q")] ["Q"]
+    Rule_Insts.read_instantiate @{context} [(("W", 0), "Q")] ["Q"]
         (make_elim (@{thm equalityD1} RS @{thm subsetD} RS @{thm CollectD2}));
 
 
