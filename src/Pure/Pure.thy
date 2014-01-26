@@ -175,10 +175,6 @@ attribute_setup params =
   "Scan.lift (Parse.and_list1 (Scan.repeat Args.name)) >> Rule_Cases.params"
   "named rule parameters"
 
-attribute_setup standard =
-  "Scan.succeed (Thm.rule_attribute (K Drule.export_without_context))"
-  "result put into standard form (legacy)"
-
 attribute_setup rule_format = {*
   Scan.lift (Args.mode "no_asm")
     >> (fn true => Object_Logic.rule_format_no_asm | false => Object_Logic.rule_format)

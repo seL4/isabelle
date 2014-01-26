@@ -44,6 +44,15 @@ process, without requiring old-fashioned command-line invocation of
 variables ('for' declaration): these variables become schematic in the
 instantiated theorem.
 
+* Obsolete attribute "standard" has been discontinued (legacy since
+Isabelle2012).  Potential INCOMPATIBILITY, use explicit 'for' context
+where instantiations with schematic variables are intended (for
+declaration commands like 'lemmas' or attributes like "of").  The
+following temporary definition may help to port old applications:
+
+  attribute_setup standard =
+    "Scan.succeed (Thm.rule_attribute (K Drule.export_without_context))"
+
 * More thorough check of proof context for goal statements and
 attributed fact expressions (concerning background theory, declared
 hyps).  Potential INCOMPATIBILITY, tools need to observe standard
