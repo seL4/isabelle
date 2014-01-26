@@ -54,11 +54,11 @@ sig
   type identifier_data
   val set_identifiers: (string, string, string, string, string, string) symbol_attr_decl
     -> theory -> theory
-  type const_syntax = Code_Printer.const_syntax
+  type raw_const_syntax = Code_Printer.raw_const_syntax
   type tyco_syntax = Code_Printer.tyco_syntax
-  val set_printings: (const_syntax, tyco_syntax, string, unit, unit, (string * string list)) symbol_attr_decl
+  val set_printings: (raw_const_syntax, tyco_syntax, string, unit, unit, (string * string list)) symbol_attr_decl
     -> theory -> theory
-  val add_const_syntax: string -> string -> const_syntax option -> theory -> theory
+  val add_const_syntax: string -> string -> raw_const_syntax option -> theory -> theory
   val add_tyco_syntax: string -> string -> tyco_syntax option -> theory -> theory
   val add_class_syntax: string -> class -> string option -> theory -> theory
   val add_instance_syntax: string -> class * string -> unit option -> theory -> theory
@@ -85,7 +85,7 @@ type ('a, 'b, 'c, 'd, 'e, 'f) symbol_attr_decl =
 type identifier_data = (string, string, string, string, string, string) Code_Symbol.data;
 
 type tyco_syntax = Code_Printer.tyco_syntax;
-type const_syntax = Code_Printer.const_syntax;
+type raw_const_syntax = Code_Printer.raw_const_syntax;
 
 
 (** checking and parsing of symbols **)
@@ -183,7 +183,7 @@ type serializer = Token.T list
     includes: (string * Pretty.T) list,
     class_syntax: string -> string option,
     tyco_syntax: string -> Code_Printer.tyco_syntax option,
-    const_syntax: string -> Code_Printer.activated_const_syntax option }
+    const_syntax: string -> Code_Printer.const_syntax option }
   -> Code_Thingol.program
   -> serialization;
 
@@ -203,7 +203,7 @@ datatype target = Target of {
   description: description,
   reserved: string list,
   identifiers: identifier_data,
-  printings: (Code_Printer.activated_const_syntax, Code_Printer.tyco_syntax, string, unit, unit,
+  printings: (Code_Printer.const_syntax, Code_Printer.tyco_syntax, string, unit, unit,
     (Pretty.T * string list)) Code_Symbol.data
 };
 
@@ -557,7 +557,7 @@ fun add_reserved target sym thy =
 fun check_const_syntax thy target c syn =
   if Code_Printer.requires_args syn > Code.args_number thy c
   then error ("Too many arguments in syntax for constant " ^ quote c)
-  else Code_Printer.activate_const_syntax thy (the_literals thy target) c syn;
+  else Code_Printer.prep_const_syntax thy (the_literals thy target) c syn;
 
 fun check_tyco_syntax thy target tyco syn =
   if fst syn <> Sign.arity_number thy tyco

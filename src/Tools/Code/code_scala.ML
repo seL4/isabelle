@@ -89,11 +89,11 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
               (print_term tyvars is_pat some_thm vars NOBR) fxy
                 (applify "[" "]" (print_typ tyvars NOBR)
                   NOBR ((str o deresolve) sym) typargs') ts)
-          | SOME (Plain_const_syntax (k, s)) => (k, fn fxy => fn ts => applify "(" ")"
+          | SOME (k, Plain_printer s) => (k, fn fxy => fn ts => applify "(" ")"
               (print_term tyvars is_pat some_thm vars NOBR) fxy
                 (applify "[" "]" (print_typ tyvars NOBR)
                   NOBR (str s) typargs') ts)
-          | SOME (Complex_const_syntax (k, print)) =>
+          | SOME (k, Complex_printer print) =>
               (k, fn fxy => fn ts => print (print_term tyvars is_pat some_thm) some_thm vars fxy
                 (ts ~~ take k dom))
       in if k = l then print' fxy ts

@@ -67,24 +67,25 @@ sig
   val applify: string -> string -> ('a -> Pretty.T) -> fixity -> Pretty.T -> 'a list -> Pretty.T
   val tuplify: (fixity -> 'a -> Pretty.T) -> fixity -> 'a list -> Pretty.T option
 
+  type raw_const_syntax
+  val plain_const_syntax: string -> raw_const_syntax
   type simple_const_syntax
+  val simple_const_syntax: simple_const_syntax -> raw_const_syntax
   type complex_const_syntax
-  type const_syntax
-  type activated_complex_const_syntax
-  datatype activated_const_syntax = Plain_const_syntax of int * string
-    | Complex_const_syntax of activated_complex_const_syntax
+  val complex_const_syntax: complex_const_syntax -> raw_const_syntax
+  val parse_const_syntax: raw_const_syntax parser
+  val requires_args: raw_const_syntax -> int
+  datatype const_printer = Plain_printer of string
+    | Complex_printer of (var_ctxt -> fixity -> iterm -> Pretty.T)
+        -> thm option -> var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T
+  type const_syntax = int * const_printer
+  val prep_const_syntax: theory -> literals
+    -> string -> raw_const_syntax -> const_syntax
   type tyco_syntax
-  val requires_args: const_syntax -> int
-  val parse_const_syntax: const_syntax parser
   val parse_tyco_syntax: tyco_syntax parser
-  val plain_const_syntax: string -> const_syntax
-  val simple_const_syntax: simple_const_syntax -> const_syntax
-  val complex_const_syntax: complex_const_syntax -> const_syntax
-  val activate_const_syntax: theory -> literals
-    -> string -> const_syntax -> activated_const_syntax
   val gen_print_app: (thm option -> var_ctxt -> const * iterm list -> Pretty.T list)
     -> (thm option -> var_ctxt -> fixity -> iterm -> Pretty.T)
-    -> (string -> activated_const_syntax option)
+    -> (string -> const_syntax option)
     -> thm option -> var_ctxt -> fixity -> const * iterm list -> Pretty.T
   val gen_print_bind: (thm option -> var_ctxt -> fixity -> iterm -> Pretty.T)
     -> thm option -> fixity
@@ -290,35 +291,35 @@ type complex_const_syntax = int * (literals
   -> (var_ctxt -> fixity -> iterm -> Pretty.T)
     -> thm option -> var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T);
 
-datatype const_syntax = plain_const_syntax of string
+datatype raw_const_syntax = plain_const_syntax of string
   | complex_const_syntax of complex_const_syntax;
-
-fun requires_args (plain_const_syntax _) = 0
-  | requires_args (complex_const_syntax (k, _)) = k;
 
 fun simple_const_syntax syn =
   complex_const_syntax
     (apsnd (fn f => fn _ => fn print => fn _ => fn vars => f (print vars)) syn);
 
-type activated_complex_const_syntax = int * ((var_ctxt -> fixity -> iterm -> Pretty.T)
-  -> thm option -> var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T)
+fun requires_args (plain_const_syntax _) = 0
+  | requires_args (complex_const_syntax (k, _)) = k;
 
-datatype activated_const_syntax = Plain_const_syntax of int * string
-  | Complex_const_syntax of activated_complex_const_syntax;
+datatype const_printer = Plain_printer of string
+  | Complex_printer of (var_ctxt -> fixity -> iterm -> Pretty.T)
+      -> thm option -> var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T;
 
-fun activate_const_syntax thy literals c (plain_const_syntax s) =
-      Plain_const_syntax (Code.args_number thy c, s)
-  | activate_const_syntax thy literals c (complex_const_syntax (n, f))=
-      Complex_const_syntax (n, f literals);
+type const_syntax = int * const_printer;
+
+fun prep_const_syntax thy literals c (plain_const_syntax s) =
+      (Code.args_number thy c, Plain_printer s)
+  | prep_const_syntax thy literals c (complex_const_syntax (n, f))=
+      (n, Complex_printer (f literals));
 
 fun gen_print_app print_app_expr print_term const_syntax some_thm vars fxy
     (app as ({ sym, dom, ... }, ts)) =
   case sym of
     Constant const => (case const_syntax const of
       NONE => brackify fxy (print_app_expr some_thm vars app)
-    | SOME (Plain_const_syntax (_, s)) =>
+    | SOME (_, Plain_printer s) =>
         brackify fxy (str s :: map (print_term some_thm vars BR) ts)
-    | SOME (Complex_const_syntax (k, print)) =>
+    | SOME (k, Complex_printer print) =>
         let
           fun print' fxy ts =
             print (print_term some_thm) some_thm vars fxy (ts ~~ take k dom);

@@ -229,8 +229,8 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
             val tyvars = intro_vars (map fst vs) reserved;
             fun requires_args classparam = case const_syntax classparam
              of NONE => NONE
-              | SOME (Code_Printer.Plain_const_syntax _) => SOME 0
-              | SOME (Code_Printer.Complex_const_syntax (k,_ )) => SOME k;
+              | SOME (_, Code_Printer.Plain_printer _) => SOME 0
+              | SOME (k, Code_Printer.Complex_printer _) => SOME k;
             fun print_classparam_instance ((classparam, (const, _)), (thm, _)) =
               case requires_args classparam
                of NONE => semicolon [
