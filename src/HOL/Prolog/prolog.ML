@@ -49,14 +49,16 @@ val check_HOHH_tac2 = PRIMITIVE (fn thm =>
 fun check_HOHH thm  = (if isD (concl_of thm) andalso forall isG (prems_of thm)
                         then thm else raise not_HOHH);
 
-fun atomizeD ctxt thm = let
+fun atomizeD ctxt thm =
+  let
     fun at  thm = case concl_of thm of
-      _$(Const(@{const_name All} ,_)$Abs(s,_,_))=> at(thm RS
-        (read_instantiate ctxt [(("x", 0), "?" ^ (if s="P" then "PP" else s))] spec))
+      _$(Const(@{const_name All} ,_)$Abs(s,_,_))=>
+        let val s' = if s="P" then "PP" else s
+        in at(thm RS (Rule_Insts.read_instantiate ctxt [(("x", 0), s')] [s'] spec)) end
     | _$(Const(@{const_name HOL.conj},_)$_$_)       => at(thm RS conjunct1)@at(thm RS conjunct2)
     | _$(Const(@{const_name HOL.implies},_)$_$_)     => at(thm RS mp)
     | _                             => [thm]
-in map zero_var_indexes (at thm) end;
+  in map zero_var_indexes (at thm) end;
 
 val atomize_ss =
   (empty_simpset @{context} |> Simplifier.set_mksimps (mksimps mksimps_pairs))

@@ -1577,10 +1577,10 @@ lemma Pow_empty [simp]: "Pow {} = {{}}"
   by (auto simp add: Pow_def)
 
 lemma Pow_insert: "Pow (insert a A) = Pow A \<union> (insert a ` Pow A)"
-  by (blast intro: image_eqI [where ?x = "u - {a}", standard])
+  by (blast intro: image_eqI [where ?x = "u - {a}" for u])
 
 lemma Pow_Compl: "Pow (- A) = {-B | B. A \<in> Pow B}"
-  by (blast intro: exI [where ?x = "- u", standard])
+  by (blast intro: exI [where ?x = "- u" for u])
 
 lemma Pow_UNIV [simp]: "Pow UNIV = UNIV"
   by blast

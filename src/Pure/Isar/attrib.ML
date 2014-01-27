@@ -37,6 +37,7 @@ sig
   val setup: Binding.binding -> attribute context_parser -> string -> theory -> theory
   val attribute_setup: bstring * Position.T -> Symbol_Pos.text * Position.T -> string ->
     theory -> theory
+  val internal: (morphism -> attribute) -> src
   val add_del: attribute -> attribute -> attribute context_parser
   val thm_sel: Facts.interval list parser
   val thm: thm context_parser
@@ -45,7 +46,6 @@ sig
   val partial_evaluation: Proof.context ->
     (binding * (thm list * Args.src list) list) list ->
     (binding * (thm list * Args.src list) list) list
-  val internal: (morphism -> attribute) -> src
   val print_options: Proof.context -> unit
   val config_bool: Binding.binding ->
     (Context.generic -> bool) -> bool Config.T * (theory -> theory)
@@ -194,6 +194,15 @@ fun attribute_setup name (txt, pos) cmt =
       ML_Lex.read Position.none (", " ^ ML_Syntax.print_string cmt ^ ")")));
 
 
+(* internal attribute *)
+
+fun internal att = Args.src (("Pure.attribute", [Token.mk_attribute att]), Position.none);
+
+val _ = Theory.setup
+ (setup (Binding.name "attribute") (Scan.lift Args.internal_attribute >> Morphism.form)
+    "internal attribute");
+
+
 (* add/del syntax *)
 
 fun add_del add del = Scan.lift (Args.add >> K add || Args.del >> K del || Scan.succeed add);
@@ -315,119 +324,6 @@ fun partial_evaluation ctxt facts =
   |> filter_out (fn (b, fact) => is_empty_binding b andalso forall (null o #2) fact);
 
 end;
-
-
-
-(** basic attributes **)
-
-(* internal *)
-
-fun internal att = Args.src (("Pure.attribute", [Token.mk_attribute att]), Position.none);
-
-
-(* rule composition *)
-
-val THEN_att =
-  Scan.lift (Scan.optional (Args.bracks Parse.nat) 1) -- thm
-    >> (fn (i, B) => Thm.rule_attribute (fn _ => fn A => A RSN (i, B)));
-
-val OF_att =
-  thms >> (fn Bs => Thm.rule_attribute (fn _ => fn A => Bs MRS A));
-
-
-(* rename_abs *)
-
-val rename_abs =
-  Scan.repeat (Args.maybe Args.name)
-  >> (fn args => Thm.rule_attribute (K (Drule.rename_bvars' args)));
-
-
-(* unfold / fold definitions *)
-
-fun unfolded_syntax rule =
-  thms >> (fn ths => Thm.rule_attribute (fn context => rule (Context.proof_of context) ths));
-
-val unfolded = unfolded_syntax Local_Defs.unfold;
-val folded = unfolded_syntax Local_Defs.fold;
-
-
-(* rule format *)
-
-fun rule_format true = Object_Logic.rule_format_no_asm
-  | rule_format false = Object_Logic.rule_format;
-
-val elim_format = Thm.rule_attribute (K Tactic.make_elim);
-
-
-(* case names *)
-
-val case_names =
-  Scan.repeat1 (Args.name --
-    Scan.optional (Parse.$$$ "[" |-- Scan.repeat1 (Args.maybe Args.name) --| Parse.$$$ "]") []) >>
-  (fn cs =>
-    Rule_Cases.cases_hyp_names (map fst cs)
-      (map (map (the_default Rule_Cases.case_hypsN) o snd) cs));
-
-
-(* misc rules *)
-
-val no_vars = Thm.rule_attribute (fn context => fn th =>
-  let
-    val ctxt = Variable.set_body false (Context.proof_of context);
-    val ((_, [th']), _) = Variable.import true [th] ctxt;
-  in th' end);
-
-val eta_long =
-  Thm.rule_attribute (K (Conv.fconv_rule Drule.eta_long_conversion));
-
-val rotated = Scan.optional Parse.int 1 >> (fn n => Thm.rule_attribute (K (rotate_prems n)));
-
-
-(* theory setup *)
-
-val _ = Theory.setup
- (setup (Binding.name "attribute") (Scan.lift Args.internal_attribute >> Morphism.form)
-    "internal attribute" #>
-  setup (Binding.name "tagged") (Scan.lift (Args.name -- Args.name) >> Thm.tag) "tagged theorem" #>
-  setup (Binding.name "untagged") (Scan.lift Args.name >> Thm.untag) "untagged theorem" #>
-  setup (Binding.name "kind") (Scan.lift Args.name >> Thm.kind) "theorem kind" #>
-  setup (Binding.name "THEN") THEN_att "resolution with rule" #>
-  setup (Binding.name "OF") OF_att "rule applied to facts" #>
-  setup (Binding.name "rename_abs") (Scan.lift rename_abs)
-    "rename bound variables in abstractions" #>
-  setup (Binding.name "unfolded") unfolded "unfolded definitions" #>
-  setup (Binding.name "folded") folded "folded definitions" #>
-  setup (Binding.name "consumes") (Scan.lift (Scan.optional Parse.int 1) >> Rule_Cases.consumes)
-    "number of consumed facts" #>
-  setup (Binding.name "constraints") (Scan.lift Parse.nat >> Rule_Cases.constraints)
-    "number of equality constraints" #>
-  setup (Binding.name "case_names") (Scan.lift case_names) "named rule cases" #>
-  setup (Binding.name "case_conclusion")
-    (Scan.lift (Args.name -- Scan.repeat Args.name) >> Rule_Cases.case_conclusion)
-    "named conclusion of rule cases" #>
-  setup (Binding.name "params")
-    (Scan.lift (Parse.and_list1 (Scan.repeat Args.name)) >> Rule_Cases.params)
-    "named rule parameters" #>
-  setup (Binding.name "standard") (Scan.succeed (Thm.rule_attribute (K Drule.export_without_context)))
-    "result put into standard form (legacy)" #>
-  setup (Binding.name "rule_format") (Scan.lift (Args.mode "no_asm") >> rule_format)
-    "result put into canonical rule format" #>
-  setup (Binding.name "elim_format") (Scan.succeed elim_format)
-    "destruct rule turned into elimination rule format" #>
-  setup (Binding.name "no_vars") (Scan.succeed no_vars) "frozen schematic vars" #>
-  setup (Binding.name "eta_long") (Scan.succeed eta_long)
-    "put theorem into eta long beta normal form" #>
-  setup (Binding.name "atomize") (Scan.succeed Object_Logic.declare_atomize)
-    "declaration of atomize rule" #>
-  setup (Binding.name "rulify") (Scan.succeed Object_Logic.declare_rulify)
-    "declaration of rulify rule" #>
-  setup (Binding.name "rotated") (Scan.lift rotated) "rotated theorem premises" #>
-  setup (Binding.name "defn") (add_del Local_Defs.defn_add Local_Defs.defn_del)
-    "declaration of definitional transformations" #>
-  setup (Binding.name "abs_def")
-    (Scan.succeed (Thm.rule_attribute (fn context =>
-      Local_Defs.meta_rewrite_rule (Context.proof_of context) #> Drule.abs_def)))
-    "abstract over free variables of definitional theorem");
 
 
 

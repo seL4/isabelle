@@ -36,6 +36,7 @@ end;
 structure Code_Runtime : CODE_RUNTIME =
 struct
 
+open Basic_Code_Symbol;
 open Basic_Code_Thingol;
 
 (** evaluation **)
@@ -52,10 +53,10 @@ val structure_generated = "Generated_Code";
 datatype truth = Holds;
 
 val _ = Theory.setup
-  (Code_Target.extend_target (target, (Code_ML.target_SML, K I))
-  #> Code_Target.set_printings (Code_Symbol.Type_Constructor (@{type_name prop},
+  (Code_Target.extend_target (target, (Code_ML.target_SML, I))
+  #> Code_Target.set_printings (Type_Constructor (@{type_name prop},
     [(target, SOME (0, (K o K o K) (Code_Printer.str s_truth)))]))
-  #> Code_Target.set_printings (Code_Symbol.Constant (@{const_name Code_Generator.holds},
+  #> Code_Target.set_printings (Constant (@{const_name Code_Generator.holds},
     [(target, SOME (Code_Printer.plain_const_syntax s_Holds))]))
   #> Code_Target.add_reserved target this
   #> fold (Code_Target.add_reserved target) ["oo", "ooo", "oooo", "upto", "downto", "orf", "andf"]);
@@ -87,9 +88,12 @@ fun reject_vars thy t =
     val ctxt = Proof_Context.init_global thy;
   in ((Sign.no_frees ctxt o Sign.no_vars ctxt o map_types (K dummyT)) t; t) end;
 
-fun obtain_evaluator thy some_target naming program consts expr =
-  Code_Target.evaluator thy (the_default target some_target) naming program consts expr
+fun obtain_evaluator thy some_target program consts expr =
+  Code_Target.evaluator thy (the_default target some_target) program consts expr
   |> apfst (fn ml_modules => space_implode "\n\n" (map snd ml_modules));
+
+fun obtain_evaluator' thy some_target program =
+  obtain_evaluator thy some_target program o map Constant;
 
 fun evaluation cookie thy evaluator vs_t args =
   let
@@ -110,8 +114,8 @@ fun dynamic_value_exn cookie thy some_target postproc t args =
     val _ = if ! trace
       then tracing ("Evaluation of term " ^ quote (Syntax.string_of_term_global thy t))
       else ()
-    fun evaluator naming program ((_, vs_ty), t) deps =
-      evaluation cookie thy (obtain_evaluator thy some_target naming program deps) (vs_ty, t) args;
+    fun evaluator program ((_, vs_ty), t) deps =
+      evaluation cookie thy (obtain_evaluator thy some_target program deps) (vs_ty, t) args;
   in Code_Thingol.dynamic_value thy (Exn.map_result o postproc) evaluator t end;
 
 fun dynamic_value_strict cookie thy some_target postproc t args =
@@ -120,9 +124,9 @@ fun dynamic_value_strict cookie thy some_target postproc t args =
 fun dynamic_value cookie thy some_target postproc t args =
   partiality_as_none (dynamic_value_exn cookie thy some_target postproc t args);
 
-fun static_evaluator cookie thy some_target naming program consts' =
+fun static_evaluator cookie thy some_target program consts' =
   let
-    val evaluator = obtain_evaluator thy some_target naming program consts'
+    val evaluator = obtain_evaluator' thy some_target program consts'
   in fn ((_, vs_ty), t) => fn _ => evaluation cookie thy evaluator (vs_ty, t) [] end;
 
 fun static_value_exn cookie thy some_target postproc consts =
@@ -175,13 +179,13 @@ fun check_holds_oracle thy evaluator ((_, vs_ty), t) deps ct =
 in
 
 fun dynamic_holds_conv thy = Code_Thingol.dynamic_conv thy
-  (fn naming => fn program => fn vs_t => fn deps =>
-    check_holds_oracle thy (obtain_evaluator thy NONE naming program deps) vs_t deps)
+  (fn program => fn vs_t => fn deps =>
+    check_holds_oracle thy (obtain_evaluator thy NONE program deps) vs_t deps)
       o reject_vars thy;
 
 fun static_holds_conv thy consts = Code_Thingol.static_conv thy consts
-  (fn naming => fn program => fn consts' =>
-    check_holds_oracle thy (obtain_evaluator thy NONE naming program consts'))
+  (fn program => fn consts' =>
+    check_holds_oracle thy (obtain_evaluator' thy NONE program consts'))
       o reject_vars thy;
 
 end; (*local*)
@@ -192,23 +196,22 @@ end; (*local*)
 fun evaluation_code thy module_name tycos consts =
   let
     val ctxt = Proof_Context.init_global thy;
-    val (consts', (naming, program)) = Code_Thingol.consts_program thy false consts;
-    val tycos' = map (the o Code_Thingol.lookup_tyco naming) tycos;
+    val program = Code_Thingol.consts_program thy false consts;
     val (ml_modules, target_names) =
       Code_Target.produce_code_for thy
-        target NONE module_name [] naming program (consts' @ tycos');
+        target NONE module_name [] program (map Constant consts @ map Type_Constructor tycos);
     val ml_code = space_implode "\n\n" (map snd ml_modules);
-    val (consts'', tycos'') = chop (length consts') target_names;
+    val (consts', tycos') = chop (length consts) target_names;
     val consts_map = map2 (fn const =>
       fn NONE =>
           error ("Constant " ^ (quote o Code.string_of_const thy) const ^
             "\nhas a user-defined serialization")
-       | SOME const'' => (const, const'')) consts consts''
+       | SOME const' => (const, const')) consts consts'
     val tycos_map = map2 (fn tyco =>
       fn NONE =>
           error ("Type " ^ quote (Proof_Context.extern_type ctxt tyco) ^
             "\nhas a user-defined serialization")
-        | SOME tyco'' => (tyco, tyco'')) tycos tycos'';
+        | SOME tyco' => (tyco, tyco')) tycos tycos';
   in (ml_code, (tycos_map, consts_map)) end;
 
 
@@ -290,7 +293,7 @@ fun add_eval_tyco (tyco, tyco') thy =
           Code_Printer.concat [Code_Printer.enum "," "(" ")" (map (pr' Code_Printer.BR) tys), tyco']
   in
     thy
-    |> Code_Target.set_printings (Code_Symbol.Type_Constructor (tyco, [(target, SOME (k, pr))]))
+    |> Code_Target.set_printings (Type_Constructor (tyco, [(target, SOME (k, pr))]))
   end;
 
 fun add_eval_constr (const, const') thy =
@@ -300,11 +303,11 @@ fun add_eval_constr (const, const') thy =
       (const' :: the_list (Code_Printer.tuplify pr' Code_Printer.BR (map fst ts)));
   in
     thy
-    |> Code_Target.set_printings (Code_Symbol.Constant (const,
+    |> Code_Target.set_printings (Constant (const,
       [(target, SOME (Code_Printer.simple_const_syntax (k, pr)))]))
   end;
 
-fun add_eval_const (const, const') = Code_Target.set_printings (Code_Symbol.Constant
+fun add_eval_const (const, const') = Code_Target.set_printings (Constant
   (const, [(target, SOME (Code_Printer.simple_const_syntax (0, (K o K o K) const')))]));
 
 fun process_reflection (code, (tyco_map, (constr_map, const_map))) module_name NONE thy =
@@ -435,7 +438,7 @@ fun add_definiendum (ml_name, (b, T)) thy =
   |> Code_Target.add_reserved target ml_name
   |> Specification.axiomatization [(b, SOME T, NoSyn)] []
   |-> (fn ([Const (const, _)], _) =>
-    Code_Target.set_printings (Code_Symbol.Constant (const,
+    Code_Target.set_printings (Constant (const,
       [(target, SOME (Code_Printer.simple_const_syntax (0, (K o K o K o Code_Printer.str) ml_name)))]))
   #> tap (fn thy => Code_Target.produce_code thy [const] target NONE structure_generated []));
 

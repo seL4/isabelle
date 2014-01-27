@@ -52,35 +52,35 @@ ML {*
   end;
 *}
 
-syntax "_STR_cartouche" :: "cartouche_position \<Rightarrow> string"  ("STR _")
+syntax "_cartouche_string" :: "cartouche_position \<Rightarrow> string"  ("_")
 
 parse_translation {*
-  [(@{syntax_const "_STR_cartouche"},
+  [(@{syntax_const "_cartouche_string"},
     K (string_tr (Symbol_Pos.cartouche_content o Symbol_Pos.explode)))]
 *}
 
-term "STR \<open>\<close>"
-term "STR \<open>abc\<close>"
-term "STR \<open>abc\<close> @ STR \<open>xyz\<close>"
-term "STR \<open>\<newline>\<close>"
-term "STR \<open>\001\010\100\<close>"
+term "\<open>\<close>"
+term "\<open>abc\<close>"
+term "\<open>abc\<close> @ \<open>xyz\<close>"
+term "\<open>\<newline>\<close>"
+term "\<open>\001\010\100\<close>"
 
 
 subsection {* Alternate outer and inner syntax: string literals *}
 
 subsubsection {* Nested quotes *}
 
-syntax "_STR_string" :: "string_position \<Rightarrow> string"  ("STR _")
+syntax "_string_string" :: "string_position \<Rightarrow> string"  ("_")
 
 parse_translation {*
-  [(@{syntax_const "_STR_string"}, K (string_tr Lexicon.explode_string))]
+  [(@{syntax_const "_string_string"}, K (string_tr Lexicon.explode_string))]
 *}
 
-term "STR \"\""
-term "STR \"abc\""
-term "STR \"abc\" @ STR \"xyz\""
-term "STR \"\<newline>\""
-term "STR \"\001\010\100\""
+term "\"\""
+term "\"abc\""
+term "\"abc\" @ \"xyz\""
+term "\"\<newline>\""
+term "\"\001\010\100\""
 
 
 subsubsection {* Term cartouche and regular quotes *}
@@ -95,11 +95,11 @@ ML {*
         in writeln (Syntax.string_of_term ctxt t) end)))
 *}
 
-term_cartouche \<open>STR ""\<close>
-term_cartouche \<open>STR "abc"\<close>
-term_cartouche \<open>STR "abc" @ STR "xyz"\<close>
-term_cartouche \<open>STR "\<newline>"\<close>
-term_cartouche \<open>STR "\001\010\100"\<close>
+term_cartouche \<open>""\<close>
+term_cartouche \<open>"abc"\<close>
+term_cartouche \<open>"abc" @ "xyz"\<close>
+term_cartouche \<open>"\<newline>"\<close>
+term_cartouche \<open>"\001\010\100"\<close>
 
 
 subsubsection {* Further nesting: antiquotations *}
@@ -125,22 +125,22 @@ setup -- "document antiquotation"
 *}
 
 ML {*
-  @{term_cartouche \<open>STR ""\<close>};
-  @{term_cartouche \<open>STR "abc"\<close>};
-  @{term_cartouche \<open>STR "abc" @ STR "xyz"\<close>};
-  @{term_cartouche \<open>STR "\<newline>"\<close>};
-  @{term_cartouche \<open>STR "\001\010\100"\<close>};
+  @{term_cartouche \<open>""\<close>};
+  @{term_cartouche \<open>"abc"\<close>};
+  @{term_cartouche \<open>"abc" @ "xyz"\<close>};
+  @{term_cartouche \<open>"\<newline>"\<close>};
+  @{term_cartouche \<open>"\001\010\100"\<close>};
 *}
 
 text {*
   @{ML_cartouche
     \<open>
       (
-        @{term_cartouche \<open>STR ""\<close>};
-        @{term_cartouche \<open>STR "abc"\<close>};
-        @{term_cartouche \<open>STR "abc" @ STR "xyz"\<close>};
-        @{term_cartouche \<open>STR "\<newline>"\<close>};
-        @{term_cartouche \<open>STR "\001\010\100"\<close>}
+        @{term_cartouche \<open>""\<close>};
+        @{term_cartouche \<open>"abc"\<close>};
+        @{term_cartouche \<open>"abc" @ "xyz"\<close>};
+        @{term_cartouche \<open>"\<newline>"\<close>};
+        @{term_cartouche \<open>"\001\010\100"\<close>}
       )
     \<close>
   }
@@ -160,11 +160,11 @@ text_cartouche
   @{ML_cartouche
     \<open>
       (
-        @{term_cartouche \<open>STR ""\<close>};
-        @{term_cartouche \<open>STR "abc"\<close>};
-        @{term_cartouche \<open>STR "abc" @ STR "xyz"\<close>};
-        @{term_cartouche \<open>STR "\<newline>"\<close>};
-        @{term_cartouche \<open>STR "\001\010\100"\<close>}
+        @{term_cartouche \<open>""\<close>};
+        @{term_cartouche \<open>"abc"\<close>};
+        @{term_cartouche \<open>"abc" @ "xyz"\<close>};
+        @{term_cartouche \<open>"\<newline>"\<close>};
+        @{term_cartouche \<open>"\001\010\100"\<close>}
       )
     \<close>
   }

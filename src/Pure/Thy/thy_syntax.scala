@@ -155,8 +155,8 @@ object Thy_Syntax
   private def header_edits(
     base_syntax: Outer_Syntax,
     previous: Document.Version,
-    edits: List[Document.Edit_Text])
-    : (Outer_Syntax, List[Document.Node.Name], Document.Nodes, List[Document.Edit_Command]) =
+    edits: List[Document.Edit_Text]):
+    ((Outer_Syntax, Boolean), List[Document.Node.Name], Document.Nodes, List[Document.Edit_Command]) =
   {
     var updated_imports = false
     var updated_keywords = false
@@ -179,11 +179,14 @@ object Thy_Syntax
     }
 
     val syntax =
-      if (previous.is_init || updated_keywords)
-        (base_syntax /: nodes.entries) {
-          case (syn, (_, node)) => syn.add_keywords(node.header.keywords)
-        }
-      else previous.syntax
+      if (previous.is_init || updated_keywords) {
+        val syntax =
+          (base_syntax /: nodes.entries) {
+            case (syn, (_, node)) => syn.add_keywords(node.header.keywords)
+          }
+        (syntax, true)
+      }
+      else (previous.syntax, false)
 
     val reparse =
       if (updated_imports || updated_keywords)
@@ -428,13 +431,13 @@ object Thy_Syntax
       previous: Document.Version,
       doc_blobs: Document.Blobs,
       edits: List[Document.Edit_Text])
-    : (List[Document.Edit_Command], Document.Version) =
+    : (Boolean, List[Document.Edit_Command], Document.Version) =
   {
-    val (syntax, reparse0, nodes0, doc_edits0) =
+    val ((syntax, syntax_changed), reparse0, nodes0, doc_edits0) =
       header_edits(thy_load.base_syntax, previous, edits)
 
     if (edits.isEmpty)
-      (Nil, Document.Version.make(syntax, previous.nodes))
+      (false, Nil, Document.Version.make(syntax, previous.nodes))
     else {
       val reparse =
         (reparse0 /: nodes0.entries)({
@@ -472,7 +475,7 @@ object Thy_Syntax
           nodes += (name -> node2)
       }
 
-      (doc_edits.toList, Document.Version.make(syntax, nodes))
+      (syntax_changed, doc_edits.toList, Document.Version.make(syntax, nodes))
     }
   }
 }

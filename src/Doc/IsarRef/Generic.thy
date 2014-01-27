@@ -132,7 +132,6 @@ text {*
     @{attribute_def abs_def} & : & @{text attribute} \\[0.5ex]
     @{attribute_def rotated} & : & @{text attribute} \\
     @{attribute_def (Pure) elim_format} & : & @{text attribute} \\
-    @{attribute_def standard}@{text "\<^sup>*"} & : & @{text attribute} \\
     @{attribute_def no_vars}@{text "\<^sup>*"} & : & @{text attribute} \\
   \end{matharray}
 
@@ -179,11 +178,6 @@ text {*
   
   Note that the Classical Reasoner (\secref{sec:classical}) provides
   its own version of this operation.
-
-  \item @{attribute standard} puts a theorem into the standard form of
-  object-rules at the outermost theory level.  Note that this
-  operation violates the local proof context (including active
-  locales).
 
   \item @{attribute no_vars} replaces schematic variables by free
   ones; this is mainly for tuning output of pretty printed theorems.

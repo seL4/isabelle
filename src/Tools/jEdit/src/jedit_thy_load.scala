@@ -14,7 +14,7 @@ import javax.swing.text.Segment
 
 import org.gjt.sp.jedit.io.{VFS, FileVFS, VFSFile, VFSManager}
 import org.gjt.sp.jedit.MiscUtilities
-import org.gjt.sp.jedit.{View, Buffer}
+import org.gjt.sp.jedit.{jEdit, View, Buffer}
 import org.gjt.sp.jedit.bufferio.BufferIORequest
 
 class JEdit_Thy_Load(loaded_theories: Set[String] = Set.empty, base_syntax: Outer_Syntax)
@@ -111,5 +111,11 @@ class JEdit_Thy_Load(loaded_theories: Set[String] = Set.empty, base_syntax: Oute
       }
     content()
   }
+
+
+  /* theory text edits */
+
+  override def syntax_changed(): Unit =
+    Swing_Thread.later { jEdit.propertiesChanged() }
 }
 

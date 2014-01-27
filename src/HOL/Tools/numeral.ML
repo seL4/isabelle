@@ -67,23 +67,20 @@ local open Basic_Code_Thingol in
 
 fun add_code number_of negative print target thy =
   let
-    fun dest_numeral one' bit0' bit1' thm t =
+    fun dest_numeral thm t =
       let
-        fun dest_bit (IConst { name = c, ... }) = if c = bit0' then 0
-              else if c = bit1' then 1
-              else Code_Printer.eqn_error thm "Illegal numeral expression: illegal bit"
+        fun dest_bit (IConst { sym = Code_Symbol.Constant @{const_name Num.Bit0}, ... }) = 0
+          | dest_bit (IConst { sym = Code_Symbol.Constant @{const_name Num.Bit1}, ... }) = 1
           | dest_bit _ = Code_Printer.eqn_error thm "Illegal numeral expression: illegal bit";
-        fun dest_num (IConst { name = c, ... }) = if c = one' then 1
-              else Code_Printer.eqn_error thm "Illegal numeral expression: illegal leading digit"
+        fun dest_num (IConst { sym = Code_Symbol.Constant @{const_name Num.One}, ... }) = 1
           | dest_num (t1 `$ t2) = 2 * dest_num t2 + dest_bit t1
           | dest_num _ = Code_Printer.eqn_error thm "Illegal numeral expression: illegal term";
       in if negative then ~ (dest_num t) else dest_num t end;
-    fun pretty literals [one', bit0', bit1'] _ thm _ _ [(t, _)] =
-      (Code_Printer.str o print literals o dest_numeral one' bit0' bit1' thm) t;
+    fun pretty literals _ thm _ _ [(t, _)] =
+      (Code_Printer.str o print literals o dest_numeral thm) t;
   in
     thy |> Code_Target.set_printings (Code_Symbol.Constant (number_of,
-      [(target, SOME (Code_Printer.complex_const_syntax
-        (1, ([@{const_name Num.One}, @{const_name Num.Bit0}, @{const_name Num.Bit1}], pretty))))]))
+      [(target, SOME (Code_Printer.complex_const_syntax (1, pretty)))]))
   end;
 
 end; (*local*)

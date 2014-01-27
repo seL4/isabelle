@@ -103,12 +103,120 @@ theory Pure
 begin
 
 ML_file "Isar/isar_syn.ML"
+ML_file "Isar/calculation.ML"
 ML_file "Tools/rail.ML"
 ML_file "Tools/rule_insts.ML";
 ML_file "Tools/find_theorems.ML"
 ML_file "Tools/find_consts.ML"
 ML_file "Tools/proof_general_pure.ML"
 ML_file "Tools/simplifier_trace.ML"
+
+
+section {* Basic attributes *}
+
+attribute_setup tagged =
+  "Scan.lift (Args.name -- Args.name) >> Thm.tag"
+  "tagged theorem"
+
+attribute_setup untagged =
+  "Scan.lift Args.name >> Thm.untag"
+  "untagged theorem"
+
+attribute_setup kind =
+  "Scan.lift Args.name >> Thm.kind"
+  "theorem kind"
+
+attribute_setup THEN =
+  "Scan.lift (Scan.optional (Args.bracks Parse.nat) 1) -- Attrib.thm
+    >> (fn (i, B) => Thm.rule_attribute (fn _ => fn A => A RSN (i, B)))"
+  "resolution with rule"
+
+attribute_setup OF =
+  "Attrib.thms >> (fn Bs => Thm.rule_attribute (fn _ => fn A => A OF Bs))"
+  "rule resolved with facts"
+
+attribute_setup rename_abs =
+  "Scan.lift (Scan.repeat (Args.maybe Args.name)) >> (fn vs =>
+    Thm.rule_attribute (K (Drule.rename_bvars' vs)))"
+  "rename bound variables in abstractions"
+
+attribute_setup unfolded =
+  "Attrib.thms >> (fn ths =>
+    Thm.rule_attribute (fn context => Local_Defs.unfold (Context.proof_of context) ths))"
+  "unfolded definitions"
+
+attribute_setup folded =
+  "Attrib.thms >> (fn ths =>
+    Thm.rule_attribute (fn context => Local_Defs.fold (Context.proof_of context) ths))"
+  "folded definitions"
+
+attribute_setup consumes =
+  "Scan.lift (Scan.optional Parse.int 1) >> Rule_Cases.consumes"
+  "number of consumed facts"
+
+attribute_setup constraints =
+  "Scan.lift Parse.nat >> Rule_Cases.constraints"
+  "number of equality constraints"
+
+attribute_setup case_names = {*
+  Scan.lift (Scan.repeat1 (Args.name --
+    Scan.optional (@{keyword "["} |-- Scan.repeat1 (Args.maybe Args.name) --| @{keyword "]"}) []))
+  >> (fn cs =>
+      Rule_Cases.cases_hyp_names
+        (map #1 cs)
+        (map (map (the_default Rule_Cases.case_hypsN) o #2) cs))
+*} "named rule cases"
+
+attribute_setup case_conclusion =
+  "Scan.lift (Args.name -- Scan.repeat Args.name) >> Rule_Cases.case_conclusion"
+  "named conclusion of rule cases"
+
+attribute_setup params =
+  "Scan.lift (Parse.and_list1 (Scan.repeat Args.name)) >> Rule_Cases.params"
+  "named rule parameters"
+
+attribute_setup rule_format = {*
+  Scan.lift (Args.mode "no_asm")
+    >> (fn true => Object_Logic.rule_format_no_asm | false => Object_Logic.rule_format)
+*} "result put into canonical rule format"
+
+attribute_setup elim_format =
+  "Scan.succeed (Thm.rule_attribute (K Tactic.make_elim))"
+  "destruct rule turned into elimination rule format"
+
+attribute_setup no_vars = {*
+  Scan.succeed (Thm.rule_attribute (fn context => fn th =>
+    let
+      val ctxt = Variable.set_body false (Context.proof_of context);
+      val ((_, [th']), _) = Variable.import true [th] ctxt;
+    in th' end))
+*} "imported schematic variables"
+
+attribute_setup eta_long =
+  "Scan.succeed (Thm.rule_attribute (fn _ => Conv.fconv_rule Drule.eta_long_conversion))"
+  "put theorem into eta long beta normal form"
+
+attribute_setup atomize =
+  "Scan.succeed Object_Logic.declare_atomize"
+  "declaration of atomize rule"
+
+attribute_setup rulify =
+  "Scan.succeed Object_Logic.declare_rulify"
+  "declaration of rulify rule"
+
+attribute_setup rotated =
+  "Scan.lift (Scan.optional Parse.int 1
+    >> (fn n => Thm.rule_attribute (fn _ => rotate_prems n)))"
+  "rotated theorem premises"
+
+attribute_setup defn =
+  "Attrib.add_del Local_Defs.defn_add Local_Defs.defn_del"
+  "declaration of definitional transformations"
+
+attribute_setup abs_def =
+  "Scan.succeed (Thm.rule_attribute (fn context =>
+    Local_Defs.meta_rewrite_rule (Context.proof_of context) #> Drule.abs_def))"
+  "abstract over free variables of definitional theorem"
 
 
 section {* Further content for the Pure theory *}

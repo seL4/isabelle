@@ -25,6 +25,7 @@ val language_pragma =
 val language_params =
   space_implode " " (map (prefix "-X") language_extensions);
 
+open Basic_Code_Symbol;
 open Basic_Code_Thingol;
 open Code_Printer;
 
@@ -37,8 +38,11 @@ infixr 5 @|;
 fun print_haskell_stmt class_syntax tyco_syntax const_syntax
     reserved deresolve deriving_show =
   let
+    val deresolve_const = deresolve o Constant;
+    val deresolve_tyco = deresolve o Type_Constructor;
+    val deresolve_class = deresolve o Type_Class;
     fun class_name class = case class_syntax class
-     of NONE => deresolve class
+     of NONE => deresolve_class class
       | SOME class => class;
     fun print_typcontext tyvars vs = case maps (fn (v, sort) => map (pair v) sort) vs
      of [] => []
@@ -53,7 +57,7 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
     fun print_tyco_expr tyvars fxy (tyco, tys) =
       brackify fxy (str tyco :: map (print_typ tyvars BR) tys)
     and print_typ tyvars fxy (tyco `%% tys) = (case tyco_syntax tyco
-         of NONE => print_tyco_expr tyvars fxy (deresolve tyco, tys)
+         of NONE => print_tyco_expr tyvars fxy (deresolve_tyco tyco, tys)
           | SOME (_, print) => print (print_typ tyvars) fxy tys)
       | print_typ tyvars fxy (ITyVar v) = (str o lookup_var tyvars) v;
     fun print_typdecl tyvars (tyco, vs) =
@@ -81,18 +85,19 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
           in brackets (str "\\" :: ps @ str "->" @@ print_term tyvars some_thm vars' NOBR t') end
       | print_term tyvars some_thm vars fxy (ICase case_expr) =
           (case Code_Thingol.unfold_const_app (#primitive case_expr)
-           of SOME (app as ({ name = c, ... }, _)) => if is_none (const_syntax c)
+           of SOME (app as ({ sym = Constant const, ... }, _)) =>
+                if is_none (const_syntax const)
                 then print_case tyvars some_thm vars fxy case_expr
                 else print_app tyvars some_thm vars fxy app
             | NONE => print_case tyvars some_thm vars fxy case_expr)
-    and print_app_expr tyvars some_thm vars ({ name = c, dom, range, annotate, ... }, ts) =
+    and print_app_expr tyvars some_thm vars ({ sym, dom, range, annotate, ... }, ts) =
       let
-        val ty = Library.foldr (fn (ty1, ty2) => Code_Thingol.fun_tyco `%% [ty1, ty2]) (dom, range)
+        val ty = Library.foldr (op `->) (dom, range)
         val printed_const =
           if annotate then
-            brackets [(str o deresolve) c, str "::", print_typ tyvars NOBR ty]
+            brackets [(str o deresolve) sym, str "::", print_typ tyvars NOBR ty]
           else
-            (str o deresolve) c
+            (str o deresolve) sym
       in 
         printed_const :: map (print_term tyvars some_thm vars BR) ts
       end
@@ -122,29 +127,27 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
             (concat [str "(case", print_term tyvars some_thm vars NOBR t, str "of", str "{"], str "})")
             (map print_select clauses)
           end;
-    fun print_stmt (name, Code_Thingol.Fun (_, (((vs, ty), raw_eqs), _))) =
+    fun print_stmt (Constant const, Code_Thingol.Fun (((vs, ty), raw_eqs), _)) =
           let
             val tyvars = intro_vars (map fst vs) reserved;
             fun print_err n =
-              semicolon (
-                (str o deresolve) name
-                :: map str (replicate n "_")
-                @ str "="
-                :: str "error"
-                @@ (str o ML_Syntax.print_string
-                    o Long_Name.base_name o Long_Name.qualifier) name
+              (semicolon o map str) (
+                deresolve_const const
+                :: replicate n "_"
+                @ "="
+                :: "error"
+                @@ ML_Syntax.print_string const
               );
             fun print_eqn ((ts, t), (some_thm, _)) =
               let
-                val consts = fold Code_Thingol.add_constnames (t :: ts) [];
                 val vars = reserved
-                  |> intro_base_names
-                      (is_none o const_syntax) deresolve consts
+                  |> intro_base_names_for (is_none o const_syntax)
+                      deresolve (t :: ts)
                   |> intro_vars ((fold o Code_Thingol.fold_varnames)
                       (insert (op =)) ts []);
               in
                 semicolon (
-                  (str o deresolve) name
+                  (str o deresolve_const) const
                   :: map (print_term tyvars some_thm vars BR) ts
                   @ str "="
                   @@ print_term tyvars some_thm vars NOBR t
@@ -153,7 +156,7 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
           in
             Pretty.chunks (
               semicolon [
-                (str o suffix " ::" o deresolve) name,
+                (str o suffix " ::" o deresolve_const) const,
                 print_typscheme tyvars (vs, ty)
               ]
               :: (case filter (snd o snd) raw_eqs
@@ -161,52 +164,52 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
                 | eqs => map print_eqn eqs)
             )
           end
-      | print_stmt (name, Code_Thingol.Datatype (_, (vs, []))) =
+      | print_stmt (Type_Constructor tyco, Code_Thingol.Datatype (vs, [])) =
           let
             val tyvars = intro_vars vs reserved;
           in
             semicolon [
               str "data",
-              print_typdecl tyvars (deresolve name, vs)
+              print_typdecl tyvars (deresolve_tyco tyco, vs)
             ]
           end
-      | print_stmt (name, Code_Thingol.Datatype (_, (vs, [((co, _), [ty])]))) =
+      | print_stmt (Type_Constructor tyco, Code_Thingol.Datatype (vs, [((co, _), [ty])])) =
           let
             val tyvars = intro_vars vs reserved;
           in
             semicolon (
               str "newtype"
-              :: print_typdecl tyvars (deresolve name, vs)
+              :: print_typdecl tyvars (deresolve_tyco tyco, vs)
               :: str "="
-              :: (str o deresolve) co
+              :: (str o deresolve_const) co
               :: print_typ tyvars BR ty
-              :: (if deriving_show name then [str "deriving (Read, Show)"] else [])
+              :: (if deriving_show tyco then [str "deriving (Read, Show)"] else [])
             )
           end
-      | print_stmt (name, Code_Thingol.Datatype (_, (vs, co :: cos))) =
+      | print_stmt (Type_Constructor tyco, Code_Thingol.Datatype (vs, co :: cos)) =
           let
             val tyvars = intro_vars vs reserved;
             fun print_co ((co, _), tys) =
               concat (
-                (str o deresolve) co
+                (str o deresolve_const) co
                 :: map (print_typ tyvars BR) tys
               )
           in
             semicolon (
               str "data"
-              :: print_typdecl tyvars (deresolve name, vs)
+              :: print_typdecl tyvars (deresolve_tyco tyco, vs)
               :: str "="
               :: print_co co
               :: map ((fn p => Pretty.block [str "| ", p]) o print_co) cos
-              @ (if deriving_show name then [str "deriving (Read, Show)"] else [])
+              @ (if deriving_show tyco then [str "deriving (Read, Show)"] else [])
             )
           end
-      | print_stmt (name, Code_Thingol.Class (_, (v, (super_classes, classparams)))) =
+      | print_stmt (Type_Class class, Code_Thingol.Class (v, (classrels, classparams))) =
           let
             val tyvars = intro_vars [v] reserved;
             fun print_classparam (classparam, ty) =
               semicolon [
-                (str o deresolve) classparam,
+                (str o deresolve_const) classparam,
                 str "::",
                 print_typ tyvars NOBR ty
               ]
@@ -214,8 +217,8 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
             Pretty.block_enclose (
               Pretty.block [
                 str "class ",
-                Pretty.block (print_typcontext tyvars [(v, map fst super_classes)]),
-                str (deresolve name ^ " " ^ lookup_var tyvars v),
+                Pretty.block (print_typcontext tyvars [(v, map snd classrels)]),
+                str (deresolve_class class ^ " " ^ lookup_var tyvars v),
                 str " where {"
               ],
               str "};"
@@ -226,25 +229,25 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
             val tyvars = intro_vars (map fst vs) reserved;
             fun requires_args classparam = case const_syntax classparam
              of NONE => NONE
-              | SOME (Code_Printer.Plain_const_syntax _) => SOME 0
-              | SOME (Code_Printer.Complex_const_syntax (k,_ )) => SOME k;
+              | SOME (_, Code_Printer.Plain_printer _) => SOME 0
+              | SOME (k, Code_Printer.Complex_printer _) => SOME k;
             fun print_classparam_instance ((classparam, (const, _)), (thm, _)) =
               case requires_args classparam
                of NONE => semicolon [
-                      (str o Long_Name.base_name o deresolve) classparam,
+                      (str o Long_Name.base_name o deresolve_const) classparam,
                       str "=",
                       print_app tyvars (SOME thm) reserved NOBR (const, [])
                     ]
                 | SOME k =>
                     let
-                      val { name = c, dom, range, ... } = const;
+                      val { sym = Constant c, dom, range, ... } = const;
                       val (vs, rhs) = (apfst o map) fst
                         (Code_Thingol.unfold_abs (Code_Thingol.eta_expand k (const, [])));
                       val s = if (is_some o const_syntax) c
-                        then NONE else (SOME o Long_Name.base_name o deresolve) c;
+                        then NONE else (SOME o Long_Name.base_name o deresolve_const) c;
                       val vars = reserved
                         |> intro_vars (map_filter I (s :: vs));
-                      val lhs = IConst { name = classparam, typargs = [],
+                      val lhs = IConst { sym = Constant classparam, typargs = [],
                         dicts = [], dom = dom, range = range, annotate = false } `$$ map IVar vs;
                         (*dictionaries are not relevant at this late stage,
                           and these consts never need type annotations for disambiguation *)
@@ -269,7 +272,7 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
           end;
   in print_stmt end;
 
-fun haskell_program_of_program ctxt symbol_of module_prefix module_name reserved identifiers =
+fun haskell_program_of_program ctxt module_prefix module_name reserved identifiers =
   let
     fun namify_fun upper base (nsp_fun, nsp_typ) =
       let
@@ -280,7 +283,7 @@ fun haskell_program_of_program ctxt symbol_of module_prefix module_name reserved
       let
         val (base', nsp_typ') = Name.variant (first_upper base) nsp_typ;
       in (base', (nsp_fun, nsp_typ')) end;
-    fun namify_stmt (Code_Thingol.Fun (_, (_, SOME _))) = pair
+    fun namify_stmt (Code_Thingol.Fun (_, SOME _)) = pair
       | namify_stmt (Code_Thingol.Fun _) = namify_fun false
       | namify_stmt (Code_Thingol.Datatype _) = namify_typ
       | namify_stmt (Code_Thingol.Datatypecons _) = namify_fun true
@@ -288,7 +291,7 @@ fun haskell_program_of_program ctxt symbol_of module_prefix module_name reserved
       | namify_stmt (Code_Thingol.Classrel _) = pair
       | namify_stmt (Code_Thingol.Classparam _) = namify_fun false
       | namify_stmt (Code_Thingol.Classinst _) = pair;
-    fun select_stmt (Code_Thingol.Fun (_, (_, SOME _))) = false
+    fun select_stmt (Code_Thingol.Fun (_, SOME _)) = false
       | select_stmt (Code_Thingol.Fun _) = true
       | select_stmt (Code_Thingol.Datatype _) = true
       | select_stmt (Code_Thingol.Datatypecons _) = false
@@ -297,7 +300,7 @@ fun haskell_program_of_program ctxt symbol_of module_prefix module_name reserved
       | select_stmt (Code_Thingol.Classparam _) = false
       | select_stmt (Code_Thingol.Classinst _) = true;
   in
-    Code_Namespace.flat_program ctxt symbol_of
+    Code_Namespace.flat_program ctxt
       { module_prefix = module_prefix, module_name = module_name, reserved = reserved,
         identifiers = identifiers, empty_nsp = (reserved, reserved), namify_stmt = namify_stmt,
         modify_stmt = fn stmt => if select_stmt stmt then SOME stmt else NONE }
@@ -324,25 +327,24 @@ val prelude_import_unqualified_constr = [
   ("Maybe", ["Nothing", "Just"])
 ];
 
-fun serialize_haskell module_prefix string_classes ctxt { symbol_of, module_name,
+fun serialize_haskell module_prefix string_classes ctxt { module_name,
     reserved_syms, identifiers, includes, class_syntax, tyco_syntax, const_syntax } program =
   let
 
     (* build program *)
     val reserved = fold (insert (op =) o fst) includes reserved_syms;
     val { deresolver, flat_program = haskell_program } = haskell_program_of_program
-      ctxt symbol_of module_prefix module_name (Name.make_context reserved) identifiers program;
+      ctxt module_prefix module_name (Name.make_context reserved) identifiers program;
 
     (* print statements *)
     fun deriving_show tyco =
       let
         fun deriv _ "fun" = false
-          | deriv tycos tyco = not (tyco = Code_Thingol.fun_tyco)
-              andalso (member (op =) tycos tyco
-              orelse case try (Graph.get_node program) tyco
-                of SOME (Code_Thingol.Datatype (_, (_, cs))) => forall (deriv' (tyco :: tycos))
+          | deriv tycos tyco = member (op =) tycos tyco
+              orelse case try (Code_Symbol.Graph.get_node program) (Type_Constructor tyco)
+                of SOME (Code_Thingol.Datatype (_, cs)) => forall (deriv' (tyco :: tycos))
                     (maps snd cs)
-                 | NONE => true)
+                 | NONE => true
         and deriv' tycos (tyco `%% tys) = deriv tycos tyco
               andalso forall (deriv' tycos) tys
           | deriv' _ (ITyVar _) = true
@@ -370,10 +372,10 @@ fun serialize_haskell module_prefix string_classes ctxt { symbol_of, module_name
         val deresolve = deresolver module_name;
         fun print_import module_name = (semicolon o map str) ["import qualified", module_name];
         val import_ps = import_common_ps @ map (print_qualified_import o fst) imports;
-        fun print_stmt' name = case Graph.get_node gr name
+        fun print_stmt' sym = case Code_Symbol.Graph.get_node gr sym
          of (_, NONE) => NONE
-          | (_, SOME stmt) => SOME (markup_stmt name (print_stmt deresolve (name, stmt)));
-        val body_ps = map_filter print_stmt' ((flat o rev o Graph.strong_conn) gr);
+          | (_, SOME stmt) => SOME (markup_stmt sym (print_stmt deresolve (sym, stmt)));
+        val body_ps = map_filter print_stmt' ((flat o rev o Code_Symbol.Graph.strong_conn) gr);
       in
         print_module_frame module_name
           ((if null import_ps then [] else [Pretty.chunks import_ps]) @ body_ps)
@@ -431,14 +433,14 @@ fun pretty_haskell_monad c_bind =
      of SOME ((pat, ty), t') =>
           SOME ((SOME ((pat, ty), true), t1), t')
       | NONE => NONE;
-    fun dest_monad c_bind_name (IConst { name = c, ... } `$ t1 `$ t2) =
-          if c = c_bind_name then dest_bind t1 t2
+    fun dest_monad (IConst { sym = Constant c, ... } `$ t1 `$ t2) =
+          if c = c_bind then dest_bind t1 t2
           else NONE
-      | dest_monad _ t = case Code_Thingol.split_let t
+      | dest_monad t = case Code_Thingol.split_let t
          of SOME (((pat, ty), tbind), t') =>
               SOME ((SOME ((pat, ty), false), tbind), t')
           | NONE => NONE;
-    fun implode_monad c_bind_name = Code_Thingol.unfoldr (dest_monad c_bind_name);
+    val implode_monad = Code_Thingol.unfoldr dest_monad;
     fun print_monad print_bind print_term (NONE, t) vars =
           (semicolon [print_term vars NOBR t], vars)
       | print_monad print_bind print_term (SOME ((bind, _), true), t) vars = vars
@@ -447,9 +449,9 @@ fun pretty_haskell_monad c_bind =
       | print_monad print_bind print_term (SOME ((bind, _), false), t) vars = vars
           |> print_bind NOBR bind
           |>> (fn p => semicolon [str "let", str "{", p, str "=", print_term vars NOBR t, str "}"]);
-    fun pretty _ [c_bind'] print_term thm vars fxy [(t1, _), (t2, _)] = case dest_bind t1 t2
+    fun pretty _ print_term thm vars fxy [(t1, _), (t2, _)] = case dest_bind t1 t2
      of SOME (bind, t') => let
-          val (binds, t'') = implode_monad c_bind' t'
+          val (binds, t'') = implode_monad t'
           val (ps, vars') = fold_map (print_monad (gen_print_bind (K print_term) thm) print_term)
             (bind :: binds) vars;
         in
@@ -458,7 +460,7 @@ fun pretty_haskell_monad c_bind =
         end
       | NONE => brackify_infix (1, L) fxy
           (print_term vars (INFX (1, L)) t1, str ">>=", print_term vars (INFX (1, X)) t2)
-  in (2, ([c_bind], pretty)) end;
+  in (2, pretty) end;
 
 fun add_monad target' raw_c_bind thy =
   let
@@ -466,7 +468,7 @@ fun add_monad target' raw_c_bind thy =
   in
     if target = target' then
       thy
-      |> Code_Target.set_printings (Code_Symbol.Constant (c_bind, [(target,
+      |> Code_Target.set_printings (Constant (c_bind, [(target,
         SOME (Code_Printer.complex_const_syntax (pretty_haskell_monad c_bind)))]))
     else error "Only Haskell target allows for monad syntax"
   end;
@@ -486,7 +488,7 @@ val setup =
         make_command = fn module_name =>
           "\"$ISABELLE_GHC\" " ^ language_params  ^ " -odir build -hidir build -stubdir build -e \"\" " ^
             module_name ^ ".hs" } })
-  #> Code_Target.set_printings (Code_Symbol.Type_Constructor ("fun",
+  #> Code_Target.set_printings (Type_Constructor ("fun",
     [(target, SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
       brackify_infix (1, R) fxy (
         print_typ (INFX (1, X)) ty1,

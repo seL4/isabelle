@@ -6,8 +6,6 @@ Rule instantiations -- operations within implicit rule / subgoal context.
 
 signature BASIC_RULE_INSTS =
 sig
-  val read_instantiate: Proof.context -> (indexname * string) list -> thm -> thm
-  val instantiate_tac: Proof.context -> (indexname * string) list -> tactic
   val res_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic
   val eres_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic
   val cut_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic
@@ -20,6 +18,12 @@ end;
 signature RULE_INSTS =
 sig
   include BASIC_RULE_INSTS
+  val where_rule: Proof.context -> (indexname * string) list ->
+    (binding * string option * mixfix) list -> thm -> thm
+  val of_rule: Proof.context -> string option list * string option list ->
+    (binding * string option * mixfix) list -> thm -> thm
+  val read_instantiate: Proof.context -> (indexname * string) list -> string list -> thm -> thm
+  val instantiate_tac: Proof.context -> (indexname * string) list -> string list -> tactic
   val make_elim_preserve: thm -> thm
   val method: (Proof.context -> (indexname * string) list -> thm -> int -> tactic) ->
     (Proof.context -> thm list -> int -> tactic) -> (Proof.context -> Proof.method) context_parser
@@ -68,13 +72,13 @@ val add_used =
 
 in
 
-fun read_termTs ctxt schematic ss Ts =
+fun read_termTs ctxt ss Ts =
   let
     fun parse T = if T = propT then Syntax.parse_prop ctxt else Syntax.parse_term ctxt;
     val ts = map2 parse Ts ss;
     val ts' =
       map2 (Type.constraint o Type_Infer.paramify_vars) Ts ts
-      |> Syntax.check_terms ((schematic ? Proof_Context.set_mode Proof_Context.mode_schematic) ctxt)
+      |> Syntax.check_terms ctxt
       |> Variable.polymorphic ctxt;
     val Ts' = map Term.fastype_of ts';
     val tyenv = fold Type.raw_match (Ts ~~ Ts') Vartab.empty;
@@ -108,7 +112,7 @@ fun read_insts ctxt mixed_insts (tvars, vars) =
 
     val (xs, ss) = split_list term_insts;
     val Ts = map (the_type vars1) xs;
-    val (ts, inferred) = read_termTs ctxt false ss Ts;
+    val (ts, inferred) = read_termTs ctxt ss Ts;
 
     val instT2 = Term.typ_subst_TVars inferred;
     val vars2 = map (apsnd instT2) vars1;
@@ -123,9 +127,10 @@ fun read_insts ctxt mixed_insts (tvars, vars) =
     (map (pairself certT) inst_tvars, map (pairself cert) inst_vars)
   end;
 
-fun read_instantiate_mixed ctxt mixed_insts thm =
+fun where_rule ctxt mixed_insts fixes thm =
   let
     val ctxt' = ctxt
+      |> Proof_Context.read_vars fixes |-> Proof_Context.add_fixes |> #2
       |> Variable.declare_thm thm
       |> fold (fn a => Variable.declare_names (Logic.mk_type (TFree (a, dummyS)))) (add_used thm []);  (* FIXME !? *)
     val tvars = Thm.fold_terms Term.add_tvars thm [];
@@ -133,10 +138,11 @@ fun read_instantiate_mixed ctxt mixed_insts thm =
     val insts = read_insts ctxt' mixed_insts (tvars, vars);
   in
     Drule.instantiate_normalize insts thm
+    |> singleton (Proof_Context.export ctxt' ctxt)
     |> Rule_Cases.save thm
   end;
 
-fun read_instantiate_mixed' ctxt (args, concl_args) thm =
+fun of_rule ctxt (args, concl_args) fixes thm =
   let
     fun zip_vars _ [] = []
       | zip_vars (_ :: xs) (NONE :: rest) = zip_vars xs rest
@@ -145,17 +151,18 @@ fun read_instantiate_mixed' ctxt (args, concl_args) thm =
     val insts =
       zip_vars (rev (Term.add_vars (Thm.full_prop_of thm) [])) args @
       zip_vars (rev (Term.add_vars (Thm.concl_of thm) [])) concl_args;
-  in read_instantiate_mixed ctxt insts thm end;
+  in where_rule ctxt insts fixes thm end;
 
 end;
 
 
 (* instantiation of rule or goal state *)
 
-fun read_instantiate ctxt =
-  read_instantiate_mixed (ctxt |> Proof_Context.set_mode Proof_Context.mode_schematic);  (* FIXME !? *)
+fun read_instantiate ctxt insts xs =
+  where_rule ctxt insts (map (fn x => (Binding.name x, NONE, NoSyn)) xs);
 
-fun instantiate_tac ctxt args = PRIMITIVE (read_instantiate ctxt args);
+fun instantiate_tac ctxt insts fixes =
+  PRIMITIVE (read_instantiate ctxt insts fixes);
 
 
 
@@ -165,9 +172,10 @@ fun instantiate_tac ctxt args = PRIMITIVE (read_instantiate ctxt args);
 
 val _ = Theory.setup
   (Attrib.setup @{binding "where"}
-    (Scan.lift (Parse.and_list (Args.var -- (Args.$$$ "=" |-- Args.name_inner_syntax))) >>
-      (fn args =>
-        Thm.rule_attribute (fn context => read_instantiate_mixed (Context.proof_of context) args)))
+    (Scan.lift
+      (Parse.and_list (Args.var -- (Args.$$$ "=" |-- Args.name_inner_syntax)) -- Parse.for_fixes) >>
+      (fn (insts, fixes) =>
+        Thm.rule_attribute (fn context => where_rule (Context.proof_of context) insts fixes)))
     "named instantiation of theorem");
 
 
@@ -186,8 +194,8 @@ in
 
 val _ = Theory.setup
   (Attrib.setup @{binding "of"}
-    (Scan.lift insts >> (fn args =>
-      Thm.rule_attribute (fn context => read_instantiate_mixed' (Context.proof_of context) args)))
+    (Scan.lift (insts -- Parse.for_fixes) >> (fn (args, fixes) =>
+      Thm.rule_attribute (fn context => of_rule (Context.proof_of context) args fixes)))
     "positional instantiation of theorem");
 
 end;
@@ -243,7 +251,8 @@ fun bires_inst_tac bires_flag ctxt insts thm =
         val (xis, ss) = Library.split_list tinsts;
         val Ts = map get_typ xis;
 
-        val (ts, envT) = read_termTs ctxt' true ss Ts;
+        val (ts, envT) =
+          read_termTs (Proof_Context.set_mode Proof_Context.mode_schematic ctxt') ss Ts;
         val envT' = map (fn (ixn, T) =>
           (TVar (ixn, the (rsorts ixn)), T)) envT @ Tinsts_env;
         val cenv =

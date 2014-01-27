@@ -236,9 +236,6 @@ use "Isar/context_rules.ML";
 use "Isar/method.ML";
 use "Isar/proof.ML";
 use "Isar/element.ML";
-
-(*derived theory and proof elements*)
-use "Isar/calculation.ML";
 use "Isar/obtain.ML";
 
 (*local theories and targets*)
