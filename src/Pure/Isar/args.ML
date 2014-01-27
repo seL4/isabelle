@@ -53,6 +53,7 @@ sig
   val typ_abbrev: typ context_parser
   val typ: typ context_parser
   val term: term context_parser
+  val term_pattern: term context_parser
   val term_abbrev: term context_parser
   val prop: term context_parser
   val type_name: bool -> string context_parser
@@ -198,6 +199,7 @@ fun named_attribute att =
 val typ_abbrev = Scan.peek (named_typ o Proof_Context.read_typ_abbrev o Context.proof_of);
 val typ = Scan.peek (named_typ o Syntax.read_typ o Context.proof_of);
 val term = Scan.peek (named_term o Syntax.read_term o Context.proof_of);
+val term_pattern = Scan.peek (named_term o Proof_Context.read_term_pattern o Context.proof_of);
 val term_abbrev = Scan.peek (named_term o Proof_Context.read_term_abbrev o Context.proof_of);
 val prop = Scan.peek (named_term o Syntax.read_prop o Context.proof_of);
 
