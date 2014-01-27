@@ -72,13 +72,13 @@ val add_used =
 
 in
 
-fun read_termTs ctxt schematic ss Ts =
+fun read_termTs ctxt ss Ts =
   let
     fun parse T = if T = propT then Syntax.parse_prop ctxt else Syntax.parse_term ctxt;
     val ts = map2 parse Ts ss;
     val ts' =
       map2 (Type.constraint o Type_Infer.paramify_vars) Ts ts
-      |> Syntax.check_terms ((schematic ? Proof_Context.set_mode Proof_Context.mode_schematic) ctxt)
+      |> Syntax.check_terms ctxt
       |> Variable.polymorphic ctxt;
     val Ts' = map Term.fastype_of ts';
     val tyenv = fold Type.raw_match (Ts ~~ Ts') Vartab.empty;
@@ -112,7 +112,7 @@ fun read_insts ctxt mixed_insts (tvars, vars) =
 
     val (xs, ss) = split_list term_insts;
     val Ts = map (the_type vars1) xs;
-    val (ts, inferred) = read_termTs ctxt false ss Ts;
+    val (ts, inferred) = read_termTs ctxt ss Ts;
 
     val instT2 = Term.typ_subst_TVars inferred;
     val vars2 = map (apsnd instT2) vars1;
@@ -251,7 +251,8 @@ fun bires_inst_tac bires_flag ctxt insts thm =
         val (xis, ss) = Library.split_list tinsts;
         val Ts = map get_typ xis;
 
-        val (ts, envT) = read_termTs ctxt' true ss Ts;
+        val (ts, envT) =
+          read_termTs (Proof_Context.set_mode Proof_Context.mode_schematic ctxt') ss Ts;
         val envT' = map (fn (ixn, T) =>
           (TVar (ixn, the (rsorts ixn)), T)) envT @ Tinsts_env;
         val cenv =
