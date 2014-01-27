@@ -72,7 +72,7 @@ by force
 lemma (in sylow_central) exists_x_in_M1: "\<exists>x. x\<in>M1"
 apply (subgoal_tac "0 < card M1")
  apply (blast dest: card_nonempty)
-apply (cut_tac prime_p [THEN prime_imp_one_less])
+apply (cut_tac prime_p [THEN prime_gt_Suc_0_nat])
 apply (simp (no_asm_simp) add: card_M1)
 done
 
@@ -208,12 +208,11 @@ by (simp (no_asm_simp) add: card_cosets_equal rcosetsI)
 
 lemma (in sylow_central) M1_RelM_rcosetGM1g:
      "g \<in> carrier G ==> (M1, M1 #> g) \<in> RelM"
-apply (simp (no_asm) add: RelM_def calM_def card_M1)
+apply (simp add: RelM_def calM_def card_M1)
 apply (rule conjI)
  apply (blast intro: rcosetGM1g_subset_G)
-apply (simp (no_asm_simp) add: card_M1 M1_cardeq_rcosetGM1g)
-apply (rule bexI [of _ "inv g"])
-apply (simp_all add: coset_mult_assoc)
+apply (simp add: card_M1 M1_cardeq_rcosetGM1g)
+apply (metis M1_subset_G coset_mult_assoc coset_mult_one r_inv_ex)
 done
 
 
@@ -241,10 +240,7 @@ lemmas (in sylow_central) M_elem_map_eq =
 
 lemma (in sylow_central) M_funcset_rcosets_H:
      "(%x:M. H #> (SOME g. g \<in> carrier G & M1 #> g = x)) \<in> M \<rightarrow> rcosets H"
-apply (rule rcosetsI [THEN restrictI])
-apply (rule H_is_subgroup [THEN subgroup.subset])
-apply (erule M_elem_map_carrier)
-done
+  by (metis (lifting) H_is_subgroup M_elem_map_carrier rcosetsI restrictI subgroup_imp_subset)
 
 lemma (in sylow_central) inj_M_GmodH: "\<exists>f \<in> M\<rightarrow>rcosets H. inj_on f M"
 apply (rule bexI)
@@ -275,17 +271,11 @@ lemmas (in sylow_central) H_elem_map_carrier =
 lemmas (in sylow_central) H_elem_map_eq =
         H_elem_map [THEN someI_ex, THEN conjunct2]
 
-
-lemma EquivElemClass:
-     "[|equiv A r; M \<in> A//r; M1\<in>M; (M1,M2) \<in> r |] ==> M2 \<in> M"
-by (unfold equiv_def quotient_def sym_def trans_def, blast)
-
-
 lemma (in sylow_central) rcosets_H_funcset_M:
   "(\<lambda>C \<in> rcosets H. M1 #> (@g. g \<in> carrier G \<and> H #> g = C)) \<in> rcosets H \<rightarrow> M"
 apply (simp add: RCOSETS_def)
 apply (fast intro: someI2
-            intro!: M1_in_M EquivElemClass [OF RelM_equiv M_in_quot _  M1_RelM_rcosetGM1g])
+            intro!: M1_in_M in_quotient_imp_closed [OF RelM_equiv M_in_quot _  M1_RelM_rcosetGM1g])
 done
 
 text{*close to a duplicate of @{text inj_M_GmodH}*}
@@ -312,10 +302,7 @@ by (auto simp add: calM_def)
 
 
 lemma (in sylow_central) finite_M: "finite M"
-apply (rule finite_subset)
-apply (rule M_subset_calM [THEN subset_trans])
-apply (rule calM_subset_PowG, blast)
-done
+by (metis M_subset_calM finite_calM rev_finite_subset)
 
 lemma (in sylow_central) cardMeqIndexH: "card(M) = card(rcosets H)"
 apply (insert inj_M_GmodH inj_GmodH_M)

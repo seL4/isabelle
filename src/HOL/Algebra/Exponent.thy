@@ -6,7 +6,7 @@ exponent p s   yields the greatest power of p that divides s.
 *)
 
 theory Exponent
-imports Main "~~/src/HOL/Old_Number_Theory/Primes" "~~/src/HOL/Library/Binomial"
+imports Main "~~/src/HOL/Number_Theory/Primes" "~~/src/HOL/Number_Theory/Binomial"
 begin
 
 section {*Sylow's Theorem*}
@@ -20,31 +20,22 @@ definition
 
 text{*Prime Theorems*}
 
-lemma prime_imp_one_less: "prime p ==> Suc 0 < p"
-by (unfold prime_def, force)
-
 lemma prime_iff:
   "(prime p) = (Suc 0 < p & (\<forall>a b. p dvd a*b --> (p dvd a) | (p dvd b)))"
-apply (auto simp add: prime_imp_one_less)
-apply (blast dest!: prime_dvd_mult)
-apply (auto simp add: prime_def)
-apply (erule dvdE)
-apply (case_tac "k=0", simp)
-apply (drule_tac x = m in spec)
-apply (drule_tac x = k in spec)
-apply (simp add: dvd_mult_cancel1 dvd_mult_cancel2)
-done
+apply (auto simp add: prime_gt_Suc_0_nat)
+by (metis (full_types) One_nat_def Suc_lessD dvd.order_refl nat_dvd_not_less not_prime_eq_prod_nat)
 
-lemma zero_less_prime_power: "prime p ==> 0 < p^a"
+lemma zero_less_prime_power:
+  fixes p::nat shows "prime p ==> 0 < p^a"
 by (force simp add: prime_iff)
-
 
 lemma zero_less_card_empty: "[| finite S; S \<noteq> {} |] ==> 0 < card(S)"
 by (rule ccontr, simp)
 
 
 lemma prime_dvd_cases:
-  "[| p*k dvd m*n;  prime p |]  
+  fixes p::nat
+  shows "[| p*k dvd m*n;  prime p |]  
    ==> (\<exists>x. k dvd x*n & m = p*x) | (\<exists>y. k dvd m*y & n = p*y)"
 apply (simp add: prime_iff)
 apply (frule dvd_mult_left)
@@ -57,14 +48,13 @@ apply (auto elim!: dvdE)
 done
 
 
-lemma prime_power_dvd_cases [rule_format (no_asm)]: "prime p
+lemma prime_power_dvd_cases [rule_format (no_asm)]: 
+fixes p::nat
+  shows "prime p
   ==> \<forall>m n. p^c dvd m*n -->  
         (\<forall>a b. a+b = Suc c --> p^a dvd m | p^b dvd n)"
 apply (induct c)
- apply clarify
- apply (case_tac "a")
-  apply simp
- apply simp
+apply (metis dvd_1_left nat_power_eq_Suc_0_iff one_is_add)
 (*inductive step*)
 apply simp
 apply clarify
@@ -88,9 +78,9 @@ done
 
 (*needed in this form in Sylow.ML*)
 lemma div_combine:
-  "[| prime p; ~ (p ^ (Suc r) dvd n);  p^(a+r) dvd n*k |]  
-   ==> p ^ a dvd k"
-by (drule_tac a = "Suc r" and b = a in prime_power_dvd_cases, assumption, auto)
+  fixes p::nat
+  shows "[| prime p; ~ (p ^ (Suc r) dvd n);  p^(a+r) dvd n*k |] ==> p ^ a dvd k"
+by (metis add_Suc nat_add_commute prime_power_dvd_cases)
 
 (*Lemma for power_dvd_bound*)
 lemma Suc_le_power: "Suc 0 < p ==> Suc n <= p^n"
@@ -116,14 +106,14 @@ lemma exponent_ge [rule_format]:
   "[|p^k dvd n;  prime p;  0<n|] ==> k <= exponent p n"
 apply (simp add: exponent_def)
 apply (erule Greatest_le)
-apply (blast dest: prime_imp_one_less power_dvd_bound)
+apply (blast dest: prime_gt_Suc_0_nat power_dvd_bound)
 done
 
 lemma power_exponent_dvd: "s>0 ==> (p ^ exponent p s) dvd s"
 apply (simp add: exponent_def)
 apply clarify
 apply (rule_tac k = 0 in GreatestI)
-prefer 2 apply (blast dest: prime_imp_one_less power_dvd_bound, simp)
+prefer 2 apply (blast dest: prime_gt_Suc_0_nat power_dvd_bound, simp)
 done
 
 lemma power_Suc_exponent_Not_dvd:
@@ -135,9 +125,9 @@ apply (drule exponent_ge, auto)
 done
 
 lemma exponent_power_eq [simp]: "prime p ==> exponent p (p^a) = a"
-apply (simp (no_asm_simp) add: exponent_def)
+apply (simp add: exponent_def)
 apply (rule Greatest_equality, simp)
-apply (simp (no_asm_simp) add: prime_imp_one_less power_dvd_imp_le)
+apply (simp (no_asm_simp) add: prime_gt_Suc_0_nat power_dvd_imp_le)
 done
 
 lemma exponent_equalityI:
@@ -154,8 +144,7 @@ lemma exponent_mult_add1: "[| a > 0; b > 0 |]
 apply (case_tac "prime p")
 apply (rule exponent_ge)
 apply (auto simp add: power_add)
-apply (blast intro: prime_imp_one_less power_exponent_dvd mult_dvd_mono)
-done
+by (metis mult_dvd_mono power_exponent_dvd)
 
 (* exponent_mult_add, opposite inclusion *)
 lemma exponent_mult_add2: "[| a > 0; b > 0 |]  
@@ -184,13 +173,19 @@ apply (cut_tac s = n and p = p in power_exponent_dvd)
 apply (auto dest: dvd_mult_left)
 done
 
-lemma exponent_1_eq_0 [simp]: "exponent p (Suc 0) = 0"
+lemma exponent_1_eq_0 [simp]:
+  fixes p::nat
+  shows "exponent p (Suc 0) = 0"
 apply (case_tac "prime p")
-apply (auto simp add: prime_iff not_divides_exponent_0)
+apply (metis exponent_power_eq nat_power_eq_Suc_0_iff)
+apply (simp add: prime_iff not_divides_exponent_0)
 done
 
 
 text{*Main Combinatorial Argument*}
+
+lemma gcd_mult': fixes a::nat shows "gcd b (a * b) = b"
+by (simp add: mult_commute[of a b]) 
 
 lemma le_extend_mult: "[| c > 0; a <= b |] ==> a <= b * (c::nat)"
 apply (rule_tac P = "%x. x <= b * c" in subst)
@@ -206,7 +201,7 @@ apply (drule contrapos_nn [OF _ leI, THEN notnotD], assumption)
 apply (drule less_imp_le [of a])
 apply (drule le_imp_power_dvd)
 apply (drule_tac b = "p ^ r" in dvd_trans, assumption)
-apply (metis diff_is_0_eq dvd_diffD1 gcd_dvd2 gcd_mult' gr0I le_extend_mult less_diff_conv nat_dvd_not_less nat_mult_commute not_add_less2 xt1(10))
+apply (metis diff_is_0_eq dvd_diffD1 gcd_dvd2_nat gcd_mult' gr0I le_extend_mult less_diff_conv nat_dvd_not_less nat_mult_commute not_add_less2 xt1(10))
 done
 
 lemma p_fac_forw: "[| (m::nat) > 0; k>0; k < p^a; (p^r) dvd (p^a)* m - k |]  
@@ -295,7 +290,7 @@ apply (rule_tac K = "p^a" in p_not_div_choose)
 (*now the hard case, simplified to
     exponent p (Suc (p ^ a * m + i - p ^ a)) = exponent p (Suc i) *)
 apply (subgoal_tac "0<p")
- prefer 2 apply (force dest!: prime_imp_one_less)
+ prefer 2 apply (force dest!: prime_gt_Suc_0_nat)
 apply (subst exponent_p_a_m_k_equation, auto)
 done
 
@@ -311,14 +306,13 @@ txt{*A similar trick to the one used in @{text p_not_div_choose_lemma}:
   transform the binomial coefficient, then use @{text exponent_mult_add}.*}
 apply (subgoal_tac "exponent p ((( (p^a) * m) choose p^a) * p^a) = 
                     a + exponent p m")
- apply (simp del: bad_Sucs add: zero_less_binomial_iff exponent_mult_add prime_iff)
+ apply (simp add: exponent_mult_add)
 txt{*one subgoal left!*}
 apply (subst times_binomial_minus1_eq, simp, simp)
 apply (subst exponent_mult_add, simp)
-apply (simp (no_asm_simp) add: zero_less_binomial_iff)
+apply (simp (no_asm_simp))
 apply arith
 apply (simp del: bad_Sucs add: exponent_mult_add const_p_fac_right)
 done
-
 
 end

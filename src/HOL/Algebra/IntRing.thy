@@ -4,7 +4,7 @@
 *)
 
 theory IntRing
-imports QuotRing Lattice Int "~~/src/HOL/Old_Number_Theory/Primes"
+imports QuotRing Lattice Int "~~/src/HOL/Number_Theory/Primes"
 begin
 
 section {* The Ring of Integers *}
@@ -257,9 +257,8 @@ apply (rule primeidealI)
  apply (elim exE)
 proof -
   fix a b x
-
-  from prime
-      have ppos: "0 <= p" by (simp add: prime_def)
+  have ppos: "0 <= p"
+    by (metis prime linear nat_0_iff zero_not_prime_nat)
   have unnat: "!!x. nat p dvd nat (abs x) ==> p dvd x"
   proof -
     fix x
@@ -267,19 +266,18 @@ proof -
     hence "int (nat p) dvd x" by (simp add: int_dvd_iff[symmetric])
     thus "p dvd x" by (simp add: ppos)
   qed
-
-
   assume "a * b = x * p"
   hence "p dvd a * b" by simp
   hence "nat p dvd nat (abs (a * b))" using ppos by (simp add: nat_dvd_iff)
   hence "nat p dvd (nat (abs a) * nat (abs b))" by (simp add: nat_abs_mult_distrib)
-  hence "nat p dvd nat (abs a) | nat p dvd nat (abs b)" by (rule prime_dvd_mult[OF prime])
+  hence "nat p dvd nat (abs a) | nat p dvd nat (abs b)"
+    by (metis prime prime_dvd_mult_eq_nat) 
   hence "p dvd a | p dvd b" by (fast intro: unnat)
   thus "(EX x. a = x * p) | (EX x. b = x * p)"
   proof
     assume "p dvd a"
     hence "EX x. a = p * x" by (simp add: dvd_def)
-    from this obtain x
+    then obtain x
         where "a = p * x" by fast
     hence "a = x * p" by simp
     hence "EX x. a = x * p" by simp
@@ -287,7 +285,7 @@ proof -
   next
     assume "p dvd b"
     hence "EX x. b = p * x" by (simp add: dvd_def)
-    from this obtain x
+    then obtain x
         where "b = p * x" by fast
     hence "b = x * p" by simp
     hence "EX x. b = x * p" by simp
@@ -295,14 +293,12 @@ proof -
   qed
 next
   assume "UNIV = {uu. EX x. uu = x * p}"
-  from this obtain x 
-      where "1 = x * p" by best
-  from this [symmetric]
-      have "p * x = 1" by (subst mult_commute)
+  then obtain x where "1 = x * p" by best
+  then have "p * x = 1" by (metis mult_commute)
   hence "\<bar>p * x\<bar> = 1" by simp
   hence "\<bar>p\<bar> = 1" by (rule abs_zmult_eq_1)
-  from this and prime
-      show "False" by (simp add: prime_def)
+  then  show "False" 
+    by (metis prime abs_of_pos one_not_prime_int prime_gt_0_int prime_int_def) 
 qed
 
 
@@ -355,7 +351,7 @@ lemma rcos_zfact:
 proof -
   from kIl[unfolded ZMod_def]
       have "\<exists>xl\<in>Idl\<^bsub>\<Z>\<^esub> {l}. k = xl + r" by (simp add: a_r_coset_defs)
-  from this obtain xl
+  then obtain xl
       where xl: "xl \<in> Idl\<^bsub>\<Z>\<^esub> {l}"
       and k: "k = xl + r"
       by auto
@@ -376,9 +372,9 @@ proof -
       have "b \<in> ZMod m a"
       unfolding ZMod_def
       by (simp add: a_repr_independenceD)
-  from this
+  then
       have "EX x. b = x * m + a" by (rule rcos_zfact)
-  from this obtain x
+  then obtain x
       where "b = x * m + a"
       by fast
 
