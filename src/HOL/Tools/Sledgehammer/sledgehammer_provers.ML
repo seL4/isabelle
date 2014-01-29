@@ -381,10 +381,8 @@ fun tac_of_reconstructor (Metis (type_enc, lam_trans)) = metis_tac [type_enc] la
   | tac_of_reconstructor SMT = SMT_Solver.smt_tac
 
 fun timed_reconstructor reconstr debug timeout ths =
-  (Config.put Metis_Tactic.verbose debug
-   #> Config.put SMT_Config.verbose debug
-   #> (fn ctxt => tac_of_reconstructor reconstr ctxt ths))
-  |> timed_apply timeout
+  timed_apply timeout (silence_reconstructors debug
+    #> (fn ctxt => tac_of_reconstructor reconstr ctxt ths))
 
 fun is_fact_chained ((_, (sc, _)), _) = sc = Chained
 

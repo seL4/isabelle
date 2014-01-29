@@ -26,6 +26,8 @@ sig
     (reconstructor * play_outcome) * string * (string * stature) list * minimize_command * int * int
 
   val smtN : string
+
+  val silence_reconstructors : bool -> Proof.context -> Proof.context
 end;
 
 structure Sledgehammer_Reconstructor : SLEDGEHAMMER_RECONSTRUCTOR =
@@ -54,5 +56,18 @@ type one_line_params =
   (reconstructor * play_outcome) * string * (string * stature) list * minimize_command * int * int
 
 val smtN = "smt"
+
+(* Makes reconstructor tools as silent as possible. The "set_visible" calls suppresses "Unification
+   bound exceeded" warnings and the like. *)
+fun silence_reconstructors debug =
+  Config.put Metis_Tactic.verbose debug
+  #> Config.put SMT_Config.verbose debug
+  #> Config.put Lin_Arith.verbose debug
+  #> (not debug ?
+    (Context_Position.set_visible false
+     #> Proof_Context.background_theory (fn thy =>
+       thy
+       |> Context_Position.set_visible_global false
+       |> Config.put_global Unify.trace_bound (Config.get_global thy Unify.search_bound))))
 
 end;

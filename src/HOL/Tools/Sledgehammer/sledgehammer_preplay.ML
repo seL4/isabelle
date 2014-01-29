@@ -131,9 +131,7 @@ fun preplay_raw _ _ _ _ _ (Let _) = Played Time.zeroTime
           end)
 
       val facts = map (thm_of_proof ctxt) subproofs @ resolve_fact_names ctxt fact_names
-
-      val ctxt' = ctxt
-        |> debug ? (Config.put Metis_Tactic.verbose true #> Config.put Lin_Arith.verbose true)
+      val ctxt' = ctxt |> silence_reconstructors debug
 
       fun prove () =
         Goal.prove ctxt' [] [] goal (fn {context = ctxt, ...} =>
