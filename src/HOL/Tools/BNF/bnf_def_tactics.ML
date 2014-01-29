@@ -189,9 +189,10 @@ fun mk_rel_mono_strong_tac in_rel set_maps {context = ctxt, prems = _} =
     unfold_tac ctxt [in_rel] THEN
     REPEAT_DETERM (eresolve_tac [exE, CollectE, conjE] 1) THEN
     hyp_subst_tac ctxt 1 THEN
-    unfold_tac ctxt set_maps THEN
     EVERY' [rtac exI, rtac @{thm conjI[OF CollectI conjI[OF refl refl]]},
-      CONJ_WRAP' (K (etac @{thm Collect_split_mono_strong} THEN' atac)) set_maps] 1;
+      CONJ_WRAP' (fn thm =>
+        (etac (@{thm Collect_split_mono_strong} OF [thm, thm]) THEN' atac))
+      set_maps] 1;
 
 fun mk_map_transfer_tac rel_mono in_rel set_maps map_cong0 map_comp
   {context = ctxt, prems = _} =
