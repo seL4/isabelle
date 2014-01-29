@@ -1,4 +1,4 @@
-theory Examples imports Main "~~/src/HOL/Library/Binomial" begin
+theory Examples imports "~~/src/HOL/Number_Theory/Binomial" begin
 
 declare [[eta_contract = false]]
 
@@ -44,7 +44,7 @@ text{*
 \rulename{Diff_disjoint}
 *}
 
-  
+
 
 lemma "A \<union> -A = UNIV"
 by blast
@@ -142,7 +142,7 @@ text{*
 
 lemma "{x. x \<in> A} = A"
 by blast
-  
+
 text{*
 @{thm[display] Collect_mem_eq[no_vars]}
 \rulename{Collect_mem_eq}
@@ -157,7 +157,7 @@ by blast
 definition prime :: "nat set" where
     "prime == {p. 1<p & (ALL m. m dvd p --> m=1 | m=p)}"
 
-lemma "{p*q | p q. p\<in>prime \<and> q\<in>prime} = 
+lemma "{p*q | p q. p\<in>prime \<and> q\<in>prime} =
        {z. \<exists>p q. z = p*q \<and> p\<in>prime \<and> q\<in>prime}"
 by (rule refl)
 

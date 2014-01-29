@@ -355,7 +355,7 @@ session Tutorial (doc) in "Tutorial" = HOL +
     "Rules/Blast"
     "Rules/Force"
   theories [pretty_margin = 64, thy_output_indent = 5]
-    "Rules/Primes"
+    "Rules/TPrimes"
     "Rules/Forward"
     "Rules/Tacticals"
     "Rules/find2"

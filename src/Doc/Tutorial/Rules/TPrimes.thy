@@ -2,7 +2,7 @@
 
 (*Euclid's algorithm 
   This material now appears AFTER that of Forward.thy *)
-theory Primes imports Main begin
+theory TPrimes imports Main begin
 
 fun gcd :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
   "gcd m n = (if n=0 then m else gcd n (m mod n))"

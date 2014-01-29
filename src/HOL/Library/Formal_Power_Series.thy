@@ -5,7 +5,7 @@
 header{* A formalization of formal power series *}
 
 theory Formal_Power_Series
-imports Binomial
+imports "~~/src/HOL/Number_Theory/Binomial"
 begin
 
 

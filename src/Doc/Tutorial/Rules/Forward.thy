@@ -1,4 +1,4 @@
-theory Forward imports Primes begin
+theory Forward imports TPrimes begin
 
 text{*\noindent
 Forward proof material: of, OF, THEN, simplify, rule_format.
@@ -166,7 +166,7 @@ text{*
 example of "insert"
 *}
 
-lemma relprime_dvd_mult: 
+lemma relprime_dvd_mult:
       "\<lbrakk> gcd k n = 1; k dvd m*n \<rbrakk> \<Longrightarrow> k dvd m"
 apply (insert gcd_mult_distrib2 [of m k n])
 txt{*@{subgoals[display,indent=0,margin=65]}*}

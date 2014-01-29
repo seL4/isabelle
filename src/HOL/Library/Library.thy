@@ -3,7 +3,6 @@ theory Library
 imports
   AList
   BigO
-  Binomial
   Bit
   BNF_Decl
   Boolean_Algebra
