@@ -1,5 +1,6 @@
 (*  Title:      HOL/Ctr_Sugar.thy
     Author:     Jasmin Blanchette, TU Muenchen
+    Author:     Dmitriy Traytel, TU Muenchen
     Copyright   2012, 2013
 
 Wrapping existing freely generated type's constructors.
