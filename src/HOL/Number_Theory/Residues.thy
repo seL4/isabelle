@@ -108,7 +108,7 @@ lemma res_units_eq: "Units R = { x. 0 < x & x < m & coprime x m}"
   apply (subgoal_tac "x ~= 0")
   apply auto
   apply (subst (asm) coprime_iff_invertible'_int)
-  apply (rule m_gt_one)
+  apply arith
   apply (auto simp add: cong_int_def mult_commute)
   done
 
@@ -453,7 +453,7 @@ lemma wilson_theorem: "prime (p::int) \<Longrightarrow> [fact (p - 1) = - 1] (mo
   apply (subst fact_altdef_int, simp)
   apply (subst cong_int_def)
   apply simp
-  apply arith
+  apply presburger
   apply (rule residues_prime.wilson_theorem1)
   apply (rule residues_prime.intro)
   apply auto

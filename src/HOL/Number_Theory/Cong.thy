@@ -593,8 +593,7 @@ qed
 lemma cong_solve_coprime_nat: "coprime (a::nat) n \<Longrightarrow> EX x. [a * x = 1] (mod n)"
   apply (cases "a = 0")
   apply force
-  apply (frule cong_solve_nat [of a n])
-  apply auto
+  apply (metis cong_solve_nat)
   done
 
 lemma cong_solve_coprime_int: "coprime (a::int) n \<Longrightarrow> EX x. [a * x = 1] (mod n)"
@@ -602,23 +601,31 @@ lemma cong_solve_coprime_int: "coprime (a::int) n \<Longrightarrow> EX x. [a * x
   apply auto
   apply (cases "n \<ge> 0")
   apply auto
-  apply (frule cong_solve_int [of a n])
-  apply auto
+  apply (metis cong_solve_int)
   done
 
-lemma coprime_iff_invertible_nat: "m > Suc 0 \<Longrightarrow> coprime a m = (EX x. [a * x = Suc 0] (mod m))"
+lemma coprime_iff_invertible_nat: "m > 0 \<Longrightarrow> coprime a m = (EX x. [a * x = Suc 0] (mod m))"
   apply (auto intro: cong_solve_coprime_nat)
-  apply (metis cong_solve_nat gcd_nat.left_neutral nat_neq_iff)
-  apply (unfold cong_nat_def, auto intro: invertible_coprime_nat [unfolded One_nat_def])
+  apply (metis cong_Suc_0_nat cong_solve_nat gcd_nat.left_neutral)
+  apply (metis One_nat_def cong_gcd_eq_nat coprime_lmult_nat 
+      gcd_lcm_complete_lattice_nat.inf_bot_right gcd_nat.commute)
   done
 
-lemma coprime_iff_invertible_int: "m > (1::int) \<Longrightarrow> coprime a m = (EX x. [a * x = 1] (mod m))"
+lemma coprime_iff_invertible_int: "m > (0::int) \<Longrightarrow> coprime a m = (EX x. [a * x = 1] (mod m))"
   apply (auto intro: cong_solve_coprime_int)
-  apply (unfold cong_int_def)
-  apply (auto intro: invertible_coprime_int)
+  apply (metis cong_int_def coprime_mul_eq_int gcd_1_int gcd_int.commute gcd_red_int)
   done
 
-lemma coprime_iff_invertible'_int: "m > (1::int) \<Longrightarrow> coprime a m =
+lemma coprime_iff_invertible'_nat: "m > 0 \<Longrightarrow> coprime a m =
+    (EX x. 0 \<le> x & x < m & [a * x = Suc 0] (mod m))"
+  apply (subst coprime_iff_invertible_nat)
+  apply auto
+  apply (auto simp add: cong_nat_def)
+  apply (rule_tac x = "x mod m" in exI)
+  apply (metis mod_less_divisor mod_mult_right_eq)
+  done
+
+lemma coprime_iff_invertible'_int: "m > (0::int) \<Longrightarrow> coprime a m =
     (EX x. 0 <= x & x < m & [a * x = 1] (mod m))"
   apply (subst coprime_iff_invertible_int)
   apply auto
@@ -626,7 +633,6 @@ lemma coprime_iff_invertible'_int: "m > (1::int) \<Longrightarrow> coprime a m =
   apply (rule_tac x = "x mod m" in exI)
   apply (auto simp add: mod_mult_right_eq [symmetric])
   done
-
 
 lemma cong_cong_lcm_nat: "[(x::nat) = y] (mod a) \<Longrightarrow>
     [x = y] (mod b) \<Longrightarrow> [x = y] (mod lcm a b)"
