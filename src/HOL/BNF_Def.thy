@@ -110,9 +110,10 @@ lemma Collect_split_mono: "A \<le> B \<Longrightarrow> Collect (split A) \<subse
   by auto
 
 lemma Collect_split_mono_strong: 
-  "\<lbrakk>\<forall>a\<in>fst ` A. \<forall>b \<in> snd ` A. P a b \<longrightarrow> Q a b; A \<subseteq> Collect (split P)\<rbrakk> \<Longrightarrow>
+  "\<lbrakk>X = fst ` A; Y = snd ` A; \<forall>a\<in>X. \<forall>b \<in> Y. P a b \<longrightarrow> Q a b; A \<subseteq> Collect (split P)\<rbrakk> \<Longrightarrow>
   A \<subseteq> Collect (split Q)"
   by fastforce
+
 
 lemma predicate2_eqD: "A = B \<Longrightarrow> A a b \<longleftrightarrow> B a b"
 by metis
