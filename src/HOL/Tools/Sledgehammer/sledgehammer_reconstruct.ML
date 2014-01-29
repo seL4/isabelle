@@ -290,8 +290,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
             end
             |> HOLogic.mk_Trueprop |> close_form
 
-        fun maybe_show outer c =
-          (outer andalso length c = 1 andalso subset (op =) (c, conjs)) ? cons Show
+        fun maybe_show outer c = (outer andalso eq_set (op =) (c, conjs)) ? cons Show
 
         fun isar_steps outer predecessor accum [] =
             accum
