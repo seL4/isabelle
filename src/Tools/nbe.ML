@@ -506,7 +506,7 @@ fun typ_of_itype vs (tyco `%% itys) =
   | typ_of_itype vs (ITyVar v) =
       TFree ("'" ^ v, (the o AList.lookup (op =) vs) v);
 
-fun term_of_univ thy idx_tab t =
+fun term_of_univ thy (idx_tab : Code_Symbol.T Inttab.table) t =
   let
     fun take_until f [] = []
       | take_until f (x :: xs) = if f x then [] else x :: take_until f xs;
