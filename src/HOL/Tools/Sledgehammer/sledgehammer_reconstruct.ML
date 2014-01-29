@@ -14,10 +14,9 @@ sig
   type one_line_params = Sledgehammer_Reconstructor.one_line_params
 
   type isar_params =
-    bool * bool * string * string * Time.time * real * bool * (term, string) atp_step list * thm
+    bool * string * string * Time.time * real * bool * (term, string) atp_step list * thm
 
-  val isar_proof_text : Proof.context -> bool option -> isar_params -> one_line_params -> string
-  val proof_text : Proof.context -> bool option -> (unit -> isar_params) -> int ->
+  val proof_text : Proof.context -> bool -> bool option -> (unit -> isar_params) -> int ->
     one_line_params -> string
 end;
 
@@ -192,7 +191,7 @@ val chain_direct_proof =
   end
 
 type isar_params =
-  bool * bool * string * string * Time.time * real * bool * (term, string) atp_step list * thm
+  bool * string * string * Time.time * real * bool * (term, string) atp_step list * thm
 
 val arith_methodss =
   [[Arith_Method, Simp_Method, Auto_Method, Fastforce_Method, Blast_Method, Force_Method,
@@ -205,29 +204,29 @@ val rewrite_methodss =
   [[Auto_Method, Simp_Method, Fastforce_Method, Force_Method, Metis_Method], [Meson_Method]]
 val skolem_methodss = [[Metis_Method, Blast_Method], [Metis_New_Skolem_Method], [Meson_Method]]
 
-fun isar_proof_text ctxt isar_proofs
-    (debug, verbose, metis_type_enc, metis_lam_trans, preplay_timeout, isar_compress, isar_try0,
-     atp_proof, goal)
+fun isar_proof_text ctxt debug isar_proofs isar_params
     (one_line_params as (_, _, _, _, subgoal, subgoal_count)) =
   let
-    val (params, _, concl_t) = strip_subgoal goal subgoal ctxt
-    val (_, ctxt) =
-      params
-      |> map (fn (s, T) => (Binding.name s, SOME T, NoSyn))
-      |> (fn fixes => ctxt |> Variable.set_body false |> Proof_Context.add_fixes fixes)
-    val one_line_proof = one_line_proof_text 0 one_line_params
-
-    val do_preplay = preplay_timeout <> Time.zeroTime
-    val isar_try0 = isar_try0 andalso do_preplay
-
-    val is_fixed = Variable.is_declared ctxt orf can Name.dest_skolem
-    fun skolems_of t = Term.add_frees t [] |> filter_out (is_fixed o fst) |> rev
-
-    fun get_role keep_role ((num, _), role, t, rule, _) =
-      if keep_role role then SOME ((raw_label_of_num num, t), rule) else NONE
-
     fun isar_proof_of () =
       let
+        val SOME (verbose, metis_type_enc, metis_lam_trans, preplay_timeout, isar_compress,
+          isar_try0, atp_proof, goal) = try isar_params ()
+
+        val (params, _, concl_t) = strip_subgoal goal subgoal ctxt
+        val (_, ctxt) =
+          params
+          |> map (fn (s, T) => (Binding.name s, SOME T, NoSyn))
+          |> (fn fixes => ctxt |> Variable.set_body false |> Proof_Context.add_fixes fixes)
+
+        val do_preplay = preplay_timeout <> Time.zeroTime
+        val isar_try0 = isar_try0 andalso do_preplay
+
+        val is_fixed = Variable.is_declared ctxt orf can Name.dest_skolem
+        fun skolems_of t = Term.add_frees t [] |> filter_out (is_fixed o fst) |> rev
+
+        fun get_role keep_role ((num, _), role, t, rule, _) =
+          if keep_role role then SOME ((raw_label_of_num num, t), rule) else NONE
+
         val atp_proof =
           atp_proof
           |> rpair [] |-> fold_rev add_line_pass1
@@ -398,6 +397,7 @@ fun isar_proof_text ctxt isar_proofs
           end)
       end
 
+    val one_line_proof = one_line_proof_text 0 one_line_params
     val isar_proof =
       if debug then
         isar_proof_of ()
@@ -415,11 +415,11 @@ fun isar_proof_would_be_a_good_idea (reconstr, play) =
   | Play_Failed => true
   | Not_Played => false)
 
-fun proof_text ctxt isar_proofs isar_params num_chained
+fun proof_text ctxt debug isar_proofs isar_params num_chained
                (one_line_params as (preplay, _, _, _, _, _)) =
   (if isar_proofs = SOME true orelse
       (isar_proofs = NONE andalso isar_proof_would_be_a_good_idea preplay) then
-     isar_proof_text ctxt isar_proofs (isar_params ())
+     isar_proof_text ctxt debug isar_proofs isar_params
    else
      one_line_proof_text num_chained) one_line_params
 

@@ -122,9 +122,7 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
     fun add_suffix suffix (s, ctxt) = (s ^ suffix, ctxt)
 
     fun of_indent ind = replicate_string (ind * indent_size) " "
-
     fun of_moreover ind = of_indent ind ^ "moreover\n"
-
     fun of_label l = if l = no_label then "" else string_of_label l ^ ": "
 
     fun of_obtain qs nr =
@@ -136,7 +134,6 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
          "") ^ "obtain"
 
     fun of_show_have qs = if member (op =) qs Show then "show" else "have"
-
     fun of_thus_hence qs = if member (op =) qs Show then "thus" else "hence"
 
     fun of_have qs nr =

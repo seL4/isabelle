@@ -799,8 +799,8 @@ fun run_atp mode name
                       |> introduce_spass_skolem
                       |> factify_atp_proof fact_names hyp_ts concl_t
                   in
-                    (debug, verbose, metis_type_enc, metis_lam_trans, preplay_timeout,
-                     isar_compress, isar_try0, atp_proof, goal)
+                    (verbose, metis_type_enc, metis_lam_trans, preplay_timeout, isar_compress,
+                     isar_try0, atp_proof, goal)
                   end
                 val one_line_params =
                   (preplay, proof_banner mode name, used_facts,
@@ -808,7 +808,7 @@ fun run_atp mode name
                    subgoal, subgoal_count)
                 val num_chained = length (#facts (Proof.goal state))
               in
-                proof_text ctxt isar_proofs isar_params num_chained one_line_params
+                proof_text ctxt debug isar_proofs isar_params num_chained one_line_params
               end,
            (if verbose then "\nATP real CPU time: " ^ string_of_time run_time ^ "." else "") ^
            (if important_message <> "" then
