@@ -7,7 +7,7 @@
 header{*The Nonstandard Primes as an Extension of the Prime Numbers*}
 
 theory NSPrimes
-imports "~~/src/HOL/Old_Number_Theory/Factorization" Hyperreal
+imports "~~/src/HOL/Number_Theory/UniqueFactorization" "../Hyperreal"
 begin
 
 text{*These can be used to derive an alternative proof of the infinitude of
@@ -33,18 +33,12 @@ lemma dvd_by_all: "\<forall>M. \<exists>N. 0 < N & (\<forall>m. 0 < m & (m::nat)
 apply (rule allI)
 apply (induct_tac "M", auto)
 apply (rule_tac x = "N * (Suc n) " in exI)
-apply (safe, force)
-apply (drule le_imp_less_or_eq, erule disjE)
-apply (force intro!: dvd_mult2)
-apply (force intro!: dvd_mult)
-done
+by (metis dvd.order_refl dvd_mult dvd_mult2 le_Suc_eq nat_0_less_mult_iff zero_less_Suc)
 
 lemmas dvd_by_all2 = dvd_by_all [THEN spec]
 
-lemma hypnat_of_nat_le_zero_iff: "(hypnat_of_nat n <= 0) = (n = 0)"
+lemma hypnat_of_nat_le_zero_iff [simp]: "(hypnat_of_nat n <= 0) = (n = 0)"
 by (transfer, simp)
-declare hypnat_of_nat_le_zero_iff [simp]
-
 
 (* Goldblatt: Exercise 5.11(2) - p. 57 *)
 lemma hdvd_by_all: "\<forall>M. \<exists>N. 0 < N & (\<forall>m. 0 < m & (m::hypnat) <= M --> m dvd N)"
@@ -59,7 +53,7 @@ apply (cut_tac hdvd_by_all)
 apply (drule_tac x = whn in spec, auto)
 apply (rule exI, auto)
 apply (drule_tac x = "hypnat_of_nat n" in spec)
-apply (auto simp add: linorder_not_less star_of_eq_0)
+apply (auto simp add: linorder_not_less)
 done
 
 
@@ -69,29 +63,12 @@ those hypernaturals exceeding 1 that have no nontrivial factors*}
 (* Goldblatt: Exercise 5.11(3a) - p 57  *)
 lemma starprime:
   "starprime = {p. 1 < p & (\<forall>m. m dvd p --> m = 1 | m = p)}"
-by (transfer, auto simp add: prime_def)
-
-lemma prime_two:  "prime 2"
-apply (unfold prime_def, auto)
-apply (frule dvd_imp_le)
-apply (auto dest: dvd_0_left)
-apply (case_tac m, simp, arith)
-done
-declare prime_two [simp]
-
-(* proof uses course-of-value induction *)
-lemma prime_factor_exists [rule_format]: "Suc 0 < n --> (\<exists>k. prime k & k dvd n)"
-apply (rule_tac n = n in nat_less_induct, auto)
-apply (case_tac "prime n")
-apply (rule_tac x = n in exI, auto)
-apply (drule conjI [THEN not_prime_ex_mk], auto)
-apply (drule_tac x = m in spec, auto)
-done
+by (transfer, auto simp add: prime_nat_def)
 
 (* Goldblatt Exercise 5.11(3b) - p 57  *)
 lemma hyperprime_factor_exists [rule_format]:
   "!!n. 1 < n ==> (\<exists>k \<in> starprime. k dvd n)"
-by (transfer, simp add: prime_factor_exists)
+by (transfer, simp add: prime_factor_nat)
 
 (* Goldblatt Exercise 3.10(1) - p. 29 *)
 lemma NatStar_hypnat_of_nat: "finite A ==> *s* A = hypnat_of_nat ` A"
@@ -178,11 +155,10 @@ done
 lemma lemmaPow3: "E \<noteq> {} ==> \<exists>x. \<exists>X \<in> (Pow E - {{}}). x: X"
 by auto
 
-lemma choicefun_mem_set: "E \<noteq> {} ==> choicefun E \<in> E"
+lemma choicefun_mem_set [simp]: "E \<noteq> {} ==> choicefun E \<in> E"
 apply (unfold choicefun_def)
 apply (rule lemmaPow3 [THEN someI2_ex], auto)
 done
-declare choicefun_mem_set [simp]
 
 lemma injf_max_mem_set: "[| E \<noteq>{}; \<forall>x. \<exists>y \<in> E. x < y |] ==> injf_max n E \<in> E"
 apply (induct_tac "n", force)
@@ -238,9 +214,7 @@ apply (auto simp add: SHNat_eq)
 done
 
 lemma starsetNat_eq_hypnat_of_nat_image_finite: "*s* A =  hypnat_of_nat ` A ==> finite A"
-apply (rule ccontr)
-apply (auto dest: hypnat_infinite_has_nonstandard)
-done
+by (metis hypnat_infinite_has_nonstandard less_irrefl)
 
 lemma finite_starsetNat_iff: "( *s* A = hypnat_of_nat ` A) = (finite A)"
 by (blast intro!: starsetNat_eq_hypnat_of_nat_image_finite NatStar_hypnat_of_nat)
@@ -253,73 +227,42 @@ done
 
 subsection{*Existence of Infinitely Many Primes: a Nonstandard Proof*}
 
-lemma lemma_not_dvd_hypnat_one: "~ (\<forall>n \<in> - {0}. hypnat_of_nat n dvd 1)"
+lemma lemma_not_dvd_hypnat_one [simp]: "~ (\<forall>n \<in> - {0}. hypnat_of_nat n dvd 1)"
 apply auto
 apply (rule_tac x = 2 in bexI)
 apply (transfer, auto)
 done
-declare lemma_not_dvd_hypnat_one [simp]
 
-lemma lemma_not_dvd_hypnat_one2: "\<exists>n \<in> - {0}. ~ hypnat_of_nat n dvd 1"
+lemma lemma_not_dvd_hypnat_one2 [simp]: "\<exists>n \<in> - {0}. ~ hypnat_of_nat n dvd 1"
 apply (cut_tac lemma_not_dvd_hypnat_one)
 apply (auto simp del: lemma_not_dvd_hypnat_one)
 done
-declare lemma_not_dvd_hypnat_one2 [simp]
-
-(* not needed here *)
-lemma hypnat_gt_zero_gt_one:
-  "!!N. [| 0 < (N::hypnat); N \<noteq> 1 |] ==> 1 < N"
-by (transfer, simp)
 
 lemma hypnat_add_one_gt_one:
     "!!N. 0 < N ==> 1 < (N::hypnat) + 1"
 by (transfer, simp)
 
-lemma zero_not_prime: "\<not> prime 0"
-apply safe
-apply (drule prime_g_zero, auto)
-done
-declare zero_not_prime [simp]
-
-lemma hypnat_of_nat_zero_not_prime: "hypnat_of_nat 0 \<notin> starprime"
+lemma hypnat_of_nat_zero_not_prime [simp]: "hypnat_of_nat 0 \<notin> starprime"
 by (transfer, simp)
-declare hypnat_of_nat_zero_not_prime [simp]
 
-lemma hypnat_zero_not_prime:
+lemma hypnat_zero_not_prime [simp]:
    "0 \<notin> starprime"
 by (cut_tac hypnat_of_nat_zero_not_prime, simp)
-declare hypnat_zero_not_prime [simp]
 
-lemma one_not_prime: "\<not> prime 1"
-apply safe
-apply (drule prime_g_one, auto)
-done
-declare one_not_prime [simp]
-
-lemma one_not_prime2: "\<not> prime(Suc 0)"
-apply safe
-apply (drule prime_g_one, auto)
-done
-declare one_not_prime2 [simp]
-
-lemma hypnat_of_nat_one_not_prime: "hypnat_of_nat 1 \<notin> starprime"
+lemma hypnat_of_nat_one_not_prime [simp]: "hypnat_of_nat 1 \<notin> starprime"
 by (transfer, simp)
-declare hypnat_of_nat_one_not_prime [simp]
 
-lemma hypnat_one_not_prime: "1 \<notin> starprime"
+lemma hypnat_one_not_prime [simp]: "1 \<notin> starprime"
 by (cut_tac hypnat_of_nat_one_not_prime, simp)
-declare hypnat_one_not_prime [simp]
 
 lemma hdvd_diff: "!!k m n :: hypnat. [| k dvd m; k dvd n |] ==> k dvd (m - n)"
 by (transfer, rule dvd_diff_nat)
 
-lemma dvd_one_eq_one: "x dvd (1::nat) ==> x = 1"
-by (unfold dvd_def, auto)
-
 lemma hdvd_one_eq_one: "!!x. x dvd (1::hypnat) ==> x = 1"
-by (transfer, rule dvd_one_eq_one)
+by (transfer, rule gcd_lcm_complete_lattice_nat.le_bot)
 
-theorem not_finite_prime: "~ finite {p. prime p}"
+text{*Already proved as @{text primes_infinite}, but now using non-standard naturals.*}
+theorem not_finite_prime: "~ finite {p::nat. prime p}"
 apply (rule hypnat_infinite_has_nonstandard_iff [THEN iffD2])
 apply (cut_tac hypnat_dvd_all_hypnat_of_nat)
 apply (erule exE)
@@ -330,10 +273,8 @@ apply (drule hyperprime_factor_exists)
 apply auto
 apply (subgoal_tac "k \<notin> hypnat_of_nat ` {p. prime p}")
 apply (force simp add: starprime_def, safe)
-apply (drule_tac x = x in bspec)
-apply (rule ccontr, simp)
-apply (drule hdvd_diff, assumption)
-apply (auto dest: hdvd_one_eq_one)
+apply (drule_tac x = x in bspec, auto)
+apply (metis add_commute hdvd_diff hdvd_one_eq_one hypnat_diff_add_inverse2 hypnat_one_not_prime)
 done
 
 end
