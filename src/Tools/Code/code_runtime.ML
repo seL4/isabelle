@@ -196,7 +196,7 @@ end; (*local*)
 fun evaluation_code thy module_name tycos consts =
   let
     val ctxt = Proof_Context.init_global thy;
-    val program = Code_Thingol.consts_program thy false consts;
+    val program = Code_Thingol.consts_program thy consts;
     val (ml_modules, target_names) =
       Code_Target.produce_code_for thy
         target NONE module_name [] program (map Constant consts @ map Type_Constructor tycos);

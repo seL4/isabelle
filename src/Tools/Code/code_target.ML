@@ -8,7 +8,6 @@ signature CODE_TARGET =
 sig
   val cert_tyco: theory -> string -> string
   val read_tyco: theory -> string -> string
-  val read_const_exprs: theory -> string list -> string list
 
   val export_code_for: theory -> Path.T option -> string -> int option -> string -> Token.T list
     -> Code_Thingol.program -> Code_Symbol.T list -> unit
@@ -458,44 +457,39 @@ end; (* local *)
 
 (* code generation *)
 
-fun read_const_exprs thy const_exprs =
-  let
-    val (cs1, cs2) = Code_Thingol.read_const_exprs thy const_exprs;
-    val program = Code_Thingol.consts_program thy true cs2;
-    val cs3 = Code_Thingol.implemented_deps program;
-  in union (op =) cs3 cs1 end;
-
 fun prep_destination "" = NONE
   | prep_destination s = SOME (Path.explode s);
 
 fun export_code thy cs seris =
   let
-    val program = Code_Thingol.consts_program thy false cs;
+    val program = Code_Thingol.consts_program thy cs;
     val _ = map (fn (((target, module_name), some_path), args) =>
       export_code_for thy some_path target NONE module_name args program (map Constant cs)) seris;
   in () end;
 
-fun export_code_cmd raw_cs seris thy = export_code thy (read_const_exprs thy raw_cs)
+fun export_code_cmd raw_cs seris thy = export_code thy
+  (Code_Thingol.read_const_exprs thy raw_cs)
   ((map o apfst o apsnd) prep_destination seris);
 
 fun produce_code thy cs target some_width some_module_name args =
   let
-    val program = Code_Thingol.consts_program thy false cs;
+    val program = Code_Thingol.consts_program thy cs;
   in produce_code_for thy target some_width some_module_name args program (map Constant cs) end;
 
 fun present_code thy cs syms target some_width some_module_name args =
   let
-    val program = Code_Thingol.consts_program thy false cs;
+    val program = Code_Thingol.consts_program thy cs;
   in present_code_for thy target some_width some_module_name args program (map Constant cs, syms) end;
 
 fun check_code thy cs seris =
   let
-    val program = Code_Thingol.consts_program thy false cs;
+    val program = Code_Thingol.consts_program thy cs;
     val _ = map (fn ((target, strict), args) =>
       check_code_for thy target strict args program (map Constant cs)) seris;
   in () end;
 
-fun check_code_cmd raw_cs seris thy = check_code thy (read_const_exprs thy raw_cs) seris;
+fun check_code_cmd raw_cs seris thy = check_code thy
+  (Code_Thingol.read_const_exprs thy raw_cs) seris;
 
 local
 
