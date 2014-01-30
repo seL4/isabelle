@@ -363,54 +363,61 @@ fun group_stmts thy program =
 
 (* generic mechanisms *)
 
-fun ensure_stmt symbolize generate x (dep, program) =
+fun ensure_stmt symbolize generate x (deps, program) =
   let
     val sym = symbolize x;
-    val add_dep = case dep of NONE => I
-      | SOME dep => Code_Symbol.Graph.add_edge (dep, sym);
+    val add_dep = case deps of [] => I
+      | dep :: _ => Code_Symbol.Graph.add_edge (dep, sym);
   in
     if can (Code_Symbol.Graph.get_node program) sym
     then
       program
       |> add_dep
-      |> pair dep
+      |> pair deps
       |> pair x
     else
       program
       |> Code_Symbol.Graph.default_node (sym, NoStmt)
       |> add_dep
-      |> curry generate (SOME sym)
+      |> curry generate (sym :: deps)
       ||> snd
       |-> (fn stmt => (Code_Symbol.Graph.map_node sym) (K stmt))
-      |> pair dep
+      |> pair deps
       |> pair x
   end;
 
 exception PERMISSIVE of unit;
 
-fun translation_error thy permissive some_thm msg sub_msg =
+fun translation_error thy program permissive some_thm deps msg sub_msg =
   if permissive
   then raise PERMISSIVE ()
   else
     let
-      val err_thm =
-        (case some_thm of
-          SOME thm => "\n(in code equation " ^ Display.string_of_thm_global thy thm ^ ")"
-        | NONE => "");
-    in error (msg ^ err_thm ^ ":\n" ^ sub_msg) end;
+      val ctxt = Proof_Context.init_global thy;
+      val thm_msg =
+        Option.map (fn thm => "in code equation " ^ Display.string_of_thm ctxt thm) some_thm;
+      val dep_msg = if null (tl deps) then NONE
+        else SOME ("with dependency "
+          ^ space_implode " -> " (map (Code_Symbol.quote ctxt) (rev deps)));
+      val thm_dep_msg = case (thm_msg, dep_msg)
+       of (SOME thm_msg, SOME dep_msg) => "\n(" ^ thm_msg ^ ",\n" ^ dep_msg ^ ")"
+        | (SOME thm_msg, NONE) => "\n(" ^ thm_msg ^ ")"
+        | (NONE, SOME dep_msg) => "\n(" ^ dep_msg ^ ")"
+        | (NONE, NONE) => ""
+    in error (msg ^ thm_dep_msg ^ ":\n" ^ sub_msg) end;
 
 fun maybe_permissive f prgrm =
   f prgrm |>> SOME handle PERMISSIVE () => (NONE, prgrm);
 
-fun not_wellsorted thy permissive some_thm ty sort e =
+fun not_wellsorted thy program permissive some_thm deps ty sort e =
   let
     val err_class = Sorts.class_error (Context.pretty_global thy) e;
     val err_typ =
       "Type " ^ Syntax.string_of_typ_global thy ty ^ " not of sort " ^
         Syntax.string_of_sort_global thy sort;
   in
-    translation_error thy permissive some_thm "Wellsortedness error"
-      (err_typ ^ "\n" ^ err_class)
+    translation_error thy program permissive some_thm deps
+      "Wellsortedness error" (err_typ ^ "\n" ^ err_class)
   end;
 
 
@@ -463,7 +470,7 @@ and plain_typarg_witness =
     Global of (string * class) * typarg_witness list list
   | Local of string * (int * sort);
 
-fun construct_dictionaries thy (proj_sort, algebra) permissive some_thm (ty, sort) (dep, program) =
+fun construct_dictionaries thy (proj_sort, algebra) permissive some_thm (ty, sort) (deps, program) =
   let
     fun class_relation ((Weakening (classrels, x)), sub_class) super_class =
       Weakening ((sub_class, super_class) :: classrels, x);
@@ -477,8 +484,8 @@ fun construct_dictionaries thy (proj_sort, algebra) permissive some_thm (ty, sor
       {class_relation = K (Sorts.classrel_derivation algebra class_relation),
        type_constructor = type_constructor,
        type_variable = type_variable} (ty, proj_sort sort)
-      handle Sorts.CLASS_ERROR e => not_wellsorted thy permissive some_thm ty sort e;
-  in (typarg_witnesses, (dep, program)) end;
+      handle Sorts.CLASS_ERROR e => not_wellsorted thy program permissive some_thm deps ty sort e;
+  in (typarg_witnesses, (deps, program)) end;
 
 
 (* translation *)
@@ -615,13 +622,16 @@ and translate_eqn thy algbr eqngr permissive ((args, (rhs, some_abs)), (some_thm
   #>> rpair (some_thm, proper)
 and translate_eqns thy algbr eqngr permissive eqns =
   maybe_permissive (fold_map (translate_eqn thy algbr eqngr permissive) eqns)
-and translate_const thy algbr eqngr permissive some_thm ((c, ty), some_abs) =
+and translate_const thy algbr eqngr permissive some_thm ((c, ty), some_abs) (deps, program) =
   let
     val _ = if (case some_abs of NONE => true | SOME abs => not (c = abs))
         andalso Code.is_abstr thy c
-        then translation_error thy permissive some_thm
+        then translation_error thy program permissive some_thm deps
           "Abstraction violation" ("constant " ^ Code.string_of_const thy c)
       else ()
+  in translate_const_proper thy algbr eqngr permissive some_thm (c, ty) (deps, program) end
+and translate_const_proper thy algbr eqngr permissive some_thm (c, ty) =
+  let
     val (annotate, ty') = dest_tagged_type ty;
     val typargs = Sign.const_typargs thy (c, ty');
     val sorts = Code_Preproc.sortargs eqngr c;
@@ -719,7 +729,7 @@ and translate_app thy algbr eqngr permissive some_thm (c_ty_ts as ((c, _), _), s
 and translate_tyvar_sort thy (algbr as (proj_sort, _)) eqngr permissive (v, sort) =
   fold_map (ensure_class thy algbr eqngr permissive) (proj_sort sort)
   #>> (fn sort => (unprefix "'" v, sort))
-and translate_dicts thy (algbr as (proj_sort, algebra)) eqngr permissive some_thm (ty, sort) =
+and translate_dicts thy algbr eqngr permissive some_thm (ty, sort) =
   let
     fun mk_dict (Weakening (classrels, x)) =
           fold_map (ensure_classrel thy algbr eqngr permissive) classrels
@@ -747,7 +757,7 @@ structure Program = Code_Data
 
 fun invoke_generation ignore_cache thy (algebra, eqngr) generate thing =
   Program.change_yield (if ignore_cache then NONE else SOME thy)
-    (fn program => (NONE, program)
+    (fn program => ([], program)
       |> generate thy algebra eqngr thing
       |-> (fn thing => fn (_, program) => (thing, program)));
 
@@ -792,15 +802,15 @@ fun ensure_value thy algbr eqngr t =
       ##>> translate_term thy algbr eqngr false NONE (t', NONE)
       #>> (fn ((vs, ty), t) => Fun
         (((vs, ty), [(([], t), (NONE, true))]), NONE));
-    fun term_value (dep, program1) =
+    fun term_value (deps, program1) =
       let
         val Fun ((vs_ty, [(([], t), _)]), _) =
           Code_Symbol.Graph.get_node program1 dummy_constant;
-        val deps = Code_Symbol.Graph.immediate_succs program1 dummy_constant;
+        val deps' = Code_Symbol.Graph.immediate_succs program1 dummy_constant;
         val program2 = Code_Symbol.Graph.del_node dummy_constant program1;
-        val deps_all = Code_Symbol.Graph.all_succs program2 deps;
+        val deps_all = Code_Symbol.Graph.all_succs program2 deps';
         val program3 = Code_Symbol.Graph.restrict (member (op =) deps_all) program2;
-      in ((program3, ((vs_ty, t), deps)), (dep, program2)) end;
+      in ((program3, ((vs_ty, t), deps')), (deps, program2)) end;
   in
     ensure_stmt Constant stmt_value @{const_name dummy_pattern}
     #> snd
@@ -825,7 +835,7 @@ fun dynamic_value thy postproc evaluator =
 fun lift_evaluation thy evaluation' algebra eqngr program vs t =
   let
     val ((_, (((vs', ty'), t'), deps)), _) =
-      ensure_value thy algebra eqngr t (NONE, program);
+      ensure_value thy algebra eqngr t ([], program);
   in evaluation' ((original_sorts vs vs', (vs', ty')), t') deps end;
 
 fun lift_evaluator thy evaluator' consts algebra eqngr =
