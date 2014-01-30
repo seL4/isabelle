@@ -194,14 +194,14 @@ type isar_params =
 
 val arith_methodss =
   [[Arith_Method, Simp_Method, Auto_Method, Fastforce_Method, Blast_Method, Force_Method,
-    Metis_Method], [Meson_Method]]
+    Metis_Method_with_Args], [Meson_Method]]
 val datatype_methodss = [[Simp_Size_Method, Simp_Method]]
 val metislike_methodss =
-  [[Metis_Method, Simp_Method, Auto_Method, Arith_Method, Blast_Method, Fastforce_Method,
+  [[Metis_Method_with_Args, Simp_Method, Auto_Method, Arith_Method, Blast_Method, Fastforce_Method,
     Force_Method], [Meson_Method]]
 val rewrite_methodss =
-  [[Auto_Method, Simp_Method, Fastforce_Method, Force_Method, Metis_Method], [Meson_Method]]
-val skolem_methodss = [[Metis_Method, Blast_Method], [Metis_New_Skolem_Method], [Meson_Method]]
+  [[Auto_Method, Simp_Method, Fastforce_Method, Force_Method, Metis_Method_with_Args], [Meson_Method]]
+val skolem_methodss = [[Metis_Method_with_Args, Blast_Method], [Metis_Method], [Meson_Method]]
 
 fun isar_proof_text ctxt debug isar_proofs isar_params
     (one_line_params as (_, _, _, _, subgoal, subgoal_count)) =

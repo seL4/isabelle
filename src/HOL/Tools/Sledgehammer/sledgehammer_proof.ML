@@ -20,7 +20,7 @@ sig
     Prove of isar_qualifier list * (string * typ) list * label * term * isar_proof list *
       (facts * proof_method list list)
   and proof_method =
-    Metis_Method | Metis_New_Skolem_Method | Simp_Method | Simp_Size_Method | Auto_Method |
+    Metis_Method_with_Args | Metis_Method | Simp_Method | Simp_Size_Method | Auto_Method |
     Fastforce_Method | Force_Method | Arith_Method | Blast_Method | Meson_Method
 
   val no_label : label
@@ -69,7 +69,7 @@ and isar_step =
   Prove of isar_qualifier list * (string * typ) list * label * term * isar_proof list *
     (facts * proof_method list list)
 and proof_method =
-  Metis_Method | Metis_New_Skolem_Method | Simp_Method | Simp_Size_Method | Auto_Method |
+  Metis_Method_with_Args | Metis_Method | Simp_Method | Simp_Size_Method | Auto_Method |
   Fastforce_Method | Force_Method | Arith_Method | Blast_Method | Meson_Method
 
 val no_label = ("", ~1)

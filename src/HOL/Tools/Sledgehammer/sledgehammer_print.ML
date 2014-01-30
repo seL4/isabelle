@@ -170,7 +170,7 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
 
     fun of_metis ls ss = reconstructor_command (Metis (type_enc, lam_trans)) 1 1 [] 0 (ls, ss)
 
-    fun of_method ls ss Metis_Method = of_metis ls ss
+    fun of_method ls ss Metis_Method_with_Args = of_metis ls ss
       | of_method ls ss meth = using_facts ls ss ^ by_method meth
 
     fun of_byline ind (ls, ss) meth =
@@ -245,7 +245,7 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
     (* One-step Metis proofs are pointless; better use the one-liner directly. *)
     (case proof of
       Proof ([], [], []) => "" (* degenerate case: the conjecture is "True" with Z3 *)
-    | Proof ([], [], [Prove (_, [], _, _, [], (_, (Metis_Method :: _) :: _))]) => ""
+    | Proof ([], [], [Prove (_, [], _, _, [], (_, (Metis_Method_with_Args :: _) :: _))]) => ""
     | _ =>
       (if i <> 1 then "prefer " ^ string_of_int i ^ "\n" else "") ^
       of_indent 0 ^ "proof -\n" ^ of_proof 1 ctxt proof ^
