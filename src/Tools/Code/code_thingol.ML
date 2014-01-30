@@ -455,6 +455,32 @@ fun annotate_eqns thy algbr eqngr (c, ty) eqns =
     (annotate thy algbr eqngr (c, ty) args rhs, some_abs)))) eqns
 
 
+(* abstract dictionary construction *)
+
+datatype typarg_witness =
+    Weakening of (class * class) list * plain_typarg_witness
+and plain_typarg_witness =
+    Global of (string * class) * typarg_witness list list
+  | Local of string * (int * sort);
+
+fun construct_dictionaries thy (proj_sort, algebra) permissive some_thm (ty, sort) (dep, program) =
+  let
+    fun class_relation ((Weakening (classrels, x)), sub_class) super_class =
+      Weakening ((sub_class, super_class) :: classrels, x);
+    fun type_constructor (tyco, _) dss class =
+      Weakening ([], Global ((tyco, class), (map o map) fst dss));
+    fun type_variable (TFree (v, sort)) =
+      let
+        val sort' = proj_sort sort;
+      in map_index (fn (n, class) => (Weakening ([], Local (v, (n, sort'))), class)) sort' end;
+    val typarg_witnesses = Sorts.of_sort_derivation algebra
+      {class_relation = K (Sorts.classrel_derivation algebra class_relation),
+       type_constructor = type_constructor,
+       type_variable = type_variable} (ty, proj_sort sort)
+      handle Sorts.CLASS_ERROR e => not_wellsorted thy permissive some_thm ty sort e;
+  in (typarg_witnesses, (dep, program)) end;
+
+
 (* translation *)
 
 fun ensure_tyco thy algbr eqngr permissive tyco =
@@ -695,24 +721,6 @@ and translate_tyvar_sort thy (algbr as (proj_sort, _)) eqngr permissive (v, sort
   #>> (fn sort => (unprefix "'" v, sort))
 and translate_dicts thy (algbr as (proj_sort, algebra)) eqngr permissive some_thm (ty, sort) =
   let
-    datatype typarg_witness =
-        Weakening of (class * class) list * plain_typarg_witness
-    and plain_typarg_witness =
-        Global of (string * class) * typarg_witness list list
-      | Local of string * (int * sort);
-    fun class_relation ((Weakening (classrels, x)), sub_class) super_class =
-      Weakening ((sub_class, super_class) :: classrels, x);
-    fun type_constructor (tyco, _) dss class =
-      Weakening ([], Global ((tyco, class), (map o map) fst dss));
-    fun type_variable (TFree (v, sort)) =
-      let
-        val sort' = proj_sort sort;
-      in map_index (fn (n, class) => (Weakening ([], Local (v, (n, sort'))), class)) sort' end;
-    val typarg_witnesses = Sorts.of_sort_derivation algebra
-      {class_relation = K (Sorts.classrel_derivation algebra class_relation),
-       type_constructor = type_constructor,
-       type_variable = type_variable} (ty, proj_sort sort)
-      handle Sorts.CLASS_ERROR e => not_wellsorted thy permissive some_thm ty sort e;
     fun mk_dict (Weakening (classrels, x)) =
           fold_map (ensure_classrel thy algbr eqngr permissive) classrels
           ##>> mk_plain_dict x
@@ -723,7 +731,10 @@ and translate_dicts thy (algbr as (proj_sort, algebra)) eqngr permissive some_th
           #>> (fn (inst, dss) => Dict_Const (inst, dss))
       | mk_plain_dict (Local (v, (n, sort))) =
           pair (Dict_Var (unprefix "'" v, (n, length sort)))
-  in fold_map mk_dict typarg_witnesses end;
+  in
+    construct_dictionaries thy algbr permissive some_thm (ty, sort)
+    #-> (fn typarg_witnesses => fold_map mk_dict typarg_witnesses)
+  end;
 
 
 (* store *)
