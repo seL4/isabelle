@@ -60,7 +60,7 @@ val smtN = "smt"
 (* Makes reconstructor tools as silent as possible. The "set_visible" calls suppresses "Unification
    bound exceeded" warnings and the like. *)
 fun silence_reconstructors debug =
-  Try0.silence_method debug
+  Try0.silence_methods debug
   #> Config.put SMT_Config.verbose debug
 
 end;
