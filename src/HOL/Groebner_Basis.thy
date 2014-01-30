@@ -85,4 +85,9 @@ declare zdvd1_eq[algebra]
 declare zmod_eq_dvd_iff[algebra]
 declare nat_mod_eq_iff[algebra]
 
+
+subsection {* Try0 *}
+
+ML_file "Tools/try0.ML"
+
 end

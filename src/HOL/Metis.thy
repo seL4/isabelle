@@ -52,9 +52,4 @@ hide_fact (open) select_def not_atomize atomize_not_select not_atomize_select
     fequal_table fAll_table fEx_table fNot_law fComp_law fconj_laws fdisj_laws
     fimplies_laws fequal_laws fAll_law fEx_law lambda_def eq_lambdaI
 
-
-subsection {* Try0 *}
-
-ML_file "Tools/try0.ML"
-
 end

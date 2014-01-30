@@ -96,13 +96,15 @@ val no_attrs = (NONE, NONE, NONE, NONE)
 val named_methods =
   [("simp", ((false, true), simp_attrs)),
    ("auto", ((true, true), full_attrs)),
-   ("fast", ((false, false), clas_attrs)),
-   ("fastforce", ((false, false), full_attrs)),
-   ("force", ((false, false), full_attrs)),
    ("blast", ((false, true), clas_attrs)),
    ("metis", ((false, true), metis_attrs)),
    ("linarith", ((false, true), no_attrs)),
-   ("presburger", ((false, true), no_attrs))]
+   ("presburger", ((false, true), no_attrs)),
+   ("algebra", ((false, true), no_attrs)),
+   ("fast", ((false, false), clas_attrs)),
+   ("fastforce", ((false, false), full_attrs)),
+   ("force", ((false, false), full_attrs)),
+   ("meson", ((false, false), metis_attrs))]
 val do_methods = map do_named_method named_methods
 
 fun time_string ms = string_of_int ms ^ " ms"
