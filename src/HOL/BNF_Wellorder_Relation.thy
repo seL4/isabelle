@@ -34,6 +34,8 @@ abbreviation above where "above \<equiv> Order_Relation.above r"
 abbreviation aboveS where "aboveS \<equiv> Order_Relation.aboveS r"
 abbreviation Above where "Above \<equiv> Order_Relation.Above r"
 abbreviation AboveS where "AboveS \<equiv> Order_Relation.AboveS r"
+abbreviation ofilter where "ofilter \<equiv> Order_Relation.ofilter r"
+lemmas ofilter_def = Order_Relation.ofilter_def[of r]
 
 
 subsection {* Auxiliaries *}
@@ -138,10 +140,6 @@ where "supr A \<equiv> minim (Above A)"
 
 definition suc :: "'a set \<Rightarrow> 'a"
 where "suc A \<equiv> minim (AboveS A)"
-
-definition ofilter :: "'a set \<Rightarrow> bool"
-where
-"ofilter A \<equiv> (A \<le> Field r) \<and> (\<forall>a \<in> A. under a \<le> A)"
 
 
 subsubsection {* Properties of max2 *}
@@ -438,7 +436,7 @@ next
     hence 2: "?a \<in> Field r" using minim_inField[of ?B] by blast
     have 3: "?a \<in> ?B" using minim_in[of ?B] 1 by blast
     hence 4: "?a \<notin> A" by blast
-    have 5: "A \<le> Field r" using * ofilter_def[of A] by auto
+    have 5: "A \<le> Field r" using * ofilter_def by auto
     (*  *)
     moreover
     have "A = underS ?a"

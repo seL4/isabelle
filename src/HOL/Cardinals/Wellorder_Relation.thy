@@ -530,6 +530,5 @@ abbreviation "minim \<equiv> wo_rel.minim"
 abbreviation "max2 \<equiv> wo_rel.max2"
 abbreviation "supr \<equiv> wo_rel.supr"
 abbreviation "suc \<equiv> wo_rel.suc"
-abbreviation "ofilter \<equiv> wo_rel.ofilter"
 
 end

@@ -210,6 +210,9 @@ where "Above r A \<equiv> {b \<in> Field r. \<forall>a \<in> A. (a,b) \<in> r}"
 definition AboveS::"'a rel \<Rightarrow> 'a set \<Rightarrow> 'a set"
 where "AboveS r A \<equiv> {b \<in> Field r. \<forall>a \<in> A. b \<noteq> a \<and> (a,b) \<in> r}"
 
+definition ofilter :: "'a rel \<Rightarrow> 'a set \<Rightarrow> bool"
+where "ofilter r A \<equiv> (A \<le> Field r) \<and> (\<forall>a \<in> A. under r a \<le> A)"
+
 text{* Note:  In the definitions of @{text "Above[S]"} and @{text "Under[S]"},
   we bounded comprehension by @{text "Field r"} in order to properly cover
   the case of @{text "A"} being empty. *}
