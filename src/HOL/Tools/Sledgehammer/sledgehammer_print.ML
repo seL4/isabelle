@@ -171,7 +171,6 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
     fun of_metis ls ss = reconstructor_command (Metis (type_enc, lam_trans)) 1 1 [] 0 (ls, ss)
 
     fun of_method ls ss Metis_Method = of_metis ls ss
-      | of_method ls ss Metis_New_Skolem_Method = "using [[metis_new_skolem]] " ^ of_metis ls ss
       | of_method ls ss meth = using_facts ls ss ^ by_method meth
 
     fun of_byline ind (ls, ss) meth =

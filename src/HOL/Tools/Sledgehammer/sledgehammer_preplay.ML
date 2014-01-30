@@ -89,14 +89,12 @@ fun thm_of_proof ctxt (Proof (fixed_frees, assms, steps)) =
 fun tac_of_method meth type_enc lam_trans ctxt facts =
   (case meth of
     Metis_Method => Metis_Tactic.metis_tac [type_enc] lam_trans ctxt facts
-  | Metis_New_Skolem_Method =>
-    tac_of_method Metis_Method type_enc lam_trans (Config.put Metis_Tactic.new_skolem true ctxt)
-      facts
   | Meson_Method => Meson.meson_tac ctxt facts
   | _ =>
     Method.insert_tac facts THEN'
     (case meth of
-      Simp_Method => Simplifier.asm_full_simp_tac ctxt
+      Metis_New_Skolem_Method => Metis_Tactic.metis_tac [type_enc] lam_trans ctxt []
+    | Simp_Method => Simplifier.asm_full_simp_tac ctxt
     | Simp_Size_Method =>
       Simplifier.asm_full_simp_tac (Simplifier.add_simp @{thm size_ne_size_imp_ne} ctxt)
     | Auto_Method => K (Clasimp.auto_tac ctxt)
