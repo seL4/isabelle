@@ -41,7 +41,7 @@ fun can_apply timeout_opt pre post tac st =
   end
   handle TimeLimit.TimeOut => false;
 
-fun do_generic timeout_opt name command pre post apply st =
+fun apply_generic timeout_opt name command pre post apply st =
   let val timer = Timer.startRealTimer () in
     if can_apply timeout_opt pre post apply st then
       SOME (name, command, Time.toMilliseconds (Timer.checkRealTimer timer))
@@ -73,10 +73,10 @@ fun add_attr_text (NONE, _) s = s
 fun attrs_text (sx, ix, ex, dx) (ss, is, es, ds) =
   "" |> fold add_attr_text [(sx, ss), (ix, is), (ex, es), (dx, ds)];
 
-fun do_named_method (name, ((all_goals, run_if_auto_try), attrs)) mode timeout_opt quad st =
+fun apply_named_method (name, ((all_goals, run_if_auto_try), attrs)) mode timeout_opt quad st =
   if mode <> Auto_Try orelse run_if_auto_try then
     let val attrs = attrs_text attrs quad in
-      do_generic timeout_opt name
+      apply_generic timeout_opt name
         ((name ^ attrs |> attrs <> "" ? enclose "(" ")") ^
          (if all_goals andalso nprems_of (#goal (Proof.goal st)) > 1 then "[1]" else ""))
         I (#goal o Proof.goal)
@@ -105,7 +105,7 @@ val named_methods =
    ("force", ((false, false), full_attrs)),
    ("meson", ((false, false), metis_attrs))]
 
-val do_methods = map do_named_method named_methods;
+val apply_methods = map apply_named_method named_methods;
 
 fun time_string ms = string_of_int ms ^ " ms";
 fun tool_time_string (s, ms) = s ^ ": " ^ time_string ms;
@@ -122,7 +122,7 @@ fun silence_methods debug =
        |> Context_Position.set_visible_global false
        |> Config.put_global Unify.trace_bound (Config.get_global thy Unify.search_bound))));
 
-fun do_try0 mode timeout_opt quad st =
+fun generic_try0 mode timeout_opt quad st =
   let
     val st = st |> Proof.map_context (silence_methods false);
     fun trd (_, _, t) = t;
@@ -136,7 +136,7 @@ fun do_try0 mode timeout_opt quad st =
       |> Output.urgent_message
     else
       ();
-    (case par_map (fn f => f mode timeout_opt quad st) do_methods of
+    (case par_map (fn f => f mode timeout_opt quad st) apply_methods of
       [] =>
       (if mode = Normal then Output.urgent_message "No proof found." else (); (false, (noneN, st)))
     | xs as (name, command, _) :: _ =>
@@ -165,11 +165,11 @@ fun do_try0 mode timeout_opt quad st =
       end)
   end;
 
-fun try0 timeout_opt = fst oo do_try0 Normal timeout_opt;
+fun try0 timeout_opt = fst oo generic_try0 Normal timeout_opt;
 
 fun try0_trans quad =
   Toplevel.unknown_proof o
-  Toplevel.keep (K () o do_try0 Normal (SOME default_timeout) quad o Toplevel.proof_of);
+  Toplevel.keep (K () o generic_try0 Normal (SOME default_timeout) quad o Toplevel.proof_of);
 
 fun merge_attrs (s1, i1, e1, d1) (s2, i2, e2, d2) = (s1 @ s2, i1 @ i2, e1 @ e2, d1 @ d2);
 
@@ -194,7 +194,7 @@ val _ =
   Outer_Syntax.improper_command @{command_spec "try0"} "try a combination of proof methods"
     (Scan.optional parse_attrs ([], [], [], []) #>> try0_trans);
 
-fun try_try0 auto = do_try0 (if auto then Auto_Try else Try) NONE ([], [], [], []);
+fun try_try0 auto = generic_try0 (if auto then Auto_Try else Try) NONE ([], [], [], []);
 
 val _ = Try.tool_setup (try0N, (30, @{option auto_methods}, try_try0));
 
