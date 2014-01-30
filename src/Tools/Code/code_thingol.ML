@@ -83,8 +83,8 @@ sig
     -> ((Code_Symbol.T * stmt) list * (Code_Symbol.T * stmt) list
       * ((Code_Symbol.T * stmt) list * (Code_Symbol.T * stmt) list)) list
 
-  val read_const_exprs: theory -> string list -> string list * string list
-  val consts_program: theory -> bool -> string list -> program
+  val read_const_exprs: theory -> string list -> string list
+  val consts_program: theory -> string list -> program
   val dynamic_conv: theory -> (program
     -> ((string * sort) list * typscheme) * iterm -> Code_Symbol.T list -> conv)
     -> conv
@@ -743,19 +743,25 @@ fun invoke_generation ignore_cache thy (algebra, eqngr) generate thing =
 
 (* program generation *)
 
-fun consts_program thy permissive consts =
+fun consts_program_internal thy permissive consts =
   let
-    fun project program =
-      if permissive then program
-      else Code_Symbol.Graph.restrict
-        (member (op =) (Code_Symbol.Graph.all_succs program
-          (map Constant consts))) program;
     fun generate_consts thy algebra eqngr =
       fold_map (ensure_const thy algebra eqngr permissive);
   in
     invoke_generation permissive thy (Code_Preproc.obtain false thy consts [])
       generate_consts consts
     |> snd
+  end;
+
+fun consts_program_permissive thy = consts_program_internal thy true;
+
+fun consts_program thy consts =
+  let
+    fun project program = Code_Symbol.Graph.restrict
+      (member (op =) (Code_Symbol.Graph.all_succs program
+        (map Constant consts))) program;
+  in
+    consts_program_internal thy false consts
     |> project
   end;
 
@@ -838,9 +844,9 @@ fun static_value thy postproc consts evaluator =
   Code_Preproc.static_value thy postproc consts (lift_evaluator thy evaluator consts);
 
 
-(** diagnostic commands **)
+(** constant expressions **)
 
-fun read_const_exprs thy =
+fun read_const_exprs_internal thy =
   let
     fun consts_of thy' = Symtab.fold (fn (c, (_, NONE)) => cons c | _ => I)
       ((snd o #constants o Consts.dest o Sign.consts_of) thy') [];
@@ -858,6 +864,17 @@ fun read_const_exprs thy =
           else ([Code.read_const thy str], [])
       | NONE => ([Code.read_const thy str], []));
   in pairself flat o split_list o map read_const_expr end;
+
+fun read_const_exprs_all thy = op @ o read_const_exprs_internal thy;
+
+fun read_const_exprs thy const_exprs =
+  let
+    val (consts, consts_permissive) = read_const_exprs_internal thy const_exprs;
+    val consts' = implemented_deps (consts_program_permissive thy consts_permissive);
+  in union (op =) consts' consts end;
+
+
+(** diagnostic commands **)
 
 fun code_depgr thy consts =
   let
@@ -888,8 +905,8 @@ fun code_deps thy consts =
 
 local
 
-fun code_thms_cmd thy = code_thms thy o op @ o read_const_exprs thy;
-fun code_deps_cmd thy = code_deps thy o op @ o read_const_exprs thy;
+fun code_thms_cmd thy = code_thms thy o read_const_exprs_all thy;
+fun code_deps_cmd thy = code_deps thy o read_const_exprs_all thy;
 
 in
 
