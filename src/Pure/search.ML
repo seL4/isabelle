@@ -124,13 +124,18 @@ fun THEN_ITER_DEEPEN lim tac0 satp tac1 = traced_tac (fn st =>
      (*bnd = depth bound; inc = estimate of increment required next*)
      fun depth (bnd,inc) [] =
           if bnd > lim then
-             (tracing (string_of_int (!countr) ^
-                       " inferences so far.  Giving up at " ^ string_of_int bnd);
+             (if !trace_DEPTH_FIRST then
+                  tracing (string_of_int (!countr) ^
+                           " inferences so far.  Giving up at " ^
+                           string_of_int bnd)
+              else ();
               NONE)
           else
-             (tracing (string_of_int (!countr) ^
-                       " inferences so far.  Searching to depth " ^
-                       string_of_int bnd);
+             (if !trace_DEPTH_FIRST then
+                  tracing (string_of_int (!countr) ^
+                           " inferences so far.  Searching to depth " ^
+                           string_of_int bnd)
+              else ();
               (*larger increments make it run slower for the hard problems*)
               depth (bnd+inc, 10)) [(0, 1, false, qs0)]
        | depth (bnd,inc) ((k,np,rgd,q)::qs) =
