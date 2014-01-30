@@ -99,6 +99,14 @@ lemma of_bool_eq_iff:
   "of_bool p = of_bool q \<longleftrightarrow> p = q"
   by (simp add: of_bool_def)
 
+lemma split_of_bool [split]:
+  "P (of_bool p) \<longleftrightarrow> (p \<longrightarrow> P 1) \<and> (\<not> p \<longrightarrow> P 0)"
+  by (cases p) simp_all
+
+lemma split_of_bool_asm:
+  "P (of_bool p) \<longleftrightarrow> \<not> (p \<and> \<not> P 1 \<or> \<not> p \<and> \<not> P 0)"
+  by (cases p) simp_all
+  
 end  
 
 class semiring_1 = zero_neq_one + semiring_0 + monoid_mult
