@@ -155,7 +155,7 @@ fun add_type_constraint false (cl, TFree (a ,_)) = add_var ((a, ~1), cl)
   | add_type_constraint false (cl, TVar (ix, _)) = add_var (ix, cl)
   | add_type_constraint _ _ = I
 
-fun repair_var_name s =
+fun repair_var_name_raw s =
   let
     fun subscript_name s n = s ^ nat_subscript n
     val s = s |> String.map Char.toLower
@@ -169,6 +169,11 @@ fun repair_var_name s =
     | [s1, s2] => (case Int.fromString s2 of SOME n => subscript_name s1 n | NONE => s)
     | _ => s)
   end
+
+fun repair_var_name textual s =
+  (case unprefix_and_unascii schematic_var_prefix s of
+    SOME s => s
+  | NONE => s |> textual ? repair_var_name_raw)
 
 (* The number of type arguments of a constant, zero if it's monomorphic. For (instances of) Skolem
    pseudoconstants, this information is encoded in the constant name. *)
@@ -284,13 +289,10 @@ fun term_of_atp ctxt textual sym_tab =
                 (case unprefix_and_unascii fixed_var_prefix s of
                   SOME s => Free (s, T)
                 | NONE =>
-                  (case unprefix_and_unascii schematic_var_prefix s of
-                    SOME s => Var ((s, var_index), T)
-                  | NONE =>
-                    if textual andalso not (is_tptp_variable s) then
-                      Free (s |> textual ? (repair_var_name #> fresh_up), T)
-                    else
-                      Var ((s |> textual ? repair_var_name, var_index), T)))
+                  if textual andalso not (is_tptp_variable s) then
+                    Free (s |> textual ? (repair_var_name_raw #> fresh_up), T)
+                  else
+                    Var ((repair_var_name textual s, var_index), T))
             in list_comb (t, ts) end))
   in do_term [] end
 
@@ -319,7 +321,7 @@ fun repair_tvar_sorts (t, tvar_tab) =
 
 fun quantify_over_var quant_of var_s t =
   let
-    val vars = [] |> Term.add_vars t |> filter (fn ((s, _), _) => s = var_s)
+    val vars = filter (fn ((s, _), _) => s = var_s) (Term.add_vars t [])
     val normTs = vars |> AList.group (op =) |> map (apsnd hd)
     fun norm_var_types (Var (x, T)) =
         Var (x, (case AList.lookup (op =) normTs x of NONE => T | SOME T' => T'))
@@ -337,7 +339,7 @@ fun prop_of_atp ctxt textual sym_tab phi =
         do_formula pos (AQuant (q, xs, phi'))
         (* FIXME: TFF *)
         #>> quantify_over_var (case q of AForall => forall_of | AExists => exists_of)
-          (s |> textual ? repair_var_name)
+          (repair_var_name textual s)
       | AConn (ANot, [phi']) => do_formula (not pos) phi' #>> s_not
       | AConn (c, [phi1, phi2]) =>
         do_formula (pos |> c = AImplies ? not) phi1
@@ -589,10 +591,10 @@ fun factify_atp_proof fact_names hyp_ts concl_t atp_proof =
           (case resolve_conjecture ss of
             [j] =>
             if j = length hyp_ts then ([], Conjecture, concl_t) else ([], Hypothesis, nth hyp_ts j)
-           | _ =>
-             (case resolve_fact fact_names ss of
-               [] => (ss, Plain, t)
-             | facts => (map fst facts, Axiom, t)))
+          | _ =>
+            (case resolve_fact fact_names ss of
+              [] => (ss, Plain, t)
+            | facts => (map fst facts, Axiom, t)))
       in
         ((num, ss'), role', t', rule, deps)
       end
