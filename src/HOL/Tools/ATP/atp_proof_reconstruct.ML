@@ -535,6 +535,55 @@ fun termify_atp_proof ctxt pool lifted sym_tab =
   #> map (termify_line ctxt lifted sym_tab)
   #> repair_waldmeister_endgame
 
+fun take_distinct_vars seen ((t as Var _) :: ts) =
+    if member (op aconv) seen t then rev seen else take_distinct_vars (t :: seen) ts
+  | take_distinct_vars seen _ = rev seen
+
+fun unskolemize_term skos t =
+  let
+    val is_sko = member (op =) skos
+
+    fun find_args args (t $ u) = find_args (u :: args) t #> find_args [] u
+      | find_args _ (Abs (_, _, t)) = find_args [] t
+      | find_args args (Free (s, _)) =
+        if is_sko s then
+          let val new = take_distinct_vars [] args in
+            (fn [] => new | old => if length new < length old then new else old)
+          end
+        else
+          I
+      | find_args _ _ = I
+
+    val alls = find_args [] t []
+    val num_alls = length alls
+  in
+    if num_alls = 0 then
+      t
+    else
+      let
+        fun fix_skos args (t $ u) = fix_skos (fix_skos [] u :: args) t
+          | fix_skos args (t as Free (s, T)) =
+            if is_sko s then list_comb (Free (s, funpow num_alls body_type T), drop num_alls args)
+            else list_comb (t, args)
+          | fix_skos [] (Abs (s, T, t)) = Abs (s, T, fix_skos [] t)
+          | fix_skos [] t = t
+          | fix_skos args t = list_comb (fix_skos [] t, args)
+
+        val t' = fix_skos [] t
+
+        fun add_sko (t as Free (s, _)) = is_sko s ? insert (op aconv) t
+          | add_sko _ = I
+
+        val exs = Term.fold_aterms add_sko t' []
+      in
+        t'
+        |> HOLogic.dest_Trueprop
+        |> fold exists_of exs |> Term.map_abs_vars (K Name.uu)
+        |> fold_rev forall_of alls
+        |> HOLogic.mk_Trueprop
+      end
+  end
+
 fun introduce_spass_skolem [] = []
   | introduce_spass_skolem (proof as (_, _, _, rule1, _) :: _) =
     if rule1 = spass_input_rule then
@@ -558,20 +607,25 @@ fun introduce_spass_skolem [] = []
         fun in_group group = member (op =) group o hd
         fun group_of sko = the (find_first (fn group => in_group group sko) groups)
 
-        fun new_step group (skoss_steps : ('a * (term, 'b) atp_step) list) =
+        fun new_steps (skoss_steps : (string list * (term, 'a) atp_step) list) group =
           let
+            val name = step_name_of_group group
+            val name0 = name |>> prefix "0"
             val t =
               skoss_steps
               |> map (snd #> #3 #> HOLogic.dest_Trueprop)
               |> Library.foldr1 s_conj
               |> HOLogic.mk_Trueprop
+            val skos = fold (union (op =) o fst) skoss_steps []
             val deps = map (snd #> #1) skoss_steps
           in
-            (step_name_of_group group, Plain, t, spass_skolemize_rule, deps)
+            [(name0, Lemma, unskolemize_term skos t, spass_pre_skolemize_rule, deps),
+             (name, Plain, t, spass_skolemize_rule, [name0])]
           end
 
         val sko_steps =
-          map (fn group => new_step group (filter (in_group group o fst) skoss_input_steps)) groups
+          maps (fn group => new_steps (filter (in_group group o fst) skoss_input_steps) group)
+            groups
 
         val old_news =
           map (fn (skos, (name, _, _, _, _)) => (name, [step_name_of_group (group_of skos)]))

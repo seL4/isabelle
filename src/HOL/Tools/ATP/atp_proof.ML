@@ -44,6 +44,7 @@ sig
   val agsyhol_core_rule : string
   val satallax_core_rule : string
   val spass_input_rule : string
+  val spass_pre_skolemize_rule : string
   val spass_skolemize_rule : string
   val z3_tptp_core_rule : string
 
@@ -73,6 +74,7 @@ open ATP_Problem
 val agsyhol_core_rule = "__agsyhol_core" (* arbitrary *)
 val satallax_core_rule = "__satallax_core" (* arbitrary *)
 val spass_input_rule = "Inp"
+val spass_pre_skolemize_rule = "__Sko0" (* arbitrary *)
 val spass_skolemize_rule = "__Sko" (* arbitrary *)
 val z3_tptp_core_rule = "__z3_tptp_core" (* arbitrary *)
 
