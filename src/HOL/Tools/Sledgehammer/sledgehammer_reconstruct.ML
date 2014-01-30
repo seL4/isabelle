@@ -329,7 +329,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
                   [g] =>
                   if skolem andalso is_clause_tainted g then
                     let val subproof = Proof (skolems_of (prop_of_clause g), [], rev accum) in
-                      isar_steps outer (SOME l) [prove [subproof] (no_facts, skolem_methodss)] []
+                      isar_steps outer (SOME l) [prove [subproof] (no_facts, skolem_methodss)] infs
                     end
                   else
                     do_rest l (prove [] by)
@@ -339,8 +339,8 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
             end
           | isar_steps outer predecessor accum (Cases cases :: infs) =
             let
-              fun isar_case (c, infs) =
-                isar_proof false [] [(label_of_clause c, prop_of_clause c)] [] infs
+              fun isar_case (c, subinfs) =
+                isar_proof false [] [(label_of_clause c, prop_of_clause c)] [] subinfs
               val c = succedent_of_cases cases
               val l = label_of_clause c
               val t = prop_of_clause c
