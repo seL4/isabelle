@@ -400,4 +400,40 @@ qed
 
 end
 
+lemma Card_order_cmax:
+assumes r: "Card_order r" and s: "Card_order s"
+shows "Card_order (cmax r s)"
+unfolding cmax_def by (auto simp: Card_order_csum)
+
+lemma ordLeq_cmax:
+assumes r: "Card_order r" and s: "Card_order s"
+shows "r \<le>o cmax r s \<and> s \<le>o cmax r s"
+proof-
+  {assume "r \<le>o s"
+   hence ?thesis by (metis cmax2 ordIso_iff_ordLeq ordLeq_transitive r s)
+  }
+  moreover
+  {assume "s \<le>o r"
+   hence ?thesis using cmax_com by (metis cmax2 ordIso_iff_ordLeq ordLeq_transitive r s)
+  }
+  ultimately show ?thesis using r s ordLeq_total unfolding card_order_on_def by auto
+qed
+
+lemmas ordLeq_cmax1 = ordLeq_cmax[THEN conjunct1] and
+       ordLeq_cmax2 = ordLeq_cmax[THEN conjunct2]
+
+lemma finite_cmax:
+assumes r: "Card_order r" and s: "Card_order s"
+shows "finite (Field (cmax r s)) \<longleftrightarrow> finite (Field r) \<and> finite (Field s)"
+proof-
+  {assume "r \<le>o s"
+   hence ?thesis by (metis cmax2 ordIso_finite_Field ordLeq_finite_Field r s)
+  }
+  moreover
+  {assume "s \<le>o r"
+   hence ?thesis by (metis cmax1 ordIso_finite_Field ordLeq_finite_Field r s)
+  }
+  ultimately show ?thesis using r s ordLeq_total unfolding card_order_on_def by auto
+qed
+
 end

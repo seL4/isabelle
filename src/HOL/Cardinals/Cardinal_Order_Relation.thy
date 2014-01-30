@@ -652,6 +652,16 @@ proof-
   thus ?thesis using 1 ordLess_ordIso_trans by blast
 qed
 
+lemma ordLeq_finite_Field:
+assumes "r \<le>o s" and "finite (Field s)"
+shows "finite (Field r)"
+by (metis assms card_of_mono2 card_of_ordLeq_infinite)
+
+lemma ordIso_finite_Field:
+assumes "r =o s"
+shows "finite (Field r) \<longleftrightarrow> finite (Field s)"
+by (metis assms ordIso_iff_ordLeq ordLeq_finite_Field)
+
 
 subsection {* Cardinals versus set operations involving infinite sets *}
 
