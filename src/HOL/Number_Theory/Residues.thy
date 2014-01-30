@@ -453,7 +453,6 @@ lemma wilson_theorem: "prime (p::int) \<Longrightarrow> [fact (p - 1) = - 1] (mo
   apply (subst fact_altdef_int, simp)
   apply (subst cong_int_def)
   apply simp
-  apply presburger
   apply (rule residues_prime.wilson_theorem1)
   apply (rule residues_prime.intro)
   apply auto

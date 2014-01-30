@@ -1963,30 +1963,26 @@ lemmas negDivAlg_eqn_numeral [simp] =
     negDivAlg_eqn [of "numeral v" "- numeral w", OF zero_less_numeral] for v w
 
 
-text{*Special-case simplification *}
+text {* Special-case simplification: @{text "\<plusminus>1 div z"} and @{text "\<plusminus>1 mod z"} *}
 
-(** The last remaining special cases for constant arithmetic:
-    1 div z and 1 mod z **)
-
-lemmas div_pos_pos_1_numeral [simp] =
-  div_pos_pos [OF zero_less_one, of "numeral w", OF zero_le_numeral] for w
-
-lemmas div_pos_neg_1_numeral [simp] =
-  div_pos_neg [OF zero_less_one, of "- numeral w",
-  OF neg_numeral_less_zero] for w
-
-lemmas mod_pos_pos_1_numeral [simp] =
-  mod_pos_pos [OF zero_less_one, of "numeral w", OF zero_le_numeral] for w
-
-lemmas mod_pos_neg_1_numeral [simp] =
-  mod_pos_neg [OF zero_less_one, of "- numeral w",
-  OF neg_numeral_less_zero] for w
-
-lemmas posDivAlg_eqn_1_numeral [simp] =
-    posDivAlg_eqn [of concl: 1 "numeral w", OF zero_less_numeral] for w
-
-lemmas negDivAlg_eqn_1_numeral [simp] =
-    negDivAlg_eqn [of concl: 1 "numeral w", OF zero_less_numeral] for w
+lemma [simp]:
+  shows div_one_bit0: "1 div numeral (Num.Bit0 v) = (0 :: int)"
+    and mod_one_bit0: "1 mod numeral (Num.Bit0 v) = (1 :: int)"
+	  and div_one_bit1: "1 div numeral (Num.Bit1 v) = (0 :: int)"
+	  and mod_one_bit1: "1 mod numeral (Num.Bit1 v) = (1 :: int)"
+	  and div_one_neg_numeral: "1 div - numeral v = (- 1 :: int)"
+	  and mod_one_neg_numeral: "1 mod - numeral v = (1 :: int) - numeral v"
+  by (simp_all del: arith_special
+    add: div_pos_pos mod_pos_pos div_pos_neg mod_pos_neg posDivAlg_eqn)
+	
+lemma [simp]:
+  shows div_neg_one_numeral: "- 1 div numeral v = (- 1 :: int)"
+    and mod_neg_one_numeral: "- 1 mod numeral v = numeral v - (1 :: int)"
+    and div_neg_one_neg_bit0: "- 1 div - numeral (Num.Bit0 v) = (0 :: int)"
+    and mod_neg_one_neb_bit0: "- 1 mod - numeral (Num.Bit0 v) = (- 1 :: int)"
+    and div_neg_one_neg_bit1: "- 1 div - numeral (Num.Bit1 v) = (0 :: int)"
+    and mod_neg_one_neb_bit1: "- 1 mod - numeral (Num.Bit1 v) = (- 1 :: int)"
+  by (simp_all add: div_eq_minus1 zmod_minus1)
 
 
 subsubsection {* Monotonicity in the First Argument (Dividend) *}
