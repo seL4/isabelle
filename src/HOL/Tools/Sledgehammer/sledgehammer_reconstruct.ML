@@ -95,17 +95,24 @@ and delete_dependency name lines =
 
 fun add_lines_pass3 res [] = rev res
   | add_lines_pass3 res ((name, role, t, rule, deps) :: lines) =
-    if role <> Plain orelse is_skolemize_rule rule orelse is_arith_rule rule orelse
-       is_datatype_rule rule orelse
-       (* the last line must be kept *)
-       null lines orelse
-       (not (is_only_type_information t) andalso null (Term.add_tvars t [])
-        andalso length deps >= 2 andalso
-        (* don't keep next to last line, which usually results in a trivial step *)
-        not (can the_single lines)) then
-      add_lines_pass3 ((name, role, t, rule, deps) :: res) lines
-    else
-      add_lines_pass3 res (map (replace_dependencies_in_line (name, deps)) lines)
+    let
+      val is_last_line = null lines
+
+      fun looks_interesting () =
+        not (is_only_type_information t) andalso null (Term.add_tvars t [])
+        andalso length deps >= 2 andalso not (can the_single lines)
+
+      fun is_skolemizing_line (_, _, _, rule', deps') =
+        is_skolemize_rule rule' andalso member (op =) deps' name
+      fun is_before_skolemize_rule () = exists is_skolemizing_line lines
+    in
+      if role <> Plain orelse is_skolemize_rule rule orelse is_arith_rule rule orelse
+         is_datatype_rule rule orelse is_last_line orelse looks_interesting () orelse
+         is_before_skolemize_rule () then
+        add_lines_pass3 ((name, role, t, rule, deps) :: res) lines
+      else
+        add_lines_pass3 res (map (replace_dependencies_in_line (name, deps)) lines)
+    end
 
 val add_labels_of_proof =
   steps_of_proof
