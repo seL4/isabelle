@@ -556,32 +556,27 @@ fun unskolemize_term skos t =
 
     val alls = find_args [] t []
     val num_alls = length alls
+
+    fun fix_skos args (t $ u) = fix_skos (fix_skos [] u :: args) t
+      | fix_skos args (t as Free (s, T)) =
+        if is_sko s then list_comb (Free (s, funpow num_alls body_type T), drop num_alls args)
+        else list_comb (t, args)
+      | fix_skos [] (Abs (s, T, t)) = Abs (s, T, fix_skos [] t)
+      | fix_skos [] t = t
+      | fix_skos args t = list_comb (fix_skos [] t, args)
+
+    val t' = fix_skos [] t
+
+    fun add_sko (t as Free (s, _)) = is_sko s ? insert (op aconv) t
+      | add_sko _ = I
+
+    val exs = Term.fold_aterms add_sko t' []
   in
-    if num_alls = 0 then
-      t
-    else
-      let
-        fun fix_skos args (t $ u) = fix_skos (fix_skos [] u :: args) t
-          | fix_skos args (t as Free (s, T)) =
-            if is_sko s then list_comb (Free (s, funpow num_alls body_type T), drop num_alls args)
-            else list_comb (t, args)
-          | fix_skos [] (Abs (s, T, t)) = Abs (s, T, fix_skos [] t)
-          | fix_skos [] t = t
-          | fix_skos args t = list_comb (fix_skos [] t, args)
-
-        val t' = fix_skos [] t
-
-        fun add_sko (t as Free (s, _)) = is_sko s ? insert (op aconv) t
-          | add_sko _ = I
-
-        val exs = Term.fold_aterms add_sko t' []
-      in
-        t'
-        |> HOLogic.dest_Trueprop
-        |> fold exists_of exs |> Term.map_abs_vars (K Name.uu)
-        |> fold_rev forall_of alls
-        |> HOLogic.mk_Trueprop
-      end
+    t'
+    |> HOLogic.dest_Trueprop
+    |> fold exists_of exs |> Term.map_abs_vars (K Name.uu)
+    |> fold_rev forall_of alls
+    |> HOLogic.mk_Trueprop
   end
 
 fun introduce_spass_skolem [] = []
@@ -619,8 +614,8 @@ fun introduce_spass_skolem [] = []
             val skos = fold (union (op =) o fst) skoss_steps []
             val deps = map (snd #> #1) skoss_steps
           in
-            [(name0, Lemma, unskolemize_term skos t, spass_pre_skolemize_rule, deps),
-             (name, Plain, t, spass_skolemize_rule, [name0])]
+            [(name0, Unknown, unskolemize_term skos t, spass_pre_skolemize_rule, deps),
+             (name, Unknown, t, spass_skolemize_rule, [name0])]
           end
 
         val sko_steps =
