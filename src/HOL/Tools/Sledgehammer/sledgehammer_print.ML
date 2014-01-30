@@ -165,12 +165,19 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
       | Meson_Method => "meson"
       | _ => raise Fail "Sledgehammer_Print: by_method")
 
-    fun using_facts [] [] = ""
-      | using_facts ls ss = "using " ^ space_implode " " (map string_of_label ls @ ss) ^ " "
+    fun with_facts none _ [] [] = none
+      | with_facts _ some ls ss = some (space_implode " " (map string_of_label ls @ ss))
 
-    fun of_metis ls ss = reconstructor_command (Metis (type_enc, lam_trans)) 1 1 [] 0 (ls, ss)
+    val using_facts = with_facts "" (enclose "using " " ")
 
-    fun of_method ls ss Metis_Method_with_Args = of_metis ls ss
+    (* Local facts are always passed via "using", which affects "meson" and "metis". This is
+       arguably stylistically superior, because it emphasises the structure of the proof. It is also
+       more robust w.r.t. preplay: Preplay is performed before chaining of local facts with "hence"
+       and "thus" is introduced. See also "tac_of_method" in "Sledgehammer_Preplay". *)
+    fun of_method ls ss Metis_Method =
+        using_facts ls [] ^ reconstructor_command (Metis (type_enc, lam_trans)) 1 1 [] 0 ([], ss)
+      | of_method ls ss Meson_Method =
+        using_facts ls [] ^ with_facts "by meson" (enclose "by (meson " ")") [] ss
       | of_method ls ss meth = using_facts ls ss ^ by_method meth
 
     fun of_byline ind (ls, ss) meth =
@@ -245,7 +252,7 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
     (* One-step Metis proofs are pointless; better use the one-liner directly. *)
     (case proof of
       Proof ([], [], []) => "" (* degenerate case: the conjecture is "True" with Z3 *)
-    | Proof ([], [], [Prove (_, [], _, _, [], (_, (Metis_Method_with_Args :: _) :: _))]) => ""
+    | Proof ([], [], [Prove (_, [], _, _, [], (_, (Metis_Method :: _) :: _))]) => ""
     | _ =>
       (if i <> 1 then "prefer " ^ string_of_int i ^ "\n" else "") ^
       of_indent 0 ^ "proof -\n" ^ of_proof 1 ctxt proof ^

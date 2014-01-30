@@ -34,9 +34,10 @@ open Sledgehammer_Proof
 
 val trace = Attrib.setup_config_bool @{binding sledgehammer_preplay_trace} (K false)
 
-fun preplay_trace ctxt assms concl result =
+fun preplay_trace ctxt assmsp concl result =
   let
     val ctxt = ctxt |> Config.put show_markup true
+    val assms = op @ assmsp
     val time = "[" ^ string_of_play_outcome result ^ "]" |> Pretty.str
     val nr_of_assms = length assms
     val assms = assms
@@ -64,8 +65,7 @@ fun take_time timeout tac arg =
 fun resolve_fact_names ctxt names =
   (names
    |>> map string_of_label
-   |> op @
-   |> maps (thms_of_name ctxt))
+   |> pairself (maps (thms_of_name ctxt)))
   handle ERROR msg => error ("preplay error: " ^ msg)
 
 fun thm_of_proof ctxt (Proof (fixed_frees, assms, steps)) =
@@ -86,15 +86,15 @@ fun thm_of_proof ctxt (Proof (fixed_frees, assms, steps)) =
     |> Skip_Proof.make_thm thy
   end
 
-fun tac_of_method meth type_enc lam_trans ctxt facts =
+fun tac_of_method meth type_enc lam_trans ctxt (local_facts, global_facts) =
+  Method.insert_tac local_facts THEN'
   (case meth of
-    Metis_Method_with_Args => Metis_Tactic.metis_tac [type_enc] lam_trans ctxt facts
-  | Meson_Method => Meson.meson_tac ctxt facts
+    Meson_Method => Meson.meson_tac ctxt global_facts
+  | Metis_Method => Metis_Tactic.metis_tac [type_enc] lam_trans ctxt global_facts
   | _ =>
-    Method.insert_tac facts THEN'
+    Method.insert_tac global_facts THEN'
     (case meth of
-      Metis_Method => Metis_Tactic.metis_tac [type_enc] lam_trans ctxt []
-    | Simp_Method => Simplifier.asm_full_simp_tac ctxt
+      Simp_Method => Simplifier.asm_full_simp_tac ctxt
     | Simp_Size_Method =>
       Simplifier.asm_full_simp_tac (Simplifier.add_simp @{thm size_ne_size_imp_ne} ctxt)
     | Auto_Method => K (Clasimp.auto_tac ctxt)
@@ -128,7 +128,10 @@ fun preplay_raw _ _ _ _ _ (Let _) = Played Time.zeroTime
             Logic.all thesis (Logic.mk_implies (inner_prop, thesis_prop))
           end)
 
-      val facts = map (thm_of_proof ctxt) subproofs @ resolve_fact_names ctxt fact_names
+      val facts =
+        resolve_fact_names ctxt fact_names
+        |>> append (map (thm_of_proof ctxt) subproofs)
+
       val ctxt' = ctxt |> silence_reconstructors debug
 
       fun prove () =
