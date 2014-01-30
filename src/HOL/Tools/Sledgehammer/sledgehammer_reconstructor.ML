@@ -60,14 +60,7 @@ val smtN = "smt"
 (* Makes reconstructor tools as silent as possible. The "set_visible" calls suppresses "Unification
    bound exceeded" warnings and the like. *)
 fun silence_reconstructors debug =
-  Config.put Metis_Tactic.verbose debug
+  Try0.silence_method debug
   #> Config.put SMT_Config.verbose debug
-  #> Config.put Lin_Arith.verbose debug
-  #> (not debug ?
-    (Context_Position.set_visible false
-     #> Proof_Context.background_theory (fn thy =>
-       thy
-       |> Context_Position.set_visible_global false
-       |> Config.put_global Unify.trace_bound (Config.get_global thy Unify.search_bound))))
 
 end;

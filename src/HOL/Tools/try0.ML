@@ -8,6 +8,8 @@ signature TRY0 =
 sig
   val try0N : string
   val noneN : string
+
+  val silence_methods : bool -> Proof.context -> Proof.context
   val try0 :
     Time.time option -> string list * string list * string list * string list
     -> Proof.state -> bool
@@ -106,10 +108,21 @@ val do_methods = map do_named_method named_methods
 fun time_string ms = string_of_int ms ^ " ms"
 fun tool_time_string (s, ms) = s ^ ": " ^ time_string ms
 
+(* Makes reconstructor tools as silent as possible. The "set_visible" calls suppresses "Unification
+   bound exceeded" warnings and the like. *)
+fun silence_methods debug =
+  Config.put Metis_Tactic.verbose debug
+  #> Config.put Lin_Arith.verbose debug
+  #> (not debug ?
+    (Context_Position.set_visible false
+     #> Proof_Context.background_theory (fn thy =>
+       thy
+       |> Context_Position.set_visible_global false
+       |> Config.put_global Unify.trace_bound (Config.get_global thy Unify.search_bound))))
+
 fun do_try0 mode timeout_opt quad st =
   let
-    val st = st |> Proof.map_context (Config.put Metis_Tactic.verbose false #>
-      Config.put Lin_Arith.verbose false)
+    val st = st |> Proof.map_context (silence_methods false)
     fun trd (_, _, t) = t
     fun par_map f =
       if mode = Normal then Par_List.map f #> map_filter I #> sort (int_ord o pairself trd)
