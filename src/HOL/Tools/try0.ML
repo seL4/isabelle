@@ -33,17 +33,16 @@ val default_timeout = seconds 5.0;
 
 fun can_apply timeout_opt pre post tac st =
   let val {goal, ...} = Proof.goal st in
-    case (case timeout_opt of
+    (case (case timeout_opt of
             SOME timeout => TimeLimit.timeLimit timeout
           | NONE => fn f => fn x => f x) (Seq.pull o tac) (pre st) of
       SOME (x, _) => nprems_of (post x) < nprems_of goal
-    | NONE => false
-  end
-  handle TimeLimit.TimeOut => false;
+    | NONE => false)
+  end;
 
 fun apply_generic timeout_opt name command pre post apply st =
   let val timer = Timer.startRealTimer () in
-    if can_apply timeout_opt pre post apply st then
+    if try (can_apply timeout_opt pre post apply) st = SOME true then
       SOME (name, command, Time.toMilliseconds (Timer.checkRealTimer timer))
     else
       NONE
@@ -56,14 +55,12 @@ val parse_method =
   #> Scan.read Token.stopper Method.parse
   #> (fn SOME (Method.Source src, _) => src | _ => raise Fail "expected Source");
 
-fun apply_named_method_on_first_goal thy method =
-  method
-  |> parse_method
-  |> Method.method thy
-  |> Method.Basic
-  |> curry Method.Select_Goals 1
-  |> Proof.refine
-  handle ERROR _ => K Seq.empty; (* e.g., the method isn't available yet *)
+fun apply_named_method_on_first_goal thy =
+  parse_method
+  #> Method.method thy
+  #> Method.Basic
+  #> curry Method.Select_Goals 1
+  #> Proof.refine;
 
 fun add_attr_text (NONE, _) s = s
   | add_attr_text (_, []) s = s
