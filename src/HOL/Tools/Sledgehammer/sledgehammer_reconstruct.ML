@@ -85,16 +85,8 @@ fun add_line_pass1 (line as (name, role, t, rule, [])) lines =
       map (replace_dependencies_in_line (name, [])) lines
   | add_line_pass1 line lines = line :: lines
 
-(* Recursively delete empty lines (type information) from the proof.
-   (FIXME: needed? And why is "delete_dependency" so complicated?) *)
-fun add_line_pass2 (line as (name, _, t, _, [])) lines =
-    if is_only_type_information t then delete_dependency name lines else line :: lines
-  | add_line_pass2 line lines = line :: lines
-and delete_dependency name lines =
-  fold_rev add_line_pass2 (map (replace_dependencies_in_line (name, [])) lines) []
-
-fun add_lines_pass3 res [] = rev res
-  | add_lines_pass3 res ((name, role, t, rule, deps) :: lines) =
+fun add_lines_pass2 res [] = rev res
+  | add_lines_pass2 res ((name, role, t, rule, deps) :: lines) =
     let
       val is_last_line = null lines
 
@@ -109,9 +101,9 @@ fun add_lines_pass3 res [] = rev res
       if role <> Plain orelse is_skolemize_rule rule orelse is_arith_rule rule orelse
          is_datatype_rule rule orelse is_last_line orelse looks_interesting () orelse
          is_before_skolemize_rule () then
-        add_lines_pass3 ((name, role, t, rule, deps) :: res) lines
+        add_lines_pass2 ((name, role, t, rule, deps) :: res) lines
       else
-        add_lines_pass3 res (map (replace_dependencies_in_line (name, deps)) lines)
+        add_lines_pass2 res (map (replace_dependencies_in_line (name, deps)) lines)
     end
 
 val add_labels_of_proof =
@@ -237,8 +229,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
         val atp_proof =
           atp_proof
           |> rpair [] |-> fold_rev add_line_pass1
-          |> rpair [] |-> fold_rev add_line_pass2
-          |> add_lines_pass3 []
+          |> add_lines_pass2 []
 
         val conjs =
           map_filter (fn (name, role, _, _, _) =>
