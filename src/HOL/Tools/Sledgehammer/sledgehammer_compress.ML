@@ -93,16 +93,16 @@ val merge_timeout_slack = 1.2
 
 (* Precondition: The proof must be labeled canonically
    (cf. "Slegehammer_Proof.relabel_proof_canonically"). *)
-fun compress_proof isar_compress
+fun compress_proof compress_isar
     ({get_preplay_outcome, set_preplay_outcome, preplay_quietly, ...} : preplay_interface) proof =
-  if isar_compress <= 1.0 then
+  if compress_isar <= 1.0 then
     proof
   else
     let
       val (compress_further, decrement_step_count) =
         let
           val number_of_steps = add_proof_steps (steps_of_proof proof) 0
-          val target_number_of_steps = Real.round (Real.fromInt number_of_steps / isar_compress)
+          val target_number_of_steps = Real.round (Real.fromInt number_of_steps / compress_isar)
           val delta = Unsynchronized.ref (number_of_steps - target_number_of_steps)
         in
           (fn () => !delta > 0, fn () => delta := !delta - 1)

@@ -209,8 +209,8 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
   let
     fun isar_proof_of () =
       let
-        val SOME (verbose, metis_type_enc, metis_lam_trans, preplay_timeout, isar_compress,
-          isar_try0, atp_proof, goal) = try isar_params ()
+        val SOME (verbose, metis_type_enc, metis_lam_trans, preplay_timeout, compress_isar,
+          try0_isar, atp_proof, goal) = try isar_params ()
 
         val (params, _, concl_t) = strip_subgoal goal subgoal ctxt
         val (_, ctxt) =
@@ -219,7 +219,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
           |> (fn fixes => ctxt |> Variable.set_body false |> Proof_Context.add_fixes fixes)
 
         val do_preplay = preplay_timeout <> Time.zeroTime
-        val isar_try0 = isar_try0 andalso do_preplay
+        val try0_isar = try0_isar andalso do_preplay
 
         val is_fixed = Variable.is_declared ctxt orf can Name.dest_skolem
         fun skolems_of t = Term.add_frees t [] |> filter_out (is_fixed o fst) |> rev
@@ -364,10 +364,10 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
 
         val (play_outcome, isar_proof) =
           isar_proof
-          |> compress_proof (if isar_proofs = SOME true then isar_compress else 1000.0)
+          |> compress_proof (if isar_proofs = SOME true then compress_isar else 1000.0)
                preplay_interface
-          |> isar_try0 ? try0 preplay_timeout preplay_interface
-          |> postprocess_remove_unreferenced_steps (isar_try0 ? min_deps_of_step preplay_interface)
+          |> try0_isar ? try0 preplay_timeout preplay_interface
+          |> postprocess_remove_unreferenced_steps (try0_isar ? min_deps_of_step preplay_interface)
           |> `overall_preplay_outcome
           ||> (chain_direct_proof #> kill_useless_labels_in_proof #> relabel_proof)
 

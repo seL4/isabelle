@@ -36,8 +36,8 @@ sig
      max_mono_iters : int option,
      max_new_mono_instances : int option,
      isar_proofs : bool option,
-     isar_compress : real,
-     isar_try0 : bool,
+     compress_isar : real,
+     try0_isar : bool,
      slice : bool,
      minimize : bool option,
      timeout : Time.time,
@@ -277,8 +277,8 @@ type params =
    max_mono_iters : int option,
    max_new_mono_instances : int option,
    isar_proofs : bool option,
-   isar_compress : real,
-   isar_try0 : bool,
+   compress_isar : real,
+   try0_isar : bool,
    slice : bool,
    minimize : bool option,
    timeout : Time.time,
@@ -546,8 +546,8 @@ fun run_atp mode name
     ({exec, arguments, proof_delims, known_failures, prem_role, best_slices, best_max_mono_iters,
       best_max_new_mono_instances, ...} : atp_config)
     (params as {debug, verbose, overlord, type_enc, strict, lam_trans, uncurried_aliases,
-       fact_filter, max_facts, max_mono_iters, max_new_mono_instances, isar_proofs, isar_compress,
-       isar_try0, slice, timeout, preplay_timeout, ...})
+       fact_filter, max_facts, max_mono_iters, max_new_mono_instances, isar_proofs, compress_isar,
+       try0_isar, slice, timeout, preplay_timeout, ...})
     minimize_command
     ({comment, state, goal, subgoal, subgoal_count, factss, ...} : prover_problem) =
   let
@@ -797,8 +797,8 @@ fun run_atp mode name
                       |> introduce_spass_skolem
                       |> factify_atp_proof fact_names hyp_ts concl_t
                   in
-                    (verbose, metis_type_enc, metis_lam_trans, preplay_timeout, isar_compress,
-                     isar_try0, atp_proof, goal)
+                    (verbose, metis_type_enc, metis_lam_trans, preplay_timeout, compress_isar,
+                     try0_isar, atp_proof, goal)
                   end
                 val one_line_params =
                   (preplay, proof_banner mode name, used_facts,

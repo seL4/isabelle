@@ -55,7 +55,7 @@ fun n_facts names =
 fun print silent f = if silent then () else Output.urgent_message (f ())
 
 fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new_mono_instances,
-      type_enc, strict, lam_trans, uncurried_aliases, isar_proofs, isar_compress, isar_try0,
+      type_enc, strict, lam_trans, uncurried_aliases, isar_proofs, compress_isar, try0_isar,
       preplay_timeout, ...} : params)
     silent (prover : prover) timeout i n state goal facts =
   let
@@ -70,7 +70,7 @@ fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new
        uncurried_aliases = uncurried_aliases, learn = false, fact_filter = NONE,
        max_facts = SOME (length facts), fact_thresholds = (1.01, 1.01),
        max_mono_iters = max_mono_iters, max_new_mono_instances = max_new_mono_instances,
-       isar_proofs = isar_proofs, isar_compress = isar_compress, isar_try0 = isar_try0,
+       isar_proofs = isar_proofs, compress_isar = compress_isar, try0_isar = try0_isar,
        slice = false, minimize = SOME false, timeout = timeout, preplay_timeout = preplay_timeout,
        expect = ""}
     val problem =
@@ -226,7 +226,7 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
 fun adjust_reconstructor_params override_params
     ({debug, verbose, overlord, spy, blocking, provers, type_enc, strict, lam_trans,
       uncurried_aliases, learn, fact_filter, max_facts, fact_thresholds, max_mono_iters,
-      max_new_mono_instances, isar_proofs, isar_compress, isar_try0, slice, minimize, timeout,
+      max_new_mono_instances, isar_proofs, compress_isar, try0_isar, slice, minimize, timeout,
       preplay_timeout, expect} : params) =
   let
     fun lookup_override name default_value =
@@ -243,7 +243,7 @@ fun adjust_reconstructor_params override_params
      uncurried_aliases = uncurried_aliases, learn = learn, fact_filter = fact_filter,
      max_facts = max_facts, fact_thresholds = fact_thresholds, max_mono_iters = max_mono_iters,
      max_new_mono_instances = max_new_mono_instances, isar_proofs = isar_proofs,
-     isar_compress = isar_compress, isar_try0 = isar_try0, slice = slice, minimize = minimize,
+     compress_isar = compress_isar, try0_isar = try0_isar, slice = slice, minimize = minimize,
      timeout = timeout, preplay_timeout = preplay_timeout, expect = expect}
   end
 

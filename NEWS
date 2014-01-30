@@ -114,6 +114,14 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
 * Theory reorganizations:
   * Big_Operators.thy ~> Groups_Big.thy and Lattices_Big.thy
 
+* Sledgehammer:
+  - Renamed options:
+      isar_compress ~> compress_isar
+      isar_try0 ~> try0_isar
+    INCOMPATIBILITY.
+
+* Try0: Added 'algebra' and 'meson' to the set of proof methods.
+
 * The symbol "\<newline>" may be used within char or string literals
 to represent (Char Nibble0 NibbleA), i.e. ASCII newline.
 
