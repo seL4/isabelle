@@ -1,11 +1,11 @@
-(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_reconstruct.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_isar.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Author:     Steffen Juilf Smolka, TU Muenchen
 
 Isar proof reconstruction from ATP proofs.
 *)
 
-signature SLEDGEHAMMER_RECONSTRUCT =
+signature SLEDGEHAMMER_ISAR =
 sig
   type atp_step_name = ATP_Proof.atp_step_name
   type ('a, 'b) atp_step = ('a, 'b) ATP_Proof.atp_step
@@ -20,7 +20,7 @@ sig
     one_line_params -> string
 end;
 
-structure Sledgehammer_Reconstruct : SLEDGEHAMMER_RECONSTRUCT =
+structure Sledgehammer_Isar : SLEDGEHAMMER_ISAR =
 struct
 
 open ATP_Util
@@ -30,13 +30,13 @@ open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
 open Sledgehammer_Util
 open Sledgehammer_Reconstructor
-open Sledgehammer_Proof
-open Sledgehammer_Annotate
-open Sledgehammer_Print
-open Sledgehammer_Preplay
-open Sledgehammer_Compress
-open Sledgehammer_Try0
-open Sledgehammer_Minimize_Isar
+open Sledgehammer_Isar_Proof
+open Sledgehammer_Isar_Annotate
+open Sledgehammer_Isar_Print
+open Sledgehammer_Isar_Preplay
+open Sledgehammer_Isar_Compress
+open Sledgehammer_Isar_Try0
+open Sledgehammer_Isar_Minimize
 
 structure String_Redirect = ATP_Proof_Redirect(
   type key = atp_step_name

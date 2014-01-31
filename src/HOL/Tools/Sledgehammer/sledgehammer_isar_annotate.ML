@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_annotate.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_isar_annotate.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Author:     Steffen Juilf Smolka, TU Muenchen
 
@@ -14,12 +14,12 @@ NOTE: Terms should be unchecked before calling annotate_types to avoid awkward
 syntax.
 *)
 
-signature SLEDGEHAMMER_ANNOTATE =
+signature SLEDGEHAMMER_ISAR_ANNOTATE =
 sig
   val annotate_types : Proof.context -> term -> term
 end;
 
-structure Sledgehammer_Annotate : SLEDGEHAMMER_ANNOTATE =
+structure Sledgehammer_Isar_Annotate : SLEDGEHAMMER_ISAR_ANNOTATE =
 struct
 
 (* Util *)
@@ -36,7 +36,7 @@ fun post_traverse_term_type' f _ (t as Const (_, T)) s = f t T s
       val ((u', s'), Type (_, [_, T])) = post_traverse_term_type' f env u s
       val ((v', s''), _) = post_traverse_term_type' f env v s'
     in f (u' $ v') T s'' end
-    handle Bind => raise Fail "Sledgehammer_Annotate: post_traverse_term_type'"
+    handle Bind => raise Fail "Sledgehammer_Isar_Annotate: post_traverse_term_type'"
 
 fun post_traverse_term_type f s t =
   post_traverse_term_type' (fn t => fn T => fn s => (f t T s, T)) [] t s |> fst
@@ -87,7 +87,7 @@ fun match_types ctxt t1 t2 =
     val get_types = post_fold_term_type (K cons) []
   in
     fold (Sign.typ_match thy) (get_types t1 ~~ get_types t2) Vartab.empty
-    handle Type.TYPE_MATCH => raise Fail "Sledgehammer_Annotate: match_types"
+    handle Type.TYPE_MATCH => raise Fail "Sledgehammer_Isar_Annotate: match_types"
   end
 
 

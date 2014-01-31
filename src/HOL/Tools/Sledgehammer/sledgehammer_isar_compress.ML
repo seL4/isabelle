@@ -1,26 +1,26 @@
-(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_compress.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_isar_compress.ML
     Author:     Steffen Juilf Smolka, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
 
-Compression of isar proofs by merging steps.
+Compression of Isar proofs by merging steps.
 Only proof steps using the same proof method are merged.
 *)
 
-signature SLEDGEHAMMER_COMPRESS =
+signature SLEDGEHAMMER_ISAR_COMPRESS =
 sig
-  type isar_proof = Sledgehammer_Proof.isar_proof
-  type preplay_interface = Sledgehammer_Preplay.preplay_interface
+  type isar_proof = Sledgehammer_Isar_Proof.isar_proof
+  type preplay_interface = Sledgehammer_Isar_Preplay.preplay_interface
 
   val compress_proof : real -> preplay_interface -> isar_proof -> isar_proof
 end;
 
-structure Sledgehammer_Compress : SLEDGEHAMMER_COMPRESS =
+structure Sledgehammer_Isar_Compress : SLEDGEHAMMER_ISAR_COMPRESS =
 struct
 
 open Sledgehammer_Util
 open Sledgehammer_Reconstructor
-open Sledgehammer_Proof
-open Sledgehammer_Preplay
+open Sledgehammer_Isar_Proof
+open Sledgehammer_Isar_Preplay
 
 (* traverses steps in post-order and collects the steps with the given labels *)
 fun collect_successors steps lbls =
@@ -41,7 +41,7 @@ fun collect_successors steps lbls =
   in
     (case do_steps steps (lbls, []) of
       ([], succs) => rev succs
-    | _ => raise Fail "Sledgehammer_Compress: collect_successors")
+    | _ => raise Fail "Sledgehammer_Isar_Compress: collect_successors")
   end
 
 (* traverses steps in reverse post-order and inserts the given updates *)
@@ -61,7 +61,7 @@ fun update_steps steps updates =
           if l = l' then (Prove (qs', xs', l', t', subproofs, by') :: steps, updates)
           else (Prove (qs, xs, l, t, subproofs, by) :: steps, updates)
         end
-      | do_step _ _ = raise Fail "Sledgehammer_Compress: update_steps (invalid update)"
+      | do_step _ _ = raise Fail "Sledgehammer_Isar_Compress: update_steps (invalid update)"
     and do_subproofs [] updates = ([], updates)
       | do_subproofs steps [] = (steps, [])
       | do_subproofs (proof :: subproofs) updates =
@@ -74,7 +74,7 @@ fun update_steps steps updates =
   in
     (case do_steps steps (rev updates) of
       (steps, []) => steps
-    | _ => raise Fail "Sledgehammer_Compress: update_steps")
+    | _ => raise Fail "Sledgehammer_Isar_Compress: update_steps")
   end
 
 (* Tries merging the first step into the second step. Arbitrarily picks the second step's method. *)
@@ -168,7 +168,7 @@ fun compress_proof compress_isar
             end
             handle Bind =>
               elim_subproofs' time qs fix l t lfs gfs meth subs (sub :: nontriv_subs))
-          | _ => raise Fail "Sledgehammer_Compress: elim_subproofs'")
+          | _ => raise Fail "Sledgehammer_Isar_Compress: elim_subproofs'")
 
       fun elim_subproofs (step as Let _) = step
         | elim_subproofs (step as Prove (qs, fix, l, t, subproofs, ((lfs, gfs), meth))) =
@@ -224,7 +224,7 @@ fun compress_proof compress_isar
               (* FIXME: debugging *)
               val _ =
                 if the (label_of_step cand) <> l then
-                  raise Fail "Sledgehammer_Compress: try_eliminate"
+                  raise Fail "Sledgehammer_Isar_Compress: try_eliminate"
                 else
                   ()
 

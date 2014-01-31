@@ -1,16 +1,16 @@
-(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_preplay.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_isar_preplay.ML
     Author:     Steffen Juilf Smolka, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
 
 Preplaying of Isar proofs.
 *)
 
-signature SLEDGEHAMMER_PREPLAY =
+signature SLEDGEHAMMER_ISAR_PREPLAY =
 sig
   type play_outcome = Sledgehammer_Reconstructor.play_outcome
-  type isar_proof = Sledgehammer_Proof.isar_proof
-  type isar_step = Sledgehammer_Proof.isar_step
-  type label = Sledgehammer_Proof.label
+  type isar_proof = Sledgehammer_Isar_Proof.isar_proof
+  type isar_step = Sledgehammer_Isar_Proof.isar_step
+  type label = Sledgehammer_Isar_Proof.label
 
   val trace: bool Config.T
 
@@ -24,13 +24,13 @@ sig
     isar_proof -> preplay_interface
 end;
 
-structure Sledgehammer_Preplay : SLEDGEHAMMER_PREPLAY =
+structure Sledgehammer_Isar_Preplay : SLEDGEHAMMER_ISAR_PREPLAY =
 struct
 
 open ATP_Util
 open Sledgehammer_Util
 open Sledgehammer_Reconstructor
-open Sledgehammer_Proof
+open Sledgehammer_Isar_Proof
 
 val trace = Attrib.setup_config_bool @{binding sledgehammer_preplay_trace} (K false)
 
@@ -102,7 +102,7 @@ fun tac_of_method meth type_enc lam_trans ctxt (local_facts, global_facts) =
     | Force_Method => Clasimp.force_tac ctxt
     | Arith_Method => Arith_Data.arith_tac ctxt
     | Blast_Method => blast_tac ctxt
-    | _ => raise Fail "Sledgehammer_Preplay: tac_of_method"))
+    | _ => raise Fail "Sledgehammer_Isar_Preplay: tac_of_method"))
 
 (* main function for preplaying Isar steps; may throw exceptions *)
 fun preplay_raw _ _ _ _ _ (Let _) = Played Time.zeroTime
@@ -221,7 +221,8 @@ fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay preplay_tim
             | SOME l =>
               Canonical_Lbl_Tab.update_new
                 (l, (fn () => preplay false preplay_timeout step) |> Lazy.lazy) tab)
-            handle Canonical_Lbl_Tab.DUP _ => raise Fail "Sledgehammer_Preplay: preplay time table"
+            handle Canonical_Lbl_Tab.DUP _ =>
+              raise Fail "Sledgehammer_Isar_Preplay: preplay time table"
         in
           Canonical_Lbl_Tab.empty
           |> fold_isar_steps add_step_to_tab (steps_of_proof proof)
@@ -230,7 +231,7 @@ fun proof_preplay_interface debug ctxt type_enc lam_trans do_preplay preplay_tim
 
       fun get_preplay_outcome l =
         Canonical_Lbl_Tab.lookup (!preplay_tab) l |> the |> Lazy.force
-        handle Option.Option => raise Fail "Sledgehammer_Preplay: preplay time table"
+        handle Option.Option => raise Fail "Sledgehammer_Isar_Preplay: preplay time table"
 
       fun set_preplay_outcome l result =
         preplay_tab := Canonical_Lbl_Tab.update (l, Lazy.value result) (!preplay_tab)

@@ -107,7 +107,7 @@ open ATP_Problem_Generate
 open Sledgehammer_Util
 open Sledgehammer_Fact
 open Sledgehammer_Prover
-open Sledgehammer_Minimize
+open Sledgehammer_Prover_Minimize
 open Sledgehammer_MePo
 
 val trace =

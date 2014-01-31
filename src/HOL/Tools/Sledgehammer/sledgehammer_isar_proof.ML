@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_proof.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_isar_proof.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Author:     Steffen Juilf Smolka, TU Muenchen
 
@@ -6,7 +6,7 @@ Basic data structures for representing and basic methods
 for dealing with Isar proof texts.
 *)
 
-signature SLEDGEHAMMER_PROOF =
+signature SLEDGEHAMMER_ISAR_PROOF =
 sig
   type label = string * int
   type facts = label list * string list (* local and global facts *)
@@ -54,7 +54,7 @@ sig
   structure Canonical_Lbl_Tab : TABLE
 end;
 
-structure Sledgehammer_Proof : SLEDGEHAMMER_PROOF =
+structure Sledgehammer_Isar_Proof : SLEDGEHAMMER_ISAR_PROOF =
 struct
 
 type label = string * int
@@ -126,7 +126,7 @@ fun relabel_proof_canonically proof =
 
     fun do_byline by (_, subst) = apfst (apfst (map (AList.lookup (op =) subst #> the))) by
     handle Option.Option =>
-      raise Fail "Sledgehammer_Proof: relabel_proof_canonically"
+      raise Fail "Sledgehammer_Isar_Proof: relabel_proof_canonically"
 
     fun do_assm (l, t) state =
       let

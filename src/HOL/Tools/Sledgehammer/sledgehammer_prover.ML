@@ -127,8 +127,8 @@ open Metis_Tactic
 open Sledgehammer_Util
 open Sledgehammer_Fact
 open Sledgehammer_Reconstructor
-open Sledgehammer_Print
-open Sledgehammer_Reconstruct
+open Sledgehammer_Isar_Print
+open Sledgehammer_Isar
 
 
 (** The Sledgehammer **)
@@ -503,8 +503,8 @@ fun isar_proof_reconstructor ctxt name =
     else remotify_prover_if_not_installed ctxt eN |> the_default name
   end
 
-(* See the analogous logic in the function "maybe_minimize" in
-  "sledgehammer_minimize.ML". *)
+(* FIXME: See the analogous logic in the function "maybe_minimize" in
+   "sledgehammer_prover_minimize.ML". *)
 fun choose_minimize_command ctxt (params as {isar_proofs, ...}) minimize_command name preplay =
   let
     val maybe_isar_name = name |> isar_proofs = SOME true ? isar_proof_reconstructor ctxt

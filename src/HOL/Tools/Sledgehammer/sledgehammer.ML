@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_run.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer.ML
     Author:     Fabian Immler, TU Muenchen
     Author:     Makarius
     Author:     Jasmin Blanchette, TU Muenchen
@@ -6,7 +6,7 @@
 Sledgehammer's heart.
 *)
 
-signature SLEDGEHAMMER_RUN =
+signature SLEDGEHAMMER =
 sig
   type fact = Sledgehammer_Fact.fact
   type fact_override = Sledgehammer_Fact.fact_override
@@ -24,7 +24,7 @@ sig
     bool * (string * Proof.state)
 end;
 
-structure Sledgehammer_Run : SLEDGEHAMMER_RUN =
+structure Sledgehammer : SLEDGEHAMMER =
 struct
 
 open ATP_Util
@@ -34,7 +34,7 @@ open ATP_Proof_Reconstruct
 open Sledgehammer_Util
 open Sledgehammer_Fact
 open Sledgehammer_Prover
-open Sledgehammer_Minimize
+open Sledgehammer_Prover_Minimize
 open Sledgehammer_MaSh
 
 val someN = "some"

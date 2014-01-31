@@ -376,8 +376,7 @@ fun get_prover ctxt name params goal all_facts =
   let
     val learn = Sledgehammer_MaSh.mash_learn_proof ctxt params (prop_of goal) all_facts
   in
-    Sledgehammer_Minimize.get_minimizing_prover ctxt Sledgehammer_Prover.Normal
-      learn name
+    Sledgehammer_Prover_Minimize.get_minimizing_prover ctxt Sledgehammer_Prover.Normal learn name
   end
 
 type stature = ATP_Problem_Generate.stature
@@ -488,7 +487,7 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
                  Sledgehammer_Fact.no_fact_override hyp_ts concl_t
           |> tap (fn factss =>
                      "Line " ^ str0 (Position.line_of pos) ^ ": " ^
-                     Sledgehammer_Run.string_of_factss factss
+                     Sledgehammer.string_of_factss factss
                      |> Output.urgent_message)
         val prover = get_prover ctxt prover_name params goal facts
         val problem =
@@ -608,7 +607,7 @@ fun run_minimize args reconstructor named_thms id
       |> max_new_mono_instancesLST
       |> max_mono_itersLST)
     val minimize =
-      Sledgehammer_Minimize.minimize_facts (K ()) prover_name params true 1
+      Sledgehammer_Prover_Minimize.minimize_facts (K ()) prover_name params true 1
         (Sledgehammer_Util.subgoal_count st)
     val _ = log separator
     val (used_facts, (preplay, message, message_tail)) =

@@ -1,27 +1,27 @@
-(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_minimize_isar.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_isar_minimize.ML
     Author:     Steffen Juilf Smolka, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
 
 Minimize dependencies (used facts) of Isar proof steps.
 *)
 
-signature SLEDGEHAMMER_MINIMIZE_ISAR =
+signature SLEDGEHAMMER_ISAR_MINIMIZE =
 sig
-  type preplay_interface = Sledgehammer_Preplay.preplay_interface
-  type isar_step = Sledgehammer_Proof.isar_step
-  type isar_proof = Sledgehammer_Proof.isar_proof
+  type preplay_interface = Sledgehammer_Isar_Preplay.preplay_interface
+  type isar_step = Sledgehammer_Isar_Proof.isar_step
+  type isar_proof = Sledgehammer_Isar_Proof.isar_proof
 
   val min_deps_of_step : preplay_interface -> isar_step -> isar_step
   val postprocess_remove_unreferenced_steps : (isar_step -> isar_step) -> isar_proof -> isar_proof
 end;
 
-structure Sledgehammer_Minimize_Isar : SLEDGEHAMMER_MINIMIZE_ISAR =
+structure Sledgehammer_Isar_Minimize : SLEDGEHAMMER_ISAR_MINIMIZE =
 struct
 
 open Sledgehammer_Util
 open Sledgehammer_Reconstructor
-open Sledgehammer_Proof
-open Sledgehammer_Preplay
+open Sledgehammer_Isar_Proof
+open Sledgehammer_Isar_Preplay
 
 val slack = seconds 0.1
 
@@ -76,7 +76,7 @@ fun postprocess_remove_unreferenced_steps postproc_step =
         else
           (refed, accu))
     and do_refed_step step = step |> postproc_step |> do_refed_step'
-    and do_refed_step' (Let _) = raise Fail "Sledgehammer_Minimize_Isar"
+    and do_refed_step' (Let _) = raise Fail "Sledgehammer_Isar_Minimize"
       | do_refed_step' (Prove (qs, xs, l, t, subproofs, ((lfs, gfs), m))) =
         let
           val (refed, subproofs) =

@@ -1,13 +1,13 @@
-(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_print.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_isar_print.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Author:     Steffen Juilf Smolka, TU Muenchen
 
 Basic mapping from proof data structures to proof strings.
 *)
 
-signature SLEDGEHAMMER_PRINT =
+signature SLEDGEHAMMER_ISAR_PRINT =
 sig
-  type isar_proof = Sledgehammer_Proof.isar_proof
+  type isar_proof = Sledgehammer_Isar_Proof.isar_proof
   type reconstructor = Sledgehammer_Reconstructor.reconstructor
   type one_line_params = Sledgehammer_Reconstructor.one_line_params
 
@@ -16,7 +16,7 @@ sig
   val string_of_proof : Proof.context -> string -> string -> int -> int -> isar_proof -> string
 end;
 
-structure Sledgehammer_Print : SLEDGEHAMMER_PRINT =
+structure Sledgehammer_Isar_Print : SLEDGEHAMMER_ISAR_PRINT =
 struct
 
 open ATP_Util
@@ -25,8 +25,8 @@ open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
 open Sledgehammer_Util
 open Sledgehammer_Reconstructor
-open Sledgehammer_Proof
-open Sledgehammer_Annotate
+open Sledgehammer_Isar_Proof
+open Sledgehammer_Isar_Annotate
 
 
 (** reconstructors **)
@@ -163,7 +163,7 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
       | Arith_Method => "arith"
       | Blast_Method => "blast"
       | Meson_Method => "meson"
-      | _ => raise Fail "Sledgehammer_Print: by_method")
+      | _ => raise Fail "Sledgehammer_Isar_Print: by_method")
 
     fun with_facts none _ [] [] = none
       | with_facts _ some ls ss = some (space_implode " " (map string_of_label ls @ ss))
@@ -173,7 +173,7 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
     (* Local facts are always passed via "using", which affects "meson" and "metis". This is
        arguably stylistically superior, because it emphasises the structure of the proof. It is also
        more robust w.r.t. preplay: Preplay is performed before chaining of local facts with "hence"
-       and "thus" is introduced. See also "tac_of_method" in "Sledgehammer_Preplay". *)
+       and "thus" is introduced. See also "tac_of_method" in "Sledgehammer_Isar_Preplay". *)
     fun of_method ls ss Metis_Method =
         using_facts ls [] ^ reconstructor_command (Metis (type_enc, lam_trans)) 1 1 [] 0 ([], ss)
       | of_method ls ss Meson_Method =

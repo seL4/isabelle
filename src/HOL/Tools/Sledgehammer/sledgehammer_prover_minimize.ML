@@ -1,11 +1,11 @@
-(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_minimize.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_prover_minimize.ML
     Author:     Philipp Meyer, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
 
 Minimization of fact list for Metis using external provers.
 *)
 
-signature SLEDGEHAMMER_MINIMIZE =
+signature SLEDGEHAMMER_PROVER_MINIMIZE =
 sig
   type stature = ATP_Problem_Generate.stature
   type reconstructor = Sledgehammer_Reconstructor.reconstructor
@@ -28,7 +28,7 @@ sig
     Proof.state -> unit
 end;
 
-structure Sledgehammer_Minimize : SLEDGEHAMMER_MINIMIZE =
+structure Sledgehammer_Prover_Minimize : SLEDGEHAMMER_PROVER_MINIMIZE =
 struct
 
 open ATP_Util
@@ -38,7 +38,7 @@ open ATP_Systems
 open Sledgehammer_Util
 open Sledgehammer_Fact
 open Sledgehammer_Reconstructor
-open Sledgehammer_Reconstruct
+open Sledgehammer_Isar
 open Sledgehammer_Prover
 
 (* wrapper for calling external prover *)
@@ -79,15 +79,13 @@ fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new
     val result as {outcome, used_facts, run_time, ...} =
       prover params (K (K (K ""))) problem
   in
-    print silent
-          (fn () =>
-              case outcome of
-                SOME failure => string_of_atp_failure failure
-              | NONE =>
-                "Found proof" ^
-                 (if length used_facts = length facts then ""
-                  else " with " ^ n_facts used_facts) ^
-                 " (" ^ string_of_time run_time ^ ").");
+    print silent (fn () =>
+      (case outcome of
+        SOME failure => string_of_atp_failure failure
+      | NONE =>
+        "Found proof" ^
+         (if length used_facts = length facts then "" else " with " ^ n_facts used_facts) ^
+         " (" ^ string_of_time run_time ^ ")."));
     result
   end
 
@@ -108,14 +106,12 @@ fun new_timeout timeout run_time =
    returns all facts as used. Since we cannot know in advance how many facts are
    actually needed, we heuristically set the threshold to 10 facts. *)
 val binary_min_facts =
-  Attrib.setup_config_int @{binding sledgehammer_minimize_binary_min_facts}
-                          (K 20)
+  Attrib.setup_config_int @{binding sledgehammer_minimize_binary_min_facts} (K 20)
 val auto_minimize_min_facts =
   Attrib.setup_config_int @{binding sledgehammer_auto_minimize_min_facts}
       (fn generic => Config.get_generic generic binary_min_facts)
 val auto_minimize_max_time =
-  Attrib.setup_config_real @{binding sledgehammer_auto_minimize_max_time}
-                           (K 5.0)
+  Attrib.setup_config_real @{binding sledgehammer_auto_minimize_max_time} (K 5.0)
 
 fun linear_minimize test timeout result xs =
   let
@@ -123,9 +119,8 @@ fun linear_minimize test timeout result xs =
       | min timeout (x :: xs) (seen, result) =
         (case test timeout (xs @ seen) of
           result as {outcome = NONE, used_facts, run_time, ...} : prover_result =>
-          min (new_timeout timeout run_time)
-              (filter_used_facts true used_facts xs)
-              (filter_used_facts false used_facts seen, result)
+          min (new_timeout timeout run_time) (filter_used_facts true used_facts xs)
+            (filter_used_facts false used_facts seen, result)
         | _ => min timeout xs (x :: seen, result))
   in
     min timeout xs ([], result)
@@ -133,53 +128,46 @@ fun linear_minimize test timeout result xs =
 
 fun binary_minimize test timeout result xs =
   let
-    fun min depth (result as {run_time, ...} : prover_result) sup
-            (xs as _ :: _ :: _) =
+    fun min depth (result as {run_time, ...} : prover_result) sup (xs as _ :: _ :: _) =
         let
           val (l0, r0) = chop (length xs div 2) xs
 (*
-          val _ = warning (replicate_string depth " " ^ "{ " ^
-                           "sup: " ^ n_facts (map fst sup))
-          val _ = warning (replicate_string depth " " ^ "  " ^
-                           "xs: " ^ n_facts (map fst xs))
-          val _ = warning (replicate_string depth " " ^ "  " ^
-                           "l0: " ^ n_facts (map fst l0))
-          val _ = warning (replicate_string depth " " ^ "  " ^
-                           "r0: " ^ n_facts (map fst r0))
+          val _ = warning (replicate_string depth " " ^ "{ " ^ "sup: " ^ n_facts (map fst sup))
+          val _ = warning (replicate_string depth " " ^ " " ^ "xs: " ^ n_facts (map fst xs))
+          val _ = warning (replicate_string depth " " ^ " " ^ "l0: " ^ n_facts (map fst l0))
+          val _ = warning (replicate_string depth " " ^ " " ^ "r0: " ^ n_facts (map fst r0))
 *)
           val depth = depth + 1
           val timeout = new_timeout timeout run_time
         in
-          case test timeout (sup @ l0) of
+          (case test timeout (sup @ l0) of
             result as {outcome = NONE, used_facts, ...} =>
             min depth result (filter_used_facts true used_facts sup)
                       (filter_used_facts true used_facts l0)
           | _ =>
-            case test timeout (sup @ r0) of
+            (case test timeout (sup @ r0) of
               result as {outcome = NONE, used_facts, ...} =>
               min depth result (filter_used_facts true used_facts sup)
                         (filter_used_facts true used_facts r0)
             | _ =>
               let
                 val (sup_r0, (l, result)) = min depth result (sup @ r0) l0
-                val (sup, r0) =
-                  (sup, r0)
-                  |> pairself (filter_used_facts true (map fst sup_r0))
+                val (sup, r0) = (sup, r0) |> pairself (filter_used_facts true (map fst sup_r0))
                 val (sup_l, (r, result)) = min depth result (sup @ l) r0
                 val sup = sup |> filter_used_facts true (map fst sup_l)
-              in (sup, (l @ r, result)) end
+              in (sup, (l @ r, result)) end))
         end
 (*
         |> tap (fn _ => warning (replicate_string depth " " ^ "}"))
 *)
       | min _ result sup xs = (sup, (xs, result))
   in
-    case snd (min 0 result [] xs) of
+    (case snd (min 0 result [] xs) of
       ([x], result as {run_time, ...}) =>
       (case test (new_timeout timeout run_time) [] of
-         result as {outcome = NONE, ...} => ([], result)
-       | _ => ([x], result))
-    | p => p
+        result as {outcome = NONE, ...} => ([], result)
+      | _ => ([x], result))
+    | p => p)
   end
 
 fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent i n state goal
@@ -194,7 +182,7 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
     val facts = non_chained @ chained
   in
     (print silent (fn () => "Sledgehammer minimizer: " ^ quote prover_name ^ ".");
-     case test timeout facts of
+     (case test timeout facts of
        result as {outcome = NONE, used_facts, run_time, ...} =>
        let
          val facts = filter_used_facts true used_facts facts
@@ -219,7 +207,7 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
        (NONE, (preplay, fn _ =>
           "Timeout: You can increase the time limit using the \"timeout\" option (e.g., \
           \timeout = " ^ string_of_int (10 + Time.toMilliseconds timeout div 1000) ^ "\").", ""))
-     | {preplay, message, ...} => (NONE, (preplay, prefix "Prover error: " o message, "")))
+     | {preplay, message, ...} => (NONE, (preplay, prefix "Prover error: " o message, ""))))
     handle ERROR msg => (NONE, (Lazy.value (plain_metis, Play_Failed), fn _ => "Error: " ^ msg, ""))
   end
 
@@ -230,11 +218,10 @@ fun adjust_reconstructor_params override_params
       preplay_timeout, expect} : params) =
   let
     fun lookup_override name default_value =
-      case AList.lookup (op =) override_params name of
+      (case AList.lookup (op =) override_params name of
         SOME [s] => SOME s
-      | _ => default_value
-    (* Only those options that reconstructors are interested in are considered
-       here. *)
+      | _ => default_value)
+    (* Only those options that reconstructors are interested in are considered here. *)
     val type_enc = lookup_override "type_enc" type_enc
     val lam_trans = lookup_override "lam_trans" lam_trans
   in
@@ -300,12 +287,11 @@ fun maybe_minimize ctxt mode do_learn name
         else
           (SOME used_facts, (preplay, message, ""))
     in
-      case used_facts of
+      (case used_facts of
         SOME used_facts =>
-        {outcome = NONE, used_facts = used_facts, used_from = used_from,
-         run_time = run_time, preplay = preplay, message = message,
-         message_tail = message_tail}
-      | NONE => result
+        {outcome = NONE, used_facts = used_facts, used_from = used_from, run_time = run_time,
+         preplay = preplay, message = message, message_tail = message_tail}
+      | NONE => result)
     end
 
 fun get_minimizing_prover ctxt mode do_learn name params minimize_command
@@ -321,16 +307,16 @@ fun run_minimize (params as {provers, ...}) do_learn i refs state =
     val css = clasimpset_rule_table_of ctxt
     val facts = refs |> maps (map (apsnd single) o fact_of_ref ctxt reserved chained_ths css)
   in
-    case subgoal_count state of
+    (case subgoal_count state of
       0 => Output.urgent_message "No subgoal!"
-    | n => case provers of
+    | n => (case provers of
              [] => error "No prover is set."
            | prover :: _ =>
              (kill_provers ();
               minimize_facts do_learn prover params false i n state goal NONE facts
               |> (fn (_, (preplay, message, message_tail)) =>
                      message (Lazy.force preplay) ^ message_tail
-                     |> Output.urgent_message))
+                     |> Output.urgent_message))))
   end
 
 end;
