@@ -342,39 +342,49 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
         and isar_proof outer fix assms lems infs =
           Proof (fix, assms, lems @ isar_steps outer NONE [] infs)
 
-        val (preplay_data as {overall_preplay_outcome, ...}, isar_proof) =
+        val string_of_isar_proof =
+          string_of_isar_proof ctxt metis_type_enc metis_lam_trans subgoal subgoal_count
+
+        val trace = false
+
+        val isar_proof =
           refute_graph
-(*
-          |> tap (tracing o prefix "Refute graph: " o string_of_refute_graph)
-*)
+          |> trace ? tap (tracing o prefix "Refute graph: " o string_of_refute_graph)
           |> redirect_graph axioms tainted bot
-(*
-          |> tap (tracing o prefix "Direct proof: " o string_of_direct_proof)
-*)
+          |> trace ? tap (tracing o prefix "Direct proof: " o string_of_direct_proof)
           |> isar_proof true params assms lems
           |> postprocess_isar_proof_remove_unreferenced_steps I
           |> relabel_isar_proof_canonically
-          |> `(preplay_data_of_isar_proof debug ctxt metis_type_enc metis_lam_trans do_preplay
-                 preplay_timeout)
+
+        val preplay_data as {overall_preplay_outcome, ...} =
+          preplay_data_of_isar_proof debug ctxt metis_type_enc metis_lam_trans do_preplay
+            preplay_timeout isar_proof
+
+        fun trace_isar_proof label proof =
+          if trace then
+            tracing (timestamp () ^ "\n" ^ label ^ ":\n\n" ^ string_of_isar_proof proof ^ "\n")
+          else
+            ()
 
         val (play_outcome, isar_proof) =
           isar_proof
+          |> tap (trace_isar_proof "Original")
           |> compress_isar_proof (if isar_proofs = SOME true then compress_isar else 1000.0)
                preplay_data
+          |> tap (trace_isar_proof "Compressed")
           |> try0_isar ? try0_isar_proof preplay_timeout preplay_data
+          |> tap (trace_isar_proof "Tried0")
           |> postprocess_isar_proof_remove_unreferenced_steps
                (try0_isar ? minimize_isar_step_dependencies preplay_data)
+          |> tap (trace_isar_proof "Minimized")
           |> `overall_preplay_outcome
           ||> (chain_direct_proof #> kill_useless_labels_in_proof #> relabel_proof)
-
-        val isar_text =
-          string_of_isar_proof ctxt metis_type_enc metis_lam_trans subgoal subgoal_count isar_proof
       in
-        (case isar_text of
+        (case string_of_isar_proof isar_proof of
           "" =>
           if isar_proofs = SOME true then "\nNo structured proof available (proof too simple)."
           else ""
-        | _ =>
+        | isar_text =>
           let
             val msg =
               (if verbose then

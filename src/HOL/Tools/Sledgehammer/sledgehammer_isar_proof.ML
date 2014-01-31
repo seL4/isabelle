@@ -204,7 +204,7 @@ fun string_of_isar_proof ctxt type_enc lam_trans i n proof =
       | with_facts _ some ls ss = some (space_implode " " (map string_of_label ls @ ss))
 
     val using_facts = with_facts "" (enclose "using " " ")
-    fun by_facts meth ls ss = "by " ^ with_facts meth (enclose ("by (" ^ meth) ")") ls ss
+    fun by_facts meth ls ss = "by " ^ with_facts meth (enclose ("(" ^ meth ^ " ") ")") ls ss
 
     (* Local facts are always passed via "using", which affects "meson" and "metis". This is
        arguably stylistically superior, because it emphasises the structure of the proof. It is also
