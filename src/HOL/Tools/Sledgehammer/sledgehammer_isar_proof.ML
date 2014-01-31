@@ -235,12 +235,6 @@ fun string_of_isar_proof ctxt type_enc lam_trans i n proof =
 
     fun add_assms ind assms = fold (add_assm ind) assms
 
-    fun add_step_post ind l t (ls, ss) meth =
-      add_str (of_label l)
-      #> add_term t
-      #> add_str (" " ^
-           of_method (sort_distinct label_ord ls) (sort_distinct string_ord ss) meth ^ "\n")
-
     fun of_subproof ind ctxt proof =
       let
         val ind = ind + 1
@@ -262,13 +256,16 @@ fun string_of_isar_proof ctxt type_enc lam_trans i n proof =
         add_str (of_indent ind ^ "let ")
         #> add_term t1 #> add_str " = " #> add_term t2
         #> add_str "\n"
-      | add_step ind (Prove (qs, xs, l, t, subproofs, (facts, (meth :: _) :: _))) =
+      | add_step ind (Prove (qs, xs, l, t, subproofs, ((ls, ss), (meth :: _) :: _))) =
         add_step_pre ind qs subproofs
         #> (case xs of
              [] => add_str (of_have qs (length subproofs) ^ " ")
            | _ =>
              add_str (of_obtain qs (length subproofs) ^ " ") #> add_frees xs #> add_str " where ")
-        #> add_step_post ind l t facts meth
+        #> add_str (of_label l)
+        #> add_term t
+        #> add_str (" " ^
+             of_method (sort_distinct label_ord ls) (sort_distinct string_ord ss) meth ^ "\n")
     and add_steps ind = fold (add_step ind)
     and of_proof ind ctxt (Proof (xs, assms, steps)) =
       ("", ctxt) |> add_fix ind xs |> add_assms ind assms |> add_steps ind steps |> fst
