@@ -158,7 +158,7 @@ fun remotify_atp_if_supported_and_not_already_remote thy name =
     end
 
 fun remotify_atp_if_not_installed thy name =
-  if is_atp_installed thy name then SOME name
+  if is_atp thy name andalso is_atp_installed thy name then SOME name
   else remotify_atp_if_supported_and_not_already_remote thy name
 
 fun is_if (@{const_name If}, _) = true
