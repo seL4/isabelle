@@ -13,6 +13,8 @@ sig
   type stature = ATP_Problem_Generate.stature
   type one_line_params = Sledgehammer_Reconstructor.one_line_params
 
+  val trace : bool Config.T
+
   type isar_params =
     bool * string * string * Time.time * real * bool * (term, string) atp_step list * thm
 
@@ -41,6 +43,8 @@ structure String_Redirect = ATP_Proof_Redirect(
   val string_of = fst)
 
 open String_Redirect
+
+val trace = Attrib.setup_config_bool @{binding sledgehammer_isar_trace} (K false)
 
 val e_skolemize_rules = ["skolemize", "shift_quantors"]
 val spass_pirate_datatype_rule = "DT"
@@ -262,7 +266,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
         val string_of_isar_proof =
           string_of_isar_proof ctxt metis_type_enc metis_lam_trans subgoal subgoal_count
 
-        val trace = false
+        val trace = Config.get ctxt trace
 
         val isar_proof =
           refute_graph
@@ -273,13 +277,17 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
           |> postprocess_isar_proof_remove_unreferenced_steps I
           |> relabel_isar_proof_canonically
 
-        val preplay_data as {overall_preplay_outcome, ...} =
+        val preplay_data as {string_of_preplay_outcome, overall_preplay_outcome, ...} =
           preplay_data_of_isar_proof debug ctxt metis_type_enc metis_lam_trans do_preplay
             preplay_timeout isar_proof
 
+        fun str_of_meth l meth = string_of_proof_method meth ^ " " ^ string_of_preplay_outcome l
+        fun comment_of l = map (map (str_of_meth l)) #> map commas #> space_implode "; "
+
         fun trace_isar_proof label proof =
           if trace then
-            tracing (timestamp () ^ "\n" ^ label ^ ":\n\n" ^ string_of_isar_proof true proof ^ "\n")
+            tracing (timestamp () ^ "\n" ^ label ^ ":\n\n" ^ string_of_isar_proof comment_of proof ^
+              "\n")
           else
             ()
 
@@ -299,7 +307,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
           ||> kill_useless_labels_in_isar_proof
           ||> relabel_isar_proof_finally
       in
-        (case string_of_isar_proof false isar_proof of
+        (case string_of_isar_proof (K (K "")) isar_proof of
           "" =>
           if isar_proofs = SOME true then "\nNo structured proof available (proof too simple)."
           else ""

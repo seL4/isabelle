@@ -30,6 +30,8 @@ sig
   val label_ord : label * label -> order
   val string_of_label : label -> string
 
+  val string_of_proof_method : proof_method -> string
+
   val steps_of_proof : isar_proof -> isar_step list
 
   val label_of_step : isar_step -> label option
@@ -48,8 +50,8 @@ sig
   val relabel_isar_proof_canonically : isar_proof -> isar_proof
   val relabel_isar_proof_finally : isar_proof -> isar_proof
 
-  val string_of_isar_proof : Proof.context -> string -> string -> int -> int -> bool ->
-    isar_proof -> string
+  val string_of_isar_proof : Proof.context -> string -> string -> int -> int ->
+    (label -> proof_method list list -> string) -> isar_proof -> string
 end;
 
 structure Sledgehammer_Isar_Proof : SLEDGEHAMMER_ISAR_PROOF =
@@ -86,7 +88,7 @@ val label_ord = pairself swap #> prod_ord int_ord fast_string_ord
 
 fun string_of_label (s, num) = s ^ string_of_int num
 
-fun string_of_method meth =
+fun string_of_proof_method meth =
   (case meth of
     Metis_Method => "metis"
   | Simp_Method => "simp"
@@ -242,7 +244,7 @@ val relabel_isar_proof_finally =
 
 val indent_size = 2
 
-fun string_of_isar_proof ctxt type_enc lam_trans i n all_methods proof =
+fun string_of_isar_proof ctxt type_enc lam_trans i n comment_of proof =
   let
     (* Make sure only type constraints inserted by the type annotation code are printed. *)
     val ctxt =
@@ -295,9 +297,7 @@ fun string_of_isar_proof ctxt type_enc lam_trans i n all_methods proof =
     fun of_method ls ss Metis_Method =
         using_facts ls [] ^ by_facts (metis_call type_enc lam_trans) [] ss
       | of_method ls ss Meson_Method = using_facts ls [] ^ by_facts "meson" [] ss
-      | of_method ls ss meth = using_facts ls ss ^ "by " ^ string_of_method meth
-
-    val str_of_methodss = map (map string_of_method) #> map commas #> space_implode "; "
+      | of_method ls ss meth = using_facts ls ss ^ "by " ^ string_of_proof_method meth
 
     fun of_free (s, T) =
       maybe_quote s ^ " :: " ^
@@ -340,7 +340,7 @@ fun string_of_isar_proof ctxt type_enc lam_trans i n all_methods proof =
         add_str (of_indent ind ^ "let ")
         #> add_term t1 #> add_str " = " #> add_term t2
         #> add_str "\n"
-      | add_step ind (Prove (qs, xs, l, t, subproofs, ((ls, ss), (meth :: meths) :: methss))) =
+      | add_step ind (Prove (qs, xs, l, t, subproofs, ((ls, ss), methss as (meth :: _) :: _))) =
         add_step_pre ind qs subproofs
         #> (case xs of
              [] => add_str (of_have qs (length subproofs) ^ " ")
@@ -350,8 +350,9 @@ fun string_of_isar_proof ctxt type_enc lam_trans i n all_methods proof =
         #> add_term t
         #> add_str (" " ^
              of_method (sort_distinct label_ord ls) (sort_distinct string_ord ss) meth ^
-             (if all_methods then " (* " ^ str_of_methodss (meths :: methss) ^ " *)" else "") ^
-             "\n")
+             (case comment_of l methss of
+               "" => ""
+             | comment => " (* " ^ comment ^ " *)") ^ "\n")
     and add_steps ind = fold (add_step ind)
     and of_proof ind ctxt (Proof (xs, assms, steps)) =
       ("", ctxt) |> add_fix ind xs |> add_assms ind assms |> add_steps ind steps |> fst
