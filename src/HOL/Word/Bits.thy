@@ -1,4 +1,4 @@
-(*  Title:      HOL/Word/Bit_Operations.thy
+(*  Title:      HOL/Word/Bits.thy
     Author:     Author: Brian Huffman, PSU and Gerwin Klein, NICTA
 *)
 

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/Wfrec.thy
+(*  Title:      HOL/Wfrec.thy
     Author:     Tobias Nipkow
     Author:     Lawrence C Paulson
     Author:     Konrad Slind

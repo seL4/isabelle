@@ -1,4 +1,4 @@
-(*  Title:      HOL/SPARK/SPARK.thy
+(*  Title:      HOL/Word/Bit_Comparison.thy
     Author:     Stefan Berghofer
     Copyright:  secunet Security Networks AG
 

@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF/Tools/bnf_decl.ML
+(*  Title:      HOL/Library/bnf_decl.ML
     Author:     Dmitriy Traytel, TU Muenchen
     Copyright   2013
 
