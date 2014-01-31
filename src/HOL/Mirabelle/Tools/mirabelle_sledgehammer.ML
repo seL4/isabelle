@@ -70,7 +70,6 @@ fun available_parameter args key label list =
     val value = AList.lookup (op =) args key
   in if is_some value then (label, the value) :: list else list end
 
-
 datatype sh_data = ShData of {
   calls: int,
   success: int,
@@ -130,7 +129,6 @@ fun tuple_of_min_data (MinData {succs, ab_ratios}) = (succs, ab_ratios)
 fun tuple_of_re_data (ReData {calls, success, nontriv_calls, nontriv_success,
   proofs, time, timeout, lemmas, posns}) = (calls, success, nontriv_calls,
   nontriv_success, proofs, time, timeout, lemmas, posns)
-
 
 datatype reconstructor_mode =
   Unminimized | Minimized | UnminimizedFT | MinimizedFT
@@ -349,8 +347,7 @@ fun log_data id log (Data {sh, min, re_u, re_m, re_uft, re_mft, mini}) =
 
 end
 
-
-(* Warning: we implicitly assume single-threaded execution here! *)
+(* Warning: we implicitly assume single-threaded execution here *)
 val data = Unsynchronized.ref ([] : (int * data) list)
 
 fun init id thy = (Unsynchronized.change data (cons (id, empty_data)); thy)
@@ -496,9 +493,9 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
     val time_prover = run_time |> Time.toMilliseconds
     val msg = message (Lazy.force preplay) ^ message_tail
   in
-    case outcome of
+    (case outcome of
       NONE => (msg, SH_OK (time_isa, time_prover, used_facts))
-    | SOME _ => (msg, SH_FAIL (time_isa, time_prover))
+    | SOME _ => (msg, SH_FAIL (time_isa, time_prover)))
   end
   handle ERROR msg => ("error: " ^ msg, SH_ERROR)
 
@@ -508,7 +505,6 @@ fun run_sledgehammer trivial args reconstructor named_thms id
       ({pre=st, log, pos, ...}: Mirabelle.run_args) =
   let
     val thy = Proof.theory_of st
-    val ctxt = Proof.context_of st
     val triv_str = if trivial then "[T] " else ""
     val _ = change_data id inc_sh_calls
     val _ = if trivial then () else change_data id inc_sh_nontriv_calls
@@ -517,11 +513,12 @@ fun run_sledgehammer trivial args reconstructor named_thms id
     val type_enc = AList.lookup (op =) args type_encK |> the_default type_enc_default
     val strict = AList.lookup (op =) args strictK |> the_default strict_default
     val max_facts =
-      case AList.lookup (op =) args max_factsK of
+      (case AList.lookup (op =) args max_factsK of
         SOME max => max
-      | NONE => case AList.lookup (op =) args max_relevantK of
-                  SOME max => max
-                | NONE => max_facts_default
+      | NONE =>
+        (case AList.lookup (op =) args max_relevantK of
+          SOME max => max
+        | NONE => max_facts_default))
     val slice = AList.lookup (op =) args sliceK |> the_default slice_default
     val lam_trans = AList.lookup (op =) args lam_transK
     val uncurried_aliases = AList.lookup (op =) args uncurried_aliasesK
@@ -546,7 +543,7 @@ fun run_sledgehammer trivial args reconstructor named_thms id
         hard_timeout timeout preplay_timeout sh_minimizeLST
         max_new_mono_instancesLST max_mono_itersLST dir pos st
   in
-    case result of
+    (case result of
       SH_OK (time_isa, time_prover, names) =>
         let
           fun get_thms (name, stature) =
@@ -570,16 +567,14 @@ fun run_sledgehammer trivial args reconstructor named_thms id
           val _ = change_data id (inc_sh_time_isa time_isa)
           val _ = change_data id (inc_sh_time_prover_fail time_prover)
         in log (sh_tag id ^ triv_str ^ "failed: " ^ msg) end
-    | SH_ERROR => log (sh_tag id ^ "failed: " ^ msg)
+    | SH_ERROR => log (sh_tag id ^ "failed: " ^ msg))
   end
 
 end
 
-fun run_minimize args reconstructor named_thms id
-        ({pre=st, log, ...}: Mirabelle.run_args) =
+fun run_minimize args reconstructor named_thms id ({pre = st, log, ...} : Mirabelle.run_args) =
   let
     val thy = Proof.theory_of st
-    val ctxt = Proof.context_of st
     val {goal, ...} = Proof.goal st
     val n0 = length (these (!named_thms))
     val prover_name = get_prover_name thy args
@@ -613,7 +608,7 @@ fun run_minimize args reconstructor named_thms id
       minimize st goal NONE (these (!named_thms))
     val msg = message (Lazy.force preplay) ^ message_tail
   in
-    case used_facts of
+    (case used_facts of
       SOME named_thms' =>
         (change_data id inc_min_succs;
          change_data id (inc_min_ab_ratios ((100 * length named_thms') div n0));
@@ -623,7 +618,7 @@ fun run_minimize args reconstructor named_thms id
                named_thms := SOME named_thms';
                log (minimize_tag id ^ "succeeded:\n" ^ msg))
         )
-    | NONE => log (minimize_tag id ^ "failed: " ^ msg)
+    | NONE => log (minimize_tag id ^ "failed: " ^ msg))
   end
 
 fun override_params prover type_enc timeout =
@@ -649,8 +644,7 @@ fun run_reconstructor trivial full m name reconstructor named_thms id
           timeout |> Time.toReal |> curry Real.* time_slice |> Time.fromReal
         fun sledge_tac time_slice prover type_enc =
           Sledgehammer_Tactics.sledgehammer_as_oracle_tac ctxt
-              (override_params prover type_enc (my_timeout time_slice))
-              fact_override
+            (override_params prover type_enc (my_timeout time_slice)) fact_override
       in
         if !reconstructor = "sledgehammer_tac" then
           sledge_tac 0.2 ATP_Systems.vampireN "mono_native"
@@ -674,8 +668,7 @@ fun run_reconstructor trivial full m name reconstructor named_thms id
               ||> the_default ATP_Proof_Reconstruct.default_metis_lam_trans
           in Metis_Tactic.metis_tac type_encs lam_trans ctxt thms end
         else if !reconstructor = "metis" then
-          Metis_Tactic.metis_tac [] ATP_Proof_Reconstruct.default_metis_lam_trans ctxt
-            thms
+          Metis_Tactic.metis_tac [] ATP_Proof_Reconstruct.default_metis_lam_trans ctxt thms
         else
           K all_tac
       end
@@ -689,19 +682,16 @@ fun run_reconstructor trivial full m name reconstructor named_thms id
           change_data id (inc_reconstructor_lemmas m (length named_thms));
           change_data id (inc_reconstructor_time m t);
           change_data id (inc_reconstructor_posns m (pos, trivial));
-          if name = "proof" then change_data id (inc_reconstructor_proofs m)
-          else ();
+          if name = "proof" then change_data id (inc_reconstructor_proofs m) else ();
           "succeeded (" ^ string_of_int t ^ ")")
     fun timed_reconstructor named_thms =
       (with_time (Mirabelle.cpu_time apply_reconstructor named_thms), true)
-      handle TimeLimit.TimeOut => (change_data id (inc_reconstructor_timeout m);
-               ("timeout", false))
+      handle TimeLimit.TimeOut => (change_data id (inc_reconstructor_timeout m); ("timeout", false))
            | ERROR msg => ("error: " ^ msg, false)
 
     val _ = log separator
     val _ = change_data id (inc_reconstructor_calls m)
-    val _ = if trivial then ()
-            else change_data id (inc_reconstructor_nontriv_calls m)
+    val _ = if trivial then () else change_data id (inc_reconstructor_nontriv_calls m)
   in
     named_thms
     |> timed_reconstructor

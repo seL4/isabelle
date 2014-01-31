@@ -32,7 +32,6 @@ open Sledgehammer_Util
 open Sledgehammer_Reconstructor
 open Sledgehammer_Isar_Proof
 open Sledgehammer_Isar_Annotate
-open Sledgehammer_Isar_Print
 open Sledgehammer_Isar_Preplay
 open Sledgehammer_Isar_Compress
 open Sledgehammer_Isar_Try0

@@ -110,7 +110,6 @@ open Metis_Tactic
 open Sledgehammer_Util
 open Sledgehammer_Fact
 open Sledgehammer_Reconstructor
-open Sledgehammer_Isar_Print
 open Sledgehammer_Isar
 
 (* Empty string means create files in Isabelle's temporary files directory. *)
