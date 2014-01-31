@@ -30,11 +30,11 @@ val slack = seconds 0.05
 
 fun try0_step _ _ (step as Let _) = step
   | try0_step preplay_timeout
-      ({get_preplay_outcome, set_preplay_outcome, preplay_quietly, ...} : isar_preplay_data)
+      ({preplay_outcome, set_preplay_outcome, preplay_quietly, ...} : isar_preplay_data)
       (step as Prove (_, _, l, _, _, _)) =
     let
       val timeout =
-        (case get_preplay_outcome l of
+        (case preplay_outcome l of
           Played time => Time.+ (time, slack)
         | _ => preplay_timeout)
 

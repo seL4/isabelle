@@ -96,7 +96,7 @@ val merge_timeout_slack = 1.2
 (* Precondition: The proof must be labeled canonically
    (cf. "Slegehammer_Proof.relabel_proof_canonically"). *)
 fun compress_isar_proof compress_isar
-    ({get_preplay_outcome, set_preplay_outcome, preplay_quietly, ...} : isar_preplay_data) proof =
+    ({preplay_outcome, set_preplay_outcome, preplay_quietly, ...} : isar_preplay_data) proof =
   if compress_isar <= 1.0 then
     proof
   else
@@ -148,7 +148,7 @@ fun compress_isar_proof compress_isar
               val SOME (Prove (_, [], l', _, [], ((lfs', gfs'), _))) = try the_single sub_steps
 
               (* only touch proofs that can be preplayed sucessfully *)
-              val Played time' = get_preplay_outcome l'
+              val Played time' = preplay_outcome l'
 
               (* merge steps *)
               val subs'' = subs @ nontriv_subs
@@ -177,7 +177,7 @@ fun compress_isar_proof compress_isar
           if subproofs = [] then
             step
           else
-            (case get_preplay_outcome l of
+            (case preplay_outcome l of
               Played time => elim_subproofs' time qs fix l t lfs gfs meth subproofs []
             | _ => step)
 
@@ -214,10 +214,9 @@ fun compress_isar_proof compress_isar
           fun try_eliminate (i, l, _) succ_lbls steps =
             let
               (* only touch steps that can be preplayed successfully *)
-              val Played time = get_preplay_outcome l
+              val Played time = preplay_outcome l
 
-              val succ_times =
-                map (get_preplay_outcome #> (fn Played t => t)) succ_lbls
+              val succ_times = map (preplay_outcome #> (fn Played t => t)) succ_lbls
               val timeslice = time_mult (1.0 / (Real.fromInt (length succ_lbls))) time
               val timeouts =
                 map (curry Time.+ timeslice #> time_mult merge_timeout_slack) succ_times

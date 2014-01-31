@@ -15,8 +15,9 @@ sig
   val trace : bool Config.T
 
   type isar_preplay_data =
-    {get_preplay_outcome: label -> play_outcome,
+    {preplay_outcome: label -> play_outcome,
      set_preplay_outcome: label -> play_outcome -> unit,
+     string_of_preplay_outcome: label -> string,
      preplay_quietly: Time.time -> isar_step -> play_outcome,
      overall_preplay_outcome: isar_proof -> play_outcome}
 
@@ -145,12 +146,10 @@ fun preplay_raw _ _ _ _ _ (Let _) = Played Time.zeroTime
        play_outcome)
     end
 
-
-(*** proof preplay interface ***)
-
 type isar_preplay_data =
-  {get_preplay_outcome: label -> play_outcome,
+  {preplay_outcome: label -> play_outcome,
    set_preplay_outcome: label -> play_outcome -> unit,
+   string_of_preplay_outcome: label -> string,
    preplay_quietly: Time.time -> isar_step -> play_outcome,
    overall_preplay_outcome: isar_proof -> play_outcome}
 
@@ -189,8 +188,9 @@ fun merge_preplay_outcomes _ Play_Failed = Play_Failed
 fun preplay_data_of_isar_proof debug ctxt type_enc lam_trans do_preplay preplay_timeout proof =
   if not do_preplay then
     (* the "dont_preplay" option pretends that everything works just fine *)
-    {get_preplay_outcome = K (Played Time.zeroTime),
+    {preplay_outcome = K (Played Time.zeroTime),
      set_preplay_outcome = K (K ()),
+     string_of_preplay_outcome = K "",
      preplay_quietly = K (K (Played Time.zeroTime)),
      overall_preplay_outcome = K (Played Time.zeroTime)} : isar_preplay_data
   else
@@ -228,22 +228,25 @@ fun preplay_data_of_isar_proof debug ctxt type_enc lam_trans do_preplay preplay_
           |> Unsynchronized.ref
         end
 
-      fun get_preplay_outcome l =
+      fun preplay_outcome l =
         Canonical_Label_Tab.lookup (!preplay_tab) l |> the |> Lazy.force
         handle Option.Option => raise Fail "Sledgehammer_Isar_Preplay: preplay time table"
 
       fun set_preplay_outcome l result =
         preplay_tab := Canonical_Label_Tab.update (l, Lazy.value result) (!preplay_tab)
 
+      fun string_of_preplay_outcome l = @{make_string} (preplay_outcome l)
+
       val result_of_step =
-        try (label_of_step #> the #> get_preplay_outcome)
+        try (label_of_step #> the #> preplay_outcome)
         #> the_default (Played Time.zeroTime)
 
       fun overall_preplay_outcome (Proof (_, _, steps)) =
         fold_isar_steps (merge_preplay_outcomes o result_of_step) steps (Played Time.zeroTime)
     in
-      {get_preplay_outcome = get_preplay_outcome,
+      {preplay_outcome = preplay_outcome,
        set_preplay_outcome = set_preplay_outcome,
+       string_of_preplay_outcome = string_of_preplay_outcome,
        preplay_quietly = preplay_quietly,
        overall_preplay_outcome = overall_preplay_outcome}
     end

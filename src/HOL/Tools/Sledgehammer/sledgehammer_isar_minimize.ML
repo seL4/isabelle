@@ -26,9 +26,9 @@ open Sledgehammer_Isar_Preplay
 val slack = seconds 0.1
 
 fun minimize_isar_step_dependencies (_ : isar_preplay_data) (step as Let _) = step
-  | minimize_isar_step_dependencies {get_preplay_outcome, set_preplay_outcome, preplay_quietly, ...}
+  | minimize_isar_step_dependencies {preplay_outcome, set_preplay_outcome, preplay_quietly, ...}
       (step as Prove (qs, xs, l, t, subproofs, ((lfs, gfs), meth))) =
-    (case get_preplay_outcome l of
+    (case preplay_outcome l of
       Played time =>
       let
         fun mk_step_lfs_gfs lfs gfs = Prove (qs, xs, l, t, subproofs, ((lfs, gfs), meth))
