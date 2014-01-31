@@ -1,4 +1,4 @@
-(*  Title:      HOL/TPTP/atp_problem_import.ML
+Nitpick_Commands(*  Title:      HOL/TPTP/atp_problem_import.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012
 
@@ -93,7 +93,7 @@ fun nitpick_tptp_file thy timeout file_name =
        ("max_potential", "0"),
        ("timeout", string_of_int timeout),
        ("tac_timeout", string_of_int ((timeout + 49) div 50))]
-      |> Nitpick_Isar.default_params thy
+      |> Nitpick_Commands.default_params thy
     val i = 1
     val n = 1
     val step = 0
@@ -168,7 +168,7 @@ fun nitpick_finite_oracle_tac ctxt timeout i th =
            ("overlord", if overlord then "true" else "false"),
            ("max_potential", "0"),
            ("timeout", string_of_int timeout)]
-          |> Nitpick_Isar.default_params thy
+          |> Nitpick_Commands.default_params thy
         val i = 1
         val n = 1
         val step = 0

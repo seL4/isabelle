@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Nitpick/nitpick_tests.ML
+Nitpick_Commands(*  Title:      HOL/Tools/Nitpick/nitpick_tests.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2008, 2009, 2010
 
@@ -211,7 +211,7 @@ fun problem_for_nut ctxt (name, u) =
 
 fun run_all_tests () =
   let
-    val {debug, overlord, timeout, ...} = Nitpick_Isar.default_params @{theory} []
+    val {debug, overlord, timeout, ...} = Nitpick_Commands.default_params @{theory} []
     val max_threads = 1
     val max_solutions = 1
   in

@@ -219,7 +219,7 @@ ML_file "Tools/Nitpick/nitpick_nut.ML"
 ML_file "Tools/Nitpick/nitpick_kodkod.ML"
 ML_file "Tools/Nitpick/nitpick_model.ML"
 ML_file "Tools/Nitpick/nitpick.ML"
-ML_file "Tools/Nitpick/nitpick_isar.ML"
+ML_file "Tools/Nitpick/nitpick_commands.ML"
 ML_file "Tools/Nitpick/nitpick_tests.ML"
 
 setup {*

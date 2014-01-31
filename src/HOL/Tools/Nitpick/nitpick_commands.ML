@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Nitpick/nitpick_isar.ML
+(*  Title:      HOL/Tools/Nitpick/nitpick_commands.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2008, 2009, 2010
 
@@ -6,7 +6,7 @@ Adds the "nitpick" and "nitpick_params" commands to Isabelle/Isar's outer
 syntax.
 *)
 
-signature NITPICK_ISAR =
+signature NITPICK_COMMANDS =
 sig
   type params = Nitpick.params
 
@@ -15,7 +15,7 @@ sig
   val default_params : theory -> (string * string) list -> params
 end;
 
-structure Nitpick_Isar : NITPICK_ISAR =
+structure Nitpick_Commands : NITPICK_Commands =
 struct
 
 open Nitpick_Util

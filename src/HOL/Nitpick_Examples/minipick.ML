@@ -429,7 +429,7 @@ fun kodkod_problem_from_term ctxt total raw_card raw_infinite t =
 
 fun solve_any_kodkod_problem thy problems =
   let
-    val {debug, overlord, timeout, ...} = Nitpick_Isar.default_params thy []
+    val {debug, overlord, timeout, ...} = Nitpick_Commands.default_params thy []
     val max_threads = 1
     val max_solutions = 1
   in
@@ -450,13 +450,13 @@ val default_raw_infinite = member (op =) [@{typ nat}, @{typ int}]
 fun minipick ctxt n t =
   let
     val thy = Proof_Context.theory_of ctxt
-    val {total_consts, ...} = Nitpick_Isar.default_params thy []
+    val {total_consts, ...} = Nitpick_Commands.default_params thy []
     val totals =
       total_consts |> Option.map single |> the_default [true, false]
     fun problem_for (total, k) =
       kodkod_problem_from_term ctxt total (K k) default_raw_infinite t
   in
-    (totals, 1 upto n)
+    (totalsNitpick_Commands, 1 upto n)
     |-> map_product pair
     |> map problem_for
     |> solve_any_kodkod_problem (Proof_Context.theory_of ctxt)
