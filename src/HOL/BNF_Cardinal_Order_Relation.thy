@@ -746,7 +746,7 @@ proof-
      qed
     }
     ultimately show ?thesis unfolding bij_betw_def inj_on_def
-    by (metis image_subsetI order_eq_iff subsetI)
+    by (metis (no_types) image_subsetI order_eq_iff subsetI)
   qed
   thus ?thesis using card_of_ordIso by blast
 qed
