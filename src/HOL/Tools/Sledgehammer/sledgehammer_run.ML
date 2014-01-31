@@ -11,8 +11,8 @@ sig
   type fact = Sledgehammer_Fact.fact
   type fact_override = Sledgehammer_Fact.fact_override
   type minimize_command = Sledgehammer_Reconstructor.minimize_command
-  type mode = Sledgehammer_Provers.mode
-  type params = Sledgehammer_Provers.params
+  type mode = Sledgehammer_Prover.mode
+  type params = Sledgehammer_Prover.params
 
   val someN : string
   val noneN : string
@@ -33,7 +33,7 @@ open ATP_Proof
 open ATP_Proof_Reconstruct
 open Sledgehammer_Util
 open Sledgehammer_Fact
-open Sledgehammer_Provers
+open Sledgehammer_Prover
 open Sledgehammer_Minimize
 open Sledgehammer_MaSh
 

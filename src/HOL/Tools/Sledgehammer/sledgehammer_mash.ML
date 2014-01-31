@@ -10,8 +10,8 @@ sig
   type raw_fact = Sledgehammer_Fact.raw_fact
   type fact = Sledgehammer_Fact.fact
   type fact_override = Sledgehammer_Fact.fact_override
-  type params = Sledgehammer_Provers.params
-  type prover_result = Sledgehammer_Provers.prover_result
+  type params = Sledgehammer_Prover.params
+  type prover_result = Sledgehammer_Prover.prover_result
 
   val trace : bool Config.T
   val MePoN : string
@@ -106,7 +106,7 @@ open ATP_Util
 open ATP_Problem_Generate
 open Sledgehammer_Util
 open Sledgehammer_Fact
-open Sledgehammer_Provers
+open Sledgehammer_Prover
 open Sledgehammer_Minimize
 open Sledgehammer_MePo
 

@@ -113,14 +113,14 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
          val prover = AList.lookup (op =) args "prover" |> the_default default_prover
          val params as {max_facts, ...} =
            Sledgehammer_Commands.default_params ctxt args
-         val default_max_facts = Sledgehammer_Provers.default_max_facts_of_prover ctxt prover
+         val default_max_facts = Sledgehammer_Prover.default_max_facts_of_prover ctxt prover
          val is_appropriate_prop =
-           Sledgehammer_Provers.is_appropriate_prop_of_prover ctxt default_prover
+           Sledgehammer_Prover.is_appropriate_prop_of_prover ctxt default_prover
          val relevance_fudge =
            extract_relevance_fudge args Sledgehammer_MePo.default_relevance_fudge
          val subgoal = 1
          val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal goal subgoal ctxt
-         val ho_atp = Sledgehammer_Provers.is_ho_atp ctxt prover
+         val ho_atp = Sledgehammer_Prover.is_ho_atp ctxt prover
          val reserved = Sledgehammer_Util.reserved_isar_keyword_table ()
          val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
          val facts =

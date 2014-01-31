@@ -10,7 +10,7 @@ sig
   type stature = ATP_Problem_Generate.stature
   type raw_fact = Sledgehammer_Fact.raw_fact
   type fact = Sledgehammer_Fact.fact
-  type params = Sledgehammer_Provers.params
+  type params = Sledgehammer_Prover.params
 
   type relevance_fudge =
     {local_const_multiplier : real,
@@ -46,7 +46,7 @@ struct
 open ATP_Problem_Generate
 open Sledgehammer_Util
 open Sledgehammer_Fact
-open Sledgehammer_Provers
+open Sledgehammer_Prover
 
 val trace =
   Attrib.setup_config_bool @{binding sledgehammer_mepo_trace} (K false)

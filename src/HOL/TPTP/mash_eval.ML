@@ -7,7 +7,7 @@ Evaluate proof suggestions from MaSh (Machine-learning for Sledgehammer).
 
 signature MASH_EVAL =
 sig
-  type params = Sledgehammer_Provers.params
+  type params = Sledgehammer_Prover.params
 
   val MePoN : string
   val MaSh_IsarN : string
@@ -28,7 +28,7 @@ open Sledgehammer_Util
 open Sledgehammer_Fact
 open Sledgehammer_MePo
 open Sledgehammer_MaSh
-open Sledgehammer_Provers
+open Sledgehammer_Prover
 open Sledgehammer_Commands
 
 val prefix = Library.prefix

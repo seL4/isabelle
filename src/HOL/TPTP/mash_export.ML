@@ -7,7 +7,7 @@ Export Isabelle theory information for MaSh (Machine-learning for Sledgehammer).
 
 signature MASH_EXPORT =
 sig
-  type params = Sledgehammer_Provers.params
+  type params = Sledgehammer_Prover.params
 
   val generate_accessibility :
     Proof.context -> theory list -> bool -> string -> unit
@@ -148,7 +148,7 @@ fun is_bad_query ctxt ho_atp step j th isar_deps =
 fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys
                                      linearize max_suggs file_name =
   let
-    val ho_atp = Sledgehammer_Provers.is_ho_atp ctxt prover
+    val ho_atp = Sledgehammer_Prover.is_ho_atp ctxt prover
     val path = file_name |> Path.explode
     val facts = all_facts ctxt
     val (new_facts, old_facts) = facts |> List.partition (has_thys thys o snd)
@@ -229,7 +229,7 @@ fun generate_prover_commands ctxt (params as {provers = prover :: _, ...}) =
 fun generate_mepo_suggestions ctxt (params as {provers = prover :: _, ...})
                               (range, step) thys linearize max_suggs file_name =
   let
-    val ho_atp = Sledgehammer_Provers.is_ho_atp ctxt prover
+    val ho_atp = Sledgehammer_Prover.is_ho_atp ctxt prover
     val path = file_name |> Path.explode
     val facts = all_facts ctxt
     val (new_facts, old_facts) = facts |> List.partition (has_thys thys o snd)

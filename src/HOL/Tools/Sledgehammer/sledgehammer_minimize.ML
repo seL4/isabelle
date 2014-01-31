@@ -10,9 +10,9 @@ sig
   type stature = ATP_Problem_Generate.stature
   type reconstructor = Sledgehammer_Reconstructor.reconstructor
   type play_outcome = Sledgehammer_Reconstructor.play_outcome
-  type mode = Sledgehammer_Provers.mode
-  type params = Sledgehammer_Provers.params
-  type prover = Sledgehammer_Provers.prover
+  type mode = Sledgehammer_Prover.mode
+  type params = Sledgehammer_Prover.params
+  type prover = Sledgehammer_Prover.prover
 
   val binary_min_facts : int Config.T
   val auto_minimize_min_facts : int Config.T
@@ -39,7 +39,7 @@ open Sledgehammer_Util
 open Sledgehammer_Fact
 open Sledgehammer_Reconstructor
 open Sledgehammer_Reconstruct
-open Sledgehammer_Provers
+open Sledgehammer_Prover
 
 (* wrapper for calling external prover *)
 

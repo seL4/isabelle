@@ -6,7 +6,7 @@ Adds "sledgehammer" and related commands to Isabelle/Isar's outer syntax.
 
 signature SLEDGEHAMMER_COMMANDS =
 sig
-  type params = Sledgehammer_Provers.params
+  type params = Sledgehammer_Prover.params
 
   val provers : string Unsynchronized.ref
   val default_params : Proof.context -> (string * string) list -> params
@@ -21,7 +21,7 @@ open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
 open Sledgehammer_Util
 open Sledgehammer_Fact
-open Sledgehammer_Provers
+open Sledgehammer_Prover
 open Sledgehammer_Minimize
 open Sledgehammer_MaSh
 open Sledgehammer_Run

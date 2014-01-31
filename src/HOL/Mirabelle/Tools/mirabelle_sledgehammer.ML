@@ -376,7 +376,7 @@ fun get_prover ctxt name params goal all_facts =
   let
     val learn = Sledgehammer_MaSh.mash_learn_proof ctxt params (prop_of goal) all_facts
   in
-    Sledgehammer_Minimize.get_minimizing_prover ctxt Sledgehammer_Provers.Normal
+    Sledgehammer_Minimize.get_minimizing_prover ctxt Sledgehammer_Prover.Normal
       learn name
   end
 
@@ -421,8 +421,8 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
     val {context = ctxt, facts = chained_ths, goal} = Proof.goal st
     val i = 1
     fun set_file_name (SOME dir) =
-        Config.put Sledgehammer_Provers.dest_dir dir
-        #> Config.put Sledgehammer_Provers.problem_prefix
+        Config.put Sledgehammer_Prover.dest_dir dir
+        #> Config.put Sledgehammer_Prover.problem_prefix
           ("prob_" ^ str0 (Position.line_of pos) ^ "__")
         #> Config.put SMT_Config.debug_files
           (dir ^ "/" ^ Name.desymbolize false (ATP_Util.timestamp ()) ^ "_"
@@ -453,9 +453,9 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
           |> sh_minimizeLST (*don't confuse the two minimization flags*)
           |> max_new_mono_instancesLST
           |> max_mono_itersLST)
-    val default_max_facts = Sledgehammer_Provers.default_max_facts_of_prover ctxt prover_name
+    val default_max_facts = Sledgehammer_Prover.default_max_facts_of_prover ctxt prover_name
     val is_appropriate_prop =
-      Sledgehammer_Provers.is_appropriate_prop_of_prover ctxt prover_name
+      Sledgehammer_Prover.is_appropriate_prop_of_prover ctxt prover_name
     val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal goal i ctxt
     val time_limit =
       (case hard_timeout of
@@ -464,16 +464,16 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
     fun failed failure =
       ({outcome = SOME failure, used_facts = [], used_from = [],
         run_time = Time.zeroTime,
-        preplay = Lazy.value (Sledgehammer_Provers.plain_metis,
+        preplay = Lazy.value (Sledgehammer_Prover.plain_metis,
           Sledgehammer_Reconstructor.Play_Failed),
         message = K "", message_tail = ""}, ~1)
     val ({outcome, used_facts, run_time, preplay, message, message_tail, ...}
-         : Sledgehammer_Provers.prover_result,
+         : Sledgehammer_Prover.prover_result,
          time_isa) = time_limit (Mirabelle.cpu_time (fn () =>
       let
         val _ = if is_appropriate_prop concl_t then ()
                 else raise Fail "inappropriate"
-        val ho_atp = Sledgehammer_Provers.is_ho_atp ctxt prover_name
+        val ho_atp = Sledgehammer_Prover.is_ho_atp ctxt prover_name
         val reserved = Sledgehammer_Util.reserved_isar_keyword_table ()
         val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
         val facts =

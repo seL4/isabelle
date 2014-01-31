@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_provers.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_prover.ML
     Author:     Fabian Immler, TU Muenchen
     Author:     Makarius
     Author:     Jasmin Blanchette, TU Muenchen
@@ -6,7 +6,7 @@
 Generic prover abstraction for Sledgehammer.
 *)
 
-signature SLEDGEHAMMER_PROVERS =
+signature SLEDGEHAMMER_PROVER =
 sig
   type atp_failure = ATP_Proof.atp_failure
   type stature = ATP_Problem_Generate.stature
@@ -114,7 +114,7 @@ sig
   val get_prover : Proof.context -> mode -> string -> prover
 end;
 
-structure Sledgehammer_Provers : SLEDGEHAMMER_PROVERS =
+structure Sledgehammer_Prover : SLEDGEHAMMER_PROVER =
 struct
 
 open ATP_Util

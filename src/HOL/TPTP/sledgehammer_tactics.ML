@@ -20,7 +20,7 @@ struct
 
 open Sledgehammer_Util
 open Sledgehammer_Fact
-open Sledgehammer_Provers
+open Sledgehammer_Prover
 open Sledgehammer_MaSh
 open Sledgehammer_Commands
 
