@@ -1,10 +1,10 @@
-(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_isar.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_commands.ML
     Author:     Jasmin Blanchette, TU Muenchen
 
 Adds "sledgehammer" and related commands to Isabelle/Isar's outer syntax.
 *)
 
-signature SLEDGEHAMMER_ISAR =
+signature SLEDGEHAMMER_COMMANDS =
 sig
   type params = Sledgehammer_Provers.params
 
@@ -12,7 +12,7 @@ sig
   val default_params : Proof.context -> (string * string) list -> params
 end;
 
-structure Sledgehammer_Isar : SLEDGEHAMMER_ISAR =
+structure Sledgehammer_Commands : SLEDGEHAMMER_COMMANDS =
 struct
 
 open ATP_Util

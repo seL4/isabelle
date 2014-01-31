@@ -364,7 +364,7 @@ fun change_data id f = (Unsynchronized.change data (AList.map_entry (op =) id f)
 fun get_prover_name ctxt args =
   let
     fun default_prover_name () =
-      hd (#provers (Sledgehammer_Isar.default_params ctxt []))
+      hd (#provers (Sledgehammer_Commands.default_params ctxt []))
       handle List.Empty => error "No ATP available."
   in
     (case AList.lookup (op =) args proverK of
@@ -439,7 +439,7 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
             #> (Option.map (Config.put ATP_Systems.force_sos)
                   force_sos |> the_default I))
     val params as {max_facts, ...} =
-      Sledgehammer_Isar.default_params ctxt
+      Sledgehammer_Commands.default_params ctxt
          ([("verbose", "true"),
            ("fact_filter", fact_filter),
            ("type_enc", type_enc),
@@ -597,7 +597,7 @@ fun run_minimize args reconstructor named_thms id
     val max_new_mono_instancesLST =
       available_parameter args max_new_mono_instancesK max_new_mono_instancesK
     val max_mono_itersLST = available_parameter args max_mono_itersK max_mono_itersK
-    val params = Sledgehammer_Isar.default_params ctxt
+    val params = Sledgehammer_Commands.default_params ctxt
      ([("provers", prover_name),
        ("verbose", "true"),
        ("type_enc", type_enc),

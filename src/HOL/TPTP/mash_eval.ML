@@ -29,7 +29,7 @@ open Sledgehammer_Fact
 open Sledgehammer_MePo
 open Sledgehammer_MaSh
 open Sledgehammer_Provers
-open Sledgehammer_Isar
+open Sledgehammer_Commands
 
 val prefix = Library.prefix
 

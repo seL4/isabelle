@@ -22,7 +22,7 @@ open Sledgehammer_Util
 open Sledgehammer_Fact
 open Sledgehammer_Provers
 open Sledgehammer_MaSh
-open Sledgehammer_Isar
+open Sledgehammer_Commands
 
 fun run_prover override_params fact_override i n ctxt goal =
   let

@@ -31,6 +31,6 @@ ML_file "Tools/Sledgehammer/sledgehammer_minimize.ML"
 ML_file "Tools/Sledgehammer/sledgehammer_mepo.ML"
 ML_file "Tools/Sledgehammer/sledgehammer_mash.ML"
 ML_file "Tools/Sledgehammer/sledgehammer_run.ML"
-ML_file "Tools/Sledgehammer/sledgehammer_isar.ML"
+ML_file "Tools/Sledgehammer/sledgehammer_commands.ML"
 
 end
