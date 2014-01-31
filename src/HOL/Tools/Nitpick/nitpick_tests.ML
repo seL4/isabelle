@@ -1,4 +1,4 @@
-Nitpick_Commands(*  Title:      HOL/Tools/Nitpick/nitpick_tests.ML
+(*  Title:      HOL/Tools/Nitpick/nitpick_tests.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2008, 2009, 2010
 
@@ -10,7 +10,7 @@ sig
   val run_all_tests : unit -> unit
 end;
 
-structure Nitpick_Tests =
+structure Nitpick_Tests : NITPICK_TESTS =
 struct
 
 open Nitpick_Util

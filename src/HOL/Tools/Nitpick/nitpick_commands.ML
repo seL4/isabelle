@@ -15,7 +15,7 @@ sig
   val default_params : theory -> (string * string) list -> params
 end;
 
-structure Nitpick_Commands : NITPICK_Commands =
+structure Nitpick_Commands : NITPICK_COMMANDS =
 struct
 
 open Nitpick_Util
