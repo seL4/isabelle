@@ -103,89 +103,6 @@ fun add_lines_pass2 res [] = rev res
         add_lines_pass2 res (map (replace_dependencies_in_line (name, deps)) lines)
     end
 
-val add_labels_of_proof =
-  steps_of_proof
-  #> fold_isar_steps (byline_of_step #> (fn SOME ((ls, _), _) => union (op =) ls | _ => I))
-
-fun kill_useless_labels_in_proof proof =
-  let
-    val used_ls = add_labels_of_proof proof []
-
-    fun kill_label l = if member (op =) used_ls l then l else no_label
-    fun kill_assms assms = map (apfst kill_label) assms
-
-    fun kill_step (Prove (qs, xs, l, t, subproofs, by)) =
-        Prove (qs, xs, kill_label l, t, map kill_proof subproofs, by)
-      | kill_step step = step
-    and kill_proof (Proof (fix, assms, steps)) =
-      Proof (fix, kill_assms assms, map kill_step steps)
-  in
-    kill_proof proof
-  end
-
-val assume_prefix = "a"
-val have_prefix = "f"
-
-val relabel_proof =
-  let
-    fun fresh_label depth prefix (accum as (l, subst, next)) =
-      if l = no_label then
-        accum
-      else
-        let val l' = (replicate_string (depth + 1) prefix, next) in
-          (l', (l, l') :: subst, next + 1)
-        end
-
-    fun relabel_facts subst = apfst (maps (the_list o AList.lookup (op =) subst))
-
-    fun relabel_assm depth (l, t) (subst, next) =
-      let val (l, subst, next) = (l, subst, next) |> fresh_label depth assume_prefix in
-        ((l, t), (subst, next))
-      end
-
-    fun relabel_assms subst depth assms = fold_map (relabel_assm depth) assms (subst, 1) ||> fst
-
-    fun relabel_steps _ _ _ [] = []
-      | relabel_steps subst depth next (Prove (qs, xs, l, t, sub, by) :: steps) =
-        let
-          val (l, subst, next) = (l, subst, next) |> fresh_label depth have_prefix
-          val sub = relabel_proofs subst depth sub
-          val by = apfst (relabel_facts subst) by
-        in
-          Prove (qs, xs, l, t, sub, by) :: relabel_steps subst depth next steps
-        end
-      | relabel_steps subst depth next (step :: steps) =
-        step :: relabel_steps subst depth next steps
-    and relabel_proof subst depth (Proof (fix, assms, steps)) =
-      let val (assms, subst) = relabel_assms subst depth assms in
-        Proof (fix, assms, relabel_steps subst depth 1 steps)
-      end
-    and relabel_proofs subst depth = map (relabel_proof subst (depth + 1))
-  in
-    relabel_proof [] 0
-  end
-
-val chain_direct_proof =
-  let
-    fun chain_qs_lfs NONE lfs = ([], lfs)
-      | chain_qs_lfs (SOME l0) lfs =
-        if member (op =) lfs l0 then ([Then], lfs |> remove (op =) l0) else ([], lfs)
-    fun chain_step lbl (Prove (qs, xs, l, t, subproofs, ((lfs, gfs), methss))) =
-        let val (qs', lfs) = chain_qs_lfs lbl lfs in
-          Prove (qs' @ qs, xs, l, t, chain_proofs subproofs, ((lfs, gfs), methss))
-        end
-      | chain_step _ step = step
-    and chain_steps _ [] = []
-      | chain_steps (prev as SOME _) (i :: is) =
-        chain_step prev i :: chain_steps (label_of_step i) is
-      | chain_steps _ (i :: is) = i :: chain_steps (label_of_step i) is
-    and chain_proof (Proof (fix, assms, steps)) =
-      Proof (fix, assms, chain_steps (try (List.last #> fst) assms) steps)
-    and chain_proofs proofs = map (chain_proof) proofs
-  in
-    chain_proof
-  end
-
 type isar_params =
   bool * string * string * Time.time * real * bool * (term, string) atp_step list * thm
 
@@ -378,7 +295,9 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
                (try0_isar ? minimize_isar_step_dependencies preplay_data)
           |> tap (trace_isar_proof "Minimized")
           |> `overall_preplay_outcome
-          ||> (chain_direct_proof #> kill_useless_labels_in_proof #> relabel_proof)
+          ||> chain_isar_proof
+          ||> kill_useless_labels_in_isar_proof
+          ||> relabel_isar_proof_finally
       in
         (case string_of_isar_proof false isar_proof of
           "" =>

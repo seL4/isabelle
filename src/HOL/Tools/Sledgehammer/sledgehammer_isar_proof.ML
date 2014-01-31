@@ -42,7 +42,11 @@ sig
   structure Canonical_Label_Tab : TABLE
 
   val canonical_label_ord : (label * label) -> order
+
+  val chain_isar_proof : isar_proof -> isar_proof
+  val kill_useless_labels_in_isar_proof : isar_proof -> isar_proof
   val relabel_isar_proof_canonically : isar_proof -> isar_proof
+  val relabel_isar_proof_finally : isar_proof -> isar_proof
 
   val string_of_isar_proof : Proof.context -> string -> string -> int -> int -> bool ->
     isar_proof -> string
@@ -127,6 +131,38 @@ structure Canonical_Label_Tab = Table(
   type key = label
   val ord = canonical_label_ord)
 
+fun chain_qs_lfs NONE lfs = ([], lfs)
+  | chain_qs_lfs (SOME l0) lfs =
+    if member (op =) lfs l0 then ([Then], lfs |> remove (op =) l0) else ([], lfs)
+fun chain_isar_step lbl (Prove (qs, xs, l, t, subproofs, ((lfs, gfs), methss))) =
+    let val (qs', lfs) = chain_qs_lfs lbl lfs in
+      Prove (qs' @ qs, xs, l, t, map chain_isar_proof subproofs, ((lfs, gfs), methss))
+    end
+  | chain_isar_step _ step = step
+and chain_isar_steps _ [] = []
+  | chain_isar_steps (prev as SOME _) (i :: is) =
+    chain_isar_step prev i :: chain_isar_steps (label_of_step i) is
+  | chain_isar_steps _ (i :: is) = i :: chain_isar_steps (label_of_step i) is
+and chain_isar_proof (Proof (fix, assms, steps)) =
+  Proof (fix, assms, chain_isar_steps (try (List.last #> fst) assms) steps)
+
+fun kill_useless_labels_in_isar_proof proof =
+  let
+    val used_ls =
+      fold_isar_steps (byline_of_step #> (fn SOME ((ls, _), _) => union (op =) ls | _ => I))
+        (steps_of_proof proof) []
+
+    fun kill_label l = if member (op =) used_ls l then l else no_label
+
+    fun kill_step (Prove (qs, xs, l, t, subproofs, by)) =
+        Prove (qs, xs, kill_label l, t, map kill_proof subproofs, by)
+      | kill_step step = step
+    and kill_proof (Proof (fix, assms, steps)) =
+      Proof (fix, map (apfst kill_label) assms, map kill_step steps)
+  in
+    kill_proof proof
+  end
+
 fun relabel_isar_proof_canonically proof =
   let
     fun next_label l (next, subst) =
@@ -160,6 +196,48 @@ fun relabel_isar_proof_canonically proof =
         end
   in
     fst (do_proof proof (0, []))
+  end
+
+val assume_prefix = "a"
+val have_prefix = "f"
+
+val relabel_isar_proof_finally =
+  let
+    fun fresh_label depth prefix (accum as (l, subst, next)) =
+      if l = no_label then
+        accum
+      else
+        let val l' = (replicate_string (depth + 1) prefix, next) in
+          (l', (l, l') :: subst, next + 1)
+        end
+
+    fun relabel_facts subst = apfst (maps (the_list o AList.lookup (op =) subst))
+
+    fun relabel_assm depth (l, t) (subst, next) =
+      let val (l, subst, next) = (l, subst, next) |> fresh_label depth assume_prefix in
+        ((l, t), (subst, next))
+      end
+
+    fun relabel_assms subst depth assms = fold_map (relabel_assm depth) assms (subst, 1) ||> fst
+
+    fun relabel_steps _ _ _ [] = []
+      | relabel_steps subst depth next (Prove (qs, xs, l, t, sub, by) :: steps) =
+        let
+          val (l, subst, next) = (l, subst, next) |> fresh_label depth have_prefix
+          val sub = relabel_proofs subst depth sub
+          val by = apfst (relabel_facts subst) by
+        in
+          Prove (qs, xs, l, t, sub, by) :: relabel_steps subst depth next steps
+        end
+      | relabel_steps subst depth next (step :: steps) =
+        step :: relabel_steps subst depth next steps
+    and relabel_proof subst depth (Proof (fix, assms, steps)) =
+      let val (assms, subst) = relabel_assms subst depth assms in
+        Proof (fix, assms, relabel_steps subst depth 1 steps)
+      end
+    and relabel_proofs subst depth = map (relabel_proof subst (depth + 1))
+  in
+    relabel_proof [] 0
   end
 
 val indent_size = 2
