@@ -48,26 +48,21 @@ val is_exhaustive_finite =
       | is_bad_equal _ _ = false
     fun do_equals t1 t2 = is_bad_equal t1 t2 orelse is_bad_equal t2 t1
     fun do_formula pos t =
-      case (pos, t) of
+      (case (pos, t) of
         (_, @{const Trueprop} $ t1) => do_formula pos t1
-      | (true, Const (@{const_name all}, _) $ Abs (_, _, t')) =>
-        do_formula pos t'
-      | (true, Const (@{const_name All}, _) $ Abs (_, _, t')) =>
-        do_formula pos t'
-      | (false, Const (@{const_name Ex}, _) $ Abs (_, _, t')) =>
-        do_formula pos t'
+      | (true, Const (@{const_name all}, _) $ Abs (_, _, t')) => do_formula pos t'
+      | (true, Const (@{const_name All}, _) $ Abs (_, _, t')) => do_formula pos t'
+      | (false, Const (@{const_name Ex}, _) $ Abs (_, _, t')) => do_formula pos t'
       | (_, @{const "==>"} $ t1 $ t2) =>
-        do_formula (not pos) t1 andalso
-        (t2 = @{prop False} orelse do_formula pos t2)
+        do_formula (not pos) t1 andalso (t2 = @{prop False} orelse do_formula pos t2)
       | (_, @{const HOL.implies} $ t1 $ t2) =>
-        do_formula (not pos) t1 andalso
-        (t2 = @{const False} orelse do_formula pos t2)
+        do_formula (not pos) t1 andalso (t2 = @{const False} orelse do_formula pos t2)
       | (_, @{const Not} $ t1) => do_formula (not pos) t1
       | (true, @{const HOL.disj} $ t1 $ t2) => forall (do_formula pos) [t1, t2]
       | (false, @{const HOL.conj} $ t1 $ t2) => forall (do_formula pos) [t1, t2]
       | (true, Const (@{const_name HOL.eq}, _) $ t1 $ t2) => do_equals t1 t2
       | (true, Const (@{const_name "=="}, _) $ t1 $ t2) => do_equals t1 t2
-      | _ => false
+      | _ => false)
   in do_formula true end
 
 (* Facts containing variables of finite types such as "unit" or "bool" or of the form
@@ -137,18 +132,17 @@ fun run_atp mode name
         error ("No such directory: " ^ quote dest_dir ^ ".")
     val exec = exec ()
     val command0 =
-      case find_first (fn var => getenv var <> "") (fst exec) of
+      (case find_first (fn var => getenv var <> "") (fst exec) of
         SOME var =>
         let
           val pref = getenv var ^ "/"
           val paths = map (Path.explode o prefix pref) (snd exec)
         in
-          case find_first File.exists paths of
+          (case find_first File.exists paths of
             SOME path => path
-          | NONE => error ("Bad executable: " ^ Path.print (hd paths) ^ ".")
+          | NONE => error ("Bad executable: " ^ Path.print (hd paths) ^ "."))
         end
-      | NONE => error ("The environment variable " ^ quote (List.last (fst exec)) ^
-                       " is not set.")
+      | NONE => error ("The environment variable " ^ quote (List.last (fst exec)) ^ " is not set."))
 
     fun split_time s =
       let
@@ -167,8 +161,7 @@ fun run_atp mode name
 
     fun run () =
       let
-        (* If slicing is disabled, we expand the last slice to fill the entire
-           time available. *)
+        (* If slicing is disabled, we expand the last slice to fill the entire time available. *)
         val all_slices = best_slices ctxt
         val actual_slices = get_slices slice all_slices
         fun max_facts_of_slices f slices = fold (Integer.max o fst o #1 o fst o snd o f) slices 0
@@ -196,19 +189,15 @@ fun run_atp mode name
           in
             Monomorph.monomorph atp_schematic_consts_of ctxt rths
             |> tl |> curry ListPair.zip (map fst facts)
-            |> maps (fn (name, rths) =>
-                        map (pair name o zero_var_indexes o snd) rths)
+            |> maps (fn (name, rths) => map (pair name o zero_var_indexes o snd) rths)
           end
 
-        fun run_slice time_left (cache_key, cache_value)
-                (slice, (time_frac,
-                     (key as ((best_max_facts, best_fact_filter), format,
-                              best_type_enc, best_lam_trans,
-                              best_uncurried_aliases),
-                      extra))) =
+        fun run_slice time_left (cache_key, cache_value) (slice, (time_frac,
+            (key as ((best_max_facts, best_fact_filter), format, best_type_enc, best_lam_trans,
+                     best_uncurried_aliases),
+             extra))) =
           let
-            val effective_fact_filter =
-              fact_filter |> the_default best_fact_filter
+            val effective_fact_filter = fact_filter |> the_default best_fact_filter
             val facts = get_facts_of_filter effective_fact_filter factss
             val num_facts =
               Real.ceil (max_fact_factor * Real.fromInt best_max_facts) + max_fact_factor_fudge
@@ -236,14 +225,8 @@ fun run_atp mode name
               else
                 ()
             val readable_names = not (Config.get ctxt atp_full_names)
-            val lam_trans =
-              case lam_trans of
-                SOME s => s
-              | NONE => best_lam_trans
-            val uncurried_aliases =
-              case uncurried_aliases of
-                SOME b => b
-              | NONE => best_uncurried_aliases
+            val lam_trans = lam_trans |> the_default best_lam_trans
+            val uncurried_aliases = uncurried_aliases |> the_default best_uncurried_aliases
             val value as (atp_problem, _, fact_names, _, _) =
               if cache_key = SOME key then
                 cache_value
@@ -253,9 +236,8 @@ fun run_atp mode name
                 |> take num_facts
                 |> not (is_type_enc_polymorphic type_enc) ? monomorphize_facts
                 |> map (apsnd prop_of)
-                |> prepare_atp_problem ctxt format prem_role type_enc atp_mode
-                                       lam_trans uncurried_aliases
-                                       readable_names true hyp_ts concl_t
+                |> prepare_atp_problem ctxt format prem_role type_enc atp_mode lam_trans
+                     uncurried_aliases readable_names true hyp_ts concl_t
 
             fun sel_weights () = atp_problem_selection_weights atp_problem
             fun ord_info () = atp_problem_term_order_info atp_problem
@@ -288,11 +270,11 @@ fun run_atp mode name
                 NONE =>
                 (case used_facts_in_unsound_atp_proof ctxt fact_names atp_proof
                       |> Option.map (sort string_ord) of
-                   SOME facts =>
-                   let val failure = UnsoundProof (is_type_enc_sound type_enc, facts) in
-                     if debug then (warning (string_of_atp_failure failure); NONE) else SOME failure
-                   end
-                 | NONE => NONE)
+                  SOME facts =>
+                  let val failure = UnsoundProof (is_type_enc_sound type_enc, facts) in
+                    if debug then (warning (string_of_atp_failure failure); NONE) else SOME failure
+                  end
+                | NONE => NONE)
               | _ => outcome)
           in
             ((SOME key, value), (output, run_time, facts, atp_proof, outcome))
@@ -300,11 +282,8 @@ fun run_atp mode name
 
         val timer = Timer.startRealTimer ()
 
-        fun maybe_run_slice slice
-                (result as (cache, (_, run_time0, _, _, SOME _))) =
-            let
-              val time_left = Time.- (timeout, Timer.checkRealTimer timer)
-            in
+        fun maybe_run_slice slice (result as (cache, (_, run_time0, _, _, SOME _))) =
+            let val time_left = Time.- (timeout, Timer.checkRealTimer timer) in
               if Time.<= (time_left, Time.zeroTime) then
                 result
               else
@@ -321,17 +300,17 @@ fun run_atp mode name
 
     (* If the problem file has not been exported, remove it; otherwise, export
        the proof file too. *)
-    fun clean_up () =
-      if dest_dir = "" then (try File.rm prob_path; ()) else ()
+    fun clean_up () = if dest_dir = "" then (try File.rm prob_path; ()) else ()
     fun export (_, (output, _, _, _, _)) =
       if dest_dir = "" then ()
       else File.write (Path.explode (Path.implode prob_path ^ "_proof")) output
+
     val ((_, (_, pool, fact_names, lifted, sym_tab)),
          (output, run_time, used_from, atp_proof, outcome)) =
       with_cleanup clean_up run () |> tap export
+
     val important_message =
-      if mode = Normal andalso random_range 0 (atp_important_message_keep_quotient - 1) = 0
-      then
+      if mode = Normal andalso random_range 0 (atp_important_message_keep_quotient - 1) = 0 then
         extract_important_message output
       else
         ""

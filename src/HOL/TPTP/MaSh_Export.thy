@@ -29,7 +29,7 @@ open MaSh_Export
 ML {*
 val do_it = false (* switch to "true" to generate the files *)
 val thys = [@{theory List}]
-val params as {provers, ...} = Sledgehammer_Commands.default_params @{context} []
+val params as {provers, ...} = Sledgehammer_Commands.default_params @{theory} []
 val prover = hd provers
 val range = (1, NONE)
 val step = 1

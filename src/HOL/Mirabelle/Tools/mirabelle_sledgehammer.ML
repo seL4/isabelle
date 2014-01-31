@@ -455,8 +455,6 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
           |> max_mono_itersLST)
     val default_max_facts =
       Sledgehammer_Prover_Minimize.default_max_facts_of_prover ctxt prover_name
-    val is_appropriate_prop =
-      Sledgehammer_Prover.is_appropriate_prop_of_prover ctxt prover_name
     val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal goal i ctxt
     val time_limit =
       (case hard_timeout of
@@ -472,8 +470,6 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
          : Sledgehammer_Prover.prover_result,
          time_isa) = time_limit (Mirabelle.cpu_time (fn () =>
       let
-        val _ = if is_appropriate_prop concl_t then ()
-                else raise Fail "inappropriate"
         val ho_atp = Sledgehammer_Prover.is_ho_atp ctxt prover_name
         val reserved = Sledgehammer_Util.reserved_isar_keyword_table ()
         val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
@@ -483,7 +479,6 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
               hyp_ts concl_t
         val factss =
           facts
-          |> filter (is_appropriate_prop o prop_of o snd)
           |> Sledgehammer_MaSh.relevant_facts ctxt params prover_name
                  (the_default default_max_facts max_facts)
                  Sledgehammer_Fact.no_fact_override hyp_ts concl_t

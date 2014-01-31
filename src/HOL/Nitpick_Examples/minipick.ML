@@ -456,7 +456,7 @@ fun minipick ctxt n t =
     fun problem_for (total, k) =
       kodkod_problem_from_term ctxt total (K k) default_raw_infinite t
   in
-    (totalsNitpick_Commands, 1 upto n)
+    (totals, 1 upto n)
     |-> map_product pair
     |> map problem_for
     |> solve_any_kodkod_problem (Proof_Context.theory_of ctxt)

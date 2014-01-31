@@ -26,7 +26,7 @@ open MaSh_Eval
 
 ML {*
 val do_it = false (* switch to "true" to generate the files *)
-val params = Sledgehammer_Commands.default_params @{context} []
+val params = Sledgehammer_Commands.default_params @{theory} []
 val range = (1, NONE)
 val linearize = false
 val dir = "List"

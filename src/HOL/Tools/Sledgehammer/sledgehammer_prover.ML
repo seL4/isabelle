@@ -77,9 +77,6 @@ sig
   val is_reconstructor : string -> bool
   val is_atp : theory -> string -> bool
   val is_ho_atp: Proof.context -> string -> bool
-  val is_unit_equational_atp : Proof.context -> string -> bool
-  val is_unit_equality : term -> bool
-  val is_appropriate_prop_of_prover : Proof.context -> string -> term -> bool
   val supported_provers : Proof.context -> unit
   val kill_provers : unit -> unit
   val running_provers : unit -> unit
@@ -146,7 +143,6 @@ fun is_atp_of_format is_format ctxt name =
     | NONE => false)
   end
 
-val is_unit_equational_atp = is_atp_of_format (curry (op =) CNF_UEQ)
 val is_ho_atp = is_atp_of_format is_format_higher_order
 
 fun remotify_atp_if_supported_and_not_already_remote thy name =
@@ -160,28 +156,6 @@ fun remotify_atp_if_supported_and_not_already_remote thy name =
 fun remotify_atp_if_not_installed thy name =
   if is_atp thy name andalso is_atp_installed thy name then SOME name
   else remotify_atp_if_supported_and_not_already_remote thy name
-
-fun is_if (@{const_name If}, _) = true
-  | is_if _ = false
-
-(* Beware of "if and only if" (which is translated as such) and "If" (which is
-   translated to conditional equations). *)
-fun is_good_unit_equality T t u =
-  T <> @{typ bool} andalso not (exists (exists_Const is_if) [t, u])
-
-fun is_unit_equality (@{const Trueprop} $ t) = is_unit_equality t
-  | is_unit_equality (Const (@{const_name all}, _) $ Abs (_, _, t)) =
-    is_unit_equality t
-  | is_unit_equality (Const (@{const_name All}, _) $ Abs (_, _, t)) =
-    is_unit_equality t
-  | is_unit_equality (Const (@{const_name "=="}, Type (_, [T, _])) $ t $ u) =
-    is_good_unit_equality T t u
-  | is_unit_equality (Const (@{const_name HOL.eq}, Type (_ , [T, _])) $ t $ u) =
-    is_good_unit_equality T t u
-  | is_unit_equality _ = false
-
-fun is_appropriate_prop_of_prover ctxt name =
-  if is_unit_equational_atp ctxt name then is_unit_equality else K true
 
 fun supported_provers ctxt =
   let

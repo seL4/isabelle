@@ -1,4 +1,4 @@
-Nitpick_Commands(*  Title:      HOL/TPTP/atp_problem_import.ML
+(*  Title:      HOL/TPTP/atp_problem_import.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012
 
