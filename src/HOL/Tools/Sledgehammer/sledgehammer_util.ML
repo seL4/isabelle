@@ -8,6 +8,7 @@ signature SLEDGEHAMMER_UTIL =
 sig
   val sledgehammerN : string
   val log2 : real -> real
+  val map3 : ('a -> 'b -> 'c -> 'd) -> 'a list -> 'b list -> 'c list -> 'd list
   val app_hd : ('a -> 'a) -> 'a list -> 'a list
   val n_fold_cartesian_product : 'a list list -> 'a list list
   val plural_s : int -> string
@@ -37,6 +38,8 @@ val sledgehammerN = "sledgehammer"
 
 val log10_2 = Math.log10 2.0
 fun log2 n = Math.log10 n / log10_2
+
+fun map3 xs = Ctr_Sugar_Util.map3 xs
 
 fun app_hd f (x :: xs) = f x :: xs
 

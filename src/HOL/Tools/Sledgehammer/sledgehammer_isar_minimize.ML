@@ -27,11 +27,11 @@ val slack = seconds 0.1
 
 fun minimize_isar_step_dependencies (_ : isar_preplay_data) (step as Let _) = step
   | minimize_isar_step_dependencies {preplay_outcome, set_preplay_outcome, preplay_quietly, ...}
-      (step as Prove (qs, xs, l, t, subproofs, ((lfs, gfs), meth))) =
-    (case preplay_outcome l of
+      (step as Prove (qs, xs, l, t, subproofs, ((lfs, gfs), methss as (meth :: _) :: _))) =
+    (case Lazy.force (preplay_outcome l meth) of
       Played time =>
       let
-        fun mk_step_lfs_gfs lfs gfs = Prove (qs, xs, l, t, subproofs, ((lfs, gfs), meth))
+        fun mk_step_lfs_gfs lfs gfs = Prove (qs, xs, l, t, subproofs, ((lfs, gfs), methss))
         val mk_step_gfs_lfs = curry (swap #> uncurry mk_step_lfs_gfs)
 
         fun minimize_facts _ time min_facts [] = (time, min_facts)
@@ -43,7 +43,7 @@ fun minimize_isar_step_dependencies (_ : isar_preplay_data) (step as Let _) = st
         val (time, min_lfs) = minimize_facts (mk_step_gfs_lfs gfs) time [] lfs
         val (time, min_gfs) = minimize_facts (mk_step_lfs_gfs min_lfs) time [] gfs
       in
-        set_preplay_outcome l (Played time); mk_step_lfs_gfs min_lfs min_gfs
+        set_preplay_outcome l meth (Played time); mk_step_lfs_gfs min_lfs min_gfs
       end
     | _ => step (* don't touch steps that time out or fail *))
 
@@ -62,7 +62,7 @@ fun postprocess_isar_proof_remove_unreferenced_steps postproc_step =
           fold_rev do_step steps (refed, [concl])
         end
     and do_step step (refed, accu) =
-      (case label_of_step step of
+      (case label_of_isar_step step of
         NONE => (refed, step :: accu)
       | SOME l =>
         if Ord_List.member label_ord refed l then

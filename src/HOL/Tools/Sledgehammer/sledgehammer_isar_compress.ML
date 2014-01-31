@@ -79,14 +79,15 @@ fun update_steps steps updates =
     | _ => raise Fail "Sledgehammer_Isar_Compress: update_steps")
   end
 
-(* Tries merging the first step into the second step. Arbitrarily picks the second step's method. *)
+(* Tries merging the first step into the second step.
+   FIXME: Arbitrarily picks the second step's method. *)
 fun try_merge (Prove (_, [], lbl1, _, [], ((lfs1, gfs1), _)))
-      (Prove (qs2, fix, lbl2, t, subproofs, ((lfs2, gfs2), meth2))) =
+      (Prove (qs2, fix, lbl2, t, subproofs, ((lfs2, gfs2), methss2))) =
     let
       val lfs = remove (op =) lbl1 lfs2 |> union (op =) lfs1
       val gfs = union (op =) gfs1 gfs2
     in
-      SOME (Prove (qs2, fix, lbl2, t, subproofs, ((lfs, gfs), meth2)))
+      SOME (Prove (qs2, fix, lbl2, t, subproofs, ((lfs, gfs), methss2)))
     end
   | try_merge _ _ = NONE
 
@@ -136,57 +137,55 @@ fun compress_isar_proof compress_isar
 
       (** elimination of trivial, one-step subproofs **)
 
-      fun elim_subproofs' time qs fix l t lfs gfs meth subs nontriv_subs =
+      fun elim_subproofs' time qs fix l t lfs gfs (methss as (meth :: _) :: _) subs nontriv_subs =
         if null subs orelse not (compress_further ()) then
-          (set_preplay_outcome l (Played time);
-           Prove (qs, fix, l, t, List.revAppend (nontriv_subs, subs), ((lfs, gfs), meth)))
+          (set_preplay_outcome l meth (Played time);
+           Prove (qs, fix, l, t, List.revAppend (nontriv_subs, subs), ((lfs, gfs), methss)))
         else
           (case subs of
             (sub as Proof (_, assms, sub_steps)) :: subs =>
             (let
-              (* trivial subproofs have exactly one Prove step *)
-              val SOME (Prove (_, [], l', _, [], ((lfs', gfs'), _))) = try the_single sub_steps
+              (* trivial subproofs have exactly one "Prove" step *)
+              val SOME (Prove (_, [], l', _, [], ((lfs', gfs'), (meth' :: _) :: _))) =
+                try the_single sub_steps
 
               (* only touch proofs that can be preplayed sucessfully *)
-              val Played time' = preplay_outcome l'
+              val Played time' = Lazy.force (preplay_outcome l' meth')
 
               (* merge steps *)
               val subs'' = subs @ nontriv_subs
-              val lfs'' =
-                subtract (op =) (map fst assms) lfs'
-                |> union (op =) lfs
+              val lfs'' = union (op =) lfs (subtract (op =) (map fst assms) lfs')
               val gfs'' = union (op =) gfs' gfs
-              val by = ((lfs'', gfs''), meth)
+              val by = ((lfs'', gfs''), methss(*FIXME*))
               val step'' = Prove (qs, fix, l, t, subs'', by)
 
               (* check if the modified step can be preplayed fast enough *)
               val timeout = time_mult merge_timeout_slack (Time.+(time, time'))
               val Played time'' = preplay_quietly timeout step''
-
             in
               decrement_step_count (); (* l' successfully eliminated! *)
               map (replace_successor l' [l]) lfs';
-              elim_subproofs' time'' qs fix l t lfs'' gfs'' meth subs nontriv_subs
+              elim_subproofs' time'' qs fix l t lfs'' gfs'' methss subs nontriv_subs
             end
             handle Bind =>
-              elim_subproofs' time qs fix l t lfs gfs meth subs (sub :: nontriv_subs))
+            elim_subproofs' time qs fix l t lfs gfs methss subs (sub :: nontriv_subs))
           | _ => raise Fail "Sledgehammer_Isar_Compress: elim_subproofs'")
 
       fun elim_subproofs (step as Let _) = step
-        | elim_subproofs (step as Prove (qs, fix, l, t, subproofs, ((lfs, gfs), meth))) =
+        | elim_subproofs (step as Prove (qs, fix, l, t, subproofs,
+            ((lfs, gfs), methss as (meth :: _) :: _))) =
           if subproofs = [] then
             step
           else
-            (case preplay_outcome l of
-              Played time => elim_subproofs' time qs fix l t lfs gfs meth subproofs []
+            (case Lazy.force (preplay_outcome l meth) of
+              Played time => elim_subproofs' time qs fix l t lfs gfs methss subproofs []
             | _ => step)
 
       (** top_level compression: eliminate steps by merging them into their successors **)
-
       fun compress_top_level steps =
         let
           (* (#successors, (size_of_term t, position)) *)
-          fun cand_key (i, l, t_size) = (get_successors l |> length, (t_size, i))
+          fun cand_key (i, l, t_size) = (length (get_successors l), (t_size, i))
 
           val compression_ord =
             prod_ord int_ord (prod_ord (int_ord #> rev_order) int_ord)
@@ -207,31 +206,35 @@ fun compress_isar_proof compress_isar
                 | add_cand (i, Prove (_, _, l, t, _, _)) = cons (i, l, size_of_term t)
             in
               (steps
-              |> split_last |> fst (* keep last step *)
-              |> fold_index add_cand) []
+               |> split_last |> fst (* keep last step *)
+               |> fold_index add_cand) []
             end
 
           fun try_eliminate (i, l, _) succ_lbls steps =
             let
-              (* only touch steps that can be preplayed successfully *)
-              val Played time = preplay_outcome l
+              val ((cand as Prove (_, _, l, _, _, ((lfs, _), (meth :: _) :: _))) :: steps') =
+                drop i steps
 
-              val succ_times = map (preplay_outcome #> (fn Played t => t)) succ_lbls
+              val succs = collect_successors steps' succ_lbls
+              val succ_meths = map (hd o hd o snd o the o byline_of_isar_step) succs
+
+              (* only touch steps that can be preplayed successfully *)
+              val Played time = Lazy.force (preplay_outcome l meth)
+
+              val succs' = map (try_merge cand #> the) succs
+
+              val succ_times =
+                map2 ((fn Played t => t) o Lazy.force oo preplay_outcome) succ_lbls succ_meths
               val timeslice = time_mult (1.0 / (Real.fromInt (length succ_lbls))) time
               val timeouts =
                 map (curry Time.+ timeslice #> time_mult merge_timeout_slack) succ_times
 
-              val ((cand as Prove (_, _, l, _, _, ((lfs, _), _))) :: steps') = drop i steps
-
               (* FIXME: debugging *)
               val _ =
-                if the (label_of_step cand) <> l then
+                if the (label_of_isar_step cand) <> l then
                   raise Fail "Sledgehammer_Isar_Compress: try_eliminate"
                 else
                   ()
-
-              val succs = collect_successors steps' succ_lbls
-              val succs' = map (try_merge cand #> the) succs
 
               (* TODO: should be lazy: stop preplaying as soon as one step fails/times out *)
               val play_outcomes = map2 preplay_quietly timeouts succs'
@@ -244,7 +247,7 @@ fun compress_isar_proof compress_isar
               val steps2 = update_steps steps2 succs'
             in
               decrement_step_count (); (* candidate successfully eliminated *)
-              map2 set_preplay_outcome succ_lbls play_outcomes;
+              map3 set_preplay_outcome succ_lbls succ_meths play_outcomes;
               map (replace_successor l succ_lbls) lfs;
               (* removing the step would mess up the indices -> replace with dummy step instead *)
               steps1 @ dummy_isar_step :: steps2

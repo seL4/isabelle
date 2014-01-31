@@ -277,11 +277,15 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
           |> postprocess_isar_proof_remove_unreferenced_steps I
           |> relabel_isar_proof_canonically
 
-        val preplay_data as {string_of_preplay_outcome, overall_preplay_outcome, ...} =
+        val preplay_data as {preplay_outcome, overall_preplay_outcome, ...} =
           preplay_data_of_isar_proof debug ctxt metis_type_enc metis_lam_trans do_preplay
             preplay_timeout isar_proof
 
-        fun str_of_meth l meth = string_of_proof_method meth ^ " " ^ string_of_preplay_outcome l
+        fun str_of_preplay_outcome outcome =
+          if Lazy.is_finished outcome then string_of_play_outcome (Lazy.force outcome) else "?"
+
+        fun str_of_meth l meth =
+          string_of_proof_method meth ^ " " ^ str_of_preplay_outcome (preplay_outcome l meth)
         fun comment_of l = map (map (str_of_meth l)) #> map commas #> space_implode "; "
 
         fun trace_isar_proof label proof =

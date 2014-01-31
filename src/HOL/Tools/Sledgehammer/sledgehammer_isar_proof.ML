@@ -34,8 +34,8 @@ sig
 
   val steps_of_proof : isar_proof -> isar_step list
 
-  val label_of_step : isar_step -> label option
-  val byline_of_step : isar_step -> (facts * proof_method list list) option
+  val label_of_isar_step : isar_step -> label option
+  val byline_of_isar_step : isar_step -> (facts * proof_method list list) option
 
   val fold_isar_steps : (isar_step -> 'a -> 'a) -> isar_step list -> 'a -> 'a
   val map_isar_steps : (isar_step -> isar_step) -> isar_proof -> isar_proof
@@ -103,17 +103,17 @@ fun string_of_proof_method meth =
 
 fun steps_of_proof (Proof (_, _, steps)) = steps
 
-fun label_of_step (Prove (_, _, l, _, _, _)) = SOME l
-  | label_of_step _ = NONE
+fun label_of_isar_step (Prove (_, _, l, _, _, _)) = SOME l
+  | label_of_isar_step _ = NONE
 
-fun subproofs_of_step (Prove (_, _, _, _, subproofs, _)) = SOME subproofs
-  | subproofs_of_step _ = NONE
+fun subproofs_of_isar_step (Prove (_, _, _, _, subproofs, _)) = SOME subproofs
+  | subproofs_of_isar_step _ = NONE
 
-fun byline_of_step (Prove (_, _, _, _, _, byline)) = SOME byline
-  | byline_of_step _ = NONE
+fun byline_of_isar_step (Prove (_, _, _, _, _, byline)) = SOME byline
+  | byline_of_isar_step _ = NONE
 
 fun fold_isar_step f step =
-  fold (steps_of_proof #> fold_isar_steps f) (these (subproofs_of_step step)) #> f step
+  fold (steps_of_proof #> fold_isar_steps f) (these (subproofs_of_isar_step step)) #> f step
 and fold_isar_steps f = fold (fold_isar_step f)
 
 fun map_isar_steps f =
@@ -143,15 +143,15 @@ fun chain_isar_step lbl (Prove (qs, xs, l, t, subproofs, ((lfs, gfs), methss))) 
   | chain_isar_step _ step = step
 and chain_isar_steps _ [] = []
   | chain_isar_steps (prev as SOME _) (i :: is) =
-    chain_isar_step prev i :: chain_isar_steps (label_of_step i) is
-  | chain_isar_steps _ (i :: is) = i :: chain_isar_steps (label_of_step i) is
+    chain_isar_step prev i :: chain_isar_steps (label_of_isar_step i) is
+  | chain_isar_steps _ (i :: is) = i :: chain_isar_steps (label_of_isar_step i) is
 and chain_isar_proof (Proof (fix, assms, steps)) =
   Proof (fix, assms, chain_isar_steps (try (List.last #> fst) assms) steps)
 
 fun kill_useless_labels_in_isar_proof proof =
   let
     val used_ls =
-      fold_isar_steps (byline_of_step #> (fn SOME ((ls, _), _) => union (op =) ls | _ => I))
+      fold_isar_steps (byline_of_isar_step #> (fn SOME ((ls, _), _) => union (op =) ls | _ => I))
         (steps_of_proof proof) []
 
     fun kill_label l = if member (op =) used_ls l then l else no_label
