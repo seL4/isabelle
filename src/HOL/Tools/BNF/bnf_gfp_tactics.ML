@@ -9,41 +9,35 @@ Tactics for the codatatype construction.
 
 signature BNF_GFP_TACTICS =
 sig
-  val mk_Lev_sbd_tac: Proof.context -> cterm option list -> thm list -> thm list ->
-    thm list list -> tactic
-  val mk_bis_Gr_tac: thm -> thm list -> thm list -> thm list -> thm list ->
-    {prems: 'a, context: Proof.context} -> tactic
+  val mk_Lev_sbd_tac: Proof.context -> cterm option list -> thm list -> thm list -> thm list list ->
+    tactic
+  val mk_bis_Gr_tac: Proof.context -> thm -> thm list -> thm list -> thm list -> thm list -> tactic
   val mk_bis_O_tac: Proof.context -> int -> thm -> thm list -> thm list -> tactic
-  val mk_bis_Union_tac: thm -> thm list -> {prems: 'a, context: Proof.context} -> tactic
+  val mk_bis_Union_tac: Proof.context -> thm -> thm list -> tactic
   val mk_bis_converse_tac: int -> thm -> thm list -> thm list -> tactic
   val mk_bis_rel_tac: Proof.context -> int -> thm -> thm list -> thm list -> thm list ->
     thm list list -> tactic
-  val mk_coalgT_tac: int -> thm list -> thm list -> thm list list ->
-    {prems: 'a, context: Proof.context} -> tactic
+  val mk_coalgT_tac: Proof.context -> int -> thm list -> thm list -> thm list list -> tactic
   val mk_coalg_final_tac: int -> thm -> thm list -> thm list -> thm list list -> thm list list ->
     tactic
   val mk_coalg_set_tac: thm -> tactic
-  val mk_coind_wit_tac: thm -> thm list -> thm list -> thm list ->
-    {prems: 'a, context: Proof.context} -> tactic
+  val mk_coind_wit_tac: Proof.context -> thm -> thm list -> thm list -> thm list -> tactic
   val mk_col_bd_tac: int -> int -> cterm option list -> thm list -> thm list -> thm -> thm ->
     thm list list -> tactic
-  val mk_col_natural_tac: cterm option list -> thm list -> thm list -> thm list -> thm list list ->
-    {prems: 'a, context: Proof.context} -> tactic
+  val mk_col_natural_tac: Proof.context -> cterm option list -> thm list -> thm list -> thm list ->
+    thm list list -> tactic
   val mk_congruent_str_final_tac: int -> thm -> thm -> thm -> thm list -> tactic
-  val mk_corec_tac: int -> thm list -> thm -> thm -> thm list ->
-    {prems: 'a, context: Proof.context} -> tactic
-  val mk_corec_unique_mor_tac: thm list -> thm list -> thm -> {prems: 'a, context: Proof.context} ->
-    tactic
+  val mk_corec_tac: Proof.context -> int -> thm list -> thm -> thm -> thm list -> tactic
+  val mk_corec_unique_mor_tac: Proof.context -> thm list -> thm list -> thm -> tactic
   val mk_dtor_map_coinduct_tac: int -> int list -> thm -> thm -> tactic
   val mk_dtor_coinduct_tac: int -> thm -> thm -> thm list -> tactic
   val mk_dtor_rel_tac: Proof.context -> thm list -> int -> thm -> thm -> thm -> thm -> thm list ->
     thm -> thm -> thm list -> thm list -> thm list list -> tactic
-  val mk_dtor_o_ctor_tac: thm -> thm -> thm -> thm -> thm list ->
-    {prems: 'a, context: Proof.context} -> tactic
+  val mk_dtor_o_ctor_tac: Proof.context -> thm -> thm -> thm -> thm -> thm list -> tactic
   val mk_equiv_lsbis_tac: thm -> thm -> thm -> thm -> thm -> thm -> tactic
-  val mk_hset_minimal_tac: int -> thm list -> thm -> {prems: 'a, context: Proof.context} -> tactic
-  val mk_hset_rec_minimal_tac: int -> cterm option list -> thm list -> thm list ->
-    {prems: 'a, context: Proof.context} -> tactic
+  val mk_hset_minimal_tac: Proof.context -> int -> thm list -> thm -> tactic
+  val mk_hset_rec_minimal_tac: Proof.context -> int -> cterm option list -> thm list -> thm list ->
+    tactic
   val mk_incl_lsbis_tac: int -> int -> thm -> tactic
   val mk_length_Lev'_tac: thm -> tactic
   val mk_length_Lev_tac: Proof.context -> cterm option list -> thm list -> thm list -> tactic
@@ -52,17 +46,17 @@ sig
     thm list list -> thm list list -> thm list list list -> tactic
   val mk_map_id0_tac: thm list -> thm -> thm -> tactic
   val mk_map_tac: int -> int -> ctyp option -> thm -> thm -> thm -> tactic
-  val mk_dtor_map_unique_tac: thm -> thm list -> Proof.context -> tactic
-  val mk_mor_Abs_tac: thm list -> thm list -> {prems: 'a, context: Proof.context} -> tactic
-  val mk_mor_Rep_tac: int -> thm list -> thm list -> thm list -> thm list list -> thm list ->
-    thm list -> {prems: 'a, context: Proof.context} -> tactic
+  val mk_dtor_map_unique_tac: Proof.context -> thm -> thm list -> tactic
+  val mk_mor_Abs_tac: Proof.context -> thm list -> thm list -> tactic
+  val mk_mor_Rep_tac: Proof.context -> int -> thm list -> thm list -> thm list -> thm list list ->
+    thm list -> thm list -> tactic
   val mk_mor_T_final_tac: thm -> thm list -> thm list -> tactic
   val mk_mor_UNIV_tac: thm list -> thm -> tactic
-  val mk_mor_beh_tac: int -> thm -> thm -> thm list -> thm list -> thm list -> thm list ->
-    thm list list -> thm list list -> thm list -> thm list -> thm list -> thm list -> thm list ->
-    thm list -> thm list -> thm list -> thm list list -> thm list list list -> thm list list list ->
-    thm list list list -> thm list list -> thm list list -> thm list -> thm list -> thm list ->
-    {prems: 'a, context: Proof.context} -> tactic
+  val mk_mor_beh_tac: Proof.context -> int -> thm -> thm -> thm list -> thm list -> thm list ->
+    thm list -> thm list list -> thm list list -> thm list -> thm list -> thm list -> thm list ->
+    thm list -> thm list -> thm list -> thm list -> thm list list -> thm list list list ->
+    thm list list list -> thm list list list -> thm list list -> thm list list -> thm list ->
+    thm list -> thm list -> tactic
   val mk_mor_comp_tac: thm -> thm list -> thm list -> thm list -> tactic
   val mk_mor_elim_tac: thm -> tactic
   val mk_mor_hset_rec_tac: int -> int -> cterm option list -> int -> thm list -> thm list ->
@@ -75,12 +69,12 @@ sig
   val mk_prefCl_Lev_tac: Proof.context -> cterm option list -> thm list -> thm list -> tactic
   val mk_raw_coind_tac: thm -> thm -> thm -> thm -> thm -> thm -> thm -> thm -> thm -> thm list ->
     thm list -> thm list -> thm -> thm list -> tactic
-  val mk_rel_coinduct_tac: thm list -> thm list -> thm list list -> thm list -> thm list ->
-    {prems: thm list, context: Proof.context} -> tactic
-  val mk_rel_coinduct_coind_tac: int -> thm -> int list -> thm list -> thm list -> thm list ->
-    thm list list -> thm list -> thm list -> {prems: 'a, context: Proof.context} -> tactic
-  val mk_rel_coinduct_ind_tac: int -> int list -> thm list -> thm list list -> int -> thm ->
-    {prems: 'a, context: Proof.context} -> tactic
+  val mk_rel_coinduct_tac: Proof.context -> thm list -> thm list -> thm list -> thm list list ->
+    thm list -> thm list -> tactic
+  val mk_rel_coinduct_coind_tac: Proof.context -> int -> thm -> int list -> thm list -> thm list ->
+    thm list -> thm list list -> thm list -> thm list -> tactic
+  val mk_rel_coinduct_ind_tac: Proof.context -> int -> int list -> thm list -> thm list list ->
+    int -> thm -> tactic
   val mk_rv_last_tac: ctyp option list -> cterm option list -> thm list -> thm list -> tactic
   val mk_sbis_lsbis_tac: Proof.context -> thm list -> thm -> thm -> tactic
   val mk_set_Lev_tac: Proof.context -> cterm option list -> thm list -> thm list -> thm list ->
@@ -96,9 +90,8 @@ sig
   val mk_set_rv_Lev_tac: Proof.context -> int -> cterm option list -> thm list -> thm list ->
     thm list -> thm list -> thm list list -> thm list list -> tactic
   val mk_unfold_unique_mor_tac: thm list -> thm -> thm -> thm list -> tactic
-  val mk_unfold_transfer_tac: int -> thm -> thm list -> thm list ->
-    {prems: thm list, context: Proof.context} -> tactic
-  val mk_wit_tac: int -> thm list -> thm list -> thm list -> thm list -> Proof.context -> tactic
+  val mk_unfold_transfer_tac: Proof.context -> int -> thm -> thm list -> thm list -> tactic
+  val mk_wit_tac: Proof.context -> int -> thm list -> thm list -> thm list -> thm list -> tactic
   val mk_le_rel_OO_tac: thm -> thm list -> thm list -> tactic
 end;
 
@@ -191,7 +184,7 @@ fun mk_set_hset_incl_hset_tac n defs rec_Suc i =
       mk_UnIN n i] @
     [etac @{thm UN_I}, atac]) 1;
 
-fun mk_hset_rec_minimal_tac m cts rec_0s rec_Sucs {context = ctxt, prems = _} =
+fun mk_hset_rec_minimal_tac ctxt m cts rec_0s rec_Sucs =
   EVERY' [rtac (Drule.instantiate' [] cts nat_induct),
     REPEAT_DETERM o rtac allI,
     CONJ_WRAP' (fn thm => EVERY'
@@ -206,7 +199,7 @@ fun mk_hset_rec_minimal_tac m cts rec_0s rec_Sucs {context = ctxt, prems = _} =
             rtac subset_trans, atac, Goal.assume_rule_tac ctxt])) rec_0s])
       rec_Sucs] 1;
 
-fun mk_hset_minimal_tac n hset_defs hset_rec_minimal {context = ctxt, prems = _} =
+fun mk_hset_minimal_tac ctxt n hset_defs hset_rec_minimal =
   (CONJ_WRAP' (fn def => (EVERY' [rtac ord_eq_le_trans, rtac def,
     rtac @{thm UN_least}, rtac rev_mp, rtac hset_rec_minimal,
     EVERY' (replicate ((n + 1) * n) (Goal.assume_rule_tac ctxt)), rtac impI,
@@ -319,8 +312,7 @@ fun mk_bis_O_tac ctxt m bis_rel rel_congs rel_OOs =
         REPEAT_DETERM o etac allE, rtac @{thm relcomppI},
         etac mp, atac, etac mp, atac]) (rel_congs ~~ rel_OOs)] 1;
 
-fun mk_bis_Gr_tac bis_rel rel_Grps mor_images morEs coalg_ins
-  {context = ctxt, prems = _} =
+fun mk_bis_Gr_tac ctxt bis_rel rel_Grps mor_images morEs coalg_ins =
   unfold_thms_tac ctxt (bis_rel :: @{thm Id_on_Gr} :: @{thm in_rel_Gr} :: rel_Grps) THEN
   EVERY' [rtac conjI,
     CONJ_WRAP' (fn thm => rtac (@{thm Gr_incl} RS ssubst) THEN' etac thm) mor_images,
@@ -329,7 +321,7 @@ fun mk_bis_Gr_tac bis_rel rel_Grps mor_images morEs coalg_ins
         etac @{thm GrD1}, etac (@{thm GrD2} RS arg_cong), etac coalg_in, etac @{thm GrD1}])
     (coalg_ins ~~ morEs)] 1;
 
-fun mk_bis_Union_tac bis_def in_monos {context = ctxt, prems = _} =
+fun mk_bis_Union_tac ctxt bis_def in_monos =
   let
     val n = length in_monos;
     val ks = 1 upto n;
@@ -377,7 +369,7 @@ fun mk_equiv_lsbis_tac sbis_lsbis lsbis_incl incl_lsbis bis_Id_on bis_converse b
     rtac incl_lsbis, rtac bis_O, rtac sbis_lsbis, rtac sbis_lsbis,
     etac @{thm relcompI}, atac] 1;
 
-fun mk_coalgT_tac m defs strT_defs set_map0ss {context = ctxt, prems = _} =
+fun mk_coalgT_tac ctxt m defs strT_defs set_map0ss =
   let
     val n = length strT_defs;
     val ks = 1 upto n;
@@ -661,10 +653,10 @@ fun mk_set_image_Lev_tac ctxt cts Lev_0s Lev_Sucs rv_Nils rv_Conss from_to_sbdss
       ((Lev_Sucs ~~ rv_Conss) ~~ (from_to_sbdss ~~ to_sbd_injss))] 1
   end;
 
-fun mk_mor_beh_tac m mor_def mor_cong beh_defs carT_defs strT_defs isNode_defs
+fun mk_mor_beh_tac ctxt m mor_def mor_cong beh_defs carT_defs strT_defs isNode_defs
   to_sbd_injss from_to_sbdss Lev_0s Lev_Sucs rv_Nils rv_Conss Lev_sbds length_Levs length_Lev's
   prefCl_Levs rv_lastss set_rv_Levsss set_Levsss set_image_Levsss set_map0ss coalg_setss
-  map_comp_ids map_cong0s map_arg_congs {context = ctxt, prems = _} =
+  map_comp_ids map_cong0s map_arg_congs =
   let
     val n = length beh_defs;
     val ks = 1 upto n;
@@ -865,8 +857,7 @@ fun mk_mor_T_final_tac mor_def congruent_str_finals equiv_LSBISs =
         rtac congruent_str_final, atac, rtac o_apply])
     (equiv_LSBISs ~~ congruent_str_finals)] 1;
 
-fun mk_mor_Rep_tac m defs Reps Abs_inverses coalg_final_setss map_comp_ids map_cong0Ls
-  {context = ctxt, prems = _} =
+fun mk_mor_Rep_tac ctxt m defs Reps Abs_inverses coalg_final_setss map_comp_ids map_cong0Ls =
   unfold_thms_tac ctxt defs THEN
   EVERY' [rtac conjI,
     CONJ_WRAP' (fn thm => rtac ballI THEN' rtac thm) Reps,
@@ -878,7 +869,7 @@ fun mk_mor_Rep_tac m defs Reps Abs_inverses coalg_final_setss map_comp_ids map_c
         Abs_inverses (drop m coalg_final_sets))])
     (Reps ~~ ((map_comp_ids ~~ map_cong0Ls) ~~ coalg_final_setss))] 1;
 
-fun mk_mor_Abs_tac defs Abs_inverses {context = ctxt, prems = _} =
+fun mk_mor_Abs_tac ctxt defs Abs_inverses =
   unfold_thms_tac ctxt defs THEN
   EVERY' [rtac conjI,
     CONJ_WRAP' (K (rtac ballI THEN' rtac UNIV_I)) Abs_inverses,
@@ -926,21 +917,20 @@ fun mk_unfold_unique_mor_tac raw_coinds bis mor unfold_defs =
       rtac @{thm image2_eqI}, rtac refl, rtac (unfold_def RS arg_cong RS trans),
       rtac (o_apply RS sym), rtac UNIV_I]) (raw_coinds ~~ unfold_defs) 1;
 
-fun mk_dtor_o_ctor_tac ctor_def unfold map_comp_id map_cong0L unfold_o_dtors
-  {context = ctxt, prems = _} =
+fun mk_dtor_o_ctor_tac ctxt ctor_def unfold map_comp_id map_cong0L unfold_o_dtors =
   unfold_thms_tac ctxt [ctor_def] THEN EVERY' [rtac ext, rtac trans, rtac o_apply,
     rtac trans, rtac unfold, rtac trans, rtac map_comp_id, rtac trans, rtac map_cong0L,
     EVERY' (map (fn thm =>
       rtac ballI THEN' rtac (trans OF [thm RS fun_cong, id_apply])) unfold_o_dtors),
     rtac sym, rtac id_apply] 1;
 
-fun mk_corec_tac m corec_defs unfold map_cong0 corec_Inls {context = ctxt, prems = _} =
+fun mk_corec_tac ctxt m corec_defs unfold map_cong0 corec_Inls =
   unfold_thms_tac ctxt corec_defs THEN EVERY' [rtac trans, rtac (o_apply RS arg_cong),
     rtac trans, rtac unfold, fo_rtac (@{thm sum.cases(2)} RS arg_cong RS trans) ctxt, rtac map_cong0,
     REPEAT_DETERM_N m o rtac refl,
     EVERY' (map (fn thm => rtac @{thm sum_case_expand_Inr} THEN' rtac thm) corec_Inls)] 1;
 
-fun mk_corec_unique_mor_tac corec_defs corec_Inls unfold_unique_mor {context = ctxt, prems = _} =
+fun mk_corec_unique_mor_tac ctxt corec_defs corec_Inls unfold_unique_mor =
   unfold_thms_tac ctxt
     (corec_defs @ map (fn thm => thm RS @{thm sum_case_expand_Inr'}) corec_Inls) THEN
   etac unfold_unique_mor 1;
@@ -1052,13 +1042,12 @@ fun mk_mcong_tac ctxt m coinduct_tac map_comps dtor_maps map_cong0s set_map0ss s
            rtac conjI, rtac refl, rtac refl]) ks]) 1
   end
 
-fun mk_dtor_map_unique_tac unfold_unique sym_map_comps ctxt =
+fun mk_dtor_map_unique_tac ctxt unfold_unique sym_map_comps =
   rtac unfold_unique 1 THEN
   unfold_thms_tac ctxt (sym_map_comps @ @{thms comp_assoc[symmetric] id_comp comp_id}) THEN
   ALLGOALS (etac sym);
 
-fun mk_col_natural_tac cts rec_0s rec_Sucs dtor_maps set_map0ss
-  {context = ctxt, prems = _} =
+fun mk_col_natural_tac ctxt cts rec_0s rec_Sucs dtor_maps set_map0ss =
   let
     val n = length dtor_maps;
   in
@@ -1114,7 +1103,7 @@ fun mk_le_rel_OO_tac coinduct rel_Jrels rel_OOs =
     end)
   rel_Jrels rel_OOs) 1;
 
-fun mk_wit_tac n dtor_ctors dtor_set wit coind_wits ctxt =
+fun mk_wit_tac ctxt n dtor_ctors dtor_set wit coind_wits =
   ALLGOALS (TRY o (eresolve_tac coind_wits THEN' rtac refl)) THEN
   REPEAT_DETERM (atac 1 ORELSE
     EVERY' [dtac set_rev_mp, rtac equalityD1, resolve_tac dtor_set,
@@ -1128,7 +1117,7 @@ fun mk_wit_tac n dtor_ctors dtor_set wit coind_wits ctxt =
           EVERY' [hyp_subst_tac ctxt, dtac set_rev_mp, rtac equalityD1, resolve_tac dtor_set,
             K (unfold_thms_tac ctxt dtor_ctors), REPEAT_DETERM_N n o etac UnE]))))] 1);
 
-fun mk_coind_wit_tac induct unfolds set_nats wits {context = ctxt, prems = _} =
+fun mk_coind_wit_tac ctxt induct unfolds set_nats wits =
   rtac induct 1 THEN ALLGOALS (TRY o rtac impI THEN' TRY o hyp_subst_tac ctxt) THEN
   unfold_thms_tac ctxt (unfolds @ set_nats @ @{thms image_id id_apply}) THEN
   ALLGOALS (REPEAT_DETERM o etac imageE THEN' TRY o hyp_subst_tac ctxt) THEN
@@ -1200,8 +1189,8 @@ fun mk_dtor_rel_tac ctxt in_Jrels i in_rel map_comp0 map_cong0 dtor_map dtor_set
     EVERY' [rtac iffI, if_tac, only_if_tac] 1
   end;
 
-fun mk_rel_coinduct_coind_tac m coinduct ks map_comp0s map_congs map_arg_congs set_map0ss 
-  dtor_unfolds dtor_maps {context = ctxt, prems = _} =
+fun mk_rel_coinduct_coind_tac ctxt m coinduct ks map_comp0s map_congs map_arg_congs set_map0ss 
+  dtor_unfolds dtor_maps =
   let val n = length ks;
   in
     EVERY' [DETERM o rtac coinduct,
@@ -1234,7 +1223,7 @@ fun mk_rel_coinduct_coind_tac m coinduct ks map_comp0s map_congs map_arg_congs s
 
 val split_id_unfolds = @{thms prod.cases image_id id_apply};
 
-fun mk_rel_coinduct_ind_tac m ks unfolds set_map0ss j set_induct {context = ctxt, prems = _} =
+fun mk_rel_coinduct_ind_tac ctxt m ks unfolds set_map0ss j set_induct =
   let val n = length ks;
   in
     rtac set_induct 1 THEN
@@ -1258,8 +1247,7 @@ fun mk_rel_coinduct_ind_tac m ks unfolds set_map0ss j set_induct {context = ctxt
     unfolds set_map0ss ks) 1
   end;
 
-fun mk_rel_coinduct_tac in_rels in_Jrels helper_indss helper_coind1s helper_coind2s
-  {context = ctxt, prems = CIHs} =
+fun mk_rel_coinduct_tac ctxt CIHs in_rels in_Jrels helper_indss helper_coind1s helper_coind2s =
   let val n = length in_rels;
   in
     Method.insert_tac CIHs 1 THEN
@@ -1284,7 +1272,7 @@ fun mk_rel_coinduct_tac in_rels in_Jrels helper_indss helper_coind1s helper_coin
     (in_Jrels ~~ (helper_indss ~~ (helper_coind1s ~~ helper_coind2s))) 1
   end;
 
-fun mk_unfold_transfer_tac m rel_coinduct map_transfers unfolds {context = ctxt, prems = _} =
+fun mk_unfold_transfer_tac ctxt m rel_coinduct map_transfers unfolds =
   let
     val n = length map_transfers;
   in

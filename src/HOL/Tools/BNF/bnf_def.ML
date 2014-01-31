@@ -106,7 +106,7 @@ sig
     binding -> binding -> binding list ->
     (((((binding * 'a) * 'b) * 'b list) * 'b) * 'b list) * 'b option -> Proof.context ->
     string * term list *
-    ((thm list -> {context: Proof.context, prems: thm list} -> tactic) option * term list list) *
+    ((Proof.context -> thm list -> tactic) option * term list list) *
     ((thm list -> thm list list) -> thm list list -> Proof.context -> bnf * local_theory) *
     local_theory * thm list
 
@@ -123,8 +123,8 @@ sig
         (typ list -> typ list -> typ list -> term))) * local_theory
 
   val bnf_def: const_policy -> (Proof.context -> fact_policy) -> (binding -> binding) ->
-    ({prems: thm list, context: Proof.context} -> tactic) list ->
-    ({prems: thm list, context: Proof.context} -> tactic) -> typ list option -> binding ->
+    (Proof.context -> tactic) list ->
+    (Proof.context -> tactic) -> typ list option -> binding ->
     binding -> binding list ->
     (((((binding * typ) * term) * term list) * term) * term list) * term option ->
     local_theory -> bnf * local_theory
@@ -1021,7 +1021,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_typ prep_term Ds_opt ma
         map wit_goal (0 upto live - 1)
       end;
 
-    val triv_wit_tac = mk_trivial_wit_tac bnf_wit_defs;
+    fun triv_wit_tac ctxt = mk_trivial_wit_tac ctxt bnf_wit_defs;
 
     val wit_goalss =
       (if null raw_wits then SOME triv_wit_tac else NONE, map mk_wit_goals bnf_wit_As);
@@ -1132,7 +1132,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_typ prep_term Ds_opt ma
                 (HOLogic.mk_Trueprop (mk_ordLeq (mk_card_of (mk_in As bnf_sets_As CA')) bd));
           in
             Goal.prove_sorry lthy [] [] in_bd_goal
-              (mk_in_bd_tac live surj_imp_ordLeq_inst
+              (fn {context = ctxt, prems = _} => mk_in_bd_tac ctxt live surj_imp_ordLeq_inst
                 (Lazy.force map_comp) (Lazy.force map_id) (#map_cong0 axioms)
                 (map Lazy.force set_map) (#set_bd axioms) (#bd_card_order axioms)
                 bd_Card_order bd_Cinfinite bd_Cnotzero)
@@ -1151,8 +1151,9 @@ fun prepare_def const_policy mk_fact_policy qualify prep_typ prep_term Ds_opt ma
             val goal = fold_rev Logic.all (As @ fs) (mk_Trueprop_eq (lhs, rhs));
           in
             Goal.prove_sorry lthy [] [] goal
-              (mk_rel_Grp_tac rel_OO_Grps (#map_id0 axioms) (#map_cong0 axioms) (Lazy.force map_id)
-                (Lazy.force map_comp) (map Lazy.force set_map))
+              (fn {context = ctxt, prems = _} => mk_rel_Grp_tac ctxt rel_OO_Grps (#map_id0 axioms)
+                (#map_cong0 axioms) (Lazy.force map_id) (Lazy.force map_comp)
+                (map Lazy.force set_map))
             |> Thm.close_derivation
           end;
 
@@ -1203,8 +1204,9 @@ fun prepare_def const_policy mk_fact_policy qualify prep_typ prep_term Ds_opt ma
             val rhs = mk_conversep (Term.list_comb (rel, Rs));
             val le_goal = fold_rev Logic.all Rs (HOLogic.mk_Trueprop (mk_leq lhs rhs));
             val le_thm = Goal.prove_sorry lthy [] [] le_goal
-              (mk_rel_conversep_le_tac rel_OO_Grps (Lazy.force rel_eq) (#map_cong0 axioms)
-                (Lazy.force map_comp) (map Lazy.force set_map))
+              (fn {context = ctxt, prems = _} => mk_rel_conversep_le_tac ctxt rel_OO_Grps
+                (Lazy.force rel_eq) (#map_cong0 axioms) (Lazy.force map_comp)
+                (map Lazy.force set_map))
               |> Thm.close_derivation
             val goal = fold_rev Logic.all Rs (mk_Trueprop_eq (lhs, rhs));
           in
@@ -1218,8 +1220,8 @@ fun prepare_def const_policy mk_fact_policy qualify prep_typ prep_term Ds_opt ma
         fun mk_rel_OO () =
           Goal.prove_sorry lthy [] []
             (fold_rev Logic.all (Rs @ Ss) (HOLogic.mk_Trueprop (mk_leq rel_OO_lhs rel_OO_rhs)))
-            (mk_rel_OO_le_tac rel_OO_Grps (Lazy.force rel_eq) (#map_cong0 axioms)
-              (Lazy.force map_comp) (map Lazy.force set_map))
+            (fn {context = ctxt, prems = _} => mk_rel_OO_le_tac ctxt rel_OO_Grps (Lazy.force rel_eq)
+              (#map_cong0 axioms) (Lazy.force map_comp) (map Lazy.force set_map))
           |> Thm.close_derivation
           |> (fn thm => @{thm antisym} OF [thm, #le_rel_OO axioms]);
 
@@ -1254,7 +1256,8 @@ fun prepare_def const_policy mk_fact_policy qualify prep_typ prep_term Ds_opt ma
           in
             Goal.prove_sorry lthy [] []
               (fold_rev Logic.all (x :: y :: Rs @ Rs_copy) (Logic.list_implies (prems, concl)))
-              (mk_rel_mono_strong_tac (Lazy.force in_rel) (map Lazy.force set_map))
+              (fn {context = ctxt, prems = _} => mk_rel_mono_strong_tac ctxt (Lazy.force in_rel)
+                (map Lazy.force set_map))
             |> Thm.close_derivation
           end;
 
@@ -1271,8 +1274,9 @@ fun prepare_def const_policy mk_fact_policy qualify prep_typ prep_term Ds_opt ma
           in
             Goal.prove_sorry lthy [] []
               (fold_rev Logic.all (transfer_domRs @ transfer_ranRs) concl)
-              (mk_map_transfer_tac (Lazy.force rel_mono) (Lazy.force in_rel)
-                (map Lazy.force set_map) (#map_cong0 axioms) (Lazy.force map_comp))
+              (fn {context = ctxt, prems = _} => mk_map_transfer_tac ctxt (Lazy.force rel_mono)
+                (Lazy.force in_rel) (map Lazy.force set_map) (#map_cong0 axioms)
+                (Lazy.force map_comp))
             |> Thm.close_derivation
           end;
 
@@ -1308,22 +1312,22 @@ fun register_bnf key (bnf, lthy) =
 fun bnf_def const_policy fact_policy qualify tacs wit_tac Ds map_b rel_b set_bs =
   (fn (_, goals, (triv_tac_opt, wit_goalss), after_qed, lthy, one_step_defs) =>
   let
-    fun mk_wits_tac set_maps =
-      K (TRYALL Goal.conjunction_tac) THEN'
+    fun mk_wits_tac ctxt set_maps =
+      TRYALL Goal.conjunction_tac THEN
       (case triv_tac_opt of
-        SOME tac => tac set_maps
-      | NONE => fn {context = ctxt, prems} =>
-          unfold_thms_tac ctxt one_step_defs THEN wit_tac {context = ctxt, prems = prems});
+        SOME tac => tac ctxt set_maps
+      | NONE => unfold_thms_tac ctxt one_step_defs THEN wit_tac ctxt);
     val wit_goals = map Logic.mk_conjunction_balanced wit_goalss;
     fun mk_wit_thms set_maps =
-      Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced wit_goals) (mk_wits_tac set_maps)
+      Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced wit_goals)
+        (fn {context = ctxt, prems = _} => mk_wits_tac ctxt set_maps)
         |> Conjunction.elim_balanced (length wit_goals)
         |> map2 (Conjunction.elim_balanced o length) wit_goalss
         |> map (map (Thm.close_derivation o Thm.forall_elim_vars 0));
   in
     map2 (Thm.close_derivation oo Goal.prove_sorry lthy [] [])
-      goals (map (fn tac => fn {context = ctxt, prems} =>
-        unfold_thms_tac ctxt one_step_defs THEN tac {context = ctxt, prems = prems}) tacs)
+      goals (map (fn tac => fn {context = ctxt, prems = _} =>
+        unfold_thms_tac ctxt one_step_defs THEN tac ctxt) tacs)
     |> (fn thms => after_qed mk_wit_thms (map single thms) lthy)
   end) oo prepare_def const_policy fact_policy qualify (K I) (K I) Ds map_b rel_b set_bs;
 
@@ -1332,7 +1336,7 @@ val bnf_cmd = (fn (key, goals, (triv_tac_opt, wit_goalss), after_qed, lthy, defs
     val wit_goals = map Logic.mk_conjunction_balanced wit_goalss;
     fun mk_triv_wit_thms tac set_maps =
       Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced wit_goals)
-        (K (TRYALL Goal.conjunction_tac) THEN' tac set_maps)
+        (fn {context = ctxt, prems = _} => TRYALL Goal.conjunction_tac THEN tac ctxt set_maps)
         |> Conjunction.elim_balanced (length wit_goals)
         |> map2 (Conjunction.elim_balanced o length) wit_goalss
         |> map (map (Thm.close_derivation o Thm.forall_elim_vars 0));

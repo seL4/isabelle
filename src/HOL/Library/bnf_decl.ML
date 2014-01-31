@@ -72,7 +72,7 @@ fun prepare_decl prepare_constraint prepare_typ raw_vars b mx user_mapb user_rel
       user_mapb user_relb user_setbs ((((((Binding.empty, T), Fmap), Fsets), Fbd), Fwits), NONE)
       lthy;
 
-    fun mk_wits_tac set_maps = K (TRYALL Goal.conjunction_tac) THEN' the triv_tac_opt set_maps;
+    fun mk_wits_tac ctxt set_maps = TRYALL Goal.conjunction_tac THEN the triv_tac_opt ctxt set_maps;
     val wit_goals = map Logic.mk_conjunction_balanced wit_goalss;
     val all_goalss = map single goals @ (if nwits > 0 then wit_goalss else []);
 
@@ -81,7 +81,8 @@ fun prepare_decl prepare_constraint prepare_typ raw_vars b mx user_mapb user_rel
       ||> `Local_Theory.restore;
 
     fun mk_wit_thms set_maps =
-      Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced wit_goals) (mk_wits_tac set_maps)
+      Goal.prove_sorry lthy [] [] (Logic.mk_conjunction_balanced wit_goals)
+        (fn {context = ctxt, prems = _} => mk_wits_tac ctxt set_maps)
       |> Conjunction.elim_balanced (length wit_goals)
       |> map2 (Conjunction.elim_balanced o length) wit_goalss
       |> map (map (Thm.close_derivation o Thm.forall_elim_vars 0));

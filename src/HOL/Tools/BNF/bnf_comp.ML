@@ -198,7 +198,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
           val single_set_bd_thmss =
             map ((fn f => map f (0 upto olive - 1)) o single_set_bd_thm) (0 upto ilive - 1);
         in
-          map2 (fn set_alt => fn single_set_bds => fn {context = ctxt, prems = _} =>
+          map2 (fn set_alt => fn single_set_bds => fn ctxt =>
             mk_comp_set_bd_tac ctxt set_alt single_set_bds)
           set_alt_thms single_set_bd_thmss
         end;
@@ -251,7 +251,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
       |> minimize_wits
       |> map (fn (frees, t) => fold absfree frees t);
 
-    fun wit_tac {context = ctxt, prems = _} =
+    fun wit_tac ctxt =
       mk_comp_wit_tac ctxt (wit_thms_of_bnf outer) (collect_set_map_of_bnf outer)
         (maps wit_thms_of_bnf inners);
 
@@ -301,10 +301,10 @@ fun kill_bnf qualify n bnf (unfold_set, lthy) = if n = 0 then (bnf, (unfold_set,
       (Library.foldr1 (uncurry mk_csum) (map (mk_card_of o HOLogic.mk_UNIV) killedAs)) bnf_bd;
 
     fun map_id0_tac _ = rtac (map_id0_of_bnf bnf) 1;
-    fun map_comp0_tac {context = ctxt, prems = _} =
+    fun map_comp0_tac ctxt =
       unfold_thms_tac ctxt ((map_comp0_of_bnf bnf RS sym) ::
         @{thms comp_assoc id_comp comp_id}) THEN rtac refl 1;
-    fun map_cong0_tac {context = ctxt, prems = _} =
+    fun map_cong0_tac ctxt =
       mk_kill_map_cong0_tac ctxt n (live - n) (map_cong0_of_bnf bnf);
     val set_map0_tacs = map (fn thm => fn _ => rtac thm 1) (drop n (set_map0_of_bnf bnf));
     fun bd_card_order_tac _ = mk_kill_bd_card_order_tac n (bd_card_order_of_bnf bnf);
@@ -322,7 +322,7 @@ fun kill_bnf qualify n bnf (unfold_set, lthy) = if n = 0 then (bnf, (unfold_set,
         Goal.prove_sorry lthy [] [] goal (K kill_in_alt_tac) |> Thm.close_derivation
       end;
 
-    fun le_rel_OO_tac {context = ctxt, prems = _} =
+    fun le_rel_OO_tac ctxt =
       EVERY' [rtac @{thm ord_le_eq_trans}, rtac (le_rel_OO_of_bnf bnf)] 1 THEN
       unfold_thms_tac ctxt @{thms eq_OO} THEN rtac refl 1;
 
@@ -393,10 +393,10 @@ fun lift_bnf qualify n bnf (unfold_set, lthy) = if n = 0 then (bnf, (unfold_set,
     val bd = mk_bd_of_bnf Ds As bnf;
 
     fun map_id0_tac _ = rtac (map_id0_of_bnf bnf) 1;
-    fun map_comp0_tac {context = ctxt, prems = _} =
+    fun map_comp0_tac ctxt =
       unfold_thms_tac ctxt ((map_comp0_of_bnf bnf RS sym) ::
         @{thms comp_assoc id_comp comp_id}) THEN rtac refl 1;
-    fun map_cong0_tac {context = ctxt, prems = _} =
+    fun map_cong0_tac ctxt =
       rtac (map_cong0_of_bnf bnf) 1 THEN REPEAT_DETERM_N live (Goal.assume_rule_tac ctxt 1);
     val set_map0_tacs =
       if Config.get lthy quick_and_dirty then
@@ -478,7 +478,7 @@ fun permute_bnf qualify src dest bnf (unfold_set, lthy) =
 
     fun map_id0_tac _ = rtac (map_id0_of_bnf bnf) 1;
     fun map_comp0_tac _ = rtac (map_comp0_of_bnf bnf) 1;
-    fun map_cong0_tac {context = ctxt, prems = _} =
+    fun map_cong0_tac ctxt =
       rtac (map_cong0_of_bnf bnf) 1 THEN REPEAT_DETERM_N live (Goal.assume_rule_tac ctxt 1);
     val set_map0_tacs = permute (map (fn thm => fn _ => rtac thm 1) (set_map0_of_bnf bnf));
     fun bd_card_order_tac _ = rtac (bd_card_order_of_bnf bnf) 1;
@@ -628,7 +628,7 @@ fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
     val set_bds =
       map (fn thm => @{thm ordLeq_ordIso_trans} OF [thm, bd_ordIso]) (set_bd_of_bnf bnf);
 
-    fun mk_tac thm {context = ctxt, prems = _} =
+    fun mk_tac thm ctxt =
       (rtac (unfold_all ctxt thm) THEN'
       SOLVE o REPEAT_DETERM o (atac ORELSE' Goal.assume_rule_tac ctxt)) 1;
 
@@ -640,7 +640,7 @@ fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
 
     val bnf_wits = map snd (mk_wits_of_bnf (replicate nwits Ds) (replicate nwits As) bnf);
 
-    fun wit_tac {context = ctxt, prems = _} =
+    fun wit_tac ctxt =
       mk_simple_wit_tac (map (unfold_all ctxt) (wit_thms_of_bnf bnf));
 
     val (bnf', lthy') =

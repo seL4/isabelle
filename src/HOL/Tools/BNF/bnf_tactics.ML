@@ -21,11 +21,10 @@ sig
   val mk_Abs_bij_thm: Proof.context -> thm -> thm -> thm
   val mk_Abs_inj_thm: thm -> thm
 
-  val mk_ctor_or_dtor_rel_tac:
-    thm -> thm list -> thm list -> thm -> {prems: 'a, context: Proof.context} -> tactic
+  val mk_ctor_or_dtor_rel_tac: Proof.context -> thm -> thm list -> thm list -> thm -> tactic
 
   val mk_map_comp_id_tac: thm -> tactic
-  val mk_map_cong0_tac: int -> thm -> {prems: 'a, context: Proof.context} -> tactic
+  val mk_map_cong0_tac: Proof.context -> int -> thm -> tactic
   val mk_map_cong0L_tac: int -> thm -> thm -> tactic
 end;
 
@@ -85,7 +84,7 @@ fun mk_rotate_eq_tac refl_tac trans assoc com cong =
     gen_tac
   end;
 
-fun mk_ctor_or_dtor_rel_tac srel_def IJrel_defs IJsrel_defs dtor_srel {context = ctxt, prems = _} =
+fun mk_ctor_or_dtor_rel_tac ctxt srel_def IJrel_defs IJsrel_defs dtor_srel =
   unfold_thms_tac ctxt IJrel_defs THEN
   rtac (unfold_thms ctxt (IJrel_defs @ IJsrel_defs @
     @{thms Collect_mem_eq mem_Collect_eq fst_conv snd_conv}) dtor_srel RS trans) 1 THEN
@@ -97,7 +96,7 @@ fun mk_ctor_or_dtor_rel_tac srel_def IJrel_defs IJsrel_defs dtor_srel {context =
 fun mk_map_comp_id_tac map_comp0 =
   (rtac trans THEN' rtac map_comp0 THEN' REPEAT_DETERM o stac @{thm comp_id} THEN' rtac refl) 1;
 
-fun mk_map_cong0_tac m map_cong0 {context = ctxt, prems = _} =
+fun mk_map_cong0_tac ctxt m map_cong0 =
   EVERY' [rtac mp, rtac map_cong0,
     CONJ_WRAP' (K (rtac ballI THEN' Goal.assume_rule_tac ctxt)) (1 upto m)] 1;
 

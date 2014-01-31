@@ -15,25 +15,20 @@ sig
   val mk_in_mono_tac: int -> tactic
   val mk_set_map: thm -> thm
 
-  val mk_rel_Grp_tac: thm list -> thm -> thm -> thm -> thm -> thm list ->
-    {prems: thm list, context: Proof.context} -> tactic
+  val mk_rel_Grp_tac: Proof.context -> thm list -> thm -> thm -> thm -> thm -> thm list -> tactic
   val mk_rel_eq_tac: int -> thm -> thm -> thm -> tactic
-  val mk_rel_OO_le_tac: thm list -> thm -> thm -> thm -> thm list ->
-    {prems: thm list, context: Proof.context} -> tactic
+  val mk_rel_OO_le_tac: Proof.context -> thm list -> thm -> thm -> thm -> thm list -> tactic
   val mk_rel_conversep_tac: thm -> thm -> tactic
-  val mk_rel_conversep_le_tac: thm list -> thm -> thm -> thm -> thm list ->
-    {prems: thm list, context: Proof.context} -> tactic
+  val mk_rel_conversep_le_tac: Proof.context -> thm list -> thm -> thm -> thm -> thm list -> tactic
   val mk_rel_mono_tac: thm list -> thm -> tactic
-  val mk_rel_mono_strong_tac: thm -> thm list -> {prems: 'a, context: Proof.context} -> tactic
+  val mk_rel_mono_strong_tac: Proof.context -> thm -> thm list -> tactic
 
-  val mk_map_transfer_tac: thm -> thm -> thm list -> thm -> thm ->
-    {prems: thm list, context: Proof.context} -> tactic
+  val mk_map_transfer_tac: Proof.context -> thm -> thm -> thm list -> thm -> thm -> tactic
 
-  val mk_in_bd_tac: int -> thm -> thm -> thm -> thm -> thm list -> thm list -> thm -> thm -> thm ->
-    thm -> {prems: thm list, context: Proof.context} -> tactic
+  val mk_in_bd_tac: Proof.context -> int -> thm -> thm -> thm -> thm -> thm list -> thm list ->
+    thm -> thm -> thm -> thm -> tactic
 
-  val mk_trivial_wit_tac: thm list -> thm list -> {prems: thm list, context: Proof.context} ->
-    tactic
+  val mk_trivial_wit_tac: Proof.context -> thm list -> thm list -> tactic
 end;
 
 structure BNF_Def_Tactics : BNF_DEF_TACTICS =
@@ -67,8 +62,7 @@ fun mk_collect_set_map_tac set_map0s =
     rtac set_map0) set_map0s) THEN'
   rtac @{thm image_empty}) 1;
 
-fun mk_rel_Grp_tac rel_OO_Grps map_id0 map_cong0 map_id map_comp set_maps
-  {context = ctxt, prems = _} =
+fun mk_rel_Grp_tac ctxt rel_OO_Grps map_id0 map_cong0 map_id map_comp set_maps =
   let
     val n = length set_maps;
     val rel_OO_Grps_tac = if null rel_OO_Grps then K all_tac else rtac (hd rel_OO_Grps RS trans);
@@ -120,8 +114,7 @@ fun mk_rel_mono_tac rel_OO_Grps in_mono =
       rtac @{thm Grp_mono}, rtac in_mono, REPEAT_DETERM o etac @{thm Collect_split_mono}] 1
   end;
 
-fun mk_rel_conversep_le_tac rel_OO_Grps rel_eq map_cong0 map_comp set_maps
-  {context = ctxt, prems = _} =
+fun mk_rel_conversep_le_tac ctxt rel_OO_Grps rel_eq map_cong0 map_comp set_maps =
   let
     val n = length set_maps;
     val rel_OO_Grps_tac = if null rel_OO_Grps then K all_tac
@@ -146,8 +139,7 @@ fun mk_rel_conversep_tac le_conversep rel_mono =
     rtac le_conversep, rtac @{thm iffD2[OF conversep_mono]}, rtac rel_mono,
     REPEAT_DETERM o rtac @{thm eq_refl[OF sym[OF conversep_conversep]]}] 1;
 
-fun mk_rel_OO_le_tac rel_OO_Grps rel_eq map_cong0 map_comp set_maps
-  {context = ctxt, prems = _} =
+fun mk_rel_OO_le_tac ctxt rel_OO_Grps rel_eq map_cong0 map_comp set_maps =
   let
     val n = length set_maps;
     fun in_tac nthO_in = rtac CollectI THEN'
@@ -183,7 +175,7 @@ fun mk_rel_OO_le_tac rel_OO_Grps rel_eq map_cong0 map_comp set_maps
         in_tac @{thm sndOp_in}] 1
   end;
 
-fun mk_rel_mono_strong_tac in_rel set_maps {context = ctxt, prems = _} =
+fun mk_rel_mono_strong_tac ctxt in_rel set_maps =
   if null set_maps then atac 1
   else
     unfold_tac ctxt [in_rel] THEN
@@ -194,8 +186,7 @@ fun mk_rel_mono_strong_tac in_rel set_maps {context = ctxt, prems = _} =
         (etac (@{thm Collect_split_mono_strong} OF [thm, thm]) THEN' atac))
       set_maps] 1;
 
-fun mk_map_transfer_tac rel_mono in_rel set_maps map_cong0 map_comp
-  {context = ctxt, prems = _} =
+fun mk_map_transfer_tac ctxt rel_mono in_rel set_maps map_cong0 map_comp =
   let
     val n = length set_maps;
     val in_tac = if n = 0 then rtac UNIV_I else
@@ -216,8 +207,8 @@ fun mk_map_transfer_tac rel_mono in_rel set_maps map_cong0 map_comp
         REPEAT_DETERM_N n o rtac (convol RS fun_cong)) @{thms fst_convol snd_convol})])
   end;
 
-fun mk_in_bd_tac live surj_imp_ordLeq_inst map_comp map_id map_cong0 set_maps set_bds
-  bd_card_order bd_Card_order bd_Cinfinite bd_Cnotzero {context = ctxt, prems = _} =
+fun mk_in_bd_tac ctxt live surj_imp_ordLeq_inst map_comp map_id map_cong0 set_maps set_bds
+  bd_card_order bd_Card_order bd_Cinfinite bd_Cnotzero =
   if live = 0 then
     rtac @{thm ordLeq_transitive[OF ordLeq_csum2[OF card_of_Card_order]
       ordLeq_cexp2[OF ordLeq_refl[OF Card_order_ctwo] Card_order_csum]]} 1
@@ -278,7 +269,7 @@ fun mk_in_bd_tac live surj_imp_ordLeq_inst map_comp map_id map_cong0 set_maps se
            map_comp RS sym, map_id])] 1
   end;
 
-fun mk_trivial_wit_tac wit_defs set_maps {context = ctxt, prems = _} =
+fun mk_trivial_wit_tac ctxt wit_defs set_maps =
   unfold_thms_tac ctxt wit_defs THEN HEADGOAL (EVERY' (map (fn thm =>
     dtac (thm RS equalityD1 RS set_mp) THEN' etac imageE THEN' atac) set_maps)) THEN ALLGOALS atac;
 
