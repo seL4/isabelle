@@ -14,6 +14,11 @@ sig
   type params = Sledgehammer_Prover.params
   type prover = Sledgehammer_Prover.prover
 
+  val is_prover_supported : Proof.context -> string -> bool
+  val is_prover_installed : Proof.context -> string -> bool
+  val default_max_facts_of_prover : Proof.context -> string -> int
+  val get_prover : Proof.context -> mode -> string -> prover
+
   val binary_min_facts : int Config.T
   val auto_minimize_min_facts : int Config.T
   val auto_minimize_max_time : real Config.T
@@ -24,6 +29,7 @@ sig
     * ((reconstructor * play_outcome) Lazy.lazy * ((reconstructor * play_outcome) -> string)
        * string)
   val get_minimizing_prover : Proof.context -> mode -> (thm list -> unit) -> string -> prover
+
   val run_minimize : params -> (thm list -> unit) -> int -> (Facts.ref * Attrib.src list) list ->
     Proof.state -> unit
 end;
@@ -40,6 +46,36 @@ open Sledgehammer_Fact
 open Sledgehammer_Reconstructor
 open Sledgehammer_Isar
 open Sledgehammer_Prover
+open Sledgehammer_Prover_ATP
+open Sledgehammer_Prover_SMT
+
+fun is_prover_supported ctxt =
+  let val thy = Proof_Context.theory_of ctxt in
+    is_reconstructor orf is_atp thy orf is_smt_prover ctxt
+  end
+
+fun is_prover_installed ctxt =
+  is_reconstructor orf is_smt_prover ctxt orf is_atp_installed (Proof_Context.theory_of ctxt)
+
+val reconstructor_default_max_facts = 20
+
+fun default_max_facts_of_prover ctxt name =
+  let val thy = Proof_Context.theory_of ctxt in
+    if is_reconstructor name then
+      reconstructor_default_max_facts
+    else if is_atp thy name then
+      fold (Integer.max o fst o #1 o fst o snd) (#best_slices (get_atp thy name ()) ctxt) 0
+    else (* is_smt_prover ctxt name *)
+      SMT_Solver.default_max_relevant ctxt name
+  end
+
+fun get_prover ctxt mode name =
+  let val thy = Proof_Context.theory_of ctxt in
+    if is_reconstructor name then run_reconstructor mode name
+    else if is_atp thy name then run_atp mode name
+    else if is_smt_prover ctxt name then run_smt_solver mode name
+    else error ("No such prover: " ^ name ^ ".")
+  end
 
 (* wrapper for calling external prover *)
 
@@ -234,16 +270,17 @@ fun adjust_reconstructor_params override_params
      timeout = timeout, preplay_timeout = preplay_timeout, expect = expect}
   end
 
-fun maybe_minimize ctxt mode do_learn name
-        (params as {verbose, isar_proofs, minimize, ...})
-        ({state, goal, subgoal, subgoal_count, ...} : prover_problem)
-        (result as {outcome, used_facts, used_from, run_time, preplay, message,
-                    message_tail} : prover_result) =
+fun maybe_minimize ctxt mode do_learn name (params as {verbose, isar_proofs, minimize, ...})
+    ({state, goal, subgoal, subgoal_count, ...} : prover_problem)
+    (result as {outcome, used_facts, used_from, run_time, preplay, message, message_tail} :
+     prover_result) =
   if is_some outcome orelse null used_facts then
     result
   else
     let
+      val thy = Proof_Context.theory_of ctxt
       val num_facts = length used_facts
+
       val ((perhaps_minimize, (minimize_name, params)), preplay) =
         if mode = Normal then
           if num_facts >= Config.get ctxt auto_minimize_min_facts then
@@ -261,7 +298,7 @@ fun maybe_minimize ctxt mode do_learn name
                  if isar_proofs = SOME true then
                    (* Cheat: Assume the selected ATP is as fast as "metis" for the goal it proved
                       itself. *)
-                   (can_min_fast_enough timeout, (isar_proof_reconstructor ctxt name, params))
+                   (can_min_fast_enough timeout, (isar_supported_prover_of thy name, params))
                  else if can_min_fast_enough timeout then
                    (true, extract_reconstructor params reconstr
                           ||> (fn override_params =>

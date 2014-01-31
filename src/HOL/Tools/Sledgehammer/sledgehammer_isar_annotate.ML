@@ -130,7 +130,6 @@ fun handle_trivial_tfrees ctxt (t', subst) =
     (t', subst)
   end
 
-
 (* (4) Typing-spot table *)
 local
 fun key_of_atype (TVar (z, _)) = Ord_List.insert indexname_ord z

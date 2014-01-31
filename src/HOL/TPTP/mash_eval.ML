@@ -46,12 +46,12 @@ fun evaluate_mash_suggestions ctxt params range linearize methods prob_dir_name
         mepo_file_name mash_isar_file_name mash_prover_file_name
         mesh_isar_file_name mesh_prover_file_name report_file_name =
   let
+    val thy = Proof_Context.theory_of ctxt
     val zeros = [0, 0, 0, 0, 0, 0]
     val report_path = report_file_name |> Path.explode
     val _ = File.write report_path ""
     fun print s = File.append report_path (s ^ "\n")
-    val {provers, max_facts, slice, type_enc, lam_trans, timeout, ...} =
-      default_params ctxt []
+    val {provers, max_facts, slice, type_enc, lam_trans, timeout, ...} = default_params thy []
     val prover = hd provers
     val slack_max_facts = generous_max_facts (the max_facts)
     val lines_of = Path.explode #> try File.read_lines #> these

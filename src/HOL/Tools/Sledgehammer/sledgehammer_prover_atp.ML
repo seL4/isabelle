@@ -1,0 +1,394 @@
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_prover_atp.ML
+    Author:     Fabian Immler, TU Muenchen
+    Author:     Makarius
+    Author:     Jasmin Blanchette, TU Muenchen
+
+ATPs as Sledgehammer provers.
+*)
+
+signature SLEDGEHAMMER_PROVER_ATP =
+sig
+  type mode = Sledgehammer_Prover.mode
+  type prover = Sledgehammer_Prover.prover
+
+  val run_atp : mode -> string -> prover
+end;
+
+structure Sledgehammer_Prover_ATP : SLEDGEHAMMER_PROVER_ATP =
+struct
+
+open ATP_Util
+open ATP_Problem
+open ATP_Proof
+open ATP_Problem_Generate
+open ATP_Proof_Reconstruct
+open ATP_Systems
+open Sledgehammer_Util
+open Sledgehammer_Reconstructor
+open Sledgehammer_Isar
+open Sledgehammer_Prover
+
+fun choose_type_enc strictness best_type_enc format =
+  the_default best_type_enc
+  #> type_enc_of_string strictness
+  #> adjust_type_enc format
+
+fun has_bound_or_var_of_type pred =
+  exists_subterm (fn Var (_, T as Type _) => pred T
+                   | Abs (_, T as Type _, _) => pred T
+                   | _ => false)
+
+(* Unwanted equalities are those between a (bound or schematic) variable that does not properly
+   occur in the second operand. *)
+val is_exhaustive_finite =
+  let
+    fun is_bad_equal (Var z) t =
+        not (exists_subterm (fn Var z' => z = z' | _ => false) t)
+      | is_bad_equal (Bound j) t = not (loose_bvar1 (t, j))
+      | is_bad_equal _ _ = false
+    fun do_equals t1 t2 = is_bad_equal t1 t2 orelse is_bad_equal t2 t1
+    fun do_formula pos t =
+      case (pos, t) of
+        (_, @{const Trueprop} $ t1) => do_formula pos t1
+      | (true, Const (@{const_name all}, _) $ Abs (_, _, t')) =>
+        do_formula pos t'
+      | (true, Const (@{const_name All}, _) $ Abs (_, _, t')) =>
+        do_formula pos t'
+      | (false, Const (@{const_name Ex}, _) $ Abs (_, _, t')) =>
+        do_formula pos t'
+      | (_, @{const "==>"} $ t1 $ t2) =>
+        do_formula (not pos) t1 andalso
+        (t2 = @{prop False} orelse do_formula pos t2)
+      | (_, @{const HOL.implies} $ t1 $ t2) =>
+        do_formula (not pos) t1 andalso
+        (t2 = @{const False} orelse do_formula pos t2)
+      | (_, @{const Not} $ t1) => do_formula (not pos) t1
+      | (true, @{const HOL.disj} $ t1 $ t2) => forall (do_formula pos) [t1, t2]
+      | (false, @{const HOL.conj} $ t1 $ t2) => forall (do_formula pos) [t1, t2]
+      | (true, Const (@{const_name HOL.eq}, _) $ t1 $ t2) => do_equals t1 t2
+      | (true, Const (@{const_name "=="}, _) $ t1 $ t2) => do_equals t1 t2
+      | _ => false
+  in do_formula true end
+
+(* Facts containing variables of finite types such as "unit" or "bool" or of the form
+   "ALL x. x = A | x = B | x = C" are likely to lead to untypable proofs for unsound type
+   encodings. *)
+fun is_dangerous_prop ctxt =
+  transform_elim_prop
+  #> (has_bound_or_var_of_type (is_type_surely_finite ctxt) orf is_exhaustive_finite)
+
+fun get_slices slice slices =
+  (0 upto length slices - 1) ~~ slices |> not slice ? (List.last #> single)
+
+fun get_facts_of_filter _ [(_, facts)] = facts
+  | get_facts_of_filter fact_filter factss =
+    (case AList.lookup (op =) factss fact_filter of
+      SOME facts => facts
+    | NONE => snd (hd factss))
+
+(* For low values of "max_facts", this fudge value ensures that most slices are invoked with a
+   nontrivial amount of facts. *)
+val max_fact_factor_fudge = 5
+
+val mono_max_privileged_facts = 10
+
+fun suffix_of_mode Auto_Try = "_try"
+  | suffix_of_mode Try = "_try"
+  | suffix_of_mode Normal = ""
+  | suffix_of_mode MaSh = ""
+  | suffix_of_mode Auto_Minimize = "_min"
+  | suffix_of_mode Minimize = "_min"
+
+(* Give the ATPs some slack before interrupting them the hard way. "z3_tptp" on Linux appears to be
+   the only ATP that does not honor its time limit. *)
+val atp_timeout_slack = seconds 1.0
+
+(* Important messages are important but not so important that users want to see
+   them each time. *)
+val atp_important_message_keep_quotient = 25
+
+fun run_atp mode name
+    (params as {debug, verbose, overlord, type_enc, strict, lam_trans, uncurried_aliases,
+       fact_filter, max_facts, max_mono_iters, max_new_mono_instances, isar_proofs, compress_isar,
+       try0_isar, slice, timeout, preplay_timeout, ...})
+    minimize_command
+    ({comment, state, goal, subgoal, subgoal_count, factss, ...} : prover_problem) =
+  let
+    val thy = Proof.theory_of state
+    val ctxt = Proof.context_of state
+
+    val {exec, arguments, proof_delims, known_failures, prem_role, best_slices, best_max_mono_iters,
+      best_max_new_mono_instances, ...} = get_atp thy name ()
+
+    val atp_mode = if Config.get ctxt completish then Sledgehammer_Completish else Sledgehammer
+    val (_, hyp_ts, concl_t) = strip_subgoal goal subgoal ctxt
+    val (dest_dir, problem_prefix) =
+      if overlord then overlord_file_location_of_prover name
+      else (Config.get ctxt dest_dir, Config.get ctxt problem_prefix)
+    val problem_file_name =
+      Path.basic (problem_prefix ^ (if overlord then "" else serial_string ()) ^
+                  suffix_of_mode mode ^ "_" ^ string_of_int subgoal)
+    val prob_path =
+      if dest_dir = "" then
+        File.tmp_path problem_file_name
+      else if File.exists (Path.explode dest_dir) then
+        Path.append (Path.explode dest_dir) problem_file_name
+      else
+        error ("No such directory: " ^ quote dest_dir ^ ".")
+    val exec = exec ()
+    val command0 =
+      case find_first (fn var => getenv var <> "") (fst exec) of
+        SOME var =>
+        let
+          val pref = getenv var ^ "/"
+          val paths = map (Path.explode o prefix pref) (snd exec)
+        in
+          case find_first File.exists paths of
+            SOME path => path
+          | NONE => error ("Bad executable: " ^ Path.print (hd paths) ^ ".")
+        end
+      | NONE => error ("The environment variable " ^ quote (List.last (fst exec)) ^
+                       " is not set.")
+
+    fun split_time s =
+      let
+        val split = String.tokens (fn c => str c = "\n")
+        val (output, t) =
+          s |> split |> (try split_last #> the_default ([], "0"))
+            |>> cat_lines
+        fun as_num f = f >> (fst o read_int)
+        val num = as_num (Scan.many1 Symbol.is_ascii_digit)
+        val digit = Scan.one Symbol.is_ascii_digit
+        val num3 = as_num (digit ::: digit ::: (digit >> single))
+        val time = num --| Scan.$$ "." -- num3 >> (fn (a, b) => a * 1000 + b)
+        val as_time =
+          raw_explode #> Scan.read Symbol.stopper time #> the_default 0
+      in (output, as_time t |> Time.fromMilliseconds) end
+
+    fun run () =
+      let
+        (* If slicing is disabled, we expand the last slice to fill the entire
+           time available. *)
+        val all_slices = best_slices ctxt
+        val actual_slices = get_slices slice all_slices
+        fun max_facts_of_slices f slices = fold (Integer.max o fst o #1 o fst o snd o f) slices 0
+        val num_actual_slices = length actual_slices
+        val max_fact_factor =
+          Real.fromInt (case max_facts of
+              NONE => max_facts_of_slices I all_slices
+            | SOME max => max)
+          / Real.fromInt (max_facts_of_slices snd actual_slices)
+        fun monomorphize_facts facts =
+          let
+            val ctxt =
+              ctxt
+              |> repair_monomorph_context max_mono_iters best_max_mono_iters max_new_mono_instances
+                   best_max_new_mono_instances
+            (* pseudo-theorem involving the same constants as the subgoal *)
+            val subgoal_th =
+              Logic.list_implies (hyp_ts, concl_t) |> Skip_Proof.make_thm thy
+            val rths =
+              facts |> chop mono_max_privileged_facts
+                    |>> map (pair 1 o snd)
+                    ||> map (pair 2 o snd)
+                    |> op @
+                    |> cons (0, subgoal_th)
+          in
+            Monomorph.monomorph atp_schematic_consts_of ctxt rths
+            |> tl |> curry ListPair.zip (map fst facts)
+            |> maps (fn (name, rths) =>
+                        map (pair name o zero_var_indexes o snd) rths)
+          end
+
+        fun run_slice time_left (cache_key, cache_value)
+                (slice, (time_frac,
+                     (key as ((best_max_facts, best_fact_filter), format,
+                              best_type_enc, best_lam_trans,
+                              best_uncurried_aliases),
+                      extra))) =
+          let
+            val effective_fact_filter =
+              fact_filter |> the_default best_fact_filter
+            val facts = get_facts_of_filter effective_fact_filter factss
+            val num_facts =
+              Real.ceil (max_fact_factor * Real.fromInt best_max_facts) + max_fact_factor_fudge
+              |> Integer.min (length facts)
+            val strictness = if strict then Strict else Non_Strict
+            val type_enc = type_enc |> choose_type_enc strictness best_type_enc format
+            val sound = is_type_enc_sound type_enc
+            val real_ms = Real.fromInt o Time.toMilliseconds
+            val slice_timeout =
+              (real_ms time_left
+               |> (if slice < num_actual_slices - 1 then
+                     curry Real.min (time_frac * real_ms timeout)
+                   else
+                     I))
+              * 0.001
+              |> seconds
+            val generous_slice_timeout =
+              if mode = MaSh then one_day else Time.+ (slice_timeout, atp_timeout_slack)
+            val _ =
+              if debug then
+                quote name ^ " slice #" ^ string_of_int (slice + 1) ^
+                " with " ^ string_of_int num_facts ^ " fact" ^
+                plural_s num_facts ^ " for " ^ string_of_time slice_timeout ^ "..."
+                |> Output.urgent_message
+              else
+                ()
+            val readable_names = not (Config.get ctxt atp_full_names)
+            val lam_trans =
+              case lam_trans of
+                SOME s => s
+              | NONE => best_lam_trans
+            val uncurried_aliases =
+              case uncurried_aliases of
+                SOME b => b
+              | NONE => best_uncurried_aliases
+            val value as (atp_problem, _, fact_names, _, _) =
+              if cache_key = SOME key then
+                cache_value
+              else
+                facts
+                |> not sound ? filter_out (is_dangerous_prop ctxt o prop_of o snd)
+                |> take num_facts
+                |> not (is_type_enc_polymorphic type_enc) ? monomorphize_facts
+                |> map (apsnd prop_of)
+                |> prepare_atp_problem ctxt format prem_role type_enc atp_mode
+                                       lam_trans uncurried_aliases
+                                       readable_names true hyp_ts concl_t
+
+            fun sel_weights () = atp_problem_selection_weights atp_problem
+            fun ord_info () = atp_problem_term_order_info atp_problem
+
+            val ord = effective_term_order ctxt name
+            val full_proof = isar_proofs |> the_default (mode = Minimize)
+            val args =
+              arguments ctxt full_proof extra slice_timeout (File.shell_path prob_path)
+                (ord, ord_info, sel_weights)
+            val command =
+              "(exec 2>&1; " ^ File.shell_path command0 ^ " " ^ args ^ " " ^ ")"
+              |> enclose "TIMEFORMAT='%3R'; { time " " ; }"
+            val _ =
+              atp_problem
+              |> lines_of_atp_problem format ord ord_info
+              |> cons ("% " ^ command ^ "\n" ^ (if comment = "" then "" else "% " ^ comment ^ "\n"))
+              |> File.write_list prob_path
+            val ((output, run_time), (atp_proof, outcome)) =
+              TimeLimit.timeLimit generous_slice_timeout Isabelle_System.bash_output command
+              |>> (if overlord then prefix ("% " ^ command ^ "\n% " ^ timestamp () ^ "\n") else I)
+              |> fst |> split_time
+              |> (fn accum as (output, _) =>
+                     (accum,
+                      extract_tstplike_proof_and_outcome verbose proof_delims known_failures output
+                      |>> atp_proof_of_tstplike_proof atp_problem
+                      handle UNRECOGNIZED_ATP_PROOF () => ([], SOME ProofIncomplete)))
+              handle TimeLimit.TimeOut => (("", slice_timeout), ([], SOME TimedOut))
+            val outcome =
+              (case outcome of
+                NONE =>
+                (case used_facts_in_unsound_atp_proof ctxt fact_names atp_proof
+                      |> Option.map (sort string_ord) of
+                   SOME facts =>
+                   let val failure = UnsoundProof (is_type_enc_sound type_enc, facts) in
+                     if debug then (warning (string_of_atp_failure failure); NONE) else SOME failure
+                   end
+                 | NONE => NONE)
+              | _ => outcome)
+          in
+            ((SOME key, value), (output, run_time, facts, atp_proof, outcome))
+          end
+
+        val timer = Timer.startRealTimer ()
+
+        fun maybe_run_slice slice
+                (result as (cache, (_, run_time0, _, _, SOME _))) =
+            let
+              val time_left = Time.- (timeout, Timer.checkRealTimer timer)
+            in
+              if Time.<= (time_left, Time.zeroTime) then
+                result
+              else
+                run_slice time_left cache slice
+                |> (fn (cache, (output, run_time, used_from, atp_proof, outcome)) =>
+                  (cache, (output, Time.+ (run_time0, run_time), used_from, atp_proof, outcome)))
+            end
+          | maybe_run_slice _ result = result
+      in
+        ((NONE, ([], Symtab.empty, Vector.fromList [], [], Symtab.empty)),
+         ("", Time.zeroTime, [], [], SOME InternalError))
+        |> fold maybe_run_slice actual_slices
+      end
+
+    (* If the problem file has not been exported, remove it; otherwise, export
+       the proof file too. *)
+    fun clean_up () =
+      if dest_dir = "" then (try File.rm prob_path; ()) else ()
+    fun export (_, (output, _, _, _, _)) =
+      if dest_dir = "" then ()
+      else File.write (Path.explode (Path.implode prob_path ^ "_proof")) output
+    val ((_, (_, pool, fact_names, lifted, sym_tab)),
+         (output, run_time, used_from, atp_proof, outcome)) =
+      with_cleanup clean_up run () |> tap export
+    val important_message =
+      if mode = Normal andalso random_range 0 (atp_important_message_keep_quotient - 1) = 0
+      then
+        extract_important_message output
+      else
+        ""
+
+    val (used_facts, preplay, message, message_tail) =
+      (case outcome of
+        NONE =>
+        let
+          val used_facts = used_facts_in_atp_proof ctxt fact_names atp_proof
+          val needs_full_types = is_typed_helper_used_in_atp_proof atp_proof
+          val reconstrs =
+            bunch_of_reconstructors needs_full_types (lam_trans_of_atp_proof atp_proof
+              o (fn desperate => if desperate then hide_lamsN else default_metis_lam_trans))
+        in
+          (used_facts,
+           Lazy.lazy (fn () =>
+             let val used_pairs = used_from |> filter_used_facts false used_facts in
+               play_one_line_proof mode debug verbose preplay_timeout used_pairs state subgoal
+                 (hd reconstrs) reconstrs
+             end),
+           fn preplay =>
+              let
+                val _ = if verbose then Output.urgent_message "Generating proof text..." else ()
+                fun isar_params () =
+                  let
+                    val metis_type_enc =
+                      if is_typed_helper_used_in_atp_proof atp_proof then full_typesN
+                      else partial_typesN
+                    val metis_lam_trans = lam_trans_of_atp_proof atp_proof default_metis_lam_trans
+                    val atp_proof =
+                      atp_proof
+                      |> termify_atp_proof ctxt pool lifted sym_tab
+                      |> introduce_spass_skolem
+                      |> factify_atp_proof fact_names hyp_ts concl_t
+                  in
+                    (verbose, metis_type_enc, metis_lam_trans, preplay_timeout, compress_isar,
+                     try0_isar, atp_proof, goal)
+                  end
+                val one_line_params =
+                  (preplay, proof_banner mode name, used_facts,
+                   choose_minimize_command thy params minimize_command name preplay, subgoal,
+                   subgoal_count)
+                val num_chained = length (#facts (Proof.goal state))
+              in
+                proof_text ctxt debug isar_proofs isar_params num_chained one_line_params
+              end,
+           (if verbose then "\nATP real CPU time: " ^ string_of_time run_time ^ "." else "") ^
+           (if important_message <> "" then
+              "\n\nImportant message from Dr. Geoff Sutcliffe:\n" ^ important_message
+            else
+              ""))
+        end
+      | SOME failure =>
+        ([], Lazy.value (plain_metis, Play_Failed), fn _ => string_of_atp_failure failure, ""))
+  in
+    {outcome = outcome, used_facts = used_facts, used_from = used_from, run_time = run_time,
+     preplay = preplay, message = message, message_tail = message_tail}
+  end
+
+end;

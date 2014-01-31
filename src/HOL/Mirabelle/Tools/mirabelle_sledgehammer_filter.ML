@@ -11,25 +11,18 @@ fun get args name default_value =
   | NONE => default_value
 
 fun extract_relevance_fudge args
-      {local_const_multiplier, worse_irrel_freq, higher_order_irrel_weight,
-       abs_rel_weight, abs_irrel_weight, theory_const_rel_weight,
-       theory_const_irrel_weight, chained_const_irrel_weight, intro_bonus,
-       elim_bonus, simp_bonus, local_bonus, assum_bonus, chained_bonus,
-       max_imperfect, max_imperfect_exp, threshold_divisor,
-       ridiculous_threshold} =
-  {local_const_multiplier =
-       get args "local_const_multiplier" local_const_multiplier,
+      {local_const_multiplier, worse_irrel_freq, higher_order_irrel_weight, abs_rel_weight,
+       abs_irrel_weight, theory_const_rel_weight, theory_const_irrel_weight,
+       chained_const_irrel_weight, intro_bonus, elim_bonus, simp_bonus, local_bonus, assum_bonus,
+       chained_bonus, max_imperfect, max_imperfect_exp, threshold_divisor, ridiculous_threshold} =
+  {local_const_multiplier = get args "local_const_multiplier" local_const_multiplier,
    worse_irrel_freq = get args "worse_irrel_freq" worse_irrel_freq,
-   higher_order_irrel_weight =
-       get args "higher_order_irrel_weight" higher_order_irrel_weight,
+   higher_order_irrel_weight = get args "higher_order_irrel_weight" higher_order_irrel_weight,
    abs_rel_weight = get args "abs_rel_weight" abs_rel_weight,
    abs_irrel_weight = get args "abs_irrel_weight" abs_irrel_weight,
-   theory_const_rel_weight =
-       get args "theory_const_rel_weight" theory_const_rel_weight,
-   theory_const_irrel_weight =
-       get args "theory_const_irrel_weight" theory_const_irrel_weight,
-   chained_const_irrel_weight =
-       get args "chained_const_irrel_weight" chained_const_irrel_weight,
+   theory_const_rel_weight = get args "theory_const_rel_weight" theory_const_rel_weight,
+   theory_const_irrel_weight = get args "theory_const_irrel_weight" theory_const_irrel_weight,
+   chained_const_irrel_weight = get args "chained_const_irrel_weight" chained_const_irrel_weight,
    intro_bonus = get args "intro_bonus" intro_bonus,
    elim_bonus = get args "elim_bonus" elim_bonus,
    simp_bonus = get args "simp_bonus" simp_bonus,
@@ -56,17 +49,17 @@ val num_lost_facts = Unsynchronized.ref ([] : (int * int) list)
 fun get id c = the_default 0 (AList.lookup (op =) (!c) id)
 fun add id c n =
   c := (case AList.lookup (op =) (!c) id of
-          SOME m => AList.update (op =) (id, m + n) (!c)
-        | NONE => (id, n) :: !c)
+         SOME m => AList.update (op =) (id, m + n) (!c)
+       | NONE => (id, n) :: !c)
 
 fun init proof_file _ thy =
   let
     fun do_line line =
-      case line |> space_explode ":" of
+      (case line |> space_explode ":" of
         [line_num, offset, proof] =>
         SOME (pairself (the o Int.fromString) (line_num, offset),
               proof |> space_explode " " |> filter_out (curry (op =) ""))
-       | _ => NONE
+       | _ => NONE)
     val proofs = File.read (Path.explode proof_file)
     val proof_tab =
       proofs |> space_explode "\n"
@@ -81,21 +74,18 @@ fun percentage_alt a b = percentage a (a + b)
 fun done id ({log, ...} : Mirabelle.done_args) =
   if get id num_successes + get id num_failures > 0 then
     (log "";
-     log ("Number of overall successes: " ^
-          string_of_int (get id num_successes));
+     log ("Number of overall successes: " ^ string_of_int (get id num_successes));
      log ("Number of overall failures: " ^ string_of_int (get id num_failures));
      log ("Overall success rate: " ^
           percentage_alt (get id num_successes) (get id num_failures) ^ "%");
      log ("Number of found proofs: " ^ string_of_int (get id num_found_proofs));
      log ("Number of lost proofs: " ^ string_of_int (get id num_lost_proofs));
      log ("Proof found rate: " ^
-          percentage_alt (get id num_found_proofs) (get id num_lost_proofs) ^
-          "%");
+          percentage_alt (get id num_found_proofs) (get id num_lost_proofs) ^ "%");
      log ("Number of found facts: " ^ string_of_int (get id num_found_facts));
      log ("Number of lost facts: " ^ string_of_int (get id num_lost_facts));
      log ("Fact found rate: " ^
-          percentage_alt (get id num_found_facts) (get id num_lost_facts) ^
-          "%"))
+          percentage_alt (get id num_found_facts) (get id num_lost_facts) ^ "%"))
   else
     ()
 
@@ -109,13 +99,12 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
     (case Prooftab.lookup (!proof_table) (line_num, offset) of
        SOME proofs =>
        let
+         val thy = Proof.theory_of pre
          val {context = ctxt, facts = chained_ths, goal} = Proof.goal pre
          val prover = AList.lookup (op =) args "prover" |> the_default default_prover
-         val params as {max_facts, ...} =
-           Sledgehammer_Commands.default_params ctxt args
-         val default_max_facts = Sledgehammer_Prover.default_max_facts_of_prover ctxt prover
-         val is_appropriate_prop =
-           Sledgehammer_Prover.is_appropriate_prop_of_prover ctxt default_prover
+         val params as {max_facts, ...} = Sledgehammer_Commands.default_params thy args
+         val default_max_facts =
+           Sledgehammer_Prover_Minimize.default_max_facts_of_prover ctxt prover
          val relevance_fudge =
            extract_relevance_fudge args Sledgehammer_MePo.default_relevance_fudge
          val subgoal = 1
@@ -127,7 +116,6 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
            Sledgehammer_Fact.nearly_all_facts ctxt ho_atp
                Sledgehammer_Fact.no_fact_override reserved css_table chained_ths
                hyp_ts concl_t
-           |> filter (is_appropriate_prop o prop_of o snd)
            |> Sledgehammer_Fact.drop_duplicate_facts
            |> Sledgehammer_MePo.mepo_suggested_facts ctxt params
                   (the_default default_max_facts max_facts) (SOME relevance_fudge) hyp_ts concl_t
@@ -156,8 +144,7 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
            else
              let
                val found_weight =
-                 Real.fromInt (fold (fn (n, _) =>
-                                        Integer.add (n * n)) found_facts 0)
+                 Real.fromInt (fold (fn (n, _) => Integer.add (n * n)) found_facts 0)
                    / Real.fromInt (length found_facts)
                  |> Math.sqrt |> Real.ceil
              in
@@ -178,11 +165,11 @@ val proof_fileK = "proof_file"
 
 fun invoke args =
   let
-    val (pf_args, other_args) =
-      args |> List.partition (curry (op =) proof_fileK o fst)
-    val proof_file = case pf_args of
-                       [] => error "No \"proof_file\" specified"
-                     | (_, s) :: _ => s
+    val (pf_args, other_args) = args |> List.partition (curry (op =) proof_fileK o fst)
+    val proof_file =
+      (case pf_args of
+        [] => error "No \"proof_file\" specified"
+      | (_, s) :: _ => s)
   in Mirabelle.register (init proof_file, action other_args, done) end
 
 end;

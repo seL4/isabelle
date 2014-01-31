@@ -361,10 +361,10 @@ fun done id ({log, ...}: Mirabelle.done_args) =
 
 fun change_data id f = (Unsynchronized.change data (AList.map_entry (op =) id f); ())
 
-fun get_prover_name ctxt args =
+fun get_prover_name thy args =
   let
     fun default_prover_name () =
-      hd (#provers (Sledgehammer_Commands.default_params ctxt []))
+      hd (#provers (Sledgehammer_Commands.default_params thy []))
       handle List.Empty => error "No ATP available."
   in
     (case AList.lookup (op =) args proverK of
@@ -417,6 +417,7 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
       hard_timeout timeout preplay_timeout sh_minimizeLST
       max_new_mono_instancesLST max_mono_itersLST dir pos st =
   let
+    val thy = Proof.theory_of st
     val {context = ctxt, facts = chained_ths, goal} = Proof.goal st
     val i = 1
     fun set_file_name (SOME dir) =
@@ -438,7 +439,7 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
             #> (Option.map (Config.put ATP_Systems.force_sos)
                   force_sos |> the_default I))
     val params as {max_facts, ...} =
-      Sledgehammer_Commands.default_params ctxt
+      Sledgehammer_Commands.default_params thy
          ([("verbose", "true"),
            ("fact_filter", fact_filter),
            ("type_enc", type_enc),
@@ -452,7 +453,8 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
           |> sh_minimizeLST (*don't confuse the two minimization flags*)
           |> max_new_mono_instancesLST
           |> max_mono_itersLST)
-    val default_max_facts = Sledgehammer_Prover.default_max_facts_of_prover ctxt prover_name
+    val default_max_facts =
+      Sledgehammer_Prover_Minimize.default_max_facts_of_prover ctxt prover_name
     val is_appropriate_prop =
       Sledgehammer_Prover.is_appropriate_prop_of_prover ctxt prover_name
     val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal goal i ctxt
@@ -510,11 +512,12 @@ in
 fun run_sledgehammer trivial args reconstructor named_thms id
       ({pre=st, log, pos, ...}: Mirabelle.run_args) =
   let
+    val thy = Proof.theory_of st
     val ctxt = Proof.context_of st
     val triv_str = if trivial then "[T] " else ""
     val _ = change_data id inc_sh_calls
     val _ = if trivial then () else change_data id inc_sh_nontriv_calls
-    val prover_name = get_prover_name ctxt args
+    val prover_name = get_prover_name thy args
     val fact_filter = AList.lookup (op =) args fact_filterK |> the_default fact_filter_default
     val type_enc = AList.lookup (op =) args type_encK |> the_default type_enc_default
     val strict = AList.lookup (op =) args strictK |> the_default strict_default
@@ -580,10 +583,11 @@ end
 fun run_minimize args reconstructor named_thms id
         ({pre=st, log, ...}: Mirabelle.run_args) =
   let
+    val thy = Proof.theory_of st
     val ctxt = Proof.context_of st
     val {goal, ...} = Proof.goal st
     val n0 = length (these (!named_thms))
-    val prover_name = get_prover_name ctxt args
+    val prover_name = get_prover_name thy args
     val type_enc = AList.lookup (op =) args type_encK |> the_default type_enc_default
     val strict = AList.lookup (op =) args strictK |> the_default strict_default
     val timeout =
@@ -596,7 +600,7 @@ fun run_minimize args reconstructor named_thms id
     val max_new_mono_instancesLST =
       available_parameter args max_new_mono_instancesK max_new_mono_instancesK
     val max_mono_itersLST = available_parameter args max_mono_itersK max_mono_itersK
-    val params = Sledgehammer_Commands.default_params ctxt
+    val params = Sledgehammer_Commands.default_params thy
      ([("provers", prover_name),
        ("verbose", "true"),
        ("type_enc", type_enc),

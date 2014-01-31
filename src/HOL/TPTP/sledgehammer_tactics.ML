@@ -21,13 +21,15 @@ struct
 open Sledgehammer_Util
 open Sledgehammer_Fact
 open Sledgehammer_Prover
+open Sledgehammer_Prover_Minimize
 open Sledgehammer_MaSh
 open Sledgehammer_Commands
 
 fun run_prover override_params fact_override i n ctxt goal =
   let
+    val thy = Proof_Context.theory_of ctxt
     val mode = Normal
-    val params as {provers, max_facts, ...} = default_params ctxt override_params
+    val params as {provers, max_facts, ...} = default_params thy override_params
     val name = hd provers
     val prover = get_prover ctxt mode name
     val default_max_facts = default_max_facts_of_prover ctxt name

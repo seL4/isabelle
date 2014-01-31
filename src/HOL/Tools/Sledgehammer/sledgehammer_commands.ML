@@ -9,7 +9,7 @@ sig
   type params = Sledgehammer_Prover.params
 
   val provers : string Unsynchronized.ref
-  val default_params : Proof.context -> (string * string) list -> params
+  val default_params : theory -> (string * string) list -> params
 end;
 
 structure Sledgehammer_Commands : SLEDGEHAMMER_COMMANDS =
@@ -193,9 +193,9 @@ structure Data = Theory_Data
 
 (* The first ATP of the list is used by Auto Sledgehammer. Because of the low
    timeout, it makes sense to put E first. *)
-fun default_provers_param_value mode ctxt =
+fun default_provers_param_value mode thy =
   [eN, spassN, z3N, vampireN, e_sineN, yicesN]
-  |> map_filter (remotify_prover_if_not_installed ctxt)
+  |> map_filter (remotify_atp_if_not_installed thy)
   (* In "try" mode, leave at least one thread to another slow tool (e.g. Nitpick) *)
   |> take (Multithreading.max_threads_value () - (if mode = Try then 1 else 0))
   |> implode_param
@@ -205,18 +205,14 @@ fun set_default_raw_param param thy =
     thy |> Data.map (AList.update (op =) (normalize_raw_param ctxt param))
   end
 
-fun default_raw_params mode ctxt =
-  let val thy = Proof_Context.theory_of ctxt in
-    Data.get thy
-    |> fold (AList.default (op =))
-            [("provers", [case !provers of
-                            "" => default_provers_param_value mode ctxt
-                          | s => s]),
-             ("timeout", let val timeout = Options.default_int @{option sledgehammer_timeout} in
-                           [if timeout <= 0 then "none"
-                            else string_of_int timeout]
-                         end)]
-  end
+fun default_raw_params mode thy =
+  Data.get thy
+  |> fold (AList.default (op =))
+       [("provers", [(case !provers of "" => default_provers_param_value mode thy | s => s)]),
+        ("timeout",
+         let val timeout = Options.default_int @{option sledgehammer_timeout} in
+           [if timeout <= 0 then "none" else string_of_int timeout]
+         end)]
 
 fun extract_params mode default_params override_params =
   let
@@ -342,15 +338,16 @@ val default_learn_prover_timeout = 2.0
 
 fun hammer_away override_params subcommand opt_i fact_override state =
   let
+    val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
+
     val override_params = override_params |> map (normalize_raw_param ctxt)
     val _ = Isabelle_System.mkdir (Path.explode (getenv "ISABELLE_TMP"))
   in
     if subcommand = runN then
       let val i = the_default 1 opt_i in
-        run_sledgehammer (get_params Normal ctxt override_params) Normal NONE i
-                         fact_override (minimize_command override_params i)
-                         state
+        run_sledgehammer (get_params Normal thy override_params) Normal NONE i fact_override
+          (minimize_command override_params i) state
         |> K ()
       end
     else if subcommand = minN then
@@ -358,8 +355,7 @@ fun hammer_away override_params subcommand opt_i fact_override state =
         val ctxt = ctxt |> Config.put instantiate_inducts false
         val i = the_default 1 opt_i
         val params =
-          get_params Minimize ctxt (("provers", [default_minimize_prover]) ::
-                                    override_params)
+          get_params Minimize thy (("provers", [default_minimize_prover]) :: override_params)
         val goal = prop_of (#goal (Proof.goal state))
         val facts = nearly_all_facts ctxt false fact_override Symtab.empty
                                      Termtab.empty [] [] goal
@@ -371,22 +367,21 @@ fun hammer_away override_params subcommand opt_i fact_override state =
       supported_provers ctxt
     else if subcommand = kill_allN then
       (kill_provers ();
-       kill_learners ctxt (get_params Normal ctxt override_params))
+       kill_learners ctxt (get_params Normal thy override_params))
     else if subcommand = running_proversN then
       running_provers ()
     else if subcommand = unlearnN then
-      mash_unlearn ctxt (get_params Normal ctxt override_params)
+      mash_unlearn ctxt (get_params Normal thy override_params)
     else if subcommand = learn_isarN orelse subcommand = learn_proverN orelse
             subcommand = relearn_isarN orelse subcommand = relearn_proverN then
       (if subcommand = relearn_isarN orelse subcommand = relearn_proverN then
-         mash_unlearn ctxt (get_params Normal ctxt override_params)
+         mash_unlearn ctxt (get_params Normal thy override_params)
        else
          ();
        mash_learn ctxt
            (* TODO: Use MaSh mode instead and have the special defaults hardcoded in "get_params" *)
-           (get_params Normal ctxt
-                ([("timeout",
-                   [string_of_real default_learn_prover_timeout]),
+           (get_params Normal thy
+                ([("timeout", [string_of_real default_learn_prover_timeout]),
                   ("slice", ["false"])] @
                  override_params @
                  [("minimize", ["true"]),
@@ -410,16 +405,12 @@ fun string_of_raw_param (name, value) = name ^ " = " ^ implode_param value
 
 fun sledgehammer_params_trans params =
   Toplevel.theory
-      (fold set_default_raw_param params
-       #> tap (fn thy =>
-                  let val ctxt = Proof_Context.init_global thy in
-                    writeln ("Default parameters for Sledgehammer:\n" ^
-                             (case rev (default_raw_params Normal ctxt) of
-                                [] => "none"
-                              | params =>
-                                params |> map string_of_raw_param
-                                       |> sort_strings |> cat_lines))
-                  end))
+    (fold set_default_raw_param params
+     #> tap (fn thy =>
+          writeln ("Default parameters for Sledgehammer:\n" ^
+            (case rev (default_raw_params Normal thy) of
+              [] => "none"
+            | params => params |> map string_of_raw_param |> sort_strings |> cat_lines))))
 
 val parse_query_bang = @{keyword "?"} || @{keyword "!"} || @{keyword "!!"}
 val parse_key =
@@ -451,12 +442,12 @@ val _ =
 
 fun try_sledgehammer auto state =
   let
-    val ctxt = Proof.context_of state
+    val thy = Proof.theory_of state
     val mode = if auto then Auto_Try else Try
     val i = 1
   in
-    run_sledgehammer (get_params mode ctxt []) mode NONE i no_fact_override
-                     (minimize_command [] i) state
+    run_sledgehammer (get_params mode thy []) mode NONE i no_fact_override (minimize_command [] i)
+      state
   end
 
 val _ = Try.tool_setup (sledgehammerN, (40, @{option auto_sledgehammer}, try_sledgehammer))
@@ -466,8 +457,9 @@ val _ =
     (case try Toplevel.proof_of st of
       SOME state =>
         let
-          val [provers_arg, isar_proofs_arg] = args;
+          val thy = Proof.theory_of state
           val ctxt = Proof.context_of state
+          val [provers_arg, isar_proofs_arg] = args
 
           val override_params =
             ((if provers_arg = "" then [] else [("provers", space_explode " " provers_arg)]) @
@@ -478,9 +470,9 @@ val _ =
                ("verbose", ["false"]),
                ("overlord", ["false"])])
             |> map (normalize_raw_param ctxt)
-          val _ =
-            run_sledgehammer (get_params Normal ctxt override_params) Normal (SOME output_result) 1
-              no_fact_override (minimize_command override_params 1) state
+
+          val _ = run_sledgehammer (get_params Normal thy override_params) Normal
+            (SOME output_result) 1 no_fact_override (minimize_command override_params 1) state
         in () end
     | NONE => error "Unknown proof context"))
 
@@ -489,8 +481,8 @@ val _ = Session.protocol_handler "isabelle.Sledgehammer_Params$Handler"
 val _ = Isabelle_Process.protocol_command "Sledgehammer.provers"
   (fn [] =>
     let
-      val this_ctxt = @{context}
-      val provers = space_implode " " (#provers (default_params this_ctxt []))
+      val this_thy = @{theory}
+      val provers = space_implode " " (#provers (default_params this_thy []))
     in Output.protocol_message Markup.sledgehammer_provers provers end)
 
 end;
