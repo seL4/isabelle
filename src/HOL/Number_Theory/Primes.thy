@@ -351,4 +351,115 @@ proof
     by auto
 qed
 
+subsection{*Powers of Primes*}
+
+text{*Versions for type nat only*}
+
+lemma prime_product: 
+  fixes p::nat
+  assumes "prime (p * q)"
+  shows "p = 1 \<or> q = 1"
+proof -
+  from assms have 
+    "1 < p * q" and P: "\<And>m. m dvd p * q \<Longrightarrow> m = 1 \<or> m = p * q"
+    unfolding prime_nat_def by auto
+  from `1 < p * q` have "p \<noteq> 0" by (cases p) auto
+  then have Q: "p = p * q \<longleftrightarrow> q = 1" by auto
+  have "p dvd p * q" by simp
+  then have "p = 1 \<or> p = p * q" by (rule P)
+  then show ?thesis by (simp add: Q)
+qed
+
+lemma prime_exp: 
+  fixes p::nat
+  shows "prime (p^n) \<longleftrightarrow> prime p \<and> n = 1"
+proof(induct n)
+  case 0 thus ?case by simp
+next
+  case (Suc n)
+  {assume "p = 0" hence ?case by simp}
+  moreover
+  {assume "p=1" hence ?case by simp}
+  moreover
+  {assume p: "p \<noteq> 0" "p\<noteq>1"
+    {assume pp: "prime (p^Suc n)"
+      hence "p = 1 \<or> p^n = 1" using prime_product[of p "p^n"] by simp
+      with p have n: "n = 0"
+        by (metis One_nat_def nat_power_eq_Suc_0_iff)
+      with pp have "prime p \<and> Suc n = 1" by simp}
+    moreover
+    {assume n: "prime p \<and> Suc n = 1" hence "prime (p^Suc n)" by simp}
+    ultimately have ?case by blast}
+  ultimately show ?case by blast
+qed
+
+lemma prime_power_mult: 
+  fixes p::nat
+  assumes p: "prime p" and xy: "x * y = p ^ k"
+  shows "\<exists>i j. x = p ^i \<and> y = p^ j"
+using xy
+proof(induct k arbitrary: x y)
+  case 0 thus ?case apply simp by (rule exI[where x="0"], simp)
+next
+  case (Suc k x y)
+  from Suc.prems have pxy: "p dvd x*y" by auto
+  from Primes.prime_dvd_mult_nat [OF p pxy] have pxyc: "p dvd x \<or> p dvd y" .
+  from p have p0: "p \<noteq> 0" by - (rule ccontr, simp) 
+  {assume px: "p dvd x"
+    then obtain d where d: "x = p*d" unfolding dvd_def by blast
+    from Suc.prems d  have "p*d*y = p^Suc k" by simp
+    hence th: "d*y = p^k" using p0 by simp
+    from Suc.hyps[OF th] obtain i j where ij: "d = p^i" "y = p^j" by blast
+    with d have "x = p^Suc i" by simp 
+    with ij(2) have ?case by blast}
+  moreover 
+  {assume px: "p dvd y"
+    then obtain d where d: "y = p*d" unfolding dvd_def by blast
+    from Suc.prems d  have "p*d*x = p^Suc k" by (simp add: mult_commute)
+    hence th: "d*x = p^k" using p0 by simp
+    from Suc.hyps[OF th] obtain i j where ij: "d = p^i" "x = p^j" by blast
+    with d have "y = p^Suc i" by simp 
+    with ij(2) have ?case by blast}
+  ultimately show ?case  using pxyc by blast
+qed
+
+lemma prime_power_exp: 
+  fixes p::nat
+  assumes p: "prime p" and n: "n \<noteq> 0" 
+    and xn: "x^n = p^k" shows "\<exists>i. x = p^i"
+  using n xn
+proof(induct n arbitrary: k)
+  case 0 thus ?case by simp
+next
+  case (Suc n k) hence th: "x*x^n = p^k" by simp
+  {assume "n = 0" with Suc have ?case by simp (rule exI[where x="k"], simp)}
+  moreover
+  {assume n: "n \<noteq> 0"
+    from prime_power_mult[OF p th] 
+    obtain i j where ij: "x = p^i" "x^n = p^j"by blast
+    from Suc.hyps[OF n ij(2)] have ?case .}
+  ultimately show ?case by blast
+qed
+
+lemma divides_primepow:
+  fixes p::nat
+  assumes p: "prime p" 
+  shows "d dvd p^k \<longleftrightarrow> (\<exists> i. i \<le> k \<and> d = p ^i)"
+proof
+  assume H: "d dvd p^k" then obtain e where e: "d*e = p^k" 
+    unfolding dvd_def  apply (auto simp add: mult_commute) by blast
+  from prime_power_mult[OF p e] obtain i j where ij: "d = p^i" "e=p^j" by blast
+  from e ij have "p^(i + j) = p^k" by (simp add: power_add)
+  hence "i + j = k" using p prime_gt_1_nat power_inject_exp[of p "i+j" k] by simp 
+  hence "i \<le> k" by arith
+  with ij(1) show "\<exists>i\<le>k. d = p ^ i" by blast
+next
+  {fix i assume H: "i \<le> k" "d = p^i"
+    then obtain j where j: "k = i + j"
+      by (metis le_add_diff_inverse)
+    hence "p^k = p^j*d" using H(2) by (simp add: power_add)
+    hence "d dvd p^k" unfolding dvd_def by auto}
+  thus "\<exists>i\<le>k. d = p ^ i \<Longrightarrow> d dvd p ^ k" by blast
+qed
+
 end
