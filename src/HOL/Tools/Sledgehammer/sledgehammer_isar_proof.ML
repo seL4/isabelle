@@ -15,7 +15,7 @@ sig
 
   datatype proof_method =
     Metis_Method | Simp_Method | Simp_Size_Method | Auto_Method | Fastforce_Method | Force_Method |
-    Arith_Method | Blast_Method | Meson_Method
+    Arith_Method | Blast_Method | Meson_Method | Algebra_Method
 
   datatype isar_proof =
     Proof of (string * typ) list * (label * term) list * isar_step list
@@ -66,7 +66,7 @@ datatype isar_qualifier = Show | Then
 
 datatype proof_method =
   Metis_Method | Simp_Method | Simp_Size_Method | Auto_Method | Fastforce_Method | Force_Method |
-  Arith_Method | Blast_Method | Meson_Method
+  Arith_Method | Blast_Method | Meson_Method | Algebra_Method
 
 datatype isar_proof =
   Proof of (string * typ) list * (label * term) list * isar_step list
@@ -92,7 +92,8 @@ fun string_of_method meth =
   | Force_Method => "force"
   | Arith_Method => "arith"
   | Blast_Method => "blast"
-  | Meson_Method => "meson")
+  | Meson_Method => "meson"
+  | Algebra_Method => "algebra")
 
 fun steps_of_proof (Proof (_, _, steps)) = steps
 

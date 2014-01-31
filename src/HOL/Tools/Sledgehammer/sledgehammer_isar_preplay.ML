@@ -101,6 +101,7 @@ fun tac_of_method meth type_enc lam_trans ctxt (local_facts, global_facts) =
     | Force_Method => Clasimp.force_tac ctxt
     | Arith_Method => Arith_Data.arith_tac ctxt
     | Blast_Method => blast_tac ctxt
+    | Algebra_Method => Groebner.algebra_tac [] [] ctxt
     | _ => raise Fail "Sledgehammer_Isar_Preplay: tac_of_method"))
 
 (* main function for preplaying Isar steps; may throw exceptions *)
