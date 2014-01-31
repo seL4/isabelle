@@ -244,32 +244,28 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
     (* algebra *)
 
     val alg_bind = mk_internal_b algN;
-    val alg_name = Binding.name_of alg_bind;
     val alg_def_bind = (Thm.def_binding alg_bind, []);
 
     (*forall i = 1 ... n: (\<forall>x \<in> Fi_in A1 .. Am B1 ... Bn. si x \<in> Bi)*)
     val alg_spec =
       let
-        val algT = Library.foldr (op -->) (ATs @ BTs @ sTs, HOLogic.boolT);
-
         val ins = map3 mk_in (replicate n (As @ Bs)) setssAs FTsAs;
         fun mk_alg_conjunct B s X x x' =
           mk_Ball X (Term.absfree x' (HOLogic.mk_mem (s $ x, B)));
 
-        val lhs = Term.list_comb (Free (alg_name, algT), As @ Bs @ ss);
         val rhs = Library.foldr1 HOLogic.mk_conj (map5 mk_alg_conjunct Bs ss ins xFs xFs')
       in
-        mk_Trueprop_eq (lhs, rhs)
+        fold_rev (Term.absfree o Term.dest_Free) (As @ Bs @ ss) rhs
       end;
 
     val ((alg_free, (_, alg_def_free)), (lthy, lthy_old)) =
         lthy
-        |> Specification.definition (SOME (alg_bind, NONE, NoSyn), (alg_def_bind, alg_spec))
+        |> Local_Theory.define ((alg_bind, NoSyn), (alg_def_bind, alg_spec))
         ||> `Local_Theory.restore;
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
     val alg = fst (Term.dest_Const (Morphism.term phi alg_free));
-    val alg_def = Morphism.thm phi alg_def_free;
+    val alg_def = mk_unabs_def (live + n) (Morphism.thm phi alg_def_free RS meta_eq_to_obj_eq);
 
     fun mk_alg As Bs ss =
       let
@@ -331,7 +327,6 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
     (* morphism *)
 
     val mor_bind = mk_internal_b morN;
-    val mor_name = Binding.name_of mor_bind;
     val mor_def_bind = (Thm.def_binding mor_bind, []);
 
     (*fbetw) forall i = 1 ... n: (\<forall>x \<in> Bi. f x \<in> B'i)*)
@@ -339,31 +334,28 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
        f (s1 x) = s1' (Fi_map id ... id f1 ... fn x))*)
     val mor_spec =
       let
-        val morT = Library.foldr (op -->) (BTs @ sTs @ B'Ts @ s'Ts @ fTs, HOLogic.boolT);
-
         fun mk_fbetw f B1 B2 z z' =
           mk_Ball B1 (Term.absfree z' (HOLogic.mk_mem (f $ z, B2)));
         fun mk_mor sets mapAsBs f s s' T x x' =
           mk_Ball (mk_in (passive_UNIVs @ Bs) sets T)
             (Term.absfree x' (HOLogic.mk_eq (f $ (s $ x), s' $
               (Term.list_comb (mapAsBs, passive_ids @ fs) $ x))));
-        val lhs = Term.list_comb (Free (mor_name, morT), Bs @ ss @ B's @ s's @ fs);
         val rhs = HOLogic.mk_conj
           (Library.foldr1 HOLogic.mk_conj (map5 mk_fbetw fs Bs B's zs zs'),
           Library.foldr1 HOLogic.mk_conj
             (map8 mk_mor setssAs mapsAsBs fs ss s's FTsAs xFs xFs'))
       in
-        mk_Trueprop_eq (lhs, rhs)
+        fold_rev (Term.absfree o Term.dest_Free) (Bs @ ss @ B's @ s's @ fs) rhs
       end;
 
     val ((mor_free, (_, mor_def_free)), (lthy, lthy_old)) =
         lthy
-        |> Specification.definition (SOME (mor_bind, NONE, NoSyn), (mor_def_bind, mor_spec))
+        |> Local_Theory.define ((mor_bind, NoSyn), (mor_def_bind, mor_spec))
         ||> `Local_Theory.restore;
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
     val mor = fst (Term.dest_Const (Morphism.term phi mor_free));
-    val mor_def = Morphism.thm phi mor_def_free;
+    val mor_def = mk_unabs_def (5 * n) (Morphism.thm phi mor_def_free RS meta_eq_to_obj_eq);
 
     fun mk_mor Bs1 ss1 Bs2 ss2 fs =
       let
@@ -719,31 +711,27 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
 
     val min_alg_binds = mk_internal_bs min_algN;
     fun min_alg_bind i = nth min_alg_binds (i - 1);
-    fun min_alg_name i = Binding.name_of (min_alg_bind i);
     val min_alg_def_bind = rpair [] o Thm.def_binding o min_alg_bind;
 
     fun min_alg_spec i =
       let
-        val min_algT =
-          Library.foldr (op -->) (ATs @ sTs, HOLogic.mk_setT (nth activeAs (i - 1)));
-
-        val lhs = Term.list_comb (Free (min_alg_name i, min_algT), As @ ss);
         val rhs = mk_UNION (field_suc_bd)
           (Term.absfree idx' (mk_nthN n (mk_min_algs As ss $ idx) i));
       in
-        mk_Trueprop_eq (lhs, rhs)
+        fold_rev (Term.absfree o Term.dest_Free) (As @ ss) rhs
       end;
 
     val ((min_alg_frees, (_, min_alg_def_frees)), (lthy, lthy_old)) =
         lthy
-        |> fold_map (fn i => Specification.definition
-          (SOME (min_alg_bind i, NONE, NoSyn), (min_alg_def_bind i, min_alg_spec i))) ks
+        |> fold_map (fn i => Local_Theory.define
+          ((min_alg_bind i, NoSyn), (min_alg_def_bind i, min_alg_spec i))) ks
         |>> apsnd split_list o split_list
         ||> `Local_Theory.restore;
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
     val min_algs = map (fst o Term.dest_Const o Morphism.term phi) min_alg_frees;
-    val min_alg_defs = map (Morphism.thm phi) min_alg_def_frees;
+    val min_alg_defs = map (fn def =>
+      mk_unabs_def live (Morphism.thm phi def RS meta_eq_to_obj_eq)) min_alg_def_frees;
 
     fun mk_min_alg As ss i =
       let
@@ -832,30 +820,25 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
 
     val str_init_binds = mk_internal_bs str_initN;
     fun str_init_bind i = nth str_init_binds (i - 1);
-    val str_init_name = Binding.name_of o str_init_bind;
     val str_init_def_bind = rpair [] o Thm.def_binding o str_init_bind;
 
     fun str_init_spec i =
       let
-        val T = nth init_FTs (i - 1);
         val init_xF = nth init_xFs (i - 1)
         val select_s = nth select_ss (i - 1);
         val map = mk_map_of_bnf (nth Dss (i - 1))
           (passiveAs @ active_initTs) (passiveAs @ replicate n Asuc_bdT)
           (nth bnfs (i - 1));
         val map_args = passive_ids @ replicate n (mk_rapp iidx Asuc_bdT);
-        val str_initT = T --> IIT --> Asuc_bdT;
-
-        val lhs = Term.list_comb (Free (str_init_name i, str_initT), [init_xF, iidx]);
         val rhs = select_s $ (Term.list_comb (map, map_args) $ init_xF);
       in
-        mk_Trueprop_eq (lhs, rhs)
+        fold_rev (Term.absfree o Term.dest_Free) [init_xF, iidx] rhs
       end;
 
     val ((str_init_frees, (_, str_init_def_frees)), (lthy, lthy_old)) =
       lthy
-      |> fold_map (fn i => Specification.definition
-        (SOME (str_init_bind i, NONE, NoSyn), (str_init_def_bind i, str_init_spec i))) ks
+      |> fold_map (fn i => Local_Theory.define
+        ((str_init_bind i, NoSyn), (str_init_def_bind i, str_init_spec i))) ks
       |>> apsnd split_list o split_list
       ||> `Local_Theory.restore;
 
@@ -864,7 +847,8 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
       map (Term.subst_atomic_types (map (`(Morphism.typ phi)) params') o Morphism.term phi)
         str_init_frees;
 
-    val str_init_defs = map (Morphism.thm phi) str_init_def_frees;
+    val str_init_defs = map (fn def =>
+      mk_unabs_def 2 (Morphism.thm phi def RS meta_eq_to_obj_eq)) str_init_def_frees;
 
     val car_inits = map (mk_min_alg passive_UNIVs str_inits) ks;
 
@@ -1024,25 +1008,17 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
     val phi2s = map2 retype_free (map2 mk_pred2T Ts Ts') init_phis;
 
     fun ctor_bind i = nth external_bs (i - 1) |> Binding.prefix_name (ctorN ^ "_");
-    val ctor_name = Binding.name_of o ctor_bind;
     val ctor_def_bind = rpair [] o Binding.conceal o Thm.def_binding o ctor_bind;
 
-    fun ctor_spec i abs str map_FT_init x x' =
-      let
-        val ctorT = nth FTs (i - 1) --> nth Ts (i - 1);
-
-        val lhs = Free (ctor_name i, ctorT);
-        val rhs = Term.absfree x' (abs $ (str $
+    fun ctor_spec abs str map_FT_init x x' =
+      Term.absfree x' (abs $ (str $
           (Term.list_comb (map_FT_init, map HOLogic.id_const passiveAs @ Rep_Ts) $ x)));
-      in
-        mk_Trueprop_eq (lhs, rhs)
-      end;
 
     val ((ctor_frees, (_, ctor_def_frees)), (lthy, lthy_old)) =
       lthy
       |> fold_map6 (fn i => fn abs => fn str => fn mapx => fn x => fn x' =>
-        Specification.definition
-          (SOME (ctor_bind i, NONE, NoSyn), (ctor_def_bind i, ctor_spec i abs str mapx x x')))
+        Local_Theory.define
+          ((ctor_bind i, NoSyn), (ctor_def_bind i, ctor_spec abs str mapx x x')))
           ks Abs_Ts str_inits map_FT_inits xFs xFs'
       |>> apsnd split_list o split_list
       ||> `Local_Theory.restore;
@@ -1053,7 +1029,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
         Morphism.term phi) ctor_frees;
     val ctors = mk_ctors passiveAs;
     val ctor's = mk_ctors passiveBs;
-    val ctor_defs = map (Morphism.thm phi) ctor_def_frees;
+    val ctor_defs = map (fn def => Morphism.thm phi def RS meta_eq_to_obj_eq) ctor_def_frees;
 
     val (mor_Rep_thm, mor_Abs_thm) =
       let
@@ -1084,25 +1060,14 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
     val foldx = HOLogic.choice_const foldT $ fold_fun;
 
     fun fold_bind i = nth external_bs (i - 1) |> Binding.prefix_name (ctor_foldN ^ "_");
-    val fold_name = Binding.name_of o fold_bind;
     val fold_def_bind = rpair [] o Binding.conceal o Thm.def_binding o fold_bind;
 
-    fun fold_spec i T AT =
-      let
-        val foldT = Library.foldr (op -->) (sTs, T --> AT);
-
-        val lhs = Term.list_comb (Free (fold_name i, foldT), ss);
-        val rhs = mk_nthN n foldx i;
-      in
-        mk_Trueprop_eq (lhs, rhs)
-      end;
+    fun fold_spec i = fold_rev (Term.absfree o Term.dest_Free) ss (mk_nthN n foldx i);
 
     val ((fold_frees, (_, fold_def_frees)), (lthy, lthy_old)) =
       lthy
-      |> fold_map3 (fn i => fn T => fn AT =>
-        Specification.definition
-          (SOME (fold_bind i, NONE, NoSyn), (fold_def_bind i, fold_spec i T AT)))
-          ks Ts activeAs
+      |> fold_map (fn i =>
+        Local_Theory.define ((fold_bind i, NoSyn), (fold_def_bind i, fold_spec i))) ks
       |>> apsnd split_list o split_list
       ||> `Local_Theory.restore;
 
@@ -1116,7 +1081,8 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
       fold_names (mk_Ts passives) actives;
     fun mk_fold Ts ss i = Term.list_comb (Const (nth fold_names (i - 1), Library.foldr (op -->)
       (map fastype_of ss, nth Ts (i - 1) --> range_type (fastype_of (nth ss (i - 1))))), ss);
-    val fold_defs = map (Morphism.thm phi) fold_def_frees;
+    val fold_defs = map (fn def =>
+      mk_unabs_def n (Morphism.thm phi def RS meta_eq_to_obj_eq)) fold_def_frees;
 
     val mor_fold_thm =
       let
@@ -1174,24 +1140,14 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
         map HOLogic.id_const passiveAs @ ctors)) Dss bnfs;
 
     fun dtor_bind i = nth external_bs (i - 1) |> Binding.prefix_name (dtorN ^ "_");
-    val dtor_name = Binding.name_of o dtor_bind;
     val dtor_def_bind = rpair [] o Binding.conceal o Thm.def_binding o dtor_bind;
 
-    fun dtor_spec i FT T =
-      let
-        val dtorT = T --> FT;
-
-        val lhs = Free (dtor_name i, dtorT);
-        val rhs = mk_fold Ts map_ctors i;
-      in
-        mk_Trueprop_eq (lhs, rhs)
-      end;
+    fun dtor_spec i = mk_fold Ts map_ctors i;
 
     val ((dtor_frees, (_, dtor_def_frees)), (lthy, lthy_old)) =
       lthy
-      |> fold_map3 (fn i => fn FT => fn T =>
-        Specification.definition
-          (SOME (dtor_bind i, NONE, NoSyn), (dtor_def_bind i, dtor_spec i FT T))) ks FTs Ts
+      |> fold_map (fn i =>
+        Local_Theory.define ((dtor_bind i, NoSyn), (dtor_def_bind i, dtor_spec i))) ks
       |>> apsnd split_list o split_list
       ||> `Local_Theory.restore;
 
@@ -1200,7 +1156,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
       map (Term.subst_atomic_types (map (Morphism.typ phi) params' ~~ params) o Morphism.term phi)
         dtor_frees;
     val dtors = mk_dtors params';
-    val dtor_defs = map (Morphism.thm phi) dtor_def_frees;
+    val dtor_defs = map (fn def => Morphism.thm phi def RS meta_eq_to_obj_eq) dtor_def_frees;
 
     val ctor_o_dtor_thms = map2 (fold_thms lthy o single) dtor_defs ctor_o_fold_thms;
 
@@ -1247,7 +1203,6 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
       end;
 
     fun rec_bind i = nth external_bs (i - 1) |> Binding.prefix_name (ctor_recN ^ "_");
-    val rec_name = Binding.name_of o rec_bind;
     val rec_def_bind = rpair [] o Binding.conceal o Thm.def_binding o rec_bind;
 
     val rec_strs =
@@ -1256,21 +1211,13 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
       ctors rec_ss rec_maps;
 
     fun rec_spec i T AT =
-      let
-        val recT = Library.foldr (op -->) (rec_sTs, T --> AT);
-
-        val lhs = Term.list_comb (Free (rec_name i, recT), rec_ss);
-        val rhs = HOLogic.mk_comp (snd_const (HOLogic.mk_prodT (T, AT)), mk_fold Ts rec_strs i);
-      in
-        mk_Trueprop_eq (lhs, rhs)
-      end;
+      fold_rev (Term.absfree o Term.dest_Free) rec_ss
+        (HOLogic.mk_comp (snd_const (HOLogic.mk_prodT (T, AT)), mk_fold Ts rec_strs i));
 
     val ((rec_frees, (_, rec_def_frees)), (lthy, lthy_old)) =
       lthy
       |> fold_map3 (fn i => fn T => fn AT =>
-        Specification.definition
-          (SOME (rec_bind i, NONE, NoSyn), (rec_def_bind i, rec_spec i T AT)))
-          ks Ts activeAs
+        Local_Theory.define ((rec_bind i, NoSyn), (rec_def_bind i, rec_spec i T AT))) ks Ts activeAs
       |>> apsnd split_list o split_list
       ||> `Local_Theory.restore;
 
@@ -1279,7 +1226,8 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
     val rec_names = map (fst o dest_Const) recs;
     fun mk_rec ss i = Term.list_comb (Const (nth rec_names (i - 1), Library.foldr (op -->)
       (map fastype_of ss, nth Ts (i - 1) --> range_type (fastype_of (nth ss (i - 1))))), ss);
-    val rec_defs = map (Morphism.thm phi) rec_def_frees;
+    val rec_defs = map (fn def =>
+      mk_unabs_def n (Morphism.thm phi def RS meta_eq_to_obj_eq)) rec_def_frees;
 
     val convols = map2 (fn T => fn i => mk_convol (HOLogic.id_const T, mk_rec rec_ss i)) Ts ks;
     val ctor_rec_thms =
