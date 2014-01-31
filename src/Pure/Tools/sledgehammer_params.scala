@@ -2,7 +2,7 @@
     Author:     Makarius
 
 Protocol for Sledgehammer parameters from ML (see also
-HOL/Tools/Sledgehammer/sledgehammer_isar.ML).  */
+HOL/Tools/Sledgehammer/sledgehammer_commands.ML).  */
 
 package isabelle
 
