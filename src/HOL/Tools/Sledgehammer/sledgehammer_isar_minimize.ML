@@ -7,12 +7,13 @@ Minimize dependencies (used facts) of Isar proof steps.
 
 signature SLEDGEHAMMER_ISAR_MINIMIZE =
 sig
-  type preplay_data = Sledgehammer_Isar_Preplay.preplay_data
   type isar_step = Sledgehammer_Isar_Proof.isar_step
   type isar_proof = Sledgehammer_Isar_Proof.isar_proof
+  type isar_preplay_data = Sledgehammer_Isar_Preplay.isar_preplay_data
 
-  val minimal_deps_of_step : preplay_data -> isar_step -> isar_step
-  val postprocess_remove_unreferenced_steps : (isar_step -> isar_step) -> isar_proof -> isar_proof
+  val minimize_isar_step_dependencies : isar_preplay_data -> isar_step -> isar_step
+  val postprocess_isar_proof_remove_unreferenced_steps : (isar_step -> isar_step) -> isar_proof ->
+    isar_proof
 end;
 
 structure Sledgehammer_Isar_Minimize : SLEDGEHAMMER_ISAR_MINIMIZE =
@@ -24,8 +25,8 @@ open Sledgehammer_Isar_Preplay
 
 val slack = seconds 0.1
 
-fun minimal_deps_of_step (_ : preplay_data) (step as Let _) = step
-  | minimal_deps_of_step {get_preplay_outcome, set_preplay_outcome, preplay_quietly, ...}
+fun minimize_isar_step_dependencies (_ : isar_preplay_data) (step as Let _) = step
+  | minimize_isar_step_dependencies {get_preplay_outcome, set_preplay_outcome, preplay_quietly, ...}
       (step as Prove (qs, xs, l, t, subproofs, ((lfs, gfs), meth))) =
     (case get_preplay_outcome l of
       Played time =>
@@ -46,7 +47,7 @@ fun minimal_deps_of_step (_ : preplay_data) (step as Let _) = step
       end
     | _ => step (* don't touch steps that time out or fail *))
 
-fun postprocess_remove_unreferenced_steps postproc_step =
+fun postprocess_isar_proof_remove_unreferenced_steps postproc_step =
   let
     val add_lfs = fold (Ord_List.insert label_ord)
 

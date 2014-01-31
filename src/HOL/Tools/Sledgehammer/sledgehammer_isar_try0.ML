@@ -9,9 +9,9 @@ dependencies, and repair broken proof steps.
 signature SLEDGEHAMMER_ISAR_TRY0 =
 sig
   type isar_proof = Sledgehammer_Isar_Proof.isar_proof
-  type preplay_data = Sledgehammer_Isar_Preplay.preplay_data
+  type isar_preplay_data = Sledgehammer_Isar_Preplay.isar_preplay_data
 
-  val try0_isar_proof : Time.time -> preplay_data -> isar_proof -> isar_proof
+  val try0_isar_proof : Time.time -> isar_preplay_data -> isar_proof -> isar_proof
 end;
 
 structure Sledgehammer_Isar_Try0 : SLEDGEHAMMER_ISAR_TRY0 =
@@ -30,7 +30,7 @@ val slack = seconds 0.05
 
 fun try0_step _ _ (step as Let _) = step
   | try0_step preplay_timeout
-      ({get_preplay_outcome, set_preplay_outcome, preplay_quietly, ...} : preplay_data)
+      ({get_preplay_outcome, set_preplay_outcome, preplay_quietly, ...} : isar_preplay_data)
       (step as Prove (_, _, l, _, _, _)) =
     let
       val timeout =

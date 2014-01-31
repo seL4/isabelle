@@ -40,11 +40,10 @@ sig
 
   structure Canonical_Label_Tab : TABLE
 
-  (** canonical proof labels: 1, 2, 3, ... in postorder **)
   val canonical_label_ord : (label * label) -> order
-  val relabel_proof_canonically : isar_proof -> isar_proof
+  val relabel_isar_proof_canonically : isar_proof -> isar_proof
 
-  val string_of_proof : Proof.context -> string -> string -> int -> int -> isar_proof -> string
+  val string_of_isar_proof : Proof.context -> string -> string -> int -> int -> isar_proof -> string
 end;
 
 structure Sledgehammer_Isar_Proof : SLEDGEHAMMER_ISAR_PROOF =
@@ -112,14 +111,14 @@ structure Canonical_Label_Tab = Table(
   type key = label
   val ord = canonical_label_ord)
 
-fun relabel_proof_canonically proof =
+fun relabel_isar_proof_canonically proof =
   let
     fun next_label l (next, subst) =
       let val l' = ("", next) in (l', (next + 1, (l, l') :: subst)) end
 
     fun do_byline by (_, subst) = apfst (apfst (map (AList.lookup (op =) subst #> the))) by
     handle Option.Option =>
-      raise Fail "Sledgehammer_Isar_Proof: relabel_proof_canonically"
+      raise Fail "Sledgehammer_Isar_Proof: relabel_isar_proof_canonically"
 
     fun do_assm (l, t) state =
       let
@@ -149,7 +148,7 @@ fun relabel_proof_canonically proof =
 
 val indent_size = 2
 
-fun string_of_proof ctxt type_enc lam_trans i n proof =
+fun string_of_isar_proof ctxt type_enc lam_trans i n proof =
   let
     (* Make sure only type constraints inserted by the type annotation code are printed. *)
     val ctxt =
@@ -183,7 +182,7 @@ fun string_of_proof ctxt type_enc lam_trans i n proof =
     fun add_term term (s, ctxt) =
       (s ^ (term
             |> singleton (Syntax.uncheck_terms ctxt)
-            |> annotate_types ctxt
+            |> annotate_types_in_term ctxt
             |> with_vanilla_print_mode (Syntax.unparse_term ctxt #> Pretty.string_of)
             |> simplify_spaces
             |> maybe_quote),

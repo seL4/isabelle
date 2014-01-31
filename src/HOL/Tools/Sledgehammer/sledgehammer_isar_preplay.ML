@@ -14,14 +14,14 @@ sig
 
   val trace : bool Config.T
 
-  type preplay_data =
+  type isar_preplay_data =
     {get_preplay_outcome: label -> play_outcome,
      set_preplay_outcome: label -> play_outcome -> unit,
      preplay_quietly: Time.time -> isar_step -> play_outcome,
      overall_preplay_outcome: isar_proof -> play_outcome}
 
-  val proof_preplay_data : bool -> Proof.context -> string -> string -> bool -> Time.time ->
-    isar_proof -> preplay_data
+  val preplay_data_of_isar_proof : bool -> Proof.context -> string -> string -> bool -> Time.time ->
+    isar_proof -> isar_preplay_data
 end;
 
 structure Sledgehammer_Isar_Preplay : SLEDGEHAMMER_ISAR_PREPLAY =
@@ -147,7 +147,7 @@ fun preplay_raw _ _ _ _ _ (Let _) = Played Time.zeroTime
 
 (*** proof preplay interface ***)
 
-type preplay_data =
+type isar_preplay_data =
   {get_preplay_outcome: label -> play_outcome,
    set_preplay_outcome: label -> play_outcome -> unit,
    preplay_quietly: Time.time -> isar_step -> play_outcome,
@@ -184,14 +184,14 @@ fun merge_preplay_outcomes _ Play_Failed = Play_Failed
    calculation.
 
    Precondition: The proof must be labeled canonically; cf.
-   "Slegehammer_Proof.relabel_proof_canonically". *)
-fun proof_preplay_data debug ctxt type_enc lam_trans do_preplay preplay_timeout proof =
+   "Slegehammer_Isar_Proof.relabel_isar_proof_canonically". *)
+fun preplay_data_of_isar_proof debug ctxt type_enc lam_trans do_preplay preplay_timeout proof =
   if not do_preplay then
     (* the "dont_preplay" option pretends that everything works just fine *)
     {get_preplay_outcome = K (Played Time.zeroTime),
      set_preplay_outcome = K (K ()),
      preplay_quietly = K (K (Played Time.zeroTime)),
-     overall_preplay_outcome = K (Played Time.zeroTime)} : preplay_data
+     overall_preplay_outcome = K (Played Time.zeroTime)} : isar_preplay_data
   else
     let
       val ctxt = enrich_context_with_local_facts proof ctxt

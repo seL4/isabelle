@@ -352,35 +352,35 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
           |> tap (tracing o prefix "Direct proof: " o string_of_direct_proof)
 *)
           |> isar_proof true params assms lems
-          |> postprocess_remove_unreferenced_steps I
-          |> relabel_proof_canonically
-          |> `(proof_preplay_data debug ctxt metis_type_enc metis_lam_trans do_preplay
-               preplay_timeout)
+          |> postprocess_isar_proof_remove_unreferenced_steps I
+          |> relabel_isar_proof_canonically
+          |> `(preplay_data_of_isar_proof debug ctxt metis_type_enc metis_lam_trans do_preplay
+                 preplay_timeout)
 
         val (play_outcome, isar_proof) =
           isar_proof
-          |> compress_proof (if isar_proofs = SOME true then compress_isar else 1000.0) preplay_data
+          |> compress_isar_proof (if isar_proofs = SOME true then compress_isar else 1000.0)
+               preplay_data
           |> try0_isar ? try0_isar_proof preplay_timeout preplay_data
-          |> postprocess_remove_unreferenced_steps (try0_isar ? minimal_deps_of_step preplay_data)
+          |> postprocess_isar_proof_remove_unreferenced_steps
+               (try0_isar ? minimize_isar_step_dependencies preplay_data)
           |> `overall_preplay_outcome
           ||> (chain_direct_proof #> kill_useless_labels_in_proof #> relabel_proof)
 
         val isar_text =
-          string_of_proof ctxt metis_type_enc metis_lam_trans subgoal subgoal_count isar_proof
+          string_of_isar_proof ctxt metis_type_enc metis_lam_trans subgoal subgoal_count isar_proof
       in
         (case isar_text of
           "" =>
-          if isar_proofs = SOME true then
-            "\nNo structured proof available (proof too simple)."
-          else
-            ""
+          if isar_proofs = SOME true then "\nNo structured proof available (proof too simple)."
+          else ""
         | _ =>
           let
             val msg =
               (if verbose then
-                let val num_steps = add_isar_steps (steps_of_proof isar_proof) 0 in
-                  [string_of_int num_steps ^ " step" ^ plural_s num_steps]
-                end
+                 let val num_steps = add_isar_steps (steps_of_proof isar_proof) 0 in
+                   [string_of_int num_steps ^ " step" ^ plural_s num_steps]
+                 end
                else
                  []) @
               (if do_preplay then [string_of_play_outcome play_outcome] else [])

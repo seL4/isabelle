@@ -9,9 +9,9 @@ Only proof steps using the same proof method are merged.
 signature SLEDGEHAMMER_ISAR_COMPRESS =
 sig
   type isar_proof = Sledgehammer_Isar_Proof.isar_proof
-  type preplay_data = Sledgehammer_Isar_Preplay.preplay_data
+  type isar_preplay_data = Sledgehammer_Isar_Preplay.isar_preplay_data
 
-  val compress_proof : real -> preplay_data -> isar_proof -> isar_proof
+  val compress_isar_proof : real -> isar_preplay_data -> isar_proof -> isar_proof
 end;
 
 structure Sledgehammer_Isar_Compress : SLEDGEHAMMER_ISAR_COMPRESS =
@@ -95,8 +95,8 @@ val merge_timeout_slack = 1.2
 
 (* Precondition: The proof must be labeled canonically
    (cf. "Slegehammer_Proof.relabel_proof_canonically"). *)
-fun compress_proof compress_isar
-    ({get_preplay_outcome, set_preplay_outcome, preplay_quietly, ...} : preplay_data) proof =
+fun compress_isar_proof compress_isar
+    ({get_preplay_outcome, set_preplay_outcome, preplay_quietly, ...} : isar_preplay_data) proof =
   if compress_isar <= 1.0 then
     proof
   else

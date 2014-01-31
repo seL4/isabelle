@@ -9,12 +9,12 @@ incomplete.
 When configuring the pretty printer appropriately, the constraints will show up as type annotations
 when printing the term. This allows the term to be printed and reparsed without a change of types.
 
-NOTE: Terms should be unchecked before calling annotate_types to avoid awkward syntax.
+Note: Terms should be unchecked before calling "annotate_types_in_term" to avoid awkward syntax.
 *)
 
 signature SLEDGEHAMMER_ISAR_ANNOTATE =
 sig
-  val annotate_types : Proof.context -> term -> term
+  val annotate_types_in_term : Proof.context -> term -> term
 end;
 
 structure Sledgehammer_Isar_Annotate : SLEDGEHAMMER_ISAR_ANNOTATE =
@@ -197,7 +197,7 @@ fun introduce_annotations subst spots t t' =
   end
 
 (* (7) Annotate *)
-fun annotate_types ctxt t =
+fun annotate_types_in_term ctxt t =
   let
     val t' = generalize_types ctxt t
     val subst = match_types ctxt t' t
