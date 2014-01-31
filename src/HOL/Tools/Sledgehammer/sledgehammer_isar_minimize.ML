@@ -7,26 +7,25 @@ Minimize dependencies (used facts) of Isar proof steps.
 
 signature SLEDGEHAMMER_ISAR_MINIMIZE =
 sig
-  type preplay_interface = Sledgehammer_Isar_Preplay.preplay_interface
+  type preplay_data = Sledgehammer_Isar_Preplay.preplay_data
   type isar_step = Sledgehammer_Isar_Proof.isar_step
   type isar_proof = Sledgehammer_Isar_Proof.isar_proof
 
-  val min_deps_of_step : preplay_interface -> isar_step -> isar_step
+  val minimal_deps_of_step : preplay_data -> isar_step -> isar_step
   val postprocess_remove_unreferenced_steps : (isar_step -> isar_step) -> isar_proof -> isar_proof
 end;
 
 structure Sledgehammer_Isar_Minimize : SLEDGEHAMMER_ISAR_MINIMIZE =
 struct
 
-open Sledgehammer_Util
 open Sledgehammer_Reconstructor
 open Sledgehammer_Isar_Proof
 open Sledgehammer_Isar_Preplay
 
 val slack = seconds 0.1
 
-fun min_deps_of_step (_ : preplay_interface) (step as Let _) = step
-  | min_deps_of_step {get_preplay_outcome, set_preplay_outcome, preplay_quietly, ...}
+fun minimal_deps_of_step (_ : preplay_data) (step as Let _) = step
+  | minimal_deps_of_step {get_preplay_outcome, set_preplay_outcome, preplay_quietly, ...}
       (step as Prove (qs, xs, l, t, subproofs, ((lfs, gfs), meth))) =
     (case get_preplay_outcome l of
       Played time =>
@@ -57,12 +56,8 @@ fun postprocess_remove_unreferenced_steps postproc_step =
       end
     and do_steps [] = ([], [])
       | do_steps steps =
-        let
-          (* the last step is always implicitly referenced *)
-          val (steps, (refed, concl)) =
-            split_last steps
-            ||> do_refed_step
-        in
+        (* the last step is always implicitly referenced *)
+        let val (steps, (refed, concl)) = split_last steps ||> do_refed_step in
           fold_rev do_step steps (refed, [concl])
         end
     and do_step step (refed, accu) =

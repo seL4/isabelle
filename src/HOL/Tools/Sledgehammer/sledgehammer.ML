@@ -18,6 +18,7 @@ sig
   val noneN : string
   val timeoutN : string
   val unknownN : string
+
   val string_of_factss : (string * fact list) list -> string
   val run_sledgehammer : params -> mode -> (string -> unit) option -> int -> fact_override ->
     ((string * string list) list -> string -> minimize_command) -> Proof.state ->
@@ -28,12 +29,12 @@ structure Sledgehammer : SLEDGEHAMMER =
 struct
 
 open ATP_Util
-open ATP_Problem_Generate
 open ATP_Proof
-open ATP_Proof_Reconstruct
+open ATP_Problem_Generate
 open Sledgehammer_Util
 open Sledgehammer_Fact
 open Sledgehammer_Prover
+open Sledgehammer_Prover_ATP
 open Sledgehammer_Prover_Minimize
 open Sledgehammer_MaSh
 
@@ -196,9 +197,7 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, timeout,
       in (outcome_code, state) end
     else
       (Async_Manager.thread SledgehammerN birth_time death_time (desc ())
-                            ((fn (outcome_code, message) =>
-                                 (verbose orelse outcome_code = someN,
-                                  message ())) o go);
+         ((fn (outcome_code, message) => (verbose orelse outcome_code = someN, message ())) o go);
        (unknownN, state))
   end
 
@@ -289,9 +288,6 @@ fun run_sledgehammer (params as {debug, verbose, spy, blocking, provers, max_fac
             |> (if blocking then Par_List.map else map) (launch problem #> fst)
             |> max_outcome_code |> rpair state
         end
-
-      fun maybe f (accum as (outcome_code, _)) =
-        accum |> (mode = Normal orelse outcome_code <> someN) ? f
     in
       (if blocking then launch_provers state
        else (Future.fork (tap (fn () => launch_provers state)); (unknownN, state)))

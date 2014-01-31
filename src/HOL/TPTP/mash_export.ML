@@ -9,24 +9,18 @@ signature MASH_EXPORT =
 sig
   type params = Sledgehammer_Prover.params
 
-  val generate_accessibility :
-    Proof.context -> theory list -> bool -> string -> unit
-  val generate_features :
-    Proof.context -> string -> theory list -> string -> unit
-  val generate_isar_dependencies :
-    Proof.context -> int * int option -> theory list -> bool -> string -> unit
-  val generate_prover_dependencies :
-    Proof.context -> params -> int * int option -> theory list -> bool -> string
-    -> unit
-  val generate_isar_commands :
-    Proof.context -> string -> (int * int option) * int -> theory list -> bool
-    -> int -> string -> unit
-  val generate_prover_commands :
-    Proof.context -> params -> (int * int option) * int -> theory list -> bool
-    -> int -> string -> unit
-  val generate_mepo_suggestions :
-    Proof.context -> params -> (int * int option) * int -> theory list -> bool
-    -> int -> string -> unit
+  val generate_accessibility : Proof.context -> theory list -> bool -> string -> unit
+  val generate_features : Proof.context -> theory list -> string -> unit
+  val generate_isar_dependencies : Proof.context -> int * int option -> theory list -> bool ->
+    string -> unit
+  val generate_prover_dependencies : Proof.context -> params -> int * int option -> theory list ->
+    bool -> string -> unit
+  val generate_isar_commands : Proof.context -> string -> (int * int option) * int -> theory list ->
+    bool -> int -> string -> unit
+  val generate_prover_commands : Proof.context -> params -> (int * int option) * int ->
+    theory list -> bool -> int -> string -> unit
+  val generate_mepo_suggestions : Proof.context -> params -> (int * int option) * int ->
+    theory list -> bool -> int -> string -> unit
   val generate_mesh_suggestions : int -> string -> string -> string -> unit
 end;
 
@@ -34,6 +28,7 @@ structure MaSh_Export : MASH_EXPORT =
 struct
 
 open Sledgehammer_Fact
+open Sledgehammer_Prover_ATP
 open Sledgehammer_MePo
 open Sledgehammer_MaSh
 
@@ -70,7 +65,7 @@ fun generate_accessibility ctxt thys linearize file_name =
       |> map (apsnd (nickname_of_thm o snd))
   in fold do_fact facts []; () end
 
-fun generate_features ctxt prover thys file_name =
+fun generate_features ctxt thys file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
@@ -80,8 +75,7 @@ fun generate_features ctxt prover thys file_name =
         val name = nickname_of_thm th
         val feats =
           features_of ctxt (theory_of_thm th) 0 Symtab.empty stature false [prop_of th] |> map fst
-        val s =
-          encode_str name ^ ": " ^ encode_plain_features (sort_wrt hd feats) ^ "\n"
+        val s = encode_str name ^ ": " ^ encode_plain_features (sort_wrt hd feats) ^ "\n"
       in File.append path s end
   in List.app do_fact facts end
 
@@ -148,7 +142,7 @@ fun is_bad_query ctxt ho_atp step j th isar_deps =
 fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys
                                      linearize max_suggs file_name =
   let
-    val ho_atp = Sledgehammer_Prover.is_ho_atp ctxt prover
+    val ho_atp = is_ho_atp ctxt prover
     val path = file_name |> Path.explode
     val facts = all_facts ctxt
     val (new_facts, old_facts) = facts |> List.partition (has_thys thys o snd)
@@ -229,7 +223,7 @@ fun generate_prover_commands ctxt (params as {provers = prover :: _, ...}) =
 fun generate_mepo_suggestions ctxt (params as {provers = prover :: _, ...})
                               (range, step) thys linearize max_suggs file_name =
   let
-    val ho_atp = Sledgehammer_Prover.is_ho_atp ctxt prover
+    val ho_atp = is_ho_atp ctxt prover
     val path = file_name |> Path.explode
     val facts = all_facts ctxt
     val (new_facts, old_facts) = facts |> List.partition (has_thys thys o snd)

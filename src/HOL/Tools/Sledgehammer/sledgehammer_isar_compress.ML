@@ -9,9 +9,9 @@ Only proof steps using the same proof method are merged.
 signature SLEDGEHAMMER_ISAR_COMPRESS =
 sig
   type isar_proof = Sledgehammer_Isar_Proof.isar_proof
-  type preplay_interface = Sledgehammer_Isar_Preplay.preplay_interface
+  type preplay_data = Sledgehammer_Isar_Preplay.preplay_data
 
-  val compress_proof : real -> preplay_interface -> isar_proof -> isar_proof
+  val compress_proof : real -> preplay_data -> isar_proof -> isar_proof
 end;
 
 structure Sledgehammer_Isar_Compress : SLEDGEHAMMER_ISAR_COMPRESS =
@@ -21,6 +21,8 @@ open Sledgehammer_Util
 open Sledgehammer_Reconstructor
 open Sledgehammer_Isar_Proof
 open Sledgehammer_Isar_Preplay
+
+val dummy_isar_step = Let (Term.dummy, Term.dummy)
 
 (* traverses steps in post-order and collects the steps with the given labels *)
 fun collect_successors steps lbls =
@@ -94,14 +96,14 @@ val merge_timeout_slack = 1.2
 (* Precondition: The proof must be labeled canonically
    (cf. "Slegehammer_Proof.relabel_proof_canonically"). *)
 fun compress_proof compress_isar
-    ({get_preplay_outcome, set_preplay_outcome, preplay_quietly, ...} : preplay_interface) proof =
+    ({get_preplay_outcome, set_preplay_outcome, preplay_quietly, ...} : preplay_data) proof =
   if compress_isar <= 1.0 then
     proof
   else
     let
       val (compress_further, decrement_step_count) =
         let
-          val number_of_steps = add_proof_steps (steps_of_proof proof) 0
+          val number_of_steps = add_isar_steps (steps_of_proof proof) 0
           val target_number_of_steps = Real.round (Real.fromInt number_of_steps / compress_isar)
           val delta = Unsynchronized.ref (number_of_steps - target_number_of_steps)
         in
@@ -112,17 +114,17 @@ fun compress_proof compress_isar
         let
           fun add_refs (Let _) = I
             | add_refs (Prove (_, _, v, _, _, ((lfs, _), _))) =
-              fold (fn key => Canonical_Lbl_Tab.cons_list (key, v)) lfs
+              fold (fn key => Canonical_Label_Tab.cons_list (key, v)) lfs
 
           val tab =
-            Canonical_Lbl_Tab.empty
+            Canonical_Label_Tab.empty
             |> fold_isar_steps add_refs (steps_of_proof proof)
             (* "rev" should have the same effect as "sort canonical_label_ord" *)
-            |> Canonical_Lbl_Tab.map (K rev)
+            |> Canonical_Label_Tab.map (K rev)
             |> Unsynchronized.ref
 
-          fun get_successors l = Canonical_Lbl_Tab.lookup_list (!tab) l
-          fun set_successors l refs = tab := Canonical_Lbl_Tab.update (l, refs) (!tab)
+          fun get_successors l = Canonical_Label_Tab.lookup_list (!tab) l
+          fun set_successors l refs = tab := Canonical_Label_Tab.update (l, refs) (!tab)
           fun replace_successor old new dest =
             get_successors dest
             |> Ord_List.remove canonical_label_ord old
@@ -179,8 +181,7 @@ fun compress_proof compress_isar
               Played time => elim_subproofs' time qs fix l t lfs gfs meth subproofs []
             | _ => step)
 
-      (** top_level compression: eliminate steps by merging them into their
-          successors **)
+      (** top_level compression: eliminate steps by merging them into their successors **)
 
       fun compress_top_level steps =
         let
@@ -193,10 +194,12 @@ fun compress_proof compress_isar
 
           val cand_ord = pairself cand_key #> compression_ord
 
-          fun pop_next_cand candidates =
-            (case max_list cand_ord candidates of
-              NONE => (NONE, [])
-            | cand as SOME (i, _, _) => (cand, filter_out (fn (j, _, _) => j = i) candidates))
+          fun pop_next_cand [] = (NONE, [])
+            | pop_next_cand (cands as (cand :: cands')) =
+              let
+                val best as (i, _, _) =
+                  fold (fn x => fn y => if cand_ord (x, y) = GREATER then x else y) cands' cand
+              in (SOME best, filter_out (fn (j, _, _) => j = i) cands) end
 
           val candidates =
             let

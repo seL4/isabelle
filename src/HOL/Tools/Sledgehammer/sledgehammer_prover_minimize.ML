@@ -40,6 +40,7 @@ struct
 open ATP_Util
 open ATP_Proof
 open ATP_Problem_Generate
+open ATP_Proof_Reconstruct
 open ATP_Systems
 open Sledgehammer_Util
 open Sledgehammer_Fact
@@ -48,6 +49,47 @@ open Sledgehammer_Isar
 open Sledgehammer_Prover
 open Sledgehammer_Prover_ATP
 open Sledgehammer_Prover_SMT
+
+fun run_reconstructor mode name (params as {debug, verbose, timeout, type_enc, lam_trans, ...})
+    minimize_command
+    ({state, subgoal, subgoal_count, factss = (_, facts) :: _, ...} : prover_problem) =
+  let
+    val reconstr =
+      if name = metisN then
+        Metis (type_enc |> the_default (hd partial_type_encs),
+               lam_trans |> the_default default_metis_lam_trans)
+      else if name = smtN then
+        SMT
+      else
+        raise Fail ("unknown reconstructor: " ^ quote name)
+    val used_facts = facts |> map fst
+  in
+    (case play_one_line_proof (if mode = Minimize then Normal else mode) debug verbose timeout facts
+       state subgoal reconstr [reconstr] of
+      play as (_, Played time) =>
+      {outcome = NONE, used_facts = used_facts, used_from = facts, run_time = time,
+       preplay = Lazy.value play,
+       message =
+         fn play =>
+            let
+              val (_, override_params) = extract_reconstructor params reconstr
+              val one_line_params =
+                (play, proof_banner mode name, used_facts, minimize_command override_params name,
+                 subgoal, subgoal_count)
+              val num_chained = length (#facts (Proof.goal state))
+            in
+              one_line_proof_text num_chained one_line_params
+            end,
+       message_tail = ""}
+    | play =>
+      let
+        val failure = (case play of (_, Play_Failed) => GaveUp | _ => TimedOut)
+      in
+        {outcome = SOME failure, used_facts = [], used_from = [],
+         run_time = Time.zeroTime, preplay = Lazy.value play,
+         message = fn _ => string_of_atp_failure failure, message_tail = ""}
+      end)
+  end
 
 fun is_prover_supported ctxt =
   let val thy = Proof_Context.theory_of ctxt in

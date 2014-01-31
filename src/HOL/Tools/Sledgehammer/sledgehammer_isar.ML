@@ -26,12 +26,10 @@ struct
 open ATP_Util
 open ATP_Problem
 open ATP_Proof
-open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
 open Sledgehammer_Util
 open Sledgehammer_Reconstructor
 open Sledgehammer_Isar_Proof
-open Sledgehammer_Isar_Annotate
 open Sledgehammer_Isar_Preplay
 open Sledgehammer_Isar_Compress
 open Sledgehammer_Isar_Try0
@@ -344,7 +342,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
         and isar_proof outer fix assms lems infs =
           Proof (fix, assms, lems @ isar_steps outer NONE [] infs)
 
-        val (preplay_interface as {overall_preplay_outcome, ...}, isar_proof) =
+        val (preplay_data as {overall_preplay_outcome, ...}, isar_proof) =
           refute_graph
 (*
           |> tap (tracing o prefix "Refute graph: " o string_of_refute_graph)
@@ -356,15 +354,14 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
           |> isar_proof true params assms lems
           |> postprocess_remove_unreferenced_steps I
           |> relabel_proof_canonically
-          |> `(proof_preplay_interface debug ctxt metis_type_enc metis_lam_trans do_preplay
+          |> `(proof_preplay_data debug ctxt metis_type_enc metis_lam_trans do_preplay
                preplay_timeout)
 
         val (play_outcome, isar_proof) =
           isar_proof
-          |> compress_proof (if isar_proofs = SOME true then compress_isar else 1000.0)
-               preplay_interface
-          |> try0_isar ? try0 preplay_timeout preplay_interface
-          |> postprocess_remove_unreferenced_steps (try0_isar ? min_deps_of_step preplay_interface)
+          |> compress_proof (if isar_proofs = SOME true then compress_isar else 1000.0) preplay_data
+          |> try0_isar ? try0_isar_proof preplay_timeout preplay_data
+          |> postprocess_remove_unreferenced_steps (try0_isar ? minimal_deps_of_step preplay_data)
           |> `overall_preplay_outcome
           ||> (chain_direct_proof #> kill_useless_labels_in_proof #> relabel_proof)
 
@@ -381,7 +378,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
           let
             val msg =
               (if verbose then
-                let val num_steps = add_proof_steps (steps_of_proof isar_proof) 0 in
+                let val num_steps = add_isar_steps (steps_of_proof isar_proof) 0 in
                   [string_of_int num_steps ^ " step" ^ plural_s num_steps]
                 end
                else

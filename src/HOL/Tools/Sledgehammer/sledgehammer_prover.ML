@@ -65,10 +65,6 @@ sig
     params -> ((string * string list) list -> string -> minimize_command)
     -> prover_problem -> prover_result
 
-  val dest_dir : string Config.T
-  val problem_prefix : string Config.T
-  val completish : bool Config.T
-  val atp_full_names : bool Config.T
   val SledgehammerN : string
   val plain_metis : reconstructor
   val overlord_file_location_of_prover : string -> string * string
@@ -76,13 +72,8 @@ sig
   val extract_reconstructor : params -> reconstructor -> string * (string * string list) list
   val is_reconstructor : string -> bool
   val is_atp : theory -> string -> bool
-  val is_ho_atp: Proof.context -> string -> bool
-  val supported_provers : Proof.context -> unit
-  val kill_provers : unit -> unit
-  val running_provers : unit -> unit
-  val messages : int option -> unit
-  val is_fact_chained : (('a * stature) * 'b) -> bool
   val bunch_of_reconstructors : bool -> (bool -> string) -> reconstructor list
+  val is_fact_chained : (('a * stature) * 'b) -> bool
   val filter_used_facts :
     bool -> (''a * stature) list -> ((''a * stature) * 'b) list ->
     ((''a * stature) * 'b) list
@@ -94,7 +85,11 @@ sig
     string -> reconstructor * play_outcome -> 'a
   val repair_monomorph_context : int option -> int -> int option -> int -> Proof.context ->
     Proof.context
-  val run_reconstructor : mode -> string -> prover
+
+  val supported_provers : Proof.context -> unit
+  val kill_provers : unit -> unit
+  val running_provers : unit -> unit
+  val messages : int option -> unit
 end;
 
 structure Sledgehammer_Prover : SLEDGEHAMMER_PROVER =
@@ -102,25 +97,12 @@ struct
 
 open ATP_Util
 open ATP_Problem
-open ATP_Proof
 open ATP_Systems
 open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
 open Metis_Tactic
-open Sledgehammer_Util
 open Sledgehammer_Fact
 open Sledgehammer_Reconstructor
-open Sledgehammer_Isar
-
-(* Empty string means create files in Isabelle's temporary files directory. *)
-val dest_dir = Attrib.setup_config_string @{binding sledgehammer_dest_dir} (K "")
-val problem_prefix = Attrib.setup_config_string @{binding sledgehammer_problem_prefix} (K "prob")
-val completish = Attrib.setup_config_bool @{binding sledgehammer_completish} (K false)
-
-(* In addition to being easier to read, readable names are often much shorter,
-   especially if types are mangled in names. This makes a difference for some
-   provers (e.g., E). For these reason, short names are enabled by default. *)
-val atp_full_names = Attrib.setup_config_bool @{binding sledgehammer_atp_full_names} (K false)
 
 datatype mode = Auto_Try | Try | Normal | MaSh | Auto_Minimize | Minimize
 
@@ -134,16 +116,6 @@ val is_reconstructor = member (op =) reconstructor_names
 
 val is_atp = member (op =) o supported_atps
 
-fun is_atp_of_format is_format ctxt name =
-  let val thy = Proof_Context.theory_of ctxt in
-    (case try (get_atp thy) name of
-      SOME config =>
-      exists (fn (_, ((_, format, _, _, _), _)) => is_format format) (#best_slices (config ()) ctxt)
-    | NONE => false)
-  end
-
-val is_ho_atp = is_atp_of_format is_format_higher_order
-
 fun remotify_atp_if_supported_and_not_already_remote thy name =
   if String.isPrefix remote_prefix name then
     SOME name
@@ -155,23 +127,6 @@ fun remotify_atp_if_supported_and_not_already_remote thy name =
 fun remotify_atp_if_not_installed thy name =
   if is_atp thy name andalso is_atp_installed thy name then SOME name
   else remotify_atp_if_supported_and_not_already_remote thy name
-
-fun supported_provers ctxt =
-  let
-    val thy = Proof_Context.theory_of ctxt
-    val (remote_provers, local_provers) =
-      reconstructor_names @
-      sort_strings (supported_atps thy) @
-      sort_strings (SMT_Solver.available_solvers_of ctxt)
-      |> List.partition (String.isPrefix remote_prefix)
-  in
-    Output.urgent_message ("Supported provers: " ^
-                           commas (local_provers @ remote_provers) ^ ".")
-  end
-
-fun kill_provers () = Async_Manager.kill_threads SledgehammerN "prover"
-fun running_provers () = Async_Manager.running_threads SledgehammerN "prover"
-val messages = Async_Manager.thread_messages SledgehammerN "prover"
 
 type params =
   {debug : bool,
@@ -334,45 +289,21 @@ fun repair_monomorph_context max_iters best_max_iters max_new_instances best_max
        (max_new_instances |> the_default best_max_new_instances)
   #> Config.put Monomorph.max_thm_instances max_fact_instances
 
-fun run_reconstructor mode name (params as {debug, verbose, timeout, type_enc, lam_trans, ...})
-    minimize_command
-    ({state, subgoal, subgoal_count, factss = (_, facts) :: _, ...} : prover_problem) =
+fun supported_provers ctxt =
   let
-    val reconstr =
-      if name = metisN then
-        Metis (type_enc |> the_default (hd partial_type_encs),
-               lam_trans |> the_default default_metis_lam_trans)
-      else if name = smtN then
-        SMT
-      else
-        raise Fail ("unknown reconstructor: " ^ quote name)
-    val used_facts = facts |> map fst
+    val thy = Proof_Context.theory_of ctxt
+    val (remote_provers, local_provers) =
+      reconstructor_names @
+      sort_strings (supported_atps thy) @
+      sort_strings (SMT_Solver.available_solvers_of ctxt)
+      |> List.partition (String.isPrefix remote_prefix)
   in
-    (case play_one_line_proof (if mode = Minimize then Normal else mode) debug verbose timeout facts
-       state subgoal reconstr [reconstr] of
-      play as (_, Played time) =>
-      {outcome = NONE, used_facts = used_facts, used_from = facts, run_time = time,
-       preplay = Lazy.value play,
-       message =
-         fn play =>
-            let
-              val (_, override_params) = extract_reconstructor params reconstr
-              val one_line_params =
-                (play, proof_banner mode name, used_facts, minimize_command override_params name,
-                 subgoal, subgoal_count)
-              val num_chained = length (#facts (Proof.goal state))
-            in
-              one_line_proof_text num_chained one_line_params
-            end,
-       message_tail = ""}
-    | play =>
-      let
-        val failure = (case play of (_, Play_Failed) => GaveUp | _ => TimedOut)
-      in
-        {outcome = SOME failure, used_facts = [], used_from = [],
-         run_time = Time.zeroTime, preplay = Lazy.value play,
-         message = fn _ => string_of_atp_failure failure, message_tail = ""}
-      end)
+    Output.urgent_message ("Supported provers: " ^
+                           commas (local_provers @ remote_provers) ^ ".")
   end
+
+fun kill_provers () = Async_Manager.kill_threads SledgehammerN "prover"
+fun running_provers () = Async_Manager.running_threads SledgehammerN "prover"
+val messages = Async_Manager.thread_messages SledgehammerN "prover"
 
 end;

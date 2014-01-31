@@ -56,7 +56,7 @@ else
 
 ML {*
 if do_it then
-  generate_features @{context} prover thys (prefix ^ "mash_features")
+  generate_features @{context} thys (prefix ^ "mash_features")
 else
   ()
 *}

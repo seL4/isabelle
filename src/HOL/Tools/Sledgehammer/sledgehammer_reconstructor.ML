@@ -24,10 +24,9 @@ sig
     (reconstructor * play_outcome) * string * (string * stature) list * minimize_command * int * int
 
   val smtN : string
+
   val string_of_reconstructor : reconstructor -> string
   val string_of_play_outcome : play_outcome -> string
-  val reconstructor_command : reconstructor -> int -> int -> string list -> int -> string list ->
-    string
   val one_line_proof_text : int -> one_line_params -> string
 
   val silence_reconstructors : bool -> Proof.context -> Proof.context

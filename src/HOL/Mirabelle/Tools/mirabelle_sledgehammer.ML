@@ -418,8 +418,8 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
     val {context = ctxt, facts = chained_ths, goal} = Proof.goal st
     val i = 1
     fun set_file_name (SOME dir) =
-        Config.put Sledgehammer_Prover.dest_dir dir
-        #> Config.put Sledgehammer_Prover.problem_prefix
+        Config.put Sledgehammer_Prover_ATP.atp_dest_dir dir
+        #> Config.put Sledgehammer_Prover_ATP.atp_problem_prefix
           ("prob_" ^ str0 (Position.line_of pos) ^ "__")
         #> Config.put SMT_Config.debug_files
           (dir ^ "/" ^ Name.desymbolize false (ATP_Util.timestamp ()) ^ "_"
@@ -467,7 +467,7 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
          : Sledgehammer_Prover.prover_result,
          time_isa) = time_limit (Mirabelle.cpu_time (fn () =>
       let
-        val ho_atp = Sledgehammer_Prover.is_ho_atp ctxt prover_name
+        val ho_atp = Sledgehammer_Prover_ATP.is_ho_atp ctxt prover_name
         val reserved = Sledgehammer_Util.reserved_isar_keyword_table ()
         val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
         val facts =

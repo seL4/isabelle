@@ -29,6 +29,7 @@ open Sledgehammer_Fact
 open Sledgehammer_MePo
 open Sledgehammer_MaSh
 open Sledgehammer_Prover
+open Sledgehammer_Prover_ATP
 open Sledgehammer_Commands
 
 val prefix = Library.prefix
@@ -125,8 +126,8 @@ fun evaluate_mash_suggestions ctxt params range linearize methods prob_dir_name
                   "goal_" ^ string_of_int j ^ "__" ^ encode_str name ^ "__" ^
                   method
               in
-                Config.put dest_dir dir
-                #> Config.put problem_prefix (prob_prefix ^ "__")
+                Config.put atp_dest_dir dir
+                #> Config.put atp_problem_prefix (prob_prefix ^ "__")
                 #> Config.put SMT_Config.debug_files (dir ^ "/" ^ prob_prefix)
               end
             | set_file_name _ NONE = I

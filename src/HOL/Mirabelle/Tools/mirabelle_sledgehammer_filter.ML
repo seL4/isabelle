@@ -109,7 +109,7 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
            extract_relevance_fudge args Sledgehammer_MePo.default_relevance_fudge
          val subgoal = 1
          val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal goal subgoal ctxt
-         val ho_atp = Sledgehammer_Prover.is_ho_atp ctxt prover
+         val ho_atp = Sledgehammer_Prover_ATP.is_ho_atp ctxt prover
          val reserved = Sledgehammer_Util.reserved_isar_keyword_table ()
          val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
          val facts =

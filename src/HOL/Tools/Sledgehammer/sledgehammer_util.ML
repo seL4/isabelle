@@ -14,7 +14,6 @@ sig
   val serial_commas : string -> string list -> string list
   val simplify_spaces : string -> string
   val with_cleanup : ('a -> unit) -> ('a -> 'b) -> 'a -> 'b
-  val infinite_timeout : Time.time
   val time_mult : real -> Time.time -> Time.time
   val parse_bool_option : bool -> string -> string -> bool option
   val parse_time : string -> string -> Time.time
@@ -27,11 +26,6 @@ sig
   val with_vanilla_print_mode : ('a -> 'b) -> 'a -> 'b
   val hackish_string_of_term : Proof.context -> term -> string
   val spying : bool -> (unit -> Proof.state * int * string * string) -> unit
-
-  (** extrema **)
-  val max : ('a * 'a -> order) -> 'a -> 'a -> 'a
-  val max_option : ('a * 'a -> order) -> 'a option -> 'a option -> 'a option
-  val max_list : ('a * 'a -> order) -> 'a list -> 'a option
 end;
 
 structure Sledgehammer_Util : SLEDGEHAMMER_UTIL =
@@ -42,7 +36,6 @@ open ATP_Util
 val sledgehammerN = "sledgehammer"
 
 val log10_2 = Math.log10 2.0
-
 fun log2 n = Math.log10 n / log10_2
 
 fun app_hd f (x :: xs) = f x :: xs
@@ -63,10 +56,7 @@ fun with_cleanup clean_up f x =
   |> tap (fn _ => clean_up x)
   |> Exn.release
 
-val infinite_timeout = seconds 31536000.0 (* one year *)
-
-fun time_mult k t =
-  Time.fromMilliseconds (Real.ceil (k * Real.fromInt (Time.toMilliseconds t)))
+fun time_mult k t = Time.fromMilliseconds (Real.ceil (k * Real.fromInt (Time.toMilliseconds t)))
 
 fun parse_bool_option option name s =
   (case s of
@@ -160,13 +150,5 @@ fun spying false _ = ()
       File.append (Path.explode "$ISABELLE_HOME_USER/spy_sledgehammer")
         (spying_version ^ " " ^ timestamp () ^ ": " ^ hash ^ ": " ^ tool ^ ": " ^ message ^ "\n")
     end
-
-(** extrema **)
-
-fun max ord x y = case ord(x,y) of LESS => y | _ => x
-
-fun max_option ord = max (option_ord ord)
-
-fun max_list ord xs = fold (SOME #> max_option ord) xs NONE
 
 end;

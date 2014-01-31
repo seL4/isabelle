@@ -20,25 +20,22 @@ sig
 
   val instantiate_inducts : bool Config.T
   val no_fact_override : fact_override
-  val fact_of_ref :
-    Proof.context -> unit Symtab.table -> thm list -> status Termtab.table
-    -> Facts.ref * Attrib.src list -> ((string * stature) * thm) list
+
+  val fact_of_ref : Proof.context -> unit Symtab.table -> thm list -> status Termtab.table ->
+    Facts.ref * Attrib.src list -> ((string * stature) * thm) list
   val backquote_thm : Proof.context -> thm -> string
   val is_blacklisted_or_something : Proof.context -> bool -> string -> bool
   val clasimpset_rule_table_of : Proof.context -> status Termtab.table
-  val build_name_tables :
-    (thm -> string) -> ('a * thm) list
-    -> string Symtab.table * string Symtab.table
-  val maybe_instantiate_inducts :
-    Proof.context -> term list -> term -> (((unit -> string) * 'a) * thm) list
-    -> (((unit -> string) * 'a) * thm) list
+  val build_name_tables : (thm -> string) -> ('a * thm) list ->
+    string Symtab.table * string Symtab.table
+  val maybe_instantiate_inducts : Proof.context -> term list -> term ->
+    (((unit -> string) * 'a) * thm) list -> (((unit -> string) * 'a) * thm) list
   val fact_of_raw_fact : raw_fact -> fact
-  val all_facts :
-    Proof.context -> bool -> bool -> unit Symtab.table -> thm list -> thm list
-    -> status Termtab.table -> raw_fact list
-  val nearly_all_facts :
-    Proof.context -> bool -> fact_override -> unit Symtab.table
-    -> status Termtab.table -> thm list -> term list -> term -> raw_fact list
+
+  val all_facts : Proof.context -> bool -> bool -> unit Symtab.table -> thm list -> thm list ->
+    status Termtab.table -> raw_fact list
+  val nearly_all_facts : Proof.context -> bool -> fact_override -> unit Symtab.table ->
+    status Termtab.table -> thm list -> term list -> term -> raw_fact list
   val drop_duplicate_facts : raw_fact list -> raw_fact list
 end;
 
@@ -47,7 +44,6 @@ struct
 
 open ATP_Util
 open ATP_Problem_Generate
-open Metis_Tactic
 open Sledgehammer_Util
 
 type raw_fact = ((unit -> string) * stature) * thm

@@ -182,7 +182,7 @@ fun nitpick_finite_oracle_tac ctxt timeout i th =
 fun atp_tac ctxt completeness override_params timeout prover =
   let
     val ctxt =
-      ctxt |> Config.put Sledgehammer_Prover.completish (completeness > 0)
+      ctxt |> Config.put Sledgehammer_Prover_ATP.atp_completish (completeness > 0)
     fun ref_of th = (Facts.named (Thm.derivation_name th), [])
   in
     Sledgehammer_Tactics.sledgehammer_as_oracle_tac ctxt

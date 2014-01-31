@@ -18,9 +18,8 @@ sig
   datatype mode = Metis | Sledgehammer | Sledgehammer_Completish | Exporter | Translator
 
   datatype scope = Global | Local | Assum | Chained
-  datatype status =
-    General | Induction | Intro | Inductive | Elim | Simp | Non_Rec_Def |
-    Rec_Def
+  datatype status = General | Induction | Intro | Inductive | Elim | Simp | Non_Rec_Def | Rec_Def
+
   type stature = scope * status
 
   datatype strictness = Strict | Non_Strict
@@ -130,8 +129,8 @@ open ATP_Problem
 datatype mode = Metis | Sledgehammer | Sledgehammer_Completish | Exporter | Translator
 
 datatype scope = Global | Local | Assum | Chained
-datatype status =
-  General | Induction | Intro | Inductive | Elim | Simp | Non_Rec_Def | Rec_Def
+datatype status = General | Induction | Intro | Inductive | Elim | Simp | Non_Rec_Def | Rec_Def
+
 type stature = scope * status
 
 datatype order =
@@ -906,7 +905,7 @@ fun raw_atp_type_of_typ type_enc =
                else
                  `make_fixed_type_const s, []), map term Ts)
     | term (TFree (s, _)) = AType ((`make_tfree s, []), [])
-    | term (TVar (z as (_, S))) = AType ((tvar_name z, []), [])
+    | term (TVar z) = AType ((tvar_name z, []), [])
   in term end
 
 fun atp_term_of_atp_type (AType ((name, _), tys)) = ATerm ((name, []), map atp_term_of_atp_type tys)
@@ -1266,8 +1265,8 @@ fun presimp_prop ctxt type_enc t =
   end
   handle TERM _ => @{const True}
 
-(* Satallax prefers "=" to "<=>" (for definitions) and Metis (CNF) requires "="
-   for technical reasons. *)
+(* Satallax prefers "=" to "<=>" (for definitions) and Metis (CNF) requires "=" for technical
+   reasons. *)
 fun should_use_iff_for_eq CNF _ = false
   | should_use_iff_for_eq (THF _) format = not (is_type_enc_higher_order format)
   | should_use_iff_for_eq _ _ = true
@@ -1305,14 +1304,8 @@ fun make_fact ctxt format type_enc iff_for_eq
 fun make_conjecture ctxt format type_enc =
   map (fn ((name, stature), (role, t)) =>
           let
-            (* FIXME: The commented-out code is a hack to get decent performance
-               out of LEO-II on the TPTP THF benchmarks. *)
             val role =
-              if (* is_format_with_defs format andalso *)
-                 role <> Conjecture andalso is_legitimate_tptp_def t then
-                Definition
-              else
-                role
+              if role <> Conjecture andalso is_legitimate_tptp_def t then Definition else role
           in
             t |> role = Conjecture ? s_not
               |> make_formula ctxt format type_enc true name stature role
@@ -2526,6 +2519,7 @@ fun do_uncurried_alias_lines_of_sym ctxt ctrss mono type_enc sym_tab0 sym_tab
             else pair_append (do_alias (ary - 1)))
       end
   in do_alias end
+
 fun uncurried_alias_lines_of_sym ctxt ctrss mono type_enc sym_tab0 sym_tab
         (s, {min_ary, types, in_conj, ...} : sym_info) =
   (case unprefix_and_unascii const_prefix s of
@@ -2538,6 +2532,7 @@ fun uncurried_alias_lines_of_sym ctxt ctrss mono type_enc sym_tab0 sym_tab
     else
       ([], [])
   | NONE => ([], []))
+
 fun uncurried_alias_lines_of_sym_table ctxt ctrss mono type_enc uncurried_aliases sym_tab0 sym_tab =
   ([], [])
   |> uncurried_aliases
@@ -2619,9 +2614,8 @@ fun all_ctrss_of_datatypes ctxt =
 
 val app_op_and_predicator_threshold = 45
 
-fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
-                        uncurried_aliases readable_names presimp hyp_ts concl_t
-                        facts =
+fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans uncurried_aliases
+    readable_names presimp hyp_ts concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
     val type_enc = type_enc |> adjust_type_enc format

@@ -25,18 +25,15 @@ sig
   val smt_slice_time_frac : real Config.T
   val smt_slice_min_secs : int Config.T
 
-  val select_smt_solver : string -> Proof.context -> Proof.context
   val is_smt_prover : Proof.context -> string -> bool
-  val weight_smt_fact : Proof.context -> int -> ((string * stature) * thm) * int
-    -> (string * stature) * (int option * thm)
   val run_smt_solver : mode -> string -> prover
 end;
 
 structure Sledgehammer_Prover_SMT : SLEDGEHAMMER_PROVER_SMT =
 struct
 
-open ATP_Proof
 open ATP_Util
+open ATP_Proof
 open ATP_Systems
 open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
@@ -50,30 +47,24 @@ val smt_weights = Attrib.setup_config_bool @{binding sledgehammer_smt_weights} (
 val smt_weight_min_facts =
   Attrib.setup_config_int @{binding sledgehammer_smt_weight_min_facts} (K 20)
 
-val select_smt_solver = Context.proof_map o SMT_Config.select_solver
-
 fun is_smt_prover ctxt = member (op =) (SMT_Solver.available_solvers_of ctxt)
 
 (* FUDGE *)
-val smt_min_weight =
-  Attrib.setup_config_int @{binding sledgehammer_smt_min_weight} (K 0)
-val smt_max_weight =
-  Attrib.setup_config_int @{binding sledgehammer_smt_max_weight} (K 10)
+val smt_min_weight = Attrib.setup_config_int @{binding sledgehammer_smt_min_weight} (K 0)
+val smt_max_weight = Attrib.setup_config_int @{binding sledgehammer_smt_max_weight} (K 10)
 val smt_max_weight_index =
   Attrib.setup_config_int @{binding sledgehammer_smt_max_weight_index} (K 200)
 val smt_weight_curve = Unsynchronized.ref (fn x : int => x * x)
 
 fun smt_fact_weight ctxt j num_facts =
-  if Config.get ctxt smt_weights andalso
-     num_facts >= Config.get ctxt smt_weight_min_facts then
+  if Config.get ctxt smt_weights andalso num_facts >= Config.get ctxt smt_weight_min_facts then
     let
       val min = Config.get ctxt smt_min_weight
       val max = Config.get ctxt smt_max_weight
       val max_index = Config.get ctxt smt_max_weight_index
       val curve = !smt_weight_curve
     in
-      SOME (max - (max - min + 1) * curve (Int.max (0, max_index - j - 1))
-            div curve max_index)
+      SOME (max - (max - min + 1) * curve (Int.max (0, max_index - j - 1)) div curve max_index)
     end
   else
     NONE
@@ -120,7 +111,7 @@ fun smt_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instanc
       ...} : params) state goal i =
   let
     fun repair_context ctxt =
-      ctxt |> select_smt_solver name
+      ctxt |> Context.proof_map (SMT_Config.select_solver name)
            |> Config.put SMT_Config.verbose debug
            |> (if overlord then
                  Config.put SMT_Config.debug_files
@@ -139,7 +130,7 @@ fun smt_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instanc
     val max_slices = if slice then Config.get ctxt smt_max_slices else 1
 
     fun do_slice timeout slice outcome0 time_so_far
-                 (weighted_factss as (fact_filter, weighted_facts) :: _) =
+        (weighted_factss as (fact_filter, weighted_facts) :: _) =
       let
         val timer = Timer.startRealTimer ()
         val slice_timeout =
@@ -259,9 +250,8 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...}) 
       | SOME failure =>
         (Lazy.value (plain_metis, Play_Failed), fn _ => string_of_atp_failure failure, ""))
   in
-    {outcome = outcome, used_facts = used_facts, used_from = used_from,
-     run_time = run_time, preplay = preplay, message = message,
-     message_tail = message_tail}
+    {outcome = outcome, used_facts = used_facts, used_from = used_from, run_time = run_time,
+     preplay = preplay, message = message, message_tail = message_tail}
   end
 
 end;

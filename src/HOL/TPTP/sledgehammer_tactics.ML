@@ -21,6 +21,7 @@ struct
 open Sledgehammer_Util
 open Sledgehammer_Fact
 open Sledgehammer_Prover
+open Sledgehammer_Prover_ATP
 open Sledgehammer_Prover_Minimize
 open Sledgehammer_MaSh
 open Sledgehammer_Commands

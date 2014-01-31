@@ -11,6 +11,13 @@ sig
   type mode = Sledgehammer_Prover.mode
   type prover = Sledgehammer_Prover.prover
 
+  val atp_dest_dir : string Config.T
+  val atp_problem_prefix : string Config.T
+  val atp_completish : bool Config.T
+  val atp_full_names : bool Config.T
+
+  val is_ho_atp : Proof.context -> string -> bool
+
   val run_atp : mode -> string -> prover
 end;
 
@@ -27,6 +34,26 @@ open Sledgehammer_Util
 open Sledgehammer_Reconstructor
 open Sledgehammer_Isar
 open Sledgehammer_Prover
+
+(* Empty string means create files in Isabelle's temporary files directory. *)
+val atp_dest_dir = Attrib.setup_config_string @{binding sledgehammer_atp_dest_dir} (K "")
+val atp_problem_prefix =
+  Attrib.setup_config_string @{binding sledgehammer_atp_problem_prefix} (K "prob")
+val atp_completish = Attrib.setup_config_bool @{binding sledgehammer_atp_completish} (K false)
+(* In addition to being easier to read, readable names are often much shorter, especially if types
+   are mangled in names. This makes a difference for some provers (e.g., E). For these reason, short
+   names are enabled by default. *)
+val atp_full_names = Attrib.setup_config_bool @{binding sledgehammer_atp_full_names} (K false)
+
+fun is_atp_of_format is_format ctxt name =
+  let val thy = Proof_Context.theory_of ctxt in
+    (case try (get_atp thy) name of
+      SOME config =>
+      exists (fn (_, ((_, format, _, _, _), _)) => is_format format) (#best_slices (config ()) ctxt)
+    | NONE => false)
+  end
+
+val is_ho_atp = is_atp_of_format is_format_higher_order
 
 fun choose_type_enc strictness best_type_enc format =
   the_default best_type_enc
@@ -115,11 +142,11 @@ fun run_atp mode name
     val {exec, arguments, proof_delims, known_failures, prem_role, best_slices, best_max_mono_iters,
       best_max_new_mono_instances, ...} = get_atp thy name ()
 
-    val atp_mode = if Config.get ctxt completish then Sledgehammer_Completish else Sledgehammer
+    val atp_mode = if Config.get ctxt atp_completish then Sledgehammer_Completish else Sledgehammer
     val (_, hyp_ts, concl_t) = strip_subgoal goal subgoal ctxt
     val (dest_dir, problem_prefix) =
       if overlord then overlord_file_location_of_prover name
-      else (Config.get ctxt dest_dir, Config.get ctxt problem_prefix)
+      else (Config.get ctxt atp_dest_dir, Config.get ctxt atp_problem_prefix)
     val problem_file_name =
       Path.basic (problem_prefix ^ (if overlord then "" else serial_string ()) ^
                   suffix_of_mode mode ^ "_" ^ string_of_int subgoal)
@@ -171,6 +198,7 @@ fun run_atp mode name
               NONE => max_facts_of_slices I all_slices
             | SOME max => max)
           / Real.fromInt (max_facts_of_slices snd actual_slices)
+
         fun monomorphize_facts facts =
           let
             val ctxt =
