@@ -362,7 +362,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
 
         fun trace_isar_proof label proof =
           if trace then
-            tracing (timestamp () ^ "\n" ^ label ^ ":\n\n" ^ string_of_isar_proof proof ^ "\n")
+            tracing (timestamp () ^ "\n" ^ label ^ ":\n\n" ^ string_of_isar_proof true proof ^ "\n")
           else
             ()
 
@@ -380,7 +380,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
           |> `overall_preplay_outcome
           ||> (chain_direct_proof #> kill_useless_labels_in_proof #> relabel_proof)
       in
-        (case string_of_isar_proof isar_proof of
+        (case string_of_isar_proof false isar_proof of
           "" =>
           if isar_proofs = SOME true then "\nNo structured proof available (proof too simple)."
           else ""

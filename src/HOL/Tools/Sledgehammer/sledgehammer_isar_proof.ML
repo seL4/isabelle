@@ -13,15 +13,16 @@ sig
 
   datatype isar_qualifier = Show | Then
 
+  datatype proof_method =
+    Metis_Method | Simp_Method | Simp_Size_Method | Auto_Method | Fastforce_Method | Force_Method |
+    Arith_Method | Blast_Method | Meson_Method
+
   datatype isar_proof =
     Proof of (string * typ) list * (label * term) list * isar_step list
   and isar_step =
     Let of term * term |
     Prove of isar_qualifier list * (string * typ) list * label * term * isar_proof list *
       (facts * proof_method list list)
-  and proof_method =
-    Metis_Method | Simp_Method | Simp_Size_Method | Auto_Method | Fastforce_Method | Force_Method |
-    Arith_Method | Blast_Method | Meson_Method
 
   val no_label : label
   val no_facts : facts
@@ -43,7 +44,8 @@ sig
   val canonical_label_ord : (label * label) -> order
   val relabel_isar_proof_canonically : isar_proof -> isar_proof
 
-  val string_of_isar_proof : Proof.context -> string -> string -> int -> int -> isar_proof -> string
+  val string_of_isar_proof : Proof.context -> string -> string -> int -> int -> bool ->
+    isar_proof -> string
 end;
 
 structure Sledgehammer_Isar_Proof : SLEDGEHAMMER_ISAR_PROOF =
@@ -62,15 +64,16 @@ type facts = label list * string list (* local and global facts *)
 
 datatype isar_qualifier = Show | Then
 
+datatype proof_method =
+  Metis_Method | Simp_Method | Simp_Size_Method | Auto_Method | Fastforce_Method | Force_Method |
+  Arith_Method | Blast_Method | Meson_Method
+
 datatype isar_proof =
   Proof of (string * typ) list * (label * term) list * isar_step list
 and isar_step =
   Let of term * term |
   Prove of isar_qualifier list * (string * typ) list * label * term * isar_proof list *
     (facts * proof_method list list)
-and proof_method =
-  Metis_Method | Simp_Method | Simp_Size_Method | Auto_Method | Fastforce_Method | Force_Method |
-  Arith_Method | Blast_Method | Meson_Method
 
 val no_label = ("", ~1)
 val no_facts = ([],[])
@@ -78,6 +81,18 @@ val no_facts = ([],[])
 val label_ord = pairself swap #> prod_ord int_ord fast_string_ord
 
 fun string_of_label (s, num) = s ^ string_of_int num
+
+fun string_of_method meth =
+  (case meth of
+    Metis_Method => "metis"
+  | Simp_Method => "simp"
+  | Simp_Size_Method => "(simp add: size_ne_size_imp_ne)"
+  | Auto_Method => "auto"
+  | Fastforce_Method => "fastforce"
+  | Force_Method => "force"
+  | Arith_Method => "arith"
+  | Blast_Method => "blast"
+  | Meson_Method => "meson")
 
 fun steps_of_proof (Proof (_, _, steps)) = steps
 
@@ -148,7 +163,7 @@ fun relabel_isar_proof_canonically proof =
 
 val indent_size = 2
 
-fun string_of_isar_proof ctxt type_enc lam_trans i n proof =
+fun string_of_isar_proof ctxt type_enc lam_trans i n all_methods proof =
   let
     (* Make sure only type constraints inserted by the type annotation code are printed. *)
     val ctxt =
@@ -188,18 +203,6 @@ fun string_of_isar_proof ctxt type_enc lam_trans i n proof =
             |> maybe_quote),
        ctxt |> Variable.auto_fixes term)
 
-    fun by_method meth = "by " ^
-      (case meth of
-        Simp_Method => "simp"
-      | Simp_Size_Method => "(simp add: size_ne_size_imp_ne)"
-      | Auto_Method => "auto"
-      | Fastforce_Method => "fastforce"
-      | Force_Method => "force"
-      | Arith_Method => "arith"
-      | Blast_Method => "blast"
-      | Meson_Method => "meson"
-      | _ => raise Fail "Sledgehammer_Isar_Print: by_method")
-
     fun with_facts none _ [] [] = none
       | with_facts _ some ls ss = some (space_implode " " (map string_of_label ls @ ss))
 
@@ -213,7 +216,9 @@ fun string_of_isar_proof ctxt type_enc lam_trans i n proof =
     fun of_method ls ss Metis_Method =
         using_facts ls [] ^ by_facts (metis_call type_enc lam_trans) [] ss
       | of_method ls ss Meson_Method = using_facts ls [] ^ by_facts "meson" [] ss
-      | of_method ls ss meth = using_facts ls ss ^ by_method meth
+      | of_method ls ss meth = using_facts ls ss ^ "by " ^ string_of_method meth
+
+    val str_of_methodss = map (map string_of_method) #> map commas #> space_implode "; "
 
     fun of_free (s, T) =
       maybe_quote s ^ " :: " ^
@@ -256,7 +261,7 @@ fun string_of_isar_proof ctxt type_enc lam_trans i n proof =
         add_str (of_indent ind ^ "let ")
         #> add_term t1 #> add_str " = " #> add_term t2
         #> add_str "\n"
-      | add_step ind (Prove (qs, xs, l, t, subproofs, ((ls, ss), (meth :: _) :: _))) =
+      | add_step ind (Prove (qs, xs, l, t, subproofs, ((ls, ss), (meth :: meths) :: methss))) =
         add_step_pre ind qs subproofs
         #> (case xs of
              [] => add_str (of_have qs (length subproofs) ^ " ")
@@ -265,7 +270,9 @@ fun string_of_isar_proof ctxt type_enc lam_trans i n proof =
         #> add_str (of_label l)
         #> add_term t
         #> add_str (" " ^
-             of_method (sort_distinct label_ord ls) (sort_distinct string_ord ss) meth ^ "\n")
+             of_method (sort_distinct label_ord ls) (sort_distinct string_ord ss) meth ^
+             (if all_methods then " (* " ^ str_of_methodss (meths :: methss) ^ " *)" else "") ^
+             "\n")
     and add_steps ind = fold (add_step ind)
     and of_proof ind ctxt (Proof (xs, assms, steps)) =
       ("", ctxt) |> add_fix ind xs |> add_assms ind assms |> add_steps ind steps |> fst
