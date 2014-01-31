@@ -160,7 +160,7 @@ fun string_of_isar_proof ctxt type_enc lam_trans i n proof =
 
     val register_fixes = map Free #> fold Variable.auto_fixes
 
-    fun add_suffix suffix (s, ctxt) = (s ^ suffix, ctxt)
+    fun add_str s' = apfst (suffix s')
 
     fun of_indent ind = replicate_string (ind * indent_size) " "
     fun of_moreover ind = of_indent ind ^ "moreover\n"
@@ -215,14 +215,6 @@ fun string_of_isar_proof ctxt type_enc lam_trans i n proof =
       | of_method ls ss Meson_Method = using_facts ls [] ^ by_facts "meson" [] ss
       | of_method ls ss meth = using_facts ls ss ^ by_method meth
 
-    fun of_byline ind (ls, ss) meth =
-      let
-        val ls = ls |> sort_distinct label_ord
-        val ss = ss |> sort_distinct string_ord
-      in
-        "\n" ^ of_indent (ind + 1) ^ of_method ls ss meth
-      end
-
     fun of_free (s, T) =
       maybe_quote s ^ " :: " ^
       maybe_quote (simplify_spaces (with_vanilla_print_mode (Syntax.string_of_typ ctxt) T))
@@ -232,21 +224,22 @@ fun string_of_isar_proof ctxt type_enc lam_trans i n proof =
 
     fun add_fix _ [] = I
       | add_fix ind xs =
-        add_suffix (of_indent ind ^ "fix ")
+        add_str (of_indent ind ^ "fix ")
         #> add_frees xs
-        #> add_suffix "\n"
+        #> add_str "\n"
 
     fun add_assm ind (l, t) =
-      add_suffix (of_indent ind ^ "assume " ^ of_label l)
+      add_str (of_indent ind ^ "assume " ^ of_label l)
       #> add_term t
-      #> add_suffix "\n"
+      #> add_str "\n"
 
     fun add_assms ind assms = fold (add_assm ind) assms
 
-    fun add_step_post ind l t facts meth =
-      add_suffix (of_label l)
+    fun add_step_post ind l t (ls, ss) meth =
+      add_str (of_label l)
       #> add_term t
-      #> add_suffix (of_byline ind facts meth ^ "\n")
+      #> add_str (" " ^
+           of_method (sort_distinct label_ord ls) (sort_distinct string_ord ss) meth ^ "\n")
 
     fun of_subproof ind ctxt proof =
       let
@@ -266,19 +259,15 @@ fun string_of_isar_proof ctxt type_enc lam_trans i n proof =
     and add_step_pre ind qs subproofs (s, ctxt) =
       (s ^ of_subproofs ind ctxt qs subproofs ^ of_indent ind, ctxt)
     and add_step ind (Let (t1, t2)) =
-        add_suffix (of_indent ind ^ "let ")
-        #> add_term t1
-        #> add_suffix " = "
-        #> add_term t2
-        #> add_suffix "\n"
+        add_str (of_indent ind ^ "let ")
+        #> add_term t1 #> add_str " = " #> add_term t2
+        #> add_str "\n"
       | add_step ind (Prove (qs, xs, l, t, subproofs, (facts, (meth :: _) :: _))) =
         add_step_pre ind qs subproofs
         #> (case xs of
-            [] => add_suffix (of_have qs (length subproofs) ^ " ")
-          | _ =>
-            add_suffix (of_obtain qs (length subproofs) ^ " ")
-            #> add_frees xs
-            #> add_suffix " where ")
+             [] => add_str (of_have qs (length subproofs) ^ " ")
+           | _ =>
+             add_str (of_obtain qs (length subproofs) ^ " ") #> add_frees xs #> add_str " where ")
         #> add_step_post ind l t facts meth
     and add_steps ind = fold (add_step ind)
     and of_proof ind ctxt (Proof (xs, assms, steps)) =
