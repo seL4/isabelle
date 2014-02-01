@@ -462,4 +462,64 @@ next
   thus "\<exists>i\<le>k. d = p ^ i \<Longrightarrow> d dvd p ^ k" by blast
 qed
 
+subsection {*Chinese Remainder Theorem Variants*}
+
+lemma bezout_gcd_nat:
+  fixes a::nat shows "\<exists>x y. a * x - b * y = gcd a b \<or> b * x - a * y = gcd a b"
+  using bezout_nat[of a b]
+by (metis bezout_nat diff_add_inverse gcd_add_mult_nat gcd_nat.commute 
+  gcd_nat.right_neutral mult_0) 
+
+lemma gcd_bezout_sum_nat:
+  fixes a::nat 
+  assumes "a * x + b * y = d" 
+  shows "gcd a b dvd d"
+proof-
+  let ?g = "gcd a b"
+    have dv: "?g dvd a*x" "?g dvd b * y" 
+      by simp_all
+    from dvd_add[OF dv] assms
+    show ?thesis by auto
+qed
+
+
+text {* A binary form of the Chinese Remainder Theorem. *}
+
+lemma chinese_remainder: 
+  fixes a::nat  assumes ab: "coprime a b" and a: "a \<noteq> 0" and b: "b \<noteq> 0"
+  shows "\<exists>x q1 q2. x = u + q1 * a \<and> x = v + q2 * b"
+proof-
+  from bezout_add_strong_nat[OF a, of b] bezout_add_strong_nat[OF b, of a]
+  obtain d1 x1 y1 d2 x2 y2 where dxy1: "d1 dvd a" "d1 dvd b" "a * x1 = b * y1 + d1" 
+    and dxy2: "d2 dvd b" "d2 dvd a" "b * x2 = a * y2 + d2" by blast
+  then have d12: "d1 = 1" "d2 =1"
+    by (metis ab coprime_nat)+
+  let ?x = "v * a * x1 + u * b * x2"
+  let ?q1 = "v * x1 + u * y2"
+  let ?q2 = "v * y1 + u * x2"
+  from dxy2(3)[simplified d12] dxy1(3)[simplified d12] 
+  have "?x = u + ?q1 * a" "?x = v + ?q2 * b"
+    apply (auto simp add: algebra_simps) 
+    apply (metis mult_Suc_right nat_mult_assoc nat_mult_commute)+
+    done
+  thus ?thesis by blast
+qed
+
+text {* Primality *}
+
+lemma coprime_bezout_strong:
+  fixes a::nat assumes "coprime a b"  "b \<noteq> 1"
+  shows "\<exists>x y. a * x = b * y + 1"
+by (metis assms bezout_nat gcd_nat.left_neutral)
+
+lemma bezout_prime: 
+  assumes p: "prime p" and pa: "\<not> p dvd a"
+  shows "\<exists>x y. a*x = Suc (p*y)"
+proof-
+  have ap: "coprime a p"
+    by (metis gcd_nat.commute p pa prime_imp_coprime_nat) 
+  from coprime_bezout_strong[OF ap] show ?thesis
+    by (metis Suc_eq_plus1 gcd_lcm_complete_lattice_nat.bot.extremum pa) 
+qed
+
 end
