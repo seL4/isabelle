@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/cnf_funcs.ML
+(*  Title:      HOL/Tools/cnf.ML
     Author:     Alwen Tiu, QSL Team, LORIA (http://qsl.loria.fr)
     Author:     Tjark Weber, TU Muenchen
 
@@ -51,7 +51,7 @@ sig
     (* converts all prems of a subgoal to (almost) definitional CNF *)
 end;
 
-structure cnf : CNF =
+structure CNF : CNF =
 struct
 
 val clause2raw_notE      = @{lemma "[| P; ~P |] ==> False" by auto};

@@ -1690,7 +1690,8 @@ val sym = @{thm sym}
 val trans = @{thm trans}
 *}
 
-ML_file "Tools/cnf_funcs.ML"
+ML_file "Tools/cnf.ML"
+
 
 subsection {* Code generator setup *}
 

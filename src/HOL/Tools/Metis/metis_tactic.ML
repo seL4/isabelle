@@ -245,7 +245,7 @@ fun preskolem_tac ctxt st0 =
   (if exists (Meson.has_too_many_clauses ctxt)
              (Logic.prems_of_goal (prop_of st0) 1) then
      Simplifier.full_simp_tac (Meson_Clausify.ss_only @{thms not_all not_ex} ctxt) 1
-     THEN cnf.cnfx_rewrite_tac ctxt 1
+     THEN CNF.cnfx_rewrite_tac ctxt 1
    else
      all_tac) st0
 
