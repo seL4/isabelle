@@ -84,14 +84,6 @@ fun hol_terms_of_metis ctxt type_enc concealed sym_tab fol_tms =
 (* FOL step Inference Rules                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-(*for debugging only*)
-(*
-fun print_thpair ctxt (fth,th) =
-  (trace_msg ctxt (fn () => "=============================================");
-   trace_msg ctxt (fn () => "Metis: " ^ Metis_Thm.toString fth);
-   trace_msg ctxt (fn () => "Isabelle: " ^ Display.string_of_thm_without_context th));
-*)
-
 fun lookth th_pairs fth =
   the (AList.lookup (uncurry Metis_Thm.equal) th_pairs fth)
   handle Option.Option =>
