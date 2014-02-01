@@ -135,9 +135,6 @@ ML {*
       derelict weaken promote1 promote2
       context1 context4a context4b}
     |> Cla.get_pack;
-  
-  fun promote_tac i =
-    REPEAT (resolve_tac @{thms promote0 promote1 promote2} i);
 *}
 
 method_setup best_lazy = {*
