@@ -372,6 +372,12 @@ proof -
   finally show ?thesis .
 qed
 
+lemma fermat_theorem_nat:
+  assumes "prime p" and "~ (p dvd a)"
+  shows "[a^(p - 1) = 1] (mod p)"
+using fermat_theorem [of p a] assms
+by (metis int_1 nat_int of_nat_power prime_int_def transfer_int_nat_cong zdvd_int)
+
 
 subsection {* Wilson's theorem *}
 
