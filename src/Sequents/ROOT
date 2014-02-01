@@ -48,17 +48,9 @@ session Sequents = Pure +
     S4
     S43
 
-session "Sequents-LK" in LK = Sequents +
-  description {*
-    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1992  University of Cambridge
-
-    Examples for Classical Logic.
-  *}
-  options [document = false]
-  theories
-    Propositional
-    Quantifiers
-    Hard_Quantifiers
-    Nat
+    (* Examples for Classical Logic *)
+    "LK/Propositional"
+    "LK/Quantifiers"
+    "LK/Hard_Quantifiers"
+    "LK/Nat"
 

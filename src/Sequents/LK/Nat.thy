@@ -6,7 +6,7 @@
 header {* Theory of the natural numbers: Peano's axioms, primitive recursion *}
 
 theory Nat
-imports LK
+imports "../LK"
 begin
 
 typedecl nat

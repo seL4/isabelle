@@ -6,7 +6,7 @@
 header {* Classical sequent calculus: examples with propositional connectives *}
 
 theory Propositional
-imports LK
+imports "../LK"
 begin
 
 text "absorptive laws of & and | "

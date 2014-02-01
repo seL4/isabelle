@@ -12,7 +12,7 @@ Uses pc_tac rather than fast_tac when the former is significantly faster.
 *)
 
 theory Hard_Quantifiers
-imports LK
+imports "../LK"
 begin
 
 lemma "|- (ALL x. P(x) & Q(x)) <-> (ALL x. P(x))  &  (ALL x. Q(x))"

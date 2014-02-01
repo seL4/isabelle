@@ -6,7 +6,7 @@ Classical sequent calculus: examples with quantifiers.
 *)
 
 theory Quantifiers
-imports LK
+imports "../LK"
 begin
 
 lemma "|- (ALL x. P)  <->  P"
