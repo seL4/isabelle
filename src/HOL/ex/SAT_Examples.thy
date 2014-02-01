@@ -8,9 +8,9 @@ header {* Examples for the 'sat' and 'satx' tactic *}
 theory SAT_Examples imports Main
 begin
 
-(* ML {* sat.solver := "zchaff_with_proofs"; *} *)
-(* ML {* sat.solver := "minisat_with_proofs"; *} *)
-ML {* sat.trace_sat := true; *}
+(* ML {* SAT.solver := "zchaff_with_proofs"; *} *)
+(* ML {* SAT.solver := "minisat_with_proofs"; *} *)
+ML {* SAT.trace_sat := true; *}
 declare [[quick_and_dirty]]
 
 lemma "True"
@@ -24,13 +24,13 @@ by sat
 
 lemma "(a & b) | (c & d) \<Longrightarrow> (a & b) | (c & d)"
 (*
-apply (tactic {* cnf.cnf_rewrite_tac 1 *})
+apply (tactic {* CNF.cnf_rewrite_tac 1 *})
 *)
 by sat
 
 lemma "(a & b) | (c & d) \<Longrightarrow> (a & b) | (c & d)"
 (*
-apply (tactic {* cnf.cnfx_rewrite_tac 1 *})
+apply (tactic {* CNF.cnfx_rewrite_tac 1 *})
 apply (erule exE | erule conjE)+
 *)
 by satx
@@ -38,14 +38,14 @@ by satx
 lemma "(a & b | c & d) & (e & f | g & h) | (i & j | k & l) & (m & n | p & q)
   \<Longrightarrow> (a & b | c & d) & (e & f | g & h) | (i & j | k & l) & (m & n | p & q)"
 (*
-apply (tactic {* cnf.cnf_rewrite_tac 1 *})
+apply (tactic {* CNF.cnf_rewrite_tac 1 *})
 *)
 by sat
 
 lemma "(a & b | c & d) & (e & f | g & h) | (i & j | k & l) & (m & n | p & q)
   \<Longrightarrow> (a & b | c & d) & (e & f | g & h) | (i & j | k & l) & (m & n | p & q)"
 (*
-apply (tactic {* cnf.cnfx_rewrite_tac 1 *})
+apply (tactic {* CNF.cnfx_rewrite_tac 1 *})
 apply (erule exE | erule conjE)+
 *)
 by satx
@@ -77,11 +77,11 @@ text {* eta-Equivalence *}
 lemma "(ALL x. P x) | ~ All P"
 by sat
 
-ML {* sat.trace_sat := false; *}
+ML {* SAT.trace_sat := false; *}
 declare [[quick_and_dirty = false]]
 
 method_setup rawsat = {*
-  Scan.succeed (SIMPLE_METHOD' o sat.rawsat_tac)
+  Scan.succeed (SIMPLE_METHOD' o SAT.rawsat_tac)
 *} "SAT solver (no preprocessing)"
 
 (* Translated from TPTP problem library: PUZ015-2.006.dimacs *)
@@ -520,26 +520,26 @@ the number of resolution steps in the proof.
 *}
 
 (* ML {*
-sat.solver := "zchaff_with_proofs";
-sat.trace_sat := false;
+SAT.solver := "zchaff_with_proofs";
+SAT.trace_sat := false;
 *}
 declare [[quick_and_dirty = false]]
 *)
 
 ML {*
-fun benchmark dimacsfile =
-let
-  val prop_fm = SatSolver.read_dimacs_cnf_file (Path.explode dimacsfile)
-  fun and_to_list (Prop_Logic.And (fm1, fm2)) acc = and_to_list fm2 (fm1 :: acc)
-    | and_to_list fm acc = rev (fm :: acc)
-  val clauses = and_to_list prop_fm []
-  val terms = map (HOLogic.mk_Trueprop o Prop_Logic.term_of_prop_formula) clauses
-  val cterms = map (Thm.cterm_of @{theory}) terms
-  val start = Timing.start ()
-  val _ = sat.rawsat_thm @{context} cterms
-in
-  (Timing.result start, ! sat.counter)
-end;
+  fun benchmark dimacsfile =
+    let
+      val prop_fm = SatSolver.read_dimacs_cnf_file (Path.explode dimacsfile)
+      fun and_to_list (Prop_Logic.And (fm1, fm2)) acc = and_to_list fm2 (fm1 :: acc)
+        | and_to_list fm acc = rev (fm :: acc)
+      val clauses = and_to_list prop_fm []
+      val terms = map (HOLogic.mk_Trueprop o Prop_Logic.term_of_prop_formula) clauses
+      val cterms = map (Thm.cterm_of @{theory}) terms
+      val start = Timing.start ()
+      val _ = SAT.rawsat_thm @{context} cterms
+    in
+      (Timing.result start, ! SAT.counter)
+    end;
 *}
 
 end

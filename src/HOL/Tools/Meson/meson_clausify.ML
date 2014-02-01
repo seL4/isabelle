@@ -222,7 +222,7 @@ fun old_skolem_theorem_of_def thy rhs0 =
 
 fun to_definitional_cnf_with_quantifiers ctxt th =
   let
-    val eqth = cnf.make_cnfx_thm ctxt (HOLogic.dest_Trueprop (prop_of th))
+    val eqth = CNF.make_cnfx_thm ctxt (HOLogic.dest_Trueprop (prop_of th))
     val eqth = eqth RS @{thm eq_reflection}
     val eqth = eqth RS @{thm TruepropI}
   in Thm.equal_elim eqth th end

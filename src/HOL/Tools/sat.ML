@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/sat_funcs.ML
+(*  Title:      HOL/Tools/sat.ML
     Author:     Stephan Merz and Alwen Tiu, QSL Team, LORIA (http://qsl.loria.fr)
     Author:     Tjark Weber, TU Muenchen
 
@@ -13,7 +13,7 @@ Proof reconstruction from SAT solvers.
     We call such clauses "raw clauses", which are of the form
           [x1, ..., xn, P] |- False
     (note the use of |- instead of ==>, i.e. of Isabelle's (meta-)hyps here),
-    where each xi is a literal (see also comments in cnf_funcs.ML).
+    where each xi is a literal (see also comments in cnf.ML).
 
     This does not work for goals containing schematic variables!
 
@@ -30,7 +30,7 @@ Proof reconstruction from SAT solvers.
   worst case can lead to an exponential blow up in formula size.  Another
   tactic, "satx_tac", uses "definitional CNF transformation" which attempts to
   produce a formula of linear size increase compared to the input formula, at
-  the cost of possibly introducing new variables.  See cnf_funcs.ML for more
+  the cost of possibly introducing new variables.  See cnf.ML for more
   comments on the CNF transformation.  "rawsat_tac" should be used with
   caution: no CNF transformation is performed, and the tactic's behavior is
   undefined if the subgoal is not already given as [| C1; ...; Cn |] ==> False,
@@ -57,7 +57,7 @@ sig
   val satx_tac: Proof.context -> int -> tactic
 end
 
-functor SATFunc(cnf : CNF) : SAT =
+structure SAT : SAT =
 struct
 
 val trace_sat = Unsynchronized.ref false;
@@ -228,7 +228,7 @@ fun replay_proof ctxt atom_table clauses (clause_table, empty_id) =
           let
             val _ =
               if !trace_sat then tracing ("Using original clause #" ^ string_of_int id) else ()
-            val raw = cnf.clause2raw_thm thm
+            val raw = CNF.clause2raw_thm thm
             val hyps = sort (lit_ord o pairself fst) (map_filter (fn chyp =>
               Option.map (rpair chyp) (index_of_literal chyp)) (#hyps (Thm.crep_thm raw)))
             val clause = (raw, hyps)
@@ -294,7 +294,7 @@ fun rawsat_thm ctxt clauses =
     (* remove anything as long as 'rawsat_tac' is only called after the   *)
     (* premises have been converted to clauses                            *)
     val clauses'' = filter (fn clause =>
-      ((cnf.is_clause o HOLogic.dest_Trueprop o Thm.term_of) clause
+      ((CNF.is_clause o HOLogic.dest_Trueprop o Thm.term_of) clause
         handle TERM ("dest_Trueprop", _) => false)
       orelse (
         warning ("Ignoring non-clausal premise " ^ Syntax.string_of_term ctxt (Thm.term_of clause));
@@ -303,7 +303,7 @@ fun rawsat_thm ctxt clauses =
     (* trivial clauses during preprocessing, and otherwise our clause     *)
     (* numbering would be off                                             *)
     val nontrivial_clauses =
-      filter (not o cnf.clause_is_trivial o HOLogic.dest_Trueprop o Thm.term_of) clauses''
+      filter (not o CNF.clause_is_trivial o HOLogic.dest_Trueprop o Thm.term_of) clauses''
     (* sort clauses according to the term order -- an optimization,       *)
     (* useful because forming the union of hypotheses, as done by         *)
     (* Conjunction.intr_balanced and fold Thm.weaken below, is quadratic for *)
@@ -460,7 +460,7 @@ fun cnfxsat_tac ctxt i =
 (* ------------------------------------------------------------------------- *)
 
 fun sat_tac ctxt i =
-  pre_cnf_tac ctxt i THEN cnf.cnf_rewrite_tac ctxt i THEN cnfsat_tac ctxt i;
+  pre_cnf_tac ctxt i THEN CNF.cnf_rewrite_tac ctxt i THEN cnfsat_tac ctxt i;
 
 (* ------------------------------------------------------------------------- *)
 (* satx_tac: tactic for calling an external SAT solver, taking as input an   *)
@@ -469,6 +469,6 @@ fun sat_tac ctxt i =
 (* ------------------------------------------------------------------------- *)
 
 fun satx_tac ctxt i =
-  pre_cnf_tac ctxt i THEN cnf.cnfx_rewrite_tac ctxt i THEN cnfxsat_tac ctxt i;
+  pre_cnf_tac ctxt i THEN CNF.cnfx_rewrite_tac ctxt i THEN cnfxsat_tac ctxt i;
 
 end;
