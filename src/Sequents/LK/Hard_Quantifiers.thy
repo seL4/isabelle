@@ -73,7 +73,7 @@ text "Problem 24"
 lemma "|- ~(EX x. S(x)&Q(x)) & (ALL x. P(x) --> Q(x)|R(x)) &   
      ~(EX x. P(x)) --> (EX x. Q(x)) & (ALL x. Q(x)|R(x) --> S(x))   
     --> (EX x. P(x)&R(x))"
-  by (tactic "pc_tac LK_pack 1")
+  by pc
 
 text "Problem 25"
 lemma "|- (EX x. P(x)) &   
@@ -87,7 +87,7 @@ text "Problem 26"
 lemma "|- ((EX x. p(x)) <-> (EX x. q(x))) &        
       (ALL x. ALL y. p(x) & q(y) --> (r(x) <-> s(y)))    
   --> ((ALL x. p(x)-->r(x)) <-> (ALL x. q(x)-->s(x)))"
-  by (tactic "pc_tac LK_pack 1")
+  by pc
 
 text "Problem 27"
 lemma "|- (EX x. P(x) & ~Q(x)) &    
@@ -95,20 +95,20 @@ lemma "|- (EX x. P(x) & ~Q(x)) &
               (ALL x. M(x) & L(x) --> P(x)) &    
               ((EX x. R(x) & ~ Q(x)) --> (ALL x. L(x) --> ~ R(x)))   
           --> (ALL x. M(x) --> ~L(x))"
-  by (tactic "pc_tac LK_pack 1")
+  by pc
 
 text "Problem 28.  AMENDED"
 lemma "|- (ALL x. P(x) --> (ALL x. Q(x))) &    
         ((ALL x. Q(x)|R(x)) --> (EX x. Q(x)&S(x))) &   
         ((EX x. S(x)) --> (ALL x. L(x) --> M(x)))   
     --> (ALL x. P(x) & L(x) --> M(x))"
-  by (tactic "pc_tac LK_pack 1")
+  by pc
 
 text "Problem 29.  Essentially the same as Principia Mathematica *11.71"
 lemma "|- (EX x. P(x)) & (EX y. Q(y))   
     --> ((ALL x. P(x)-->R(x)) & (ALL y. Q(y)-->S(y))   <->      
          (ALL x y. P(x) & Q(y) --> R(x) & S(y)))"
-  by (tactic "pc_tac LK_pack 1")
+  by pc
 
 text "Problem 30"
 lemma "|- (ALL x. P(x) | Q(x) --> ~ R(x)) &  
@@ -161,7 +161,7 @@ lemma "|- (ALL z. EX w. ALL x. EX y.
         (ALL x z. ~P(x,z) --> (EX y. Q(y,z))) &  
         ((EX x y. Q(x,y)) --> (ALL x. R(x,x)))   
     --> (ALL x. EX y. R(x,y))"
-  by (tactic "pc_tac LK_pack 1")
+  by pc
 
 text "Problem 38"
 lemma "|- (ALL x. p(a) & (p(x) --> (EX y. p(y) & r(x,y))) -->         
@@ -169,7 +169,7 @@ lemma "|- (ALL x. p(a) & (p(x) --> (EX y. p(y) & r(x,y))) -->
          (ALL x. (~p(a) | p(x) | (EX z. EX w. p(z) & r(x,w) & r(w,z))) &     
                  (~p(a) | ~(EX y. p(y) & r(x,y)) |                           
                  (EX z. EX w. p(z) & r(x,w) & r(w,z))))"
-  by (tactic "pc_tac LK_pack 1")
+  by pc
 
 text "Problem 39"
 lemma "|- ~ (EX x. ALL y. F(y,x) <-> ~F(y,y))"
@@ -215,7 +215,7 @@ text "Problems (mainly) involving equality or functions"
 
 text "Problem 48"
 lemma "|- (a=b | c=d) & (a=c | b=d) --> a=d | b=c"
-  by (tactic {* fast_tac (LK_pack add_safes @{thms subst}) 1 *})
+  by (fast add!: subst)
 
 text "Problem 50"
 lemma "|- (ALL x. P(a,x) | (ALL y. P(x,y))) --> (EX x. ALL y. P(x,y))"
@@ -224,16 +224,16 @@ lemma "|- (ALL x. P(a,x) | (ALL y. P(x,y))) --> (EX x. ALL y. P(x,y))"
 text "Problem 51"
 lemma "|- (EX z w. ALL x y. P(x,y) <->  (x=z & y=w)) -->   
          (EX z. ALL x. EX w. (ALL y. P(x,y) <-> y=w) <-> x=z)"
-  by (tactic {* fast_tac (LK_pack add_safes @{thms subst}) 1 *})
+  by (fast add!: subst)
 
 text "Problem 52"  (*Almost the same as 51. *)
 lemma "|- (EX z w. ALL x y. P(x,y) <->  (x=z & y=w)) -->
          (EX w. ALL y. EX z. (ALL x. P(x,y) <-> x=z) <-> y=w)"
-  by (tactic {* fast_tac (LK_pack add_safes @{thms subst}) 1 *})
+  by (fast add!: subst)
 
 text "Problem 56"
 lemma "|- (ALL x.(EX y. P(y) & x=f(y)) --> P(x)) <-> (ALL x. P(x) --> P(f(x)))"
-  by (tactic {* best_tac (LK_pack add_unsafes [@{thm symL}, @{thm subst}]) 1 *})
+  by (best add: symL subst)
   (*requires tricker to orient the equality properly*)
 
 text "Problem 57"
@@ -243,7 +243,7 @@ lemma "|- P(f(a,b), f(b,c)) & P(f(b,c), f(a,c)) &
 
 text "Problem 58!"
 lemma "|- (ALL x y. f(x)=g(y)) --> (ALL x y. f(f(x))=f(g(y)))"
-  by (tactic {* fast_tac (LK_pack add_safes @{thms subst}) 1 *})
+  by (fast add!: subst)
 
 text "Problem 59"
 (*Unification works poorly here -- the abstraction %sobj prevents efficient

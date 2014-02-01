@@ -126,23 +126,25 @@ context5:     "$F, $G :=: $H ==> $G, $F :=: $H"
 
 
 ML {*
-val lazy_cs = empty_pack
-  add_safes [@{thm tensl}, @{thm conjr}, @{thm disjl}, @{thm promote0},
-    @{thm context2}, @{thm context3}]
-  add_unsafes [@{thm identity}, @{thm zerol}, @{thm conjll}, @{thm conjlr},
-    @{thm disjrl}, @{thm disjrr}, @{thm impr}, @{thm tensr}, @{thm impl},
-    @{thm derelict}, @{thm weaken}, @{thm promote1}, @{thm promote2},
-    @{thm context1}, @{thm context4a}, @{thm context4b}];
-
-fun prom_tac n =
-  REPEAT (resolve_tac [@{thm promote0}, @{thm promote1}, @{thm promote2}] n)
+  val lazy_pack =
+    Cla.put_pack Cla.empty_pack @{context}
+    |> fold_rev Cla.add_safe @{thms tensl conjr disjl promote0 context2 context3}
+    |> fold_rev Cla.add_unsafe @{thms
+      identity zerol conjll conjlr
+      disjrl disjrr impr tensr impl
+      derelict weaken promote1 promote2
+      context1 context4a context4b}
+    |> Cla.get_pack;
+  
+  fun promote_tac i =
+    REPEAT (resolve_tac @{thms promote0 promote1 promote2} i);
 *}
 
-method_setup best_lazy =
-  {* Scan.succeed (K (SIMPLE_METHOD' (best_tac lazy_cs))) *}
-  "lazy classical reasoning"
+method_setup best_lazy = {*
+  Scan.succeed (fn ctxt => SIMPLE_METHOD' (Cla.best_tac (Cla.put_pack lazy_pack ctxt)))
+*} "lazy classical reasoning"
 
-lemma aux_impl: "$F, $G |- A ==> $F, !(A -o B), $G |- B"
+lemma aux_impl: "$F, $G |- A \<Longrightarrow> $F, !(A -o B), $G |- B"
   apply (rule derelict)
   apply (rule impl)
   apply (rule_tac [2] identity)
@@ -150,7 +152,7 @@ lemma aux_impl: "$F, $G |- A ==> $F, !(A -o B), $G |- B"
   apply assumption
   done
 
-lemma conj_lemma: " $F, !A, !B, $G |- C ==> $F, !(A && B), $G |- C"
+lemma conj_lemma: " $F, !A, !B, $G |- C \<Longrightarrow> $F, !(A && B), $G |- C"
   apply (rule contract)
   apply (rule_tac A = " (!A) >< (!B) " in cut)
   apply (rule_tac [2] tensr)
@@ -170,13 +172,13 @@ lemma conj_lemma: " $F, !A, !B, $G |- C ==> $F, !(A && B), $G |- C"
   apply (rule context1)
   done
 
-lemma impr_contract: "!A, !A, $G |- B ==> $G |- (!A) -o B"
+lemma impr_contract: "!A, !A, $G |- B \<Longrightarrow> $G |- (!A) -o B"
   apply (rule impr)
   apply (rule contract)
   apply assumption
   done
 
-lemma impr_contr_der: "A, !A, $G |- B ==> $G |- (!A) -o B"
+lemma impr_contr_der: "A, !A, $G |- B \<Longrightarrow> $G |- (!A) -o B"
   apply (rule impr)
   apply (rule contract)
   apply (rule derelict)
@@ -207,7 +209,7 @@ lemma ll_mp: "A -o B, A |- B"
   apply (rule context1)
   done
 
-lemma mp_rule1: "$F, B, $G, $H |- C ==> $F, A, $G, A -o B, $H |- C"
+lemma mp_rule1: "$F, B, $G, $H |- C \<Longrightarrow> $F, A, $G, A -o B, $H |- C"
   apply (rule_tac A = "B" in cut)
   apply (rule_tac [2] ll_mp)
   prefer 2 apply (assumption)
@@ -216,7 +218,7 @@ lemma mp_rule1: "$F, B, $G, $H |- C ==> $F, A, $G, A -o B, $H |- C"
   apply (rule context1)
   done
 
-lemma mp_rule2: "$F, B, $G, $H |- C ==> $F, A -o B, $G, A, $H |- C"
+lemma mp_rule2: "$F, B, $G, $H |- C \<Longrightarrow> $F, A -o B, $G, A, $H |- C"
   apply (rule_tac A = "B" in cut)
   apply (rule_tac [2] ll_mp)
   prefer 2 apply (assumption)
@@ -228,7 +230,7 @@ lemma mp_rule2: "$F, B, $G, $H |- C ==> $F, A -o B, $G, A, $H |- C"
 lemma or_to_and: "!((!(A ++ B)) -o 0) |- !( ((!A) -o 0) && ((!B) -o 0))"
   by best_lazy
 
-lemma o_a_rule: "$F, !( ((!A) -o 0) && ((!B) -o 0)), $G |- C ==>  
+lemma o_a_rule: "$F, !( ((!A) -o 0) && ((!B) -o 0)), $G |- C \<Longrightarrow>
           $F, !((!(A ++ B)) -o 0), $G |- C"
   apply (rule cut)
   apply (rule_tac [2] or_to_and)
@@ -256,7 +258,7 @@ lemma a_not_a: "!A -o (!A -o 0) |- !A -o 0"
   apply best_lazy
   done
 
-lemma a_not_a_rule: "$J1, !A -o 0, $J2 |- B ==> $J1, !A -o (!A -o 0), $J2 |- B"
+lemma a_not_a_rule: "$J1, !A -o 0, $J2 |- B \<Longrightarrow> $J1, !A -o (!A -o 0), $J2 |- B"
   apply (rule_tac A = "!A -o 0" in cut)
   apply (rule_tac [2] a_not_a)
   prefer 2 apply (assumption)
@@ -264,20 +266,25 @@ lemma a_not_a_rule: "$J1, !A -o 0, $J2 |- B ==> $J1, !A -o (!A -o 0), $J2 |- B"
   done
 
 ML {*
-val safe_cs = lazy_cs add_safes [@{thm conj_lemma}, @{thm ll_mp}, @{thm contrad1},
-                                 @{thm contrad2}, @{thm mp_rule1}, @{thm mp_rule2}, @{thm o_a_rule},
-                                 @{thm a_not_a_rule}]
-                      add_unsafes [@{thm aux_impl}];
+  val safe_pack =
+    Cla.put_pack lazy_pack @{context}
+    |> fold_rev Cla.add_safe @{thms conj_lemma ll_mp contrad1
+        contrad2 mp_rule1 mp_rule2 o_a_rule a_not_a_rule}
+    |> Cla.add_unsafe @{thm aux_impl}
+    |> Cla.get_pack;
 
-val power_cs = safe_cs add_unsafes [@{thm impr_contr_der}];
+  val power_pack =
+    Cla.put_pack safe_pack @{context}
+    |> Cla.add_unsafe @{thm impr_contr_der}
+    |> Cla.get_pack;
 *}
 
 
 method_setup best_safe =
-  {* Scan.succeed (K (SIMPLE_METHOD' (best_tac safe_cs))) *}
+  {* Scan.succeed (fn ctxt => SIMPLE_METHOD' (Cla.best_tac (Cla.put_pack safe_pack ctxt))) *}
 
 method_setup best_power =
-  {* Scan.succeed (K (SIMPLE_METHOD' (best_tac power_cs))) *}
+  {* Scan.succeed (fn ctxt => SIMPLE_METHOD' (Cla.best_tac (Cla.put_pack power_pack ctxt))) *}
 
 
 (* Some examples from Troelstra and van Dalen *)

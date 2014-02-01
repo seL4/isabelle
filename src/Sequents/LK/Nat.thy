@@ -37,7 +37,7 @@ lemma Suc_inject_rule: "$H, $G, m = n |- $E \<Longrightarrow> $H, Suc(m) = Suc(n
 lemma Suc_n_not_n: "|- Suc(k) ~= k"
   apply (rule_tac n = k in induct)
   apply (tactic {* simp_tac (put_simpset LK_ss @{context} addsimps @{thms Suc_neq_0}) 1 *})
-  apply (tactic {* fast_tac (LK_pack add_safes @{thms Suc_inject_rule}) 1 *})
+  apply (fast add!: Suc_inject_rule)
   done
 
 lemma add_0: "|- 0+n = n"

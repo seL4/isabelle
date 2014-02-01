@@ -35,8 +35,7 @@ lemma conj_simps:
   "|- P & ~P <-> False"
   "|- ~P & P <-> False"
   "|- (P & Q) & R <-> P & (Q & R)"
-  apply (tactic {* ALLGOALS (fast_tac (LK_pack add_safes @{thms subst})) *})
-  done
+  by (fast add!: subst)+
 
 lemma disj_simps:
   "|- P | True <-> True"
@@ -46,14 +45,12 @@ lemma disj_simps:
   "|- P | P <-> P"
   "|- P | P | Q <-> P | Q"
   "|- (P | Q) | R <-> P | (Q | R)"
-  apply (tactic {* ALLGOALS (fast_tac (LK_pack add_safes @{thms subst})) *})
-  done
+  by (fast add!: subst)+
 
 lemma not_simps:
   "|- ~ False <-> True"
   "|- ~ True <-> False"
-  apply (tactic {* ALLGOALS (fast_tac (LK_pack add_safes @{thms subst})) *})
-  done
+  by (fast add!: subst)+
 
 lemma imp_simps:
   "|- (P --> False) <-> ~P"
@@ -62,8 +59,7 @@ lemma imp_simps:
   "|- (True --> P) <-> P"
   "|- (P --> P) <-> True"
   "|- (P --> ~P) <-> ~P"
-  apply (tactic {* ALLGOALS (fast_tac (LK_pack add_safes @{thms subst})) *})
-  done
+  by (fast add!: subst)+
 
 lemma iff_simps:
   "|- (True <-> P) <-> P"
@@ -71,8 +67,7 @@ lemma iff_simps:
   "|- (P <-> P) <-> True"
   "|- (False <-> P) <-> ~P"
   "|- (P <-> False) <-> ~P"
-  apply (tactic {* ALLGOALS (fast_tac (LK_pack add_safes @{thms subst})) *})
-  done
+  by (fast add!: subst)+
 
 lemma quant_simps:
   "!!P. |- (ALL x. P) <-> P"
@@ -81,8 +76,7 @@ lemma quant_simps:
   "!!P. |- (EX x. P) <-> P"
   "!!P. |- (EX x. x=t & P(x)) <-> P(t)"
   "!!P. |- (EX x. t=x & P(x)) <-> P(t)"
-  apply (tactic {* ALLGOALS (fast_tac (LK_pack add_safes @{thms subst})) *})
-  done
+  by (fast add!: subst)+
 
 
 subsection {* Miniscoping: pushing quantifiers in *}
@@ -101,8 +95,7 @@ lemma ex_simps:
   "!!P Q. |- (EX x. P | Q(x)) <-> P | (EX x. Q(x))"
   "!!P Q. |- (EX x. P(x) --> Q) <-> (ALL x. P(x)) --> Q"
   "!!P Q. |- (EX x. P --> Q(x)) <-> P --> (EX x. Q(x))"
-  apply (tactic {* ALLGOALS (fast_tac (LK_pack add_safes @{thms subst})) *})
-  done
+  by (fast add!: subst)+
 
 text {*universal miniscoping*}
 lemma all_simps:
@@ -112,27 +105,25 @@ lemma all_simps:
   "!!P Q. |- (ALL x. P --> Q(x)) <-> P --> (ALL x. Q(x))"
   "!!P Q. |- (ALL x. P(x) | Q) <-> (ALL x. P(x)) | Q"
   "!!P Q. |- (ALL x. P | Q(x)) <-> P | (ALL x. Q(x))"
-  apply (tactic {* ALLGOALS (fast_tac (LK_pack add_safes @{thms subst})) *})
-  done
+  by (fast add!: subst)+
 
 text {*These are NOT supplied by default!*}
 lemma distrib_simps:
   "|- P & (Q | R) <-> P&Q | P&R"
   "|- (Q | R) & P <-> Q&P | R&P"
   "|- (P | Q --> R) <-> (P --> R) & (Q --> R)"
-  apply (tactic {* ALLGOALS (fast_tac (LK_pack add_safes @{thms subst})) *})
-  done
+  by (fast add!: subst)+
 
 lemma P_iff_F: "|- ~P ==> |- (P <-> False)"
   apply (erule thinR [THEN cut])
-  apply (tactic {* fast_tac LK_pack 1 *})
+  apply fast
   done
 
 lemmas iff_reflection_F = P_iff_F [THEN iff_reflection]
 
 lemma P_iff_T: "|- P ==> |- (P <-> True)"
   apply (erule thinR [THEN cut])
-  apply (tactic {* fast_tac LK_pack 1 *})
+  apply fast
   done
 
 lemmas iff_reflection_T = P_iff_T [THEN iff_reflection]
@@ -144,23 +135,20 @@ lemma LK_extra_simps:
   "|- ~ ~ P <-> P"
   "|- (~P --> P) <-> P"
   "|- (~P <-> ~Q) <-> (P<->Q)"
-  apply (tactic {* ALLGOALS (fast_tac (LK_pack add_safes @{thms subst})) *})
-  done
+  by (fast add!: subst)+
 
 
 subsection {* Named rewrite rules *}
 
 lemma conj_commute: "|- P&Q <-> Q&P"
   and conj_left_commute: "|- P&(Q&R) <-> Q&(P&R)"
-  apply (tactic {* ALLGOALS (fast_tac (LK_pack add_safes @{thms subst})) *})
-  done
+  by (fast add!: subst)+
 
 lemmas conj_comms = conj_commute conj_left_commute
 
 lemma disj_commute: "|- P|Q <-> Q|P"
   and disj_left_commute: "|- P|(Q|R) <-> Q|(P|R)"
-  apply (tactic {* ALLGOALS (fast_tac (LK_pack add_safes @{thms subst})) *})
-  done
+  by (fast add!: subst)+
 
 lemmas disj_comms = disj_commute disj_left_commute
 
@@ -181,20 +169,19 @@ lemma conj_disj_distribL: "|- P&(Q|R) <-> (P&Q | P&R)"
   and de_Morgan_conj: "|- (~(P & Q)) <-> (~P | ~Q)"
 
   and not_iff: "|- ~(P <-> Q) <-> (P <-> ~Q)"
-  apply (tactic {* ALLGOALS (fast_tac (LK_pack add_safes @{thms subst})) *})
-  done
+  by (fast add!: subst)+
 
 lemma imp_cong:
   assumes p1: "|- P <-> P'"
     and p2: "|- P' ==> |- Q <-> Q'"
   shows "|- (P-->Q) <-> (P'-->Q')"
   apply (tactic {* lemma_tac @{thm p1} 1 *})
-  apply (tactic {* safe_tac LK_pack 1 *})
+  apply safe
    apply (tactic {*
      REPEAT (rtac @{thm cut} 1 THEN
        DEPTH_SOLVE_1
          (resolve_tac [@{thm thinL}, @{thm thinR}, @{thm p2} COMP @{thm monotonic}] 1) THEN
-           safe_tac LK_pack 1) *})
+           Cla.safe_tac @{context} 1) *})
   done
 
 lemma conj_cong:
@@ -202,17 +189,16 @@ lemma conj_cong:
     and p2: "|- P' ==> |- Q <-> Q'"
   shows "|- (P&Q) <-> (P'&Q')"
   apply (tactic {* lemma_tac @{thm p1} 1 *})
-  apply (tactic {* safe_tac LK_pack 1 *})
+  apply safe
    apply (tactic {*
      REPEAT (rtac @{thm cut} 1 THEN
        DEPTH_SOLVE_1
          (resolve_tac [@{thm thinL}, @{thm thinR}, @{thm p2} COMP @{thm monotonic}] 1) THEN
-           safe_tac LK_pack 1) *})
+           Cla.safe_tac @{context} 1) *})
   done
 
 lemma eq_sym_conv: "|- (x=y) <-> (y=x)"
-  apply (tactic {* fast_tac (LK_pack add_safes @{thms subst}) 1 *})
-  done
+  by (fast add!: subst)
 
 ML_file "simpdata.ML"
 setup {* map_theory_simpset (put_simpset LK_ss) *}
@@ -229,17 +215,17 @@ lemma split_if: "|- P(if Q then x else y) <-> ((Q --> P(x)) & (~Q --> P(y)))"
    apply (tactic {* simp_tac (@{context} addsimps @{thms if_P}) 2 *})
   apply (rule_tac P = "~Q" in cut)
    apply (tactic {* simp_tac (@{context} addsimps @{thms if_not_P}) 2 *})
-  apply (tactic {* fast_tac LK_pack 1 *})
+  apply fast
   done
 
 lemma if_cancel: "|- (if P then x else x) = x"
   apply (tactic {* lemma_tac @{thm split_if} 1 *})
-  apply (tactic {* fast_tac LK_pack 1 *})
+  apply fast
   done
 
 lemma if_eq_cancel: "|- (if x=y then y else x) = x"
   apply (tactic {* lemma_tac @{thm split_if} 1 *})
-  apply (tactic {* safe_tac LK_pack 1 *})
+  apply safe
   apply (rule symL)
   apply (rule basic)
   done

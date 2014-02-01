@@ -162,13 +162,13 @@ fun cutL_tac ctxt s i =
 
 
 (** If-and-only-if rules **)
-lemma iffR: 
+lemma iffR:
     "[| $H,P |- $E,Q,$F;  $H,Q |- $E,P,$F |] ==> $H |- $E, P <-> Q, $F"
   apply (unfold iff_def)
   apply (assumption | rule conjR impR)+
   done
 
-lemma iffL: 
+lemma iffL:
     "[| $H,$G |- $E,P,Q;  $H,Q,P,$G |- $E |] ==> $H, P <-> Q, $G |- $E"
   apply (unfold iff_def)
   apply (assumption | rule conjL impL basic)+
@@ -210,28 +210,44 @@ lemma exR_thin: "$H |- $E, P(x), $F ==> $H |- $E, EX x. P(x), $F"
 
 (*The rules of LK*)
 
+lemmas [safe] =
+  iffR iffL
+  notR notL
+  impR impL
+  disjR disjL
+  conjR conjL
+  FalseL TrueR
+  refl basic
+ML {* val prop_pack = Cla.get_pack @{context} *}
+
+lemmas [safe] = exL allR
+lemmas [unsafe] = the_equality exR_thin allL_thin
+ML {* val LK_pack = Cla.get_pack @{context} *}
+
 ML {*
-val prop_pack = empty_pack add_safes
-                [@{thm basic}, @{thm refl}, @{thm TrueR}, @{thm FalseL},
-                 @{thm conjL}, @{thm conjR}, @{thm disjL}, @{thm disjR}, @{thm impL}, @{thm impR},
-                 @{thm notL}, @{thm notR}, @{thm iffL}, @{thm iffR}];
-
-val LK_pack = prop_pack add_safes   [@{thm allR}, @{thm exL}]
-                        add_unsafes [@{thm allL_thin}, @{thm exR_thin}, @{thm the_equality}];
-
-val LK_dup_pack = prop_pack add_safes   [@{thm allR}, @{thm exL}]
-                            add_unsafes [@{thm allL}, @{thm exR}, @{thm the_equality}];
-
-
-fun lemma_tac th i =
-    rtac (@{thm thinR} RS @{thm cut}) i THEN REPEAT (rtac @{thm thinL} i) THEN rtac th i;
+  val LK_dup_pack =
+    Cla.put_pack prop_pack @{context}
+    |> fold_rev Cla.add_safe @{thms allR exL}
+    |> fold_rev Cla.add_unsafe @{thms allL exR the_equality}
+    |> Cla.get_pack;
 *}
 
-method_setup fast_prop = {* Scan.succeed (K (SIMPLE_METHOD' (fast_tac prop_pack))) *}
-method_setup fast = {* Scan.succeed (K (SIMPLE_METHOD' (fast_tac LK_pack))) *}
-method_setup fast_dup = {* Scan.succeed (K (SIMPLE_METHOD' (fast_tac LK_dup_pack))) *}
-method_setup best = {* Scan.succeed (K (SIMPLE_METHOD' (best_tac LK_pack))) *}
-method_setup best_dup = {* Scan.succeed (K (SIMPLE_METHOD' (best_tac LK_dup_pack))) *}
+ML {*
+  fun lemma_tac th i =
+    rtac (@{thm thinR} RS @{thm cut}) i THEN
+    REPEAT (rtac @{thm thinL} i) THEN
+    rtac th i;
+*}
+
+
+method_setup fast_prop =
+  {* Scan.succeed (fn ctxt => SIMPLE_METHOD' (Cla.fast_tac (Cla.put_pack prop_pack ctxt))) *}
+
+method_setup fast_dup =
+  {* Scan.succeed (fn ctxt => SIMPLE_METHOD' (Cla.fast_tac (Cla.put_pack LK_dup_pack ctxt))) *}
+
+method_setup best_dup =
+  {* Scan.succeed (fn ctxt => SIMPLE_METHOD' (Cla.best_tac (Cla.put_pack LK_dup_pack ctxt))) *}
 
 
 lemma mp_R:
@@ -239,7 +255,7 @@ lemma mp_R:
     and minor: "$H |- $E, $F, P"
   shows "$H |- $E, Q, $F"
   apply (rule thinRS [THEN cut], rule major)
-  apply (tactic "step_tac LK_pack 1")
+  apply step
   apply (rule thinR, rule minor)
   done
 
@@ -248,7 +264,7 @@ lemma mp_L:
     and minor: "$H, $G, Q |- $E"
   shows "$H, P, $G |- $E"
   apply (rule thinL [THEN cut], rule major)
-  apply (tactic "step_tac LK_pack 1")
+  apply step
   apply (rule thinL, rule minor)
   done
 
@@ -301,10 +317,10 @@ lemma spec: "|- (ALL x. P(x)) ==> |- P(x)"
 (** Equality **)
 
 lemma sym: "|- a=b --> b=a"
-  by (tactic {* safe_tac (LK_pack add_safes [@{thm subst}]) 1 *})
+  by (safe add!: subst)
 
 lemma trans: "|- a=b --> b=c --> a=c"
-  by (tactic {* safe_tac (LK_pack add_safes [@{thm subst}]) 1 *})
+  by (safe add!: subst)
 
 (* Symmetry of equality in hypotheses *)
 lemmas symL = sym [THEN L_of_imp]

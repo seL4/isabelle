@@ -5,54 +5,114 @@
 Simple classical reasoner for the sequent calculus, based on "theorem packs".
 *)
 
+signature CLA =
+sig
+  type pack
+  val empty_pack: pack
+  val get_pack: Proof.context -> pack
+  val put_pack: pack -> Proof.context -> Proof.context
+  val pretty_pack: Proof.context -> Pretty.T
+  val add_safe: thm -> Proof.context -> Proof.context
+  val add_unsafe: thm -> Proof.context -> Proof.context
+  val safe_add: attribute
+  val unsafe_add: attribute
+  val method: (Proof.context -> int -> tactic) -> (Proof.context -> Proof.method) context_parser
+  val trace: bool Config.T
+  val forms_of_seq: term -> term list
+  val safe_tac: Proof.context -> int -> tactic
+  val step_tac: Proof.context -> int -> tactic
+  val pc_tac: Proof.context -> int -> tactic
+  val fast_tac: Proof.context -> int -> tactic
+  val best_tac: Proof.context -> int -> tactic
+end;
 
-(*Higher precedence than := facilitates use of references*)
-infix 4 add_safes add_unsafes;
-
-structure Cla =
+structure Cla: CLA =
 struct
 
-datatype pack = Pack of thm list * thm list;
-
-val trace = Unsynchronized.ref false;
+(** rule declarations **)
 
 (*A theorem pack has the form  (safe rules, unsafe rules)
   An unsafe rule is incomplete or introduces variables in subgoals,
   and is tried only when the safe rules are not applicable.  *)
 
-fun less (rl1,rl2) = (nprems_of rl1) < (nprems_of rl2);
+fun less (rl1, rl2) = Thm.nprems_of rl1 < Thm.nprems_of rl2;
+val sort_rules = sort (make_ord less);
 
-val empty_pack = Pack([],[]);
+datatype pack = Pack of thm list * thm list;
 
-fun warn_duplicates [] = []
-  | warn_duplicates dups =
-      (warning (cat_lines ("Ignoring duplicate theorems:" ::
-          map Display.string_of_thm_without_context dups));
-       dups);
+val empty_pack = Pack ([], []);
 
-fun (Pack(safes,unsafes)) add_safes ths   = 
-    let val dups = warn_duplicates (inter Thm.eq_thm_prop ths safes)
-        val ths' = subtract Thm.eq_thm_prop dups ths
-    in
-        Pack(sort (make_ord less) (ths'@safes), unsafes)
-    end;
+structure Pack = Generic_Data
+(
+  type T = pack;
+  val empty = empty_pack;
+  val extend = I;
+  fun merge (Pack (safes, unsafes), Pack (safes', unsafes')) =
+    Pack
+     (sort_rules (Thm.merge_thms (safes, safes')),
+      sort_rules (Thm.merge_thms (unsafes, unsafes')));
+);
 
-fun (Pack(safes,unsafes)) add_unsafes ths = 
-    let val dups = warn_duplicates (inter Thm.eq_thm_prop unsafes ths)
-        val ths' = subtract Thm.eq_thm_prop dups ths
-    in
-        Pack(safes, sort (make_ord less) (ths'@unsafes))
-    end;
-
-fun merge_pack (Pack(safes,unsafes), Pack(safes',unsafes')) =
-        Pack(sort (make_ord less) (safes@safes'), 
-             sort (make_ord less) (unsafes@unsafes'));
+val put_pack = Context.proof_map o Pack.put;
+val get_pack = Pack.get o Context.Proof;
+fun get_rules ctxt = let val Pack rules = get_pack ctxt in rules end;
 
 
-fun print_pack (Pack(safes,unsafes)) =
-  writeln (cat_lines
-   (["Safe rules:"] @ map Display.string_of_thm_without_context safes @
-    ["Unsafe rules:"] @ map Display.string_of_thm_without_context unsafes));
+(* print pack *)
+
+fun pretty_pack ctxt =
+  let val (safes, unsafes) = get_rules ctxt in
+    Pretty.chunks
+     [Pretty.big_list "safe rules:" (map (Display.pretty_thm ctxt) safes),
+      Pretty.big_list "unsafe rules:" (map (Display.pretty_thm ctxt) unsafes)]
+  end;
+
+val _ =
+  Outer_Syntax.command @{command_spec "print_pack"} "print pack of classical rules"
+    (Scan.succeed (Toplevel.keep (Pretty.writeln o pretty_pack o Toplevel.context_of)));
+
+
+(* declare rules *)
+
+fun add_rule which th context = context |> Pack.map (fn Pack rules =>
+  Pack (rules |> which (fn ths =>
+    if member Thm.eq_thm_prop ths th then
+      let
+        val ctxt = Context.proof_of context;
+        val _ =
+          if Context_Position.is_visible ctxt then
+            warning ("Ignoring duplicate theorems:\n" ^ Display.string_of_thm ctxt th)
+          else ();
+      in ths end
+    else sort_rules (th :: ths))));
+
+val add_safe = Context.proof_map o add_rule apfst;
+val add_unsafe = Context.proof_map o add_rule apsnd;
+
+
+(* attributes *)
+
+val safe_add = Thm.declaration_attribute (add_rule apfst);
+val unsafe_add = Thm.declaration_attribute (add_rule apsnd);
+
+val _ = Theory.setup
+  (Attrib.setup @{binding safe} (Scan.succeed safe_add) "" #>
+   Attrib.setup @{binding unsafe} (Scan.succeed unsafe_add) "");
+
+
+(* proof method syntax *)
+
+fun method tac =
+  Method.sections
+   [Args.$$$ "add" -- Args.bang_colon >> K (I, safe_add),
+    Args.$$$ "add" -- Args.colon >> K (I, unsafe_add)]
+  >> K (SIMPLE_METHOD' o tac);
+
+
+(** tactics **)
+
+val trace = Attrib.setup_config_bool @{binding cla_trace} (K false);
+
 
 (*Returns the list of all formulas in the sequent*)
 fun forms_of_seq (Const(@{const_name "SeqO'"},_) $ P $ u) = P :: forms_of_seq u
@@ -65,10 +125,9 @@ fun forms_of_seq (Const(@{const_name "SeqO'"},_) $ P $ u) = P :: forms_of_seq u
   -- checks that each concl formula looks like some subgoal formula.
   It SHOULD check order as well, using recursion rather than forall/exists*)
 fun could_res (seqp,seqc) =
-      forall (fn Qc => exists (fn Qp => Term.could_unify (Qp,Qc)) 
+      forall (fn Qc => exists (fn Qp => Term.could_unify (Qp,Qc))
                               (forms_of_seq seqp))
              (forms_of_seq seqc);
-
 
 (*Tests whether two sequents or pairs of sequents could be resolved*)
 fun could_resolve_seq (prem,conc) =
@@ -102,7 +161,7 @@ fun has_prems n rule =  (nprems_of rule = n);
   The list of rules is partitioned into 0, 1, 2 premises.
   The resulting tactic, gtac, tries to resolve with rules.
   If successful, it recursively applies nextac to the new subgoals only.
-  Else fails.  (Treatment of goals due to Ph. de Groote) 
+  Else fails.  (Treatment of goals due to Ph. de Groote)
   Bind (RESOLVE_THEN rules) to a variable: it preprocesses the rules. *)
 
 (*Takes rule lists separated in to 0, 1, 2, >2 premises.
@@ -112,7 +171,7 @@ fun has_prems n rule =  (nprems_of rule = n);
 fun RESOLVE_THEN rules =
   let val [rls0,rls1,rls2] = partition_list has_prems 0 2 rules;
       fun tac nextac i state = state |>
-             (filseq_resolve_tac rls0 9999 i 
+             (filseq_resolve_tac rls0 9999 i
               ORELSE
               (DETERM(filseq_resolve_tac rls1 9999 i) THEN  TRY(nextac i))
               ORELSE
@@ -123,50 +182,54 @@ fun RESOLVE_THEN rules =
 
 
 (*repeated resolution applied to the designated goal*)
-fun reresolve_tac rules = 
-  let val restac = RESOLVE_THEN rules;  (*preprocessing done now*)
-      fun gtac i = restac gtac i
-  in  gtac  end; 
+fun reresolve_tac rules =
+  let
+    val restac = RESOLVE_THEN rules;  (*preprocessing done now*)
+    fun gtac i = restac gtac i;
+  in gtac end;
 
 (*tries the safe rules repeatedly before the unsafe rules. *)
-fun repeat_goal_tac (Pack(safes,unsafes)) = 
-  let val restac  =    RESOLVE_THEN safes
-      and lastrestac = RESOLVE_THEN unsafes;
-      fun gtac i = restac gtac i  
-                   ORELSE  (if !trace then
-                                (print_tac "" THEN lastrestac gtac i)
-                            else lastrestac gtac i)
-  in  gtac  end; 
+fun repeat_goal_tac ctxt =
+  let
+    val (safes, unsafes) = get_rules ctxt;
+    val restac = RESOLVE_THEN safes;
+    val lastrestac = RESOLVE_THEN unsafes;
+    fun gtac i =
+      restac gtac i ORELSE
+       (if Config.get ctxt trace then print_tac "" THEN lastrestac gtac i
+        else lastrestac gtac i)
+  in gtac end;
 
 
 (*Tries safe rules only*)
-fun safe_tac (Pack(safes,unsafes)) = reresolve_tac safes;
-
-val safe_goal_tac = safe_tac;   (*backwards compatibility*)
+fun safe_tac ctxt = reresolve_tac (#1 (get_rules ctxt));
 
 (*Tries a safe rule or else a unsafe rule.  Single-step for tracing. *)
-fun step_tac (pack as Pack(safes,unsafes)) =
-    safe_tac pack  ORELSE'
-    filseq_resolve_tac unsafes 9999;
+fun step_tac ctxt =
+  safe_tac ctxt ORELSE' filseq_resolve_tac (#2 (get_rules ctxt)) 9999;
 
 
 (* Tactic for reducing a goal, using Predicate Calculus rules.
    A decision procedure for Propositional Calculus, it is incomplete
-   for Predicate-Calculus because of allL_thin and exR_thin.  
+   for Predicate-Calculus because of allL_thin and exR_thin.
    Fails if it can do nothing.      *)
-fun pc_tac pack = SELECT_GOAL (DEPTH_SOLVE (repeat_goal_tac pack 1));
+fun pc_tac ctxt = SELECT_GOAL (DEPTH_SOLVE (repeat_goal_tac ctxt 1));
 
 
-(*The following two tactics are analogous to those provided by 
+(*The following two tactics are analogous to those provided by
   Provers/classical.  In fact, pc_tac is usually FASTER than fast_tac!*)
-fun fast_tac pack =
-  SELECT_GOAL (DEPTH_SOLVE (step_tac pack 1));
+fun fast_tac ctxt =
+  SELECT_GOAL (DEPTH_SOLVE (step_tac ctxt 1));
 
-fun best_tac pack  = 
-  SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, size_of_thm) 
-               (step_tac pack 1));
+fun best_tac ctxt  =
+  SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, size_of_thm) (step_tac ctxt 1));
+
+val _ = Theory.setup
+  (Method.setup @{binding safe} (method safe_tac) "" #>
+   Method.setup @{binding step} (method step_tac) "" #>
+   Method.setup @{binding pc} (method pc_tac) "" #>
+   Method.setup @{binding fast} (method fast_tac) "" #>
+   Method.setup @{binding best} (method best_tac) "");
 
 end;
 
-
-open Cla;

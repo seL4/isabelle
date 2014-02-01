@@ -7,6 +7,7 @@ header {* Parsing and pretty-printing of sequences *}
 
 theory Sequents
 imports Pure
+keywords "print_pack" :: diag
 begin
 
 setup Pure_Thy.old_appl_syntax_setup
@@ -15,7 +16,8 @@ declare [[unify_trace_bound = 20, unify_search_bound = 40]]
 
 typedecl o
 
-(* Sequences *)
+
+subsection {* Sequences *}
 
 typedecl
  seq'
@@ -25,7 +27,7 @@ consts
  Seq1'         :: "o=>seq'"
 
 
-(* concrete syntax *)
+subsection {* Concrete syntax *}
 
 nonterminal seq and seqobj and seqcont
 
@@ -140,6 +142,9 @@ fun side_tr [s1] = seq_tr s1;
 *}
 
 parse_translation {* [(@{syntax_const "_Side"}, K side_tr)] *}
+
+
+subsection {* Proof tools *}
 
 ML_file "prover.ML"
 

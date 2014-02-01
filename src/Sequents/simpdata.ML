@@ -14,7 +14,7 @@ Borrows from the DC simplifier of Soren Heilmann.
 fun atomize r =
  case concl_of r of
    Const(@{const_name Trueprop},_) $ Abs(_,_,a) $ Abs(_,_,c) =>
-     (case (forms_of_seq a, forms_of_seq c) of
+     (case (Cla.forms_of_seq a, Cla.forms_of_seq c) of
         ([], [p]) =>
           (case p of
                Const(@{const_name imp},_)$_$_ => atomize(r RS @{thm mp_R})
@@ -28,18 +28,17 @@ fun atomize r =
  | _ => [r];
 
 (*Make meta-equalities.*)
-fun mk_meta_eq th = case concl_of th of
+fun mk_meta_eq ctxt th = case concl_of th of
     Const("==",_)$_$_           => th
   | Const(@{const_name Trueprop},_) $ Abs(_,_,a) $ Abs(_,_,c) =>
-        (case (forms_of_seq a, forms_of_seq c) of
+        (case (Cla.forms_of_seq a, Cla.forms_of_seq c) of
              ([], [p]) =>
                  (case p of
                       (Const(@{const_name equal},_)$_$_)   => th RS @{thm eq_reflection}
                     | (Const(@{const_name iff},_)$_$_) => th RS @{thm iff_reflection}
                     | (Const(@{const_name Not},_)$_)      => th RS @{thm iff_reflection_F}
                     | _                       => th RS @{thm iff_reflection_T})
-           | _ => error ("addsimps: unable to use theorem\n" ^
-                         Display.string_of_thm_without_context th));
+           | _ => error ("addsimps: unable to use theorem\n" ^ Display.string_of_thm ctxt th));
 
 (*Replace premises x=y, X<->Y by X==Y*)
 fun mk_meta_prems ctxt =
@@ -48,7 +47,7 @@ fun mk_meta_prems ctxt =
 
 (*Congruence rules for = or <-> (instead of ==)*)
 fun mk_meta_cong ctxt rl =
-  Drule.zero_var_indexes (mk_meta_eq (mk_meta_prems ctxt rl))
+  Drule.zero_var_indexes (mk_meta_eq ctxt (mk_meta_prems ctxt rl))
     handle THM _ =>
       error("Premises and conclusion of congruence rules must use =-equality or <->");
 
@@ -71,7 +70,7 @@ val LK_basic_ss =
   setSSolver (mk_solver "safe" safe_solver)
   setSolver (mk_solver "unsafe" unsafe_solver)
   |> Simplifier.set_subgoaler asm_simp_tac
-  |> Simplifier.set_mksimps (K (map mk_meta_eq o atomize o gen_all))
+  |> Simplifier.set_mksimps (fn ctxt => map (mk_meta_eq ctxt) o atomize o gen_all)
   |> Simplifier.set_mkcong mk_meta_cong
   |> simpset_of;
 
