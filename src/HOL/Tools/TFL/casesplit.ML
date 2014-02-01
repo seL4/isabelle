@@ -128,8 +128,8 @@ fun splitto ctxt splitths genth =
         (case find_thms_split splitths 1 th of
           NONE =>
            (writeln (cat_lines
-            (["th:", Display.string_of_thm_without_context th, "split ths:"] @
-              map Display.string_of_thm_without_context splitths @ ["\n--"]));
+            (["th:", Display.string_of_thm ctxt th, "split ths:"] @
+              map (Display.string_of_thm ctxt) splitths @ ["\n--"]));
             error "splitto: cannot find variable to split on")
         | SOME v =>
             let

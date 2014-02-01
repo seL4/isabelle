@@ -12,7 +12,7 @@ sig
   val is_zapped_var_name : string -> bool
   val is_quasi_lambda_free : term -> bool
   val introduce_combinators_in_cterm : cterm -> thm
-  val introduce_combinators_in_theorem : thm -> thm
+  val introduce_combinators_in_theorem : Proof.context -> thm -> thm
   val cluster_of_zapped_var_name : string -> (int * (int * int)) * bool
   val ss_only : thm list -> Proof.context -> Proof.context
   val cnf_axiom :
@@ -163,7 +163,7 @@ fun introduce_combinators_in_cterm ct =
                         (introduce_combinators_in_cterm ct2)
     end
 
-fun introduce_combinators_in_theorem th =
+fun introduce_combinators_in_theorem ctxt th =
   if is_quasi_lambda_free (prop_of th) then
     th
   else
@@ -173,7 +173,7 @@ fun introduce_combinators_in_theorem th =
     in Thm.equal_elim eqth th end
     handle THM (msg, _, _) =>
            (warning ("Error in the combinator translation of " ^
-                     Display.string_of_thm_without_context th ^
+                     Display.string_of_thm ctxt th ^
                      "\nException message: " ^ msg ^ ".");
             (* A type variable of sort "{}" will make "abstraction" fail. *)
             TrueI)
@@ -387,7 +387,7 @@ fun cnf_axiom ctxt0 new_skolem combinators ax_no th =
     (opt |> Option.map (I #>> singleton (Variable.export ctxt ctxt0)
                         ##> (term_of #> HOLogic.dest_Trueprop
                              #> singleton (Variable.export_terms ctxt ctxt0))),
-     cnf_ths |> map (combinators ? introduce_combinators_in_theorem
+     cnf_ths |> map (combinators ? introduce_combinators_in_theorem ctxt
                      #> (case opt of SOME (_, ct) => intr_imp ct | NONE => I))
              |> Variable.export ctxt ctxt0
              |> finish_cnf

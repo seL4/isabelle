@@ -11,7 +11,7 @@ sig
   type const = Code_Thingol.const
   type dict = Code_Thingol.dict
 
-  val eqn_error: thm option -> string -> 'a
+  val eqn_error: theory -> thm option -> string -> 'a
 
   val @@ : 'a * 'a -> 'a list
   val @| : 'a list * 'a -> 'a list
@@ -100,9 +100,9 @@ open Code_Thingol;
 
 (** generic nonsense *)
 
-fun eqn_error (SOME thm) s =
-      error (s ^ ",\nin equation " ^ Display.string_of_thm_without_context thm)
-  | eqn_error NONE s = error s;
+fun eqn_error thy (SOME thm) s =
+      error (s ^ ",\nin equation " ^ Display.string_of_thm_global thy thm)
+  | eqn_error _ NONE s = error s;
 
 val code_presentationN = "code_presentation";
 val stmt_nameN = "stmt_name";

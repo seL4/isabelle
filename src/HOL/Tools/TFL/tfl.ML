@@ -7,8 +7,8 @@ First part of main module.
 signature PRIM =
 sig
   val trace: bool Unsynchronized.ref
-  val trace_thms: string -> thm list -> unit
-  val trace_cterm: string -> cterm -> unit
+  val trace_thms: Proof.context -> string -> thm list -> unit
+  val trace_cterm: Proof.context -> string -> cterm -> unit
   type pattern
   val mk_functional: theory -> term list -> {functional: term, pats: pattern list}
   val wfrec_definition0: theory -> string -> term -> term -> theory * thm
@@ -901,18 +901,19 @@ fun elim_tc tcthm (rule,induction) =
    (Rules.MP rule tcthm, Rules.PROVE_HYP tcthm induction)
 
 
-fun trace_thms s L =
-  if !trace then writeln (cat_lines (s :: map Display.string_of_thm_without_context L))
+fun trace_thms ctxt s L =
+  if !trace then writeln (cat_lines (s :: map (Display.string_of_thm ctxt) L))
   else ();
 
-fun trace_cterm s ct =
+fun trace_cterm ctxt s ct =
   if !trace then
-    writeln (cat_lines [s, Syntax.string_of_term_global (Thm.theory_of_cterm ct) (Thm.term_of ct)])
+    writeln (cat_lines [s, Syntax.string_of_term ctxt (Thm.term_of ct)])
   else ();
 
 
 fun postprocess strict {wf_tac, terminator, simplifier} theory {rules,induction,TCs} =
-let val tych = Thry.typecheck theory
+let val ctxt = Proof_Context.init_global theory;
+    val tych = Thry.typecheck theory;
     val prove = Rules.prove strict;
 
    (*---------------------------------------------------------------------
@@ -936,9 +937,9 @@ let val tych = Thry.typecheck theory
 
    fun simplify_tc tc (r,ind) =
        let val tc1 = tych tc
-           val _ = trace_cterm "TC before simplification: " tc1
+           val _ = trace_cterm ctxt "TC before simplification: " tc1
            val tc_eq = simplifier tc1
-           val _ = trace_thms "result: " [tc_eq]
+           val _ = trace_thms ctxt "result: " [tc_eq]
        in
        elim_tc (Rules.MATCH_MP Thms.eqT tc_eq) (r,ind)
        handle Utils.ERR _ =>

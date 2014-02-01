@@ -62,28 +62,28 @@ fun add_literal_list_string target =
       [(target, SOME (Code_Printer.complex_const_syntax (2, pretty)))]))
   end;
 
-fun add_literal_char target =
+fun add_literal_char target thy =
   let
     fun pretty literals _ thm _ _ [(t1, _), (t2, _)] =
       case decode_char (t1, t2)
        of SOME c => (Code_Printer.str o Code_Printer.literal_char literals) c
-        | NONE => Code_Printer.eqn_error thm "Illegal character expression";
+        | NONE => Code_Printer.eqn_error thy thm "Illegal character expression";
   in
     Code_Target.set_printings (Code_Symbol.Constant (@{const_name Char},
-      [(target, SOME (Code_Printer.complex_const_syntax (2, pretty)))]))
+      [(target, SOME (Code_Printer.complex_const_syntax (2, pretty)))])) thy
   end;
 
-fun add_literal_string target =
+fun add_literal_string target thy =
   let
     fun pretty literals _ thm _ _ [(t, _)] =
       case List_Code.implode_list t
        of SOME ts => (case implode_string literals ts
              of SOME p => p
-              | NONE => Code_Printer.eqn_error thm "Illegal string literal expression")
-        | NONE => Code_Printer.eqn_error thm "Illegal string literal expression";
+              | NONE => Code_Printer.eqn_error thy thm "Illegal string literal expression")
+        | NONE => Code_Printer.eqn_error thy thm "Illegal string literal expression";
   in
     Code_Target.set_printings (Code_Symbol.Constant (@{const_name STR},
-      [(target, SOME (Code_Printer.complex_const_syntax (1, pretty)))]))
+      [(target, SOME (Code_Printer.complex_const_syntax (1, pretty)))])) thy
   end;
 
 end;

@@ -117,9 +117,9 @@ datatype CLAUSE =
 (*      cterms.                                                              *)
 (* ------------------------------------------------------------------------- *)
 
-fun resolve_raw_clauses [] =
+fun resolve_raw_clauses _ [] =
       raise THM ("Proof reconstruction failed (empty list of resolvents)!", 0, [])
-  | resolve_raw_clauses (c::cs) =
+  | resolve_raw_clauses ctxt (c::cs) =
       let
         (* merges two sorted lists wrt. 'lit_ord', suppressing duplicates *)
         fun merge xs [] = xs
@@ -154,10 +154,10 @@ fun resolve_raw_clauses [] =
           let
             val _ =
               if ! trace_sat then  (* FIXME !? *)
-                tracing ("Resolving clause: " ^ Display.string_of_thm_without_context c1 ^
+                tracing ("Resolving clause: " ^ Display.string_of_thm ctxt c1 ^
                   " (hyps: " ^ ML_Syntax.print_list
                     (Syntax.string_of_term_global (theory_of_thm c1)) (Thm.hyps_of c1)
-                  ^ ")\nwith clause: " ^ Display.string_of_thm_without_context c2 ^
+                  ^ ")\nwith clause: " ^ Display.string_of_thm ctxt c2 ^
                   " (hyps: " ^ ML_Syntax.print_list
                     (Syntax.string_of_term_global (theory_of_thm c2)) (Thm.hyps_of c2) ^ ")")
               else ()
@@ -178,7 +178,7 @@ fun resolve_raw_clauses [] =
 
             val _ =
               if !trace_sat then
-                tracing ("Resolution theorem: " ^ Display.string_of_thm_without_context res_thm)
+                tracing ("Resolution theorem: " ^ Display.string_of_thm ctxt res_thm)
               else ()
 
             (* Gamma1, Gamma2 |- False *)
@@ -189,7 +189,7 @@ fun resolve_raw_clauses [] =
 
             val _ =
               if !trace_sat then
-                tracing ("Resulting clause: " ^ Display.string_of_thm_without_context c_new ^
+                tracing ("Resulting clause: " ^ Display.string_of_thm ctxt c_new ^
                   " (hyps: " ^ ML_Syntax.print_list
                       (Syntax.string_of_term_global (theory_of_thm c_new)) (Thm.hyps_of c_new) ^ ")")
               else ()
@@ -211,7 +211,7 @@ fun resolve_raw_clauses [] =
 (*      occur (as part of a literal) in 'clauses' to positive integers.      *)
 (* ------------------------------------------------------------------------- *)
 
-fun replay_proof atom_table clauses (clause_table, empty_id) =
+fun replay_proof ctxt atom_table clauses (clause_table, empty_id) =
   let
     fun index_of_literal chyp =
       (case (HOLogic.dest_Trueprop o Thm.term_of) chyp of
@@ -242,7 +242,7 @@ fun replay_proof atom_table clauses (clause_table, empty_id) =
             val _ =
               if !trace_sat then tracing ("Proving clause #" ^ string_of_int id ^ " ...") else ()
             val ids = the (Inttab.lookup clause_table id)
-            val clause = resolve_raw_clauses (map prove_clause ids)
+            val clause = resolve_raw_clauses ctxt (map prove_clause ids)
             val _ = Array.update (clauses, id, RAW_CLAUSE clause)
             val _ =
               if !trace_sat then
@@ -372,7 +372,7 @@ fun rawsat_thm ctxt clauses =
                 cnf_clauses 0
             (* replay the proof to derive the empty clause *)
             (* [c_1 && ... && c_n] |- False *)
-            val raw_thm = replay_proof atom_table clause_arr (clause_table, empty_id)
+            val raw_thm = replay_proof ctxt atom_table clause_arr (clause_table, empty_id)
           in
             (* [c_1, ..., c_n] |- False *)
             Thm.implies_elim (Thm.implies_intr cnf_cterm raw_thm) clauses_thm

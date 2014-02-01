@@ -238,7 +238,7 @@ fun FOL_SOLVE (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
 fun neg_clausify ctxt combinators =
   single
   #> Meson.make_clauses_unsorted ctxt
-  #> combinators ? map Meson_Clausify.introduce_combinators_in_theorem
+  #> combinators ? map (Meson_Clausify.introduce_combinators_in_theorem ctxt)
   #> Meson.finish_cnf
 
 fun preskolem_tac ctxt st0 =

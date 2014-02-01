@@ -101,14 +101,12 @@ fun proof_stage strict ctxt wfs theory {f, R, rules, full_pats_TCs, TCs} =
                      if (solved th) then (th::So, Si, St)
                      else (So, th::Si, St)) nested_tcs ([],[],[])
               val simplified' = map (join_assums ctxt) simplified
-              val dummy = (Prim.trace_thms "solved =" solved;
-                           Prim.trace_thms "simplified' =" simplified')
+              val dummy = (Prim.trace_thms ctxt "solved =" solved;
+                           Prim.trace_thms ctxt "simplified' =" simplified')
               val rewr = full_simplify (ctxt addsimps (solved @ simplified'));
-              val dummy = Prim.trace_thms "Simplifying the induction rule..."
-                                          [induction]
+              val dummy = Prim.trace_thms ctxt "Simplifying the induction rule..." [induction]
               val induction' = rewr induction
-              val dummy = Prim.trace_thms "Simplifying the recursion rules..."
-                                          [rules]
+              val dummy = Prim.trace_thms ctxt "Simplifying the recursion rules..." [rules]
               val rules'     = rewr rules
               val _ = writeln "... Postprocessing finished";
           in
@@ -142,7 +140,7 @@ fun simplify_defn strict thy ctxt congs wfs id pats def0 =
            Prim.post_definition congs thy ctxt (def, pats)
        val {lhs=f,rhs} = USyntax.dest_eq (concl def)
        val (_,[R,_]) = USyntax.strip_comb rhs
-       val dummy = Prim.trace_thms "congs =" congs
+       val dummy = Prim.trace_thms ctxt "congs =" congs
        (*the next step has caused simplifier looping in some cases*)
        val {induction, rules, tcs} =
              proof_stage strict ctxt wfs thy
