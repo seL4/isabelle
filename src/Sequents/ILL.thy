@@ -124,22 +124,31 @@ context4a:    "$F :=: $H, $G ==> $F :=: $H, !A, $G" and
 context4b:    "$F, $H :=: $G ==> $F, !A, $H :=: $G" and
 context5:     "$F, $G :=: $H ==> $G, $F :=: $H"
 
-
-ML {*
-  val lazy_pack =
-    Cla.put_pack Cla.empty_pack @{context}
-    |> fold_rev Cla.add_safe @{thms tensl conjr disjl promote0 context2 context3}
-    |> fold_rev Cla.add_unsafe @{thms
-      identity zerol conjll conjlr
-      disjrl disjrr impr tensr impl
-      derelict weaken promote1 promote2
-      context1 context4a context4b}
-    |> Cla.get_pack;
-*}
-
-method_setup best_lazy = {*
-  Scan.succeed (fn ctxt => SIMPLE_METHOD' (Cla.best_tac (Cla.put_pack lazy_pack ctxt)))
-*} "lazy classical reasoning"
+text "declarations for lazy classical reasoning:"
+lemmas [safe] =
+  context3
+  context2
+  promote0
+  disjl
+  conjr
+  tensl
+lemmas [unsafe] =
+  context4b
+  context4a
+  context1
+  promote2
+  promote1
+  weaken
+  derelict
+  impl
+  tensr
+  impr
+  disjrr
+  disjrl
+  conjlr
+  conjll
+  zerol
+  identity
 
 lemma aux_impl: "$F, $G |- A \<Longrightarrow> $F, !(A -o B), $G |- B"
   apply (rule derelict)
@@ -156,14 +165,14 @@ lemma conj_lemma: " $F, !A, !B, $G |- C \<Longrightarrow> $F, !(A && B), $G |- C
   prefer 3
   apply (subgoal_tac "! (A && B) |- !A")
   apply assumption
-  apply best_lazy
+  apply best
   prefer 3
   apply (subgoal_tac "! (A && B) |- !B")
   apply assumption
-  apply best_lazy
+  apply best
   apply (rule_tac [2] context1)
   apply (rule_tac [2] tensl)
-  prefer 2 apply (assumption)
+  prefer 2 apply assumption
   apply (rule context3)
   apply (rule context3)
   apply (rule context1)
@@ -225,7 +234,7 @@ lemma mp_rule2: "$F, B, $G, $H |- C \<Longrightarrow> $F, A -o B, $G, A, $H |- C
   done
 
 lemma or_to_and: "!((!(A ++ B)) -o 0) |- !( ((!A) -o 0) && ((!B) -o 0))"
-  by best_lazy
+  by best
 
 lemma o_a_rule: "$F, !( ((!A) -o 0) && ((!B) -o 0)), $G |- C \<Longrightarrow>
           $F, !((!(A ++ B)) -o 0), $G |- C"
@@ -240,11 +249,11 @@ lemma conj_imp: "((!A) -o C) ++ ((!B) -o C) |- (!(A && B)) -o C"
   apply (rule impr)
   apply (rule conj_lemma)
   apply (rule disjl)
-  apply (rule mp_rule1, best_lazy)+
+  apply (rule mp_rule1, best)+
   done
 
 lemma not_imp: "!A, !((!B) -o 0) |- (!((!A) -o B)) -o 0"
-  by best_lazy
+  by best
 
 lemma a_not_a: "!A -o (!A -o 0) |- !A -o 0"
   apply (rule impr)
@@ -252,19 +261,19 @@ lemma a_not_a: "!A -o (!A -o 0) |- !A -o 0"
   apply (rule impl)
   apply (rule_tac [3] identity)
   apply (rule context1)
-  apply best_lazy
+  apply best
   done
 
 lemma a_not_a_rule: "$J1, !A -o 0, $J2 |- B \<Longrightarrow> $J1, !A -o (!A -o 0), $J2 |- B"
   apply (rule_tac A = "!A -o 0" in cut)
   apply (rule_tac [2] a_not_a)
-  prefer 2 apply (assumption)
-  apply best_lazy
+  prefer 2 apply assumption
+  apply best
   done
 
 ML {*
   val safe_pack =
-    Cla.put_pack lazy_pack @{context}
+    @{context}
     |> fold_rev Cla.add_safe @{thms conj_lemma ll_mp contrad1
         contrad2 mp_rule1 mp_rule2 o_a_rule a_not_a_rule}
     |> Cla.add_unsafe @{thm aux_impl}
@@ -275,7 +284,6 @@ ML {*
     |> Cla.add_unsafe @{thm impr_contr_der}
     |> Cla.get_pack;
 *}
-
 
 method_setup best_safe =
   {* Scan.succeed (fn ctxt => SIMPLE_METHOD' (Cla.best_tac (Cla.put_pack safe_pack ctxt))) *}

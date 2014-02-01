@@ -40,16 +40,16 @@ ML {* bind_thms ("dryI", [@{thm context1}] RL ([@{thm dry}] RLN (2,[@{thm cut}])
 (* a load of dirty clothes and two dollars gives you clean clothes *)
 
 lemma "dollar , dollar , dirty |- clean"
-  by (tactic {* Cla.best_tac (Cla.put_pack lazy_pack @{context} |> fold Cla.add_safe @{thms changeI load1I washI dryI}) 1 *})
+  by (best add!: changeI load1I washI dryI)
 
 (* order of premises doesn't matter *)
 
 lemma "dollar , dirty , dollar |- clean"
-  by (tactic {* Cla.best_tac (Cla.put_pack lazy_pack @{context} |> fold Cla.add_safe @{thms changeI load1I washI dryI}) 1 *})
+  by (best add!: changeI load1I washI dryI)
 
 (* alternative formulation *)
 
 lemma "dollar , dollar |- dirty -o clean"
-  by (tactic {* Cla.best_tac (Cla.put_pack lazy_pack @{context} |> fold Cla.add_safe @{thms changeI load1I washI dryI}) 1 *})
+  by (best add!: changeI load1I washI dryI)
 
 end
