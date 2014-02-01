@@ -14,12 +14,11 @@ end;
 structure InductiveRealizer : INDUCTIVE_REALIZER =
 struct
 
-(* FIXME: Local_Theory.note should return theorems with proper names! *)  (* FIXME ?? *)
 fun name_of_thm thm =
   (case Proofterm.fold_proof_atoms false (fn PThm (_, ((name, _, _), _)) => cons name | _ => I)
       [Thm.proof_of thm] [] of
     [name] => name
-  | _ => error ("name_of_thm: bad proof of theorem\n" ^ Display.string_of_thm_without_context thm));
+  | _ => raise THM ("name_of_thm: bad proof of theorem", 0, [thm]));
 
 fun prf_of thm =
   Reconstruct.proof_of thm
