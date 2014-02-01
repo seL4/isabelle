@@ -175,7 +175,7 @@ lemma imp_cong:
   assumes p1: "|- P <-> P'"
     and p2: "|- P' ==> |- Q <-> Q'"
   shows "|- (P-->Q) <-> (P'-->Q')"
-  apply (tactic {* lemma_tac @{thm p1} 1 *})
+  apply (lem p1)
   apply safe
    apply (tactic {*
      REPEAT (rtac @{thm cut} 1 THEN
@@ -188,7 +188,7 @@ lemma conj_cong:
   assumes p1: "|- P <-> P'"
     and p2: "|- P' ==> |- Q <-> Q'"
   shows "|- (P&Q) <-> (P'&Q')"
-  apply (tactic {* lemma_tac @{thm p1} 1 *})
+  apply (lem p1)
   apply safe
    apply (tactic {*
      REPEAT (rtac @{thm cut} 1 THEN
@@ -221,12 +221,12 @@ lemma split_if: "|- P(if Q then x else y) <-> ((Q --> P(x)) & (~Q --> P(y)))"
   done
 
 lemma if_cancel: "|- (if P then x else x) = x"
-  apply (tactic {* lemma_tac @{thm split_if} 1 *})
+  apply (lem split_if)
   apply fast
   done
 
 lemma if_eq_cancel: "|- (if x=y then y else x) = x"
-  apply (tactic {* lemma_tac @{thm split_if} 1 *})
+  apply (lem split_if)
   apply safe
   apply (rule symL)
   apply (rule basic)

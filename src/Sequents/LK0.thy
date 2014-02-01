@@ -232,14 +232,6 @@ ML {*
     |> Cla.get_pack;
 *}
 
-ML {*
-  fun lemma_tac th i =
-    rtac (@{thm thinR} RS @{thm cut}) i THEN
-    REPEAT (rtac @{thm thinL} i) THEN
-    rtac th i;
-*}
-
-
 method_setup fast_prop =
   {* Scan.succeed (fn ctxt => SIMPLE_METHOD' (Cla.fast_tac (Cla.put_pack prop_pack ctxt))) *}
 
@@ -248,6 +240,14 @@ method_setup fast_dup =
 
 method_setup best_dup =
   {* Scan.succeed (fn ctxt => SIMPLE_METHOD' (Cla.best_tac (Cla.put_pack LK_dup_pack ctxt))) *}
+
+method_setup lem = {*
+  Attrib.thm >> (fn th => fn _ =>
+    SIMPLE_METHOD' (fn i =>
+      rtac (@{thm thinR} RS @{thm cut}) i THEN
+      REPEAT (rtac @{thm thinL} i) THEN
+      rtac th i))
+*}
 
 
 lemma mp_R:
