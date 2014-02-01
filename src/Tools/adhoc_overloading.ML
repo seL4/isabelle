@@ -172,7 +172,7 @@ fun insert_overloaded ctxt =
       |> get_overloaded ctxt
       |> Option.map (Const o rpair (Term.type_of t));
   in
-    Pattern.rewrite_term (Proof_Context.theory_of ctxt) [] [proc]
+    Pattern.rewrite_term_top (Proof_Context.theory_of ctxt) [] [proc]
   end;
 
 fun check ctxt =
