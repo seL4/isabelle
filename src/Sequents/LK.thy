@@ -202,19 +202,21 @@ lemma eq_sym_conv: "|- (x=y) <-> (y=x)"
 
 ML_file "simpdata.ML"
 setup {* map_theory_simpset (put_simpset LK_ss) *}
+setup {* Simplifier.method_setup [] *}
 
 
 text {* To create substition rules *}
 
 lemma eq_imp_subst: "|- a=b ==> $H, A(a), $G |- $E, A(b), $F"
-  apply (tactic {* asm_simp_tac (put_simpset LK_basic_ss @{context}) 1 *})
-  done
+  by simp
 
 lemma split_if: "|- P(if Q then x else y) <-> ((Q --> P(x)) & (~Q --> P(y)))"
   apply (rule_tac P = Q in cut)
-   apply (tactic {* simp_tac (@{context} addsimps @{thms if_P}) 2 *})
+   prefer 2
+   apply (simp add: if_P)
   apply (rule_tac P = "~Q" in cut)
-   apply (tactic {* simp_tac (@{context} addsimps @{thms if_not_P}) 2 *})
+   prefer 2
+   apply (simp add: if_not_P)
   apply fast
   done
 

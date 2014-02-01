@@ -36,7 +36,7 @@ lemma Suc_inject_rule: "$H, $G, m = n |- $E \<Longrightarrow> $H, Suc(m) = Suc(n
 
 lemma Suc_n_not_n: "|- Suc(k) ~= k"
   apply (rule_tac n = k in induct)
-  apply (tactic {* simp_tac (put_simpset LK_ss @{context} addsimps @{thms Suc_neq_0}) 1 *})
+  apply simp
   apply (fast add!: Suc_inject_rule)
   done
 
@@ -54,26 +54,22 @@ declare add_0 [simp] add_Suc [simp]
 
 lemma add_assoc: "|- (k+m)+n = k+(m+n)"
   apply (rule_tac n = "k" in induct)
-  apply (tactic {* simp_tac (put_simpset LK_ss @{context} addsimps @{thms add_0}) 1 *})
-  apply (tactic {* simp_tac (put_simpset LK_ss @{context} addsimps @{thms add_Suc}) 1 *})
+  apply simp_all
   done
 
 lemma add_0_right: "|- m+0 = m"
   apply (rule_tac n = "m" in induct)
-  apply (tactic {* simp_tac (put_simpset LK_ss @{context} addsimps @{thms add_0}) 1 *})
-  apply (tactic {* simp_tac (put_simpset LK_ss @{context} addsimps @{thms add_Suc}) 1 *})
+  apply simp_all
   done
 
 lemma add_Suc_right: "|- m+Suc(n) = Suc(m+n)"
   apply (rule_tac n = "m" in induct)
-  apply (tactic {* simp_tac (put_simpset LK_ss @{context} addsimps @{thms add_0}) 1 *})
-  apply (tactic {* simp_tac (put_simpset LK_ss @{context} addsimps @{thms add_Suc}) 1 *})
+  apply simp_all
   done
 
 lemma "(!!n. |- f(Suc(n)) = Suc(f(n))) ==> |- f(i+j) = i+f(j)"
   apply (rule_tac n = "i" in induct)
-  apply (tactic {* simp_tac (put_simpset LK_ss @{context} addsimps @{thms add_0}) 1 *})
-  apply (tactic {* asm_simp_tac (put_simpset LK_ss @{context} addsimps @{thms add_Suc}) 1 *})
+  apply simp_all
   done
 
 end
