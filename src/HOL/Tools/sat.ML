@@ -48,8 +48,8 @@ Proof reconstruction from SAT solvers.
 
 signature SAT =
 sig
-  val trace_sat: bool Unsynchronized.ref    (* input: print trace messages *)
-  val solver: string Unsynchronized.ref  (* input: name of SAT solver to be used *)
+  val trace: bool Config.T  (* print trace messages *)
+  val solver: string Config.T  (* name of SAT solver to be used *)
   val counter: int Unsynchronized.ref     (* output: number of resolution steps during last proof replay *)
   val rawsat_thm: Proof.context -> cterm list -> thm
   val rawsat_tac: Proof.context -> int -> tactic
@@ -60,9 +60,12 @@ end
 structure SAT : SAT =
 struct
 
-val trace_sat = Unsynchronized.ref false;
+val trace = Attrib.setup_config_bool @{binding sat_trace} (K false);
 
-val solver = Unsynchronized.ref "zchaff_with_proofs";
+fun cond_tracing ctxt msg =
+  if Config.get ctxt trace then tracing (msg ()) else ();
+
+val solver = Attrib.setup_config_string @{binding sat_solver} (K "zchaff_with_proofs");
   (*see HOL/Tools/sat_solver.ML for possible values*)
 
 val counter = Unsynchronized.ref 0;
@@ -153,14 +156,11 @@ fun resolve_raw_clauses _ [] =
         fun resolution (c1, hyps1) (c2, hyps2) =
           let
             val _ =
-              if ! trace_sat then  (* FIXME !? *)
-                tracing ("Resolving clause: " ^ Display.string_of_thm ctxt c1 ^
-                  " (hyps: " ^ ML_Syntax.print_list
-                    (Syntax.string_of_term_global (theory_of_thm c1)) (Thm.hyps_of c1)
-                  ^ ")\nwith clause: " ^ Display.string_of_thm ctxt c2 ^
-                  " (hyps: " ^ ML_Syntax.print_list
-                    (Syntax.string_of_term_global (theory_of_thm c2)) (Thm.hyps_of c2) ^ ")")
-              else ()
+              cond_tracing ctxt (fn () =>
+                "Resolving clause: " ^ Display.string_of_thm ctxt c1 ^
+                " (hyps: " ^ ML_Syntax.print_list (Syntax.string_of_term ctxt) (Thm.hyps_of c1) ^
+                ")\nwith clause: " ^ Display.string_of_thm ctxt c2 ^
+                " (hyps: " ^ ML_Syntax.print_list (Syntax.string_of_term ctxt) (Thm.hyps_of c2) ^ ")")
 
             (* the two literals used for resolution *)
             val (hyp1_is_neg, hyp1, hyp2, new_hyps) = find_res_hyps (hyps1, hyps2) []
@@ -177,9 +177,8 @@ fun resolve_raw_clauses _ [] =
               end
 
             val _ =
-              if !trace_sat then
-                tracing ("Resolution theorem: " ^ Display.string_of_thm ctxt res_thm)
-              else ()
+              cond_tracing ctxt
+                (fn () => "Resolution theorem: " ^ Display.string_of_thm ctxt res_thm)
 
             (* Gamma1, Gamma2 |- False *)
             val c_new =
@@ -188,11 +187,11 @@ fun resolve_raw_clauses _ [] =
                 (if hyp1_is_neg then c1' else c2')
 
             val _ =
-              if !trace_sat then
-                tracing ("Resulting clause: " ^ Display.string_of_thm ctxt c_new ^
-                  " (hyps: " ^ ML_Syntax.print_list
-                      (Syntax.string_of_term_global (theory_of_thm c_new)) (Thm.hyps_of c_new) ^ ")")
-              else ()
+              cond_tracing ctxt (fn () =>
+                "Resulting clause: " ^ Display.string_of_thm ctxt c_new ^
+                " (hyps: " ^
+                ML_Syntax.print_list (Syntax.string_of_term ctxt) (Thm.hyps_of c_new) ^ ")")
+
             val _ = Unsynchronized.inc counter
           in
             (c_new, new_hyps)
@@ -226,8 +225,7 @@ fun replay_proof ctxt atom_table clauses (clause_table, empty_id) =
       | ORIG_CLAUSE thm =>
           (* convert the original clause *)
           let
-            val _ =
-              if !trace_sat then tracing ("Using original clause #" ^ string_of_int id) else ()
+            val _ = cond_tracing ctxt (fn () => "Using original clause #" ^ string_of_int id)
             val raw = CNF.clause2raw_thm thm
             val hyps = sort (lit_ord o pairself fst) (map_filter (fn chyp =>
               Option.map (rpair chyp) (index_of_literal chyp)) (#hyps (Thm.crep_thm raw)))
@@ -239,15 +237,13 @@ fun replay_proof ctxt atom_table clauses (clause_table, empty_id) =
       | NO_CLAUSE =>
           (* prove the clause, using information from 'clause_table' *)
           let
-            val _ =
-              if !trace_sat then tracing ("Proving clause #" ^ string_of_int id ^ " ...") else ()
+            val _ = cond_tracing ctxt (fn () => "Proving clause #" ^ string_of_int id ^ " ...")
             val ids = the (Inttab.lookup clause_table id)
             val clause = resolve_raw_clauses ctxt (map prove_clause ids)
             val _ = Array.update (clauses, id, RAW_CLAUSE clause)
             val _ =
-              if !trace_sat then
-                tracing ("Replay chain successful; clause stored at #" ^ string_of_int id)
-              else ()
+              cond_tracing ctxt
+                (fn () => "Replay chain successful; clause stored at #" ^ string_of_int id)
           in
             clause
           end)
@@ -255,10 +251,9 @@ fun replay_proof ctxt atom_table clauses (clause_table, empty_id) =
     val _ = counter := 0
     val empty_clause = fst (prove_clause empty_id)
     val _ =
-      if !trace_sat then
-        tracing ("Proof reconstruction successful; " ^
-          string_of_int (!counter) ^ " resolution step(s) total.")
-      else ()
+      cond_tracing ctxt (fn () =>
+        "Proof reconstruction successful; " ^
+        string_of_int (!counter) ^ " resolution step(s) total.")
   in
     empty_clause
   end;
@@ -311,25 +306,22 @@ fun rawsat_thm ctxt clauses =
     (* sorted in ascending order                                          *)
     val sorted_clauses = sort (Term_Ord.fast_term_ord o pairself Thm.term_of) nontrivial_clauses
     val _ =
-      if !trace_sat then
-        tracing ("Sorted non-trivial clauses:\n" ^
-          cat_lines (map (Syntax.string_of_term ctxt o Thm.term_of) sorted_clauses))
-      else ()
+      cond_tracing ctxt (fn () =>
+        "Sorted non-trivial clauses:\n" ^
+        cat_lines (map (Syntax.string_of_term ctxt o Thm.term_of) sorted_clauses))
     (* translate clauses from HOL terms to Prop_Logic.prop_formula *)
     val (fms, atom_table) =
       fold_map (Prop_Logic.prop_formula_of_term o HOLogic.dest_Trueprop o Thm.term_of)
         sorted_clauses Termtab.empty
     val _ =
-      if !trace_sat then
-        tracing ("Invoking SAT solver on clauses:\n" ^ cat_lines (map string_of_prop_formula fms))
-      else ()
+      cond_tracing ctxt
+        (fn () => "Invoking SAT solver on clauses:\n" ^ cat_lines (map string_of_prop_formula fms))
     val fm = Prop_Logic.all fms
     fun make_quick_and_dirty_thm () =
       let
         val _ =
-          if !trace_sat then
-            tracing "'quick_and_dirty' is set: proof reconstruction skipped, using oracle instead."
-          else ()
+          cond_tracing ctxt
+            (fn () => "quick_and_dirty is set: proof reconstruction skipped, using oracle instead")
         val False_thm = Skip_Proof.make_thm_cterm @{cprop False}
       in
         (* 'fold Thm.weaken (rev sorted_clauses)' is linear, while 'fold    *)
@@ -340,17 +332,16 @@ fun rawsat_thm ctxt clauses =
       end
   in
     case
-      let val the_solver = ! solver
+      let val the_solver = Config.get ctxt solver
       in (tracing ("Invoking solver " ^ the_solver); SatSolver.invoke_solver the_solver fm) end
     of
       SatSolver.UNSATISFIABLE (SOME (clause_table, empty_id)) =>
-       (if !trace_sat then
-          tracing ("Proof trace from SAT solver:\n" ^
-            "clauses: " ^ ML_Syntax.print_list
-              (ML_Syntax.print_pair ML_Syntax.print_int (ML_Syntax.print_list ML_Syntax.print_int))
-              (Inttab.dest clause_table) ^ "\n" ^
-            "empty clause: " ^ string_of_int empty_id)
-        else ();
+       (cond_tracing ctxt (fn () =>
+          "Proof trace from SAT solver:\n" ^
+          "clauses: " ^ ML_Syntax.print_list
+            (ML_Syntax.print_pair ML_Syntax.print_int (ML_Syntax.print_list ML_Syntax.print_int))
+            (Inttab.dest clause_table) ^ "\n" ^
+          "empty clause: " ^ string_of_int empty_id);
         if Config.get ctxt quick_and_dirty then
           make_quick_and_dirty_thm ()
         else

@@ -572,8 +572,7 @@ session "HOL-ex" in ex = HOL +
     Sudoku
 (* FIXME
 (*requires a proof-generating SAT solver (zChaff or MiniSAT)*)
-(*global side-effects ahead!*)
-try use_thy "SAT_Examples";   (* FIXME try!? (not really a proper test) *)
+    SAT_Examples
 *)
   files "document/root.bib" "document/root.tex"
 

@@ -3,14 +3,17 @@
     Copyright   2005-2009
 *)
 
-header {* Examples for the 'sat' and 'satx' tactic *}
+header {* Examples for proof methods "sat" and "satx" *}
 
 theory SAT_Examples imports Main
 begin
 
-(* ML {* SAT.solver := "zchaff_with_proofs"; *} *)
-(* ML {* SAT.solver := "minisat_with_proofs"; *} *)
-ML {* SAT.trace_sat := true; *}
+(*
+declare [[sat_solver = zchaff_with_proofs]]
+declare [[sat_solver = minisat_with_proofs]]
+*)
+
+declare [[sat_trace]]
 declare [[quick_and_dirty]]
 
 lemma "True"
@@ -24,13 +27,13 @@ by sat
 
 lemma "(a & b) | (c & d) \<Longrightarrow> (a & b) | (c & d)"
 (*
-apply (tactic {* CNF.cnf_rewrite_tac 1 *})
+apply (tactic {* CNF.cnf_rewrite_tac @{context} 1 *})
 *)
 by sat
 
 lemma "(a & b) | (c & d) \<Longrightarrow> (a & b) | (c & d)"
 (*
-apply (tactic {* CNF.cnfx_rewrite_tac 1 *})
+apply (tactic {* CNF.cnfx_rewrite_tac @{context} 1 *})
 apply (erule exE | erule conjE)+
 *)
 by satx
@@ -38,14 +41,14 @@ by satx
 lemma "(a & b | c & d) & (e & f | g & h) | (i & j | k & l) & (m & n | p & q)
   \<Longrightarrow> (a & b | c & d) & (e & f | g & h) | (i & j | k & l) & (m & n | p & q)"
 (*
-apply (tactic {* CNF.cnf_rewrite_tac 1 *})
+apply (tactic {* CNF.cnf_rewrite_tac @{context} 1 *})
 *)
 by sat
 
 lemma "(a & b | c & d) & (e & f | g & h) | (i & j | k & l) & (m & n | p & q)
   \<Longrightarrow> (a & b | c & d) & (e & f | g & h) | (i & j | k & l) & (m & n | p & q)"
 (*
-apply (tactic {* CNF.cnfx_rewrite_tac 1 *})
+apply (tactic {* CNF.cnfx_rewrite_tac @{context} 1 *})
 apply (erule exE | erule conjE)+
 *)
 by satx
@@ -77,7 +80,7 @@ text {* eta-Equivalence *}
 lemma "(ALL x. P x) | ~ All P"
 by sat
 
-ML {* SAT.trace_sat := false; *}
+declare [[sat_trace = false]]
 declare [[quick_and_dirty = false]]
 
 method_setup rawsat = {*
@@ -519,13 +522,11 @@ also includes time spent in the SAT solver), and additionally returns
 the number of resolution steps in the proof.
 *}
 
-(* ML {*
-SAT.solver := "zchaff_with_proofs";
-SAT.trace_sat := false;
-*}
+(*
+declare [[sat_solver = zchaff_with_proofs]]
+declare [[sat_trace = false]]
 declare [[quick_and_dirty = false]]
 *)
-
 ML {*
   fun benchmark dimacsfile =
     let
