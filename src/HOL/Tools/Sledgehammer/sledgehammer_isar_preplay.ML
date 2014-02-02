@@ -39,22 +39,11 @@ fun preplay_trace ctxt assmsp concl result =
   let
     val ctxt = ctxt |> Config.put show_markup true
     val assms = op @ assmsp
-    val time = "[" ^ string_of_play_outcome result ^ "]" |> Pretty.str
-    val nr_of_assms = length assms
-    val assms = assms
-      |> map (Display.pretty_thm ctxt)
-      |> (fn [] => Pretty.str ""
-           | [a] => a
-           | assms => Pretty.enum ";" "\<lbrakk>" "\<rbrakk>" assms)  (* Syntax.pretty_term!? *)
-    val concl = concl |> Syntax.pretty_term ctxt
-    val trace_list = []
-      |> cons concl
-      |> nr_of_assms > 0 ? cons (Pretty.str "\<Longrightarrow>")
-      |> cons assms
-      |> cons time
-    val pretty_trace = Pretty.blk (2, Pretty.breaks trace_list)
+    val time = Pretty.str ("[" ^ string_of_play_outcome result ^ "]")
+    val assms = Pretty.enum " and " "using " " shows " (map (Display.pretty_thm ctxt) assms)
+    val concl = Syntax.pretty_term ctxt concl
   in
-    tracing (Pretty.string_of pretty_trace)
+    tracing (Pretty.string_of (Pretty.blk (2, Pretty.breaks [time, assms, concl])))
   end
 
 fun take_time timeout tac arg =
