@@ -174,16 +174,12 @@ fun run_atp mode name
     fun split_time s =
       let
         val split = String.tokens (fn c => str c = "\n")
-        val (output, t) =
-          s |> split |> (try split_last #> the_default ([], "0"))
-            |>> cat_lines
-        fun as_num f = f >> (fst o read_int)
-        val num = as_num (Scan.many1 Symbol.is_ascii_digit)
+        val (output, t) = s |> split |> (try split_last #> the_default ([], "0")) |>> cat_lines
+        val num = Scan.many1 Symbol.is_ascii_digit >> (fst o read_int)
         val digit = Scan.one Symbol.is_ascii_digit
-        val num3 = as_num (digit ::: digit ::: (digit >> single))
+        val num3 = digit ::: digit ::: (digit >> single) >> (fst o read_int)
         val time = num --| Scan.$$ "." -- num3 >> (fn (a, b) => a * 1000 + b)
-        val as_time =
-          raw_explode #> Scan.read Symbol.stopper time #> the_default 0
+        val as_time = raw_explode #> Scan.read Symbol.stopper time #> the_default 0
       in (output, as_time t |> Time.fromMilliseconds) end
 
     fun run () =
@@ -220,7 +216,7 @@ fun run_atp mode name
 
         fun run_slice time_left (cache_key, cache_value) (slice, (time_frac,
             (key as ((best_max_facts, best_fact_filter), format, best_type_enc, best_lam_trans,
-                     best_uncurried_aliases),
+               best_uncurried_aliases),
              extra))) =
           let
             val effective_fact_filter = fact_filter |> the_default best_fact_filter
