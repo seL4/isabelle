@@ -79,14 +79,14 @@ fun update_steps steps updates =
     | _ => raise Fail "Sledgehammer_Isar_Compress: update_steps")
   end
 
-(* Tries merging the first step into the second step. *)
-fun try_merge (Prove (_, [], lbl1, _, [], ((lfs1, gfs1), meths1)))
-      (Prove (qs2, fix, lbl2, t, subproofs, ((lfs2, gfs2), meths2))) =
+fun try_merge (Prove (_, [], l1, _, [], ((lfs1, gfs1), meths1)))
+      (Prove (qs2, fix, l2, t, subproofs, ((lfs2, gfs2), meths2))) =
     let
-      val lfs = remove (op =) lbl1 lfs2 |> union (op =) lfs1
+      val lfs = union (op =) lfs1 (remove (op =) l1 lfs2)
       val gfs = union (op =) gfs1 gfs2
+      val meths = fold_rev (insert (op =)) meths1 meths2
     in
-      SOME (Prove (qs2, fix, lbl2, t, subproofs, ((lfs, gfs), meths2)))
+      SOME (Prove (qs2, fix, l2, t, subproofs, ((lfs, gfs), meths)))
     end
   | try_merge _ _ = NONE
 
