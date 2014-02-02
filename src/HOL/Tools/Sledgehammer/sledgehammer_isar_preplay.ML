@@ -22,13 +22,13 @@ sig
      overall_preplay_outcome: isar_proof -> play_outcome}
 
   val enrich_context_with_local_facts : isar_proof -> Proof.context -> Proof.context
-  val preplay_data_of_isar_proof : Proof.context -> string -> string -> Time.time -> isar_proof ->
-    isar_preplay_data
+  val preplay_data_of_isar_proof : Proof.context -> Time.time -> isar_proof -> isar_preplay_data
 end;
 
 structure Sledgehammer_Isar_Preplay : SLEDGEHAMMER_ISAR_PREPLAY =
 struct
 
+open ATP_Proof_Reconstruct
 open Sledgehammer_Util
 open Sledgehammer_Reconstructor
 open Sledgehammer_Isar_Proof
@@ -94,11 +94,13 @@ fun thm_of_proof ctxt (Proof (fixed_frees, assms, steps)) =
     |> Skip_Proof.make_thm thy
   end
 
-fun tac_of_method meth type_enc lam_trans ctxt (local_facts, global_facts) =
+fun tac_of_method ctxt (local_facts, global_facts) meth =
   Method.insert_tac local_facts THEN'
   (case meth of
     Meson_Method => Meson.meson_tac ctxt global_facts
-  | Metis_Method => Metis_Tactic.metis_tac [type_enc] lam_trans ctxt global_facts
+  | Metis_Method (type_enc_opt, lam_trans_opt) =>
+    Metis_Tactic.metis_tac [type_enc_opt |> the_default partial_type_enc]
+      (the_default default_metis_lam_trans lam_trans_opt) ctxt global_facts
   | _ =>
     Method.insert_tac global_facts THEN'
     (case meth of
@@ -114,7 +116,7 @@ fun tac_of_method meth type_enc lam_trans ctxt (local_facts, global_facts) =
     | _ => raise Fail "Sledgehammer_Isar_Preplay: tac_of_method"))
 
 (* main function for preplaying Isar steps; may throw exceptions *)
-fun raw_preplay_step type_enc lam_trans ctxt timeout meth
+fun raw_preplay_step ctxt timeout meth
       (Prove (_, xs, _, t, subproofs, (fact_names, _))) =
     let
       val goal =
@@ -125,8 +127,8 @@ fun raw_preplay_step type_enc lam_trans ctxt timeout meth
              (cf. "~~/src/Pure/Isar/obtain.ML") *)
           let
             (* FIXME: generate fresh name *)
-            val thesis = Free ("thesis", HOLogic.boolT)
-            val thesis_prop = thesis |> HOLogic.mk_Trueprop
+            val thesis = Free ("thesis_preplay", HOLogic.boolT)
+            val thesis_prop = HOLogic.mk_Trueprop thesis
             val frees = map Free xs
 
             (* !!x1..xn. t ==> thesis (xs = [x1, .., xn]) *)
@@ -142,7 +144,7 @@ fun raw_preplay_step type_enc lam_trans ctxt timeout meth
 
       fun prove () =
         Goal.prove ctxt [] [] goal (fn {context = ctxt, ...} =>
-          HEADGOAL (tac_of_method meth type_enc lam_trans ctxt facts))
+          HEADGOAL (tac_of_method ctxt facts meth))
         handle ERROR msg => error ("Preplay error: " ^ msg)
 
       val play_outcome = take_time timeout prove ()
@@ -169,10 +171,10 @@ fun merge_preplay_outcomes Play_Failed _ = Play_Failed
 (* Given a (canonically labeled) proof, produces an imperative preplay interface with a shared table
    mapping from labels to preplay results. The preplay results are caluclated lazily and cached to
    avoid repeated calculation. *)
-fun preplay_data_of_isar_proof ctxt type_enc lam_trans preplay_timeout proof =
+fun preplay_data_of_isar_proof ctxt preplay_timeout proof =
   let
     fun preplay_step timeout meth =
-      try (raw_preplay_step type_enc lam_trans ctxt timeout meth)
+      try (raw_preplay_step ctxt timeout meth)
       #> the_default Play_Failed
 
     val preplay_tab = Unsynchronized.ref Canonical_Label_Tab.empty

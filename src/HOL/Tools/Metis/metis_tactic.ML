@@ -174,8 +174,7 @@ fun FOL_SOLVE (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
           Metis_KnuthBendixOrder.default
     fun fall_back () =
       (verbose_warning ctxt
-           ("Falling back on " ^
-            quote (metis_call (hd fallback_type_encs) lam_trans) ^ "...");
+           ("Falling back on " ^ quote (metis_call (hd fallback_type_encs) lam_trans) ^ "...");
        FOL_SOLVE fallback_type_encs lam_trans ctxt cls ths0)
   in
     (case filter (fn t => prop_of t aconv @{prop False}) cls of

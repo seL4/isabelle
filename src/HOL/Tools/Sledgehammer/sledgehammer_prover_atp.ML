@@ -344,8 +344,11 @@ fun run_atp mode name
           val used_facts = used_facts_in_atp_proof ctxt fact_names atp_proof
           val needs_full_types = is_typed_helper_used_in_atp_proof atp_proof
           val reconstrs =
-            bunch_of_reconstructors needs_full_types (lam_trans_of_atp_proof atp_proof
-              o (fn desperate => if desperate then hide_lamsN else default_metis_lam_trans))
+            bunch_of_reconstructors needs_full_types (fn desperate =>
+              if desperate then
+                if atp_proof_prefers_lifting atp_proof then liftingN else hide_lamsN
+              else
+                default_metis_lam_trans)
         in
           (used_facts,
            Lazy.lazy (fn () =>
@@ -359,16 +362,16 @@ fun run_atp mode name
                 fun isar_params () =
                   let
                     val metis_type_enc =
-                      if is_typed_helper_used_in_atp_proof atp_proof then full_typesN
-                      else partial_typesN
-                    val metis_lam_trans = lam_trans_of_atp_proof atp_proof default_metis_lam_trans
+                      if is_typed_helper_used_in_atp_proof atp_proof then SOME full_typesN else NONE
+                    val metis_lam_trans =
+                      if atp_proof_prefers_lifting atp_proof then SOME liftingN else NONE
                     val atp_proof =
                       atp_proof
                       |> termify_atp_proof ctxt pool lifted sym_tab
                       |> introduce_spass_skolem
                       |> factify_atp_proof fact_names hyp_ts concl_t
                   in
-                    (verbose, metis_type_enc, metis_lam_trans, preplay_timeout, compress_isar,
+                    (verbose, (metis_type_enc, metis_lam_trans), preplay_timeout, compress_isar,
                      try0_isar, atp_proof, goal)
                   end
                 val one_line_params =

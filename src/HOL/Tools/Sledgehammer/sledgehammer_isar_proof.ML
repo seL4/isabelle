@@ -14,8 +14,16 @@ sig
   datatype isar_qualifier = Show | Then
 
   datatype proof_method =
-    Metis_Method | Simp_Method | Simp_Size_Method | Auto_Method | Fastforce_Method | Force_Method |
-    Arith_Method | Blast_Method | Meson_Method | Algebra_Method
+    Metis_Method of string option * string option |
+    Simp_Method |
+    Simp_Size_Method |
+    Auto_Method |
+    Fastforce_Method |
+    Force_Method |
+    Arith_Method |
+    Blast_Method |
+    Meson_Method |
+    Algebra_Method
 
   datatype isar_proof =
     Proof of (string * typ) list * (label * term) list * isar_step list
@@ -50,7 +58,7 @@ sig
   val relabel_isar_proof_canonically : isar_proof -> isar_proof
   val relabel_isar_proof_finally : isar_proof -> isar_proof
 
-  val string_of_isar_proof : Proof.context -> string -> string -> int -> int ->
+  val string_of_isar_proof : Proof.context -> int -> int ->
     (label -> proof_method list -> string) -> isar_proof -> string
 end;
 
@@ -71,8 +79,16 @@ type facts = label list * string list (* local and global facts *)
 datatype isar_qualifier = Show | Then
 
 datatype proof_method =
-  Metis_Method | Simp_Method | Simp_Size_Method | Auto_Method | Fastforce_Method | Force_Method |
-  Arith_Method | Blast_Method | Meson_Method | Algebra_Method
+  Metis_Method of string option * string option |
+  Simp_Method |
+  Simp_Size_Method |
+  Auto_Method |
+  Fastforce_Method |
+  Force_Method |
+  Arith_Method |
+  Blast_Method |
+  Meson_Method |
+  Algebra_Method
 
 datatype isar_proof =
   Proof of (string * typ) list * (label * term) list * isar_step list
@@ -90,9 +106,11 @@ fun string_of_label (s, num) = s ^ string_of_int num
 
 fun string_of_proof_method meth =
   (case meth of
-    Metis_Method => "metis"
+    Metis_Method (NONE, NONE) => "metis"
+  | Metis_Method (type_enc_opt, lam_trans_opt) =>
+    "metis (" ^ commas (map_filter I [type_enc_opt, lam_trans_opt]) ^ ")"
   | Simp_Method => "simp"
-  | Simp_Size_Method => "(simp add: size_ne_size_imp_ne)"
+  | Simp_Size_Method => "simp add: size_ne_size_imp_ne"
   | Auto_Method => "auto"
   | Fastforce_Method => "fastforce"
   | Force_Method => "force"
@@ -244,7 +262,7 @@ val relabel_isar_proof_finally =
 
 val indent_size = 2
 
-fun string_of_isar_proof ctxt type_enc lam_trans i n comment_of proof =
+fun string_of_isar_proof ctxt i n comment_of proof =
   let
     (* Make sure only type constraints inserted by the type annotation code are printed. *)
     val ctxt =
@@ -288,16 +306,24 @@ fun string_of_isar_proof ctxt type_enc lam_trans i n comment_of proof =
       | with_facts _ some ls ss = some (space_implode " " (map string_of_label ls @ ss))
 
     val using_facts = with_facts "" (enclose "using " " ")
-    fun by_facts meth ls ss = "by " ^ with_facts meth (enclose ("(" ^ meth ^ " ") ")") ls ss
+
+    fun maybe_paren s = s |> String.isSubstring " " s ? enclose "(" ")"
+    fun by_facts meth ls ss =
+      "by " ^ with_facts (maybe_paren meth) (enclose ("(" ^ meth ^ " ") ")") ls ss
+
+    fun is_direct_method (Metis_Method _) = true
+      | is_direct_method Meson_Method = true
+      | is_direct_method _ = false
 
     (* Local facts are always passed via "using", which affects "meson" and "metis". This is
        arguably stylistically superior, because it emphasises the structure of the proof. It is also
        more robust w.r.t. preplay: Preplay is performed before chaining of local facts with "hence"
        and "thus" is introduced. See also "tac_of_method" in "Sledgehammer_Isar_Preplay". *)
-    fun of_method ls ss Metis_Method =
-        using_facts ls [] ^ by_facts (metis_call type_enc lam_trans) [] ss
-      | of_method ls ss Meson_Method = using_facts ls [] ^ by_facts "meson" [] ss
-      | of_method ls ss meth = using_facts ls ss ^ "by " ^ string_of_proof_method meth
+    fun of_method ls ss meth =
+        let val direct = is_direct_method meth in
+          using_facts ls (if direct then [] else ss) ^
+          by_facts (string_of_proof_method meth) [] (if direct then ss else [])
+        end
 
     fun of_free (s, T) =
       maybe_quote s ^ " :: " ^
@@ -360,7 +386,7 @@ fun string_of_isar_proof ctxt type_enc lam_trans i n comment_of proof =
     (* One-step Metis proofs are pointless; better use the one-liner directly. *)
     (case proof of
       Proof ([], [], []) => "" (* degenerate case: the conjecture is "True" with Z3 *)
-    | Proof ([], [], [Prove (_, [], _, _, [], (_, Metis_Method :: _))]) => ""
+    | Proof ([], [], [Prove (_, [], _, _, [], (_, Metis_Method _ :: _))]) => ""
     | _ =>
       (if i <> 1 then "prefer " ^ string_of_int i ^ "\n" else "") ^
       of_indent 0 ^ "proof -\n" ^ of_proof 1 ctxt proof ^

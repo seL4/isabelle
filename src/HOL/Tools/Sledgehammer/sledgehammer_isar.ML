@@ -16,7 +16,8 @@ sig
   val trace : bool Config.T
 
   type isar_params =
-    bool * string * string * Time.time * real * bool * (term, string) atp_step list * thm
+    bool * (string option * string option) * Time.time * real * bool
+      * (term, string) atp_step list * thm
 
   val proof_text : Proof.context -> bool -> bool option -> (unit -> isar_params) -> int ->
     one_line_params -> string
@@ -108,26 +109,30 @@ fun add_lines_pass2 res [] = rev res
     end
 
 type isar_params =
-  bool * string * string * Time.time * real * bool * (term, string) atp_step list * thm
+  bool * (string option * string option) * Time.time * real * bool * (term, string) atp_step list
+    * thm
 
 val arith_methods =
   [Arith_Method, Simp_Method, Auto_Method, Fastforce_Method, Blast_Method, Force_Method,
-   Algebra_Method, Metis_Method, Meson_Method]
+   Algebra_Method, Metis_Method (NONE, NONE), Meson_Method]
 val datatype_methods = [Simp_Method, Simp_Size_Method]
-val metislike_methods =
-  [Metis_Method, Simp_Method, Auto_Method, Arith_Method, Blast_Method, Fastforce_Method,
-   Force_Method, Algebra_Method, Meson_Method]
+val metislike_methods0 =
+  [Metis_Method (NONE, NONE), Simp_Method, Auto_Method, Arith_Method, Blast_Method,
+   Fastforce_Method, Force_Method, Algebra_Method, Meson_Method]
 val rewrite_methods =
-  [Auto_Method, Simp_Method, Fastforce_Method, Force_Method, Metis_Method, Meson_Method]
-val skolem_methods = [Metis_Method, Blast_Method, Meson_Method]
+  [Auto_Method, Simp_Method, Fastforce_Method, Force_Method, Metis_Method (NONE, NONE),
+   Meson_Method]
+val skolem_methods = [Metis_Method (NONE, NONE), Blast_Method, Meson_Method]
 
 fun isar_proof_text ctxt debug isar_proofs isar_params
     (one_line_params as (_, _, _, _, subgoal, subgoal_count)) =
   let
     fun isar_proof_of () =
       let
-        val SOME (verbose, metis_type_enc, metis_lam_trans, preplay_timeout, compress_isar,
-          try0_isar, atp_proof, goal) = try isar_params ()
+        val SOME (verbose, alt_metis_args, preplay_timeout, compress_isar, try0_isar, atp_proof,
+          goal) = try isar_params ()
+
+        val metislike_methods = insert (op =) (Metis_Method alt_metis_args) metislike_methods0
 
         val (params, _, concl_t) = strip_subgoal goal subgoal ctxt
         val (_, ctxt) =
@@ -265,8 +270,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
         and isar_proof outer fix assms lems infs =
           Proof (fix, assms, lems @ isar_steps outer NONE [] infs)
 
-        val string_of_isar_proof =
-          string_of_isar_proof ctxt metis_type_enc metis_lam_trans subgoal subgoal_count
+        val string_of_isar_proof = string_of_isar_proof ctxt subgoal subgoal_count
 
         val trace = Config.get ctxt trace
 
@@ -284,8 +288,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
           |> silence_reconstructors debug
 
         val preplay_data as {preplay_outcome, overall_preplay_outcome, ...} =
-          preplay_data_of_isar_proof preplay_ctxt metis_type_enc metis_lam_trans preplay_timeout
-            canonical_isar_proof
+          preplay_data_of_isar_proof preplay_ctxt preplay_timeout canonical_isar_proof
 
         fun str_of_preplay_outcome outcome =
           if Lazy.is_finished outcome then string_of_play_outcome (Lazy.force outcome) else "?"

@@ -41,7 +41,7 @@ sig
     Proof.context -> (string * stature) list vector -> string atp_proof -> (string * stature) list
   val used_facts_in_unsound_atp_proof : Proof.context -> (string * stature) list vector ->
     'a atp_proof -> string list option
-  val lam_trans_of_atp_proof : string atp_proof -> string -> string
+  val atp_proof_prefers_lifting : string atp_proof -> bool
   val is_typed_helper_used_in_atp_proof : string atp_proof -> bool
   val replace_dependencies_in_line : atp_step_name * atp_step_name list -> ('a, 'b) atp_step ->
     ('a, 'b) atp_step
@@ -90,8 +90,9 @@ fun metis_call type_enc lam_trans =
       (case AList.find (fn (enc, encs) => enc = hd encs) type_enc_aliases type_enc of
         [alias] => alias
       | _ => type_enc)
-    val opts = [] |> type_enc <> partial_typesN ? cons type_enc
-                  |> lam_trans <> default_metis_lam_trans ? cons lam_trans
+    val opts =
+      [] |> type_enc <> partial_typesN ? cons type_enc
+         |> lam_trans <> default_metis_lam_trans ? cons lam_trans
   in metisN ^ (if null opts then "" else " (" ^ commas opts ^ ")") end
 
 fun term_name' (Var ((s, _), _)) = perhaps (try Name.dest_skolem) s
@@ -440,13 +441,9 @@ fun is_lam_lifted s =
 
 val is_combinator_def = String.isPrefix (helper_prefix ^ combinator_prefix)
 
-fun lam_trans_of_atp_proof atp_proof default =
-  (case (is_axiom_used_in_proof is_combinator_def atp_proof,
-        is_axiom_used_in_proof is_lam_lifted atp_proof) of
-    (false, false) => default
-  | (false, true) => liftingN
-(*  | (true, true) => combs_and_liftingN -- not supported by "metis" *)
-  | (true, _) => combsN)
+fun atp_proof_prefers_lifting atp_proof =
+  (is_axiom_used_in_proof is_combinator_def atp_proof,
+   is_axiom_used_in_proof is_lam_lifted atp_proof) = (false, true)
 
 val is_typed_helper_name =
   String.isPrefix helper_prefix andf String.isSuffix typed_helper_suffix
