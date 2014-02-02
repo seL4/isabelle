@@ -137,6 +137,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
 
         val do_preplay = preplay_timeout <> Time.zeroTime
         val try0_isar = try0_isar andalso do_preplay
+        val compress_isar = if isar_proofs = NONE andalso do_preplay then 1000.0 else compress_isar
 
         val is_fixed = Variable.is_declared ctxt orf can Name.dest_skolem
         fun skolems_of t = Term.add_frees t [] |> filter_out (is_fixed o fst) |> rev
@@ -279,8 +280,8 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
           |> relabel_isar_proof_canonically
 
         val preplay_data as {preplay_outcome, overall_preplay_outcome, ...} =
-          preplay_data_of_isar_proof debug ctxt metis_type_enc metis_lam_trans do_preplay
-            preplay_timeout isar_proof
+          preplay_data_of_isar_proof debug ctxt metis_type_enc metis_lam_trans preplay_timeout
+            isar_proof
 
         fun str_of_preplay_outcome outcome =
           if Lazy.is_finished outcome then string_of_play_outcome (Lazy.force outcome) else "?"
@@ -299,8 +300,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
         val (play_outcome, isar_proof) =
           isar_proof
           |> tap (trace_isar_proof "Original")
-          |> compress_isar_proof (if isar_proofs = SOME true then compress_isar else 1000.0)
-               preplay_data
+          |> compress_isar_proof compress_isar preplay_data
           |> tap (trace_isar_proof "Compressed")
           |> try0_isar ? try0_isar_proof preplay_timeout preplay_data
           |> tap (trace_isar_proof "Tried0")
