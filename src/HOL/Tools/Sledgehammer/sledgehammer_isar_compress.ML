@@ -135,8 +135,7 @@ fun compress_isar_proof compress_isar
           (get_successors, replace_successor)
         end
 
-      (** elimination of trivial, one-step subproofs **)
-
+      (* elimination of trivial, one-step subproofs *)
       fun elim_subproofs' time qs fix l t lfs gfs (methss as (meth :: _) :: _) subs nontriv_subs =
         if null subs orelse not (compress_further ()) then
           (set_preplay_outcome l meth (Played time);
@@ -249,7 +248,7 @@ fun compress_isar_proof compress_isar
               decrement_step_count (); (* candidate successfully eliminated *)
               map3 set_preplay_outcome succ_lbls succ_meths play_outcomes;
               map (replace_successor l succ_lbls) lfs;
-              (* removing the step would mess up the indices -> replace with dummy step instead *)
+              (* removing the step would mess up the indices; replace with dummy step instead *)
               steps1 @ dummy_isar_step :: steps2
             end
             handle Bind => steps

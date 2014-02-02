@@ -43,6 +43,7 @@ fun try0_step _ _ (step as Let _) = step
           result as Played _ => SOME (variant, result)
         | _ => NONE)
     in
+      (* FIXME: create variant after success *)
       (case Par_List.get_some try_variant (variants_of_step step) of
         SOME (step' as Prove (_, _, _, _, _, (_, (meth' :: _) :: _)), result) =>
         (set_preplay_outcome l meth' result; step')
