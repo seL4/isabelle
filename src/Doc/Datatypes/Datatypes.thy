@@ -1115,7 +1115,7 @@ This generates the lemma collection @{thm [source] at_simps}:
   \qquad @{thm at_simps(2)[no_vars]}\]
 %
 The next example is defined using \keyw{fun} to escape the syntactic
-restrictions imposed on primitive recursive functions. The
+restrictions imposed on primitively recursive functions. The
 @{command datatype_new_compat} command is needed to register new-style datatypes
 for use with \keyw{fun} and \keyw{function}
 (Section~\ref{sssec:datatype-new-compat}):
