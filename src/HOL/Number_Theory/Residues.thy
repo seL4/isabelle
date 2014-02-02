@@ -289,6 +289,34 @@ subsection{* Euler's theorem *}
 definition phi :: "int => nat"
   where "phi m = card({ x. 0 < x & x < m & gcd x m = 1})"
 
+lemma phi_def_nat: "phi m = card({ x. 0 < x & x < nat m & gcd x (nat m) = 1})"
+  apply (simp add: phi_def)
+  apply (rule bij_betw_same_card [of nat])
+  apply (auto simp add: inj_on_def bij_betw_def image_def)
+  apply (metis dual_order.irrefl dual_order.strict_trans leI nat_1 transfer_nat_int_gcd(1))
+  apply (metis One_nat_def int_0 int_1 int_less_0_conv int_nat_eq nat_int transfer_int_nat_gcd(1) zless_int)
+  done
+
+lemma prime_phi:
+  assumes  "2 \<le> p" "phi p = p - 1" shows "prime p"
+proof -
+  have "{x. 0 < x \<and> x < p \<and> coprime x p} = {1..p - 1}"
+    using assms unfolding phi_def_nat
+    by (intro card_seteq) fastforce+
+  then have cop: "\<And>x. x \<in> {1::nat..p - 1} \<Longrightarrow> coprime x p"
+    by blast
+  { fix x::nat assume *: "1 < x" "x < p" and "x dvd p"
+    have "coprime x p" 
+      apply (rule cop)
+      using * apply auto
+      done
+    with `x dvd p` `1 < x` have "False" by auto }
+  then show ?thesis 
+    using `2 \<le> p` apply (simp add: prime_def)
+by (metis One_nat_def dvd_pos_nat nat_dvd_not_less nat_neq_iff not_gr0 
+  not_numeral_le_zero one_dvd)
+qed
+
 lemma phi_zero [simp]: "phi 0 = 0"
   apply (subst phi_def)
 (* Auto hangs here. Once again, where is the simplification rule
