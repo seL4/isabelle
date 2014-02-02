@@ -11,7 +11,8 @@ sig
   type isar_proof = Sledgehammer_Isar_Proof.isar_proof
   type isar_preplay_data = Sledgehammer_Isar_Preplay.isar_preplay_data
 
-  val try0_isar_proof : Proof.context -> Time.time -> isar_preplay_data -> isar_proof -> isar_proof
+  val try0_isar_proof : Proof.context -> Time.time -> isar_preplay_data Unsynchronized.ref ->
+    isar_proof -> isar_proof
 end;
 
 structure Sledgehammer_Isar_Try0 : SLEDGEHAMMER_ISAR_TRY0 =
@@ -28,12 +29,11 @@ fun step_with_method meth (Prove (qs, xs, l, t, subproofs, (facts, _))) =
 val slack = seconds 0.05
 
 fun try0_step _ _ _ (step as Let _) = step
-  | try0_step ctxt preplay_timeout
-      ({set_preplay_outcomes, preplay_outcome, ...} : isar_preplay_data)
+  | try0_step ctxt preplay_timeout preplay_data
       (step as Prove (_, _, l, _, _, (_, meths as meth :: _))) =
     let
       val timeout =
-        (case Lazy.force (preplay_outcome l meth) of
+        (case Lazy.force (preplay_outcome_of_isar_step (!preplay_data) l meth) of
           Played time => Time.+ (time, slack)
         | _ => preplay_timeout)
 
@@ -45,7 +45,8 @@ fun try0_step _ _ _ (step as Let _) = step
       (* FIXME: create variant after success *)
       (case Par_List.get_some try_method meths of
         SOME (meth', outcome) =>
-        (set_preplay_outcomes l [(meth', Lazy.value outcome)]; step_with_method meth' step)
+        (set_preplay_outcomes_of_isar_step preplay_data l [(meth', Lazy.value outcome)];
+         step_with_method meth' step)
       | NONE => step)
     end
 

@@ -287,14 +287,23 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
           |> enrich_context_with_local_facts canonical_isar_proof
           |> silence_reconstructors debug
 
-        val preplay_data as {preplay_outcome, overall_preplay_outcome, ...} =
-          preplay_data_of_isar_proof preplay_ctxt preplay_timeout canonical_isar_proof
+        val preplay_data = Unsynchronized.ref Canonical_Label_Tab.empty
+
+        fun reset_preplay_outcomes (step as Prove (_, _, l, _, _, (_, meths))) =
+            set_preplay_outcomes_of_isar_step preplay_data l (map (fn meth => (meth,
+                Lazy.lazy (fn () => preplay_isar_step preplay_ctxt preplay_timeout meth step)))
+              meths)
+          | reset_preplay_outcomes _ = ()
+
+        val _ = fold_isar_steps (K o reset_preplay_outcomes)
+          (steps_of_isar_proof canonical_isar_proof) ()
 
         fun str_of_preplay_outcome outcome =
           if Lazy.is_finished outcome then string_of_play_outcome (Lazy.force outcome) else "?"
 
         fun str_of_meth l meth =
-          string_of_proof_method meth ^ " " ^ str_of_preplay_outcome (preplay_outcome l meth)
+          string_of_proof_method meth ^ " " ^
+          str_of_preplay_outcome (preplay_outcome_of_isar_step (!preplay_data) l meth)
         fun comment_of l = map (str_of_meth l) #> commas
 
         fun trace_isar_proof label proof =
@@ -314,7 +323,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
           |> postprocess_isar_proof_remove_unreferenced_steps
                (try0_isar ? minimize_isar_step_dependencies preplay_ctxt preplay_data)
           |> tap (trace_isar_proof "Minimized")
-          |> `overall_preplay_outcome
+          |> `(preplay_outcome_of_isar_proof (!preplay_data))
           ||> chain_isar_proof
           ||> kill_useless_labels_in_isar_proof
           ||> relabel_isar_proof_finally
@@ -327,7 +336,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
           let
             val msg =
               (if verbose then
-                 let val num_steps = add_isar_steps (steps_of_proof isar_proof) 0 in
+                 let val num_steps = add_isar_steps (steps_of_isar_proof isar_proof) 0 in
                    [string_of_int num_steps ^ " step" ^ plural_s num_steps]
                  end
                else
