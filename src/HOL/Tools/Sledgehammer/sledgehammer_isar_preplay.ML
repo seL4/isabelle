@@ -16,12 +16,12 @@ sig
   val trace : bool Config.T
 
   type isar_preplay_data =
-    {preplay_step: Time.time -> proof_method -> isar_step -> play_outcome,
-     set_preplay_outcomes: label -> (proof_method * play_outcome Lazy.lazy) list -> unit,
+    {set_preplay_outcomes: label -> (proof_method * play_outcome Lazy.lazy) list -> unit,
      preplay_outcome: label -> proof_method -> play_outcome Lazy.lazy,
      overall_preplay_outcome: isar_proof -> play_outcome}
 
   val enrich_context_with_local_facts : isar_proof -> Proof.context -> Proof.context
+  val preplay_isar_step : Proof.context -> Time.time -> proof_method -> isar_step -> play_outcome
   val preplay_data_of_isar_proof : Proof.context -> Time.time -> isar_proof -> isar_preplay_data
 end;
 
@@ -116,47 +116,49 @@ fun tac_of_method ctxt (local_facts, global_facts) meth =
     | _ => raise Fail "Sledgehammer_Isar_Preplay: tac_of_method"))
 
 (* main function for preplaying Isar steps; may throw exceptions *)
-fun raw_preplay_step ctxt timeout meth
-      (Prove (_, xs, _, t, subproofs, (fact_names, _))) =
-    let
-      val goal =
-        (case xs of
-          [] => t
-        | _ =>
-          (* proof obligation: !!thesis. (!!x. A x ==> thesis) ==> thesis
-             (cf. "~~/src/Pure/Isar/obtain.ML") *)
-          let
-            (* FIXME: generate fresh name *)
-            val thesis = Free ("thesis_preplay", HOLogic.boolT)
-            val thesis_prop = HOLogic.mk_Trueprop thesis
-            val frees = map Free xs
+fun raw_preplay_step ctxt timeout meth (Prove (_, xs, _, t, subproofs, (fact_names, _))) =
+  let
+    val goal =
+      (case xs of
+        [] => t
+      | _ =>
+        (* proof obligation: !!thesis. (!!x. A x ==> thesis) ==> thesis
+           (cf. "~~/src/Pure/Isar/obtain.ML") *)
+        let
+          (* FIXME: generate fresh name *)
+          val thesis = Free ("thesis_preplay", HOLogic.boolT)
+          val thesis_prop = HOLogic.mk_Trueprop thesis
+          val frees = map Free xs
 
-            (* !!x1..xn. t ==> thesis (xs = [x1, .., xn]) *)
-            val inner_prop = fold_rev Logic.all frees (Logic.mk_implies (t, thesis_prop))
-          in
-            (* !!thesis. (!!x1..xn. t ==> thesis) ==> thesis *)
-            Logic.all thesis (Logic.mk_implies (inner_prop, thesis_prop))
-          end)
+          (* !!x1..xn. t ==> thesis (xs = [x1, .., xn]) *)
+          val inner_prop = fold_rev Logic.all frees (Logic.mk_implies (t, thesis_prop))
+        in
+          (* !!thesis. (!!x1..xn. t ==> thesis) ==> thesis *)
+          Logic.all thesis (Logic.mk_implies (inner_prop, thesis_prop))
+        end)
 
-      val facts =
-        resolve_fact_names ctxt fact_names
-        |>> append (map (thm_of_proof ctxt) subproofs)
+    val facts =
+      resolve_fact_names ctxt fact_names
+      |>> append (map (thm_of_proof ctxt) subproofs)
 
-      fun prove () =
-        Goal.prove ctxt [] [] goal (fn {context = ctxt, ...} =>
-          HEADGOAL (tac_of_method ctxt facts meth))
-        handle ERROR msg => error ("Preplay error: " ^ msg)
+    fun prove () =
+      Goal.prove ctxt [] [] goal (fn {context = ctxt, ...} =>
+        HEADGOAL (tac_of_method ctxt facts meth))
+      handle ERROR msg => error ("Preplay error: " ^ msg)
 
-      val play_outcome = take_time timeout prove ()
-    in
-      (if Config.get ctxt trace then preplay_trace ctxt facts goal play_outcome else ();
-       play_outcome)
-    end
+    val play_outcome = take_time timeout prove ()
+  in
+    (if Config.get ctxt trace then preplay_trace ctxt facts goal play_outcome else ();
+     play_outcome)
+  end
+
+fun preplay_isar_step ctxt timeout meth =
+  try (raw_preplay_step ctxt timeout meth)
+  #> the_default Play_Failed
 
 type isar_preplay_data =
   {set_preplay_outcomes: label -> (proof_method * play_outcome Lazy.lazy) list -> unit,
    preplay_outcome: label -> proof_method -> play_outcome Lazy.lazy,
-   preplay_step: Time.time -> proof_method -> isar_step -> play_outcome,
    overall_preplay_outcome: isar_proof -> play_outcome}
 
 fun time_of_play (Played time) = time
@@ -173,10 +175,6 @@ fun merge_preplay_outcomes Play_Failed _ = Play_Failed
    avoid repeated calculation. *)
 fun preplay_data_of_isar_proof ctxt preplay_timeout proof =
   let
-    fun preplay_step timeout meth =
-      try (raw_preplay_step ctxt timeout meth)
-      #> the_default Play_Failed
-
     val preplay_tab = Unsynchronized.ref Canonical_Label_Tab.empty
 
     fun set_preplay_outcomes l meths_outcomes =
@@ -200,14 +198,13 @@ fun preplay_data_of_isar_proof ctxt preplay_timeout proof =
 
     fun reset_preplay_outcomes (step as Prove (_, _, l, _, _, (_, meths))) =
         preplay_tab := Canonical_Label_Tab.update (l, map (fn meth =>
-            (meth, Lazy.lazy (fn () => preplay_step preplay_timeout meth step))) meths)
+            (meth, Lazy.lazy (fn () => preplay_isar_step ctxt preplay_timeout meth step))) meths)
           (!preplay_tab)
       | reset_preplay_outcomes _ = ()
 
     val _ = fold_isar_steps (K o reset_preplay_outcomes) (steps_of_proof proof) ()
   in
-    {preplay_step = preplay_step,
-     set_preplay_outcomes = set_preplay_outcomes,
+    {set_preplay_outcomes = set_preplay_outcomes,
      preplay_outcome = preplay_outcome,
      overall_preplay_outcome = overall_preplay_outcome}
   end

@@ -307,12 +307,12 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
         val (play_outcome, isar_proof) =
           canonical_isar_proof
           |> tap (trace_isar_proof "Original")
-          |> compress_isar_proof compress_isar preplay_data
+          |> compress_isar_proof preplay_ctxt compress_isar preplay_data
           |> tap (trace_isar_proof "Compressed")
-          |> try0_isar ? try0_isar_proof preplay_timeout preplay_data
+          |> try0_isar ? try0_isar_proof preplay_ctxt preplay_timeout preplay_data
           |> tap (trace_isar_proof "Tried0")
           |> postprocess_isar_proof_remove_unreferenced_steps
-               (try0_isar ? minimize_isar_step_dependencies preplay_data)
+               (try0_isar ? minimize_isar_step_dependencies preplay_ctxt preplay_data)
           |> tap (trace_isar_proof "Minimized")
           |> `overall_preplay_outcome
           ||> chain_isar_proof

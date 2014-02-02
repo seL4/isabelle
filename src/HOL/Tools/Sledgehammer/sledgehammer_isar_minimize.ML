@@ -11,7 +11,7 @@ sig
   type isar_proof = Sledgehammer_Isar_Proof.isar_proof
   type isar_preplay_data = Sledgehammer_Isar_Preplay.isar_preplay_data
 
-  val minimize_isar_step_dependencies : isar_preplay_data -> isar_step -> isar_step
+  val minimize_isar_step_dependencies : Proof.context -> isar_preplay_data -> isar_step -> isar_step
   val postprocess_isar_proof_remove_unreferenced_steps : (isar_step -> isar_step) -> isar_proof ->
     isar_proof
 end;
@@ -25,8 +25,8 @@ open Sledgehammer_Isar_Preplay
 
 val slack = seconds 0.1
 
-fun minimize_isar_step_dependencies (_ : isar_preplay_data) (step as Let _) = step
-  | minimize_isar_step_dependencies {preplay_step, set_preplay_outcomes, preplay_outcome, ...}
+fun minimize_isar_step_dependencies _ (_ : isar_preplay_data) (step as Let _) = step
+  | minimize_isar_step_dependencies ctxt {set_preplay_outcomes, preplay_outcome, ...}
       (step as Prove (qs, xs, l, t, subproofs, ((lfs, gfs), meths as meth :: _))) =
     (case Lazy.force (preplay_outcome l meth) of
       Played time =>
@@ -36,7 +36,8 @@ fun minimize_isar_step_dependencies (_ : isar_preplay_data) (step as Let _) = st
 
         fun minimize_facts _ time min_facts [] = (time, min_facts)
           | minimize_facts mk_step time min_facts (f :: facts) =
-            (case preplay_step (Time.+ (time, slack)) meth (mk_step (min_facts @ facts)) of
+            (case preplay_isar_step ctxt (Time.+ (time, slack)) meth
+                (mk_step (min_facts @ facts)) of
               Played time => minimize_facts mk_step time min_facts facts
             | _ => minimize_facts mk_step time (f :: min_facts) facts)
 

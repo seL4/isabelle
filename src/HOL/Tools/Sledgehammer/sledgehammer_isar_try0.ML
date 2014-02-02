@@ -11,7 +11,7 @@ sig
   type isar_proof = Sledgehammer_Isar_Proof.isar_proof
   type isar_preplay_data = Sledgehammer_Isar_Preplay.isar_preplay_data
 
-  val try0_isar_proof : Time.time -> isar_preplay_data -> isar_proof -> isar_proof
+  val try0_isar_proof : Proof.context -> Time.time -> isar_preplay_data -> isar_proof -> isar_proof
 end;
 
 structure Sledgehammer_Isar_Try0 : SLEDGEHAMMER_ISAR_TRY0 =
@@ -27,9 +27,9 @@ fun step_with_method meth (Prove (qs, xs, l, t, subproofs, (facts, _))) =
 
 val slack = seconds 0.05
 
-fun try0_step _ _ (step as Let _) = step
-  | try0_step preplay_timeout
-      ({preplay_step, set_preplay_outcomes, preplay_outcome, ...} : isar_preplay_data)
+fun try0_step _ _ _ (step as Let _) = step
+  | try0_step ctxt preplay_timeout
+      ({set_preplay_outcomes, preplay_outcome, ...} : isar_preplay_data)
       (step as Prove (_, _, l, _, _, (_, meths as meth :: _))) =
     let
       val timeout =
@@ -38,7 +38,7 @@ fun try0_step _ _ (step as Let _) = step
         | _ => preplay_timeout)
 
       fun try_method meth =
-        (case preplay_step timeout meth step of
+        (case preplay_isar_step ctxt timeout meth step of
           outcome as Played _ => SOME (meth, outcome)
         | _ => NONE)
     in
@@ -49,6 +49,6 @@ fun try0_step _ _ (step as Let _) = step
       | NONE => step)
     end
 
-val try0_isar_proof = map_isar_steps oo try0_step
+val try0_isar_proof = map_isar_steps ooo try0_step
 
 end;
