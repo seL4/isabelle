@@ -191,13 +191,11 @@ fun run_atp mode name
         (* If slicing is disabled, we expand the last slice to fill the entire time available. *)
         val all_slices = best_slices ctxt
         val actual_slices = get_slices slice all_slices
-        fun max_facts_of_slices f slices = fold (Integer.max o fst o #1 o fst o snd o f) slices 0
+        fun max_facts_of_slices slices = fold (Integer.max o fst o #1 o fst o snd) slices 0
         val num_actual_slices = length actual_slices
         val max_fact_factor =
-          Real.fromInt (case max_facts of
-              NONE => max_facts_of_slices I all_slices
-            | SOME max => max)
-          / Real.fromInt (max_facts_of_slices snd actual_slices)
+          Real.fromInt (case max_facts of NONE => max_facts_of_slices all_slices | SOME max => max)
+          / Real.fromInt (max_facts_of_slices (map snd actual_slices))
 
         fun monomorphize_facts facts =
           let
