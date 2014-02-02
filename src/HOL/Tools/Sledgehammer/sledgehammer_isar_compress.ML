@@ -93,10 +93,10 @@ fun try_merge (Prove (_, [], l1, _, [], ((lfs1, gfs1), meths1)))
   | try_merge _ _ = NONE
 
 val compress_degree = 2
-val merge_timeout_slack = 1.2
+val merge_timeout_slack = 1.25
 
 (* Precondition: The proof must be labeled canonically
-   (cf. "Slegehammer_Proof.relabel_proof_canonically"). *)
+   (cf. "Slegehammer_Isar_Proof.relabel_isar_proof_canonically"). *)
 fun compress_isar_proof compress_isar
     ({preplay_outcome, set_preplay_outcome, preplay_quietly, ...} : isar_preplay_data) proof =
   if compress_isar <= 1.0 then
