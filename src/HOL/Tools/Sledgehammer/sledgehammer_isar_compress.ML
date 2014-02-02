@@ -98,7 +98,7 @@ val merge_timeout_slack = 1.25
 (* Precondition: The proof must be labeled canonically
    (cf. "Slegehammer_Isar_Proof.relabel_isar_proof_canonically"). *)
 fun compress_isar_proof compress_isar
-    ({preplay_outcome, set_preplay_outcome, preplay_quietly, ...} : isar_preplay_data) proof =
+    ({preplay_outcome, set_preplay_outcomes, preplay_quietly, ...} : isar_preplay_data) proof =
   if compress_isar <= 1.0 then
     proof
   else
@@ -137,9 +137,10 @@ fun compress_isar_proof compress_isar
         end
 
       (* elimination of trivial, one-step subproofs *)
-      fun elim_subproofs' time qs fix l t lfs gfs (meths as meth :: _) subs nontriv_subs =
+      fun elim_subproofs' time qs fix l t lfs gfs (meths as meth :: meths') subs nontriv_subs =
         if null subs orelse not (compress_further ()) then
-          (set_preplay_outcome l meth (Played time);
+          (set_preplay_outcomes l ((meth, Lazy.value (Played time)) ::
+             map (rpair (Lazy.value Not_Played)(*FIXME*)) meths');
            Prove (qs, fix, l, t, List.revAppend (nontriv_subs, subs), ((lfs, gfs), meths)))
         else
           (case subs of
@@ -215,7 +216,8 @@ fun compress_isar_proof compress_isar
               val ((cand as Prove (_, _, l, _, _, ((lfs, _), meth :: _))) :: steps') = drop i steps
 
               val succs = collect_successors steps' succ_lbls
-              val succ_meths = map (hd o snd o the o byline_of_isar_step) succs
+              val succ_methss = map (snd o the o byline_of_isar_step) succs
+              val succ_meths = map hd succ_methss (* FIXME *)
 
               (* only touch steps that can be preplayed successfully *)
               val Played time = Lazy.force (preplay_outcome l meth)
@@ -244,9 +246,13 @@ fun compress_isar_proof compress_isar
               val (steps1, _ :: steps2) = chop i steps
               (* replace successors with their modified versions *)
               val steps2 = update_steps steps2 succs'
+
+              val succ_meths_outcomess =
+                map2 (fn meth :: meths => fn outcome => (meth, Lazy.value outcome) ::
+                  map (rpair (Lazy.value Not_Played)(*FIXME*)) meths) succ_methss play_outcomes
             in
               decrement_step_count (); (* candidate successfully eliminated *)
-              map3 set_preplay_outcome succ_lbls succ_meths play_outcomes;
+              map2 set_preplay_outcomes succ_lbls succ_meths_outcomess;
               map (replace_successor l succ_lbls) lfs;
               (* removing the step would mess up the indices; replace with dummy step instead *)
               steps1 @ dummy_isar_step :: steps2

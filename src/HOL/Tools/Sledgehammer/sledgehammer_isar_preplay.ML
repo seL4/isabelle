@@ -16,8 +16,7 @@ sig
   val trace : bool Config.T
 
   type isar_preplay_data =
-    {reset_preplay_outcomes: isar_step -> unit,
-     set_preplay_outcome: label -> proof_method -> play_outcome -> unit,
+    {set_preplay_outcomes: label -> (proof_method * play_outcome Lazy.lazy) list -> unit,
      preplay_outcome: label -> proof_method -> play_outcome Lazy.lazy,
      preplay_quietly: Time.time -> isar_step -> play_outcome,
      overall_preplay_outcome: isar_proof -> play_outcome}
@@ -136,8 +135,7 @@ fun preplay_raw debug type_enc lam_trans ctxt timeout meth
     end
 
 type isar_preplay_data =
-  {reset_preplay_outcomes: isar_step -> unit,
-   set_preplay_outcome: label -> proof_method -> play_outcome -> unit,
+  {set_preplay_outcomes: label -> (proof_method * play_outcome Lazy.lazy) list -> unit,
    preplay_outcome: label -> proof_method -> play_outcome Lazy.lazy,
    preplay_quietly: Time.time -> isar_step -> play_outcome,
    overall_preplay_outcome: isar_proof -> play_outcome}
@@ -177,8 +175,7 @@ fun merge_preplay_outcomes _ Play_Failed = Play_Failed
 fun preplay_data_of_isar_proof debug ctxt type_enc lam_trans do_preplay preplay_timeout proof =
   if not do_preplay then
     (* the "dont_preplay" option pretends that everything works just fine *)
-    {reset_preplay_outcomes = K (),
-     set_preplay_outcome = K (K (K ())),
+    {set_preplay_outcomes = K (K ()),
      preplay_outcome = K (K (Lazy.value (Played Time.zeroTime))),
      preplay_quietly = K (K (Played Time.zeroTime)),
      overall_preplay_outcome = K (Played Time.zeroTime)} : isar_preplay_data
@@ -205,15 +202,9 @@ fun preplay_data_of_isar_proof debug ctxt type_enc lam_trans do_preplay preplay_
 
       val preplay_tab = Unsynchronized.ref Canonical_Label_Tab.empty
 
-      fun reset_preplay_outcomes (step as Prove (_, _, l, _, _, (_, meths))) =
-          preplay_tab := Canonical_Label_Tab.update (l, map (fn meth =>
-              (meth, Lazy.lazy (fn () => preplay false preplay_timeout meth step))) meths)
-            (!preplay_tab)
-        | reset_preplay_outcomes _ = ()
-
-      fun set_preplay_outcome l meth result =
-        preplay_tab := Canonical_Label_Tab.map_entry l
-          (AList.update (op =) (meth, Lazy.value result)) (!preplay_tab)
+      fun set_preplay_outcomes l meths_outcomes =
+        preplay_tab := Canonical_Label_Tab.map_entry l (fold (AList.update (op =)) meths_outcomes)
+          (!preplay_tab)
 
       fun preplay_outcome l meth =
         (case Canonical_Label_Tab.lookup (!preplay_tab) l of
@@ -223,17 +214,22 @@ fun preplay_data_of_isar_proof debug ctxt type_enc lam_trans do_preplay preplay_
           | NONE => raise Fail "Sledgehammer_Isar_Preplay: missing method")
         | NONE => raise Fail "Sledgehammer_Isar_Preplay: missing label")
 
-      val _ = fold_isar_steps (K o reset_preplay_outcomes) (steps_of_proof proof) ()
-
       fun result_of_step (Prove (_, _, l, _, _, (_, meth :: _))) =
           Lazy.force (preplay_outcome l meth)
         | result_of_step _ = Played Time.zeroTime
 
       fun overall_preplay_outcome (Proof (_, _, steps)) =
         fold_isar_steps (merge_preplay_outcomes o result_of_step) steps (Played Time.zeroTime)
+
+      fun reset_preplay_outcomes (step as Prove (_, _, l, _, _, (_, meths))) =
+          preplay_tab := Canonical_Label_Tab.update (l, map (fn meth =>
+              (meth, Lazy.lazy (fn () => preplay false preplay_timeout meth step))) meths)
+            (!preplay_tab)
+        | reset_preplay_outcomes _ = ()
+
+      val _ = fold_isar_steps (K o reset_preplay_outcomes) (steps_of_proof proof) ()
     in
-      {reset_preplay_outcomes = reset_preplay_outcomes,
-       set_preplay_outcome = set_preplay_outcome,
+      {set_preplay_outcomes = set_preplay_outcomes,
        preplay_outcome = preplay_outcome,
        preplay_quietly = preplay_quietly,
        overall_preplay_outcome = overall_preplay_outcome}
