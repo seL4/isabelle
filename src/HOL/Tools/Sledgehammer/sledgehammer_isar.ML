@@ -228,7 +228,8 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
 
               val deps = fold add_fact_of_dependencies gamma no_facts
               val meths =
-                if is_arith_rule rule then arith_methods
+                if skolem then skolem_methods
+                else if is_arith_rule rule then arith_methods
                 else if is_datatype_rule rule then datatype_methods
                 else metislike_methods
               val by = (deps, meths)
@@ -238,7 +239,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
                   [g] =>
                   if skolem andalso is_clause_tainted g then
                     let val subproof = Proof (skolems_of (prop_of_clause g), [], rev accum) in
-                      isar_steps outer (SOME l) [prove [subproof] (no_facts, skolem_methods)] infs
+                      isar_steps outer (SOME l) [prove [subproof] (no_facts, meths)] infs
                     end
                   else
                     do_rest l (prove [] by)
