@@ -26,7 +26,7 @@ open Sledgehammer_Isar_Preplay
 val slack = seconds 0.1
 
 fun minimize_isar_step_dependencies (_ : isar_preplay_data) (step as Let _) = step
-  | minimize_isar_step_dependencies {set_preplay_outcomes, preplay_outcome, preplay_quietly, ...}
+  | minimize_isar_step_dependencies {preplay_step, set_preplay_outcomes, preplay_outcome, ...}
       (step as Prove (qs, xs, l, t, subproofs, ((lfs, gfs), meths as meth :: _))) =
     (case Lazy.force (preplay_outcome l meth) of
       Played time =>
@@ -36,7 +36,7 @@ fun minimize_isar_step_dependencies (_ : isar_preplay_data) (step as Let _) = st
 
         fun minimize_facts _ time min_facts [] = (time, min_facts)
           | minimize_facts mk_step time min_facts (f :: facts) =
-            (case preplay_quietly (Time.+ (time, slack)) (mk_step (min_facts @ facts)) of
+            (case preplay_step (Time.+ (time, slack)) meth (mk_step (min_facts @ facts)) of
               Played time => minimize_facts mk_step time min_facts facts
             | _ => minimize_facts mk_step time (f :: min_facts) facts)
 

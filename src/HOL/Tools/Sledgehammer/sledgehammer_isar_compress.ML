@@ -98,7 +98,7 @@ val merge_timeout_slack = 1.25
 (* Precondition: The proof must be labeled canonically
    (cf. "Slegehammer_Isar_Proof.relabel_isar_proof_canonically"). *)
 fun compress_isar_proof compress_isar
-    ({preplay_outcome, set_preplay_outcomes, preplay_quietly, ...} : isar_preplay_data) proof =
+    ({preplay_step, preplay_outcome, set_preplay_outcomes, ...} : isar_preplay_data) proof =
   if compress_isar <= 1.0 then
     proof
   else
@@ -161,8 +161,8 @@ fun compress_isar_proof compress_isar
               val step'' = Prove (qs, fix, l, t, subs'', by)
 
               (* check if the modified step can be preplayed fast enough *)
-              val timeout = time_mult merge_timeout_slack (Time.+(time, time'))
-              val Played time'' = preplay_quietly timeout step''
+              val timeout = time_mult merge_timeout_slack (Time.+ (time, time'))
+              val Played time'' = preplay_step timeout (hd meths)(*FIXME*) step''
             in
               decrement_step_count (); (* l' successfully eliminated! *)
               map (replace_successor l' [l]) lfs';
@@ -238,7 +238,7 @@ fun compress_isar_proof compress_isar
                   ()
 
               (* TODO: should be lazy: stop preplaying as soon as one step fails/times out *)
-              val play_outcomes = map2 preplay_quietly timeouts succs'
+              val play_outcomes = map3 preplay_step timeouts succ_meths succs'
 
               (* ensure none of the modified successors timed out *)
               val true = forall (fn Played _ => true) play_outcomes
