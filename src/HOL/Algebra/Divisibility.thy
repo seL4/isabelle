@@ -2831,9 +2831,7 @@ lemma (in gcd_condition_monoid) gcd_exists:
 proof -
   interpret weak_lower_semilattice "division_rel G" by simp
   show ?thesis
-    apply (simp add: somegcd_meet[OF carr])
-    apply (rule meet_closed[simplified], fact+)
-  done
+    by (metis carr(1) carr(2) gcd_closed)
 qed
 
 lemma (in gcd_condition_monoid) gcd_divides_l:
@@ -2842,9 +2840,7 @@ lemma (in gcd_condition_monoid) gcd_divides_l:
 proof -
   interpret weak_lower_semilattice "division_rel G" by simp
   show ?thesis
-    apply (simp add: somegcd_meet[OF carr])
-    apply (rule meet_left[simplified], fact+)
-  done
+    by (metis carr(1) carr(2) gcd_isgcd isgcd_def)
 qed
 
 lemma (in gcd_condition_monoid) gcd_divides_r:
@@ -2853,9 +2849,7 @@ lemma (in gcd_condition_monoid) gcd_divides_r:
 proof -
   interpret weak_lower_semilattice "division_rel G" by simp
   show ?thesis
-    apply (simp add: somegcd_meet[OF carr])
-    apply (rule meet_right[simplified], fact+)
-  done
+    by (metis carr gcd_isgcd isgcd_def)
 qed
 
 lemma (in gcd_condition_monoid) gcd_divides:
@@ -2865,9 +2859,7 @@ lemma (in gcd_condition_monoid) gcd_divides:
 proof -
   interpret weak_lower_semilattice "division_rel G" by simp
   show ?thesis
-    apply (simp add: somegcd_meet L)
-    apply (rule meet_le[simplified], fact+)
-  done
+    by (metis gcd_isgcd isgcd_def assms)
 qed
 
 lemma (in gcd_condition_monoid) gcd_cong_l:
@@ -3409,13 +3401,7 @@ next
 
     from aa2carr carr aa1fs aa2fs
       have "wfactors G (as'!i # drop (Suc i) as') (as'!i \<otimes> aa_2)"
-      apply (intro wfactors_mult_single)
-          apply (rule wfactorsE[OF afs'], fast intro: nth_mem[OF len])
-         apply (fast intro: nth_mem[OF len])
-        apply fast
-       apply fast
-      apply assumption
-    done
+        by (metis irrasi wfactors_mult_single)
     with len carr aa1carr aa2carr aa1fs
       have v2: "wfactors G (take i as' @ as'!i # drop (Suc i) as') (aa_1 \<otimes> (as'!i \<otimes> aa_2))"
       apply (intro wfactors_mult)
@@ -3429,23 +3415,15 @@ next
     with carr
       have eer: "essentially_equal G (take i as' @ as'!i # drop (Suc i) as') as'"
       by simp
-
     with v2 afs' carr aa1carr aa2carr nth_mem[OF len]
       have "aa_1 \<otimes> (as'!i \<otimes> aa_2) \<sim> a"
-      apply (intro ee_wfactorsD[of "take i as' @ as'!i # drop (Suc i) as'"  "as'"])
-            apply fast+
-          apply (simp, fast)
-    done
+        by (metis as' ee_wfactorsD m_closed)
     then
     have t1: "as'!i \<otimes> (aa_1 \<otimes> aa_2) \<sim> a"
-      apply (simp add: m_assoc[symmetric])
-      apply (simp add: m_comm)
-    done
+      by (metis aa1carr aa2carr asicarr m_lcomm)
     from carr asiah
     have "ah \<otimes> (aa_1 \<otimes> aa_2) \<sim> as'!i \<otimes> (aa_1 \<otimes> aa_2)"
-      apply (intro mult_cong_l)
-      apply (fast intro: associated_sym, simp+)
-    done
+      by (metis associated_sym m_closed mult_cong_l)
     also note t1
     finally
       have "ah \<otimes> (aa_1 \<otimes> aa_2) \<sim> a" by simp
@@ -3530,7 +3508,6 @@ proof -
       where ascarr[simp]: "set as \<subseteq> carrier G"
       and afs: "wfactors G as a"
       by (auto simp del: carr)
-
   have "ALL as'. set as' \<subseteq> carrier G \<and> wfactors G as' a \<longrightarrow> length as = length as'"
     by (metis afs ascarr assms ee_length wfactors_unique)
   thus "EX c. ALL as'. set as' \<subseteq> carrier G \<and> wfactors G as' a \<longrightarrow> c = length as'" ..
@@ -3549,8 +3526,7 @@ proof -
     apply (simp add: factorcount_def)
     apply (rule theI2)
       apply (rule alen)
-     apply (elim allE[of _ "as"], rule allE[OF alen, of "as"], simp add: ascarr afs)
-    apply (elim allE[of _ "as"], rule allE[OF alen, of "as"], simp add: ascarr afs)
+     apply (metis afs alen ascarr)+
   done
 
   from ascarr afs have "ac = length as" by (iprover intro: alen[rule_format])

@@ -14,7 +14,6 @@ imports
   MiscAlgebra
 begin
 
-
 (*
 
   A locale for residue rings
@@ -235,13 +234,14 @@ end
 (* prime residues *)
 
 locale residues_prime =
-  fixes p :: int and R (structure)
+  fixes p and R (structure)
   assumes p_prime [intro]: "prime p"
   defines "R == residue_ring p"
 
 sublocale residues_prime < residues p
   apply (unfold R_def residues_def)
   using p_prime apply auto
+  apply (metis (full_types) int_1 of_nat_less_iff prime_gt_1_nat)
   done
 
 context residues_prime
@@ -357,26 +357,26 @@ lemma phi_prime: "prime p \<Longrightarrow> phi p = (nat p - 1)"
   done
 
 lemma fermat_theorem:
+  fixes a::int
   assumes "prime p" and "~ (p dvd a)"
-  shows "[a^(nat p - 1) = 1] (mod p)"
+  shows "[a^(p - 1) = 1] (mod p)"
 proof -
   from assms have "[a^phi p = 1] (mod p)"
     apply (intro euler_theorem)
-    (* auto should get this next part. matching across
-       substitutions is needed. *)
-    apply (frule prime_gt_1_int, arith)
-    apply (subst gcd_commute_int, erule prime_imp_coprime_int, assumption)
+    apply (metis of_nat_0_le_iff)
+    apply (metis gcd_int.commute prime_imp_coprime_int)
     done
   also have "phi p = nat p - 1"
     by (rule phi_prime, rule assms)
-  finally show ?thesis .
+  finally show ?thesis
+    by (metis nat_int) 
 qed
 
 lemma fermat_theorem_nat:
   assumes "prime p" and "~ (p dvd a)"
   shows "[a^(p - 1) = 1] (mod p)"
 using fermat_theorem [of p a] assms
-by (metis int_1 nat_int of_nat_power prime_int_def transfer_int_nat_cong zdvd_int)
+by (metis int_1 of_nat_power transfer_int_nat_cong zdvd_int)
 
 
 subsection {* Wilson's theorem *}
@@ -445,18 +445,20 @@ proof -
     apply auto
     done
   also have "\<dots> = fact (p - 1) mod p"
-    apply (subst fact_altdef_int)
-    apply (insert assms, force)
-    apply (subst res_prime_units_eq, rule refl)
+    apply (subst fact_altdef_nat)
+    apply (insert assms)
+    apply (subst res_prime_units_eq)
+    apply (simp add: int_setprod zmod_int setprod_int_eq)
     done
   finally have "fact (p - 1) mod p = \<ominus> \<one>".
-  then show ?thesis by (simp add: res_to_cong_simps)
+  then show ?thesis
+    by (metis Divides.transfer_int_nat_functions(2) cong_int_def res_neg_eq res_one_eq)
 qed
 
-lemma wilson_theorem: "prime (p::int) \<Longrightarrow> [fact (p - 1) = - 1] (mod p)"
-  apply (frule prime_gt_1_int)
+lemma wilson_theorem: "prime p \<Longrightarrow> [fact (p - 1) = - 1] (mod p)"
+  apply (frule prime_gt_1_nat)
   apply (case_tac "p = 2")
-  apply (subst fact_altdef_int, simp)
+  apply (subst fact_altdef_nat, simp)
   apply (subst cong_int_def)
   apply simp
   apply (rule residues_prime.wilson_theorem1)

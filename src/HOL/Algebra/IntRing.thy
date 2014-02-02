@@ -239,14 +239,10 @@ lemma int_Idl:
 
 lemma multiples_principalideal:
   "principalideal {x * a | x. True } \<Z>"
-apply (subst int_Idl[symmetric], rule principalidealI)
- apply (rule int.genideal_ideal, simp)
-apply fast
-done
-
+by (metis UNIV_I int.cgenideal_eq_genideal int.cgenideal_is_principalideal int_Idl)
 
 lemma prime_primeideal:
-  assumes prime: "prime (nat p)"
+  assumes prime: "prime p"
   shows "primeideal (Idl\<^bsub>\<Z>\<^esub> {p}) \<Z>"
 apply (rule primeidealI)
    apply (rule int.genideal_ideal, simp)
@@ -257,48 +253,18 @@ apply (rule primeidealI)
  apply (elim exE)
 proof -
   fix a b x
-  have ppos: "0 <= p"
-    by (metis prime linear nat_0_iff zero_not_prime_nat)
-  have unnat: "!!x. nat p dvd nat (abs x) ==> p dvd x"
-  proof -
-    fix x
-    assume "nat p dvd nat (abs x)"
-    hence "int (nat p) dvd x" by (simp add: int_dvd_iff[symmetric])
-    thus "p dvd x" by (simp add: ppos)
-  qed
-  assume "a * b = x * p"
+  assume "a * b = x * int p"
   hence "p dvd a * b" by simp
-  hence "nat p dvd nat (abs (a * b))" using ppos by (simp add: nat_dvd_iff)
-  hence "nat p dvd (nat (abs a) * nat (abs b))" by (simp add: nat_abs_mult_distrib)
-  hence "nat p dvd nat (abs a) | nat p dvd nat (abs b)"
-    by (metis prime prime_dvd_mult_eq_nat) 
-  hence "p dvd a | p dvd b" by (fast intro: unnat)
-  thus "(EX x. a = x * p) | (EX x. b = x * p)"
-  proof
-    assume "p dvd a"
-    hence "EX x. a = p * x" by (simp add: dvd_def)
-    then obtain x
-        where "a = p * x" by fast
-    hence "a = x * p" by simp
-    hence "EX x. a = x * p" by simp
-    thus "(EX x. a = x * p) | (EX x. b = x * p)" ..
-  next
-    assume "p dvd b"
-    hence "EX x. b = p * x" by (simp add: dvd_def)
-    then obtain x
-        where "b = p * x" by fast
-    hence "b = x * p" by simp
-    hence "EX x. b = x * p" by simp
-    thus "(EX x. a = x * p) | (EX x. b = x * p)" ..
-  qed
+  hence "p dvd a | p dvd b"
+    by (metis prime prime_dvd_mult_eq_int)
+  thus "(\<exists>x. a = x * int p) \<or> (\<exists>x. b = x * int p)"
+    by (metis dvd_def mult_commute)
 next
-  assume "UNIV = {uu. EX x. uu = x * p}"
-  then obtain x where "1 = x * p" by best
-  then have "p * x = 1" by (metis mult_commute)
-  hence "\<bar>p * x\<bar> = 1" by simp
-  hence "\<bar>p\<bar> = 1" by (rule abs_zmult_eq_1)
-  then  show "False" 
-    by (metis prime abs_of_pos one_not_prime_int prime_gt_0_int prime_int_def) 
+  assume "UNIV = {uu. EX x. uu = x * int p}"
+  then obtain x where "1 = x * int p" by best
+  hence "\<bar>int p * x\<bar> = 1" by (simp add: mult_commute)
+  then show False
+    by (metis abs_of_nat int_1 of_nat_eq_iff abs_zmult_eq_1 one_not_prime_nat prime)
 qed
 
 
@@ -454,7 +420,7 @@ apply (rule exI[of _ "0"], clarsimp)
 done
 
 lemma ZFact_prime_is_domain:
-  assumes pprime: "prime (nat p)"
+  assumes pprime: "prime p"
   shows "domain (ZFact p)"
 apply (unfold ZFact_def)
 apply (rule primeideal.quotient_is_domain)

@@ -261,7 +261,8 @@ lemma cong_abs_int: "[(x::int) = y] (mod abs m) = [x = y] (mod m)"
   by (simp add: cong_altdef_int)
 
 lemma cong_square_int:
-   "\<lbrakk> prime (p::int); 0 < a; [a * a = 1] (mod p) \<rbrakk>
+  fixes a::int
+  shows "\<lbrakk> prime p; 0 < a; [a * a = 1] (mod p) \<rbrakk>
     \<Longrightarrow> [a = 1] (mod p) \<or> [a = - 1] (mod p)"
   apply (simp only: cong_altdef_int)
   apply (subst prime_dvd_mult_eq_int [symmetric], assumption)

@@ -242,7 +242,7 @@ lemma prime_factors_prime_nat [intro]: "p : prime_factors (n::nat) \<Longrightar
 lemma prime_factors_prime_int [intro]:
   assumes "n >= 0" and "p : prime_factors (n::int)"
   shows "prime p"
-  apply (rule prime_factors_prime_nat [transferred, of n p])
+  apply (rule prime_factors_prime_nat [transferred, of n p, simplified])
   using assms apply auto
   done
 
@@ -252,8 +252,7 @@ lemma prime_factors_gt_0_nat [elim]: "p : prime_factors x \<Longrightarrow> p > 
   done
 
 lemma prime_factors_gt_0_int [elim]: "x >= 0 \<Longrightarrow> p : prime_factors x \<Longrightarrow> 
-    p > (0::int)"
-  apply (frule (1) prime_factors_prime_int)
+    int p > (0::int)"
   apply auto
   done
 
@@ -307,7 +306,7 @@ proof -
     apply force
     apply force
     using assms
-    apply (simp add: Abs_multiset_inverse set_of_def msetprod_multiplicity)
+    apply (simp add: set_of_def msetprod_multiplicity)
     done
   with `f \<in> multiset` have "count (multiset_prime_factorization n) = f"
     by (simp add: Abs_multiset_inverse)
@@ -354,14 +353,15 @@ lemma primes_characterization'_int [rule_format]:
   done
 
 lemma prime_factors_characterization_int: "S = {p. 0 < f (p::int)} \<Longrightarrow> 
-    finite S \<Longrightarrow> (ALL p:S. prime p) \<Longrightarrow> n = (PROD p:S. p ^ f p) \<Longrightarrow>
+    finite S \<Longrightarrow> (ALL p:S. prime (nat p)) \<Longrightarrow> n = (PROD p:S. p ^ f p) \<Longrightarrow>
       prime_factors n = S"
   apply simp
   apply (subgoal_tac "{p. 0 < f p} = {p. 0 <= p & 0 < f p}")
   apply (simp only:)
   apply (subst primes_characterization'_int)
   apply auto
-  apply (auto simp add: prime_ge_0_int)
+  apply (metis nat_int)
+  apply (metis le_cases nat_le_0 zero_not_prime_nat)
   done
 
 lemma multiplicity_characterization_nat: "S = {p. 0 < f (p::nat)} \<Longrightarrow> 
@@ -390,14 +390,15 @@ lemma multiplicity_characterization'_int [rule_format]:
   done
 
 lemma multiplicity_characterization_int: "S = {p. 0 < f (p::int)} \<Longrightarrow> 
-    finite S \<Longrightarrow> (ALL p:S. prime p) \<Longrightarrow> n = (PROD p:S. p ^ f p) \<Longrightarrow>
+    finite S \<Longrightarrow> (ALL p:S. prime (nat p)) \<Longrightarrow> n = (PROD p:S. p ^ f p) \<Longrightarrow>
       p >= 0 \<Longrightarrow> multiplicity p n = f p"
   apply simp
   apply (subgoal_tac "{p. 0 < f p} = {p. 0 <= p & 0 < f p}")
   apply (simp only:)
   apply (subst multiplicity_characterization'_int)
   apply auto
-  apply (auto simp add: prime_ge_0_int)
+  apply (metis nat_int)
+  apply (metis le_cases nat_le_0 zero_not_prime_nat)
   done
 
 lemma multiplicity_zero_nat [simp]: "multiplicity (p::nat) 0 = 0"
@@ -415,25 +416,20 @@ lemma multiplicity_one_nat [simp]: "multiplicity p (Suc 0) = 0"
 lemma multiplicity_one_int [simp]: "multiplicity p (1::int) = 0"
   by (metis multiplicity_int_def multiplicity_one_nat' transfer_nat_int_numerals(2))
 
-lemma multiplicity_prime_nat [simp]: "prime (p::nat) \<Longrightarrow> multiplicity p p = 1"
+lemma multiplicity_prime_nat [simp]: "prime p \<Longrightarrow> multiplicity p p = 1"
   apply (subst multiplicity_characterization_nat [where f = "(%q. if q = p then 1 else 0)"])
   apply auto
   by (metis (full_types) less_not_refl)
 
-lemma multiplicity_prime_int [simp]: "prime (p::int) \<Longrightarrow> multiplicity p p = 1"
-  unfolding prime_int_def multiplicity_int_def by auto
-
-lemma multiplicity_prime_power_nat [simp]: "prime (p::nat) \<Longrightarrow> multiplicity p (p^n) = n"
+lemma multiplicity_prime_power_nat [simp]: "prime p \<Longrightarrow> multiplicity p (p^n) = n"
   apply (cases "n = 0")
   apply auto
   apply (subst multiplicity_characterization_nat [where f = "(%q. if q = p then n else 0)"])
   apply auto
   by (metis (full_types) less_not_refl)
 
-lemma multiplicity_prime_power_int [simp]: "prime (p::int) \<Longrightarrow> multiplicity p (p^n) = n"
-  apply (frule prime_ge_0_int)
-  apply (auto simp add: prime_int_def multiplicity_int_def nat_power_eq)
-  done
+lemma multiplicity_prime_power_int [simp]: "prime p \<Longrightarrow> multiplicity p ( (int p)^n) = n"
+  by (metis multiplicity_prime_power_nat of_nat_power transfer_int_nat_multiplicity)
 
 lemma multiplicity_nonprime_nat [simp]: "~ prime (p::nat) \<Longrightarrow> multiplicity p n = 0"
   apply (cases "n = 0")
@@ -441,9 +437,6 @@ lemma multiplicity_nonprime_nat [simp]: "~ prime (p::nat) \<Longrightarrow> mult
   apply (frule multiset_prime_factorization)
   apply (auto simp add: set_of_def multiplicity_nat_def)
   done
-
-lemma multiplicity_nonprime_int [simp]: "~ prime (p::int) \<Longrightarrow> multiplicity p n = 0"
-  unfolding multiplicity_int_def prime_int_def by auto
 
 lemma multiplicity_not_factor_nat [simp]: 
     "p ~: prime_factors (n::nat) \<Longrightarrow> multiplicity p n = 0"
@@ -584,18 +577,17 @@ done
 (* Here the issue with transfer is the implicit quantifier over S *)
 
 lemma multiplicity_prod_prime_powers_int:
-    "(p::int) >= 0 \<Longrightarrow> finite S \<Longrightarrow> (ALL p : S. prime p) \<Longrightarrow>
+    "(p::int) >= 0 \<Longrightarrow> finite S \<Longrightarrow> (ALL p:S. prime (nat p)) \<Longrightarrow>
        multiplicity p (PROD p : S. p ^ f p) = (if p : S then f p else 0)"
   apply (subgoal_tac "int ` nat ` S = S")
   apply (frule multiplicity_prod_prime_powers_nat [where f = "%x. f(int x)" 
     and S = "nat ` S", transferred])
   apply auto
-  apply (metis prime_int_def)
-  apply (metis prime_ge_0_int)
-  apply (metis nat_set_def prime_ge_0_int transfer_nat_int_set_return_embed)
+  apply (metis linear nat_0_iff zero_not_prime_nat)
+  apply (metis (full_types) image_iff int_nat_eq less_le less_linear nat_0_iff zero_not_prime_nat)
   done
 
-lemma multiplicity_distinct_prime_power_nat: "prime (p::nat) \<Longrightarrow> prime q \<Longrightarrow>
+lemma multiplicity_distinct_prime_power_nat: "prime p \<Longrightarrow> prime q \<Longrightarrow>
     p ~= q \<Longrightarrow> multiplicity p (q^n) = 0"
   apply (subgoal_tac "q^n = setprod (%x. x^n) {q}")
   apply (erule ssubst)
@@ -603,14 +595,10 @@ lemma multiplicity_distinct_prime_power_nat: "prime (p::nat) \<Longrightarrow> p
   apply auto
   done
 
-lemma multiplicity_distinct_prime_power_int: "prime (p::int) \<Longrightarrow> prime q \<Longrightarrow>
-    p ~= q \<Longrightarrow> multiplicity p (q^n) = 0"
-  apply (frule prime_ge_0_int [of q])
-  apply (frule multiplicity_distinct_prime_power_nat [transferred leaving: n]) 
-  prefer 4
-  apply assumption
-  apply auto
-  done
+lemma multiplicity_distinct_prime_power_int: "prime p \<Longrightarrow> prime q \<Longrightarrow>
+    p ~= q \<Longrightarrow> multiplicity p (int q ^ n) = 0"
+  by (metis multiplicity_distinct_prime_power_nat of_nat_power transfer_int_nat_multiplicity)
+
 
 lemma dvd_multiplicity_nat:
     "(0::nat) < y \<Longrightarrow> x dvd y \<Longrightarrow> multiplicity p x <= multiplicity p y"
@@ -670,11 +658,12 @@ lemma multiplicity_dvd'_nat: "(0::nat) < x \<Longrightarrow>
   by (metis gcd_lcm_complete_lattice_nat.top_greatest le_refl multiplicity_dvd_nat
       multiplicity_nonprime_nat neq0_conv)
 
-lemma multiplicity_dvd'_int: "(0::int) < x \<Longrightarrow> 0 <= y \<Longrightarrow>
+lemma multiplicity_dvd'_int: 
+  fixes x::int and y::int
+  shows "0 < x \<Longrightarrow> 0 <= y \<Longrightarrow>
     \<forall>p. prime p \<longrightarrow> multiplicity p x \<le> multiplicity p y \<Longrightarrow> x dvd y"
-  by (metis eq_imp_le gcd_lcm_complete_lattice_nat.top_greatest int_eq_0_conv
-      multiplicity_dvd_int multiplicity_nonprime_int nat_int transfer_nat_int_relations(4)
-      less_le)
+by (metis GCD.dvd_int_iff abs_int_eq multiplicity_dvd'_nat multiplicity_int_def nat_int 
+          zero_le_imp_eq_int zero_less_imp_eq_int)
 
 lemma dvd_multiplicity_eq_nat: "0 < (x::nat) \<Longrightarrow> 0 < y \<Longrightarrow>
     (x dvd y) = (ALL p. multiplicity p x <= multiplicity p y)"
@@ -700,11 +689,7 @@ lemma prime_factors_altdef2_nat: "(n::nat) > 0 \<Longrightarrow>
 lemma prime_factors_altdef2_int: 
   assumes "(n::int) > 0" 
   shows "(p : prime_factors n) = (prime p & p dvd n)"
-  apply (cases "p >= 0")
-  apply (rule prime_factors_altdef2_nat [transferred])
-  using assms apply auto
-  apply (auto simp add: prime_ge_0_int prime_factors_ge_0_int)
-  done
+using assms by (simp add:  prime_factors_altdef2_nat [transferred])
 
 lemma multiplicity_eq_nat:
   fixes x and y::nat 

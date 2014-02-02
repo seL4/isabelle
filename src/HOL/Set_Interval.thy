@@ -1635,4 +1635,18 @@ declare transfer_morphism_int_nat[transfer add
     transfer_int_nat_set_function_closures
 ]
 
+lemma setprod_int_plus_eq: "setprod int {i..i+j} =  \<Prod>{int i..int (i+j)}"
+  by (induct j) (auto simp add: atLeastAtMostSuc_conv atLeastAtMostPlus1_int_conv)
+
+lemma setprod_int_eq: "setprod int {i..j} =  \<Prod>{int i..int j}"
+proof (cases "i \<le> j")
+  case True
+  then show ?thesis
+    by (metis Nat.le_iff_add setprod_int_plus_eq)
+next
+  case False
+  then show ?thesis
+    by auto
+qed
+
 end

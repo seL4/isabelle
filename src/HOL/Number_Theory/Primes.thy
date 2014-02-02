@@ -32,129 +32,76 @@ imports "~~/src/HOL/GCD"
 begin
 
 declare One_nat_def [simp]
+declare [[coercion int]]
+declare [[coercion_enabled]]
 
-class prime = one +
-  fixes prime :: "'a \<Rightarrow> bool"
+definition prime :: "nat \<Rightarrow> bool"
+  where "prime p = (1 < p \<and> (\<forall>m. m dvd p --> m = 1 \<or> m = p))"
 
-instantiation nat :: prime
-begin
-
-definition prime_nat :: "nat \<Rightarrow> bool"
-  where "prime_nat p = (1 < p \<and> (\<forall>m. m dvd p --> m = 1 \<or> m = p))"
-
-instance ..
-
-end
-
-instantiation int :: prime
-begin
-
-definition prime_int :: "int \<Rightarrow> bool"
-  where "prime_int p = prime (nat p)"
-
-instance ..
-
-end
-
-
-subsection {* Set up Transfer *}
-
-lemma transfer_nat_int_prime:
-  "(x::int) >= 0 \<Longrightarrow> prime (nat x) = prime x"
-  unfolding gcd_int_def lcm_int_def prime_int_def by auto
-
-declare transfer_morphism_nat_int[transfer add return:
-    transfer_nat_int_prime]
-
-lemma transfer_int_nat_prime: "prime (int x) = prime x"
-  unfolding gcd_int_def lcm_int_def prime_int_def by auto
-
-declare transfer_morphism_int_nat[transfer add return:
-    transfer_int_nat_prime]
+lemmas prime_nat_def = prime_def
 
 
 subsection {* Primes *}
 
-lemma prime_odd_nat: "prime (p::nat) \<Longrightarrow> p > 2 \<Longrightarrow> odd p"
+lemma prime_odd_nat: "prime p \<Longrightarrow> p > 2 \<Longrightarrow> odd p"
   apply (auto simp add: prime_nat_def even_def dvd_eq_mod_eq_0)
   apply (metis dvd_eq_mod_eq_0 even_Suc even_def mod_by_1 nat_dvd_not_less not_mod_2_eq_0_eq_1 zero_less_numeral)
   done
 
-lemma prime_odd_int: "prime (p::int) \<Longrightarrow> p > 2 \<Longrightarrow> odd p"
-  unfolding prime_int_def
-  apply (frule prime_odd_nat)
-  apply (auto simp add: even_nat_def)
-  done
-
 (* FIXME Is there a better way to handle these, rather than making them elim rules? *)
 
-lemma prime_ge_0_nat [elim]: "prime (p::nat) \<Longrightarrow> p >= 0"
+lemma prime_gt_0_nat [elim]: "prime p \<Longrightarrow> p > 0"
   unfolding prime_nat_def by auto
 
-lemma prime_gt_0_nat [elim]: "prime (p::nat) \<Longrightarrow> p > 0"
+lemma prime_ge_1_nat [elim]: "prime p \<Longrightarrow> p >= 1"
   unfolding prime_nat_def by auto
 
-lemma prime_ge_1_nat [elim]: "prime (p::nat) \<Longrightarrow> p >= 1"
+lemma prime_gt_1_nat [elim]: "prime p \<Longrightarrow> p > 1"
   unfolding prime_nat_def by auto
 
-lemma prime_gt_1_nat [elim]: "prime (p::nat) \<Longrightarrow> p > 1"
+lemma prime_ge_Suc_0_nat [elim]: "prime p \<Longrightarrow> p >= Suc 0"
   unfolding prime_nat_def by auto
 
-lemma prime_ge_Suc_0_nat [elim]: "prime (p::nat) \<Longrightarrow> p >= Suc 0"
+lemma prime_gt_Suc_0_nat [elim]: "prime p \<Longrightarrow> p > Suc 0"
   unfolding prime_nat_def by auto
 
-lemma prime_gt_Suc_0_nat [elim]: "prime (p::nat) \<Longrightarrow> p > Suc 0"
+lemma prime_ge_2_nat [elim]: "prime p \<Longrightarrow> p >= 2"
   unfolding prime_nat_def by auto
 
-lemma prime_ge_2_nat [elim]: "prime (p::nat) \<Longrightarrow> p >= 2"
-  unfolding prime_nat_def by auto
-
-lemma prime_ge_0_int [elim]: "prime (p::int) \<Longrightarrow> p >= 0"
-  unfolding prime_int_def prime_nat_def by auto
-
-lemma prime_gt_0_int [elim]: "prime (p::int) \<Longrightarrow> p > 0"
-  unfolding prime_int_def prime_nat_def by auto
-
-lemma prime_ge_1_int [elim]: "prime (p::int) \<Longrightarrow> p >= 1"
-  unfolding prime_int_def prime_nat_def by auto
-
-lemma prime_gt_1_int [elim]: "prime (p::int) \<Longrightarrow> p > 1"
-  unfolding prime_int_def prime_nat_def by auto
-
-lemma prime_ge_2_int [elim]: "prime (p::int) \<Longrightarrow> p >= 2"
-  unfolding prime_int_def prime_nat_def by auto
-
-
-lemma prime_int_altdef: "prime (p::int) = (1 < p \<and> (\<forall>m \<ge> 0. m dvd p \<longrightarrow>
-    m = 1 \<or> m = p))"
-  using prime_nat_def [transferred]
-  apply (cases "p >= 0")
-  apply blast
-  apply (auto simp add: prime_ge_0_int)
-  done
-
-lemma prime_imp_coprime_nat: "prime (p::nat) \<Longrightarrow> \<not> p dvd n \<Longrightarrow> coprime p n"
+lemma prime_imp_coprime_nat: "prime p \<Longrightarrow> \<not> p dvd n \<Longrightarrow> coprime p n"
   apply (unfold prime_nat_def)
   apply (metis gcd_dvd1_nat gcd_dvd2_nat)
   done
 
-lemma prime_imp_coprime_int: "prime (p::int) \<Longrightarrow> \<not> p dvd n \<Longrightarrow> coprime p n"
+lemma prime_int_altdef: 
+  "prime p = (1 < p \<and> (\<forall>m::int. m \<ge> 0 \<longrightarrow> m dvd p \<longrightarrow>
+    m = 1 \<or> m = p))"
+  apply (simp add: prime_def)
+  apply (auto simp add: )
+  apply (metis One_nat_def int_1 nat_0_le nat_dvd_iff)
+  apply (metis zdvd_int One_nat_def le0 of_nat_0 of_nat_1 of_nat_eq_iff of_nat_le_iff)
+  done
+
+lemma prime_imp_coprime_int:
+  fixes n::int shows "prime p \<Longrightarrow> \<not> p dvd n \<Longrightarrow> coprime p n"
   apply (unfold prime_int_altdef)
   apply (metis gcd_dvd1_int gcd_dvd2_int gcd_ge_0_int)
   done
 
-lemma prime_dvd_mult_nat: "prime (p::nat) \<Longrightarrow> p dvd m * n \<Longrightarrow> p dvd m \<or> p dvd n"
+lemma prime_dvd_mult_nat: "prime p \<Longrightarrow> p dvd m * n \<Longrightarrow> p dvd m \<or> p dvd n"
   by (blast intro: coprime_dvd_mult_nat prime_imp_coprime_nat)
 
-lemma prime_dvd_mult_int: "prime (p::int) \<Longrightarrow> p dvd m * n \<Longrightarrow> p dvd m \<or> p dvd n"
+lemma prime_dvd_mult_int: 
+  fixes n::int shows "prime p \<Longrightarrow> p dvd m * n \<Longrightarrow> p dvd m \<or> p dvd n"
   by (blast intro: coprime_dvd_mult_int prime_imp_coprime_int)
 
-lemma prime_dvd_mult_eq_nat [simp]: "prime (p::nat) \<Longrightarrow>
+lemma prime_dvd_mult_eq_nat [simp]: "prime p \<Longrightarrow>
     p dvd m * n = (p dvd m \<or> p dvd n)"
   by (rule iffI, rule prime_dvd_mult_nat, auto)
 
-lemma prime_dvd_mult_eq_int [simp]: "prime (p::int) \<Longrightarrow>
-    p dvd m * n = (p dvd m \<or> p dvd n)"
+lemma prime_dvd_mult_eq_int [simp]:
+  fixes n::int 
+  shows "prime p \<Longrightarrow> p dvd m * n = (p dvd m \<or> p dvd n)"
   by (rule iffI, rule prime_dvd_mult_int, auto)
 
 lemma not_prime_eq_prod_nat: "(n::nat) > 1 \<Longrightarrow> ~ prime n \<Longrightarrow>
@@ -163,25 +110,20 @@ lemma not_prime_eq_prod_nat: "(n::nat) > 1 \<Longrightarrow> ~ prime n \<Longrig
   by (metis mult_commute linorder_neq_iff linorder_not_le mult_1
       n_less_n_mult_m one_le_mult_iff less_imp_le_nat)
 
-lemma not_prime_eq_prod_int: "(n::int) > 1 \<Longrightarrow> ~ prime n \<Longrightarrow>
-    EX m k. n = m * k & 1 < m & m < n & 1 < k & k < n"
-  unfolding prime_int_altdef dvd_def
-  apply auto
-  by (metis div_mult_self1_is_id div_mult_self2_is_id
-      int_div_less_self int_one_le_iff_zero_less zero_less_mult_pos less_le)
-
-lemma prime_dvd_power_nat: "prime (p::nat) \<Longrightarrow> p dvd x^n \<Longrightarrow> p dvd x"
+lemma prime_dvd_power_nat: "prime p \<Longrightarrow> p dvd x^n \<Longrightarrow> p dvd x"
   by (induct n) auto
 
-lemma prime_dvd_power_int: "prime (p::int) \<Longrightarrow> p dvd x^n \<Longrightarrow> p dvd x"
-  by (induct n) (auto simp: prime_ge_0_int)
+lemma prime_dvd_power_int:
+  fixes x::int shows "prime p \<Longrightarrow> p dvd x^n \<Longrightarrow> p dvd x"
+  by (induct n) auto
 
-lemma prime_dvd_power_nat_iff: "prime (p::nat) \<Longrightarrow> n > 0 \<Longrightarrow>
+lemma prime_dvd_power_nat_iff: "prime p \<Longrightarrow> n > 0 \<Longrightarrow>
     p dvd x^n \<longleftrightarrow> p dvd x"
   by (cases n) (auto elim: prime_dvd_power_nat)
 
-lemma prime_dvd_power_int_iff: "prime (p::int) \<Longrightarrow> n > 0 \<Longrightarrow>
-    p dvd x^n \<longleftrightarrow> p dvd x"
+lemma prime_dvd_power_int_iff:
+  fixes x::int 
+  shows "prime p \<Longrightarrow> n > 0 \<Longrightarrow> p dvd x^n \<longleftrightarrow> p dvd x"
   by (cases n) (auto elim: prime_dvd_power_int)
 
 
@@ -190,79 +132,46 @@ subsubsection {* Make prime naively executable *}
 lemma zero_not_prime_nat [simp]: "~prime (0::nat)"
   by (simp add: prime_nat_def)
 
-lemma zero_not_prime_int [simp]: "~prime (0::int)"
-  by (simp add: prime_int_def)
-
 lemma one_not_prime_nat [simp]: "~prime (1::nat)"
   by (simp add: prime_nat_def)
 
 lemma Suc_0_not_prime_nat [simp]: "~prime (Suc 0)"
   by (simp add: prime_nat_def)
 
-lemma one_not_prime_int [simp]: "~prime (1::int)"
-  by (simp add: prime_int_def)
-
 lemma prime_nat_code [code]:
-    "prime (p::nat) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> {1<..<p}. ~ n dvd p)"
+    "prime p \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> {1<..<p}. ~ n dvd p)"
   apply (simp add: Ball_def)
   apply (metis One_nat_def less_not_refl prime_nat_def dvd_triv_right not_prime_eq_prod_nat)
   done
 
 lemma prime_nat_simp:
-    "prime (p::nat) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> set [2..<p]. \<not> n dvd p)"
+    "prime p \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> set [2..<p]. \<not> n dvd p)"
   by (auto simp add: prime_nat_code)
 
 lemmas prime_nat_simp_numeral [simp] = prime_nat_simp [of "numeral m"] for m
 
-lemma prime_int_code [code]:
-  "prime (p::int) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> {1<..<p}. ~ n dvd p)" (is "?L = ?R")
-proof
-  assume "?L"
-  then show "?R"
-    by (clarsimp simp: prime_gt_1_int) (metis int_one_le_iff_zero_less prime_int_altdef less_le)
-next
-  assume "?R"
-  then show "?L" by (clarsimp simp: Ball_def) (metis dvdI not_prime_eq_prod_int)
-qed
-
-lemma prime_int_simp: "prime (p::int) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> set [2..p - 1]. ~ n dvd p)"
-  by (auto simp add: prime_int_code)
-
-lemmas prime_int_simp_numeral [simp] = prime_int_simp [of "numeral m"] for m
-
 lemma two_is_prime_nat [simp]: "prime (2::nat)"
-  by simp
-
-lemma two_is_prime_int [simp]: "prime (2::int)"
   by simp
 
 text{* A bit of regression testing: *}
 
 lemma "prime(97::nat)" by simp
-lemma "prime(97::int)" by simp
 lemma "prime(997::nat)" by eval
-lemma "prime(997::int)" by eval
 
 
-lemma prime_imp_power_coprime_nat: "prime (p::nat) \<Longrightarrow> ~ p dvd a \<Longrightarrow> coprime a (p^m)"
+lemma prime_imp_power_coprime_nat: "prime p \<Longrightarrow> ~ p dvd a \<Longrightarrow> coprime a (p^m)"
   by (metis coprime_exp_nat gcd_nat.commute prime_imp_coprime_nat)
 
-lemma prime_imp_power_coprime_int: "prime (p::int) \<Longrightarrow> ~ p dvd a \<Longrightarrow> coprime a (p^m)"
+lemma prime_imp_power_coprime_int:
+  fixes a::int shows "prime p \<Longrightarrow> ~ p dvd a \<Longrightarrow> coprime a (p^m)"
   by (metis coprime_exp_int gcd_int.commute prime_imp_coprime_int)
 
-lemma primes_coprime_nat: "prime (p::nat) \<Longrightarrow> prime q \<Longrightarrow> p \<noteq> q \<Longrightarrow> coprime p q"
+lemma primes_coprime_nat: "prime p \<Longrightarrow> prime q \<Longrightarrow> p \<noteq> q \<Longrightarrow> coprime p q"
   by (metis gcd_nat.absorb1 gcd_nat.absorb2 prime_imp_coprime_nat)
 
-lemma primes_coprime_int: "prime (p::int) \<Longrightarrow> prime q \<Longrightarrow> p \<noteq> q \<Longrightarrow> coprime p q"
-  by (metis leD linear prime_gt_0_int prime_imp_coprime_int prime_int_altdef)
-
 lemma primes_imp_powers_coprime_nat:
-    "prime (p::nat) \<Longrightarrow> prime q \<Longrightarrow> p ~= q \<Longrightarrow> coprime (p^m) (q^n)"
+    "prime p \<Longrightarrow> prime q \<Longrightarrow> p ~= q \<Longrightarrow> coprime (p^m) (q^n)"
   by (rule coprime_exp2_nat, rule primes_coprime_nat)
-
-lemma primes_imp_powers_coprime_int:
-    "prime (p::int) \<Longrightarrow> prime q \<Longrightarrow> p ~= q \<Longrightarrow> coprime (p^m) (q^n)"
-  by (rule coprime_exp2_int, rule primes_coprime_int)
 
 lemma prime_factor_nat: "n \<noteq> (1::nat) \<Longrightarrow> \<exists> p. prime p \<and> p dvd n"
   apply (induct n rule: nat_less_induct)
@@ -276,7 +185,7 @@ lemma prime_factor_nat: "n \<noteq> (1::nat) \<Longrightarrow> \<exists> p. prim
 text {* One property of coprimality is easier to prove via prime factors. *}
 
 lemma prime_divprod_pow_nat:
-  assumes p: "prime (p::nat)" and ab: "coprime a b" and pab: "p^n dvd a * b"
+  assumes p: "prime p" and ab: "coprime a b" and pab: "p^n dvd a * b"
   shows "p^n dvd a \<or> p^n dvd b"
 proof-
   { assume "n = 0 \<or> a = 1 \<or> b = 1" with pab have ?thesis
@@ -316,7 +225,7 @@ qed
 
 subsection {* Infinitely many primes *}
 
-lemma next_prime_bound: "\<exists>(p::nat). prime p \<and> n < p \<and> p <= fact n + 1"
+lemma next_prime_bound: "\<exists>p. prime p \<and> n < p \<and> p <= fact n + 1"
 proof-
   have f1: "fact n + 1 \<noteq> 1" using fact_ge_one_nat [of n] by arith 
   from prime_factor_nat [OF f1]
