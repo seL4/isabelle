@@ -270,7 +270,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
 
         val trace = Config.get ctxt trace
 
-        val isar_proof =
+        val canonical_isar_proof =
           refute_graph
           |> trace ? tap (tracing o prefix "Refute graph: " o string_of_refute_graph)
           |> redirect_graph axioms tainted bot
@@ -279,9 +279,13 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
           |> postprocess_isar_proof_remove_unreferenced_steps I
           |> relabel_isar_proof_canonically
 
+        val preplay_ctxt = ctxt
+          |> enrich_context_with_local_facts canonical_isar_proof
+          |> silence_reconstructors debug
+
         val preplay_data as {preplay_outcome, overall_preplay_outcome, ...} =
-          preplay_data_of_isar_proof debug ctxt metis_type_enc metis_lam_trans preplay_timeout
-            isar_proof
+          preplay_data_of_isar_proof preplay_ctxt metis_type_enc metis_lam_trans preplay_timeout
+            canonical_isar_proof
 
         fun str_of_preplay_outcome outcome =
           if Lazy.is_finished outcome then string_of_play_outcome (Lazy.force outcome) else "?"
@@ -298,7 +302,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
             ()
 
         val (play_outcome, isar_proof) =
-          isar_proof
+          canonical_isar_proof
           |> tap (trace_isar_proof "Original")
           |> compress_isar_proof compress_isar preplay_data
           |> tap (trace_isar_proof "Compressed")
@@ -351,7 +355,7 @@ fun isar_proof_would_be_a_good_idea (reconstr, play) =
   | Not_Played => false)
 
 fun proof_text ctxt debug isar_proofs isar_params num_chained
-               (one_line_params as (preplay, _, _, _, _, _)) =
+    (one_line_params as (preplay, _, _, _, _, _)) =
   (if isar_proofs = SOME true orelse
       (isar_proofs = NONE andalso isar_proof_would_be_a_good_idea preplay) then
      isar_proof_text ctxt debug isar_proofs isar_params

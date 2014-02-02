@@ -21,8 +21,9 @@ sig
      preplay_outcome: label -> proof_method -> play_outcome Lazy.lazy,
      overall_preplay_outcome: isar_proof -> play_outcome}
 
-  val preplay_data_of_isar_proof : bool -> Proof.context -> string -> string -> Time.time ->
-    isar_proof -> isar_preplay_data
+  val enrich_context_with_local_facts : isar_proof -> Proof.context -> Proof.context
+  val preplay_data_of_isar_proof : Proof.context -> string -> string -> Time.time -> isar_proof ->
+    isar_preplay_data
 end;
 
 structure Sledgehammer_Isar_Preplay : SLEDGEHAMMER_ISAR_PREPLAY =
@@ -33,6 +34,24 @@ open Sledgehammer_Reconstructor
 open Sledgehammer_Isar_Proof
 
 val trace = Attrib.setup_config_bool @{binding sledgehammer_preplay_trace} (K false)
+
+fun enrich_context_with_local_facts proof ctxt =
+  let
+    val thy = Proof_Context.theory_of ctxt
+
+    fun enrich_with_fact l t =
+      Proof_Context.put_thms false (string_of_label l, SOME [Skip_Proof.make_thm thy t])
+
+    val enrich_with_assms = fold (uncurry enrich_with_fact)
+
+    fun enrich_with_proof (Proof (_, assms, isar_steps)) =
+      enrich_with_assms assms #> fold enrich_with_step isar_steps
+    and enrich_with_step (Let _) = I
+      | enrich_with_step (Prove (_, _, l, t, subproofs, _)) =
+        enrich_with_fact l t #> fold enrich_with_proof subproofs
+  in
+    enrich_with_proof proof ctxt
+  end
 
 fun preplay_trace ctxt assmsp concl result =
   let
@@ -95,7 +114,7 @@ fun tac_of_method meth type_enc lam_trans ctxt (local_facts, global_facts) =
     | _ => raise Fail "Sledgehammer_Isar_Preplay: tac_of_method"))
 
 (* main function for preplaying Isar steps; may throw exceptions *)
-fun raw_preplay_step debug type_enc lam_trans ctxt timeout meth
+fun raw_preplay_step type_enc lam_trans ctxt timeout meth
       (Prove (_, xs, _, t, subproofs, (fact_names, _))) =
     let
       val goal =
@@ -121,10 +140,8 @@ fun raw_preplay_step debug type_enc lam_trans ctxt timeout meth
         resolve_fact_names ctxt fact_names
         |>> append (map (thm_of_proof ctxt) subproofs)
 
-      val ctxt' = ctxt |> silence_reconstructors debug
-
       fun prove () =
-        Goal.prove ctxt' [] [] goal (fn {context = ctxt, ...} =>
+        Goal.prove ctxt [] [] goal (fn {context = ctxt, ...} =>
           HEADGOAL (tac_of_method meth type_enc lam_trans ctxt facts))
         handle ERROR msg => error ("Preplay error: " ^ msg)
 
@@ -140,44 +157,22 @@ type isar_preplay_data =
    preplay_step: Time.time -> proof_method -> isar_step -> play_outcome,
    overall_preplay_outcome: isar_proof -> play_outcome}
 
-fun enrich_context_with_local_facts proof ctxt =
+fun time_of_play (Played time) = time
+  | time_of_play (Play_Timed_Out time) = time
+
+fun merge_preplay_outcomes Play_Failed _ = Play_Failed
+  | merge_preplay_outcomes _ Play_Failed = Play_Failed
+  | merge_preplay_outcomes (Played time1) (Played time2) = Played (Time.+ (time1, time2))
+  | merge_preplay_outcomes play1 play2 =
+    Play_Timed_Out (Time.+ (pairself time_of_play (play1, play2)))
+
+(* Given a (canonically labeled) proof, produces an imperative preplay interface with a shared table
+   mapping from labels to preplay results. The preplay results are caluclated lazily and cached to
+   avoid repeated calculation. *)
+fun preplay_data_of_isar_proof ctxt type_enc lam_trans preplay_timeout proof =
   let
-    val thy = Proof_Context.theory_of ctxt
-
-    fun enrich_with_fact l t =
-      Proof_Context.put_thms false (string_of_label l, SOME [Skip_Proof.make_thm thy t])
-
-    val enrich_with_assms = fold (uncurry enrich_with_fact)
-
-    fun enrich_with_proof (Proof (_, assms, isar_steps)) =
-      enrich_with_assms assms #> fold enrich_with_step isar_steps
-    and enrich_with_step (Let _) = I
-      | enrich_with_step (Prove (_, _, l, t, subproofs, _)) =
-        enrich_with_fact l t #> fold enrich_with_proof subproofs
-  in
-    enrich_with_proof proof ctxt
-  end
-
-fun merge_preplay_outcomes _ Play_Failed = Play_Failed
-  | merge_preplay_outcomes Play_Failed _ = Play_Failed
-  | merge_preplay_outcomes (Play_Timed_Out t1) (Play_Timed_Out t2) =
-    Play_Timed_Out (Time.+ (t1, t2))
-  | merge_preplay_outcomes (Played t1) (Play_Timed_Out t2) = Play_Timed_Out (Time.+ (t1, t2))
-  | merge_preplay_outcomes (Play_Timed_Out t1) (Played t2) = Play_Timed_Out (Time.+ (t1, t2))
-  | merge_preplay_outcomes (Played t1) (Played t2) = Played (Time.+ (t1, t2))
-
-(* Given a proof, produces an imperative preplay interface with a shared table mapping from labels
-   to preplay results. The preplay results are caluclated lazyly and cached to avoid repeated
-   calculation.
-
-   Precondition: The proof must be labeled canonically; cf.
-   "Slegehammer_Isar_Proof.relabel_isar_proof_canonically". *)
-fun preplay_data_of_isar_proof debug ctxt type_enc lam_trans preplay_timeout proof =
-  let
-    val ctxt = enrich_context_with_local_facts proof ctxt
-
     fun preplay_step timeout meth =
-      try (raw_preplay_step debug type_enc lam_trans ctxt timeout meth)
+      try (raw_preplay_step type_enc lam_trans ctxt timeout meth)
       #> the_default Play_Failed
 
     val preplay_tab = Unsynchronized.ref Canonical_Label_Tab.empty
