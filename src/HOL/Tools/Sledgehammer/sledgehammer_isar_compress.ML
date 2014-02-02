@@ -81,13 +81,15 @@ fun update_steps steps updates =
 
 fun try_merge (Prove (_, [], l1, _, [], ((lfs1, gfs1), meths1)))
       (Prove (qs2, fix, l2, t, subproofs, ((lfs2, gfs2), meths2))) =
-    let
-      val lfs = union (op =) lfs1 (remove (op =) l1 lfs2)
-      val gfs = union (op =) gfs1 gfs2
-      val meths = fold_rev (insert (op =)) meths1 meths2
-    in
-      SOME (Prove (qs2, fix, l2, t, subproofs, ((lfs, gfs), meths)))
-    end
+    (case inter (op =) meths1 meths2 of
+      [] => NONE
+    | meths =>
+      let
+        val lfs = union (op =) lfs1 (remove (op =) l1 lfs2)
+        val gfs = union (op =) gfs1 gfs2
+      in
+        SOME (Prove (qs2, fix, l2, t, subproofs, ((lfs, gfs), meths)))
+      end)
   | try_merge _ _ = NONE
 
 val compress_degree = 2
@@ -237,7 +239,7 @@ fun compress_isar_proof compress_isar
               val play_outcomes = map2 preplay_quietly timeouts succs'
 
               (* ensure none of the modified successors timed out *)
-              val true = List.all (fn Played _ => true) play_outcomes
+              val true = forall (fn Played _ => true) play_outcomes
 
               val (steps1, _ :: steps2) = chop i steps
               (* replace successors with their modified versions *)
