@@ -28,11 +28,11 @@ val slack = seconds 0.1
 fun minimize_isar_step_dependencies (_ : isar_preplay_data) (step as Let _) = step
   | minimize_isar_step_dependencies
       {reset_preplay_outcomes, set_preplay_outcome, preplay_outcome, preplay_quietly, ...}
-      (step as Prove (qs, xs, l, t, subproofs, ((lfs, gfs), methss as (meth :: _) :: _))) =
+      (step as Prove (qs, xs, l, t, subproofs, ((lfs, gfs), meths as meth :: _))) =
     (case Lazy.force (preplay_outcome l meth) of
       Played time =>
       let
-        fun mk_step_lfs_gfs lfs gfs = Prove (qs, xs, l, t, subproofs, ((lfs, gfs), methss))
+        fun mk_step_lfs_gfs lfs gfs = Prove (qs, xs, l, t, subproofs, ((lfs, gfs), meths))
         val mk_step_gfs_lfs = curry (swap #> uncurry mk_step_lfs_gfs)
 
         fun minimize_facts _ time min_facts [] = (time, min_facts)

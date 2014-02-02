@@ -110,16 +110,16 @@ fun add_lines_pass2 res [] = rev res
 type isar_params =
   bool * string * string * Time.time * real * bool * (term, string) atp_step list * thm
 
-val arith_methodss =
-  [[Arith_Method, Simp_Method, Auto_Method, Fastforce_Method, Blast_Method, Force_Method,
-    Algebra_Method], [Metis_Method], [Meson_Method]]
-val datatype_methodss = [[Simp_Method], [Simp_Size_Method]]
-val metislike_methodss =
-  [[Metis_Method, Simp_Method, Auto_Method, Arith_Method, Blast_Method, Fastforce_Method,
-    Force_Method, Algebra_Method], [Meson_Method]]
-val rewrite_methodss =
-  [[Auto_Method, Simp_Method, Fastforce_Method, Force_Method, Metis_Method], [Meson_Method]]
-val skolem_methodss = [[Metis_Method, Blast_Method], [Meson_Method]]
+val arith_methods =
+  [Arith_Method, Simp_Method, Auto_Method, Fastforce_Method, Blast_Method, Force_Method,
+   Algebra_Method, Metis_Method, Meson_Method]
+val datatype_methods = [Simp_Method, Simp_Size_Method]
+val metislike_methods =
+  [Metis_Method, Simp_Method, Auto_Method, Arith_Method, Blast_Method, Fastforce_Method,
+   Force_Method, Algebra_Method, Meson_Method]
+val rewrite_methods =
+  [Auto_Method, Simp_Method, Fastforce_Method, Force_Method, Metis_Method, Meson_Method]
+val skolem_methods = [Metis_Method, Blast_Method, Meson_Method]
 
 fun isar_proof_text ctxt debug isar_proofs isar_params
     (one_line_params as (_, _, _, _, subgoal, subgoal_count)) =
@@ -158,12 +158,12 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
           map_filter (get_role (curry (op =) Lemma)) atp_proof
           |> map (fn ((l, t), rule) =>
             let
-              val (skos, methss) =
-                if is_skolemize_rule rule then (skolems_of t, skolem_methodss)
-                else if is_arith_rule rule then ([], arith_methodss)
-                else ([], rewrite_methodss)
+              val (skos, meths) =
+                if is_skolemize_rule rule then (skolems_of t, skolem_methods)
+                else if is_arith_rule rule then ([], arith_methods)
+                else ([], rewrite_methods)
             in
-              Prove ([], skos, l, t, [], (([], []), methss))
+              Prove ([], skos, l, t, [], (([], []), meths))
             end)
 
         val bot = atp_proof |> List.last |> #1
@@ -212,7 +212,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
             accum
             |> (if tainted = [] then
                   cons (Prove (if outer then [Show] else [], [], no_label, concl_t, [],
-                               ((the_list predecessor, []), metislike_methodss)))
+                               ((the_list predecessor, []), metislike_methods)))
                 else
                   I)
             |> rev
@@ -227,18 +227,18 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
               fun do_rest l step = isar_steps outer (SOME l) (step :: accum) infs
 
               val deps = fold add_fact_of_dependencies gamma no_facts
-              val methss =
-                if is_arith_rule rule then arith_methodss
-                else if is_datatype_rule rule then datatype_methodss
-                else metislike_methodss
-              val by = (deps, methss)
+              val meths =
+                if is_arith_rule rule then arith_methods
+                else if is_datatype_rule rule then datatype_methods
+                else metislike_methods
+              val by = (deps, meths)
             in
               if is_clause_tainted c then
                 (case gamma of
                   [g] =>
                   if skolem andalso is_clause_tainted g then
                     let val subproof = Proof (skolems_of (prop_of_clause g), [], rev accum) in
-                      isar_steps outer (SOME l) [prove [subproof] (no_facts, skolem_methodss)] infs
+                      isar_steps outer (SOME l) [prove [subproof] (no_facts, skolem_methods)] infs
                     end
                   else
                     do_rest l (prove [] by)
@@ -256,7 +256,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
               val step =
                 Prove (maybe_show outer c [], [], l, t,
                   map isar_case (filter_out (null o snd) cases),
-                  ((the_list predecessor, []), metislike_methodss))
+                  ((the_list predecessor, []), metislike_methods))
             in
               isar_steps outer (SOME l) (step :: accum) infs
             end
@@ -286,7 +286,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
 
         fun str_of_meth l meth =
           string_of_proof_method meth ^ " " ^ str_of_preplay_outcome (preplay_outcome l meth)
-        fun comment_of l = map (map (str_of_meth l)) #> map commas #> space_implode "; "
+        fun comment_of l = map (str_of_meth l) #> commas
 
         fun trace_isar_proof label proof =
           if trace then

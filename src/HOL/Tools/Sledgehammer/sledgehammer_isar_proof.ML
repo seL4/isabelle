@@ -22,7 +22,7 @@ sig
   and isar_step =
     Let of term * term |
     Prove of isar_qualifier list * (string * typ) list * label * term * isar_proof list *
-      (facts * proof_method list list)
+      (facts * proof_method list)
 
   val no_label : label
   val no_facts : facts
@@ -35,7 +35,7 @@ sig
   val steps_of_proof : isar_proof -> isar_step list
 
   val label_of_isar_step : isar_step -> label option
-  val byline_of_isar_step : isar_step -> (facts * proof_method list list) option
+  val byline_of_isar_step : isar_step -> (facts * proof_method list) option
 
   val fold_isar_steps : (isar_step -> 'a -> 'a) -> isar_step list -> 'a -> 'a
   val map_isar_steps : (isar_step -> isar_step) -> isar_proof -> isar_proof
@@ -51,7 +51,7 @@ sig
   val relabel_isar_proof_finally : isar_proof -> isar_proof
 
   val string_of_isar_proof : Proof.context -> string -> string -> int -> int ->
-    (label -> proof_method list list -> string) -> isar_proof -> string
+    (label -> proof_method list -> string) -> isar_proof -> string
 end;
 
 structure Sledgehammer_Isar_Proof : SLEDGEHAMMER_ISAR_PROOF =
@@ -79,7 +79,7 @@ datatype isar_proof =
 and isar_step =
   Let of term * term |
   Prove of isar_qualifier list * (string * typ) list * label * term * isar_proof list *
-    (facts * proof_method list list)
+    (facts * proof_method list)
 
 val no_label = ("", ~1)
 val no_facts = ([],[])
@@ -136,9 +136,9 @@ structure Canonical_Label_Tab = Table(
 fun chain_qs_lfs NONE lfs = ([], lfs)
   | chain_qs_lfs (SOME l0) lfs =
     if member (op =) lfs l0 then ([Then], lfs |> remove (op =) l0) else ([], lfs)
-fun chain_isar_step lbl (Prove (qs, xs, l, t, subproofs, ((lfs, gfs), methss))) =
+fun chain_isar_step lbl (Prove (qs, xs, l, t, subproofs, ((lfs, gfs), meths))) =
     let val (qs', lfs) = chain_qs_lfs lbl lfs in
-      Prove (qs' @ qs, xs, l, t, map chain_isar_proof subproofs, ((lfs, gfs), methss))
+      Prove (qs' @ qs, xs, l, t, map chain_isar_proof subproofs, ((lfs, gfs), meths))
     end
   | chain_isar_step _ step = step
 and chain_isar_steps _ [] = []
@@ -340,7 +340,7 @@ fun string_of_isar_proof ctxt type_enc lam_trans i n comment_of proof =
         add_str (of_indent ind ^ "let ")
         #> add_term t1 #> add_str " = " #> add_term t2
         #> add_str "\n"
-      | add_step ind (Prove (qs, xs, l, t, subproofs, ((ls, ss), methss as (meth :: _) :: _))) =
+      | add_step ind (Prove (qs, xs, l, t, subproofs, ((ls, ss), meths as meth :: _))) =
         add_step_pre ind qs subproofs
         #> (case xs of
              [] => add_str (of_have qs (length subproofs) ^ " ")
@@ -350,7 +350,7 @@ fun string_of_isar_proof ctxt type_enc lam_trans i n comment_of proof =
         #> add_term t
         #> add_str (" " ^
              of_method (sort_distinct label_ord ls) (sort_distinct string_ord ss) meth ^
-             (case comment_of l methss of
+             (case comment_of l meths of
                "" => ""
              | comment => " (* " ^ comment ^ " *)") ^ "\n")
     and add_steps ind = fold (add_step ind)
@@ -360,7 +360,7 @@ fun string_of_isar_proof ctxt type_enc lam_trans i n comment_of proof =
     (* One-step Metis proofs are pointless; better use the one-liner directly. *)
     (case proof of
       Proof ([], [], []) => "" (* degenerate case: the conjecture is "True" with Z3 *)
-    | Proof ([], [], [Prove (_, [], _, _, [], (_, (Metis_Method :: _) :: _))]) => ""
+    | Proof ([], [], [Prove (_, [], _, _, [], (_, Metis_Method :: _))]) => ""
     | _ =>
       (if i <> 1 then "prefer " ^ string_of_int i ^ "\n" else "") ^
       of_indent 0 ^ "proof -\n" ^ of_proof 1 ctxt proof ^

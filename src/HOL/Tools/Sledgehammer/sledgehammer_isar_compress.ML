@@ -79,15 +79,14 @@ fun update_steps steps updates =
     | _ => raise Fail "Sledgehammer_Isar_Compress: update_steps")
   end
 
-(* Tries merging the first step into the second step.
-   FIXME: Arbitrarily picks the second step's method. *)
-fun try_merge (Prove (_, [], lbl1, _, [], ((lfs1, gfs1), _)))
-      (Prove (qs2, fix, lbl2, t, subproofs, ((lfs2, gfs2), methss2))) =
+(* Tries merging the first step into the second step. *)
+fun try_merge (Prove (_, [], lbl1, _, [], ((lfs1, gfs1), meths1)))
+      (Prove (qs2, fix, lbl2, t, subproofs, ((lfs2, gfs2), meths2))) =
     let
       val lfs = remove (op =) lbl1 lfs2 |> union (op =) lfs1
       val gfs = union (op =) gfs1 gfs2
     in
-      SOME (Prove (qs2, fix, lbl2, t, subproofs, ((lfs, gfs), methss2)))
+      SOME (Prove (qs2, fix, lbl2, t, subproofs, ((lfs, gfs), meths2)))
     end
   | try_merge _ _ = NONE
 
@@ -136,16 +135,16 @@ fun compress_isar_proof compress_isar
         end
 
       (* elimination of trivial, one-step subproofs *)
-      fun elim_subproofs' time qs fix l t lfs gfs (methss as (meth :: _) :: _) subs nontriv_subs =
+      fun elim_subproofs' time qs fix l t lfs gfs (meths as meth :: _) subs nontriv_subs =
         if null subs orelse not (compress_further ()) then
           (set_preplay_outcome l meth (Played time);
-           Prove (qs, fix, l, t, List.revAppend (nontriv_subs, subs), ((lfs, gfs), methss)))
+           Prove (qs, fix, l, t, List.revAppend (nontriv_subs, subs), ((lfs, gfs), meths)))
         else
           (case subs of
             (sub as Proof (_, assms, sub_steps)) :: subs =>
             (let
               (* trivial subproofs have exactly one "Prove" step *)
-              val SOME (Prove (_, [], l', _, [], ((lfs', gfs'), (meth' :: _) :: _))) =
+              val SOME (Prove (_, [], l', _, [], ((lfs', gfs'), meth' :: _))) =
                 try the_single sub_steps
 
               (* only touch proofs that can be preplayed sucessfully *)
@@ -155,7 +154,7 @@ fun compress_isar_proof compress_isar
               val subs'' = subs @ nontriv_subs
               val lfs'' = union (op =) lfs (subtract (op =) (map fst assms) lfs')
               val gfs'' = union (op =) gfs' gfs
-              val by = ((lfs'', gfs''), methss(*FIXME*))
+              val by = ((lfs'', gfs''), meths(*FIXME*))
               val step'' = Prove (qs, fix, l, t, subs'', by)
 
               (* check if the modified step can be preplayed fast enough *)
@@ -164,20 +163,20 @@ fun compress_isar_proof compress_isar
             in
               decrement_step_count (); (* l' successfully eliminated! *)
               map (replace_successor l' [l]) lfs';
-              elim_subproofs' time'' qs fix l t lfs'' gfs'' methss subs nontriv_subs
+              elim_subproofs' time'' qs fix l t lfs'' gfs'' meths subs nontriv_subs
             end
             handle Bind =>
-            elim_subproofs' time qs fix l t lfs gfs methss subs (sub :: nontriv_subs))
+            elim_subproofs' time qs fix l t lfs gfs meths subs (sub :: nontriv_subs))
           | _ => raise Fail "Sledgehammer_Isar_Compress: elim_subproofs'")
 
       fun elim_subproofs (step as Let _) = step
         | elim_subproofs (step as Prove (qs, fix, l, t, subproofs,
-            ((lfs, gfs), methss as (meth :: _) :: _))) =
+            ((lfs, gfs), meths as meth :: _))) =
           if subproofs = [] then
             step
           else
             (case Lazy.force (preplay_outcome l meth) of
-              Played time => elim_subproofs' time qs fix l t lfs gfs methss subproofs []
+              Played time => elim_subproofs' time qs fix l t lfs gfs meths subproofs []
             | _ => step)
 
       (** top_level compression: eliminate steps by merging them into their successors **)
@@ -211,11 +210,10 @@ fun compress_isar_proof compress_isar
 
           fun try_eliminate (i, l, _) succ_lbls steps =
             let
-              val ((cand as Prove (_, _, l, _, _, ((lfs, _), (meth :: _) :: _))) :: steps') =
-                drop i steps
+              val ((cand as Prove (_, _, l, _, _, ((lfs, _), meth :: _))) :: steps') = drop i steps
 
               val succs = collect_successors steps' succ_lbls
-              val succ_meths = map (hd o hd o snd o the o byline_of_isar_step) succs
+              val succ_meths = map (hd o snd o the o byline_of_isar_step) succs
 
               (* only touch steps that can be preplayed successfully *)
               val Played time = Lazy.force (preplay_outcome l meth)

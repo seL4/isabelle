@@ -22,8 +22,8 @@ open Sledgehammer_Reconstructor
 open Sledgehammer_Isar_Proof
 open Sledgehammer_Isar_Preplay
 
-fun variants_of_step (Prove (qs, xs, l, t, subproofs, (facts, methss))) =
-    map (fn meth => Prove (qs, xs, l, t, subproofs, (facts, [[meth]]))) (tl (flat methss))
+fun variants_of_step (Prove (qs, xs, l, t, subproofs, (facts, meths))) =
+    map (fn meth => Prove (qs, xs, l, t, subproofs, (facts, [meth]))) (tl meths)
   | variants_of_step _ = raise Fail "Sledgehammer_Isar_Try0: variants_of_step"
 
 val slack = seconds 0.05
@@ -31,7 +31,7 @@ val slack = seconds 0.05
 fun try0_step _ _ (step as Let _) = step
   | try0_step preplay_timeout
       ({preplay_outcome, set_preplay_outcome, preplay_quietly, ...} : isar_preplay_data)
-      (step as Prove (_, _, l, _, _, (_, (meth :: _) :: _))) =
+      (step as Prove (_, _, l, _, _, (_, meth :: _))) =
     let
       val timeout =
         (case Lazy.force (preplay_outcome l meth) of
@@ -45,7 +45,7 @@ fun try0_step _ _ (step as Let _) = step
     in
       (* FIXME: create variant after success *)
       (case Par_List.get_some try_variant (variants_of_step step) of
-        SOME (step' as Prove (_, _, _, _, _, (_, (meth' :: _) :: _)), result) =>
+        SOME (step' as Prove (_, _, _, _, _, (_, meth' :: _)), result) =>
         (set_preplay_outcome l meth' result; step')
       | NONE => step)
     end

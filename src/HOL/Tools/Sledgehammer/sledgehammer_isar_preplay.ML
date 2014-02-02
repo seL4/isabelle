@@ -210,15 +210,15 @@ fun preplay_data_of_isar_proof debug ctxt type_enc lam_trans do_preplay preplay_
              Play_Failed)
 
       (* preplay steps treating exceptions like timeouts *)
-      fun preplay_quietly timeout (step as Prove (_, _, _, _, _, (_, (meth :: _) :: _))) =
+      fun preplay_quietly timeout (step as Prove (_, _, _, _, _, (_, meth :: _))) =
           preplay true timeout meth step
         | preplay_quietly _ _ = Played Time.zeroTime
 
       val preplay_tab = Unsynchronized.ref Canonical_Label_Tab.empty
 
-      fun reset_preplay_outcomes (step as Prove (_, _, l, _, _, (_, methss))) =
-          preplay_tab := Canonical_Label_Tab.update (l, maps (map (fn meth =>
-              (meth, Lazy.lazy (fn () => preplay false preplay_timeout meth step)))) methss)
+      fun reset_preplay_outcomes (step as Prove (_, _, l, _, _, (_, meths))) =
+          preplay_tab := Canonical_Label_Tab.update (l, map (fn meth =>
+              (meth, Lazy.lazy (fn () => preplay false preplay_timeout meth step))) meths)
             (!preplay_tab)
         | reset_preplay_outcomes _ = ()
 
@@ -236,7 +236,7 @@ fun preplay_data_of_isar_proof debug ctxt type_enc lam_trans do_preplay preplay_
 
       val _ = fold_isar_steps (K o reset_preplay_outcomes) (steps_of_proof proof) ()
 
-      fun result_of_step (Prove (_, _, l, _, _, (_, (meth :: _) :: _))) =
+      fun result_of_step (Prove (_, _, l, _, _, (_, meth :: _))) =
           Lazy.force (preplay_outcome l meth)
         | result_of_step _ = Played Time.zeroTime
 
