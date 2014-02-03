@@ -248,7 +248,7 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
             in
               decrement_step_count (); (* candidate successfully eliminated *)
               map3 (fn time => set_preplay_outcomes_of_isar_step ctxt time preplay_data) times
-                succs succ_meths_outcomess;
+                succs' succ_meths_outcomess;
               map (replace_successor l labels) lfs;
               (* removing the step would mess up the indices; replace with dummy step instead *)
               steps1 @ dummy_isar_step :: steps2
