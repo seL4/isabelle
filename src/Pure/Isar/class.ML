@@ -528,7 +528,7 @@ fun pretty lthy =
     fun pr_arity tyco = Syntax.pretty_arity lthy (tyco, map snd vs, sort);
     fun pr_param ((c, _), (v, ty)) =
       Pretty.block (Pretty.breaks
-        [Pretty.str v, Pretty.str "==", Pretty.str (Proof_Context.extern_const lthy c),
+        [Pretty.str v, Pretty.str "==", Proof_Context.pretty_const lthy c,
           Pretty.str "::", Syntax.pretty_typ lthy ty]);
   in Pretty.command "instantiation" :: map pr_arity tycos @ map pr_param params end;
 
@@ -538,7 +538,7 @@ fun conclude lthy =
     val thy = Proof_Context.theory_of lthy;
     val _ = tycos |> List.app (fn tyco =>
       if Sign.of_sort thy (Type (tyco, map TFree vs), sort) then ()
-      else error ("Missing instance proof for type " ^ quote (Proof_Context.extern_type lthy tyco)));
+      else error ("Missing instance proof for type " ^ quote (Proof_Context.markup_type lthy tyco)));
   in lthy end;
 
 fun instantiation (tycos, vs, sort) thy =

@@ -209,7 +209,7 @@ fun evaluation_code thy module_name tycos consts =
        | SOME const' => (const, const')) consts consts'
     val tycos_map = map2 (fn tyco =>
       fn NONE =>
-          error ("Type " ^ quote (Proof_Context.extern_type ctxt tyco) ^
+          error ("Type " ^ quote (Proof_Context.markup_type ctxt tyco) ^
             "\nhas a user-defined serialization")
         | SOME tyco' => (tyco, tyco')) tycos tycos';
   in (ml_code, (tycos_map, consts_map)) end;

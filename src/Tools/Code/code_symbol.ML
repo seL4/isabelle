@@ -125,13 +125,18 @@ val value = Constant "";
 fun is_value (Constant "") = true
   | is_value _ = false;
 
-fun quote ctxt (Constant c) = Library.quote (Code.string_of_const (Proof_Context.theory_of ctxt) c)
-  | quote ctxt (Type_Constructor tyco) = "type " ^ Library.quote (Proof_Context.extern_type ctxt tyco)
-  | quote ctxt (Type_Class class) = "class " ^ Library.quote (Proof_Context.extern_class ctxt class)
+fun quote ctxt (Constant c) =
+      Library.quote (Code.string_of_const (Proof_Context.theory_of ctxt) c)
+  | quote ctxt (Type_Constructor tyco) =
+      "type " ^ Library.quote (Proof_Context.markup_type ctxt tyco)
+  | quote ctxt (Type_Class class) =
+      "class " ^ Library.quote (Proof_Context.markup_class ctxt class)
   | quote ctxt (Class_Relation (sub, super)) =
-      Library.quote (Proof_Context.extern_class ctxt sub) ^ " < " ^ Library.quote (Proof_Context.extern_class ctxt super)
+      Library.quote (Proof_Context.markup_class ctxt sub) ^ " < " ^
+      Library.quote (Proof_Context.markup_class ctxt super)
   | quote ctxt (Class_Instance (tyco, class)) =
-      Library.quote (Proof_Context.extern_type ctxt tyco) ^ " :: " ^ Library.quote (Proof_Context.extern_class ctxt class);
+      Library.quote (Proof_Context.markup_type ctxt tyco) ^ " :: " ^
+      Library.quote (Proof_Context.markup_class ctxt class);
 
 fun marker (Constant c) = "CONST " ^ c
   | marker (Type_Constructor tyco) = "TYPE " ^ tyco

@@ -42,8 +42,14 @@ sig
   val intern_type: Proof.context -> xstring -> string
   val intern_const: Proof.context -> xstring -> string
   val extern_class: Proof.context -> string -> xstring
+  val markup_class: Proof.context -> string -> string
+  val pretty_class: Proof.context -> string -> Pretty.T
   val extern_type: Proof.context -> string -> xstring
+  val markup_type: Proof.context -> string -> string
+  val pretty_type: Proof.context -> string -> Pretty.T
   val extern_const: Proof.context -> string -> xstring
+  val markup_const: Proof.context -> string -> string
+  val pretty_const: Proof.context -> string -> Pretty.T
   val transfer_syntax: theory -> Proof.context -> Proof.context
   val transfer: theory -> Proof.context -> Proof.context
   val background_theory: (theory -> theory) -> Proof.context -> Proof.context
@@ -292,6 +298,14 @@ val intern_const = Name_Space.intern o const_space;
 fun extern_class ctxt = Name_Space.extern ctxt (class_space ctxt);
 fun extern_type ctxt = Name_Space.extern ctxt (type_space ctxt);
 fun extern_const ctxt = Name_Space.extern ctxt (const_space ctxt);
+
+fun markup_class ctxt c = Name_Space.markup_extern ctxt (class_space ctxt) c |-> Markup.markup;
+fun markup_type ctxt c = Name_Space.markup_extern ctxt (type_space ctxt) c |-> Markup.markup;
+fun markup_const ctxt c = Name_Space.markup_extern ctxt (const_space ctxt) c |-> Markup.markup;
+
+fun pretty_class ctxt c = Name_Space.markup_extern ctxt (class_space ctxt) c |> Pretty.mark_str;
+fun pretty_type ctxt c = Name_Space.markup_extern ctxt (type_space ctxt) c |> Pretty.mark_str;
+fun pretty_const ctxt c = Name_Space.markup_extern ctxt (const_space ctxt) c |> Pretty.mark_str;
 
 
 (* theory transfer *)

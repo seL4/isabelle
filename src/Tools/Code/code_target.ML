@@ -335,7 +335,7 @@ fun project_program thy syms_hidden syms1 program2 =
     val _ =
       if null unimplemented then ()
       else error ("No code equations for " ^
-        commas (map (Proof_Context.extern_const ctxt) unimplemented));
+        commas (map (Proof_Context.markup_const ctxt) unimplemented));
     val program4 = Code_Symbol.Graph.restrict (member (op =) syms4) program3;
   in (syms4, program4) end;
 

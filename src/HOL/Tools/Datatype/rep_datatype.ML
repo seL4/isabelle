@@ -577,7 +577,7 @@ fun gen_rep_datatype prep_term config after_qed raw_ts thy =
     fun constr_of_term (Const (c, T)) = (c, T)
       | constr_of_term t = error ("Not a constant: " ^ Syntax.string_of_term ctxt t);
     fun no_constr (c, T) =
-      error ("Bad constructor: " ^ Proof_Context.extern_const ctxt c ^ "::" ^
+      error ("Bad constructor: " ^ Proof_Context.markup_const ctxt c ^ "::" ^
         Syntax.string_of_typ ctxt T);
     fun type_of_constr (cT as (_, T)) =
       let

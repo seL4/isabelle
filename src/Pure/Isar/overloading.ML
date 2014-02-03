@@ -171,7 +171,7 @@ fun pretty lthy =
     val overloading = get_overloading lthy;
     fun pr_operation ((c, ty), (v, _)) =
       Pretty.block (Pretty.breaks
-        [Pretty.str v, Pretty.str "==", Pretty.str (Proof_Context.extern_const lthy c),
+        [Pretty.str v, Pretty.str "==", Proof_Context.pretty_const lthy c,
           Pretty.str "::", Syntax.pretty_typ lthy ty]);
   in Pretty.command "overloading" :: map pr_operation overloading end;
 

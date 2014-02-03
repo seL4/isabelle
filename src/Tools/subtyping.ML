@@ -697,7 +697,9 @@ fun gen_coercion ctxt err tye TU =
                 (*immediate error - cannot fix complex coercion with the global algorithm*)
                 NONE =>
                   eval_error (err ++>
-                    ("No coercion known for type constructors: " ^ quote a ^ " and " ^ quote b))
+                    ("No coercion known for type constructors: " ^
+                      quote (Proof_Context.markup_type ctxt a) ^ " and " ^
+                      quote (Proof_Context.markup_type ctxt b)))
               | SOME (co, ((Ts', Us'), _)) =>
                   let
                     val co_before = gen (T1, Type (a, Ts'));
@@ -726,7 +728,9 @@ fun gen_coercion ctxt err tye TU =
                     then mk_identity T1
                     else
                       raise COERCION_GEN_ERROR
-                        (err ++> ("No map function for " ^ quote a ^ " known"))
+                        (err ++>
+                          ("No map function for " ^ quote (Proof_Context.markup_type ctxt a)
+                            ^ " known"))
                 | SOME (tmap, variances) =>
                     let
                       val (used_coes, invarTs) =
@@ -757,7 +761,10 @@ fun function_of ctxt err tye T =
   (case Type_Infer.deref tye T of
     Type (C, Ts) =>
       (case Symreltab.lookup (coes_of ctxt) (C, "fun") of
-        NONE => eval_error (err ++> ("No complex coercion from " ^ quote C ^ " to fun"))
+        NONE =>
+          eval_error (err ++> ("No complex coercion from " ^
+            quote (Proof_Context.markup_type ctxt C) ^ " to " ^
+            quote (Proof_Context.markup_type ctxt "fun")))
       | SOME (co, ((Ts', _), _)) =>
         let
           val co_before = gen_coercion ctxt err tye (Type (C, Ts), Type (C, Ts'));
@@ -774,7 +781,8 @@ fun function_of ctxt err tye T =
       eval_error (err ++>
         (Pretty.string_of o Pretty.block)
          [Pretty.str "No complex coercion from", Pretty.brk 1,
-          Pretty.quote (Syntax.pretty_typ ctxt T'), Pretty.brk 1, Pretty.str "to fun"]));
+          Pretty.quote (Syntax.pretty_typ ctxt T'), Pretty.brk 1,
+          Pretty.str "to", Pretty.brk 1, Proof_Context.pretty_type ctxt "fun"]));
 
 fun insert_coercions ctxt (tye, idx) ts =
   let
