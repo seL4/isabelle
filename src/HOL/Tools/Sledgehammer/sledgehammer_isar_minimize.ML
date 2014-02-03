@@ -41,7 +41,7 @@ fun minimize_isar_step_dependencies ctxt preplay_data
 
         fun minimize_facts _ time min_facts [] = (time, min_facts)
           | minimize_facts mk_step time min_facts (f :: facts) =
-            (case preplay_isar_step ctxt (Time.+ (time, slack)) meth
+            (case preplay_isar_step_for_method ctxt (Time.+ (time, slack)) meth
                 (mk_step (min_facts @ facts)) of
               Played time => minimize_facts mk_step time min_facts facts
             | _ => minimize_facts mk_step time (f :: min_facts) facts)
@@ -51,8 +51,7 @@ fun minimize_isar_step_dependencies ctxt preplay_data
 
         val step' = mk_step_lfs_gfs min_lfs min_gfs
       in
-        set_preplay_outcomes_of_isar_step ctxt time preplay_data step'
-          [(meth, Lazy.value (Played time))];
+        set_preplay_outcomes_of_isar_step ctxt time preplay_data step' [(meth, Played time)];
         step'
       end
     | _ => step (* don't touch steps that time out or fail *))

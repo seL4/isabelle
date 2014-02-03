@@ -95,7 +95,7 @@ fun try_merge (Prove (_, [], l1, _, [], ((lfs1, gfs1), meths1)))
 
 val compress_degree = 2
 val merge_timeout_slack_time = seconds 0.005
-val merge_timeout_slack_factor = 1.5
+val merge_timeout_slack_factor = 1.25
 
 fun slackify_merge_timeout time =
   time_mult merge_timeout_slack_factor (Time.+ (merge_timeout_slack_time, time))
@@ -146,8 +146,7 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
             val subproofs = List.revAppend (nontriv_subs, subs)
             val step = Prove (qs, fix, l, t, subproofs, ((lfs, gfs), meths))
           in
-            set_preplay_outcomes_of_isar_step ctxt time preplay_data step
-              [(meth, Lazy.value (Played time))];
+            set_preplay_outcomes_of_isar_step ctxt time preplay_data step [(meth, Played time)];
             step
           end
         else
@@ -169,7 +168,7 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
 
               (* check if the modified step can be preplayed fast enough *)
               val timeout = slackify_merge_timeout (Time.+ (time, time'))
-              val Played time'' = preplay_isar_step ctxt timeout (hd meths)(*FIXME*) step''
+              val outcomes as (_, Played time'') :: _ = preplay_isar_step ctxt timeout step''
             in
               decrement_step_count (); (* l' successfully eliminated! *)
               map (replace_successor l' [l]) lfs';
@@ -221,7 +220,6 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
               val ((cand as Prove (_, _, _, _, _, ((lfs, _), _))) :: steps') = drop i steps
 
               val succs = collect_successors steps' labels
-              val succ_meths = map (hd o snd o the o byline_of_isar_step) succs
 
               (* only touch steps that can be preplayed successfully *)
               val Played time = forced_intermediate_preplay_outcome_of_isar_step (!preplay_data) l
@@ -233,23 +231,18 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
               val time_slice = time_mult (1.0 / (Real.fromInt (length labels))) time
               val timeouts = map (curry Time.+ time_slice #> slackify_merge_timeout) times0
 
-              (* TODO: should be lazy: stop preplaying as soon as one step fails/times out *)
-              val play_outcomes = map3 (preplay_isar_step ctxt) timeouts succ_meths succs'
+              val meths_outcomess = map2 (preplay_isar_step ctxt) timeouts succs'
 
               (* ensure none of the modified successors timed out *)
-              val times = map (fn Played time => time) play_outcomes
+              val times = map (fn (_, Played time) :: _ => time) meths_outcomess
 
               val (steps1, _ :: steps2) = chop i steps
               (* replace successors with their modified versions *)
               val steps2 = update_steps steps2 succs'
-
-              val succ_meths_outcomess =
-                map2 (fn meth => fn outcome => [(meth, Lazy.value outcome)]) succ_meths
-                  play_outcomes
             in
               decrement_step_count (); (* candidate successfully eliminated *)
               map3 (fn time => set_preplay_outcomes_of_isar_step ctxt time preplay_data) times
-                succs' succ_meths_outcomess;
+                succs' meths_outcomess;
               map (replace_successor l labels) lfs;
               (* removing the step would mess up the indices; replace with dummy step instead *)
               steps1 @ dummy_isar_step :: steps2
