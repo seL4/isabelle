@@ -155,11 +155,10 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
             (sub as Proof (_, assms, sub_steps)) :: subs =>
             (let
               (* trivial subproofs have exactly one "Prove" step *)
-              val SOME (Prove (_, [], l', _, [], ((lfs', gfs'), meth' :: _))) =
-                try the_single sub_steps
+              val SOME (Prove (_, [], l', _, [], ((lfs', gfs'), _))) = try the_single sub_steps
 
               (* only touch proofs that can be preplayed sucessfully *)
-              val Played time' = forced_preplay_outcome_of_isar_step (!preplay_data) l'
+              val Played time' = forced_intermediate_preplay_outcome_of_isar_step (!preplay_data) l'
 
               (* merge steps *)
               val subs'' = subs @ nontriv_subs
@@ -181,12 +180,11 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
           | _ => raise Fail "Sledgehammer_Isar_Compress: elim_one_subproof")
 
       fun elim_subproofs (step as Let _) = step
-        | elim_subproofs (step as Prove (qs, fix, l, t, subproofs,
-            ((lfs, gfs), meths as meth :: _))) =
+        | elim_subproofs (step as Prove (qs, fix, l, t, subproofs, ((lfs, gfs), meths))) =
           if subproofs = [] then
             step
           else
-            (case forced_preplay_outcome_of_isar_step (!preplay_data) l of
+            (case forced_intermediate_preplay_outcome_of_isar_step (!preplay_data) l of
               Played time => elim_one_subproof time qs fix l t lfs gfs meths subproofs []
             | _ => step)
 
@@ -220,18 +218,18 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
 
           fun try_eliminate (i, l, _) labels steps =
             let
-              val ((cand as Prove (_, _, l, _, _, ((lfs, _), meth :: _))) :: steps') = drop i steps
+              val ((cand as Prove (_, _, _, _, _, ((lfs, _), _))) :: steps') = drop i steps
 
               val succs = collect_successors steps' labels
               val succ_meths = map (hd o snd o the o byline_of_isar_step) succs
 
               (* only touch steps that can be preplayed successfully *)
-              val Played time = forced_preplay_outcome_of_isar_step (!preplay_data) l
+              val Played time = forced_intermediate_preplay_outcome_of_isar_step (!preplay_data) l
 
               val succs' = map (try_merge cand #> the) succs
 
               val times0 = map ((fn Played time => time) o
-                forced_preplay_outcome_of_isar_step (!preplay_data)) labels
+                forced_intermediate_preplay_outcome_of_isar_step (!preplay_data)) labels
               val time_slice = time_mult (1.0 / (Real.fromInt (length labels))) time
               val timeouts = map (curry Time.+ time_slice #> slackify_merge_timeout) times0
 

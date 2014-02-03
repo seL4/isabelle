@@ -22,7 +22,7 @@ sig
   val set_preplay_outcomes_of_isar_step : Proof.context -> Time.time ->
     isar_preplay_data Unsynchronized.ref -> isar_step ->
     (proof_method * play_outcome Lazy.lazy) list -> unit
-  val forced_preplay_outcome_of_isar_step : isar_preplay_data -> label -> play_outcome
+  val forced_intermediate_preplay_outcome_of_isar_step : isar_preplay_data -> label -> play_outcome
   val preplay_outcome_of_isar_step_for_method : isar_preplay_data -> label -> proof_method ->
     play_outcome Lazy.lazy
   val fastest_method_of_isar_step : isar_preplay_data -> label -> proof_method
@@ -184,9 +184,7 @@ fun set_preplay_outcomes_of_isar_step ctxt timeout preplay_data
 
 fun peek_at_outcome outcome = if Lazy.is_finished outcome then Lazy.force outcome else Not_Played
 
-(*
-*)
-fun forced_preplay_outcome_of_isar_step preplay_data l =
+fun forced_intermediate_preplay_outcome_of_isar_step preplay_data l =
   let
     fun get_best_outcome_available get_one =
       the (Canonical_Label_Tab.lookup preplay_data l)
