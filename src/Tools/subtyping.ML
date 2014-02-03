@@ -178,7 +178,7 @@ fun unify weak ctxt =
           meets (Ts, Ss) (meet (Type_Infer.deref tye T, S) tye_idx)
       | meets _ tye_idx = tye_idx;
 
-    val weak_meet = if weak then fn _ => I else meet
+    val weak_meet = if weak then fn _ => I else meet;
 
 
     (* occurs check and assignment *)
@@ -236,8 +236,8 @@ fun new_imm_succs G Ts =  (* FIXME inefficient *)
 
 (* Graph shortcuts *)
 
-fun maybe_new_node s G = perhaps (try (Graph.new_node s)) G
-fun maybe_new_nodes ss G = fold maybe_new_node ss G
+fun maybe_new_node s G = perhaps (try (Graph.new_node s)) G;
+fun maybe_new_nodes ss G = fold maybe_new_node ss G;
 
 
 
@@ -265,9 +265,10 @@ fun unif_failed msg =
   "Type unification failed" ^ (if msg = "" then "" else ": " ^ msg) ^ "\n\n";
 
 fun err_appl_msg ctxt msg tye bs t T u U () =
-  let val ([t', u'], [T', U']) = prep_output ctxt tye bs [t, u] [T, U]
-  in (unif_failed msg ^ Type.appl_error ctxt t' T' u' U' ^ "\n\n", [Pretty.fbrk, Pretty.fbrk,
-    Pretty.str "Coercion Inference:"]) end;
+  let val ([t', u'], [T', U']) = prep_output ctxt tye bs [t, u] [T, U] in
+    (unif_failed msg ^ Type.appl_error ctxt t' T' u' U' ^ "\n\n",
+      [Pretty.fbrk, Pretty.fbrk, Pretty.str "Coercion Inference:"])
+  end;
 
 fun err_list ctxt err tye Ts =
   let
@@ -509,7 +510,7 @@ fun process_constraints ctxt err cs tye_idx =
         fun adjust T U = if super then (T, U) else (U, T);
         fun styp_test U Ts = forall
           (fn T => T = U orelse Graph.is_edge coes_graph (adjust U T)) Ts;
-        fun fitting Ts S U = Sign.of_sort thy (t_of U, S) andalso styp_test U Ts
+        fun fitting Ts S U = Sign.of_sort thy (t_of U, S) andalso styp_test U Ts;
       in
         forall (fn (Ts, S) => exists (fitting Ts S) (T :: styps super T)) styps_and_sorts
       end;
@@ -607,7 +608,7 @@ fun process_constraints ctxt err cs tye_idx =
             if null bound orelse null not_params then NONE
             else SOME (tightest lower S styps_and_sorts (map nameT not_params)
                 handle BOUND_ERROR msg => err_bound ctxt (gen_err err msg) tye
-                  (maps (find_error_pack (not lower)) raw_bound))
+                  (maps (find_error_pack (not lower)) raw_bound));
         in
           (case assignment of
             NONE => tye_idx
@@ -679,7 +680,7 @@ fun gen_coercion ctxt err tye TU =
             then mk_identity T1
             else
               (case Symreltab.lookup (coes_of ctxt) (a, b) of
-                NONE => raise COERCION_GEN_ERROR (err +@> 
+                NONE => raise COERCION_GEN_ERROR (err +@>
                   [Pretty.quote (Syntax.pretty_typ ctxt T1), Pretty.brk 1,
                     Pretty.str "is not a subtype of", Pretty.brk 1,
                     Pretty.quote (Syntax.pretty_typ ctxt T2)])
