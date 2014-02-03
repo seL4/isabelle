@@ -133,6 +133,8 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
 
         val metislike_methods = insert (op =) (Metis_Method alt_metis_args) metislike_methods0
 
+        val massage_meths = not try0_isar ? single o hd
+
         val (params, _, concl_t) = strip_subgoal goal subgoal ctxt
         val fixes = map (fn (s, T) => (Binding.name s, SOME T, NoSyn)) params
         val ctxt = ctxt |> Variable.set_body false |> Proof_Context.add_fixes fixes |> snd
@@ -161,9 +163,10 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
           |> map (fn ((l, t), rule) =>
             let
               val (skos, meths) =
-                if is_skolemize_rule rule then (skolems_of t, skolem_methods)
-                else if is_arith_rule rule then ([], arith_methods)
-                else ([], rewrite_methods)
+                (if is_skolemize_rule rule then (skolems_of t, skolem_methods)
+                 else if is_arith_rule rule then ([], arith_methods)
+                 else ([], rewrite_methods))
+                ||> massage_meths
             in
               Prove ([], skos, l, t, [], (([], []), meths))
             end)
@@ -214,7 +217,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
             accum
             |> (if tainted = [] then
                   cons (Prove (if outer then [Show] else [], [], no_label, concl_t, [],
-                               ((the_list predecessor, []), metislike_methods)))
+                               ((the_list predecessor, []), massage_meths metislike_methods)))
                 else
                   I)
             |> rev
@@ -230,10 +233,11 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
 
               val deps = fold add_fact_of_dependencies gamma no_facts
               val meths =
-                if skolem then skolem_methods
-                else if is_arith_rule rule then arith_methods
-                else if is_datatype_rule rule then datatype_methods
-                else metislike_methods
+                (if skolem then skolem_methods
+                 else if is_arith_rule rule then arith_methods
+                 else if is_datatype_rule rule then datatype_methods
+                 else metislike_methods)
+                |> massage_meths
               val by = (deps, meths)
             in
               if is_clause_tainted c then
@@ -259,7 +263,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
               val step =
                 Prove (maybe_show outer c [], [], l, t,
                   map isar_case (filter_out (null o snd) cases),
-                  ((the_list predecessor, []), metislike_methods))
+                  ((the_list predecessor, []), massage_meths metislike_methods))
             in
               isar_steps outer (SOME l) (step :: accum) infs
             end
