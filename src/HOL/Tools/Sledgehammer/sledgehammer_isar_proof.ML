@@ -29,8 +29,8 @@ sig
     Proof of (string * typ) list * (label * term) list * isar_step list
   and isar_step =
     Let of term * term |
-    Prove of isar_qualifier list * (string * typ) list * label * term * isar_proof list *
-      (facts * proof_method list)
+    Prove of isar_qualifier list * (string * typ) list * label * term * isar_proof list
+      * facts * proof_method list
 
   val no_label : label
 
@@ -94,8 +94,8 @@ datatype isar_proof =
   Proof of (string * typ) list * (label * term) list * isar_step list
 and isar_step =
   Let of term * term |
-  Prove of isar_qualifier list * (string * typ) list * label * term * isar_proof list *
-    (facts * proof_method list)
+  Prove of isar_qualifier list * (string * typ) list * label * term * isar_proof list
+    * facts * proof_method list
 
 val no_label = ("", ~1)
 
@@ -120,16 +120,16 @@ fun string_of_proof_method meth =
 
 fun steps_of_isar_proof (Proof (_, _, steps)) = steps
 
-fun label_of_isar_step (Prove (_, _, l, _, _, _)) = SOME l
+fun label_of_isar_step (Prove (_, _, l, _, _, _, _)) = SOME l
   | label_of_isar_step _ = NONE
 
-fun subproofs_of_isar_step (Prove (_, _, _, _, subproofs, _)) = SOME subproofs
+fun subproofs_of_isar_step (Prove (_, _, _, _, subproofs, _, _)) = SOME subproofs
   | subproofs_of_isar_step _ = NONE
 
-fun facts_of_isar_step (Prove (_, _, _, _, _, (facts, _))) = facts
+fun facts_of_isar_step (Prove (_, _, _, _, _, facts, _)) = facts
   | facts_of_isar_step _ = ([], [])
 
-fun proof_methods_of_isar_step (Prove (_, _, _, _, _, (_, meths))) = meths
+fun proof_methods_of_isar_step (Prove (_, _, _, _, _, _, meths)) = meths
   | proof_methods_of_isar_step _ = []
 
 fun fold_isar_step f step =
@@ -140,8 +140,8 @@ fun map_isar_steps f =
   let
     fun map_proof (Proof (fix, assms, steps)) = Proof (fix, assms, map map_step steps)
     and map_step (step as Let _) = f step
-      | map_step (Prove (qs, xs, l, t, subproofs, by)) =
-        f (Prove (qs, xs, l, t, map map_proof subproofs, by))
+      | map_step (Prove (qs, xs, l, t, subproofs, facts, meths)) =
+        f (Prove (qs, xs, l, t, map map_proof subproofs, facts, meths))
   in map_proof end
 
 val add_isar_steps = fold_isar_steps (fn Prove _ => Integer.add 1 | _ => I)
@@ -156,9 +156,9 @@ structure Canonical_Label_Tab = Table(
 fun chain_qs_lfs NONE lfs = ([], lfs)
   | chain_qs_lfs (SOME l0) lfs =
     if member (op =) lfs l0 then ([Then], lfs |> remove (op =) l0) else ([], lfs)
-fun chain_isar_step lbl (Prove (qs, xs, l, t, subproofs, ((lfs, gfs), meths))) =
+fun chain_isar_step lbl (Prove (qs, xs, l, t, subproofs, (lfs, gfs), meths)) =
     let val (qs', lfs) = chain_qs_lfs lbl lfs in
-      Prove (qs' @ qs, xs, l, t, map chain_isar_proof subproofs, ((lfs, gfs), meths))
+      Prove (qs' @ qs, xs, l, t, map chain_isar_proof subproofs, (lfs, gfs), meths)
     end
   | chain_isar_step _ step = step
 and chain_isar_steps _ [] = []
@@ -175,8 +175,8 @@ fun kill_useless_labels_in_isar_proof proof =
 
     fun kill_label l = if member (op =) used_ls l then l else no_label
 
-    fun kill_step (Prove (qs, xs, l, t, subproofs, by)) =
-        Prove (qs, xs, kill_label l, t, map kill_proof subproofs, by)
+    fun kill_step (Prove (qs, xs, l, t, subproofs, facts, meths)) =
+        Prove (qs, xs, kill_label l, t, map kill_proof subproofs, facts, meths)
       | kill_step step = step
     and kill_proof (Proof (fix, assms, steps)) =
       Proof (fix, map (apfst kill_label) assms, map kill_step steps)
@@ -189,14 +189,13 @@ fun relabel_isar_proof_canonically proof =
     fun next_label l (next, subst) =
       let val l' = ("", next) in (l', (next + 1, (l, l') :: subst)) end
 
-    fun relabel_byline by (_, subst) = apfst (apfst (map (AList.lookup (op =) subst #> the))) by
-    handle Option.Option =>
-      raise Fail "Sledgehammer_Isar_Proof: relabel_isar_proof_canonically"
+    fun relabel_facts (lfs, gfs) (_, subst) =
+      (map (AList.lookup (op =) subst #> the) lfs, gfs)
+      handle Option.Option =>
+        raise Fail "Sledgehammer_Isar_Proof: relabel_isar_proof_canonically"
 
     fun relabel_assm (l, t) state =
-      let
-        val (l, state) = next_label l state
-      in ((l, t), state) end
+      next_label l state |> (fn (l, state) => ((l, t), state))
 
     fun relabel_proof (Proof (fix, assms, steps)) state =
       let
@@ -206,15 +205,15 @@ fun relabel_isar_proof_canonically proof =
         (Proof (fix, assms, steps), state)
       end
 
-    and relabel_step (step as Let _) state = (step, state)
-      | relabel_step (Prove (qs, fix, l, t, subproofs, by)) state=
+    and relabel_step (Prove (qs, fix, l, t, subproofs, facts, meths)) state =
         let
-          val by = relabel_byline by state
+          val facts = relabel_facts facts state
           val (subproofs, state) = fold_map relabel_proof subproofs state
           val (l, state) = next_label l state
         in
-          (Prove (qs, fix, l, t, subproofs, by), state)
+          (Prove (qs, fix, l, t, subproofs, facts, meths), state)
         end
+      | relabel_step step state = (step, state)
   in
     fst (relabel_proof proof (0, []))
   end
@@ -242,13 +241,13 @@ val relabel_isar_proof_finally =
     fun relabel_assms subst depth assms = fold_map (relabel_assm depth) assms (subst, 1) ||> fst
 
     fun relabel_steps _ _ _ [] = []
-      | relabel_steps subst depth next (Prove (qs, xs, l, t, sub, by) :: steps) =
+      | relabel_steps subst depth next (Prove (qs, xs, l, t, sub, facts, meths) :: steps) =
         let
           val (l, subst, next) = (l, subst, next) |> fresh_label depth have_prefix
           val sub = relabel_proofs subst depth sub
-          val by = apfst (relabel_facts subst) by
+          val facts = relabel_facts subst facts
         in
-          Prove (qs, xs, l, t, sub, by) :: relabel_steps subst depth next steps
+          Prove (qs, xs, l, t, sub, facts, meths) :: relabel_steps subst depth next steps
         end
       | relabel_steps subst depth next (step :: steps) =
         step :: relabel_steps subst depth next steps
@@ -367,7 +366,7 @@ fun string_of_isar_proof ctxt i n comment_of proof =
         add_str (of_indent ind ^ "let ")
         #> add_term t1 #> add_str " = " #> add_term t2
         #> add_str "\n"
-      | add_step ind (Prove (qs, xs, l, t, subproofs, ((ls, ss), meths as meth :: _))) =
+      | add_step ind (Prove (qs, xs, l, t, subproofs, (ls, ss), meths as meth :: _)) =
         add_step_pre ind qs subproofs
         #> (case xs of
              [] => add_str (of_have qs (length subproofs) ^ " ")
@@ -387,7 +386,7 @@ fun string_of_isar_proof ctxt i n comment_of proof =
     (* One-step Metis proofs are pointless; better use the one-liner directly. *)
     (case proof of
       Proof ([], [], []) => "" (* degenerate case: the conjecture is "True" with Z3 *)
-    | Proof ([], [], [Prove (_, [], _, _, [], (_, Metis_Method _ :: _))]) => ""
+    | Proof ([], [], [Prove (_, [], _, _, [], _, Metis_Method _ :: _)]) => ""
     | _ =>
       (if i <> 1 then "prefer " ^ string_of_int i ^ "\n" else "") ^
       of_indent 0 ^ "proof -\n" ^ of_proof 1 ctxt proof ^

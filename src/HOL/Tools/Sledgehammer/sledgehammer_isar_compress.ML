@@ -32,7 +32,7 @@ fun collect_successors steps lbls =
       | collect_steps [] accum = accum
       | collect_steps (step :: steps) accum = collect_steps steps (collect_step step accum)
     and collect_step (Let _) x = x
-      | collect_step (step as Prove (_, _, l, _, subproofs, _)) x =
+      | collect_step (step as Prove (_, _, l, _, subproofs, _, _)) x =
         (case collect_subproofs subproofs x of
           ([], accu) => ([], accu)
         | accum as (l' :: lbls', accu) => if l = l' then (lbls', step :: accu) else accum)
@@ -55,15 +55,15 @@ fun update_steps steps updates =
       | update_steps (step :: steps) updates = update_step step (update_steps steps updates)
     and update_step step (steps, []) = (step :: steps, [])
       | update_step (step as Let _) (steps, updates) = (step :: steps, updates)
-      | update_step (Prove (qs, xs, l, t, subproofs, by))
-          (steps, updates as Prove (qs', xs', l', t', subproofs', by') :: updates') =
+      | update_step (Prove (qs, xs, l, t, subproofs, facts, meths))
+          (steps, updates as Prove (qs', xs', l', t', subproofs', facts', meths') :: updates') =
         let
           val (subproofs, updates) =
             if l = l' then update_subproofs subproofs' updates'
             else update_subproofs subproofs updates
         in
-          if l = l' then (Prove (qs', xs', l', t', subproofs, by') :: steps, updates)
-          else (Prove (qs, xs, l, t, subproofs, by) :: steps, updates)
+          if l = l' then (Prove (qs', xs', l', t', subproofs, facts', meths') :: steps, updates)
+          else (Prove (qs, xs, l, t, subproofs, facts, meths) :: steps, updates)
         end
     and update_subproofs [] updates = ([], updates)
       | update_subproofs steps [] = (steps, [])
@@ -80,8 +80,8 @@ fun update_steps steps updates =
     | _ => raise Fail "Sledgehammer_Isar_Compress: update_steps")
   end
 
-fun try_merge (Prove (_, [], l1, _, [], ((lfs1, gfs1), meths1)))
-      (Prove (qs2, fix, l2, t, subproofs, ((lfs2, gfs2), meths2))) =
+fun try_merge (Prove (_, [], l1, _, [], (lfs1, gfs1), meths1))
+      (Prove (qs2, fix, l2, t, subproofs, (lfs2, gfs2), meths2)) =
     (case inter (op =) meths1 meths2 of
       [] => NONE
     | meths =>
@@ -89,7 +89,7 @@ fun try_merge (Prove (_, [], l1, _, [], ((lfs1, gfs1), meths1)))
         val lfs = union (op =) lfs1 (remove (op =) l1 lfs2)
         val gfs = union (op =) gfs1 gfs2
       in
-        SOME (Prove (qs2, fix, l2, t, subproofs, ((lfs, gfs), meths)))
+        SOME (Prove (qs2, fix, l2, t, subproofs, (lfs, gfs), meths))
       end)
   | try_merge _ _ = NONE
 
@@ -118,7 +118,7 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
       val (get_successors, replace_successor) =
         let
           fun add_refs (Let _) = I
-            | add_refs (Prove (_, _, v, _, _, ((lfs, _), _))) =
+            | add_refs (Prove (_, _, v, _, _, (lfs, _), _)) =
               fold (fn key => Canonical_Label_Tab.cons_list (key, v)) lfs
 
           val tab =
@@ -144,7 +144,7 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
         if null subs orelse not (compress_further ()) then
           let
             val subproofs = List.revAppend (nontriv_subs, subs)
-            val step = Prove (qs, fix, l, t, subproofs, ((lfs, gfs), meths))
+            val step = Prove (qs, fix, l, t, subproofs, (lfs, gfs), meths)
           in
             set_preplay_outcomes_of_isar_step ctxt time preplay_data step [(meth, Played time)];
             step
@@ -154,7 +154,7 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
             (sub as Proof (_, assms, sub_steps)) :: subs =>
             (let
               (* trivial subproofs have exactly one "Prove" step *)
-              val SOME (Prove (_, [], l', _, [], ((lfs', gfs'), _))) = try the_single sub_steps
+              val [Prove (_, [], l', _, [], (lfs', gfs'), meths')] = sub_steps
 
               (* only touch proofs that can be preplayed sucessfully *)
               val Played time' = forced_intermediate_preplay_outcome_of_isar_step (!preplay_data) l'
@@ -163,8 +163,8 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
               val subs'' = subs @ nontriv_subs
               val lfs'' = union (op =) lfs (subtract (op =) (map fst assms) lfs')
               val gfs'' = union (op =) gfs' gfs
-              val by = ((lfs'', gfs''), meths(*FIXME*))
-              val step'' = Prove (qs, fix, l, t, subs'', by)
+              val meths'' as _ :: _ = inter (op =) meths' meths
+              val step'' = Prove (qs, fix, l, t, subs'', (lfs'', gfs''), meths'')
 
               (* check if the modified step can be preplayed fast enough *)
               val timeout = slackify_merge_timeout (Time.+ (time, time'))
@@ -179,7 +179,7 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
           | _ => raise Fail "Sledgehammer_Isar_Compress: elim_one_subproof")
 
       fun elim_subproofs (step as Let _) = step
-        | elim_subproofs (step as Prove (qs, fix, l, t, subproofs, ((lfs, gfs), meths))) =
+        | elim_subproofs (step as Prove (qs, fix, l, t, subproofs, (lfs, gfs), meths)) =
           if subproofs = [] then
             step
           else
@@ -208,7 +208,7 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
           val candidates =
             let
               fun add_cand (_, Let _) = I
-                | add_cand (i, Prove (_, _, l, t, _, _)) = cons (i, l, size_of_term t)
+                | add_cand (i, Prove (_, _, l, t, _, _, _)) = cons (i, l, size_of_term t)
             in
               (steps
                |> split_last |> fst (* keep last step *)
@@ -217,7 +217,7 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
 
           fun try_eliminate (i, l, _) labels steps =
             let
-              val ((cand as Prove (_, _, _, _, _, ((lfs, _), _))) :: steps') = drop i steps
+              val ((cand as Prove (_, _, _, _, _, (lfs, _), _)) :: steps') = drop i steps
 
               val succs = collect_successors steps' labels
 
@@ -280,9 +280,9 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
         steps |> map (fn step => step |> compress_further () ? compress_sub_levels)
               |> compress_further () ? compress_top_level
       and compress_sub_levels (step as Let _) = step
-        | compress_sub_levels (Prove (qs, xs, l, t, subproofs, by)) =
+        | compress_sub_levels (Prove (qs, xs, l, t, subproofs, facts, meths)) =
           (* compress subproofs *)
-          Prove (qs, xs, l, t, map compress_proof subproofs, by)
+          Prove (qs, xs, l, t, map compress_proof subproofs, facts, meths)
           (* eliminate trivial subproofs *)
           |> compress_further () ? elim_subproofs
     in

@@ -53,7 +53,7 @@ fun enrich_context_with_local_facts proof ctxt =
     fun enrich_with_proof (Proof (_, assms, isar_steps)) =
       enrich_with_assms assms #> fold enrich_with_step isar_steps
     and enrich_with_step (Let _) = I
-      | enrich_with_step (Prove (_, _, l, t, subproofs, _)) =
+      | enrich_with_step (Prove (_, _, l, t, subproofs, _, _)) =
         enrich_with_fact l t #> fold enrich_with_proof subproofs
   in
     enrich_with_proof proof ctxt
@@ -88,7 +88,7 @@ fun thm_of_proof ctxt (Proof (fixed_frees, assms, steps)) =
 
     val concl = 
       (case try List.last steps of
-        SOME (Prove (_, [], _, t, _, _)) => t
+        SOME (Prove (_, [], _, t, _, _, _)) => t
       | _ => raise Fail "preplay error: malformed subproof")
 
     val var_idx = maxidx_of_term concl + 1
@@ -122,8 +122,7 @@ fun tac_of_method ctxt (local_facts, global_facts) meth =
     | _ => raise Fail "Sledgehammer_Isar_Preplay: tac_of_method"))
 
 (* main function for preplaying Isar steps; may throw exceptions *)
-fun raw_preplay_step_for_method ctxt timeout meth
-    (Prove (_, xs, _, t, subproofs, (fact_names, _))) =
+fun raw_preplay_step_for_method ctxt timeout meth (Prove (_, xs, _, t, subproofs, fact_names, _)) =
   let
     val goal =
       (case xs of
@@ -186,7 +185,7 @@ fun add_preplay_outcomes Play_Failed _ = Play_Failed
     Play_Timed_Out (Time.+ (pairself time_of_play (play1, play2)))
 
 fun set_preplay_outcomes_of_isar_step ctxt timeout preplay_data
-      (step as Prove (_, _, l, _, _, (_, meths))) meths_outcomes0 =
+      (step as Prove (_, _, l, _, _, _, meths)) meths_outcomes0 =
     let
       fun lazy_preplay meth =
         Lazy.lazy (fn () => preplay_isar_step_for_method ctxt timeout meth step)
@@ -229,7 +228,7 @@ fun fastest_method_of_isar_step preplay_data =
   #> get_best_method_outcome Lazy.force
   #> fst
 
-fun forced_outcome_of_step preplay_data (Prove (_, _, l, _, _, (_, meths))) =
+fun forced_outcome_of_step preplay_data (Prove (_, _, l, _, _, _, meths)) =
     Lazy.force (preplay_outcome_of_isar_step_for_method preplay_data l (the_single meths))
   | forced_outcome_of_step _ _ = Played Time.zeroTime
 

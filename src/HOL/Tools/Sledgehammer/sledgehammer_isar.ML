@@ -169,7 +169,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
                  else ([], rewrite_methods))
                 ||> massage_meths
             in
-              Prove ([], skos, l, t, [], (([], []), meths))
+              Prove ([], skos, l, t, [], ([], []), meths)
             end)
 
         val bot = atp_proof |> List.last |> #1
@@ -218,7 +218,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
             accum
             |> (if tainted = [] then
                   cons (Prove (if outer then [Show] else [], [], no_label, concl_t, [],
-                               ((the_list predecessor, []), massage_meths metislike_methods)))
+                    (the_list predecessor, []), massage_meths metislike_methods))
                 else
                   I)
             |> rev
@@ -229,9 +229,6 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
               val rule = rule_of_clause_id id
               val skolem = is_skolemize_rule rule
 
-              fun prove sub by = Prove (maybe_show outer c [], [], l, t, sub, by)
-              fun steps_of_rest l step = isar_steps outer (SOME l) (step :: accum) infs
-
               val deps = fold add_fact_of_dependencies gamma ([], [])
               val meths =
                 (if skolem then skolem_methods
@@ -239,21 +236,23 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
                  else if is_datatype_rule rule then datatype_methods
                  else metislike_methods)
                 |> massage_meths
-              val by = (deps, meths)
+
+              fun prove sub facts = Prove (maybe_show outer c [], [], l, t, sub, facts, meths)
+              fun steps_of_rest step = isar_steps outer (SOME l) (step :: accum) infs
             in
               if is_clause_tainted c then
                 (case gamma of
                   [g] =>
                   if skolem andalso is_clause_tainted g then
                     let val subproof = Proof (skolems_of (prop_of_clause g), [], rev accum) in
-                      isar_steps outer (SOME l) [prove [subproof] (([], []), meths)] infs
+                      isar_steps outer (SOME l) [prove [subproof] ([], [])] infs
                     end
                   else
-                    steps_of_rest l (prove [] by)
-                | _ => steps_of_rest l (prove [] by))
+                    steps_of_rest (prove [] deps)
+                | _ => steps_of_rest (prove [] deps))
               else
-                steps_of_rest l
-                  (if skolem then Prove ([], skolems_of t, l, t, [], by) else prove [] by)
+                steps_of_rest (if skolem then Prove ([], skolems_of t, l, t, [], deps, meths)
+                  else prove [] deps)
             end
           | isar_steps outer predecessor accum (Cases cases :: infs) =
             let
@@ -265,7 +264,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
               val step =
                 Prove (maybe_show outer c [], [], l, t,
                   map isar_case (filter_out (null o snd) cases),
-                  ((the_list predecessor, []), massage_meths metislike_methods))
+                  (the_list predecessor, []), massage_meths metislike_methods)
             in
               isar_steps outer (SOME l) (step :: accum) infs
             end
