@@ -132,7 +132,7 @@ val atp_important_message_keep_quotient = 25
 fun run_atp mode name
     (params as {debug, verbose, overlord, type_enc, strict, lam_trans, uncurried_aliases,
        fact_filter, max_facts, max_mono_iters, max_new_mono_instances, isar_proofs, compress_isar,
-       try0_isar, smt, slice, minimize, timeout, preplay_timeout, ...})
+       try0_isar, smt_proofs, slice, minimize, timeout, preplay_timeout, ...})
     minimize_command
     ({comment, state, goal, subgoal, subgoal_count, factss, ...} : prover_problem) =
   let
@@ -347,7 +347,7 @@ fun run_atp mode name
           val used_facts = used_facts_in_atp_proof ctxt fact_names atp_proof
           val needs_full_types = is_typed_helper_used_in_atp_proof atp_proof
           val meths =
-            bunch_of_proof_methods (smt <> SOME false) needs_full_types
+            bunch_of_proof_methods (smt_proofs <> SOME false) needs_full_types
               (if atp_proof_prefers_lifting atp_proof then liftingN else hide_lamsN)
         in
           (used_facts,
@@ -380,7 +380,7 @@ fun run_atp mode name
                    subgoal_count)
                 val num_chained = length (#facts (Proof.goal state))
               in
-                proof_text ctxt debug isar_proofs smt isar_params num_chained one_line_params
+                proof_text ctxt debug isar_proofs smt_proofs isar_params num_chained one_line_params
               end,
            (if verbose then "\nATP real CPU time: " ^ string_of_time run_time ^ "." else "") ^
            (if important_message <> "" then

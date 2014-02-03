@@ -116,7 +116,7 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
 
 * Sledgehammer:
   - New option:
-      smt
+      smt_proofs
   - Renamed options:
       isar_compress ~> compress_isar
       isar_try0 ~> try0_isar

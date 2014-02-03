@@ -38,7 +38,7 @@ sig
      isar_proofs : bool option,
      compress_isar : real,
      try0_isar : bool,
-     smt : bool option,
+     smt_proofs : bool option,
      slice : bool,
      minimize : bool option,
      timeout : Time.time,
@@ -147,7 +147,7 @@ type params =
    isar_proofs : bool option,
    compress_isar : real,
    try0_isar : bool,
-   smt : bool option,
+   smt_proofs : bool option,
    slice : bool,
    minimize : bool option,
    timeout : Time.time,
@@ -183,7 +183,7 @@ fun proof_banner mode name =
   | Try => "Sledgehammer (" ^ quote name ^ ") found a proof"
   | _ => "Try this")
 
-fun bunch_of_proof_methods smt needs_full_types desperate_lam_trans =
+fun bunch_of_proof_methods smt_proofs needs_full_types desperate_lam_trans =
   [Metis_Method (SOME full_type_enc, NONE)] @
   (if needs_full_types then
      [Metis_Method (SOME full_type_enc, NONE),
@@ -193,7 +193,7 @@ fun bunch_of_proof_methods smt needs_full_types desperate_lam_trans =
      [Metis_Method (NONE, NONE),
       Metis_Method (SOME no_typesN, SOME desperate_lam_trans)]) @
   [Metis_Method (SOME really_full_type_enc, SOME desperate_lam_trans)] @
-  (if smt then [SMT_Method] else [])
+  (if smt_proofs then [SMT_Method] else [])
 
 fun extract_proof_method ({type_enc, lam_trans, ...} : params)
       (Metis_Method (type_enc', lam_trans')) =

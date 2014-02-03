@@ -126,7 +126,7 @@ val rewrite_methods =
 val skolem_methods =
   [Metis_Method (NONE, NONE), Blast_Method, Meson_Method]
 
-fun isar_proof_text ctxt debug isar_proofs smt isar_params
+fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
     (one_line_params as (_, _, _, _, subgoal, subgoal_count)) =
   let
     fun isar_proof_of () =
@@ -137,7 +137,9 @@ fun isar_proof_text ctxt debug isar_proofs smt isar_params
         val metislike_methods = insert (op =) (Metis_Method alt_metis_args) metislike_methods0
 
         fun massage_meths (meths as meth :: _) =
-          if not try0_isar then [meth] else if smt = SOME true then SMT_Method :: meths else meths
+          if not try0_isar then [meth]
+          else if smt_proofs = SOME true then SMT_Method :: meths
+          else meths
 
         val (params, _, concl_t) = strip_subgoal goal subgoal ctxt
         val fixes = map (fn (s, T) => (Binding.name s, SOME T, NoSyn)) params
@@ -355,18 +357,18 @@ fun isar_proof_text ctxt debug isar_proofs smt isar_params
           if isar_proofs = SOME true then "\nWarning: The Isar proof construction failed." else "")
   in one_line_proof ^ isar_proof end
 
-fun isar_proof_would_be_a_good_idea smt (meth, play) =
+fun isar_proof_would_be_a_good_idea smt_proofs (meth, play) =
   (case play of
-    Played _ => meth = SMT_Method andalso smt <> SOME true
+    Played _ => meth = SMT_Method andalso smt_proofs <> SOME true
   | Play_Timed_Out _ => true
   | Play_Failed => true
   | Not_Played => false)
 
-fun proof_text ctxt debug isar_proofs smt isar_params num_chained
+fun proof_text ctxt debug isar_proofs smt_proofs isar_params num_chained
     (one_line_params as (preplay, _, _, _, _, _)) =
   (if isar_proofs = SOME true orelse
-      (isar_proofs = NONE andalso isar_proof_would_be_a_good_idea smt preplay) then
-     isar_proof_text ctxt debug isar_proofs smt isar_params
+      (isar_proofs = NONE andalso isar_proof_would_be_a_good_idea smt_proofs preplay) then
+     isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
    else
      one_line_proof_text num_chained) one_line_params
 
