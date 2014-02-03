@@ -212,7 +212,7 @@ fun smt_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instanc
     do_slice timeout 1 NONE Time.zeroTime
   end
 
-fun run_smt_solver mode name (params as {debug, verbose, smt_proofs, preplay_timeout, ...})
+fun run_smt_solver mode name (params as {verbose, smt_proofs, preplay_timeout, ...})
     minimize_command ({state, goal, subgoal, subgoal_count, factss, ...} : prover_problem) =
   let
     val thy = Proof.theory_of state
@@ -233,8 +233,8 @@ fun run_smt_solver mode name (params as {debug, verbose, smt_proofs, preplay_tim
       (case outcome of
         NONE =>
         (Lazy.lazy (fn () =>
-           play_one_line_proof mode debug verbose preplay_timeout used_pairs state subgoal
-             SMT_Method (bunch_of_proof_methods (smt_proofs <> SOME false) false liftingN)),
+           play_one_line_proof mode verbose preplay_timeout used_pairs state subgoal SMT_Method
+             (bunch_of_proof_methods (smt_proofs <> SOME false) false liftingN)),
          fn preplay =>
             let
               val one_line_params =

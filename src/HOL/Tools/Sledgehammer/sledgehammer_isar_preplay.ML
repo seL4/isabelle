@@ -172,8 +172,8 @@ fun set_preplay_outcomes_of_isar_step ctxt timeout preplay_data
         |> map (apsnd Lazy.value)
         |> fold (fn meth => AList.default (op =) (meth, lazy_preplay meth)) meths
     in
-      preplay_data := Canonical_Label_Tab.map_default (l, [])
-        (fold (AList.update (op =)) meths_outcomes) (!preplay_data)
+      preplay_data := Canonical_Label_Tab.update (l, fold (AList.update (op =)) meths_outcomes [])
+        (!preplay_data)
     end
   | set_preplay_outcomes_of_isar_step _ _ _ _ _ = ()
 

@@ -77,7 +77,7 @@ sig
   val filter_used_facts :
     bool -> (''a * stature) list -> ((''a * stature) * 'b) list ->
     ((''a * stature) * 'b) list
-  val play_one_line_proof : mode -> bool -> bool -> Time.time -> ((string * 'a) * thm) list ->
+  val play_one_line_proof : mode -> bool -> Time.time -> ((string * 'a) * thm) list ->
     Proof.state -> int -> proof_method -> proof_method list -> proof_method * play_outcome
   val remotify_atp_if_not_installed : theory -> string -> string option
   val isar_supported_prover_of : theory -> string -> string
@@ -223,7 +223,7 @@ fun is_fact_chained ((_, (sc, _)), _) = sc = Chained
 fun filter_used_facts keep_chained used =
   filter ((member (op =) used o fst) orf (if keep_chained then is_fact_chained else K false))
 
-fun play_one_line_proof mode debug verbose timeout pairs state i preferred (meths as meth :: _) =
+fun play_one_line_proof mode verbose timeout pairs state i preferred (meths as meth :: _) =
   let
     fun get_preferred meths = if member (op =) meths preferred then preferred else meth
   in
