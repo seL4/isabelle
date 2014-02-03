@@ -233,16 +233,17 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
 
               val succs = collect_successors steps' labels
 
-              (* only touch steps that can be preplayed successfully *)
+              (* only touch steps that can be preplayed successfully; FIXME: more generous *)
               val Played time = forced_intermediate_preplay_outcome_of_isar_step (!preplay_data) l
 
               val succs' = map (try_merge (!preplay_data) cand #> the) succs
 
-              (* FIXME: more generous! *)
+              (* FIXME: more generous *)
               val times0 = map ((fn Played time => time) o
                 forced_intermediate_preplay_outcome_of_isar_step (!preplay_data)) labels
               val time_slice = time_mult (1.0 / (Real.fromInt (length labels))) time
               val timeouts = map (curry Time.+ time_slice #> slackify_merge_timeout) times0
+              (* FIXME: "preplay_timeout" should be an ultimate maximum *)
 
               val meths_outcomess = map2 (preplay_isar_step ctxt) timeouts succs'
 
