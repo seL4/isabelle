@@ -62,11 +62,18 @@ fun build_module_namespace ctxt { module_prefix, module_name, identifiers, reser
       module_names Symtab.empty
   end;
 
-fun prep_symbol ctxt module_namespace force_module identifiers sym =
+fun prep_symbol ctxt { module_namespace, force_module, identifiers } sym =
   case Code_Symbol.lookup identifiers sym of
-      NONE => ((the o Symtab.lookup module_namespace o Code_Symbol.default_prefix ctxt) sym, Code_Symbol.default_base sym)
+      NONE => ((the o Symtab.lookup module_namespace o Code_Symbol.default_prefix ctxt) sym,
+        Code_Symbol.default_base sym)
     | SOME prefix_name => if null force_module then prefix_name
         else (force_module, snd prefix_name);
+
+fun build_proto_program { empty, add_stmt, add_dep } program =
+  empty
+  |> Code_Symbol.Graph.fold (fn (sym, (stmt, _)) => add_stmt sym stmt) program
+  |> Code_Symbol.Graph.fold (fn (sym, (_, (_, syms))) =>
+      Code_Symbol.Graph.Keys.fold (add_dep sym) syms) program;
 
 
 (** flat program structure **)
@@ -80,7 +87,8 @@ fun flat_program ctxt { module_prefix, module_name, reserved,
     (* building module name hierarchy *)
     val module_namespace = build_module_namespace ctxt { module_prefix = module_prefix,
       module_name = module_name, identifiers = identifiers, reserved = reserved } program;
-    val prep_sym = prep_symbol ctxt module_namespace (Long_Name.explode module_name) identifiers
+    val prep_sym = prep_symbol ctxt { module_namespace = module_namespace,
+      force_module = Long_Name.explode module_name, identifiers = identifiers }
       #>> Long_Name.implode;
 
     (* distribute statements over hierarchy *)
@@ -91,7 +99,7 @@ fun flat_program ctxt { module_prefix, module_name, reserved,
         Graph.default_node (module_name, (Code_Symbol.Graph.empty, []))
         #> (Graph.map_node module_name o apfst) (Code_Symbol.Graph.new_node (sym, (base, stmt)))
       end;
-    fun add_dependency sym sym' =
+    fun add_dep sym sym' =
       let
         val (module_name, _) = prep_sym sym;
         val (module_name', _) = prep_sym sym';
@@ -99,10 +107,8 @@ fun flat_program ctxt { module_prefix, module_name, reserved,
         then (Graph.map_node module_name o apfst) (Code_Symbol.Graph.add_edge (sym, sym'))
         else (Graph.map_node module_name o apsnd) (AList.map_default (op =) (module_name', []) (insert (op =) sym'))
       end;
-    val proto_program = Graph.empty
-      |> Code_Symbol.Graph.fold (fn (sym, (stmt, _)) => add_stmt sym stmt) program
-      |> Code_Symbol.Graph.fold (fn (sym, (_, (_, syms))) =>
-          Code_Symbol.Graph.Keys.fold (add_dependency sym) syms) program;
+    val proto_program = build_proto_program
+      { empty = Graph.empty, add_stmt = add_stmt, add_dep = add_dep } program;
 
     (* name declarations and statement modifications *)
     fun declare sym (base, stmt) (gr, nsp) = 
@@ -169,7 +175,8 @@ fun hierarchical_program ctxt { module_name, reserved, identifiers, empty_nsp,
     (* building module name hierarchy *)
     val module_namespace = build_module_namespace ctxt { module_prefix = "",
       module_name = module_name, identifiers = identifiers, reserved = reserved } program;
-    val prep_sym = prep_symbol ctxt module_namespace (Long_Name.explode module_name) identifiers;
+    val prep_sym = prep_symbol ctxt { module_namespace = module_namespace,
+      force_module = Long_Name.explode module_name, identifiers = identifiers };
 
     (* building empty module hierarchy *)
     val empty_module = (empty_data, Code_Symbol.Graph.empty);
@@ -194,7 +201,7 @@ fun hierarchical_program ctxt { module_name, reserved, identifiers, empty_nsp,
       in
         (map_module name_fragments o apsnd) (Code_Symbol.Graph.new_node (sym, (base, Stmt stmt)))
       end;
-    fun add_dependency sym sym' =
+    fun add_dep sym sym' =
       let
         val (name_fragments, _) = prep_sym sym;
         val (name_fragments', _) = prep_sym sym';
@@ -210,10 +217,8 @@ fun hierarchical_program ctxt { module_name, reserved, identifiers, empty_nsp,
               ^ " would result in module dependency cycle"))
           else Code_Symbol.Graph.add_edge dep
       in (map_module name_fragments_common o apsnd) add_edge end;
-    val proto_program = empty_program
-      |> Code_Symbol.Graph.fold (fn (sym, (stmt, _)) => add_stmt sym stmt) program
-      |> Code_Symbol.Graph.fold (fn (sym, (_, (_, syms))) =>
-          Code_Symbol.Graph.Keys.fold (add_dependency sym) syms) program;
+    val proto_program = build_proto_program
+      { empty = empty_program, add_stmt = add_stmt, add_dep = add_dep } program;
 
     (* name declarations, data and statement modifications *)
     fun make_declarations nsps (data, nodes) =
