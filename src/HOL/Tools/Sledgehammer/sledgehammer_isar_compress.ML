@@ -80,9 +80,20 @@ fun update_steps steps updates =
     | _ => raise Fail "Sledgehammer_Isar_Compress: update_steps")
   end
 
-fun try_merge (Prove (_, [], l1, _, [], (lfs1, gfs1), meths1))
+fun merge_methods preplay_data (l1, meths1) (l2, meths2) =
+  let
+    fun is_method_hopeful l meth =
+      let val outcome = preplay_outcome_of_isar_step_for_method preplay_data l meth in
+        not (Lazy.is_finished outcome) orelse
+        (case Lazy.force outcome of Played _ => true | _ => false)
+      end
+  in
+    inter (op =) (filter (is_method_hopeful l1) meths1) (filter (is_method_hopeful l2) meths2)
+  end
+
+fun try_merge preplay_data (Prove (_, [], l1, _, [], (lfs1, gfs1), meths1))
       (Prove (qs2, fix, l2, t, subproofs, (lfs2, gfs2), meths2)) =
-    (case inter (op =) meths1 meths2 of
+    (case merge_methods preplay_data (l1, meths1) (l2, meths2) of
       [] => NONE
     | meths =>
       let
@@ -91,7 +102,7 @@ fun try_merge (Prove (_, [], l1, _, [], (lfs1, gfs1), meths1))
       in
         SOME (Prove (qs2, fix, l2, t, subproofs, (lfs, gfs), meths))
       end)
-  | try_merge _ _ = NONE
+  | try_merge _ _ _ = NONE
 
 val compress_degree = 2
 val merge_timeout_slack_time = seconds 0.005
@@ -163,7 +174,7 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
               val subs'' = subs @ nontriv_subs
               val lfs'' = union (op =) lfs (subtract (op =) (map fst assms) lfs')
               val gfs'' = union (op =) gfs' gfs
-              val meths'' as _ :: _ = inter (op =) meths' meths
+              val meths'' as _ :: _ = merge_methods (!preplay_data) (l', meths') (l, meths)
               val step'' = Prove (qs, fix, l, t, subs'', (lfs'', gfs''), meths'')
 
               (* check if the modified step can be preplayed fast enough *)
@@ -224,7 +235,7 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
               (* only touch steps that can be preplayed successfully *)
               val Played time = forced_intermediate_preplay_outcome_of_isar_step (!preplay_data) l
 
-              val succs' = map (try_merge cand #> the) succs
+              val succs' = map (try_merge (!preplay_data) cand #> the) succs
 
               val times0 = map ((fn Played time => time) o
                 forced_intermediate_preplay_outcome_of_isar_step (!preplay_data)) labels
