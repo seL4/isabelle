@@ -174,7 +174,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
                  else ([], rewrite_methods))
                 ||> massage_meths
             in
-              Prove ([], skos, l, t, [], ([], []), meths)
+              Prove ([], skos, l, t, [], ([], []), meths, "")
             end)
 
         val bot = atp_proof |> List.last |> #1
@@ -223,7 +223,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
             accum
             |> (if tainted = [] then
                   cons (Prove (if outer then [Show] else [], [], no_label, concl_t, [],
-                    (the_list predecessor, []), massage_meths metislike_methods))
+                    (the_list predecessor, []), massage_meths metislike_methods, ""))
                 else
                   I)
             |> rev
@@ -242,7 +242,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
                  else metislike_methods)
                 |> massage_meths
 
-              fun prove sub facts = Prove (maybe_show outer c [], [], l, t, sub, facts, meths)
+              fun prove sub facts = Prove (maybe_show outer c [], [], l, t, sub, facts, meths, "")
               fun steps_of_rest step = isar_steps outer (SOME l) (step :: accum) infs
             in
               if is_clause_tainted c then
@@ -256,7 +256,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
                     steps_of_rest (prove [] deps)
                 | _ => steps_of_rest (prove [] deps))
               else
-                steps_of_rest (if skolem then Prove ([], skolems_of t, l, t, [], deps, meths)
+                steps_of_rest (if skolem then Prove ([], skolems_of t, l, t, [], deps, meths, "")
                   else prove [] deps)
             end
           | isar_steps outer predecessor accum (Cases cases :: infs) =
@@ -269,7 +269,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
               val step =
                 Prove (maybe_show outer c [], [], l, t,
                   map isar_case (filter_out (null o snd) cases),
-                  (the_list predecessor, []), massage_meths metislike_methods)
+                  (the_list predecessor, []), massage_meths metislike_methods, "")
             in
               isar_steps outer (SOME l) (step :: accum) infs
             end
@@ -299,7 +299,6 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
 
         fun str_of_preplay_outcome outcome =
           if Lazy.is_finished outcome then string_of_play_outcome (Lazy.force outcome) else "?"
-
         fun str_of_meth l meth =
           string_of_proof_method meth ^ " " ^
           str_of_preplay_outcome (preplay_outcome_of_isar_step_for_method (!preplay_data) l meth)
@@ -307,10 +306,16 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
 
         fun trace_isar_proof label proof =
           if trace then
-            tracing (timestamp () ^ "\n" ^ label ^ ":\n\n" ^ string_of_isar_proof comment_of proof ^
-              "\n")
+            tracing (timestamp () ^ "\n" ^ label ^ ":\n\n" ^
+              string_of_isar_proof (comment_isar_proof comment_of proof) ^ "\n")
           else
             ()
+
+        fun comment_of l (meth :: _) =
+          (case (verbose,
+              Lazy.force (preplay_outcome_of_isar_step_for_method (!preplay_data) l meth)) of
+            (false, Played _) => ""
+          | (_, outcome) => string_of_play_outcome outcome)
 
         val (play_outcome, isar_proof) =
           canonical_isar_proof
@@ -322,11 +327,12 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
                 #> minimize ? minimize_isar_step_dependencies ctxt preplay_data)
           |> tap (trace_isar_proof "Minimized")
           |> `(preplay_outcome_of_isar_proof (!preplay_data))
+          ||> comment_isar_proof comment_of
           ||> chain_isar_proof
           ||> kill_useless_labels_in_isar_proof
           ||> relabel_isar_proof_nicely
       in
-        (case string_of_isar_proof (K (K "")) isar_proof of
+        (case string_of_isar_proof isar_proof of
           "" =>
           if isar_proofs = SOME true then "\nNo structured proof available (proof too simple)."
           else ""

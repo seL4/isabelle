@@ -32,7 +32,7 @@ fun collect_successors steps lbls =
       | collect_steps [] accum = accum
       | collect_steps (step :: steps) accum = collect_steps steps (collect_step step accum)
     and collect_step (Let _) x = x
-      | collect_step (step as Prove (_, _, l, _, subproofs, _, _)) x =
+      | collect_step (step as Prove (_, _, l, _, subproofs, _, _, _)) x =
         (case collect_subproofs subproofs x of
           ([], accu) => ([], accu)
         | accum as (l' :: lbls', accu) => if l = l' then (lbls', step :: accu) else accum)
@@ -55,16 +55,16 @@ fun update_steps steps updates =
       | update_steps (step :: steps) updates = update_step step (update_steps steps updates)
     and update_step step (steps, []) = (step :: steps, [])
       | update_step (step as Let _) (steps, updates) = (step :: steps, updates)
-      | update_step (Prove (qs, xs, l, t, subproofs, facts, meths))
-          (steps, updates as Prove (qs', xs', l', t', subproofs', facts', meths') :: updates') =
-        let
-          val (subproofs, updates) =
-            if l = l' then update_subproofs subproofs' updates'
-            else update_subproofs subproofs updates
-        in
-          if l = l' then (Prove (qs', xs', l', t', subproofs, facts', meths') :: steps, updates)
-          else (Prove (qs, xs, l, t, subproofs, facts, meths) :: steps, updates)
-        end
+      | update_step (Prove (qs, xs, l, t, subproofs, facts, meths, comment))
+          (steps,
+           updates as Prove (qs', xs', l', t', subproofs', facts', meths', comment') :: updates') =
+        (if l = l' then
+           update_subproofs subproofs' updates'
+           |>> (fn subproofs' => Prove (qs', xs', l', t', subproofs', facts', meths', comment'))
+         else
+           update_subproofs subproofs updates
+           |>> (fn subproofs => Prove (qs, xs, l, t, subproofs, facts, meths, comment)))
+        |>> (fn step => step :: steps)
     and update_subproofs [] updates = ([], updates)
       | update_subproofs steps [] = (steps, [])
       | update_subproofs (proof :: subproofs) updates =
@@ -91,8 +91,8 @@ fun merge_methods preplay_data (l1, meths1) (l2, meths2) =
     inter (op =) (filter (is_method_hopeful l1) meths1) (filter (is_method_hopeful l2) meths2)
   end
 
-fun try_merge preplay_data (Prove (_, [], l1, _, subproofs1, (lfs1, gfs1), meths1))
-      (Prove (qs2, fix, l2, t, subproofs2, (lfs2, gfs2), meths2)) =
+fun try_merge preplay_data (Prove (_, [], l1, _, subproofs1, (lfs1, gfs1), meths1, comment1))
+      (Prove (qs2, fix, l2, t, subproofs2, (lfs2, gfs2), meths2, comment2)) =
     (case merge_methods preplay_data (l1, meths1) (l2, meths2) of
       [] => NONE
     | meths =>
@@ -100,7 +100,8 @@ fun try_merge preplay_data (Prove (_, [], l1, _, subproofs1, (lfs1, gfs1), meths
         val lfs = union (op =) lfs1 (remove (op =) l1 lfs2)
         val gfs = union (op =) gfs1 gfs2
       in
-        SOME (Prove (qs2, fix, l2, t, subproofs1 @ subproofs2, (lfs, gfs), meths))
+        SOME (Prove (qs2, fix, l2, t, subproofs1 @ subproofs2, (lfs, gfs), meths,
+          comment1 ^ comment2))
       end)
   | try_merge _ _ _ = NONE
 
@@ -128,9 +129,9 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
 
       val (get_successors, replace_successor) =
         let
-          fun add_refs (Let _) = I
-            | add_refs (Prove (_, _, v, _, _, (lfs, _), _)) =
-              fold (fn key => Canonical_Label_Tab.cons_list (key, v)) lfs
+          fun add_refs (Prove (_, _, l, _, _, (lfs, _), _, _)) =
+              fold (fn key => Canonical_Label_Tab.cons_list (key, l)) lfs
+            | add_refs _ = I
 
           val tab =
             Canonical_Label_Tab.empty
@@ -151,11 +152,11 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
         end
 
       (* elimination of trivial, one-step subproofs *)
-      fun elim_one_subproof time qs fix l t lfs gfs (meths as meth :: _) subs nontriv_subs =
+      fun elim_one_subproof time qs fix l t lfs gfs (meths as meth :: _) comment subs nontriv_subs =
         if null subs orelse not (compress_further ()) then
           let
             val subproofs = List.revAppend (nontriv_subs, subs)
-            val step = Prove (qs, fix, l, t, subproofs, (lfs, gfs), meths)
+            val step = Prove (qs, fix, l, t, subproofs, (lfs, gfs), meths, comment)
           in
             set_preplay_outcomes_of_isar_step ctxt time preplay_data step [(meth, Played time)];
             step
@@ -165,7 +166,7 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
             (sub as Proof (_, assms, sub_steps)) :: subs =>
             (let
               (* trivial subproofs have exactly one "Prove" step *)
-              val [Prove (_, [], l', _, [], (lfs', gfs'), meths')] = sub_steps
+              val [Prove (_, [], l', _, [], (lfs', gfs'), meths', _)] = sub_steps
 
               (* only touch proofs that can be preplayed sucessfully *)
               val Played time' = forced_intermediate_preplay_outcome_of_isar_step (!preplay_data) l'
@@ -175,7 +176,7 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
               val lfs'' = union (op =) lfs (subtract (op =) (map fst assms) lfs')
               val gfs'' = union (op =) gfs' gfs
               val meths'' as _ :: _ = merge_methods (!preplay_data) (l', meths') (l, meths)
-              val step'' = Prove (qs, fix, l, t, subs'', (lfs'', gfs''), meths'')
+              val step'' = Prove (qs, fix, l, t, subs'', (lfs'', gfs''), meths'', comment)
 
               (* check if the modified step can be preplayed fast enough *)
               val timeout = slackify_merge_timeout (Time.+ (time, time'))
@@ -183,20 +184,20 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
             in
               decrement_step_count (); (* l' successfully eliminated! *)
               map (replace_successor l' [l]) lfs';
-              elim_one_subproof time'' qs fix l t lfs'' gfs'' meths subs nontriv_subs
+              elim_one_subproof time'' qs fix l t lfs'' gfs'' meths comment subs nontriv_subs
             end
             handle Bind =>
-              elim_one_subproof time qs fix l t lfs gfs meths subs (sub :: nontriv_subs))
+              elim_one_subproof time qs fix l t lfs gfs meths comment subs (sub :: nontriv_subs))
           | _ => raise Fail "Sledgehammer_Isar_Compress: elim_one_subproof")
 
-      fun elim_subproofs (step as Let _) = step
-        | elim_subproofs (step as Prove (qs, fix, l, t, subproofs, (lfs, gfs), meths)) =
+      fun elim_subproofs (step as Prove (qs, fix, l, t, subproofs, (lfs, gfs), meths, comment)) =
           if subproofs = [] then
             step
           else
             (case forced_intermediate_preplay_outcome_of_isar_step (!preplay_data) l of
-              Played time => elim_one_subproof time qs fix l t lfs gfs meths subproofs []
+              Played time => elim_one_subproof time qs fix l t lfs gfs meths comment subproofs []
             | _ => step)
+        | elim_subproofs step = step
 
       fun compress_top_level steps =
         let
@@ -218,8 +219,8 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
 
           val candidates =
             let
-              fun add_cand (_, Let _) = I
-                | add_cand (i, Prove (_, _, l, t, _, _, _)) = cons (i, l, size_of_term t)
+              fun add_cand (i, Prove (_, _, l, t, _, _, _, _)) = cons (i, l, size_of_term t)
+                | add_cand _ = I
             in
               (steps
                |> split_last |> fst (* keep last step *)
@@ -228,7 +229,7 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
 
           fun try_eliminate (i, l, _) labels steps =
             let
-              val ((cand as Prove (_, _, _, _, _, (lfs, _), _)) :: steps') = drop i steps
+              val ((cand as Prove (_, _, _, _, _, (lfs, _), _, _)) :: steps') = drop i steps
 
               val succs = collect_successors steps' labels
 
@@ -292,9 +293,9 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
         steps |> map (fn step => step |> compress_further () ? compress_sub_levels)
               |> compress_further () ? compress_top_level
       and compress_sub_levels (step as Let _) = step
-        | compress_sub_levels (Prove (qs, xs, l, t, subproofs, facts, meths)) =
+        | compress_sub_levels (Prove (qs, xs, l, t, subproofs, facts, meths, comment)) =
           (* compress subproofs *)
-          Prove (qs, xs, l, t, map compress_proof subproofs, facts, meths)
+          Prove (qs, xs, l, t, map compress_proof subproofs, facts, meths, comment)
           (* eliminate trivial subproofs *)
           |> compress_further () ? elim_subproofs
     in
