@@ -123,8 +123,8 @@ fun steps_of_isar_proof (Proof (_, _, steps)) = steps
 fun label_of_isar_step (Prove (_, _, l, _, _, _, _)) = SOME l
   | label_of_isar_step _ = NONE
 
-fun subproofs_of_isar_step (Prove (_, _, _, _, subproofs, _, _)) = SOME subproofs
-  | subproofs_of_isar_step _ = NONE
+fun subproofs_of_isar_step (Prove (_, _, _, _, subs, _, _)) = subs
+  | subproofs_of_isar_step _ = []
 
 fun facts_of_isar_step (Prove (_, _, _, _, _, facts, _)) = facts
   | facts_of_isar_step _ = ([], [])
@@ -133,15 +133,15 @@ fun proof_methods_of_isar_step (Prove (_, _, _, _, _, _, meths)) = meths
   | proof_methods_of_isar_step _ = []
 
 fun fold_isar_step f step =
-  fold (steps_of_isar_proof #> fold_isar_steps f) (these (subproofs_of_isar_step step)) #> f step
+  fold (steps_of_isar_proof #> fold_isar_steps f) (subproofs_of_isar_step step) #> f step
 and fold_isar_steps f = fold (fold_isar_step f)
 
 fun map_isar_steps f =
   let
     fun map_proof (Proof (fix, assms, steps)) = Proof (fix, assms, map map_step steps)
     and map_step (step as Let _) = f step
-      | map_step (Prove (qs, xs, l, t, subproofs, facts, meths)) =
-        f (Prove (qs, xs, l, t, map map_proof subproofs, facts, meths))
+      | map_step (Prove (qs, xs, l, t, subs, facts, meths)) =
+        f (Prove (qs, xs, l, t, map map_proof subs, facts, meths))
   in map_proof end
 
 val add_isar_steps = fold_isar_steps (fn Prove _ => Integer.add 1 | _ => I)
@@ -156,9 +156,9 @@ structure Canonical_Label_Tab = Table(
 fun chain_qs_lfs NONE lfs = ([], lfs)
   | chain_qs_lfs (SOME l0) lfs =
     if member (op =) lfs l0 then ([Then], lfs |> remove (op =) l0) else ([], lfs)
-fun chain_isar_step lbl (Prove (qs, xs, l, t, subproofs, (lfs, gfs), meths)) =
+fun chain_isar_step lbl (Prove (qs, xs, l, t, subs, (lfs, gfs), meths)) =
     let val (qs', lfs) = chain_qs_lfs lbl lfs in
-      Prove (qs' @ qs, xs, l, t, map chain_isar_proof subproofs, (lfs, gfs), meths)
+      Prove (qs' @ qs, xs, l, t, map chain_isar_proof subs, (lfs, gfs), meths)
     end
   | chain_isar_step _ step = step
 and chain_isar_steps _ [] = []
@@ -175,8 +175,8 @@ fun kill_useless_labels_in_isar_proof proof =
 
     fun kill_label l = if member (op =) used_ls l then l else no_label
 
-    fun kill_step (Prove (qs, xs, l, t, subproofs, facts, meths)) =
-        Prove (qs, xs, kill_label l, t, map kill_proof subproofs, facts, meths)
+    fun kill_step (Prove (qs, xs, l, t, subs, facts, meths)) =
+        Prove (qs, xs, kill_label l, t, map kill_proof subs, facts, meths)
       | kill_step step = step
     and kill_proof (Proof (fix, assms, steps)) =
       Proof (fix, map (apfst kill_label) assms, map kill_step steps)
@@ -189,31 +189,20 @@ fun relabel_isar_proof_canonically proof =
     fun next_label l (next, subst) =
       let val l' = ("", next) in (l', (next + 1, (l, l') :: subst)) end
 
-    fun relabel_facts (lfs, gfs) (_, subst) =
-      (map (AList.lookup (op =) subst #> the) lfs, gfs)
-      handle Option.Option =>
-        raise Fail "Sledgehammer_Isar_Proof: relabel_isar_proof_canonically"
-
-    fun relabel_assm (l, t) state =
-      next_label l state |> (fn (l, state) => ((l, t), state))
-
-    fun relabel_proof (Proof (fix, assms, steps)) state =
-      let
-        val (assms, state) = fold_map relabel_assm assms state
-        val (steps, state) = fold_map relabel_step steps state
-      in
-        (Proof (fix, assms, steps), state)
-      end
-
-    and relabel_step (Prove (qs, fix, l, t, subproofs, facts, meths)) state =
+    fun relabel_step (Prove (qs, fix, l, t, subs, (lfs, gfs), meths)) (accum as (_, subst)) =
         let
-          val facts = relabel_facts facts state
-          val (subproofs, state) = fold_map relabel_proof subproofs state
-          val (l, state) = next_label l state
+          val lfs' = maps (the_list o AList.lookup (op =) subst) lfs
+          val ((subs', l'), accum') = accum
+            |> fold_map relabel_proof subs
+            ||>> next_label l
         in
-          (Prove (qs, fix, l, t, subproofs, facts, meths), state)
+          (Prove (qs, fix, l', t, subs', (lfs', gfs), meths), accum')
         end
-      | relabel_step step state = (step, state)
+      | relabel_step step accum = (step, accum)
+    and relabel_proof (Proof (fix, assms, steps)) =
+      fold_map (fn (l, t) => next_label l #> apfst (rpair t)) assms
+      ##>> fold_map relabel_step steps
+      #>> (fn (assms, steps) => Proof (fix, assms, steps))
   in
     fst (relabel_proof proof (0, []))
   end
@@ -223,39 +212,28 @@ val have_prefix = "f"
 
 val relabel_isar_proof_finally =
   let
-    fun fresh_label depth prefix (accum as (l, subst, next)) =
+    fun next_label depth prefix l (accum as (next, subst)) =
       if l = no_label then
-        accum
+        (l, accum)
       else
         let val l' = (replicate_string (depth + 1) prefix, next) in
-          (l', (l, l') :: subst, next + 1)
+          (l', (next + 1, (l, l') :: subst))
         end
 
-    fun relabel_facts subst = apfst (maps (the_list o AList.lookup (op =) subst))
-
-    fun relabel_assm depth (l, t) (subst, next) =
-      let val (l, subst, next) = (l, subst, next) |> fresh_label depth assume_prefix in
-        ((l, t), (subst, next))
-      end
-
-    fun relabel_assms subst depth assms = fold_map (relabel_assm depth) assms (subst, 1) ||> fst
-
-    fun relabel_steps _ _ _ [] = []
-      | relabel_steps subst depth next (Prove (qs, xs, l, t, sub, facts, meths) :: steps) =
+    fun relabel_step depth (Prove (qs, xs, l, t, subs, (lfs, gfs), meths)) (accum as (_, subst)) =
         let
-          val (l, subst, next) = (l, subst, next) |> fresh_label depth have_prefix
-          val sub = relabel_proofs subst depth sub
-          val facts = relabel_facts subst facts
+          val lfs' = maps (the_list o AList.lookup (op =) subst) lfs
+          val (l', accum' as (next', subst')) = next_label depth have_prefix l accum
+          val subs' = map (relabel_proof subst' (depth + 1)) subs
         in
-          Prove (qs, xs, l, t, sub, facts, meths) :: relabel_steps subst depth next steps
+          (Prove (qs, xs, l', t, subs', (lfs', gfs), meths), accum')
         end
-      | relabel_steps subst depth next (step :: steps) =
-        step :: relabel_steps subst depth next steps
+      | relabel_step _ step accum = (step, accum)
     and relabel_proof subst depth (Proof (fix, assms, steps)) =
-      let val (assms, subst) = relabel_assms subst depth assms in
-        Proof (fix, assms, relabel_steps subst depth 1 steps)
-      end
-    and relabel_proofs subst depth = map (relabel_proof subst (depth + 1))
+      (1, subst)
+      |> fold_map (fn (l, t) => next_label depth assume_prefix l #> apfst (rpair t)) assms
+      ||>> fold_map (relabel_step depth) steps
+      |> (fn ((assms, steps), _) => Proof (fix, assms, steps))
   in
     relabel_proof [] 0
   end
@@ -320,10 +298,10 @@ fun string_of_isar_proof ctxt i n comment_of proof =
        more robust w.r.t. preplay: Preplay is performed before chaining of local facts with "hence"
        and "thus" is introduced. See also "tac_of_method" in "Sledgehammer_Isar_Preplay". *)
     fun of_method ls ss meth =
-        let val direct = is_direct_method meth in
-          using_facts ls (if direct then [] else ss) ^
-          by_facts (string_of_proof_method meth) [] (if direct then ss else [])
-        end
+      let val direct = is_direct_method meth in
+        using_facts ls (if direct then [] else ss) ^
+        by_facts (string_of_proof_method meth) [] (if direct then ss else [])
+      end
 
     fun of_free (s, T) =
       maybe_quote s ^ " :: " ^
@@ -333,17 +311,10 @@ fun string_of_isar_proof ctxt i n comment_of proof =
       (s ^ space_implode " and " (map of_free xs), ctxt |> register_fixes xs)
 
     fun add_fix _ [] = I
-      | add_fix ind xs =
-        add_str (of_indent ind ^ "fix ")
-        #> add_frees xs
-        #> add_str "\n"
+      | add_fix ind xs = add_str (of_indent ind ^ "fix ") #> add_frees xs #> add_str "\n"
 
     fun add_assm ind (l, t) =
-      add_str (of_indent ind ^ "assume " ^ of_label l)
-      #> add_term t
-      #> add_str "\n"
-
-    fun add_assms ind assms = fold (add_assm ind) assms
+      add_str (of_indent ind ^ "assume " ^ of_label l) #> add_term t #> add_str "\n"
 
     fun of_subproof ind ctxt proof =
       let
@@ -357,21 +328,19 @@ fun string_of_isar_proof ctxt i n comment_of proof =
         suffix ^ "\n"
       end
     and of_subproofs _ _ _ [] = ""
-      | of_subproofs ind ctxt qs subproofs =
+      | of_subproofs ind ctxt qs subs =
         (if member (op =) qs Then then of_moreover ind else "") ^
-        space_implode (of_moreover ind) (map (of_subproof ind ctxt) subproofs)
-    and add_step_pre ind qs subproofs (s, ctxt) =
-      (s ^ of_subproofs ind ctxt qs subproofs ^ of_indent ind, ctxt)
+        space_implode (of_moreover ind) (map (of_subproof ind ctxt) subs)
+    and add_step_pre ind qs subs (s, ctxt) =
+      (s ^ of_subproofs ind ctxt qs subs ^ of_indent ind, ctxt)
     and add_step ind (Let (t1, t2)) =
         add_str (of_indent ind ^ "let ")
-        #> add_term t1 #> add_str " = " #> add_term t2
-        #> add_str "\n"
-      | add_step ind (Prove (qs, xs, l, t, subproofs, (ls, ss), meths as meth :: _)) =
-        add_step_pre ind qs subproofs
+        #> add_term t1 #> add_str " = " #> add_term t2 #> add_str "\n"
+      | add_step ind (Prove (qs, xs, l, t, subs, (ls, ss), meths as meth :: _)) =
+        add_step_pre ind qs subs
         #> (case xs of
-             [] => add_str (of_have qs (length subproofs) ^ " ")
-           | _ =>
-             add_str (of_obtain qs (length subproofs) ^ " ") #> add_frees xs #> add_str " where ")
+             [] => add_str (of_have qs (length subs) ^ " ")
+           | _ => add_str (of_obtain qs (length subs) ^ " ") #> add_frees xs #> add_str " where ")
         #> add_str (of_label l)
         #> add_term t
         #> add_str (" " ^
@@ -381,7 +350,11 @@ fun string_of_isar_proof ctxt i n comment_of proof =
              | comment => " (* " ^ comment ^ " *)") ^ "\n")
     and add_steps ind = fold (add_step ind)
     and of_proof ind ctxt (Proof (xs, assms, steps)) =
-      ("", ctxt) |> add_fix ind xs |> add_assms ind assms |> add_steps ind steps |> fst
+      ("", ctxt)
+      |> add_fix ind xs
+      |> fold (add_assm ind) assms
+      |> add_steps ind steps
+      |> fst
   in
     (* One-step Metis proofs are pointless; better use the one-liner directly. *)
     (case proof of
