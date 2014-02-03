@@ -71,14 +71,6 @@ fun map_data f =
   Data.map (fn Data {coes, full_graph, coes_graph, tmaps, coerce_args} =>
     make_data (f (coes, full_graph, coes_graph, tmaps, coerce_args)));
 
-fun map_coes f =
-  map_data (fn (coes, full_graph, coes_graph, tmaps, coerce_args) =>
-    (f coes, full_graph, coes_graph, tmaps, coerce_args));
-
-fun map_coes_graph f =
-  map_data (fn (coes, full_graph, coes_graph, tmaps, coerce_args) =>
-    (coes, full_graph, f coes_graph, tmaps, coerce_args));
-
 fun map_coes_and_graphs f =
   map_data (fn (coes, full_graph, coes_graph, tmaps, coerce_args) =>
     let val (coes', full_graph', coes_graph') = f (coes, full_graph, coes_graph);
@@ -113,7 +105,6 @@ fun sort_of (TFree (_, S)) = SOME S
   | sort_of _ = NONE;
 
 val is_typeT = fn (Type _) => true | _ => false;
-val is_stypeT = fn (Type (_, [])) => true | _ => false;
 val is_compT = fn (Type (_, _ :: _)) => true | _ => false;
 val is_freeT = fn (TFree _) => true | _ => false;
 val is_fixedvarT = fn (TVar (xi, _)) => not (Type_Infer.is_param xi) | _ => false;
@@ -929,7 +920,7 @@ fun add_type_map raw_t context =
               else error ("Functions do not apply to arguments correctly:" ^ err_str t));
 
     (*retry flag needed to adjust the type lists, when given a map over type constructor fun*)
-    fun check_map_fun fis (Type (C1, Ts)) (Type (C2, Us)) retry =
+    fun check_map_fun fis (Type (C1, Ts)) (Type (C2, Us)) _ =
           if C1 = C2 andalso not (null fis) andalso forall is_funtype fis
           then ((map dest_funT fis, Ts ~~ Us), C1)
           else error ("Not a proper map function:" ^ err_str t)
