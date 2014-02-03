@@ -181,17 +181,15 @@ fun set_preplay_outcomes_of_isar_step ctxt timeout preplay_data
     end
   | set_preplay_outcomes_of_isar_step _ _ _ _ _ = ()
 
-fun preplay_outcome_of_isar_step_for_method preplay_data l meth =
-  let val SOME meths_outcomes = Canonical_Label_Tab.lookup preplay_data l in
-    the (AList.lookup (op =) meths_outcomes meth)
-  end
+fun preplay_outcome_of_isar_step_for_method preplay_data l =
+  the o AList.lookup (op =) (the (Canonical_Label_Tab.lookup preplay_data l))
 
-fun fastest_method_of_isar_step preplay_data l =
-  the (Canonical_Label_Tab.lookup preplay_data l)
-  |> map (fn (meth, outcome) =>
+fun fastest_method_of_isar_step preplay_data =
+  Canonical_Label_Tab.lookup preplay_data #> the
+  #> map (fn (meth, outcome) =>
        (meth, Time.toMilliseconds (case Lazy.force outcome of Played time => time | _ => one_year)))
-  |> sort (int_ord o pairself snd)
-  |> hd |> fst
+  #> sort (int_ord o pairself snd)
+  #> hd #> fst
 
 fun forced_outcome_of_step preplay_data (Prove (_, _, l, _, _, (_, meths))) =
     Lazy.force (preplay_outcome_of_isar_step_for_method preplay_data l (the_single meths))

@@ -234,13 +234,6 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
               val time_slice = time_mult (1.0 / (Real.fromInt (length labels))) time
               val timeouts = map (curry Time.+ time_slice #> time_mult merge_timeout_slack) times0
 
-              (* FIXME: debugging *)
-              val _ =
-                if the (label_of_isar_step cand) <> l then
-                  raise Fail "Sledgehammer_Isar_Compress: try_eliminate"
-                else
-                  ()
-
               (* TODO: should be lazy: stop preplaying as soon as one step fails/times out *)
               val play_outcomes = map3 (preplay_isar_step ctxt) timeouts succ_meths succs'
 
@@ -282,16 +275,12 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
           |> remove (op =) dummy_isar_step
         end
 
-      (*
-         Proofs are compressed bottom-up, beginning with the innermost
-         subproofs.
-         On the innermost proof level, the proof steps have no subproofs.
-         In the best case, these steps can be merged into just one step,
-         resulting in a trivial subproof. Going one level up, trivial subproofs
-         can be eliminated. In the best case, this once again leads to a proof
-         whose proof steps do not have subproofs. Applying this approach
-         recursively will result in a flat proof in the best cast.
-      *)
+      (* Proofs are compressed bottom-up, beginning with the innermost subproofs. On the innermost
+         proof level, the proof steps have no subproofs. In the best case, these steps can be merged
+         into just one step, resulting in a trivial subproof. Going one level up, trivial subproofs
+         can be eliminated. In the best case, this once again leads to a proof whose proof steps do
+         not have subproofs. Applying this approach recursively will result in a flat proof in the
+         best cast. *)
       fun compress_proof (proof as (Proof (fix, assms, steps))) =
         if compress_further () then Proof (fix, assms, compress_steps steps) else proof
       and compress_steps steps =

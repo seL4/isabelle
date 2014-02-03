@@ -33,7 +33,7 @@ fun keep_fastest_method_of_isar_step preplay_data
 val slack = seconds 0.1
 
 fun minimize_isar_step_dependencies ctxt preplay_data
-      (step as Prove (qs, xs, l, t, subproofs, ((lfs, gfs), meths as meth :: _))) =
+      (step as Prove (qs, xs, l, t, subproofs, ((lfs0, gfs0), meths as meth :: _))) =
     (case Lazy.force (preplay_outcome_of_isar_step_for_method (!preplay_data) l meth) of
       Played time =>
       let
@@ -46,8 +46,8 @@ fun minimize_isar_step_dependencies ctxt preplay_data
               Played time => minimize_facts mk_step time min_facts facts
             | _ => minimize_facts mk_step time (f :: min_facts) facts)
 
-        val (time, min_lfs) = minimize_facts (fn lfs => mk_step_lfs_gfs lfs gfs) time [] lfs
-        val (time, min_gfs) = minimize_facts (mk_step_lfs_gfs min_lfs) time [] gfs
+        val (time, min_lfs) = minimize_facts (fn lfs => mk_step_lfs_gfs lfs gfs0) time [] lfs0
+        val (time, min_gfs) = minimize_facts (mk_step_lfs_gfs min_lfs) time [] gfs0
 
         val step' = mk_step_lfs_gfs min_lfs min_gfs
       in
