@@ -88,7 +88,8 @@ fun merge_methods preplay_data (l1, meths1) (l2, meths2) =
         (case Lazy.force outcome of Played _ => true | _ => false)
       end
   in
-    inter (op =) (filter (is_method_hopeful l1) meths1) (filter (is_method_hopeful l2) meths2)
+    union (op =) meths1 meths2
+    |> filter (is_method_hopeful l1 andf is_method_hopeful l2)
   end
 
 fun try_merge preplay_data (Prove (_, [], l1, _, subproofs1, (lfs1, gfs1), meths1, comment1))
