@@ -152,13 +152,15 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
         end
 
       (* elimination of trivial, one-step subproofs *)
-      fun elim_one_subproof time qs fix l t lfs gfs (meths as meth :: _) comment subs nontriv_subs =
+      fun elim_one_subproof time meths_outcomes qs fix l t lfs gfs (meths as meth :: _) comment subs
+          nontriv_subs =
         if null subs orelse not (compress_further ()) then
           let
             val subproofs = List.revAppend (nontriv_subs, subs)
             val step = Prove (qs, fix, l, t, subproofs, (lfs, gfs), meths, comment)
           in
-            set_preplay_outcomes_of_isar_step ctxt time preplay_data step [(meth, Played time)];
+            set_preplay_outcomes_of_isar_step ctxt time preplay_data step
+              ((meth, Played time) :: meths_outcomes);
             step
           end
         else
@@ -180,14 +182,15 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
 
               (* check if the modified step can be preplayed fast enough *)
               val timeout = slackify_merge_timeout (Time.+ (time, time'))
-              val outcomes as (_, Played time'') :: _ = preplay_isar_step ctxt timeout step''
+              val (_, Played time'') :: meths_outcomes = preplay_isar_step ctxt timeout step''
             in
               decrement_step_count (); (* l' successfully eliminated! *)
               map (replace_successor l' [l]) lfs';
-              elim_one_subproof time'' qs fix l t lfs'' gfs'' meths comment subs nontriv_subs
+              elim_one_subproof time'' meths_outcomes qs fix l t lfs'' gfs'' meths comment subs
+                nontriv_subs
             end
             handle Bind =>
-              elim_one_subproof time qs fix l t lfs gfs meths comment subs (sub :: nontriv_subs))
+              elim_one_subproof time [] qs fix l t lfs gfs meths comment subs (sub :: nontriv_subs))
           | _ => raise Fail "Sledgehammer_Isar_Compress: elim_one_subproof")
 
       fun elim_subproofs (step as Prove (qs, fix, l, t, subproofs, (lfs, gfs), meths, comment)) =
@@ -195,7 +198,7 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
             step
           else
             (case forced_intermediate_preplay_outcome_of_isar_step (!preplay_data) l of
-              Played time => elim_one_subproof time qs fix l t lfs gfs meths comment subproofs []
+              Played time => elim_one_subproof time [] qs fix l t lfs gfs meths comment subproofs []
             | _ => step)
         | elim_subproofs step = step
 

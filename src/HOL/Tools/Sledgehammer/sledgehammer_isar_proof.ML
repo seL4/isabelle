@@ -191,7 +191,7 @@ val relabel_isar_proof_nicely =
           (accum as (_, subst)) =
         let
           val lfs' = maps (the_list o AList.lookup (op =) subst) lfs
-          val (l', accum' as (next', subst')) = next_label depth have_prefix l accum
+          val (l', accum' as (_, subst')) = next_label depth have_prefix l accum
           val subs' = map (relabel_proof subst' (depth + 1)) subs
         in
           (Prove (qs, xs, l', t, subs', (lfs', gfs), meths, comment), accum')
@@ -305,7 +305,7 @@ fun string_of_isar_proof ctxt i n proof =
     and add_step ind (Let (t1, t2)) =
         add_str (of_indent ind ^ "let ")
         #> add_term t1 #> add_str " = " #> add_term t2 #> add_str "\n"
-      | add_step ind (Prove (qs, xs, l, t, subs, (ls, ss), meths as meth :: _, comment)) =
+      | add_step ind (Prove (qs, xs, l, t, subs, (ls, ss), meth :: _, comment)) =
         add_step_pre ind qs subs
         #> (case xs of
              [] => add_str (of_have qs (length subs) ^ " ")

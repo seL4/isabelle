@@ -187,7 +187,7 @@ fun get_best_method_outcome force =
 
 fun forced_intermediate_preplay_outcome_of_isar_step preplay_data l =
   let
-    val meths_outcomes as (meth1, outcome1) :: _ = the (Canonical_Label_Tab.lookup preplay_data l)
+    val meths_outcomes as (_, outcome1) :: _ = the (Canonical_Label_Tab.lookup preplay_data l)
   in
     if forall (not o Lazy.is_finished o snd) meths_outcomes then
       (case Lazy.force outcome1 of
