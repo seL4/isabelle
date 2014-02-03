@@ -312,9 +312,9 @@ proof -
       done
     with `x dvd p` `1 < x` have "False" by auto }
   then show ?thesis 
-    using `2 \<le> p` apply (simp add: prime_def)
-by (metis One_nat_def dvd_pos_nat nat_dvd_not_less nat_neq_iff not_gr0 
-  not_numeral_le_zero one_dvd)
+    using `2 \<le> p` 
+    by (simp add: prime_def)
+       (metis One_nat_def dvd_pos_nat nat_dvd_not_less nat_neq_iff not_gr0 not_numeral_le_zero one_dvd)
 qed
 
 lemma phi_zero [simp]: "phi 0 = 0"
