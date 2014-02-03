@@ -122,7 +122,7 @@ val metislike_methods0 =
    Metis_Method (SOME no_typesN, NONE)]
 val rewrite_methods =
   [Auto_Method, Simp_Method, Fastforce_Method, Force_Method, Metis_Method (NONE, NONE),
-   Meson_Method]
+   Meson_Method, Blast_Method, Arith_Method, Algebra_Method]
 val skolem_methods =
   [Metis_Method (NONE, NONE), Blast_Method, Meson_Method]
 
