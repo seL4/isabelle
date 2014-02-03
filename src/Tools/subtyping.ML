@@ -140,7 +140,7 @@ fun inst_collect tye err T U =
   (case (T, Type_Infer.deref tye U) of
     (TVar (xi, _), U) => [(xi, U)]
   | (Type (a, Ts), Type (b, Us)) =>
-      if a <> b then raise error (eval_err err) else inst_collects tye err Ts Us
+      if a <> b then error (eval_err err) else inst_collects tye err Ts Us
   | (_, U') => if T <> U' then error (eval_err err) else [])
 and inst_collects tye err Ts Us =
   fold2 (fn T => fn U => fn is => inst_collect tye err T U @ is) Ts Us [];
