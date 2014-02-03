@@ -2640,9 +2640,11 @@ text {* For validation purposes, it is often useful to \emph{execute}
   \item @{command (HOL) "code_identifier"} associates a a series of symbols
   (constants, type constructors, classes, class relations, instances,
   module names) with target-specific hints how these symbols shall be named.
-  \emph{Warning:} These hints are still subject to name disambiguation.
+  These hints gain precedence over names for symbols with no hints at all.
+  Conflicting hints are subject to name disambiguation.
   @{command (HOL) "code_modulename"} is a legacy variant for
-  @{command (HOL) "code_identifier"} on module names.  It is at the discretion
+  @{command (HOL) "code_identifier"} on module names.
+  \emph{Warning:} It is at the discretion
   of the user to ensure that name prefixes of identifiers in compound
   statements like type classes or datatypes are still the same.
 

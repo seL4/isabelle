@@ -69,11 +69,15 @@ fun prep_symbol ctxt { module_namespace, force_module, identifiers } sym =
     | SOME prefix_name => if null force_module then prefix_name
         else (force_module, snd prefix_name);
 
+fun has_priority identifiers = is_some o Code_Symbol.lookup identifiers;
+
 fun build_proto_program { empty, add_stmt, add_dep } program =
   empty
   |> Code_Symbol.Graph.fold (fn (sym, (stmt, _)) => add_stmt sym stmt) program
   |> Code_Symbol.Graph.fold (fn (sym, (_, (_, syms))) =>
       Code_Symbol.Graph.Keys.fold (add_dep sym) syms) program;
+
+fun prioritize has_priority = uncurry append o List.partition has_priority;
 
 
 (** flat program structure **)
@@ -90,6 +94,7 @@ fun flat_program ctxt { module_prefix, module_name, reserved,
     val prep_sym = prep_symbol ctxt { module_namespace = module_namespace,
       force_module = Long_Name.explode module_name, identifiers = identifiers }
       #>> Long_Name.implode;
+    val sym_priority = has_priority identifiers;
 
     (* distribute statements over hierarchy *)
     fun add_stmt sym stmt =
@@ -117,7 +122,8 @@ fun flat_program ctxt { module_prefix, module_name, reserved,
         val gr' = (Code_Symbol.Graph.map_node sym o apfst) (K base') gr;
       in (gr', nsp') end;
     fun declarations gr = (gr, empty_nsp)
-      |> fold (fn sym => declare sym (Code_Symbol.Graph.get_node gr sym)) (Code_Symbol.Graph.keys gr) 
+      |> fold (fn sym => declare sym (Code_Symbol.Graph.get_node gr sym))
+          (prioritize sym_priority (Code_Symbol.Graph.keys gr))
       |> fst
       |> (Code_Symbol.Graph.map o K o apsnd) modify_stmt;
     val flat_program = proto_program
@@ -176,7 +182,8 @@ fun hierarchical_program ctxt { module_name, reserved, identifiers, empty_nsp,
     val module_namespace = build_module_namespace ctxt { module_prefix = "",
       module_name = module_name, identifiers = identifiers, reserved = reserved } program;
     val prep_sym = prep_symbol ctxt { module_namespace = module_namespace,
-      force_module = Long_Name.explode module_name, identifiers = identifiers };
+      force_module = Long_Name.explode module_name, identifiers = identifiers }
+    val sym_priority = has_priority identifiers;
 
     (* building empty module hierarchy *)
     val empty_module = (empty_data, Code_Symbol.Graph.empty);
@@ -223,9 +230,12 @@ fun hierarchical_program ctxt { module_name, reserved, identifiers, empty_nsp,
     (* name declarations, data and statement modifications *)
     fun make_declarations nsps (data, nodes) =
       let
-        val (module_fragments, stmt_syms) = List.partition
-          (fn sym => case Code_Symbol.Graph.get_node nodes sym
-            of (_, Module _) => true | _ => false) (Code_Symbol.Graph.keys nodes);
+        val (module_fragments, stmt_syms) =
+          Code_Symbol.Graph.keys nodes
+          |> List.partition
+              (fn sym => case Code_Symbol.Graph.get_node nodes sym
+                of (_, Module _) => true | _ => false)
+          |> pairself (prioritize sym_priority)
         fun declare namify sym (nsps, nodes) =
           let
             val (base, node) = Code_Symbol.Graph.get_node nodes sym;
