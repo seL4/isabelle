@@ -31,7 +31,7 @@ open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
 open ATP_Systems
 open Sledgehammer_Util
-open Sledgehammer_Reconstructor
+open Sledgehammer_Proof_Methods
 open Sledgehammer_Isar
 open Sledgehammer_Prover
 

@@ -1,11 +1,11 @@
-(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_reconstructor.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_proof_methods.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Author:     Steffen Juilf Smolka, TU Muenchen
 
 Reconstructors.
 *)
 
-signature SLEDGEHAMMER_RECONSTRUCTOR =
+signature SLEDGEHAMMER_PROOF_METHODS =
 sig
   type stature = ATP_Problem_Generate.stature
 
@@ -42,7 +42,7 @@ sig
   val silence_proof_methods : bool -> Proof.context -> Proof.context
 end;
 
-structure Sledgehammer_Reconstructor : SLEDGEHAMMER_RECONSTRUCTOR =
+structure Sledgehammer_Proof_Methods : SLEDGEHAMMER_PROOF_METHODS =
 struct
 
 open ATP_Util

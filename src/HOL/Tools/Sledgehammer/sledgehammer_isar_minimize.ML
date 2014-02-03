@@ -21,7 +21,7 @@ end;
 structure Sledgehammer_Isar_Minimize : SLEDGEHAMMER_ISAR_MINIMIZE =
 struct
 
-open Sledgehammer_Reconstructor
+open Sledgehammer_Proof_Methods
 open Sledgehammer_Isar_Proof
 open Sledgehammer_Isar_Preplay
 

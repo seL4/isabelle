@@ -10,7 +10,7 @@ signature SLEDGEHAMMER =
 sig
   type fact = Sledgehammer_Fact.fact
   type fact_override = Sledgehammer_Fact.fact_override
-  type minimize_command = Sledgehammer_Reconstructor.minimize_command
+  type minimize_command = Sledgehammer_Proof_Methods.minimize_command
   type mode = Sledgehammer_Prover.mode
   type params = Sledgehammer_Prover.params
 
@@ -33,7 +33,7 @@ open ATP_Proof
 open ATP_Problem_Generate
 open Sledgehammer_Util
 open Sledgehammer_Fact
-open Sledgehammer_Reconstructor
+open Sledgehammer_Proof_Methods
 open Sledgehammer_Prover
 open Sledgehammer_Prover_ATP
 open Sledgehammer_Prover_Minimize

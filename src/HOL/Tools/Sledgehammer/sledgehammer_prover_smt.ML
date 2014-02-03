@@ -38,7 +38,7 @@ open ATP_Systems
 open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
 open Sledgehammer_Util
-open Sledgehammer_Reconstructor
+open Sledgehammer_Proof_Methods
 open Sledgehammer_Prover
 
 val smt_builtins = Attrib.setup_config_bool @{binding sledgehammer_smt_builtins} (K true)

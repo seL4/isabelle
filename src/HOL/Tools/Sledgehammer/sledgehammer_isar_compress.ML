@@ -19,7 +19,7 @@ structure Sledgehammer_Isar_Compress : SLEDGEHAMMER_ISAR_COMPRESS =
 struct
 
 open Sledgehammer_Util
-open Sledgehammer_Reconstructor
+open Sledgehammer_Proof_Methods
 open Sledgehammer_Isar_Proof
 open Sledgehammer_Isar_Preplay
 

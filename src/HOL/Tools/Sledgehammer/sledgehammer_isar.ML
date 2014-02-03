@@ -11,7 +11,7 @@ sig
   type ('a, 'b) atp_step = ('a, 'b) ATP_Proof.atp_step
   type 'a atp_proof = 'a ATP_Proof.atp_proof
   type stature = ATP_Problem_Generate.stature
-  type one_line_params = Sledgehammer_Reconstructor.one_line_params
+  type one_line_params = Sledgehammer_Proof_Methods.one_line_params
 
   val trace : bool Config.T
 
@@ -31,7 +31,7 @@ open ATP_Problem
 open ATP_Proof
 open ATP_Proof_Reconstruct
 open Sledgehammer_Util
-open Sledgehammer_Reconstructor
+open Sledgehammer_Proof_Methods
 open Sledgehammer_Isar_Proof
 open Sledgehammer_Isar_Preplay
 open Sledgehammer_Isar_Compress

@@ -8,7 +8,7 @@ for dealing with Isar proof texts.
 
 signature SLEDGEHAMMER_ISAR_PROOF =
 sig
-  type proof_method = Sledgehammer_Reconstructor.proof_method
+  type proof_method = Sledgehammer_Proof_Methods.proof_method
 
   type label = string * int
   type facts = label list * string list (* local and global facts *)
@@ -58,7 +58,7 @@ open ATP_Proof
 open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
 open Sledgehammer_Util
-open Sledgehammer_Reconstructor
+open Sledgehammer_Proof_Methods
 open Sledgehammer_Isar_Annotate
 
 type label = string * int

@@ -17,7 +17,7 @@ by (erule contrapos_nn) (rule arg_cong)
 ML_file "Tools/Sledgehammer/async_manager.ML"
 ML_file "Tools/Sledgehammer/sledgehammer_util.ML"
 ML_file "Tools/Sledgehammer/sledgehammer_fact.ML"
-ML_file "Tools/Sledgehammer/sledgehammer_reconstructor.ML"
+ML_file "Tools/Sledgehammer/sledgehammer_proof_methods.ML"
 ML_file "Tools/Sledgehammer/sledgehammer_isar_annotate.ML"
 ML_file "Tools/Sledgehammer/sledgehammer_isar_proof.ML"
 ML_file "Tools/Sledgehammer/sledgehammer_isar_preplay.ML"

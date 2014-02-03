@@ -7,7 +7,7 @@ Preplaying of Isar proofs.
 
 signature SLEDGEHAMMER_ISAR_PREPLAY =
 sig
-  type play_outcome = Sledgehammer_Reconstructor.play_outcome
+  type play_outcome = Sledgehammer_Proof_Methods.play_outcome
   type proof_method = Sledgehammer_Isar_Proof.proof_method
   type isar_step = Sledgehammer_Isar_Proof.isar_step
   type isar_proof = Sledgehammer_Isar_Proof.isar_proof
@@ -36,7 +36,7 @@ struct
 
 open ATP_Proof_Reconstruct
 open Sledgehammer_Util
-open Sledgehammer_Reconstructor
+open Sledgehammer_Proof_Methods
 open Sledgehammer_Isar_Proof
 
 val trace = Attrib.setup_config_bool @{binding sledgehammer_preplay_trace} (K false)
