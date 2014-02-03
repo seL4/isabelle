@@ -33,7 +33,6 @@ sig
       (facts * proof_method list)
 
   val no_label : label
-  val no_facts : facts
 
   val label_ord : label * label -> order
   val string_of_label : label -> string
@@ -43,7 +42,8 @@ sig
   val steps_of_isar_proof : isar_proof -> isar_step list
 
   val label_of_isar_step : isar_step -> label option
-  val byline_of_isar_step : isar_step -> facts * proof_method list
+  val facts_of_isar_step : isar_step -> facts
+  val proof_methods_of_isar_step : isar_step -> proof_method list
 
   val fold_isar_steps : (isar_step -> 'a -> 'a) -> isar_step list -> 'a -> 'a
   val map_isar_steps : (isar_step -> isar_step) -> isar_proof -> isar_proof
@@ -98,7 +98,6 @@ and isar_step =
     (facts * proof_method list)
 
 val no_label = ("", ~1)
-val no_facts = ([],[])
 
 val label_ord = pairself swap #> prod_ord int_ord fast_string_ord
 
@@ -127,8 +126,11 @@ fun label_of_isar_step (Prove (_, _, l, _, _, _)) = SOME l
 fun subproofs_of_isar_step (Prove (_, _, _, _, subproofs, _)) = SOME subproofs
   | subproofs_of_isar_step _ = NONE
 
-fun byline_of_isar_step (Prove (_, _, _, _, _, byline)) = byline
-  | byline_of_isar_step _ = (([], []), [])
+fun facts_of_isar_step (Prove (_, _, _, _, _, (facts, _))) = facts
+  | facts_of_isar_step _ = ([], [])
+
+fun proof_methods_of_isar_step (Prove (_, _, _, _, _, (_, meths))) = meths
+  | proof_methods_of_isar_step _ = []
 
 fun fold_isar_step f step =
   fold (steps_of_isar_proof #> fold_isar_steps f) (these (subproofs_of_isar_step step)) #> f step
@@ -169,8 +171,7 @@ and chain_isar_proof (Proof (fix, assms, steps)) =
 fun kill_useless_labels_in_isar_proof proof =
   let
     val used_ls =
-      fold_isar_steps (byline_of_isar_step #> (fn ((ls, _), _) => union (op =) ls | _ => I))
-        (steps_of_isar_proof proof) []
+      fold_isar_steps (facts_of_isar_step #> fst #> union (op =)) (steps_of_isar_proof proof) []
 
     fun kill_label l = if member (op =) used_ls l then l else no_label
 
@@ -188,34 +189,34 @@ fun relabel_isar_proof_canonically proof =
     fun next_label l (next, subst) =
       let val l' = ("", next) in (l', (next + 1, (l, l') :: subst)) end
 
-    fun do_byline by (_, subst) = apfst (apfst (map (AList.lookup (op =) subst #> the))) by
+    fun relabel_byline by (_, subst) = apfst (apfst (map (AList.lookup (op =) subst #> the))) by
     handle Option.Option =>
       raise Fail "Sledgehammer_Isar_Proof: relabel_isar_proof_canonically"
 
-    fun do_assm (l, t) state =
+    fun relabel_assm (l, t) state =
       let
         val (l, state) = next_label l state
       in ((l, t), state) end
 
-    fun do_proof (Proof (fix, assms, steps)) state =
+    fun relabel_proof (Proof (fix, assms, steps)) state =
       let
-        val (assms, state) = fold_map do_assm assms state
-        val (steps, state) = fold_map do_step steps state
+        val (assms, state) = fold_map relabel_assm assms state
+        val (steps, state) = fold_map relabel_step steps state
       in
         (Proof (fix, assms, steps), state)
       end
 
-    and do_step (step as Let _) state = (step, state)
-      | do_step (Prove (qs, fix, l, t, subproofs, by)) state=
+    and relabel_step (step as Let _) state = (step, state)
+      | relabel_step (Prove (qs, fix, l, t, subproofs, by)) state=
         let
-          val by = do_byline by state
-          val (subproofs, state) = fold_map do_proof subproofs state
+          val by = relabel_byline by state
+          val (subproofs, state) = fold_map relabel_proof subproofs state
           val (l, state) = next_label l state
         in
           (Prove (qs, fix, l, t, subproofs, by), state)
         end
   in
-    fst (do_proof proof (0, []))
+    fst (relabel_proof proof (0, []))
   end
 
 val assume_prefix = "a"

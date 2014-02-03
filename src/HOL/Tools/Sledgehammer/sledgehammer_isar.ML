@@ -230,9 +230,9 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
               val skolem = is_skolemize_rule rule
 
               fun prove sub by = Prove (maybe_show outer c [], [], l, t, sub, by)
-              fun do_rest l step = isar_steps outer (SOME l) (step :: accum) infs
+              fun steps_of_rest l step = isar_steps outer (SOME l) (step :: accum) infs
 
-              val deps = fold add_fact_of_dependencies gamma no_facts
+              val deps = fold add_fact_of_dependencies gamma ([], [])
               val meths =
                 (if skolem then skolem_methods
                  else if is_arith_rule rule then arith_methods
@@ -246,13 +246,14 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
                   [g] =>
                   if skolem andalso is_clause_tainted g then
                     let val subproof = Proof (skolems_of (prop_of_clause g), [], rev accum) in
-                      isar_steps outer (SOME l) [prove [subproof] (no_facts, meths)] infs
+                      isar_steps outer (SOME l) [prove [subproof] (([], []), meths)] infs
                     end
                   else
-                    do_rest l (prove [] by)
-                | _ => do_rest l (prove [] by))
+                    steps_of_rest l (prove [] by)
+                | _ => steps_of_rest l (prove [] by))
               else
-                do_rest l (if skolem then Prove ([], skolems_of t, l, t, [], by) else prove [] by)
+                steps_of_rest l
+                  (if skolem then Prove ([], skolems_of t, l, t, [], by) else prove [] by)
             end
           | isar_steps outer predecessor accum (Cases cases :: infs) =
             let

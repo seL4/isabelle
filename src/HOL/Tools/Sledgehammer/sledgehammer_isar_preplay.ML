@@ -169,7 +169,7 @@ fun preplay_isar_step ctxt timeout step =
         outcome as Played _ => SOME (meth, outcome)
       | _ => NONE)
 
-    val meths = snd (byline_of_isar_step step)
+    val meths = proof_methods_of_isar_step step
   in
     the_list (Par_List.get_some try_method meths)
   end
