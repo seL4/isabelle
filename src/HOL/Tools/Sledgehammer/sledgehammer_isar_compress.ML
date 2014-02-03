@@ -42,9 +42,7 @@ fun collect_successors steps lbls =
           accum as ([], _) => accum
         | accum => collect_subproofs subproofs accum)
   in
-    (case collect_steps steps (lbls, []) of
-      ([], succs) => rev succs
-    | _ => raise Fail "Sledgehammer_Isar_Compress: collect_successors")
+    rev (snd (collect_steps steps (lbls, [])))
   end
 
 (* traverses steps in reverse post-order and inserts the given updates *)
@@ -75,9 +73,7 @@ fun update_steps steps updates =
           (Proof (fix, assms, steps) :: proofs, updates)
         end
   in
-    (case update_steps steps (rev updates) of
-      (steps, []) => steps
-    | _ => raise Fail "Sledgehammer_Isar_Compress: update_steps")
+    fst (update_steps steps (rev updates))
   end
 
 fun merge_methods preplay_data (l1, meths1) (l2, meths2) =
