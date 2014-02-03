@@ -38,6 +38,7 @@ sig
      isar_proofs : bool option,
      compress_isar : real,
      try0_isar : bool,
+     smt : bool option,
      slice : bool,
      minimize : bool option,
      timeout : Time.time,
@@ -71,7 +72,7 @@ sig
   val extract_proof_method : params -> proof_method -> string * (string * string list) list
   val is_proof_method : string -> bool
   val is_atp : theory -> string -> bool
-  val bunch_of_proof_methods : bool -> string -> proof_method list
+  val bunch_of_proof_methods : bool -> bool -> string -> proof_method list
   val is_fact_chained : (('a * stature) * 'b) -> bool
   val filter_used_facts :
     bool -> (''a * stature) list -> ((''a * stature) * 'b) list ->
@@ -146,6 +147,7 @@ type params =
    isar_proofs : bool option,
    compress_isar : real,
    try0_isar : bool,
+   smt : bool option,
    slice : bool,
    minimize : bool option,
    timeout : Time.time,
@@ -181,19 +183,17 @@ fun proof_banner mode name =
   | Try => "Sledgehammer (" ^ quote name ^ ") found a proof"
   | _ => "Try this")
 
-fun bunch_of_proof_methods needs_full_types desperate_lam_trans =
-  if needs_full_types then
-    [Metis_Method (SOME full_type_enc, NONE),
-     Metis_Method (SOME really_full_type_enc, NONE),
-     Metis_Method (SOME full_type_enc, SOME desperate_lam_trans),
-     Metis_Method (SOME really_full_type_enc, SOME desperate_lam_trans),
-     SMT_Method]
-  else
-    [Metis_Method (NONE, NONE),
-     Metis_Method (SOME full_type_enc, NONE),
-     Metis_Method (SOME no_typesN, SOME desperate_lam_trans),
-     Metis_Method (SOME really_full_type_enc, SOME desperate_lam_trans),
-     SMT_Method]
+fun bunch_of_proof_methods smt needs_full_types desperate_lam_trans =
+  [Metis_Method (SOME full_type_enc, NONE)] @
+  (if needs_full_types then
+     [Metis_Method (SOME full_type_enc, NONE),
+      Metis_Method (SOME really_full_type_enc, NONE),
+      Metis_Method (SOME full_type_enc, SOME desperate_lam_trans)]
+   else
+     [Metis_Method (NONE, NONE),
+      Metis_Method (SOME no_typesN, SOME desperate_lam_trans)]) @
+  [Metis_Method (SOME really_full_type_enc, SOME desperate_lam_trans)] @
+  (if smt then [SMT_Method] else [])
 
 fun extract_proof_method ({type_enc, lam_trans, ...} : params)
       (Metis_Method (type_enc', lam_trans')) =
@@ -223,10 +223,9 @@ fun is_fact_chained ((_, (sc, _)), _) = sc = Chained
 fun filter_used_facts keep_chained used =
   filter ((member (op =) used o fst) orf (if keep_chained then is_fact_chained else K false))
 
-fun play_one_line_proof mode debug verbose timeout pairs state i preferred meths =
+fun play_one_line_proof mode debug verbose timeout pairs state i preferred (meths as meth :: _) =
   let
-    fun get_preferred meths =
-      if member (op =) meths preferred then preferred else List.last meths
+    fun get_preferred meths = if member (op =) meths preferred then preferred else meth
   in
     if timeout = Time.zeroTime then
       (get_preferred meths, Not_Played)
