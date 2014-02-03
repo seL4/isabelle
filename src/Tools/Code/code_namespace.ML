@@ -42,26 +42,31 @@ struct
 
 (** fundamental module name hierarchy **)
 
-fun lookup_identifier identifiers sym =
-  Code_Symbol.lookup identifiers sym
-  |> Option.map (split_last o Long_Name.explode);
+fun module_fragments' { identifiers, reserved } name =
+  case Code_Symbol.lookup_module_data identifiers name of
+      SOME (fragments, _) => fragments
+    | NONE => map (fn fragment => fst (Name.variant fragment reserved)) (Long_Name.explode name);
 
-fun force_identifier ctxt fragments_tab force_module identifiers sym =
-  case lookup_identifier identifiers sym of
-      NONE => ((the o Symtab.lookup fragments_tab o Code_Symbol.default_prefix ctxt) sym, Code_Symbol.default_base sym)
-    | SOME prefix_name => if null force_module then prefix_name
-        else (force_module, snd prefix_name);
+fun module_fragments { module_name, identifiers, reserved } =
+  if module_name = ""
+  then module_fragments' { identifiers = identifiers, reserved = reserved }
+  else K (Long_Name.explode module_name);
 
-fun build_module_namespace ctxt { module_prefix, module_identifiers, reserved } program =
+fun build_module_namespace ctxt { module_prefix, module_name, identifiers, reserved } program =
   let
-    fun alias_fragments name = case module_identifiers name
-     of SOME name' => Long_Name.explode name'
-      | NONE => map (fn name => fst (Name.variant name reserved)) (Long_Name.explode name);
     val module_names = Code_Symbol.Graph.fold (insert (op =) o Code_Symbol.default_prefix ctxt o fst) program [];
+    val module_fragments' = module_fragments
+      { module_name = module_name, identifiers = identifiers, reserved = reserved };
   in
-    fold (fn name => Symtab.update (name, Long_Name.explode module_prefix @ alias_fragments name))
+    fold (fn name => Symtab.update (name, Long_Name.explode module_prefix @ module_fragments' name))
       module_names Symtab.empty
   end;
+
+fun prep_symbol ctxt module_namespace force_module identifiers sym =
+  case Code_Symbol.lookup identifiers sym of
+      NONE => ((the o Symtab.lookup module_namespace o Code_Symbol.default_prefix ctxt) sym, Code_Symbol.default_base sym)
+    | SOME prefix_name => if null force_module then prefix_name
+        else (force_module, snd prefix_name);
 
 
 (** flat program structure **)
@@ -73,12 +78,9 @@ fun flat_program ctxt { module_prefix, module_name, reserved,
   let
 
     (* building module name hierarchy *)
-    val module_identifiers = if module_name = ""
-      then Code_Symbol.lookup_module_data identifiers
-      else K (SOME module_name);
-    val fragments_tab = build_module_namespace ctxt { module_prefix = module_prefix,
-      module_identifiers = module_identifiers, reserved = reserved } program;
-    val prep_sym = force_identifier ctxt fragments_tab (Long_Name.explode module_name) identifiers
+    val module_namespace = build_module_namespace ctxt { module_prefix = module_prefix,
+      module_name = module_name, identifiers = identifiers, reserved = reserved } program;
+    val prep_sym = prep_symbol ctxt module_namespace (Long_Name.explode module_name) identifiers
       #>> Long_Name.implode;
 
     (* distribute statements over hierarchy *)
@@ -165,12 +167,9 @@ fun hierarchical_program ctxt { module_name, reserved, identifiers, empty_nsp,
   let
 
     (* building module name hierarchy *)
-    val module_identifiers = if module_name = ""
-      then Code_Symbol.lookup_module_data identifiers
-      else K (SOME module_name);
-    val fragments_tab = build_module_namespace ctxt { module_prefix = "",
-      module_identifiers = module_identifiers, reserved = reserved } program;
-    val prep_sym = force_identifier ctxt fragments_tab (Long_Name.explode module_name) identifiers;
+    val module_namespace = build_module_namespace ctxt { module_prefix = "",
+      module_name = module_name, identifiers = identifiers, reserved = reserved } program;
+    val prep_sym = prep_symbol ctxt module_namespace (Long_Name.explode module_name) identifiers;
 
     (* building empty module hierarchy *)
     val empty_module = (empty_data, Code_Symbol.Graph.empty);
@@ -184,9 +183,9 @@ fun hierarchical_program ctxt { module_name, reserved, identifiers, empty_nsp,
           #> (apsnd o Code_Symbol.Graph.map_node (Code_Symbol.Module name_fragment) o apsnd o map_module_content o allocate_module) name_fragments;
     val empty_program =
       empty_module
-      |> Symtab.fold (fn (_, fragments) => allocate_module fragments) fragments_tab
+      |> Symtab.fold (fn (_, fragments) => allocate_module fragments) module_namespace
       |> Code_Symbol.Graph.fold (allocate_module o these o Option.map fst
-          o lookup_identifier identifiers o fst) program;
+          o Code_Symbol.lookup identifiers o fst) program;
 
     (* distribute statements over hierarchy *)
     fun add_stmt sym stmt =
