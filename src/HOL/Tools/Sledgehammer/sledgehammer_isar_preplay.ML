@@ -19,7 +19,8 @@ sig
 
   val enrich_context_with_local_facts : isar_proof -> Proof.context -> Proof.context
   val preplay_isar_step : Proof.context -> Time.time -> proof_method -> isar_step -> play_outcome
-  val set_preplay_outcomes_of_isar_step : isar_preplay_data Unsynchronized.ref -> label ->
+  val set_preplay_outcomes_of_isar_step : Proof.context -> Time.time ->
+    isar_preplay_data Unsynchronized.ref -> isar_step ->
     (proof_method * play_outcome Lazy.lazy) list -> unit
   val preplay_outcome_of_isar_step : isar_preplay_data -> label -> proof_method ->
     play_outcome Lazy.lazy
@@ -167,9 +168,17 @@ fun add_preplay_outcomes Play_Failed _ = Play_Failed
   | add_preplay_outcomes play1 play2 =
     Play_Timed_Out (Time.+ (pairself time_of_play (play1, play2)))
 
-fun set_preplay_outcomes_of_isar_step preplay_data l meths_outcomes =
-  preplay_data := Canonical_Label_Tab.map_default (l, [])
-    (fold (AList.update (op =)) meths_outcomes) (!preplay_data)
+fun set_preplay_outcomes_of_isar_step ctxt timeout preplay_data
+      (step as Prove (_, _, l, _, _, (_, meths))) meths_outcomes0 =
+    let
+      fun preplay meth = Lazy.lazy (fn () => preplay_isar_step ctxt timeout meth step)
+      val meths_outcomes =
+        fold (fn meth => AList.default (op =) (meth, preplay meth)) meths meths_outcomes0
+    in
+      preplay_data := Canonical_Label_Tab.map_default (l, [])
+        (fold (AList.update (op =)) meths_outcomes) (!preplay_data)
+    end
+  | set_preplay_outcomes_of_isar_step _ _ _ _ _ = ()
 
 fun preplay_outcome_of_isar_step preplay_data l meth =
   (case Canonical_Label_Tab.lookup preplay_data l of

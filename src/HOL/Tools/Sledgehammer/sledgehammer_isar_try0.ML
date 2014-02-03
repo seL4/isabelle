@@ -45,8 +45,11 @@ fun try0_step _ _ _ (step as Let _) = step
       (* FIXME: create variant after success *)
       (case Par_List.get_some try_method meths of
         SOME (meth', outcome) =>
-        (set_preplay_outcomes_of_isar_step preplay_data l [(meth', Lazy.value outcome)];
-         step_with_method meth' step)
+        let val step' = step_with_method meth' step in
+          (set_preplay_outcomes_of_isar_step ctxt timeout preplay_data step'
+             [(meth', Lazy.value outcome)];
+           step')
+        end
       | NONE => step)
     end
 

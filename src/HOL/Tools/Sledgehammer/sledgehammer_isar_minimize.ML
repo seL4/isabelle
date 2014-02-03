@@ -43,9 +43,12 @@ fun minimize_isar_step_dependencies _ _ (step as Let _) = step
 
         val (time, min_lfs) = minimize_facts (fn lfs => mk_step_lfs_gfs lfs gfs) time [] lfs
         val (time, min_gfs) = minimize_facts (mk_step_lfs_gfs min_lfs) time [] gfs
+
+        val step' = mk_step_lfs_gfs min_lfs min_gfs
       in
-        set_preplay_outcomes_of_isar_step preplay_data l [(meth, Lazy.value (Played time))];
-        mk_step_lfs_gfs min_lfs min_gfs
+        set_preplay_outcomes_of_isar_step ctxt time preplay_data step'
+          [(meth, Lazy.value (Played time))];
+        step'
       end
     | _ => step (* don't touch steps that time out or fail *))
 

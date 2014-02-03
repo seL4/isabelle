@@ -135,10 +135,8 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
         val metislike_methods = insert (op =) (Metis_Method alt_metis_args) metislike_methods0
 
         val (params, _, concl_t) = strip_subgoal goal subgoal ctxt
-        val (_, ctxt) =
-          params
-          |> map (fn (s, T) => (Binding.name s, SOME T, NoSyn))
-          |> (fn fixes => ctxt |> Variable.set_body false |> Proof_Context.add_fixes fixes)
+        val fixes = map (fn (s, T) => (Binding.name s, SOME T, NoSyn)) params
+        val ctxt = ctxt |> Variable.set_body false |> Proof_Context.add_fixes fixes |> snd
 
         val do_preplay = preplay_timeout <> Time.zeroTime
         val try0_isar = try0_isar andalso do_preplay
@@ -283,19 +281,14 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
           |> postprocess_isar_proof_remove_unreferenced_steps I
           |> relabel_isar_proof_canonically
 
-        val preplay_ctxt = ctxt
+        val ctxt = ctxt
           |> enrich_context_with_local_facts canonical_isar_proof
           |> silence_reconstructors debug
 
         val preplay_data = Unsynchronized.ref Canonical_Label_Tab.empty
 
-        fun init_preplay_outcomes (step as Prove (_, _, l, _, _, (_, meths))) =
-            set_preplay_outcomes_of_isar_step preplay_data l (map (fn meth => (meth,
-                Lazy.lazy (fn () => preplay_isar_step preplay_ctxt preplay_timeout meth step)))
-              meths)
-          | init_preplay_outcomes _ = ()
-
-        val _ = fold_isar_steps (K o init_preplay_outcomes)
+        val _ = fold_isar_steps (fn meth =>
+            K (set_preplay_outcomes_of_isar_step ctxt preplay_timeout preplay_data meth []))
           (steps_of_isar_proof canonical_isar_proof) ()
 
         fun str_of_preplay_outcome outcome =
@@ -316,12 +309,12 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
         val (play_outcome, isar_proof) =
           canonical_isar_proof
           |> tap (trace_isar_proof "Original")
-          |> compress_isar_proof preplay_ctxt compress_isar preplay_data
+          |> compress_isar_proof ctxt compress_isar preplay_data
           |> tap (trace_isar_proof "Compressed")
-          |> try0_isar ? try0_isar_proof preplay_ctxt preplay_timeout preplay_data
+          |> try0_isar ? try0_isar_proof ctxt preplay_timeout preplay_data
           |> tap (trace_isar_proof "Tried0")
           |> postprocess_isar_proof_remove_unreferenced_steps
-               (try0_isar ? minimize_isar_step_dependencies preplay_ctxt preplay_data)
+               (try0_isar ? minimize_isar_step_dependencies ctxt preplay_data)
           |> tap (trace_isar_proof "Minimized")
           |> `(preplay_outcome_of_isar_proof (!preplay_data))
           ||> chain_isar_proof
