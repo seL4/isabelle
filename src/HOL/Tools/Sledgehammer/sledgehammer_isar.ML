@@ -111,20 +111,16 @@ type isar_params =
   bool * (string option * string option) * Time.time * real * bool * bool
   * (term, string) atp_step list * thm
 
-val arith_methods =
-  [Arith_Method, Simp_Method, Auto_Method, Fastforce_Method, Blast_Method, Force_Method,
-   Algebra_Method, Metis_Method (NONE, NONE), Meson_Method]
-val datatype_methods =
-  [Simp_Method, Simp_Size_Method]
-val metislike_methods0 =
-  [Metis_Method (NONE, NONE), Simp_Method, Auto_Method, Arith_Method, Blast_Method,
-   Fastforce_Method, Force_Method, Algebra_Method, Meson_Method,
-   Metis_Method (SOME no_typesN, NONE)]
-val rewrite_methods =
-  [Auto_Method, Simp_Method, Fastforce_Method, Force_Method, Metis_Method (NONE, NONE),
-   Meson_Method, Blast_Method, Arith_Method, Algebra_Method]
-val skolem_methods =
-  [Metis_Method (NONE, NONE), Blast_Method, Meson_Method]
+val basic_arith_methods = [Arith_Method, Algebra_Method]
+val basic_systematic_methods = [Metis_Method (NONE, NONE), Blast_Method, Meson_Method]
+val simp_based_methods = [Simp_Method, Auto_Method, Fastforce_Method, Force_Method]
+
+val arith_methods = basic_arith_methods @ simp_based_methods @ basic_systematic_methods
+val datatype_methods = [Simp_Method, Simp_Size_Method]
+val systematic_methods0 = basic_systematic_methods @ basic_arith_methods @ simp_based_methods @
+  [Metis_Method (SOME no_typesN, NONE)]
+val rewrite_methods = simp_based_methods @ basic_systematic_methods @ basic_arith_methods
+val skolem_methods = basic_systematic_methods
 
 fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
     (one_line_params as (_, _, _, _, subgoal, subgoal_count)) =
@@ -134,9 +130,9 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
         val SOME (verbose, alt_metis_args, preplay_timeout, compress_isar, try0_isar, minimize,
           atp_proof, goal) = try isar_params ()
 
-        val metislike_methods = insert (op =) (Metis_Method alt_metis_args) metislike_methods0
+        val systematic_methods = insert (op =) (Metis_Method alt_metis_args) systematic_methods0
 
-        fun massage_meths (meths as meth :: _) =
+        fun massage_methods (meths as meth :: _) =
           if not try0_isar then [meth]
           else if smt_proofs = SOME true then SMT_Method :: meths
           else meths
@@ -172,7 +168,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
                 (if is_skolemize_rule rule then (skolems_of t, skolem_methods)
                  else if is_arith_rule rule then ([], arith_methods)
                  else ([], rewrite_methods))
-                ||> massage_meths
+                ||> massage_methods
             in
               Prove ([], skos, l, t, [], ([], []), meths, "")
             end)
@@ -223,7 +219,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
             accum
             |> (if tainted = [] then
                   cons (Prove (if outer then [Show] else [], [], no_label, concl_t, [],
-                    (the_list predecessor, []), massage_meths metislike_methods, ""))
+                    (the_list predecessor, []), massage_methods systematic_methods, ""))
                 else
                   I)
             |> rev
@@ -239,8 +235,8 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
                 (if skolem then skolem_methods
                  else if is_arith_rule rule then arith_methods
                  else if is_datatype_rule rule then datatype_methods
-                 else metislike_methods)
-                |> massage_meths
+                 else systematic_methods)
+                |> massage_methods
 
               fun prove sub facts = Prove (maybe_show outer c [], [], l, t, sub, facts, meths, "")
               fun steps_of_rest step = isar_steps outer (SOME l) (step :: accum) infs
@@ -269,7 +265,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
               val step =
                 Prove (maybe_show outer c [], [], l, t,
                   map isar_case (filter_out (null o snd) cases),
-                  (the_list predecessor, []), massage_meths metislike_methods, "")
+                  (the_list predecessor, []), massage_methods systematic_methods, "")
             in
               isar_steps outer (SOME l) (step :: accum) infs
             end
