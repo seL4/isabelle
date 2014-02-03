@@ -33,7 +33,6 @@ fun minimize_isar_step_dependencies _ _ (step as Let _) = step
       Played time =>
       let
         fun mk_step_lfs_gfs lfs gfs = Prove (qs, xs, l, t, subproofs, ((lfs, gfs), meths))
-        val mk_step_gfs_lfs = curry (swap #> uncurry mk_step_lfs_gfs)
 
         fun minimize_facts _ time min_facts [] = (time, min_facts)
           | minimize_facts mk_step time min_facts (f :: facts) =
@@ -42,7 +41,7 @@ fun minimize_isar_step_dependencies _ _ (step as Let _) = step
               Played time => minimize_facts mk_step time min_facts facts
             | _ => minimize_facts mk_step time (f :: min_facts) facts)
 
-        val (time, min_lfs) = minimize_facts (mk_step_gfs_lfs gfs) time [] lfs
+        val (time, min_lfs) = minimize_facts (fn lfs => mk_step_lfs_gfs lfs gfs) time [] lfs
         val (time, min_gfs) = minimize_facts (mk_step_lfs_gfs min_lfs) time [] gfs
       in
         set_preplay_outcomes_of_isar_step preplay_data l [(meth, Lazy.value (Played time))];

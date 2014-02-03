@@ -28,21 +28,21 @@ val dummy_isar_step = Let (Term.dummy, Term.dummy)
 (* traverses steps in post-order and collects the steps with the given labels *)
 fun collect_successors steps lbls =
   let
-    fun do_steps _ ([], accu) = ([], accu)
-      | do_steps [] accum = accum
-      | do_steps (step :: steps) accum = do_steps steps (do_step step accum)
-    and do_step (Let _) x = x
-      | do_step (step as Prove (_, _, l, _, subproofs, _)) x =
-        (case do_subproofs subproofs x of
+    fun collect_steps _ ([], accu) = ([], accu)
+      | collect_steps [] accum = accum
+      | collect_steps (step :: steps) accum = collect_steps steps (collect_step step accum)
+    and collect_step (Let _) x = x
+      | collect_step (step as Prove (_, _, l, _, subproofs, _)) x =
+        (case collect_subproofs subproofs x of
           ([], accu) => ([], accu)
         | accum as (l' :: lbls', accu) => if l = l' then (lbls', step :: accu) else accum)
-    and do_subproofs [] x = x
-      | do_subproofs (proof :: subproofs) x =
-        (case do_steps (steps_of_isar_proof proof) x of
+    and collect_subproofs [] x = x
+      | collect_subproofs (proof :: subproofs) x =
+        (case collect_steps (steps_of_isar_proof proof) x of
           accum as ([], _) => accum
-        | accum => do_subproofs subproofs accum)
+        | accum => collect_subproofs subproofs accum)
   in
-    (case do_steps steps (lbls, []) of
+    (case collect_steps steps (lbls, []) of
       ([], succs) => rev succs
     | _ => raise Fail "Sledgehammer_Isar_Compress: collect_successors")
   end
@@ -50,32 +50,32 @@ fun collect_successors steps lbls =
 (* traverses steps in reverse post-order and inserts the given updates *)
 fun update_steps steps updates =
   let
-    fun do_steps [] updates = ([], updates)
-      | do_steps steps [] = (steps, [])
-      | do_steps (step :: steps) updates = do_step step (do_steps steps updates)
-    and do_step step (steps, []) = (step :: steps, [])
-      | do_step (step as Let _) (steps, updates) = (step :: steps, updates)
-      | do_step (Prove (qs, xs, l, t, subproofs, by))
+    fun update_steps [] updates = ([], updates)
+      | update_steps steps [] = (steps, [])
+      | update_steps (step :: steps) updates = update_step step (update_steps steps updates)
+    and update_step step (steps, []) = (step :: steps, [])
+      | update_step (step as Let _) (steps, updates) = (step :: steps, updates)
+      | update_step (Prove (qs, xs, l, t, subproofs, by))
           (steps, updates as Prove (qs', xs', l', t', subproofs', by') :: updates') =
         let
           val (subproofs, updates) =
-            if l = l' then do_subproofs subproofs' updates' else do_subproofs subproofs updates
+            if l = l' then update_subproofs subproofs' updates'
+            else update_subproofs subproofs updates
         in
           if l = l' then (Prove (qs', xs', l', t', subproofs, by') :: steps, updates)
           else (Prove (qs, xs, l, t, subproofs, by) :: steps, updates)
         end
-      | do_step _ _ = raise Fail "Sledgehammer_Isar_Compress: update_steps (invalid update)"
-    and do_subproofs [] updates = ([], updates)
-      | do_subproofs steps [] = (steps, [])
-      | do_subproofs (proof :: subproofs) updates =
-        do_proof proof (do_subproofs subproofs updates)
-    and do_proof proof (proofs, []) = (proof :: proofs, [])
-      | do_proof (Proof (fix, assms, steps)) (proofs, updates) =
-        let val (steps, updates) = do_steps steps updates in
+    and update_subproofs [] updates = ([], updates)
+      | update_subproofs steps [] = (steps, [])
+      | update_subproofs (proof :: subproofs) updates =
+        update_proof proof (update_subproofs subproofs updates)
+    and update_proof proof (proofs, []) = (proof :: proofs, [])
+      | update_proof (Proof (fix, assms, steps)) (proofs, updates) =
+        let val (steps, updates) = update_steps steps updates in
           (Proof (fix, assms, steps) :: proofs, updates)
         end
   in
-    (case do_steps steps (rev updates) of
+    (case update_steps steps (rev updates) of
       (steps, []) => steps
     | _ => raise Fail "Sledgehammer_Isar_Compress: update_steps")
   end
@@ -182,7 +182,6 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
               Played time => elim_subproofs' time qs fix l t lfs gfs meths subproofs []
             | _ => step)
 
-      (** top_level compression: eliminate steps by merging them into their successors **)
       fun compress_top_level steps =
         let
           (* (#successors, (size_of_term t, position)) *)
@@ -278,7 +277,6 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
           |> remove (op =) dummy_isar_step
         end
 
-      (** recusion over the proof tree **)
       (*
          Proofs are compressed bottom-up, beginning with the innermost
          subproofs.
@@ -289,20 +287,20 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
          whose proof steps do not have subproofs. Applying this approach
          recursively will result in a flat proof in the best cast.
       *)
-      fun do_proof (proof as (Proof (fix, assms, steps))) =
-        if compress_further () then Proof (fix, assms, do_steps steps) else proof
-      and do_steps steps =
+      fun compress_proof (proof as (Proof (fix, assms, steps))) =
+        if compress_further () then Proof (fix, assms, compress_steps steps) else proof
+      and compress_steps steps =
         (* bottom-up: compress innermost proofs first *)
-        steps |> map (fn step => step |> compress_further () ? do_sub_levels)
+        steps |> map (fn step => step |> compress_further () ? compress_sub_levels)
               |> compress_further () ? compress_top_level
-      and do_sub_levels (Let x) = Let x
-        | do_sub_levels (Prove (qs, xs, l, t, subproofs, by)) =
+      and compress_sub_levels (step as Let _) = step
+        | compress_sub_levels (Prove (qs, xs, l, t, subproofs, by)) =
           (* compress subproofs *)
-          Prove (qs, xs, l, t, map do_proof subproofs, by)
+          Prove (qs, xs, l, t, map compress_proof subproofs, by)
           (* eliminate trivial subproofs *)
           |> compress_further () ? elim_subproofs
     in
-      do_proof proof
+      compress_proof proof
     end
 
 end;

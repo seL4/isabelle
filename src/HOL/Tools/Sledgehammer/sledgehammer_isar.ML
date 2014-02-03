@@ -289,13 +289,13 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
 
         val preplay_data = Unsynchronized.ref Canonical_Label_Tab.empty
 
-        fun reset_preplay_outcomes (step as Prove (_, _, l, _, _, (_, meths))) =
+        fun init_preplay_outcomes (step as Prove (_, _, l, _, _, (_, meths))) =
             set_preplay_outcomes_of_isar_step preplay_data l (map (fn meth => (meth,
                 Lazy.lazy (fn () => preplay_isar_step preplay_ctxt preplay_timeout meth step)))
               meths)
-          | reset_preplay_outcomes _ = ()
+          | init_preplay_outcomes _ = ()
 
-        val _ = fold_isar_steps (K o reset_preplay_outcomes)
+        val _ = fold_isar_steps (K o init_preplay_outcomes)
           (steps_of_isar_proof canonical_isar_proof) ()
 
         fun str_of_preplay_outcome outcome =
