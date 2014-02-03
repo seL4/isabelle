@@ -15,6 +15,8 @@ sig
 
   datatype proof_method =
     Metis_Method of string option * string option |
+    Meson_Method |
+    SMT_Method |
     Simp_Method |
     Simp_Size_Method |
     Auto_Method |
@@ -22,7 +24,6 @@ sig
     Force_Method |
     Arith_Method |
     Blast_Method |
-    Meson_Method |
     Algebra_Method
 
   datatype isar_proof =
@@ -80,6 +81,8 @@ datatype isar_qualifier = Show | Then
 
 datatype proof_method =
   Metis_Method of string option * string option |
+  Meson_Method |
+  SMT_Method |
   Simp_Method |
   Simp_Size_Method |
   Auto_Method |
@@ -87,7 +90,6 @@ datatype proof_method =
   Force_Method |
   Arith_Method |
   Blast_Method |
-  Meson_Method |
   Algebra_Method
 
 datatype isar_proof =
@@ -108,6 +110,8 @@ fun string_of_proof_method meth =
     Metis_Method (NONE, NONE) => "metis"
   | Metis_Method (type_enc_opt, lam_trans_opt) =>
     "metis (" ^ commas (map_filter I [type_enc_opt, lam_trans_opt]) ^ ")"
+  | Meson_Method => "meson"
+  | SMT_Method => "smt"
   | Simp_Method => "simp"
   | Simp_Size_Method => "simp add: size_ne_size_imp_ne"
   | Auto_Method => "auto"
@@ -115,7 +119,6 @@ fun string_of_proof_method meth =
   | Force_Method => "force"
   | Arith_Method => "arith"
   | Blast_Method => "blast"
-  | Meson_Method => "meson"
   | Algebra_Method => "algebra")
 
 fun steps_of_isar_proof (Proof (_, _, steps)) = steps
@@ -291,6 +294,7 @@ fun string_of_isar_proof ctxt i n comment_of proof =
 
     fun is_direct_method (Metis_Method _) = true
       | is_direct_method Meson_Method = true
+      | is_direct_method SMT_Method = true
       | is_direct_method _ = false
 
     (* Local facts are always passed via "using", which affects "meson" and "metis". This is

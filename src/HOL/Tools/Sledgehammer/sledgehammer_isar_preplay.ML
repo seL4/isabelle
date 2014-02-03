@@ -103,10 +103,11 @@ fun thm_of_proof ctxt (Proof (fixed_frees, assms, steps)) =
 fun tac_of_method ctxt (local_facts, global_facts) meth =
   Method.insert_tac local_facts THEN'
   (case meth of
-    Meson_Method => Meson.meson_tac ctxt global_facts
-  | Metis_Method (type_enc_opt, lam_trans_opt) =>
+    Metis_Method (type_enc_opt, lam_trans_opt) =>
     Metis_Tactic.metis_tac [type_enc_opt |> the_default partial_type_enc]
       (the_default default_metis_lam_trans lam_trans_opt) ctxt global_facts
+  | SMT_Method => SMT_Solver.smt_tac ctxt global_facts
+  | Meson_Method => Meson.meson_tac ctxt global_facts
   | _ =>
     Method.insert_tac global_facts THEN'
     (case meth of
@@ -118,8 +119,7 @@ fun tac_of_method ctxt (local_facts, global_facts) meth =
     | Force_Method => Clasimp.force_tac ctxt
     | Arith_Method => Arith_Data.arith_tac ctxt
     | Blast_Method => blast_tac ctxt
-    | Algebra_Method => Groebner.algebra_tac [] [] ctxt
-    | _ => raise Fail "Sledgehammer_Isar_Preplay: tac_of_method"))
+    | Algebra_Method => Groebner.algebra_tac [] [] ctxt))
 
 (* main function for preplaying Isar steps; may throw exceptions *)
 fun raw_preplay_step_for_method ctxt timeout meth (Prove (_, xs, _, t, subproofs, fact_names, _)) =
