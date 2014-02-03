@@ -55,36 +55,32 @@ fun minimize_isar_step_dependencies _ _ (step as Let _) = step
 fun postprocess_isar_proof_remove_unreferenced_steps postproc_step =
   let
     fun process_proof (Proof (fix, assms, steps)) =
-      let val (refed, steps) = process_steps steps in
-        (refed, Proof (fix, assms, steps))
-      end
+      process_steps steps ||> (fn steps => Proof (fix, assms, steps))
     and process_steps [] = ([], [])
       | process_steps steps =
         (* the last step is always implicitly referenced *)
-        let val (steps, (refed, concl)) = split_last steps ||> process_referenced_step in
-          fold_rev process_step steps (refed, [concl])
+        let val (steps, (used, concl)) = split_last steps ||> process_used_step in
+          fold_rev process_step steps (used, [concl])
         end
-    and process_step step (refed, accu) =
+    and process_step step (used, accu) =
       (case label_of_isar_step step of
-        NONE => (refed, step :: accu)
+        NONE => (used, step :: accu)
       | SOME l =>
-        if Ord_List.member label_ord refed l then
-          process_referenced_step step
-          |>> Ord_List.union label_ord refed
-          ||> (fn x => x :: accu)
+        if Ord_List.member label_ord used l then
+          process_used_step step |>> Ord_List.union label_ord used ||> (fn step => step :: accu)
         else
-          (refed, accu))
-    and process_referenced_step step = step |> postproc_step |> process_referenced_step_subproofs
-    and process_referenced_step_subproofs (Prove (qs, xs, l, t, subproofs, ((lfs, gfs), m))) =
+          (used, accu))
+    and process_used_step step = step |> postproc_step |> process_used_step_subproofs
+    and process_used_step_subproofs (Prove (qs, xs, l, t, subproofs, ((lfs, gfs), meths))) =
       let
-        val (refed, subproofs) =
+        val (used, subproofs) =
           map process_proof subproofs
           |> split_list
           |>> Ord_List.unions label_ord
           |>> fold (Ord_List.insert label_ord) lfs
-        val step = Prove (qs, xs, l, t, subproofs, ((lfs, gfs), m))
+        val step = Prove (qs, xs, l, t, subproofs, ((lfs, gfs), meths))
       in
-        (refed, step)
+        (used, step)
       end
   in
     snd o process_proof
