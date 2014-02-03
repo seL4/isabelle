@@ -91,8 +91,8 @@ fun merge_methods preplay_data (l1, meths1) (l2, meths2) =
     inter (op =) (filter (is_method_hopeful l1) meths1) (filter (is_method_hopeful l2) meths2)
   end
 
-fun try_merge preplay_data (Prove (_, [], l1, _, [], (lfs1, gfs1), meths1))
-      (Prove (qs2, fix, l2, t, subproofs, (lfs2, gfs2), meths2)) =
+fun try_merge preplay_data (Prove (_, [], l1, _, subproofs1, (lfs1, gfs1), meths1))
+      (Prove (qs2, fix, l2, t, subproofs2, (lfs2, gfs2), meths2)) =
     (case merge_methods preplay_data (l1, meths1) (l2, meths2) of
       [] => NONE
     | meths =>
@@ -100,7 +100,7 @@ fun try_merge preplay_data (Prove (_, [], l1, _, [], (lfs1, gfs1), meths1))
         val lfs = union (op =) lfs1 (remove (op =) l1 lfs2)
         val gfs = union (op =) gfs1 gfs2
       in
-        SOME (Prove (qs2, fix, l2, t, subproofs, (lfs, gfs), meths))
+        SOME (Prove (qs2, fix, l2, t, subproofs1 @ subproofs2, (lfs, gfs), meths))
       end)
   | try_merge _ _ _ = NONE
 
@@ -209,8 +209,8 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
 
           val cand_ord = pairself cand_key #> compression_ord
 
-          fun pop_next_cand [] = (NONE, [])
-            | pop_next_cand (cands as (cand :: cands')) =
+          fun pop_next_candidate [] = (NONE, [])
+            | pop_next_candidate (cands as (cand :: cands')) =
               let
                 val best as (i, _, _) =
                   fold (fn x => fn y => if cand_ord (x, y) = GREATER then x else y) cands' cand
@@ -237,6 +237,7 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
 
               val succs' = map (try_merge (!preplay_data) cand #> the) succs
 
+              (* FIXME: more generous! *)
               val times0 = map ((fn Played time => time) o
                 forced_intermediate_preplay_outcome_of_isar_step (!preplay_data)) labels
               val time_slice = time_mult (1.0 / (Real.fromInt (length labels))) time
@@ -247,16 +248,16 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
               (* ensure none of the modified successors timed out *)
               val times = map (fn (_, Played time) :: _ => time) meths_outcomess
 
-              val (steps1, _ :: steps2) = chop i steps
+              val (steps_before, _ :: steps_after) = chop i steps
               (* replace successors with their modified versions *)
-              val steps2 = update_steps steps2 succs'
+              val steps_after = update_steps steps_after succs'
             in
               decrement_step_count (); (* candidate successfully eliminated *)
               map3 (fn time => set_preplay_outcomes_of_isar_step ctxt time preplay_data) times
                 succs' meths_outcomess;
               map (replace_successor l labels) lfs;
               (* removing the step would mess up the indices; replace with dummy step instead *)
-              steps1 @ dummy_isar_step :: steps2
+              steps_before @ dummy_isar_step :: steps_after
             end
             handle Bind => steps
                  | Match => steps
@@ -266,7 +267,7 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
             if not (compress_further ()) then
               steps
             else
-              (case pop_next_cand candidates of
+              (case pop_next_candidate candidates of
                 (NONE, _) => steps (* no more candidates for elimination *)
               | (SOME (cand as (_, l, _)), candidates) =>
                 let val successors = get_successors l in
