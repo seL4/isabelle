@@ -137,9 +137,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
         val metislike_methods = insert (op =) (Metis_Method alt_metis_args) metislike_methods0
 
         fun massage_meths (meths as meth :: _) =
-          if not try0_isar then [meth]
-          else if smt then SMT_Method :: meths
-          else meths
+          if not try0_isar then [meth] else if smt then SMT_Method :: meths else meths
 
         val (params, _, concl_t) = strip_subgoal goal subgoal ctxt
         val fixes = map (fn (s, T) => (Binding.name s, SOME T, NoSyn)) params
