@@ -27,8 +27,9 @@ sig
 
   val string_of_reconstructor : reconstructor -> string
   val string_of_play_outcome : play_outcome -> string
-  val one_line_proof_text : int -> one_line_params -> string
+  val play_outcome_ord : play_outcome * play_outcome -> order
 
+  val one_line_proof_text : int -> one_line_params -> string
   val silence_reconstructors : bool -> Proof.context -> Proof.context
 end;
 
@@ -62,6 +63,19 @@ fun string_of_play_outcome (Played time) = string_of_ext_time (false, time)
   | string_of_play_outcome (Play_Timed_Out time) = string_of_ext_time (true, time) ^ ", timed out"
   | string_of_play_outcome Play_Failed = "failed"
   | string_of_play_outcome _ = "unknown"
+
+fun play_outcome_ord (Played time1, Played time2) =
+    int_ord (pairself Time.toMilliseconds (time1, time2))
+  | play_outcome_ord (Played _, _) = LESS
+  | play_outcome_ord (_, Played _) = GREATER
+  | play_outcome_ord (Not_Played, Not_Played) = EQUAL
+  | play_outcome_ord (Not_Played, _) = LESS
+  | play_outcome_ord (_, Not_Played) = GREATER
+  | play_outcome_ord (Play_Timed_Out time1, Play_Timed_Out time2) =
+    int_ord (pairself Time.toMilliseconds (time1, time2))
+  | play_outcome_ord (Play_Timed_Out _, _) = LESS
+  | play_outcome_ord (_, Play_Timed_Out _) = GREATER
+  | play_outcome_ord (Play_Failed, Play_Failed) = EQUAL
 
 (* FIXME: Various bugs, esp. with "unfolding"
 fun unusing_chained_facts _ 0 = ""

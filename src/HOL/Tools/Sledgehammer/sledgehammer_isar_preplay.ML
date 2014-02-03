@@ -22,6 +22,7 @@ sig
   val set_preplay_outcomes_of_isar_step : Proof.context -> Time.time ->
     isar_preplay_data Unsynchronized.ref -> isar_step ->
     (proof_method * play_outcome Lazy.lazy) list -> unit
+  val forced_preplay_outcome_of_isar_step : isar_preplay_data -> label -> play_outcome
   val preplay_outcome_of_isar_step_for_method : isar_preplay_data -> label -> proof_method ->
     play_outcome Lazy.lazy
   val fastest_method_of_isar_step : isar_preplay_data -> label -> proof_method
@@ -181,14 +182,31 @@ fun set_preplay_outcomes_of_isar_step ctxt timeout preplay_data
     end
   | set_preplay_outcomes_of_isar_step _ _ _ _ _ = ()
 
+fun peek_at_outcome outcome = if Lazy.is_finished outcome then Lazy.force outcome else Not_Played
+
+(*
+*)
+fun forced_preplay_outcome_of_isar_step preplay_data l =
+  let
+    fun get_best_outcome_available get_one =
+      the (Canonical_Label_Tab.lookup preplay_data l)
+      |> map (apsnd get_one)
+      |> sort (play_outcome_ord o pairself snd)
+      |> hd |> snd
+  in
+    (case get_best_outcome_available peek_at_outcome of
+      Not_Played => get_best_outcome_available Lazy.force
+    | outcome => outcome)
+  end
+
 fun preplay_outcome_of_isar_step_for_method preplay_data l =
   the o AList.lookup (op =) (the (Canonical_Label_Tab.lookup preplay_data l))
 
 fun fastest_method_of_isar_step preplay_data =
-  Canonical_Label_Tab.lookup preplay_data #> the
-  #> map (fn (meth, outcome) =>
-       (meth, Time.toMilliseconds (case Lazy.force outcome of Played time => time | _ => one_year)))
-  #> sort (int_ord o pairself snd)
+  the o Canonical_Label_Tab.lookup preplay_data
+  #> tap (List.app (K () o Lazy.future Future.default_params o snd)) (* optional parallelism *)
+  #> map (apsnd Lazy.force)
+  #> sort (play_outcome_ord o pairself snd)
   #> hd #> fst
 
 fun forced_outcome_of_step preplay_data (Prove (_, _, l, _, _, (_, meths))) =
