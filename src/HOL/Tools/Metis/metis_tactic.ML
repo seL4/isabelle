@@ -129,6 +129,17 @@ fun kbo_advisory_simp_ordering ord_info =
       | ord => ord
   in {weight = weight, precedence = precedence} end
 
+fun metis_call type_enc lam_trans =
+  let
+    val type_enc =
+      (case AList.find (fn (enc, encs) => enc = hd encs) type_enc_aliases type_enc of
+        [alias] => alias
+      | _ => type_enc)
+    val opts =
+      [] |> type_enc <> partial_typesN ? cons type_enc
+         |> lam_trans <> default_metis_lam_trans ? cons lam_trans
+  in metisN ^ (if null opts then "" else " (" ^ commas opts ^ ")") end
+
 exception METIS_UNPROVABLE of unit
 
 (* Main function to start Metis proof and reconstruction *)

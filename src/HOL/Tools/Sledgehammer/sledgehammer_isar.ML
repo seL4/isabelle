@@ -286,7 +286,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
 
         val ctxt = ctxt
           |> enrich_context_with_local_facts canonical_isar_proof
-          |> silence_reconstructors debug
+          |> silence_proof_methods debug
 
         val preplay_data = Unsynchronized.ref Canonical_Label_Tab.empty
 
@@ -354,9 +354,9 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
           if isar_proofs = SOME true then "\nWarning: The Isar proof construction failed." else "")
   in one_line_proof ^ isar_proof end
 
-fun isar_proof_would_be_a_good_idea (reconstr, play) =
+fun isar_proof_would_be_a_good_idea (meth, play) =
   (case play of
-    Played _ => reconstr = SMT
+    Played _ => meth = SMT_Method
   | Play_Timed_Out _ => true
   | Play_Failed => true
   | Not_Played => false)

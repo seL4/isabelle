@@ -8,7 +8,7 @@ Minimization of fact list for Metis using external provers.
 signature SLEDGEHAMMER_PROVER_MINIMIZE =
 sig
   type stature = ATP_Problem_Generate.stature
-  type reconstructor = Sledgehammer_Reconstructor.reconstructor
+  type proof_method = Sledgehammer_Reconstructor.proof_method
   type play_outcome = Sledgehammer_Reconstructor.play_outcome
   type mode = Sledgehammer_Prover.mode
   type params = Sledgehammer_Prover.params
@@ -23,11 +23,11 @@ sig
   val auto_minimize_min_facts : int Config.T
   val auto_minimize_max_time : real Config.T
   val minimize_facts : (thm list -> unit) -> string -> params -> bool -> int -> int ->
-    Proof.state -> thm -> (reconstructor * play_outcome) Lazy.lazy option ->
+    Proof.state -> thm -> (proof_method * play_outcome) Lazy.lazy option ->
     ((string * stature) * thm list) list ->
     ((string * stature) * thm list) list option
-    * ((reconstructor * play_outcome) Lazy.lazy * ((reconstructor * play_outcome) -> string)
-       * string)
+      * ((proof_method * play_outcome) Lazy.lazy * ((proof_method * play_outcome) -> string)
+         * string)
   val get_minimizing_prover : Proof.context -> mode -> (thm list -> unit) -> string -> prover
 
   val run_minimize : params -> (thm list -> unit) -> int -> (Facts.ref * Attrib.src list) list ->
@@ -50,29 +50,25 @@ open Sledgehammer_Prover
 open Sledgehammer_Prover_ATP
 open Sledgehammer_Prover_SMT
 
-fun run_reconstructor mode name (params as {debug, verbose, timeout, type_enc, lam_trans, ...})
+fun run_proof_method mode name (params as {debug, verbose, timeout, type_enc, lam_trans, ...})
     minimize_command
     ({state, subgoal, subgoal_count, factss = (_, facts) :: _, ...} : prover_problem) =
   let
-    val reconstr =
-      if name = metisN then
-        Metis (type_enc |> the_default (hd partial_type_encs),
-               lam_trans |> the_default default_metis_lam_trans)
-      else if name = smtN then
-        SMT
-      else
-        raise Fail ("unknown reconstructor: " ^ quote name)
+    val meth =
+      if name = metisN then Metis_Method (type_enc, lam_trans)
+      else if name = smtN then SMT_Method
+      else raise Fail ("unknown proof_method: " ^ quote name)
     val used_facts = facts |> map fst
   in
     (case play_one_line_proof (if mode = Minimize then Normal else mode) debug verbose timeout facts
-       state subgoal reconstr [reconstr] of
+       state subgoal meth [meth] of
       play as (_, Played time) =>
       {outcome = NONE, used_facts = used_facts, used_from = facts, run_time = time,
        preplay = Lazy.value play,
        message =
          fn play =>
             let
-              val (_, override_params) = extract_reconstructor params reconstr
+              val (_, override_params) = extract_proof_method params meth
               val one_line_params =
                 (play, proof_banner mode name, used_facts, minimize_command override_params name,
                  subgoal, subgoal_count)
@@ -93,18 +89,18 @@ fun run_reconstructor mode name (params as {debug, verbose, timeout, type_enc, l
 
 fun is_prover_supported ctxt =
   let val thy = Proof_Context.theory_of ctxt in
-    is_reconstructor orf is_atp thy orf is_smt_prover ctxt
+    is_proof_method orf is_atp thy orf is_smt_prover ctxt
   end
 
 fun is_prover_installed ctxt =
-  is_reconstructor orf is_smt_prover ctxt orf is_atp_installed (Proof_Context.theory_of ctxt)
+  is_proof_method orf is_smt_prover ctxt orf is_atp_installed (Proof_Context.theory_of ctxt)
 
-val reconstructor_default_max_facts = 20
+val proof_method_default_max_facts = 20
 
 fun default_max_facts_of_prover ctxt name =
   let val thy = Proof_Context.theory_of ctxt in
-    if is_reconstructor name then
-      reconstructor_default_max_facts
+    if is_proof_method name then
+      proof_method_default_max_facts
     else if is_atp thy name then
       fold (Integer.max o fst o #1 o fst o snd) (#best_slices (get_atp thy name ()) ctxt) 0
     else (* is_smt_prover ctxt name *)
@@ -113,7 +109,7 @@ fun default_max_facts_of_prover ctxt name =
 
 fun get_prover ctxt mode name =
   let val thy = Proof_Context.theory_of ctxt in
-    if is_reconstructor name then run_reconstructor mode name
+    if is_proof_method name then run_proof_method mode name
     else if is_atp thy name then run_atp mode name
     else if is_smt_prover ctxt name then run_smt_solver mode name
     else error ("No such prover: " ^ name ^ ".")
@@ -286,10 +282,11 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
           "Timeout: You can increase the time limit using the \"timeout\" option (e.g., \
           \timeout = " ^ string_of_int (10 + Time.toMilliseconds timeout div 1000) ^ "\").", ""))
      | {preplay, message, ...} => (NONE, (preplay, prefix "Prover error: " o message, ""))))
-    handle ERROR msg => (NONE, (Lazy.value (plain_metis, Play_Failed), fn _ => "Error: " ^ msg, ""))
+    handle ERROR msg =>
+      (NONE, (Lazy.value (Metis_Method (NONE, NONE), Play_Failed), fn _ => "Error: " ^ msg, ""))
   end
 
-fun adjust_reconstructor_params override_params
+fun adjust_proof_method_params override_params
     ({debug, verbose, overlord, spy, blocking, provers, type_enc, strict, lam_trans,
       uncurried_aliases, learn, fact_filter, max_facts, fact_thresholds, max_mono_iters,
       max_new_mono_instances, isar_proofs, compress_isar, try0_isar, slice, minimize, timeout,
@@ -299,7 +296,7 @@ fun adjust_reconstructor_params override_params
       (case AList.lookup (op =) override_params name of
         SOME [s] => SOME s
       | _ => default_value)
-    (* Only those options that reconstructors are interested in are considered here. *)
+    (* Only those options that proof_methods are interested in are considered here. *)
     val type_enc = lookup_override "type_enc" type_enc
     val lam_trans = lookup_override "lam_trans" lam_trans
   in
@@ -336,18 +333,18 @@ fun maybe_minimize ctxt mode do_learn name (params as {verbose, isar_proofs, min
               fun prover_fast_enough () = can_min_fast_enough run_time
             in
               (case Lazy.force preplay of
-                 (reconstr as Metis _, Played timeout) =>
+                 (meth as Metis_Method _, Played timeout) =>
                  if isar_proofs = SOME true then
                    (* Cheat: Assume the selected ATP is as fast as "metis" for the goal it proved
                       itself. *)
                    (can_min_fast_enough timeout, (isar_supported_prover_of thy name, params))
                  else if can_min_fast_enough timeout then
-                   (true, extract_reconstructor params reconstr
+                   (true, extract_proof_method params meth
                           ||> (fn override_params =>
-                                  adjust_reconstructor_params override_params params))
+                                  adjust_proof_method_params override_params params))
                  else
                    (prover_fast_enough (), (name, params))
-               | (SMT, Played timeout) =>
+               | (SMT_Method, Played timeout) =>
                  (* Cheat: Assume the original prover is as fast as "smt" for the goal it proved
                     itself. *)
                  (can_min_fast_enough timeout, (name, params))

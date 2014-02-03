@@ -9,9 +9,18 @@ signature SLEDGEHAMMER_RECONSTRUCTOR =
 sig
   type stature = ATP_Problem_Generate.stature
 
-  datatype reconstructor =
-    Metis of string * string |
-    SMT
+  datatype proof_method =
+    Metis_Method of string option * string option |
+    Meson_Method |
+    SMT_Method |
+    Simp_Method |
+    Simp_Size_Method |
+    Auto_Method |
+    Fastforce_Method |
+    Force_Method |
+    Arith_Method |
+    Blast_Method |
+    Algebra_Method
 
   datatype play_outcome =
     Played of Time.time |
@@ -21,16 +30,17 @@ sig
 
   type minimize_command = string list -> string
   type one_line_params =
-    (reconstructor * play_outcome) * string * (string * stature) list * minimize_command * int * int
+    (proof_method * play_outcome) * string * (string * stature) list * minimize_command * int * int
 
   val smtN : string
 
-  val string_of_reconstructor : reconstructor -> string
+  val string_of_proof_method : proof_method -> string
+  val tac_of_proof_method : Proof.context -> thm list * thm list -> proof_method -> int -> tactic
   val string_of_play_outcome : play_outcome -> string
   val play_outcome_ord : play_outcome * play_outcome -> order
 
   val one_line_proof_text : int -> one_line_params -> string
-  val silence_reconstructors : bool -> Proof.context -> Proof.context
+  val silence_proof_methods : bool -> Proof.context -> Proof.context
 end;
 
 structure Sledgehammer_Reconstructor : SLEDGEHAMMER_RECONSTRUCTOR =
@@ -40,9 +50,18 @@ open ATP_Util
 open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
 
-datatype reconstructor =
-  Metis of string * string |
-  SMT
+datatype proof_method =
+  Metis_Method of string option * string option |
+  Meson_Method |
+  SMT_Method |
+  Simp_Method |
+  Simp_Size_Method |
+  Auto_Method |
+  Fastforce_Method |
+  Force_Method |
+  Arith_Method |
+  Blast_Method |
+  Algebra_Method
 
 datatype play_outcome =
   Played of Time.time |
@@ -52,12 +71,46 @@ datatype play_outcome =
 
 type minimize_command = string list -> string
 type one_line_params =
-  (reconstructor * play_outcome) * string * (string * stature) list * minimize_command * int * int
+  (proof_method * play_outcome) * string * (string * stature) list * minimize_command * int * int
 
 val smtN = "smt"
 
-fun string_of_reconstructor (Metis (type_enc, lam_trans)) = metis_call type_enc lam_trans
-  | string_of_reconstructor SMT = smtN
+fun string_of_proof_method meth =
+  (case meth of
+    Metis_Method (NONE, NONE) => "metis"
+  | Metis_Method (type_enc_opt, lam_trans_opt) =>
+    "metis (" ^ commas (map_filter I [type_enc_opt, lam_trans_opt]) ^ ")"
+  | Meson_Method => "meson"
+  | SMT_Method => "smt"
+  | Simp_Method => "simp"
+  | Simp_Size_Method => "simp add: size_ne_size_imp_ne"
+  | Auto_Method => "auto"
+  | Fastforce_Method => "fastforce"
+  | Force_Method => "force"
+  | Arith_Method => "arith"
+  | Blast_Method => "blast"
+  | Algebra_Method => "algebra")
+
+fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
+  Method.insert_tac local_facts THEN'
+  (case meth of
+    Metis_Method (type_enc_opt, lam_trans_opt) =>
+    Metis_Tactic.metis_tac [type_enc_opt |> the_default partial_type_enc]
+      (the_default default_metis_lam_trans lam_trans_opt) ctxt global_facts
+  | SMT_Method => SMT_Solver.smt_tac ctxt global_facts
+  | Meson_Method => Meson.meson_tac ctxt global_facts
+  | _ =>
+    Method.insert_tac global_facts THEN'
+    (case meth of
+      Simp_Method => Simplifier.asm_full_simp_tac ctxt
+    | Simp_Size_Method =>
+      Simplifier.asm_full_simp_tac (Simplifier.add_simp @{thm size_ne_size_imp_ne} ctxt)
+    | Auto_Method => K (Clasimp.auto_tac ctxt)
+    | Fastforce_Method => Clasimp.fast_force_tac ctxt
+    | Force_Method => Clasimp.force_tac ctxt
+    | Arith_Method => Arith_Data.arith_tac ctxt
+    | Blast_Method => blast_tac ctxt
+    | Algebra_Method => Groebner.algebra_tac [] [] ctxt))
 
 fun string_of_play_outcome (Played time) = string_of_ext_time (false, time)
   | string_of_play_outcome (Play_Timed_Out time) = string_of_ext_time (true, time) ^ ", timed out"
@@ -94,9 +147,10 @@ fun command_call name [] =
     name |> not (Symbol_Pos.is_identifier name) ? enclose "(" ")"
   | command_call name args = "(" ^ name ^ " " ^ space_implode " " args ^ ")"
 
-fun reconstructor_command reconstr i n used_chaineds num_chained ss =
+(* FIXME *)
+fun proof_method_command meth i n used_chaineds num_chained ss =
   (* unusing_chained_facts used_chaineds num_chained ^ *)
-  apply_on_subgoal i n ^ command_call (string_of_reconstructor reconstr) ss
+  apply_on_subgoal i n ^ command_call (string_of_proof_method meth) ss
 
 fun show_time NONE = ""
   | show_time (SOME ext_time) = " (" ^ string_of_ext_time ext_time ^ ")"
@@ -116,7 +170,7 @@ fun split_used_facts facts =
   |> pairself (sort_distinct (string_ord o pairself fst))
 
 fun one_line_proof_text num_chained
-    ((reconstr, play), banner, used_facts, minimize_command, subgoal, subgoal_count) =
+    ((meth, play), banner, used_facts, minimize_command, subgoal, subgoal_count) =
   let
     val (chained, extra) = split_used_facts used_facts
 
@@ -129,7 +183,7 @@ fun one_line_proof_text num_chained
 
     val try_line =
       map fst extra
-      |> reconstructor_command reconstr subgoal subgoal_count (map fst chained) num_chained
+      |> proof_method_command meth subgoal subgoal_count (map fst chained) num_chained
       |> (if failed then
             enclose "One-line proof reconstruction failed: "
               ".\n(Invoking \"sledgehammer\" with \"[strict]\" might solve this.)"
@@ -139,9 +193,9 @@ fun one_line_proof_text num_chained
     try_line ^ minimize_line minimize_command (map fst (extra @ chained))
   end
 
-(* Makes reconstructor tools as silent as possible. The "set_visible" calls suppresses "Unification
-   bound exceeded" warnings and the like. *)
-fun silence_reconstructors debug =
+(* Makes proof methods as silent as possible. The "set_visible" calls suppresses "Unification bound
+   exceeded" warnings and the like. *)
+fun silence_proof_methods debug =
   Try0.silence_methods debug
   #> Config.put SMT_Config.verbose debug
 

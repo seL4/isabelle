@@ -8,23 +8,12 @@ for dealing with Isar proof texts.
 
 signature SLEDGEHAMMER_ISAR_PROOF =
 sig
+  type proof_method = Sledgehammer_Reconstructor.proof_method
+
   type label = string * int
   type facts = label list * string list (* local and global facts *)
 
   datatype isar_qualifier = Show | Then
-
-  datatype proof_method =
-    Metis_Method of string option * string option |
-    Meson_Method |
-    SMT_Method |
-    Simp_Method |
-    Simp_Size_Method |
-    Auto_Method |
-    Fastforce_Method |
-    Force_Method |
-    Arith_Method |
-    Blast_Method |
-    Algebra_Method
 
   datatype isar_proof =
     Proof of (string * typ) list * (label * term) list * isar_step list
@@ -37,8 +26,6 @@ sig
 
   val label_ord : label * label -> order
   val string_of_label : label -> string
-
-  val string_of_proof_method : proof_method -> string
 
   val steps_of_isar_proof : isar_proof -> isar_step list
 
@@ -79,19 +66,6 @@ type facts = label list * string list (* local and global facts *)
 
 datatype isar_qualifier = Show | Then
 
-datatype proof_method =
-  Metis_Method of string option * string option |
-  Meson_Method |
-  SMT_Method |
-  Simp_Method |
-  Simp_Size_Method |
-  Auto_Method |
-  Fastforce_Method |
-  Force_Method |
-  Arith_Method |
-  Blast_Method |
-  Algebra_Method
-
 datatype isar_proof =
   Proof of (string * typ) list * (label * term) list * isar_step list
 and isar_step =
@@ -104,22 +78,6 @@ val no_label = ("", ~1)
 val label_ord = pairself swap #> prod_ord int_ord fast_string_ord
 
 fun string_of_label (s, num) = s ^ string_of_int num
-
-fun string_of_proof_method meth =
-  (case meth of
-    Metis_Method (NONE, NONE) => "metis"
-  | Metis_Method (type_enc_opt, lam_trans_opt) =>
-    "metis (" ^ commas (map_filter I [type_enc_opt, lam_trans_opt]) ^ ")"
-  | Meson_Method => "meson"
-  | SMT_Method => "smt"
-  | Simp_Method => "simp"
-  | Simp_Size_Method => "simp add: size_ne_size_imp_ne"
-  | Auto_Method => "auto"
-  | Fastforce_Method => "fastforce"
-  | Force_Method => "force"
-  | Arith_Method => "arith"
-  | Blast_Method => "blast"
-  | Algebra_Method => "algebra")
 
 fun steps_of_isar_proof (Proof (_, _, steps)) = steps
 

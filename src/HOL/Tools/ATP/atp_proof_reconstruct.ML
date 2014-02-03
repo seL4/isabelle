@@ -28,9 +28,9 @@ sig
   val partial_type_encs : string list
   val default_metis_lam_trans : string
 
-  val metis_call : string -> string -> string
   val forall_of : term -> term -> term
   val exists_of : term -> term -> term
+  val type_enc_aliases : (string * string list) list
   val unalias_type_enc : string -> string list
   val term_of_atp : Proof.context -> bool -> int Symtab.table -> typ option ->
     (string, string atp_type) atp_term -> term
@@ -83,17 +83,6 @@ fun unalias_type_enc s =
   AList.lookup (op =) type_enc_aliases s |> the_default [s]
 
 val default_metis_lam_trans = combsN
-
-fun metis_call type_enc lam_trans =
-  let
-    val type_enc =
-      (case AList.find (fn (enc, encs) => enc = hd encs) type_enc_aliases type_enc of
-        [alias] => alias
-      | _ => type_enc)
-    val opts =
-      [] |> type_enc <> partial_typesN ? cons type_enc
-         |> lam_trans <> default_metis_lam_trans ? cons lam_trans
-  in metisN ^ (if null opts then "" else " (" ^ commas opts ^ ")") end
 
 fun term_name' (Var ((s, _), _)) = perhaps (try Name.dest_skolem) s
   | term_name' _ = ""

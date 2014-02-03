@@ -346,18 +346,15 @@ fun run_atp mode name
         let
           val used_facts = used_facts_in_atp_proof ctxt fact_names atp_proof
           val needs_full_types = is_typed_helper_used_in_atp_proof atp_proof
-          val reconstrs =
-            bunch_of_reconstructors needs_full_types (fn desperate =>
-              if desperate then
-                if atp_proof_prefers_lifting atp_proof then liftingN else hide_lamsN
-              else
-                default_metis_lam_trans)
+          val meths =
+            bunch_of_proof_methods needs_full_types
+              (if atp_proof_prefers_lifting atp_proof then liftingN else hide_lamsN)
         in
           (used_facts,
            Lazy.lazy (fn () =>
              let val used_pairs = used_from |> filter_used_facts false used_facts in
                play_one_line_proof mode debug verbose preplay_timeout used_pairs state subgoal
-                 (hd reconstrs) reconstrs
+                 (hd meths) meths
              end),
            fn preplay =>
               let
@@ -392,7 +389,8 @@ fun run_atp mode name
               ""))
         end
       | SOME failure =>
-        ([], Lazy.value (plain_metis, Play_Failed), fn _ => string_of_atp_failure failure, ""))
+        ([], Lazy.value (Metis_Method (NONE, NONE), Play_Failed),
+         fn _ => string_of_atp_failure failure, ""))
   in
     {outcome = outcome, used_facts = used_facts, used_from = used_from, run_time = run_time,
      preplay = preplay, message = message, message_tail = message_tail}

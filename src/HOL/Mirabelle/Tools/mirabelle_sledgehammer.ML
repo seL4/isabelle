@@ -19,7 +19,7 @@ val minimizeK = "minimize" (*: enable minimization of theorem set found by sledg
                            (*refers to minimization attempted by Mirabelle*)
 val minimize_timeoutK = "minimize_timeout" (*=TIME: timeout for each minimization step (seconds of*)
 
-val reconstructorK = "reconstructor" (*=NAME: how to reconstruct proofs (ie. using metis/smt)*)
+val proof_methodK = "proof_method" (*=NAME: how to reconstruct proofs (ie. using metis/smt)*)
 val metis_ftK = "metis_ft" (*: apply metis with fully-typed encoding to the theorems found by sledgehammer*)
 
 val max_factsK = "max_facts" (*=NUM: max. relevant clauses to use*)
@@ -43,8 +43,7 @@ val max_mono_itersK = "max_mono_iters" (*=NUM: max. iterations of monomorphiser*
 
 fun sh_tag id = "#" ^ string_of_int id ^ " sledgehammer: "
 fun minimize_tag id = "#" ^ string_of_int id ^ " minimize (sledgehammer): "
-fun reconstructor_tag reconstructor id =
-  "#" ^ string_of_int id ^ " " ^ (!reconstructor) ^ " (sledgehammer): "
+fun proof_method_tag meth id = "#" ^ string_of_int id ^ " " ^ (!meth) ^ " (sledgehammer): "
 
 val separator = "-----"
 
@@ -130,16 +129,16 @@ fun tuple_of_re_data (ReData {calls, success, nontriv_calls, nontriv_success,
   proofs, time, timeout, lemmas, posns}) = (calls, success, nontriv_calls,
   nontriv_success, proofs, time, timeout, lemmas, posns)
 
-datatype reconstructor_mode =
+datatype proof_method_mode =
   Unminimized | Minimized | UnminimizedFT | MinimizedFT
 
 datatype data = Data of {
   sh: sh_data,
   min: min_data,
-  re_u: re_data, (* reconstructor with unminimized set of lemmas *)
-  re_m: re_data, (* reconstructor with minimized set of lemmas *)
-  re_uft: re_data, (* reconstructor with unminimized set of lemmas and fully-typed *)
-  re_mft: re_data, (* reconstructor with minimized set of lemmas and fully-typed *)
+  re_u: re_data, (* proof method with unminimized set of lemmas *)
+  re_m: re_data, (* proof method with minimized set of lemmas *)
+  re_uft: re_data, (* proof method with unminimized set of lemmas and fully-typed *)
+  re_mft: re_data, (* proof method with minimized set of lemmas and fully-typed *)
   mini: bool   (* with minimization *)
   }
 
@@ -218,39 +217,39 @@ val inc_min_succs = map_min_data
 fun inc_min_ab_ratios r = map_min_data
   (fn (succs, ab_ratios) => (succs, ab_ratios+r))
 
-val inc_reconstructor_calls = map_re_data
+val inc_proof_method_calls = map_re_data
   (fn (calls,success,nontriv_calls, nontriv_success, proofs,time,timeout,lemmas,posns)
     => (calls + 1, success, nontriv_calls, nontriv_success, proofs, time, timeout, lemmas,posns))
 
-val inc_reconstructor_success = map_re_data
+val inc_proof_method_success = map_re_data
   (fn (calls,success,nontriv_calls, nontriv_success, proofs,time,timeout,lemmas,posns)
     => (calls, success + 1, nontriv_calls, nontriv_success, proofs, time, timeout, lemmas,posns))
 
-val inc_reconstructor_nontriv_calls = map_re_data
+val inc_proof_method_nontriv_calls = map_re_data
   (fn (calls,success,nontriv_calls, nontriv_success, proofs,time,timeout,lemmas,posns)
     => (calls, success, nontriv_calls + 1, nontriv_success, proofs, time, timeout, lemmas,posns))
 
-val inc_reconstructor_nontriv_success = map_re_data
+val inc_proof_method_nontriv_success = map_re_data
   (fn (calls,success,nontriv_calls, nontriv_success, proofs,time,timeout,lemmas,posns)
     => (calls, success, nontriv_calls, nontriv_success + 1, proofs, time, timeout, lemmas,posns))
 
-val inc_reconstructor_proofs = map_re_data
+val inc_proof_method_proofs = map_re_data
   (fn (calls,success,nontriv_calls, nontriv_success, proofs,time,timeout,lemmas,posns)
     => (calls, success, nontriv_calls, nontriv_success, proofs + 1, time, timeout, lemmas,posns))
 
-fun inc_reconstructor_time m t = map_re_data
+fun inc_proof_method_time m t = map_re_data
  (fn (calls,success,nontriv_calls, nontriv_success, proofs,time,timeout,lemmas,posns)
   => (calls, success, nontriv_calls, nontriv_success, proofs, time + t, timeout, lemmas,posns)) m
 
-val inc_reconstructor_timeout = map_re_data
+val inc_proof_method_timeout = map_re_data
   (fn (calls,success,nontriv_calls, nontriv_success, proofs,time,timeout,lemmas,posns)
     => (calls, success, nontriv_calls, nontriv_success, proofs, time, timeout + 1, lemmas,posns))
 
-fun inc_reconstructor_lemmas m n = map_re_data
+fun inc_proof_method_lemmas m n = map_re_data
   (fn (calls,success,nontriv_calls, nontriv_success, proofs,time,timeout,lemmas,posns)
     => (calls, success, nontriv_calls, nontriv_success, proofs, time, timeout, inc_max n lemmas, posns)) m
 
-fun inc_reconstructor_posns m pos = map_re_data
+fun inc_proof_method_posns m pos = map_re_data
   (fn (calls,success,nontriv_calls, nontriv_success, proofs,time,timeout,lemmas,posns)
     => (calls, success, nontriv_calls, nontriv_success, proofs, time, timeout, lemmas, pos::posns)) m
 
@@ -292,19 +291,19 @@ fun str_of_pos (pos, triv) =
 fun log_re_data log tag sh_calls (re_calls, re_success, re_nontriv_calls,
      re_nontriv_success, re_proofs, re_time, re_timeout,
     (lemmas, lems_sos, lems_max), re_posns) =
- (log ("Total number of " ^ tag ^ "reconstructor calls: " ^ str re_calls);
-  log ("Number of successful " ^ tag ^ "reconstructor calls: " ^ str re_success ^
+ (log ("Total number of " ^ tag ^ "proof method calls: " ^ str re_calls);
+  log ("Number of successful " ^ tag ^ "proof method calls: " ^ str re_success ^
     " (proof: " ^ str re_proofs ^ ")");
-  log ("Number of " ^ tag ^ "reconstructor timeouts: " ^ str re_timeout);
+  log ("Number of " ^ tag ^ "proof method timeouts: " ^ str re_timeout);
   log ("Success rate: " ^ percentage re_success sh_calls ^ "%");
-  log ("Total number of nontrivial " ^ tag ^ "reconstructor calls: " ^ str re_nontriv_calls);
-  log ("Number of successful nontrivial " ^ tag ^ "reconstructor calls: " ^ str re_nontriv_success ^
+  log ("Total number of nontrivial " ^ tag ^ "proof method calls: " ^ str re_nontriv_calls);
+  log ("Number of successful nontrivial " ^ tag ^ "proof method calls: " ^ str re_nontriv_success ^
     " (proof: " ^ str re_proofs ^ ")");
-  log ("Number of successful " ^ tag ^ "reconstructor lemmas: " ^ str lemmas);
-  log ("SOS of successful " ^ tag ^ "reconstructor lemmas: " ^ str lems_sos);
-  log ("Max number of successful " ^ tag ^ "reconstructor lemmas: " ^ str lems_max);
-  log ("Total time for successful " ^ tag ^ "reconstructor calls: " ^ str3 (time re_time));
-  log ("Average time for successful " ^ tag ^ "reconstructor calls: " ^
+  log ("Number of successful " ^ tag ^ "proof method lemmas: " ^ str lemmas);
+  log ("SOS of successful " ^ tag ^ "proof method lemmas: " ^ str lems_sos);
+  log ("Max number of successful " ^ tag ^ "proof method lemmas: " ^ str lems_max);
+  log ("Total time for successful " ^ tag ^ "proof method calls: " ^ str3 (time re_time));
+  log ("Average time for successful " ^ tag ^ "proof method calls: " ^
     str3 (avg_time re_time re_success));
   if tag=""
   then log ("Proved: " ^ space_implode " " (map str_of_pos re_posns))
@@ -325,7 +324,7 @@ fun log_data id log (Data {sh, min, re_u, re_m, re_uft, re_mft, mini}) =
     fun app_if (ReData {calls, ...}) f = if calls > 0 then f () else ()
     fun log_re tag m =
       log_re_data log tag sh_calls (tuple_of_re_data m)
-    fun log_reconstructor (tag1, m1) (tag2, m2) = app_if m1 (fn () =>
+    fun log_proof_method (tag1, m1) (tag2, m2) = app_if m1 (fn () =>
       (log_re tag1 m1; log ""; app_if m2 (fn () => log_re tag2 m2)))
   in
     if sh_calls > 0
@@ -334,14 +333,14 @@ fun log_data id log (Data {sh, min, re_u, re_m, re_uft, re_mft, mini}) =
       log_sh_data log (tuple_of_sh_data sh);
       log "";
       if not mini
-      then log_reconstructor ("", re_u) ("fully-typed ", re_uft)
+      then log_proof_method ("", re_u) ("fully-typed ", re_uft)
       else
         app_if re_u (fn () =>
-         (log_reconstructor ("unminimized ", re_u) ("unminimized fully-typed ", re_uft);
+         (log_proof_method ("unminimized ", re_u) ("unminimized fully-typed ", re_uft);
           log "";
           app_if re_m (fn () =>
             (log_min_data log (tuple_of_min_data min); log "";
-             log_reconstructor ("", re_m) ("fully-typed ", re_mft))))))
+             log_proof_method ("", re_m) ("fully-typed ", re_mft))))))
     else ()
   end
 
@@ -385,8 +384,8 @@ fun good_line s =
   andalso not (String.isSubstring "may fail" s)
 
 (* Fragile hack *)
-fun reconstructor_from_msg args msg =
-  (case AList.lookup (op =) args reconstructorK of
+fun proof_method_from_msg args msg =
+  (case AList.lookup (op =) args proof_methodK of
     SOME name => name
   | NONE =>
     if exists good_line (split_lines msg) then
@@ -460,7 +459,7 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
     fun failed failure =
       ({outcome = SOME failure, used_facts = [], used_from = [],
         run_time = Time.zeroTime,
-        preplay = Lazy.value (Sledgehammer_Prover.plain_metis,
+        preplay = Lazy.value (Sledgehammer_Reconstructor.Metis_Method (NONE, NONE),
           Sledgehammer_Reconstructor.Play_Failed),
         message = K "", message_tail = ""}, ~1)
     val ({outcome, used_facts, run_time, preplay, message, message_tail, ...}
@@ -501,7 +500,7 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
 
 in
 
-fun run_sledgehammer trivial args reconstructor named_thms id
+fun run_sledgehammer trivial args proof_method named_thms id
       ({pre=st, log, pos, ...}: Mirabelle.run_args) =
   let
     val thy = Proof.theory_of st
@@ -557,7 +556,7 @@ fun run_sledgehammer trivial args reconstructor named_thms id
           change_data id (inc_sh_max_lems (length names));
           change_data id (inc_sh_time_isa time_isa);
           change_data id (inc_sh_time_prover time_prover);
-          reconstructor := reconstructor_from_msg args msg;
+          proof_method := proof_method_from_msg args msg;
           named_thms := SOME (map_filter get_thms names);
           log (sh_tag id ^ triv_str ^ "succeeded (" ^ string_of_int time_isa ^ "+" ^
             string_of_int time_prover ^ ") [" ^ prover_name ^ "]:\n" ^ msg)
@@ -572,7 +571,7 @@ fun run_sledgehammer trivial args reconstructor named_thms id
 
 end
 
-fun run_minimize args reconstructor named_thms id ({pre = st, log, ...} : Mirabelle.run_args) =
+fun run_minimize args meth named_thms id ({pre = st, log, ...} : Mirabelle.run_args) =
   let
     val thy = Proof.theory_of st
     val {goal, ...} = Proof.goal st
@@ -614,7 +613,7 @@ fun run_minimize args reconstructor named_thms id ({pre = st, log, ...} : Mirabe
          change_data id (inc_min_ab_ratios ((100 * length named_thms') div n0));
          if length named_thms' = n0
          then log (minimize_tag id ^ "already minimal")
-         else (reconstructor := reconstructor_from_msg args msg;
+         else (meth := proof_method_from_msg args msg;
                named_thms := SOME named_thms';
                log (minimize_tag id ^ "succeeded:\n" ^ msg))
         )
@@ -629,10 +628,10 @@ fun override_params prover type_enc timeout =
    ("slice", "false"),
    ("timeout", timeout |> Time.toSeconds |> string_of_int)]
 
-fun run_reconstructor trivial full m name reconstructor named_thms id
+fun run_proof_method trivial full m name meth named_thms id
     ({pre=st, timeout, log, pos, ...}: Mirabelle.run_args) =
   let
-    fun do_reconstructor named_thms ctxt =
+    fun do_method named_thms ctxt =
       let
         val ref_of_str =
           suffix ";" #> Outer_Syntax.scan Position.none #> Parse_Spec.xthm
@@ -646,56 +645,56 @@ fun run_reconstructor trivial full m name reconstructor named_thms id
           Sledgehammer_Tactics.sledgehammer_as_oracle_tac ctxt
             (override_params prover type_enc (my_timeout time_slice)) fact_override
       in
-        if !reconstructor = "sledgehammer_tac" then
+        if !meth = "sledgehammer_tac" then
           sledge_tac 0.2 ATP_Systems.vampireN "mono_native"
           ORELSE' sledge_tac 0.2 ATP_Systems.eN "poly_guards??"
           ORELSE' sledge_tac 0.2 ATP_Systems.spassN "mono_native"
           ORELSE' sledge_tac 0.2 ATP_Systems.z3_tptpN "poly_tags??"
           ORELSE' SMT_Solver.smt_tac ctxt thms
-        else if !reconstructor = "smt" then
+        else if !meth = "smt" then
           SMT_Solver.smt_tac ctxt thms
         else if full then
           Metis_Tactic.metis_tac [ATP_Proof_Reconstruct.full_typesN]
             ATP_Proof_Reconstruct.default_metis_lam_trans ctxt thms
-        else if String.isPrefix "metis (" (!reconstructor) then
+        else if String.isPrefix "metis (" (!meth) then
           let
             val (type_encs, lam_trans) =
-              !reconstructor
+              !meth
               |> Outer_Syntax.scan Position.start
               |> filter Token.is_proper |> tl
               |> Metis_Tactic.parse_metis_options |> fst
               |>> the_default [ATP_Proof_Reconstruct.partial_typesN]
               ||> the_default ATP_Proof_Reconstruct.default_metis_lam_trans
           in Metis_Tactic.metis_tac type_encs lam_trans ctxt thms end
-        else if !reconstructor = "metis" then
+        else if !meth = "metis" then
           Metis_Tactic.metis_tac [] ATP_Proof_Reconstruct.default_metis_lam_trans ctxt thms
         else
           K all_tac
       end
-    fun apply_reconstructor named_thms =
-      Mirabelle.can_apply timeout (do_reconstructor named_thms) st
+    fun apply_method named_thms =
+      Mirabelle.can_apply timeout (do_method named_thms) st
 
     fun with_time (false, t) = "failed (" ^ string_of_int t ^ ")"
-      | with_time (true, t) = (change_data id (inc_reconstructor_success m);
+      | with_time (true, t) = (change_data id (inc_proof_method_success m);
           if trivial then ()
-          else change_data id (inc_reconstructor_nontriv_success m);
-          change_data id (inc_reconstructor_lemmas m (length named_thms));
-          change_data id (inc_reconstructor_time m t);
-          change_data id (inc_reconstructor_posns m (pos, trivial));
-          if name = "proof" then change_data id (inc_reconstructor_proofs m) else ();
+          else change_data id (inc_proof_method_nontriv_success m);
+          change_data id (inc_proof_method_lemmas m (length named_thms));
+          change_data id (inc_proof_method_time m t);
+          change_data id (inc_proof_method_posns m (pos, trivial));
+          if name = "proof" then change_data id (inc_proof_method_proofs m) else ();
           "succeeded (" ^ string_of_int t ^ ")")
-    fun timed_reconstructor named_thms =
-      (with_time (Mirabelle.cpu_time apply_reconstructor named_thms), true)
-      handle TimeLimit.TimeOut => (change_data id (inc_reconstructor_timeout m); ("timeout", false))
+    fun timed_method named_thms =
+      (with_time (Mirabelle.cpu_time apply_method named_thms), true)
+      handle TimeLimit.TimeOut => (change_data id (inc_proof_method_timeout m); ("timeout", false))
            | ERROR msg => ("error: " ^ msg, false)
 
     val _ = log separator
-    val _ = change_data id (inc_reconstructor_calls m)
-    val _ = if trivial then () else change_data id (inc_reconstructor_nontriv_calls m)
+    val _ = change_data id (inc_proof_method_calls m)
+    val _ = if trivial then () else change_data id (inc_proof_method_nontriv_calls m)
   in
     named_thms
-    |> timed_reconstructor
-    |>> log o prefix (reconstructor_tag reconstructor id)
+    |> timed_method
+    |>> log o prefix (proof_method_tag meth id)
     |> snd
   end
 
@@ -717,7 +716,7 @@ fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
       if !num_sledgehammer_calls > max_calls then ()
       else
         let
-          val reconstructor = Unsynchronized.ref ""
+          val meth = Unsynchronized.ref ""
           val named_thms =
             Unsynchronized.ref (NONE : ((string * stature) * thm list) list option)
           val minimize = AList.defined (op =) args minimizeK
@@ -728,33 +727,28 @@ fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
               Try0.try0 (SOME try_timeout) ([], [], [], []) pre
               handle TimeLimit.TimeOut => false
             else false
-          fun apply_reconstructor m1 m2 =
+          fun apply_method m1 m2 =
             if metis_ft
             then
-              if not (Mirabelle.catch_result (reconstructor_tag reconstructor) false
-                  (run_reconstructor trivial false m1 name reconstructor
-                       (these (!named_thms))) id st)
+              if not (Mirabelle.catch_result (proof_method_tag meth) false
+                  (run_proof_method trivial false m1 name meth (these (!named_thms))) id st)
               then
-                (Mirabelle.catch_result (reconstructor_tag reconstructor) false
-                  (run_reconstructor trivial true m2 name reconstructor
-                       (these (!named_thms))) id st; ())
+                (Mirabelle.catch_result (proof_method_tag meth) false
+                  (run_proof_method trivial true m2 name meth (these (!named_thms))) id st; ())
               else ()
             else
-              (Mirabelle.catch_result (reconstructor_tag reconstructor) false
-                (run_reconstructor trivial false m1 name reconstructor
-                     (these (!named_thms))) id st; ())
+              (Mirabelle.catch_result (proof_method_tag meth) false
+                (run_proof_method trivial false m1 name meth (these (!named_thms))) id st; ())
         in
           change_data id (set_mini minimize);
-          Mirabelle.catch sh_tag (run_sledgehammer trivial args reconstructor
-                                                   named_thms) id st;
+          Mirabelle.catch sh_tag (run_sledgehammer trivial args meth named_thms) id st;
           if is_some (!named_thms)
           then
-           (apply_reconstructor Unminimized UnminimizedFT;
+           (apply_method Unminimized UnminimizedFT;
             if minimize andalso not (null (these (!named_thms)))
             then
-             (Mirabelle.catch minimize_tag
-                  (run_minimize args reconstructor named_thms) id st;
-              apply_reconstructor Minimized MinimizedFT)
+             (Mirabelle.catch minimize_tag (run_minimize args meth named_thms) id st;
+              apply_method Minimized MinimizedFT)
             else ())
           else ()
         end

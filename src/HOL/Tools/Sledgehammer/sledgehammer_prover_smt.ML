@@ -233,9 +233,8 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...}) 
       (case outcome of
         NONE =>
         (Lazy.lazy (fn () =>
-           play_one_line_proof mode debug verbose preplay_timeout used_pairs state subgoal SMT
-             (bunch_of_reconstructors false (fn desperate =>
-                if desperate then liftingN else default_metis_lam_trans))),
+           play_one_line_proof mode debug verbose preplay_timeout used_pairs state subgoal
+             SMT_Method (bunch_of_proof_methods false liftingN)),
          fn preplay =>
             let
               val one_line_params =
@@ -248,7 +247,8 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...}) 
             end,
          if verbose then "\nSMT solver real CPU time: " ^ string_of_time run_time ^ "." else "")
       | SOME failure =>
-        (Lazy.value (plain_metis, Play_Failed), fn _ => string_of_atp_failure failure, ""))
+        (Lazy.value (Metis_Method (NONE, NONE), Play_Failed),
+         fn _ => string_of_atp_failure failure, ""))
   in
     {outcome = outcome, used_facts = used_facts, used_from = used_from, run_time = run_time,
      preplay = preplay, message = message, message_tail = message_tail}
