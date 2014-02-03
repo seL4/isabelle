@@ -321,7 +321,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
           |> `(preplay_outcome_of_isar_proof (!preplay_data))
           ||> chain_isar_proof
           ||> kill_useless_labels_in_isar_proof
-          ||> relabel_isar_proof_finally
+          ||> relabel_isar_proof_nicely
       in
         (case string_of_isar_proof (K (K "")) isar_proof of
           "" =>

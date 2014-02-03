@@ -56,7 +56,7 @@ sig
   val chain_isar_proof : isar_proof -> isar_proof
   val kill_useless_labels_in_isar_proof : isar_proof -> isar_proof
   val relabel_isar_proof_canonically : isar_proof -> isar_proof
-  val relabel_isar_proof_finally : isar_proof -> isar_proof
+  val relabel_isar_proof_nicely : isar_proof -> isar_proof
 
   val string_of_isar_proof : Proof.context -> int -> int ->
     (label -> proof_method list -> string) -> isar_proof -> string
@@ -210,7 +210,7 @@ fun relabel_isar_proof_canonically proof =
 val assume_prefix = "a"
 val have_prefix = "f"
 
-val relabel_isar_proof_finally =
+val relabel_isar_proof_nicely =
   let
     fun next_label depth prefix l (accum as (next, subst)) =
       if l = no_label then
