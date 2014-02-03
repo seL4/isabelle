@@ -284,9 +284,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
           |> postprocess_isar_proof_remove_unreferenced_steps I
           |> relabel_isar_proof_canonically
 
-        val ctxt = ctxt
-          |> enrich_context_with_local_facts canonical_isar_proof
-          |> silence_proof_methods debug
+        val ctxt = ctxt |> enrich_context_with_local_facts canonical_isar_proof
 
         val preplay_data = Unsynchronized.ref Canonical_Label_Tab.empty
 

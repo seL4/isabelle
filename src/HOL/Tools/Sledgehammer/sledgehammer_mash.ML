@@ -178,9 +178,9 @@ fun run_mash_tool ctxt overlord extra_args background write_cmds read_suggs =
     fun run_on () =
       (Isabelle_System.bash command
        |> tap (fn _ =>
-            case try File.read (Path.explode err_file) |> the_default "" of
+            (case try File.read (Path.explode err_file) |> the_default "" of
               "" => trace_msg ctxt (K "Done")
-            | s => warning ("MaSh error: " ^ elide_string 1000 s));
+            | s => warning ("MaSh error: " ^ elide_string 1000 s)));
        read_suggs (fn () => try File.read_lines sugg_path |> these))
     fun clean_up () =
       if overlord then ()
@@ -243,17 +243,16 @@ fun str_of_query max_suggs (learns, hints, parents, feats) =
 
 (* The suggested weights don't make much sense. *)
 fun extract_suggestion sugg =
-  case space_explode "=" sugg of
+  (case space_explode "=" sugg of
     [name, _ (* weight *)] =>
     SOME (unencode_str name (* , Real.fromString weight |> the_default 1.0 *))
   | [name] => SOME (unencode_str name (* , 1.0 *))
-  | _ => NONE
+  | _ => NONE)
 
 fun extract_suggestions line =
-  case space_explode ":" line of
-    [goal, suggs] =>
-    (unencode_str goal, map_filter extract_suggestion (space_explode " " suggs))
-  | _ => ("", [])
+  (case space_explode ":" line of
+    [goal, suggs] => (unencode_str goal, map_filter extract_suggestion (space_explode " " suggs))
+  | _ => ("", []))
 
 structure MaSh =
 struct
@@ -294,11 +293,10 @@ fun relearn _ _ _ [] = ()
 
 fun query ctxt overlord max_suggs (query as (_, _, _, feats)) =
   (trace_msg ctxt (fn () => "MaSh query " ^ encode_features feats);
-   run_mash_tool ctxt overlord [] false ([query], str_of_query max_suggs)
-       (fn suggs =>
-           case suggs () of
-             [] => []
-           | suggs => snd (extract_suggestions (List.last suggs)))
+   run_mash_tool ctxt overlord [] false ([query], str_of_query max_suggs) (fn suggs =>
+     (case suggs () of
+       [] => []
+     | suggs => snd (extract_suggestions (List.last suggs))))
    handle List.Empty => [])
 
 end;
@@ -362,48 +360,47 @@ val version = "*** MaSh version 20131206 ***"
 exception FILE_VERSION_TOO_NEW of unit
 
 fun extract_node line =
-  case space_explode ":" line of
+  (case space_explode ":" line of
     [head, parents] =>
     (case space_explode " " head of
-       [kind, name] =>
-       SOME (unencode_str name, unencode_strs parents,
-             try proof_kind_of_str kind |> the_default Isar_Proof)
-     | _ => NONE)
-  | _ => NONE
+      [kind, name] =>
+      SOME (unencode_str name, unencode_strs parents,
+        try proof_kind_of_str kind |> the_default Isar_Proof)
+    | _ => NONE)
+  | _ => NONE)
 
 fun load_state _ _ (state as (true, _)) = state
   | load_state ctxt overlord _ =
     let val path = mash_state_file () in
       (true,
-       case try File.read_lines path of
+       (case try File.read_lines path of
          SOME (version' :: node_lines) =>
          let
            fun add_edge_to name parent =
              Graph.default_node (parent, Isar_Proof)
              #> Graph.add_edge (parent, name)
            fun add_node line =
-             case extract_node line of
+             (case extract_node line of
                NONE => I (* shouldn't happen *)
              | SOME (name, parents, kind) =>
-               update_access_graph_node (name, kind)
-               #> fold (add_edge_to name) parents
+               update_access_graph_node (name, kind) #> fold (add_edge_to name) parents)
            val (access_G, num_known_facts) =
-             case string_ord (version', version) of
+             (case string_ord (version', version) of
                EQUAL =>
                (try_graph ctxt "loading state" Graph.empty (fn () =>
-                    fold add_node node_lines Graph.empty),
+                  fold add_node node_lines Graph.empty),
                 length node_lines)
              | LESS =>
                (* can't parse old file *)
                (MaSh.unlearn ctxt overlord; (Graph.empty, 0))
-             | GREATER => raise FILE_VERSION_TOO_NEW ()
+             | GREATER => raise FILE_VERSION_TOO_NEW ())
          in
            trace_msg ctxt (fn () =>
                "Loaded fact graph (" ^ graph_info access_G ^ ")");
            {access_G = access_G, num_known_facts = num_known_facts,
             dirty = SOME []}
          end
-       | _ => empty_state)
+       | _ => empty_state))
     end
 
 fun save_state _ (state as {dirty = SOME [], ...}) = state
@@ -415,10 +412,9 @@ fun save_state _ (state as {dirty = SOME [], ...}) = state
       fun append_entry (name, (kind, (parents, _))) =
         cons (name, Graph.Keys.dest parents, kind)
       val (banner, entries) =
-        case dirty of
-          SOME names =>
-          (NONE, fold (append_entry o Graph.get_entry access_G) names [])
-        | NONE => (SOME (version ^ "\n"), Graph.fold append_entry access_G [])
+        (case dirty of
+          SOME names => (NONE, fold (append_entry o Graph.get_entry access_G) names [])
+        | NONE => (SOME (version ^ "\n"), Graph.fold append_entry access_G []))
     in
       write_file banner (entries, str_of_entry) (mash_state_file ());
       trace_msg ctxt (fn () =>
@@ -471,11 +467,11 @@ fun nickname_of_thm th =
   if Thm.has_name_hint th then
     let val hint = Thm.get_name_hint th in
       (* There must be a better way to detect local facts. *)
-      case try (unprefix local_prefix) hint of
+      (case try (unprefix local_prefix) hint of
         SOME suf =>
-        thy_name_of_thm th ^ Long_Name.separator ^ suf ^
-        Long_Name.separator ^ elided_backquote_thm 50 th
-      | NONE => hint
+        thy_name_of_thm th ^ Long_Name.separator ^ suf ^ Long_Name.separator ^
+        elided_backquote_thm 50 th
+      | NONE => hint)
     end
   else
     elided_backquote_thm 200 th
@@ -512,9 +508,9 @@ fun mesh_facts _ max_facts [(_, (sels, unks))] =
         let
           val score_at = try (nth sels) #> Option.map (fn (_, score) => global_weight * score)
         in
-          case find_index (curry fact_eq fact o fst) sels of
+          (case find_index (curry fact_eq fact o fst) sels of
             ~1 => if member fact_eq unks fact then NONE else SOME 0.0
-          | rank => score_at rank
+          | rank => score_at rank)
         end
       fun weight_of fact = mess |> map_filter (score_in fact) |> scaled_avg
       val facts = fold (union fact_eq o map fst o take max_facts o fst o snd) mess []
@@ -536,20 +532,21 @@ fun crude_theory_ord p =
     if Theory.eq_thy p then EQUAL else LESS
   else if Theory.subthy (swap p) then
     GREATER
-  else case int_ord (pairself (length o Theory.ancestors_of) p) of
-    EQUAL => string_ord (pairself Context.theory_name p)
-  | order => order
+  else
+    (case int_ord (pairself (length o Theory.ancestors_of) p) of
+      EQUAL => string_ord (pairself Context.theory_name p)
+    | order => order)
 
 fun crude_thm_ord p =
-  case crude_theory_ord (pairself theory_of_thm p) of
+  (case crude_theory_ord (pairself theory_of_thm p) of
     EQUAL =>
     let val q = pairself nickname_of_thm p in
       (* Hack to put "xxx_def" before "xxxI" and "xxxE" *)
-      case bool_ord (pairself (String.isSuffix "_def") (swap q)) of
+      (case bool_ord (pairself (String.isSuffix "_def") (swap q)) of
         EQUAL => string_ord q
-      | ord => ord
+      | ord => ord)
     end
-  | ord => ord
+  | ord => ord)
 
 val thm_less_eq = Theory.subthy o pairself theory_of_thm
 fun thm_less p = thm_less_eq p andalso not (thm_less_eq (swap p))
@@ -724,7 +721,7 @@ fun term_features_of ctxt thy_name num_facts const_tab term_max_depth type_max_d
         add_term_pat Ts depth t #> add_term_pats Ts (depth - 1) t
     fun add_term Ts = add_term_pats Ts term_max_depth
     fun add_subterms Ts t =
-      case strip_comb t of
+      (case strip_comb t of
         (Const (s, T), args) =>
         (not (is_widely_irrelevant_const s) ? add_term Ts t)
         #> add_subtypes T
@@ -735,7 +732,7 @@ fun term_features_of ctxt thy_name num_facts const_tab term_max_depth type_max_d
          | Var (_, T) => add_subtypes T
          | Abs (_, T, body) => add_subtypes T #> add_subterms (T :: Ts) body
          | _ => I)
-        #> fold (add_subterms Ts) args
+        #> fold (add_subterms Ts) args)
   in [] |> fold (add_subterms []) ts end
 
 val term_max_depth = 2
@@ -805,7 +802,7 @@ fun isar_dependencies_of name_tabs th =
 
 fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
                            auto_level facts name_tabs th =
-  case isar_dependencies_of name_tabs th of
+  (case isar_dependencies_of name_tabs th of
     [] => (false, [])
   | isar_deps =>
     let
@@ -819,9 +816,10 @@ fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
       fun add_isar_dep facts dep accum =
         if exists (is_dep dep) accum then
           accum
-        else case find_first (is_dep dep) facts of
-          SOME ((_, status), th) => accum @ [(("", status), th)]
-        | NONE => accum (* shouldn't happen *)
+        else
+          (case find_first (is_dep dep) facts of
+            SOME ((_, status), th) => accum @ [(("", status), th)]
+          | NONE => accum (* shouldn't happen *))
       val mepo_facts =
         facts
         |> mepo_suggested_facts ctxt params (max_facts |> the_default prover_default_max_facts) NONE
@@ -838,7 +836,7 @@ fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
         |> Output.urgent_message
       else
         ();
-      case run_prover_for_mash ctxt params prover name facts goal of
+      (case run_prover_for_mash ctxt params prover name facts goal of
         {outcome = NONE, used_facts, ...} =>
         (if verbose andalso auto_level = 0 then
            let val num_facts = length used_facts in
@@ -849,8 +847,8 @@ fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
          else
            ();
          (true, map fst used_facts))
-      | _ => (false, isar_deps)
-    end
+      | _ => (false, isar_deps))
+    end)
 
 
 (*** High-level communication with MaSh ***)
@@ -1140,9 +1138,9 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover sav
               val access_G = access_G |> fold flop_wrt_access_graph flops
               val num_known_facts = num_known_facts + length learns
               val dirty =
-                case (was_empty, dirty, relearns) of
+                (case (was_empty, dirty, relearns) of
                   (false, SOME names, []) => SOME (map #1 learns @ names)
-                | _ => NONE
+                | _ => NONE)
             in
               MaSh.learn ctxt overlord (save andalso null relearns) (rev learns);
               MaSh.relearn ctxt overlord save relearns;
@@ -1202,9 +1200,9 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover sav
             let
               val name = nickname_of_thm th
               val (n, relearns, flops) =
-                case deps_of status th of
+                (case deps_of status th of
                   SOME deps => (n + 1, (name, deps) :: relearns, flops)
-                | NONE => (n, relearns, name :: flops)
+                | NONE => (n, relearns, name :: flops))
               val (relearns, flops, next_commit) =
                 if Time.> (Timer.checkRealTimer timer, next_commit) then
                   (commit false [] relearns flops;
@@ -1325,7 +1323,7 @@ fun relevant_facts ctxt (params as {overlord, blocking, learn, fact_filter, time
           in
             if length facts - num_known_facts
                <= max_facts_to_learn_before_query then
-              case length (filter_out is_in_access_G facts) of
+              (case length (filter_out is_in_access_G facts) of
                 0 => false
               | num_facts_to_learn =>
                 if num_facts_to_learn <= max_facts_to_learn_before_query then
@@ -1333,21 +1331,21 @@ fun relevant_facts ctxt (params as {overlord, blocking, learn, fact_filter, time
                    |> (fn "" => () | s => Output.urgent_message (MaShN ^ ": " ^ s));
                    true)
                 else
-                  (maybe_launch_thread (); false)
+                  (maybe_launch_thread (); false))
             else
               (maybe_launch_thread (); false)
           end
         else
           false
       val (save, effective_fact_filter) =
-        case fact_filter of
+        (case fact_filter of
           SOME ff => (ff <> mepoN andalso maybe_learn (), ff)
         | NONE =>
           if is_mash_enabled () then
             (maybe_learn (),
              if mash_can_suggest_facts ctxt overlord then meshN else mepoN)
           else
-            (false, mepoN)
+            (false, mepoN))
 
       val unique_facts = drop_duplicate_facts facts
       val add_ths = Attrib.eval_thms ctxt add
@@ -1373,11 +1371,11 @@ fun relevant_facts ctxt (params as {overlord, blocking, learn, fact_filter, time
       val mesh = mesh_facts (eq_snd Thm.eq_thm_prop) max_facts mess |> add_and_take
     in
       if save then MaSh.save ctxt overlord else ();
-      case (fact_filter, mess) of
+      (case (fact_filter, mess) of
         (NONE, [(_, (mepo, _)), (_, (mash, _))]) =>
         [(meshN, mesh), (mepoN, mepo |> map fst |> add_and_take),
          (mashN, mash |> map fst |> add_and_take)]
-      | _ => [(effective_fact_filter, mesh)]
+      | _ => [(effective_fact_filter, mesh)])
     end
 
 fun kill_learners ctxt ({overlord, ...} : params) =

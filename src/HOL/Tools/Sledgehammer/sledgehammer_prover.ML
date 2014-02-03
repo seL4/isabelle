@@ -215,10 +215,8 @@ fun timed_apply timeout tac state i =
     TimeLimit.timeLimit timeout (try (Seq.pull o full_tac)) goal
   end
 
-(* FIXME *)
-fun timed_proof_method meth debug timeout ths =
-  timed_apply timeout (silence_proof_methods debug
-    #> (fn ctxt => tac_of_proof_method ctxt ([], ths) meth))
+fun timed_proof_method meth timeout ths =
+  timed_apply timeout (fn ctxt => tac_of_proof_method ctxt ([], ths) meth)
 
 fun is_fact_chained ((_, (sc, _)), _) = sc = Chained
 
@@ -248,9 +246,9 @@ fun play_one_line_proof mode debug verbose timeout pairs state i preferred meths
                   ()
               val timer = Timer.startRealTimer ()
             in
-              case timed_proof_method meth debug timeout ths state i of
+              (case timed_proof_method meth timeout ths state i of
                 SOME (SOME _) => (meth, Played (Timer.checkRealTimer timer))
-              | _ => play timed_out meths
+              | _ => play timed_out meths)
             end
             handle TimeLimit.TimeOut => play (meth :: timed_out) meths
       in

@@ -41,12 +41,12 @@ fun post_fold_term_type f s t =
   post_traverse_term_type (fn t => fn T => fn s => (t, f t T s)) s t |> snd
 
 fun fold_map_atypes f T s =
-  case T of
+  (case T of
     Type (name, Ts) =>
-        let val (Ts, s) = fold_map (fold_map_atypes f) Ts s in
-          (Type (name, Ts), s)
-        end
-  | _ => f T s
+    let val (Ts, s) = fold_map (fold_map_atypes f) Ts s in
+      (Type (name, Ts), s)
+    end
+  | _ => f T s)
 
 val indexname_ord = Term_Ord.fast_indexname_ord
 val cost_ord = prod_ord int_ord (prod_ord int_ord int_ord)

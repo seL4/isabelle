@@ -131,12 +131,12 @@ fun is_known_raw_param s =
   member (op =) property_dependent_params s orelse s = "expect"
 
 fun is_prover_list ctxt s =
-  case space_explode " " s of
+  (case space_explode " " s of
     ss as _ :: _ => forall (is_prover_supported ctxt) ss
-  | _ => false
+  | _ => false)
 
 fun unalias_raw_param (name, value) =
-  case AList.lookup (op =) alias_params name of
+  (case AList.lookup (op =) alias_params name of
     SOME (name', []) => (name', value)
   | SOME (param' as (name', _)) =>
     if value <> ["false"] then
@@ -145,13 +145,14 @@ fun unalias_raw_param (name, value) =
       error ("Parameter " ^ quote name ^ " cannot be set to \"false\" \
              \(cf. " ^ quote name' ^ ").")
   | NONE =>
-    case AList.lookup (op =) negated_alias_params name of
-      SOME name' => (name', case value of
-                              ["false"] => ["true"]
-                            | ["true"] => ["false"]
-                            | [] => ["false"]
-                            | _ => value)
-    | NONE => (name, value)
+    (case AList.lookup (op =) negated_alias_params name of
+      SOME name' => (name',
+        (case value of
+          ["false"] => ["true"]
+        | ["true"] => ["false"]
+        | [] => ["false"]
+        | _ => value))
+    | NONE => (name, value)))
 
 val any_type_enc = type_enc_of_string Strict "erased"
 
@@ -266,9 +267,10 @@ fun extract_params mode default_params override_params =
     val type_enc =
       if mode = Auto_Try then
         NONE
-      else case lookup_string "type_enc" of
-        "smart" => NONE
-      | s => (type_enc_of_string Strict s; SOME s)
+      else
+        (case lookup_string "type_enc" of
+          "smart" => NONE
+        | s => (type_enc_of_string Strict s; SOME s))
     val strict = mode = Auto_Try orelse lookup_bool "strict"
     val lam_trans = lookup_option lookup_string "lam_trans"
     val uncurried_aliases = lookup_option lookup_bool "uncurried_aliases"
