@@ -94,10 +94,13 @@ fun try_merge (Prove (_, [], l1, _, [], ((lfs1, gfs1), meths1)))
   | try_merge _ _ = NONE
 
 val compress_degree = 2
-val merge_timeout_slack = 1.25
+val merge_timeout_slack_time = seconds 0.005
+val merge_timeout_slack_factor = 1.5
 
-(* Precondition: The proof must be labeled canonically
-   (cf. "Slegehammer_Isar_Proof.relabel_isar_proof_canonically"). *)
+fun slackify_merge_timeout time =
+  time_mult merge_timeout_slack_factor (Time.+ (merge_timeout_slack_time, time))
+
+(* Precondition: The proof must be labeled canonically. *)
 fun compress_isar_proof ctxt compress_isar preplay_data proof =
   if compress_isar <= 1.0 then
     proof
@@ -166,7 +169,7 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
               val step'' = Prove (qs, fix, l, t, subs'', by)
 
               (* check if the modified step can be preplayed fast enough *)
-              val timeout = time_mult merge_timeout_slack (Time.+ (time, time'))
+              val timeout = slackify_merge_timeout (Time.+ (time, time'))
               val Played time'' = preplay_isar_step ctxt timeout (hd meths)(*FIXME*) step''
             in
               decrement_step_count (); (* l' successfully eliminated! *)
@@ -230,7 +233,7 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
               val times0 = map ((fn Played time => time) o
                 forced_preplay_outcome_of_isar_step (!preplay_data)) labels
               val time_slice = time_mult (1.0 / (Real.fromInt (length labels))) time
-              val timeouts = map (curry Time.+ time_slice #> time_mult merge_timeout_slack) times0
+              val timeouts = map (curry Time.+ time_slice #> slackify_merge_timeout) times0
 
               (* TODO: should be lazy: stop preplaying as soon as one step fails/times out *)
               val play_outcomes = map3 (preplay_isar_step ctxt) timeouts succ_meths succs'
