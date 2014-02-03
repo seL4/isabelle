@@ -16,7 +16,7 @@ sig
   val trace : bool Config.T
 
   type isar_params =
-    bool * (string option * string option) * Time.time * real * bool
+    bool * (string option * string option) * Time.time * real * bool * bool
       * (term, string) atp_step list * thm
 
   val proof_text : Proof.context -> bool -> bool option -> (unit -> isar_params) -> int ->
@@ -35,7 +35,6 @@ open Sledgehammer_Reconstructor
 open Sledgehammer_Isar_Proof
 open Sledgehammer_Isar_Preplay
 open Sledgehammer_Isar_Compress
-open Sledgehammer_Isar_Try0
 open Sledgehammer_Isar_Minimize
 
 structure String_Redirect = ATP_Proof_Redirect(
@@ -109,8 +108,8 @@ fun add_lines_pass2 res [] = rev res
     end
 
 type isar_params =
-  bool * (string option * string option) * Time.time * real * bool * (term, string) atp_step list
-    * thm
+  bool * (string option * string option) * Time.time * real * bool * bool
+    * (term, string) atp_step list * thm
 
 val arith_methods =
   [Arith_Method, Simp_Method, Auto_Method, Fastforce_Method, Blast_Method, Force_Method,
@@ -129,8 +128,8 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
   let
     fun isar_proof_of () =
       let
-        val SOME (verbose, alt_metis_args, preplay_timeout, compress_isar, try0_isar, atp_proof,
-          goal) = try isar_params ()
+        val SOME (verbose, alt_metis_args, preplay_timeout, compress_isar, try0_isar, minimize,
+          atp_proof, goal) = try isar_params ()
 
         val metislike_methods = insert (op =) (Metis_Method alt_metis_args) metislike_methods0
 
@@ -139,7 +138,6 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
         val ctxt = ctxt |> Variable.set_body false |> Proof_Context.add_fixes fixes |> snd
 
         val do_preplay = preplay_timeout <> Time.zeroTime
-        val try0_isar = try0_isar andalso do_preplay
         val compress_isar = if isar_proofs = NONE andalso do_preplay then 1000.0 else compress_isar
 
         val is_fixed = Variable.is_declared ctxt orf can Name.dest_skolem
@@ -311,11 +309,10 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
           |> tap (trace_isar_proof "Original")
           |> compress_isar_proof ctxt compress_isar preplay_data
           |> tap (trace_isar_proof "Compressed")
-          |> try0_isar ? try0_isar_proof ctxt preplay_timeout preplay_data
           |> tap (trace_isar_proof "Tried0")
           |> postprocess_isar_proof_remove_unreferenced_steps
                (keep_fastest_method_of_isar_step (!preplay_data)
-                #> try0_isar(*### minimize*) ? minimize_isar_step_dependencies ctxt preplay_data)
+                #> minimize ? minimize_isar_step_dependencies ctxt preplay_data)
           |> tap (trace_isar_proof "Minimized")
           |> `(preplay_outcome_of_isar_proof (!preplay_data))
           ||> chain_isar_proof

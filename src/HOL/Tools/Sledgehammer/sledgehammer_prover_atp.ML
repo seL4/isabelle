@@ -132,7 +132,7 @@ val atp_important_message_keep_quotient = 25
 fun run_atp mode name
     (params as {debug, verbose, overlord, type_enc, strict, lam_trans, uncurried_aliases,
        fact_filter, max_facts, max_mono_iters, max_new_mono_instances, isar_proofs, compress_isar,
-       try0_isar, slice, timeout, preplay_timeout, ...})
+       try0_isar, slice, minimize, timeout, preplay_timeout, ...})
     minimize_command
     ({comment, state, goal, subgoal, subgoal_count, factss, ...} : prover_problem) =
   let
@@ -372,7 +372,7 @@ fun run_atp mode name
                       |> factify_atp_proof fact_names hyp_ts concl_t
                   in
                     (verbose, (metis_type_enc, metis_lam_trans), preplay_timeout, compress_isar,
-                     try0_isar, atp_proof, goal)
+                     try0_isar, minimize |> the_default true, atp_proof, goal)
                   end
                 val one_line_params =
                   (preplay, proof_banner mode name, used_facts,
