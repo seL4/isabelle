@@ -314,7 +314,6 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
           |> tap (trace_isar_proof "Original")
           |> compress_isar_proof ctxt compress_isar preplay_data
           |> tap (trace_isar_proof "Compressed")
-          |> tap (trace_isar_proof "Tried0")
           |> postprocess_isar_proof_remove_unreferenced_steps
                (keep_fastest_method_of_isar_step (!preplay_data)
                 #> minimize ? minimize_isar_step_dependencies ctxt preplay_data)
