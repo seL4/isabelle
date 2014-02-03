@@ -117,7 +117,8 @@ val arith_methods =
 val datatype_methods = [Simp_Method, Simp_Size_Method]
 val metislike_methods0 =
   [Metis_Method (NONE, NONE), Simp_Method, Auto_Method, Arith_Method, Blast_Method,
-   Fastforce_Method, Force_Method, Algebra_Method, Meson_Method]
+   Fastforce_Method, Force_Method, Algebra_Method, Meson_Method,
+   Metis_Method (SOME no_typesN, NONE)]
 val rewrite_methods =
   [Auto_Method, Simp_Method, Fastforce_Method, Force_Method, Metis_Method (NONE, NONE),
    Meson_Method]
