@@ -11,6 +11,7 @@ sig
   type isar_proof = Sledgehammer_Isar_Proof.isar_proof
   type isar_preplay_data = Sledgehammer_Isar_Preplay.isar_preplay_data
 
+  val keep_fastest_method_of_isar_step : isar_preplay_data -> isar_step -> isar_step
   val minimize_isar_step_dependencies : Proof.context -> isar_preplay_data Unsynchronized.ref ->
     isar_step -> isar_step
   val postprocess_isar_proof_remove_unreferenced_steps : (isar_step -> isar_step) -> isar_proof ->
@@ -24,12 +25,16 @@ open Sledgehammer_Reconstructor
 open Sledgehammer_Isar_Proof
 open Sledgehammer_Isar_Preplay
 
+fun keep_fastest_method_of_isar_step preplay_data
+      (Prove (qs, xs, l, t, subproofs, (facts, _))) =
+    Prove (qs, xs, l, t, subproofs, (facts, [fastest_method_of_isar_step preplay_data l]))
+  | keep_fastest_method_of_isar_step _ step = step
+
 val slack = seconds 0.1
 
-fun minimize_isar_step_dependencies _ _ (step as Let _) = step
-  | minimize_isar_step_dependencies ctxt preplay_data
+fun minimize_isar_step_dependencies ctxt preplay_data
       (step as Prove (qs, xs, l, t, subproofs, ((lfs, gfs), meths as meth :: _))) =
-    (case Lazy.force (preplay_outcome_of_isar_step (!preplay_data) l meth) of
+    (case Lazy.force (preplay_outcome_of_isar_step_for_method (!preplay_data) l meth) of
       Played time =>
       let
         fun mk_step_lfs_gfs lfs gfs = Prove (qs, xs, l, t, subproofs, ((lfs, gfs), meths))
@@ -51,6 +56,7 @@ fun minimize_isar_step_dependencies _ _ (step as Let _) = step
         step'
       end
     | _ => step (* don't touch steps that time out or fail *))
+  | minimize_isar_step_dependencies _ _ step = step
 
 fun postprocess_isar_proof_remove_unreferenced_steps postproc_step =
   let

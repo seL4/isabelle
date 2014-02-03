@@ -33,7 +33,7 @@ fun try0_step _ _ _ (step as Let _) = step
       (step as Prove (_, _, l, _, _, (_, meths as meth :: _))) =
     let
       val timeout =
-        (case Lazy.force (preplay_outcome_of_isar_step (!preplay_data) l meth) of
+        (case Lazy.force (preplay_outcome_of_isar_step_for_method (!preplay_data) l meth) of
           Played time => Time.+ (time, slack)
         | _ => preplay_timeout)
 

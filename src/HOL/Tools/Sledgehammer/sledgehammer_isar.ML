@@ -296,7 +296,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
 
         fun str_of_meth l meth =
           string_of_proof_method meth ^ " " ^
-          str_of_preplay_outcome (preplay_outcome_of_isar_step (!preplay_data) l meth)
+          str_of_preplay_outcome (preplay_outcome_of_isar_step_for_method (!preplay_data) l meth)
         fun comment_of l = map (str_of_meth l) #> commas
 
         fun trace_isar_proof label proof =
@@ -314,7 +314,8 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
           |> try0_isar ? try0_isar_proof ctxt preplay_timeout preplay_data
           |> tap (trace_isar_proof "Tried0")
           |> postprocess_isar_proof_remove_unreferenced_steps
-               (try0_isar ? minimize_isar_step_dependencies ctxt preplay_data)
+               (keep_fastest_method_of_isar_step (!preplay_data)
+                #> try0_isar(*### minimize*) ? minimize_isar_step_dependencies ctxt preplay_data)
           |> tap (trace_isar_proof "Minimized")
           |> `(preplay_outcome_of_isar_proof (!preplay_data))
           ||> chain_isar_proof

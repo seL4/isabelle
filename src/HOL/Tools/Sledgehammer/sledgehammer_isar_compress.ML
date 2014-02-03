@@ -156,7 +156,8 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
                 try the_single sub_steps
 
               (* only touch proofs that can be preplayed sucessfully *)
-              val Played time' = Lazy.force (preplay_outcome_of_isar_step (!preplay_data) l' meth')
+              val Played time' =
+                Lazy.force (preplay_outcome_of_isar_step_for_method (!preplay_data) l' meth')
 
               (* merge steps *)
               val subs'' = subs @ nontriv_subs
@@ -183,7 +184,7 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
           if subproofs = [] then
             step
           else
-            (case Lazy.force (preplay_outcome_of_isar_step (!preplay_data) l meth) of
+            (case Lazy.force (preplay_outcome_of_isar_step_for_method (!preplay_data) l meth) of
               Played time => elim_one_subproof time qs fix l t lfs gfs meths subproofs []
             | _ => step)
 
@@ -223,12 +224,13 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
               val succ_meths = map (hd o snd o the o byline_of_isar_step) succs
 
               (* only touch steps that can be preplayed successfully *)
-              val Played time = Lazy.force (preplay_outcome_of_isar_step (!preplay_data) l meth)
+              val Played time =
+                Lazy.force (preplay_outcome_of_isar_step_for_method (!preplay_data) l meth)
 
               val succs' = map (try_merge cand #> the) succs
 
               val times0 = map2 ((fn Played time => time) o Lazy.force oo
-                preplay_outcome_of_isar_step (!preplay_data)) labels succ_meths
+                preplay_outcome_of_isar_step_for_method (!preplay_data)) labels succ_meths
               val time_slice = time_mult (1.0 / (Real.fromInt (length labels))) time
               val timeouts = map (curry Time.+ time_slice #> time_mult merge_timeout_slack) times0
 

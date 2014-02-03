@@ -22,8 +22,9 @@ sig
   val set_preplay_outcomes_of_isar_step : Proof.context -> Time.time ->
     isar_preplay_data Unsynchronized.ref -> isar_step ->
     (proof_method * play_outcome Lazy.lazy) list -> unit
-  val preplay_outcome_of_isar_step : isar_preplay_data -> label -> proof_method ->
+  val preplay_outcome_of_isar_step_for_method : isar_preplay_data -> label -> proof_method ->
     play_outcome Lazy.lazy
+  val fastest_method_of_isar_step : isar_preplay_data -> label -> proof_method
   val preplay_outcome_of_isar_proof : isar_preplay_data -> isar_proof -> play_outcome
 end;
 
@@ -180,16 +181,20 @@ fun set_preplay_outcomes_of_isar_step ctxt timeout preplay_data
     end
   | set_preplay_outcomes_of_isar_step _ _ _ _ _ = ()
 
-fun preplay_outcome_of_isar_step preplay_data l meth =
-  (case Canonical_Label_Tab.lookup preplay_data l of
-    SOME meths_outcomes =>
-    (case AList.lookup (op =) meths_outcomes meth of
-      SOME outcome => outcome
-    | NONE => raise Fail "Sledgehammer_Isar_Preplay: missing method")
-  | NONE => raise Fail "Sledgehammer_Isar_Preplay: missing label")
+fun preplay_outcome_of_isar_step_for_method preplay_data l meth =
+  let val SOME meths_outcomes = Canonical_Label_Tab.lookup preplay_data l in
+    the (AList.lookup (op =) meths_outcomes meth)
+  end
 
-fun forced_outcome_of_step preplay_data (Prove (_, _, l, _, _, (_, meth :: _))) =
-    Lazy.force (preplay_outcome_of_isar_step preplay_data l meth)
+fun fastest_method_of_isar_step preplay_data l =
+  the (Canonical_Label_Tab.lookup preplay_data l)
+  |> map (fn (meth, outcome) =>
+       (meth, Time.toMilliseconds (case Lazy.force outcome of Played time => time | _ => one_year)))
+  |> sort (int_ord o pairself snd)
+  |> hd |> fst
+
+fun forced_outcome_of_step preplay_data (Prove (_, _, l, _, _, (_, meths))) =
+    Lazy.force (preplay_outcome_of_isar_step_for_method preplay_data l (the_single meths))
   | forced_outcome_of_step _ _ = Played Time.zeroTime
 
 fun preplay_outcome_of_isar_proof preplay_data (Proof (_, _, steps)) =
