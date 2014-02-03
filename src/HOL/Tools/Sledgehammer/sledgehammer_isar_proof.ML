@@ -8,36 +8,24 @@ for dealing with Isar proof texts.
 
 signature SLEDGEHAMMER_ISAR_PROOF =
 sig
+  type proof_method = Sledgehammer_Proof_Methods.proof_method
+
   type label = string * int
   type facts = label list * string list (* local and global facts *)
 
   datatype isar_qualifier = Show | Then
-
-  datatype proof_method =
-    Metis_Method of string option * string option |
-    Simp_Method |
-    Simp_Size_Method |
-    Auto_Method |
-    Fastforce_Method |
-    Force_Method |
-    Arith_Method |
-    Blast_Method |
-    Meson_Method |
-    Algebra_Method
 
   datatype isar_proof =
     Proof of (string * typ) list * (label * term) list * isar_step list
   and isar_step =
     Let of term * term |
     Prove of isar_qualifier list * (string * typ) list * label * term * isar_proof list
-      * facts * proof_method list
+      * facts * proof_method list * string
 
   val no_label : label
 
   val label_ord : label * label -> order
   val string_of_label : label -> string
-
-  val string_of_proof_method : proof_method -> string
 
   val steps_of_isar_proof : isar_proof -> isar_step list
 
@@ -53,13 +41,13 @@ sig
 
   val canonical_label_ord : (label * label) -> order
 
+  val comment_isar_proof : (label -> proof_method list -> string) -> isar_proof -> isar_proof
   val chain_isar_proof : isar_proof -> isar_proof
   val kill_useless_labels_in_isar_proof : isar_proof -> isar_proof
   val relabel_isar_proof_canonically : isar_proof -> isar_proof
-  val relabel_isar_proof_finally : isar_proof -> isar_proof
+  val relabel_isar_proof_nicely : isar_proof -> isar_proof
 
-  val string_of_isar_proof : Proof.context -> int -> int ->
-    (label -> proof_method list -> string) -> isar_proof -> string
+  val string_of_isar_proof : Proof.context -> int -> int -> isar_proof -> string
 end;
 
 structure Sledgehammer_Isar_Proof : SLEDGEHAMMER_ISAR_PROOF =
@@ -70,7 +58,7 @@ open ATP_Proof
 open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
 open Sledgehammer_Util
-open Sledgehammer_Reconstructor
+open Sledgehammer_Proof_Methods
 open Sledgehammer_Isar_Annotate
 
 type label = string * int
@@ -78,24 +66,12 @@ type facts = label list * string list (* local and global facts *)
 
 datatype isar_qualifier = Show | Then
 
-datatype proof_method =
-  Metis_Method of string option * string option |
-  Simp_Method |
-  Simp_Size_Method |
-  Auto_Method |
-  Fastforce_Method |
-  Force_Method |
-  Arith_Method |
-  Blast_Method |
-  Meson_Method |
-  Algebra_Method
-
 datatype isar_proof =
   Proof of (string * typ) list * (label * term) list * isar_step list
 and isar_step =
   Let of term * term |
   Prove of isar_qualifier list * (string * typ) list * label * term * isar_proof list
-    * facts * proof_method list
+    * facts * proof_method list * string
 
 val no_label = ("", ~1)
 
@@ -103,33 +79,18 @@ val label_ord = pairself swap #> prod_ord int_ord fast_string_ord
 
 fun string_of_label (s, num) = s ^ string_of_int num
 
-fun string_of_proof_method meth =
-  (case meth of
-    Metis_Method (NONE, NONE) => "metis"
-  | Metis_Method (type_enc_opt, lam_trans_opt) =>
-    "metis (" ^ commas (map_filter I [type_enc_opt, lam_trans_opt]) ^ ")"
-  | Simp_Method => "simp"
-  | Simp_Size_Method => "simp add: size_ne_size_imp_ne"
-  | Auto_Method => "auto"
-  | Fastforce_Method => "fastforce"
-  | Force_Method => "force"
-  | Arith_Method => "arith"
-  | Blast_Method => "blast"
-  | Meson_Method => "meson"
-  | Algebra_Method => "algebra")
-
 fun steps_of_isar_proof (Proof (_, _, steps)) = steps
 
-fun label_of_isar_step (Prove (_, _, l, _, _, _, _)) = SOME l
+fun label_of_isar_step (Prove (_, _, l, _, _, _, _, _)) = SOME l
   | label_of_isar_step _ = NONE
 
-fun subproofs_of_isar_step (Prove (_, _, _, _, subs, _, _)) = subs
+fun subproofs_of_isar_step (Prove (_, _, _, _, subs, _, _, _)) = subs
   | subproofs_of_isar_step _ = []
 
-fun facts_of_isar_step (Prove (_, _, _, _, _, facts, _)) = facts
+fun facts_of_isar_step (Prove (_, _, _, _, _, facts, _, _)) = facts
   | facts_of_isar_step _ = ([], [])
 
-fun proof_methods_of_isar_step (Prove (_, _, _, _, _, _, meths)) = meths
+fun proof_methods_of_isar_step (Prove (_, _, _, _, _, _, meths, _)) = meths
   | proof_methods_of_isar_step _ = []
 
 fun fold_isar_step f step =
@@ -140,8 +101,8 @@ fun map_isar_steps f =
   let
     fun map_proof (Proof (fix, assms, steps)) = Proof (fix, assms, map map_step steps)
     and map_step (step as Let _) = f step
-      | map_step (Prove (qs, xs, l, t, subs, facts, meths)) =
-        f (Prove (qs, xs, l, t, map map_proof subs, facts, meths))
+      | map_step (Prove (qs, xs, l, t, subs, facts, meths, comment)) =
+        f (Prove (qs, xs, l, t, map map_proof subs, facts, meths, comment))
   in map_proof end
 
 val add_isar_steps = fold_isar_steps (fn Prove _ => Integer.add 1 | _ => I)
@@ -153,12 +114,17 @@ structure Canonical_Label_Tab = Table(
   type key = label
   val ord = canonical_label_ord)
 
+fun comment_isar_step comment_of (Prove (qs, xs, l, t, subs, facts, meths, _)) =
+    Prove (qs, xs, l, t, subs, facts, meths, comment_of l meths)
+  | comment_isar_step _ step = step
+fun comment_isar_proof comment_of = map_isar_steps (comment_isar_step comment_of)
+
 fun chain_qs_lfs NONE lfs = ([], lfs)
   | chain_qs_lfs (SOME l0) lfs =
     if member (op =) lfs l0 then ([Then], lfs |> remove (op =) l0) else ([], lfs)
-fun chain_isar_step lbl (Prove (qs, xs, l, t, subs, (lfs, gfs), meths)) =
+fun chain_isar_step lbl (Prove (qs, xs, l, t, subs, (lfs, gfs), meths, comment)) =
     let val (qs', lfs) = chain_qs_lfs lbl lfs in
-      Prove (qs' @ qs, xs, l, t, map chain_isar_proof subs, (lfs, gfs), meths)
+      Prove (qs' @ qs, xs, l, t, map chain_isar_proof subs, (lfs, gfs), meths, comment)
     end
   | chain_isar_step _ step = step
 and chain_isar_steps _ [] = []
@@ -175,8 +141,8 @@ fun kill_useless_labels_in_isar_proof proof =
 
     fun kill_label l = if member (op =) used_ls l then l else no_label
 
-    fun kill_step (Prove (qs, xs, l, t, subs, facts, meths)) =
-        Prove (qs, xs, kill_label l, t, map kill_proof subs, facts, meths)
+    fun kill_step (Prove (qs, xs, l, t, subs, facts, meths, comment)) =
+        Prove (qs, xs, kill_label l, t, map kill_proof subs, facts, meths, comment)
       | kill_step step = step
     and kill_proof (Proof (fix, assms, steps)) =
       Proof (fix, map (apfst kill_label) assms, map kill_step steps)
@@ -189,14 +155,15 @@ fun relabel_isar_proof_canonically proof =
     fun next_label l (next, subst) =
       let val l' = ("", next) in (l', (next + 1, (l, l') :: subst)) end
 
-    fun relabel_step (Prove (qs, fix, l, t, subs, (lfs, gfs), meths)) (accum as (_, subst)) =
+    fun relabel_step (Prove (qs, fix, l, t, subs, (lfs, gfs), meths, comment))
+          (accum as (_, subst)) =
         let
           val lfs' = maps (the_list o AList.lookup (op =) subst) lfs
           val ((subs', l'), accum') = accum
             |> fold_map relabel_proof subs
             ||>> next_label l
         in
-          (Prove (qs, fix, l', t, subs', (lfs', gfs), meths), accum')
+          (Prove (qs, fix, l', t, subs', (lfs', gfs), meths, comment), accum')
         end
       | relabel_step step accum = (step, accum)
     and relabel_proof (Proof (fix, assms, steps)) =
@@ -210,7 +177,7 @@ fun relabel_isar_proof_canonically proof =
 val assume_prefix = "a"
 val have_prefix = "f"
 
-val relabel_isar_proof_finally =
+val relabel_isar_proof_nicely =
   let
     fun next_label depth prefix l (accum as (next, subst)) =
       if l = no_label then
@@ -220,13 +187,14 @@ val relabel_isar_proof_finally =
           (l', (next + 1, (l, l') :: subst))
         end
 
-    fun relabel_step depth (Prove (qs, xs, l, t, subs, (lfs, gfs), meths)) (accum as (_, subst)) =
+    fun relabel_step depth (Prove (qs, xs, l, t, subs, (lfs, gfs), meths, comment))
+          (accum as (_, subst)) =
         let
           val lfs' = maps (the_list o AList.lookup (op =) subst) lfs
           val (l', accum' as (next', subst')) = next_label depth have_prefix l accum
           val subs' = map (relabel_proof subst' (depth + 1)) subs
         in
-          (Prove (qs, xs, l', t, subs', (lfs', gfs), meths), accum')
+          (Prove (qs, xs, l', t, subs', (lfs', gfs), meths, comment), accum')
         end
       | relabel_step _ step accum = (step, accum)
     and relabel_proof subst depth (Proof (fix, assms, steps)) =
@@ -240,7 +208,7 @@ val relabel_isar_proof_finally =
 
 val indent_size = 2
 
-fun string_of_isar_proof ctxt i n comment_of proof =
+fun string_of_isar_proof ctxt i n proof =
   let
     (* Make sure only type constraints inserted by the type annotation code are printed. *)
     val ctxt =
@@ -291,6 +259,7 @@ fun string_of_isar_proof ctxt i n comment_of proof =
 
     fun is_direct_method (Metis_Method _) = true
       | is_direct_method Meson_Method = true
+      | is_direct_method SMT_Method = true
       | is_direct_method _ = false
 
     (* Local facts are always passed via "using", which affects "meson" and "metis". This is
@@ -336,7 +305,7 @@ fun string_of_isar_proof ctxt i n comment_of proof =
     and add_step ind (Let (t1, t2)) =
         add_str (of_indent ind ^ "let ")
         #> add_term t1 #> add_str " = " #> add_term t2 #> add_str "\n"
-      | add_step ind (Prove (qs, xs, l, t, subs, (ls, ss), meths as meth :: _)) =
+      | add_step ind (Prove (qs, xs, l, t, subs, (ls, ss), meths as meth :: _, comment)) =
         add_step_pre ind qs subs
         #> (case xs of
              [] => add_str (of_have qs (length subs) ^ " ")
@@ -345,9 +314,7 @@ fun string_of_isar_proof ctxt i n comment_of proof =
         #> add_term t
         #> add_str (" " ^
              of_method (sort_distinct label_ord ls) (sort_distinct string_ord ss) meth ^
-             (case comment_of l meths of
-               "" => ""
-             | comment => " (* " ^ comment ^ " *)") ^ "\n")
+             (if comment = "" then "" else " (* " ^ comment ^ " *)") ^ "\n")
     and add_steps ind = fold (add_step ind)
     and of_proof ind ctxt (Proof (xs, assms, steps)) =
       ("", ctxt)
@@ -359,7 +326,7 @@ fun string_of_isar_proof ctxt i n comment_of proof =
     (* One-step Metis proofs are pointless; better use the one-liner directly. *)
     (case proof of
       Proof ([], [], []) => "" (* degenerate case: the conjecture is "True" with Z3 *)
-    | Proof ([], [], [Prove (_, [], _, _, [], _, Metis_Method _ :: _)]) => ""
+    | Proof ([], [], [Prove (_, [], _, _, [], _, Metis_Method _ :: _, _)]) => ""
     | _ =>
       (if i <> 1 then "prefer " ^ string_of_int i ^ "\n" else "") ^
       of_indent 0 ^ "proof -\n" ^ of_proof 1 ctxt proof ^

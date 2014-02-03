@@ -115,6 +115,8 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
   * Big_Operators.thy ~> Groups_Big.thy and Lattices_Big.thy
 
 * Sledgehammer:
+  - New option:
+      smt_proofs
   - Renamed options:
       isar_compress ~> compress_isar
       isar_try0 ~> try0_isar

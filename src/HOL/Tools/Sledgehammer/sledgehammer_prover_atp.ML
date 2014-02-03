@@ -31,7 +31,7 @@ open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
 open ATP_Systems
 open Sledgehammer_Util
-open Sledgehammer_Reconstructor
+open Sledgehammer_Proof_Methods
 open Sledgehammer_Isar
 open Sledgehammer_Prover
 
@@ -132,7 +132,7 @@ val atp_important_message_keep_quotient = 25
 fun run_atp mode name
     (params as {debug, verbose, overlord, type_enc, strict, lam_trans, uncurried_aliases,
        fact_filter, max_facts, max_mono_iters, max_new_mono_instances, isar_proofs, compress_isar,
-       try0_isar, slice, minimize, timeout, preplay_timeout, ...})
+       try0_isar, smt_proofs, slice, minimize, timeout, preplay_timeout, ...})
     minimize_command
     ({comment, state, goal, subgoal, subgoal_count, factss, ...} : prover_problem) =
   let
@@ -346,18 +346,15 @@ fun run_atp mode name
         let
           val used_facts = used_facts_in_atp_proof ctxt fact_names atp_proof
           val needs_full_types = is_typed_helper_used_in_atp_proof atp_proof
-          val reconstrs =
-            bunch_of_reconstructors needs_full_types (fn desperate =>
-              if desperate then
-                if atp_proof_prefers_lifting atp_proof then liftingN else hide_lamsN
-              else
-                default_metis_lam_trans)
+          val meths =
+            bunch_of_proof_methods (smt_proofs <> SOME false) needs_full_types
+              (if atp_proof_prefers_lifting atp_proof then liftingN else hide_lamsN)
         in
           (used_facts,
            Lazy.lazy (fn () =>
              let val used_pairs = used_from |> filter_used_facts false used_facts in
                play_one_line_proof mode debug verbose preplay_timeout used_pairs state subgoal
-                 (hd reconstrs) reconstrs
+                 (hd meths) meths
              end),
            fn preplay =>
               let
@@ -383,7 +380,7 @@ fun run_atp mode name
                    subgoal_count)
                 val num_chained = length (#facts (Proof.goal state))
               in
-                proof_text ctxt debug isar_proofs isar_params num_chained one_line_params
+                proof_text ctxt debug isar_proofs smt_proofs isar_params num_chained one_line_params
               end,
            (if verbose then "\nATP real CPU time: " ^ string_of_time run_time ^ "." else "") ^
            (if important_message <> "" then
@@ -392,7 +389,8 @@ fun run_atp mode name
               ""))
         end
       | SOME failure =>
-        ([], Lazy.value (plain_metis, Play_Failed), fn _ => string_of_atp_failure failure, ""))
+        ([], Lazy.value (Metis_Method (NONE, NONE), Play_Failed),
+         fn _ => string_of_atp_failure failure, ""))
   in
     {outcome = outcome, used_facts = used_facts, used_from = used_from, run_time = run_time,
      preplay = preplay, message = message, message_tail = message_tail}

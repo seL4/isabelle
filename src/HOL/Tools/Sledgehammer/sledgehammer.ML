@@ -10,7 +10,7 @@ signature SLEDGEHAMMER =
 sig
   type fact = Sledgehammer_Fact.fact
   type fact_override = Sledgehammer_Fact.fact_override
-  type minimize_command = Sledgehammer_Reconstructor.minimize_command
+  type minimize_command = Sledgehammer_Proof_Methods.minimize_command
   type mode = Sledgehammer_Prover.mode
   type params = Sledgehammer_Prover.params
 
@@ -33,6 +33,7 @@ open ATP_Proof
 open ATP_Problem_Generate
 open Sledgehammer_Util
 open Sledgehammer_Fact
+open Sledgehammer_Proof_Methods
 open Sledgehammer_Prover
 open Sledgehammer_Prover_ATP
 open Sledgehammer_Prover_Minimize
@@ -49,13 +50,11 @@ fun max_outcome_code codes =
   NONE
   |> fold (fn candidate =>
               fn accum as SOME _ => accum
-               | NONE => if member (op =) codes candidate then SOME candidate
-                         else NONE)
-          ordered_outcome_codes
+               | NONE => if member (op =) codes candidate then SOME candidate else NONE)
+       ordered_outcome_codes
   |> the_default unknownN
 
-fun prover_description ctxt ({verbose, blocking, ...} : params) name num_facts i
-                       n goal =
+fun prover_description ctxt ({verbose, blocking, ...} : params) name num_facts i n goal =
   (quote name,
    (if verbose then
       " with " ^ string_of_int num_facts ^ " fact" ^ plural_s num_facts
@@ -211,88 +210,91 @@ fun string_of_facts facts =
 fun string_of_factss factss =
   if forall (null o snd) factss then
     "Found no relevant facts."
-  else case factss of
-    [(_, facts)] => string_of_facts facts
-  | _ =>
-    factss
-    |> map (fn (filter, facts) => quote filter ^ ": " ^ string_of_facts facts)
-    |> space_implode "\n\n"
+  else
+    (case factss of
+      [(_, facts)] => string_of_facts facts
+    | _ =>
+      factss
+      |> map (fn (filter, facts) => quote filter ^ ": " ^ string_of_facts facts)
+      |> space_implode "\n\n")
 
 fun run_sledgehammer (params as {debug, verbose, spy, blocking, provers, max_facts, ...}) mode
     output_result i (fact_override as {only, ...}) minimize_command state =
   if null provers then
     error "No prover is set."
-  else case subgoal_count state of
-    0 =>
+  else
+    (case subgoal_count state of
+      0 =>
       ((if blocking then error else Output.urgent_message) "No subgoal!"; (false, (noneN, state)))
-  | n =>
-    let
-      val _ = Proof.assert_backward state
-      val print =
-        if mode = Normal andalso is_none output_result then Output.urgent_message else K ()
-      val state = state |> Proof.map_context (Config.put SMT_Config.verbose debug)
-      val ctxt = Proof.context_of state
-      val {facts = chained, goal, ...} = Proof.goal state
-      val (_, hyp_ts, concl_t) = strip_subgoal goal i ctxt
-      val ho_atp = exists (is_ho_atp ctxt) provers
-      val reserved = reserved_isar_keyword_table ()
-      val css = clasimpset_rule_table_of ctxt
-      val all_facts =
-        nearly_all_facts ctxt ho_atp fact_override reserved css chained hyp_ts
-                         concl_t
-      val _ = () |> not blocking ? kill_provers
-      val _ = case find_first (not o is_prover_supported ctxt) provers of
-                SOME name => error ("No such prover: " ^ name ^ ".")
-              | NONE => ()
-      val _ = print "Sledgehammering..."
-      val _ = spying spy (fn () => (state, i, "***", "Starting " ^ @{make_string} mode ^ " mode"))
+    | n =>
+      let
+        val _ = Proof.assert_backward state
+        val print =
+          if mode = Normal andalso is_none output_result then Output.urgent_message else K ()
+        val state = state |> Proof.map_context (silence_proof_methods debug)
+        val ctxt = Proof.context_of state
+        val {facts = chained, goal, ...} = Proof.goal state
+        val (_, hyp_ts, concl_t) = strip_subgoal goal i ctxt
+        val ho_atp = exists (is_ho_atp ctxt) provers
+        val reserved = reserved_isar_keyword_table ()
+        val css = clasimpset_rule_table_of ctxt
+        val all_facts =
+          nearly_all_facts ctxt ho_atp fact_override reserved css chained hyp_ts
+                           concl_t
+        val _ = () |> not blocking ? kill_provers
+        val _ =
+          (case find_first (not o is_prover_supported ctxt) provers of
+            SOME name => error ("No such prover: " ^ name ^ ".")
+          | NONE => ())
+        val _ = print "Sledgehammering..."
+        val _ = spying spy (fn () => (state, i, "***", "Starting " ^ @{make_string} mode ^ " mode"))
 
-      val spying_str_of_factss =
-        commas o map (fn (filter, facts) => filter ^ ": " ^ string_of_int (length facts))
+        val spying_str_of_factss =
+          commas o map (fn (filter, facts) => filter ^ ": " ^ string_of_int (length facts))
 
-      fun get_factss provers =
-        let
-          val max_max_facts =
-            case max_facts of
-              SOME n => n
-            | NONE =>
-              0 |> fold (Integer.max o default_max_facts_of_prover ctxt) provers
-                |> mode = Auto_Try ? (fn n => n div auto_try_max_facts_divisor)
-          val _ = spying spy (fn () => (state, i, "All",
-            "Filtering " ^ string_of_int (length all_facts) ^ " facts"));
-        in
-          all_facts
-          |> relevant_facts ctxt params (hd provers) max_max_facts fact_override hyp_ts concl_t
-          |> tap (fn factss => if verbose then print (string_of_factss factss) else ())
-          |> spy ? tap (fn factss => spying spy (fn () =>
-            (state, i, "All", "Selected facts: " ^ spying_str_of_factss factss)))
-        end
+        fun get_factss provers =
+          let
+            val max_max_facts =
+              (case max_facts of
+                SOME n => n
+              | NONE =>
+                0 |> fold (Integer.max o default_max_facts_of_prover ctxt) provers
+                  |> mode = Auto_Try ? (fn n => n div auto_try_max_facts_divisor))
+            val _ = spying spy (fn () => (state, i, "All",
+              "Filtering " ^ string_of_int (length all_facts) ^ " facts"));
+          in
+            all_facts
+            |> relevant_facts ctxt params (hd provers) max_max_facts fact_override hyp_ts concl_t
+            |> tap (fn factss => if verbose then print (string_of_factss factss) else ())
+            |> spy ? tap (fn factss => spying spy (fn () =>
+              (state, i, "All", "Selected facts: " ^ spying_str_of_factss factss)))
+          end
 
-      fun launch_provers state =
-        let
-          val factss = get_factss provers
-          val problem =
-            {comment = "", state = state, goal = goal, subgoal = i, subgoal_count = n,
-             factss = factss}
-          val learn = mash_learn_proof ctxt params (prop_of goal) all_facts
-          val launch = launch_prover params mode output_result minimize_command only learn
-        in
-          if mode = Auto_Try then
-            (unknownN, state)
-            |> fold (fn prover => fn accum as (outcome_code, _) =>
-                        if outcome_code = someN then accum
-                        else launch problem prover)
-                    provers
-          else
-            provers
-            |> (if blocking then Par_List.map else map) (launch problem #> fst)
-            |> max_outcome_code |> rpair state
-        end
-    in
-      (if blocking then launch_provers state
-       else (Future.fork (tap (fn () => launch_provers state)); (unknownN, state)))
-      handle TimeLimit.TimeOut => (print "Sledgehammer ran out of time."; (unknownN, state))
-    end
-    |> `(fn (outcome_code, _) => outcome_code = someN)
+        fun launch_provers state =
+          let
+            val factss = get_factss provers
+            val problem =
+              {comment = "", state = state, goal = goal, subgoal = i, subgoal_count = n,
+               factss = factss}
+            val learn = mash_learn_proof ctxt params (prop_of goal) all_facts
+            val launch = launch_prover params mode output_result minimize_command only learn
+          in
+            if mode = Auto_Try then
+              (unknownN, state)
+              |> fold (fn prover => fn accum as (outcome_code, _) =>
+                          if outcome_code = someN then accum
+                          else launch problem prover)
+                      provers
+            else
+              provers
+              |> (if blocking then Par_List.map else map) (launch problem #> fst)
+              |> max_outcome_code |> rpair state
+          end
+      in
+        (if blocking then launch_provers state
+         else (Future.fork (tap (fn () => launch_provers state)); (unknownN, state)))
+        handle TimeLimit.TimeOut => (print "Sledgehammer ran out of time."; (unknownN, state))
+      end
+      |> `(fn (outcome_code, _) => outcome_code = someN))
 
 end;

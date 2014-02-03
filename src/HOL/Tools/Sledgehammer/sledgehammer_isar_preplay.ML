@@ -7,7 +7,7 @@ Preplaying of Isar proofs.
 
 signature SLEDGEHAMMER_ISAR_PREPLAY =
 sig
-  type play_outcome = Sledgehammer_Reconstructor.play_outcome
+  type play_outcome = Sledgehammer_Proof_Methods.play_outcome
   type proof_method = Sledgehammer_Isar_Proof.proof_method
   type isar_step = Sledgehammer_Isar_Proof.isar_step
   type isar_proof = Sledgehammer_Isar_Proof.isar_proof
@@ -36,7 +36,7 @@ struct
 
 open ATP_Proof_Reconstruct
 open Sledgehammer_Util
-open Sledgehammer_Reconstructor
+open Sledgehammer_Proof_Methods
 open Sledgehammer_Isar_Proof
 
 val trace = Attrib.setup_config_bool @{binding sledgehammer_preplay_trace} (K false)
@@ -52,9 +52,9 @@ fun enrich_context_with_local_facts proof ctxt =
 
     fun enrich_with_proof (Proof (_, assms, isar_steps)) =
       enrich_with_assms assms #> fold enrich_with_step isar_steps
-    and enrich_with_step (Let _) = I
-      | enrich_with_step (Prove (_, _, l, t, subproofs, _, _)) =
+    and enrich_with_step (Prove (_, _, l, t, subproofs, _, _, _)) =
         enrich_with_fact l t #> fold enrich_with_proof subproofs
+      | enrich_with_step _ = I
   in
     enrich_with_proof proof ctxt
   end
@@ -88,7 +88,7 @@ fun thm_of_proof ctxt (Proof (fixed_frees, assms, steps)) =
 
     val concl = 
       (case try List.last steps of
-        SOME (Prove (_, [], _, t, _, _, _)) => t
+        SOME (Prove (_, [], _, t, _, _, _, _)) => t
       | _ => raise Fail "preplay error: malformed subproof")
 
     val var_idx = maxidx_of_term concl + 1
@@ -100,29 +100,8 @@ fun thm_of_proof ctxt (Proof (fixed_frees, assms, steps)) =
     |> Skip_Proof.make_thm thy
   end
 
-fun tac_of_method ctxt (local_facts, global_facts) meth =
-  Method.insert_tac local_facts THEN'
-  (case meth of
-    Meson_Method => Meson.meson_tac ctxt global_facts
-  | Metis_Method (type_enc_opt, lam_trans_opt) =>
-    Metis_Tactic.metis_tac [type_enc_opt |> the_default partial_type_enc]
-      (the_default default_metis_lam_trans lam_trans_opt) ctxt global_facts
-  | _ =>
-    Method.insert_tac global_facts THEN'
-    (case meth of
-      Simp_Method => Simplifier.asm_full_simp_tac ctxt
-    | Simp_Size_Method =>
-      Simplifier.asm_full_simp_tac (Simplifier.add_simp @{thm size_ne_size_imp_ne} ctxt)
-    | Auto_Method => K (Clasimp.auto_tac ctxt)
-    | Fastforce_Method => Clasimp.fast_force_tac ctxt
-    | Force_Method => Clasimp.force_tac ctxt
-    | Arith_Method => Arith_Data.arith_tac ctxt
-    | Blast_Method => blast_tac ctxt
-    | Algebra_Method => Groebner.algebra_tac [] [] ctxt
-    | _ => raise Fail "Sledgehammer_Isar_Preplay: tac_of_method"))
-
-(* main function for preplaying Isar steps; may throw exceptions *)
-fun raw_preplay_step_for_method ctxt timeout meth (Prove (_, xs, _, t, subproofs, fact_names, _)) =
+(* may throw exceptions *)
+fun raw_preplay_step_for_method ctxt timeout meth (Prove (_, xs, _, t, subproofs, facts, _, _)) =
   let
     val goal =
       (case xs of
@@ -131,10 +110,10 @@ fun raw_preplay_step_for_method ctxt timeout meth (Prove (_, xs, _, t, subproofs
         (* proof obligation: !!thesis. (!!x. A x ==> thesis) ==> thesis
            (cf. "~~/src/Pure/Isar/obtain.ML") *)
         let
-          (* FIXME: generate fresh name *)
-          val thesis = Free ("thesis_preplay", HOLogic.boolT)
-          val thesis_prop = HOLogic.mk_Trueprop thesis
           val frees = map Free xs
+          val thesis =
+            Free (singleton (Variable.variant_frees ctxt frees) ("thesis", HOLogic.boolT))
+          val thesis_prop = HOLogic.mk_Trueprop thesis
 
           (* !!x1..xn. t ==> thesis (xs = [x1, .., xn]) *)
           val inner_prop = fold_rev Logic.all frees (Logic.mk_implies (t, thesis_prop))
@@ -143,18 +122,18 @@ fun raw_preplay_step_for_method ctxt timeout meth (Prove (_, xs, _, t, subproofs
           Logic.all thesis (Logic.mk_implies (inner_prop, thesis_prop))
         end)
 
-    val facts =
-      resolve_fact_names ctxt fact_names
+    val assmsp =
+      resolve_fact_names ctxt facts
       |>> append (map (thm_of_proof ctxt) subproofs)
 
     fun prove () =
       Goal.prove ctxt [] [] goal (fn {context = ctxt, ...} =>
-        HEADGOAL (tac_of_method ctxt facts meth))
+        HEADGOAL (tac_of_proof_method ctxt assmsp meth))
       handle ERROR msg => error ("Preplay error: " ^ msg)
 
     val play_outcome = take_time timeout prove ()
   in
-    (if Config.get ctxt trace then preplay_trace ctxt facts goal play_outcome else ();
+    (if Config.get ctxt trace then preplay_trace ctxt assmsp goal play_outcome else ();
      play_outcome)
   end
 
@@ -185,7 +164,7 @@ fun add_preplay_outcomes Play_Failed _ = Play_Failed
     Play_Timed_Out (Time.+ (pairself time_of_play (play1, play2)))
 
 fun set_preplay_outcomes_of_isar_step ctxt timeout preplay_data
-      (step as Prove (_, _, l, _, _, _, meths)) meths_outcomes0 =
+      (step as Prove (_, _, l, _, _, _, meths, _)) meths_outcomes0 =
     let
       fun lazy_preplay meth =
         Lazy.lazy (fn () => preplay_isar_step_for_method ctxt timeout meth step)
@@ -228,8 +207,8 @@ fun fastest_method_of_isar_step preplay_data =
   #> get_best_method_outcome Lazy.force
   #> fst
 
-fun forced_outcome_of_step preplay_data (Prove (_, _, l, _, _, _, meths)) =
-    Lazy.force (preplay_outcome_of_isar_step_for_method preplay_data l (the_single meths))
+fun forced_outcome_of_step preplay_data (Prove (_, _, l, _, _, _, meths, _)) =
+    Lazy.force (preplay_outcome_of_isar_step_for_method preplay_data l (hd meths))
   | forced_outcome_of_step _ _ = Played Time.zeroTime
 
 fun preplay_outcome_of_isar_proof preplay_data (Proof (_, _, steps)) =

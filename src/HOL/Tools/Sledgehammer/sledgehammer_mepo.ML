@@ -171,7 +171,7 @@ fun add_pconsts_in_term thy =
         (not (is_irrelevant_const s) ? add_pconst_to_table (rich_pconst thy const x))
         #> fold (do_term false) ts
     and do_term ext_arg t =
-      case strip_comb t of
+      (case strip_comb t of
         (Const x, ts) => do_const true x ts
       | (Free x, ts) => do_const false x ts
       | (Abs (_, T, t'), ts) =>
@@ -182,11 +182,11 @@ fun add_pconsts_in_term thy =
          ? add_pconst_to_table (pseudo_abs_name,
                                 PType (order_of_type T + 1, [])))
         #> fold (do_term false) (t' :: ts)
-      | (_, ts) => fold (do_term false) ts
+      | (_, ts) => fold (do_term false) ts)
     and do_term_or_formula ext_arg T =
       if T = HOLogic.boolT then do_formula else do_term ext_arg
     and do_formula t =
-      case t of
+      (case t of
         Const (@{const_name all}, _) $ Abs (_, _, t') => do_formula t'
       | @{const "==>"} $ t1 $ t2 => do_formula t1 #> do_formula t2
       | Const (@{const_name "=="}, Type (_, [T, _])) $ t1 $ t2 =>
@@ -212,7 +212,7 @@ fun add_pconsts_in_term thy =
         do_formula (t1 $ Bound ~1) #> do_formula t'
       | (t0 as Const (_, @{typ bool})) $ t1 =>
         do_term false t0 #> do_formula t1  (* theory constant *)
-      | _ => do_term false t
+      | _ => do_term false t)
   in do_formula end
 
 fun pconsts_in_fact thy t =
@@ -233,17 +233,16 @@ fun theory_const_prop_of fudge th =
   theory_constify fudge (Context.theory_name (theory_of_thm th)) (prop_of th)
 
 fun pair_consts_fact thy fudge fact =
-  case fact |> snd |> theory_const_prop_of fudge
-            |> pconsts_in_fact thy of
+  (case fact |> snd |> theory_const_prop_of fudge |> pconsts_in_fact thy of
     [] => NONE
-  | consts => SOME ((fact, consts), NONE)
+  | consts => SOME ((fact, consts), NONE))
 
 (* A two-dimensional symbol table counts frequencies of constants. It's keyed
    first by constant name and second by its list of type instantiations. For the
    latter, we need a linear ordering on "pattern list". *)
 
 fun patternT_ord p =
-  case p of
+  (case p of
     (Type (s, ps), Type (t, qs)) =>
     (case fast_string_ord (s, t) of
       EQUAL => dict_ord patternT_ord (ps, qs)
@@ -253,7 +252,7 @@ fun patternT_ord p =
   | (Type _, TVar _) => GREATER
   | (Type _, TFree _) => LESS
   | (TFree (s, _), TFree (t, _)) => fast_string_ord (s, t)
-  | (TFree _, _) => GREATER
+  | (TFree _, _) => GREATER)
 fun ptype_ord (PType (m, ps), PType (n, qs)) =
   (case dict_ord patternT_ord (ps, qs) of
     EQUAL => int_ord (m, n)
@@ -269,11 +268,11 @@ fun count_fact_consts thy fudge =
       |> Symtab.map_default (s, PType_Tab.empty)
       #> fold do_term ts
     and do_term t =
-      case strip_comb t of
+      (case strip_comb t of
         (Const x, ts) => do_const true x ts
       | (Free x, ts) => do_const false x ts
       | (Abs (_, _, t'), ts) => fold do_term (t' :: ts)
-      | (_, ts) => fold do_term ts
+      | (_, ts) => fold do_term ts)
   in do_term o theory_const_prop_of fudge o snd end
 
 fun pow_int _ 0 = 1.0
@@ -356,7 +355,7 @@ fun is_odd_const_name s =
 
 fun fact_weight fudge stature const_tab rel_const_tab chained_const_tab
                 fact_consts =
-  case fact_consts |> List.partition (pconst_hyper_mem I rel_const_tab)
+  (case fact_consts |> List.partition (pconst_hyper_mem I rel_const_tab)
                    ||> filter_out (pconst_hyper_mem swap rel_const_tab) of
     ([], _) => 0.0
   | (rel, irrel) =>
@@ -373,7 +372,7 @@ fun fact_weight fudge stature const_tab rel_const_tab chained_const_tab
                    o irrel_pconst_weight fudge const_tab chained_const_tab)
                   irrel
         val res = rel_weight / (rel_weight + irrel_weight)
-      in if Real.isFinite res then res else 0.0 end
+      in if Real.isFinite res then res else 0.0 end)
 
 fun take_most_relevant ctxt max_facts remaining_max
         ({max_imperfect, max_imperfect_exp, ...} : relevance_fudge)
@@ -411,15 +410,16 @@ fun consider_arities th =
   let
     fun aux _ _ NONE = NONE
       | aux t args (SOME tab) =
-        case t of
+        (case t of
           t1 $ t2 => SOME tab |> aux t1 (t2 :: args) |> aux t2 []
         | Const (s, _) =>
           (if is_widely_irrelevant_const s then
              SOME tab
-           else case Symtab.lookup tab s of
-             NONE => SOME (Symtab.update (s, length args) tab)
-           | SOME n => if n = length args then SOME tab else NONE)
-        | _ => SOME tab
+           else
+             (case Symtab.lookup tab s of
+               NONE => SOME (Symtab.update (s, length args) tab)
+             | SOME n => if n = length args then SOME tab else NONE))
+        | _ => SOME tab)
   in aux (prop_of th) [] end
 
 (* FIXME: This is currently only useful for polymorphic type encodings. *)
@@ -507,11 +507,10 @@ fun relevance_filter ctxt thres0 decay max_facts
                       :: hopeful) =
             let
               val weight =
-                case cached_weight of
+                (case cached_weight of
                   SOME w => w
                 | NONE =>
-                  fact_weight fudge stature const_tab rel_const_tab
-                              chained_const_tab fact_consts
+                  fact_weight fudge stature const_tab rel_const_tab chained_const_tab fact_consts)
             in
               if weight >= thres then
                 relevant ((ax, weight) :: candidates) rejects hopeful

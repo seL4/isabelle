@@ -96,6 +96,7 @@ val default_default_params =
    ("isar_proofs", "smart"),
    ("compress_isar", "10"),
    ("try0_isar", "true"),
+   ("smt_proofs", "smart"),
    ("slice", "true"),
    ("minimize", "smart"),
    ("preplay_timeout", "2")]
@@ -117,7 +118,8 @@ val negated_alias_params =
    ("no_isar_proofs", "isar_proofs"),
    ("dont_slice", "slice"),
    ("dont_minimize", "minimize"),
-   ("dont_try0_isar", "try0_isar")]
+   ("dont_try0_isar", "try0_isar"),
+   ("no_smt_proofs", "smt_proofs")]
 
 val params_not_for_minimize =
   ["blocking", "fact_filter", "max_facts", "fact_thresholds", "slice", "minimize"];
@@ -131,12 +133,12 @@ fun is_known_raw_param s =
   member (op =) property_dependent_params s orelse s = "expect"
 
 fun is_prover_list ctxt s =
-  case space_explode " " s of
+  (case space_explode " " s of
     ss as _ :: _ => forall (is_prover_supported ctxt) ss
-  | _ => false
+  | _ => false)
 
 fun unalias_raw_param (name, value) =
-  case AList.lookup (op =) alias_params name of
+  (case AList.lookup (op =) alias_params name of
     SOME (name', []) => (name', value)
   | SOME (param' as (name', _)) =>
     if value <> ["false"] then
@@ -145,13 +147,14 @@ fun unalias_raw_param (name, value) =
       error ("Parameter " ^ quote name ^ " cannot be set to \"false\" \
              \(cf. " ^ quote name' ^ ").")
   | NONE =>
-    case AList.lookup (op =) negated_alias_params name of
-      SOME name' => (name', case value of
-                              ["false"] => ["true"]
-                            | ["true"] => ["false"]
-                            | [] => ["false"]
-                            | _ => value)
-    | NONE => (name, value)
+    (case AList.lookup (op =) negated_alias_params name of
+      SOME name' => (name',
+        (case value of
+          ["false"] => ["true"]
+        | ["true"] => ["false"]
+        | [] => ["false"]
+        | _ => value))
+    | NONE => (name, value)))
 
 val any_type_enc = type_enc_of_string Strict "erased"
 
@@ -266,9 +269,10 @@ fun extract_params mode default_params override_params =
     val type_enc =
       if mode = Auto_Try then
         NONE
-      else case lookup_string "type_enc" of
-        "smart" => NONE
-      | s => (type_enc_of_string Strict s; SOME s)
+      else
+        (case lookup_string "type_enc" of
+          "smart" => NONE
+        | s => (type_enc_of_string Strict s; SOME s))
     val strict = mode = Auto_Try orelse lookup_bool "strict"
     val lam_trans = lookup_option lookup_string "lam_trans"
     val uncurried_aliases = lookup_option lookup_bool "uncurried_aliases"
@@ -284,6 +288,7 @@ fun extract_params mode default_params override_params =
     val isar_proofs = lookup_option lookup_bool "isar_proofs"
     val compress_isar = Real.max (1.0, lookup_real "compress_isar")
     val try0_isar = lookup_bool "try0_isar"
+    val smt_proofs = lookup_option lookup_bool "smt_proofs"
     val slice = mode <> Auto_Try andalso lookup_bool "slice"
     val minimize = if mode = Auto_Try then NONE else lookup_option lookup_bool "minimize"
     val timeout = lookup_time "timeout"
@@ -295,8 +300,8 @@ fun extract_params mode default_params override_params =
      uncurried_aliases = uncurried_aliases, learn = learn, fact_filter = fact_filter,
      max_facts = max_facts, fact_thresholds = fact_thresholds, max_mono_iters = max_mono_iters,
      max_new_mono_instances = max_new_mono_instances, isar_proofs = isar_proofs,
-     compress_isar = compress_isar, try0_isar = try0_isar, slice = slice, minimize = minimize,
-     timeout = timeout, preplay_timeout = preplay_timeout, expect = expect}
+     compress_isar = compress_isar, try0_isar = try0_isar, smt_proofs = smt_proofs, slice = slice,
+     minimize = minimize, timeout = timeout, preplay_timeout = preplay_timeout, expect = expect}
   end
 
 fun get_params mode = extract_params mode o default_raw_params mode

@@ -1103,7 +1103,7 @@ text {*
 Pattern matching is only available for the argument on which the recursion takes
 place. Fortunately, it is easy to generate pattern-maching equations using the
 \keyw{simps\_of\_case} command provided by the theory
-\verb|~~/src/HOL/Library/Simps_Case_Conv|.
+\verb|~~/src/HOL/|\allowbreak\verb|Library/|\allowbreak\verb|Simps_Case_Conv|.
 *}
 
     simps_of_case at_simps: at.simps

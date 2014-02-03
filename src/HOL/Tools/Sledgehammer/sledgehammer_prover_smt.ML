@@ -38,7 +38,7 @@ open ATP_Systems
 open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
 open Sledgehammer_Util
-open Sledgehammer_Reconstructor
+open Sledgehammer_Proof_Methods
 open Sledgehammer_Prover
 
 val smt_builtins = Attrib.setup_config_bool @{binding sledgehammer_smt_builtins} (K true)
@@ -212,8 +212,8 @@ fun smt_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instanc
     do_slice timeout 1 NONE Time.zeroTime
   end
 
-fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...}) minimize_command
-    ({state, goal, subgoal, subgoal_count, factss, ...} : prover_problem) =
+fun run_smt_solver mode name (params as {debug, verbose, smt_proofs, preplay_timeout, ...})
+    minimize_command ({state, goal, subgoal, subgoal_count, factss, ...} : prover_problem) =
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
@@ -233,9 +233,8 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...}) 
       (case outcome of
         NONE =>
         (Lazy.lazy (fn () =>
-           play_one_line_proof mode debug verbose preplay_timeout used_pairs state subgoal SMT
-             (bunch_of_reconstructors false (fn desperate =>
-                if desperate then liftingN else default_metis_lam_trans))),
+           play_one_line_proof mode debug verbose preplay_timeout used_pairs state subgoal
+             SMT_Method (bunch_of_proof_methods (smt_proofs <> SOME false) false liftingN)),
          fn preplay =>
             let
               val one_line_params =
@@ -248,7 +247,8 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...}) 
             end,
          if verbose then "\nSMT solver real CPU time: " ^ string_of_time run_time ^ "." else "")
       | SOME failure =>
-        (Lazy.value (plain_metis, Play_Failed), fn _ => string_of_atp_failure failure, ""))
+        (Lazy.value (Metis_Method (NONE, NONE), Play_Failed),
+         fn _ => string_of_atp_failure failure, ""))
   in
     {outcome = outcome, used_facts = used_facts, used_from = used_from, run_time = run_time,
      preplay = preplay, message = message, message_tail = message_tail}

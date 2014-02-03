@@ -81,7 +81,8 @@ type ('a, 'b, 'c, 'd, 'e, 'f) symbol_attr_decl =
     class * (string * 'c option) list, (class * class) * (string * 'd option) list,
     (class * string) * (string * 'e option) list,
     string * (string * 'f option) list) Code_Symbol.attr;
-type identifier_data = (string, string, string, string, string, string) Code_Symbol.data;
+type identifier_data = (string list * string, string list * string, string list * string, string list * string,
+  string list * string, string list * string) Code_Symbol.data;
 
 type tyco_syntax = Code_Printer.tyco_syntax;
 type raw_const_syntax = Code_Printer.raw_const_syntax;
@@ -144,7 +145,7 @@ fun check_name is_module s =
           val y' = Name.desymbolize false y;
         in ys' @ [y'] end;
   in if xs' = xs
-    then s
+    then if is_module then (xs, "") else split_last xs
     else error ("Invalid code name: " ^ quote s ^ "\n"
       ^ "better try " ^ quote (Long_Name.implode xs'))
   end;
@@ -372,11 +373,12 @@ fun mount_serializer thy target some_width module_name args program syms =
     val width = the_default default_width some_width;
   in (fn program => prepared_serializer program width, prepared_program) end;
 
-fun invoke_serializer thy target some_width module_name args program syms =
+fun invoke_serializer thy target some_width raw_module_name args program syms =
   let
-    val check = if module_name = "" then I else check_name true;
+    val module_name = if raw_module_name = "" then ""
+      else (check_name true raw_module_name; raw_module_name)
     val (mounted_serializer, prepared_program) = mount_serializer thy
-      target some_width (check module_name) args program syms;
+      target some_width module_name args program syms;
   in mounted_serializer prepared_program end;
 
 fun assert_module_name "" = error "Empty module name not allowed here"

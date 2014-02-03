@@ -11,16 +11,16 @@ sig
   type ('a, 'b) atp_step = ('a, 'b) ATP_Proof.atp_step
   type 'a atp_proof = 'a ATP_Proof.atp_proof
   type stature = ATP_Problem_Generate.stature
-  type one_line_params = Sledgehammer_Reconstructor.one_line_params
+  type one_line_params = Sledgehammer_Proof_Methods.one_line_params
 
   val trace : bool Config.T
 
   type isar_params =
     bool * (string option * string option) * Time.time * real * bool * bool
-      * (term, string) atp_step list * thm
+    * (term, string) atp_step list * thm
 
-  val proof_text : Proof.context -> bool -> bool option -> (unit -> isar_params) -> int ->
-    one_line_params -> string
+  val proof_text : Proof.context -> bool -> bool option -> bool option -> (unit -> isar_params) ->
+    int -> one_line_params -> string
 end;
 
 structure Sledgehammer_Isar : SLEDGEHAMMER_ISAR =
@@ -31,7 +31,7 @@ open ATP_Problem
 open ATP_Proof
 open ATP_Proof_Reconstruct
 open Sledgehammer_Util
-open Sledgehammer_Reconstructor
+open Sledgehammer_Proof_Methods
 open Sledgehammer_Isar_Proof
 open Sledgehammer_Isar_Preplay
 open Sledgehammer_Isar_Compress
@@ -109,12 +109,13 @@ fun add_lines_pass2 res [] = rev res
 
 type isar_params =
   bool * (string option * string option) * Time.time * real * bool * bool
-    * (term, string) atp_step list * thm
+  * (term, string) atp_step list * thm
 
 val arith_methods =
   [Arith_Method, Simp_Method, Auto_Method, Fastforce_Method, Blast_Method, Force_Method,
    Algebra_Method, Metis_Method (NONE, NONE), Meson_Method]
-val datatype_methods = [Simp_Method, Simp_Size_Method]
+val datatype_methods =
+  [Simp_Method, Simp_Size_Method]
 val metislike_methods0 =
   [Metis_Method (NONE, NONE), Simp_Method, Auto_Method, Arith_Method, Blast_Method,
    Fastforce_Method, Force_Method, Algebra_Method, Meson_Method,
@@ -122,9 +123,10 @@ val metislike_methods0 =
 val rewrite_methods =
   [Auto_Method, Simp_Method, Fastforce_Method, Force_Method, Metis_Method (NONE, NONE),
    Meson_Method]
-val skolem_methods = [Metis_Method (NONE, NONE), Blast_Method, Meson_Method]
+val skolem_methods =
+  [Metis_Method (NONE, NONE), Blast_Method, Meson_Method]
 
-fun isar_proof_text ctxt debug isar_proofs isar_params
+fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
     (one_line_params as (_, _, _, _, subgoal, subgoal_count)) =
   let
     fun isar_proof_of () =
@@ -134,7 +136,10 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
 
         val metislike_methods = insert (op =) (Metis_Method alt_metis_args) metislike_methods0
 
-        val massage_meths = not try0_isar ? single o hd
+        fun massage_meths (meths as meth :: _) =
+          if not try0_isar then [meth]
+          else if smt_proofs = SOME true then SMT_Method :: meths
+          else meths
 
         val (params, _, concl_t) = strip_subgoal goal subgoal ctxt
         val fixes = map (fn (s, T) => (Binding.name s, SOME T, NoSyn)) params
@@ -169,7 +174,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
                  else ([], rewrite_methods))
                 ||> massage_meths
             in
-              Prove ([], skos, l, t, [], ([], []), meths)
+              Prove ([], skos, l, t, [], ([], []), meths, "")
             end)
 
         val bot = atp_proof |> List.last |> #1
@@ -218,7 +223,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
             accum
             |> (if tainted = [] then
                   cons (Prove (if outer then [Show] else [], [], no_label, concl_t, [],
-                    (the_list predecessor, []), massage_meths metislike_methods))
+                    (the_list predecessor, []), massage_meths metislike_methods, ""))
                 else
                   I)
             |> rev
@@ -237,7 +242,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
                  else metislike_methods)
                 |> massage_meths
 
-              fun prove sub facts = Prove (maybe_show outer c [], [], l, t, sub, facts, meths)
+              fun prove sub facts = Prove (maybe_show outer c [], [], l, t, sub, facts, meths, "")
               fun steps_of_rest step = isar_steps outer (SOME l) (step :: accum) infs
             in
               if is_clause_tainted c then
@@ -251,7 +256,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
                     steps_of_rest (prove [] deps)
                 | _ => steps_of_rest (prove [] deps))
               else
-                steps_of_rest (if skolem then Prove ([], skolems_of t, l, t, [], deps, meths)
+                steps_of_rest (if skolem then Prove ([], skolems_of t, l, t, [], deps, meths, "")
                   else prove [] deps)
             end
           | isar_steps outer predecessor accum (Cases cases :: infs) =
@@ -264,7 +269,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
               val step =
                 Prove (maybe_show outer c [], [], l, t,
                   map isar_case (filter_out (null o snd) cases),
-                  (the_list predecessor, []), massage_meths metislike_methods)
+                  (the_list predecessor, []), massage_meths metislike_methods, "")
             in
               isar_steps outer (SOME l) (step :: accum) infs
             end
@@ -284,9 +289,7 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
           |> postprocess_isar_proof_remove_unreferenced_steps I
           |> relabel_isar_proof_canonically
 
-        val ctxt = ctxt
-          |> enrich_context_with_local_facts canonical_isar_proof
-          |> silence_reconstructors debug
+        val ctxt = ctxt |> enrich_context_with_local_facts canonical_isar_proof
 
         val preplay_data = Unsynchronized.ref Canonical_Label_Tab.empty
 
@@ -296,7 +299,6 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
 
         fun str_of_preplay_outcome outcome =
           if Lazy.is_finished outcome then string_of_play_outcome (Lazy.force outcome) else "?"
-
         fun str_of_meth l meth =
           string_of_proof_method meth ^ " " ^
           str_of_preplay_outcome (preplay_outcome_of_isar_step_for_method (!preplay_data) l meth)
@@ -304,10 +306,16 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
 
         fun trace_isar_proof label proof =
           if trace then
-            tracing (timestamp () ^ "\n" ^ label ^ ":\n\n" ^ string_of_isar_proof comment_of proof ^
-              "\n")
+            tracing (timestamp () ^ "\n" ^ label ^ ":\n\n" ^
+              string_of_isar_proof (comment_isar_proof comment_of proof) ^ "\n")
           else
             ()
+
+        fun comment_of l (meth :: _) =
+          (case (verbose,
+              Lazy.force (preplay_outcome_of_isar_step_for_method (!preplay_data) l meth)) of
+            (false, Played _) => ""
+          | (_, outcome) => string_of_play_outcome outcome)
 
         val (play_outcome, isar_proof) =
           canonical_isar_proof
@@ -319,11 +327,12 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
                 #> minimize ? minimize_isar_step_dependencies ctxt preplay_data)
           |> tap (trace_isar_proof "Minimized")
           |> `(preplay_outcome_of_isar_proof (!preplay_data))
+          ||> comment_isar_proof comment_of
           ||> chain_isar_proof
           ||> kill_useless_labels_in_isar_proof
-          ||> relabel_isar_proof_finally
+          ||> relabel_isar_proof_nicely
       in
-        (case string_of_isar_proof (K (K "")) isar_proof of
+        (case string_of_isar_proof isar_proof of
           "" =>
           if isar_proofs = SOME true then "\nNo structured proof available (proof too simple)."
           else ""
@@ -354,18 +363,18 @@ fun isar_proof_text ctxt debug isar_proofs isar_params
           if isar_proofs = SOME true then "\nWarning: The Isar proof construction failed." else "")
   in one_line_proof ^ isar_proof end
 
-fun isar_proof_would_be_a_good_idea (reconstr, play) =
+fun isar_proof_would_be_a_good_idea smt_proofs (meth, play) =
   (case play of
-    Played _ => reconstr = SMT
+    Played _ => meth = SMT_Method andalso smt_proofs <> SOME true
   | Play_Timed_Out _ => true
   | Play_Failed => true
   | Not_Played => false)
 
-fun proof_text ctxt debug isar_proofs isar_params num_chained
+fun proof_text ctxt debug isar_proofs smt_proofs isar_params num_chained
     (one_line_params as (preplay, _, _, _, _, _)) =
   (if isar_proofs = SOME true orelse
-      (isar_proofs = NONE andalso isar_proof_would_be_a_good_idea preplay) then
-     isar_proof_text ctxt debug isar_proofs isar_params
+      (isar_proofs = NONE andalso isar_proof_would_be_a_good_idea smt_proofs preplay) then
+     isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
    else
      one_line_proof_text num_chained) one_line_params
 

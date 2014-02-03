@@ -110,18 +110,18 @@ fun normalize_vars t =
     fun normT (Type (s, Ts)) = fold_map normT Ts #>> curry Type s
       | normT (TVar (z as (_, S))) =
         (fn ((knownT, nT), accum) =>
-            case find_index (equal z) knownT of
+            (case find_index (equal z) knownT of
               ~1 => (TVar ((Name.uu, nT), S), ((z :: knownT, nT + 1), accum))
-            | j => (TVar ((Name.uu, nT - j - 1), S), ((knownT, nT), accum)))
+            | j => (TVar ((Name.uu, nT - j - 1), S), ((knownT, nT), accum))))
       | normT (T as TFree _) = pair T
     fun norm (t $ u) = norm t ##>> norm u #>> op $
       | norm (Const (s, T)) = normT T #>> curry Const s
       | norm (Var (z as (_, T))) =
         normT T
         #> (fn (T, (accumT, (known, n))) =>
-               case find_index (equal z) known of
+               (case find_index (equal z) known of
                  ~1 => (Var ((Name.uu, n), T), (accumT, (z :: known, n + 1)))
-               | j => (Var ((Name.uu, n - j - 1), T), (accumT, (known, n))))
+               | j => (Var ((Name.uu, n - j - 1), T), (accumT, (known, n)))))
       | norm (Abs (_, T, t)) =
         norm t ##>> normT T #>> (fn (t, T) => Abs (Name.uu, T, t))
       | norm (Bound j) = pair (Bound j)
@@ -138,11 +138,11 @@ fun status_of_thm css name th =
         Induction
       else
         let val t = normalize_vars t in
-          case Termtab.lookup css t of
+          (case Termtab.lookup css t of
             SOME status => status
           | NONE =>
             let val concl = Logic.strip_imp_concl t in
-              case try (HOLogic.dest_eq o HOLogic.dest_Trueprop) concl of
+              (case try (HOLogic.dest_eq o HOLogic.dest_Trueprop) concl of
                 SOME lrhss =>
                 let
                   val prems = Logic.strip_imp_prems t
@@ -150,8 +150,8 @@ fun status_of_thm css name th =
                 in
                   Termtab.lookup css t' |> the_default General
                 end
-              | NONE => General
-            end
+              | NONE => General)
+            end)
         end
     end
 
@@ -165,15 +165,14 @@ fun fact_of_ref ctxt reserved chained css (xthm as (xref, args)) =
       map (enclose "[" "]" o Pretty.str_of o Args.pretty_src ctxt) args
       |> implode
     fun nth_name j =
-      case xref of
+      (case xref of
         Facts.Fact s => backquote s ^ bracket
       | Facts.Named (("", _), _) => "[" ^ bracket ^ "]"
       | Facts.Named ((name, _), NONE) =>
         make_name reserved (length ths > 1) (j + 1) name ^ bracket
       | Facts.Named ((name, _), SOME intervals) =>
         make_name reserved true
-                 (nth (maps (explode_interval (length ths)) intervals) j) name ^
-        bracket
+          (nth (maps (explode_interval (length ths)) intervals) j) name ^ bracket)
     fun add_nth th (j, rest) =
       let val name = nth_name j in
         (j + 1, ((name, stature_of_thm false [] chained css name th), th)
@@ -364,9 +363,9 @@ fun if_thm_before th th' =
    corresponding low-level facts, so that MaSh can learn from the low-level
    proofs. *)
 fun un_class_ify s =
-  case first_field "_class" s of
+  (case first_field "_class" s of
     SOME (pref, suf) => [s, pref ^ suf]
-  | NONE => [s]
+  | NONE => [s])
 
 fun build_name_tables name_of facts =
   let
@@ -388,7 +387,7 @@ fun fact_distinct eq facts =
   |> Net.entries
 
 fun struct_induct_rule_on th =
-  case Logic.strip_horn (prop_of th) of
+  (case Logic.strip_horn (prop_of th) of
     (prems, @{const Trueprop}
             $ ((p as Var ((p_name, 0), _)) $ (a as Var (_, ind_T)))) =>
     if not (is_TVar ind_T) andalso length prems > 1 andalso
@@ -397,7 +396,7 @@ fun struct_induct_rule_on th =
       SOME (p_name, ind_T)
     else
       NONE
-  | _ => NONE
+  | _ => NONE)
 
 val instantiate_induct_timeout = seconds 0.01
 
@@ -420,14 +419,15 @@ fun type_match thy (T1, T2) =
   handle Type.TYPE_MATCH => false
 
 fun instantiate_if_induct_rule ctxt stmt stmt_xs (ax as (_, th)) =
-  case struct_induct_rule_on th of
+  (case struct_induct_rule_on th of
     SOME (p_name, ind_T) =>
     let val thy = Proof_Context.theory_of ctxt in
-      stmt_xs |> filter (fn (_, T) => type_match thy (T, ind_T))
-              |> map_filter (try (TimeLimit.timeLimit instantiate_induct_timeout
-                     (instantiate_induct_rule ctxt stmt p_name ax)))
+      stmt_xs
+      |> filter (fn (_, T) => type_match thy (T, ind_T))
+      |> map_filter (try (TimeLimit.timeLimit instantiate_induct_timeout
+           (instantiate_induct_rule ctxt stmt p_name ax)))
     end
-  | NONE => [ax]
+  | NONE => [ax])
 
 fun external_frees t =
   [] |> Term.add_frees t |> filter_out (can Name.dest_internal o fst)
@@ -482,9 +482,9 @@ fun all_facts ctxt generous ho_atp reserved add_ths chained css =
             val n = length ths
             val multi = n > 1
             fun check_thms a =
-              case try (Proof_Context.get_thms ctxt) a of
+              (case try (Proof_Context.get_thms ctxt) a of
                 NONE => false
-              | SOME ths' => eq_list Thm.eq_thm_prop (ths, ths')
+              | SOME ths' => eq_list Thm.eq_thm_prop (ths, ths'))
           in
             snd (fold_rev (fn th => fn (j, accum as (uni_accum, multi_accum)) =>
               (j - 1,

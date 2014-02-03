@@ -1,4 +1,5 @@
 \documentclass[12pt,a4paper]{article} % fleqn
+\usepackage[T1]{fontenc}
 \usepackage{cite}
 \usepackage{enumitem}
 \usepackage{footmisc}
@@ -16,6 +17,8 @@
 
 \setcounter{secnumdepth}{3}
 \setcounter{tocdepth}{3}
+
+\renewcommand\_{\hbox{\textunderscore\kern-.05ex}}
 
 \newbox\boxA
 \setbox\boxA=\hbox{\ }
@@ -52,6 +55,9 @@ Andrei Popescu, and
 Dmitriy Traytel \\
 {\normalsize Institut f\"ur Informatik, Technische Universit\"at M\"unchen} \\
 \hbox{}}
+
+\urlstyle{tt}
+
 \begin{document}
 
 \maketitle

@@ -21,22 +21,25 @@ end;
 structure Sledgehammer_Isar_Minimize : SLEDGEHAMMER_ISAR_MINIMIZE =
 struct
 
-open Sledgehammer_Reconstructor
+open Sledgehammer_Proof_Methods
 open Sledgehammer_Isar_Proof
 open Sledgehammer_Isar_Preplay
 
-fun keep_fastest_method_of_isar_step preplay_data (Prove (qs, xs, l, t, subproofs, facts, _)) =
-    Prove (qs, xs, l, t, subproofs, facts, [fastest_method_of_isar_step preplay_data l])
+fun keep_fastest_method_of_isar_step preplay_data
+      (Prove (qs, xs, l, t, subproofs, facts, meths, comment)) =
+    Prove (qs, xs, l, t, subproofs, facts,
+      meths |> List.partition (curry (op =) (fastest_method_of_isar_step preplay_data l)) |> op @,
+      comment)
   | keep_fastest_method_of_isar_step _ step = step
 
 val slack = seconds 0.1
 
 fun minimize_isar_step_dependencies ctxt preplay_data
-      (step as Prove (qs, xs, l, t, subproofs, (lfs0, gfs0), meths as meth :: _)) =
+      (step as Prove (qs, xs, l, t, subproofs, (lfs0, gfs0), meths as meth :: _, comment)) =
     (case Lazy.force (preplay_outcome_of_isar_step_for_method (!preplay_data) l meth) of
       Played time =>
       let
-        fun mk_step_lfs_gfs lfs gfs = Prove (qs, xs, l, t, subproofs, (lfs, gfs), meths)
+        fun mk_step_lfs_gfs lfs gfs = Prove (qs, xs, l, t, subproofs, (lfs, gfs), meths, comment)
 
         fun minimize_facts _ time min_facts [] = (time, min_facts)
           | minimize_facts mk_step time min_facts (f :: facts) =
@@ -75,7 +78,7 @@ fun postprocess_isar_proof_remove_unreferenced_steps postproc_step =
         else
           (used, accu))
     and process_used_step step = step |> postproc_step |> process_used_step_subproofs
-    and process_used_step_subproofs (Prove (qs, xs, l, t, subproofs, (lfs, gfs), meths)) =
+    and process_used_step_subproofs (Prove (qs, xs, l, t, subproofs, (lfs, gfs), meths, comment)) =
       let
         val (used, subproofs) =
           map process_proof subproofs
@@ -83,7 +86,7 @@ fun postprocess_isar_proof_remove_unreferenced_steps postproc_step =
           |>> Ord_List.unions label_ord
           |>> fold (Ord_List.insert label_ord) lfs
       in
-        (used, Prove (qs, xs, l, t, subproofs, (lfs, gfs), meths))
+        (used, Prove (qs, xs, l, t, subproofs, (lfs, gfs), meths, comment))
       end
   in
     snd o process_proof
