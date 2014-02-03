@@ -458,8 +458,8 @@ fun init name thy =
   let
     val context = Context.Proof (Proof_Context.init_global thy);
     val marked = Idents.get context;
-    val (marked', context') = activate_all name thy Element.init
-      (Morphism.transfer_morphism o Context.theory_of) (empty_idents, context)
+    val (marked', context') = (empty_idents, context)
+      |> activate_all name thy Element.init (Morphism.transfer_morphism o Context.theory_of);
   in
     context'
     |> Idents.put (merge_idents (marked, marked'))
