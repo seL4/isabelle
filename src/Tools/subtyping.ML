@@ -43,8 +43,8 @@ fun merge_error_tmaps C =
     quote C ^ ".");
 
 fun merge_error_coerce_args C =
-  error ("Cannot merge tables for constants with coercion-invariant arguments.\n"
-    ^ "Conflicting declarations for the constant " ^ quote C ^ ".");
+  error ("Cannot merge tables for constants with coercion-invariant arguments.\n" ^
+    "Conflicting declarations for the constant " ^ quote C ^ ".");
 
 structure Data = Generic_Data
 (
@@ -125,23 +125,24 @@ val is_identity = fn (Abs (_, _, Bound 0)) => true | _ => false;
 fun instantiate t Ts = Term.subst_TVars
   ((Term.add_tvar_namesT (fastype_of t) []) ~~ rev Ts) t;
 
-exception COERCION_GEN_ERROR of unit -> (string * Pretty.T list);
+exception COERCION_GEN_ERROR of unit -> string * Buffer.T;
 
-infixr ++> +@> (* lazy error msg composition *)
+infixr ++>  (*composition with deferred error message*)
+fun (err : unit -> string * Buffer.T) ++> s =
+  err #> apsnd (Buffer.add s);
 
-fun (err : unit -> string * Pretty.T list) ++> (prt : Pretty.T) =
-  err #> apsnd (cons prt);
-val op +@> = Library.foldl op ++>;
+fun eval_err err =
+  let val (s, buf) = err ()
+  in s ^ Markup.markup Markup.text_fold (Buffer.content buf) end;
 
-fun eval_err err = err ()
-  |> (fn (str, errs) => str ^ Pretty.string_of (Pretty.text_fold (rev errs)));
+fun eval_error err = error (eval_err err);
 
 fun inst_collect tye err T U =
   (case (T, Type_Infer.deref tye U) of
     (TVar (xi, _), U) => [(xi, U)]
   | (Type (a, Ts), Type (b, Us)) =>
-      if a <> b then error (eval_err err) else inst_collects tye err Ts Us
-  | (_, U') => if T <> U' then error (eval_err err) else [])
+      if a <> b then eval_error err else inst_collects tye err Ts Us
+  | (_, U') => if T <> U' then eval_error err else [])
 and inst_collects tye err Ts Us =
   fold2 (fn T => fn U => fn is => inst_collect tye err T U @ is) Ts Us [];
 
@@ -244,9 +245,8 @@ fun maybe_new_nodes ss G = fold maybe_new_node ss G;
 (** error messages **)
 
 fun gen_err err msg =
-  err +@> [Pretty.fbrk, Pretty.str "Now trying to infer coercions globally.", Pretty.fbrk,
-     Pretty.fbrk, Pretty.str "Coercion inference failed",
-     Pretty.str (if msg = "" then "" else ":\n" ^ msg), Pretty.fbrk];
+  err ++> ("\nNow trying to infer coercions globally.\n\nCoercion inference failed" ^
+    (if msg = "" then "" else ":\n" ^ msg) ^ "\n");
 
 val gen_msg = eval_err oo gen_err
 
@@ -267,17 +267,14 @@ fun unif_failed msg =
 fun err_appl_msg ctxt msg tye bs t T u U () =
   let val ([t', u'], [T', U']) = prep_output ctxt tye bs [t, u] [T, U] in
     (unif_failed msg ^ Type.appl_error ctxt t' T' u' U' ^ "\n\n",
-      [Pretty.fbrk, Pretty.fbrk, Pretty.str "Coercion Inference:"])
+      Buffer.empty |> Buffer.add "Coercion Inference:\n\n")
   end;
 
 fun err_list ctxt err tye Ts =
-  let
-    val (_, Ts') = prep_output ctxt tye [] [] Ts;
-    val text = eval_err (err +@> [Pretty.fbrk,
-      Pretty.str "Cannot unify a list of types that should be the same:", Pretty.fbrk,
-      Pretty.list "[" "]" (map (Syntax.pretty_typ ctxt) Ts')]);
-  in
-    error text
+  let val (_, Ts') = prep_output ctxt tye [] [] Ts in
+    eval_error (err ++>
+      ("\nCannot unify a list of types that should be the same:\n" ^
+        Pretty.string_of (Pretty.list "[" "]" (map (Syntax.pretty_typ ctxt) Ts'))))
   end;
 
 fun err_bound ctxt err tye packs =
@@ -287,17 +284,16 @@ fun err_bound ctxt err tye packs =
         let val (t', T') = prep_output ctxt tye bs [t, u] [U', U]
         in (t' :: ts, T' :: Ts) end)
       packs ([], []);
-    val text = eval_err (err +@> [Pretty.fbrk, Pretty.big_list "Cannot fulfil subtype constraints:"
+    val msg =
+      Pretty.string_of (Pretty.big_list "Cannot fulfil subtype constraints:"
         (map2 (fn [t, u] => fn [T, U] =>
           Pretty.block [
             Syntax.pretty_typ ctxt T, Pretty.brk 2, Pretty.str "<:", Pretty.brk 2,
             Syntax.pretty_typ ctxt U, Pretty.brk 3,
             Pretty.str "from function application", Pretty.brk 2,
             Pretty.block [Syntax.pretty_term ctxt (t $ u)]])
-        ts Ts)])
-  in
-    error text
-  end;
+          ts Ts));
+  in eval_error (err ++> ("\n" ^ msg)) end;
 
 
 
@@ -447,11 +443,12 @@ fun process_constraints ctxt err cs tye_idx =
                 (T1 as Type (a, []), T2 as Type (b, [])) =>
                   if a = b then simplify done todo tye_idx
                   else if Graph.is_edge coes_graph (a, b) then simplify done todo tye_idx
-                  else error (gen_msg err (quote (Syntax.string_of_typ ctxt T1) ^
-                    " is not a subtype of " ^ quote (Syntax.string_of_typ ctxt T2)))
+                  else
+                    error (gen_msg err (quote (Syntax.string_of_typ ctxt T1) ^
+                      " is not a subtype of " ^ quote (Syntax.string_of_typ ctxt T2)))
               | (Type (a, Ts), Type (b, Us)) =>
-                  if a <> b then error (gen_msg err "different constructors")
-                    (fst tye_idx) error_pack
+                  if a <> b then
+                    error (gen_msg err "different constructors") (fst tye_idx) error_pack
                   else contract a Ts Us error_pack done todo tye idx
               | (TVar (xi, S), Type (a, Ts as (_ :: _))) =>
                   expand true xi S a Ts error_pack done todo tye idx
@@ -579,9 +576,10 @@ fun process_constraints ctxt err cs tye_idx =
                 Graph.is_edge coes_graph (nameT T, nameT U) then (hd nodes, T')
               else if not super andalso
                 Graph.is_edge coes_graph (nameT U, nameT T) then (T', hd nodes)
-              else err_bound ctxt (gen_err err "cycle elimination produces inconsistent graph")
-                    (fst tye_idx)
-                    (maps find_cycle_packs cycles @ find_error_pack super T')
+              else
+                err_bound ctxt (gen_err err "cycle elimination produces inconsistent graph")
+                  (fst tye_idx)
+                  (maps find_cycle_packs cycles @ find_error_pack super T')
           end;
       in
         build_graph G' (map (check_and_gen false) P @ map (check_and_gen true) S) (tye, idx)
@@ -621,11 +619,16 @@ fun process_constraints ctxt err cs tye_idx =
                 in
                   if subset (op = o apfst nameT) (filter is_typeT other_bound, s :: styps true s)
                   then apfst (Vartab.update (xi, T)) tye_idx
-                  else err_bound ctxt (gen_err err ("assigned base type " ^
-                    quote (Syntax.string_of_typ ctxt T) ^
-                    " clashes with the upper bound of variable " ^
-                    Syntax.string_of_typ ctxt (TVar(xi, S)))) tye
-                    (maps (find_error_pack lower) other_bound)
+                  else
+                    err_bound ctxt
+                      (gen_err err
+                        (Pretty.string_of (Pretty.block
+                          [Pretty.str "assigned base type", Pretty.brk 1,
+                            Pretty.quote (Syntax.pretty_typ ctxt T), Pretty.brk 1,
+                            Pretty.str "clashes with the upper bound of variable", Pretty.brk 1,
+                            Syntax.pretty_typ ctxt (TVar (xi, S))])))
+                      tye
+                      (maps (find_error_pack lower) other_bound)
                 end
               else apfst (Vartab.update (xi, T)) tye_idx)
         end
@@ -680,25 +683,28 @@ fun gen_coercion ctxt err tye TU =
             then mk_identity T1
             else
               (case Symreltab.lookup (coes_of ctxt) (a, b) of
-                NONE => raise COERCION_GEN_ERROR (err +@>
-                  [Pretty.quote (Syntax.pretty_typ ctxt T1), Pretty.brk 1,
-                    Pretty.str "is not a subtype of", Pretty.brk 1,
-                    Pretty.quote (Syntax.pretty_typ ctxt T2)])
+                NONE =>
+                  raise COERCION_GEN_ERROR (err ++>
+                    (Pretty.string_of o Pretty.block)
+                      [Pretty.quote (Syntax.pretty_typ ctxt T1), Pretty.brk 1,
+                        Pretty.str "is not a subtype of", Pretty.brk 1,
+                        Pretty.quote (Syntax.pretty_typ ctxt T2)])
               | SOME (co, _) => co)
       | (T1 as Type (a, Ts), T2 as Type (b, Us)) =>
             if a <> b
             then
               (case Symreltab.lookup (coes_of ctxt) (a, b) of
                 (*immediate error - cannot fix complex coercion with the global algorithm*)
-                NONE => error (eval_err (err ++> Pretty.strs
-                  ["No coercion known for type constructors:", quote a, "and", quote b]))
+                NONE =>
+                  eval_error (err ++>
+                    ("No coercion known for type constructors: " ^ quote a ^ " and " ^ quote b))
               | SOME (co, ((Ts', Us'), _)) =>
                   let
                     val co_before = gen (T1, Type (a, Ts'));
                     val coT = range_type (fastype_of co_before);
-                    val insts = inst_collect tye
-                      (err ++> Pretty.str "Could not insert complex coercion")
-                      (domain_type (fastype_of co)) coT;
+                    val insts =
+                      inst_collect tye (err ++> "Could not insert complex coercion")
+                        (domain_type (fastype_of co)) coT;
                     val co' = Term.subst_TVars insts co;
                     val co_after = gen (Type (b, (map (typ_subst_TVars insts) Us')), T2);
                   in
@@ -718,8 +724,9 @@ fun gen_coercion ctxt err tye TU =
                   NONE =>
                     if Type.could_unify (T1, T2)
                     then mk_identity T1
-                    else raise COERCION_GEN_ERROR
-                      (err ++> Pretty.strs ["No map function for", quote a, "known"])
+                    else
+                      raise COERCION_GEN_ERROR
+                        (err ++> ("No map function for " ^ quote a ^ " known"))
                 | SOME (tmap, variances) =>
                     let
                       val (used_coes, invarTs) =
@@ -736,10 +743,12 @@ fun gen_coercion ctxt err tye TU =
       | (T, U) =>
             if Type.could_unify (T, U)
             then mk_identity T
-            else raise COERCION_GEN_ERROR (err +@>
-              [Pretty.str "Cannot generate coercion from", Pretty.brk 1,
-              Pretty.quote (Syntax.pretty_typ ctxt T), Pretty.brk 1, Pretty.str "to", Pretty.brk 1,
-              Pretty.quote (Syntax.pretty_typ ctxt U)]));
+            else raise COERCION_GEN_ERROR (err ++>
+              (Pretty.string_of o Pretty.block)
+               [Pretty.str "Cannot generate coercion from", Pretty.brk 1,
+                Pretty.quote (Syntax.pretty_typ ctxt T), Pretty.brk 1,
+                Pretty.str "to", Pretty.brk 1,
+                Pretty.quote (Syntax.pretty_typ ctxt U)]));
   in
     gen TU
   end;
@@ -748,21 +757,24 @@ fun function_of ctxt err tye T =
   (case Type_Infer.deref tye T of
     Type (C, Ts) =>
       (case Symreltab.lookup (coes_of ctxt) (C, "fun") of
-        NONE => error (eval_err (err ++> Pretty.strs
-          ["No complex coercion from", quote C, "to fun"]))
+        NONE => eval_error (err ++> ("No complex coercion from " ^ quote C ^ " to fun"))
       | SOME (co, ((Ts', _), _)) =>
         let
           val co_before = gen_coercion ctxt err tye (Type (C, Ts), Type (C, Ts'));
           val coT = range_type (fastype_of co_before);
-          val insts = inst_collect tye (err ++> Pretty.str "Could not insert complex coercion")
-            (domain_type (fastype_of co)) coT;
+          val insts =
+            inst_collect tye (err ++> "Could not insert complex coercion")
+              (domain_type (fastype_of co)) coT;
           val co' = Term.subst_TVars insts co;
         in
           Abs (Name.uu, Type (C, Ts), Library.foldr (op $)
             (filter (not o is_identity) [co', co_before], Bound 0))
         end)
-  | T' => error (eval_err (err +@> [Pretty.str "No complex coercion from", Pretty.brk 1,
-      Pretty.quote (Syntax.pretty_typ ctxt T'), Pretty.brk 1, Pretty.str "to fun"])));
+  | T' =>
+      eval_error (err ++>
+        (Pretty.string_of o Pretty.block)
+         [Pretty.str "No complex coercion from", Pretty.brk 1,
+          Pretty.quote (Syntax.pretty_typ ctxt T'), Pretty.brk 1, Pretty.str "to fun"]));
 
 fun insert_coercions ctxt (tye, idx) ts =
   let
@@ -782,7 +794,7 @@ fun insert_coercions ctxt (tye, idx) ts =
           in
             if can (fn TU => strong_unify ctxt TU (tye, 0)) (U, U')
             then (t' $ u', T)
-            else (t' $ (gen_coercion ctxt (K ("", [])) tye (U', U) $ u'), T)
+            else (t' $ (gen_coercion ctxt (K ("", Buffer.empty)) tye (U', U) $ u'), T)
           end
   in
     map (fst o insert []) ts
@@ -819,22 +831,20 @@ fun coercion_infer_types ctxt raw_ts =
                     (t', strong_unify ctxt (W --> V, T) (tye, idx + 2))
                       handle NO_UNIFIER _ =>
                         let
-                          val err' = err ++>
-                            Pretty.str "Local coercion insertion on the operator failed:\n";
+                          val err' = err ++> "Local coercion insertion on the operator failed:\n";
                           val co = function_of ctxt err' tye T;
                           val (t'', T'', tye_idx'') = inf coerce bs (co $ t') (tye, idx + 2);
                         in
                           (t'', strong_unify ctxt (W --> V, T'') tye_idx''
-                             handle NO_UNIFIER (msg, _) =>
-                               error (eval_err (err' ++> Pretty.str msg)))
+                            handle NO_UNIFIER (msg, _) => eval_error (err' ++> msg))
                         end;
-                  val err' = err ++> Pretty.str
+                  val err' = err ++>
                     ((if t' aconv t'' then ""
-                    else "Successfully coerced the operator to a function of type:\n" ^
-                      Syntax.string_of_typ ctxt
-                        (the_single (snd (prep_output ctxt tye' bs [] [W --> V]))) ^ "\n") ^
-                    (if coerce' then "Local coercion insertion on the operand failed:\n"
-                    else "Local coercion insertion on the operand disallowed:\n"));
+                      else "Successfully coerced the operator to a function of type:\n" ^
+                        Syntax.string_of_typ ctxt
+                          (the_single (snd (prep_output ctxt tye' bs [] [W --> V]))) ^ "\n") ^
+                     (if coerce' then "Local coercion insertion on the operand failed:\n"
+                      else "Local coercion insertion on the operand disallowed:\n"));
                   val (u'', U', tye_idx') =
                     if coerce' then
                       let val co = gen_coercion ctxt err' tye' (U, W);
@@ -842,8 +852,7 @@ fun coercion_infer_types ctxt raw_ts =
                     else (u, U, (tye', idx'));
                 in
                   (t'' $ u'', strong_unify ctxt (U', W) tye_idx'
-                    handle NO_UNIFIER (msg, _) =>
-                      raise COERCION_GEN_ERROR (err' ++> Pretty.str msg))
+                    handle NO_UNIFIER (msg, _) => raise COERCION_GEN_ERROR (err' ++> msg))
                 end;
           in (tu, V, tye_idx'') end;
 
@@ -856,11 +865,11 @@ fun coercion_infer_types ctxt raw_ts =
         let
           fun gen_single t (tye_idx, constraints) =
             let val (_, tye_idx', constraints') =
-              generate_constraints ctxt (err ++> Pretty.str "\n") t tye_idx
+              generate_constraints ctxt (err ++> "\n") t tye_idx
             in (tye_idx', constraints' @ constraints) end;
 
           val (tye_idx, constraints) = fold gen_single ts ((Vartab.empty, idx), []);
-          val (tye, idx) = process_constraints ctxt (err ++> Pretty.str "\n") constraints tye_idx;
+          val (tye, idx) = process_constraints ctxt (err ++> "\n") constraints tye_idx;
         in
           (insert_coercions ctxt (tye, idx) ts, (tye, idx))
         end);
@@ -950,7 +959,8 @@ fun add_coercion raw_t context =
     val ctxt = Context.proof_of context;
     val t = singleton (Variable.polymorphic ctxt) raw_t;
 
-    fun err_coercion () = error ("Bad type for a coercion:\n" ^
+    fun err_coercion () =
+      error ("Bad type for a coercion:\n" ^
         Syntax.string_of_term ctxt t ^ " :: " ^
         Syntax.string_of_typ ctxt (fastype_of t));
 
@@ -993,7 +1003,8 @@ fun delete_coercion raw_t context =
     val ctxt = Context.proof_of context;
     val t = singleton (Variable.polymorphic ctxt) raw_t;
 
-    fun err_coercion the = error ("Not" ^
+    fun err_coercion the =
+      error ("Not" ^
         (if the then " the defined " else  " a ") ^ "coercion:\n" ^
         Syntax.string_of_term ctxt t ^ " :: " ^
         Syntax.string_of_typ ctxt (fastype_of t));
@@ -1023,23 +1034,26 @@ fun delete_coercion raw_t context =
         (fold Symreltab.update ins tab', G'', restrict_graph G'')
       end
 
-    fun show_term t = Pretty.block [Syntax.pretty_term ctxt t,
-      Pretty.str " :: ", Syntax.pretty_typ ctxt (fastype_of t)]
+    fun show_term t =
+      Pretty.block [Syntax.pretty_term ctxt t,
+        Pretty.str " :: ", Syntax.pretty_typ ctxt (fastype_of t)];
 
     fun coercion_data_update (tab, G, _) =
-        (case Symreltab.lookup tab (a, b) of
-          NONE => err_coercion false
-        | SOME (t', (_, [])) => if t aconv t'
-            then delete_and_insert tab G
-            else err_coercion true
-        | SOME (t', (_, ts)) => if t aconv t'
-            then error ("Cannot delete the automatically derived coercion:\n" ^
+      (case Symreltab.lookup tab (a, b) of
+        NONE => err_coercion false
+      | SOME (t', (_, [])) =>
+          if t aconv t'
+          then delete_and_insert tab G
+          else err_coercion true
+      | SOME (t', (_, ts)) =>
+          if t aconv t' then
+            error ("Cannot delete the automatically derived coercion:\n" ^
               Syntax.string_of_term ctxt t ^ " :: " ^
-              Syntax.string_of_typ ctxt (fastype_of t) ^
-              Pretty.string_of (Pretty.big_list "\n\nDeleting one of the coercions:"
-                (map show_term ts)) ^
+              Syntax.string_of_typ ctxt (fastype_of t) ^ "\n\n" ^
+              Pretty.string_of
+                (Pretty.big_list "Deleting one of the coercions:" (map show_term ts)) ^
               "\nwill also remove the transitive coercion.")
-            else err_coercion true);
+          else err_coercion true);
   in
     map_coes_and_graphs coercion_data_update context
   end;
