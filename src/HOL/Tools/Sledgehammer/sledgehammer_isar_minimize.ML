@@ -25,8 +25,9 @@ open Sledgehammer_Proof_Methods
 open Sledgehammer_Isar_Proof
 open Sledgehammer_Isar_Preplay
 
-fun keep_fastest_method_of_isar_step preplay_data (Prove (qs, xs, l, t, subproofs, facts, _)) =
-    Prove (qs, xs, l, t, subproofs, facts, [fastest_method_of_isar_step preplay_data l])
+fun keep_fastest_method_of_isar_step preplay_data (Prove (qs, xs, l, t, subproofs, facts, meths)) =
+    Prove (qs, xs, l, t, subproofs, facts,
+      meths |> List.partition (curry (op =) (fastest_method_of_isar_step preplay_data l)) |> op @)
   | keep_fastest_method_of_isar_step _ step = step
 
 val slack = seconds 0.1

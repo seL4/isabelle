@@ -208,7 +208,7 @@ fun fastest_method_of_isar_step preplay_data =
   #> fst
 
 fun forced_outcome_of_step preplay_data (Prove (_, _, l, _, _, _, meths)) =
-    Lazy.force (preplay_outcome_of_isar_step_for_method preplay_data l (the_single meths))
+    Lazy.force (preplay_outcome_of_isar_step_for_method preplay_data l (hd meths))
   | forced_outcome_of_step _ _ = Played Time.zeroTime
 
 fun preplay_outcome_of_isar_proof preplay_data (Proof (_, _, steps)) =
