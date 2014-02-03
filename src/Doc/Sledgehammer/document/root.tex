@@ -1067,9 +1067,9 @@ MaSh is enabled; otherwise, MePo.
 
 \opdefault{max\_facts}{smart\_int}{smart}
 Specifies the maximum number of facts that may be returned by the relevance
-filter. If the option is set to \textit{smart}, it is set to a value that was
-empirically found to be appropriate for the prover. Typical values range between
-50 and 1000.
+filter. If the option is set to \textit{smart}, it effectively takes a value
+that was empirically found to be appropriate for the prover. Typical values
+range between 50 and 1000.
 
 For the MaSh-related commands \textit{learn\_isar}, \textit{learn\_prover},
 \textit{relearn\_isar}, and \textit{relearn\_prover}, this option specifies the
@@ -1093,7 +1093,7 @@ place only if MaSh is enabled.
 Specifies the maximum number of monomorphic instances to generate beyond
 \textit{max\_facts}. The higher this limit is, the more monomorphic instances
 are potentially generated. Whether monomorphization takes place depends on the
-type encoding used. If the option is set to \textit{smart}, it is set to a value
+type encoding used. If the option is set to \textit{smart}, it takes a value
 that was empirically found to be appropriate for the prover. For most provers,
 this value is 100.
 
@@ -1104,7 +1104,7 @@ this value is 100.
 Specifies the maximum number of iterations for the monomorphization fixpoint
 construction. The higher this limit is, the more monomorphic instances are
 potentially generated. Whether monomorphization takes place depends on the
-type encoding used. If the option is set to \textit{smart}, it is set to a value
+type encoding used. If the option is set to \textit{smart}, it takes a value
 that was empirically found to be appropriate for the prover. For most provers,
 this value is 3.
 
@@ -1313,9 +1313,13 @@ Alias for ``\textit{compress\_isar} = 0''.
 
 \optrue{try0\_isar}{dont\_try0\_isar}
 Specifies whether standard proof methods such as \textit{auto} and
-\textit{blast} should be tried as alternatives to \textit{metis} and
-\textit{smt} in Isar proofs. The collection of methods is roughly the same as
-for the \textbf{try0} command.
+\textit{blast} should be tried as alternatives to \textit{metis} in Isar proofs.
+The collection of methods is roughly the same as for the \textbf{try0} command.
+
+\opsmart{smt}{no\_smt}
+Specifies whether the \textit{smt} proof method should be tried as an
+alternative to \textit{metis}.  If the option is set to \textit{smart}, the
+\textit{smt} method is used for one-line proofs but not in Isar proofs.
 \end{enum}
 
 \subsection{Authentication}
