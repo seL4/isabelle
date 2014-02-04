@@ -122,6 +122,10 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
       isar_try0 ~> try0_isar
     INCOMPATIBILITY.
 
+* Metis:
+  - Removed legacy proof method 'metisFT'. Use 'metis (full_types)' instead.
+    INCOMPATIBILITY.
+
 * Try0: Added 'algebra' and 'meson' to the set of proof methods.
 
 * The symbol "\<newline>" may be used within char or string literals

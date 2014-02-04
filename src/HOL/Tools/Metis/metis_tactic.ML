@@ -262,11 +262,9 @@ fun preskolem_tac ctxt st0 =
 fun generic_metis_tac type_encs lam_trans ctxt ths i st0 =
   let
     val _ = trace_msg ctxt (fn () =>
-        "Metis called with theorems\n" ^
-        cat_lines (map (Display.string_of_thm ctxt) ths))
+      "Metis called with theorems\n" ^ cat_lines (map (Display.string_of_thm ctxt) ths))
     val type_encs = type_encs |> maps unalias_type_enc
-    fun tac clause =
-      resolve_tac (FOL_SOLVE type_encs lam_trans ctxt clause ths) 1
+    fun tac clause = resolve_tac (FOL_SOLVE type_encs lam_trans ctxt clause ths) 1
   in
     Meson.MESON (preskolem_tac ctxt) (maps (neg_clausify ctxt (lam_trans = combsN))) tac ctxt i st0
   end
@@ -282,15 +280,10 @@ fun metis_tac [] = generic_metis_tac partial_type_encs
 val has_tvar =
   exists_type (exists_subtype (fn TVar _ => true | _ => false)) o prop_of
 
-fun method default_type_encs ((override_type_encs, lam_trans), ths) ctxt facts =
+fun metis_method ((override_type_encs, lam_trans), ths) ctxt facts =
   let
-    val _ =
-      if default_type_encs = full_type_encs then
-        legacy_feature "Old \"metisFT\" method -- use \"metis (full_types)\" instead"
-      else
-        ()
     val (schem_facts, nonschem_facts) = List.partition has_tvar facts
-    val type_encs = override_type_encs |> the_default default_type_encs
+    val type_encs = override_type_encs |> the_default partial_type_encs
     val lam_trans = lam_trans |> the_default default_metis_lam_trans
   in
     HEADGOAL (Method.insert_tac nonschem_facts THEN'
@@ -301,8 +294,7 @@ val metis_lam_transs = [hide_lamsN, liftingN, combsN]
 
 fun set_opt _ x NONE = SOME x
   | set_opt get x (SOME x0) =
-    error ("Cannot specify both " ^ quote (get x0) ^ " and " ^ quote (get x) ^
-           ".")
+    error ("Cannot specify both " ^ quote (get x0) ^ " and " ^ quote (get x) ^ ".")
 
 fun consider_opt s =
   if member (op =) metis_lam_transs s then apsnd (set_opt I s) else apfst (set_opt hd [s])
@@ -316,15 +308,9 @@ val parse_metis_options =
                            |> (case s' of SOME s' => consider_opt s' | _ => I)))
       (NONE, NONE)
 
-fun setup_method (binding, type_encs) =
-  Scan.lift parse_metis_options -- Attrib.thms >> (METHOD oo method type_encs)
-  |> Method.setup binding
-
 val setup =
-  [((@{binding metis}, partial_type_encs),
-    "Metis for FOL and HOL problems"),
-   ((@{binding metisFT}, full_type_encs),
-    "Metis for FOL/HOL problems with fully-typed translation")]
-  |> fold (uncurry setup_method)
+  Method.setup @{binding metis}
+    (Scan.lift parse_metis_options -- Attrib.thms >> (METHOD oo metis_method))
+    "Metis for FOL and HOL problems"
 
 end;
