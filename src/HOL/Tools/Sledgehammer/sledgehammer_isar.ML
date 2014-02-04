@@ -323,10 +323,10 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
                 #> minimize ? minimize_isar_step_dependencies ctxt preplay_data)
           |> tap (trace_isar_proof "Minimized")
           |> `(preplay_outcome_of_isar_proof (!preplay_data))
-          ||> comment_isar_proof comment_of
-          ||> chain_isar_proof
-          ||> kill_useless_labels_in_isar_proof
-          ||> relabel_isar_proof_nicely
+          ||> (comment_isar_proof comment_of
+               #> chain_isar_proof
+               #> kill_useless_labels_in_isar_proof
+               #> relabel_isar_proof_nicely)
       in
         (case string_of_isar_proof isar_proof of
           "" =>

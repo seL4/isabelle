@@ -25,7 +25,6 @@ open Sledgehammer_Isar_Preplay
 
 val dummy_isar_step = Let (Term.dummy, Term.dummy)
 
-(* traverses steps in post-order and collects the steps with the given labels *)
 fun collect_successors steps lbls =
   let
     fun collect_steps _ ([], accu) = ([], accu)
@@ -45,7 +44,6 @@ fun collect_successors steps lbls =
     rev (snd (collect_steps steps (lbls, [])))
   end
 
-(* traverses steps in reverse post-order and inserts the given updates *)
 fun update_steps steps updates =
   let
     fun update_steps [] updates = ([], updates)
@@ -85,7 +83,8 @@ fun merge_methods preplay_data (l1, meths1) (l2, meths2) =
       end
   in
     meths2 @ subtract (op =) meths2 meths1
-    |> filter (is_method_hopeful l1 andf is_method_hopeful l2)
+    |> List.partition (is_method_hopeful l1 andf is_method_hopeful l2)
+    |> op @
   end
 
 fun try_merge preplay_data (Prove (_, [], l1, _, subproofs1, (lfs1, gfs1), meths1, comment1))
@@ -104,7 +103,7 @@ fun try_merge preplay_data (Prove (_, [], l1, _, subproofs1, (lfs1, gfs1), meths
 
 val compress_degree = 2
 val merge_timeout_slack_time = seconds 0.005
-val merge_timeout_slack_factor = 1.25
+val merge_timeout_slack_factor = 1.5
 
 fun slackify_merge_timeout time =
   time_mult merge_timeout_slack_factor (Time.+ (merge_timeout_slack_time, time))
@@ -205,26 +204,22 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
           fun cand_key (i, l, t_size) = (length (get_successors l), (t_size, i))
 
           val compression_ord =
-            prod_ord int_ord (prod_ord (int_ord #> rev_order) int_ord)
-            #> rev_order
+            prod_ord int_ord (prod_ord (int_ord #> rev_order) int_ord) #> rev_order
 
           val cand_ord = pairself cand_key #> compression_ord
 
           fun pop_next_candidate [] = (NONE, [])
             | pop_next_candidate (cands as (cand :: cands')) =
-              let
-                val best as (i, _, _) =
-                  fold (fn x => fn y => if cand_ord (x, y) = GREATER then x else y) cands' cand
-              in (SOME best, filter_out (fn (j, _, _) => j = i) cands) end
+              fold (fn x => fn y => if cand_ord (x, y) = GREATER then x else y) cands' cand
+              |> (fn best => (SOME best, remove (op =) best cands))
 
           val candidates =
             let
               fun add_cand (i, Prove (_, _, l, t, _, _, _, _)) = cons (i, l, size_of_term t)
                 | add_cand _ = I
             in
-              (steps
-               |> split_last |> fst (* keep last step *)
-               |> fold_index add_cand) []
+              (* the very last step is not a candidate *)
+              (steps |> split_last |> fst |> fold_index add_cand) []
             end
 
           fun try_eliminate (i, l, _) labels steps =
@@ -271,10 +266,10 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
             else
               (case pop_next_candidate candidates of
                 (NONE, _) => steps (* no more candidates for elimination *)
-              | (SOME (cand as (_, l, _)), candidates) =>
+              | (SOME (cand as (i, l, _)), candidates') =>
                 let val successors = get_successors l in
                   if length successors > compress_degree then steps
-                  else compression_loop candidates (try_eliminate cand successors steps)
+                  else compression_loop candidates' (try_eliminate cand successors steps)
                 end)
         in
           compression_loop candidates steps
