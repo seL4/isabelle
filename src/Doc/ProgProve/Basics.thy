@@ -17,7 +17,7 @@ programming languages. Thus there are
 \begin{description}
 \item[base types,] 
 in particular @{typ bool}, the type of truth values,
-@{typ nat}, the type of natural numbers ($\mathbb{N}$), and @{typ int},
+@{typ nat}, the type of natural numbers ($\mathbb{N}$), and \indexed{@{typ int}}{int},
 the type of mathematical integers ($\mathbb{Z}$).
 \item[type constructors,]
  in particular @{text list}, the type of
@@ -33,7 +33,7 @@ Note that @{typ"'a \<Rightarrow> 'b list"} means @{typ[source]"'a \<Rightarrow> 
 not @{typ"('a \<Rightarrow> 'b) list"}: postfix type constructors have precedence
 over @{text"\<Rightarrow>"}.
 
-\concept{Terms} are formed as in functional programming by
+\conceptidx{Terms}{term} are formed as in functional programming by
 applying functions to arguments. If @{text f} is a function of type
 @{text"\<tau>\<^sub>1 \<Rightarrow> \<tau>\<^sub>2"} and @{text t} is a term of type
 @{text"\<tau>\<^sub>1"} then @{term"f t"} is a term of type @{text"\<tau>\<^sub>2"}. We write @{text "t :: \<tau>"} to mean that term @{text t} has type @{text \<tau>}.
@@ -58,21 +58,21 @@ if they occur inside other constructs.
 Terms may also contain @{text "\<lambda>"}-abstractions. For example,
 @{term "\<lambda>x. x"} is the identity function.
 
-\concept{Formulas} are terms of type @{text bool}.
+\conceptidx{Formulas}{formula} are terms of type @{text bool}.
 There are the basic constants @{term True} and @{term False} and
 the usual logical connectives (in decreasing order of precedence):
 @{text"\<not>"}, @{text"\<and>"}, @{text"\<or>"}, @{text"\<longrightarrow>"}.
 
-\concept{Equality} is available in the form of the infix function @{text "="}
+\conceptidx{Equality}{equality} is available in the form of the infix function @{text "="}
 of type @{typ "'a \<Rightarrow> 'a \<Rightarrow> bool"}. It also works for formulas, where
 it means ``if and only if''.
 
-\concept{Quantifiers} are written @{prop"\<forall>x. P"} and @{prop"\<exists>x. P"}.
+\conceptidx{Quantifiers}{quantifier} are written @{prop"\<forall>x. P"} and @{prop"\<exists>x. P"}.
 
 Isabelle automatically computes the type of each variable in a term. This is
 called \concept{type inference}.  Despite type inference, it is sometimes
-necessary to attach explicit \concept{type constraints} (or \concept{type
-annotations}) to a variable or term.  The syntax is @{text "t :: \<tau>"} as in
+necessary to attach an explicit \concept{type constraint} (or \concept{type
+annotation}) to a variable or term.  The syntax is @{text "t :: \<tau>"} as in
 \mbox{\noquotes{@{prop[source] "m < (n::nat)"}}}. Type constraints may be
 needed to
 disambiguate terms involving overloaded functions such as @{text "+"}, @{text
@@ -111,13 +111,13 @@ The general format of a theory @{text T} is
 \end{quote}
 where @{text "T\<^sub>1 \<dots> T\<^sub>n"} are the names of existing
 theories that @{text T} is based on. The @{text "T\<^sub>i"} are the
-direct \concept{parent theories} of @{text T}.
+direct \conceptidx{parent theories}{parent theory} of @{text T}.
 Everything defined in the parent theories (and their parents, recursively) is
 automatically visible. Each theory @{text T} must
 reside in a \concept{theory file} named @{text "T.thy"}.
 
 \begin{warn}
-HOL contains a theory @{text Main}, the union of all the basic
+HOL contains a theory @{theory Main}\index{Main@@{theory Main}}, the union of all the basic
 predefined theories like arithmetic, lists, sets, etc.
 Unless you know what you are doing, always include @{text Main}
 as a direct or indirect parent of all your theories.

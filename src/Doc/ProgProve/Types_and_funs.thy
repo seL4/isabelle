@@ -359,14 +359,15 @@ Prove @{prop "itadd m n = add m n"}.
 
 \section{Simplification}
 
-So far we have talked a lot about simplifying terms without explaining the concept. \concept{Simplification} means
+So far we have talked a lot about simplifying terms without explaining the concept.
+\conceptidx{Simplification}{simplification} means
 \begin{itemize}
 \item using equations $l = r$ from left to right (only),
 \item as long as possible.
 \end{itemize}
 To emphasize the directionality, equations that have been given the
-@{text"simp"} attribute are called \concept{simplification}
-rules. Logically, they are still symmetric, but proofs by
+@{text"simp"} attribute are called \conceptidx{simplification rules}{simplification rule}.
+Logically, they are still symmetric, but proofs by
 simplification use them only in the left-to-right direction.  The proof tool
 that performs simplifications is called the \concept{simplifier}. It is the
 basis of @{text auto} and other related proof methods.
@@ -393,7 +394,7 @@ as follows:
 \end{array}
 \]
 Simplification is often also called \concept{rewriting}
-and simplification rules \concept{rewrite rules}.
+and simplification rules \conceptidx{rewrite rules}{rewrite rule}.
 
 \subsection{Simplification Rules}
 

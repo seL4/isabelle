@@ -59,8 +59,13 @@
 \renewenvironment{isamarkuptxt}{\par\isastyletext\begin{isapar}\noindent}{\end{isapar}}
 
 \newcommand{\noquotes}[1]{{\renewcommand{\isachardoublequote}{}\renewcommand{\isachardoublequoteopen}{}\renewcommand{\isachardoublequoteclose}{}#1}}
-\newcommand{\concept}[1]{\textbf{#1}}
 \newcommand{\xsymbol}[1]{\texttt{\char`\\\char`<#1>}}
+
+%index
+\newcommand{\conceptnoidx}[1]{\textbf{#1}}
+\newcommand{\concept}[1]{\conceptnoidx{#1}\index{#1}}
+\newcommand{\conceptidx}[2]{\conceptnoidx{#1}\index{#2}}
+\newcommand{\indexed}[2]{#1\index{#2@#1}}
 
 \newcommand{\isabox}{\fbox}
 \newcommand{\bigisabox}[1]

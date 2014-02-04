@@ -190,7 +190,7 @@ The key characteristics of both @{text simp} and @{text auto} are
 \item They show you were they got stuck, giving you an idea how to continue.
 \item They perform the obvious steps but are highly incomplete.
 \end{itemize}
-A proof method is \concept{complete} if it can prove all true formulas.
+A proof method is \conceptnoidx{complete} if it can prove all true formulas.
 There is no complete proof method for HOL, not even in theory.
 Hence all our proof methods only differ in how incomplete they are.
 
@@ -331,11 +331,11 @@ to the proof state. We will now examine the details of this process.
 \subsection{Instantiating Unknowns}
 
 We had briefly mentioned earlier that after proving some theorem,
-Isabelle replaces all free variables @{text x} by so called \concept{unknowns}
+Isabelle replaces all free variables @{text x} by so called \conceptidx{unknowns}{unknown}
 @{text "?x"}. We can see this clearly in rule @{thm[source] conjI}.
 These unknowns can later be instantiated explicitly or implicitly:
 \begin{itemize}
-\item By hand, using \concept{@{text of}}.
+\item By hand, using \indexed{@{text of}}{of}.
 The expression @{text"conjI[of \"a=b\" \"False\"]"}
 instantiates the unknowns in @{thm[source] conjI} from left to right with the
 two formulas @{text"a=b"} and @{text False}, yielding the rule
@@ -345,20 +345,20 @@ In general, @{text"th[of string\<^sub>1 \<dots> string\<^sub>n]"} instantiates
 the unknowns in the theorem @{text th} from left to right with the terms
 @{text string\<^sub>1} to @{text string\<^sub>n}.
 
-\item By unification. \concept{Unification} is the process of making two
+\item By unification. \conceptidx{Unification}{unification} is the process of making two
 terms syntactically equal by suitable instantiations of unknowns. For example,
 unifying @{text"?P \<and> ?Q"} with \mbox{@{prop"a=b \<and> False"}} instantiates
 @{text "?P"} with @{prop "a=b"} and @{text "?Q"} with @{prop False}.
 \end{itemize}
 We need not instantiate all unknowns. If we want to skip a particular one we
 can just write @{text"_"} instead, for example @{text "conjI[of _ \"False\"]"}.
-Unknowns can also be instantiated by name using \concept{@{text "where"}}, for example
+Unknowns can also be instantiated by name using \indexed{@{text "where"}}{where}, for example
 @{text "conjI[where ?P = \"a=b\""} \isacom{and} @{text"?Q = \"False\"]"}.
 
 
 \subsection{Rule Application}
 
-\concept{Rule application} means applying a rule backwards to a proof state.
+\conceptidx{Rule application}{rule application} means applying a rule backwards to a proof state.
 For example, applying rule @{thm[source]conjI} to a proof state
 \begin{quote}
 @{text"1.  \<dots>  \<Longrightarrow> A \<and> B"}
@@ -385,7 +385,7 @@ This is also called \concept{backchaining} with rule @{text xyz}.
 \subsection{Introduction Rules}
 
 Conjunction introduction (@{thm[source] conjI}) is one example of a whole
-class of rules known as \concept{introduction rules}. They explain under which
+class of rules known as \conceptidx{introduction rules}{introduction rule}. They explain under which
 premises some logical construct can be introduced. Here are some further
 useful introduction rules:
 \[
@@ -438,7 +438,7 @@ Of course this is just an example and could be proved by @{text arith}, too.
 Forward proof means deriving new theorems from old theorems. We have already
 seen a very simple form of forward proof: the @{text of} operator for
 instantiating unknowns in a theorem. The big brother of @{text of} is
-\concept{@{text OF}} for applying one theorem to others. Given a theorem @{prop"A \<Longrightarrow> B"} called
+\indexed{@{text OF}}{OF} for applying one theorem to others. Given a theorem @{prop"A \<Longrightarrow> B"} called
 @{text r} and a theorem @{text A'} called @{text r'}, the theorem @{text
 "r[OF r']"} is the result of applying @{text r} to @{text r'}, where @{text
 r} should be viewed as a function taking a theorem @{text A} and returning
@@ -782,8 +782,8 @@ for every rule of @{text I} that @{text P} is invariant:
 
 The above format for inductive definitions is simplified in a number of
 respects. @{text I} can have any number of arguments and each rule can have
-additional premises not involving @{text I}, so-called \concept{side
-conditions}. In rule inductions, these side-conditions appear as additional
+additional premises not involving @{text I}, so-called \conceptidx{side
+conditions}{side condition}. In rule inductions, these side conditions appear as additional
 assumptions. The \isacom{for} clause seen in the definition of the reflexive
 transitive closure merely simplifies the form of the induction rule.
 

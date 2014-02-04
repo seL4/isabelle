@@ -76,7 +76,7 @@ But facts can also be composed with @{text OF} and @{text of} as shown in
 \S\ref{sec:forward-proof}---hence the \dots\ in the above grammar.  Note
 that assumptions, intermediate \isacom{have} statements and global lemmas all
 have the same status and are thus collectively referred to as
-\concept{facts}.
+\conceptidx{facts}{fact}.
 
 Fact names can stand for whole lists of facts. For example, if @{text f} is
 defined by command \isacom{fun}, @{text"f.simps"} refers to the whole list of
@@ -499,7 +499,7 @@ one can refer to them easily by quoting them:
 $\vdots$\\
 \isacom{from} @{text "`x>0`"} \dots
 \end{quote}
-Note that the quotes around @{text"x>0"} are \concept{back quotes}.
+Note that the quotes around @{text"x>0"} are \conceptnoidx{back quotes}.
 They refer to the fact not by name but by value.
 
 \subsection{\isacom{moreover}}
