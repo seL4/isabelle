@@ -6,6 +6,9 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* January 2014: Lars Hupel, TUM
+  An improved, interactive simplifier trace with integration into the
+  Isabelle/jEdit Prover IDE.
 
 Contributions to Isabelle2013-1
 -------------------------------

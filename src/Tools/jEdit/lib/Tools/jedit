@@ -39,6 +39,8 @@ declare -a SOURCES=(
   "src/rich_text_area.scala"
   "src/scala_console.scala"
   "src/sledgehammer_dockable.scala"
+  "src/simplifier_trace_dockable.scala"
+  "src/simplifier_trace_window.scala"
   "src/symbols_dockable.scala"
   "src/syslog_dockable.scala"
   "src/text_overview.scala"

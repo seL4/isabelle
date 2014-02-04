@@ -17,6 +17,7 @@ sig
   val simp_trace: bool Config.T
   type cong_name = bool * string
   type rrule
+  val mk_rrules: Proof.context -> thm list -> rrule list
   val eq_rrule: rrule * rrule -> bool
   type proc
   type solver
@@ -571,6 +572,12 @@ fun extract_rews ctxt thms =
 fun extract_safe_rrules ctxt thm =
   maps (orient_rrule ctxt) (extract_rews ctxt [thm]);
 
+fun mk_rrules ctxt thms =
+  let
+    val rews = extract_rews ctxt thms
+    val raw_rrules = flat (map (mk_rrule ctxt) rews)
+  in map mk_rrule2 raw_rrules end
+
 
 (* add/del rules explicitly *)
 
@@ -587,7 +594,6 @@ fun ctxt delsimps thms =
 
 fun add_simp thm ctxt = ctxt addsimps [thm];
 fun del_simp thm ctxt = ctxt delsimps [thm];
-
 
 (* congs *)
 
@@ -814,7 +820,7 @@ fun set_solvers solvers = map_simpset2 (fn (congs, procs, mk_rews, termless,
 
 type trace_ops =
  {trace_invoke: {depth: int, term: term} -> Proof.context -> Proof.context,
-  trace_apply: {unconditional: bool, term: term, thm: thm, name: string} ->
+  trace_apply: {unconditional: bool, term: term, thm: thm, rrule: rrule} ->
     Proof.context -> (Proof.context -> (thm * term) option) -> (thm * term) option};
 
 structure Trace_Ops = Theory_Data
@@ -919,8 +925,9 @@ fun rewritec (prover, maxt) ctxt t =
     val eta_thm = Thm.eta_conversion t;
     val eta_t' = Thm.rhs_of eta_thm;
     val eta_t = term_of eta_t';
-    fun rew {thm, name, lhs, elhs, extra, fo, perm} =
+    fun rew rrule =
       let
+        val {thm, name, lhs, elhs, extra, fo, perm} = rrule
         val prop = Thm.prop_of thm;
         val (rthm, elhs') =
           if maxt = ~1 orelse not extra then (thm, elhs)
@@ -932,7 +939,7 @@ fun rewritec (prover, maxt) ctxt t =
         val prop' = Thm.prop_of thm';
         val unconditional = (Logic.count_prems prop' = 0);
         val (lhs', rhs') = Logic.dest_equals (Logic.strip_imp_concl prop');
-        val trace_args = {unconditional = unconditional, term = eta_t, thm = thm', name = name};
+        val trace_args = {unconditional = unconditional, term = eta_t, thm = thm', rrule = rrule};
       in
         if perm andalso not (termless (rhs', lhs'))
         then

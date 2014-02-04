@@ -61,6 +61,9 @@ object Active
                     else text_area.setSelectedText(text)
                 }
 
+              case Markup.Simp_Trace(serial, answer) =>
+                Simplifier_Trace.send_reply(PIDE.session, serial, answer)
+
               case Protocol.Dialog(id, serial, result) =>
                 model.session.dialog_result(id, serial, result)
 
@@ -72,4 +75,3 @@ object Active
     }
   }
 }
-

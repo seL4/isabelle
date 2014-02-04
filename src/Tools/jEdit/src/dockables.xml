@@ -41,4 +41,7 @@
 	<DOCKABLE NAME="isabelle-symbols" MOVABLE="TRUE">
 		new isabelle.jedit.Symbols_Dockable(view, position);
 	</DOCKABLE>
+	<DOCKABLE NAME="isabelle-simp-trace" MOVABLE="TRUE">
+		new isabelle.jedit.Simplifier_Trace_Dockable(view, position);
+	</DOCKABLE>
 </DOCKABLES>

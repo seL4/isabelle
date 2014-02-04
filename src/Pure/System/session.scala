@@ -139,7 +139,7 @@ class Session(val thy_load: Thy_Load)
   val syslog_messages = new Event_Bus[Isabelle_Process.Output]
   val raw_output_messages = new Event_Bus[Isabelle_Process.Output]
   val all_messages = new Event_Bus[Isabelle_Process.Message]  // potential bottle-neck
-
+  val trace_events = new Event_Bus[Simplifier_Trace.Event.type]
 
 
   /** buffered command changes (delay_first discipline) **/

@@ -37,6 +37,10 @@ General") allows to specify additional print modes for the prover
 process, without requiring old-fashioned command-line invocation of
 "isabelle jedit -m MODE".
 
+* New panel: Simplifier trace.  Provides an interactive view of the
+simplification process, enabled by the newly-introduced
+"simplifier_trace" declaration.
+
 
 *** Pure ***
 
