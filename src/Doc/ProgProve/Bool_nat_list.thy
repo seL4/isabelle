@@ -184,7 +184,7 @@ fun rev :: "'a list \<Rightarrow> 'a list" where
 text{* By default, variables @{text xs}, @{text ys} and @{text zs} are of
 @{text list} type.
 
-Command \isacom{value}\indexed{{\sf\textbf{value}}}{value} evaluates a term. For example, *}
+Command \indexed{\isacommand{value}}{value} evaluates a term. For example, *}
 
 value "rev(Cons True (Cons False Nil))"
 
