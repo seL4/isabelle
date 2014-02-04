@@ -154,13 +154,12 @@ lemma cong_diff_int:
   unfolding cong_int_def  by (metis mod_diff_cong) 
 
 lemma cong_diff_aux_int:
-  "(a::int) >= c \<Longrightarrow> b >= d \<Longrightarrow> [(a::int) = b] (mod m) \<Longrightarrow>
-      [c = d] (mod m) \<Longrightarrow> [tsub a c = tsub b d] (mod m)"
+  "[(a::int) = b] (mod m) \<Longrightarrow> [c = d] (mod m) \<Longrightarrow>
+   (a::int) >= c \<Longrightarrow> b >= d \<Longrightarrow> [tsub a c = tsub b d] (mod m)"
   by (metis cong_diff_int tsub_eq)
 
 lemma cong_diff_nat:
-  assumes "(a::nat) >= c" and "b >= d" and "[a = b] (mod m)" and
-    "[c = d] (mod m)"
+  assumes"[a = b] (mod m)" "[c = d] (mod m)" "(a::nat) >= c" "b >= d" 
   shows "[a - c = b - d] (mod m)"
   using assms by (rule cong_diff_aux_int [transferred]);
 

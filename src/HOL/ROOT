@@ -171,8 +171,19 @@ session "HOL-Import" in Import = HOL +
   theories [condition = HOL_LIGHT_BUNDLE] HOL_Light_Import
 
 session "HOL-Number_Theory" in Number_Theory = HOL +
-  options [document = false]
-  theories Number_Theory
+  description {*
+    Fundamental Theorem of Arithmetic, Chinese Remainder Theorem, Fermat/Euler
+    Theorem, Wilson's Theorem, Quadratic Reciprocity.
+  *}
+  options [document_graph]
+  theories [document = false]
+    "~~/src/HOL/Library/FuncSet"
+    "~~/src/HOL/Library/Multiset"
+    "~~/src/HOL/Algebra/Ring"
+    "~~/src/HOL/Algebra/FiniteProduct"
+  theories
+    Pocklington
+    Number_Theory
 
 session "HOL-Old_Number_Theory" in Old_Number_Theory = HOL +
   description {*
