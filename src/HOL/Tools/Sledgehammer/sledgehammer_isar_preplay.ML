@@ -146,10 +146,8 @@ fun preplay_isar_step ctxt timeout step =
       (case preplay_isar_step_for_method ctxt timeout meth step of
         outcome as Played _ => SOME (meth, outcome)
       | _ => NONE)
-
-    val meths = proof_methods_of_isar_step step
   in
-    the_list (Par_List.get_some try_method meths)
+    the_list (Par_List.get_some try_method (proof_methods_of_isar_step step))
   end
 
 type isar_preplay_data = (proof_method * play_outcome Lazy.lazy) list Canonical_Label_Tab.table

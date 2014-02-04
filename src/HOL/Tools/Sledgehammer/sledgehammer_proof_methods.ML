@@ -94,8 +94,8 @@ fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
   Method.insert_tac local_facts THEN'
   (case meth of
     Metis_Method (type_enc_opt, lam_trans_opt) =>
-    Metis_Tactic.metis_tac [type_enc_opt |> the_default partial_type_enc]
-      (the_default default_metis_lam_trans lam_trans_opt) ctxt global_facts
+    Metis_Tactic.metis_tac [type_enc_opt |> the_default partial_typesN]
+      (lam_trans_opt |> the_default default_metis_lam_trans) ctxt global_facts
   | SMT_Method => SMT_Solver.smt_tac ctxt global_facts
   | Meson_Method => Meson.meson_tac ctxt global_facts
   | _ =>

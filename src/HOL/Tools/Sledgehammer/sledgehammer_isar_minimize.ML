@@ -41,19 +41,19 @@ fun minimize_isar_step_dependencies ctxt preplay_data
       let
         fun mk_step_lfs_gfs lfs gfs = Prove (qs, xs, l, t, subproofs, (lfs, gfs), meths, comment)
 
-        fun minimize_facts _ time min_facts [] = (time, min_facts)
-          | minimize_facts mk_step time min_facts (f :: facts) =
+        fun minimize_facts _ min_facts [] time = (min_facts, time)
+          | minimize_facts mk_step min_facts (fact :: facts) time =
             (case preplay_isar_step_for_method ctxt (Time.+ (time, slack)) meth
                 (mk_step (min_facts @ facts)) of
-              Played time => minimize_facts mk_step time min_facts facts
-            | _ => minimize_facts mk_step time (f :: min_facts) facts)
+              Played time' => minimize_facts mk_step min_facts facts time'
+            | _ => minimize_facts mk_step (fact :: min_facts) facts time)
 
-        val (time, min_lfs) = minimize_facts (fn lfs => mk_step_lfs_gfs lfs gfs0) time [] lfs0
-        val (time, min_gfs) = minimize_facts (mk_step_lfs_gfs min_lfs) time [] gfs0
+        val (min_lfs, time') = minimize_facts (fn lfs => mk_step_lfs_gfs lfs gfs0) [] lfs0 time
+        val (min_gfs, time'') = minimize_facts (mk_step_lfs_gfs min_lfs) [] gfs0 time'
 
         val step' = mk_step_lfs_gfs min_lfs min_gfs
       in
-        set_preplay_outcomes_of_isar_step ctxt time preplay_data step' [(meth, Played time)];
+        set_preplay_outcomes_of_isar_step ctxt time'' preplay_data step' [(meth, Played time'')];
         step'
       end
     | _ => step (* don't touch steps that time out or fail *))
