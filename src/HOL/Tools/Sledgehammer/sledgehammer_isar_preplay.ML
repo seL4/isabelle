@@ -133,8 +133,8 @@ fun raw_preplay_step_for_method ctxt timeout meth (Prove (_, xs, _, t, subproofs
 
     val play_outcome = take_time timeout prove ()
   in
-    (if Config.get ctxt trace then preplay_trace ctxt assmsp goal play_outcome else ();
-     play_outcome)
+    if Config.get ctxt trace then preplay_trace ctxt assmsp goal play_outcome else ();
+    play_outcome
   end
 
 fun preplay_isar_step_for_method ctxt timeout meth =
@@ -200,7 +200,8 @@ fun forced_intermediate_preplay_outcome_of_isar_step preplay_data l =
   end
 
 fun preplay_outcome_of_isar_step_for_method preplay_data l =
-  the o AList.lookup (op =) (the (Canonical_Label_Tab.lookup preplay_data l))
+  AList.lookup (op =) (the (Canonical_Label_Tab.lookup preplay_data l))
+  #> the_default (Lazy.value Not_Played)
 
 fun fastest_method_of_isar_step preplay_data =
   the o Canonical_Label_Tab.lookup preplay_data
