@@ -32,7 +32,7 @@ fun keep_fastest_method_of_isar_step preplay_data
       comment)
   | keep_fastest_method_of_isar_step _ step = step
 
-val slack = seconds 0.1
+val slack = seconds 0.025
 
 fun minimize_isar_step_dependencies ctxt preplay_data
       (step as Prove (qs, xs, l, t, subproofs, (lfs0, gfs0), meths as meth :: _, comment)) =
