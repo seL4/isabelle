@@ -20,7 +20,7 @@ sig
   val enrich_context_with_local_facts : isar_proof -> Proof.context -> Proof.context
   val preplay_isar_step_for_method : Proof.context -> Time.time -> proof_method -> isar_step ->
     play_outcome
-  val preplay_isar_step : Proof.context -> Time.time -> isar_step ->
+  val preplay_isar_step : Proof.context -> Time.time -> proof_method list -> isar_step ->
     (proof_method * play_outcome) list
   val set_preplay_outcomes_of_isar_step : Proof.context -> Time.time ->
     isar_preplay_data Unsynchronized.ref -> isar_step -> (proof_method * play_outcome) list -> unit
@@ -140,14 +140,16 @@ fun raw_preplay_step_for_method ctxt timeout meth (Prove (_, xs, _, t, subproofs
 fun preplay_isar_step_for_method ctxt timeout meth =
   try (raw_preplay_step_for_method ctxt timeout meth) #> the_default Play_Failed
 
-fun preplay_isar_step ctxt timeout step =
+fun preplay_isar_step ctxt timeout hopeless step =
   let
     fun try_method meth =
       (case preplay_isar_step_for_method ctxt timeout meth step of
         outcome as Played _ => SOME (meth, outcome)
       | _ => NONE)
+
+    val meths = proof_methods_of_isar_step step |> subtract (op =) hopeless
   in
-    the_list (Par_List.get_some try_method (proof_methods_of_isar_step step))
+    the_list (Par_List.get_some try_method meths)
   end
 
 type isar_preplay_data = (proof_method * play_outcome Lazy.lazy) list Canonical_Label_Tab.table

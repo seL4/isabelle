@@ -76,30 +76,32 @@ fun update_steps steps updates =
 
 fun merge_methods preplay_data (l1, meths1) (l2, meths2) =
   let
-    fun is_method_hopeful l meth =
+    fun is_hopeful l meth =
       let val outcome = preplay_outcome_of_isar_step_for_method preplay_data l meth in
         not (Lazy.is_finished outcome) orelse
-        (case Lazy.force outcome of Played _ => true | _ => false)
+        (case Lazy.force outcome of Played _ => true | Play_Timed_Out _ => true | _ => false)
       end
+
+    val (hopeful, hopeless) =
+      meths2 @ subtract (op =) meths2 meths1
+      |> List.partition (is_hopeful l1 andf is_hopeful l2)
   in
-    meths2 @ subtract (op =) meths2 meths1
-    |> List.partition (is_method_hopeful l1 andf is_method_hopeful l2)
-    |> op @
+    (hopeful @ hopeless, hopeless)
   end
 
-fun try_merge preplay_data (Prove (_, [], l1, _, subproofs1, (lfs1, gfs1), meths1, comment1))
+fun try_merge_steps preplay_data (Prove (_, [], l1, _, subproofs1, (lfs1, gfs1), meths1, comment1))
       (Prove (qs2, fix, l2, t, subproofs2, (lfs2, gfs2), meths2, comment2)) =
     (case merge_methods preplay_data (l1, meths1) (l2, meths2) of
-      [] => NONE
-    | meths =>
+      ([], _) => NONE
+    | (meths, hopeless) =>
       let
         val lfs = union (op =) lfs1 (remove (op =) l1 lfs2)
         val gfs = union (op =) gfs1 gfs2
       in
         SOME (Prove (qs2, fix, l2, t, subproofs1 @ subproofs2, (lfs, gfs), meths,
-          comment1 ^ comment2))
+          comment1 ^ comment2), hopeless)
       end)
-  | try_merge _ _ _ = NONE
+  | try_merge_steps _ _ _ = NONE
 
 val compress_degree = 2
 val merge_timeout_slack_time = seconds 0.005
@@ -173,12 +175,14 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
               val subs'' = subs @ nontriv_subs
               val lfs'' = union (op =) lfs (subtract (op =) (map fst assms) lfs')
               val gfs'' = union (op =) gfs' gfs
-              val meths'' as _ :: _ = merge_methods (!preplay_data) (l', meths') (l, meths)
+              val (meths'' as _ :: _, hopeless) =
+                merge_methods (!preplay_data) (l', meths') (l, meths)
               val step'' = Prove (qs, fix, l, t, subs'', (lfs'', gfs''), meths'', comment)
 
               (* check if the modified step can be preplayed fast enough *)
               val timeout = slackify_merge_timeout (Time.+ (time, time'))
-              val (_, Played time'') :: meths_outcomes = preplay_isar_step ctxt timeout step''
+              val (_, Played time'') :: meths_outcomes =
+                preplay_isar_step ctxt timeout hopeless step''
             in
               decrement_step_count (); (* l' successfully eliminated! *)
               map (replace_successor l' [l]) lfs';
@@ -231,7 +235,9 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
               (* only touch steps that can be preplayed successfully; FIXME: more generous *)
               val Played time = forced_intermediate_preplay_outcome_of_isar_step (!preplay_data) l
 
-              val succs' = map (try_merge (!preplay_data) cand #> the) succs
+              val (succs', hopelesses) =
+                map (try_merge_steps (!preplay_data) cand #> the) succs
+                |> split_list
 
               (* FIXME: more generous *)
               val times0 = map ((fn Played time => time) o
@@ -240,7 +246,7 @@ fun compress_isar_proof ctxt compress_isar preplay_data proof =
               val timeouts = map (curry Time.+ time_slice #> slackify_merge_timeout) times0
               (* FIXME: "preplay_timeout" should be an ultimate maximum *)
 
-              val meths_outcomess = map2 (preplay_isar_step ctxt) timeouts succs'
+              val meths_outcomess = map3 (preplay_isar_step ctxt) timeouts hopelesses succs'
 
               (* ensure none of the modified successors timed out *)
               val times = map (fn (_, Played time) :: _ => time) meths_outcomess
