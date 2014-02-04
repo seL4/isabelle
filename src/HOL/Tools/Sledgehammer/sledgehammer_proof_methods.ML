@@ -13,13 +13,14 @@ sig
     Metis_Method of string option * string option |
     Meson_Method |
     SMT_Method |
+    Blast_Method |
     Simp_Method |
     Simp_Size_Method |
     Auto_Method |
     Fastforce_Method |
     Force_Method |
-    Arith_Method |
-    Blast_Method |
+    Linarith_Method |
+    Presburger_Method |
     Algebra_Method
 
   datatype play_outcome =
@@ -31,8 +32,6 @@ sig
   type minimize_command = string list -> string
   type one_line_params =
     (proof_method * play_outcome) * string * (string * stature) list * minimize_command * int * int
-
-  val smtN : string
 
   val string_of_proof_method : proof_method -> string
   val tac_of_proof_method : Proof.context -> thm list * thm list -> proof_method -> int -> tactic
@@ -53,13 +52,14 @@ datatype proof_method =
   Metis_Method of string option * string option |
   Meson_Method |
   SMT_Method |
+  Blast_Method |
   Simp_Method |
   Simp_Size_Method |
   Auto_Method |
   Fastforce_Method |
   Force_Method |
-  Arith_Method |
-  Blast_Method |
+  Linarith_Method |
+  Presburger_Method |
   Algebra_Method
 
 datatype play_outcome =
@@ -72,8 +72,6 @@ type minimize_command = string list -> string
 type one_line_params =
   (proof_method * play_outcome) * string * (string * stature) list * minimize_command * int * int
 
-val smtN = "smt"
-
 fun string_of_proof_method meth =
   (case meth of
     Metis_Method (NONE, NONE) => "metis"
@@ -81,13 +79,14 @@ fun string_of_proof_method meth =
     "metis (" ^ commas (map_filter I [type_enc_opt, lam_trans_opt]) ^ ")"
   | Meson_Method => "meson"
   | SMT_Method => "smt"
+  | Blast_Method => "blast"
   | Simp_Method => "simp"
   | Simp_Size_Method => "simp add: size_ne_size_imp_ne"
   | Auto_Method => "auto"
   | Fastforce_Method => "fastforce"
   | Force_Method => "force"
-  | Arith_Method => "arith"
-  | Blast_Method => "blast"
+  | Linarith_Method => "linarith"
+  | Presburger_Method => "presburger"
   | Algebra_Method => "algebra")
 
 fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
@@ -96,19 +95,20 @@ fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
     Metis_Method (type_enc_opt, lam_trans_opt) =>
     Metis_Tactic.metis_tac [type_enc_opt |> the_default (hd partial_type_encs)]
       (lam_trans_opt |> the_default default_metis_lam_trans) ctxt global_facts
-  | SMT_Method => SMT_Solver.smt_tac ctxt global_facts
   | Meson_Method => Meson.meson_tac ctxt global_facts
+  | SMT_Method => SMT_Solver.smt_tac ctxt global_facts
   | _ =>
     Method.insert_tac global_facts THEN'
     (case meth of
-      Simp_Method => Simplifier.asm_full_simp_tac ctxt
+      Blast_Method => blast_tac ctxt
+    | Simp_Method => Simplifier.asm_full_simp_tac ctxt
     | Simp_Size_Method =>
       Simplifier.asm_full_simp_tac (Simplifier.add_simp @{thm size_ne_size_imp_ne} ctxt)
     | Auto_Method => K (Clasimp.auto_tac ctxt)
     | Fastforce_Method => Clasimp.fast_force_tac ctxt
     | Force_Method => Clasimp.force_tac ctxt
-    | Arith_Method => Arith_Data.arith_tac ctxt
-    | Blast_Method => blast_tac ctxt
+    | Linarith_Method => Lin_Arith.tac ctxt
+    | Presburger_Method => Cooper.tac true [] [] ctxt
     | Algebra_Method => Groebner.algebra_tac [] [] ctxt))
 
 fun string_of_play_outcome (Played time) = string_of_ext_time (false, time)

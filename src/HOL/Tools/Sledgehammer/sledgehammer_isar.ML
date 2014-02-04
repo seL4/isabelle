@@ -111,9 +111,9 @@ type isar_params =
   bool * (string option * string option) * Time.time * real * bool * bool
   * (term, string) atp_step list * thm
 
-val basic_arith_methods = [Arith_Method, Algebra_Method]
-val basic_systematic_methods = [Metis_Method (NONE, NONE), Blast_Method, Meson_Method]
+val basic_systematic_methods = [Metis_Method (NONE, NONE), Meson_Method, Blast_Method]
 val simp_based_methods = [Simp_Method, Auto_Method, Fastforce_Method, Force_Method]
+val basic_arith_methods = [Linarith_Method, Presburger_Method, Algebra_Method]
 
 val arith_methods = basic_arith_methods @ simp_based_methods @ basic_systematic_methods
 val datatype_methods = [Simp_Method, Simp_Size_Method]

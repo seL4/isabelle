@@ -67,6 +67,7 @@ sig
     -> prover_problem -> prover_result
 
   val SledgehammerN : string
+  val smtN : string
   val overlord_file_location_of_prover : string -> string * string
   val proof_banner : mode -> string -> string
   val extract_proof_method : params -> proof_method -> string * (string * string list) list
@@ -109,6 +110,8 @@ datatype mode = Auto_Try | Try | Normal | MaSh | Auto_Minimize | Minimize
 (* Identifier that distinguishes Sledgehammer from other tools that could use
    "Async_Manager". *)
 val SledgehammerN = "Sledgehammer"
+
+val smtN = "smt"
 
 val proof_method_names = [metisN, smtN]
 val is_proof_method = member (op =) proof_method_names

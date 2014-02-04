@@ -84,7 +84,7 @@ fun merge_methods preplay_data (l1, meths1) (l2, meths2) =
         (case Lazy.force outcome of Played _ => true | _ => false)
       end
   in
-    union (op =) meths1 meths2
+    meths2 @ subtract (op =) meths2 meths1
     |> filter (is_method_hopeful l1 andf is_method_hopeful l2)
   end
 
