@@ -322,6 +322,9 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
                (keep_fastest_method_of_isar_step (!preplay_data)
                 #> minimize ? minimize_isar_step_dependencies ctxt preplay_data)
           |> tap (trace_isar_proof "Minimized")
+          |> minimize
+               ? (compress_isar_proof ctxt compress_isar preplay_data
+                  #> tap (trace_isar_proof "Compressed again"))
           |> `(preplay_outcome_of_isar_proof (!preplay_data))
           ||> (comment_isar_proof comment_of
                #> chain_isar_proof
