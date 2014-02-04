@@ -39,7 +39,7 @@ properties of the constructors:
 \end{tabular}
 \end{itemize}
 The fact that any value of the datatype is built from the constructors implies
-the structural induction rule: to show
+the \concept{structural induction} rule: to show
 $P~x$ for all $x$ of type @{text "('a\<^sub>1,\<dots>,'a\<^sub>n)t"},
 one needs to show $P(C_i\ x_1 \dots x_{n_i})$ (for each $i$) assuming
 $P(x_j)$ for all $j$ where $\tau_{i,j} =$~@{text "('a\<^sub>1,\<dots>,'a\<^sub>n)t"}.

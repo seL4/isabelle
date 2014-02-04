@@ -226,7 +226,7 @@ you need to prove
 \item the base case @{prop"P(Nil)"} and
 \item the inductive case @{prop"P(Cons x xs)"} under the assumption @{prop"P(xs)"}, for some arbitrary but fixed @{text x} and @{text xs}.
 \end{enumerate}
-This is often called \concept{structural induction}.
+This is often called \concept{structural induction} for lists.
 
 \subsection{The Proof Process}
 
