@@ -239,10 +239,7 @@ lemma (in ring) inv_eq_neg_one_eq: "x : Units R \<Longrightarrow> (inv x = \<omi
   done
 
 lemma (in monoid) inv_eq_one_eq: "x : Units G \<Longrightarrow> (inv x = \<one>) = (x = \<one>)"
-  apply auto
-  apply (subst Units_inv_inv [symmetric])
-  apply auto
-  done
+by (metis Units_inv_inv inv_one)
 
 
 (* This goes in FiniteProduct *)
@@ -281,11 +278,7 @@ lemma (in comm_monoid) finprod_one:
 
 lemma (in cring) sum_zero_eq_neg:
     "x : carrier R \<Longrightarrow> y : carrier R \<Longrightarrow> x \<oplus> y = \<zero> \<Longrightarrow> x = \<ominus> y"
-  apply (subgoal_tac "\<ominus> y = \<zero> \<oplus> \<ominus> y")
-  apply (erule ssubst)back
-  apply (erule subst)
-  apply (simp_all add: ring_simprules)
-  done
+by (metis minus_equality)
 
 (* there's a name conflict -- maybe "domain" should be
    "integral_domain" *)
@@ -317,11 +310,7 @@ qed
 
 lemma (in Ring.domain) inv_eq_self: "x : Units R \<Longrightarrow>
     x = inv x \<Longrightarrow> x = \<one> | x = \<ominus> \<one>"
-  apply (rule square_eq_one)
-  apply auto
-  apply (erule ssubst)back
-  apply (erule Units_r_inv)
-  done
+by (metis Units_closed Units_l_inv square_eq_one)
 
 
 (*
@@ -334,7 +323,6 @@ lemma (in ring) finite_ring_finite_units [intro]:
     "finite (carrier R) \<Longrightarrow> finite (Units R)"
   by (rule finite_subset) auto
 
-(* this belongs with MiscAlgebra.thy *)
 lemma (in monoid) units_of_pow:
     "x : Units G \<Longrightarrow> x (^)\<^bsub>units_of G\<^esub> (n::nat) = x (^)\<^bsub>G\<^esub> n"
   apply (induct n)
