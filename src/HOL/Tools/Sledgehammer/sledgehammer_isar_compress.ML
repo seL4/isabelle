@@ -23,8 +23,6 @@ open Sledgehammer_Proof_Methods
 open Sledgehammer_Isar_Proof
 open Sledgehammer_Isar_Preplay
 
-val dummy_isar_step = Let (Term.dummy, Term.dummy)
-
 fun collect_successors steps lbls =
   let
     fun collect_steps _ (accum as ([], _)) = accum
@@ -194,32 +192,18 @@ fun compress_isar_proof ctxt compress_isar preplay_timeout preplay_data proof =
 
       fun compress_top_level steps =
         let
-          (* (#successors, (size_of_term t, position)) *)
-          fun cand_key (i, l, t_size) = (length (get_successors l), (t_size, i))
-
-          val compression_ord =
-            prod_ord int_ord (prod_ord (int_ord #> rev_order) int_ord) #> rev_order
-
-          val cand_ord = pairself cand_key #> compression_ord
+          fun cand_key (l, t_size) = (length (get_successors l), t_size)
+          val cand_ord = prod_ord int_ord (int_ord o swap) o pairself cand_key
 
           fun pop_next_candidate [] = (NONE, [])
             | pop_next_candidate (cands as (cand :: cands')) =
-              fold (fn x => fn y => if cand_ord (x, y) = GREATER then x else y) cands' cand
+              fold (fn x => fn y => if cand_ord (x, y) = LESS then x else y) cands' cand
               |> (fn best => (SOME best, remove (op =) best cands))
 
-          val candidates =
-            let
-              fun add_cand (i, Prove (_, _, l, t, _, _, _, _)) = cons (i, l, size_of_term t)
-                | add_cand _ = I
-            in
-              (* the very last step is not a candidate *)
-              (steps |> split_last |> fst |> fold_index add_cand) []
-            end
-
-          fun try_eliminate (i, l, _) labels steps =
+          fun try_eliminate (l, _) labels steps =
             let
               val (steps_before, (cand as Prove (_, _, _, _, _, (lfs, _), _, _)) :: steps_after) =
-                chop i steps
+                chop (find_index (curry (op =) (SOME l) o label_of_isar_step) steps) steps
 
               val time =
                 (case forced_intermediate_preplay_outcome_of_isar_step (!preplay_data) l of
@@ -250,8 +234,7 @@ fun compress_isar_proof ctxt compress_isar preplay_timeout preplay_data proof =
               map3 (fn time => set_preplay_outcomes_of_isar_step ctxt time preplay_data) times
                 succs' meths_outcomess;
               map (replace_successor l labels) lfs;
-              (* removing the step would mess up the indices; replace with dummy step instead *)
-              steps_before @ dummy_isar_step :: steps_after'
+              steps_before @ steps_after'
             end
             handle Bind => steps
                  | Match => steps
@@ -263,14 +246,19 @@ fun compress_isar_proof ctxt compress_isar preplay_timeout preplay_data proof =
             else
               (case pop_next_candidate candidates of
                 (NONE, _) => steps (* no more candidates for elimination *)
-              | (SOME (cand as (_, l, _)), candidates') =>
+              | (SOME (cand as (l, _)), candidates') =>
                 let val successors = get_successors l in
                   if length successors > compress_degree then steps
                   else compression_loop candidates' (try_eliminate cand successors steps)
                 end)
+
+          fun add_cand (Prove (_, _, l, t, _, _, _, _)) = cons (l, size_of_term t)
+            | add_cand _ = I
+
+          (* the very last step is not a candidate *)
+          val candidates = fold add_cand (fst (split_last steps)) []
         in
           compression_loop candidates steps
-          |> remove (op =) dummy_isar_step
         end
 
       (* Proofs are compressed bottom-up, beginning with the innermost subproofs. On the innermost
