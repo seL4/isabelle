@@ -147,6 +147,11 @@ fun compress_isar_proof ctxt compress_isar preplay_timeout preplay_data proof =
           (get_successors, replace_successor)
         end
 
+      fun reference_time l =
+        (case forced_intermediate_preplay_outcome_of_isar_step (!preplay_data) l of
+          Played time => time
+        | _ => preplay_timeout)
+
       (* elimination of trivial, one-step subproofs *)
       fun elim_one_subproof time (step as Prove (qs, fix, l, t, _, (lfs, gfs), meths, comment)) subs
           nontriv_subs =
@@ -154,14 +159,8 @@ fun compress_isar_proof ctxt compress_isar preplay_timeout preplay_data proof =
           Prove (qs, fix, l, t, List.revAppend (nontriv_subs, subs), (lfs, gfs), meths, comment)
         else
           (case subs of
-            (sub as Proof (_, assms, sub_steps)) :: subs =>
-            (let
-              (* trivial subproofs have exactly one "Prove" step *)
-              val [Prove (_, _, l', _, [], (lfs', gfs'), meths', _)] = sub_steps
-
-              (* only touch proofs that can be preplayed sucessfully *)
-              val Played time' = forced_intermediate_preplay_outcome_of_isar_step (!preplay_data) l'
-
+            (sub as Proof (_, assms, [Prove (_, _, l', _, [], (lfs', gfs'), meths', _)])) :: subs =>
+            let
               (* merge steps *)
               val subs'' = subs @ nontriv_subs
               val lfs'' = union (op =) lfs (subtract (op =) (map fst assms) lfs')
@@ -171,23 +170,24 @@ fun compress_isar_proof ctxt compress_isar preplay_timeout preplay_data proof =
               val step'' = Prove (qs, fix, l, t, subs'', (lfs'', gfs''), meths'', comment)
 
               (* check if the modified step can be preplayed fast enough *)
-              val timeout = adjust_merge_timeout preplay_timeout (Time.+ (time, time'))
-              val meths_outcomes as (_, Played time'') :: _ =
-                preplay_isar_step ctxt timeout hopeless step''
+              val timeout = adjust_merge_timeout preplay_timeout (Time.+ (time, reference_time l'))
             in
-              (* l' successfully eliminated *)
-              decrement_step_count ();
-              set_preplay_outcomes_of_isar_step ctxt time'' preplay_data step'' meths_outcomes;
-              map (replace_successor l' [l]) lfs';
-              elim_one_subproof time'' step'' subs nontriv_subs
+              (case preplay_isar_step ctxt timeout hopeless step'' of
+                meths_outcomes as (_, Played time'') :: _ =>
+                (* l' successfully eliminated *)
+                (decrement_step_count ();
+                 set_preplay_outcomes_of_isar_step ctxt time'' preplay_data step'' meths_outcomes;
+                 map (replace_successor l' [l]) lfs';
+                 elim_one_subproof time'' step'' subs nontriv_subs)
+              | _ => elim_one_subproof time step subs (sub :: nontriv_subs))
             end
-            handle Bind => elim_one_subproof time step subs (sub :: nontriv_subs))
-          | _ => raise Fail "Sledgehammer_Isar_Compress: elim_one_subproof")
+          | sub :: subs => elim_one_subproof time step subs (sub :: nontriv_subs))
 
-      fun elim_subproofs (step as Prove (_, _, l, _, subproofs as _ :: _, _, _, _)) =
-          (case forced_intermediate_preplay_outcome_of_isar_step (!preplay_data) l of
-            Played time => elim_one_subproof time step subproofs []
-          | _ => step)
+      fun elim_subproofs (step as Prove (_, _, l, _, subproofs, _, _, _)) =
+          if exists (null o tl o steps_of_isar_proof) subproofs then
+            elim_one_subproof (reference_time l) step subproofs []
+          else
+            step
         | elim_subproofs step = step
 
       fun compress_top_level steps =
@@ -212,11 +212,7 @@ fun compress_isar_proof ctxt compress_isar preplay_timeout preplay_data proof =
                 NONE => steps
               | SOME times0 =>
                 let
-                  val full_time =
-                    (case forced_intermediate_preplay_outcome_of_isar_step (!preplay_data) l of
-                      Played time => time
-                    | _ => preplay_timeout)
-                  val time_slice = time_mult (1.0 / (Real.fromInt (length labels))) full_time
+                  val time_slice = time_mult (1.0 / Real.fromInt (length labels)) (reference_time l)
                   val timeouts =
                     map (adjust_merge_timeout preplay_timeout o curry Time.+ time_slice) times0
                   val meths_outcomess = map3 (preplay_isar_step ctxt) timeouts hopelesses succs'
