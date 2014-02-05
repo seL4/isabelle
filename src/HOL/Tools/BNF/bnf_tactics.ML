@@ -34,14 +34,15 @@ struct
 open Ctr_Sugar_General_Tactics
 open BNF_Util
 
-(*stolen from Christian Urban's Cookbook*)
+(*stolen from Christian Urban's Cookbook (and adapted slightly)*)
 fun fo_rtac thm = Subgoal.FOCUS (fn {concl, ...} =>
   let
     val concl_pat = Drule.strip_imp_concl (cprop_of thm)
     val insts = Thm.first_order_match (concl_pat, concl)
   in
     rtac (Drule.instantiate_normalize insts thm) 1
-  end);
+  end
+  handle Pattern.MATCH => no_tac);
 
 (*transforms f (g x) = h (k x) into f o g = h o k using first order matches for f, g, h, and k*)
 fun mk_pointfree ctxt thm = thm
