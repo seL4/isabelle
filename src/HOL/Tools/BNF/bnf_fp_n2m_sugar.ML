@@ -63,11 +63,11 @@ fun register_n2m_sugar key n2m_sugar =
     (fn phi => Data.map (Typtab.default (key, morph_n2m_sugar phi n2m_sugar)));
 
 fun unfold_let (Const (@{const_name Let}, _) $ arg1 $ arg2) = unfold_let (betapply (arg2, arg1))
-  | unfold_let (Const (@{const_name prod_case}, _) $ t) =
-    (case unfold_let t of
-      t' as Abs (s1, T1, Abs (s2, T2, _)) =>
-      let val v = Var ((s1 ^ s2, Term.maxidx_of_term t' + 1), HOLogic.mk_prodT (T1, T2)) in
-        lambda v (incr_boundvars 1 (betapplys (t', [HOLogic.mk_fst v, HOLogic.mk_snd v])))
+  | unfold_let (t as Const (@{const_name prod_case}, _) $ u) =
+    (case unfold_let u of
+      u' as Abs (s1, T1, Abs (s2, T2, _)) =>
+      let val v = Var ((s1 ^ s2, Term.maxidx_of_term u' + 1), HOLogic.mk_prodT (T1, T2)) in
+        lambda v (incr_boundvars 1 (betapplys (u', [HOLogic.mk_fst v, HOLogic.mk_snd v])))
       end
     | _ => t)
   | unfold_let (t $ u) = betapply (unfold_let t, unfold_let u)
