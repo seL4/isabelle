@@ -344,7 +344,8 @@ fun case_thms_of_term ctxt bound_Ts t =
   let
     fun ctr_sugar_of_case c s =
       (case ctr_sugar_of ctxt s of
-        SOME (ctr_sugar as {casex = Const (c', _), ...}) => if c' = c then SOME ctr_sugar else NONE
+        SOME (ctr_sugar as {casex = Const (c', _), sel_splits = _ :: _, ...}) =>
+        if c' = c then SOME ctr_sugar else NONE
       | _ => NONE);
     fun add_ctr_sugar (s, Type (@{type_name fun}, [_, T])) =
         binder_types T
