@@ -100,7 +100,7 @@ solvers parsing ATP syntaxes. There is also a strong technological connection
 between instantiation-based ATPs (such as iProver and iProver-Eq) and SMT
 solvers.}
 %
-The supported ATPs are agsyHOL \cite{agsyHOL}, Alt-Ergo \cite{alt-ergo}, E
+The supported ATPs are AgsyHOL \cite{agsyHOL}, Alt-Ergo \cite{alt-ergo}, E
 \cite{schulz-2002}, E-SInE \cite{sine}, E-ToFoF \cite{tofof}, iProver
 \cite{korovin-2009}, iProver-Eq \cite{korovin-sticksel-2010}, LEO-II
 \cite{leo2}, Satallax \cite{satallax}, SNARK \cite{snark}, SPASS
@@ -150,8 +150,8 @@ directed to the author at \authoremail.
 Sledgehammer is part of Isabelle, so you do not need to install it. However, it
 relies on third-party automatic provers (ATPs and SMT solvers).
 
-Among the ATPs, agsyHOL, Alt-Ergo, E, LEO-II, Satallax, SPASS, and Vampire can
-be run locally; in addition, agsyHOL, E, E-SInE, E-ToFoF, iProver, iProver-Eq,
+Among the ATPs, AgsyHOL, Alt-Ergo, E, LEO-II, Satallax, SPASS, and Vampire can
+be run locally; in addition, AgsyHOL, E, E-SInE, E-ToFoF, iProver, iProver-Eq,
 LEO-II, Satallax, SNARK, Vampire, and Waldmeister are available remotely via
 System\-On\-TPTP \cite{sutcliffe-2000}. If you want better performance, you
 should at least install E and SPASS locally.
@@ -191,7 +191,7 @@ file with the absolute path to CVC3, E, SPASS, or Z3. For example, if the
 
 in it.
 
-\item[\labelitemi] If you prefer to build agsyHOL, Alt-Ergo, E, LEO-II,
+\item[\labelitemi] If you prefer to build AgsyHOL, Alt-Ergo, E, LEO-II,
 Satallax, or SPASS manually, or found a Vampire executable somewhere (e.g.,
 \url{http://www.vprover.org/}), set the environment variable
 \texttt{AGSYHOL\_HOME}, \texttt{E\_HOME}, \texttt{LEO2\_HOME},
@@ -202,7 +202,7 @@ Satallax, or SPASS manually, or found a Vampire executable somewhere (e.g.,
 for Alt-Ergo, set the
 environment variable \texttt{WHY3\_HOME} to the directory that contains the
 \texttt{why3} executable.
-Sledgehammer has been tested with agsyHOL 1.0, Alt-Ergo 0.95.1, E 1.0 to 1.8,
+Sledgehammer has been tested with AgsyHOL 1.0, Alt-Ergo 0.95.1, E 1.0 to 1.8,
 LEO-II 1.3.4, Satallax 2.2 to 2.7, SPASS 3.8ds, and Vampire 0.6 to 3.0.%
 \footnote{Following the rewrite of Vampire, the counter for version numbers was
 reset to 0; hence the (new) Vampire versions 0.6, 1.0, 1.8, 2.6, and 3.0 are more
@@ -816,9 +816,9 @@ The following local provers are supported:
 
 \begin{sloppy}
 \begin{enum}
-\item[\labelitemi] \textbf{\textit{agsyHOL}:} agsyHOL is an automatic
+\item[\labelitemi] \textbf{\textit{agsyhol}:} AgsyHOL is an automatic
 higher-order prover developed by Fredrik Lindblad \cite{agsyHOL},
-with support for the TPTP typed higher-order syntax (THF0). To use agsyHOL, set
+with support for the TPTP typed higher-order syntax (THF0). To use AgsyHOL, set
 the environment variable \texttt{AGSYHOL\_HOME} to the directory that contains
 the \texttt{agsyHOL} executable. Sledgehammer has been tested with version 1.0.
 
@@ -922,7 +922,7 @@ The following remote provers are supported:
 
 \begin{enum}
 \item[\labelitemi] \textbf{\textit{remote\_agsyhol}:} The remote version of
-agsyHOL runs on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
+AgsyHOL runs on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
 
 \item[\labelitemi] \textbf{\textit{remote\_e}:} The remote version of E runs
 on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
