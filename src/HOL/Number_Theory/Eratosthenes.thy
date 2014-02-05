@@ -280,7 +280,8 @@ next
     \<forall>m\<in>{Suc (Suc 0)..<Suc n}. m dvd q \<longrightarrow> q dvd m \<Longrightarrow>
     m dvd q \<Longrightarrow> m \<noteq> q \<Longrightarrow> m = 1" by auto
   case True then show ?thesis
-    apply (auto simp add: numbers_of_marks_sieve numeral_2_eq_2 set_primes_upto dest: prime_gt_Suc_0_nat)
+    apply (auto simp add: One_nat_def numbers_of_marks_sieve numeral_2_eq_2 set_primes_upto
+        dest: prime_gt_Suc_0_nat)
     apply (metis One_nat_def Suc_le_eq less_not_refl prime_nat_def)
     apply (metis One_nat_def Suc_le_eq aux prime_nat_def)
     done

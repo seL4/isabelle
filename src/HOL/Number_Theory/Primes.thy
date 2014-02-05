@@ -31,7 +31,6 @@ theory Primes
 imports "~~/src/HOL/GCD"
 begin
 
-declare One_nat_def [simp]
 declare [[coercion int]]
 declare [[coercion_enabled]]
 
@@ -408,9 +407,7 @@ proof-
   let ?q2 = "v * y1 + u * x2"
   from dxy2(3)[simplified d12] dxy1(3)[simplified d12] 
   have "?x = u + ?q1 * a" "?x = v + ?q2 * b"
-    apply (auto simp add: algebra_simps) 
-    apply (metis mult_Suc_right nat_mult_assoc nat_mult_commute)+
-    done
+    by algebra+
   thus ?thesis by blast
 qed
 

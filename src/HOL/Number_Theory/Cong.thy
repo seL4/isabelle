@@ -504,7 +504,7 @@ lemma cong_to_1'_nat: "[(a::nat) = 1] (mod n) \<longleftrightarrow>
   apply (drule_tac x = "a - 1" in spec)
   apply force
   apply (cases "a = 0")
-  apply (auto simp add: cong_0_1_nat') [1]
+  apply (metis add_is_0 cong_0_1_nat zero_neq_one)
   apply (rule iffI)
   apply (drule cong_to_1_nat)
   apply (unfold dvd_def)
@@ -605,7 +605,7 @@ lemma cong_solve_coprime_int: "coprime (a::int) n \<Longrightarrow> EX x. [a * x
   done
 
 lemma coprime_iff_invertible_nat: "m > 0 \<Longrightarrow> coprime a m = (EX x. [a * x = Suc 0] (mod m))"
-  apply (auto intro: cong_solve_coprime_nat)
+  apply (auto intro: cong_solve_coprime_nat simp: One_nat_def)
   apply (metis cong_Suc_0_nat cong_solve_nat gcd_nat.left_neutral)
   apply (metis One_nat_def cong_gcd_eq_nat coprime_lmult_nat 
       gcd_lcm_complete_lattice_nat.inf_bot_right gcd_nat.commute)
