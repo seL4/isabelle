@@ -37,9 +37,9 @@ proof-
       {assume "q = p" hence ?lhs using q(1) by blast}
       moreover
       {assume "q\<noteq>p" with qp have qplt: "q < p" by arith
-        from H[rule_format, of q] qplt q0 have "coprime p q" by arith
-       hence ?lhs
-         by (metis gcd_semilattice_nat.inf_absorb2 one_not_prime_nat q(1) q(2))}
+        from H qplt q0 have "coprime p q" by arith
+       hence ?lhs using q
+         by (metis gcd_semilattice_nat.inf_absorb2 one_not_prime_nat)}
       ultimately have ?lhs by blast}
     ultimately have ?thesis by blast}
   ultimately show ?thesis  by (cases"p=0 \<or> p=1", auto)
@@ -65,7 +65,7 @@ proof-
   from dxy(1,2) have d1: "d = 1"
     by (metis assms coprime_nat) 
   hence "a*x*b = (n*y + 1)*b" using dxy(3) by simp
-  hence "a*(x*b) = n*(y*b) + b"
+  hence "a*(x*b) = n*(y*b) + b" 
     by (auto simp add: algebra_simps)
   hence "a*(x*b) mod n = (n*(y*b) + b) mod n" by simp
   hence "a*(x*b) mod n = b mod n" by (simp add: mod_add_left_eq)
@@ -112,7 +112,6 @@ proof-
 qed
 
 lemma cong_unique_inverse_prime:
-  fixes p::nat 
   assumes p: "prime p" and x0: "0 < x" and xp: "x < p"
   shows "\<exists>!y. 0 < y \<and> y < p \<and> [x * y = 1] (mod p)"
 by (metis cong_solve_unique_nontrivial gcd_lcm_complete_lattice_nat.inf_bot_left gcd_nat.commute assms) 
@@ -158,8 +157,7 @@ proof -
     by auto
   also have "... \<le> card {x. 0 < x \<and> x < n \<and> coprime x n}"
     apply (rule card_mono) using assms
-    apply (auto simp add: )
-    by (metis dual_order.antisym gcd_1_int gcd_int.commute int_one_le_iff_zero_less)
+    by auto (metis dual_order.antisym gcd_1_int gcd_int.commute int_one_le_iff_zero_less)
   also have "... = phi n"
     by (simp add: phi_def)
   finally show ?thesis .
@@ -220,16 +218,7 @@ proof-
 qed
 
 lemma nat_exists_least_iff: "(\<exists>(n::nat). P n) \<longleftrightarrow> (\<exists>n. P n \<and> (\<forall>m < n. \<not> P m))"
-  (is "?lhs \<longleftrightarrow> ?rhs")
-proof
-  assume ?rhs thus ?lhs by blast
-next
-  assume H: ?lhs then obtain n where n: "P n" by blast
-  let ?x = "Least P"
-  {fix m assume m: "m < ?x"
-    from not_less_Least[OF m] have "\<not> P m" .}
-  with LeastI_ex[OF H] show ?rhs by blast
-qed
+  by (metis ex_least_nat_le not_less0)
 
 lemma nat_exists_least_iff': "(\<exists>(n::nat). P n) \<longleftrightarrow> (P (Least P) \<and> (\<forall>m < (Least P). \<not> P m))"
   (is "?lhs \<longleftrightarrow> ?rhs")
@@ -288,13 +277,15 @@ proof-
     hence th: "prime p \<and> p dvd n - 1" unfolding r by (auto intro: dvd_mult)
     have "(a ^ ((n - 1) div p)) mod n = (a^(m*r div p)) mod n" using r
       by (simp add: power_mult)
-    also have "\<dots> = (a^(m*(r div p))) mod n" using div_mult1_eq[of m r p] p(2)[unfolded dvd_eq_mod_eq_0] by simp
+    also have "\<dots> = (a^(m*(r div p))) mod n" 
+      using div_mult1_eq[of m r p] p(2)[unfolded dvd_eq_mod_eq_0] 
+      by simp
     also have "\<dots> = ((a^m)^(r div p)) mod n" by (simp add: power_mult)
-    also have "\<dots> = ((a^m mod n)^(r div p)) mod n" using power_mod[of "a^m" "n" "r div p" ] ..
-    also have "\<dots> = 1" using m(3) onen by (simp add: cong_nat_def power_Suc_0)
+    also have "\<dots> = ((a^m mod n)^(r div p)) mod n" using power_mod ..
+    also have "\<dots> = 1" using m(3) onen by (simp add: cong_nat_def)
     finally have "[(a ^ ((n - 1) div p))= 1] (mod n)"
       using onen by (simp add: cong_nat_def)
-    with pn[rule_format, OF th] have False by blast}
+    with pn th have False by blast}
   hence th: "\<forall>m. 0 < m \<and> m < n - 1 \<longrightarrow> \<not> [a ^ m = 1] (mod n)" by blast
   from lucas_weak[OF n2 an1 th] show ?thesis .
 qed
@@ -333,7 +324,7 @@ lemma ord_works:
   shows "[a ^ (ord n a) = 1] (mod n) \<and> (\<forall>m. 0 < m \<and> m < ord n a \<longrightarrow> ~[a^ m = 1] (mod n))"
 apply (cases "coprime n a")
 using coprime_ord[of n a]
-by (blast, simp add: ord_def cong_nat_def)
+by (auto simp add: ord_def cong_nat_def)
 
 lemma ord:
   fixes n::nat
@@ -378,8 +369,9 @@ next
       obtain q1 q2 where q12:"a ^ d + n * q1 = 1 + n * q2"
         by (metis H d0 gcd_nat.commute lucas_coprime_lemma) 
       hence "a ^ d + n * q1 - n * q2 = 1" by simp
-      with dvd_diff_nat [OF dvd_add [OF divides_rexp[OF p(2), of d'] dvd_mult2[OF p(1), of q1]] dvd_mult2[OF p(1), of q2]] d' 
-      have "p dvd 1" by simp
+      with dvd_diff_nat [OF dvd_add [OF divides_rexp]]  dvd_mult2  d' p
+      have "p dvd 1"
+        by metis
       with p(3) have False by simp
       hence ?rhs ..}
     ultimately have ?rhs by blast}
@@ -453,31 +445,24 @@ qed
 subsection{*Another trivial primality characterization*}
 
 lemma prime_prime_factor:
-  "prime n \<longleftrightarrow> n \<noteq> 1\<and> (\<forall>p. prime p \<and> p dvd n \<longrightarrow> p = n)"
-proof-
-  {assume n: "n=0 \<or> n=1" 
-   hence ?thesis
-     by (metis bigger_prime dvd_0_right one_not_prime_nat zero_not_prime_nat) }
-  moreover
-  {assume n: "n\<noteq>0" "n\<noteq>1"
-    {assume pn: "prime n"
-
-      from pn[unfolded prime_def] have "\<forall>p. prime p \<and> p dvd n \<longrightarrow> p = n"
-        using n
-        apply (cases "n = 0 \<or> n=1",simp)
-        by (clarsimp, erule_tac x="p" in allE, auto)}
-    moreover
-    {assume H: "\<forall>p. prime p \<and> p dvd n \<longrightarrow> p = n"
-      from n have n1: "n > 1" by arith
-      {fix m assume m: "m dvd n" "m\<noteq>1"
-       then obtain p where p: "prime p" "p dvd m"
-         by (metis prime_factor_nat) 
-       from dvd_trans[OF p(2) m(1)] p(1) H have "p = n" by blast
-       with p(2) have "n dvd m"  by simp
-       hence "m=n"  using dvd_antisym[OF m(1)] by simp }
-      with n1 have "prime n"  unfolding prime_def by auto }
-    ultimately have ?thesis using n by blast}
-  ultimately       show ?thesis by auto
+  "prime n \<longleftrightarrow> n \<noteq> 1 \<and> (\<forall>p. prime p \<and> p dvd n \<longrightarrow> p = n)" 
+  (is "?lhs \<longleftrightarrow> ?rhs")
+proof (cases "n=0 \<or> n=1")
+  case True
+  then show ?thesis
+     by (metis bigger_prime dvd_0_right one_not_prime_nat zero_not_prime_nat)
+next
+  case False
+  show ?thesis
+  proof
+    assume "prime n"
+    then show ?rhs
+      by (metis one_not_prime_nat prime_nat_def)
+  next
+    assume ?rhs
+    with False show "prime n"
+      by (auto simp: prime_def) (metis One_nat_def prime_factor_nat prime_nat_def)
+  qed
 qed
 
 lemma prime_divisor_sqrt:
@@ -528,19 +513,14 @@ proof-
     {assume H: ?lhs
       from H[unfolded prime_divisor_sqrt] n
       have ?rhs
-        apply clarsimp
-        apply (erule_tac x="p" in allE)
-        apply simp
-        done
-    }
+        by (metis prime_prime_factor) }
     moreover
     {assume H: ?rhs
       {fix d assume d: "d dvd n" "d\<^sup>2 \<le> n" "d\<noteq>1"
         then obtain p where p: "prime p" "p dvd d"
           by (metis prime_factor_nat) 
-        from n have np: "n > 0" by arith
-        from d(1) n have "d \<noteq> 0" by - (rule ccontr, auto)
-        hence dp: "d > 0" by arith
+        from d(1) n have dp: "d > 0"
+          by (metis dvd_0_left neq0_conv) 
         from mult_mono[OF dvd_imp_le[OF p(2) dp] dvd_imp_le[OF p(2) dp]] d(2)
         have "p\<^sup>2 \<le> n" unfolding power2_eq_square by arith
         with H n p(1) dvd_trans[OF p(2) d(1)] have False  by blast}
@@ -589,10 +569,8 @@ proof -
       by (metis mult_assoc mult_commute)
     hence exps: "a^(ord p (a^r) * t*r) = ((a ^ r) ^ ord p (a^r)) ^ t"
       by (simp only: power_mult)
-    have "[((a ^ r) ^ ord p (a^r)) ^ t= 1^t] (mod p)"
-      by (metis cong_exp_nat ord)
     then have th: "[((a ^ r) ^ ord p (a^r)) ^ t= 1] (mod p)"
-      by simp
+      by (metis cong_exp_nat ord power_one)
     have pd0: "p dvd a^(ord p (a^r) * t*r) - 1"
       by (metis cong_to_1_nat exps th)
     from nqr s s' have "(n - 1) div P = ord p (a^r) * t*r" using P0 by simp
@@ -613,7 +591,8 @@ proof -
     by (metis coprime_exp_nat cpa gcd_nat.commute) 
   from euler_theorem_nat[OF arp, simplified ord_divides] o phip
   have "q dvd (p - 1)" by simp
-  then obtain d where d:"p - 1 = q * d" unfolding dvd_def by blast
+  then obtain d where d:"p - 1 = q * d" 
+    unfolding dvd_def by blast
   have p0:"p \<noteq> 0"
     by (metis p01(1)) 
   from p0 d have "p + q * 0 = 1 + q * d" by simp
@@ -769,7 +748,8 @@ lemma pocklington_primefact:
 proof-
   from bqn psp qrn
   have bqn: "a ^ (n - 1) mod n = 1"
-    and psp: "list_all (\<lambda>p. prime p \<and> coprime (a^(r *(q div p)) mod n - 1) n) ps"  unfolding arnb[symmetric] power_mod
+    and psp: "list_all (\<lambda>p. prime p \<and> coprime (a^(r *(q div p)) mod n - 1) n) ps"  
+    unfolding arnb[symmetric] power_mod 
     by (simp_all add: power_mult[symmetric] algebra_simps)
   from n  have n0: "n > 0" by arith
   from mod_div_equality[of "a^(n - 1)" n]
