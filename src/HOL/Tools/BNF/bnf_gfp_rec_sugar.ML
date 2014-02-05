@@ -230,8 +230,6 @@ fun massage_let_if_case ctxt has_call massage_leaf =
     massage_rec
   end;
 
-val massage_mutual_corec_call = massage_let_if_case;
-
 fun curried_type (Type (@{type_name fun}, [Type (@{type_name prod}, Ts), T])) = Ts ---> T;
 
 fun massage_nested_corec_call ctxt has_call raw_massage_call bound_Ts U t =
@@ -247,18 +245,6 @@ fun massage_nested_corec_call ctxt has_call raw_massage_call bound_Ts U t =
         | NONE => invalid_map ctxt t)
       else
         build_map_Inl (T, U) $ t;
-
-    fun massage_mutual_fun bound_Ts U T t =
-      (case t of
-        Const (@{const_name comp}, _) $ t1 $ t2 =>
-        mk_comp bound_Ts (massage_mutual_fun bound_Ts U T t1, tap check_no_call t2)
-      | _ =>
-        let
-          val var = Var ((Name.uu, Term.maxidx_of_term t + 1),
-            domain_type (fastype_of1 (bound_Ts, t)));
-        in
-          Term.lambda var (massage_mutual_call bound_Ts U T (t $ var))
-        end);
 
     fun massage_map bound_Ts (Type (_, Us)) (Type (s, Ts)) t =
         (case try (dest_map ctxt s) t of
@@ -278,9 +264,19 @@ fun massage_nested_corec_call ctxt has_call raw_massage_call bound_Ts U t =
         tap check_no_call t
       else
         massage_map bound_Ts U T t
-        handle AINT_NO_MAP _ => massage_mutual_fun bound_Ts U T t;
-
-    fun massage_call bound_Ts U T =
+        handle AINT_NO_MAP _ => massage_mutual_fun bound_Ts U T t
+    and massage_mutual_fun bound_Ts U T t =
+      (case t of
+        Const (@{const_name comp}, _) $ t1 $ t2 =>
+        mk_comp bound_Ts (massage_mutual_fun bound_Ts U T t1, tap check_no_call t2)
+      | _ =>
+        let
+          val var = Var ((Name.uu, Term.maxidx_of_term t + 1),
+            domain_type (fastype_of1 (bound_Ts, t)));
+        in
+          Term.lambda var (massage_call bound_Ts U T (betapply (t, var)))
+        end)
+    and massage_call bound_Ts U T =
       massage_let_if_case ctxt has_call (fn bound_Ts => fn t =>
         if has_call t then
           (case U of
@@ -752,7 +748,7 @@ fun build_corec_args_mutual_call lthy has_call (sel_eqns : coeqn_data_sel list) 
       fun rewrite_end _ t = if has_call t then undef_const else t;
       fun rewrite_cont bound_Ts t =
         if has_call t then mk_tuple1 bound_Ts (snd (strip_comb t)) else undef_const;
-      fun massage f _ = massage_mutual_corec_call lthy has_call f bound_Ts rhs_term
+      fun massage f _ = massage_let_if_case lthy has_call f bound_Ts rhs_term
         |> abs_tuple fun_args;
     in
       (massage rewrite_stop, massage rewrite_end, massage rewrite_cont)
@@ -763,25 +759,32 @@ fun build_corec_arg_nested_call lthy has_call (sel_eqns : coeqn_data_sel list) s
     NONE => I
   | SOME {fun_args, rhs_term, ...} =>
     let
+      fun massage bound_Ts U T =
+        let
+          fun rewrite bound_Ts (Abs (v, V, b)) = Abs (v, V, rewrite (V :: bound_Ts) b)
+            | rewrite bound_Ts (t as _ $ _) =
+              let val (u, vs) = strip_comb t in
+                if is_Free u andalso has_call u then
+                  Inr_const U T $ mk_tuple1 bound_Ts vs
+                else if try (fst o dest_Const) u = SOME @{const_name prod_case} then
+                  map (rewrite bound_Ts) vs |> chop 1 |>> HOLogic.mk_split o the_single |> list_comb
+                else
+                  list_comb (rewrite bound_Ts u, map (rewrite bound_Ts) vs)
+              end
+            | rewrite _ t =
+              if is_Free t andalso has_call t then Inr_const U T $ HOLogic.unit else t;
+          in
+            rewrite bound_Ts
+          end;
+
       val bound_Ts = List.rev (map fastype_of fun_args);
-      fun rewrite bound_Ts U T (Abs (v, V, b)) = Abs (v, V, rewrite (V :: bound_Ts) U T b)
-        | rewrite bound_Ts U T (t as _ $ _) =
-          let val (u, vs) = strip_comb t in
-            if is_Free u andalso has_call u then
-              Inr_const U T $ mk_tuple1 bound_Ts vs
-            else if try (fst o dest_Const) u = SOME @{const_name prod_case} then
-              map (rewrite bound_Ts U T) vs |> chop 1 |>> HOLogic.mk_split o the_single |> list_comb
-            else
-              list_comb (rewrite bound_Ts U T u, map (rewrite bound_Ts U T) vs)
-          end
-        | rewrite _ U T t =
-          if is_Free t andalso has_call t then Inr_const U T $ HOLogic.unit else t;
-      fun massage t =
+
+      fun build t =
         rhs_term
-        |> massage_nested_corec_call lthy has_call rewrite bound_Ts (range_type (fastype_of t))
+        |> massage_nested_corec_call lthy has_call massage bound_Ts (range_type (fastype_of t))
         |> abs_tuple fun_args;
     in
-      massage
+      build
     end);
 
 fun build_corec_args_sel lthy has_call (all_sel_eqns : coeqn_data_sel list)
