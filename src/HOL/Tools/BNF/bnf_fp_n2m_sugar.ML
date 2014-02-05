@@ -7,7 +7,7 @@ Suggared flattening of nested to mutual (co)recursion.
 
 signature BNF_FP_N2M_SUGAR =
 sig
-  val unfold_let: term -> term
+  val unfold_lets_splits: term -> term
   val dest_map: Proof.context -> string -> term -> term * term list
 
   val mutualize_fp_sugars: BNF_FP_Util.fp_kind -> binding list -> typ list -> (term -> int list) ->
@@ -62,17 +62,18 @@ fun register_n2m_sugar key n2m_sugar =
   Local_Theory.declaration {syntax = false, pervasive = false}
     (fn phi => Data.map (Typtab.default (key, morph_n2m_sugar phi n2m_sugar)));
 
-fun unfold_let (Const (@{const_name Let}, _) $ arg1 $ arg2) = unfold_let (betapply (arg2, arg1))
-  | unfold_let (t as Const (@{const_name prod_case}, _) $ u) =
-    (case unfold_let u of
+fun unfold_lets_splits (Const (@{const_name Let}, _) $ arg1 $ arg2) =
+    unfold_lets_splits (betapply (arg2, arg1))
+  | unfold_lets_splits (t as Const (@{const_name prod_case}, _) $ u) =
+    (case unfold_lets_splits u of
       u' as Abs (s1, T1, Abs (s2, T2, _)) =>
       let val v = Var ((s1 ^ s2, Term.maxidx_of_term u' + 1), HOLogic.mk_prodT (T1, T2)) in
         lambda v (incr_boundvars 1 (betapplys (u', [HOLogic.mk_fst v, HOLogic.mk_snd v])))
       end
     | _ => t)
-  | unfold_let (t $ u) = betapply (unfold_let t, unfold_let u)
-  | unfold_let (Abs (s, T, t)) = Abs (s, T, unfold_let t)
-  | unfold_let t = t;
+  | unfold_lets_splits (t $ u) = betapply (pairself unfold_lets_splits (t, u))
+  | unfold_lets_splits (Abs (s, T, t)) = Abs (s, T, unfold_lets_splits t)
+  | unfold_lets_splits t = t;
 
 fun mk_map_pattern ctxt s =
   let
@@ -255,7 +256,7 @@ fun indexify_callsss fp_sugar callsss =
     fun indexify_ctr ctr =
       (case AList.lookup Term.aconv_untyped callsss ctr of
         NONE => replicate (num_binder_types (fastype_of ctr)) []
-      | SOME callss => map (map (Envir.beta_eta_contract o unfold_let)) callss);
+      | SOME callss => map (map (Envir.beta_eta_contract o unfold_lets_splits)) callss);
   in
     map indexify_ctr ctrs
   end;

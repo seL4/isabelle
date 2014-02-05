@@ -149,7 +149,7 @@ fun fold_rev_let_if_case ctxt f bound_Ts =
 
     fun fld conds t =
       (case Term.strip_comb t of
-        (Const (@{const_name Let}, _), [_, _]) => fld conds (unfold_let t)
+        (Const (@{const_name Let}, _), [_, _]) => fld conds (unfold_lets_splits t)
       | (Const (@{const_name If}, _), [cond, then_branch, else_branch]) =>
         fld (conds @ conjuncts_s cond) then_branch o fld (conds @ s_not_conj [cond]) else_branch
       | (Const (c, _), args as _ :: _ :: _) =>
@@ -190,11 +190,14 @@ fun massage_let_if_case ctxt has_call massage_leaf =
     and massage_rec bound_Ts t =
       let val typof = curry fastype_of1 bound_Ts in
         (case Term.strip_comb t of
-          (Const (@{const_name Let}, _), [_, _]) => massage_rec bound_Ts (unfold_let t)
+          (Const (@{const_name Let}, _), [_, _]) => massage_rec bound_Ts (unfold_lets_splits t)
         | (Const (@{const_name If}, _), obj :: (branches as [_, _])) =>
           let val branches' = map (massage_rec bound_Ts) branches in
             Term.list_comb (If_const (typof (hd branches')) $ tap check_no_call obj, branches')
           end
+        | (c as Const (@{const_name prod_case}, _), arg :: args) =>
+          massage_rec bound_Ts
+            (unfold_lets_splits (Term.list_comb (c $ Envir.eta_long bound_Ts arg, args)))
         | (Const (c, _), args as _ :: _ :: _) =>
           (case try strip_fun_type (Sign.the_const_type thy c) of
             SOME (gen_branch_Ts, gen_body_fun_T) =>
@@ -639,7 +642,7 @@ fun dissect_coeqn_ctr fun_names sequentials (basic_ctr_specss : basic_corec_ctr_
     val (lhs, rhs) = HOLogic.dest_eq concl;
     val (fun_name, fun_args) = strip_comb lhs |>> fst o dest_Free;
     val SOME basic_ctr_specs = AList.lookup (op =) (fun_names ~~ basic_ctr_specss) fun_name;
-    val (ctr, ctr_args) = strip_comb (unfold_let rhs);
+    val (ctr, ctr_args) = strip_comb (unfold_lets_splits rhs);
     val {disc, sels, ...} = the (find_first (curry (op =) ctr o #ctr) basic_ctr_specs)
       handle Option.Option => primcorec_error_eqn "not a constructor" ctr;
 
@@ -685,7 +688,7 @@ fun dissect_coeqn_code lthy has_call fun_names basic_ctr_specss eqn_pos eqn0 con
         binder_types (fastype_of ctr)
         |> map_index (fn (n, T) => massage_corec_code_rhs lthy (fn _ => fn ctr' => fn args =>
           if ctr' = ctr then nth args n else Const (@{const_name undefined}, T)) [] rhs')
-        |> curry list_comb ctr
+        |> curry Term.list_comb ctr
         |> curry HOLogic.mk_eq lhs);
 
     val sequentials = replicate (length fun_names) false;
@@ -723,7 +726,7 @@ fun dissect_coeqn lthy has_call fun_names sequentials
       ([dissect_coeqn_sel fun_names basic_ctr_specss eqn_pos NONE NONE eqn0 of_spec_opt concl],
        matchedsss)
     else if is_Free head andalso member (op =) fun_names (fst (dest_Free head)) then
-      if member (op =) ctrs (head_of (unfold_let (the rhs_opt))) then
+      if member (op =) ctrs (head_of (unfold_lets_splits (the rhs_opt))) then
         dissect_coeqn_ctr fun_names sequentials basic_ctr_specss eqn_pos eqn0
           (if null prems then
              SOME (snd (HOLogic.dest_eq (HOLogic.dest_Trueprop (Logic.strip_assums_concl eqn0))))
@@ -782,9 +785,11 @@ fun build_corec_arg_nested_call lthy has_call (sel_eqns : coeqn_data_sel list) s
                 if is_Free u andalso has_call u then
                   Inr_const U T $ mk_tuple1 bound_Ts vs
                 else if try (fst o dest_Const) u = SOME @{const_name prod_case} then
-                  map (rewrite bound_Ts) vs |> chop 1 |>> HOLogic.mk_split o the_single |> list_comb
+                  map (rewrite bound_Ts) vs |> chop 1
+                  |>> HOLogic.mk_split o the_single
+                  |> Term.list_comb
                 else
-                  list_comb (rewrite bound_Ts u, map (rewrite bound_Ts) vs)
+                  Term.list_comb (rewrite bound_Ts u, map (rewrite bound_Ts) vs)
               end
             | rewrite _ t =
               if is_Free t andalso has_call t then Inr_const U T $ HOLogic.unit else t;
@@ -854,7 +859,7 @@ val _ = tracing ("corecursor arguments:\n    \<cdot> " ^
             ||> Logic.list_implies
             ||> curry Logic.list_all (map dest_Free fun_args))));
   in
-    map (list_comb o rpair corec_args) corecs
+    map (Term.list_comb o rpair corec_args) corecs
     |> map2 (fn Ts => fn t => if length Ts = 0 then t $ HOLogic.unit else t) arg_Tss
     |> map2 currys arg_Tss
     |> Syntax.check_terms lthy
@@ -905,7 +910,7 @@ fun find_corec_calls ctxt has_call (basic_ctr_specs : basic_corec_ctr_spec list)
   end;
 
 fun applied_fun_of fun_name fun_T fun_args =
-  list_comb (Free (fun_name, fun_T), map Bound (length fun_args - 1 downto 0));
+  Term.list_comb (Free (fun_name, fun_T), map Bound (length fun_args - 1 downto 0));
 
 fun is_trivial_implies thm =
   uncurry (member (op aconv)) (Logic.strip_horn (Thm.prop_of thm));
@@ -1164,7 +1169,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                   filter (curry (op =) ctr o #ctr) sel_eqns
                   |> fst o finds (op = o apsnd #sel) sels
                   |> map (snd #> (fn [x] => (List.rev (#fun_args x), #rhs_term x)) #-> abstract)
-                  |> curry list_comb ctr)
+                  |> curry Term.list_comb ctr)
                 |> curry mk_Trueprop_eq (applied_fun_of fun_name fun_T fun_args)
                 |> curry Logic.list_implies (map HOLogic.mk_Trueprop prems)
                 |> curry Logic.list_all (map dest_Free fun_args);
@@ -1219,7 +1224,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                               |> fst o finds (op = o apsnd #sel) sels
                               |> map (snd #> (fn [x] => (List.rev (#fun_args x), #rhs_term x))
                                 #-> abstract)
-                              |> curry list_comb ctr;
+                              |> curry Term.list_comb ctr;
                           in
                             SOME (prems, t)
                           end;
