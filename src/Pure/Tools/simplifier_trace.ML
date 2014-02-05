@@ -48,15 +48,15 @@ structure Data = Generic_Data
      breakpoints = empty_breakpoints}
   val extend = I
   fun merge ({max_depth = max_depth1, mode = mode1, interactive = interactive1,
-              breakpoints = breakpoints1, ...},
+              breakpoints = breakpoints1, ...}: T,
              {max_depth = max_depth2, mode = mode2, interactive = interactive2,
-              breakpoints = breakpoints2, ...}) =
+              breakpoints = breakpoints2, ...}: T) =
     {max_depth = Int.max (max_depth1, max_depth2),
      depth = 0,
      mode = merge_modes mode1 mode2,
      interactive = interactive1 orelse interactive2,
      parent = 0,
-     breakpoints = merge_breakpoints (breakpoints1, breakpoints2)}
+     breakpoints = merge_breakpoints (breakpoints1, breakpoints2)}: T
 )
 
 fun map_breakpoints f_term f_thm =
@@ -191,7 +191,9 @@ fun send_request (result_id, content) =
   end
 
 
-fun step {term, thm, unconditional, ctxt, rrule} =
+type data = {term: term, thm: thm, unconditional: bool, ctxt: Proof.context, rrule: rrule}
+
+fun step ({term, thm, unconditional, ctxt, rrule}: data) =
   let
     val (matching_terms, thm_triggered) = is_breakpoint (term, rrule) (Context.Proof ctxt)
 
@@ -292,7 +294,7 @@ fun recurse text term ctxt =
           (output_result res; put (#1 res))
   in Context.the_proof context' end
 
-fun indicate_failure {term, ctxt, thm, rrule, ...} ctxt' =
+fun indicate_failure ({term, ctxt, thm, rrule, ...}: data) ctxt' =
   let
     fun payload () =
       let
