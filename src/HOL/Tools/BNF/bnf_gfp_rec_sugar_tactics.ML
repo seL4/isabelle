@@ -162,7 +162,7 @@ fun inst_split_eq ctxt split =
 fun raw_code_single_tac ctxt distincts discIs splits split_asms m fun_ctr =
   let
     val splits' =
-      map (fn th => th RS iffD2) (@{thm split_if_eq2} :: map (inst_split_eq ctxt) splits)
+      map (fn th => th RS iffD2) (@{thm split_if_eq2} :: map (inst_split_eq ctxt) splits);
   in
     HEADGOAL (REPEAT o (resolve_tac (splits' @ split_connectI))) THEN
     prelude_tac ctxt [] (fun_ctr RS trans) THEN

@@ -186,15 +186,16 @@ fun register_fp_sugars fp pre_bnfs nested_bnfs nesting_bnfs (fp_res as {Ts, ...}
     ctr_sugars co_iterss mapss co_inducts co_iter_thmsss disc_co_itersss sel_co_iterssss lthy =
   (0, lthy)
   |> fold (fn T as Type (s, _) => fn (kk, lthy) => (kk + 1,
-    register_fp_sugar s {T = T, fp = fp, index = kk, pre_bnfs = pre_bnfs,
-        nested_bnfs = nested_bnfs, nesting_bnfs = nesting_bnfs, fp_res = fp_res,
-        ctr_defss = ctr_defss, ctr_sugars = ctr_sugars, co_iterss = co_iterss, mapss = mapss,
-        co_inducts = co_inducts, co_iter_thmsss = co_iter_thmsss, disc_co_itersss = disc_co_itersss,
+    register_fp_sugar s {T = T, fp = fp, index = kk, pre_bnfs = pre_bnfs, nested_bnfs = nested_bnfs,
+        nesting_bnfs = nesting_bnfs, fp_res = fp_res, ctr_defss = ctr_defss,
+        ctr_sugars = ctr_sugars, co_iterss = co_iterss, mapss = mapss, co_inducts = co_inducts,
+        co_iter_thmsss = co_iter_thmsss, disc_co_itersss = disc_co_itersss,
         sel_co_iterssss = sel_co_iterssss}
       lthy)) Ts
   |> snd;
 
-(* This function could produce clashes in contrived examples (e.g., "x.A", "x.x_A", "y.A"). *)
+(* This function could produce (fairly harmless) clashes in contrived examples (e.g., "x.A",
+   "x.x_A", "y.A"). *)
 fun quasi_unambiguous_case_names names =
   let
     val ps = map (`Long_Name.base_name) names;
@@ -501,7 +502,7 @@ fun mk_co_iters_prelims fp ctr_Tsss fpTs Cs ns mss xtor_co_iterss0 lthy =
       if fp = Least_FP then
         mk_iters_args_types ctr_Tsss Cs ns mss xtor_co_iter_fun_Tss lthy |>> (rpair NONE o SOME)
       else
-        mk_coiters_args_types ctr_Tsss Cs ns xtor_co_iter_fun_Tss lthy |>> (pair NONE o SOME)
+        mk_coiters_args_types ctr_Tsss Cs ns xtor_co_iter_fun_Tss lthy |>> (pair NONE o SOME);
   in
     ((xtor_co_iterss, iters_args_types, coiters_args_types), lthy')
   end;

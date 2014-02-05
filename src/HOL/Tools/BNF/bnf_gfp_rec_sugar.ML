@@ -165,7 +165,7 @@ fun fold_rev_let_if_case ctxt f bound_Ts =
           else
             f conds t
         end
-      | _ => f conds t)
+      | _ => f conds t);
   in
     fld []
   end;
@@ -224,7 +224,7 @@ fun massage_let_if_case ctxt has_call massage_leaf =
             end
           | NONE => massage_leaf bound_Ts t)
         | _ => massage_leaf bound_Ts t)
-      end
+      end;
   in
     massage_rec
   end;
@@ -490,11 +490,14 @@ val undef_const = Const (@{const_name undefined}, dummyT);
 val abs_tuple = HOLogic.tupled_lambda o HOLogic.mk_tuple;
 
 fun abstract vs =
-  let fun a n (t $ u) = a n t $ a n u
-        | a n (Abs (v, T, b)) = Abs (v, T, a (n + 1) b)
-        | a n t = let val idx = find_index (curry (op =) t) vs in
-            if idx < 0 then t else Bound (n + idx) end
-  in a 0 end;
+  let
+    fun abs n (t $ u) = abs n t $ abs n u
+      | abs n (Abs (v, T, b)) = Abs (v, T, abs (n + 1) b)
+      | abs n t =
+        let val j = find_index (curry (op =) t) vs in
+          if j < 0 then t else Bound (n + j)
+        end;
+  in abs 0 end;
 
 fun mk_prod1 bound_Ts (t, u) =
   HOLogic.pair_const (fastype_of1 (bound_Ts, t)) (fastype_of1 (bound_Ts, u)) $ t $ u;
@@ -849,7 +852,7 @@ val _ = tracing ("corecursor arguments:\n    \<cdot> " ^
               ((c, c', a orelse a'), (x, s_not (s_conjs y)))
             ||> apfst (map HOLogic.mk_Trueprop) o apsnd HOLogic.mk_Trueprop
             ||> Logic.list_implies
-            ||> curry Logic.list_all (map dest_Free fun_args))))
+            ||> curry Logic.list_all (map dest_Free fun_args))));
   in
     map (list_comb o rpair corec_args) corecs
     |> map2 (fn Ts => fn t => if length Ts = 0 then t $ HOLogic.unit else t) arg_Tss
@@ -868,7 +871,7 @@ fun mk_actual_disc_eqns fun_binding arg_Ts exhaustive ({ctr_specs, ...} : corec_
     else
       let
         val n = 0 upto length ctr_specs
-          |> the o find_first (fn idx => not (exists (curry (op =) idx o #ctr_no) disc_eqns));
+          |> the o find_first (fn j => not (exists (curry (op =) j o #ctr_no) disc_eqns));
         val {ctr, disc, ...} = nth ctr_specs n;
         val fun_args = (try (#fun_args o hd) disc_eqns, try (#fun_args o hd) sel_eqns)
           |> the_default (map (curry Free Name.uu) arg_Ts) o merge_options;
@@ -985,9 +988,9 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
  space_implode "\n    \<cdot> " (maps (map (Syntax.string_of_term lthy o snd)) excludess'));
 *)
 
-    val excludess'' = map3 (fn tac_opt => fn sequential => map (fn (idx, goal) =>
-        (idx, (Option.map (Goal.prove_sorry lthy [] [] goal #> Thm.close_derivation)
-           (exclude_tac tac_opt sequential idx), goal))))
+    val excludess'' = map3 (fn tac_opt => fn sequential => map (fn (j, goal) =>
+        (j, (Option.map (Goal.prove_sorry lthy [] [] goal #> Thm.close_derivation)
+           (exclude_tac tac_opt sequential j), goal))))
       tac_opts sequentials excludess';
     val taut_thmss = map (map (apsnd (the o fst)) o filter (is_some o fst o snd)) excludess'';
     val (goal_idxss, exclude_goalss) = excludess''

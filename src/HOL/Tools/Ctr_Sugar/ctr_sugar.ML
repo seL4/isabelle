@@ -205,12 +205,9 @@ fun mk_half_pairss' _ ([], []) = []
 fun mk_half_pairss p = mk_half_pairss' [[]] p;
 
 fun join_halves n half_xss other_half_xss =
-  let
-    val xsss =
-      map2 (map2 append) (Library.chop_groups n half_xss)
-        (transpose (Library.chop_groups n other_half_xss))
-    val xs = splice (flat half_xss) (flat other_half_xss);
-  in (xs, xsss) end;
+  (splice (flat half_xss) (flat other_half_xss),
+   map2 (map2 append) (Library.chop_groups n half_xss)
+     (transpose (Library.chop_groups n other_half_xss)));
 
 fun mk_undefined T = Const (@{const_name undefined}, T);
 
@@ -252,9 +249,7 @@ fun name_of_disc t =
 val base_name_of_ctr = Long_Name.base_name o name_of_ctr;
 
 fun dest_ctr ctxt s t =
-  let
-    val (f, args) = Term.strip_comb t;
-  in
+  let val (f, args) = Term.strip_comb t in
     (case ctr_sugar_of ctxt s of
       SOME {ctrs, ...} =>
       (case find_first (can (fo_match ctxt f)) ctrs of
