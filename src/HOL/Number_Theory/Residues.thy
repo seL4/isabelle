@@ -103,11 +103,8 @@ lemma res_units_eq: "Units R = { x. 0 < x & x < m & coprime x m}"
   apply auto
   apply (subgoal_tac "x ~= 0")
   apply auto
-  apply (rule invertible_coprime_int)
-  apply (subgoal_tac "x ~= 0")
-  apply auto
+  apply (metis invertible_coprime_int)
   apply (subst (asm) coprime_iff_invertible'_int)
-  apply arith
   apply (auto simp add: cong_int_def mult_commute)
   done
 
@@ -123,8 +120,7 @@ lemma res_neg_eq: "\<ominus> x = (- x) mod m"
   apply auto
   apply (subgoal_tac "y mod m = - x mod m")
   apply simp
-  apply (subst zmod_eq_dvd_iff)
-  apply auto
+  apply (metis minus_add_cancel mod_mult_self1 mult_commute)
   done
 
 lemma finite [iff]: "finite (carrier R)"
@@ -149,13 +145,8 @@ lemma add_cong: "(x mod m) \<oplus> (y mod m) = (x + y) mod m"
   done
 
 lemma mult_cong: "(x mod m) \<otimes> (y mod m) = (x * y) mod m"
-  apply (unfold R_def residue_ring_def, auto)
-  apply (subst mod_mult_right_eq [symmetric])
-  apply (subst mult_commute)
-  apply (subst mod_mult_right_eq [symmetric])
-  apply (subst mult_commute)
-  apply auto
-  done
+  unfolding R_def residue_ring_def
+  by auto (metis mod_mult_eq)
 
 lemma zero_cong: "\<zero> = 0"
   unfolding R_def residue_ring_def by auto
@@ -168,30 +159,19 @@ lemma pow_cong: "(x mod m) (^) n = x^n mod m"
   apply (insert m_gt_one)
   apply (induct n)
   apply (auto simp add: nat_pow_def one_cong)
-  apply (subst mult_commute)
-  apply (rule mult_cong)
+  apply (metis mult_commute mult_cong)
   done
 
 lemma neg_cong: "\<ominus> (x mod m) = (- x) mod m"
-  apply (rule sym)
-  apply (rule sum_zero_eq_neg)
-  apply auto
-  apply (subst add_cong)
-  apply (subst zero_cong)
-  apply auto
-  done
+  by (metis mod_minus_eq res_neg_eq)
 
 lemma (in residues) prod_cong:
     "finite A \<Longrightarrow> (\<Otimes> i:A. (f i) mod m) = (PROD i:A. f i) mod m"
-  apply (induct set: finite)
-  apply (auto simp: one_cong mult_cong)
-  done
+  by (induct set: finite) (auto simp: one_cong mult_cong)
 
 lemma (in residues) sum_cong:
     "finite A \<Longrightarrow> (\<Oplus> i:A. (f i) mod m) = (SUM i: A. f i) mod m"
-  apply (induct set: finite)
-  apply (auto simp: zero_cong add_cong)
-  done
+  by (induct set: finite) (auto simp: zero_cong add_cong)
 
 lemma mod_in_res_units [simp]: "1 < m \<Longrightarrow> coprime a m \<Longrightarrow>
     a mod m : Units R"
@@ -200,8 +180,7 @@ lemma mod_in_res_units [simp]: "1 < m \<Longrightarrow> coprime a m \<Longrighta
   apply (subgoal_tac "a mod m ~= 0")
   apply arith
   apply auto
-  apply (subst (asm) gcd_red_int)
-  apply (subst gcd_commute_int, assumption)
+  apply (metis gcd_int.commute gcd_red_int)
   done
 
 lemma res_eq_to_cong: "((a mod m) = (b mod m)) = [a = b] (mod (m::int))"
@@ -217,15 +196,8 @@ lemmas res_to_cong_simps = add_cong mult_cong pow_cong one_cong
 
 lemma one_eq_neg_one: "\<one> = \<ominus> \<one> \<Longrightarrow> m = 2"
   apply (simp add: res_one_eq res_neg_eq)
-  apply (insert m_gt_one)
-  apply (subgoal_tac "~(m > 2)")
-  apply arith
-  apply (rule notI)
-  apply (subgoal_tac "-1 mod m = m - 1")
-  apply force
-  apply (subst mod_add_self2 [symmetric])
-  apply (subst mod_pos_pos_trivial)
-  apply auto
+  apply (metis add_commute add_diff_cancel mod_mod_trivial one_add_one uminus_add_conv_diff
+            zero_neq_one zmod_zminus1_eq_if)
   done
 
 end
@@ -265,10 +237,7 @@ lemma res_prime_units_eq: "Units R = {1..p - 1}"
   apply (subst res_units_eq)
   apply auto
   apply (subst gcd_commute_int)
-  apply (rule prime_imp_coprime_int)
-  apply (rule p_prime)
-  apply (rule zdvd_not_zless)
-  apply auto
+  apply (auto simp add: p_prime prime_imp_coprime_int zdvd_not_zless)
   done
 
 end
@@ -314,7 +283,8 @@ proof -
   then show ?thesis 
     using `2 \<le> p` 
     by (simp add: prime_def)
-       (metis One_nat_def dvd_pos_nat nat_dvd_not_less nat_neq_iff not_gr0 not_numeral_le_zero one_dvd)
+       (metis One_nat_def dvd_pos_nat nat_dvd_not_less nat_neq_iff not_gr0 
+              not_numeral_le_zero one_dvd)
 qed
 
 lemma phi_zero [simp]: "phi 0 = 0"
@@ -412,12 +382,7 @@ subsection {* Wilson's theorem *}
 lemma (in field) inv_pair_lemma: "x : Units R \<Longrightarrow> y : Units R \<Longrightarrow>
     {x, inv x} ~= {y, inv y} \<Longrightarrow> {x, inv x} Int {y, inv y} = {}"
   apply auto
-  apply (erule notE)
-  apply (erule inv_eq_imp_eq)
-  apply auto
-  apply (erule notE)
-  apply (erule inv_eq_imp_eq)
-  apply auto
+  apply (metis Units_inv_inv)+
   done
 
 lemma (in residues_prime) wilson_theorem1:
@@ -431,11 +396,8 @@ proof -
     (\<Otimes>i: {\<one>, \<ominus> \<one>}. i) \<otimes> (\<Otimes>i: Union ?InversePairs. i)"
     apply (subst UR)
     apply (subst finprod_Un_disjoint)
-    apply (auto intro:funcsetI)
-    apply (drule sym, subst (asm) inv_eq_one_eq)
-    apply auto
-    apply (drule sym, subst (asm) inv_eq_neg_one_eq)
-    apply auto
+    apply (auto intro: funcsetI)
+    apply (metis Units_inv_inv inv_one inv_neg_one)+
     done
   also have "(\<Otimes>i: {\<one>, \<ominus> \<one>}. i) = \<ominus> \<one>"
     apply (subst finprod_insert)
@@ -445,20 +407,13 @@ proof -
     done
   also have "(\<Otimes>i:(Union ?InversePairs). i) =
       (\<Otimes>A: ?InversePairs. (\<Otimes>y:A. y))"
-    apply (subst finprod_Union_disjoint)
-    apply force
-    apply force
-    apply clarify
-    apply (rule inv_pair_lemma)
-    apply auto
+    apply (subst finprod_Union_disjoint, auto)
+    apply (metis Units_inv_inv)+
     done
   also have "\<dots> = \<one>"
-    apply (rule finprod_one)
-    apply auto
-    apply (subst finprod_insert)
-    apply auto
-    apply (frule inv_eq_self)
-    apply (auto)
+    apply (rule finprod_one, auto)
+    apply (subst finprod_insert, auto)
+    apply (metis inv_eq_self)
     done
   finally have "(\<Otimes>i: Units R. i) = \<ominus> \<one>"
     by simp
@@ -483,15 +438,17 @@ proof -
     by (metis Divides.transfer_int_nat_functions(2) cong_int_def res_neg_eq res_one_eq)
 qed
 
-lemma wilson_theorem: "prime p \<Longrightarrow> [fact (p - 1) = - 1] (mod p)"
-  apply (frule prime_gt_1_nat)
-  apply (case_tac "p = 2")
-  apply (subst fact_altdef_nat, simp)
-  apply (subst cong_int_def)
-  apply simp
-  apply (rule residues_prime.wilson_theorem1)
-  apply (rule residues_prime.intro)
-  apply auto
-  done
+lemma wilson_theorem:
+  assumes "prime p" shows "[fact (p - 1) = - 1] (mod p)"
+proof (cases "p = 2")
+  case True 
+  then show ?thesis
+    by (simp add: cong_int_def fact_altdef_nat)
+next
+  case False
+  then show ?thesis
+    using assms prime_ge_2_nat
+    by (metis residues_prime.wilson_theorem1 residues_prime.intro le_eq_less_or_eq)
+qed
 
 end
