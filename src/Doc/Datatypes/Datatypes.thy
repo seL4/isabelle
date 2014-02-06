@@ -1399,14 +1399,14 @@ subsection {* Recursive Default Values for Selectors
 text {*
 A datatype selector @{text un_D} can have a default value for each constructor
 on which it is not otherwise specified. Occasionally, it is useful to have the
-default value be defined recursively. This produces a chicken-and-egg situation
-that may seem unsolvable, because the datatype is not introduced yet at the
-moment when the selectors are introduced. Of course, we can always define the
-selectors manually afterward, but we then have to state and prove all the
-characteristic theorems ourselves instead of letting the package do it.
+default value be defined recursively. This leads to a chicken-and-egg
+situation, because the datatype is not introduced yet at the moment when the
+selectors are introduced. Of course, we can always define the selectors
+manually afterward, but we then have to state and prove all the characteristic
+theorems ourselves instead of letting the package do it.
 
-Fortunately, there is a fairly elegant workaround that relies on overloading and
-that avoids the tedium of manual derivations:
+Fortunately, there is a workaround that relies on overloading to relieve us
+from the tedium of manual derivations:
 
 \begin{enumerate}
 \setlength{\itemsep}{0pt}
@@ -1452,7 +1452,7 @@ text {* \blankline *}
 
 text {* \blankline *}
 
-    lemma terminal_TCons[simp]: "termi (TCons x xs) = termi xs"
+    lemma termi_TCons[simp]: "termi (TCons x xs) = termi xs"
     by (cases xs) auto
 
 
@@ -1613,14 +1613,14 @@ with $m > 0$ live type variables and $n$ constructors @{text "t.C\<^sub>1"},
 datatypes (Section~\ref{ssec:datatype-generated-constants}), except that the
 iterator and the recursor are replaced by dual concepts:
 
-\begin{itemize}
-\setlength{\itemsep}{0pt}
+\medskip
 
-\item \relax{Coiterator}: @{text unfold_t}
-
-\item \relax{Corecursor}: @{text corec_t}
-
-\end{itemize}
+\begin{tabular}{@ {}ll@ {}}
+Coiterator: &
+  @{text unfold_t} \\
+Corecursor: &
+  @{text corec_t}
+\end{tabular}
 *}
 
 
