@@ -12,7 +12,7 @@ Type synonyms are abbreviations for existing types, for example
 
 type_synonym string = "char list"
 
-text{*
+text{*\index{string@@{text string}}
 Type synonyms are expanded after parsing and are not present in internal representation and output. They are mere conveniences for the reader.
 
 \subsection{Datatypes}
@@ -21,7 +21,7 @@ Type synonyms are expanded after parsing and are not present in internal represe
 The general form of a datatype definition looks like this:
 \begin{quote}
 \begin{tabular}{@ {}rclcll}
-\isacom{datatype} @{text "('a\<^sub>1,\<dots>,'a\<^sub>n)t"}
+\indexed{\isacom{datatype}}{datatype} @{text "('a\<^sub>1,\<dots>,'a\<^sub>n)t"}
      & = & $C_1 \ @{text"\""}\tau_{1,1}@{text"\""} \dots @{text"\""}\tau_{1,n_1}@{text"\""}$ \\
      & $|$ & \dots \\
      & $|$ & $C_k \ @{text"\""}\tau_{k,1}@{text"\""} \dots @{text"\""}\tau_{k,n_k}@{text"\""}$
@@ -39,14 +39,14 @@ properties of the constructors:
 \end{tabular}
 \end{itemize}
 The fact that any value of the datatype is built from the constructors implies
-the \concept{structural induction} rule: to show
+the \concept{structural induction}\index{induction} rule: to show
 $P~x$ for all $x$ of type @{text "('a\<^sub>1,\<dots>,'a\<^sub>n)t"},
 one needs to show $P(C_i\ x_1 \dots x_{n_i})$ (for each $i$) assuming
 $P(x_j)$ for all $j$ where $\tau_{i,j} =$~@{text "('a\<^sub>1,\<dots>,'a\<^sub>n)t"}.
 Distinctness and injectivity are applied automatically by @{text auto}
 and other proof methods. Induction must be applied explicitly.
 
-Datatype values can be taken apart with case-expressions, for example
+Datatype values can be taken apart with case expressions\index{case expression}\index{case expression@@{text "case ... of"}}, for example
 \begin{quote}
 \noquotes{@{term[source] "(case xs of [] \<Rightarrow> 0 | x # _ \<Rightarrow> Suc x)"}}
 \end{quote}
@@ -75,7 +75,7 @@ The induction step contains two induction hypotheses, one for each subtree.
 An application of @{text auto} finishes the proof.
 
 A very simple but also very useful datatype is the predefined
-@{datatype[display] option}
+@{datatype[display] option}\index{option@@{text option}}\index{None@@{const None}}\index{Some@@{const Some}}
 Its sole purpose is to add a new element @{const None} to an existing
 type @{typ 'a}. To make sure that @{const None} is distinct from all the
 elements of @{typ 'a}, you wrap them up in @{const Some} and call
@@ -100,7 +100,7 @@ abbreviates @{text"(a, (b, c))"} and @{text "\<tau>\<^sub>1 \<times> \<tau>\<^su
 \subsection{Definitions}
 
 Non recursive functions can be defined as in the following example:
-*}
+\index{definition@\isacom{definition}}*}
 
 definition sq :: "nat \<Rightarrow> nat" where
 "sq n = n * n"
@@ -111,7 +111,7 @@ text{* Such definitions do not allow pattern matching but only
 \subsection{Abbreviations}
 
 Abbreviations are similar to definitions:
-*}
+\index{abbreviation@\isacom{abbreviation}}*}
 
 abbreviation sq' :: "nat \<Rightarrow> nat" where
 "sq' n \<equiv> n * n"
@@ -132,7 +132,7 @@ The ASCII representation of @{text"\<equiv>"} is \texttt{==} or \xsymbol{equiv}.
 \subsection{Recursive Functions}
 \label{sec:recursive-funs}
 
-Recursive functions are defined with \isacom{fun} by pattern matching
+Recursive functions are defined with \indexed{\isacom{fun}}{fun} by pattern matching
 over datatype constructors. The order of equations matters. Just as in
 functional programming languages. However, all HOL functions must be
 total. This simplifies the logic---terms are always defined---but means
@@ -187,7 +187,7 @@ This example leads to the following induction heuristic:
 \emph{Let @{text f} be a recursive function.
 If the definition of @{text f} is more complicated
 than having one equation for each constructor of some datatype,
-then properties of @{text f} are best proved via @{text "f.induct"}.}
+then properties of @{text f} are best proved via @{text "f.induct"}.\index{inductionrule@@{text".induct"}}}
 \end{quote}
 
 The general case is often called \concept{computation induction},
@@ -203,7 +203,7 @@ the induction rule @{text"f.induct"} contains one premise of the form
 \end{quote}
 If @{text "f :: \<tau>\<^sub>1 \<Rightarrow> \<dots> \<Rightarrow> \<tau>\<^sub>n \<Rightarrow> \<tau>"} then @{text"f.induct"} is applied like this:
 \begin{quote}
-\isacom{apply}@{text"(induction x\<^sub>1 \<dots> x\<^sub>n rule: f.induct)"}
+\isacom{apply}@{text"(induction x\<^sub>1 \<dots> x\<^sub>n rule: f.induct)"}\index{inductionrule@@{text"induction ... rule:"}}
 \end{quote}
 where typically there is a call @{text"f x\<^sub>1 \<dots> x\<^sub>n"} in the goal.
 But note that the induction rule does not mention @{text f} at all,
@@ -238,7 +238,7 @@ Now prove that @{prop "map f (intersperse a xs) = intersperse (f a) (map f xs)"}
 \end{exercise}
 
 
-\section{Induction Heuristics}
+\section{Induction Heuristics}\index{induction heuristics}
 
 We have already noted that theorems about recursive functions are proved by
 induction. In case the function has more than one argument, we have followed
@@ -452,7 +452,7 @@ are simpler than \mbox{@{prop"n < Suc m"}}. But
 leads to nontermination: when trying to rewrite @{prop"n<m"} to @{const True}
 one first has to prove \mbox{@{prop"Suc n < m"}}, which can be rewritten to @{const True} provided @{prop"Suc(Suc n) < m"}, \emph{ad infinitum}.
 
-\subsection{The @{text simp} Proof Method}
+\subsection{The \indexed{@{text simp}}{simp} Proof Method}
 \label{sec:simp}
 
 So far we have only used the proof method @{text auto}.  Method @{text simp}
@@ -530,9 +530,9 @@ can be instructed to do so:
 \isacom{apply}@{text"(simp split: nat.split)"}
 \end{quote}
 splits all case-expressions over natural numbers. For an arbitrary
-datatype @{text t} it is @{text "t.split"} instead of @{thm[source] nat.split}.
+datatype @{text t} it is @{text "t.split"}\index{split@@{text".split"}} instead of @{thm[source] nat.split}.
 Method @{text auto} can be modified in exactly the same way.
-The modifier @{text "split:"} can be followed by multiple names.
+The modifier \indexed{@{text "split:"}}{split} can be followed by multiple names.
 Splitting if or case-expressions in the assumptions requires 
 @{text "split: if_splits"} or @{text "split: t.splits"}.
 

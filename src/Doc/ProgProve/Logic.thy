@@ -17,11 +17,11 @@ provides the standard logical constructs, in decreasing order of precedence:
   @{const True} ~\mid~
   @{const False} ~\mid~
   @{prop "term = term"}\\
- &\mid& @{prop"\<not> form"} ~\mid~
-  @{prop "form \<and> form"} ~\mid~
-  @{prop "form \<or> form"} ~\mid~
-  @{prop "form \<longrightarrow> form"}\\
- &\mid& @{prop"\<forall>x. form"} ~\mid~  @{prop"\<exists>x. form"}
+ &\mid& @{prop"\<not> form"}\index{$HOL4@\isasymnot} ~\mid~
+  @{prop "form \<and> form"}\index{$HOL0@\isasymand} ~\mid~
+  @{prop "form \<or> form"}\index{$HOL1@\isasymor} ~\mid~
+  @{prop "form \<longrightarrow> form"}\index{$HOL2@\isasymlongrightarrow}\\
+ &\mid& @{prop"\<forall>x. form"}\index{$HOL6@\isasymforall} ~\mid~  @{prop"\<exists>x. form"}\index{$HOL7@\isasymexists}
 \end{array}
 \]
 Terms are the ones we have seen all along, built from constants, variables,
@@ -80,21 +80,21 @@ but the first one works better when using the theorem in further proofs.
 \section{Sets}
 \label{sec:Sets}
 
-Sets of elements of type @{typ 'a} have type @{typ"'a set"}.
+Sets of elements of type @{typ 'a} have type @{typ"'a set"}\index{set@@{text set}}.
 They can be finite or infinite. Sets come with the usual notation:
 \begin{itemize}
-\item @{term"{}"},\quad @{text"{e\<^sub>1,\<dots>,e\<^sub>n}"}
-\item @{prop"e \<in> A"},\quad @{prop"A \<subseteq> B"}
-\item @{term"A \<union> B"},\quad @{term"A \<inter> B"},\quad @{term"A - B"},\quad @{term"-A"}
+\item \indexed{@{term"{}"}}{$IMP042},\quad @{text"{e\<^sub>1,\<dots>,e\<^sub>n}"}
+\item @{prop"e \<in> A"}\index{$HOLSet0@\isasymin},\quad @{prop"A \<subseteq> B"}\index{$HOLSet2@\isasymsubseteq}
+\item @{term"A \<union> B"}\index{$HOLSet4@\isasymunion},\quad @{term"A \<inter> B"}\index{$HOLSet5@\isasyminter},\quad @{term"A - B"},\quad @{term"-A"}
 \end{itemize}
 (where @{term"A-B"} and @{text"-A"} are set difference and complement)
 and much more. @{const UNIV} is the set of all elements of some type.
-Set comprehension is written @{term"{x. P}"}
-rather than @{text"{x | P}"}.
+Set comprehension\index{set comprehension} is written
+@{term"{x. P}"}\index{$IMP042@@{term"{x. P}"}} rather than @{text"{x | P}"}.
 \begin{warn}
 In @{term"{x. P}"} the @{text x} must be a variable. Set comprehension
 involving a proper term @{text t} must be written
-\noquotes{@{term[source] "{t | x y. P}"}},
+\noquotes{@{term[source] "{t | x y. P}"}}\index{$IMP042@@{text"{t |x. P}"}},
 where @{text "x y"} are those free variables in @{text t}
 that occur in @{text P}.
 This is just a shorthand for @{term"{v. EX x y. v = t \<and> P}"}, where
@@ -114,7 +114,8 @@ Here are the ASCII representations of the mathematical symbols:
 Sets also allow bounded quantifications @{prop"ALL x : A. P"} and
 @{prop"EX x : A. P"}.
 
-For the more ambitious, there are also @{text"\<Union>"} and @{text"\<Inter>"}:
+For the more ambitious, there are also @{text"\<Union>"}\index{$HOLSet6@\isasymUnion}
+and @{text"\<Inter>"}\index{$HOLSet7@\isasymInter}:
 \begin{center}
 @{thm Union_eq} \qquad @{thm Inter_eq}
 \end{center}
@@ -131,11 +132,11 @@ If \texttt{A} is \texttt{UNIV} you can just write \ \texttt{UN x.~B} \ and \ \te
 Some other frequently useful functions on sets are the following:
 \begin{center}
 \begin{tabular}{l@ {\quad}l}
-@{const_typ set} & converts a list to the set of its elements\\
-@{const_typ finite} & is true iff its argument is finite\\
-@{const_typ card} & is the cardinality of a finite set\\
+@{const_typ set}\index{set@@{const set}} & converts a list to the set of its elements\\
+@{const_typ finite}\index{finite@@{const finite}} & is true iff its argument is finite\\
+@{const_typ card}\index{card@@{const card}} & is the cardinality of a finite set\\
  & and is @{text 0} for all infinite sets\\
-@{thm image_def} & is the image of a function over a set
+@{thm image_def}\index{$IMP042@@{term"f ` A"}} & is the image of a function over a set
 \end{tabular}
 \end{center}
 See \cite{Nipkow-Main} for the wealth of further predefined functions in theory
@@ -165,7 +166,7 @@ same tree should be returned. Prove correctness of @{text ins}:
 
 \section{Proof Automation}
 
-So far we have only seen @{text simp} and @{text auto}: Both perform
+So far we have only seen @{text simp} and \indexed{@{text auto}}{auto}: Both perform
 rewriting, both can also prove linear arithmetic facts (no multiplication),
 and @{text auto} is also able to prove simple logical or set-theoretic goals:
 *}
@@ -195,7 +196,7 @@ There is no complete proof method for HOL, not even in theory.
 Hence all our proof methods only differ in how incomplete they are.
 
 A proof method that is still incomplete but tries harder than @{text auto} is
-@{text fastforce}.  It either succeeds or fails, it acts on the first
+\indexed{@{text fastforce}}{fastforce}.  It either succeeds or fails, it acts on the first
 subgoal only, and it can be modified just like @{text auto}, e.g.\
 with @{text "simp add"}. Here is a typical example of what @{text fastforce}
 can do:
@@ -210,7 +211,7 @@ quantifiers.  Even @{text fastforce} fails when the quantifier structure
 becomes more complicated. In a few cases, its slow version @{text force}
 succeeds where @{text fastforce} fails.
 
-The method of choice for complex logical goals is @{text blast}. In the
+The method of choice for complex logical goals is \indexed{@{text blast}}{blast}. In the
 following example, @{text T} and @{text A} are two binary predicates. It
 is shown that if @{text T} is total, @{text A} is antisymmetric and @{text T} is
 a subset of @{text A}, then @{text A} is a subset of @{text T}:
@@ -236,7 +237,7 @@ Method @{text blast}
 Because of its strength in logic and sets and its weakness in equality reasoning, it complements the earlier proof methods.
 
 
-\subsection{Sledgehammer}
+\subsection{\concept{Sledgehammer}}
 
 Command \isacom{sledgehammer} calls a number of external automatic
 theorem provers (ATPs) that run for up to 30 seconds searching for a
@@ -256,7 +257,7 @@ by (metis append_eq_conv_conj)
 text{* We do not explain how the proof was found but what this command
 means. For a start, Isabelle does not trust external tools (and in particular
 not the translations from Isabelle's logic to those tools!)
-and insists on a proof that it can check. This is what @{text metis} does.
+and insists on a proof that it can check. This is what \indexed{@{text metis}}{metis} does.
 It is given a list of lemmas and tries to find a proof just using those lemmas
 (and pure logic). In contrast to @{text simp} and friends that know a lot of
 lemmas already, using @{text metis} manually is tedious because one has
@@ -284,7 +285,7 @@ connectives @{text"\<not>"}, @{text"\<and>"}, @{text"\<or>"}, @{text"\<longright
 @{text"\<longleftrightarrow>"}. Strictly speaking, this is known as \concept{linear arithmetic}
 because it does not involve multiplication, although multiplication with
 numbers, e.g.\ @{text"2*n"} is allowed. Such formulas can be proved by
-@{text arith}:
+\indexed{@{text arith}}{arith}:
 *}
 
 lemma "\<lbrakk> (a::nat) \<le> x + b; 2*x < c \<rbrakk> \<Longrightarrow> 2*a + 1 \<le> 2*b + c"
@@ -378,7 +379,7 @@ Replace the subgoal @{text C} with @{text n} new subgoals @{text"A\<^sub>1"} to 
 \end{enumerate}
 This is the command to apply rule @{text xyz}:
 \begin{quote}
-\isacom{apply}@{text"(rule xyz)"}
+\isacom{apply}@{text"(rule xyz)"}\index{rule@@{text rule}}
 \end{quote}
 This is also called \concept{backchaining} with rule @{text xyz}.
 
@@ -410,12 +411,12 @@ When applied backwards, these rules decompose the goal:
 Isabelle knows about these and a number of other introduction rules.
 The command
 \begin{quote}
-\isacom{apply} @{text rule}
+\isacom{apply} @{text rule}\index{rule@@{text rule}}
 \end{quote}
 automatically selects the appropriate rule for the current subgoal.
 
 You can also turn your own theorems into introduction rules by giving them
-the @{text"intro"} attribute, analogous to the @{text simp} attribute.  In
+the \indexed{@{text"intro"}}{intro} attribute, analogous to the @{text simp} attribute.  In
 that case @{text blast}, @{text fastforce} and (to a limited extent) @{text
 auto} will automatically backchain with those theorems. The @{text intro}
 attribute should be used with care because it increases the search space and
@@ -469,7 +470,7 @@ Forward reasoning also makes sense in connection with proof states.
 Therefore @{text blast}, @{text fastforce} and @{text auto} support a modifier
 @{text dest} which instructs the proof method to use certain rules in a
 forward fashion. If @{text r} is of the form \mbox{@{text "A \<Longrightarrow> B"}}, the modifier
-\mbox{@{text"dest: r"}}
+\mbox{@{text"dest: r"}}\index{dest@@{text"dest:"}}
 allows proof search to reason forward with @{text r}, i.e.\
 to replace an assumption @{text A'}, where @{text A'} unifies with @{text A},
 with the correspondingly instantiated @{text B}. For example, @{thm[source,show_question_marks] Suc_leD} is the theorem \mbox{@{thm Suc_leD}}, which works well for forward reasoning:
@@ -495,7 +496,7 @@ in front of unknowns from now on.
 
 
 \section{Inductive Definitions}
-\label{sec:inductive-defs}
+\label{sec:inductive-defs}\index{inductive definition}
 
 Inductive definitions are the third important definition facility, after
 datatypes and recursive function.
@@ -624,7 +625,7 @@ done
 
 text{* \indent
 Rule induction is applied by giving the induction rule explicitly via the
-@{text"rule:"} modifier:*}
+@{text"rule:"} modifier:\index{inductionrule@@{text"induction ... rule:"}}*}
 
 lemma "ev m \<Longrightarrow> even m"
 apply(induction rule: ev.induct)
@@ -653,7 +654,8 @@ by (simp_all add: ev0 evSS)
 text{* The rules for @{const ev} make perfect simplification and introduction
 rules because their premises are always smaller than the conclusion. It
 makes sense to turn them into simplification and introduction rules
-permanently, to enhance proof automation: *}
+permanently, to enhance proof automation. They are named @{thm[source] ev.intros}
+\index{intros@@{text".intros"}} by Isabelle: *}
 
 declare ev.intros[simp,intro]
 
@@ -735,7 +737,7 @@ and we try to prove \mbox{@{prop"star r y z \<Longrightarrow> star r x z"}},
 which we abbreviate by @{prop"P x y"}. These are our two subgoals:
 @{subgoals[display,indent=0]}
 The first one is @{prop"P x x"}, the result of case @{thm[source]refl},
-and it is trivial.
+and it is trivial:\index{assumption@@{text assumption}}
 *}
 apply(assumption)
 txt{* Let us examine subgoal @{text 2}, case @{thm[source] step}.

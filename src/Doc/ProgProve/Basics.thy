@@ -78,8 +78,8 @@ needed to
 disambiguate terms involving overloaded functions such as @{text "+"}, @{text
 "*"} and @{text"\<le>"}.
 
-Finally there are the universal quantifier @{text"\<And>"} and the implication
-@{text"\<Longrightarrow>"}. They are part of the Isabelle framework, not the logic
+Finally there are the universal quantifier @{text"\<And>"}\index{$4@\isasymAnd} and the implication
+@{text"\<Longrightarrow>"}\index{$3@\isasymLongrightarrow}. They are part of the Isabelle framework, not the logic
 HOL. Logically, they agree with their HOL counterparts @{text"\<forall>"} and
 @{text"\<longrightarrow>"}, but operationally they behave differently. This will become
 clearer as we go along.
@@ -103,8 +103,8 @@ functions, and theorems, much like a module in a programming language.
 All the Isabelle text that you ever type needs to go into a theory.
 The general format of a theory @{text T} is
 \begin{quote}
-\isacom{theory} @{text T}\\
-\isacom{imports} @{text "T\<^sub>1 \<dots> T\<^sub>n"}\\
+\indexed{\isacom{theory}}{theory} @{text T}\\
+\indexed{\isacom{imports}}{imports} @{text "T\<^sub>1 \<dots> T\<^sub>n"}\\
 \isacom{begin}\\
 \emph{definitions, theorems and proofs}\\
 \isacom{end}
