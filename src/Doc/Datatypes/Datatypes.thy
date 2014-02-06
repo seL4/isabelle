@@ -112,7 +112,7 @@ describes how to specify codatatypes using the @{command codatatype} command.
 Functions,'' describes how to specify corecursive functions using the
 @{command primcorec} and @{command primcorecursive} commands.
 
-\item Section \ref{sec:registering-bounded-natural-functors}, ``Registering
+\item Section \ref{sec:introducing-bounded-natural-functors}, ``Introducing
 Bounded Natural Functors,'' explains how to use the @{command bnf} command
 to register arbitrary type constructors as BNFs.
 
@@ -329,8 +329,8 @@ type arguments are called \emph{dead}. In @{typ "'a \<Rightarrow> 'b"} and
 Type constructors must be registered as BNFs to have live arguments. This is
 done automatically for datatypes and codatatypes introduced by the @{command
 datatype_new} and @{command codatatype} commands.
-Section~\ref{sec:registering-bounded-natural-functors} explains how to register
-arbitrary type constructors as BNFs.
+Section~\ref{sec:introducing-bounded-natural-functors} explains how to
+register arbitrary type constructors as BNFs.
 
 Here is another example that fails:
 *}
@@ -340,8 +340,9 @@ Here is another example that fails:
 
 text {*
 \noindent
-This one features a different flavor of nesting, where the recursive call in the
-type specification occurs around (rather than inside) another type constructor.
+This attempted definition features a different flavor of nesting, where the
+recursive call in the type specification occurs around (rather than inside)
+another type constructor.
 *}
 
 subsubsection {* Auxiliary Constants and Properties
@@ -377,6 +378,9 @@ default names @{text is_Nil}, @{text un_Cons1}, @{text un_Cons2},
 
 text {*
 \noindent
+The introduced constants are listed below.
+
+\medskip
 
 \begin{tabular}{@ {}ll@ {}}
 Constructors: &
@@ -397,8 +401,10 @@ Relator: &
   @{text "list_all2 \<Colon> ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> bool"}
 \end{tabular}
 
+\medskip
+
 The discriminator @{const null} and the selectors @{const hd} and @{const tl}
-are characterized as follows:
+are characterized by the following conditional equations:
 %
 \[@{thm list.collapse(1)[of xs, no_vars]}
   \qquad @{thm list.collapse(2)[of xs, no_vars]}\]
@@ -467,6 +473,9 @@ text {*
   @{syntax_def dt_options}: '(' (('no_discs_sels' | 'no_code' | 'rep_compat') + ',') ')'
 \<close>}
 
+\medskip
+
+\noindent
 The syntactic entity \synt{target} can be used to specify a local
 context---e.g., @{text "(in linorder)"}. It is documented in the Isar reference
 manual \cite{isabelle-isar-ref}.
@@ -501,6 +510,8 @@ define, its type parameters, and additional information:
   ;
   @{syntax_def map_rel}: '(' ((('map' | 'rel') ':' name) +) ')'
 \<close>}
+
+\medskip
 
 \noindent
 The syntactic entity \synt{name} denotes an identifier, \synt{typefree}
@@ -542,6 +553,8 @@ constructors as long as they share the same type.
   @{syntax_def dt_sel_defaults}: '(' 'defaults' (name ':' term +) ')'
 \<close>}
 
+\medskip
+
 \noindent
 Given a constructor
 @{text "C \<Colon> \<sigma>\<^sub>1 \<Rightarrow> \<dots> \<Rightarrow> \<sigma>\<^sub>p \<Rightarrow> \<sigma>"},
@@ -565,9 +578,11 @@ text {*
   @@{command datatype_new_compat} names
 \<close>}
 
+\medskip
+
 \noindent
-The old datatype package provides some functionality that is not yet replicated
-in the new package:
+The old datatype package provides some functionality that is not yet
+replicated in the new package:
 
 \begin{itemize}
 \setlength{\itemsep}{0pt}
@@ -1005,7 +1020,7 @@ In the other direction, there is currently no way to register old-style
 datatypes as new-style datatypes. If the goal is to define new-style datatypes
 with nested recursion through old-style datatypes, the old-style
 datatypes can be registered as a BNF
-(Section~\ref{sec:registering-bounded-natural-functors}). If the goal is
+(Section~\ref{sec:introducing-bounded-natural-functors}). If the goal is
 to derive discriminators and selectors, this can be achieved using @{command
 wrap_free_constructors}
 (Section~\ref{sec:deriving-destructors-and-theorems-for-free-constructors}).
@@ -1580,6 +1595,8 @@ text {*
   @@{command codatatype} target? \<newline>
     (@{syntax dt_name} '=' (@{syntax ctor} + '|') + @'and')
 \<close>}
+
+\medskip
 
 \noindent
 Definitions of codatatypes have almost exactly the same syntax as for datatypes
@@ -2246,6 +2263,9 @@ text {*
   @{syntax_def pcr_formula}: thmdecl? prop (@'of' (term * ))?
 \<close>}
 
+\medskip
+
+\noindent
 The optional target is potentially followed by a corecursion-specific option:
 
 \begin{itemize}
@@ -2283,8 +2303,8 @@ partial_function to the rescue
 *)
 
 
-section {* Registering Bounded Natural Functors
-  \label{sec:registering-bounded-natural-functors} *}
+section {* Introducing Bounded Natural Functors
+  \label{sec:introducing-bounded-natural-functors} *}
 
 text {*
 The (co)datatype package can be set up to allow nested recursion through
@@ -2493,11 +2513,13 @@ text {*
   @{syntax_def wit_types}: '[' 'wits' ':' types ']'
 \<close>}
 
+\medskip
+
 \noindent
 The @{command bnf_decl} command declares a new type and associated constants
 (map, set, relator, and cardinal bound) and asserts the BNF properties for
 these constants as axioms. Type arguments are live by default; they can be
-marked as dead by entering \texttt{-} (hyphen) instead of a name for the
+marked as dead by entering ``-'' (hyphen) instead of an identifier for the
 corresponding set function. Witnesses can be specified by their types.
 Otherwise, the syntax of @{command bnf_decl} is
 identical to the left-hand side of a @{command datatype_new} or @{command
@@ -2574,6 +2596,8 @@ text {*
   ;
   X_list: '[' (X + ',') ']'
 \<close>}
+
+\medskip
 
 % options: no_discs_sels no_code rep_compat
 
