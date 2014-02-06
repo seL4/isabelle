@@ -1847,8 +1847,12 @@ command provided by the theory \verb|~~/src/HOL/Library/Simps_Case_Conv|.
 text {*
 This generates the lemma collection @{thm [source] lappend_simps}:
 %
-\[@{thm lappend_simps(1)[no_vars]}
-  \qquad @{thm lappend_simps(2)[no_vars]}\]
+\begin{gather*%
+}
+  @{thm lappend_simps(1)[no_vars]} \\
+  @{thm lappend_simps(2)[no_vars]}
+\end{gather*%
+}
 %
 Corecursion is useful to specify not only functions but also infinite objects:
 *}

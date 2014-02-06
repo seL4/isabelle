@@ -1,5 +1,6 @@
 \documentclass[12pt,a4paper]{article} % fleqn
 \usepackage[T1]{fontenc}
+\usepackage{amsmath}
 \usepackage{cite}
 \usepackage{enumitem}
 \usepackage{footmisc}
@@ -33,14 +34,16 @@
 \newcommand{\hthm}[1]{\textbf{\textit{#1}}}
 
 %\renewcommand{\isactrlsub}[1]{\/$\sb{\mathrm{#1}}$}
-\renewcommand{\isactrlsub}[1]{\/$\sb{#1}$}
-\renewcommand{\isadigit}[1]{\/\ensuremath{\mathrm{#1}}}
-\renewcommand{\isacharprime}{\isamath{{'}\mskip-2mu}}
-\renewcommand{\isacharunderscore}{\mbox{\_}}
-\renewcommand{\isacharunderscorekeyword}{\mbox{\_}}
-\renewcommand{\isachardoublequote}{\mbox{\upshape{``}}}
-\renewcommand{\isachardoublequoteopen}{\mbox{\upshape{``}\kern.1ex}}
-\renewcommand{\isachardoublequoteclose}{\/\kern.15ex\mbox{\upshape{''}}}
+\renewcommand\isactrlsub[1]{\/$\sb{#1}$}
+\renewcommand\isadigit[1]{\/\ensuremath{\mathrm{#1}}}
+\renewcommand\isacharprime{\isamath{{'}\mskip-2mu}}
+\renewcommand\isacharunderscore{\mbox{\_}}
+\renewcommand\isacharunderscorekeyword{\mbox{\_}}
+\renewcommand\isachardoublequote{\mbox{\upshape{``}}}
+\renewcommand\isachardoublequoteopen{\mbox{\upshape{``}\kern.1ex}}
+\renewcommand\isachardoublequoteclose{\/\kern.15ex\mbox{\upshape{''}}}
+\renewcommand\isacharverbatimopen{\isacharbraceleft\isacharasterisk}
+\renewcommand\isacharverbatimclose{\isacharasterisk\isacharbraceright}
 
 \hyphenation{isa-belle}
 
@@ -53,7 +56,7 @@ Jasmin Christian Blanchette,
 Lorenz Panny, \\
 Andrei Popescu, and
 Dmitriy Traytel \\
-{\normalsize Institut f\"ur Informatik, Technische Universit\"at M\"unchen} \\
+{\normalsize Fakult\"at f\"ur Informatik, Technische Universit\"at M\"unchen} \\
 \hbox{}}
 
 \urlstyle{tt}
