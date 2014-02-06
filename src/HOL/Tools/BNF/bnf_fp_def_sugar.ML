@@ -180,7 +180,7 @@ fun strong_co_induct_of [_, s] = s;
 
 fun register_fp_sugar key fp_sugar =
   Local_Theory.declaration {syntax = false, pervasive = true}
-    (fn phi => Data.map (Symtab.default (key, morph_fp_sugar phi fp_sugar)));
+    (fn phi => Data.map (Symtab.update (key, morph_fp_sugar phi fp_sugar)));
 
 fun register_fp_sugars fp pre_bnfs nested_bnfs nesting_bnfs (fp_res as {Ts, ...}) ctr_defss
     ctr_sugars co_iterss mapss co_inducts co_iter_thmsss disc_co_itersss sel_co_iterssss lthy =
