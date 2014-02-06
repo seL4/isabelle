@@ -187,15 +187,16 @@ fun proof_banner mode name =
   | _ => "Try this")
 
 fun bunch_of_proof_methods smt_proofs needs_full_types desperate_lam_trans =
-  [Metis_Method (SOME full_type_enc, NONE)] @
   (if needs_full_types then
-     [Metis_Method (SOME full_type_enc, NONE),
+     [Metis_Method (SOME full_typesN, NONE),
       Metis_Method (SOME really_full_type_enc, NONE),
-      Metis_Method (SOME full_type_enc, SOME desperate_lam_trans)]
+      Metis_Method (SOME full_typesN, SOME desperate_lam_trans),
+      Metis_Method (SOME really_full_type_enc, SOME desperate_lam_trans)]
    else
      [Metis_Method (NONE, NONE),
-      Metis_Method (SOME no_typesN, SOME desperate_lam_trans)]) @
-  [Metis_Method (SOME really_full_type_enc, SOME desperate_lam_trans)] @
+      Metis_Method (SOME full_typesN, NONE),
+      Metis_Method (SOME no_typesN, SOME desperate_lam_trans),
+      Metis_Method (SOME really_full_type_enc, SOME desperate_lam_trans)]) @
   (if smt_proofs then [SMT_Method] else [])
 
 fun extract_proof_method ({type_enc, lam_trans, ...} : params)
