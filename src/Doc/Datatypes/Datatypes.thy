@@ -378,7 +378,7 @@ default names @{text is_Nil}, @{text un_Cons1}, @{text un_Cons2},
 
 text {*
 \noindent
-The introduced constants are listed below.
+The types of the constants that appear in the specification are listed below.
 
 \medskip
 
@@ -646,32 +646,30 @@ with $m > 0$ live type variables and $n$ constructors
 @{text "t.C\<^sub>1"}, \ldots, @{text "t.C\<^sub>n"}, the
 following auxiliary constants are introduced:
 
-\begin{itemize}
-\setlength{\itemsep}{0pt}
+\medskip
 
-\item \relax{Case combinator}: @{text t.case_t} (rendered using the familiar
-@{text case}--@{text of} syntax)
+\begin{tabular}{@ {}ll@ {}}
+Case combinator: &
+  @{text t.case_t} (rendered using the familiar @{text case}--@{text of} syntax) \\
+Discriminators: &
+  @{text "t.is_C\<^sub>1"}$, \ldots, $@{text "t.is_C\<^sub>n"} \\
+Selectors: &
+  @{text t.un_C\<^sub>11}$, \ldots, $@{text t.un_C\<^sub>1k\<^sub>1} \\
+& \quad\vdots \\
+& @{text t.un_C\<^sub>n1}$, \ldots, $@{text t.un_C\<^sub>nk\<^sub>n} \\
+Set functions: &
+  @{text set1_t}, \ldots, @{text t.setm_t} \\
+Map function: &
+  @{text t.map_t} \\
+Relator: &
+  @{text t.rel_t} \\
+Iterator: &
+   @{text t.fold_t} \\
+Recursor: &
+  @{text t.rec_t}
+\end{tabular}
 
-\item \relax{Discriminators}: @{text "t.is_C\<^sub>1"}, \ldots,
-@{text "t.is_C\<^sub>n"}
-
-\item \relax{Selectors}:
-@{text t.un_C\<^sub>11}$, \ldots, @{text t.un_C\<^sub>1k\<^sub>1}, \\
-\phantom{\relax{Selectors:}} \quad\vdots \\
-\phantom{\relax{Selectors:}} @{text t.un_C\<^sub>n1}$, \ldots, @{text t.un_C\<^sub>nk\<^sub>n}.
-
-\item \relax{Set functions} (or \relax{natural transformations}):
-@{text set1_t}, \ldots, @{text t.setm_t}
-
-\item \relax{Map function} (or \relax{functorial action}): @{text t.map_t}
-
-\item \relax{Relator}: @{text t.rel_t}
-
-\item \relax{Iterator}: @{text t.fold_t}
-
-\item \relax{Recursor}: @{text t.rec_t}
-
-\end{itemize}
+\medskip
 
 \noindent
 The case combinator, discriminators, and selectors are collectively called
