@@ -655,8 +655,9 @@ proof-
       have False
         by simp}
     then have b0: "b \<noteq> 0" ..
-    hence b1: "b \<ge> 1" by arith thm Cong.cong_diff_nat[OF cong_sym_nat [OF b(1)] cong_refl_nat[of 1]]
-    from cong_imp_coprime_nat[OF Cong.cong_diff_nat[OF cong_sym_nat [OF b(1)] cong_refl_nat[of 1] b1]] ath b1 b(2) nqr
+    hence b1: "b \<ge> 1" by arith 
+    from cong_imp_coprime_nat[OF Cong.cong_diff_nat[OF cong_sym_nat [OF b(1)] cong_refl_nat[of 1] b1]] 
+         ath b1 b nqr
     have "coprime (a ^ ((n - 1) div p) - 1) n"
       by simp}
   hence th: "\<forall>p. prime p \<and> p dvd q \<longrightarrow> coprime (a ^ ((n - 1) div p) - 1) n "
