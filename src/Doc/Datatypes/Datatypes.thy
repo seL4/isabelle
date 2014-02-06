@@ -11,6 +11,7 @@ theory Datatypes
 imports
   Setup
   "~~/src/HOL/Library/BNF_Decl"
+  "~~/src/HOL/Library/Cardinal_Notations"
   "~~/src/HOL/Library/FSet"
   "~~/src/HOL/Library/Simps_Case_Conv"
 begin
@@ -298,9 +299,9 @@ only through its right-hand side. This issue is inherited by polymorphic
 datatypes defined in terms of~@{text "\<Rightarrow>"}:
 *}
 
-    datatype_new ('a, 'b) fn = Fn "'a \<Rightarrow> 'b"
+    datatype_new ('a, 'b) fun_copy = Fun "'a \<Rightarrow> 'b"
     datatype_new 'a also_wrong = W1 | W2 (*<*)'a
-    typ (*>*)"('a also_wrong, 'a) fn"
+    typ (*>*)"('a also_wrong, 'a) fun_copy"
 
 text {*
 \noindent
@@ -322,7 +323,8 @@ In general, type constructors @{text "('a\<^sub>1, \<dots>, 'a\<^sub>m) t"}
 allow recursion on a subset of their type arguments @{text 'a\<^sub>1}, \ldots,
 @{text 'a\<^sub>m}. These type arguments are called \emph{live}; the remaining
 type arguments are called \emph{dead}. In @{typ "'a \<Rightarrow> 'b"} and
-@{typ "('a, 'b) fn"}, the type variable @{typ 'a} is dead and @{typ 'b} is live.
+@{typ "('a, 'b) fun_copy"}, the type variable @{typ 'a} is dead and
+@{typ 'b} is live.
 
 Type constructors must be registered as BNFs to have live arguments. This is
 done automatically for datatypes and codatatypes introduced by the @{command
@@ -1559,8 +1561,7 @@ text {* \blankline *}
 
 text {* \blankline *}
 
-    codatatype 'a state_machine =
-      State_Machine (accept: bool) (trans: "'a \<Rightarrow> 'a state_machine")
+    codatatype 'a sm = SM (accept: bool) (trans: "'a \<Rightarrow> 'a sm")
 
 
 subsection {* Command Syntax
@@ -1927,7 +1928,8 @@ under constructors:
 *}
 
     primcorec (*<*)(in late) (*>*)tree\<^sub>i\<^sub>i_of_stream :: "'a stream \<Rightarrow> 'a tree\<^sub>i\<^sub>i" where
-      "tree\<^sub>i\<^sub>i_of_stream s = Node\<^sub>i\<^sub>i (shd s) (LCons (tree\<^sub>i\<^sub>i_of_stream (stl s)) LNil)"
+      "tree\<^sub>i\<^sub>i_of_stream s =
+         Node\<^sub>i\<^sub>i (shd s) (LCons (tree\<^sub>i\<^sub>i_of_stream (stl s)) LNil)"
 
 text {*
 The next example illustrates corecursion through functions, which is a bit
@@ -1935,13 +1937,11 @@ special. Deterministic finite automata (DFAs) are traditionally defined as
 5-tuples @{text "(Q, \<Sigma>, \<delta>, q\<^sub>0, F)"}, where @{text Q} is a finite set of states,
 @{text \<Sigma>} is a finite alphabet, @{text \<delta>} is a transition function, @{text q\<^sub>0}
 is an initial state, and @{text F} is a set of final states. The following
-function translates a DFA into a @{type state_machine}:
+function translates a DFA into a state machine:
 *}
 
-    primcorec
-      (*<*)(in early) (*>*)sm_of_dfa :: "('q \<Rightarrow> 'a \<Rightarrow> 'q) \<Rightarrow> 'q set \<Rightarrow> 'q \<Rightarrow> 'a state_machine"
-    where
-      "sm_of_dfa \<delta> F q = State_Machine (q \<in> F) (sm_of_dfa \<delta> F \<circ> \<delta> q)"
+    primcorec (*<*)(in early) (*>*)sm_of_dfa :: "('q \<Rightarrow> 'a \<Rightarrow> 'q) \<Rightarrow> 'q set \<Rightarrow> 'q \<Rightarrow> 'a sm" where
+      "sm_of_dfa \<delta> F q = SM (q \<in> F) (sm_of_dfa \<delta> F \<circ> \<delta> q)"
 
 text {*
 \noindent
@@ -1951,28 +1951,24 @@ also be expressed using $\lambda$-abstractions and function application rather
 than through composition. For example:
 *}
 
-    primcorec
-      sm_of_dfa :: "('q \<Rightarrow> 'a \<Rightarrow> 'q) \<Rightarrow> 'q set \<Rightarrow> 'q \<Rightarrow> 'a state_machine"
-    where
-      "sm_of_dfa \<delta> F q = State_Machine (q \<in> F) (\<lambda>a. sm_of_dfa \<delta> F (\<delta> q a))"
+    primcorec sm_of_dfa :: "('q \<Rightarrow> 'a \<Rightarrow> 'q) \<Rightarrow> 'q set \<Rightarrow> 'q \<Rightarrow> 'a sm" where
+      "sm_of_dfa \<delta> F q = SM (q \<in> F) (\<lambda>a. sm_of_dfa \<delta> F (\<delta> q a))"
 
 text {* \blankline *}
 
-    primcorec empty_sm :: "'a state_machine" where
-      "empty_sm = State_Machine False (\<lambda>_. empty_sm)"
+    primcorec empty_sm :: "'a sm" where
+      "empty_sm = SM False (\<lambda>_. empty_sm)"
 
 text {* \blankline *}
 
-    primcorec not_sm :: "'a state_machine \<Rightarrow> 'a state_machine" where
-      "not_sm M = State_Machine (\<not> accept M) (\<lambda>a. not_sm (trans M a))"
+    primcorec not_sm :: "'a sm \<Rightarrow> 'a sm" where
+      "not_sm M = SM (\<not> accept M) (\<lambda>a. not_sm (trans M a))"
 
 text {* \blankline *}
 
-    primcorec
-      or_sm :: "'a state_machine \<Rightarrow> 'a state_machine \<Rightarrow> 'a state_machine"
-    where
-      "or_sm M N = State_Machine (accept M \<or> accept N)
-         (\<lambda>a. or_sm (trans M a) (trans N a))"
+    primcorec or_sm :: "'a sm \<Rightarrow> 'a sm \<Rightarrow> 'a sm" where
+      "or_sm M N =
+         SM (accept M \<or> accept N) (\<lambda>a. or_sm (trans M a) (trans N a))"
 
 text {*
 \noindent
@@ -1981,22 +1977,22 @@ For recursion through curried $n$-ary functions, $n$ applications of
 $n = 2$:
 *}
 
-    codatatype ('a, 'b) state_machine2 =
-      State_Machine2 (accept2: bool) (trans2: "'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) state_machine2")
+    codatatype ('a, 'b) sm2 =
+      SM2 (accept2: bool) (trans2: "'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) sm2")
 
 text {* \blankline *}
 
     primcorec
-      (*<*)(in early) (*>*)sm2_of_dfa :: "('q \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'q) \<Rightarrow> 'q set \<Rightarrow> 'q \<Rightarrow> ('a, 'b) state_machine2"
+      (*<*)(in early) (*>*)sm2_of_dfa :: "('q \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'q) \<Rightarrow> 'q set \<Rightarrow> 'q \<Rightarrow> ('a, 'b) sm2"
     where
-      "sm2_of_dfa \<delta> F q = State_Machine2 (q \<in> F) (op \<circ> (op \<circ> (sm2_of_dfa \<delta> F)) (\<delta> q))"
+      "sm2_of_dfa \<delta> F q = SM2 (q \<in> F) (op \<circ> (op \<circ> (sm2_of_dfa \<delta> F)) (\<delta> q))"
 
 text {* \blankline *}
 
     primcorec
-      sm2_of_dfa :: "('q \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'q) \<Rightarrow> 'q set \<Rightarrow> 'q \<Rightarrow> ('a, 'b) state_machine2"
+      sm2_of_dfa :: "('q \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'q) \<Rightarrow> 'q set \<Rightarrow> 'q \<Rightarrow> ('a, 'b) sm2"
     where
-      "sm2_of_dfa \<delta> F q = State_Machine2 (q \<in> F) (\<lambda>a b. sm2_of_dfa \<delta> F (\<delta> q a b))"
+      "sm2_of_dfa \<delta> F q = SM2 (q \<in> F) (\<lambda>a b. sm2_of_dfa \<delta> F (\<delta> q a b))"
 
 
 subsubsection {* Nested-as-Mutual Corecursion
@@ -2175,12 +2171,10 @@ constructor should be taken otherwise. This can be made explicit by adding
 
     primcorec lappend :: "'a llist \<Rightarrow> 'a llist \<Rightarrow> 'a llist" where
       "lnull xs \<Longrightarrow> lnull ys \<Longrightarrow> lnull (lappend xs ys)" |
+      "lhd (lappend xs ys) = lhd (if lnull xs then ys else xs)" |
+      "ltl (lappend xs ys) = (if xs = LNil then ltl ys else lappend (ltl xs) ys)" |
 (*>*)
       "_ \<Longrightarrow> \<not> lnull (lappend xs ys)"
-(*<*) |
-      "lhd (lappend xs ys) = lhd (if lnull xs then ys else xs)" |
-      "ltl (lappend xs ys) = (if xs = LNil then ltl ys else lappend (ltl xs) ys)"
-(*>*)
 
 text {*
 \noindent
@@ -2294,25 +2288,168 @@ section {* Registering Bounded Natural Functors
 
 text {*
 The (co)datatype package can be set up to allow nested recursion through
-arbitrary type constructors, as long as they adhere to the BNF requirements and
-are registered as BNFs.
+arbitrary type constructors, as long as they adhere to the BNF requirements
+and are registered as BNFs. It is also possible to declare a BNF abstractly
+without specifying its internal structure.
 *}
 
 
-(*
-subsection {* Introductory Example
-  \label{ssec:bnf-introductory-example} *}
+subsection {* Bounded Natural Functors
+  \label{ssec:bounded-natural-functors} *}
 
 text {*
-More examples in \verb|~~/src/HOL/Basic_BNFs.thy|,
-\verb|~~/src/HOL/Library/FSet.thy|, and
-\verb|~~/src/HOL/Library/Multiset.thy|.
+Bounded natural functors (BNFs) are a semantic criterion for where
+(co)re\-cur\-sion may appear on the right-hand side of an equation
+\cite{traytel-et-al-2012,blanchette-et-al-wit}.
 
-%Mention distinction between live and dead type arguments;
-%  * and existence of map, set for those
-%mention =>.
+An $n$-ary BNF is a type constructor equipped with a map function
+(functorial action), $n$ set functions (natural transformations),
+and an infinite cardinal bound that satisfy certain properties.
+For example, @{typ "'a llist"} is a unary BNF.
+Its relator @{text "llist_all2 \<Colon>
+  ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow>
+  'a llist \<Rightarrow> 'b llist \<Rightarrow> bool"}
+extends binary predicates over elements to binary predicates over parallel
+lazy lists. The cardinal bound limits the number of elements returned by the
+set function; it may not depend on the cardinality of @{typ 'a}.
+
+The type constructors introduced by @{command datatype_new} and
+@{command codatatype} are automatically registered as BNFs. In addition, a
+number of old-style datatypes and non-free types are preregistered.
+
+Given an $n$-ary BNF, the $n$ type variables associated with set functions,
+and on which the map function acts, are \emph{live}; any other variables are
+\emph{dead}. Nested (co)recursion can only take place through live variables.
 *}
-*)
+
+
+subsection {* Introductory Examples
+  \label{ssec:bnf-introductory-examples} *}
+
+text {*
+The example below shows how to register a type as a BNF using the @{command bnf}
+command. Some of the proof obligations are best viewed with the theory
+@{theory Cardinal_Notations}, located in \verb|~~/src/HOL/Library|,
+imported.
+
+The type is simply a copy of the function space @{typ "'d \<Rightarrow> 'a"}, where @{typ 'a}
+is live and @{typ 'd} is dead. We introduce it together with its map function,
+set function, and relator.
+*}
+
+    typedef ('d, 'a) fn = "UNIV \<Colon> ('d \<Rightarrow> 'a) set"
+    by simp
+
+text {* \blankline *}
+
+    lemmas Abs_Rep_thms[simp] =
+      Abs_fn_inverse[OF UNIV_I] Rep_fn_inverse
+
+text {* \blankline *}
+
+    definition map_fn :: "('a \<Rightarrow> 'b) \<Rightarrow> ('d, 'a) fn \<Rightarrow> ('d, 'b) fn" where
+      "map_fn f F = Abs_fn (\<lambda>x. f (Rep_fn F x))"
+
+text {* \blankline *}
+
+    definition set_fn :: "('d, 'a) fn \<Rightarrow> 'a set" where
+      "set_fn F = range (Rep_fn F)"
+
+text {* \blankline *}
+
+    definition
+      rel_fn :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('d, 'a) fn \<Rightarrow> ('d, 'b) fn \<Rightarrow> bool"
+    where
+      "rel_fn R F G = fun_rel (op =) R (Rep_fn F) (Rep_fn G)"
+
+text {* \blankline *}
+
+    axiomatization where cheat: "P"
+
+text {* \blankline *}
+
+    bnf "('d, 'a) fn"
+      map: map_fn
+      sets: set_fn
+      bd: "natLeq +c |UNIV :: 'd set|"
+      rel: rel_fn
+    proof -
+      show "map_fn id = id"
+        by (auto simp add: map_fn_def[abs_def] id_comp)
+    next
+      fix F G show "map_fn (G \<circ> F) = map_fn G \<circ> map_fn F"
+        by (simp add: map_fn_def[abs_def] comp_def[abs_def])
+    next
+      fix F f g
+      assume "\<And>x. x \<in> set_fn F \<Longrightarrow> f x = g x"
+      thus "map_fn f F = map_fn g F"
+        by (auto simp add: map_fn_def set_fn_def)
+    next
+      fix f show "set_fn \<circ> map_fn f = op ` f \<circ> set_fn"
+        by (auto simp add: set_fn_def map_fn_def comp_def)
+    next
+      show "card_order (natLeq +c |UNIV \<Colon> 'd set| )"
+        apply (rule card_order_csum)
+        apply (rule natLeq_card_order)
+        by (rule card_of_card_order_on)
+    next
+      show "cinfinite (natLeq +c |UNIV \<Colon> 'd set| )"
+        apply (rule cinfinite_csum)
+        apply (rule disjI1)
+        by (rule natLeq_cinfinite)
+    next
+      fix F :: "('d, 'a) fn"
+      have "|set_fn F| \<le>o |UNIV \<Colon> 'd set|" (is "_ \<le>o ?U")
+        unfolding set_fn_def by (rule card_of_image)
+      also have "?U \<le>o natLeq +c ?U"
+        by (rule ordLeq_csum2) (rule card_of_Card_order)
+      finally show "|set_fn F| \<le>o natLeq +c |UNIV \<Colon> 'd set|" .
+    next
+      fix R S
+      show "rel_fn R OO rel_fn S \<le> rel_fn (R OO S)"
+        by (auto simp add: rel_fn_def[abs_def] fun_rel_def)
+    next
+      fix R
+      show "rel_fn R =
+            (BNF_Util.Grp {x. set_fn x \<subseteq> Collect (split R)} (map_fn fst))\<inverse>\<inverse> OO
+             BNF_Util.Grp {x. set_fn x \<subseteq> Collect (split R)} (map_fn snd)"
+        unfolding set_fn_def rel_fn_def[abs_def] fun_rel_def Grp_def
+          fun_eq_iff relcompp.simps conversep.simps subset_iff image_iff
+        by (rule cheat)
+    qed
+
+text {* \blankline *}
+
+    print_theorems
+    print_bnfs
+
+text {*
+\noindent
+Using \keyw{print\_theorems} and @{keyword print_bnfs}, we can contemplate and
+show the world what we have achieved.
+
+This particular example does not need any nonemptiness witness, because the
+one generated by default is good enough, but in general this would be
+necessary. See \verb|~~/src/HOL/Basic_BNFs.thy|,
+\verb|~~/src/HOL/Library/FSet.thy|, and \verb|~~/src/HOL/Library/Multiset.thy|
+for further examples of BNF registration, some of which feature custom
+witnesses.
+
+The next example declares a BNF axiomatically. The @{command bnf_decl} command
+introduces a type @{text "('a, 'b, 'c) F"}, three set constants, a map
+function, a relator, and a nonemptiness witness that depends only on
+@{typ 'a}. (The type @{text "'a \<Rightarrow> ('a, 'b, 'c) F"} of
+the witness can be read as an implication: If we have a witness for @{typ 'a},
+we can construct a witness for @{text "('a, 'b, 'c) F"}.) The BNF
+properties are postulated as axioms.
+*}
+
+    bnf_decl (setA: 'a, setB: 'b, setC: 'c) F [wits: "'a \<Rightarrow> ('a, 'b, 'c) F"]
+
+text {* \blankline *}
+
+    print_theorems
+    print_bnfs
 
 
 subsection {* Command Syntax
@@ -2339,28 +2476,37 @@ subsubsection {* \keyw{bnf\_decl}
   \label{sssec:bnf-decl} *}
 
 text {*
-%%% TODO: use command_def once the command is available
 \begin{matharray}{rcl}
-  @{text "bnf_decl"} & : & @{text "local_theory \<rightarrow> local_theory"}
+  @{command_def "bnf_decl"} & : & @{text "local_theory \<rightarrow> local_theory"}
 \end{matharray}
 
 @{rail \<open>
   @@{command bnf_decl} target? @{syntax dt_name}
   ;
-  @{syntax_def dt_name}: @{syntax tyargs}? name @{syntax map_rel}? mixfix?
+  @{syntax_def dt_name}: @{syntax tyargs}? name @{syntax map_rel}? \<newline>
+    @{syntax wit_types}? mixfix?
   ;
   @{syntax_def tyargs}: typefree | '(' (((name | '-') ':')? typefree + ',') ')'
   ;
   @{syntax_def map_rel}: '(' ((('map' | 'rel') ':' name) +) ')'
+  ;
+  @{syntax_def wit_types}: '[' 'wits' ':' types ']'
 \<close>}
 
-Declares a fresh type and fresh constants (map, set, relator, cardinal bound)
-and asserts the bnf properties for these constants as axioms. Additionally,
-type arguments may be marked as dead (by using @{syntax "-"} instead of a name for the
-set function)---this is the only difference of @{syntax dt_name} compared to
-the syntax used by the @{command datatype_new}/@{command codatatype} commands.
+\noindent
+The @{command bnf_decl} command declares a new type and associated constants
+(map, set, relator, and cardinal bound) and asserts the BNF properties for
+these constants as axioms. Type arguments are live by default; they can be
+marked as dead by entering \texttt{-} (hyphen) instead of a name for the
+corresponding set function. Witnesses can be specified by their types.
+Otherwise, the syntax of @{command bnf_decl} is
+identical to the left-hand side of a @{command datatype_new} or @{command
+codatatype} definition.
 
-The axioms are sound, since one there exists a bnf of any given arity.
+The command is useful to reason abstractly about BNFs. The axioms are safe
+because there exists BNFs of arbitrary large arities. Applications must import
+the theory @{theory BNF_Decl}, located in the directory
+\verb|~~/src/HOL/Library|, to use this functionality.
 *}
 
 
