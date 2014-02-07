@@ -152,10 +152,10 @@ fun ctr_sugar_of_case ctxt s =
 
 fun register_ctr_sugar key ctr_sugar =
   Local_Theory.declaration {syntax = false, pervasive = true}
-    (fn phi => Data.map (Symtab.update (key, morph_ctr_sugar phi ctr_sugar)));
+    (fn phi => Data.map (Symtab.default (key, morph_ctr_sugar phi ctr_sugar)));
 
 fun register_ctr_sugar_global key ctr_sugar =
-  Context.theory_map (Data.map (Symtab.update (key, ctr_sugar)));
+  Context.theory_map (Data.map (Symtab.default (key, ctr_sugar)));
 
 val rep_compat_prefix = "new";
 
