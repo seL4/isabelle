@@ -33,15 +33,15 @@ goal. In more detail, this is the Isar core syntax:
 \medskip
 
 \begin{tabular}{@ {}lcl@ {}}
-\textit{proof} &=& \isacom{by} \textit{method}\\
-      &$\mid$& \isacom{proof} [\textit{method}] \ \textit{step}$^*$ \ \isacom{qed}
+\textit{proof} &=& \indexed{\isacom{by}}{by} \textit{method}\\
+      &$\mid$& \indexed{\isacom{proof}}{proof} [\textit{method}] \ \textit{step}$^*$ \ \indexed{\isacom{qed}}{qed}
 \end{tabular}
 \medskip
 
 \begin{tabular}{@ {}lcl@ {}}
-\textit{step} &=& \isacom{fix} \textit{variables} \\
-      &$\mid$& \isacom{assume} \textit{proposition} \\
-      &$\mid$& [\isacom{from} \textit{fact}$^+$] (\isacom{have} $\mid$ \isacom{show}) \ \textit{proposition} \ \textit{proof}
+\textit{step} &=& \indexed{\isacom{fix}}{fix} \textit{variables} \\
+      &$\mid$& \indexed{\isacom{assume}}{assume} \textit{proposition} \\
+      &$\mid$& [\indexed{\isacom{from}}{from} \textit{fact}$^+$] (\indexed{\isacom{have}}{have} $\mid$ \indexed{\isacom{show}}{show}) \ \textit{proposition} \ \textit{proof}
 \end{tabular}
 \medskip
 
@@ -116,7 +116,7 @@ the diagonal set @{term"{x. x \<notin> f x}"}, the key idea in the proof.
 If you wonder why @{text 2} directly implies @{text False}: from @{text 2}
 it follows that @{prop"a \<notin> f a \<longleftrightarrow> a \<in> f a"}.
 
-\subsection{@{text this}, \isacom{then}, \isacom{hence} and \isacom{thus}}
+\subsection{\indexed{@{text this}}{this}, \indexed{\isacom{then}}{then}, \indexed{\isacom{hence}}{hence} and \indexed{\isacom{thus}}{thus}}
 
 Labels should be avoided. They interrupt the flow of the reader who has to
 scan the context for the point where the label was introduced. Ideally, the
@@ -165,18 +165,18 @@ There are two further linguistic variations:
 \medskip
 
 \begin{tabular}{r@ {\quad=\quad}l}
-(\isacom{have}$\mid$\isacom{show}) \ \textit{prop} \ \isacom{using} \ \textit{facts}
+(\isacom{have}$\mid$\isacom{show}) \ \textit{prop} \ \indexed{\isacom{using}}{using} \ \textit{facts}
 &
 \isacom{from} \ \textit{facts} \ (\isacom{have}$\mid$\isacom{show}) \ \textit{prop}\\
-\isacom{with} \ \textit{facts} & \isacom{from} \ \textit{facts} \isa{this}
+\indexed{\isacom{with}}{with} \ \textit{facts} & \isacom{from} \ \textit{facts} \isa{this}
 \end{tabular}
 \medskip
 
 \noindent The \isacom{using} idiom de-emphasizes the used facts by moving them
 behind the proposition.
 
-\subsection{Structured Lemma Statements: \isacom{fixes}, \isacom{assumes}, \isacom{shows}}
-
+\subsection{Structured Lemma Statements: \indexed{\isacom{fixes}}{fixes}, \indexed{\isacom{assumes}}{assumes}, \indexed{\isacom{shows}}{shows}}
+\index{lemma@\isacom{lemma}}
 Lemmas can also be stated in a more structured fashion. To demonstrate this
 feature with Cantor's theorem, we rephrase @{prop"\<not> surj f"}
 a little:
@@ -217,7 +217,7 @@ would fail.
 \end{warn}
 
 Stating a lemma with \isacom{assumes}-\isacom{shows} implicitly introduces the
-name @{text assms} that stands for the list of all assumptions. You can refer
+name \indexed{@{text assms}}{assms} that stands for the list of all assumptions. You can refer
 to individual assumptions by @{text"assms(1)"}, @{text"assms(2)"} etc,
 thus obviating the need to name them individually.
 
@@ -436,7 +436,7 @@ In the proof patterns shown above, formulas are often duplicated.
 This can make the text harder to read, write and maintain. Pattern matching
 is an abbreviation mechanism to avoid such duplication. Writing
 \begin{quote}
-\isacom{show} \ \textit{formula} @{text"("}\isacom{is} \textit{pattern}@{text")"}
+\isacom{show} \ \textit{formula} @{text"("}\indexed{\isacom{is}}{is} \textit{pattern}@{text")"}
 \end{quote}
 matches the pattern against the formula, thus instantiating the unknowns in
 the pattern for later use. As an example, consider the proof pattern for
@@ -460,7 +460,7 @@ the two abbreviations @{text"?L"} and @{text"?R"} by pattern matching.
 Pattern matching works wherever a formula is stated, in particular
 with \isacom{have} and \isacom{lemma}.
 
-The unknown @{text"?thesis"} is implicitly matched against any goal stated by
+The unknown \indexed{@{text"?thesis"}}{thesis} is implicitly matched against any goal stated by
 \isacom{lemma} or \isacom{show}. Here is a typical example: *}
 
 lemma "formula"
@@ -470,7 +470,7 @@ proof -
 qed
 
 text{* 
-Unknowns can also be instantiated with \isacom{let} commands
+Unknowns can also be instantiated with \indexed{\isacom{let}}{let} commands
 \begin{quote}
 \isacom{let} @{text"?t"} = @{text"\""}\textit{some-big-term}@{text"\""}
 \end{quote}
@@ -497,12 +497,13 @@ one can refer to them easily by quoting them:
 \begin{quote}
 \isacom{have} \ @{text"\"x > 0\""}\\
 $\vdots$\\
-\isacom{from} @{text "`x>0`"} \dots
+\isacom{from} @{text "`x>0`"} \dots\index{$IMP053@@{text"`...`"}}
 \end{quote}
 Note that the quotes around @{text"x>0"} are \conceptnoidx{back quotes}.
 They refer to the fact not by name but by value.
 
-\subsection{\isacom{moreover}}
+\subsection{\indexed{\isacom{moreover}}{moreover}}
+\index{ultimately@\isacom{ultimately}}
 
 Sometimes one needs a number of facts to enable some deduction. Of course
 one can name these facts individually, as shown on the right,
@@ -550,7 +551,7 @@ Sometimes one would like to prove some lemma locally within a proof.
 A lemma that shares the current context of assumptions but that
 has its own assumptions and is generalized over its locally fixed
 variables at the end. This is what a \concept{raw proof block} does:
-\begin{quote}
+\begin{quote}\index{$IMP053@@{text"{ ... }"} (proof block)}
 @{text"{"} \isacom{fix} @{text"x\<^sub>1 \<dots> x\<^sub>n"}\\
 \mbox{}\ \ \ \isacom{assume} @{text"A\<^sub>1 \<dots> A\<^sub>m"}\\
 \mbox{}\ \ \ $\vdots$\\
@@ -584,7 +585,7 @@ it was directly piped (via \isacom{then}) into the final proof, but it can
 also be named for later reference: you simply follow the block directly by a
 \isacom{note} command:
 \begin{quote}
-\isacom{note} \ @{text"name = this"}
+\indexed{\isacom{note}}{note} \ @{text"name = this"}
 \end{quote}
 This introduces a new name @{text name} that refers to @{text this},
 the fact just proved, in this case the preceding block. In general,
@@ -618,7 +619,7 @@ the relevant @{const take} and @{const drop} lemmas for you.
 
 
 \section{Case Analysis and Induction}
-
+\index{case analysis}\index{induction}
 \subsection{Datatype Case Analysis}
 
 We have seen case analysis on formulas. Now we want to distinguish
