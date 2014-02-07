@@ -596,7 +596,7 @@ It can already be lost after the first step: *}
 
 lemma assumes "!!x y::'a::wn. x \<le> y \<Longrightarrow> f x \<le> f y"
 and "x \<le> f x" and "\<not> f x \<le> x" shows "x \<nabla> f x \<le> f(x \<nabla> f x)"
-nitpick[card = 3, expect = genuine, show_consts]
+nitpick[card = 3, expect = genuine, show_consts, timeout = 120]
 (*
 1 < 2 < 3,
 f x = 2,
@@ -613,7 +613,7 @@ in one step but widening takes 2 steps to reach a strictly larger pfp: *}
 lemma assumes "!!x y::'a::wn. x \<le> y \<Longrightarrow> f x \<le> f y"
 and "x \<le> f x" and "\<not> f x \<le> x" and "f(f x) \<le> f x"
 shows "f(x \<nabla> f x) \<le> x \<nabla> f x"
-nitpick[card = 4, expect = genuine, show_consts]
+nitpick[card = 4, expect = genuine, show_consts, timeout = 120]
 (*
 
    0 < 1 < 2 < 3
