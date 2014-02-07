@@ -60,10 +60,6 @@ subsection{* More lemmas about module of complex numbers *}
 lemma complex_of_real_power: "complex_of_real x ^ n = complex_of_real (x^n)"
   by (rule of_real_power [symmetric])
 
-lemma real_down2: "(0::real) < d1 \<Longrightarrow> 0 < d2 ==> EX e. 0 < e & e < d1 & e < d2"
-  apply (rule exI[where x = "min d1 d2 / 2"])
-  by (simp add: field_simps min_def)
-
 text{* The triangle inequality for cmod *}
 lemma complex_mod_triangle_sub: "cmod w \<le> cmod (w + z) + norm z"
   using complex_mod_triangle_ineq2[of "w + z" "-z"] by auto
@@ -246,7 +242,7 @@ lemma bolzano_weierstrass_complex_disc:
   shows "\<exists>f z. subseq f \<and> (\<forall>e >0. \<exists>N. \<forall>n \<ge> N. cmod (s (f n) - z) < e)"
 proof-
   from seq_monosub[of "Re o s"]
-  obtain f g where f: "subseq f" "monoseq (\<lambda>n. Re (s (f n)))"
+  obtain f where f: "subseq f" "monoseq (\<lambda>n. Re (s (f n)))"
     unfolding o_def by blast
   from seq_monosub[of "Im o s o f"]
   obtain g where g: "subseq g" "monoseq (\<lambda>n. Im (s(f(g n))))" unfolding o_def by blast
@@ -260,8 +256,7 @@ proof-
   have conv1: "convergent (\<lambda>n. Re (s ( f n)))"
     apply (rule Bseq_monoseq_convergent)
     apply (simp add: Bseq_def)
-    apply (rule exI[where x= "r + 1"])
-    using th rp apply simp
+    apply (metis gt_ex le_less_linear less_trans order.trans th)
     using f(2) .
   have th:"\<forall>n. r + 1 \<ge> \<bar> Im (s n)\<bar>"
   proof
@@ -272,8 +267,7 @@ proof-
   have conv2: "convergent (\<lambda>n. Im (s (f (g n))))"
     apply (rule Bseq_monoseq_convergent)
     apply (simp add: Bseq_def)
-    apply (rule exI[where x= "r + 1"])
-    using th rp apply simp
+    apply (metis gt_ex le_less_linear less_trans order.trans th)
     using g(2) .
 
   from conv1[unfolded convergent_def] obtain x where "LIMSEQ (\<lambda>n. Re (s (f n))) x"
@@ -347,14 +341,8 @@ text{* Hence a polynomial attains minimum on a closed disc
 lemma  poly_minimum_modulus_disc:
   "\<exists>z. \<forall>w. cmod w \<le> r \<longrightarrow> cmod (poly p z) \<le> cmod (poly p w)"
 proof-
-  {assume "\<not> r \<ge> 0" hence ?thesis unfolding linorder_not_le
-      apply -
-      apply (rule exI[where x=0])
-      apply auto
-      apply (subgoal_tac "cmod w < 0")
-      apply simp
-      apply arith
-      done }
+  {assume "\<not> r \<ge> 0" hence ?thesis
+    by (metis norm_ge_zero order.trans)}
   moreover
   {assume rp: "r \<ge> 0"
     from rp have "cmod 0 \<le> r \<and> cmod (poly p 0) = - (- cmod (poly p 0))" by simp
@@ -558,11 +546,9 @@ next
       by (auto)}
   moreover
   {assume c0: "c\<noteq>0"
-    hence ?case apply-
+    have ?case 
       apply (rule exI[where x=0])
-      apply (rule exI[where x=c], clarsimp)
-      apply (rule exI[where x=cs])
-      apply auto
+      apply (rule exI[where x=c], auto simp add: c0)
       done}
   ultimately show ?case by blast
 qed
@@ -682,7 +668,7 @@ proof(induct "psize p" arbitrary: p rule: less_induct)
       have inv0: "0 < inverse (cmod w ^ (k + 1) * m)"
         using norm_ge_zero[of w] w0 m(1)
           by (simp add: inverse_eq_divide zero_less_mult_iff)
-      with real_down2[OF zero_less_one] obtain t where
+      with real_lbound_gt_zero[OF zero_less_one] obtain t where
         t: "t > 0" "t < 1" "t < inverse (cmod w ^ (k + 1) * m)" by blast
       let ?ct = "complex_of_real t"
       let ?w = "?ct * w"
@@ -690,10 +676,7 @@ proof(induct "psize p" arbitrary: p rule: less_induct)
       also have "\<dots> = complex_of_real (1 - t^k) + ?w^k * ?w * poly s ?w"
         unfolding wm1 by (simp)
       finally have "cmod (1 + ?w^k * (a + ?w * poly s ?w)) = cmod (complex_of_real (1 - t^k) + ?w^k * ?w * poly s ?w)"
-        apply -
-        apply (rule cong[OF refl[of cmod]])
-        apply assumption
-        done
+        by metis
       with norm_triangle_ineq[of "complex_of_real (1 - t^k)" "?w^k * ?w * poly s ?w"]
       have th11: "cmod (1 + ?w^k * (a + ?w * poly s ?w)) \<le> \<bar>1 - t^k\<bar> + cmod (?w^k * ?w * poly s ?w)" unfolding norm_of_real by simp
       have ath: "\<And>x (t::real). 0\<le> x \<Longrightarrow> x < t \<Longrightarrow> t\<le>1 \<Longrightarrow> \<bar>1 - t\<bar> + x < 1" by arith
@@ -703,14 +686,12 @@ proof(induct "psize p" arbitrary: p rule: less_induct)
         by (simp add: inverse_eq_divide field_simps)
       with zero_less_power[OF t(1), of k]
       have th30: "t^k * (t* (cmod w ^ (k + 1) * m)) < t^k * 1"
-        apply - apply (rule mult_strict_left_mono) by simp_all
+        by (metis comm_mult_strict_left_mono)
       have "cmod (?w^k * ?w * poly s ?w) = t^k * (t* (cmod w ^ (k+1) * cmod (poly s ?w)))"  using w0 t(1)
         by (simp add: algebra_simps power_mult_distrib norm_power norm_mult)
       then have "cmod (?w^k * ?w * poly s ?w) \<le> t^k * (t* (cmod w ^ (k + 1) * m))"
         using t(1,2) m(2)[rule_format, OF tw] w0
-        apply (simp only: )
-        apply auto
-        done
+        by auto
       with th30 have th120: "cmod (?w^k * ?w * poly s ?w) < t^k" by simp
       from power_strict_mono[OF t(2), of k] t(1) kas(2) have th121: "t^k \<le> 1"
         by auto
@@ -750,7 +731,7 @@ proof(induct p)
             from poly_bound_exists[of 1 ds] obtain m where
               m: "m > 0" "\<forall>z. \<forall>z. cmod z \<le> 1 \<longrightarrow> cmod (poly ds z) \<le> m" by blast
             have dm: "cmod d / m > 0" using d0 m(1) by (simp add: field_simps)
-            from real_down2[OF dm zero_less_one] obtain x where
+            from real_lbound_gt_zero[OF dm zero_less_one] obtain x where
               x: "x > 0" "x < cmod d / m" "x < 1" by blast
             let ?x = "complex_of_real x"
             from x have cx: "?x \<noteq> 0"  "cmod ?x \<le> 1" by simp_all
@@ -810,9 +791,9 @@ proof(induct n arbitrary: p q rule: nat_less_induct)
             by (cases s) (auto split: if_splits)
           from sne kpn have k: "k \<noteq> 0" by simp
           let ?w = "([:1/k:] * ([:-a,1:] ^ (n - ?op))) * (r ^ n)"
-          from k oop [of a] have "q ^ n = p * ?w"
-            apply -
+          have "q ^ n = p * ?w"
             apply (subst r, subst s, subst kpn)
+            using k oop [of a] 
             apply (subst power_mult_distrib, simp)
             apply (subst power_add [symmetric], simp)
             done
@@ -925,9 +906,7 @@ qed
 
 lemma divides_degree: assumes pq: "p dvd (q:: complex poly)"
   shows "degree p \<le> degree q \<or> q = 0"
-apply (cases "q = 0", simp_all)
-apply (erule dvd_imp_degree_le [OF pq])
-done
+by (metis dvd_imp_degree_le pq)
 
 (* Arithmetic operations on multivariate polynomials.                        *)
 
@@ -946,8 +925,6 @@ lemma poly_pad_rule: "poly p x = 0 ==> poly (pCons 0 p) x = (0::complex)" by sim
 lemma poly_cancel_eq_conv: "p = (0::complex) \<Longrightarrow> a \<noteq> 0 \<Longrightarrow> (q = 0) \<equiv> (a * q - b * p = 0)" apply (atomize (full)) by auto
 
 lemma resolve_eq_raw:  "poly 0 x \<equiv> 0" "poly [:c:] x \<equiv> (c::complex)" by auto
-lemma  resolve_eq_then: "(P \<Longrightarrow> (Q \<equiv> Q1)) \<Longrightarrow> (\<not>P \<Longrightarrow> (Q \<equiv> Q2))
-  \<Longrightarrow> Q \<equiv> P \<and> Q1 \<or> \<not>P\<and> Q2" apply (atomize (full)) by blast
 
 lemma poly_divides_pad_rule:
   fixes p q :: "complex poly"
@@ -1014,15 +991,15 @@ thus "?lhs \<equiv> ?rhs"  by - (atomize(full), blast)
 qed
 
 lemma basic_cqe_conv1:
-  "(\<exists>x. poly p x = 0 \<and> poly 0 x \<noteq> 0) \<equiv> False"
-  "(\<exists>x. poly 0 x \<noteq> 0) \<equiv> False"
-  "(\<exists>x. poly [:c:] x \<noteq> 0) \<equiv> c\<noteq>0"
-  "(\<exists>x. poly 0 x = 0) \<equiv> True"
-  "(\<exists>x. poly [:c:] x = 0) \<equiv> c = 0" by simp_all
+  "(\<exists>x. poly p x = 0 \<and> poly 0 x \<noteq> 0) \<longleftrightarrow> False"
+  "(\<exists>x. poly 0 x \<noteq> 0) \<longleftrightarrow> False"
+  "(\<exists>x. poly [:c:] x \<noteq> 0) \<longleftrightarrow> c\<noteq>0"
+  "(\<exists>x. poly 0 x = 0) \<longleftrightarrow> True"
+  "(\<exists>x. poly [:c:] x = 0) \<longleftrightarrow> c = 0" by simp_all
 
 lemma basic_cqe_conv2:
   assumes l:"p \<noteq> 0"
-  shows "(\<exists>x. poly (pCons a (pCons b p)) x = (0::complex)) \<equiv> True"
+  shows "(\<exists>x. poly (pCons a (pCons b p)) x = (0::complex))"
 proof-
   {fix h t
     assume h: "h\<noteq>0" "t=0"  "pCons a (pCons b p) = pCons h t"
@@ -1030,58 +1007,35 @@ proof-
   hence th: "\<not> (\<exists> h t. h\<noteq>0 \<and> t=0 \<and> pCons a (pCons b p) = pCons h t)"
     by blast
   from fundamental_theorem_of_algebra_alt[OF th]
-  show "(\<exists>x. poly (pCons a (pCons b p)) x = (0::complex)) \<equiv> True" by auto
+  show ?thesis by auto
 qed
 
-lemma  basic_cqe_conv_2b: "(\<exists>x. poly p x \<noteq> (0::complex)) \<equiv> (p \<noteq> 0)"
-proof-
-  have "p = 0 \<longleftrightarrow> poly p = poly 0"
-    by (simp add: poly_eq_poly_eq_iff)
-  also have "\<dots> \<longleftrightarrow> (\<not> (\<exists>x. poly p x \<noteq> 0))" by auto
-  finally show "(\<exists>x. poly p x \<noteq> (0::complex)) \<equiv> p \<noteq> 0"
-    by - (atomize (full), blast)
-qed
+lemma  basic_cqe_conv_2b: "(\<exists>x. poly p x \<noteq> (0::complex)) \<longleftrightarrow> (p \<noteq> 0)"
+by (metis poly_all_0_iff_0)
 
 lemma basic_cqe_conv3:
   fixes p q :: "complex poly"
   assumes l: "p \<noteq> 0"
-  shows "(\<exists>x. poly (pCons a p) x = 0 \<and> poly q x \<noteq> 0) \<equiv> \<not> ((pCons a p) dvd (q ^ (psize p)))"
-proof-
+  shows "(\<exists>x. poly (pCons a p) x = 0 \<and> poly q x \<noteq> 0) \<longleftrightarrow> \<not> ((pCons a p) dvd (q ^ (psize p)))"
+proof -
   from l have dp:"degree (pCons a p) = psize p" by (simp add: psize_def)
   from nullstellensatz_univariate[of "pCons a p" q] l
-  show "(\<exists>x. poly (pCons a p) x = 0 \<and> poly q x \<noteq> 0) \<equiv> \<not> ((pCons a p) dvd (q ^ (psize p)))"
-    unfolding dp
-    by - (atomize (full), auto)
+  show ?thesis
+    by (metis dp pCons_eq_0_iff)
 qed
 
 lemma basic_cqe_conv4:
   fixes p q :: "complex poly"
-  assumes h: "\<And>x. poly (q ^ n) x \<equiv> poly r x"
-  shows "p dvd (q ^ n) \<equiv> p dvd r"
+  assumes h: "\<And>x. poly (q ^ n) x = poly r x"
+  shows "p dvd (q ^ n) \<longleftrightarrow> p dvd r"
 proof-
   from h have "poly (q ^ n) = poly r" by auto
   then have "(q ^ n) = r" by (simp add: poly_eq_poly_eq_iff)
-  thus "p dvd (q ^ n) \<equiv> p dvd r" by simp
+  thus "p dvd (q ^ n) \<longleftrightarrow> p dvd r" by simp
 qed
-
-lemma pmult_Cons_Cons: "(pCons (a::complex) (pCons b p) * q = (smult a q) + (pCons 0 (pCons b p * q)))"
-  by simp
-
-lemma elim_neg_conv: "- z \<equiv> (-1) * (z::complex)" by simp
-lemma eqT_intr: "PROP P \<Longrightarrow> (True \<Longrightarrow> PROP P )" "PROP P \<Longrightarrow> True" by blast+
-lemma negate_negate_rule: "Trueprop P \<equiv> (\<not> P \<equiv> False)" by (atomize (full), auto)
 
 lemma complex_entire: "(z::complex) \<noteq> 0 \<and> w \<noteq> 0 \<equiv> z*w \<noteq> 0" by simp
-lemma resolve_eq_ne: "(P \<equiv> True) \<equiv> (\<not>P \<equiv> False)" "(P \<equiv> False) \<equiv> (\<not>P \<equiv> True)"
-  by (atomize (full)) simp_all
-lemma cqe_conv1: "poly 0 x = 0 \<longleftrightarrow> True"  by simp
-lemma cqe_conv2: "(p \<Longrightarrow> (q \<equiv> r)) \<equiv> ((p \<and> q) \<equiv> (p \<and> r))"  (is "?l \<equiv> ?r")
-proof
-  assume "p \<Longrightarrow> q \<equiv> r" thus "p \<and> q \<equiv> p \<and> r" apply - apply (atomize (full)) by blast
-next
-  assume "p \<and> q \<equiv> p \<and> r" "p"
-  thus "q \<equiv> r" apply - apply (atomize (full)) apply blast done
-qed
+
 lemma poly_const_conv: "poly [:c:] (x::complex) = y \<longleftrightarrow> c = y" by simp
 
 end
