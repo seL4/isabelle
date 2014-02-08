@@ -496,7 +496,7 @@ in front of unknowns from now on.
 
 
 \section{Inductive Definitions}
-\label{sec:inductive-defs}\index{inductive definition}
+\label{sec:inductive-defs}\index{inductive definition|(}
 
 Inductive definitions are the third important definition facility, after
 datatypes and recursive function.
@@ -531,7 +531,7 @@ How do we prove that some number is even, e.g.\ @{prop "ev 4"}? Simply by combin
 @{text "ev 0 \<Longrightarrow> ev (0 + 2) \<Longrightarrow> ev((0 + 2) + 2) = ev 4"}
 \end{quote}
 
-\subsubsection{Rule Induction}
+\subsubsection{Rule Induction}\index{rule induction|(}
 
 Showing that all even numbers have some property is more complicated.  For
 example, let us prove that the inductive definition of even numbers agrees
@@ -753,7 +753,7 @@ leads to \mbox{@{prop"star r u z"}} via rule @{thm[source]step}:
 apply(metis step)
 done
 
-text{*
+text{*\index{rule induction|)}
 
 \subsection{The General Case}
 
@@ -787,8 +787,8 @@ respects. @{text I} can have any number of arguments and each rule can have
 additional premises not involving @{text I}, so-called \conceptidx{side
 conditions}{side condition}. In rule inductions, these side conditions appear as additional
 assumptions. The \isacom{for} clause seen in the definition of the reflexive
-transitive closure merely simplifies the form of the induction rule.
-
+transitive closure simplifies the induction rule.
+\index{inductive definition|)}
 
 \subsection*{Exercises}
 

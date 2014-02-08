@@ -317,7 +317,7 @@ in the induction hypothesis is fixed,
 but the induction hypothesis needs to be applied with
 @{term"a # ys"} instead of @{text ys}. Hence we prove the theorem
 for all @{text ys} instead of a fixed one. We can instruct induction
-to perform this generalization for us by adding @{text "arbitrary: ys"}.
+to perform this generalization for us by adding @{text "arbitrary: ys"}\index{arbitrary@@{text"arbitrary:"}}.
 *}
 (*<*)oops
 lemma "itrev xs ys = rev xs @ ys"

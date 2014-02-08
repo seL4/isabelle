@@ -249,7 +249,7 @@ next
   show "R" (*<*)sorry(*>*)txt_raw{*\ $\dots$\\*}
 qed(*<*)oops(*>*)
 text_raw {* }
-\end{minipage}
+\end{minipage}\index{cases@@{text cases}}
 &
 \begin{minipage}[t]{.4\textwidth}
 \isa{%
@@ -290,7 +290,7 @@ qed(*<*)qed(*>*)
 text_raw {* }
 \medskip
 \begin{isamarkuptext}%
-Proofs by contradiction:
+Proofs by contradiction (@{thm[source] ccontr} stands for ``classical contradiction''):
 \end{isamarkuptext}%
 \begin{tabular}{@ {}ll@ {}}
 \begin{minipage}[t]{.4\textwidth}
@@ -323,8 +323,6 @@ text_raw {* }
 \end{tabular}
 \medskip
 \begin{isamarkuptext}%
-The name @{thm[source] ccontr} stands for ``classical contradiction''.
-
 How to prove quantified formulas:
 \end{isamarkuptext}%
 \begin{tabular}{@ {}ll@ {}}
@@ -359,7 +357,7 @@ text_raw {* }
 \medskip
 \begin{isamarkuptext}%
 In the proof of \noquotes{@{prop[source]"\<forall>x. P(x)"}},
-the step \isacom{fix}~@{text x} introduces a locally fixed variable @{text x}
+the step \indexed{\isacom{fix}}{fix}~@{text x} introduces a locally fixed variable @{text x}
 into the subproof, the proverbial ``arbitrary but fixed value''.
 Instead of @{text x} we could have chosen any name in the subproof.
 In the proof of \noquotes{@{prop[source]"\<exists>x. P(x)"}},
@@ -619,8 +617,9 @@ the relevant @{const take} and @{const drop} lemmas for you.
 
 
 \section{Case Analysis and Induction}
-\index{case analysis}\index{induction}
+
 \subsection{Datatype Case Analysis}
+\index{case analysis|(}
 
 We have seen case analysis on formulas. Now we want to distinguish
 which form some term takes: is it @{text 0} or of the form @{term"Suc n"},
@@ -637,7 +636,7 @@ next
   thus ?thesis by simp
 qed
 
-text{* Function @{text tl} (''tail'') is defined by @{thm tl.simps(1)} and
+text{*\index{cases@@{text"cases"}|(}Function @{text tl} (''tail'') is defined by @{thm tl.simps(1)} and
 @{thm tl.simps(2)}. Note that the result type of @{const length} is @{typ nat}
 and @{prop"0 - 1 = (0::nat)"}.
 
@@ -645,7 +644,7 @@ This proof pattern works for any term @{text t} whose type is a datatype.
 The goal has to be proved for each constructor @{text C}:
 \begin{quote}
 \isacom{fix} \ @{text"x\<^sub>1 \<dots> x\<^sub>n"} \isacom{assume} @{text"\"t = C x\<^sub>1 \<dots> x\<^sub>n\""}
-\end{quote}
+\end{quote}\index{case@\isacom{case}|(}
 Each case can be written in a more compact form by means of the \isacom{case}
 command:
 \begin{quote}
@@ -669,8 +668,11 @@ text{* Remember that @{text Nil} and @{text Cons} are the alphanumeric names
 for @{text"[]"} and @{text"#"}. The names of the assumptions
 are not used because they are directly piped (via \isacom{thus})
 into the proof of the claim.
+\index{case analysis|)}
 
 \subsection{Structural Induction}
+\index{induction|(}
+\index{structural induction|(}
 
 We illustrate structural induction with an example based on natural numbers:
 the sum (@{text"\<Sum>"}) of the first @{text n} natural numbers
@@ -719,7 +721,7 @@ next
 qed
 
 text{*
-The unknown @{text "?case"} is set in each case to the required
+The unknown @{text"?case"}\index{case?@@{text"?case"}|(} is set in each case to the required
 claim, i.e.\ @{text"?P 0"} and \mbox{@{text"?P(Suc n)"}} in the above proof,
 without requiring the user to define a @{text "?P"}. The general
 pattern for induction over @{typ nat} is shown on the left-hand side:
@@ -786,17 +788,19 @@ and @{text"Suc.prems"}, the premises of the goal being proved
 Induction works for any datatype.
 Proving a goal @{text"\<lbrakk> A\<^sub>1(x); \<dots>; A\<^sub>k(x) \<rbrakk> \<Longrightarrow> P(x)"}
 by induction on @{text x} generates a proof obligation for each constructor
-@{text C} of the datatype. The command @{text"case (C x\<^sub>1 \<dots> x\<^sub>n)"}
+@{text C} of the datatype. The command \isacom{case}~@{text"(C x\<^sub>1 \<dots> x\<^sub>n)"}
 performs the following steps:
 \begin{enumerate}
 \item \isacom{fix} @{text"x\<^sub>1 \<dots> x\<^sub>n"}
-\item \isacom{assume} the induction hypotheses (calling them @{text C.IH})
- and the premises \mbox{@{text"A\<^sub>i(C x\<^sub>1 \<dots> x\<^sub>n)"}} (calling them @{text"C.prems"})
+\item \isacom{assume} the induction hypotheses (calling them @{text C.IH}\index{IH@@{text".IH"}})
+ and the premises \mbox{@{text"A\<^sub>i(C x\<^sub>1 \<dots> x\<^sub>n)"}} (calling them @{text"C.prems"}\index{prems@@{text".prems"}})
  and calling the whole list @{text C}
 \item \isacom{let} @{text"?case = \"P(C x\<^sub>1 \<dots> x\<^sub>n)\""}
 \end{enumerate}
+\index{structural induction|)}
 
 \subsection{Rule Induction}
+\index{rule induction|(}
 
 Recall the inductive and recursive definitions of even numbers in
 \autoref{sec:inductive-defs}:
@@ -892,7 +896,7 @@ text{*
 In general, let @{text I} be a (for simplicity unary) inductively defined
 predicate and let the rules in the definition of @{text I}
 be called @{text "rule\<^sub>1"}, \dots, @{text "rule\<^sub>n"}. A proof by rule
-induction follows this pattern:
+induction follows this pattern:\index{inductionrule@@{text"induction ... rule:"}}
 *}
 
 (*<*)
@@ -927,11 +931,11 @@ going through rule @{text i} from left to right.
 In any induction, \isacom{case}~@{text name} sets up a list of assumptions
 also called @{text name}, which is subdivided into three parts:
 \begin{description}
-\item[@{text name.IH}] contains the induction hypotheses.
-\item[@{text name.hyps}] contains all the other hypotheses of this case in the
+\item[@{text name.IH}]\index{IH@@{text".IH"}} contains the induction hypotheses.
+\item[@{text name.hyps}]\index{hyps@@{text".hyps"}} contains all the other hypotheses of this case in the
 induction rule. For rule inductions these are the hypotheses of rule
 @{text name}, for structural inductions these are empty.
-\item[@{text name.prems}] contains the (suitably instantiated) premises
+\item[@{text name.prems}]\index{prems@@{text".prems"}} contains the (suitably instantiated) premises
 of the statement being proved, i.e. the @{text A\<^sub>i} when
 proving @{text"\<lbrakk> A\<^sub>1; \<dots>; A\<^sub>n \<rbrakk> \<Longrightarrow> A"}.
 \end{description}
@@ -949,9 +953,10 @@ This is where the indexing of fact lists comes in handy, e.g.\
 
 \subsection{Rule Inversion}
 \label{sec:rule-inversion}
+\index{rule inversion|(}
 
 Rule inversion is case analysis of which rule could have been used to
-derive some fact. The name \concept{rule inversion} emphasizes that we are
+derive some fact. The name \conceptnoidx{rule inversion} emphasizes that we are
 reasoning backwards: by which rules could some given fact have been proved?
 For the inductive definition of @{const ev}, rule inversion can be summarized
 like this:
@@ -1033,7 +1038,7 @@ However, induction can do the above transformation for us, behind the curtains, 
 need to see the expanded version of the lemma. This is what we need to write:
 \begin{isabelle}
 \isacom{lemma} @{text[source]"I r s t \<Longrightarrow> \<dots>"}\isanewline
-\isacom{proof}@{text"(induction \"r\" \"s\" \"t\" arbitrary: \<dots> rule: I.induct)"}
+\isacom{proof}@{text"(induction \"r\" \"s\" \"t\" arbitrary: \<dots> rule: I.induct)"}\index{inductionrule@@{text"induction ... rule:"}}\index{arbitrary@@{text"arbitrary:"}}
 \end{isabelle}
 Just like for rule inversion, cases that are impossible because of constructor clashes
 will not show up at all. Here is a concrete example: *}
@@ -1076,7 +1081,12 @@ naming schema explained in \autoref{sec:assm-naming}:
 the induction hypotheses are instead found under the name @{text hyps}, like for the simpler
 @{text induct} method.
 \end{warn}
-
+\index{induction|)}
+\index{cases@@{text"cases"}|)}
+\index{case@\isacom{case}|)}
+\index{case?@@{text"?case"}|)}
+\index{rule induction|)}
+\index{rule inversion|)}
 
 \subsection*{Exercises}
 
