@@ -25,6 +25,10 @@ Checklist for official releases
 
 - check funny base directory, e.g. "Test 中国";
 
+- check scalable fonts, e.g. src/Doc/ProgProve (NOTE: T1 encoding
+  requires cm-super fonts, which are usually available on MacTeX or
+  Cygwin, but not on Ubuntu/Debian);
+
 - diff NEWS wrt. last official release, which is read-only;
 
 - update https://bitbucket.org/isabelle_project/isabelle-release/wiki/Home
