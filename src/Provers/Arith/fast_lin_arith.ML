@@ -763,7 +763,7 @@ fun refutes ctxt params show_ex :
                         (Name.invent (Variable.names_of ctxt') Name.uu (length Ts - length params))
                       val params' = (more_names @ param_names) ~~ Ts
                     in
-                      trace_ex ctxt'' params' atoms (discr initems) n hist
+                      () (*trace_ex ctxt'' params' atoms (discr initems) n hist*)
                     end; NONE)
           end
       | refute [] js = SOME js
