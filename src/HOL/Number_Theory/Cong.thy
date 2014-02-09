@@ -251,10 +251,7 @@ lemma cong_altdef_nat: "(a::nat) >= b \<Longrightarrow> [a = b] (mod m) = (m dvd
   done
 
 lemma cong_altdef_int: "[(a::int) = b] (mod m) = (m dvd (a - b))"
-  apply (subst cong_eq_diff_cong_0_int)
-  apply (unfold cong_int_def)
-  apply (simp add: dvd_eq_mod_eq_0 [symmetric])
-  done
+  by (metis cong_int_def zmod_eq_dvd_iff)
 
 lemma cong_abs_int: "[(x::int) = y] (mod abs m) = [x = y] (mod m)"
   by (simp add: cong_altdef_int)
@@ -270,18 +267,11 @@ lemma cong_square_int:
 
 lemma cong_mult_rcancel_int:
     "coprime k (m::int) \<Longrightarrow> [a * k = b * k] (mod m) = [a = b] (mod m)"
-  apply (subst (1 2) cong_altdef_int)
-  apply (subst left_diff_distrib [symmetric])
-  apply (rule coprime_dvd_mult_iff_int)
-  apply (subst gcd_commute_int, assumption)
-  done
+  by (metis cong_altdef_int left_diff_distrib coprime_dvd_mult_iff_int gcd_int.commute)
 
 lemma cong_mult_rcancel_nat:
-  assumes  "coprime k (m::nat)"
-  shows "[a * k = b * k] (mod m) = [a = b] (mod m)"
-  apply (rule cong_mult_rcancel_int [transferred])
-  using assms apply auto
-  done
+    "coprime k (m::nat) \<Longrightarrow> [a * k = b * k] (mod m) = [a = b] (mod m)"
+  by (metis cong_mult_rcancel_int [transferred])
 
 lemma cong_mult_lcancel_nat:
     "coprime k (m::nat) \<Longrightarrow> [k * a = k * b ] (mod m) = [a = b] (mod m)"
@@ -295,16 +285,12 @@ lemma cong_mult_lcancel_int:
 lemma coprime_cong_mult_int:
   "[(a::int) = b] (mod m) \<Longrightarrow> [a = b] (mod n) \<Longrightarrow> coprime m n
     \<Longrightarrow> [a = b] (mod m * n)"
-  apply (simp only: cong_altdef_int)
-  apply (erule (2) divides_mult_int)
-  done
+by (metis divides_mult_int cong_altdef_int)
 
 lemma coprime_cong_mult_nat:
   assumes "[(a::nat) = b] (mod m)" and "[a = b] (mod n)" and "coprime m n"
   shows "[a = b] (mod m * n)"
-  apply (rule coprime_cong_mult_int [transferred])
-  using assms apply auto
-  done
+  by (metis assms coprime_cong_mult_int [transferred])
 
 lemma cong_less_imp_eq_nat: "0 \<le> (a::nat) \<Longrightarrow>
     a < m \<Longrightarrow> 0 \<le> b \<Longrightarrow> b < m \<Longrightarrow> [a = b] (mod m) \<Longrightarrow> a = b"
@@ -316,61 +302,46 @@ lemma cong_less_imp_eq_int: "0 \<le> (a::int) \<Longrightarrow>
 
 lemma cong_less_unique_nat:
     "0 < (m::nat) \<Longrightarrow> (\<exists>!b. 0 \<le> b \<and> b < m \<and> [a = b] (mod m))"
-  apply auto
-  apply (rule_tac x = "a mod m" in exI)
-  apply (unfold cong_nat_def, auto)
-  done
+  by (auto simp: cong_nat_def) (metis mod_less_divisor mod_mod_trivial)
 
 lemma cong_less_unique_int:
     "0 < (m::int) \<Longrightarrow> (\<exists>!b. 0 \<le> b \<and> b < m \<and> [a = b] (mod m))"
-  apply auto
-  apply (rule_tac x = "a mod m" in exI)
-  apply (unfold cong_int_def, auto)
-  done
+  by (auto simp: cong_int_def)  (metis mod_mod_trivial pos_mod_conj)
 
 lemma cong_iff_lin_int: "([(a::int) = b] (mod m)) = (\<exists>k. b = a + m * k)"
-  apply (auto simp add: cong_altdef_int dvd_def field_simps)
+  apply (auto simp add: cong_altdef_int dvd_def)
   apply (rule_tac [!] x = "-k" in exI, auto)
   done
 
-lemma cong_iff_lin_nat: "([(a::nat) = b] (mod m)) =
-    (\<exists>k1 k2. b + k1 * m = a + k2 * m)"
-  apply (rule iffI)
-  apply (cases "b <= a")
-  apply (subst (asm) cong_altdef_nat, assumption)
-  apply (unfold dvd_def, auto)
-  apply (rule_tac x = k in exI)
-  apply (rule_tac x = 0 in exI)
-  apply (auto simp add: field_simps)
-  apply (subst (asm) cong_sym_eq_nat)
-  apply (subst (asm) cong_altdef_nat)
-  apply force
-  apply (unfold dvd_def, auto)
-  apply (rule_tac x = 0 in exI)
-  apply (rule_tac x = k in exI)
-  apply (auto simp add: field_simps)
-  apply (unfold cong_nat_def)
-  apply (subgoal_tac "a mod m = (a + k2 * m) mod m")
-  apply (erule ssubst)back
-  apply (erule subst)
-  apply auto
-  done
+lemma cong_iff_lin_nat: 
+   "([(a::nat) = b] (mod m)) \<longleftrightarrow> (\<exists>k1 k2. b + k1 * m = a + k2 * m)" (is "?lhs = ?rhs")
+proof (rule iffI)
+  assume eqm: ?lhs
+  show ?rhs
+  proof (cases "b \<le> a")
+    case True
+    then show ?rhs using eqm
+      by (metis cong_altdef_nat dvd_def le_add_diff_inverse add_0_right mult_0 mult_commute)
+  next
+    case False
+    then show ?rhs using eqm 
+      apply (subst (asm) cong_sym_eq_nat)
+      apply (auto simp: cong_altdef_nat)
+      apply (metis add_0_right add_diff_inverse dvd_div_mult_self less_or_eq_imp_le mult_0)
+      done
+  qed
+next
+  assume ?rhs
+  then show ?lhs
+    by (metis cong_nat_def mod_mult_self2 nat_mult_commute)
+qed
 
 lemma cong_gcd_eq_int: "[(a::int) = b] (mod m) \<Longrightarrow> gcd a m = gcd b m"
-  apply (subst (asm) cong_iff_lin_int, auto)
-  apply (subst add_commute)
-  apply (subst (2) gcd_commute_int)
-  apply (subst mult_commute)
-  apply (subst gcd_add_mult_int)
-  apply (rule gcd_commute_int)
-  done
+  by (metis cong_int_def gcd_red_int)
 
 lemma cong_gcd_eq_nat:
-  assumes "[(a::nat) = b] (mod m)"
-  shows "gcd a m = gcd b m"
-  apply (rule cong_gcd_eq_int [transferred])
-  using assms apply auto
-  done
+    "[(a::nat) = b] (mod m) \<Longrightarrow>gcd a m = gcd b m"
+  by (metis assms cong_gcd_eq_int [transferred])
 
 lemma cong_imp_coprime_nat: "[(a::nat) = b] (mod m) \<Longrightarrow> coprime a m \<Longrightarrow> coprime b m"
   by (auto simp add: cong_gcd_eq_nat)
@@ -385,9 +356,7 @@ lemma cong_cong_mod_int: "[(a::int) = b] (mod m) = [a mod m = b mod m] (mod m)"
   by (auto simp add: cong_int_def)
 
 lemma cong_minus_int [iff]: "[(a::int) = b] (mod -m) = [a = b] (mod m)"
-  apply (subst (1 2) cong_altdef_int)
-  apply auto
-  done
+  by (metis cong_iff_lin_int minus_equation_iff mult_minus_left mult_minus_right)
 
 (*
 lemma mod_dvd_mod_int:
@@ -460,18 +429,14 @@ lemma mod_mult_cong_nat: "(a::nat) ~= 0 \<Longrightarrow> b ~= 0
   by (simp add: cong_nat_def mod_mult2_eq  mod_add_left_eq)
 
 lemma neg_cong_int: "([(a::int) = b] (mod m)) = ([-a = -b] (mod m))"
-  apply (simp add: cong_altdef_int)
-  apply (subst dvd_minus_iff [symmetric])
-  apply (simp add: field_simps)
-  done
+  by (metis cong_int_def minus_minus zminus_zmod)
 
 lemma cong_modulus_neg_int: "([(a::int) = b] (mod m)) = ([a = b] (mod -m))"
   by (auto simp add: cong_altdef_int)
 
 lemma mod_mult_cong_int: "(a::int) ~= 0 \<Longrightarrow> b ~= 0
     \<Longrightarrow> [x mod (a * b) = y] (mod a) \<longleftrightarrow> [x = y] (mod a)"
-  apply (cases "b > 0")
-  apply (simp add: cong_int_def mod_mod_cancel mod_add_left_eq)
+  apply (cases "b > 0", simp add: cong_int_def mod_mod_cancel mod_add_left_eq)
   apply (subst (1 2) cong_modulus_neg_int)
   apply (unfold cong_int_def)
   apply (subgoal_tac "a * b = (-a * -b)")
@@ -482,11 +447,8 @@ lemma mod_mult_cong_int: "(a::int) ~= 0 \<Longrightarrow> b ~= 0
   done
 
 lemma cong_to_1_nat: "([(a::nat) = 1] (mod n)) \<Longrightarrow> (n dvd (a - 1))"
-  apply (cases "a = 0")
-  apply force
-  apply (subst (asm) cong_altdef_nat)
-  apply auto
-  done
+  apply (cases "a = 0", force)
+  by (metis cong_altdef_nat leI less_one)
 
 lemma cong_0_1_nat': "[(0::nat) = Suc 0] (mod n) = (n = Suc 0)"
   unfolding cong_nat_def by auto
@@ -503,40 +465,20 @@ lemma cong_to_1'_nat: "[(a::nat) = 1] (mod n) \<longleftrightarrow>
   apply auto [1]
   apply (drule_tac x = "a - 1" in spec)
   apply force
-  apply (cases "a = 0")
-  apply (metis add_is_0 cong_0_1_nat zero_neq_one)
+  apply (cases "a = 0", simp add: cong_0_1_nat)
   apply (rule iffI)
-  apply (drule cong_to_1_nat)
-  apply (unfold dvd_def)
-  apply auto [1]
-  apply (rule_tac x = k in exI)
-  apply (auto simp add: field_simps) [1]
-  apply (subst cong_altdef_nat)
-  apply (auto simp add: dvd_def)
+  apply (metis cong_to_1_nat dvd_def monoid_mult_class.mult.right_neutral mult_commute mult_eq_if)
+  apply (metis cong_add_lcancel_0_nat cong_mult_self_nat)
   done
 
 lemma cong_le_nat: "(y::nat) <= x \<Longrightarrow> [x = y] (mod n) \<longleftrightarrow> (\<exists>q. x = q * n + y)"
-  apply (subst cong_altdef_nat)
-  apply assumption
-  apply (unfold dvd_def, auto simp add: field_simps)
-  apply (rule_tac x = k in exI)
-  apply auto
-  done
+  by (metis cong_altdef_nat Nat.le_imp_diff_is_add dvd_def nat_mult_commute)
 
 lemma cong_solve_nat: "(a::nat) \<noteq> 0 \<Longrightarrow> EX x. [a * x = gcd a n] (mod n)"
   apply (cases "n = 0")
   apply force
   apply (frule bezout_nat [of a n], auto)
-  apply (rule exI, erule ssubst)
-  apply (rule cong_trans_nat)
-  apply (rule cong_add_nat)
-  apply (subst mult_commute)
-  apply (rule cong_mult_self_nat)
-  prefer 2
-  apply simp
-  apply (rule cong_refl_nat)
-  apply (rule cong_refl_nat)
-  done
+  by (metis cong_add_rcancel_0_nat cong_mult_self_nat mult_commute)
 
 lemma cong_solve_int: "(a::int) \<noteq> 0 \<Longrightarrow> EX x. [a * x = gcd a n] (mod n)"
   apply (cases "n = 0")
@@ -545,18 +487,7 @@ lemma cong_solve_int: "(a::int) \<noteq> 0 \<Longrightarrow> EX x. [a * x = gcd 
   apply (rule_tac x = "-1" in exI)
   apply auto
   apply (insert bezout_int [of a n], auto)
-  apply (rule exI)
-  apply (erule subst)
-  apply (rule cong_trans_int)
-  prefer 2
-  apply (rule cong_add_int)
-  apply (rule cong_refl_int)
-  apply (rule cong_sym_int)
-  apply (rule cong_mult_self_int)
-  apply simp
-  apply (subst mult_commute)
-  apply (rule cong_refl_int)
-  done
+  by (metis cong_iff_lin_int mult_commute)
 
 lemma cong_solve_dvd_nat:
   assumes a: "(a::nat) \<noteq> 0" and b: "gcd a n dvd d"
@@ -621,45 +552,26 @@ lemma coprime_iff_invertible'_nat: "m > 0 \<Longrightarrow> coprime a m =
   apply (subst coprime_iff_invertible_nat)
   apply auto
   apply (auto simp add: cong_nat_def)
-  apply (rule_tac x = "x mod m" in exI)
   apply (metis mod_less_divisor mod_mult_right_eq)
   done
 
 lemma coprime_iff_invertible'_int: "m > (0::int) \<Longrightarrow> coprime a m =
     (EX x. 0 <= x & x < m & [a * x = 1] (mod m))"
   apply (subst coprime_iff_invertible_int)
-  apply auto
   apply (auto simp add: cong_int_def)
-  apply (rule_tac x = "x mod m" in exI)
-  apply (auto simp add: mod_mult_right_eq [symmetric])
+  apply (metis mod_mult_right_eq pos_mod_conj)
   done
 
 lemma cong_cong_lcm_nat: "[(x::nat) = y] (mod a) \<Longrightarrow>
     [x = y] (mod b) \<Longrightarrow> [x = y] (mod lcm a b)"
   apply (cases "y \<le> x")
-  apply (auto simp add: cong_altdef_nat lcm_least_nat) [1]
-  apply (rule cong_sym_nat)
-  apply (subst (asm) (1 2) cong_sym_eq_nat)
-  apply (auto simp add: cong_altdef_nat lcm_least_nat)
+  apply (metis cong_altdef_nat lcm_least_nat)
+  apply (metis cong_altdef_nat cong_diff_cong_0'_nat lcm_semilattice_nat.sup.bounded_iff le0 minus_nat.diff_0)
   done
 
 lemma cong_cong_lcm_int: "[(x::int) = y] (mod a) \<Longrightarrow>
     [x = y] (mod b) \<Longrightarrow> [x = y] (mod lcm a b)"
   by (auto simp add: cong_altdef_int lcm_least_int) [1]
-
-lemma cong_cong_coprime_nat: "coprime a b \<Longrightarrow> [(x::nat) = y] (mod a) \<Longrightarrow>
-    [x = y] (mod b) \<Longrightarrow> [x = y] (mod a * b)"
-  apply (frule (1) cong_cong_lcm_nat)
-  back
-  apply (simp add: lcm_nat_def)
-  done
-
-lemma cong_cong_coprime_int: "coprime a b \<Longrightarrow> [(x::int) = y] (mod a) \<Longrightarrow>
-    [x = y] (mod b) \<Longrightarrow> [x = y] (mod a * b)"
-  apply (frule (1) cong_cong_lcm_int)
-  back
-  apply (simp add: lcm_altdef_int cong_abs_int abs_mult [symmetric])
-  done
 
 lemma cong_cong_setprod_coprime_nat [rule_format]: "finite A \<Longrightarrow>
     (ALL i:A. (ALL j:A. i \<noteq> j \<longrightarrow> coprime (m i) (m j))) \<longrightarrow>
@@ -667,10 +579,7 @@ lemma cong_cong_setprod_coprime_nat [rule_format]: "finite A \<Longrightarrow>
       [x = y] (mod (PROD i:A. m i))"
   apply (induct set: finite)
   apply auto
-  apply (rule cong_cong_coprime_nat)
-  apply (subst gcd_commute_nat)
-  apply (rule setprod_coprime_nat)
-  apply auto
+  apply (metis coprime_cong_mult_nat gcd_semilattice_nat.inf_commute setprod_coprime_nat)
   done
 
 lemma cong_cong_setprod_coprime_int [rule_format]: "finite A \<Longrightarrow>
@@ -679,10 +588,7 @@ lemma cong_cong_setprod_coprime_int [rule_format]: "finite A \<Longrightarrow>
       [x = y] (mod (PROD i:A. m i))"
   apply (induct set: finite)
   apply auto
-  apply (rule cong_cong_coprime_int)
-  apply (subst gcd_commute_int)
-  apply (rule setprod_coprime_int)
-  apply auto
+  apply (metis coprime_cong_mult_int gcd_int.commute setprod_coprime_int)
   done
 
 lemma binary_chinese_remainder_aux_nat:
@@ -929,10 +835,7 @@ lemma coprime_cong_prod_nat [rule_format]: "finite A \<Longrightarrow>
          [x = y] (mod (PROD i:A. m i))"
   apply (induct set: finite)
   apply auto
-  apply (erule (1) coprime_cong_mult_nat)
-  apply (subst gcd_commute_nat)
-  apply (rule setprod_coprime_nat)
-  apply auto
+  apply (metis coprime_cong_mult_nat nat_mult_commute setprod_coprime_nat)
   done
 
 lemma chinese_remainder_unique_nat:
