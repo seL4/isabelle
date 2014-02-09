@@ -264,15 +264,16 @@ val empty_vardeps_data : vardeps_data =
 
 (* retrieving equations and instances from the background context *)
 
-fun obtain_eqns thy eqngr c =
+fun obtain_eqns ctxt eqngr c =
   case try (Graph.get_node eqngr) c
    of SOME (lhs, cert) => ((lhs, []), cert)
     | NONE => let
+        val thy = Proof_Context.theory_of ctxt;
         val functrans = (map (fn (_, (_, f)) => f thy)
           o #functrans o the_thmproc) thy;
-        val {pre, ...} = the_thmproc thy;
-        val cert = Code.get_cert thy { functrans = functrans, ss = pre } c;
-        val (lhs, rhss) = Code.typargs_deps_of_cert thy cert;
+        val cert = Code.get_cert thy { functrans = functrans, ss = simpset_of ctxt } c; (*FIXME*)
+        val (lhs, rhss) =
+          Code.typargs_deps_of_cert thy cert;
       in ((lhs, rhss), cert) end;
 
 fun obtain_instance thy arities (inst as (class, tyco)) =
@@ -289,7 +290,7 @@ fun obtain_instance thy arities (inst as (class, tyco)) =
 
 (* computing instantiations *)
 
-fun add_classes thy arities eqngr c_k new_classes vardeps_data =
+fun add_classes ctxt arities eqngr c_k new_classes vardeps_data =
   let
     val (styps, old_classes) = Vargraph.get_node (fst vardeps_data) c_k;
     val diff_classes = new_classes |> subtract (op =) old_classes;
@@ -299,82 +300,82 @@ fun add_classes thy arities eqngr c_k new_classes vardeps_data =
   in
     vardeps_data
     |> (apfst o Vargraph.map_node c_k o apsnd) (append diff_classes)
-    |> fold (fn styp => fold (ensure_typmatch_inst thy arities eqngr styp) new_classes) styps
-    |> fold (fn c_k => add_classes thy arities eqngr c_k diff_classes) c_ks
+    |> fold (fn styp => fold (ensure_typmatch_inst ctxt arities eqngr styp) new_classes) styps
+    |> fold (fn c_k => add_classes ctxt arities eqngr c_k diff_classes) c_ks
   end end
-and add_styp thy arities eqngr c_k new_tyco_styps vardeps_data =
+and add_styp ctxt arities eqngr c_k new_tyco_styps vardeps_data =
   let
     val (old_tyco_stypss, classes) = Vargraph.get_node (fst vardeps_data) c_k;
   in if member (op =) old_tyco_stypss new_tyco_styps then vardeps_data
   else
     vardeps_data
     |> (apfst o Vargraph.map_node c_k o apfst) (cons new_tyco_styps)
-    |> fold (ensure_typmatch_inst thy arities eqngr new_tyco_styps) classes
+    |> fold (ensure_typmatch_inst ctxt arities eqngr new_tyco_styps) classes
   end
-and add_dep thy arities eqngr c_k c_k' vardeps_data =
+and add_dep ctxt arities eqngr c_k c_k' vardeps_data =
   let
     val (_, classes) = Vargraph.get_node (fst vardeps_data) c_k;
   in
     vardeps_data
-    |> add_classes thy arities eqngr c_k' classes
+    |> add_classes ctxt arities eqngr c_k' classes
     |> apfst (Vargraph.add_edge (c_k, c_k'))
   end
-and ensure_typmatch_inst thy arities eqngr (tyco, styps) class vardeps_data =
-  if can (Sign.arity_sorts thy tyco) [class]
+and ensure_typmatch_inst ctxt arities eqngr (tyco, styps) class vardeps_data =
+  if can (Sign.arity_sorts (Proof_Context.theory_of ctxt) tyco) [class]
   then vardeps_data
-    |> ensure_inst thy arities eqngr (class, tyco)
+    |> ensure_inst ctxt arities eqngr (class, tyco)
     |> fold_index (fn (k, styp) =>
-         ensure_typmatch thy arities eqngr styp (Inst (class, tyco), k)) styps
+         ensure_typmatch ctxt arities eqngr styp (Inst (class, tyco), k)) styps
   else vardeps_data (*permissive!*)
-and ensure_inst thy arities eqngr (inst as (class, tyco)) (vardeps_data as (_, (_, insts))) =
+and ensure_inst ctxt arities eqngr (inst as (class, tyco)) (vardeps_data as (_, (_, insts))) =
   if member (op =) insts inst then vardeps_data
   else let
     val (classess, (super_classes, inst_params)) =
-      obtain_instance thy arities inst;
+      obtain_instance (Proof_Context.theory_of ctxt) arities inst;
   in
     vardeps_data
     |> (apsnd o apsnd) (insert (op =) inst)
     |> fold_index (fn (k, _) =>
          apfst (Vargraph.new_node ((Inst (class, tyco), k), ([] ,[])))) classess
-    |> fold (fn super_class => ensure_inst thy arities eqngr (super_class, tyco)) super_classes
-    |> fold (ensure_fun thy arities eqngr) inst_params
+    |> fold (fn super_class => ensure_inst ctxt arities eqngr (super_class, tyco)) super_classes
+    |> fold (ensure_fun ctxt arities eqngr) inst_params
     |> fold_index (fn (k, classes) =>
-         add_classes thy arities eqngr (Inst (class, tyco), k) classes
+         add_classes ctxt arities eqngr (Inst (class, tyco), k) classes
          #> fold (fn super_class =>
-             add_dep thy arities eqngr (Inst (super_class, tyco), k)
+             add_dep ctxt arities eqngr (Inst (super_class, tyco), k)
              (Inst (class, tyco), k)) super_classes
          #> fold (fn inst_param =>
-             add_dep thy arities eqngr (Fun inst_param, k)
+             add_dep ctxt arities eqngr (Fun inst_param, k)
              (Inst (class, tyco), k)
              ) inst_params
          ) classess
   end
-and ensure_typmatch thy arities eqngr (Tyco tyco_styps) c_k vardeps_data =
+and ensure_typmatch ctxt arities eqngr (Tyco tyco_styps) c_k vardeps_data =
       vardeps_data
-      |> add_styp thy arities eqngr c_k tyco_styps
-  | ensure_typmatch thy arities eqngr (Var c_k') c_k vardeps_data =
+      |> add_styp ctxt arities eqngr c_k tyco_styps
+  | ensure_typmatch ctxt arities eqngr (Var c_k') c_k vardeps_data =
       vardeps_data
-      |> add_dep thy arities eqngr c_k c_k'
-  | ensure_typmatch thy arities eqngr Free c_k vardeps_data =
+      |> add_dep ctxt arities eqngr c_k c_k'
+  | ensure_typmatch ctxt arities eqngr Free c_k vardeps_data =
       vardeps_data
-and ensure_rhs thy arities eqngr (c', styps) vardeps_data =
+and ensure_rhs ctxt arities eqngr (c', styps) vardeps_data =
   vardeps_data
-  |> ensure_fun thy arities eqngr c'
+  |> ensure_fun ctxt arities eqngr c'
   |> fold_index (fn (k, styp) =>
-       ensure_typmatch thy arities eqngr styp (Fun c', k)) styps
-and ensure_fun thy arities eqngr c (vardeps_data as (_, (eqntab, _))) =
+       ensure_typmatch ctxt arities eqngr styp (Fun c', k)) styps
+and ensure_fun ctxt arities eqngr c (vardeps_data as (_, (eqntab, _))) =
   if Symtab.defined eqntab c then vardeps_data
   else let
-    val ((lhs, rhss), eqns) = obtain_eqns thy eqngr c;
+    val ((lhs, rhss), eqns) = obtain_eqns ctxt eqngr c;
     val rhss' = (map o apsnd o map) (styp_of (SOME (c, lhs))) rhss;
   in
     vardeps_data
     |> (apsnd o apfst) (Symtab.update_new (c, (lhs, eqns)))
     |> fold_index (fn (k, _) =>
          apfst (Vargraph.new_node ((Fun c, k), ([] ,[])))) lhs
-    |> fold_index (fn (k, (_, sort)) =>
-         add_classes thy arities eqngr (Fun c, k) (complete_proper_sort thy sort)) lhs
-    |> fold (ensure_rhs thy arities eqngr) rhss'
+    |> fold_index (fn (k, (_, sort)) => add_classes ctxt arities eqngr (Fun c, k)
+         (complete_proper_sort (Proof_Context.theory_of ctxt) sort)) lhs
+    |> fold (ensure_rhs ctxt arities eqngr) rhss'
   end;
 
 
@@ -413,11 +414,13 @@ fun add_cert thy vardeps (c, (proto_lhs, proto_cert)) (rhss, eqngr) =
 
 fun extend_arities_eqngr thy cs ts (arities, (eqngr : code_graph)) =
   let
+    val {pre, ...} = the_thmproc thy;
+    val ctxt = thy |> Proof_Context.init_global |> put_simpset pre;
     val cs_rhss = (fold o fold_aterms) (fn Const (c_ty as (c, _)) =>
       insert (op =) (c, (map (styp_of NONE) o Sign.const_typargs thy) c_ty) | _ => I) ts [];
     val (vardeps, (eqntab, insts)) = empty_vardeps_data
-      |> fold (ensure_fun thy arities eqngr) cs
-      |> fold (ensure_rhs thy arities eqngr) cs_rhss;
+      |> fold (ensure_fun ctxt arities eqngr) cs
+      |> fold (ensure_rhs ctxt arities eqngr) cs_rhss;
     val arities' = fold (add_arity thy vardeps) insts arities;
     val algebra = Sorts.subalgebra (Context.pretty_global thy) (is_proper_class thy)
       (AList.lookup (op =) arities') (Sign.classes_of thy);

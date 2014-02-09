@@ -727,8 +727,9 @@ abstype cert = Nothing of thm
   | Abstract of thm * string
 with
 
-fun dummy_thm thy c =
+fun dummy_thm ctxt c =
   let
+    val thy = Proof_Context.theory_of ctxt;
     val raw_ty = devarify (const_typ thy c);
     val (vs, _) = typscheme thy (c, raw_ty);
     val sortargs = case Axclass.class_of_param thy c
@@ -742,11 +743,12 @@ fun dummy_thm thy c =
     val chead = build_head thy (c, ty);
   in Thm.weaken chead Drule.dummy_thm end;
 
-fun nothing_cert thy c = Nothing (dummy_thm thy c);
+fun nothing_cert ctxt c = Nothing (dummy_thm ctxt c);
 
-fun cert_of_eqns thy c [] = Equations (dummy_thm thy c, [])
-  | cert_of_eqns thy c raw_eqns = 
+fun cert_of_eqns ctxt c [] = Equations (dummy_thm ctxt c, [])
+  | cert_of_eqns ctxt c raw_eqns = 
       let
+        val thy = Proof_Context.theory_of ctxt;
         val eqns = burrow_fst (canonize_thms thy) raw_eqns;
         val _ = map (assert_eqn thy) eqns;
         val (thms, propers) = split_list eqns;
@@ -900,33 +902,38 @@ fun eqn_conv conv ct =
       else Conv.all_conv ct;
   in Conv.combination_conv (Conv.arg_conv lhs_conv) conv ct end;
 
-fun rewrite_eqn thy conv ss =
+fun rewrite_eqn conv ctxt =
+  singleton (Variable.trade (K (map (Conv.fconv_rule (conv (Simplifier.rewrite ctxt))))) ctxt)
+
+fun preprocess conv ctxt =
   let
-    val ctxt = Proof_Context.init_global thy;
-    val rewrite = Conv.fconv_rule (conv (Simplifier.rewrite (put_simpset ss ctxt)));
-  in singleton (Variable.trade (K (map rewrite)) ctxt) end;
+    val thy = Proof_Context.theory_of ctxt;
+  in
+    Thm.transfer thy
+    #> rewrite_eqn conv ctxt
+    #> Axclass.unoverload thy
+  end;
 
-fun preprocess thy conv ss =
-  Thm.transfer thy
-  #> rewrite_eqn thy conv ss
-  #> Axclass.unoverload thy
-
-fun cert_of_eqns_preprocess thy functrans ss c =
+fun cert_of_eqns_preprocess ctxt functrans c =
   perhaps (perhaps_loop (perhaps_apply functrans))
-  #> (map o apfst) (preprocess thy eqn_conv ss)
-  #> cert_of_eqns thy c;
+  #> (map o apfst) (preprocess eqn_conv ctxt)
+  #> cert_of_eqns ctxt c;
 
 fun get_cert thy { functrans, ss } c =
-  case retrieve_raw thy c
-   of Default (eqns, eqns_lazy) => Lazy.force eqns_lazy
-        |> cert_of_eqns_preprocess thy functrans ss c
+  let
+    val ctxt = thy |> Proof_Context.init_global |> put_simpset ss;
+  in
+    case retrieve_raw thy c of
+      Default (_, eqns_lazy) => Lazy.force eqns_lazy
+        |> cert_of_eqns_preprocess ctxt functrans c
     | Eqns eqns => eqns
-        |> cert_of_eqns_preprocess thy functrans ss c
-    | None => nothing_cert thy c
+        |> cert_of_eqns_preprocess ctxt functrans c
+    | None => nothing_cert ctxt c
     | Proj (_, tyco) => cert_of_proj thy c tyco
     | Abstr (abs_thm, tyco) => abs_thm
-        |> preprocess thy Conv.arg_conv ss
-        |> cert_of_abs thy tyco c;
+       |> preprocess Conv.arg_conv ctxt
+       |> cert_of_abs thy tyco c
+  end;
 
 
 (* cases *)
