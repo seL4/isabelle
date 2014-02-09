@@ -227,37 +227,38 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
       | print_stmt (_, Code_Thingol.Classinst { class, tyco, vs, inst_params, ... }) =
           let
             val tyvars = intro_vars (map fst vs) reserved;
-            fun requires_args classparam = case const_syntax classparam
-             of NONE => NONE
-              | SOME (_, Code_Printer.Plain_printer _) => SOME 0
-              | SOME (k, Code_Printer.Complex_printer _) => SOME k;
             fun print_classparam_instance ((classparam, (const, _)), (thm, _)) =
-              case requires_args classparam
-               of NONE => semicolon [
-                      (str o Long_Name.base_name o deresolve_const) classparam,
+              case const_syntax classparam of
+                NONE => semicolon [
+                    (str o Long_Name.base_name o deresolve_const) classparam,
+                    str "=",
+                    print_app tyvars (SOME thm) reserved NOBR (const, [])
+                  ]
+              | SOME (_, Code_Printer.Plain_printer s) => semicolon [
+                    (str o Long_Name.base_name) s,
+                    str "=",
+                    print_app tyvars (SOME thm) reserved NOBR (const, [])
+                  ]
+              | SOME (k, Code_Printer.Complex_printer _) =>
+                  let
+                    val { sym = Constant c, dom, range, ... } = const;
+                    val (vs, rhs) = (apfst o map) fst
+                      (Code_Thingol.unfold_abs (Code_Thingol.eta_expand k (const, [])));
+                    val s = if (is_some o const_syntax) c
+                      then NONE else (SOME o Long_Name.base_name o deresolve_const) c;
+                    val vars = reserved
+                      |> intro_vars (map_filter I (s :: vs));
+                    val lhs = IConst { sym = Constant classparam, typargs = [],
+                      dicts = [], dom = dom, range = range, annotate = false } `$$ map IVar vs;
+                      (*dictionaries are not relevant at this late stage,
+                        and these consts never need type annotations for disambiguation *)
+                  in
+                    semicolon [
+                      print_term tyvars (SOME thm) vars NOBR lhs,
                       str "=",
-                      print_app tyvars (SOME thm) reserved NOBR (const, [])
+                      print_term tyvars (SOME thm) vars NOBR rhs
                     ]
-                | SOME k =>
-                    let
-                      val { sym = Constant c, dom, range, ... } = const;
-                      val (vs, rhs) = (apfst o map) fst
-                        (Code_Thingol.unfold_abs (Code_Thingol.eta_expand k (const, [])));
-                      val s = if (is_some o const_syntax) c
-                        then NONE else (SOME o Long_Name.base_name o deresolve_const) c;
-                      val vars = reserved
-                        |> intro_vars (map_filter I (s :: vs));
-                      val lhs = IConst { sym = Constant classparam, typargs = [],
-                        dicts = [], dom = dom, range = range, annotate = false } `$$ map IVar vs;
-                        (*dictionaries are not relevant at this late stage,
-                          and these consts never need type annotations for disambiguation *)
-                    in
-                      semicolon [
-                        print_term tyvars (SOME thm) vars NOBR lhs,
-                        str "=",
-                        print_term tyvars (SOME thm) vars NOBR rhs
-                      ]
-                    end;
+                  end;
           in
             Pretty.block_enclose (
               Pretty.block [
