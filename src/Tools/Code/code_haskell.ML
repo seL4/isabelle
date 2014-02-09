@@ -183,7 +183,7 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
               :: str "="
               :: (str o deresolve_const) co
               :: print_typ tyvars BR ty
-              :: (if deriving_show tyco then [str "deriving (Read, Show)"] else [])
+              :: (if deriving_show tyco then [str "deriving (Prelude.Read, Prelude.Show)"] else [])
             )
           end
       | print_stmt (Type_Constructor tyco, Code_Thingol.Datatype (vs, co :: cos)) =
@@ -201,7 +201,7 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
               :: str "="
               :: print_co co
               :: map ((fn p => Pretty.block [str "| ", p]) o print_co) cos
-              @ (if deriving_show tyco then [str "deriving (Read, Show)"] else [])
+              @ (if deriving_show tyco then [str "deriving (Prelude.Read, Prelude.Show)"] else [])
             )
           end
       | print_stmt (Type_Class class, Code_Thingol.Class (v, (classrels, classparams))) =
