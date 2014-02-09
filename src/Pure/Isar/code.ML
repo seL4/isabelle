@@ -906,11 +906,14 @@ fun rewrite_eqn thy conv ss =
     val rewrite = Conv.fconv_rule (conv (Simplifier.rewrite (put_simpset ss ctxt)));
   in singleton (Variable.trade (K (map rewrite)) ctxt) end;
 
+fun preprocess thy conv ss =
+  Thm.transfer thy
+  #> rewrite_eqn thy conv ss
+  #> Axclass.unoverload thy
+
 fun cert_of_eqns_preprocess thy functrans ss c =
-  (map o apfst) (Thm.transfer thy)
-  #> perhaps (perhaps_loop (perhaps_apply functrans))
-  #> (map o apfst) (rewrite_eqn thy eqn_conv ss) 
-  #> (map o apfst) (Axclass.unoverload thy)
+  perhaps (perhaps_loop (perhaps_apply functrans))
+  #> (map o apfst) (preprocess thy eqn_conv ss)
   #> cert_of_eqns thy c;
 
 fun get_cert thy { functrans, ss } c =
@@ -922,9 +925,7 @@ fun get_cert thy { functrans, ss } c =
     | None => nothing_cert thy c
     | Proj (_, tyco) => cert_of_proj thy c tyco
     | Abstr (abs_thm, tyco) => abs_thm
-        |> Thm.transfer thy
-        |> rewrite_eqn thy Conv.arg_conv ss
-        |> Axclass.unoverload thy
+        |> preprocess thy Conv.arg_conv ss
         |> cert_of_abs thy tyco c;
 
 
