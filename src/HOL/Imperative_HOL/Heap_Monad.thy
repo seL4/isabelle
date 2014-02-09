@@ -575,7 +575,7 @@ subsubsection {* Haskell *}
 
 text {* Adaption layer *}
 
-code_include Haskell "Heap"
+code_printing code_module "Heap" \<rightharpoonup> (Haskell)
 {*import qualified Control.Monad;
 import qualified Control.Monad.ST;
 import qualified Data.STRef;
@@ -620,7 +620,7 @@ code_printing constant Heap_Monad.raise' \<rightharpoonup> (Haskell) "error"
 
 subsubsection {* Scala *}
 
-code_include Scala "Heap"
+code_printing code_module "Heap" \<rightharpoonup> (Scala)
 {*object Heap {
   def bind[A, B](f: Unit => A, g: A => Unit => B): Unit => B = (_: Unit) => g (f ()) ()
 }

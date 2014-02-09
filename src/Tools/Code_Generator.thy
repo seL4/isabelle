@@ -8,8 +8,7 @@ theory Code_Generator
 imports Pure
 keywords
   "value" "print_codeproc" "code_thms" "code_deps" :: diag and
-  "export_code" "code_identifier" "code_printing" "code_class" "code_instance" "code_type"
-    "code_const" "code_reserved" "code_include" "code_modulename"
+  "export_code" "code_identifier" "code_printing" "code_reserved"
     "code_monad" "code_reflect" :: thy_decl and
   "datatypes" "functions" "module_name" "file" "checking"
   "constant" "type_constructor" "type_class" "class_relation" "class_instance" "code_module"

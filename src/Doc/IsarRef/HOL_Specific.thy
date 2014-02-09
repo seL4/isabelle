@@ -2386,13 +2386,7 @@ text {* For validation purposes, it is often useful to \emph{execute}
     @{command_def (HOL) "code_deps"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def (HOL) "code_reserved"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "code_printing"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "code_const"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "code_type"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "code_class"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "code_instance"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "code_include"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "code_identifier"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "code_modulename"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "code_monad"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "code_reflect"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "code_pred"} & : & @{text "theory \<rightarrow> proof(prove)"}
@@ -2494,32 +2488,10 @@ text {* For validation purposes, it is often useful to \emph{execute}
       | printing_module ) + '|' )
     ;
 
-    @@{command (HOL) code_const} (const + @'and') \<newline>
-      ( ( '(' target ( syntax ? + @'and' ) ')' ) + )
-    ;
-
-    @@{command (HOL) code_type} (typeconstructor + @'and') \<newline>
-      ( ( '(' target ( syntax ? + @'and' ) ')' ) + )
-    ;
-
-    @@{command (HOL) code_class} (class + @'and') \<newline>
-      ( ( '(' target \<newline> ( @{syntax string} ? + @'and' ) ')' ) + )
-    ;
-
-    @@{command (HOL) code_instance} (( typeconstructor '::' class ) + @'and') \<newline>
-      ( ( '(' target ( '-' ? + @'and' ) ')' ) + )
-    ;
-
-    @@{command (HOL) code_include} target ( @{syntax string} ( @{syntax string} | '-') )
-    ;
-
     @@{command (HOL) code_identifier} ( ( symbol_const | symbol_typeconstructor
       | symbol_class | symbol_class_relation | symbol_class_instance
       | symbol_module ) ( '\<rightharpoonup>' | '=>' ) \<newline>
       ( '(' target ')' @{syntax string} ? + @'and' ) + '|' )
-    ;
-
-    @@{command (HOL) code_modulename} target ( ( @{syntax string} @{syntax string} ) + )
     ;
 
     @@{command (HOL) code_monad} const const target
@@ -2629,10 +2601,7 @@ text {* For validation purposes, it is often useful to \emph{execute}
   \item @{command (HOL) "code_printing"} associates a series of symbols
   (constants, type constructors, classes, class relations, instances,
   module names) with target-specific serializations; omitting a serialization
-  deletes an existing serialization.  Legacy variants of this are
-  @{command (HOL) "code_const"}, @{command (HOL) "code_type"},
-  @{command (HOL) "code_class"}, @{command (HOL) "code_instance"},
-  @{command (HOL) "code_include"}.
+  deletes an existing serialization.
 
   \item @{command (HOL) "code_monad"} provides an auxiliary mechanism
   to generate monadic code for Haskell.
@@ -2642,8 +2611,6 @@ text {* For validation purposes, it is often useful to \emph{execute}
   module names) with target-specific hints how these symbols shall be named.
   These hints gain precedence over names for symbols with no hints at all.
   Conflicting hints are subject to name disambiguation.
-  @{command (HOL) "code_modulename"} is a legacy variant for
-  @{command (HOL) "code_identifier"} on module names.
   \emph{Warning:} It is at the discretion
   of the user to ensure that name prefixes of identifiers in compound
   statements like type classes or datatypes are still the same.

@@ -33,7 +33,7 @@ text {*
   rather than function definitions are always curried.
 
   The second aspect affects user-defined adaptations with @{command
-  code_const}.  For regular terms, the @{text Scala} serializer prints
+  code_printing}.  For regular terms, the @{text Scala} serializer prints
   all type arguments explicitly.  For user-defined term adaptations
   this is only possible for adaptations which take no arguments: here
   the type arguments are just appended.  Otherwise they are ignored;

@@ -53,16 +53,9 @@ sig
   type identifier_data
   val set_identifiers: (string, string, string, string, string, string) symbol_attr_decl
     -> theory -> theory
-  type raw_const_syntax = Code_Printer.raw_const_syntax
-  type tyco_syntax = Code_Printer.tyco_syntax
-  val set_printings: (raw_const_syntax, tyco_syntax, string, unit, unit, (string * string list)) symbol_attr_decl
+  val set_printings: (Code_Printer.raw_const_syntax, Code_Printer.tyco_syntax, string, unit, unit, (string * string list)) symbol_attr_decl
     -> theory -> theory
-  val add_const_syntax: string -> string -> raw_const_syntax option -> theory -> theory
-  val add_tyco_syntax: string -> string -> tyco_syntax option -> theory -> theory
-  val add_class_syntax: string -> class -> string option -> theory -> theory
-  val add_instance_syntax: string -> class * string -> unit option -> theory -> theory
   val add_reserved: string -> string -> theory -> theory
-  val add_include: string -> string * (string * string list) option -> theory -> theory
 
   val codegen_tool: string (*theory name*) -> string (*export_code expr*) -> unit
 
@@ -584,15 +577,6 @@ fun gen_set_identifiers prep_name_decl raw_name_decls thy =
 val set_identifiers = gen_set_identifiers cert_name_decls;
 val set_identifiers_cmd = gen_set_identifiers read_name_decls;
 
-fun add_module_alias_cmd target aliasses thy =
-  let
-    val _ = legacy_feature "prefer \"code_identifier\" over \"code_modulename\"";
-  in
-    fold (fn (sym, name) => set_identifier
-      (target, Code_Symbol.Module (sym, if name = "" then NONE else SOME (check_name true name))))
-      aliasses thy
-  end;
-
 
 (* custom printings *)
 
@@ -620,61 +604,8 @@ fun gen_set_printings prep_print_decl raw_print_decls thy =
 val set_printings = gen_set_printings cert_printings;
 val set_printings_cmd = gen_set_printings read_printings;
 
-fun gen_add_syntax Symbol prep_x prep_syn target raw_x some_raw_syn thy =
-  let
-    val _ = legacy_feature "prefer \"code_printing\" for custom serialisations"
-    val x = prep_x thy raw_x;
-  in set_printing (target, Symbol (x, Option.map (prep_syn thy target x) some_raw_syn)) thy end;
-
-fun gen_add_const_syntax prep_const =
-  gen_add_syntax Constant prep_const check_const_syntax;
-
-fun gen_add_tyco_syntax prep_tyco =
-  gen_add_syntax Type_Constructor prep_tyco check_tyco_syntax;
-
-fun gen_add_class_syntax prep_class =
-  gen_add_syntax Type_Class prep_class ((K o K o K) I);
-
-fun gen_add_instance_syntax prep_inst =
-  gen_add_syntax Class_Instance prep_inst ((K o K o K) I);
-
-fun gen_add_include prep_const target (name, some_content) thy =
-  gen_add_syntax Module (K I)
-    (fn thy => fn _ => fn _ => fn (raw_content, raw_cs) => (Code_Printer.str raw_content, map (prep_const thy) raw_cs))
-    target name some_content thy;
-
 
 (* concrete syntax *)
-
-local
-
-fun zip_list (x :: xs) f g =
-  f
-  :|-- (fn y =>
-    fold_map (fn x => g |-- f >> pair x) xs
-    :|-- (fn xys => pair ((x, y) :: xys)));
-
-fun process_multi_syntax parse_thing parse_syntax change =
-  (Parse.and_list1 parse_thing
-  :|-- (fn things => Scan.repeat1 (@{keyword "("} |-- Parse.name --
-        (zip_list things (Scan.option parse_syntax) @{keyword "and"}) --| @{keyword ")"})))
-  >> (Toplevel.theory oo fold)
-    (fn (target, syns) => fold (fn (raw_x, syn) => change target raw_x syn) syns);
-
-in
-
-val add_reserved = add_reserved;
-val add_const_syntax = gen_add_const_syntax (K I);
-val add_tyco_syntax = gen_add_tyco_syntax cert_tyco;
-val add_class_syntax = gen_add_class_syntax cert_class;
-val add_instance_syntax = gen_add_instance_syntax cert_inst;
-val add_include = gen_add_include (K I);
-
-val add_const_syntax_cmd = gen_add_const_syntax Code.read_const;
-val add_tyco_syntax_cmd = gen_add_tyco_syntax read_tyco;
-val add_class_syntax_cmd = gen_add_class_syntax read_class;
-val add_instance_syntax_cmd = gen_add_instance_syntax read_inst;
-val add_include_cmd = gen_add_include Code.read_const;
 
 fun parse_args f args =
   case Scan.read Token.stopper f args
@@ -736,11 +667,6 @@ val _ =
       >> (Toplevel.theory o fold set_identifiers_cmd));
 
 val _ =
-  Outer_Syntax.command @{command_spec "code_modulename"} "alias module to other name"
-    (Parse.name -- Scan.repeat1 (Parse.name -- Parse.name)
-      >> (fn (target, modlnames) => (Toplevel.theory o add_module_alias_cmd target) modlnames));
-
-val _ =
   Outer_Syntax.command @{command_spec "code_printing"} "declare dedicated printing for code symbols"
     (parse_symbol_pragmas (Code_Printer.parse_const_syntax) (Code_Printer.parse_tyco_syntax)
       Parse.string (Parse.minus >> K ()) (Parse.minus >> K ())
@@ -748,39 +674,8 @@ val _ =
       >> (Toplevel.theory o fold set_printings_cmd));
 
 val _ =
-  Outer_Syntax.command @{command_spec "code_const"} "define code syntax for constant"
-    (process_multi_syntax Parse.term Code_Printer.parse_const_syntax
-      add_const_syntax_cmd);
-
-val _ =
-  Outer_Syntax.command @{command_spec "code_type"} "define code syntax for type constructor"
-    (process_multi_syntax Parse.type_const Code_Printer.parse_tyco_syntax
-      add_tyco_syntax_cmd);
-
-val _ =
-  Outer_Syntax.command @{command_spec "code_class"} "define code syntax for class"
-    (process_multi_syntax Parse.class Parse.string
-      add_class_syntax_cmd);
-
-val _ =
-  Outer_Syntax.command @{command_spec "code_instance"} "define code syntax for instance"
-    (process_multi_syntax parse_inst_ident (Parse.minus >> K ())
-      add_instance_syntax_cmd);
-
-val _ =
-  Outer_Syntax.command @{command_spec "code_include"}
-    "declare piece of code to be included in generated code"
-    (Parse.name -- Parse.name -- (Parse.text :|--
-      (fn "-" => Scan.succeed NONE
-        | s => Scan.optional (@{keyword "attach"} |-- Scan.repeat1 Parse.term) [] >> pair s >> SOME))
-      >> (fn ((target, name), content_consts) =>
-          (Toplevel.theory o add_include_cmd target) (name, content_consts)));
-
-val _ =
   Outer_Syntax.command @{command_spec "export_code"} "generate executable code for constants"
     (Parse.!!! code_exprP >> (fn f => Toplevel.keep (f o Toplevel.theory_of)));
-
-end; (*local*)
 
 
 (** external entrance point -- for codegen tool **)
