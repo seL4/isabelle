@@ -184,6 +184,8 @@ session "HOL-Number_Theory" in Number_Theory = HOL +
   theories
     Pocklington
     Number_Theory
+  files
+    "document/root.tex"
 
 session "HOL-Old_Number_Theory" in Old_Number_Theory = HOL +
   description {*

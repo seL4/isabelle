@@ -668,7 +668,7 @@ qed
 
 subsection{*Prime factorizations*}
 
-text{*FIXME Some overlap with material in UniqueFactorization, class unique_factorization.*}
+(* FIXME some overlap with material in UniqueFactorization, class unique_factorization *)
 
 definition "primefact ps n = (foldr op * ps  1 = n \<and> (\<forall>p\<in> set ps. prime p))"
 
