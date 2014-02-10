@@ -10,8 +10,7 @@ theory Intensional
 imports Main
 begin
 
-classes world
-classrel world < type
+class world
 
 (** abstract syntax **)
 

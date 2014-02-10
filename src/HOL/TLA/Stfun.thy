@@ -10,8 +10,7 @@ imports Intensional
 begin
 
 typedecl state
-
-arities state :: world
+instance state :: world ..
 
 type_synonym 'a stfun = "state => 'a"
 type_synonym stpred  = "bool stfun"

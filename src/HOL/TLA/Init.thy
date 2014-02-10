@@ -12,7 +12,7 @@ imports Action
 begin
 
 typedecl behavior
-arities behavior :: world
+instance behavior :: world ..
 
 type_synonym temporal = "behavior form"
 

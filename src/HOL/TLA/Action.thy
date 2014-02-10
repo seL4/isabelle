@@ -15,7 +15,7 @@ begin
 type_synonym 'a trfun = "(state * state) => 'a"
 type_synonym action   = "bool trfun"
 
-arities prod :: (world, world) world
+instance prod :: (world, world) world ..
 
 consts
   (** abstract syntax **)
