@@ -285,7 +285,7 @@ fun define_predicates specs thy =
         |> Sign.add_consts_i
           (map (fn Const (name, T) => (Binding.name (Long_Name.base_name name), T, NoSyn))
            dst_preds)
-        |> fold_map Specification.axiom
+        |> fold_map Specification.axiom  (* FIXME !?!?!?! *)
             (map_index (fn (j, (predname, t)) =>
                 ((Binding.name (Long_Name.base_name predname ^ "_intro_" ^ string_of_int (j + 1)), []), t))
               (maps (uncurry (map o pair)) (prednames ~~ intr_tss)))
