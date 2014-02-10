@@ -49,9 +49,11 @@ classes type
 default_sort type
 setup {* Object_Logic.add_base_sort @{sort type} *}
 
-arities
-  "fun" :: (type, type) type
-  itself :: (type) type
+axiomatization where fun_arity: "OFCLASS('a \<Rightarrow> 'b, type_class)"
+instance "fun" :: (type, type) type by (rule fun_arity)
+
+axiomatization where itself_arity: "OFCLASS('a itself, type_class)"
+instance itself :: (type) type by (rule itself_arity)
 
 typedecl bool
 
