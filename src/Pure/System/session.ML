@@ -57,6 +57,7 @@ fun finish () =
   Outer_Syntax.check_syntax ();
   Future.shutdown ();
   Event_Timer.shutdown ();
+  Future.shutdown ();
   session_finished := true);
 
 
