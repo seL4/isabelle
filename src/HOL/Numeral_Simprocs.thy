@@ -285,7 +285,8 @@ declaration {*
        @{simproc int_combine_numerals},
        @{simproc inteq_cancel_numerals},
        @{simproc intless_cancel_numerals},
-       @{simproc intle_cancel_numerals}]
+       @{simproc intle_cancel_numerals},
+       @{simproc field_combine_numerals}]
   #> Lin_Arith.add_simprocs
       [@{simproc nat_combine_numerals},
        @{simproc nateq_cancel_numerals},
