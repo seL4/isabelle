@@ -18,13 +18,12 @@ text {*
 
 subsection {* Pure Logic *}
 
-classes type
+class type
 default_sort type
 
 typedecl o
-arities
-  o :: type
-  "fun" :: (type, type) type
+instance o :: type ..
+instance "fun" :: (type, type) type ..
 
 
 subsubsection {* Basic logical connectives *}

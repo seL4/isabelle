@@ -16,13 +16,13 @@ text {*
   being defined which contains only executable terms.
 *}
 
-classes prog < "term"
+class prog = "term"
 default_sort prog
 
-arities "fun" :: (prog, prog) prog
+instance "fun" :: (prog, prog) prog ..
 
 typedecl i
-arities i :: prog
+instance i :: prog ..
 
 
 consts

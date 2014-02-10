@@ -12,7 +12,7 @@ begin
 declare [[eta_contract = false]]
 
 typedecl i
-arities  i :: "term"
+instance i :: "term" ..
 
 axiomatization
   zero :: "i"  ("0")   --{*the empty set*}  and

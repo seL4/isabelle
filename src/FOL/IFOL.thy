@@ -24,7 +24,7 @@ subsection {* Syntax and axiomatic basis *}
 
 setup Pure_Thy.old_appl_syntax_setup
 
-classes "term"
+class "term"
 default_sort "term"
 
 typedecl o

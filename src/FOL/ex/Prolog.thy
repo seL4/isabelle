@@ -10,7 +10,7 @@ imports FOL
 begin
 
 typedecl 'a list
-arities list :: ("term") "term"
+instance list :: ("term") "term" ..
 
 axiomatization
   Nil     :: "'a list" and
