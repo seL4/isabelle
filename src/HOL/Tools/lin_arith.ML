@@ -158,20 +158,19 @@ let
          become 's/(t*u)', and '(s*t)/u' could become 's*(t/u)' ?   Note that
          if we choose to do so here, the simpset used by arith must be able to
          perform the same simplifications. *)
-      (* FIXME: Currently we treat the numerator as atomic unless the
-         denominator can be reduced to a numeric constant.  It might be better
-         to demult the numerator in any case, and invent a new term of the form
-         '1 / t' if the numerator can be reduced, but the denominator cannot. *)
-      (* FIXME: Currently we even treat the whole fraction as atomic unless the
-         denominator can be reduced to a numeric constant.  It might be better
-         to use the partially reduced denominator (i.e. 's / (2*t)' could be
-         demult'ed to 's / t' with multiplicity .5).   This would require a
-         very simple change only below, but it breaks existing proofs. *)
       (* quotient 's / t', where the denominator t can be NONE *)
       (* Note: will raise Rat.DIVZERO iff m' is Rat.zero *)
-      (case demult (t, Rat.one) of
-        (SOME _, _) => (SOME (mC $ s $ t), m)
-      | (NONE,  m') => apsnd (Rat.mult (Rat.inv m')) (demult (s, m)))
+      let val (os',m') = demult (s, m);
+          val (ot',p) = demult (t, Rat.one)
+      in (case (os',ot') of
+            (SOME s', SOME t') => SOME (mC $ s' $ t')
+          | (SOME s', NONE) => SOME s'
+          | (NONE, SOME t') =>
+               let val Const(_,T) = mC
+               in SOME (mC $ Const (@{const_name Groups.one}, domain_type T) $ t') end
+          | (NONE, NONE) => NONE,
+          Rat.mult m' (Rat.inv p))
+      end
     (* terms that evaluate to numeric constants *)
     | demult (Const (@{const_name Groups.uminus}, _) $ t, m) = demult (t, Rat.neg m)
     | demult (Const (@{const_name Groups.zero}, _), _) = (NONE, Rat.zero)
