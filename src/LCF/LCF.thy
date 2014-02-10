@@ -13,7 +13,7 @@ text {* This theory is based on Lawrence Paulson's book Logic and Computation. *
 
 subsection {* Natural Deduction Rules for LCF *}
 
-classes cpo < "term"
+class cpo = "term"
 default_sort cpo
 
 typedecl tr
@@ -21,12 +21,11 @@ typedecl void
 typedecl ('a,'b) prod  (infixl "*" 6)
 typedecl ('a,'b) sum  (infixl "+" 5)
 
-arities
-  "fun" :: (cpo, cpo) cpo
-  prod :: (cpo, cpo) cpo
-  sum :: (cpo, cpo) cpo
-  tr :: cpo
-  void :: cpo
+instance "fun" :: (cpo, cpo) cpo ..
+instance prod :: (cpo, cpo) cpo ..
+instance sum :: (cpo, cpo) cpo ..
+instance tr :: cpo ..
+instance void :: cpo ..
 
 consts
  UU     :: "'a"

@@ -12,7 +12,7 @@ theory LK0
 imports Sequents
 begin
 
-classes "term"
+class "term"
 default_sort "term"
 
 consts

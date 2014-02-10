@@ -306,6 +306,8 @@ use "Tools/build.ML";
 use "Tools/named_thms.ML";
 use "Tools/proof_general.ML";
 
+structure Output: OUTPUT = Output;  (*seal system channels!*)
+
 
 (* ML toplevel pretty printing *)
 

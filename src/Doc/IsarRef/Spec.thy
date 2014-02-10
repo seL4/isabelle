@@ -1085,35 +1085,18 @@ text {*
 
 section {* Primitive specification elements *}
 
-subsection {* Type classes and sorts \label{sec:classes} *}
+subsection {* Sorts *}
 
 text {*
   \begin{matharray}{rcll}
-    @{command_def "classes"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def "classrel"} & : & @{text "theory \<rightarrow> theory"} & (axiomatic!) \\
     @{command_def "default_sort"} & : & @{text "local_theory \<rightarrow> local_theory"}
   \end{matharray}
 
   @{rail \<open>
-    @@{command classes} (@{syntax classdecl} +)
-    ;
-    @@{command classrel} (@{syntax nameref} ('<' | '\<subseteq>') @{syntax nameref} + @'and')
-    ;
     @@{command default_sort} @{syntax sort}
   \<close>}
 
   \begin{description}
-
-  \item @{command "classes"}~@{text "c \<subseteq> c\<^sub>1, \<dots>, c\<^sub>n"} declares class
-  @{text c} to be a subclass of existing classes @{text "c\<^sub>1, \<dots>, c\<^sub>n"}.
-  Isabelle implicitly maintains the transitive closure of the class
-  hierarchy.  Cyclic class structures are not permitted.
-
-  \item @{command "classrel"}~@{text "c\<^sub>1 \<subseteq> c\<^sub>2"} states subclass
-  relations between existing classes @{text "c\<^sub>1"} and @{text "c\<^sub>2"}.
-  This is done axiomatically!  The @{command_ref "subclass"} and
-  @{command_ref "instance"} commands (see \secref{sec:class}) provide
-  a way to introduce proven class relations.
 
   \item @{command "default_sort"}~@{text s} makes sort @{text s} the
   new default sort for any type variable that is given explicitly in
@@ -1138,15 +1121,12 @@ text {*
   \begin{matharray}{rcll}
     @{command_def "type_synonym"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def "typedecl"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{command_def "arities"} & : & @{text "theory \<rightarrow> theory"} & (axiomatic!) \\
   \end{matharray}
 
   @{rail \<open>
     @@{command type_synonym} (@{syntax typespec} '=' @{syntax type} @{syntax mixfix}?)
     ;
     @@{command typedecl} @{syntax typespec} @{syntax mixfix}?
-    ;
-    @@{command arities} (@{syntax nameref} '::' @{syntax arity} +)
   \<close>}
 
   \begin{description}
@@ -1161,14 +1141,7 @@ text {*
   \item @{command "typedecl"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t"} declares a new
   type constructor @{text t}.  If the object-logic defines a base sort
   @{text s}, then the constructor is declared to operate on that, via
-  the axiomatic specification @{command arities}~@{text "t :: (s, \<dots>,
-  s)s"}.
-
-  \item @{command "arities"}~@{text "t :: (s\<^sub>1, \<dots>, s\<^sub>n)s"} augments
-  Isabelle's order-sorted signature of types by new type constructor
-  arities.  This is done axiomatically!  The @{command_ref "instantiation"}
-  target (see \secref{sec:class}) provides a way to introduce
-  proven type arities.
+  the axiomatic type-class instance @{text "t :: (s, \<dots>, s)s"}.
 
   \end{description}
 *}

@@ -111,19 +111,19 @@ fun init_channels channel =
         message name
           (fold_rev Properties.put props (Position.properties_of (Position.thread_data ()))) body;
   in
-    Output.Internal.status_fn := standard_message [] Markup.statusN;
-    Output.Internal.report_fn := standard_message [] Markup.reportN;
-    Output.Internal.result_fn :=
+    Output.status_fn := standard_message [] Markup.statusN;
+    Output.report_fn := standard_message [] Markup.reportN;
+    Output.result_fn :=
       (fn props => fn s => standard_message (props @ serial_props ()) Markup.resultN s);
-    Output.Internal.writeln_fn := (fn s => standard_message (serial_props ()) Markup.writelnN s);
-    Output.Internal.tracing_fn :=
+    Output.writeln_fn := (fn s => standard_message (serial_props ()) Markup.writelnN s);
+    Output.tracing_fn :=
       (fn s => (update_tracing (); standard_message (serial_props ()) Markup.tracingN s));
-    Output.Internal.warning_fn := (fn s => standard_message (serial_props ()) Markup.warningN s);
-    Output.Internal.error_message_fn :=
+    Output.warning_fn := (fn s => standard_message (serial_props ()) Markup.warningN s);
+    Output.error_message_fn :=
       (fn (i, s) => standard_message (Markup.serial_properties i) Markup.errorN s);
-    Output.Internal.protocol_message_fn := message Markup.protocolN;
-    Output.Internal.urgent_message_fn := ! Output.Internal.writeln_fn;
-    Output.Internal.prompt_fn := ignore;
+    Output.protocol_message_fn := message Markup.protocolN;
+    Output.urgent_message_fn := ! Output.writeln_fn;
+    Output.prompt_fn := ignore;
     message Markup.initN [] (Session.welcome ());
     msg_channel
   end;

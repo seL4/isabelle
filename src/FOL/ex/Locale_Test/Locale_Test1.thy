@@ -8,7 +8,9 @@ theory Locale_Test1
 imports FOL
 begin
 
-typedecl int arities int :: "term"
+typedecl int
+instance int :: "term" ..
+
 consts plus :: "int => int => int" (infixl "+" 60)
   zero :: int ("0")
   minus :: "int => int" ("- _")

@@ -375,11 +375,7 @@ fun map_simpset2 f = map_simpset (fn Simpset (ss1, ss2) => Simpset (ss1, map_ss2
 
 fun simpset_map ctxt f ss = ctxt |> map_simpset (K ss) |> f |> Context.Proof |> Simpset.get;
 
-fun put_simpset ss = map_simpset (fn context_ss =>
-  let
-    val Simpset ({rules, prems, ...}, ss2) = ss;  (* FIXME prems from context (!?) *)
-    val Simpset ({depth, ...}, _) = context_ss;
-  in Simpset (make_ss1 (rules, prems, depth), ss2) end);
+fun put_simpset ss = map_simpset (K ss);
 
 val empty_simpset = put_simpset empty_ss;
 

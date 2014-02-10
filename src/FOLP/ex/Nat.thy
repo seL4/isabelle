@@ -10,7 +10,7 @@ imports FOLP
 begin
 
 typedecl nat
-arities nat :: "term"
+instance nat :: "term" ..
 
 axiomatization
   Zero :: nat    ("0") and

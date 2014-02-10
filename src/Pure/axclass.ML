@@ -30,12 +30,9 @@ sig
   val prove_arity: string * sort list * sort -> (Proof.context -> tactic) -> theory -> theory
   val define_class: binding * class list -> string list ->
     (Thm.binding * term list) list -> theory -> class * theory
-  val axiomatize_class: binding * class list -> theory -> theory
-  val axiomatize_class_cmd: binding * xstring list -> theory -> theory
   val axiomatize_classrel: (class * class) list -> theory -> theory
-  val axiomatize_classrel_cmd: (xstring * xstring) list -> theory -> theory
   val axiomatize_arity: arity -> theory -> theory
-  val axiomatize_arity_cmd: xstring * string list * string -> theory -> theory
+  val axiomatize_class: binding * class list -> theory -> theory
 end;
 
 structure Axclass: AXCLASS =
@@ -596,37 +593,29 @@ fun axiomatize prep mk name add raw_args thy =
     |-> fold (add o Drule.export_without_context o snd)
   end;
 
-fun ax_classrel prep =
-  axiomatize (map o prep) (map Logic.mk_classrel)
-    (map (prefix classrel_prefix o Logic.name_classrel)) add_classrel;
-
-fun ax_arity prep =
-  axiomatize (prep o Proof_Context.init_global) Logic.mk_arities
-    (map (prefix arity_prefix) o Logic.name_arities) add_arity;
-
 fun class_const c =
   (Logic.const_of_class c, Term.itselfT (Term.aT []) --> propT);
 
-fun ax_class prep_class prep_classrel (bclass, raw_super) thy =
+in
+
+val axiomatize_classrel =
+  axiomatize (map o cert_classrel) (map Logic.mk_classrel)
+    (map (prefix classrel_prefix o Logic.name_classrel)) add_classrel;
+
+val axiomatize_arity =
+  axiomatize (Proof_Context.cert_arity o Proof_Context.init_global) Logic.mk_arities
+    (map (prefix arity_prefix) o Logic.name_arities) add_arity;
+
+fun axiomatize_class (bclass, raw_super) thy =
   let
     val class = Sign.full_name thy bclass;
-    val super = map (prep_class thy) raw_super |> Sign.minimize_sort thy;
+    val super = map (Sign.certify_class thy) raw_super |> Sign.minimize_sort thy;
   in
     thy
     |> Sign.primitive_class (bclass, super)
-    |> ax_classrel prep_classrel (map (fn c => (class, c)) super)
+    |> axiomatize_classrel (map (fn c => (class, c)) super)
     |> Theory.add_deps_global "" (class_const class) (map class_const super)
   end;
-
-in
-
-val axiomatize_class = ax_class Sign.certify_class cert_classrel;
-val axiomatize_class_cmd =
-  ax_class (Proof_Context.read_class o Proof_Context.init_global) read_classrel;
-val axiomatize_classrel = ax_classrel cert_classrel;
-val axiomatize_classrel_cmd = ax_classrel read_classrel;
-val axiomatize_arity = ax_arity Proof_Context.cert_arity;
-val axiomatize_arity_cmd = ax_arity Proof_Context.read_arity;
 
 end;
 

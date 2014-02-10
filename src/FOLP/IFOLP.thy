@@ -13,7 +13,7 @@ ML_file "~~/src/Tools/misc_legacy.ML"
 
 setup Pure_Thy.old_appl_syntax_setup
 
-classes "term"
+class "term"
 default_sort "term"
 
 typedecl p

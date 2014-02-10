@@ -7,7 +7,7 @@ begin
 declare [[eta_contract]]
 
 typedecl 'a set
-arities set :: ("term") "term"
+instance set :: ("term") "term" ..
 
 consts
   Collect       :: "['a => o] => 'a set"                    (*comprehension*)

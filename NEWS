@@ -44,6 +44,16 @@ simplification process, enabled by the newly-introduced
 
 *** Pure ***
 
+* Low-level type-class commands 'classes', 'classrel', 'arities' have
+been discontinued to avoid the danger of non-trivial axiomatization
+that is not immediately visible.  INCOMPATIBILITY, use regular
+'instance' with proof.  The required OFCLASS(...) theorem might be
+postulated via 'axiomatization' beforehand, or the proof finished
+trivially if the underlying class definition is made vacuous (without
+any assumptions).  See also Isabelle/ML operations
+Axclass.axiomatize_class, Axclass.axiomatize_classrel,
+Axclass.axiomatize_arity.
+
 * Attributes "where" and "of" allow an optional context of local
 variables ('for' declaration): these variables become schematic in the
 instantiated theorem.
