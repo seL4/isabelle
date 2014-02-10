@@ -103,7 +103,8 @@ imports "~~/src/HOL/HOLCF/Library/Stream"
 begin
 
 typedecl ('a, 'b) tc
-arities tc:: (pcpo, pcpo) pcpo
+axiomatization where tc_arity: "OFCLASS(('a::pcpo, 'b::pcpo) tc, pcop_class)"
+instance tc :: (pcpo, pcpo) pcpo by (rule tc_arity)
 
 axiomatization
   Rf :: "('b stream * ('b,'c) tc stream * 'c stream * ('b,'c) tc stream) => bool"
