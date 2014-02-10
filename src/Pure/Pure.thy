@@ -25,10 +25,9 @@ theory Pure
   and "subsect" :: prf_heading3 % "proof"
   and "subsubsect" :: prf_heading4 % "proof"
   and "txt" "txt_raw" :: prf_decl % "proof"
-  and "classes" "classrel" "default_sort" "typedecl" "type_synonym"
-    "nonterminal" "arities" "judgment" "consts" "syntax" "no_syntax"
-    "translations" "no_translations" "defs" "definition"
-    "abbreviation" "type_notation" "no_type_notation" "notation"
+  and "default_sort" "typedecl" "type_synonym" "nonterminal" "judgment"
+    "consts" "syntax" "no_syntax" "translations" "no_translations" "defs"
+    "definition" "abbreviation" "type_notation" "no_type_notation" "notation"
     "no_notation" "axiomatization" "theorems" "lemmas" "declare"
     "hide_class" "hide_type" "hide_const" "hide_fact" :: thy_decl
   and "ML" :: thy_decl % "ML"

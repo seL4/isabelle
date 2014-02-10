@@ -356,19 +356,14 @@ text {* \noindent together with corresponding constant(s): *}
 consts %quote f :: "\<alpha> \<Rightarrow> \<alpha>"
 
 text {*
-  \noindent The connection to the type system is done by means
-  of a primitive type class
-*} (*<*)setup %invisible {* Sign.add_path "foo" *}
-(*>*)
-classes %quote idem < type
-(*<*)axiomatization where idem: "f (f (x::\<alpha>\<Colon>idem)) = f x"
-setup %invisible {* Sign.parent_path *}(*>*)
-
-text {* \noindent together with a corresponding interpretation: *}
+  \noindent The connection to the type system is done by means of a
+  primitive type class @{text "idem"}, together with a corresponding
+  interpretation:
+*}
 
 interpretation %quote idem_class:
   idem "f \<Colon> (\<alpha>\<Colon>idem) \<Rightarrow> \<alpha>"
-(*<*)proof qed (rule idem)(*>*)
+(*<*)sorry(*>*)
 
 text {*
   \noindent This gives you the full power of the Isabelle module system;
