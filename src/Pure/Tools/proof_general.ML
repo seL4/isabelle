@@ -264,14 +264,14 @@ fun message bg en prfx text =
   | s => Output.physical_writeln (enclose bg en (prefix_lines prfx s)));
 
 fun setup_messages () =
- (Output.Internal.writeln_fn := message "" "" "";
-  Output.Internal.status_fn := (fn _ => ());
-  Output.Internal.report_fn := (fn _ => ());
-  Output.Internal.urgent_message_fn := message (special "I") (special "J") "";
-  Output.Internal.tracing_fn := message (special "I" ^ special "V") (special "J") "";
-  Output.Internal.warning_fn := message (special "K") (special "L") "### ";
-  Output.Internal.error_message_fn := (fn (_, s) => message (special "M") (special "N") "*** " s);
-  Output.Internal.prompt_fn := (fn s => Output.physical_stdout (render s ^ special "S")));
+ (Output.writeln_fn := message "" "" "";
+  Output.status_fn := (fn _ => ());
+  Output.report_fn := (fn _ => ());
+  Output.urgent_message_fn := message (special "I") (special "J") "";
+  Output.tracing_fn := message (special "I" ^ special "V") (special "J") "";
+  Output.warning_fn := message (special "K") (special "L") "### ";
+  Output.error_message_fn := (fn (_, s) => message (special "M") (special "N") "*** " s);
+  Output.prompt_fn := (fn s => Output.physical_stdout (render s ^ special "S")));
 
 
 (* notification *)
