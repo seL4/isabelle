@@ -1,6 +1,6 @@
 ;;
 ;; Keyword classification tables for Isabelle/Isar.
-;; Generated from HOL + HOL-Auth + HOL-BNF + HOL-BNF-FP + HOL-Bali + HOL-Decision_Procs + HOL-IMP + HOL-Imperative_HOL + HOL-Import + HOL-Library + HOL-Mutabelle + HOL-Nominal + HOL-Proofs + HOL-Proofs-Extraction + HOL-SPARK + HOL-Statespace + HOL-TPTP + HOL-Word-SMT_Examples + HOL-ex + HOLCF + Pure.
+;; Generated from HOL + HOL-Auth + HOL-BNF_Examples + HOL-Bali + HOL-Decision_Procs + HOL-IMP + HOL-Imperative_HOL + HOL-Import + HOL-Library + HOL-Mutabelle + HOL-Nominal + HOL-Proofs + HOL-Proofs-Extraction + HOL-SPARK + HOL-Statespace + HOL-TPTP + HOL-Word-SMT_Examples + HOL-ex + HOLCF + Pure.
 ;; *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT ***
 ;;
 
@@ -48,21 +48,15 @@
     "classes"
     "classrel"
     "codatatype"
-    "code_class"
-    "code_const"
     "code_datatype"
     "code_deps"
     "code_identifier"
-    "code_include"
-    "code_instance"
-    "code_modulename"
     "code_monad"
     "code_pred"
     "code_printing"
     "code_reflect"
     "code_reserved"
     "code_thms"
-    "code_type"
     "coinductive"
     "coinductive_set"
     "commit"
@@ -499,18 +493,12 @@
     "classes"
     "classrel"
     "codatatype"
-    "code_class"
-    "code_const"
     "code_datatype"
     "code_identifier"
-    "code_include"
-    "code_instance"
-    "code_modulename"
     "code_monad"
     "code_printing"
     "code_reflect"
     "code_reserved"
-    "code_type"
     "coinductive"
     "coinductive_set"
     "consts"
