@@ -150,10 +150,10 @@ object Simplifier_Trace
                   case STEP =>
                     val index = Index.of_data(data)
                     memory.get(index) match {
-                      case None =>
-                        new_context += Question(data, Answer.step.all, Answer.step.default)
-                      case Some(answer) =>
+                      case Some(answer) if data.memory =>
                         do_reply(session, serial, answer)
+                      case _ =>
+                        new_context += Question(data, Answer.step.all, Answer.step.default)
                     }
 
                   case HINT =>
@@ -232,7 +232,7 @@ object Simplifier_Trace
         case Reply(session, serial, answer) =>
           find_question(serial) match {
             case Some((id, Question(data, _, _))) =>
-              if (data.markup == Markup.Simp_Trace_Item.STEP)
+              if (data.markup == Markup.Simp_Trace_Item.STEP && data.memory)
               {
                 val index = Index.of_data(data)
                 memory += (index -> answer)

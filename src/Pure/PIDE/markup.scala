@@ -399,6 +399,9 @@ object Markup
   val SUCCESS = "success"
   val Success = new Properties.Boolean(SUCCESS)
 
+  val MEMORY = "memory"
+  val Memory = new Properties.Boolean(MEMORY)
+
   val CANCEL_SIMP_TRACE = "simp_trace_cancel"
   object Cancel_Simp_Trace
   {
@@ -454,6 +457,10 @@ object Markup
 
     case class Data(serial: Long, markup: String, text: String,
                     parent: Long, props: Properties.T, content: XML.Body)
+    {
+      def memory: Boolean =
+        Memory.unapply(props) getOrElse true
+    }
 
   }
 

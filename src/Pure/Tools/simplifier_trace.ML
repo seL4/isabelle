@@ -37,6 +37,7 @@ structure Data = Generic_Data
      depth: int,
      mode: mode,
      interactive: bool,
+     memory: bool,
      parent: int,
      breakpoints: term Item_Net.T * rrule Item_Net.T}
   val empty =
@@ -44,29 +45,33 @@ structure Data = Generic_Data
      depth = 0,
      mode = Disabled,
      interactive = false,
+     memory = true,
      parent = 0,
      breakpoints = empty_breakpoints}
   val extend = I
   fun merge ({max_depth = max_depth1, mode = mode1, interactive = interactive1,
-              breakpoints = breakpoints1, ...}: T,
+              memory = memory1, breakpoints = breakpoints1, ...}: T,
              {max_depth = max_depth2, mode = mode2, interactive = interactive2,
-              breakpoints = breakpoints2, ...}: T) =
+              memory = memory2, breakpoints = breakpoints2, ...}: T) =
     {max_depth = Int.max (max_depth1, max_depth2),
      depth = 0,
      mode = merge_modes mode1 mode2,
      interactive = interactive1 orelse interactive2,
+     memory = memory1 andalso memory2,
      parent = 0,
      breakpoints = merge_breakpoints (breakpoints1, breakpoints2)}: T
 )
 
 fun map_breakpoints f_term f_thm =
-  Data.map (fn {max_depth, depth, mode, interactive, parent, breakpoints = (term_bs, thm_bs)} =>
-    {max_depth = max_depth,
-     depth = depth,
-     mode = mode,
-     interactive = interactive,
-     parent = parent,
-     breakpoints = (f_term term_bs, f_thm thm_bs)})
+  Data.map
+    (fn {max_depth, depth, mode, interactive, parent, memory, breakpoints = (term_bs, thm_bs)} =>
+      {max_depth = max_depth,
+       depth = depth,
+       mode = mode,
+       interactive = interactive,
+       memory = memory,
+       parent = parent,
+       breakpoints = (f_term term_bs, f_thm thm_bs)})
 
 fun add_term_breakpoint term =
   map_breakpoints (Item_Net.update term) I
@@ -94,7 +99,7 @@ fun is_breakpoint (term, rrule) context =
 
 (** config and attributes **)
 
-fun config raw_mode interactive max_depth =
+fun config raw_mode interactive max_depth memory =
   let
     val mode = case raw_mode of
       "normal" => Normal
@@ -106,6 +111,7 @@ fun config raw_mode interactive max_depth =
        depth = depth,
        mode = mode,
        interactive = interactive,
+       memory = memory,
        parent = parent,
        breakpoints = breakpoints})
   in Thm.declaration_attribute (K update) end
@@ -129,6 +135,7 @@ fun output_result (id, data) =
 val serialN = "serial"
 val parentN = "parent"
 val textN = "text"
+val memoryN = "memory"
 val successN = "success"
 
 val logN = "simp_trace_log"
@@ -148,7 +155,7 @@ fun empty_payload () : payload =
 
 fun mk_generic_result markup text triggered (payload : unit -> payload) ctxt =
   let
-    val {max_depth, depth, mode, interactive, parent, ...} = Data.get (Context.Proof ctxt)
+    val {max_depth, depth, mode, interactive, memory, parent, ...} = Data.get (Context.Proof ctxt)
 
     val eligible =
       case mode of
@@ -165,6 +172,7 @@ fun mk_generic_result markup text triggered (payload : unit -> payload) ctxt =
         val {props = more_props, pretty} = payload ()
         val props =
           [(textN, text),
+           (memoryN, Markup.print_bool memory),
            (parentN, Markup.print_int parent)]
         val data =
           Pretty.string_of (Pretty.markup (markup', props @ more_props) [pretty])
@@ -235,7 +243,7 @@ fun step ({term, thm, unconditional, ctxt, rrule}: data) =
         {props = [], pretty = pretty}
       end
 
-    val {max_depth, depth, mode, interactive, breakpoints, ...} =
+    val {max_depth, depth, mode, interactive, memory, breakpoints, ...} =
       Data.get (Context.Proof ctxt)
 
     fun mk_promise result =
@@ -247,6 +255,7 @@ fun step ({term, thm, unconditional, ctxt, rrule}: data) =
            depth = depth,
            mode = mode',
            interactive = interactive',
+           memory = memory,
            parent = result_id,
            breakpoints = breakpoints} (Context.Proof ctxt) |>
           Context.the_proof
@@ -276,13 +285,15 @@ fun recurse text term ctxt =
       {props = [],
        pretty = Syntax.pretty_term ctxt term}
 
-    val {max_depth, depth, mode, interactive, breakpoints, ...} = Data.get (Context.Proof ctxt)
+    val {max_depth, depth, mode, interactive, memory, breakpoints, ...} =
+      Data.get (Context.Proof ctxt)
 
     fun put result_id = Data.put
       {max_depth = max_depth,
        depth = depth + 1,
        mode = if depth >= max_depth then Disabled else mode,
        interactive = interactive,
+       memory = memory,
        parent = result_id,
        breakpoints = breakpoints} (Context.Proof ctxt)
 
@@ -356,7 +367,7 @@ fun indicate_success thm ctxt =
 
 (** setup **)
 
-fun simp_if_continue args ctxt cont =
+fun simp_apply args ctxt cont =
   let
     val {unconditional: bool, term: term, thm: thm, rrule: rrule} = args
     val data =
@@ -374,7 +385,7 @@ fun simp_if_continue args ctxt cont =
           case res of
             NONE =>
               if Future.join (indicate_failure data ctxt') then
-                simp_if_continue args ctxt cont
+                simp_apply args ctxt cont
               else
                 NONE
           | SOME (thm, _) =>
@@ -388,7 +399,7 @@ val _ = Session.protocol_handler "isabelle.Simplifier_Trace$Handler"
 val _ = Theory.setup
   (Simplifier.set_trace_ops
     {trace_invoke = fn {depth, term} => recurse "Simplifier invoked" term,
-     trace_apply = simp_if_continue})
+     trace_apply = simp_apply})
 
 val _ =
   Isabelle_Process.protocol_command "Document.simp_trace_reply"
@@ -417,12 +428,15 @@ val mode_parser: string parser =
 val interactive_parser: bool parser =
   Scan.optional (Args.$$$ "interactive" >> K true) false
 
+val memory_parser: bool parser =
+  Scan.optional (Args.$$$ "no_memory" >> K false) true
+
 val depth_parser =
   Scan.optional (Args.$$$ "depth" |-- Args.$$$ "=" |-- Parse.nat) 10
 
 val config_parser =
-  (interactive_parser -- mode_parser -- depth_parser) >>
-    (fn ((interactive, mode), depth) => config mode interactive depth)
+  (interactive_parser -- mode_parser -- depth_parser -- memory_parser) >>
+    (fn (((interactive, mode), depth), memory) => config mode interactive depth memory)
 
 val _ = Theory.setup
   (Attrib.setup @{binding break_term}
