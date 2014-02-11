@@ -256,7 +256,7 @@ final class Command private(
 
   def source(range: Text.Range): String = source.substring(range.start, range.stop)
 
-  lazy val symbol_index = Symbol.Index(source)
+  private lazy val symbol_index = Symbol.Index(source)
   def decode(i: Text.Offset): Text.Offset = symbol_index.decode(i)
   def decode(r: Text.Range): Text.Range = symbol_index.decode(r)
 
