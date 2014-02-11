@@ -33,36 +33,23 @@ too old nor too new):
   x86-linux         Ubuntu 10.04 LTS
   x86_64-linux      Ubuntu 10.04 LTS
 
-  x86_64-darwin     Mac OS Snow Leopard (macbroy2)
-                    Mac OS Lion (macbroy6)
-                    Mac OS Mountain Lion (macbroy30)
+  x86_64-darwin     Mac OS X Lion (macbroy6)
+                    Mac OS X Mountain Lion (macbroy30)
+                    Mac OS X Mavericks (macbroy2)
 
   x86-cygwin        Cygwin 1.7 (vmbroy9)
 
 All of the above platforms are 100% supported by Isabelle -- end-users
 should not have to care about the differences (at least in theory).
-There are also some additional platforms where Poly/ML might also
-happen to work, but they are *not* covered by the official Isabelle
-distribution:
 
-  ppc-darwin
-  x86-darwin
-  sparc-solaris
-  x86-solaris
-  x86-bsd
-
-There are increasing problems to make contributing components of
-Isabelle work on such fringe platforms.  Note that x86-bsd is silently
-treated like x86-linux -- this works if certain Linux compatibility
-packages are installed on BSD.  Old 32 bit Macintosh hardware is no
-longer supported due the its lack of Java 7.
+Fringe platforms like BSD or Solaris are unsupported.
 
 
 32 bit vs. 64 bit platforms
 ---------------------------
 
 Most users have 64 bit hardware and are running a 64 bit operating
-system by default.  For Linux this often means missing 32 bit shared
+system by default.  For Linux this usually means missing 32 bit shared
 libraries, so native x86_64-linux needs to be used by default, despite
 its doubled space requirements for Poly/ML heaps.  For Mac OS X, the
 x86-darwin personality usually works seamlessly for C/C++ programs,
@@ -118,12 +105,12 @@ The following portable system tools can be taken for granted:
 Known problems
 --------------
 
-* Mac OS: If MacPorts is installed there is some danger that
+* Mac OS X: If MacPorts is installed there is some danger that
   accidental references to its shared libraries are created
   (e.g. libgmp).  Use otool -L to check if compiled binaries also work
   without MacPorts.
 
-* Mac OS: If MacPorts is installed and its version of Perl takes
+* Mac OS X: If MacPorts is installed and its version of Perl takes
   precedence over /usr/bin/perl in the PATH, then the end-user needs
   to take care of installing extra modules, e.g. for HTTP support.
   Such add-ons are usually included in Apple's /usr/bin/perl by
