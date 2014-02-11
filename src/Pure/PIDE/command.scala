@@ -94,8 +94,8 @@ object Command
         case XML.Elem(Markup(Markup.REPORT, _), msgs) =>
           (this /: msgs)((state, msg) =>
             msg match {
-              case XML.Elem(Markup(name, atts @ Position.Id_Range(id, raw_range)), args)
-              if (id == command.id || id == alt_id) &&
+              case XML.Elem(Markup(name, atts @ Position.Reported(id, file, raw_range)), args)
+              if (id == command.id || id == alt_id) && file == "" &&
                   command.range.contains(command.decode(raw_range)) =>
                 val range = command.decode(raw_range)
                 val props = Position.purge(atts)

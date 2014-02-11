@@ -285,11 +285,11 @@ object Protocol
 
     def positions(set: Set[Text.Range], tree: XML.Tree): Set[Text.Range] =
       tree match {
-        case XML.Wrapped_Elem(Markup(name, Position.Id_Range(id, range)), _, body)
-        if include_pos(name) && id == command.id => elem_positions(range, set, body)
+        case XML.Wrapped_Elem(Markup(name, Position.Reported(id, file, range)), _, body)
+        if include_pos(name) && id == command.id && file == "" => elem_positions(range, set, body)
 
-        case XML.Elem(Markup(name, Position.Id_Range(id, range)), body)
-        if include_pos(name) && id == command.id => elem_positions(range, set, body)
+        case XML.Elem(Markup(name, Position.Reported(id, file, range)), body)
+        if include_pos(name) && id == command.id && file == "" => elem_positions(range, set, body)
 
         case XML.Wrapped_Elem(_, _, body) => body.foldLeft(set)(positions)
 

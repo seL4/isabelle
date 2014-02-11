@@ -102,8 +102,14 @@ fun resolve_files master_dir blobs toks =
           fun make_file src_path (Exn.Res (_, NONE)) =
                 Exn.interruptible_capture (fn () => read_file master_dir pos src_path) ()
             | make_file src_path (Exn.Res (file, SOME text)) =
-                let val _ = Position.report pos (Markup.path file)
-                in Exn.Res {src_path = src_path, text = text, pos = Position.file file} end
+                let
+                  val _ = Position.report pos (Markup.path file);
+                  val file_pos =
+                    Position.file file (*sic!*) |>
+                    (case Position.get_id (Position.thread_data ()) of
+                      NONE => I
+                    | SOME exec_id => Position.put_id exec_id);
+                in Exn.Res {src_path = src_path, text = text, pos = file_pos} end
             | make_file _ (Exn.Exn e) = Exn.Exn e;
 
           val src_paths = Keyword.command_files cmd path;
