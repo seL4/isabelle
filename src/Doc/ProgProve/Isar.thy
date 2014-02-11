@@ -372,7 +372,7 @@ have "\<exists>x. P(x)" (*<*)by(rule 1)(*>*)txt_raw{*\ $\dots$\\*}
 then obtain x where p: "P(x)" by blast
 (*<*)oops(*>*)
 text{*
-After the \isacom{obtain} step, @{text x} (we could have chosen any name)
+After the \indexed{\isacom{obtain}}{obtain} step, @{text x} (we could have chosen any name)
 is a fixed local
 variable, and @{text p} is the name of the fact
 \noquotes{@{prop[source] "P(x)"}}.
