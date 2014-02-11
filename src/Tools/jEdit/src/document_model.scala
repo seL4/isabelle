@@ -106,10 +106,13 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
       val snapshot = this.snapshot()
 
       val document_view_ranges =
-        for {
-          doc_view <- PIDE.document_views(buffer)
-          range <- doc_view.perspective(snapshot).ranges
-        } yield range
+        if (is_theory) {
+          for {
+            doc_view <- PIDE.document_views(buffer)
+            range <- doc_view.perspective(snapshot).ranges
+          } yield range
+        }
+        else Nil
 
       val thy_load_ranges =
         for {

@@ -302,8 +302,14 @@ object Protocol
       }
 
     val set = positions(Set.empty, message)
-    if (set.isEmpty)
-      set ++ Position.Range.unapply(message.markup.properties).map(chunk.decode(_))
+    if (set.isEmpty) {
+      message.markup.properties match {
+        case Position.Reported(id, file_name, range)
+        if id == command_id && file_name == chunk.file_name =>
+          set + chunk.decode(range)
+        case _ => set
+      }
+    }
     else set
   }
 }
