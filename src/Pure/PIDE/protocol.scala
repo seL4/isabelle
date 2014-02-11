@@ -274,22 +274,25 @@ object Protocol
 
   private val include_pos = Set(Markup.BINDING, Markup.ENTITY, Markup.REPORT, Markup.POSITION)
 
-  def message_positions(command: Command, message: XML.Elem): Set[Text.Range] =
+  def message_positions(command_id: Document_ID.Command, chunk: Command.Chunk, message: XML.Elem)
+    : Set[Text.Range] =
   {
     def elem_positions(raw_range: Text.Range, set: Set[Text.Range], body: XML.Body)
       : Set[Text.Range] =
     {
-      val range = command.decode(raw_range).restrict(command.range)
+      val range = chunk.decode(raw_range).restrict(chunk.range)
       body.foldLeft(if (range.is_singularity) set else set + range)(positions)
     }
 
     def positions(set: Set[Text.Range], tree: XML.Tree): Set[Text.Range] =
       tree match {
-        case XML.Wrapped_Elem(Markup(name, Position.Reported(id, file, range)), _, body)
-        if include_pos(name) && id == command.id && file == "" => elem_positions(range, set, body)
+        case XML.Wrapped_Elem(Markup(name, Position.Reported(id, file_name, range)), _, body)
+        if include_pos(name) && id == command_id && file_name == chunk.file_name =>
+        elem_positions(range, set, body)
 
-        case XML.Elem(Markup(name, Position.Reported(id, file, range)), body)
-        if include_pos(name) && id == command.id && file == "" => elem_positions(range, set, body)
+        case XML.Elem(Markup(name, Position.Reported(id, file_name, range)), body)
+        if include_pos(name) && id == command_id && file_name == chunk.file_name =>
+        elem_positions(range, set, body)
 
         case XML.Wrapped_Elem(_, _, body) => body.foldLeft(set)(positions)
 
@@ -300,7 +303,7 @@ object Protocol
 
     val set = positions(Set.empty, message)
     if (set.isEmpty)
-      set ++ Position.Range.unapply(message.markup.properties).map(command.decode(_))
+      set ++ Position.Range.unapply(message.markup.properties).map(chunk.decode(_))
     else set
   }
 }
@@ -323,7 +326,7 @@ trait Protocol extends Isabelle_Process
       val encode_blob: T[Command.Blob] =
         variant(List(
           { case Exn.Res((a, b)) =>
-              (Nil, pair(string, option(string))((a.node, b.map(_.toString)))) },
+              (Nil, pair(string, option(string))((a.node, b.map(p => p._1.toString)))) },
           { case Exn.Exn(e) => (Nil, string(Exn.message(e))) }))
       YXML.string_of_body(list(encode_blob)(command.blobs))
     }

@@ -94,8 +94,8 @@ object Command
         case XML.Elem(Markup(Markup.REPORT, _), msgs) =>
           (this /: msgs)((state, msg) =>
             msg match {
-              case XML.Elem(Markup(name, atts @ Position.Reported(id, file, raw_range)), args)
-              if (id == command.id || id == alt_id) && file == "" &&
+              case XML.Elem(Markup(name, atts @ Position.Reported(id, file_name, raw_range)), args)
+              if (id == command.id || id == alt_id) && file_name == "" &&
                   command.range.contains(command.decode(raw_range)) =>
                 val range = command.decode(raw_range)
                 val props = Position.purge(atts)
@@ -120,7 +120,7 @@ object Command
               val st0 = copy(results = results + (i -> message1))
               val st1 =
                 if (Protocol.is_inlined(message))
-                  (st0 /: Protocol.message_positions(command, message))(
+                  (st0 /: Protocol.message_positions(command.id, command, message))(
                     (st, range) => st.add_markup(Text.Info(range, message2)))
                 else st0
 
@@ -139,12 +139,34 @@ object Command
   }
 
 
+
+  /** static content **/
+
+  /* text chunks */
+
+  abstract class Chunk
+  {
+    def file_name: String
+    def length: Int
+    def range: Text.Range
+    def decode(r: Text.Range): Text.Range
+  }
+
+  class File(val file_name: String, text: CharSequence) extends Chunk
+  {
+    val length = text.length
+    val range = Text.Range(0, length)
+    private val symbol_index = Symbol.Index(text)
+    def decode(r: Text.Range): Text.Range = symbol_index.decode(r)
+  }
+
+
   /* make commands */
 
   def name(span: List[Token]): String =
     span.find(_.is_command) match { case Some(tok) => tok.source case _ => "" }
 
-  type Blob = Exn.Result[(Document.Node.Name, Option[SHA1.Digest])]
+  type Blob = Exn.Result[(Document.Node.Name, Option[(SHA1.Digest, File)])]
 
   def apply(
     id: Document_ID.Command,
@@ -220,6 +242,7 @@ final class Command private(
     val source: String,
     val init_results: Command.Results,
     val init_markup: Markup_Tree)
+  extends Command.Chunk
 {
   /* classification */
 
@@ -243,10 +266,12 @@ final class Command private(
     for (Exn.Res((name, _)) <- blobs) yield name
 
   def blobs_digests: List[SHA1.Digest] =
-    for (Exn.Res((_, Some(digest))) <- blobs) yield digest
+    for (Exn.Res((_, Some((digest, _)))) <- blobs) yield digest
 
 
   /* source */
+
+  def file_name: String = ""
 
   def length: Int = source.length
   val range: Text.Range = Text.Range(0, length)

@@ -47,7 +47,7 @@ object Document
   type Edit_Text = Edit[Text.Edit, Text.Perspective]
   type Edit_Command = Edit[Command.Edit, Command.Perspective]
 
-  type Blobs = Map[Node.Name, Bytes]
+  type Blobs = Map[Node.Name, (Bytes, Command.File)]
 
   object Node
   {

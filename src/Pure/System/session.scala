@@ -379,7 +379,7 @@ class Session(val thy_load: Thy_Load)
           digest <- command.blobs_digests
           if !global_state().defined_blob(digest)
         } {
-          doc_blobs.collectFirst({ case (_, b) if b.sha1_digest == digest => b }) match {
+          doc_blobs.collectFirst({ case (_, (b, _)) if b.sha1_digest == digest => b }) match {
             case Some(blob) =>
               global_state >> (_.define_blob(digest))
               prover.get.define_blob(blob)
