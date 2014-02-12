@@ -1167,7 +1167,7 @@ lemma rbtreeify_f_code [code]:
           apfst (Branch B t1 k v) (rbtreeify_g n' kvs')
       else case rbtreeify_f n' kvs of (t1, (k, v) # kvs') \<Rightarrow>
           apfst (Branch B t1 k v) (rbtreeify_f n' kvs'))"
-by(subst rbtreeify_f.simps)(simp only: Let_def divmod_nat_div_mod prod.simps)
+by (subst rbtreeify_f.simps) (simp only: Let_def divmod_nat_div_mod prod.case)
 
 lemma rbtreeify_g_code [code]:
   "rbtreeify_g n kvs =
@@ -1178,7 +1178,7 @@ lemma rbtreeify_g_code [code]:
           apfst (Branch B t1 k v) (rbtreeify_g n' kvs')
       else case rbtreeify_f n' kvs of (t1, (k, v) # kvs') \<Rightarrow>
           apfst (Branch B t1 k v) (rbtreeify_g n' kvs'))"
-by(subst rbtreeify_g.simps)(simp only: Let_def divmod_nat_div_mod prod.simps)
+by(subst rbtreeify_g.simps)(simp only: Let_def divmod_nat_div_mod prod.case)
 
 lemma Suc_double_half: "Suc (2 * n) div 2 = n"
 by simp
@@ -1250,8 +1250,8 @@ proof(induction n kvs and n kvs rule: rbtreeify_f_rbtreeify_g.induct)
       with "1.prems" False obtain t1 k' v' kvs''
         where kvs'': "rbtreeify_f (n div 2) kvs = (t1, (k', v') # kvs'')"
          by(cases ?rest1)(auto simp add: snd_def split: prod.split_asm)
-      note this also note prod.simps(2) also note list.simps(5) 
-      also note prod.simps(2) also note snd_apfst
+      note this also note prod.case also note list.simps(5) 
+      also note prod.case also note snd_apfst
       also have "0 < n div 2" "n div 2 \<le> Suc (length kvs'')" 
         using len "1.prems" False unfolding kvs'' by simp_all
       with True kvs''[symmetric] refl refl
@@ -1276,8 +1276,8 @@ proof(induction n kvs and n kvs rule: rbtreeify_f_rbtreeify_g.induct)
       with "1.prems" `\<not> n \<le> 1` obtain t1 k' v' kvs''
         where kvs'': "rbtreeify_f (n div 2) kvs = (t1, (k', v') # kvs'')"
         by(cases ?rest1)(auto simp add: snd_def split: prod.split_asm)
-      note this also note prod.simps(2) also note list.simps(5) 
-      also note prod.simps(2) also note snd_apfst
+      note this also note prod.case also note list.simps(5)
+      also note prod.case also note snd_apfst
       also have "n div 2 \<le> length kvs''" 
         using len "1.prems" False unfolding kvs'' by simp arith
       with False kvs''[symmetric] refl refl
@@ -1315,8 +1315,8 @@ next
       with "2.prems" obtain t1 k' v' kvs''
         where kvs'': "rbtreeify_g (n div 2) kvs = (t1, (k', v') # kvs'')"
         by(cases ?rest1)(auto simp add: snd_def split: prod.split_asm)
-      note this also note prod.simps(2) also note list.simps(5) 
-      also note prod.simps(2) also note snd_apfst
+      note this also note prod.case also note list.simps(5) 
+      also note prod.case also note snd_apfst
       also have "n div 2 \<le> Suc (length kvs'')" 
         using len "2.prems" unfolding kvs'' by simp
       with True kvs''[symmetric] refl refl `0 < n div 2`
@@ -1341,8 +1341,8 @@ next
       with "2.prems" `1 < n` False obtain t1 k' v' kvs'' 
         where kvs'': "rbtreeify_f (n div 2) kvs = (t1, (k', v') # kvs'')"
         by(cases ?rest1)(auto simp add: snd_def split: prod.split_asm, arith)
-      note this also note prod.simps(2) also note list.simps(5) 
-      also note prod.simps(2) also note snd_apfst
+      note this also note prod.case also note list.simps(5) 
+      also note prod.case also note snd_apfst
       also have "n div 2 \<le> Suc (length kvs'')" 
         using len "2.prems" False unfolding kvs'' by simp arith
       with False kvs''[symmetric] refl refl `0 < n div 2`
