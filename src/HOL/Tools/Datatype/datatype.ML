@@ -283,11 +283,11 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
     (* isomorphisms are defined using primrec-combinators:                 *)
     (* generate appropriate functions for instantiating primrec-combinator *)
     (*                                                                     *)
-    (*   e.g.  dt_Rep_i = list_rec ... (%h t y. In1 (Scons (Leaf h) y))    *)
+    (*   e.g.  Rep_dt_i = list_rec ... (%h t y. In1 (Scons (Leaf h) y))    *)
     (*                                                                     *)
     (* also generate characteristic equations for isomorphisms             *)
     (*                                                                     *)
-    (*   e.g.  dt_Rep_i (cons h t) = In1 (Scons (dt_Rep_j h) (dt_Rep_i t)) *)
+    (*   e.g.  Rep_dt_i (cons h t) = In1 (Scons (Rep_dt_j h) (Rep_dt_i t)) *)
     (*---------------------------------------------------------------------*)
 
     fun make_iso_def k ks n (cname, cargs) (fs, eqns, i) =
@@ -387,7 +387,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
           end
       in map (fn r => r RS subst) (thm :: map mk_thm arities) end;
 
-    (* prove  inj dt_Rep_i  and  dt_Rep_i x : dt_rep_set_i *)
+    (* prove  inj Rep_dt_i  and  Rep_dt_i x : rep_set_dt_i *)
 
     val fun_congs =
       map (fn T => make_elim (Drule.instantiate' [SOME (ctyp_of thy5 T)] [] fun_cong)) branchTs;
@@ -457,7 +457,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
     val iso_inj_thms =
       map snd newT_iso_inj_thms @ map (fn r => r RS @{thm injD}) iso_inj_thms_unfolded;
 
-    (* prove  dt_rep_set_i x --> x : range dt_Rep_i *)
+    (* prove  rep_set_dt_i x --> x : range Rep_dt_i *)
 
     fun mk_iso_t (((set_name, iso_name), i), T) =
       let val isoT = T --> Univ_elT in

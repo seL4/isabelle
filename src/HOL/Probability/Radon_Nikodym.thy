@@ -250,7 +250,7 @@ proof -
   { fix i have "A i \<in> sets M" unfolding A_def
     proof (induct i)
       case (Suc i)
-      from Ex_P[OF this, of i] show ?case unfolding rec_nat_Suc
+      from Ex_P[OF this, of i] show ?case unfolding nat.recs(2)
         by (rule someI2_ex) simp
     qed simp }
   note A_in_sets = this
@@ -281,7 +281,7 @@ proof -
       from ex_inverse_of_nat_Suc_less[OF this]
       obtain n where *: "?d B < - 1 / real (Suc n)"
         by (auto simp: real_eq_of_nat inverse_eq_divide field_simps)
-      have "B \<subseteq> A (Suc n)" using B by (auto simp del: rec_nat_Suc)
+      have "B \<subseteq> A (Suc n)" using B by (auto simp del: nat.recs(2))
       from epsilon[OF B(1) this] *
       show False by auto
     qed

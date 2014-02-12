@@ -148,7 +148,7 @@ fun mk_undefined T = Const (@{const_name undefined}, T);
 
 fun mk_rec_nat Zero Suc =
   let val T = fastype_of Zero;
-  in Const (@{const_name rec_nat}, T --> fastype_of Suc --> HOLogic.natT --> T) $ Zero $ Suc end;
+  in Const (@{const_name old.rec_nat}, T --> fastype_of Suc --> HOLogic.natT --> T) $ Zero $ Suc end;
 
 fun mk_rec_list Nil Cons =
   let

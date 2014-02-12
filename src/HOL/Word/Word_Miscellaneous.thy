@@ -118,10 +118,6 @@ lemmas if_simps = if_x_Not if_Not_x if_cancel if_True if_False if_bool_simps
 
 lemmas seqr = eq_reflection [where x = "size w"] for w (* FIXME: delete *)
 
-(* TODO: move name bindings to List.thy *)
-lemmas tl_Nil = tl.simps (1)
-lemmas tl_Cons = tl.simps (2)
-
 lemma the_elemI: "y = {x} ==> the_elem y = x" 
   by simp
 

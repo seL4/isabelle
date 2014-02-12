@@ -166,9 +166,9 @@ with the help of Isabelle's instantiation attribute \texttt{where}:
 \end{quote}
 To support the ``\_''-notation for irrelevant variables
 the constant \texttt{DUMMY} has been introduced:
-@{thm fst_conv[where b = DUMMY]} is produced by
+@{thm fst_conv[of _ DUMMY]} is produced by
 \begin{quote}
-\verb!@!\verb!{thm fst_conv[where b = DUMMY]}!
+\verb!@!\verb!{thm fst_conv[of _ DUMMY]}!
 \end{quote}
 Variables that are bound by quantifiers or lambdas cannot be renamed
 like this. Instead, the attribute \texttt{rename\_abs} does the

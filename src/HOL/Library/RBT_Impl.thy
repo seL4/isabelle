@@ -1748,14 +1748,14 @@ declare compare_height.simps [code]
 
 hide_type (open) compare
 hide_const (open)
-  compare_height skip_black skip_red LT GT EQ compare_case compare_rec 
-  Abs_compare Rep_compare compare_rep_set
+  compare_height skip_black skip_red LT GT EQ case_compare rec_compare
+  Abs_compare Rep_compare rep_set_compare
 hide_fact (open)
   Abs_compare_cases Abs_compare_induct Abs_compare_inject Abs_compare_inverse
   Rep_compare Rep_compare_cases Rep_compare_induct Rep_compare_inject Rep_compare_inverse
   compare.simps compare.exhaust compare.induct compare.recs compare.simps
   compare.size compare.case_cong compare.weak_case_cong compare.cases 
-  compare.nchotomy compare.split compare.split_asm compare_rec_def
+  compare.nchotomy compare.split compare.split_asm rec_compare_def
   compare.eq.refl compare.eq.simps
   compare.EQ_def compare.GT_def compare.LT_def
   equal_compare_def

@@ -636,6 +636,7 @@ apply simp_all
   prefer 2
   apply force
  apply(case_tac xsa,simp,simp)
+ apply(rename_tac list)
  apply(rule_tac x="(Some Pa, sa) #(Some Pa, t) # list" in exI,simp)
  apply(rule conjI,erule CptnEnv)
  apply(simp (no_asm_use) add:lift_def)
@@ -733,6 +734,7 @@ apply(case_tac "\<exists>i<length x. fst(x!i)=Some Q")
  apply(case_tac xs,simp add:cp_def)
  apply clarify
  apply (simp del:map.simps)
+ apply (rename_tac list)
  apply(subgoal_tac "(map (lift Q) ((a, b) # list))\<noteq>[]")
   apply(drule last_conv_nth)
   apply (simp del:map.simps)
@@ -1032,6 +1034,7 @@ apply(subgoal_tac "((Some (Seq P (While b P)), sa) # map (lift (While b P)) xs @
  apply(drule last_conv_nth)
  apply (simp del:map.simps last.simps)
  apply(simp add:nth_append del:last.simps)
+ apply(rename_tac a list)
  apply(subgoal_tac "((Some (While b P), snd (last ((Some P, sa) # xs))) # a # list)\<noteq>[]")
   apply(drule last_conv_nth)
   apply (simp del:map.simps last.simps)
@@ -1349,6 +1352,7 @@ apply(case_tac xs,simp)
 apply(subgoal_tac "xs\<noteq>[]")
  prefer 2
  apply simp
+apply(rename_tac a list)
 apply(thin_tac "xs = a # list")
 apply(simp add:par_com_validity_def par_comm_def)
 apply clarify

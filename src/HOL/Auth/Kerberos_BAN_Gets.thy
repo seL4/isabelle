@@ -168,6 +168,7 @@ text{*Lemmas for reasoning about predicate "before"*}
 lemma used_Says_rev: "used (evs @ [Says A B X]) = parts {X} \<union> (used evs)"
 apply (induct_tac "evs")
 apply simp
+apply (rename_tac a b)
 apply (induct_tac "a")
 apply auto
 done
@@ -175,6 +176,7 @@ done
 lemma used_Notes_rev: "used (evs @ [Notes A X]) = parts {X} \<union> (used evs)"
 apply (induct_tac "evs")
 apply simp
+apply (rename_tac a b)
 apply (induct_tac "a")
 apply auto
 done
@@ -182,6 +184,7 @@ done
 lemma used_Gets_rev: "used (evs @ [Gets B X]) = used evs"
 apply (induct_tac "evs")
 apply simp
+apply (rename_tac a b)
 apply (induct_tac "a")
 apply auto
 done
@@ -189,6 +192,7 @@ done
 lemma used_evs_rev: "used evs = used (rev evs)"
 apply (induct_tac "evs")
 apply simp
+apply (rename_tac a b)
 apply (induct_tac "a")
 apply (simp add: used_Says_rev)
 apply (simp add: used_Gets_rev)
@@ -199,6 +203,7 @@ lemma used_takeWhile_used [rule_format]:
       "x : used (takeWhile P X) --> x : used X"
 apply (induct_tac "X")
 apply simp
+apply (rename_tac a b)
 apply (induct_tac "a")
 apply (simp_all add: used_Nil)
 apply (blast dest!: initState_into_used)+

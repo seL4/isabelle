@@ -669,13 +669,13 @@ lemma
   "tl [x, y, z] = [y, z]"
   "hd (tl [x, y, z]) = y"
   "tl (tl [x, y, z]) = [z]"
-  using hd.simps tl.simps(2) list.simps
+  using list.sel(1,3) list.simps
   by smt+
 
 lemma
   "fst (hd [(a, b)]) = a"
   "snd (hd [(a, b)]) = b"
-  using fst_conv snd_conv pair_collapse hd.simps tl.simps(2) list.simps
+  using fst_conv snd_conv pair_collapse list.sel(1,3) list.simps
   by smt+
 
 
@@ -808,14 +808,14 @@ lemma
   "tl [x, y, z] = [y, z]"
   "hd (tl [x, y, z]) = y"
   "tl (tl [x, y, z]) = [z]"
-  using hd.simps tl.simps(2)
+  using list.sel(1,3)
   using [[smt_datatypes, smt_oracle, z3_with_extensions]]
   by smt+
 
 lemma
   "fst (hd [(a, b)]) = a"
   "snd (hd [(a, b)]) = b"
-  using fst_conv snd_conv pair_collapse hd.simps tl.simps(2)
+  using fst_conv snd_conv pair_collapse list.sel(1,3)
   using [[smt_datatypes, smt_oracle, z3_with_extensions]]
   by smt+
 

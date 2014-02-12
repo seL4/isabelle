@@ -133,7 +133,7 @@ by (simp add: Node_def)
 
 lemma Node_Push_I: "p: Node ==> apfst (Push i) p : Node"
 apply (simp add: Node_def Push_def) 
-apply (fast intro!: apfst_conv case_nat_Suc [THEN trans])
+apply (fast intro!: apfst_conv nat.cases(2)[THEN trans])
 done
 
 

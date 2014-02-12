@@ -406,7 +406,7 @@ proof -
   { fix ms :: "nat list" and f :: "nat \<Rightarrow> 'a" and x :: "'a"
     assume "\<forall>m\<in>set ms. m > 0"
     then have "map (case_nat x f) ms = map f (map (\<lambda>n. n - 1) ms)"
-      by (induct ms) (auto, metis Suc_pred' case_nat_Suc) }
+      by (induct ms) (auto, metis Suc_pred' nat.cases(2)) }
   note * = this
   show ?thesis
     by (simp add: coeffs_def * upt_conv_Cons coeff_pCons map_decr_upt One_nat_def del: upt_Suc)
@@ -452,7 +452,7 @@ qed
 lemma coeff_Poly_eq:
   "coeff (Poly xs) n = nth_default 0 xs n"
   apply (induct xs arbitrary: n) apply simp_all
-  by (metis case_nat_0 case_nat_Suc not0_implies_Suc nth_default_Cons_0 nth_default_Cons_Suc pCons.rep_eq)
+  by (metis nat.cases not0_implies_Suc nth_default_Cons_0 nth_default_Cons_Suc pCons.rep_eq)
 
 lemma nth_default_coeffs_eq:
   "nth_default 0 (coeffs p) = coeff p"

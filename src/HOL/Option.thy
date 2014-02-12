@@ -16,7 +16,7 @@ datatype_new_compat option
 
 lemma [case_names None Some, cases type: option]:
   -- {* for backward compatibility -- names of variables differ *}
-  "(y = None \<Longrightarrow> P) \<Longrightarrow> (\<And>option. y = Some option \<Longrightarrow> P) \<Longrightarrow> P"
+  "(y = None \<Longrightarrow> P) \<Longrightarrow> (\<And>a. y = Some a \<Longrightarrow> P) \<Longrightarrow> P"
 by (rule option.exhaust)
 
 lemma [case_names None Some, induct type: option]:

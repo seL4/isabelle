@@ -30,12 +30,7 @@ lemma shift_lt [simp]: "i < j \<Longrightarrow> (e\<langle>i:T\<rangle>) j = e (
   by (simp add: shift_def)
 
 lemma shift_commute [simp]: "e\<langle>i:U\<rangle>\<langle>0:T\<rangle> = e\<langle>0:T\<rangle>\<langle>Suc i:U\<rangle>"
-  apply (rule ext)
-  apply (case_tac x)
-   apply simp
-  apply (case_tac nat)
-   apply (simp_all add: shift_def)
-  done
+  by (rule ext) (simp_all add: shift_def split: nat.split)
 
 
 subsection {* Types and typing rules *}
@@ -157,6 +152,7 @@ lemma list_app_typeD:
     "e \<turnstile> t \<degree>\<degree> ts : T \<Longrightarrow> \<exists>Ts. e \<turnstile> t : Ts \<Rrightarrow> T \<and> e \<tturnstile> ts : Ts"
   apply (induct ts arbitrary: t T)
    apply simp
+  apply (rename_tac a b t T)
   apply atomize
   apply simp
   apply (erule_tac x = "t \<degree> a" in allE)
@@ -177,12 +173,14 @@ lemma list_app_typeI:
     "e \<turnstile> t : Ts \<Rrightarrow> T \<Longrightarrow> e \<tturnstile> ts : Ts \<Longrightarrow> e \<turnstile> t \<degree>\<degree> ts : T"
   apply (induct ts arbitrary: t T Ts)
    apply simp
+  apply (rename_tac a b t T Ts)
   apply atomize
   apply (case_tac Ts)
    apply simp
   apply simp
   apply (erule_tac x = "t \<degree> a" in allE)
   apply (erule_tac x = T in allE)
+  apply (rename_tac list)
   apply (erule_tac x = list in allE)
   apply (erule impE)
    apply (erule conjE)
@@ -225,6 +223,7 @@ lemma var_app_types: "e \<turnstile> Var i \<degree>\<degree> ts \<degree>\<degr
   apply (erule var_app_type_eq)
   apply assumption
   apply simp
+  apply (rename_tac a b ts Ts U)
   apply atomize
   apply (case_tac U)
   apply (rule FalseE)

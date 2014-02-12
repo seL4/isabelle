@@ -846,6 +846,7 @@ lemma relpow_E2:
      \<Longrightarrow> (\<And>y m. n = Suc m \<Longrightarrow> (x, y) \<in> R \<Longrightarrow> (y, z) \<in> R ^^ m \<Longrightarrow> P)
    \<Longrightarrow> P"
   apply (cases n, simp)
+  apply (rename_tac nat)
   apply (cut_tac n=nat and R=R in relpow_Suc_D2', simp, blast)
   done
 
@@ -1297,4 +1298,3 @@ method_setup rtranclp =
   {* simple transitivity reasoner (predicate version) *}
 
 end
-

@@ -53,6 +53,7 @@ apply simp
 apply(case_tac "list")
  apply force
 apply simp
+apply(rename_tac lista)
 apply(rotate_tac -2)
 apply(erule_tac x = "0" in all_dupE)
 apply simp

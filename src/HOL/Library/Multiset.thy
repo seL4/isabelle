@@ -955,6 +955,7 @@ by (induct x) auto
 lemma distinct_count_atmost_1:
   "distinct x = (! a. count (multiset_of x) a = (if a \<in> set x then 1 else 0))"
 apply (induct x, simp, rule iffI, simp_all)
+apply (rename_tac a b)
 apply (rule conjI)
 apply (simp_all add: set_of_multiset_of [THEN sym] del: set_of_multiset_of)
 apply (erule_tac x = a in allE, simp, clarify)

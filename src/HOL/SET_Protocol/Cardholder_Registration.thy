@@ -671,6 +671,7 @@ text{*A fresh N cannot be associated with any other
 lemma N_fresh_not_KeyCryptNonce:
      "\<forall>C. DK \<noteq> priEK C ==> Nonce N \<notin> used evs --> ~ KeyCryptNonce DK N evs"
 apply (induct_tac "evs")
+apply (rename_tac [2] a evs')
 apply (case_tac [2] "a")
 apply (auto simp add: parts_insert2)
 done

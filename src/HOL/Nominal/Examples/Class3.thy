@@ -2311,6 +2311,7 @@ lemma my_wf_induct_triple':
 apply(rule_tac my_wf_induct_triple[OF a])
 apply(case_tac x rule: prod.exhaust)
 apply(simp)
+apply(rename_tac p a b)
 apply(case_tac b)
 apply(simp)
 apply(rule b)

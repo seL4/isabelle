@@ -330,12 +330,12 @@ fun dfull where
 "dfull n (Some (p, (False, t'))) \<longleftrightarrow> full (Suc n) t'"
 
 lemmas dfull_case_intros =
-  ord.exhaust [where y=y and P="dfull a (ord_case b c d y)"]
+  ord.exhaust [of y "dfull a (case_ord b c d y)"]
   option.exhaust [of y "dfull a (case_option b c y)"]
   prod.exhaust [of y "dfull a (case_prod b y)"]
   bool.exhaust [of y "dfull a (case_bool b c y)"]
-  tree23.exhaust [where y=y and P="dfull a (Some (b, tree23_case c d e y))"]
-  tree23.exhaust [where y=y and P="full a (tree23_case b c d y)"]
+  tree23.exhaust [of y "dfull a (Some (b, case_tree23 c d e y))"]
+  tree23.exhaust [of y "full a (case_tree23 b c d y)"]
   for a b c d e y
 
 lemma dfull_del: "full (Suc n) t \<Longrightarrow> dfull n (del k t)"
@@ -396,7 +396,7 @@ apply (erule exE)
 apply (case_tac n, simp, simp)
 apply (frule dfull_del [where k="Some k"])
 apply (cases "del (Some k) t", force)
-apply (case_tac "a", rename_tac p b t', case_tac "b", auto)
+apply (rename_tac a, case_tac "a", rename_tac b t', case_tac "b", auto)
 done
 
 text{* This is a little test harness and should be commented out once the

@@ -139,22 +139,26 @@ subsection{*Lemmas for reasoning about predicate "Issues"*}
 
 lemma spies_Says_rev: "spies (evs @ [Says A B X]) = insert X (spies evs)"
 apply (induct_tac "evs")
+apply (rename_tac [2] a b)
 apply (induct_tac [2] "a", auto)
 done
 
 lemma spies_Gets_rev: "spies (evs @ [Gets A X]) = spies evs"
 apply (induct_tac "evs")
+apply (rename_tac [2] a b)
 apply (induct_tac [2] "a", auto)
 done
 
 lemma spies_Notes_rev: "spies (evs @ [Notes A X]) =
           (if A:bad then insert X (spies evs) else spies evs)"
 apply (induct_tac "evs")
+apply (rename_tac [2] a b)
 apply (induct_tac [2] "a", auto)
 done
 
 lemma spies_evs_rev: "spies evs = spies (rev evs)"
 apply (induct_tac "evs")
+apply (rename_tac [2] a b)
 apply (induct_tac [2] "a")
 apply (simp_all (no_asm_simp) add: spies_Says_rev spies_Gets_rev spies_Notes_rev)
 done
@@ -163,6 +167,7 @@ lemmas parts_spies_evs_revD2 = spies_evs_rev [THEN equalityD2, THEN parts_mono]
 
 lemma spies_takeWhile: "spies (takeWhile P evs) <=  spies evs"
 apply (induct_tac "evs")
+apply (rename_tac [2] a b)
 apply (induct_tac [2] "a", auto)
 txt{* Resembles @{text"used_subset_append"} in theory Event.*}
 done
@@ -174,6 +179,7 @@ text{*Lemmas for reasoning about predicate "before"*}
 lemma used_Says_rev: "used (evs @ [Says A B X]) = parts {X} \<union> (used evs)"
 apply (induct_tac "evs")
 apply simp
+apply (rename_tac a b)
 apply (induct_tac "a")
 apply auto
 done
@@ -181,6 +187,7 @@ done
 lemma used_Notes_rev: "used (evs @ [Notes A X]) = parts {X} \<union> (used evs)"
 apply (induct_tac "evs")
 apply simp
+apply (rename_tac a b)
 apply (induct_tac "a")
 apply auto
 done
@@ -188,6 +195,7 @@ done
 lemma used_Gets_rev: "used (evs @ [Gets B X]) = used evs"
 apply (induct_tac "evs")
 apply simp
+apply (rename_tac a b)
 apply (induct_tac "a")
 apply auto
 done
@@ -195,6 +203,7 @@ done
 lemma used_evs_rev: "used evs = used (rev evs)"
 apply (induct_tac "evs")
 apply simp
+apply (rename_tac a b)
 apply (induct_tac "a")
 apply (simp add: used_Says_rev)
 apply (simp add: used_Gets_rev)
@@ -205,6 +214,7 @@ lemma used_takeWhile_used [rule_format]:
       "x : used (takeWhile P X) --> x : used X"
 apply (induct_tac "X")
 apply simp
+apply (rename_tac a b)
 apply (induct_tac "a")
 apply (simp_all add: used_Nil)
 apply (blast dest!: initState_into_used)+

@@ -167,7 +167,8 @@ lemma ty_dom_existence:
   assumes a: "X\<in>(ty_dom \<Gamma>)" 
   shows "\<exists>T.(TVarB X T)\<in>set \<Gamma>"
   using a 
-  apply (induct \<Gamma>, auto) 
+  apply (induct \<Gamma>, auto)
+  apply (rename_tac a \<Gamma>') 
   apply (subgoal_tac "\<exists>T.(TVarB X T=a)")
   apply (auto)
   apply (auto simp add: ty_binding_existence)

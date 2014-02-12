@@ -698,7 +698,7 @@ lemma case_prod_beta:
   "case_prod f p = f (fst p) (snd p)"
   by (fact split_beta)
 
-lemma case_prods3 [cases type]:
+lemma prod_cases3 [cases type]:
   obtains (fields) a b c where "y = (a, b, c)"
   by (cases y, case_tac b) blast
 
@@ -706,7 +706,7 @@ lemma prod_induct3 [case_names fields, induct type]:
     "(!!a b c. P (a, b, c)) ==> P x"
   by (cases x) blast
 
-lemma case_prods4 [cases type]:
+lemma prod_cases4 [cases type]:
   obtains (fields) a b c d where "y = (a, b, c, d)"
   by (cases y, case_tac c) blast
 
@@ -714,7 +714,7 @@ lemma prod_induct4 [case_names fields, induct type]:
     "(!!a b c d. P (a, b, c, d)) ==> P x"
   by (cases x) blast
 
-lemma case_prods5 [cases type]:
+lemma prod_cases5 [cases type]:
   obtains (fields) a b c d e where "y = (a, b, c, d, e)"
   by (cases y, case_tac d) blast
 
@@ -722,7 +722,7 @@ lemma prod_induct5 [case_names fields, induct type]:
     "(!!a b c d e. P (a, b, c, d, e)) ==> P x"
   by (cases x) blast
 
-lemma case_prods6 [cases type]:
+lemma prod_cases6 [cases type]:
   obtains (fields) a b c d e f where "y = (a, b, c, d, e, f)"
   by (cases y, case_tac e) blast
 
@@ -730,7 +730,7 @@ lemma prod_induct6 [case_names fields, induct type]:
     "(!!a b c d e f. P (a, b, c, d, e, f)) ==> P x"
   by (cases x) blast
 
-lemma case_prods7 [cases type]:
+lemma prod_cases7 [cases type]:
   obtains (fields) a b c d e f g where "y = (a, b, c, d, e, f, g)"
   by (cases y, case_tac f) blast
 

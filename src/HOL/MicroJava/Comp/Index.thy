@@ -54,6 +54,7 @@ lemma select_at_index :
 apply (simp only: index_def gjmb_plns_def)
 apply (case_tac "gmb G C S" rule: prod.exhaust)
 apply (simp add: galldefs del: set_append map_append)
+apply (rename_tac a b)
 apply (case_tac b, simp add: gmb_def gjmb_lvs_def del: set_append map_append)
 apply (intro strip)
 apply (simp del: set_append map_append)
@@ -73,6 +74,7 @@ lemma update_at_index: "
           locvars_xstate G C S (Norm (h, l(x\<mapsto>val)))"
 apply (simp only: locvars_xstate_def locvars_locals_def index_def)
 apply (case_tac "gmb G C S" rule: prod.exhaust, simp)
+apply (rename_tac a b)
 apply (case_tac b, simp)
 apply (rule conjI)
 apply (simp add: gl_def)

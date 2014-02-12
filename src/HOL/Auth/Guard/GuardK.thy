@@ -222,6 +222,7 @@ by (clarify, rule_tac x="[Crypt nat X]" in exI, simp)
 lemma kparts_set: "EX l'. kparts (set l) = set l' & cnb l' = cnb l"
 apply (induct l)
 apply (rule_tac x="[]" in exI, simp, clarsimp)
+apply (rename_tac a b l')
 apply (subgoal_tac "EX l''.  kparts {a} = set l'' & cnb l'' = crypt_nb a", clarify)
 apply (rule_tac x="l''@l'" in exI, simp)
 apply (rule kparts_insert_substI, simp)

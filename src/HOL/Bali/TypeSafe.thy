@@ -825,7 +825,7 @@ done
 
 
 lemma lconf_map_lname [simp]: 
-  "G,s\<turnstile>(lname_case l1 l2)[\<Colon>\<preceq>](lname_case L1 L2)
+  "G,s\<turnstile>(case_lname l1 l2)[\<Colon>\<preceq>](case_lname L1 L2)
    =
   (G,s\<turnstile>l1[\<Colon>\<preceq>]L1 \<and> G,s\<turnstile>(\<lambda>x::unit . l2)[\<Colon>\<preceq>](\<lambda>x::unit. L2))"
 apply (unfold lconf_def)
@@ -833,7 +833,7 @@ apply (auto split add: lname.splits)
 done
 
 lemma wlconf_map_lname [simp]: 
-  "G,s\<turnstile>(lname_case l1 l2)[\<sim>\<Colon>\<preceq>](lname_case L1 L2)
+  "G,s\<turnstile>(case_lname l1 l2)[\<sim>\<Colon>\<preceq>](case_lname L1 L2)
    =
   (G,s\<turnstile>l1[\<sim>\<Colon>\<preceq>]L1 \<and> G,s\<turnstile>(\<lambda>x::unit . l2)[\<sim>\<Colon>\<preceq>](\<lambda>x::unit. L2))"
 apply (unfold wlconf_def)
@@ -841,7 +841,7 @@ apply (auto split add: lname.splits)
 done
 
 lemma lconf_map_ename [simp]:
-  "G,s\<turnstile>(ename_case l1 l2)[\<Colon>\<preceq>](ename_case L1 L2)
+  "G,s\<turnstile>(case_ename l1 l2)[\<Colon>\<preceq>](case_ename L1 L2)
    =
   (G,s\<turnstile>l1[\<Colon>\<preceq>]L1 \<and> G,s\<turnstile>(\<lambda>x::unit. l2)[\<Colon>\<preceq>](\<lambda>x::unit. L2))"
 apply (unfold lconf_def)
@@ -849,7 +849,7 @@ apply (auto split add: ename.splits)
 done
 
 lemma wlconf_map_ename [simp]:
-  "G,s\<turnstile>(ename_case l1 l2)[\<sim>\<Colon>\<preceq>](ename_case L1 L2)
+  "G,s\<turnstile>(case_ename l1 l2)[\<sim>\<Colon>\<preceq>](case_ename L1 L2)
    =
   (G,s\<turnstile>l1[\<sim>\<Colon>\<preceq>]L1 \<and> G,s\<turnstile>(\<lambda>x::unit. l2)[\<sim>\<Colon>\<preceq>](\<lambda>x::unit. L2))"
 apply (unfold wlconf_def)
@@ -1436,9 +1436,9 @@ qed
 
    
 lemma dom_vname_split:
- "dom (lname_case (ename_case (tab(x\<mapsto>y)(xs[\<mapsto>]ys)) a) b)
-   = dom (lname_case (ename_case (tab(x\<mapsto>y)) a) b) \<union> 
-     dom (lname_case (ename_case (tab(xs[\<mapsto>]ys)) a) b)"
+ "dom (case_lname (case_ename (tab(x\<mapsto>y)(xs[\<mapsto>]ys)) a) b)
+   = dom (case_lname (case_ename (tab(x\<mapsto>y)) a) b) \<union> 
+     dom (case_lname (case_ename (tab(xs[\<mapsto>]ys)) a) b)"
   (is "?List x xs y ys = ?Hd x y \<union> ?Tl xs ys")
 proof 
   show "?List x xs y ys \<subseteq> ?Hd x y \<union> ?Tl xs ys"
@@ -1514,37 +1514,37 @@ next
   qed
 qed
  
-lemma dom_ename_case_None_simp:
- "dom (ename_case vname_tab None) = VNam ` (dom vname_tab)"
+lemma dom_case_ename_None_simp:
+ "dom (case_ename vname_tab None) = VNam ` (dom vname_tab)"
   apply (auto simp add: dom_def image_def )
   apply (case_tac "x")
   apply auto
   done
 
-lemma dom_ename_case_Some_simp:
- "dom (ename_case vname_tab (Some a)) = VNam ` (dom vname_tab) \<union> {Res}"
+lemma dom_case_ename_Some_simp:
+ "dom (case_ename vname_tab (Some a)) = VNam ` (dom vname_tab) \<union> {Res}"
   apply (auto simp add: dom_def image_def )
   apply (case_tac "x")
   apply auto
   done
 
-lemma dom_lname_case_None_simp:
-  "dom (lname_case ename_tab None) = EName ` (dom ename_tab)"
+lemma dom_case_lname_None_simp:
+  "dom (case_lname ename_tab None) = EName ` (dom ename_tab)"
   apply (auto simp add: dom_def image_def )
   apply (case_tac "x")
   apply auto
   done
 
-lemma dom_lname_case_Some_simp:
- "dom (lname_case ename_tab (Some a)) = EName ` (dom ename_tab) \<union> {This}"
+lemma dom_case_lname_Some_simp:
+ "dom (case_lname ename_tab (Some a)) = EName ` (dom ename_tab) \<union> {This}"
   apply (auto simp add: dom_def image_def)
   apply (case_tac "x")
   apply auto
   done
 
-lemmas dom_lname_ename_case_simps =  
-     dom_ename_case_None_simp dom_ename_case_Some_simp 
-     dom_lname_case_None_simp dom_lname_case_Some_simp
+lemmas dom_lname_case_ename_simps =  
+     dom_case_ename_None_simp dom_case_ename_Some_simp 
+     dom_case_lname_None_simp dom_case_lname_Some_simp
 
 lemma image_comp: 
  "f ` g ` A = (f \<circ> g) ` A"
@@ -1569,13 +1569,13 @@ proof -
     with static_m' dom_vnames m
     show ?thesis
       by (cases s) (simp add: init_lvars_def Let_def parameters_def
-                              dom_lname_ename_case_simps image_comp)
+                              dom_lname_case_ename_simps image_comp)
   next
     case False
     with static_m' dom_vnames m
     show ?thesis
       by (cases s) (simp add: init_lvars_def Let_def parameters_def
-                              dom_lname_ename_case_simps image_comp)
+                              dom_lname_case_ename_simps image_comp)
   qed
 qed
 

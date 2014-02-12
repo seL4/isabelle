@@ -385,22 +385,26 @@ subsection{*Lemmas for reasoning about predicate "Issues"*}
 
 lemma spies_Says_rev: "spies (evs @ [Says A B X]) = insert X (spies evs)"
 apply (induct_tac "evs")
+apply (rename_tac [2] a b)
 apply (induct_tac [2] "a", auto)
 done
 
 lemma spies_Gets_rev: "spies (evs @ [Gets A X]) = spies evs"
 apply (induct_tac "evs")
+apply (rename_tac [2] a b)
 apply (induct_tac [2] "a", auto)
 done
 
 lemma spies_Notes_rev: "spies (evs @ [Notes A X]) =
           (if A:bad then insert X (spies evs) else spies evs)"
 apply (induct_tac "evs")
+apply (rename_tac [2] a b)
 apply (induct_tac [2] "a", auto)
 done
 
 lemma spies_evs_rev: "spies evs = spies (rev evs)"
 apply (induct_tac "evs")
+apply (rename_tac [2] a b)
 apply (induct_tac [2] "a")
 apply (simp_all (no_asm_simp) add: spies_Says_rev spies_Gets_rev spies_Notes_rev)
 done
@@ -409,6 +413,7 @@ lemmas parts_spies_evs_revD2 = spies_evs_rev [THEN equalityD2, THEN parts_mono]
 
 lemma spies_takeWhile: "spies (takeWhile P evs) <=  spies evs"
 apply (induct_tac "evs")
+apply (rename_tac [2] a b)
 apply (induct_tac [2] "a", auto)
 txt{* Resembles @{text"used_subset_append"} in theory Event.*}
 done
