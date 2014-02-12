@@ -196,7 +196,7 @@ by (auto dest: iter_widen_pfp iter_narrow_pfp split: option.splits)
 lemma strip_pfp_wn:
   "\<lbrakk> \<forall>c. strip(f c) = strip c; pfp_wn f c = Some c' \<rbrakk> \<Longrightarrow> strip c' = c"
 apply(auto simp add: pfp_wn_def iter_narrow_def split: option.splits)
-by (metis (no_types) strip_map2_acom strip_while strip_bot_acom strip_iter_widen)
+by (metis (mono_tags) strip_map2_acom strip_while strip_bot_acom strip_iter_widen)
 
 locale Abs_Int2 = Abs_Int1_mono
 where \<gamma>=\<gamma> for \<gamma> :: "'av::{WN,L_top_bot} \<Rightarrow> val set"
