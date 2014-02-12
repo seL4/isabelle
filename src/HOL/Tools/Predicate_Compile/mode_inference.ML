@@ -183,19 +183,19 @@ fun collect_non_invertible_subterms ctxt (f as Free _) (names, eqs) = (f, (names
   | collect_non_invertible_subterms ctxt t (names, eqs) =
     case (strip_comb t) of (f, args) =>
       if is_invertible_function ctxt f then
-          let
-            val (args', (names', eqs')) =
-              fold_map (collect_non_invertible_subterms ctxt) args (names, eqs)
-          in
-            (list_comb (f, args'), (names', eqs'))
-          end
-        else
-          let
-            val s = singleton (Name.variant_list names) "x"
-            val v = Free (s, fastype_of t)
-          in
-            (v, (s :: names, HOLogic.mk_eq (v, t) :: eqs))
-          end
+        let
+          val (args', (names', eqs')) =
+            fold_map (collect_non_invertible_subterms ctxt) args (names, eqs)
+        in
+          (list_comb (f, args'), (names', eqs'))
+        end
+      else
+        let
+          val s = singleton (Name.variant_list names) "x"
+          val v = Free (s, fastype_of t)
+        in
+          (v, (s :: names, HOLogic.mk_eq (v, t) :: eqs))
+        end
 (*
   if is_constrt thy t then (t, (names, eqs)) else
     let

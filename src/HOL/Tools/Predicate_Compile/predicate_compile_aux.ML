@@ -47,6 +47,7 @@ sig
   val is_pred_equation : thm -> bool
   val is_intro : string -> thm -> bool
   val is_predT : typ -> bool
+  val get_constrs : theory -> (string * (int * string)) list
   val is_constrt : theory -> term -> bool
   val is_constr : Proof.context -> string -> bool
   val strip_ex : term -> (string * typ) list * term
@@ -477,15 +478,22 @@ fun is_intro constname t = is_intro_term constname (prop_of t)
 fun is_predT (T as Type("fun", [_, _])) = (body_type T = @{typ bool})
   | is_predT _ = false
 
+fun get_constrs thy =
+  let
+    val ctxt = Proof_Context.init_global thy
+  in
+    Ctr_Sugar.ctr_sugars_of ctxt
+    |> maps (map_filter (try dest_Const) o #ctrs)
+    |> map (apsnd (fn T => (BNF_Util.num_binder_types T, fst (dest_Type (body_type T)))))
+  end
+
 (*** check if a term contains only constructor functions ***)
 (* TODO: another copy in the core! *)
 (* FIXME: constructor terms are supposed to be seen in the way the code generator
   sees constructors.*)
 fun is_constrt thy =
   let
-    val cnstrs = flat (maps
-      (map (fn (_, (Tname, _, cs)) => map (apsnd (rpair Tname o length)) cs) o #descr o snd)
-      (Symtab.dest (Datatype.get_all thy)));
+    val cnstrs = get_constrs thy
     fun check t = (case strip_comb t of
         (Var _, []) => true
       | (Free _, []) => true
@@ -494,23 +502,6 @@ fun is_constrt thy =
           | _ => false)
       | _ => false)
   in check end;
-
-(* returns true if t is an application of an datatype constructor *)
-(* which then consequently would be splitted *)
-(* else false *)
-(*
-fun is_constructor thy t =
-  if (is_Type (fastype_of t)) then
-    (case DatatypePackage.get_datatype thy ((fst o dest_Type o fastype_of) t) of
-      NONE => false
-    | SOME info => (let
-      val constr_consts = maps (fn (_, (_, _, constrs)) => map fst constrs) (#descr info)
-      val (c, _) = strip_comb t
-      in (case c of
-        Const (name, _) => name mem_string constr_consts
-        | _ => false) end))
-  else false
-*)
 
 val is_constr = Code.is_constr o Proof_Context.theory_of;
 
@@ -601,7 +592,8 @@ fun prepare_split_thm ctxt split_thm =
     |> Local_Defs.unfold ctxt [@{thm atomize_conjL[symmetric]},
       @{thm atomize_all[symmetric]}, @{thm atomize_imp[symmetric]}]
 
-fun find_split_thm thy (Const (name, _)) = Option.map #split (Datatype.info_of_case thy name)
+fun find_split_thm thy (Const (name, _)) =
+    Option.map #split (Ctr_Sugar.ctr_sugar_of_case (Proof_Context.init_global thy) name)
   | find_split_thm thy _ = NONE
 
 (* lifting term operations to theorems *)
@@ -880,76 +872,72 @@ fun expand_tuples thy intro =
 (** making case distributivity rules **)
 (*** this should be part of the datatype package ***)
 
-fun datatype_names_of_case_name thy case_name =
-  map (#1 o #2) (#descr (the (Datatype.info_of_case thy case_name)))
+fun datatype_name_of_case_name thy =
+  Ctr_Sugar.ctr_sugar_of_case (Proof_Context.init_global thy)
+  #> the #> #ctrs #> hd #> fastype_of #> body_type #> dest_Type #> fst
 
-fun make_case_distribs case_names descr thy =
+fun make_case_comb thy Tcon =
   let
-    val case_combs = Datatype_Prop.make_case_combs case_names descr thy "f";
-    fun make comb =
-      let
-        val Type ("fun", [T, T']) = fastype_of comb;
-        val (Const (case_name, _), fs) = strip_comb comb
-        val used = Term.add_tfree_names comb []
-        val U = TFree (singleton (Name.variant_list used) "'t", HOLogic.typeS)
-        val x = Free ("x", T)
-        val f = Free ("f", T' --> U)
-        fun apply_f f' =
-          let
-            val Ts = binder_types (fastype_of f')
-            val bs = map Bound ((length Ts - 1) downto 0)
-          in
-            fold_rev absdummy Ts (f $ (list_comb (f', bs)))
-          end
-        val fs' = map apply_f fs
-        val case_c' = Const (case_name, (map fastype_of fs') @ [T] ---> U)
-      in
-        HOLogic.mk_eq (f $ (comb $ x), list_comb (case_c', fs') $ x)
-      end
-  in
-    map make case_combs
-  end
-
-fun case_rewrites thy Tcon =
-  let
-    val {descr, case_name, ...} = Datatype.the_info thy Tcon
-  in
-    map (Drule.export_without_context o Skip_Proof.make_thm thy o HOLogic.mk_Trueprop)
-      (make_case_distribs [case_name] [descr] thy)
-  end
-
-fun instantiated_case_rewrites thy Tcon =
-  let
-    val rew_ths = case_rewrites thy Tcon
     val ctxt = Proof_Context.init_global thy
-    fun instantiate th =
-    let
-      val f = (fst (strip_comb (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (prop_of th))))))
-      val Type ("fun", [uninst_T, uninst_T']) = fastype_of f
-      val ([_, tname', uname, yname], ctxt') = Variable.add_fixes ["'t", "'t'", "'u", "y"] ctxt
-      val T' = TFree (tname', HOLogic.typeS)
-      val U = TFree (uname, HOLogic.typeS)
-      val y = Free (yname, U)
-      val f' = absdummy (U --> T') (Bound 0 $ y)
-      val th' = Thm.certify_instantiate
-        ([(dest_TVar uninst_T, U --> T'), (dest_TVar uninst_T', T')],
-         [((fst (dest_Var f), (U --> T') --> T'), f')]) th
-      val [th'] = Variable.export ctxt' ctxt [th']
-   in
-     th'
-   end
- in
-   map instantiate rew_ths
- end
+    val SOME {casex, ...} = Ctr_Sugar.ctr_sugar_of ctxt Tcon
+    val casex' = Type.legacy_freeze casex
+    val Ts = BNF_Util.binder_fun_types (fastype_of casex')
+  in
+    list_comb (casex', map_index (fn (j, T) => Free ("f" ^ string_of_int j,  T)) Ts)
+  end
+
+fun make_case_distrib thy Tcon =
+  let
+    val comb = make_case_comb thy Tcon;
+    val Type ("fun", [T, T']) = fastype_of comb;
+    val (Const (case_name, _), fs) = strip_comb comb
+    val used = Term.add_tfree_names comb []
+    val U = TFree (singleton (Name.variant_list used) "'t", HOLogic.typeS)
+    val x = Free ("x", T)
+    val f = Free ("f", T' --> U)
+    fun apply_f f' =
+      let
+        val Ts = binder_types (fastype_of f')
+        val bs = map Bound ((length Ts - 1) downto 0)
+      in
+        fold_rev absdummy Ts (f $ (list_comb (f', bs)))
+      end
+    val fs' = map apply_f fs
+    val case_c' = Const (case_name, (map fastype_of fs') @ [T] ---> U)
+  in
+    HOLogic.mk_eq (f $ (comb $ x), list_comb (case_c', fs') $ x)
+  end
+
+fun case_rewrite thy Tcon =
+  (Drule.export_without_context o Skip_Proof.make_thm thy o HOLogic.mk_Trueprop)
+    (make_case_distrib thy Tcon)
+
+fun instantiated_case_rewrite thy Tcon =
+  let
+    val th = case_rewrite thy Tcon
+    val ctxt = Proof_Context.init_global thy
+    val f = (fst (strip_comb (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (prop_of th))))))
+    val Type ("fun", [uninst_T, uninst_T']) = fastype_of f
+    val ([_, tname', uname, yname], ctxt') = Variable.add_fixes ["'t", "'t'", "'u", "y"] ctxt
+    val T' = TFree (tname', HOLogic.typeS)
+    val U = TFree (uname, HOLogic.typeS)
+    val y = Free (yname, U)
+    val f' = absdummy (U --> T') (Bound 0 $ y)
+    val th' = Thm.certify_instantiate
+      ([(dest_TVar uninst_T, U --> T'), (dest_TVar uninst_T', T')],
+       [((fst (dest_Var f), (U --> T') --> T'), f')]) th
+    val [th'] = Variable.export ctxt' ctxt [th']
+  in
+    th'
+  end
 
 fun case_betapply thy t =
   let
     val case_name = fst (dest_Const (fst (strip_comb t)))
-    val Tcons = datatype_names_of_case_name thy case_name
-    val ths = maps (instantiated_case_rewrites thy) Tcons
+    val Tcon = datatype_name_of_case_name thy case_name
+    val th = instantiated_case_rewrite thy Tcon
   in
-    Raw_Simplifier.rewrite_term thy
-      (map (fn th => th RS @{thm eq_reflection}) ths) [] t
+    Raw_Simplifier.rewrite_term thy [th RS @{thm eq_reflection}] [] t
   end
 
 (*** conversions ***)

@@ -511,13 +511,6 @@ fun mk_relname (Type (Tcon, Targs)) =
 
 fun mk_lim_relname T = "lim_" ^  mk_relname T
 
-(* This is copied from "pat_completeness.ML" *)
-fun inst_constrs_of thy (T as Type (name, _)) =
-  map (fn (Cn,CT) =>
-    Envir.subst_term_types (Sign.typ_match thy (body_type CT, T) Vartab.empty) (Const (Cn, CT)))
-    (the (Datatype.get_constrs thy name))
-  | inst_constrs_of thy T = raise TYPE ("inst_constrs_of", [T], [])
-
 fun is_recursive_constr T (Const (constr_name, T')) = member (op =) (binder_types T') T
   
 fun mk_ground_impl ctxt limited_types (T as Type (Tcon, Targs)) (seen, constant_table) =
@@ -549,7 +542,7 @@ fun mk_ground_impl ctxt limited_types (T as Type (Tcon, Targs)) (seen, constant_
         in
           (clause :: flat rec_clauses, (seen', constant_table''))
         end
-      val constrs = inst_constrs_of (Proof_Context.theory_of ctxt) T
+      val constrs = Function_Lib.inst_constrs_of (Proof_Context.theory_of ctxt) T
       val constrs' = (constrs ~~ map (is_recursive_constr T) constrs)
         |> (fn cs => filter_out snd cs @ filter snd cs)
       val (clauses, constant_table') =

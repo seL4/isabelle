@@ -46,30 +46,19 @@ val HOL_basic_ss' =
 
 (* auxillary functions *)
 
-fun is_Type (Type _) = true
-  | is_Type _ = false
-
-(* returns true if t is an application of an datatype constructor *)
+(* returns true if t is an application of a datatype constructor *)
 (* which then consequently would be splitted *)
-(* else false *)
-fun is_constructor thy t =
-  if (is_Type (fastype_of t)) then
-    (case Datatype.get_info thy ((fst o dest_Type o fastype_of) t) of
-      NONE => false
-    | SOME info => (let
-      val constr_consts = maps (fn (_, (_, _, constrs)) => map fst constrs) (#descr info)
-      val (c, _) = strip_comb t
-      in (case c of
-        Const (name, _) => member (op =) constr_consts name
-        | _ => false) end))
-  else false
+fun is_constructor ctxt t =
+  (case fastype_of t of
+    Type (s, _) => s <> @{type_name fun} andalso can (Ctr_Sugar.dest_ctr ctxt s) t
+  | _ => false);
 
 (* MAJOR FIXME:  prove_params should be simple
  - different form of introrule for parameters ? *)
 
 fun prove_param options ctxt nargs t deriv =
   let
-    val  (f, args) = strip_comb (Envir.eta_contract t)
+    val (f, args) = strip_comb (Envir.eta_contract t)
     val mode = head_mode_of deriv
     val param_derivations = param_derivations_of deriv
     val ho_args = ho_args_of mode args
@@ -139,15 +128,14 @@ fun SOLVED tac st = FILTER (fn st' => nprems_of st' = nprems_of st - 1) tac st;
 
 fun prove_match options ctxt nargs out_ts =
   let
-    val thy = Proof_Context.theory_of ctxt
     val eval_if_P =
       @{lemma "P ==> Predicate.eval x z ==> Predicate.eval (if P then x else y) z" by simp} 
     fun get_case_rewrite t =
-      if (is_constructor thy t) then
+      if is_constructor ctxt t then
         let
-          val {case_rewrites, ...} = Datatype.the_info thy (fst (dest_Type (fastype_of t)))
+          val SOME {case_thms, ...} = Ctr_Sugar.ctr_sugar_of ctxt (fst (dest_Type (fastype_of t)))
         in
-          fold (union Thm.eq_thm) (case_rewrites :: map get_case_rewrite (snd (strip_comb t))) []
+          fold (union Thm.eq_thm) (case_thms :: map get_case_rewrite (snd (strip_comb t))) []
         end
       else []
     val simprules = insert Thm.eq_thm @{thm "unit.cases"} (insert Thm.eq_thm @{thm "prod.cases"}
@@ -309,14 +297,13 @@ fun prove_one_direction options ctxt clauses preds pred mode moded_clauses =
 
 fun prove_match2 options ctxt out_ts =
   let
-    val thy = Proof_Context.theory_of ctxt
     fun split_term_tac (Free _) = all_tac
       | split_term_tac t =
-        if (is_constructor thy t) then
+        if is_constructor ctxt t then
           let
-            val {case_rewrites, split_asm, ...} =
-              Datatype.the_info thy (fst (dest_Type (fastype_of t)))
-            val num_of_constrs = length case_rewrites
+            val SOME {case_thms, split_asm, ...} =
+              Ctr_Sugar.ctr_sugar_of ctxt (fst (dest_Type (fastype_of t)))
+            val num_of_constrs = length case_thms
             val (_, ts) = strip_comb t
           in
             print_tac options ("Term " ^ (Syntax.string_of_term ctxt t) ^ 
