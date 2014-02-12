@@ -95,7 +95,7 @@ sig
   val co_datatypes: BNF_FP_Util.fp_kind -> (mixfix list -> binding list -> binding list ->
       binding list list -> binding list -> (string * sort) list -> typ list * typ list list ->
       BNF_Def.bnf list -> local_theory -> BNF_FP_Util.fp_result * local_theory) ->
-    (bool * (bool * bool)) * (((((binding * (typ * sort)) list * binding) * (binding * binding))
+    (bool * bool) * (((((binding * (typ * sort)) list * binding) * (binding * binding))
       * mixfix) * ((((binding * binding) * (binding * typ) list) * (binding * term) list) *
         mixfix) list) list ->
     local_theory -> local_theory
@@ -978,7 +978,7 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
   end;
 
 fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct_fp
-    (wrap_opts as (no_discs_sels, (_, rep_compat)), specs) no_defs_lthy0 =
+    (wrap_opts as (no_discs_sels, _), specs) no_defs_lthy0 =
   let
     (* TODO: sanity checks on arguments *)
 
@@ -986,9 +986,6 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         error "Cannot define codatatypes without discriminators and selectors"
       else
         ();
-
-    fun qualify mandatory fp_b_name =
-      Binding.qualify mandatory fp_b_name o (rep_compat ? Binding.qualify false rep_compat_prefix);
 
     val nn = length specs;
     val fp_bs = map type_binding_of specs;
@@ -1041,7 +1038,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
     val disc_bindingss = map (map disc_of) ctr_specss;
     val ctr_bindingss =
-      map2 (fn fp_b_name => map (qualify false fp_b_name o ctr_of)) fp_b_names ctr_specss;
+      map2 (fn fp_b_name => map (Binding.qualify false fp_b_name o ctr_of)) fp_b_names ctr_specss;
     val ctr_argsss = map (map args_of) ctr_specss;
     val ctr_mixfixess = map (map ctr_mixfix_of) ctr_specss;
 
@@ -1150,12 +1147,12 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     fun massage_simple_notes base =
       filter_out (null o #2)
       #> map (fn (thmN, thms, attrs) =>
-        ((qualify true base (Binding.name thmN), attrs), [(thms, [])]));
+        ((Binding.qualify true base (Binding.name thmN), attrs), [(thms, [])]));
 
     val massage_multi_notes =
       maps (fn (thmN, thmss, attrs) =>
         map3 (fn fp_b_name => fn Type (T_name, _) => fn thms =>
-            ((qualify true fp_b_name (Binding.name thmN), attrs T_name), [(thms, [])]))
+            ((Binding.qualify true fp_b_name (Binding.name thmN), attrs T_name), [(thms, [])]))
           fp_b_names fpTs thmss)
       #> filter_out (null o fst o hd o snd);
 
@@ -1346,7 +1343,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                lthy |> Local_Theory.notes (anonymous_notes @ notes) |> snd)
             end;
 
-        fun mk_binding pre = qualify false fp_b_name (Binding.prefix_name (pre ^ "_") fp_b);
+        fun mk_binding pre = Binding.qualify false fp_b_name (Binding.prefix_name (pre ^ "_") fp_b);
 
         fun massage_res (((maps_sets_rels, ctr_sugar), co_iter_res), lthy) =
           (((maps_sets_rels, (ctrs, xss, ctr_defs, ctr_sugar)), co_iter_res), lthy);

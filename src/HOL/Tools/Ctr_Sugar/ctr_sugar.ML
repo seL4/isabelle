@@ -41,8 +41,6 @@ sig
   val register_ctr_sugar: string -> ctr_sugar -> local_theory -> local_theory
   val register_ctr_sugar_global: string -> ctr_sugar -> theory -> theory
 
-  val rep_compat_prefix: string
-
   val mk_half_pairss: 'a list * 'a list -> ('a * 'a) list list
   val join_halves: int -> 'a list list -> 'a list list -> 'a list * 'a list list list
 
@@ -56,10 +54,10 @@ sig
     (ctr_sugar * term list * term list) option
 
   val wrap_free_constructors: ({prems: thm list, context: Proof.context} -> tactic) list list ->
-    (((bool * (bool * bool)) * term list) * binding) *
+    (((bool * bool) * term list) * binding) *
       (binding list * (binding list list * (binding * term) list list)) -> local_theory ->
     ctr_sugar * local_theory
-  val parse_wrap_free_constructors_options: (bool * (bool * bool)) parser
+  val parse_wrap_free_constructors_options: (bool * bool) parser
   val parse_bound_term: (binding * string) parser
 end;
 
@@ -152,8 +150,6 @@ fun register_ctr_sugar key ctr_sugar =
 
 fun register_ctr_sugar_global key ctr_sugar =
   Context.theory_map (Data.map (Symtab.default (key, ctr_sugar)));
-
-val rep_compat_prefix = "new";
 
 val isN = "is_";
 val unN = "un_";
@@ -282,7 +278,7 @@ fun dest_case ctxt s Ts t =
 
 fun eta_expand_arg xs f_xs = fold_rev Term.lambda xs f_xs;
 
-fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, (no_code, rep_compat)), raw_ctrs),
+fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, no_code), raw_ctrs),
     raw_case_binding), (raw_disc_bindings, (raw_sel_bindingss, raw_sel_defaultss))) no_defs_lthy =
   let
     (* TODO: sanity checks on arguments *)
@@ -300,8 +296,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, (no_code, rep_co
     val fc_b_name = Long_Name.base_name fcT_name;
     val fc_b = Binding.name fc_b_name;
 
-    fun qualify mandatory =
-      Binding.qualify mandatory fc_b_name o (rep_compat ? Binding.qualify false rep_compat_prefix);
+    fun qualify mandatory = Binding.qualify mandatory fc_b_name;
 
     fun dest_TFree_or_TVar (TFree sS) = sS
       | dest_TFree_or_TVar (TVar ((s, _), S)) = (s, S)
@@ -929,8 +924,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, (no_code, rep_co
       in
         (ctr_sugar,
          lthy
-         |> not rep_compat ?
-            Local_Theory.declaration {syntax = false, pervasive = true}
+         |> Local_Theory.declaration {syntax = false, pervasive = true}
               (fn phi => Case_Translation.register
                  (Morphism.term phi casex) (map (Morphism.term phi) ctrs))
          |> Local_Theory.background_theory (fold (fold Code.del_eqn) [disc_defs, sel_defs])
@@ -967,10 +961,10 @@ val parse_bound_termss = parse_bracket_list parse_bound_terms;
 
 val parse_wrap_free_constructors_options =
   Scan.optional (@{keyword "("} |-- Parse.list1
-        (Parse.reserved "no_discs_sels" >> K 0 || Parse.reserved "no_code" >> K 1 ||
-         Parse.reserved "rep_compat" >> K 2) --| @{keyword ")"}
-      >> (fn js => (member (op =) js 0, (member (op =) js 1, member (op =) js 2))))
-    (false, (false, false));
+        (Parse.reserved "no_discs_sels" >> K 0 || Parse.reserved "no_code" >> K 1) --|
+      @{keyword ")"}
+      >> (fn js => (member (op =) js 0, member (op =) js 1)))
+    (false, false);
 
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "wrap_free_constructors"}

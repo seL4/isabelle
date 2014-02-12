@@ -470,7 +470,7 @@ text {*
   @@{command datatype_new} target? @{syntax dt_options}? \<newline>
     (@{syntax dt_name} '=' (@{syntax ctor} + '|') + @'and')
   ;
-  @{syntax_def dt_options}: '(' (('no_discs_sels' | 'no_code' | 'rep_compat') + ',') ')'
+  @{syntax_def dt_options}: '(' (('no_discs_sels' | 'no_code') + ',') ')'
 \<close>}
 
 \medskip
@@ -492,12 +492,6 @@ should be generated.
 \item
 The @{text "no_code"} option indicates that the datatype should not be
 registered for code generation.
-
-\item
-The @{text "rep_compat"} option indicates that the generated names should
-contain optional (and normally not displayed) ``@{text "new."}'' components to
-prevent clashes with a later call to \keyw{rep\_datatype}. See
-Section~\ref{ssec:datatype-compatibility-issues} for details.
 \end{itemize}
 
 The left-hand sides of the datatype equations specify the name of the type to
@@ -2563,7 +2557,7 @@ is available as a stand-alone command called @{command wrap_free_constructors}.
 %    old \keyw{datatype}
 %
 %  * @{command wrap_free_constructors}
-%    * @{text "no_discs_sels"}, @{text "no_code"}, @{text "rep_compat"}
+%    * @{text "no_discs_sels"}, @{text "no_code"}
 %    * hack to have both co and nonco view via locale (cf. ext nats)
 %  * code generator
 %     * eq, refl, simps
@@ -2601,7 +2595,7 @@ text {*
 
 \medskip
 
-% options: no_discs_sels no_code rep_compat
+% options: no_discs_sels no_code
 
 \noindent
 Section~\ref{ssec:datatype-generated-theorems} lists the generated theorems.
