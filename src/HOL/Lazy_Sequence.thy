@@ -35,12 +35,12 @@ lemma size_lazy_sequence_eq [code]:
   "size (xq :: 'a lazy_sequence) = 0"
   by (cases xq) simp
 
-lemma lazy_sequence_case [simp]:
-  "lazy_sequence_case f xq = f (list_of_lazy_sequence xq)"
+lemma case_lazy_sequence [simp]:
+  "case_lazy_sequence f xq = f (list_of_lazy_sequence xq)"
   by (cases xq) auto
 
-lemma lazy_sequence_rec [simp]:
-  "lazy_sequence_rec f xq = f (list_of_lazy_sequence xq)"
+lemma rec_lazy_sequence [simp]:
+  "rec_lazy_sequence f xq = f (list_of_lazy_sequence xq)"
   by (cases xq) auto
 
 definition Lazy_Sequence :: "(unit \<Rightarrow> ('a \<times> 'a lazy_sequence) option) \<Rightarrow> 'a lazy_sequence"
@@ -346,4 +346,3 @@ hide_fact (open) yield_def empty_def single_def append_def flat_def map_def bind
   if_seq_def those_def not_seq_def product_def 
 
 end
-

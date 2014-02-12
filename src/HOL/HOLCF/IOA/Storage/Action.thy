@@ -8,9 +8,9 @@ theory Action
 imports Main
 begin
 
-datatype action = New  | Loc nat | Free nat
+datatype action = New | Loc nat | Free nat
 
-lemma [cong]: "!!x. x = y ==> action_case a b c x = action_case a b c y"
+lemma [cong]: "!!x. x = y ==> case_action a b c x = case_action a b c y"
   by simp
 
 end

@@ -783,7 +783,7 @@ lemma [measure_function]:
   by (rule is_measure_trivial)
 
 
-subsection {* Inductive represenation of target language naturals *}
+subsection {* Inductive representation of target language naturals *}
 
 lift_definition Suc :: "natural \<Rightarrow> natural"
   is Nat.Suc
@@ -794,7 +794,7 @@ declare Suc.rep_eq [simp]
 rep_datatype "0::natural" Suc
   by (transfer, fact nat.induct nat.inject nat.distinct)+
 
-lemma natural_case [case_names nat, cases type: natural]:
+lemma natural_cases [case_names nat, cases type: natural]:
   fixes m :: natural
   assumes "\<And>n. m = of_nat n \<Longrightarrow> P"
   shows P
@@ -876,7 +876,7 @@ lemma [code]:
   by transfer (simp add: fun_eq_iff)
 
 lemma [code, code_unfold]:
-  "natural_case f g n = (if n = 0 then f else g (n - 1))"
+  "case_natural f g n = (if n = 0 then f else g (n - 1))"
   by (cases n rule: natural.exhaust) (simp_all, simp add: Suc_def)
 
 declare natural.recs [code del]

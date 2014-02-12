@@ -17,7 +17,7 @@ consts
 specification (shrK)
   inj_shrK: "inj shrK"
   --{*No two agents have the same long-term key*}
-   apply (rule exI [of _ "agent_case 0 (\<lambda>n. n + 2) 1"]) 
+   apply (rule exI [of _ "case_agent 0 (\<lambda>n. n + 2) 1"]) 
    apply (simp add: inj_on_def split: agent.split) 
    done
 

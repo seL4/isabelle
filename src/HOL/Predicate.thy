@@ -531,11 +531,11 @@ lemma [code nbe]:
   by (fact equal_refl)
 
 lemma [code]:
-  "pred_case f P = f (eval P)"
+  "case_pred f P = f (eval P)"
   by (cases P) simp
 
 lemma [code]:
-  "pred_rec f P = f (eval P)"
+  "rec_pred f P = f (eval P)"
   by (cases P) simp
 
 inductive eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where "eq x x"
@@ -722,4 +722,3 @@ hide_const (open) Pred eval single bind is_empty singleton if_pred not_pred hold
 hide_fact (open) null_def member_def
 
 end
-

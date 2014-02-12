@@ -1226,8 +1226,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
         mk_nthN n (Term.list_comb (Const (Lev, LevT), ss) $ nat) i
       end;
 
-    val Lev_0s = flat (mk_rec_simps n @{thm nat_rec_0_imp} [Lev_def]);
-    val Lev_Sucs = flat (mk_rec_simps n @{thm nat_rec_Suc_imp} [Lev_def]);
+    val Lev_0s = flat (mk_rec_simps n @{thm rec_nat_0_imp} [Lev_def]);
+    val Lev_Sucs = flat (mk_rec_simps n @{thm rec_nat_Suc_imp} [Lev_def]);
 
     val rv_bind = mk_internal_b rvN;
     val rv_def_bind = rpair [] (Thm.def_binding rv_bind);
@@ -1433,7 +1433,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
           split_conj_thm (if n = 1 then set_rv_Lev' RS mk_conjunctN n i RS mp
             else set_rv_Lev' RS mk_conjunctN n i RS mp RSN
               (2, @{thm sum.weak_case_cong} RS iffD1) RS
-              (mk_case_sumN n i' RS iffD1))) ks) ks
+              (mk_sum_caseN n i' RS iffD1))) ks) ks
       end;
 
     val set_Lev_thmsss =

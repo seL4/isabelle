@@ -286,13 +286,13 @@ qed
 
 code_datatype Char -- {* drop case certificate for char *}
 
-lemma char_case_code [code]:
-  "char_case f c = (let n = nat_of_char c in f (nibble_of_nat (n div 16)) (nibble_of_nat n))"
+lemma case_char_code [code]:
+  "case_char f c = (let n = nat_of_char c in f (nibble_of_nat (n div 16)) (nibble_of_nat n))"
   by (cases c)
     (simp only: Let_def nibble_of_nat_of_char_div_16 nibble_of_nat_nat_of_char char.cases)
 
 lemma [code]:
-  "char_rec = char_case"
+  "rec_char = case_char"
   by (simp add: fun_eq_iff split: char.split)
 
 definition char_of_nat :: "nat \<Rightarrow> char" where
