@@ -9,8 +9,8 @@ imports Presburger Code_Numeral Quotient Lifting_Set Lifting_Option Lifting_Prod
 begin
 
 datatype_new 'a list =
-    Nil    ("[]")
-  | Cons 'a  "'a list"    (infixr "#" 65)
+    =: Nil (defaults tl: "[]")  ("[]")
+  | Cons (hd: 'a) (tl: "'a list")  (infixr "#" 65)
 
 datatype_new_compat list
 
@@ -33,13 +33,6 @@ translations
 
 
 subsection {* Basic list processing functions *}
-
-primrec hd :: "'a list \<Rightarrow> 'a" where
-"hd (x # xs) = x"
-
-primrec tl :: "'a list \<Rightarrow> 'a list" where
-"tl [] = []" |
-"tl (x # xs) = xs"
 
 primrec last :: "'a list \<Rightarrow> 'a" where
 "last (x # xs) = (if xs = [] then x else last xs)"
@@ -3390,7 +3383,8 @@ lemma distinct_singleton: "distinct [x]" by simp
 
 lemma distinct_length_2_or_more:
 "distinct (a # b # xs) \<longleftrightarrow> (a \<noteq> b \<and> distinct (a # xs) \<and> distinct (b # xs))"
-by (metis distinct.simps(2) hd.simps hd_in_set list.simps(2) set_ConsD set_rev_mp set_subset_Cons)
+by (metis distinct.simps(2) list.sel(1) hd_in_set list.simps(2) set_ConsD set_rev_mp
+      set_subset_Cons)
 
 lemma remdups_adj_Cons: "remdups_adj (x # xs) =
   (case remdups_adj xs of [] \<Rightarrow> [x] | y # xs \<Rightarrow> if x = y then y # xs else x # y # xs)"
@@ -6695,7 +6689,7 @@ lemma rec_list_transfer [transfer_rule]:
 
 lemma tl_transfer [transfer_rule]:
   "(list_all2 A ===> list_all2 A) tl tl"
-  unfolding tl_def by transfer_prover
+  unfolding tl_def[abs_def] by transfer_prover
 
 lemma butlast_transfer [transfer_rule]:
   "(list_all2 A ===> list_all2 A) butlast butlast"

@@ -8,7 +8,7 @@ theory Option
 imports BNF_LFP Datatype Finite_Set
 begin
 
-datatype_new 'a option = None | Some 'a
+datatype_new 'a option = =: None | Some (the: 'a)
 
 datatype_new_compat option
 
@@ -51,9 +51,6 @@ lemma UNIV_option_conv: "UNIV = insert None (range Some)"
 by(auto intro: classical)
 
 subsubsection {* Operations *}
-
-primrec the :: "'a option => 'a" where
-"the (Some x) = x"
 
 primrec set :: "'a option => 'a set" where
 "set None = {}" |
