@@ -391,6 +391,9 @@ lemma STR_inject' [simp]:
   "STR xs = STR ys \<longleftrightarrow> xs = ys"
   by (simp add: STR_inject)
 
+lifting_update literal.lifting
+lifting_forget literal.lifting
+
 subsection {* Code generator *}
 
 ML_file "Tools/string_code.ML"

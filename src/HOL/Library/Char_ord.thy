@@ -97,6 +97,7 @@ end
 instantiation String.literal :: linorder
 begin
 
+context includes literal.lifting begin
 lift_definition less_literal :: "String.literal \<Rightarrow> String.literal \<Rightarrow> bool" is "ord.lexordp op <" .
 lift_definition less_eq_literal :: "String.literal \<Rightarrow> String.literal \<Rightarrow> bool" is "ord.lexordp_eq op <" .
 
@@ -109,6 +110,7 @@ proof -
 qed
 
 end
+end
 
 lemma less_literal_code [code]: 
   "op < = (\<lambda>xs ys. ord.lexordp op < (explode xs) (explode ys))"
@@ -117,6 +119,9 @@ by(simp add: less_literal.rep_eq fun_eq_iff)
 lemma less_eq_literal_code [code]:
   "op \<le> = (\<lambda>xs ys. ord.lexordp_eq op < (explode xs) (explode ys))"
 by(simp add: less_eq_literal.rep_eq fun_eq_iff)
+
+lifting_update literal.lifting
+lifting_forget literal.lifting
 
 text {* Legacy aliasses *}
 
