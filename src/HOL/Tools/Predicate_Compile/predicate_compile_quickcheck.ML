@@ -9,24 +9,28 @@ sig
   type seed = Random_Engine.seed
   (*val quickcheck : Proof.context -> term -> int -> term list option*)
   val put_pred_result :
-    (unit -> Code_Numeral.natural -> Code_Numeral.natural -> Code_Numeral.natural -> seed -> term list Predicate.pred) ->
-      Proof.context -> Proof.context;
+    (unit -> Code_Numeral.natural -> Code_Numeral.natural -> Code_Numeral.natural -> seed ->
+      term list Predicate.pred) ->
+    Proof.context -> Proof.context
   val put_dseq_result :
-    (unit -> Code_Numeral.natural -> Code_Numeral.natural -> seed -> term list Limited_Sequence.dseq * seed) ->
-      Proof.context -> Proof.context;
+    (unit -> Code_Numeral.natural -> Code_Numeral.natural -> seed ->
+      term list Limited_Sequence.dseq * seed) ->
+    Proof.context -> Proof.context
   val put_lseq_result :
-    (unit -> Code_Numeral.natural -> Code_Numeral.natural -> seed -> Code_Numeral.natural -> term list Lazy_Sequence.lazy_sequence) ->
-      Proof.context -> Proof.context;
-  val put_new_dseq_result : (unit -> Code_Numeral.natural -> term list Lazy_Sequence.lazy_sequence) ->
+    (unit -> Code_Numeral.natural -> Code_Numeral.natural -> seed -> Code_Numeral.natural ->
+      term list Lazy_Sequence.lazy_sequence) ->
+    Proof.context -> Proof.context
+  val put_new_dseq_result :
+    (unit -> Code_Numeral.natural -> term list Lazy_Sequence.lazy_sequence) ->
     Proof.context -> Proof.context
   val put_cps_result : (unit -> Code_Numeral.natural -> (bool * term list) option) ->
     Proof.context -> Proof.context
   val test_goals : (Predicate_Compile_Aux.compilation * bool) ->
-    Proof.context -> bool * bool -> (string * typ) list -> (term * term list) list
-      -> Quickcheck.result list
-  val nrandom : int Unsynchronized.ref;
-  val debug : bool Unsynchronized.ref;
-  val no_higher_order_predicate : string list Unsynchronized.ref;
+    Proof.context -> bool * bool -> (string * typ) list -> (term * term list) list ->
+    Quickcheck.result list
+  val nrandom : int Unsynchronized.ref
+  val debug : bool Unsynchronized.ref
+  val no_higher_order_predicate : string list Unsynchronized.ref
   val setup : theory -> theory
 end;
 
@@ -44,48 +48,48 @@ structure Pred_Result = Proof_Data
   type T = unit -> Code_Numeral.natural -> Code_Numeral.natural -> Code_Numeral.natural -> seed -> term list Predicate.pred
   (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Pred_Result"
-);
-val put_pred_result = Pred_Result.put;
+)
+val put_pred_result = Pred_Result.put
 
 structure Dseq_Result = Proof_Data
 (
   type T = unit -> Code_Numeral.natural -> Code_Numeral.natural -> seed -> term list Limited_Sequence.dseq * seed
   (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Dseq_Result"
-);
-val put_dseq_result = Dseq_Result.put;
+)
+val put_dseq_result = Dseq_Result.put
 
 structure Lseq_Result = Proof_Data
 (
   type T = unit -> Code_Numeral.natural -> Code_Numeral.natural -> seed -> Code_Numeral.natural -> term list Lazy_Sequence.lazy_sequence
   (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Lseq_Result"
-);
-val put_lseq_result = Lseq_Result.put;
+)
+val put_lseq_result = Lseq_Result.put
 
 structure New_Dseq_Result = Proof_Data
 (
   type T = unit -> Code_Numeral.natural -> term list Lazy_Sequence.lazy_sequence
   (* FIXME avoid user error with non-user text *)
   fun init _ () = error "New_Dseq_Random_Result"
-);
-val put_new_dseq_result = New_Dseq_Result.put;
+)
+val put_new_dseq_result = New_Dseq_Result.put
 
 structure CPS_Result = Proof_Data
 (
   type T = unit -> Code_Numeral.natural -> (bool * term list) option
   (* FIXME avoid user error with non-user text *)
   fun init _ () = error "CPS_Result"
-);
-val put_cps_result = CPS_Result.put;
+)
+val put_cps_result = CPS_Result.put
 
 val target = "Quickcheck"
 
-val nrandom = Unsynchronized.ref 3;
+val nrandom = Unsynchronized.ref 3
 
-val debug = Unsynchronized.ref false;
+val debug = Unsynchronized.ref false
 
-val no_higher_order_predicate = Unsynchronized.ref ([] : string list);
+val no_higher_order_predicate = Unsynchronized.ref ([] : string list)
 
 val options = Options {
   expected_modes = NONE,
@@ -98,7 +102,7 @@ val options = Options {
   show_mode_inference = false,
   show_compilation = false,
   show_caught_failures = false,
-  show_invalid_clauses = false, 
+  show_invalid_clauses = false,
   skip_proof = false,
   compilation = Random,
   inductify = true,
@@ -141,7 +145,7 @@ fun set_function_flattening b
     show_intermediate_results = s_ir, show_proof_trace = s_pt, show_modes = s_m,
     show_mode_inference = s_mi, show_compilation = s_c, show_caught_failures = s_cf,
     show_invalid_clauses = s_ic, skip_proof = s_p,
-    compilation = c, inductify = i, specialise = sp, detect_switches = ds, function_flattening = _, 
+    compilation = c, inductify = i, specialise = sp, detect_switches = ds, function_flattening = _,
     fail_safe_function_flattening = fs_ff, no_higher_order_predicate = no_ho,
     smart_depth_limiting = sm_dl, no_topmost_reordering = re}) =
   (Options { expected_modes = e_m, proposed_modes = p_m, proposed_names = p_n, show_steps = s_s,
@@ -157,7 +161,7 @@ fun set_fail_safe_function_flattening b
     show_intermediate_results = s_ir, show_proof_trace = s_pt, show_modes = s_m,
     show_mode_inference = s_mi, show_compilation = s_c, show_caught_failures = s_cf,
     show_invalid_clauses = s_ic, skip_proof = s_p,
-    compilation = c, inductify = i, specialise = sp, detect_switches = ds, function_flattening = f_f, 
+    compilation = c, inductify = i, specialise = sp, detect_switches = ds, function_flattening = f_f,
     fail_safe_function_flattening = _, no_higher_order_predicate = no_ho,
     smart_depth_limiting = sm_dl, no_topmost_reordering = re}) =
   (Options { expected_modes = e_m, proposed_modes = p_m, proposed_names = p_n, show_steps = s_s,
@@ -173,7 +177,7 @@ fun set_no_higher_order_predicate ss
     show_intermediate_results = s_ir, show_proof_trace = s_pt, show_modes = s_m,
     show_mode_inference = s_mi, show_compilation = s_c, show_caught_failures = s_cf,
     show_invalid_clauses = s_ic, skip_proof = s_p,
-    compilation = c, inductify = i, specialise = sp, detect_switches = ds, function_flattening = f_f, 
+    compilation = c, inductify = i, specialise = sp, detect_switches = ds, function_flattening = f_f,
     fail_safe_function_flattening = fs_ff, no_higher_order_predicate = _,
     smart_depth_limiting = sm_dl, no_topmost_reordering = re}) =
   (Options { expected_modes = e_m, proposed_modes = p_m, proposed_names = p_n, show_steps = s_s,
@@ -185,7 +189,7 @@ fun set_no_higher_order_predicate ss
     smart_depth_limiting = sm_dl, no_topmost_reordering = re})
 
 
-fun get_options () = 
+fun get_options () =
   set_no_higher_order_predicate (!no_higher_order_predicate)
     (if !debug then debug_options else options)
 
@@ -210,7 +214,7 @@ val mk_gen_return =
   Predicate_Compile_Aux.mk_single New_Pos_DSequence_CompFuns.depth_unlimited_compfuns
 val mk_gen_bind =
   Predicate_Compile_Aux.mk_bind New_Pos_DSequence_CompFuns.depth_unlimited_compfuns
-  
+
 
 val mk_cpsT =
   Predicate_Compile_Aux.mk_monadT Pos_Bounded_CPS_Comp_Funs.compfuns
@@ -251,41 +255,41 @@ fun compile_term compilation options ctxt t =
       if member eq_mode modes output_mode then
         let
           val name = Core_Data.function_name_of compilation ctxt4 full_constname output_mode
-          val T = 
-            case compilation of
+          val T =
+            (case compilation of
               Pos_Random_DSeq => mk_randompredT (HOLogic.mk_tupleT (map snd vs'))
             | New_Pos_Random_DSeq => mk_new_randompredT (HOLogic.mk_tupleT (map snd vs'))
             | Pos_Generator_DSeq => mk_new_dseqT (HOLogic.mk_tupleT (map snd vs'))
             | Depth_Limited_Random =>
-              [@{typ natural}, @{typ natural}, @{typ natural},
-              @{typ Random.seed}] ---> mk_predT (HOLogic.mk_tupleT (map snd vs'))
-            | Pos_Generator_CPS => mk_cpsT (HOLogic.mk_tupleT (map snd vs'))
+                [@{typ natural}, @{typ natural}, @{typ natural},
+                 @{typ Random.seed}] ---> mk_predT (HOLogic.mk_tupleT (map snd vs'))
+            | Pos_Generator_CPS => mk_cpsT (HOLogic.mk_tupleT (map snd vs')))
         in
           Const (name, T)
         end
       else error ("Predicate Compile Quickcheck failed: " ^ commas (map string_of_mode modes))
     fun mk_Some T = Const (@{const_name "Option.Some"}, T --> Type (@{type_name "Option.option"}, [T]))
     val qc_term =
-      case compilation of
-          Pos_Random_DSeq => mk_bind (prog,
-            mk_split_lambda (map Free vs') (mk_return (HOLogic.mk_list @{typ term}
-            (map2 HOLogic.mk_term_of (map snd vs') (map Free vs')))))
-        | New_Pos_Random_DSeq => mk_new_bind (prog,
-            mk_split_lambda (map Free vs') (mk_new_return (HOLogic.mk_list @{typ term}
-            (map2 HOLogic.mk_term_of (map snd vs') (map Free vs')))))
-        | Pos_Generator_DSeq => mk_gen_bind (prog,
-            mk_split_lambda (map Free vs') (mk_gen_return (HOLogic.mk_list @{typ term}
-            (map2 HOLogic.mk_term_of (map snd vs') (map Free vs')))))
-        | Pos_Generator_CPS => prog $
-            mk_split_lambda (map Free vs') (mk_Some @{typ "bool * term list"} $
-            HOLogic.mk_prod (@{term "True"}, HOLogic.mk_list @{typ term}
-                (map2 HOLogic.mk_term_of (map snd vs') (map Free vs'))))     
-        | Depth_Limited_Random => fold_rev absdummy
-            [@{typ natural}, @{typ natural}, @{typ natural},
-             @{typ Random.seed}]
-            (mk_bind' (list_comb (prog, map Bound (3 downto 0)),
-            mk_split_lambda (map Free vs') (mk_return' (HOLogic.mk_list @{typ term}
-            (map2 HOLogic.mk_term_of (map snd vs') (map Free vs'))))))
+      (case compilation of
+        Pos_Random_DSeq => mk_bind (prog,
+          mk_split_lambda (map Free vs') (mk_return (HOLogic.mk_list @{typ term}
+          (map2 HOLogic.mk_term_of (map snd vs') (map Free vs')))))
+      | New_Pos_Random_DSeq => mk_new_bind (prog,
+          mk_split_lambda (map Free vs') (mk_new_return (HOLogic.mk_list @{typ term}
+          (map2 HOLogic.mk_term_of (map snd vs') (map Free vs')))))
+      | Pos_Generator_DSeq => mk_gen_bind (prog,
+          mk_split_lambda (map Free vs') (mk_gen_return (HOLogic.mk_list @{typ term}
+          (map2 HOLogic.mk_term_of (map snd vs') (map Free vs')))))
+      | Pos_Generator_CPS => prog $
+          mk_split_lambda (map Free vs') (mk_Some @{typ "bool * term list"} $
+          HOLogic.mk_prod (@{term "True"}, HOLogic.mk_list @{typ term}
+              (map2 HOLogic.mk_term_of (map snd vs') (map Free vs'))))
+      | Depth_Limited_Random => fold_rev absdummy
+          [@{typ natural}, @{typ natural}, @{typ natural},
+           @{typ Random.seed}]
+          (mk_bind' (list_comb (prog, map Bound (3 downto 0)),
+          mk_split_lambda (map Free vs') (mk_return' (HOLogic.mk_list @{typ term}
+          (map2 HOLogic.mk_term_of (map snd vs') (map Free vs')))))))
     val prog =
       case compilation of
         Pos_Random_DSeq =>
@@ -310,7 +314,7 @@ fun compile_term compilation options ctxt t =
                   g nrandom size s depth |> (Lazy_Sequence.map o map) proc)
                   qc_term []
           in
-            fn size => fn nrandom => fn depth => Option.map fst (Lazy_Sequence.yield 
+            fn size => fn nrandom => fn depth => Option.map fst (Lazy_Sequence.yield
                (
                let
                  val seed = Random_Engine.next_seed ()
@@ -346,7 +350,7 @@ fun compile_term compilation options ctxt t =
                   g depth nrandom size seed |> (Predicate.map o map) proc)
                 qc_term []
           in
-            fn size => fn nrandom => fn depth => Option.map fst (Predicate.yield 
+            fn size => fn nrandom => fn depth => Option.map fst (Predicate.yield
               (compiled_term depth nrandom size (Random_Engine.run (fn s => (s, s)))))
           end
   in
@@ -368,13 +372,13 @@ fun try_upto_depth ctxt f =
          val _ = if Config.get ctxt Quickcheck.timing then
            message (fst time ^ ": " ^ string_of_int (snd time) ^ " ms") else ()
         in
-          case result of NONE => try' (i + 1) | SOME q => SOME q
+          (case result of NONE => try' (i + 1) | SOME q => SOME q)
         end
-      else
-        NONE
+      else NONE
   in
     try' 0
   end
+
 
 (* quickcheck interface functions *)
 
@@ -386,7 +390,8 @@ fun compile_term' compilation options ctxt (t, _) =
       (Code_Numeral.natural_of_integer (!nrandom)) o Code_Numeral.natural_of_integer)
   in
     Quickcheck.Result
-      {counterexample = Option.map (pair true o (curry (op ~~)) (Term.add_free_names t [])) counterexample,
+      {counterexample =
+        Option.map (pair true o (curry (op ~~)) (Term.add_free_names t [])) counterexample,
        evaluation_terms = Option.map (K []) counterexample, timings = [], reports = []}
   end
 
@@ -412,14 +417,16 @@ fun test_goals options ctxt _ insts goals =
       (maps (map snd) correct_inst_goals) []
   end
 
-val smart_exhaustive_active = Attrib.setup_config_bool @{binding quickcheck_smart_exhaustive_active} (K true);
-val smart_slow_exhaustive_active = Attrib.setup_config_bool @{binding quickcheck_slow_smart_exhaustive_active} (K false);
+val smart_exhaustive_active =
+  Attrib.setup_config_bool @{binding quickcheck_smart_exhaustive_active} (K true)
+val smart_slow_exhaustive_active =
+  Attrib.setup_config_bool @{binding quickcheck_slow_smart_exhaustive_active} (K false)
 
 val setup =
-  Exhaustive_Generators.setup_exhaustive_datatype_interpretation 
+  Exhaustive_Generators.setup_exhaustive_datatype_interpretation
   #> Context.theory_map (Quickcheck.add_tester ("smart_exhaustive",
     (smart_exhaustive_active, test_goals (Predicate_Compile_Aux.Pos_Generator_CPS, false))))
   #> Context.theory_map (Quickcheck.add_tester ("smart_slow_exhaustive",
     (smart_slow_exhaustive_active, test_goals (Predicate_Compile_Aux.Pos_Generator_DSeq, false))))
 
-end;
+end

@@ -108,11 +108,8 @@ struct
 (* Note: 'fm' must be given in CNF.                                          *)
 (* ------------------------------------------------------------------------- *)
 
-  (* Path.T -> prop_formula -> unit *)
-
   fun write_dimacs_cnf_file path fm =
   let
-    (* prop_formula -> prop_formula *)
     fun cnf_True_False_elim True =
       Or (BoolVar 1, Not (BoolVar 1))
       | cnf_True_False_elim False =
@@ -120,15 +117,12 @@ struct
       | cnf_True_False_elim fm =
       fm  (* since 'fm' is in CNF, either 'fm'='True'/'False',
              or 'fm' does not contain 'True'/'False' at all *)
-    (* prop_formula -> int *)
     fun cnf_number_of_clauses (And (fm1, fm2)) =
       (cnf_number_of_clauses fm1) + (cnf_number_of_clauses fm2)
       | cnf_number_of_clauses _ =
       1
-    (* TextIO.outstream -> unit *)
     fun write_cnf_file out =
     let
-      (* prop_formula -> unit *)
       fun write_formula True =
           error "formula is not in CNF"
         | write_formula False =
@@ -170,14 +164,10 @@ struct
 (* Note: 'fm' must not contain a variable index less than 1.                 *)
 (* ------------------------------------------------------------------------- *)
 
-  (* Path.T -> prop_formula -> unit *)
-
   fun write_dimacs_sat_file path fm =
   let
-    (* TextIO.outstream -> unit *)
     fun write_sat_file out =
     let
-      (* prop_formula -> unit *)
       fun write_formula True =
           TextIO.output (out, "*()")
         | write_formula False =
@@ -243,21 +233,16 @@ struct
 (*      value of i is taken to be unspecified.                               *)
 (* ------------------------------------------------------------------------- *)
 
-  (* Path.T -> string * string * string -> result *)
-
   fun read_std_result_file path (satisfiable, assignment_prefix, unsatisfiable) =
   let
-    (* string -> int list *)
     fun int_list_from_string s =
       map_filter Int.fromString (space_explode " " s)
-    (* int list -> assignment *)
     fun assignment_from_list [] i =
       NONE  (* the SAT solver didn't provide a value for this variable *)
       | assignment_from_list (x::xs) i =
       if x=i then (SOME true)
       else if x=(~i) then (SOME false)
       else assignment_from_list xs i
-    (* int list -> string list -> assignment *)
     fun parse_assignment xs [] =
       assignment_from_list xs
       | parse_assignment xs (line::lines) =
@@ -265,7 +250,6 @@ struct
         parse_assignment (xs @ int_list_from_string line) lines
       else
         assignment_from_list xs
-    (* string -> string -> bool *)
     fun is_substring needle haystack =
     let
       val length1 = String.size needle
@@ -277,7 +261,6 @@ struct
         true
       else is_substring needle (String.substring (haystack, 1, length2-1))
     end
-    (* string list -> result *)
     fun parse_lines [] =
       UNKNOWN
       | parse_lines (line::lines) =
@@ -305,7 +288,6 @@ struct
 
   fun read_dimacs_cnf_file path =
   let
-    (* string list -> string list *)
     fun filter_preamble [] =
       error "problem line not found in DIMACS CNF file"
       | filter_preamble (line::lines) =
@@ -319,12 +301,10 @@ struct
         lines
       else
         error "preamble in DIMACS CNF file contains a line that does not begin with \"c \" or \"p \""
-    (* string -> int *)
     fun int_from_string s =
       case Int.fromString s of
         SOME i => i
       | NONE   => error ("token " ^ quote s ^ " in DIMACS CNF file is not a number")
-    (* int list -> int list list *)
     fun clauses xs =
       let
         val (xs1, xs2) = take_prefix (fn i => i <> 0) xs
@@ -377,8 +357,6 @@ struct
 (* add_solver: updates 'solvers' by adding a new solver                      *)
 (* ------------------------------------------------------------------------- *)
 
-  (* string * solver -> unit *)
-
     fun add_solver (name, new_solver) = CRITICAL (fn () =>
       let
         val the_solvers = !solvers;
@@ -392,8 +370,6 @@ struct
 (* Note: If no solver is associated with 'name', exception 'Option' will be  *)
 (*       raised.                                                             *)
 (* ------------------------------------------------------------------------- *)
-
-  (* string -> solver *)
 
   fun invoke_solver name =
     (the o AList.lookup (op =) (!solvers)) name;
@@ -413,9 +389,7 @@ end;  (* SatSolver *)
 let
   fun enum_solver fm =
   let
-    (* int list *)
     val indices = Prop_Logic.indices fm
-    (* int list -> int list -> int list option *)
     (* binary increment: list 'xs' of current bits, list 'ys' of all bits (lower bits first) *)
     fun next_list _ ([]:int list) =
       NONE
@@ -428,10 +402,8 @@ let
       else
         (* set the lowest bit that wasn't set before, keep the higher bits *)
         SOME (y::x::xs)
-    (* int list -> int -> bool *)
     fun assignment_from_list xs i =
       member (op =) xs i
-    (* int list -> SatSolver.result *)
     fun solver_loop xs =
       if Prop_Logic.eval (assignment_from_list xs) fm then
         SatSolver.SATISFIABLE (SOME o (assignment_from_list xs))
@@ -463,19 +435,15 @@ let
       (* but that sometimes leads to worse performance due to the         *)
       (* introduction of additional variables.                            *)
       val fm' = Prop_Logic.nnf fm
-      (* int list *)
       val indices = Prop_Logic.indices fm'
-      (* int list -> int -> prop_formula *)
       fun partial_var_eval []      i = BoolVar i
         | partial_var_eval (x::xs) i = if x=i then True else if x=(~i) then False else partial_var_eval xs i
-      (* int list -> prop_formula -> prop_formula *)
       fun partial_eval xs True             = True
         | partial_eval xs False            = False
         | partial_eval xs (BoolVar i)      = partial_var_eval xs i
         | partial_eval xs (Not fm)         = SNot (partial_eval xs fm)
         | partial_eval xs (Or (fm1, fm2))  = SOr (partial_eval xs fm1, partial_eval xs fm2)
         | partial_eval xs (And (fm1, fm2)) = SAnd (partial_eval xs fm1, partial_eval xs fm2)
-      (* prop_formula -> int list *)
       fun forced_vars True              = []
         | forced_vars False             = []
         | forced_vars (BoolVar i)       = [i]
@@ -485,7 +453,6 @@ let
         (* Above, i *and* ~i may be forced.  In this case the first occurrence takes   *)
         (* precedence, and the next partial evaluation of the formula returns 'False'. *)
         | forced_vars _                 = error "formula is not in negation normal form"
-      (* int list -> prop_formula -> (int list * prop_formula) *)
       fun eval_and_force xs fm =
       let
         val fm' = partial_eval xs fm
@@ -497,10 +464,8 @@ let
           eval_and_force (xs@xs') fm'  (* xs and xs' should be distinct, so '@' here should have *)
                                        (* the same effect as 'union_int'                         *)
       end
-      (* int list -> int option *)
       fun fresh_var xs =
         find_first (fn i => not (member (op =) xs i) andalso not (member (op =) xs (~i))) indices
-      (* int list -> prop_formula -> int list option *)
       (* partial assignment 'xs' *)
       fun dpll xs fm =
       let
@@ -518,7 +483,6 @@ let
             | NONE      => dpll ((~x)::xs') fm'  (* now try interpreting 'x' as 'False' *)
           end
       end
-      (* int list -> assignment *)
       fun assignment_from_list [] i =
         NONE  (* the DPLL procedure didn't provide a value for this variable *)
         | assignment_from_list (x::xs) i =
@@ -603,11 +567,9 @@ let
   in  case result of
     SatSolver.UNSATISFIABLE NONE =>
     (let
-      (* string list *)
       val proof_lines = (split_lines o File.read) proofpath
         handle IO.Io _ => raise INVALID_PROOF "Could not read file \"result.prf\""
       (* representation of clauses as ordered lists of literals (with duplicates removed) *)
-      (* prop_formula -> int list *)
       fun clause_to_lit_list (Prop_Logic.Or (fm1, fm2)) =
         Ord_List.union int_ord (clause_to_lit_list fm1) (clause_to_lit_list fm2)
         | clause_to_lit_list (Prop_Logic.BoolVar i) =
@@ -616,7 +578,6 @@ let
         [~i]
         | clause_to_lit_list _ =
         raise INVALID_PROOF "Error: invalid clause in CNF formula."
-      (* prop_formula -> int *)
       fun cnf_number_of_clauses (Prop_Logic.And (fm1, fm2)) =
         cnf_number_of_clauses fm1 + cnf_number_of_clauses fm2
         | cnf_number_of_clauses _ =
@@ -625,7 +586,6 @@ let
       (* int list array *)
       val clauses = Array.array (number_of_clauses, [])
       (* initialize the 'clauses' array *)
-      (* prop_formula * int -> int *)
       fun init_array (Prop_Logic.And (fm1, fm2), n) =
         init_array (fm2, init_array (fm1, n))
         | init_array (fm, n) =
@@ -636,7 +596,6 @@ let
       val last_ref_clause = Unsynchronized.ref (number_of_clauses - 1)
       (* search the 'clauses' array for the given list of literals 'lits', *)
       (* starting at index '!last_ref_clause + 1'                          *)
-      (* int list -> int option *)
       fun original_clause_id lits =
       let
         fun original_clause_id_from index =
@@ -658,12 +617,10 @@ let
       in
         original_clause_id_from (!last_ref_clause + 1)
       end
-      (* string -> int *)
-      fun int_from_string s = (
-        case Int.fromString s of
+      fun int_from_string s =
+        (case Int.fromString s of
           SOME i => i
-        | NONE   => raise INVALID_PROOF ("File format error: number expected (" ^ quote s ^ " encountered).")
-      )
+        | NONE   => raise INVALID_PROOF ("File format error: number expected (" ^ quote s ^ " encountered)."))
       (* parse the proof file *)
       val clause_table  = Unsynchronized.ref (Inttab.empty : int list Inttab.table)
       val empty_id      = Unsynchronized.ref ~1
@@ -676,7 +633,6 @@ let
         | NONE     => raise INVALID_PROOF ("Clause ID " ^ string_of_int id ^ " used, but not defined.")
       )
       val next_id = Unsynchronized.ref (number_of_clauses - 1)
-      (* string list -> unit *)
       fun process_tokens [] =
         ()
         | process_tokens (tok::toks) =
@@ -749,7 +705,6 @@ let
             raise INVALID_PROOF "File format error: \"X\" followed by an illegal number of tokens."
         ) else
           raise INVALID_PROOF ("File format error: unknown token " ^ quote tok ^ " encountered.")
-      (* string list -> unit *)
       fun process_lines [] =
         ()
         | process_lines (l::ls) = (
@@ -812,14 +767,12 @@ let
   case SatSolver.invoke_solver "zchaff" fm of
     SatSolver.UNSATISFIABLE NONE =>
     (let
-      (* string list *)
       (* FIXME File.tmp_path (!?) *)
       val proof_lines = ((split_lines o File.read) (Path.explode "resolve_trace"))
         handle IO.Io _ => raise INVALID_PROOF "Could not read file \"resolve_trace\""
       fun cnf_number_of_clauses (Prop_Logic.And (fm1, fm2)) =
             cnf_number_of_clauses fm1 + cnf_number_of_clauses fm2
         | cnf_number_of_clauses _ = 1
-      (* string -> int *)
       fun int_from_string s = (
         case Int.fromString s of
           SOME i => i
@@ -829,7 +782,6 @@ let
       val clause_offset = Unsynchronized.ref ~1
       val clause_table  = Unsynchronized.ref (Inttab.empty : int list Inttab.table)
       val empty_id      = Unsynchronized.ref ~1
-      (* string list -> unit *)
       fun process_tokens [] =
         ()
         | process_tokens (tok::toks) =
@@ -910,7 +862,6 @@ let
             raise INVALID_PROOF "File format error: \"CONF:\" followed by an insufficient number of tokens."
         ) else
           raise INVALID_PROOF ("File format error: unknown token " ^ quote tok ^ " encountered.")
-      (* string list -> unit *)
       fun process_lines [] =
         ()
         | process_lines (l::ls) = (
@@ -1004,16 +955,3 @@ in
   SatSolver.add_solver ("jerusat", jerusat)
 end;
 
-(* ------------------------------------------------------------------------- *)
-(* Add code for other SAT solvers below.                                     *)
-(* ------------------------------------------------------------------------- *)
-
-(*
-let
-  fun mysolver fm = ...
-in
-  SatSolver.add_solver ("myname", (fn fm => if mysolver_is_configured then mysolver fm else raise SatSolver.NOT_CONFIGURED));  -- register the solver
-end;
-
--- the solver is now available as SatSolver.invoke_solver "myname"
-*)

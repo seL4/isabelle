@@ -148,8 +148,9 @@ class Isabelle_Sidekick_Markup extends Isabelle_Sidekick("isabelle-markup")
 {
   override def parser(buffer: Buffer, syntax: Outer_Syntax, data: SideKickParsedData): Boolean =
   {
-    Swing_Thread.now { Document_Model(buffer).map(_.snapshot) } match {
-      case Some(snapshot) =>
+    Swing_Thread.now { Document_Model(buffer) } match {
+      case Some(model) if model.is_theory =>
+        val snapshot = model.snapshot
         val root = data.root
         for ((command, command_start) <- snapshot.node.command_range() if !stopped) {
           Isabelle_Sidekick.swing_markup_tree(
@@ -171,7 +172,7 @@ class Isabelle_Sidekick_Markup extends Isabelle_Sidekick("isabelle-markup")
               })
         }
         true
-      case None => false
+      case _ => false
     }
   }
 }

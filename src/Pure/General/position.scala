@@ -75,11 +75,12 @@ object Position
       }
   }
 
-  object Id_Range
+  object Reported
   {
-    def unapply(pos: T): Option[(Long, Text.Range)] =
+    def unapply(pos: T): Option[(Long, String, Text.Range)] =
       (pos, pos) match {
-        case (Id(id), Range(range)) => Some((id, range))
+        case (Id(id), Range(range)) =>
+          Some((id, File.unapply(pos).getOrElse(""), range))
         case _ => None
       }
   }

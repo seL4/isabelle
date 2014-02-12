@@ -118,8 +118,8 @@ object Symbol
 
   final class Index private(text: CharSequence)
   {
-    sealed case class Entry(chr: Int, sym: Int)
-    val index: Array[Entry] =
+    private sealed case class Entry(chr: Int, sym: Int)
+    private val index: Array[Entry] =
     {
       val matcher = new Matcher(text)
       val buf = new mutable.ArrayBuffer[Entry]
@@ -133,6 +133,7 @@ object Symbol
       }
       buf.toArray
     }
+
     def decode(sym1: Int): Int =
     {
       val sym = sym1 - 1

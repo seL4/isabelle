@@ -60,8 +60,13 @@ object Command
     command: Command,
     status: List[Markup] = Nil,
     results: Results = Results.empty,
-    markup: Markup_Tree = Markup_Tree.empty)
+    markups: Map[String, Markup_Tree] = Map.empty)
   {
+    def get_markup(file_name: String): Markup_Tree =
+      markups.getOrElse(file_name, Markup_Tree.empty)
+
+    def markup: Markup_Tree = get_markup("")
+
     def markup_to_XML(filter: XML.Elem => Boolean): XML.Body =
       markup.to_XML(command.range, command.source, filter)
 
@@ -72,10 +77,12 @@ object Command
       command.source == other.command.source &&
       status == other.status &&
       results == other.results &&
-      markup == other.markup
+      markups == other.markups
 
     private def add_status(st: Markup): State = copy(status = st :: status)
-    private def add_markup(m: Text.Markup): State = copy(markup = markup + m)
+
+    private def add_markup(file_name: String, m: Text.Markup): State =
+      copy(markups = markups + (file_name -> (get_markup(file_name) + m)))
 
     def + (alt_id: Document_ID.Generic, message: XML.Elem): State =
       message match {
@@ -84,7 +91,7 @@ object Command
             msg match {
               case elem @ XML.Elem(markup, Nil) =>
                 state.add_status(markup)
-                  .add_markup(Text.Info(command.proper_range, elem))  // FIXME cumulation order!?
+                  .add_markup("", Text.Info(command.proper_range, elem))  // FIXME cumulation order!?
 
               case _ =>
                 java.lang.System.err.println("Ignored status message: " + msg)
@@ -93,23 +100,40 @@ object Command
 
         case XML.Elem(Markup(Markup.REPORT, _), msgs) =>
           (this /: msgs)((state, msg) =>
-            msg match {
-              case XML.Elem(Markup(name, atts @ Position.Id_Range(id, raw_range)), args)
-              if (id == command.id || id == alt_id) &&
-                  command.range.contains(command.decode(raw_range)) =>
-                val range = command.decode(raw_range)
-                val props = Position.purge(atts)
-                val info: Text.Markup = Text.Info(range, XML.Elem(Markup(name, props), args))
-                state.add_markup(info)
-              case XML.Elem(Markup(name, atts), args)
-              if !atts.exists({ case (a, _) => Markup.POSITION_PROPERTIES(a) }) =>
-                val range = command.proper_range
-                val props = Position.purge(atts)
-                val info: Text.Markup = Text.Info(range, XML.Elem(Markup(name, props), args))
-                state.add_markup(info)
-              case _ =>
-                // FIXME java.lang.System.err.println("Ignored report message: " + msg)
-                state
+            {
+              def bad(): Unit = java.lang.System.err.println("Ignored report message: " + msg)
+
+              msg match {
+                case XML.Elem(Markup(name, atts @ Position.Reported(id, file_name, raw_range)), args)
+                if id == command.id || id == alt_id =>
+                  command.chunks.get(file_name) match {
+                    case Some(chunk) =>
+                      val range = chunk.decode(raw_range)
+                      if (chunk.range.contains(range)) {
+                        val props = Position.purge(atts)
+                        val info: Text.Markup = Text.Info(range, XML.Elem(Markup(name, props), args))
+                        state.add_markup(file_name, info)
+                      }
+                      else {
+                        bad()
+                        state
+                      }
+                    case None =>
+                      bad()
+                      state
+                  }
+
+                case XML.Elem(Markup(name, atts), args)
+                if !atts.exists({ case (a, _) => Markup.POSITION_PROPERTIES(a) }) =>
+                  val range = command.proper_range
+                  val props = Position.purge(atts)
+                  val info: Text.Markup = Text.Info(range, XML.Elem(Markup(name, props), args))
+                  state.add_markup("", info)
+
+                case _ =>
+                  // FIXME bad()
+                  state
+              }
             })
         case XML.Elem(Markup(name, props), body) =>
           props match {
@@ -117,14 +141,15 @@ object Command
               val message1 = XML.Elem(Markup(Markup.message(name), props), body)
               val message2 = XML.Elem(Markup(name, props), body)
 
-              val st0 = copy(results = results + (i -> message1))
-              val st1 =
-                if (Protocol.is_inlined(message))
-                  (st0 /: Protocol.message_positions(command, message))(
-                    (st, range) => st.add_markup(Text.Info(range, message2)))
-                else st0
+              var st = copy(results = results + (i -> message1))
+              if (Protocol.is_inlined(message)) {
+                for {
+                  (file_name, chunk) <- command.chunks
+                  range <- Protocol.message_positions(command.id, alt_id, chunk, message)
+                } st = st.add_markup(file_name, Text.Info(range, message2))
+              }
+              st
 
-              st1
             case _ =>
               java.lang.System.err.println("Ignored message without serial number: " + message)
               this
@@ -135,7 +160,32 @@ object Command
       copy(
         status = other.status ::: status,
         results = results ++ other.results,
-        markup = markup ++ other.markup)
+        markups =
+          (markups.keySet ++ other.markups.keySet)
+            .map(a => a -> (get_markup(a) ++ other.get_markup(a))).toMap
+      )
+  }
+
+
+
+  /** static content **/
+
+  /* text chunks */
+
+  abstract class Chunk
+  {
+    def file_name: String
+    def length: Int
+    def range: Text.Range
+    def decode(r: Text.Range): Text.Range
+  }
+
+  class File(val file_name: String, text: CharSequence) extends Chunk
+  {
+    val length = text.length
+    val range = Text.Range(0, length)
+    private val symbol_index = Symbol.Index(text)
+    def decode(r: Text.Range): Text.Range = symbol_index.decode(r)
   }
 
 
@@ -144,7 +194,7 @@ object Command
   def name(span: List[Token]): String =
     span.find(_.is_command) match { case Some(tok) => tok.source case _ => "" }
 
-  type Blob = Exn.Result[(Document.Node.Name, Option[SHA1.Digest])]
+  type Blob = Exn.Result[(Document.Node.Name, Option[(SHA1.Digest, File)])]
 
   def apply(
     id: Document_ID.Command,
@@ -220,6 +270,7 @@ final class Command private(
     val source: String,
     val init_results: Command.Results,
     val init_markup: Markup_Tree)
+  extends Command.Chunk
 {
   /* classification */
 
@@ -243,10 +294,16 @@ final class Command private(
     for (Exn.Res((name, _)) <- blobs) yield name
 
   def blobs_digests: List[SHA1.Digest] =
-    for (Exn.Res((_, Some(digest))) <- blobs) yield digest
+    for (Exn.Res((_, Some((digest, _)))) <- blobs) yield digest
+
+  val chunks: Map[String, Command.Chunk] =
+    (("" -> this) ::
+      (for (Exn.Res((name, Some((_, file)))) <- blobs) yield (name.node -> file))).toMap
 
 
   /* source */
+
+  def file_name: String = ""
 
   def length: Int = source.length
   val range: Text.Range = Text.Range(0, length)
@@ -256,7 +313,7 @@ final class Command private(
 
   def source(range: Text.Range): String = source.substring(range.start, range.stop)
 
-  lazy val symbol_index = Symbol.Index(source)
+  private lazy val symbol_index = Symbol.Index(source)
   def decode(i: Text.Offset): Text.Offset = symbol_index.decode(i)
   def decode(r: Text.Range): Text.Range = symbol_index.decode(r)
 
@@ -264,7 +321,7 @@ final class Command private(
   /* accumulated results */
 
   val init_state: Command.State =
-    Command.State(this, results = init_results, markup = init_markup)
+    Command.State(this, results = init_results, markups = Map("" -> init_markup))
 
   val empty_state: Command.State = Command.State(this)
 }

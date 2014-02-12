@@ -20,15 +20,15 @@ struct
 open Predicate_Compile_Aux
 
 fun is_compound ((Const (@{const_name Not}, _)) $ _) =
-    error "is_compound: Negation should not occur; preprocessing is defect"
+      error "is_compound: Negation should not occur; preprocessing is defect"
   | is_compound ((Const (@{const_name Ex}, _)) $ _) = true
   | is_compound ((Const (@{const_name HOL.disj}, _)) $ _ $ _) = true
   | is_compound ((Const (@{const_name HOL.conj}, _)) $ _ $ _) =
-    error "is_compound: Conjunction should not occur; preprocessing is defect"
+      error "is_compound: Conjunction should not occur; preprocessing is defect"
   | is_compound _ = false
 
 fun try_destruct_case thy names atom =
-  case find_split_thm thy (fst (strip_comb atom)) of
+  (case find_split_thm thy (fst (strip_comb atom)) of
     NONE => NONE
   | SOME raw_split_thm =>
     let
@@ -48,17 +48,17 @@ fun try_destruct_case thy names atom =
           val vars = map Free (var_names ~~ (map snd vTs))
           val (prems', pre_res) = Logic.strip_horn (subst_bounds (rev vars, assm'))
           fun partition_prem_subst prem =
-            case HOLogic.dest_eq (HOLogic.dest_Trueprop prem) of
+            (case HOLogic.dest_eq (HOLogic.dest_Trueprop prem) of
               (Free (x, T), r) => (NONE, SOME ((x, T), r))
-            | _ => (SOME prem, NONE)
+            | _ => (SOME prem, NONE))
           fun partition f xs =
             let
               fun partition' acc1 acc2 [] = (rev acc1, rev acc2)
                 | partition' acc1 acc2 (x :: xs) =
                   let
                     val (y, z) = f x
-                    val acc1' = case y of NONE => acc1 | SOME y' => y' :: acc1
-                    val acc2' = case z of NONE => acc2 | SOME z' => z' :: acc2
+                    val acc1' = (case y of NONE => acc1 | SOME y' => y' :: acc1)
+                    val acc2' = (case z of NONE => acc2 | SOME z' => z' :: acc2)
                   in partition' acc1' acc2' xs end
             in partition' [] [] xs end
           val (prems'', subst) = partition partition_prem_subst prems'
@@ -67,18 +67,19 @@ fun try_destruct_case thy names atom =
             fold (curry HOLogic.mk_conj) (map HOLogic.dest_Trueprop prems'') inner_t
           val rhs = Envir.expand_term_frees subst pre_rhs
         in
-          case try_destruct_case thy (var_names @ names') rhs of
+          (case try_destruct_case thy (var_names @ names') rhs of
             NONE => [(subst, rhs)]
-          | SOME (_, srs) => map (fn (subst', rhs') => (subst @ subst', rhs')) srs
+          | SOME (_, srs) => map (fn (subst', rhs') => (subst @ subst', rhs')) srs)
         end
-     in SOME (atom', maps mk_subst_rhs assms) end
+     in SOME (atom', maps mk_subst_rhs assms) end)
      
 fun flatten constname atom (defs, thy) =
   if is_compound atom then
     let
       val atom = Envir.beta_norm (Envir.eta_long [] atom)
-      val constname = singleton (Name.variant_list (map (Long_Name.base_name o fst) defs))
-        ((Long_Name.base_name constname) ^ "_aux")
+      val constname =
+        singleton (Name.variant_list (map (Long_Name.base_name o fst) defs))
+          ((Long_Name.base_name constname) ^ "_aux")
       val full_constname = Sign.full_bname thy constname
       val (params, args) = List.partition (is_predT o fastype_of)
         (map Free (Term.add_frees atom []))
@@ -92,7 +93,7 @@ fun flatten constname atom (defs, thy) =
       (lhs, ((full_constname, [definition]) :: defs, thy'))
     end
   else
-    case (fst (strip_comb atom)) of
+    (case (fst (strip_comb atom)) of
       (Const (@{const_name If}, _)) =>
         let
           val if_beta = @{lemma "(if c then x else y) z = (if c then x z else y z)" by simp}
@@ -103,28 +104,28 @@ fun flatten constname atom (defs, thy) =
           flatten constname atom' (defs, thy)
         end
     | _ =>
-      case try_destruct_case thy [] atom of
-        NONE => (atom, (defs, thy))
-      | SOME (atom', srs) =>
-        let      
-          val frees = map Free (Term.add_frees atom' [])
-          val constname = singleton (Name.variant_list (map (Long_Name.base_name o fst) defs))
-           ((Long_Name.base_name constname) ^ "_aux")
-          val full_constname = Sign.full_bname thy constname
-          val constT = map fastype_of frees ---> HOLogic.boolT
-          val lhs = list_comb (Const (full_constname, constT), frees)
-          fun mk_def (subst, rhs) =
-            Logic.mk_equals (fold Envir.expand_term_frees (map single subst) lhs, rhs)
-          val new_defs = map mk_def srs
-          val (definition, thy') = thy
-          |> Sign.add_consts_i [(Binding.name constname, constT, NoSyn)]
-          |> fold_map Specification.axiom  (* FIXME !?!?!?! *)
-            (map_index (fn (i, t) =>
-              ((Binding.name (constname ^ "_def" ^ string_of_int i), []), t)) new_defs)
-        in
-          (lhs, ((full_constname, map Drule.export_without_context definition) :: defs, thy'))
-        end
-
+        (case try_destruct_case thy [] atom of
+          NONE => (atom, (defs, thy))
+        | SOME (atom', srs) =>
+            let      
+              val frees = map Free (Term.add_frees atom' [])
+              val constname =
+                singleton (Name.variant_list (map (Long_Name.base_name o fst) defs))
+                  ((Long_Name.base_name constname) ^ "_aux")
+              val full_constname = Sign.full_bname thy constname
+              val constT = map fastype_of frees ---> HOLogic.boolT
+              val lhs = list_comb (Const (full_constname, constT), frees)
+              fun mk_def (subst, rhs) =
+                Logic.mk_equals (fold Envir.expand_term_frees (map single subst) lhs, rhs)
+              val new_defs = map mk_def srs
+              val (definition, thy') = thy
+              |> Sign.add_consts_i [(Binding.name constname, constT, NoSyn)]
+              |> fold_map Specification.axiom  (* FIXME !?!?!?! *)
+                (map_index (fn (i, t) =>
+                  ((Binding.name (constname ^ "_def" ^ string_of_int i), []), t)) new_defs)
+            in
+              (lhs, ((full_constname, map Drule.export_without_context definition) :: defs, thy'))
+            end))
 
 fun flatten_intros constname intros thy =
   let
@@ -143,7 +144,7 @@ fun flatten_intros constname intros thy =
 (* TODO: same function occurs in inductive package *)
 fun select_disj 1 1 = []
   | select_disj _ 1 = [rtac @{thm disjI1}]
-  | select_disj n i = (rtac @{thm disjI2})::(select_disj (n - 1) (i - 1));
+  | select_disj n i = (rtac @{thm disjI2})::(select_disj (n - 1) (i - 1))
 
 fun introrulify thy ths = 
   let
@@ -258,8 +259,9 @@ fun flat_higher_order_arguments (intross, thy) =
                 |> process constname t1 
                 ||>> process constname t2
                 |>> HOLogic.mk_prod
-            | NONE => (warning ("Replacing higher order arguments " ^
-              "is not applied in an undestructable product type"); (arg, (new_defs, thy))))
+            | NONE =>
+              (warning ("Replacing higher order arguments " ^
+                "is not applied in an undestructable product type"); (arg, (new_defs, thy))))
           else if (is_predT (fastype_of arg)) then
             process constname arg (new_defs, thy)
           else
@@ -274,7 +276,8 @@ fun flat_higher_order_arguments (intross, thy) =
       let
         val constname = fst (dest_Const (fst (strip_comb
           (HOLogic.dest_Trueprop (Logic.strip_imp_concl (prop_of intro))))))
-        val (intro_ts, (new_defs, thy)) = fold_map_atoms (process constname) (prop_of intro) (new_defs, thy)
+        val (intro_ts, (new_defs, thy)) =
+          fold_map_atoms (process constname) (prop_of intro) (new_defs, thy)
         val th = Skip_Proof.make_thm thy intro_ts
       in
         (th, (new_defs, thy))
@@ -290,4 +293,4 @@ fun flat_higher_order_arguments (intross, thy) =
     (intross', (new_defs, thy'))
   end
 
-end;
+end

@@ -264,11 +264,16 @@ object Thy_Syntax
       doc_blobs: Document.Blobs)
     : List[Command.Blob] =
   {
-    span_files(syntax, span).map(file =>
+    span_files(syntax, span).map(file_name =>
       Exn.capture {
         val name =
-          Document.Node.Name(thy_load.append(node_name.master_dir, Path.explode(file)))
-        (name, doc_blobs.get(name).map(_.sha1_digest))
+          Document.Node.Name(thy_load.append(node_name.master_dir, Path.explode(file_name)))
+        val blob =
+          doc_blobs.get(name) match {
+            case Some((bytes, file)) => Some((bytes.sha1_digest, file))
+            case None => None
+          }
+        (name, blob)
       }
     )
   }
@@ -402,14 +407,17 @@ object Thy_Syntax
     edit match {
       case (_, Document.Node.Clear()) => node.clear
 
-      case (_, Document.Node.Blob()) => node
+      case (_, Document.Node.Blob()) => node.init_blob
 
       case (name, Document.Node.Edits(text_edits)) =>
-        val commands0 = node.commands
-        val commands1 = edit_text(text_edits, commands0)
-        val commands2 =
-          recover_spans(thy_load, syntax, doc_blobs, name, node.perspective.visible, commands1)
-        node.update_commands(commands2)
+        if (node.is_blob) node
+        else {
+          val commands0 = node.commands
+          val commands1 = edit_text(text_edits, commands0)
+          val commands2 =
+            recover_spans(thy_load, syntax, doc_blobs, name, node.perspective.visible, commands1)
+          node.update_commands(commands2)
+        }
 
       case (_, Document.Node.Deps(_)) => node
 

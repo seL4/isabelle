@@ -1968,13 +1968,13 @@ text {* Special-case simplification: @{text "\<plusminus>1 div z"} and @{text "\
 lemma [simp]:
   shows div_one_bit0: "1 div numeral (Num.Bit0 v) = (0 :: int)"
     and mod_one_bit0: "1 mod numeral (Num.Bit0 v) = (1 :: int)"
-	  and div_one_bit1: "1 div numeral (Num.Bit1 v) = (0 :: int)"
-	  and mod_one_bit1: "1 mod numeral (Num.Bit1 v) = (1 :: int)"
-	  and div_one_neg_numeral: "1 div - numeral v = (- 1 :: int)"
-	  and mod_one_neg_numeral: "1 mod - numeral v = (1 :: int) - numeral v"
+    and div_one_bit1: "1 div numeral (Num.Bit1 v) = (0 :: int)"
+    and mod_one_bit1: "1 mod numeral (Num.Bit1 v) = (1 :: int)"
+    and div_one_neg_numeral: "1 div - numeral v = (- 1 :: int)"
+    and mod_one_neg_numeral: "1 mod - numeral v = (1 :: int) - numeral v"
   by (simp_all del: arith_special
     add: div_pos_pos mod_pos_pos div_pos_neg mod_pos_neg posDivAlg_eqn)
-	
+
 lemma [simp]:
   shows div_neg_one_numeral: "- 1 div numeral v = (- 1 :: int)"
     and mod_neg_one_numeral: "- 1 mod numeral v = numeral v - (1 :: int)"

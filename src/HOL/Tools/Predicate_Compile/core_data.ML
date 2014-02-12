@@ -133,14 +133,16 @@ structure PredData = Theory_Data
   val merge = Graph.merge eq_pred_data;
 );
 
+
 (* queries *)
 
 fun lookup_pred_data ctxt name =
   Option.map rep_pred_data (try (Graph.get_node (PredData.get (Proof_Context.theory_of ctxt))) name)
 
-fun the_pred_data ctxt name = case lookup_pred_data ctxt name
- of NONE => error ("No such predicate " ^ quote name)  
-  | SOME data => data;
+fun the_pred_data ctxt name =
+  (case lookup_pred_data ctxt name of
+    NONE => error ("No such predicate " ^ quote name)  
+  | SOME data => data)
 
 val is_registered = is_some oo lookup_pred_data
 
@@ -150,24 +152,26 @@ val intros_of = map snd o #intros oo the_pred_data
 
 val names_of = map fst o #intros oo the_pred_data
 
-fun the_elim_of ctxt name = case #elim (the_pred_data ctxt name)
- of NONE => error ("No elimination rule for predicate " ^ quote name)
-  | SOME thm => thm
+fun the_elim_of ctxt name =
+  (case #elim (the_pred_data ctxt name) of
+    NONE => error ("No elimination rule for predicate " ^ quote name)
+  | SOME thm => thm)
   
 val has_elim = is_some o #elim oo the_pred_data
 
 fun function_names_of compilation ctxt name =
-  case AList.lookup (op =) (#function_names (the_pred_data ctxt name)) compilation of
-    NONE => error ("No " ^ string_of_compilation compilation
-      ^ " functions defined for predicate " ^ quote name)
-  | SOME fun_names => fun_names
+  (case AList.lookup (op =) (#function_names (the_pred_data ctxt name)) compilation of
+    NONE =>
+      error ("No " ^ string_of_compilation compilation ^
+        " functions defined for predicate " ^ quote name)
+  | SOME fun_names => fun_names)
 
 fun function_name_of compilation ctxt name mode =
-  case AList.lookup eq_mode
-    (function_names_of compilation ctxt name) mode of
-    NONE => error ("No " ^ string_of_compilation compilation
-      ^ " function defined for mode " ^ string_of_mode mode ^ " of predicate " ^ quote name)
-  | SOME function_name => function_name
+  (case AList.lookup eq_mode (function_names_of compilation ctxt name) mode of
+    NONE =>
+      error ("No " ^ string_of_compilation compilation ^
+        " function defined for mode " ^ string_of_mode mode ^ " of predicate " ^ quote name)
+  | SOME function_name => function_name)
 
 fun modes_of compilation ctxt name = map fst (function_names_of compilation ctxt name)
 
@@ -177,9 +181,10 @@ fun all_modes_of compilation ctxt =
 
 val all_random_modes_of = all_modes_of Random
 
-fun defined_functions compilation ctxt name = case lookup_pred_data ctxt name of
+fun defined_functions compilation ctxt name =
+  (case lookup_pred_data ctxt name of
     NONE => false
-  | SOME data => AList.defined (op =) (#function_names data) compilation
+  | SOME data => AList.defined (op =) (#function_names data) compilation)
 
 fun needs_random ctxt s m =
   member (op =) (#needs_random (the_pred_data ctxt s)) m
@@ -189,10 +194,11 @@ fun lookup_predfun_data ctxt name mode =
     (AList.lookup eq_mode (#predfun_data (the_pred_data ctxt name)) mode)
 
 fun the_predfun_data ctxt name mode =
-  case lookup_predfun_data ctxt name mode of
-    NONE => error ("No function defined for mode " ^ string_of_mode mode ^
-      " of predicate " ^ name)
-  | SOME data => data;
+  (case lookup_predfun_data ctxt name mode of
+    NONE =>
+      error ("No function defined for mode " ^ string_of_mode mode ^
+        " of predicate " ^ name)
+  | SOME data => data)
 
 val predfun_definition_of = #definition ooo the_predfun_data
 
@@ -221,7 +227,8 @@ fun prove_casesrule ctxt (pred, (pre_cases_rule, nparams)) cases_rule =
         val case_th =
           rewrite_rule ctxt (@{thm Predicate.eq_is_eq} :: map meta_eq_of eqs) (nth cases (i - 1))
         val prems' = maps (dest_conjunct_prem o rewrite_rule ctxt tuple_rew_rules) prems
-        val pats = map (swap o HOLogic.dest_eq o HOLogic.dest_Trueprop) (take nargs (prems_of case_th))
+        val pats =
+          map (swap o HOLogic.dest_eq o HOLogic.dest_Trueprop) (take nargs (prems_of case_th))
         val case_th' = Thm.instantiate ([], inst_of_matches pats) case_th
           OF (replicate nargs @{thm refl})
         val thesis =
@@ -242,6 +249,7 @@ fun prove_casesrule ctxt (pred, (pre_cases_rule, nparams)) cases_rule =
     Goal.prove ctxt (Term.add_free_names cases_rule []) [] cases_rule (fn _ => tac)
   end
 
+
 (* updaters *)
 
 (* fetching introduction rules or registering introduction rules *)
@@ -249,7 +257,7 @@ fun prove_casesrule ctxt (pred, (pre_cases_rule, nparams)) cases_rule =
 val no_compilation = ([], ([], []))
 
 fun fetch_pred_data ctxt name =
-  case try (Inductive.the_inductive ctxt) name of
+  (case try (Inductive.the_inductive ctxt) name of
     SOME (info as (_, result)) => 
       let
         fun is_intro_of intro =
@@ -267,7 +275,7 @@ fun fetch_pred_data ctxt name =
       in
         mk_pred_data (((map (pair NONE) intros, SOME elim), true), no_compilation)
       end
-  | NONE => error ("No such predicate: " ^ quote name)
+  | NONE => error ("No such predicate: " ^ quote name))
 
 fun add_predfun_data name mode data =
   let
@@ -294,16 +302,19 @@ fun add_intro (opt_case_name, thm) thy =
   let
     val (name, _) = dest_Const (fst (strip_intro_concl thm))
     fun cons_intro gr =
-     case try (Graph.get_node gr) name of
-       SOME _ => Graph.map_node name (map_pred_data
-         (apfst (apfst (apfst (fn intros => intros @ [(opt_case_name, thm)]))))) gr
-     | NONE => Graph.new_node (name, mk_pred_data ((([(opt_case_name, thm)], NONE), false), no_compilation)) gr
+      (case try (Graph.get_node gr) name of
+        SOME _ =>
+          Graph.map_node name (map_pred_data
+            (apfst (apfst (apfst (fn intros => intros @ [(opt_case_name, thm)]))))) gr
+      | NONE =>
+          Graph.new_node
+            (name, mk_pred_data ((([(opt_case_name, thm)], NONE), false), no_compilation)) gr)
   in PredData.map cons_intro thy end
 
 fun set_elim thm =
   let
-    val (name, _) = dest_Const (fst 
-      (strip_comb (HOLogic.dest_Trueprop (hd (prems_of thm)))))
+    val (name, _) =
+      dest_Const (fst (strip_comb (HOLogic.dest_Trueprop (hd (prems_of thm)))))
   in PredData.map (Graph.map_node name (map_pred_data (apfst (apfst (apsnd (K (SOME thm))))))) end
 
 fun register_predicate (constname, intros, elim) thy =
@@ -356,12 +367,14 @@ fun set_needs_random name modes =
 
 fun extend' value_of edges_of key (G, visited) =
   let
-    val (G', v) = case try (Graph.get_node G) key of
+    val (G', v) =
+      (case try (Graph.get_node G) key of
         SOME v => (G, v)
-      | NONE => (Graph.new_node (key, value_of key) G, value_of key)
-    val (G'', visited') = fold (extend' value_of edges_of)
-      (subtract (op =) visited (edges_of (key, v)))
-      (G', key :: visited)
+      | NONE => (Graph.new_node (key, value_of key) G, value_of key))
+    val (G'', visited') =
+      fold (extend' value_of edges_of)
+        (subtract (op =) visited (edges_of (key, v)))
+        (G', key :: visited)
   in
     (fold (Graph.add_edge o (pair key)) (edges_of (key, v)) G'', visited')
   end;
@@ -391,14 +404,15 @@ fun preprocess_intros name thy =
       end))))
     thy  
 
+
 (* registration of alternative function names *)
 
 structure Alt_Compilations_Data = Theory_Data
 (
-  type T = (mode * (compilation_funs -> typ -> term)) list Symtab.table;
-  val empty = Symtab.empty;
-  val extend = I;
-  fun merge data : T = Symtab.merge (K true) data;
+  type T = (mode * (compilation_funs -> typ -> term)) list Symtab.table
+  val empty = Symtab.empty
+  val extend = I
+  fun merge data : T = Symtab.merge (K true) data
 );
 
 fun alternative_compilation_of_global thy pred_name mode =
@@ -416,19 +430,21 @@ fun force_modes_and_compilations pred_name compilations =
       (List.partition (fn (_, (_, random)) => random) compilations)
     val non_random_dummys = map (rpair "dummy") non_random_modes
     val all_dummys = map (rpair "dummy") modes
-    val dummy_function_names = map (rpair all_dummys) Predicate_Compile_Aux.random_compilations
-      @ map (rpair non_random_dummys) Predicate_Compile_Aux.non_random_compilations
+    val dummy_function_names =
+      map (rpair all_dummys) Predicate_Compile_Aux.random_compilations @
+      map (rpair non_random_dummys) Predicate_Compile_Aux.non_random_compilations
     val alt_compilations = map (apsnd fst) compilations
   in
-    PredData.map (Graph.new_node
-      (pred_name, mk_pred_data ((([], SOME @{thm refl}), true), (dummy_function_names, ([], needs_random)))))
+    PredData.map
+      (Graph.new_node
+        (pred_name,
+          mk_pred_data ((([], SOME @{thm refl}), true), (dummy_function_names, ([], needs_random)))))
     #> Alt_Compilations_Data.map (Symtab.insert (K false) (pred_name, alt_compilations))
   end
 
 fun functional_compilation fun_name mode compfuns T =
   let
-    val (inpTs, outpTs) = split_map_modeT (fn _ => fn T => (SOME T, NONE))
-      mode (binder_types T)
+    val (inpTs, outpTs) = split_map_modeT (fn _ => fn T => (SOME T, NONE)) mode (binder_types T)
     val bs = map (pair "x") inpTs
     val bounds = map Bound (rev (0 upto (length bs) - 1))
     val f = Const (fun_name, inpTs ---> HOLogic.mk_tupleT outpTs)
@@ -443,4 +459,4 @@ fun force_modes_and_functions pred_name fun_names =
     (map (fn (mode, (fun_name, random)) => (mode, (functional_compilation fun_name mode, random)))
     fun_names)
 
-end;
+end

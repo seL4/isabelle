@@ -47,7 +47,7 @@ object Document
   type Edit_Text = Edit[Text.Edit, Text.Perspective]
   type Edit_Command = Edit[Command.Edit, Command.Perspective]
 
-  type Blobs = Map[Node.Name, Bytes]
+  type Blobs = Map[Node.Name, (Bytes, Command.File)]
 
   object Node
   {
@@ -192,6 +192,7 @@ object Document
   }
 
   final class Node private(
+    val is_blob: Boolean = false,
     val header: Node.Header = Node.bad_header("Bad theory header"),
     val perspective: Node.Perspective_Command =
       Node.Perspective(false, Command.Perspective.empty, Node.Overlays.empty),
@@ -199,11 +200,13 @@ object Document
   {
     def clear: Node = new Node(header = header)
 
+    def init_blob: Node = new Node(is_blob = true)
+
     def update_header(new_header: Node.Header): Node =
-      new Node(new_header, perspective, _commands)
+      new Node(is_blob, new_header, perspective, _commands)
 
     def update_perspective(new_perspective: Node.Perspective_Command): Node =
-      new Node(header, new_perspective, _commands)
+      new Node(is_blob, header, new_perspective, _commands)
 
     def same_perspective(other_perspective: Node.Perspective_Command): Boolean =
       perspective.required == other_perspective.required &&
@@ -215,7 +218,7 @@ object Document
 
     def update_commands(new_commands: Linear_Set[Command]): Node =
       if (new_commands eq _commands.commands) this
-      else new Node(header, perspective, Node.Commands(new_commands))
+      else new Node(is_blob, header, perspective, Node.Commands(new_commands))
 
     def command_range(i: Text.Offset = 0): Iterator[(Command, Text.Offset)] =
       _commands.range(i)
@@ -361,6 +364,7 @@ object Document
 
     val node_name: Node.Name
     val node: Node
+    val thy_load_commands: List[Command]
     def eq_content(other: Snapshot): Boolean
     def cumulate_markup[A](
       range: Text.Range,
@@ -608,28 +612,51 @@ object Document
         val node_name = name
         val node = version.nodes(name)
 
+        val thy_load_commands: List[Command] =
+          if (node_name.is_theory) Nil
+          else version.nodes.thy_load_commands(node_name)
+
         def eq_content(other: Snapshot): Boolean =
+        {
+          def eq_commands(commands: (Command, Command)): Boolean =
+            state.command_state(version, commands._1) eq_content
+              other.state.command_state(other.version, commands._2)
+
           !is_outdated && !other.is_outdated &&
-            node.commands.size == other.node.commands.size &&
-            ((node.commands.iterator zip other.node.commands.iterator) forall {
-              case (cmd1, cmd2) =>
-                state.command_state(version, cmd1) eq_content
-                  other.state.command_state(other.version, cmd2)
-            })
+          node.commands.size == other.node.commands.size &&
+          (node.commands.iterator zip other.node.commands.iterator).forall(eq_commands) &&
+          thy_load_commands.length == other.thy_load_commands.length &&
+          (thy_load_commands zip other.thy_load_commands).forall(eq_commands)
+        }
 
         def cumulate_markup[A](range: Text.Range, info: A, elements: Option[Set[String]],
           result: Command.State => (A, Text.Markup) => Option[A]): List[Text.Info[A]] =
         {
           val former_range = revert(range)
-          (for {
-            (command, command_start) <- node.command_range(former_range)
-            st = state.command_state(version, command)
-            res = result(st)
-            Text.Info(r0, a) <- st.markup.cumulate[A](
-              (former_range - command_start).restrict(command.range), info, elements,
-              { case (a, Text.Info(r0, b)) => res(a, Text.Info(convert(r0 + command_start), b)) }
-            ).iterator
-          } yield Text.Info(convert(r0 + command_start), a)).toList
+          thy_load_commands match {
+            case thy_load_command :: _ =>
+              val file_name = node_name.node
+              (for {
+                chunk <- thy_load_command.chunks.get(file_name).iterator
+                st = state.command_state(version, thy_load_command)
+                res = result(st)
+                Text.Info(r0, a) <- st.get_markup(file_name).cumulate[A](
+                  former_range.restrict(chunk.range), info, elements,
+                  { case (a, Text.Info(r0, b)) => res(a, Text.Info(convert(r0), b)) }
+                ).iterator
+              } yield Text.Info(convert(r0), a)).toList
+
+            case _ =>
+              (for {
+                (command, command_start) <- node.command_range(former_range)
+                st = state.command_state(version, command)
+                res = result(st)
+                Text.Info(r0, a) <- st.markup.cumulate[A](
+                  (former_range - command_start).restrict(command.range), info, elements,
+                  { case (a, Text.Info(r0, b)) => res(a, Text.Info(convert(r0 + command_start), b)) }
+                ).iterator
+              } yield Text.Info(convert(r0 + command_start), a)).toList
+          }
         }
 
         def select_markup[A](range: Text.Range, elements: Option[Set[String]],

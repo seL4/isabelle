@@ -122,3 +122,6 @@ Known problems
   identifies the JVM platform.  Since a particular Java version is
   always bundled with Isabelle, the resulting settings also provide
   some clues about its platform, without running it.
+
+* Common Unix tools like /bin/sh, /bin/kill, sed, ulimit are
+  notoriously non-portable an should be avoided.

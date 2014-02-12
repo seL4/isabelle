@@ -69,7 +69,7 @@ class JEdit_Editor extends Editor[View]
     val buffer = view.getBuffer
 
     PIDE.document_view(text_area) match {
-      case Some(doc_view) =>
+      case Some(doc_view) if doc_view.model.is_theory =>
         val node = snapshot.version.nodes(doc_view.model.node_name)
         val caret = snapshot.revert(text_area.getCaretPosition)
         if (caret < buffer.getLength) {
@@ -81,7 +81,7 @@ class JEdit_Editor extends Editor[View]
           else None
         }
         else node.commands.reverse.iterator.find(cmd => !cmd.is_ignored)
-      case None =>
+      case _ =>
         PIDE.document_model(buffer) match {
           case Some(model) if !model.is_theory =>
             snapshot.version.nodes.thy_load_commands(model.node_name) match {

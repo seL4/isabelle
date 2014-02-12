@@ -114,12 +114,10 @@ object PIDE
                     val model = Document_Model.init(session, buffer, node_name)
                     (model.init_edits(), model)
                 }
-              if (model.is_theory) {
-                for (text_area <- JEdit_Lib.jedit_text_areas(buffer)) {
-                  if (document_view(text_area).map(_.model) != Some(model))
-                    Document_View.init(model, text_area)
-                }
-              }
+              for {
+                text_area <- JEdit_Lib.jedit_text_areas(buffer)
+                if document_view(text_area).map(_.model) != Some(model)
+              } Document_View.init(model, text_area)
               model_edits ::: edits
             }
           }
@@ -132,8 +130,8 @@ object PIDE
   {
     JEdit_Lib.swing_buffer_lock(buffer) {
       document_model(buffer) match {
-        case Some(model) if model.is_theory => Document_View.init(model, text_area)
-        case _ =>
+        case Some(model) => Document_View.init(model, text_area)
+        case None =>
       }
     }
   }

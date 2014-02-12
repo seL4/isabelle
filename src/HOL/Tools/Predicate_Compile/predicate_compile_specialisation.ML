@@ -6,7 +6,8 @@ Deriving specialised predicates and their intro rules
 
 signature PREDICATE_COMPILE_SPECIALISATION =
 sig
-  val find_specialisations : string list -> (string * thm list) list -> theory -> (string * thm list) list * theory
+  val find_specialisations : string list -> (string * thm list) list ->
+    theory -> (string * thm list) list * theory
 end;
 
 structure Predicate_Compile_Specialisation : PREDICATE_COMPILE_SPECIALISATION =
@@ -17,10 +18,10 @@ open Predicate_Compile_Aux;
 (* table of specialisations *)
 structure Specialisations = Theory_Data
 (
-  type T = (term * term) Item_Net.T;
-  val empty : T = Item_Net.init (op aconv o pairself fst) (single o fst);
-  val extend = I;
-  val merge = Item_Net.merge;
+  type T = (term * term) Item_Net.T
+  val empty : T = Item_Net.init (op aconv o pairself fst) (single o fst)
+  val extend = I
+  val merge = Item_Net.merge
 )
 
 fun specialisation_of thy atom =
@@ -29,7 +30,8 @@ fun specialisation_of thy atom =
 fun import (_, intros) args ctxt =
   let
     val ((_, intros'), ctxt') = Variable.importT intros ctxt
-    val pred' = fst (strip_comb (HOLogic.dest_Trueprop (Logic.strip_imp_concl (prop_of (hd intros')))))
+    val pred' =
+      fst (strip_comb (HOLogic.dest_Trueprop (Logic.strip_imp_concl (prop_of (hd intros')))))
     val Ts = binder_types (fastype_of pred')
     val argTs = map fastype_of args
     val Tsubst = Type.raw_matches (argTs, Ts) Vartab.empty
@@ -42,17 +44,19 @@ fun import (_, intros) args ctxt =
 fun is_nontrivial_constrt thy t =
   let
     val cnstrs = get_constrs thy
-    fun check t = (case strip_comb t of
+    fun check t =
+      (case strip_comb t of
         (Var _, []) => (true, true)
       | (Free _, []) => (true, true)
       | (Const (@{const_name Pair}, _), ts) =>
         pairself (forall I) (split_list (map check ts))
-      | (Const (s, T), ts) => (case (AList.lookup (op =) cnstrs s, body_type T) of
+      | (Const (s, T), ts) =>
+          (case (AList.lookup (op =) cnstrs s, body_type T) of
             (SOME (i, Tname), Type (Tname', _)) => (false,
               length ts = i andalso Tname = Tname' andalso forall (snd o check) ts)
           | _ => (false, false))
       | _ => (false, false))
-  in check t = (false, true) end;
+  in check t = (false, true) end
 
 fun specialise_intros black_list (pred, intros) pats thy =
   let
@@ -89,7 +93,8 @@ fun specialise_intros black_list (pred, intros) pats thy =
         SOME intro
       end handle Pattern.Unif => NONE)
     val specialised_intros_t = map_filter I (map specialise_intro intros)
-    val thy' = Sign.add_consts_i [(Binding.name (Long_Name.base_name constname), constT, NoSyn)] thy
+    val thy' =
+      Sign.add_consts_i [(Binding.name (Long_Name.base_name constname), constT, NoSyn)] thy
     val specialised_intros = map (Skip_Proof.make_thm thy') specialised_intros_t
     val exported_intros = Variable.exportT ctxt' ctxt specialised_intros
     val [t, specialised_t] = Variable.exportT_terms ctxt' ctxt
@@ -123,30 +128,31 @@ and find_specialisations black_list specs thy =
       end
     and restrict_pattern' thy [] free_names = ([], free_names)
       | restrict_pattern' thy ((T, Free (x, _)) :: Tts) free_names =
-      let
-        val (ts', free_names') = restrict_pattern' thy Tts free_names
-      in
-        (Free (x, T) :: ts', free_names')
-      end
+          let
+            val (ts', free_names') = restrict_pattern' thy Tts free_names
+          in
+            (Free (x, T) :: ts', free_names')
+          end
       | restrict_pattern' thy ((T as TFree _, t) :: Tts) free_names =
-        replace_term_and_restrict thy T t Tts free_names
+          replace_term_and_restrict thy T t Tts free_names
       | restrict_pattern' thy ((T as Type (Tcon, _), t) :: Tts) free_names =
         case Ctr_Sugar.ctr_sugar_of ctxt Tcon of
           NONE => replace_term_and_restrict thy T t Tts free_names
-        | SOME {ctrs, ...} => (case strip_comb t of
-          (Const (s, _), ats) =>
-          (case AList.lookup (op =) (map_filter (try dest_Const) ctrs) s of
-            SOME constr_T =>
-              let
-                val (Ts', T') = strip_type constr_T
-                val Tsubst = Type.raw_match (T', T) Vartab.empty
-                val Ts = map (Envir.subst_type Tsubst) Ts'
-                val (bts', free_names') = restrict_pattern' thy ((Ts ~~ ats) @ Tts) free_names
-                val (ats', ts') = chop (length ats) bts'
-              in
-                (list_comb (Const (s, map fastype_of ats' ---> T), ats') :: ts', free_names')
-              end
-            | NONE => replace_term_and_restrict thy T t Tts free_names))
+        | SOME {ctrs, ...} =>
+          (case strip_comb t of
+            (Const (s, _), ats) =>
+              (case AList.lookup (op =) (map_filter (try dest_Const) ctrs) s of
+                SOME constr_T =>
+                  let
+                    val (Ts', T') = strip_type constr_T
+                    val Tsubst = Type.raw_match (T', T) Vartab.empty
+                    val Ts = map (Envir.subst_type Tsubst) Ts'
+                    val (bts', free_names') = restrict_pattern' thy ((Ts ~~ ats) @ Tts) free_names
+                    val (ats', ts') = chop (length ats) bts'
+                  in
+                    (list_comb (Const (s, map fastype_of ats' ---> T), ats') :: ts', free_names')
+                  end
+              | NONE => replace_term_and_restrict thy T t Tts free_names))
     fun restrict_pattern thy Ts args =
       let
         val args = map Logic.unvarify_global args
@@ -155,42 +161,42 @@ and find_specialisations black_list specs thy =
         val (pat, _) = restrict_pattern' thy (Ts ~~ args) free_names
       in map Logic.varify_global pat end
     fun detect' atom thy =
-      case strip_comb atom of
+      (case strip_comb atom of
         (pred as Const (pred_name, _), args) =>
           let
-          val Ts = binder_types (Sign.the_const_type thy pred_name)
-          val pats = restrict_pattern thy Ts args
-        in
-          if (exists (is_nontrivial_constrt thy) pats)
-            orelse (has_duplicates (op =) (fold add_vars pats [])) then
-            let
-              val thy' =
-                case specialisation_of thy atom of
-                  [] =>
-                    if member (op =) ((map fst specs) @ black_list) pred_name then
-                      thy
-                    else
-                      (case try (Core_Data.intros_of (Proof_Context.init_global thy)) pred_name of
-                        NONE => thy
-                      | SOME [] => thy
-                      | SOME intros =>
-                          specialise_intros ((map fst specs) @ (pred_name :: black_list))
-                            (pred, intros) pats thy)
-                  | _ :: _ => thy
+            val Ts = binder_types (Sign.the_const_type thy pred_name)
+            val pats = restrict_pattern thy Ts args
+          in
+            if (exists (is_nontrivial_constrt thy) pats)
+              orelse (has_duplicates (op =) (fold add_vars pats [])) then
+              let
+                val thy' =
+                  (case specialisation_of thy atom of
+                    [] =>
+                      if member (op =) ((map fst specs) @ black_list) pred_name then
+                        thy
+                      else
+                        (case try (Core_Data.intros_of (Proof_Context.init_global thy)) pred_name of
+                          NONE => thy
+                        | SOME [] => thy
+                        | SOME intros =>
+                            specialise_intros ((map fst specs) @ (pred_name :: black_list))
+                              (pred, intros) pats thy)
+                  | _ :: _ => thy)
                 val atom' =
-                  case specialisation_of thy' atom of
+                  (case specialisation_of thy' atom of
                     [] => atom
                   | (t, specialised_t) :: _ =>
                     let
                       val subst = Pattern.match thy' (t, atom) (Vartab.empty, Vartab.empty)
-                    in Envir.subst_term subst specialised_t end handle Pattern.MATCH => atom
-                    (*FIXME: this exception could be caught earlier in specialisation_of *)
-            in
-              (atom', thy')
-            end
-          else (atom, thy)
-        end
-      | _ => (atom, thy)
+                    in Envir.subst_term subst specialised_t end handle Pattern.MATCH => atom)
+                    (*FIXME: this exception could be handled earlier in specialisation_of *)
+              in
+                (atom', thy')
+              end
+            else (atom, thy)
+          end
+      | _ => (atom, thy))
     fun specialise' (constname, intros) thy =
       let
         (* FIXME: only necessary because of sloppy Logic.unvarify in restrict_pattern *)
@@ -203,4 +209,4 @@ and find_specialisations black_list specs thy =
     fold_map specialise' specs thy
   end
 
-end;
+end
