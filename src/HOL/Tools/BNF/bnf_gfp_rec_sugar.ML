@@ -340,22 +340,8 @@ fun massage_corec_code_rhs ctxt massage_ctr =
 fun fold_rev_corec_code_rhs ctxt f =
   fold_rev_let_if_case ctxt (fn conds => uncurry (f conds) o Term.strip_comb);
 
-fun case_thms_of_term ctxt bound_Ts t =
-  let
-    fun ctr_sugar_of_case c s =
-      (case ctr_sugar_of ctxt s of
-        SOME (ctr_sugar as {casex = Const (c', _), sel_splits = _ :: _, ...}) =>
-        if c' = c then SOME ctr_sugar else NONE
-      | _ => NONE);
-    fun add_ctr_sugar (s, Type (@{type_name fun}, [_, T])) =
-        binder_types T
-        |> map_filter (try (fst o dest_Type))
-        |> distinct (op =)
-        |> map_filter (ctr_sugar_of_case s)
-      | add_ctr_sugar _ = [];
-
-    val ctr_sugars = maps add_ctr_sugar (Term.add_consts t []);
-  in
+fun case_thms_of_term ctxt t =
+  let val ctr_sugars = map_filter (Ctr_Sugar.ctr_sugar_of_case ctxt o fst) (Term.add_consts t []) in
     (maps #distincts ctr_sugars, maps #discIs ctr_sugars, maps #disc_exhausts ctr_sugars,
      maps #sel_splits ctr_sugars, maps #sel_split_asms ctr_sugars)
   end;
@@ -1020,12 +1006,12 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
         de_facto_exhaustives disc_eqnss
       |> list_all_fun_args []
     val nchotomy_taut_thmss =
-      map6 (fn tac_opt => fn {disc_exhausts = res_disc_exhausts, ...} => fn arg_Ts =>
+      map5 (fn tac_opt => fn {disc_exhausts = res_disc_exhausts, ...} =>
           fn {code_rhs_opt, ...} :: _ => fn [] => K []
             | [goal] => fn true =>
               let
                 val (_, _, arg_disc_exhausts, _, _) =
-                  case_thms_of_term lthy arg_Ts (the_default Term.dummy code_rhs_opt);
+                  case_thms_of_term lthy (the_default Term.dummy code_rhs_opt);
               in
                 [Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
                    mk_primcorec_nchotomy_tac ctxt (res_disc_exhausts @ arg_disc_exhausts))
@@ -1035,7 +1021,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
               (case tac_opt of
                 SOME tac => [Goal.prove_sorry lthy [] [] goal tac |> Thm.close_derivation]
               | NONE => []))
-        tac_opts corec_specs arg_Tss disc_eqnss nchotomy_goalss syntactic_exhaustives;
+        tac_opts corec_specs disc_eqnss nchotomy_goalss syntactic_exhaustives;
 
     val syntactic_exhaustives =
       map (fn disc_eqns => forall (null o #prems orf is_some o #code_rhs_opt) disc_eqns
@@ -1132,7 +1118,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
               |> HOLogic.mk_Trueprop o HOLogic.mk_eq
               |> curry Logic.list_implies (map HOLogic.mk_Trueprop prems)
               |> curry Logic.list_all (map dest_Free fun_args);
-            val (distincts, _, _, sel_splits, sel_split_asms) = case_thms_of_term lthy [] rhs_term;
+            val (distincts, _, _, sel_splits, sel_split_asms) = case_thms_of_term lthy rhs_term;
           in
             mk_primcorec_sel_tac lthy def_thms distincts sel_splits sel_split_asms nested_maps
               nested_map_idents nested_map_comps sel_corec k m excludesss
@@ -1258,7 +1244,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                       |> pairself (curry mk_Trueprop_eq (applied_fun_of fun_name fun_T fun_args)
                         #> curry Logic.list_all (map dest_Free fun_args));
                     val (distincts, discIs, _, sel_splits, sel_split_asms) =
-                      case_thms_of_term lthy bound_Ts raw_rhs;
+                      case_thms_of_term lthy raw_rhs;
 
                     val raw_code_thm = mk_primcorec_raw_code_tac lthy distincts discIs sel_splits
                         sel_split_asms ms ctr_thms
