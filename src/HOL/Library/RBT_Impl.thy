@@ -1067,7 +1067,7 @@ hide_const (open) map
 subsection {* Folding over entries *}
 
 definition fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> ('a, 'b) rbt \<Rightarrow> 'c \<Rightarrow> 'c" where
-  "fold f t = List.fold (prod_case f) (entries t)"
+  "fold f t = List.fold (case_prod f) (entries t)"
 
 lemma fold_simps [simp]:
   "fold f Empty = id"
@@ -1110,10 +1110,10 @@ lemma rbt_lookup_rbt_bulkload:
 proof -
   obtain ys where "ys = rev xs" by simp
   have "\<And>t. is_rbt t \<Longrightarrow>
-    rbt_lookup (List.fold (prod_case rbt_insert) ys t) = rbt_lookup t ++ map_of (rev ys)"
-      by (induct ys) (simp_all add: rbt_bulkload_def rbt_lookup_rbt_insert prod_case_beta)
+    rbt_lookup (List.fold (case_prod rbt_insert) ys t) = rbt_lookup t ++ map_of (rev ys)"
+      by (induct ys) (simp_all add: rbt_bulkload_def rbt_lookup_rbt_insert case_prod_beta)
   from this Empty_is_rbt have
-    "rbt_lookup (List.fold (prod_case rbt_insert) (rev xs) Empty) = rbt_lookup Empty ++ map_of xs"
+    "rbt_lookup (List.fold (case_prod rbt_insert) (rev xs) Empty) = rbt_lookup Empty ++ map_of xs"
      by (simp add: `ys = rev xs`)
   then show ?thesis by (simp add: rbt_bulkload_def rbt_lookup_Empty foldr_conv_fold)
 qed
@@ -1167,7 +1167,7 @@ lemma rbtreeify_f_code [code]:
           apfst (Branch B t1 k v) (rbtreeify_g n' kvs')
       else case rbtreeify_f n' kvs of (t1, (k, v) # kvs') \<Rightarrow>
           apfst (Branch B t1 k v) (rbtreeify_f n' kvs'))"
-by(subst rbtreeify_f.simps)(simp only: Let_def divmod_nat_div_mod prod.simps)
+by (subst rbtreeify_f.simps) (simp only: Let_def divmod_nat_div_mod prod.case)
 
 lemma rbtreeify_g_code [code]:
   "rbtreeify_g n kvs =
@@ -1178,7 +1178,7 @@ lemma rbtreeify_g_code [code]:
           apfst (Branch B t1 k v) (rbtreeify_g n' kvs')
       else case rbtreeify_f n' kvs of (t1, (k, v) # kvs') \<Rightarrow>
           apfst (Branch B t1 k v) (rbtreeify_g n' kvs'))"
-by(subst rbtreeify_g.simps)(simp only: Let_def divmod_nat_div_mod prod.simps)
+by(subst rbtreeify_g.simps)(simp only: Let_def divmod_nat_div_mod prod.case)
 
 lemma Suc_double_half: "Suc (2 * n) div 2 = n"
 by simp
@@ -1250,8 +1250,8 @@ proof(induction n kvs and n kvs rule: rbtreeify_f_rbtreeify_g.induct)
       with "1.prems" False obtain t1 k' v' kvs''
         where kvs'': "rbtreeify_f (n div 2) kvs = (t1, (k', v') # kvs'')"
          by(cases ?rest1)(auto simp add: snd_def split: prod.split_asm)
-      note this also note prod.simps(2) also note list.simps(5) 
-      also note prod.simps(2) also note snd_apfst
+      note this also note prod.case also note list.simps(5) 
+      also note prod.case also note snd_apfst
       also have "0 < n div 2" "n div 2 \<le> Suc (length kvs'')" 
         using len "1.prems" False unfolding kvs'' by simp_all
       with True kvs''[symmetric] refl refl
@@ -1276,8 +1276,8 @@ proof(induction n kvs and n kvs rule: rbtreeify_f_rbtreeify_g.induct)
       with "1.prems" `\<not> n \<le> 1` obtain t1 k' v' kvs''
         where kvs'': "rbtreeify_f (n div 2) kvs = (t1, (k', v') # kvs'')"
         by(cases ?rest1)(auto simp add: snd_def split: prod.split_asm)
-      note this also note prod.simps(2) also note list.simps(5) 
-      also note prod.simps(2) also note snd_apfst
+      note this also note prod.case also note list.simps(5)
+      also note prod.case also note snd_apfst
       also have "n div 2 \<le> length kvs''" 
         using len "1.prems" False unfolding kvs'' by simp arith
       with False kvs''[symmetric] refl refl
@@ -1315,8 +1315,8 @@ next
       with "2.prems" obtain t1 k' v' kvs''
         where kvs'': "rbtreeify_g (n div 2) kvs = (t1, (k', v') # kvs'')"
         by(cases ?rest1)(auto simp add: snd_def split: prod.split_asm)
-      note this also note prod.simps(2) also note list.simps(5) 
-      also note prod.simps(2) also note snd_apfst
+      note this also note prod.case also note list.simps(5) 
+      also note prod.case also note snd_apfst
       also have "n div 2 \<le> Suc (length kvs'')" 
         using len "2.prems" unfolding kvs'' by simp
       with True kvs''[symmetric] refl refl `0 < n div 2`
@@ -1341,8 +1341,8 @@ next
       with "2.prems" `1 < n` False obtain t1 k' v' kvs'' 
         where kvs'': "rbtreeify_f (n div 2) kvs = (t1, (k', v') # kvs'')"
         by(cases ?rest1)(auto simp add: snd_def split: prod.split_asm, arith)
-      note this also note prod.simps(2) also note list.simps(5) 
-      also note prod.simps(2) also note snd_apfst
+      note this also note prod.case also note list.simps(5) 
+      also note prod.case also note snd_apfst
       also have "n div 2 \<le> Suc (length kvs'')" 
         using len "2.prems" False unfolding kvs'' by simp arith
       with False kvs''[symmetric] refl refl `0 < n div 2`
@@ -1748,14 +1748,14 @@ declare compare_height.simps [code]
 
 hide_type (open) compare
 hide_const (open)
-  compare_height skip_black skip_red LT GT EQ compare_case compare_rec 
-  Abs_compare Rep_compare compare_rep_set
+  compare_height skip_black skip_red LT GT EQ case_compare rec_compare
+  Abs_compare Rep_compare rep_set_compare
 hide_fact (open)
   Abs_compare_cases Abs_compare_induct Abs_compare_inject Abs_compare_inverse
   Rep_compare Rep_compare_cases Rep_compare_induct Rep_compare_inject Rep_compare_inverse
   compare.simps compare.exhaust compare.induct compare.recs compare.simps
   compare.size compare.case_cong compare.weak_case_cong compare.cases 
-  compare.nchotomy compare.split compare.split_asm compare_rec_def
+  compare.nchotomy compare.split compare.split_asm rec_compare_def
   compare.eq.refl compare.eq.simps
   compare.EQ_def compare.GT_def compare.LT_def
   equal_compare_def

@@ -5,10 +5,33 @@
 header {* Datatype option *}
 
 theory Option
-imports Datatype Finite_Set
+imports BNF_LFP Datatype Finite_Set
 begin
 
-datatype 'a option = None | Some 'a
+datatype_new 'a option =
+    =: None
+  | Some (the: 'a)
+
+datatype_new_compat option
+
+lemma [case_names None Some, cases type: option]:
+  -- {* for backward compatibility -- names of variables differ *}
+  "(y = None \<Longrightarrow> P) \<Longrightarrow> (\<And>a. y = Some a \<Longrightarrow> P) \<Longrightarrow> P"
+by (rule option.exhaust)
+
+lemma [case_names None Some, induct type: option]:
+  -- {* for backward compatibility -- names of variables differ *}
+  "P None \<Longrightarrow> (\<And>option. P (Some option)) \<Longrightarrow> P option"
+by (rule option.induct)
+
+-- {* Compatibility *}
+setup {* Sign.mandatory_path "option" *}
+
+lemmas inducts = option.induct
+lemmas recs = option.rec
+lemmas cases = option.case
+
+setup {* Sign.parent_path *}
 
 lemma not_None_eq [iff]: "(x ~= None) = (EX y. x = Some y)"
   by (induct x) auto
@@ -23,7 +46,7 @@ them the uniform iff attribute. *}
 lemma inj_Some [simp]: "inj_on Some A"
 by (rule inj_onI) simp
 
-lemma option_caseE:
+lemma case_optionE:
   assumes c: "(case x of None => P | Some y => Q y)"
   obtains
     (None) "x = None" and P
@@ -40,9 +63,6 @@ lemma UNIV_option_conv: "UNIV = insert None (range Some)"
 by(auto intro: classical)
 
 subsubsection {* Operations *}
-
-primrec the :: "'a option => 'a" where
-"the (Some x) = x"
 
 primrec set :: "'a option => 'a set" where
 "set None = {}" |
@@ -80,8 +100,8 @@ lemma option_map_comp:
     "map f (map g opt) = map (f o g) opt"
   by (simp add: map_def split add: option.split)
 
-lemma option_map_o_sum_case [simp]:
-    "map f o sum_case g h = sum_case (map f o g) (map f o h)"
+lemma option_map_o_case_sum [simp]:
+    "map f o case_sum g h = case_sum (map f o g) (map f o h)"
   by (rule ext) (simp split: sum.split)
 
 lemma map_cong: "x = y \<Longrightarrow> (\<And>a. y = Some a \<Longrightarrow> f a = g a) \<Longrightarrow> map f x = map g y"
@@ -104,8 +124,8 @@ next
   qed
 qed
 
-lemma option_case_map [simp]:
-  "option_case g h (Option.map f x) = option_case g (h \<circ> f) x"
+lemma case_option_map [simp]:
+  "case_option g h (Option.map f x) = case_option g (h \<circ> f) x"
   by (cases x) simp_all
 
 primrec bind :: "'a option \<Rightarrow> ('a \<Rightarrow> 'b option) \<Rightarrow> 'b option" where

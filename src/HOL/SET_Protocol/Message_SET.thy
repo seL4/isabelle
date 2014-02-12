@@ -80,7 +80,7 @@ translations
 
 
 definition nat_of_agent :: "agent => nat" where
-   "nat_of_agent == agent_case (curry prod_encode 0)
+   "nat_of_agent == case_agent (curry prod_encode 0)
                                (curry prod_encode 1)
                                (curry prod_encode 2)
                                (curry prod_encode 3)

@@ -636,8 +636,8 @@ next
   thus ?thesis by simp
 qed
 
-text{*\index{cases@@{text"cases"}|(}Function @{text tl} (''tail'') is defined by @{thm tl.simps(1)} and
-@{thm tl.simps(2)}. Note that the result type of @{const length} is @{typ nat}
+text{*\index{cases@@{text"cases"}|(}Function @{text tl} (''tail'') is defined by @{thm list.sel(2)} and
+@{thm list.sel(3)}. Note that the result type of @{const length} is @{typ nat}
 and @{prop"0 - 1 = (0::nat)"}.
 
 This proof pattern works for any term @{text t} whose type is a datatype.

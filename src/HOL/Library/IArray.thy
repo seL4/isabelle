@@ -63,11 +63,11 @@ lemma [code]:
 by (cases as) simp
 
 lemma [code]:
-"iarray_rec f as = f (IArray.list_of as)"
+"rec_iarray f as = f (IArray.list_of as)"
 by (cases as) simp
 
 lemma [code]:
-"iarray_case f as = f (IArray.list_of as)"
+"case_iarray f as = f (IArray.list_of as)"
 by (cases as) simp
 
 lemma [code]:

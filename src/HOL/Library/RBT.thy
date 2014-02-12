@@ -135,7 +135,7 @@ lemma lookup_map [simp]:
   by transfer (rule rbt_lookup_map)
 
 lemma fold_fold:
-  "fold f t = List.fold (prod_case f) (entries t)"
+  "fold f t = List.fold (case_prod f) (entries t)"
   by transfer (rule RBT_Impl.fold_def)
 
 lemma impl_of_empty:
@@ -175,7 +175,7 @@ lemma keys_entries: "(k \<in> set (keys t)) = (\<exists>v. (k, v) \<in> set (ent
   by transfer (simp add: keys_entries)
 
 lemma fold_def_alt:
-  "fold f t = List.fold (prod_case f) (entries t)"
+  "fold f t = List.fold (case_prod f) (entries t)"
   by transfer (auto simp: RBT_Impl.fold_def)
 
 lemma distinct_entries: "distinct (List.map fst (entries t))"

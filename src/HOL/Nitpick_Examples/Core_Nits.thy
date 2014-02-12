@@ -925,18 +925,6 @@ lemma "(x\<Colon>'a) = (case True of True \<Rightarrow> x | False \<Rightarrow> 
 nitpick [card = 2, expect = none]
 by auto
 
-lemma "bool_rec x y True = x"
-nitpick [card = 2, expect = none]
-by auto
-
-lemma "bool_rec x y False = y"
-nitpick [card = 2, expect = none]
-by auto
-
-lemma "(x\<Colon>bool) = bool_rec x x True"
-nitpick [card = 2, expect = none]
-by auto
-
 lemma "x = (case (x, y) of (x', y') \<Rightarrow> x')"
 nitpick [expect = none]
 sorry

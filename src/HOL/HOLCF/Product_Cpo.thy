@@ -213,7 +213,7 @@ lemmas cont2cont_fst [simp, cont2cont] = cont_compose [OF cont_fst]
 
 lemmas cont2cont_snd [simp, cont2cont] = cont_compose [OF cont_snd]
 
-lemma cont2cont_prod_case:
+lemma cont2cont_case_prod:
   assumes f1: "\<And>a b. cont (\<lambda>x. f x a b)"
   assumes f2: "\<And>x b. cont (\<lambda>a. f x a b)"
   assumes f3: "\<And>x a. cont (\<lambda>b. f x a b)"
@@ -233,7 +233,7 @@ lemma prod_contI:
   shows "cont f"
 proof -
   have "cont (\<lambda>(x, y). f (x, y))"
-    by (intro cont2cont_prod_case f1 f2 cont2cont)
+    by (intro cont2cont_case_prod f1 f2 cont2cont)
   thus "cont f"
     by (simp only: split_eta)
 qed
@@ -246,11 +246,11 @@ apply (erule cont_compose [OF _ cont_pair2])
 apply (simp only: prod_contI)
 done
 
-lemma cont2cont_prod_case' [simp, cont2cont]:
+lemma cont2cont_case_prod' [simp, cont2cont]:
   assumes f: "cont (\<lambda>p. f (fst p) (fst (snd p)) (snd (snd p)))"
   assumes g: "cont (\<lambda>x. g x)"
-  shows "cont (\<lambda>x. prod_case (f x) (g x))"
-using assms by (simp add: cont2cont_prod_case prod_cont_iff)
+  shows "cont (\<lambda>x. case_prod (f x) (g x))"
+using assms by (simp add: cont2cont_case_prod prod_cont_iff)
 
 text {* The simple version (due to Joachim Breitner) is needed if
   either element type of the pair is not a cpo. *}
@@ -262,10 +262,10 @@ using assms by (cases p) auto
 
 text {* Admissibility of predicates on product types. *}
 
-lemma adm_prod_case [simp]:
+lemma adm_case_prod [simp]:
   assumes "adm (\<lambda>x. P x (fst (f x)) (snd (f x)))"
   shows "adm (\<lambda>x. case f x of (a, b) \<Rightarrow> P x a b)"
-unfolding prod_case_beta using assms .
+unfolding case_prod_beta using assms .
 
 subsection {* Compactness and chain-finiteness *}
 

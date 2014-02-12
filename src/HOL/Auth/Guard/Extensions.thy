@@ -410,6 +410,7 @@ by (auto dest: knows_sub_Cons [THEN subsetD])
 lemma knows_sub_app: "knows A evs <= knows A (evs @ evs')"
 apply (induct evs, auto)
 apply (simp add: knows_decomp)
+apply (rename_tac a b c)
 by (case_tac a, auto simp: knows.simps)
 
 subsubsection{*maximum knowledge an agent can have
@@ -504,7 +505,8 @@ lemma used'_sub_app: "used' evs <= used' (evs@evs')"
 by (induct evs, auto split: event.split)
 
 lemma used'_parts [rule_format]: "X:used' evs ==> Y:parts {X} --> Y:used' evs"
-apply (induct evs, simp) 
+apply (induct evs, simp)
+apply (rename_tac a b)
 apply (case_tac a, simp_all) 
 apply (blast dest: parts_trans)+; 
 done
@@ -521,7 +523,7 @@ lemma notin_used_ConsD: "X ~:used (ev#evs) ==> X ~:used evs"
 by (auto dest: used_sub_Cons [THEN subsetD])
 
 lemma used_appD [dest]: "X:used (evs @ evs') ==> X:used evs | X:used evs'"
-by (induct evs, auto, case_tac a, auto)
+by (induct evs, auto, rename_tac a b, case_tac a, auto)
 
 lemma used_ConsD: "X:used (ev#evs) ==> X:used [ev] | X:used evs"
 by (case_tac ev, auto)
@@ -572,6 +574,7 @@ lemma known_used [rule_format]: "[| evs:p; Gets_correct p; one_step p |]
 apply (case_tac "A=Spy", blast)
 apply (induct evs)
 apply (simp add: used.simps, blast)
+apply (rename_tac a evs)
 apply (frule_tac ev=a and evs=evs in one_step_Cons, simp, clarify)
 apply (drule_tac P="%G. X:parts G" in knows_Cons_substD, safe)
 apply (erule initState_used)
@@ -585,6 +588,7 @@ apply (case_tac "A=Spy")
 apply force
 apply (induct evs)
 apply (simp add: knows_max_def used.simps, blast)
+apply (rename_tac a evs)
 apply (frule_tac ev=a and evs=evs in one_step_Cons, simp, clarify)
 apply (drule_tac P="%G. X:parts G" in knows_max_Cons_substD, safe)
 apply (case_tac a, auto)

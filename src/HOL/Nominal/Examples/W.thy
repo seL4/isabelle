@@ -1,5 +1,5 @@
 theory W
-imports Nominal
+imports "../Nominal"
 begin
 
 text {* Example for strong induction rules avoiding sets of atoms. *}
@@ -388,6 +388,7 @@ lemma ftv_Ctxt:
   shows "supp \<Gamma> = set (ftv \<Gamma>)"
 apply (induct \<Gamma>)
 apply (simp_all add: supp_list_nil supp_list_cons)
+apply (rename_tac a \<Gamma>')
 apply (case_tac a)
 apply (simp add: supp_prod supp_atm ftv_tyS)
 done
@@ -443,6 +444,7 @@ lemma fresh_gen_set:
 using asm
 apply(induct Xs)
 apply(simp)
+apply(rename_tac a Xs')
 apply(case_tac "X=a")
 apply(simp add: abs_fresh)
 apply(simp add: abs_fresh)

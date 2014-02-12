@@ -829,7 +829,7 @@ fun prepare_function config defname [((fname, fT), mixfix)] abstract_qglrs lthy 
   let
     val FunctionConfig {domintros, default=default_opt, ...} = config
 
-    val default_str = the_default "%x. undefined" default_opt (*FIXME dynamic scoping*)
+    val default_str = the_default "%x. HOL.undefined" default_opt
     val fvar = Free (fname, fT)
     val domT = domain_type fT
     val ranT = range_type fT

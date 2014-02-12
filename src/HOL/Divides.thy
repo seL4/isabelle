@@ -928,7 +928,7 @@ end
 
 lemma divmod_nat_if [code]: "divmod_nat m n = (if n = 0 \<or> m < n then (0, m) else
   let (q, r) = divmod_nat (m - n) n in (Suc q, r))"
-  by (simp add: prod_eq_iff prod_case_beta not_less le_div_geq le_mod_geq)
+  by (simp add: prod_eq_iff case_prod_beta not_less le_div_geq le_mod_geq)
 
 text {* Simproc for cancelling @{const div} and @{const mod} *}
 

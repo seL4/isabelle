@@ -464,7 +464,7 @@ session "HOL-IOA" in IOA = HOL +
     Author:     Tobias Nipkow and Konrad Slind and Olaf Müller
     Copyright   1994--1996  TU Muenchen
 
-    The meta theory of I/O-Automata in HOL. This formalization has been
+    The meta-theory of I/O-Automata in HOL. This formalization has been
     significantly changed and extended, see HOLCF/IOA. There are also the
     proofs of two communication protocols which formerly have been here.
 

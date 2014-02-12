@@ -289,7 +289,7 @@ lemma infinite_countable_subset:
   shows "\<exists>f. inj (f::nat \<Rightarrow> 'a) \<and> range f \<subseteq> S"
   -- {* Courtesy of Stephan Merz *}
 proof -
-  def Sseq \<equiv> "nat_rec S (\<lambda>n T. T - {SOME e. e \<in> T})"
+  def Sseq \<equiv> "rec_nat S (\<lambda>n T. T - {SOME e. e \<in> T})"
   def pick \<equiv> "\<lambda>n. (SOME e. e \<in> Sseq n)"
   { fix n have "Sseq n \<subseteq> S" "\<not> finite (Sseq n)" by (induct n) (auto simp add: Sseq_def inf) }
   moreover then have *: "\<And>n. pick n \<in> Sseq n" by (metis someI_ex pick_def ex_in_conv finite.simps)
@@ -534,8 +534,8 @@ apply (rule iffI)
  apply (erule exE)
  apply (erule_tac x = "{w. \<exists>i. w=f i}" in allE, blast)
 apply (erule contrapos_np, simp, clarify)
-apply (subgoal_tac "\<forall>n. nat_rec x (%i y. @z. z:Q & (z,y) :r) n \<in> Q")
- apply (rule_tac x = "nat_rec x (%i y. @z. z:Q & (z,y) :r)" in exI)
+apply (subgoal_tac "\<forall>n. rec_nat x (%i y. @z. z:Q & (z,y) :r) n \<in> Q")
+ apply (rule_tac x = "rec_nat x (%i y. @z. z:Q & (z,y) :r)" in exI)
  apply (rule allI, simp)
  apply (rule someI2_ex, blast, blast)
 apply (rule allI)

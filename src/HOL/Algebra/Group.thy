@@ -34,13 +34,13 @@ consts
 
 overloading nat_pow == "pow :: [_, 'a, nat] => 'a"
 begin
-  definition "nat_pow G a n = nat_rec \<one>\<^bsub>G\<^esub> (%u b. b \<otimes>\<^bsub>G\<^esub> a) n"
+  definition "nat_pow G a n = rec_nat \<one>\<^bsub>G\<^esub> (%u b. b \<otimes>\<^bsub>G\<^esub> a) n"
 end
 
 overloading int_pow == "pow :: [_, 'a, int] => 'a"
 begin
   definition "int_pow G a z =
-   (let p = nat_rec \<one>\<^bsub>G\<^esub> (%u b. b \<otimes>\<^bsub>G\<^esub> a)
+   (let p = rec_nat \<one>\<^bsub>G\<^esub> (%u b. b \<otimes>\<^bsub>G\<^esub> a)
     in if z < 0 then inv\<^bsub>G\<^esub> (p (nat (-z))) else p (nat z))"
 end
 

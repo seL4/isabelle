@@ -210,14 +210,14 @@ lemma sum_INDUCT:
 
 lemma sum_RECURSION:
   "\<forall>Inl' Inr'. \<exists>fn. (\<forall>a :: 'A. fn (Inl a) = (Inl' a :: 'Z)) \<and> (\<forall>a :: 'B. fn (Inr a) = Inr' a)"
-  by (intro allI, rule_tac x="sum_case Inl' Inr'" in exI) auto
+  by (intro allI, rule_tac x="case_sum Inl' Inr'" in exI) auto
 
-lemma OUTL[import_const "OUTL" : "Sum_Type.Projl"]:
-  "Sum_Type.Projl (Inl x) = x"
+lemma OUTL[import_const "OUTL" : "Sum_Type.projl"]:
+  "Sum_Type.projl (Inl x) = x"
   by simp
 
-lemma OUTR[import_const "OUTR" : "Sum_Type.Projr"]:
-  "Sum_Type.Projr (Inr y) = y"
+lemma OUTR[import_const "OUTR" : "Sum_Type.projr"]:
+  "Sum_Type.projr (Inr y) = y"
   by simp
 
 import_type_map list : List.list
@@ -230,13 +230,13 @@ lemma list_INDUCT:
 
 lemma list_RECURSION:
  "\<forall>nil' cons'. \<exists>fn\<Colon>'A list \<Rightarrow> 'Z. fn [] = nil' \<and> (\<forall>(a0\<Colon>'A) a1\<Colon>'A list. fn (a0 # a1) = cons' a0 a1 (fn a1))"
-  by (intro allI, rule_tac x="list_rec nil' cons'" in exI) auto
+  by (intro allI, rule_tac x="rec_list nil' cons'" in exI) auto
 
-lemma HD[import_const HD : List.hd]:
+lemma HD[import_const HD : List.list.hd]:
   "hd ((h\<Colon>'A) # t) = h"
   by simp
 
-lemma TL[import_const TL : List.tl]:
+lemma TL[import_const TL : List.list.tl]:
   "tl ((h\<Colon>'A) # t) = t"
   by simp
 

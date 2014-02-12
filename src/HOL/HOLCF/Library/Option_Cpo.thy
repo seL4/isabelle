@@ -117,7 +117,7 @@ lemmas ch2ch_Some [simp] = ch2ch_cont [OF cont_Some]
 
 lemmas lub_Some = cont2contlubE [OF cont_Some, symmetric]
 
-lemma cont2cont_option_case:
+lemma cont2cont_case_option:
   assumes f: "cont (\<lambda>x. f x)"
   assumes g: "cont (\<lambda>x. g x)"
   assumes h1: "\<And>a. cont (\<lambda>x. h x a)"
@@ -134,16 +134,16 @@ apply (erule cont2monofunE [OF h2 chainE])
 apply (case_tac y, simp_all add: g h1)
 done
 
-lemma cont2cont_option_case' [simp, cont2cont]:
+lemma cont2cont_case_option' [simp, cont2cont]:
   assumes f: "cont (\<lambda>x. f x)"
   assumes g: "cont (\<lambda>x. g x)"
   assumes h: "cont (\<lambda>p. h (fst p) (snd p))"
   shows "cont (\<lambda>x. case f x of None \<Rightarrow> g x | Some a \<Rightarrow> h x a)"
-using assms by (simp add: cont2cont_option_case prod_cont_iff)
+using assms by (simp add: cont2cont_case_option prod_cont_iff)
 
 text {* Simple version for when the element type is not a cpo. *}
 
-lemma cont2cont_option_case_simple [simp, cont2cont]:
+lemma cont2cont_case_option_simple [simp, cont2cont]:
   assumes "cont (\<lambda>x. f x)"
   assumes "\<And>a. cont (\<lambda>x. g x a)"
   shows "cont (\<lambda>x. case z of None \<Rightarrow> f x | Some a \<Rightarrow> g x a)"

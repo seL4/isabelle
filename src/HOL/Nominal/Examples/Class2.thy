@@ -2881,7 +2881,7 @@ apply(blast)
 done
 
 termination
-apply(relation "measure (sum_case (size\<circ>fst) (size\<circ>fst))")
+apply(relation "measure (case_sum (size\<circ>fst) (size\<circ>fst))")
 apply(simp_all)
 done
 

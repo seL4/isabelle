@@ -102,10 +102,10 @@ instantiation bit :: field_inverse_zero
 begin
 
 definition plus_bit_def:
-  "x + y = bit_case y (bit_case 1 0 y) x"
+  "x + y = case_bit y (case_bit 1 0 y) x"
 
 definition times_bit_def:
-  "x * y = bit_case 0 y x"
+  "x * y = case_bit 0 y x"
 
 definition uminus_bit_def [simp]:
   "- x = (x :: bit)"
@@ -167,7 +167,7 @@ begin
 
 definition of_bit :: "bit \<Rightarrow> 'a"
 where
-  "of_bit b = bit_case 0 1 b" 
+  "of_bit b = case_bit 0 1 b" 
 
 lemma of_bit_eq [simp, code]:
   "of_bit 0 = 0"

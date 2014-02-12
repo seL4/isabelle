@@ -71,23 +71,23 @@ proof
     by (induct x) auto
 qed
 
-subsection {* Continuity of @{const lift_case} *}
+subsection {* Continuity of @{const case_lift} *}
 
-lemma lift_case_eq: "lift_case \<bottom> f x = fup\<cdot>(\<Lambda> y. f (undiscr y))\<cdot>(Rep_lift x)"
+lemma case_lift_eq: "case_lift \<bottom> f x = fup\<cdot>(\<Lambda> y. f (undiscr y))\<cdot>(Rep_lift x)"
 apply (induct x, unfold lift.cases)
 apply (simp add: Rep_lift_strict)
 apply (simp add: Def_def Abs_lift_inverse)
 done
 
-lemma cont2cont_lift_case [simp]:
-  "\<lbrakk>\<And>y. cont (\<lambda>x. f x y); cont g\<rbrakk> \<Longrightarrow> cont (\<lambda>x. lift_case \<bottom> (f x) (g x))"
-unfolding lift_case_eq by (simp add: cont_Rep_lift)
+lemma cont2cont_case_lift [simp]:
+  "\<lbrakk>\<And>y. cont (\<lambda>x. f x y); cont g\<rbrakk> \<Longrightarrow> cont (\<lambda>x. case_lift \<bottom> (f x) (g x))"
+unfolding case_lift_eq by (simp add: cont_Rep_lift)
 
 subsection {* Further operations *}
 
 definition
   flift1 :: "('a \<Rightarrow> 'b::pcpo) \<Rightarrow> ('a lift \<rightarrow> 'b)"  (binder "FLIFT " 10)  where
-  "flift1 = (\<lambda>f. (\<Lambda> x. lift_case \<bottom> f x))"
+  "flift1 = (\<lambda>f. (\<Lambda> x. case_lift \<bottom> f x))"
 
 translations
   "\<Lambda>(XCONST Def x). t" => "CONST flift1 (\<lambda>x. t)"

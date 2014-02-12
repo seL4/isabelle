@@ -12,7 +12,6 @@ sig
   type nonemptiness_witness = {I: int list, wit: term, prop: thm list}
 
   val morph_bnf: morphism -> bnf -> bnf
-  val eq_bnf: bnf * bnf -> bool
   val bnf_of: Proof.context -> string -> bnf option
   val register_bnf: string -> (bnf * local_theory) -> (bnf * local_theory)
 
@@ -452,16 +451,12 @@ fun morph_bnf phi (BNF {name = name, T = T, live = live, lives = lives, lives' =
     wits = List.map (morph_witness phi) wits,
     rel = Morphism.term phi rel};
 
-fun eq_bnf (BNF {T = T1, live = live1, dead = dead1, ...},
-  BNF {T = T2, live = live2, dead = dead2, ...}) =
-  Type.could_unify (T1, T2) andalso live1 = live2 andalso dead1 = dead2;
-
 structure Data = Generic_Data
 (
   type T = bnf Symtab.table;
   val empty = Symtab.empty;
   val extend = I;
-  val merge = Symtab.merge eq_bnf;
+  fun merge data : T = Symtab.merge (K true) data;
 );
 
 fun bnf_of ctxt =

@@ -860,7 +860,7 @@ using p proof (induct rule: path.induct)
   have "subtr (insert n ?ns1) (f (last (n1 # nl))) (f n)"
   using f subtr.Step[OF _ fn1_flast fn1] by auto
   thus ?case unfolding 1 by simp
-qed (metis f hd.simps last_ConsL last_in_set not_Cons_self2 subtr.Refl)
+qed (metis f list.sel(1) last_ConsL last_in_set not_Cons_self2 subtr.Refl)
 
 lemma reg_subtr_path_aux:
 assumes f: "reg f tr" and n: "subtr ns tr1 tr"
@@ -878,7 +878,7 @@ next
   obtain nl where nl: "path f nl" and f_nl: "f (hd nl) = tr1"
   and last_nl: "f (last nl) = tr2" and set: "set nl \<subseteq> ns" using Step(3)[OF tr1] by auto
   have 0: "path f (root tr # nl)" apply (subst path.simps)
-  using f_nl nl reg_root tr tr1_tr by (metis hd.simps neq_Nil_conv)
+  using f_nl nl reg_root tr tr1_tr by (metis list.sel(1) neq_Nil_conv)
   show ?case apply(rule exI[of _ "(root tr) # nl"])
   using 0 reg_root tr last_nl nl path_NE rtr set by auto
 qed

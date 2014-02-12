@@ -148,15 +148,15 @@ text {*
   \noindent It is good style, although no absolute requirement, to
   provide code equations for the original artefacts of the implemented
   type, if possible; in our case, these are the datatype constructor
-  @{const Queue} and the case combinator @{const queue_case}:
+  @{const Queue} and the case combinator @{const case_queue}:
 *}
 
 lemma %quote Queue_AQueue [code]:
   "Queue = AQueue []"
   by (simp add: AQueue_def fun_eq_iff)
 
-lemma %quote queue_case_AQueue [code]:
-  "queue_case f (AQueue xs ys) = f (ys @ rev xs)"
+lemma %quote case_queue_AQueue [code]:
+  "case_queue f (AQueue xs ys) = f (ys @ rev xs)"
   by (simp add: AQueue_def)
 
 text {*
@@ -164,7 +164,7 @@ text {*
 *}
 
 text %quotetypewriter {*
-  @{code_stmts empty enqueue dequeue Queue queue_case (SML)}
+  @{code_stmts empty enqueue dequeue Queue case_queue (SML)}
 *}
 
 text {*
@@ -274,4 +274,3 @@ text {*
 *}
 
 end
-

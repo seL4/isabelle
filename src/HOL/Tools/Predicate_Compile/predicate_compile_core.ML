@@ -814,13 +814,14 @@ fun find_switch_test ctxt (i, is) (ts, _) =
     case T of
       TFree _ => NONE
     | Type (Tcon, _) =>
-      (case Datatype.get_constrs (Proof_Context.theory_of ctxt) Tcon of
+      (case Ctr_Sugar.ctr_sugar_of ctxt Tcon of
         NONE => NONE
-      | SOME cs =>
+      | SOME {ctrs, ...} =>
         (case strip_comb t of
           (Var _, []) => NONE
         | (Free _, []) => NONE
-        | (Const (c, T), _) => if AList.defined (op =) cs c then SOME (c, T) else NONE))
+        | (Const (c, T), _) =>
+          if AList.defined (op =) (map_filter (try dest_Const) ctrs) c then SOME (c, T) else NONE))
   end
 
 fun partition_clause ctxt pos moded_clauses =
@@ -991,7 +992,7 @@ fun compile_pred options compilation_modifiers ctxt all_vs param_vs s T (pol, mo
 
 (* Definition of executable functions and their intro and elim rules *)
 
-fun strip_split_abs (Const (@{const_name prod_case}, _) $ t) = strip_split_abs t
+fun strip_split_abs (Const (@{const_name case_prod}, _) $ t) = strip_split_abs t
   | strip_split_abs (Abs (_, _, t)) = strip_split_abs t
   | strip_split_abs t = t
 

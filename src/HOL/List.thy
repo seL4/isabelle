@@ -8,9 +8,32 @@ theory List
 imports Presburger Code_Numeral Quotient Lifting_Set Lifting_Option Lifting_Product
 begin
 
-datatype 'a list =
-    Nil    ("[]")
-  | Cons 'a  "'a list"    (infixr "#" 65)
+datatype_new 'a list =
+    =: Nil (defaults tl: "[]")  ("[]")
+  | Cons (hd: 'a) (tl: "'a list")  (infixr "#" 65)
+
+datatype_new_compat list
+
+thm list.exhaust[no_vars]
+
+lemma [case_names Nil Cons, cases type: list]:
+  -- {* for backward compatibility -- names of variables differ *}
+  "(y = [] \<Longrightarrow> P) \<Longrightarrow> (\<And>a list. y = a # list \<Longrightarrow> P) \<Longrightarrow> P"
+by (rule list.exhaust)
+
+lemma [case_names Nil Cons, induct type: list]:
+  -- {* for backward compatibility -- names of variables differ *}
+  "P [] \<Longrightarrow> (\<And>a list. P list \<Longrightarrow> P (a # list)) \<Longrightarrow> P list"
+by (rule list.induct)
+
+-- {* Compatibility *}
+setup {* Sign.mandatory_path "list" *}
+
+lemmas inducts = list.induct
+lemmas recs = list.rec
+lemmas cases = list.case
+
+setup {* Sign.parent_path *}
 
 syntax
   -- {* list Enumeration *}
@@ -22,13 +45,6 @@ translations
 
 
 subsection {* Basic list processing functions *}
-
-primrec hd :: "'a list \<Rightarrow> 'a" where
-"hd (x # xs) = x"
-
-primrec tl :: "'a list \<Rightarrow> 'a list" where
-"tl [] = []" |
-"tl (x # xs) = xs"
 
 primrec last :: "'a list \<Rightarrow> 'a" where
 "last (x # xs) = (if xs = [] then x else last xs)"
@@ -1632,10 +1648,10 @@ done
 lemma set_conv_nth: "set xs = {xs!i | i. i < length xs}"
 apply (induct xs, simp, simp)
 apply safe
-apply (metis nat_case_0 nth.simps zero_less_Suc)
+apply (metis nat.cases(1) nth.simps zero_less_Suc)
 apply (metis less_Suc_eq_0_disj nth_Cons_Suc)
 apply (case_tac i, simp)
-apply (metis diff_Suc_Suc nat_case_Suc nth.simps zero_less_diff)
+apply (metis diff_Suc_Suc nat.cases(2) nth.simps zero_less_diff)
 done
 
 lemma in_set_conv_nth: "(x \<in> set xs) = (\<exists>i < length xs. xs!i = x)"
@@ -3379,7 +3395,8 @@ lemma distinct_singleton: "distinct [x]" by simp
 
 lemma distinct_length_2_or_more:
 "distinct (a # b # xs) \<longleftrightarrow> (a \<noteq> b \<and> distinct (a # xs) \<and> distinct (b # xs))"
-by (metis distinct.simps(2) hd.simps hd_in_set list.simps(2) set_ConsD set_rev_mp set_subset_Cons)
+by (metis distinct.simps(2) list.sel(1) hd_in_set list.simps(2) set_ConsD set_rev_mp
+      set_subset_Cons)
 
 lemma remdups_adj_Cons: "remdups_adj (x # xs) =
   (case remdups_adj xs of [] \<Rightarrow> [x] | y # xs \<Rightarrow> if x = y then y # xs else x # y # xs)"
@@ -4275,12 +4292,12 @@ function transpose where
 by pat_completeness auto
 
 lemma transpose_aux_filter_head:
-  "concat (map (list_case [] (\<lambda>h t. [h])) xss) =
+  "concat (map (case_list [] (\<lambda>h t. [h])) xss) =
   map (\<lambda>xs. hd xs) [ys\<leftarrow>xss . ys \<noteq> []]"
   by (induct xss) (auto split: list.split)
 
 lemma transpose_aux_filter_tail:
-  "concat (map (list_case [] (\<lambda>h t. [t])) xss) =
+  "concat (map (case_list [] (\<lambda>h t. [t])) xss) =
   map (\<lambda>xs. tl xs) [ys\<leftarrow>xss . ys \<noteq> []]"
   by (induct xss) (auto split: list.split)
 
@@ -4354,13 +4371,13 @@ using assms proof (induct arbitrary: i rule: transpose.induct)
       by (cases x) simp_all
     } note *** = this
 
-    have j_less: "j < length (transpose (xs # concat (map (list_case [] (\<lambda>h t. [t])) xss)))"
+    have j_less: "j < length (transpose (xs # concat (map (case_list [] (\<lambda>h t. [t])) xss)))"
       using "3.prems" by (simp add: transpose_aux_filter_tail length_transpose Suc)
 
     show ?thesis
       unfolding transpose.simps `i = Suc j` nth_Cons_Suc "3.hyps"[OF j_less]
       apply (auto simp: transpose_aux_filter_tail filter_map comp_def length_transpose * ** *** XS_def[symmetric])
-      apply (rule_tac y=x in list.exhaust)
+      apply (rule list.exhaust)
       by auto
   qed
 qed simp_all
@@ -6672,19 +6689,19 @@ lemma Cons_transfer [transfer_rule]:
   "(A ===> list_all2 A ===> list_all2 A) Cons Cons"
   unfolding fun_rel_def by simp
 
-lemma list_case_transfer [transfer_rule]:
+lemma case_list_transfer [transfer_rule]:
   "(B ===> (A ===> list_all2 A ===> B) ===> list_all2 A ===> B)
-    list_case list_case"
+    case_list case_list"
   unfolding fun_rel_def by (simp split: list.split)
 
-lemma list_rec_transfer [transfer_rule]:
+lemma rec_list_transfer [transfer_rule]:
   "(B ===> (A ===> list_all2 A ===> B ===> B) ===> list_all2 A ===> B)
-    list_rec list_rec"
+    rec_list rec_list"
   unfolding fun_rel_def by (clarify, erule list_all2_induct, simp_all)
 
 lemma tl_transfer [transfer_rule]:
   "(list_all2 A ===> list_all2 A) tl tl"
-  unfolding tl_def by transfer_prover
+  unfolding tl_def[abs_def] by transfer_prover
 
 lemma butlast_transfer [transfer_rule]:
   "(list_all2 A ===> list_all2 A) butlast butlast"
@@ -6875,47 +6892,5 @@ lemma listsum_transfer[transfer_rule]:
   by transfer_prover
 
 end
-
-
-subsection {* BNF setup *}
-
-bnf "'a list"
-  map: map
-  sets: set
-  bd: natLeq
-  wits: Nil
-  rel: list_all2
-proof -
-  show "map id = id" by (rule List.map.id)
-next
-  fix f g
-  show "map (g o f) = map g o map f" by (rule List.map.comp[symmetric])
-next
-  fix x f g
-  assume "\<And>z. z \<in> set x \<Longrightarrow> f z = g z"
-  thus "map f x = map g x" by simp
-next
-  fix f
-  show "set o map f = image f o set" by (rule ext, unfold comp_apply, rule set_map)
-next
-  show "card_order natLeq" by (rule natLeq_card_order)
-next
-  show "cinfinite natLeq" by (rule natLeq_cinfinite)
-next
-  fix x
-  show "|set x| \<le>o natLeq"
-    by (metis List.finite_set finite_iff_ordLess_natLeq ordLess_imp_ordLeq)
-next
-  fix R S
-  show "list_all2 R OO list_all2 S \<le> list_all2 (R OO S)"
-    by (metis list_all2_OO order_refl)
-next
-  fix R
-  show "list_all2 R =
-         (Grp {x. set x \<subseteq> {(x, y). R x y}} (map fst))\<inverse>\<inverse> OO
-         Grp {x. set x \<subseteq> {(x, y). R x y}} (map snd)"
-    unfolding list_all2_def[abs_def] Grp_def fun_eq_iff relcompp.simps conversep.simps
-    by (force simp: zip_map_fst_snd)
-qed simp
 
 end

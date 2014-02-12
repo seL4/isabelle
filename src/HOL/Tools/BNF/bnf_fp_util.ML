@@ -30,7 +30,6 @@ sig
      rel_xtor_co_induct_thm: thm}
 
   val morph_fp_result: morphism -> fp_result -> fp_result
-  val eq_fp_result: fp_result * fp_result -> bool
   val un_fold_of: 'a list -> 'a
   val co_rec_of: 'a list -> 'a
 
@@ -145,13 +144,13 @@ sig
   val Inl_const: typ -> typ -> term
   val Inr_const: typ -> typ -> term
 
+  val mk_case_sum: term * term -> term
+  val mk_case_sumN: term list -> term
+  val mk_case_sumN_balanced: term list -> term
   val mk_Inl: typ -> term -> term
   val mk_Inr: typ -> term -> term
   val mk_InN: typ list -> term -> int -> term
   val mk_InN_balanced: typ -> int -> term -> int -> term
-  val mk_sum_case: term * term -> term
-  val mk_sum_caseN: term list -> term
-  val mk_sum_caseN_balanced: term list -> term
 
   val dest_sumT: typ -> typ * typ
   val dest_sumTN: int -> typ -> typ list
@@ -167,8 +166,8 @@ sig
   val mk_sumEN: int -> thm
   val mk_sumEN_balanced: int -> thm
   val mk_sumEN_tupled_balanced: int list -> thm
-  val mk_sum_casesN: int -> int -> thm
-  val mk_sum_casesN_balanced: int -> int -> thm
+  val mk_sum_caseN: int -> int -> thm
+  val mk_sum_caseN_balanced: int -> int -> thm
 
   val fixpoint: ('a * 'a -> bool) -> ('a list -> 'a list) -> 'a list -> 'a list
 
@@ -238,9 +237,6 @@ fun morph_fp_result phi {Ts, bnfs, ctors, dtors, xtor_co_iterss, xtor_co_induct,
    xtor_co_iter_thmss = map (map (Morphism.thm phi)) xtor_co_iter_thmss,
    xtor_co_iter_o_map_thmss = map (map (Morphism.thm phi)) xtor_co_iter_o_map_thmss,
    rel_xtor_co_induct_thm = Morphism.thm phi rel_xtor_co_induct_thm};
-
-fun eq_fp_result ({bnfs = bnfs1, ...} : fp_result, {bnfs = bnfs2, ...} : fp_result) =
-  eq_list eq_bnf (bnfs1, bnfs2);
 
 fun un_fold_of [f, _] = f;
 fun co_rec_of [_, r] = r;
@@ -413,17 +409,17 @@ fun mk_InN_balanced sum_T n t k =
     |> repair_types sum_T
   end;
 
-fun mk_sum_case (f, g) =
+fun mk_case_sum (f, g) =
   let
     val fT = fastype_of f;
     val gT = fastype_of g;
   in
-    Const (@{const_name sum_case},
+    Const (@{const_name case_sum},
       fT --> gT --> mk_sumT (domain_type fT, domain_type gT) --> range_type fT) $ f $ g
   end;
 
-val mk_sum_caseN = Library.foldr1 mk_sum_case;
-val mk_sum_caseN_balanced = Balanced_Tree.make mk_sum_case;
+val mk_case_sumN = Library.foldr1 mk_case_sum;
+val mk_case_sumN_balanced = Balanced_Tree.make mk_case_sum;
 
 fun If_const T = Const (@{const_name If}, HOLogic.boolT --> T --> T --> T);
 fun mk_If p t f = let val T = fastype_of t in If_const T $ p $ t $ f end;
@@ -474,18 +470,18 @@ fun mk_sumEN_tupled_balanced ms =
     else mk_sumEN_balanced' n (map mk_tupled_allIN ms)
   end;
 
-fun mk_sum_casesN 1 1 = refl
-  | mk_sum_casesN _ 1 = @{thm sum.cases(1)}
-  | mk_sum_casesN 2 2 = @{thm sum.cases(2)}
-  | mk_sum_casesN n k = trans OF [@{thm sum_case_step(2)}, mk_sum_casesN (n - 1) (k - 1)];
+fun mk_sum_caseN 1 1 = refl
+  | mk_sum_caseN _ 1 = @{thm sum.case(1)}
+  | mk_sum_caseN 2 2 = @{thm sum.case(2)}
+  | mk_sum_caseN n k = trans OF [@{thm case_sum_step(2)}, mk_sum_caseN (n - 1) (k - 1)];
 
 fun mk_sum_step base step thm =
   if Thm.eq_thm_prop (thm, refl) then base else trans OF [step, thm];
 
-fun mk_sum_casesN_balanced 1 1 = refl
-  | mk_sum_casesN_balanced n k =
-    Balanced_Tree.access {left = mk_sum_step @{thm sum.cases(1)} @{thm sum_case_step(1)},
-      right = mk_sum_step @{thm sum.cases(2)} @{thm sum_case_step(2)}, init = refl} n k;
+fun mk_sum_caseN_balanced 1 1 = refl
+  | mk_sum_caseN_balanced n k =
+    Balanced_Tree.access {left = mk_sum_step @{thm sum.cases(1)} @{thm case_sum_step(1)},
+      right = mk_sum_step @{thm sum.cases(2)} @{thm case_sum_step(2)}, init = refl} n k;
 
 fun mk_rel_xtor_co_induct_thm fp pre_rels pre_phis rels phis xs ys xtors xtor's tac lthy =
   let
@@ -536,11 +532,11 @@ fun mk_xtor_un_fold_o_map_thms fp is_rec m un_fold_unique xtor_maps xtor_un_fold
     val rewrite_comp_comp = fp_case fp @{thm rewriteR_comp_comp} @{thm rewriteL_comp_comp};
     val map_cong_passive_args1 = replicate m (fp_case fp @{thm id_comp} @{thm comp_id} RS fun_cong);
     val map_cong_active_args1 = replicate n (if is_rec
-      then fp_case fp @{thm convol_o} @{thm o_sum_case} RS fun_cong
+      then fp_case fp @{thm convol_o} @{thm o_case_sum} RS fun_cong
       else refl);
     val map_cong_passive_args2 = replicate m (fp_case fp @{thm comp_id} @{thm id_comp} RS fun_cong);
     val map_cong_active_args2 = replicate n (if is_rec
-      then fp_case fp @{thm map_pair_o_convol_id} @{thm sum_case_o_sum_map_id}
+      then fp_case fp @{thm map_pair_o_convol_id} @{thm case_sum_o_sum_map_id}
       else fp_case fp @{thm id_comp} @{thm comp_id} RS fun_cong);
     fun mk_map_congs passive active = map (fn thm => thm OF (passive @ active) RS ext) map_cong0s;
     val map_cong1s = mk_map_congs map_cong_passive_args1 map_cong_active_args1;

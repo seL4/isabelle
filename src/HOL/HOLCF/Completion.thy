@@ -198,7 +198,7 @@ proof -
   def b \<equiv> "\<lambda>i. LEAST j. enum j \<in> rep x \<and> \<not> enum j \<preceq> enum i"
   def c \<equiv> "\<lambda>i j. LEAST k. enum k \<in> rep x \<and> enum i \<preceq> enum k \<and> enum j \<preceq> enum k"
   def P \<equiv> "\<lambda>i. \<exists>j. enum j \<in> rep x \<and> \<not> enum j \<preceq> enum i"
-  def X \<equiv> "nat_rec a (\<lambda>n i. if P i then c i (b i) else i)"
+  def X \<equiv> "rec_nat a (\<lambda>n i. if P i then c i (b i) else i)"
   have X_0: "X 0 = a" unfolding X_def by simp
   have X_Suc: "\<And>n. X (Suc n) = (if P (X n) then c (X n) (b (X n)) else X n)"
     unfolding X_def by simp

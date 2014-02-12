@@ -13,15 +13,11 @@ struct
 
 fun add_code_for_datatype fcT_name thy =
   let
-    val (As', ctr_specs) = Datatype_Data.the_spec thy fcT_name;
-    val {inject = inject_thms, distinct = distinct_thms, case_rewrites = case_thms, ...} =
-      Datatype_Data.the_info thy fcT_name;
-
-    val As = map TFree As';
-    val fcT = Type (fcT_name, As);
-    val ctrs = map (fn (c, arg_Ts) => (c, arg_Ts ---> fcT)) ctr_specs;
+    val ctxt = Proof_Context.init_global thy
+    val SOME {ctrs, injects, distincts, case_thms, ...} = Ctr_Sugar.ctr_sugar_of ctxt fcT_name
+    val Type (_, As) = body_type (fastype_of (hd ctrs))
   in
-    Ctr_Sugar_Code.add_ctr_code fcT_name As ctrs inject_thms distinct_thms case_thms thy
+    Ctr_Sugar_Code.add_ctr_code fcT_name As (map dest_Const ctrs) injects distincts case_thms thy
   end;
 
 val _ = Theory.setup (Datatype_Data.interpretation (K (fold add_code_for_datatype)));

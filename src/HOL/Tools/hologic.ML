@@ -348,21 +348,21 @@ fun dest_prod (Const ("Product_Type.Pair", _) $ t1 $ t2) = (t1, t2)
 
 fun mk_fst p =
   let val pT = fastype_of p in
-    Const ("Product_Type.fst", pT --> fst (dest_prodT pT)) $ p
+    Const ("Product_Type.prod.fst", pT --> fst (dest_prodT pT)) $ p
   end;
 
 fun mk_snd p =
   let val pT = fastype_of p in
-    Const ("Product_Type.snd", pT --> snd (dest_prodT pT)) $ p
+    Const ("Product_Type.prod.snd", pT --> snd (dest_prodT pT)) $ p
   end;
 
 fun split_const (A, B, C) =
-  Const ("Product_Type.prod.prod_case", (A --> B --> C) --> mk_prodT (A, B) --> C);
+  Const ("Product_Type.prod.case_prod", (A --> B --> C) --> mk_prodT (A, B) --> C);
 
 fun mk_split t =
   (case Term.fastype_of t of
     T as (Type ("fun", [A, Type ("fun", [B, C])])) =>
-      Const ("Product_Type.prod.prod_case", T --> mk_prodT (A, B) --> C) $ t
+      Const ("Product_Type.prod.case_prod", T --> mk_prodT (A, B) --> C) $ t
   | _ => raise TERM ("mk_split: bad body type", [t]));
 
 (*Maps the type T1 * ... * Tn to [T1, ..., Tn], however nested*)
@@ -478,7 +478,7 @@ fun mk_psplits ps T T3 u =
 val strip_psplits =
   let
     fun strip [] qs Ts t = (t, rev Ts, qs)
-      | strip (p :: ps) qs Ts (Const ("Product_Type.prod.prod_case", _) $ t) =
+      | strip (p :: ps) qs Ts (Const ("Product_Type.prod.case_prod", _) $ t) =
           strip ((1 :: p) :: (2 :: p) :: ps) (p :: qs) Ts t
       | strip (p :: ps) qs Ts (Abs (s, T, t)) = strip ps qs (T :: Ts) t
       | strip (p :: ps) qs Ts t = strip ps qs

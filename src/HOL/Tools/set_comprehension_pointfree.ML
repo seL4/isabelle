@@ -84,7 +84,7 @@ fun mk_prod1 Ts (t1, t2) =
   end;
 
 fun mk_split_abs vs (Bound i) t = let val (x, T) = nth vs i in Abs (x, T, t) end
-  | mk_split_abs vs (Const ("Product_Type.Pair", _) $ u $ v) t =
+  | mk_split_abs vs (Const (@{const_name Product_Type.Pair}, _) $ u $ v) t =
       HOLogic.mk_split (mk_split_abs vs u (mk_split_abs vs v t))
   | mk_split_abs _ t _ = raise TERM ("mk_split_abs: bad term", [t]);
 
@@ -92,7 +92,7 @@ fun mk_split_abs vs (Bound i) t = let val (x, T) = nth vs i in Abs (x, T, t) end
 val strip_psplits =
   let
     fun strip [] qs vs t = (t, rev vs, qs)
-      | strip (p :: ps) qs vs (Const ("Product_Type.prod.prod_case", _) $ t) =
+      | strip (p :: ps) qs vs (Const (@{const_name Product_Type.prod.case_prod}, _) $ t) =
           strip ((1 :: p) :: (2 :: p) :: ps) (p :: qs) vs t
       | strip (_ :: ps) qs vs (Abs (s, T, t)) = strip ps qs ((s, T) :: vs) t
       | strip (_ :: ps) qs vs t = strip ps qs
@@ -305,7 +305,7 @@ val rewrite_term = try mk_pointfree_expr
 
 (* proof tactic *)
 
-val prod_case_distrib = @{lemma "(prod_case g x) z = prod_case (% x y. (g x y) z) x" by (simp add: prod_case_beta)}
+val case_prod_distrib = @{lemma "(case_prod g x) z = case_prod (% x y. (g x y) z) x" by (simp add: case_prod_beta)}
 
 val vimageI2' = @{lemma "f a \<notin> A ==> a \<notin> f -` A" by simp}
 val vimageE' =
@@ -326,7 +326,7 @@ fun intro_image_tac ctxt = rtac @{thm image_eqI}
         @{thm arg_cong2[OF refl, where f="op =", OF prod.cases, THEN iffD2]}
       ORELSE' CONVERSION (Conv.params_conv ~1 (K (Conv.concl_conv ~1
         (HOLogic.Trueprop_conv
-          (HOLogic.eq_conv Conv.all_conv (Conv.rewr_conv (mk_meta_eq prod_case_distrib)))))) ctxt)))
+          (HOLogic.eq_conv Conv.all_conv (Conv.rewr_conv (mk_meta_eq case_prod_distrib)))))) ctxt)))
 
 fun elim_image_tac ctxt = etac @{thm imageE}
   THEN' REPEAT_DETERM o CHANGED o
@@ -521,4 +521,3 @@ fun code_simproc ctxt redex =
   end;
 
 end;
-

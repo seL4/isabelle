@@ -232,11 +232,11 @@ subsection "access"
 
 definition
   globs :: "st \<Rightarrow> globs"
-  where "globs = st_case (\<lambda>g l. g)"
+  where "globs = case_st (\<lambda>g l. g)"
   
 definition
   locals :: "st \<Rightarrow> locals"
-  where "locals = st_case (\<lambda>g l. l)"
+  where "locals = case_st (\<lambda>g l. l)"
 
 definition heap :: "st \<Rightarrow> heap" where
  "heap s = globs s \<circ> Heap"
@@ -303,19 +303,19 @@ subsection "update"
 
 definition
   gupd :: "oref  \<Rightarrow> obj \<Rightarrow> st \<Rightarrow> st" ("gupd'(_\<mapsto>_')" [10, 10] 1000)
-  where "gupd r obj = st_case (\<lambda>g l. st (g(r\<mapsto>obj)) l)"
+  where "gupd r obj = case_st (\<lambda>g l. st (g(r\<mapsto>obj)) l)"
 
 definition
   lupd :: "lname \<Rightarrow> val \<Rightarrow> st \<Rightarrow> st" ("lupd'(_\<mapsto>_')" [10, 10] 1000)
-  where "lupd vn v = st_case (\<lambda>g l. st g (l(vn\<mapsto>v)))"
+  where "lupd vn v = case_st (\<lambda>g l. st g (l(vn\<mapsto>v)))"
 
 definition
   upd_gobj :: "oref \<Rightarrow> vn \<Rightarrow> val \<Rightarrow> st \<Rightarrow> st"
-  where "upd_gobj r n v = st_case (\<lambda>g l. st (chg_map (upd_obj n v) r g) l)"
+  where "upd_gobj r n v = case_st (\<lambda>g l. st (chg_map (upd_obj n v) r g) l)"
 
 definition
   set_locals  :: "locals \<Rightarrow> st \<Rightarrow> st"
-  where "set_locals l = st_case (\<lambda>g l'. st g l)"
+  where "set_locals l = case_st (\<lambda>g l'. st g l)"
 
 definition
   init_obj :: "prog \<Rightarrow> obj_tag \<Rightarrow> oref \<Rightarrow> st \<Rightarrow> st"

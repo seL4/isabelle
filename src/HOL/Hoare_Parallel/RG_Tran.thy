@@ -838,6 +838,7 @@ apply (rule iffI)
   apply(case_tac x)
    apply(force elim:par_cptn.cases)
   apply simp
+  apply(rename_tac a list)
   apply(erule_tac x="list" in allE)
   apply clarify
   apply simp

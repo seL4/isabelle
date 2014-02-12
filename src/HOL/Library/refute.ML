@@ -3163,8 +3163,8 @@ val setup =
    add_interpreter "lfp" lfp_interpreter #>
    add_interpreter "gfp" gfp_interpreter #>
 *)
-   add_interpreter "Product_Type.fst" Product_Type_fst_interpreter #>
-   add_interpreter "Product_Type.snd" Product_Type_snd_interpreter #>
+   add_interpreter "Product_Type.prod.fst" Product_Type_fst_interpreter #>
+   add_interpreter "Product_Type.prod.snd" Product_Type_snd_interpreter #>
    add_printer "stlc" stlc_printer #>
    add_printer "set" set_printer #>
    add_printer "IDT"  IDT_printer;

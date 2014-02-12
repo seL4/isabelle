@@ -118,9 +118,9 @@ lemma Collect_split_mono_strong:
 lemma predicate2_eqD: "A = B \<Longrightarrow> A a b \<longleftrightarrow> B a b"
 by metis
 
-lemma sum_case_o_inj:
-"sum_case f g \<circ> Inl = f"
-"sum_case f g \<circ> Inr = g"
+lemma case_sum_o_inj:
+"case_sum f g \<circ> Inl = f"
+"case_sum f g \<circ> Inr = g"
 by auto
 
 lemma card_order_csum_cone_cexp_def:

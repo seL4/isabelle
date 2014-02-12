@@ -384,7 +384,7 @@ proof -
     by (auto simp add: sgn_if)
   have aux2: "\<And>q::int. - int_of_integer k = int_of_integer l * q \<longleftrightarrow> int_of_integer k = int_of_integer l * - q" by auto
   show ?thesis
-    by (simp add: prod_eq_iff integer_eq_iff prod_case_beta aux1)
+    by (simp add: prod_eq_iff integer_eq_iff case_prod_beta aux1)
       (auto simp add: zdiv_zminus1_eq_if zmod_zminus1_eq_if div_minus_right mod_minus_right aux2)
 qed
 
@@ -475,7 +475,7 @@ proof -
   }
   note aux = this
   show ?thesis
-    by (auto simp add: num_of_integer_def nat_of_integer_def Let_def prod_case_beta
+    by (auto simp add: num_of_integer_def nat_of_integer_def Let_def case_prod_beta
       not_le integer_eq_iff less_eq_integer_def
       nat_mult_distrib nat_div_distrib num_of_nat_One num_of_nat_plus_distrib
        mult_2 [where 'a=nat] aux add_One)
@@ -792,7 +792,7 @@ lemma [measure_function]:
   by (rule is_measure_trivial)
 
 
-subsection {* Inductive represenation of target language naturals *}
+subsection {* Inductive representation of target language naturals *}
 
 lift_definition Suc :: "natural \<Rightarrow> natural"
   is Nat.Suc
@@ -803,7 +803,7 @@ declare Suc.rep_eq [simp]
 rep_datatype "0::natural" Suc
   by (transfer, fact nat.induct nat.inject nat.distinct)+
 
-lemma natural_case [case_names nat, cases type: natural]:
+lemma natural_cases [case_names nat, cases type: natural]:
   fixes m :: natural
   assumes "\<And>n. m = of_nat n \<Longrightarrow> P"
   shows P
@@ -885,7 +885,7 @@ lemma [code]:
   by transfer (simp add: fun_eq_iff)
 
 lemma [code, code_unfold]:
-  "natural_case f g n = (if n = 0 then f else g (n - 1))"
+  "case_natural f g n = (if n = 0 then f else g (n - 1))"
   by (cases n rule: natural.exhaust) (simp_all, simp add: Suc_def)
 
 declare natural.recs [code del]

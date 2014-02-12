@@ -11,7 +11,7 @@ end
 structure MatrixLP : MATRIX_LP =
 struct
 
-val compute_thms = ComputeHOL.prep_thms @{thms "ComputeHOL.compute_list_case" "ComputeHOL.compute_let"
+val compute_thms = ComputeHOL.prep_thms @{thms "ComputeHOL.compute_case_list" "ComputeHOL.compute_let"
   "ComputeHOL.compute_if" "ComputeFloat.arith" "SparseMatrix.sparse_row_matrix_arith_simps"
   "ComputeHOL.compute_bool" "ComputeHOL.compute_pair"
   "SparseMatrix.sorted_sp_simps"

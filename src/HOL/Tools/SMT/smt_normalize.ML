@@ -356,22 +356,22 @@ fun expand_head_conv cv ct =
 (** rewrite bool case expressions as if expressions **)
 
 local
-  fun is_bool_case (Const (@{const_name "bool.bool_case"}, _)) = true
-    | is_bool_case _ = false
+  fun is_case_bool (Const (@{const_name "bool.case_bool"}, _)) = true
+    | is_case_bool _ = false
 
   val thm = mk_meta_eq @{lemma
-    "bool_case = (%x y P. if P then x else y)" by (rule ext)+ simp}
+    "case_bool = (%x y P. if P then x else y)" by (rule ext)+ simp}
 
   fun unfold_conv _ =
-    SMT_Utils.if_true_conv (is_bool_case o Term.head_of)
+    SMT_Utils.if_true_conv (is_case_bool o Term.head_of)
       (expand_head_conv (Conv.rewr_conv thm))
 in
 
-fun rewrite_bool_case_conv ctxt =
-  SMT_Utils.if_exists_conv is_bool_case (Conv.top_conv unfold_conv ctxt)
+fun rewrite_case_bool_conv ctxt =
+  SMT_Utils.if_exists_conv is_case_bool (Conv.top_conv unfold_conv ctxt)
 
-val setup_bool_case =
-  SMT_Builtin.add_builtin_fun_ext'' @{const_name "bool.bool_case"}
+val setup_case_bool =
+  SMT_Builtin.add_builtin_fun_ext'' @{const_name "bool.case_bool"}
 
 end
 
@@ -558,7 +558,7 @@ end
 (** combined unfoldings and rewritings **)
 
 fun unfold_conv ctxt =
-  rewrite_bool_case_conv ctxt then_conv
+  rewrite_case_bool_conv ctxt then_conv
   unfold_abs_min_max_conv ctxt then_conv
   nat_as_int_conv ctxt then_conv
   Thm.beta_conversion true
@@ -645,7 +645,7 @@ val setup = Context.theory_map (
   setup_unfolded_quants #>
   setup_trigger #>
   setup_weight #>
-  setup_bool_case #>
+  setup_case_bool #>
   setup_abs_min_max #>
   setup_nat_as_int)
 

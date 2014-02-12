@@ -260,8 +260,11 @@ fun obtain_specification_graph options thy t =
     val ctxt = Proof_Context.init_global thy
     fun is_nondefining_const (c, _) = member (op =) logic_operator_names c
     fun has_code_pred_intros (c, _) = can (Core_Data.intros_of ctxt) c
-    fun case_consts (c, _) = is_some (Datatype.info_of_case thy c)
-    fun is_datatype_constructor (c, T) = is_some (Datatype.info_of_constr thy (c, T))
+    fun case_consts (c, _) = is_some (Ctr_Sugar.ctr_sugar_of_case ctxt c)
+    fun is_datatype_constructor (x as (_, T)) =
+      (case body_type T of
+        Type (Tcon, _) => can (Ctr_Sugar.dest_ctr ctxt Tcon) (Const x)
+      | _ => false)
     fun defiants_of specs =
       fold (Term.add_consts o prop_of) specs []
       |> filter_out is_datatype_constructor

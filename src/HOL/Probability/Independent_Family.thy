@@ -13,7 +13,7 @@ definition (in prob_space)
     (\<forall>J\<subseteq>I. J \<noteq> {} \<longrightarrow> finite J \<longrightarrow> (\<forall>A\<in>Pi J F. prob (\<Inter>j\<in>J. A j) = (\<Prod>j\<in>J. prob (A j))))"
 
 definition (in prob_space)
-  "indep_set A B \<longleftrightarrow> indep_sets (bool_case A B) UNIV"
+  "indep_set A B \<longleftrightarrow> indep_sets (case_bool A B) UNIV"
 
 definition (in prob_space)
   indep_events_def_alt: "indep_events A I \<longleftrightarrow> indep_sets (\<lambda>i. {A i}) I"
@@ -28,7 +28,7 @@ lemma (in prob_space) indep_events_def:
   done
 
 definition (in prob_space)
-  "indep_event A B \<longleftrightarrow> indep_events (bool_case A B) UNIV"
+  "indep_event A B \<longleftrightarrow> indep_events (case_bool A B) UNIV"
 
 lemma (in prob_space) indep_sets_cong:
   "I = J \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> F i = G i) \<Longrightarrow> indep_sets F I \<longleftrightarrow> indep_sets G J"
@@ -104,7 +104,7 @@ qed (auto split: bool.split simp: ev)
 lemma (in prob_space) indep_setD:
   assumes indep: "indep_set A B" and ev: "a \<in> A" "b \<in> B"
   shows "prob (a \<inter> b) = prob a * prob b"
-  using indep[unfolded indep_set_def, THEN indep_setsD, of UNIV "bool_case a b"] ev
+  using indep[unfolded indep_set_def, THEN indep_setsD, of UNIV "case_bool a b"] ev
   by (simp add: ac_simps UNIV_bool)
 
 lemma (in prob_space)
@@ -312,7 +312,7 @@ definition (in prob_space)
     indep_sets (\<lambda>i. { X i -` A \<inter> space M | A. A \<in> sets (M' i)}) I"
 
 definition (in prob_space)
-  "indep_var Ma A Mb B \<longleftrightarrow> indep_vars (bool_case Ma Mb) (bool_case A B) UNIV"
+  "indep_var Ma A Mb B \<longleftrightarrow> indep_vars (case_bool Ma Mb) (case_bool A B) UNIV"
 
 lemma (in prob_space) indep_vars_def:
   "indep_vars M' X I \<longleftrightarrow>
@@ -340,16 +340,16 @@ lemma (in prob_space) indep_sets2_eq:
   "indep_set A B \<longleftrightarrow> A \<subseteq> events \<and> B \<subseteq> events \<and> (\<forall>a\<in>A. \<forall>b\<in>B. prob (a \<inter> b) = prob a * prob b)"
   unfolding indep_set_def
 proof (intro iffI ballI conjI)
-  assume indep: "indep_sets (bool_case A B) UNIV"
+  assume indep: "indep_sets (case_bool A B) UNIV"
   { fix a b assume "a \<in> A" "b \<in> B"
-    with indep_setsD[OF indep, of UNIV "bool_case a b"]
+    with indep_setsD[OF indep, of UNIV "case_bool a b"]
     show "prob (a \<inter> b) = prob a * prob b"
       unfolding UNIV_bool by (simp add: ac_simps) }
   from indep show "A \<subseteq> events" "B \<subseteq> events"
     unfolding indep_sets_def UNIV_bool by auto
 next
   assume *: "A \<subseteq> events \<and> B \<subseteq> events \<and> (\<forall>a\<in>A. \<forall>b\<in>B. prob (a \<inter> b) = prob a * prob b)"
-  show "indep_sets (bool_case A B) UNIV"
+  show "indep_sets (case_bool A B) UNIV"
   proof (rule indep_setsI)
     fix i show "(case i of True \<Rightarrow> A | False \<Rightarrow> B) \<subseteq> events"
       using * by (auto split: bool.split)
@@ -369,7 +369,7 @@ lemma (in prob_space) indep_set_sigma_sets:
 proof -
   have "indep_sets (\<lambda>i. sigma_sets (space M) (case i of True \<Rightarrow> A | False \<Rightarrow> B)) UNIV"
   proof (rule indep_sets_sigma)
-    show "indep_sets (bool_case A B) UNIV"
+    show "indep_sets (case_bool A B) UNIV"
       by (rule `indep_set A B`[unfolded indep_set_def])
     fix i show "Int_stable (case i of True \<Rightarrow> A | False \<Rightarrow> B)"
       using A B by (cases i) auto
@@ -572,19 +572,19 @@ proof -
   qed
 
   { fix n
-    have "indep_sets (\<lambda>b. sigma_sets (space M) (\<Union>m\<in>bool_case {..n} {Suc n..} b. A m)) UNIV"
+    have "indep_sets (\<lambda>b. sigma_sets (space M) (\<Union>m\<in>case_bool {..n} {Suc n..} b. A m)) UNIV"
     proof (rule indep_sets_collect_sigma)
       have *: "(\<Union>b. case b of True \<Rightarrow> {..n} | False \<Rightarrow> {Suc n..}) = UNIV" (is "?U = _")
         by (simp split: bool.split add: set_eq_iff) (metis not_less_eq_eq)
       with indep show "indep_sets A ?U" by simp
-      show "disjoint_family (bool_case {..n} {Suc n..})"
+      show "disjoint_family (case_bool {..n} {Suc n..})"
         unfolding disjoint_family_on_def by (auto split: bool.split)
       fix m
       show "Int_stable (A m)"
         unfolding Int_stable_def using A.Int by auto
     qed
-    also have "(\<lambda>b. sigma_sets (space M) (\<Union>m\<in>bool_case {..n} {Suc n..} b. A m)) =
-      bool_case (sigma_sets (space M) (\<Union>m\<in>{..n}. A m)) (sigma_sets (space M) (\<Union>m\<in>{Suc n..}. A m))"
+    also have "(\<lambda>b. sigma_sets (space M) (\<Union>m\<in>case_bool {..n} {Suc n..} b. A m)) =
+      case_bool (sigma_sets (space M) (\<Union>m\<in>{..n}. A m)) (sigma_sets (space M) (\<Union>m\<in>{Suc n..}. A m))"
       by (auto intro!: ext split: bool.split)
     finally have indep: "indep_set (sigma_sets (space M) (\<Union>m\<in>{..n}. A m)) (sigma_sets (space M) (\<Union>m\<in>{Suc n..}. A m))"
       unfolding indep_set_def by simp
@@ -923,9 +923,9 @@ lemma (in prob_space) indep_varD:
     prob (A -` Xa \<inter> space M) * prob (B -` Xb \<inter> space M)"
 proof -
   have "prob ((\<lambda>x. (A x, B x)) -` (Xa \<times> Xb) \<inter> space M) =
-    prob (\<Inter>i\<in>UNIV. (bool_case A B i -` bool_case Xa Xb i \<inter> space M))"
+    prob (\<Inter>i\<in>UNIV. (case_bool A B i -` case_bool Xa Xb i \<inter> space M))"
     by (auto intro!: arg_cong[where f=prob] simp: UNIV_bool)
-  also have "\<dots> = (\<Prod>i\<in>UNIV. prob (bool_case A B i -` bool_case Xa Xb i \<inter> space M))"
+  also have "\<dots> = (\<Prod>i\<in>UNIV. prob (case_bool A B i -` case_bool Xa Xb i \<inter> space M))"
     using indep unfolding indep_var_def
     by (rule indep_varsD) (auto split: bool.split intro: sets)
   also have "\<dots> = prob (A -` Xa \<inter> space M) * prob (B -` Xb \<inter> space M)"
@@ -938,7 +938,7 @@ lemma (in prob_space)
   shows indep_var_rv1: "random_variable S X"
     and indep_var_rv2: "random_variable T Y"
 proof -
-  have "\<forall>i\<in>UNIV. random_variable (bool_case S T i) (bool_case X Y i)"
+  have "\<forall>i\<in>UNIV. random_variable (case_bool S T i) (case_bool X Y i)"
     using assms unfolding indep_var_def indep_vars_def by auto
   then show "random_variable S X" "random_variable T Y"
     unfolding UNIV_bool by auto

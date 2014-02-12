@@ -27,13 +27,13 @@ by (erule notE, rule TrueI)
 lemma neq_eq_eq_contradict: "\<lbrakk>t \<noteq> u; s = t; s = u\<rbrakk> \<Longrightarrow> P"
 by fast
 
-lemma sum_case_expand_Inr: "f o Inl = g \<Longrightarrow> f x = sum_case g (f o Inr) x"
+lemma case_sum_expand_Inr: "f o Inl = g \<Longrightarrow> f x = case_sum g (f o Inr) x"
 by (auto split: sum.splits)
 
-lemma sum_case_expand_Inr': "f o Inl = g \<Longrightarrow> h = f o Inr \<longleftrightarrow> sum_case g h = f"
+lemma case_sum_expand_Inr': "f o Inl = g \<Longrightarrow> h = f o Inr \<longleftrightarrow> case_sum g h = f"
 apply rule
  apply (rule ext, force split: sum.split)
-by (rule ext, metis sum_case_o_inj(2))
+by (rule ext, metis case_sum_o_inj(2))
 
 lemma converse_Times: "(A \<times> B) ^-1 = B \<times> A"
 by fast
@@ -266,16 +266,16 @@ unfolding Field_card_of csum_def by auto
 lemma Inr_Field_csum: "a \<in> Field s \<Longrightarrow> Inr a \<in> Field (r +c s)"
 unfolding Field_card_of csum_def by auto
 
-lemma nat_rec_0_imp: "f = nat_rec f1 (%n rec. f2 n rec) \<Longrightarrow> f 0 = f1"
+lemma rec_nat_0_imp: "f = rec_nat f1 (%n rec. f2 n rec) \<Longrightarrow> f 0 = f1"
 by auto
 
-lemma nat_rec_Suc_imp: "f = nat_rec f1 (%n rec. f2 n rec) \<Longrightarrow> f (Suc n) = f2 n (f n)"
+lemma rec_nat_Suc_imp: "f = rec_nat f1 (%n rec. f2 n rec) \<Longrightarrow> f (Suc n) = f2 n (f n)"
 by auto
 
-lemma list_rec_Nil_imp: "f = list_rec f1 (%x xs rec. f2 x xs rec) \<Longrightarrow> f [] = f1"
+lemma rec_list_Nil_imp: "f = rec_list f1 (%x xs rec. f2 x xs rec) \<Longrightarrow> f [] = f1"
 by auto
 
-lemma list_rec_Cons_imp: "f = list_rec f1 (%x xs rec. f2 x xs rec) \<Longrightarrow> f (x # xs) = f2 x xs (f xs)"
+lemma rec_list_Cons_imp: "f = rec_list f1 (%x xs rec. f2 x xs rec) \<Longrightarrow> f (x # xs) = f2 x xs (f xs)"
 by auto
 
 lemma not_arg_cong_Inr: "x \<noteq> y \<Longrightarrow> Inr x \<noteq> Inr y"

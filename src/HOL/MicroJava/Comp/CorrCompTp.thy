@@ -80,7 +80,7 @@ apply simp
 apply (rule allI)
 apply (drule_tac x="a # ys" in spec)
 apply (simp only: rev.simps append_assoc append_Cons append_Nil
-  map.simps map_of.simps map_upds_Cons hd.simps tl.simps)
+  map.simps map_of.simps map_upds_Cons list.sel)
 done
 
 lemma map_of_as_map_upds: "map_of (rev xs) = empty ((map fst xs) [\<mapsto>] (map snd xs))"

@@ -437,9 +437,10 @@ by (auto simp: conforms_def Let_def)
 lemma conforms_absorb [rule_format]:
   "(a, b)\<Colon>\<preceq>(G, L) \<longrightarrow> (absorb j a, b)\<Colon>\<preceq>(G, L)"
 apply (rule impI)
-apply ( case_tac a)
+apply (case_tac a)
 apply (case_tac "absorb j a")
 apply auto
+apply (rename_tac a)
 apply (case_tac "absorb j (Some a)",auto)
 apply (erule conforms_NormI)
 done
@@ -553,6 +554,5 @@ prefer 2 apply (force dest: conforms_XcptLocD)
 apply (erule conforms_gext)
 apply (force dest: conforms_globsD)+
 done
-
 
 end

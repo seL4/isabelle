@@ -3870,6 +3870,7 @@ proof -
     apply rule
     apply (erule_tac x="Some y" in allE)
     defer
+    apply (rename_tac x)
     apply (erule_tac x="Some x" in allE)
     apply auto
     done

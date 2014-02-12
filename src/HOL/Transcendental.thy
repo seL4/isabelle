@@ -624,6 +624,7 @@ proof -
        (\<lambda>n. norm (c n) * of_nat n * of_nat (n - Suc 0) * r ^ (n - 2))"
       apply (rule ext)
       apply (case_tac "n", simp)
+      apply (rename_tac nat)
       apply (case_tac "nat", simp)
       apply (simp add: r_neq_0)
       done
@@ -2710,7 +2711,8 @@ apply (drule_tac x = x in spec, clarify)
 apply (subgoal_tac "x < real(LEAST m::nat. x < real m * y) * y")
  prefer 2 apply (erule LeastI)
 apply (case_tac "LEAST m::nat. x < real m * y", simp)
-apply (subgoal_tac "~ x < real nat * y")
+apply (rename_tac m)
+apply (subgoal_tac "~ x < real m * y")
  prefer 2 apply (rule not_less_Least, simp, force)
 done
 

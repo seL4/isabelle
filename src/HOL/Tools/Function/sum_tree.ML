@@ -32,8 +32,7 @@ fun access_top_down {left, right, init} len i =
 (* Sum types *)
 fun mk_sumT LT RT = Type (@{type_name Sum_Type.sum}, [LT, RT])
 fun mk_sumcase TL TR T l r =
-  Const (@{const_name sum.sum_case},
-    (TL --> T) --> (TR --> T) --> mk_sumT TL TR --> T) $ l $ r
+  Const (@{const_name sum.case_sum}, (TL --> T) --> (TR --> T) --> mk_sumT TL TR --> T) $ l $ r
 
 val App = curry op $
 
@@ -50,9 +49,9 @@ fun mk_proj ST n i =
   access_top_down
   { init = (ST, I : term -> term),
     left = (fn (T as Type (@{type_name Sum_Type.sum}, [LT, RT]), proj) =>
-      (LT, App (Const (@{const_name Sum_Type.Projl}, T --> LT)) o proj)),
+      (LT, App (Const (@{const_name Sum_Type.projl}, T --> LT)) o proj)),
     right =(fn (T as Type (@{type_name Sum_Type.sum}, [LT, RT]), proj) =>
-      (RT, App (Const (@{const_name Sum_Type.Projr}, T --> RT)) o proj))} n i
+      (RT, App (Const (@{const_name Sum_Type.projr}, T --> RT)) o proj))} n i
   |> snd
 
 fun mk_sumcases T fs =

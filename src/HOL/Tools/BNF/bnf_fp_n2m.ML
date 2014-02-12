@@ -69,7 +69,7 @@ fun construct_mutualized_fp fp fpTs fp_sugars bs resBs (resDs, Dss) bnfs lthy =
     val dest_co_algT = co_swap o dest_funT;
     val co_alg_argT = fp_case fp range_type domain_type;
     val co_alg_funT = fp_case fp domain_type range_type;
-    val mk_co_product = curry (fp_case fp mk_convol mk_sum_case);
+    val mk_co_product = curry (fp_case fp mk_convol mk_case_sum);
     val mk_map_co_product = fp_case fp mk_prod_map mk_sum_map;
     val co_proj1_const = fp_case fp (fst_const o fst) (uncurry Inl_const o dest_sumT o snd);
     val mk_co_productT = curry (fp_case fp HOLogic.mk_prodT mk_sumT);
@@ -97,12 +97,12 @@ fun construct_mutualized_fp fp fpTs fp_sugars bs resBs (resDs, Dss) bnfs lthy =
     val pre_bnfss = map #pre_bnfs fp_sugars;
     val nesty_bnfss = map (fn sugar => #nested_bnfs sugar @ #nesting_bnfs sugar) fp_sugars;
     val fp_nesty_bnfss = fp_bnfs :: nesty_bnfss;
-    val fp_nesty_bnfs = distinct eq_bnf (flat fp_nesty_bnfss);
+    val fp_nesty_bnfs = distinct (op = o pairself T_of_bnf) (flat fp_nesty_bnfss);
 
     val rels =
       let
         fun find_rel T As Bs = fp_nesty_bnfss
-          |> map (filter_out (curry eq_bnf BNF_Comp.DEADID_bnf))
+          |> map (filter_out (curry (op = o pairself name_of_bnf) BNF_Comp.DEADID_bnf))
           |> get_first (find_first (fn bnf => Type.could_unify (T_of_bnf bnf, T)))
           |> Option.map (fn bnf =>
             let val live = live_of_bnf bnf;
@@ -336,7 +336,7 @@ fun construct_mutualized_fp fp fpTs fp_sugars bs resBs (resDs, Dss) bnfs lthy =
           o_apply comp_id id_comp map_pair.comp map_pair.id sum_map.comp sum_map.id};
         val rec_thms = fold_thms @ fp_case fp
           @{thms fst_convol map_pair_o_convol convol_o}
-          @{thms sum_case_o_inj(1) sum_case_o_sum_map o_sum_case};
+          @{thms case_sum_o_inj(1) case_sum_o_sum_map o_case_sum};
         val map_thms = no_refl (maps (fn bnf =>
           [map_comp0_of_bnf bnf RS sym, map_id0_of_bnf bnf]) fp_nesty_bnfs);
 

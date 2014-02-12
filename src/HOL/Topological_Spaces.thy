@@ -1296,9 +1296,9 @@ lemma seq_monosub:
 proof cases
   let "?P p n" = "p > n \<and> (\<forall>m\<ge>p. s m \<le> s p)"
   assume *: "\<forall>n. \<exists>p. ?P p n"
-  def f \<equiv> "nat_rec (SOME p. ?P p 0) (\<lambda>_ n. SOME p. ?P p n)"
+  def f \<equiv> "rec_nat (SOME p. ?P p 0) (\<lambda>_ n. SOME p. ?P p n)"
   have f_0: "f 0 = (SOME p. ?P p 0)" unfolding f_def by simp
-  have f_Suc: "\<And>i. f (Suc i) = (SOME p. ?P p (f i))" unfolding f_def nat_rec_Suc ..
+  have f_Suc: "\<And>i. f (Suc i) = (SOME p. ?P p (f i))" unfolding f_def nat.recs(2) ..
   have P_0: "?P (f 0) 0" unfolding f_0 using *[rule_format] by (rule someI2_ex) auto
   have P_Suc: "\<And>i. ?P (f (Suc i)) (f i)" unfolding f_Suc using *[rule_format] by (rule someI2_ex) auto
   then have "subseq f" unfolding subseq_Suc_iff by auto
@@ -1318,9 +1318,9 @@ next
   let "?P p m" = "m < p \<and> s m < s p"
   assume "\<not> (\<forall>n. \<exists>p>n. (\<forall>m\<ge>p. s m \<le> s p))"
   then obtain N where N: "\<And>p. p > N \<Longrightarrow> \<exists>m>p. s p < s m" by (force simp: not_le le_less)
-  def f \<equiv> "nat_rec (SOME p. ?P p (Suc N)) (\<lambda>_ n. SOME p. ?P p n)"
+  def f \<equiv> "rec_nat (SOME p. ?P p (Suc N)) (\<lambda>_ n. SOME p. ?P p n)"
   have f_0: "f 0 = (SOME p. ?P p (Suc N))" unfolding f_def by simp
-  have f_Suc: "\<And>i. f (Suc i) = (SOME p. ?P p (f i))" unfolding f_def nat_rec_Suc ..
+  have f_Suc: "\<And>i. f (Suc i) = (SOME p. ?P p (f i))" unfolding f_def nat.recs(2) ..
   have P_0: "?P (f 0) (Suc N)"
     unfolding f_0 some_eq_ex[of "\<lambda>p. ?P p (Suc N)"] using N[of "Suc N"] by auto
   { fix i have "N < f i \<Longrightarrow> ?P (f (Suc i)) (f i)"

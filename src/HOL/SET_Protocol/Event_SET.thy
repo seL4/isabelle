@@ -159,6 +159,7 @@ by auto
 lemma Notes_imp_parts_subset_used [rule_format]:
      "Notes A X \<in> set evs --> parts {X} <= used evs"
 apply (induct_tac "evs")
+apply (rename_tac [2] a evs')
 apply (induct_tac [2] "a", auto)
 done
 

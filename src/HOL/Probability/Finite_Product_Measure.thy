@@ -442,15 +442,15 @@ lemma measurable_PiM_component_rev[measurable (raw)]:
   "i \<in> I \<Longrightarrow> f \<in> measurable (M i) N \<Longrightarrow> (\<lambda>x. f (x i)) \<in> measurable (PiM I M) N"
   by simp
 
-lemma measurable_nat_case[measurable (raw)]:
+lemma measurable_case_nat[measurable (raw)]:
   assumes [measurable (raw)]: "i = 0 \<Longrightarrow> f \<in> measurable M N"
     "\<And>j. i = Suc j \<Longrightarrow> (\<lambda>x. g x j) \<in> measurable M N"
-  shows "(\<lambda>x. nat_case (f x) (g x) i) \<in> measurable M N"
+  shows "(\<lambda>x. case_nat (f x) (g x) i) \<in> measurable M N"
   by (cases i) simp_all
 
-lemma measurable_nat_case'[measurable (raw)]:
+lemma measurable_case_nat'[measurable (raw)]:
   assumes fg[measurable]: "f \<in> measurable N M" "g \<in> measurable N (\<Pi>\<^sub>M i\<in>UNIV. M)"
-  shows "(\<lambda>x. nat_case (f x) (g x)) \<in> measurable N (\<Pi>\<^sub>M i\<in>UNIV. M)"
+  shows "(\<lambda>x. case_nat (f x) (g x)) \<in> measurable N (\<Pi>\<^sub>M i\<in>UNIV. M)"
   using fg[THEN measurable_space]
   by (auto intro!: measurable_PiM_single' simp add: space_PiM PiE_iff split: nat.split)
 
@@ -465,7 +465,7 @@ proof (rule measurable_PiM_single)
   also have "\<dots> \<in> sets ?P"
     using A j
     by (auto intro!: measurable_sets[OF measurable_comp, OF _ measurable_component_singleton])
-  finally show "{\<omega> \<in> space ?P. prod_case (\<lambda>f. fun_upd f i) \<omega> j \<in> A} \<in> sets ?P" .
+  finally show "{\<omega> \<in> space ?P. case_prod (\<lambda>f. fun_upd f i) \<omega> j \<in> A} \<in> sets ?P" .
 qed (auto simp: space_pair_measure space_PiM PiE_def)
 
 lemma measurable_component_update:
@@ -1132,27 +1132,27 @@ qed
 lemma pair_measure_eq_distr_PiM:
   fixes M1 :: "'a measure" and M2 :: "'a measure"
   assumes "sigma_finite_measure M1" "sigma_finite_measure M2"
-  shows "(M1 \<Otimes>\<^sub>M M2) = distr (Pi\<^sub>M UNIV (bool_case M1 M2)) (M1 \<Otimes>\<^sub>M M2) (\<lambda>x. (x True, x False))"
+  shows "(M1 \<Otimes>\<^sub>M M2) = distr (Pi\<^sub>M UNIV (case_bool M1 M2)) (M1 \<Otimes>\<^sub>M M2) (\<lambda>x. (x True, x False))"
     (is "?P = ?D")
 proof (rule pair_measure_eqI[OF assms])
-  interpret B: product_sigma_finite "bool_case M1 M2"
+  interpret B: product_sigma_finite "case_bool M1 M2"
     unfolding product_sigma_finite_def using assms by (auto split: bool.split)
-  let ?B = "Pi\<^sub>M UNIV (bool_case M1 M2)"
+  let ?B = "Pi\<^sub>M UNIV (case_bool M1 M2)"
 
   have [simp]: "fst \<circ> (\<lambda>x. (x True, x False)) = (\<lambda>x. x True)" "snd \<circ> (\<lambda>x. (x True, x False)) = (\<lambda>x. x False)"
     by auto
   fix A B assume A: "A \<in> sets M1" and B: "B \<in> sets M2"
-  have "emeasure M1 A * emeasure M2 B = (\<Prod> i\<in>UNIV. emeasure (bool_case M1 M2 i) (bool_case A B i))"
+  have "emeasure M1 A * emeasure M2 B = (\<Prod> i\<in>UNIV. emeasure (case_bool M1 M2 i) (case_bool A B i))"
     by (simp add: UNIV_bool ac_simps)
-  also have "\<dots> = emeasure ?B (Pi\<^sub>E UNIV (bool_case A B))"
+  also have "\<dots> = emeasure ?B (Pi\<^sub>E UNIV (case_bool A B))"
     using A B by (subst B.emeasure_PiM) (auto split: bool.split)
-  also have "Pi\<^sub>E UNIV (bool_case A B) = (\<lambda>x. (x True, x False)) -` (A \<times> B) \<inter> space ?B"
+  also have "Pi\<^sub>E UNIV (case_bool A B) = (\<lambda>x. (x True, x False)) -` (A \<times> B) \<inter> space ?B"
     using A[THEN sets.sets_into_space] B[THEN sets.sets_into_space]
     by (auto simp: PiE_iff all_bool_eq space_PiM split: bool.split)
   finally show "emeasure M1 A * emeasure M2 B = emeasure ?D (A \<times> B)"
     using A B
-      measurable_component_singleton[of True UNIV "bool_case M1 M2"]
-      measurable_component_singleton[of False UNIV "bool_case M1 M2"]
+      measurable_component_singleton[of True UNIV "case_bool M1 M2"]
+      measurable_component_singleton[of False UNIV "case_bool M1 M2"]
     by (subst emeasure_distr) (auto simp: measurable_pair_iff)
 qed simp
 

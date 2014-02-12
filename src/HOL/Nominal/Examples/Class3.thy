@@ -2311,6 +2311,7 @@ lemma my_wf_induct_triple':
 apply(rule_tac my_wf_induct_triple[OF a])
 apply(case_tac x rule: prod.exhaust)
 apply(simp)
+apply(rename_tac p a b)
 apply(case_tac b)
 apply(simp)
 apply(rule b)
@@ -3618,7 +3619,7 @@ apply(rule lookupd_freshness)
 apply(simp add: fresh_atm)
 done
 
-lemma option_case_eqvt1[eqvt_force]:
+lemma case_option_eqvt1[eqvt_force]:
   fixes pi1::"name prm"
   and   pi2::"coname prm"
   and   B::"(name\<times>trm) option"
@@ -3635,7 +3636,7 @@ apply(auto)
 apply(perm_simp)
 done
 
-lemma option_case_eqvt2[eqvt_force]:
+lemma case_option_eqvt2[eqvt_force]:
   fixes pi1::"name prm"
   and   pi2::"coname prm"
   and   B::"(coname\<times>trm) option"

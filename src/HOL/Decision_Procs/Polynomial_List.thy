@@ -919,6 +919,7 @@ lemma (in semiring_0) last_linear_mul_lemma:
   "last ((a %* p) +++ (x#(b %* p))) = (if p = [] then x else b * last p)"
   apply (induct p arbitrary: a x b)
   apply auto
+  apply (rename_tac a p aa x b)
   apply (subgoal_tac "padd (cmult aa p) (times b a # cmult b p) \<noteq> []")
   apply simp
   apply (induct_tac p)
@@ -1042,6 +1043,7 @@ text{*bound for polynomial.*}
 lemma poly_mono: "abs(x) \<le> k \<Longrightarrow> abs(poly p (x::'a::{linordered_idom})) \<le> poly (map abs p) k"
   apply (induct p)
   apply auto
+  apply (rename_tac a p)
   apply (rule_tac y = "abs a + abs (x * poly p x)" in order_trans)
   apply (rule abs_triangle_ineq)
   apply (auto intro!: mult_mono simp add: abs_mult)

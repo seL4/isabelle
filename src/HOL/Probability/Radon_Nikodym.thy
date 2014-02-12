@@ -244,13 +244,13 @@ proof -
       by (simp add: measure_restricted sets_eq sets.Int) (metis inf_absorb2)
     hence "\<exists>A. ?P A S n" .. }
   note Ex_P = this
-  def A \<equiv> "nat_rec (space M) (\<lambda>n A. SOME B. ?P B A n)"
+  def A \<equiv> "rec_nat (space M) (\<lambda>n A. SOME B. ?P B A n)"
   have A_Suc: "\<And>n. A (Suc n) = (SOME B. ?P B (A n) n)" by (simp add: A_def)
   have A_0[simp]: "A 0 = space M" unfolding A_def by simp
   { fix i have "A i \<in> sets M" unfolding A_def
     proof (induct i)
       case (Suc i)
-      from Ex_P[OF this, of i] show ?case unfolding nat_rec_Suc
+      from Ex_P[OF this, of i] show ?case unfolding nat.recs(2)
         by (rule someI2_ex) simp
     qed simp }
   note A_in_sets = this
@@ -281,7 +281,7 @@ proof -
       from ex_inverse_of_nat_Suc_less[OF this]
       obtain n where *: "?d B < - 1 / real (Suc n)"
         by (auto simp: real_eq_of_nat inverse_eq_divide field_simps)
-      have "B \<subseteq> A (Suc n)" using B by (auto simp del: nat_rec_Suc)
+      have "B \<subseteq> A (Suc n)" using B by (auto simp del: nat.recs(2))
       from epsilon[OF B(1) this] *
       show False by auto
     qed

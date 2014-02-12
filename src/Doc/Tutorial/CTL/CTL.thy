@@ -258,9 +258,9 @@ It was merely defined to provide the witness in the proof of the
 @{thm[source]infinity_lemma}. Aficionados of minimal proofs might like to know
 that we could have given the witness without having to define a new function:
 the term
-@{term[display]"nat_rec s (\<lambda>n t. SOME u. (t,u)\<in>M \<and> Q u)"}
+@{term[display]"rec_nat s (\<lambda>n t. SOME u. (t,u)\<in>M \<and> Q u)"}
 is extensionally equal to @{term"path s Q"},
-where @{term nat_rec} is the predefined primitive recursor on @{typ nat}.
+where @{term rec_nat} is the predefined primitive recursor on @{typ nat}.
 *};
 (*<*)
 lemma
@@ -270,7 +270,7 @@ apply(subgoal_tac
  "\<exists> p. s = p 0 \<and> (\<forall> i. (p i,p(Suc i))\<in>M \<and> Q(p i))");
  apply(simp add: Paths_def);
  apply(blast);
-apply(rule_tac x = "nat_rec s (\<lambda>n t. SOME u. (t,u)\<in>M \<and> Q u)" in exI);
+apply(rule_tac x = "rec_nat s (\<lambda>n t. SOME u. (t,u)\<in>M \<and> Q u)" in exI);
 apply(simp);
 apply(intro strip);
 apply(induct_tac i);

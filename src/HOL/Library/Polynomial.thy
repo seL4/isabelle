@@ -145,9 +145,9 @@ proof -
   with that show thesis .
 qed
 
-lemma almost_everywhere_zero_nat_case:
+lemma almost_everywhere_zero_case_nat:
   assumes "almost_everywhere_zero f"
-  shows "almost_everywhere_zero (nat_case a f)"
+  shows "almost_everywhere_zero (case_nat a f)"
   using assms
   by (auto intro!: almost_everywhere_zeroI elim!: almost_everywhere_zeroE split: nat.split)
     blast
@@ -258,8 +258,8 @@ lemma leading_coeff_0_iff [simp]:
 subsection {* List-style constructor for polynomials *}
 
 lift_definition pCons :: "'a::zero \<Rightarrow> 'a poly \<Rightarrow> 'a poly"
-  is "\<lambda>a p. nat_case a (coeff p)"
-  using coeff_almost_everywhere_zero by (rule almost_everywhere_zero_nat_case)
+  is "\<lambda>a p. case_nat a (coeff p)"
+  using coeff_almost_everywhere_zero by (rule almost_everywhere_zero_case_nat)
 
 lemmas coeff_pCons = pCons.rep_eq
 
@@ -405,8 +405,8 @@ lemma coeffs_pCons_eq_cCons [simp]:
 proof -
   { fix ms :: "nat list" and f :: "nat \<Rightarrow> 'a" and x :: "'a"
     assume "\<forall>m\<in>set ms. m > 0"
-    then have "map (nat_case x f) ms = map f (map (\<lambda>n. n - 1) ms)"
-      by (induct ms) (auto, metis Suc_pred' nat_case_Suc) }
+    then have "map (case_nat x f) ms = map f (map (\<lambda>n. n - 1) ms)"
+      by (induct ms) (auto, metis Suc_pred' nat.cases(2)) }
   note * = this
   show ?thesis
     by (simp add: coeffs_def * upt_conv_Cons coeff_pCons map_decr_upt One_nat_def del: upt_Suc)
@@ -452,7 +452,7 @@ qed
 lemma coeff_Poly_eq:
   "coeff (Poly xs) n = nth_default 0 xs n"
   apply (induct xs arbitrary: n) apply simp_all
-  by (metis nat_case_0 nat_case_Suc not0_implies_Suc nth_default_Cons_0 nth_default_Cons_Suc pCons.rep_eq)
+  by (metis nat.cases not0_implies_Suc nth_default_Cons_0 nth_default_Cons_Suc pCons.rep_eq)
 
 lemma nth_default_coeffs_eq:
   "nth_default 0 (coeffs p) = coeff p"

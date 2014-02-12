@@ -459,7 +459,7 @@ where
                 else raise(''No empty clause''))
   }"
 
-lemma effect_option_case:
+lemma effect_case_option:
   assumes "effect (case x of None \<Rightarrow> n | Some y \<Rightarrow> s y) h h' r"
   obtains "x = None" "effect n h h' r"
          | y where "x = Some y" "effect (s y) h h' r" 
@@ -500,7 +500,7 @@ proof -
   }
   with assms show ?thesis
     unfolding res_thm2.simps get_clause_def
-    by (elim effect_bindE effect_ifE effect_nthE effect_raiseE effect_returnE effect_option_case) auto
+    by (elim effect_bindE effect_ifE effect_nthE effect_raiseE effect_returnE effect_case_option) auto
 qed
 
 lemma foldM_Inv2:
@@ -543,7 +543,7 @@ proof (cases "(a,step,rcs)" rule: doProofStep2.cases)
   show ?thesis
     apply auto
     apply (auto simp: get_clause_def elim!: effect_bindE effect_nthE)
-    apply (auto elim!: effect_bindE effect_nthE effect_option_case effect_raiseE
+    apply (auto elim!: effect_bindE effect_nthE effect_case_option effect_raiseE
       effect_returnE effect_updE)
     apply (frule foldM_Inv2)
     apply assumption

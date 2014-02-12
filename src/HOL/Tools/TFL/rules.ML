@@ -578,10 +578,10 @@ fun dest_combn tm 0 = (tm,[])
 local fun dest_pair M = let val {fst,snd} = USyntax.dest_pair M in (fst,snd) end
       fun mk_fst tm =
           let val ty as Type(@{type_name Product_Type.prod}, [fty,sty]) = type_of tm
-          in  Const ("Product_Type.fst", ty --> fty) $ tm  end
+          in  Const (@{const_name Product_Type.fst}, ty --> fty) $ tm  end
       fun mk_snd tm =
           let val ty as Type(@{type_name Product_Type.prod}, [fty,sty]) = type_of tm
-          in  Const ("Product_Type.snd", ty --> sty) $ tm  end
+          in  Const (@{const_name Product_Type.snd}, ty --> sty) $ tm  end
 in
 fun XFILL tych x vstruct =
   let fun traverse p xocc L =

@@ -41,8 +41,6 @@ sig
   val register_ctr_sugar: string -> ctr_sugar -> local_theory -> local_theory
   val register_ctr_sugar_global: string -> ctr_sugar -> theory -> theory
 
-  val rep_compat_prefix: string
-
   val mk_half_pairss: 'a list * 'a list -> ('a * 'a) list list
   val join_halves: int -> 'a list list -> 'a list list -> 'a list * 'a list list list
 
@@ -56,10 +54,10 @@ sig
     (ctr_sugar * term list * term list) option
 
   val wrap_free_constructors: ({prems: thm list, context: Proof.context} -> tactic) list list ->
-    (((bool * (bool * bool)) * term list) * binding) *
+    (((bool * bool) * term list) * binding) *
       (binding list * (binding list list * (binding * term) list list)) -> local_theory ->
     ctr_sugar * local_theory
-  val parse_wrap_free_constructors_options: (bool * (bool * bool)) parser
+  val parse_wrap_free_constructors_options: (bool * bool) parser
   val parse_bound_term: (binding * string) parser
 end;
 
@@ -95,10 +93,6 @@ type ctr_sugar =
    sel_splits: thm list,
    sel_split_asms: thm list,
    case_eq_ifs: thm list};
-
-fun eq_ctr_sugar ({ctrs = ctrs1, casex = case1, discs = discs1, selss = selss1, ...} : ctr_sugar,
-    {ctrs = ctrs2, casex = case2, discs = discs2, selss = selss2, ...} : ctr_sugar) =
-  ctrs1 = ctrs2 andalso case1 = case2 andalso discs1 = discs2 andalso selss1 = selss2;
 
 fun morph_ctr_sugar phi {ctrs, casex, discs, selss, exhaust, nchotomy, injects, distincts,
     case_thms, case_cong, weak_case_cong, split, split_asm, disc_thmss, discIs, sel_thmss,
@@ -137,7 +131,7 @@ structure Data = Generic_Data
   type T = ctr_sugar Symtab.table;
   val empty = Symtab.empty;
   val extend = I;
-  val merge = Symtab.merge eq_ctr_sugar;
+  fun merge data : T = Symtab.merge (K true) data;
 );
 
 fun ctr_sugar_of ctxt =
@@ -156,8 +150,6 @@ fun register_ctr_sugar key ctr_sugar =
 
 fun register_ctr_sugar_global key ctr_sugar =
   Context.theory_map (Data.map (Symtab.default (key, ctr_sugar)));
-
-val rep_compat_prefix = "new";
 
 val isN = "is_";
 val unN = "un_";
@@ -286,7 +278,7 @@ fun dest_case ctxt s Ts t =
 
 fun eta_expand_arg xs f_xs = fold_rev Term.lambda xs f_xs;
 
-fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, (no_code, rep_compat)), raw_ctrs),
+fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, no_code), raw_ctrs),
     raw_case_binding), (raw_disc_bindings, (raw_sel_bindingss, raw_sel_defaultss))) no_defs_lthy =
   let
     (* TODO: sanity checks on arguments *)
@@ -304,8 +296,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, (no_code, rep_co
     val fc_b_name = Long_Name.base_name fcT_name;
     val fc_b = Binding.name fc_b_name;
 
-    fun qualify mandatory =
-      Binding.qualify mandatory fc_b_name o (rep_compat ? Binding.qualify false rep_compat_prefix);
+    fun qualify mandatory = Binding.qualify mandatory fc_b_name;
 
     fun dest_TFree_or_TVar (TFree sS) = sS
       | dest_TFree_or_TVar (TVar ((s, _), S)) = (s, S)
@@ -363,8 +354,10 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, (no_code, rep_co
 
     val case_Ts = map (fn Ts => Ts ---> B) ctr_Tss;
 
-    val ((((((((xss, xss'), yss), fs), gs), [u', v']), [w]), (p, p')), names_lthy) = no_defs_lthy |>
-      mk_Freess' "x" ctr_Tss
+    val (((((((([exh_y], (xss, xss')), yss), fs), gs), [u', v']), [w]), (p, p')), names_lthy) =
+      no_defs_lthy
+      |> mk_Frees "y" [fcT] (* for compatibility with "datatype_realizer.ML" *)
+      ||>> mk_Freess' "x" ctr_Tss
       ||>> mk_Freess "y" ctr_Tss
       ||>> mk_Frees "f" case_Ts
       ||>> mk_Frees "g" case_Ts
@@ -443,7 +436,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, (no_code, rep_co
 
     val (all_sels_distinct, discs, selss, disc_defs, sel_defs, sel_defss, lthy') =
       if no_discs_sels then
-        (true, [], [], [], [], [], lthy)
+        (true, [], [], [], [], [], lthy')
       else
         let
           fun disc_free b = Free (Binding.name_of b, mk_pred1T fcT);
@@ -533,8 +526,8 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, (no_code, rep_co
     fun mk_imp_p Qs = Logic.list_implies (Qs, HOLogic.mk_Trueprop p);
 
     val exhaust_goal =
-      let fun mk_prem xctr xs = fold_rev Logic.all xs (mk_imp_p [mk_Trueprop_eq (u, xctr)]) in
-        fold_rev Logic.all [p, u] (mk_imp_p (map2 mk_prem xctrs xss))
+      let fun mk_prem xctr xs = fold_rev Logic.all xs (mk_imp_p [mk_Trueprop_eq (exh_y, xctr)]) in
+        fold_rev Logic.all [p, exh_y] (mk_imp_p (map2 mk_prem xctrs xss))
       end;
 
     val inject_goalss =
@@ -560,7 +553,10 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, (no_code, rep_co
 
     fun after_qed thmss lthy =
       let
-        val ([exhaust_thm], (inject_thmss, half_distinct_thmss)) = (hd thmss, chop n (tl thmss));
+        val ([exhaust_thm0], (inject_thmss, half_distinct_thmss)) = (hd thmss, chop n (tl thmss));
+        (* for "datatype_realizer.ML": *)
+        val exhaust_thm =
+          Thm.name_derivation (fcT_name ^ Long_Name.separator ^ exhaustN) exhaust_thm0;
 
         val inject_thms = flat inject_thmss;
 
@@ -615,7 +611,8 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, (no_code, rep_co
           in
             (Goal.prove_sorry lthy [] [] goal (fn _ => mk_case_cong_tac lthy uexhaust_thm case_thms),
              Goal.prove_sorry lthy [] [] weak_goal (K (etac arg_cong 1)))
-            |> pairself (Thm.close_derivation #> singleton (Proof_Context.export names_lthy lthy))
+            |> pairself (singleton (Proof_Context.export names_lthy lthy) #>
+              Thm.close_derivation)
           end;
 
         val split_lhs = q $ ufcase;
@@ -636,14 +633,14 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, (no_code, rep_co
         fun prove_split selss goal =
           Goal.prove_sorry lthy [] [] goal (fn _ =>
             mk_split_tac lthy uexhaust_thm case_thms selss inject_thmss distinct_thmsss)
-          |> Thm.close_derivation
-          |> singleton (Proof_Context.export names_lthy lthy);
+          |> singleton (Proof_Context.export names_lthy lthy)
+          |> Thm.close_derivation;
 
         fun prove_split_asm asm_goal split_thm =
           Goal.prove_sorry lthy [] [] asm_goal (fn {context = ctxt, ...} =>
             mk_split_asm_tac ctxt split_thm)
-          |> Thm.close_derivation
-          |> singleton (Proof_Context.export names_lthy lthy);
+          |> singleton (Proof_Context.export names_lthy lthy)
+          |> Thm.close_derivation;
 
         val (split_thm, split_asm_thm) =
           let
@@ -697,8 +694,8 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, (no_code, rep_co
                   val goal = mk_Trueprop_eq (mk_uu_eq (), the_single exist_xs_u_eq_ctrs);
                 in
                   Goal.prove_sorry lthy [] [] goal (fn _ => mk_unique_disc_def_tac m uexhaust_thm)
-                  |> Thm.close_derivation
                   |> singleton (Proof_Context.export names_lthy lthy)
+                  |> Thm.close_derivation
                 end;
 
               fun mk_alternate_disc_def k =
@@ -710,8 +707,8 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, (no_code, rep_co
                   Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
                     mk_alternate_disc_def_tac ctxt k (nth disc_defs (2 - k))
                       (nth distinct_thms (2 - k)) uexhaust_thm)
-                  |> Thm.close_derivation
                   |> singleton (Proof_Context.export names_lthy lthy)
+                  |> Thm.close_derivation
                 end;
 
               val has_alternate_disc_def =
@@ -847,8 +844,8 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, (no_code, rep_co
                     mk_expand_tac lthy n ms (inst_thm u disc_exhaust_thm)
                       (inst_thm v disc_exhaust_thm) uncollapse_thms disc_exclude_thmsss
                       disc_exclude_thmsss')
-                  |> Thm.close_derivation
                   |> singleton (Proof_Context.export names_lthy lthy)
+                  |> Thm.close_derivation
                 end;
 
               val (sel_split_thm, sel_split_asm_thm) =
@@ -869,8 +866,8 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, (no_code, rep_co
                 in
                   Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
                     mk_case_eq_if_tac ctxt n uexhaust_thm case_thms disc_thmss' sel_thmss)
-                  |> Thm.close_derivation
                   |> singleton (Proof_Context.export names_lthy lthy)
+                  |> Thm.close_derivation
                 end;
             in
               (all_sel_thms, sel_thmss, disc_thmss, nontriv_disc_thms, discI_thms,
@@ -927,8 +924,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, (no_code, rep_co
       in
         (ctr_sugar,
          lthy
-         |> not rep_compat ?
-            Local_Theory.declaration {syntax = false, pervasive = true}
+         |> Local_Theory.declaration {syntax = false, pervasive = true}
               (fn phi => Case_Translation.register
                  (Morphism.term phi casex) (map (Morphism.term phi) ctrs))
          |> Local_Theory.background_theory (fold (fold Code.del_eqn) [disc_defs, sel_defs])
@@ -965,10 +961,10 @@ val parse_bound_termss = parse_bracket_list parse_bound_terms;
 
 val parse_wrap_free_constructors_options =
   Scan.optional (@{keyword "("} |-- Parse.list1
-        (Parse.reserved "no_discs_sels" >> K 0 || Parse.reserved "no_code" >> K 1 ||
-         Parse.reserved "rep_compat" >> K 2) --| @{keyword ")"}
-      >> (fn js => (member (op =) js 0, (member (op =) js 1, member (op =) js 2))))
-    (false, (false, false));
+        (Parse.reserved "no_discs_sels" >> K 0 || Parse.reserved "no_code" >> K 1) --|
+      @{keyword ")"}
+      >> (fn js => (member (op =) js 0, member (op =) js 1)))
+    (false, false);
 
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "wrap_free_constructors"}

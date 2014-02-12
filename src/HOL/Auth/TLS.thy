@@ -81,7 +81,7 @@ specification (sessionK)
   inj_sessionK: "inj sessionK"
   --{*sessionK is collision-free; also, no clientK clashes with any serverK.*}
    apply (rule exI [of _ 
-         "%((x,y,z), r). prod_encode(role_case 0 1 r, 
+         "%((x,y,z), r). prod_encode(case_role 0 1 r, 
                            prod_encode(x, prod_encode(y,z)))"])
    apply (simp add: inj_on_def prod_encode_eq split: role.split) 
    done

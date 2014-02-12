@@ -50,9 +50,9 @@ lemma compute_fst: "fst (x,y) = x" by simp
 lemma compute_snd: "snd (x,y) = y" by simp
 lemma compute_pair_eq: "((a, b) = (c, d)) = (a = c \<and> b = d)" by auto
 
-lemma prod_case_simp: "prod_case f (x,y) = f x y" by simp
+lemma case_prod_simp: "case_prod f (x,y) = f x y" by simp
 
-lemmas compute_pair = compute_fst compute_snd compute_pair_eq prod_case_simp
+lemmas compute_pair = compute_fst compute_snd compute_pair_eq case_prod_simp
 
 (*** compute_option ***)
 
@@ -62,25 +62,25 @@ lemma compute_Some_None_eq: "(Some x = None) = False" by auto
 lemma compute_None_None_eq: "(None = None) = True" by auto
 lemma compute_Some_Some_eq: "(Some x = Some y) = (x = y)" by auto
 
-definition option_case_compute :: "'b option \<Rightarrow> 'a \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a"
-  where "option_case_compute opt a f = option_case a f opt"
+definition case_option_compute :: "'b option \<Rightarrow> 'a \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a"
+  where "case_option_compute opt a f = case_option a f opt"
 
-lemma option_case_compute: "option_case = (\<lambda> a f opt. option_case_compute opt a f)"
-  by (simp add: option_case_compute_def)
+lemma case_option_compute: "case_option = (\<lambda> a f opt. case_option_compute opt a f)"
+  by (simp add: case_option_compute_def)
 
-lemma option_case_compute_None: "option_case_compute None = (\<lambda> a f. a)"
+lemma case_option_compute_None: "case_option_compute None = (\<lambda> a f. a)"
   apply (rule ext)+
-  apply (simp add: option_case_compute_def)
+  apply (simp add: case_option_compute_def)
   done
 
-lemma option_case_compute_Some: "option_case_compute (Some x) = (\<lambda> a f. f x)"
+lemma case_option_compute_Some: "case_option_compute (Some x) = (\<lambda> a f. f x)"
   apply (rule ext)+
-  apply (simp add: option_case_compute_def)
+  apply (simp add: case_option_compute_def)
   done
 
-lemmas compute_option_case = option_case_compute option_case_compute_None option_case_compute_Some
+lemmas compute_case_option = case_option_compute case_option_compute_None case_option_compute_Some
 
-lemmas compute_option = compute_the compute_None_Some_eq compute_Some_None_eq compute_None_None_eq compute_Some_Some_eq compute_option_case
+lemmas compute_option = compute_the compute_None_Some_eq compute_Some_None_eq compute_None_None_eq compute_Some_Some_eq compute_case_option
 
 (**** compute_list_length ****)
 
@@ -92,27 +92,27 @@ lemma length_nil: "length [] = 0"
 
 lemmas compute_list_length = length_nil length_cons
 
-(*** compute_list_case ***)
+(*** compute_case_list ***)
 
-definition list_case_compute :: "'b list \<Rightarrow> 'a \<Rightarrow> ('b \<Rightarrow> 'b list \<Rightarrow> 'a) \<Rightarrow> 'a"
-  where "list_case_compute l a f = list_case a f l"
+definition case_list_compute :: "'b list \<Rightarrow> 'a \<Rightarrow> ('b \<Rightarrow> 'b list \<Rightarrow> 'a) \<Rightarrow> 'a"
+  where "case_list_compute l a f = case_list a f l"
 
-lemma list_case_compute: "list_case = (\<lambda> (a::'a) f (l::'b list). list_case_compute l a f)"
+lemma case_list_compute: "case_list = (\<lambda> (a::'a) f (l::'b list). case_list_compute l a f)"
   apply (rule ext)+
-  apply (simp add: list_case_compute_def)
+  apply (simp add: case_list_compute_def)
   done
 
-lemma list_case_compute_empty: "list_case_compute ([]::'b list) = (\<lambda> (a::'a) f. a)"
+lemma case_list_compute_empty: "case_list_compute ([]::'b list) = (\<lambda> (a::'a) f. a)"
   apply (rule ext)+
-  apply (simp add: list_case_compute_def)
+  apply (simp add: case_list_compute_def)
   done
 
-lemma list_case_compute_cons: "list_case_compute (u#v) = (\<lambda> (a::'a) f. (f (u::'b) v))"
+lemma case_list_compute_cons: "case_list_compute (u#v) = (\<lambda> (a::'a) f. (f (u::'b) v))"
   apply (rule ext)+
-  apply (simp add: list_case_compute_def)
+  apply (simp add: case_list_compute_def)
   done
 
-lemmas compute_list_case = list_case_compute list_case_compute_empty list_case_compute_cons
+lemmas compute_case_list = case_list_compute case_list_compute_empty case_list_compute_cons
 
 (*** compute_list_nth ***)
 (* Of course, you will need computation with nats for this to work \<dots> *)
@@ -122,7 +122,7 @@ lemma compute_list_nth: "((x#xs) ! n) = (if n = 0 then x else (xs ! (n - 1)))"
   
 (*** compute_list ***)
 
-lemmas compute_list = compute_list_case compute_list_length compute_list_nth
+lemmas compute_list = compute_case_list compute_list_length compute_list_nth
 
 (*** compute_let ***)
 

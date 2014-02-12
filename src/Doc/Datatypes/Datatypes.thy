@@ -470,7 +470,7 @@ text {*
   @@{command datatype_new} target? @{syntax dt_options}? \<newline>
     (@{syntax dt_name} '=' (@{syntax ctor} + '|') + @'and')
   ;
-  @{syntax_def dt_options}: '(' (('no_discs_sels' | 'no_code' | 'rep_compat') + ',') ')'
+  @{syntax_def dt_options}: '(' (('no_discs_sels' | 'no_code') + ',') ')'
 \<close>}
 
 \medskip
@@ -492,12 +492,6 @@ should be generated.
 \item
 The @{text "no_code"} option indicates that the datatype should not be
 registered for code generation.
-
-\item
-The @{text "rep_compat"} option indicates that the generated names should
-contain optional (and normally not displayed) ``@{text "new."}'' components to
-prevent clashes with a later call to \keyw{rep\_datatype}. See
-Section~\ref{ssec:datatype-compatibility-issues} for details.
 \end{itemize}
 
 The left-hand sides of the datatype equations specify the name of the type to
@@ -771,7 +765,7 @@ The next subgroup is concerned with the case combinator:
 @{thm list.case(1)[no_vars]} \\
 @{thm list.case(2)[no_vars]}
 
-\item[@{text "t."}\hthm{case\_cong}\rm:] ~ \\
+\item[@{text "t."}\hthm{case\_cong} @{text "[fundef_cong]"}\rm:] ~ \\
 @{thm list.case_cong[no_vars]}
 
 \item[@{text "t."}\hthm{weak\_case\_cong} @{text "[cong]"}\rm:] ~ \\
@@ -2563,7 +2557,7 @@ is available as a stand-alone command called @{command wrap_free_constructors}.
 %    old \keyw{datatype}
 %
 %  * @{command wrap_free_constructors}
-%    * @{text "no_discs_sels"}, @{text "no_code"}, @{text "rep_compat"}
+%    * @{text "no_discs_sels"}, @{text "no_code"}
 %    * hack to have both co and nonco view via locale (cf. ext nats)
 %  * code generator
 %     * eq, refl, simps
@@ -2601,10 +2595,13 @@ text {*
 
 \medskip
 
-% options: no_discs_sels no_code rep_compat
+% options: no_discs_sels no_code
 
 \noindent
 Section~\ref{ssec:datatype-generated-theorems} lists the generated theorems.
+For technical reasons, the @{text "[fundef_cong]"} attribute is not set on the
+generated @{text case_cong} theorem. It can be added manually using
+\keyw{declare}.
 *}
 
 

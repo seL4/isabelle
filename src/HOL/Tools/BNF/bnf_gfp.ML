@@ -493,16 +493,16 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
         |> Thm.close_derivation
       end;
 
-    val mor_sum_case_thm =
+    val mor_case_sum_thm =
       let
         val maps = map3 (fn s => fn sum_s => fn mapx =>
-          mk_sum_case (HOLogic.mk_comp (Term.list_comb (mapx, passive_ids @ Inls), s), sum_s))
+          mk_case_sum (HOLogic.mk_comp (Term.list_comb (mapx, passive_ids @ Inls), s), sum_s))
           s's sum_ss map_Inls;
       in
         Goal.prove_sorry lthy [] []
           (fold_rev Logic.all (s's @ sum_ss) (HOLogic.mk_Trueprop
             (mk_mor (map HOLogic.mk_UNIV activeBs) s's sum_UNIVs maps Inls)))
-          (K (mk_mor_sum_case_tac ks mor_UNIV_thm))
+          (K (mk_mor_case_sum_tac ks mor_UNIV_thm))
         |> Thm.close_derivation
       end;
 
@@ -525,7 +525,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
         val Suc = Term.absdummy HOLogic.natT (Term.absfree hrec'
           (HOLogic.mk_tuple (map4 mk_Suc ss setssAs zs zs')));
 
-        val rhs = mk_nat_rec Zero Suc;
+        val rhs = mk_rec_nat Zero Suc;
       in
         fold_rev (Term.absfree o Term.dest_Free) ss rhs
       end;
@@ -555,8 +555,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
         mk_nthN n (Term.list_comb (Const (nth hset_recs (j - 1), hset_recT), args)) i
       end;
 
-    val hset_rec_0ss = mk_rec_simps n @{thm nat_rec_0_imp} hset_rec_defs;
-    val hset_rec_Sucss = mk_rec_simps n @{thm nat_rec_Suc_imp} hset_rec_defs;
+    val hset_rec_0ss = mk_rec_simps n @{thm rec_nat_0_imp} hset_rec_defs;
+    val hset_rec_Sucss = mk_rec_simps n @{thm rec_nat_Suc_imp} hset_rec_defs;
     val hset_rec_0ss' = transpose hset_rec_0ss;
     val hset_rec_Sucss' = transpose hset_rec_Sucss;
 
@@ -1133,7 +1133,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
         val fs = map mk_undefined fTs1 @ (f :: map mk_undefined fTs2);
       in
         HOLogic.mk_split (Term.absfree Kl' (Term.absfree lab'
-          (mk_sum_caseN fs $ (lab $ HOLogic.mk_list sum_sbdT []))))
+          (mk_case_sumN fs $ (lab $ HOLogic.mk_list sum_sbdT []))))
       end;
 
     val ((strT_frees, (_, strT_def_frees)), (lthy, lthy_old)) =
@@ -1202,7 +1202,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
         val Suc = Term.absdummy HOLogic.natT (Term.absfree Lev_rec'
           (HOLogic.mk_tuple (map5 mk_Suc ks ss setssAs zs zs')));
 
-        val rhs = mk_nat_rec Zero Suc;
+        val rhs = mk_rec_nat Zero Suc;
       in
         fold_rev (Term.absfree o Term.dest_Free) ss rhs
       end;
@@ -1226,8 +1226,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
         mk_nthN n (Term.list_comb (Const (Lev, LevT), ss) $ nat) i
       end;
 
-    val Lev_0s = flat (mk_rec_simps n @{thm nat_rec_0_imp} [Lev_def]);
-    val Lev_Sucs = flat (mk_rec_simps n @{thm nat_rec_Suc_imp} [Lev_def]);
+    val Lev_0s = flat (mk_rec_simps n @{thm rec_nat_0_imp} [Lev_def]);
+    val Lev_Sucs = flat (mk_rec_simps n @{thm rec_nat_Suc_imp} [Lev_def]);
 
     val rv_bind = mk_internal_b rvN;
     val rv_def_bind = rpair [] (Thm.def_binding rv_bind);
@@ -1239,13 +1239,13 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
             fun mk_case i' =
               Term.absfree k' (mk_nthN n rv_rec i' $ (mk_from_sbd s b i i' $ k));
           in
-            Term.absfree b' (mk_sum_caseN (map mk_case ks) $ sumx)
+            Term.absfree b' (mk_case_sumN (map mk_case ks) $ sumx)
           end;
 
         val Cons = Term.absfree sumx' (Term.absdummy sum_sbd_listT (Term.absfree rv_rec'
           (HOLogic.mk_tuple (map4 mk_Cons ks ss zs zs'))));
 
-        val rhs = mk_list_rec Nil Cons;
+        val rhs = mk_rec_list Nil Cons;
       in
         fold_rev (Term.absfree o Term.dest_Free) ss rhs
       end;
@@ -1270,8 +1270,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
         mk_nthN n (Term.list_comb (Const (rv, rvT), ss) $ kl) i
       end;
 
-    val rv_Nils = flat (mk_rec_simps n @{thm list_rec_Nil_imp} [rv_def]);
-    val rv_Conss = flat (mk_rec_simps n @{thm list_rec_Cons_imp} [rv_def]);
+    val rv_Nils = flat (mk_rec_simps n @{thm rec_list_Nil_imp} [rv_def]);
+    val rv_Conss = flat (mk_rec_simps n @{thm rec_list_Cons_imp} [rv_def]);
 
     val beh_binds = mk_internal_bs behN;
     fun beh_bind i = nth beh_binds (i - 1);
@@ -1285,7 +1285,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
 
         val Lab = Term.absfree kl' (mk_If
           (HOLogic.mk_mem (kl, mk_Lev ss (mk_size kl) i $ z))
-          (mk_sum_caseN (map5 mk_case ks to_sbd_maps ss zs zs') $ (mk_rv ss kl i $ z))
+          (mk_case_sumN (map5 mk_case ks to_sbd_maps ss zs zs') $ (mk_rv ss kl i $ z))
           (mk_undefined sbdFT));
 
         val rhs = HOLogic.mk_prod (mk_UNION (HOLogic.mk_UNIV HOLogic.natT)
@@ -1413,7 +1413,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
 
         fun mk_conjunct i z B = HOLogic.mk_imp
           (HOLogic.mk_conj (HOLogic.mk_mem (kl, mk_Lev ss nat i $ z), HOLogic.mk_mem (z, B)),
-          mk_sum_caseN (map4 mk_case ss setssAs zs zs') $ (mk_rv ss kl i $ z));
+          mk_case_sumN (map4 mk_case ss setssAs zs zs') $ (mk_rv ss kl i $ z));
 
         val goal = list_all_free (kl :: zs)
           (Library.foldr1 HOLogic.mk_conj (map3 mk_conjunct ks zs Bs));
@@ -1432,8 +1432,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
         map (fn i => map (fn i' =>
           split_conj_thm (if n = 1 then set_rv_Lev' RS mk_conjunctN n i RS mp
             else set_rv_Lev' RS mk_conjunctN n i RS mp RSN
-              (2, @{thm sum_case_weak_cong} RS iffD1) RS
-              (mk_sum_casesN n i' RS iffD1))) ks) ks
+              (2, @{thm sum.weak_case_cong} RS iffD1) RS
+              (mk_sum_caseN n i' RS iffD1))) ks) ks
       end;
 
     val set_Lev_thmsss =
@@ -1828,7 +1828,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
 
     val corec_Inl_sum_thms =
       let
-        val mor = mor_comp_thm OF [mor_sum_case_thm, mor_unfold_thm];
+        val mor = mor_comp_thm OF [mor_case_sum_thm, mor_unfold_thm];
       in
         map2 (fn unique => fn unfold_dtor =>
           trans OF [mor RS unique, unfold_dtor]) unfold_unique_mor_thms unfold_dtor_thms
@@ -1839,7 +1839,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
 
     val corec_strs =
       map3 (fn dtor => fn sum_s => fn mapx =>
-        mk_sum_case
+        mk_case_sum
           (HOLogic.mk_comp (Term.list_comb (mapx, passive_ids @ corec_Inls), dtor), sum_s))
       dtors corec_ss corec_maps;
 
@@ -1863,14 +1863,14 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
     val corec_defs = map (fn def =>
       mk_unabs_def n (Morphism.thm phi def RS meta_eq_to_obj_eq)) corec_def_frees;
 
-    val sum_cases =
-      map2 (fn T => fn i => mk_sum_case (HOLogic.id_const T, mk_corec corec_ss i)) Ts ks;
+    val case_sums =
+      map2 (fn T => fn i => mk_case_sum (HOLogic.id_const T, mk_corec corec_ss i)) Ts ks;
     val dtor_corec_thms =
       let
         fun mk_goal i corec_s corec_map dtor z =
           let
             val lhs = dtor $ (mk_corec corec_ss i $ z);
-            val rhs = Term.list_comb (corec_map, passive_ids @ sum_cases) $ (corec_s $ z);
+            val rhs = Term.list_comb (corec_map, passive_ids @ case_sums) $ (corec_s $ z);
           in
             fold_rev Logic.all (z :: corec_ss) (mk_Trueprop_eq (lhs, rhs))
           end;
@@ -1886,7 +1886,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
 
     val corec_unique_mor_thm =
       let
-        val id_fs = map2 (fn T => fn f => mk_sum_case (HOLogic.id_const T, f)) Ts unfold_fs;
+        val id_fs = map2 (fn T => fn f => mk_case_sum (HOLogic.id_const T, f)) Ts unfold_fs;
         val prem = HOLogic.mk_Trueprop (mk_mor corec_UNIVs corec_strs UNIVs dtors id_fs);
         fun mk_fun_eq f i = HOLogic.mk_eq (f, mk_corec corec_ss i);
         val unique = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
@@ -1907,9 +1907,9 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
     val (dtor_corec_unique_thms, dtor_corec_unique_thm) =
       `split_conj_thm (split_conj_prems n
         (mor_UNIV_thm RS iffD2 RS corec_unique_mor_thm)
-        |> Local_Defs.unfold lthy (@{thms o_sum_case comp_id id_comp comp_assoc[symmetric]
-           sum_case_o_inj(1)} @ map_id0s_o_id @ sym_map_comps)
-        OF replicate n @{thm arg_cong2[of _ _ _ _ sum_case, OF refl]});
+        |> Local_Defs.unfold lthy (@{thms o_case_sum comp_id id_comp comp_assoc[symmetric]
+           case_sum_o_inj(1)} @ map_id0s_o_id @ sym_map_comps)
+        OF replicate n @{thm arg_cong2[of _ _ _ _ case_sum, OF refl]});
 
     val timer = time (timer "corec definitions & thms");
 
