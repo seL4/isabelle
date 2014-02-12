@@ -771,7 +771,7 @@ The next subgroup is concerned with the case combinator:
 @{thm list.case(1)[no_vars]} \\
 @{thm list.case(2)[no_vars]}
 
-\item[@{text "t."}\hthm{case\_cong}\rm:] ~ \\
+\item[@{text "t."}\hthm{case\_cong} @{text "[fundef_cong]"}\rm:] ~ \\
 @{thm list.case_cong[no_vars]}
 
 \item[@{text "t."}\hthm{weak\_case\_cong} @{text "[cong]"}\rm:] ~ \\
@@ -2605,6 +2605,9 @@ text {*
 
 \noindent
 Section~\ref{ssec:datatype-generated-theorems} lists the generated theorems.
+For technical reasons, the @{text "[fundef_cong]"} attribute is not set on the
+generated @{text case_cong} theorem. It can be added manually using
+\keyw{declare}.
 *}
 
 
