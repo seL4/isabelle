@@ -258,12 +258,9 @@ fun defcnf fm =
     let
       val fm' = nnf fm
       (* 'new' specifies the next index that is available to introduce an auxiliary variable *)
-      (* int ref *)
       val new = Unsynchronized.ref (maxidx fm' + 1)
-      (* unit -> int *)
       fun new_idx () = let val idx = !new in new := idx+1; idx end
       (* replaces 'And' by an auxiliary variable (and its definition) *)
-      (* prop_formula -> prop_formula * prop_formula list *)
       fun defcnf_or (And x) =
             let
               val i = new_idx ()
@@ -279,7 +276,6 @@ fun defcnf fm =
               (Or (fm1', fm2'), defs1 @ defs2)
             end
         | defcnf_or fm = (fm, [])
-      (* prop_formula -> prop_formula *)
       fun defcnf_from_nnf True = True
         | defcnf_from_nnf False = False
         | defcnf_from_nnf (BoolVar i) = BoolVar i
