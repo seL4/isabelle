@@ -307,7 +307,7 @@ fun prove_match2 options ctxt out_ts =
             val (_, ts) = strip_comb t
           in
             print_tac options ("Term " ^ (Syntax.string_of_term ctxt t) ^ 
-              "splitting with rules \n" ^ Display.string_of_thm ctxt split_asm)
+              " splitting with rules \n" ^ Display.string_of_thm ctxt split_asm)
             THEN TRY (Splitter.split_asm_tac [split_asm] 1
               THEN (print_tac options "after splitting with split_asm rules")
             (* THEN (Simplifier.asm_full_simp_tac (put_simpset HOL_basic_ss ctxt) 1)
