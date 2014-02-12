@@ -439,7 +439,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, (no_code, rep_co
 
     val (all_sels_distinct, discs, selss, disc_defs, sel_defs, sel_defss, lthy') =
       if no_discs_sels then
-        (true, [], [], [], [], [], lthy)
+        (true, [], [], [], [], [], lthy')
       else
         let
           fun disc_free b = Free (Binding.name_of b, mk_pred1T fcT);
