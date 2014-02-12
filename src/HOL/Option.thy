@@ -24,7 +24,8 @@ lemma [case_names None Some, induct type: option]:
   "P None \<Longrightarrow> (\<And>option. P (Some option)) \<Longrightarrow> P option"
 by (rule option.induct)
 
--- {* Compatibility *}
+text {* Compatibility: *}
+
 setup {* Sign.mandatory_path "option" *}
 
 lemmas inducts = option.induct
