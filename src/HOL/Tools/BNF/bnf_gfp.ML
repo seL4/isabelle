@@ -1432,7 +1432,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
         map (fn i => map (fn i' =>
           split_conj_thm (if n = 1 then set_rv_Lev' RS mk_conjunctN n i RS mp
             else set_rv_Lev' RS mk_conjunctN n i RS mp RSN
-              (2, @{thm sum_case_weak_cong} RS iffD1) RS
+              (2, @{thm sum.weak_case_cong} RS iffD1) RS
               (mk_sum_casesN n i' RS iffD1))) ks) ks
       end;
 

@@ -212,12 +212,12 @@ lemma sum_RECURSION:
   "\<forall>Inl' Inr'. \<exists>fn. (\<forall>a :: 'A. fn (Inl a) = (Inl' a :: 'Z)) \<and> (\<forall>a :: 'B. fn (Inr a) = Inr' a)"
   by (intro allI, rule_tac x="sum_case Inl' Inr'" in exI) auto
 
-lemma OUTL[import_const "OUTL" : "Sum_Type.Projl"]:
-  "Sum_Type.Projl (Inl x) = x"
+lemma OUTL[import_const "OUTL" : "Sum_Type.projl"]:
+  "Sum_Type.projl (Inl x) = x"
   by simp
 
-lemma OUTR[import_const "OUTR" : "Sum_Type.Projr"]:
-  "Sum_Type.Projr (Inr y) = y"
+lemma OUTR[import_const "OUTR" : "Sum_Type.projr"]:
+  "Sum_Type.projr (Inr y) = y"
   by simp
 
 import_type_map list : List.list
