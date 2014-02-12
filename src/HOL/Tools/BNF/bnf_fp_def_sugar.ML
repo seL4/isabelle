@@ -206,6 +206,7 @@ fun quasi_unambiguous_case_names names =
 val id_def = @{thm id_def};
 val mp_conj = @{thm mp_conj};
 
+val fundefcong_attrs = @{attributes [fundef_cong]};
 val nitpicksimp_attrs = @{attributes [nitpick_simp]};
 val code_nitpicksimp_attrs = Code.add_default_eqn_attrib :: nitpicksimp_attrs;
 val simp_attrs = @{attributes [simp]};
@@ -220,9 +221,7 @@ val lists_bmoc = fold (fn xs => fn t => Term.list_comb (t, xs));
 fun flat_rec_arg_args xss =
   (* FIXME (once the old datatype package is phased out): The first line below gives the preferred
      order. The second line is for compatibility with the old datatype package. *)
-(*
-  flat xss
-*)
+  (* flat xss *)
   map hd xss @ maps tl xss;
 
 fun flat_corec_predss_getterss qss fss = maps (op @) (qss ~~ fss);
@@ -1248,7 +1247,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
               (sel_bindingss, sel_defaultss))) lthy
           end;
 
-        fun derive_maps_sets_rels (ctr_sugar, lthy) =
+        fun derive_maps_sets_rels (ctr_sugar as {case_cong, ...} : ctr_sugar, lthy) =
           if live = 0 then
             ((([], [], [], []), ctr_sugar), lthy)
           else
@@ -1322,7 +1321,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                 join_halves n half_rel_distinct_thmss other_half_rel_distinct_thmss;
 
               val anonymous_notes =
-                [(map (fn th => th RS @{thm eq_False[THEN iffD2]}) rel_distinct_thms,
+                [([case_cong], fundefcong_attrs),
+                 (map (fn th => th RS @{thm eq_False[THEN iffD2]}) rel_distinct_thms,
                   code_nitpicksimp_attrs),
                  (map2 (fn th => fn 0 => th RS @{thm eq_True[THEN iffD2]} | _ => th)
                     rel_inject_thms ms, code_nitpicksimp_attrs)]
