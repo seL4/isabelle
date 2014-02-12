@@ -348,12 +348,12 @@ fun dest_prod (Const ("Product_Type.Pair", _) $ t1 $ t2) = (t1, t2)
 
 fun mk_fst p =
   let val pT = fastype_of p in
-    Const ("Product_Type.fst", pT --> fst (dest_prodT pT)) $ p
+    Const ("Product_Type.prod.fst", pT --> fst (dest_prodT pT)) $ p
   end;
 
 fun mk_snd p =
   let val pT = fastype_of p in
-    Const ("Product_Type.snd", pT --> snd (dest_prodT pT)) $ p
+    Const ("Product_Type.prod.snd", pT --> snd (dest_prodT pT)) $ p
   end;
 
 fun split_const (A, B, C) =
