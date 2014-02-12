@@ -62,7 +62,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
     val new_type_names = map (Binding.name_of o fst) types_syntax;
     val big_name = space_implode "_" new_type_names;
     val thy1 = Sign.add_path big_name thy;
-    val big_rec_name = big_name ^ "_rep_set";
+    val big_rec_name = "rep_set_" ^ big_name;
     val rep_set_names' =
       if length descr' = 1 then [big_rec_name]
       else map (prefix (big_rec_name ^ "_") o string_of_int) (1 upto length descr');

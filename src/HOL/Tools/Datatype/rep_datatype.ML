@@ -87,7 +87,7 @@ fun prove_primrec_thms (config : Datatype_Aux.config) new_type_names descr
 
     val induct_Ps = map head_of (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of induct)));
 
-    val big_rec_name' = big_name ^ "_rec_set";
+    val big_rec_name' = "rec_set_" ^ big_name;
     val rec_set_names' =
       if length descr' = 1 then [big_rec_name']
       else map (prefix (big_rec_name' ^ "_") o string_of_int) (1 upto length descr');
@@ -215,7 +215,7 @@ fun prove_primrec_thms (config : Datatype_Aux.config) new_type_names descr
 
     (* define primrec combinators *)
 
-    val big_reccomb_name = space_implode "_" new_type_names ^ "_rec";
+    val big_reccomb_name = "rec_" ^ space_implode "_" new_type_names;
     val reccomb_names =
       map (Sign.full_bname thy1)
         (if length descr' = 1 then [big_reccomb_name]
@@ -289,7 +289,7 @@ fun prove_case_thms (config : Datatype_Aux.config)
           val Ts' = map mk_dummyT (filter Datatype_Aux.is_rec_type cargs)
         in Const (@{const_name undefined}, Ts @ Ts' ---> T') end) constrs) descr';
 
-    val case_names0 = map (fn s => Sign.full_bname thy1 (s ^ "_case")) new_type_names;
+    val case_names0 = map (fn s => Sign.full_bname thy1 ("case_" ^ s)) new_type_names;
 
     (* define case combinators via primrec combinators *)
 
