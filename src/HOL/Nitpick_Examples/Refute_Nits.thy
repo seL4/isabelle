@@ -519,18 +519,6 @@ lemma "P Pair"
 nitpick [expect = genuine]
 oops
 
-lemma "prod_rec f p = f (fst p) (snd p)"
-nitpick [expect = none]
-by (case_tac p) auto
-
-lemma "prod_rec f (a, b) = f a b"
-nitpick [expect = none]
-by auto
-
-lemma "P (prod_rec f x)"
-nitpick [expect = genuine]
-oops
-
 lemma "P (case x of Pair a b \<Rightarrow> f a b)"
 nitpick [expect = genuine]
 oops
@@ -572,15 +560,6 @@ nitpick [expect = genuine]
 oops
 
 lemma "P ()"
-nitpick [expect = genuine]
-oops
-
-lemma "unit_rec u x = u"
-nitpick [expect = none]
-apply simp
-done
-
-lemma "P (unit_rec u x)"
 nitpick [expect = genuine]
 oops
 
@@ -643,20 +622,6 @@ nitpick [expect = genuine]
 oops
 
 lemma "P Inl"
-nitpick [expect = genuine]
-oops
-
-lemma "sum_rec l r (Inl x) = l x"
-nitpick [expect = none]
-apply simp
-done
-
-lemma "sum_rec l r (Inr x) = r x"
-nitpick [expect = none]
-apply simp
-done
-
-lemma "P (sum_rec l r x)"
 nitpick [expect = genuine]
 oops
 

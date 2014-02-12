@@ -525,14 +525,6 @@ lemma "P ()"
 refute [expect = genuine]
 oops
 
-lemma "unit_rec u x = u"
-refute [expect = none]
-by simp
-
-lemma "P (unit_rec u x)"
-refute [expect = genuine]
-oops
-
 lemma "P (case x of () \<Rightarrow> u)"
 refute [expect = genuine]
 oops
@@ -597,14 +589,6 @@ lemma "P Pair"
 refute [expect = genuine]
 oops
 
-lemma "prod_rec p (a, b) = p a b"
-refute [maxsize = 2, expect = none]
-by simp
-
-lemma "P (prod_rec p x)"
-refute [expect = genuine]
-oops
-
 lemma "P (case x of Pair a b \<Rightarrow> p a b)"
 refute [expect = genuine]
 oops
@@ -628,18 +612,6 @@ refute [expect = genuine]
 oops
 
 lemma "P Inl"
-refute [expect = genuine]
-oops
-
-lemma "sum_rec l r (Inl x) = l x"
-refute [maxsize = 3, expect = none]
-by simp
-
-lemma "sum_rec l r (Inr x) = r x"
-refute [maxsize = 3, expect = none]
-by simp
-
-lemma "P (sum_rec l r x)"
 refute [expect = genuine]
 oops
 
