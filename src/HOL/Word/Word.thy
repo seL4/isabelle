@@ -4578,7 +4578,7 @@ subsection {* Recursion combinator for words *}
 
 definition word_rec :: "'a \<Rightarrow> ('b::len word \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'b word \<Rightarrow> 'a"
 where
-  "word_rec forZero forSuc n = nat_rec forZero (forSuc \<circ> of_nat) (unat n)"
+  "word_rec forZero forSuc n = rec_nat forZero (forSuc \<circ> of_nat) (unat n)"
 
 lemma word_rec_0: "word_rec z s 0 = z"
   by (simp add: word_rec_def)

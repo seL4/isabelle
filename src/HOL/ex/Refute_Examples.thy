@@ -734,15 +734,15 @@ refute [maxsize = 3, expect = none]
       model will be found *}
 oops
 
-lemma "nat_rec zero suc 0 = zero"
+lemma "rec_nat zero suc 0 = zero"
 refute [expect = none]
 by simp
 
-lemma "nat_rec zero suc (Suc x) = suc x (nat_rec zero suc x)"
+lemma "rec_nat zero suc (Suc x) = suc x (rec_nat zero suc x)"
 refute [maxsize = 2, expect = none]
 by simp
 
-lemma "P (nat_rec zero suc x)"
+lemma "P (rec_nat zero suc x)"
 refute [expect = potential]
 oops
 

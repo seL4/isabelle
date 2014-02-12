@@ -525,7 +525,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
         val Suc = Term.absdummy HOLogic.natT (Term.absfree hrec'
           (HOLogic.mk_tuple (map4 mk_Suc ss setssAs zs zs')));
 
-        val rhs = mk_nat_rec Zero Suc;
+        val rhs = mk_rec_nat Zero Suc;
       in
         fold_rev (Term.absfree o Term.dest_Free) ss rhs
       end;
@@ -555,8 +555,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
         mk_nthN n (Term.list_comb (Const (nth hset_recs (j - 1), hset_recT), args)) i
       end;
 
-    val hset_rec_0ss = mk_rec_simps n @{thm nat_rec_0_imp} hset_rec_defs;
-    val hset_rec_Sucss = mk_rec_simps n @{thm nat_rec_Suc_imp} hset_rec_defs;
+    val hset_rec_0ss = mk_rec_simps n @{thm rec_nat_0_imp} hset_rec_defs;
+    val hset_rec_Sucss = mk_rec_simps n @{thm rec_nat_Suc_imp} hset_rec_defs;
     val hset_rec_0ss' = transpose hset_rec_0ss;
     val hset_rec_Sucss' = transpose hset_rec_Sucss;
 
@@ -1202,7 +1202,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
         val Suc = Term.absdummy HOLogic.natT (Term.absfree Lev_rec'
           (HOLogic.mk_tuple (map5 mk_Suc ks ss setssAs zs zs')));
 
-        val rhs = mk_nat_rec Zero Suc;
+        val rhs = mk_rec_nat Zero Suc;
       in
         fold_rev (Term.absfree o Term.dest_Free) ss rhs
       end;

@@ -1648,10 +1648,10 @@ done
 lemma set_conv_nth: "set xs = {xs!i | i. i < length xs}"
 apply (induct xs, simp, simp)
 apply safe
-apply (metis nat_case_0 nth.simps zero_less_Suc)
+apply (metis case_nat_0 nth.simps zero_less_Suc)
 apply (metis less_Suc_eq_0_disj nth_Cons_Suc)
 apply (case_tac i, simp)
-apply (metis diff_Suc_Suc nat_case_Suc nth.simps zero_less_diff)
+apply (metis diff_Suc_Suc case_nat_Suc nth.simps zero_less_diff)
 done
 
 lemma in_set_conv_nth: "(x \<in> set xs) = (\<exists>i < length xs. xs!i = x)"

@@ -442,15 +442,15 @@ lemma measurable_PiM_component_rev[measurable (raw)]:
   "i \<in> I \<Longrightarrow> f \<in> measurable (M i) N \<Longrightarrow> (\<lambda>x. f (x i)) \<in> measurable (PiM I M) N"
   by simp
 
-lemma measurable_nat_case[measurable (raw)]:
+lemma measurable_case_nat[measurable (raw)]:
   assumes [measurable (raw)]: "i = 0 \<Longrightarrow> f \<in> measurable M N"
     "\<And>j. i = Suc j \<Longrightarrow> (\<lambda>x. g x j) \<in> measurable M N"
-  shows "(\<lambda>x. nat_case (f x) (g x) i) \<in> measurable M N"
+  shows "(\<lambda>x. case_nat (f x) (g x) i) \<in> measurable M N"
   by (cases i) simp_all
 
-lemma measurable_nat_case'[measurable (raw)]:
+lemma measurable_case_nat'[measurable (raw)]:
   assumes fg[measurable]: "f \<in> measurable N M" "g \<in> measurable N (\<Pi>\<^sub>M i\<in>UNIV. M)"
-  shows "(\<lambda>x. nat_case (f x) (g x)) \<in> measurable N (\<Pi>\<^sub>M i\<in>UNIV. M)"
+  shows "(\<lambda>x. case_nat (f x) (g x)) \<in> measurable N (\<Pi>\<^sub>M i\<in>UNIV. M)"
   using fg[THEN measurable_space]
   by (auto intro!: measurable_PiM_single' simp add: space_PiM PiE_iff split: nat.split)
 

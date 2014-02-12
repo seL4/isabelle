@@ -95,8 +95,8 @@ declare nat.exhaust [case_names 0 Suc, cases type: nat]
 lemmas nat_rec_0 = nat.recs(1)
   and nat_rec_Suc = nat.recs(2)
 
-lemmas nat_case_0 = nat.cases(1)
-  and nat_case_Suc = nat.cases(2)
+lemmas case_nat_0 = nat.cases(1)
+  and case_nat_Suc = nat.cases(2)
    
 
 text {* Injectiveness and distinctness lemmas *}
@@ -634,10 +634,10 @@ lemmas not_less_simps = not_less_less_Suc_eq le_less_Suc_eq
 
 text {* These two rules ease the use of primitive recursion.
 NOTE USE OF @{text "=="} *}
-lemma def_nat_rec_0: "(!!n. f n == nat_rec c h n) ==> f 0 = c"
+lemma def_rec_nat_0: "(!!n. f n == rec_nat c h n) ==> f 0 = c"
 by simp
 
-lemma def_nat_rec_Suc: "(!!n. f n == nat_rec c h n) ==> f (Suc n) = h n (f n)"
+lemma def_rec_nat_Suc: "(!!n. f n == rec_nat c h n) ==> f (Suc n) = h n (f n)"
 by simp
 
 lemma not0_implies_Suc: "n \<noteq> 0 ==> \<exists>m. n = Suc m"

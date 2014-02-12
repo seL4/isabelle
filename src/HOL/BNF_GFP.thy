@@ -266,10 +266,10 @@ unfolding Field_card_of csum_def by auto
 lemma Inr_Field_csum: "a \<in> Field s \<Longrightarrow> Inr a \<in> Field (r +c s)"
 unfolding Field_card_of csum_def by auto
 
-lemma nat_rec_0_imp: "f = nat_rec f1 (%n rec. f2 n rec) \<Longrightarrow> f 0 = f1"
+lemma rec_nat_0_imp: "f = rec_nat f1 (%n rec. f2 n rec) \<Longrightarrow> f 0 = f1"
 by auto
 
-lemma nat_rec_Suc_imp: "f = nat_rec f1 (%n rec. f2 n rec) \<Longrightarrow> f (Suc n) = f2 n (f n)"
+lemma rec_nat_Suc_imp: "f = rec_nat f1 (%n rec. f2 n rec) \<Longrightarrow> f (Suc n) = f2 n (f n)"
 by auto
 
 lemma rec_list_Nil_imp: "f = rec_list f1 (%x xs rec. f2 x xs rec) \<Longrightarrow> f [] = f1"

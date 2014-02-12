@@ -22,12 +22,12 @@ sig
   val mk_in_rel: term -> term
   val mk_equiv: term -> term -> term
   val mk_fromCard: term -> term -> term
-  val mk_nat_rec: term -> term -> term
   val mk_prefCl: term -> term
   val mk_prefixeq: term -> term -> term
   val mk_proj: term -> term
   val mk_quotient: term -> term -> term
   val mk_rec_list: term -> term -> term
+  val mk_rec_nat: term -> term -> term
   val mk_shift: term -> term -> term
   val mk_size: term -> term
   val mk_toCard: term -> term -> term
@@ -146,9 +146,9 @@ fun mk_congruent R f =
 
 fun mk_undefined T = Const (@{const_name undefined}, T);
 
-fun mk_nat_rec Zero Suc =
+fun mk_rec_nat Zero Suc =
   let val T = fastype_of Zero;
-  in Const (@{const_name nat_rec}, T --> fastype_of Suc --> HOLogic.natT --> T) $ Zero $ Suc end;
+  in Const (@{const_name rec_nat}, T --> fastype_of Suc --> HOLogic.natT --> T) $ Zero $ Suc end;
 
 fun mk_rec_list Nil Cons =
   let

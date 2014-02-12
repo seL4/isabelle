@@ -191,7 +191,7 @@ where
   "PREC f g l =
     (case l of
       [] => 0
-    | x # l' => nat_rec (f l') (\<lambda>y r. g (r # y # l')) x)"
+    | x # l' => rec_nat (f l') (\<lambda>y r. g (r # y # l')) x)"
   -- {* Note that @{term g} is applied first to @{term "PREC f g y"} and then to @{term y}! *}
 
 inductive PRIMREC :: "(nat list => nat) => bool" where

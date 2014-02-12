@@ -358,12 +358,12 @@ lemma fun_upd_transfer [transfer_rule]:
   shows "((A ===> B) ===> A ===> B ===> A ===> B) fun_upd fun_upd"
   unfolding fun_upd_def [abs_def] by transfer_prover
 
-lemma nat_case_transfer [transfer_rule]:
-  "(A ===> (op = ===> A) ===> op = ===> A) nat_case nat_case"
+lemma case_nat_transfer [transfer_rule]:
+  "(A ===> (op = ===> A) ===> op = ===> A) case_nat case_nat"
   unfolding fun_rel_def by (simp split: nat.split)
 
-lemma nat_rec_transfer [transfer_rule]:
-  "(A ===> (op = ===> A ===> A) ===> op = ===> A) nat_rec nat_rec"
+lemma rec_nat_transfer [transfer_rule]:
+  "(A ===> (op = ===> A ===> A) ===> op = ===> A) rec_nat rec_nat"
   unfolding fun_rel_def by (clarsimp, rename_tac n, induct_tac n, simp_all)
 
 lemma funpow_transfer [transfer_rule]:

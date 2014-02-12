@@ -746,17 +746,17 @@ lemma "P Suc"
 nitpick [card = 1\<emdash>7, expect = none]
 oops
 
-lemma "nat_rec zero suc 0 = zero"
+lemma "rec_nat zero suc 0 = zero"
 nitpick [expect = none]
 apply simp
 done
 
-lemma "nat_rec zero suc (Suc x) = suc x (nat_rec zero suc x)"
+lemma "rec_nat zero suc (Suc x) = suc x (rec_nat zero suc x)"
 nitpick [expect = none]
 apply simp
 done
 
-lemma "P (nat_rec zero suc x)"
+lemma "P (rec_nat zero suc x)"
 nitpick [expect = genuine]
 oops
 

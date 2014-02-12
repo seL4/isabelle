@@ -1050,24 +1050,24 @@ lemma min_numeral_Suc [simp]:
   "min (numeral k) (Suc n) = Suc (min (pred_numeral k) n)"
   by (simp add: numeral_eq_Suc)
 
-text {* For @{term nat_case} and @{term nat_rec}. *}
+text {* For @{term case_nat} and @{term rec_nat}. *}
 
-lemma nat_case_numeral [simp]:
-  "nat_case a f (numeral v) = (let pv = pred_numeral v in f pv)"
+lemma case_nat_numeral [simp]:
+  "case_nat a f (numeral v) = (let pv = pred_numeral v in f pv)"
   by (simp add: numeral_eq_Suc)
 
-lemma nat_case_add_eq_if [simp]:
-  "nat_case a f ((numeral v) + n) = (let pv = pred_numeral v in f (pv + n))"
+lemma case_nat_add_eq_if [simp]:
+  "case_nat a f ((numeral v) + n) = (let pv = pred_numeral v in f (pv + n))"
   by (simp add: numeral_eq_Suc)
 
-lemma nat_rec_numeral [simp]:
-  "nat_rec a f (numeral v) =
-    (let pv = pred_numeral v in f pv (nat_rec a f pv))"
+lemma rec_nat_numeral [simp]:
+  "rec_nat a f (numeral v) =
+    (let pv = pred_numeral v in f pv (rec_nat a f pv))"
   by (simp add: numeral_eq_Suc Let_def)
 
-lemma nat_rec_add_eq_if [simp]:
-  "nat_rec a f (numeral v + n) =
-    (let pv = pred_numeral v in f (pv + n) (nat_rec a f (pv + n)))"
+lemma rec_nat_add_eq_if [simp]:
+  "rec_nat a f (numeral v + n) =
+    (let pv = pred_numeral v in f (pv + n) (rec_nat a f (pv + n)))"
   by (simp add: numeral_eq_Suc Let_def)
 
 text {* Case analysis on @{term "n < 2"} *}

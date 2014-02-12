@@ -56,7 +56,7 @@ defs
   Push_Node_def:  "Push_Node == (%n x. Abs_Node (apfst (Push n) (Rep_Node x)))"
 
   (*crude "lists" of nats -- needed for the constructions*)
-  Push_def:   "Push == (%b h. nat_case b h)"
+  Push_def:   "Push == (%b h. case_nat b h)"
 
   (** operations on S-expressions -- sets of nodes **)
 
@@ -133,7 +133,7 @@ by (simp add: Node_def)
 
 lemma Node_Push_I: "p: Node ==> apfst (Push i) p : Node"
 apply (simp add: Node_def Push_def) 
-apply (fast intro!: apfst_conv nat_case_Suc [THEN trans])
+apply (fast intro!: apfst_conv case_nat_Suc [THEN trans])
 done
 
 
@@ -251,7 +251,7 @@ lemma ndepth_K0: "ndepth (Abs_Node(%k. Inr 0, x)) = 0"
 by (simp add: ndepth_def  Node_K0_I [THEN Abs_Node_inverse] Least_equality)
 
 lemma ndepth_Push_Node_aux:
-     "nat_case (Inr (Suc i)) f k = Inr 0 --> Suc(LEAST x. f x = Inr 0) <= k"
+     "case_nat (Inr (Suc i)) f k = Inr 0 --> Suc(LEAST x. f x = Inr 0) <= k"
 apply (induct_tac "k", auto)
 apply (erule Least_le)
 done

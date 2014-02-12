@@ -2776,7 +2776,7 @@ proof -
       unfolding s_def by (auto intro: someI2_ex)
   }
   note s = this
-  def r \<equiv> "nat_rec (s 0 0) s"
+  def r \<equiv> "rec_nat (s 0 0) s"
   have "subseq r"
     by (auto simp: r_def s subseq_Suc_iff)
   moreover
@@ -3376,7 +3376,7 @@ proof safe
       unfolding s_def by (auto intro: someI2_ex)
   }
   note s = this
-  def r \<equiv> "nat_rec (s 0 0) s"
+  def r \<equiv> "rec_nat (s 0 0) s"
   have "subseq r"
     by (auto simp: r_def s subseq_Suc_iff)
   moreover
@@ -3953,7 +3953,7 @@ proof
       }
       note B = this
 
-      def F \<equiv> "nat_rec (B 0 UNIV) B"
+      def F \<equiv> "rec_nat (B 0 UNIV) B"
       {
         fix n
         have "infinite {i. f i \<in> F n}"
@@ -3974,7 +3974,7 @@ proof
           by (simp add: set_eq_iff not_le conj_commute)
       qed
 
-      def t \<equiv> "nat_rec (sel 0 0) (\<lambda>n i. sel (Suc n) i)"
+      def t \<equiv> "rec_nat (sel 0 0) (\<lambda>n i. sel (Suc n) i)"
       have "subseq t"
         unfolding subseq_Suc_iff by (simp add: t_def sel)
       moreover have "\<forall>i. (f \<circ> t) i \<in> s"
