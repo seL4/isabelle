@@ -107,7 +107,6 @@ setup {* Sign.mandatory_path "sum" *}
 declare
   old.sum.inject[iff del]
   old.sum.distinct(1)[simp del, induct_simp del]
-  old.sum.cases[simp del]
 
 lemmas induct = old.sum.induct
 lemmas inducts = old.sum.inducts
