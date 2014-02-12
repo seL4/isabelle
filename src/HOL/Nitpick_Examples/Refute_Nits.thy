@@ -585,17 +585,17 @@ lemma "P (Some x)"
 nitpick [expect = genuine]
 oops
 
-lemma "option_rec n s None = n"
+lemma "rec_option n s None = n"
 nitpick [expect = none]
 apply simp
 done
 
-lemma "option_rec n s (Some x) = s x"
+lemma "rec_option n s (Some x) = s x"
 nitpick [expect = none]
 apply simp
 done
 
-lemma "P (option_rec n s x)"
+lemma "P (rec_option n s x)"
 nitpick [expect = genuine]
 oops
 
@@ -778,17 +778,17 @@ lemma "P [x, y]"
 nitpick [expect = genuine]
 oops
 
-lemma "list_rec nil cons [] = nil"
+lemma "rec_list nil cons [] = nil"
 nitpick [card = 1\<emdash>5, expect = none]
 apply simp
 done
 
-lemma "list_rec nil cons (x#xs) = cons x xs (list_rec nil cons xs)"
+lemma "rec_list nil cons (x#xs) = cons x xs (rec_list nil cons xs)"
 nitpick [card = 1\<emdash>5, expect = none]
 apply simp
 done
 
-lemma "P (list_rec nil cons xs)"
+lemma "P (rec_list nil cons xs)"
 nitpick [expect = genuine]
 oops
 

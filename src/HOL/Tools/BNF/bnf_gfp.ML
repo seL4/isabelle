@@ -1245,7 +1245,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
         val Cons = Term.absfree sumx' (Term.absdummy sum_sbd_listT (Term.absfree rv_rec'
           (HOLogic.mk_tuple (map4 mk_Cons ks ss zs zs'))));
 
-        val rhs = mk_list_rec Nil Cons;
+        val rhs = mk_rec_list Nil Cons;
       in
         fold_rev (Term.absfree o Term.dest_Free) ss rhs
       end;
@@ -1270,8 +1270,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
         mk_nthN n (Term.list_comb (Const (rv, rvT), ss) $ kl) i
       end;
 
-    val rv_Nils = flat (mk_rec_simps n @{thm list_rec_Nil_imp} [rv_def]);
-    val rv_Conss = flat (mk_rec_simps n @{thm list_rec_Cons_imp} [rv_def]);
+    val rv_Nils = flat (mk_rec_simps n @{thm rec_list_Nil_imp} [rv_def]);
+    val rv_Conss = flat (mk_rec_simps n @{thm rec_list_Cons_imp} [rv_def]);
 
     val beh_binds = mk_internal_bs behN;
     fun beh_bind i = nth beh_binds (i - 1);

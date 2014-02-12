@@ -272,10 +272,10 @@ by auto
 lemma nat_rec_Suc_imp: "f = nat_rec f1 (%n rec. f2 n rec) \<Longrightarrow> f (Suc n) = f2 n (f n)"
 by auto
 
-lemma list_rec_Nil_imp: "f = list_rec f1 (%x xs rec. f2 x xs rec) \<Longrightarrow> f [] = f1"
+lemma rec_list_Nil_imp: "f = rec_list f1 (%x xs rec. f2 x xs rec) \<Longrightarrow> f [] = f1"
 by auto
 
-lemma list_rec_Cons_imp: "f = list_rec f1 (%x xs rec. f2 x xs rec) \<Longrightarrow> f (x # xs) = f2 x xs (f xs)"
+lemma rec_list_Cons_imp: "f = rec_list f1 (%x xs rec. f2 x xs rec) \<Longrightarrow> f (x # xs) = f2 x xs (f xs)"
 by auto
 
 lemma not_arg_cong_Inr: "x \<noteq> y \<Longrightarrow> Inr x \<noteq> Inr y"

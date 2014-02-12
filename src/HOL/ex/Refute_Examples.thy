@@ -547,15 +547,15 @@ lemma "P (Some x)"
 refute [expect = genuine]
 oops
 
-lemma "option_rec n s None = n"
+lemma "rec_option n s None = n"
 refute [expect = none]
 by simp
 
-lemma "option_rec n s (Some x) = s x"
+lemma "rec_option n s (Some x) = s x"
 refute [maxsize = 4, expect = none]
 by simp
 
-lemma "P (option_rec n s x)"
+lemma "P (rec_option n s x)"
 refute [expect = genuine]
 oops
 
@@ -764,15 +764,15 @@ lemma "P [x, y]"
 refute [expect = potential]
 oops
 
-lemma "list_rec nil cons [] = nil"
+lemma "rec_list nil cons [] = nil"
 refute [maxsize = 3, expect = none]
 by simp
 
-lemma "list_rec nil cons (x#xs) = cons x xs (list_rec nil cons xs)"
+lemma "rec_list nil cons (x#xs) = cons x xs (rec_list nil cons xs)"
 refute [maxsize = 2, expect = none]
 by simp
 
-lemma "P (list_rec nil cons xs)"
+lemma "P (rec_list nil cons xs)"
 refute [expect = potential]
 oops
 

@@ -331,7 +331,7 @@ fun dfull where
 
 lemmas dfull_case_intros =
   ord.exhaust [where y=y and P="dfull a (ord_case b c d y)"]
-  option.exhaust [where y=y and P="dfull a (option_case b c y)"]
+  option.exhaust [of y "dfull a (case_option b c y)"]
   prod.exhaust [where y=y and P="dfull a (prod_case b y)"]
   bool.exhaust [where y=y and P="dfull a (bool_case b c y)"]
   tree23.exhaust [where y=y and P="dfull a (Some (b, tree23_case c d e y))"]

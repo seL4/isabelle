@@ -90,7 +90,7 @@ instance int :: countable
 text {* Options *}
 
 instance option :: (countable) countable
-  by (rule countable_classI [of "option_case 0 (Suc \<circ> to_nat)"])
+  by (rule countable_classI [of "case_option 0 (Suc \<circ> to_nat)"])
     (simp split: option.split_asm)
 
 

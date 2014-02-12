@@ -71,8 +71,8 @@ lemma yield_Seq [simp, code]:
   "yield (Lazy_Sequence f) = f ()"
   by (cases "f ()") (simp_all add: yield_def split_def)
 
-lemma case_yield_eq [simp]: "option_case g h (yield xq) =
-  list_case g (\<lambda>x. curry h x \<circ> lazy_sequence_of_list) (list_of_lazy_sequence xq)"
+lemma case_yield_eq [simp]: "case_option g h (yield xq) =
+  case_list g (\<lambda>x. curry h x \<circ> lazy_sequence_of_list) (list_of_lazy_sequence xq)"
   by (cases "list_of_lazy_sequence xq") (simp_all add: yield_def)
 
 lemma lazy_sequence_size_code [code]:

@@ -3062,7 +3062,7 @@ using assms proof (induct s arbitrary: l u)
   case 0
   then obtain ly uy
     where *: "approx_tse prec 0 t ((l + u) * Float 1 -1) 1 f [Some (l, u)] = Some (ly, uy)"
-    and **: "cmp ly uy" by (auto elim!: option_caseE)
+    and **: "cmp ly uy" by (auto elim!: case_optionE)
   with 0 show ?case by auto
 next
   case (Suc s)
@@ -3163,7 +3163,7 @@ proof (cases f)
   with assms obtain l u l' u'
     where a: "approx prec a [None] = Some (l, u)"
     and b: "approx prec b [None] = Some (l', u')"
-    unfolding approx_tse_form_def by (auto elim!: option_caseE)
+    unfolding approx_tse_form_def by (auto elim!: case_optionE)
 
   from Bound assms have "i = Var 0" unfolding approx_tse_form_def by auto
   hence i: "interpret_floatarith i [x] = x" by auto
@@ -3198,10 +3198,10 @@ proof (cases f)
       show ?thesis using AtLeastAtMost by auto
     next
       case (Bound x a b f') with assms
-      show ?thesis by (auto elim!: option_caseE simp add: f_def approx_tse_form_def)
+      show ?thesis by (auto elim!: case_optionE simp add: f_def approx_tse_form_def)
     next
       case (Assign x a f') with assms
-      show ?thesis by (auto elim!: option_caseE simp add: f_def approx_tse_form_def)
+      show ?thesis by (auto elim!: case_optionE simp add: f_def approx_tse_form_def)
     qed } thus ?thesis unfolding f_def by auto
 next
   case Assign

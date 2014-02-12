@@ -766,7 +766,7 @@ proof -
     bs: "set bs = Basis" "distinct bs"
     by (metis finite_distinct_list)
   from nonempty_Basis s obtain j where j: "j \<in> Basis" "s j \<in> S" by blast
-  def y \<equiv> "list_rec
+  def y \<equiv> "rec_list
     (s j)
     (\<lambda>j _ Y. (\<Sum>i\<in>Basis. (if i = j then s i \<bullet> i else Y \<bullet> i) *\<^sub>R i))"
   have "x = (\<Sum>i\<in>Basis. (if i \<in> set bs then s i \<bullet> i else s j \<bullet> i) *\<^sub>R i)"

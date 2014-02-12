@@ -230,7 +230,7 @@ lemma list_INDUCT:
 
 lemma list_RECURSION:
  "\<forall>nil' cons'. \<exists>fn\<Colon>'A list \<Rightarrow> 'Z. fn [] = nil' \<and> (\<forall>(a0\<Colon>'A) a1\<Colon>'A list. fn (a0 # a1) = cons' a0 a1 (fn a1))"
-  by (intro allI, rule_tac x="list_rec nil' cons'" in exI) auto
+  by (intro allI, rule_tac x="rec_list nil' cons'" in exI) auto
 
 lemma HD[import_const HD : List.hd]:
   "hd ((h\<Colon>'A) # t) = h"

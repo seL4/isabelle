@@ -3618,7 +3618,7 @@ apply(rule lookupd_freshness)
 apply(simp add: fresh_atm)
 done
 
-lemma option_case_eqvt1[eqvt_force]:
+lemma case_option_eqvt1[eqvt_force]:
   fixes pi1::"name prm"
   and   pi2::"coname prm"
   and   B::"(name\<times>trm) option"
@@ -3635,7 +3635,7 @@ apply(auto)
 apply(perm_simp)
 done
 
-lemma option_case_eqvt2[eqvt_force]:
+lemma case_option_eqvt2[eqvt_force]:
   fixes pi1::"name prm"
   and   pi2::"coname prm"
   and   B::"(coname\<times>trm) option"

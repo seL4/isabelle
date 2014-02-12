@@ -165,7 +165,7 @@ lemma lub_Cons:
   shows "(\<Squnion>i. A i # B i) = (\<Squnion>i. A i) # (\<Squnion>i. B i)"
 by (intro lub_eqI is_lub_Cons cpo_lubI A B)
 
-lemma cont2cont_list_case:
+lemma cont2cont_case_list:
   assumes f: "cont (\<lambda>x. f x)"
   assumes g: "cont (\<lambda>x. g x)"
   assumes h1: "\<And>y ys. cont (\<lambda>x. h x y ys)"
@@ -186,17 +186,17 @@ apply (erule cont2monofunE [OF h3 chainE])
 apply (case_tac y, simp_all add: g h1)
 done
 
-lemma cont2cont_list_case' [simp, cont2cont]:
+lemma cont2cont_case_list' [simp, cont2cont]:
   assumes f: "cont (\<lambda>x. f x)"
   assumes g: "cont (\<lambda>x. g x)"
   assumes h: "cont (\<lambda>p. h (fst p) (fst (snd p)) (snd (snd p)))"
   shows "cont (\<lambda>x. case f x of [] \<Rightarrow> g x | y # ys \<Rightarrow> h x y ys)"
-using assms by (simp add: cont2cont_list_case prod_cont_iff)
+using assms by (simp add: cont2cont_case_list prod_cont_iff)
 
 text {* The simple version (due to Joachim Breitner) is needed if the
   element type of the list is not a cpo. *}
 
-lemma cont2cont_list_case_simple [simp, cont2cont]:
+lemma cont2cont_case_list_simple [simp, cont2cont]:
   assumes "cont (\<lambda>x. f1 x)"
   assumes "\<And>y ys. cont (\<lambda>x. f2 x y ys)"
   shows "cont (\<lambda>x. case l of [] \<Rightarrow> f1 x | y # ys \<Rightarrow> f2 x y ys)"
