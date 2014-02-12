@@ -221,9 +221,8 @@ fun register raw_case_comb raw_constrs context =
     val constr_keys = map (fst o dest_Const) constrs;
     val data = (case_comb, constrs);
     val Tname = Tname_of_data data;
-    val update_constrs =
-      fold (fn key => Symtab.insert_list (eq_fst (op =)) (key, (Tname, data))) constr_keys;
-    val update_cases = Symtab.default (case_key, data);
+    val update_constrs = fold (fn key => Symtab.cons_list (key, (Tname, data))) constr_keys;
+    val update_cases = Symtab.update (case_key, data);
   in
     context
     |> map_constrs update_constrs

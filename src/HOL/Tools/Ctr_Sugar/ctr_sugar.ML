@@ -39,7 +39,7 @@ sig
   val ctr_sugars_of: Proof.context -> ctr_sugar list
   val ctr_sugar_of_case: Proof.context -> string -> ctr_sugar option
   val register_ctr_sugar: string -> ctr_sugar -> local_theory -> local_theory
-  val register_ctr_sugar_global: string -> ctr_sugar -> theory -> theory
+  val default_register_ctr_sugar_global: string -> ctr_sugar -> theory -> theory
 
   val mk_half_pairss: 'a list * 'a list -> ('a * 'a) list list
   val join_halves: int -> 'a list list -> 'a list list -> 'a list * 'a list list list
@@ -146,9 +146,9 @@ fun ctr_sugar_of_case ctxt s =
 
 fun register_ctr_sugar key ctr_sugar =
   Local_Theory.declaration {syntax = false, pervasive = true}
-    (fn phi => Data.map (Symtab.default (key, morph_ctr_sugar phi ctr_sugar)));
+    (fn phi => Data.map (Symtab.update (key, morph_ctr_sugar phi ctr_sugar)));
 
-fun register_ctr_sugar_global key ctr_sugar =
+fun default_register_ctr_sugar_global key ctr_sugar =
   Context.theory_map (Data.map (Symtab.default (key, ctr_sugar)));
 
 val isN = "is_";

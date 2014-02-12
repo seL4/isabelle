@@ -130,7 +130,8 @@ fun register dt_infos =
           map (rpair (dtname, info) o fst) (#3 (the (AList.lookup op = descr index)))) dt_infos),
      cases = cases |> fold Symtab.update
        (map (fn (_, info as {case_name, ...}) => (case_name, info)) dt_infos)}) #>
-  fold (fn (key, info) => Ctr_Sugar.register_ctr_sugar_global key (ctr_sugar_of_info info)) dt_infos;
+  fold (fn (key, info) =>
+    Ctr_Sugar.default_register_ctr_sugar_global key (ctr_sugar_of_info info)) dt_infos;
 
 
 (* complex queries *)

@@ -60,7 +60,7 @@ fun n2m_sugar_of ctxt =
 
 fun register_n2m_sugar key n2m_sugar =
   Local_Theory.declaration {syntax = false, pervasive = false}
-    (fn phi => Data.map (Typtab.default (key, morph_n2m_sugar phi n2m_sugar)));
+    (fn phi => Data.map (Typtab.update (key, morph_n2m_sugar phi n2m_sugar)));
 
 fun unfold_lets_splits (Const (@{const_name Let}, _) $ arg1 $ arg2) =
     unfold_lets_splits (betapply (arg2, arg1))
