@@ -119,6 +119,8 @@ setup {* Sign.parent_path *}
 abbreviation rec_nat :: "'a \<Rightarrow> (nat \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a" where
   "rec_nat \<equiv> old.rec_nat"
 
+declare nat.sel[code del]
+
 hide_const Nat.pred -- {* hide everything related to the selector *}
 hide_fact
   nat.case_eq_if
@@ -1943,13 +1945,13 @@ proof -
 qed
 
 
-subsection {* aliasses *}
+subsection {* aliases *}
 
 lemma nat_mult_1: "(1::nat) * n = n"
-  by simp
+  by (rule mult_1_left)
  
 lemma nat_mult_1_right: "n * (1::nat) = n"
-  by simp
+  by (rule mult_1_right)
 
 
 subsection {* size of a datatype value *}
