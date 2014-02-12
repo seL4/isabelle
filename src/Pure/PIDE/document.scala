@@ -192,6 +192,7 @@ object Document
   }
 
   final class Node private(
+    val is_blob: Boolean = false,
     val header: Node.Header = Node.bad_header("Bad theory header"),
     val perspective: Node.Perspective_Command =
       Node.Perspective(false, Command.Perspective.empty, Node.Overlays.empty),
@@ -199,11 +200,13 @@ object Document
   {
     def clear: Node = new Node(header = header)
 
+    def init_blob: Node = new Node(is_blob = true)
+
     def update_header(new_header: Node.Header): Node =
-      new Node(new_header, perspective, _commands)
+      new Node(is_blob, new_header, perspective, _commands)
 
     def update_perspective(new_perspective: Node.Perspective_Command): Node =
-      new Node(header, new_perspective, _commands)
+      new Node(is_blob, header, new_perspective, _commands)
 
     def same_perspective(other_perspective: Node.Perspective_Command): Boolean =
       perspective.required == other_perspective.required &&
@@ -215,7 +218,7 @@ object Document
 
     def update_commands(new_commands: Linear_Set[Command]): Node =
       if (new_commands eq _commands.commands) this
-      else new Node(header, perspective, Node.Commands(new_commands))
+      else new Node(is_blob, header, perspective, Node.Commands(new_commands))
 
     def command_range(i: Text.Offset = 0): Iterator[(Command, Text.Offset)] =
       _commands.range(i)
