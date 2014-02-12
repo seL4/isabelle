@@ -82,7 +82,7 @@ apply (erule Nat_Rep_Nat [THEN Nat.induct])
 apply (iprover elim: Nat_Abs_Nat_inverse [THEN subst])
 done
 
-wrap_free_constructors ["0 \<Colon> nat", Suc] case_nat [=] [[], [pred]]
+wrap_free_constructors ["0 \<Colon> nat", Suc] case_nat [=] [[], [pred]] [[pred: "0 \<Colon> nat"]]
   apply atomize_elim
   apply (rename_tac n, induct_tac n rule: nat_induct0, auto)
  apply (simp add: Suc_def Nat_Abs_Nat_inject Nat_Rep_Nat Suc_RepI
@@ -121,7 +121,7 @@ abbreviation rec_nat :: "'a \<Rightarrow> (nat \<Rightarrow> 'a \<Rightarrow> 'a
 
 declare nat.sel[code del]
 
-hide_const Nat.pred -- {* hide everything related to the selector *}
+hide_const (open) Nat.pred -- {* hide everything related to the selector *}
 hide_fact
   nat.case_eq_if
   nat.collapse
