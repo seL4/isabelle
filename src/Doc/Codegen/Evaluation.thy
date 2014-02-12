@@ -296,7 +296,7 @@ text {*
 
 code_reflect %quote Sum_Type
   datatypes sum = Inl | Inr
-  functions "Sum_Type.Projl" "Sum_Type.Projr"
+  functions "Sum_Type.sum.projl" "Sum_Type.sum.projr"
 
 text {*
   \noindent @{command_def code_reflect} takes a structure name and
