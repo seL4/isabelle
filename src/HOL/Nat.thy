@@ -132,7 +132,7 @@ hide_fact
 lemma nat_exhaust [case_names 0 Suc, cases type: nat]:
   -- {* for backward compatibility -- names of variables differ *}
   "(y = 0 \<Longrightarrow> P) \<Longrightarrow> (\<And>nat. y = Suc nat \<Longrightarrow> P) \<Longrightarrow> P"
-by (rule nat.exhaust)
+by (rule old.nat.exhaust)
 
 lemma nat_induct [case_names 0 Suc, induct type: nat]:
   -- {* for backward compatibility -- names of variables differ *}
