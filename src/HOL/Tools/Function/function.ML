@@ -265,14 +265,14 @@ val termination_cmd = gen_termination Syntax.read_term
 
 fun add_case_cong n thy =
   let
-    val cong = #case_cong (Datatype.the_info thy n)
+    val cong = #case_cong (Datatype_Data.the_info thy n)
       |> safe_mk_meta_eq
   in
     Context.theory_map
       (Function_Ctx_Tree.map_function_congs (Thm.add_thm cong)) thy
   end
 
-val setup_case_cong = Datatype.interpretation (K (fold add_case_cong))
+val setup_case_cong = Datatype_Data.interpretation (K (fold add_case_cong))
 
 
 (* setup *)

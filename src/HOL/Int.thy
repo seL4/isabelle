@@ -6,7 +6,7 @@
 header {* The Integers as Equivalence Classes over Pairs of Natural Numbers *} 
 
 theory Int
-imports Equiv_Relations Wellfounded Power Quotient Fun_Def
+imports Equiv_Relations Power Quotient Fun_Def
 begin
 
 subsection {* Definition of integers as a quotient type *}

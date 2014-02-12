@@ -5,10 +5,21 @@
 header {* Datatype option *}
 
 theory Option
-imports Datatype Finite_Set
+imports BNF_LFP Datatype Finite_Set
 begin
 
-datatype 'a option = None | Some 'a
+datatype_new 'a option = None | Some 'a
+
+datatype_new_compat option
+
+-- {* Compatibility *}
+setup {* Sign.mandatory_path "option" *}
+
+lemmas inducts = option.induct
+lemmas recs = option.rec
+lemmas cases = option.case
+
+setup {* Sign.parent_path *}
 
 lemma not_None_eq [iff]: "(x ~= None) = (EX y. x = Some y)"
   by (induct x) auto
@@ -23,7 +34,7 @@ them the uniform iff attribute. *}
 lemma inj_Some [simp]: "inj_on Some A"
 by (rule inj_onI) simp
 
-lemma option_caseE:
+lemma case_optionE:
   assumes c: "(case x of None => P | Some y => Q y)"
   obtains
     (None) "x = None" and P
@@ -104,8 +115,8 @@ next
   qed
 qed
 
-lemma option_case_map [simp]:
-  "option_case g h (Option.map f x) = option_case g (h \<circ> f) x"
+lemma case_option_map [simp]:
+  "case_option g h (Option.map f x) = case_option g (h \<circ> f) x"
   by (cases x) simp_all
 
 primrec bind :: "'a option \<Rightarrow> ('a \<Rightarrow> 'b option) \<Rightarrow> 'b option" where
