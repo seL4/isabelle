@@ -359,8 +359,10 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, (no_code, rep_co
 
     val case_Ts = map (fn Ts => Ts ---> B) ctr_Tss;
 
-    val ((((((((xss, xss'), yss), fs), gs), [u', v']), [w]), (p, p')), names_lthy) = no_defs_lthy |>
-      mk_Freess' "x" ctr_Tss
+    val (((((((([exh_y], (xss, xss')), yss), fs), gs), [u', v']), [w]), (p, p')), names_lthy) =
+      no_defs_lthy
+      |> mk_Frees "y" [fcT] (* for compatibility with "datatype_realizer.ML" *)
+      ||>> mk_Freess' "x" ctr_Tss
       ||>> mk_Freess "y" ctr_Tss
       ||>> mk_Frees "f" case_Ts
       ||>> mk_Frees "g" case_Ts
@@ -529,8 +531,8 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, (no_code, rep_co
     fun mk_imp_p Qs = Logic.list_implies (Qs, HOLogic.mk_Trueprop p);
 
     val exhaust_goal =
-      let fun mk_prem xctr xs = fold_rev Logic.all xs (mk_imp_p [mk_Trueprop_eq (u, xctr)]) in
-        fold_rev Logic.all [p, u] (mk_imp_p (map2 mk_prem xctrs xss))
+      let fun mk_prem xctr xs = fold_rev Logic.all xs (mk_imp_p [mk_Trueprop_eq (exh_y, xctr)]) in
+        fold_rev Logic.all [p, exh_y] (mk_imp_p (map2 mk_prem xctrs xss))
       end;
 
     val inject_goalss =
@@ -556,7 +558,10 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, (no_code, rep_co
 
     fun after_qed thmss lthy =
       let
-        val ([exhaust_thm], (inject_thmss, half_distinct_thmss)) = (hd thmss, chop n (tl thmss));
+        val ([exhaust_thm0], (inject_thmss, half_distinct_thmss)) = (hd thmss, chop n (tl thmss));
+        (* for "datatype_realizer.ML": *)
+        val exhaust_thm =
+          Thm.name_derivation (fcT_name ^ Long_Name.separator ^ exhaustN) exhaust_thm0;
 
         val inject_thms = flat inject_thmss;
 
@@ -611,7 +616,8 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, (no_code, rep_co
           in
             (Goal.prove_sorry lthy [] [] goal (fn _ => mk_case_cong_tac lthy uexhaust_thm case_thms),
              Goal.prove_sorry lthy [] [] weak_goal (K (etac arg_cong 1)))
-            |> pairself (Thm.close_derivation #> singleton (Proof_Context.export names_lthy lthy))
+            |> pairself (singleton (Proof_Context.export names_lthy lthy) #>
+              Thm.close_derivation)
           end;
 
         val split_lhs = q $ ufcase;
@@ -632,14 +638,14 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, (no_code, rep_co
         fun prove_split selss goal =
           Goal.prove_sorry lthy [] [] goal (fn _ =>
             mk_split_tac lthy uexhaust_thm case_thms selss inject_thmss distinct_thmsss)
-          |> Thm.close_derivation
-          |> singleton (Proof_Context.export names_lthy lthy);
+          |> singleton (Proof_Context.export names_lthy lthy)
+          |> Thm.close_derivation;
 
         fun prove_split_asm asm_goal split_thm =
           Goal.prove_sorry lthy [] [] asm_goal (fn {context = ctxt, ...} =>
             mk_split_asm_tac ctxt split_thm)
-          |> Thm.close_derivation
-          |> singleton (Proof_Context.export names_lthy lthy);
+          |> singleton (Proof_Context.export names_lthy lthy)
+          |> Thm.close_derivation;
 
         val (split_thm, split_asm_thm) =
           let
@@ -693,8 +699,8 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, (no_code, rep_co
                   val goal = mk_Trueprop_eq (mk_uu_eq (), the_single exist_xs_u_eq_ctrs);
                 in
                   Goal.prove_sorry lthy [] [] goal (fn _ => mk_unique_disc_def_tac m uexhaust_thm)
-                  |> Thm.close_derivation
                   |> singleton (Proof_Context.export names_lthy lthy)
+                  |> Thm.close_derivation
                 end;
 
               fun mk_alternate_disc_def k =
@@ -706,8 +712,8 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, (no_code, rep_co
                   Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
                     mk_alternate_disc_def_tac ctxt k (nth disc_defs (2 - k))
                       (nth distinct_thms (2 - k)) uexhaust_thm)
-                  |> Thm.close_derivation
                   |> singleton (Proof_Context.export names_lthy lthy)
+                  |> Thm.close_derivation
                 end;
 
               val has_alternate_disc_def =
@@ -843,8 +849,8 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, (no_code, rep_co
                     mk_expand_tac lthy n ms (inst_thm u disc_exhaust_thm)
                       (inst_thm v disc_exhaust_thm) uncollapse_thms disc_exclude_thmsss
                       disc_exclude_thmsss')
-                  |> Thm.close_derivation
                   |> singleton (Proof_Context.export names_lthy lthy)
+                  |> Thm.close_derivation
                 end;
 
               val (sel_split_thm, sel_split_asm_thm) =
@@ -865,8 +871,8 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, (no_code, rep_co
                 in
                   Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
                     mk_case_eq_if_tac ctxt n uexhaust_thm case_thms disc_thmss' sel_thmss)
-                  |> Thm.close_derivation
                   |> singleton (Proof_Context.export names_lthy lthy)
+                  |> Thm.close_derivation
                 end;
             in
               (all_sel_thms, sel_thmss, disc_thmss, nontriv_disc_thms, discI_thms,

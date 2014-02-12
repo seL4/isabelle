@@ -99,9 +99,9 @@ fun datatype_new_compat_cmd raw_fpT_names lthy =
       else
         ((fp_sugars0, (NONE, NONE)), lthy);
 
-    val {ctr_sugars, co_inducts = [induct], co_iterss, co_iter_thmsss = iter_thmsss, ...} :: _ =
-      fp_sugars;
-    val inducts = conj_dests nn induct;
+    val {ctr_sugars, co_inducts = [induct], co_inductss = inductss, co_iterss,
+      co_iter_thmsss = iter_thmsss, ...} :: _ = fp_sugars;
+    val inducts = map the_single inductss;
 
     val mk_dtyp = dtyp_of_typ Ts;
 
