@@ -274,42 +274,32 @@ object Protocol
 
   private val include_pos = Set(Markup.BINDING, Markup.ENTITY, Markup.REPORT, Markup.POSITION)
 
-  def message_positions(command_id: Document_ID.Command, chunk: Command.Chunk, message: XML.Elem)
-    : Set[Text.Range] =
+  def message_positions(
+    command_id: Document_ID.Command,
+    alt_id: Document_ID.Generic,
+    chunk: Command.Chunk,
+    message: XML.Elem): Set[Text.Range] =
   {
-    def elem_positions(raw_range: Text.Range, set: Set[Text.Range], body: XML.Body)
-      : Set[Text.Range] =
-    {
-      val range = chunk.decode(raw_range).restrict(chunk.range)
-      body.foldLeft(if (range.is_singularity) set else set + range)(positions)
-    }
+    def elem_positions(props: Properties.T, set: Set[Text.Range]): Set[Text.Range] =
+      props match {
+        case Position.Reported(id, file_name, range)
+        if (id == command_id || id == alt_id) && file_name == chunk.file_name =>
+          val range1 = chunk.decode(range).restrict(chunk.range)
+          if (range1.is_singularity) set else set + range1
+        case _ => set
+      }
 
     def positions(set: Set[Text.Range], tree: XML.Tree): Set[Text.Range] =
       tree match {
-        case XML.Wrapped_Elem(Markup(name, Position.Reported(id, file_name, range)), _, body)
-        if include_pos(name) && id == command_id && file_name == chunk.file_name =>
-        elem_positions(range, set, body)
-
-        case XML.Elem(Markup(name, Position.Reported(id, file_name, range)), body)
-        if include_pos(name) && id == command_id && file_name == chunk.file_name =>
-        elem_positions(range, set, body)
-
-        case XML.Wrapped_Elem(_, _, body) => body.foldLeft(set)(positions)
-
-        case XML.Elem(_, body) => body.foldLeft(set)(positions)
-
-        case _ => set
+        case XML.Wrapped_Elem(Markup(name, props), _, body) =>
+          body.foldLeft(if (include_pos(name)) elem_positions(props, set) else set)(positions)
+        case XML.Elem(Markup(name, props), body) =>
+          body.foldLeft(if (include_pos(name)) elem_positions(props, set) else set)(positions)
+        case XML.Text(_) => set
       }
 
     val set = positions(Set.empty, message)
-    if (set.isEmpty) {
-      message.markup.properties match {
-        case Position.Reported(id, file_name, range)
-        if id == command_id && file_name == chunk.file_name =>
-          set + chunk.decode(range)
-        case _ => set
-      }
-    }
+    if (set.isEmpty) elem_positions(message.markup.properties, set)
     else set
   }
 }

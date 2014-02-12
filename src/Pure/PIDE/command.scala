@@ -141,19 +141,14 @@ object Command
               val message1 = XML.Elem(Markup(Markup.message(name), props), body)
               val message2 = XML.Elem(Markup(name, props), body)
 
-              val st0 = copy(results = results + (i -> message1))
-              val st1 =
-                if (Protocol.is_inlined(message)) {
-                  var st1 = st0
-                  for {
-                    (file_name, chunk) <- command.chunks
-                    range <- Protocol.message_positions(command.id, chunk, message)
-                  } st1 = st1.add_markup(file_name, Text.Info(range, message2))
-                  st1
-                }
-                else st0
-
-              st1
+              var st = copy(results = results + (i -> message1))
+              if (Protocol.is_inlined(message)) {
+                for {
+                  (file_name, chunk) <- command.chunks
+                  range <- Protocol.message_positions(command.id, alt_id, chunk, message)
+                } st = st.add_markup(file_name, Text.Info(range, message2))
+              }
+              st
 
             case _ =>
               java.lang.System.err.println("Ignored message without serial number: " + message)
