@@ -78,7 +78,7 @@ lemma snd_prs [quot_preserve]:
 
 lemma split_rsp [quot_respect]:
   shows "((R1 ===> R2 ===> (op =)) ===> (prod_rel R1 R2) ===> (op =)) split split"
-  by (rule prod_case_transfer)
+  by (rule case_prod_transfer)
 
 lemma split_prs [quot_preserve]:
   assumes q1: "Quotient3 R1 Abs1 Rep1"

@@ -375,7 +375,7 @@ proof -
     by (auto simp add: sgn_if)
   have aux2: "\<And>q::int. - int_of_integer k = int_of_integer l * q \<longleftrightarrow> int_of_integer k = int_of_integer l * - q" by auto
   show ?thesis
-    by (simp add: prod_eq_iff integer_eq_iff prod_case_beta aux1)
+    by (simp add: prod_eq_iff integer_eq_iff case_prod_beta aux1)
       (auto simp add: zdiv_zminus1_eq_if zmod_zminus1_eq_if div_minus_right mod_minus_right aux2)
 qed
 
@@ -466,7 +466,7 @@ proof -
   }
   note aux = this
   show ?thesis
-    by (auto simp add: num_of_integer_def nat_of_integer_def Let_def prod_case_beta
+    by (auto simp add: num_of_integer_def nat_of_integer_def Let_def case_prod_beta
       not_le integer_eq_iff less_eq_integer_def
       nat_mult_distrib nat_div_distrib num_of_nat_One num_of_nat_plus_distrib
        mult_2 [where 'a=nat] aux add_One)

@@ -85,7 +85,7 @@ proof (rule Abs_sum_cases [of s])
   with assms show P by (auto simp add: sum_def Inl_def Inr_def)
 qed
 
-wrap_free_constructors [Inl, Inr] sum_case [isl] [[projl], [projr]]
+wrap_free_constructors [Inl, Inr] case_sum [isl] [[projl], [projr]]
 by (erule sumE, assumption) (auto dest: Inl_inject Inr_inject simp add: Inl_not_Inr)
 
 -- {* Avoid name clashes by prefixing the output of @{text rep_datatype} with @{text old}. *}
@@ -146,29 +146,29 @@ using split_sum_all[of "\<lambda>x. \<not>P x"] by blast
 
 subsection {* Projections *}
 
-lemma sum_case_KK [simp]: "sum_case (\<lambda>x. a) (\<lambda>x. a) = (\<lambda>x. a)"
+lemma case_sum_KK [simp]: "case_sum (\<lambda>x. a) (\<lambda>x. a) = (\<lambda>x. a)"
   by (rule ext) (simp split: sum.split)
 
-lemma surjective_sum: "sum_case (\<lambda>x::'a. f (Inl x)) (\<lambda>y::'b. f (Inr y)) = f"
+lemma surjective_sum: "case_sum (\<lambda>x::'a. f (Inl x)) (\<lambda>y::'b. f (Inr y)) = f"
 proof
   fix s :: "'a + 'b"
   show "(case s of Inl (x\<Colon>'a) \<Rightarrow> f (Inl x) | Inr (y\<Colon>'b) \<Rightarrow> f (Inr y)) = f s"
     by (cases s) simp_all
 qed
 
-lemma sum_case_inject:
-  assumes a: "sum_case f1 f2 = sum_case g1 g2"
+lemma case_sum_inject:
+  assumes a: "case_sum f1 f2 = case_sum g1 g2"
   assumes r: "f1 = g1 \<Longrightarrow> f2 = g2 \<Longrightarrow> P"
   shows P
 proof (rule r)
   show "f1 = g1" proof
     fix x :: 'a
-    from a have "sum_case f1 f2 (Inl x) = sum_case g1 g2 (Inl x)" by simp
+    from a have "case_sum f1 f2 (Inl x) = case_sum g1 g2 (Inl x)" by simp
     then show "f1 x = g1 x" by simp
   qed
   show "f2 = g2" proof
     fix y :: 'b
-    from a have "sum_case f1 f2 (Inr y) = sum_case g1 g2 (Inr y)" by simp
+    from a have "case_sum f1 f2 (Inr y) = case_sum g1 g2 (Inr y)" by simp
     then show "f2 y = g2 y" by simp
   qed
 qed

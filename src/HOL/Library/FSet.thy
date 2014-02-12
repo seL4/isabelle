@@ -1017,7 +1017,7 @@ proof
   have "finite ?L'" by (intro finite_Int[OF disjI2] finite_cartesian_product) (transfer, simp)+
   hence *: "fset R' = ?L'" unfolding R'_def by (intro fset_to_fset)
   show ?R unfolding Grp_def relcompp.simps conversep.simps
-  proof (intro CollectI prod_caseI exI[of _ a] exI[of _ b] exI[of _ R'] conjI refl)
+  proof (intro CollectI case_prodI exI[of _ a] exI[of _ b] exI[of _ R'] conjI refl)
     from * show "a = fimage fst R'" using conjunct1[OF `?L`]
       by (transfer, auto simp add: image_def Int_def split: prod.splits)
     from * show "b = fimage snd R'" using conjunct2[OF `?L`]

@@ -64,7 +64,7 @@ fun register_n2m_sugar key n2m_sugar =
 
 fun unfold_lets_splits (Const (@{const_name Let}, _) $ arg1 $ arg2) =
     unfold_lets_splits (betapply (arg2, arg1))
-  | unfold_lets_splits (t as Const (@{const_name prod_case}, _) $ u) =
+  | unfold_lets_splits (t as Const (@{const_name case_prod}, _) $ u) =
     (case unfold_lets_splits u of
       u' as Abs (s1, T1, Abs (s2, T2, _)) =>
       let val v = Var ((s1 ^ s2, Term.maxidx_of_term u' + 1), HOLogic.mk_prodT (T1, T2)) in

@@ -312,7 +312,7 @@ fun mk_generator_expr ctxt (t, _) =
     fun mk_scomp T1 T2 sT f g = Const (@{const_name scomp},
       liftT T1 sT --> (T1 --> liftT T2 sT) --> liftT T2 sT) $ f $ g;
     fun mk_split T = Sign.mk_const thy
-      (@{const_name prod_case}, [T, @{typ "unit => term"}, liftT resultT @{typ Random.seed}]);
+      (@{const_name case_prod}, [T, @{typ "unit => term"}, liftT resultT @{typ Random.seed}]);
     fun mk_scomp_split T t t' =
       mk_scomp (mk_termtyp T) resultT @{typ Random.seed} t
         (mk_split T $ Abs ("", T, Abs ("", @{typ "unit => term"}, t')));
@@ -358,7 +358,7 @@ fun mk_reporting_generator_expr ctxt (t, _) =
     fun mk_scomp T1 T2 sT f g = Const (@{const_name scomp},
       liftT T1 sT --> (T1 --> liftT T2 sT) --> liftT T2 sT) $ f $ g;
     fun mk_split T = Sign.mk_const thy
-      (@{const_name prod_case}, [T, @{typ "unit => term"}, liftT resultT @{typ Random.seed}]);
+      (@{const_name case_prod}, [T, @{typ "unit => term"}, liftT resultT @{typ Random.seed}]);
     fun mk_scomp_split T t t' =
       mk_scomp (mk_termtyp T) resultT @{typ Random.seed} t
         (mk_split T $ Abs ("", T, Abs ("", @{typ "unit => term"}, t')));

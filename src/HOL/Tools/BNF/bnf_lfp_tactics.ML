@@ -724,7 +724,7 @@ fun mk_ctor_rel_tac ctxt in_Irels i in_rel map_comp0 map_cong0 ctor_map ctor_set
         passive_set_map0s ctor_set_incls),
         CONJ_WRAP' (fn (in_Irel, (set_map0, ctor_set_set_incls)) =>
           EVERY' [rtac ord_eq_le_trans, rtac set_map0, rtac @{thm image_subsetI}, rtac CollectI,
-            rtac @{thm prod_caseI}, rtac (in_Irel RS iffD2), rtac exI, rtac conjI, rtac CollectI,
+            rtac @{thm case_prodI}, rtac (in_Irel RS iffD2), rtac exI, rtac conjI, rtac CollectI,
             CONJ_WRAP' (fn thm =>
               EVERY' (map etac [thm RS subset_trans, le_arg_cong_ctor_dtor]))
             ctor_set_set_incls,
@@ -750,7 +750,7 @@ fun mk_ctor_rel_tac ctxt in_Irels i in_rel map_comp0 map_cong0 ctor_map ctor_set
                 dtac set_rev_mp, etac @{thm image_mono}, etac imageE,
                 dtac @{thm ssubst_mem[OF pair_collapse]},
                 REPEAT_DETERM o eresolve_tac (CollectE :: conjE ::
-                  @{thms prod_caseE iffD1[OF Pair_eq, elim_format]}),
+                  @{thms case_prodE iffD1[OF Pair_eq, elim_format]}),
                 hyp_subst_tac ctxt,
                 dtac (in_Irel RS iffD1), dtac @{thm someI_ex}, REPEAT_DETERM o etac conjE,
                 TRY o
@@ -765,7 +765,7 @@ fun mk_ctor_rel_tac ctxt in_Irels i in_rel map_comp0 map_cong0 ctor_map ctor_set
           EVERY' (map (fn in_Irel => EVERY' [rtac trans, rtac o_apply, dtac set_rev_mp, atac,
             dtac @{thm ssubst_mem[OF pair_collapse]},
             REPEAT_DETERM o
-              eresolve_tac (CollectE :: conjE :: @{thms prod_caseE iffD1[OF Pair_eq, elim_format]}),
+              eresolve_tac (CollectE :: conjE :: @{thms case_prodE iffD1[OF Pair_eq, elim_format]}),
             hyp_subst_tac ctxt,
             dtac (in_Irel RS iffD1), dtac @{thm someI_ex}, REPEAT_DETERM o etac conjE, atac])
           in_Irels),

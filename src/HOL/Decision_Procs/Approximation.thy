@@ -182,7 +182,7 @@ function ub_sqrt lb_sqrt :: "nat \<Rightarrow> float \<Rightarrow> float" where
               else if x < 0 then - ub_sqrt prec (- x)
                             else 0)"
 by pat_completeness auto
-termination by (relation "measure (\<lambda> v. let (prec, x) = sum_case id id v in (if x < 0 then 1 else 0))", auto)
+termination by (relation "measure (\<lambda> v. let (prec, x) = case_sum id id v in (if x < 0 then 1 else 0))", auto)
 
 declare lb_sqrt.simps[simp del]
 declare ub_sqrt.simps[simp del]
@@ -484,7 +484,7 @@ function lb_arctan :: "nat \<Rightarrow> float \<Rightarrow> float" and ub_arcta
                                            else Float 1 1 * ub_horner y
                           else ub_pi prec * Float 1 -1 - lb_horner (float_divl prec 1 x)))"
 by pat_completeness auto
-termination by (relation "measure (\<lambda> v. let (prec, x) = sum_case id id v in (if x < 0 then 1 else 0))", auto)
+termination by (relation "measure (\<lambda> v. let (prec, x) = case_sum id id v in (if x < 0 then 1 else 0))", auto)
 
 declare ub_arctan_horner.simps[simp del]
 declare lb_arctan_horner.simps[simp del]
@@ -1387,7 +1387,7 @@ function ub_exp :: "nat \<Rightarrow> float \<Rightarrow> float" and lb_exp :: "
              else if x < - 1  then ub_exp_horner prec (get_odd (prec + 2)) 1 1 (float_divr prec x (- floor_fl x)) ^ (nat (- int_floor_fl x))
                               else ub_exp_horner prec (get_odd (prec + 2)) 1 1 x)"
 by pat_completeness auto
-termination by (relation "measure (\<lambda> v. let (prec, x) = sum_case id id v in (if 0 < x then 1 else 0))", auto)
+termination by (relation "measure (\<lambda> v. let (prec, x) = case_sum id id v in (if 0 < x then 1 else 0))", auto)
 
 lemma exp_m1_ge_quarter: "(1 / 4 :: real) \<le> exp (- 1)"
 proof -
@@ -1709,7 +1709,7 @@ function ub_ln :: "nat \<Rightarrow> float \<Rightarrow> float option" and lb_ln
                                         Some (lb_ln2 prec * (Float (exponent x + l) 0) + horner (Float (mantissa x) (- l) - 1)))"
 by pat_completeness auto
 
-termination proof (relation "measure (\<lambda> v. let (prec, x) = sum_case id id v in (if x < 1 then 1 else 0))", auto)
+termination proof (relation "measure (\<lambda> v. let (prec, x) = case_sum id id v in (if x < 1 then 1 else 0))", auto)
   fix prec and x :: float assume "\<not> real x \<le> 0" and "real x < 1" and "real (float_divl (max prec (Suc 0)) 1 x) < 1"
   hence "0 < real x" "1 \<le> max prec (Suc 0)" "real x < 1" by auto
   from float_divl_pos_less1_bound[OF `0 < real x` `real x < 1` `1 \<le> max prec (Suc 0)`]

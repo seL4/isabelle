@@ -662,10 +662,10 @@ translations
   "_Update f (_updbinds b bs)" == "_Update (_Update f b) bs"
   "f(x:=y)" == "CONST fun_upd f x y"
 
-(* Hint: to define the sum of two functions (or maps), use sum_case.
+(* Hint: to define the sum of two functions (or maps), use case_sum.
          A nice infix syntax could be defined (in Datatype.thy or below) by
 notation
-  sum_case  (infixr "'(+')"80)
+  case_sum  (infixr "'(+')"80)
 *)
 
 lemma fun_upd_idem_iff: "(f(x:=y) = f) = (f x = y)"

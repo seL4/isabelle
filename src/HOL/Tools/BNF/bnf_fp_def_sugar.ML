@@ -541,7 +541,7 @@ fun define_iters iterNs iter_args_typess' mk_binding fpTs Cs ctor_iters lthy =
     fun generate_iter pre (_, _, fss, xssss) ctor_iter =
       (mk_binding pre,
        fold_rev (fold_rev Term.lambda) fss (Term.list_comb (ctor_iter,
-         map2 (mk_sum_caseN_balanced oo map2 mk_uncurried2_fun) fss xssss)));
+         map2 (mk_case_sumN_balanced oo map2 mk_uncurried2_fun) fss xssss)));
   in
     define_co_iters Least_FP fpT Cs (map3 generate_iter iterNs iter_args_typess' ctor_iters) lthy
   end;
@@ -867,7 +867,7 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
 
         fun tack z_name (c, u) f =
           let val z = Free (z_name, mk_sumT (fastype_of u, fastype_of c)) in
-            Term.lambda z (mk_sum_case (Term.lambda u u, Term.lambda c (f $ c)) $ z)
+            Term.lambda z (mk_case_sum (Term.lambda u u, Term.lambda c (f $ c)) $ z)
           end;
 
         fun build_coiter fcoiters maybe_mk_sumT maybe_tack cqf =
@@ -902,7 +902,7 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
         val unfold_thmss = map2 (map2 prove) unfold_goalss unfold_tacss;
         val corec_thmss =
           map2 (map2 prove) corec_goalss corec_tacss
-          |> map (map (unfold_thms lthy @{thms sum_case_if}));
+          |> map (map (unfold_thms lthy @{thms case_sum_if}));
       in
         (unfold_thmss, corec_thmss)
       end;

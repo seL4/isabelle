@@ -69,7 +69,7 @@ fun construct_mutualized_fp fp fpTs fp_sugars bs resBs (resDs, Dss) bnfs lthy =
     val dest_co_algT = co_swap o dest_funT;
     val co_alg_argT = fp_case fp range_type domain_type;
     val co_alg_funT = fp_case fp domain_type range_type;
-    val mk_co_product = curry (fp_case fp mk_convol mk_sum_case);
+    val mk_co_product = curry (fp_case fp mk_convol mk_case_sum);
     val mk_map_co_product = fp_case fp mk_prod_map mk_sum_map;
     val co_proj1_const = fp_case fp (fst_const o fst) (uncurry Inl_const o dest_sumT o snd);
     val mk_co_productT = curry (fp_case fp HOLogic.mk_prodT mk_sumT);
@@ -336,7 +336,7 @@ fun construct_mutualized_fp fp fpTs fp_sugars bs resBs (resDs, Dss) bnfs lthy =
           o_apply comp_id id_comp map_pair.comp map_pair.id sum_map.comp sum_map.id};
         val rec_thms = fold_thms @ fp_case fp
           @{thms fst_convol map_pair_o_convol convol_o}
-          @{thms sum_case_o_inj(1) sum_case_o_sum_map o_sum_case};
+          @{thms case_sum_o_inj(1) case_sum_o_sum_map o_case_sum};
         val map_thms = no_refl (maps (fn bnf =>
           [map_comp0_of_bnf bnf RS sym, map_id0_of_bnf bnf]) fp_nesty_bnfs);
 

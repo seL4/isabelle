@@ -19,10 +19,10 @@ by auto
 lemma eq_sym_Unity_conv: "(x = (() = ())) = x"
 by blast
 
-lemma unit_case_Unity: "(case u of () \<Rightarrow> f) = f"
+lemma case_unit_Unity: "(case u of () \<Rightarrow> f) = f"
 by (cases u) (hypsubst, rule unit.cases)
 
-lemma prod_case_Pair_iden: "(case p of (x, y) \<Rightarrow> (x, y)) = p"
+lemma case_prod_Pair_iden: "(case p of (x, y) \<Rightarrow> (x, y)) = p"
 by simp
 
 lemma unit_all_impI: "(P () \<Longrightarrow> Q ()) \<Longrightarrow> \<forall>x. P x \<longrightarrow> Q x"
@@ -53,9 +53,9 @@ qed
 
 lemma ssubst_mem: "\<lbrakk>t = s; s \<in> X\<rbrakk> \<Longrightarrow> t \<in> X" by simp
 
-lemma sum_case_step:
-"sum_case (sum_case f' g') g (Inl p) = sum_case f' g' p"
-"sum_case f (sum_case f' g') (Inr p) = sum_case f' g' p"
+lemma case_sum_step:
+"case_sum (case_sum f' g') g (Inl p) = case_sum f' g' p"
+"case_sum f (case_sum f' g') (Inr p) = case_sum f' g' p"
 by auto
 
 lemma one_pointE: "\<lbrakk>\<And>x. s = x \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
@@ -71,8 +71,8 @@ by (rule allI) (metis sumE)
 lemma obj_sumE: "\<lbrakk>\<forall>x. s = Inl x \<longrightarrow> P; \<forall>x. s = Inr x \<longrightarrow> P\<rbrakk> \<Longrightarrow> P"
 by (cases s) auto
 
-lemma sum_case_if:
-"sum_case f g (if p then Inl x else Inr y) = (if p then f x else g y)"
+lemma case_sum_if:
+"case_sum f g (if p then Inl x else Inr y) = (if p then f x else g y)"
 by simp
 
 lemma mem_UN_compreh_eq: "(z : \<Union>{y. \<exists>x\<in>A. y = F x}) = (\<exists>x\<in>A. z : F x)"
@@ -122,14 +122,14 @@ lemma map_pair_o_convol: "map_pair h1 h2 o <f, g> = <h1 o f, h2 o g>"
 lemma map_pair_o_convol_id: "(map_pair f id \<circ> <id , g>) x = <id \<circ> f , g> x"
   unfolding map_pair_o_convol id_comp comp_id ..
 
-lemma o_sum_case: "h o sum_case f g = sum_case (h o f) (h o g)"
+lemma o_case_sum: "h o case_sum f g = case_sum (h o f) (h o g)"
   unfolding comp_def by (auto split: sum.splits)
 
-lemma sum_case_o_sum_map: "sum_case f g o sum_map h1 h2 = sum_case (f o h1) (g o h2)"
+lemma case_sum_o_sum_map: "case_sum f g o sum_map h1 h2 = case_sum (f o h1) (g o h2)"
   unfolding comp_def by (auto split: sum.splits)
 
-lemma sum_case_o_sum_map_id: "(sum_case id g o sum_map f id) x = sum_case (f o id) g x"
-  unfolding sum_case_o_sum_map id_comp comp_id ..
+lemma case_sum_o_sum_map_id: "(case_sum id g o sum_map f id) x = case_sum (f o id) g x"
+  unfolding case_sum_o_sum_map id_comp comp_id ..
 
 lemma fun_rel_def_butlast:
   "(fun_rel R (fun_rel S T)) f g = (\<forall>x y. R x y \<longrightarrow> (fun_rel S T) (f x) (g y))"

@@ -10,7 +10,7 @@ begin
 
 subsection {* Relator and predicator properties *}
 
-abbreviation (input) "sum_pred \<equiv> sum_case"
+abbreviation (input) "sum_pred \<equiv> case_sum"
 
 lemmas sum_rel_eq[relator_eq] = sum.rel_eq
 lemmas sum_rel_mono[relator_mono] = sum.rel_mono
@@ -80,8 +80,8 @@ lemma Inl_transfer [transfer_rule]: "(A ===> sum_rel A B) Inl Inl"
 lemma Inr_transfer [transfer_rule]: "(B ===> sum_rel A B) Inr Inr"
   unfolding fun_rel_def by simp
 
-lemma sum_case_transfer [transfer_rule]:
-  "((A ===> C) ===> (B ===> C) ===> sum_rel A B ===> C) sum_case sum_case"
+lemma case_sum_transfer [transfer_rule]:
+  "((A ===> C) ===> (B ===> C) ===> sum_rel A B ===> C) case_sum case_sum"
   unfolding fun_rel_def sum_rel_def by (simp split: sum.split)
 
 end

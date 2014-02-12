@@ -95,8 +95,8 @@ lemma fst_transfer [transfer_rule]: "(prod_rel A B ===> A) fst fst"
 lemma snd_transfer [transfer_rule]: "(prod_rel A B ===> B) snd snd"
   unfolding fun_rel_def prod_rel_def by simp
 
-lemma prod_case_transfer [transfer_rule]:
-  "((A ===> B ===> C) ===> prod_rel A B ===> C) prod_case prod_case"
+lemma case_prod_transfer [transfer_rule]:
+  "((A ===> B ===> C) ===> prod_rel A B ===> C) case_prod case_prod"
   unfolding fun_rel_def prod_rel_def by simp
 
 lemma curry_transfer [transfer_rule]:

@@ -141,7 +141,7 @@ abbreviation (input)
   where "\<lfloor>es\<rfloor>\<^sub>l == In3 es"
 
 definition undefined3 :: "('al + 'ar, 'b, 'c) sum3 \<Rightarrow> vals" where
- "undefined3 = sum3_case (In1 \<circ> sum_case (\<lambda>x. undefined) (\<lambda>x. Unit))
+ "undefined3 = sum3_case (In1 \<circ> case_sum (\<lambda>x. undefined) (\<lambda>x. Unit))
                      (\<lambda>x. In2 undefined) (\<lambda>x. In3 undefined)"
 
 lemma [simp]: "undefined3 (In1l x) = In1 undefined"

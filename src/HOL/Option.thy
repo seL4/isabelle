@@ -100,8 +100,8 @@ lemma option_map_comp:
     "map f (map g opt) = map (f o g) opt"
   by (simp add: map_def split add: option.split)
 
-lemma option_map_o_sum_case [simp]:
-    "map f o sum_case g h = sum_case (map f o g) (map f o h)"
+lemma option_map_o_case_sum [simp]:
+    "map f o case_sum g h = case_sum (map f o g) (map f o h)"
   by (rule ext) (simp split: sum.split)
 
 lemma map_cong: "x = y \<Longrightarrow> (\<And>a. y = Some a \<Longrightarrow> f a = g a) \<Longrightarrow> map f x = map g y"

@@ -84,8 +84,8 @@ fun mk_inject_tac ctxt ctr_def ctor_inject =
   unfold_thms_tac ctxt @{thms sum.inject Pair_eq conj_assoc} THEN HEADGOAL (rtac refl);
 
 val iter_unfold_thms =
-  @{thms comp_def convol_def fst_conv id_def prod_case_Pair_iden snd_conv
-      split_conv unit_case_Unity} @ sum_prod_thms_map;
+  @{thms comp_def convol_def fst_conv id_def case_prod_Pair_iden snd_conv split_conv
+      case_unit_Unity} @ sum_prod_thms_map;
 
 fun mk_iter_tac pre_map_defs map_idents iter_defs ctor_iter ctr_def ctxt =
   unfold_thms_tac ctxt (ctr_def :: ctor_iter :: iter_defs @ pre_map_defs @ map_idents @

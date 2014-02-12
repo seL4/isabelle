@@ -265,7 +265,7 @@ fun mk_in_bd_tac ctxt live surj_imp_ordLeq_inst map_comp map_id map_cong0 set_ma
           rtac (thm RS ord_eq_le_trans) THEN' etac @{thm subset_trans[OF image_mono Un_upper1]})
         set_maps,
         rtac sym,
-        rtac (box_equals OF [map_cong0 OF replicate live @{thm fun_cong[OF sum_case_o_inj(1)]},
+        rtac (box_equals OF [map_cong0 OF replicate live @{thm fun_cong[OF case_sum_o_inj(1)]},
            map_comp RS sym, map_id])] 1
   end;
 

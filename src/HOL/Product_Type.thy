@@ -12,7 +12,7 @@ begin
 
 subsection {* @{typ bool} is a datatype *}
 
-wrap_free_constructors [True, False] bool_case [=]
+wrap_free_constructors [True, False] case_bool [=]
 by auto
 
 -- {* Avoid name clashes by prefixing the output of @{text rep_datatype} with @{text old}. *}
@@ -80,7 +80,7 @@ simproc_setup unit_eq ("x::unit") = {*
     else SOME (mk_meta_eq @{thm unit_eq})
 *}
 
-wrap_free_constructors ["()"] unit_case
+wrap_free_constructors ["()"] case_unit
 by auto
 
 -- {* Avoid name clashes by prefixing the output of @{text rep_datatype} with @{text old}. *}
@@ -180,7 +180,7 @@ definition Pair :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<times> 'b" where
 lemma prod_cases: "(\<And>a b. P (Pair a b)) \<Longrightarrow> P p"
   by (cases p) (auto simp add: prod_def Pair_def Pair_Rep_def)
 
-wrap_free_constructors [Pair] prod_case [] [[fst, snd]]
+wrap_free_constructors [Pair] case_prod [] [[fst, snd]]
 proof -
   fix P :: bool and p :: "'a \<times> 'b"
   show "(\<And>x1 x2. p = Pair x1 x2 \<Longrightarrow> P) \<Longrightarrow> P"
@@ -224,7 +224,7 @@ declare prod.weak_case_cong [cong del]
 subsubsection {* Tuple syntax *}
 
 abbreviation (input) split :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c" where
-  "split \<equiv> prod_case"
+  "split \<equiv> case_prod"
 
 text {*
   Patterns -- extends pre-defined type @{typ pttrn} used in
@@ -246,8 +246,8 @@ translations
   "_pattern x y" => "CONST Pair x y"
   "_patterns x y" => "CONST Pair x y"
   "_tuple x (_tuple_args y z)" == "_tuple x (_tuple_arg (_tuple y z))"
-  "%(x, y, zs). b" == "CONST prod_case (%x (y, zs). b)"
-  "%(x, y). b" == "CONST prod_case (%x y. b)"
+  "%(x, y, zs). b" == "CONST case_prod (%x (y, zs). b)"
+  "%(x, y). b" == "CONST case_prod (%x y. b)"
   "_abs (CONST Pair x y) t" => "%(x, y). t"
   -- {* The last rule accommodates tuples in `case C ... (x,y) ... => ...'
      The (x,y) is parsed as `Pair x y' because it is logic, not pttrn *}
@@ -265,7 +265,7 @@ print_translation {*
             Syntax.const @{syntax_const "_abs"} $
               (Syntax.const @{syntax_const "_pattern"} $ x' $ y) $ t''
           end
-      | split_tr' [Abs (x, T, (s as Const (@{const_syntax prod_case}, _) $ t))] =
+      | split_tr' [Abs (x, T, (s as Const (@{const_syntax case_prod}, _) $ t))] =
           (* split (%x. (split (%y z. t))) => %(x,y,z). t *)
           let
             val Const (@{syntax_const "_abs"}, _) $
@@ -276,7 +276,7 @@ print_translation {*
               (Syntax.const @{syntax_const "_pattern"} $ x' $
                 (Syntax.const @{syntax_const "_patterns"} $ y $ z)) $ t''
           end
-      | split_tr' [Const (@{const_syntax prod_case}, _) $ t] =
+      | split_tr' [Const (@{const_syntax case_prod}, _) $ t] =
           (* split (split (%x y z. t)) => %((x, y), z). t *)
           split_tr' [(split_tr' [t])] (* inner split_tr' creates next pattern *)
       | split_tr' [Const (@{syntax_const "_abs"}, _) $ x_y $ Abs abs] =
@@ -286,7 +286,7 @@ print_translation {*
               (Syntax.const @{syntax_const "_pattern"} $ x_y $ z) $ t
           end
       | split_tr' _ = raise Match;
-  in [(@{const_syntax prod_case}, K split_tr')] end
+  in [(@{const_syntax case_prod}, K split_tr')] end
 *}
 
 (* print "split f" as "\<lambda>(x,y). f x y" and "split (\<lambda>x. f x)" as "\<lambda>(x,y). f x y" *) 
@@ -295,7 +295,7 @@ typed_print_translation {*
     fun split_guess_names_tr' T [Abs (x, _, Abs _)] = raise Match
       | split_guess_names_tr' T [Abs (x, xT, t)] =
           (case (head_of t) of
-            Const (@{const_syntax prod_case}, _) => raise Match
+            Const (@{const_syntax case_prod}, _) => raise Match
           | _ =>
             let 
               val (_ :: yT :: _) = binder_types (domain_type T) handle Bind => raise Match;
@@ -307,7 +307,7 @@ typed_print_translation {*
             end)
       | split_guess_names_tr' T [t] =
           (case head_of t of
-            Const (@{const_syntax prod_case}, _) => raise Match
+            Const (@{const_syntax case_prod}, _) => raise Match
           | _ =>
             let
               val (xT :: yT :: _) = binder_types (domain_type T) handle Bind => raise Match;
@@ -319,10 +319,10 @@ typed_print_translation {*
                 (Syntax.const @{syntax_const "_pattern"} $ x' $ y) $ t''
             end)
       | split_guess_names_tr' _ _ = raise Match;
-  in [(@{const_syntax prod_case}, K split_guess_names_tr')] end
+  in [(@{const_syntax case_prod}, K split_guess_names_tr')] end
 *}
 
-(* Force eta-contraction for terms of the form "Q A (%p. prod_case P p)"
+(* Force eta-contraction for terms of the form "Q A (%p. case_prod P p)"
    where Q is some bounded quantifier or set operator.
    Reason: the above prints as "Q p : A. case p of (x,y) \<Rightarrow> P x y"
    whereas we want "Q (x,y):A. P x y".
@@ -332,7 +332,7 @@ print_translation {*
   let
     fun contract Q tr ctxt ts =
       (case ts of
-        [A, Abs (_, _, (s as Const (@{const_syntax prod_case},_) $ t) $ Bound 0)] =>
+        [A, Abs (_, _, (s as Const (@{const_syntax case_prod},_) $ t) $ Bound 0)] =>
           if Term.is_dependent t then tr ctxt ts
           else Syntax.const Q $ A $ s
       | _ => tr ctxt ts);
@@ -379,7 +379,7 @@ code_printing
   constant fst \<rightharpoonup> (Haskell) "fst"
 | constant snd \<rightharpoonup> (Haskell) "snd"
 
-lemma prod_case_unfold [nitpick_unfold]: "prod_case = (%c p. c (fst p) (snd p))"
+lemma case_prod_unfold [nitpick_unfold]: "case_prod = (%c p. c (fst p) (snd p))"
   by (simp add: fun_eq_iff split: prod.split)
 
 lemma fst_eqD: "fst (x, y) = a ==> x = a"
@@ -419,7 +419,7 @@ lemma split_twice: "split f (split g p) = split (\<lambda>x y. split f (g x y)) 
   by (cases p) simp
 
 lemma The_split: "The (split P) = (THE xy. P (fst xy) (snd xy))"
-  by (simp add: prod_case_unfold)
+  by (simp add: case_prod_unfold)
 
 lemma split_weak_cong: "p = q \<Longrightarrow> split c p = split c q"
   -- {* Prevents simplification of @{term c}: much faster *}
@@ -511,7 +511,7 @@ local
     | no_args k i (Bound m) = m < k orelse m > k + i
     | no_args _ _ _ = true;
   fun split_pat tp i (Abs  (_, _, t)) = if tp 0 i t then SOME (i, t) else NONE
-    | split_pat tp i (Const (@{const_name prod_case}, _) $ Abs (_, _, t)) = split_pat tp (i + 1) t
+    | split_pat tp i (Const (@{const_name case_prod}, _) $ Abs (_, _, t)) = split_pat tp (i + 1) t
     | split_pat tp i _ = NONE;
   fun metaeq ctxt lhs rhs = mk_meta_eq (Goal.prove ctxt [] []
         (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs)))
@@ -529,12 +529,12 @@ local
         else (subst arg k i t $ subst arg k i u)
     | subst arg k i t = t;
 in
-  fun beta_proc ctxt (s as Const (@{const_name prod_case}, _) $ Abs (_, _, t) $ arg) =
+  fun beta_proc ctxt (s as Const (@{const_name case_prod}, _) $ Abs (_, _, t) $ arg) =
         (case split_pat beta_term_pat 1 t of
           SOME (i, f) => SOME (metaeq ctxt s (subst arg 0 i f))
         | NONE => NONE)
     | beta_proc _ _ = NONE;
-  fun eta_proc ctxt (s as Const (@{const_name prod_case}, _) $ Abs (_, _, t)) =
+  fun eta_proc ctxt (s as Const (@{const_name case_prod}, _) $ Abs (_, _, t)) =
         (case split_pat eta_term_pat 1 t of
           SOME (_, ft) => SOME (metaeq ctxt s (let val (f $ arg) = ft in f end))
         | NONE => NONE)
@@ -611,14 +611,14 @@ lemma mem_splitE:
   assumes major: "z \<in> split c p"
     and cases: "\<And>x y. p = (x, y) \<Longrightarrow> z \<in> c x y \<Longrightarrow> Q"
   shows Q
-  by (rule major [unfolded prod_case_unfold] cases surjective_pairing)+
+  by (rule major [unfolded case_prod_unfold] cases surjective_pairing)+
 
 declare mem_splitI2 [intro!] mem_splitI [intro!] splitI2' [intro!] splitI2 [intro!] splitI [intro!]
 declare mem_splitE [elim!] splitE' [elim!] splitE [elim!]
 
 ML {*
 local (* filtering with exists_p_split is an essential optimization *)
-  fun exists_p_split (Const (@{const_name prod_case},_) $ _ $ (Const (@{const_name Pair},_)$_$_)) = true
+  fun exists_p_split (Const (@{const_name case_prod},_) $ _ $ (Const (@{const_name Pair},_)$_$_)) = true
     | exists_p_split (t $ u) = exists_p_split t orelse exists_p_split u
     | exists_p_split (Abs (_, _, t)) = exists_p_split t
     | exists_p_split _ = false;
@@ -678,27 +678,27 @@ text {*
   Setup of internal @{text split_rule}.
 *}
 
-lemmas prod_caseI = prod.cases [THEN iffD2]
+lemmas case_prodI = prod.cases [THEN iffD2]
 
-lemma prod_caseI2: "!!p. [| !!a b. p = (a, b) ==> c a b |] ==> prod_case c p"
+lemma case_prodI2: "!!p. [| !!a b. p = (a, b) ==> c a b |] ==> case_prod c p"
   by (fact splitI2)
 
-lemma prod_caseI2': "!!p. [| !!a b. (a, b) = p ==> c a b x |] ==> prod_case c p x"
+lemma case_prodI2': "!!p. [| !!a b. (a, b) = p ==> c a b x |] ==> case_prod c p x"
   by (fact splitI2')
 
-lemma prod_caseE: "prod_case c p ==> (!!x y. p = (x, y) ==> c x y ==> Q) ==> Q"
+lemma case_prodE: "case_prod c p ==> (!!x y. p = (x, y) ==> c x y ==> Q) ==> Q"
   by (fact splitE)
 
-lemma prod_caseE': "prod_case c p z ==> (!!x y. p = (x, y) ==> c x y z ==> Q) ==> Q"
+lemma case_prodE': "case_prod c p z ==> (!!x y. p = (x, y) ==> c x y z ==> Q) ==> Q"
   by (fact splitE')
 
-declare prod_caseI [intro!]
+declare case_prodI [intro!]
 
-lemma prod_case_beta:
-  "prod_case f p = f (fst p) (snd p)"
+lemma case_prod_beta:
+  "case_prod f p = f (fst p) (snd p)"
   by (fact split_beta)
 
-lemma prod_cases3 [cases type]:
+lemma case_prods3 [cases type]:
   obtains (fields) a b c where "y = (a, b, c)"
   by (cases y, case_tac b) blast
 
@@ -706,7 +706,7 @@ lemma prod_induct3 [case_names fields, induct type]:
     "(!!a b c. P (a, b, c)) ==> P x"
   by (cases x) blast
 
-lemma prod_cases4 [cases type]:
+lemma case_prods4 [cases type]:
   obtains (fields) a b c d where "y = (a, b, c, d)"
   by (cases y, case_tac c) blast
 
@@ -714,7 +714,7 @@ lemma prod_induct4 [case_names fields, induct type]:
     "(!!a b c d. P (a, b, c, d)) ==> P x"
   by (cases x) blast
 
-lemma prod_cases5 [cases type]:
+lemma case_prods5 [cases type]:
   obtains (fields) a b c d e where "y = (a, b, c, d, e)"
   by (cases y, case_tac d) blast
 
@@ -722,7 +722,7 @@ lemma prod_induct5 [case_names fields, induct type]:
     "(!!a b c d e. P (a, b, c, d, e)) ==> P x"
   by (cases x) blast
 
-lemma prod_cases6 [cases type]:
+lemma case_prods6 [cases type]:
   obtains (fields) a b c d e f where "y = (a, b, c, d, e, f)"
   by (cases y, case_tac e) blast
 
@@ -730,7 +730,7 @@ lemma prod_induct6 [case_names fields, induct type]:
     "(!!a b c d e f. P (a, b, c, d, e, f)) ==> P x"
   by (cases x) blast
 
-lemma prod_cases7 [cases type]:
+lemma case_prods7 [cases type]:
   obtains (fields) a b c d e f g where "y = (a, b, c, d, e, f, g)"
   by (cases y, case_tac f) blast
 
@@ -740,7 +740,7 @@ lemma prod_induct7 [case_names fields, induct type]:
 
 lemma split_def:
   "split = (\<lambda>c p. c (fst p) (snd p))"
-  by (fact prod_case_unfold)
+  by (fact case_prod_unfold)
 
 definition internal_split :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c" where
   "internal_split == split"
@@ -787,13 +787,13 @@ text {*
 notation fcomp (infixl "\<circ>>" 60)
 
 definition scomp :: "('a \<Rightarrow> 'b \<times> 'c) \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> 'a \<Rightarrow> 'd" (infixl "\<circ>\<rightarrow>" 60) where
-  "f \<circ>\<rightarrow> g = (\<lambda>x. prod_case g (f x))"
+  "f \<circ>\<rightarrow> g = (\<lambda>x. case_prod g (f x))"
 
 lemma scomp_unfold: "scomp = (\<lambda>f g x. g (fst (f x)) (snd (f x)))"
-  by (simp add: fun_eq_iff scomp_def prod_case_unfold)
+  by (simp add: fun_eq_iff scomp_def case_prod_unfold)
 
-lemma scomp_apply [simp]: "(f \<circ>\<rightarrow> g) x = prod_case g (f x)"
-  by (simp add: scomp_unfold prod_case_unfold)
+lemma scomp_apply [simp]: "(f \<circ>\<rightarrow> g) x = case_prod g (f x)"
+  by (simp add: scomp_unfold case_prod_unfold)
 
 lemma Pair_scomp: "Pair x \<circ>\<rightarrow> f = f x"
   by (simp add: fun_eq_iff)

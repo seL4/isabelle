@@ -50,9 +50,9 @@ lemma compute_fst: "fst (x,y) = x" by simp
 lemma compute_snd: "snd (x,y) = y" by simp
 lemma compute_pair_eq: "((a, b) = (c, d)) = (a = c \<and> b = d)" by auto
 
-lemma prod_case_simp: "prod_case f (x,y) = f x y" by simp
+lemma case_prod_simp: "case_prod f (x,y) = f x y" by simp
 
-lemmas compute_pair = compute_fst compute_snd compute_pair_eq prod_case_simp
+lemmas compute_pair = compute_fst compute_snd compute_pair_eq case_prod_simp
 
 (*** compute_option ***)
 

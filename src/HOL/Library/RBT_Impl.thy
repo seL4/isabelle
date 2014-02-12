@@ -1067,7 +1067,7 @@ hide_const (open) map
 subsection {* Folding over entries *}
 
 definition fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> ('a, 'b) rbt \<Rightarrow> 'c \<Rightarrow> 'c" where
-  "fold f t = List.fold (prod_case f) (entries t)"
+  "fold f t = List.fold (case_prod f) (entries t)"
 
 lemma fold_simps [simp]:
   "fold f Empty = id"
@@ -1110,10 +1110,10 @@ lemma rbt_lookup_rbt_bulkload:
 proof -
   obtain ys where "ys = rev xs" by simp
   have "\<And>t. is_rbt t \<Longrightarrow>
-    rbt_lookup (List.fold (prod_case rbt_insert) ys t) = rbt_lookup t ++ map_of (rev ys)"
-      by (induct ys) (simp_all add: rbt_bulkload_def rbt_lookup_rbt_insert prod_case_beta)
+    rbt_lookup (List.fold (case_prod rbt_insert) ys t) = rbt_lookup t ++ map_of (rev ys)"
+      by (induct ys) (simp_all add: rbt_bulkload_def rbt_lookup_rbt_insert case_prod_beta)
   from this Empty_is_rbt have
-    "rbt_lookup (List.fold (prod_case rbt_insert) (rev xs) Empty) = rbt_lookup Empty ++ map_of xs"
+    "rbt_lookup (List.fold (case_prod rbt_insert) (rev xs) Empty) = rbt_lookup Empty ++ map_of xs"
      by (simp add: `ys = rev xs`)
   then show ?thesis by (simp add: rbt_bulkload_def rbt_lookup_Empty foldr_conv_fold)
 qed

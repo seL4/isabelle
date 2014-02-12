@@ -464,11 +464,11 @@ proof (rule measurable_PiM_single)
   show "(\<lambda>(\<omega>, \<omega>'). comb_seq i \<omega> \<omega>') \<in> space ((\<Pi>\<^sub>M i\<in>UNIV. M) \<Otimes>\<^sub>M (\<Pi>\<^sub>M i\<in>UNIV. M)) \<rightarrow> (UNIV \<rightarrow>\<^sub>E space M)"
     by (auto simp: space_pair_measure space_PiM PiE_iff split: split_comb_seq)
   fix j :: nat and A assume A: "A \<in> sets M"
-  then have *: "{\<omega> \<in> space ((\<Pi>\<^sub>M i\<in>UNIV. M) \<Otimes>\<^sub>M (\<Pi>\<^sub>M i\<in>UNIV. M)). prod_case (comb_seq i) \<omega> j \<in> A} =
+  then have *: "{\<omega> \<in> space ((\<Pi>\<^sub>M i\<in>UNIV. M) \<Otimes>\<^sub>M (\<Pi>\<^sub>M i\<in>UNIV. M)). case_prod (comb_seq i) \<omega> j \<in> A} =
     (if j < i then {\<omega> \<in> space (\<Pi>\<^sub>M i\<in>UNIV. M). \<omega> j \<in> A} \<times> space (\<Pi>\<^sub>M i\<in>UNIV. M)
               else space (\<Pi>\<^sub>M i\<in>UNIV. M) \<times> {\<omega> \<in> space (\<Pi>\<^sub>M i\<in>UNIV. M). \<omega> (j - i) \<in> A})"
     by (auto simp: space_PiM space_pair_measure comb_seq_def dest: sets.sets_into_space)
-  show "{\<omega> \<in> space ((\<Pi>\<^sub>M i\<in>UNIV. M) \<Otimes>\<^sub>M (\<Pi>\<^sub>M i\<in>UNIV. M)). prod_case (comb_seq i) \<omega> j \<in> A} \<in> sets ((\<Pi>\<^sub>M i\<in>UNIV. M) \<Otimes>\<^sub>M (\<Pi>\<^sub>M i\<in>UNIV. M))"
+  show "{\<omega> \<in> space ((\<Pi>\<^sub>M i\<in>UNIV. M) \<Otimes>\<^sub>M (\<Pi>\<^sub>M i\<in>UNIV. M)). case_prod (comb_seq i) \<omega> j \<in> A} \<in> sets ((\<Pi>\<^sub>M i\<in>UNIV. M) \<Otimes>\<^sub>M (\<Pi>\<^sub>M i\<in>UNIV. M))"
     unfolding * by (auto simp: A intro!: sets_Collect_single)
 qed
 

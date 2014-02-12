@@ -145,39 +145,39 @@ lemmas ch2ch_Inr [simp] = ch2ch_cont [OF cont_Inr]
 lemmas lub_Inl = cont2contlubE [OF cont_Inl, symmetric]
 lemmas lub_Inr = cont2contlubE [OF cont_Inr, symmetric]
 
-lemma cont_sum_case1:
+lemma cont_case_sum1:
   assumes f: "\<And>a. cont (\<lambda>x. f x a)"
   assumes g: "\<And>b. cont (\<lambda>x. g x b)"
   shows "cont (\<lambda>x. case y of Inl a \<Rightarrow> f x a | Inr b \<Rightarrow> g x b)"
 by (induct y, simp add: f, simp add: g)
 
-lemma cont_sum_case2: "\<lbrakk>cont f; cont g\<rbrakk> \<Longrightarrow> cont (sum_case f g)"
+lemma cont_case_sum2: "\<lbrakk>cont f; cont g\<rbrakk> \<Longrightarrow> cont (case_sum f g)"
 apply (rule contI)
 apply (erule sum_chain_cases)
 apply (simp add: cont2contlubE [OF cont_Inl, symmetric] contE)
 apply (simp add: cont2contlubE [OF cont_Inr, symmetric] contE)
 done
 
-lemma cont2cont_sum_case:
+lemma cont2cont_case_sum:
   assumes f1: "\<And>a. cont (\<lambda>x. f x a)" and f2: "\<And>x. cont (\<lambda>a. f x a)"
   assumes g1: "\<And>b. cont (\<lambda>x. g x b)" and g2: "\<And>x. cont (\<lambda>b. g x b)"
   assumes h: "cont (\<lambda>x. h x)"
   shows "cont (\<lambda>x. case h x of Inl a \<Rightarrow> f x a | Inr b \<Rightarrow> g x b)"
 apply (rule cont_apply [OF h])
-apply (rule cont_sum_case2 [OF f2 g2])
-apply (rule cont_sum_case1 [OF f1 g1])
+apply (rule cont_case_sum2 [OF f2 g2])
+apply (rule cont_case_sum1 [OF f1 g1])
 done
 
-lemma cont2cont_sum_case' [simp, cont2cont]:
+lemma cont2cont_case_sum' [simp, cont2cont]:
   assumes f: "cont (\<lambda>p. f (fst p) (snd p))"
   assumes g: "cont (\<lambda>p. g (fst p) (snd p))"
   assumes h: "cont (\<lambda>x. h x)"
   shows "cont (\<lambda>x. case h x of Inl a \<Rightarrow> f x a | Inr b \<Rightarrow> g x b)"
-using assms by (simp add: cont2cont_sum_case prod_cont_iff)
+using assms by (simp add: cont2cont_case_sum prod_cont_iff)
 
 text {* Continuity of map function. *}
 
-lemma sum_map_eq: "sum_map f g = sum_case (\<lambda>a. Inl (f a)) (\<lambda>b. Inr (g b))"
+lemma sum_map_eq: "sum_map f g = case_sum (\<lambda>a. Inl (f a)) (\<lambda>b. Inr (g b))"
 by (rule ext, case_tac x, simp_all)
 
 lemma cont2cont_sum_map [simp, cont2cont]:

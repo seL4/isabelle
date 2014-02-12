@@ -22,7 +22,7 @@ setup {* Predicate_Compile_Data.ignore_consts [@{const_name Let}] *}
 
 section {* Pairs *}
 
-setup {* Predicate_Compile_Data.ignore_consts [@{const_name fst}, @{const_name snd}, @{const_name prod_case}] *}
+setup {* Predicate_Compile_Data.ignore_consts [@{const_name fst}, @{const_name snd}, @{const_name case_prod}] *}
 
 section {* Bounded quantifiers *}
 

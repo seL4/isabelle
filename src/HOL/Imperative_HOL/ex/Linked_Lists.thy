@@ -692,7 +692,7 @@ by auto
 
 
 
-lemma sum_distrib: "sum_case fl fr (case x of Empty \<Rightarrow> y | Node v n \<Rightarrow> (z v n)) = (case x of Empty \<Rightarrow> sum_case fl fr y | Node v n \<Rightarrow> sum_case fl fr (z v n))"
+lemma sum_distrib: "case_sum fl fr (case x of Empty \<Rightarrow> y | Node v n \<Rightarrow> (z v n)) = (case x of Empty \<Rightarrow> case_sum fl fr y | Node v n \<Rightarrow> case_sum fl fr (z v n))"
 by (cases x) auto
 
 subsection {* Induction refinement by applying the abstraction function to our induct rule *}

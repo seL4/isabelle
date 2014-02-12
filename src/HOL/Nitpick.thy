@@ -96,8 +96,8 @@ apply (cases "P (Eps P)")
 apply (erule contrapos_np)
 by (rule someI)
 
-lemma unit_case_unfold [nitpick_unfold]:
-"unit_case x u \<equiv> x"
+lemma case_unit_unfold [nitpick_unfold]:
+"case_unit x u \<equiv> x"
 apply (subgoal_tac "u = ()")
  apply (simp only: unit.cases)
 by simp
@@ -241,7 +241,7 @@ hide_const (open) unknown is_unknown bisim bisim_iterator_max Quot safe_The
 hide_type (open) bisim_iterator fun_box pair_box unsigned_bit signed_bit word
 hide_fact (open) Ex1_unfold rtrancl_unfold rtranclp_unfold tranclp_unfold
     prod_def refl'_def wf'_def card'_def setsum'_def
-    fold_graph'_def The_psimp Eps_psimp unit_case_unfold nat_case_unfold
+    fold_graph'_def The_psimp Eps_psimp case_unit_unfold nat_case_unfold
     list_size_simp nat_gcd_def nat_lcm_def int_gcd_def int_lcm_def Frac_def
     zero_frac_def one_frac_def num_def denom_def norm_frac_def frac_def
     plus_frac_def times_frac_def uminus_frac_def number_of_frac_def

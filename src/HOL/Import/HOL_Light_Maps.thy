@@ -210,7 +210,7 @@ lemma sum_INDUCT:
 
 lemma sum_RECURSION:
   "\<forall>Inl' Inr'. \<exists>fn. (\<forall>a :: 'A. fn (Inl a) = (Inl' a :: 'Z)) \<and> (\<forall>a :: 'B. fn (Inr a) = Inr' a)"
-  by (intro allI, rule_tac x="sum_case Inl' Inr'" in exI) auto
+  by (intro allI, rule_tac x="case_sum Inl' Inr'" in exI) auto
 
 lemma OUTL[import_const "OUTL" : "Sum_Type.projl"]:
   "Sum_Type.projl (Inl x) = x"

@@ -79,7 +79,7 @@ lemma image_update [simp]:
   by (simp add: update_conv')
 
 definition updates :: "'key list \<Rightarrow> 'val list \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list" where
-  "updates ks vs = fold (prod_case update) (zip ks vs)"
+  "updates ks vs = fold (case_prod update) (zip ks vs)"
 
 lemma updates_simps [simp]:
   "updates [] vs ps = ps"
@@ -94,7 +94,7 @@ lemma updates_key_simp [simp]:
 
 lemma updates_conv': "map_of (updates ks vs al) = (map_of al)(ks[\<mapsto>]vs)"
 proof -
-  have "map_of \<circ> fold (prod_case update) (zip ks vs) =
+  have "map_of \<circ> fold (case_prod update) (zip ks vs) =
     fold (\<lambda>(k, v) f. f(k \<mapsto> v)) (zip ks vs) \<circ> map_of"
     by (rule fold_commute) (auto simp add: fun_eq_iff update_conv')
   then show ?thesis by (auto simp add: updates_def fun_eq_iff map_upds_fold_map_upd foldl_conv_fold split_def)
@@ -111,9 +111,9 @@ proof -
        (\<lambda>(k, v) al. if k \<in> set al then al else al @ [k])
        (zip ks vs) (map fst al))"
     by (rule fold_invariant [of "zip ks vs" "\<lambda>_. True"]) (auto intro: assms)
-  moreover have "map fst \<circ> fold (prod_case update) (zip ks vs) =
+  moreover have "map fst \<circ> fold (case_prod update) (zip ks vs) =
     fold (\<lambda>(k, v) al. if k \<in> set al then al else al @ [k]) (zip ks vs) \<circ> map fst"
-    by (rule fold_commute) (simp add: update_keys split_def prod_case_beta comp_def)
+    by (rule fold_commute) (simp add: update_keys split_def case_prod_beta comp_def)
   ultimately show ?thesis by (simp add: updates_def fun_eq_iff)
 qed
 
@@ -339,9 +339,9 @@ lemma clearjunk_update:
 lemma clearjunk_updates:
   "clearjunk (updates ks vs al) = updates ks vs (clearjunk al)"
 proof -
-  have "clearjunk \<circ> fold (prod_case update) (zip ks vs) =
-    fold (prod_case update) (zip ks vs) \<circ> clearjunk"
-    by (rule fold_commute) (simp add: clearjunk_update prod_case_beta o_def)
+  have "clearjunk \<circ> fold (case_prod update) (zip ks vs) =
+    fold (case_prod update) (zip ks vs) \<circ> clearjunk"
+    by (rule fold_commute) (simp add: clearjunk_update case_prod_beta o_def)
   then show ?thesis by (simp add: updates_def fun_eq_iff)
 qed
 
@@ -444,9 +444,9 @@ lemma clearjunk_merge:
 lemma merge_conv':
   "map_of (merge xs ys) = map_of xs ++ map_of ys"
 proof -
-  have "map_of \<circ> fold (prod_case update) (rev ys) =
+  have "map_of \<circ> fold (case_prod update) (rev ys) =
     fold (\<lambda>(k, v) m. m(k \<mapsto> v)) (rev ys) \<circ> map_of"
-    by (rule fold_commute) (simp add: update_conv' prod_case_beta split_def fun_eq_iff)
+    by (rule fold_commute) (simp add: update_conv' case_prod_beta split_def fun_eq_iff)
   then show ?thesis
     by (simp add: merge_def map_add_map_of_foldr foldr_conv_fold fun_eq_iff)
 qed

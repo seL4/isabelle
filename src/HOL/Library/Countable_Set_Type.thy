@@ -140,7 +140,7 @@ proof
   have L: "countable ?L'" by auto
   hence *: "rcset R' = ?L'" unfolding R'_def by (intro rcset_to_rcset)
   thus ?R unfolding Grp_def relcompp.simps conversep.simps
-  proof (intro CollectI prod_caseI exI[of _ a] exI[of _ b] exI[of _ R'] conjI refl)
+  proof (intro CollectI case_prodI exI[of _ a] exI[of _ b] exI[of _ R'] conjI refl)
     from * `?L` show "a = cimage fst R'" by transfer (auto simp: image_def Collect_Int_Times)
   next
     from * `?L` show "b = cimage snd R'" by transfer (auto simp: image_def Collect_Int_Times)

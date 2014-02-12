@@ -54,7 +54,7 @@ lemma subrelI: -- {* Version of @{thm [source] subsetI} for binary relations *}
 lemma lfp_induct2: -- {* Version of @{thm [source] lfp_induct} for binary relations *}
   "(a, b) \<in> lfp f \<Longrightarrow> mono f \<Longrightarrow>
     (\<And>a b. (a, b) \<in> f (lfp f \<inter> {(x, y). P x y}) \<Longrightarrow> P a b) \<Longrightarrow> P a b"
-  using lfp_induct_set [of "(a, b)" f "prod_case P"] by auto
+  using lfp_induct_set [of "(a, b)" f "case_prod P"] by auto
 
 
 subsubsection {* Conversions between set and predicate relations *}
@@ -113,7 +113,7 @@ lemma Inf_INT_eq [pred_set_conv]: "\<Sqinter>S = (\<lambda>x. x \<in> INTER S Co
 lemma INF_Int_eq [pred_set_conv]: "(\<Sqinter>i\<in>S. (\<lambda>x. x \<in> i)) = (\<lambda>x. x \<in> \<Inter>S)"
   by (simp add: fun_eq_iff)
 
-lemma Inf_INT_eq2 [pred_set_conv]: "\<Sqinter>S = (\<lambda>x y. (x, y) \<in> INTER (prod_case ` S) Collect)"
+lemma Inf_INT_eq2 [pred_set_conv]: "\<Sqinter>S = (\<lambda>x y. (x, y) \<in> INTER (case_prod ` S) Collect)"
   by (simp add: fun_eq_iff)
 
 lemma INF_Int_eq2 [pred_set_conv]: "(\<Sqinter>i\<in>S. (\<lambda>x y. (x, y) \<in> i)) = (\<lambda>x y. (x, y) \<in> \<Inter>S)"
@@ -125,7 +125,7 @@ lemma Sup_SUP_eq [pred_set_conv]: "\<Squnion>S = (\<lambda>x. x \<in> UNION S Co
 lemma SUP_Sup_eq [pred_set_conv]: "(\<Squnion>i\<in>S. (\<lambda>x. x \<in> i)) = (\<lambda>x. x \<in> \<Union>S)"
   by (simp add: fun_eq_iff)
 
-lemma Sup_SUP_eq2 [pred_set_conv]: "\<Squnion>S = (\<lambda>x y. (x, y) \<in> UNION (prod_case ` S) Collect)"
+lemma Sup_SUP_eq2 [pred_set_conv]: "\<Squnion>S = (\<lambda>x y. (x, y) \<in> UNION (case_prod ` S) Collect)"
   by (simp add: fun_eq_iff)
 
 lemma SUP_Sup_eq2 [pred_set_conv]: "(\<Squnion>i\<in>S. (\<lambda>x y. (x, y) \<in> i)) = (\<lambda>x y. (x, y) \<in> \<Union>S)"

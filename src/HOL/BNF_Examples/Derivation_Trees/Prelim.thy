@@ -27,8 +27,8 @@ by (cases z) auto
 lemma sum_map_InrD: "(f \<oplus> g) z = Inr x \<Longrightarrow> \<exists>y. z = Inr y \<and> g y = x"
 by (cases z) auto
 
-abbreviation sum_case_abbrev ("[[_,_]]" 800)
-where "[[f,g]] \<equiv> Sum_Type.sum_case f g"
+abbreviation case_sum_abbrev ("[[_,_]]" 800)
+where "[[f,g]] \<equiv> Sum_Type.case_sum f g"
 
 lemma Inl_oplus_elim:
 assumes "Inl tr \<in> (id \<oplus> f) ` tns"

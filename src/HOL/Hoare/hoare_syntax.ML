@@ -28,7 +28,7 @@ fun eq_idt tu =
 
 fun mk_abstuple [x] body = Syntax_Trans.abs_tr [x, body]
   | mk_abstuple (x :: xs) body =
-      Syntax.const @{const_syntax prod_case} $ Syntax_Trans.abs_tr [x, mk_abstuple xs body];
+      Syntax.const @{const_syntax case_prod} $ Syntax_Trans.abs_tr [x, mk_abstuple xs body];
 
 fun mk_fbody x e [y] = if eq_idt (x, y) then e else y
   | mk_fbody x e (y :: xs) =
@@ -82,21 +82,21 @@ end;
 local
 
 fun dest_abstuple
-      (Const (@{const_syntax prod_case}, _) $ Abs (v, _, body)) =
+      (Const (@{const_syntax case_prod}, _) $ Abs (v, _, body)) =
         subst_bound (Syntax.free v, dest_abstuple body)
   | dest_abstuple (Abs (v,_, body)) = subst_bound (Syntax.free v, body)
   | dest_abstuple tm = tm;
 
-fun abs2list (Const (@{const_syntax prod_case}, _) $ Abs (x, T, t)) = Free (x, T) :: abs2list t
+fun abs2list (Const (@{const_syntax case_prod}, _) $ Abs (x, T, t)) = Free (x, T) :: abs2list t
   | abs2list (Abs (x, T, t)) = [Free (x, T)]
   | abs2list _ = [];
 
-fun mk_ts (Const (@{const_syntax prod_case}, _) $ Abs (x, _, t)) = mk_ts t
+fun mk_ts (Const (@{const_syntax case_prod}, _) $ Abs (x, _, t)) = mk_ts t
   | mk_ts (Abs (x, _, t)) = mk_ts t
   | mk_ts (Const (@{const_syntax Pair}, _) $ a $ b) = a :: mk_ts b
   | mk_ts t = [t];
 
-fun mk_vts (Const (@{const_syntax prod_case},_) $ Abs (x, _, t)) =
+fun mk_vts (Const (@{const_syntax case_prod},_) $ Abs (x, _, t)) =
       (Syntax.free x :: abs2list t, mk_ts t)
   | mk_vts (Abs (x, _, t)) = ([Syntax.free x], [t])
   | mk_vts t = raise Match;
@@ -106,7 +106,7 @@ fun find_ch [] i xs = (false, (Syntax.free "not_ch", Syntax.free "not_ch"))  (* 
       if t = Bound i then find_ch vts (i - 1) xs
       else (true, (v, subst_bounds (xs, t)));
 
-fun is_f (Const (@{const_syntax prod_case}, _) $ Abs (x, _, t)) = true
+fun is_f (Const (@{const_syntax case_prod}, _) $ Abs (x, _, t)) = true
   | is_f (Abs (x, _, t)) = true
   | is_f t = false;
 

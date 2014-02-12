@@ -365,9 +365,9 @@ lemma fin_support_Field_osum:
 proof safe
   assume ?L
   from `?L` show ?R1 unfolding fin_support_def support_def
-    by (fastforce simp: image_iff elim: finite_surj[of _ _ "sum_case id undefined"])
+    by (fastforce simp: image_iff elim: finite_surj[of _ _ "case_sum id undefined"])
   from `?L` show ?R2 unfolding fin_support_def support_def
-    by (fastforce simp: image_iff elim: finite_surj[of _ _ "sum_case undefined id"])
+    by (fastforce simp: image_iff elim: finite_surj[of _ _ "case_sum undefined id"])
 next
   assume ?R1 ?R2
   thus ?L unfolding fin_support_def support_Un
@@ -1506,15 +1506,15 @@ next
 qed
 
 lemma max_fun_diff_eq_Inl:
-  assumes "wo_rel.max_fun_diff (s +o t) (sum_case f1 g1) (sum_case f2 g2) = Inl x"
-    "sum_case f1 g1 \<noteq> sum_case f2 g2"
-    "sum_case f1 g1 \<in> FinFunc r (s +o t)" "sum_case f2 g2 \<in> FinFunc r (s +o t)"
+  assumes "wo_rel.max_fun_diff (s +o t) (case_sum f1 g1) (case_sum f2 g2) = Inl x"
+    "case_sum f1 g1 \<noteq> case_sum f2 g2"
+    "case_sum f1 g1 \<in> FinFunc r (s +o t)" "case_sum f2 g2 \<in> FinFunc r (s +o t)"
   shows "wo_rel.max_fun_diff s f1 f2 = x" (is ?P) "g1 = g2" (is ?Q)
 proof -
   interpret st!: wo_rel "s +o t" by unfold_locales (rule osum_Well_order[OF s t])
   interpret s!: wo_rel s by unfold_locales (rule s)
   interpret rst!: wo_rel2 r "s +o t" by unfold_locales (rule r, rule osum_Well_order[OF s t])
-  from assms(1) have *: "st.isMaxim {a \<in> Field (s +o t). sum_case f1 g1 a \<noteq> sum_case f2 g2 a} (Inl x)"
+  from assms(1) have *: "st.isMaxim {a \<in> Field (s +o t). case_sum f1 g1 a \<noteq> case_sum f2 g2 a} (Inl x)"
     using rst.isMaxim_max_fun_diff[OF assms(2-4)] by simp
   hence "s.isMaxim {a \<in> Field s. f1 a \<noteq> f2 a} x"
     unfolding st.isMaxim_def s.isMaxim_def Field_osum by (auto simp: osum_def)
@@ -1530,15 +1530,15 @@ proof -
 qed
 
 lemma max_fun_diff_eq_Inr:
-  assumes "wo_rel.max_fun_diff (s +o t) (sum_case f1 g1) (sum_case f2 g2) = Inr x"
-    "sum_case f1 g1 \<noteq> sum_case f2 g2"
-    "sum_case f1 g1 \<in> FinFunc r (s +o t)" "sum_case f2 g2 \<in> FinFunc r (s +o t)"
+  assumes "wo_rel.max_fun_diff (s +o t) (case_sum f1 g1) (case_sum f2 g2) = Inr x"
+    "case_sum f1 g1 \<noteq> case_sum f2 g2"
+    "case_sum f1 g1 \<in> FinFunc r (s +o t)" "case_sum f2 g2 \<in> FinFunc r (s +o t)"
   shows "wo_rel.max_fun_diff t g1 g2 = x" (is ?P) "g1 \<noteq> g2" (is ?Q)
 proof -
   interpret st!: wo_rel "s +o t" by unfold_locales (rule osum_Well_order[OF s t])
   interpret t!: wo_rel t by unfold_locales (rule t)
   interpret rst!: wo_rel2 r "s +o t" by unfold_locales (rule r, rule osum_Well_order[OF s t])
-  from assms(1) have *: "st.isMaxim {a \<in> Field (s +o t). sum_case f1 g1 a \<noteq> sum_case f2 g2 a} (Inr x)"
+  from assms(1) have *: "st.isMaxim {a \<in> Field (s +o t). case_sum f1 g1 a \<noteq> case_sum f2 g2 a} (Inr x)"
     using rst.isMaxim_max_fun_diff[OF assms(2-4)] by simp
   hence "t.isMaxim {a \<in> Field t. g1 a \<noteq> g2 a} x"
     unfolding st.isMaxim_def t.isMaxim_def Field_osum by (auto simp: osum_def)
@@ -1551,7 +1551,7 @@ proof (rule ordIso_symmetric)
   interpret rst!: wo_rel2 r "s +o t" by unfold_locales (rule r, rule osum_Well_order[OF s t])
   interpret rs!: wo_rel2 r s by unfold_locales (rule r, rule s)
   interpret rt!: wo_rel2 r t by unfold_locales (rule r, rule t)
-  let ?f = "\<lambda>(f, g). sum_case f g"
+  let ?f = "\<lambda>(f, g). case_sum f g"
   have "bij_betw ?f (Field ?L) (Field ?R)"
   unfolding bij_betw_def rst.Field_oexp rs.Field_oexp rt.Field_oexp Field_oprod proof (intro conjI)
     show "inj_on ?f (FinFunc r s \<times> FinFunc r t)" unfolding inj_on_def

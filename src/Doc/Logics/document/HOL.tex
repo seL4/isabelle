@@ -1115,7 +1115,7 @@ actual datatypes later.
   \it symbol    & \it meta-type &           & \it description \\ 
   \cdx{Inl}     & $\alpha \To \alpha+\beta$    & & first injection\\
   \cdx{Inr}     & $\beta \To \alpha+\beta$     & & second injection\\
-  \cdx{sum_case} & $[\alpha\To\gamma, \beta\To\gamma, \alpha+\beta] \To\gamma$
+  \cdx{case_sum} & $[\alpha\To\gamma, \beta\To\gamma, \alpha+\beta] \To\gamma$
         & & conditional
 \end{constants}
 \begin{ttbox}\makeatletter
@@ -1126,11 +1126,11 @@ actual datatypes later.
 
 \tdx{sumE}           [| !!x. P(Inl x);  !!y. P(Inr y) |] ==> P s
 
-\tdx{sum_case_Inl}   sum_case f g (Inl x) = f x
-\tdx{sum_case_Inr}   sum_case f g (Inr x) = g x
+\tdx{case_sum_Inl}   case_sum f g (Inl x) = f x
+\tdx{case_sum_Inr}   case_sum f g (Inr x) = g x
 
-\tdx{surjective_sum} sum_case (\%x. f(Inl x)) (\%y. f(Inr y)) s = f s
-\tdx{sum.split_case} R(sum_case f g s) = ((! x. s = Inl(x) --> R(f(x))) &
+\tdx{surjective_sum} case_sum (\%x. f(Inl x)) (\%y. f(Inr y)) s = f s
+\tdx{sum.split_case} R(case_sum f g s) = ((! x. s = Inl(x) --> R(f(x))) &
                                      (! y. s = Inr(y) --> R(g(y))))
 \end{ttbox}
 \caption{Type $\alpha+\beta$}\label{hol-sum}

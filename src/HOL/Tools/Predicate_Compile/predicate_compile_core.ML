@@ -992,7 +992,7 @@ fun compile_pred options compilation_modifiers ctxt all_vs param_vs s T (pol, mo
 
 (* Definition of executable functions and their intro and elim rules *)
 
-fun strip_split_abs (Const (@{const_name prod_case}, _) $ t) = strip_split_abs t
+fun strip_split_abs (Const (@{const_name case_prod}, _) $ t) = strip_split_abs t
   | strip_split_abs (Abs (_, _, t)) = strip_split_abs t
   | strip_split_abs t = t
 
