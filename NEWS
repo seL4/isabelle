@@ -122,6 +122,11 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
     BNF/BNF.thy
     BNF/Equiv_Relations_More.thy
 
+* Old datatype package:
+  * Generated constants "xxx_case" and "xxx_rec" have been renamed "case_xxx"
+    and "rec_xxx".
+    INCOMPATIBILITY.
+
 * New theory:
     Cardinals/Ordinal_Arithmetic.thy
 
