@@ -25,7 +25,6 @@ sig
      sel_co_iterssss: thm list list list list};
 
   val of_fp_sugar: (fp_sugar -> 'a list) -> fp_sugar -> 'a
-  val eq_fp_sugar: fp_sugar * fp_sugar -> bool
   val morph_fp_sugar: morphism -> fp_sugar -> fp_sugar
   val transfer_fp_sugar: Proof.context -> fp_sugar -> fp_sugar
   val fp_sugar_of: Proof.context -> string -> fp_sugar option
@@ -136,10 +135,6 @@ type fp_sugar =
 
 fun of_fp_sugar f (fp_sugar as ({index, ...}: fp_sugar)) = nth (f fp_sugar) index;
 
-fun eq_fp_sugar ({T = T1, fp = fp1, index = index1, fp_res = fp_res1, ...} : fp_sugar,
-    {T = T2, fp = fp2, index = index2, fp_res = fp_res2, ...} : fp_sugar) =
-  T1 = T2 andalso fp1 = fp2 andalso index1 = index2 andalso eq_fp_result (fp_res1, fp_res2);
-
 fun morph_fp_sugar phi ({T, fp, index, pre_bnfs, nested_bnfs, nesting_bnfs, fp_res, ctr_defss,
     ctr_sugars, co_iterss, mapss, co_inducts, co_iter_thmsss, disc_co_itersss, sel_co_iterssss}
     : fp_sugar) =
@@ -163,7 +158,7 @@ structure Data = Generic_Data
   type T = fp_sugar Symtab.table;
   val empty = Symtab.empty;
   val extend = I;
-  val merge = Symtab.merge eq_fp_sugar;
+  fun merge data : T = Symtab.merge (K true) data;
 );
 
 fun fp_sugar_of ctxt =

@@ -30,7 +30,6 @@ sig
      rel_xtor_co_induct_thm: thm}
 
   val morph_fp_result: morphism -> fp_result -> fp_result
-  val eq_fp_result: fp_result * fp_result -> bool
   val un_fold_of: 'a list -> 'a
   val co_rec_of: 'a list -> 'a
 
@@ -238,9 +237,6 @@ fun morph_fp_result phi {Ts, bnfs, ctors, dtors, xtor_co_iterss, xtor_co_induct,
    xtor_co_iter_thmss = map (map (Morphism.thm phi)) xtor_co_iter_thmss,
    xtor_co_iter_o_map_thmss = map (map (Morphism.thm phi)) xtor_co_iter_o_map_thmss,
    rel_xtor_co_induct_thm = Morphism.thm phi rel_xtor_co_induct_thm};
-
-fun eq_fp_result ({bnfs = bnfs1, ...} : fp_result, {bnfs = bnfs2, ...} : fp_result) =
-  eq_list eq_bnf (bnfs1, bnfs2);
 
 fun un_fold_of [f, _] = f;
 fun co_rec_of [_, r] = r;

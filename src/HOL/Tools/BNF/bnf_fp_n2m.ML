@@ -97,12 +97,12 @@ fun construct_mutualized_fp fp fpTs fp_sugars bs resBs (resDs, Dss) bnfs lthy =
     val pre_bnfss = map #pre_bnfs fp_sugars;
     val nesty_bnfss = map (fn sugar => #nested_bnfs sugar @ #nesting_bnfs sugar) fp_sugars;
     val fp_nesty_bnfss = fp_bnfs :: nesty_bnfss;
-    val fp_nesty_bnfs = distinct eq_bnf (flat fp_nesty_bnfss);
+    val fp_nesty_bnfs = distinct (op = o pairself T_of_bnf) (flat fp_nesty_bnfss);
 
     val rels =
       let
         fun find_rel T As Bs = fp_nesty_bnfss
-          |> map (filter_out (curry eq_bnf BNF_Comp.DEADID_bnf))
+          |> map (filter_out (curry (op = o pairself name_of_bnf) BNF_Comp.DEADID_bnf))
           |> get_first (find_first (fn bnf => Type.could_unify (T_of_bnf bnf, T)))
           |> Option.map (fn bnf =>
             let val live = live_of_bnf bnf;

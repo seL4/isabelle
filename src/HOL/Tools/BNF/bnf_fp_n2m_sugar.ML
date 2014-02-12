@@ -43,7 +43,7 @@ structure Data = Generic_Data
   type T = n2m_sugar Typtab.table;
   val empty = Typtab.empty;
   val extend = I;
-  fun merge data : T = Typtab.merge (eq_fst (eq_list eq_fp_sugar)) data;
+  fun merge data : T = Typtab.merge (K true) data;
 );
 
 fun morph_n2m_sugar phi (fp_sugars, (lfp_sugar_thms_opt, gfp_sugar_thms_opt)) =

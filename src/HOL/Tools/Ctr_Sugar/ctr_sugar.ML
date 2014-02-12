@@ -96,10 +96,6 @@ type ctr_sugar =
    sel_split_asms: thm list,
    case_eq_ifs: thm list};
 
-fun eq_ctr_sugar ({ctrs = ctrs1, casex = case1, discs = discs1, selss = selss1, ...} : ctr_sugar,
-    {ctrs = ctrs2, casex = case2, discs = discs2, selss = selss2, ...} : ctr_sugar) =
-  ctrs1 = ctrs2 andalso case1 = case2 andalso discs1 = discs2 andalso selss1 = selss2;
-
 fun morph_ctr_sugar phi {ctrs, casex, discs, selss, exhaust, nchotomy, injects, distincts,
     case_thms, case_cong, weak_case_cong, split, split_asm, disc_thmss, discIs, sel_thmss,
     disc_excludesss, disc_exhausts, sel_exhausts, collapses, expands, sel_splits, sel_split_asms,
@@ -137,7 +133,7 @@ structure Data = Generic_Data
   type T = ctr_sugar Symtab.table;
   val empty = Symtab.empty;
   val extend = I;
-  val merge = Symtab.merge eq_ctr_sugar;
+  fun merge data : T = Symtab.merge (K true) data;
 );
 
 fun ctr_sugar_of ctxt =
