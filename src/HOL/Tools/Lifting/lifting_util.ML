@@ -24,6 +24,9 @@ sig
   val strip_args: int -> term -> term
   val all_args_conv: conv -> conv
   val is_Type: typ -> bool
+  val same_type_constrs: typ * typ -> bool
+  val Targs: typ -> typ list
+  val Tname: typ -> string
   val is_fun_rel: term -> bool
   val relation_types: typ -> typ * typ
   val mk_HOL_eq: thm -> thm
@@ -97,6 +100,15 @@ fun all_args_conv conv ctm =
 
 fun is_Type (Type _) = true
   | is_Type _ = false
+
+fun same_type_constrs (Type (r, _), Type (q, _)) = (r = q)
+  | same_type_constrs _ = false
+
+fun Targs (Type (_, args)) = args
+  | Targs _ = []
+
+fun Tname (Type (name, _)) = name
+  | Tname _ = ""
 
 fun is_fun_rel (Const (@{const_name "fun_rel"}, _) $ _ $ _) = true
   | is_fun_rel _ = false
