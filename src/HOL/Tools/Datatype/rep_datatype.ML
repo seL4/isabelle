@@ -292,44 +292,45 @@ fun prove_case_thms (config : Datatype_Aux.config)
 
     (* define case combinators via primrec combinators *)
 
-    val (case_defs, thy2) =
-      fold (fn ((((i, (_, _, constrs)), T), name), recname) => fn (defs, thy) =>
+    fun def_case ((((i, (_, _, constrs)), T), name), recname) (defs, thy) =
+      let
+        val (fns1, fns2) = split_list (map (fn ((_, cargs), j) =>
           let
-            val (fns1, fns2) = split_list (map (fn ((_, cargs), j) =>
-              let
-                val Ts = map (Datatype_Aux.typ_of_dtyp descr') cargs;
-                val Ts' = Ts @ map mk_dummyT (filter Datatype_Aux.is_rec_type cargs);
-                val frees' = map2 (Datatype_Aux.mk_Free "x") Ts' (1 upto length Ts');
-                val frees = take (length cargs) frees';
-                val free = Datatype_Aux.mk_Free "f" (Ts ---> T') j;
-              in
-                (free, fold_rev (absfree o dest_Free) frees' (list_comb (free, frees)))
-              end) (constrs ~~ (1 upto length constrs)));
+            val Ts = map (Datatype_Aux.typ_of_dtyp descr') cargs;
+            val Ts' = Ts @ map mk_dummyT (filter Datatype_Aux.is_rec_type cargs);
+            val frees' = map2 (Datatype_Aux.mk_Free "x") Ts' (1 upto length Ts');
+            val frees = take (length cargs) frees';
+            val free = Datatype_Aux.mk_Free "f" (Ts ---> T') j;
+          in
+            (free, fold_rev (absfree o dest_Free) frees' (list_comb (free, frees)))
+          end) (constrs ~~ (1 upto length constrs)));
 
-            val caseT = map (snd o dest_Free) fns1 @ [T] ---> T';
-            val fns = flat (take i case_dummy_fns) @ fns2 @ flat (drop (i + 1) case_dummy_fns);
-            val reccomb = Const (recname, (map fastype_of fns) @ [T] ---> T');
-            val decl = ((Binding.name (Long_Name.base_name name), caseT), NoSyn);
-            val def =
-              (Binding.name (Thm.def_name (Long_Name.base_name name)),
-                Logic.mk_equals (Const (name, caseT),
-                  fold_rev lambda fns1
-                    (list_comb (reccomb,
-                      flat (take i case_dummy_fns) @ fns2 @ flat (drop (i + 1) case_dummy_fns)))));
-            val ([def_thm], thy') =
-              thy
-              |> Sign.declare_const_global decl |> snd
-              |> (Global_Theory.add_defs false o map Thm.no_attributes) [def];
+        val caseT = map (snd o dest_Free) fns1 @ [T] ---> T';
+        val fns = flat (take i case_dummy_fns) @ fns2 @ flat (drop (i + 1) case_dummy_fns);
+        val reccomb = Const (recname, (map fastype_of fns) @ [T] ---> T');
+        val decl = ((Binding.name (Long_Name.base_name name), caseT), NoSyn);
+        val def =
+          (Binding.name (Thm.def_name (Long_Name.base_name name)),
+            Logic.mk_equals (Const (name, caseT),
+              fold_rev lambda fns1
+                (list_comb (reccomb,
+                  flat (take i case_dummy_fns) @ fns2 @ flat (drop (i + 1) case_dummy_fns)))));
+        val ([def_thm], thy') =
+          thy
+          |> Sign.declare_const_global decl |> snd
+          |> (Global_Theory.add_defs false o map Thm.no_attributes) [def];
+      in (defs @ [def_thm], thy') end;
 
-          in (defs @ [def_thm], thy') end)
-        (hd descr ~~ newTs ~~ case_names ~~ take (length newTs) reccomb_names) ([], thy1);
+    val (case_defs, thy2) =
+      fold def_case (hd descr ~~ newTs ~~ case_names ~~ take (length newTs) reccomb_names)
+        ([], thy1);
+
+    fun prove_case _ t =
+      Goal.prove_sorry_global thy2 [] [] t (fn {context = ctxt, ...} =>
+        EVERY [rewrite_goals_tac ctxt (case_defs @ map mk_meta_eq primrec_thms), rtac refl 1]);
 
     val case_thms =
-      (map o map) (fn t =>
-          Goal.prove_sorry_global thy2 [] [] t
-            (fn {context = ctxt, ...} =>
-              EVERY [rewrite_goals_tac ctxt (case_defs @ map mk_meta_eq primrec_thms), rtac refl 1]))
-        (Datatype_Prop.make_cases case_names descr thy2);
+      map2 (map o prove_case) new_type_names (Datatype_Prop.make_cases case_names descr thy2);
   in
     thy2
     |> Context.theory_map ((fold o fold) Nitpick_Simps.add_thm case_thms)
