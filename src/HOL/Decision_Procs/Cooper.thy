@@ -303,12 +303,12 @@ lemma evaldjf_ex: "Ifm bbs bs (evaldjf f ps) = (\<exists>p \<in> set ps. Ifm bbs
 lemma evaldjf_bound0:
   assumes nb: "\<forall>x\<in> set xs. bound0 (f x)"
   shows "bound0 (evaldjf f xs)"
-  using nb by (induct xs) (auto simp add: evaldjf_def djf_def Let_def, case_tac "f x1", auto)
+  using nb by (induct xs) (auto simp add: evaldjf_def djf_def Let_def, case_tac "f a", auto)
 
 lemma evaldjf_qf:
   assumes nb: "\<forall>x\<in> set xs. qfree (f x)"
   shows "qfree (evaldjf f xs)"
-  using nb by (induct xs) (auto simp add: evaldjf_def djf_def Let_def, case_tac "f x1", auto)
+  using nb by (induct xs) (auto simp add: evaldjf_def djf_def Let_def, case_tac "f a", auto)
 
 fun disjuncts :: "fm \<Rightarrow> fm list"
 where
