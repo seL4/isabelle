@@ -4,30 +4,30 @@
 Structures for different compilations of the predicate compiler.
 *)
 
-structure Predicate_Comp_Funs =
+structure Predicate_Comp_Funs =  (* FIXME proper signature *)
 struct
 
 fun mk_monadT T = Type (@{type_name Predicate.pred}, [T])
 
 fun dest_monadT (Type (@{type_name Predicate.pred}, [T])) = T
-  | dest_monadT T = raise TYPE ("dest_monadT", [T], []);
+  | dest_monadT T = raise TYPE ("dest_monadT", [T], [])
 
-fun mk_empty T = Const (@{const_name Orderings.bot}, mk_monadT T);
+fun mk_empty T = Const (@{const_name Orderings.bot}, mk_monadT T)
 
 fun mk_single t =
   let val T = fastype_of t
-  in Const(@{const_name Predicate.single}, T --> mk_monadT T) $ t end;
+  in Const(@{const_name Predicate.single}, T --> mk_monadT T) $ t end
 
 fun mk_bind (x, f) =
   let val T as Type ("fun", [_, U]) = fastype_of f
   in
     Const (@{const_name Predicate.bind}, fastype_of x --> T --> U) $ x $ f
-  end;
+  end
 
-val mk_plus = HOLogic.mk_binop @{const_name sup};
+val mk_plus = HOLogic.mk_binop @{const_name sup}
 
 fun mk_if cond = Const (@{const_name Predicate.if_pred},
-  HOLogic.boolT --> mk_monadT HOLogic.unitT) $ cond;
+  HOLogic.boolT --> mk_monadT HOLogic.unitT) $ cond
 
 fun mk_iterate_upto T (f, from, to) =
   list_comb (Const (@{const_name Predicate.iterate_upto},
@@ -50,44 +50,48 @@ fun mk_Eval (f, x) =
     val T = dest_monadT (fastype_of f)
   in
     Const (@{const_name Predicate.eval}, mk_monadT T --> T --> HOLogic.boolT) $ f $ x
-  end;
+  end
 
 fun dest_Eval (Const (@{const_name Predicate.eval}, _) $ f $ x) = (f, x)
 
 fun mk_map T1 T2 tf tp = Const (@{const_name Predicate.map},
-  (T1 --> T2) --> mk_monadT T1 --> mk_monadT T2) $ tf $ tp;
+  (T1 --> T2) --> mk_monadT T1 --> mk_monadT T2) $ tf $ tp
 
-val compfuns = Predicate_Compile_Aux.CompilationFuns
+val compfuns =
+  Predicate_Compile_Aux.CompilationFuns
     {mk_monadT = mk_monadT, dest_monadT = dest_monadT, mk_empty = mk_empty,
     mk_single = mk_single, mk_bind = mk_bind, mk_plus = mk_plus, mk_if = mk_if,
-    mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map};
+    mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map}
 
-end;
+end
 
-structure CPS_Comp_Funs =
+
+structure CPS_Comp_Funs =  (* FIXME proper signature *)
 struct
 
-fun mk_monadT T = (T --> @{typ "Code_Evaluation.term list option"}) --> @{typ "Code_Evaluation.term list option"}
+fun mk_monadT T =
+  (T --> @{typ "Code_Evaluation.term list option"}) --> @{typ "Code_Evaluation.term list option"}
 
-fun dest_monadT (Type ("fun", [Type ("fun", [T, @{typ "term list option"}]), @{typ "term list option"}])) = T
+fun dest_monadT
+      (Type ("fun", [Type ("fun", [T, @{typ "term list option"}]), @{typ "term list option"}])) = T
   | dest_monadT T = raise TYPE ("dest_monadT", [T], []);
 
-fun mk_empty T = Const (@{const_name Quickcheck_Exhaustive.cps_empty}, mk_monadT T);
+fun mk_empty T = Const (@{const_name Quickcheck_Exhaustive.cps_empty}, mk_monadT T)
 
 fun mk_single t =
   let val T = fastype_of t
-  in Const(@{const_name Quickcheck_Exhaustive.cps_single}, T --> mk_monadT T) $ t end;
+  in Const(@{const_name Quickcheck_Exhaustive.cps_single}, T --> mk_monadT T) $ t end
 
 fun mk_bind (x, f) =
   let val T as Type ("fun", [_, U]) = fastype_of f
   in
     Const (@{const_name Quickcheck_Exhaustive.cps_bind}, fastype_of x --> T --> U) $ x $ f
-  end;
+  end
 
-val mk_plus = HOLogic.mk_binop @{const_name Quickcheck_Exhaustive.cps_plus};
+val mk_plus = HOLogic.mk_binop @{const_name Quickcheck_Exhaustive.cps_plus}
 
 fun mk_if cond = Const (@{const_name Quickcheck_Exhaustive.cps_if},
-  HOLogic.boolT --> mk_monadT HOLogic.unitT) $ cond;
+  HOLogic.boolT --> mk_monadT HOLogic.unitT) $ cond
 
 fun mk_iterate_upto _ _ = error "not implemented yet"
 
@@ -104,14 +108,16 @@ fun dest_Eval _ = error "not implemented"
 
 fun mk_map _ _ _ _ = error "not implemented"
 
-val compfuns = Predicate_Compile_Aux.CompilationFuns
+val compfuns =
+  Predicate_Compile_Aux.CompilationFuns
     {mk_monadT = mk_monadT, dest_monadT = dest_monadT, mk_empty = mk_empty,
     mk_single = mk_single, mk_bind = mk_bind, mk_plus = mk_plus, mk_if = mk_if,
     mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map};
 
-end;
+end
 
-structure Pos_Bounded_CPS_Comp_Funs =
+
+structure Pos_Bounded_CPS_Comp_Funs =  (* FIXME proper signature *)
 struct
 
 val resultT = @{typ "(bool * Code_Evaluation.term list) option"}
@@ -119,13 +125,13 @@ fun mk_monadT T = (T --> resultT) --> @{typ "natural"} --> resultT
 
 fun dest_monadT (Type ("fun", [Type ("fun", [T, @{typ "(bool * term list) option"}]),
   @{typ "natural => (bool * term list) option"}])) = T
-  | dest_monadT T = raise TYPE ("dest_monadT", [T], []);
+  | dest_monadT T = raise TYPE ("dest_monadT", [T], [])
 
-fun mk_empty T = Const (@{const_name Quickcheck_Exhaustive.pos_bound_cps_empty}, mk_monadT T);
+fun mk_empty T = Const (@{const_name Quickcheck_Exhaustive.pos_bound_cps_empty}, mk_monadT T)
 
 fun mk_single t =
   let val T = fastype_of t
-  in Const(@{const_name Quickcheck_Exhaustive.pos_bound_cps_single}, T --> mk_monadT T) $ t end;
+  in Const(@{const_name Quickcheck_Exhaustive.pos_bound_cps_single}, T --> mk_monadT T) $ t end
 
 fun mk_bind (x, f) =
   let val T as Type ("fun", [_, U]) = fastype_of f
@@ -133,10 +139,11 @@ fun mk_bind (x, f) =
     Const (@{const_name Quickcheck_Exhaustive.pos_bound_cps_bind}, fastype_of x --> T --> U) $ x $ f
   end;
 
-val mk_plus = HOLogic.mk_binop @{const_name Quickcheck_Exhaustive.pos_bound_cps_plus};
+val mk_plus = HOLogic.mk_binop @{const_name Quickcheck_Exhaustive.pos_bound_cps_plus}
 
-fun mk_if cond = Const (@{const_name Quickcheck_Exhaustive.pos_bound_cps_if},
-  HOLogic.boolT --> mk_monadT HOLogic.unitT) $ cond;
+fun mk_if cond =
+  Const (@{const_name Quickcheck_Exhaustive.pos_bound_cps_if},
+    HOLogic.boolT --> mk_monadT HOLogic.unitT) $ cond
 
 fun mk_iterate_upto _ _ = error "not implemented yet"
 
@@ -156,14 +163,16 @@ fun dest_Eval _ = error "not implemented"
 
 fun mk_map _ _ _ _ = error "not implemented"
 
-val compfuns = Predicate_Compile_Aux.CompilationFuns
+val compfuns =
+  Predicate_Compile_Aux.CompilationFuns
     {mk_monadT = mk_monadT, dest_monadT = dest_monadT, mk_empty = mk_empty,
     mk_single = mk_single, mk_bind = mk_bind, mk_plus = mk_plus, mk_if = mk_if,
     mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map};
 
-end;
+end
 
-structure Neg_Bounded_CPS_Comp_Funs =
+
+structure Neg_Bounded_CPS_Comp_Funs =  (* FIXME proper signature *)
 struct
 
 fun mk_monadT T =
@@ -171,16 +180,17 @@ fun mk_monadT T =
     --> @{typ "Code_Evaluation.term list Quickcheck_Exhaustive.three_valued"})
     --> @{typ "natural => Code_Evaluation.term list Quickcheck_Exhaustive.three_valued"}
 
-fun dest_monadT (Type ("fun", [Type ("fun", [Type (@{type_name "Quickcheck_Exhaustive.unknown"}, [T]),
-    @{typ "term list Quickcheck_Exhaustive.three_valued"}]),
-    @{typ "natural => term list Quickcheck_Exhaustive.three_valued"}])) = T
+fun dest_monadT
+    (Type ("fun", [Type ("fun", [Type (@{type_name "Quickcheck_Exhaustive.unknown"}, [T]),
+      @{typ "term list Quickcheck_Exhaustive.three_valued"}]),
+      @{typ "natural => term list Quickcheck_Exhaustive.three_valued"}])) = T
   | dest_monadT T = raise TYPE ("dest_monadT", [T], []);
 
-fun mk_empty T = Const (@{const_name Quickcheck_Exhaustive.neg_bound_cps_empty}, mk_monadT T);
+fun mk_empty T = Const (@{const_name Quickcheck_Exhaustive.neg_bound_cps_empty}, mk_monadT T)
 
 fun mk_single t =
   let val T = fastype_of t
-  in Const(@{const_name Quickcheck_Exhaustive.neg_bound_cps_single}, T --> mk_monadT T) $ t end;
+  in Const(@{const_name Quickcheck_Exhaustive.neg_bound_cps_single}, T --> mk_monadT T) $ t end
 
 fun mk_bind (x, f) =
   let val T as Type ("fun", [_, U]) = fastype_of f
@@ -188,10 +198,10 @@ fun mk_bind (x, f) =
     Const (@{const_name Quickcheck_Exhaustive.neg_bound_cps_bind}, fastype_of x --> T --> U) $ x $ f
   end;
 
-val mk_plus = HOLogic.mk_binop @{const_name Quickcheck_Exhaustive.neg_bound_cps_plus};
+val mk_plus = HOLogic.mk_binop @{const_name Quickcheck_Exhaustive.neg_bound_cps_plus}
 
 fun mk_if cond = Const (@{const_name Quickcheck_Exhaustive.neg_bound_cps_if},
-  HOLogic.boolT --> mk_monadT HOLogic.unitT) $ cond;
+  HOLogic.boolT --> mk_monadT HOLogic.unitT) $ cond
 
 fun mk_iterate_upto _ _ = error "not implemented"
 
@@ -210,7 +220,8 @@ fun dest_Eval _ = error "not implemented"
 
 fun mk_map _ _ _ _  = error "not implemented"
 
-val compfuns = Predicate_Compile_Aux.CompilationFuns
+val compfuns =
+  Predicate_Compile_Aux.CompilationFuns
     {mk_monadT = mk_monadT, dest_monadT = dest_monadT, mk_empty = mk_empty,
     mk_single = mk_single, mk_bind = mk_bind, mk_plus = mk_plus, mk_if = mk_if,
     mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map};
@@ -218,7 +229,7 @@ val compfuns = Predicate_Compile_Aux.CompilationFuns
 end;
 
 
-structure RandomPredCompFuns =
+structure RandomPredCompFuns =  (* FIXME proper signature *)
 struct
 
 fun mk_randompredT T =
@@ -226,7 +237,7 @@ fun mk_randompredT T =
 
 fun dest_randompredT (Type ("fun", [@{typ Random.seed}, Type (@{type_name Product_Type.prod},
   [Type (@{type_name Predicate.pred}, [T]), @{typ Random.seed}])])) = T
-  | dest_randompredT T = raise TYPE ("dest_randompredT", [T], []);
+  | dest_randompredT T = raise TYPE ("dest_randompredT", [T], [])
 
 fun mk_empty T = Const(@{const_name Random_Pred.empty}, mk_randompredT T)
 
@@ -235,7 +246,7 @@ fun mk_single t =
     val T = fastype_of t
   in
     Const (@{const_name Random_Pred.single}, T --> mk_randompredT T) $ t
-  end;
+  end
 
 fun mk_bind (x, f) =
   let
@@ -262,14 +273,16 @@ fun mk_not t =
 fun mk_map T1 T2 tf tp = Const (@{const_name Random_Pred.map},
   (T1 --> T2) --> mk_randompredT T1 --> mk_randompredT T2) $ tf $ tp
 
-val compfuns = Predicate_Compile_Aux.CompilationFuns
+val compfuns =
+  Predicate_Compile_Aux.CompilationFuns
     {mk_monadT = mk_randompredT, dest_monadT = dest_randompredT,
     mk_empty = mk_empty, mk_single = mk_single, mk_bind = mk_bind, mk_plus = mk_plus, mk_if = mk_if,
     mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map};
 
-end;
+end
 
-structure DSequence_CompFuns =
+
+structure DSequence_CompFuns =  (* FIXME proper signature *)
 struct
 
 fun mk_dseqT T = Type ("fun", [@{typ natural}, Type ("fun", [@{typ bool},
@@ -304,48 +317,51 @@ fun mk_not t = let val T = mk_dseqT HOLogic.unitT
 fun mk_map T1 T2 tf tp = Const (@{const_name Limited_Sequence.map},
   (T1 --> T2) --> mk_dseqT T1 --> mk_dseqT T2) $ tf $ tp
 
-val compfuns = Predicate_Compile_Aux.CompilationFuns
+val compfuns =
+  Predicate_Compile_Aux.CompilationFuns
     {mk_monadT = mk_dseqT, dest_monadT = dest_dseqT,
     mk_empty = mk_empty, mk_single = mk_single, mk_bind = mk_bind, mk_plus = mk_plus, mk_if = mk_if,
     mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map}
 
 end;
 
-structure New_Pos_DSequence_CompFuns =
+
+structure New_Pos_DSequence_CompFuns =  (* FIXME proper signature *)
 struct
 
 fun mk_pos_dseqT T =
-    @{typ natural} --> Type (@{type_name Lazy_Sequence.lazy_sequence}, [T])
+  @{typ natural} --> Type (@{type_name Lazy_Sequence.lazy_sequence}, [T])
 
-fun dest_pos_dseqT (Type ("fun", [@{typ natural},
-    Type (@{type_name Lazy_Sequence.lazy_sequence}, [T])])) = T
-  | dest_pos_dseqT T = raise TYPE ("dest_pos_dseqT", [T], []);
+fun dest_pos_dseqT
+      (Type ("fun", [@{typ natural}, Type (@{type_name Lazy_Sequence.lazy_sequence}, [T])])) = T
+  | dest_pos_dseqT T = raise TYPE ("dest_pos_dseqT", [T], [])
 
-fun mk_empty T = Const (@{const_name Limited_Sequence.pos_empty}, mk_pos_dseqT T);
+fun mk_empty T = Const (@{const_name Limited_Sequence.pos_empty}, mk_pos_dseqT T)
 
 fun mk_single t =
   let
     val T = fastype_of t
-  in Const(@{const_name Limited_Sequence.pos_single}, T --> mk_pos_dseqT T) $ t end;
+  in Const(@{const_name Limited_Sequence.pos_single}, T --> mk_pos_dseqT T) $ t end
 
 fun mk_bind (x, f) =
   let
     val T as Type ("fun", [_, U]) = fastype_of f
   in
     Const (@{const_name Limited_Sequence.pos_bind}, fastype_of x --> T --> U) $ x $ f
-  end;
+  end
   
 fun mk_decr_bind (x, f) =
   let
     val T as Type ("fun", [_, U]) = fastype_of f
   in
     Const (@{const_name Limited_Sequence.pos_decr_bind}, fastype_of x --> T --> U) $ x $ f
-  end;
+  end
 
-val mk_plus = HOLogic.mk_binop @{const_name Limited_Sequence.pos_union};
+val mk_plus = HOLogic.mk_binop @{const_name Limited_Sequence.pos_union}
 
-fun mk_if cond = Const (@{const_name Limited_Sequence.pos_if_seq},
-  HOLogic.boolT --> mk_pos_dseqT HOLogic.unitT) $ cond;
+fun mk_if cond =
+  Const (@{const_name Limited_Sequence.pos_if_seq},
+    HOLogic.boolT --> mk_pos_dseqT HOLogic.unitT) $ cond
 
 fun mk_iterate_upto _ _ = raise Fail "No iterate_upto compilation"
 
@@ -357,56 +373,63 @@ fun mk_not t =
         [Type (@{type_name Option.option}, [@{typ unit}])])
   in Const (@{const_name Limited_Sequence.pos_not_seq}, nT --> pT) $ t end
 
-fun mk_map T1 T2 tf tp = Const (@{const_name Limited_Sequence.pos_map},
-  (T1 --> T2) --> mk_pos_dseqT T1 --> mk_pos_dseqT T2) $ tf $ tp
+fun mk_map T1 T2 tf tp =
+  Const (@{const_name Limited_Sequence.pos_map},
+    (T1 --> T2) --> mk_pos_dseqT T1 --> mk_pos_dseqT T2) $ tf $ tp
 
-val depth_limited_compfuns = Predicate_Compile_Aux.CompilationFuns
+val depth_limited_compfuns =
+  Predicate_Compile_Aux.CompilationFuns
     {mk_monadT = mk_pos_dseqT, dest_monadT = dest_pos_dseqT,
     mk_empty = mk_empty, mk_single = mk_single, mk_bind = mk_decr_bind, mk_plus = mk_plus, mk_if = mk_if,
     mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map}
 
-val depth_unlimited_compfuns = Predicate_Compile_Aux.CompilationFuns
+val depth_unlimited_compfuns =
+  Predicate_Compile_Aux.CompilationFuns
     {mk_monadT = mk_pos_dseqT, dest_monadT = dest_pos_dseqT,
     mk_empty = mk_empty, mk_single = mk_single, mk_bind = mk_bind, mk_plus = mk_plus, mk_if = mk_if,
     mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map}
 
-end;
+end
 
-structure New_Neg_DSequence_CompFuns =
+
+structure New_Neg_DSequence_CompFuns =  (* FIXME proper signature *)
 struct
 
 fun mk_neg_dseqT T = @{typ natural} -->
   Type (@{type_name Lazy_Sequence.lazy_sequence}, [Type (@{type_name Option.option}, [T])])
 
-fun dest_neg_dseqT (Type ("fun", [@{typ natural},
-    Type (@{type_name Lazy_Sequence.lazy_sequence}, [Type (@{type_name Option.option}, [T])])])) = T
-  | dest_neg_dseqT T = raise TYPE ("dest_neg_dseqT", [T], []);
+fun dest_neg_dseqT
+    (Type ("fun", [@{typ natural},
+      Type (@{type_name Lazy_Sequence.lazy_sequence}, [Type (@{type_name Option.option}, [T])])])) =
+      T
+  | dest_neg_dseqT T = raise TYPE ("dest_neg_dseqT", [T], [])
 
-fun mk_empty T = Const (@{const_name Limited_Sequence.neg_empty}, mk_neg_dseqT T);
+fun mk_empty T = Const (@{const_name Limited_Sequence.neg_empty}, mk_neg_dseqT T)
 
 fun mk_single t =
   let
     val T = fastype_of t
-  in Const(@{const_name Limited_Sequence.neg_single}, T --> mk_neg_dseqT T) $ t end;
+  in Const(@{const_name Limited_Sequence.neg_single}, T --> mk_neg_dseqT T) $ t end
 
 fun mk_bind (x, f) =
   let
     val T as Type ("fun", [_, U]) = fastype_of f
   in
     Const (@{const_name Limited_Sequence.neg_bind}, fastype_of x --> T --> U) $ x $ f
-  end;
+  end
   
 fun mk_decr_bind (x, f) =
   let
     val T as Type ("fun", [_, U]) = fastype_of f
   in
     Const (@{const_name Limited_Sequence.neg_decr_bind}, fastype_of x --> T --> U) $ x $ f
-  end;
+  end
 
-val mk_plus = HOLogic.mk_binop @{const_name Limited_Sequence.neg_union};
+val mk_plus = HOLogic.mk_binop @{const_name Limited_Sequence.neg_union}
 
-fun mk_if cond = Const (@{const_name Limited_Sequence.neg_if_seq},
-  HOLogic.boolT --> mk_neg_dseqT HOLogic.unitT) $ cond;
+fun mk_if cond =
+  Const (@{const_name Limited_Sequence.neg_if_seq},
+    HOLogic.boolT --> mk_neg_dseqT HOLogic.unitT) $ cond
 
 fun mk_iterate_upto _ _ = raise Fail "No iterate_upto compilation"
 
@@ -418,53 +441,58 @@ fun mk_not t =
         [@{typ unit}])
   in Const (@{const_name Limited_Sequence.neg_not_seq}, pT --> nT) $ t end
 
-fun mk_map T1 T2 tf tp = Const (@{const_name Limited_Sequence.neg_map},
-  (T1 --> T2) --> mk_neg_dseqT T1 --> mk_neg_dseqT T2) $ tf $ tp
+fun mk_map T1 T2 tf tp =
+  Const (@{const_name Limited_Sequence.neg_map},
+    (T1 --> T2) --> mk_neg_dseqT T1 --> mk_neg_dseqT T2) $ tf $ tp
 
-val depth_limited_compfuns = Predicate_Compile_Aux.CompilationFuns
+val depth_limited_compfuns =
+  Predicate_Compile_Aux.CompilationFuns
     {mk_monadT = mk_neg_dseqT, dest_monadT = dest_neg_dseqT,
     mk_empty = mk_empty, mk_single = mk_single, mk_bind = mk_decr_bind, mk_plus = mk_plus, mk_if = mk_if,
     mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map}
 
-val depth_unlimited_compfuns = Predicate_Compile_Aux.CompilationFuns
+val depth_unlimited_compfuns =
+  Predicate_Compile_Aux.CompilationFuns
     {mk_monadT = mk_neg_dseqT, dest_monadT = dest_neg_dseqT,
     mk_empty = mk_empty, mk_single = mk_single, mk_bind = mk_bind, mk_plus = mk_plus, mk_if = mk_if,
     mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map}
 
-end;
+end
 
-structure New_Pos_Random_Sequence_CompFuns =
+
+structure New_Pos_Random_Sequence_CompFuns =  (* FIXME proper signature *)
 struct
 
 fun mk_pos_random_dseqT T =
   @{typ natural} --> @{typ natural} --> @{typ Random.seed} -->
     @{typ natural} --> Type (@{type_name Lazy_Sequence.lazy_sequence}, [T])
 
-fun dest_pos_random_dseqT (Type ("fun", [@{typ natural}, Type ("fun", [@{typ natural},
-    Type ("fun", [@{typ Random.seed}, Type ("fun", [@{typ natural},
-    Type (@{type_name Lazy_Sequence.lazy_sequence}, [T])])])])])) = T
-  | dest_pos_random_dseqT T = raise TYPE ("dest_random_dseqT", [T], []);
+fun dest_pos_random_dseqT
+    (Type ("fun", [@{typ natural}, Type ("fun", [@{typ natural},
+      Type ("fun", [@{typ Random.seed}, Type ("fun", [@{typ natural},
+      Type (@{type_name Lazy_Sequence.lazy_sequence}, [T])])])])])) = T
+  | dest_pos_random_dseqT T = raise TYPE ("dest_random_dseqT", [T], [])
 
-fun mk_empty T = Const (@{const_name Random_Sequence.pos_empty}, mk_pos_random_dseqT T);
+fun mk_empty T = Const (@{const_name Random_Sequence.pos_empty}, mk_pos_random_dseqT T)
 
 fun mk_single t =
   let
     val T = fastype_of t
-  in Const(@{const_name Random_Sequence.pos_single}, T --> mk_pos_random_dseqT T) $ t end;
+  in Const(@{const_name Random_Sequence.pos_single}, T --> mk_pos_random_dseqT T) $ t end
 
 fun mk_bind (x, f) =
   let
     val T as Type ("fun", [_, U]) = fastype_of f
   in
     Const (@{const_name Random_Sequence.pos_bind}, fastype_of x --> T --> U) $ x $ f
-  end;
+  end
 
 fun mk_decr_bind (x, f) =
   let
     val T as Type ("fun", [_, U]) = fastype_of f
   in
     Const (@{const_name Random_Sequence.pos_decr_bind}, fastype_of x --> T --> U) $ x $ f
-  end;
+  end
 
 val mk_plus = HOLogic.mk_binop @{const_name Random_Sequence.pos_union};
 
@@ -486,59 +514,66 @@ fun mk_not t =
 
   in Const (@{const_name Random_Sequence.pos_not_random_dseq}, nT --> pT) $ t end
 
-fun mk_map T1 T2 tf tp = Const (@{const_name Random_Sequence.pos_map},
-  (T1 --> T2) --> mk_pos_random_dseqT T1 --> mk_pos_random_dseqT T2) $ tf $ tp
+fun mk_map T1 T2 tf tp =
+  Const (@{const_name Random_Sequence.pos_map},
+    (T1 --> T2) --> mk_pos_random_dseqT T1 --> mk_pos_random_dseqT T2) $ tf $ tp
 
-val depth_limited_compfuns = Predicate_Compile_Aux.CompilationFuns
+val depth_limited_compfuns =
+  Predicate_Compile_Aux.CompilationFuns
     {mk_monadT = mk_pos_random_dseqT, dest_monadT = dest_pos_random_dseqT,
     mk_empty = mk_empty, mk_single = mk_single, mk_bind = mk_decr_bind, mk_plus = mk_plus, mk_if = mk_if,
     mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map}
 
-val depth_unlimited_compfuns = Predicate_Compile_Aux.CompilationFuns
+val depth_unlimited_compfuns =
+  Predicate_Compile_Aux.CompilationFuns
     {mk_monadT = mk_pos_random_dseqT, dest_monadT = dest_pos_random_dseqT,
     mk_empty = mk_empty, mk_single = mk_single, mk_bind = mk_bind, mk_plus = mk_plus, mk_if = mk_if,
     mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map}
+
 end;
 
-structure New_Neg_Random_Sequence_CompFuns =
+
+structure New_Neg_Random_Sequence_CompFuns =  (* FIXME proper signature *)
 struct
 
 fun mk_neg_random_dseqT T =
-   @{typ natural} --> @{typ natural} --> @{typ Random.seed} -->
+  @{typ natural} --> @{typ natural} --> @{typ Random.seed} -->
     @{typ natural} --> 
     Type (@{type_name Lazy_Sequence.lazy_sequence}, [Type (@{type_name Option.option}, [T])])
 
-fun dest_neg_random_dseqT (Type ("fun", [@{typ natural}, Type ("fun", [@{typ natural},
-    Type ("fun", [@{typ Random.seed}, Type ("fun", [@{typ natural},
-      Type (@{type_name Lazy_Sequence.lazy_sequence},
-        [Type (@{type_name Option.option}, [T])])])])])])) = T
-  | dest_neg_random_dseqT T = raise TYPE ("dest_random_dseqT", [T], []);
+fun dest_neg_random_dseqT
+    (Type ("fun", [@{typ natural}, Type ("fun", [@{typ natural},
+      Type ("fun", [@{typ Random.seed}, Type ("fun", [@{typ natural},
+        Type (@{type_name Lazy_Sequence.lazy_sequence},
+          [Type (@{type_name Option.option}, [T])])])])])])) = T
+  | dest_neg_random_dseqT T = raise TYPE ("dest_random_dseqT", [T], [])
 
-fun mk_empty T = Const (@{const_name Random_Sequence.neg_empty}, mk_neg_random_dseqT T);
+fun mk_empty T = Const (@{const_name Random_Sequence.neg_empty}, mk_neg_random_dseqT T)
 
 fun mk_single t =
   let
     val T = fastype_of t
-  in Const(@{const_name Random_Sequence.neg_single}, T --> mk_neg_random_dseqT T) $ t end;
+  in Const(@{const_name Random_Sequence.neg_single}, T --> mk_neg_random_dseqT T) $ t end
 
 fun mk_bind (x, f) =
   let
     val T as Type ("fun", [_, U]) = fastype_of f
   in
     Const (@{const_name Random_Sequence.neg_bind}, fastype_of x --> T --> U) $ x $ f
-  end;
+  end
 
 fun mk_decr_bind (x, f) =
   let
     val T as Type ("fun", [_, U]) = fastype_of f
   in
     Const (@{const_name Random_Sequence.neg_decr_bind}, fastype_of x --> T --> U) $ x $ f
-  end;
+  end
 
-val mk_plus = HOLogic.mk_binop @{const_name Random_Sequence.neg_union};
+val mk_plus = HOLogic.mk_binop @{const_name Random_Sequence.neg_union}
 
-fun mk_if cond = Const (@{const_name Random_Sequence.neg_if_random_dseq},
-  HOLogic.boolT --> mk_neg_random_dseqT HOLogic.unitT) $ cond;
+fun mk_if cond =
+  Const (@{const_name Random_Sequence.neg_if_random_dseq},
+    HOLogic.boolT --> mk_neg_random_dseqT HOLogic.unitT) $ cond
 
 fun mk_iterate_upto T (f, from, to) =
   list_comb (Const (@{const_name Random_Sequence.neg_iterate_upto},
@@ -553,51 +588,58 @@ fun mk_not t =
     @{typ natural} --> Type (@{type_name Lazy_Sequence.lazy_sequence}, [@{typ unit}])
   in Const (@{const_name Random_Sequence.neg_not_random_dseq}, pT --> nT) $ t end
 
-fun mk_map T1 T2 tf tp = Const (@{const_name Random_Sequence.neg_map},
-  (T1 --> T2) --> mk_neg_random_dseqT T1 --> mk_neg_random_dseqT T2) $ tf $ tp
+fun mk_map T1 T2 tf tp =
+  Const (@{const_name Random_Sequence.neg_map},
+    (T1 --> T2) --> mk_neg_random_dseqT T1 --> mk_neg_random_dseqT T2) $ tf $ tp
 
-val depth_limited_compfuns = Predicate_Compile_Aux.CompilationFuns
+val depth_limited_compfuns =
+  Predicate_Compile_Aux.CompilationFuns
     {mk_monadT = mk_neg_random_dseqT, dest_monadT = dest_neg_random_dseqT,
     mk_empty = mk_empty, mk_single = mk_single, mk_bind = mk_decr_bind, mk_plus = mk_plus, mk_if = mk_if,
     mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map}
 
-val depth_unlimited_compfuns = Predicate_Compile_Aux.CompilationFuns
+val depth_unlimited_compfuns =
+  Predicate_Compile_Aux.CompilationFuns
     {mk_monadT = mk_neg_random_dseqT, dest_monadT = dest_neg_random_dseqT,
     mk_empty = mk_empty, mk_single = mk_single, mk_bind = mk_bind, mk_plus = mk_plus, mk_if = mk_if,
     mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map}
 
-end;
+end
 
-structure Random_Sequence_CompFuns =
+
+structure Random_Sequence_CompFuns =  (* FIXME proper signature *)
 struct
 
 fun mk_random_dseqT T =
   @{typ natural} --> @{typ natural} --> @{typ Random.seed} -->
     HOLogic.mk_prodT (DSequence_CompFuns.mk_dseqT T, @{typ Random.seed})
 
-fun dest_random_dseqT (Type ("fun", [@{typ natural}, Type ("fun", [@{typ natural},
-  Type ("fun", [@{typ Random.seed},
-  Type (@{type_name Product_Type.prod}, [T, @{typ Random.seed}])])])])) = DSequence_CompFuns.dest_dseqT T
-  | dest_random_dseqT T = raise TYPE ("dest_random_dseqT", [T], []);
+fun dest_random_dseqT
+    (Type ("fun", [@{typ natural}, Type ("fun", [@{typ natural},
+      Type ("fun", [@{typ Random.seed},
+      Type (@{type_name Product_Type.prod}, [T, @{typ Random.seed}])])])])) =
+      DSequence_CompFuns.dest_dseqT T
+  | dest_random_dseqT T = raise TYPE ("dest_random_dseqT", [T], [])
 
-fun mk_empty T = Const (@{const_name Random_Sequence.empty}, mk_random_dseqT T);
+fun mk_empty T = Const (@{const_name Random_Sequence.empty}, mk_random_dseqT T)
 
 fun mk_single t =
   let
     val T = fastype_of t
-  in Const(@{const_name Random_Sequence.single}, T --> mk_random_dseqT T) $ t end;
+  in Const(@{const_name Random_Sequence.single}, T --> mk_random_dseqT T) $ t end
 
 fun mk_bind (x, f) =
   let
     val T as Type ("fun", [_, U]) = fastype_of f
   in
     Const (@{const_name Random_Sequence.bind}, fastype_of x --> T --> U) $ x $ f
-  end;
+  end
 
-val mk_plus = HOLogic.mk_binop @{const_name Random_Sequence.union};
+val mk_plus = HOLogic.mk_binop @{const_name Random_Sequence.union}
 
-fun mk_if cond = Const (@{const_name Random_Sequence.if_random_dseq},
-  HOLogic.boolT --> mk_random_dseqT HOLogic.unitT) $ cond;
+fun mk_if cond =
+  Const (@{const_name Random_Sequence.if_random_dseq},
+    HOLogic.boolT --> mk_random_dseqT HOLogic.unitT) $ cond
 
 fun mk_iterate_upto _ _ = raise Fail "No iterate_upto compilation"
 
@@ -609,10 +651,11 @@ fun mk_not t =
 fun mk_map T1 T2 tf tp = Const (@{const_name Random_Sequence.map},
   (T1 --> T2) --> mk_random_dseqT T1 --> mk_random_dseqT T2) $ tf $ tp
 
-val compfuns = Predicate_Compile_Aux.CompilationFuns
+val compfuns =
+  Predicate_Compile_Aux.CompilationFuns
     {mk_monadT = mk_random_dseqT, dest_monadT = dest_random_dseqT,
     mk_empty = mk_empty, mk_single = mk_single, mk_bind = mk_bind, mk_plus = mk_plus, mk_if = mk_if,
     mk_iterate_upto = mk_iterate_upto, mk_not = mk_not, mk_map = mk_map}
 
-end;
+end
 

@@ -71,8 +71,10 @@ fun strip_mode_derivation deriv =
 fun mode_of (Context m) = m
   | mode_of (Term m) = m
   | mode_of (Mode_App (d1, d2)) =
-    (case mode_of d1 of Fun (m, m') =>
-        (if eq_mode (m, mode_of d2) then m' else raise Fail "mode_of: derivation has mismatching modes")
+      (case mode_of d1 of
+        Fun (m, m') =>
+          (if eq_mode (m, mode_of d2) then m'
+           else raise Fail "mode_of: derivation has mismatching modes")
       | _ => raise Fail "mode_of: derivation has a non-functional mode")
   | mode_of (Mode_Pair (d1, d2)) =
     Pair (mode_of d1, mode_of d2)
@@ -109,12 +111,12 @@ fun string_of_prem ctxt (Prem t) =
     (Syntax.string_of_term ctxt (HOLogic.mk_not t)) ^ "(negative premise)"
   | string_of_prem ctxt (Sidecond t) =
     (Syntax.string_of_term ctxt t) ^ "(sidecondition)"
-  | string_of_prem ctxt _ = raise Fail "string_of_prem: unexpected input"
+  | string_of_prem _ _ = raise Fail "string_of_prem: unexpected input"
 
 type mode_analysis_options =
   {use_generators : bool,
-  reorder_premises : bool,
-  infer_pos_and_neg_modes : bool}
+   reorder_premises : bool,
+   infer_pos_and_neg_modes : bool}
 
 (*** check if a type is an equality type (i.e. doesn't contain fun)
   FIXME this is only an approximation ***)
@@ -134,7 +136,7 @@ fun print_failed_mode options p (_, m) is =
 
 fun error_of p (_, m) is =
   "  Clauses " ^ commas (map (fn i => string_of_int (i + 1)) is) ^ " of " ^
-        p ^ " violates mode " ^ string_of_mode m
+  p ^ " violates mode " ^ string_of_mode m
 
 fun is_all_input mode =
   let
