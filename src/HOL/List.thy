@@ -14,6 +14,18 @@ datatype_new 'a list =
 
 datatype_new_compat list
 
+thm list.exhaust[no_vars]
+
+lemma [case_names Nil Cons, cases type: list]:
+  -- {* for backward compatibility -- names of variables differ *}
+  "(y = [] \<Longrightarrow> P) \<Longrightarrow> (\<And>a list. y = a # list \<Longrightarrow> P) \<Longrightarrow> P"
+by (rule list.exhaust)
+
+lemma [case_names Nil Cons, induct type: list]:
+  -- {* for backward compatibility -- names of variables differ *}
+  "P [] \<Longrightarrow> (\<And>a list. P list \<Longrightarrow> P (a # list)) \<Longrightarrow> P list"
+by (rule list.induct)
+
 -- {* Compatibility *}
 setup {* Sign.mandatory_path "list" *}
 

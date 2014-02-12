@@ -8,9 +8,21 @@ theory Option
 imports BNF_LFP Datatype Finite_Set
 begin
 
-datatype_new 'a option = =: None | Some (the: 'a)
+datatype_new 'a option =
+    =: None
+  | Some (the: 'a)
 
 datatype_new_compat option
+
+lemma [case_names None Some, cases type: option]:
+  -- {* for backward compatibility -- names of variables differ *}
+  "(y = None \<Longrightarrow> P) \<Longrightarrow> (\<And>option. y = Some option \<Longrightarrow> P) \<Longrightarrow> P"
+by (rule option.exhaust)
+
+lemma [case_names None Some, induct type: option]:
+  -- {* for backward compatibility -- names of variables differ *}
+  "P None \<Longrightarrow> (\<And>option. P (Some option)) \<Longrightarrow> P option"
+by (rule option.induct)
 
 -- {* Compatibility *}
 setup {* Sign.mandatory_path "option" *}
