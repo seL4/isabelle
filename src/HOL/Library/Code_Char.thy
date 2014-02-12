@@ -74,6 +74,16 @@ lemma [code]:
   "char_of_nat = char_of_integer o integer_of_nat"
   by (simp add: char_of_integer_def fun_eq_iff)
 
+lemmas integer_of_char_code [code] =
+  nat_of_char_simps[
+    THEN arg_cong[where f="integer_of_nat"],
+    unfolded integer_of_nat_numeral integer_of_nat_1 integer_of_nat_0,
+    folded fun_cong[OF integer_of_char_def, unfolded o_apply]]
+
+lemma char_of_integer_code [code]:
+  "char_of_integer n = enum_class.enum ! (nat_of_integer n mod 256)"
+by(simp add: char_of_integer_def char_of_nat_def)
+
 code_printing
   constant integer_of_char \<rightharpoonup>
     (SML) "!(IntInf.fromInt o Char.ord)"

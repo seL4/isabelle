@@ -230,6 +230,15 @@ instance integer :: semiring_numeral_div
     semiring_numeral_div_class.div_mult2_eq
     semiring_numeral_div_class.discrete)+
 
+lemma integer_of_nat_0: "integer_of_nat 0 = 0"
+by transfer simp
+
+lemma integer_of_nat_1: "integer_of_nat 1 = 1"
+by transfer simp
+
+lemma integer_of_nat_numeral:
+  "integer_of_nat (numeral n) = numeral n"
+by transfer simp
 
 subsection {* Code theorems for target language integers *}
 
