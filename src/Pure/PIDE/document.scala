@@ -614,13 +614,17 @@ object Document
           else version.nodes.thy_load_commands(node_name)
 
         def eq_content(other: Snapshot): Boolean =
+        {
+          def eq_commands(commands: (Command, Command)): Boolean =
+            state.command_state(version, commands._1) eq_content
+              other.state.command_state(other.version, commands._2)
+
           !is_outdated && !other.is_outdated &&
-            node.commands.size == other.node.commands.size &&
-            ((node.commands.iterator zip other.node.commands.iterator) forall {
-              case (cmd1, cmd2) =>
-                state.command_state(version, cmd1) eq_content
-                  other.state.command_state(other.version, cmd2)
-            })
+          node.commands.size == other.node.commands.size &&
+          (node.commands.iterator zip other.node.commands.iterator).forall(eq_commands) &&
+          thy_load_commands.length == other.thy_load_commands.length &&
+          (thy_load_commands zip other.thy_load_commands).forall(eq_commands)
+        }
 
         def cumulate_markup[A](range: Text.Range, info: A, elements: Option[Set[String]],
           result: Command.State => (A, Text.Markup) => Option[A]): List[Text.Info[A]] =

@@ -77,7 +77,7 @@ object Command
       command.source == other.command.source &&
       status == other.status &&
       results == other.results &&
-      markup == other.markup
+      markups == other.markups
 
     private def add_status(st: Markup): State = copy(status = st :: status)
 
