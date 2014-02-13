@@ -187,7 +187,7 @@ fun join_theory (Result {theory, exec_id, ...}) =
   in res :: map Exn.Exn (maps Task_Queue.group_status (Execution.peek exec_id)) end;
 
 datatype task =
-  Task of string list * (theory list -> result) |
+  Task of Path.T * string list * (theory list -> result) |
   Finished of theory;
 
 fun task_finished (Task _) = false
@@ -200,7 +200,7 @@ local
 val schedule_seq =
   String_Graph.schedule (fn deps => fn (_, task) =>
     (case task of
-      Task (parents, body) =>
+      Task (_, parents, body) =>
         let
           val result = body (task_parents deps parents);
           val _ = Par_Exn.release_all (join_theory result);
@@ -214,7 +214,7 @@ val schedule_futures = uninterruptible (fn _ => fn tasks =>
     val futures = tasks
       |> String_Graph.schedule (fn deps => fn (name, task) =>
         (case task of
-          Task (parents, body) =>
+          Task (_, parents, body) =>
             (singleton o Future.forks)
               {name = "theory:" ^ name, group = NONE,
                 deps = map (Future.task_of o #2) deps, pri = 0, interrupts = true}
@@ -318,9 +318,18 @@ and require_thy document last_timing initiators dir (str, require_pos) tasks =
   let
     val path = Path.expand (Path.explode str);
     val name = Path.implode (Path.base path);
+    val node_name = File.full_path dir (Thy_Load.thy_path path);
+    fun check_entry (Task (node_name', _, _)) =
+          if node_name = node_name' then ()
+          else
+            error (loader_msg "incoherent imports for theory" [name] ^
+              Position.here require_pos ^ ":\n" ^
+              Path.print node_name ^ " versus\n" ^
+              Path.print node_name')
+      | check_entry _ = ();
   in
     (case try (String_Graph.get_node tasks) name of
-      SOME task => (task_finished task, tasks)
+      SOME task => (check_entry task; (task_finished task, tasks))
     | NONE =>
         let
           val dir' = Path.append dir (Path.dir path);
@@ -348,7 +357,7 @@ and require_thy document last_timing initiators dir (str, require_pos) tasks =
                     val load =
                       load_thy document last_timing initiators update_time dep
                         text (name, theory_pos) keywords;
-                  in Task (parents, load) end);
+                  in Task (node_name, parents, load) end);
 
           val tasks'' = new_entry name parents task tasks';
         in (all_current, tasks'') end)
