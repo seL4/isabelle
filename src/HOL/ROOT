@@ -917,19 +917,19 @@ session "HOL-Predicate_Compile_Examples" in Predicate_Compile_Examples = HOL +
     (* FIXME
     Predicate_Compile_Quickcheck_Examples  -- should be added again soon (since 21-Oct-2010) *)
     Specialisation_Examples
-    (* FIXME since 21-Jul-2011
-    Hotel_Example_Small_Generator
     IMP_1
     IMP_2
+    (* FIXME since 21-Jul-2011
+    Hotel_Example_Small_Generator
     IMP_3
     IMP_4 *)
-  theories [condition = "ISABELLE_SWIPL"]  (* FIXME: *or* ISABELLE_YAP (??) *)
+  theories [condition = "ISABELLE_SWIPL"]
     Code_Prolog_Examples
     Context_Free_Grammar_Example
     Hotel_Example_Prolog
     Lambda_Example
     List_Examples
-  theories [condition = "ISABELLE_SWIPL", quick_and_dirty]  (* FIXME: *or* ISABELLE_YAP (??) *)
+  theories [condition = "ISABELLE_SWIPL", quick_and_dirty]
     Reg_Exp_Example
 
 session HOLCF (main) in HOLCF = HOL +
