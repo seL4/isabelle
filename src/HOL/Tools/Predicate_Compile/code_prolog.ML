@@ -241,7 +241,7 @@ fun translate_const constant_table c =
 fun inv_lookup _ [] _ = NONE
   | inv_lookup eq ((key, value)::xs) value' =
       if eq (value', value) then SOME key
-      else inv_lookup eq xs value';
+      else inv_lookup eq xs value'
 
 fun restore_const constant_table c =
   (case inv_lookup (op =) constant_table c of
@@ -562,7 +562,7 @@ fun mk_ground_impl ctxt limited_types (T as Type (Tcon, Targs)) (seen, constant_
         in
           (clause :: flat rec_clauses, (seen', constant_table''))
         end
-      val constrs = Function_Lib.inst_constrs_of (Proof_Context.theory_of ctxt) T
+      val constrs = Function_Lib.inst_constrs_of ctxt T
       val constrs' = (constrs ~~ map (is_recursive_constr T) constrs)
         |> (fn cs => filter_out snd cs @ filter snd cs)
       val (clauses, constant_table') =
@@ -654,7 +654,7 @@ fun replace ((from, to), location) p =
 
 fun reorder_manually reorder p =
   let
-    fun reorder' (clause as ((rel, args), prem)) seen =
+    fun reorder' ((rel, args), prem) seen =
       let
         val seen' = AList.map_default (op =) (rel, 0) (fn x => x + 1) seen
         val i = the (AList.lookup (op =) seen' rel)
@@ -692,7 +692,7 @@ val rename_vars_program = map rename_vars_clause
 
 (* limit computation globally by some threshold *)
 
-fun limit_globally ctxt limit const_name (p, constant_table) =
+fun limit_globally limit const_name (p, constant_table) =
   let
     val rel_names = fold (fn ((r, _), _) => insert (op =) r) p []
     val p' = map (mk_depth_limited rel_names) p
@@ -712,7 +712,7 @@ fun limit_globally ctxt limit const_name (p, constant_table) =
 fun post_process ctxt options const_name (p, constant_table) =
   (p, constant_table)
   |> (case #limit_globally options of
-        SOME limit => limit_globally ctxt limit const_name
+        SOME limit => limit_globally limit const_name
       | NONE => I)
   |> (if #ensure_groundness options then
         add_ground_predicates ctxt (#limited_types options)
@@ -1039,7 +1039,7 @@ fun values_cmd print_modes soln raw_t state =
     Print_Mode.with_modes print_modes (fn () =>
       Pretty.block [Pretty.quote (Syntax.pretty_term ctxt' t'), Pretty.fbrk,
         Pretty.str "::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ ctxt' ty')]) ()
-  end |> Pretty.writeln p
+  end |> Pretty.writeln
 
 
 (* renewing the values command for Prolog queries *)
