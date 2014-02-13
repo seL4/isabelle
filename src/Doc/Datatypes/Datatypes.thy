@@ -476,10 +476,13 @@ text {*
 \medskip
 
 \noindent
+The @{command datatype_new} command introduces a set of mutually recursive
+datatypes specified by their constructors.
+
 The syntactic entity \synt{target} can be used to specify a local
 context---e.g., @{text "(in linorder)"}. It is documented in the Isar reference
 manual \cite{isabelle-isar-ref}.
-%
+
 The optional target is potentially followed by datatype-specific options:
 
 \begin{itemize}
@@ -1367,6 +1370,21 @@ text {*
   ;
   @{syntax_def pr_equation}: thmdecl? prop
 \<close>}
+
+\medskip
+
+\noindent
+The @{command primrec_new} command introduces a set of mutually recursive
+functions over a datatype.
+
+The syntactic entity \synt{target} can be used to specify a local context,
+\synt{fixes} is a list of names with optional type signatures, \synt{thmdecl}
+is an optional name for the formula that follows, and \synt{prop} is a HOL
+proposition. They are is documented in the Isar reference manual
+\cite{isabelle-isar-ref}.
+
+%%% TODO: elaborate on format of the equations
+%%% TODO: elaborate on mutual and nested-to-mutual
 *}
 
 
@@ -2251,8 +2269,7 @@ text {*
 
 @{rail \<open>
   (@@{command primcorec} | @@{command primcorecursive}) target? \<newline>
-    @{syntax pcr_option}? fixes @'where'
-    (@{syntax pcr_formula} + '|')
+    @{syntax pcr_option}? fixes @'where' (@{syntax pcr_formula} + '|')
   ;
   @{syntax_def pcr_option}: '(' ('sequential' | 'exhaustive') ')'
   ;
@@ -2262,6 +2279,15 @@ text {*
 \medskip
 
 \noindent
+The @{command primcorec} command introduces a set of mutually corecursive
+functions over a codatatype.
+
+The syntactic entity \synt{target} can be used to specify a local context,
+\synt{fixes} is a list of names with optional type signatures, \synt{thmdecl}
+is an optional name for the formula that follows, and \synt{prop} is a HOL
+proposition. They are is documented in the Isar reference manual
+\cite{isabelle-isar-ref}.
+
 The optional target is potentially followed by a corecursion-specific option:
 
 \begin{itemize}
@@ -2280,6 +2306,9 @@ expressed using the constructor or destructor view cover all possible cases.
 \noindent
 The @{command primcorec} command is an abbreviation for @{command primcorecursive} with
 @{text "by auto?"} to discharge any emerging proof obligations.
+
+%%% TODO: elaborate on format of the propositions
+%%% TODO: elaborate on mutual and nested-to-mutual
 *}
 
 
@@ -2479,6 +2508,18 @@ text {*
     'map:' term ('sets:' (term +))? 'bd:' term \<newline>
     ('wits:' (term +))? ('rel:' term)?
 \<close>}
+
+\medskip
+
+\noindent
+The @{command bnf} command registers an existing type as a bounded natural
+functor (BNF). The type must be equipped with an appropriate map function
+(functorial action). In addition, custom set functions, relators, and
+nonemptiness witnesses can be specified; otherwise, default versions are used.
+
+The syntactic entity \synt{target} can be used to specify a local
+context---e.g., @{text "(in linorder)"}. It is documented in the Isar
+reference manual \cite{isabelle-isar-ref}.
 *}
 
 
@@ -2508,12 +2549,17 @@ text {*
 \noindent
 The @{command bnf_decl} command declares a new type and associated constants
 (map, set, relator, and cardinal bound) and asserts the BNF properties for
-these constants as axioms. Type arguments are live by default; they can be
-marked as dead by entering ``-'' (hyphen) instead of an identifier for the
-corresponding set function. Witnesses can be specified by their types.
-Otherwise, the syntax of @{command bnf_decl} is
-identical to the left-hand side of a @{command datatype_new} or @{command
-codatatype} definition.
+these constants as axioms.
+
+The syntactic entity \synt{target} can be used to specify a local
+context---e.g., @{text "(in linorder)"}. It is documented in the Isar reference
+manual \cite{isabelle-isar-ref}.
+
+Type arguments are live by default; they can be marked as dead by entering
+``-'' (hyphen) instead of an identifier for the corresponding set function.
+Witnesses can be specified by their types. Otherwise, the syntax of
+@{command bnf_decl} is identical to the left-hand side of a
+@{command datatype_new} or @{command codatatype} definition.
 
 The command is useful to reason abstractly about BNFs. The axioms are safe
 because there exists BNFs of arbitrary large arities. Applications must import
@@ -2589,9 +2635,18 @@ text {*
 
 \medskip
 
+\noindent
+The @{command free_constructors} command generates destructor constants for
+freely constructed types as well as properties about constructors and
+destructors. It also registers the constants and theorems in a data structure
+that is queried by various tools (e.g., \keyw{function}).
+
+The syntactic entity \synt{target} can be used to specify a local
+context---e.g., @{text "(in linorder)"}. It is documented in the Isar reference
+manual \cite{isabelle-isar-ref}.
+
 % options: no_discs_sels no_code
 
-\noindent
 Section~\ref{ssec:datatype-generated-theorems} lists the generated theorems.
 For technical reasons, the @{text "[fundef_cong]"} attribute is not set on the
 generated @{text case_cong} theorem. It can be added manually using
