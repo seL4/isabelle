@@ -675,9 +675,6 @@ fun rename_vars_term renaming = map_vars (fn v => the (AList.lookup (op =) renam
 
 fun rename_vars_prem renaming = map_term_prem (rename_vars_term renaming)
 
-fun is_prolog_conform v =
-  forall (fn s => Symbol.is_ascii_letter s orelse Symbol.is_ascii_digit s) (Symbol.explode v)
-
 fun mk_renaming v renaming =
   (v, mk_conform first_upper "Var" (map snd renaming) v) :: renaming
 
@@ -844,19 +841,9 @@ val scan_var =
   Scan.many1
     (fn s => Symbol.is_ascii_upper s orelse Symbol.is_ascii_digit s orelse Symbol.is_ascii_quasi s)
 
-val scan_ident =
-  Scan.repeat (Scan.one
-    (fn s => Symbol.is_ascii_letter s orelse Symbol.is_ascii_digit s orelse Symbol.is_ascii_quasi s))
-
 fun dest_Char (Symbol.Char s) = s
 
 val string_of = implode o map (dest_Char o Symbol.decode)
-
-val is_atom_ident = forall Symbol.is_ascii_lower
-
-val is_var_ident =
-  forall (fn s =>
-    Symbol.is_ascii_upper s orelse Symbol.is_ascii_digit s orelse Symbol.is_ascii_quasi s)
 
 fun int_of_symbol_list xs = fold (fn x => fn s => s * 10 + (ord x - ord "0")) xs 0
 
