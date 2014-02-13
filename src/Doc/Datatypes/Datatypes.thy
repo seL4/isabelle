@@ -2356,31 +2356,24 @@ set function, and relator.
     typedef ('d, 'a) fn = "UNIV \<Colon> ('d \<Rightarrow> 'a) set"
     by simp
 
-text {* \blankline *}
+    text {* \blankline *}
 
-    lemmas Abs_Rep_thms[simp] =
-      Abs_fn_inverse[OF UNIV_I] Rep_fn_inverse
-
-text {* \blankline *}
-
-    definition map_fn :: "('a \<Rightarrow> 'b) \<Rightarrow> ('d, 'a) fn \<Rightarrow> ('d, 'b) fn" where
-      "map_fn f F = Abs_fn (\<lambda>x. f (Rep_fn F x))"
+    setup_lifting type_definition_fn
 
 text {* \blankline *}
 
-    definition set_fn :: "('d, 'a) fn \<Rightarrow> 'a set" where
-      "set_fn F = range (Rep_fn F)"
+    lift_definition map_fn :: "('a \<Rightarrow> 'b) \<Rightarrow> ('d, 'a) fn \<Rightarrow> ('d, 'b) fn" is "op \<circ>" .
 
 text {* \blankline *}
 
-    definition
+    lift_definition set_fn :: "('d, 'a) fn \<Rightarrow> 'a set" is range .
+
+text {* \blankline *}
+
+    lift_definition
       rel_fn :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('d, 'a) fn \<Rightarrow> ('d, 'b) fn \<Rightarrow> bool"
-    where
-      "rel_fn R F G = fun_rel (op =) R (Rep_fn F) (Rep_fn G)"
-
-text {* \blankline *}
-
-    axiomatization where cheat: "P"
+    is
+      "fun_rel (op =)" .
 
 text {* \blankline *}
 
@@ -2391,18 +2384,18 @@ text {* \blankline *}
       rel: rel_fn
     proof -
       show "map_fn id = id"
-        by (auto simp add: map_fn_def[abs_def] id_comp)
+        by transfer auto
     next
       fix F G show "map_fn (G \<circ> F) = map_fn G \<circ> map_fn F"
-        by (simp add: map_fn_def[abs_def] comp_def[abs_def])
+        by transfer (auto simp add: comp_def)
     next
       fix F f g
       assume "\<And>x. x \<in> set_fn F \<Longrightarrow> f x = g x"
       thus "map_fn f F = map_fn g F"
-        by (auto simp add: map_fn_def set_fn_def)
+        by transfer auto
     next
       fix f show "set_fn \<circ> map_fn f = op ` f \<circ> set_fn"
-        by (auto simp add: set_fn_def map_fn_def comp_def)
+        by transfer (auto simp add: comp_def)
     next
       show "card_order (natLeq +c |UNIV \<Colon> 'd set| )"
         apply (rule card_order_csum)
@@ -2416,22 +2409,23 @@ text {* \blankline *}
     next
       fix F :: "('d, 'a) fn"
       have "|set_fn F| \<le>o |UNIV \<Colon> 'd set|" (is "_ \<le>o ?U")
-        unfolding set_fn_def by (rule card_of_image)
+        by transfer (rule card_of_image)
       also have "?U \<le>o natLeq +c ?U"
         by (rule ordLeq_csum2) (rule card_of_Card_order)
       finally show "|set_fn F| \<le>o natLeq +c |UNIV \<Colon> 'd set|" .
     next
       fix R S
       show "rel_fn R OO rel_fn S \<le> rel_fn (R OO S)"
-        by (auto simp add: rel_fn_def[abs_def] fun_rel_def)
+        by (rule, transfer) (auto simp add: fun_rel_def)
     next
       fix R
       show "rel_fn R =
             (BNF_Util.Grp {x. set_fn x \<subseteq> Collect (split R)} (map_fn fst))\<inverse>\<inverse> OO
              BNF_Util.Grp {x. set_fn x \<subseteq> Collect (split R)} (map_fn snd)"
-        unfolding set_fn_def rel_fn_def[abs_def] fun_rel_def Grp_def
-          fun_eq_iff relcompp.simps conversep.simps subset_iff image_iff
-        by (rule cheat)
+        unfolding Grp_def fun_eq_iff relcompp.simps conversep.simps
+        apply transfer
+        unfolding fun_rel_def subset_iff image_iff
+        by auto (force, metis pair_collapse)
     qed
 
 text {* \blankline *}
