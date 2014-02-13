@@ -18,11 +18,11 @@ sig
   type isar_preplay_data
 
   val enrich_context_with_local_facts : isar_proof -> Proof.context -> Proof.context
-  val preplay_isar_step_for_method : Proof.context -> Time.time -> proof_method -> isar_step ->
-    play_outcome
-  val preplay_isar_step : Proof.context -> Time.time -> proof_method list -> isar_step ->
+  val preplay_isar_step_for_method : Proof.context -> bool -> Time.time -> proof_method ->
+    isar_step -> play_outcome
+  val preplay_isar_step : Proof.context -> bool -> Time.time -> proof_method list -> isar_step ->
     (proof_method * play_outcome) list
-  val set_preplay_outcomes_of_isar_step : Proof.context -> Time.time ->
+  val set_preplay_outcomes_of_isar_step : Proof.context -> bool -> Time.time ->
     isar_preplay_data Unsynchronized.ref -> isar_step -> (proof_method * play_outcome) list -> unit
   val forced_intermediate_preplay_outcome_of_isar_step : isar_preplay_data -> label -> play_outcome
   val preplay_outcome_of_isar_step_for_method : isar_preplay_data -> label -> proof_method ->
@@ -101,7 +101,8 @@ fun thm_of_proof ctxt (Proof (fixed_frees, assms, steps)) =
   end
 
 (* may throw exceptions *)
-fun raw_preplay_step_for_method ctxt timeout meth (Prove (_, xs, _, t, subproofs, facts, _, _)) =
+fun raw_preplay_step_for_method ctxt debug timeout meth
+    (Prove (_, xs, _, t, subproofs, facts, _, _)) =
   let
     val goal =
       (case xs of
@@ -128,7 +129,7 @@ fun raw_preplay_step_for_method ctxt timeout meth (Prove (_, xs, _, t, subproofs
 
     fun prove () =
       Goal.prove ctxt [] [] goal (fn {context = ctxt, ...} =>
-        HEADGOAL (tac_of_proof_method ctxt assmsp meth))
+        HEADGOAL (tac_of_proof_method ctxt debug assmsp meth))
       handle ERROR msg => error ("Preplay error: " ^ msg)
 
     val play_outcome = take_time timeout prove ()
@@ -137,13 +138,13 @@ fun raw_preplay_step_for_method ctxt timeout meth (Prove (_, xs, _, t, subproofs
     play_outcome
   end
 
-fun preplay_isar_step_for_method ctxt timeout meth =
-  try (raw_preplay_step_for_method ctxt timeout meth) #> the_default Play_Failed
+fun preplay_isar_step_for_method ctxt debug timeout meth =
+  try (raw_preplay_step_for_method ctxt debug timeout meth) #> the_default Play_Failed
 
-fun preplay_isar_step ctxt timeout hopeless step =
+fun preplay_isar_step ctxt debug timeout hopeless step =
   let
     fun try_method meth =
-      (case preplay_isar_step_for_method ctxt timeout meth step of
+      (case preplay_isar_step_for_method ctxt debug timeout meth step of
         outcome as Played _ => SOME (meth, outcome)
       | _ => NONE)
 
@@ -163,11 +164,11 @@ fun add_preplay_outcomes Play_Failed _ = Play_Failed
   | add_preplay_outcomes play1 play2 =
     Play_Timed_Out (Time.+ (pairself time_of_play (play1, play2)))
 
-fun set_preplay_outcomes_of_isar_step ctxt timeout preplay_data
+fun set_preplay_outcomes_of_isar_step ctxt debug timeout preplay_data
       (step as Prove (_, _, l, _, _, _, meths, _)) meths_outcomes0 =
     let
       fun lazy_preplay meth =
-        Lazy.lazy (fn () => preplay_isar_step_for_method ctxt timeout meth step)
+        Lazy.lazy (fn () => preplay_isar_step_for_method ctxt debug timeout meth step)
       val meths_outcomes = meths_outcomes0
         |> map (apsnd Lazy.value)
         |> fold (fn meth => AList.default (op =) (meth, lazy_preplay meth)) meths
@@ -175,7 +176,7 @@ fun set_preplay_outcomes_of_isar_step ctxt timeout preplay_data
       preplay_data := Canonical_Label_Tab.update (l, fold (AList.update (op =)) meths_outcomes [])
         (!preplay_data)
     end
-  | set_preplay_outcomes_of_isar_step _ _ _ _ _ = ()
+  | set_preplay_outcomes_of_isar_step _ _ _ _ _ _ = ()
 
 fun peek_at_outcome outcome = if Lazy.is_finished outcome then Lazy.force outcome else Not_Played
 

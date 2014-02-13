@@ -34,11 +34,11 @@ sig
     (proof_method * play_outcome) * string * (string * stature) list * minimize_command * int * int
 
   val string_of_proof_method : proof_method -> string
-  val tac_of_proof_method : Proof.context -> thm list * thm list -> proof_method -> int -> tactic
+  val tac_of_proof_method : Proof.context -> bool -> thm list * thm list -> proof_method -> int ->
+    tactic
   val string_of_play_outcome : play_outcome -> string
   val play_outcome_ord : play_outcome * play_outcome -> order
   val one_line_proof_text : int -> one_line_params -> string
-  val silence_proof_methods : bool -> Proof.context -> Proof.context
 end;
 
 structure Sledgehammer_Proof_Methods : SLEDGEHAMMER_PROOF_METHODS =
@@ -89,27 +89,36 @@ fun string_of_proof_method meth =
   | Presburger_Method => "presburger"
   | Algebra_Method => "algebra")
 
-fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
-  Method.insert_tac local_facts THEN'
-  (case meth of
-    Metis_Method (type_enc_opt, lam_trans_opt) =>
-    Metis_Tactic.metis_tac [type_enc_opt |> the_default (hd partial_type_encs)]
-      (lam_trans_opt |> the_default default_metis_lam_trans) ctxt global_facts
-  | Meson_Method => Meson.meson_tac ctxt global_facts
-  | SMT_Method => SMT_Solver.smt_tac ctxt global_facts
-  | _ =>
-    Method.insert_tac global_facts THEN'
+(* Makes proof methods as silent as possible. The "set_visible" calls suppresses "Unification bound
+   exceeded" warnings and the like. *)
+fun silence_proof_methods debug =
+  Try0.silence_methods debug
+  #> Config.put SMT_Config.verbose debug
+
+fun tac_of_proof_method ctxt0 debug (local_facts, global_facts) meth =
+  let val ctxt = silence_proof_methods debug ctxt0 in
+    Method.insert_tac local_facts THEN'
     (case meth of
-      Blast_Method => blast_tac ctxt
-    | Simp_Method => Simplifier.asm_full_simp_tac ctxt
-    | Simp_Size_Method =>
-      Simplifier.asm_full_simp_tac (Simplifier.add_simp @{thm size_ne_size_imp_ne} ctxt)
-    | Auto_Method => K (Clasimp.auto_tac ctxt)
-    | Fastforce_Method => Clasimp.fast_force_tac ctxt
-    | Force_Method => Clasimp.force_tac ctxt
-    | Linarith_Method => Lin_Arith.tac ctxt
-    | Presburger_Method => Cooper.tac true [] [] ctxt
-    | Algebra_Method => Groebner.algebra_tac [] [] ctxt))
+      Metis_Method (type_enc_opt, lam_trans_opt) =>
+      Metis_Tactic.metis_tac [type_enc_opt |> the_default (hd partial_type_encs)]
+        (lam_trans_opt |> the_default default_metis_lam_trans) ctxt global_facts
+    | Meson_Method => Meson.meson_tac ctxt global_facts
+
+    | SMT_Method => SMT_Solver.smt_tac ctxt global_facts
+    | _ =>
+      Method.insert_tac global_facts THEN'
+      (case meth of
+        Blast_Method => blast_tac ctxt
+      | Simp_Method => Simplifier.asm_full_simp_tac ctxt
+      | Simp_Size_Method =>
+        Simplifier.asm_full_simp_tac (Simplifier.add_simp @{thm size_ne_size_imp_ne} ctxt)
+      | Auto_Method => K (Clasimp.auto_tac ctxt)
+      | Fastforce_Method => Clasimp.fast_force_tac ctxt
+      | Force_Method => Clasimp.force_tac ctxt
+      | Linarith_Method => Lin_Arith.tac ctxt
+      | Presburger_Method => Cooper.tac true [] [] ctxt
+      | Algebra_Method => Groebner.algebra_tac [] [] ctxt))
+  end
 
 fun string_of_play_outcome (Played time) = string_of_ext_time (false, time)
   | string_of_play_outcome (Play_Timed_Out time) = string_of_ext_time (true, time) ^ ", timed out"
@@ -188,11 +197,5 @@ fun one_line_proof_text num_chained
   in
     try_line ^ minimize_line minimize_command (map fst (extra @ chained))
   end
-
-(* Makes proof methods as silent as possible. The "set_visible" calls suppresses "Unification bound
-   exceeded" warnings and the like. *)
-fun silence_proof_methods debug =
-  Try0.silence_methods debug
-  #> Config.put SMT_Config.verbose debug
 
 end;

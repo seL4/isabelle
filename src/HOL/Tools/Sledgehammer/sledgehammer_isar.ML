@@ -290,7 +290,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
         val preplay_data = Unsynchronized.ref Canonical_Label_Tab.empty
 
         val _ = fold_isar_steps (fn meth =>
-            K (set_preplay_outcomes_of_isar_step ctxt preplay_timeout preplay_data meth []))
+            K (set_preplay_outcomes_of_isar_step ctxt debug preplay_timeout preplay_data meth []))
           (steps_of_isar_proof canonical_isar_proof) ()
 
         fun str_of_preplay_outcome outcome =
@@ -316,11 +316,11 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
         val (play_outcome, isar_proof) =
           canonical_isar_proof
           |> tap (trace_isar_proof "Original")
-          |> compress_isar_proof ctxt compress_isar preplay_timeout preplay_data
+          |> compress_isar_proof ctxt debug compress_isar preplay_timeout preplay_data
           |> tap (trace_isar_proof "Compressed")
           |> postprocess_isar_proof_remove_unreferenced_steps
                (keep_fastest_method_of_isar_step (!preplay_data)
-                #> minimize ? minimize_isar_step_dependencies ctxt preplay_data)
+                #> minimize ? minimize_isar_step_dependencies ctxt debug preplay_data)
           |> tap (trace_isar_proof "Minimized")
           (* It's not clear whether this is worth the trouble (and if so, "isar_compress" has an
              unnatural semantics): *)

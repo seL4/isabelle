@@ -50,7 +50,7 @@ open Sledgehammer_Prover
 open Sledgehammer_Prover_ATP
 open Sledgehammer_Prover_SMT
 
-fun run_proof_method mode name (params as {verbose, timeout, type_enc, lam_trans, ...})
+fun run_proof_method mode name (params as {debug, verbose, timeout, type_enc, lam_trans, ...})
     minimize_command
     ({state, subgoal, subgoal_count, factss = (_, facts) :: _, ...} : prover_problem) =
   let
@@ -60,8 +60,8 @@ fun run_proof_method mode name (params as {verbose, timeout, type_enc, lam_trans
       else raise Fail ("unknown proof_method: " ^ quote name)
     val used_facts = facts |> map fst
   in
-    (case play_one_line_proof (if mode = Minimize then Normal else mode) verbose timeout facts state
-        subgoal meth [meth] of
+    (case play_one_line_proof (if mode = Minimize then Normal else mode) debug verbose timeout facts
+        state subgoal meth [meth] of
       play as (_, Played time) =>
       {outcome = NONE, used_facts = used_facts, used_from = facts, run_time = time,
        preplay = Lazy.value play,

@@ -231,7 +231,6 @@ fun run_sledgehammer (params as {debug, verbose, spy, blocking, provers, max_fac
         val _ = Proof.assert_backward state
         val print =
           if mode = Normal andalso is_none output_result then Output.urgent_message else K ()
-        val state = state |> Proof.map_context (silence_proof_methods debug)
         val ctxt = Proof.context_of state
         val {facts = chained, goal, ...} = Proof.goal state
         val (_, hyp_ts, concl_t) = strip_subgoal goal i ctxt
