@@ -74,6 +74,8 @@ fun get_quot_thm ctxt s =
     Thm.transfer thy (#quot_thm (get_quot_data ctxt s))
   end
 
+fun has_pcrel_info ctxt s = is_some (#pcr_info (get_quot_data ctxt s))
+
 fun get_pcrel_info ctxt s =
   case #pcr_info (get_quot_data ctxt s) of
     SOME pcr_info => pcr_info
@@ -576,13 +578,13 @@ fun parametrize_transfer_rule ctxt thm =
                   end
                   handle QUOT_THM_INTERNAL _ => Conv.all_conv ctm
                 else
-                  (let 
-                    val pcrel_def = Thm.symmetric (get_pcrel_def ctxt q)
-                  in
-                    (Conv.rewr_conv pcrel_def then_conv all_args_conv parametrize_relation_conv) ctm
-                  end
-                  handle QUOT_THM_INTERNAL _ => 
-                    (Conv.arg1_conv (all_args_conv parametrize_relation_conv)) ctm)
+                  if has_pcrel_info ctxt q then
+                    let 
+                      val pcrel_def = Thm.symmetric (get_pcrel_def ctxt q)
+                    in
+                      (Conv.rewr_conv pcrel_def then_conv all_args_conv parametrize_relation_conv) ctm
+                    end
+                  else Conv.arg1_conv (all_args_conv parametrize_relation_conv) ctm
               end  
             end
           else Conv.all_conv ctm
