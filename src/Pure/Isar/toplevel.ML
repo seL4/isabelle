@@ -117,7 +117,8 @@ fun loc_begin loc (Context.Theory thy) =
   | loc_begin NONE (Context.Proof lthy) =
       (Context.Proof o Local_Theory.restore, lthy)
   | loc_begin (SOME loc) (Context.Proof lthy) =
-      (Context.Proof o Named_Target.reinit lthy, loc_init loc (loc_exit (Local_Theory.assert_nonbrittle lthy)));
+      (Context.Proof o Named_Target.reinit lthy,
+        loc_init loc (loc_exit (Local_Theory.assert_nonbrittle lthy)));
 
 
 (* datatype node *)
