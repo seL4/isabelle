@@ -183,11 +183,8 @@ fun one_line_proof_text num_chained
     val try_line =
       map fst extra
       |> proof_method_command meth subgoal subgoal_count (map fst chained) num_chained
-      |> (if failed then
-            enclose "One-line proof reconstruction failed: "
-              ".\n(Invoking \"sledgehammer\" with \"[strict]\" might solve this.)"
-          else
-            try_command_line banner ext_time)
+      |> (if failed then enclose "One-line proof reconstruction failed: " "."
+          else try_command_line banner ext_time)
   in
     try_line ^ minimize_line minimize_command (map fst (extra @ chained))
   end
