@@ -1042,17 +1042,16 @@ fun values_cmd print_modes soln raw_t state =
   end |> Pretty.writeln
 
 
-(* renewing the values command for Prolog queries *)
+(* values command for Prolog queries *)
 
 val opt_print_modes =
   Scan.optional (@{keyword "("} |-- Parse.!!! (Scan.repeat1 Parse.xname --| @{keyword ")"})) []
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "values"}
+  Outer_Syntax.improper_command @{command_spec "values_prolog"}
     "enumerate and print comprehensions"
     (opt_print_modes -- Scan.optional (Parse.nat >> SOME) NONE -- Parse.term
-     >> (fn ((print_modes, soln), t) => Toplevel.keep
-          (values_cmd print_modes soln t))) (*FIXME does not preserve the previous functionality*)
+     >> (fn ((print_modes, soln), t) => Toplevel.keep (values_cmd print_modes soln t)))
 
 
 (* quickcheck generator *)

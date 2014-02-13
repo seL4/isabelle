@@ -39,7 +39,7 @@ session "HOL-Library" (main) in Library = HOL +
     AList_Mapping
     Code_Binary_Nat
     Code_Char
-    (* Code_Prolog  FIXME cf. 76965c356d2a *)
+    Code_Prolog
     Code_Real_Approx_By_Float
     Code_Target_Numeral
     DAList

@@ -79,7 +79,7 @@ setup {* Code_Prolog.map_code_options (K
   replacing = [],
   manual_reorder = []}) *}
 
-values 40 "{s. hotel s}"
+values_prolog 40 "{s. hotel s}"
 
 setup {*
   Context.theory_map

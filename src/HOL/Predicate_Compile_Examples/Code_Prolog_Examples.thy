@@ -18,11 +18,11 @@ setup {* Code_Prolog.map_code_options (K
    replacing = [],
    manual_reorder = []}) *}
 
-values "{(x, y, z). append x y z}"
+values_prolog "{(x, y, z). append x y z}"
 
-values 4 "{(z, x, y). append x y ((1::nat) # (2 # (3 # z)))}"
+values_prolog 4 "{(z, x, y). append x y ((1::nat) # (2 # (3 # z)))}"
 
-values 3 "{(x, y, z). append x y z}"
+values_prolog 3 "{(x, y, z). append x y z}"
 
 setup {* Code_Prolog.map_code_options (K
   {ensure_groundness = false,
@@ -32,7 +32,7 @@ setup {* Code_Prolog.map_code_options (K
    replacing = [],
    manual_reorder = []}) *}
 
-values "{(x, y, z). append x y z}"
+values_prolog "{(x, y, z). append x y z}"
 
 setup {* Code_Prolog.map_code_options (K
   {ensure_groundness = false,
@@ -100,7 +100,7 @@ inductive queen_9
 where
   "queen [1,2,3,4,5,6,7,8,9] ys ==> queen_9 ys"
 
-values 10 "{ys. queen_9 ys}"
+values_prolog 10 "{ys. queen_9 ys}"
 
 
 section {* Example symbolic derivation *}
@@ -190,10 +190,10 @@ inductive times10
 where
   "d (Mult (Mult (Mult (Mult (Mult (Mult (Mult (Mult (Mult x x) x) x) x) x) x) x) x) x) x e ==> times10 e"
 
-values "{e. ops8 e}"
-values "{e. divide10 e}"
-values "{e. log10 e}"
-values "{e. times10 e}"
+values_prolog "{e. ops8 e}"
+values_prolog "{e. divide10 e}"
+values_prolog "{e. log10 e}"
+values_prolog "{e. times10 e}"
 
 section {* Example negation *}
 
@@ -211,13 +211,13 @@ setup {* Code_Prolog.map_code_options (K
    replacing = [],
    manual_reorder = []}) *}
 
-values 2 "{y. notB y}"
+values_prolog 2 "{y. notB y}"
 
 inductive notAB :: "abc * abc \<Rightarrow> bool"
 where
   "y \<noteq> A \<Longrightarrow> z \<noteq> B \<Longrightarrow> notAB (y, z)"
 
-values 5 "{y. notAB y}"
+values_prolog 5 "{y. notAB y}"
 
 section {* Example prolog conform variable names *}
 
@@ -225,6 +225,6 @@ inductive equals :: "abc => abc => bool"
 where
   "equals y' y'"
 
-values 1 "{(y, z). equals y z}"
+values_prolog 1 "{(y, z). equals y z}"
 
 end

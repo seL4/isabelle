@@ -1,6 +1,6 @@
 ;;
 ;; Keyword classification tables for Isabelle/Isar.
-;; Generated from HOL + HOL-Auth + HOL-BNF_Examples + HOL-Bali + HOL-Decision_Procs + HOL-IMP + HOL-Imperative_HOL + HOL-Import + HOL-Library + HOL-Mutabelle + HOL-Nominal + HOL-Proofs + HOL-Proofs-Extraction + HOL-SPARK + HOL-Statespace + HOL-TPTP + HOL-Word-SMT_Examples + HOL-ex + HOLCF + Pure.
+;; Generated from HOL + HOL-Auth + HOL-BNF_Examples + HOL-Bali + HOL-Decision_Procs + HOL-IMP + HOL-Imperative_HOL + HOL-Import + HOL-Library + HOL-Mutabelle + HOL-Nominal + HOL-Predicate_Compile_Examples + HOL-Proofs + HOL-Proofs-Extraction + HOL-SPARK + HOL-Statespace + HOL-TPTP + HOL-Word-SMT_Examples + HOL-ex + HOLCF + Pure.
 ;; *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT ***
 ;;
 
@@ -296,6 +296,7 @@
     "using"
     "value"
     "values"
+    "values_prolog"
     "welcome"
     "with"
     "wrap_free_constructors"
@@ -456,6 +457,7 @@
     "unused_thms"
     "value"
     "values"
+    "values_prolog"
     "welcome"))
 
 (defconst isar-keywords-theory-begin

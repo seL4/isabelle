@@ -6,6 +6,7 @@ header {* Code generation of prolog programs *}
 
 theory Code_Prolog
 imports Main
+keywords "values_prolog" :: diag
 begin
 
 ML_file "~~/src/HOL/Tools/Predicate_Compile/code_prolog.ML"
