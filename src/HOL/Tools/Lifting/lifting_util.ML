@@ -95,8 +95,7 @@ fun get_args n = rev o fst o funpow_yield n (swap o dest_comb)
 
 fun strip_args n = funpow n (fst o dest_comb)
 
-fun all_args_conv conv ctm = 
-  (Conv.combination_conv (Conv.try_conv (all_args_conv conv)) conv) ctm
+fun all_args_conv conv ctm = Conv.try_conv (Conv.combination_conv (all_args_conv conv) conv) ctm
 
 fun is_Type (Type _) = true
   | is_Type _ = false
