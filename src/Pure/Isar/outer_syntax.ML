@@ -10,6 +10,7 @@ beginning; for interactive processing it may change dynamically.
 signature OUTER_SYNTAX =
 sig
   type outer_syntax
+  val batch_mode: bool Unsynchronized.ref
   val is_markup: outer_syntax -> Thy_Output.markup -> string -> bool
   val get_syntax: unit -> (Scan.lexicon * Scan.lexicon) * outer_syntax
   val check_syntax: unit -> unit
@@ -133,6 +134,8 @@ fun is_markup (Outer_Syntax {markups, ...}) kind name =
 
 type command_spec = (string * Keyword.T) * Position.T;
 
+val batch_mode = Unsynchronized.ref false;
+
 local
 
 (*synchronized wrt. Keywords*)
@@ -153,10 +156,20 @@ fun add_command (name, kind) cmd = CRITICAL (fn () =>
           then Keyword.define (name, SOME kind)
           else error ("Undeclared outer syntax command " ^ quote name ^ Position.here pos));
     val _ = Position.report pos (command_markup true (name, cmd));
+
+    fun redefining () =
+      "Redefining outer syntax command " ^ quote name ^ Position.here (Position.thread_data ());
   in
     Unsynchronized.change global_outer_syntax (map_commands (fn commands =>
      (if not (Symtab.defined commands name) then ()
-      else warning ("Redefining outer syntax command " ^ quote name);
+      else
+        let
+          val _ = warning (redefining ());
+          val _ =
+            if ! batch_mode then
+              Output.physical_stderr ("Legacy feature! " ^ redefining () ^ "\n")
+            else ();
+        in () end;
       Symtab.update (name, cmd) commands)))
   end);
 
