@@ -460,11 +460,13 @@ local
 in
 
   (*
-    ctm - of the form (par_R OO T) t f, where par_R is a parametricity transfer relation for t
-      and T is a transfer relation between t and f.
+    ctm - of the form "[POS|NEG] (par_R OO T) t f) ?X", where par_R is a parametricity transfer 
+    relation for t and T is a transfer relation between t and f, which consists only from
+    parametrized transfer relations (i.e., pcr_?) and equalities op=. POS or NEG encodes
+    co-variance or contra-variance.
     
     The function merges par_R OO T using definitions of parametrized correspondence relations
-    (e.g., rel_T R OO cr_T == pcr_T R).
+    (e.g., (rel_S R) OO (pcr_T op=) --> pcr_T R using the definition pcr_T R = (rel_S R) OO cr_T).
   *)
 
   fun merge_transfer_relations ctxt ctm =
