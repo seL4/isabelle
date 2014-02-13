@@ -197,7 +197,7 @@ structure Data = Theory_Data
 (* The first ATP of the list is used by Auto Sledgehammer. Because of the low
    timeout, it makes sense to put E first. *)
 fun default_provers_param_value mode thy =
-  [eN, spassN, z3N, vampireN, e_sineN, yicesN]
+  [eN, spassN, z3N, e_sineN, vampireN, yicesN]
   |> map_filter (remotify_atp_if_not_installed thy)
   (* In "try" mode, leave at least one thread to another slow tool (e.g. Nitpick) *)
   |> take (Multithreading.max_threads_value () - (if mode = Try then 1 else 0))

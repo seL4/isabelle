@@ -120,14 +120,12 @@ val is_atp = member (op =) o supported_atps
 
 fun remotify_atp_if_not_installed thy name =
   if is_atp thy name then
-    if String.isPrefix remote_prefix name orelse is_atp_installed thy name then
-      SOME name
-    else
-      let val remote_name = remote_prefix ^ name in
-        if is_atp thy remote_name then SOME remote_name else NONE
-      end
+    if String.isPrefix remote_prefix name orelse is_atp_installed thy name then SOME name
+    else NONE
   else
-    SOME name
+    let val remote_name = remote_prefix ^ name in
+      SOME (if is_atp thy remote_name then remote_name else name)
+    end
 
 type params =
   {debug : bool,
