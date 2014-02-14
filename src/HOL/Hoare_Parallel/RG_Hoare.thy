@@ -669,7 +669,7 @@ apply(rule nth_tl_if,force,simp+)
  apply force
 apply(rule conjI,simp add:lift_def)
 apply(subgoal_tac "lift Q (Some P2, ta) =(Some (Seq P2 Q), ta)") 
- apply(simp add:Cons_lift del:map.simps)
+ apply(simp add:Cons_lift del:list.map)
  apply(rule nth_tl_if)
    apply force
   apply simp+
@@ -733,11 +733,11 @@ apply(case_tac "\<exists>i<length x. fst(x!i)=Some Q")
  apply clarify
  apply(case_tac xs,simp add:cp_def)
  apply clarify
- apply (simp del:map.simps)
+ apply (simp del:list.map)
  apply (rename_tac list)
  apply(subgoal_tac "(map (lift Q) ((a, b) # list))\<noteq>[]")
   apply(drule last_conv_nth)
-  apply (simp del:map.simps)
+  apply (simp del:list.map)
   apply(simp only:last_lift_not_None)
  apply simp
 --{* @{text "\<exists>i<length x. fst (x ! i) = Some Q"} *}
@@ -857,7 +857,7 @@ apply(drule_tac c="(Some P, s) # xs" in subsetD,simp)
  apply clarify
  apply(erule_tac x="Suc i" in allE)
  apply simp
- apply(simp add:Cons_lift_append nth_append snd_lift del:map.simps)
+ apply(simp add:Cons_lift_append nth_append snd_lift del:list.map)
  apply(erule mp)
  apply(erule etranE,simp)
  apply(case_tac "fst(((Some P, s) # xs) ! i)")
@@ -916,8 +916,8 @@ apply (simp add:last_length)
 --{* WhileOne *}
 apply(thin_tac "P = While b P \<longrightarrow> ?Q")
 apply(rule ctran_in_comm,simp)
-apply(simp add:Cons_lift del:map.simps)
-apply(simp add:comm_def del:map.simps)
+apply(simp add:Cons_lift del:list.map)
+apply(simp add:comm_def del:list.map)
 apply(rule conjI)
  apply clarify
  apply(case_tac "fst(((Some P, sa) # xs) ! i)")
@@ -926,20 +926,20 @@ apply(rule conjI)
   apply(ind_cases "(Some (While b P), ba) -c\<rightarrow> t" for ba t)
    apply simp
   apply simp
- apply(simp add:snd_lift del:map.simps)
+ apply(simp add:snd_lift del:list.map)
  apply(simp only:com_validity_def cp_def cptn_iff_cptn_mod)
  apply(erule_tac x=sa in allE)
  apply(drule_tac c="(Some P, sa) # xs" in subsetD)
-  apply (simp add:assum_def del:map.simps)
+  apply (simp add:assum_def del:list.map)
   apply clarify
-  apply(erule_tac x="Suc ia" in allE,simp add:snd_lift del:map.simps)
+  apply(erule_tac x="Suc ia" in allE,simp add:snd_lift del:list.map)
   apply(erule mp)
   apply(case_tac "fst(((Some P, sa) # xs) ! ia)")
    apply(erule etranE,simp add:lift_def)
    apply(rule Env)
   apply(erule etranE,simp add:lift_def)
   apply(rule Env)
- apply (simp add:comm_def del:map.simps)
+ apply (simp add:comm_def del:list.map)
  apply clarify
  apply(erule allE,erule impE,assumption)
  apply(erule mp)
@@ -953,7 +953,7 @@ apply(rule conjI)
 apply clarify
 apply(subgoal_tac "(map (lift (While b P)) ((Some P, sa) # xs))\<noteq>[]")
  apply(drule last_conv_nth)
- apply (simp del:map.simps)
+ apply (simp del:list.map)
  apply(simp only:last_lift_not_None)
 apply simp
 --{* WhileMore *}
@@ -966,32 +966,32 @@ apply(subgoal_tac "(Some (While b P), snd (last ((Some P, sa) # xs))) # ys \<in>
  apply(erule assum_after_body)
   apply (simp del:last.simps)+
 --{* lo de antes. *}
-apply(simp add:comm_def del:map.simps last.simps)
+apply(simp add:comm_def del:list.map last.simps)
 apply(rule conjI)
  apply clarify
  apply(simp only:Cons_lift_append)
  apply(case_tac "i<length xs")
-  apply(simp add:nth_append del:map.simps last.simps)
+  apply(simp add:nth_append del:list.map last.simps)
   apply(case_tac "fst(((Some P, sa) # xs) ! i)")
    apply(case_tac "((Some P, sa) # xs) ! i")
    apply (simp add:lift_def del:last.simps)
    apply(ind_cases "(Some (While b P), ba) -c\<rightarrow> t" for ba t)
     apply simp
    apply simp
-  apply(simp add:snd_lift del:map.simps last.simps)
+  apply(simp add:snd_lift del:list.map last.simps)
   apply(thin_tac " \<forall>i. i < length ys \<longrightarrow> ?P i")
   apply(simp only:com_validity_def cp_def cptn_iff_cptn_mod)
   apply(erule_tac x=sa in allE)
   apply(drule_tac c="(Some P, sa) # xs" in subsetD)
-   apply (simp add:assum_def del:map.simps last.simps)
+   apply (simp add:assum_def del:list.map last.simps)
    apply clarify
-   apply(erule_tac x="Suc ia" in allE,simp add:nth_append snd_lift del:map.simps last.simps, erule mp)
+   apply(erule_tac x="Suc ia" in allE,simp add:nth_append snd_lift del:list.map last.simps, erule mp)
    apply(case_tac "fst(((Some P, sa) # xs) ! ia)")
     apply(erule etranE,simp add:lift_def)
     apply(rule Env)
    apply(erule etranE,simp add:lift_def)
    apply(rule Env)
-  apply (simp add:comm_def del:map.simps)
+  apply (simp add:comm_def del:list.map)
   apply clarify
   apply(erule allE,erule impE,assumption)
   apply(erule mp)
@@ -1007,7 +1007,7 @@ apply(subgoal_tac "i-length xs <length ys")
  apply arith
 apply(erule_tac x="i-length xs" in allE,clarify)
 apply(case_tac "i=length xs")
- apply (simp add:nth_append snd_lift del:map.simps last.simps)
+ apply (simp add:nth_append snd_lift del:list.map last.simps)
  apply(simp add:last_length del:last.simps)
  apply(erule mp)
  apply(case_tac "last((Some P, sa) # xs)")
@@ -1015,7 +1015,7 @@ apply(case_tac "i=length xs")
 --{* @{text "i>length xs"} *} 
 apply(case_tac "i-length xs")
  apply arith
-apply(simp add:nth_append del:map.simps last.simps)
+apply(simp add:nth_append del:list.map last.simps)
 apply(rotate_tac -3)
 apply(subgoal_tac "i- Suc (length xs)=nat")
  prefer 2
@@ -1024,20 +1024,20 @@ apply simp
 --{* last=None *}
 apply clarify
 apply(case_tac ys)
- apply(simp add:Cons_lift del:map.simps last.simps)
+ apply(simp add:Cons_lift del:list.map last.simps)
  apply(subgoal_tac "(map (lift (While b P)) ((Some P, sa) # xs))\<noteq>[]")
   apply(drule last_conv_nth)
-  apply (simp del:map.simps)
+  apply (simp del:list.map)
   apply(simp only:last_lift_not_None)
  apply simp
 apply(subgoal_tac "((Some (Seq P (While b P)), sa) # map (lift (While b P)) xs @ ys)\<noteq>[]")
  apply(drule last_conv_nth)
- apply (simp del:map.simps last.simps)
+ apply (simp del:list.map last.simps)
  apply(simp add:nth_append del:last.simps)
  apply(rename_tac a list)
  apply(subgoal_tac "((Some (While b P), snd (last ((Some P, sa) # xs))) # a # list)\<noteq>[]")
   apply(drule last_conv_nth)
-  apply (simp del:map.simps last.simps)
+  apply (simp del:list.map last.simps)
  apply simp
 apply simp
 done

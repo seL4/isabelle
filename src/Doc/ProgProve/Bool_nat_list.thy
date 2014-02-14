@@ -394,8 +394,8 @@ The most important ones are the length function
 and the \indexed{@{const map}}{map} function that applies a function to all elements of a list:
 \begin{isabelle}
 \isacom{fun} @{const map} @{text"::"} @{typ[source] "('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list"}\\
-@{text"\""}@{thm map.simps(1)}@{text"\" |"}\\
-@{text"\""}@{thm map.simps(2)}@{text"\""}
+@{text"\""}@{thm list.map(1)}@{text"\" |"}\\
+@{text"\""}@{thm list.map(2)}@{text"\""}
 \end{isabelle}
 
 \ifsem

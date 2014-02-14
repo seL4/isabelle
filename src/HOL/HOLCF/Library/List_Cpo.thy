@@ -242,7 +242,7 @@ lemma cont2cont_map [simp, cont2cont]:
 using f
 apply (simp add: prod_cont_iff)
 apply (rule cont_apply [OF g])
-apply (rule list_contI, rule map.simps, simp, simp, simp)
+apply (rule list_contI, rule list.map, simp, simp, simp)
 apply (induct_tac y, simp, simp)
 done
 

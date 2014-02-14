@@ -593,7 +593,7 @@ val expand_word_eq_sss =
     @{thms rev_rev_ident rev_replicate rev_map to_bl_upt word_size}
           addsimprocs [word_len_simproc],
    put_simpset no_split_ss @{context} addsimps
-    @{thms list.simps split_conv replicate.simps map.simps
+    @{thms list.simps split_conv replicate.simps list.map
                                 zip_Cons_Cons zip_Nil drop_Suc_Cons drop_0 drop_Nil
                                 foldr.simps map2_Cons map2_Nil takefill_Suc_Cons
                                 takefill_Suc_Nil takefill.Z rbl_succ2_simps

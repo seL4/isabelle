@@ -80,7 +80,7 @@ apply simp
 apply (rule allI)
 apply (drule_tac x="a # ys" in spec)
 apply (simp only: rev.simps append_assoc append_Cons append_Nil
-  map.simps map_of.simps map_upds_Cons list.sel)
+  list.map map_of.simps map_upds_Cons list.sel)
 done
 
 lemma map_of_as_map_upds: "map_of (rev xs) = empty ((map fst xs) [\<mapsto>] (map snd xs))"
@@ -132,7 +132,7 @@ apply (simp add: local_env_snd index_def)
 apply (case_tac "vname = This")
 apply (simp add: inited_LT_def)
 apply (simp add: inited_LT_def)
-apply (simp (no_asm_simp) only: map_map [symmetric] map_append [symmetric] map.simps [symmetric])
+apply (simp (no_asm_simp) only: map_map [symmetric] map_append [symmetric] list.map [symmetric])
 apply (subgoal_tac "length (takeWhile (\<lambda>z. z \<noteq> vname) (pns @ map fst lvars)) < length (pTs @ map snd lvars)")
 apply (simp (no_asm_simp) only: List.nth_map ok_val.simps)
 apply (subgoal_tac "map_of lvars = map_of (map (\<lambda> p. (fst p, snd p)) lvars)")
@@ -166,7 +166,7 @@ done
 lemma inited_LT_at_index_no_err: " i < length (inited_LT C pTs lvars)
   \<Longrightarrow> inited_LT C pTs lvars ! i \<noteq> Err"
 apply (simp only: inited_LT_def)
-apply (simp only: map_map [symmetric] map_append [symmetric] map.simps [symmetric] length_map)
+apply (simp only: map_map [symmetric] map_append [symmetric] list.map [symmetric] length_map)
 apply (simp only: nth_map)
 apply simp
 done
@@ -1394,7 +1394,7 @@ apply (rule_tac bc_pre=bc1 and bc=bc2 and bc_post=bc3
 
   apply (simp (no_asm_simp) add: max_ssize_def del: max_of_list_append)
     apply (rule max_of_list_sublist)
-    apply (simp (no_asm_simp) only: set_append set.simps map.simps) apply blast
+    apply (simp (no_asm_simp) only: set_append set.simps list.map) apply blast
   apply (simp (no_asm_simp))
   apply simp                    (* subgoal bc3 = [] *)
   apply (simp add: comb_nil_def) (* subgoal mt3 = [] \<and> sttp2 = sttp3 *)
@@ -1421,7 +1421,7 @@ apply (rule_tac bc=bc2 and mt="(mt2 @ [Some sttp2])"
      (* (some) preconditions of  wt_instr_offset *)
   apply (simp (no_asm_simp) add: max_ssize_def del: max_of_list_append)
   apply (rule max_of_list_sublist)
-    apply (simp (no_asm_simp) only: set_append set.simps map.simps) apply blast
+    apply (simp (no_asm_simp) only: set_append set.simps list.map) apply blast
   apply (simp (no_asm_simp))
 
 apply (drule_tac x=sttp2 in spec, simp) (* subgoal \<exists>mt3_rest. \<dots> *)

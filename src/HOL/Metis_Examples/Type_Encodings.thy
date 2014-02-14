@@ -76,13 +76,13 @@ lemma "[a] = [Suc 0] \<Longrightarrow> a = 1"
 by (metis_exhaust last.simps One_nat_def)
 
 lemma "map Suc [0] = [Suc 0]"
-by (metis_exhaust map.simps)
+by (metis_exhaust list.map)
 
 lemma "map Suc [1 + 1] = [Suc 2]"
-by (metis_exhaust map.simps nat_1_add_1)
+by (metis_exhaust list.map nat_1_add_1)
 
 lemma "map Suc [2] = [Suc (1 + 1)]"
-by (metis_exhaust map.simps nat_1_add_1)
+by (metis_exhaust list.map nat_1_add_1)
 
 definition "null xs = (xs = [])"
 

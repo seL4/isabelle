@@ -340,7 +340,7 @@ fun mkName (Type (T,args)) = implode (map mkName args) ^ mkUpper (Long_Name.base
 
 fun is_datatype thy = is_some o Datatype.get_info thy;
 
-fun mk_map "List.list" = Syntax.const "List.map"
+fun mk_map @{type_name List.list} = Syntax.const @{const_name List.map}
   | mk_map n = Syntax.const ("StateFun.map_" ^ Long_Name.base_name n);
 
 fun gen_constr_destr comp prfx thy (Type (T, [])) =

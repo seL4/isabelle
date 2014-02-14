@@ -130,14 +130,14 @@ by (metis bt_map.simps(2) reflect.simps(2))
 
 lemma preorder_bt_map: "preorder (bt_map f t) = map f (preorder t)"
 apply (induct t)
- apply (metis bt_map.simps(1) map.simps(1) preorder.simps(1))
+ apply (metis bt_map.simps(1) list.map(1) preorder.simps(1))
 by simp
 
 lemma inorder_bt_map: "inorder (bt_map f t) = map f (inorder t)"
 proof (induct t)
   case Lf thus ?case
   proof -
-    have "map f [] = []" by (metis map.simps(1))
+    have "map f [] = []" by (metis list.map(1))
     hence "map f [] = inorder Lf" by (metis inorder.simps(1))
     hence "inorder (bt_map f Lf) = map f []" by (metis bt_map.simps(1))
     thus "inorder (bt_map f Lf) = map f (inorder Lf)" by (metis inorder.simps(1))

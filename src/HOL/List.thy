@@ -8,7 +8,7 @@ theory List
 imports Presburger Code_Numeral Quotient Lifting_Set Lifting_Option Lifting_Product
 begin
 
-datatype_new 'a list =
+datatype_new 'a list (map: map rel: rel) =
     =: Nil (defaults tl: "[]")  ("[]")
   | Cons (hd: 'a) (tl: "'a list")  (infixr "#" 65)
 
@@ -58,10 +58,6 @@ primrec set :: "'a list \<Rightarrow> 'a set" where
 
 definition coset :: "'a list \<Rightarrow> 'a set" where
 [simp]: "coset xs = - set xs"
-
-primrec map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list" where
-"map f [] = []" |
-"map f (x # xs) = f x # map f xs"
 
 primrec append :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" (infixr "@" 65) where
 append_Nil: "[] @ ys = ys" |
@@ -5164,7 +5160,7 @@ by auto
 lemma lists_image: "lists (f`A) = map f ` lists A"
 proof -
   { fix xs have "\<forall>x\<in>set xs. x \<in> f ` A \<Longrightarrow> xs \<in> map f ` lists A"
-      by (induct xs) (auto simp del: map.simps simp add: map.simps[symmetric] intro!: imageI) }
+      by (induct xs) (auto simp del: list.map simp add: list.map[symmetric] intro!: imageI) }
   then show ?thesis by auto
 qed
 
@@ -6710,9 +6706,12 @@ lemma set_transfer [transfer_rule]:
   "(list_all2 A ===> set_rel A) set set"
   unfolding set_def by transfer_prover
 
+lemma map_rec: "map f xs = rec_list Nil (%x _ y. Cons (f x) y) xs"
+  by (induct xs) auto
+
 lemma map_transfer [transfer_rule]:
   "((A ===> B) ===> list_all2 A ===> list_all2 B) map map"
-  unfolding List.map_def by transfer_prover
+  unfolding map_rec[abs_def] by transfer_prover
 
 lemma append_transfer [transfer_rule]:
   "(list_all2 A ===> list_all2 A ===> list_all2 A) append append"

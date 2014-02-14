@@ -138,14 +138,14 @@ by auto
 
 lemma "map (\<lambda>x. (f x, g x)) xs = zip (map f xs) (map g xs)"
 apply (induct xs)
- apply (metis map.simps(1) zip_Nil)
+ apply (metis list.map(1) zip_Nil)
 by auto
 
 lemma
   "map (\<lambda>w. (w -> w, w \<times> w)) xs =
    zip (map (\<lambda>w. w -> w) xs) (map (\<lambda>w. w \<times> w) xs)"
 apply (induct xs)
- apply (metis map.simps(1) zip_Nil)
+ apply (metis list.map(1) zip_Nil)
 by auto
 
 lemma "(\<lambda>x. Suc (f x)) ` {x. even x} \<subseteq> A \<Longrightarrow> \<forall>x. even x --> Suc (f x) \<in> A"
