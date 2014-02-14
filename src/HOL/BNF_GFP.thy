@@ -287,16 +287,16 @@ by auto
 definition image2p where
   "image2p f g R = (\<lambda>x y. \<exists>x' y'. R x' y' \<and> f x' = x \<and> g y' = y)"
 
-lemma image2pI: "R x y \<Longrightarrow> (image2p f g R) (f x) (g y)"
+lemma image2pI: "R x y \<Longrightarrow> image2p f g R (f x) (g y)"
   unfolding image2p_def by blast
 
-lemma image2pE: "\<lbrakk>(image2p f g R) fx gy; (\<And>x y. fx = f x \<Longrightarrow> gy = g y \<Longrightarrow> R x y \<Longrightarrow> P)\<rbrakk> \<Longrightarrow> P"
+lemma image2pE: "\<lbrakk>image2p f g R fx gy; (\<And>x y. fx = f x \<Longrightarrow> gy = g y \<Longrightarrow> R x y \<Longrightarrow> P)\<rbrakk> \<Longrightarrow> P"
   unfolding image2p_def by blast
 
-lemma fun_rel_iff_geq_image2p: "(fun_rel R S) f g = (image2p f g R \<le> S)"
+lemma fun_rel_iff_geq_image2p: "fun_rel R S f g = (image2p f g R \<le> S)"
   unfolding fun_rel_def image2p_def by auto
 
-lemma fun_rel_image2p: "(fun_rel R (image2p f g R)) f g"
+lemma fun_rel_image2p: "fun_rel R (image2p f g R) f g"
   unfolding fun_rel_def image2p_def by auto
 
 
@@ -341,7 +341,7 @@ qed
 lemma univ_preserves:
 assumes ECH: "equiv A r" and RES: "f respects r" and
         PRES: "\<forall> x \<in> A. f x \<in> B"
-shows "\<forall> X \<in> A//r. univ f X \<in> B"
+shows "\<forall>X \<in> A//r. univ f X \<in> B"
 proof
   fix X assume "X \<in> A//r"
   then obtain x where x: "x \<in> A" and X: "X = proj r x" using ECH proj_image[of r A] by blast

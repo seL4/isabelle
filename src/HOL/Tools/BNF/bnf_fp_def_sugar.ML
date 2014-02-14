@@ -222,6 +222,9 @@ val exists_subtype_in = Term.exists_subtype o member (op =);
 
 val lists_bmoc = fold (fn xs => fn t => Term.list_comb (t, xs));
 
+fun lhs_head_of_hd (thm :: _) =
+  [Term.head_of (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (prop_of thm))))];
+
 fun flat_rec_arg_args xss =
   (* FIXME (once the old datatype package is phased out): The first line below gives the preferred
      order. The second line is for compatibility with the old datatype package. *)
@@ -1293,6 +1296,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
               val map_thms = map2 mk_map_thm ctr_defs' cxIns;
               val set_thmss = map mk_set_thms fp_set_thms;
+              val set_thms = flat set_thmss;
 
               val rel_infos = (ctr_defs' ~~ cxIns, ctr_defs' ~~ cyIns);
 
@@ -1324,23 +1328,30 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
               val (rel_distinct_thms, _) =
                 join_halves n half_rel_distinct_thmss other_half_rel_distinct_thmss;
 
+              val rel_eq_thms =
+                map (fn th => th RS @{thm eq_False[THEN iffD2]}) rel_distinct_thms @
+                map2 (fn th => fn 0 => th RS @{thm eq_True[THEN iffD2]} | _ => th)
+                  rel_inject_thms ms;
+
               val anonymous_notes =
                 [([case_cong], fundefcong_attrs),
-                 (map (fn th => th RS @{thm eq_False[THEN iffD2]}) rel_distinct_thms,
-                  code_nitpicksimp_attrs),
-                 (map2 (fn th => fn 0 => th RS @{thm eq_True[THEN iffD2]} | _ => th)
-                    rel_inject_thms ms, code_nitpicksimp_attrs)]
+                 (rel_eq_thms, code_nitpicksimp_attrs)]
                 |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
 
               val notes =
                 [(mapN, map_thms, code_nitpicksimp_attrs @ simp_attrs),
                  (rel_distinctN, rel_distinct_thms, simp_attrs),
                  (rel_injectN, rel_inject_thms, simp_attrs),
-                 (setN, flat set_thmss, code_nitpicksimp_attrs @ simp_attrs)]
+                 (setN, set_thms, code_nitpicksimp_attrs @ simp_attrs)]
                 |> massage_simple_notes fp_b_name;
             in
               (((map_thms, rel_inject_thms, rel_distinct_thms, set_thmss), ctr_sugar),
-               lthy |> Local_Theory.notes (anonymous_notes @ notes) |> snd)
+               lthy
+               |> Spec_Rules.add Spec_Rules.Equational (`lhs_head_of_hd map_thms)
+               |> Spec_Rules.add Spec_Rules.Equational (`lhs_head_of_hd rel_eq_thms)
+               |> Spec_Rules.add Spec_Rules.Equational (`lhs_head_of_hd set_thms)
+               |> Local_Theory.notes (anonymous_notes @ notes)
+               |> snd)
             end;
 
         fun mk_binding pre = Binding.qualify false fp_b_name (Binding.prefix_name (pre ^ "_") fp_b);
@@ -1393,6 +1404,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
           |> massage_multi_notes;
       in
         lthy
+        |> Spec_Rules.add Spec_Rules.Equational (map un_fold_of iterss, flat fold_thmss)
+        |> Spec_Rules.add Spec_Rules.Equational (map co_rec_of iterss, flat rec_thmss)
         |> Local_Theory.notes (common_notes @ notes) |> snd
         |> register_fp_sugars Least_FP pre_bnfs nested_bnfs nesting_bnfs fp_res ctr_defss ctr_sugars
           iterss mapss [induct_thm] (transpose [induct_thms]) (transpose [fold_thmss, rec_thmss])
@@ -1449,8 +1462,15 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
            (strong_coinductN, map single strong_coinduct_thms, K coinduct_attrs),
            (unfoldN, unfold_thmss, K coiter_attrs)]
           |> massage_multi_notes;
+
+        (* TODO: code theorems *)
+        fun add_spec_rules coiter_of sel_thmss ctr_thmss =
+          fold (curry (Spec_Rules.add Spec_Rules.Equational) (map coiter_of coiterss))
+            [flat sel_thmss, flat ctr_thmss]
       in
         lthy
+        |> add_spec_rules un_fold_of sel_unfold_thmss unfold_thmss
+        |> add_spec_rules co_rec_of sel_corec_thmss corec_thmss
         |> Local_Theory.notes (common_notes @ notes) |> snd
         |> register_fp_sugars Greatest_FP pre_bnfs nested_bnfs nesting_bnfs fp_res ctr_defss
           ctr_sugars coiterss mapss [coinduct_thm, strong_coinduct_thm]
