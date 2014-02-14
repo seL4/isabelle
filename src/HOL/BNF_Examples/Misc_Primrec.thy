@@ -91,6 +91,17 @@ where
   "mylist_of_branch (Branch x t) = MyCons x (mylist_of_tree' t)"
 
 primrec_new
+  id_tree :: "'a bin_rose_tree \<Rightarrow> 'a bin_rose_tree" and
+  id_trees1 :: "'a bin_rose_tree mylist \<Rightarrow> 'a bin_rose_tree mylist" and
+  id_trees2 :: "'a bin_rose_tree mylist \<Rightarrow> 'a bin_rose_tree mylist"
+where
+  "id_tree (BRTree a ts ts') = BRTree a (id_trees1 ts) (id_trees2 ts')" |
+  "id_trees1 MyNil = MyNil" |
+  "id_trees1 (MyCons t ts) = MyCons (id_tree t) (id_trees1 ts)" |
+  "id_trees2 MyNil = MyNil" |
+  "id_trees2 (MyCons t ts) = MyCons (id_tree t) (id_trees2 ts)"
+
+primrec_new
   is_ground_exp :: "('a, 'b) exp \<Rightarrow> bool" and
   is_ground_trm :: "('a, 'b) trm \<Rightarrow> bool" and
   is_ground_factor :: "('a, 'b) factor \<Rightarrow> bool"

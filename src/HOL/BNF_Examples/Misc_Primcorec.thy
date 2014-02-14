@@ -84,6 +84,19 @@ where
   "branch_of_stream s = (case s of Stream h t \<Rightarrow> Branch h (tree'_of_stream t))"
 
 primcorec
+  id_tree :: "'a bin_rose_tree \<Rightarrow> 'a bin_rose_tree" and
+  id_trees1 :: "'a bin_rose_tree mylist \<Rightarrow> 'a bin_rose_tree mylist" and
+  id_trees2 :: "'a bin_rose_tree mylist \<Rightarrow> 'a bin_rose_tree mylist"
+where
+  "id_tree t = (case t of BRTree a ts ts' => BRTree a (id_trees1 ts) (id_trees2 ts'))" |
+  "id_trees1 ts = (case ts of
+       MyNil => MyNil
+     | MyCons t ts => MyCons (id_tree t) (id_trees1 ts))" |
+  "id_trees2 ts = (case ts of
+       MyNil => MyNil
+     | MyCons t ts => MyCons (id_tree t) (id_trees2 ts))"
+
+primcorec
   freeze_exp :: "('b \<Rightarrow> 'a) \<Rightarrow> ('a, 'b) exp \<Rightarrow> ('a, 'b) exp" and
   freeze_trm :: "('b \<Rightarrow> 'a) \<Rightarrow> ('a, 'b) trm \<Rightarrow> ('a, 'b) trm" and
   freeze_factor :: "('b \<Rightarrow> 'a) \<Rightarrow> ('a, 'b) factor \<Rightarrow> ('a, 'b) factor"

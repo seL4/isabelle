@@ -54,6 +54,8 @@ and 'a forest = FNil | FCons "'a tree" "'a forest"
 codatatype 'a tree' = TEmpty' | TNode' "'a branch" "'a branch"
 and 'a branch = Branch 'a "'a tree'"
 
+codatatype 'a bin_rose_tree = BRTree 'a "'a bin_rose_tree mylist" "'a bin_rose_tree mylist"
+
 codatatype ('a, 'b) exp = Term "('a, 'b) trm" | Sum "('a, 'b) trm" "('a, 'b) exp"
 and ('a, 'b) trm = Factor "('a, 'b) factor" | Prod "('a, 'b) factor" "('a, 'b) trm"
 and ('a, 'b) factor = C 'a | V 'b | Paren "('a, 'b) exp"
