@@ -1034,9 +1034,9 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
 
     val goalss = nchotomy_goalss @ exclude_goalss;
 
-    fun prove thmss'' def_thms' lthy =
+    fun prove thmss'' def_infos lthy =
       let
-        val def_thms = map (snd o snd) def_thms';
+        val def_thms = map (snd o snd) def_infos;
 
         val (nchotomy_thmss, exclude_thmss) =
           (map2 append (take actual_nn thmss'') nchotomy_taut_thmss, drop actual_nn thmss'');
@@ -1332,7 +1332,12 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
           |> map (fn (thmN, thms, attrs) =>
             ((Binding.qualify true common_name (Binding.name thmN), attrs), [(thms, [])]));
       in
-        lthy |> Local_Theory.notes (notes @ common_notes) |> snd
+        lthy
+        |> Spec_Rules.add Spec_Rules.Equational (map fst def_infos, flat sel_thmss)
+        |> Spec_Rules.add Spec_Rules.Equational (map fst def_infos, flat ctr_thmss)
+        |> Spec_Rules.add Spec_Rules.Equational (map fst def_infos, flat code_thmss)
+        |> Local_Theory.notes (notes @ common_notes)
+        |> snd
       end;
 
     fun after_qed thmss' = fold_map Local_Theory.define defs #-> prove thmss';
