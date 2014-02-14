@@ -1194,16 +1194,16 @@ section {* Functorial structure of types *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def (HOL) "enriched_type"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
+    @{command_def (HOL) "functor"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
   \end{matharray}
 
   @{rail \<open>
-    @@{command (HOL) enriched_type} (@{syntax name} ':')? @{syntax term}
+    @@{command (HOL) functor} (@{syntax name} ':')? @{syntax term}
   \<close>}
 
   \begin{description}
 
-  \item @{command (HOL) "enriched_type"}~@{text "prefix: m"} allows to
+  \item @{command (HOL) "functor"}~@{text "prefix: m"} allows to
   prove and register properties about the functorial structure of type
   constructors.  These properties then can be used by other packages
   to deal with those type constructors in certain type constructions.
@@ -1375,7 +1375,7 @@ text {*
     is a quotient extension theorem. Quotient extension theorems
     allow for quotienting inside container types. Given a polymorphic
     type that serves as a container, a map function defined for this
-    container using @{command (HOL) "enriched_type"} and a relation
+    container using @{command (HOL) "functor"} and a relation
     map defined for for the container type, the quotient extension
     theorem should be @{term "Quotient3 R Abs Rep \<Longrightarrow> Quotient3
     (rel_map R) (map Abs) (map Rep)"}. Quotient extension theorems

@@ -51,7 +51,7 @@ quotient_definition "map_endofun :: ('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Ri
 
 text {* Registration of the map function for 'a endofun. *}
 
-enriched_type map_endofun : map_endofun
+functor map_endofun : map_endofun
 proof -
   have "\<forall> x. abs_endofun (rep_endofun x) = x" using Quotient3_endofun by (auto simp: Quotient3_def)
   then show "map_endofun id id = id" 

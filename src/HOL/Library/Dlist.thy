@@ -177,7 +177,7 @@ qed
 
 subsection {* Functorial structure *}
 
-enriched_type map: map
+functor map: map
   by (simp_all add: List.map.id remdups_map_remdups fun_eq_iff dlist_eq_iff)
 
 

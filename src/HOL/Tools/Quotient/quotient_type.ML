@@ -262,7 +262,7 @@ fun map_check ctxt (_, (rty, _, _), _) =
       (case rty of
         Type (_, []) => warns
       | Type (s, _) =>
-          if Symtab.defined (Enriched_Type.entries ctxt) s then warns else s :: warns
+          if Symtab.defined (Functor.entries ctxt) s then warns else s :: warns
       | _ => warns)
 
     val warns = map_check_aux rty []

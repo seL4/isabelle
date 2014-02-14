@@ -66,15 +66,14 @@ fun mk_fun_compose flag (trm1, trm2) =
   | RepF => Const (@{const_name comp}, dummyT) $ trm2 $ trm1
 
 fun get_mapfun_data ctxt s =
-  (case Symtab.lookup (Enriched_Type.entries ctxt) s of
+  (case Symtab.lookup (Functor.entries ctxt) s of
     SOME [map_data] => (case try dest_Const (#mapper map_data) of
       SOME (c, _) => (Const (c, dummyT), #variances map_data)
     | NONE => raise LIFT_MATCH ("map function for type " ^ quote s ^ " is not a constant."))
   | SOME _ => raise LIFT_MATCH ("map function for type " ^ quote s ^ " is non-singleton entry.")
   | NONE => raise LIFT_MATCH ("No map function for type " ^ quote s ^ " found.")) 
 
-fun defined_mapfun_data ctxt s =
-  Symtab.defined (Enriched_Type.entries ctxt) s
+fun defined_mapfun_data ctxt = Symtab.defined (Functor.entries ctxt)
 
 (* looks up the (varified) rty and qty for
    a quotient definition

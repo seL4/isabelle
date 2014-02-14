@@ -122,7 +122,7 @@ primrec sum_map :: "('a \<Rightarrow> 'c) \<Rightarrow> ('b \<Rightarrow> 'd) \<
   "sum_map f1 f2 (Inl a) = Inl (f1 a)"
 | "sum_map f1 f2 (Inr a) = Inr (f2 a)"
 
-enriched_type sum_map: sum_map proof -
+functor sum_map: sum_map proof -
   fix f g h i
   show "sum_map f g \<circ> sum_map h i = sum_map (f \<circ> h) (g \<circ> i)"
   proof

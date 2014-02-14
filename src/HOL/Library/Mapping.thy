@@ -110,7 +110,7 @@ lift_definition map :: "('c \<Rightarrow> 'a) \<Rightarrow> ('b \<Rightarrow> 'd
 
 subsection {* Functorial structure *}
 
-enriched_type map: map
+functor map: map
   by (transfer, auto simp add: fun_eq_iff option.map_comp option.map_id)+
 
 

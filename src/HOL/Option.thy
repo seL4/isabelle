@@ -98,7 +98,7 @@ lemma map_option_o_case_sum [simp]:
 lemma map_option_cong: "x = y \<Longrightarrow> (\<And>a. y = Some a \<Longrightarrow> f a = g a) \<Longrightarrow> map_option f x = map_option g y"
 by (cases x) auto
 
-enriched_type map_option: map_option proof -
+functor map_option: map_option proof -
   fix f g
   show "map_option f \<circ> map_option g = map_option (f \<circ> g)"
   proof

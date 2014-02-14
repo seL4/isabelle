@@ -8,7 +8,7 @@ header {* Notions about functions *}
 
 theory Fun
 imports Complete_Lattices
-keywords "enriched_type" :: thy_goal
+keywords "functor" :: thy_goal
 begin
 
 lemma apply_inverse:
@@ -904,12 +904,12 @@ in proc end
 
 subsubsection {* Functorial structure of types *}
 
-ML_file "Tools/enriched_type.ML"
+ML_file "Tools/functor.ML"
 
-enriched_type map_fun: map_fun
+functor map_fun: map_fun
   by (simp_all add: fun_eq_iff)
 
-enriched_type vimage
+functor vimage
   by (simp_all add: fun_eq_iff vimage_comp)
 
 text {* Legacy theorem names *}

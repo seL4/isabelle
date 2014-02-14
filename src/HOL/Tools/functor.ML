@@ -1,20 +1,21 @@
-(*  Title:      HOL/Tools/enriched_type.ML
+(*  Title:      HOL/Tools/functor.ML
     Author:     Florian Haftmann, TU Muenchen
 
 Functorial structure of types.
 *)
 
-signature ENRICHED_TYPE =
+signature FUNCTOR =
 sig
   val find_atomic: Proof.context -> typ -> (typ * (bool * bool)) list
   val construct_mapper: Proof.context -> (string * bool -> term)
     -> bool -> typ -> typ -> term
-  val enriched_type: string option -> term -> local_theory -> Proof.state
+  val functorx: string option -> term -> local_theory -> Proof.state
+  val functor_cmd: string option -> string -> Proof.context -> Proof.state
   type entry
   val entries: Proof.context -> entry list Symtab.table
 end;
 
-structure Enriched_Type : ENRICHED_TYPE =
+structure Functor : FUNCTOR =
 struct
 
 (* bookkeeping *)
@@ -158,7 +159,7 @@ fun make_id_prop ctxt variances (tyco, mapper) =
 
 (* analyzing and registering mappers *)
 
-fun consume eq x [] = (false, [])
+fun consume _ _ [] = (false, [])
   | consume eq x (ys as z :: zs) = if eq (x, z) then (true, zs) else (false, ys);
 
 fun split_mapper_typ "fun" T =
@@ -226,7 +227,7 @@ fun analyze_variances ctxt tyco T =
     val _ = if null left_variances then () else bad_typ ();
   in variances end;
 
-fun gen_enriched_type prep_term some_prfx raw_mapper lthy =
+fun gen_functor prep_term some_prfx raw_mapper lthy =
   let
     val (mapper, T, tyco) = analyze_mapper lthy (prep_term lthy raw_mapper);
     val prfx = the_default (Long_Name.base_name tyco) some_prfx;
@@ -266,13 +267,13 @@ fun gen_enriched_type prep_term some_prfx raw_mapper lthy =
     |> Proof.theorem NONE after_qed (map (fn t => [(t, [])]) [comp_prop, id_prop])
   end
 
-val enriched_type = gen_enriched_type Syntax.check_term;
-val enriched_type_cmd = gen_enriched_type Syntax.read_term;
+val functorx = gen_functor Syntax.check_term;
+val functor_cmd = gen_functor Syntax.read_term;
 
 val _ =
-  Outer_Syntax.local_theory_to_proof @{command_spec "enriched_type"}
+  Outer_Syntax.local_theory_to_proof @{command_spec "functor"}
     "register operations managing the functorial structure of a type"
     (Scan.option (Parse.name --| @{keyword ":"}) -- Parse.term
-      >> (fn (prfx, t) => enriched_type_cmd prfx t));
+      >> (fn (prfx, t) => functor_cmd prfx t));
 
 end;

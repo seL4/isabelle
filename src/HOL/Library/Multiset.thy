@@ -880,7 +880,7 @@ text {*
   @{term "{#x+x|x:#M. x<c#}"}.
 *}
 
-enriched_type image_mset: image_mset
+functor image_mset: image_mset
 proof -
   fix f g show "image_mset f \<circ> image_mset g = image_mset (f \<circ> g)"
   proof

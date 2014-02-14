@@ -396,7 +396,7 @@ lemma eval_map [simp]:
   "eval (map f P) = (\<Squnion>x\<in>{x. eval P x}. (\<lambda>y. f x = y))"
   by (auto simp add: map_def comp_def)
 
-enriched_type map: map
+functor map: map
   by (rule ext, rule pred_eqI, auto)+
 
 
