@@ -874,7 +874,7 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
           let val T = fastype_of cqf in
             if exists_subtype_in Cs T then
               let val U = mk_U maybe_mk_sumT T in
-                build_map lthy (indexify snd fpTs (fn kk => fn _ =>
+                build_map lthy (indexify fst (map2 maybe_mk_sumT fpTs Cs) (fn kk => fn _ =>
                   maybe_tack (nth cs kk, nth us kk) (nth fcoiters kk))) (T, U) $ cqf
               end
             else
