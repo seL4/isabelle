@@ -15,8 +15,6 @@ sig
     (BNF_FP_Def_Sugar.fp_sugar list
      * (BNF_FP_Def_Sugar.lfp_sugar_thms option * BNF_FP_Def_Sugar.gfp_sugar_thms option))
     * local_theory
-  val indexify_callsss: BNF_FP_Def_Sugar.fp_sugar -> (term * term list list) list ->
-    term list list list
   val nested_to_mutual_fps: BNF_FP_Util.fp_kind -> binding list -> typ list -> (term -> int list) ->
     (term * term list list) list list -> local_theory ->
     (typ list * int list * BNF_FP_Def_Sugar.fp_sugar list
@@ -112,8 +110,8 @@ fun mutualize_fp_sugars fp bs fpTs get_indices callssss fp_sugars0 no_defs_lthy0
 
     val qsotm = quote o Syntax.string_of_term no_defs_lthy0;
 
-    fun incompatible_calls t1 t2 =
-      error ("Incompatible " ^ co_prefix fp ^ "recursive calls: " ^ qsotm t1 ^ " vs. " ^ qsotm t2);
+    fun incompatible_calls ts =
+      error ("Incompatible " ^ co_prefix fp ^ "recursive calls: " ^ commas (map qsotm ts));
     fun nested_self_call t =
       error ("Unsupported nested self-call " ^ qsotm t);
 
@@ -147,13 +145,20 @@ fun mutualize_fp_sugars fp bs fpTs get_indices callssss fp_sugars0 no_defs_lthy0
       ||>> variant_tfrees fp_b_names;
 
     fun check_call_dead live_call call =
-      if null (get_indices call) then () else incompatible_calls live_call call;
+      if null (get_indices call) then () else incompatible_calls [live_call, call];
 
-    fun freeze_fpTs_simple (T as Type (s, Ts)) =
+    fun freeze_fpTs_default (T as Type (s, Ts)) =
         (case find_index (curry (op =) T) fpTs of
-          ~1 => Type (s, map freeze_fpTs_simple Ts)
+          ~1 => Type (s, map freeze_fpTs_default Ts)
         | kk => nth Xs kk)
-      | freeze_fpTs_simple T = T;
+      | freeze_fpTs_default T = T;
+
+    fun freeze_fpTs_simple calls (T as Type (s, Ts)) =
+        (case fold (union (op =)) (map get_indices calls) [] of
+          [] => freeze_fpTs_default T
+        | [kk] => nth Xs kk
+        | _ => incompatible_calls calls)
+      | freeze_fpTs_simple _ T = T;
 
     fun freeze_fpTs_map (fpT as Type (_, Ts')) (callss, (live_call :: _, dead_calls))
         (T as Type (s, Ts)) =
@@ -167,7 +172,7 @@ fun mutualize_fp_sugars fp bs fpTs get_indices callssss fp_sugars0 no_defs_lthy0
         (case map_partition (try (snd o dest_map no_defs_lthy s)) calls of
           ([], _) =>
           (case map_partition (try (snd o dest_abs_or_applied_map no_defs_lthy s)) calls of
-            ([], _) => freeze_fpTs_simple T
+            ([], _) => freeze_fpTs_simple calls T
           | callsp => freeze_fpTs_map fpT callsp T)
         | callsp => freeze_fpTs_map fpT callsp T)
       | freeze_fpTs _ _ T = T;
@@ -251,6 +256,7 @@ fun mutualize_fp_sugars fp bs fpTs get_indices callssss fp_sugars0 no_defs_lthy0
       end)
   end;
 
+(* TODO: needed? *)
 fun indexify_callsss fp_sugar callsss =
   let
     val {ctrs, ...} = of_fp_sugar #ctr_sugars fp_sugar;
