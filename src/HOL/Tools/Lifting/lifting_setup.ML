@@ -745,25 +745,34 @@ fun setup_lifting_cmd gen_code xthm opt_reflp_xthm opt_par_xthm lthy =
           Const (@{const_name reflp}, _) $ _ => ()
           | _ => error "Invalid form of the reflexivity theorem. Use \"reflp R\"."
       end
+      
+    fun check_qty qty = if not (is_Type qty) 
+          then error "The abstract type must be a type constructor."
+          else ()
 
     fun setup_quotient () = 
       let
         val opt_reflp_thm = Option.map (singleton (Attrib.eval_thms lthy)) opt_reflp_xthm
         val _ = if is_some opt_reflp_thm then sanity_check_reflp_thm (the opt_reflp_thm) else ()
         val opt_par_thm = Option.map (singleton (Attrib.eval_thms lthy)) opt_par_xthm
+        val _ = check_qty (snd (quot_thm_rty_qty input_thm))
       in
         setup_by_quotient gen_code input_thm opt_reflp_thm opt_par_thm lthy
       end
-      
 
     fun setup_typedef () = 
-      case opt_reflp_xthm of
-        SOME _ => error "The reflexivity theorem cannot be specified if the type_definition theorem is used."
-        | NONE => (
-          case opt_par_xthm of
-            SOME _ => error "The parametricity theorem cannot be specified if the type_definition theorem is used."
-            | NONE => setup_by_typedef_thm gen_code input_thm lthy
-        )
+      let
+        val qty = (range_type o fastype_of o hd o get_args 2) input_term
+        val _ = check_qty qty
+      in
+        case opt_reflp_xthm of
+          SOME _ => error "The reflexivity theorem cannot be specified if the type_definition theorem is used."
+          | NONE => (
+            case opt_par_xthm of
+              SOME _ => error "The parametricity theorem cannot be specified if the type_definition theorem is used."
+              | NONE => setup_by_typedef_thm gen_code input_thm lthy
+          )
+      end
   in
     case input_term of
       (Const (@{const_name Quotient}, _) $ _ $ _ $ _ $ _) => setup_quotient ()
