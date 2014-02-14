@@ -480,8 +480,7 @@ The @{command datatype_new} command introduces a set of mutually recursive
 datatypes specified by their constructors.
 
 The syntactic entity \synt{target} can be used to specify a local
-context---e.g., @{text "(in linorder)"}. It is documented in the Isar reference
-manual \cite{isabelle-isar-ref}.
+context---e.g., @{text "(in linorder)"} \cite{isabelle-isar-ref}.
 
 The optional target is potentially followed by datatype-specific options:
 
@@ -511,10 +510,9 @@ define, its type parameters, and additional information:
 \medskip
 
 \noindent
-The syntactic entity \synt{name} denotes an identifier, \synt{typefree}
-denotes fixed type variable (@{typ 'a}, @{typ 'b}, \ldots), and \synt{mixfix}
-denotes the usual parenthesized mixfix notation. They are documented in the Isar
-reference manual \cite{isabelle-isar-ref}.
+The syntactic entity \synt{name} denotes an identifier, \synt{mixfix} denotes
+the usual parenthesized mixfix notation, and \synt{typefree} denotes fixed type
+variable (@{typ 'a}, @{typ 'b}, \ldots) \cite{isabelle-isar-ref}.
 
 The optional names preceding the type variables allow to override the default
 names of the set functions (@{text set1_t}, \ldots, @{text setM_t}).
@@ -541,6 +539,8 @@ can be supplied at the front to override the default name
 \medskip
 
 \noindent
+The syntactic entity \synt{type} denotes a HOL type \cite{isabelle-isar-ref}.
+
 In addition to the type of a constructor argument, it is possible to specify a
 name for the corresponding selector to override the default name
 (@{text un_C\<^sub>ji}). The same selector names can be reused for several
@@ -572,30 +572,14 @@ text {*
 \end{matharray}
 
 @{rail \<open>
-  @@{command datatype_new_compat} names
+  @@{command datatype_new_compat} (name +)
 \<close>}
 
 \medskip
 
 \noindent
-The old datatype package provides some functionality that is not yet
-replicated in the new package:
-
-\begin{itemize}
-\setlength{\itemsep}{0pt}
-
-\item It is integrated with \keyw{fun} and \keyw{function}
-\cite{isabelle-function}, Nitpick \cite{isabelle-nitpick}, Quickcheck,
-and other packages.
-
-\item It is extended by various add-ons, notably to produce instances of the
-@{const size} function.
-\end{itemize}
-
-\noindent
-New-style datatypes can in most cases be registered as old-style datatypes using
-@{command datatype_new_compat}. The \textit{names} argument is a space-separated
-list of type names that are mutually recursive. For example:
+The @{command datatype_new_compat} command registers new-style datatypes as
+old-style datatypes. For example:
 *}
 
     datatype_new_compat even_nat odd_nat
@@ -609,7 +593,22 @@ text {* \blankline *}
     ML {* Datatype_Data.get_info @{theory} @{type_name even_nat} *}
 
 text {*
-A few remarks concern nested recursive datatypes only:
+The syntactic entity \synt{name} denotes an identifier \cite{isabelle-isar-ref}.
+
+The command is interesting because the old datatype package provides some
+functionality that is not yet replicated in the new package:
+
+\begin{itemize}
+\setlength{\itemsep}{0pt}
+
+\item It is integrated with \keyw{fun} \cite{isabelle-function},
+Nitpick \cite{isabelle-nitpick}, Quickcheck, and other packages.
+
+\item It is extended by various add-ons, notably to produce instances of the
+@{const size} function.
+\end{itemize}
+
+A few remarks concern nested recursive datatypes:
 
 \begin{itemize}
 \setlength{\itemsep}{0pt}
@@ -620,8 +619,8 @@ recursor theorems are generated under their usual names but with ``@{text
 
 \item All types through which recursion takes place must be new-style datatypes
 or the function type. In principle, it should be possible to support old-style
-datatypes as well, but the command does not support this yet (and there is
-currently no way to register old-style datatypes as new-style datatypes).
+datatypes as well, but this has not been implemented yet (and there is currently
+no way to register old-style datatypes as new-style datatypes).
 
 \item The recursor produced for types that recurse through functions has a
 different signature than with the old package. This makes it impossible to use
@@ -1375,13 +1374,12 @@ text {*
 
 \noindent
 The @{command primrec_new} command introduces a set of mutually recursive
-functions over a datatype.
+functions over datatypes.
 
 The syntactic entity \synt{target} can be used to specify a local context,
-\synt{fixes} is a list of names with optional type signatures, \synt{thmdecl}
-is an optional name for the formula that follows, and \synt{prop} is a HOL
-proposition. They are is documented in the Isar reference manual
-\cite{isabelle-isar-ref}.
+\synt{fixes} denotes a list of names with optional type signatures,
+\synt{thmdecl} denotes an optional name for the formula that follows, and
+\synt{prop} denotes a HOL proposition \cite{isabelle-isar-ref}.
 
 %%% TODO: elaborate on format of the equations
 %%% TODO: elaborate on mutual and nested-to-mutual
@@ -2279,14 +2277,13 @@ text {*
 \medskip
 
 \noindent
-The @{command primcorec} command introduces a set of mutually corecursive
-functions over a codatatype.
+The @{command primcorec} and @{command primcorecursive} commands introduce a set
+of mutually corecursive functions over codatatypes.
 
 The syntactic entity \synt{target} can be used to specify a local context,
-\synt{fixes} is a list of names with optional type signatures, \synt{thmdecl}
-is an optional name for the formula that follows, and \synt{prop} is a HOL
-proposition. They are is documented in the Isar reference manual
-\cite{isabelle-isar-ref}.
+\synt{fixes} denotes a list of names with optional type signatures,
+\synt{thmdecl} denotes an optional name for the formula that follows, and
+\synt{prop} denotes a HOL proposition \cite{isabelle-isar-ref}.
 
 The optional target is potentially followed by a corecursion-specific option:
 
@@ -2303,9 +2300,9 @@ The @{text "exhaustive"} option indicates that the conditions in specifications
 expressed using the constructor or destructor view cover all possible cases.
 \end{itemize}
 
-\noindent
-The @{command primcorec} command is an abbreviation for @{command primcorecursive} with
-@{text "by auto?"} to discharge any emerging proof obligations.
+The @{command primcorec} command is an abbreviation for @{command
+primcorecursive} with @{text "by auto?"} to discharge any emerging proof
+obligations.
 
 %%% TODO: elaborate on format of the propositions
 %%% TODO: elaborate on mutual and nested-to-mutual
@@ -2504,7 +2501,7 @@ text {*
 \end{matharray}
 
 @{rail \<open>
-  @@{command bnf} target? (name ':')? typ \<newline>
+  @@{command bnf} target? (name ':')? type \<newline>
     'map:' term ('sets:' (term +))? 'bd:' term \<newline>
     ('wits:' (term +))? ('rel:' term)?
 \<close>}
@@ -2517,9 +2514,11 @@ functor (BNF). The type must be equipped with an appropriate map function
 (functorial action). In addition, custom set functions, relators, and
 nonemptiness witnesses can be specified; otherwise, default versions are used.
 
-The syntactic entity \synt{target} can be used to specify a local
-context---e.g., @{text "(in linorder)"}. It is documented in the Isar
-reference manual \cite{isabelle-isar-ref}.
+The syntactic entity \synt{target} can be used to specify a local context,
+\synt{type} denotes a HOL type, and \synt{term} denotes a HOL term
+\cite{isabelle-isar-ref}.
+
+%%% TODO: elaborate on proof obligations
 *}
 
 
@@ -2551,9 +2550,10 @@ The @{command bnf_decl} command declares a new type and associated constants
 (map, set, relator, and cardinal bound) and asserts the BNF properties for
 these constants as axioms.
 
-The syntactic entity \synt{target} can be used to specify a local
-context---e.g., @{text "(in linorder)"}. It is documented in the Isar reference
-manual \cite{isabelle-isar-ref}.
+The syntactic entity \synt{target} can be used to specify a local context,
+\synt{name} denotes an identifier, \synt{typefree} denotes fixed type variable
+(@{typ 'a}, @{typ 'b}, \ldots), and \synt{mixfix} denotes the usual
+parenthesized mixfix notation \cite{isabelle-isar-ref}.
 
 Type arguments are live by default; they can be marked as dead by entering
 ``-'' (hyphen) instead of an identifier for the corresponding set function.
@@ -2638,11 +2638,15 @@ freely constructed types as well as properties about constructors and
 destructors. It also registers the constants and theorems in a data structure
 that is queried by various tools (e.g., \keyw{function}).
 
-The syntactic entity \synt{target} can be used to specify a local
-context---e.g., @{text "(in linorder)"}. It is documented in the Isar reference
-manual \cite{isabelle-isar-ref}.
+The syntactic entity \synt{target} can be used to specify a local context,
+\synt{name} denotes an identifier, and \synt{term} denotes a HOL term
+\cite{isabelle-isar-ref}.
 
-% options: no_discs_sels no_code
+The syntax resembles that of @{command datatype_new} and @{command codatatype}
+definitions (Sections
+\ref{ssec:datatype-command-syntax}~and~\ref{ssec:codatatype-command-syntax}).
+A constructor is specified by an optional name for the discriminator, the
+constructor itself (as a term), and a list of optional names for the selectors.
 
 Section~\ref{ssec:datatype-generated-theorems} lists the generated theorems.
 For technical reasons, the @{text "[fundef_cong]"} attribute is not set on the
