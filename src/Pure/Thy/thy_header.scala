@@ -82,13 +82,13 @@ object Thy_Header extends Parse.Parser
 
   def read(reader: Reader[Char]): Thy_Header =
   {
-    val token = Scan.Parsers.token(lexicon, _ => false)
+    val token = Token.Parsers.token(lexicon, _ => false)
     val toks = new mutable.ListBuffer[Token]
 
     @tailrec def scan_to_begin(in: Reader[Char])
     {
       token(in) match {
-        case Scan.Parsers.Success(tok, rest) =>
+        case Token.Parsers.Success(tok, rest) =>
           toks += tok
           if (!tok.is_begin) scan_to_begin(rest)
         case _ =>
