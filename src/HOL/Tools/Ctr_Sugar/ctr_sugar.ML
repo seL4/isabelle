@@ -653,10 +653,10 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, no_code), raw_ct
             (thm, asm_thm)
           end;
 
-        val (all_sel_thms, sel_thmss, disc_thmss, nontriv_disc_thms, discI_thms, nontriv_discI_thms,
-             disc_exclude_thms, disc_exclude_thmsss, disc_exhaust_thms, sel_exhaust_thms,
-             all_collapse_thms, safe_collapse_thms, expand_thms, sel_split_thms, sel_split_asm_thms,
-             case_eq_if_thms) =
+        val (all_sel_thms, sel_thmss, disc_thmss, nontriv_disc_thmss, discI_thms,
+             nontriv_discI_thms, disc_exclude_thms, disc_exclude_thmsss, disc_exhaust_thms,
+             sel_exhaust_thms, all_collapse_thms, safe_collapse_thms, expand_thms, sel_split_thms,
+             sel_split_asm_thms, case_eq_if_thms) =
           if no_discs_sels then
             ([], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [])
           else
@@ -738,9 +738,8 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, no_code), raw_ct
                   map3 mk_thms discI_thms not_discI_thms distinct_thmsss' |> `transpose
                 end;
 
-              val nontriv_disc_thms =
-                flat (map2 (fn b => if is_disc_binding_valid b then I else K [])
-                  disc_bindings disc_thmss);
+              val nontriv_disc_thmss =
+                map2 (fn b => if is_disc_binding_valid b then I else K []) disc_bindings disc_thmss;
 
               fun is_discI_boring b =
                 (n = 1 andalso Binding.is_empty b) orelse Binding.eq_name (b, equal_binding);
@@ -870,7 +869,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, no_code), raw_ct
                   |> Thm.close_derivation
                 end;
             in
-              (all_sel_thms, sel_thmss, disc_thmss, nontriv_disc_thms, discI_thms,
+              (all_sel_thms, sel_thmss, disc_thmss, nontriv_disc_thmss, discI_thms,
                nontriv_discI_thms, disc_exclude_thms, disc_exclude_thmsss, [disc_exhaust_thm],
                [sel_exhaust_thm], all_collapse_thms, safe_collapse_thms, [expand_thm],
                [sel_split_thm], [sel_split_asm_thm], [case_eq_if_thm])
@@ -879,11 +878,13 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, no_code), raw_ct
         val exhaust_case_names_attr = Attrib.internal (K (Rule_Cases.case_names exhaust_cases));
         val cases_type_attr = Attrib.internal (K (Induct.cases_type fcT_name));
 
+        val nontriv_disc_eq_thmss =
+          map (map (fn th => th RS @{thm eq_False[THEN iffD2]}
+            handle THM _ => th RS @{thm eq_True[THEN iffD2]})) nontriv_disc_thmss;
+
         val anonymous_notes =
           [(map (fn th => th RS notE) distinct_thms, safe_elim_attrs),
-           (map (fn th => th RS @{thm eq_False[THEN iffD2]}
-              handle THM _ => th RS @{thm eq_True[THEN iffD2]}) nontriv_disc_thms,
-            code_nitpicksimp_attrs)]
+           (flat nontriv_disc_eq_thmss, code_nitpicksimp_attrs)]
           |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
 
         val notes =
@@ -891,7 +892,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, no_code), raw_ct
            (case_congN, [case_cong_thm], []),
            (case_eq_ifN, case_eq_if_thms, []),
            (collapseN, safe_collapse_thms, simp_attrs),
-           (discN, nontriv_disc_thms, simp_attrs),
+           (discN, flat nontriv_disc_thmss, simp_attrs),
            (discIN, nontriv_discI_thms, []),
            (disc_excludeN, disc_exclude_thms, dest_attrs),
            (disc_exhaustN, disc_exhaust_thms, [exhaust_case_names_attr]),
@@ -924,6 +925,9 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, no_code), raw_ct
       in
         (ctr_sugar,
          lthy
+         |> Spec_Rules.add Spec_Rules.Equational ([casex], case_thms)
+         |> Spec_Rules.add Spec_Rules.Equational (flat selss, all_sel_thms)
+         |> fold (Spec_Rules.add Spec_Rules.Equational) (map single discs ~~ nontriv_disc_eq_thmss)
          |> Local_Theory.declaration {syntax = false, pervasive = true}
               (fn phi => Case_Translation.register
                  (Morphism.term phi casex) (map (Morphism.term phi) ctrs))

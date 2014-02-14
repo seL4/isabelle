@@ -569,8 +569,9 @@ fun gen_primrec prep_spec (raw_fixes : (binding * 'a option * mixfix) list) raw_
           val (bs, attrss) = map_split (fst o nth specs) poss;
           val notes =
             map3 (fn b => fn attrs => fn thm =>
-              ((Binding.qualify false prefix b, code_nitpicksimp_simp_attrs @ attrs), [([thm], [])]))
-            bs attrss thms;
+                ((Binding.qualify false prefix b, code_nitpicksimp_simp_attrs @ attrs),
+                 [([thm], [])]))
+              bs attrss thms;
         in
           ((Binding.qualify true prefix (Binding.name simpsN), []), [(thms, [])]) :: notes
         end);
