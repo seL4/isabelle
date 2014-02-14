@@ -185,8 +185,8 @@ final class Completion private(
     line: CharSequence): Option[Completion.Result] =
   {
     val raw_result =
-      abbrevs_lex.parse(abbrevs_lex.keyword, new Library.Reverse(line)) match {
-        case abbrevs_lex.Success(reverse_a, _) =>
+      Scan.Parsers.parse(Scan.Parsers.keyword(abbrevs_lex), new Library.Reverse(line)) match {
+        case Scan.Parsers.Success(reverse_a, _) =>
           val abbrevs = abbrevs_map.get_list(reverse_a)
           abbrevs match {
             case Nil => None

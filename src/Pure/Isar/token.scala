@@ -100,11 +100,11 @@ sealed case class Token(val kind: Token.Kind.Value, val source: String)
   def is_end: Boolean = is_keyword && source == "end"
 
   def content: String =
-    if (kind == Token.Kind.STRING) Scan.Lexicon.empty.quoted_content("\"", source)
-    else if (kind == Token.Kind.ALT_STRING) Scan.Lexicon.empty.quoted_content("`", source)
-    else if (kind == Token.Kind.VERBATIM) Scan.Lexicon.empty.verbatim_content(source)
-    else if (kind == Token.Kind.CARTOUCHE) Scan.Lexicon.empty.cartouche_content(source)
-    else if (kind == Token.Kind.COMMENT) Scan.Lexicon.empty.comment_content(source)
+    if (kind == Token.Kind.STRING) Scan.Parsers.quoted_content("\"", source)
+    else if (kind == Token.Kind.ALT_STRING) Scan.Parsers.quoted_content("`", source)
+    else if (kind == Token.Kind.VERBATIM) Scan.Parsers.verbatim_content(source)
+    else if (kind == Token.Kind.CARTOUCHE) Scan.Parsers.cartouche_content(source)
+    else if (kind == Token.Kind.COMMENT) Scan.Parsers.comment_content(source)
     else source
 
   def text: (String, String) =
