@@ -468,7 +468,7 @@ text {*
 
 @{rail \<open>
   @@{command datatype_new} target? @{syntax dt_options}? \<newline>
-    (@{syntax dt_name} '=' (@{syntax ctor} + '|') + @'and')
+    (@{syntax dt_name} '=' (@{syntax dt_ctor} + '|') + @'and')
   ;
   @{syntax_def dt_options}: '(' (('no_discs_sels' | 'no_code') + ',') ')'
 \<close>}
@@ -522,7 +522,7 @@ Inside a mutually recursive specification, all defined datatypes must
 mention exactly the same type variables in the same order.
 
 @{rail \<open>
-  @{syntax_def ctor}: (name ':')? name (@{syntax ctor_arg} * ) \<newline>
+  @{syntax_def dt_ctor}: (name ':')? name (@{syntax dt_ctor_arg} * ) \<newline>
     @{syntax dt_sel_defaults}? mixfix?
 \<close>}
 
@@ -535,7 +535,7 @@ can be supplied at the front to override the default name
 (@{text t.is_C\<^sub>j}).
 
 @{rail \<open>
-  @{syntax_def ctor_arg}: type | '(' name ':' type ')'
+  @{syntax_def dt_ctor_arg}: type | '(' name ':' type ')'
 \<close>}
 
 \medskip
@@ -1603,7 +1603,7 @@ text {*
 
 @{rail \<open>
   @@{command codatatype} target? \<newline>
-    (@{syntax dt_name} '=' (@{syntax ctor} + '|') + @'and')
+    (@{syntax dt_name} '=' (@{syntax dt_ctor} + '|') + @'and')
 \<close>}
 
 \medskip
@@ -2614,8 +2614,8 @@ subsection {* Command Syntax
   \label{ssec:ctors-command-syntax} *}
 
 
-subsubsection {* \keyw{wrap\_free\_constructors}
-  \label{sssec:wrap-free-constructors} *}
+subsubsection {* \keyw{free\_constructors}
+  \label{sssec:free-constructors} *}
 
 text {*
 \begin{matharray}{rcl}
@@ -2624,13 +2624,10 @@ text {*
 
 @{rail \<open>
   @@{command free_constructors} target? @{syntax dt_options} \<newline>
-    term_list name @{syntax wfc_discs_sels}?
+    name 'for' (@{syntax fc_ctor} + '|')
   ;
-  @{syntax_def wfc_discs_sels}: name_list (name_list_list name_term_list_list? )?
-  ;
-  @{syntax_def name_term}: (name ':' term)
-  ;
-  X_list: '[' (X + ',') ']'
+  @{syntax_def fc_ctor}: (name ':')? term (name * ) \<newline>
+    @{syntax dt_sel_defaults}?
 \<close>}
 
 \medskip
