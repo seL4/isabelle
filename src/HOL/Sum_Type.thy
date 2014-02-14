@@ -85,7 +85,9 @@ proof (rule Abs_sum_cases [of s])
   with assms show P by (auto simp add: sum_def Inl_def Inr_def)
 qed
 
-free_constructors [Inl, Inr] case_sum [isl] [[projl], [projr]]
+free_constructors case_sum for
+    isl: Inl projl
+  | Inr projr
 by (erule sumE, assumption) (auto dest: Inl_inject Inr_inject simp add: Inl_not_Inr)
 
 text {* Avoid name clashes by prefixing the output of @{text rep_datatype} with @{text old}. *}

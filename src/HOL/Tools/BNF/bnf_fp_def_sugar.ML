@@ -92,12 +92,15 @@ sig
     typ list -> typ list list list -> int list list -> int list list -> int list -> thm list list ->
     Ctr_Sugar.ctr_sugar list -> term list list -> thm list list -> (thm list -> thm list) ->
     local_theory -> gfp_sugar_thms
+
+  type co_datatype_spec =
+    ((((binding * (typ * sort)) list * binding) * (binding * binding)) * mixfix)
+    * ((binding, binding * typ, term) Ctr_Sugar.ctr_spec * mixfix) list
+
   val co_datatypes: BNF_FP_Util.fp_kind -> (mixfix list -> binding list -> binding list ->
       binding list list -> binding list -> (string * sort) list -> typ list * typ list list ->
       BNF_Def.bnf list -> local_theory -> BNF_FP_Util.fp_result * local_theory) ->
-    (bool * bool) * (((((binding * (typ * sort)) list * binding) * (binding * binding))
-      * mixfix) * ((((binding * binding) * (binding * typ) list) * (binding * term) list) *
-        mixfix) list) list ->
+    (bool * bool) * co_datatype_spec list ->
     local_theory -> local_theory
   val parse_co_datatype_cmd: BNF_FP_Util.fp_kind -> (mixfix list -> binding list -> binding list ->
       binding list list -> binding list -> (string * sort) list -> typ list * typ list list ->
@@ -310,18 +313,16 @@ fun reassoc_conjs thm =
   reassoc_conjs (thm RS @{thm conj_assoc[THEN iffD1]})
   handle THM _ => thm;
 
-fun type_args_named_constrained_of ((((ncAs, _), _), _), _) = ncAs;
-fun type_binding_of ((((_, b), _), _), _) = b;
-fun map_binding_of (((_, (b, _)), _), _) = b;
-fun rel_binding_of (((_, (_, b)), _), _) = b;
-fun mixfix_of ((_, mx), _) = mx;
-fun ctr_specs_of (_, ctr_specs) = ctr_specs;
+type co_datatype_spec =
+  ((((binding * (typ * sort)) list * binding) * (binding * binding)) * mixfix)
+  * ((binding, binding * typ, term) ctr_spec * mixfix) list;
 
-fun disc_of ((((disc, _), _), _), _) = disc;
-fun ctr_of ((((_, ctr), _), _), _) = ctr;
-fun args_of (((_, args), _), _) = args;
-fun defaults_of ((_, ds), _) = ds;
-fun ctr_mixfix_of (_, mx) = mx;
+fun type_args_named_constrained_of_spec ((((ncAs, _), _), _), _) = ncAs;
+fun type_binding_of_spec ((((_, b), _), _), _) = b;
+fun map_binding_of_spec (((_, (b, _)), _), _) = b;
+fun rel_binding_of_spec (((_, (_, b)), _), _) = b;
+fun mixfix_of_spec ((_, mx), _) = mx;
+fun mixfixed_ctr_specs_of_spec (_, mx_ctr_specs) = mx_ctr_specs;
 
 fun add_nesty_bnf_names Us =
   let
@@ -991,22 +992,22 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         ();
 
     val nn = length specs;
-    val fp_bs = map type_binding_of specs;
+    val fp_bs = map type_binding_of_spec specs;
     val fp_b_names = map Binding.name_of fp_bs;
     val fp_common_name = mk_common_name fp_b_names;
-    val map_bs = map map_binding_of specs;
-    val rel_bs = map rel_binding_of specs;
+    val map_bs = map map_binding_of_spec specs;
+    val rel_bs = map rel_binding_of_spec specs;
 
     fun prepare_type_arg (_, (ty, c)) =
       let val TFree (s, _) = prepare_typ no_defs_lthy0 ty in
         TFree (s, prepare_constraint no_defs_lthy0 c)
       end;
 
-    val Ass0 = map (map prepare_type_arg o type_args_named_constrained_of) specs;
+    val Ass0 = map (map prepare_type_arg o type_args_named_constrained_of_spec) specs;
     val unsorted_Ass0 = map (map (resort_tfree HOLogic.typeS)) Ass0;
     val unsorted_As = Library.foldr1 merge_type_args unsorted_Ass0;
     val num_As = length unsorted_As;
-    val set_bss = map (map fst o type_args_named_constrained_of) specs;
+    val set_bss = map (map fst o type_args_named_constrained_of_spec) specs;
 
     val (((Bs0, Cs), Xs), no_defs_lthy) =
       no_defs_lthy0
@@ -1015,7 +1016,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       ||>> mk_TFrees nn
       ||>> variant_tfrees fp_b_names;
 
-    fun add_fake_type spec = Typedecl.basic_typedecl (type_binding_of spec, num_As, mixfix_of spec);
+    fun add_fake_type spec =
+      Typedecl.basic_typedecl (type_binding_of_spec spec, num_As, mixfix_of_spec spec);
 
     val (fake_T_names, fake_lthy) = fold_map add_fake_type specs no_defs_lthy0;
 
@@ -1032,22 +1034,24 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       error ("Locally fixed type argument " ^ qsoty (hd bad_args) ^ " in " ^ co_prefix fp ^
         "datatype specification");
 
-    val mixfixes = map mixfix_of specs;
+    val mixfixes = map mixfix_of_spec specs;
 
     val _ = (case Library.duplicates Binding.eq_name fp_bs of [] => ()
       | b :: _ => error ("Duplicate type name declaration " ^ quote (Binding.name_of b)));
 
-    val ctr_specss = map ctr_specs_of specs;
+    val mx_ctr_specss = map mixfixed_ctr_specs_of_spec specs;
+    val ctr_specss = map (map fst) mx_ctr_specss;
+    val ctr_mixfixess = map (map snd) mx_ctr_specss;
 
-    val disc_bindingss = map (map disc_of) ctr_specss;
+    val disc_bindingss = map (map disc_of_ctr_spec) ctr_specss;
     val ctr_bindingss =
-      map2 (fn fp_b_name => map (Binding.qualify false fp_b_name o ctr_of)) fp_b_names ctr_specss;
-    val ctr_argsss = map (map args_of) ctr_specss;
-    val ctr_mixfixess = map (map ctr_mixfix_of) ctr_specss;
+      map2 (fn fp_b_name => map (Binding.qualify false fp_b_name o ctr_of_ctr_spec)) fp_b_names
+        ctr_specss;
+    val ctr_argsss = map (map args_of_ctr_spec) ctr_specss;
 
     val sel_bindingsss = map (map (map fst)) ctr_argsss;
     val fake_ctr_Tsss0 = map (map (map (prepare_typ fake_lthy o snd))) ctr_argsss;
-    val raw_sel_defaultsss = map (map defaults_of) ctr_specss;
+    val raw_sel_defaultsss = map (map sel_defaults_of_ctr_spec) ctr_specss;
 
     val (As :: _) :: fake_ctr_Tsss =
       burrow (burrow (Syntax.check_typs fake_lthy)) (Ass0 :: fake_ctr_Tsss0);
@@ -1249,9 +1253,11 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
             val tacss = [exhaust_tac] :: inject_tacss @ half_distinct_tacss;
 
             val sel_defaultss = map (map (apsnd (prepare_term lthy))) raw_sel_defaultss
+
+            fun ctr_spec_of disc_b ctr0 sel_bs sel_defs = (((disc_b, ctr0), sel_bs), sel_defs);
+            val ctr_specs = map4 ctr_spec_of disc_bindings ctrs0 sel_bindingss sel_defaultss;
           in
-            free_constructors tacss (((wrap_opts, ctrs0), standard_binding), (disc_bindings,
-              (sel_bindingss, sel_defaultss))) lthy
+            free_constructors tacss ((wrap_opts, standard_binding), ctr_specs) lthy
           end;
 
         fun derive_maps_sets_rels (ctr_sugar as {case_cong, ...} : ctr_sugar, lthy) =
@@ -1500,13 +1506,6 @@ fun co_datatypes x = define_co_datatypes (K I) (K I) (K I) x;
 fun co_datatype_cmd x =
   define_co_datatypes Typedecl.read_constraint Syntax.parse_typ Syntax.parse_term x;
 
-val parse_ctr_arg =
-  @{keyword "("} |-- parse_binding_colon -- Parse.typ --| @{keyword ")"} ||
-  (Parse.typ >> pair Binding.empty);
-
-val parse_defaults =
-  @{keyword "("} |-- Parse.reserved "defaults" |-- Scan.repeat parse_bound_term --| @{keyword ")"};
-
 val parse_type_arg_constrained =
   Parse.type_ident -- Scan.option (@{keyword "::"} |-- Parse.!!! Parse.sort);
 
@@ -1519,15 +1518,18 @@ val parse_type_args_named_constrained =
   @{keyword "("} |-- Parse.!!! (Parse.list1 parse_type_arg_named_constrained --| @{keyword ")"}) ||
   Scan.succeed [];
 
-val parse_ctr_spec =
-  parse_opt_binding_colon -- parse_binding -- Scan.repeat parse_ctr_arg --
-  Scan.optional parse_defaults [] -- Parse.opt_mixfix;
+val parse_ctr_arg =
+  @{keyword "("} |-- parse_binding_colon -- Parse.typ --| @{keyword ")"} ||
+  (Parse.typ >> pair Binding.empty);
+
+val parse_ctr_specs =
+  Parse.enum1 "|" (parse_ctr_spec parse_binding parse_ctr_arg -- Parse.opt_mixfix);
 
 val parse_spec =
   parse_type_args_named_constrained -- parse_binding -- parse_map_rel_bindings --
-  Parse.opt_mixfix -- (@{keyword "="} |-- Parse.enum1 "|" parse_ctr_spec);
+  Parse.opt_mixfix -- (@{keyword "="} |-- parse_ctr_specs);
 
-val parse_co_datatype = parse_free_constructors_options -- Parse.and_list1 parse_spec;
+val parse_co_datatype = parse_ctr_options -- Parse.and_list1 parse_spec;
 
 fun parse_co_datatype_cmd fp construct_fp = parse_co_datatype >> co_datatype_cmd fp construct_fp;
 

@@ -65,6 +65,8 @@ sig
   val standard_binding: binding
   val equal_binding: binding
   val parse_binding: binding parser
+  val parse_binding_colon: binding parser
+  val parse_opt_binding_colon: binding parser
 
   val ss_only: thm list -> Proof.context -> Proof.context
 
@@ -219,6 +221,8 @@ val standard_binding = @{binding _};
 val equal_binding = @{binding "="};
 
 val parse_binding = Parse.binding || @{keyword "="} >> K equal_binding;
+val parse_binding_colon = parse_binding --| @{keyword ":"};
+val parse_opt_binding_colon = Scan.optional parse_binding_colon Binding.empty;
 
 fun ss_only thms ctxt = clear_simpset (put_simpset HOL_basic_ss ctxt) addsimps thms;
 

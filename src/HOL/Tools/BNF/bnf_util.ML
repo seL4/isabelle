@@ -137,8 +137,6 @@ sig
 
   val fold_thms: Proof.context -> thm list -> thm -> thm
 
-  val parse_binding_colon: binding parser
-  val parse_opt_binding_colon: binding parser
   val parse_type_args_named_constrained: (binding option * (string * string option)) list parser
   val parse_map_rel_bindings: (binding * binding) parser
 
@@ -266,9 +264,6 @@ fun split_list5 [] = ([], [], [], [], [])
   | split_list5 ((x1, x2, x3, x4, x5) :: xs) =
     let val (xs1, xs2, xs3, xs4, xs5) = split_list5 xs;
     in (x1 :: xs1, x2 :: xs2, x3 :: xs3, x4 :: xs4, x5 :: xs5) end;
-
-val parse_binding_colon = parse_binding --| @{keyword ":"};
-val parse_opt_binding_colon = Scan.optional parse_binding_colon Binding.empty;
 
 val parse_type_arg_constrained =
   Parse.type_ident -- Scan.option (@{keyword "::"} |-- Parse.!!! Parse.sort);

@@ -12,7 +12,7 @@ begin
 
 subsection {* @{typ bool} is a datatype *}
 
-free_constructors [True, False] case_bool [=]
+free_constructors case_bool for =: True | False
 by auto
 
 text {* Avoid name clashes by prefixing the output of @{text rep_datatype} with @{text old}. *}
@@ -82,7 +82,7 @@ simproc_setup unit_eq ("x::unit") = {*
     else SOME (mk_meta_eq @{thm unit_eq})
 *}
 
-free_constructors ["()"] case_unit
+free_constructors case_unit for "()"
 by auto
 
 text {* Avoid name clashes by prefixing the output of @{text rep_datatype} with @{text old}. *}
@@ -184,7 +184,7 @@ definition Pair :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<times> 'b" where
 lemma prod_cases: "(\<And>a b. P (Pair a b)) \<Longrightarrow> P p"
   by (cases p) (auto simp add: prod_def Pair_def Pair_Rep_def)
 
-free_constructors [Pair] case_prod [] [[fst, snd]]
+free_constructors case_prod for Pair fst snd
 proof -
   fix P :: bool and p :: "'a \<times> 'b"
   show "(\<And>x1 x2. p = Pair x1 x2 \<Longrightarrow> P) \<Longrightarrow> P"

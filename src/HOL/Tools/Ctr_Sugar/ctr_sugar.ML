@@ -53,12 +53,19 @@ sig
   val dest_case: Proof.context -> string -> typ list -> term ->
     (ctr_sugar * term list * term list) option
 
+  type ('c, 'a, 'v) ctr_spec = ((binding * 'c) * 'a list) * (binding * 'v) list
+
+  val disc_of_ctr_spec: ('c, 'a, 'v) ctr_spec -> binding
+  val ctr_of_ctr_spec: ('c, 'a, 'v) ctr_spec -> 'c
+  val args_of_ctr_spec: ('c, 'a, 'v) ctr_spec -> 'a list
+  val sel_defaults_of_ctr_spec: ('c, 'a, 'v) ctr_spec -> (binding * 'v) list
+
   val free_constructors: ({prems: thm list, context: Proof.context} -> tactic) list list ->
-    (((bool * bool) * term list) * binding) *
-      (binding list * (binding list list * (binding * term) list list)) -> local_theory ->
+    ((bool * bool) * binding) * (term, binding, term) ctr_spec list -> local_theory ->
     ctr_sugar * local_theory
-  val parse_free_constructors_options: (bool * bool) parser
   val parse_bound_term: (binding * string) parser
+  val parse_ctr_options: (bool * bool) parser
+  val parse_ctr_spec: 'c parser -> 'a parser -> ('c, 'a, string) ctr_spec parser
 end;
 
 structure Ctr_Sugar : CTR_SUGAR =
@@ -278,10 +285,22 @@ fun dest_case ctxt s Ts t =
 
 fun eta_expand_arg xs f_xs = fold_rev Term.lambda xs f_xs;
 
-fun prepare_free_constructors prep_term ((((no_discs_sels, no_code), raw_ctrs), raw_case_binding),
-    (raw_disc_bindings, (raw_sel_bindingss, raw_sel_defaultss))) no_defs_lthy =
+type ('c, 'a, 'v) ctr_spec = ((binding * 'c) * 'a list) * (binding * 'v) list;
+
+fun disc_of_ctr_spec (((disc, _), _), _) = disc;
+fun ctr_of_ctr_spec (((_, ctr), _), _) = ctr;
+fun args_of_ctr_spec ((_, args), _) = args;
+fun sel_defaults_of_ctr_spec (_, ds) = ds;
+
+fun prepare_free_constructors prep_term (((no_discs_sels, no_code), raw_case_binding), ctr_specs)
+    no_defs_lthy =
   let
     (* TODO: sanity checks on arguments *)
+
+    val raw_ctrs = map ctr_of_ctr_spec ctr_specs;
+    val raw_disc_bindings = map disc_of_ctr_spec ctr_specs;
+    val raw_sel_bindingss = map args_of_ctr_spec ctr_specs;
+    val raw_sel_defaultss = map sel_defaults_of_ctr_spec ctr_specs;
 
     val n = length raw_ctrs;
     val ks = 1 upto n;
@@ -954,29 +973,28 @@ val free_constructors_cmd = (fn (goalss, after_qed, lthy) =>
   Proof.theorem NONE (snd oo after_qed) (map (map (rpair [])) goalss) lthy) oo
   prepare_free_constructors Syntax.read_term;
 
-fun parse_bracket_list parser = @{keyword "["} |-- Parse.list parser --|  @{keyword "]"};
+val parse_bound_term = parse_binding --| @{keyword ":"} -- Parse.term;
 
-val parse_bindings = parse_bracket_list parse_binding;
-val parse_bindingss = parse_bracket_list parse_bindings;
-
-val parse_bound_term = (parse_binding --| @{keyword ":"}) -- Parse.term;
-val parse_bound_terms = parse_bracket_list parse_bound_term;
-val parse_bound_termss = parse_bracket_list parse_bound_terms;
-
-val parse_free_constructors_options =
+val parse_ctr_options =
   Scan.optional (@{keyword "("} |-- Parse.list1
         (Parse.reserved "no_discs_sels" >> K 0 || Parse.reserved "no_code" >> K 1) --|
       @{keyword ")"}
       >> (fn js => (member (op =) js 0, member (op =) js 1)))
     (false, false);
 
+val parse_defaults =
+  @{keyword "("} |-- Parse.reserved "defaults" |-- Scan.repeat parse_bound_term --| @{keyword ")"};
+
+fun parse_ctr_spec parse_ctr parse_arg =
+  parse_opt_binding_colon -- parse_ctr -- Scan.repeat parse_arg --
+  Scan.optional parse_defaults [];
+
+val parse_ctr_specs = Parse.enum1 "|" (parse_ctr_spec Parse.term parse_binding);
+
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "free_constructors"}
     "register an existing freely generated type's constructors"
-    ((parse_free_constructors_options -- (@{keyword "["} |-- Parse.list Parse.term --|
-        @{keyword "]"}) --
-      parse_binding -- Scan.optional (parse_bindings -- Scan.optional (parse_bindingss --
-        Scan.optional parse_bound_termss []) ([], [])) ([], ([], [])))
+    (parse_ctr_options -- parse_binding --| @{keyword "for"} -- parse_ctr_specs
      >> free_constructors_cmd);
 
 end;
