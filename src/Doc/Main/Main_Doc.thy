@@ -484,7 +484,7 @@ Type @{typ int}
 
 \begin{tabular}{@ {} l @ {~::~} l @ {}}
 @{const Option.the} & @{typeof Option.the}\\
-@{const Option.map} & @{typ[source]"('a \<Rightarrow> 'b) \<Rightarrow> 'a option \<Rightarrow> 'b option"}\\
+@{const map_option} & @{typ[source]"('a \<Rightarrow> 'b) \<Rightarrow> 'a option \<Rightarrow> 'b option"}\\
 @{const Option.set} & @{term_type_only Option.set "'a option \<Rightarrow> 'a set"}\\
 @{const Option.bind} & @{term_type_only Option.bind "'a option \<Rightarrow> ('a \<Rightarrow> 'b option) \<Rightarrow> 'b option"}
 \end{tabular}

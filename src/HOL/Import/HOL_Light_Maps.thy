@@ -252,7 +252,7 @@ lemma LENGTH[import_const LENGTH : List.length]:
   "length ([] :: 'A list) = id 0 \<and> (\<forall>(h\<Colon>'A) t. length (h # t) = Suc (length t))"
   by simp
 
-lemma MAP[import_const MAP : List.map]:
+lemma MAP[import_const MAP : List.list.map]:
   "(\<forall>f\<Colon>'A \<Rightarrow> 'B. map f [] = []) \<and>
        (\<forall>(f\<Colon>'A \<Rightarrow> 'B) h t. map f (h # t) = f h # map f t)"
   by simp

@@ -551,7 +551,7 @@ by (simp add: match_exception_entry_def offset_xcentry_def split_beta)
 
 lemma match_xctable_offset: "
   (match_exception_table G cn (pc + n) (offset_xctable n et)) =
-  (Option.map (\<lambda> pc'. pc' + n) (match_exception_table G cn pc et))"
+  (map_option (\<lambda> pc'. pc' + n) (match_exception_table G cn pc et))"
 apply (induct et)
 apply (simp add: offset_xctable_def)+
 apply (case_tac "match_exception_entry G cn pc a")
@@ -672,7 +672,7 @@ apply (subgoal_tac "\<exists> st. mt ! pc'' = Some st", erule exE)
         in app_jumps_lem)
   apply (simp add: nth_append)+
     (* subgoal \<exists> st. mt ! pc'' = Some st *)
-  apply (simp add: norm_eff_def Option.map_def nth_append)
+  apply (simp add: norm_eff_def map_option_case nth_append)
   apply (case_tac "mt ! pc''")
 apply simp+
 done

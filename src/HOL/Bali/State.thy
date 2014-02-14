@@ -143,7 +143,7 @@ translations
 definition
   fields_table :: "prog \<Rightarrow> qtname \<Rightarrow> (fspec \<Rightarrow> field \<Rightarrow> bool)  \<Rightarrow> (fspec, ty) table" where
   "fields_table G C P =
-    Option.map type \<circ> table_of (filter (split P) (DeclConcepts.fields G C))"
+    map_option type \<circ> table_of (filter (split P) (DeclConcepts.fields G C))"
 
 lemma fields_table_SomeI: 
 "\<lbrakk>table_of (DeclConcepts.fields G C) n = Some f; P n f\<rbrakk> 
@@ -283,7 +283,7 @@ done
 subsection "initialization"
 
 abbreviation init_vals :: "('a, ty) table \<Rightarrow> ('a, val) table"
-  where "init_vals vs == Option.map default_val \<circ> vs"
+  where "init_vals vs == map_option default_val \<circ> vs"
 
 lemma init_arr_comps_base [simp]: "init_vals (arr_comps T 0) = empty"
 apply (unfold arr_comps_def in_bounds_def)

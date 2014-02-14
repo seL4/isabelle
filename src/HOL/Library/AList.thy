@@ -399,7 +399,7 @@ lemma dom_map_ran:
   by (simp add: map_ran_def image_image split_def)
   
 lemma map_ran_conv:
-  "map_of (map_ran f al) k = Option.map (f k) (map_of al k)"
+  "map_of (map_ran f al) k = map_option (f k) (map_of al k)"
   by (induct al) auto
 
 lemma distinct_map_ran:

@@ -146,7 +146,7 @@ lemma let_cong [fundef_cong]:
 
 lemmas [fundef_cong] =
   if_cong image_cong INT_cong UN_cong
-  bex_cong ball_cong imp_cong Option.map_cong Option.bind_cong
+  bex_cong ball_cong imp_cong map_option_cong Option.bind_cong
 
 lemma split_cong [fundef_cong]:
   "(\<And>x y. (x, y) = q \<Longrightarrow> f x y = g x y) \<Longrightarrow> p = q

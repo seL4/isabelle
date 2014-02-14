@@ -97,7 +97,7 @@ done
 section "value conformance"
 
 definition conf :: "prog \<Rightarrow> st \<Rightarrow> val \<Rightarrow> ty \<Rightarrow> bool" ("_,_\<turnstile>_\<Colon>\<preceq>_"   [71,71,71,71] 70)
-  where "G,s\<turnstile>v\<Colon>\<preceq>T = (\<exists>T'\<in>typeof (\<lambda>a. Option.map obj_ty (heap s a)) v:G\<turnstile>T'\<preceq>T)"
+  where "G,s\<turnstile>v\<Colon>\<preceq>T = (\<exists>T'\<in>typeof (\<lambda>a. map_option obj_ty (heap s a)) v:G\<turnstile>T'\<preceq>T)"
 
 lemma conf_cong [simp]: "G,set_locals l s\<turnstile>v\<Colon>\<preceq>T = G,s\<turnstile>v\<Colon>\<preceq>T"
 by (auto simp: conf_def)

@@ -182,7 +182,7 @@ where
 "those [] = Some []" |
 "those (x # xs) = (case x of
   None \<Rightarrow> None
-| Some y \<Rightarrow> Option.map (Cons y) (those xs))"
+| Some y \<Rightarrow> map_option (Cons y) (those xs))"
 
 primrec remove1 :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 "remove1 x [] = []" |

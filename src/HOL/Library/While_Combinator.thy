@@ -85,7 +85,7 @@ assumes Invariant: "\<And>s. P s \<Longrightarrow> b s \<Longrightarrow> P (c s)
 assumes TestCommute: "\<And>s. P s \<Longrightarrow> b s = b' (f s)"
 assumes BodyCommute: "\<And>s. P s \<Longrightarrow> b s \<Longrightarrow> f (c s) = c' (f s)"
 assumes Initial: "P s"
-shows "Option.map f (while_option b c s) = while_option b' c' (f s)"
+shows "map_option f (while_option b c s) = while_option b' c' (f s)"
 unfolding while_option_def
 proof (rule trans[OF if_distrib if_cong], safe, unfold option.inject)
   fix k
@@ -188,7 +188,7 @@ qed
 
 lemma while_option_commute:
   assumes "\<And>s. b s = b' (f s)" "\<And>s. \<lbrakk>b s\<rbrakk> \<Longrightarrow> f (c s) = c' (f s)" 
-  shows "Option.map f (while_option b c s) = while_option b' c' (f s)"
+  shows "map_option f (while_option b c s) = while_option b' c' (f s)"
 by(rule while_option_commute_invariant[where P = "\<lambda>_. True"])
   (auto simp add: assms)
 

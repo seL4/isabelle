@@ -1429,7 +1429,7 @@ proof -
             by (auto elim!: finite_subset[rotated])
           from h_underS have "h \<noteq> g" and hg: "(h, g) \<in> rt.oexp" unfolding underS_def by auto
           with f inj have neq: "?f h \<noteq> ?f g"
-            unfolding fun_eq_iff inj_on_def rt.oexp_def Option.map_def FinFunc_def Func_def Let_def
+            unfolding fun_eq_iff inj_on_def rt.oexp_def map_option_case FinFunc_def Func_def Let_def
             by simp metis
           moreover
           with hg have "t.max_fun_diff (?f h) (?f g) = t.max_fun_diff h g" unfolding rt.oexp_def

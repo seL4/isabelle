@@ -1025,7 +1025,7 @@ unfolding is_rbt_def by (simp add: rbt_map_entry_inv2 rbt_map_entry_color_of rbt
 end
 
 theorem (in linorder) rbt_lookup_rbt_map_entry:
-  "rbt_lookup (rbt_map_entry k f t) = (rbt_lookup t)(k := Option.map f (rbt_lookup t k))"
+  "rbt_lookup (rbt_map_entry k f t) = (rbt_lookup t)(k := map_option f (rbt_lookup t k))"
   by (induct t) (auto split: option.splits simp add: fun_eq_iff)
 
 subsection {* Mapping all entries *}
@@ -1053,7 +1053,7 @@ unfolding is_rbt_def by (simp add: map_inv1 map_inv2 map_rbt_sorted map_color_of
 
 end
 
-theorem (in linorder) rbt_lookup_map: "rbt_lookup (map f t) x = Option.map (f x) (rbt_lookup t x)"
+theorem (in linorder) rbt_lookup_map: "rbt_lookup (map f t) x = map_option (f x) (rbt_lookup t x)"
   apply(induct t)
   apply auto
   apply(subgoal_tac "x = a")
@@ -1855,9 +1855,9 @@ qed simp_all
 lemma map_of_sinter_with:
   "\<lbrakk> sorted (map fst xs); sorted (map fst ys) \<rbrakk>
   \<Longrightarrow> map_of (sinter_with f xs ys) k = 
-  (case map_of xs k of None \<Rightarrow> None | Some v \<Rightarrow> Option.map (f k v) (map_of ys k))"
+  (case map_of xs k of None \<Rightarrow> None | Some v \<Rightarrow> map_option (f k v) (map_of ys k))"
 apply(induct f xs ys rule: sinter_with.induct)
-apply(auto simp add: sorted_Cons Option.map_def split: option.splits dest: map_of_SomeD bspec)
+apply(auto simp add: sorted_Cons map_option_case split: option.splits dest: map_of_SomeD bspec)
 done
 
 end
@@ -1866,11 +1866,11 @@ lemma distinct_map_of_rev: "distinct (map fst xs) \<Longrightarrow> map_of (rev 
 by(induct xs)(auto 4 3 simp add: map_add_def intro!: ext split: option.split intro: rev_image_eqI)
 
 lemma map_map_filter: 
-  "map f (List.map_filter g xs) = List.map_filter (Option.map f \<circ> g) xs"
+  "map f (List.map_filter g xs) = List.map_filter (map_option f \<circ> g) xs"
 by(auto simp add: List.map_filter_def)
 
-lemma map_filter_option_map_const: 
-  "List.map_filter (\<lambda>x. Option.map (\<lambda>y. f x) (g (f x))) xs = filter (\<lambda>x. g x \<noteq> None) (map f xs)"
+lemma map_filter_map_option_const: 
+  "List.map_filter (\<lambda>x. map_option (\<lambda>y. f x) (g (f x))) xs = filter (\<lambda>x. g x \<noteq> None) (map f xs)"
 by(auto simp add: map_filter_def filter_map o_def)
 
 lemma set_map_filter: "set (List.map_filter P xs) = the ` (P ` set xs - {None})"
@@ -1897,8 +1897,8 @@ where
   "rbt_inter_with_key f t1 t2 =
   (case RBT_Impl.compare_height t1 t1 t2 t2 
    of compare.EQ \<Rightarrow> rbtreeify (sinter_with f (entries t1) (entries t2))
-    | compare.LT \<Rightarrow> rbtreeify (List.map_filter (\<lambda>(k, v). Option.map (\<lambda>w. (k, f k v w)) (rbt_lookup t2 k)) (entries t1))
-    | compare.GT \<Rightarrow> rbtreeify (List.map_filter (\<lambda>(k, v). Option.map (\<lambda>w. (k, f k w v)) (rbt_lookup t1 k)) (entries t2)))"
+    | compare.LT \<Rightarrow> rbtreeify (List.map_filter (\<lambda>(k, v). map_option (\<lambda>w. (k, f k v w)) (rbt_lookup t2 k)) (entries t1))
+    | compare.GT \<Rightarrow> rbtreeify (List.map_filter (\<lambda>(k, v). map_option (\<lambda>w. (k, f k w v)) (rbt_lookup t1 k)) (entries t2)))"
 
 definition rbt_inter_with where
   "rbt_inter_with f = rbt_inter_with_key (\<lambda>_. f)"
@@ -1971,7 +1971,7 @@ by(rule ext)(simp add: rbt_lookup_rbt_unionwk rbt_union_def map_add_def split: o
 
 lemma rbt_interwk_is_rbt [simp]:
   "\<lbrakk> rbt_sorted t1; rbt_sorted t2 \<rbrakk> \<Longrightarrow> is_rbt (rbt_inter_with_key f t1 t2)"
-by(auto simp add: rbt_inter_with_key_def Let_def map_map_filter split_def o_def option_map_comp map_filter_option_map_const sorted_filter[where f=id, simplified] rbt_sorted_entries distinct_entries intro: is_rbt_rbtreeify split: compare.split)
+by(auto simp add: rbt_inter_with_key_def Let_def map_map_filter split_def o_def option.map_comp map_filter_map_option_const sorted_filter[where f=id, simplified] rbt_sorted_entries distinct_entries intro: is_rbt_rbtreeify split: compare.split)
 
 lemma rbt_interw_is_rbt:
   "\<lbrakk> rbt_sorted t1; rbt_sorted t2 \<rbrakk> \<Longrightarrow> is_rbt (rbt_inter_with f t1 t2)"
@@ -1987,7 +1987,7 @@ lemma rbt_lookup_rbt_interwk:
   (case rbt_lookup t1 k of None \<Rightarrow> None 
    | Some v \<Rightarrow> case rbt_lookup t2 k of None \<Rightarrow> None
                | Some w \<Rightarrow> Some (f k v w))"
-by(auto 4 3 simp add: rbt_inter_with_key_def Let_def map_of_entries[symmetric] rbt_lookup_rbtreeify map_map_filter split_def o_def option_map_comp map_filter_option_map_const sorted_filter[where f=id, simplified] rbt_sorted_entries distinct_entries map_of_sinter_with map_of_eq_None_iff set_map_filter split: option.split compare.split intro: rev_image_eqI dest: rbt_sorted_entries_right_unique)
+by(auto 4 3 simp add: rbt_inter_with_key_def Let_def map_of_entries[symmetric] rbt_lookup_rbtreeify map_map_filter split_def o_def option.map_comp map_filter_map_option_const sorted_filter[where f=id, simplified] rbt_sorted_entries distinct_entries map_of_sinter_with map_of_eq_None_iff set_map_filter split: option.split compare.split intro: rev_image_eqI dest: rbt_sorted_entries_right_unique)
 
 lemma rbt_lookup_rbt_inter:
   "\<lbrakk> rbt_sorted t1; rbt_sorted t2 \<rbrakk>

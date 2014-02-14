@@ -151,11 +151,11 @@ using assms by (cases z) auto
 
 text {* Continuity rule for map. *}
 
-lemma cont2cont_option_map [simp, cont2cont]:
+lemma cont2cont_map_option [simp, cont2cont]:
   assumes f: "cont (\<lambda>(x, y). f x y)"
   assumes g: "cont (\<lambda>x. g x)"
-  shows "cont (\<lambda>x. Option.map (\<lambda>y. f x y) (g x))"
-using assms by (simp add: prod_cont_iff Option.map_def)
+  shows "cont (\<lambda>x. map_option (\<lambda>y. f x y) (g x))"
+using assms by (simp add: prod_cont_iff map_option_case)
 
 subsection {* Compactness and chain-finiteness *}
 
@@ -262,10 +262,10 @@ lemma liftdefl_option [domain_defl_simps]:
 by (rule liftdefl_option_def)
 
 abbreviation option_map
-  where "option_map f \<equiv> Abs_cfun (Option.map (Rep_cfun f))"
+  where "option_map f \<equiv> Abs_cfun (map_option (Rep_cfun f))"
 
 lemma option_map_ID [domain_map_ID]: "option_map ID = ID"
-by (simp add: ID_def cfun_eq_iff Option.map.identity id_def)
+by (simp add: ID_def cfun_eq_iff option.map_id[unfolded id_def] id_def)
 
 lemma deflation_option_map [domain_deflation]:
   "deflation d \<Longrightarrow> deflation (option_map d)"
@@ -275,7 +275,7 @@ apply (induct_tac x, simp_all add: deflation.below)
 done
 
 lemma encode_option_option_map:
-  "encode_option\<cdot>(Option.map (\<lambda>x. f\<cdot>x) (decode_option\<cdot>x)) = sum_map' ID f\<cdot>x"
+  "encode_option\<cdot>(map_option (\<lambda>x. f\<cdot>x) (decode_option\<cdot>x)) = sum_map' ID f\<cdot>x"
 by (induct x, simp_all add: decode_option_def encode_option_def)
 
 lemma isodefl_option [domain_isodefl]:

@@ -28,7 +28,7 @@ translations
   (type) "obj"    \<leftharpoondown> (type) "cname \<times> fields"
 
 definition init_vars :: "('a \<rightharpoonup> 'b) => ('a \<rightharpoonup> val)" where
- "init_vars m == Option.map (\<lambda>T. Null) o m"
+ "init_vars m == map_option (\<lambda>T. Null) o m"
   
 text {* private: *}
 type_synonym heap = "loc   \<rightharpoonup> obj"

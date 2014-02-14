@@ -140,7 +140,7 @@ lemma list_of_lazy_sequence_map [simp]:
 
 lemma map_code [code]:
   "map f xq =
-    Lazy_Sequence (\<lambda>_. Option.map (\<lambda>(x, xq'). (f x, map f xq')) (yield xq))"
+    Lazy_Sequence (\<lambda>_. map_option (\<lambda>(x, xq'). (f x, map f xq')) (yield xq))"
   by (simp_all add: lazy_sequence_eq_iff split: list.splits)
 
 definition flat :: "'a lazy_sequence lazy_sequence \<Rightarrow> 'a lazy_sequence"
@@ -167,7 +167,7 @@ where
 
 definition those :: "'a option lazy_sequence \<Rightarrow> 'a lazy_sequence option"
 where
-  "those xq = Option.map lazy_sequence_of_list (List.those (list_of_lazy_sequence xq))"
+  "those xq = map_option lazy_sequence_of_list (List.those (list_of_lazy_sequence xq))"
   
 function iterate_upto :: "(natural \<Rightarrow> 'a) \<Rightarrow> natural \<Rightarrow> natural \<Rightarrow> 'a lazy_sequence"
 where
@@ -301,21 +301,21 @@ where
 
 definition hb_map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a hit_bound_lazy_sequence \<Rightarrow> 'b hit_bound_lazy_sequence"
 where
-  "hb_map f xq = map (Option.map f) xq"
+  "hb_map f xq = map (map_option f) xq"
 
 lemma hb_map_code [code]:
   "hb_map f xq =
-    Lazy_Sequence (\<lambda>_. Option.map (\<lambda>(x, xq'). (Option.map f x, hb_map f xq')) (yield xq))"
-  using map_code [of "Option.map f" xq] by (simp add: hb_map_def)
+    Lazy_Sequence (\<lambda>_. map_option (\<lambda>(x, xq'). (map_option f x, hb_map f xq')) (yield xq))"
+  using map_code [of "map_option f" xq] by (simp add: hb_map_def)
 
 definition hb_flat :: "'a hit_bound_lazy_sequence hit_bound_lazy_sequence \<Rightarrow> 'a hit_bound_lazy_sequence"
 where
   "hb_flat xqq = lazy_sequence_of_list (concat
-    (List.map ((\<lambda>x. case x of None \<Rightarrow> [None] | Some xs \<Rightarrow> xs) \<circ> Option.map list_of_lazy_sequence) (list_of_lazy_sequence xqq)))"
+    (List.map ((\<lambda>x. case x of None \<Rightarrow> [None] | Some xs \<Rightarrow> xs) \<circ> map_option list_of_lazy_sequence) (list_of_lazy_sequence xqq)))"
 
 lemma list_of_lazy_sequence_hb_flat [simp]:
   "list_of_lazy_sequence (hb_flat xqq) =
-    concat (List.map ((\<lambda>x. case x of None \<Rightarrow> [None] | Some xs \<Rightarrow> xs) \<circ> Option.map list_of_lazy_sequence) (list_of_lazy_sequence xqq))"
+    concat (List.map ((\<lambda>x. case x of None \<Rightarrow> [None] | Some xs \<Rightarrow> xs) \<circ> map_option list_of_lazy_sequence) (list_of_lazy_sequence xqq))"
   by (simp add: hb_flat_def)
 
 lemma hb_flat_code [code]:

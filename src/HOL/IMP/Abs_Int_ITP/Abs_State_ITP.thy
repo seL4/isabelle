@@ -19,8 +19,8 @@ definition [simp]: "inter_list xs ys = [x\<leftarrow>xs. x \<in> set ys]"
 
 definition "show_st S = [(x,fun S x). x \<leftarrow> sort(dom S)]"
 
-definition "show_acom = map_acom (Option.map show_st)"
-definition "show_acom_opt = Option.map show_acom"
+definition "show_acom = map_acom (map_option show_st)"
+definition "show_acom_opt = map_option show_acom"
 
 definition "lookup F x = (if x : set(dom F) then fun F x else \<top>)"
 

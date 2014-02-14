@@ -95,7 +95,7 @@ definition xcpt_eff :: "instr \<Rightarrow> jvm_prog \<Rightarrow> p_count \<Rig
        (xcpt_names (i,G,pc,et))"
 
 definition norm_eff :: "instr \<Rightarrow> jvm_prog \<Rightarrow> state_type option \<Rightarrow> state_type option" where
-  "norm_eff i G == Option.map (\<lambda>s. eff' (i,G,s))"
+  "norm_eff i G == map_option (\<lambda>s. eff' (i,G,s))"
 
 definition eff :: "instr \<Rightarrow> jvm_prog \<Rightarrow> p_count \<Rightarrow> exception_table \<Rightarrow> state_type option \<Rightarrow> succ_type" where
   "eff i G pc et s == (map (\<lambda>pc'. (pc',norm_eff i G s)) (succs i pc)) @ (xcpt_eff i G pc s et)"

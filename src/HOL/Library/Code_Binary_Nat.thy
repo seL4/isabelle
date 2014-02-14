@@ -68,9 +68,9 @@ lemma sub_code [code]:
   "sub (Num.Bit1 m) Num.One = Some (nat_of_num (Num.Bit0 m))"
   "sub Num.One (Num.Bit0 n) = None"
   "sub Num.One (Num.Bit1 n) = None"
-  "sub (Num.Bit0 m) (Num.Bit0 n) = Option.map dup (sub m n)"
-  "sub (Num.Bit1 m) (Num.Bit1 n) = Option.map dup (sub m n)"
-  "sub (Num.Bit1 m) (Num.Bit0 n) = Option.map (\<lambda>q. dup q + 1) (sub m n)"
+  "sub (Num.Bit0 m) (Num.Bit0 n) = map_option dup (sub m n)"
+  "sub (Num.Bit1 m) (Num.Bit1 n) = map_option dup (sub m n)"
+  "sub (Num.Bit1 m) (Num.Bit0 n) = map_option (\<lambda>q. dup q + 1) (sub m n)"
   "sub (Num.Bit0 m) (Num.Bit1 n) = (case sub m n of None \<Rightarrow> None
      | Some q \<Rightarrow> if q = 0 then None else Some (dup q - 1))"
   apply (auto simp add: nat_of_num_numeral

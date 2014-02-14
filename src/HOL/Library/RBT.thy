@@ -127,11 +127,11 @@ lemma lookup_bulkload [simp]:
   by transfer (rule rbt_lookup_rbt_bulkload)
 
 lemma lookup_map_entry [simp]:
-  "lookup (map_entry k f t) = (lookup t)(k := Option.map f (lookup t k))"
+  "lookup (map_entry k f t) = (lookup t)(k := map_option f (lookup t k))"
   by transfer (rule rbt_lookup_rbt_map_entry)
 
 lemma lookup_map [simp]:
-  "lookup (map f t) k = Option.map (f k) (lookup t k)"
+  "lookup (map f t) k = map_option (f k) (lookup t k)"
   by transfer (rule rbt_lookup_map)
 
 lemma fold_fold:

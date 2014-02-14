@@ -83,8 +83,8 @@ subsection {* Quotient theorem for the Lifting package *}
 
 lemma Quotient_option[quot_map]:
   assumes "Quotient R Abs Rep T"
-  shows "Quotient (option_rel R) (Option.map Abs)
-    (Option.map Rep) (option_rel T)"
+  shows "Quotient (option_rel R) (map_option Abs)
+    (map_option Rep) (option_rel T)"
   using assms unfolding Quotient_alt_def option_rel_def
   by (simp split: option.split)
 
@@ -104,9 +104,9 @@ lemma case_option_transfer [transfer_rule]:
   "(B ===> (A ===> B) ===> option_rel A ===> B) case_option case_option"
   unfolding fun_rel_def split_option_all by simp
 
-lemma option_map_transfer [transfer_rule]:
-  "((A ===> B) ===> option_rel A ===> option_rel B) Option.map Option.map"
-  unfolding Option.map_def by transfer_prover
+lemma map_option_transfer [transfer_rule]:
+  "((A ===> B) ===> option_rel A ===> option_rel B) map_option map_option"
+  unfolding map_option_case[abs_def] by transfer_prover
 
 lemma option_bind_transfer [transfer_rule]:
   "(option_rel A ===> (A ===> option_rel B) ===> option_rel B)

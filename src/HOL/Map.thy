@@ -242,21 +242,21 @@ lemma map_of_filter_in:
 by (induct xs) auto
 
 lemma map_of_map:
-  "map_of (map (\<lambda>(k, v). (k, f v)) xs) = Option.map f \<circ> map_of xs"
+  "map_of (map (\<lambda>(k, v). (k, f v)) xs) = map_option f \<circ> map_of xs"
   by (induct xs) (auto simp add: fun_eq_iff)
 
-lemma dom_option_map:
-  "dom (\<lambda>k. Option.map (f k) (m k)) = dom m"
+lemma dom_map_option:
+  "dom (\<lambda>k. map_option (f k) (m k)) = dom m"
   by (simp add: dom_def)
 
 
-subsection {* @{const Option.map} related *}
+subsection {* @{const map_option} related *}
 
-lemma option_map_o_empty [simp]: "Option.map f o empty = empty"
+lemma map_option_o_empty [simp]: "map_option f o empty = empty"
 by (rule ext) simp
 
-lemma option_map_o_map_upd [simp]:
-  "Option.map f o m(a|->b) = (Option.map f o m)(a|->f b)"
+lemma map_option_o_map_upd [simp]:
+  "map_option f o m(a|->b) = (map_option f o m)(a|->f b)"
 by (rule ext) simp
 
 

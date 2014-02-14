@@ -65,7 +65,7 @@ by (auto dest: list_all2_lengthD list_all2_nthD)
 
 lemma map_transfer: 
   "((A ===> B) ===> (C ===> D) ===> (B ===> option_rel C) ===> A ===> option_rel D) 
-    (\<lambda>f g m. (Option.map g \<circ> m \<circ> f)) (\<lambda>f g m. (Option.map g \<circ> m \<circ> f))"
+    (\<lambda>f g m. (map_option g \<circ> m \<circ> f)) (\<lambda>f g m. (map_option g \<circ> m \<circ> f))"
 by transfer_prover
 
 lemma map_entry_transfer:
@@ -105,13 +105,13 @@ lift_definition bulkload :: "'a list \<Rightarrow> (nat, 'a) mapping" is
   "\<lambda>xs k. if k < length xs then Some (xs ! k) else None" parametric bulkload_transfer .
 
 lift_definition map :: "('c \<Rightarrow> 'a) \<Rightarrow> ('b \<Rightarrow> 'd) \<Rightarrow> ('a, 'b) mapping \<Rightarrow> ('c, 'd) mapping" is
-  "\<lambda>f g m. (Option.map g \<circ> m \<circ> f)" parametric map_transfer .
+  "\<lambda>f g m. (map_option g \<circ> m \<circ> f)" parametric map_transfer .
 
 
 subsection {* Functorial structure *}
 
 enriched_type map: map
-  by (transfer, auto simp add: fun_eq_iff Option.map.compositionality Option.map.id)+
+  by (transfer, auto simp add: fun_eq_iff option.map_comp option.map_id)+
 
 
 subsection {* Derived operations *}
@@ -367,5 +367,3 @@ hide_const (open) empty is_empty rep lookup update delete ordered_keys keys size
   replace default map_entry map_default tabulate bulkload map of_alist
 
 end
-
-

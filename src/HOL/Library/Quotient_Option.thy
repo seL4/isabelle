@@ -11,20 +11,16 @@ begin
 subsection {* Rules for the Quotient package *}
 
 lemma option_rel_map1:
-  "option_rel R (Option.map f x) y \<longleftrightarrow> option_rel (\<lambda>x. R (f x)) x y"
+  "option_rel R (map_option f x) y \<longleftrightarrow> option_rel (\<lambda>x. R (f x)) x y"
   by (simp add: option_rel_def split: option.split)
 
 lemma option_rel_map2:
-  "option_rel R x (Option.map f y) \<longleftrightarrow> option_rel (\<lambda>x y. R x (f y)) x y"
+  "option_rel R x (map_option f y) \<longleftrightarrow> option_rel (\<lambda>x y. R x (f y)) x y"
   by (simp add: option_rel_def split: option.split)
 
-lemma option_map_id [id_simps]:
-  "Option.map id = id"
-  by (simp add: id_def Option.map.identity fun_eq_iff)
-
-lemma option_rel_eq [id_simps]:
-  "option_rel (op =) = (op =)"
-  by (simp add: option_rel_def fun_eq_iff split: option.split)
+declare
+  map_option.id [id_simps]
+  option_rel_eq [id_simps]
 
 lemma option_symp:
   "symp R \<Longrightarrow> symp (option_rel R)"
@@ -40,9 +36,9 @@ lemma option_equivp [quot_equiv]:
 
 lemma option_quotient [quot_thm]:
   assumes "Quotient3 R Abs Rep"
-  shows "Quotient3 (option_rel R) (Option.map Abs) (Option.map Rep)"
+  shows "Quotient3 (option_rel R) (map_option Abs) (map_option Rep)"
   apply (rule Quotient3I)
-  apply (simp_all add: Option.map.compositionality comp_def Option.map.identity option_rel_eq option_rel_map1 option_rel_map2 Quotient3_abs_rep [OF assms] Quotient3_rel_rep [OF assms])
+  apply (simp_all add: option.map_comp comp_def option.map_id[unfolded id_def] option_rel_eq option_rel_map1 option_rel_map2 Quotient3_abs_rep [OF assms] Quotient3_rel_rep [OF assms])
   using Quotient3_rel [OF assms]
   apply (simp add: option_rel_def split: option.split)
   done
@@ -61,12 +57,12 @@ lemma option_Some_rsp [quot_respect]:
 
 lemma option_None_prs [quot_preserve]:
   assumes q: "Quotient3 R Abs Rep"
-  shows "Option.map Abs None = None"
+  shows "map_option Abs None = None"
   by simp
 
 lemma option_Some_prs [quot_preserve]:
   assumes q: "Quotient3 R Abs Rep"
-  shows "(Rep ---> Option.map Abs) Some = Some"
+  shows "(Rep ---> map_option Abs) Some = Some"
   apply(simp add: fun_eq_iff)
   apply(simp add: Quotient3_abs_rep[OF q])
   done

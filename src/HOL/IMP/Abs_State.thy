@@ -33,8 +33,8 @@ by(simp add: eq_st_def)
 definition show_st :: "vname set \<Rightarrow> ('a::top) st \<Rightarrow> (vname * 'a)set" where
 "show_st X S = (\<lambda>x. (x, fun S x)) ` X"
 
-definition "show_acom C = map_acom (Option.map (show_st (vars(strip C)))) C"
-definition "show_acom_opt = Option.map show_acom"
+definition "show_acom C = map_acom (map_option (show_st (vars(strip C)))) C"
+definition "show_acom_opt = map_option show_acom"
 
 lemma fun_update[simp]: "fun (update S x y) = (fun S)(x:=y)"
 by transfer auto

@@ -27,11 +27,11 @@ definition yield :: "'a dseq \<Rightarrow> natural \<Rightarrow> bool \<Rightarr
 where
   "yield f i pol = (case eval f i pol of
     None \<Rightarrow> None
-  | Some s \<Rightarrow> (Option.map \<circ> apsnd) (\<lambda>r _ _. Some r) (Lazy_Sequence.yield s))"
+  | Some s \<Rightarrow> (map_option \<circ> apsnd) (\<lambda>r _ _. Some r) (Lazy_Sequence.yield s))"
 
 definition map_seq :: "('a \<Rightarrow> 'b dseq) \<Rightarrow> 'a lazy_sequence \<Rightarrow> 'b dseq"
 where
-  "map_seq f xq i pol = Option.map Lazy_Sequence.flat
+  "map_seq f xq i pol = map_option Lazy_Sequence.flat
     (Lazy_Sequence.those (Lazy_Sequence.map (\<lambda>x. f x i pol) xq))"
 
 lemma map_seq_code [code]:

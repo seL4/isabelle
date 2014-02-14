@@ -80,53 +80,43 @@ lemma elem_set [iff]: "(x : set xo) = (xo = Some x)"
 lemma set_empty_eq [simp]: "(set xo = {}) = (xo = None)"
   by (cases xo) auto
 
-definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a option \<Rightarrow> 'b option" where
-  "map = (%f y. case y of None => None | Some x => Some (f x))"
+lemma map_option_case: "map_option f y = (case y of None => None | Some x => Some (f x))"
+  by (auto split: option.split)
 
-lemma option_map_None [simp, code]: "map f None = None"
-  by (simp add: map_def)
+lemma map_option_is_None [iff]:
+    "(map_option f opt = None) = (opt = None)"
+  by (simp add: map_option_case split add: option.split)
 
-lemma option_map_Some [simp, code]: "map f (Some x) = Some (f x)"
-  by (simp add: map_def)
+lemma map_option_eq_Some [iff]:
+    "(map_option f xo = Some y) = (EX z. xo = Some z & f z = y)"
+  by (simp add: map_option_case split add: option.split)
 
-lemma option_map_is_None [iff]:
-    "(map f opt = None) = (opt = None)"
-  by (simp add: map_def split add: option.split)
+lemma map_option_o_case_sum [simp]:
+    "map_option f o case_sum g h = case_sum (map_option f o g) (map_option f o h)"
+  by (rule o_case_sum)
 
-lemma option_map_eq_Some [iff]:
-    "(map f xo = Some y) = (EX z. xo = Some z & f z = y)"
-  by (simp add: map_def split add: option.split)
-
-lemma option_map_comp:
-    "map f (map g opt) = map (f o g) opt"
-  by (simp add: map_def split add: option.split)
-
-lemma option_map_o_case_sum [simp]:
-    "map f o case_sum g h = case_sum (map f o g) (map f o h)"
-  by (rule ext) (simp split: sum.split)
-
-lemma map_cong: "x = y \<Longrightarrow> (\<And>a. y = Some a \<Longrightarrow> f a = g a) \<Longrightarrow> map f x = map g y"
+lemma map_option_cong: "x = y \<Longrightarrow> (\<And>a. y = Some a \<Longrightarrow> f a = g a) \<Longrightarrow> map_option f x = map_option g y"
 by (cases x) auto
 
-enriched_type map: Option.map proof -
+enriched_type map_option: map_option proof -
   fix f g
-  show "Option.map f \<circ> Option.map g = Option.map (f \<circ> g)"
+  show "map_option f \<circ> map_option g = map_option (f \<circ> g)"
   proof
     fix x
-    show "(Option.map f \<circ> Option.map g) x= Option.map (f \<circ> g) x"
+    show "(map_option f \<circ> map_option g) x= map_option (f \<circ> g) x"
       by (cases x) simp_all
   qed
 next
-  show "Option.map id = id"
+  show "map_option id = id"
   proof
     fix x
-    show "Option.map id x = id x"
+    show "map_option id x = id x"
       by (cases x) simp_all
   qed
 qed
 
-lemma case_option_map [simp]:
-  "case_option g h (Option.map f x) = case_option g (h \<circ> f) x"
+lemma case_map_option [simp]:
+  "case_option g h (map_option f x) = case_option g (h \<circ> f) x"
   by (cases x) simp_all
 
 primrec bind :: "'a option \<Rightarrow> ('a \<Rightarrow> 'b option) \<Rightarrow> 'b option" where
@@ -192,8 +182,8 @@ lemma these_not_empty_eq:
   "these B \<noteq> {} \<longleftrightarrow> B \<noteq> {} \<and> B \<noteq> {None}"
   by (auto simp add: these_empty_eq)
 
-hide_const (open) set map bind these
-hide_fact (open) map_cong bind_cong
+hide_const (open) set bind these
+hide_fact (open) bind_cong
 
 
 subsubsection {* Interaction with finite sets *}
