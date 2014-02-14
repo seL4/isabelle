@@ -53,11 +53,11 @@ sig
   val dest_case: Proof.context -> string -> typ list -> term ->
     (ctr_sugar * term list * term list) option
 
-  val wrap_free_constructors: ({prems: thm list, context: Proof.context} -> tactic) list list ->
+  val free_constructors: ({prems: thm list, context: Proof.context} -> tactic) list list ->
     (((bool * bool) * term list) * binding) *
       (binding list * (binding list list * (binding * term) list list)) -> local_theory ->
     ctr_sugar * local_theory
-  val parse_wrap_free_constructors_options: (bool * bool) parser
+  val parse_free_constructors_options: (bool * bool) parser
   val parse_bound_term: (binding * string) parser
 end;
 
@@ -278,8 +278,8 @@ fun dest_case ctxt s Ts t =
 
 fun eta_expand_arg xs f_xs = fold_rev Term.lambda xs f_xs;
 
-fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, no_code), raw_ctrs),
-    raw_case_binding), (raw_disc_bindings, (raw_sel_bindingss, raw_sel_defaultss))) no_defs_lthy =
+fun prepare_free_constructors prep_term ((((no_discs_sels, no_code), raw_ctrs), raw_case_binding),
+    (raw_disc_bindings, (raw_sel_bindingss, raw_sel_defaultss))) no_defs_lthy =
   let
     (* TODO: sanity checks on arguments *)
 
@@ -946,13 +946,13 @@ fun prepare_wrap_free_constructors prep_term ((((no_discs_sels, no_code), raw_ct
     (goalss, after_qed, lthy')
   end;
 
-fun wrap_free_constructors tacss = (fn (goalss, after_qed, lthy) =>
+fun free_constructors tacss = (fn (goalss, after_qed, lthy) =>
   map2 (map2 (Thm.close_derivation oo Goal.prove_sorry lthy [] [])) goalss tacss
-  |> (fn thms => after_qed thms lthy)) oo prepare_wrap_free_constructors (K I);
+  |> (fn thms => after_qed thms lthy)) oo prepare_free_constructors (K I);
 
-val wrap_free_constructors_cmd = (fn (goalss, after_qed, lthy) =>
+val free_constructors_cmd = (fn (goalss, after_qed, lthy) =>
   Proof.theorem NONE (snd oo after_qed) (map (map (rpair [])) goalss) lthy) oo
-  prepare_wrap_free_constructors Syntax.read_term;
+  prepare_free_constructors Syntax.read_term;
 
 fun parse_bracket_list parser = @{keyword "["} |-- Parse.list parser --|  @{keyword "]"};
 
@@ -963,7 +963,7 @@ val parse_bound_term = (parse_binding --| @{keyword ":"}) -- Parse.term;
 val parse_bound_terms = parse_bracket_list parse_bound_term;
 val parse_bound_termss = parse_bracket_list parse_bound_terms;
 
-val parse_wrap_free_constructors_options =
+val parse_free_constructors_options =
   Scan.optional (@{keyword "("} |-- Parse.list1
         (Parse.reserved "no_discs_sels" >> K 0 || Parse.reserved "no_code" >> K 1) --|
       @{keyword ")"}
@@ -971,12 +971,12 @@ val parse_wrap_free_constructors_options =
     (false, false);
 
 val _ =
-  Outer_Syntax.local_theory_to_proof @{command_spec "wrap_free_constructors"}
-    "wrap an existing freely generated type's constructors"
-    ((parse_wrap_free_constructors_options -- (@{keyword "["} |-- Parse.list Parse.term --|
+  Outer_Syntax.local_theory_to_proof @{command_spec "free_constructors"}
+    "register an existing freely generated type's constructors"
+    ((parse_free_constructors_options -- (@{keyword "["} |-- Parse.list Parse.term --|
         @{keyword "]"}) --
       parse_binding -- Scan.optional (parse_bindings -- Scan.optional (parse_bindingss --
         Scan.optional parse_bound_termss []) ([], [])) ([], ([], [])))
-     >> wrap_free_constructors_cmd);
+     >> free_constructors_cmd);
 
 end;

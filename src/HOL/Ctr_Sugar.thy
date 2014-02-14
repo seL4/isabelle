@@ -12,7 +12,7 @@ theory Ctr_Sugar
 imports HOL
 keywords
   "print_case_translations" :: diag and
-  "wrap_free_constructors" :: thy_goal
+  "free_constructors" :: thy_goal
 begin
 
 consts

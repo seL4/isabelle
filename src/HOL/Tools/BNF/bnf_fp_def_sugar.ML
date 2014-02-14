@@ -1250,7 +1250,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
             val sel_defaultss = map (map (apsnd (prepare_term lthy))) raw_sel_defaultss
           in
-            wrap_free_constructors tacss (((wrap_opts, ctrs0), standard_binding), (disc_bindings,
+            free_constructors tacss (((wrap_opts, ctrs0), standard_binding), (disc_bindings,
               (sel_bindingss, sel_defaultss))) lthy
           end;
 
@@ -1527,7 +1527,7 @@ val parse_spec =
   parse_type_args_named_constrained -- parse_binding -- parse_map_rel_bindings --
   Parse.opt_mixfix -- (@{keyword "="} |-- Parse.enum1 "|" parse_ctr_spec);
 
-val parse_co_datatype = parse_wrap_free_constructors_options -- Parse.and_list1 parse_spec;
+val parse_co_datatype = parse_free_constructors_options -- Parse.and_list1 parse_spec;
 
 fun parse_co_datatype_cmd fp construct_fp = parse_co_datatype >> co_datatype_cmd fp construct_fp;
 

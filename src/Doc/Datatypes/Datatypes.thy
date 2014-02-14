@@ -119,7 +119,7 @@ to register arbitrary type constructors as BNFs.
 \item Section
 \ref{sec:deriving-destructors-and-theorems-for-free-constructors},
 ``Deriving Destructors and Theorems for Free Constructors,'' explains how to
-use the command @{command wrap_free_constructors} to derive destructor constants
+use the command @{command free_constructors} to derive destructor constants
 and theorems for freely generated types, as performed internally by @{command
 datatype_new} and @{command codatatype}.
 
@@ -687,7 +687,7 @@ three broad categories:
 
 \item The \emph{free constructor theorems} are properties about the constructors
 and destructors that can be derived for any freely generated type. Internally,
-the derivation is performed by @{command wrap_free_constructors}.
+the derivation is performed by @{command free_constructors}.
 
 \item The \emph{functorial theorems} are properties of datatypes related to
 their BNF nature.
@@ -1016,8 +1016,8 @@ datatypes as new-style datatypes. If the goal is to define new-style datatypes
 with nested recursion through old-style datatypes, the old-style
 datatypes can be registered as a BNF
 (Section~\ref{sec:introducing-bounded-natural-functors}). If the goal is
-to derive discriminators and selectors, this can be achieved using @{command
-wrap_free_constructors}
+to derive discriminators and selectors, this can be achieved using
+@{command free_constructors}
 (Section~\ref{sec:deriving-destructors-and-theorems-for-free-constructors}).
 *}
 
@@ -2588,7 +2588,7 @@ section {* Deriving Destructors and Theorems for Free Constructors
 text {*
 The derivation of convenience theorems for types equipped with free constructors,
 as performed internally by @{command datatype_new} and @{command codatatype},
-is available as a stand-alone command called @{command wrap_free_constructors}.
+is available as a stand-alone command called @{command free_constructors}.
 
 %  * need for this is rare but may arise if you want e.g. to add destructors to
 %    a type not introduced by ...
@@ -2596,7 +2596,7 @@ is available as a stand-alone command called @{command wrap_free_constructors}.
 %  * also useful for compatibility with old package, e.g. add destructors to
 %    old \keyw{datatype}
 %
-%  * @{command wrap_free_constructors}
+%  * @{command free_constructors}
 %    * @{text "no_discs_sels"}, @{text "no_code"}
 %    * hack to have both co and nonco view via locale (cf. ext nats)
 %  * code generator
@@ -2619,11 +2619,11 @@ subsubsection {* \keyw{wrap\_free\_constructors}
 
 text {*
 \begin{matharray}{rcl}
-  @{command_def "wrap_free_constructors"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
+  @{command_def "free_constructors"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
 \end{matharray}
 
 @{rail \<open>
-  @@{command wrap_free_constructors} target? @{syntax dt_options} \<newline>
+  @@{command free_constructors} target? @{syntax dt_options} \<newline>
     term_list name @{syntax wfc_discs_sels}?
   ;
   @{syntax_def wfc_discs_sels}: name_list (name_list_list name_term_list_list? )?
