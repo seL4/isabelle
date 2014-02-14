@@ -513,14 +513,19 @@ fun prepare_primrec fixes specs lthy =
             mk_primrec_tac lthy num_extra_args nested_map_idents nested_map_comps def_thms rec_thm
             |> K |> Goal.prove_sorry lthy [] [] user_eqn
             |> Thm.close_derivation);
-        val poss = find_indices (op = o pairself #ctr) fun_data eqns_data;
+        val poss =
+          find_indices (op = o pairself (fn {fun_name, ctr, ...} => (fun_name, ctr)))
+            fun_data eqns_data;
       in
         (poss, simp_thmss)
       end;
 
     val notes =
-      (if n2m then map2 (fn name => fn thm =>
-        (name, inductN, [thm], [])) fun_names (take actual_nn induct_thms) else [])
+      (if n2m then
+         map2 (fn name => fn thm =>
+           (name, inductN, [thm], [])) fun_names (take actual_nn induct_thms)
+       else
+         [])
       |> map (fn (prefix, thmN, thms, attrs) =>
         ((Binding.qualify true prefix (Binding.name thmN), attrs), [(thms, [])]));
 
