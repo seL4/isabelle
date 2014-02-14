@@ -225,9 +225,6 @@ val exists_subtype_in = Term.exists_subtype o member (op =);
 
 val lists_bmoc = fold (fn xs => fn t => Term.list_comb (t, xs));
 
-fun lhs_head_of_hd (thm :: _) =
-  [Term.head_of (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (prop_of thm))))];
-
 fun flat_rec_arg_args xss =
   (* FIXME (once the old datatype package is phased out): The first line below gives the preferred
      order. The second line is for compatibility with the old datatype package. *)
@@ -1353,9 +1350,9 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
             in
               (((map_thms, rel_inject_thms, rel_distinct_thms, set_thmss), ctr_sugar),
                lthy
-               |> Spec_Rules.add Spec_Rules.Equational (`lhs_head_of_hd map_thms)
-               |> Spec_Rules.add Spec_Rules.Equational (`lhs_head_of_hd rel_eq_thms)
-               |> Spec_Rules.add Spec_Rules.Equational (`lhs_head_of_hd set_thms)
+               |> Spec_Rules.add Spec_Rules.Equational (`(lhs_heads_of o hd) map_thms)
+               |> Spec_Rules.add Spec_Rules.Equational (`(lhs_heads_of o hd) rel_eq_thms)
+               |> Spec_Rules.add Spec_Rules.Equational (`(lhs_heads_of o hd) set_thms)
                |> Local_Theory.notes (anonymous_notes @ notes)
                |> snd)
             end;

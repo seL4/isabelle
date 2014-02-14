@@ -941,8 +941,10 @@ fun prepare_free_constructors prep_term (((no_discs_sels, no_code), raw_case_bin
         (ctr_sugar,
          lthy
          |> Spec_Rules.add Spec_Rules.Equational ([casex], case_thms)
-         |> Spec_Rules.add Spec_Rules.Equational (flat selss, all_sel_thms)
-         |> fold (Spec_Rules.add Spec_Rules.Equational) (map single discs ~~ nontriv_disc_eq_thmss)
+         |> fold (Spec_Rules.add Spec_Rules.Equational)
+           (AList.group (eq_list (op aconv)) (map (`lhs_heads_of) all_sel_thms))
+         |> fold (Spec_Rules.add Spec_Rules.Equational)
+           (filter_out (null o snd) (map single discs ~~ nontriv_disc_eq_thmss))
          |> Local_Theory.declaration {syntax = false, pervasive = true}
               (fn phi => Case_Translation.register
                  (Morphism.term phi casex) (map (Morphism.term phi) ctrs))

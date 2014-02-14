@@ -141,7 +141,7 @@ fun lookup_pred_data ctxt name =
 
 fun the_pred_data ctxt name =
   (case lookup_pred_data ctxt name of
-    NONE => error ("No such predicate " ^ quote name)  
+    NONE => error ("No such predicate: " ^ quote name)  
   | SOME data => data)
 
 val is_registered = is_some oo lookup_pred_data

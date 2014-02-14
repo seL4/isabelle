@@ -39,6 +39,8 @@ sig
   val typ_subst_nonatomic: (typ * typ) list -> typ -> typ
   val subst_nonatomic_types: (typ * typ) list -> term -> term
 
+  val lhs_heads_of : thm -> term list
+
   val mk_predT: typ list -> typ
   val mk_pred1T: typ -> typ
 
@@ -167,6 +169,9 @@ fun typ_subst_nonatomic [] = I
 
 fun subst_nonatomic_types [] = I
   | subst_nonatomic_types inst = map_types (typ_subst_nonatomic inst);
+
+fun lhs_heads_of thm =
+  [Term.head_of (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (prop_of thm))))];
 
 fun mk_predT Ts = Ts ---> HOLogic.boolT;
 fun mk_pred1T T = mk_predT [T];
