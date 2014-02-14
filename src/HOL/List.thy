@@ -34,6 +34,8 @@ lemmas cases = list.case
 
 setup {* Sign.parent_path *}
 
+hide_const (open) rel
+
 syntax
   -- {* list Enumeration *}
   "_list" :: "args => 'a list"    ("[(_)]")
