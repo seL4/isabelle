@@ -147,40 +147,38 @@ fun mutualize_fp_sugars fp bs fpTs get_indices callssss fp_sugars0 no_defs_lthy0
     fun check_call_dead live_call call =
       if null (get_indices call) then () else incompatible_calls [live_call, call];
 
-    fun freeze_fpTs_default (T as Type (s, Ts)) =
-        (case find_index (curry (op =) T) fpTs of
-          ~1 => Type (s, map freeze_fpTs_default Ts)
-        | kk => nth Xs kk)
-      | freeze_fpTs_default T = T;
+    fun freeze_fpTs_type_based_default (T as Type (s, Ts)) =
+        (case filter (curry (op =) T o snd) (map_index I fpTs) of
+          [(kk, _)] => nth Xs kk
+        | _ => Type (s, map freeze_fpTs_type_based_default Ts))
+      | freeze_fpTs_type_based_default T = T;
 
-    fun freeze_fpTs_simple calls (T as Type (s, Ts)) =
-        (case fold (union (op =)) (map get_indices calls) [] of
-          [] => freeze_fpTs_default T
-        | [kk] => nth Xs kk
-        | _ => incompatible_calls calls)
-      | freeze_fpTs_simple _ T = T;
+    fun freeze_fpTs_mutual_call calls T =
+      (case fold (union (op =)) (map get_indices calls) [] of
+        [] => freeze_fpTs_type_based_default T
+      | [kk] => nth Xs kk
+      | _ => incompatible_calls calls);
 
     fun freeze_fpTs_map (fpT as Type (_, Ts')) (callss, (live_call :: _, dead_calls))
-        (T as Type (s, Ts)) =
+        (Type (s, Ts)) =
       if Ts' = Ts then
         nested_self_call live_call
       else
         (List.app (check_call_dead live_call) dead_calls;
-         Type (s, map2 (freeze_fpTs fpT) (flatten_type_args_of_bnf (the (bnf_of no_defs_lthy s)) []
-           (transpose callss)) Ts))
-    and freeze_fpTs fpT calls (T as Type (s, _)) =
+         Type (s, map2 (freeze_fpTs_call fpT)
+           (flatten_type_args_of_bnf (the (bnf_of no_defs_lthy s)) [] (transpose callss)) Ts))
+    and freeze_fpTs_call fpT calls (T as Type (s, _)) =
         (case map_partition (try (snd o dest_map no_defs_lthy s)) calls of
           ([], _) =>
           (case map_partition (try (snd o dest_abs_or_applied_map no_defs_lthy s)) calls of
-            ([], _) => freeze_fpTs_simple calls T
+            ([], _) => freeze_fpTs_mutual_call calls T
           | callsp => freeze_fpTs_map fpT callsp T)
         | callsp => freeze_fpTs_map fpT callsp T)
-      | freeze_fpTs _ _ T = T;
+      | freeze_fpTs_call _ _ T = T;
 
     val ctr_Tsss = map (map binder_types) ctr_Tss;
-    val ctrXs_Tsss = map3 (map2 o map2 o freeze_fpTs) fpTs callssss ctr_Tsss;
+    val ctrXs_Tsss = map3 (map2 o map2 o freeze_fpTs_call) fpTs callssss ctr_Tsss;
     val ctrXs_sum_prod_Ts = map (mk_sumTN_balanced o map HOLogic.mk_tupleT) ctrXs_Tsss;
-    val ctr_Ts = map (body_type o hd) ctr_Tss;
 
     val ns = map length ctr_Tsss;
     val kss = map (fn n => 1 upto n) ns;
@@ -270,6 +268,8 @@ fun indexify_callsss fp_sugar callsss =
 
 fun retypargs tyargs (Type (s, _)) = Type (s, tyargs);
 
+fun exists_strict_subtype_in Ts T = exists_subtype_in (filter_out (curry (op =) T) Ts) T;
+
 fun fold_subtype_pairs f (T as Type (s, Ts), U as Type (s', Us)) =
     f (T, U) #> (if s = s' then fold (fold_subtype_pairs f) (Ts ~~ Us) else I)
   | fold_subtype_pairs f TU = f TU;
@@ -279,7 +279,6 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts get_indices actual_callssss0 lth
     val qsoty = quote o Syntax.string_of_typ lthy;
     val qsotys = space_implode " or " o map qsoty;
 
-    fun duplicate_datatype T = error (qsoty T ^ " is not mutually recursive with itself");
     fun not_co_datatype0 T = error (qsoty T ^ " is not a " ^ co_prefix fp ^ "datatype");
     fun not_co_datatype (T as Type (s, _)) =
         if fp = Least_FP andalso
@@ -290,11 +289,10 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts get_indices actual_callssss0 lth
       | not_co_datatype T = not_co_datatype0 T;
     fun not_mutually_nested_rec Ts1 Ts2 =
       error (qsotys Ts1 ^ " is neither mutually recursive with " ^ qsotys Ts2 ^
-        " nor nested recursive via " ^ qsotys Ts2);
+        " nor nested recursive through " ^
+        (if Ts1 = Ts2 andalso can the_single Ts1 then "itself" else qsotys Ts2));
 
-    val _ = (case Library.duplicates (op =) actual_Ts of [] => () | T :: _ => duplicate_datatype T);
-
-    val perm_actual_Ts =
+    val sorted_actual_Ts =
       sort (prod_ord int_ord Term_Ord.typ_ord o pairself (`Term.size_of_typ)) actual_Ts;
 
     fun the_ctrs_of (Type (s, Ts)) = map (mk_ctr Ts) (#ctrs (the (ctr_sugar_of lthy s)));
@@ -323,7 +321,7 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts get_indices actual_callssss0 lth
           val {fp_res = {Ts = mutual_Ts0, ...}, ...} = the_fp_sugar_of T;
           val mutual_Ts = map (retypargs tyargs) mutual_Ts0;
 
-          val _ = seen = [] orelse exists (exists_subtype_in seen) mutual_Ts orelse
+          val _ = seen = [] orelse exists (exists_strict_subtype_in seen) mutual_Ts orelse
             not_mutually_nested_rec mutual_Ts seen;
 
           fun fresh_tyargs () =
@@ -354,17 +352,18 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts get_indices actual_callssss0 lth
               fresh_tyargs ();
 
           val gen_mutual_Ts = map (retypargs gen_tyargs) mutual_Ts0;
-          val Ts' = filter_out (member (op =) mutual_Ts) Ts;
+          val other_mutual_Ts = remove1 (op =) T mutual_Ts;
+          val Ts' = fold (remove1 (op =)) other_mutual_Ts Ts;
         in
           gather_types lthy' rho' (num_groups + 1) (seen @ mutual_Ts) (gen_seen' @ gen_mutual_Ts)
             Ts'
         end
       | gather_types _ _ _ _ _ (T :: _) = not_co_datatype T;
 
-    val (num_groups, perm_Ts, perm_gen_Ts) = gather_types lthy [] 0 [] [] perm_actual_Ts;
+    val (num_groups, perm_Ts, perm_gen_Ts) = gather_types lthy [] 0 [] [] sorted_actual_Ts;
     val perm_frozen_gen_Ts = map Logic.unvarifyT_global perm_gen_Ts;
 
-    val missing_Ts = perm_Ts |> subtract (op =) actual_Ts;
+    val missing_Ts = subtract (op =) actual_Ts perm_Ts;
     val Ts = actual_Ts @ missing_Ts;
 
     val nn = length Ts;

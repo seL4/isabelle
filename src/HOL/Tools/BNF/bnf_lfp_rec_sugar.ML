@@ -162,8 +162,8 @@ fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy0 =
     val perm_fun_arg_Tssss =
       mk_iter_fun_arg_types perm_ctr_Tsss perm_ns perm_mss (co_rec_of ctor_iters1);
 
-    fun unpermute0 perm0_xs = permute_like (op =) perm0_kks kks perm0_xs;
-    fun unpermute perm_xs = permute_like (op =) perm_indices indices perm_xs;
+    fun unpermute0 perm0_xs = permute_like_unique (op =) perm0_kks kks perm0_xs;
+    fun unpermute perm_xs = permute_like_unique (op =) perm_indices indices perm_xs;
 
     val induct_thms = unpermute0 (conj_dests nn induct_thm);
 

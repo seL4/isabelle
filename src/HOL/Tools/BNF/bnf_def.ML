@@ -352,7 +352,7 @@ fun flatten_type_args_of_bnf bnf dead_x xs =
     val lives = lives_of_bnf bnf;
     val deads = deads_of_bnf bnf;
   in
-    permute_like (op =) (deads @ lives) Ts (replicate (length deads) dead_x @ xs)
+    permute_like_unique (op =) (deads @ lives) Ts (replicate (length deads) dead_x @ xs)
   end;
 
 (*terms*)
@@ -541,7 +541,7 @@ fun map_flattened_map_args ctxt s map_args fs =
     val flat_fs = flatten_type_args_of_bnf (the (bnf_of ctxt s)) Term.dummy fs;
     val flat_fs' = map_args flat_fs;
   in
-    permute_like (op aconv) flat_fs fs flat_fs'
+    permute_like_unique (op aconv) flat_fs fs flat_fs'
   end;
 
 

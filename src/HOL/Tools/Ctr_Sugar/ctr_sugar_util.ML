@@ -19,7 +19,8 @@ sig
   val transpose: 'a list list -> 'a list list
   val pad_list: 'a -> int -> 'a list -> 'a list
   val splice: 'a list -> 'a list -> 'a list
-  val permute_like: ('a * 'b -> bool) -> 'a list -> 'b list -> 'c list -> 'c list
+  val permute_like_unique: ('a * 'b -> bool) -> 'a list -> 'b list -> 'c list -> 'c list
+  val permute_like: ('a * 'a -> bool) -> 'a list -> 'a list -> 'b list -> 'b list
 
   val mk_names: int -> string -> string list
   val mk_fresh_names: Proof.context -> int -> string -> string list * Proof.context
@@ -129,7 +130,18 @@ fun pad_list x n xs = xs @ replicate (n - length xs) x;
 
 fun splice xs ys = flat (map2 (fn x => fn y => [x, y]) xs ys);
 
-fun permute_like eq xs xs' ys = map (nth ys o (fn y => find_index (fn x => eq (x, y)) xs)) xs';
+fun permute_like_unique eq xs xs' ys =
+  map (nth ys o (fn y => find_index (fn x => eq (x, y)) xs)) xs';
+
+fun fresh eq x names =
+  (case AList.lookup eq names x of
+    NONE => ((x, 0), (x, 0) :: names)
+  | SOME n => ((x, n + 1), AList.update eq (x, n + 1) names));
+
+fun deambiguate eq xs = fst (fold_map (fresh eq) xs []);
+
+fun permute_like eq xs xs' =
+  permute_like_unique (eq_pair eq (op =)) (deambiguate eq xs) (deambiguate eq xs');
 
 fun mk_names n x = if n = 1 then [x] else map (fn i => x ^ string_of_int i) (1 upto n);
 fun mk_fresh_names ctxt = (fn xs => Variable.variant_fixes xs ctxt) oo mk_names;

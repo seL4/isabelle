@@ -195,7 +195,7 @@ val simp_attrs = @{attributes [simp]};
 val code_nitpicksimp_attrs = Code.add_default_eqn_attrib :: nitpicksimp_attrs;
 val code_nitpicksimp_simp_attrs = code_nitpicksimp_attrs @ simp_attrs;
 
-fun unflat_lookup eq xs ys = map (fn xs' => permute_like eq xs xs' ys);
+fun unflat_lookup eq xs ys = map (fn xs' => permute_like_unique eq xs xs' ys);
 
 fun mk_half_pairss' _ ([], []) = []
   | mk_half_pairss' indent (x :: xs, _ :: ys) =

@@ -407,8 +407,8 @@ fun corec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy0 =
     val fun_arg_hs =
       flat (map3 flat_corec_preds_predsss_gettersss perm_p_hss perm_q_hssss perm_f_hssss);
 
-    fun unpermute0 perm0_xs = permute_like (op =) perm0_kks kks perm0_xs;
-    fun unpermute perm_xs = permute_like (op =) perm_indices indices perm_xs;
+    fun unpermute0 perm0_xs = permute_like_unique (op =) perm0_kks kks perm0_xs;
+    fun unpermute perm_xs = permute_like_unique (op =) perm_indices indices perm_xs;
 
     val coinduct_thmss = map (unpermute0 o conj_dests nn) coinduct_thms;
 

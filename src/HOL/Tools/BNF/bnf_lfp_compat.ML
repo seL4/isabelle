@@ -67,8 +67,7 @@ fun datatype_new_compat_cmd raw_fpT_names lthy =
           val mutual_kks = kk upto kk + mutual_nn - 1;
           val mutual_Tkks = mutual_Ts ~~ mutual_kks;
 
-          fun Tindices_of_ctr_arg (parent_Tkks as (_, parent_kk) :: _) (U as Type (s, _))
-                (accum as (Tkssss, kk')) =
+          fun Tindices_of_ctr_arg parent_Tkks (U as Type (s, _)) (accum as (Tkssss, kk')) =
               if s = @{type_name fun} then
                 if exists_subtype_in mutual_Ts U then
                   (warning "Incomplete support for recursion through functions -- \

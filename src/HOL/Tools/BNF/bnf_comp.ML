@@ -449,8 +449,9 @@ fun permute_bnf qualify src dest bnf (unfold_set, lthy) =
     val live = live_of_bnf bnf;
     val dead = dead_of_bnf bnf;
     val nwits = nwits_of_bnf bnf;
-    fun permute xs = permute_like (op =) src dest xs;
-    fun unpermute xs = permute_like (op =) dest src xs;
+
+    fun permute xs = permute_like_unique (op =) src dest xs;
+    fun unpermute xs = permute_like_unique (op =) dest src xs;
 
     val (Ds, lthy1) = apfst (map TFree)
       (Variable.invent_types (replicate dead HOLogic.typeS) lthy);
