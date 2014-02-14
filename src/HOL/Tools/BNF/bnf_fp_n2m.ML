@@ -195,9 +195,12 @@ fun construct_mutualized_fp fp fpTs fp_sugars bs resBs (resDs, Dss) bnfs lthy =
         val approx_fold = un_fold_of raw_iters
           |> force_typ names_lthy
             (replicate (nth ns i) dummyT ---> (if is_rec then TU_rec else TU));
-        val TUs = binder_fun_types (Term.typ_subst_atomic (Xs ~~ fpTs) (fastype_of approx_fold));
-        val js = find_indices Type.could_unify
-          TUs (map (Term.typ_subst_atomic (Xs ~~ fpTs)) fold_strTs);
+        val subst = Term.typ_subst_atomic (Xs ~~ fpTs);
+        val TUs = map_split dest_co_algT (binder_fun_types (fastype_of approx_fold))
+          |>> map subst
+          |> uncurry (map2 mk_co_algT);
+        val js = find_indices Type.could_unify TUs
+          (map2 (fn T => fn U => mk_co_algT (subst T) U) fold_preTs Xs);
         val Tpats = map (fn j => mk_co_algT (nth fold_pre_deads_only_Ts j) (nth Xs j)) js;
         val iter = raw_iters |> (if is_rec then co_rec_of else un_fold_of);
       in
