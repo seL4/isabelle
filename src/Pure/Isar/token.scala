@@ -81,7 +81,7 @@ object Token
         (x => Token(Token.Kind.SYM_IDENT, x))
 
       val command_keyword =
-        keyword(lexicon) ^^
+        literal(lexicon) ^^
           (x => Token(if (is_command(x)) Token.Kind.COMMAND else Token.Kind.KEYWORD, x))
 
       val space = many1(Symbol.is_blank) ^^ (x => Token(Token.Kind.SPACE, x))

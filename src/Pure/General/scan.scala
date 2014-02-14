@@ -43,9 +43,9 @@ object Scan
       p ^^ (x => Some(x)) | """\z""".r ^^ (_ => None)
 
 
-    /* symbol range */
+    /* repeated symbols */
 
-    def symbol_range(pred: Symbol.Symbol => Boolean, min_count: Int, max_count: Int): Parser[String] =
+    def repeated(pred: Symbol.Symbol => Boolean, min_count: Int, max_count: Int): Parser[String] =
       new Parser[String]
       {
         def apply(in: Input) =
@@ -66,16 +66,22 @@ object Scan
           if (count < min_count) Failure("bad input", in)
           else Success(in.source.subSequence(start, i).toString, in.drop(i - start))
         }
-      }.named("symbol_range")
+      }.named("repeated")
 
     def one(pred: Symbol.Symbol => Boolean): Parser[String] =
-      symbol_range(pred, 1, 1)
+      repeated(pred, 1, 1)
 
     def many(pred: Symbol.Symbol => Boolean): Parser[String] =
-      symbol_range(pred, 0, Integer.MAX_VALUE)
+      repeated(pred, 0, Integer.MAX_VALUE)
 
     def many1(pred: Symbol.Symbol => Boolean): Parser[String] =
-      symbol_range(pred, 1, Integer.MAX_VALUE)
+      repeated(pred, 1, Integer.MAX_VALUE)
+
+
+    /* character */
+
+    def character(pred: Char => Boolean): Symbol.Symbol => Boolean =
+      (s: Symbol. Symbol) => s.length == 1 && pred(s.charAt(0))
 
 
     /* quoted strings */
@@ -279,7 +285,7 @@ object Scan
 
     /* keyword */
 
-    def keyword(lexicon: Lexicon): Parser[String] = new Parser[String]
+    def literal(lexicon: Lexicon): Parser[String] = new Parser[String]
     {
       def apply(in: Input) =
       {
