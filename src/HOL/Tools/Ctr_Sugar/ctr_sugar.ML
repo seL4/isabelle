@@ -308,8 +308,7 @@ fun prepare_free_constructors prep_term (((no_discs_sels, no_code), raw_case_bin
     val _ = if n > 0 then () else error "No constructors specified";
 
     val ctrs0 = map (prep_term no_defs_lthy) raw_ctrs;
-    val sel_defaultss =
-      pad_list [] n (map (map (apsnd (prep_term no_defs_lthy))) raw_sel_defaultss);
+    val sel_defaultss = map (map (apsnd (prep_term no_defs_lthy))) raw_sel_defaultss;
 
     val Type (fcT_name, As0) = body_type (fastype_of (hd ctrs0));
     val fc_b_name = Long_Name.base_name fcT_name;
@@ -334,9 +333,7 @@ fun prepare_free_constructors prep_term (((no_discs_sels, no_code), raw_case_bin
 
     val ms = map length ctr_Tss;
 
-    val raw_disc_bindings' = pad_list Binding.empty n raw_disc_bindings;
-
-    fun can_definitely_rely_on_disc k = not (Binding.is_empty (nth raw_disc_bindings' (k - 1)));
+    fun can_definitely_rely_on_disc k = not (Binding.is_empty (nth raw_disc_bindings (k - 1)));
     fun can_rely_on_disc k =
       can_definitely_rely_on_disc k orelse (k = 1 andalso not (can_definitely_rely_on_disc 2));
     fun should_omit_disc_binding k = n = 1 orelse (n = 2 andalso can_rely_on_disc (3 - k));
@@ -347,7 +344,7 @@ fun prepare_free_constructors prep_term (((no_discs_sels, no_code), raw_case_bin
     val standard_disc_binding = Binding.name o prefix isN o base_name_of_ctr;
 
     val disc_bindings =
-      raw_disc_bindings'
+      raw_disc_bindings
       |> map4 (fn k => fn m => fn ctr => fn disc =>
         qualify false
           (if Binding.is_empty disc then
@@ -363,13 +360,12 @@ fun prepare_free_constructors prep_term (((no_discs_sels, no_code), raw_case_bin
     fun standard_sel_binding m l = Binding.name o mk_unN m l o base_name_of_ctr;
 
     val sel_bindingss =
-      pad_list [] n raw_sel_bindingss
-      |> map3 (fn ctr => fn m => map2 (fn l => fn sel =>
+      map3 (fn ctr => fn m => map2 (fn l => fn sel =>
         qualify false
           (if Binding.is_empty sel orelse Binding.eq_name (sel, standard_binding) then
             standard_sel_binding m l ctr
           else
-            sel)) (1 upto m) o pad_list Binding.empty m) ctrs0 ms;
+            sel)) (1 upto m) o pad_list Binding.empty m) ctrs0 ms raw_sel_bindingss;
 
     val case_Ts = map (fn Ts => Ts ---> B) ctr_Tss;
 
