@@ -80,7 +80,6 @@
     "done"
     "enable_pr"
     "end"
-    "enriched_type"
     "equivariance"
     "exit"
     "export_code"
@@ -92,11 +91,13 @@
     "find_unused_assms"
     "fix"
     "fixrec"
+    "free_constructors"
     "from"
     "full_prf"
     "fun"
     "fun_cases"
     "function"
+    "functor"
     "guess"
     "have"
     "header"
@@ -299,7 +300,6 @@
     "values_prolog"
     "welcome"
     "with"
-    "wrap_free_constructors"
     "write"
     "{"
     "}"))
@@ -597,8 +597,9 @@
     "code_pred"
     "corollary"
     "cpodef"
-    "enriched_type"
+    "free_constructors"
     "function"
+    "functor"
     "instance"
     "interpretation"
     "lemma"
@@ -621,8 +622,7 @@
     "sublocale"
     "termination"
     "theorem"
-    "typedef"
-    "wrap_free_constructors"))
+    "typedef"))
 
 (defconst isar-keywords-qed
   '("\\."
