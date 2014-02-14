@@ -80,7 +80,6 @@ sig
     ((''a * stature) * 'b) list
   val play_one_line_proof : mode -> bool -> bool -> Time.time -> ((string * 'a) * thm) list ->
     Proof.state -> int -> proof_method -> proof_method list -> proof_method * play_outcome
-  val remotify_atp_if_not_installed : theory -> string -> string option
   val isar_supported_prover_of : theory -> string -> string
   val choose_minimize_command : theory -> params -> ((string * string list) list -> string -> 'a) ->
     string -> proof_method * play_outcome -> 'a
@@ -117,15 +116,6 @@ val proof_method_names = [metisN, smtN]
 val is_proof_method = member (op =) proof_method_names
 
 val is_atp = member (op =) o supported_atps
-
-fun remotify_atp_if_not_installed thy name =
-  if is_atp thy name then
-    if String.isPrefix remote_prefix name orelse is_atp_installed thy name then SOME name
-    else NONE
-  else
-    let val remote_name = remote_prefix ^ name in
-      SOME (if is_atp thy remote_name then remote_name else name)
-    end
 
 type params =
   {debug : bool,
@@ -260,7 +250,8 @@ val canonical_isar_supported_prover = eN
 
 fun isar_supported_prover_of thy name =
   if is_atp thy name then name
-  else the_default name (remotify_atp_if_not_installed thy canonical_isar_supported_prover)
+  else if is_atp_installed thy canonical_isar_supported_prover then canonical_isar_supported_prover
+  else name
 
 (* FIXME: See the analogous logic in the function "maybe_minimize" in
    "sledgehammer_prover_minimize.ML". *)

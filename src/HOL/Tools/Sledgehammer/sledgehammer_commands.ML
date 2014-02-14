@@ -22,6 +22,7 @@ open ATP_Proof_Reconstruct
 open Sledgehammer_Util
 open Sledgehammer_Fact
 open Sledgehammer_Prover
+open Sledgehammer_Prover_SMT
 open Sledgehammer_Prover_Minimize
 open Sledgehammer_MaSh
 open Sledgehammer
@@ -194,11 +195,33 @@ structure Data = Theory_Data
   fun merge data : T = AList.merge (op =) (K true) data
 )
 
+fun is_prover_supported ctxt =
+  let val thy = Proof_Context.theory_of ctxt in
+    is_proof_method orf is_atp thy orf is_smt_prover ctxt
+  end
+
+fun is_prover_installed ctxt =
+  is_proof_method orf is_smt_prover ctxt orf is_atp_installed (Proof_Context.theory_of ctxt)
+
+fun remotify_prover_if_supported_and_not_already_remote ctxt name =
+  if String.isPrefix remote_prefix name then
+    SOME name
+  else
+    let val remote_name = remote_prefix ^ name in
+      if is_prover_supported ctxt remote_name then SOME remote_name else NONE
+    end
+
+fun remotify_prover_if_not_installed ctxt name =
+  if is_prover_supported ctxt name andalso is_prover_installed ctxt name then
+    SOME name
+  else
+    remotify_prover_if_supported_and_not_already_remote ctxt name
+
 (* The first ATP of the list is used by Auto Sledgehammer. Because of the low
    timeout, it makes sense to put E first. *)
-fun default_provers_param_value mode thy =
+fun default_provers_param_value mode ctxt =
   [eN, spassN, z3N, e_sineN, vampireN, yicesN]
-  |> map_filter (remotify_atp_if_not_installed thy)
+  |> map_filter (remotify_prover_if_not_installed ctxt)
   (* In "try" mode, leave at least one thread to another slow tool (e.g. Nitpick) *)
   |> take (Multithreading.max_threads_value () - (if mode = Try then 1 else 0))
   |> implode_param
@@ -209,13 +232,15 @@ fun set_default_raw_param param thy =
   end
 
 fun default_raw_params mode thy =
-  Data.get thy
-  |> fold (AList.default (op =))
-       [("provers", [(case !provers of "" => default_provers_param_value mode thy | s => s)]),
-        ("timeout",
-         let val timeout = Options.default_int @{option sledgehammer_timeout} in
-           [if timeout <= 0 then "none" else string_of_int timeout]
-         end)]
+  let val ctxt = Proof_Context.init_global thy in
+    Data.get thy
+    |> fold (AList.default (op =))
+         [("provers", [(case !provers of "" => default_provers_param_value mode ctxt | s => s)]),
+          ("timeout",
+           let val timeout = Options.default_int @{option sledgehammer_timeout} in
+             [if timeout <= 0 then "none" else string_of_int timeout]
+           end)]
+  end
 
 fun extract_params mode default_params override_params =
   let
