@@ -105,7 +105,7 @@ fun datatype_new_compat_cmd raw_fpT_names lthy =
     val Ts = map fst Tkkssss;
     val callssss = map (map (map (map Bound)) o snd) Tkkssss;
 
-    val b_names = map base_name_of_typ Ts;
+    val b_names = Name.variant_list [] (map base_name_of_typ Ts);
     val compat_b_names = map (prefix compatN) b_names;
     val compat_bs = map Binding.name compat_b_names;
     val common_name = compatN ^ mk_common_name b_names;
