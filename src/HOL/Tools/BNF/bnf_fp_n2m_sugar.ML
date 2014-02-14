@@ -268,8 +268,6 @@ fun indexify_callsss fp_sugar callsss =
 
 fun retypargs tyargs (Type (s, _)) = Type (s, tyargs);
 
-fun exists_strict_subtype_in Ts T = exists_subtype_in (filter_out (curry (op =) T) Ts) T;
-
 fun fold_subtype_pairs f (T as Type (s, Ts), U as Type (s', Us)) =
     f (T, U) #> (if s = s' then fold (fold_subtype_pairs f) (Ts ~~ Us) else I)
   | fold_subtype_pairs f TU = f TU;

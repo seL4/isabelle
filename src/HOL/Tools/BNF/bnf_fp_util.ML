@@ -162,6 +162,9 @@ sig
   val dest_sumTN_balanced: int -> typ -> typ list
   val dest_tupleT: int -> typ -> typ list
 
+  val exists_subtype_in: typ list -> typ -> bool
+  val exists_strict_subtype_in: typ list -> typ -> bool
+
   val If_const: typ -> term
 
   val mk_Field: term -> term
@@ -376,6 +379,10 @@ fun dest_tupleT 0 @{typ unit} = []
 
 val mk_sumTN = Library.foldr1 mk_sumT;
 val mk_sumTN_balanced = Balanced_Tree.make mk_sumT;
+
+val exists_subtype_in = Term.exists_subtype o member (op =);
+
+fun exists_strict_subtype_in Ts T = exists_subtype_in (filter_out (curry (op =) T) Ts) T;
 
 fun mk_proj T n k =
   let val (binders, _) = strip_typeN n T in

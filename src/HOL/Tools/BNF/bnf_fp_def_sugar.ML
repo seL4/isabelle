@@ -35,7 +35,6 @@ sig
   val strong_co_induct_of: 'a list -> 'a
 
   val tvar_subst: theory -> typ list -> typ list -> ((string * int) * typ) list
-  val exists_subtype_in: typ list -> typ -> bool
   val flat_rec_arg_args: 'a list list -> 'a list
   val flat_corec_preds_predsss_gettersss: 'a list -> 'a list list list -> 'a list list list ->
     'a list
@@ -220,8 +219,6 @@ val simp_attrs = @{attributes [simp]};
 
 fun tvar_subst thy Ts Us =
   Vartab.fold (cons o apsnd snd) (fold (Sign.typ_match thy) (Ts ~~ Us) Vartab.empty) [];
-
-val exists_subtype_in = Term.exists_subtype o member (op =);
 
 val lists_bmoc = fold (fn xs => fn t => Term.list_comb (t, xs));
 
