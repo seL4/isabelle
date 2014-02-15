@@ -110,6 +110,29 @@ object Rendering
     if (token.is_command) command_style(syntax.keyword_kind(token.content).getOrElse(""))
     else if (token.is_operator) JEditToken.OPERATOR
     else token_style(token.kind)
+
+  private val ml_token_style: Map[ML_Lex.Kind.Value, Byte] =
+  {
+    import JEditToken._
+    Map[ML_Lex.Kind.Value, Byte](
+      ML_Lex.Kind.KEYWORD -> KEYWORD1,
+      ML_Lex.Kind.IDENT -> NULL,
+      ML_Lex.Kind.LONG_IDENT -> NULL,
+      ML_Lex.Kind.TYPE_VAR -> NULL,
+      ML_Lex.Kind.WORD -> NULL,
+      ML_Lex.Kind.INT -> NULL,
+      ML_Lex.Kind.REAL -> NULL,
+      ML_Lex.Kind.CHAR -> LITERAL2,
+      ML_Lex.Kind.STRING -> LITERAL1,
+      ML_Lex.Kind.SPACE -> NULL,
+      ML_Lex.Kind.COMMENT -> COMMENT1,
+      ML_Lex.Kind.ERROR -> INVALID
+    ).withDefaultValue(NULL)
+  }
+
+  def ml_token_markup(token: ML_Lex.Token): Byte =
+    if (token.is_operator) JEditToken.OPERATOR
+    else ml_token_style(token.kind)
 }
 
 

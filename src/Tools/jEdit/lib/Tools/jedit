@@ -55,6 +55,7 @@ declare -a RESOURCES=(
   "src/Isabelle.props"
   "src/jEdit.props"
   "src/services.xml"
+  "src/modes/isabelle-ml.xml"
   "src/modes/isabelle-news.xml"
   "src/modes/isabelle-options.xml"
   "src/modes/isabelle-root.xml"
@@ -275,12 +276,19 @@ then
   cp -p -R -f src/modes/. dist/modes/.
 
   perl -i -e 'while (<>) {
-    if (m/NAME="javacc"/) {
+    if (m/FILE_NAME_GLOB="\*\.{sml,ml}"/) {
+      print qq,\t\t\t\tFILE_NAME_GLOB="*.sml" />\n,;
+    }
+    elsif (m/NAME="javacc"/) {
       print qq,<MODE NAME="isabelle" FILE="isabelle.xml" FILE_NAME_GLOB="*.thy"/>\n\n,;
+      print qq,<MODE NAME="isabelle-ml" FILE="isabelle-ml.xml" FILE_NAME_GLOB="*.ML"/>\n\n,;
       print qq,<MODE NAME="isabelle-news" FILE="isabelle-news.xml"/>\n\n,;
       print qq,<MODE NAME="isabelle-options" FILE="isabelle-options.xml"/>\n\n,;
-      print qq,<MODE NAME="isabelle-root" FILE="isabelle-root.xml" FILE_NAME_GLOB="ROOT"/>\n\n,; }
-    print; }' dist/modes/catalog
+      print qq,<MODE NAME="isabelle-root" FILE="isabelle-root.xml" FILE_NAME_GLOB="ROOT"/>\n\n,;
+      print;
+    }
+    else { print; }
+  }' dist/modes/catalog
 
   cd dist
   isabelle_jdk jar xf jedit.jar

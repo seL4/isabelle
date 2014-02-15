@@ -32,6 +32,9 @@ object ML_Lex
   }
 
   sealed case class Token(val kind: Kind.Value, val source: String)
+  {
+    def is_operator: Boolean = kind == Kind.KEYWORD && !Symbol.is_ascii_identifier(source)
+  }
 
 
 
@@ -52,10 +55,11 @@ object ML_Lex
   {
     /* string material */
 
+    private val blanks = many(character(Symbol.is_ascii_blank))
     private val blanks1 = many1(character(Symbol.is_ascii_blank))
 
     private val gap = "\\" ~ blanks1 ~ "\\" ^^ { case x ~ y ~ z => x + y + z }
-    private val gap_start = "\\" ~ blanks1 ~ """\z""".r ^^ { case x ~ y ~ _ => x + y }
+    private val gap_start = "\\" ~ blanks ~ """\z""".r ^^ { case x ~ y ~ _ => x + y }
 
     private val escape =
       one(character("\"\\abtnvfr".contains(_))) |
@@ -96,7 +100,7 @@ object ML_Lex
           "\"" ~ ml_string_body ~ ("\"" | gap_start) ^^
             { case x ~ y ~ z => result(x + y + z, if (z == "\"") Scan.Finished else ML_String) }
         case ML_String =>
-          blanks1 ~ opt_term("\\" ~ ml_string_body ~ ("\"" | gap_start)) ^^
+          blanks ~ opt_term("\\" ~ ml_string_body ~ ("\"" | gap_start)) ^^
             { case x ~ Some(y ~ z ~ w) =>
                 result(x + y + z + w, if (w == "\"") Scan.Finished else ML_String)
               case x ~ None => result(x, ML_String) }
