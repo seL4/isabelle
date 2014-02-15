@@ -17,9 +17,9 @@ import java.io.{File => JFile, BufferedInputStream, FileInputStream}
 
 object Scan
 {
-  /** context of partial scans **/
+  /** context of partial scans (line boundary) **/
 
-  sealed abstract class Context
+  abstract class Context
   case object Finished extends Context
   case class Quoted(quote: String) extends Context
   case object Verbatim extends Context
