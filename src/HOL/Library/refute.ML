@@ -102,24 +102,10 @@ datatype 'a tree =
     Leaf of 'a
   | Node of ('a tree) list;
 
-(* ('a -> 'b) -> 'a tree -> 'b tree *)
-
 fun tree_map f tr =
   case tr of
     Leaf x  => Leaf (f x)
   | Node xs => Node (map (tree_map f) xs);
-
-(* ('a * 'b -> 'a) -> 'a * ('b tree) -> 'a *)
-
-fun tree_foldl f =
-  let
-    fun itl (e, Leaf x)  = f(e,x)
-      | itl (e, Node xs) = Library.foldl (tree_foldl f) (e,xs)
-  in
-    itl
-  end;
-
-(* 'a tree * 'b tree -> ('a * 'b) tree *)
 
 fun tree_pair (t1, t2) =
   case t1 of
@@ -335,7 +321,6 @@ val get_default_params = Symtab.dest o #parameters o get_data;
 
 fun actual_params ctxt override =
   let
-    (* (string * string) list * string -> bool *)
     fun read_bool (parms, name) =
       case AList.lookup (op =) parms name of
         SOME "true" => true
@@ -344,7 +329,6 @@ fun actual_params ctxt override =
           " (value is " ^ quote s ^ ") must be \"true\" or \"false\"")
       | NONE   => error ("parameter " ^ quote name ^
           " must be assigned a value")
-    (* (string * string) list * string -> int *)
     fun read_int (parms, name) =
       case AList.lookup (op =) parms name of
         SOME s =>
@@ -354,21 +338,17 @@ fun actual_params ctxt override =
             " (value is " ^ quote s ^ ") must be an integer value"))
       | NONE => error ("parameter " ^ quote name ^
           " must be assigned a value")
-    (* (string * string) list * string -> string *)
     fun read_string (parms, name) =
       case AList.lookup (op =) parms name of
         SOME s => s
       | NONE => error ("parameter " ^ quote name ^
         " must be assigned a value")
     (* 'override' first, defaults last: *)
-    (* (string * string) list *)
     val allparams = override @ get_default_params ctxt
-    (* int *)
     val minsize = read_int (allparams, "minsize")
     val maxsize = read_int (allparams, "maxsize")
     val maxvars = read_int (allparams, "maxvars")
     val maxtime = read_int (allparams, "maxtime")
-    (* string *)
     val satsolver = read_string (allparams, "satsolver")
     val no_assms = read_bool (allparams, "no_assms")
     val expect = the_default "" (AList.lookup (op =) allparams "expect")
@@ -461,7 +441,6 @@ fun norm_rhs eqn =
 
 fun get_def thy (s, T) =
   let
-    (* (string * Term.term) list -> (string * Term.term) option *)
     fun get_def_ax [] = NONE
       | get_def_ax ((axname, ax) :: axioms) =
           (let
@@ -492,11 +471,9 @@ fun get_def thy (s, T) =
 
 fun get_typedef thy T =
   let
-    (* (string * Term.term) list -> (string * Term.term) option *)
     fun get_typedef_ax [] = NONE
       | get_typedef_ax ((axname, ax) :: axioms) =
           (let
-            (* Term.term -> Term.typ option *)
             fun type_of_type_definition (Const (s', T')) =
                   if s'= @{const_name type_definition} then
                     SOME T'
@@ -557,7 +534,6 @@ fun get_classdef thy class =
 
 fun unfold_defs thy t =
   let
-    (* Term.term -> Term.term *)
     fun unfold_loop t =
       case t of
       (* Pure *)
@@ -907,8 +883,6 @@ fun ground_types ctxt t =
 (*                list") are identified.                                     *)
 (* ------------------------------------------------------------------------- *)
 
-(* Term.typ -> string *)
-
 fun string_of_typ (Type (s, _))     = s
   | string_of_typ (TFree (s, _))    = s
   | string_of_typ (TVar ((s,_), _)) = s;
@@ -918,8 +892,6 @@ fun string_of_typ (Type (s, _))     = s
 (*                 'minsize' to every type for which no size is specified in *)
 (*                 'sizes'                                                   *)
 (* ------------------------------------------------------------------------- *)
-
-(* Term.typ list -> (string * int) list -> int -> (Term.typ * int) list *)
 
 fun first_universe xs sizes minsize =
   let
@@ -938,14 +910,10 @@ fun first_universe xs sizes minsize =
 (*                type may have a fixed size given in 'sizes'                *)
 (* ------------------------------------------------------------------------- *)
 
-(* (Term.typ * int) list -> (string * int) list -> int -> int ->
-  (Term.typ * int) list option *)
-
 fun next_universe xs sizes minsize maxsize =
   let
     (* creates the "first" list of length 'len', where the sum of all list *)
     (* elements is 'sum', and the length of the list is 'len'              *)
-    (* int -> int -> int -> int list option *)
     fun make_first _ 0 sum =
           if sum = 0 then
             SOME []
@@ -958,7 +926,6 @@ fun next_universe xs sizes minsize maxsize =
             Option.map (fn xs' => max :: xs') (make_first max (len-1) (sum-max))
     (* enumerates all int lists with a fixed length, where 0<=x<='max' for *)
     (* all list elements x (unless 'max'<0)                                *)
-    (* int -> int -> int -> int list -> int list option *)
     fun next _ _ _ [] =
           NONE
       | next max len sum [x] =
@@ -994,8 +961,6 @@ fun next_universe xs sizes minsize maxsize =
 (*         formula that is true iff the interpretation denotes "true"        *)
 (* ------------------------------------------------------------------------- *)
 
-(* interpretation -> prop_formula *)
-
 fun toTrue (Leaf [fm, _]) = fm
   | toTrue _ = raise REFUTE ("toTrue", "interpretation does not denote a Boolean value");
 
@@ -1004,8 +969,6 @@ fun toTrue (Leaf [fm, _]) = fm
 (*          propositional formula that is true iff the interpretation        *)
 (*          denotes "false"                                                  *)
 (* ------------------------------------------------------------------------- *)
-
-(* interpretation -> prop_formula *)
 
 fun toFalse (Leaf [_, fm]) = fm
   | toFalse _ = raise REFUTE ("toFalse", "interpretation does not denote a Boolean value");
@@ -1025,11 +988,9 @@ fun find_model ctxt
     assm_ts t negate =
   let
     val thy = Proof_Context.theory_of ctxt
-    (* string -> string *)
     fun check_expect outcome_code =
       if expect = "" orelse outcome_code = expect then outcome_code
       else error ("Unexpected outcome: " ^ quote outcome_code ^ ".")
-    (* unit -> string *)
     fun wrapper () =
       let
         val timer = Timer.startRealTimer ()
@@ -1040,7 +1001,6 @@ fun find_model ctxt
         val u = unfold_defs thy t
         val _ = tracing ("Unfolded term: " ^ Syntax.string_of_term ctxt u)
         val axioms = collect_axioms ctxt u
-        (* Term.typ list *)
         val types = fold (union (op =) o ground_types ctxt) (u :: axioms) []
         val _ = tracing ("Ground types: "
           ^ (if null types then "none."
@@ -1069,7 +1029,6 @@ fun find_model ctxt
               ^ "countermodel(s) may be spurious!")
           else
             ()
-        (* (Term.typ * int) list -> string *)
         fun find_model_loop universe =
           let
             val msecs_spent = Time.toMilliseconds (Timer.checkRealTimer timer)
@@ -1271,14 +1230,11 @@ fun refute_goal ctxt params th i =
 fun make_constants ctxt model T =
   let
     (* returns a list with all unit vectors of length n *)
-    (* int -> interpretation list *)
     fun unit_vectors n =
       let
         (* returns the k-th unit vector of length n *)
-        (* int * int -> interpretation *)
         fun unit_vector (k, n) =
           Leaf ((replicate (k-1) False) @ (True :: (replicate (n-k) False)))
-        (* int -> interpretation list *)
         fun unit_vectors_loop k =
           if k>n then [] else unit_vector (k,n) :: unit_vectors_loop (k+1)
       in
@@ -1286,7 +1242,6 @@ fun make_constants ctxt model T =
       end
     (* returns a list of lists, each one consisting of n (possibly *)
     (* identical) elements from 'xs'                               *)
-    (* int -> 'a list -> 'a list list *)
     fun pick_all 1 xs = map single xs
       | pick_all n xs =
           let val rec_pick = pick_all (n - 1) xs in
@@ -1294,7 +1249,6 @@ fun make_constants ctxt model T =
           end
     (* returns all constant interpretations that have the same tree *)
     (* structure as the interpretation argument                     *)
-    (* interpretation -> interpretation list *)
     fun make_constants_intr (Leaf xs) = unit_vectors (length xs)
       | make_constants_intr (Node xs) = map Node (pick_all (length xs)
           (make_constants_intr (hd xs)))
@@ -1335,8 +1289,6 @@ fun size_of_type ctxt model T =
 (* TT/FF: interpretations that denote "true" or "false", respectively        *)
 (* ------------------------------------------------------------------------- *)
 
-(* interpretation *)
-
 val TT = Leaf [True, False];
 
 val FF = Leaf [False, True];
@@ -1359,11 +1311,8 @@ val FF = Leaf [False, True];
 (* for equality on T first, and "applying" this interpretation to 'i1'    *)
 (* and 'i2' in the usual way (cf. 'interpretation_apply') then.           *)
 
-(* interpretation * interpretation -> interpretation *)
-
 fun make_equality (i1, i2) =
   let
-    (* interpretation * interpretation -> prop_formula *)
     fun equal (i1, i2) =
       (case i1 of
         Leaf xs =>
@@ -1376,7 +1325,6 @@ fun make_equality (i1, i2) =
             Leaf _  => raise REFUTE ("make_equality",
             "first interpretation is higher")
           | Node ys => Prop_Logic.all (map equal (xs ~~ ys))))
-    (* interpretation * interpretation -> prop_formula *)
     fun not_equal (i1, i2) =
       (case i1 of
         Leaf xs =>
@@ -1407,11 +1355,8 @@ fun make_equality (i1, i2) =
 (* to an undefined interpretation.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-(* interpretation * interpretation -> interpretation *)
-
 fun make_def_equality (i1, i2) =
   let
-    (* interpretation * interpretation -> prop_formula *)
     fun equal (i1, i2) =
       (case i1 of
         Leaf xs =>
@@ -1426,7 +1371,6 @@ fun make_def_equality (i1, i2) =
             Leaf _  => raise REFUTE ("make_def_equality",
             "first interpretation is higher")
           | Node ys => Prop_Logic.all (map equal (xs ~~ ys))))
-    (* interpretation *)
     val eq = equal (i1, i2)
   in
     Leaf [eq, SNot eq]
@@ -1438,18 +1382,13 @@ fun make_def_equality (i1, i2) =
 (*                       argument denoted by 'i2'                            *)
 (* ------------------------------------------------------------------------- *)
 
-(* interpretation * interpretation -> interpretation *)
-
 fun interpretation_apply (i1, i2) =
   let
-    (* interpretation * interpretation -> interpretation *)
     fun interpretation_disjunction (tr1,tr2) =
       tree_map (fn (xs,ys) => map (fn (x,y) => SOr(x,y)) (xs ~~ ys))
         (tree_pair (tr1,tr2))
-    (* prop_formula * interpretation -> interpretation *)
     fun prop_formula_times_interpretation (fm,tr) =
       tree_map (map (fn x => SAnd (fm,x))) tr
-    (* prop_formula list * interpretation list -> interpretation *)
     fun prop_formula_list_dot_product_interpretation_list ([fm],[tr]) =
           prop_formula_times_interpretation (fm,tr)
       | prop_formula_list_dot_product_interpretation_list (fm::fms,tr::trees) =
@@ -1459,14 +1398,12 @@ fun interpretation_apply (i1, i2) =
           raise REFUTE ("interpretation_apply", "empty list (in dot product)")
     (* returns a list of lists, each one consisting of one element from each *)
     (* element of 'xss'                                                      *)
-    (* 'a list list -> 'a list list *)
     fun pick_all [xs] = map single xs
       | pick_all (xs::xss) =
           let val rec_pick = pick_all xss in
             maps (fn x => map (cons x) rec_pick) xs
           end
       | pick_all _ = raise REFUTE ("interpretation_apply", "empty list (in pick_all)")
-    (* interpretation -> prop_formula list *)
     fun interpretation_to_prop_formula_list (Leaf xs) = xs
       | interpretation_to_prop_formula_list (Node trees) =
           map Prop_Logic.all (pick_all
@@ -1483,8 +1420,6 @@ fun interpretation_apply (i1, i2) =
 (* ------------------------------------------------------------------------- *)
 (* eta_expand: eta-expands a term 't' by adding 'i' lambda abstractions      *)
 (* ------------------------------------------------------------------------- *)
-
-(* Term.term -> int -> Term.term *)
 
 fun eta_expand t i =
   let
@@ -1520,10 +1455,8 @@ fun stlc_interpreter ctxt model args t =
   let
     val (typs, terms) = model
     val {maxvars, def_eq, next_idx, bounds, wellformed} = args
-    (* Term.typ -> (interpretation * model * arguments) option *)
     fun interpret_groundterm T =
       let
-        (* unit -> (interpretation * model * arguments) option *)
         fun interpret_groundtype () =
           let
             (* the model must specify a size for ground types *)
@@ -1534,15 +1467,11 @@ fun stlc_interpreter ctxt model args t =
             (* check if 'maxvars' is large enough *)
             val _ = (if next - 1 > maxvars andalso maxvars > 0 then
               raise MAXVARS_EXCEEDED else ())
-            (* prop_formula list *)
             val fms  = map BoolVar (next_idx upto (next_idx + size - 1))
-            (* interpretation *)
             val intr = Leaf fms
-            (* prop_formula list -> prop_formula *)
             fun one_of_two_false [] = True
               | one_of_two_false (x::xs) = SAnd (Prop_Logic.all (map (fn x' =>
                   SOr (SNot x, SNot x')) xs), one_of_two_false xs)
-            (* prop_formula *)
             val wf = one_of_two_false fms
           in
             (* extend the model, increase 'next_idx', add well-formedness *)
@@ -1561,7 +1490,6 @@ fun stlc_interpreter ctxt model args t =
               (* make fresh copies, with different variable indices *)
               (* 'idx': next variable index                         *)
               (* 'n'  : number of copies                            *)
-              (* int -> int -> (int * interpretation list * prop_formula *)
               fun make_copies idx 0 = (idx, [], True)
                 | make_copies idx n =
                     let
@@ -1807,12 +1735,11 @@ fun IDT_interpreter ctxt model args t =
   let
     val thy = Proof_Context.theory_of ctxt
     val (typs, terms) = model
-    (* Term.typ -> (interpretation * model * arguments) option *)
     fun interpret_term (Type (s, Ts)) =
           (case Datatype.get_info thy s of
             SOME info =>  (* inductive datatype *)
               let
-                (* int option -- only recursive IDTs have an associated depth *)
+                (* only recursive IDTs have an associated depth *)
                 val depth = AList.lookup (op =) typs (Type (s, Ts))
                 (* sanity check: depth must be at least 0 *)
                 val _ =
@@ -1853,15 +1780,11 @@ fun IDT_interpreter ctxt model args t =
                     (* check if 'maxvars' is large enough *)
                     val _        = (if next-1 > #maxvars args andalso
                       #maxvars args > 0 then raise MAXVARS_EXCEEDED else ())
-                    (* prop_formula list *)
                     val fms      = map BoolVar (next_idx upto (next_idx+size-1))
-                    (* interpretation *)
                     val intr     = Leaf fms
-                    (* prop_formula list -> prop_formula *)
                     fun one_of_two_false [] = True
                       | one_of_two_false (x::xs) = SAnd (Prop_Logic.all (map (fn x' =>
                           SOr (SNot x, SNot x')) xs), one_of_two_false xs)
-                    (* prop_formula *)
                     val wf = one_of_two_false fms
                   in
                     (* extend the model, increase 'next_idx', add well-formedness *)
@@ -1903,7 +1826,6 @@ fun IDT_constructor_interpreter ctxt model args t =
     (* It would be nice if we could just use 'print' for this, but 'print'   *)
     (* for IDTs calls 'IDT_constructor_interpreter' again, and this could    *)
     (* lead to infinite recursion when we have (mutually) recursive IDTs.    *)
-    (* (Term.typ * int) list -> Term.typ -> Term.term list *)
     fun canonical_terms typs T =
           (case T of
             Type ("fun", [T1, T2]) =>
@@ -1912,7 +1834,6 @@ fun IDT_constructor_interpreter ctxt model args t =
             let
               (* returns a list of lists, each one consisting of n (possibly *)
               (* identical) elements from 'xs'                               *)
-              (* int -> 'a list -> 'a list list *)
               fun pick_all 1 xs = map single xs
                 | pick_all n xs =
                     let val rec_pick = pick_all (n-1) xs in
@@ -1929,10 +1850,8 @@ fun IDT_constructor_interpreter ctxt model args t =
               (* [["(x1, y1)", ..., "(xn, y1)"], ..., *)
               (*   ["(x1, ym)", ..., "(xn, ym)"]]     *)
               val pairss = map (map HOLogic.mk_prod) functions
-              (* Term.typ *)
               val HOLogic_prodT = HOLogic.mk_prodT (T1, T2)
               val HOLogic_setT  = HOLogic.mk_setT HOLogic_prodT
-              (* Term.term *)
               val HOLogic_empty_set = Const (@{const_abbrev Set.empty}, HOLogic_setT)
               val HOLogic_insert    =
                 Const (@{const_name insert}, HOLogic_prodT --> HOLogic_setT --> HOLogic_setT)
@@ -2037,8 +1956,7 @@ fun IDT_constructor_interpreter ctxt model args t =
                           NONE
                       | (_, ctypes)::_ =>
                           let
-                            (* int option -- only /recursive/ IDTs have an associated *)
-                            (*               depth                                    *)
+                            (* only /recursive/ IDTs have an associated depth *)
                             val depth = AList.lookup (op =) typs (Type (s', Ts'))
                             (* this should never happen: at depth 0, this IDT fragment *)
                             (* is definitely empty, and in this case we don't need to  *)
@@ -2083,7 +2001,6 @@ fun IDT_constructor_interpreter ctxt model args t =
                                       "offset >= total")
                               | make_constr (d::ds) offset =
                                   let
-                                    (* Term.typ *)
                                     val dT = typ_of_dtyp descr typ_assoc d
                                     (* compute canonical term representations for all   *)
                                     (* elements of the type 'd' (with the reduced depth *)
@@ -2131,7 +2048,6 @@ fun IDT_constructor_interpreter ctxt model args t =
                                                 "element order not preserved")
                                           | search [] _ = ()
                                       in search terms' terms end
-                                    (* int * interpretation list *)
                                     val (intrs, new_offset) =
                                       fold_map (fn t_elem => fn off =>
                                         (* if 't_elem' existed at the previous depth,    *)
@@ -2333,7 +2249,6 @@ fun IDT_recursion_interpreter ctxt model args t =
                       (* argument tuples), we can simply copy corresponding      *)
                       (* subtrees from 'p_intrs', in the order in which they are *)
                       (* given.                                                  *)
-                      (* interpretation * interpretation -> interpretation list *)
                       fun ci_pi (Leaf xs, pi) =
                             (* if the constructor does not match the arguments to a *)
                             (* defined element of the IDT, the corresponding value  *)
@@ -2344,7 +2259,6 @@ fun IDT_recursion_interpreter ctxt model args t =
                             raise REFUTE ("IDT_recursion_interpreter",
                               "constructor takes more arguments than the " ^
                                 "associated parameter")
-                      (* (int * interpretation list) list *)
                       val rec_operators = map (fn (idx, c_p_intrs) =>
                         (idx, maps ci_pi c_p_intrs)) mc_p_intrs
                       (* sanity check: every recursion operator must provide as  *)
@@ -2368,7 +2282,6 @@ fun IDT_recursion_interpreter ctxt model args t =
                       (* copy 'rec_operators' into arrays first.  Each Boolean   *)
                       (* indicates whether the recursive arguments have been     *)
                       (* considered already.                                     *)
-                      (* (int * (bool * interpretation) Array.array) list *)
                       val REC_OPERATORS = map (fn (idx, intrs) =>
                         (idx, Array.fromList (map (pair false) intrs)))
                         rec_operators
@@ -2376,7 +2289,6 @@ fun IDT_recursion_interpreter ctxt model args t =
                       (* interpretation is the 'elem'-th element of the type,  *)
                       (* the indices of the arguments leading to this leaf are *)
                       (* returned                                              *)
-                      (* interpretation -> int -> int list option *)
                       fun get_args (Leaf xs) elem =
                             if find_index (fn x => x = True) xs = elem then
                               SOME []
@@ -2384,7 +2296,6 @@ fun IDT_recursion_interpreter ctxt model args t =
                               NONE
                         | get_args (Node xs) elem =
                             let
-                              (* interpretation list * int -> int list option *)
                               fun search ([], _) =
                                 NONE
                                 | search (x::xs, n) =
@@ -2397,10 +2308,8 @@ fun IDT_recursion_interpreter ctxt model args t =
                       (* returns the index of the constructor and indices for *)
                       (* its arguments that generate the 'elem'-th element of *)
                       (* the datatype given by 'idx'                          *)
-                      (* int -> int -> int * int list *)
                       fun get_cargs idx elem =
                         let
-                          (* int * interpretation list -> int * int list *)
                           fun get_cargs_rec (_, []) =
                                 raise REFUTE ("IDT_recursion_interpreter",
                                   "no matching constructor found for datatype element")
@@ -2414,7 +2323,6 @@ fun IDT_recursion_interpreter ctxt model args t =
                       (* computes one entry in 'REC_OPERATORS', and recursively *)
                       (* all entries needed for it, where 'idx' gives the       *)
                       (* datatype and 'elem' the element of it                  *)
-                      (* int -> int -> interpretation *)
                       fun compute_array_entry idx elem =
                         let
                           val arr = the (AList.lookup (op =) REC_OPERATORS idx)
@@ -2427,7 +2335,6 @@ fun IDT_recursion_interpreter ctxt model args t =
                             (* we have to apply 'intr' to interpretations for all *)
                             (* recursive arguments                                *)
                             let
-                              (* int * int list *)
                               val (c, args) = get_cargs idx elem
                               (* find the indices of the constructor's /recursive/ *)
                               (* arguments                                         *)
@@ -2485,7 +2392,6 @@ fun IDT_recursion_interpreter ctxt model args t =
                             raise REFUTE ("IDT_recursion_interpreter",
                               "unexpected size of IDT (wrong type associated?)")
                           else ()
-                      (* interpretation *)
                       val rec_op = Node (map_range (compute_array_entry idt_index) idt_size)
                     in
                       SOME (rec_op, model', args')
@@ -2553,7 +2459,6 @@ fun Finite_Set_card_interpreter ctxt model args t =
     Const (@{const_name Finite_Set.card},
         Type ("fun", [Type (@{type_name set}, [T]), @{typ nat}])) =>
       let
-        (* interpretation -> int *)
         fun number_of_elements (Node xs) =
             fold (fn x => fn n =>
               if x = TT then
@@ -2570,7 +2475,6 @@ fun Finite_Set_card_interpreter ctxt model args t =
         val size_of_nat = size_of_type ctxt model (@{typ nat})
         (* takes an interpretation for a set and returns an interpretation *)
         (* for a 'nat' denoting the set's cardinality                      *)
-        (* interpretation -> interpretation *)
         fun card i =
           let
             val n = number_of_elements i
@@ -2621,7 +2525,6 @@ fun Nat_less_interpreter ctxt model args t =
         val size_of_nat = size_of_type ctxt model (@{typ nat})
         (* the 'n'-th nat is not less than the first 'n' nats, while it *)
         (* is less than the remaining 'size_of_nat - n' nats            *)
-        (* int -> interpretation *)
         fun less n = Node ((replicate n FF) @ (replicate (size_of_nat - n) TT))
       in
         SOME (Node (map less (1 upto size_of_nat)), model, args)
@@ -2638,7 +2541,6 @@ fun Nat_plus_interpreter ctxt model args t =
         Type ("fun", [@{typ nat}, @{typ nat}])])) =>
       let
         val size_of_nat = size_of_type ctxt model (@{typ nat})
-        (* int -> int -> interpretation *)
         fun plus m n =
           let
             val element = m + n
@@ -2665,7 +2567,6 @@ fun Nat_minus_interpreter ctxt model args t =
         Type ("fun", [@{typ nat}, @{typ nat}])])) =>
       let
         val size_of_nat = size_of_type ctxt model (@{typ nat})
-        (* int -> int -> interpretation *)
         fun minus m n =
           let
             val element = Int.max (m-n, 0)
@@ -2689,7 +2590,6 @@ fun Nat_times_interpreter ctxt model args t =
         Type ("fun", [@{typ nat}, @{typ nat}])])) =>
       let
         val size_of_nat = size_of_type ctxt model (@{typ nat})
-        (* nat -> nat -> interpretation *)
         fun mult m n =
           let
             val element = m * n
@@ -2720,7 +2620,6 @@ fun List_append_interpreter ctxt model args t =
         (* maximal length of lists; 0 if we only consider the empty list *)
         val list_length =
           let
-            (* int -> int -> int -> int *)
             fun list_length_acc len lists total =
               if lists = total then
                 len
@@ -2775,7 +2674,6 @@ fun List_append_interpreter ctxt model args t =
         (* index)                                                      *)
         val lenoff'_lists = map Library.swap lenoff_lists
         (* returns the interpretation for "(list no. m) @ (list no. n)" *)
-        (* nat -> nat -> interpretation *)
         fun append m n =
           let
             val (len_m, off_m) = the (AList.lookup (op =) lenoff_lists m)
@@ -2817,20 +2715,17 @@ fun lfp_interpreter ctxt model args t =
         val i_funs = make_constants ctxt model (Type ("fun",
           [HOLogic.mk_setT T, HOLogic.mk_setT T]))
         (* "lfp(f) == Inter({u. f(u) <= u})" *)
-        (* interpretation * interpretation -> bool *)
         fun is_subset (Node subs, Node sups) =
               forall (fn (sub, sup) => (sub = FF) orelse (sup = TT)) (subs ~~ sups)
           | is_subset (_, _) =
               raise REFUTE ("lfp_interpreter",
                 "is_subset: interpretation for set is not a node")
-        (* interpretation * interpretation -> interpretation *)
         fun intersection (Node xs, Node ys) =
               Node (map (fn (x, y) => if x=TT andalso y=TT then TT else FF)
                 (xs ~~ ys))
           | intersection (_, _) =
               raise REFUTE ("lfp_interpreter",
                 "intersection: interpretation for set is not a node")
-        (* interpretation -> interpretaion *)
         fun lfp (Node resultsets) =
               fold (fn (set, resultset) => fn acc =>
                 if is_subset (resultset, set) then
@@ -2865,21 +2760,18 @@ fun gfp_interpreter ctxt model args t =
         val i_funs = make_constants ctxt model (Type ("fun",
           [HOLogic.mk_setT T, HOLogic.mk_setT T]))
         (* "gfp(f) == Union({u. u <= f(u)})" *)
-        (* interpretation * interpretation -> bool *)
         fun is_subset (Node subs, Node sups) =
               forall (fn (sub, sup) => (sub = FF) orelse (sup = TT))
                 (subs ~~ sups)
           | is_subset (_, _) =
               raise REFUTE ("gfp_interpreter",
                 "is_subset: interpretation for set is not a node")
-        (* interpretation * interpretation -> interpretation *)
         fun union (Node xs, Node ys) =
               Node (map (fn (x,y) => if x=TT orelse y=TT then TT else FF)
                    (xs ~~ ys))
           | union (_, _) =
               raise REFUTE ("gfp_interpreter",
                 "union: interpretation for set is not a node")
-        (* interpretation -> interpretaion *)
         fun gfp (Node resultsets) =
               fold (fn (set, resultset) => fn acc =>
                 if is_subset (set, resultset) then
@@ -2931,14 +2823,11 @@ fun Product_Type_snd_interpreter ctxt model args t =
 
 fun stlc_printer ctxt model T intr assignment =
   let
-    (* string -> string *)
     val strip_leading_quote = perhaps (try (unprefix "'"))
-    (* Term.typ -> string *)
     fun string_of_typ (Type (s, _)) = s
       | string_of_typ (TFree (x, _)) = strip_leading_quote x
       | string_of_typ (TVar ((x,i), _)) =
           strip_leading_quote x ^ string_of_int i
-    (* interpretation -> int *)
     fun index_from_interpretation (Leaf xs) =
           find_index (Prop_Logic.eval assignment) xs
       | index_from_interpretation _ =
@@ -2950,7 +2839,6 @@ fun stlc_printer ctxt model T intr assignment =
         let
           (* create all constants of type 'T1' *)
           val constants = make_constants ctxt model T1
-          (* interpretation list *)
           val results =
             (case intr of
               Node xs => xs
@@ -2962,10 +2850,8 @@ fun stlc_printer ctxt model T intr assignment =
               (print ctxt model T1 arg assignment,
                print ctxt model T2 result assignment))
             (constants ~~ results)
-          (* Term.typ *)
           val HOLogic_prodT = HOLogic.mk_prodT (T1, T2)
           val HOLogic_setT  = HOLogic.mk_setT HOLogic_prodT
-          (* Term.term *)
           val HOLogic_empty_set = Const (@{const_abbrev Set.empty}, HOLogic_setT)
           val HOLogic_insert    =
             Const (@{const_name insert}, HOLogic_prodT --> HOLogic_setT --> HOLogic_setT)
@@ -3005,12 +2891,10 @@ fun set_printer ctxt model T intr assignment =
     let
       (* create all constants of type 'T1' *)
       val constants = make_constants ctxt model T1
-      (* interpretation list *)
       val results = (case intr of
           Node xs => xs
         | _       => raise REFUTE ("set_printer",
           "interpretation for set type is a leaf"))
-      (* Term.term list *)
       val elements = List.mapPartial (fn (arg, result) =>
         case result of
           Leaf [fmTrue, (* fmFalse *) _] =>
@@ -3022,9 +2906,7 @@ fun set_printer ctxt model T intr assignment =
           raise REFUTE ("set_printer",
             "illegal interpretation for a Boolean value"))
         (constants ~~ results)
-      (* Term.typ *)
       val HOLogic_setT1     = HOLogic.mk_setT T1
-      (* Term.term *)
       val HOLogic_empty_set = Const (@{const_abbrev Set.empty}, HOLogic_setT1)
       val HOLogic_insert    =
         Const (@{const_name insert}, T1 --> HOLogic_setT1 --> HOLogic_setT1)
@@ -3078,7 +2960,6 @@ fun IDT_printer ctxt model T intr assignment =
                         map (typ_of_dtyp descr typ_assoc) cargs ---> Type (s, Ts))
                       val (iC, _, _) = interpret ctxt (typs, []) {maxvars=0,
                         def_eq=false, next_idx=1, bounds=[], wellformed=True} cTerm
-                      (* interpretation -> int list option *)
                       fun get_args (Leaf xs) =
                             if find_index (fn x => x = True) xs = element then
                               SOME []
@@ -3086,7 +2967,6 @@ fun IDT_printer ctxt model T intr assignment =
                               NONE
                         | get_args (Node xs) =
                             let
-                              (* interpretation * int -> int list option *)
                               fun search ([], _) =
                                 NONE
                                 | search (x::xs, n) =
