@@ -24,13 +24,14 @@ object Isabelle
   val modes =
     List(
       "isabelle",         // theory source
+      "isabelle-ml",      // ML source
       "isabelle-markup",  // SideKick markup tree
       "isabelle-news",    // NEWS
       "isabelle-options", // etc/options
       "isabelle-output",  // pretty text area output
       "isabelle-root")    // session ROOT
 
-  private lazy val news_syntax = Outer_Syntax.init().no_tokens
+  private lazy val symbols_syntax = Outer_Syntax.init().no_tokens
 
   def mode_syntax(name: String): Option[Outer_Syntax] =
     name match {
@@ -39,7 +40,7 @@ object Isabelle
         if (syntax == Outer_Syntax.empty) None else Some(syntax)
       case "isabelle-options" => Some(Options.options_syntax)
       case "isabelle-root" => Some(Build.root_syntax)
-      case "isabelle-news" => Some(news_syntax)
+      case "isabelle-ml" | "isabelle-news" => Some(symbols_syntax)
       case "isabelle-output" => None
       case _ => None
     }

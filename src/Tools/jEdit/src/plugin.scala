@@ -173,7 +173,7 @@ class Plugin extends EBPlugin
               buffer <- buffers
               model <- PIDE.document_model(buffer)
               if model.is_theory
-            } yield model.node_name
+            } yield (model.node_name, Position.none)
 
           val thy_info = new Thy_Info(PIDE.thy_load)
           // FIXME avoid I/O in Swing thread!?!

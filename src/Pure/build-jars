@@ -43,6 +43,7 @@ declare -a SOURCES=(
   Isar/outer_syntax.scala
   Isar/parse.scala
   Isar/token.scala
+  ML/ml_lex.scala
   PIDE/command.scala
   PIDE/document.scala
   PIDE/document_id.scala

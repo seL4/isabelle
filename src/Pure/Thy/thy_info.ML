@@ -324,8 +324,8 @@ and require_thy document last_timing initiators dir (str, require_pos) tasks =
           else
             error (loader_msg "incoherent imports for theory" [name] ^
               Position.here require_pos ^ ":\n" ^
-              Path.print node_name ^ " versus\n" ^
-              Path.print node_name')
+              "  " ^ Path.print node_name ^ "\n" ^
+              "  " ^ Path.print node_name')
       | check_entry _ = ();
   in
     (case try (String_Graph.get_node tasks) name of

@@ -25,6 +25,8 @@ final class Multi_Map[A, +B] private(rep: Map[A, List[B]])
 {
   /* Multi_Map operations */
 
+  def iterator_list: Iterator[(A, List[B])] = rep.iterator
+
   def get_list(a: A): List[B] = rep.getOrElse(a, Nil)
 
   def insert[B1 >: B](a: A, b: B1): Multi_Map[A, B1] =

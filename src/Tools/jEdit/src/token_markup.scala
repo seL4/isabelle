@@ -203,21 +203,29 @@ object Token_Markup
       val context1 =
       {
         val (styled_tokens, context1) =
-          Isabelle.mode_syntax(mode) match {
-            case Some(syntax) if syntax.has_tokens && line_ctxt.isDefined =>
-              val (tokens, ctxt1) = syntax.scan_context(line, line_ctxt.get)
-              val styled_tokens = tokens.map(tok => (Rendering.token_markup(syntax, tok), tok))
-              (styled_tokens, new Line_Context(Some(ctxt1)))
-            case _ =>
-              val token = Token(Token.Kind.UNPARSED, line.subSequence(0, line.count).toString)
-              (List((JEditToken.NULL, token)), new Line_Context(None))
+          if (mode == "isabelle-ml") {
+            val (tokens, ctxt1) = ML_Lex.tokenize_context(line, line_ctxt.get)
+            val styled_tokens = tokens.map(tok => (Rendering.ml_token_markup(tok), tok.source))
+            (styled_tokens, new Line_Context(Some(ctxt1)))
+          }
+          else {
+            Isabelle.mode_syntax(mode) match {
+              case Some(syntax) if syntax.has_tokens && line_ctxt.isDefined =>
+                val (tokens, ctxt1) = syntax.scan_context(line, line_ctxt.get)
+                val styled_tokens =
+                  tokens.map(tok => (Rendering.token_markup(syntax, tok), tok.source))
+                (styled_tokens, new Line_Context(Some(ctxt1)))
+              case _ =>
+                val styled_token = (JEditToken.NULL, line.subSequence(0, line.count).toString)
+                (List(styled_token), new Line_Context(None))
+            }
           }
 
         val extended = extended_styles(line)
 
         var offset = 0
         for ((style, token) <- styled_tokens) {
-          val length = token.source.length
+          val length = token.length
           val end_offset = offset + length
           if ((offset until end_offset) exists
               (i => extended.isDefinedAt(i) || line.charAt(i) == '\t')) {

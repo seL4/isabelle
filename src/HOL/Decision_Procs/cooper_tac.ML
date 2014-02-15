@@ -4,15 +4,11 @@
 
 signature COOPER_TAC =
 sig
-  val trace: bool Unsynchronized.ref
   val linz_tac: Proof.context -> bool -> int -> tactic
 end
 
 structure Cooper_Tac: COOPER_TAC =
 struct
-
-val trace = Unsynchronized.ref false;
-fun trace_msg s = if !trace then tracing s else ();
 
 val cooper_ss = simpset_of @{context};
 
@@ -21,15 +17,11 @@ val comp_arith = @{thms simp_thms}
 
 val zdvd_int = @{thm zdvd_int};
 val zdiff_int_split = @{thm zdiff_int_split};
-val all_nat = @{thm all_nat};
-val ex_nat = @{thm ex_nat};
 val split_zdiv = @{thm split_zdiv};
 val split_zmod = @{thm split_zmod};
 val mod_div_equality' = @{thm mod_div_equality'};
 val split_div' = @{thm split_div'};
 val Suc_eq_plus1 = @{thm Suc_eq_plus1};
-val imp_le_cong = @{thm imp_le_cong};
-val conj_le_cong = @{thm conj_le_cong};
 val mod_add_left_eq = @{thm mod_add_left_eq} RS sym;
 val mod_add_right_eq = @{thm mod_add_right_eq} RS sym;
 val mod_add_eq = @{thm mod_add_eq} RS sym;

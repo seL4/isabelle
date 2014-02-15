@@ -541,30 +541,31 @@ lemma kle_strict:
     and "\<exists>k. 1 \<le> k \<and> k \<le> n \<and> x k < y k"
   apply (rule kle_imp_pointwise[OF assms(1)])
 proof -
-  guess k using assms(1)[unfolded kle_def] .. note k = this
+  obtain k where k: "k \<subseteq> {1..n} \<and> (\<forall>j. y j = x j + (if j \<in> k then 1 else 0))"
+    using assms(1)[unfolded kle_def] ..
   show "\<exists>k. 1 \<le> k \<and> k \<le> n \<and> x k < y k"
-proof (cases "k = {}")
-  case True
-  then have "x = y"
-    apply -
-    apply (rule ext)
-    using k
-    apply auto
-    done
-  then show ?thesis
-    using assms(2) by auto
-next
-  case False
-  then have "(SOME k'. k' \<in> k) \<in> k"
-    apply -
-    apply (rule someI_ex)
-    apply auto
-    done
-  then show ?thesis
-    apply (rule_tac x = "SOME k'. k' \<in> k" in exI)
-    using k
-    apply auto
-    done
+  proof (cases "k = {}")
+    case True
+    then have "x = y"
+      apply -
+      apply (rule ext)
+      using k
+      apply auto
+      done
+    then show ?thesis
+      using assms(2) by auto
+  next
+    case False
+    then have "(SOME k'. k' \<in> k) \<in> k"
+      apply -
+      apply (rule someI_ex)
+      apply auto
+      done
+    then show ?thesis
+      apply (rule_tac x = "SOME k'. k' \<in> k" in exI)
+      using k
+      apply auto
+      done
   qed
 qed
 
@@ -583,7 +584,7 @@ proof -
     using kle_imp_pointwise
     apply auto
     done
-  then guess a .. note a = this
+  then obtain a where a: "a \<in> s" "\<forall>x\<in>s. \<forall>j. a j \<le> x j" ..
   show ?thesis
     apply (rule_tac x = a in bexI)
   proof
@@ -620,7 +621,7 @@ proof -
     using kle_imp_pointwise
     apply auto
     done
-  then guess a .. note a = this
+  then obtain a where a: "a \<in> s" "\<forall>x\<in>s. \<forall>j. x j \<le> a j" ..
   show ?thesis 
     apply (rule_tac x = a in bexI)
   proof
@@ -649,7 +650,8 @@ lemma kle_strict_set:
     and "x \<noteq> y"
   shows "1 \<le> card {k\<in>{1..n}. x k < y k}"
 proof -
-  guess i using kle_strict(2)[OF assms] ..
+  obtain i where "1 \<le> i" "i \<le> n" "x i < y i"
+    using kle_strict(2)[OF assms] by blast
   then have "card {i} \<le> card {k\<in>{1..n}. x k < y k}"
     apply -
     apply (rule card_mono)
@@ -693,7 +695,8 @@ proof -
   proof -
     fix i j
     assume as: "i \<in> {1..n}" "x i < y i" "j \<in> {1..n}" "y j < z j" "i = j"
-    guess kx using assms(1)[unfolded kle_def] .. note kx = this
+    obtain kx where kx: "kx \<subseteq> {1..n} \<and> (\<forall>j. y j = x j + (if j \<in> kx then 1 else 0))"
+      using assms(1)[unfolded kle_def] ..
     have "x i < y i"
       using as by auto
     then have "i \<in> kx"
@@ -705,7 +708,8 @@ proof -
     then have "x i + 1 = y i"
       using kx by auto
     moreover
-    guess ky using assms(2)[unfolded kle_def] .. note ky = this
+    obtain ky where ky: "ky \<subseteq> {1..n} \<and> (\<forall>j. z j = y j + (if j \<in> ky then 1 else 0))"
+      using assms(2)[unfolded kle_def] ..
     have "y i < z i"
       using as by auto
     then have "i \<in> ky"
@@ -829,8 +833,10 @@ lemma kle_trans_2:
     and "\<forall>j. c j \<le> a j + 1"
   shows "kle n a c"
 proof -
-  guess kk1 using assms(1)[unfolded kle_def] .. note kk1 = this
-  guess kk2 using assms(2)[unfolded kle_def] .. note kk2 = this
+  obtain kk1 where kk1: "kk1 \<subseteq> {1..n} \<and> (\<forall>j. b j = a j + (if j \<in> kk1 then 1 else 0))"
+    using assms(1)[unfolded kle_def] ..
+  obtain kk2 where kk2: "kk2 \<subseteq> {1..n} \<and> (\<forall>j. c j = b j + (if j \<in> kk2 then 1 else 0))"
+    using assms(2)[unfolded kle_def] ..
   show ?thesis
     unfolding kle_def
     apply (rule_tac x="kk1 \<union> kk2" in exI)
@@ -1023,7 +1029,8 @@ next
     apply (subst *[symmetric])
     unfolding mem_Collect_eq
   proof
-    guess k using a(2)[rule_format,OF b(1),unfolded kle_def] .. note k = this
+    obtain k where k: "k \<subseteq> {1..n} \<and> (\<forall>j. b j = a j + (if j \<in> k then 1 else 0))"
+      using a(2)[rule_format, OF b(1), unfolded kle_def] ..
     fix i
     show "b i = (if i \<in> {1..n} \<and> a i < b i then a i + 1 else a i)"
     proof (cases "i \<in> {1..n}")
@@ -1166,7 +1173,10 @@ next
     ultimately show False
       unfolding n by auto
   qed
-  then guess k unfolding card_1_exists .. note k = this[unfolded mem_Collect_eq]
+  then obtain k where k:
+      "k \<in> {1..n} \<and> a k < b k"
+      "\<And>y y'. (y \<in> {1..n} \<and> a y < b y) \<and> y' \<in> {1..n} \<and> a y' < b y' \<Longrightarrow> y = y'"
+    unfolding card_1_exists by blast
 
   show ?thesis
     apply (rule disjI2)
@@ -1177,12 +1187,12 @@ next
     have "kle n a b"
       using b and assm(6)[rule_format, OF `a\<in>s` `b\<in>s`]
       by auto
-    then guess kk unfolding kle_def .. note kk_raw = this
-    note kk = this[THEN conjunct2, rule_format]
+    then obtain kk where kk: "kk \<subseteq> {1..n}" "\<And>j. b j = a j + (if j \<in> kk then 1 else 0)"
+      unfolding kle_def by blast
     have kkk: "k \<in> kk"
       apply (rule ccontr)
       using k(1)
-      unfolding kk
+      unfolding kk(2)
       apply auto
       done
     show "b j = (if j = k then a j + 1 else a j)"
@@ -1190,19 +1200,19 @@ next
       case True
       then have "j = k"
         apply -
-        apply (rule k(2)[rule_format])
-        using kk_raw kkk
+        apply (rule k(2))
+        using kk kkk
         apply auto
         done
       then show ?thesis
-        unfolding kk using kkk by auto
+        unfolding kk(2) using kkk by auto
     next
       case False
       then have "j \<noteq> k"
-        using k(2)[rule_format, of j k] and kk_raw kkk
+        using k(2)[of j k] and kkk
         by auto
       then show ?thesis
-        unfolding kk
+        unfolding kk(2)
         using kkk and False
         by auto
     qed
@@ -1298,7 +1308,10 @@ next
     ultimately show False
       unfolding n by auto
   qed
-  then guess k unfolding card_1_exists .. note k = this[unfolded mem_Collect_eq]
+  then obtain k where k:
+    "k \<in> {1..n} \<and> b k < a k"
+    "\<And>y y'. (y \<in> {1..n} \<and> b y < a y) \<and> y' \<in> {1..n} \<and> b y' < a y' \<Longrightarrow> y = y'"
+    unfolding card_1_exists by blast
 
   show ?thesis
     apply (rule disjI2)
@@ -1308,12 +1321,12 @@ next
     fix j :: nat
     have "kle n b a"
       using b and assm(6)[rule_format, OF `a\<in>s` `b\<in>s`] by auto
-    then guess kk unfolding kle_def .. note kk_raw = this
-    note kk = this[THEN conjunct2,rule_format]
+    then obtain kk where kk: "kk \<subseteq> {1..n}" "\<And>j. a j = b j + (if j \<in> kk then 1 else 0)"
+      unfolding kle_def by blast
     have kkk: "k \<in> kk"
       apply (rule ccontr)
       using k(1)
-      unfolding kk
+      unfolding kk(2)
       apply auto
       done
     show "a j = (if j = k then b j + 1 else b j)"
@@ -1321,20 +1334,20 @@ next
       case True
       then have "j = k"
         apply -
-        apply (rule k(2)[rule_format])
-        using kk_raw kkk
+        apply (rule k(2))
+        using kk kkk
         apply auto
         done
       then show ?thesis
-        unfolding kk using kkk by auto
+        unfolding kk(2) using kkk by auto
     next
       case False
       then have "j \<noteq> k"
-        using k(2)[rule_format, of j k]
-        using kk_raw kkk
+        using k(2)[of j k]
+        using kkk
         by auto
       then show ?thesis
-        unfolding kk
+        unfolding kk(2)
         using kkk and False
         by auto
     qed
@@ -1367,8 +1380,12 @@ proof (induct m arbitrary: s)
     by auto
 next
   case (Suc m)
-  guess a using card_eq_SucD[OF Suc(4)] ..
-  then guess s0 by (elim exE conjE) note as0 = this
+  obtain a s0 where as0:
+    "s = insert a s0"
+    "a \<notin> s0"
+    "card s0 = m"
+    "m = 0 \<longrightarrow> s0 = {}"
+    using card_eq_SucD[OF Suc(4)] by auto
   have **: "card s0 = m"
     using as0 using Suc(2) Suc(4)
     by auto
@@ -1489,8 +1506,11 @@ lemma simplex_top_face:
     (is "?ls = ?rs")
 proof
   assume ?ls
-  then guess s ..
-  then guess a by (elim exE conjE) note sa = this
+  then obtain s a where sa:
+    "ksimplex p (n + 1) s"
+    "a \<in> s"
+    "f = s - {a}"
+    by auto
   show ?rs
     unfolding ksimplex_def sa(3)
     apply rule
@@ -1510,7 +1530,8 @@ proof
     show "kle n x y \<or> kle n y x"
     proof (cases "kle (n + 1) x y")
       case True
-      then guess k unfolding kle_def .. note k = this
+      then obtain k where k: "k \<subseteq> {1..n + 1}" "\<And>j. y j = x j + (if j \<in> k then 1 else 0)"
+        unfolding kle_def by blast
       then have *: "n + 1 \<notin> k" using xyp by auto
       have "\<not> (\<exists>x\<in>k. x \<notin> {1..n})"
         apply (rule notI)
@@ -1521,13 +1542,13 @@ proof
         have "x \<noteq> n + 1"
           using as and * by auto
         then show False
-          using as and k[THEN conjunct1,unfolded subset_eq] by auto
+          using as and k(1) by auto
       qed
       then show ?thesis
         apply -
         apply (rule disjI1)
         unfolding kle_def
-        using k
+        using k(2)
         apply (rule_tac x=k in exI)
         apply auto
         done
@@ -1536,7 +1557,8 @@ proof
       then have "kle (n + 1) y x"
         using ksimplexD(6)[OF sa(1),rule_format, of x y] and as
         by auto
-      then guess k unfolding kle_def .. note k = this
+      then obtain k where k: "k \<subseteq> {1..n + 1}" "\<And>j. x j = y j + (if j \<in> k then 1 else 0)"
+        unfolding kle_def by auto
       then have *: "n + 1 \<notin> k"
         using xyp by auto
       then have "\<not> (\<exists>x\<in>k. x \<notin> {1..n})"
@@ -1549,14 +1571,14 @@ proof
         have "x \<noteq> n + 1"
           using as and * by auto
         then show False
-          using as and k[THEN conjunct1,unfolded subset_eq]
+          using as and k(1)
           by auto
       qed
       then show ?thesis
         apply -
         apply (rule disjI2)
         unfolding kle_def
-        using k
+        using k(2)
         apply (rule_tac x = k in exI)
         apply auto
         done
@@ -1573,7 +1595,12 @@ proof
   qed (insert sa ksimplexD[OF sa(1)], auto)
 next
   assume ?rs note rs=ksimplexD[OF this]
-  guess a b by (rule ksimplex_extrema[OF `?rs`]) note ab = this
+  obtain a b where ab:
+    "a \<in> f"
+    "b \<in> f"
+    "\<forall>x\<in>f. kle n a x \<and> kle n x b"
+    "\<forall>i. b i = (if i \<in> {1..n} then a i + 1 else a i)"
+    by (rule ksimplex_extrema[OF `?rs`])
   def c \<equiv> "\<lambda>i. if i = (n + 1) then p - 1 else a i"
   have "c \<notin> f"
     apply (rule notI)
@@ -1625,11 +1652,9 @@ next
         case False
         then have "z \<in> f"
           using z by auto
-        then guess k
-          apply (drule_tac ab(3)[THEN bspec[where x=z], THEN conjunct1])
-          unfolding kle_def
-          apply (erule exE)
-          done
+        with ab(3) have "kle n a z" by blast
+        then obtain k where "k \<subseteq> {1..n}" "\<And>j. z j = a j + (if j \<in> k then 1 else 0)"
+          unfolding kle_def by blast
         then show "kle (n + 1) c z"
           unfolding kle_def
           apply (rule_tac x="insert (n + 1) k" in exI)

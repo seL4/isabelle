@@ -432,7 +432,7 @@ object Build
             val thy_deps =
               thy_info.dependencies(
                 info.theories.map(_._2).flatten.
-                  map(thy => thy_load.node_name(info.dir + Thy_Load.thy_path(thy))))
+                  map(thy => (thy_load.node_name(info.dir + Thy_Load.thy_path(thy)), info.pos)))
 
             thy_deps.errors match {
               case Nil =>

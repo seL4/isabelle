@@ -142,12 +142,6 @@ val err_prefix = "SML lexical error: ";
 fun !!! msg = Symbol_Pos.!!! (fn () => err_prefix ^ msg);
 
 
-(* blanks *)
-
-val scan_blank = Scan.one (Symbol.is_ascii_blank o Symbol_Pos.symbol);
-val scan_blanks1 = Scan.repeat1 scan_blank;
-
-
 (* keywords *)
 
 val keywords = ["#", "(", ")", ",", "->", "...", ":", ":>", ";", "=",
@@ -167,9 +161,7 @@ fun scan_keyword x = Scan.literal lex x;
 local
 
 val scan_letdigs =
-  Scan.many
-    ((Symbol.is_ascii_letter orf Symbol.is_ascii_digit orf Symbol.is_ascii_quasi) o
-      Symbol_Pos.symbol);
+  Scan.many (Symbol.is_ascii_letdig o Symbol_Pos.symbol);
 
 val scan_alphanumeric =
   Scan.one (Symbol.is_ascii_letter o Symbol_Pos.symbol) -- scan_letdigs >> op ::;
@@ -181,10 +173,10 @@ in
 
 val scan_ident = scan_alphanumeric || scan_symbolic;
 
-val scan_longident =
+val scan_long_ident =
   (Scan.repeat1 (scan_alphanumeric @@@ $$$ ".") >> flat) @@@ (scan_ident || $$$ "=");
 
-val scan_typevar = $$$ "'" @@@ scan_letdigs;
+val scan_type_var = $$$ "'" @@@ scan_letdigs;
 
 end;
 
@@ -197,6 +189,7 @@ val scan_dec = Scan.many1 (Symbol.is_ascii_digit o Symbol_Pos.symbol);
 val scan_hex = Scan.many1 (Symbol.is_ascii_hex o Symbol_Pos.symbol);
 val scan_sign = Scan.optional ($$$ "~") [];
 val scan_decint = scan_sign @@@ scan_dec;
+val scan_exp = ($$$ "E" || $$$ "e") @@@ scan_decint;
 
 in
 
@@ -206,8 +199,6 @@ val scan_word =
 
 val scan_int = scan_sign @@@ ($$$ "0" @@@ $$$ "x" @@@ scan_hex || scan_dec);
 
-val scan_exp = ($$$ "E" || $$$ "e") @@@ scan_decint;
-
 val scan_real =
   scan_decint @@@ $$$ "." @@@ scan_dec @@@ Scan.optional scan_exp [] ||
   scan_decint @@@ scan_exp;
@@ -216,6 +207,8 @@ end;
 
 
 (* chars and strings *)
+
+val scan_blanks1 = Scan.many1 (Symbol.is_ascii_blank o Symbol_Pos.symbol);
 
 local
 
@@ -269,9 +262,9 @@ val scan_ml =
    (scan_word >> token Word ||
     scan_real >> token Real ||
     scan_int >> token Int ||
-    scan_longident >> token LongIdent ||
+    scan_long_ident >> token LongIdent ||
     scan_ident >> token Ident ||
-    scan_typevar >> token TypeVar));
+    scan_type_var >> token TypeVar));
 
 val scan_antiq = Antiquote.scan_antiq >> Antiquote.Antiq || scan_ml >> Antiquote.Text;
 

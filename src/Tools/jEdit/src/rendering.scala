@@ -67,7 +67,7 @@ object Rendering
   def popup_bounds: Double = (PIDE.options.real("jedit_popup_bounds") max 0.2) min 0.8
 
 
-  /* token markup -- text styles */
+  /* Isabelle/Isar token markup */
 
   private val command_style: Map[String, Byte] =
   {
@@ -110,6 +110,41 @@ object Rendering
     if (token.is_command) command_style(syntax.keyword_kind(token.content).getOrElse(""))
     else if (token.is_operator) JEditToken.OPERATOR
     else token_style(token.kind)
+
+
+  /* Isabelle/ML token markup */
+
+  private val ml_keyword2: Set[String] =
+    Set("case", "do", "else", "end", "if", "in", "let", "local", "of",
+      "sig", "struct", "then", "while", "with")
+
+  private val ml_keyword3: Set[String] =
+    Set("handle", "open", "raise")
+
+  private val ml_token_style: Map[ML_Lex.Kind.Value, Byte] =
+  {
+    import JEditToken._
+    Map[ML_Lex.Kind.Value, Byte](
+      ML_Lex.Kind.IDENT -> NULL,
+      ML_Lex.Kind.LONG_IDENT -> NULL,
+      ML_Lex.Kind.TYPE_VAR -> NULL,
+      ML_Lex.Kind.WORD -> DIGIT,
+      ML_Lex.Kind.INT -> DIGIT,
+      ML_Lex.Kind.REAL -> DIGIT,
+      ML_Lex.Kind.CHAR -> LITERAL2,
+      ML_Lex.Kind.STRING -> LITERAL1,
+      ML_Lex.Kind.SPACE -> NULL,
+      ML_Lex.Kind.COMMENT -> COMMENT1,
+      ML_Lex.Kind.ERROR -> INVALID
+    ).withDefaultValue(NULL)
+  }
+
+  def ml_token_markup(token: ML_Lex.Token): Byte =
+    if (!token.is_keyword) ml_token_style(token.kind)
+    else if (token.is_operator) JEditToken.OPERATOR
+    else if (ml_keyword2(token.source)) JEditToken.KEYWORD2
+    else if (ml_keyword3(token.source)) JEditToken.KEYWORD3
+    else JEditToken.KEYWORD1
 }
 
 

@@ -14,6 +14,8 @@ object Position
 {
   type T = Properties.T
 
+  val none: T = Nil
+
   val Line = new Properties.Int(Markup.LINE)
   val Offset = new Properties.Int(Markup.OFFSET)
   val End_Offset = new Properties.Int(Markup.END_OFFSET)

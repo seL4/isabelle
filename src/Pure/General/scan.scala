@@ -17,9 +17,9 @@ import java.io.{File => JFile, BufferedInputStream, FileInputStream}
 
 object Scan
 {
-  /** context of partial scans **/
+  /** context of partial scans (line boundary) **/
 
-  sealed abstract class Context
+  abstract class Context
   case object Finished extends Context
   case class Quoted(quote: String) extends Context
   case object Verbatim extends Context
@@ -28,99 +28,12 @@ object Scan
 
 
 
-  /** Lexicon -- position tree **/
+  /** parser combinators **/
 
-  object Lexicon
+  object Parsers extends Parsers
+
+  trait Parsers extends RegexParsers
   {
-    /* representation */
-
-    sealed case class Tree(val branches: Map[Char, (String, Tree)])
-    private val empty_tree = Tree(Map())
-
-    val empty: Lexicon = new Lexicon(empty_tree)
-    def apply(elems: String*): Lexicon = empty ++ elems
-  }
-
-  final class Lexicon private(main_tree: Lexicon.Tree) extends RegexParsers
-  {
-    import Lexicon.Tree
-
-
-    /* auxiliary operations */
-
-    private def content(tree: Tree, result: List[String]): List[String] =
-      (result /: tree.branches.toList) ((res, entry) =>
-        entry match { case (_, (s, tr)) =>
-          if (s.isEmpty) content(tr, res) else content(tr, s :: res) })
-
-    private def lookup(str: CharSequence): Option[(Boolean, Tree)] =
-    {
-      val len = str.length
-      def look(tree: Tree, tip: Boolean, i: Int): Option[(Boolean, Tree)] =
-      {
-        if (i < len) {
-          tree.branches.get(str.charAt(i)) match {
-            case Some((s, tr)) => look(tr, !s.isEmpty, i + 1)
-            case None => None
-          }
-        } else Some(tip, tree)
-      }
-      look(main_tree, false, 0)
-    }
-
-    def completions(str: CharSequence): List[String] =
-      lookup(str) match {
-        case Some((true, tree)) => content(tree, List(str.toString))
-        case Some((false, tree)) => content(tree, Nil)
-        case None => Nil
-      }
-
-
-    /* pseudo Set methods */
-
-    def iterator: Iterator[String] = content(main_tree, Nil).sorted.iterator
-
-    override def toString: String = iterator.mkString("Lexicon(", ", ", ")")
-
-    def empty: Lexicon = Lexicon.empty
-    def isEmpty: Boolean = main_tree.branches.isEmpty
-
-    def contains(elem: String): Boolean =
-      lookup(elem) match {
-        case Some((tip, _)) => tip
-        case _ => false
-      }
-
-
-    /* add elements */
-
-    def + (elem: String): Lexicon =
-      if (contains(elem)) this
-      else {
-        val len = elem.length
-        def extend(tree: Tree, i: Int): Tree =
-          if (i < len) {
-            val c = elem.charAt(i)
-            val end = (i + 1 == len)
-            tree.branches.get(c) match {
-              case Some((s, tr)) =>
-                Tree(tree.branches +
-                  (c -> (if (end) elem else s, extend(tr, i + 1))))
-              case None =>
-                Tree(tree.branches +
-                  (c -> (if (end) elem else "", extend(Lexicon.empty_tree, i + 1))))
-            }
-          }
-          else tree
-        new Lexicon(extend(main_tree, 0))
-      }
-
-    def ++ (elems: TraversableOnce[String]): Lexicon = (this /: elems)(_ + _)
-
-
-
-    /** RegexParsers methods **/
-
     override val whiteSpace = "".r
 
 
@@ -130,36 +43,9 @@ object Scan
       p ^^ (x => Some(x)) | """\z""".r ^^ (_ => None)
 
 
-    /* keywords from lexicon */
+    /* repeated symbols */
 
-    def keyword: Parser[String] = new Parser[String]
-    {
-      def apply(in: Input) =
-      {
-        val source = in.source
-        val offset = in.offset
-        val len = source.length - offset
-
-        def scan(tree: Tree, result: String, i: Int): String =
-        {
-          if (i < len) {
-            tree.branches.get(source.charAt(offset + i)) match {
-              case Some((s, tr)) => scan(tr, if (s.isEmpty) result else s, i + 1)
-              case None => result
-            }
-          }
-          else result
-        }
-        val result = scan(main_tree, "", 0)
-        if (result.isEmpty) Failure("keyword expected", in)
-        else Success(result, in.drop(result.length))
-      }
-    }.named("keyword")
-
-
-    /* symbol range */
-
-    def symbol_range(pred: Symbol.Symbol => Boolean, min_count: Int, max_count: Int): Parser[String] =
+    def repeated(pred: Symbol.Symbol => Boolean, min_count: Int, max_count: Int): Parser[String] =
       new Parser[String]
       {
         def apply(in: Input) =
@@ -180,16 +66,22 @@ object Scan
           if (count < min_count) Failure("bad input", in)
           else Success(in.source.subSequence(start, i).toString, in.drop(i - start))
         }
-      }.named("symbol_range")
+      }.named("repeated")
 
     def one(pred: Symbol.Symbol => Boolean): Parser[String] =
-      symbol_range(pred, 1, 1)
+      repeated(pred, 1, 1)
 
     def many(pred: Symbol.Symbol => Boolean): Parser[String] =
-      symbol_range(pred, 0, Integer.MAX_VALUE)
+      repeated(pred, 0, Integer.MAX_VALUE)
 
     def many1(pred: Symbol.Symbol => Boolean): Parser[String] =
-      symbol_range(pred, 1, Integer.MAX_VALUE)
+      repeated(pred, 1, Integer.MAX_VALUE)
+
+
+    /* character */
+
+    def character(pred: Char => Boolean): Symbol.Symbol => Boolean =
+      (s: Symbol. Symbol) => s.length == 1 && pred(s.charAt(0))
 
 
     /* quoted strings */
@@ -200,7 +92,7 @@ object Scan
         (("""\\\d\d\d""".r) ^? { case x if x.substring(1, 4).toInt <= 255 => x })) ^^ (_.mkString)
     }
 
-    private def quoted(quote: Symbol.Symbol): Parser[String] =
+    def quoted(quote: Symbol.Symbol): Parser[String] =
     {
       quote ~ quoted_body(quote) ~ quote ^^ { case x ~ y ~ z => x + y + z }
     }.named("quoted")
@@ -242,7 +134,7 @@ object Scan
     private def verbatim_body: Parser[String] =
       rep(many1(sym => sym != "*") | """\*(?!\})""".r) ^^ (_.mkString)
 
-    private def verbatim: Parser[String] =
+    def verbatim: Parser[String] =
     {
       "{*" ~ verbatim_body ~ "*}" ^^ { case x ~ y ~ z => x + y + z }
     }.named("verbatim")
@@ -391,81 +283,127 @@ object Scan
     }
 
 
-    /* outer syntax tokens */
+    /* keyword */
 
-    private def delimited_token: Parser[Token] =
+    def literal(lexicon: Lexicon): Parser[String] = new Parser[String]
     {
-      val string = quoted("\"") ^^ (x => Token(Token.Kind.STRING, x))
-      val alt_string = quoted("`") ^^ (x => Token(Token.Kind.ALT_STRING, x))
-      val verb = verbatim ^^ (x => Token(Token.Kind.VERBATIM, x))
-      val cart = cartouche ^^ (x => Token(Token.Kind.CARTOUCHE, x))
-      val cmt = comment ^^ (x => Token(Token.Kind.COMMENT, x))
+      def apply(in: Input) =
+      {
+        val result = lexicon.scan(in)
+        if (result.isEmpty) Failure("keyword expected", in)
+        else Success(result, in.drop(result.length))
+      }
+    }.named("keyword")
+  }
 
-      string | (alt_string | (verb | (cart | cmt)))
+
+
+  /** Lexicon -- position tree **/
+
+  object Lexicon
+  {
+    /* representation */
+
+    private sealed case class Tree(val branches: Map[Char, (String, Tree)])
+    private val empty_tree = Tree(Map())
+
+    val empty: Lexicon = new Lexicon(empty_tree)
+    def apply(elems: String*): Lexicon = empty ++ elems
+  }
+
+  final class Lexicon private(rep: Lexicon.Tree)
+  {
+    /* auxiliary operations */
+
+    private def content(tree: Lexicon.Tree, result: List[String]): List[String] =
+      (result /: tree.branches.toList) ((res, entry) =>
+        entry match { case (_, (s, tr)) =>
+          if (s.isEmpty) content(tr, res) else content(tr, s :: res) })
+
+    private def lookup(str: CharSequence): Option[(Boolean, Lexicon.Tree)] =
+    {
+      val len = str.length
+      def look(tree: Lexicon.Tree, tip: Boolean, i: Int): Option[(Boolean, Lexicon.Tree)] =
+      {
+        if (i < len) {
+          tree.branches.get(str.charAt(i)) match {
+            case Some((s, tr)) => look(tr, !s.isEmpty, i + 1)
+            case None => None
+          }
+        } else Some(tip, tree)
+      }
+      look(rep, false, 0)
     }
 
-    private def other_token(is_command: String => Boolean)
-      : Parser[Token] =
+    def completions(str: CharSequence): List[String] =
+      lookup(str) match {
+        case Some((true, tree)) => content(tree, List(str.toString))
+        case Some((false, tree)) => content(tree, Nil)
+        case None => Nil
+      }
+
+
+    /* pseudo Set methods */
+
+    def iterator: Iterator[String] = content(rep, Nil).sorted.iterator
+
+    override def toString: String = iterator.mkString("Lexicon(", ", ", ")")
+
+    def empty: Lexicon = Lexicon.empty
+    def isEmpty: Boolean = rep.branches.isEmpty
+
+    def contains(elem: String): Boolean =
+      lookup(elem) match {
+        case Some((tip, _)) => tip
+        case _ => false
+      }
+
+
+    /* add elements */
+
+    def + (elem: String): Lexicon =
+      if (contains(elem)) this
+      else {
+        val len = elem.length
+        def extend(tree: Lexicon.Tree, i: Int): Lexicon.Tree =
+          if (i < len) {
+            val c = elem.charAt(i)
+            val end = (i + 1 == len)
+            tree.branches.get(c) match {
+              case Some((s, tr)) =>
+                Lexicon.Tree(tree.branches +
+                  (c -> (if (end) elem else s, extend(tr, i + 1))))
+              case None =>
+                Lexicon.Tree(tree.branches +
+                  (c -> (if (end) elem else "", extend(Lexicon.empty_tree, i + 1))))
+            }
+          }
+          else tree
+        new Lexicon(extend(rep, 0))
+      }
+
+    def ++ (elems: TraversableOnce[String]): Lexicon = (this /: elems)(_ + _)
+
+
+    /* scan */
+
+    def scan(in: Reader[Char]): String =
     {
-      val letdigs1 = many1(Symbol.is_letdig)
-      val sub = one(s => s == Symbol.sub_decoded || s == "\\<^sub>")
-      val id =
-        one(Symbol.is_letter) ~
-          (rep(letdigs1 | (sub ~ letdigs1 ^^ { case x ~ y => x + y })) ^^ (_.mkString)) ^^
-        { case x ~ y => x + y }
+      val source = in.source
+      val offset = in.offset
+      val len = source.length - offset
 
-      val nat = many1(Symbol.is_digit)
-      val natdot = nat ~ "." ~ nat ^^ { case x ~ y ~ z => x + y + z }
-      val id_nat = id ~ opt("." ~ nat) ^^ { case x ~ Some(y ~ z) => x + y + z case x ~ None => x }
-
-      val ident = id ~ rep("." ~> id) ^^
-        { case x ~ Nil => Token(Token.Kind.IDENT, x)
-          case x ~ ys => Token(Token.Kind.LONG_IDENT, (x :: ys).mkString(".")) }
-
-      val var_ = "?" ~ id_nat ^^ { case x ~ y => Token(Token.Kind.VAR, x + y) }
-      val type_ident = "'" ~ id ^^ { case x ~ y => Token(Token.Kind.TYPE_IDENT, x + y) }
-      val type_var = "?'" ~ id_nat ^^ { case x ~ y => Token(Token.Kind.TYPE_VAR, x + y) }
-      val nat_ = nat ^^ (x => Token(Token.Kind.NAT, x))
-      val float =
-        ("-" ~ natdot ^^ { case x ~ y => x + y } | natdot) ^^ (x => Token(Token.Kind.FLOAT, x))
-
-      val sym_ident =
-        (many1(Symbol.is_symbolic_char) | one(sym => Symbol.is_symbolic(sym))) ^^
-        (x => Token(Token.Kind.SYM_IDENT, x))
-
-      val command_keyword =
-        keyword ^^ (x => Token(if (is_command(x)) Token.Kind.COMMAND else Token.Kind.KEYWORD, x))
-
-      val space = many1(Symbol.is_blank) ^^ (x => Token(Token.Kind.SPACE, x))
-
-      val recover_delimited =
-        (recover_quoted("\"") |
-          (recover_quoted("`") |
-            (recover_verbatim |
-              (recover_cartouche | recover_comment)))) ^^ (x => Token(Token.Kind.ERROR, x))
-
-      val bad = one(_ => true) ^^ (x => Token(Token.Kind.ERROR, x))
-
-      space | (recover_delimited |
-        (((ident | (var_ | (type_ident | (type_var | (float | (nat_ | sym_ident)))))) |||
-          command_keyword) | bad))
-    }
-
-    def token(is_command: String => Boolean): Parser[Token] =
-      delimited_token | other_token(is_command)
-
-    def token_context(is_command: String => Boolean, ctxt: Context): Parser[(Token, Context)] =
-    {
-      val string =
-        quoted_context("\"", ctxt) ^^ { case (x, c) => (Token(Token.Kind.STRING, x), c) }
-      val alt_string =
-        quoted_context("`", ctxt) ^^ { case (x, c) => (Token(Token.Kind.ALT_STRING, x), c) }
-      val verb = verbatim_context(ctxt) ^^ { case (x, c) => (Token(Token.Kind.VERBATIM, x), c) }
-      val cart = cartouche_context(ctxt) ^^ { case (x, c) => (Token(Token.Kind.CARTOUCHE, x), c) }
-      val cmt = comment_context(ctxt) ^^ { case (x, c) => (Token(Token.Kind.COMMENT, x), c) }
-      val other = other_token(is_command) ^^ { case x => (x, Finished) }
-
-      string | (alt_string | (verb | (cart | (cmt | other))))
+      def scan_tree(tree: Lexicon.Tree, result: String, i: Int): String =
+      {
+        if (i < len) {
+          tree.branches.get(source.charAt(offset + i)) match {
+            case Some((s, tr)) => scan_tree(tr, if (s.isEmpty) result else s, i + 1)
+            case None => result
+          }
+        }
+        else result
+      }
+      scan_tree(rep, "", 0)
     }
   }
 }
