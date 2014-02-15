@@ -33,7 +33,8 @@ object ML_Lex
 
   sealed case class Token(val kind: Kind.Value, val source: String)
   {
-    def is_operator: Boolean = kind == Kind.KEYWORD && !Symbol.is_ascii_identifier(source)
+    def is_keyword: Boolean = kind == Kind.KEYWORD
+    def is_operator: Boolean = is_keyword && !Symbol.is_ascii_identifier(source)
   }
 
 
