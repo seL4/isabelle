@@ -3242,7 +3242,6 @@ lemmas interpret_form_equations = interpret_form.simps interpret_floatarith.simp
 
 oracle approximation_oracle = {* fn (thy, t) =>
 let
-
   fun bad t = error ("Bad term: " ^ Syntax.string_of_term_global thy t);
 
   fun term_of_bool true = @{term True}
@@ -3424,10 +3423,8 @@ ML {*
        end
     end
 
-  (* copied from Tools/induct.ML should probably in args.ML *)
   val free = Args.context -- Args.term >> (fn (_, Free (n, _)) => n | (ctxt, t) =>
     error ("Bad free variable: " ^ Syntax.string_of_term ctxt t));
-
 *}
 
 lemma intervalE: "a \<le> x \<and> x \<le> b \<Longrightarrow> \<lbrakk> x \<in> { a .. b } \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
@@ -3455,7 +3452,7 @@ method_setup approximation = {*
       THEN DETERM (Reification.tac ctxt form_equations NONE i)
       THEN rewrite_interpret_form_tac ctxt prec splitting taylor i
       THEN gen_eval_tac (approximation_conv ctxt) ctxt i))
- *} "real number approximation"
+*} "real number approximation"
 
 ML {*
   fun calculated_subterms (@{const Trueprop} $ t) = calculated_subterms t
@@ -3473,7 +3470,9 @@ ML {*
     | dest_interpret t = raise TERM ("dest_interpret", [t])
 
 
-  fun dest_float (@{const "Float"} $ m $ e) = (snd (HOLogic.dest_number m), snd (HOLogic.dest_number e))
+  fun dest_float (@{const "Float"} $ m $ e) =
+    (snd (HOLogic.dest_number m), snd (HOLogic.dest_number e))
+
   fun dest_ivl (Const (@{const_name "Some"}, _) $
                 (Const (@{const_name Pair}, _) $ u $ l)) = SOME (dest_float u, dest_float l)
     | dest_ivl (Const (@{const_name "None"}, _)) = NONE
@@ -3516,7 +3515,8 @@ ML {*
     in (sgn * (digits + x * (Integer.pow e10 10)), ~e10)
     end)
 
-  fun mk_result prec (SOME (l, u)) = (let
+  fun mk_result prec (SOME (l, u)) =
+    (let
       fun mk_float10 rnd x = (let val (m, e) = float2_float10 prec rnd x
                          in if e = 0 then HOLogic.mk_number @{typ real} m
                        else if e = 1 then @{term "divide :: real \<Rightarrow> real \<Rightarrow> real"} $
@@ -3529,7 +3529,8 @@ ML {*
       in @{term "atLeastAtMost :: real \<Rightarrow> real \<Rightarrow> real set"} $ mk_float10 true l $ mk_float10 false u end)
     | mk_result _ NONE = @{term "UNIV :: real set"}
 
-  fun realify t = let
+  fun realify t =
+    let
       val t = Logic.varify_global t
       val m = map (fn (name, _) => (name, @{typ real})) (Term.add_tvars t [])
       val t = Term.subst_TVars m t
@@ -3579,13 +3580,12 @@ ML {*
        |> dest_ivl
        |> mk_result prec
 
-   fun approx prec ctxt t = if type_of t = @{typ prop} then approx_form prec ctxt t
-     else if type_of t = @{typ bool} then approx_form prec ctxt (@{const Trueprop} $ t)
-     else approx_arith prec ctxt t
+  fun approx prec ctxt t =
+    if type_of t = @{typ prop} then approx_form prec ctxt t
+    else if type_of t = @{typ bool} then approx_form prec ctxt (@{const Trueprop} $ t)
+    else approx_arith prec ctxt t
 *}
 
-setup {*
-  Value.add_evaluator ("approximate", approx 30)
-*}
+setup {* Value.add_evaluator ("approximate", approx 30) *}
 
 end

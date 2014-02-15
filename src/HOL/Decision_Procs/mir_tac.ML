@@ -4,15 +4,11 @@
 
 signature MIR_TAC =
 sig
-  val trace: bool Unsynchronized.ref
   val mir_tac: Proof.context -> bool -> int -> tactic
 end
 
-structure Mir_Tac =
+structure Mir_Tac: MIR_TAC =
 struct
-
-val trace = Unsynchronized.ref false;
-fun trace_msg s = if !trace then tracing s else ();
 
 val mir_ss = 
 let val ths = [@{thm "real_of_int_inject"}, @{thm "real_of_int_less_iff"}, @{thm "real_of_int_le_iff"}]
@@ -38,21 +34,8 @@ val nT = HOLogic.natT;
 val comp_ths = ths @ comp_arith @ @{thms simp_thms};
 
 
-val zdvd_int = @{thm "zdvd_int"};
-val zdiff_int_split = @{thm "zdiff_int_split"};
-val all_nat = @{thm "all_nat"};
-val ex_nat = @{thm "ex_nat"};
-val split_zdiv = @{thm "split_zdiv"};
-val split_zmod = @{thm "split_zmod"};
 val mod_div_equality' = @{thm "mod_div_equality'"};
-val split_div' = @{thm "split_div'"};
-val imp_le_cong = @{thm "imp_le_cong"};
-val conj_le_cong = @{thm "conj_le_cong"};
 val mod_add_eq = @{thm "mod_add_eq"} RS sym;
-val mod_add_left_eq = @{thm "mod_add_left_eq"} RS sym;
-val mod_add_right_eq = @{thm "mod_add_right_eq"} RS sym;
-val nat_div_add_eq = @{thm "div_add1_eq"} RS sym;
-val int_div_add_eq = @{thm "zdiv_zadd1_eq"} RS sym;
 
 fun prepare_for_mir q fm = 
   let
@@ -136,10 +119,8 @@ fun mir_tac ctxt q =
              then mirfr_oracle (false, cterm_of thy (Envir.eta_long [] t1))
              else mirfr_oracle (true, cterm_of thy (Envir.eta_long [] t1))
     in 
-          (trace_msg ("calling procedure with term:\n" ^
-             Syntax.string_of_term ctxt t1);
-           ((pth RS iffD2) RS pre_thm,
-            assm_tac (i + 1) THEN (if q then I else TRY) (rtac TrueI i)))
+       ((pth RS iffD2) RS pre_thm,
+        assm_tac (i + 1) THEN (if q then I else TRY) (rtac TrueI i))
     end
       | _ => (pre_thm, assm_tac i)
   in rtac (((mp_step nh) o (spec_step np)) th) i THEN tac end);

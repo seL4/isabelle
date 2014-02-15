@@ -68,9 +68,7 @@ fun funs raw_key {isolate_conv = icv, whatis = wi, simpset = ss} phi = Data.map 
 
 fun match ctxt tm =
   let
-    fun match_inst
-        ({minf, pinf, nmi, npi, ld, qe, atoms},
-         fns as {isolate_conv, whatis, simpset}) pat =
+    fun match_inst ({minf, pinf, nmi, npi, ld, qe, atoms}, fns) pat =
        let
         fun h instT =
           let
