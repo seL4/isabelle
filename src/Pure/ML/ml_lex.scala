@@ -13,6 +13,29 @@ import scala.util.parsing.input.{Reader, CharSequenceReader}
 
 object ML_Lex
 {
+  /** keywords **/
+
+  val keywords: Set[String] =
+    Set("#", "(", ")", ",", "->", "...", ":", ":>", ";", "=", "=>",
+      "[", "]", "_", "{", "|", "}", "abstype", "and", "andalso", "as",
+      "case", "datatype", "do", "else", "end", "eqtype", "exception",
+      "fn", "fun", "functor", "handle", "if", "in", "include",
+      "infix", "infixr", "let", "local", "nonfix", "of", "op", "open",
+      "orelse", "raise", "rec", "sharing", "sig", "signature",
+      "struct", "structure", "then", "type", "val", "where", "while",
+      "with", "withtype")
+
+  val keywords2: Set[String] =
+    Set("case", "do", "else", "end", "if", "in", "let", "local", "of",
+      "sig", "struct", "then", "while", "with")
+
+  val keywords3: Set[String] =
+    Set("handle", "open", "raise")
+
+  private val lexicon: Scan.Lexicon = Scan.Lexicon(keywords.toList: _*)
+
+
+
   /** tokens **/
 
   object Kind extends Enumeration
@@ -34,7 +57,7 @@ object ML_Lex
   sealed case class Token(val kind: Kind.Value, val source: String)
   {
     def is_keyword: Boolean = kind == Kind.KEYWORD
-    def is_operator: Boolean = is_keyword && !Symbol.is_ascii_identifier(source)
+    def is_delimiter: Boolean = is_keyword && !Symbol.is_ascii_identifier(source)
   }
 
 
@@ -42,15 +65,6 @@ object ML_Lex
   /** parsers **/
 
   case object ML_String extends Scan.Context
-
-  private val lexicon =
-    Scan.Lexicon("#", "(", ")", ",", "->", "...", ":", ":>", ";", "=",
-      "=>", "[", "]", "_", "{", "|", "}", "abstype", "and", "andalso", "as",
-      "case", "datatype", "do", "else", "end", "eqtype", "exception", "fn",
-      "fun", "functor", "handle", "if", "in", "include", "infix", "infixr",
-      "let", "local", "nonfix", "of", "op", "open", "orelse", "raise", "rec",
-      "sharing", "sig", "signature", "struct", "structure", "then", "type",
-      "val", "where", "while", "with", "withtype")
 
   private object Parsers extends Scan.Parsers
   {

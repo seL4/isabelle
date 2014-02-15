@@ -108,23 +108,17 @@ object Rendering
 
   def token_markup(syntax: Outer_Syntax, token: Token): Byte =
     if (token.is_command) command_style(syntax.keyword_kind(token.content).getOrElse(""))
-    else if (token.is_operator) JEditToken.OPERATOR
+    else if (token.is_delimiter) JEditToken.OPERATOR
     else token_style(token.kind)
 
 
   /* Isabelle/ML token markup */
 
-  private val ml_keyword2: Set[String] =
-    Set("case", "do", "else", "end", "if", "in", "let", "local", "of",
-      "sig", "struct", "then", "while", "with")
-
-  private val ml_keyword3: Set[String] =
-    Set("handle", "open", "raise")
-
   private val ml_token_style: Map[ML_Lex.Kind.Value, Byte] =
   {
     import JEditToken._
     Map[ML_Lex.Kind.Value, Byte](
+      ML_Lex.Kind.KEYWORD -> NULL,
       ML_Lex.Kind.IDENT -> NULL,
       ML_Lex.Kind.LONG_IDENT -> NULL,
       ML_Lex.Kind.TYPE_VAR -> NULL,
@@ -141,9 +135,9 @@ object Rendering
 
   def ml_token_markup(token: ML_Lex.Token): Byte =
     if (!token.is_keyword) ml_token_style(token.kind)
-    else if (token.is_operator) JEditToken.OPERATOR
-    else if (ml_keyword2(token.source)) JEditToken.KEYWORD2
-    else if (ml_keyword3(token.source)) JEditToken.KEYWORD3
+    else if (token.is_delimiter) JEditToken.OPERATOR
+    else if (ML_Lex.keywords2(token.source)) JEditToken.KEYWORD2
+    else if (ML_Lex.keywords3(token.source)) JEditToken.KEYWORD3
     else JEditToken.KEYWORD1
 }
 
@@ -183,6 +177,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val active_result_color = color_value("active_result_color")
   val keyword1_color = color_value("keyword1_color")
   val keyword2_color = color_value("keyword2_color")
+  val keyword3_color = color_value("keyword3_color")
 
   val tfree_color = color_value("tfree_color")
   val tvar_color = color_value("tvar_color")
@@ -634,7 +629,9 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       Markup.INNER_CARTOUCHE -> inner_cartouche_color,
       Markup.INNER_COMMENT -> inner_comment_color,
       Markup.DYNAMIC_FACT -> dynamic_color,
-      Markup.ML_KEYWORD -> keyword1_color,
+      Markup.ML_KEYWORD1 -> keyword1_color,
+      Markup.ML_KEYWORD2 -> keyword2_color,
+      Markup.ML_KEYWORD3 -> keyword3_color,
       Markup.ML_DELIMITER -> Color.BLACK,
       Markup.ML_NUMERAL -> inner_numeral_color,
       Markup.ML_CHAR -> inner_quoted_color,

@@ -68,7 +68,9 @@ sig
   val propN: string val prop: T
   val sortingN: string val sorting: T
   val typingN: string val typing: T
-  val ML_keywordN: string val ML_keyword: T
+  val ML_keyword1N: string val ML_keyword1: T
+  val ML_keyword2N: string val ML_keyword2: T
+  val ML_keyword3N: string val ML_keyword3: T
   val ML_delimiterN: string val ML_delimiter: T
   val ML_tvarN: string val ML_tvar: T
   val ML_numeralN: string val ML_numeral: T
@@ -325,7 +327,9 @@ val (typingN, typing) = markup_elem "typing";
 
 (* ML syntax *)
 
-val (ML_keywordN, ML_keyword) = markup_elem "ML_keyword";
+val (ML_keyword1N, ML_keyword1) = markup_elem "ML_keyword1";
+val (ML_keyword2N, ML_keyword2) = markup_elem "ML_keyword2";
+val (ML_keyword3N, ML_keyword3) = markup_elem "ML_keyword3";
 val (ML_delimiterN, ML_delimiter) = markup_elem "ML_delimiter";
 val (ML_tvarN, ML_tvar) = markup_elem "ML_tvar";
 val (ML_numeralN, ML_numeral) = markup_elem "ML_numeral";

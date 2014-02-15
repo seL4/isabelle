@@ -169,7 +169,9 @@ object Markup
 
   /* ML syntax */
 
-  val ML_KEYWORD = "ML_keyword"
+  val ML_KEYWORD1 = "ML_keyword1"
+  val ML_KEYWORD2 = "ML_keyword2"
+  val ML_KEYWORD3 = "ML_keyword3"
   val ML_DELIMITER = "ML_delimiter"
   val ML_TVAR = "ML_tvar"
   val ML_NUMERAL = "ML_numeral"

@@ -6,6 +6,7 @@ Lexical syntax for SML.
 
 signature ML_LEX =
 sig
+  val keywords: string list
   datatype token_kind =
     Keyword | Ident | LongIdent | TypeVar | Word | Int | Real | Char | String |
     Space | Comment | Error of string | EOF
@@ -20,7 +21,6 @@ sig
   val content_of: token -> string
   val check_content_of: token -> string
   val flatten: token list -> string
-  val keywords: string list
   val source: (Symbol.symbol, 'a) Source.source ->
     (token, (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source)
       Source.source) Source.source
@@ -30,6 +30,28 @@ end;
 
 structure ML_Lex: ML_LEX =
 struct
+
+(** keywords **)
+
+val keywords =
+ ["#", "(", ")", ",", "->", "...", ":", ":>", ";", "=", "=>", "[",
+  "]", "_", "{", "|", "}", "abstype", "and", "andalso", "as", "case",
+  "datatype", "do", "else", "end", "eqtype", "exception", "fn", "fun",
+  "functor", "handle", "if", "in", "include", "infix", "infixr",
+  "let", "local", "nonfix", "of", "op", "open", "orelse", "raise",
+  "rec", "sharing", "sig", "signature", "struct", "structure", "then",
+  "type", "val", "where", "while", "with", "withtype"];
+
+val keywords2 =
+ ["case", "do", "else", "end", "if", "in", "let", "local", "of",
+  "sig", "struct", "then", "while", "with"];
+
+val keywords3 =
+ ["handle", "open", "raise"];
+
+val lexicon = Scan.make_lexicon (map raw_explode keywords);
+
+
 
 (** tokens **)
 
@@ -69,6 +91,12 @@ fun kind_of (Token (_, (k, _))) = k;
 fun content_of (Token (_, (_, x))) = x;
 fun token_leq (tok, tok') = content_of tok <= content_of tok';
 
+fun is_keyword (Token (_, (Keyword, _))) = true
+  | is_keyword _ = false;
+
+fun is_delimiter (Token (_, (Keyword, x))) = not (Symbol.is_ascii_identifier x)
+  | is_delimiter _ = false;
+
 fun is_regular (Token (_, (Error _, _))) = false
   | is_regular (Token (_, (EOF, _))) = false
   | is_regular _ = true;
@@ -104,7 +132,7 @@ val flatten = implode o flatten_content;
 local
 
 val token_kind_markup =
- fn Keyword   => (Markup.ML_keyword, "")
+ fn Keyword   => (Markup.empty, "")
   | Ident     => (Markup.empty, "")
   | LongIdent => (Markup.empty, "")
   | TypeVar   => (Markup.ML_tvar, "")
@@ -118,15 +146,16 @@ val token_kind_markup =
   | Error msg => (Markup.bad, msg)
   | EOF       => (Markup.empty, "");
 
-fun token_markup kind x =
-  if kind = Keyword andalso exists_string (not o Symbol.is_ascii_letter) x
-  then (Markup.ML_delimiter, "")
-  else token_kind_markup kind;
-
 in
 
-fun report_of_token (Token ((pos, _), (kind, x))) =
-  let val (markup, txt) = token_markup kind x
+fun report_of_token (tok as Token ((pos, _), (kind, x))) =
+  let
+    val (markup, txt) =
+      if not (is_keyword tok) then token_kind_markup kind
+      else if is_delimiter tok then (Markup.ML_delimiter, "")
+      else if member (op =) keywords2 x then (Markup.ML_keyword2, "")
+      else if member (op =) keywords3 x then (Markup.ML_keyword3, "")
+      else (Markup.ML_keyword1, "");
   in ((pos, markup), txt) end;
 
 end;
@@ -140,20 +169,6 @@ open Basic_Symbol_Pos;
 val err_prefix = "SML lexical error: ";
 
 fun !!! msg = Symbol_Pos.!!! (fn () => err_prefix ^ msg);
-
-
-(* keywords *)
-
-val keywords = ["#", "(", ")", ",", "->", "...", ":", ":>", ";", "=",
-  "=>", "[", "]", "_", "{", "|", "}", "abstype", "and", "andalso", "as",
-  "case", "datatype", "do", "else", "end", "eqtype", "exception", "fn",
-  "fun", "functor", "handle", "if", "in", "include", "infix", "infixr",
-  "let", "local", "nonfix", "of", "op", "open", "orelse", "raise", "rec",
-  "sharing", "sig", "signature", "struct", "structure", "then", "type",
-  "val", "where", "while", "with", "withtype"];
-
-val lex = Scan.make_lexicon (map raw_explode keywords);
-fun scan_keyword x = Scan.literal lex x;
 
 
 (* identifiers *)
@@ -258,7 +273,7 @@ val scan_ml =
   scan_blanks1 >> token Space ||
   Symbol_Pos.scan_comment err_prefix >> token Comment ||
   Scan.max token_leq
-   (scan_keyword >> token Keyword)
+   (Scan.literal lexicon >> token Keyword)
    (scan_word >> token Word ||
     scan_real >> token Real ||
     scan_int >> token Int ||
