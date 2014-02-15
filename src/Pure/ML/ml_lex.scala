@@ -68,6 +68,7 @@ object ML_Lex
       repeated(character(Symbol.is_ascii_digit), 3, 3)
 
     private val str =
+      one(Symbol.is_symbolic) |
       one(character(c => c != '"' && c != '\\' && ' ' <= c && c <= '~')) |
       "\\" ~ escape ^^ { case x ~ y => x + y }
 
