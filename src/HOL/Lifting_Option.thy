@@ -11,81 +11,73 @@ begin
 
 subsection {* Relator and predicator properties *}
 
-definition
-  option_rel :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a option \<Rightarrow> 'b option \<Rightarrow> bool"
-where
-  "option_rel R x y = (case (x, y) of (None, None) \<Rightarrow> True
+lemma rel_option_iff:
+  "rel_option R x y = (case (x, y) of (None, None) \<Rightarrow> True
     | (Some x, Some y) \<Rightarrow> R x y
     | _ \<Rightarrow> False)"
-
-lemma option_rel_simps[simp]:
-  "option_rel R None None = True"
-  "option_rel R (Some x) None = False"
-  "option_rel R None (Some y) = False"
-  "option_rel R (Some x) (Some y) = R x y"
-  unfolding option_rel_def by simp_all
+by (auto split: prod.split option.split)
 
 abbreviation (input) option_pred :: "('a \<Rightarrow> bool) \<Rightarrow> 'a option \<Rightarrow> bool" where
   "option_pred \<equiv> case_option True"
 
-lemma option_rel_eq [relator_eq]:
-  "option_rel (op =) = (op =)"
-  by (simp add: option_rel_def fun_eq_iff split: option.split)
+lemma rel_option_eq [relator_eq]:
+  "rel_option (op =) = (op =)"
+  by (simp add: rel_option_iff fun_eq_iff split: option.split)
 
-lemma option_rel_mono[relator_mono]:
+lemma rel_option_mono[relator_mono]:
   assumes "A \<le> B"
-  shows "(option_rel A) \<le> (option_rel B)"
-using assms by (auto simp: option_rel_def split: option.splits)
+  shows "(rel_option A) \<le> (rel_option B)"
+using assms by (auto simp: rel_option_iff split: option.splits)
 
-lemma option_rel_OO[relator_distr]:
-  "(option_rel A) OO (option_rel B) = option_rel (A OO B)"
-by (rule ext)+ (auto simp: option_rel_def OO_def split: option.split)
+lemma rel_option_OO[relator_distr]:
+  "(rel_option A) OO (rel_option B) = rel_option (A OO B)"
+by (rule ext)+ (auto simp: rel_option_iff OO_def split: option.split)
 
 lemma Domainp_option[relator_domain]:
   assumes "Domainp A = P"
-  shows "Domainp (option_rel A) = (option_pred P)"
-using assms unfolding Domainp_iff[abs_def] option_rel_def[abs_def]
+  shows "Domainp (rel_option A) = (option_pred P)"
+using assms unfolding Domainp_iff[abs_def] rel_option_iff[abs_def]
 by (auto iff: fun_eq_iff split: option.split)
 
-lemma reflp_option_rel[reflexivity_rule]:
-  "reflp R \<Longrightarrow> reflp (option_rel R)"
+lemma reflp_rel_option[reflexivity_rule]:
+  "reflp R \<Longrightarrow> reflp (rel_option R)"
   unfolding reflp_def split_option_all by simp
 
-lemma left_total_option_rel[reflexivity_rule]:
-  "left_total R \<Longrightarrow> left_total (option_rel R)"
+lemma left_total_rel_option[reflexivity_rule]:
+  "left_total R \<Longrightarrow> left_total (rel_option R)"
   unfolding left_total_def split_option_all split_option_ex by simp
 
-lemma left_unique_option_rel [reflexivity_rule]:
-  "left_unique R \<Longrightarrow> left_unique (option_rel R)"
+lemma left_unique_rel_option [reflexivity_rule]:
+  "left_unique R \<Longrightarrow> left_unique (rel_option R)"
   unfolding left_unique_def split_option_all by simp
 
-lemma right_total_option_rel [transfer_rule]:
-  "right_total R \<Longrightarrow> right_total (option_rel R)"
+lemma right_total_rel_option [transfer_rule]:
+  "right_total R \<Longrightarrow> right_total (rel_option R)"
   unfolding right_total_def split_option_all split_option_ex by simp
 
-lemma right_unique_option_rel [transfer_rule]:
-  "right_unique R \<Longrightarrow> right_unique (option_rel R)"
+lemma right_unique_rel_option [transfer_rule]:
+  "right_unique R \<Longrightarrow> right_unique (rel_option R)"
   unfolding right_unique_def split_option_all by simp
 
-lemma bi_total_option_rel [transfer_rule]:
-  "bi_total R \<Longrightarrow> bi_total (option_rel R)"
+lemma bi_total_rel_option [transfer_rule]:
+  "bi_total R \<Longrightarrow> bi_total (rel_option R)"
   unfolding bi_total_def split_option_all split_option_ex by simp
 
-lemma bi_unique_option_rel [transfer_rule]:
-  "bi_unique R \<Longrightarrow> bi_unique (option_rel R)"
+lemma bi_unique_rel_option [transfer_rule]:
+  "bi_unique R \<Longrightarrow> bi_unique (rel_option R)"
   unfolding bi_unique_def split_option_all by simp
 
 lemma option_invariant_commute [invariant_commute]:
-  "option_rel (Lifting.invariant P) = Lifting.invariant (option_pred P)"
+  "rel_option (Lifting.invariant P) = Lifting.invariant (option_pred P)"
   by (auto simp add: fun_eq_iff Lifting.invariant_def split_option_all)
 
 subsection {* Quotient theorem for the Lifting package *}
 
 lemma Quotient_option[quot_map]:
   assumes "Quotient R Abs Rep T"
-  shows "Quotient (option_rel R) (map_option Abs)
-    (map_option Rep) (option_rel T)"
-  using assms unfolding Quotient_alt_def option_rel_def
+  shows "Quotient (rel_option R) (map_option Abs)
+    (map_option Rep) (rel_option T)"
+  using assms unfolding Quotient_alt_def rel_option_iff
   by (simp split: option.split)
 
 subsection {* Transfer rules for the Transfer package *}
@@ -94,22 +86,22 @@ context
 begin
 interpretation lifting_syntax .
 
-lemma None_transfer [transfer_rule]: "(option_rel A) None None"
-  by simp
+lemma None_transfer [transfer_rule]: "(rel_option A) None None"
+  by (rule option.rel_inject)
 
-lemma Some_transfer [transfer_rule]: "(A ===> option_rel A) Some Some"
+lemma Some_transfer [transfer_rule]: "(A ===> rel_option A) Some Some"
   unfolding fun_rel_def by simp
 
 lemma case_option_transfer [transfer_rule]:
-  "(B ===> (A ===> B) ===> option_rel A ===> B) case_option case_option"
+  "(B ===> (A ===> B) ===> rel_option A ===> B) case_option case_option"
   unfolding fun_rel_def split_option_all by simp
 
 lemma map_option_transfer [transfer_rule]:
-  "((A ===> B) ===> option_rel A ===> option_rel B) map_option map_option"
+  "((A ===> B) ===> rel_option A ===> rel_option B) map_option map_option"
   unfolding map_option_case[abs_def] by transfer_prover
 
 lemma option_bind_transfer [transfer_rule]:
-  "(option_rel A ===> (A ===> option_rel B) ===> option_rel B)
+  "(rel_option A ===> (A ===> rel_option B) ===> rel_option B)
     Option.bind Option.bind"
   unfolding fun_rel_def split_option_all by simp
 

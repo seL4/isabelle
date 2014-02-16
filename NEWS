@@ -135,6 +135,7 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
   Renamed constants:
     Option.set ~> set_option
     Option.map ~> map_option
+    option_rel ~> rel_option
   Renamed theorems:
     map_def ~> map_rec[abs_def]
     Option.map_def ~> map_option_case[abs_def] (with "case_option" instead of "rec_option")

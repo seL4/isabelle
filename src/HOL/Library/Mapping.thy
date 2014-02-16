@@ -14,46 +14,46 @@ context
 begin
 interpretation lifting_syntax .
 
-lemma empty_transfer: "(A ===> option_rel B) Map.empty Map.empty" by transfer_prover
+lemma empty_transfer: "(A ===> rel_option B) Map.empty Map.empty" by transfer_prover
 
 lemma lookup_transfer: "((A ===> B) ===> A ===> B) (\<lambda>m k. m k) (\<lambda>m k. m k)" by transfer_prover
 
 lemma update_transfer:
   assumes [transfer_rule]: "bi_unique A"
-  shows "(A ===> B ===> (A ===> option_rel B) ===> A ===> option_rel B) 
+  shows "(A ===> B ===> (A ===> rel_option B) ===> A ===> rel_option B) 
           (\<lambda>k v m. m(k \<mapsto> v)) (\<lambda>k v m. m(k \<mapsto> v))"
 by transfer_prover
 
 lemma delete_transfer:
   assumes [transfer_rule]: "bi_unique A"
-  shows "(A ===> (A ===> option_rel B) ===> A ===> option_rel B) 
+  shows "(A ===> (A ===> rel_option B) ===> A ===> rel_option B) 
           (\<lambda>k m. m(k := None)) (\<lambda>k m. m(k := None))"
 by transfer_prover
 
 definition equal_None :: "'a option \<Rightarrow> bool" where "equal_None x \<equiv> x = None"
 
-lemma [transfer_rule]: "(option_rel A ===> op=) equal_None equal_None" 
-unfolding fun_rel_def option_rel_def equal_None_def by (auto split: option.split)
+lemma [transfer_rule]: "(rel_option A ===> op=) equal_None equal_None" 
+unfolding fun_rel_def rel_option_iff equal_None_def by (auto split: option.split)
 
 lemma dom_transfer:
   assumes [transfer_rule]: "bi_total A"
-  shows "((A ===> option_rel B) ===> set_rel A) dom dom" 
+  shows "((A ===> rel_option B) ===> set_rel A) dom dom" 
 unfolding dom_def[abs_def] equal_None_def[symmetric] 
 by transfer_prover
 
 lemma map_of_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique R1"
-  shows "(list_all2 (prod_rel R1 R2) ===> R1 ===> option_rel R2) map_of map_of"
+  shows "(list_all2 (prod_rel R1 R2) ===> R1 ===> rel_option R2) map_of map_of"
 unfolding map_of_def by transfer_prover
 
 lemma tabulate_transfer: 
   assumes [transfer_rule]: "bi_unique A"
-  shows "(list_all2 A ===> (A ===> B) ===> A ===> option_rel B) 
+  shows "(list_all2 A ===> (A ===> B) ===> A ===> rel_option B) 
     (\<lambda>ks f. (map_of (List.map (\<lambda>k. (k, f k)) ks))) (\<lambda>ks f. (map_of (List.map (\<lambda>k. (k, f k)) ks)))"
 by transfer_prover
 
 lemma bulkload_transfer: 
-  "(list_all2 A ===> op= ===> option_rel A) 
+  "(list_all2 A ===> op= ===> rel_option A) 
     (\<lambda>xs k. if k < length xs then Some (xs ! k) else None) (\<lambda>xs k. if k < length xs then Some (xs ! k) else None)"
 unfolding fun_rel_def 
 apply clarsimp 
@@ -64,13 +64,13 @@ apply (case_tac xa)
 by (auto dest: list_all2_lengthD list_all2_nthD)
 
 lemma map_transfer: 
-  "((A ===> B) ===> (C ===> D) ===> (B ===> option_rel C) ===> A ===> option_rel D) 
+  "((A ===> B) ===> (C ===> D) ===> (B ===> rel_option C) ===> A ===> rel_option D) 
     (\<lambda>f g m. (map_option g \<circ> m \<circ> f)) (\<lambda>f g m. (map_option g \<circ> m \<circ> f))"
 by transfer_prover
 
 lemma map_entry_transfer:
   assumes [transfer_rule]: "bi_unique A"
-  shows "(A ===> (B ===> B) ===> (A ===> option_rel B) ===> A ===> option_rel B) 
+  shows "(A ===> (B ===> B) ===> (A ===> rel_option B) ===> A ===> rel_option B) 
     (\<lambda>k f m. (case m k of None \<Rightarrow> m
       | Some v \<Rightarrow> m (k \<mapsto> (f v)))) (\<lambda>k f m. (case m k of None \<Rightarrow> m
       | Some v \<Rightarrow> m (k \<mapsto> (f v))))"

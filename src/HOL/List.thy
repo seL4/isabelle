@@ -6779,7 +6779,7 @@ lemma insert_transfer [transfer_rule]:
   unfolding List.insert_def [abs_def] by transfer_prover
 
 lemma find_transfer [transfer_rule]:
-  "((A ===> op =) ===> list_all2 A ===> option_rel A) List.find List.find"
+  "((A ===> op =) ===> list_all2 A ===> rel_option A) List.find List.find"
   unfolding List.find_def by transfer_prover
 
 lemma remove1_transfer [transfer_rule]:
