@@ -947,7 +947,7 @@ proof -
       by (simp add: wt_start_def sup_state_conv)
 
     have r: "approx_loc G hp (replicate mxl' undefined) (replicate mxl' Err)"
-      by (simp add: approx_loc_def list_all2_def set_replicate_conv_if)
+      by (simp add: approx_loc_def list_all2_iff set_replicate_conv_if)
     
     from wfprog mD is_class_D
     have "G \<turnstile> Class D \<preceq> Class D''"

@@ -157,7 +157,7 @@ lemma approx_loc_Err [iff]:
 lemma approx_loc_subst:
   "\<lbrakk> approx_loc G hp loc LT; approx_val G hp x X \<rbrakk>
   \<Longrightarrow> approx_loc G hp (loc[idx:=x]) (LT[idx:=X])"
-apply (unfold approx_loc_def list_all2_def)
+apply (unfold approx_loc_def list_all2_iff)
 apply (auto dest: subsetD [OF set_update_subset_insert] simp add: zip_update)
 done
 
@@ -165,7 +165,7 @@ lemma approx_loc_append:
   "length l1=length L1 \<Longrightarrow>
   approx_loc G hp (l1@l2) (L1@L2) = 
   (approx_loc G hp l1 L1 \<and> approx_loc G hp l2 L2)"
-  apply (unfold approx_loc_def list_all2_def)
+  apply (unfold approx_loc_def list_all2_iff)
   apply (simp cong: conj_cong)
   apply blast
   done

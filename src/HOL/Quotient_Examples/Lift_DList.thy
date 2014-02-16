@@ -55,7 +55,7 @@ proof -
   {
     fix x y
     have "list_all2 cr_dlist x y \<Longrightarrow> x = List.map list_of_dlist y"
-      unfolding list_all2_def cr_dlist_def by (induction x y rule: list_induct2') auto
+      unfolding list_all2_iff cr_dlist_def by (induction x y rule: list_induct2') auto
   }
   note cr = this
   fix x :: "'a list list" and y :: "'a list list"

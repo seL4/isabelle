@@ -3240,10 +3240,10 @@ proof -
               proof -
                 from normal_s2 conf_args
                 have "length vs = length pTs"
-                  by (simp add: list_all2_def)
+                  by (simp add: list_all2_iff)
                 also from pTs_widen
                 have "\<dots> = length pTs'"
-                  by (simp add: widens_def list_all2_def)
+                  by (simp add: widens_def list_all2_iff)
                 also from wf_dynM
                 have "\<dots> = length (pars (mthd dynM))"
                   by (simp add: wf_mdecl_def wf_mhead_def)

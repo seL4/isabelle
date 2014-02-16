@@ -290,7 +290,7 @@ lemma ITLIST[import_const ITLIST : List.foldr]:
   foldr f (h # t) b = f h (foldr f t b)"
   by simp
 
-lemma ALL2_DEF[import_const ALL2 : List.list_all2]:
+lemma ALL2_DEF[import_const ALL2 : List.list.list_all2]:
   "list_all2 (P\<Colon>'t18495 \<Rightarrow> 't18502 \<Rightarrow> bool) [] (l2\<Colon>'t18502 list) = (l2 = []) \<and>
   list_all2 P ((h1\<Colon>'t18495) # (t1\<Colon>'t18495 list)) l2 =
   (if l2 = [] then False else P h1 (hd l2) \<and> list_all2 P t1 (tl l2))"

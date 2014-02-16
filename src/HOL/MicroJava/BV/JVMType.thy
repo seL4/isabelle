@@ -118,7 +118,7 @@ proof
       by (auto simp add: zip_map)
     with le
     have "subtype G x y"
-      by (simp add: list_all2_def Ball_def)
+      by (simp add: list_all2_iff Ball_def)
     with OK
     have "G \<turnstile> x' <=o y'"
       by (simp add: sup_ty_opt_def)
@@ -126,12 +126,12 @@ proof
   
   with le
   show "G \<turnstile> map OK a <=l map OK b"
-    by (unfold sup_loc_def Listn.le_def lesub_def list_all2_def) auto
+    by (unfold sup_loc_def Listn.le_def lesub_def list_all2_iff) auto
 next
   assume "G \<turnstile> map OK a <=l map OK b"
 
   thus "Listn.le (subtype G) a b"
-    apply (unfold sup_loc_def list_all2_def Listn.le_def lesub_def)
+    apply (unfold sup_loc_def list_all2_iff Listn.le_def lesub_def)
     apply (clarsimp simp add: zip_map)
     apply (drule bspec, assumption)
     apply (auto simp add: sup_ty_opt_def subtype_def)

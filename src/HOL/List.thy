@@ -8,7 +8,7 @@ theory List
 imports Presburger Code_Numeral Quotient Lifting_Set Lifting_Option Lifting_Product
 begin
 
-datatype_new 'a list (map: map rel: rel) =
+datatype_new 'a list (map: map rel: list_all2) =
     =: Nil (defaults tl: "[]")  ("[]")
   | Cons (hd: 'a) (tl: "'a list")  (infixr "#" 65)
 
@@ -33,8 +33,6 @@ lemmas recs = list.rec
 lemmas cases = list.case
 
 setup {* Sign.parent_path *}
-
-hide_const (open) rel
 
 syntax
   -- {* list Enumeration *}
@@ -227,10 +225,6 @@ primrec rotate1 :: "'a list \<Rightarrow> 'a list" where
 
 definition rotate :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 "rotate n = rotate1 ^^ n"
-
-definition list_all2 :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> bool" where
-"list_all2 P xs ys =
-  (length xs = length ys \<and> (\<forall>(x, y) \<in> set (zip xs ys). P x y))"
 
 definition sublist :: "'a list => nat set => 'a list" where
 "sublist xs A = map fst (filter (\<lambda>p. snd p \<in> A) (zip xs [0..<size xs]))"
@@ -851,6 +845,10 @@ lemma list_induct2':
    \<And>x xs y ys. P xs ys  \<Longrightarrow> P (x#xs) (y#ys) \<rbrakk>
  \<Longrightarrow> P xs ys"
 by (induct xs arbitrary: ys) (case_tac x, auto)+
+
+lemma list_all2_iff:
+  "list_all2 P xs ys \<longleftrightarrow> length xs = length ys \<and> (\<forall>(x, y) \<in> set (zip xs ys). P x y)"
+by (induct xs ys rule: list_induct2') auto
 
 lemma neq_if_length_neq: "length xs \<noteq> length ys \<Longrightarrow> (xs = ys) == False"
 by (rule Eq_FalseI) auto
@@ -2534,17 +2532,17 @@ subsubsection {* @{const list_all2} *}
 
 lemma list_all2_lengthD [intro?]: 
   "list_all2 P xs ys ==> length xs = length ys"
-by (simp add: list_all2_def)
+by (simp add: list_all2_iff)
 
 lemma list_all2_Nil [iff, code]: "list_all2 P [] ys = (ys = [])"
-by (simp add: list_all2_def)
+by (simp add: list_all2_iff)
 
 lemma list_all2_Nil2 [iff, code]: "list_all2 P xs [] = (xs = [])"
-by (simp add: list_all2_def)
+by (simp add: list_all2_iff)
 
 lemma list_all2_Cons [iff, code]:
   "list_all2 P (x # xs) (y # ys) = (P x y \<and> list_all2 P xs ys)"
-by (auto simp add: list_all2_def)
+by (auto simp add: list_all2_iff)
 
 lemma list_all2_Cons1:
 "list_all2 P (x # xs) ys = (\<exists>z zs. ys = z # zs \<and> P x z \<and> list_all2 P xs zs)"
@@ -2566,7 +2564,7 @@ by (induct xs arbitrary: ys) (auto simp add: list_all2_Cons1 Nil Cons)
 
 lemma list_all2_rev [iff]:
 "list_all2 P (rev xs) (rev ys) = list_all2 P xs ys"
-by (simp add: list_all2_def zip_rev cong: conj_cong)
+by (simp add: list_all2_iff zip_rev cong: conj_cong)
 
 lemma list_all2_rev1:
 "list_all2 P (rev xs) ys = list_all2 P xs (rev ys)"
@@ -2576,7 +2574,7 @@ lemma list_all2_append1:
 "list_all2 P (xs @ ys) zs =
 (EX us vs. zs = us @ vs \<and> length us = length xs \<and> length vs = length ys \<and>
 list_all2 P xs us \<and> list_all2 P ys vs)"
-apply (simp add: list_all2_def zip_append1)
+apply (simp add: list_all2_iff zip_append1)
 apply (rule iffI)
  apply (rule_tac x = "take (length xs) zs" in exI)
  apply (rule_tac x = "drop (length xs) zs" in exI)
@@ -2588,7 +2586,7 @@ lemma list_all2_append2:
 "list_all2 P xs (ys @ zs) =
 (EX us vs. xs = us @ vs \<and> length us = length ys \<and> length vs = length zs \<and>
 list_all2 P us ys \<and> list_all2 P vs zs)"
-apply (simp add: list_all2_def zip_append2)
+apply (simp add: list_all2_iff zip_append2)
 apply (rule iffI)
  apply (rule_tac x = "take (length ys) xs" in exI)
  apply (rule_tac x = "drop (length ys) xs" in exI)
@@ -2608,7 +2606,7 @@ by (simp add: list_all2_append list_all2_lengthD)
 lemma list_all2_conv_all_nth:
 "list_all2 P xs ys =
 (length xs = length ys \<and> (\<forall>i < length xs. P (xs!i) (ys!i)))"
-by (force simp add: list_all2_def set_zip)
+by (force simp add: list_all2_iff set_zip)
 
 lemma list_all2_trans:
   assumes tr: "!!a b c. P1 a b ==> P2 b c ==> P3 a c"
@@ -2630,7 +2628,7 @@ by (simp add: list_all2_conv_all_nth)
 
 lemma list_all2I:
   "\<forall>x \<in> set (zip a b). split P x \<Longrightarrow> length a = length b \<Longrightarrow> list_all2 P a b"
-by (simp add: list_all2_def)
+by (simp add: list_all2_iff)
 
 lemma list_all2_nthD:
   "\<lbrakk> list_all2 P xs ys; p < size xs \<rbrakk> \<Longrightarrow> P (xs!p) (ys!p)"
@@ -6643,7 +6641,7 @@ lemma bi_unique_list_all2 [transfer_rule]:
 
 lemma list_invariant_commute [invariant_commute]:
   "list_all2 (Lifting.invariant P) = Lifting.invariant (list_all P)"
-  apply (simp add: fun_eq_iff list_all2_def list_all_iff Lifting.invariant_def Ball_def) 
+  apply (simp add: fun_eq_iff list_all2_iff list_all_iff Lifting.invariant_def Ball_def) 
   apply (intro allI) 
   apply (induct_tac rule: list_induct2') 
   apply simp_all 
@@ -6829,8 +6827,8 @@ lemma rotate_transfer [transfer_rule]:
 lemma list_all2_transfer [transfer_rule]:
   "((A ===> B ===> op =) ===> list_all2 A ===> list_all2 B ===> op =)
     list_all2 list_all2"
-  apply (subst (4) list_all2_def [abs_def])
-  apply (subst (3) list_all2_def [abs_def])
+  apply (subst (4) list_all2_iff [abs_def])
+  apply (subst (3) list_all2_iff [abs_def])
   apply transfer_prover
   done
 

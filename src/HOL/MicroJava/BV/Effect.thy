@@ -114,7 +114,7 @@ lemma isRefT [simp]:
 
 
 lemma "list_all2 P a b \<Longrightarrow> \<forall>(x,y) \<in> set (zip a b). P x y"
-  by (simp add: list_all2_def) 
+  by (simp add: list_all2_iff) 
 
 
 text "Conditions under which eff is applicable:"
@@ -352,7 +352,7 @@ lemma appInvoke[simp]:
   method (G,C) (mn,fpTs) = Some (mD', rT', b') \<and> 
   (\<forall>C \<in> set (match_any G pc et). is_class G C))" (is "?app s = ?P s")
 proof (cases s)
-  note list_all2_def [simp]
+  note list_all2_iff [simp]
   case (Pair a b)
   have "?app (a,b) \<Longrightarrow> ?P (a,b)"
   proof -

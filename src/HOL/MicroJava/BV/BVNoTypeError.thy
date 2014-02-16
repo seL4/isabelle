@@ -147,7 +147,7 @@ lemma app'Invoke[simp]:
   method (G,C) (mn,fpTs) = Some (mD', rT', b') \<and> G \<turnstile> X \<preceq> Class C)"
   (is "?app ST LT = ?P ST LT")
 proof
-  assume "?P ST LT" thus "?app ST LT" by (auto simp add: list_all2_def)
+  assume "?P ST LT" thus "?app ST LT" by (auto simp add: list_all2_iff)
 next  
   assume app: "?app ST LT"
   hence l: "length fpTs < length ST" by simp
@@ -170,7 +170,7 @@ next
   have "ST = (rev apTs) @ X # ST'" "length apTs = length fpTs" by auto
   with app
   show "?P ST LT"
-    apply (clarsimp simp add: list_all2_def)
+    apply (clarsimp simp add: list_all2_iff)
     apply (intro exI conjI)
     apply auto
     done
@@ -178,7 +178,7 @@ qed
 
 lemma approx_loc_len [simp]:
   "approx_loc G hp loc LT \<Longrightarrow> length loc = length LT"
-  by (simp add: approx_loc_def list_all2_def)
+  by (simp add: approx_loc_def list_all2_iff)
 
 lemma approx_stk_len [simp]:
   "approx_stk G hp stk ST \<Longrightarrow> length stk = length ST"
@@ -341,7 +341,7 @@ proof -
       have [simp]: "take (length ps) stk = aps" by simp
       from w ps
       have widen: "list_all2 (\<lambda>x y. G \<turnstile> x \<preceq> y) apTs ps"
-        by (simp add: list_all2_def) 
+        by (simp add: list_all2_iff) 
 
       from stk' l ps have "length ps < length stk" by simp
       moreover

@@ -392,7 +392,7 @@ lemma max_spec_preserves_length:
   \<Longrightarrow> length pTs = length pTs'"
 apply (frule max_spec2mheads)
 apply (erule exE)+
-apply (simp add: list_all2_def)
+apply (simp add: list_all2_iff)
 done
 
 

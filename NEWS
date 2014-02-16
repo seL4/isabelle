@@ -129,14 +129,16 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
     and "rec_xxx" (e.g., "prod_case" ~> "case_prod").
     INCOMPATIBILITY.
 
-* The types "'a list" and "'a option", their set and map functions, and their
-  selectors are now produced using the new BNF-based datatype package.
+* The types "'a list" and "'a option", their set and map functions, their
+  relators, and their selectors are now produced using the new BNF-based datatype
+  package.
   Renamed constants:
     Option.set ~> set_option
     Option.map ~> map_option
   Renamed theorems:
     map_def ~> map_rec[abs_def]
     Option.map_def ~> map_option_case[abs_def] (with "case_option" instead of "rec_option")
+    list_all2_def ~> list_all2_iff
     map.simps ~> list.map
     hd.simps ~> list.sel(1)
     tl.simps ~> list.sel(2-3)

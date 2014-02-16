@@ -1264,7 +1264,7 @@ max_spec G cname (mname, pTsa) = {((md, T), pTs')} \<rbrakk>
   apply (rule_tac x="Class cname" in exI)
   apply (simp add: max_spec_preserves_length comp_is_class)
   apply (frule max_spec2mheads, (erule exE)+, (erule conjE)+)
-  apply (simp add: split_paired_all comp_widen list_all2_def)
+  apply (simp add: split_paired_all comp_widen list_all2_iff)
   apply (frule max_spec2mheads, (erule exE)+, (erule conjE)+)
   apply (rule exI)+
   apply (simp add: wf_prog_ws_prog [THEN comp_method])
