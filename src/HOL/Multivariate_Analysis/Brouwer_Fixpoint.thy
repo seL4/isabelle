@@ -622,7 +622,7 @@ proof -
     apply auto
     done
   then obtain a where a: "a \<in> s" "\<forall>x\<in>s. \<forall>j. x j \<le> a j" ..
-  show ?thesis 
+  show ?thesis
     apply (rule_tac x = a in bexI)
   proof
     fix x
@@ -1755,15 +1755,26 @@ proof -
   have **: "\<And>s' a'. ksimplex p n s' \<Longrightarrow> a' \<in> s' \<Longrightarrow> s' - {a'} = s - {a} \<Longrightarrow> s' = s"
   proof -
     case goal1
-    guess a0 a1 by (rule ksimplex_extrema_strong[OF assms(1,3)]) note exta = this[rule_format]
+    obtain a0 a1 where exta:
+        "a0 \<in> s"
+        "a1 \<in> s"
+        "a0 \<noteq> a1"
+        "\<And>x. x \<in> s \<Longrightarrow> kle n a0 x \<and> kle n x a1"
+        "\<And>i. a1 i = (if i \<in> {1..n} then a0 i + 1 else a0 i)"
+      by (rule ksimplex_extrema_strong[OF assms(1,3)]) blast
     have a: "a = a1"
       apply (rule ksimplex_fix_plane_0[OF assms(2,4-5)])
       using exta(1-2,5)
       apply auto
       done
     moreover
-    guess b0 b1 by (rule ksimplex_extrema_strong[OF goal1(1) assms(3)])
-    note extb = this[rule_format]
+    obtain b0 b1 where extb:
+        "b0 \<in> s'"
+        "b1 \<in> s'"
+        "b0 \<noteq> b1"
+        "\<And>x. x \<in> s' \<Longrightarrow> kle n b0 x \<and> kle n x b1"
+        "\<And>i. b1 i = (if i \<in> {1..n} then b0 i + 1 else b0 i)"
+      by (rule ksimplex_extrema_strong[OF goal1(1) assms(3)]) blast
     have a': "a' = b1"
       apply (rule ksimplex_fix_plane_0[OF goal1(2) assms(4), of b0])
       unfolding goal1(3)
@@ -1815,15 +1826,26 @@ proof -
   have lem: "\<And>s' a'. ksimplex p n s' \<Longrightarrow> a'\<in>s' \<Longrightarrow> s' - {a'} = s - {a} \<Longrightarrow> s' = s"
   proof -
     case goal1
-    guess a0 a1 by (rule ksimplex_extrema_strong[OF assms(1,3)]) note exta = this [rule_format]
+    obtain a0 a1 where exta:
+        "a0 \<in> s"
+        "a1 \<in> s"
+        "a0 \<noteq> a1"
+        "\<And>x. x \<in> s \<Longrightarrow> kle n a0 x \<and> kle n x a1"
+        "\<And>i. a1 i = (if i \<in> {1..n} then a0 i + 1 else a0 i)"
+      by (rule ksimplex_extrema_strong[OF assms(1,3)]) blast
     have a: "a = a0"
       apply (rule ksimplex_fix_plane_p[OF assms(1-2,4-5) exta(1,2)])
       unfolding exta
       apply auto
       done
     moreover
-    guess b0 b1 by (rule ksimplex_extrema_strong[OF goal1(1) assms(3)])
-    note extb = this [rule_format]
+    obtain b0 b1 where extb:
+        "b0 \<in> s'"
+        "b1 \<in> s'"
+        "b0 \<noteq> b1"
+        "\<And>x. x \<in> s' \<Longrightarrow> kle n b0 x \<and> kle n x b1"
+        "\<And>i. b1 i = (if i \<in> {1..n} then b0 i + 1 else b0 i)"
+      by (rule ksimplex_extrema_strong[OF goal1(1) assms(3)]) blast
     have a': "a' = b0"
       apply (rule ksimplex_fix_plane_p[OF goal1(1-2) assms(4), of _ b1])
       unfolding goal1 extb
@@ -1891,7 +1913,13 @@ proof -
     then show False
       by auto
   qed
-  guess a0 a1 by (rule ksimplex_extrema_strong[OF assms(1,3)]) note a0a1 = this
+  obtain a0 a1 where a0a1:
+      "a0 \<in> s"
+      "a1 \<in> s"
+      "a0 \<noteq> a1"
+      "\<forall>x\<in>s. kle n a0 x \<and> kle n x a1"
+      "\<forall>i. a1 i = (if i \<in> {1..n} then a0 i + 1 else a0 i)"
+    by (rule ksimplex_extrema_strong[OF assms(1,3)])
   {
     assume "a = a0"
     have *: "\<And>P Q. P \<or> Q \<Longrightarrow> \<not> P \<Longrightarrow> Q"
@@ -1910,8 +1938,10 @@ proof -
       apply (rule_tac *[OF ksimplex_successor[OF assms(1-2),unfolded `a=a0`]])
       apply auto
       done
-    then guess a2 ..
-    from this(2) guess k .. note k = this note a2 =`a2 \<in> s`
+    then
+    obtain a2 k where a2: "a2 \<in> s"
+      and k: "k \<in> {1..n}" "\<forall>j. a2 j = (if j = k then a0 j + 1 else a0 j)"
+      by blast
     def a3 \<equiv> "\<lambda>j. if j = k then a1 j + 1 else a1 j"
     have "a3 \<notin> s"
     proof
@@ -1983,8 +2013,8 @@ proof -
               using `a1 \<in> s` ksimplexD(4)[OF assms(1)]
               by auto
           next
-            guess a4 using assms(5)[unfolded bex_simps ball_simps,rule_format,OF k(1)] ..
-            note a4 = this
+            obtain a4 where a4: "a4 \<in> s - {a}" "a4 k \<noteq> p"
+              using assms(5) k(1) by blast
             have "a2 k \<le> a4 k"
               using lem3[OF a4(1)[unfolded `a = a0`],THEN kle_imp_pointwise]
               by auto
@@ -2028,9 +2058,11 @@ proof -
       have lem4: "\<And>x. x\<in>s \<Longrightarrow> x \<noteq> a0 \<Longrightarrow> kle n x a3"
       proof -
         case goal1
-        guess kk using a0a1(4)[rule_format, OF `x\<in>s`,THEN conjunct2,unfolded kle_def]
-          by (elim exE conjE)
-        note kk = this
+        obtain kk where kk:
+            "kk \<subseteq> {1..n}"
+            "\<forall>j. a1 j = x j + (if j \<in> kk then 1 else 0)"
+          using a0a1(4)[rule_format, OF `x\<in>s`,THEN conjunct2,unfolded kle_def]
+          by blast
         have "k \<notin> kk"
         proof
           assume "k \<in> kk"
@@ -2109,9 +2141,16 @@ proof -
       unfolding mem_Collect_eq
     proof (erule conjE)
       fix s'
-      assume as: "ksimplex p n s'" and "\<exists>b\<in>s'. s' - {b} = s - {a}"
-      from this(2) guess a' .. note a' = this
-      guess a_min a_max by (rule ksimplex_extrema_strong[OF as assms(3)]) note min_max = this
+      assume as: "ksimplex p n s'"
+      assume "\<exists>b\<in>s'. s' - {b} = s - {a}"
+      then obtain a' where a': "a' \<in> s'" "s' - {a'} = s - {a}" ..
+      obtain a_min a_max where min_max:
+          "a_min \<in> s'"
+          "a_max \<in> s'"
+          "a_min \<noteq> a_max"
+          "\<forall>x\<in>s'. kle n a_min x \<and> kle n x a_max"
+          "\<forall>i. a_max i = (if i \<in> {1..n} then a_min i + 1 else a_min i)"
+        by (rule ksimplex_extrema_strong[OF as assms(3)])
       have *: "\<forall>x\<in>s' - {a'}. x k = a2 k"
         unfolding a'
       proof
@@ -2270,7 +2309,10 @@ proof -
       apply (rule_tac *[OF ksimplex_predecessor[OF assms(1-2),unfolded `a=a1`]])
       apply auto
       done
-    then guess a2 .. from this(2) guess k .. note k=this note a2 = `a2 \<in> s`
+    then
+    obtain a2 k where a2: "a2 \<in> s"
+      and k: "k \<in> {1..n}" "\<forall>j. a1 j = (if j = k then a2 j + 1 else a2 j)"
+      by blast
     def a3 \<equiv> "\<lambda>j. if j = k then a0 j - 1 else a0 j"
     have "a2 \<noteq> a1"
       using k(2)[THEN spec[where x=k]] by auto
@@ -2297,8 +2339,8 @@ proof -
     qed
     have "a0 k \<noteq> 0"
     proof -
-      guess a4 using assms(4)[unfolded bex_simps ball_simps,rule_format,OF `k\<in>{1..n}`] ..
-      note a4 = this
+      obtain a4 where a4: "a4 \<in> s - {a}" "a4 k \<noteq> 0"
+        using assms(4) `k\<in>{1..n}` by blast
       have "a4 k \<le> a2 k"
         using lem3[OF a4(1)[unfolded `a=a1`],THEN kle_imp_pointwise]
         by auto
@@ -2353,9 +2395,10 @@ proof -
               using `a0 \<in> s` ksimplexD(4)[OF assms(1)]
               by auto
           next
-            guess a4 using assms(5)[unfolded bex_simps ball_simps,rule_format,OF k(1)] ..
-            note a4 = this
-            case True have "a3 k \<le> a0 k"
+            case True
+            obtain a4 where a4: "a4 \<in> s - {a}" "a4 k \<noteq> p"
+              using assms(5) k(1) by blast
+            have "a3 k \<le> a0 k"
               unfolding lem4[rule_format] by auto
             also have "\<dots> \<le> p"
               using ksimplexD(4)[OF assms(1),rule_format, of a0 k] a0a1
@@ -2393,7 +2436,9 @@ proof -
         have "kle n a3 a2"
         proof -
           have "kle n a0 a1"
-            using a0a1 by auto then guess kk unfolding kle_def ..
+            using a0a1 by auto
+          then obtain kk where "kk \<subseteq> {1..n}" "(\<forall>j. a1 j = a0 j + (if j \<in> kk then 1 else 0))"
+            unfolding kle_def by blast
           then show ?thesis
             unfolding kle_def
             apply (rule_tac x=kk in exI)
@@ -2404,7 +2449,6 @@ proof -
             case goal1
             then show ?case
               apply -
-              apply (erule conjE)
               apply (erule_tac[!] x=j in allE)
               apply (cases "j \<in> kk")
               apply (case_tac[!] "j=k")
@@ -2481,9 +2525,16 @@ proof -
       unfolding mem_Collect_eq
     proof (erule conjE)
       fix s'
-      assume as: "ksimplex p n s'" and "\<exists>b\<in>s'. s' - {b} = s - {a}"
-      from this(2) guess a' .. note a' = this
-      guess a_min a_max by (rule ksimplex_extrema_strong[OF as assms(3)]) note min_max = this
+      assume as: "ksimplex p n s'"
+      assume "\<exists>b\<in>s'. s' - {b} = s - {a}"
+      then obtain a' where a': "a' \<in> s'" "s' - {a'} = s - {a}" ..
+      obtain a_min a_max where min_max:
+          "a_min \<in> s'"
+          "a_max \<in> s'"
+          "a_min \<noteq> a_max"
+          "\<forall>x\<in>s'. kle n a_min x \<and> kle n x a_max"
+          "\<forall>i. a_max i = (if i \<in> {1..n} then a_min i + 1 else a_min i)"
+        by (rule ksimplex_extrema_strong[OF as assms(3)])
       have *: "\<forall>x\<in>s' - {a'}. x k = a2 k" unfolding a'
       proof
         fix x
@@ -2644,8 +2695,9 @@ proof -
     then have "\<exists>y\<in>s. \<exists>k\<in>{1..n}. \<forall>j. a j = (if j = k then y j + 1 else y j)"
       using ksimplex_predecessor[OF assms(1-2)]
       by blast
-    then guess u .. from this(2) guess k .. note k = this[rule_format]
-    note u = `u \<in> s`
+    then obtain u k where u: "u \<in> s"
+      and k: "k \<in> {1..n}" "\<And>j. a j = (if j = k then u j + 1 else u j)"
+      by blast
     have "\<not> (\<forall>x\<in>s. kle n x a)"
     proof
       case goal1
@@ -2660,9 +2712,9 @@ proof -
     qed
     then have "\<exists>y\<in>s. \<exists>k\<in>{1..n}. \<forall>j. y j = (if j = k then a j + 1 else a j)"
       using ksimplex_successor[OF assms(1-2)] by blast
-    then guess v .. from this(2) guess l ..
-    note l = this[rule_format]
-    note v = `v \<in> s`
+    then obtain v l where v: "v \<in> s"
+      and l: "l \<in> {1..n}" "\<And>j. v j = (if j = l then a j + 1 else a j)"
+      by blast
     def a' \<equiv> "\<lambda>j. if j = l then u j + 1 else u j"
     have kl: "k \<noteq> l"
     proof
@@ -2969,10 +3021,12 @@ proof -
       unfolding mem_Collect_eq
     proof (erule conjE)
       fix s'
-      assume as: "ksimplex p n s'" and "\<exists>b\<in>s'. s' - {b} = s - {a}"
-      from this(2) guess a'' .. note a'' = this
+      assume as: "ksimplex p n s'"
+      assume "\<exists>b\<in>s'. s' - {b} = s - {a}"
+      then obtain a'' where a'': "a'' \<in> s'" "s' - {a''} = s - {a}"
+        by blast
       have "u \<noteq> v"
-        unfolding fun_eq_iff unfolding l(2) k(2) by auto
+        unfolding fun_eq_iff l(2) k(2) by auto
       then have uv': "\<not> kle n v u"
         using uv using kle_antisym by auto
       have "u \<noteq> a" "v \<noteq> a"
@@ -2982,7 +3036,8 @@ proof -
       have lem6: "a \<in> s' \<or> a' \<in> s'"
       proof (cases "\<forall>x\<in>s'. kle n x u \<or> kle n v x")
         case False
-        then guess w unfolding ball_simps .. note w = this
+        then obtain w where w: "w \<in> s'" "\<not> (kle n w u \<or> kle n v w)"
+          by blast
         then have "kle n u w" "kle n w v"
           using ksimplexD(6)[OF as] uvs' by auto
         then have "w = a' \<or> w = a"
@@ -3002,8 +3057,13 @@ proof -
         then have "\<exists>y\<in>s'. \<exists>k\<in>{1..n}. \<forall>j. y j = (if j = k then u j + 1 else u j)"
           using ksimplex_successor[OF as `u\<in>s'`]
           by blast
-        then guess w .. note w = this
-        from this(2) guess kk .. note kk = this[rule_format]
+        then obtain w where
+          w: "w \<in> s'" "\<exists>k\<in>{1..n}. \<forall>j. w j = (if j = k then u j + 1 else u j)"
+          ..
+        from this(2) obtain kk where kk:
+            "kk \<in> {1..n}"
+            "\<And>j. w j = (if j = kk then u j + 1 else u j)"
+          by blast
         have "\<not> kle n w u"
           apply -
           apply rule
@@ -3021,7 +3081,7 @@ proof -
           then show False using *[THEN kle_imp_pointwise, unfolded l(2) kk k(2)]
             apply (erule_tac x=l in allE)
             using `k \<noteq> l`
-            apply auto  
+            apply auto
             done
         next
           case True
@@ -3171,11 +3231,12 @@ proof -
     done
   have *: "n \<le> n \<and> (label x (n + 1) \<noteq> 0 \<or> n = n)"
     by auto
-  then guess N
+  then obtain N where N:
+      "N \<le> n \<and> (label x (N + 1) \<noteq> 0 \<or> n = N)"
+      "\<forall>m<N. \<not> (m \<le> n \<and> (label x (m + 1) \<noteq> 0 \<or> n = m))"
     apply (drule_tac num_WOP[of "\<lambda>j. j\<le>n \<and> (label x (j+1) \<noteq> 0 \<or> n = j)"])
-    apply (erule exE)
+    apply blast
     done
-  note N = this
   have N': "N \<le> n"
     "\<forall>i. 1 \<le> i \<and> i < N + 1 \<longrightarrow> label x i = 0" "N = n \<or> label x (N + 1) \<noteq> 0"
     defer
@@ -3183,10 +3244,10 @@ proof -
     fix i
     assume i: "1 \<le> i \<and> i < N + 1"
     then show "label x i = 0"
-      using N[THEN conjunct2,THEN spec[where x="i - 1"]]
+      using N(2)[THEN spec[where x="i - 1"]]
       using N
       by auto
-  qed (insert N, auto)
+  qed (insert N(1), auto)
   show ?t1 ?t2 ?t3
     unfolding reduced_def
     apply (rule_tac[!] someI2_ex)
@@ -3251,7 +3312,7 @@ proof
     apply assumption
   proof (cases ?a)
     case True
-    then guess j .. note j = this
+    then obtain j where j: "j \<in> {1..n + 1}" "\<forall>x\<in>f. x j = 0" ..
     {
       fix x
       assume x: "x \<in> f"
@@ -3267,8 +3328,12 @@ proof
     }
     moreover have "j - 1 \<in> {0..n}"
       using j by auto
-    then guess y unfolding `?l`[THEN conjunct1,symmetric] and image_iff .. note y = this
-    ultimately have False
+    then obtain y where y:
+      "y \<in> f"
+      "j - 1 = reduced lab (n + 1) y"
+      unfolding `?l`[THEN conjunct1,symmetric] and image_iff ..
+    ultimately
+    have False
       by auto
     then show "\<forall>x\<in>f. x (n + 1) = p"
       by auto
@@ -3276,7 +3341,7 @@ proof
     case False
     then have ?b using `?l`
       by blast
-    then guess j .. note j = this
+    then obtain j where j: "j \<in> {1..n + 1}" "\<forall>x\<in>f. x j = p" ..
     {
       fix x
       assume x: "x \<in> f"
@@ -3296,8 +3361,10 @@ proof
       moreover
       have "n \<in> {0..n}"
         by auto
-      then guess y unfolding `?l`[THEN conjunct1,symmetric] image_iff ..
-      ultimately show False
+      then obtain y where "y \<in> f" "n = reduced lab (n + 1) y"
+        unfolding `?l`[THEN conjunct1,symmetric] image_iff ..
+      ultimately
+      show False
         using *[of y] by auto
     qed
     then show "\<forall>x\<in>f. x (n + 1) = p"
@@ -3368,8 +3435,9 @@ proof -
       unfolding image_iff
       apply auto
       done
-    moreover guess s using as(1)[unfolded simplex_top_face[OF assms(1) allp,symmetric]] ..
-    then guess a ..
+    moreover
+    obtain s a where "ksimplex p (n + 1) s \<and> a \<in> s \<and> f = s - {a}"
+      using as(1)[unfolded simplex_top_face[OF assms(1) allp,symmetric]] by blast
     ultimately show "\<exists>s a. ksimplex p (n + 1) s \<and>
         a \<in> s \<and> f = s - {a} \<and>
         reduced lab (n + 1) ` f = {0..n} \<and>
@@ -3385,8 +3453,13 @@ proof -
     assume as: "\<exists>s a. ksimplex p (n + 1) s \<and>
       a \<in> s \<and> f = s - {a} \<and> reduced lab (n + 1) ` f = {0..n} \<and>
       ((\<exists>j\<in>{1..n + 1}. \<forall>x\<in>f. x j = 0) \<or> (\<exists>j\<in>{1..n + 1}. \<forall>x\<in>f. x j = p))"
-    then guess s ..
-    then guess a by (elim exE conjE) note sa = this
+    then obtain s a where sa:
+        "ksimplex p (n + 1) s"
+        "a \<in> s"
+        "f = s - {a}"
+        "reduced lab (n + 1) ` f = {0..n}"
+        "(\<exists>j\<in>{1..n + 1}. \<forall>x\<in>f. x j = 0) \<or> (\<exists>j\<in>{1..n + 1}. \<forall>x\<in>f. x j = p)"
+      by auto
     {
       fix x
       assume "x \<in> f"
@@ -3411,7 +3484,7 @@ proof -
     have *: "\<forall>x\<in>f. x (n + 1) = p"
     proof (cases "\<exists>j\<in>{1..n + 1}. \<forall>x\<in>f. x j = 0")
       case True
-      then guess j ..
+      then obtain j where "j \<in> {1..n + 1}" "\<forall>x\<in>f. x j = 0" ..
       then have "\<And>x. x \<in> f \<Longrightarrow> reduced lab (n + 1) x \<noteq> j - 1"
         apply -
         apply (rule reduced_labelling_zero)
@@ -3433,7 +3506,8 @@ proof -
     next
       case False
       then have "\<exists>j\<in>{1..n + 1}. \<forall>x\<in>f. x j = p"
-        using sa(5) by fastforce then guess j .. note j=this
+        using sa(5) by fastforce
+      then obtain j where j: "j \<in> {1..n + 1}" "\<forall>x\<in>f. x j = p" ..
       then show ?thesis
       proof (cases "j = n + 1")
         case False
@@ -3489,7 +3563,9 @@ lemma ksimplex_0: "ksimplex p 0 s \<longleftrightarrow> s = {(\<lambda>x. p)}"
   (is "?l = ?r")
 proof
   assume l: ?l
-  guess a using ksimplexD(3)[OF l, unfolded add_0] unfolding card_1_exists .. note a = this
+  obtain a where a: "a \<in> s" "\<forall>y y'. y \<in> s \<and> y' \<in> s \<longrightarrow> y = y'"
+    using ksimplexD(3)[OF l, unfolded add_0]
+    unfolding card_1_exists ..
   have "a = (\<lambda>x. p)"
     using ksimplexD(5)[OF l, rule_format, OF a(1)]
     by rule auto
@@ -3566,7 +3642,13 @@ proof -
     unfolding card_eq_0_iff by auto
   then obtain s where "s \<in> ?A"
     by auto note s=conjD[OF this[unfolded mem_Collect_eq]]
-  guess a b by (rule ksimplex_extrema_strong[OF s(1) `n \<noteq> 0`]) note ab = this
+  obtain a b where ab:
+      "a \<in> s"
+      "b \<in> s"
+      "a \<noteq> b"
+      "\<forall>x\<in>s. kle n a x \<and> kle n x b"
+      "\<forall>i. b i = (if i \<in> {1..n} then a i + 1 else a i)"
+    by (rule ksimplex_extrema_strong[OF s(1) `n \<noteq> 0`])
   show ?thesis
     apply (rule that[of a])
     apply (rule_tac[!] ballI)
@@ -3590,10 +3672,12 @@ proof -
     case goal2
     then have "i \<in> reduced label n ` s"
       using s by auto
-    then guess u unfolding image_iff .. note u = this
+    then obtain u where u: "u \<in> s" "i = reduced label n u"
+      unfolding image_iff ..
     from goal2 have "i - 1 \<in> reduced label n ` s"
       using s by auto
-    then guess v unfolding image_iff .. note v = this
+    then obtain v where v: "v \<in> s" "i - 1 = reduced label n v"
+      unfolding image_iff ..
     show ?case
       apply (rule_tac x = u in exI)
       apply (rule_tac x = v in exI)
@@ -3680,16 +3764,24 @@ proof (rule ccontr)
   assume "\<not> ?thesis"
   then have *: "\<not> (\<exists>x\<in>{0..\<Sum>Basis}. f x - x = 0)"
     by auto
-  guess d
+  obtain d where
+      d: "d > 0" "\<And>x. x \<in> {0..\<Sum>Basis} \<Longrightarrow> d \<le> norm (f x - x)"
     apply (rule brouwer_compactness_lemma[OF compact_interval _ *])
     apply (rule continuous_on_intros assms)+
+    apply blast
     done
-  note d = this [rule_format]
-  have *: "\<forall>x. x \<in> {0..\<Sum>Basis} \<longrightarrow> f x \<in> {0..\<Sum>Basis}"  "\<forall>x. x \<in> {0..(\<Sum>Basis)::'a} \<longrightarrow>
-    (\<forall>i\<in>Basis. True \<longrightarrow> 0 \<le> x \<bullet> i \<and> x \<bullet> i \<le> 1)"
+  have *: "\<forall>x. x \<in> {0..\<Sum>Basis} \<longrightarrow> f x \<in> {0..\<Sum>Basis}"
+    "\<forall>x. x \<in> {0..(\<Sum>Basis)::'a} \<longrightarrow> (\<forall>i\<in>Basis. True \<longrightarrow> 0 \<le> x \<bullet> i \<and> x \<bullet> i \<le> 1)"
     using assms(2)[unfolded image_subset_iff Ball_def]
-    unfolding mem_interval by auto
-  guess label using kuhn_labelling_lemma[OF *] by (elim exE conjE)
+    unfolding mem_interval
+    by auto
+  obtain label :: "'a \<Rightarrow> 'a \<Rightarrow> nat" where
+    "\<forall>x. \<forall>i\<in>Basis. label x i \<le> 1"
+    "\<forall>x. \<forall>i\<in>Basis. x \<in> {0..\<Sum>Basis} \<and> True \<and> x \<bullet> i = 0 \<longrightarrow> label x i = 0"
+    "\<forall>x. \<forall>i\<in>Basis. x \<in> {0..\<Sum>Basis} \<and> True \<and> x \<bullet> i = 1 \<longrightarrow> label x i = 1"
+    "\<forall>x. \<forall>i\<in>Basis. x \<in> {0..\<Sum>Basis} \<and> True \<and> label x i = 0 \<longrightarrow> x \<bullet> i \<le> f x \<bullet> i"
+    "\<forall>x. \<forall>i\<in>Basis. x \<in> {0..\<Sum>Basis} \<and> True \<and> label x i = 1 \<longrightarrow> f x \<bullet> i \<le> x \<bullet> i"
+    using kuhn_labelling_lemma[OF *] by blast
   note label = this [rule_format]
   have lem1: "\<forall>x\<in>{0..\<Sum>Basis}.\<forall>y\<in>{0..\<Sum>Basis}.\<forall>i\<in>Basis. label x i \<noteq> label y i \<longrightarrow>
     abs (f x \<bullet> i - x \<bullet> i) \<le> norm (f y - f x) + norm (y - x)"
@@ -3760,8 +3852,15 @@ proof (rule ccontr)
       done
     have *: "uniformly_continuous_on {0..\<Sum>Basis} f"
       by (rule compact_uniformly_continuous[OF assms(1) compact_interval])
-    guess e using *[unfolded uniformly_continuous_on_def,rule_format,OF d'] by (elim exE conjE)
-    note e=this[rule_format,unfolded dist_norm]
+    obtain e where e:
+        "e > 0"
+        "\<And>x x'. x \<in> {0..\<Sum>Basis} \<Longrightarrow>
+          x' \<in> {0..\<Sum>Basis} \<Longrightarrow>
+          norm (x' - x) < e \<Longrightarrow>
+          norm (f x' - f x) < d / real n / 8"
+      using *[unfolded uniformly_continuous_on_def,rule_format,OF d']
+      unfolding dist_norm
+      by blast
     show ?thesis
       apply (rule_tac x="min (e/2) (d/real n/8)" in exI)
       apply safe
@@ -3789,7 +3888,7 @@ proof (rule ccontr)
           apply auto
           done
         show "\<bar>f x \<bullet> i - f z \<bullet> i\<bar> \<le> norm (f x - f z)" "\<bar>x \<bullet> i - z \<bullet> i\<bar> \<le> norm (x - z)"
-          unfolding inner_diff_left[symmetric]  
+          unfolding inner_diff_left[symmetric]
           by (rule Basis_le_norm[OF i])+
         have tria: "norm (y - x) \<le> norm (y - z) + norm (x - z)"
           using dist_triangle[of y x z, unfolded dist_norm]
@@ -3822,8 +3921,18 @@ proof (rule ccontr)
       qed (insert as, auto)
     qed
   qed
-  then guess e by (elim exE conjE) note e=this[rule_format]
-  guess p using real_arch_simple[of "1 + real n / e"] .. note p=this
+  then
+  obtain e where e:
+    "e > 0"
+    "\<And>x y z i. x \<in> {0..\<Sum>Basis} \<Longrightarrow>
+      y \<in> {0..\<Sum>Basis} \<Longrightarrow>
+      z \<in> {0..\<Sum>Basis} \<Longrightarrow>
+      i \<in> Basis \<Longrightarrow>
+      norm (x - z) < e \<and> norm (y - z) < e \<and> label x i \<noteq> label y i \<Longrightarrow>
+      \<bar>(f z - z) \<bullet> i\<bar> < d / real n"
+    by blast
+  obtain p :: nat where p: "1 + real n / e \<le> real p"
+    using real_arch_simple ..
   have "1 + real n / e > 0"
     apply (rule add_pos_pos)
     defer
@@ -3898,7 +4007,14 @@ proof (rule ccontr)
         by (intro label(2)) (auto simp add: b'')
     }
   qed
-  guess q by (rule kuhn_lemma[OF q1 q2]) note q = this
+  obtain q where q:
+      "\<forall>i\<in>{1..n}. q i < p"
+      "\<forall>i\<in>{1..n}.
+         \<exists>r s. (\<forall>j\<in>{1..n}. q j \<le> r j \<and> r j \<le> q j + 1) \<and>
+               (\<forall>j\<in>{1..n}. q j \<le> s j \<and> s j \<le> q j + 1) \<and>
+               (label (\<Sum>i\<in>Basis. (real (r (b' i)) / real p) *\<^sub>R i) \<circ> b) i \<noteq>
+               (label (\<Sum>i\<in>Basis. (real (s (b' i)) / real p) *\<^sub>R i) \<circ> b) i"
+    by (rule kuhn_lemma[OF q1 q2])
   def z \<equiv> "(\<Sum>i\<in>Basis. (real (q (b' i)) / real p) *\<^sub>R i)::'a"
   have "\<exists>i\<in>Basis. d / real n \<le> abs ((f z - z)\<bullet>i)"
   proof (rule ccontr)
@@ -3929,13 +4045,16 @@ proof (rule ccontr)
     finally show False
       using d_fz_z by auto
   qed
-  then guess i .. note i = this
+  then obtain i where i: "i \<in> Basis" "d / real n \<le> \<bar>(f z - z) \<bullet> i\<bar>" ..
   have *: "b' i \<in> {1..n}"
-    using i
-    using b'[unfolded bij_betw_def]
+    using i and b'[unfolded bij_betw_def]
     by auto
-  guess r using q(2)[rule_format,OF *] ..
-  then guess s by (elim exE conjE) note rs = this[rule_format]
+  obtain r s where rs:
+    "\<And>j. j \<in> {1..n} \<Longrightarrow> q j \<le> r j \<and> r j \<le> q j + 1"
+    "\<And>j. j \<in> {1..n} \<Longrightarrow> q j \<le> s j \<and> s j \<le> q j + 1"
+    "(label (\<Sum>i\<in>Basis. (real (r (b' i)) / real p) *\<^sub>R i) \<circ> b) (b' i) \<noteq>
+      (label (\<Sum>i\<in>Basis. (real (s (b' i)) / real p) *\<^sub>R i) \<circ> b) (b' i)"
+    using q(2)[rule_format,OF *] by blast
   have b'_im: "\<And>i. i \<in> Basis \<Longrightarrow>  b' i \<in> {1..n}"
     using b' unfolding bij_betw_def by auto
   def r' \<equiv> "(\<Sum>i\<in>Basis. (real (r (b' i)) / real p) *\<^sub>R i)::'a"
@@ -4040,7 +4159,7 @@ proof -
     apply auto
     apply blast
     done
-  then guess x .. note x = this
+  then obtain x where x: "x \<in> s" "(i \<circ> g \<circ> r) x = x" ..
   then have *: "g (r x) \<in> t"
     using assms(4,8) by auto
   have "r ((i \<circ> g \<circ> r) x) = r x"
@@ -4062,8 +4181,16 @@ lemma homeomorphic_fixpoint_property:
   shows "(\<forall>f. continuous_on s f \<and> f ` s \<subseteq> s \<longrightarrow> (\<exists>x\<in>s. f x = x)) \<longleftrightarrow>
     (\<forall>g. continuous_on t g \<and> g ` t \<subseteq> t \<longrightarrow> (\<exists>y\<in>t. g y = y))"
 proof -
-  guess r using assms[unfolded homeomorphic_def homeomorphism_def] ..
-  then guess i ..
+  obtain r i where
+      "\<forall>x\<in>s. i (r x) = x"
+      "r ` s = t"
+      "continuous_on s r"
+      "\<forall>y\<in>t. r (i y) = y"
+      "i ` t = s"
+      "continuous_on t i"
+    using assms
+    unfolding homeomorphic_def homeomorphism_def
+    by blast
   then show ?thesis
     apply -
     apply rule
@@ -4084,7 +4211,8 @@ lemma retract_fixpoint_property:
     and "g ` t \<subseteq> t"
   obtains y where "y \<in> t" and "g y = y"
 proof -
-  guess h using assms(1) unfolding retract_of_def ..
+  obtain h where "retraction s t h"
+    using assms(1) unfolding retract_of_def ..
   then show ?thesis
     unfolding retraction_def
     apply -
@@ -4161,8 +4289,8 @@ proof -
     apply (rule_tac x=b in exI)
     apply (auto simp add: dist_norm)
     done
-  then guess e by (elim exE conjE)
-  note e = this
+  then obtain e where e: "e > 0" "s \<subseteq> cball 0 e"
+    by blast
   have "\<exists>x\<in> cball 0 e. (f \<circ> closest_point s) x = x"
     apply (rule_tac brouwer_ball[OF e(1), of 0 "f \<circ> closest_point s"])
     apply (rule continuous_on_compose )
@@ -4174,7 +4302,7 @@ proof -
     using e(2)[unfolded subset_eq mem_cball]
     apply (auto simp add: dist_norm)
     done
-  then guess x .. note x=this
+  then obtain x where x: "x \<in> cball 0 e" "(f \<circ> closest_point s) x = x" ..
   have *: "closest_point s x = x"
     apply (rule closest_point_self)
     apply (rule assms(5)[unfolded subset_eq,THEN bspec[where x="x"], unfolded image_iff])
@@ -4203,7 +4331,9 @@ proof
   case goal1
   have *: "\<And>xa. a - (2 *\<^sub>R a - xa) = - (a - xa)"
     using scaleR_left_distrib[of 1 1 a] by auto
-  guess x
+  obtain x where x:
+      "x \<in> {x. norm (a - x) = e}"
+      "2 *\<^sub>R a - x = x"
     apply (rule retract_fixpoint_property[OF goal1, of "\<lambda>x. scaleR 2 a - x"])
     apply rule
     apply rule
@@ -4219,8 +4349,8 @@ proof
     apply (erule bexE)
     unfolding dist_norm
     apply (simp add: * norm_minus_commute)
+    apply blast
     done
-  note x = this
   then have "scaleR 2 a = scaleR 1 x + scaleR 1 x"
     by (auto simp add: algebra_simps)
   then have "a = x"

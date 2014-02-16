@@ -139,12 +139,12 @@ lemma basis_dense:
     and f :: "'a set \<Rightarrow> 'a"
   assumes "topological_basis B"
     and choosefrom_basis: "\<And>B'. B' \<noteq> {} \<Longrightarrow> f B' \<in> B'"
-  shows "(\<forall>X. open X \<longrightarrow> X \<noteq> {} \<longrightarrow> (\<exists>B' \<in> B. f B' \<in> X))"
+  shows "\<forall>X. open X \<longrightarrow> X \<noteq> {} \<longrightarrow> (\<exists>B' \<in> B. f B' \<in> X)"
 proof (intro allI impI)
   fix X :: "'a set"
   assume "open X" and "X \<noteq> {}"
   from topological_basisE[OF `topological_basis B` `open X` choosefrom_basis[OF `X \<noteq> {}`]]
-  guess B' . note B' = this
+  obtain B' where "B' \<in> B" "f X \<in> B'" "B' \<subseteq> X" .
   then show "\<exists>B'\<in>B. f B' \<in> X"
     by (auto intro!: choosefrom_basis)
 qed
@@ -166,8 +166,12 @@ proof (safe, simp_all del: ex_simps add: subset_image_iff ex_simps(1)[symmetric]
     from open_prod_elim[OF `open S` this]
     obtain a b where a: "open a""x \<in> a" and b: "open b" "y \<in> b" and "a \<times> b \<subseteq> S"
       by (metis mem_Sigma_iff)
-    moreover from topological_basisE[OF A a] guess A0 .
-    moreover from topological_basisE[OF B b] guess B0 .
+    moreover
+    from A a obtain A0 where "A0 \<in> A" "x \<in> A0" "A0 \<subseteq> a"
+      by (rule topological_basisE)
+    moreover
+    from B b obtain B0 where "B0 \<in> B" "y \<in> B0" "B0 \<subseteq> b"
+      by (rule topological_basisE)
     ultimately show "(x, y) \<in> (\<Union>(a, b)\<in>{X \<in> A \<times> B. fst X \<times> snd X \<subseteq> S}. a \<times> b)"
       by (intro UN_I[of "(A0, B0)"]) auto
   qed auto
@@ -225,7 +229,12 @@ lemma (in first_countable_topology) first_countable_basis_Int_stableE:
     "\<And>S. open S \<Longrightarrow> x \<in> S \<Longrightarrow> (\<exists>a\<in>A. a \<subseteq> S)"
     "\<And>a b. a \<in> A \<Longrightarrow> b \<in> A \<Longrightarrow> a \<inter> b \<in> A"
 proof atomize_elim
-  from first_countable_basisE[of x] guess A' . note A' = this
+  obtain A' where A':
+    "countable A'"
+    "\<And>a. a \<in> A' \<Longrightarrow> x \<in> a"
+    "\<And>a. a \<in> A' \<Longrightarrow> open a"
+    "\<And>S. open S \<Longrightarrow> x \<in> S \<Longrightarrow> \<exists>a\<in>A'. a \<subseteq> S"
+    by (rule first_countable_basisE) blast
   def A \<equiv> "(\<lambda>N. \<Inter>((\<lambda>n. from_nat_into A' n) ` N)) ` (Collect finite::nat set set)"
   then show "\<exists>A. countable A \<and> (\<forall>a. a \<in> A \<longrightarrow> x \<in> a) \<and> (\<forall>a. a \<in> A \<longrightarrow> open a) \<and>
         (\<forall>S. open S \<longrightarrow> x \<in> S \<longrightarrow> (\<exists>a\<in>A. a \<subseteq> S)) \<and> (\<forall>a b. a \<in> A \<longrightarrow> b \<in> A \<longrightarrow> a \<inter> b \<in> A)"
@@ -273,8 +282,18 @@ qed
 instance prod :: (first_countable_topology, first_countable_topology) first_countable_topology
 proof
   fix x :: "'a \<times> 'b"
-  from first_countable_basisE[of "fst x"] guess A :: "'a set set" . note A = this
-  from first_countable_basisE[of "snd x"] guess B :: "'b set set" . note B = this
+  obtain A where A:
+      "countable A"
+      "\<And>a. a \<in> A \<Longrightarrow> fst x \<in> a"
+      "\<And>a. a \<in> A \<Longrightarrow> open a"
+      "\<And>S. open S \<Longrightarrow> fst x \<in> S \<Longrightarrow> \<exists>a\<in>A. a \<subseteq> S"
+    by (rule first_countable_basisE[of "fst x"]) blast
+  obtain B where B:
+      "countable B"
+      "\<And>a. a \<in> B \<Longrightarrow> snd x \<in> a"
+      "\<And>a. a \<in> B \<Longrightarrow> open a"
+      "\<And>S. open S \<Longrightarrow> snd x \<in> S \<Longrightarrow> \<exists>a\<in>B. a \<subseteq> S"
+    by (rule first_countable_basisE[of "snd x"]) blast
   show "\<exists>A::nat \<Rightarrow> ('a \<times> 'b) set.
     (\<forall>i. x \<in> A i \<and> open (A i)) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>i. A i \<subseteq> S))"
   proof (rule first_countableI[of "(\<lambda>(a, b). a \<times> b) ` (A \<times> B)"], safe)
@@ -286,10 +305,14 @@ proof
   next
     fix S
     assume "open S" "x \<in> S"
-    from open_prod_elim[OF this] guess a' b' . note a'b' = this
-    moreover from a'b' A(4)[of a'] B(4)[of b']
-    obtain a b where "a \<in> A" "a \<subseteq> a'" "b \<in> B" "b \<subseteq> b'" by auto
-    ultimately show "\<exists>a\<in>(\<lambda>(a, b). a \<times> b) ` (A \<times> B). a \<subseteq> S"
+    then obtain a' b' where a'b': "open a'" "open b'" "x \<in> a' \<times> b'" "a' \<times> b' \<subseteq> S"
+      by (rule open_prod_elim)
+    moreover
+    from a'b' A(4)[of a'] B(4)[of b']
+    obtain a b where "a \<in> A" "a \<subseteq> a'" "b \<in> B" "b \<subseteq> b'"
+      by auto
+    ultimately
+    show "\<exists>a\<in>(\<lambda>(a, b). a \<times> b) ` (A \<times> B). a \<subseteq> S"
       by (auto intro!: bexI[of _ "a \<times> b"] bexI[of _ a] bexI[of _ b])
   qed (simp add: A B)
 qed
@@ -328,7 +351,9 @@ proof -
       next
         case (UN K)
         then have "\<forall>k\<in>K. \<exists>B'\<subseteq>{b. finite b \<and> b \<subseteq> B}. UNION B' Inter = k" by auto
-        then guess k unfolding bchoice_iff ..
+        then obtain k where
+            "\<forall>ka\<in>K. k ka \<subseteq> {b. finite b \<and> b \<subseteq> B} \<and> UNION (k ka) Inter = ka"
+          unfolding bchoice_iff ..
         then show "\<exists>B'\<subseteq>{b. finite b \<and> b \<subseteq> B}. UNION B' Inter = \<Union>K"
           by (intro exI[of _ "UNION K k"]) auto
       next
@@ -849,14 +874,16 @@ proof -
     from Rats_dense_in_real[of "x \<bullet> i - e'" "x \<bullet> i"] e
     show "?th i" by auto
   qed
-  from choice[OF this] guess a .. note a = this
+  from choice[OF this] obtain a where
+    a: "\<forall>xa. a xa \<in> \<rat> \<and> a xa < x \<bullet> xa \<and> x \<bullet> xa - a xa < e'" ..
   have "\<forall>i. \<exists>y. y \<in> \<rat> \<and> x \<bullet> i < y \<and> y - x \<bullet> i < e'" (is "\<forall>i. ?th i")
   proof
     fix i
     from Rats_dense_in_real[of "x \<bullet> i" "x \<bullet> i + e'"] e
     show "?th i" by auto
   qed
-  from choice[OF this] guess b .. note b = this
+  from choice[OF this] obtain b where
+    b: "\<forall>xa. b xa \<in> \<rat> \<and> x \<bullet> xa < b xa \<and> b xa - x \<bullet> xa < e'" ..
   let ?a = "\<Sum>i\<in>Basis. a i *\<^sub>R i" and ?b = "\<Sum>i\<in>Basis. b i *\<^sub>R i"
   show ?thesis
   proof (rule exI[of _ ?a], rule exI[of _ ?b], safe)
@@ -1585,7 +1612,11 @@ lemma islimpt_sequential:
     (is "?lhs = ?rhs")
 proof
   assume ?lhs
-  from countable_basis_at_decseq[of x] guess A . note A = this
+  from countable_basis_at_decseq[of x] obtain A where A:
+      "\<And>i. open (A i)"
+      "\<And>i. x \<in> A i"
+      "\<And>S. open S \<Longrightarrow> x \<in> S \<Longrightarrow> eventually (\<lambda>i. A i \<subseteq> S) sequentially"
+    by blast
   def f \<equiv> "\<lambda>n. SOME y. y \<in> S \<and> y \<in> A n \<and> x \<noteq> y"
   {
     fix n
@@ -2759,8 +2790,12 @@ lemma acc_point_range_imp_convergent_subsequence:
   assumes l: "\<forall>U. l\<in>U \<longrightarrow> open U \<longrightarrow> infinite (U \<inter> range f)"
   shows "\<exists>r. subseq r \<and> (f \<circ> r) ----> l"
 proof -
-  from countable_basis_at_decseq[of l] guess A . note A = this
-
+  from countable_basis_at_decseq[of l]
+  obtain A where A:
+      "\<And>i. open (A i)"
+      "\<And>i. l \<in> A i"
+      "\<And>S. open S \<Longrightarrow> l \<in> S \<Longrightarrow> eventually (\<lambda>i. A i \<subseteq> S) sequentially"
+    by blast
   def s \<equiv> "\<lambda>n i. SOME j. i < j \<and> f j \<in> A (Suc n)"
   {
     fix n i
@@ -3043,8 +3078,10 @@ proof (rule eventually_Abs_filter is_filter.intro)+
   show "?R (\<lambda>x. True)"
     by (rule exI[of _ "{}"]) (simp add: le_fun_def)
 next
-  fix P Q assume "?R P" then guess X ..
-  moreover assume "?R Q" then guess Y ..
+  fix P Q
+  assume "?R P" then guess X ..
+  moreover
+  assume "?R Q" then guess Y ..
   ultimately show "?R (\<lambda>x. P x \<and> Q x)"
     by (intro exI[of _ "X \<union> Y"]) auto
 next
@@ -3221,7 +3258,8 @@ proof safe
     using * by metis
   then have "\<forall>t\<in>T. \<exists>a\<in>A. t \<inter> U \<subseteq> a"
     by (auto simp: C_def)
-  then guess f unfolding bchoice_iff Bex_def ..
+  then obtain f where "\<forall>t\<in>T. f t \<in> A \<and> t \<inter> U \<subseteq> f t"
+    unfolding bchoice_iff Bex_def ..
   with T show "\<exists>T\<subseteq>A. finite T \<and> U \<subseteq> \<Union>T"
     unfolding C_def by (intro exI[of _ "f`T"]) fastforce
 qed
@@ -3231,9 +3269,10 @@ lemma countably_compact_imp_compact_second_countable:
 proof (rule countably_compact_imp_compact)
   fix T and x :: 'a
   assume "open T" "x \<in> T"
-  from topological_basisE[OF is_basis this] guess b .
+  from topological_basisE[OF is_basis this] obtain b where
+    "b \<in> (SOME B. countable B \<and> topological_basis B)" "x \<in> b" "b \<subseteq> T" .
   then show "\<exists>b\<in>SOME B. countable B \<and> topological_basis B. x \<in> b \<and> b \<inter> U \<subseteq> T"
-    by auto
+    by blast
 qed (insert countable_basis topological_basis_open[OF is_basis], auto)
 
 lemma countably_compact_eq_compact:
@@ -3354,7 +3393,12 @@ proof safe
   obtain x where "x \<in> U" and x: "inf (nhds x) (filtermap X sequentially) \<noteq> bot" (is "?F \<noteq> _")
     using `compact U` by (auto simp: compact_filter)
 
-  from countable_basis_at_decseq[of x] guess A . note A = this
+  from countable_basis_at_decseq[of x]
+  obtain A where A:
+      "\<And>i. open (A i)"
+      "\<And>i. x \<in> A i"
+      "\<And>S. open S \<Longrightarrow> x \<in> S \<Longrightarrow> eventually (\<lambda>i. A i \<subseteq> S) sequentially"
+    by blast
   def s \<equiv> "\<lambda>n i. SOME j. i < j \<and> X j \<in> A (Suc n)"
   {
     fix n i
@@ -3426,7 +3470,9 @@ proof (rule ccontr)
   moreover
   from `countable t` have "countable C"
     unfolding C_def by (auto intro: countable_Collect_finite_subset)
-  ultimately guess D by (rule countably_compactE)
+  ultimately
+  obtain D where "D \<subseteq> C" "finite D" "s \<subseteq> \<Union>D"
+    by (rule countably_compactE)
   then obtain E where E: "E \<subseteq> {F. finite F \<and> F \<subseteq> t }" "finite E"
     and s: "s \<subseteq> (\<Union>F\<in>E. interior (F \<union> (- t)))"
     by (metis (lifting) Union_image_eq finite_subset_image C_def)
@@ -3569,7 +3615,8 @@ lemma seq_compact_imp_heine_borel:
   shows "compact s"
 proof -
   from seq_compact_imp_totally_bounded[OF `seq_compact s`]
-  guess f unfolding choice_iff' .. note f = this
+  obtain f where f: "\<forall>e>0. finite (f e) \<and> f e \<subseteq> s \<and> s \<subseteq> \<Union>((\<lambda>x. ball x e) ` f e)"
+    unfolding choice_iff' ..
   def K \<equiv> "(\<lambda>(x, r). ball x r) ` ((\<Union>e \<in> \<rat> \<inter> {0 <..}. f e) \<times> \<rat>)"
   have "countably_compact s"
     using `seq_compact s` by (rule seq_compact_imp_countably_compact)
@@ -3944,7 +3991,9 @@ proof
         assume "infinite {n. f n \<in> U}"
         then have "\<exists>b\<in>k (e n). infinite {i\<in>{n. f n \<in> U}. f i \<in> ball b (e n)}"
           using k f by (intro pigeonhole_infinite_rel) (auto simp: subset_eq)
-        then guess a ..
+        then obtain a where
+          "a \<in> k (e n)"
+          "infinite {i \<in> {n. f n \<in> U}. f i \<in> ball a (e n)}" ..
         then have "\<exists>b. infinite {i. f i \<in> b} \<and> (\<exists>x. b \<subseteq> ball x (e n) \<inter> U)"
           by (intro exI[of _ "ball a (e n) \<inter> U"] exI[of _ a]) (auto simp: ac_simps)
         from someI_ex[OF this]
@@ -6617,7 +6666,7 @@ lemma ex_card:
   shows "\<exists>S\<subseteq>A. card S = n"
 proof cases
   assume "finite A"
-  from ex_bij_betw_nat_finite[OF this] guess f .. note f = this
+  from ex_bij_betw_nat_finite[OF this] obtain f where f: "bij_betw f {0..<card A} A" ..
   moreover from f `n \<le> card A` have "{..< n} \<subseteq> {..< card A}" "inj_on f {..< n}"
     by (auto simp: bij_betw_def intro: subset_inj_on)
   ultimately have "f ` {..< n} \<subseteq> A" "card (f ` {..< n}) = n"
@@ -6642,7 +6691,11 @@ proof -
       inj_on f {x::'a. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0}"
     using dim_substandard[of d] t d assms
     by (intro subspace_isomorphism[OF subspace_substandard[of "\<lambda>i. i \<notin> d"]]) (auto simp: inner_Basis)
-  then guess f by (elim exE conjE) note f = this
+  then obtain f where f:
+      "linear f"
+      "f ` {x. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0} = s"
+      "inj_on f {x. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0}"
+    by blast
   interpret f: bounded_linear f
     using f unfolding linear_conv_bounded_linear by auto
   {

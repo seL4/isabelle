@@ -256,7 +256,12 @@ proof -
     using t by auto
   have "r \<noteq> 0" "0 < r" and m': "m \<noteq> \<infinity>" "m \<noteq> -\<infinity>" "m \<noteq> 0"
     using m by auto
-  from `open S` [THEN ereal_openE] guess l u . note T = this
+  from `open S` [THEN ereal_openE]
+  obtain l u where T:
+      "open (ereal -` S)"
+      "\<infinity> \<in> S \<Longrightarrow> {ereal l<..} \<subseteq> S"
+      "- \<infinity> \<in> S \<Longrightarrow> {..<ereal u} \<subseteq> S"
+    by blast
   let ?f = "(\<lambda>x. m * x + t)"
   show ?thesis
     unfolding open_ereal_def

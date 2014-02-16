@@ -1158,7 +1158,7 @@ lemma convex_positive_orthant_cart: "convex {x::real^'n. (\<forall>i. 0 \<le> x$
   by (rule convex_box_cart) (simp add: atLeast_def[symmetric] convex_real_interval)
 
 lemma unit_interval_convex_hull_cart:
-  "{0::real^'n .. 1} = convex hull {x. \<forall>i. (x$i = 0) \<or> (x$i = 1)}" (is "?int = convex hull ?points")
+  "{0::real^'n .. 1} = convex hull {x. \<forall>i. (x$i = 0) \<or> (x$i = 1)}"
   unfolding Cart_1 unit_interval_convex_hull[where 'a="real^'n"]
   by (rule arg_cong[where f="\<lambda>x. convex hull x"]) (simp add: Basis_vec_def inner_axis)
 
@@ -1167,8 +1167,11 @@ lemma cube_convex_hull_cart:
   obtains s::"(real^'n) set"
     where "finite s" "{x - (\<chi> i. d) .. x + (\<chi> i. d)} = convex hull s"
 proof -
-  from cube_convex_hull [OF assms, of x] guess s .
-  with that[of s] show thesis by (simp add: const_vector_cart)
+  from assms obtain s where "finite s"
+    and "{x - setsum (op *\<^sub>R d) Basis..x + setsum (op *\<^sub>R d) Basis} = convex hull s"
+    by (rule cube_convex_hull)
+  with that[of s] show thesis
+    by (simp add: const_vector_cart)
 qed
 
 
