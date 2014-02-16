@@ -26,13 +26,16 @@ object Antiquote
     private val txt: Parser[String] =
       rep1("@" ~ guard(one(s => s != "{")) | many1(s => s != "@")) ^^ (x => x.mkString)
 
-    private val ant: Parser[String] =
-      quoted("\"") | (quoted("`") | (cartouche | one(s => s != "}")))
+    val antiq_other: Parser[String] =
+      many1(s => s != "\"" && s != "`" && s != "}" && !Symbol.is_open(s) && !Symbol.is_close(s))
+
+    private val antiq_body: Parser[String] =
+      quoted("\"") | (quoted("`") | (cartouche | antiq_other))
 
     val antiq: Parser[String] =
-      "@{" ~ rep(ant) ~ "}" ^^ { case x ~ y ~ z => x + y.mkString + z }
+      "@{" ~ rep(antiq_body) ~ "}" ^^ { case x ~ y ~ z => x + y.mkString + z }
 
-    val text: Parser[Antiquote] =
+    val antiquote: Parser[Antiquote] =
       antiq ^^ (x => Antiq(x)) | txt ^^ (x => Text(x))
   }
 
@@ -41,7 +44,7 @@ object Antiquote
 
   def read(input: CharSequence): List[Antiquote] =
   {
-    Parsers.parseAll(Parsers.rep(Parsers.text), new CharSequenceReader(input)) match {
+    Parsers.parseAll(Parsers.rep(Parsers.antiquote), new CharSequenceReader(input)) match {
       case Parsers.Success(xs, _) => xs
       case Parsers.NoSuccess(_, next) =>
         error("Malformed quotation/antiquotation source" +

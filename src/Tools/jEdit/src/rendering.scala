@@ -129,6 +129,13 @@ object Rendering
       ML_Lex.Kind.STRING -> LITERAL1,
       ML_Lex.Kind.SPACE -> NULL,
       ML_Lex.Kind.COMMENT -> COMMENT1,
+      ML_Lex.Kind.ANTIQ -> NULL,
+      ML_Lex.Kind.ANTIQ_START -> LITERAL4,
+      ML_Lex.Kind.ANTIQ_STOP -> LITERAL4,
+      ML_Lex.Kind.ANTIQ_OTHER -> NULL,
+      ML_Lex.Kind.ANTIQ_STRING -> LITERAL1,
+      ML_Lex.Kind.ANTIQ_ALT_STRING -> LITERAL2,
+      ML_Lex.Kind.ANTIQ_CARTOUCHE -> COMMENT4,
       ML_Lex.Kind.ERROR -> INVALID
     ).withDefaultValue(NULL)
   }

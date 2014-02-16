@@ -26,7 +26,7 @@ object Token
     val STRING = Value("string")
     val ALT_STRING = Value("back-quoted string")
     val VERBATIM = Value("verbatim text")
-    val CARTOUCHE = Value("cartouche")
+    val CARTOUCHE = Value("text cartouche")
     val SPACE = Value("white space")
     val COMMENT = Value("comment text")
     val ERROR = Value("bad input")

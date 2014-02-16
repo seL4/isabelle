@@ -13,7 +13,7 @@ sig
   val reports_of: ('a -> Position.report_text list) ->
     'a antiquote list -> Position.report_text list
   val scan_antiq: Symbol_Pos.T list -> (Symbol_Pos.T list * Position.range) * Symbol_Pos.T list
-  val scan_text: Symbol_Pos.T list -> Symbol_Pos.T list antiquote * Symbol_Pos.T list
+  val scan_antiquote: Symbol_Pos.T list -> Symbol_Pos.T list antiquote * Symbol_Pos.T list
   val read: Symbol_Pos.T list * Position.T -> Symbol_Pos.T list antiquote list
 end;
 
@@ -48,7 +48,7 @@ val scan_txt =
   Scan.repeat1 ($$$ "@" --| Scan.ahead (~$$ "{") ||
     Scan.many1 (fn (s, _) => s <> "@" andalso Symbol.is_regular s)) >> flat;
 
-val scan_ant =
+val scan_antiq_body =
   Scan.trace (Symbol_Pos.scan_string_qq err_prefix || Symbol_Pos.scan_string_bq err_prefix) >> #2 ||
   Scan.trace (Symbol_Pos.scan_cartouche err_prefix) >> #2 ||
   Scan.one (fn (s, _) => s <> "}" andalso Symbol.is_regular s) >> single;
@@ -58,10 +58,10 @@ in
 val scan_antiq =
   Symbol_Pos.scan_pos -- ($$ "@" |-- $$ "{" |--
     Symbol_Pos.!!! (fn () => err_prefix ^ "missing closing brace")
-      (Scan.repeat scan_ant -- ($$ "}" |-- Symbol_Pos.scan_pos)))
+      (Scan.repeat scan_antiq_body -- ($$ "}" |-- Symbol_Pos.scan_pos)))
   >> (fn (pos1, (body, pos2)) => (flat body, Position.range pos1 pos2));
 
-val scan_text = scan_antiq >> Antiq || scan_txt >> Text;
+val scan_antiquote = scan_antiq >> Antiq || scan_txt >> Text;
 
 end;
 
@@ -69,7 +69,7 @@ end;
 (* read *)
 
 fun read (syms, pos) =
-  (case Scan.read Symbol_Pos.stopper (Scan.repeat scan_text) syms of
+  (case Scan.read Symbol_Pos.stopper (Scan.repeat scan_antiquote) syms of
     SOME xs => (Position.reports_text (reports_of (K []) xs); xs)
   | NONE => error ("Malformed quotation/antiquotation source" ^ Position.here pos));
 
