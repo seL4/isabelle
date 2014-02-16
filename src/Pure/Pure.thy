@@ -101,6 +101,7 @@ theory Pure
     "ProofGeneral.inform_file_retracted" :: control
 begin
 
+ML_file "ML/ml_thms.ML"
 ML_file "Isar/isar_syn.ML"
 ML_file "Isar/calculation.ML"
 ML_file "Tools/rail.ML"

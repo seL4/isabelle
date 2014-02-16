@@ -260,7 +260,6 @@ use "Isar/parse_spec.ML";
 use "Isar/spec_rules.ML";
 use "Isar/specification.ML";
 use "Isar/typedecl.ML";
-use "ML/ml_thms.ML";
 
 (*toplevel transactions*)
 use "Isar/proof_node.ML";

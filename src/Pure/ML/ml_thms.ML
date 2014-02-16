@@ -35,7 +35,7 @@ val cons_thms = Data.map o apsnd o cons;
 (* attribute source *)
 
 val _ = Theory.setup
-  (ML_Context.add_antiq (Binding.name "attributes")
+  (ML_Context.add_antiq @{binding attributes}
     (Scan.depend (fn context => Parse_Spec.attribs >> (fn raw_srcs =>
       let
         val ctxt = Context.the_proof context;
@@ -73,10 +73,10 @@ fun thm_binding kind is_single context thms =
   in (Context.Proof ctxt'', decl) end;
 
 val _ = Theory.setup
-  (ML_Context.add_antiq (Binding.name "thm")
+  (ML_Context.add_antiq @{binding thm}
     (Scan.depend (fn context =>
       Scan.pass context Attrib.thm >> (thm_binding "thm" true context o single))) #>
-   ML_Context.add_antiq (Binding.name "thms")
+   ML_Context.add_antiq @{binding thms}
     (Scan.depend (fn context =>
       Scan.pass context Attrib.thms >> thm_binding "thms" false context)));
 
@@ -89,7 +89,7 @@ val goal = Scan.unless (by || and_) Args.name_inner_syntax;
 val goals1 = Scan.repeat1 goal;
 
 val _ = Theory.setup
-  (ML_Context.add_antiq (Binding.name "lemma")
+  (ML_Context.add_antiq @{binding lemma}
     (Scan.depend (fn context =>
       Args.mode "open" -- goals1 -- Scan.repeat (Parse.position and_ -- Parse.!!! goals1) --
       (Parse.position by -- (Method.parse -- Scan.option Method.parse)) >>
