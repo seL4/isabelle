@@ -259,8 +259,9 @@ fun preskolem_tac ctxt st0 =
    else
      all_tac) st0
 
-fun generic_metis_tac type_encs lam_trans ctxt ths i st0 =
+fun metis_tac type_encs0 lam_trans ctxt ths i st0 =
   let
+    val type_encs = if null type_encs0 then partial_type_encs else type_encs0
     val _ = trace_msg ctxt (fn () =>
       "Metis called with theorems\n" ^ cat_lines (map (Display.string_of_thm ctxt) ths))
     val type_encs = type_encs |> maps unalias_type_enc
@@ -269,25 +270,17 @@ fun generic_metis_tac type_encs lam_trans ctxt ths i st0 =
     Meson.MESON (preskolem_tac ctxt) (maps (neg_clausify ctxt (lam_trans = combsN))) tac ctxt i st0
   end
 
-fun metis_tac [] = generic_metis_tac partial_type_encs
-  | metis_tac type_encs = generic_metis_tac type_encs
-
-(* Whenever "X" has schematic type variables, we treat "using X by metis" as
-   "by (metis X)" to prevent "Subgoal.FOCUS" from freezing the type variables.
-   We don't do it for nonschematic facts "X" because this breaks a few proofs
-   (in the rare and subtle case where a proof relied on extensionality not being
-   applied) and brings few benefits. *)
-val has_tvar =
-  exists_type (exists_subtype (fn TVar _ => true | _ => false)) o prop_of
+(* Whenever "X" has schematic type variables, we treat "using X by metis" as "by (metis X)" to
+   prevent "Subgoal.FOCUS" from freezing the type variables. We don't do it for nonschematic facts
+   "X" because this breaks a few proofs (in the rare and subtle case where a proof relied on
+   extensionality not being applied) and brings few benefits. *)
+val has_tvar = exists_type (exists_subtype (fn TVar _ => true | _ => false)) o prop_of
 
 fun metis_method ((override_type_encs, lam_trans), ths) ctxt facts =
-  let
-    val (schem_facts, nonschem_facts) = List.partition has_tvar facts
-    val type_encs = override_type_encs |> the_default partial_type_encs
-    val lam_trans = lam_trans |> the_default default_metis_lam_trans
-  in
+  let val (schem_facts, nonschem_facts) = List.partition has_tvar facts in
     HEADGOAL (Method.insert_tac nonschem_facts THEN'
-      CHANGED_PROP o generic_metis_tac type_encs lam_trans ctxt (schem_facts @ ths))
+      CHANGED_PROP o metis_tac (these override_type_encs)
+        (the_default default_metis_lam_trans lam_trans) ctxt (schem_facts @ ths))
   end
 
 val metis_lam_transs = [hide_lamsN, liftingN, combsN]
