@@ -8,7 +8,6 @@ header {* Metis Proof Method *}
 
 theory Metis
 imports ATP
-keywords "try0" :: diag
 begin
 
 ML_file "~~/src/Tools/Metis/metis.ML"
