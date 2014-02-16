@@ -13,6 +13,7 @@ declare -a SOURCES=(
   Concurrent/future.scala
   Concurrent/simple_thread.scala
   Concurrent/volatile.scala
+  General/antiquote.scala
   General/bytes.scala
   General/exn.scala
   General/file.scala
