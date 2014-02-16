@@ -65,19 +65,15 @@ by(auto intro: classical)
 
 subsubsection {* Operations *}
 
-primrec set :: "'a option => 'a set" where
-"set None = {}" |
-"set (Some x) = {x}"
-
-lemma ospec [dest]: "(ALL x:set A. P x) ==> A = Some x ==> P x"
+lemma ospec [dest]: "(ALL x:set_option A. P x) ==> A = Some x ==> P x"
   by simp
 
 setup {* map_theory_claset (fn ctxt => ctxt addSD2 ("ospec", @{thm ospec})) *}
 
-lemma elem_set [iff]: "(x : set xo) = (xo = Some x)"
+lemma elem_set [iff]: "(x : set_option xo) = (xo = Some x)"
   by (cases xo) auto
 
-lemma set_empty_eq [simp]: "(set xo = {}) = (xo = None)"
+lemma set_empty_eq [simp]: "(set_option xo = {}) = (xo = None)"
   by (cases xo) auto
 
 lemma map_option_case: "map_option f y = (case y of None => None | Some x => Some (f x))"
@@ -182,7 +178,7 @@ lemma these_not_empty_eq:
   "these B \<noteq> {} \<longleftrightarrow> B \<noteq> {} \<and> B \<noteq> {None}"
   by (auto simp add: these_empty_eq)
 
-hide_const (open) set bind these
+hide_const (open) bind these
 hide_fact (open) bind_cong
 
 

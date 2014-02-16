@@ -81,13 +81,13 @@ by (cases m) simp
 
 definition
   cmheads :: "prog \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> sig \<Rightarrow> emhead set"
-  where "cmheads G S C = (\<lambda>sig. (\<lambda>(Cls,mthd). (ClassT Cls,(mhead mthd))) ` Option.set (accmethd G S C sig))"
+  where "cmheads G S C = (\<lambda>sig. (\<lambda>(Cls,mthd). (ClassT Cls,(mhead mthd))) ` set_option (accmethd G S C sig))"
 
 definition
   Objectmheads :: "prog \<Rightarrow> qtname \<Rightarrow> sig \<Rightarrow> emhead set" where
   "Objectmheads G S =
     (\<lambda>sig. (\<lambda>(Cls,mthd). (ClassT Cls,(mhead mthd))) 
-      ` Option.set (filter_tab (\<lambda>sig m. accmodi m \<noteq> Private) (accmethd G S Object) sig))"
+      ` set_option (filter_tab (\<lambda>sig m. accmodi m \<noteq> Private) (accmethd G S Object) sig))"
 
 definition
   accObjectmheads :: "prog \<Rightarrow> qtname \<Rightarrow> ref_ty \<Rightarrow> sig \<Rightarrow> emhead set"

@@ -199,8 +199,8 @@ syntax (symbols)
   "_Oex"  :: "[pttrn, 'a option, bool] \<Rightarrow> bool"   ("(3\<exists>_\<in>_:/ _)"  [0,0,10] 10)
 
 translations
-  "\<forall>x\<in>A: P" \<rightleftharpoons> "\<forall>x\<in>CONST Option.set A. P"
-  "\<exists>x\<in>A: P" \<rightleftharpoons> "\<exists>x\<in>CONST Option.set A. P"
+  "\<forall>x\<in>A: P" \<rightleftharpoons> "\<forall>x\<in>CONST set_option A. P"
+  "\<exists>x\<in>A: P" \<rightleftharpoons> "\<exists>x\<in>CONST set_option A. P"
 
 
 section "Special map update"

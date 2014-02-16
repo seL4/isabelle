@@ -818,7 +818,7 @@ definition
   --{* methods of an interface, with overriding and inheritance, cf. 9.2 *}
   "imethds G I = iface_rec G I
               (\<lambda>I i ts. (Un_tables ts) \<oplus>\<oplus> 
-                        (Option.set \<circ> table_of (map (\<lambda>(s,m). (s,I,m)) (imethods i))))"
+                        (set_option \<circ> table_of (map (\<lambda>(s,m). (s,I,m)) (imethods i))))"
         
 
 
