@@ -283,7 +283,7 @@ val metis_lam_transs = [hide_lamsN, liftingN, combsN]
 
 fun set_opt _ x NONE = SOME x
   | set_opt get x (SOME x0) =
-    error ("Cannot specify both " ^ quote (get x0) ^ " and " ^ quote (get x) ^ ".")
+    error ("Cannot specify both " ^ quote (get x0) ^ " and " ^ quote (get x))
 
 fun consider_opt s =
   if member (op =) metis_lam_transs s then apsnd (set_opt I s) else apfst (set_opt hd [s])

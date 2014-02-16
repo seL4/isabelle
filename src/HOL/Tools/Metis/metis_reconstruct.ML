@@ -673,8 +673,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
         |> fold Int_Pair_Graph.add_deps_acyclic depss
         |> Int_Pair_Graph.topological_order
         handle Int_Pair_Graph.CYCLES _ =>
-               error "Cannot replay Metis proof in Isabelle without \
-                     \\"Hilbert_Choice\"."
+               error "Cannot replay Metis proof in Isabelle without \"Hilbert_Choice\""
       val ax_counts =
         Int_Tysubst_Table.empty
         |> fold (fn (ax_no, (_, (tysubst, _))) =>
@@ -732,7 +731,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
                        THEN flexflex_tac)))
       handle ERROR msg =>
         cat_error msg
-          "Cannot replay Metis proof in Isabelle: error when discharging Skolem assumptions."
+          "Cannot replay Metis proof in Isabelle: error when discharging Skolem assumptions"
     end
 
 end;
