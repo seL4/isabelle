@@ -17,14 +17,14 @@ import java.io.{File => JFile, BufferedInputStream, FileInputStream}
 
 object Scan
 {
-  /** context of partial scans (line boundary) **/
+  /** context of partial line-oriented scans **/
 
-  abstract class Context
-  case object Finished extends Context
-  case class Quoted(quote: String) extends Context
-  case object Verbatim extends Context
-  case class Cartouche(depth: Int) extends Context
-  case class Comment(depth: Int) extends Context
+  abstract class Line_Context
+  case object Finished extends Line_Context
+  case class Quoted(quote: String) extends Line_Context
+  case object Verbatim extends Line_Context
+  case class Cartouche(depth: Int) extends Line_Context
+  case class Comment(depth: Int) extends Line_Context
 
 
 
@@ -110,7 +110,7 @@ object Scan
       else body
     }
 
-    def quoted_context(quote: Symbol.Symbol, ctxt: Context): Parser[(String, Context)] =
+    def quoted_line(quote: Symbol.Symbol, ctxt: Line_Context): Parser[(String, Line_Context)] =
     {
       ctxt match {
         case Finished =>
@@ -123,7 +123,7 @@ object Scan
               case x ~ None => (x, ctxt) }
         case _ => failure("")
       }
-    }.named("quoted_context")
+    }.named("quoted_line")
 
     def recover_quoted(quote: Symbol.Symbol): Parser[String] =
       quote ~ quoted_body(quote) ^^ { case x ~ y => x + y }
@@ -145,7 +145,7 @@ object Scan
       source.substring(2, source.length - 2)
     }
 
-    def verbatim_context(ctxt: Context): Parser[(String, Context)] =
+    def verbatim_line(ctxt: Line_Context): Parser[(String, Line_Context)] =
     {
       ctxt match {
         case Finished =>
@@ -158,7 +158,7 @@ object Scan
               case x ~ None => (x, Verbatim) }
         case _ => failure("")
       }
-    }.named("verbatim_context")
+    }.named("verbatim_line")
 
     val recover_verbatim: Parser[String] =
       "{*" ~ verbatim_body ^^ { case x ~ y => x + y }
@@ -194,7 +194,7 @@ object Scan
     def cartouche: Parser[String] =
       cartouche_depth(0) ^? { case (x, d) if d == 0 => x }
 
-    def cartouche_context(ctxt: Context): Parser[(String, Context)] =
+    def cartouche_line(ctxt: Line_Context): Parser[(String, Line_Context)] =
     {
       val depth =
         ctxt match {
@@ -258,7 +258,7 @@ object Scan
     def comment: Parser[String] =
       comment_depth(0) ^? { case (x, d) if d == 0 => x }
 
-    def comment_context(ctxt: Context): Parser[(String, Context)] =
+    def comment_line(ctxt: Line_Context): Parser[(String, Line_Context)] =
     {
       val depth =
         ctxt match {

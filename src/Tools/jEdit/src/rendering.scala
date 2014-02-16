@@ -129,6 +129,13 @@ object Rendering
       ML_Lex.Kind.STRING -> LITERAL1,
       ML_Lex.Kind.SPACE -> NULL,
       ML_Lex.Kind.COMMENT -> COMMENT1,
+      ML_Lex.Kind.ANTIQ -> NULL,
+      ML_Lex.Kind.ANTIQ_START -> LITERAL4,
+      ML_Lex.Kind.ANTIQ_STOP -> LITERAL4,
+      ML_Lex.Kind.ANTIQ_OTHER -> NULL,
+      ML_Lex.Kind.ANTIQ_STRING -> NULL,
+      ML_Lex.Kind.ANTIQ_ALT_STRING -> NULL,
+      ML_Lex.Kind.ANTIQ_CARTOUCHE -> NULL,
       ML_Lex.Kind.ERROR -> INVALID
     ).withDefaultValue(NULL)
   }
@@ -599,7 +606,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
 
   private val foreground_include =
-    Set(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM, Markup.ANTIQ)
+    Set(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM, Markup.CARTOUCHE, Markup.ANTIQ)
 
   def foreground(range: Text.Range): List[Text.Info[Color]] =
     snapshot.select_markup(range, Some(foreground_include), _ =>
@@ -617,6 +624,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       Markup.STRING -> Color.BLACK,
       Markup.ALTSTRING -> Color.BLACK,
       Markup.VERBATIM -> Color.BLACK,
+      Markup.CARTOUCHE -> Color.BLACK,
       Markup.LITERAL -> keyword1_color,
       Markup.DELIMITER -> Color.BLACK,
       Markup.TFREE -> tfree_color,

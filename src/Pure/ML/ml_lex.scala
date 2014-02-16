@@ -51,6 +51,13 @@ object ML_Lex
     val STRING = Value("quoted string")
     val SPACE = Value("white space")
     val COMMENT = Value("comment text")
+    val ANTIQ = Value("antiquotation")
+    val ANTIQ_START = Value("antiquotation: start")
+    val ANTIQ_STOP = Value("antiquotation: stop")
+    val ANTIQ_OTHER = Value("antiquotation: other")
+    val ANTIQ_STRING = Value("antiquotation: quoted string")
+    val ANTIQ_ALT_STRING = Value("antiquotation: back-quoted string")
+    val ANTIQ_CARTOUCHE = Value("antiquotation: text cartouche")
     val ERROR = Value("bad input")
   }
 
@@ -64,9 +71,10 @@ object ML_Lex
 
   /** parsers **/
 
-  case object ML_String extends Scan.Context
+  case object ML_String extends Scan.Line_Context
+  case class Antiq(ctxt: Scan.Line_Context) extends Scan.Line_Context
 
-  private object Parsers extends Scan.Parsers
+  private object Parsers extends Scan.Parsers with Antiquote.Parsers
   {
     /* string material */
 
@@ -107,9 +115,9 @@ object ML_Lex
     private val ml_string: Parser[Token] =
       "\"" ~ ml_string_body ~ "\"" ^^ { case x ~ y ~ z => Token(Kind.STRING, x + y + z) }
 
-    private def ml_string_context(ctxt: Scan.Context): Parser[(Token, Scan.Context)] =
+    private def ml_string_line(ctxt: Scan.Line_Context): Parser[(Token, Scan.Line_Context)] =
     {
-      def result(x: String, c: Scan.Context) = (Token(Kind.STRING, x), c)
+      def result(x: String, c: Scan.Line_Context) = (Token(Kind.STRING, x), c)
 
       ctxt match {
         case Scan.Finished =>
@@ -130,8 +138,8 @@ object ML_Lex
     private val ml_comment: Parser[Token] =
       comment ^^ (x => Token(Kind.COMMENT, x))
 
-    private def ml_comment_context(ctxt: Scan.Context): Parser[(Token, Scan.Context)] =
-      comment_context(ctxt) ^^ { case (x, c) => (Token(Kind.COMMENT, x), c) }
+    private def ml_comment_line(ctxt: Scan.Line_Context): Parser[(Token, Scan.Line_Context)] =
+      comment_line(ctxt) ^^ { case (x, c) => (Token(Kind.COMMENT, x), c) }
 
 
     /* delimited token */
@@ -192,22 +200,52 @@ object ML_Lex
 
       val keyword = literal(lexicon) ^^ (x => Token(Kind.KEYWORD, x))
 
+      val ml_antiq = antiq ^^ (x => Token(Kind.ANTIQ, x))
+
       val bad = one(_ => true) ^^ (x => Token(Kind.ERROR, x))
 
-      space | (recover_delimited |
-        (((word | (real | (int | (long_ident | (ident | type_var))))) ||| keyword) | bad))
+      space | (recover_delimited | (ml_antiq |
+        (((word | (real | (int | (long_ident | (ident | type_var))))) ||| keyword) | bad)))
     }
+
+
+    /* antiquotations (line-oriented) */
+
+    def ml_antiq_start(ctxt: Scan.Line_Context): Parser[(Token, Scan.Line_Context)] =
+      ctxt match {
+        case Scan.Finished => "@{" ^^ (x => (Token(Kind.ANTIQ_START, x), Antiq(Scan.Finished)))
+        case _ => failure("")
+      }
+
+    def ml_antiq_stop(ctxt: Scan.Line_Context): Parser[(Token, Scan.Line_Context)] =
+      ctxt match {
+        case Antiq(Scan.Finished) => "}" ^^ (x => (Token(Kind.ANTIQ_STOP, x), Scan.Finished))
+        case _ => failure("")
+      }
+
+    def ml_antiq_body(context: Scan.Line_Context): Parser[(Token, Scan.Line_Context)] =
+      context match {
+        case Antiq(ctxt) =>
+          (if (ctxt == Scan.Finished) antiq_other ^^ (x => (Token(Kind.ANTIQ_OTHER, x), context))
+           else failure("")) |
+          quoted_line("\"", ctxt) ^^ { case (x, c) => (Token(Kind.ANTIQ_STRING, x), Antiq(c)) } |
+          quoted_line("`", ctxt) ^^ { case (x, c) => (Token(Kind.ANTIQ_ALT_STRING, x), Antiq(c)) } |
+          cartouche_line(ctxt) ^^ { case (x, c) => (Token(Kind.ANTIQ_CARTOUCHE, x), Antiq(c)) }
+        case _ => failure("")
+      }
 
 
     /* token */
 
     def token: Parser[Token] = delimited_token | other_token
 
-    def token_context(ctxt: Scan.Context): Parser[(Token, Scan.Context)] =
+    def token_line(ctxt: Scan.Line_Context): Parser[(Token, Scan.Line_Context)] =
     {
       val other = (ml_char | other_token) ^^ (x => (x, Scan.Finished))
 
-      ml_string_context(ctxt) | (ml_comment_context(ctxt) | other)
+      ml_string_line(ctxt) |
+        (ml_comment_line(ctxt) |
+          (ml_antiq_start(ctxt) | (ml_antiq_stop(ctxt) | (ml_antiq_body(ctxt) | other))))
     }
   }
 
@@ -222,13 +260,14 @@ object ML_Lex
     }
   }
 
-  def tokenize_context(input: CharSequence, context: Scan.Context): (List[Token], Scan.Context) =
+  def tokenize_line(input: CharSequence, context: Scan.Line_Context)
+    : (List[Token], Scan.Line_Context) =
   {
     var in: Reader[Char] = new CharSequenceReader(input)
     val toks = new mutable.ListBuffer[Token]
     var ctxt = context
     while (!in.atEnd) {
-      Parsers.parse(Parsers.token_context(ctxt), in) match {
+      Parsers.parse(Parsers.token_line(ctxt), in) match {
         case Parsers.Success((x, c), rest) => { toks += x; ctxt = c; in = rest }
         case Parsers.NoSuccess(_, rest) =>
           error("Unexpected failure of tokenizing input:\n" + rest.source.toString)

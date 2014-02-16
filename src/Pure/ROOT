@@ -151,7 +151,6 @@ session Pure =
     "ML/ml_statistics_dummy.ML"
     "ML/ml_statistics_polyml-5.5.0.ML"
     "ML/ml_syntax.ML"
-    "ML/ml_thms.ML"
     "PIDE/active.ML"
     "PIDE/command.ML"
     "PIDE/document.ML"
