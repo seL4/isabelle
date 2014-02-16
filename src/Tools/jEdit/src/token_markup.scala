@@ -177,7 +177,7 @@ object Token_Markup
 
   private val isabelle_rules = new ParserRuleSet("isabelle", "MAIN")
 
-  private class Line_Context(val context: Option[Scan.Context])
+  private class Line_Context(val context: Option[Scan.Line_Context])
     extends TokenMarker.LineContext(isabelle_rules, null)
   {
     override def hashCode: Int = context.hashCode
@@ -204,14 +204,14 @@ object Token_Markup
       {
         val (styled_tokens, context1) =
           if (mode == "isabelle-ml") {
-            val (tokens, ctxt1) = ML_Lex.tokenize_context(line, line_ctxt.get)
+            val (tokens, ctxt1) = ML_Lex.tokenize_line(line, line_ctxt.get)
             val styled_tokens = tokens.map(tok => (Rendering.ml_token_markup(tok), tok.source))
             (styled_tokens, new Line_Context(Some(ctxt1)))
           }
           else {
             Isabelle.mode_syntax(mode) match {
               case Some(syntax) if syntax.has_tokens && line_ctxt.isDefined =>
-                val (tokens, ctxt1) = syntax.scan_context(line, line_ctxt.get)
+                val (tokens, ctxt1) = syntax.scan_line(line, line_ctxt.get)
                 val styled_tokens =
                   tokens.map(tok => (Rendering.token_markup(syntax, tok), tok.source))
                 (styled_tokens, new Line_Context(Some(ctxt1)))

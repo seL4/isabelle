@@ -102,16 +102,16 @@ object Token
     def token(lexicon: Scan.Lexicon, is_command: String => Boolean): Parser[Token] =
       delimited_token | other_token(lexicon, is_command)
 
-    def token_context(lexicon: Scan.Lexicon, is_command: String => Boolean, ctxt: Scan.Context)
-      : Parser[(Token, Scan.Context)] =
+    def token_line(lexicon: Scan.Lexicon, is_command: String => Boolean, ctxt: Scan.Line_Context)
+      : Parser[(Token, Scan.Line_Context)] =
     {
       val string =
-        quoted_context("\"", ctxt) ^^ { case (x, c) => (Token(Token.Kind.STRING, x), c) }
+        quoted_line("\"", ctxt) ^^ { case (x, c) => (Token(Token.Kind.STRING, x), c) }
       val alt_string =
-        quoted_context("`", ctxt) ^^ { case (x, c) => (Token(Token.Kind.ALT_STRING, x), c) }
-      val verb = verbatim_context(ctxt) ^^ { case (x, c) => (Token(Token.Kind.VERBATIM, x), c) }
-      val cart = cartouche_context(ctxt) ^^ { case (x, c) => (Token(Token.Kind.CARTOUCHE, x), c) }
-      val cmt = comment_context(ctxt) ^^ { case (x, c) => (Token(Token.Kind.COMMENT, x), c) }
+        quoted_line("`", ctxt) ^^ { case (x, c) => (Token(Token.Kind.ALT_STRING, x), c) }
+      val verb = verbatim_line(ctxt) ^^ { case (x, c) => (Token(Token.Kind.VERBATIM, x), c) }
+      val cart = cartouche_line(ctxt) ^^ { case (x, c) => (Token(Token.Kind.CARTOUCHE, x), c) }
+      val cmt = comment_line(ctxt) ^^ { case (x, c) => (Token(Token.Kind.COMMENT, x), c) }
       val other = other_token(lexicon, is_command) ^^ { case x => (x, Scan.Finished) }
 
       string | (alt_string | (verb | (cart | (cmt | other))))
