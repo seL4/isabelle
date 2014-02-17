@@ -684,8 +684,6 @@ fun rename_vars_clause ((rel, args), prem) =
     val renaming = fold mk_renaming vars []
   in ((rel, map (rename_vars_term renaming) args), rename_vars_prem renaming prem) end
 
-val rename_vars_program = map rename_vars_clause
-
 
 (* limit computation globally by some threshold *)
 
@@ -706,7 +704,7 @@ fun limit_globally limit const_name (p, constant_table) =
 
 (* post processing of generated prolog program *)
 
-fun post_process ctxt options const_name (p, constant_table) =
+fun post_process ctxt (options: code_options) const_name (p, constant_table) =
   (p, constant_table)
   |> (case #limit_globally options of
         SOME limit => limit_globally limit const_name
@@ -719,7 +717,7 @@ fun post_process ctxt options const_name (p, constant_table) =
   |> tap (fn _ => tracing "Replacing predicates...")
   |> apfst (fold replace (#replacing options))
   |> apfst (reorder_manually (#manual_reorder options))
-  |> apfst rename_vars_program
+  |> apfst (map rename_vars_clause)
 
 
 (* code printer *)
