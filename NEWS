@@ -120,7 +120,9 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
   Discontinued theories:
     BNF/BNF.thy
     BNF/Equiv_Relations_More.thy
-  Renamed command:
+  Renamed commands:
+    datatype_new_compat ~> datatype_compat
+    primrec_new ~> primrec
     wrap_free_constructors ~> free_constructors
   INCOMPATIBILITY.
 
