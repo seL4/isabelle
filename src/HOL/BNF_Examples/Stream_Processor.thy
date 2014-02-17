@@ -17,7 +17,7 @@ section {* Continuous Functions on Streams *}
 datatype_new ('a, 'b, 'c) sp\<^sub>\<mu> = Get "'a \<Rightarrow> ('a, 'b, 'c) sp\<^sub>\<mu>" | Put "'b" "'c"
 codatatype ('a, 'b) sp\<^sub>\<nu> = In (out: "('a, 'b, ('a, 'b) sp\<^sub>\<nu>) sp\<^sub>\<mu>")
 
-primrec_new run\<^sub>\<mu> :: "('a, 'b, 'c) sp\<^sub>\<mu> \<Rightarrow> 'a stream \<Rightarrow> ('b \<times> 'c) \<times> 'a stream" where
+primrec run\<^sub>\<mu> :: "('a, 'b, 'c) sp\<^sub>\<mu> \<Rightarrow> 'a stream \<Rightarrow> ('b \<times> 'c) \<times> 'a stream" where
   "run\<^sub>\<mu> (Get f) s = run\<^sub>\<mu> (f (shd s)) (stl s)"
 | "run\<^sub>\<mu> (Put b sp) s = ((b, sp), s)"
 
@@ -81,13 +81,13 @@ proof (rule ext, unfold comp_apply)
   qed
 qed
 
-text {* Alternative definition of composition using primrec_new instead of function *}
+text {* Alternative definition of composition using primrec instead of function *}
 
-primrec_new sp\<^sub>\<mu>_comp2R  where
+primrec sp\<^sub>\<mu>_comp2R  where
   "sp\<^sub>\<mu>_comp2R f (Put b sp) = f b (out sp)"
 | "sp\<^sub>\<mu>_comp2R f (Get h) = Get (sp\<^sub>\<mu>_comp2R f o h)"
 
-primrec_new sp\<^sub>\<mu>_comp2 (infixl "o\<^sup>*\<^sub>\<mu>" 65) where
+primrec sp\<^sub>\<mu>_comp2 (infixl "o\<^sup>*\<^sub>\<mu>" 65) where
   "Put b sp o\<^sup>*\<^sub>\<mu> fsp = Put b (sp, In fsp)"
 | "Get f o\<^sup>*\<^sub>\<mu> fsp = sp\<^sub>\<mu>_comp2R (op o\<^sup>*\<^sub>\<mu> o f) fsp"
 
@@ -177,7 +177,7 @@ codatatype 'b JF = Ctor (dtor: "('b, 'b JF) F")
 
 (* Definition of run for an arbitrary final coalgebra as codomain: *)
 
-primrec_new
+primrec
   runF\<^sub>\<mu> :: "('a, 'b, ('a, 'b) spF\<^sub>\<nu>) spF\<^sub>\<mu> \<Rightarrow> 'a stream \<Rightarrow> (('b, ('a, 'b) spF\<^sub>\<nu>) F) \<times> 'a stream" 
 where
   "runF\<^sub>\<mu> (GetF f) s = (runF\<^sub>\<mu> o f) (shd s) (stl s)"

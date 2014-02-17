@@ -355,7 +355,7 @@ fun construct_mutualized_fp fp fpTs fp_sugars bs resBs (resDs, Dss) bnfs lthy =
       end;
 
     (* These results are half broken. This is deliberate. We care only about those fields that are
-       used by "primrec_new", "primcorecursive", and "datatype_new_compat". *)
+       used by "primrec", "primcorecursive", and "datatype_new_compat". *)
     val fp_res =
       ({Ts = fpTs,
         bnfs = steal #bnfs,

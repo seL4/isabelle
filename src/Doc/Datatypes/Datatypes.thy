@@ -103,7 +103,7 @@ describes how to specify datatypes using the @{command datatype_new} command.
 
 \item Section \ref{sec:defining-recursive-functions}, ``Defining Recursive
 Functions,'' describes how to specify recursive functions using
-@{command primrec_new}, \keyw{fun}, and \keyw{function}.
+@{command primrec}, \keyw{fun}, and \keyw{function}.
 
 \item Section \ref{sec:defining-codatatypes}, ``Defining Codatatypes,''
 describes how to specify codatatypes using the @{command codatatype} command.
@@ -147,10 +147,9 @@ in.\allowbreak tum.\allowbreak de}}
 \newcommand\authoremailiv{\texttt{tray{\color{white}NOSPAM}\kern-\wd\boxA{}tel@\allowbreak
 in.\allowbreak tum.\allowbreak de}}
 
-The commands @{command datatype_new} and @{command primrec_new} are expected to
-replace \keyw{datatype} and \keyw{primrec} in a future release. Authors of new
-theories are encouraged to use the new commands, and maintainers of older
-theories may want to consider upgrading.
+The command @{command datatype_new} is expected to replace \keyw{datatype} in a
+future release. Authors of new theories are encouraged to use the new commands,
+and maintainers of older theories may want to consider upgrading.
 
 Comments and bug reports concerning either the tool or this tutorial should be
 directed to the authors at \authoremaili, \authoremailii, \authoremailiii,
@@ -979,13 +978,13 @@ was internally reduced to mutual recursion. This reduction was visible in the
 type of the recursor, used by \keyw{primrec}. Recursion through functions was
 handled specially. In the new package, nested recursion (for functions and
 non-functions) is handled in a more modular fashion. The old-style recursor can
-be generated on demand using @{command primrec_new}, as explained in
+be generated on demand using @{command primrec}, as explained in
 Section~\ref{sssec:primrec-nested-as-mutual-recursion}, if the recursion is via
 new-style datatypes.
 
 \item \emph{Accordingly, the induction rule is different for nested recursive
 datatypes.} Again, the old-style induction rule can be generated on demand using
-@{command primrec_new}, as explained in
+@{command primrec}, as explained in
 Section~\ref{sssec:primrec-nested-as-mutual-recursion}, if the recursion is via
 new-style datatypes.
 
@@ -1025,11 +1024,11 @@ section {* Defining Recursive Functions
   \label{sec:defining-recursive-functions} *}
 
 text {*
-Recursive functions over datatypes can be specified using the @{command
-primrec_new} command, which supports primitive recursion, or using the more
-general \keyw{fun} and \keyw{function} commands. Here, the focus is on @{command
-primrec_new}; the other two commands are described in a separate tutorial
-\cite{isabelle-function}.
+Recursive functions over datatypes can be specified using the @{command primrec}
+command, which supports primitive recursion, or using the more general
+\keyw{fun} and \keyw{function} commands. Here, the focus is on
+@{command primrec}; the other two commands are described in a separate
+tutorial \cite{isabelle-function}.
 
 %%% TODO: partial_function
 *}
@@ -1053,25 +1052,25 @@ Primitive recursion removes one layer of constructors on the left-hand side in
 each equation. For example:
 *}
 
-    primrec_new bool_of_trool :: "trool \<Rightarrow> bool" where
+    primrec bool_of_trool :: "trool \<Rightarrow> bool" where
       "bool_of_trool Faalse \<longleftrightarrow> False" |
       "bool_of_trool Truue \<longleftrightarrow> True"
 
 text {* \blankline *}
 
-    primrec_new the_list :: "'a option \<Rightarrow> 'a list" where
+    primrec the_list :: "'a option \<Rightarrow> 'a list" where
       "the_list None = []" |
       "the_list (Some a) = [a]"
 
 text {* \blankline *}
 
-    primrec_new the_default :: "'a \<Rightarrow> 'a option \<Rightarrow> 'a" where
+    primrec the_default :: "'a \<Rightarrow> 'a option \<Rightarrow> 'a" where
       "the_default d None = d" |
       "the_default _ (Some a) = a"
 
 text {* \blankline *}
 
-    primrec_new mirrror :: "('a, 'b, 'c) triple \<Rightarrow> ('c, 'b, 'a) triple" where
+    primrec mirrror :: "('a, 'b, 'c) triple \<Rightarrow> ('c, 'b, 'a) triple" where
       "mirrror (Triple a b c) = Triple c b a"
 
 text {*
@@ -1091,13 +1090,13 @@ For simple recursive types, recursive calls on a constructor argument are
 allowed on the right-hand side:
 *}
 
-    primrec_new replicate :: "nat \<Rightarrow> 'a \<Rightarrow> 'a list" where
+    primrec replicate :: "nat \<Rightarrow> 'a \<Rightarrow> 'a list" where
       "replicate Zero _ = []" |
       "replicate (Suc n) x = x # replicate n x"
 
 text {* \blankline *}
 
-    primrec_new at :: "'a list \<Rightarrow> nat \<Rightarrow> 'a" where
+    primrec at :: "'a list \<Rightarrow> nat \<Rightarrow> 'a" where
       "at (x # xs) j =
          (case j of
             Zero \<Rightarrow> x
@@ -1105,7 +1104,7 @@ text {* \blankline *}
 
 text {* \blankline *}
 
-    primrec_new (*<*)(in early) (*>*)tfold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) tlist \<Rightarrow> 'b" where
+    primrec (*<*)(in early) (*>*)tfold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) tlist \<Rightarrow> 'b" where
       "tfold _ (TNil y) = y" |
       "tfold f (TCons x xs) = f x (tfold f xs)"
 
@@ -1149,7 +1148,7 @@ The syntax for mutually recursive functions over mutually recursive datatypes
 is straightforward:
 *}
 
-    primrec_new
+    primrec
       nat_of_even_nat :: "even_nat \<Rightarrow> nat" and
       nat_of_odd_nat :: "odd_nat \<Rightarrow> nat"
     where
@@ -1159,7 +1158,7 @@ is straightforward:
 
 text {* \blankline *}
 
-    primrec_new
+    primrec
       eval\<^sub>e :: "('a \<Rightarrow> int) \<Rightarrow> ('b \<Rightarrow> int) \<Rightarrow> ('a, 'b) exp \<Rightarrow> int" and
       eval\<^sub>t :: "('a \<Rightarrow> int) \<Rightarrow> ('b \<Rightarrow> int) \<Rightarrow> ('a, 'b) trm \<Rightarrow> int" and
       eval\<^sub>f :: "('a \<Rightarrow> int) \<Rightarrow> ('b \<Rightarrow> int) \<Rightarrow> ('a, 'b) fct \<Rightarrow> int"
@@ -1199,7 +1198,7 @@ recursive calls are lifted to lists using @{const map}:
 (*<*)
     datatype_new 'a tree\<^sub>f\<^sub>f = Node\<^sub>f\<^sub>f (lbl\<^sub>f\<^sub>f: 'a) (sub\<^sub>f\<^sub>f: "'a tree\<^sub>f\<^sub>f list")
 (*>*)
-    primrec_new at\<^sub>f\<^sub>f :: "'a tree\<^sub>f\<^sub>f \<Rightarrow> nat list \<Rightarrow> 'a" where
+    primrec at\<^sub>f\<^sub>f :: "'a tree\<^sub>f\<^sub>f \<Rightarrow> nat list \<Rightarrow> 'a" where
       "at\<^sub>f\<^sub>f (Node\<^sub>f\<^sub>f a ts) js =
          (case js of
             [] \<Rightarrow> a
@@ -1212,7 +1211,7 @@ The next example features recursion through the @{text option} type. Although
 map function @{const map_option}:
 *}
 
-    primrec_new (*<*)(in early) (*>*)sum_btree :: "('a\<Colon>{zero,plus}) btree \<Rightarrow> 'a" where
+    primrec (*<*)(in early) (*>*)sum_btree :: "('a\<Colon>{zero,plus}) btree \<Rightarrow> 'a" where
       "sum_btree (BNode a lt rt) =
          a + the_default 0 (map_option sum_btree lt) +
            the_default 0 (map_option sum_btree rt)"
@@ -1224,7 +1223,7 @@ recursion is possible. Notably, the map function for the function type
 (@{text \<Rightarrow>}) is simply composition (@{text "op \<circ>"}):
 *}
 
-    primrec_new (*<*)(in early) (*>*)relabel_ft :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a ftree \<Rightarrow> 'a ftree" where
+    primrec (*<*)(in early) (*>*)relabel_ft :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a ftree \<Rightarrow> 'a ftree" where
       "relabel_ft f (FTLeaf x) = FTLeaf (f x)" |
       "relabel_ft f (FTNode g) = FTNode (relabel_ft f \<circ> g)"
 
@@ -1235,13 +1234,13 @@ $\lambda$-abstractions and function application rather than through composition.
 For example:
 *}
 
-    primrec_new relabel_ft :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a ftree \<Rightarrow> 'a ftree" where
+    primrec relabel_ft :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a ftree \<Rightarrow> 'a ftree" where
       "relabel_ft f (FTLeaf x) = FTLeaf (f x)" |
       "relabel_ft f (FTNode g) = FTNode (\<lambda>x. relabel_ft f (g x))"
 
 text {* \blankline *}
 
-    primrec_new subtree_ft :: "'a \<Rightarrow> 'a ftree \<Rightarrow> 'a ftree" where
+    primrec subtree_ft :: "'a \<Rightarrow> 'a ftree \<Rightarrow> 'a ftree" where
       "subtree_ft x (FTNode g) = g x"
 
 text {*
@@ -1255,19 +1254,19 @@ $n = 2$:
 
 text {* \blankline *}
 
-    primrec_new (*<*)(in early) (*>*)relabel_ft2 :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a ftree2 \<Rightarrow> 'a ftree2" where
+    primrec (*<*)(in early) (*>*)relabel_ft2 :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a ftree2 \<Rightarrow> 'a ftree2" where
       "relabel_ft2 f (FTLeaf2 x) = FTLeaf2 (f x)" |
       "relabel_ft2 f (FTNode2 g) = FTNode2 (op \<circ> (op \<circ> (relabel_ft2 f)) g)"
 
 text {* \blankline *}
 
-    primrec_new relabel_ft2 :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a ftree2 \<Rightarrow> 'a ftree2" where
+    primrec relabel_ft2 :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a ftree2 \<Rightarrow> 'a ftree2" where
       "relabel_ft2 f (FTLeaf2 x) = FTLeaf2 (f x)" |
       "relabel_ft2 f (FTNode2 g) = FTNode2 (\<lambda>x y. relabel_ft2 f (g x y))"
 
 text {* \blankline *}
 
-    primrec_new subtree_ft2 :: "'a \<Rightarrow> 'a \<Rightarrow> 'a ftree2 \<Rightarrow> 'a ftree2" where
+    primrec subtree_ft2 :: "'a \<Rightarrow> 'a \<Rightarrow> 'a ftree2 \<Rightarrow> 'a ftree2" where
       "subtree_ft2 x y (FTNode2 g) = g x y"
 
 
@@ -1285,7 +1284,7 @@ as mutually recursive ones if the recursion takes place though new-style
 datatypes. For example:
 *}
 
-    primrec_new
+    primrec
       at\<^sub>f\<^sub>f :: "'a tree\<^sub>f\<^sub>f \<Rightarrow> nat list \<Rightarrow> 'a" and
       ats\<^sub>f\<^sub>f :: "'a tree\<^sub>f\<^sub>f list \<Rightarrow> nat \<Rightarrow> nat list \<Rightarrow> 'a"
     where
@@ -1310,7 +1309,7 @@ and are kept in a cache to speed up subsequent definitions.
 Here is a second example:
 *}
 
-    primrec_new
+    primrec
       sum_btree :: "('a\<Colon>{zero,plus}) btree \<Rightarrow> 'a" and
       sum_btree_option :: "'a btree option \<Rightarrow> 'a"
     where
@@ -1330,7 +1329,7 @@ text {*
 %
 %  * there's no hard-and-fast rule of when to use one or the other,
 %    just like there's no rule when to use fold and when to use
-%    primrec_new
+%    primrec
 %
 %  * higher-order approach, considering nesting as nesting, is more
 %    compositional -- e.g. we saw how we could reuse an existing polymorphic
@@ -1361,11 +1360,11 @@ subsubsection {* \keyw{primrec\_new}
 
 text {*
 \begin{matharray}{rcl}
-  @{command_def "primrec_new"} & : & @{text "local_theory \<rightarrow> local_theory"}
+  @{command_def "primrec"} & : & @{text "local_theory \<rightarrow> local_theory"}
 \end{matharray}
 
 @{rail \<open>
-  @@{command primrec_new} target? fixes \<newline> @'where' (@{syntax pr_equation} + '|')
+  @@{command primrec} target? fixes \<newline> @'where' (@{syntax pr_equation} + '|')
   ;
   @{syntax_def pr_equation}: thmdecl? prop
 \<close>}
@@ -1373,8 +1372,8 @@ text {*
 \medskip
 
 \noindent
-The @{command primrec_new} command introduces a set of mutually recursive
-functions over datatypes.
+The @{command primrec} command introduces a set of mutually recursive functions
+over datatypes.
 
 The syntactic entity \synt{target} can be used to specify a local context,
 \synt{fixes} denotes a list of names with optional type signatures,
@@ -1455,7 +1454,7 @@ text {* \blankline *}
     overloading
       termi\<^sub>0 \<equiv> "termi\<^sub>0 \<Colon> ('a, 'b) tlist \<Rightarrow> 'b"
     begin
-    primrec_new termi\<^sub>0 :: "('a, 'b) tlist \<Rightarrow> 'b" where
+    primrec termi\<^sub>0 :: "('a, 'b) tlist \<Rightarrow> 'b" where
       "termi\<^sub>0 (TNil y) = y" |
       "termi\<^sub>0 (TCons x xs) = termi\<^sub>0 xs"
     end
@@ -1470,9 +1469,10 @@ subsection {* Compatibility Issues
   \label{ssec:primrec-compatibility-issues} *}
 
 text {*
-The command @{command primrec_new} has been designed to be highly compatible
-with the old \keyw{primrec}, to ease migration. There is nonetheless at least
-one incompatibility that may arise when porting to the new package:
+The command @{command primrec}'s behavior on new-style datatypes has been
+designed to be highly compatible with that for old-style datatypes, to ease
+migration. There is nonetheless at least one incompatibility that may arise when
+porting to the new package:
 
 \begin{itemize}
 \setlength{\itemsep}{0pt}

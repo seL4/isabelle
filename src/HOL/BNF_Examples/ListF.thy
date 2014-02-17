@@ -19,11 +19,11 @@ datatype_new_compat listF
 definition Singll ("[[_]]") where
   [simp]: "Singll a \<equiv> Conss a NilF"
 
-primrec_new appendd (infixr "@@" 65) where
+primrec appendd (infixr "@@" 65) where
   "NilF @@ ys = ys"
 | "Conss x xs @@ ys = Conss x (xs @@ ys)"
 
-primrec_new lrev where
+primrec lrev where
   "lrev NilF = NilF"
 | "lrev (Conss y ys) = lrev ys @@ [[y]]"
 
@@ -46,7 +46,7 @@ lemma lrev_listF_map[simp]: "lrev (mapF f xs) = mapF f (lrev xs)"
 lemma lrev_lrev[simp]: "lrev (lrev xs) = xs"
   by (induct xs) auto
 
-primrec_new lengthh where
+primrec lengthh where
   "lengthh NilF = 0"
 | "lengthh (Conss x xs) = Suc (lengthh xs)"
 

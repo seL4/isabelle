@@ -560,9 +560,9 @@ fun add_primrec_simple fixes ts lthy =
   end
   handle PRIMREC (str, eqns) =>
          if null eqns then
-           error ("primrec_new error:\n  " ^ str)
+           error ("primrec error:\n  " ^ str)
          else
-           error ("primrec_new error:\n  " ^ str ^ "\nin\n  " ^
+           error ("primrec error:\n  " ^ str ^ "\nin\n  " ^
              space_implode "\n  " (map (quote o Syntax.string_of_term lthy) eqns));
 
 fun gen_primrec old_primrec prep_spec (raw_fixes : (binding * 'a option * mixfix) list) raw_spec
@@ -612,7 +612,7 @@ fun add_primrec_overloaded ops fixes specs thy =
     val simpss' = burrow (Proof_Context.export lthy' lthy) simpss;
   in ((ts, simpss'), Local_Theory.exit_global lthy') end;
 
-val _ = Outer_Syntax.local_theory @{command_spec "primrec_new"}
+val _ = Outer_Syntax.local_theory @{command_spec "primrec"}
   "define primitive recursive functions"
   (Parse.fixes -- Parse_Spec.where_alt_specs >> (snd oo uncurry add_primrec_cmd));
 

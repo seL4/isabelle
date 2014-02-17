@@ -23,13 +23,13 @@ datatype_new 'a trm =
 
 subsection {* Example: The set of all variables varsOf and free variables fvarsOf of a term *}
 
-primrec_new varsOf :: "'a trm \<Rightarrow> 'a set" where
+primrec varsOf :: "'a trm \<Rightarrow> 'a set" where
   "varsOf (Var a) = {a}"
 | "varsOf (App f x) = varsOf f \<union> varsOf x"
 | "varsOf (Lam x b) = {x} \<union> varsOf b"
 | "varsOf (Lt F t) = varsOf t \<union> (\<Union> { {x} \<union> X | x X. (x,X) |\<in>| fimage (map_pair id varsOf) F})"
 
-primrec_new fvarsOf :: "'a trm \<Rightarrow> 'a set" where
+primrec fvarsOf :: "'a trm \<Rightarrow> 'a set" where
   "fvarsOf (Var x) = {x}"
 | "fvarsOf (App t1 t2) = fvarsOf t1 \<union> fvarsOf t2"
 | "fvarsOf (Lam x t) = fvarsOf t - {x}"
