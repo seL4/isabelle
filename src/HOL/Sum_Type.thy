@@ -120,7 +120,7 @@ lemmas simps = sum.inject sum.distinct sum.case old.sum.recs
 
 setup {* Sign.parent_path *}
 
-primrec sum_map :: "('a \<Rightarrow> 'c) \<Rightarrow> ('b \<Rightarrow> 'd) \<Rightarrow> 'a + 'b \<Rightarrow> 'c + 'd" where
+old_primrec sum_map :: "('a \<Rightarrow> 'c) \<Rightarrow> ('b \<Rightarrow> 'd) \<Rightarrow> 'a + 'b \<Rightarrow> 'c + 'd" where
   "sum_map f1 f2 (Inl a) = Inl (f1 a)"
 | "sum_map f1 f2 (Inr a) = Inr (f2 a)"
 
@@ -177,10 +177,10 @@ proof (rule r)
   qed
 qed
 
-primrec Suml :: "('a \<Rightarrow> 'c) \<Rightarrow> 'a + 'b \<Rightarrow> 'c" where
+old_primrec Suml :: "('a \<Rightarrow> 'c) \<Rightarrow> 'a + 'b \<Rightarrow> 'c" where
   "Suml f (Inl x) = f x"
 
-primrec Sumr :: "('b \<Rightarrow> 'c) \<Rightarrow> 'a + 'b \<Rightarrow> 'c" where
+old_primrec Sumr :: "('b \<Rightarrow> 'c) \<Rightarrow> 'a + 'b \<Rightarrow> 'c" where
   "Sumr f (Inr x) = f x"
 
 lemma Suml_inject:

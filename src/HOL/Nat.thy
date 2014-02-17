@@ -187,7 +187,7 @@ subsection {* Arithmetic operators *}
 instantiation nat :: comm_monoid_diff
 begin
 
-primrec plus_nat where
+old_primrec plus_nat where
   add_0:      "0 + n = (n\<Colon>nat)"
 | add_Suc:  "Suc m + n = Suc (m + n)"
 
@@ -202,7 +202,7 @@ declare add_0 [code]
 lemma add_Suc_shift [code]: "Suc m + n = m + Suc n"
   by simp
 
-primrec minus_nat where
+old_primrec minus_nat where
   diff_0 [code]: "m - 0 = (m\<Colon>nat)"
 | diff_Suc: "m - Suc n = (case m - n of 0 => 0 | Suc k => k)"
 
@@ -235,7 +235,7 @@ begin
 definition
   One_nat_def [simp]: "1 = Suc 0"
 
-primrec times_nat where
+old_primrec times_nat where
   mult_0:     "0 * n = (0\<Colon>nat)"
 | mult_Suc: "Suc m * n = n + (m * n)"
 
@@ -414,7 +414,7 @@ subsubsection {* Operation definition *}
 instantiation nat :: linorder
 begin
 
-primrec less_eq_nat where
+old_primrec less_eq_nat where
   "(0\<Colon>nat) \<le> n \<longleftrightarrow> True"
 | "Suc m \<le> n \<longleftrightarrow> (case n of 0 \<Rightarrow> False | Suc n \<Rightarrow> m \<le> n)"
 
@@ -1303,7 +1303,7 @@ overloading
   funpow == "compow :: nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> 'a)"
 begin
 
-primrec funpow :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" where
+old_primrec funpow :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" where
   "funpow 0 f = id"
 | "funpow (Suc n) f = f o funpow n f"
 
@@ -1410,7 +1410,7 @@ lemma of_nat_add [simp]: "of_nat (m + n) = of_nat m + of_nat n"
 lemma of_nat_mult: "of_nat (m * n) = of_nat m * of_nat n"
   by (induct m) (simp_all add: add_ac distrib_right)
 
-primrec of_nat_aux :: "('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a" where
+old_primrec of_nat_aux :: "('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a" where
   "of_nat_aux inc 0 i = i"
 | "of_nat_aux inc (Suc n) i = of_nat_aux inc n (inc i)" -- {* tail recursive *}
 

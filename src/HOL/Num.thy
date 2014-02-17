@@ -6,7 +6,7 @@
 header {* Binary Numerals *}
 
 theory Num
-imports Datatype
+imports Datatype BNF_LFP
 begin
 
 subsection {* The @{text num} type *}
@@ -1249,4 +1249,3 @@ code_identifier
   code_module Num \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
 
 end
-

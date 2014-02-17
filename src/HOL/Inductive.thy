@@ -11,7 +11,7 @@ keywords
   "inductive_cases" "inductive_simps" :: thy_script and "monos" and
   "print_inductives" :: diag and
   "rep_datatype" :: thy_goal and
-  "primrec" :: thy_decl
+  "old_primrec" :: thy_decl
 begin
 
 subsection {* Least and greatest fixed points *}

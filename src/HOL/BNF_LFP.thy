@@ -13,7 +13,8 @@ theory BNF_LFP
 imports BNF_FP_Base
 keywords
   "datatype_new" :: thy_decl and
-  "datatype_compat" :: thy_decl
+  "datatype_compat" :: thy_decl and
+  "primrec" :: thy_decl
 begin
 
 lemma subset_emptyI: "(\<And>x. x \<in> A \<Longrightarrow> False) \<Longrightarrow> A \<subseteq> {}"
