@@ -942,7 +942,7 @@ fun prepare_free_constructors prep_term (((no_discs_sels, no_code), raw_case_bin
          lthy
          |> Spec_Rules.add Spec_Rules.Equational ([casex], case_thms)
          |> fold (Spec_Rules.add Spec_Rules.Equational)
-           (AList.group (eq_list (op aconv)) (map (`lhs_heads_of) all_sel_thms))
+           (AList.group (eq_list (op aconv)) (map (`(single o lhs_head_of)) all_sel_thms))
          |> fold (Spec_Rules.add Spec_Rules.Equational)
            (filter_out (null o snd) (map single discs ~~ nontriv_disc_eq_thmss))
          |> Local_Theory.declaration {syntax = false, pervasive = true}

@@ -466,13 +466,13 @@ fun mk_primrec_tac ctxt num_extra_args map_idents map_comps fun_defs recx =
     map_idents) THEN
   HEADGOAL (rtac refl);
 
-fun prepare_primrec fixes specs lthy =
+fun prepare_primrec fixes specs lthy0 =
   let
-    val thy = Proof_Context.theory_of lthy;
+    val thy = Proof_Context.theory_of lthy0;
 
     val (bs, mxs) = map_split (apfst fst) fixes;
     val fun_names = map Binding.name_of bs;
-    val eqns_data = map (dissect_eqn lthy fun_names) specs;
+    val eqns_data = map (dissect_eqn lthy0 fun_names) specs;
     val funs_data = eqns_data
       |> partition_eq ((op =) o pairself #fun_name)
       |> finds (fn (x, y) => x = #fun_name (hd y)) fun_names |> fst
@@ -488,7 +488,7 @@ fun prepare_primrec fixes specs lthy =
       |> map (maps (map_filter (find_rec_calls has_call)));
 
     fun is_only_old_datatype (Type (s, _)) =
-        is_none (fp_sugar_of lthy s) andalso is_some (Datatype_Data.get_info thy s)
+        is_none (fp_sugar_of lthy0 s) andalso is_some (Datatype_Data.get_info thy s)
       | is_only_old_datatype _ = false;
 
     val _ = if exists is_only_old_datatype arg_Ts then raise OLD_PRIMREC () else ();
@@ -496,35 +496,41 @@ fun prepare_primrec fixes specs lthy =
         [] => ()
       | (b, _) :: _ => primrec_error ("type of " ^ Binding.print b ^ " contains top sort"));
 
-    val ((n2m, rec_specs, _, induct_thm, induct_thms), lthy') =
-      rec_specs_of bs arg_Ts res_Ts (get_indices fixes) callssss lthy;
+    val ((n2m, rec_specs, _, induct_thm, induct_thms), lthy) =
+      rec_specs_of bs arg_Ts res_Ts (get_indices fixes) callssss lthy0;
 
     val actual_nn = length funs_data;
 
     val _ = let val ctrs = (maps (map #ctr o #ctr_specs) rec_specs) in
       map (fn {ctr, user_eqn, ...} => member (op =) ctrs ctr orelse
-        primrec_error_eqn ("argument " ^ quote (Syntax.string_of_term lthy' ctr) ^
+        primrec_error_eqn ("argument " ^ quote (Syntax.string_of_term lthy ctr) ^
           " is not a constructor in left-hand side") user_eqn) eqns_data end;
 
-    val defs = build_defs lthy' bs mxs funs_data rec_specs has_call;
+    val defs = build_defs lthy bs mxs funs_data rec_specs has_call;
 
-    fun prove lthy def_thms' ({ctr_specs, nested_map_idents, nested_map_comps, ...} : rec_spec)
+    fun prove lthy' def_thms' ({ctr_specs, nested_map_idents, nested_map_comps, ...} : rec_spec)
         (fun_data : eqn_data list) =
       let
-        val def_thms = map (snd o snd) def_thms';
-        val simp_thmss = finds (fn (x, y) => #ctr x = #ctr y) fun_data ctr_specs
-          |> fst
-          |> map_filter (try (fn (x, [y]) =>
-            (#user_eqn x, length (#left_args x) + length (#right_args x), #rec_thm y)))
-          |> map (fn (user_eqn, num_extra_args, rec_thm) =>
-            mk_primrec_tac lthy num_extra_args nested_map_idents nested_map_comps def_thms rec_thm
-            |> K |> Goal.prove_sorry lthy [] [] user_eqn
-            |> Thm.close_derivation);
-        val poss =
+        val js =
           find_indices (op = o pairself (fn {fun_name, ctr, ...} => (fun_name, ctr)))
             fun_data eqns_data;
+
+        val def_thms = map (snd o snd) def_thms';
+        val simp_thms = finds (fn (x, y) => #ctr x = #ctr y) fun_data ctr_specs
+          |> fst
+          |> map_filter (try (fn (x, [y]) =>
+            (#fun_name x, #user_eqn x, length (#left_args x) + length (#right_args x), #rec_thm y)))
+          |> map2 (fn j => fn (fun_name, user_eqn, num_extra_args, rec_thm) =>
+              mk_primrec_tac lthy' num_extra_args nested_map_idents nested_map_comps def_thms rec_thm
+              |> K |> Goal.prove_sorry lthy' [] [] user_eqn
+              (* for code extraction from proof terms: *)
+              |> singleton (Proof_Context.export lthy' lthy)
+              |> Thm.name_derivation (Sign.full_name thy (Binding.name fun_name) ^
+                Long_Name.separator ^ simpsN ^
+                (if js = [0] then "" else "_" ^ string_of_int (j + 1))))
+            js;
       in
-        (poss, simp_thmss)
+        (js, simp_thms)
       end;
 
     val notes =
@@ -546,7 +552,7 @@ fun prepare_primrec fixes specs lthy =
     (((fun_names, defs),
       fn lthy => fn defs =>
         split_list (map2 (prove lthy defs) (take actual_nn rec_specs) funs_data)),
-      lthy' |> Local_Theory.notes (notes @ common_notes) |> snd)
+      lthy |> Local_Theory.notes (notes @ common_notes) |> snd)
   end;
 
 fun add_primrec_simple fixes ts lthy =
@@ -574,9 +580,9 @@ fun gen_primrec old_primrec prep_spec (raw_fixes : (binding * 'a option * mixfix
     val (fixes, specs) = fst (prep_spec raw_fixes raw_spec lthy);
 
     val mk_notes =
-      flat ooo map3 (fn poss => fn prefix => fn thms =>
+      flat ooo map3 (fn js => fn prefix => fn thms =>
         let
-          val (bs, attrss) = map_split (fst o nth specs) poss;
+          val (bs, attrss) = map_split (fst o nth specs) js;
           val notes =
             map3 (fn b => fn attrs => fn thm =>
                 ((Binding.qualify false prefix b, code_nitpicksimp_simp_attrs @ attrs),
@@ -588,9 +594,9 @@ fun gen_primrec old_primrec prep_spec (raw_fixes : (binding * 'a option * mixfix
   in
     lthy
     |> add_primrec_simple fixes (map snd specs)
-    |-> (fn (names, (ts, (posss, simpss))) =>
+    |-> (fn (names, (ts, (jss, simpss))) =>
       Spec_Rules.add Spec_Rules.Equational (ts, flat simpss)
-      #> Local_Theory.notes (mk_notes posss names simpss)
+      #> Local_Theory.notes (mk_notes jss names simpss)
       #>> pair ts o map snd)
   end
   handle OLD_PRIMREC () => old_primrec raw_fixes raw_spec lthy |>> apsnd single;
@@ -598,19 +604,15 @@ fun gen_primrec old_primrec prep_spec (raw_fixes : (binding * 'a option * mixfix
 val add_primrec = gen_primrec Primrec.add_primrec Specification.check_spec;
 val add_primrec_cmd = gen_primrec Primrec.add_primrec_cmd Specification.read_spec;
 
-fun add_primrec_global fixes specs thy =
-  let
-    val lthy = Named_Target.theory_init thy;
-    val ((ts, simpss), lthy') = add_primrec fixes specs lthy;
-    val simpss' = burrow (Proof_Context.export lthy' lthy) simpss;
-  in ((ts, simpss'), Local_Theory.exit_global lthy') end;
+fun add_primrec_global fixes specs =
+  Named_Target.theory_init
+  #> add_primrec fixes specs
+  ##> Local_Theory.exit_global;
 
-fun add_primrec_overloaded ops fixes specs thy =
-  let
-    val lthy = Overloading.overloading ops thy;
-    val ((ts, simpss), lthy') = add_primrec fixes specs lthy;
-    val simpss' = burrow (Proof_Context.export lthy' lthy) simpss;
-  in ((ts, simpss'), Local_Theory.exit_global lthy') end;
+fun add_primrec_overloaded ops fixes specs =
+  Overloading.overloading ops
+  #> add_primrec fixes specs
+  ##> Local_Theory.exit_global;
 
 val _ = Outer_Syntax.local_theory @{command_spec "primrec"}
   "define primitive recursive functions"
