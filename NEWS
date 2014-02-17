@@ -29,6 +29,9 @@ arbitrary nesting, and without escapes of quotes etc.
 * Auxiliary files ('ML_file' etc.) are managed by the Prover IDE.
 Open text buffers take precedence over copies within the file-system.
 
+* Improved support for Isabelle/ML, with jEdit mode "isabelle-ml" for
+auxiliary ML files.
+
 * Document panel: simplied interaction where every single mouse click
 (re)opens document via desktop environment or as jEdit buffer.
 
