@@ -2,7 +2,7 @@
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2013
 
-Compatibility layer with the old datatype package.
+Compatibility layer with the old datatype package ("datatype_compat").
 *)
 
 signature BNF_LFP_COMPAT =
@@ -32,7 +32,7 @@ fun datatype_compat_cmd raw_fpT_names lthy =
     fun not_mutually_recursive ss =
       error ("{" ^ commas ss ^ "} is not a complete set of mutually recursive new-style datatypes");
 
-    val (fpT_names as fpT_name1 :: _) =
+    val fpT_names =
       map (fst o dest_Type o Proof_Context.read_type_name_proper lthy false) raw_fpT_names;
 
     fun lfp_sugar_of s =
@@ -40,7 +40,7 @@ fun datatype_compat_cmd raw_fpT_names lthy =
         SOME (fp_sugar as {fp = Least_FP, ...}) => fp_sugar
       | _ => not_datatype s);
 
-    val {ctr_sugars = fp_ctr_sugars, ...} = lfp_sugar_of fpT_name1;
+    val fp_ctr_sugars = map (#ctr_sugar o lfp_sugar_of) fpT_names;
     val fpTs0 as Type (_, var_As) :: _ = map (body_type o fastype_of o hd o #ctrs) fp_ctr_sugars;
     val fpT_names' = map (fst o dest_Type) fpTs0;
 
@@ -52,7 +52,7 @@ fun datatype_compat_cmd raw_fpT_names lthy =
 
     fun nested_Tparentss_indicessss_of parent_Tkks (T as Type (s, _)) kk =
       (case try lfp_sugar_of s of
-        SOME ({T = T0, fp_res = {Ts = mutual_Ts0, ...}, ctr_sugars, ...}) =>
+        SOME ({T = T0, fp_res = {Ts = mutual_Ts0, ...}, ...}) =>
         let
           val rho = Vartab.fold (cons o apsnd snd) (Sign.typ_match thy (T0, T) Vartab.empty) [];
           val substT = Term.typ_subst_TVars rho;
@@ -88,7 +88,7 @@ fun datatype_compat_cmd raw_fpT_names lthy =
               #>> pair parent_Tkks'
             end;
 
-          val ctrss = map #ctrs ctr_sugars;
+          val ctrss = map (#ctrs o #ctr_sugar o lfp_sugar_of o fst o dest_Type) mutual_Ts;
           val ctr_Tsss = map (map (binder_types o substT o fastype_of)) ctrss;
         in
           ([], kk + mutual_nn)
@@ -107,7 +107,7 @@ fun datatype_compat_cmd raw_fpT_names lthy =
     val kkssss = map snd Tparentss_kkssss;
 
     val fp_sugars0 = map (lfp_sugar_of o fst o dest_Type) Ts;
-    val ctrss0 = map (#ctrs o of_fp_sugar #ctr_sugars) fp_sugars0;
+    val ctrss0 = map (#ctrs o #ctr_sugar) fp_sugars0;
     val ctr_Tsss0 = map (map (binder_types o fastype_of)) ctrss0;
 
     fun apply_comps n kk =
@@ -132,9 +132,8 @@ fun datatype_compat_cmd raw_fpT_names lthy =
       else
         ((fp_sugars0, (NONE, NONE)), lthy);
 
-    val {ctr_sugars, co_inducts = [induct], co_inductss = inductss, co_iterss,
-      co_iter_thmsss = iter_thmsss, ...} :: _ = fp_sugars;
-    val inducts = map the_single inductss;
+    val {co_inducts = [induct], ...} :: _ = fp_sugars;
+    val inducts = map (the_single o #co_inducts) fp_sugars;
 
     fun mk_dtyp [] (TFree a) = Datatype_Aux.DtTFree a
       | mk_dtyp [] (Type (s, Ts)) = Datatype_Aux.DtType (s, map (mk_dtyp []) Ts)
@@ -148,23 +147,19 @@ fun datatype_compat_cmd raw_fpT_names lthy =
       (kk, (T_name, map (mk_dtyp (map snd (take 1 parents))) Ts, map2 (mk_ctr_descr Ts) kksss ctrs0));
 
     val descr = map3 mk_typ_descr kkssss Tparentss ctrss0;
-    val recs = map (fst o dest_Const o co_rec_of) co_iterss;
-    val rec_thms = flat (map co_rec_of iter_thmsss);
+    val recs = map (fst o dest_Const o co_rec_of o #co_iters) fp_sugars;
+    val rec_thms = maps (co_rec_of o #co_iter_thmss) fp_sugars;
 
-    fun mk_info ({T = Type (T_name0, _), index, ...} : fp_sugar) =
-      let
-        val {casex, exhaust, nchotomy, injects, distincts, case_thms, case_cong, weak_case_cong,
-          split, split_asm, ...} = nth ctr_sugars index;
-      in
-        (T_name0,
-         {index = index, descr = descr, inject = injects, distinct = distincts, induct = induct,
-         inducts = inducts, exhaust = exhaust, nchotomy = nchotomy, rec_names = recs,
-         rec_rewrites = rec_thms, case_name = fst (dest_Const casex), case_rewrites = case_thms,
-         case_cong = case_cong, weak_case_cong = weak_case_cong, split = split,
-         split_asm = split_asm})
-      end;
+    fun mk_info (kk, {T = Type (T_name0, _), ctr_sugar as {casex, exhaust, nchotomy, injects,
+        distincts, case_thms, case_cong, weak_case_cong, split, split_asm, ...}, ...} : fp_sugar) =
+      (T_name0,
+       {index = kk, descr = descr, inject = injects, distinct = distincts, induct = induct,
+       inducts = inducts, exhaust = exhaust, nchotomy = nchotomy, rec_names = recs,
+       rec_rewrites = rec_thms, case_name = fst (dest_Const casex), case_rewrites = case_thms,
+       case_cong = case_cong, weak_case_cong = weak_case_cong, split = split,
+       split_asm = split_asm});
 
-    val infos = map mk_info (take nn_fp fp_sugars);
+    val infos = map_index mk_info (take nn_fp fp_sugars);
 
     val all_notes =
       (case lfp_sugar_thms of

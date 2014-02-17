@@ -791,8 +791,7 @@ fun is_coconstr ctxt (s, T) =
       val ctrs2 =
         (case BNF_FP_Def_Sugar.fp_sugar_of ctxt co_s of
            SOME (fp_sugar as {fp = BNF_FP_Util.Greatest_FP, ...}) =>
-           map dest_Const
-               (#ctrs (BNF_FP_Def_Sugar.of_fp_sugar #ctr_sugars fp_sugar))
+           map dest_Const (#ctrs (#ctr_sugar fp_sugar))
          | _ => [])
     in
       exists (fn (s', T') => s = s' andalso repair_constr_type coT T' = T)
@@ -937,7 +936,7 @@ fun uncached_datatype_constrs ({thy, ctxt, stds, ...} : hol_context)
        (case BNF_FP_Def_Sugar.fp_sugar_of ctxt s of
           SOME (fp_sugar as {fp = BNF_FP_Util.Greatest_FP, ...}) =>
           map (apsnd (repair_constr_type T) o dest_Const)
-              (#ctrs (BNF_FP_Def_Sugar.of_fp_sugar #ctr_sugars fp_sugar))
+              (#ctrs (#ctr_sugar fp_sugar))
         | _ =>
           if is_frac_type ctxt T then
             case typedef_info ctxt s of
@@ -1465,12 +1464,12 @@ fun case_const_names ctxt stds =
                                        |> the |> #3 |> length))
                 (Datatype.get_all thy) [] @
     map (apsnd length o snd) (#codatatypes (Data.get (Context.Proof ctxt))) @
-    maps (fn {fp, ctr_sugars, ...} =>
-             if fp = BNF_FP_Util.Greatest_FP then
-               map (apsnd num_binder_types o dest_Const o #casex) ctr_sugars
-             else
-               [])
-         (BNF_FP_Def_Sugar.fp_sugars_of ctxt)
+    map_filter (fn {fp, ctr_sugar = {casex, ...}, ...} =>
+                   if fp = BNF_FP_Util.Greatest_FP then
+                     SOME (apsnd num_binder_types (dest_Const casex))
+                   else
+                     NONE)
+        (BNF_FP_Def_Sugar.fp_sugars_of ctxt)
   end
 
 fun fixpoint_kind_of_const thy table x =

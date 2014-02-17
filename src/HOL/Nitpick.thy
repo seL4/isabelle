@@ -9,7 +9,9 @@ header {* Nitpick: Yet Another Counterexample Generator for Isabelle/HOL *}
 
 theory Nitpick
 imports BNF_FP_Base Map Record Sledgehammer
-keywords "nitpick" :: diag and "nitpick_params" :: thy_decl
+keywords
+  "nitpick" :: diag and
+  "nitpick_params" :: thy_decl
 begin
 
 typedecl bisim_iterator

@@ -31,7 +31,6 @@ val atom6_v1 = FreeName ("atom6_v1", dummy_T, Atom (6, 0))
 val atom16_v1 = FreeName ("atom16_v1", dummy_T, Atom (16, 0))
 val atom24_v1 = FreeName ("atom24_v1", dummy_T, Atom (24, 0))
 val atom36_v1 = FreeName ("atom36_v1", dummy_T, Atom (36, 0))
-val atom81_v1 = FreeName ("atom81_v1", dummy_T, Atom (81, 0))
 val struct_atom1_atom1_v1 =
   FreeName ("struct_atom1_atom1_v1", dummy_T, Struct [Atom (1, 0), Atom (1, 0)])
 

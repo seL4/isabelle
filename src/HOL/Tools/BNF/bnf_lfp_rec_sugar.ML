@@ -136,20 +136,17 @@ fun massage_nested_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
 
 type basic_lfp_sugar =
   {T: typ,
-   index: int,
-   ctor_iterss: term list list,
-   ctr_defss: thm list list,
-   ctr_sugars: Ctr_Sugar.ctr_sugar list,
-   iterss: term list list,
-   iter_thmsss: thm list list list};
+   fp_res_index: int,
+   ctor_iters: term list,
+   ctr_defs: thm list,
+   ctr_sugar: ctr_sugar,
+   iters: term list,
+   iter_thmss: thm list list};
 
-fun basic_lfp_sugar_of ({T, index, fp_res = {xtor_co_iterss = ctor_iterss, ...}, ctr_defss,
-    ctr_sugars, co_iterss = iterss, co_iter_thmsss = iter_thmsss, ...} : fp_sugar) =
-  {T = T, index = index, ctor_iterss = ctor_iterss, ctr_defss = ctr_defss,
-   ctr_sugars = ctr_sugars, iterss = iterss, iter_thmsss = iter_thmsss};
-
-fun of_basic_lfp_sugar f (basic_lfp_sugar as ({index, ...} : basic_lfp_sugar)) =
-  nth (f basic_lfp_sugar) index;
+fun basic_lfp_sugar_of ({T, fp_res = {xtor_co_iterss = ctor_iterss, ...}, fp_res_index, ctr_defs,
+    ctr_sugar, co_iters = iters, co_iter_thmss = iter_thmss, ...} : fp_sugar) =
+  {T = T, fp_res_index = fp_res_index, ctor_iters = nth ctor_iterss fp_res_index,
+   ctr_defs = ctr_defs, ctr_sugar = ctr_sugar, iters = iters, iter_thmss = iter_thmss};
 
 fun get_basic_lfp_sugars bs arg_Ts get_indices callssss0 lthy0 =
   let
@@ -172,23 +169,24 @@ fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy0 =
          ctor_iters1, induct_thm, lfp_sugar_thms, lthy) =
       get_basic_lfp_sugars bs arg_Ts get_indices callssss0 lthy0;
 
-    val perm_basic_lfp_sugars = sort (int_ord o pairself #index) basic_lfp_sugars;
+    val perm_basic_lfp_sugars = sort (int_ord o pairself #fp_res_index) basic_lfp_sugars;
 
-    val indices = map #index basic_lfp_sugars;
-    val perm_indices = map #index perm_basic_lfp_sugars;
+    val indices = map #fp_res_index basic_lfp_sugars;
+    val perm_indices = map #fp_res_index perm_basic_lfp_sugars;
 
-    val perm_ctrss = map (#ctrs o of_basic_lfp_sugar #ctr_sugars) perm_basic_lfp_sugars;
+    val perm_ctrss = map (#ctrs o #ctr_sugar) perm_basic_lfp_sugars;
     val perm_ctr_Tsss = map (map (binder_types o fastype_of)) perm_ctrss;
-    val perm_lfpTs = map (body_type o fastype_of o hd) perm_ctrss;
 
     val nn0 = length arg_Ts;
-    val nn = length perm_lfpTs;
+    val nn = length perm_ctrss;
     val kks = 0 upto nn - 1;
+
     val perm_ns = map length perm_ctr_Tsss;
     val perm_mss = map (map length) perm_ctr_Tsss;
+    val perm_ctr_offsets = map (fn kk => Integer.sum (map length (take kk perm_ctrss))) kks;
 
-    val perm_Cs = map (body_type o fastype_of o co_rec_of o of_basic_lfp_sugar #ctor_iterss)
-      perm_basic_lfp_sugars;
+    val perm_lfpTs = map (body_type o fastype_of o hd) perm_ctrss;
+    val perm_Cs = map (body_type o fastype_of o co_rec_of o #ctor_iters) perm_basic_lfp_sugars;
     val perm_fun_arg_Tssss =
       mk_iter_fun_arg_types perm_ctr_Tsss perm_ns perm_mss (co_rec_of ctor_iters1);
 
@@ -199,6 +197,7 @@ fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy0 =
 
     val lfpTs = unpermute perm_lfpTs;
     val Cs = unpermute perm_Cs;
+    val ctr_offsets = unpermute perm_ctr_offsets;
 
     val As_rho = tvar_subst thy (take nn0 lfpTs) arg_Ts;
     val Cs_rho = map (fst o dest_TVar) Cs ~~ pad_list HOLogic.unitT nn res_Ts;
@@ -209,10 +208,6 @@ fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy0 =
     val substACT = substAT o substCT;
 
     val perm_Cs' = map substCT perm_Cs;
-
-    fun offset_of_ctr 0 _ = 0
-      | offset_of_ctr n (({ctrs, ...} : ctr_sugar) :: ctr_sugars) =
-        length ctrs + offset_of_ctr (n - 1) ctr_sugars;
 
     fun call_of [i] [T] = (if exists_subtype_in Cs T then Nested_Rec else No_Rec) (i, substACT T)
       | call_of [i, i'] [T, T'] = Mutual_Rec ((i, substACT T), (i', substACT T'));
@@ -227,22 +222,17 @@ fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy0 =
          rec_thm = rec_thm}
       end;
 
-    fun mk_ctr_specs index (ctr_sugars : ctr_sugar list) iter_thmsss =
-      let
-        val ctrs = #ctrs (nth ctr_sugars index);
-        val rec_thms = co_rec_of (nth iter_thmsss index);
-        val k = offset_of_ctr index ctr_sugars;
-        val n = length ctrs;
-      in
-        map4 mk_ctr_spec ctrs (k upto k + n - 1) (nth perm_fun_arg_Tssss index) rec_thms
-      end;
+    fun mk_ctr_specs fp_res_index k ctrs rec_thms =
+      map4 mk_ctr_spec ctrs (k upto k + length ctrs - 1) (nth perm_fun_arg_Tssss fp_res_index)
+        rec_thms;
 
-    fun mk_spec ({T, index, ctr_sugars, iterss, iter_thmsss, ...} : basic_lfp_sugar) =
-      {recx = mk_co_iter thy Least_FP (substAT T) perm_Cs' (co_rec_of (nth iterss index)),
+    fun mk_spec ctr_offset
+        ({T, fp_res_index, ctr_sugar = {ctrs, ...}, iters, iter_thmss, ...} : basic_lfp_sugar) =
+      {recx = mk_co_iter thy Least_FP (substAT T) perm_Cs' (co_rec_of iters),
        nested_map_idents = nested_map_idents, nested_map_comps = nested_map_comps,
-       ctr_specs = mk_ctr_specs index ctr_sugars iter_thmsss};
+       ctr_specs = mk_ctr_specs fp_res_index ctr_offset ctrs (co_rec_of iter_thmss)};
   in
-    ((is_some lfp_sugar_thms, map mk_spec basic_lfp_sugars, missing_arg_Ts, induct_thm,
+    ((is_some lfp_sugar_thms, map2 mk_spec ctr_offsets basic_lfp_sugars, missing_arg_Ts, induct_thm,
       induct_thms), lthy)
   end;
 
@@ -529,10 +519,11 @@ fun prepare_primrec fixes specs lthy0 =
 
     val actual_nn = length funs_data;
 
-    val _ = let val ctrs = (maps (map #ctr o #ctr_specs) rec_specs) in
+    val ctrs = maps (map #ctr o #ctr_specs) rec_specs;
+    val _ =
       map (fn {ctr, user_eqn, ...} => member (op =) ctrs ctr orelse
         primrec_error_eqn ("argument " ^ quote (Syntax.string_of_term lthy ctr) ^
-          " is not a constructor in left-hand side") user_eqn) eqns_data end;
+          " is not a constructor in left-hand side") user_eqn) eqns_data;
 
     val defs = build_defs lthy bs mxs funs_data rec_specs has_call;
 

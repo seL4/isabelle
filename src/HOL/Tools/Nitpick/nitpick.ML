@@ -1059,8 +1059,8 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
 (* Give the inner timeout a chance. *)
 val timeout_bonus = seconds 1.0
 
-fun pick_nits_in_term state (params as {debug, timeout, expect, ...}) mode i n
-                      step subst def_assm_ts nondef_assm_ts orig_t =
+fun pick_nits_in_term state (params as {timeout, expect, ...}) mode i n step
+                      subst def_assm_ts nondef_assm_ts orig_t =
   let
     val print_nt = if is_mode_nt mode then Output.urgent_message else K ()
     val print_t = if mode = TPTP then Output.urgent_message else K ()

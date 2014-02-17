@@ -10,22 +10,21 @@ sig
   type fp_sugar =
     {T: typ,
      fp: BNF_FP_Util.fp_kind,
-     index: int,
-     pre_bnfs: BNF_Def.bnf list,
+     fp_res_index: int,
+     fp_res: BNF_FP_Util.fp_result,
+     pre_bnf: BNF_Def.bnf,
      nested_bnfs: BNF_Def.bnf list,
      nesting_bnfs: BNF_Def.bnf list,
-     fp_res: BNF_FP_Util.fp_result,
-     ctr_defss: thm list list,
-     ctr_sugars: Ctr_Sugar.ctr_sugar list,
-     co_iterss: term list list,
-     mapss: thm list list,
+     ctr_defs: thm list,
+     ctr_sugar: Ctr_Sugar.ctr_sugar,
+     co_iters: term list,
+     maps: thm list,
+     common_co_inducts: thm list,
      co_inducts: thm list,
-     co_inductss: thm list list,
-     co_iter_thmsss: thm list list list,
-     disc_co_itersss: thm list list list,
-     sel_co_iterssss: thm list list list list};
+     co_iter_thmss: thm list list,
+     disc_co_iterss: thm list list,
+     sel_co_itersss: thm list list list};
 
-  val of_fp_sugar: (fp_sugar -> 'a list) -> fp_sugar -> 'a
   val morph_fp_sugar: morphism -> fp_sugar -> fp_sugar
   val transfer_fp_sugar: Proof.context -> fp_sugar -> fp_sugar
   val fp_sugar_of: Proof.context -> string -> fp_sugar option
@@ -122,38 +121,40 @@ val EqN = "Eq_";
 type fp_sugar =
   {T: typ,
    fp: fp_kind,
-   index: int,
-   pre_bnfs: bnf list,
+   fp_res_index: int,
+   fp_res: fp_result,
+   pre_bnf: bnf,
    nested_bnfs: bnf list,
    nesting_bnfs: bnf list,
-   fp_res: fp_result,
-   ctr_defss: thm list list,
-   ctr_sugars: ctr_sugar list,
-   co_iterss: term list list,
-   mapss: thm list list,
+   ctr_defs: thm list,
+   ctr_sugar: Ctr_Sugar.ctr_sugar,
+   co_iters: term list,
+   maps: thm list,
+   common_co_inducts: thm list,
    co_inducts: thm list,
-   co_inductss: thm list list,
-   co_iter_thmsss: thm list list list,
-   disc_co_itersss: thm list list list,
-   sel_co_iterssss: thm list list list list};
+   co_iter_thmss: thm list list,
+   disc_co_iterss: thm list list,
+   sel_co_itersss: thm list list list};
 
-fun of_fp_sugar f (fp_sugar as ({index, ...}: fp_sugar)) = nth (f fp_sugar) index;
-
-fun morph_fp_sugar phi ({T, fp, index, pre_bnfs, nested_bnfs, nesting_bnfs, fp_res, ctr_defss,
-    ctr_sugars, co_iterss, mapss, co_inducts, co_inductss, co_iter_thmsss, disc_co_itersss,
-    sel_co_iterssss} : fp_sugar) =
-  {T = Morphism.typ phi T, fp = fp, index = index, pre_bnfs = map (morph_bnf phi) pre_bnfs,
-    nested_bnfs = map (morph_bnf phi) nested_bnfs, nesting_bnfs = map (morph_bnf phi) nesting_bnfs,
+fun morph_fp_sugar phi ({T, fp, fp_res, fp_res_index, pre_bnf, nested_bnfs, nesting_bnfs, ctr_defs,
+    ctr_sugar, co_iters, maps, common_co_inducts, co_inducts, co_iter_thmss, disc_co_iterss,
+    sel_co_itersss} : fp_sugar) =
+  {T = Morphism.typ phi T,
+   fp = fp,
    fp_res = morph_fp_result phi fp_res,
-   ctr_defss = map (map (Morphism.thm phi)) ctr_defss,
-   ctr_sugars = map (morph_ctr_sugar phi) ctr_sugars,
-   co_iterss = map (map (Morphism.term phi)) co_iterss,
-   mapss = map (map (Morphism.thm phi)) mapss,
+   fp_res_index = fp_res_index,
+   pre_bnf = morph_bnf phi pre_bnf,
+   nested_bnfs = map (morph_bnf phi) nested_bnfs,
+   nesting_bnfs = map (morph_bnf phi) nesting_bnfs,
+   ctr_defs = map (Morphism.thm phi) ctr_defs,
+   ctr_sugar = morph_ctr_sugar phi ctr_sugar,
+   co_iters = map (Morphism.term phi) co_iters,
+   maps = map (Morphism.thm phi) maps,
+   common_co_inducts = map (Morphism.thm phi) common_co_inducts,
    co_inducts = map (Morphism.thm phi) co_inducts,
-   co_inductss = map (map (Morphism.thm phi)) co_inductss,
-   co_iter_thmsss = map (map (map (Morphism.thm phi))) co_iter_thmsss,
-   disc_co_itersss = map (map (map (Morphism.thm phi))) disc_co_itersss,
-   sel_co_iterssss = map (map (map (map (Morphism.thm phi)))) sel_co_iterssss};
+   co_iter_thmss = map (map (Morphism.thm phi)) co_iter_thmss,
+   disc_co_iterss = map (map (Morphism.thm phi)) disc_co_iterss,
+   sel_co_itersss = map (map (map (Morphism.thm phi))) sel_co_itersss};
 
 val transfer_fp_sugar =
   morph_fp_sugar o Morphism.transfer_morphism o Proof_Context.theory_of;
@@ -183,15 +184,16 @@ fun register_fp_sugar key fp_sugar =
     (fn phi => Data.map (Symtab.update (key, morph_fp_sugar phi fp_sugar)));
 
 fun register_fp_sugars fp pre_bnfs nested_bnfs nesting_bnfs (fp_res as {Ts, ...}) ctr_defss
-    ctr_sugars co_iterss mapss co_inducts co_inductss co_iter_thmsss disc_co_itersss
+    ctr_sugars co_iterss mapss common_co_inducts co_inductss co_iter_thmsss disc_co_itersss
     sel_co_iterssss lthy =
   (0, lthy)
   |> fold (fn T as Type (s, _) => fn (kk, lthy) => (kk + 1,
-    register_fp_sugar s {T = T, fp = fp, index = kk, pre_bnfs = pre_bnfs, nested_bnfs = nested_bnfs,
-        nesting_bnfs = nesting_bnfs, fp_res = fp_res, ctr_defss = ctr_defss,
-        ctr_sugars = ctr_sugars, co_iterss = co_iterss, mapss = mapss, co_inducts = co_inducts,
-        co_inductss = co_inductss, co_iter_thmsss = co_iter_thmsss,
-        disc_co_itersss = disc_co_itersss, sel_co_iterssss = sel_co_iterssss}
+    register_fp_sugar s {T = T, fp = fp, fp_res = fp_res, fp_res_index = kk,
+        pre_bnf = nth pre_bnfs kk, nested_bnfs = nested_bnfs, nesting_bnfs = nesting_bnfs,
+        ctr_defs = nth ctr_defss kk, ctr_sugar = nth ctr_sugars kk, co_iters = nth co_iterss kk,
+        maps = nth mapss kk, common_co_inducts = common_co_inducts, co_inducts = nth co_inductss kk,
+        co_iter_thmss = nth co_iter_thmsss kk, disc_co_iterss = nth disc_co_itersss kk,
+        sel_co_itersss = nth sel_co_iterssss kk}
       lthy)) Ts
   |> snd;
 
@@ -1407,8 +1409,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         |> Spec_Rules.add Spec_Rules.Equational (map co_rec_of iterss, flat rec_thmss)
         |> Local_Theory.notes (common_notes @ notes) |> snd
         |> register_fp_sugars Least_FP pre_bnfs nested_bnfs nesting_bnfs fp_res ctr_defss ctr_sugars
-          iterss mapss [induct_thm] (transpose [induct_thms]) (transpose [fold_thmss, rec_thmss])
-          [] []
+          iterss mapss [induct_thm] (map single induct_thms) (transpose [fold_thmss, rec_thmss])
+          (replicate nn []) (replicate nn [])
       end;
 
     fun derive_note_coinduct_coiters_thms_for_types
