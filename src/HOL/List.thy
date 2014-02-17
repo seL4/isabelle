@@ -11,8 +11,7 @@ begin
 datatype_new 'a list (map: map rel: list_all2) =
     =: Nil (defaults tl: "[]")  ("[]")
   | Cons (hd: 'a) (tl: "'a list")  (infixr "#" 65)
-
-datatype_new_compat list
+datatype_compat list
 
 lemma [case_names Nil Cons, cases type: list]:
   -- {* for backward compatibility -- names of variables differ *}

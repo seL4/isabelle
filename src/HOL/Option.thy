@@ -11,8 +11,7 @@ begin
 datatype_new 'a option =
     =: None
   | Some (the: 'a)
-
-datatype_new_compat option
+datatype_compat option
 
 lemma [case_names None Some, cases type: option]:
   -- {* for backward compatibility -- names of variables differ *}

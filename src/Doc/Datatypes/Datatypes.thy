@@ -567,21 +567,21 @@ subsubsection {* \keyw{datatype\_new\_compat}
 
 text {*
 \begin{matharray}{rcl}
-  @{command_def "datatype_new_compat"} & : & @{text "local_theory \<rightarrow> local_theory"}
+  @{command_def "datatype_compat"} & : & @{text "local_theory \<rightarrow> local_theory"}
 \end{matharray}
 
 @{rail \<open>
-  @@{command datatype_new_compat} (name +)
+  @@{command datatype_compat} (name +)
 \<close>}
 
 \medskip
 
 \noindent
-The @{command datatype_new_compat} command registers new-style datatypes as
+The @{command datatype_compat} command registers new-style datatypes as
 old-style datatypes. For example:
 *}
 
-    datatype_new_compat even_nat odd_nat
+    datatype_compat even_nat odd_nat
 
 text {* \blankline *}
 
@@ -626,7 +626,7 @@ different signature than with the old package. This makes it impossible to use
 the old \keyw{primrec} command.
 \end{itemize}
 
-An alternative to @{command datatype_new_compat} is to use the old package's
+An alternative to @{command datatype_compat} is to use the old package's
 \keyw{rep\_datatype} command. The associated proof obligations must then be
 discharged manually.
 *}
@@ -966,7 +966,7 @@ incompatibilities that may arise when porting to the new package:
 \item \emph{The Standard ML interfaces are different.} Tools and extensions
 written to call the old ML interfaces will need to be adapted to the new
 interfaces. Little has been done so far in this direction. Whenever possible, it
-is recommended to use @{command datatype_new_compat} or \keyw{rep\_datatype}
+is recommended to use @{command datatype_compat} or \keyw{rep\_datatype}
 to register new-style datatypes as old-style datatypes.
 
 \item \emph{The constants @{text t_case} and @{text t_rec} are now called
@@ -1126,12 +1126,12 @@ This generates the lemma collection @{thm [source] at_simps}:
 %
 The next example is defined using \keyw{fun} to escape the syntactic
 restrictions imposed on primitively recursive functions. The
-@{command datatype_new_compat} command is needed to register new-style datatypes
+@{command datatype_compat} command is needed to register new-style datatypes
 for use with \keyw{fun} and \keyw{function}
 (Section~\ref{sssec:datatype-new-compat}):
 *}
 
-    datatype_new_compat nat
+    datatype_compat nat
 
 text {* \blankline *}
 
@@ -2714,7 +2714,7 @@ text {*
 %* partial documentation
 %
 %* no way to register "sum" and "prod" as (co)datatypes to enable N2M reduction for them
-%  (for @{command datatype_new_compat} and prim(co)rec)
+%  (for @{command datatype_compat} and prim(co)rec)
 %
 %    * a fortiori, no way to register same type as both data- and codatatype
 %

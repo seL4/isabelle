@@ -7,7 +7,7 @@ Compatibility layer with the old datatype package.
 
 signature BNF_LFP_COMPAT =
 sig
-  val datatype_new_compat_cmd : string list -> local_theory -> local_theory
+  val datatype_compat_cmd : string list -> local_theory -> local_theory
 end;
 
 structure BNF_LFP_Compat : BNF_LFP_COMPAT =
@@ -24,7 +24,7 @@ val compatN = "compat_";
 val code_nitpicksimp_simp_attrs = Code.add_default_eqn_attrib :: @{attributes [nitpick_simp, simp]};
 
 (* TODO: graceful failure for local datatypes -- perhaps by making the command global *)
-fun datatype_new_compat_cmd raw_fpT_names lthy =
+fun datatype_compat_cmd raw_fpT_names lthy =
   let
     val thy = Proof_Context.theory_of lthy;
 
@@ -203,8 +203,8 @@ fun datatype_new_compat_cmd raw_fpT_names lthy =
   end;
 
 val _ =
-  Outer_Syntax.local_theory @{command_spec "datatype_new_compat"}
+  Outer_Syntax.local_theory @{command_spec "datatype_compat"}
     "register new-style datatypes as old-style datatypes"
-    (Scan.repeat1 Parse.type_const >> datatype_new_compat_cmd);
+    (Scan.repeat1 Parse.type_const >> datatype_compat_cmd);
 
 end;
