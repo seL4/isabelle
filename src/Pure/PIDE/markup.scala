@@ -155,7 +155,9 @@ object Markup
   val ML_SOURCE = "ML_source"
   val DOCUMENT_SOURCE = "document_source"
 
-  val ANTIQ = "antiq"
+  val ANTIQUOTED = "antiquoted"
+  val ANTIQUOTE = "antiquote"
+
   val ML_ANTIQUOTATION = "ML_antiquotation"
   val DOCUMENT_ANTIQUOTATION = "document_antiquotation"
   val DOCUMENT_ANTIQUOTATION_OPTION = "document_antiquotation_option"

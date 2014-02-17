@@ -13,7 +13,7 @@ struct
 (* datatype token *)
 
 datatype kind =
-  Keyword | Ident | String | Antiq of Symbol_Pos.T list * Position.range | EOF;
+  Keyword | Ident | String | Antiq of Antiquote.antiq | EOF;
 
 datatype token = Token of Position.range * (kind * string);
 
@@ -132,7 +132,7 @@ and rail =
   Newline of int |
   Nonterminal of string |
   Terminal of bool * string |
-  Antiquote of bool * (Symbol_Pos.T list * Position.range);
+  Antiquote of bool * Antiquote.antiq;
 
 fun reverse_cat (Cat (y, rails)) = Cat (y, rev (map reverse rails))
 and reverse (Bar cats) = Bar (map reverse_cat cats)

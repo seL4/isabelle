@@ -158,7 +158,7 @@ fun eval_antiquotes (ants, pos) opt_context =
           fun no_decl _ = ([], []);
 
           fun expand (Antiquote.Text tok) ctxt = (K ([], [tok]), ctxt)
-            | expand (Antiquote.Antiq (ss, range)) ctxt =
+            | expand (Antiquote.Antiq (ss, {range, ...})) ctxt =
                 let
                   val (decl, ctxt') = antiquotation (Token.read_antiq lex antiq (ss, #1 range)) ctxt;
                   val decl' = decl #> pairself (ML_Lex.tokenize #> map (ML_Lex.set_range range));

@@ -177,6 +177,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val intensify_color = color_value("intensify_color")
   val quoted_color = color_value("quoted_color")
   val antiquoted_color = color_value("antiquoted_color")
+  val antiquote_color = color_value("antiquote_color")
   val highlight_color = color_value("highlight_color")
   val hyperlink_color = color_value("hyperlink_color")
   val active_color = color_value("active_color")
@@ -606,13 +607,13 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
 
   private val foreground_include =
-    Set(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM, Markup.CARTOUCHE, Markup.ANTIQ)
+    Set(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM, Markup.CARTOUCHE, Markup.ANTIQUOTED)
 
   def foreground(range: Text.Range): List[Text.Info[Color]] =
     snapshot.select_markup(range, Some(foreground_include), _ =>
       {
         case Text.Info(_, elem) =>
-          if (elem.name == Markup.ANTIQ) Some(antiquoted_color)
+          if (elem.name == Markup.ANTIQUOTED) Some(antiquoted_color)
           else if (foreground_include.contains(elem.name)) Some(quoted_color)
           else None
       })
@@ -637,6 +638,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       Markup.INNER_CARTOUCHE -> inner_cartouche_color,
       Markup.INNER_COMMENT -> inner_comment_color,
       Markup.DYNAMIC_FACT -> dynamic_color,
+      Markup.ANTIQUOTE -> antiquote_color,
       Markup.ML_KEYWORD1 -> keyword1_color,
       Markup.ML_KEYWORD2 -> keyword2_color,
       Markup.ML_KEYWORD3 -> keyword3_color,

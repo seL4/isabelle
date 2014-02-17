@@ -6,13 +6,12 @@ Antiquotations within plain text.
 
 signature ANTIQUOTE =
 sig
-  datatype 'a antiquote =
-    Text of 'a |
-    Antiq of Symbol_Pos.T list * Position.range
+  type antiq = Symbol_Pos.T list * {start: Position.T, stop: Position.T, range: Position.range}
+  datatype 'a antiquote = Text of 'a | Antiq of antiq
   val is_text: 'a antiquote -> bool
   val reports_of: ('a -> Position.report_text list) ->
     'a antiquote list -> Position.report_text list
-  val scan_antiq: Symbol_Pos.T list -> (Symbol_Pos.T list * Position.range) * Symbol_Pos.T list
+  val scan_antiq: Symbol_Pos.T list -> antiq * Symbol_Pos.T list
   val scan_antiquote: Symbol_Pos.T list -> Symbol_Pos.T list antiquote * Symbol_Pos.T list
   val read: Symbol_Pos.T list * Position.T -> Symbol_Pos.T list antiquote list
 end;
@@ -22,9 +21,8 @@ struct
 
 (* datatype antiquote *)
 
-datatype 'a antiquote =
-  Text of 'a |
-  Antiq of Symbol_Pos.T list * Position.range;
+type antiq = Symbol_Pos.T list * {start: Position.T, stop: Position.T, range: Position.range};
+datatype 'a antiquote = Text of 'a | Antiq of antiq;
 
 fun is_text (Text _) = true
   | is_text _ = false;
@@ -32,8 +30,11 @@ fun is_text (Text _) = true
 
 (* reports *)
 
+fun reports_of_antiq ((_, {start, stop, range = (pos, _)}): antiq) =
+  map (rpair "") [(start, Markup.antiquote), (stop, Markup.antiquote), (pos, Markup.antiquoted)];
+
 fun reports_of text =
-  maps (fn Text x => text x | Antiq (_, (pos, _)) => [((pos, Markup.antiq), "")]);
+  maps (fn Text x => text x | Antiq antiq => reports_of_antiq antiq);
 
 
 (* scan *)
@@ -56,10 +57,14 @@ val scan_antiq_body =
 in
 
 val scan_antiq =
-  Symbol_Pos.scan_pos -- ($$ "@" |-- $$ "{" |--
+  Symbol_Pos.scan_pos -- ($$ "@" |-- $$ "{" |-- Symbol_Pos.scan_pos --
     Symbol_Pos.!!! (fn () => err_prefix ^ "missing closing brace")
-      (Scan.repeat scan_antiq_body -- ($$ "}" |-- Symbol_Pos.scan_pos)))
-  >> (fn (pos1, (body, pos2)) => (flat body, Position.range pos1 pos2));
+      (Scan.repeat scan_antiq_body -- Symbol_Pos.scan_pos -- ($$ "}" |-- Symbol_Pos.scan_pos)))
+  >> (fn (pos1, (pos2, ((body, pos3), pos4))) =>
+      (flat body,
+        {start = Position.set_range (pos1, pos2),
+         stop = Position.set_range (pos3, pos4),
+         range = Position.range pos1 pos4}));
 
 val scan_antiquote = scan_antiq >> Antiq || scan_txt >> Text;
 

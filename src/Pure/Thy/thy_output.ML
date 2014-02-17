@@ -23,7 +23,7 @@ sig
   val boolean: string -> bool
   val integer: string -> int
   datatype markup = Markup | MarkupEnv | Verbatim
-  val eval_antiq: Scan.lexicon -> Toplevel.state -> Symbol_Pos.T list * Position.range -> string
+  val eval_antiq: Scan.lexicon -> Toplevel.state -> Antiquote.antiq -> string
   val eval_antiquote: Scan.lexicon -> Toplevel.state -> Symbol_Pos.text * Position.T -> string
   val check_text: Symbol_Pos.text * Position.T -> Toplevel.state -> unit
   val present_thy: Scan.lexicon -> (string -> string list) -> (markup -> string -> bool) ->
@@ -165,7 +165,7 @@ end;
 
 (* eval_antiquote *)
 
-fun eval_antiq lex state (ss, (pos, _)) =
+fun eval_antiq lex state ((ss, {range = (pos, _), ...}): Antiquote.antiq) =
   let
     val (opts, src) = Token.read_antiq lex antiq (ss, pos);
     fun cmd ctxt = wrap ctxt (fn () => command src state ctxt) ();
