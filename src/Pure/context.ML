@@ -43,7 +43,6 @@ sig
   val this_theory: theory -> string -> theory
   val eq_thy: theory * theory -> bool
   val subthy: theory * theory -> bool
-  val joinable: theory * theory -> bool
   val merge: theory * theory -> theory
   val finish_thy: theory -> theory
   val begin_thy: (theory -> pretty) -> string -> theory list -> theory
@@ -245,8 +244,6 @@ fun proper_subthy (Theory ({id, ...}, _, _, _), Theory ({ids, ...}, _, _, _)) =
   Inttab.defined ids id;
 
 fun subthy thys = eq_thy thys orelse proper_subthy thys;
-
-fun joinable (thy1, thy2) = subthy (thy1, thy2) orelse subthy (thy2, thy1);
 
 
 (* consistent ancestors *)
