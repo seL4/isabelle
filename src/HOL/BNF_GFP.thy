@@ -349,10 +349,10 @@ proof
   thus "univ f X \<in> B" using x PRES by simp
 qed
 
-ML_file "Tools/BNF/bnf_gfp_rec_sugar_tactics.ML"
-ML_file "Tools/BNF/bnf_gfp_rec_sugar.ML"
 ML_file "Tools/BNF/bnf_gfp_util.ML"
 ML_file "Tools/BNF/bnf_gfp_tactics.ML"
 ML_file "Tools/BNF/bnf_gfp.ML"
+ML_file "Tools/BNF/bnf_gfp_rec_sugar_tactics.ML"
+ML_file "Tools/BNF/bnf_gfp_rec_sugar.ML"
 
 end

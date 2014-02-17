@@ -3,7 +3,7 @@
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2013
 
-Recursor sugar.
+Recursor sugar ("primrec").
 *)
 
 signature BNF_LFP_REC_SUGAR =
@@ -134,21 +134,50 @@ fun massage_nested_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
     massage_call
   end;
 
-fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy0 =
-  let
-    val thy = Proof_Context.theory_of lthy0;
+type basic_lfp_sugar =
+  {T: typ,
+   index: int,
+   ctor_iterss: term list list,
+   ctr_defss: thm list list,
+   ctr_sugars: Ctr_Sugar.ctr_sugar list,
+   iterss: term list list,
+   iter_thmsss: thm list list list};
 
+fun basic_lfp_sugar_of ({T, index, fp_res = {xtor_co_iterss = ctor_iterss, ...}, ctr_defss,
+    ctr_sugars, co_iterss = iterss, co_iter_thmsss = iter_thmsss, ...} : fp_sugar) =
+  {T = T, index = index, ctor_iterss = ctor_iterss, ctr_defss = ctr_defss,
+   ctr_sugars = ctr_sugars, iterss = iterss, iter_thmsss = iter_thmsss};
+
+fun of_basic_lfp_sugar f (basic_lfp_sugar as ({index, ...} : basic_lfp_sugar)) =
+  nth (f basic_lfp_sugar) index;
+
+fun get_basic_lfp_sugars bs arg_Ts get_indices callssss0 lthy0 =
+  let
     val ((missing_arg_Ts, perm0_kks,
           fp_sugars as {nested_bnfs, fp_res = {xtor_co_iterss = ctor_iters1 :: _, ...},
             co_inducts = [induct_thm], ...} :: _, (lfp_sugar_thms, _)), lthy) =
       nested_to_mutual_fps Least_FP bs arg_Ts get_indices callssss0 lthy0;
+    val nested_map_idents = map (unfold_thms lthy @{thms id_def} o map_id0_of_bnf) nested_bnfs;
+    val nested_map_comps = map map_comp_of_bnf nested_bnfs;
+  in
+    (missing_arg_Ts, perm0_kks, map basic_lfp_sugar_of fp_sugars, nested_map_idents,
+     nested_map_comps, ctor_iters1, induct_thm, lfp_sugar_thms, lthy)
+  end;
 
-    val perm_fp_sugars = sort (int_ord o pairself #index) fp_sugars;
+fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy0 =
+  let
+    val thy = Proof_Context.theory_of lthy0;
 
-    val indices = map #index fp_sugars;
-    val perm_indices = map #index perm_fp_sugars;
+    val (missing_arg_Ts, perm0_kks, basic_lfp_sugars, nested_map_idents, nested_map_comps,
+         ctor_iters1, induct_thm, lfp_sugar_thms, lthy) =
+      get_basic_lfp_sugars bs arg_Ts get_indices callssss0 lthy0;
 
-    val perm_ctrss = map (#ctrs o of_fp_sugar #ctr_sugars) perm_fp_sugars;
+    val perm_basic_lfp_sugars = sort (int_ord o pairself #index) basic_lfp_sugars;
+
+    val indices = map #index basic_lfp_sugars;
+    val perm_indices = map #index perm_basic_lfp_sugars;
+
+    val perm_ctrss = map (#ctrs o of_basic_lfp_sugar #ctr_sugars) perm_basic_lfp_sugars;
     val perm_ctr_Tsss = map (map (binder_types o fastype_of)) perm_ctrss;
     val perm_lfpTs = map (body_type o fastype_of o hd) perm_ctrss;
 
@@ -158,8 +187,8 @@ fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy0 =
     val perm_ns = map length perm_ctr_Tsss;
     val perm_mss = map (map length) perm_ctr_Tsss;
 
-    val perm_Cs = map (body_type o fastype_of o co_rec_of o of_fp_sugar (#xtor_co_iterss o #fp_res))
-      perm_fp_sugars;
+    val perm_Cs = map (body_type o fastype_of o co_rec_of o of_basic_lfp_sugar #ctor_iterss)
+      perm_basic_lfp_sugars;
     val perm_fun_arg_Tssss =
       mk_iter_fun_arg_types perm_ctr_Tsss perm_ns perm_mss (co_rec_of ctor_iters1);
 
@@ -208,14 +237,13 @@ fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy0 =
         map4 mk_ctr_spec ctrs (k upto k + n - 1) (nth perm_fun_arg_Tssss index) rec_thms
       end;
 
-    fun mk_spec ({T, index, ctr_sugars, co_iterss = iterss, co_iter_thmsss = iter_thmsss, ...}
-      : fp_sugar) =
+    fun mk_spec ({T, index, ctr_sugars, iterss, iter_thmsss, ...} : basic_lfp_sugar) =
       {recx = mk_co_iter thy Least_FP (substAT T) perm_Cs' (co_rec_of (nth iterss index)),
-       nested_map_idents = map (unfold_thms lthy @{thms id_def} o map_id0_of_bnf) nested_bnfs,
-       nested_map_comps = map map_comp_of_bnf nested_bnfs,
+       nested_map_idents = nested_map_idents, nested_map_comps = nested_map_comps,
        ctr_specs = mk_ctr_specs index ctr_sugars iter_thmsss};
   in
-    ((is_some lfp_sugar_thms, map mk_spec fp_sugars, missing_arg_Ts, induct_thm, induct_thms), lthy)
+    ((is_some lfp_sugar_thms, map mk_spec basic_lfp_sugars, missing_arg_Ts, induct_thm,
+      induct_thms), lthy)
   end;
 
 val undef_const = Const (@{const_name undefined}, dummyT);

@@ -237,11 +237,12 @@ lemma predicate2D_vimage2p: "\<lbrakk>R \<le> vimage2p f g S; R x y\<rbrakk> \<L
 lemma id_transfer: "fun_rel A A id id"
 unfolding fun_rel_def by simp
 
-ML_file "Tools/BNF/bnf_lfp_rec_sugar.ML"
 ML_file "Tools/BNF/bnf_lfp_util.ML"
 ML_file "Tools/BNF/bnf_lfp_tactics.ML"
 ML_file "Tools/BNF/bnf_lfp.ML"
 ML_file "Tools/BNF/bnf_lfp_compat.ML"
+ML_file "Tools/BNF/bnf_fp_rec_sugar_util.ML"
+ML_file "Tools/BNF/bnf_lfp_rec_sugar.ML"
 
 hide_fact (open) id_transfer
 

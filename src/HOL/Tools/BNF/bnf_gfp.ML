@@ -23,7 +23,6 @@ open BNF_Tactics
 open BNF_Comp
 open BNF_FP_Util
 open BNF_FP_Def_Sugar
-open BNF_GFP_Rec_Sugar
 open BNF_GFP_Util
 open BNF_GFP_Tactics
 

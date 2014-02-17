@@ -3,7 +3,7 @@
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2013
 
-Corecursor sugar.
+Corecursor sugar ("primcorec" and "primcorecursive").
 *)
 
 signature BNF_GFP_REC_SUGAR =
