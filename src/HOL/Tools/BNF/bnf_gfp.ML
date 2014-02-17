@@ -2740,23 +2740,4 @@ val _ =
   Outer_Syntax.local_theory @{command_spec "codatatype"} "define coinductive datatypes"
     (parse_co_datatype_cmd Greatest_FP construct_gfp);
 
-val option_parser = Parse.group (fn () => "option")
-  ((Parse.reserved "sequential" >> K Sequential_Option)
-  || (Parse.reserved "exhaustive" >> K Exhaustive_Option))
-
-val where_alt_specs_of_parser = Parse.where_ |-- Parse.!!! (Parse.enum1 "|"
-  (Parse_Spec.spec -- Scan.option (Parse.reserved "of" |-- Parse.const)));
-
-val _ = Outer_Syntax.local_theory_to_proof @{command_spec "primcorecursive"}
-  "define primitive corecursive functions"
-  ((Scan.optional (@{keyword "("} |--
-      Parse.!!! (Parse.list1 option_parser) --| @{keyword ")"}) []) --
-    (Parse.fixes -- where_alt_specs_of_parser) >> uncurry add_primcorecursive_cmd);
-
-val _ = Outer_Syntax.local_theory @{command_spec "primcorec"}
-  "define primitive corecursive functions"
-  ((Scan.optional (@{keyword "("} |--
-      Parse.!!! (Parse.list1 option_parser) --| @{keyword ")"}) []) --
-    (Parse.fixes -- where_alt_specs_of_parser) >> uncurry add_primcorec_cmd);
-
 end;

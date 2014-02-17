@@ -612,4 +612,8 @@ fun add_primrec_overloaded ops fixes specs thy =
     val simpss' = burrow (Proof_Context.export lthy' lthy) simpss;
   in ((ts, simpss'), Local_Theory.exit_global lthy') end;
 
+val _ = Outer_Syntax.local_theory @{command_spec "primrec_new"}
+  "define primitive recursive functions"
+  (Parse.fixes -- Parse_Spec.where_alt_specs >> (snd oo uncurry add_primrec_cmd));
+
 end;

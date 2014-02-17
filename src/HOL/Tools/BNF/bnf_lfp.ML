@@ -1831,8 +1831,4 @@ val _ =
   Outer_Syntax.local_theory @{command_spec "datatype_new"} "define new-style inductive datatypes"
     (parse_co_datatype_cmd Least_FP construct_lfp);
 
-val _ = Outer_Syntax.local_theory @{command_spec "primrec_new"}
-  "define primitive recursive functions"
-  (Parse.fixes -- Parse_Spec.where_alt_specs >> (snd oo uncurry add_primrec_cmd));
-
 end;
