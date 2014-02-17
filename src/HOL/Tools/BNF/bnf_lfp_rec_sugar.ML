@@ -37,11 +37,11 @@ val nitpicksimp_attrs = @{attributes [nitpick_simp]};
 val simp_attrs = @{attributes [simp]};
 val code_nitpicksimp_simp_attrs = Code.add_default_eqn_attrib :: nitpicksimp_attrs @ simp_attrs;
 
-exception Primrec_Error of string * term list;
+exception PRIMREC of string * term list;
 
-fun primrec_error str = raise Primrec_Error (str, []);
-fun primrec_error_eqn str eqn = raise Primrec_Error (str, [eqn]);
-fun primrec_error_eqns str eqns = raise Primrec_Error (str, eqns);
+fun primrec_error str = raise PRIMREC (str, []);
+fun primrec_error_eqn str eqn = raise PRIMREC (str, [eqn]);
+fun primrec_error_eqns str eqns = raise PRIMREC (str, eqns);
 
 datatype rec_call =
   No_Rec of int * typ |
@@ -60,7 +60,7 @@ type rec_spec =
    nested_map_comps: thm list,
    ctr_specs: rec_ctr_spec list};
 
-exception AINT_NO_MAP of term;
+exception NOT_A_MAP of term;
 
 fun ill_formed_rec_call ctxt t =
   error ("Ill-formed recursive call: " ^ quote (Syntax.string_of_term ctxt t));
@@ -104,20 +104,20 @@ fun massage_nested_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
           in
             Term.list_comb (map', fs')
           end
-        | NONE => raise AINT_NO_MAP t)
-      | massage_map _ _ t = raise AINT_NO_MAP t
+        | NONE => raise NOT_A_MAP t)
+      | massage_map _ _ t = raise NOT_A_MAP t
     and massage_map_or_map_arg U T t =
       if T = U then
         tap check_no_call t
       else
         massage_map U T t
-        handle AINT_NO_MAP _ => massage_mutual_fun U T t;
+        handle NOT_A_MAP _ => massage_mutual_fun U T t;
 
     fun massage_call (t as t1 $ t2) =
         if has_call t then
           if t2 = y then
             massage_map yU yT (elim_y t1) $ y'
-            handle AINT_NO_MAP t' => invalid_map ctxt t'
+            handle NOT_A_MAP t' => invalid_map ctxt t'
           else
             let val (g, xs) = Term.strip_comb t2 in
               if g = y then
@@ -238,10 +238,10 @@ fun dissect_eqn lthy fun_names eqn' =
   let
     val eqn = drop_all eqn' |> HOLogic.dest_Trueprop
       handle TERM _ =>
-        primrec_error_eqn "malformed function equation (expected \"lhs = rhs\")" eqn';
+             primrec_error_eqn "malformed function equation (expected \"lhs = rhs\")" eqn';
     val (lhs, rhs) = HOLogic.dest_eq eqn
         handle TERM _ =>
-          primrec_error_eqn "malformed function equation (expected \"lhs = rhs\")" eqn';
+               primrec_error_eqn "malformed function equation (expected \"lhs = rhs\")" eqn';
     val (fun_name, args) = strip_comb lhs
       |>> (fn x => if is_Free x then fst (dest_Free x)
           else primrec_error_eqn "malformed function equation (does not start with free)" eqn);
@@ -475,8 +475,9 @@ fun prepare_primrec fixes specs lthy =
     val funs_data = eqns_data
       |> partition_eq ((op =) o pairself #fun_name)
       |> finds (fn (x, y) => x = #fun_name (hd y)) fun_names |> fst
-      |> map (fn (x, y) => the_single y handle List.Empty =>
-          primrec_error ("missing equations for function " ^ quote x));
+      |> map (fn (x, y) => the_single y
+          handle List.Empty =>
+                 primrec_error ("missing equations for function " ^ quote x));
 
     val has_call = exists_subterm (map (fst #>> Binding.name_of #> Free) fixes |> member (op =));
     val arg_Ts = map (#rec_type o hd) funs_data;
@@ -542,22 +543,21 @@ fun prepare_primrec fixes specs lthy =
       lthy' |> Local_Theory.notes (notes @ common_notes) |> snd)
   end;
 
-(* primrec definition *)
-
 fun add_primrec_simple fixes ts lthy =
   let
-    val (((names, defs), prove), lthy) = prepare_primrec fixes ts lthy
+    val (((names, defs), prove), lthy') = prepare_primrec fixes ts lthy
       handle ERROR str => primrec_error str;
   in
-    lthy
+    lthy'
     |> fold_map Local_Theory.define defs
     |-> (fn defs => `(fn lthy => (names, (map fst defs, prove lthy defs))))
   end
-  handle Primrec_Error (str, eqns) =>
-    if null eqns
-    then error ("primrec_new error:\n  " ^ str)
-    else error ("primrec_new error:\n  " ^ str ^ "\nin\n  " ^
-      space_implode "\n  " (map (quote o Syntax.string_of_term lthy) eqns));
+  handle PRIMREC (str, eqns) =>
+         if null eqns then
+           error ("primrec_new error:\n  " ^ str)
+         else
+           error ("primrec_new error:\n  " ^ str ^ "\nin\n  " ^
+             space_implode "\n  " (map (quote o Syntax.string_of_term lthy) eqns));
 
 local
 

@@ -42,11 +42,11 @@ val nitpicksimp_attrs = @{attributes [nitpick_simp]};
 val simp_attrs = @{attributes [simp]};
 val code_nitpicksimp_attrs = Code.add_default_eqn_attrib :: nitpicksimp_attrs;
 
-exception Primcorec_Error of string * term list;
+exception PRIMCOREC of string * term list;
 
-fun primcorec_error str = raise Primcorec_Error (str, []);
-fun primcorec_error_eqn str eqn = raise Primcorec_Error (str, [eqn]);
-fun primcorec_error_eqns str eqns = raise Primcorec_Error (str, eqns);
+fun primcorec_error str = raise PRIMCOREC (str, []);
+fun primcorec_error_eqn str eqn = raise PRIMCOREC (str, [eqn]);
+fun primcorec_error_eqns str eqns = raise PRIMCOREC (str, eqns);
 
 datatype primcorec_option = Sequential_Option | Exhaustive_Option;
 
@@ -83,7 +83,7 @@ type corec_spec =
    nested_map_comps: thm list,
    ctr_specs: corec_ctr_spec list};
 
-exception AINT_NO_MAP of term;
+exception NOT_A_MAP of term;
 
 fun not_codatatype ctxt T =
   error ("Not a codatatype: " ^ Syntax.string_of_typ ctxt T);
@@ -259,14 +259,14 @@ fun massage_nested_corec_call ctxt has_call raw_massage_call bound_Ts U t =
           in
             Term.list_comb (map', fs')
           end
-        | NONE => raise AINT_NO_MAP t)
-      | massage_map _ _ _ t = raise AINT_NO_MAP t
+        | NONE => raise NOT_A_MAP t)
+      | massage_map _ _ _ t = raise NOT_A_MAP t
     and massage_map_or_map_arg bound_Ts U T t =
       if T = U then
         tap check_no_call t
       else
         massage_map bound_Ts U T t
-        handle AINT_NO_MAP _ => massage_mutual_fun bound_Ts U T t
+        handle NOT_A_MAP _ => massage_mutual_fun bound_Ts U T t
     and massage_mutual_fun bound_Ts U T t =
       (case t of
         Const (@{const_name comp}, _) $ t1 $ t2 =>
@@ -307,7 +307,7 @@ fun massage_nested_corec_call ctxt has_call raw_massage_call bound_Ts U t =
                   massage_mutual_call bound_Ts U T t
                 else
                   massage_map bound_Ts U T t1 $ t2
-                  handle AINT_NO_MAP _ => massage_mutual_call bound_Ts U T t)
+                  handle NOT_A_MAP _ => massage_mutual_call bound_Ts U T t)
               | Abs (s, T', t') =>
                 Abs (s, T', massage_call (T' :: bound_Ts) (range_type U) (range_type T) t')
               | _ => massage_mutual_call bound_Ts U T t))
@@ -594,14 +594,14 @@ fun dissect_coeqn_sel fun_names (basic_ctr_specss : basic_corec_ctr_spec list li
   let
     val (lhs, rhs) = HOLogic.dest_eq eqn
       handle TERM _ =>
-        primcorec_error_eqn "malformed function equation (expected \"lhs = rhs\")" eqn;
+             primcorec_error_eqn "malformed function equation (expected \"lhs = rhs\")" eqn;
     val sel = head_of lhs;
     val ((fun_name, fun_T), fun_args) = dest_comb lhs |> snd |> strip_comb |> apfst dest_Free
       handle TERM _ =>
-        primcorec_error_eqn "malformed selector argument in left-hand side" eqn;
+             primcorec_error_eqn "malformed selector argument in left-hand side" eqn;
     val basic_ctr_specs = the (AList.lookup (op =) (fun_names ~~ basic_ctr_specss) fun_name)
       handle Option.Option =>
-        primcorec_error_eqn "malformed selector argument in left-hand side" eqn;
+             primcorec_error_eqn "malformed selector argument in left-hand side" eqn;
     val {ctr, ...} =
       (case of_spec_opt of
         SOME of_spec => the (find_first (curry (op =) of_spec o #ctr) basic_ctr_specs)
@@ -1354,11 +1354,12 @@ fun add_primcorec_ursive_cmd auto opts (raw_fixes, raw_specs') lthy =
     add_primcorec_ursive auto opts fixes specs of_specs_opt lthy
     handle ERROR str => primcorec_error str
   end
-  handle Primcorec_Error (str, eqns) =>
-    if null eqns
-    then error ("primcorec error:\n  " ^ str)
-    else error ("primcorec error:\n  " ^ str ^ "\nin\n  " ^
-      space_implode "\n  " (map (quote o Syntax.string_of_term lthy) eqns));
+  handle PRIMCOREC (str, eqns) =>
+         if null eqns then
+           error ("primcorec error:\n  " ^ str)
+         else
+           error ("primcorec error:\n  " ^ str ^ "\nin\n  " ^
+             space_implode "\n  " (map (quote o Syntax.string_of_term lthy) eqns));
 
 val add_primcorecursive_cmd = (fn (goalss, after_qed, lthy) =>
   lthy
