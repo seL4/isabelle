@@ -37,6 +37,7 @@ val nitpicksimp_attrs = @{attributes [nitpick_simp]};
 val simp_attrs = @{attributes [simp]};
 val code_nitpicksimp_simp_attrs = Code.add_default_eqn_attrib :: nitpicksimp_attrs @ simp_attrs;
 
+exception OLD_PRIMREC of unit;
 exception PRIMREC of string * term list;
 
 fun primrec_error str = raise PRIMREC (str, []);
@@ -486,6 +487,11 @@ fun prepare_primrec fixes specs lthy =
       |> map (partition_eq ((op =) o pairself #ctr))
       |> map (maps (map_filter (find_rec_calls has_call)));
 
+    fun is_only_old_datatype (Type (s, _)) =
+        is_none (fp_sugar_of lthy s) andalso is_some (Datatype_Data.get_info thy s)
+      | is_only_old_datatype _ = false;
+
+    val _ = if exists is_only_old_datatype arg_Ts then raise OLD_PRIMREC () else ();
     val _ = (case filter_out (fn (_, T) => Sign.of_sort thy (T, HOLogic.typeS)) (bs ~~ res_Ts) of
         [] => ()
       | (b, _) :: _ => primrec_error ("type of " ^ Binding.print b ^ " contains top sort"));
@@ -559,9 +565,8 @@ fun add_primrec_simple fixes ts lthy =
            error ("primrec_new error:\n  " ^ str ^ "\nin\n  " ^
              space_implode "\n  " (map (quote o Syntax.string_of_term lthy) eqns));
 
-local
-
-fun gen_primrec prep_spec (raw_fixes : (binding * 'a option * mixfix) list) raw_spec lthy =
+fun gen_primrec old_primrec prep_spec (raw_fixes : (binding * 'a option * mixfix) list) raw_spec
+    lthy =
   let
     val d = duplicates (op =) (map (Binding.name_of o #1) raw_fixes)
     val _ = null d orelse primrec_error ("duplicate function name(s): " ^ commas d);
@@ -587,27 +592,24 @@ fun gen_primrec prep_spec (raw_fixes : (binding * 'a option * mixfix) list) raw_
       Spec_Rules.add Spec_Rules.Equational (ts, flat simpss)
       #> Local_Theory.notes (mk_notes posss names simpss)
       #>> pair ts o map snd)
-  end;
+  end
+  handle OLD_PRIMREC () => old_primrec raw_fixes raw_spec lthy |>> apsnd single;
 
-in
-
-val add_primrec = gen_primrec Specification.check_spec;
-val add_primrec_cmd = gen_primrec Specification.read_spec;
-
-end;
+val add_primrec = gen_primrec Primrec.add_primrec Specification.check_spec;
+val add_primrec_cmd = gen_primrec Primrec.add_primrec_cmd Specification.read_spec;
 
 fun add_primrec_global fixes specs thy =
   let
     val lthy = Named_Target.theory_init thy;
-    val ((ts, simps), lthy') = add_primrec fixes specs lthy;
-    val simps' = burrow (Proof_Context.export lthy' lthy) simps;
-  in ((ts, simps'), Local_Theory.exit_global lthy') end;
+    val ((ts, simpss), lthy') = add_primrec fixes specs lthy;
+    val simpss' = burrow (Proof_Context.export lthy' lthy) simpss;
+  in ((ts, simpss'), Local_Theory.exit_global lthy') end;
 
 fun add_primrec_overloaded ops fixes specs thy =
   let
     val lthy = Overloading.overloading ops thy;
-    val ((ts, simps), lthy') = add_primrec fixes specs lthy;
-    val simps' = burrow (Proof_Context.export lthy' lthy) simps;
-  in ((ts, simps'), Local_Theory.exit_global lthy') end;
+    val ((ts, simpss), lthy') = add_primrec fixes specs lthy;
+    val simpss' = burrow (Proof_Context.export lthy' lthy) simpss;
+  in ((ts, simpss'), Local_Theory.exit_global lthy') end;
 
 end;
