@@ -20,6 +20,13 @@ sig
   val name: string -> T -> T
   val kindN: string
   val instanceN: string
+  val languageN: string val language: string -> T
+  val language_sort: T
+  val language_type: T
+  val language_term: T
+  val language_prop: T
+  val language_ML: T
+  val language_document: T
   val bindingN: string val binding: T
   val entityN: string val entity: string -> string -> T
   val get_entity_kind: T -> string option
@@ -62,10 +69,6 @@ sig
   val inner_cartoucheN: string val inner_cartouche: T
   val inner_commentN: string val inner_comment: T
   val token_rangeN: string val token_range: T
-  val sortN: string val sort: T
-  val typN: string val typ: T
-  val termN: string val term: T
-  val propN: string val prop: T
   val sortingN: string val sorting: T
   val typingN: string val typing: T
   val ML_keyword1N: string val ML_keyword1: T
@@ -81,8 +84,6 @@ sig
   val ML_openN: string
   val ML_structN: string
   val ML_typingN: string val ML_typing: T
-  val ML_sourceN: string val ML_source: T
-  val document_sourceN: string val document_source: T
   val antiquotedN: string val antiquoted: T
   val antiquoteN: string val antiquote: T
   val ML_antiquotationN: string
@@ -235,6 +236,19 @@ val kindN = "kind";
 val instanceN = "instance";
 
 
+(* embedded languages *)
+
+val (languageN, language) = markup_string "language" nameN;
+
+val language_sort = language "sort";
+val language_type = language "type";
+val language_term = language "term";
+val language_prop = language "prop";
+
+val language_ML = language "ML";
+val language_document = language "document";
+
+
 (* formal entities *)
 
 val (bindingN, binding) = markup_elem "binding";
@@ -317,11 +331,6 @@ val (inner_commentN, inner_comment) = markup_elem "inner_comment";
 
 val (token_rangeN, token_range) = markup_elem "token_range";
 
-val (sortN, sort) = markup_elem "sort";
-val (typN, typ) = markup_elem "typ";
-val (termN, term) = markup_elem "term";
-val (propN, prop) = markup_elem "prop";
-
 val (sortingN, sorting) = markup_elem "sorting";
 val (typingN, typing) = markup_elem "typing";
 
@@ -344,10 +353,7 @@ val ML_structN = "ML_struct";
 val (ML_typingN, ML_typing) = markup_elem "ML_typing";
 
 
-(* embedded source text *)
-
-val (ML_sourceN, ML_source) = markup_elem "ML_source";
-val (document_sourceN, document_source) = markup_elem "document_source";
+(* antiquotations *)
 
 val (antiquotedN, antiquoted) = markup_elem "antiquoted";
 val (antiquoteN, antiquote) = markup_elem "antiquote";

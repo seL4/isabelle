@@ -342,7 +342,7 @@ fun parse_failed ctxt pos msg kind =
     Markup.markup Markup.report (Context_Position.reported_text ctxt pos Markup.bad ""));
 
 fun parse_sort ctxt =
-  Syntax.parse_token ctxt Term_XML.Decode.sort Markup.sort
+  Syntax.parse_token ctxt Term_XML.Decode.sort Markup.language_sort
     (fn (syms, pos) =>
       parse_tree ctxt "sort" (syms, pos)
       |> uncurry (report_result ctxt pos)
@@ -351,7 +351,7 @@ fun parse_sort ctxt =
       handle ERROR msg => parse_failed ctxt pos msg "sort");
 
 fun parse_typ ctxt =
-  Syntax.parse_token ctxt Term_XML.Decode.typ Markup.typ
+  Syntax.parse_token ctxt Term_XML.Decode.typ Markup.language_type
     (fn (syms, pos) =>
       parse_tree ctxt "type" (syms, pos)
       |> uncurry (report_result ctxt pos)
@@ -362,8 +362,8 @@ fun parse_term is_prop ctxt =
   let
     val (markup, kind, root, constrain) =
       if is_prop
-      then (Markup.prop, "proposition", "prop", Type.constraint propT)
-      else (Markup.term, "term", Config.get ctxt Syntax.root, I);
+      then (Markup.language_prop, "prop", "prop", Type.constraint propT)
+      else (Markup.language_term, "term", Config.get ctxt Syntax.root, I);
     val decode = constrain o Term_XML.Decode.term;
   in
     Syntax.parse_token ctxt decode markup
@@ -749,8 +749,8 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
 
 in
 
-val unparse_sort = unparse_t sort_to_ast Printer.pretty_typ_ast Markup.sort;
-val unparse_typ = unparse_t typ_to_ast Printer.pretty_typ_ast Markup.typ;
+val unparse_sort = unparse_t sort_to_ast Printer.pretty_typ_ast Markup.language_sort;
+val unparse_typ = unparse_t typ_to_ast Printer.pretty_typ_ast Markup.language_type;
 
 fun unparse_term ctxt =
   let
@@ -760,7 +760,7 @@ fun unparse_term ctxt =
   in
     unparse_t (term_to_ast idents (is_some o Syntax.lookup_const syn))
       (Printer.pretty_term_ast (not (Pure_Thy.old_appl_syntax thy)))
-      Markup.term ctxt
+      Markup.language_term ctxt
   end;
 
 end;

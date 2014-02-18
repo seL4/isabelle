@@ -241,10 +241,10 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   /* markup selectors */
 
   private val highlight_include =
-    Set(Markup.SORT, Markup.TYP, Markup.TERM, Markup.PROP, Markup.ML_TYPING, Markup.TOKEN_RANGE,
-      Markup.ENTITY, Markup.PATH, Markup.URL, Markup.SORTING, Markup.TYPING, Markup.FREE,
-      Markup.SKOLEM, Markup.BOUND, Markup.VAR, Markup.TFREE, Markup.TVAR, Markup.ML_SOURCE,
-      Markup.DOCUMENT_SOURCE)
+    Set(Markup.LANGUAGE, Markup.ML_TYPING, Markup.TOKEN_RANGE,
+      Markup.ENTITY, Markup.PATH, Markup.URL, Markup.SORTING,
+      Markup.TYPING, Markup.FREE, Markup.SKOLEM, Markup.BOUND,
+      Markup.VAR, Markup.TFREE, Markup.TVAR)
 
   def highlight(range: Text.Range): Option[Text.Info[Color]] =
   {
@@ -375,23 +375,18 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   private val tooltips: Map[String, String] =
     Map(
-      Markup.SORT -> "sort",
-      Markup.TYP -> "type",
-      Markup.TERM -> "term",
-      Markup.PROP -> "proposition",
       Markup.TOKEN_RANGE -> "inner syntax token",
       Markup.FREE -> "free variable",
       Markup.SKOLEM -> "skolem variable",
       Markup.BOUND -> "bound variable",
       Markup.VAR -> "schematic variable",
       Markup.TFREE -> "free type variable",
-      Markup.TVAR -> "schematic type variable",
-      Markup.ML_SOURCE -> "ML source",
-      Markup.DOCUMENT_SOURCE -> "document source")
+      Markup.TVAR -> "schematic type variable")
 
   private val tooltip_elements =
-    Set(Markup.TIMING, Markup.ENTITY, Markup.SORTING, Markup.TYPING,
-      Markup.ML_TYPING, Markup.PATH, Markup.URL) ++ tooltips.keys
+    Set(Markup.LANGUAGE, Markup.TIMING, Markup.ENTITY, Markup.SORTING,
+      Markup.TYPING, Markup.ML_TYPING, Markup.PATH, Markup.URL) ++
+      tooltips.keys
 
   private def pretty_typing(kind: String, body: XML.Body): XML.Tree =
     Pretty.block(XML.Text(kind) :: Pretty.Break(1) :: body)
@@ -434,6 +429,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
             Some(add(prev, r, (true, pretty_typing("::", body))))
           case (prev, Text.Info(r, XML.Elem(Markup(Markup.ML_TYPING, _), body))) =>
             Some(add(prev, r, (false, pretty_typing("ML:", body))))
+          case (prev, Text.Info(r, XML.Elem(Markup.Language(name), _))) =>
+            Some(add(prev, r, (true, XML.Text("language: " + name))))
           case (prev, Text.Info(r, XML.Elem(Markup(name, _), _))) =>
             if (tooltips.isDefinedAt(name))
               Some(add(prev, r, (true, XML.Text(tooltips(name)))))

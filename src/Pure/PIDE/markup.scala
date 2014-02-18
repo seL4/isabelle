@@ -67,6 +67,20 @@ object Markup
   val POSITION = "position"
 
 
+  /* embedded languages */
+
+  val LANGUAGE = "language"
+
+  object Language
+  {
+    def unapply(markup: Markup): Option[String] =
+      markup match {
+        case Markup(LANGUAGE, Name(name)) => Some(name)
+        case _ => None
+      }
+  }
+
+
   /* external resources */
 
   val PATH = "path"
@@ -138,11 +152,6 @@ object Markup
 
   val TOKEN_RANGE = "token_range"
 
-  val SORT = "sort"
-  val TYP = "typ"
-  val TERM = "term"
-  val PROP = "prop"
-
   val SORTING = "sorting"
   val TYPING = "typing"
 
@@ -150,10 +159,7 @@ object Markup
   val METHOD = "method"
 
 
-  /* embedded source text */
-
-  val ML_SOURCE = "ML_source"
-  val DOCUMENT_SOURCE = "document_source"
+  /* antiquotations */
 
   val ANTIQUOTED = "antiquoted"
   val ANTIQUOTE = "antiquote"

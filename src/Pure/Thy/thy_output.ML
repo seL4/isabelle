@@ -188,7 +188,7 @@ fun eval_antiquote lex state (txt, pos) =
 
 
 fun check_text (txt, pos) state =
- (Position.report pos Markup.document_source;
+ (Position.report pos Markup.language_document;
   if Toplevel.is_skipped_proof state then ()
   else ignore (eval_antiquote (#1 (Keyword.get_lexicons ())) state (txt, pos)));
 
