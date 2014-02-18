@@ -65,7 +65,7 @@ sig
      * (string * term list * term list list
         * ((term list list * term list list list) * typ list) list) option)
     * Proof.context
-  val mk_iter_fun_arg_types: typ list list list -> int list -> int list list -> term ->
+  val mk_iter_fun_arg_types: typ list list list -> int list -> int list list -> typ ->
     typ list list list list
   val mk_coiter_fun_arg_types: typ list list list -> typ list -> int list -> term ->
     typ list list
@@ -283,8 +283,6 @@ fun mk_co_iters thy fp fpTs Cs ts0 =
     map (Term.subst_TVars rho) ts0
   end;
 
-val mk_fp_iter_fun_types = binder_fun_types o fastype_of;
-
 fun unzip_recT (Type (@{type_name prod}, _)) T = [T]
   | unzip_recT _ (Type (@{type_name prod}, Ts)) = Ts
   | unzip_recT _ T = [T];
@@ -373,7 +371,7 @@ val transfer_gfp_sugar_thms =
 fun mk_iter_fun_arg_types0 n ms = map2 dest_tupleT ms o dest_sumTN_balanced n o domain_type;
 
 fun mk_iter_fun_arg_types ctr_Tsss ns mss =
-  mk_fp_iter_fun_types
+  binder_fun_types
   #> map3 mk_iter_fun_arg_types0 ns mss
   #> map2 (map2 (map2 unzip_recT)) ctr_Tsss;
 
@@ -432,7 +430,7 @@ fun mk_coiter_p_pred_types Cs ns = map2 (fn n => replicate (Int.max (0, n - 1)) 
 
 fun mk_coiter_fun_arg_types ctr_Tsss Cs ns dtor_coiter =
   (mk_coiter_p_pred_types Cs ns,
-   mk_fp_iter_fun_types dtor_coiter |> mk_coiter_fun_arg_types0 ctr_Tsss Cs ns);
+   mk_coiter_fun_arg_types0 ctr_Tsss Cs ns (binder_fun_types (fastype_of dtor_coiter)));
 
 fun mk_coiters_args_types ctr_Tsss Cs ns dtor_coiter_fun_Tss lthy =
   let
@@ -492,7 +490,8 @@ fun mk_co_iters_prelims fp ctr_Tsss fpTs Cs ns mss xtor_co_iterss0 lthy =
     val thy = Proof_Context.theory_of lthy;
 
     val (xtor_co_iter_fun_Tss, xtor_co_iterss) =
-      map (mk_co_iters thy fp fpTs Cs #> `(mk_fp_iter_fun_types o hd)) (transpose xtor_co_iterss0)
+      map (mk_co_iters thy fp fpTs Cs #> `(binder_fun_types o fastype_of o hd))
+        (transpose xtor_co_iterss0)
       |> apsnd transpose o apfst transpose o split_list;
 
     val ((iters_args_types, coiters_args_types), lthy') =

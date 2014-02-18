@@ -137,28 +137,29 @@ fun massage_nested_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
 type basic_lfp_sugar =
   {T: typ,
    fp_res_index: int,
-   ctor_iters: term list,
+   ctor_recT: typ,
    ctr_defs: thm list,
    ctr_sugar: ctr_sugar,
-   iters: term list,
-   iter_thmss: thm list list};
+   recx: term,
+   rec_thms: thm list};
 
 fun basic_lfp_sugar_of ({T, fp_res = {xtor_co_iterss = ctor_iterss, ...}, fp_res_index, ctr_defs,
     ctr_sugar, co_iters = iters, co_iter_thmss = iter_thmss, ...} : fp_sugar) =
-  {T = T, fp_res_index = fp_res_index, ctor_iters = nth ctor_iterss fp_res_index,
-   ctr_defs = ctr_defs, ctr_sugar = ctr_sugar, iters = iters, iter_thmss = iter_thmss};
+  {T = T, fp_res_index = fp_res_index,
+   ctor_recT = fastype_of (co_rec_of (nth ctor_iterss fp_res_index)), ctr_defs = ctr_defs,
+   ctr_sugar = ctr_sugar, recx = co_rec_of iters, rec_thms = co_rec_of iter_thmss};
 
 fun get_basic_lfp_sugars bs arg_Ts get_indices callssss0 lthy0 =
   let
     val ((missing_arg_Ts, perm0_kks,
-          fp_sugars as {nested_bnfs, fp_res = {xtor_co_iterss = ctor_iters1 :: _, ...},
-            co_inducts = [induct_thm], ...} :: _, (lfp_sugar_thms, _)), lthy) =
+          fp_sugars as {nested_bnfs, co_inducts = [induct_thm], ...} :: _, (lfp_sugar_thms, _)),
+         lthy) =
       nested_to_mutual_fps Least_FP bs arg_Ts get_indices callssss0 lthy0;
     val nested_map_idents = map (unfold_thms lthy @{thms id_def} o map_id0_of_bnf) nested_bnfs;
     val nested_map_comps = map map_comp_of_bnf nested_bnfs;
   in
     (missing_arg_Ts, perm0_kks, map basic_lfp_sugar_of fp_sugars, nested_map_idents,
-     nested_map_comps, ctor_iters1, induct_thm, lfp_sugar_thms, lthy)
+     nested_map_comps, induct_thm, lfp_sugar_thms, lthy)
   end;
 
 fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy0 =
@@ -166,7 +167,7 @@ fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy0 =
     val thy = Proof_Context.theory_of lthy0;
 
     val (missing_arg_Ts, perm0_kks, basic_lfp_sugars, nested_map_idents, nested_map_comps,
-         ctor_iters1, induct_thm, lfp_sugar_thms, lthy) =
+         induct_thm, lfp_sugar_thms, lthy) =
       get_basic_lfp_sugars bs arg_Ts get_indices callssss0 lthy0;
 
     val perm_basic_lfp_sugars = sort (int_ord o pairself #fp_res_index) basic_lfp_sugars;
@@ -186,9 +187,9 @@ fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy0 =
     val perm_ctr_offsets = map (fn kk => Integer.sum (map length (take kk perm_ctrss))) kks;
 
     val perm_lfpTs = map (body_type o fastype_of o hd) perm_ctrss;
-    val perm_Cs = map (body_type o fastype_of o co_rec_of o #ctor_iters) perm_basic_lfp_sugars;
+    val perm_Cs = map (body_type o #ctor_recT) perm_basic_lfp_sugars;
     val perm_fun_arg_Tssss =
-      mk_iter_fun_arg_types perm_ctr_Tsss perm_ns perm_mss (co_rec_of ctor_iters1);
+      mk_iter_fun_arg_types perm_ctr_Tsss perm_ns perm_mss (#ctor_recT (hd perm_basic_lfp_sugars));
 
     fun unpermute0 perm0_xs = permute_like_unique (op =) perm0_kks kks perm0_xs;
     fun unpermute perm_xs = permute_like_unique (op =) perm_indices indices perm_xs;
@@ -227,10 +228,10 @@ fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy0 =
         rec_thms;
 
     fun mk_spec ctr_offset
-        ({T, fp_res_index, ctr_sugar = {ctrs, ...}, iters, iter_thmss, ...} : basic_lfp_sugar) =
-      {recx = mk_co_iter thy Least_FP (substAT T) perm_Cs' (co_rec_of iters),
+        ({T, fp_res_index, ctr_sugar = {ctrs, ...}, recx, rec_thms, ...} : basic_lfp_sugar) =
+      {recx = mk_co_iter thy Least_FP (substAT T) perm_Cs' recx,
        nested_map_idents = nested_map_idents, nested_map_comps = nested_map_comps,
-       ctr_specs = mk_ctr_specs fp_res_index ctr_offset ctrs (co_rec_of iter_thmss)};
+       ctr_specs = mk_ctr_specs fp_res_index ctr_offset ctrs rec_thms};
   in
     ((is_some lfp_sugar_thms, map2 mk_spec ctr_offsets basic_lfp_sugars, missing_arg_Ts, induct_thm,
       induct_thms), lthy)
