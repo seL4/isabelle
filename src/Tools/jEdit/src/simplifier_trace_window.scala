@@ -146,11 +146,10 @@ private object Simplifier_Trace_Window
 
 }
 
-class Simplifier_Trace_Window(view: View, snapshot: Document.Snapshot, trace: Simplifier_Trace.Trace) extends Frame
+
+class Simplifier_Trace_Window(
+  view: View, snapshot: Document.Snapshot, trace: Simplifier_Trace.Trace) extends Frame
 {
-
-  import Simplifier_Trace_Window._
-
   Swing_Thread.require()
 
   val area = new Pretty_Text_Area(view)
@@ -162,11 +161,11 @@ class Simplifier_Trace_Window(view: View, snapshot: Document.Snapshot, trace: Si
 
   private val tree = trace.entries.headOption match {
     case Some(first) =>
-      val tree = new Root_Tree(first.parent)
-      walk_trace(trace.entries, Map(first.parent -> tree))
+      val tree = new Simplifier_Trace_Window.Root_Tree(first.parent)
+      Simplifier_Trace_Window.walk_trace(trace.entries, Map(first.parent -> tree))
       tree
     case None =>
-      new Root_Tree(0)
+      new Simplifier_Trace_Window.Root_Tree(0)
   }
 
   do_update(None)
