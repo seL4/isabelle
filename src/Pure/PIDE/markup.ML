@@ -27,6 +27,7 @@ sig
   val language_prop: T
   val language_ML: T
   val language_document: T
+  val language_text: T
   val bindingN: string val binding: T
   val entityN: string val entity: string -> string -> T
   val get_entity_kind: T -> string option
@@ -253,6 +254,7 @@ val language_prop = language "prop";
 
 val language_ML = language "ML";
 val language_document = language "document";
+val language_text = language "text";
 
 
 (* formal entities *)
