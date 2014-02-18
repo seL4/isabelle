@@ -146,14 +146,6 @@ val textN = "text"
 val memoryN = "memory"
 val successN = "success"
 
-val logN = "simp_trace_log"
-val stepN = "simp_trace_step"
-val recurseN = "simp_trace_recurse"
-val hintN = "simp_trace_hint"
-val ignoreN = "simp_trace_ignore"
-
-val cancelN = "simp_trace_cancel"
-
 type payload =
   {props: Properties.T,
    pretty: Pretty.T}
@@ -171,7 +163,10 @@ fun mk_generic_result markup text triggered (payload : unit -> payload) ctxt =
       | Normal => triggered
       | Full => true)
 
-    val markup' = if markup = stepN andalso not interactive then logN else markup
+    val markup' =
+      if markup = Markup.simp_trace_stepN andalso not interactive
+      then Markup.simp_trace_logN
+      else markup
   in
     if not eligible orelse depth > max_depth then NONE
     else
@@ -195,10 +190,7 @@ fun mk_generic_result markup text triggered (payload : unit -> payload) ctxt =
 fun send_request (result_id, content) =
   let
     fun break () =
-      (Output.protocol_message
-         [(Markup.functionN, cancelN),
-          (serialN, Markup.print_int result_id)]
-         "";
+      (Output.protocol_message (Markup.simp_trace_cancel result_id) "";
        Synchronized.change futures (Inttab.delete_safe result_id))
     val promise = Future.promise break : string future
   in
@@ -279,7 +271,8 @@ fun step ({term, thm, unconditional, ctxt, rrule}: data) =
       end
 
   in
-    (case mk_generic_result stepN text (thm_triggered orelse term_triggered) payload ctxt of
+    (case mk_generic_result Markup.simp_trace_stepN text
+        (thm_triggered orelse term_triggered) payload ctxt of
       NONE => Future.value (SOME ctxt)
     | SOME res => mk_promise res)
   end
@@ -303,7 +296,7 @@ fun recurse text term ctxt =
        breakpoints = breakpoints} (Context.Proof ctxt)
 
     val context' =
-      (case mk_generic_result recurseN text true payload ctxt of
+      (case mk_generic_result Markup.simp_trace_recurseN text true payload ctxt of
         NONE => put 0
       | SOME res => (output_result res; put (#1 res)))
   in Context.the_proof context' end
@@ -342,7 +335,7 @@ fun indicate_failure ({term, ctxt, thm, rrule, ...}: data) ctxt' =
         fun to_response "exit" = false
           | to_response "redo" =
               (Option.app output_result
-                (mk_generic_result ignoreN "Ignore" true empty_payload ctxt');
+                (mk_generic_result Markup.simp_trace_ignoreN "Ignore" true empty_payload ctxt');
                true)
           | to_response _ = raise Fail "Simplifier_Trace.indicate_failure: invalid message"
       in
@@ -351,7 +344,7 @@ fun indicate_failure ({term, ctxt, thm, rrule, ...}: data) ctxt' =
         else Future.map to_response (send_request result)
       end
   in
-    (case mk_generic_result hintN "Step failed" true payload ctxt' of
+    (case mk_generic_result Markup.simp_trace_hintN "Step failed" true payload ctxt' of
       NONE => Future.value false
     | SOME res => mk_promise res)
   end
@@ -362,7 +355,8 @@ fun indicate_success thm ctxt =
       {props = [(successN, "true")],
        pretty = Syntax.pretty_term ctxt (Thm.prop_of thm)}
   in
-    Option.app output_result (mk_generic_result hintN "Successfully rewrote" true payload ctxt)
+    Option.app output_result
+      (mk_generic_result Markup.simp_trace_hintN "Successfully rewrote" true payload ctxt)
   end
 
 
@@ -400,7 +394,7 @@ val _ = Theory.setup
      trace_apply = simp_apply})
 
 val _ =
-  Isabelle_Process.protocol_command "Document.simp_trace_reply"
+  Isabelle_Process.protocol_command "Simplifier_Trace.reply"
     (fn [s, r] =>
       let
         val serial = Markup.parse_int s

@@ -164,6 +164,12 @@ sig
   val command_timing: Properties.entry
   val loading_theory: string -> Properties.T
   val dest_loading_theory: Properties.T -> string option
+  val simp_trace_logN: string
+  val simp_trace_stepN: string
+  val simp_trace_recurseN: string
+  val simp_trace_hintN: string
+  val simp_trace_ignoreN: string
+  val simp_trace_cancel: serial -> Properties.T
   val no_output: Output.output * Output.output
   val default_output: T -> Output.output * Output.output
   val add_mode: string -> (T -> Output.output * Output.output) -> unit
@@ -515,6 +521,16 @@ fun loading_theory name = [("function", "loading_theory"), ("name", name)];
 fun dest_loading_theory [("function", "loading_theory"), ("name", name)] = SOME name
   | dest_loading_theory _ = NONE;
 
+
+(* simplifier trace *)
+
+val simp_trace_logN = "simp_trace_log";
+val simp_trace_stepN = "simp_trace_step";
+val simp_trace_recurseN = "simp_trace_recurse";
+val simp_trace_hintN = "simp_trace_hint";
+val simp_trace_ignoreN = "simp_trace_ignore";
+
+fun simp_trace_cancel i = [(functionN, "simp_trace_cancel"), (serialN, print_int i)];
 
 
 (** print mode operations **)

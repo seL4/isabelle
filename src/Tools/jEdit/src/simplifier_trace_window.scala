@@ -10,12 +10,9 @@ package isabelle.jedit
 import isabelle._
 
 import scala.annotation.tailrec
-
 import scala.collection.immutable.SortedMap
-
 import scala.swing.{BorderPanel, CheckBox, Component, Dimension, Frame, Label, TextField}
 import scala.swing.event.{Key, KeyPressed}
-
 import scala.util.matching.Regex
 
 import java.awt.BorderLayout
@@ -25,17 +22,15 @@ import javax.swing.SwingUtilities
 
 import org.gjt.sp.jedit.View
 
+
 private object Simplifier_Trace_Window
 {
-
-  import Markup.Simp_Trace_Item
-
   sealed trait Trace_Tree
   {
     var children: SortedMap[Long, Elem_Tree] = SortedMap.empty
     val serial: Long
     val parent: Option[Trace_Tree]
-    var hints: List[Simp_Trace_Item.Data]
+    var hints: List[Simplifier_Trace.Item.Data]
     def set_interesting(): Unit
   }
 
@@ -43,17 +38,19 @@ private object Simplifier_Trace_Window
   {
     val parent = None
     val hints = Nil
-    def hints_=(xs: List[Simp_Trace_Item.Data]) = throw new IllegalStateException("Root_Tree.hints")
+    def hints_=(xs: List[Simplifier_Trace.Item.Data]) =
+      throw new IllegalStateException("Root_Tree.hints")
     def set_interesting() = ()
 
     def format(regex: Option[Regex]): XML.Body =
       Pretty.separate(children.values.map(_.format(regex)._2)(collection.breakOut))
   }
 
-  final class Elem_Tree(data: Simp_Trace_Item.Data, val parent: Option[Trace_Tree]) extends Trace_Tree
+  final class Elem_Tree(data: Simplifier_Trace.Item.Data, val parent: Option[Trace_Tree])
+    extends Trace_Tree
   {
     val serial = data.serial
-    var hints = List.empty[Simp_Trace_Item.Data]
+    var hints = List.empty[Simplifier_Trace.Item.Data]
     var interesting: Boolean = false
 
     def set_interesting(): Unit =
@@ -76,7 +73,7 @@ private object Simplifier_Trace_Window
           Some(XML.Elem(Markup(Markup.ITEM, Nil), List(res)))
       }
 
-      def format_hint(data: Simp_Trace_Item.Data): XML.Tree =
+      def format_hint(data: Simplifier_Trace.Item.Data): XML.Tree =
         Pretty.block(Pretty.separate(
           XML.Text(data.text) ::
           data.content
@@ -111,19 +108,19 @@ private object Simplifier_Trace_Window
   }
 
   @tailrec
-  def walk_trace(rest: List[Simp_Trace_Item.Data], lookup: Map[Long, Trace_Tree]): Unit =
+  def walk_trace(rest: List[Simplifier_Trace.Item.Data], lookup: Map[Long, Trace_Tree]): Unit =
     rest match {
       case Nil =>
         ()
       case head :: tail =>
         lookup.get(head.parent) match {
           case Some(parent) =>
-            if (head.markup == Simp_Trace_Item.HINT)
+            if (head.markup == Markup.SIMP_TRACE_HINT)
             {
               parent.hints ::= head
               walk_trace(tail, lookup)
             }
-            else if (head.markup == Simp_Trace_Item.IGNORE)
+            else if (head.markup == Markup.SIMP_TRACE_IGNORE)
             {
               parent.parent match {
                 case None =>
@@ -137,7 +134,7 @@ private object Simplifier_Trace_Window
             {
               val entry = new Elem_Tree(head, Some(parent))
               parent.children += ((head.serial, entry))
-              if (head.markup == Simp_Trace_Item.STEP || head.markup == Simp_Trace_Item.LOG)
+              if (head.markup == Markup.SIMP_TRACE_STEP || head.markup == Markup.SIMP_TRACE_LOG)
                 entry.set_interesting()
               walk_trace(tail, lookup + (head.serial -> entry))
             }
