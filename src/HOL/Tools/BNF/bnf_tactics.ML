@@ -12,7 +12,6 @@ sig
 
   val fo_rtac: thm -> Proof.context -> int -> tactic
 
-  val mk_flatten_assoc_tac: (int -> tactic) -> thm -> thm -> thm -> tactic
   val mk_rotate_eq_tac: (int -> tactic) -> thm -> thm -> thm -> thm -> ''a list -> ''a list ->
     int -> tactic
 
@@ -20,8 +19,6 @@ sig
 
   val mk_Abs_bij_thm: Proof.context -> thm -> thm -> thm
   val mk_Abs_inj_thm: thm -> thm
-
-  val mk_ctor_or_dtor_rel_tac: Proof.context -> thm -> thm list -> thm list -> thm -> tactic
 
   val mk_map_comp_id_tac: thm -> tactic
   val mk_map_cong0_tac: Proof.context -> int -> thm -> tactic
@@ -84,15 +81,6 @@ fun mk_rotate_eq_tac refl_tac trans assoc com cong =
   in
     gen_tac
   end;
-
-fun mk_ctor_or_dtor_rel_tac ctxt srel_def IJrel_defs IJsrel_defs dtor_srel =
-  unfold_thms_tac ctxt IJrel_defs THEN
-  rtac (unfold_thms ctxt (IJrel_defs @ IJsrel_defs @
-    @{thms Collect_mem_eq mem_Collect_eq fst_conv snd_conv}) dtor_srel RS trans) 1 THEN
-  unfold_thms_tac ctxt (srel_def ::
-    @{thms pair_collapse Collect_mem_eq mem_Collect_eq prod.cases fst_conv snd_conv
-      split_conv}) THEN
-  rtac refl 1;
 
 fun mk_map_comp_id_tac map_comp0 =
   (rtac trans THEN' rtac map_comp0 THEN' REPEAT_DETERM o stac @{thm comp_id} THEN' rtac refl) 1;
