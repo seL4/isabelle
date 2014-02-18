@@ -187,10 +187,10 @@ fun prove_common immediate pri ctxt xs asms props tac =
     val skip = not immediate andalso not schematic andalso future andalso skip_proofs_enabled ();
 
     val pos = Position.thread_data ();
-    fun err msg = cat_error msg
-      ("The error(s) above occurred for the goal statement:\n" ^
-        Syntax.string_of_term ctxt (Logic.list_implies (asms, Logic.mk_conjunction_list props)) ^
-        (case Position.here pos of "" => "" | s => "\n" ^ s));
+    fun err msg =
+      cat_error msg
+        ("The error(s) above occurred for the goal statement" ^ Position.here pos ^ ":\n" ^
+          Syntax.string_of_term ctxt (Logic.list_implies (asms, Logic.mk_conjunction_list props)));
 
     fun cert_safe t = Thm.cterm_of thy (Envir.beta_norm (Term.no_dummy_patterns t))
       handle TERM (msg, _) => err msg | TYPE (msg, _, _) => err msg;
