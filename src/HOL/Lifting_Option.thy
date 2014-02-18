@@ -39,10 +39,6 @@ lemma Domainp_option[relator_domain]:
 using assms unfolding Domainp_iff[abs_def] rel_option_iff[abs_def]
 by (auto iff: fun_eq_iff split: option.split)
 
-lemma reflp_rel_option[reflexivity_rule]:
-  "reflp R \<Longrightarrow> reflp (rel_option R)"
-  unfolding reflp_def split_option_all by simp
-
 lemma left_total_rel_option[reflexivity_rule]:
   "left_total R \<Longrightarrow> left_total (rel_option R)"
   unfolding left_total_def split_option_all split_option_ex by simp

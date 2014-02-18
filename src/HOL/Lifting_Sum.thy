@@ -26,10 +26,6 @@ lemma Domainp_sum[relator_domain]:
 using assms
 by (auto simp add: Domainp_iff split_sum_ex iff: fun_eq_iff split: sum.split)
 
-lemma reflp_sum_rel[reflexivity_rule]:
-  "reflp R1 \<Longrightarrow> reflp R2 \<Longrightarrow> reflp (sum_rel R1 R2)"
-  unfolding reflp_def split_sum_all sum_rel_simps by fast
-
 lemma left_total_sum_rel[reflexivity_rule]:
   "left_total R1 \<Longrightarrow> left_total R2 \<Longrightarrow> left_total (sum_rel R1 R2)"
   using assms unfolding left_total_def split_sum_all split_sum_ex by simp

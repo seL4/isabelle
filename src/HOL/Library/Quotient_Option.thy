@@ -22,6 +22,10 @@ declare
   map_option.id [id_simps]
   rel_option_eq [id_simps]
 
+lemma reflp_rel_option:
+  "reflp R \<Longrightarrow> reflp (rel_option R)"
+  unfolding reflp_def split_option_all by simp
+
 lemma option_symp:
   "symp R \<Longrightarrow> symp (rel_option R)"
   unfolding symp_def split_option_all

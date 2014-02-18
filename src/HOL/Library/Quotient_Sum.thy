@@ -26,6 +26,10 @@ lemma sum_rel_eq [id_simps]:
   "sum_rel (op =) (op =) = (op =)"
   by (simp add: sum_rel_def fun_eq_iff split: sum.split)
 
+lemma reflp_sum_rel:
+  "reflp R1 \<Longrightarrow> reflp R2 \<Longrightarrow> reflp (sum_rel R1 R2)"
+  unfolding reflp_def split_sum_all sum_rel_simps by fast
+
 lemma sum_symp:
   "symp R1 \<Longrightarrow> symp R2 \<Longrightarrow> symp (sum_rel R1 R2)"
   unfolding symp_def split_sum_all sum_rel_simps by fast

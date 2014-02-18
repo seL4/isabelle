@@ -30,12 +30,6 @@ lemma Domainp_prod[relator_domain]:
   shows "Domainp (prod_rel T1 T2) = (prod_pred P1 P2)"
 using assms unfolding prod_rel_def prod_pred_def by blast
 
-lemma reflp_prod_rel [reflexivity_rule]:
-  assumes "reflp R1"
-  assumes "reflp R2"
-  shows "reflp (prod_rel R1 R2)"
-using assms by (auto intro!: reflpI elim: reflpE)
-
 lemma left_total_prod_rel [reflexivity_rule]:
   assumes "left_total R1"
   assumes "left_total R2"
