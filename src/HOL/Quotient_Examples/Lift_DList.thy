@@ -35,20 +35,15 @@ by simp
 
 text {* Derived operations: *}
 
-lift_definition null :: "'a dlist \<Rightarrow> bool" is List.null
-by simp
+lift_definition null :: "'a dlist \<Rightarrow> bool" is List.null .
 
-lift_definition member :: "'a dlist \<Rightarrow> 'a \<Rightarrow> bool" is List.member
-by simp
+lift_definition member :: "'a dlist \<Rightarrow> 'a \<Rightarrow> bool" is List.member .
 
-lift_definition length :: "'a dlist \<Rightarrow> nat" is List.length
-by simp
+lift_definition length :: "'a dlist \<Rightarrow> nat" is List.length .
 
-lift_definition fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a dlist \<Rightarrow> 'b \<Rightarrow> 'b" is List.fold
-by simp
+lift_definition fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a dlist \<Rightarrow> 'b \<Rightarrow> 'b" is List.fold .
 
-lift_definition foldr :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a dlist \<Rightarrow> 'b \<Rightarrow> 'b" is List.foldr
-by simp
+lift_definition foldr :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a dlist \<Rightarrow> 'b \<Rightarrow> 'b" is List.foldr .
 
 lift_definition concat :: "'a dlist dlist \<Rightarrow> 'a dlist" is "remdups o List.concat"
 proof -

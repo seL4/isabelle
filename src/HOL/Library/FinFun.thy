@@ -411,7 +411,7 @@ next
 qed
 
 lift_definition finfun_default :: "'a \<Rightarrow>f 'b \<Rightarrow> 'b"
-is "finfun_default_aux" ..
+is "finfun_default_aux" .
 
 lemma finite_finfun_default: "finite {a. finfun_apply f a \<noteq> finfun_default f}"
 by transfer (erule finite_finfun_default_aux)

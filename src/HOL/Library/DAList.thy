@@ -39,7 +39,7 @@ by(rule impl_of_inverse)
 
 subsection {* Primitive operations *}
 
-lift_definition lookup :: "('key, 'value) alist \<Rightarrow> 'key \<Rightarrow> 'value option" is map_of  ..
+lift_definition lookup :: "('key, 'value) alist \<Rightarrow> 'key \<Rightarrow> 'value option" is map_of  .
 
 lift_definition empty :: "('key, 'value) alist" is "[]" by simp
 

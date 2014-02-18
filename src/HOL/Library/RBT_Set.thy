@@ -423,7 +423,7 @@ qed
 (** abstract **)
 
 lift_definition fold1_keys :: "('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> ('a::linorder, 'b) rbt \<Rightarrow> 'a"
-  is rbt_fold1_keys by simp
+  is rbt_fold1_keys .
 
 lemma fold1_keys_def_alt:
   "fold1_keys f t = List.fold f (tl(keys t)) (hd(keys t))"
@@ -441,9 +441,9 @@ qed
 
 (* minimum *)
 
-lift_definition r_min :: "('a :: linorder, unit) rbt \<Rightarrow> 'a" is rbt_min by simp
+lift_definition r_min :: "('a :: linorder, unit) rbt \<Rightarrow> 'a" is rbt_min .
 
-lift_definition r_min_opt :: "('a :: linorder, unit) rbt \<Rightarrow> 'a" is rbt_min_opt by simp
+lift_definition r_min_opt :: "('a :: linorder, unit) rbt \<Rightarrow> 'a" is rbt_min_opt .
 
 lemma r_min_alt_def: "r_min t = fold1_keys min t"
 by transfer (simp add: rbt_min_def)
@@ -479,9 +479,9 @@ qed
 
 (* maximum *)
 
-lift_definition r_max :: "('a :: linorder, unit) rbt \<Rightarrow> 'a" is rbt_max by simp
+lift_definition r_max :: "('a :: linorder, unit) rbt \<Rightarrow> 'a" is rbt_max .
 
-lift_definition r_max_opt :: "('a :: linorder, unit) rbt \<Rightarrow> 'a" is rbt_max_opt by simp
+lift_definition r_max_opt :: "('a :: linorder, unit) rbt \<Rightarrow> 'a" is rbt_max_opt .
 
 lemma r_max_alt_def: "r_max t = fold1_keys max t"
 by transfer (simp add: rbt_max_def)
