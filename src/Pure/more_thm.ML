@@ -37,7 +37,6 @@ sig
   val thm_cache: (thm -> 'a) -> thm -> 'a
   val is_reflexive: thm -> bool
   val eq_thm: thm * thm -> bool
-  val eq_thm_thy: thm * thm -> bool
   val eq_thm_prop: thm * thm -> bool
   val eq_thm_strict: thm * thm -> bool
   val equiv_thm: thm * thm -> bool
@@ -191,17 +190,17 @@ fun thm_cache f = Cache.create Thmtab.empty Thmtab.lookup Thmtab.update f;
 fun is_reflexive th = op aconv (Logic.dest_equals (Thm.prop_of th))
   handle TERM _ => false;
 
-fun eq_thm ths =
-  Context.joinable (pairself Thm.theory_of_thm ths) andalso
-  is_equal (thm_ord ths);
+val eq_thm = is_equal o thm_ord;
 
-val eq_thm_thy = Theory.eq_thy o pairself Thm.theory_of_thm;
 val eq_thm_prop = op aconv o pairself Thm.full_prop_of;
 
 fun eq_thm_strict ths =
-  eq_thm_thy ths andalso eq_thm ths andalso
-    let val (rep1, rep2) = pairself Thm.rep_thm ths
-    in #maxidx rep1 = #maxidx rep2 andalso #tags rep1 = #tags rep2 end;
+  eq_thm ths andalso
+    let val (rep1, rep2) = pairself Thm.rep_thm ths in
+      Theory.eq_thy (#thy rep1, #thy rep2) andalso
+      #maxidx rep1 = #maxidx rep2 andalso
+      #tags rep1 = #tags rep2
+    end;
 
 
 (* pattern equivalence *)

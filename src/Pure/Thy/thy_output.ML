@@ -188,7 +188,7 @@ fun eval_antiquote lex state (txt, pos) =
 
 
 fun check_text (txt, pos) state =
- (Position.report pos Markup.document_source;
+ (Position.report pos Markup.language_document;
   if Toplevel.is_skipped_proof state then ()
   else ignore (eval_antiquote (#1 (Keyword.get_lexicons ())) state (txt, pos)));
 
@@ -470,6 +470,9 @@ fun tweak_line ctxt s =
 fun pretty_text ctxt =
   Pretty.chunks o map Pretty.str o map (tweak_line ctxt) o split_lines;
 
+fun pretty_text_report ctxt (s, pos) =
+  (Context_Position.report ctxt pos Markup.language_text; pretty_text ctxt s);
+
 fun pretty_term ctxt t = Syntax.pretty_term (Variable.auto_fixes t ctxt) t;
 
 fun pretty_thm ctxt = pretty_term ctxt o Thm.full_prop_of;
@@ -574,7 +577,7 @@ val _ = Theory.setup
   basic_entity (Binding.name "typ") Args.typ_abbrev Syntax.pretty_typ #>
   basic_entity (Binding.name "class") (Scan.lift Args.name_inner_syntax) pretty_class #>
   basic_entity (Binding.name "type") (Scan.lift Args.name) pretty_type #>
-  basic_entity (Binding.name "text") (Scan.lift Args.name) pretty_text #>
+  basic_entity (Binding.name "text") (Scan.lift (Parse.position Args.name)) pretty_text_report #>
   basic_entities (Binding.name "prf") Attrib.thms (pretty_prf false) #>
   basic_entities (Binding.name "full_prf") Attrib.thms (pretty_prf true) #>
   basic_entity (Binding.name "theory") (Scan.lift (Parse.position Args.name)) pretty_theory);

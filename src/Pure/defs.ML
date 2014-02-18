@@ -11,7 +11,11 @@ sig
   val plain_args: typ list -> bool
   type T
   type spec =
-    {def: string option, description: string, lhs: typ list, rhs: (string * typ list) list}
+   {def: string option,
+    description: string,
+    pos: Position.T,
+    lhs: typ list,
+    rhs: (string * typ list) list}
   val all_specifications_of: T -> (string * spec list) list
   val specifications_of: T -> string -> spec list
   val dest: T ->
@@ -53,11 +57,15 @@ fun match_args (Ts, Us) =
 (* datatype defs *)
 
 type spec =
-  {def: string option, description: string, lhs: args, rhs: (string * args) list};
+ {def: string option,
+  description: string,
+  pos: Position.T,
+  lhs: args,
+  rhs: (string * args) list};
 
 type def =
- {specs: spec Inttab.table,                 (*source specifications*)
-  restricts: (args * string) list,          (*global restrictions imposed by incomplete patterns*)
+ {specs: spec Inttab.table,  (*source specifications*)
+  restricts: (args * string) list,  (*global restrictions imposed by incomplete patterns*)
   reducts: (args * (string * args) list) list};  (*specifications as reduction system*)
 
 fun make_def (specs, restricts, reducts) =
@@ -97,11 +105,12 @@ val empty = Defs Symtab.empty;
 
 (* specifications *)
 
-fun disjoint_specs c (i, {lhs = Ts, description = a, ...}: spec) =
-  Inttab.forall (fn (j, {lhs = Us, description = b, ...}: spec) =>
+fun disjoint_specs c (i, {description = a, pos = pos_a, lhs = Ts, ...}: spec) =
+  Inttab.forall (fn (j, {description = b, pos = pos_b, lhs = Us, ...}: spec) =>
     i = j orelse disjoint_args (Ts, Us) orelse
-      error ("Clash of specifications " ^ quote a ^ " and " ^ quote b ^
-        " for constant " ^ quote c));
+      error ("Clash of specifications for constant " ^ quote c ^ ":\n" ^
+        "  " ^ quote a ^ Position.here pos_a ^ "\n" ^
+        "  " ^ quote b ^ Position.here pos_b));
 
 fun join_specs c ({specs = specs1, restricts, reducts}, {specs = specs2, ...}: def) =
   let
@@ -204,12 +213,13 @@ fun merge ctxt (Defs defs1, Defs defs2) =
 
 fun define ctxt unchecked def description (c, args) deps (Defs defs) =
   let
+    val pos = Position.thread_data ();
     val restr =
       if plain_args args orelse
         (case args of [Type (_, rec_args)] => plain_args rec_args | _ => false)
       then [] else [(args, description)];
     val spec =
-      (serial (), {def = def, description = description, lhs = args, rhs = deps});
+      (serial (), {def = def, description = description, pos = pos, lhs = args, rhs = deps});
     val defs' = defs |> update_specs c spec;
   in Defs (defs' |> (if unchecked then I else dependencies ctxt (c, args) restr deps)) end;
 

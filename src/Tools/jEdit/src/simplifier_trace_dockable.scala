@@ -10,7 +10,6 @@ package isabelle.jedit
 import isabelle._
 
 import scala.actors.Actor._
-
 import scala.swing.{Button, CheckBox, Orientation, Separator}
 import scala.swing.event.ButtonClicked
 
@@ -18,6 +17,7 @@ import java.awt.BorderLayout
 import java.awt.event.{ComponentEvent, ComponentAdapter}
 
 import org.gjt.sp.jedit.View
+
 
 class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(view, position)
 {

@@ -27,48 +27,48 @@ options.isabelle-general.code=new isabelle.jedit.Isabelle_Options1();
 options.isabelle-rendering.label=Rendering
 options.isabelle-rendering.code=new isabelle.jedit.Isabelle_Options2();
 
-#menu actions
+#menu actions and dockables
 plugin.isabelle.jedit.Plugin.menu.label=Isabelle
 plugin.isabelle.jedit.Plugin.menu= \
-  isabelle.documentation-panel \
-  isabelle.find-panel \
-  isabelle.monitor-panel \
-  isabelle.output-panel \
-  isabelle.protocol-panel \
-  isabelle.raw-output-panel \
-  isabelle.sledgehammer-panel \
-  isabelle.simp-trace-panel \
-  isabelle.symbols-panel \
-  isabelle.syslog-panel \
-  isabelle.theories-panel \
-  isabelle.timing-panel
-isabelle.documentation-panel.label=Documentation panel
-isabelle.find-panel.label=Find panel
-isabelle.monitor-panel.label=Monitor panel
-isabelle.output-panel.label=Output panel
-isabelle.protocol-panel.label=Protocol panel
-isabelle.raw-output-panel.label=Raw Output panel
-isabelle.simp-trace-panel.label=Simplifier trace panel
-isabelle.sledgehammer-panel.label=Sledgehammer panel
-isabelle.symbols-panel.label=Symbols panel
-isabelle.syslog-panel.label=Syslog panel
-isabelle.theories-panel.label=Theories panel
-isabelle.timing-panel.label=Timing panel
-
-#dockables
-isabelle-find.title=Find
-isabelle-graphview.title=Graphview
-isabelle-info.title=Info
-isabelle-monitor.title=Monitor
-isabelle-output.title=Output
-isabelle-simp-trace.title=Simplifier trace
-isabelle-protocol.title=Protocol
-isabelle-raw-output.title=Raw Output
+  isabelle-documentation \
+  isabelle-find \
+  isabelle-monitor \
+  isabelle-output \
+  isabelle-protocol \
+  isabelle-raw-output \
+  isabelle-simplifier-trace \
+  isabelle-sledgehammer \
+  isabelle-symbols \
+  isabelle-syslog \
+  isabelle-theories \
+  isabelle-timing
+isabelle-documentation.label=Documentation panel
 isabelle-documentation.title=Documentation
+isabelle-find.label=Find panel
+isabelle-find.title=Find
+isabelle-graphview.label=Graphview panel
+isabelle-graphview.title=Graphview
+isabelle-info.label=Info panel
+isabelle-info.title=Info
+isabelle-monitor.label=Monitor panel
+isabelle-monitor.title=Monitor
+isabelle-output.label=Output panel
+isabelle-output.title=Output
+isabelle-protocol.label=Protocol panel
+isabelle-protocol.title=Protocol
+isabelle-raw-output.label=Raw Output panel
+isabelle-raw-output.title=Raw Output
+isabelle-simplifier-trace.label=Simplifier Trace panel
+isabelle-simplifier-trace.title=Simplifier Trace
+isabelle-sledgehammer.label=Sledgehammer panel
 isabelle-sledgehammer.title=Sledgehammer
+isabelle-symbols.label=Symbols panel
 isabelle-symbols.title=Symbols
+isabelle-syslog.label=Syslog panel
 isabelle-syslog.title=Syslog
+isabelle-theories.label=Theories panel
 isabelle-theories.title=Theories
+isabelle-timing.label=Timing panel
 isabelle-timing.title=Timing
 
 #SideKick

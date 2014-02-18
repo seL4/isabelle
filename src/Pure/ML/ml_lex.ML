@@ -300,7 +300,7 @@ val tokenize = Source.of_string #> Symbol.source #> source #> Source.exhaust;
 
 fun read pos txt =
   let
-    val _ = Position.report pos Markup.ML_source;
+    val _ = Position.report pos Markup.language_ML;
     val syms = Symbol_Pos.explode (txt, pos);
     val termination =
       if null syms then []
