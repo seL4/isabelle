@@ -2,66 +2,6 @@
 <!DOCTYPE ACTIONS SYSTEM "actions.dtd">
 
 <ACTIONS>
-	<ACTION NAME="isabelle.theories-panel">
-		<CODE>
-			wm.addDockableWindow("isabelle-theories");
-		</CODE>
-	</ACTION>
-	<ACTION NAME="isabelle.timing-panel">
-		<CODE>
-			wm.addDockableWindow("isabelle-timing");
-		</CODE>
-	</ACTION>
-	<ACTION NAME="isabelle.syslog-panel">
-		<CODE>
-			wm.addDockableWindow("isabelle-syslog");
-		</CODE>
-	</ACTION>
-	<ACTION NAME="isabelle.documentation-panel">
-		<CODE>
-			wm.addDockableWindow("isabelle-documentation");
-		</CODE>
-	</ACTION>
-	<ACTION NAME="isabelle.find-panel">
-		<CODE>
-			wm.addDockableWindow("isabelle-find");
-		</CODE>
-	</ACTION>
-	<ACTION NAME="isabelle.sledgehammer-panel">
-		<CODE>
-			wm.addDockableWindow("isabelle-sledgehammer");
-		</CODE>
-	</ACTION>
-	<ACTION NAME="isabelle.output-panel">
-		<CODE>
-			wm.addDockableWindow("isabelle-output");
-		</CODE>
-	</ACTION>
-	<ACTION NAME="isabelle.raw-output-panel">
-		<CODE>
-			wm.addDockableWindow("isabelle-raw-output");
-		</CODE>
-	</ACTION>
-	<ACTION NAME="isabelle.simplifier-trace-panel">
-		<CODE>
-			wm.addDockableWindow("isabelle-simplifier-trace");
-		</CODE>
-	</ACTION>
-	<ACTION NAME="isabelle.protocol-panel">
-		<CODE>
-			wm.addDockableWindow("isabelle-protocol");
-		</CODE>
-	</ACTION>
-	<ACTION NAME="isabelle.monitor-panel">
-		<CODE>
-			wm.addDockableWindow("isabelle-monitor");
-		</CODE>
-	</ACTION>
-	<ACTION NAME="isabelle.symbols-panel">
-		<CODE>
-			wm.addDockableWindow("isabelle-symbols");
-		</CODE>
-	</ACTION>
 	<ACTION NAME="isabelle.set-continuous-checking">
 	  <CODE>
 	    isabelle.jedit.Isabelle.set_continuous_checking();

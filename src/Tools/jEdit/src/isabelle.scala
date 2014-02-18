@@ -58,45 +58,75 @@ object Isabelle
 
   private def wm(view: View): DockableWindowManager = view.getDockableWindowManager
 
-  def docked_theories(view: View): Option[Theories_Dockable] =
-    wm(view).getDockableWindow("isabelle-theories") match {
-      case dockable: Theories_Dockable => Some(dockable)
+  def documentation_dockable(view: View): Option[Documentation_Dockable] =
+    wm(view).getDockableWindow("isabelle-documentation") match {
+      case dockable: Documentation_Dockable => Some(dockable)
       case _ => None
     }
 
-  def docked_timing(view: View): Option[Timing_Dockable] =
-    wm(view).getDockableWindow("isabelle-timing") match {
-      case dockable: Timing_Dockable => Some(dockable)
+  def find_dockable(view: View): Option[Find_Dockable] =
+    wm(view).getDockableWindow("isabelle-find") match {
+      case dockable: Find_Dockable => Some(dockable)
       case _ => None
     }
 
-  def docked_output(view: View): Option[Output_Dockable] =
+  def monitor_dockable(view: View): Option[Monitor_Dockable] =
+    wm(view).getDockableWindow("isabelle-monitor") match {
+      case dockable: Monitor_Dockable => Some(dockable)
+      case _ => None
+    }
+
+  def output_dockable(view: View): Option[Output_Dockable] =
     wm(view).getDockableWindow("isabelle-output") match {
       case dockable: Output_Dockable => Some(dockable)
       case _ => None
     }
 
-  def docked_raw_output(view: View): Option[Raw_Output_Dockable] =
-    wm(view).getDockableWindow("isabelle-raw-output") match {
-      case dockable: Raw_Output_Dockable => Some(dockable)
-      case _ => None
-    }
-
-  def docked_simplifier_trace(view: View): Option[Simplifier_Trace_Dockable] =
-    wm(view).getDockableWindow("isabelle-simplifier-trace") match {
-      case dockable: Simplifier_Trace_Dockable => Some(dockable)
-      case _ => None
-    }
-
-  def docked_protocol(view: View): Option[Protocol_Dockable] =
+  def protocol_dockable(view: View): Option[Protocol_Dockable] =
     wm(view).getDockableWindow("isabelle-protocol") match {
       case dockable: Protocol_Dockable => Some(dockable)
       case _ => None
     }
 
-  def docked_monitor(view: View): Option[Monitor_Dockable] =
-    wm(view).getDockableWindow("isabelle-monitor") match {
-      case dockable: Monitor_Dockable => Some(dockable)
+  def raw_output_dockable(view: View): Option[Raw_Output_Dockable] =
+    wm(view).getDockableWindow("isabelle-raw-output") match {
+      case dockable: Raw_Output_Dockable => Some(dockable)
+      case _ => None
+    }
+
+  def simplifier_trace_dockable(view: View): Option[Simplifier_Trace_Dockable] =
+    wm(view).getDockableWindow("isabelle-simplifier-trace") match {
+      case dockable: Simplifier_Trace_Dockable => Some(dockable)
+      case _ => None
+    }
+
+  def sledgehammer_dockable(view: View): Option[Sledgehammer_Dockable] =
+    wm(view).getDockableWindow("isabelle-sledgehammer") match {
+      case dockable: Sledgehammer_Dockable => Some(dockable)
+      case _ => None
+    }
+
+  def symbols_dockable(view: View): Option[Symbols_Dockable] =
+    wm(view).getDockableWindow("isabelle-symbols") match {
+      case dockable: Symbols_Dockable => Some(dockable)
+      case _ => None
+    }
+
+  def syslog_dockable(view: View): Option[Syslog_Dockable] =
+    wm(view).getDockableWindow("isabelle-syslog") match {
+      case dockable: Syslog_Dockable => Some(dockable)
+      case _ => None
+    }
+
+  def theories_dockable(view: View): Option[Theories_Dockable] =
+    wm(view).getDockableWindow("isabelle-theories") match {
+      case dockable: Theories_Dockable => Some(dockable)
+      case _ => None
+    }
+
+  def timing_dockable(view: View): Option[Timing_Dockable] =
+    wm(view).getDockableWindow("isabelle-timing") match {
+      case dockable: Timing_Dockable => Some(dockable)
       case _ => None
     }
 
