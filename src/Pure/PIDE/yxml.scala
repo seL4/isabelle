@@ -120,7 +120,7 @@ object YXML
   /* failsafe parsing */
 
   private def markup_broken(source: CharSequence) =
-    XML.elem(Markup.Broken.name, List(XML.Text(source.toString)))
+    XML.Elem(Markup.Broken, List(XML.Text(source.toString)))
 
   def parse_body_failsafe(source: CharSequence): XML.Body =
   {

@@ -27,6 +27,24 @@ object Markup
   val Empty = Markup("", Nil)
   val Broken = Markup("broken", Nil)
 
+  class Markup_String(val name: String, prop: String)
+  {
+    private val Prop = new Properties.String(prop)
+
+    def apply(s: String): Markup = Markup(name, Prop(s))
+    def unapply(markup: Markup): Option[String] =
+      if (markup.name == name) Prop.unapply(markup.properties) else None
+  }
+
+  class Markup_Int(val name: String, prop: String)
+  {
+    private val Prop = new Properties.Int(prop)
+
+    def apply(i: Int): Markup = Markup(name, Prop(i))
+    def unapply(markup: Markup): Option[Int] =
+      if (markup.name == name) Prop.unapply(markup.properties) else None
+  }
+
 
   /* formal entities */
 
@@ -39,9 +57,9 @@ object Markup
   {
     def unapply(markup: Markup): Option[(String, String)] =
       markup match {
-        case Markup(ENTITY, props @ Kind(kind)) =>
-          props match {
-            case Name(name) => Some(kind, name)
+        case Markup(ENTITY, props) =>
+          (props, props) match {
+            case (Kind(kind), Name(name)) => Some(kind, name)
             case _ => None
           }
         case _ => None
@@ -70,49 +88,22 @@ object Markup
   /* embedded languages */
 
   val LANGUAGE = "language"
-
-  object Language
-  {
-    def unapply(markup: Markup): Option[String] =
-      markup match {
-        case Markup(LANGUAGE, Name(name)) => Some(name)
-        case _ => None
-      }
-  }
+  val Language = new Markup_String(LANGUAGE, NAME)
 
 
   /* external resources */
 
   val PATH = "path"
-
-  object Path
-  {
-    def unapply(markup: Markup): Option[String] =
-      markup match {
-        case Markup(PATH, Name(name)) => Some(name)
-        case _ => None
-      }
-  }
+  val Path = new Markup_String(PATH, NAME)
 
   val URL = "url"
-
-  object Url
-  {
-    def unapply(markup: Markup): Option[String] =
-      markup match {
-        case Markup(URL, Name(name)) => Some(name)
-        case _ => None
-      }
-  }
+  val Url = new Markup_String(URL, NAME)
 
 
   /* pretty printing */
 
-  val Indent = new Properties.Int("indent")
-  val BLOCK = "block"
-
-  val Width = new Properties.Int("width")
-  val BREAK = "break"
+  val Block = new Markup_Int("block", "indent")
+  val Break = new Markup_Int("break", "width")
 
   val ITEM = "item"
   val BULLET = "bullet"

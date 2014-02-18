@@ -221,9 +221,9 @@ fun is_empty ("", _) = true
 fun properties more_props ((elem, props): T) =
   (elem, fold_rev Properties.put more_props props);
 
-fun markup_elem elem = (elem, (elem, []): T);
-fun markup_string elem prop = (elem, fn s => (elem, [(prop, s)]): T);
-fun markup_int elem prop = (elem, fn i => (elem, [(prop, print_int i)]): T);
+fun markup_elem name = (name, (name, []): T);
+fun markup_string name prop = (name, fn s => (name, [(prop, s)]): T);
+fun markup_int name prop = (name, fn i => (name, [(prop, print_int i)]): T);
 
 
 (* misc properties *)
