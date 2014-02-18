@@ -252,7 +252,7 @@ fun setup_lifting_infr gen_code quot_thm opt_reflp_thm lthy =
     val lthy = case opt_reflp_thm of
       SOME reflp_thm => lthy
         |> (snd oo Local_Theory.note) ((Binding.empty, [reflexivity_rule_attr]),
-              [reflp_thm])
+              [reflp_thm RS @{thm reflp_ge_eq}])
         |> (snd oo Local_Theory.note) ((Binding.empty, [reflexivity_rule_attr]),
               [[quot_thm, reflp_thm] MRSL @{thm Quotient_to_left_total}])
         |> define_code_constr gen_code quot_thm

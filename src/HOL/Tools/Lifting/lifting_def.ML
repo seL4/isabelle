@@ -31,7 +31,7 @@ fun refl_tac ctxt =
   let
     fun intro_reflp_tac (ct, i) = 
     let
-      val rule = Thm.incr_indexes (#maxidx (rep_cterm ct) + 1) @{thm reflpD}
+      val rule = Thm.incr_indexes (#maxidx (rep_cterm ct) + 1) @{thm ge_eq_refl}
       val concl_pat = Drule.strip_imp_concl (cprop_of rule)
       val insts = Thm.first_order_match (concl_pat, ct)
     in

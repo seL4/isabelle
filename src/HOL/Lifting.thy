@@ -439,39 +439,23 @@ lemma Quotient_to_transfer:
 
 text {* Proving reflexivity *}
 
-definition reflp' :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool" where "reflp' R \<equiv> reflp R"
-
 lemma Quotient_to_left_total:
   assumes q: "Quotient R Abs Rep T"
   and r_R: "reflp R"
   shows "left_total T"
 using r_R Quotient_cr_rel[OF q] unfolding left_total_def by (auto elim: reflpE)
 
-lemma reflp_Quotient_composition:
-  assumes "left_total R"
-  assumes "reflp T"
-  shows "reflp (R OO T OO R\<inverse>\<inverse>)"
-using assms unfolding reflp_def left_total_def by fast
+lemma Quotient_composition_ge_eq:
+  assumes "left_total T"
+  assumes "R \<ge> op="
+  shows "(T OO R OO T\<inverse>\<inverse>) \<ge> op="
+using assms unfolding left_total_def by fast
 
-lemma reflp_fun1:
-  assumes "is_equality R"
-  assumes "reflp' S"
-  shows "reflp (R ===> S)"
-using assms unfolding is_equality_def reflp'_def reflp_def fun_rel_def by blast
-
-lemma reflp_fun2:
-  assumes "is_equality R"
-  assumes "is_equality S"
-  shows "reflp (R ===> S)"
-using assms unfolding is_equality_def reflp_def fun_rel_def by blast
-
-lemma is_equality_Quotient_composition:
-  assumes "is_equality T"
-  assumes "left_total R"
-  assumes "left_unique R"
-  shows "is_equality (R OO T OO R\<inverse>\<inverse>)"
-using assms unfolding is_equality_def left_total_def left_unique_def OO_def conversep_iff
-by fastforce
+lemma Quotient_composition_le_eq:
+  assumes "left_unique T"
+  assumes "R \<le> op="
+  shows "(T OO R OO T\<inverse>\<inverse>) \<le> op="
+using assms unfolding left_unique_def by fast
 
 lemma left_total_composition: "left_total R \<Longrightarrow> left_total S \<Longrightarrow> left_total (R OO S)"
 unfolding left_total_def OO_def by fast
@@ -479,8 +463,14 @@ unfolding left_total_def OO_def by fast
 lemma left_unique_composition: "left_unique R \<Longrightarrow> left_unique S \<Longrightarrow> left_unique (R OO S)"
 unfolding left_unique_def OO_def by fast
 
-lemma reflp_equality: "reflp (op =)"
-by (auto intro: reflpI)
+lemma invariant_le_eq:
+  "invariant P \<le> op=" unfolding invariant_def by blast
+
+lemma reflp_ge_eq:
+  "reflp R \<Longrightarrow> R \<ge> op=" unfolding reflp_def by blast
+
+lemma ge_eq_refl:
+  "R \<ge> op= \<Longrightarrow> R x x" by blast
 
 text {* Proving a parametrized correspondence relation *}
 
@@ -649,19 +639,10 @@ ML_file "Tools/Lifting/lifting_info.ML"
 setup Lifting_Info.setup
 
 lemmas [reflexivity_rule] = 
-  reflp_equality reflp_Quotient_composition is_equality_Quotient_composition 
-  left_total_fun left_unique_fun left_total_eq left_unique_eq left_total_composition
-  left_unique_composition
-
-text {* add @{thm reflp_fun1} and @{thm reflp_fun2} manually through ML
-  because we don't want to get reflp' variant of these theorems *}
-
-setup{*
-Context.theory_map 
-  (fold
-    (snd oo (Thm.apply_attribute Lifting_Info.add_reflexivity_rule_raw_attribute)) 
-      [@{thm reflp_fun1}, @{thm reflp_fun2}])
-*}
+  order_refl[of "op="] invariant_le_eq Quotient_composition_le_eq
+  Quotient_composition_ge_eq
+  left_total_eq left_unique_eq left_total_composition left_unique_composition
+  left_total_fun left_unique_fun
 
 (* setup for the function type *)
 declare fun_quotient[quot_map]
@@ -674,6 +655,6 @@ ML_file "Tools/Lifting/lifting_def.ML"
 
 ML_file "Tools/Lifting/lifting_setup.ML"
 
-hide_const (open) invariant POS NEG reflp'
+hide_const (open) invariant POS NEG
 
 end
