@@ -108,19 +108,17 @@ object Command
                 if id == command.id || id == alt_id =>
                   command.chunks.get(file_name) match {
                     case Some(chunk) =>
-                      val range = chunk.decode(raw_range)
-                      if (chunk.range.contains(range)) {
-                        val props = Position.purge(atts)
-                        val info: Text.Markup = Text.Info(range, XML.Elem(Markup(name, props), args))
-                        state.add_markup(file_name, info)
+                      chunk.decode(raw_range).try_restrict(chunk.range) match {
+                        case Some(range) =>
+                          if (!range.is_singularity) {
+                            val props = Position.purge(atts)
+                            state.add_markup(file_name,
+                              Text.Info(range, XML.Elem(Markup(name, props), args)))
+                          }
+                          else state
+                        case None => bad(); state
                       }
-                      else {
-                        bad()
-                        state
-                      }
-                    case None =>
-                      bad()
-                      state
+                    case None => bad(); state
                   }
 
                 case XML.Elem(Markup(name, atts), args)
@@ -130,9 +128,7 @@ object Command
                   val info: Text.Markup = Text.Info(range, XML.Elem(Markup(name, props), args))
                   state.add_markup("", info)
 
-                case _ =>
-                  // FIXME bad()
-                  state
+                case _ => /* FIXME bad(); */ state
               }
             })
         case XML.Elem(Markup(name, props), body) =>
