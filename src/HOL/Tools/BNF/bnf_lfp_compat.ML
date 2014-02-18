@@ -132,7 +132,7 @@ fun datatype_compat_cmd raw_fpT_names lthy =
       else
         ((fp_sugars0, (NONE, NONE)), lthy);
 
-    val {co_inducts = [induct], ...} :: _ = fp_sugars;
+    val {common_co_inducts = [induct], ...} :: _ = fp_sugars;
     val inducts = map (the_single o #co_inducts) fp_sugars;
 
     fun mk_dtyp [] (TFree a) = Datatype_Aux.DtTFree a
