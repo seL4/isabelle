@@ -85,7 +85,6 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
     val FTsAs = mk_FTs allAs;
     val FTsBs = mk_FTs allBs;
     val FTsCs = mk_FTs allCs;
-    val ATs = map HOLogic.mk_setT passiveAs;
     val BTs = map HOLogic.mk_setT activeAs;
     val B'Ts = map HOLogic.mk_setT activeBs;
     val B''Ts = map HOLogic.mk_setT activeCs;
@@ -120,11 +119,10 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
       bd0s Dss bnfs;
     val witss = map wits_of_bnf bnfs;
 
-    val (((((((((((((((((((zs, zs'), As), Bs), Bs_copy), B's), B''s), ss), prod_ss), s's), s''s),
+    val ((((((((((((((((((zs, zs'), Bs), Bs_copy), B's), B''s), ss), prod_ss), s's), s''s),
       fs), fs_copy), inv_fs), self_fs), gs), all_gs), (xFs, xFs')), (yFs, yFs')),
       names_lthy) = lthy
       |> mk_Frees' "z" activeAs
-      ||>> mk_Frees "A" ATs
       ||>> mk_Frees "B" BTs
       ||>> mk_Frees "B" BTs
       ||>> mk_Frees "B'" B'Ts
@@ -245,16 +243,16 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
     val alg_bind = mk_internal_b algN;
     val alg_def_bind = (Thm.def_binding alg_bind, []);
 
-    (*forall i = 1 ... n: (\<forall>x \<in> Fi_in A1 .. Am B1 ... Bn. si x \<in> Bi)*)
+    (*forall i = 1 ... n: (\<forall>x \<in> Fi_in UNIV .. UNIV B1 ... Bn. si x \<in> Bi)*)
     val alg_spec =
       let
-        val ins = map3 mk_in (replicate n (As @ Bs)) setssAs FTsAs;
+        val ins = map3 mk_in (replicate n (passive_UNIVs @ Bs)) setssAs FTsAs;
         fun mk_alg_conjunct B s X x x' =
           mk_Ball X (Term.absfree x' (HOLogic.mk_mem (s $ x, B)));
 
         val rhs = Library.foldr1 HOLogic.mk_conj (map5 mk_alg_conjunct Bs ss ins xFs xFs')
       in
-        fold_rev (Term.absfree o Term.dest_Free) (As @ Bs @ ss) rhs
+        fold_rev (Term.absfree o Term.dest_Free) (Bs @ ss) rhs
       end;
 
     val ((alg_free, (_, alg_def_free)), (lthy, lthy_old)) =
@@ -264,11 +262,11 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
     val alg = fst (Term.dest_Const (Morphism.term phi alg_free));
-    val alg_def = mk_unabs_def (live + n) (Morphism.thm phi alg_def_free RS meta_eq_to_obj_eq);
+    val alg_def = mk_unabs_def (2 * n) (Morphism.thm phi alg_def_free RS meta_eq_to_obj_eq);
 
-    fun mk_alg As Bs ss =
+    fun mk_alg Bs ss =
       let
-        val args = As @ Bs @ ss;
+        val args = Bs @ ss;
         val Ts = map fastype_of args;
         val algT = Library.foldr (op -->) (Ts, HOLogic.boolT);
       in
@@ -277,13 +275,13 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
 
     val alg_set_thms =
       let
-        val alg_prem = HOLogic.mk_Trueprop (mk_alg As Bs ss);
+        val alg_prem = HOLogic.mk_Trueprop (mk_alg Bs ss);
         fun mk_prem x set B = HOLogic.mk_Trueprop (mk_leq (set $ x) B);
         fun mk_concl s x B = HOLogic.mk_Trueprop (HOLogic.mk_mem (s $ x, B));
-        val premss = map2 ((fn x => fn sets =>  map2 (mk_prem x) sets (As @ Bs))) xFs setssAs;
+        val premss = map2 ((fn x => fn sets => map2 (mk_prem x) (drop m sets) Bs)) xFs setssAs;
         val concls = map3 mk_concl ss xFs Bs;
         val goals = map3 (fn x => fn prems => fn concl =>
-          fold_rev Logic.all (x :: As @ Bs @ ss)
+          fold_rev Logic.all (x :: Bs @ ss)
             (Logic.list_implies (alg_prem :: prems, concl))) xFs premss concls;
       in
         map (fn goal =>
@@ -291,12 +289,12 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
         goals
       end;
 
-    fun mk_talg ATs BTs = mk_alg (map HOLogic.mk_UNIV ATs) (map HOLogic.mk_UNIV BTs);
+    fun mk_talg BTs = mk_alg (map HOLogic.mk_UNIV BTs);
 
     val talg_thm =
       let
         val goal = fold_rev Logic.all ss
-          (HOLogic.mk_Trueprop (mk_talg passiveAs activeAs ss))
+          (HOLogic.mk_Trueprop (mk_talg activeAs ss))
       in
         Goal.prove_sorry lthy [] [] goal
           (K (stac alg_def 1 THEN CONJ_WRAP (K (EVERY' [rtac ballI, rtac UNIV_I] 1)) ss))
@@ -308,7 +306,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
     val alg_not_empty_thms =
       let
         val alg_prem =
-          HOLogic.mk_Trueprop (mk_alg passive_UNIVs Bs ss);
+          HOLogic.mk_Trueprop (mk_alg Bs ss);
         val concls = map (HOLogic.mk_Trueprop o mk_not_empty) Bs;
         val goals =
           map (fn concl =>
@@ -415,9 +413,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
         fun mk_inv_prem f inv_f B B' = HOLogic.mk_conj (mk_leq (mk_image inv_f $ B') B,
           HOLogic.mk_conj (mk_inver inv_f f B, mk_inver f inv_f B'));
         val prems = map HOLogic.mk_Trueprop
-          ([mk_mor Bs ss B's s's fs,
-          mk_alg passive_UNIVs Bs ss,
-          mk_alg passive_UNIVs B's s's] @
+          ([mk_mor Bs ss B's s's fs, mk_alg Bs ss, mk_alg B's s's] @
           map4 mk_inv_prem fs inv_fs Bs B's);
         val concl = HOLogic.mk_Trueprop (mk_mor B's s's Bs ss inv_fs);
       in
@@ -497,9 +493,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
 
     val iso_alt_thm =
       let
-        val prems = map HOLogic.mk_Trueprop
-         [mk_alg passive_UNIVs Bs ss,
-         mk_alg passive_UNIVs B's s's]
+        val prems = map HOLogic.mk_Trueprop [mk_alg Bs ss, mk_alg B's s's]
         val concl = mk_Trueprop_eq (mk_iso Bs ss B's s's fs inv_fs,
           HOLogic.mk_conj (mk_mor Bs ss B's s's fs,
             Library.foldr1 HOLogic.mk_conj (map3 mk_bij_betw fs Bs B's)));
@@ -517,7 +511,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
     val (copy_alg_thm, ex_copy_alg_thm) =
       let
         val prems = map HOLogic.mk_Trueprop
-         (mk_alg passive_UNIVs Bs ss :: map3 mk_bij_betw inv_fs B's Bs);
+         (mk_alg Bs ss :: map3 mk_bij_betw inv_fs B's Bs);
         val inver_prems = map HOLogic.mk_Trueprop
           (map3 mk_inver inv_fs fs Bs @ map3 mk_inver fs inv_fs B's);
         val all_prems = prems @ inver_prems;
@@ -525,7 +519,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
           (Term.list_comb (mapT, passive_ids @ inv_fs) $ y)));
 
         val alg = HOLogic.mk_Trueprop
-          (mk_alg passive_UNIVs B's (map5 mk_s fs ss mapsBsAs yFs yFs'));
+          (mk_alg B's (map5 mk_s fs ss mapsBsAs yFs yFs'));
         val copy_str_thm = Goal.prove_sorry lthy [] []
           (fold_rev Logic.all (Bs @ ss @ B's @ inv_fs @ fs)
             (Logic.list_implies (all_prems, alg)))
@@ -542,7 +536,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
 
         val ex = HOLogic.mk_Trueprop
           (list_exists_free s's
-            (HOLogic.mk_conj (mk_alg passive_UNIVs B's s's,
+            (HOLogic.mk_conj (mk_alg B's s's,
               mk_iso B's s's Bs ss inv_fs fs_copy)));
         val ex_copy_alg_thm = Goal.prove_sorry lthy [] []
           (fold_rev Logic.all (Bs @ ss @ B's @ inv_fs @ fs)
@@ -593,7 +587,9 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
     val suc_bd_Asuc_bd = @{thm ordLess_ordLeq_trans[OF ordLess_ctwo_cexp cexp_mono1]} OF
       [suc_bd_Card_order, basis_Asuc, suc_bd_Card_order];
 
-    val Asuc_bdT = fst (dest_relT (fastype_of (mk_Asuc_bd As)));
+
+    val Asuc_bd = mk_Asuc_bd passive_UNIVs;
+    val Asuc_bdT = fst (dest_relT (fastype_of Asuc_bd));
     val II_BTs = replicate n (HOLogic.mk_setT Asuc_bdT);
     val II_sTs = map2 (fn Ds => fn bnf =>
       mk_T_of_bnf Ds (passiveAs @ replicate n Asuc_bdT) bnf --> Asuc_bdT) Dss bnfs;
@@ -631,31 +627,31 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
     fun mk_minG Asi i k = mk_UNION (mk_underS suc_bd $ i)
       (Term.absfree jdx' (mk_nthN n (Asi $ jdx) k));
 
-    fun mk_minH_component As Asi i sets Ts s k =
+    fun mk_minH_component Asi i sets Ts s k =
       HOLogic.mk_binop @{const_name "sup"}
-      (mk_minG Asi i k, mk_image s $ mk_in (As @ map (mk_minG Asi i) ks) sets Ts);
+      (mk_minG Asi i k, mk_image s $ mk_in (passive_UNIVs @ map (mk_minG Asi i) ks) sets Ts);
 
-    fun mk_min_algs As ss =
+    fun mk_min_algs ss =
       let
         val BTs = map (range_type o fastype_of) ss;
-        val Ts = map (HOLogic.dest_setT o fastype_of) As @ BTs;
+        val Ts = passiveAs @ BTs;
         val (Asi, Asi') = `Free (Asi_name, suc_bdT -->
           Library.foldr1 HOLogic.mk_prodT (map HOLogic.mk_setT BTs));
       in
          mk_worec suc_bd (Term.absfree Asi' (Term.absfree idx' (HOLogic.mk_tuple
-           (map4 (mk_minH_component As Asi idx) (mk_setss Ts) (mk_FTs Ts) ss ks))))
+           (map4 (mk_minH_component Asi idx) (mk_setss Ts) (mk_FTs Ts) ss ks))))
       end;
 
     val (min_algs_thms, min_algs_mono_thms, card_of_min_algs_thm, least_min_algs_thm) =
       let
         val i_field = HOLogic.mk_mem (idx, field_suc_bd);
-        val min_algs = mk_min_algs As ss;
+        val min_algs = mk_min_algs ss;
         val min_algss = map (fn k => mk_nthN n (min_algs $ idx) k) ks;
 
         val concl = HOLogic.mk_Trueprop
           (HOLogic.mk_eq (min_algs $ idx, HOLogic.mk_tuple
-            (map4 (mk_minH_component As min_algs idx) setssAs FTsAs ss ks)));
-        val goal = fold_rev Logic.all (idx :: As @ ss)
+            (map4 (mk_minH_component min_algs idx) setssAs FTsAs ss ks)));
+        val goal = fold_rev Logic.all (idx :: ss)
           (Logic.mk_implies (HOLogic.mk_Trueprop i_field, concl));
 
         val min_algs_thm = Goal.prove_sorry lthy [] [] goal
@@ -665,7 +661,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
         val min_algs_thms = map (fn k => min_algs_thm RS mk_nthI n k) ks;
 
         fun mk_mono_goal min_alg =
-          fold_rev Logic.all (As @ ss) (HOLogic.mk_Trueprop (mk_relChain suc_bd
+          fold_rev Logic.all ss (HOLogic.mk_Trueprop (mk_relChain suc_bd
             (Term.absfree idx' min_alg)));
 
         val monos =
@@ -673,8 +669,6 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
             Goal.prove_sorry lthy [] [] goal (K (mk_min_algs_mono_tac lthy min_algs))
             |> Thm.close_derivation)
           (map mk_mono_goal min_algss) min_algs_thms;
-
-        val Asuc_bd = mk_Asuc_bd As;
 
         fun mk_card_conjunct min_alg = mk_ordLeq (mk_card_of min_alg) Asuc_bd;
         val card_conjunction = Library.foldr1 HOLogic.mk_conj (map mk_card_conjunct min_algss);
@@ -690,7 +684,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
               suc_bd_Asuc_bd Asuc_bd_Cinfinite)))
           |> Thm.close_derivation;
 
-        val least_prem = HOLogic.mk_Trueprop (mk_alg As Bs ss);
+        val least_prem = HOLogic.mk_Trueprop (mk_alg Bs ss);
         val least_conjunction = Library.foldr1 HOLogic.mk_conj (map2 mk_leq min_algss Bs);
         val least_cT = certifyT lthy suc_bdT;
         val least_ct = certify lthy (Term.absfree idx' least_conjunction);
@@ -715,9 +709,9 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
     fun min_alg_spec i =
       let
         val rhs = mk_UNION (field_suc_bd)
-          (Term.absfree idx' (mk_nthN n (mk_min_algs As ss $ idx) i));
+          (Term.absfree idx' (mk_nthN n (mk_min_algs ss $ idx) i));
       in
-        fold_rev (Term.absfree o Term.dest_Free) (As @ ss) rhs
+        fold_rev (Term.absfree o Term.dest_Free) ss rhs
       end;
 
     val ((min_alg_frees, (_, min_alg_def_frees)), (lthy, lthy_old)) =
@@ -730,47 +724,45 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
     val phi = Proof_Context.export_morphism lthy_old lthy;
     val min_algs = map (fst o Term.dest_Const o Morphism.term phi) min_alg_frees;
     val min_alg_defs = map (fn def =>
-      mk_unabs_def live (Morphism.thm phi def RS meta_eq_to_obj_eq)) min_alg_def_frees;
+      mk_unabs_def n (Morphism.thm phi def RS meta_eq_to_obj_eq)) min_alg_def_frees;
 
-    fun mk_min_alg As ss i =
+    fun mk_min_alg ss i =
       let
         val T = HOLogic.mk_setT (range_type (fastype_of (nth ss (i - 1))))
-        val args = As @ ss;
-        val Ts = map fastype_of args;
+        val Ts = map fastype_of ss;
         val min_algT = Library.foldr (op -->) (Ts, T);
       in
-        Term.list_comb (Const (nth min_algs (i - 1), min_algT), args)
+        Term.list_comb (Const (nth min_algs (i - 1), min_algT), ss)
       end;
 
     val (alg_min_alg_thm, card_of_min_alg_thms, least_min_alg_thms, mor_incl_min_alg_thm) =
       let
-        val min_algs = map (mk_min_alg As ss) ks;
+        val min_algs = map (mk_min_alg ss) ks;
 
-        val goal = fold_rev Logic.all (As @ ss) (HOLogic.mk_Trueprop (mk_alg As min_algs ss));
+        val goal = fold_rev Logic.all ss (HOLogic.mk_Trueprop (mk_alg min_algs ss));
         val alg_min_alg = Goal.prove_sorry lthy [] [] goal
           (K (mk_alg_min_alg_tac m alg_def min_alg_defs suc_bd_limit_thm sum_Cinfinite
             set_bd_sumss min_algs_thms min_algs_mono_thms))
           |> Thm.close_derivation;
 
-        val Asuc_bd = mk_Asuc_bd As;
         fun mk_card_of_thm min_alg def = Goal.prove_sorry lthy [] []
-          (fold_rev Logic.all (As @ ss)
+          (fold_rev Logic.all ss
             (HOLogic.mk_Trueprop (mk_ordLeq (mk_card_of min_alg) Asuc_bd)))
           (K (mk_card_of_min_alg_tac def card_of_min_algs_thm
             suc_bd_Card_order suc_bd_Asuc_bd Asuc_bd_Cinfinite))
           |> Thm.close_derivation;
 
-        val least_prem = HOLogic.mk_Trueprop (mk_alg As Bs ss);
+        val least_prem = HOLogic.mk_Trueprop (mk_alg Bs ss);
         fun mk_least_thm min_alg B def = Goal.prove_sorry lthy [] []
-          (fold_rev Logic.all (As @ Bs @ ss)
+          (fold_rev Logic.all (Bs @ ss)
             (Logic.mk_implies (least_prem, HOLogic.mk_Trueprop (mk_leq min_alg B))))
           (K (mk_least_min_alg_tac def least_min_algs_thm))
           |> Thm.close_derivation;
 
         val leasts = map3 mk_least_thm min_algs Bs min_alg_defs;
 
-        val incl_prem = HOLogic.mk_Trueprop (mk_alg passive_UNIVs Bs ss);
-        val incl_min_algs = map (mk_min_alg passive_UNIVs ss) ks;
+        val incl_prem = HOLogic.mk_Trueprop (mk_alg Bs ss);
+        val incl_min_algs = map (mk_min_alg ss) ks;
         val incl = Goal.prove_sorry lthy [] []
           (fold_rev Logic.all (Bs @ ss)
             (Logic.mk_implies (incl_prem,
@@ -812,7 +804,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
     val II = HOLogic.mk_Collect (fst iidx', IIT, list_exists_free (II_Bs @ II_ss)
       (HOLogic.mk_conj (HOLogic.mk_eq (iidx,
         Abs_IIT $ (HOLogic.mk_prod (HOLogic.mk_tuple II_Bs, HOLogic.mk_tuple II_ss))),
-        mk_alg passive_UNIVs II_Bs II_ss)));
+        mk_alg II_Bs II_ss)));
 
     val select_Bs = map (mk_nthN n (HOLogic.mk_fst (Rep_IIT $ iidx))) ks;
     val select_ss = map (mk_nthN n (HOLogic.mk_snd (Rep_IIT $ iidx))) ks;
@@ -849,23 +841,23 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
     val str_init_defs = map (fn def =>
       mk_unabs_def 2 (Morphism.thm phi def RS meta_eq_to_obj_eq)) str_init_def_frees;
 
-    val car_inits = map (mk_min_alg passive_UNIVs str_inits) ks;
+    val car_inits = map (mk_min_alg str_inits) ks;
 
     (*TODO: replace with instantiate? (problem: figure out right type instantiation)*)
     val alg_init_thm = Goal.prove_sorry lthy [] []
-      (HOLogic.mk_Trueprop (mk_alg passive_UNIVs car_inits str_inits))
+      (HOLogic.mk_Trueprop (mk_alg car_inits str_inits))
       (K (rtac alg_min_alg_thm 1))
       |> Thm.close_derivation;
 
     val alg_select_thm = Goal.prove_sorry lthy [] []
       (HOLogic.mk_Trueprop (mk_Ball II
-        (Term.absfree iidx' (mk_alg passive_UNIVs select_Bs select_ss))))
+        (Term.absfree iidx' (mk_alg select_Bs select_ss))))
       (fn {context = ctxt, prems = _} => mk_alg_select_tac ctxt Abs_IIT_inverse_thm)
       |> Thm.close_derivation;
 
     val mor_select_thm =
       let
-        val alg_prem = HOLogic.mk_Trueprop (mk_alg passive_UNIVs Bs ss);
+        val alg_prem = HOLogic.mk_Trueprop (mk_alg Bs ss);
         val i_prem = HOLogic.mk_Trueprop (HOLogic.mk_mem (iidx, II));
         val mor_prem = HOLogic.mk_Trueprop (mk_mor select_Bs select_ss Bs ss Asuc_fs);
         val prems = [alg_prem, i_prem, mor_prem];
@@ -882,7 +874,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
 
     val (init_ex_mor_thm, init_unique_mor_thms) =
       let
-        val prem = HOLogic.mk_Trueprop (mk_alg passive_UNIVs Bs ss);
+        val prem = HOLogic.mk_Trueprop (mk_alg Bs ss);
         val concl = HOLogic.mk_Trueprop
           (list_exists_free init_fs (mk_mor car_inits str_inits Bs ss init_fs));
         val ex_mor = Goal.prove_sorry lthy [] []

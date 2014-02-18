@@ -89,16 +89,13 @@ val rev_bspec = Drule.rotate_prems 1 bspec;
 val Un_cong = @{thm arg_cong2[of _ _ _ _ "op \<union>"]}
 
 fun mk_alg_set_tac alg_def =
-  dtac (alg_def RS iffD1) 1 THEN
-  REPEAT_DETERM (etac conjE 1) THEN
-  EVERY' [etac bspec, rtac CollectI] 1 THEN
-  REPEAT_DETERM (etac conjI 1) THEN atac 1;
+  EVERY' [dtac (alg_def RS iffD1), REPEAT_DETERM o etac conjE, etac bspec, rtac CollectI,
+   REPEAT_DETERM o (rtac (subset_UNIV RS conjI) ORELSE' etac conjI), atac] 1;
 
 fun mk_alg_not_empty_tac ctxt alg_set alg_sets wits =
   (EVERY' [rtac notI, hyp_subst_tac ctxt, ftac alg_set] THEN'
   REPEAT_DETERM o FIRST'
-    [rtac subset_UNIV,
-    EVERY' [rtac @{thm subset_emptyI}, eresolve_tac wits],
+    [EVERY' [rtac @{thm subset_emptyI}, eresolve_tac wits],
     EVERY' [rtac subsetI, rtac FalseE, eresolve_tac wits],
     EVERY' [rtac subsetI, dresolve_tac wits, hyp_subst_tac ctxt,
       FIRST' (map (fn thm => rtac thm THEN' atac) alg_sets)]] THEN'
@@ -220,7 +217,7 @@ fun mk_copy_str_tac set_maps alg_def alg_sets =
       CONJ_WRAP' (fn (thms, thm) =>
         EVERY' [rtac ballI, REPEAT_DETERM o eresolve_tac [CollectE, conjE], rtac set_mp,
           rtac equalityD1, etac @{thm bij_betw_imageE}, rtac imageI, etac thm,
-          REPEAT_DETERM o rtac subset_UNIV, REPEAT_DETERM_N n o (set_tac thms)])
+          REPEAT_DETERM_N n o set_tac thms])
       (set_maps ~~ alg_sets);
   in
     (rtac rev_mp THEN' DETERM o bij_betw_inv_tac THEN' rtac impI THEN'
@@ -238,7 +235,7 @@ fun mk_copy_alg_tac set_maps alg_sets mor_def iso_alt copy_str =
     val mor_tac =
       CONJ_WRAP' (fn (thms, thm) =>
         EVERY' [rtac ballI, etac CollectE, etac @{thm inverE}, etac thm,
-          REPEAT_DETERM o rtac subset_UNIV, REPEAT_DETERM_N n o (set_tac thms)])
+          REPEAT_DETERM_N n o set_tac thms])
       (set_maps ~~ alg_sets);
   in
     (rtac (iso_alt RS iffD2) THEN'
@@ -340,7 +337,7 @@ fun mk_min_algs_least_tac cT ct worel min_algs alg_sets =
     fun mk_minH_tac (min_alg, alg_set) = EVERY' [rtac ord_eq_le_trans, etac min_alg,
       rtac @{thm Un_least}, minG_tac, rtac @{thm image_subsetI},
       REPEAT_DETERM o eresolve_tac [CollectE, conjE], etac alg_set,
-      REPEAT_DETERM o FIRST' [atac, etac subset_trans THEN' minG_tac]];
+      REPEAT_DETERM o (etac subset_trans THEN' minG_tac)];
   in
     (rtac induct THEN'
     rtac impI THEN'
@@ -397,9 +394,8 @@ fun mk_mor_select_tac mor_def mor_cong mor_comp mor_incl_min_alg alg_def alg_sel
     fun alg_epi_tac ((alg_set, str_init_def), set_map) =
       EVERY' [rtac ballI, REPEAT_DETERM o eresolve_tac [CollectE, conjE], rtac CollectI,
         rtac ballI, ftac (alg_select RS bspec), stac str_init_def, etac alg_set,
-        REPEAT_DETERM o FIRST' [rtac subset_UNIV,
-          EVERY' [rtac ord_eq_le_trans, resolve_tac set_map, rtac subset_trans,
-            etac @{thm image_mono}, rtac @{thm image_Collect_subsetI}, etac bspec, atac]]];
+        REPEAT_DETERM o EVERY' [rtac ord_eq_le_trans, resolve_tac set_map, rtac subset_trans,
+            etac @{thm image_mono}, rtac @{thm image_Collect_subsetI}, etac bspec, atac]];
   in
     (rtac mor_cong THEN' REPEAT_DETERM_N n o (rtac sym THEN' rtac @{thm comp_id}) THEN'
     rtac (Thm.permute_prems 0 1 mor_comp) THEN' etac (Thm.permute_prems 0 1 mor_comp) THEN'
@@ -448,7 +444,6 @@ fun mk_init_unique_mor_tac m
 
     fun mk_alg_tac (alg_set, (in_mono, (morE, map_cong0))) = EVERY' [rtac ballI, rtac CollectI,
       REPEAT_DETERM o eresolve_tac [CollectE, conjE], rtac conjI, rtac (alg_min_alg RS alg_set),
-      REPEAT_DETERM_N m o rtac subset_UNIV,
       REPEAT_DETERM_N n o (etac subset_trans THEN' rtac @{thm Collect_restrict}),
       rtac trans, mor_tac morE in_mono,
       rtac trans, cong_tac map_cong0,
@@ -468,7 +463,6 @@ fun mk_init_induct_tac m alg_def alg_min_alg least_min_algs alg_sets =
 
     fun mk_alg_tac alg_set = EVERY' [rtac ballI, rtac CollectI,
       REPEAT_DETERM o eresolve_tac [CollectE, conjE], rtac conjI, rtac (alg_min_alg RS alg_set),
-      REPEAT_DETERM_N m o rtac subset_UNIV,
       REPEAT_DETERM_N n o (etac subset_trans THEN' rtac @{thm Collect_restrict}),
       rtac mp, etac bspec, rtac CollectI,
       REPEAT_DETERM_N m o (rtac conjI THEN' atac),
