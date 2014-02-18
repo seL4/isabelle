@@ -33,7 +33,7 @@ object YXML
     def tree(t: XML.Tree): Unit =
       t match {
         case XML.Elem(Markup(name, atts), ts) =>
-          s += X; s += Y; s++= name; atts.foreach(attrib); s += X
+          s += X; s += Y; s ++= name; atts.foreach(attrib); s += X
           ts.foreach(tree)
           s += X; s += Y; s += X
         case XML.Text(text) => s ++= text
