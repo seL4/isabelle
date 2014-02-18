@@ -19,7 +19,7 @@ OS2Version: 1
 OS2_WeightWidthSlopeOnly: 0
 OS2_UseTypoMetrics: 1
 CreationTime: 1050361371
-ModificationTime: 1389823475
+ModificationTime: 1392668982
 PfmFamily: 17
 TTFWeight: 400
 TTFWidth: 5
@@ -2240,9 +2240,9 @@ NameList: Adobe Glyph List
 DisplaySize: -48
 AntiAlias: 1
 FitToEm: 1
-WinInfo: 9104 16 10
+WinInfo: 8912 16 10
 TeXData: 1 0 0 631296 315648 210432 572416 -1048576 210432 783286 444596 497025 792723 393216 433062 380633 303038 157286 324010 404750 52429 2506097 1059062 262144
-BeginChars: 1114189 1095
+BeginChars: 1114189 1096
 
 StartChar: u10000
 Encoding: 65536 65536 0
@@ -55570,6 +55570,28 @@ SplineSet
  1097 1072 l 1,16,-1
  893 1072 l 1,17,-1
  893 663 l 1,9,-1
+EndSplineSet
+EndChar
+
+StartChar: house
+Encoding: 8962 8962 1095
+Width: 1233
+Flags: W
+LayerCount: 2
+Fore
+SplineSet
+146.5 0 m 9,0,-1
+ 146.5 647 l 25,1,-1
+ 616 1220 l 25,2,-1
+ 1086.5 647 l 25,3,-1
+ 1086.5 0 l 17,4,-1
+ 146.5 0 l 9,0,-1
+268.5 122 m 17,5,-1
+ 964.5 122 l 9,6,-1
+ 964.5 591 l 25,7,-1
+ 616 1018 l 25,8,-1
+ 268.5 591 l 25,9,-1
+ 268.5 122 l 17,5,-1
 EndSplineSet
 EndChar
 EndChars

@@ -358,6 +358,13 @@ rewrite_goals_rule, rewrite_goals_tac etc. INCOMPATIBILITY, need to
 pass runtime Proof.context (and ensure that the simplified entity
 actually belongs to it).
 
+* Subtle change of semantics of Thm.eq_thm: theory stamps are not
+compared (according to Thm.thm_ord), but assumed to be covered by the
+current background theory.  Thus equivalent data produced in different
+branches of the theory graph usually coincides (e.g. relevant for
+theory merge).  Note that the softer Thm.eq_thm_prop is often more
+appropriate than Thm.eq_thm.
+
 
 *** System ***
 

@@ -81,6 +81,7 @@ in
   Core_Data.PredData.map (Graph.new_node 
     (@{const_name contains}, 
      Core_Data.PredData {
+       pos = Position.thread_data (),
        intros = [(NONE, @{thm containsI})], 
        elim = SOME @{thm containsE}, 
        preprocessed = true,

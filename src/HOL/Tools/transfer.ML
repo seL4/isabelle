@@ -12,6 +12,7 @@ sig
 
   val prep_conv: conv
   val get_transfer_raw: Proof.context -> thm list
+  val get_relator_eq_item_net: Proof.context -> thm Item_Net.T
   val get_relator_eq: Proof.context -> thm list
   val get_sym_relator_eq: Proof.context -> thm list
   val get_relator_eq_raw: Proof.context -> thm list
@@ -40,6 +41,8 @@ struct
 (** Theory Data **)
 
 val compound_xhs_empty_net = Item_Net.init (Thm.eq_thm_prop o pairself snd) (single o fst);
+val rewr_rules = Item_Net.init Thm.eq_thm_prop (single o fst o HOLogic.dest_eq 
+  o HOLogic.dest_Trueprop o Thm.concl_of);
 
 structure Data = Generic_Data
 (
@@ -56,7 +59,7 @@ structure Data = Generic_Data
       known_frees = [],
       compound_lhs = compound_xhs_empty_net,
       compound_rhs = compound_xhs_empty_net,
-      relator_eq = Thm.full_rules,
+      relator_eq = rewr_rules,
       relator_eq_raw = Thm.full_rules,
       relator_domain = Thm.full_rules }
   val extend = I
@@ -89,6 +92,8 @@ fun get_compound_lhs ctxt = ctxt
 
 fun get_compound_rhs ctxt = ctxt
   |> (#compound_rhs o Data.get o Context.Proof)
+
+fun get_relator_eq_item_net ctxt = (#relator_eq o Data.get o Context.Proof) ctxt
 
 fun get_relator_eq ctxt = ctxt
   |> (Item_Net.content o #relator_eq o Data.get o Context.Proof)

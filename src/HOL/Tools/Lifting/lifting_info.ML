@@ -28,7 +28,6 @@ sig
   val get_invariant_commute_rules: Proof.context -> thm list
   
   val get_reflexivity_rules: Proof.context -> thm list
-  val add_reflexivity_rule_raw_attribute: attribute
   val add_reflexivity_rule_attribute: attribute
 
   type relator_distr_data = {pos_mono_rule: thm, neg_mono_rule: thm, 
@@ -276,33 +275,14 @@ fun get_invariant_commute_rules ctxt = map safe_mk_meta_eq (Invariant_Commute.ge
 (* info about reflexivity rules *)
 
 fun get_reflexivity_rules ctxt = Item_Net.content (get_reflexivity_rules' (Context.Proof ctxt))
-  
 
-(* Conversion to create a reflp' variant of a reflexivity rule  *)
-fun safe_reflp_conv ct =
-  Conv.try_conv (HOLogic.Trueprop_conv (Conv.rewr_conv (Thm.symmetric @{thm reflp'_def}))) ct
-
-fun prep_reflp_conv ct = (
-      Conv.implies_conv safe_reflp_conv prep_reflp_conv
-      else_conv
-      safe_reflp_conv
-      else_conv
-      Conv.all_conv) ct
-
-fun add_reflexivity_rule_raw thm = Data.map (map_reflexivity_rules (Item_Net.update thm))
-val add_reflexivity_rule_raw_attribute = Thm.declaration_attribute add_reflexivity_rule_raw
-
-fun add_reflexivity_rule thm = add_reflexivity_rule_raw thm #>
-  add_reflexivity_rule_raw (Conv.fconv_rule prep_reflp_conv thm)
+fun add_reflexivity_rule thm = Data.map (map_reflexivity_rules (Item_Net.update thm))
 val add_reflexivity_rule_attribute = Thm.declaration_attribute add_reflexivity_rule
-
 
 val relfexivity_rule_setup =
   let
     val name = @{binding reflexivity_rule}
-    fun del_thm_raw thm = Data.map (map_reflexivity_rules (Item_Net.remove thm))
-    fun del_thm thm = del_thm_raw thm #>
-      del_thm_raw (Conv.fconv_rule prep_reflp_conv thm)
+    fun del_thm thm = Data.map (map_reflexivity_rules (Item_Net.remove thm))
     val del = Thm.declaration_attribute del_thm
     val text = "rules that are used to prove that a relation is reflexive"
     val content = Item_Net.content o get_reflexivity_rules'
@@ -370,19 +350,42 @@ fun negate_mono_rule mono_rule =
     Conv.fconv_rule (Conv.prems_conv ~1 rewr_conv then_conv Conv.concl_conv ~1 rewr_conv) mono_rule
   end;
 
+fun add_reflexivity_rules mono_rule ctxt =
+  let
+    fun find_eq_rule thm ctxt =
+      let
+        val concl_rhs = (hd o get_args 1 o HOLogic.dest_Trueprop o concl_of) thm;
+        val rules = Item_Net.retrieve (Transfer.get_relator_eq_item_net ctxt) concl_rhs;
+      in
+        find_first (fn thm => Pattern.matches (Proof_Context.theory_of ctxt) (concl_rhs, 
+          (fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.concl_of) thm)) rules
+      end
+
+    val eq_rule = find_eq_rule mono_rule (Context.proof_of ctxt);
+    val eq_rule = if is_some eq_rule then the eq_rule else error 
+      "No corresponding rule that the relator preserves equality was found."
+  in
+    ctxt
+    |> add_reflexivity_rule (Drule.zero_var_indexes (@{thm ord_le_eq_trans} OF [mono_rule, eq_rule]))
+    |> add_reflexivity_rule 
+      (Drule.zero_var_indexes (@{thm ord_eq_le_trans} OF [sym OF [eq_rule], mono_rule]))
+  end
+
 fun add_mono_rule mono_rule ctxt = 
   let
-    val mono_rule = introduce_polarities mono_rule
+    val pol_mono_rule = introduce_polarities mono_rule
     val mono_ruleT_name = (fst o dest_Type o fst o relation_types o fst o relation_types o snd o 
-      dest_Const o head_of o HOLogic.dest_Trueprop o concl_of) mono_rule
+      dest_Const o head_of o HOLogic.dest_Trueprop o concl_of) pol_mono_rule
     val _ = if Symtab.defined (get_relator_distr_data' ctxt) mono_ruleT_name 
       then error ("Monotocity rule for type " ^ quote mono_ruleT_name ^ " is already_defined.")
       else ()
-    val neg_mono_rule = negate_mono_rule mono_rule
-    val relator_distr_data = {pos_mono_rule = mono_rule, neg_mono_rule = neg_mono_rule, 
+    val neg_mono_rule = negate_mono_rule pol_mono_rule
+    val relator_distr_data = {pos_mono_rule = pol_mono_rule, neg_mono_rule = neg_mono_rule, 
       pos_distr_rules = [], neg_distr_rules = []}
   in
-    Data.map (map_relator_distr_data (Symtab.update (mono_ruleT_name, relator_distr_data))) ctxt
+    ctxt 
+    |> Data.map (map_relator_distr_data (Symtab.update (mono_ruleT_name, relator_distr_data)))
+    |> add_reflexivity_rules mono_rule
   end;
 
 local 

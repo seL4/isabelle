@@ -6,6 +6,7 @@ Interactive Simplifier trace.
 
 package isabelle
 
+
 import scala.actors.Actor._
 import scala.annotation.tailrec
 import scala.collection.immutable.SortedMap
@@ -13,8 +14,42 @@ import scala.collection.immutable.SortedMap
 
 object Simplifier_Trace
 {
+  /* trace items from the prover */
 
-  import Markup.Simp_Trace_Item
+  val TEXT = "text"
+  val Text = new Properties.String(TEXT)
+
+  val PARENT = "parent"
+  val Parent = new Properties.Long(PARENT)
+
+  val SUCCESS = "success"
+  val Success = new Properties.Boolean(SUCCESS)
+
+  val MEMORY = "memory"
+  val Memory = new Properties.Boolean(MEMORY)
+
+  object Item
+  {
+    case class Data(
+      serial: Long, markup: String, text: String,
+      parent: Long, props: Properties.T, content: XML.Body)
+    {
+      def memory: Boolean = Memory.unapply(props) getOrElse true
+    }
+
+    def unapply(tree: XML.Tree): Option[(String, Data)] =
+      tree match {
+        case XML.Elem(Markup(Markup.RESULT, Markup.Serial(serial)),
+          List(XML.Elem(Markup(markup, props), content)))
+        if markup.startsWith("simp_trace_") =>  // FIXME proper comparison of string constants
+          (props, props) match {
+            case (Text(text), Parent(parent)) =>
+              Some((markup, Data(serial, markup, text, parent, props, content)))
+            case _ => None
+          }
+        case _ => None
+      }
+  }
 
 
   /* replies to the prover */
@@ -23,7 +58,6 @@ object Simplifier_Trace
 
   object Answer
   {
-
     object step
     {
       val skip = Answer("skip", "Skip")
@@ -44,10 +78,23 @@ object Simplifier_Trace
       val default = exit
       val all = List(redo, exit)
     }
-
   }
 
-  val all_answers = Answer.step.all ++ Answer.hint_fail.all
+  val all_answers: List[Answer] = Answer.step.all ::: Answer.hint_fail.all
+
+  object Active
+  {
+    def unapply(tree: XML.Tree): Option[(Long, Answer)] =
+      tree match {
+        case XML.Elem(Markup(Markup.SIMP_TRACE, props), _) =>
+          (props, props) match {
+            case (Markup.Serial(serial), Markup.Name(name)) =>
+              all_answers.find(_.name == name).map((serial, _))
+            case _ => None
+          }
+        case _ => None
+      }
+  }
 
 
   /* GUI interaction */
@@ -64,7 +111,7 @@ object Simplifier_Trace
   private object Stop
   case class Reply(session: Session, serial: Long, answer: Answer)
 
-  case class Question(data: Simp_Trace_Item.Data, answers: List[Answer], default_answer: Answer)
+  case class Question(data: Item.Data, answers: List[Answer], default_answer: Answer)
 
   case class Context(
     last_serial: Long = 0L,
@@ -83,13 +130,13 @@ object Simplifier_Trace
 
   }
 
-  case class Trace(entries: List[Simp_Trace_Item.Data])
+  case class Trace(entries: List[Item.Data])
 
   case class Index(text: String, content: XML.Body)
 
   object Index
   {
-    def of_data(data: Simp_Trace_Item.Data): Index =
+    def of_data(data: Item.Data): Index =
       Index(data.text, data.content)
   }
 
@@ -128,7 +175,7 @@ object Simplifier_Trace
 
     def do_reply(session: Session, serial: Long, answer: Answer)
     {
-      session.protocol_command("Document.simp_trace_reply", Properties.Value.Long(serial), answer.name)
+      session.protocol_command("Simplifier_Trace.reply", Properties.Value.Long(serial), answer.name)
     }
 
     loop {
@@ -140,14 +187,12 @@ object Simplifier_Trace
           for ((serial, result) <- results.entries if serial > new_context.last_serial)
           {
             result match {
-              case Simp_Trace_Item(markup, data) =>
-                import Simp_Trace_Item._
-
+              case Item(markup, data) =>
                 memory_children += (data.parent -> (memory_children.getOrElse(data.parent, Set.empty) + serial))
 
                 markup match {
 
-                  case STEP =>
+                  case Markup.SIMP_TRACE_STEP =>
                     val index = Index.of_data(data)
                     memory.get(index) match {
                       case Some(answer) if data.memory =>
@@ -156,11 +201,11 @@ object Simplifier_Trace
                         new_context += Question(data, Answer.step.all, Answer.step.default)
                     }
 
-                  case HINT =>
+                  case Markup.SIMP_TRACE_HINT =>
                     data.props match {
-                      case Markup.Success(false) =>
+                      case Success(false) =>
                         results.get(data.parent) match {
-                          case Some(Simp_Trace_Item(STEP, _)) =>
+                          case Some(Item(Markup.SIMP_TRACE_STEP, _)) =>
                             new_context += Question(data, Answer.hint_fail.all, Answer.hint_fail.default)
                           case _ =>
                             // unknown, better send a default reply
@@ -169,7 +214,7 @@ object Simplifier_Trace
                       case _ =>
                     }
 
-                  case IGNORE =>
+                  case Markup.SIMP_TRACE_IGNORE =>
                     // At this point, we know that the parent of this 'IGNORE' entry is a 'STEP'
                     // entry, and that that 'STEP' entry is about to be replayed. Hence, we need
                     // to selectively purge the replies which have been memorized, going down from
@@ -179,7 +224,7 @@ object Simplifier_Trace
                     def purge(queue: Vector[Long]): Unit =
                       queue match {
                         case s +: rest =>
-                          for (Simp_Trace_Item(STEP, data) <- results.get(s))
+                          for (Item(Markup.SIMP_TRACE_STEP, data) <- results.get(s))
                             memory -= Index.of_data(data)
                           val children = memory_children.getOrElse(s, Set.empty)
                           memory_children -= s
@@ -208,7 +253,7 @@ object Simplifier_Trace
           // current results.
 
           val items =
-            for { (_, Simp_Trace_Item(_, data)) <- results.entries }
+            for { (_, Item(_, data)) <- results.entries }
               yield data
 
           reply(Trace(items.toList))
@@ -232,7 +277,7 @@ object Simplifier_Trace
         case Reply(session, serial, answer) =>
           find_question(serial) match {
             case Some((id, Question(data, _, _))) =>
-              if (data.markup == Markup.Simp_Trace_Item.STEP && data.memory)
+              if (data.markup == Markup.SIMP_TRACE_STEP && data.memory)
               {
                 val index = Index.of_data(data)
                 memory += (index -> answer)
@@ -256,10 +301,9 @@ object Simplifier_Trace
 
   class Handler extends Session.Protocol_Handler
   {
-    private def cancel(
-      prover: Session.Prover, msg: Isabelle_Process.Protocol_Output): Boolean =
+    private def cancel(prover: Session.Prover, msg: Isabelle_Process.Protocol_Output): Boolean =
       msg.properties match {
-        case Markup.Cancel_Simp_Trace(serial) =>
+        case Markup.Simp_Trace_Cancel(serial) =>
           manager ! Cancel(serial)
           true
         case _ =>
@@ -272,8 +316,6 @@ object Simplifier_Trace
       manager ! Stop
     }
 
-    val functions = Map(
-      Markup.CANCEL_SIMP_TRACE -> cancel _)
+    val functions = Map(Markup.SIMP_TRACE_CANCEL -> cancel _)
   }
-
 }

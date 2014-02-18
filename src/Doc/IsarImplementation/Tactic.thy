@@ -920,9 +920,8 @@ text {*
   "thm"} has fewer than @{text "n"} premises.
 
   \item @{ML Thm.eq_thm}~@{text "(thm\<^sub>1, thm\<^sub>2)"} reports whether @{text
-  "thm\<^sub>1"} and @{text "thm\<^sub>2"} are equal.  Both theorems must have
-  compatible background theories.  Both theorems must have the same
-  conclusions, the same set of hypotheses, and the same set of sort
+  "thm\<^sub>1"} and @{text "thm\<^sub>2"} are equal.  Both theorems must have the
+  same conclusions, the same set of hypotheses, and the same set of sort
   hypotheses.  Names of bound variables are ignored as usual.
 
   \item @{ML Thm.eq_thm_prop}~@{text "(thm\<^sub>1, thm\<^sub>2)"} reports whether

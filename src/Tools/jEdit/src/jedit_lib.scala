@@ -222,9 +222,10 @@ object JEdit_Lib
       try {
         val p = text_area.offsetToXY(range.start)
         val (q, r) =
-          if (stop >= end) (text_area.offsetToXY(end), char_width * (stop - end))
-          else if (stop > 0 && buffer.getText(stop - 1, 1) == "\n")
+          if (try_get_text(buffer, Text.Range(stop - 1, stop)) == Some("\n"))
             (text_area.offsetToXY(stop - 1), char_width)
+          else if (stop >= end)
+            (text_area.offsetToXY(end), char_width * (stop - end))
           else (text_area.offsetToXY(stop), 0)
         (p, q, r)
       }

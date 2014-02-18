@@ -1761,7 +1761,7 @@ text {*
     "~~/src/HOL/List.thy"} or Lifting_*.thy files in the same directory.
 
   \item @{attribute (HOL) reflexivity_rule} registers a theorem that shows
-    that a relator respects reflexivity, left-totality and left_uniqueness. For examples 
+    that a relator respects left-totality and left_uniqueness. For examples 
     see @{file "~~/src/HOL/List.thy"} or @{file "~~/src/HOL/Lifting.thy"} or Lifting_*.thy files 
     in the same directory.
     The property is used in a reflexivity prover, which is used for discharging respectfulness

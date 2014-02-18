@@ -27,6 +27,24 @@ object Markup
   val Empty = Markup("", Nil)
   val Broken = Markup("broken", Nil)
 
+  class Markup_String(val name: String, prop: String)
+  {
+    private val Prop = new Properties.String(prop)
+
+    def apply(s: String): Markup = Markup(name, Prop(s))
+    def unapply(markup: Markup): Option[String] =
+      if (markup.name == name) Prop.unapply(markup.properties) else None
+  }
+
+  class Markup_Int(val name: String, prop: String)
+  {
+    private val Prop = new Properties.Int(prop)
+
+    def apply(i: Int): Markup = Markup(name, Prop(i))
+    def unapply(markup: Markup): Option[Int] =
+      if (markup.name == name) Prop.unapply(markup.properties) else None
+  }
+
 
   /* formal entities */
 
@@ -39,9 +57,9 @@ object Markup
   {
     def unapply(markup: Markup): Option[(String, String)] =
       markup match {
-        case Markup(ENTITY, props @ Kind(kind)) =>
-          props match {
-            case Name(name) => Some(kind, name)
+        case Markup(ENTITY, props) =>
+          (props, props) match {
+            case (Kind(kind), Name(name)) => Some(kind, name)
             case _ => None
           }
         case _ => None
@@ -67,38 +85,25 @@ object Markup
   val POSITION = "position"
 
 
+  /* embedded languages */
+
+  val LANGUAGE = "language"
+  val Language = new Markup_String(LANGUAGE, NAME)
+
+
   /* external resources */
 
   val PATH = "path"
-
-  object Path
-  {
-    def unapply(markup: Markup): Option[String] =
-      markup match {
-        case Markup(PATH, Name(name)) => Some(name)
-        case _ => None
-      }
-  }
+  val Path = new Markup_String(PATH, NAME)
 
   val URL = "url"
-
-  object Url
-  {
-    def unapply(markup: Markup): Option[String] =
-      markup match {
-        case Markup(URL, Name(name)) => Some(name)
-        case _ => None
-      }
-  }
+  val Url = new Markup_String(URL, NAME)
 
 
   /* pretty printing */
 
-  val Indent = new Properties.Int("indent")
-  val BLOCK = "block"
-
-  val Width = new Properties.Int("width")
-  val BREAK = "break"
+  val Block = new Markup_Int("block", "indent")
+  val Break = new Markup_Int("break", "width")
 
   val ITEM = "item"
   val BULLET = "bullet"
@@ -138,11 +143,6 @@ object Markup
 
   val TOKEN_RANGE = "token_range"
 
-  val SORT = "sort"
-  val TYP = "typ"
-  val TERM = "term"
-  val PROP = "prop"
-
   val SORTING = "sorting"
   val TYPING = "typing"
 
@@ -150,10 +150,7 @@ object Markup
   val METHOD = "method"
 
 
-  /* embedded source text */
-
-  val ML_SOURCE = "ML_source"
-  val DOCUMENT_SOURCE = "document_source"
+  /* antiquotations */
 
   val ANTIQUOTED = "antiquoted"
   val ANTIQUOTE = "antiquote"
@@ -392,82 +389,26 @@ object Markup
       }
   }
 
+
   /* simplifier trace */
 
-  val TEXT = "text"
-  val Text = new Properties.String(TEXT)
+  val SIMP_TRACE = "simp_trace"
 
-  val PARENT = "parent"
-  val Parent = new Properties.Long(PARENT)
+  val SIMP_TRACE_LOG = "simp_trace_log"
+  val SIMP_TRACE_STEP = "simp_trace_step"
+  val SIMP_TRACE_RECURSE = "simp_trace_recurse"
+  val SIMP_TRACE_HINT = "simp_trace_hint"
+  val SIMP_TRACE_IGNORE = "simp_trace_ignore"
 
-  val SUCCESS = "success"
-  val Success = new Properties.Boolean(SUCCESS)
-
-  val MEMORY = "memory"
-  val Memory = new Properties.Boolean(MEMORY)
-
-  val CANCEL_SIMP_TRACE = "simp_trace_cancel"
-  object Cancel_Simp_Trace
+  val SIMP_TRACE_CANCEL = "simp_trace_cancel"
+  object Simp_Trace_Cancel
   {
     def unapply(props: Properties.T): Option[Long] =
       props match {
-        case (FUNCTION, CANCEL_SIMP_TRACE) :: Serial(id) => Some(id)
+        case (FUNCTION, SIMP_TRACE_CANCEL) :: Serial(i) => Some(i)
         case _ => None
       }
   }
-
-  val SIMP_TRACE = "simp_trace"
-  object Simp_Trace
-  {
-    def unapply(tree: XML.Tree): Option[(Long, Simplifier_Trace.Answer)] =
-      tree match {
-        case XML.Elem(Markup(SIMP_TRACE, props), _) =>
-          (props, props) match {
-            case (Serial(serial), Name(name)) =>
-              Simplifier_Trace.all_answers.find(_.name == name).map((serial, _))
-            case _ =>
-              None
-          }
-        case _ =>
-          None
-      }
-  }
-
-  /* trace items from the prover */
-
-  object Simp_Trace_Item
-  {
-
-    def unapply(tree: XML.Tree): Option[(String, Data)] =
-      tree match {
-        case XML.Elem(Markup(RESULT, Serial(serial)), List(
-          XML.Elem(Markup(markup, props), content)
-        )) if markup.startsWith("simp_trace_") =>
-          (props, props) match {
-            case (Text(text), Parent(parent)) =>
-              Some((markup, Data(serial, markup, text, parent, props, content)))
-            case _ =>
-              None
-          }
-        case _ =>
-          None
-      }
-
-    val LOG = "simp_trace_log"
-    val STEP = "simp_trace_step"
-    val RECURSE = "simp_trace_recurse"
-    val HINT = "simp_trace_hint"
-    val IGNORE = "simp_trace_ignore"
-
-    case class Data(serial: Long, markup: String, text: String,
-                    parent: Long, props: Properties.T, content: XML.Body)
-    {
-      def memory: Boolean =
-        Memory.unapply(props) getOrElse true
-    }
-
-  }
-
 }
 
 

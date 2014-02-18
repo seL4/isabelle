@@ -267,7 +267,7 @@ object Isabelle_System
   def execute_env(cwd: JFile, env: Map[String, String], redirect: Boolean, args: String*): Process =
   {
     val cmdline =
-      if (Platform.is_windows) List(get_cygwin_root() + "\\bin\\env.exe") ++ args
+      if (Platform.is_windows) List(get_cygwin_root() + "\\bin\\env.exe") ::: args.toList
       else args
     val env1 = if (env == null) settings else settings ++ env
     raw_execute(cwd, env1, redirect, cmdline: _*)
@@ -283,7 +283,7 @@ object Isabelle_System
   {
     private val params =
       List(standard_path(Path.explode("~~/lib/scripts/process")), "group", "-", "no_script")
-    private val proc = execute_env(cwd, env, redirect, (params ++ args):_*)
+    private val proc = execute_env(cwd, env, redirect, (params ::: args.toList):_*)
 
 
     // channels
@@ -414,7 +414,7 @@ object Isabelle_System
     } match {
       case Some(dir) =>
         val file = standard_path(dir + Path.basic(name))
-        process_output(execute(true, (List(file) ++ args): _*))
+        process_output(execute(true, (List(file) ::: args.toList): _*))
       case None => ("Unknown Isabelle tool: " + name, 2)
     }
   }

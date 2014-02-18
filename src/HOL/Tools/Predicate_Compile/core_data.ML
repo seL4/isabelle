@@ -18,6 +18,7 @@ sig
   };
 
   datatype pred_data = PredData of {
+    pos : Position.T,
     intros : (string option * thm) list,
     elim : thm option,
     preprocessed : bool,
@@ -100,6 +101,7 @@ fun mk_predfun_data (definition, ((intro, elim), neg_intro)) =
   PredfunData {definition = definition, intro = intro, elim = elim, neg_intro = neg_intro}
 
 datatype pred_data = PredData of {
+  pos: Position.T,
   intros : (string option * thm) list,
   elim : thm option,
   preprocessed : bool,
@@ -109,13 +111,17 @@ datatype pred_data = PredData of {
 };
 
 fun rep_pred_data (PredData data) = data;
+val pos_of = #pos o rep_pred_data;
 
-fun mk_pred_data (((intros, elim), preprocessed), (function_names, (predfun_data, needs_random))) =
-  PredData {intros = intros, elim = elim, preprocessed = preprocessed,
+fun mk_pred_data
+    (pos, (((intros, elim), preprocessed), (function_names, (predfun_data, needs_random)))) =
+  PredData {pos = pos, intros = intros, elim = elim, preprocessed = preprocessed,
     function_names = function_names, predfun_data = predfun_data, needs_random = needs_random}
 
-fun map_pred_data f (PredData {intros, elim, preprocessed, function_names, predfun_data, needs_random}) =
-  mk_pred_data (f (((intros, elim), preprocessed), (function_names, (predfun_data, needs_random))))
+fun map_pred_data f
+    (PredData {pos, intros, elim, preprocessed, function_names, predfun_data, needs_random}) =
+  mk_pred_data
+    (f (pos, (((intros, elim), preprocessed), (function_names, (predfun_data, needs_random)))))
 
 fun eq_option eq (NONE, NONE) = true
   | eq_option eq (SOME x, SOME y) = eq (x, y)
@@ -130,7 +136,13 @@ structure PredData = Theory_Data
   type T = pred_data Graph.T;
   val empty = Graph.empty;
   val extend = I;
-  val merge = Graph.merge eq_pred_data;
+  val merge =
+    Graph.join (fn key => fn (x, y) =>
+      if eq_pred_data (x, y)
+      then raise Graph.SAME
+      else
+        error ("Duplicate predicate declarations for " ^ quote key ^
+          Position.here (pos_of x) ^ Position.here (pos_of y)));
 );
 
 
@@ -260,11 +272,13 @@ fun fetch_pred_data ctxt name =
   (case try (Inductive.the_inductive ctxt) name of
     SOME (info as (_, result)) => 
       let
+        val thy = Proof_Context.theory_of ctxt
+
+        val pos = Position.thread_data ()
         fun is_intro_of intro =
           let
             val (const, _) = strip_comb (HOLogic.dest_Trueprop (concl_of intro))
           in (fst (dest_Const const) = name) end;
-        val thy = Proof_Context.theory_of ctxt
         val intros = map (preprocess_intro thy) (filter is_intro_of (#intrs result))
         val index = find_index (fn s => s = name) (#names (fst info))
         val pre_elim = nth (#elims result) index
@@ -273,13 +287,13 @@ fun fetch_pred_data ctxt name =
         val nparams = length (Inductive.params_of (#raw_induct result))
         val elim = prove_casesrule ctxt (pred, (pre_elim, nparams)) elim_t
       in
-        mk_pred_data (((map (pair NONE) intros, SOME elim), true), no_compilation)
+        mk_pred_data (pos, (((map (pair NONE) intros, SOME elim), true), no_compilation))
       end
   | NONE => error ("No such predicate: " ^ quote name))
 
 fun add_predfun_data name mode data =
   let
-    val add = (apsnd o apsnd o apfst) (cons (mode, mk_predfun_data data))
+    val add = (apsnd o apsnd o apsnd o apfst) (cons (mode, mk_predfun_data data))
   in PredData.map (Graph.map_node name (map_pred_data add)) end
 
 fun is_inductive_predicate ctxt name =
@@ -305,17 +319,21 @@ fun add_intro (opt_case_name, thm) thy =
       (case try (Graph.get_node gr) name of
         SOME _ =>
           Graph.map_node name (map_pred_data
-            (apfst (apfst (apfst (fn intros => intros @ [(opt_case_name, thm)]))))) gr
+            (apsnd (apfst (apfst (apfst (fn intros => intros @ [(opt_case_name, thm)])))))) gr
       | NONE =>
           Graph.new_node
-            (name, mk_pred_data ((([(opt_case_name, thm)], NONE), false), no_compilation)) gr)
+            (name,
+              mk_pred_data (Position.thread_data (),
+                (((([(opt_case_name, thm)], NONE), false), no_compilation)))) gr)
   in PredData.map cons_intro thy end
 
 fun set_elim thm =
   let
     val (name, _) =
       dest_Const (fst (strip_comb (HOLogic.dest_Trueprop (hd (prems_of thm)))))
-  in PredData.map (Graph.map_node name (map_pred_data (apfst (apfst (apsnd (K (SOME thm))))))) end
+  in
+    PredData.map (Graph.map_node name (map_pred_data (apsnd (apfst (apfst (apsnd (K (SOME thm))))))))
+  end
 
 fun register_predicate (constname, intros, elim) thy =
   let
@@ -324,7 +342,8 @@ fun register_predicate (constname, intros, elim) thy =
     if not (member (op =) (Graph.keys (PredData.get thy)) constname) then
       PredData.map
         (Graph.new_node (constname,
-          mk_pred_data (((named_intros, SOME elim), false), no_compilation))) thy
+          mk_pred_data (Position.thread_data (),
+            (((named_intros, SOME elim), false), no_compilation)))) thy
     else thy
   end
 
@@ -345,14 +364,14 @@ fun register_intros (constname, pre_intros) thy =
 
 fun defined_function_of compilation pred =
   let
-    val set = (apsnd o apfst) (cons (compilation, []))
+    val set = (apsnd o apsnd o apfst) (cons (compilation, []))
   in
     PredData.map (Graph.map_node pred (map_pred_data set))
   end
 
 fun set_function_name compilation pred mode name =
   let
-    val set = (apsnd o apfst)
+    val set = (apsnd o apsnd o apfst)
       (AList.map_default (op =) (compilation, [(mode, name)]) (cons (mode, name)))
   in
     PredData.map (Graph.map_node pred (map_pred_data set))
@@ -360,7 +379,7 @@ fun set_function_name compilation pred mode name =
 
 fun set_needs_random name modes =
   let
-    val set = (apsnd o apsnd o apsnd) (K modes)
+    val set = (apsnd o apsnd o apsnd o apsnd) (K modes)
   in
     PredData.map (Graph.map_node name (map_pred_data set))
   end  
@@ -389,7 +408,7 @@ fun extend_intro_graph names thy =
   end
 
 fun preprocess_intros name thy =
-  PredData.map (Graph.map_node name (map_pred_data (apfst (fn (rules, preprocessed) =>
+  PredData.map (Graph.map_node name (map_pred_data (apsnd (apfst (fn (rules, preprocessed) =>
     if preprocessed then (rules, preprocessed)
     else
       let
@@ -401,7 +420,7 @@ fun preprocess_intros name thy =
         val elim' = prove_casesrule ctxt (pred, (elim, 0)) elim_t
       in
         ((named_intros', SOME elim'), true)
-      end))))
+      end)))))
     thy  
 
 
@@ -422,7 +441,7 @@ fun alternative_compilation_of ctxt pred_name mode =
   AList.lookup eq_mode
     (Symtab.lookup_list (Alt_Compilations_Data.get (Proof_Context.theory_of ctxt)) pred_name) mode
 
-fun force_modes_and_compilations pred_name compilations =
+fun force_modes_and_compilations pred_name compilations thy =
   let
     (* thm refl is a dummy thm *)
     val modes = map fst compilations
@@ -435,11 +454,14 @@ fun force_modes_and_compilations pred_name compilations =
       map (rpair non_random_dummys) Predicate_Compile_Aux.non_random_compilations
     val alt_compilations = map (apsnd fst) compilations
   in
+    thy |>
     PredData.map
       (Graph.new_node
         (pred_name,
-          mk_pred_data ((([], SOME @{thm refl}), true), (dummy_function_names, ([], needs_random)))))
-    #> Alt_Compilations_Data.map (Symtab.insert (K false) (pred_name, alt_compilations))
+          mk_pred_data
+            (Position.thread_data (),
+              ((([], SOME @{thm refl}), true), (dummy_function_names, ([], needs_random))))))
+    |> Alt_Compilations_Data.map (Symtab.insert (K false) (pred_name, alt_compilations))
   end
 
 fun functional_compilation fun_name mode compfuns T =

@@ -34,7 +34,7 @@ interpretation lifting_syntax .
 lift_definition bot_fset :: "'a fset" is "{}" parametric empty_transfer by simp 
 
 lift_definition less_eq_fset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" is subset_eq parametric subset_transfer 
-  by simp
+  .
 
 definition less_fset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" where "xs < ys \<equiv> xs \<le> ys \<and> xs \<noteq> (ys::'a fset)"
 
@@ -164,7 +164,7 @@ translations
   "{|x|}"     == "CONST finsert x {||}"
 
 lift_definition fmember :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<in>|" 50) is Set.member 
-  parametric member_transfer by simp
+  parametric member_transfer .
 
 abbreviation notin_fset :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<notin>|" 50) where "x |\<notin>| S \<equiv> \<not> (x |\<in>| S)"
 
@@ -187,12 +187,12 @@ lift_definition fPow :: "'a fset \<Rightarrow> 'a fset fset" is Pow parametric P
 by (subst compose_rel_to_Domainp [OF _ finite_transfer]) (auto intro: transfer_raw finite_subset 
   simp add: fset.pcr_cr_eq[symmetric] Domainp_set fset.domain_eq)
 
-lift_definition fcard :: "'a fset \<Rightarrow> nat" is card parametric card_transfer by simp
+lift_definition fcard :: "'a fset \<Rightarrow> nat" is card parametric card_transfer .
 
 lift_definition fimage :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a fset \<Rightarrow> 'b fset" (infixr "|`|" 90) is image 
   parametric image_transfer by simp
 
-lift_definition fthe_elem :: "'a fset \<Rightarrow> 'a" is the_elem ..
+lift_definition fthe_elem :: "'a fset \<Rightarrow> 'a" is the_elem .
 
 (* FIXME why is not invariant here unfolded ? *)
 lift_definition fbind :: "'a fset \<Rightarrow> ('a \<Rightarrow> 'b fset) \<Rightarrow> 'b fset" is Set.bind parametric bind_transfer
@@ -202,10 +202,10 @@ lift_definition ffUnion :: "'a fset fset \<Rightarrow> 'a fset" is Union paramet
 by (subst(asm) compose_rel_to_Domainp [OF _ finite_transfer])
   (auto intro: transfer_raw simp add: fset.pcr_cr_eq[symmetric] Domainp_set fset.domain_eq invariant_def)
 
-lift_definition fBall :: "'a fset \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" is Ball parametric Ball_transfer ..
-lift_definition fBex :: "'a fset \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" is Bex parametric Bex_transfer ..
+lift_definition fBall :: "'a fset \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" is Ball parametric Ball_transfer .
+lift_definition fBex :: "'a fset \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" is Bex parametric Bex_transfer .
 
-lift_definition ffold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a fset \<Rightarrow> 'b" is Finite_Set.fold ..
+lift_definition ffold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a fset \<Rightarrow> 'b" is Finite_Set.fold .
 
 
 subsection {* Transferred lemmas from Set.thy *}
@@ -774,7 +774,7 @@ subsection {* Setup for Lifting/Transfer *}
 subsubsection {* Relator and predicator properties *}
 
 lift_definition fset_rel :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a fset \<Rightarrow> 'b fset \<Rightarrow> bool" is set_rel
-parametric set_rel_transfer ..
+parametric set_rel_transfer .
 
 lemma fset_rel_alt_def: "fset_rel R = (\<lambda>A B. (\<forall>x.\<exists>y. x|\<in>|A \<longrightarrow> y|\<in>|B \<and> R x y) 
   \<and> (\<forall>y. \<exists>x. y|\<in>|B \<longrightarrow> x|\<in>|A \<and> R x y))"
@@ -836,8 +836,6 @@ proof -
       apply blast
     by (rename_tac A, rule_tac x="f |`| A" in exI, blast)
 qed
-
-lemmas reflp_fset_rel[reflexivity_rule] = reflp_set_rel[Transfer.transferred]
 
 lemma right_total_fset_rel[transfer_rule]: "right_total A \<Longrightarrow> right_total (fset_rel A)"
 unfolding right_total_def 

@@ -50,7 +50,7 @@ object Position
 
   object Range
   {
-    def apply(range: Text.Range): T = Offset(range.start) ++ Offset(range.stop)
+    def apply(range: Text.Range): T = Offset(range.start) ::: Offset(range.stop)
     def unapply(pos: T): Option[Text.Range] =
       (pos, pos) match {
         case (Offset(start), End_Offset(stop)) if start <= stop => Some(Text.Range(start, stop))

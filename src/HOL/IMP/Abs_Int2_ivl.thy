@@ -30,8 +30,7 @@ by(simp add: eq_ivl_def)
 lemma \<gamma>_ivl_nice: "\<gamma>_ivl[l,h] = {i. l \<le> Fin i \<and> Fin i \<le> h}"
 by transfer (simp add: \<gamma>_rep_def)
 
-lift_definition num_ivl :: "int \<Rightarrow> ivl" is "\<lambda>i. (Fin i, Fin i)"
-by(auto simp: eq_ivl_def)
+lift_definition num_ivl :: "int \<Rightarrow> ivl" is "\<lambda>i. (Fin i, Fin i)" .
 
 lift_definition in_ivl :: "int \<Rightarrow> ivl \<Rightarrow> bool"
   is "\<lambda>i (l,h). l \<le> Fin i \<and> Fin i \<le> h"

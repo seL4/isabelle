@@ -268,8 +268,8 @@ subsubsection {* Pointwise ordering induced by count *}
 instantiation multiset :: (type) ordered_ab_semigroup_add_imp_le
 begin
 
-lift_definition less_eq_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" is "\<lambda> A B. (\<forall>a. A a \<le> B a)"
-by simp
+lift_definition less_eq_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" is "\<lambda> A B. (\<forall>a. A a \<le> B a)" .
+
 lemmas mset_le_def = less_eq_multiset_def
 
 definition less_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" where

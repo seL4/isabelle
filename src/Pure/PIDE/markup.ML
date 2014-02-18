@@ -20,6 +20,14 @@ sig
   val name: string -> T -> T
   val kindN: string
   val instanceN: string
+  val languageN: string val language: string -> T
+  val language_sort: T
+  val language_type: T
+  val language_term: T
+  val language_prop: T
+  val language_ML: T
+  val language_document: T
+  val language_text: T
   val bindingN: string val binding: T
   val entityN: string val entity: string -> string -> T
   val get_entity_kind: T -> string option
@@ -62,10 +70,6 @@ sig
   val inner_cartoucheN: string val inner_cartouche: T
   val inner_commentN: string val inner_comment: T
   val token_rangeN: string val token_range: T
-  val sortN: string val sort: T
-  val typN: string val typ: T
-  val termN: string val term: T
-  val propN: string val prop: T
   val sortingN: string val sorting: T
   val typingN: string val typing: T
   val ML_keyword1N: string val ML_keyword1: T
@@ -81,8 +85,6 @@ sig
   val ML_openN: string
   val ML_structN: string
   val ML_typingN: string val ML_typing: T
-  val ML_sourceN: string val ML_source: T
-  val document_sourceN: string val document_source: T
   val antiquotedN: string val antiquoted: T
   val antiquoteN: string val antiquote: T
   val ML_antiquotationN: string
@@ -163,6 +165,12 @@ sig
   val command_timing: Properties.entry
   val loading_theory: string -> Properties.T
   val dest_loading_theory: Properties.T -> string option
+  val simp_trace_logN: string
+  val simp_trace_stepN: string
+  val simp_trace_recurseN: string
+  val simp_trace_hintN: string
+  val simp_trace_ignoreN: string
+  val simp_trace_cancel: serial -> Properties.T
   val no_output: Output.output * Output.output
   val default_output: T -> Output.output * Output.output
   val add_mode: string -> (T -> Output.output * Output.output) -> unit
@@ -220,9 +228,9 @@ fun is_empty ("", _) = true
 fun properties more_props ((elem, props): T) =
   (elem, fold_rev Properties.put more_props props);
 
-fun markup_elem elem = (elem, (elem, []): T);
-fun markup_string elem prop = (elem, fn s => (elem, [(prop, s)]): T);
-fun markup_int elem prop = (elem, fn i => (elem, [(prop, print_int i)]): T);
+fun markup_elem name = (name, (name, []): T);
+fun markup_string name prop = (name, fn s => (name, [(prop, s)]): T);
+fun markup_int name prop = (name, fn i => (name, [(prop, print_int i)]): T);
 
 
 (* misc properties *)
@@ -233,6 +241,20 @@ fun name a = properties [(nameN, a)];
 val kindN = "kind";
 
 val instanceN = "instance";
+
+
+(* embedded languages *)
+
+val (languageN, language) = markup_string "language" nameN;
+
+val language_sort = language "sort";
+val language_type = language "type";
+val language_term = language "term";
+val language_prop = language "prop";
+
+val language_ML = language "ML";
+val language_document = language "document";
+val language_text = language "text";
 
 
 (* formal entities *)
@@ -317,11 +339,6 @@ val (inner_commentN, inner_comment) = markup_elem "inner_comment";
 
 val (token_rangeN, token_range) = markup_elem "token_range";
 
-val (sortN, sort) = markup_elem "sort";
-val (typN, typ) = markup_elem "typ";
-val (termN, term) = markup_elem "term";
-val (propN, prop) = markup_elem "prop";
-
 val (sortingN, sorting) = markup_elem "sorting";
 val (typingN, typing) = markup_elem "typing";
 
@@ -344,10 +361,7 @@ val ML_structN = "ML_struct";
 val (ML_typingN, ML_typing) = markup_elem "ML_typing";
 
 
-(* embedded source text *)
-
-val (ML_sourceN, ML_source) = markup_elem "ML_source";
-val (document_sourceN, document_source) = markup_elem "document_source";
+(* antiquotations *)
 
 val (antiquotedN, antiquoted) = markup_elem "antiquoted";
 val (antiquoteN, antiquote) = markup_elem "antiquote";
@@ -509,6 +523,16 @@ fun loading_theory name = [("function", "loading_theory"), ("name", name)];
 fun dest_loading_theory [("function", "loading_theory"), ("name", name)] = SOME name
   | dest_loading_theory _ = NONE;
 
+
+(* simplifier trace *)
+
+val simp_trace_logN = "simp_trace_log";
+val simp_trace_stepN = "simp_trace_step";
+val simp_trace_recurseN = "simp_trace_recurse";
+val simp_trace_hintN = "simp_trace_hint";
+val simp_trace_ignoreN = "simp_trace_ignore";
+
+fun simp_trace_cancel i = [(functionN, "simp_trace_cancel"), (serialN, print_int i)];
 
 
 (** print mode operations **)

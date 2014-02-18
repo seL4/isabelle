@@ -192,7 +192,7 @@ fun here pos =
         (SOME i, NONE) => "(line " ^ Markup.print_int i ^ ")"
       | (SOME i, SOME name) => "(line " ^ Markup.print_int i ^ " of " ^ quote name ^ ")"
       | (NONE, SOME name) => "(file " ^ quote name ^ ")"
-      | _ => "");
+      | _ => if is_reported pos then "\\<here>" else "");
   in
     if null props then ""
     else (if s = "" then "" else " ") ^ Markup.markup (Markup.properties props Markup.position) s

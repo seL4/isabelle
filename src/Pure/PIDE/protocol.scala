@@ -282,10 +282,12 @@ object Protocol
   {
     def elem_positions(props: Properties.T, set: Set[Text.Range]): Set[Text.Range] =
       props match {
-        case Position.Reported(id, file_name, range)
+        case Position.Reported(id, file_name, raw_range)
         if (id == command_id || id == alt_id) && file_name == chunk.file_name =>
-          val range1 = chunk.decode(range).restrict(chunk.range)
-          if (range1.is_singularity) set else set + range1
+          chunk.decode(raw_range).try_restrict(chunk.range) match {
+            case Some(range) if !range.is_singularity => set + range
+            case _ => set
+          }
         case _ => set
       }
 

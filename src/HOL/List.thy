@@ -6582,16 +6582,6 @@ proof -
   by (auto iff: fun_eq_iff)
 qed 
 
-lemma reflp_list_all2[reflexivity_rule]:
-  assumes "reflp R"
-  shows "reflp (list_all2 R)"
-proof (rule reflpI)
-  from assms have *: "\<And>xs. R xs xs" by (rule reflpE)
-  fix xs
-  show "list_all2 R xs xs"
-    by (induct xs) (simp_all add: *)
-qed
-
 lemma left_total_list_all2[reflexivity_rule]:
   "left_total R \<Longrightarrow> left_total (list_all2 R)"
   unfolding left_total_def

@@ -2375,10 +2375,6 @@ lemma filter_rel_mono [relator_mono]:
 unfolding filter_rel_eventually[abs_def]
 by(rule le_funI)+(intro fun_mono fun_mono[THEN le_funD, THEN le_funD] order.refl)
 
-lemma reflp_filter_rel [reflexivity_rule]: "reflp R \<Longrightarrow> reflp (filter_rel R)"
-unfolding filter_rel_eventually[abs_def]
-by(blast intro!: reflpI eventually_subst always_eventually dest: fun_relD reflpD)
-
 lemma filter_rel_conversep [simp]: "filter_rel A\<inverse>\<inverse> = (filter_rel A)\<inverse>\<inverse>"
 by(auto simp add: filter_rel_eventually fun_eq_iff fun_rel_def)
 

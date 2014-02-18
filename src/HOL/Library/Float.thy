@@ -161,11 +161,11 @@ declare abs_float.rep_eq[simp]
 lift_definition sgn_float :: "float \<Rightarrow> float" is sgn by simp
 declare sgn_float.rep_eq[simp]
 
-lift_definition equal_float :: "float \<Rightarrow> float \<Rightarrow> bool" is "op = :: real \<Rightarrow> real \<Rightarrow> bool" ..
+lift_definition equal_float :: "float \<Rightarrow> float \<Rightarrow> bool" is "op = :: real \<Rightarrow> real \<Rightarrow> bool" .
 
-lift_definition less_eq_float :: "float \<Rightarrow> float \<Rightarrow> bool" is "op \<le>" ..
+lift_definition less_eq_float :: "float \<Rightarrow> float \<Rightarrow> bool" is "op \<le>" .
 declare less_eq_float.rep_eq[simp]
-lift_definition less_float :: "float \<Rightarrow> float \<Rightarrow> bool" is "op <" ..
+lift_definition less_float :: "float \<Rightarrow> float \<Rightarrow> bool" is "op <" .
 declare less_float.rep_eq[simp]
 
 instance
@@ -466,7 +466,7 @@ lemma compute_float_sgn[code]: "sgn (Float m1 e1) = (if 0 < m1 then 1 else if m1
   by transfer (simp add: sgn_times)
 hide_fact (open) compute_float_sgn
 
-lift_definition is_float_pos :: "float \<Rightarrow> bool" is "op < 0 :: real \<Rightarrow> bool" ..
+lift_definition is_float_pos :: "float \<Rightarrow> bool" is "op < 0 :: real \<Rightarrow> bool" .
 
 lemma compute_is_float_pos[code]: "is_float_pos (Float m e) \<longleftrightarrow> 0 < m"
   by transfer (auto simp add: zero_less_mult_iff not_le[symmetric, of _ 0])
@@ -476,7 +476,7 @@ lemma compute_float_less[code]: "a < b \<longleftrightarrow> is_float_pos (b - a
   by transfer (simp add: field_simps)
 hide_fact (open) compute_float_less
 
-lift_definition is_float_nonneg :: "float \<Rightarrow> bool" is "op \<le> 0 :: real \<Rightarrow> bool" ..
+lift_definition is_float_nonneg :: "float \<Rightarrow> bool" is "op \<le> 0 :: real \<Rightarrow> bool" .
 
 lemma compute_is_float_nonneg[code]: "is_float_nonneg (Float m e) \<longleftrightarrow> 0 \<le> m"
   by transfer (auto simp add: zero_le_mult_iff not_less[symmetric, of _ 0])
@@ -486,7 +486,7 @@ lemma compute_float_le[code]: "a \<le> b \<longleftrightarrow> is_float_nonneg (
   by transfer (simp add: field_simps)
 hide_fact (open) compute_float_le
 
-lift_definition is_float_zero :: "float \<Rightarrow> bool"  is "op = 0 :: real \<Rightarrow> bool" by simp
+lift_definition is_float_zero :: "float \<Rightarrow> bool"  is "op = 0 :: real \<Rightarrow> bool" .
 
 lemma compute_is_float_zero[code]: "is_float_zero (Float m e) \<longleftrightarrow> 0 = m"
   by transfer (auto simp add: is_float_zero_def)
@@ -1533,7 +1533,7 @@ lemma real_of_float_pprt[simp]: fixes a::float shows "real (pprt a) = pprt (real
 lemma real_of_float_nprt[simp]: fixes a::float shows "real (nprt a) = nprt (real a)"
   unfolding nprt_def inf_float_def min_def inf_real_def by auto
 
-lift_definition int_floor_fl :: "float \<Rightarrow> int" is floor by simp
+lift_definition int_floor_fl :: "float \<Rightarrow> int" is floor .
 
 lemma compute_int_floor_fl[code]:
   "int_floor_fl (Float m e) = (if 0 \<le> e then m * 2 ^ nat e else m div (2 ^ (nat (-e))))"

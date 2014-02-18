@@ -33,7 +33,7 @@ object YXML
     def tree(t: XML.Tree): Unit =
       t match {
         case XML.Elem(Markup(name, atts), ts) =>
-          s += X; s += Y; s++= name; atts.foreach(attrib); s += X
+          s += X; s += Y; s ++= name; atts.foreach(attrib); s += X
           ts.foreach(tree)
           s += X; s += Y; s += X
         case XML.Text(text) => s ++= text
@@ -120,7 +120,7 @@ object YXML
   /* failsafe parsing */
 
   private def markup_broken(source: CharSequence) =
-    XML.elem(Markup.Broken.name, List(XML.Text(source.toString)))
+    XML.Elem(Markup.Broken, List(XML.Text(source.toString)))
 
   def parse_body_failsafe(source: CharSequence): XML.Body =
   {

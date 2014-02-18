@@ -54,9 +54,6 @@ apply blast
 apply (rename_tac A, rule_tac x="{y. \<exists>x\<in>A. T x y}" in exI, fast)
 done
 
-lemma reflp_set_rel[reflexivity_rule]: "reflp R \<Longrightarrow> reflp (set_rel R)"
-  unfolding reflp_def set_rel_def by fast
-
 lemma left_total_set_rel[reflexivity_rule]: 
   "left_total A \<Longrightarrow> left_total (set_rel A)"
   unfolding left_total_def set_rel_def

@@ -22,6 +22,16 @@ proof (rule ext)+
     by (induct xs ys rule: list_induct2') simp_all
 qed
 
+lemma reflp_list_all2:
+  assumes "reflp R"
+  shows "reflp (list_all2 R)"
+proof (rule reflpI)
+  from assms have *: "\<And>xs. R xs xs" by (rule reflpE)
+  fix xs
+  show "list_all2 R xs xs"
+    by (induct xs) (simp_all add: *)
+qed
+
 lemma list_symp:
   assumes "symp R"
   shows "symp (list_all2 R)"
