@@ -23,7 +23,7 @@ fun merge_modes Disabled m = m
   | merge_modes Full _ = Full
 
 val empty_breakpoints =
-  (Item_Net.init (op =) single (* FIXME equality on terms? *),
+  (Item_Net.init (op aconv) single,
    Item_Net.init eq_rrule (single o Thm.full_prop_of o #thm))
 
 fun merge_breakpoints ((term_bs1, thm_bs1), (term_bs2, thm_bs2)) =
@@ -411,18 +411,15 @@ val _ =
 
 (** attributes **)
 
-val pat_parser =
-  Args.context -- Scan.lift Args.name_inner_syntax >> uncurry Proof_Context.read_term_schematic
-
-val mode_parser: string parser =
+val mode_parser =
   Scan.optional
     (Args.$$$ "mode" |-- Args.$$$ "=" |-- (Args.$$$ "normal" || Args.$$$ "full"))
     "normal"
 
-val interactive_parser: bool parser =
+val interactive_parser =
   Scan.optional (Args.$$$ "interactive" >> K true) false
 
-val memory_parser: bool parser =
+val memory_parser =
   Scan.optional (Args.$$$ "no_memory" >> K false) true
 
 val depth_parser =
@@ -434,7 +431,7 @@ val config_parser =
 
 val _ = Theory.setup
   (Attrib.setup @{binding break_term}
-    ((Scan.repeat1 pat_parser) >> term_breakpoint)
+    (Scan.repeat1 Args.term_pattern >> term_breakpoint)
     "declaration of a term breakpoint" #>
    Attrib.setup @{binding break_thm}
     (Scan.succeed thm_breakpoint)
