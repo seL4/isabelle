@@ -80,7 +80,7 @@ object Simplifier_Trace
     }
   }
 
-  val all_answers = Answer.step.all ++ Answer.hint_fail.all
+  val all_answers: List[Answer] = Answer.step.all ::: Answer.hint_fail.all
 
   object Active
   {
