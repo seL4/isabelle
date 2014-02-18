@@ -45,7 +45,7 @@ fun mk_sum_map f g =
     Const (@{const_name sum_map}, fT --> gT --> mk_sumT (fAT, gAT) --> mk_sumT (fBT, gBT)) $ f $ g
   end;
 
-fun construct_mutualized_fp fp fpTs fp_sugars bs resBs (resDs, Dss) bnfs lthy =
+fun construct_mutualized_fp fp fpTs (fp_sugars : fp_sugar list) bs resBs (resDs, Dss) bnfs lthy =
   let
     fun steal_fp_res get =
       map (fn {fp_res, fp_res_index, ...} => nth (get fp_res) fp_res_index) fp_sugars;
