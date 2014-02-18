@@ -419,7 +419,7 @@ fun mk_card_order bd =
     val AT = fst (dest_relT T);
   in
     Const (@{const_name card_order_on}, HOLogic.mk_setT AT --> T --> HOLogic.boolT) $
-      (HOLogic.mk_UNIV AT) $ bd
+      HOLogic.mk_UNIV AT $ bd
   end;
 
 fun mk_Card_order bd =

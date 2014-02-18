@@ -99,7 +99,7 @@ fun datatype_compat_cmd raw_fpT_names lthy =
       | NONE => error ("Unsupported recursion via type constructor " ^ quote s ^
           " not corresponding to new-style datatype (cf. \"datatype_new\")"));
 
-    fun get_indices (Var ((_, kk), _)) = [kk];
+    fun get_var_indices (Var ((_, kk), _)) = [kk];
 
     val (Tparentss_kkssss, _) = nested_Tparentss_indicessss_of [] fpT1 0;
     val Tparentss = map fst Tparentss_kkssss;
@@ -128,7 +128,7 @@ fun datatype_compat_cmd raw_fpT_names lthy =
 
     val ((fp_sugars, (lfp_sugar_thms, _)), lthy) =
       if nn > nn_fp then
-        mutualize_fp_sugars Least_FP compat_bs Ts get_indices callssss fp_sugars0 lthy
+        mutualize_fp_sugars Least_FP compat_bs Ts get_var_indices callssss fp_sugars0 lthy
       else
         ((fp_sugars0, (NONE, NONE)), lthy);
 

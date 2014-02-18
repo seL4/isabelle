@@ -33,16 +33,12 @@ sig
   val co_induct_of: 'a list -> 'a
   val strong_co_induct_of: 'a list -> 'a
 
-  val tvar_subst: theory -> typ list -> typ list -> ((string * int) * typ) list
-  val flat_rec_arg_args: 'a list list -> 'a list
   val flat_corec_preds_predsss_gettersss: 'a list -> 'a list list list -> 'a list list list ->
     'a list
-  val mk_co_iter: theory -> BNF_FP_Util.fp_kind -> typ -> typ list -> term -> term
   val nesty_bnfs: Proof.context -> typ list list list -> typ list -> BNF_Def.bnf list
 
   type lfp_sugar_thms =
-    (thm list * thm * Args.src list)
-    * (thm list list * thm list list * Args.src list)
+    (thm list * thm * Args.src list) * (thm list list * thm list list * Args.src list)
 
   val morph_lfp_sugar_thms: morphism -> lfp_sugar_thms -> lfp_sugar_thms
   val transfer_lfp_sugar_thms: Proof.context -> lfp_sugar_thms -> lfp_sugar_thms
@@ -65,8 +61,6 @@ sig
      * (string * term list * term list list
         * ((term list list * term list list list) * typ list) list) option)
     * Proof.context
-  val mk_iter_fun_arg_types: typ list list list -> int list -> int list list -> typ ->
-    typ list list list list
   val mk_coiter_fun_arg_types: typ list list list -> typ list -> int list -> term ->
     typ list list
     * (typ list list list list * typ list list list * typ list list list list * typ list)
@@ -110,6 +104,7 @@ structure BNF_FP_Def_Sugar : BNF_FP_DEF_SUGAR =
 struct
 
 open Ctr_Sugar
+open BNF_FP_Rec_Sugar_Util
 open BNF_Util
 open BNF_Comp
 open BNF_Def
@@ -219,16 +214,7 @@ val nitpicksimp_attrs = @{attributes [nitpick_simp]};
 val code_nitpicksimp_attrs = Code.add_default_eqn_attrib :: nitpicksimp_attrs;
 val simp_attrs = @{attributes [simp]};
 
-fun tvar_subst thy Ts Us =
-  Vartab.fold (cons o apsnd snd) (fold (Sign.typ_match thy) (Ts ~~ Us) Vartab.empty) [];
-
 val lists_bmoc = fold (fn xs => fn t => Term.list_comb (t, xs));
-
-fun flat_rec_arg_args xss =
-  (* FIXME (once the old datatype package is phased out): The first line below gives the preferred
-     order. The second line is for compatibility with the old datatype package. *)
-  (* flat xss *)
-  map hd xss @ maps tl xss;
 
 fun flat_corec_predss_getterss qss fss = maps (op @) (qss ~~ fss);
 
@@ -262,16 +248,6 @@ fun mk_ctor_or_dtor get_T Ts t =
 val mk_ctor = mk_ctor_or_dtor range_type;
 val mk_dtor = mk_ctor_or_dtor domain_type;
 
-fun mk_co_iter thy fp fpT Cs t =
-  let
-    val (f_Cs, Type (_, [prebody, body])) = strip_fun_type (fastype_of t);
-    val fpT0 = fp_case fp prebody body;
-    val Cs0 = distinct (op =) (map (fp_case fp body_type domain_type) f_Cs);
-    val rho = tvar_subst thy (fpT0 :: Cs0) (fpT :: Cs);
-  in
-    Term.subst_TVars rho t
-  end;
-
 fun mk_co_iters thy fp fpTs Cs ts0 =
   let
     val nn = length fpTs;
@@ -282,10 +258,6 @@ fun mk_co_iters thy fp fpTs Cs ts0 =
   in
     map (Term.subst_TVars rho) ts0
   end;
-
-fun unzip_recT (Type (@{type_name prod}, _)) T = [T]
-  | unzip_recT _ (Type (@{type_name prod}, Ts)) = Ts
-  | unzip_recT _ T = [T];
 
 fun unzip_corecT (Type (@{type_name sum}, _)) T = [T]
   | unzip_corecT _ (Type (@{type_name sum}, Ts)) = Ts
@@ -333,8 +305,7 @@ fun nesty_bnfs ctxt ctr_Tsss Us =
 fun indexify proj xs f p = f (find_index (curry (op =) (proj p)) xs) p;
 
 type lfp_sugar_thms =
-  (thm list * thm * Args.src list)
-  * (thm list list * thm list list * Args.src list)
+  (thm list * thm * Args.src list) * (thm list list * thm list list * Args.src list)
 
 fun morph_lfp_sugar_thms phi ((inducts, induct, induct_attrs), (foldss, recss, iter_attrs)) =
   ((map (Morphism.thm phi) inducts, Morphism.thm phi induct, induct_attrs),
@@ -367,13 +338,6 @@ fun morph_gfp_sugar_thms phi ((coinducts_pairs, coinduct_attrs),
 
 val transfer_gfp_sugar_thms =
   morph_gfp_sugar_thms o Morphism.transfer_morphism o Proof_Context.theory_of;
-
-fun mk_iter_fun_arg_types0 n ms = map2 dest_tupleT ms o dest_sumTN_balanced n o domain_type;
-
-fun mk_iter_fun_arg_types ctr_Tsss ns mss =
-  binder_fun_types
-  #> map3 mk_iter_fun_arg_types0 ns mss
-  #> map2 (map2 (map2 unzip_recT)) ctr_Tsss;
 
 fun mk_iters_args_types ctr_Tsss Cs ns mss ctor_iter_fun_Tss lthy =
   let

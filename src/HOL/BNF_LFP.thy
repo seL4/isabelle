@@ -241,8 +241,8 @@ ML_file "Tools/BNF/bnf_lfp_util.ML"
 ML_file "Tools/BNF/bnf_lfp_tactics.ML"
 ML_file "Tools/BNF/bnf_lfp.ML"
 ML_file "Tools/BNF/bnf_lfp_compat.ML"
-ML_file "Tools/BNF/bnf_fp_rec_sugar_util.ML"
 ML_file "Tools/BNF/bnf_lfp_rec_sugar.ML"
+ML_file "Tools/BNF/bnf_lfp_rec_sugar_more.ML"
 
 hide_fact (open) id_transfer
 

@@ -936,7 +936,7 @@ val _ = tracing ("callssss = " ^ @{make_string} callssss);
 
     val ((n2m, corec_specs', _, coinduct_thm, strong_coinduct_thm, coinduct_thms,
           strong_coinduct_thms), lthy') =
-      corec_specs_of bs arg_Ts res_Ts (get_indices fixes) callssss lthy;
+      corec_specs_of bs arg_Ts res_Ts (get_free_indices fixes) callssss lthy;
     val corec_specs = take actual_nn corec_specs';
     val ctr_specss = map #ctr_specs corec_specs;
 
