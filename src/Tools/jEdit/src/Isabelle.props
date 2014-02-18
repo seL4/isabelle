@@ -36,8 +36,8 @@ plugin.isabelle.jedit.Plugin.menu= \
   isabelle.output-panel \
   isabelle.protocol-panel \
   isabelle.raw-output-panel \
+  isabelle.simplifier-trace-panel \
   isabelle.sledgehammer-panel \
-  isabelle.simp-trace-panel \
   isabelle.symbols-panel \
   isabelle.syslog-panel \
   isabelle.theories-panel \
@@ -48,7 +48,7 @@ isabelle.monitor-panel.label=Monitor panel
 isabelle.output-panel.label=Output panel
 isabelle.protocol-panel.label=Protocol panel
 isabelle.raw-output-panel.label=Raw Output panel
-isabelle.simp-trace-panel.label=Simplifier trace panel
+isabelle.simplifier-trace-panel.label=Simplifier Trace panel
 isabelle.sledgehammer-panel.label=Sledgehammer panel
 isabelle.symbols-panel.label=Symbols panel
 isabelle.syslog-panel.label=Syslog panel
@@ -61,7 +61,7 @@ isabelle-graphview.title=Graphview
 isabelle-info.title=Info
 isabelle-monitor.title=Monitor
 isabelle-output.title=Output
-isabelle-simp-trace.title=Simplifier trace
+isabelle-simplifier-trace.title=Simplifier Trace
 isabelle-protocol.title=Protocol
 isabelle-raw-output.title=Raw Output
 isabelle-documentation.title=Documentation

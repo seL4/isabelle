@@ -83,7 +83,7 @@ object Isabelle
     }
 
   def docked_simplifier_trace(view: View): Option[Simplifier_Trace_Dockable] =
-    wm(view).getDockableWindow("isabelle-simp-trace") match {
+    wm(view).getDockableWindow("isabelle-simplifier-trace") match {
       case dockable: Simplifier_Trace_Dockable => Some(dockable)
       case _ => None
     }

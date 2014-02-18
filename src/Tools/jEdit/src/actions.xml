@@ -42,9 +42,9 @@
 			wm.addDockableWindow("isabelle-raw-output");
 		</CODE>
 	</ACTION>
-	<ACTION NAME="isabelle.simp-trace-panel">
+	<ACTION NAME="isabelle.simplifier-trace-panel">
 		<CODE>
-			wm.addDockableWindow("isabelle-simp-trace");
+			wm.addDockableWindow("isabelle-simplifier-trace");
 		</CODE>
 	</ACTION>
 	<ACTION NAME="isabelle.protocol-panel">
