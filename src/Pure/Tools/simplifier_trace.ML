@@ -13,7 +13,7 @@ end
 structure Simplifier_Trace: SIMPLIFIER_TRACE =
 struct
 
-(** background data **)
+(** context data **)
 
 datatype mode = Disabled | Normal | Full
 
@@ -49,10 +49,11 @@ structure Data = Generic_Data
      parent = 0,
      breakpoints = empty_breakpoints}
   val extend = I
-  fun merge ({max_depth = max_depth1, mode = mode1, interactive = interactive1,
-              memory = memory1, breakpoints = breakpoints1, ...}: T,
-             {max_depth = max_depth2, mode = mode2, interactive = interactive2,
-              memory = memory2, breakpoints = breakpoints2, ...}: T) =
+  fun merge
+    ({max_depth = max_depth1, mode = mode1, interactive = interactive1,
+      memory = memory1, breakpoints = breakpoints1, ...}: T,
+     {max_depth = max_depth2, mode = mode2, interactive = interactive2,
+      memory = memory2, breakpoints = breakpoints2, ...}: T) =
     {max_depth = Int.max (max_depth1, max_depth2),
      depth = 0,
      mode = merge_modes mode1 mode2,
@@ -97,14 +98,17 @@ fun is_breakpoint (term, rrule) context =
     (term_matches, thm_matches)
   end
 
+
+
 (** config and attributes **)
 
 fun config raw_mode interactive max_depth memory =
   let
-    val mode = case raw_mode of
-      "normal" => Normal
-    | "full" => Full
-    | _ => error ("Simplifier_Trace.config: unknown mode " ^ raw_mode)
+    val mode =
+      (case raw_mode of
+        "normal" => Normal
+      | "full" => Full
+      | _ => error ("Simplifier_Trace.config: unknown mode " ^ raw_mode))
 
     val update = Data.map (fn {depth, parent, breakpoints, ...} =>
       {max_depth = max_depth,
@@ -122,10 +126,14 @@ fun term_breakpoint terms =
 val thm_breakpoint =
   Thm.declaration_attribute add_thm_breakpoint
 
+
+
 (** tracing state **)
 
 val futures =
   Synchronized.var "Simplifier_Trace.futures" (Inttab.empty: string future Inttab.table)
+
+
 
 (** markup **)
 
@@ -158,15 +166,14 @@ fun mk_generic_result markup text triggered (payload : unit -> payload) ctxt =
     val {max_depth, depth, mode, interactive, memory, parent, ...} = Data.get (Context.Proof ctxt)
 
     val eligible =
-      case mode of
+      (case mode of
         Disabled => false
       | Normal => triggered
-      | Full => true
+      | Full => true)
 
     val markup' = if markup = stepN andalso not interactive then logN else markup
   in
-    if not eligible orelse depth > max_depth then
-      NONE
+    if not eligible orelse depth > max_depth then NONE
     else
       let
         val {props = more_props, pretty} = payload ()
@@ -180,6 +187,8 @@ fun mk_generic_result markup text triggered (payload : unit -> payload) ctxt =
         SOME (serial (), data)
       end
   end
+
+
 
 (** tracing output **)
 
@@ -209,10 +218,8 @@ fun step ({term, thm, unconditional, ctxt, rrule}: data) =
     val term_triggered = not (null matching_terms)
 
     val text =
-      if unconditional then
-        "Apply rewrite rule?"
-      else
-        "Apply conditional rewrite rule?"
+      if unconditional then "Apply rewrite rule?"
+      else "Apply conditional rewrite rule?"
 
     fun payload () =
       let
@@ -233,8 +240,7 @@ fun step ({term, thm, unconditional, ctxt, rrule}: data) =
           in
             if not (null matching_terms) then
               [Pretty.block (Pretty.fbreaks (Pretty.str "Matching terms:" :: items))]
-            else
-              []
+            else []
           end
 
         val pretty =
@@ -269,14 +275,13 @@ fun step ({term, thm, unconditional, ctxt, rrule}: data) =
       in
         if not interactive then
           (output_result result; Future.value (SOME (put mode false)))
-        else
-          Future.map to_response (send_request result)
+        else Future.map to_response (send_request result)
       end
 
   in
-    case mk_generic_result stepN text (thm_triggered orelse term_triggered) payload ctxt of
+    (case mk_generic_result stepN text (thm_triggered orelse term_triggered) payload ctxt of
       NONE => Future.value (SOME ctxt)
-    | SOME res => mk_promise res
+    | SOME res => mk_promise res)
   end
 
 fun recurse text term ctxt =
@@ -298,11 +303,9 @@ fun recurse text term ctxt =
        breakpoints = breakpoints} (Context.Proof ctxt)
 
     val context' =
-      case mk_generic_result recurseN text true payload ctxt of
-        NONE =>
-          put 0
-      | SOME res =>
-          (output_result res; put (#1 res))
+      (case mk_generic_result recurseN text true payload ctxt of
+        NONE => put 0
+      | SOME res => (output_result res; put (#1 res)))
   in Context.the_proof context' end
 
 fun indicate_failure ({term, ctxt, thm, rrule, ...}: data) ctxt' =
@@ -336,24 +339,21 @@ fun indicate_failure ({term, ctxt, thm, rrule, ...}: data) ctxt' =
       let
         val result_id = #1 result
 
-        fun to_response "exit" =
-              false
+        fun to_response "exit" = false
           | to_response "redo" =
               (Option.app output_result
                 (mk_generic_result ignoreN "Ignore" true empty_payload ctxt');
                true)
-          | to_response _ =
-              raise Fail "Simplifier_Trace.indicate_failure: invalid message"
+          | to_response _ = raise Fail "Simplifier_Trace.indicate_failure: invalid message"
       in
         if not interactive then
           (output_result result; Future.value false)
-        else
-          Future.map to_response (send_request result)
+        else Future.map to_response (send_request result)
       end
   in
-    case mk_generic_result hintN "Step failed" true payload ctxt' of
+    (case mk_generic_result hintN "Step failed" true payload ctxt' of
       NONE => Future.value false
-    | SOME res => mk_promise res
+    | SOME res => mk_promise res)
   end
 
 fun indicate_success thm ctxt =
@@ -364,6 +364,8 @@ fun indicate_success thm ctxt =
   in
     Option.app output_result (mk_generic_result hintN "Successfully rewrote" true payload ctxt)
   end
+
+
 
 (** setup **)
 
@@ -377,21 +379,17 @@ fun simp_apply args ctxt cont =
        thm = thm,
        rrule = rrule}
   in
-    case Future.join (step data) of
-      NONE =>
-        NONE
+    (case Future.join (step data) of
+      NONE => NONE
     | SOME ctxt' =>
         let val res = cont ctxt' in
-          case res of
+          (case res of
             NONE =>
               if Future.join (indicate_failure data ctxt') then
                 simp_apply args ctxt cont
-              else
-                NONE
-          | SOME (thm, _) =>
-              (indicate_success thm ctxt';
-               res)
-        end
+              else NONE
+          | SOME (thm, _) => (indicate_success thm ctxt'; res))
+        end)
   end
 
 val _ = Session.protocol_handler "isabelle.Simplifier_Trace$Handler"
@@ -414,6 +412,8 @@ val _ =
         (Synchronized.change_result futures lookup_delete |> apply_result)
           handle exn => if Exn.is_interrupt exn then () (*sic!*) else reraise exn
       end)
+
+
 
 (** attributes **)
 
