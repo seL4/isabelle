@@ -263,8 +263,7 @@ fun mutualize_fp_sugars fp bs fpTs get_indices callssss fp_sugars0 no_defs_lthy0
       end)
   end;
 
-(* TODO: needed? *)
-fun indexify_callsss (fp_sugar as {ctr_sugar = {ctrs, ...}, ...} : fp_sugar) callsss =
+fun indexify_callsss ctrs callsss =
   let
     fun indexify_ctr ctr =
       (case AList.lookup Term.aconv_untyped callsss ctr of
@@ -332,9 +331,9 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts get_indices actual_callssss0 lth
 
           fun fresh_tyargs () =
             let
-              (* The name "'z" is unlikely to clash with the context, yielding more cache hits. *)
+              (* The name "'zy" is unlikely to clash with the context, yielding more cache hits. *)
               val (gen_tyargs, lthy') =
-                variant_tfrees (replicate (length tyargs) "z") lthy
+                variant_tfrees (replicate (length tyargs) "zy") lthy
                 |>> map Logic.varifyT_global;
               val rho' = (gen_tyargs ~~ tyargs) @ rho;
             in
@@ -388,7 +387,7 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts get_indices actual_callssss0 lth
     val perm_callssss0 = permute callssss0;
     val perm_fp_sugars0 = map (the o fp_sugar_of lthy o fst o dest_Type) perm_Ts;
 
-    val perm_callssss = map2 indexify_callsss perm_fp_sugars0 perm_callssss0;
+    val perm_callssss = map2 (indexify_callsss o #ctrs o #ctr_sugar) perm_fp_sugars0 perm_callssss0;
 
     val get_perm_indices = map (fn kk => find_index (curry (op =) kk) perm_kks) o get_indices;
 
