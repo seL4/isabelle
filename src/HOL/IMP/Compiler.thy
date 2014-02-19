@@ -180,7 +180,7 @@ fun bcomp :: "bexp \<Rightarrow> bool \<Rightarrow> int \<Rightarrow> instr list
 "bcomp (Not b) f n = bcomp b (\<not>f) n" |
 "bcomp (And b1 b2) f n =
  (let cb2 = bcomp b2 f n;
-        m = (if f then size cb2 else (size cb2::int)+n);
+        m = if f then size cb2 else (size cb2::int)+n;
       cb1 = bcomp b1 False m
   in cb1 @ cb2)" |
 "bcomp (Less a1 a2) f n =
