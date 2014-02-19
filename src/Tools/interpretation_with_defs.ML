@@ -102,8 +102,8 @@ val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "permanent_interpretation"}
     "prove interpretation of locale expression into named theory"
     (Parse.!!! (Parse_Spec.locale_expression true) --
-      Scan.optional (@{keyword "defines"} |-- Parse.and_list1 (Parse_Spec.opt_thm_name ":"
-        -- ((Parse.binding -- Parse.opt_mixfix') --| @{keyword "is"} -- Parse.term))) [] --
+      Scan.optional (@{keyword "defining"} |-- Parse.and_list1 (Parse_Spec.opt_thm_name ":"
+        -- ((Parse.binding -- Parse.opt_mixfix') --| @{keyword "="} -- Parse.term))) [] --
       Scan.optional (Parse.where_ |-- Parse.and_list1 (Parse_Spec.opt_thm_name ":" -- Parse.prop)) []
       >> (fn ((expr, defs), eqns) => permanent_interpretation_cmd expr defs eqns));
 

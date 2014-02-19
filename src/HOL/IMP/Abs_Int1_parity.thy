@@ -125,7 +125,7 @@ instantiated abstract interpreter which we call @{text AI_parity}: *}
 
 permanent_interpretation Abs_Int
 where \<gamma> = \<gamma>_parity and num' = num_parity and plus' = plus_parity
-defines aval_parity is aval' and step_parity is step' and AI_parity is AI
+defining aval_parity = aval' and step_parity = step' and AI_parity = AI
 ..
 
 

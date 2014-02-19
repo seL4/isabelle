@@ -62,8 +62,8 @@ next
 qed
 
 permanent_interpretation Abs_Int rep_cval Const plus_cval "(iter' 3)"
-defines AI_const is AI
-and aval'_const is aval'
+defining AI_const = AI
+and aval'_const = aval'
 proof qed (auto simp: iter'_pfp_above)
 
 text{* Straight line code: *}
