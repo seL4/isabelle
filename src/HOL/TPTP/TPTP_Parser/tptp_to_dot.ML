@@ -40,9 +40,13 @@ fun the_role_shape role =
   | Role_Assumption => "trapezium" (*NOTE this is not standard wrt IDV*)
   | Role_Lemma => "hexagon"
   | Role_Theorem => "star" (*NOTE this is not standard wrt IDV*)
-  | Role_Conjecture => "house"
-  | Role_Negated_Conjecture => "invhouse"
+
+  (*NOTE changed the next three to plaintext to avoid clutter, since
+         i'm also displaying the inference's conclusion in latex*)
+  | Role_Conjecture => "plaintext" (* "house" *)
+  | Role_Negated_Conjecture => "plaintext" (* "invhouse" *)
   | Role_Plain => "plaintext" (* "circle" *) (*could also use none*)
+
   | Role_Fi_Domain => raise NO_ROLE_SHAPE
   | Role_Fi_Functors => raise NO_ROLE_SHAPE
   | Role_Fi_Predicates => raise NO_ROLE_SHAPE
@@ -107,8 +111,7 @@ fun write_proof_dot input_file output_file =
       "node[width=0.5];\n" ^
       "node[shape=plaintext];\n" ^
       (* "node[fillcolor=lightgray];\n" ^ *)
-      "node[fontsize=50];\n" ^
-      "edge[dir=none];\n"
+      "node[fontsize=50];\n"
   in
     TPTP_Parser.parse_file input_file
     |> map (tptp_dot_node true true)
