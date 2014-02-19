@@ -68,15 +68,17 @@ val _ = Theory.setup
     (Scan.lift (Parse.position Args.name) >> ML_Syntax.make_binding) #>
 
   value (Binding.name "theory")
-    (Args.theory -- Scan.lift (Parse.position Args.name) >> (fn (thy, (name, pos)) =>
-      (Position.report pos (Theory.get_markup (Context.get_theory thy name));
-        "Context.get_theory (Proof_Context.theory_of ML_context) " ^ ML_Syntax.print_string name))
+    (Args.context -- Scan.lift (Parse.position Args.name) >> (fn (ctxt, (name, pos)) =>
+      (Context_Position.report ctxt pos
+        (Theory.get_markup (Context.get_theory (Proof_Context.theory_of ctxt) name));
+       "Context.get_theory (Proof_Context.theory_of ML_context) " ^ ML_Syntax.print_string name))
     || Scan.succeed "Proof_Context.theory_of ML_context") #>
 
   value (Binding.name "theory_context")
-    (Args.theory -- Scan.lift (Parse.position Args.name) >> (fn (thy, (name, pos)) =>
-      (Position.report pos (Theory.get_markup (Context.get_theory thy name));
-        "Proof_Context.get_global (Proof_Context.theory_of ML_context) " ^
+    (Args.context -- Scan.lift (Parse.position Args.name) >> (fn (ctxt, (name, pos)) =>
+      (Context_Position.report ctxt pos
+        (Theory.get_markup (Context.get_theory (Proof_Context.theory_of ctxt) name));
+       "Proof_Context.get_global (Proof_Context.theory_of ML_context) " ^
         ML_Syntax.print_string name))) #>
 
   inline (Binding.name "context") (Scan.succeed "Isabelle.ML_context") #>
