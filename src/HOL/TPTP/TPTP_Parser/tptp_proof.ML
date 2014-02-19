@@ -113,6 +113,7 @@ fun extract_source_info annot =
                        (inference_name,
                         analyse_useful_info useful_info [],
                         analyse_parent_info parent_info [])))
+
       | analyse_annot
          (General_Data
           (Application
@@ -128,6 +129,17 @@ fun extract_source_info annot =
               [General_Data (Atomic_Word filename),
                General_Data (Number (Int_num, defname))])), _) =
                 (SOME (File (filename, defname)))
+
+      (*This was added to support Satallax proofs.*)
+      | analyse_annot
+         (General_Data
+           (Application
+             ("introduced",
+              [General_Data (Atomic_Word "assumption"),
+               General_List []])), _) =
+                (SOME (Inference
+                       ("assumption", [], [])))
+
 
       | analyse_annot (other, _) = raise (ANNOT_STRUCTURE other)
   in
