@@ -24,8 +24,8 @@ sig
      get_basic_lfp_sugars: binding list -> typ list -> (term -> int list) ->
       (term * term list list) list list -> local_theory ->
       typ list * int list * basic_lfp_sugar list * thm list * thm list * thm * bool * local_theory,
-     rewrite_nested_rec_call: Proof.context -> (term -> bool) -> (string -> int) -> typ list -> term ->
-       term -> term -> term};
+     rewrite_nested_rec_call: Proof.context -> (term -> bool) -> (string -> int) -> typ list ->
+       term -> term -> term -> term};
 
   exception PRIMREC of string * term list;
 
@@ -95,8 +95,8 @@ type lfp_rec_extension =
    get_basic_lfp_sugars: binding list -> typ list -> (term -> int list) ->
     (term * term list list) list list -> local_theory ->
     typ list * int list * basic_lfp_sugar list * thm list * thm list * thm * bool * local_theory,
-   rewrite_nested_rec_call: Proof.context -> (term -> bool) -> (string -> int) -> typ list -> term ->
-     term -> term -> term};
+   rewrite_nested_rec_call: Proof.context -> (term -> bool) -> (string -> int) -> typ list ->
+     term -> term -> term -> term};
 
 structure Data = Theory_Data
 (

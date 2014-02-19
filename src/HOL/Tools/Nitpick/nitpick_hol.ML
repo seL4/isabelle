@@ -656,7 +656,7 @@ val unregister_codatatype_global =
 
 fun is_codatatype ctxt (Type (s, _)) =
     Option.map #fp (BNF_FP_Def_Sugar.fp_sugar_of ctxt s)
-        = SOME BNF_FP_Util.Greatest_FP orelse
+        = SOME BNF_Util.Greatest_FP orelse
     not (null (these (Option.map snd (AList.lookup (op =)
                             (#codatatypes (Data.get (Context.Proof ctxt))) s))))
   | is_codatatype _ _ = false
@@ -790,7 +790,7 @@ fun is_coconstr ctxt (s, T) =
         |> Option.map snd |> these
       val ctrs2 =
         (case BNF_FP_Def_Sugar.fp_sugar_of ctxt co_s of
-           SOME (fp_sugar as {fp = BNF_FP_Util.Greatest_FP, ...}) =>
+           SOME (fp_sugar as {fp = BNF_Util.Greatest_FP, ...}) =>
            map dest_Const (#ctrs (#ctr_sugar fp_sugar))
          | _ => [])
     in
@@ -934,7 +934,7 @@ fun uncached_datatype_constrs ({thy, ctxt, stds, ...} : hol_context)
        SOME (_, xs' as (_ :: _)) => map (apsnd (repair_constr_type T)) xs'
      | _ =>
        (case BNF_FP_Def_Sugar.fp_sugar_of ctxt s of
-          SOME (fp_sugar as {fp = BNF_FP_Util.Greatest_FP, ...}) =>
+          SOME (fp_sugar as {fp = BNF_Util.Greatest_FP, ...}) =>
           map (apsnd (repair_constr_type T) o dest_Const)
               (#ctrs (#ctr_sugar fp_sugar))
         | _ =>
@@ -1465,7 +1465,7 @@ fun case_const_names ctxt stds =
                 (Datatype.get_all thy) [] @
     map (apsnd length o snd) (#codatatypes (Data.get (Context.Proof ctxt))) @
     map_filter (fn {fp, ctr_sugar = {casex, ...}, ...} =>
-                   if fp = BNF_FP_Util.Greatest_FP then
+                   if fp = BNF_Util.Greatest_FP then
                      SOME (apsnd num_binder_types (dest_Const casex))
                    else
                      NONE)
