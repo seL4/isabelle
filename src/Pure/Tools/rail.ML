@@ -39,6 +39,10 @@ fun print (Token ((pos, _), (k, x))) =
 
 fun print_keyword x = print_kind Keyword ^ " " ^ quote x;
 
+fun reports_of_token (Token ((pos, _), (String, _))) = [(pos, Markup.inner_string)]
+  | reports_of_token (Token (_, (Antiq antiq, _))) = Antiquote.antiq_reports antiq
+  | reports_of_token _ = [];
+
 
 (* stopper *)
 
@@ -71,7 +75,8 @@ val scan_token =
   Antiquote.scan_antiq >> (fn antiq as (ss, _) => token (Antiq antiq) ss) ||
   scan_keyword >> (token Keyword o single) ||
   Lexicon.scan_id >> token Ident ||
-  Symbol_Pos.scan_string_q err_prefix >> (token String o #1 o #2);
+  Symbol_Pos.scan_string_q err_prefix >> (fn (pos1, (ss, pos2)) =>
+    [Token (Position.range pos1 pos2, (String, Symbol_Pos.content ss))]);
 
 val scan =
   (Scan.repeat scan_token >> flat) --|
@@ -80,7 +85,7 @@ val scan =
 
 in
 
-val tokenize = #1 o Scan.error (Scan.finite Symbol_Pos.stopper scan) o Symbol_Pos.explode;
+val tokenize = #1 o Scan.error (Scan.finite Symbol_Pos.stopper scan);
 
 end;
 
@@ -187,8 +192,12 @@ val rules = enum1 ";" (Scan.option rule) >> map_filter I;
 
 in
 
-val read =
-  #1 o Scan.error (Scan.finite stopper (rules --| !!! (Scan.ahead (Scan.one is_eof)))) o tokenize;
+fun read ctxt (s, pos) =
+  let
+    val _ = Context_Position.report ctxt pos Markup.language_rail;
+    val toks = tokenize (Symbol_Pos.explode (s, pos));
+    val _ = Context_Position.reports ctxt (maps reports_of_token toks);
+  in #1 (Scan.error (Scan.finite stopper (rules --| !!! (Scan.ahead (Scan.one is_eof)))) toks) end;
 
 end;
 
@@ -267,7 +276,7 @@ in
 val _ = Theory.setup
   (Thy_Output.antiquotation @{binding rail}
     (Scan.lift (Parse.source_position (Parse.string || Parse.cartouche)))
-    (fn {state, ...} => output_rules state o read));
+    (fn {state, context, ...} => output_rules state o read context));
 
 end;
 
