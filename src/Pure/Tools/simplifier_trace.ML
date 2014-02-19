@@ -140,7 +140,6 @@ val futures =
 fun output_result (id, data) =
   Output.result (Markup.serial_properties id) data
 
-val serialN = "serial"
 val parentN = "parent"
 val textN = "text"
 val memoryN = "memory"
