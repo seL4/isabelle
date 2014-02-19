@@ -114,7 +114,6 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
     BNF/Countable_Type.thy ~> Library/Countable_Set_Type.thy
     BNF/Examples/* ~> BNF_Examples/*
   New theories:
-    List_Prefix.thy (split from Library/Sublist.thy)
     Wellorder_Extension.thy (split from Zorn.thy)
     Library/Cardinal_Notations.thy
     Library/BNF_Decl.thy
