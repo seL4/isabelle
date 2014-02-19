@@ -982,7 +982,6 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
        end;
 
     val sbdTs = replicate n sbdT;
-    val sum_sbd = Library.foldr1 (uncurry mk_csum) (replicate n sbd);
     val sum_sbdT = mk_sumTN sbdTs;
     val sum_sbd_listT = HOLogic.listT sum_sbdT;
     val sum_sbd_list_setT = HOLogic.mk_setT sum_sbd_listT;
@@ -1068,8 +1067,6 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
     val isTree =
       let
         val empty = HOLogic.mk_mem (HOLogic.mk_list sum_sbdT [], Kl);
-        val Field = mk_leq Kl (mk_Field (mk_clists sum_sbd));
-        val prefCl = mk_prefCl Kl;
 
         val tree = mk_Ball Kl (Term.absfree kl'
           (HOLogic.mk_conj
@@ -1078,12 +1075,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
               mk_Ball Succ (Term.absfree k' (mk_isNode
                 (mk_append (kl, HOLogic.mk_list sum_sbdT [mk_InN sbdTs k i])) i)))
             Succs ks kks kks'))));
-
-        val undef = list_all_free [kl] (HOLogic.mk_imp
-          (HOLogic.mk_not (HOLogic.mk_mem (kl, Kl)),
-          HOLogic.mk_eq (lab $ kl, mk_undefined sbdFT)));
       in
-        Library.foldr1 HOLogic.mk_conj [empty, Field, prefCl, tree, undef]
+        HOLogic.mk_conj (empty, tree)
       end;
 
     val carT_binds = mk_internal_bs carTN;
@@ -1164,7 +1157,6 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
       thm OF [set_sbd, sbd_Card_order]) o drop m) set_sbdss;
 
     val to_sbd_inj_thmss = mk_to_sbd_thmss @{thm toCard_inj};
-    val to_sbd_thmss = mk_to_sbd_thmss @{thm toCard};
     val from_to_sbd_thmss = mk_to_sbd_thmss @{thm fromCard_toCard};
 
     val Lev_bind = mk_internal_b LevN;
@@ -1273,10 +1265,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
           Term.absfree k' (mk_InN bdFTs
             (Term.list_comb (to_sbd_map, passive_ids @ map (mk_to_sbd s k i) ks) $ (s $ k)) i);
 
-        val Lab = Term.absfree kl' (mk_If
-          (HOLogic.mk_mem (kl, mk_Lev ss (mk_size kl) i $ z))
-          (mk_case_sumN (map5 mk_case ks to_sbd_maps ss zs zs') $ (mk_rv ss kl i $ z))
-          (mk_undefined sbdFT));
+        val Lab = Term.absfree kl'
+          (mk_case_sumN (map5 mk_case ks to_sbd_maps ss zs zs') $ (mk_rv ss kl i $ z));
 
         val rhs = HOLogic.mk_prod (mk_UNION (HOLogic.mk_UNIV HOLogic.natT)
           (Term.absfree nat' (mk_Lev ss nat i $ z)), Lab);
@@ -1303,24 +1293,6 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
         val behT = Library.foldr (op -->) (Ts, nth activeAs (i - 1) --> treeT);
       in
         Term.list_comb (Const (nth behs (i - 1), behT), ss)
-      end;
-
-    val Lev_sbd_thms =
-      let
-        fun mk_conjunct i z = mk_leq (mk_Lev ss nat i $ z) (mk_Field (mk_clists sum_sbd));
-        val goal = list_all_free zs
-          (Library.foldr1 HOLogic.mk_conj (map2 mk_conjunct ks zs));
-
-        val cts = map (SOME o certify lthy) [Term.absfree nat' goal, nat];
-
-        val Lev_sbd = singleton (Proof_Context.export names_lthy lthy)
-          (Goal.prove_sorry lthy [] [] (HOLogic.mk_Trueprop goal)
-            (K (mk_Lev_sbd_tac lthy cts Lev_0s Lev_Sucs to_sbd_thmss))
-          |> Thm.close_derivation);
-
-        val Lev_sbd' = mk_specN n Lev_sbd;
-      in
-        map (fn i => Lev_sbd' RS mk_conjunctN n i) ks
       end;
 
     val (length_Lev_thms, length_Lev'_thms) =
@@ -1350,26 +1322,6 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
           |> Thm.close_derivation) goals length_Levs;
       in
         (length_Levs, length_Levs')
-      end;
-
-    val prefCl_Lev_thms =
-      let
-        fun mk_conjunct i z = HOLogic.mk_imp
-          (HOLogic.mk_conj (HOLogic.mk_mem (kl, mk_Lev ss nat i $ z), mk_prefixeq kl_copy kl),
-          HOLogic.mk_mem (kl_copy, mk_Lev ss (mk_size kl_copy) i $ z));
-        val goal = list_all_free (kl :: kl_copy :: zs)
-          (Library.foldr1 HOLogic.mk_conj (map2 mk_conjunct ks zs));
-
-        val cts = map (SOME o certify lthy) [Term.absfree nat' goal, nat];
-
-        val prefCl_Lev = singleton (Proof_Context.export names_lthy lthy)
-          (Goal.prove_sorry lthy [] [] (HOLogic.mk_Trueprop goal)
-            (K (mk_prefCl_Lev_tac lthy cts Lev_0s Lev_Sucs)))
-          |> Thm.close_derivation;
-
-        val prefCl_Lev' = mk_specN (n + 2) prefCl_Lev;
-      in
-        map (fn i => prefCl_Lev' RS mk_conjunctN n i RS mp) ks
       end;
 
     val rv_last_thmss =
@@ -1479,9 +1431,9 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
           (mk_mor active_UNIVs ss carTAs strTAs (map (mk_beh ss) ks))))
         (fn {context = ctxt, prems = _} => mk_mor_beh_tac ctxt m mor_def mor_cong_thm
           beh_defs carT_defs strT_defs isNode_defs
-          to_sbd_inj_thmss from_to_sbd_thmss Lev_0s Lev_Sucs rv_Nils rv_Conss Lev_sbd_thms
-          length_Lev_thms length_Lev'_thms prefCl_Lev_thms rv_last_thmss set_Lev_thmsss
-          set_image_Lev_thmsss set_mapss map_comp_id_thms map_cong0s map_arg_cong_thms)
+          to_sbd_inj_thmss from_to_sbd_thmss Lev_0s Lev_Sucs rv_Nils rv_Conss
+          length_Lev_thms length_Lev'_thms rv_last_thmss set_Lev_thmsss
+          set_image_Lev_thmsss set_mapss map_comp_id_thms map_cong0s)
       |> Thm.close_derivation;
 
     val timer = time (timer "Behavioral morphism");
