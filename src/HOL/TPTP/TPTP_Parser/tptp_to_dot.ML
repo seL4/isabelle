@@ -22,37 +22,57 @@ struct
 
 open TPTP_Syntax
 
+datatype style =
+    (*Only draw shapes. No formulas or edge labels.*)
+    Shapes
+    (*Don't draw shapes. Only write formulas (as nodes) and inference names (as edge labels)*)
+  | Formulas
+
+(*Determine the require output style form the TPTP_GRAPH environment variable.
+  Shapes is the default style.*)
+val required_style =
+  if getenv "TPTP_GRAPH" = "formulas" then
+    Formulas
+  else Shapes
+
 (*Draw an arc between two nodes*)
 fun dot_arc reverse (src, label) target =
-  "\"" ^ (if reverse then target else src) ^
-  "\" -> \"" ^ (if reverse then src else target) ^
-  "\" " ^ (case label of
-              NONE => ""
-            | SOME label => "[label=\"" ^ label ^ "\"];") ^ "\n"
+  let
+    val edge_label =
+      if required_style = Shapes then ""
+      else
+        case label of
+                NONE => ""
+              | SOME label => "[label=\"" ^ label ^ "\"];"
+  in
+    "\"" ^ (if reverse then target else src) ^
+    "\" -> \"" ^ (if reverse then src else target) ^
+    "\" " ^ edge_label ^ "\n"
+  end
 
 (*Node shapes indicate the role of the related clauses.*)
 exception NO_ROLE_SHAPE
 fun the_role_shape role =
-  case role of
-    Role_Axiom => "triangle"
-  | Role_Hypothesis => "invtrapezium"
-  | Role_Definition => "invtriangle" (*NOTE this is not standard wrt IDV*)
-  | Role_Assumption => "trapezium" (*NOTE this is not standard wrt IDV*)
-  | Role_Lemma => "hexagon"
-  | Role_Theorem => "star" (*NOTE this is not standard wrt IDV*)
+  if role = Role_Fi_Domain orelse
+     role = Role_Fi_Functors orelse
+     role = Role_Fi_Predicates orelse
+     role = Role_Type orelse
+     role = Role_Unknown then
+    raise NO_ROLE_SHAPE
+  else if required_style = Formulas then "plaintext"
+  else
+    case role of
+      Role_Axiom => "triangle"
+    | Role_Hypothesis => "invtrapezium"
+    | Role_Definition => "invtriangle" (*NOTE this is not standard wrt IDV*)
+    | Role_Assumption => "trapezium" (*NOTE this is not standard wrt IDV*)
+    | Role_Lemma => "hexagon"
+    | Role_Theorem => "star" (*NOTE this is not standard wrt IDV*)
 
-  (*FIXME add a parameter to switch the behaviour described below.*)
-  (*NOTE can change the next three to plaintext to avoid clutter if
-         the inference's conclusion formula is also being displayed.*)
-  | Role_Conjecture => (* "plaintext" *) "house"
-  | Role_Negated_Conjecture => (* "plaintext" *) "invhouse"
-  | Role_Plain => "plaintext" (* "circle" *) (*could also use none*)
+    | Role_Conjecture => "house"
+    | Role_Negated_Conjecture => "invhouse"
+    | Role_Plain => "circle"
 
-  | Role_Fi_Domain => raise NO_ROLE_SHAPE
-  | Role_Fi_Functors => raise NO_ROLE_SHAPE
-  | Role_Fi_Predicates => raise NO_ROLE_SHAPE
-  | Role_Type => raise NO_ROLE_SHAPE
-  | Role_Unknown => raise NO_ROLE_SHAPE
 
 fun have_role_shape role =
   (the_role_shape role; true)
@@ -76,34 +96,41 @@ fun is_last_line CNF (Pred (Interpreted_Logic False, [])) = true
   | is_last_line _ _ = false
 
 fun tptp_dot_node with_label reverse_arrows
- (Annotated_Formula (_, lang, n, role, fmla_tptp, annot)) =
- (*don't expect to find 'Include' in proofs*)
- if have_role_shape role andalso role <> Role_Definition then
-   "\"" ^ n ^
-   "\" [shape=\"" ^
-      (if is_last_line lang fmla_tptp then "doublecircle"
-       else the_role_shape role) ^
-   "\", style=\"" ^ the_lang_style lang ^
-   (if role = Role_Definition then "\"];\n" else
-     (* "\", label=\"$" ^ TPTP_Syntax.latex_of_tptp_formula fmla_tptp ^ "$\"];\n") ^ *)
-(*FIXME  add a parameter to switch to using the following code, which lowers, centers, and horizontally-bounds the label.
-        (this is useful if you want to keep the shapes but also show formulas)*)
-    "\", label=\"\\\\begin{minipage}{10cm}\\\\vspace{21mm}\\\\centering$" ^ TPTP_Syntax.latex_of_tptp_formula fmla_tptp ^ "$\\\\end{minipage}\"];\n") ^
-   (case TPTP_Proof.extract_source_info annot of
-        SOME (TPTP_Proof.Inference (rule, _, pinfos)) =>
-          let
-            fun parent_id (TPTP_Proof.Parent n) = n
-              | parent_id (TPTP_Proof.ParentWithDetails (n, _)) = n
-            val parent_ids = map parent_id pinfos
-          in
-            map
-              (dot_arc reverse_arrows
-               (n, if with_label then SOME rule else NONE))
-              parent_ids
-            |> implode
-          end
-      | _ => "")
- else ""
+   (Annotated_Formula (_, lang, n, role, fmla_tptp, annot)) =
+  let
+    val node_label =
+      if required_style = Formulas then
+        "\", label=\"$" ^ TPTP_Syntax.latex_of_tptp_formula fmla_tptp ^ "$\"];\n"
+   (*FIXME  add a parameter to switch to using the following code, which lowers, centers, and horizontally-bounds the label.
+           (this is useful if you want to keep the shapes but also show formulas)*)
+   (*    "\", label=\"\\\\begin{minipage}{10cm}\\\\vspace{21mm}\\\\centering$" ^ TPTP_Syntax.latex_of_tptp_formula fmla_tptp ^ "$\\\\end{minipage}\"];\n") ^*)
+      else
+        "\", label=\"\"];\n"
+ in
+   (*don't expect to find 'Include' in proofs*)
+   if have_role_shape role andalso role <> Role_Definition then
+     "\"" ^ n ^
+     "\" [shape=\"" ^
+        (if is_last_line lang fmla_tptp then "doublecircle"
+         else the_role_shape role) ^
+     "\", style=\"" ^ the_lang_style lang ^
+     node_label ^
+     (case TPTP_Proof.extract_source_info annot of
+          SOME (TPTP_Proof.Inference (rule, _, pinfos)) =>
+            let
+              fun parent_id (TPTP_Proof.Parent n) = n
+                | parent_id (TPTP_Proof.ParentWithDetails (n, _)) = n
+              val parent_ids = map parent_id pinfos
+            in
+              map
+                (dot_arc reverse_arrows
+                 (n, if with_label then SOME rule else NONE))
+                parent_ids
+              |> implode
+            end
+        | _ => "")
+   else ""
+ end
 
 (*FIXME add opts to label arcs etc*)
 fun write_proof_dot input_file output_file =
