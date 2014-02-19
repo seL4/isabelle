@@ -1,7 +1,7 @@
 (* Author: Tobias Nipkow *)
 
 theory Abs_Int0_ITP
-imports "~~/src/HOL/ex/Interpretation_with_Defs"
+imports "~~/src/Tools/Permanent_Interpretation"
         "~~/src/HOL/Library/While_Combinator"
         "Collecting_ITP"
 begin

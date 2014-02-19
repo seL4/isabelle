@@ -1,10 +1,10 @@
-(*  Title:      Tools/interpretation_with_defs.ML
-    Author:     Florian Haftmann, TU Muenchen
+(*  Title:   Tools/permanent_interpretation.ML
+    Author:  Florian Haftmann, TU Muenchen
 
-Interpretation accompanied with mixin definitions.  EXPERIMENTAL.
+Permanent interpretation accompanied with mixin definitions.
 *)
 
-signature INTERPRETATION_WITH_DEFS =
+signature PERMANENT_INTERPRETATION =
 sig
   val permanent_interpretation: Expression.expression_i ->
     (Attrib.binding * ((binding * mixfix) * term)) list -> (Attrib.binding * term) list ->
@@ -14,7 +14,7 @@ sig
     local_theory -> Proof.state
 end;
 
-structure Interpretation_With_Defs : INTERPRETATION_WITH_DEFS =
+structure Permanent_Interpretation : PERMANENT_INTERPRETATION =
 struct
 
 local
