@@ -19,10 +19,9 @@ open BNF_LFP_Rec_Sugar
 fun is_new_datatype ctxt s =
   (case fp_sugar_of ctxt s of SOME {fp = Least_FP, ...} => true | _ => false);
 
-fun basic_lfp_sugar_of ({T, fp_res = {xtor_co_iterss = ctor_iterss, ...}, fp_res_index, ctr_defs,
-    ctr_sugar, co_iters = iters, co_iter_thmss = iter_thmss, ...} : fp_sugar) =
-  {T = T, fp_res_index = fp_res_index,
-   ctor_recT = fastype_of (co_rec_of (nth ctor_iterss fp_res_index)), ctr_defs = ctr_defs,
+fun basic_lfp_sugar_of C fun_arg_Tsss ({T, fp_res_index, ctr_defs, ctr_sugar, co_iters = iters,
+    co_iter_thmss = iter_thmss, ...} : fp_sugar) =
+  {T = T, fp_res_index = fp_res_index, C = C, fun_arg_Tsss = fun_arg_Tsss, ctr_defs = ctr_defs,
    ctr_sugar = ctr_sugar, recx = co_rec_of iters, rec_thms = co_rec_of iter_thmss};
 
 fun get_basic_lfp_sugars bs arg_Ts get_indices callssss0 lthy0 =
@@ -31,11 +30,26 @@ fun get_basic_lfp_sugars bs arg_Ts get_indices callssss0 lthy0 =
           fp_sugars as {nested_bnfs, co_inducts = [induct_thm], ...} :: _, (lfp_sugar_thms, _)),
          lthy) =
       nested_to_mutual_fps Least_FP bs arg_Ts get_indices callssss0 lthy0;
+
+    val Ts = map #T fp_sugars;
+    val Cs = map (body_type o fastype_of o co_rec_of o #co_iters) fp_sugars;
+    val Ts_Cs = Ts ~~ Cs;
+
+    fun zip_recT (T as Type (s, Ts)) =
+        (case AList.lookup (op =) Ts_Cs T of
+          SOME C => [T, C]
+        | NONE => [Type (s, map (HOLogic.mk_tupleT o zip_recT) Ts)])
+      | zip_recT T = [T];
+
+    val ctrss = map (#ctrs o #ctr_sugar) fp_sugars;
+    val ctr_Tsss = map (map (binder_types o fastype_of)) ctrss;
+    val fun_arg_Tssss = map (map (map zip_recT)) ctr_Tsss;
+
     val nested_map_idents = map (unfold_thms lthy @{thms id_def} o map_id0_of_bnf) nested_bnfs;
     val nested_map_comps = map map_comp_of_bnf nested_bnfs;
   in
-    (missing_arg_Ts, perm0_kks, map basic_lfp_sugar_of fp_sugars, nested_map_idents,
-     nested_map_comps, induct_thm, is_some lfp_sugar_thms, lthy)
+    (missing_arg_Ts, perm0_kks, map3 basic_lfp_sugar_of Cs fun_arg_Tssss fp_sugars,
+     nested_map_idents, nested_map_comps, induct_thm, is_some lfp_sugar_thms, lthy)
   end;
 
 exception NOT_A_MAP of term;

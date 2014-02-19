@@ -11,7 +11,8 @@ sig
   type basic_lfp_sugar =
     {T: typ,
      fp_res_index: int,
-     ctor_recT: typ,
+     C: typ,
+     fun_arg_Tsss : typ list list list,
      ctr_defs: thm list,
      ctr_sugar: Ctr_Sugar.ctr_sugar,
      recx: term,
@@ -44,10 +45,9 @@ structure BNF_LFP_Rec_Sugar : BNF_LFP_REC_SUGAR =
 struct
 
 open Ctr_Sugar
+open Ctr_Sugar_General_Tactics
 open BNF_Util
-open BNF_Tactics
 open BNF_FP_Util
-open BNF_FP_Def_Sugar
 open BNF_FP_Rec_Sugar_Util
 
 val nitpicksimp_attrs = @{attributes [nitpick_simp]};
@@ -81,7 +81,8 @@ type rec_spec =
 type basic_lfp_sugar =
   {T: typ,
    fp_res_index: int,
-   ctor_recT: typ,
+   C: typ,
+   fun_arg_Tsss : typ list list list,
    ctr_defs: thm list,
    ctr_sugar: ctr_sugar,
    recx: term,
@@ -133,22 +134,16 @@ fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy0 =
     val perm_indices = map #fp_res_index perm_basic_lfp_sugars;
 
     val perm_ctrss = map (#ctrs o #ctr_sugar) perm_basic_lfp_sugars;
-    val perm_ctr_Tsss = map (map (binder_types o fastype_of)) perm_ctrss;
 
     val nn0 = length arg_Ts;
     val nn = length perm_ctrss;
     val kks = 0 upto nn - 1;
 
-    val perm_ns = map length perm_ctr_Tsss;
-    val perm_mss = map (map length) perm_ctr_Tsss;
     val perm_ctr_offsets = map (fn kk => Integer.sum (map length (take kk perm_ctrss))) kks;
 
     val perm_lfpTs = map (body_type o fastype_of o hd) perm_ctrss;
-    val perm_Cs = map (body_type o #ctor_recT) perm_basic_lfp_sugars;
-    val perm_fun_arg_Tssss =
-      binder_fun_types (#ctor_recT (hd perm_basic_lfp_sugars))
-      |> map3 mk_iter_fun_arg_types perm_ns perm_mss
-      |> map2 (map2 (map2 unzip_recT)) perm_ctr_Tsss;
+    val perm_Cs = map #C perm_basic_lfp_sugars;
+    val perm_fun_arg_Tssss = map #fun_arg_Tsss perm_basic_lfp_sugars;
 
     fun unpermute0 perm0_xs = permute_like_unique (op =) perm0_kks kks perm0_xs;
     fun unpermute perm_xs = permute_like_unique (op =) perm_indices indices perm_xs;
