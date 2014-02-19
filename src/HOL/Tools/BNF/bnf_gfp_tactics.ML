@@ -370,11 +370,8 @@ fun mk_coalgT_tac ctxt m defs strT_defs set_map0ss =
           rtac conjI, etac @{thm empty_Shift}, dtac set_rev_mp,
             etac equalityD1, etac CollectD,
           rtac ballI,
-            rtac conjI, dtac @{thm iffD1[OF ball_conj_distrib]}, dtac conjunct1,
-            SELECT_GOAL (unfold_thms_tac ctxt @{thms Succ_Shift shift_def}),
-            etac bspec, etac @{thm ShiftD},
             CONJ_WRAP' (fn i => EVERY' [rtac ballI, etac CollectE, dtac @{thm ShiftD},
-              dtac bspec, etac thin_rl, atac, dtac conjunct2, dtac (mk_conjunctN n i),
+              dtac bspec, etac thin_rl, atac, dtac (mk_conjunctN n i),
               dtac bspec, rtac CollectI, etac @{thm set_mp[OF equalityD1[OF Succ_Shift]]},
               REPEAT_DETERM o eresolve_tac [exE, conjE], rtac exI,
               rtac conjI, rtac (@{thm shift_def} RS fun_cong RS trans),
@@ -382,7 +379,7 @@ fun mk_coalgT_tac ctxt m defs strT_defs set_map0ss =
               CONJ_WRAP' (K (EVERY' [etac trans, rtac @{thm Collect_cong},
                 rtac @{thm eqset_imp_iff}, rtac sym, rtac trans, rtac @{thm Succ_Shift},
                 rtac (@{thm append_Cons} RS sym RS arg_cong)])) ks]) ks,
-          dtac bspec, atac, dtac conjunct2, dtac (mk_conjunctN n i), dtac bspec,
+          dtac bspec, atac, dtac (mk_conjunctN n i), dtac bspec,
           etac @{thm set_mp[OF equalityD1]}, atac,
           REPEAT_DETERM o eresolve_tac [exE, conjE], rtac exI,
           rtac conjI, rtac (@{thm shift_def} RS fun_cong RS trans),
@@ -565,23 +562,7 @@ fun mk_mor_beh_tac ctxt m mor_def mor_cong beh_defs carT_defs strT_defs isNode_d
           rtac @{thm UN_I}, rtac UNIV_I, rtac (Lev_0 RS equalityD2 RS set_mp),
           rtac @{thm singletonI},
         (**)
-          rtac ballI, etac @{thm UN_E}, rtac conjI,
-          if n = 1 then K all_tac else rtac (mk_sumEN n),
-          EVERY' (map5 (fn i => fn isNode_def => fn set_map0s => fn set_Levs => fn set_image_Levs =>
-            EVERY' [rtac (mk_disjIN n i), rtac (isNode_def RS ssubst),
-              rtac exI, rtac conjI,
-              if n = 1 then rtac refl
-              else etac (sum_weak_case_cong RS trans) THEN' rtac (mk_sum_caseN n i),
-              CONJ_WRAP' (fn (set_map0, (set_Lev, set_image_Lev)) =>
-                EVERY' [rtac (set_map0 RS trans), rtac equalityI, rtac @{thm image_subsetI},
-                  rtac CollectI, rtac @{thm SuccI}, rtac @{thm UN_I}, rtac UNIV_I, etac set_Lev,
-                  if n = 1 then rtac refl else atac, atac, rtac subsetI,
-                  REPEAT_DETERM o eresolve_tac [CollectE, @{thm SuccE}, @{thm UN_E}],
-                  rtac set_image_Lev, atac, dtac length_Lev, hyp_subst_tac ctxt, dtac length_Lev',
-                  etac @{thm set_mp[OF equalityD1[OF arg_cong[OF length_append_singleton]]]},
-                  if n = 1 then rtac refl else atac])
-              (drop m set_map0s ~~ (set_Levs ~~ set_image_Levs))])
-          ks isNode_defs set_map0ss set_Levss set_image_Levss),
+          rtac ballI, etac @{thm UN_E},
           CONJ_WRAP' (fn (i, (rv_last, (isNode_def, (set_map0s,
             (set_Levs, set_image_Levs))))) =>
             EVERY' [rtac ballI,

@@ -1069,12 +1069,10 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
         val empty = HOLogic.mk_mem (HOLogic.mk_list sum_sbdT [], Kl);
 
         val tree = mk_Ball Kl (Term.absfree kl'
-          (HOLogic.mk_conj
-            (Library.foldr1 HOLogic.mk_disj (map (mk_isNode kl) ks),
-            Library.foldr1 HOLogic.mk_conj (map4 (fn Succ => fn i => fn k => fn k' =>
-              mk_Ball Succ (Term.absfree k' (mk_isNode
-                (mk_append (kl, HOLogic.mk_list sum_sbdT [mk_InN sbdTs k i])) i)))
-            Succs ks kks kks'))));
+          (Library.foldr1 HOLogic.mk_conj (map4 (fn Succ => fn i => fn k => fn k' =>
+            mk_Ball Succ (Term.absfree k' (mk_isNode
+              (mk_append (kl, HOLogic.mk_list sum_sbdT [mk_InN sbdTs k i])) i)))
+          Succs ks kks kks')));
       in
         HOLogic.mk_conj (empty, tree)
       end;
