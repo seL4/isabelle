@@ -525,38 +525,12 @@ and string_of_tptp_type (Prod_type (tptp_type1, tptp_type2)) =
   | string_of_tptp_type (Subtype (symbol1, symbol2)) =
       string_of_symbol symbol1 ^ " << " ^ string_of_symbol symbol2
 
-             
-(*FIXME clean up this code!*)
+(*FIXME formatting details haven't been fully worked out -- don't use this function for anything serious in its current form!*)
 (*TODO Add subscripting*)
 (*infix symbols, including \subset, \cup, \cap*)
 fun latex_of_tptp_term x =
-((*writeln ("term=" ^ PolyML.makestring x);*)
   case x of
-(*
-      Term_Func (Uninterpreted "subset", [tptp_t1, tptp_t2]) =>
-        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\subset " ^ latex_of_tptp_term tptp_t2 ^ ")"
-    | Term_Func (Uninterpreted "union", [tptp_t1, tptp_t2]) =>
-        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\cup " ^ latex_of_tptp_term tptp_t2 ^ ")"
-*)
-(*
-      Term_Func (Interpreted_Logic Apply, [Term_Func (Interpreted_Logic Apply, [Uninterpreted "subset", tptp_t1]), tptp_t2]) =>
-        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\subset " ^ latex_of_tptp_term tptp_t2 ^ ")"
-    | Term_Func (Interpreted_Logic Apply, [Term_Func (Interpreted_Logic Apply, [Uninterpreted "union", tptp_t1]), tptp_t2]) =>
-        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\cup " ^ latex_of_tptp_term tptp_t2 ^ ")"
-*)
-(*
-      Term_Func (Interpreted_ExtraLogic Apply,
-                 [Term_Func (Interpreted_ExtraLogic Apply,
-                             [Term_Func (Interpreted_ExtraLogic Apply, [Term_Func (Uninterpreted "subset", []),
-                                                                             tptp_t1])]), tptp_t2]) =>
-        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\subset " ^ latex_of_tptp_term tptp_t2 ^ ")"
-    | Term_Func (Interpreted_ExtraLogic Apply,
-                 [Term_Func (Interpreted_ExtraLogic Apply,
-                             [Term_Func (Interpreted_ExtraLogic Apply, [Term_Func (Uninterpreted "union", []),
-                                                                             tptp_t1])]), tptp_t2]) =>
-        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\cup " ^ latex_of_tptp_term tptp_t2 ^ ")"
-
-    |*) Term_Func (Interpreted_Logic Equals, [tptp_t1, tptp_t2]) =>
+      Term_Func (Interpreted_Logic Equals, [tptp_t1, tptp_t2]) =>
         "(" ^ latex_of_tptp_term tptp_t1 ^ " = " ^ latex_of_tptp_term tptp_t2 ^ ")"
     | Term_Func (Interpreted_Logic NEquals, [tptp_t1, tptp_t2]) =>
         "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\neq " ^ latex_of_tptp_term tptp_t2 ^ ")"
@@ -576,11 +550,8 @@ fun latex_of_tptp_term x =
     | Term_Conditional (tptp_formula, tptp_term1, tptp_term2) => "" (*FIXME*)
     | Term_Num (_, str) => str
     | Term_Distinct_Object str => str (*FIXME*)
-)
+
 and latex_of_symbol (Uninterpreted str) =
-(*    if str = "union" then "\\\\cup"
-    else if str = "subset" then "\\\\subset"
-    else*)
     if str = "emptyset" then "\\\\emptyset"
     else "\\\\mathrm{" ^ str ^ "}"
   | latex_of_symbol (Interpreted_ExtraLogic interpreted_symbol) = latex_of_interpreted_symbol interpreted_symbol
@@ -654,100 +625,48 @@ and latex_of_tptp_atom (TFF_Typed_Atom (symbol, tptp_type_option)) =
        NONE => latex_of_symbol symbol
      | SOME tptp_type =>
          latex_of_symbol symbol ^ " : " ^ latex_of_tptp_type tptp_type)
-  | latex_of_tptp_atom (THF_Atom_term tptp_term) = latex_of_tptp_term tptp_term   
+  | latex_of_tptp_atom (THF_Atom_term tptp_term) = latex_of_tptp_term tptp_term
   | latex_of_tptp_atom (THF_Atom_conn_term symbol) = latex_of_symbol symbol
 
-(*
-and latex_of_tptp_formula (Pred (symbol, tptp_term_list)) =
-      "(" ^ latex_of_symbol symbol ^
-      space_implode " " (map latex_of_tptp_term tptp_term_list) ^ ")"
-  | latex_of_tptp_formula (Fmla (symbol, tptp_formula_list)) =
-      "(" ^ latex_of_symbol symbol ^
-      space_implode " " (map latex_of_tptp_formula tptp_formula_list) ^ ")"
-*)
-(*
-and  latex_of_tptp_formula (Pred (Uninterpreted "subset", [tptp_t1, tptp_t2])) =
-        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\subset " ^ latex_of_tptp_term tptp_t2 ^ ")"
-    | latex_of_tptp_formula (Pred (Uninterpreted "union", [tptp_t1, tptp_t2])) =
-        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\cup " ^ latex_of_tptp_term tptp_t2 ^ ")"
-*)
-and  (*latex_of_tptp_formula (
-      Pred (Interpreted_ExtraLogic Apply,
-                 [Term_Func (Interpreted_ExtraLogic Apply,
-                             [Term_Func (Interpreted_ExtraLogic Apply, [Term_Func (Uninterpreted "subset", []),
-                                                                             tptp_t1])]), tptp_t2])) =
-        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\subset " ^ latex_of_tptp_term tptp_t2 ^ ")"
-    | latex_of_tptp_formula (Pred (Interpreted_ExtraLogic Apply,
-                 [Term_Func (Interpreted_ExtraLogic Apply,
-                             [Term_Func (Interpreted_ExtraLogic Apply, [Term_Func (Uninterpreted "union", []),
-                                                                             tptp_t1])]), tptp_t2])) =
-        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\cup " ^ latex_of_tptp_term tptp_t2 ^ ")"
-
-    |*) latex_of_tptp_formula (Pred (Interpreted_Logic Equals, [tptp_t1, tptp_t2])) =
-        "(" ^ latex_of_tptp_term tptp_t1 ^ " = " ^ latex_of_tptp_term tptp_t2 ^ ")"
-    | latex_of_tptp_formula (Pred (Interpreted_Logic NEquals, [tptp_t1, tptp_t2])) =
-        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\neq " ^ latex_of_tptp_term tptp_t2 ^ ")"
-    | latex_of_tptp_formula (Pred (Interpreted_Logic Or, [tptp_t1, tptp_t2])) =
-        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\vee " ^ latex_of_tptp_term tptp_t2 ^ ")"
-    | latex_of_tptp_formula (Pred (Interpreted_Logic And, [tptp_t1, tptp_t2])) =
-        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\wedge " ^ latex_of_tptp_term tptp_t2 ^ ")"
-    | latex_of_tptp_formula (Pred (Interpreted_Logic Iff, [tptp_t1, tptp_t2])) =
-        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\longleftrightarrow " ^ latex_of_tptp_term tptp_t2 ^ ")"
-    | latex_of_tptp_formula (Pred (Interpreted_Logic If, [tptp_t1, tptp_t2])) =
-        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\longrightarrow " ^ latex_of_tptp_term tptp_t2 ^ ")"
+and latex_of_tptp_formula (Pred (Interpreted_Logic Equals, [tptp_t1, tptp_t2])) =
+      "(" ^ latex_of_tptp_term tptp_t1 ^ " = " ^ latex_of_tptp_term tptp_t2 ^ ")"
+  | latex_of_tptp_formula (Pred (Interpreted_Logic NEquals, [tptp_t1, tptp_t2])) =
+      "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\neq " ^ latex_of_tptp_term tptp_t2 ^ ")"
+  | latex_of_tptp_formula (Pred (Interpreted_Logic Or, [tptp_t1, tptp_t2])) =
+      "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\vee " ^ latex_of_tptp_term tptp_t2 ^ ")"
+  | latex_of_tptp_formula (Pred (Interpreted_Logic And, [tptp_t1, tptp_t2])) =
+      "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\wedge " ^ latex_of_tptp_term tptp_t2 ^ ")"
+  | latex_of_tptp_formula (Pred (Interpreted_Logic Iff, [tptp_t1, tptp_t2])) =
+      "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\longleftrightarrow " ^ latex_of_tptp_term tptp_t2 ^ ")"
+  | latex_of_tptp_formula (Pred (Interpreted_Logic If, [tptp_t1, tptp_t2])) =
+      "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\longrightarrow " ^ latex_of_tptp_term tptp_t2 ^ ")"
 
   | latex_of_tptp_formula (x as (Pred (symbol, tptp_term_list))) =
-((*writeln ("fmla=" ^ PolyML.makestring x);*)
-      (*"(" ^*) latex_of_symbol symbol ^
-      space_implode "\\\\, " (map latex_of_tptp_term tptp_term_list) (*^ ")"*)
-)
+      latex_of_symbol symbol ^
+       space_implode "\\\\, " (map latex_of_tptp_term tptp_term_list)
 
-(*
-    | latex_of_tptp_formula (Fmla (Uninterpreted "subset", [tptp_f1, tptp_f2])) =
-        "(" ^ latex_of_tptp_formula tptp_f1 ^ " \\\\subset " ^ latex_of_tptp_formula tptp_f2 ^ ")"
-    | latex_of_tptp_formula (Fmla (Uninterpreted "union", [tptp_f1, tptp_f2])) =
-        "(" ^ latex_of_tptp_formula tptp_f1 ^ " \\\\cup " ^ latex_of_tptp_formula tptp_f2 ^ ")"
-*)
+  | latex_of_tptp_formula (Fmla (Interpreted_ExtraLogic Apply, [Fmla (Interpreted_ExtraLogic Apply, [Atom (THF_Atom_term (Term_Func (Uninterpreted "union", []))), tptp_f1]), tptp_f2])) =
+      "(" ^ latex_of_tptp_formula tptp_f1 ^ " \\\\cup " ^ latex_of_tptp_formula tptp_f2 ^ ")"
 
-(*
-    | latex_of_tptp_formula (
-      Fmla (Interpreted_ExtraLogic Apply,
-                 [Fmla (Interpreted_ExtraLogic Apply,
-                             [Fmla (Interpreted_ExtraLogic Apply, [Fmla (Uninterpreted "subset", []),
-                                                                             tptp_t1])]), tptp_t2])) =
-        "(" ^ latex_of_tptp_formula tptp_t1 ^ " \\\\subset " ^ latex_of_tptp_formula tptp_t2 ^ ")"
-    | latex_of_tptp_formula (Fmla (Interpreted_ExtraLogic Apply,
-                 [Fmla (Interpreted_ExtraLogic Apply,
-                             [Fmla (Interpreted_ExtraLogic Apply, [Fmla (Uninterpreted "union", []),
-                                                                             tptp_t1])]), tptp_t2])) =
-        "(" ^ latex_of_tptp_formula tptp_t1 ^ " \\\\cup " ^ latex_of_tptp_formula tptp_t2 ^ ")"
-*)
+  | latex_of_tptp_formula (Fmla (Interpreted_ExtraLogic Apply, [Fmla (Interpreted_ExtraLogic Apply, [Atom (THF_Atom_term (Term_Func (Uninterpreted "subset", []))), tptp_f1]), tptp_f2])) =
+      "(" ^ latex_of_tptp_formula tptp_f1 ^ " \\\\subset " ^ latex_of_tptp_formula tptp_f2 ^ ")"
 
-    | latex_of_tptp_formula (Fmla (Interpreted_ExtraLogic Apply, [Fmla (Interpreted_ExtraLogic Apply, [Atom (THF_Atom_term (Term_Func (Uninterpreted "union", []))), tptp_f1]), tptp_f2])) =
-        "(" ^ latex_of_tptp_formula tptp_f1 ^ " \\\\cup " ^ latex_of_tptp_formula tptp_f2 ^ ")"
-
-    | latex_of_tptp_formula (Fmla (Interpreted_ExtraLogic Apply, [Fmla (Interpreted_ExtraLogic Apply, [Atom (THF_Atom_term (Term_Func (Uninterpreted "subset", []))), tptp_f1]), tptp_f2])) =
-        "(" ^ latex_of_tptp_formula tptp_f1 ^ " \\\\subset " ^ latex_of_tptp_formula tptp_f2 ^ ")"
-
-
-    | latex_of_tptp_formula (Fmla (Interpreted_Logic Equals, [tptp_f1, tptp_f2])) =
-        "(" ^ latex_of_tptp_formula tptp_f1 ^ " = " ^ latex_of_tptp_formula tptp_f2 ^ ")"
-    | latex_of_tptp_formula (Fmla (Interpreted_Logic NEquals, [tptp_f1, tptp_f2])) =
-        "(" ^ latex_of_tptp_formula tptp_f1 ^ " \\\\neq " ^ latex_of_tptp_formula tptp_f2 ^ ")"
-    | latex_of_tptp_formula (Fmla (Interpreted_Logic Or, [tptp_f1, tptp_f2])) =
-        "(" ^ latex_of_tptp_formula tptp_f1 ^ " \\\\vee " ^ latex_of_tptp_formula tptp_f2 ^ ")"
-    | latex_of_tptp_formula (Fmla (Interpreted_Logic And, [tptp_f1, tptp_f2])) =
-        "(" ^ latex_of_tptp_formula tptp_f1 ^ " \\\\wedge " ^ latex_of_tptp_formula tptp_f2 ^ ")"
-    | latex_of_tptp_formula (Fmla (Interpreted_Logic Iff, [tptp_f1, tptp_f2])) =
-        "(" ^ latex_of_tptp_formula tptp_f1 ^ " \\\\longleftrightarrow " ^ latex_of_tptp_formula tptp_f2 ^ ")"
-    | latex_of_tptp_formula (Fmla (Interpreted_Logic If, [tptp_f1, tptp_f2])) =
-        "(" ^ latex_of_tptp_formula tptp_f1 ^ " \\\\longrightarrow " ^ latex_of_tptp_formula tptp_f2 ^ ")"
+  | latex_of_tptp_formula (Fmla (Interpreted_Logic Equals, [tptp_f1, tptp_f2])) =
+      "(" ^ latex_of_tptp_formula tptp_f1 ^ " = " ^ latex_of_tptp_formula tptp_f2 ^ ")"
+  | latex_of_tptp_formula (Fmla (Interpreted_Logic NEquals, [tptp_f1, tptp_f2])) =
+      "(" ^ latex_of_tptp_formula tptp_f1 ^ " \\\\neq " ^ latex_of_tptp_formula tptp_f2 ^ ")"
+  | latex_of_tptp_formula (Fmla (Interpreted_Logic Or, [tptp_f1, tptp_f2])) =
+      "(" ^ latex_of_tptp_formula tptp_f1 ^ " \\\\vee " ^ latex_of_tptp_formula tptp_f2 ^ ")"
+  | latex_of_tptp_formula (Fmla (Interpreted_Logic And, [tptp_f1, tptp_f2])) =
+      "(" ^ latex_of_tptp_formula tptp_f1 ^ " \\\\wedge " ^ latex_of_tptp_formula tptp_f2 ^ ")"
+  | latex_of_tptp_formula (Fmla (Interpreted_Logic Iff, [tptp_f1, tptp_f2])) =
+      "(" ^ latex_of_tptp_formula tptp_f1 ^ " \\\\longleftrightarrow " ^ latex_of_tptp_formula tptp_f2 ^ ")"
+  | latex_of_tptp_formula (Fmla (Interpreted_Logic If, [tptp_f1, tptp_f2])) =
+      "(" ^ latex_of_tptp_formula tptp_f1 ^ " \\\\longrightarrow " ^ latex_of_tptp_formula tptp_f2 ^ ")"
 
   | latex_of_tptp_formula (x as (Fmla (symbol, tptp_formula_list))) =
-(writeln ("fmla=" ^ PolyML.makestring x);
-      (*"(" ^*) latex_of_symbol symbol ^
-      space_implode "\\\\, " (map latex_of_tptp_formula tptp_formula_list) (*^ ")"*)
-)
+      latex_of_symbol symbol ^
+        space_implode "\\\\, " (map latex_of_tptp_formula tptp_formula_list)
 
   | latex_of_tptp_formula (Sequent (tptp_formula_list1, tptp_formula_list2)) = "" (*FIXME*)
   | latex_of_tptp_formula (Quant (quantifier, varlist, tptp_formula)) =

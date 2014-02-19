@@ -30,7 +30,8 @@ datatype style =
     (*Draw shapes and write the AF ID inside.*)
   | IDs
 
-(*FIXME this kind of configurability isn't very user-friendly.*)
+(*FIXME this kind of configurability isn't very user-friendly.
+  Ideally we'd accept a parameter from the tptp_graph script.*)
 (*Determine the require output style form the TPTP_GRAPH environment variable.
   Shapes is the default style.*)
 val required_style =
@@ -78,7 +79,6 @@ fun the_role_shape role =
     | Role_Negated_Conjecture => "invhouse"
     | Role_Plain => "circle"
 
-
 fun have_role_shape role =
   (the_role_shape role; true)
   handle NO_ROLE_SHAPE => false
@@ -91,10 +91,11 @@ fun the_lang_style lang =
   case lang of
       CNF => "dotted"
     | FOF => "dashed"
-    | THF => "" (* "filled" *)
+    | THF => "" (*NOTE could use "filled" to contrast with first-order languages*)
     | _ => raise NO_LANG_STYLE
 
-(*Does the formula just consist of "$false"?*)
+(*Check if the formula just consists of "$false"?
+  which we interpret to be the last line of the proof.*)
 fun is_last_line CNF (Pred (Interpreted_Logic False, [])) = true
   | is_last_line THF (Atom (THF_Atom_term
       (Term_Func (Interpreted_Logic False, [])))) = true
@@ -142,13 +143,13 @@ fun tptp_dot_node with_label reverse_arrows
 (*FIXME add opts to label arcs etc*)
 fun write_proof_dot input_file output_file =
   let
-    (*rankdir=\"LR\";\n*)
+    (*NOTE sometimes useful to include: rankdir=\"LR\";\n*)
     val defaults =
       "graph[nodesep=3];\n" ^
       "node[fixedsize=true];\n" ^
       "node[width=0.5];\n" ^
       "node[shape=plaintext];\n" ^
-      (* "node[fillcolor=lightgray];\n" ^ *)
+      (*NOTE sometimes useful to include: "node[fillcolor=lightgray];\n" ^ *)
       "node[fontsize=50];\n"
   in
     TPTP_Parser.parse_file input_file
