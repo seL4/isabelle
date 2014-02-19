@@ -21,11 +21,9 @@ sig
 
   val get_free_indices: ((binding * typ) * 'a) list -> term -> int list
 
-  (* needed here for bootstrapping; would be more at home in "bnf_fp_def_sugar.ML" *)
+  (* needed here for bootstrapping; would be more at home in "bnf_fp_def_sugar.ML" (FIXME) *)
   val unzip_recT: typ -> typ -> typ list
-  val mk_iter_fun_arg_types0: int -> int list -> typ -> typ list list
-  val mk_iter_fun_arg_types: typ list list list -> int list -> int list list -> typ ->
-    typ list list list list
+  val mk_iter_fun_arg_types: int -> int list -> typ -> typ list list
   val flat_rec_arg_args: 'a list list -> 'a list
   val mk_co_iter: theory -> BNF_FP_Util.fp_kind -> typ -> typ list -> term -> term
 end;
@@ -61,12 +59,7 @@ fun unzip_recT (Type (@{type_name prod}, _)) T = [T]
   | unzip_recT _ (Type (@{type_name prod}, Ts)) = Ts
   | unzip_recT _ T = [T];
 
-fun mk_iter_fun_arg_types0 n ms = map2 dest_tupleT ms o dest_sumTN_balanced n o domain_type;
-
-fun mk_iter_fun_arg_types ctr_Tsss ns mss =
-  binder_fun_types
-  #> map3 mk_iter_fun_arg_types0 ns mss
-  #> map2 (map2 (map2 unzip_recT)) ctr_Tsss;
+fun mk_iter_fun_arg_types n ms = map2 dest_tupleT ms o dest_sumTN_balanced n o domain_type;
 
 fun flat_rec_arg_args xss =
   (* FIXME (once the old datatype package is phased out): The first line below gives the preferred

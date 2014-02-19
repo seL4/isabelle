@@ -326,9 +326,8 @@ fun retype_free T (Free (s, _)) = Free (s, T)
 (** Types **)
 
 (*stolen from ~~/src/HOL/Tools/Nitpick/nitpick_hol.ML*)
-fun num_binder_types (Type (@{type_name fun}, [_, T2])) =
-    1 + num_binder_types T2
-  | num_binder_types _ = 0
+fun num_binder_types (Type (@{type_name fun}, [_, T])) = 1 + num_binder_types T
+  | num_binder_types _ = 0;
 
 (*maps [T1,...,Tn]--->T to ([T1,T2,...,Tn], T)*)
 fun strip_typeN 0 T = ([], T)
@@ -393,8 +392,7 @@ fun mk_Grp A f =
 
 fun mk_image f =
   let val (T, U) = dest_funT (fastype_of f);
-  in Const (@{const_name image},
-    (T --> U) --> (HOLogic.mk_setT T) --> (HOLogic.mk_setT U)) $ f end;
+  in Const (@{const_name image}, (T --> U) --> HOLogic.mk_setT T --> HOLogic.mk_setT U) $ f end;
 
 fun mk_Ball X f =
   Const (@{const_name Ball}, fastype_of X --> fastype_of f --> HOLogic.boolT) $ X $ f;
@@ -431,8 +429,7 @@ fun mk_Card_order bd =
       mk_Field bd $ bd
   end;
 
-fun mk_cinfinite bd =
-  Const (@{const_name cinfinite}, fastype_of bd --> HOLogic.boolT) $ bd;
+fun mk_cinfinite bd = Const (@{const_name cinfinite}, fastype_of bd --> HOLogic.boolT) $ bd;
 
 fun mk_ordLeq t1 t2 =
   HOLogic.mk_mem (HOLogic.mk_prod (t1, t2),
@@ -477,9 +474,7 @@ fun mk_card_binop binop typop t1 t2 =
   let
     val (T1, relT1) = `(fst o dest_relT) (fastype_of t1);
     val (T2, relT2) = `(fst o dest_relT) (fastype_of t2);
-  in
-    Const (binop, relT1 --> relT2 --> mk_relT (typop (T1, T2), typop (T1, T2))) $ t1 $ t2
-  end;
+  in Const (binop, relT1 --> relT2 --> mk_relT (typop (T1, T2), typop (T1, T2))) $ t1 $ t2 end;
 
 val mk_csum = mk_card_binop @{const_name csum} mk_sumT;
 val mk_cprod = mk_card_binop @{const_name cprod} HOLogic.mk_prodT;

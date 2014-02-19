@@ -342,7 +342,7 @@ val transfer_gfp_sugar_thms =
 fun mk_iters_args_types ctr_Tsss Cs ns mss ctor_iter_fun_Tss lthy =
   let
     val Css = map2 replicate ns Cs;
-    val y_Tsss = map3 mk_iter_fun_arg_types0 ns mss (map un_fold_of ctor_iter_fun_Tss);
+    val y_Tsss = map3 mk_iter_fun_arg_types ns mss (map un_fold_of ctor_iter_fun_Tss);
     val g_Tss = map2 (fn C => map (fn y_Ts => y_Ts ---> C)) Cs y_Tsss;
 
     val ((gss, ysss), lthy) =

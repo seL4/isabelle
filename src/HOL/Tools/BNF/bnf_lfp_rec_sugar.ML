@@ -146,7 +146,9 @@ fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy0 =
     val perm_lfpTs = map (body_type o fastype_of o hd) perm_ctrss;
     val perm_Cs = map (body_type o #ctor_recT) perm_basic_lfp_sugars;
     val perm_fun_arg_Tssss =
-      mk_iter_fun_arg_types perm_ctr_Tsss perm_ns perm_mss (#ctor_recT (hd perm_basic_lfp_sugars));
+      binder_fun_types (#ctor_recT (hd perm_basic_lfp_sugars))
+      |> map3 mk_iter_fun_arg_types perm_ns perm_mss
+      |> map2 (map2 (map2 unzip_recT)) perm_ctr_Tsss;
 
     fun unpermute0 perm0_xs = permute_like_unique (op =) perm0_kks kks perm0_xs;
     fun unpermute perm_xs = permute_like_unique (op =) perm_indices indices perm_xs;
