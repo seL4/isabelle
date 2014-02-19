@@ -6,11 +6,29 @@ Various tests for the proof reconstruction module.
 NOTE
   - Makes use of the PolyML structure.
   - looks for THF proofs in the path indicated by $THF_PROOFS
+  - these proofs are generated using LEO-II with the following
+    configuration choices: -po 1 -nux -nuc --expand_extuni
+    You can simply filter LEO-II's output using the filter_proof
+    script which is distributed with LEO-II.
 *)
 
 theory TPTP_Proof_Reconstruction_Test
 imports TPTP_Test TPTP_Proof_Reconstruction
 begin
+
+section "Main function"
+text "This function wraps all the reconstruction-related functions. Simply
+ point it at a THF proof produced by LEO-II (using the configuration described
+ above), and it will try to reconstruct it into an Isabelle/HOL theorem.
+ It also returns the theory (into which the axioms and definitions used in the
+ proof have been imported), but note that you can get the theory value from
+ the theorem value."
+
+ML {*
+  reconstruct_leo2 (Path.explode "$THF_PROOFS/NUM667^1.p.out") @{theory}
+*}
+
+section "Prep for testing the component functions"
 
 declare [[
   tptp_trace_reconstruction = false,

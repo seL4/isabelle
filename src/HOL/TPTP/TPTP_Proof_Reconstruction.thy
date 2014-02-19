@@ -3,6 +3,42 @@
 
 Proof reconstruction for Leo-II.
 
+USAGE:
+* Simple call the "reconstruct_leo2" function.
+* For more advanced use, you could use the component functions used in
+  "reconstruct_leo2" -- see TPTP_Proof_Reconstruction_Test.thy for
+  examples of this.
+
+This file contains definitions describing how to interpret LEO-II's
+calculus in Isabelle/HOL, as well as more general proof-handling
+functions. The definitions in this file serve to build an intermediate
+proof script which is then evaluated into a tactic -- both these steps
+are independent of LEO-II, and are defined in the TPTP_Reconstruct SML
+module.
+
+CONFIG:
+The following attributes are mainly useful for debugging:
+  tptp_unexceptional_reconstruction |
+  unexceptional_reconstruction      |-- when these are true, a low-level exception
+                                        is allowed to float to the top (instead of
+                                        triggering a higher-level exception, or
+                                        simply indicating that the reconstruction failed).
+  tptp_max_term_size                --- fail of a term exceeds this size. "0" is taken
+                                        to mean infinity.
+  tptp_informative_failure          |
+  informative_failure               |-- produce more output during reconstruction.
+  tptp_trace_reconstruction         |
+
+There are also two attributes, independent of the code here, that
+influence the success of reconstruction: blast_depth_limit and
+unify_search_bound. These are documented in their respective modules,
+but in summary, if unify_search_bound is increased then we can
+handle larger terms (at the cost of performance), since the unification
+engine takes longer to give up the search; blast_depth_limit is
+a limit on proof search performed by Blast. Blast is used for
+the limited proof search that needs to be done to interpret
+instances of LEO-II's inference rules.
+
 TODO:
   use RemoveRedundantQuantifications instead of the ad hoc use of
    remove_redundant_quantification_in_lit and remove_redundant_quantification
@@ -2189,7 +2225,11 @@ fun nodes_by_inference (fms : TPTP_Reconstruct.formula_meaning list) inference_r
   end
 *}
 
+
+section "Importing proofs and reconstructing theorems"
+
 ML {*
+(*Preprocessing carried out on a LEO-II proof.*)
 fun leo2_on_load (pannot : TPTP_Reconstruct.proof_annotation) thy =
   let
     val ctxt = Proof_Context.init_global thy
@@ -2217,6 +2257,30 @@ fun leo2_on_load (pannot : TPTP_Reconstruct.proof_annotation) thy =
       axs = #axs pannot,
       meta = #meta pannot},
      thy')
+  end
+*}
+
+ML {*
+(*Imports and reconstructs a LEO-II proof.*)
+fun reconstruct_leo2 path thy =
+  let
+    val prob_file = Path.base path
+    val dir = Path.dir path
+    val thy' = TPTP_Reconstruct.import_thm true [dir, prob_file] path leo2_on_load thy
+    val ctxt =
+      Context.Theory thy'
+      |> Context.proof_of
+    val prob_name =
+      Path.implode prob_file
+      |> TPTP_Problem_Name.parse_problem_name
+    val theorem =
+      TPTP_Reconstruct.reconstruct ctxt
+       (TPTP_Reconstruct.naive_reconstruct_tac ctxt interpret_leo2_inference)
+       prob_name
+  in
+    (*NOTE we could return the theorem value alone, since
+       users could get the thy value from the thm value.*)
+    (thy', theorem)
   end
 *}
 
