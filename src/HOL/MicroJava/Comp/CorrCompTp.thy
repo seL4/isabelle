@@ -1394,7 +1394,7 @@ apply (rule_tac bc_pre=bc1 and bc=bc2 and bc_post=bc3
 
   apply (simp (no_asm_simp) add: max_ssize_def del: max_of_list_append)
     apply (rule max_of_list_sublist)
-    apply (simp (no_asm_simp) only: set_append set.simps list.map) apply blast
+    apply (simp (no_asm_simp) only: set_append set_simps list.map) apply blast
   apply (simp (no_asm_simp))
   apply simp                    (* subgoal bc3 = [] *)
   apply (simp add: comb_nil_def) (* subgoal mt3 = [] \<and> sttp2 = sttp3 *)
@@ -1421,7 +1421,7 @@ apply (rule_tac bc=bc2 and mt="(mt2 @ [Some sttp2])"
      (* (some) preconditions of  wt_instr_offset *)
   apply (simp (no_asm_simp) add: max_ssize_def del: max_of_list_append)
   apply (rule max_of_list_sublist)
-    apply (simp (no_asm_simp) only: set_append set.simps list.map) apply blast
+    apply (simp (no_asm_simp) only: set_append set_simps list.map) apply blast
   apply (simp (no_asm_simp))
 
 apply (drule_tac x=sttp2 in spec, simp) (* subgoal \<exists>mt3_rest. \<dots> *)

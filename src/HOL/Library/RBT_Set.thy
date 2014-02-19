@@ -520,7 +520,7 @@ section {* Code equations *}
 
 code_datatype Set Coset
 
-declare set.simps[code]
+declare set_simps[code]
 
 lemma empty_Set [code]:
   "Set.empty = Set RBT.empty"

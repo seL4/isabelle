@@ -8,7 +8,7 @@ theory List
 imports Presburger Code_Numeral Quotient Lifting_Set Lifting_Option Lifting_Product
 begin
 
-datatype_new 'a list (map: map rel: list_all2) =
+datatype_new (set: 'a) list (map: map rel: list_all2) =
     =: Nil (defaults tl: "[]")  ("[]")
   | Cons (hd: 'a) (tl: "'a list")  (infixr "#" 65)
 datatype_compat list
@@ -51,9 +51,15 @@ primrec butlast :: "'a list \<Rightarrow> 'a list" where
 "butlast []= []" |
 "butlast (x # xs) = (if xs = [] then [] else x # butlast xs)"
 
-primrec set :: "'a list \<Rightarrow> 'a set" where
-"set [] = {}" |
-"set (x # xs) = insert x (set xs)"
+declare list.set[simp del, code del]
+
+lemma set_simps[simp, code, code_post]:
+  "set [] = {}"
+  "set (x # xs) = insert x (set xs)"
+by (simp_all add: list.set)
+
+lemma set_rec: "set xs = rec_list {} (\<lambda>x _. insert x) xs"
+  by (induct xs) auto
 
 definition coset :: "'a list \<Rightarrow> 'a set" where
 [simp]: "coset xs = - set xs"
@@ -548,7 +554,7 @@ datatype termlets = If | Case of (typ * int)
 
 fun simproc ctxt redex =
   let
-    val set_Nil_I = @{thm trans} OF [@{thm set.simps(1)}, @{thm empty_def}]
+    val set_Nil_I = @{thm trans} OF [@{thm set_simps(1)}, @{thm empty_def}]
     val set_singleton = @{lemma "set [a] = {x. x = a}" by simp}
     val inst_Collect_mem_eq = @{lemma "set A = {x. x : set A}" by simp}
     val del_refl_eq = @{lemma "(t = t & P) == P" by simp}
@@ -1214,8 +1220,6 @@ by(rule rev_cases[of xs]) auto
 
 subsubsection {* @{const set} *}
 
-declare set.simps [code_post]  --"pretty output"
-
 lemma finite_set [iff]: "finite (set xs)"
 by (induct xs) auto
 
@@ -1284,7 +1288,7 @@ next
   case (snoc a xs)
   show ?case
   proof cases
-    assume "x = a" thus ?case using snoc by (metis List.set.simps(1) emptyE)
+    assume "x = a" thus ?case using snoc by (metis set_simps(1) emptyE)
   next
     assume "x \<noteq> a" thus ?case using snoc by fastforce
   qed
@@ -1363,8 +1367,7 @@ lemma split_list_last_prop_iff:
 by (metis split_list_last_prop [where P=P] in_set_conv_decomp)
 
 lemma finite_list: "finite A ==> EX xs. set xs = A"
-  by (erule finite_induct)
-    (auto simp add: set.simps(2) [symmetric] simp del: set.simps(2))
+  by (erule finite_induct) (auto simp add: set_simps(2) [symmetric] simp del: set_simps(2))
 
 lemma card_length: "card (set xs) \<le> length xs"
 by (induct xs) (auto simp add: card_insert_if)
@@ -6693,7 +6696,7 @@ lemma butlast_transfer [transfer_rule]:
 
 lemma set_transfer [transfer_rule]:
   "(list_all2 A ===> set_rel A) set set"
-  unfolding set_def by transfer_prover
+  unfolding set_rec[abs_def] by transfer_prover
 
 lemma map_rec: "map f xs = rec_list Nil (%x _ y. Cons (f x) y) xs"
   by (induct xs) auto

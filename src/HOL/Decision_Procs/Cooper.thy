@@ -1674,7 +1674,7 @@ next
   {assume H: "\<not> (x-d) + ?e > 0"
     let ?v="Neg e"
     have vb: "?v \<in> set (\<beta> (Gt (CN 0 c e)))" by simp
-    from 7(5)[simplified simp_thms Inum.simps \<beta>.simps set.simps bex_simps numbound0_I[OF bn,where b="a" and b'="x" and bs="bs"]]
+    from 7(5)[simplified simp_thms Inum.simps \<beta>.simps set_simps bex_simps numbound0_I[OF bn,where b="a" and b'="x" and bs="bs"]]
     have nob: "\<not> (\<exists>j\<in> {1 ..d}. x =  - ?e + j)" by auto
     from H p have "x + ?e > 0 \<and> x + ?e \<le> d" by (simp add: c1)
     hence "x + ?e \<ge> 1 \<and> x + ?e \<le> d"  by simp
@@ -1694,7 +1694,7 @@ next
     {assume H: "\<not> (x-d) + ?e \<ge> 0"
       let ?v="Sub (C -1) e"
       have vb: "?v \<in> set (\<beta> (Ge (CN 0 c e)))" by simp
-      from 8(5)[simplified simp_thms Inum.simps \<beta>.simps set.simps bex_simps numbound0_I[OF bn,where b="a" and b'="x" and bs="bs"]]
+      from 8(5)[simplified simp_thms Inum.simps \<beta>.simps set_simps bex_simps numbound0_I[OF bn,where b="a" and b'="x" and bs="bs"]]
       have nob: "\<not> (\<exists>j\<in> {1 ..d}. x =  - ?e - 1 + j)" by auto
       from H p have "x + ?e \<ge> 0 \<and> x + ?e < d" by (simp add: c1)
       hence "x + ?e +1 \<ge> 1 \<and> x + ?e + 1 \<le> d"  by simp
