@@ -42,7 +42,7 @@ fun the_role_shape role =
   | Role_Theorem => "star" (*NOTE this is not standard wrt IDV*)
   | Role_Conjecture => "house"
   | Role_Negated_Conjecture => "invhouse"
-  | Role_Plain => "circle"
+  | Role_Plain => "plaintext" (* "circle" *) (*could also use none*)
   | Role_Fi_Domain => raise NO_ROLE_SHAPE
   | Role_Fi_Functors => raise NO_ROLE_SHAPE
   | Role_Fi_Predicates => raise NO_ROLE_SHAPE
@@ -61,7 +61,7 @@ fun the_lang_style lang =
   case lang of
       CNF => "dotted"
     | FOF => "dashed"
-    | THF => "filled"
+    | THF => "" (* "filled" *)
     | _ => raise NO_LANG_STYLE
 
 (*Does the formula just consist of "$false"?*)
@@ -73,13 +73,14 @@ fun is_last_line CNF (Pred (Interpreted_Logic False, [])) = true
 fun tptp_dot_node with_label reverse_arrows
  (Annotated_Formula (_, lang, n, role, fmla_tptp, annot)) =
  (*don't expect to find 'Include' in proofs*)
- if have_role_shape role then
+ if have_role_shape role andalso role <> Role_Definition then
    "\"" ^ n ^
    "\" [shape=\"" ^
       (if is_last_line lang fmla_tptp then "doublecircle"
        else the_role_shape role) ^
    "\", style=\"" ^ the_lang_style lang ^
-   "\", label=\"" ^ n ^ "\"];\n" ^
+   (if role = Role_Definition then "\"];\n" else
+     "\", label=\"$" ^ TPTP_Syntax.latex_of_tptp_formula fmla_tptp ^ "$\"];\n") ^
    (case TPTP_Proof.extract_source_info annot of
         SOME (TPTP_Proof.Inference (rule, _, pinfos)) =>
           let
@@ -101,15 +102,16 @@ fun write_proof_dot input_file output_file =
   let
     (*rankdir=\"LR\";\n*)
     val defaults =
+      "graph[nodesep=3];\n" ^
       "node[fixedsize=true];\n" ^
-      "node[width=.5];\n" ^
+      "node[width=0.5];\n" ^
       "node[shape=plaintext];\n" ^
-      "node[fillcolor=lightgray];\n" ^
-      "node[fontsize=40];\n" ^
+      (* "node[fillcolor=lightgray];\n" ^ *)
+      "node[fontsize=50];\n" ^
       "edge[dir=none];\n"
   in
     TPTP_Parser.parse_file input_file
-    |> map (tptp_dot_node false true)
+    |> map (tptp_dot_node true true)
     |> implode
     |> (fn str => "digraph ProofGraph {\n" ^ defaults ^ str ^ "}")
     |> File.write (Path.explode output_file)

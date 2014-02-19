@@ -155,6 +155,8 @@ sig
   val string_of_interpreted_symbol : interpreted_symbol -> string
   val string_of_tptp_formula : tptp_formula -> string
 
+  val latex_of_tptp_formula : tptp_formula -> string
+
 end
 
 
@@ -522,5 +524,254 @@ and string_of_tptp_type (Prod_type (tptp_type1, tptp_type2)) =
   | string_of_tptp_type (Fmla_type tptp_formula) = string_of_tptp_formula tptp_formula
   | string_of_tptp_type (Subtype (symbol1, symbol2)) =
       string_of_symbol symbol1 ^ " << " ^ string_of_symbol symbol2
+
+             
+(*Add subscripting*)
+(*infix symbols, including \subset, \cup, \cap*)
+fun latex_of_tptp_term x =
+((*writeln ("term=" ^ PolyML.makestring x);*)
+  case x of
+(*
+      Term_Func (Uninterpreted "subset", [tptp_t1, tptp_t2]) =>
+        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\subset " ^ latex_of_tptp_term tptp_t2 ^ ")"
+    | Term_Func (Uninterpreted "union", [tptp_t1, tptp_t2]) =>
+        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\cup " ^ latex_of_tptp_term tptp_t2 ^ ")"
+*)
+(*
+      Term_Func (Interpreted_Logic Apply, [Term_Func (Interpreted_Logic Apply, [Uninterpreted "subset", tptp_t1]), tptp_t2]) =>
+        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\subset " ^ latex_of_tptp_term tptp_t2 ^ ")"
+    | Term_Func (Interpreted_Logic Apply, [Term_Func (Interpreted_Logic Apply, [Uninterpreted "union", tptp_t1]), tptp_t2]) =>
+        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\cup " ^ latex_of_tptp_term tptp_t2 ^ ")"
+*)
+(*
+      Term_Func (Interpreted_ExtraLogic Apply,
+                 [Term_Func (Interpreted_ExtraLogic Apply,
+                             [Term_Func (Interpreted_ExtraLogic Apply, [Term_Func (Uninterpreted "subset", []),
+                                                                             tptp_t1])]), tptp_t2]) =>
+        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\subset " ^ latex_of_tptp_term tptp_t2 ^ ")"
+    | Term_Func (Interpreted_ExtraLogic Apply,
+                 [Term_Func (Interpreted_ExtraLogic Apply,
+                             [Term_Func (Interpreted_ExtraLogic Apply, [Term_Func (Uninterpreted "union", []),
+                                                                             tptp_t1])]), tptp_t2]) =>
+        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\cup " ^ latex_of_tptp_term tptp_t2 ^ ")"
+
+    |*) Term_Func (Interpreted_Logic Equals, [tptp_t1, tptp_t2]) =>
+        "(" ^ latex_of_tptp_term tptp_t1 ^ " = " ^ latex_of_tptp_term tptp_t2 ^ ")"
+    | Term_Func (Interpreted_Logic NEquals, [tptp_t1, tptp_t2]) =>
+        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\neq " ^ latex_of_tptp_term tptp_t2 ^ ")"
+    | Term_Func (Interpreted_Logic Or, [tptp_t1, tptp_t2]) =>
+        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\vee " ^ latex_of_tptp_term tptp_t2 ^ ")"
+    | Term_Func (Interpreted_Logic And, [tptp_t1, tptp_t2]) =>
+        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\wedge " ^ latex_of_tptp_term tptp_t2 ^ ")"
+    | Term_Func (Interpreted_Logic Iff, [tptp_t1, tptp_t2]) =>
+        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\longleftrightarrow " ^ latex_of_tptp_term tptp_t2 ^ ")"
+    | Term_Func (Interpreted_Logic If, [tptp_t1, tptp_t2]) =>
+        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\longrightarrow " ^ latex_of_tptp_term tptp_t2 ^ ")"
+
+    | Term_Func (symbol, tptp_term_list) =>
+        (*"(" ^*) latex_of_symbol symbol ^ " " ^
+        space_implode " " (map latex_of_tptp_term tptp_term_list) (*^ ")"*)
+    | Term_Var str => str
+    | Term_Conditional (tptp_formula, tptp_term1, tptp_term2) => "" (*FIXME*)
+    | Term_Num (_, str) => str
+    | Term_Distinct_Object str => str
+)
+and latex_of_symbol (Uninterpreted str) =
+(*    if str = "union" then "\\\\cup"
+    else if str = "subset" then "\\\\subset"
+    else*)
+    if str = "emptyset" then "\\\\emptyset"
+    else str
+  | latex_of_symbol (Interpreted_ExtraLogic interpreted_symbol) = latex_of_interpreted_symbol interpreted_symbol
+  | latex_of_symbol (Interpreted_Logic logic_symbol) = latex_of_logic_symbol logic_symbol
+  | latex_of_symbol (TypeSymbol tptp_base_type) = latex_of_tptp_base_type tptp_base_type
+  | latex_of_symbol (System str) = str
+
+and latex_of_tptp_base_type Type_Ind = "\\\\iota "
+  | latex_of_tptp_base_type Type_Bool = "o"
+  | latex_of_tptp_base_type Type_Type = "\\\\mathcal{T} "
+  | latex_of_tptp_base_type Type_Int = "\\\\mathsf{int} "
+  | latex_of_tptp_base_type Type_Rat = "\\\\mathsf{rat} "
+  | latex_of_tptp_base_type Type_Real = "\\\\mathsf{real} "
+
+and latex_of_interpreted_symbol x =
+  case x of
+      UMinus => "-"
+    | Sum => "-"
+    | Difference => "-"
+    | Product => "*"
+    | Quotient => "/"
+    | Quotient_E => "" (*FIXME*)
+    | Quotient_T => "" (*FIXME*)
+    | Quotient_F => "" (*FIXME*)
+    | Remainder_E => "" (*FIXME*)
+    | Remainder_T => "" (*FIXME*)
+    | Remainder_F => "" (*FIXME*)
+    | Floor => "" (*FIXME*)
+    | Ceiling => "" (*FIXME*)
+    | Truncate => "" (*FIXME*)
+    | Round => "" (*FIXME*)
+    | To_Int => "" (*FIXME*)
+    | To_Rat => "" (*FIXME*)
+    | To_Real => "" (*FIXME*)
+    | Less => "<"
+    | LessEq => "\\\\leq "
+    | Greater => ">"
+    | GreaterEq => "\\\\geq "
+    | EvalEq => "" (*FIXME*)
+    | Is_Int => "" (*FIXME*)
+    | Is_Rat => "" (*FIXME*)
+    | Distinct => "" (*FIXME*)
+    | Apply => "\\\\;"
+
+and latex_of_logic_symbol Equals = "="
+  | latex_of_logic_symbol NEquals = "\\\\neq "
+  | latex_of_logic_symbol Or = "\\\\vee "
+  | latex_of_logic_symbol And = "\\\\wedge "
+  | latex_of_logic_symbol Iff = "\\\\longleftrightarrow "
+  | latex_of_logic_symbol If = "\\\\longrightarrow "
+  | latex_of_logic_symbol Fi = "\\\\longleftarrow "
+  | latex_of_logic_symbol Xor = "\\\\oplus "
+  | latex_of_logic_symbol Nor = "\\\\not\\\\vee "
+  | latex_of_logic_symbol Nand = "\\\\not\\\\wedge "
+  | latex_of_logic_symbol Not = "\\\\neg "
+  | latex_of_logic_symbol Op_Forall = "\\\\forall "
+  | latex_of_logic_symbol Op_Exists = "\\\\exists "
+  | latex_of_logic_symbol True = "\\\\mathsf{true} "
+  | latex_of_logic_symbol False = "\\\\mathsf{false} "
+
+and latex_of_quantifier Forall = "\\\\forall "
+  | latex_of_quantifier Exists  = "\\\\exists "
+  | latex_of_quantifier Epsilon  = "\\\\varepsilon "
+  | latex_of_quantifier Iota  = "" (*FIXME*)
+  | latex_of_quantifier Lambda  = "\\\\lambda "
+  | latex_of_quantifier Dep_Prod = "\\\\Pi "
+  | latex_of_quantifier Dep_Sum  = "\\\\Sigma "
+
+and latex_of_tptp_atom (TFF_Typed_Atom (symbol, tptp_type_option)) =
+    (case tptp_type_option of
+       NONE => latex_of_symbol symbol
+     | SOME tptp_type =>
+         latex_of_symbol symbol ^ " : " ^ latex_of_tptp_type tptp_type)
+  | latex_of_tptp_atom (THF_Atom_term tptp_term) = latex_of_tptp_term tptp_term   
+  | latex_of_tptp_atom (THF_Atom_conn_term symbol) = latex_of_symbol symbol
+
+(*
+and latex_of_tptp_formula (Pred (symbol, tptp_term_list)) =
+      "(" ^ latex_of_symbol symbol ^
+      space_implode " " (map latex_of_tptp_term tptp_term_list) ^ ")"
+  | latex_of_tptp_formula (Fmla (symbol, tptp_formula_list)) =
+      "(" ^ latex_of_symbol symbol ^
+      space_implode " " (map latex_of_tptp_formula tptp_formula_list) ^ ")"
+*)
+(*
+and  latex_of_tptp_formula (Pred (Uninterpreted "subset", [tptp_t1, tptp_t2])) =
+        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\subset " ^ latex_of_tptp_term tptp_t2 ^ ")"
+    | latex_of_tptp_formula (Pred (Uninterpreted "union", [tptp_t1, tptp_t2])) =
+        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\cup " ^ latex_of_tptp_term tptp_t2 ^ ")"
+*)
+and  (*latex_of_tptp_formula (
+      Pred (Interpreted_ExtraLogic Apply,
+                 [Term_Func (Interpreted_ExtraLogic Apply,
+                             [Term_Func (Interpreted_ExtraLogic Apply, [Term_Func (Uninterpreted "subset", []),
+                                                                             tptp_t1])]), tptp_t2])) =
+        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\subset " ^ latex_of_tptp_term tptp_t2 ^ ")"
+    | latex_of_tptp_formula (Pred (Interpreted_ExtraLogic Apply,
+                 [Term_Func (Interpreted_ExtraLogic Apply,
+                             [Term_Func (Interpreted_ExtraLogic Apply, [Term_Func (Uninterpreted "union", []),
+                                                                             tptp_t1])]), tptp_t2])) =
+        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\cup " ^ latex_of_tptp_term tptp_t2 ^ ")"
+
+    |*) latex_of_tptp_formula (Pred (Interpreted_Logic Equals, [tptp_t1, tptp_t2])) =
+        "(" ^ latex_of_tptp_term tptp_t1 ^ " = " ^ latex_of_tptp_term tptp_t2 ^ ")"
+    | latex_of_tptp_formula (Pred (Interpreted_Logic NEquals, [tptp_t1, tptp_t2])) =
+        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\neq " ^ latex_of_tptp_term tptp_t2 ^ ")"
+    | latex_of_tptp_formula (Pred (Interpreted_Logic Or, [tptp_t1, tptp_t2])) =
+        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\vee " ^ latex_of_tptp_term tptp_t2 ^ ")"
+    | latex_of_tptp_formula (Pred (Interpreted_Logic And, [tptp_t1, tptp_t2])) =
+        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\wedge " ^ latex_of_tptp_term tptp_t2 ^ ")"
+    | latex_of_tptp_formula (Pred (Interpreted_Logic Iff, [tptp_t1, tptp_t2])) =
+        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\longleftrightarrow " ^ latex_of_tptp_term tptp_t2 ^ ")"
+    | latex_of_tptp_formula (Pred (Interpreted_Logic If, [tptp_t1, tptp_t2])) =
+        "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\longrightarrow " ^ latex_of_tptp_term tptp_t2 ^ ")"
+
+  | latex_of_tptp_formula (x as (Pred (symbol, tptp_term_list))) =
+((*writeln ("fmla=" ^ PolyML.makestring x);*)
+      (*"(" ^*) latex_of_symbol symbol ^
+      space_implode " " (map latex_of_tptp_term tptp_term_list) (*^ ")"*)
+)
+
+(*
+    | latex_of_tptp_formula (Fmla (Uninterpreted "subset", [tptp_f1, tptp_f2])) =
+        "(" ^ latex_of_tptp_formula tptp_f1 ^ " \\\\subset " ^ latex_of_tptp_formula tptp_f2 ^ ")"
+    | latex_of_tptp_formula (Fmla (Uninterpreted "union", [tptp_f1, tptp_f2])) =
+        "(" ^ latex_of_tptp_formula tptp_f1 ^ " \\\\cup " ^ latex_of_tptp_formula tptp_f2 ^ ")"
+*)
+
+(*
+    | latex_of_tptp_formula (
+      Fmla (Interpreted_ExtraLogic Apply,
+                 [Fmla (Interpreted_ExtraLogic Apply,
+                             [Fmla (Interpreted_ExtraLogic Apply, [Fmla (Uninterpreted "subset", []),
+                                                                             tptp_t1])]), tptp_t2])) =
+        "(" ^ latex_of_tptp_formula tptp_t1 ^ " \\\\subset " ^ latex_of_tptp_formula tptp_t2 ^ ")"
+    | latex_of_tptp_formula (Fmla (Interpreted_ExtraLogic Apply,
+                 [Fmla (Interpreted_ExtraLogic Apply,
+                             [Fmla (Interpreted_ExtraLogic Apply, [Fmla (Uninterpreted "union", []),
+                                                                             tptp_t1])]), tptp_t2])) =
+        "(" ^ latex_of_tptp_formula tptp_t1 ^ " \\\\cup " ^ latex_of_tptp_formula tptp_t2 ^ ")"
+*)
+
+    | latex_of_tptp_formula (Fmla (Interpreted_ExtraLogic Apply, [Fmla (Interpreted_ExtraLogic Apply, [Atom (THF_Atom_term (Term_Func (Uninterpreted "union", []))), tptp_f1]), tptp_f2])) =
+        "(" ^ latex_of_tptp_formula tptp_f1 ^ " \\\\cup " ^ latex_of_tptp_formula tptp_f2 ^ ")"
+
+    | latex_of_tptp_formula (Fmla (Interpreted_ExtraLogic Apply, [Fmla (Interpreted_ExtraLogic Apply, [Atom (THF_Atom_term (Term_Func (Uninterpreted "subset", []))), tptp_f1]), tptp_f2])) =
+        "(" ^ latex_of_tptp_formula tptp_f1 ^ " \\\\subset " ^ latex_of_tptp_formula tptp_f2 ^ ")"
+
+
+    | latex_of_tptp_formula (Fmla (Interpreted_Logic Equals, [tptp_f1, tptp_f2])) =
+        "(" ^ latex_of_tptp_formula tptp_f1 ^ " = " ^ latex_of_tptp_formula tptp_f2 ^ ")"
+    | latex_of_tptp_formula (Fmla (Interpreted_Logic NEquals, [tptp_f1, tptp_f2])) =
+        "(" ^ latex_of_tptp_formula tptp_f1 ^ " \\\\neq " ^ latex_of_tptp_formula tptp_f2 ^ ")"
+    | latex_of_tptp_formula (Fmla (Interpreted_Logic Or, [tptp_f1, tptp_f2])) =
+        "(" ^ latex_of_tptp_formula tptp_f1 ^ " \\\\vee " ^ latex_of_tptp_formula tptp_f2 ^ ")"
+    | latex_of_tptp_formula (Fmla (Interpreted_Logic And, [tptp_f1, tptp_f2])) =
+        "(" ^ latex_of_tptp_formula tptp_f1 ^ " \\\\wedge " ^ latex_of_tptp_formula tptp_f2 ^ ")"
+    | latex_of_tptp_formula (Fmla (Interpreted_Logic Iff, [tptp_f1, tptp_f2])) =
+        "(" ^ latex_of_tptp_formula tptp_f1 ^ " \\\\longleftrightarrow " ^ latex_of_tptp_formula tptp_f2 ^ ")"
+    | latex_of_tptp_formula (Fmla (Interpreted_Logic If, [tptp_f1, tptp_f2])) =
+        "(" ^ latex_of_tptp_formula tptp_f1 ^ " \\\\longrightarrow " ^ latex_of_tptp_formula tptp_f2 ^ ")"
+
+  | latex_of_tptp_formula (x as (Fmla (symbol, tptp_formula_list))) =
+(writeln ("fmla=" ^ PolyML.makestring x);
+      (*"(" ^*) latex_of_symbol symbol ^
+      space_implode " " (map latex_of_tptp_formula tptp_formula_list) (*^ ")"*)
+)
+
+  | latex_of_tptp_formula (Sequent (tptp_formula_list1, tptp_formula_list2)) = "" (*FIXME*)
+  | latex_of_tptp_formula (Quant (quantifier, varlist, tptp_formula)) =
+      latex_of_quantifier quantifier ^
+      space_implode ", " (map (fn (n, ty) =>
+        case ty of
+          NONE => n
+        | SOME ty => n ^ " : " ^ latex_of_tptp_type ty) varlist) ^ ". (" ^
+      latex_of_tptp_formula tptp_formula ^ ")"
+  | latex_of_tptp_formula (Conditional _) = "" (*FIXME*)
+  | latex_of_tptp_formula (Let _) = "" (*FIXME*)
+  | latex_of_tptp_formula (Atom tptp_atom) = latex_of_tptp_atom tptp_atom
+  | latex_of_tptp_formula (Type_fmla tptp_type) = latex_of_tptp_type tptp_type
+  | latex_of_tptp_formula (THF_typing (tptp_formula, tptp_type)) =
+      latex_of_tptp_formula tptp_formula ^ " : " ^ latex_of_tptp_type tptp_type
+
+and latex_of_tptp_type (Prod_type (tptp_type1, tptp_type2)) =
+      latex_of_tptp_type tptp_type1 ^ " \\\\times " ^ latex_of_tptp_type tptp_type2
+  | latex_of_tptp_type (Fn_type (tptp_type1, tptp_type2)) =
+      latex_of_tptp_type tptp_type1 ^ " \\\\to " ^ latex_of_tptp_type tptp_type2
+  | latex_of_tptp_type (Atom_type str) = str
+  | latex_of_tptp_type (Defined_type tptp_base_type) =
+      latex_of_tptp_base_type tptp_base_type
+  | latex_of_tptp_type (Sum_type (tptp_type1, tptp_type2)) = ""
+  | latex_of_tptp_type (Fmla_type tptp_formula) = latex_of_tptp_formula tptp_formula
+  | latex_of_tptp_type (Subtype (symbol1, symbol2)) = "" (*FIXME*)
 
 end
