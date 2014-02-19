@@ -41,10 +41,11 @@ fun the_role_shape role =
   | Role_Lemma => "hexagon"
   | Role_Theorem => "star" (*NOTE this is not standard wrt IDV*)
 
-  (*NOTE changed the next three to plaintext to avoid clutter, since
-         i'm also displaying the inference's conclusion in latex*)
-  | Role_Conjecture => "plaintext" (* "house" *)
-  | Role_Negated_Conjecture => "plaintext" (* "invhouse" *)
+  (*FIXME add a parameter to switch the behaviour described below.*)
+  (*NOTE can change the next three to plaintext to avoid clutter if
+         the inference's conclusion formula is also being displayed.*)
+  | Role_Conjecture => (* "plaintext" *) "house"
+  | Role_Negated_Conjecture => (* "plaintext" *) "invhouse"
   | Role_Plain => "plaintext" (* "circle" *) (*could also use none*)
 
   | Role_Fi_Domain => raise NO_ROLE_SHAPE
@@ -84,7 +85,10 @@ fun tptp_dot_node with_label reverse_arrows
        else the_role_shape role) ^
    "\", style=\"" ^ the_lang_style lang ^
    (if role = Role_Definition then "\"];\n" else
-     "\", label=\"$" ^ TPTP_Syntax.latex_of_tptp_formula fmla_tptp ^ "$\"];\n") ^
+     (* "\", label=\"$" ^ TPTP_Syntax.latex_of_tptp_formula fmla_tptp ^ "$\"];\n") ^ *)
+(*FIXME  add a parameter to switch to using the following code, which lowers, centers, and horizontally-bounds the label.
+        (this is useful if you want to keep the shapes but also show formulas)*)
+    "\", label=\"\\\\begin{minipage}{10cm}\\\\vspace{21mm}\\\\centering$" ^ TPTP_Syntax.latex_of_tptp_formula fmla_tptp ^ "$\\\\end{minipage}\"];\n") ^
    (case TPTP_Proof.extract_source_info annot of
         SOME (TPTP_Proof.Inference (rule, _, pinfos)) =>
           let
