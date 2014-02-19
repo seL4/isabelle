@@ -3,6 +3,9 @@
 
 Translates parsed TPTP proofs into DOT format. This can then be processed
 by an accompanying script to translate the proofs into other formats.
+
+It tries to adhere to the symbols used in IDV, as described in
+"An Interactive Derivation Viewer" by Trac & Puzis & Sutcliffe, UITP 2006.
 *)
 
 signature TPTP_TO_DOT =
@@ -32,11 +35,11 @@ exception NO_ROLE_SHAPE
 fun the_role_shape role =
   case role of
     Role_Axiom => "triangle"
-  | Role_Hypothesis => "???"
-  | Role_Definition => raise NO_ROLE_SHAPE
-  | Role_Assumption => "???"
-  | Role_Lemma => "???"
-  | Role_Theorem => "???"
+  | Role_Hypothesis => "invtrapezium"
+  | Role_Definition => "invtriangle" (*NOTE this is not standard wrt IDV*)
+  | Role_Assumption => "trapezium" (*NOTE this is not standard wrt IDV*)
+  | Role_Lemma => "hexagon"
+  | Role_Theorem => "star" (*NOTE this is not standard wrt IDV*)
   | Role_Conjecture => "house"
   | Role_Negated_Conjecture => "invhouse"
   | Role_Plain => "circle"
@@ -70,8 +73,7 @@ fun is_last_line CNF (Pred (Interpreted_Logic False, [])) = true
 fun tptp_dot_node with_label reverse_arrows
  (Annotated_Formula (_, lang, n, role, fmla_tptp, annot)) =
  (*don't expect to find 'Include' in proofs*)
- if have_role_shape role
- then
+ if have_role_shape role then
    "\"" ^ n ^
    "\" [shape=\"" ^
       (if is_last_line lang fmla_tptp then "doublecircle"
