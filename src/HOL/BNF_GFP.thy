@@ -10,7 +10,7 @@ Greatest fixed point operation on bounded natural functors.
 header {* Greatest Fixed Point Operation on Bounded Natural Functors *}
 
 theory BNF_GFP
-imports BNF_FP_Base List_Prefix String
+imports BNF_FP_Base String
 keywords
   "codatatype" :: thy_decl and
   "primcorecursive" :: thy_goal and
@@ -149,40 +149,12 @@ by simp
 lemma image_convolD: "\<lbrakk>(a, b) \<in> <f, g> ` X\<rbrakk> \<Longrightarrow> \<exists>x. x \<in> X \<and> a = f x \<and> b = g x"
 unfolding convol_def by auto
 
-(*Extended Sublist*)
-
-definition clists where "clists r = |lists (Field r)|"
-
-definition prefCl where
-  "prefCl Kl = (\<forall> kl1 kl2. prefixeq kl1 kl2 \<and> kl2 \<in> Kl \<longrightarrow> kl1 \<in> Kl)"
-definition PrefCl where
-  "PrefCl A n = (\<forall>kl kl'. kl \<in> A n \<and> prefixeq kl' kl \<longrightarrow> (\<exists>m\<le>n. kl' \<in> A m))"
-
-lemma prefCl_UN:
-  "\<lbrakk>\<And>n. PrefCl A n\<rbrakk> \<Longrightarrow> prefCl (\<Union>n. A n)"
-unfolding prefCl_def PrefCl_def by fastforce
-
 definition Succ where "Succ Kl kl = {k . kl @ [k] \<in> Kl}"
 definition Shift where "Shift Kl k = {kl. k # kl \<in> Kl}"
 definition shift where "shift lab k = (\<lambda>kl. lab (k # kl))"
 
 lemma empty_Shift: "\<lbrakk>[] \<in> Kl; k \<in> Succ Kl []\<rbrakk> \<Longrightarrow> [] \<in> Shift Kl k"
 unfolding Shift_def Succ_def by simp
-
-lemma Shift_clists: "Kl \<subseteq> Field (clists r) \<Longrightarrow> Shift Kl k \<subseteq> Field (clists r)"
-unfolding Shift_def clists_def Field_card_of by auto
-
-lemma Shift_prefCl: "prefCl Kl \<Longrightarrow> prefCl (Shift Kl k)"
-unfolding prefCl_def Shift_def
-proof safe
-  fix kl1 kl2
-  assume "\<forall>kl1 kl2. prefixeq kl1 kl2 \<and> kl2 \<in> Kl \<longrightarrow> kl1 \<in> Kl"
-    "prefixeq kl1 kl2" "k # kl2 \<in> Kl"
-  thus "k # kl1 \<in> Kl" using Cons_prefixeq_Cons[of k kl1 k kl2] by blast
-qed
-
-lemma not_in_Shift: "kl \<notin> Shift Kl x \<Longrightarrow> x # kl \<notin> Kl"
-unfolding Shift_def by simp
 
 lemma SuccD: "k \<in> Succ Kl kl \<Longrightarrow> kl @ [k] \<in> Kl"
 unfolding Succ_def by simp
@@ -197,13 +169,6 @@ unfolding Shift_def by simp
 
 lemma Succ_Shift: "Succ (Shift Kl k) kl = Succ Kl (k # kl)"
 unfolding Succ_def Shift_def by auto
-
-lemma Nil_clists: "{[]} \<subseteq> Field (clists r)"
-unfolding clists_def Field_card_of by auto
-
-lemma Cons_clists:
-  "\<lbrakk>x \<in> Field r; xs \<in> Field (clists r)\<rbrakk> \<Longrightarrow> x # xs \<in> Field (clists r)"
-unfolding clists_def Field_card_of by auto
 
 lemma length_Cons: "length (x # xs) = Suc (length xs)"
 by simp
@@ -229,9 +194,6 @@ unfolding toCard_def using someI_ex[OF ex_toCard_pred] .
 lemma toCard_inj: "\<lbrakk>|A| \<le>o r; Card_order r; x \<in> A; y \<in> A\<rbrakk> \<Longrightarrow>
   toCard A r x = toCard A r y \<longleftrightarrow> x = y"
 using toCard_pred_toCard unfolding inj_on_def toCard_pred_def by blast
-
-lemma toCard: "\<lbrakk>|A| \<le>o r; Card_order r; b \<in> A\<rbrakk> \<Longrightarrow> toCard A r b \<in> Field r"
-using toCard_pred_toCard unfolding toCard_pred_def by blast
 
 definition "fromCard A r k \<equiv> SOME b. b \<in> A \<and> toCard A r b = k"
 

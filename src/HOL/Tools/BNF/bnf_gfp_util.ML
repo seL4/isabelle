@@ -17,13 +17,10 @@ sig
   val mk_Times: term * term -> term
   val mk_append: term * term -> term
   val mk_congruent: term -> term -> term
-  val mk_clists: term -> term
   val mk_Id_on: term -> term
   val mk_in_rel: term -> term
   val mk_equiv: term -> term -> term
   val mk_fromCard: term -> term -> term
-  val mk_prefCl: term -> term
-  val mk_prefixeq: term -> term -> term
   val mk_proj: term -> term
   val mk_quotient: term -> term -> term
   val mk_rec_list: term -> term -> term
@@ -94,16 +91,6 @@ fun mk_shift lab k =
   in
     Const (@{const_name shift}, T --> dest_listT (Term.domain_type T) --> T) $ lab $ k
   end;
-
-fun mk_prefCl A =
-  Const (@{const_name prefCl}, fastype_of A --> HOLogic.boolT) $ A;
-
-fun mk_prefixeq xs ys =
-  Const (@{const_name prefixeq}, fastype_of xs --> fastype_of ys --> HOLogic.boolT) $ xs $ ys;
-
-fun mk_clists r =
-  let val T = fastype_of r;
-  in Const (@{const_name clists}, T --> mk_relT (`I (HOLogic.listT (fst (dest_relT T))))) $ r end;
 
 fun mk_toCard A r =
   let
