@@ -51,7 +51,7 @@ fun problem_names () =
          Path.implode #>
          TPTP_Problem_Name.parse_problem_name #>
          TPTP_Problem_Name.mangle_problem_name)
-        (test_files ())
+     (TPTP_Syntax.get_file_list tptp_probs_dir)
 *}
 
 
@@ -121,7 +121,7 @@ text "Run the parser over all problems."
 ML {*
   if test_all @{context} then
     (report @{context} "Testing parser";
-     S timed_test parser_test @{context})
+     S timed_test parser_test @{context} (TPTP_Syntax.get_file_list tptp_probs_dir))
   else ()
 *}
 

@@ -33,9 +33,6 @@ ML {*
   val tptp_probs_dir =
     Path.explode "$TPTP/Problems"
     |> Path.expand;
-
-  (*list of files to under test*)
-  fun test_files () = TPTP_Syntax.get_file_list tptp_probs_dir;
 *}
 
 
@@ -70,11 +67,11 @@ ML {*
           default_val)
     end
 
-  fun timed_test ctxt f =
+  fun timed_test ctxt f test_files =
     let
       fun f' x = (f x; ())
       val time =
-        Timing.timing (List.app f') (test_files ())
+        Timing.timing (List.app f') test_files
         |> fst
       val duration =
         #elapsed time
@@ -82,7 +79,7 @@ ML {*
         |> Real.fromLargeInt
       val average =
         (StringCvt.FIX (SOME 3),
-         (duration / Real.fromInt (length (test_files ()))))
+         (duration / Real.fromInt (length test_files)))
         |-> Real.fmt
     in
       report ctxt ("Test timing: " ^ Timing.message time ^ "\n(about " ^ average ^

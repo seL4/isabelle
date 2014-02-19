@@ -154,7 +154,7 @@ text "Run interpretation over all problems. This works only for logics
 ML {*
   if test_all @{context} then
     (report @{context} "Interpreting all problems";
-     S timed_test (interpretation_test (get_timeout @{context})) @{context})
+     S timed_test (interpretation_test (get_timeout @{context})) @{context} (TPTP_Syntax.get_file_list tptp_probs_dir))
   else ()
 *}
 
