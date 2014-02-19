@@ -7,7 +7,7 @@ Flattening of nested to mutual (co)recursion.
 
 signature BNF_FP_N2M =
 sig
-  val construct_mutualized_fp: BNF_FP_Util.fp_kind  -> typ list -> BNF_FP_Def_Sugar.fp_sugar list ->
+  val construct_mutualized_fp: BNF_Util.fp_kind -> typ list -> BNF_FP_Def_Sugar.fp_sugar list ->
     binding list -> (string * sort) list -> typ list * typ list list -> BNF_Def.bnf list ->
     local_theory -> BNF_FP_Util.fp_result * local_theory
 end;

@@ -8,6 +8,7 @@ Library for bounded natural functors.
 signature BNF_UTIL =
 sig
   include CTR_SUGAR_UTIL
+  include BNF_FP_REC_SUGAR_UTIL
 
   val map6: ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g) ->
     'a list -> 'b list -> 'c list -> 'd list -> 'e list -> 'f list -> 'g list
@@ -50,7 +51,6 @@ sig
     'i list -> 'j -> 'k list * 'j
   val split_list4: ('a * 'b * 'c * 'd) list -> 'a list * 'b list * 'c list * 'd list
   val split_list5: ('a * 'b * 'c * 'd * 'e) list -> 'a list * 'b list * 'c list * 'd list * 'e list
-  val find_indices: ('b * 'a -> bool) -> 'a list -> 'b list -> int list
 
   val mk_TFreess: int list -> Proof.context -> typ list list * Proof.context
   val mk_Freesss: string -> typ list list list -> Proof.context ->
@@ -58,11 +58,9 @@ sig
   val mk_Freessss: string -> typ list list list list -> Proof.context ->
     term list list list list * Proof.context
   val nonzero_string_of_int: int -> string
-  val retype_free: typ -> term -> term
 
   val binder_fun_types: typ -> typ list
   val body_fun_type: typ -> typ
-  val num_binder_types: typ -> int
   val strip_fun_type: typ -> typ list * typ
   val strip_typeN: int -> typ -> typ list * typ
 
@@ -110,8 +108,6 @@ sig
   (*parameterized thms*)
   val mk_Un_upper: int -> int -> thm
   val mk_conjIN: int -> thm
-  val mk_conjunctN: int -> int -> thm
-  val conj_dests: int -> thm -> thm list
   val mk_nthI: int -> int -> thm
   val mk_nth_conv: int -> int -> thm
   val mk_ordLeq_csum: int -> int -> thm -> thm
@@ -148,6 +144,7 @@ structure BNF_Util : BNF_UTIL =
 struct
 
 open Ctr_Sugar_Util
+open BNF_FP_Rec_Sugar_Util
 
 (* Library proper *)
 
@@ -319,15 +316,8 @@ val mk_TFreess = fold_map mk_TFrees;
 fun mk_Freesss x Tsss = fold_map2 mk_Freess (mk_names (length Tsss) x) Tsss;
 fun mk_Freessss x Tssss = fold_map2 mk_Freesss (mk_names (length Tssss) x) Tssss;
 
-fun retype_free T (Free (s, _)) = Free (s, T)
-  | retype_free _ t = raise TERM ("retype_free", [t]);
-
 
 (** Types **)
-
-(*stolen from ~~/src/HOL/Tools/Nitpick/nitpick_hol.ML*)
-fun num_binder_types (Type (@{type_name fun}, [_, T])) = 1 + num_binder_types T
-  | num_binder_types _ = 0;
 
 (*maps [T1,...,Tn]--->T to ([T1,T2,...,Tn], T)*)
 fun strip_typeN 0 T = ([], T)
@@ -485,9 +475,6 @@ fun mk_collect xs defT =
   let val T = (case xs of [] => defT | (x::_) => fastype_of x);
   in Const (@{const_name collect}, HOLogic.mk_setT T --> T) $ (HOLogic.mk_set T xs) end;
 
-fun find_indices eq xs ys = map_filter I
-  (map_index (fn (i, y) => if member eq xs y then SOME i else NONE) ys);
-
 fun mk_trans thm1 thm2 = trans OF [thm1, thm2];
 fun mk_sym thm = thm RS sym;
 
@@ -521,13 +508,6 @@ fun mk_nth_conv n m =
 fun mk_nthI 1 1 = @{thm TrueE[OF TrueI]}
   | mk_nthI n m = fold (curry op RS) (replicate (m - 1) @{thm sndI})
     (if m = n then @{thm TrueE[OF TrueI]} else @{thm fstI});
-
-fun mk_conjunctN 1 1 = @{thm TrueE[OF TrueI]}
-  | mk_conjunctN _ 1 = conjunct1
-  | mk_conjunctN 2 2 = conjunct2
-  | mk_conjunctN n m = conjunct2 RS (mk_conjunctN (n - 1) (m - 1));
-
-fun conj_dests n thm = map (fn k => thm RS mk_conjunctN n k) (1 upto n);
 
 fun mk_conjIN 1 = @{thm TrueE[OF TrueI]}
   | mk_conjIN n = mk_conjIN (n - 1) RSN (2, conjI);

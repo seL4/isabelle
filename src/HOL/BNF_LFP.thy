@@ -13,8 +13,7 @@ theory BNF_LFP
 imports BNF_FP_Base
 keywords
   "datatype_new" :: thy_decl and
-  "datatype_compat" :: thy_decl and
-  "primrec" :: thy_decl
+  "datatype_compat" :: thy_decl
 begin
 
 lemma subset_emptyI: "(\<And>x. x \<in> A \<Longrightarrow> False) \<Longrightarrow> A \<subseteq> {}"
@@ -241,7 +240,6 @@ ML_file "Tools/BNF/bnf_lfp_util.ML"
 ML_file "Tools/BNF/bnf_lfp_tactics.ML"
 ML_file "Tools/BNF/bnf_lfp.ML"
 ML_file "Tools/BNF/bnf_lfp_compat.ML"
-ML_file "Tools/BNF/bnf_lfp_rec_sugar.ML"
 ML_file "Tools/BNF/bnf_lfp_rec_sugar_more.ML"
 
 hide_fact (open) id_transfer

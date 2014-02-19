@@ -149,7 +149,6 @@ lemma Grp_id_mono_subst: "(\<And>x y. Grp P id x y \<Longrightarrow> Grp Q id (f
   unfolding Grp_def by rule auto
 
 ML_file "Tools/BNF/bnf_fp_util.ML"
-ML_file "Tools/BNF/bnf_fp_rec_sugar_util.ML"
 ML_file "Tools/BNF/bnf_fp_def_sugar_tactics.ML"
 ML_file "Tools/BNF/bnf_fp_def_sugar.ML"
 ML_file "Tools/BNF/bnf_fp_n2m_tactics.ML"

@@ -9,7 +9,7 @@ signature BNF_FP_DEF_SUGAR =
 sig
   type fp_sugar =
     {T: typ,
-     fp: BNF_FP_Util.fp_kind,
+     fp: BNF_Util.fp_kind,
      fp_res_index: int,
      fp_res: BNF_FP_Util.fp_result,
      pre_bnf: BNF_Def.bnf,
@@ -53,7 +53,7 @@ sig
   val morph_gfp_sugar_thms: morphism -> gfp_sugar_thms -> gfp_sugar_thms
   val transfer_gfp_sugar_thms: Proof.context -> gfp_sugar_thms -> gfp_sugar_thms
 
-  val mk_co_iters_prelims: BNF_FP_Util.fp_kind -> typ list list list -> typ list -> typ list ->
+  val mk_co_iters_prelims: BNF_Util.fp_kind -> typ list list list -> typ list -> typ list ->
     int list -> int list list -> term list list -> Proof.context ->
     (term list list
      * (typ list list * typ list list list list * term list list
@@ -89,12 +89,12 @@ sig
     ((((binding * (typ * sort)) list * binding) * (binding * binding)) * mixfix)
     * ((binding, binding * typ, term) Ctr_Sugar.ctr_spec * mixfix) list
 
-  val co_datatypes: BNF_FP_Util.fp_kind -> (mixfix list -> binding list -> binding list ->
+  val co_datatypes: BNF_Util.fp_kind -> (mixfix list -> binding list -> binding list ->
       binding list list -> binding list -> (string * sort) list -> typ list * typ list list ->
       BNF_Def.bnf list -> local_theory -> BNF_FP_Util.fp_result * local_theory) ->
     (bool * bool) * co_datatype_spec list ->
     local_theory -> local_theory
-  val parse_co_datatype_cmd: BNF_FP_Util.fp_kind -> (mixfix list -> binding list -> binding list ->
+  val parse_co_datatype_cmd: BNF_Util.fp_kind -> (mixfix list -> binding list -> binding list ->
       binding list list -> binding list -> (string * sort) list -> typ list * typ list list ->
       BNF_Def.bnf list -> local_theory -> BNF_FP_Util.fp_result * local_theory) ->
     (local_theory -> local_theory) parser
@@ -259,6 +259,11 @@ fun mk_co_iters thy fp fpTs Cs ts0 =
     map (Term.subst_TVars rho) ts0
   end;
 
+
+fun unzip_recT (Type (@{type_name prod}, _)) T = [T]
+  | unzip_recT _ (Type (@{type_name prod}, Ts)) = Ts
+  | unzip_recT _ T = [T];
+
 fun unzip_corecT (Type (@{type_name sum}, _)) T = [T]
   | unzip_corecT _ (Type (@{type_name sum}, Ts)) = Ts
   | unzip_corecT _ T = [T];
@@ -338,6 +343,8 @@ fun morph_gfp_sugar_thms phi ((coinducts_pairs, coinduct_attrs),
 
 val transfer_gfp_sugar_thms =
   morph_gfp_sugar_thms o Morphism.transfer_morphism o Proof_Context.theory_of;
+
+fun mk_iter_fun_arg_types n ms = map2 dest_tupleT ms o dest_sumTN_balanced n o domain_type;
 
 fun mk_iters_args_types ctr_Tsss Cs ns mss ctor_iter_fun_Tss lthy =
   let

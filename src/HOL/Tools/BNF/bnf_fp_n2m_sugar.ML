@@ -10,12 +10,12 @@ sig
   val unfold_lets_splits: term -> term
   val dest_map: Proof.context -> string -> term -> term * term list
 
-  val mutualize_fp_sugars: BNF_FP_Util.fp_kind -> binding list -> typ list -> (term -> int list) ->
+  val mutualize_fp_sugars: BNF_Util.fp_kind -> binding list -> typ list -> (term -> int list) ->
     term list list list list -> BNF_FP_Def_Sugar.fp_sugar list -> local_theory ->
     (BNF_FP_Def_Sugar.fp_sugar list
      * (BNF_FP_Def_Sugar.lfp_sugar_thms option * BNF_FP_Def_Sugar.gfp_sugar_thms option))
     * local_theory
-  val nested_to_mutual_fps: BNF_FP_Util.fp_kind -> binding list -> typ list -> (term -> int list) ->
+  val nested_to_mutual_fps: BNF_Util.fp_kind -> binding list -> typ list -> (term -> int list) ->
     (term * term list list) list list -> local_theory ->
     (typ list * int list * BNF_FP_Def_Sugar.fp_sugar list
      * (BNF_FP_Def_Sugar.lfp_sugar_thms option * BNF_FP_Def_Sugar.gfp_sugar_thms option))

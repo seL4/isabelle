@@ -8,9 +8,6 @@ Shared library for the datatype and codatatype constructions.
 
 signature BNF_FP_UTIL =
 sig
-  datatype fp_kind = Least_FP | Greatest_FP
-  val fp_case: fp_kind -> 'a -> 'a -> 'a
-
   type fp_result =
     {Ts: typ list,
      bnfs: BNF_Def.bnf list,
@@ -126,10 +123,9 @@ sig
   val mk_dtor_set_inductN: int -> string
   val mk_set_inductN: int -> string
 
-  val co_prefix: fp_kind -> string
+  val co_prefix: BNF_Util.fp_kind -> string
 
   val base_name_of_typ: typ -> string
-  val mk_common_name: string list -> string
 
   val split_conj_thm: thm -> thm list
   val split_conj_prems: int -> thm -> thm
@@ -138,11 +134,6 @@ sig
   val mk_sumTN_balanced: typ list -> typ
 
   val mk_proj: typ -> int -> int -> term
-
-  val mk_partial_compN: int -> typ -> term -> term
-  val mk_partial_comp: typ -> typ -> term -> term
-  val mk_compN: int -> typ list -> term * term -> term
-  val mk_comp: typ list -> term * term -> term
 
   val mk_convol: term * term -> term
 
@@ -162,9 +153,6 @@ sig
   val dest_sumTN_balanced: int -> typ -> typ list
   val dest_tupleT: int -> typ -> typ list
 
-  val exists_subtype_in: typ list -> typ -> bool
-  val exists_strict_subtype_in: typ list -> typ -> bool
-
   val If_const: typ -> term
 
   val mk_Field: term -> term
@@ -179,13 +167,13 @@ sig
 
   val fixpoint: ('a * 'a -> bool) -> ('a list -> 'a list) -> 'a list -> 'a list
 
-  val mk_rel_xtor_co_induct_thm: fp_kind -> term list -> term list -> term list -> term list ->
-    term list -> term list -> term list -> term list ->
+  val mk_rel_xtor_co_induct_thm: BNF_Util.fp_kind -> term list -> term list -> term list ->
+    term list -> term list -> term list -> term list -> term list ->
     ({prems: thm list, context: Proof.context} -> tactic) -> Proof.context -> thm
-  val mk_un_fold_transfer_thms: fp_kind -> term list -> term list -> term list -> term list ->
-    term list -> term list -> ({prems: thm list, context: Proof.context} -> tactic) ->
+  val mk_un_fold_transfer_thms: BNF_Util.fp_kind -> term list -> term list -> term list ->
+    term list -> term list -> term list -> ({prems: thm list, context: Proof.context} -> tactic) ->
     Proof.context -> thm list
-  val mk_xtor_un_fold_o_map_thms: fp_kind -> bool -> int -> thm -> thm list -> thm list ->
+  val mk_xtor_un_fold_o_map_thms: BNF_Util.fp_kind -> bool -> int -> thm -> thm list -> thm list ->
     thm list -> thm list -> thm list
 
   val mk_strong_coinduct_thm: thm -> thm list -> thm list -> Proof.context -> thm
@@ -202,11 +190,6 @@ struct
 open BNF_Comp
 open BNF_Def
 open BNF_Util
-
-datatype fp_kind = Least_FP | Greatest_FP;
-
-fun fp_case Least_FP l _ = l
-  | fp_case Greatest_FP _ g = g;
 
 type fp_result =
   {Ts: typ list,
@@ -362,8 +345,6 @@ fun add_components_of_typ (Type (s, Ts)) =
 
 fun base_name_of_typ T = space_implode "_" (add_components_of_typ T []);
 
-val mk_common_name = space_implode "_";
-
 fun dest_sumT (Type (@{type_name sum}, [T, T'])) = (T, T');
 
 fun dest_sumTN 1 T = [T]
@@ -379,32 +360,10 @@ fun dest_tupleT 0 @{typ unit} = []
 val mk_sumTN = Library.foldr1 mk_sumT;
 val mk_sumTN_balanced = Balanced_Tree.make mk_sumT;
 
-val exists_subtype_in = Term.exists_subtype o member (op =);
-
-fun exists_strict_subtype_in Ts T = exists_subtype_in (filter_out (curry (op =) T) Ts) T;
-
 fun mk_proj T n k =
   let val (binders, _) = strip_typeN n T in
     fold_rev (fn T => fn t => Abs (Name.uu, T, t)) binders (Bound (n - k - 1))
   end;
-
-fun mk_partial_comp gT fT g =
-  let val T = domain_type fT --> range_type gT in
-    Const (@{const_name Fun.comp}, gT --> fT --> T) $ g
-  end;
-
-fun mk_partial_compN 0 _ g = g
-  | mk_partial_compN n fT g =
-    let val g' = mk_partial_compN (n - 1) (range_type fT) g in
-      mk_partial_comp (fastype_of g') fT g'
-    end;
-
-fun mk_compN n bound_Ts (g, f) =
-  let val typof = curry fastype_of1 bound_Ts in
-    mk_partial_compN n (typof f) g $ f
-  end;
-
-val mk_comp = mk_compN 1;
 
 fun mk_convol (f, g) =
   let

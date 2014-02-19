@@ -16,6 +16,8 @@ open BNF_FP_Def_Sugar
 open BNF_FP_N2M_Sugar
 open BNF_LFP_Rec_Sugar
 
+val nested_simps = @{thms id_def split comp_def fst_conv snd_conv};
+
 fun is_new_datatype ctxt s =
   (case fp_sugar_of ctxt s of SOME {fp = Least_FP, ...} => true | _ => false);
 
@@ -125,8 +127,38 @@ fun massage_nested_rec_call ctxt has_call raw_massage_fun bound_Ts y y' =
     massage_call
   end;
 
+fun rewrite_map_arg get_ctr_pos rec_type res_type =
+  let
+    val pT = HOLogic.mk_prodT (rec_type, res_type);
+
+    fun subst d (t as Bound d') = t |> d = SOME d' ? curry (op $) (fst_const pT)
+      | subst d (Abs (v, T, b)) =
+        Abs (v, if d = SOME ~1 then pT else T, subst (Option.map (Integer.add 1) d) b)
+      | subst d t =
+        let
+          val (u, vs) = strip_comb t;
+          val ctr_pos = try (get_ctr_pos o fst o dest_Free) u |> the_default ~1;
+        in
+          if ctr_pos >= 0 then
+            if d = SOME ~1 andalso length vs = ctr_pos then
+              list_comb (permute_args ctr_pos (snd_const pT), vs)
+            else if length vs > ctr_pos andalso is_some d andalso
+                d = try (fn Bound n => n) (nth vs ctr_pos) then
+              list_comb (snd_const pT $ nth vs ctr_pos, map (subst d) (nth_drop ctr_pos vs))
+            else
+              raise PRIMREC ("recursive call not directly applied to constructor argument", [t])
+          else
+            list_comb (u, map (subst (d |> d = SOME ~1 ? K NONE)) vs)
+        end
+  in
+    subst (SOME ~1)
+  end;
+
+fun rewrite_nested_rec_call ctxt has_call get_ctr_pos =
+  massage_nested_rec_call ctxt has_call (rewrite_map_arg get_ctr_pos);
+
 val _ = Theory.setup (register_lfp_rec_extension
-  {is_new_datatype = is_new_datatype, get_basic_lfp_sugars = get_basic_lfp_sugars,
-   massage_nested_rec_call = massage_nested_rec_call});
+  {nested_simps = nested_simps, is_new_datatype = is_new_datatype,
+   get_basic_lfp_sugars = get_basic_lfp_sugars, rewrite_nested_rec_call = rewrite_nested_rec_call});
 
 end;

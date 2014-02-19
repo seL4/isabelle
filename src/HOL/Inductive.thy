@@ -11,7 +11,7 @@ keywords
   "inductive_cases" "inductive_simps" :: thy_script and "monos" and
   "print_inductives" :: diag and
   "rep_datatype" :: thy_goal and
-  "old_primrec" :: thy_decl
+  "primrec" :: thy_decl
 begin
 
 subsection {* Least and greatest fixed points *}
@@ -276,6 +276,9 @@ ML_file "Tools/Datatype/datatype_data.ML" setup Datatype_Data.setup
 ML_file "Tools/Datatype/rep_datatype.ML"
 ML_file "Tools/Datatype/datatype_codegen.ML"
 ML_file "Tools/Datatype/primrec.ML"
+
+ML_file "Tools/BNF/bnf_fp_rec_sugar_util.ML"
+ML_file "Tools/BNF/bnf_lfp_rec_sugar.ML"
 
 text{* Lambda-abstractions with pattern matching: *}
 

@@ -7,7 +7,7 @@ Tactics for mutualization of nested (co)datatypes.
 
 signature BNF_FP_N2M_TACTICS =
 sig
-  val mk_rel_xtor_co_induct_tactic: BNF_FP_Util.fp_kind -> thm list -> thm list -> thm list ->
+  val mk_rel_xtor_co_induct_tactic: BNF_Util.fp_kind -> thm list -> thm list -> thm list ->
     {prems: thm list, context: Proof.context} -> tactic
 end;
 
