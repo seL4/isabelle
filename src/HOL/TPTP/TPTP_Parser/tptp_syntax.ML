@@ -526,7 +526,8 @@ and string_of_tptp_type (Prod_type (tptp_type1, tptp_type2)) =
       string_of_symbol symbol1 ^ " << " ^ string_of_symbol symbol2
 
              
-(*Add subscripting*)
+(*FIXME clean up this code!*)
+(*TODO Add subscripting*)
 (*infix symbols, including \subset, \cup, \cap*)
 fun latex_of_tptp_term x =
 ((*writeln ("term=" ^ PolyML.makestring x);*)
@@ -569,23 +570,23 @@ fun latex_of_tptp_term x =
         "(" ^ latex_of_tptp_term tptp_t1 ^ " \\\\longrightarrow " ^ latex_of_tptp_term tptp_t2 ^ ")"
 
     | Term_Func (symbol, tptp_term_list) =>
-        (*"(" ^*) latex_of_symbol symbol ^ " " ^
-        space_implode " " (map latex_of_tptp_term tptp_term_list) (*^ ")"*)
-    | Term_Var str => str
+        (*"(" ^*) latex_of_symbol symbol ^ "\\\\, " ^
+        space_implode "\\\\, " (map latex_of_tptp_term tptp_term_list) (*^ ")"*)
+    | Term_Var str => "\\\\mathrm{" ^ str ^ "}"
     | Term_Conditional (tptp_formula, tptp_term1, tptp_term2) => "" (*FIXME*)
     | Term_Num (_, str) => str
-    | Term_Distinct_Object str => str
+    | Term_Distinct_Object str => str (*FIXME*)
 )
 and latex_of_symbol (Uninterpreted str) =
 (*    if str = "union" then "\\\\cup"
     else if str = "subset" then "\\\\subset"
     else*)
     if str = "emptyset" then "\\\\emptyset"
-    else str
+    else "\\\\mathrm{" ^ str ^ "}"
   | latex_of_symbol (Interpreted_ExtraLogic interpreted_symbol) = latex_of_interpreted_symbol interpreted_symbol
   | latex_of_symbol (Interpreted_Logic logic_symbol) = latex_of_logic_symbol logic_symbol
   | latex_of_symbol (TypeSymbol tptp_base_type) = latex_of_tptp_base_type tptp_base_type
-  | latex_of_symbol (System str) = str
+  | latex_of_symbol (System str) = "\\\\mathrm{" ^ str ^ "}"
 
 and latex_of_tptp_base_type Type_Ind = "\\\\iota "
   | latex_of_tptp_base_type Type_Bool = "o"
@@ -698,7 +699,7 @@ and  (*latex_of_tptp_formula (
   | latex_of_tptp_formula (x as (Pred (symbol, tptp_term_list))) =
 ((*writeln ("fmla=" ^ PolyML.makestring x);*)
       (*"(" ^*) latex_of_symbol symbol ^
-      space_implode " " (map latex_of_tptp_term tptp_term_list) (*^ ")"*)
+      space_implode "\\\\, " (map latex_of_tptp_term tptp_term_list) (*^ ")"*)
 )
 
 (*
@@ -745,7 +746,7 @@ and  (*latex_of_tptp_formula (
   | latex_of_tptp_formula (x as (Fmla (symbol, tptp_formula_list))) =
 (writeln ("fmla=" ^ PolyML.makestring x);
       (*"(" ^*) latex_of_symbol symbol ^
-      space_implode " " (map latex_of_tptp_formula tptp_formula_list) (*^ ")"*)
+      space_implode "\\\\, " (map latex_of_tptp_formula tptp_formula_list) (*^ ")"*)
 )
 
   | latex_of_tptp_formula (Sequent (tptp_formula_list1, tptp_formula_list2)) = "" (*FIXME*)
@@ -753,8 +754,8 @@ and  (*latex_of_tptp_formula (
       latex_of_quantifier quantifier ^
       space_implode ", " (map (fn (n, ty) =>
         case ty of
-          NONE => n
-        | SOME ty => n ^ " : " ^ latex_of_tptp_type ty) varlist) ^ ". (" ^
+          NONE => "\\\\mathrm{" ^ n ^ "}"
+        | SOME ty => "\\\\mathrm{" ^ n ^ "} : " ^ latex_of_tptp_type ty) varlist) ^ ". (" ^
       latex_of_tptp_formula tptp_formula ^ ")"
   | latex_of_tptp_formula (Conditional _) = "" (*FIXME*)
   | latex_of_tptp_formula (Let _) = "" (*FIXME*)
@@ -767,7 +768,7 @@ and latex_of_tptp_type (Prod_type (tptp_type1, tptp_type2)) =
       latex_of_tptp_type tptp_type1 ^ " \\\\times " ^ latex_of_tptp_type tptp_type2
   | latex_of_tptp_type (Fn_type (tptp_type1, tptp_type2)) =
       latex_of_tptp_type tptp_type1 ^ " \\\\to " ^ latex_of_tptp_type tptp_type2
-  | latex_of_tptp_type (Atom_type str) = str
+  | latex_of_tptp_type (Atom_type str) = "\\\\mathrm{" ^ str ^ "}"
   | latex_of_tptp_type (Defined_type tptp_base_type) =
       latex_of_tptp_base_type tptp_base_type
   | latex_of_tptp_type (Sum_type (tptp_type1, tptp_type2)) = ""
