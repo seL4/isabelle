@@ -1,7 +1,7 @@
 header {* Main HOL *}
 
 theory Main
-imports Predicate_Compile Extraction Lifting_Sum List_Prefix Coinduction Nitpick BNF_GFP
+imports Predicate_Compile Extraction Lifting_Sum Coinduction Nitpick BNF_GFP
 begin
 
 text {*
@@ -32,7 +32,7 @@ hide_const (open)
   czero cinfinite cfinite csum cone ctwo Csum cprod cexp
   image2 image2p vimage2p Gr Grp collect fsts snds setl setr
   convol pick_middlep fstOp sndOp csquare inver relImage relInvImage
-  prefCl PrefCl Succ Shift shift proj
+  Succ Shift shift proj
 
 no_syntax (xsymbols)
   "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Sqinter>_./ _)" [0, 10] 10)
