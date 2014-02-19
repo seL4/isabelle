@@ -528,7 +528,8 @@ fun interpret_term formula_level config language const_map var_types type_map
               | NONE => Free (n, dummyT) (*to infer the variable's type*)
              )
          | NONE =>
-             raise MISINTERPRET_TERM ("Could not type variable", tptp_t))
+             Free (n, dummyT)
+             (*raise MISINTERPRET_TERM ("Could not type variable", tptp_t)*))
       else (*variables range over individuals*)
         Free (n, interpret_type config thy type_map (Defined_type Type_Ind)),
       thy)

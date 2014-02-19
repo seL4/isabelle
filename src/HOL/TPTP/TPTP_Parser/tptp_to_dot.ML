@@ -25,21 +25,26 @@ open TPTP_Syntax
 datatype style =
     (*Only draw shapes. No formulas or edge labels.*)
     Shapes
-    (*Don't draw shapes. Only write formulas (as nodes) and inference names (as edge labels)*)
+    (*Don't draw shapes. Only write formulas (as nodes) and inference names (as edge labels).*)
   | Formulas
+    (*Draw shapes and write the AF ID inside.*)
+  | IDs
 
+(*FIXME this kind of configurability isn't very user-friendly.*)
 (*Determine the require output style form the TPTP_GRAPH environment variable.
   Shapes is the default style.*)
 val required_style =
   if getenv "TPTP_GRAPH" = "formulas" then
     Formulas
+  else if getenv "TPTP_GRAPH" = "IDs" then
+    IDs
   else Shapes
 
 (*Draw an arc between two nodes*)
 fun dot_arc reverse (src, label) target =
   let
     val edge_label =
-      if required_style = Shapes then ""
+      if required_style = Shapes orelse required_style = IDs then ""
       else
         case label of
                 NONE => ""
@@ -104,6 +109,8 @@ fun tptp_dot_node with_label reverse_arrows
    (*FIXME  add a parameter to switch to using the following code, which lowers, centers, and horizontally-bounds the label.
            (this is useful if you want to keep the shapes but also show formulas)*)
    (*    "\", label=\"\\\\begin{minipage}{10cm}\\\\vspace{21mm}\\\\centering$" ^ TPTP_Syntax.latex_of_tptp_formula fmla_tptp ^ "$\\\\end{minipage}\"];\n") ^*)
+      else if required_style = IDs then
+        "\", label=\"" ^ n ^ "\"];\n"
       else
         "\", label=\"\"];\n"
  in
