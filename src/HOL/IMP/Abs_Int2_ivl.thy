@@ -302,7 +302,7 @@ lemma add_mono_Fin_le:
   "\<lbrakk>Fin y1 \<le> x1; Fin y2 \<le> x2\<rbrakk> \<Longrightarrow> Fin(y1 + y2::'a::ordered_ab_group_add) \<le> x1 + x2"
 by(drule (1) add_mono) simp
 
-interpretation Val_semilattice
+permanent_interpretation Val_semilattice
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
 proof
   case goal1 thus ?case by transfer (simp add: le_iff_subset)
@@ -318,7 +318,7 @@ next
 qed
 
 
-interpretation Val_lattice_gamma
+permanent_interpretation Val_lattice_gamma
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
 defines aval_ivl is aval'
 proof
@@ -327,7 +327,7 @@ next
   case goal2 show ?case unfolding bot_ivl_def by transfer simp
 qed
 
-interpretation Val_inv
+permanent_interpretation Val_inv
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
 and test_num' = in_ivl
 and inv_plus' = inv_plus_ivl and inv_less' = inv_less_ivl
@@ -350,7 +350,7 @@ next
     done
 qed
 
-interpretation Abs_Int_inv
+permanent_interpretation Abs_Int_inv
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
 and test_num' = in_ivl
 and inv_plus' = inv_plus_ivl and inv_less' = inv_less_ivl
@@ -384,7 +384,7 @@ apply transfer
 apply(auto simp: below_rep_def le_iff_subset split: if_splits prod.split)
 by(auto simp: is_empty_rep_iff \<gamma>_rep_cases split: extended.splits)
 
-interpretation Abs_Int_inv_mono
+permanent_interpretation Abs_Int_inv_mono
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
 and test_num' = in_ivl
 and inv_plus' = inv_plus_ivl and inv_less' = inv_less_ivl

@@ -53,7 +53,7 @@ qed
 end
 
 
-interpretation Val_semilattice
+permanent_interpretation Val_semilattice
 where \<gamma> = \<gamma>_const and num' = Const and plus' = plus_const
 proof
   case goal1 thus ?case
@@ -67,7 +67,7 @@ next
     by(auto simp: plus_const_cases split: const.split)
 qed
 
-interpretation Abs_Int
+permanent_interpretation Abs_Int
 where \<gamma> = \<gamma>_const and num' = Const and plus' = plus_const
 defines AI_const is AI and step_const is step' and aval'_const is aval'
 ..
@@ -121,7 +121,7 @@ value "show_acom (the(AI_const test6_const))"
 
 text{* Monotonicity: *}
 
-interpretation Abs_Int_mono
+permanent_interpretation Abs_Int_mono
 where \<gamma> = \<gamma>_const and num' = Const and plus' = plus_const
 proof
   case goal1 thus ?case
@@ -133,7 +133,7 @@ text{* Termination: *}
 definition m_const :: "const \<Rightarrow> nat" where
 "m_const x = (if x = Any then 0 else 1)"
 
-interpretation Abs_Int_measure
+permanent_interpretation Abs_Int_measure
 where \<gamma> = \<gamma>_const and num' = Const and plus' = plus_const
 and m = m_const and h = "1"
 proof

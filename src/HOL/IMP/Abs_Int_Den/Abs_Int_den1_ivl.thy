@@ -166,13 +166,13 @@ fun filter_less_ivl :: "bool \<Rightarrow> ivl \<Rightarrow> ivl \<Rightarrow> i
          I (max_option False (l1 + Some 1) l2) h2)
    else (I (max_option False l1 l2) h1, I l2 (min_option True h1 h2)))"
 
-interpretation Rep rep_ivl
+permanent_interpretation Rep rep_ivl
 proof
   case goal1 thus ?case
     by(auto simp: rep_ivl_def le_ivl_def le_option_def split: ivl.split option.split if_splits)
 qed
 
-interpretation Val_abs rep_ivl num_ivl plus_ivl
+permanent_interpretation Val_abs rep_ivl num_ivl plus_ivl
 proof
   case goal1 thus ?case by(simp add: rep_ivl_def num_ivl_def)
 next
@@ -180,7 +180,7 @@ next
     by(auto simp add: rep_ivl_def plus_ivl_def split: ivl.split option.splits)
 qed
 
-interpretation Rep1 rep_ivl
+permanent_interpretation Rep1 rep_ivl
 proof
   case goal1 thus ?case
     by(auto simp add: rep_ivl_def meet_ivl_def empty_def min_option_def max_option_def split: ivl.split option.split)
@@ -188,7 +188,7 @@ next
   case goal2 show ?case by(auto simp add: Bot_ivl_def rep_ivl_def empty_def)
 qed
 
-interpretation
+permanent_interpretation
   Val_abs1 rep_ivl num_ivl plus_ivl filter_plus_ivl filter_less_ivl
 proof
   case goal1 thus ?case
@@ -200,7 +200,7 @@ next
       auto simp: rep_ivl_def min_option_def max_option_def le_option_def split: if_splits option.splits)
 qed
 
-interpretation
+permanent_interpretation
   Abs_Int1 rep_ivl num_ivl plus_ivl filter_plus_ivl filter_less_ivl "(iter' 3)"
 defines afilter_ivl is afilter
 and bfilter_ivl is bfilter

@@ -47,13 +47,13 @@ qed
 
 end
 
-interpretation Rep rep_cval
+permanent_interpretation Rep rep_cval
 proof
   case goal1 thus ?case
     by(cases a, cases b, simp, simp, cases b, simp, simp)
 qed
 
-interpretation Val_abs rep_cval Const plus_cval
+permanent_interpretation Val_abs rep_cval Const plus_cval
 proof
   case goal1 show ?case by simp
 next
@@ -61,7 +61,7 @@ next
     by(cases a1, cases a2, simp, simp, cases a2, simp, simp)
 qed
 
-interpretation Abs_Int rep_cval Const plus_cval "(iter' 3)"
+permanent_interpretation Abs_Int rep_cval Const plus_cval "(iter' 3)"
 defines AI_const is AI
 and aval'_const is aval'
 proof qed (auto simp: iter'_pfp_above)

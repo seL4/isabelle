@@ -52,7 +52,7 @@ qed
 end
 
 
-interpretation Val_abs
+permanent_interpretation Val_abs
 where \<gamma> = \<gamma>_const and num' = Const and plus' = plus_const
 proof
   case goal1 thus ?case
@@ -66,7 +66,7 @@ next
     by(auto simp: plus_const_cases split: const.split)
 qed
 
-interpretation Abs_Int
+permanent_interpretation Abs_Int
 where \<gamma> = \<gamma>_const and num' = Const and plus' = plus_const
 defines AI_const is AI and step_const is step' and aval'_const is aval'
 ..
@@ -114,7 +114,7 @@ value "show_acom_opt (AI_const test6_const)"
 
 text{* Monotonicity: *}
 
-interpretation Abs_Int_mono
+permanent_interpretation Abs_Int_mono
 where \<gamma> = \<gamma>_const and num' = Const and plus' = plus_const
 proof
   case goal1 thus ?case

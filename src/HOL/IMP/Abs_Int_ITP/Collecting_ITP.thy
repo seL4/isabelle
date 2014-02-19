@@ -89,7 +89,7 @@ where
  WHILE b DO lift F c (sub\<^sub>1 ` M)
  {F (post ` M)}"
 
-interpretation Complete_Lattice_ix "%c. {c'. strip c' = c}" "lift Inter"
+permanent_interpretation Complete_Lattice_ix "%c. {c'. strip c' = c}" "lift Inter"
 proof
   case goal1
   have "a:A \<Longrightarrow> lift Inter (strip a) A \<le> a"

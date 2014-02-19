@@ -113,7 +113,7 @@ text{* Instantiating the abstract interpretation locale requires no more
 proofs (they happened in the instatiation above) but delivers the
 instantiated abstract interpreter which we call AI: *}
 
-interpretation Abs_Int
+permanent_interpretation Abs_Int
 where \<gamma> = \<gamma>_parity and num' = num_parity and plus' = plus_parity
 defines aval_parity is aval' and step_parity is step' and AI_parity is AI
 ..
@@ -141,7 +141,7 @@ value "show_acom_opt (AI_parity test2_parity)"
 
 subsubsection "Termination"
 
-interpretation Abs_Int_mono
+permanent_interpretation Abs_Int_mono
 where \<gamma> = \<gamma>_parity and num' = num_parity and plus' = plus_parity
 proof
   case goal1 thus ?case
