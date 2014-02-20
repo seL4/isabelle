@@ -254,13 +254,13 @@ fun active_testers ctxt =
     map snd (filter (fn (active, _) => Config.get ctxt active) testers)
   end;
 
-fun set_active_testers [] gen_ctxt = gen_ctxt
-  | set_active_testers testers gen_ctxt =
+fun set_active_testers [] context = context
+  | set_active_testers testers context =
       let
-        val registered_testers = fst (fst (Data.get gen_ctxt));
+        val registered_testers = fst (fst (Data.get context));
       in
         fold (fn (name, (config, _)) => Config.put_generic config (member (op =) testers name))
-          registered_testers gen_ctxt
+          registered_testers context
       end;
 
 
@@ -459,9 +459,9 @@ fun parse_test_param ("tester", args) = fold parse_tester args
   | parse_test_param ("iterations", [arg]) = apsnd (Config.put_generic iterations (read_nat arg))
   | parse_test_param ("depth", [arg]) = apsnd (Config.put_generic depth (read_nat arg))
   | parse_test_param ("default_type", arg) =
-      (fn (testers, gen_ctxt) =>
+      (fn (testers, context) =>
         (testers, map_test_params
-          (apfst (K (map (Proof_Context.read_typ (Context.proof_of gen_ctxt)) arg))) gen_ctxt))
+          (apfst (K (map (Proof_Context.read_typ (Context.proof_of context)) arg))) context))
   | parse_test_param ("no_assms", [arg]) = apsnd (Config.put_generic no_assms (read_bool arg))
   | parse_test_param ("expect", [arg]) = apsnd (map_test_params (apsnd (K (read_expectation arg))))
   | parse_test_param ("report", [arg]) = apsnd (Config.put_generic report (read_bool arg))
@@ -500,11 +500,11 @@ fun parse_test_param_inst (name, arg) ((insts, eval_terms), (testers, ctxt)) =
         "eval" => ((insts, eval_terms @ map (Syntax.read_term ctxt) arg), (testers, ctxt))
       | _ =>
         ((insts, eval_terms),
-          proof_map_result (fn gen_ctxt => parse_test_param (name, arg) (testers, gen_ctxt)) ctxt)));
+          proof_map_result (fn context => parse_test_param (name, arg) (testers, context)) ctxt)));
 
 fun quickcheck_params_cmd args =
   Context.theory_map
-    (fn gen_ctxt => uncurry set_active_testers (fold parse_test_param args ([], gen_ctxt)));
+    (fn context => uncurry set_active_testers (fold parse_test_param args ([], context)));
 
 fun check_expectation state results =
   if is_some results andalso expect (Proof.context_of state) = No_Counterexample then
