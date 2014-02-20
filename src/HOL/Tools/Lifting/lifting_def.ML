@@ -27,27 +27,28 @@ infix 0 MRSL
 
 (* Reflexivity prover *)
 
-fun refl_tac ctxt =
+fun mono_eq_prover ctxt prop =
   let
-    fun intro_reflp_tac (ct, i) = 
-    let
-      val rule = Thm.incr_indexes (#maxidx (rep_cterm ct) + 1) @{thm ge_eq_refl}
-      val concl_pat = Drule.strip_imp_concl (cprop_of rule)
-      val insts = Thm.first_order_match (concl_pat, ct)
-    in
-      rtac (Drule.instantiate_normalize insts rule) i
-    end
-    handle Pattern.MATCH => no_tac
-
     val rules = ((Transfer.get_relator_eq_raw ctxt) @ (Lifting_Info.get_reflexivity_rules ctxt))
   in
-    EVERY' [CSUBGOAL intro_reflp_tac, 
-            REPEAT_ALL_NEW (resolve_tac rules)]
+    SOME (Goal.prove ctxt [] [] prop (K (REPEAT_ALL_NEW (resolve_tac rules) 1)))
+      handle ERROR _ => NONE
   end
-    
+   
 fun try_prove_reflexivity ctxt prop =
-  SOME (Goal.prove ctxt [] [] prop (fn {context, ...} => refl_tac context 1))
-    handle ERROR _ => NONE
+  let
+    val thy = Proof_Context.theory_of ctxt
+    val cprop = cterm_of thy prop
+    val rule = @{thm ge_eq_refl}
+    val concl_pat = Drule.strip_imp_concl (cprop_of rule)
+    val insts = Thm.first_order_match (concl_pat, cprop)
+    val rule = Drule.instantiate_normalize insts rule
+    val prop = hd (prems_of rule)
+  in
+    case mono_eq_prover ctxt prop of
+      SOME thm => SOME (rule OF [thm])
+      | NONE => NONE
+  end
 
 (* 
   Generates a parametrized transfer rule.
