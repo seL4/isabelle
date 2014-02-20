@@ -227,7 +227,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     else None
 
 
-  /* command overview */
+  /* command status overview */
 
   val overview_limit = options.int("jedit_text_overview_limit")
 
@@ -265,7 +265,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   }
 
 
-  /* markup selectors */
+  /* highlighted area */
 
   private val highlight_elements =
     Set(Markup.LANGUAGE, Markup.ML_TYPING, Markup.TOKEN_RANGE,
@@ -281,6 +281,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       }) match { case Text.Info(_, info) :: _ => Some(info) case _ => None }
   }
 
+
+  /* hyperlinks */
 
   private val hyperlink_elements =
     Set(Markup.ENTITY, Markup.PATH, Markup.POSITION, Markup.URL)
@@ -342,6 +344,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   }
 
 
+  /* active elements */
+
   private val active_elements =
     Set(Markup.DIALOG, Markup.BROWSER, Markup.GRAPHVIEW, Markup.SENDBACK, Markup.SIMP_TRACE)
 
@@ -368,6 +372,9 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
         { case _ => Some(command_state.results) }).map(_.info)
     (Command.Results.empty /: results)(_ ++ _)
   }
+
+
+  /* tooltip messages */
 
   private val tooltip_message_elements =
     Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR, Markup.BAD)
@@ -400,6 +407,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     }
   }
 
+
+  /* tooltips */
 
   private val tooltips: Map[String, String] =
     Map(
@@ -482,6 +491,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   lazy val tooltip_detach_icon = JEdit_Lib.load_icon(options.string("tooltip_detach_icon"))
 
 
+  /* gutter icons */
+
   private lazy val gutter_icons = Map(
     Rendering.information_pri -> JEdit_Lib.load_icon(options.string("gutter_information_icon")),
     Rendering.warning_pri -> JEdit_Lib.load_icon(options.string("gutter_warning_icon")),
@@ -515,6 +526,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   }
 
 
+  /* squiggly underline */
+
   private val squiggly_colors = Map(
     Rendering.writeln_pri -> writeln_color,
     Rendering.information_pri -> information_color,
@@ -540,6 +553,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     } yield Text.Info(r, color)
   }
 
+
+  /* message output */
 
   private val message_colors = Map(
     Rendering.writeln_pri -> writeln_message_color,
@@ -575,10 +590,11 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     message_colors.get(pri).map((_, is_separator))
   }
 
-
   def output_messages(st: Command.State): List[XML.Tree] =
     st.results.entries.map(_._2).filterNot(Protocol.is_result(_)).toList
 
+
+  /* text background */
 
   private val background1_elements =
     Protocol.command_status_markup + Markup.WRITELN_MESSAGE + Markup.TRACING_MESSAGE +
@@ -623,14 +639,11 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       } yield Text.Info(r, color)
   }
 
-
   def background2(range: Text.Range): List[Text.Info[Color]] =
     snapshot.select_markup(range, Set(Markup.TOKEN_RANGE), _ => _ => Some(light_color))
 
 
-  def bullet(range: Text.Range): List[Text.Info[Color]] =
-    snapshot.select_markup(range, Set(Markup.BULLET), _ => _ => Some(bullet_color))
-
+  /* text foreground */
 
   private val foreground_elements =
     Set(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM, Markup.CARTOUCHE, Markup.ANTIQUOTED)
@@ -642,6 +655,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
           if (elem.name == Markup.ANTIQUOTED) Some(antiquoted_color) else Some(quoted_color)
       })
 
+
+  /* text color */
 
   private val text_colors: Map[String, Color] = Map(
       Markup.KEYWORD1 -> keyword1_color,
@@ -685,7 +700,13 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   }
 
 
-  /* nested text structure -- folds */
+  /* virtual bullets */
+
+  def bullet(range: Text.Range): List[Text.Info[Color]] =
+    snapshot.select_markup(range, Set(Markup.BULLET), _ => _ => Some(bullet_color))
+
+
+  /* text folds */
 
   private val fold_depth_elements =
     Set(Markup.TEXT_FOLD, Markup.GOAL, Markup.SUBGOAL)
