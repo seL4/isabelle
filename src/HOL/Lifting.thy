@@ -155,6 +155,10 @@ lemma Quotient_rep_abs: "R r r \<Longrightarrow> R (Rep (Abs r)) r"
   using a unfolding Quotient_def
   by blast
 
+lemma Quotient_rep_abs_eq: "R t t \<Longrightarrow> R \<le> op= \<Longrightarrow> Rep (Abs t) = t"
+  using a unfolding Quotient_def
+  by blast
+
 lemma Quotient_rep_abs_fold_unmap: 
   assumes "x' \<equiv> Abs x" and "R x x" and "Rep x' \<equiv> Rep' x'" 
   shows "R (Rep' x') x"

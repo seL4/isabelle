@@ -46,7 +46,7 @@ fun try_prove_reflexivity ctxt prop =
     val prop = hd (prems_of rule)
   in
     case mono_eq_prover ctxt prop of
-      SOME thm => SOME (rule OF [thm])
+      SOME thm => SOME (thm RS rule)
       | NONE => NONE
   end
 
@@ -259,49 +259,34 @@ fun can_generate_code_cert quot_thm  =
     | Const (@{const_name invariant}, _) $ _  => true
     | _ => false
 
-fun generate_code_cert ctxt def_thm rsp_thm (rty, qty) =
+fun generate_rep_eq ctxt def_thm rsp_thm (rty, qty) =
   let
-    val thy = Proof_Context.theory_of ctxt
-    val quot_thm = Lifting_Term.prove_quot_thm ctxt (get_body_types (rty, qty))
-    val fun_rel = prove_rel ctxt rsp_thm (rty, qty)
-    val abs_rep_thm = [quot_thm, fun_rel] MRSL @{thm Quotient_rep_abs}
-    val abs_rep_eq = 
-      case (HOLogic.dest_Trueprop o prop_of) fun_rel of
-        Const (@{const_name HOL.eq}, _) $ _ $ _ => abs_rep_thm
-        | Const (@{const_name invariant}, _) $ _ $ _ $ _ => abs_rep_thm RS @{thm invariant_to_eq}
-        | _ => raise CODE_CERT_GEN "relation is neither equality nor invariant"
     val unfolded_def = Conv.fconv_rule (Conv.arg_conv unfold_fun_maps_beta) def_thm
     val unabs_def = unabs_all_def ctxt unfolded_def
-    val rep = (cterm_of thy o quot_thm_rep) quot_thm
-    val rep_refl = Thm.reflexive rep RS @{thm meta_eq_to_obj_eq}
-    val repped_eq = [rep_refl, unabs_def RS @{thm meta_eq_to_obj_eq}] MRSL @{thm cong}
-    val code_cert = [repped_eq, abs_rep_eq] MRSL @{thm trans}
-  in
-    simplify_code_eq ctxt code_cert
+  in  
+    if body_type rty = body_type qty then 
+      SOME (simplify_code_eq ctxt unabs_def)
+    else 
+      let
+        val thy = Proof_Context.theory_of ctxt
+        val quot_thm = Lifting_Term.prove_quot_thm ctxt (get_body_types (rty, qty))
+        val fun_rel = prove_rel ctxt rsp_thm (rty, qty)
+        val rep_abs_thm = [quot_thm, fun_rel] MRSL @{thm Quotient_rep_abs_eq}
+      in
+        case mono_eq_prover ctxt (hd(prems_of rep_abs_thm)) of
+          SOME mono_eq_thm =>
+            let
+              val rep_abs_eq = mono_eq_thm RS rep_abs_thm
+              val rep = (cterm_of thy o quot_thm_rep) quot_thm
+              val rep_refl = Thm.reflexive rep RS @{thm meta_eq_to_obj_eq}
+              val repped_eq = [rep_refl, unabs_def RS @{thm meta_eq_to_obj_eq}] MRSL @{thm cong}
+              val code_cert = [repped_eq, rep_abs_eq] MRSL trans
+            in
+              SOME (simplify_code_eq ctxt code_cert)
+            end
+          | NONE => NONE
+      end
   end
-
-fun generate_trivial_rep_eq ctxt def_thm =
-  let
-    val unfolded_def = Conv.fconv_rule (Conv.arg_conv unfold_fun_maps_beta) def_thm
-    val code_eq = unabs_all_def ctxt unfolded_def
-    val simp_code_eq = simplify_code_eq ctxt code_eq
-  in
-    simp_code_eq
-  end
-
-fun generate_rep_eq ctxt def_thm rsp_thm (rty, qty) =
-  if body_type rty = body_type qty then 
-    SOME (generate_trivial_rep_eq ctxt def_thm)
-  else 
-    let
-      val (rty_body, qty_body) = get_body_types (rty, qty)
-      val quot_thm = Lifting_Term.prove_quot_thm ctxt (rty_body, qty_body)
-    in
-      if can_generate_code_cert quot_thm then
-        SOME (generate_code_cert ctxt def_thm rsp_thm (rty, qty))
-      else 
-        NONE
-    end
 
 fun generate_abs_eq ctxt def_thm rsp_thm quot_thm =
   let
