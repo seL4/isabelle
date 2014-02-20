@@ -26,10 +26,13 @@ theorem sum_of_naturals:
 proof (induct n)
   show "?P 0" by simp
 next
-  fix n have "?S (n + 1) = ?S n + 2 * (n + 1)" by simp
+  fix n have "?S (n + 1) = ?S n + 2 * (n + 1)"
+    by simp
   also assume "?S n = n * (n + 1)"
-  also have "... + 2 * (n + 1) = (n + 1) * (n + 2)" by simp
-  finally show "?P (Suc n)" by simp
+  also have "\<dots> + 2 * (n + 1) = (n + 1) * (n + 2)"
+    by simp
+  finally show "?P (Suc n)"
+    by simp
 qed
 
 text {* The above proof is a typical instance of mathematical
@@ -80,10 +83,14 @@ theorem sum_of_odds:
 proof (induct n)
   show "?P 0" by simp
 next
-  fix n have "?S (n + 1) = ?S n + 2 * n + 1" by simp
+  fix n
+  have "?S (n + 1) = ?S n + 2 * n + 1"
+    by simp
   also assume "?S n = n^Suc (Suc 0)"
-  also have "... + 2 * n + 1 = (n + 1)^Suc (Suc 0)" by simp
-  finally show "?P (Suc n)" by simp
+  also have "\<dots> + 2 * n + 1 = (n + 1)^Suc (Suc 0)"
+    by simp
+  finally show "?P (Suc n)"
+    by simp
 qed
 
 text {* Subsequently we require some additional tweaking of Isabelle
@@ -98,12 +105,15 @@ theorem sum_of_squares:
 proof (induct n)
   show "?P 0" by simp
 next
-  fix n have "?S (n + 1) = ?S n + 6 * (n + 1)^Suc (Suc 0)"
+  fix n
+  have "?S (n + 1) = ?S n + 6 * (n + 1)^Suc (Suc 0)"
     by (simp add: distrib)
   also assume "?S n = n * (n + 1) * (2 * n + 1)"
-  also have "... + 6 * (n + 1)^Suc (Suc 0) =
-      (n + 1) * (n + 2) * (2 * (n + 1) + 1)" by (simp add: distrib)
-  finally show "?P (Suc n)" by simp
+  also have "\<dots> + 6 * (n + 1)^Suc (Suc 0) =
+      (n + 1) * (n + 2) * (2 * (n + 1) + 1)"
+    by (simp add: distrib)
+  finally show "?P (Suc n)"
+    by simp
 qed
 
 theorem sum_of_cubes:
@@ -112,12 +122,14 @@ theorem sum_of_cubes:
 proof (induct n)
   show "?P 0" by (simp add: power_eq_if)
 next
-  fix n have "?S (n + 1) = ?S n + 4 * (n + 1)^3"
+  fix n
+  have "?S (n + 1) = ?S n + 4 * (n + 1)^3"
     by (simp add: power_eq_if distrib)
   also assume "?S n = (n * (n + 1))^Suc (Suc 0)"
-  also have "... + 4 * (n + 1)^3 = ((n + 1) * ((n + 1) + 1))^Suc (Suc 0)"
+  also have "\<dots> + 4 * (n + 1)^3 = ((n + 1) * ((n + 1) + 1))^Suc (Suc 0)"
     by (simp add: power_eq_if distrib)
-  finally show "?P (Suc n)" by simp
+  finally show "?P (Suc n)"
+    by simp
 qed
 
 text {* Note that in contrast to older traditions of tactical proof

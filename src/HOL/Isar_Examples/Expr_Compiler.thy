@@ -22,7 +22,7 @@ text {* Binary operations are just functions over some type of values.
   This is both for abstract syntax and semantics, i.e.\ we use a
   ``shallow embedding'' here. *}
 
-type_synonym 'val binop = "'val => 'val => 'val"
+type_synonym 'val binop = "'val \<Rightarrow> 'val \<Rightarrow> 'val"
 
 
 subsection {* Expressions *}
@@ -39,7 +39,7 @@ datatype ('adr, 'val) expr =
 text {* Evaluation (wrt.\ some environment of variable assignments) is
   defined by primitive recursion over the structure of expressions. *}
 
-primrec eval :: "('adr, 'val) expr => ('adr => 'val) => 'val"
+primrec eval :: "('adr, 'val) expr \<Rightarrow> ('adr \<Rightarrow> 'val) \<Rightarrow> 'val"
 where
   "eval (Variable x) env = env x"
 | "eval (Constant c) env = c"
@@ -59,17 +59,17 @@ datatype ('adr, 'val) instr =
 text {* Execution of a list of stack machine instructions is easily
   defined as follows. *}
 
-primrec exec :: "(('adr, 'val) instr) list => 'val list => ('adr => 'val) => 'val list"
+primrec exec :: "(('adr, 'val) instr) list \<Rightarrow> 'val list \<Rightarrow> ('adr \<Rightarrow> 'val) \<Rightarrow> 'val list"
 where
   "exec [] stack env = stack"
 | "exec (instr # instrs) stack env =
     (case instr of
-      Const c => exec instrs (c # stack) env
-    | Load x => exec instrs (env x # stack) env
-    | Apply f => exec instrs (f (hd stack) (hd (tl stack))
+      Const c \<Rightarrow> exec instrs (c # stack) env
+    | Load x \<Rightarrow> exec instrs (env x # stack) env
+    | Apply f \<Rightarrow> exec instrs (f (hd stack) (hd (tl stack))
                    # (tl (tl stack))) env)"
 
-definition execute :: "(('adr, 'val) instr) list => ('adr => 'val) => 'val"
+definition execute :: "(('adr, 'val) instr) list \<Rightarrow> ('adr \<Rightarrow> 'val) \<Rightarrow> 'val"
   where "execute instrs env = hd (exec instrs [] env)"
 
 
@@ -78,7 +78,7 @@ subsection {* Compiler *}
 text {* We are ready to define the compilation function of expressions
   to lists of stack machine instructions. *}
 
-primrec compile :: "('adr, 'val) expr => (('adr, 'val) instr) list"
+primrec compile :: "('adr, 'val) expr \<Rightarrow> (('adr, 'val) instr) list"
 where
   "compile (Variable x) = [Load x]"
 | "compile (Constant c) = [Const c]"
@@ -114,11 +114,14 @@ theorem correctness: "execute (compile e) env = eval e env"
 proof -
   have "\<And>stack. exec (compile e) stack env = eval e env # stack"
   proof (induct e)
-    case Variable show ?case by simp
+    case Variable
+    show ?case by simp
   next
-    case Constant show ?case by simp
+    case Constant
+    show ?case by simp
   next
-    case Binop then show ?case by (simp add: exec_append)
+    case Binop
+    then show ?case by (simp add: exec_append)
   qed
   then show ?thesis by (simp add: execute_def)
 qed
@@ -134,8 +137,10 @@ lemma exec_append':
   "exec (xs @ ys) stack env = exec ys (exec xs stack env) env"
 proof (induct xs arbitrary: stack)
   case (Nil s)
-  have "exec ([] @ ys) s env = exec ys s env" by simp
-  also have "... = exec ys (exec [] s env) env" by simp
+  have "exec ([] @ ys) s env = exec ys s env"
+    by simp
+  also have "\<dots> = exec ys (exec [] s env) env"
+    by simp
   finally show ?case .
 next
   case (Cons x xs s)
@@ -144,22 +149,27 @@ next
     case (Const val)
     have "exec ((Const val # xs) @ ys) s env = exec (Const val # xs @ ys) s env"
       by simp
-    also have "... = exec (xs @ ys) (val # s) env" by simp
-    also from Cons have "... = exec ys (exec xs (val # s) env) env" .
-    also have "... = exec ys (exec (Const val # xs) s env) env" by simp
+    also have "\<dots> = exec (xs @ ys) (val # s) env"
+      by simp
+    also from Cons have "\<dots> = exec ys (exec xs (val # s) env) env" .
+    also have "\<dots> = exec ys (exec (Const val # xs) s env) env"
+      by simp
     finally show ?case .
   next
     case (Load adr)
-    from Cons show ?case by simp -- {* same as above *}
+    from Cons show ?case
+      by simp -- {* same as above *}
   next
     case (Apply fn)
     have "exec ((Apply fn # xs) @ ys) s env =
         exec (Apply fn # xs @ ys) s env" by simp
-    also have "... =
-        exec (xs @ ys) (fn (hd s) (hd (tl s)) # (tl (tl s))) env" by simp
-    also from Cons have "... =
+    also have "\<dots> =
+        exec (xs @ ys) (fn (hd s) (hd (tl s)) # (tl (tl s))) env"
+      by simp
+    also from Cons have "\<dots> =
         exec ys (exec xs (fn (hd s) (hd (tl s)) # tl (tl s)) env) env" .
-    also have "... = exec ys (exec (Apply fn # xs) s env) env" by simp
+    also have "\<dots> = exec ys (exec (Apply fn # xs) s env) env"
+      by simp
     finally show ?case .
   qed
 qed
@@ -171,8 +181,10 @@ proof -
     case (Variable adr s)
     have "exec (compile (Variable adr)) s env = exec [Load adr] s env"
       by simp
-    also have "... = env adr # s" by simp
-    also have "env adr = eval (Variable adr) env" by simp
+    also have "\<dots> = env adr # s"
+      by simp
+    also have "env adr = eval (Variable adr) env"
+      by simp
     finally show ?case .
   next
     case (Constant val s)
@@ -180,15 +192,20 @@ proof -
   next
     case (Binop fn e1 e2 s)
     have "exec (compile (Binop fn e1 e2)) s env =
-        exec (compile e2 @ compile e1 @ [Apply fn]) s env" by simp
-    also have "... = exec [Apply fn]
+        exec (compile e2 @ compile e1 @ [Apply fn]) s env"
+      by simp
+    also have "\<dots> = exec [Apply fn]
         (exec (compile e1) (exec (compile e2) s env) env) env"
       by (simp only: exec_append)
-    also have "exec (compile e2) s env = eval e2 env # s" by fact
-    also have "exec (compile e1) ... env = eval e1 env # ..." by fact
-    also have "exec [Apply fn] ... env =
-        fn (hd ...) (hd (tl ...)) # (tl (tl ...))" by simp
-    also have "... = fn (eval e1 env) (eval e2 env) # s" by simp
+    also have "exec (compile e2) s env = eval e2 env # s"
+      by fact
+    also have "exec (compile e1) \<dots> env = eval e1 env # \<dots>"
+      by fact
+    also have "exec [Apply fn] \<dots> env =
+        fn (hd \<dots>) (hd (tl \<dots>)) # (tl (tl \<dots>))"
+      by simp
+    also have "\<dots> = fn (eval e1 env) (eval e2 env) # s"
+      by simp
     also have "fn (eval e1 env) (eval e2 env) =
         eval (Binop fn e1 e2) env"
       by simp
@@ -198,7 +215,8 @@ proof -
   have "execute (compile e) env = hd (exec (compile e) [] env)"
     by (simp add: execute_def)
   also from exec_compile have "exec (compile e) [] env = [eval e env]" .
-  also have "hd ... = eval e env" by simp
+  also have "hd \<dots> = eval e env"
+    by simp
   finally show ?thesis .
 qed
 

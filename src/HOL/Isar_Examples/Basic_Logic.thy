@@ -18,33 +18,33 @@ text {* In order to get a first idea of how Isabelle/Isar proof
   @{text K}, and @{text S}.  The following (rather explicit) proofs
   should require little extra explanations. *}
 
-lemma I: "A --> A"
+lemma I: "A \<longrightarrow> A"
 proof
   assume A
   show A by fact
 qed
 
-lemma K: "A --> B --> A"
+lemma K: "A \<longrightarrow> B \<longrightarrow> A"
 proof
   assume A
-  show "B --> A"
+  show "B \<longrightarrow> A"
   proof
     show A by fact
   qed
 qed
 
-lemma S: "(A --> B --> C) --> (A --> B) --> A --> C"
+lemma S: "(A \<longrightarrow> B \<longrightarrow> C) \<longrightarrow> (A \<longrightarrow> B) \<longrightarrow> A \<longrightarrow> C"
 proof
-  assume "A --> B --> C"
-  show "(A --> B) --> A --> C"
+  assume "A \<longrightarrow> B \<longrightarrow> C"
+  show "(A \<longrightarrow> B) \<longrightarrow> A \<longrightarrow> C"
   proof
-    assume "A --> B"
-    show "A --> C"
+    assume "A \<longrightarrow> B"
+    show "A \<longrightarrow> C"
     proof
       assume A
       show C
       proof (rule mp)
-        show "B --> C" by (rule mp) fact+
+        show "B \<longrightarrow> C" by (rule mp) fact+
         show B by (rule mp) fact+
       qed
     qed
@@ -60,7 +60,7 @@ text {* Isar provides several ways to fine-tune the reasoning,
   First of all, proof by assumption may be abbreviated as a single
   dot. *}
 
-lemma "A --> A"
+lemma "A \<longrightarrow> A"
 proof
   assume A
   show A by fact+
@@ -72,7 +72,7 @@ text {* In fact, concluding any (sub-)proof already involves solving
   higher-order unification.}.  Thus we may skip the rather vacuous
   body of the above proof as well. *}
 
-lemma "A --> A"
+lemma "A \<longrightarrow> A"
 proof
 qed
 
@@ -82,12 +82,12 @@ text {* Note that the \isacommand{proof} command refers to the @{text
   statements involved.  The \isacommand{by} command abbreviates any
   proof with empty body, so the proof may be further pruned. *}
 
-lemma "A --> A"
+lemma "A \<longrightarrow> A"
   by rule
 
 text {* Proof by a single rule may be abbreviated as double-dot. *}
 
-lemma "A --> A" ..
+lemma "A \<longrightarrow> A" ..
 
 text {* Thus we have arrived at an adequate representation of the
   proof of a tautology that holds by a single standard
@@ -103,7 +103,7 @@ text {* Let us also reconsider @{text K}.  Its statement is composed
   conclusion.\footnote{The dual method is @{text elim}, acting on a
   goal's premises.} *}
 
-lemma "A --> B --> A"
+lemma "A \<longrightarrow> B \<longrightarrow> A"
 proof (intro impI)
   assume A
   show A by fact
@@ -111,7 +111,7 @@ qed
 
 text {* Again, the body may be collapsed. *}
 
-lemma "A --> B --> A"
+lemma "A \<longrightarrow> B \<longrightarrow> A"
   by (intro impI)
 
 text {* Just like @{text rule}, the @{text intro} and @{text elim}
@@ -140,10 +140,10 @@ text {* Certainly, any proof may be performed in backward-style only.
 
   The first version is purely backward. *}
 
-lemma "A & B --> B & A"
+lemma "A \<and> B \<longrightarrow> B \<and> A"
 proof
-  assume "A & B"
-  show "B & A"
+  assume "A \<and> B"
+  show "B \<and> A"
   proof
     show B by (rule conjunct2) fact
     show A by (rule conjunct1) fact
@@ -158,13 +158,13 @@ text {* Above, the @{text "conjunct_1/2"} projection rules had to be
   \isacommand{from} already does forward-chaining, involving the
   @{text conjE} rule here. *}
 
-lemma "A & B --> B & A"
+lemma "A \<and> B \<longrightarrow> B \<and> A"
 proof
-  assume "A & B"
-  show "B & A"
+  assume "A \<and> B"
+  show "B \<and> A"
   proof
-    from `A & B` show B ..
-    from `A & B` show A ..
+    from `A \<and> B` show B ..
+    from `A \<and> B` show A ..
   qed
 qed
 
@@ -176,10 +176,10 @@ text {* In the next version, we move the forward step one level
   that of the @{text conjE} rule, including the repeated goal
   proposition that is abbreviated as @{text ?thesis} below. *}
 
-lemma "A & B --> B & A"
+lemma "A \<and> B \<longrightarrow> B \<and> A"
 proof
-  assume "A & B"
-  then show "B & A"
+  assume "A \<and> B"
+  then show "B \<and> A"
   proof                    -- {* rule @{text conjE} of @{text "A \<and> B"} *}
     assume B A
     then show ?thesis ..   -- {* rule @{text conjI} of @{text "B \<and> A"} *}
@@ -190,25 +190,25 @@ text {* In the subsequent version we flatten the structure of the main
   body by doing forward reasoning all the time.  Only the outermost
   decomposition step is left as backward. *}
 
-lemma "A & B --> B & A"
+lemma "A \<and> B \<longrightarrow> B \<and> A"
 proof
-  assume "A & B"
-  from `A & B` have A ..
-  from `A & B` have B ..
-  from `B` `A` show "B & A" ..
+  assume "A \<and> B"
+  from `A \<and> B` have A ..
+  from `A \<and> B` have B ..
+  from `B` `A` show "B \<and> A" ..
 qed
 
 text {* We can still push forward-reasoning a bit further, even at the
   risk of getting ridiculous.  Note that we force the initial proof
   step to do nothing here, by referring to the ``-'' proof method. *}
 
-lemma "A & B --> B & A"
+lemma "A \<and> B \<longrightarrow> B \<and> A"
 proof -
   {
-    assume "A & B"
-    from `A & B` have A ..
-    from `A & B` have B ..
-    from `B` `A` have "B & A" ..
+    assume "A \<and> B"
+    from `A \<and> B` have A ..
+    from `A \<and> B` have B ..
+    from `B` `A` have "B \<and> A" ..
   }
   then show ?thesis ..         -- {* rule @{text impI} *}
 qed
@@ -232,10 +232,10 @@ text {* For our example the most appropriate way of reasoning is
   probably the middle one, with conjunction introduction done after
   elimination. *}
 
-lemma "A & B --> B & A"
+lemma "A \<and> B \<longrightarrow> B \<and> A"
 proof
-  assume "A & B"
-  then show "B & A"
+  assume "A \<and> B"
+  then show "B \<and> A"
   proof
     assume B A
     then show ?thesis ..
@@ -256,9 +256,9 @@ text {* We consider the proposition @{text "P \<or> P \<longrightarrow> P"}.  Th
   below involves forward-chaining from @{text "P \<or> P"}, followed by an
   explicit case-analysis on the two \emph{identical} cases. *}
 
-lemma "P | P --> P"
+lemma "P \<or> P \<longrightarrow> P"
 proof
-  assume "P | P"
+  assume "P \<or> P"
   then show P
   proof                    -- {*
     rule @{text disjE}: \smash{$\infer{C}{A \disj B & \infer*{C}{[A]} & \infer*{C}{[B]}}$}
@@ -291,9 +291,9 @@ text {* Case splits are \emph{not} hardwired into the Isar language as
   cases actually coincide.  Consequently the proof may be rephrased as
   follows. *}
 
-lemma "P | P --> P"
+lemma "P \<or> P --> P"
 proof
-  assume "P | P"
+  assume "P \<or> P"
   then show P
   proof
     assume P
@@ -307,9 +307,9 @@ text {* Again, the rather vacuous body of the proof may be collapsed.
   are implicitly performed when concluding the single rule step of the
   double-dot proof as follows. *}
 
-lemma "P | P --> P"
+lemma "P \<or> P --> P"
 proof
-  assume "P | P"
+  assume "P \<or> P"
   then show P ..
 qed
 
@@ -328,10 +328,10 @@ text {* To illustrate quantifier reasoning, let us prove @{text
   ``arbitrary, but fixed'' element; the \isacommand{is} annotation
   binds term abbreviations by higher-order pattern matching. *}
 
-lemma "(EX x. P (f x)) --> (EX y. P y)"
+lemma "(\<exists>x. P (f x)) \<longrightarrow> (\<exists>y. P y)"
 proof
-  assume "EX x. P (f x)"
-  then show "EX y. P y"
+  assume "\<exists>x. P (f x)"
+  then show "\<exists>y. P y"
   proof (rule exE)             -- {*
     rule @{text exE}: \smash{$\infer{B}{\ex x A(x) & \infer*{B}{[A(x)]_x}}$}
   *}
@@ -348,10 +348,10 @@ text {* While explicit rule instantiation may occasionally improve
   instances (by higher-order unification).  Thus we may as well prune
   the text as follows. *}
 
-lemma "(EX x. P (f x)) --> (EX y. P y)"
+lemma "(\<exists>x. P (f x)) \<longrightarrow> (\<exists>y. P y)"
 proof
-  assume "EX x. P (f x)"
-  then show "EX y. P y"
+  assume "\<exists>x. P (f x)"
+  then show "\<exists>y. P y"
   proof
     fix a
     assume "P (f a)"
@@ -364,11 +364,11 @@ text {* Explicit @{text \<exists>}-elimination as seen above can become quite
   ``\isakeyword{obtain}'' provides a more handsome way to do
   generalized existence reasoning. *}
 
-lemma "(EX x. P (f x)) --> (EX y. P y)"
+lemma "(\<exists>x. P (f x)) \<longrightarrow> (\<exists>y. P y)"
 proof
-  assume "EX x. P (f x)"
+  assume "\<exists>x. P (f x)"
   then obtain a where "P (f a)" ..
-  then show "EX y. P y" ..
+  then show "\<exists>y. P y" ..
 qed
 
 text {* Technically, \isakeyword{obtain} is similar to
@@ -387,10 +387,10 @@ text {* We derive the conjunction elimination rule from the
   since Isabelle/Isar supports non-atomic goals and assumptions fully
   transparently. *}
 
-theorem conjE: "A & B ==> (A ==> B ==> C) ==> C"
+theorem conjE: "A \<and> B \<Longrightarrow> (A \<Longrightarrow> B \<Longrightarrow> C) \<Longrightarrow> C"
 proof -
-  assume "A & B"
-  assume r: "A ==> B ==> C"
+  assume "A \<and> B"
+  assume r: "A \<Longrightarrow> B \<Longrightarrow> C"
   show C
   proof (rule r)
     show A by (rule conjunct1) fact

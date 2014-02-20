@@ -24,22 +24,24 @@ text {* Cantor's Theorem states that every set has more subsets than
   with the type $\alpha \ap \idt{set}$ and the operator
   $\idt{range}::(\alpha \To \beta) \To \beta \ap \idt{set}$. *}
 
-theorem "EX S. S ~: range (f :: 'a => 'a set)"
+theorem "\<exists>S. S \<notin> range (f :: 'a \<Rightarrow> 'a set)"
 proof
-  let ?S = "{x. x ~: f x}"
-  show "?S ~: range f"
+  let ?S = "{x. x \<notin> f x}"
+  show "?S \<notin> range f"
   proof
-    assume "?S : range f"
+    assume "?S \<in> range f"
     then obtain y where "?S = f y" ..
     then show False
     proof (rule equalityCE)
-      assume "y : f y"
-      assume "y : ?S" then have "y ~: f y" ..
+      assume "y \<in> f y"
+      assume "y \<in> ?S"
+      then have "y \<notin> f y" ..
       with `y : f y` show ?thesis by contradiction
     next
-      assume "y ~: ?S"
-      assume "y ~: f y" then have "y : ?S" ..
-      with `y ~: ?S` show ?thesis by contradiction
+      assume "y \<notin> ?S"
+      assume "y \<notin> f y"
+      then have "y \<in> ?S" ..
+      with `y \<notin> ?S` show ?thesis by contradiction
     qed
   qed
 qed
@@ -51,7 +53,7 @@ text {* How much creativity is required?  As it happens, Isabelle can
   classical prover contains rules for the relevant constructs of HOL's
   set theory.  *}
 
-theorem "EX S. S ~: range (f :: 'a => 'a set)"
+theorem "\<exists>S. S \<notin> range (f :: 'a \<Rightarrow> 'a set)"
   by best
 
 text {* While this establishes the same theorem internally, we do not

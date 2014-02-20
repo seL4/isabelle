@@ -19,18 +19,18 @@ text {* We consider Peirce's Law: $((A \impl B) \impl A) \impl A$.
   there is negation elimination; it holds in intuitionistic logic as
   well.} *}
 
-theorem "((A --> B) --> A) --> A"
+theorem "((A \<longrightarrow> B) \<longrightarrow> A) \<longrightarrow> A"
 proof
-  assume "(A --> B) --> A"
+  assume "(A \<longrightarrow> B) \<longrightarrow> A"
   show A
   proof (rule classical)
-    assume "~ A"
-    have "A --> B"
+    assume "\<not> A"
+    have "A \<longrightarrow> B"
     proof
       assume A
-      with `~ A` show B by contradiction
+      with `\<not> A` show B by contradiction
     qed
-    with `(A --> B) --> A` show A ..
+    with `(A \<longrightarrow> B) \<longrightarrow> A` show A ..
   qed
 qed
 
@@ -48,19 +48,19 @@ text {* In the subsequent version the reasoning is rearranged by means
   contrast, strong assumptions (as introduced by \isacommand{assume})
   are solved immediately. *}
 
-theorem "((A --> B) --> A) --> A"
+theorem "((A \<longrightarrow> B) \<longrightarrow> A) \<longrightarrow> A"
 proof
-  assume "(A --> B) --> A"
+  assume "(A \<longrightarrow> B) \<longrightarrow> A"
   show A
   proof (rule classical)
-    presume "A --> B"
-    with `(A --> B) --> A` show A ..
+    presume "A \<longrightarrow> B"
+    with `(A \<longrightarrow> B) \<longrightarrow> A` show A ..
   next
-    assume "~ A"
-    show "A --> B"
+    assume "\<not> A"
+    show "A \<longrightarrow> B"
     proof
       assume A
-      with `~ A` show B by contradiction
+      with `\<not> A` show B by contradiction
     qed
   qed
 qed
