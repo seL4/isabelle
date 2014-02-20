@@ -523,7 +523,7 @@ fun pretty_theory ctxt (name, pos) =
   (case find_first (fn thy => Context.theory_name thy = name)
       (Theory.nodes_of (Proof_Context.theory_of ctxt)) of
     NONE => error ("No ancestor theory " ^ quote name ^ Position.here pos)
-  | SOME thy => (Position.report pos (Theory.get_markup thy); Pretty.str name));
+  | SOME thy => (Context_Position.report ctxt pos (Theory.get_markup thy); Pretty.str name));
 
 
 (* default output *)
@@ -670,6 +670,6 @@ end;
 val _ = Theory.setup
   (antiquotation (Binding.name "url") (Scan.lift (Parse.position Parse.name))
     (fn {context = ctxt, ...} => fn (name, pos) =>
-      (Position.report pos (Markup.url name); enclose "\\url{" "}" name)));
+      (Context_Position.report ctxt pos (Markup.url name); enclose "\\url{" "}" name)));
 
 end;

@@ -45,10 +45,10 @@ object Markup_Tree
 
   final class Elements private(private val rep: Set[String])
   {
-    def contains(name: String): Boolean = rep.contains(name)
+    def exists(pred: String => Boolean): Boolean = rep.exists(pred)
 
     def + (name: String): Elements =
-      if (contains(name)) this
+      if (rep(name)) this
       else new Elements(rep + name)
 
     def + (elem: XML.Elem): Elements = this + elem.markup.name
@@ -176,7 +176,7 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
           if (body.forall(e => new_range.contains(e._1)))
             new Markup_Tree(branches -- body.keys, Entry(new_markup, new Markup_Tree(body)))
           else {
-            java.lang.System.err.println("Ignored overlapping markup information: " + new_markup +
+            System.err.println("Ignored overlapping markup information: " + new_markup +
               body.filter(e => !new_range.contains(e._1)).mkString("\n"))
             this
           }
@@ -222,22 +222,17 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
   def to_XML(text: CharSequence): XML.Body =
     to_XML(Text.Range(0, text.length), text, (_: XML.Elem) => true)
 
-  def cumulate[A](root_range: Text.Range, root_info: A, result_elements: Option[Set[String]],
+  def cumulate[A](root_range: Text.Range, root_info: A, elements: String => Boolean,
     result: (A, Text.Markup) => Option[A]): List[Text.Info[A]] =
   {
-    val notable: Elements => Boolean =
-      result_elements match {
-        case Some(res) => (elements: Elements) => res.exists(elements.contains)
-        case None => (elements: Elements) => true
-      }
-
     def results(x: A, entry: Entry): Option[A] =
     {
       var y = x
       var changed = false
       for {
-        info <- entry.rev_markup // FIXME proper cumulation order (including status markup) (!?)
-        y1 <- result(y, Text.Info(entry.range, info))
+        elem <- entry.markup
+        if elements(elem.name)
+        y1 <- result(y, Text.Info(entry.range, elem))
       } { y = y1; changed = true }
       if (changed) Some(y) else None
     }
@@ -250,12 +245,12 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
         case (parent, (range, entry) :: more) :: rest =>
           val subrange = range.restrict(root_range)
           val subtree =
-            if (notable(entry.subtree_elements))
+            if (entry.subtree_elements.exists(elements))
               entry.subtree.overlapping(subrange).toList
             else Nil
           val start = subrange.start
 
-          (if (notable(entry.elements)) results(parent.info, entry) else None) match {
+          (if (entry.elements.exists(elements)) results(parent.info, entry) else None) match {
             case Some(res) =>
               val next = Text.Info(subrange, res)
               val nexts = traverse(start, (next, subtree) :: (parent, more) :: rest)

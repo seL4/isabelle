@@ -8,7 +8,6 @@ Main Isabelle/Scala session, potentially with running prover process.
 package isabelle
 
 
-import java.lang.System
 import java.util.{Timer, TimerTask}
 
 import scala.collection.mutable

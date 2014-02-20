@@ -7,6 +7,7 @@ Untyped XML trees and basic data representation.
 
 package isabelle
 
+
 import java.util.WeakHashMap
 import java.lang.ref.WeakReference
 import javax.xml.parsers.DocumentBuilderFactory

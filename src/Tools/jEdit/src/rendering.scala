@@ -200,11 +200,39 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val dynamic_color = color_value("dynamic_color")
 
 
-  /* command overview */
+  /* completion context */
+
+  private val completion_elements =
+    Set(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM, Markup.CARTOUCHE,
+      Markup.COMMENT, Markup.LANGUAGE, Markup.ML_STRING, Markup.ML_COMMENT)
+
+  def completion_context(caret: Text.Offset): Option[Completion.Context] =
+    if (caret > 0) {
+      val result =
+        snapshot.select_markup(Text.Range(caret - 1, caret + 1), completion_elements, _ =>
+          {
+            case Text.Info(_, elem)
+            if elem.name == Markup.ML_STRING || elem.name == Markup.ML_COMMENT =>
+              Some(Completion.Context(Markup.Language.ML, true))
+            case Text.Info(_, XML.Elem(Markup.Language(language, symbols), _)) =>
+              Some(Completion.Context(language, symbols))
+            case Text.Info(_, XML.Elem(markup, _)) =>
+              Some(Completion.Context(Markup.Language.UNKNOWN, true))
+          })
+      result match {
+        case Text.Info(_, context) :: _ => Some(context)
+        case Nil => None
+      }
+    }
+    else None
+
+
+  /* command status overview */
 
   val overview_limit = options.int("jedit_text_overview_limit")
 
-  private val overview_include = Protocol.command_status_markup + Markup.WARNING + Markup.ERROR
+  private val overview_elements =
+    Protocol.command_status_markup + Markup.WARNING + Markup.ERROR
 
   def overview_color(range: Text.Range): Option[Color] =
   {
@@ -212,14 +240,13 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     else {
       val results =
         snapshot.cumulate_markup[(Protocol.Status, Int)](
-          range, (Protocol.Status.init, 0), Some(overview_include), _ =>
+          range, (Protocol.Status.init, 0), overview_elements, _ =>
           {
             case ((status, pri), Text.Info(_, elem)) =>
-              if (elem.name == Markup.WARNING || elem.name == Markup.ERROR)
-                Some((status, pri max Rendering.message_pri(elem.name)))
-              else if (overview_include(elem.name))
+              if (Protocol.command_status_markup(elem.name))
                 Some((Protocol.command_status(status, elem.markup), pri))
-              else None
+              else
+                Some((status, pri max Rendering.message_pri(elem.name)))
           })
       if (results.isEmpty) None
       else {
@@ -238,9 +265,9 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   }
 
 
-  /* markup selectors */
+  /* highlighted area */
 
-  private val highlight_include =
+  private val highlight_elements =
     Set(Markup.LANGUAGE, Markup.ML_TYPING, Markup.TOKEN_RANGE,
       Markup.ENTITY, Markup.PATH, Markup.URL, Markup.SORTING,
       Markup.TYPING, Markup.FREE, Markup.SKOLEM, Markup.BOUND,
@@ -248,17 +275,17 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   def highlight(range: Text.Range): Option[Text.Info[Color]] =
   {
-    snapshot.select_markup(range, Some(highlight_include), _ =>
-        {
-          case Text.Info(info_range, elem) =>
-            if (highlight_include(elem.name))
-              Some(Text.Info(snapshot.convert(info_range), highlight_color))
-            else None
-        }) match { case Text.Info(_, info) :: _ => Some(info) case _ => None }
+    snapshot.select_markup(range, highlight_elements, _ =>
+      {
+        case info => Some(Text.Info(snapshot.convert(info.range), highlight_color))
+      }) match { case Text.Info(_, info) :: _ => Some(info) case _ => None }
   }
 
 
-  private val hyperlink_include = Set(Markup.ENTITY, Markup.PATH, Markup.POSITION, Markup.URL)
+  /* hyperlinks */
+
+  private val hyperlink_elements =
+    Set(Markup.ENTITY, Markup.PATH, Markup.POSITION, Markup.URL)
 
   private def hyperlink_file(line: Int, name: String): Option[PIDE.editor.Hyperlink] =
     if (Path.is_ok(name))
@@ -276,18 +303,18 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   def hyperlink(range: Text.Range): Option[Text.Info[PIDE.editor.Hyperlink]] =
   {
-    snapshot.cumulate_markup[List[Text.Info[PIDE.editor.Hyperlink]]](
-      range, Nil, Some(hyperlink_include), _ =>
+    snapshot.cumulate_markup[Vector[Text.Info[PIDE.editor.Hyperlink]]](
+      range, Vector.empty, hyperlink_elements, _ =>
         {
           case (links, Text.Info(info_range, XML.Elem(Markup.Path(name), _)))
           if Path.is_ok(name) =>
             val jedit_file = PIDE.thy_load.append(snapshot.node_name.master_dir, Path.explode(name))
             val link = PIDE.editor.hyperlink_file(jedit_file)
-            Some(Text.Info(snapshot.convert(info_range), link) :: links)
+            Some(links :+ Text.Info(snapshot.convert(info_range), link))
 
           case (links, Text.Info(info_range, XML.Elem(Markup.Url(name), _))) =>
             val link = PIDE.editor.hyperlink_url(name)
-            Some(Text.Info(snapshot.convert(info_range), link) :: links)
+            Some(links :+ Text.Info(snapshot.convert(info_range), link))
 
           case (links, Text.Info(info_range, XML.Elem(Markup(Markup.ENTITY, props), _)))
           if !props.exists(
@@ -301,7 +328,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
                 case Position.Def_Id_Offset(id, offset) => hyperlink_command(id, offset)
                 case _ => None
               }
-            opt_link.map(link => (Text.Info(snapshot.convert(info_range), link) :: links))
+            opt_link.map(link => (links :+ Text.Info(snapshot.convert(info_range), link)))
 
           case (links, Text.Info(info_range, XML.Elem(Markup(Markup.POSITION, props), _))) =>
             val opt_link =
@@ -310,45 +337,53 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
                 case Position.Id_Offset(id, offset) => hyperlink_command(id, offset)
                 case _ => None
               }
-            opt_link.map(link => (Text.Info(snapshot.convert(info_range), link) :: links))
+            opt_link.map(link => links :+ (Text.Info(snapshot.convert(info_range), link)))
 
           case _ => None
-        }) match { case Text.Info(_, info :: _) :: _ => Some(info) case _ => None }
+        }) match { case Text.Info(_, _ :+ info) :: _ => Some(info) case _ => None }
   }
 
 
-  private val active_include =
-    Set(Markup.BROWSER, Markup.GRAPHVIEW, Markup.SENDBACK, Markup.DIALOG, Markup.SIMP_TRACE)
+  /* active elements */
+
+  private val active_elements =
+    Set(Markup.DIALOG, Markup.BROWSER, Markup.GRAPHVIEW, Markup.SENDBACK, Markup.SIMP_TRACE)
 
   def active(range: Text.Range): Option[Text.Info[XML.Elem]] =
-    snapshot.select_markup(range, Some(active_include), command_state =>
-        {
-          case Text.Info(info_range, elem @ Protocol.Dialog(_, serial, _))
-          if !command_state.results.defined(serial) =>
-            Some(Text.Info(snapshot.convert(info_range), elem))
-          case Text.Info(info_range, elem) =>
-            if (elem.name == Markup.BROWSER ||
-                elem.name == Markup.GRAPHVIEW ||
-                elem.name == Markup.SENDBACK ||
-                elem.name == Markup.SIMP_TRACE)
-              Some(Text.Info(snapshot.convert(info_range), elem))
-            else None
-        }) match { case Text.Info(_, info) :: _ => Some(info) case _ => None }
+    snapshot.select_markup(range, active_elements, command_state =>
+      {
+        case Text.Info(info_range, elem) =>
+          if (elem.name == Markup.DIALOG) {
+            elem match {
+              case Protocol.Dialog(_, serial, _)
+              if !command_state.results.defined(serial) =>
+                Some(Text.Info(snapshot.convert(info_range), elem))
+              case _ => None
+            }
+          }
+          else Some(Text.Info(snapshot.convert(info_range), elem))
+      }) match { case Text.Info(_, info) :: _ => Some(info) case _ => None }
 
 
   def command_results(range: Text.Range): Command.Results =
   {
     val results =
-      snapshot.select_markup[Command.Results](range, None, command_state =>
+      snapshot.select_markup[Command.Results](range, _ => true, command_state =>
         { case _ => Some(command_state.results) }).map(_.info)
     (Command.Results.empty /: results)(_ ++ _)
   }
 
+
+  /* tooltip messages */
+
+  private val tooltip_message_elements =
+    Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR, Markup.BAD)
+
   def tooltip_message(range: Text.Range): Option[Text.Info[XML.Body]] =
   {
     val results =
-      snapshot.cumulate_markup[List[Text.Info[Command.Results.Entry]]](range, Nil,
-        Some(Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR, Markup.BAD)), _ =>
+      snapshot.cumulate_markup[List[Text.Info[Command.Results.Entry]]](
+        range, Nil, tooltip_message_elements, _ =>
         {
           case (msgs, Text.Info(info_range,
             XML.Elem(Markup(name, props @ Markup.Serial(serial)), body)))
@@ -373,6 +408,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   }
 
 
+  /* tooltips */
+
   private val tooltips: Map[String, String] =
     Map(
       Markup.TOKEN_RANGE -> "inner syntax token",
@@ -395,17 +432,19 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   def tooltip(range: Text.Range): Option[Text.Info[XML.Body]] =
   {
-    def add(prev: Text.Info[(Timing, List[(Boolean, XML.Tree)])],
-      r0: Text.Range, p: (Boolean, XML.Tree)): Text.Info[(Timing, List[(Boolean, XML.Tree)])] =
+    def add(prev: Text.Info[(Timing, Vector[(Boolean, XML.Tree)])],
+      r0: Text.Range, p: (Boolean, XML.Tree)): Text.Info[(Timing, Vector[(Boolean, XML.Tree)])] =
     {
       val r = snapshot.convert(r0)
       val (t, info) = prev.info
-      if (prev.range == r) Text.Info(r, (t, p :: info)) else Text.Info(r, (t, List(p)))
+      if (prev.range == r)
+        Text.Info(r, (t, info :+ p))
+      else Text.Info(r, (t, Vector(p)))
     }
 
     val results =
-      snapshot.cumulate_markup[Text.Info[(Timing, List[(Boolean, XML.Tree)])]](
-        range, Text.Info(range, (Timing.zero, Nil)), Some(tooltip_elements), _ =>
+      snapshot.cumulate_markup[Text.Info[(Timing, Vector[(Boolean, XML.Tree)])]](
+        range, Text.Info(range, (Timing.zero, Vector.empty)), tooltip_elements, _ =>
         {
           case (Text.Info(r, (t1, info)), Text.Info(_, XML.Elem(Markup.Timing(t2), _))) =>
             Some(Text.Info(r, (t1 + t2, info)))
@@ -429,15 +468,15 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
             Some(add(prev, r, (true, pretty_typing("::", body))))
           case (prev, Text.Info(r, XML.Elem(Markup(Markup.ML_TYPING, _), body))) =>
             Some(add(prev, r, (false, pretty_typing("ML:", body))))
-          case (prev, Text.Info(r, XML.Elem(Markup.Language(name), _))) =>
-            Some(add(prev, r, (true, XML.Text("language: " + name))))
+          case (prev, Text.Info(r, XML.Elem(Markup.Language(language, _), _))) =>
+            Some(add(prev, r, (true, XML.Text("language: " + language))))
           case (prev, Text.Info(r, XML.Elem(Markup(name, _), _))) =>
             if (tooltips.isDefinedAt(name))
               Some(add(prev, r, (true, XML.Text(tooltips(name)))))
             else None
         }).map(_.info)
 
-    results.map(_.info).flatMap(_._2) match {
+    results.map(_.info).flatMap(res => res._2.toList) match {
       case Nil => None
       case tips =>
         val r = Text.Range(results.head.range.start, results.last.range.stop)
@@ -452,18 +491,21 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   lazy val tooltip_detach_icon = JEdit_Lib.load_icon(options.string("tooltip_detach_icon"))
 
 
+  /* gutter icons */
+
   private lazy val gutter_icons = Map(
     Rendering.information_pri -> JEdit_Lib.load_icon(options.string("gutter_information_icon")),
     Rendering.warning_pri -> JEdit_Lib.load_icon(options.string("gutter_warning_icon")),
     Rendering.legacy_pri -> JEdit_Lib.load_icon(options.string("gutter_legacy_icon")),
     Rendering.error_pri -> JEdit_Lib.load_icon(options.string("gutter_error_icon")))
 
-  private val gutter_elements = Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR)
+  private val gutter_elements =
+    Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR)
 
   def gutter_message(range: Text.Range): Option[Icon] =
   {
     val results =
-      snapshot.cumulate_markup[Int](range, 0, Some(gutter_elements), _ =>
+      snapshot.cumulate_markup[Int](range, 0, gutter_elements, _ =>
         {
           case (pri, Text.Info(_, XML.Elem(Markup(Markup.WRITELN, _),
               List(XML.Elem(Markup(Markup.INFORMATION, _), _))))) =>
@@ -484,25 +526,26 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   }
 
 
+  /* squiggly underline */
+
   private val squiggly_colors = Map(
     Rendering.writeln_pri -> writeln_color,
     Rendering.information_pri -> information_color,
     Rendering.warning_pri -> warning_color,
     Rendering.error_pri -> error_color)
 
-  private val squiggly_include = Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR)
+  private val squiggly_elements = Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR)
 
   def squiggly_underline(range: Text.Range): List[Text.Info[Color]] =
   {
     val results =
-      snapshot.cumulate_markup[Int](range, 0, Some(squiggly_include), _ =>
+      snapshot.cumulate_markup[Int](range, 0, squiggly_elements, _ =>
         {
           case (pri, Text.Info(_, elem)) =>
             if (Protocol.is_information(elem))
               Some(pri max Rendering.information_pri)
-            else if (squiggly_include.contains(elem.name))
+            else
               Some(pri max Rendering.message_pri(elem.name))
-            else None
         })
     for {
       Text.Info(r, pri) <- results
@@ -510,6 +553,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     } yield Text.Info(r, color)
   }
 
+
+  /* message output */
 
   private val message_colors = Map(
     Rendering.writeln_pri -> writeln_message_color,
@@ -525,38 +570,36 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   def line_background(range: Text.Range): Option[(Color, Boolean)] =
   {
     val results =
-      snapshot.cumulate_markup[Int](range, 0, Some(line_background_elements), _ =>
+      snapshot.cumulate_markup[Int](range, 0, line_background_elements, _ =>
         {
           case (pri, Text.Info(_, elem)) =>
-            val name = elem.name
-            if (name == Markup.INFORMATION)
+            if (elem.name == Markup.INFORMATION)
               Some(pri max Rendering.information_pri)
-            else if (name == Markup.WRITELN_MESSAGE || name == Markup.TRACING_MESSAGE ||
-                elem.name == Markup.WARNING_MESSAGE || name == Markup.ERROR_MESSAGE)
-              Some(pri max Rendering.message_pri(name))
-            else None
+            else
+              Some(pri max Rendering.message_pri(elem.name))
         })
     val pri = (0 /: results) { case (p1, Text.Info(_, p2)) => p1 max p2 }
 
-    val is_separator = pri > 0 &&
-      snapshot.cumulate_markup[Boolean](range, false, Some(Set(Markup.SEPARATOR)), _ =>
+    val is_separator =
+      pri > 0 &&
+      snapshot.cumulate_markup[Boolean](range, false, Set(Markup.SEPARATOR), _ =>
         {
-          case (_, Text.Info(_, elem)) =>
-            if (elem.name == Markup.SEPARATOR) Some(true) else None
+          case _ => Some(true)
         }).exists(_.info)
 
     message_colors.get(pri).map((_, is_separator))
   }
 
-
   def output_messages(st: Command.State): List[XML.Tree] =
     st.results.entries.map(_._2).filterNot(Protocol.is_result(_)).toList
 
 
-  private val background1_include =
+  /* text background */
+
+  private val background1_elements =
     Protocol.command_status_markup + Markup.WRITELN_MESSAGE + Markup.TRACING_MESSAGE +
       Markup.WARNING_MESSAGE + Markup.ERROR_MESSAGE + Markup.BAD + Markup.INTENSIFY ++
-      active_include
+      active_elements
 
   def background1(range: Text.Range): List[Text.Info[Color]] =
   {
@@ -565,7 +608,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       for {
         Text.Info(r, result) <-
           snapshot.cumulate_markup[(Option[Protocol.Status], Option[Color])](
-            range, (Some(Protocol.Status.init), None), Some(background1_include), command_state =>
+            range, (Some(Protocol.Status.init), None), background1_elements, command_state =>
             {
               case (((Some(status), color), Text.Info(_, XML.Elem(markup, _))))
               if (Protocol.command_status_markup(markup.name)) =>
@@ -582,7 +625,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
                     Some((None, Some(active_color)))
                 }
               case (_, Text.Info(_, elem)) =>
-                if (active_include(elem.name)) Some((None, Some(active_color)))
+                if (active_elements(elem.name)) Some((None, Some(active_color)))
                 else None
             })
         color <-
@@ -596,35 +639,24 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       } yield Text.Info(r, color)
   }
 
-
   def background2(range: Text.Range): List[Text.Info[Color]] =
-    snapshot.select_markup(range, Some(Set(Markup.TOKEN_RANGE)), _ =>
-      {
-        case Text.Info(_, elem) =>
-          if (elem.name == Markup.TOKEN_RANGE) Some(light_color) else None
-      })
+    snapshot.select_markup(range, Set(Markup.TOKEN_RANGE), _ => _ => Some(light_color))
 
 
-  def bullet(range: Text.Range): List[Text.Info[Color]] =
-    snapshot.select_markup(range, Some(Set(Markup.BULLET)), _ =>
-      {
-        case Text.Info(_, elem) =>
-          if (elem.name == Markup.BULLET) Some(bullet_color) else None
-      })
+  /* text foreground */
 
-
-  private val foreground_include =
+  private val foreground_elements =
     Set(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM, Markup.CARTOUCHE, Markup.ANTIQUOTED)
 
   def foreground(range: Text.Range): List[Text.Info[Color]] =
-    snapshot.select_markup(range, Some(foreground_include), _ =>
+    snapshot.select_markup(range, foreground_elements, _ =>
       {
         case Text.Info(_, elem) =>
-          if (elem.name == Markup.ANTIQUOTED) Some(antiquoted_color)
-          else if (foreground_include.contains(elem.name)) Some(quoted_color)
-          else None
+          if (elem.name == Markup.ANTIQUOTED) Some(antiquoted_color) else Some(quoted_color)
       })
 
+
+  /* text color */
 
   private val text_colors: Map[String, Color] = Map(
       Markup.KEYWORD1 -> keyword1_color,
@@ -661,21 +693,27 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   {
     if (color == Token_Markup.hidden_color) List(Text.Info(range, color))
     else
-      snapshot.cumulate_markup(range, color, Some(text_color_elements), _ =>
+      snapshot.cumulate_markup(range, color, text_color_elements, _ =>
         {
           case (_, Text.Info(_, elem)) => text_colors.get(elem.name)
         })
   }
 
 
-  /* nested text structure -- folds */
+  /* virtual bullets */
 
-  private val fold_depth_include = Set(Markup.TEXT_FOLD, Markup.GOAL, Markup.SUBGOAL)
+  def bullet(range: Text.Range): List[Text.Info[Color]] =
+    snapshot.select_markup(range, Set(Markup.BULLET), _ => _ => Some(bullet_color))
+
+
+  /* text folds */
+
+  private val fold_depth_elements =
+    Set(Markup.TEXT_FOLD, Markup.GOAL, Markup.SUBGOAL)
 
   def fold_depth(range: Text.Range): List[Text.Info[Int]] =
-    snapshot.cumulate_markup[Int](range, 0, Some(fold_depth_include), _ =>
+    snapshot.cumulate_markup[Int](range, 0, fold_depth_elements, _ =>
       {
-        case (depth, Text.Info(_, elem)) =>
-          if (fold_depth_include(elem.name)) Some(depth + 1) else None
+        case (depth, _) => Some(depth + 1)
       })
 }

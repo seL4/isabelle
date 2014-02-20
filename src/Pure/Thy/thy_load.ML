@@ -199,7 +199,7 @@ fun file_antiq do_check ctxt (name, pos) =
     val _ =
       if not do_check orelse File.exists path then ()
       else error ("Bad file: " ^ Path.print (Path.expand path) ^ Position.here pos);
-    val _ = Position.report pos (Markup.path name);
+    val _ = Context_Position.report ctxt pos (Markup.path name);
   in
     space_explode "/" name
     |> map Thy_Output.verb_text

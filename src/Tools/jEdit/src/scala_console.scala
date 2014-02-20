@@ -14,7 +14,6 @@ import console.{Console, ConsolePane, Shell, Output}
 import org.gjt.sp.jedit.{jEdit, JARClassLoader}
 import org.gjt.sp.jedit.MiscUtilities
 
-import java.lang.System
 import java.io.{File => JFile, FileFilter, OutputStream, Writer, PrintWriter}
 
 import scala.tools.nsc.{GenericRunnerSettings, NewLinePrintWriter, ConsoleWriter}
@@ -148,7 +147,7 @@ class Scala_Console extends Shell("Scala")
      "The following special toplevel bindings are provided:\n" +
      "  view    -- current jEdit/Swing view (e.g. view.getBuffer, view.getTextArea)\n" +
      "  console -- jEdit Console plugin\n" +
-     "  PIDE    -- Isabelle/PIDE plugin (e.g. PIDE.session, PIDE.document_model)\n")
+     "  PIDE    -- Isabelle/PIDE plugin (e.g. PIDE.session, PIDE.snapshot, PIDE.rendering)\n")
   }
 
   override def printPrompt(console: Console, out: Output)

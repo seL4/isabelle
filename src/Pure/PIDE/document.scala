@@ -369,11 +369,11 @@ object Document
     def cumulate_markup[A](
       range: Text.Range,
       info: A,
-      elements: Option[Set[String]],
+      elements: String => Boolean,
       result: Command.State => (A, Text.Markup) => Option[A]): List[Text.Info[A]]
     def select_markup[A](
       range: Text.Range,
-      elements: Option[Set[String]],
+      elements: String => Boolean,
       result: Command.State => Text.Markup => Option[A]): List[Text.Info[A]]
   }
 
@@ -629,7 +629,7 @@ object Document
           (thy_load_commands zip other.thy_load_commands).forall(eq_commands)
         }
 
-        def cumulate_markup[A](range: Text.Range, info: A, elements: Option[Set[String]],
+        def cumulate_markup[A](range: Text.Range, info: A, elements: String => Boolean,
           result: Command.State => (A, Text.Markup) => Option[A]): List[Text.Info[A]] =
         {
           val former_range = revert(range)
@@ -659,7 +659,7 @@ object Document
           }
         }
 
-        def select_markup[A](range: Text.Range, elements: Option[Set[String]],
+        def select_markup[A](range: Text.Range, elements: String => Boolean,
           result: Command.State => Text.Markup => Option[A]): List[Text.Info[A]] =
         {
           def result1(st: Command.State): (Option[A], Text.Markup) => Option[Option[A]] =
@@ -671,7 +671,7 @@ object Document
                 case some => Some(some)
               }
           }
-          for (Text.Info(r, Some(x)) <- cumulate_markup(range, None, elements, result1))
+          for (Text.Info(r, Some(x)) <- cumulate_markup(range, None, elements, result1 _))
             yield Text.Info(r, x)
         }
       }

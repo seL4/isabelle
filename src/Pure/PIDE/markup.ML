@@ -20,7 +20,8 @@ sig
   val name: string -> T -> T
   val kindN: string
   val instanceN: string
-  val languageN: string val language: string -> T
+  val symbolsN: string
+  val languageN: string val language: string -> bool -> T
   val language_sort: T
   val language_type: T
   val language_term: T
@@ -28,6 +29,7 @@ sig
   val language_ML: T
   val language_document: T
   val language_text: T
+  val language_rail: T
   val bindingN: string val binding: T
   val entityN: string val entity: string -> string -> T
   val get_entity_kind: T -> string option
@@ -245,16 +247,19 @@ val instanceN = "instance";
 
 (* embedded languages *)
 
-val (languageN, language) = markup_string "language" nameN;
+val symbolsN = "symbols";
+val languageN = "language";
+fun language name symbols = (languageN, [(nameN, name), (symbolsN, print_bool symbols)]);
 
-val language_sort = language "sort";
-val language_type = language "type";
-val language_term = language "term";
-val language_prop = language "prop";
+val language_sort = language "sort" true;
+val language_type = language "type" true;
+val language_term = language "term" true;
+val language_prop = language "prop" true;
 
-val language_ML = language "ML";
-val language_document = language "document";
-val language_text = language "text";
+val language_ML = language "ML" false;
+val language_document = language "document" false;
+val language_text = language "text" true;
+val language_rail = language "rail" true;
 
 
 (* formal entities *)

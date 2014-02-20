@@ -32,7 +32,7 @@ sig
   val lookup_const: Proof.context -> string -> string option
   val is_const: Proof.context -> string -> bool
   val declare_const: string * string -> Proof.context -> Proof.context
-  val next_bound: string * typ -> Proof.context -> string * Proof.context
+  val next_bound: string * typ -> Proof.context -> term * Proof.context
   val revert_bounds: Proof.context -> term -> term
   val is_fixed: Proof.context -> string -> bool
   val newly_fixed: Proof.context -> Proof.context -> string -> bool
@@ -313,7 +313,7 @@ fun next_bound (a, T) ctxt =
   let
     val b = Name.bound (#1 (#bounds (rep_data ctxt)));
     val ctxt' = ctxt |> map_bounds (fn (next, bounds) => (next + 1, ((b, T), a) :: bounds));
-  in (b, ctxt') end;
+  in (Free (b, T), ctxt') end;
 
 fun revert_bounds ctxt t =
   (case #2 (#bounds (rep_data ctxt)) of

@@ -55,6 +55,7 @@ sig
   val assume_hyps: cterm -> Proof.context -> thm * Proof.context
   val unchecked_hyps: Proof.context -> Proof.context
   val restore_hyps: Proof.context -> Proof.context -> Proof.context
+  val undeclared_hyps: Context.generic -> thm -> term list
   val check_hyps: Context.generic -> thm -> thm
   val elim_implies: thm -> thm -> thm
   val forall_elim_var: int -> thm -> thm
@@ -281,26 +282,26 @@ fun assume_hyps ct ctxt = (Thm.assume ct, declare_hyps ct ctxt);
 val unchecked_hyps = (Hyps.map o apsnd) (K false);
 fun restore_hyps ctxt = (Hyps.map o apsnd) (K (#2 (Hyps.get ctxt)));
 
+fun undeclared_hyps context th =
+  Thm.hyps_of th
+  |> filter_out
+    (case context of
+      Context.Theory _ => K false
+    | Context.Proof ctxt =>
+        (case Hyps.get ctxt of
+          (_, false) => K true
+        | (hyps, _) => Termtab.defined hyps));
+
 fun check_hyps context th =
-  let
-    val declared_hyps =
-      (case context of
-        Context.Theory _ => K false
-      | Context.Proof ctxt =>
-          (case Hyps.get ctxt of
-            (_, false) => K true
-          | (hyps, _) => Termtab.defined hyps));
-    val undeclared = filter_out declared_hyps (Thm.hyps_of th);
-  in
-    if null undeclared then th
-    else
+  (case undeclared_hyps context th of
+    [] => th
+  | undeclared =>
       let
         val ctxt = Context.cases Syntax.init_pretty_global I context;
       in
         error (Pretty.string_of (Pretty.big_list "Undeclared hyps:"
           (map (Pretty.item o single o Syntax.pretty_term ctxt) undeclared)))
-      end
-  end;
+      end);
 
 
 

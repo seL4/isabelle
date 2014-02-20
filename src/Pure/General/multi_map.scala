@@ -6,6 +6,7 @@ Maps with multiple entries per key.
 
 package isabelle
 
+
 import scala.collection.generic.{ImmutableMapFactory, CanBuildFrom}
 
 

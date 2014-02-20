@@ -187,15 +187,15 @@ fun store_reports _ [] _ _ = ()
 fun here pos =
   let
     val props = properties_of pos;
-    val s =
+    val (s1, s2) =
       (case (line_of pos, file_of pos) of
-        (SOME i, NONE) => "(line " ^ Markup.print_int i ^ ")"
-      | (SOME i, SOME name) => "(line " ^ Markup.print_int i ^ " of " ^ quote name ^ ")"
-      | (NONE, SOME name) => "(file " ^ quote name ^ ")"
-      | _ => if is_reported pos then "\\<here>" else "");
+        (SOME i, NONE) => (" ", "(line " ^ Markup.print_int i ^ ")")
+      | (SOME i, SOME name) => (" ", "(line " ^ Markup.print_int i ^ " of " ^ quote name ^ ")")
+      | (NONE, SOME name) => (" ", "(file " ^ quote name ^ ")")
+      | _ => if is_reported pos then ("", "\\<here>") else ("", ""));
   in
     if null props then ""
-    else (if s = "" then "" else " ") ^ Markup.markup (Markup.properties props Markup.position) s
+    else s1 ^ Markup.markup (Markup.properties props Markup.position) s2
   end;
 
 val here_list = space_implode " " o map here;

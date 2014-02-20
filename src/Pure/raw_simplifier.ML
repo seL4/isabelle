@@ -1082,18 +1082,19 @@ fun bottomc ((simprem, useprem, mutsimp), prover, maxidx) =
           (case term_of t0 of
               Abs (a, T, _) =>
                 let
-                    val (b, ctxt') = Variable.next_bound (a, T) ctxt;
-                    val (v, t') = Thm.dest_abs (SOME b) t0;
-                    val b' = #1 (Term.dest_Free (term_of v));
+                    val (v, ctxt') = Variable.next_bound (a, T) ctxt;
+                    val b = #1 (Term.dest_Free v);
+                    val (v', t') = Thm.dest_abs (SOME b) t0;
+                    val b' = #1 (Term.dest_Free (term_of v'));
                     val _ =
                       if b <> b' then
-                        warning ("Simplifier: renamed bound variable " ^
+                        warning ("Bad Simplifier context: renamed bound variable " ^
                           quote b ^ " to " ^ quote b' ^ Position.here (Position.thread_data ()))
                       else ();
                     val skel' = (case skel of Abs (_, _, sk) => sk | _ => skel0);
                 in
                   (case botc skel' ctxt' t' of
-                    SOME thm => SOME (Thm.abstract_rule a v thm)
+                    SOME thm => SOME (Thm.abstract_rule a v' thm)
                   | NONE => NONE)
                 end
             | t $ _ =>

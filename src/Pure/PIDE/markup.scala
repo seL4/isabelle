@@ -59,7 +59,7 @@ object Markup
       markup match {
         case Markup(ENTITY, props) =>
           (props, props) match {
-            case (Kind(kind), Name(name)) => Some(kind, name)
+            case (Kind(kind), Name(name)) => Some((kind, name))
             case _ => None
           }
         case _ => None
@@ -87,8 +87,25 @@ object Markup
 
   /* embedded languages */
 
+  val SYMBOLS = "symbols"
+  val Symbols = new Properties.Boolean(SYMBOLS)
+
   val LANGUAGE = "language"
-  val Language = new Markup_String(LANGUAGE, NAME)
+  object Language
+  {
+    val ML = "ML"
+    val UNKNOWN = "unknown"
+
+    def unapply(markup: Markup): Option[(String, Boolean)] =
+      markup match {
+        case Markup(LANGUAGE, props) =>
+          (props, props) match {
+            case (Name(name), Symbols(symbols)) => Some((name, symbols))
+            case _ => None
+          }
+        case _ => None
+      }
+  }
 
 
   /* external resources */

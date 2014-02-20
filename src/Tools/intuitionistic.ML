@@ -42,17 +42,20 @@ fun step_tac ctxt i =
   REPEAT_DETERM1 (REMDUPS (safe_step_tac ctxt) i) ORELSE
   REMDUPS (unsafe_step_tac ctxt) i;
 
-fun intprover_tac ctxt gs d lim = SUBGOAL (fn (g, i) => if d > lim then no_tac else
-  let
-    val ps = Logic.strip_assums_hyp g;
-    val c = Logic.strip_assums_concl g;
-  in
-    if member (fn ((ps1, c1), (ps2, c2)) =>
-        c1 aconv c2 andalso
-        length ps1 = length ps2 andalso
-        eq_set (op aconv) (ps1, ps2)) gs (ps, c) then no_tac
-    else (step_tac ctxt THEN_ALL_NEW intprover_tac ctxt ((ps, c) :: gs) (d + 1) lim) i
-  end);
+fun intprover_tac ctxt gs d lim = SUBGOAL (fn (g, i) =>
+  if d > lim then no_tac
+  else
+    let
+      val ps = Logic.strip_assums_hyp g;
+      val c = Logic.strip_assums_concl g;
+    in
+      if member (fn ((ps1, c1), (ps2, c2)) =>
+          c1 aconv c2 andalso
+          length ps1 = length ps2 andalso
+          eq_set (op aconv) (ps1, ps2)) gs (ps, c)
+      then no_tac
+      else (step_tac ctxt THEN_ALL_NEW intprover_tac ctxt ((ps, c) :: gs) (d + 1) lim) i
+    end);
 
 in
 

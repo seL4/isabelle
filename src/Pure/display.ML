@@ -55,22 +55,21 @@ fun pretty_thm_raw ctxt {quote, show_hyps = show_hyps'} raw_th =
 
     val th = Thm.strip_shyps raw_th;
     val {hyps, tpairs, prop, ...} = Thm.rep_thm th;
-    val xshyps = Thm.extra_shyps th;
+    val hyps' = if show_hyps then hyps else Thm.undeclared_hyps (Context.Proof ctxt) th;
+    val extra_shyps = Thm.extra_shyps th;
     val tags = Thm.get_tags th;
 
     val q = if quote then Pretty.quote else I;
     val prt_term = q o Syntax.pretty_term ctxt;
 
-    val asms = map Thm.term_of (Assumption.all_assms_of ctxt);
-    val hyps' = if show_hyps then hyps else subtract (op aconv) asms hyps;
 
-    val hlen = length xshyps + length hyps' + length tpairs;
+    val hlen = length extra_shyps + length hyps' + length tpairs;
     val hsymbs =
       if hlen = 0 then []
       else if show_hyps orelse show_hyps' then
         [Pretty.brk 2, Pretty.list "[" "]"
           (map (q o Goal_Display.pretty_flexpair ctxt) tpairs @ map prt_term hyps' @
-           map (Syntax.pretty_sort ctxt) xshyps)]
+           map (Syntax.pretty_sort ctxt) extra_shyps)]
       else [Pretty.brk 2, Pretty.str ("[" ^ replicate_string hlen "." ^ "]")];
     val tsymbs =
       if null tags orelse not show_tags then []

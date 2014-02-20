@@ -9,7 +9,8 @@ sig
   type antiq = Symbol_Pos.T list * {start: Position.T, stop: Position.T, range: Position.range}
   datatype 'a antiquote = Text of 'a | Antiq of antiq
   val is_text: 'a antiquote -> bool
-  val reports_of: ('a -> Position.report_text list) ->
+  val antiq_reports: antiq -> Position.report list
+  val antiquote_reports: ('a -> Position.report_text list) ->
     'a antiquote list -> Position.report_text list
   val scan_antiq: Symbol_Pos.T list -> antiq * Symbol_Pos.T list
   val scan_antiquote: Symbol_Pos.T list -> Symbol_Pos.T list antiquote * Symbol_Pos.T list
@@ -30,11 +31,11 @@ fun is_text (Text _) = true
 
 (* reports *)
 
-fun reports_of_antiq ((_, {start, stop, range = (pos, _)}): antiq) =
-  map (rpair "") [(start, Markup.antiquote), (stop, Markup.antiquote), (pos, Markup.antiquoted)];
+fun antiq_reports ((_, {start, stop, range = (pos, _)}): antiq) =
+  [(start, Markup.antiquote), (stop, Markup.antiquote), (pos, Markup.antiquoted)];
 
-fun reports_of text =
-  maps (fn Text x => text x | Antiq antiq => reports_of_antiq antiq);
+fun antiquote_reports text =
+  maps (fn Text x => text x | Antiq antiq => map (rpair "") (antiq_reports antiq));
 
 
 (* scan *)
@@ -75,7 +76,7 @@ end;
 
 fun read (syms, pos) =
   (case Scan.read Symbol_Pos.stopper (Scan.repeat scan_antiquote) syms of
-    SOME xs => (Position.reports_text (reports_of (K []) xs); xs)
+    SOME xs => (Position.reports_text (antiquote_reports (K []) xs); xs)
   | NONE => error ("Malformed quotation/antiquotation source" ^ Position.here pos));
 
 end;

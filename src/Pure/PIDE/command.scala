@@ -90,18 +90,17 @@ object Command
           (this /: msgs)((state, msg) =>
             msg match {
               case elem @ XML.Elem(markup, Nil) =>
-                state.add_status(markup)
-                  .add_markup("", Text.Info(command.proper_range, elem))  // FIXME cumulation order!?
+                state.add_status(markup).add_markup("", Text.Info(command.proper_range, elem))
 
               case _ =>
-                java.lang.System.err.println("Ignored status message: " + msg)
+                System.err.println("Ignored status message: " + msg)
                 state
             })
 
         case XML.Elem(Markup(Markup.REPORT, _), msgs) =>
           (this /: msgs)((state, msg) =>
             {
-              def bad(): Unit = java.lang.System.err.println("Ignored report message: " + msg)
+              def bad(): Unit = System.err.println("Ignored report message: " + msg)
 
               msg match {
                 case XML.Elem(Markup(name, atts @ Position.Reported(id, file_name, raw_range)), args)
@@ -147,7 +146,7 @@ object Command
               st
 
             case _ =>
-              java.lang.System.err.println("Ignored message without serial number: " + message)
+              System.err.println("Ignored message without serial number: " + message)
               this
           }
       }

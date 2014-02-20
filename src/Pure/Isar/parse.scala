@@ -6,6 +6,7 @@ Generic parsers for Isabelle/Isar outer syntax.
 
 package isabelle
 
+
 import scala.util.parsing.combinator.Parsers
 import scala.annotation.tailrec
 

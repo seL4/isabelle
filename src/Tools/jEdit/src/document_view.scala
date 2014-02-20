@@ -243,7 +243,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
           }
 
         case bad =>
-          java.lang.System.err.println("command_change_actor: ignoring bad message " + bad)
+          System.err.println("command_change_actor: ignoring bad message " + bad)
       }
     }
   }

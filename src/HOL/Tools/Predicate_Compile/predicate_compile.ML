@@ -25,7 +25,7 @@ open Predicate_Compile_Aux;
 fun print_intross options thy msg intross =
   if show_intermediate_results options then
     tracing (msg ^
-      (space_implode "\n" (map
+      (cat_lines (map
         (fn (c, intros) => "Introduction rule(s) of " ^ c ^ ":\n" ^
            commas (map (Display.string_of_thm_global thy) intros)) intross)))
   else ()
@@ -34,8 +34,8 @@ fun print_specs options thy specs =
   if show_intermediate_results options then
     map (fn (c, thms) =>
       "Constant " ^ c ^ " has specification:\n" ^
-        (space_implode "\n" (map (Display.string_of_thm_global thy) thms)) ^ "\n") specs
-    |> space_implode "\n" |> tracing
+        (cat_lines (map (Display.string_of_thm_global thy) thms)) ^ "\n") specs
+    |> cat_lines |> tracing
   else ()
 
 fun overload_const thy s = the_default s (Option.map fst (Axclass.inst_of_param thy s))

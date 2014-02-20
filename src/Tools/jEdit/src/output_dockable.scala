@@ -14,7 +14,6 @@ import scala.actors.Actor._
 import scala.swing.{Button, CheckBox}
 import scala.swing.event.ButtonClicked
 
-import java.lang.System
 import java.awt.BorderLayout
 import java.awt.event.{ComponentEvent, ComponentAdapter}
 

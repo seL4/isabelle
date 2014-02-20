@@ -7,7 +7,7 @@ optional init operation.
 
 package isabelle
 
-import java.lang.System
+
 import java.util.regex.Pattern
 import java.io.{File => JFile, BufferedReader, InputStreamReader,
   BufferedWriter, OutputStreamWriter}

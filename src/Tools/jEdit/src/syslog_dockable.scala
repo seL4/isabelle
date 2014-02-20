@@ -40,7 +40,7 @@ class Syslog_Dockable(view: View, position: String) extends Dockable(view, posit
         case output: Isabelle_Process.Output =>
           if (output.is_syslog) Swing_Thread.later { update_syslog() }
 
-        case bad => java.lang.System.err.println("Syslog_Dockable: ignoring bad message " + bad)
+        case bad => System.err.println("Syslog_Dockable: ignoring bad message " + bad)
       }
     }
   }

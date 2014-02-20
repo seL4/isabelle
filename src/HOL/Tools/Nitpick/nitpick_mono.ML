@@ -531,7 +531,7 @@ fun print_solution asgs =
        |> AList.group (op =)
        |> map (fn (a, xs) => string_for_annotation a ^ ": " ^
                              string_for_vars ", " (sort int_ord xs))
-       |> space_implode "\n"))
+       |> cat_lines))
 
 (* The ML solver timeout should correspond more or less to the overhead of invoking an external
    prover. *)

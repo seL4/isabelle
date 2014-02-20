@@ -29,7 +29,7 @@ object Bytes
     if (length == 0) empty
     else {
       val b = new Array[Byte](length)
-      java.lang.System.arraycopy(a, offset, b, 0, length)
+      System.arraycopy(a, offset, b, 0, length)
       new Bytes(b, 0, b.length)
     }
 
@@ -101,8 +101,8 @@ final class Bytes private(
     else if (isEmpty) other
     else {
       val new_bytes = new Array[Byte](length + other.length)
-      java.lang.System.arraycopy(bytes, offset, new_bytes, 0, length)
-      java.lang.System.arraycopy(other.bytes, other.offset, new_bytes, length, other.length)
+      System.arraycopy(bytes, offset, new_bytes, 0, length)
+      System.arraycopy(other.bytes, other.offset, new_bytes, length, other.length)
       new Bytes(new_bytes, 0, new_bytes.length)
     }
 

@@ -24,7 +24,6 @@ ML_file "~~/src/Provers/splitter.ML"
 ML_file "~~/src/Provers/classical.ML"
 ML_file "~~/src/Provers/blast.ML"
 ML_file "~~/src/Provers/clasimp.ML"
-ML_file "~~/src/Tools/coherent.ML"
 ML_file "~~/src/Tools/eqsubst.ML"
 ML_file "~~/src/Provers/quantifier1.ML"
 ML_file "~~/src/Tools/atomize_elim.ML"
@@ -1561,19 +1560,17 @@ setup Induct_Tacs.setup
 
 subsubsection {* Coherent logic *}
 
+ML_file "~~/src/Tools/coherent.ML"
 ML {*
 structure Coherent = Coherent
 (
-  val atomize_elimL = @{thm atomize_elimL}
-  val atomize_exL = @{thm atomize_exL}
-  val atomize_conjL = @{thm atomize_conjL}
-  val atomize_disjL = @{thm atomize_disjL}
-  val operator_names =
-    [@{const_name HOL.disj}, @{const_name HOL.conj}, @{const_name Ex}]
+  val atomize_elimL = @{thm atomize_elimL};
+  val atomize_exL = @{thm atomize_exL};
+  val atomize_conjL = @{thm atomize_conjL};
+  val atomize_disjL = @{thm atomize_disjL};
+  val operator_names = [@{const_name HOL.disj}, @{const_name HOL.conj}, @{const_name Ex}];
 );
 *}
-
-setup Coherent.setup
 
 
 subsubsection {* Reorienting equalities *}

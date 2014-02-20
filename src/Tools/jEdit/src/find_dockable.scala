@@ -77,7 +77,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
           Swing_Thread.later { handle_resize() }
 
         case bad =>
-          java.lang.System.err.println("Find_Dockable: ignoring bad message " + bad)
+          System.err.println("Find_Dockable: ignoring bad message " + bad)
       }
     }
   }

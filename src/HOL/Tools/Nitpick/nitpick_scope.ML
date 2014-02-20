@@ -209,7 +209,7 @@ fun multiline_string_for_scope scope =
          (if null iters then [] else ["iter: " ^ commas (map implode iters)]) @
          miscs of
       [] => "empty"
-    | lines => space_implode "\n" lines
+    | lines => cat_lines lines
   end
 
 fun scopes_equivalent (s1 : scope, s2 : scope) =

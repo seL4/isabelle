@@ -13,7 +13,6 @@ import scala.actors.Actor._
 import scala.swing.{Label, ListView, Alignment, ScrollPane, Component, TextField}
 import scala.swing.event.{MouseClicked, ValueChanged}
 
-import java.lang.System
 import java.awt.{BorderLayout, Graphics2D, Insets, Color}
 import javax.swing.{JList, BorderFactory}
 import javax.swing.border.{BevelBorder, SoftBevelBorder}

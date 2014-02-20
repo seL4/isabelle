@@ -314,7 +314,7 @@ fun read pos txt =
         |> Source.source Symbol_Pos.stopper (Scan.bulk (!!! "bad input" scan_antiq))
           (SOME (false, fn msg => recover msg >> map Antiquote.Text))
         |> Source.exhaust
-        |> tap (Position.reports_text o Antiquote.reports_of (single o report_of_token))
+        |> tap (Position.reports_text o Antiquote.antiquote_reports (single o report_of_token))
         |> tap (List.app (fn Antiquote.Text tok => (check_content_of tok; warn tok) | _ => ())));
   in input @ termination end;
 

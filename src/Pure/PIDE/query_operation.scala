@@ -224,7 +224,7 @@ class Query_Operation[Editor_Context](
             case _ =>
           }
         case bad =>
-          java.lang.System.err.println("Query_Operation: ignoring bad message " + bad)
+          System.err.println("Query_Operation: ignoring bad message " + bad)
       }
     }
   }

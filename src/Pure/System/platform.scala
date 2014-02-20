@@ -7,7 +7,6 @@ Raw platform identification.
 
 package isabelle
 
-import java.lang.System
 
 import scala.util.matching.Regex
 
