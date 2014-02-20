@@ -46,7 +46,8 @@ sig
   val abbreviation_cmd: Syntax.mode -> (binding * string option * mixfix) option * string ->
     bool -> local_theory -> local_theory
   val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> local_theory -> local_theory
-  val type_notation_cmd: bool -> Syntax.mode -> (string * mixfix) list -> local_theory -> local_theory
+  val type_notation_cmd: bool -> Syntax.mode -> (string * mixfix) list ->
+    local_theory -> local_theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
   val notation_cmd: bool -> Syntax.mode -> (string * mixfix) list -> local_theory -> local_theory
   val theorems: string ->
@@ -90,7 +91,8 @@ fun close_forms ctxt i xs As =
       (case duplicates (op =) commons of [] => ()
       | dups => error ("Duplicate local variables " ^ commas_quote dups));
     val frees = rev (fold (Variable.add_free_names ctxt) As (rev commons));
-    val types = map (Type_Infer.param i o rpair []) (Name.invent Name.context Name.aT (length frees));
+    val types =
+      map (Type_Infer.param i o rpair []) (Name.invent Name.context Name.aT (length frees));
     val uniform_typing = the o AList.lookup (op =) (frees ~~ types);
 
     fun abs_body lev y (Abs (x, T, b)) = Abs (x, T, abs_body (lev + 1) y b)

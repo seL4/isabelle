@@ -233,7 +233,8 @@ fun lookup_consumes th =
   (case AList.lookup (op =) (Thm.get_tags th) consumes_tagN of
     NONE => NONE
   | SOME s =>
-      (case Lexicon.read_nat s of SOME n => SOME n
+      (case Lexicon.read_nat s of
+        SOME n => SOME n
       | _ => raise THM ("Malformed 'consumes' tag of theorem", 0, [th])));
 
 fun get_consumes th = the_default 0 (lookup_consumes th);
@@ -262,7 +263,8 @@ fun lookup_constraints th =
   (case AList.lookup (op =) (Thm.get_tags th) constraints_tagN of
     NONE => NONE
   | SOME s =>
-      (case Lexicon.read_nat s of SOME n => SOME n
+      (case Lexicon.read_nat s of
+        SOME n => SOME n
       | _ => raise THM ("Malformed 'constraints' tag of theorem", 0, [th])));
 
 fun get_constraints th = the_default 0 (lookup_constraints th);
@@ -341,7 +343,8 @@ fun get_case_concls th name =
 fun save_case_concls th =
   let val concls = Thm.get_tags th |> map_filter
     (fn (a, b) =>
-      if a = case_concl_tagN then (case explode_args b of c :: cs => SOME (c, cs) | _ => NONE)
+      if a = case_concl_tagN
+      then (case explode_args b of c :: cs => SOME (c, cs) | _ => NONE)
       else NONE)
   in fold add_case_concl concls end;
 
@@ -385,7 +388,8 @@ fun get th =
       (case lookup_case_names th of
         NONE => map (rpair [] o Library.string_of_int) (1 upto (Thm.nprems_of th - n))
       | SOME names => map (fn name => (name, get_case_concls th name)) names);
-    val cases_hyps = (case lookup_cases_hyp_names th of
+    val cases_hyps =
+      (case lookup_cases_hyp_names th of
         NONE => replicate (length cases) []
       | SOME names => names);
     fun regroup ((name,concls),hyps) = ((name,hyps),concls)

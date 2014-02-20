@@ -19,10 +19,12 @@ sig
     Proof.context -> (term * term list) list list * Proof.context
 
   (* Declaring locales *)
-  val cert_declaration: expression_i -> (Proof.context -> Proof.context) -> Element.context_i list ->
+  val cert_declaration: expression_i -> (Proof.context -> Proof.context) ->
+    Element.context_i list ->
     Proof.context -> (((string * typ) * mixfix) list * (string * morphism) list
       * Element.context_i list * Proof.context) * ((string * typ) list * Proof.context)
-  val cert_read_declaration: expression_i -> (Proof.context -> Proof.context) -> Element.context list ->
+  val cert_read_declaration: expression_i -> (Proof.context -> Proof.context) ->
+    Element.context list ->
     Proof.context -> (((string * typ) * mixfix) list * (string * morphism) list
       * Element.context_i list * Proof.context) * ((string * typ) list * Proof.context)
       (*FIXME*)
@@ -39,13 +41,16 @@ sig
     (term list list * (string * morphism) list * morphism) * Proof.context
   val read_goal_expression: expression -> Proof.context ->
     (term list list * (string * morphism) list * morphism) * Proof.context
-  val permanent_interpretation: expression_i -> (Attrib.binding * term) list -> local_theory -> Proof.state
-  val ephemeral_interpretation: expression_i -> (Attrib.binding * term) list -> local_theory -> Proof.state
+  val permanent_interpretation: expression_i -> (Attrib.binding * term) list ->
+    local_theory -> Proof.state
+  val ephemeral_interpretation: expression_i -> (Attrib.binding * term) list ->
+    local_theory -> Proof.state
   val interpret: expression_i -> (Attrib.binding * term) list -> bool -> Proof.state -> Proof.state
   val interpret_cmd: expression -> (Attrib.binding * string) list ->
     bool -> Proof.state -> Proof.state
   val interpretation: expression_i -> (Attrib.binding * term) list -> local_theory -> Proof.state
-  val interpretation_cmd: expression -> (Attrib.binding * string) list -> local_theory -> Proof.state
+  val interpretation_cmd: expression -> (Attrib.binding * string) list ->
+    local_theory -> Proof.state
   val sublocale: expression_i -> (Attrib.binding * term) list -> local_theory -> Proof.state
   val sublocale_cmd: expression -> (Attrib.binding * string) list -> local_theory -> Proof.state
   val sublocale_global: (local_theory -> local_theory) -> string -> expression_i ->
@@ -138,8 +143,11 @@ fun parameters_of thy strict (expr, fixed) =
     val implicit'' =
       if strict then []
       else
-        let val _ = reject_dups
-          "Parameter(s) declared simultaneously in expression and for clause: " (implicit' @ fixed')
+        let
+          val _ =
+            reject_dups
+              "Parameter(s) declared simultaneously in expression and for clause: "
+              (implicit' @ fixed');
         in map (fn (x, mx) => (Binding.name x, NONE, mx)) implicit end;
 
   in (expr', implicit'' @ fixed) end;
@@ -492,7 +500,8 @@ fun props_of thy (name, morph) =
   let
     val (asm, defs) = Locale.specification_of thy name;
   in
-    (case asm of NONE => defs | SOME asm => asm :: defs) |> map (Morphism.term morph)
+    (case asm of NONE => defs | SOME asm => asm :: defs)
+    |> map (Morphism.term morph)
   end;
 
 fun prep_goal_expression prep expression context =
@@ -581,12 +590,13 @@ fun eval_inst ctxt (loc, morph) text =
     val (asm, defs) = Locale.specification_of thy loc;
     val asm' = Option.map (Morphism.term morph) asm;
     val defs' = map (Morphism.term morph) defs;
-    val text' = text |>
-      (if is_some asm
-        then eval_text ctxt false (Assumes [(Attrib.empty_binding, [(the asm', [])])])
+    val text' =
+      text |>
+       (if is_some asm then
+          eval_text ctxt false (Assumes [(Attrib.empty_binding, [(the asm', [])])])
         else I) |>
-      (if not (null defs)
-        then eval_text ctxt false (Defines (map (fn def => (Attrib.empty_binding, (def, []))) defs'))
+       (if not (null defs) then
+          eval_text ctxt false (Defines (map (fn def => (Attrib.empty_binding, (def, []))) defs'))
         else I)
 (* FIXME clone from locale.ML *)
   in text' end;
@@ -618,7 +628,8 @@ fun atomize_spec thy ts =
     val body = Object_Logic.atomize_term thy t;
     val bodyT = Term.fastype_of body;
   in
-    if bodyT = propT then (t, propT, Thm.reflexive (Thm.cterm_of thy t))
+    if bodyT = propT
+    then (t, propT, Thm.reflexive (Thm.cterm_of thy t))
     else (body, bodyT, Object_Logic.atomize (Proof_Context.init_global thy) (Thm.cterm_of thy t))
   end;
 
@@ -700,7 +711,8 @@ fun define_preds binding parms (((exts, exts'), (ints, ints')), defs) thy =
       if null exts then (NONE, NONE, [], thy)
       else
         let
-          val abinding = if null ints then binding else Binding.suffix_name ("_" ^ axiomsN) binding;
+          val abinding =
+            if null ints then binding else Binding.suffix_name ("_" ^ axiomsN) binding;
           val ((statement, intro, axioms), thy') =
             thy
             |> def_pred abinding parms defs' exts exts';
@@ -761,7 +773,9 @@ fun gen_add_locale prep_decl
     val text as (((_, exts'), _), defs) = eval ctxt' deps body_elems;
 
     val extraTs =
-      subtract (op =) (fold Term.add_tfreesT (map snd parms) []) (fold Term.add_tfrees exts' []);
+      subtract (op =)
+        (fold Term.add_tfreesT (map snd parms) [])
+        (fold Term.add_tfrees exts' []);
     val _ =
       if null extraTs then ()
       else warning ("Additional type variable(s) in locale specification " ^
@@ -790,14 +804,15 @@ fun gen_add_locale prep_decl
             [(Attrib.internal o K) Locale.witness_add])])])]
       else [];
 
-    val notes' = body_elems |>
-      map (defines_to_notes pred_ctxt) |>
-      map (Element.transform_ctxt a_satisfy) |>
-      (fn elems =>
-        fold_map assumes_to_notes elems (map (Element.conclude_witness pred_ctxt) a_axioms)) |>
-      fst |>
-      map (Element.transform_ctxt b_satisfy) |>
-      map_filter (fn Notes notes => SOME notes | _ => NONE);
+    val notes' =
+      body_elems
+      |> map (defines_to_notes pred_ctxt)
+      |> map (Element.transform_ctxt a_satisfy)
+      |> (fn elems =>
+        fold_map assumes_to_notes elems (map (Element.conclude_witness pred_ctxt) a_axioms))
+      |> fst
+      |> map (Element.transform_ctxt b_satisfy)
+      |> map_filter (fn Notes notes => SOME notes | _ => NONE);
 
     val deps' = map (fn (l, morph) => (l, morph $> b_satisfy)) deps;
     val axioms = map (Element.conclude_witness pred_ctxt) b_axioms;
@@ -836,7 +851,8 @@ fun prep_interpretation prep_expr prep_prop prep_attr expression raw_eqns initia
   let
     val ((propss, deps, export), expr_ctxt) = prep_expr expression initial_ctxt;
     val eqns = prep_with_extended_syntax prep_prop deps expr_ctxt raw_eqns;
-    val attrss = map (apsnd (map (prep_attr (Proof_Context.theory_of initial_ctxt))) o fst) raw_eqns;
+    val attrss =
+      map (apsnd (map (prep_attr (Proof_Context.theory_of initial_ctxt))) o fst) raw_eqns;
     val goal_ctxt = fold Variable.auto_fixes eqns expr_ctxt;
     val export' = Variable.export_morphism goal_ctxt expr_ctxt;
   in (((propss, deps, export, export'), (eqns, attrss)), goal_ctxt) end;
@@ -918,8 +934,10 @@ fun subscribe_or_activate lthy =
 
 fun subscribe_locale_only lthy =
   let
-    val _ = if Named_Target.is_theory lthy
-      then error "Not possible on level of global theory" else ();
+    val _ =
+      if Named_Target.is_theory lthy
+      then error "Not possible on level of global theory"
+      else ();
   in subscribe lthy end;
 
 
@@ -929,7 +947,7 @@ fun gen_sublocale_global prep_loc prep_interpretation
     before_exit raw_locale expression raw_eqns thy =
   thy
   |> Named_Target.init before_exit (prep_loc thy raw_locale)
-  |> gen_local_theory_interpretation prep_interpretation subscribe_locale_only expression raw_eqns
+  |> gen_local_theory_interpretation prep_interpretation subscribe_locale_only expression raw_eqns;
 
 in
 
