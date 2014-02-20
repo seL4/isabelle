@@ -7,7 +7,7 @@ Isabelle process management -- always reactive due to multi-threaded I/O.
 
 package isabelle
 
-import java.lang.System
+
 import java.util.concurrent.LinkedBlockingQueue
 import java.io.{BufferedReader, BufferedWriter, InputStreamReader, OutputStreamWriter,
   InputStream, OutputStream, BufferedOutputStream, IOException}

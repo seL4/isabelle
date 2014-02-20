@@ -14,7 +14,6 @@ import scala.swing.{Button, TextArea, Label, ListView, Alignment,
   ScrollPane, Component, CheckBox, BorderPanel}
 import scala.swing.event.{MouseClicked, MouseMoved}
 
-import java.lang.System
 import java.awt.{BorderLayout, Graphics2D, Color, Point, Dimension}
 import javax.swing.{JList, BorderFactory}
 import javax.swing.border.{BevelBorder, SoftBevelBorder}

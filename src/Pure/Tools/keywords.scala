@@ -142,7 +142,7 @@ object Keywords
     }
 
     val file = if (name == "") "isar-keywords.el" else "isar-keywords-" + name + ".el"
-    java.lang.System.err.println(file)
+    System.err.println(file)
     File.write(Path.explode(file), output)
   }
 

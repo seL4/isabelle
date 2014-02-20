@@ -233,7 +233,7 @@ class Plugin extends EBPlugin
 
             case _ =>
           }
-        case bad => java.lang.System.err.println("session_manager: ignoring bad message " + bad)
+        case bad => System.err.println("session_manager: ignoring bad message " + bad)
       }
     }
   }

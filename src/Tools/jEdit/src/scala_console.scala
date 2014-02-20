@@ -14,7 +14,6 @@ import console.{Console, ConsolePane, Shell, Output}
 import org.gjt.sp.jedit.{jEdit, JARClassLoader}
 import org.gjt.sp.jedit.MiscUtilities
 
-import java.lang.System
 import java.io.{File => JFile, FileFilter, OutputStream, Writer, PrintWriter}
 
 import scala.tools.nsc.{GenericRunnerSettings, NewLinePrintWriter, ConsoleWriter}

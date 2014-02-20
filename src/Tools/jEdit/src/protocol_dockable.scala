@@ -9,8 +9,6 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.lang.System
-
 import scala.actors.Actor._
 import scala.swing.{TextArea, ScrollPane}
 

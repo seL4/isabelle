@@ -6,6 +6,7 @@ Isabelle font support.
 
 package isabelle
 
+
 import java.awt.{GraphicsEnvironment, Font}
 import java.io.{FileInputStream, BufferedInputStream}
 import javafx.scene.text.{Font => JFX_Font}

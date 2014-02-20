@@ -7,7 +7,7 @@ Main Isabelle application entry point.
 package isabelle
 
 
-import java.lang.{System, Class, ClassLoader}
+import java.lang.{Class, ClassLoader}
 import java.io.{File => JFile, BufferedReader, InputStreamReader}
 import java.nio.file.Files
 

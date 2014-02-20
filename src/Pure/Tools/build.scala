@@ -33,7 +33,7 @@ object Build
 
   class Console_Progress(verbose: Boolean) extends Progress
   {
-    override def echo(msg: String) { java.lang.System.out.println(msg) }
+    override def echo(msg: String) { System.out.println(msg) }
     override def theory(session: String, theory: String): Unit =
       if (verbose) echo(session + ": theory " + theory)
 
@@ -744,7 +744,7 @@ object Build
 
       def ignore_error(msg: String): (List[Properties.T], Double) =
       {
-        java.lang.System.err.println("### Ignoring bad log file: " + path +
+        System.err.println("### Ignoring bad log file: " + path +
           (if (msg == "") "" else "\n" + msg))
         (Nil, 0.0)
       }

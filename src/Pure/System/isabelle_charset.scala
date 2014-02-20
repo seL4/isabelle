@@ -6,6 +6,7 @@ Charset for Isabelle symbols.
 
 package isabelle
 
+
 import java.nio.Buffer
 import java.nio.{ByteBuffer, CharBuffer}
 import java.nio.charset.{Charset, CharsetDecoder, CharsetEncoder, CoderResult}

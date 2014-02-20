@@ -8,6 +8,7 @@ Sets with canonical linear order, or immutable linked-lists.
 
 package isabelle
 
+
 import scala.collection.SetLike
 import scala.collection.generic.{ImmutableSetFactory, CanBuildFrom,
   GenericSetTemplate, GenericCompanion}

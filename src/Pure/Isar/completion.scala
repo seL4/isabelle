@@ -6,6 +6,7 @@ Completion of symbols and keywords.
 
 package isabelle
 
+
 import scala.collection.immutable.SortedMap
 import scala.util.parsing.combinator.RegexParsers
 import scala.math.Ordering
@@ -55,7 +56,7 @@ object Completion
     def load(): History =
     {
       def ignore_error(msg: String): Unit =
-        java.lang.System.err.println("### Ignoring bad content of file " + COMPLETION_HISTORY +
+        System.err.println("### Ignoring bad content of file " + COMPLETION_HISTORY +
           (if (msg == "") "" else "\n" + msg))
 
       val content =

@@ -104,7 +104,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
           Swing_Thread.later { update_provers() }
 
         case bad =>
-          java.lang.System.err.println("Sledgehammer_Dockable: ignoring bad message " + bad)
+          System.err.println("Sledgehammer_Dockable: ignoring bad message " + bad)
       }
     }
   }

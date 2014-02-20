@@ -7,6 +7,7 @@ Evaluation within the AWT/Swing thread.
 
 package isabelle
 
+
 import javax.swing.{SwingUtilities, Timer}
 import java.awt.event.{ActionListener, ActionEvent}
 

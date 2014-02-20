@@ -9,6 +9,7 @@ package isabelle.graphview
 
 import isabelle._
 import isabelle.graphview.Mutators._
+
 import java.awt.Color
 
 

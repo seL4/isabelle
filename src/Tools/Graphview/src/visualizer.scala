@@ -9,7 +9,6 @@ package isabelle.graphview
 
 import isabelle._
 
-
 import java.awt.{Font, FontMetrics, Color => JColor, Shape, RenderingHints, Graphics2D}
 import java.awt.image.BufferedImage
 import javax.swing.JComponent

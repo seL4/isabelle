@@ -7,6 +7,7 @@ Generic event bus with multiple receiving actors.
 
 package isabelle
 
+
 import scala.actors.Actor, Actor._
 import scala.collection.mutable.ListBuffer
 
