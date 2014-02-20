@@ -81,7 +81,7 @@ definition sndOp where "sndOp P Q ac = (pick_middlep P Q (fst ac) (snd ac), (snd
 
 lemma fstOp_in: "ac \<in> Collect (split (P OO Q)) \<Longrightarrow> fstOp P Q ac \<in> Collect (split P)"
 unfolding fstOp_def mem_Collect_eq
-by (subst (asm) surjective_pairing, unfold prod.cases) (erule pick_middlep[THEN conjunct1])
+by (subst (asm) surjective_pairing, unfold prod.case) (erule pick_middlep[THEN conjunct1])
 
 lemma fst_fstOp: "fst bc = (fst \<circ> fstOp P Q) bc"
 unfolding comp_def fstOp_def by simp
@@ -91,7 +91,7 @@ unfolding comp_def sndOp_def by simp
 
 lemma sndOp_in: "ac \<in> Collect (split (P OO Q)) \<Longrightarrow> sndOp P Q ac \<in> Collect (split Q)"
 unfolding sndOp_def mem_Collect_eq
-by (subst (asm) surjective_pairing, unfold prod.cases) (erule pick_middlep[THEN conjunct2])
+by (subst (asm) surjective_pairing, unfold prod.case) (erule pick_middlep[THEN conjunct2])
 
 lemma csquare_fstOp_sndOp:
 "csquare (Collect (split (P OO Q))) snd fst (fstOp P Q) (sndOp P Q)"

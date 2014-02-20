@@ -1753,8 +1753,8 @@ hide_const (open)
 hide_fact (open)
   Abs_compare_cases Abs_compare_induct Abs_compare_inject Abs_compare_inverse
   Rep_compare Rep_compare_cases Rep_compare_induct Rep_compare_inject Rep_compare_inverse
-  compare.simps compare.exhaust compare.induct compare.recs compare.simps
-  compare.size compare.case_cong compare.weak_case_cong compare.cases 
+  compare.simps compare.exhaust compare.induct compare.rec compare.simps
+  compare.size compare.case_cong compare.weak_case_cong compare.case
   compare.nchotomy compare.split compare.split_asm rec_compare_def
   compare.eq.refl compare.eq.simps
   compare.EQ_def compare.GT_def compare.LT_def

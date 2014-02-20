@@ -751,7 +751,7 @@ fun mk_dtor_o_ctor_tac ctxt ctor_def unfold map_comp_id map_cong0L unfold_o_dtor
 
 fun mk_corec_tac ctxt m corec_defs unfold map_cong0 corec_Inls =
   unfold_thms_tac ctxt corec_defs THEN EVERY' [rtac trans, rtac (o_apply RS arg_cong),
-    rtac trans, rtac unfold, fo_rtac (@{thm sum.cases(2)} RS arg_cong RS trans) ctxt, rtac map_cong0,
+    rtac trans, rtac unfold, fo_rtac (@{thm sum.case(2)} RS arg_cong RS trans) ctxt, rtac map_cong0,
     REPEAT_DETERM_N m o rtac refl,
     EVERY' (map (fn thm => rtac @{thm case_sum_expand_Inr} THEN' rtac thm) corec_Inls)] 1;
 
@@ -1033,8 +1033,8 @@ fun mk_rel_coinduct_coind_tac ctxt m coinduct ks map_comp0s map_congs map_arg_co
           rtac (map_comp0 RS trans), rtac (map_cong RS trans),
           REPEAT_DETERM_N m o rtac @{thm fun_cong[OF id_comp]},
           REPEAT_DETERM_N n o (rtac @{thm trans[OF o_apply]} THEN' rtac @{thm snd_conv}),
-          etac (@{thm prod.cases} RS map_arg_cong RS trans),
-          SELECT_GOAL (unfold_thms_tac ctxt @{thms prod.cases}), 
+          etac (@{thm prod.case} RS map_arg_cong RS trans),
+          SELECT_GOAL (unfold_thms_tac ctxt @{thms prod.case}), 
           CONJ_WRAP' (fn set_map0 =>
             EVERY' [REPEAT_DETERM o resolve_tac [allI, impI],
               dtac (set_map0 RS equalityD1 RS set_mp),
@@ -1046,7 +1046,7 @@ fun mk_rel_coinduct_coind_tac ctxt m coinduct ks map_comp0s map_congs map_arg_co
       ks map_comp0s map_congs map_arg_congs set_map0ss dtor_unfolds dtor_maps)] 1
   end;
 
-val split_id_unfolds = @{thms prod.cases image_id id_apply};
+val split_id_unfolds = @{thms prod.case image_id id_apply};
 
 fun mk_rel_coinduct_ind_tac ctxt m ks unfolds set_map0ss j set_induct =
   let val n = length ks;

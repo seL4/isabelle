@@ -145,7 +145,7 @@ fun prove_match options ctxt nargs out_ts =
           fold (union Thm.eq_thm) (case_thms :: map get_case_rewrite (snd (strip_comb t))) []
         end
       else []
-    val simprules = insert Thm.eq_thm @{thm "unit.cases"} (insert Thm.eq_thm @{thm "prod.cases"}
+    val simprules = insert Thm.eq_thm @{thm "unit.case"} (insert Thm.eq_thm @{thm "prod.case"}
       (fold (union Thm.eq_thm) (map get_case_rewrite out_ts) []))
   (* replace TRY by determining if it necessary - are there equations when calling compile match? *)
   in

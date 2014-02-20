@@ -112,9 +112,8 @@ declare
 
 lemmas induct = old.nat.induct
 lemmas inducts = old.nat.inducts
-lemmas recs = old.nat.recs
-lemmas cases = nat.case
-lemmas simps = nat.inject nat.distinct nat.case old.nat.recs
+lemmas rec = old.nat.rec
+lemmas simps = nat.inject nat.distinct nat.case nat.rec
 
 setup {* Sign.parent_path *}
 

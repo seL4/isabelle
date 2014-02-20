@@ -107,7 +107,7 @@ end
 
 subsubsection {* Code generator setup *}
 
-lemmas [code del] = term.recs term.cases term.size
+lemmas [code del] = term.rec term.case term.size
 lemma [code, code del]: "HOL.equal (t1\<Colon>term) t2 \<longleftrightarrow> HOL.equal t1 t2" ..
 
 lemma [code, code del]: "(term_of \<Colon> typerep \<Rightarrow> term) = term_of" ..

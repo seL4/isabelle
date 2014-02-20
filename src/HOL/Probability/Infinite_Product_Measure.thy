@@ -196,7 +196,7 @@ next
           (\<forall>n. ?a / 2 ^ (k + 1) \<le> ?q k n (w k)) \<and> (k \<noteq> 0 \<longrightarrow> restrict (w k) (J (k - 1)) = w (k - 1))"
         proof (induct k)
           case 0 with w0 show ?case
-            unfolding w_def nat.recs(1) by auto
+            unfolding w_def nat.rec(1) by auto
         next
           case (Suc k)
           then have wk: "w k \<in> space (Pi\<^sub>M (J k) M)" by auto
@@ -241,7 +241,7 @@ next
                  (auto split: split_merge intro!: extensional_merge_sub ext simp: space_PiM PiE_iff)
           qed
           then have "?P k (w k) (w (Suc k))"
-            unfolding w_def nat.recs(2) unfolding w_def[symmetric]
+            unfolding w_def nat.rec(2) unfolding w_def[symmetric]
             by (rule someI_ex)
           then show ?case by auto
         qed

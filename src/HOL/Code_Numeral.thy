@@ -888,7 +888,7 @@ lemma [code, code_unfold]:
   "case_natural f g n = (if n = 0 then f else g (n - 1))"
   by (cases n rule: natural.exhaust) (simp_all, simp add: Suc_def)
 
-declare natural.recs [code del]
+declare natural.rec [code del]
 
 lemma [code abstract]:
   "integer_of_natural (m + n) = integer_of_natural m + integer_of_natural n"

@@ -35,7 +35,7 @@ open BNF_FP_Util
 val basic_simp_thms = @{thms simp_thms(7,8,12,14,22,24)};
 val more_simp_thms = basic_simp_thms @ @{thms simp_thms(11,15,16,21)};
 
-val sum_prod_thms_map = @{thms id_apply map_pair_simp prod.cases sum.cases sum_map.simps};
+val sum_prod_thms_map = @{thms id_apply map_pair_simp prod.case sum.case sum_map.simps};
 val sum_prod_thms_set0 =
   @{thms SUP_empty Sup_empty Sup_insert UN_insert Un_empty_left Un_empty_right Un_iff
       Union_Un_distrib collect_def[abs_def] image_def o_apply map_pair_simp

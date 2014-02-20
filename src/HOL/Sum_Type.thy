@@ -114,9 +114,8 @@ declare
 
 lemmas induct = old.sum.induct
 lemmas inducts = old.sum.inducts
-lemmas recs = old.sum.recs
-lemmas cases = sum.case
-lemmas simps = sum.inject sum.distinct sum.case old.sum.recs
+lemmas rec = old.sum.rec
+lemmas simps = sum.inject sum.distinct sum.case sum.rec
 
 setup {* Sign.parent_path *}
 

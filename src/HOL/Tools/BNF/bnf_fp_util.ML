@@ -468,8 +468,8 @@ fun mk_sum_step base step thm =
 
 fun mk_sum_caseN_balanced 1 1 = refl
   | mk_sum_caseN_balanced n k =
-    Balanced_Tree.access {left = mk_sum_step @{thm sum.cases(1)} @{thm case_sum_step(1)},
-      right = mk_sum_step @{thm sum.cases(2)} @{thm case_sum_step(2)}, init = refl} n k;
+    Balanced_Tree.access {left = mk_sum_step @{thm sum.case(1)} @{thm case_sum_step(1)},
+      right = mk_sum_step @{thm sum.case(2)} @{thm case_sum_step(2)}, init = refl} n k;
 
 fun mk_rel_xtor_co_induct_thm fp pre_rels pre_phis rels phis xs ys xtors xtor's tac lthy =
   let

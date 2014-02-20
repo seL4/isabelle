@@ -74,7 +74,7 @@ qed
 subsection {* Continuity of @{const case_lift} *}
 
 lemma case_lift_eq: "case_lift \<bottom> f x = fup\<cdot>(\<Lambda> y. f (undiscr y))\<cdot>(Rep_lift x)"
-apply (induct x, unfold lift.cases)
+apply (induct x, unfold lift.case)
 apply (simp add: Rep_lift_strict)
 apply (simp add: Def_def Abs_lift_inverse)
 done

@@ -52,8 +52,8 @@ where
 code_datatype Lazy_Sequence
 
 declare list_of_lazy_sequence.simps [code del]
-declare lazy_sequence.cases [code del]
-declare lazy_sequence.recs [code del]
+declare lazy_sequence.case [code del]
+declare lazy_sequence.rec [code del]
 
 lemma list_of_Lazy_Sequence [simp]:
   "list_of_lazy_sequence (Lazy_Sequence f) = (case f () of

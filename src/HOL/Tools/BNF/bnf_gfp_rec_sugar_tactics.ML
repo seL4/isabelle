@@ -138,7 +138,7 @@ fun mk_primcorec_sel_tac ctxt defs distincts splits split_asms mapsx map_idents 
     eresolve_tac (map (fn thm => thm RS neq_eq_eq_contradict) distincts) THEN' atac ORELSE'
     etac notE THEN' atac ORELSE'
     (CHANGED o SELECT_GOAL (unfold_thms_tac ctxt (@{thms fst_conv snd_conv id_def comp_def split_def
-       sum.cases} @ mapsx @ map_comps @ map_idents))) ORELSE'
+       sum.case} @ mapsx @ map_comps @ map_idents))) ORELSE'
     fo_rtac @{thm cong} ctxt ORELSE'
     rtac ext));
 

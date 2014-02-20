@@ -323,14 +323,14 @@ fun intro_image_tac ctxt = rtac @{thm image_eqI}
     THEN' (REPEAT_DETERM1 o
       (rtac @{thm refl}
       ORELSE' rtac
-        @{thm arg_cong2[OF refl, where f="op =", OF prod.cases, THEN iffD2]}
+        @{thm arg_cong2[OF refl, where f="op =", OF prod.case, THEN iffD2]}
       ORELSE' CONVERSION (Conv.params_conv ~1 (K (Conv.concl_conv ~1
         (HOLogic.Trueprop_conv
           (HOLogic.eq_conv Conv.all_conv (Conv.rewr_conv (mk_meta_eq case_prod_distrib)))))) ctxt)))
 
 fun elim_image_tac ctxt = etac @{thm imageE}
   THEN' REPEAT_DETERM o CHANGED o
-    (TRY o full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps @{thms split_paired_all prod.cases})
+    (TRY o full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps @{thms split_paired_all prod.case})
     THEN' REPEAT_DETERM o etac @{thm Pair_inject}
     THEN' TRY o hyp_subst_tac ctxt)
 
@@ -348,13 +348,13 @@ fun tac1_of_formula ctxt (Int (fm1, fm2)) =
     REPEAT_DETERM1 o (atac
       ORELSE' rtac @{thm SigmaI}
       ORELSE' ((rtac @{thm CollectI} ORELSE' rtac collectI') THEN'
-        TRY o simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm prod.cases}]))
+        TRY o simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm prod.case}]))
       ORELSE' ((rtac @{thm vimageI2} ORELSE' rtac vimageI2') THEN'
-        TRY o simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm prod.cases}]))
+        TRY o simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm prod.case}]))
       ORELSE' (rtac @{thm image_eqI} THEN'
     (REPEAT_DETERM o
       (rtac @{thm refl}
-      ORELSE' rtac @{thm arg_cong2[OF refl, where f="op =", OF prod.cases, THEN iffD2]})))
+      ORELSE' rtac @{thm arg_cong2[OF refl, where f="op =", OF prod.case, THEN iffD2]})))
       ORELSE' rtac @{thm UNIV_I}
       ORELSE' rtac @{thm iffD2[OF Compl_iff]}
       ORELSE' atac)
@@ -375,16 +375,16 @@ fun tac2_of_formula ctxt (Int (fm1, fm2)) =
        ORELSE' dtac @{thm iffD1[OF mem_Sigma_iff]}
        ORELSE' etac @{thm conjE}
        ORELSE' ((etac @{thm CollectE} ORELSE' etac collectE') THEN'
-         TRY o full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm prod.cases}]) THEN'
+         TRY o full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm prod.case}]) THEN'
          REPEAT_DETERM o etac @{thm Pair_inject} THEN' TRY o hyp_subst_tac ctxt THEN' TRY o rtac @{thm refl})
        ORELSE' (etac @{thm imageE}
          THEN' (REPEAT_DETERM o CHANGED o
-         (TRY o full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps @{thms split_paired_all prod.cases})
+         (TRY o full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps @{thms split_paired_all prod.case})
          THEN' REPEAT_DETERM o etac @{thm Pair_inject}
          THEN' TRY o hyp_subst_tac ctxt THEN' TRY o rtac @{thm refl})))
        ORELSE' etac @{thm ComplE}
        ORELSE' ((etac @{thm vimageE} ORELSE' etac vimageE')
-        THEN' TRY o full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm prod.cases}])
+        THEN' TRY o full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm prod.case}])
         THEN' TRY o hyp_subst_tac ctxt THEN' TRY o rtac @{thm refl}))
 
 fun tac ctxt fm =
@@ -427,7 +427,7 @@ fun comprehension_conv ctxt ct =
         HOLogic.Collect_const T $ absdummy T (list_ex vs (HOLogic.mk_conj (eq, t'')))
       end;
     fun is_eq th = is_some (try (HOLogic.dest_eq o HOLogic.dest_Trueprop) (prop_of th))
-    val unfold_thms = @{thms split_paired_all mem_Collect_eq prod.cases}
+    val unfold_thms = @{thms split_paired_all mem_Collect_eq prod.case}
     fun tac ctxt = 
       rtac @{thm set_eqI}
       THEN' simp_tac (put_simpset HOL_basic_ss ctxt addsimps unfold_thms)

@@ -1129,7 +1129,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
     val phi = Proof_Context.export_morphism lthy_old lthy;
 
     val strT_defs = map (fn def =>
-        trans OF [Morphism.thm phi def RS meta_eq_to_obj_eq RS fun_cong, @{thm prod.cases}])
+        trans OF [Morphism.thm phi def RS meta_eq_to_obj_eq RS fun_cong, @{thm prod.case}])
       strT_def_frees;
     val strTs = map (fst o Term.dest_Const o Morphism.term phi) strT_frees;
 

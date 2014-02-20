@@ -280,28 +280,28 @@ realizers
   conjunct2: "Null" "conjunct2"
 
   disjI1 (P, Q): "Inl"
-    "\<^bold>\<lambda>(c: _) (d: _) P Q p. iffD2 \<cdot> _ \<cdot> _ \<bullet> (sum.cases_1 \<cdot> P \<cdot> _ \<cdot> p \<bullet> arity_type_bool \<bullet> c \<bullet> d)"
+    "\<^bold>\<lambda>(c: _) (d: _) P Q p. iffD2 \<cdot> _ \<cdot> _ \<bullet> (sum.case_1 \<cdot> P \<cdot> _ \<cdot> p \<bullet> arity_type_bool \<bullet> c \<bullet> d)"
 
   disjI1 (P): "Some"
-    "\<^bold>\<lambda>(c: _) P Q p. iffD2 \<cdot> _ \<cdot> _ \<bullet> (option.cases_2 \<cdot> _ \<cdot> P \<cdot> p \<bullet> arity_type_bool \<bullet> c)"
+    "\<^bold>\<lambda>(c: _) P Q p. iffD2 \<cdot> _ \<cdot> _ \<bullet> (option.case_2 \<cdot> _ \<cdot> P \<cdot> p \<bullet> arity_type_bool \<bullet> c)"
 
   disjI1 (Q): "None"
-    "\<^bold>\<lambda>(c: _) P Q. iffD2 \<cdot> _ \<cdot> _ \<bullet> (option.cases_1 \<cdot> _ \<cdot> _ \<bullet> arity_type_bool \<bullet> c)"
+    "\<^bold>\<lambda>(c: _) P Q. iffD2 \<cdot> _ \<cdot> _ \<bullet> (option.case_1 \<cdot> _ \<cdot> _ \<bullet> arity_type_bool \<bullet> c)"
 
   disjI1: "Left"
-    "\<^bold>\<lambda>P Q. iffD2 \<cdot> _ \<cdot> _ \<bullet> (sumbool.cases_1 \<cdot> _ \<cdot> _ \<bullet> arity_type_bool)"
+    "\<^bold>\<lambda>P Q. iffD2 \<cdot> _ \<cdot> _ \<bullet> (sumbool.case_1 \<cdot> _ \<cdot> _ \<bullet> arity_type_bool)"
 
   disjI2 (P, Q): "Inr"
-    "\<^bold>\<lambda>(d: _) (c: _) Q P q. iffD2 \<cdot> _ \<cdot> _ \<bullet> (sum.cases_2 \<cdot> _ \<cdot> Q \<cdot> q \<bullet> arity_type_bool \<bullet> c \<bullet> d)"
+    "\<^bold>\<lambda>(d: _) (c: _) Q P q. iffD2 \<cdot> _ \<cdot> _ \<bullet> (sum.case_2 \<cdot> _ \<cdot> Q \<cdot> q \<bullet> arity_type_bool \<bullet> c \<bullet> d)"
 
   disjI2 (P): "None"
-    "\<^bold>\<lambda>(c: _) Q P. iffD2 \<cdot> _ \<cdot> _ \<bullet> (option.cases_1 \<cdot> _ \<cdot> _ \<bullet> arity_type_bool \<bullet> c)"
+    "\<^bold>\<lambda>(c: _) Q P. iffD2 \<cdot> _ \<cdot> _ \<bullet> (option.case_1 \<cdot> _ \<cdot> _ \<bullet> arity_type_bool \<bullet> c)"
 
   disjI2 (Q): "Some"
-    "\<^bold>\<lambda>(c: _) Q P q. iffD2 \<cdot> _ \<cdot> _ \<bullet> (option.cases_2 \<cdot> _ \<cdot> Q \<cdot> q \<bullet> arity_type_bool \<bullet> c)"
+    "\<^bold>\<lambda>(c: _) Q P q. iffD2 \<cdot> _ \<cdot> _ \<bullet> (option.case_2 \<cdot> _ \<cdot> Q \<cdot> q \<bullet> arity_type_bool \<bullet> c)"
 
   disjI2: "Right"
-    "\<^bold>\<lambda>Q P. iffD2 \<cdot> _ \<cdot> _ \<bullet> (sumbool.cases_2 \<cdot> _ \<cdot> _ \<bullet> arity_type_bool)"
+    "\<^bold>\<lambda>Q P. iffD2 \<cdot> _ \<cdot> _ \<bullet> (sumbool.case_2 \<cdot> _ \<cdot> _ \<bullet> arity_type_bool)"
 
   disjE (P, Q, R): "\<lambda>pq pr qr.
      (case pq of Inl p \<Rightarrow> pr p | Inr q \<Rightarrow> qr q)"

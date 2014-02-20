@@ -774,7 +774,7 @@ val typedef_ths =
   |> map nickname_of_thm
 
 fun is_size_def [dep] th =
-    (case first_field ".recs" dep of
+    (case first_field ".rec" dep of
        SOME (pref, _) =>
        (case first_field ".size" (nickname_of_thm th) of
           SOME (pref', _) => pref = pref'

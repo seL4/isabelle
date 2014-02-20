@@ -257,7 +257,7 @@ fun mk_in_bd_tac ctxt live surj_imp_ordLeq_inst map_comp map_id map_cong0 set_ma
            ((box_equals OF [map_cong0 OF replicate live @{thm If_the_inv_into_f_f},
              map_comp RS sym, map_id]) RSN (2, trans))),
         REPEAT_DETERM_N (2 * live) o atac,
-        REPEAT_DETERM_N live o rtac (@{thm prod.cases} RS trans),
+        REPEAT_DETERM_N live o rtac (@{thm prod.case} RS trans),
         rtac refl,
         rtac @{thm surj_imp_ordLeq}, rtac subsetI, rtac (Drule.rotate_prems 1 @{thm image_eqI}),
         REPEAT_DETERM o eresolve_tac [CollectE, conjE], rtac CollectI,

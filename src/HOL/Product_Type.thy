@@ -29,9 +29,8 @@ setup {* Sign.mandatory_path "bool" *}
 
 lemmas induct = old.bool.induct
 lemmas inducts = old.bool.inducts
-lemmas recs = old.bool.recs
-lemmas cases = bool.case
-lemmas simps = bool.distinct bool.case old.bool.recs
+lemmas rec = old.bool.rec
+lemmas simps = bool.distinct bool.case bool.rec
 
 setup {* Sign.parent_path *}
 
@@ -99,9 +98,8 @@ setup {* Sign.mandatory_path "unit" *}
 
 lemmas induct = old.unit.induct
 lemmas inducts = old.unit.inducts
-lemmas recs = old.unit.recs
-lemmas cases = unit.case
-lemmas simps = unit.case old.unit.recs
+lemmas rec = old.unit.rec
+lemmas simps = unit.case unit.rec
 
 setup {* Sign.parent_path *}
 
@@ -217,9 +215,8 @@ declare
 
 lemmas induct = old.prod.induct
 lemmas inducts = old.prod.inducts
-lemmas recs = old.prod.recs
-lemmas cases = prod.case
-lemmas simps = prod.inject prod.case old.prod.recs
+lemmas rec = old.prod.rec
+lemmas simps = prod.inject prod.case prod.rec
 
 setup {* Sign.parent_path *}
 
@@ -403,7 +400,7 @@ lemma prod_eqI [intro?]: "fst p = fst q \<Longrightarrow> snd p = snd q \<Longri
   by (simp add: prod_eq_iff)
 
 lemma split_conv [simp, code]: "split f (a, b) = f a b"
-  by (fact prod.cases)
+  by (fact prod.case)
 
 lemma splitI: "f a b \<Longrightarrow> split f (a, b)"
   by (rule split_conv [THEN iffD2])
@@ -684,7 +681,7 @@ text {*
   Setup of internal @{text split_rule}.
 *}
 
-lemmas case_prodI = prod.cases [THEN iffD2]
+lemmas case_prodI = prod.case [THEN iffD2]
 
 lemma case_prodI2: "!!p. [| !!a b. p = (a, b) ==> c a b |] ==> case_prod c p"
   by (fact splitI2)

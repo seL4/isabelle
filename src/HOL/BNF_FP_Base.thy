@@ -20,7 +20,7 @@ lemma eq_sym_Unity_conv: "(x = (() = ())) = x"
 by blast
 
 lemma case_unit_Unity: "(case u of () \<Rightarrow> f) = f"
-by (cases u) (hypsubst, rule unit.cases)
+by (cases u) (hypsubst, rule unit.case)
 
 lemma case_prod_Pair_iden: "(case p of (x, y) \<Rightarrow> (x, y)) = p"
 by simp

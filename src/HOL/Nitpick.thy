@@ -101,17 +101,17 @@ by (rule someI)
 lemma case_unit_unfold [nitpick_unfold]:
 "case_unit x u \<equiv> x"
 apply (subgoal_tac "u = ()")
- apply (simp only: unit.cases)
+ apply (simp only: unit.case)
 by simp
 
-declare unit.cases [nitpick_simp del]
+declare unit.case [nitpick_simp del]
 
 lemma case_nat_unfold [nitpick_unfold]:
 "case_nat x f n \<equiv> if n = 0 then x else f (n - 1)"
 apply (rule eq_reflection)
 by (cases n) auto
 
-declare nat.cases [nitpick_simp del]
+declare nat.case [nitpick_simp del]
 
 lemma list_size_simp [nitpick_simp]:
 "list_size f xs = (if xs = [] then 0

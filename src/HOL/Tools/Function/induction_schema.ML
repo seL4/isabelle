@@ -44,7 +44,7 @@ fun ind_rulify ctxt = Raw_Simplifier.rewrite ctxt true @{thms induct_rulify}
 fun meta thm = thm RS eq_reflection
 
 fun sum_prod_conv ctxt = Raw_Simplifier.rewrite ctxt true
-  (map meta (@{thm split_conv} :: @{thms sum.cases}))
+  (map meta (@{thm split_conv} :: @{thms sum.case}))
 
 fun term_conv thy cv t =
   cv (cterm_of thy t)
@@ -315,7 +315,7 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
         val Pxs = cert (HOLogic.mk_Trueprop (P_comp $ x))
           |> Goal.init
           |> (Simplifier.rewrite_goals_tac ctxt
-                (map meta (branch_hyp :: @{thm split_conv} :: @{thms sum.cases}))
+                (map meta (branch_hyp :: @{thm split_conv} :: @{thms sum.case}))
               THEN CONVERSION (ind_rulify ctxt) 1)
           |> Seq.hd
           |> Thm.elim_implies (Conv.fconv_rule Drule.beta_eta_conversion bstep)
