@@ -209,14 +209,12 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   def completion_context(caret: Text.Offset): Option[Completion.Context] =
     if (caret > 0) {
       val result =
-        snapshot.select_markup(Text.Range(caret - 1, caret + 1), Some(completion_elements), _ =>
+        snapshot.select_markup(Text.Range(caret - 1, caret + 1), completion_elements, _ =>
           {
             case Text.Info(_, XML.Elem(Markup.Language(language, symbols), _)) =>
               Some(Completion.Context(language, symbols))
             case Text.Info(_, XML.Elem(markup, _)) =>
-              if (completion_elements(markup.name))
-                Some(Completion.Context(Markup.Language.UNKNOWN, true))
-              else None
+              Some(Completion.Context(Markup.Language.UNKNOWN, true))
           })
       result match {
         case Text.Info(_, context) :: _ => Some(context)
@@ -239,14 +237,13 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     else {
       val results =
         snapshot.cumulate_markup[(Protocol.Status, Int)](
-          range, (Protocol.Status.init, 0), Some(overview_elements), _ =>
+          range, (Protocol.Status.init, 0), overview_elements, _ =>
           {
             case ((status, pri), Text.Info(_, elem)) =>
               if (elem.name == Markup.WARNING || elem.name == Markup.ERROR)
                 Some((status, pri max Rendering.message_pri(elem.name)))
-              else if (overview_elements(elem.name))
+              else
                 Some((Protocol.command_status(status, elem.markup), pri))
-              else None
           })
       if (results.isEmpty) None
       else {
@@ -275,13 +272,10 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   def highlight(range: Text.Range): Option[Text.Info[Color]] =
   {
-    snapshot.select_markup(range, Some(highlight_elements), _ =>
-        {
-          case Text.Info(info_range, elem) =>
-            if (highlight_elements(elem.name))
-              Some(Text.Info(snapshot.convert(info_range), highlight_color))
-            else None
-        }) match { case Text.Info(_, info) :: _ => Some(info) case _ => None }
+    snapshot.select_markup(range, highlight_elements, _ =>
+      {
+        case info => Some(Text.Info(snapshot.convert(info.range), highlight_color))
+      }) match { case Text.Info(_, info) :: _ => Some(info) case _ => None }
   }
 
 
@@ -305,7 +299,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   def hyperlink(range: Text.Range): Option[Text.Info[PIDE.editor.Hyperlink]] =
   {
     snapshot.cumulate_markup[List[Text.Info[PIDE.editor.Hyperlink]]](
-      range, Nil, Some(hyperlink_elements), _ =>
+      range, Nil, hyperlink_elements, _ =>
         {
           case (links, Text.Info(info_range, XML.Elem(Markup.Path(name), _)))
           if Path.is_ok(name) =>
@@ -349,34 +343,37 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     Set(Markup.BROWSER, Markup.GRAPHVIEW, Markup.SENDBACK, Markup.DIALOG, Markup.SIMP_TRACE)
 
   def active(range: Text.Range): Option[Text.Info[XML.Elem]] =
-    snapshot.select_markup(range, Some(active_elements), command_state =>
-        {
-          case Text.Info(info_range, elem @ Protocol.Dialog(_, serial, _))
-          if !command_state.results.defined(serial) =>
+    snapshot.select_markup(range, active_elements, command_state =>
+      {
+        case Text.Info(info_range, elem @ Protocol.Dialog(_, serial, _))
+        if !command_state.results.defined(serial) =>
+          Some(Text.Info(snapshot.convert(info_range), elem))
+        case Text.Info(info_range, elem) =>
+          if (elem.name == Markup.BROWSER ||
+              elem.name == Markup.GRAPHVIEW ||
+              elem.name == Markup.SENDBACK ||
+              elem.name == Markup.SIMP_TRACE)
             Some(Text.Info(snapshot.convert(info_range), elem))
-          case Text.Info(info_range, elem) =>
-            if (elem.name == Markup.BROWSER ||
-                elem.name == Markup.GRAPHVIEW ||
-                elem.name == Markup.SENDBACK ||
-                elem.name == Markup.SIMP_TRACE)
-              Some(Text.Info(snapshot.convert(info_range), elem))
-            else None
-        }) match { case Text.Info(_, info) :: _ => Some(info) case _ => None }
+          else None
+      }) match { case Text.Info(_, info) :: _ => Some(info) case _ => None }
 
 
   def command_results(range: Text.Range): Command.Results =
   {
     val results =
-      snapshot.select_markup[Command.Results](range, None, command_state =>
+      snapshot.select_markup[Command.Results](range, _ => true, command_state =>
         { case _ => Some(command_state.results) }).map(_.info)
     (Command.Results.empty /: results)(_ ++ _)
   }
 
+  private val tooltip_message_elements =
+    Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR, Markup.BAD)
+
   def tooltip_message(range: Text.Range): Option[Text.Info[XML.Body]] =
   {
     val results =
-      snapshot.cumulate_markup[List[Text.Info[Command.Results.Entry]]](range, Nil,
-        Some(Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR, Markup.BAD)), _ =>
+      snapshot.cumulate_markup[List[Text.Info[Command.Results.Entry]]](
+        range, Nil, tooltip_message_elements, _ =>
         {
           case (msgs, Text.Info(info_range,
             XML.Elem(Markup(name, props @ Markup.Serial(serial)), body)))
@@ -433,7 +430,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
     val results =
       snapshot.cumulate_markup[Text.Info[(Timing, List[(Boolean, XML.Tree)])]](
-        range, Text.Info(range, (Timing.zero, Nil)), Some(tooltip_elements), _ =>
+        range, Text.Info(range, (Timing.zero, Nil)), tooltip_elements, _ =>
         {
           case (Text.Info(r, (t1, info)), Text.Info(_, XML.Elem(Markup.Timing(t2), _))) =>
             Some(Text.Info(r, (t1 + t2, info)))
@@ -486,12 +483,13 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     Rendering.legacy_pri -> JEdit_Lib.load_icon(options.string("gutter_legacy_icon")),
     Rendering.error_pri -> JEdit_Lib.load_icon(options.string("gutter_error_icon")))
 
-  private val gutter_elements = Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR)
+  private val gutter_elements =
+    Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR)
 
   def gutter_message(range: Text.Range): Option[Icon] =
   {
     val results =
-      snapshot.cumulate_markup[Int](range, 0, Some(gutter_elements), _ =>
+      snapshot.cumulate_markup[Int](range, 0, gutter_elements, _ =>
         {
           case (pri, Text.Info(_, XML.Elem(Markup(Markup.WRITELN, _),
               List(XML.Elem(Markup(Markup.INFORMATION, _), _))))) =>
@@ -523,14 +521,13 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   def squiggly_underline(range: Text.Range): List[Text.Info[Color]] =
   {
     val results =
-      snapshot.cumulate_markup[Int](range, 0, Some(squiggly_elements), _ =>
+      snapshot.cumulate_markup[Int](range, 0, squiggly_elements, _ =>
         {
           case (pri, Text.Info(_, elem)) =>
             if (Protocol.is_information(elem))
               Some(pri max Rendering.information_pri)
-            else if (squiggly_elements(elem.name))
+            else
               Some(pri max Rendering.message_pri(elem.name))
-            else None
         })
     for {
       Text.Info(r, pri) <- results
@@ -553,7 +550,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   def line_background(range: Text.Range): Option[(Color, Boolean)] =
   {
     val results =
-      snapshot.cumulate_markup[Int](range, 0, Some(line_background_elements), _ =>
+      snapshot.cumulate_markup[Int](range, 0, line_background_elements, _ =>
         {
           case (pri, Text.Info(_, elem)) =>
             val name = elem.name
@@ -567,7 +564,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     val pri = (0 /: results) { case (p1, Text.Info(_, p2)) => p1 max p2 }
 
     val is_separator = pri > 0 &&
-      snapshot.cumulate_markup[Boolean](range, false, Some(Set(Markup.SEPARATOR)), _ =>
+      snapshot.cumulate_markup[Boolean](range, false, Set(Markup.SEPARATOR), _ =>
         {
           case (_, Text.Info(_, elem)) =>
             if (elem.name == Markup.SEPARATOR) Some(true) else None
@@ -593,7 +590,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       for {
         Text.Info(r, result) <-
           snapshot.cumulate_markup[(Option[Protocol.Status], Option[Color])](
-            range, (Some(Protocol.Status.init), None), Some(background1_elements), command_state =>
+            range, (Some(Protocol.Status.init), None), background1_elements, command_state =>
             {
               case (((Some(status), color), Text.Info(_, XML.Elem(markup, _))))
               if (Protocol.command_status_markup(markup.name)) =>
@@ -626,7 +623,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
 
   def background2(range: Text.Range): List[Text.Info[Color]] =
-    snapshot.select_markup(range, Some(Set(Markup.TOKEN_RANGE)), _ =>
+    snapshot.select_markup(range, Set(Markup.TOKEN_RANGE), _ =>
       {
         case Text.Info(_, elem) =>
           if (elem.name == Markup.TOKEN_RANGE) Some(light_color) else None
@@ -634,7 +631,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
 
   def bullet(range: Text.Range): List[Text.Info[Color]] =
-    snapshot.select_markup(range, Some(Set(Markup.BULLET)), _ =>
+    snapshot.select_markup(range, Set(Markup.BULLET), _ =>
       {
         case Text.Info(_, elem) =>
           if (elem.name == Markup.BULLET) Some(bullet_color) else None
@@ -645,12 +642,10 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     Set(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM, Markup.CARTOUCHE, Markup.ANTIQUOTED)
 
   def foreground(range: Text.Range): List[Text.Info[Color]] =
-    snapshot.select_markup(range, Some(foreground_elements), _ =>
+    snapshot.select_markup(range, foreground_elements, _ =>
       {
         case Text.Info(_, elem) =>
-          if (elem.name == Markup.ANTIQUOTED) Some(antiquoted_color)
-          else if (foreground_elements(elem.name)) Some(quoted_color)
-          else None
+          if (elem.name == Markup.ANTIQUOTED) Some(antiquoted_color) else Some(quoted_color)
       })
 
 
@@ -689,7 +684,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   {
     if (color == Token_Markup.hidden_color) List(Text.Info(range, color))
     else
-      snapshot.cumulate_markup(range, color, Some(text_color_elements), _ =>
+      snapshot.cumulate_markup(range, color, text_color_elements, _ =>
         {
           case (_, Text.Info(_, elem)) => text_colors.get(elem.name)
         })
@@ -698,12 +693,12 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   /* nested text structure -- folds */
 
-  private val fold_depth_elements = Set(Markup.TEXT_FOLD, Markup.GOAL, Markup.SUBGOAL)
+  private val fold_depth_elements =
+    Set(Markup.TEXT_FOLD, Markup.GOAL, Markup.SUBGOAL)
 
   def fold_depth(range: Text.Range): List[Text.Info[Int]] =
-    snapshot.cumulate_markup[Int](range, 0, Some(fold_depth_elements), _ =>
+    snapshot.cumulate_markup[Int](range, 0, fold_depth_elements, _ =>
       {
-        case (depth, Text.Info(_, elem)) =>
-          if (fold_depth_elements(elem.name)) Some(depth + 1) else None
+        case (depth, _) => Some(depth + 1)
       })
 }
