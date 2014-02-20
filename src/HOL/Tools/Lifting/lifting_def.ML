@@ -39,8 +39,7 @@ fun refl_tac ctxt =
     end
     handle Pattern.MATCH => no_tac
 
-    val rules = @{thm is_equality_eq} ::
-      ((Transfer.get_relator_eq_raw ctxt) @ (Lifting_Info.get_reflexivity_rules ctxt))
+    val rules = ((Transfer.get_relator_eq_raw ctxt) @ (Lifting_Info.get_reflexivity_rules ctxt))
   in
     EVERY' [CSUBGOAL intro_reflp_tac, 
             REPEAT_ALL_NEW (resolve_tac rules)]
