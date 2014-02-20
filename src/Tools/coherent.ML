@@ -21,7 +21,6 @@ end;
 signature COHERENT =
 sig
   val verbose: bool Unsynchronized.ref
-  val show_facts: bool Unsynchronized.ref
   val coherent_tac: Proof.context -> thm list -> int -> tactic
   val setup: theory -> theory
 end;
@@ -78,7 +77,7 @@ fun mk_dom ts = fold (fn t =>
 val empty_env = (Vartab.empty, Vartab.empty);
 
 (* Find matcher that makes conjunction valid in given state *)
-fun valid_conj ctxt facts env [] = Seq.single (env, [])
+fun valid_conj _ _ env [] = Seq.single (env, [])
   | valid_conj ctxt facts env (t :: ts) =
       Seq.maps (fn (u, x) => Seq.map (apsnd (cons x))
         (valid_conj ctxt facts
@@ -107,7 +106,7 @@ fun inst_extra_vars ctxt dom cs =
   end;
 
 (* Check whether disjunction is valid in given state *)
-fun is_valid_disj ctxt facts [] = false
+fun is_valid_disj _ _ [] = false
   | is_valid_disj ctxt facts ((Ts, ts) :: ds) =
       let val vs = map_index (fn (i, T) => Var (("x", i), T)) Ts in
         (case Seq.pull (valid_conj ctxt facts empty_env
@@ -116,16 +115,10 @@ fun is_valid_disj ctxt facts [] = false
         | NONE => is_valid_disj ctxt facts ds)
       end;
 
-val show_facts = Unsynchronized.ref false;
-
 fun string_of_facts ctxt s facts =
   cat_lines
     (s :: map (Syntax.string_of_term ctxt)
       (map fst (sort (int_ord o pairself snd) (Net.content facts)))) ^ "\n\n";
-
-fun print_facts ctxt facts =
-  if !show_facts then message (fn () => string_of_facts ctxt "Facts:" facts)
-  else ();
 
 fun valid ctxt rules goal dom facts nfacts nparams =
   let
@@ -151,7 +144,7 @@ fun valid ctxt rules goal dom facts nfacts nparams =
           | SOME prfs => SOME (ClPrf (th, env, inst, is, prfs))))
   end
 
-and valid_cases ctxt rules goal dom facts nfacts nparams [] = SOME []
+and valid_cases _ _ _ _ _ _ _ [] = SOME []
   | valid_cases ctxt rules goal dom facts nfacts nparams ((Ts, ts) :: ds) =
       let
         val _ = message (fn () => "case " ^ commas (map (Syntax.string_of_term ctxt) ts));
