@@ -93,6 +93,9 @@ object Markup
   val LANGUAGE = "language"
   object Language
   {
+    val ML = "ML"
+    val UNKNOWN = "unknown"
+
     def unapply(markup: Markup): Option[(String, Boolean)] =
       markup match {
         case Markup(LANGUAGE, props) =>

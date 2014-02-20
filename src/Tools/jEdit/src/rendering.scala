@@ -206,7 +206,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     Set(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM, Markup.CARTOUCHE,
       Markup.COMMENT, Markup.LANGUAGE)
 
-  def completion_context(caret: Text.Offset): Completion.Context =
+  def completion_context(caret: Text.Offset): Option[Completion.Context] =
     if (caret > 0) {
       val result =
         snapshot.select_markup(Text.Range(caret - 1, caret + 1), Some(completion_elements), _ =>
@@ -214,15 +214,16 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
             case Text.Info(_, XML.Elem(Markup.Language(language, symbols), _)) =>
               Some(Completion.Context(language, symbols))
             case Text.Info(_, XML.Elem(markup, _)) =>
-              if (completion_elements(markup.name)) Some(Completion.Context("unknown", true))
+              if (completion_elements(markup.name))
+                Some(Completion.Context(Markup.Language.UNKNOWN, true))
               else None
           })
       result match {
-        case Text.Info(_, context) :: _ => context
-        case Nil => Completion.Context.default
+        case Text.Info(_, context) :: _ => Some(context)
+        case Nil => None
       }
     }
-    else Completion.Context.default
+    else None
 
 
   /* command overview */

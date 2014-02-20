@@ -111,10 +111,11 @@ object Completion_Popup
             val history = PIDE.completion_history.value
             val decode = Isabelle_Encoding.is_active(buffer)
             val context =
-              PIDE.document_view(text_area) match {
-                case None => Completion.Context.default
+              (PIDE.document_view(text_area) match {
+                case None => None
                 case Some(doc_view) => doc_view.get_rendering().completion_context(caret)
-              }
+              }) getOrElse syntax.completion_context
+
             syntax.completion.complete(history, decode, explicit, text, context) match {
               case Some(result) =>
                 if (result.unique && result.items.head.immediate && immediate)
@@ -283,7 +284,7 @@ object Completion_Popup
           val text = text_field.getText.substring(0, caret)
 
           syntax.completion.complete(
-              history, decode = true, explicit = false, text, Completion.Context.default) match {
+              history, decode = true, explicit = false, text, syntax.completion_context) match {
             case Some(result) =>
               val fm = text_field.getFontMetrics(text_field.getFont)
               val loc =

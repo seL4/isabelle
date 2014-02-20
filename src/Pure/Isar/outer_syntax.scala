@@ -43,6 +43,7 @@ final class Outer_Syntax private(
   keywords: Map[String, (String, List[String])] = Map.empty,
   lexicon: Scan.Lexicon = Scan.Lexicon.empty,
   val completion: Completion = Completion.empty,
+  val completion_context: Completion.Context = Completion.Context.default,
   val has_tokens: Boolean = true)
 {
   override def toString: String =
@@ -72,7 +73,7 @@ final class Outer_Syntax private(
     val completion1 =
       if (Keyword.control(kind._1) || replace == Some("")) completion
       else completion + (name, replace getOrElse name)
-    new Outer_Syntax(keywords1, lexicon1, completion1, true)
+    new Outer_Syntax(keywords1, lexicon1, completion1, completion_context, true)
   }
 
   def + (name: String, kind: (String, List[String])): Outer_Syntax =
@@ -120,15 +121,10 @@ final class Outer_Syntax private(
 
   /* token language */
 
-  def no_tokens: Outer_Syntax =
-  {
-    require(keywords.isEmpty && lexicon.isEmpty)
-    new Outer_Syntax(completion = completion, has_tokens = false)
-  }
-
   def scan(input: Reader[Char]): List[Token] =
   {
-    Token.Parsers.parseAll(Token.Parsers.rep(Token.Parsers.token(lexicon, is_command)), input) match {
+    Token.Parsers.parseAll(
+        Token.Parsers.rep(Token.Parsers.token(lexicon, is_command)), input) match {
       case Token.Parsers.Success(tokens, _) => tokens
       case _ => error("Unexpected failure of tokenizing input:\n" + input.source.toString)
     }
@@ -150,5 +146,20 @@ final class Outer_Syntax private(
       }
     }
     (toks.toList, ctxt)
+  }
+
+
+  /* language context */
+
+  def set_completion_context(context: Completion.Context): Outer_Syntax =
+    new Outer_Syntax(keywords, lexicon, completion, context, has_tokens)
+
+  def no_tokens: Outer_Syntax =
+  {
+    require(keywords.isEmpty && lexicon.isEmpty)
+    new Outer_Syntax(
+      completion = completion,
+      completion_context = completion_context,
+      has_tokens = false)
   }
 }
