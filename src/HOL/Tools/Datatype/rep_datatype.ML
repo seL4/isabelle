@@ -258,7 +258,7 @@ fun prove_primrec_thms (config : Datatype_Aux.config) new_type_names descr
     thy2
     |> Sign.add_path (space_implode "_" new_type_names)
     |> Global_Theory.note_thmss ""
-      [((Binding.name "recs", [Nitpick_Simps.add]), [(rec_thms, [])])]
+      [((Binding.name "rec", [Nitpick_Simps.add]), [(rec_thms, [])])]
     ||> Sign.parent_path
     |-> (fn thms => pair (reccomb_names, maps #2 thms))
   end;
@@ -349,7 +349,7 @@ fun prove_case_thms (config : Datatype_Aux.config)
     thy2
     |> Context.theory_map ((fold o fold) Nitpick_Simps.add_thm case_thms)
     |> Sign.parent_path
-    |> Datatype_Aux.store_thmss "cases" new_type_names case_thms
+    |> Datatype_Aux.store_thmss "case" new_type_names case_thms
     |-> (fn thmss => pair (thmss, case_names))
   end;
 

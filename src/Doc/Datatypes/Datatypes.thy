@@ -992,13 +992,12 @@ new-style datatypes.
 that unfold the definition of constants introduced by \keyw{datatype} will be
 difficult to port.
 
-\item \emph{A few theorems have different names.}
-The properties @{text t.cases} and @{text t.recs} have been renamed
-@{text t.case} and @{text t.rec}. For non-mutually recursive datatypes,
-@{text t.inducts} is available as @{text t.induct}.
+\item \emph{Some induction rules have different names.}
+For non-mutually recursive datatypes,
+the alias @{text t.inducts} for @{text t.induct} is no longer generated.
 For $m > 1$ mutually recursive datatypes,
 @{text "t\<^sub>1_\<dots>_t\<^sub>m.inducts(i)"} has been renamed
-@{text "t\<^sub>i.induct"}.
+@{text "t\<^sub>i.induct"} for each @{text "i \<in> {1, \<dots>, t}"}.
 
 \item \emph{The @{text t.simps} collection has been extended.}
 Previously available theorems are available at the same index.
