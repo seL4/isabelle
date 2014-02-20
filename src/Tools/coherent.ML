@@ -119,7 +119,7 @@ fun is_valid_disj ctxt facts [] = false
 val show_facts = Unsynchronized.ref false;
 
 fun string_of_facts ctxt s facts =
-  space_implode "\n"
+  cat_lines
     (s :: map (Syntax.string_of_term ctxt)
       (map fst (sort (int_ord o pairself snd) (Net.content facts)))) ^ "\n\n";
 
@@ -175,8 +175,8 @@ and valid_cases ctxt rules goal dom facts nfacts nparams [] = SOME []
 fun thm_of_cl_prf thy goal asms (ClPrf (th, (tye, env), insts, is, prfs)) =
   let
     val _ =
-      message (fn () => space_implode "\n"
-        ("asms:" :: map (Display.string_of_thm_global thy) asms) ^ "\n\n");
+      message (fn () =>
+        cat_lines ("asms:" :: map (Display.string_of_thm_global thy) asms) ^ "\n\n");
     val th' =
       Drule.implies_elim_list
         (Thm.instantiate
