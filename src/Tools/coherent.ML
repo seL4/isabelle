@@ -152,13 +152,15 @@ and valid_cases _ _ _ _ _ _ _ [] = SOME []
             Pretty.string_of (Pretty.block
               (Pretty.str "case" :: Pretty.brk 1 ::
                 Pretty.commas (map (Syntax.pretty_term ctxt) ts))));
-        val params = map_index (fn (i, T) => Free ("par" ^ string_of_int (nparams + i), T)) Ts;
+
+        val ps = map_index (fn (i, T) => ("par" ^ string_of_int (nparams + i), T)) Ts;
+        val (params, ctxt') = fold_map Variable.next_bound ps ctxt;
         val ts' = map_index (fn (i, t) => (subst_bounds (rev params, t), nfacts + i)) ts;
         val dom' =
           fold (fn (T, p) => Typtab.map_default (T, []) (fn ps => ps @ [p])) (Ts ~~ params) dom;
         val facts' = fold (fn (t, i) => Net.insert_term op = (t, (t, i))) ts' facts;
       in
-        (case valid ctxt rules goal dom' facts' (nfacts + length ts) (nparams + length Ts) of
+        (case valid ctxt' rules goal dom' facts' (nfacts + length ts) (nparams + length Ts) of
           NONE => NONE
         | SOME prf =>
             (case valid_cases ctxt rules goal dom facts nfacts nparams ds of
