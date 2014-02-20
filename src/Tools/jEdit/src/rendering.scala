@@ -204,13 +204,16 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   private val completion_elements =
     Set(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM, Markup.CARTOUCHE,
-      Markup.COMMENT, Markup.LANGUAGE)
+      Markup.COMMENT, Markup.LANGUAGE, Markup.ML_STRING, Markup.ML_COMMENT)
 
   def completion_context(caret: Text.Offset): Option[Completion.Context] =
     if (caret > 0) {
       val result =
         snapshot.select_markup(Text.Range(caret - 1, caret + 1), completion_elements, _ =>
           {
+            case Text.Info(_, elem)
+            if elem.name == Markup.ML_STRING || elem.name == Markup.ML_COMMENT =>
+              Some(Completion.Context(Markup.Language.ML, true))
             case Text.Info(_, XML.Elem(Markup.Language(language, symbols), _)) =>
               Some(Completion.Context(language, symbols))
             case Text.Info(_, XML.Elem(markup, _)) =>
