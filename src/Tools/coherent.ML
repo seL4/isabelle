@@ -20,9 +20,8 @@ end;
 
 signature COHERENT =
 sig
-  val verbose: bool Unsynchronized.ref
+  val trace: bool Config.T
   val coherent_tac: Proof.context -> thm list -> int -> tactic
-  val setup: theory -> theory
 end;
 
 functor Coherent(Data: COHERENT_DATA) : COHERENT =
@@ -30,9 +29,8 @@ struct
 
 (** misc tools **)
 
-val verbose = Unsynchronized.ref false;
-
-fun message f = if !verbose then tracing (f ()) else ();
+val (trace, trace_setup) = Attrib.config_bool @{binding coherent_trace} (K false);
+fun cond_trace ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ();
 
 datatype cl_prf =
   ClPrf of thm * (Type.tyenv * Envir.tenv) * ((indexname * typ) * term) list *
@@ -147,7 +145,7 @@ fun valid ctxt rules goal dom facts nfacts nparams =
 and valid_cases _ _ _ _ _ _ _ [] = SOME []
   | valid_cases ctxt rules goal dom facts nfacts nparams ((Ts, ts) :: ds) =
       let
-        val _ = message (fn () => "case " ^ commas (map (Syntax.string_of_term ctxt) ts));
+        val _ = cond_trace ctxt (fn () => "case " ^ commas (map (Syntax.string_of_term ctxt) ts));
         val params = map_index (fn (i, T) => Free ("par" ^ string_of_int (nparams + i), T)) Ts;
         val ts' = map_index (fn (i, t) => (subst_bounds (rev params, t), nfacts + i)) ts;
         val dom' =
@@ -165,43 +163,44 @@ and valid_cases _ _ _ _ _ _ _ [] = SOME []
 
 (** proof replaying **)
 
-fun thm_of_cl_prf thy goal asms (ClPrf (th, (tye, env), insts, is, prfs)) =
+fun thm_of_cl_prf ctxt goal asms (ClPrf (th, (tye, env), insts, is, prfs)) =
   let
+    val thy = Proof_Context.theory_of ctxt;
+    val cert = Thm.cterm_of thy;
+    val certT = Thm.ctyp_of thy;
     val _ =
-      message (fn () =>
-        cat_lines ("asms:" :: map (Display.string_of_thm_global thy) asms) ^ "\n\n");
+      cond_trace ctxt (fn () =>
+        cat_lines ("asms:" :: map (Display.string_of_thm ctxt) asms) ^ "\n\n");
     val th' =
       Drule.implies_elim_list
         (Thm.instantiate
-           (map (fn (ixn, (S, T)) =>
-              (Thm.ctyp_of thy (TVar ((ixn, S))), Thm.ctyp_of thy T))
-                 (Vartab.dest tye),
+           (map (fn (ixn, (S, T)) => (certT (TVar ((ixn, S))), certT T)) (Vartab.dest tye),
             map (fn (ixn, (T, t)) =>
-              (Thm.cterm_of thy (Var (ixn, Envir.subst_type tye T)),
-               Thm.cterm_of thy t)) (Vartab.dest env) @
-            map (fn (ixnT, t) =>
-              (Thm.cterm_of thy (Var ixnT), Thm.cterm_of thy t)) insts) th)
+              (cert (Var (ixn, Envir.subst_type tye T)), cert t)) (Vartab.dest env) @
+            map (fn (ixnT, t) => (cert (Var ixnT), cert t)) insts) th)
         (map (nth asms) is);
     val (_, cases) = dest_elim (prop_of th');
   in
     (case (cases, prfs) of
       ([([], [_])], []) => th'
-    | ([([], [_])], [([], prf)]) => thm_of_cl_prf thy goal (asms @ [th']) prf
+    | ([([], [_])], [([], prf)]) => thm_of_cl_prf ctxt goal (asms @ [th']) prf
     | _ =>
         Drule.implies_elim_list
           (Thm.instantiate (Thm.match
              (Drule.strip_imp_concl (cprop_of th'), goal)) th')
-          (map (thm_of_case_prf thy goal asms) (prfs ~~ cases)))
+          (map (thm_of_case_prf ctxt goal asms) (prfs ~~ cases)))
   end
 
-and thm_of_case_prf thy goal asms ((params, prf), (_, asms')) =
+and thm_of_case_prf ctxt goal asms ((params, prf), (_, asms')) =
   let
-    val cparams = map (cterm_of thy) params;
-    val asms'' = map (cterm_of thy o curry subst_bounds (rev params)) asms';
+    val thy = Proof_Context.theory_of ctxt;
+    val cert = Thm.cterm_of thy;
+    val cparams = map cert params;
+    val asms'' = map (cert o curry subst_bounds (rev params)) asms';
   in
     Drule.forall_intr_list cparams
       (Drule.implies_intr_list asms''
-        (thm_of_cl_prf thy goal (asms @ map Thm.assume asms'') prf))
+        (thm_of_cl_prf ctxt goal (asms @ map Thm.assume asms'') prf))
   end;
 
 
@@ -216,15 +215,18 @@ fun coherent_tac ctxt rules = SUBPROOF (fn {prems, concl, params, context = ctxt
         map (fn (_, s) => Free (s, the (Variable.default_type ctxt'' s)))
           (rev (Variable.dest_fixes ctxt''))  (* FIXME !? *)
     in
-      (case valid ctxt'' (map (mk_rule ctxt'') (prems' @ prems @ rules)) (term_of concl)
-           (mk_dom xs) Net.empty 0 0 of
+      (case
+        valid ctxt'' (map (mk_rule ctxt'') (prems' @ prems @ rules)) (term_of concl)
+          (mk_dom xs) Net.empty 0 0 of
         NONE => no_tac
-      | SOME prf => rtac (thm_of_cl_prf (Proof_Context.theory_of ctxt'') concl [] prf) 1)
+      | SOME prf => rtac (thm_of_cl_prf ctxt'' concl [] prf) 1)
     end) ctxt' 1) ctxt;
 
-val setup = Method.setup @{binding coherent}
-  (Attrib.thms >> (fn rules => fn ctxt =>
-      METHOD (fn facts => HEADGOAL (coherent_tac ctxt (facts @ rules)))))
-    "prove coherent formula";
+val _ = Theory.setup
+  (trace_setup #>
+   Method.setup @{binding coherent}
+    (Attrib.thms >> (fn rules => fn ctxt =>
+        METHOD (fn facts => HEADGOAL (coherent_tac ctxt (facts @ rules)))))
+      "prove coherent formula");
 
 end;
