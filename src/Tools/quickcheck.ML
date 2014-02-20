@@ -488,8 +488,6 @@ fun parse_test_param ("tester", args) = fold parse_tester args
           (insert (op =) name testers, genctxt)
         else error ("Unknown tester or test parameter: " ^ name));
 
-fun proof_map_result f = apsnd Context.the_proof o f o Context.Proof;
-
 fun parse_test_param_inst (name, arg) ((insts, eval_terms), (testers, ctxt)) =
   (case try (Proof_Context.read_typ ctxt) name of
     SOME (TFree (v, _)) =>
@@ -500,7 +498,10 @@ fun parse_test_param_inst (name, arg) ((insts, eval_terms), (testers, ctxt)) =
         "eval" => ((insts, eval_terms @ map (Syntax.read_term ctxt) arg), (testers, ctxt))
       | _ =>
         ((insts, eval_terms),
-          proof_map_result (fn context => parse_test_param (name, arg) (testers, context)) ctxt)));
+          let
+            val (testers', Context.Proof ctxt') =
+              parse_test_param (name, arg) (testers, Context.Proof ctxt);
+          in (testers', ctxt') end)));
 
 fun quickcheck_params_cmd args =
   Context.theory_map
