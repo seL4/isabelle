@@ -128,9 +128,14 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
     wrap_free_constructors ~> free_constructors
   INCOMPATIBILITY.
 
+* Old datatype package:
+  * The generated theorems "xxx.cases" and "xxx.recs" have been renamed
+    "xxx.case" and "xxx.rec" (e.g., "sum.cases" -> "sum.case").
+    INCOMPATIBILITY.
+
 * Old and new (co)datatype packages:
-  * Generated constants "xxx_case" and "xxx_rec" have been renamed "case_xxx"
-    and "rec_xxx" (e.g., "prod_case" ~> "case_prod").
+  * The generated constants "xxx_case" and "xxx_rec" have been renamed
+    "case_xxx" and "rec_xxx" (e.g., "prod_case" ~> "case_prod").
     INCOMPATIBILITY.
 
 * The types "'a list" and "'a option", their set and map functions, their
