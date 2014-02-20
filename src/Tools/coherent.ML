@@ -114,9 +114,8 @@ fun is_valid_disj _ _ [] = false
       end;
 
 fun string_of_facts ctxt s facts =
-  cat_lines
-    (s :: map (Syntax.string_of_term ctxt)
-      (map fst (sort (int_ord o pairself snd) (Net.content facts)))) ^ "\n\n";
+  Pretty.string_of (Pretty.big_list s
+    (map (Syntax.pretty_term ctxt) (map fst (sort (int_ord o pairself snd) (Net.content facts)))));
 
 fun valid ctxt rules goal dom facts nfacts nparams =
   let
@@ -133,7 +132,10 @@ fun valid ctxt rules goal dom facts nfacts nparams =
           end));
   in
     (case Seq.pull seq of
-      NONE => (tracing (string_of_facts ctxt "Countermodel found:" facts); NONE)
+      NONE =>
+        (if Context_Position.is_visible ctxt then
+          warning (string_of_facts ctxt "Countermodel found:" facts)
+         else (); NONE)
     | SOME ((th, env, inst, is, cs), _) =>
         if cs = [([], [goal])] then SOME (ClPrf (th, env, inst, is, []))
         else
@@ -145,7 +147,11 @@ fun valid ctxt rules goal dom facts nfacts nparams =
 and valid_cases _ _ _ _ _ _ _ [] = SOME []
   | valid_cases ctxt rules goal dom facts nfacts nparams ((Ts, ts) :: ds) =
       let
-        val _ = cond_trace ctxt (fn () => "case " ^ commas (map (Syntax.string_of_term ctxt) ts));
+        val _ =
+          cond_trace ctxt (fn () =>
+            Pretty.string_of (Pretty.block
+              (Pretty.str "case" :: Pretty.brk 1 ::
+                Pretty.commas (map (Syntax.pretty_term ctxt) ts))));
         val params = map_index (fn (i, T) => Free ("par" ^ string_of_int (nparams + i), T)) Ts;
         val ts' = map_index (fn (i, t) => (subst_bounds (rev params, t), nfacts + i)) ts;
         val dom' =
@@ -170,7 +176,7 @@ fun thm_of_cl_prf ctxt goal asms (ClPrf (th, (tye, env), insts, is, prfs)) =
     val certT = Thm.ctyp_of thy;
     val _ =
       cond_trace ctxt (fn () =>
-        cat_lines ("asms:" :: map (Display.string_of_thm ctxt) asms) ^ "\n\n");
+        Pretty.string_of (Pretty.big_list "asms:" (map (Display.pretty_thm ctxt) asms)));
     val th' =
       Drule.implies_elim_list
         (Thm.instantiate
@@ -197,10 +203,10 @@ and thm_of_case_prf ctxt goal asms ((params, prf), (_, asms')) =
     val cert = Thm.cterm_of thy;
     val cparams = map cert params;
     val asms'' = map (cert o curry subst_bounds (rev params)) asms';
+    val (prems'', ctxt') = fold_map Thm.assume_hyps asms'' ctxt;
   in
     Drule.forall_intr_list cparams
-      (Drule.implies_intr_list asms''
-        (thm_of_cl_prf ctxt goal (asms @ map Thm.assume asms'') prf))
+      (Drule.implies_intr_list asms'' (thm_of_cl_prf ctxt' goal (asms @ prems'') prf))
   end;
 
 
