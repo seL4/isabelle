@@ -245,17 +245,20 @@ fun hierarchical_program ctxt { module_name, reserved, identifiers, empty_nsp,
         val (nsps', nodes') = (nsps, nodes)
           |> fold (declare (K namify_module)) module_fragments
           |> fold (declare (namify_stmt o (fn Stmt stmt => stmt))) stmt_syms;
-        fun zip_fillup xs ys = xs ~~ ys @ replicate (length xs - length ys) NONE;
         fun select_syms syms = case filter (member (op =) stmt_syms) syms
          of [] => NONE
           | syms => SOME syms;
-        val modify_stmts' = AList.make (snd o Code_Symbol.Graph.get_node nodes)
-          #> split_list
-          ##> map (fn Stmt stmt => stmt)
-          #> (fn (syms, stmts) => zip_fillup syms (modify_stmts (syms ~~ stmts)));
+        fun select_stmt (sym, SOME stmt) = SOME (sym, stmt)
+          | select_stmt _ = NONE;
+        fun modify_stmts' syms =
+          let
+            val stmts = map ((fn Stmt stmt => stmt) o snd o Code_Symbol.Graph.get_node nodes) syms;
+            val stmts' = modify_stmts (syms ~~ stmts);
+            val stmts'' = stmts' @ replicate (length syms - length stmts') NONE;
+          in map_filter select_stmt (syms ~~ stmts'') end;
         val stmtss' = (maps modify_stmts' o map_filter select_syms o Code_Symbol.Graph.strong_conn) nodes;
         val nodes'' = Code_Symbol.Graph.map (fn sym => apsnd (fn Module content => Module (make_declarations nsps' content)
-            | _ => case AList.lookup (op =) stmtss' sym of SOME (SOME stmt) => Stmt stmt | _ => Dummy)) nodes';
+            | _ => case AList.lookup (op =) stmtss' sym of SOME stmt => Stmt stmt | _ => Dummy)) nodes';
         val data' = fold memorize_data stmt_syms data;
       in (data', nodes'') end;
     val (_, hierarchical_program) = make_declarations empty_nsp proto_program;
