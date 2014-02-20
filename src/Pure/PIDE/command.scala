@@ -90,8 +90,7 @@ object Command
           (this /: msgs)((state, msg) =>
             msg match {
               case elem @ XML.Elem(markup, Nil) =>
-                state.add_status(markup)
-                  .add_markup("", Text.Info(command.proper_range, elem))  // FIXME cumulation order!?
+                state.add_status(markup).add_markup("", Text.Info(command.proper_range, elem))
 
               case _ =>
                 System.err.println("Ignored status message: " + msg)

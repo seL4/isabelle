@@ -340,6 +340,15 @@ INCOMPATIBILITY
     intervals.
 
 
+*** Scala ***
+
+* The signature and semantics of Document.Snapshot.cumulate_markup /
+select_markup have been clarified.  Markup is now traversed in the
+order of reports given by the prover: later markup is usually more
+specific and may override results accumulated so far.  The elements
+guard is mandatory and checked precisely.  Subtle INCOMPATIBILITY.
+
+
 *** ML ***
 
 * Proper context discipline for read_instantiate and instantiate_tac:

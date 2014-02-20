@@ -230,7 +230,7 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
       var y = x
       var changed = false
       for {
-        elem <- entry.rev_markup // FIXME proper cumulation order (including status markup) (!?)
+        elem <- entry.markup
         if elements(elem.name)
         y1 <- result(y, Text.Info(entry.range, elem))
       } { y = y1; changed = true }

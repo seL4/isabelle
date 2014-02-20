@@ -298,18 +298,18 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   def hyperlink(range: Text.Range): Option[Text.Info[PIDE.editor.Hyperlink]] =
   {
-    snapshot.cumulate_markup[List[Text.Info[PIDE.editor.Hyperlink]]](
-      range, Nil, hyperlink_elements, _ =>
+    snapshot.cumulate_markup[Vector[Text.Info[PIDE.editor.Hyperlink]]](
+      range, Vector.empty, hyperlink_elements, _ =>
         {
           case (links, Text.Info(info_range, XML.Elem(Markup.Path(name), _)))
           if Path.is_ok(name) =>
             val jedit_file = PIDE.thy_load.append(snapshot.node_name.master_dir, Path.explode(name))
             val link = PIDE.editor.hyperlink_file(jedit_file)
-            Some(Text.Info(snapshot.convert(info_range), link) :: links)
+            Some(links :+ Text.Info(snapshot.convert(info_range), link))
 
           case (links, Text.Info(info_range, XML.Elem(Markup.Url(name), _))) =>
             val link = PIDE.editor.hyperlink_url(name)
-            Some(Text.Info(snapshot.convert(info_range), link) :: links)
+            Some(links :+ Text.Info(snapshot.convert(info_range), link))
 
           case (links, Text.Info(info_range, XML.Elem(Markup(Markup.ENTITY, props), _)))
           if !props.exists(
@@ -323,7 +323,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
                 case Position.Def_Id_Offset(id, offset) => hyperlink_command(id, offset)
                 case _ => None
               }
-            opt_link.map(link => (Text.Info(snapshot.convert(info_range), link) :: links))
+            opt_link.map(link => (links :+ Text.Info(snapshot.convert(info_range), link)))
 
           case (links, Text.Info(info_range, XML.Elem(Markup(Markup.POSITION, props), _))) =>
             val opt_link =
@@ -332,15 +332,15 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
                 case Position.Id_Offset(id, offset) => hyperlink_command(id, offset)
                 case _ => None
               }
-            opt_link.map(link => (Text.Info(snapshot.convert(info_range), link) :: links))
+            opt_link.map(link => links :+ (Text.Info(snapshot.convert(info_range), link)))
 
           case _ => None
-        }) match { case Text.Info(_, info :: _) :: _ => Some(info) case _ => None }
+        }) match { case Text.Info(_, _ :+ info) :: _ => Some(info) case _ => None }
   }
 
 
   private val active_elements =
-    Set(Markup.BROWSER, Markup.GRAPHVIEW, Markup.SENDBACK, Markup.DIALOG, Markup.SIMP_TRACE)
+    Set(Markup.DIALOG, Markup.BROWSER, Markup.GRAPHVIEW, Markup.SENDBACK, Markup.SIMP_TRACE)
 
   def active(range: Text.Range): Option[Text.Info[XML.Elem]] =
     snapshot.select_markup(range, active_elements, command_state =>
@@ -348,6 +348,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
         case Text.Info(info_range, elem @ Protocol.Dialog(_, serial, _))
         if !command_state.results.defined(serial) =>
           Some(Text.Info(snapshot.convert(info_range), elem))
+
         case Text.Info(info_range, elem) =>
           if (elem.name == Markup.BROWSER ||
               elem.name == Markup.GRAPHVIEW ||
@@ -420,17 +421,19 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   def tooltip(range: Text.Range): Option[Text.Info[XML.Body]] =
   {
-    def add(prev: Text.Info[(Timing, List[(Boolean, XML.Tree)])],
-      r0: Text.Range, p: (Boolean, XML.Tree)): Text.Info[(Timing, List[(Boolean, XML.Tree)])] =
+    def add(prev: Text.Info[(Timing, Vector[(Boolean, XML.Tree)])],
+      r0: Text.Range, p: (Boolean, XML.Tree)): Text.Info[(Timing, Vector[(Boolean, XML.Tree)])] =
     {
       val r = snapshot.convert(r0)
       val (t, info) = prev.info
-      if (prev.range == r) Text.Info(r, (t, p :: info)) else Text.Info(r, (t, List(p)))
+      if (prev.range == r)
+        Text.Info(r, (t, info :+ p))
+      else Text.Info(r, (t, Vector(p)))
     }
 
     val results =
-      snapshot.cumulate_markup[Text.Info[(Timing, List[(Boolean, XML.Tree)])]](
-        range, Text.Info(range, (Timing.zero, Nil)), tooltip_elements, _ =>
+      snapshot.cumulate_markup[Text.Info[(Timing, Vector[(Boolean, XML.Tree)])]](
+        range, Text.Info(range, (Timing.zero, Vector.empty)), tooltip_elements, _ =>
         {
           case (Text.Info(r, (t1, info)), Text.Info(_, XML.Elem(Markup.Timing(t2), _))) =>
             Some(Text.Info(r, (t1 + t2, info)))
@@ -462,7 +465,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
             else None
         }).map(_.info)
 
-    results.map(_.info).flatMap(_._2) match {
+    results.map(_.info).flatMap(res => res._2.toList) match {
       case Nil => None
       case tips =>
         val r = Text.Range(results.head.range.start, results.last.range.stop)
