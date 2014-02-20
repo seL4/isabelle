@@ -240,10 +240,10 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
           range, (Protocol.Status.init, 0), overview_elements, _ =>
           {
             case ((status, pri), Text.Info(_, elem)) =>
-              if (elem.name == Markup.WARNING || elem.name == Markup.ERROR)
-                Some((status, pri max Rendering.message_pri(elem.name)))
-              else
+              if (Protocol.command_status_markup(elem.name))
                 Some((Protocol.command_status(status, elem.markup), pri))
+              else
+                Some((status, pri max Rendering.message_pri(elem.name)))
           })
       if (results.isEmpty) None
       else {
@@ -345,17 +345,16 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   def active(range: Text.Range): Option[Text.Info[XML.Elem]] =
     snapshot.select_markup(range, active_elements, command_state =>
       {
-        case Text.Info(info_range, elem @ Protocol.Dialog(_, serial, _))
-        if !command_state.results.defined(serial) =>
-          Some(Text.Info(snapshot.convert(info_range), elem))
-
         case Text.Info(info_range, elem) =>
-          if (elem.name == Markup.BROWSER ||
-              elem.name == Markup.GRAPHVIEW ||
-              elem.name == Markup.SENDBACK ||
-              elem.name == Markup.SIMP_TRACE)
-            Some(Text.Info(snapshot.convert(info_range), elem))
-          else None
+          if (elem.name == Markup.DIALOG) {
+            elem match {
+              case Protocol.Dialog(_, serial, _)
+              if !command_state.results.defined(serial) =>
+                Some(Text.Info(snapshot.convert(info_range), elem))
+              case _ => None
+            }
+          }
+          else Some(Text.Info(snapshot.convert(info_range), elem))
       }) match { case Text.Info(_, info) :: _ => Some(info) case _ => None }
 
 
@@ -556,21 +555,18 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       snapshot.cumulate_markup[Int](range, 0, line_background_elements, _ =>
         {
           case (pri, Text.Info(_, elem)) =>
-            val name = elem.name
-            if (name == Markup.INFORMATION)
+            if (elem.name == Markup.INFORMATION)
               Some(pri max Rendering.information_pri)
-            else if (name == Markup.WRITELN_MESSAGE || name == Markup.TRACING_MESSAGE ||
-                elem.name == Markup.WARNING_MESSAGE || name == Markup.ERROR_MESSAGE)
-              Some(pri max Rendering.message_pri(name))
-            else None
+            else
+              Some(pri max Rendering.message_pri(elem.name))
         })
     val pri = (0 /: results) { case (p1, Text.Info(_, p2)) => p1 max p2 }
 
-    val is_separator = pri > 0 &&
+    val is_separator =
+      pri > 0 &&
       snapshot.cumulate_markup[Boolean](range, false, Set(Markup.SEPARATOR), _ =>
         {
-          case (_, Text.Info(_, elem)) =>
-            if (elem.name == Markup.SEPARATOR) Some(true) else None
+          case _ => Some(true)
         }).exists(_.info)
 
     message_colors.get(pri).map((_, is_separator))
@@ -626,19 +622,11 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
 
   def background2(range: Text.Range): List[Text.Info[Color]] =
-    snapshot.select_markup(range, Set(Markup.TOKEN_RANGE), _ =>
-      {
-        case Text.Info(_, elem) =>
-          if (elem.name == Markup.TOKEN_RANGE) Some(light_color) else None
-      })
+    snapshot.select_markup(range, Set(Markup.TOKEN_RANGE), _ => _ => Some(light_color))
 
 
   def bullet(range: Text.Range): List[Text.Info[Color]] =
-    snapshot.select_markup(range, Set(Markup.BULLET), _ =>
-      {
-        case Text.Info(_, elem) =>
-          if (elem.name == Markup.BULLET) Some(bullet_color) else None
-      })
+    snapshot.select_markup(range, Set(Markup.BULLET), _ => _ => Some(bullet_color))
 
 
   private val foreground_elements =
