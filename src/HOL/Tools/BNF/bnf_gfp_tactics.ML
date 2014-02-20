@@ -427,16 +427,16 @@ fun mk_rv_last_tac cTs cts rv_Nils rv_Conss =
       CONJ_WRAP' (fn rv_Cons =>
         CONJ_WRAP' (fn (i, rv_Nil) => (EVERY' [rtac exI,
           rtac (@{thm append_Nil} RS arg_cong RS trans),
-          rtac (rv_Cons RS trans), rtac (mk_sum_caseN n i RS arg_cong RS trans), rtac rv_Nil]))
+          rtac (rv_Cons RS trans), rtac (mk_sum_caseN n i RS trans), rtac rv_Nil]))
         (ks ~~ rv_Nils))
       rv_Conss,
       REPEAT_DETERM o rtac allI, rtac (mk_sumEN n),
       EVERY' (map (fn i =>
         CONJ_WRAP' (fn rv_Cons => EVERY' [REPEAT_DETERM o etac allE, dtac (mk_conjunctN n i),
           CONJ_WRAP' (fn i' => EVERY' [dtac (mk_conjunctN n i'), etac exE, rtac exI,
-            rtac (@{thm append_Cons} RS arg_cong RS trans),
-            rtac (rv_Cons RS trans), etac (sum_weak_case_cong RS arg_cong RS trans),
-            rtac (mk_sum_caseN n i RS arg_cong RS trans), atac])
+            rtac (@{thm append_Cons} RS arg_cong RS trans), rtac (rv_Cons RS trans),
+            if n = 1 then K all_tac else etac (sum_weak_case_cong RS trans),
+            rtac (mk_sum_caseN n i RS trans), atac])
           ks])
         rv_Conss)
       ks)] 1
