@@ -200,6 +200,31 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val dynamic_color = color_value("dynamic_color")
 
 
+  /* completion context */
+
+  private val completion_elements =
+    Set(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM, Markup.CARTOUCHE,
+      Markup.COMMENT, Markup.LANGUAGE)
+
+  def completion_context(caret: Text.Offset): Completion.Context =
+    if (caret > 0) {
+      val result =
+        snapshot.select_markup(Text.Range(caret - 1, caret + 1), Some(completion_elements), _ =>
+          {
+            case Text.Info(_, XML.Elem(Markup.Language(language, symbols), _)) =>
+              Some(Completion.Context(language, symbols))
+            case Text.Info(_, XML.Elem(markup, _)) =>
+              if (completion_elements(markup.name)) Some(Completion.Context("unknown", true))
+              else None
+          })
+      result match {
+        case Text.Info(_, context) :: _ => context
+        case Nil => Completion.Context.default
+      }
+    }
+    else Completion.Context.default
+
+
   /* command overview */
 
   val overview_limit = options.int("jedit_text_overview_limit")
@@ -429,8 +454,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
             Some(add(prev, r, (true, pretty_typing("::", body))))
           case (prev, Text.Info(r, XML.Elem(Markup(Markup.ML_TYPING, _), body))) =>
             Some(add(prev, r, (false, pretty_typing("ML:", body))))
-          case (prev, Text.Info(r, XML.Elem(Markup.Language(name), _))) =>
-            Some(add(prev, r, (true, XML.Text("language: " + name))))
+          case (prev, Text.Info(r, XML.Elem(Markup.Language(language, _), _))) =>
+            Some(add(prev, r, (true, XML.Text("language: " + language))))
           case (prev, Text.Info(r, XML.Elem(Markup(name, _), _))) =>
             if (tooltips.isDefinedAt(name))
               Some(add(prev, r, (true, XML.Text(tooltips(name)))))
