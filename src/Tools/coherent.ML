@@ -91,80 +91,82 @@ fun inst_extra_vars ctxt dom cs =
   let
     val vs = fold Term.add_vars (maps snd cs) [];
     fun insts [] inst = Seq.single inst
-      | insts ((ixn, T) :: vs') inst = Seq.maps
-          (fn t => insts vs' (((ixn, T), t) :: inst))
-          (Seq.of_list (case Typtab.lookup dom T of
-             NONE => error ("Unknown domain: " ^
-               Syntax.string_of_typ ctxt T ^ "\nfor term(s) " ^
-               commas (maps (map (Syntax.string_of_term ctxt) o snd) cs))
-           | SOME ts => ts))
-  in Seq.map (fn inst =>
-    (inst, map (apsnd (map (subst_Vars (map (apfst fst) inst)))) cs))
-      (insts vs [])
+      | insts ((ixn, T) :: vs') inst =
+          Seq.maps (fn t => insts vs' (((ixn, T), t) :: inst))
+            (Seq.of_list
+              (case Typtab.lookup dom T of
+                NONE =>
+                  error ("Unknown domain: " ^
+                    Syntax.string_of_typ ctxt T ^ "\nfor term(s) " ^
+                    commas (maps (map (Syntax.string_of_term ctxt) o snd) cs))
+              | SOME ts => ts))
+  in
+    Seq.map (fn inst =>
+      (inst, map (apsnd (map (subst_Vars (map (apfst fst) inst)))) cs))
+        (insts vs [])
   end;
 
 (* Check whether disjunction is valid in given state *)
 fun is_valid_disj ctxt facts [] = false
   | is_valid_disj ctxt facts ((Ts, ts) :: ds) =
-      let val vs = map_index (fn (i, T) => Var (("x", i), T)) Ts
-      in case Seq.pull (valid_conj ctxt facts empty_env
-        (map (fn t => subst_bounds (rev vs, t)) ts)) of
+      let val vs = map_index (fn (i, T) => Var (("x", i), T)) Ts in
+        (case Seq.pull (valid_conj ctxt facts empty_env
+            (map (fn t => subst_bounds (rev vs, t)) ts)) of
           SOME _ => true
-        | NONE => is_valid_disj ctxt facts ds
+        | NONE => is_valid_disj ctxt facts ds)
       end;
 
 val show_facts = Unsynchronized.ref false;
 
-fun string_of_facts ctxt s facts = space_implode "\n"
-  (s :: map (Syntax.string_of_term ctxt)
-     (map fst (sort (int_ord o pairself snd) (Net.content facts)))) ^ "\n\n";
+fun string_of_facts ctxt s facts =
+  space_implode "\n"
+    (s :: map (Syntax.string_of_term ctxt)
+      (map fst (sort (int_ord o pairself snd) (Net.content facts)))) ^ "\n\n";
 
 fun print_facts ctxt facts =
   if !show_facts then message (fn () => string_of_facts ctxt "Facts:" facts)
   else ();
 
 fun valid ctxt rules goal dom facts nfacts nparams =
-  let val seq = Seq.of_list rules |> Seq.maps (fn (th, ps, cs) =>
-    valid_conj ctxt facts empty_env ps |> Seq.maps (fn (env as (tye, _), is) =>
-      let val cs' = map (fn (Ts, ts) =>
-        (map (Envir.subst_type tye) Ts, map (Envir.subst_term env) ts)) cs
-      in
-        inst_extra_vars ctxt dom cs' |>
-          Seq.map_filter (fn (inst, cs'') =>
-            if is_valid_disj ctxt facts cs'' then NONE
-            else SOME (th, env, inst, is, cs''))
-      end))
+  let
+    val seq =
+      Seq.of_list rules |> Seq.maps (fn (th, ps, cs) =>
+        valid_conj ctxt facts empty_env ps |> Seq.maps (fn (env as (tye, _), is) =>
+          let val cs' = map (fn (Ts, ts) =>
+            (map (Envir.subst_type tye) Ts, map (Envir.subst_term env) ts)) cs
+          in
+            inst_extra_vars ctxt dom cs' |>
+              Seq.map_filter (fn (inst, cs'') =>
+                if is_valid_disj ctxt facts cs'' then NONE
+                else SOME (th, env, inst, is, cs''))
+          end));
   in
-    case Seq.pull seq of
+    (case Seq.pull seq of
       NONE => (tracing (string_of_facts ctxt "Countermodel found:" facts); NONE)
     | SOME ((th, env, inst, is, cs), _) =>
         if cs = [([], [goal])] then SOME (ClPrf (th, env, inst, is, []))
         else
           (case valid_cases ctxt rules goal dom facts nfacts nparams cs of
-             NONE => NONE
-           | SOME prfs => SOME (ClPrf (th, env, inst, is, prfs)))
+            NONE => NONE
+          | SOME prfs => SOME (ClPrf (th, env, inst, is, prfs))))
   end
 
 and valid_cases ctxt rules goal dom facts nfacts nparams [] = SOME []
   | valid_cases ctxt rules goal dom facts nfacts nparams ((Ts, ts) :: ds) =
       let
         val _ = message (fn () => "case " ^ commas (map (Syntax.string_of_term ctxt) ts));
-        val params = map_index (fn (i, T) =>
-          Free ("par" ^ string_of_int (nparams + i), T)) Ts;
-        val ts' = map_index (fn (i, t) =>
-          (subst_bounds (rev params, t), nfacts + i)) ts;
-        val dom' = fold (fn (T, p) =>
-          Typtab.map_default (T, []) (fn ps => ps @ [p]))
-            (Ts ~~ params) dom;
-        val facts' = fold (fn (t, i) => Net.insert_term op =
-          (t, (t, i))) ts' facts
+        val params = map_index (fn (i, T) => Free ("par" ^ string_of_int (nparams + i), T)) Ts;
+        val ts' = map_index (fn (i, t) => (subst_bounds (rev params, t), nfacts + i)) ts;
+        val dom' =
+          fold (fn (T, p) => Typtab.map_default (T, []) (fn ps => ps @ [p])) (Ts ~~ params) dom;
+        val facts' = fold (fn (t, i) => Net.insert_term op = (t, (t, i))) ts' facts;
       in
-        case valid ctxt rules goal dom' facts'
-          (nfacts + length ts) (nparams + length Ts) of
+        (case valid ctxt rules goal dom' facts' (nfacts + length ts) (nparams + length Ts) of
           NONE => NONE
-        | SOME prf => (case valid_cases ctxt rules goal dom facts nfacts nparams ds of
-            NONE => NONE
-          | SOME prfs => SOME ((params, prf) :: prfs))
+        | SOME prf =>
+            (case valid_cases ctxt rules goal dom facts nfacts nparams ds of
+              NONE => NONE
+            | SOME prfs => SOME ((params, prf) :: prfs)))
       end;
 
 
@@ -172,37 +174,41 @@ and valid_cases ctxt rules goal dom facts nfacts nparams [] = SOME []
 
 fun thm_of_cl_prf thy goal asms (ClPrf (th, (tye, env), insts, is, prfs)) =
   let
-    val _ = message (fn () => space_implode "\n"
-      ("asms:" :: map (Display.string_of_thm_global thy) asms) ^ "\n\n");
-    val th' = Drule.implies_elim_list
-      (Thm.instantiate
-         (map (fn (ixn, (S, T)) =>
-            (Thm.ctyp_of thy (TVar ((ixn, S))), Thm.ctyp_of thy T))
-               (Vartab.dest tye),
-          map (fn (ixn, (T, t)) =>
-            (Thm.cterm_of thy (Var (ixn, Envir.subst_type tye T)),
-             Thm.cterm_of thy t)) (Vartab.dest env) @
-          map (fn (ixnT, t) =>
-            (Thm.cterm_of thy (Var ixnT), Thm.cterm_of thy t)) insts) th)
-      (map (nth asms) is);
-    val (_, cases) = dest_elim (prop_of th')
+    val _ =
+      message (fn () => space_implode "\n"
+        ("asms:" :: map (Display.string_of_thm_global thy) asms) ^ "\n\n");
+    val th' =
+      Drule.implies_elim_list
+        (Thm.instantiate
+           (map (fn (ixn, (S, T)) =>
+              (Thm.ctyp_of thy (TVar ((ixn, S))), Thm.ctyp_of thy T))
+                 (Vartab.dest tye),
+            map (fn (ixn, (T, t)) =>
+              (Thm.cterm_of thy (Var (ixn, Envir.subst_type tye T)),
+               Thm.cterm_of thy t)) (Vartab.dest env) @
+            map (fn (ixnT, t) =>
+              (Thm.cterm_of thy (Var ixnT), Thm.cterm_of thy t)) insts) th)
+        (map (nth asms) is);
+    val (_, cases) = dest_elim (prop_of th');
   in
-    case (cases, prfs) of
+    (case (cases, prfs) of
       ([([], [_])], []) => th'
     | ([([], [_])], [([], prf)]) => thm_of_cl_prf thy goal (asms @ [th']) prf
-    | _ => Drule.implies_elim_list
-        (Thm.instantiate (Thm.match
-           (Drule.strip_imp_concl (cprop_of th'), goal)) th')
-        (map (thm_of_case_prf thy goal asms) (prfs ~~ cases))
+    | _ =>
+        Drule.implies_elim_list
+          (Thm.instantiate (Thm.match
+             (Drule.strip_imp_concl (cprop_of th'), goal)) th')
+          (map (thm_of_case_prf thy goal asms) (prfs ~~ cases)))
   end
 
 and thm_of_case_prf thy goal asms ((params, prf), (_, asms')) =
   let
     val cparams = map (cterm_of thy) params;
-    val asms'' = map (cterm_of thy o curry subst_bounds (rev params)) asms'
+    val asms'' = map (cterm_of thy o curry subst_bounds (rev params)) asms';
   in
-    Drule.forall_intr_list cparams (Drule.implies_intr_list asms''
-      (thm_of_cl_prf thy goal (asms @ map Thm.assume asms'') prf))
+    Drule.forall_intr_list cparams
+      (Drule.implies_intr_list asms''
+        (thm_of_cl_prf thy goal (asms @ map Thm.assume asms'') prf))
   end;
 
 
@@ -211,15 +217,16 @@ and thm_of_case_prf thy goal asms ((params, prf), (_, asms')) =
 fun coherent_tac ctxt rules = SUBPROOF (fn {prems, concl, params, context = ctxt', ...} =>
   rtac (rulify_elim_conv ctxt' concl RS Drule.equal_elim_rule2) 1 THEN
   SUBPROOF (fn {prems = prems', concl, context = ctxt'', ...} =>
-    let val xs = map (term_of o #2) params @
-      map (fn (_, s) => Free (s, the (Variable.default_type ctxt'' s)))
-        (rev (Variable.dest_fixes ctxt''))  (* FIXME !? *)
+    let
+      val xs =
+        map (term_of o #2) params @
+        map (fn (_, s) => Free (s, the (Variable.default_type ctxt'' s)))
+          (rev (Variable.dest_fixes ctxt''))  (* FIXME !? *)
     in
-      case valid ctxt'' (map (mk_rule ctxt'') (prems' @ prems @ rules)) (term_of concl)
+      (case valid ctxt'' (map (mk_rule ctxt'') (prems' @ prems @ rules)) (term_of concl)
            (mk_dom xs) Net.empty 0 0 of
-         NONE => no_tac
-       | SOME prf =>
-           rtac (thm_of_cl_prf (Proof_Context.theory_of ctxt'') concl [] prf) 1
+        NONE => no_tac
+      | SOME prf => rtac (thm_of_cl_prf (Proof_Context.theory_of ctxt'') concl [] prf) 1)
     end) ctxt' 1) ctxt;
 
 val setup = Method.setup @{binding coherent}
