@@ -142,6 +142,27 @@ object PIDE
       Document_View.exit(text_area)
     }
   }
+
+
+  /* current document content */
+
+  def snapshot(view: View): Document.Snapshot =
+  {
+    val buffer = view.getBuffer
+    document_model(buffer) match {
+      case Some(model) => model.snapshot
+      case None => error("No document model for current buffer")
+    }
+  }
+
+  def rendering(view: View): Rendering =
+  {
+    val text_area = view.getTextArea
+    document_view(text_area) match {
+      case Some(doc_view) => doc_view.get_rendering()
+      case None => error("No document view for current text area")
+    }
+  }
 }
 
 
