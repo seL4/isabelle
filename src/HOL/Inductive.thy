@@ -177,12 +177,13 @@ lemma coinduct_lemma:
 
 text{*strong version, thanks to Coen and Frost*}
 lemma coinduct_set: "[| mono(f);  a: X;  X \<subseteq> f(X Un gfp(f)) |] ==> a : gfp(f)"
-  by (blast intro: weak_coinduct [OF _ coinduct_lemma])
+  by (rule weak_coinduct[rotated], rule coinduct_lemma) blast+
 
 lemma coinduct: "[| mono(f); X \<le> f (sup X (gfp f)) |] ==> X \<le> gfp(f)"
   apply (rule order_trans)
   apply (rule sup_ge1)
-  apply (erule gfp_upperbound [OF coinduct_lemma])
+  apply (rule gfp_upperbound)
+  apply (erule coinduct_lemma)
   apply assumption
   done
 

@@ -455,13 +455,13 @@ lemma Quotient_composition_le_eq:
   assumes "left_unique T"
   assumes "R \<le> op="
   shows "(T OO R OO T\<inverse>\<inverse>) \<le> op="
-using assms unfolding left_unique_def by fast
+using assms unfolding left_unique_def by blast
 
 lemma left_total_composition: "left_total R \<Longrightarrow> left_total S \<Longrightarrow> left_total (R OO S)"
 unfolding left_total_def OO_def by fast
 
 lemma left_unique_composition: "left_unique R \<Longrightarrow> left_unique S \<Longrightarrow> left_unique (R OO S)"
-unfolding left_unique_def OO_def by fast
+unfolding left_unique_def OO_def by blast
 
 lemma invariant_le_eq:
   "invariant P \<le> op=" unfolding invariant_def by blast

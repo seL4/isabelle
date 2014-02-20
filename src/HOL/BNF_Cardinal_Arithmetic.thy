@@ -400,7 +400,8 @@ proof(cases "Field p1 = {}")
   proof (cases "Field p2 = {}")
     case True
     with n have "Field r2 = {}" .
-    hence "cone \<le>o r1 ^c r2" unfolding cone_def cexp_def Func_def by (auto intro: card_of_ordLeqI)
+    hence "cone \<le>o r1 ^c r2" unfolding cone_def cexp_def Func_def
+      by (auto intro: card_of_ordLeqI[where f="\<lambda>_ _. undefined"])
     thus ?thesis using `p1 ^c p2 \<le>o cone` ordLeq_transitive by auto
   next
     case False with True have "|Field (p1 ^c p2)| =o czero"
