@@ -75,10 +75,10 @@ lemma equiv_up_to_seq:
   P \<Turnstile> (c;; d) \<sim> (c';; d')"
   by (clarsimp simp: equiv_up_to_def) blast
 
-lemma equiv_up_to_while_lemma:
+lemma equiv_up_to_while_lemma_weak:
   shows "(d,s) \<Rightarrow> s' \<Longrightarrow>
          P \<Turnstile> b <\<sim>> b' \<Longrightarrow>
-         (\<lambda>s. P s \<and> bval b s) \<Turnstile> c \<sim> c' \<Longrightarrow>
+         P \<Turnstile> c \<sim> c' \<Longrightarrow>
          (\<And>s s'. (c, s) \<Rightarrow> s' \<Longrightarrow> P s \<Longrightarrow> bval b s \<Longrightarrow> P s') \<Longrightarrow>
          P s \<Longrightarrow>
          d = WHILE b DO c \<Longrightarrow>
@@ -92,7 +92,7 @@ proof (induction rule: big_step_induct)
   have "bval b' s1" by (simp add: bequiv_up_to_def)
   moreover
   from WhileTrue.prems
-  have "(\<lambda>s. P s \<and> bval b s) \<Turnstile> c \<sim> c'" by simp
+  have "P \<Turnstile> c \<sim> c'" by simp
   with `bval b s1` `P s1` `(c, s1) \<Rightarrow> s2`
   have "(c', s1) \<Rightarrow> s2" by (simp add: equiv_up_to_def)
   moreover
@@ -108,45 +108,29 @@ next
   thus ?case by (auto simp: bequiv_up_to_def)
 qed (fastforce simp: equiv_up_to_def bequiv_up_to_def)+
 
-lemma bequiv_context_subst:
-  "P \<Turnstile> b <\<sim>> b' \<Longrightarrow> (P s \<and> bval b s) = (P s \<and> bval b' s)"
-  by (auto simp: bequiv_up_to_def)
-
-lemma equiv_up_to_while:
+lemma equiv_up_to_while_weak:
   assumes b: "P \<Turnstile> b <\<sim>> b'"
-  assumes c: "(\<lambda>s. P s \<and> bval b s) \<Turnstile> c \<sim> c'"
+  assumes c: "P \<Turnstile> c \<sim> c'"
   assumes I: "\<And>s s'. (c, s) \<Rightarrow> s' \<Longrightarrow> P s \<Longrightarrow> bval b s \<Longrightarrow> P s'"
   shows "P \<Turnstile> WHILE b DO c \<sim> WHILE b' DO c'"
 proof -
   from b have b': "P \<Turnstile> b' <\<sim>> b" by (simp add: bequiv_up_to_sym)
 
-  from c b have c': "(\<lambda>s. P s \<and> bval b' s) \<Turnstile> c' \<sim> c"
-    by (simp add: equiv_up_to_sym bequiv_context_subst)
+  from c b have c': "P \<Turnstile> c' \<sim> c" by (simp add: equiv_up_to_sym)
 
   from I
   have I': "\<And>s s'. (c', s) \<Rightarrow> s' \<Longrightarrow> P s \<Longrightarrow> bval b' s \<Longrightarrow> P s'"
     by (auto dest!: equiv_up_toD1 [OF c'] simp: bequiv_up_to_subst [OF b'])
 
-  note equiv_up_to_while_lemma [OF _ b c]
-       equiv_up_to_while_lemma [OF _ b' c']
+  note equiv_up_to_while_lemma_weak [OF _ b c]
+       equiv_up_to_while_lemma_weak [OF _ b' c']
   thus ?thesis using I I' by (auto intro!: equiv_up_toI)
 qed
-
-lemma equiv_up_to_while_weak:
-  "P \<Turnstile> b <\<sim>> b' \<Longrightarrow> P \<Turnstile> c \<sim> c' \<Longrightarrow>
-   (\<And>s s'. (c, s) \<Rightarrow> s' \<Longrightarrow> P s \<Longrightarrow> bval b s \<Longrightarrow> P s') \<Longrightarrow>
-   P \<Turnstile> WHILE b DO c \<sim> WHILE b' DO c'"
-  by (fastforce elim!: equiv_up_to_while equiv_up_to_weaken)
-
-lemma equiv_up_to_if:
-  "P \<Turnstile> b <\<sim>> b' \<Longrightarrow> (\<lambda>s. P s \<and> bval b s) \<Turnstile> c \<sim> c' \<Longrightarrow> (\<lambda>s. P s \<and> \<not>bval b s) \<Turnstile> d \<sim> d' \<Longrightarrow>
-   P \<Turnstile> IF b THEN c ELSE d \<sim> IF b' THEN c' ELSE d'"
-  by (auto simp: bequiv_up_to_def equiv_up_to_def)
 
 lemma equiv_up_to_if_weak:
   "P \<Turnstile> b <\<sim>> b' \<Longrightarrow> P \<Turnstile> c \<sim> c' \<Longrightarrow> P \<Turnstile> d \<sim> d' \<Longrightarrow>
    P \<Turnstile> IF b THEN c ELSE d \<sim> IF b' THEN c' ELSE d'"
-  by (fastforce elim!: equiv_up_to_if equiv_up_to_weaken)
+  by (auto simp: bequiv_up_to_def equiv_up_to_def)
 
 lemma equiv_up_to_if_True [intro!]:
   "(\<And>s. P s \<Longrightarrow> bval b s) \<Longrightarrow> P \<Turnstile> IF b THEN c1 ELSE c2 \<sim> c1"
