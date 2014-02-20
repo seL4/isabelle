@@ -414,7 +414,7 @@ proof-
   let ?h = "\<lambda> b'::'b. if b' = b then a else undefined"
   have "inj_on ?h {b} \<and> ?h ` {b} \<le> A"
   using * unfolding inj_on_def by auto
-  thus ?thesis using card_of_ordLeq by fast
+  thus ?thesis unfolding card_of_ordLeq[symmetric] by (intro exI)
 qed
 
 corollary Card_order_singl_ordLeq:
