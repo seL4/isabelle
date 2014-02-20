@@ -1500,7 +1500,6 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
 
     val UNIVs = map HOLogic.mk_UNIV Ts;
     val FTs = mk_FTs (passiveAs @ Ts);
-    val FTs' = mk_FTs (passiveBs @ Ts);
     val prodTs = map (HOLogic.mk_prodT o `I) Ts;
     val prodFTs = mk_FTs (passiveAs @ prodTs);
     val FTs_setss = mk_setss (passiveAs @ Ts);
@@ -2172,14 +2171,13 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
               (mk_Trueprop_eq (HOLogic.mk_comp (dtor', fs_Jmap),
                 HOLogic.mk_comp (Term.list_comb (map, fs @ fs_Jmaps), dtor)));
             val goals = map4 mk_goal fs_Jmaps map_FTFT's dtors dtor's;
-            val cTs = map (SOME o certifyT lthy) FTs';
             val maps =
-              map5 (fn goal => fn cT => fn unfold => fn map_comp => fn map_cong0 =>
+              map5 (fn goal => fn unfold => fn map_comp => fn map_cong0 => fn map_arg_cong =>
                 Goal.prove_sorry lthy [] [] goal
                   (fn {context = ctxt, prems = _} => unfold_thms_tac ctxt Jmap_defs THEN
-                     mk_map_tac m n cT unfold map_comp map_cong0)
+                     mk_map_tac m n map_arg_cong unfold map_comp map_cong0)
                 |> Thm.close_derivation)
-              goals cTs dtor_unfold_thms map_comps map_cong0s;
+              goals dtor_unfold_thms map_comps map_cong0s map_arg_cong_thms;
           in
             map_split (fn thm => (thm RS @{thm comp_eq_dest}, thm)) maps
           end;
@@ -2398,10 +2396,10 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
       val zipFTs = mk_FTs zip_ranTs;
       val zipTs = map3 (fn T => fn T' => fn FT => T --> T' --> FT) Ts Ts' zipFTs;
       val zip_zTs = mk_Ts passiveABs;
-      val (((zips, (abs, abs')), zip_zs), names_lthy) = names_lthy
+      val (((zips, (abs, abs')), (zip_zs, zip_zs')), names_lthy) = names_lthy
         |> mk_Frees "zip" zipTs
         ||>> mk_Frees' "ab" passiveABs
-        ||>> mk_Frees "z" zip_zTs;
+        ||>> mk_Frees' "z" zip_zTs;
 
       val Iphi_sets =
         map2 (fn phi => fn T => HOLogic.Collect_const T $ HOLogic.mk_split phi) allJphis zip_ranTs;
@@ -2424,6 +2422,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
 
       fun Jrel_coinduct_tac {context = ctxt, prems = CIHs} =
         let
+val lthy = Config.put quick_and_dirty false lthy (*XXX*)
           fun mk_helper_prem phi in_phi zip x y map map' dtor dtor' =
             let
               val zipxy = zip $ x $ y;
@@ -2435,53 +2434,76 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
             end;
           val helper_prems = map9 mk_helper_prem
             activeJphis in_phis zips Jzs Jz's map_all_fsts map_all_snds dtors dtor's;
-          fun mk_helper_coind_concl fst phi x alt y map zip_unfold =
-            HOLogic.mk_imp (list_exists_free [if fst then y else x] (HOLogic.mk_conj (phi $ x $ y,
-              HOLogic.mk_eq (alt, map $ (zip_unfold $ HOLogic.mk_prod (x, y))))),
-            HOLogic.mk_eq (alt, if fst then x else y));
+          fun mk_helper_coind_phi fst phi x alt y map zip_unfold =
+            list_exists_free [if fst then y else x] (HOLogic.mk_conj (phi $ x $ y,
+              HOLogic.mk_eq (alt, map $ (zip_unfold $ HOLogic.mk_prod (x, y)))))
+          val coind1_phis = map6 (mk_helper_coind_phi true)
+            activeJphis Jzs Jzs_copy Jz's Jmap_fsts zip_unfolds;
+          val coind2_phis = map6 (mk_helper_coind_phi false)
+              activeJphis Jzs Jz's_copy Jz's Jmap_snds zip_unfolds;
+          fun mk_cts zs z's phis =
+            map3 (fn z => fn z' => fn phi =>
+              SOME (certify lthy (fold_rev (Term.absfree o Term.dest_Free) [z', z] phi)))
+            zs z's phis @
+            map (SOME o certify lthy) (splice z's zs);
+          val cts1 = mk_cts Jzs Jzs_copy coind1_phis;
+          val cts2 = mk_cts Jz's Jz's_copy coind2_phis;
+
+          fun mk_helper_coind_concl z alt coind_phi =
+            HOLogic.mk_imp (coind_phi, HOLogic.mk_eq (alt, z));
           val helper_coind1_concl =
             HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
-              (map6 (mk_helper_coind_concl true)
-              activeJphis Jzs Jzs_copy Jz's Jmap_fsts zip_unfolds));
+              (map3 mk_helper_coind_concl Jzs Jzs_copy coind1_phis));
           val helper_coind2_concl =
             HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
-              (map6 (mk_helper_coind_concl false)
-              activeJphis Jzs Jz's_copy Jz's Jmap_snds zip_unfolds));
-          fun mk_helper_coind_thms vars concl =
-            Goal.prove_sorry lthy [] []
-              (fold_rev Logic.all (Jphis @ activeJphis @ vars @ zips)
-                (Logic.list_implies (helper_prems, concl)))
+              (map3 mk_helper_coind_concl Jz's Jz's_copy coind2_phis));
+
+          fun mk_helper_coind_thms concl cts =
+            Goal.prove_sorry lthy [] [] (Logic.list_implies (helper_prems, concl))
               (fn {context = ctxt, prems = _} => mk_rel_coinduct_coind_tac ctxt m
-                dtor_map_coinduct_thm ks map_comps map_cong0s map_arg_cong_thms set_mapss
-                dtor_unfold_thms dtor_Jmap_thms)
+                (cterm_instantiate_pos cts dtor_map_coinduct_thm) ks map_comps map_cong0s
+                map_arg_cong_thms set_mapss dtor_unfold_thms dtor_Jmap_thms)
             |> Thm.close_derivation
-            |> split_conj_thm;
-          val helper_coind1_thms = mk_helper_coind_thms (Jzs @ Jzs_copy) helper_coind1_concl;
-          val helper_coind2_thms = mk_helper_coind_thms (Jz's @ Jz's_copy) helper_coind2_concl;
-  
-          fun mk_helper_ind_concl phi ab' ab fst snd z active_phi x y zip_unfold set =
-            mk_Ball (set $ z) (Term.absfree ab' (list_all_free [x, y] (HOLogic.mk_imp
+            |> split_conj_thm
+            |> Proof_Context.export names_lthy lthy;
+
+          val helper_coind1_thms = mk_helper_coind_thms helper_coind1_concl cts1;
+          val helper_coind2_thms = mk_helper_coind_thms helper_coind2_concl cts2;
+
+          fun mk_helper_ind_phi phi ab fst snd z active_phi x y zip_unfold =
+            list_all_free [x, y] (HOLogic.mk_imp
               (HOLogic.mk_conj (active_phi $ x $ y,
                  HOLogic.mk_eq (z, zip_unfold $ HOLogic.mk_prod (x, y))),
-              phi $ (fst $ ab) $ (snd $ ab)))));
+              phi $ (fst $ ab) $ (snd $ ab)));
+          val helper_ind_phiss =
+            map4 (fn Jphi => fn ab => fn fst => fn snd =>
+              map5 (mk_helper_ind_phi Jphi ab fst snd)
+              zip_zs activeJphis Jzs Jz's zip_unfolds)
+            Jphis abs fstABs sndABs;
+          val ctss = map2 (fn ab' => fn phis =>
+              map2 (fn z' => fn phi =>
+                SOME (certify lthy (Term.absfree ab' (Term.absfree z' phi))))
+              zip_zs' phis @
+              map (SOME o certify lthy) zip_zs)
+            abs' helper_ind_phiss;
+          fun mk_helper_ind_concl ab' z ind_phi set =
+            mk_Ball (set $ z) (Term.absfree ab' ind_phi);
   
           val mk_helper_ind_concls =
-            map6 (fn Jphi => fn ab' => fn ab => fn fst => fn snd => fn zip_sets =>
-              map6 (mk_helper_ind_concl Jphi ab' ab fst snd)
-              zip_zs activeJphis Jzs Jz's zip_unfolds zip_sets)
-            Jphis abs' abs fstABs sndABs zip_setss
+            map3 (fn ab' => fn ind_phis => fn zip_sets =>
+              map3 (mk_helper_ind_concl ab') zip_zs ind_phis zip_sets)
+            abs' helper_ind_phiss zip_setss
             |> map (HOLogic.mk_Trueprop o Library.foldr1 HOLogic.mk_conj);
-  
+
           val helper_ind_thmss = if m = 0 then replicate n [] else
-            map3 (fn concl => fn j => fn set_induct =>
-              Goal.prove_sorry lthy [] []
-                (fold_rev Logic.all (Jphis @ activeJphis @ zip_zs @ zips)
-                  (Logic.list_implies (helper_prems, concl)))
+            map4 (fn concl => fn j => fn set_induct => fn cts =>
+              Goal.prove_sorry lthy [] [] (Logic.list_implies (helper_prems, concl))
                 (fn {context = ctxt, prems = _} => mk_rel_coinduct_ind_tac ctxt m ks
-                  dtor_unfold_thms set_mapss j set_induct)
+                  dtor_unfold_thms set_mapss j (cterm_instantiate_pos cts set_induct))
               |> Thm.close_derivation
-              |> split_conj_thm)
-            mk_helper_ind_concls ls dtor_Jset_induct_thms
+              |> split_conj_thm
+              |> Proof_Context.export names_lthy lthy)
+            mk_helper_ind_concls ls dtor_Jset_induct_thms ctss
             |> transpose;
         in
           mk_rel_coinduct_tac ctxt CIHs in_rels in_Jrels

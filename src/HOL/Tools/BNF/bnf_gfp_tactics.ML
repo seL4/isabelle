@@ -43,7 +43,7 @@ sig
   val mk_mcong_tac: Proof.context -> int -> (int -> tactic) -> thm list -> thm list -> thm list ->
     thm list list -> thm list list -> thm list list list -> tactic
   val mk_map_id0_tac: thm list -> thm -> thm -> tactic
-  val mk_map_tac: int -> int -> ctyp option -> thm -> thm -> thm -> tactic
+  val mk_map_tac: int -> int -> thm -> thm -> thm -> thm -> tactic
   val mk_dtor_map_unique_tac: Proof.context -> thm -> thm list -> tactic
   val mk_mor_Abs_tac: Proof.context -> thm list -> thm list -> tactic
   val mk_mor_Rep_tac: Proof.context -> thm list -> thm list -> thm list -> thm list list ->
@@ -795,12 +795,12 @@ fun mk_dtor_map_coinduct_tac m ks raw_coind bis_def =
         rtac CollectI, etac (refl RSN (2, @{thm subst_Pair}))]) ks] 1
   end;
 
-fun mk_map_tac m n cT unfold map_comp map_cong0 =
+fun mk_map_tac m n map_arg_cong unfold map_comp map_cong0 =
   EVERY' [rtac ext, rtac (o_apply RS trans RS sym), rtac (o_apply RS trans RS sym),
     rtac (unfold RS trans), rtac (Thm.permute_prems 0 1 (map_comp RS box_equals)), rtac map_cong0,
     REPEAT_DETERM_N m o rtac (@{thm id_comp} RS fun_cong),
     REPEAT_DETERM_N n o rtac (@{thm comp_id} RS fun_cong),
-    rtac (o_apply RS (Drule.instantiate' [cT] [] arg_cong) RS sym)] 1;
+    rtac map_arg_cong, rtac (o_apply RS sym)] 1;
 
 fun mk_set_le_tac n hset_minimal set_hsets set_hset_hsetss =
   EVERY' [rtac hset_minimal,
@@ -1018,7 +1018,7 @@ fun mk_rel_coinduct_coind_tac ctxt m coinduct ks map_comp0s map_congs map_arg_co
   dtor_unfolds dtor_maps =
   let val n = length ks;
   in
-    EVERY' [DETERM o rtac coinduct,
+    EVERY' [rtac coinduct,
       EVERY' (map7 (fn i => fn map_comp0 => fn map_cong => fn map_arg_cong => fn set_map0s =>
           fn dtor_unfold => fn dtor_map =>
         EVERY' [REPEAT_DETERM o eresolve_tac [exE, conjE],
