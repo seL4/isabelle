@@ -4,7 +4,14 @@
 Derivation of the proof rules and, most importantly, the VCG tactic.
 *)
 
-(* FIXME structure Hoare: HOARE *)
+signature HOARE =
+sig
+  val hoare_rule_tac: Proof.context -> term list * thm -> (int -> tactic) -> bool -> int -> tactic
+  val hoare_tac: Proof.context -> (int -> tactic) -> int -> tactic
+end;
+
+structure Hoare: HOARE =
+struct
 
 (*** The tactics ***)
 
@@ -177,4 +184,6 @@ fun hoare_rule_tac ctxt (vars, Mlem) tac =
 
 fun hoare_tac ctxt tac = SUBGOAL (fn (goal, i) =>
   SELECT_GOAL (hoare_rule_tac ctxt (Mset ctxt goal) tac true 1) i);
+
+end;
 
