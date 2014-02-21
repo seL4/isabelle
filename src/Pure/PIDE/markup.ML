@@ -28,6 +28,7 @@ sig
   val language_prop: T
   val language_ML: T
   val language_document: T
+  val language_antiquotation: T
   val language_text: T
   val language_rail: T
   val bindingN: string val binding: T
@@ -255,9 +256,9 @@ val language_sort = language "sort" true;
 val language_type = language "type" true;
 val language_term = language "term" true;
 val language_prop = language "prop" true;
-
 val language_ML = language "ML" false;
 val language_document = language "document" false;
+val language_antiquotation = language "antiquotation" true;
 val language_text = language "text" true;
 val language_rail = language "rail" true;
 
