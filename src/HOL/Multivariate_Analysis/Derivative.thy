@@ -479,7 +479,8 @@ proof -
   proof (rule, rule)
     fix e :: real
     assume "e > 0"
-    guess d using assms(3)[rule_format,OF SOME_Basis `e>0`] ..
+    obtain d where "0 < \<bar>d\<bar>" and "\<bar>d\<bar> < e" and "x + d *\<^sub>R (SOME i. i \<in> Basis) \<in> s"
+      using assms(3) SOME_Basis `e>0` by blast
     then show "\<exists>x'\<in>s. x' \<noteq> x \<and> dist x' x < e"
       apply (rule_tac x="x + d *\<^sub>R (SOME i. i \<in> Basis)" in bexI)
       unfolding dist_norm
@@ -503,8 +504,16 @@ proof -
     assume "f' i \<noteq> f'' i"
     then have "e > 0"
       unfolding e_def by auto
-    guess d using tendsto_diff [OF as(1,2)[THEN conjunct2], unfolded * Lim_within,rule_format,OF `e>0`] .. note d=this
-    guess c using assms(3)[rule_format,OF i d[THEN conjunct1]] .. note c=this
+    obtain d where d:
+      "0 < d"
+      "(\<And>xa. xa\<in>s \<longrightarrow> 0 < dist xa x \<and> dist xa x < d \<longrightarrow>
+          dist ((f xa - f x - f' (xa - x)) /\<^sub>R norm (xa - x) -
+              (f xa - f x - f'' (xa - x)) /\<^sub>R norm (xa - x)) (0 - 0) < e)"
+      using tendsto_diff [OF as(1,2)[THEN conjunct2]]
+      unfolding * Lim_within
+      using `e>0` by blast
+    obtain c where c: "0 < \<bar>c\<bar>" "\<bar>c\<bar> < d \<and> x + c *\<^sub>R i \<in> s"
+      using assms(3) i d(1) by blast
     have *: "norm (- ((1 / \<bar>c\<bar>) *\<^sub>R f' (c *\<^sub>R i)) + (1 / \<bar>c\<bar>) *\<^sub>R f'' (c *\<^sub>R i)) =
         norm ((1 / abs c) *\<^sub>R (- (f' (c *\<^sub>R i)) + f'' (c *\<^sub>R i)))"
       unfolding scaleR_right_distrib by auto
@@ -514,12 +523,12 @@ proof -
       by auto
     also have "\<dots> = e"
       unfolding e_def
-      using c[THEN conjunct1]
+      using c(1)
       using norm_minus_cancel[of "f' i - f'' i"]
       by auto
     finally show False
       using c
-      using d[THEN conjunct2,rule_format,of "x + c *\<^sub>R i"]
+      using d(2)[of "x + c *\<^sub>R i"]
       unfolding dist_norm
       unfolding f'.scaleR f''.scaleR f'.add f''.add f'.diff f''.diff
         scaleR_scaleR scaleR_right_diff_distrib scaleR_right_distrib
@@ -671,8 +680,15 @@ proof (rule ccontr)
   then have *: "\<bar>?D k \<bullet> j\<bar> / 2 > 0"
     by auto
   note as = diff[unfolded jacobian_works has_derivative_at_alt]
-  guess e' using as[THEN conjunct2, rule_format, OF *] .. note e' = this
-  guess d using real_lbound_gt_zero[OF ball(1) e'[THEN conjunct1]] .. note d = this
+  obtain e' where e':
+    "0 < e'"
+    "(\<And>y. norm (y - x) < e' \<Longrightarrow>
+        norm (f y - f x -
+          (\<Sum>i\<in>Basis. (\<Sum>j\<in>Basis. frechet_derivative f (at x) j \<bullet> i * ((y - x) \<bullet> j)) *\<^sub>R i))
+        \<le> \<bar>(\<Sum>j\<in>Basis. (frechet_derivative f (at x) j \<bullet> k) *\<^sub>R j) \<bullet> j\<bar> / 2 * norm (y - x))"
+    using as[THEN conjunct2] * by blast
+  obtain d where d: "0 < d" "d < e" "d < e'"
+    using real_lbound_gt_zero[OF ball(1) e'(1)] by blast
   {
     fix c
     assume "abs c \<le> d"
@@ -684,7 +700,7 @@ proof (rule ccontr)
     have "\<bar>(f (x + c *\<^sub>R j) - f x - ?v) \<bullet> k\<bar> \<le> norm (f (x + c *\<^sub>R j) - f x - ?v)"
       by (rule Basis_le_norm[OF k])
     also have "\<dots> \<le> \<bar>?D k \<bullet> j\<bar> / 2 * \<bar>c\<bar>"
-      using e'[THEN conjunct2, rule_format, OF *] and norm_Basis[OF j(2)] j
+      using e'(2)[OF *] and norm_Basis[OF j(2)] j
       by simp
     finally have "\<bar>(f (x + c *\<^sub>R j) - f x - ?v) \<bullet> k\<bar> \<le> \<bar>?D k \<bullet> j\<bar> / 2 * \<bar>c\<bar>"
       by simp
@@ -705,7 +721,7 @@ proof (rule ccontr)
     by arith
   show False
     apply (rule ***[OF **, where dx="d * (?D k \<bullet> j)" and d="\<bar>?D k \<bullet> j\<bar> / 2 * \<bar>d\<bar>"])
-    using *[of "-d"] and *[of d] and d[THEN conjunct1] and j
+    using *[of "-d"] and *[of d] and d(1) and j
     unfolding mult_minus_left
     unfolding abs_mult diff_minus_eq_add scaleR_minus_left
     unfolding algebra_simps
@@ -750,8 +766,14 @@ proof -
       using assms(1) by auto
     then have *: "{a..b} \<noteq> {}"
       by auto
-    guess d using continuous_attains_sup[OF compact_interval * assms(3)] .. note d=this
-    guess c using continuous_attains_inf[OF compact_interval * assms(3)] .. note c=this
+    obtain d where d:
+        "d \<in> {a..b}"
+        "\<forall>y\<in>{a..b}. f y \<le> f d"
+      using continuous_attains_sup[OF compact_interval * assms(3)] ..
+    obtain c where c:
+        "c \<in> {a..b}"
+        "\<forall>y\<in>{a..b}. f c \<le> f y"
+      using continuous_attains_inf[OF compact_interval * assms(3)] ..
     show ?thesis
     proof (cases "d \<in> box a b \<or> c \<in> box a b")
       case True
@@ -781,7 +803,7 @@ proof -
         done
     qed
   qed
-  then guess x .. note x=this
+  then obtain x where x: "x \<in> box a b" "(\<forall>y\<in>box a b. f x \<le> f y) \<or> (\<forall>y\<in>box a b. f y \<le> f x)" ..
   then have "f' x = (\<lambda>v. 0)"
     apply (rule_tac differential_zero_maxmin[of x "box a b" f "f' x"])
     defer
@@ -821,7 +843,9 @@ proof -
         (\<lambda>xa. f' x xa - (f b - f a) / (b - a) * xa)) (at x)"
       by (intro FDERIV_intros assms(3)[rule_format,OF x] mult_right_has_derivative)
   qed (insert assms(1,2), auto intro!: continuous_on_intros simp: field_simps)
-  then guess x ..
+  then obtain x where
+    "x \<in> box a b"
+    "(\<lambda>xa. f' x xa - (f b - f a) / (b - a) * xa) = (\<lambda>v. 0)" ..
   then show ?thesis
     apply (rule_tac x=x in bexI)
     apply (drule fun_cong[of _ _ "b - a"])
@@ -894,7 +918,9 @@ proof -
     using assms(3)
     apply auto
     done
-  then guess x .. note x=this
+  then obtain x where x:
+    "x \<in> {a<..<b}"
+    "(op \<bullet> (f b - f a) \<circ> f) b - (op \<bullet> (f b - f a) \<circ> f) a = (f b - f a) \<bullet> f' x (b - a)" ..
   show ?thesis
   proof (cases "f a = f b")
     case False
@@ -965,7 +991,11 @@ proof -
     then show ?case
       unfolding has_derivative_within_open[OF goal1 open_greaterThanLessThan] .
   qed
-  guess u using mvt_general[OF zero_less_one 1 2] .. note u = this
+  obtain u where u:
+      "u \<in> {0<..<1}"
+      "norm ((f \<circ> (\<lambda>u. x + u *\<^sub>R (y - x))) 1 - (f \<circ> (\<lambda>u. x + u *\<^sub>R (y - x))) 0)
+        \<le> norm ((f' (x + u *\<^sub>R (y - x)) \<circ> (\<lambda>u. 0 + u *\<^sub>R (y - x))) (1 - 0))"
+    using mvt_general[OF zero_less_one 1 2] ..
   have **: "\<And>x y. x \<in> s \<Longrightarrow> norm (f' x y) \<le> B * norm y"
   proof -
     case goal1
@@ -1063,20 +1093,37 @@ proof -
     using assms unfolding has_derivative_def by auto
   interpret g': bounded_linear g'
     using assms by auto
-  guess C using bounded_linear.pos_bounded[OF assms(2)] .. note C = this
+  obtain C where C: "0 < C" "\<And>x. norm (g' x) \<le> norm x * C"
+    using bounded_linear.pos_bounded[OF assms(2)] by blast
   have lem1: "\<forall>e>0. \<exists>d>0. \<forall>z.
     norm (z - y) < d \<longrightarrow> norm (g z - g y - g'(z - y)) \<le> e * norm (g z - g y)"
   proof (rule, rule)
     case goal1
     have *: "e / C > 0"
       apply (rule divide_pos_pos)
-      using `e > 0` C
+      using `e > 0` C(1)
       apply auto
       done
-    guess d0 using assms(1)[unfolded has_derivative_at_alt,THEN conjunct2,rule_format,OF *] .. note d0=this
-    guess d1 using assms(4)[unfolded continuous_at Lim_at,rule_format,OF d0[THEN conjunct1]] .. note d1=this
-    guess d2 using assms(5)[unfolded open_dist,rule_format,OF assms(6)] .. note d2=this
-    guess d using real_lbound_gt_zero[OF d1[THEN conjunct1] d2[THEN conjunct1]] .. note d=this
+    obtain d0 where d0:
+        "0 < d0"
+        "\<forall>ya. norm (ya - g y) < d0 \<longrightarrow> norm (f ya - f (g y) - f' (ya - g y)) \<le> e / C * norm (ya - g y)"
+      using assms(1)
+      unfolding has_derivative_at_alt
+      using * by blast
+    obtain d1 where d1:
+        "0 < d1"
+        "\<forall>x. 0 < dist x y \<and> dist x y < d1 \<longrightarrow> dist (g x) (g y) < d0"
+      using assms(4)
+      unfolding continuous_at Lim_at
+      using d0(1) by blast
+    obtain d2 where d2:
+        "0 < d2"
+        "\<forall>ya. dist ya y < d2 \<longrightarrow> ya \<in> t"
+      using assms(5)
+      unfolding open_dist
+      using assms(6) by blast
+    obtain d where d: "0 < d" "d < d1" "d < d2"
+      using real_lbound_gt_zero[OF d1(1) d2(1)] by blast
     then show ?case
       apply (rule_tac x=d in exI)
       apply rule
@@ -1096,13 +1143,13 @@ proof -
         apply auto
         done
       also have "\<dots> \<le> norm (f (g z) - y - f' (g z - g y)) * C"
-        by (rule C [THEN conjunct2, rule_format])
+        by (rule C(2))
       also have "\<dots> \<le> (e / C) * norm (g z - g y) * C"
         apply (rule mult_right_mono)
-        apply (rule d0[THEN conjunct2,rule_format,unfolded assms(7)[rule_format,OF `y\<in>t`]])
+        apply (rule d0(2)[rule_format,unfolded assms(7)[rule_format,OF `y\<in>t`]])
         apply (cases "z = y")
         defer
-        apply (rule d1[THEN conjunct2, unfolded dist_norm,rule_format])
+        apply (rule d1(2)[unfolded dist_norm,rule_format])
         using as d C d0
         apply auto
         done
@@ -1114,8 +1161,11 @@ proof -
   qed
   have *: "(0::real) < 1 / 2"
     by auto
-  guess d using lem1[rule_format,OF *] .. note d=this
-  def B\<equiv>"C * 2"
+  obtain d where d:
+      "0 < d"
+      "\<forall>z. norm (z - y) < d \<longrightarrow> norm (g z - g y - g' (z - y)) \<le> 1 / 2 * norm (g z - g y)"
+    using lem1 * by blast
+  def B \<equiv> "C * 2"
   have "B > 0"
     unfolding B_def using C by auto
   have lem2: "\<forall>z. norm(z - y) < d \<longrightarrow> norm (g z - g y) \<le> B * norm (z - y)"
@@ -1151,8 +1201,12 @@ proof -
       using `B > 0`
       apply auto
       done
-    guess d' using lem1[rule_format,OF *] .. note d'=this
-    guess k using real_lbound_gt_zero[OF d[THEN conjunct1] d'[THEN conjunct1]] .. note k=this
+    obtain d' where d':
+        "0 < d'"
+        "\<forall>z. norm (z - y) < d' \<longrightarrow> norm (g z - g y - g' (z - y)) \<le> e / B * norm (g z - g y)"
+      using lem1 * by blast
+    obtain k where k: "0 < k" "k < d" "k < d'"
+      using real_lbound_gt_zero[OF d(1) d'(1)] by blast
     show ?case
       apply (rule_tac x=k in exI)
       apply rule
@@ -1306,17 +1360,27 @@ proof -
   interpret g': bounded_linear g'
     using assms
     by auto
-  guess B using bounded_linear.pos_bounded[OF assms(5)] .. note B=this
+  obtain B where B: "0 < B" "\<forall>x. norm (g' x) \<le> norm x * B"
+    using bounded_linear.pos_bounded[OF assms(5)] by blast
   then have *: "1 / (2 * B) > 0"
     by (auto intro!: divide_pos_pos)
-  guess e0 using assms(4)[unfolded has_derivative_at_alt,THEN conjunct2,rule_format,OF *] .. note e0=this
-  guess e1 using assms(8)[unfolded mem_interior_cball] .. note e1=this
+  obtain e0 where e0:
+      "0 < e0"
+      "\<forall>y. norm (y - x) < e0 \<longrightarrow> norm (f y - f x - f' (y - x)) \<le> 1 / (2 * B) * norm (y - x)"
+    using assms(4)
+    unfolding has_derivative_at_alt
+    using * by blast
+  obtain e1 where e1: "0 < e1" "cball x e1 \<subseteq> t"
+    using assms(8)
+    unfolding mem_interior_cball
+    by blast
   have *: "0 < e0 / B" "0 < e1 / B"
     apply (rule_tac[!] divide_pos_pos)
     using e0 e1 B
     apply auto
     done
-  guess e using real_lbound_gt_zero[OF *] .. note e=this
+  obtain e where e: "0 < e" "e < e0 / B" "e < e1 / B"
+    using real_lbound_gt_zero[OF *] by blast
   have "\<forall>z\<in>cball (f x) (e / 2). \<exists>y\<in>cball (f x) e. f (x + g' (y - f x)) = z"
     apply rule
     apply (rule brouwer_surjective_cball[where s="cball (f x) (e/2)"])
@@ -1381,7 +1445,7 @@ proof -
       using norm_triangle_ineq[of "f (x + g'(z - f x)) - z" "f x - y"]
       by (auto simp add: algebra_simps)
     also have "\<dots> \<le> 1 / (B * 2) * norm (g' (z - f x)) + norm (f x - y)"
-      using e0[THEN conjunct2,rule_format,OF *]
+      using e0(2)[rule_format, OF *]
       unfolding algebra_simps **
       by auto
     also have "\<dots> \<le> 1 / (B * 2) * norm (g' (z - f x)) + e/2"
@@ -1413,7 +1477,8 @@ proof -
     assume "y \<in> ball (f x) (e / 2)"
     then have *: "y \<in> cball (f x) (e / 2)"
       by auto
-    guess z using lem[rule_format,OF *] .. note z=this
+    obtain z where z: "z \<in> cball (f x) e" "f (x + g' (z - f x)) = y"
+      using lem * by blast
     then have "norm (g' (z - f x)) \<le> norm (z - f x) * B"
       using B
       by (auto simp add: field_simps)
@@ -1428,7 +1493,7 @@ proof -
       using e B unfolding less_divide_eq by auto
     finally have "x + g'(z - f x) \<in> t"
       apply -
-      apply (rule e1[THEN conjunct2,unfolded subset_eq,rule_format])
+      apply (rule e1(2)[unfolded subset_eq,rule_format])
       unfolding mem_cball dist_norm
       apply auto
       done
@@ -1504,17 +1569,18 @@ proof -
     then have "f x \<in> interior (f ` (ball x e \<inter> s))"
       using *[rule_format,of "ball x e \<inter> s"] `x \<in> s`
       by (auto simp add: interior_open[OF open_ball] interior_open[OF assms(1)])
-    then guess d unfolding mem_interior .. note d=this
+    then obtain d where d: "0 < d" "ball (f x) d \<subseteq> f ` (ball x e \<inter> s)"
+      unfolding mem_interior by blast
     show "\<exists>d>0. \<forall>y. 0 < dist y (f x) \<and> dist y (f x) < d \<longrightarrow> dist (g y) (g (f x)) < e"
       apply (rule_tac x=d in exI)
       apply rule
-      apply (rule d[THEN conjunct1])
+      apply (rule d(1))
       apply rule
       apply rule
     proof -
       case goal1
       then have "g y \<in> g ` f ` (ball x e \<inter> s)"
-        using d[THEN conjunct2,unfolded subset_eq,THEN bspec[where x=y]]
+        using d(2)[unfolded subset_eq,THEN bspec[where x=y]]
         by (auto simp add: dist_commute)
       then have "g y \<in> ball x e \<inter> s"
         using assms(4) by auto
@@ -1534,7 +1600,7 @@ proof -
     case goal1
     then have "y \<in> f ` s"
       using interior_subset by auto
-    then guess z unfolding image_iff ..
+    then obtain z where "z \<in> s" "y = f z" unfolding image_iff ..
     then show ?case
       using assms(4) by auto
   qed
@@ -1617,15 +1683,20 @@ proof -
   def k \<equiv> "1 / onorm g' / 2"
   have *: "k > 0"
     unfolding k_def using * by auto
-  guess d1 using assms(6)[rule_format,OF *] .. note d1=this
+  obtain d1 where d1:
+      "0 < d1"
+      "\<And>x. dist a x < d1 \<Longrightarrow> onorm (\<lambda>v. f' x v - f' a v) < k"
+    using assms(6) * by blast
   from `open s` obtain d2 where "d2 > 0" "ball a d2 \<subseteq> s"
     using `a\<in>s` ..
   obtain d2 where "d2 > 0" "ball a d2 \<subseteq> s"
     using assms(2,1) ..
-  guess d2 using assms(2)[unfolded open_contains_ball,rule_format,OF `a\<in>s`] ..
-  note d2=this
-  guess d using real_lbound_gt_zero[OF d1[THEN conjunct1] d2[THEN conjunct1]] ..
-  note d = this
+  obtain d2 where d2: "0 < d2" "ball a d2 \<subseteq> s"
+    using assms(2)
+    unfolding open_contains_ball
+    using `a\<in>s` by blast
+  obtain d where d: "0 < d" "d < d1" "d < d2"
+    using real_lbound_gt_zero[OF d1(1) d2(1)] by blast
   show ?thesis
   proof
     show "a \<in> ball a d"
@@ -1676,7 +1747,7 @@ proof -
           done
         also have "\<dots> \<le> onorm g' * k"
           apply (rule mult_left_mono)
-          using d1[THEN conjunct2,rule_format,of u]
+          using d1(2)[of u]
           using onorm_neg[OF **(1)[unfolded linear_linear]]
           using d and u and onorm_pos_le[OF assms(3)[unfolded linear_linear]]
           apply (auto simp add: algebra_simps)
@@ -1753,7 +1824,8 @@ lemma has_derivative_sequence_lipschitz:
 proof (rule, rule)
   case goal1 have *: "2 * (1/2* e) = e" "1/2 * e >0"
     using `e > 0` by auto
-  guess N using assms(3)[rule_format,OF *(2)] ..
+  obtain N where "\<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm (f' n x h - g' x h) \<le> 1 / 2 * e * norm h"
+    using assms(3) *(2) by blast
   then show ?case
     apply (rule_tac x=N in exI)
     apply (rule has_derivative_sequence_lipschitz_lemma[where e="1/2 *e", unfolded *])
@@ -1797,8 +1869,15 @@ proof -
         assume "e > 0"
         then have *: "e / 2 > 0" "e / 2 / norm (x - x0) > 0"
           using False by (auto intro!: divide_pos_pos)
-        guess M using LIMSEQ_imp_Cauchy[OF assms(5), unfolded Cauchy_def, rule_format,OF *(1)] .. note M=this
-        guess N using lem1[rule_format,OF *(2)] .. note N = this
+        obtain M where M: "\<forall>m\<ge>M. \<forall>n\<ge>M. dist (f m x0) (f n x0) < e / 2"
+          using LIMSEQ_imp_Cauchy[OF assms(5)]
+          unfolding Cauchy_def
+          using *(1) by blast
+        obtain N where N:
+          "\<forall>m\<ge>N. \<forall>n\<ge>N.
+            \<forall>xa\<in>s. \<forall>y\<in>s. norm (f m xa - f n xa - (f m y - f n y)) \<le>
+              e / 2 / norm (x - x0) * norm (xa - y)"
+        using lem1 *(2) by blast
         show "\<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (f m x) (f n x) < e"
           apply (rule_tac x="max M N" in exI)
         proof rule+
@@ -1823,12 +1902,14 @@ proof -
       qed
     qed
   qed
-  then guess g .. note g = this
+  then obtain g where g: "\<forall>x\<in>s. (\<lambda>n. f n x) ----> g x" ..
   have lem2: "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>y\<in>s. norm ((f n x - f n y) - (g x - g y)) \<le> e * norm (x - y)"
   proof (rule, rule)
     fix e :: real
     assume *: "e > 0"
-    guess N using lem1[rule_format,OF *] .. note N=this
+    obtain N where
+      N: "\<forall>m\<ge>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>y\<in>s. norm (f m x - f n x - (f m y - f n y)) \<le> e * norm (x - y)"
+      using lem1 * by blast
     show "\<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>y\<in>s. norm (f n x - f n y - (g x - g y)) \<le> e * norm (x - y)"
       apply (rule_tac x=N in exI)
     proof rule+
@@ -1873,7 +1954,8 @@ proof -
       show "\<exists>N. \<forall>n\<ge>N. dist (f' n x u) (g' x u) < e"
       proof (cases "u = 0")
         case True
-        guess N using assms(3)[rule_format,OF `e>0`] .. note N=this
+        obtain N where N: "\<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm (f' n x h - g' x h) \<le> e * norm h"
+          using assms(3) `e>0` by blast
         show ?thesis
           apply (rule_tac x=N in exI)
           unfolding True
@@ -1885,7 +1967,8 @@ proof -
         then have *: "e / 2 / norm u > 0"
           using `e > 0`
           by (auto intro!: divide_pos_pos)
-        guess N using assms(3)[rule_format,OF *] .. note N=this
+        obtain N where N: "\<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm (f' n x h - g' x h) \<le> e / 2 / norm u * norm h"
+          using assms(3) * by blast
         show ?thesis
           apply (rule_tac x=N in exI)
           apply rule
@@ -1931,13 +2014,23 @@ proof -
       case goal1
       have *: "e / 3 > 0"
         using goal1 by auto
-      guess N1 using assms(3)[rule_format,OF *] .. note N1=this
-      guess N2 using lem2[rule_format,OF *] .. note N2=this
-      guess d1 using assms(2)[unfolded has_derivative_within_alt, rule_format,OF `x\<in>s`, of "max N1 N2",THEN conjunct2,rule_format,OF *] .. note d1=this
+      obtain N1 where N1: "\<forall>n\<ge>N1. \<forall>x\<in>s. \<forall>h. norm (f' n x h - g' x h) \<le> e / 3 * norm h"
+        using assms(3) * by blast
+      obtain N2 where
+          N2: "\<forall>n\<ge>N2. \<forall>x\<in>s. \<forall>y\<in>s. norm (f n x - f n y - (g x - g y)) \<le> e / 3 * norm (x - y)"
+        using lem2 * by blast
+      obtain d1 where d1:
+          "0 < d1"
+          "\<forall>y\<in>s. norm (y - x) < d1 \<longrightarrow>
+            norm (f (max N1 N2) y - f (max N1 N2) x - f' (max N1 N2) x (y - x)) \<le>
+            e / 3 * norm (y - x)"
+        using assms(2)[unfolded has_derivative_within_alt, rule_format,
+            OF `x\<in>s`, of "max N1 N2", THEN conjunct2, rule_format, OF *]
+        by blast
       show ?case
         apply (rule_tac x=d1 in exI)
         apply rule
-        apply (rule d1[THEN conjunct1])
+        apply (rule d1(1))
         apply rule
         apply rule
       proof -
@@ -2009,8 +2102,14 @@ proof -
     apply (erule_tac x="inverse (real (Suc n))" in allE)
     apply auto
     done
-  guess f using *[THEN choice] .. note * = this
-  guess f' using *[THEN choice] .. note f = this
+  obtain f where
+    *: "\<forall>x. \<exists>f'. \<forall>xa\<in>s. FDERIV (f x) xa : s :> f' xa \<and>
+      (\<forall>h. norm (f' xa h - g' xa h) \<le> inverse (real (Suc x)) * norm h)"
+    using *[THEN choice] ..
+  obtain f' where
+    f: "\<forall>x. \<forall>xa\<in>s. FDERIV (f x) xa : s :> f' x xa \<and>
+      (\<forall>h. norm (f' x xa h - g' xa h) \<le> inverse (real (Suc x)) * norm h)"
+    using *[THEN choice] ..
   show ?thesis
     apply (rule has_antiderivative_sequence[OF assms(1), of f f'])
     defer
@@ -2019,7 +2118,8 @@ proof -
   proof -
     fix e :: real
     assume "e > 0"
-    guess  N using reals_Archimedean[OF `e>0`] .. note N=this
+    obtain N where N: "inverse (real (Suc N)) < e"
+      using reals_Archimedean[OF `e>0`] ..
     show "\<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm (f' n x h - g' x h) \<le> e * norm h"
       apply (rule_tac x=N in exI)
     proof rule+
@@ -2082,7 +2182,8 @@ lemma vector_derivative_works:
     (is "?l = ?r")
 proof
   assume ?l
-  guess f' using `?l`[unfolded differentiable_def] .. note f' = this
+  obtain f' where f': "(f has_derivative f') net"
+    using `?l` unfolding differentiable_def ..
   then interpret bounded_linear f'
     by auto
   show ?r
