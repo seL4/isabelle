@@ -6,7 +6,8 @@ Derivation of the proof rules and, most importantly, the VCG tactic.
 
 signature HOARE =
 sig
-  val hoare_rule_tac: Proof.context -> term list * thm -> (int -> tactic) -> bool -> int -> tactic
+  val hoare_rule_tac: Proof.context -> term list * thm -> (int -> tactic) -> bool ->
+    int -> tactic
   val hoare_tac: Proof.context -> (int -> tactic) -> int -> tactic
 end;
 
@@ -52,26 +53,30 @@ fun mk_abstupleC [] body = absfree ("x", HOLogic.unitT) body
       end;
 
 (** maps [x1,...,xn] to (x1,...,xn) and types**)
-fun mk_bodyC []      = HOLogic.unit
-  | mk_bodyC (x::xs) = if xs=[] then x
-               else let val (n, T) = dest_Free x ;
-                        val z = mk_bodyC xs;
-                        val T2 = case z of Free(_, T) => T
-                                         | Const (@{const_name Pair}, Type ("fun", [_, Type
-                                            ("fun", [_, T])])) $ _ $ _ => T;
-                 in Const (@{const_name Pair}, [T, T2] ---> HOLogic.mk_prodT (T, T2)) $ x $ z end;
+fun mk_bodyC [] = HOLogic.unit
+  | mk_bodyC [x] = x
+  | mk_bodyC (x :: xs) =
+      let
+        val (_, T) = dest_Free x;
+        val z = mk_bodyC xs;
+        val T2 =
+          (case z of
+            Free (_, T) => T
+          | Const (@{const_name Pair}, Type ("fun", [_, Type ("fun", [_, T])])) $ _ $ _ => T);
+     in Const (@{const_name Pair}, [T, T2] ---> HOLogic.mk_prodT (T, T2)) $ x $ z end;
 
 (** maps a subgoal of the form:
-        VARS x1 ... xn {._.} _ {._.} or to [x1,...,xn]**)
+    VARS x1 ... xn {._.} _ {._.} or to [x1,...,xn]
+**)
 fun get_vars c =
   let
     val d = Logic.strip_assums_concl c;
     val Const _ $ pre $ _ $ _ = HOLogic.dest_Trueprop d;
   in mk_vars pre end;
 
-fun mk_CollectC trm =
-  let val T as Type ("fun",[t,_]) = fastype_of trm
-  in HOLogic.Collect_const t $ trm end;
+fun mk_CollectC tm =
+  let val T as Type ("fun",[t,_]) = fastype_of tm;
+  in HOLogic.Collect_const t $ tm end;
 
 fun inclt ty = Const (@{const_name Orderings.less_eq}, [ty,ty] ---> HOLogic.boolT);
 
@@ -83,8 +88,10 @@ fun Mset ctxt prop =
 
     val vars = get_vars prop;
     val varsT = fastype_of (mk_bodyC vars);
-    val big_Collect = mk_CollectC (mk_abstupleC vars (Free (P, varsT --> HOLogic.boolT) $ mk_bodyC vars));
-    val small_Collect = mk_CollectC (Abs ("x", varsT, Free (P, varsT --> HOLogic.boolT) $ Bound 0));
+    val big_Collect =
+      mk_CollectC (mk_abstupleC vars (Free (P, varsT --> HOLogic.boolT) $ mk_bodyC vars));
+    val small_Collect =
+      mk_CollectC (Abs ("x", varsT, Free (P, varsT --> HOLogic.boolT) $ Bound 0));
 
     val MsetT = fastype_of big_Collect;
     fun Mset_incl t = HOLogic.mk_Trueprop (inclt MsetT $ Free (Mset, MsetT) $ t);
@@ -111,7 +118,7 @@ fun split_simp_tac ctxt =
   simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm split_conv}]);
 
 (*****************************************************************************)
-(** set2pred_tac transforms sets inclusion into predicates implication,     **)
+(** set_to_pred_tac transforms sets inclusion into predicates implication,  **)
 (** maintaining the original variable names.                                **)
 (** Ex. "{x. x=0} <= {x. x <= 1}" -set2pred-> "x=0 --> x <= 1"              **)
 (** Subgoals containing intersections (A Int B) or complement sets (-A)     **)
@@ -122,7 +129,7 @@ fun split_simp_tac ctxt =
 (** simplification done by (split_all_tac)                                  **)
 (*****************************************************************************)
 
-fun set2pred_tac ctxt var_names = SUBGOAL (fn (_, i) =>
+fun set_to_pred_tac ctxt var_names = SUBGOAL (fn (_, i) =>
   before_set2pred_simp_tac ctxt i THEN_MAYBE
   EVERY [
     rtac subsetI i,
@@ -132,22 +139,22 @@ fun set2pred_tac ctxt var_names = SUBGOAL (fn (_, i) =>
      (rename_tac var_names i THEN
       full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm split_conv}]) i)]);
 
-(*****************************************************************************)
-(** BasicSimpTac is called to simplify all verification conditions. It does **)
-(** a light simplification by applying "mem_Collect_eq", then it calls      **)
-(** MaxSimpTac, which solves subgoals of the form "A <= A",                 **)
-(** and transforms any other into predicates, applying then                 **)
-(** the tactic chosen by the user, which may solve the subgoal completely.  **)
-(*****************************************************************************)
+(*******************************************************************************)
+(** basic_simp_tac is called to simplify all verification conditions. It does **)
+(** a light simplification by applying "mem_Collect_eq", then it calls        **)
+(** max_simp_tac, which solves subgoals of the form "A <= A",                 **)
+(** and transforms any other into predicates, applying then                   **)
+(** the tactic chosen by the user, which may solve the subgoal completely.    **)
+(*******************************************************************************)
 
-fun MaxSimpTac ctxt var_names tac =
-  FIRST'[rtac subset_refl, set2pred_tac ctxt var_names THEN_MAYBE' tac];
+fun max_simp_tac ctxt var_names tac =
+  FIRST' [rtac subset_refl, set_to_pred_tac ctxt var_names THEN_MAYBE' tac];
 
-fun BasicSimpTac ctxt var_names tac =
+fun basic_simp_tac ctxt var_names tac =
   simp_tac
     (put_simpset HOL_basic_ss ctxt
       addsimps [mem_Collect_eq, @{thm split_conv}] addsimprocs [Record.simproc])
-  THEN_MAYBE' MaxSimpTac ctxt var_names tac;
+  THEN_MAYBE' max_simp_tac ctxt var_names tac;
 
 
 (** hoare_rule_tac **)
@@ -173,9 +180,9 @@ fun hoare_rule_tac ctxt (vars, Mlem) tac =
             rule_tac false (i + 1)],
           EVERY [
             rtac @{thm WhileRule} i,
-            BasicSimpTac ctxt var_names tac (i + 2),
+            basic_simp_tac ctxt var_names tac (i + 2),
             rule_tac true (i + 1)]]
-         THEN (if pre_cond then BasicSimpTac ctxt var_names tac i else rtac subset_refl i)));
+         THEN (if pre_cond then basic_simp_tac ctxt var_names tac i else rtac subset_refl i)));
   in rule_tac end;
 
 
