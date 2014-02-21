@@ -42,7 +42,7 @@ fun mk_fexp x e xs = mk_abstuple xs (mk_fbody x e xs);
 (*all meta-variables for bexp except for TRUE are translated as if they
   were boolean expressions*)
 
-fun bexp_tr (Const ("TRUE", _)) xs = Syntax.const "TRUE"   (* FIXME !? *)
+fun bexp_tr (Const ("TRUE", _)) _ = Syntax.const "TRUE"   (* FIXME !? *)
   | bexp_tr b xs = Syntax.const @{const_syntax Collect} $ mk_abstuple xs b;
 
 fun assn_tr r xs = Syntax.const @{const_syntax Collect} $ mk_abstuple xs r;
@@ -52,7 +52,7 @@ fun assn_tr r xs = Syntax.const @{const_syntax Collect} $ mk_abstuple xs r;
 
 fun com_tr (Const (@{syntax_const "_assign"}, _) $ x $ e) xs =
       Syntax.const @{const_syntax Basic} $ mk_fexp x e xs
-  | com_tr (Const (@{const_syntax Basic},_) $ f) xs = Syntax.const @{const_syntax Basic} $ f
+  | com_tr (Const (@{const_syntax Basic},_) $ f) _ = Syntax.const @{const_syntax Basic} $ f
   | com_tr (Const (@{const_syntax Seq},_) $ c1 $ c2) xs =
       Syntax.const @{const_syntax Seq} $ com_tr c1 xs $ com_tr c2 xs
   | com_tr (Const (@{const_syntax Cond},_) $ b $ c1 $ c2) xs =
@@ -88,27 +88,27 @@ fun dest_abstuple
   | dest_abstuple tm = tm;
 
 fun abs2list (Const (@{const_syntax case_prod}, _) $ Abs (x, T, t)) = Free (x, T) :: abs2list t
-  | abs2list (Abs (x, T, t)) = [Free (x, T)]
+  | abs2list (Abs (x, T, _)) = [Free (x, T)]
   | abs2list _ = [];
 
-fun mk_ts (Const (@{const_syntax case_prod}, _) $ Abs (x, _, t)) = mk_ts t
-  | mk_ts (Abs (x, _, t)) = mk_ts t
+fun mk_ts (Const (@{const_syntax case_prod}, _) $ Abs (_, _, t)) = mk_ts t
+  | mk_ts (Abs (_, _, t)) = mk_ts t
   | mk_ts (Const (@{const_syntax Pair}, _) $ a $ b) = a :: mk_ts b
   | mk_ts t = [t];
 
 fun mk_vts (Const (@{const_syntax case_prod},_) $ Abs (x, _, t)) =
       (Syntax.free x :: abs2list t, mk_ts t)
   | mk_vts (Abs (x, _, t)) = ([Syntax.free x], [t])
-  | mk_vts t = raise Match;
+  | mk_vts _ = raise Match;
 
-fun find_ch [] i xs = (false, (Syntax.free "not_ch", Syntax.free "not_ch"))  (* FIXME no_ch!? *)
+fun find_ch [] _ _ = (false, (Syntax.free "not_ch", Syntax.free "not_ch"))  (* FIXME no_ch!? *)
   | find_ch ((v, t) :: vts) i xs =
       if t = Bound i then find_ch vts (i - 1) xs
       else (true, (v, subst_bounds (xs, t)));
 
-fun is_f (Const (@{const_syntax case_prod}, _) $ Abs (x, _, t)) = true
-  | is_f (Abs (x, _, t)) = true
-  | is_f t = false;
+fun is_f (Const (@{const_syntax case_prod}, _) $ Abs _) = true
+  | is_f (Abs _) = true
+  | is_f _ = false;
 
 
 (* assn_tr' & bexp_tr'*)
@@ -148,7 +148,7 @@ fun com_tr' (Const (@{const_syntax Basic}, _) $ f) =
 
 in
 
-fun spec_tr' syn [p, c, q] = Syntax.const syn $ assn_tr' p $ com_tr' c $ assn_tr' q
+fun spec_tr' syn [p, c, q] = Syntax.const syn $ assn_tr' p $ com_tr' c $ assn_tr' q;
 
 end;
 

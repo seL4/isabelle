@@ -1,11 +1,11 @@
-(*  Title:      HOL/ex/Set_Comprehension_Pointfree_Tests.thy
+(*  Title:      HOL/ex/Set_Comprehension_Pointfree_Examples.thy
     Author:     Lukas Bulwahn, Rafal Kolanski
     Copyright   2012 TU Muenchen
 *)
 
-header {* Tests for the set comprehension to pointfree simproc *}
+header {* Examples for the set comprehension to pointfree simproc *}
 
-theory Set_Comprehension_Pointfree_Tests
+theory Set_Comprehension_Pointfree_Examples
 imports Main
 begin
 

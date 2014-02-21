@@ -570,7 +570,7 @@ session "HOL-ex" in ex = HOL +
     Simproc_Tests
     Executable_Relation
     FinFunPred
-    Set_Comprehension_Pointfree_Tests
+    Set_Comprehension_Pointfree_Examples
     Parallel_Example
     IArray_Examples
     SVC_Oracle

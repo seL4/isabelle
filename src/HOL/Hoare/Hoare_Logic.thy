@@ -96,12 +96,12 @@ lemmas AbortRule = SkipRule  -- "dummy version"
 ML_file "hoare_tac.ML"
 
 method_setup vcg = {*
-  Scan.succeed (fn ctxt => SIMPLE_METHOD' (hoare_tac ctxt (K all_tac))) *}
+  Scan.succeed (fn ctxt => SIMPLE_METHOD' (Hoare.hoare_tac ctxt (K all_tac))) *}
   "verification condition generator"
 
 method_setup vcg_simp = {*
   Scan.succeed (fn ctxt =>
-    SIMPLE_METHOD' (hoare_tac ctxt (asm_full_simp_tac ctxt))) *}
+    SIMPLE_METHOD' (Hoare.hoare_tac ctxt (asm_full_simp_tac ctxt))) *}
   "verification condition generator plus simplification"
 
 end

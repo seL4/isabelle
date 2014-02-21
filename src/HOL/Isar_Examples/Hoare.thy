@@ -189,26 +189,24 @@ text {* The following specification of syntax and translations is for
   @{ML Syntax_Trans.quote_tr'},). *}
 
 syntax
-  "_quote"       :: "'b \<Rightarrow> ('a \<Rightarrow> 'b)"       ("(.'(_').)" [0] 1000)
-  "_antiquote"   :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b"       ("\<acute>_" [1000] 1000)
-  "_Subst"       :: "'a bexp \<Rightarrow> 'b \<Rightarrow> idt \<Rightarrow> 'a bexp"
-        ("_[_'/\<acute>_]" [1000] 999)
-  "_Assert"      :: "'a \<Rightarrow> 'a set"           ("(\<lbrace>_\<rbrace>)" [0] 1000)
-  "_Assign"      :: "idt \<Rightarrow> 'b \<Rightarrow> 'a com"    ("(\<acute>_ :=/ _)" [70, 65] 61)
-  "_Cond"        :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a com \<Rightarrow> 'a com"
-        ("(0IF _/ THEN _/ ELSE _/ FI)" [0, 0, 0] 61)
-  "_While_inv"   :: "'a bexp \<Rightarrow> 'a assn \<Rightarrow> 'a com \<Rightarrow> 'a com"
-        ("(0WHILE _/ INV _ //DO _ /OD)"  [0, 0, 0] 61)
-  "_While"       :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a com"
-        ("(0WHILE _ //DO _ /OD)"  [0, 0] 61)
+  "_quote" :: "'b \<Rightarrow> ('a \<Rightarrow> 'b)"
+  "_antiquote" :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b"  ("\<acute>_" [1000] 1000)
+  "_Subst" :: "'a bexp \<Rightarrow> 'b \<Rightarrow> idt \<Rightarrow> 'a bexp"  ("_[_'/\<acute>_]" [1000] 999)
+  "_Assert" :: "'a \<Rightarrow> 'a set"  ("(\<lbrace>_\<rbrace>)" [0] 1000)
+  "_Assign" :: "idt \<Rightarrow> 'b \<Rightarrow> 'a com"  ("(\<acute>_ :=/ _)" [70, 65] 61)
+  "_Cond" :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a com \<Rightarrow> 'a com"
+    ("(0IF _/ THEN _/ ELSE _/ FI)" [0, 0, 0] 61)
+  "_While_inv" :: "'a bexp \<Rightarrow> 'a assn \<Rightarrow> 'a com \<Rightarrow> 'a com"
+    ("(0WHILE _/ INV _ //DO _ /OD)"  [0, 0, 0] 61)
+  "_While" :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a com"  ("(0WHILE _ //DO _ /OD)"  [0, 0] 61)
 
 translations
-  "\<lbrace>b\<rbrace>"                     \<rightharpoonup> "CONST Collect .(b)."
-  "B [a/\<acute>x]"                \<rightharpoonup> "\<lbrace>\<acute>(_update_name x (\<lambda>_. a)) \<in> B\<rbrace>"
-  "\<acute>x := a"                 \<rightharpoonup> "CONST Basic .(\<acute>(_update_name x (\<lambda>_. a)))."
+  "\<lbrace>b\<rbrace>" \<rightharpoonup> "CONST Collect (_quote b)"
+  "B [a/\<acute>x]" \<rightharpoonup> "\<lbrace>\<acute>(_update_name x (\<lambda>_. a)) \<in> B\<rbrace>"
+  "\<acute>x := a" \<rightharpoonup> "CONST Basic (_quote (\<acute>(_update_name x (\<lambda>_. a))))"
   "IF b THEN c1 ELSE c2 FI" \<rightharpoonup> "CONST Cond \<lbrace>b\<rbrace> c1 c2"
-  "WHILE b INV i DO c OD"   \<rightharpoonup> "CONST While \<lbrace>b\<rbrace> i c"
-  "WHILE b DO c OD"         \<rightleftharpoons> "WHILE b INV CONST undefined DO c OD"
+  "WHILE b INV i DO c OD" \<rightharpoonup> "CONST While \<lbrace>b\<rbrace> i c"
+  "WHILE b DO c OD" \<rightleftharpoons> "WHILE b INV CONST undefined DO c OD"
 
 parse_translation {*
   let
@@ -328,12 +326,10 @@ lemma [trans, intro?]:
 
 text {* While statements --- with optional invariant. *}
 
-lemma [intro?]:
-    "\<turnstile> (P \<inter> b) c P \<Longrightarrow> \<turnstile> P (While b P c) (P \<inter> -b)"
+lemma [intro?]: "\<turnstile> (P \<inter> b) c P \<Longrightarrow> \<turnstile> P (While b P c) (P \<inter> -b)"
   by (rule while)
 
-lemma [intro?]:
-    "\<turnstile> (P \<inter> b) c P \<Longrightarrow> \<turnstile> P (While b undefined c) (P \<inter> -b)"
+lemma [intro?]: "\<turnstile> (P \<inter> b) c P \<Longrightarrow> \<turnstile> P (While b undefined c) (P \<inter> -b)"
   by (rule while)
 
 
@@ -400,7 +396,7 @@ ML_file "~~/src/HOL/Hoare/hoare_tac.ML"
 method_setup hoare = {*
   Scan.succeed (fn ctxt =>
     (SIMPLE_METHOD'
-       (hoare_tac ctxt
+       (Hoare.hoare_tac ctxt
         (simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm "Record.K_record_comp"}] ))))) *}
   "verification condition generator for Hoare logic"
 
