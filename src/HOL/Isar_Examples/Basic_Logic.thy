@@ -291,7 +291,7 @@ text {* Case splits are \emph{not} hardwired into the Isar language as
   cases actually coincide.  Consequently the proof may be rephrased as
   follows. *}
 
-lemma "P \<or> P --> P"
+lemma "P \<or> P \<longrightarrow> P"
 proof
   assume "P \<or> P"
   then show P
@@ -307,7 +307,7 @@ text {* Again, the rather vacuous body of the proof may be collapsed.
   are implicitly performed when concluding the single rule step of the
   double-dot proof as follows. *}
 
-lemma "P \<or> P --> P"
+lemma "P \<or> P \<longrightarrow> P"
 proof
   assume "P \<or> P"
   then show P ..

@@ -14,40 +14,40 @@ text {* The Mutilated Checker Board Problem, formalized inductively.
 
 subsection {* Tilings *}
 
-inductive_set tiling :: "'a set set => 'a set set"
+inductive_set tiling :: "'a set set \<Rightarrow> 'a set set"
   for A :: "'a set set"
 where
-  empty: "{} : tiling A"
-| Un: "a : A ==> t : tiling A ==> a <= - t ==> a Un t : tiling A"
+  empty: "{} \<in> tiling A"
+| Un: "a \<in> A \<Longrightarrow> t \<in> tiling A \<Longrightarrow> a \<subseteq> - t \<Longrightarrow> a \<union> t \<in> tiling A"
 
 
 text "The union of two disjoint tilings is a tiling."
 
 lemma tiling_Un:
-  assumes "t : tiling A"
-    and "u : tiling A"
-    and "t Int u = {}"
-  shows "t Un u : tiling A"
+  assumes "t \<in> tiling A"
+    and "u \<in> tiling A"
+    and "t \<inter> u = {}"
+  shows "t \<union> u \<in> tiling A"
 proof -
   let ?T = "tiling A"
-  from `t : ?T` and `t Int u = {}`
-  show "t Un u : ?T"
+  from `t \<in> ?T` and `t \<inter> u = {}`
+  show "t \<union> u \<in> ?T"
   proof (induct t)
     case empty
-    with `u : ?T` show "{} Un u : ?T" by simp
+    with `u \<in> ?T` show "{} \<union> u \<in> ?T" by simp
   next
     case (Un a t)
-    show "(a Un t) Un u : ?T"
+    show "(a \<union> t) \<union> u \<in> ?T"
     proof -
-      have "a Un (t Un u) : ?T"
-        using `a : A`
+      have "a \<union> (t \<union> u) \<in> ?T"
+        using `a \<in> A`
       proof (rule tiling.Un)
-        from `(a Un t) Int u = {}` have "t Int u = {}" by blast
-        then show "t Un u: ?T" by (rule Un)
-        from `a <= - t` and `(a Un t) Int u = {}`
-        show "a <= - (t Un u)" by blast
+        from `(a \<union> t) \<inter> u = {}` have "t \<inter> u = {}" by blast
+        then show "t \<union> u \<in> ?T" by (rule Un)
+        from `a \<subseteq> - t` and `(a \<union> t) \<inter> u = {}`
+        show "a \<subseteq> - (t \<union> u)" by blast
       qed
-      also have "a Un (t Un u) = (a Un t) Un u"
+      also have "a \<union> (t \<union> u) = (a \<union> t) \<union> u"
         by (simp only: Un_assoc)
       finally show ?thesis .
     qed
@@ -57,22 +57,21 @@ qed
 
 subsection {* Basic properties of ``below'' *}
 
-definition below :: "nat => nat set"
+definition below :: "nat \<Rightarrow> nat set"
   where "below n = {i. i < n}"
 
-lemma below_less_iff [iff]: "(i: below k) = (i < k)"
+lemma below_less_iff [iff]: "i \<in> below k \<longleftrightarrow> i < k"
   by (simp add: below_def)
 
 lemma below_0: "below 0 = {}"
   by (simp add: below_def)
 
-lemma Sigma_Suc1:
-    "m = n + 1 ==> below m <*> B = ({n} <*> B) Un (below n <*> B)"
+lemma Sigma_Suc1: "m = n + 1 \<Longrightarrow> below m \<times> B = ({n} \<times> B) \<union> (below n \<times> B)"
   by (simp add: below_def less_Suc_eq) blast
 
 lemma Sigma_Suc2:
-  "m = n + 2 ==> A <*> below m =
-    (A <*> {n}) Un (A <*> {n + 1}) Un (A <*> below n)"
+  "m = n + 2 \<Longrightarrow>
+    A \<times> below m = (A \<times> {n}) \<union> (A \<times> {n + 1}) \<union> (A \<times> below n)"
   by (auto simp add: below_def)
 
 lemmas Sigma_Suc = Sigma_Suc1 Sigma_Suc2
@@ -80,22 +79,22 @@ lemmas Sigma_Suc = Sigma_Suc1 Sigma_Suc2
 
 subsection {* Basic properties of ``evnodd'' *}
 
-definition evnodd :: "(nat * nat) set => nat => (nat * nat) set"
-  where "evnodd A b = A Int {(i, j). (i + j) mod 2 = b}"
+definition evnodd :: "(nat \<times> nat) set \<Rightarrow> nat \<Rightarrow> (nat \<times> nat) set"
+  where "evnodd A b = A \<inter> {(i, j). (i + j) mod 2 = b}"
 
-lemma evnodd_iff: "(i, j): evnodd A b = ((i, j): A  & (i + j) mod 2 = b)"
+lemma evnodd_iff: "(i, j) \<in> evnodd A b \<longleftrightarrow> (i, j) \<in> A  \<and> (i + j) mod 2 = b"
   by (simp add: evnodd_def)
 
-lemma evnodd_subset: "evnodd A b <= A"
+lemma evnodd_subset: "evnodd A b \<subseteq> A"
   unfolding evnodd_def by (rule Int_lower1)
 
-lemma evnoddD: "x : evnodd A b ==> x : A"
+lemma evnoddD: "x \<in> evnodd A b \<Longrightarrow> x \<in> A"
   by (rule subsetD) (rule evnodd_subset)
 
-lemma evnodd_finite: "finite A ==> finite (evnodd A b)"
+lemma evnodd_finite: "finite A \<Longrightarrow> finite (evnodd A b)"
   by (rule finite_subset) (rule evnodd_subset)
 
-lemma evnodd_Un: "evnodd (A Un B) b = evnodd A b Un evnodd B b"
+lemma evnodd_Un: "evnodd (A \<union> B) b = evnodd A b \<union> evnodd B b"
   unfolding evnodd_def by blast
 
 lemma evnodd_Diff: "evnodd (A - B) b = evnodd A b - evnodd B b"
@@ -112,60 +111,60 @@ lemma evnodd_insert: "evnodd (insert (i, j) C) b =
 
 subsection {* Dominoes *}
 
-inductive_set domino :: "(nat * nat) set set"
+inductive_set domino :: "(nat \<times> nat) set set"
 where
-  horiz: "{(i, j), (i, j + 1)} : domino"
-| vertl: "{(i, j), (i + 1, j)} : domino"
+  horiz: "{(i, j), (i, j + 1)} \<in> domino"
+| vertl: "{(i, j), (i + 1, j)} \<in> domino"
 
 lemma dominoes_tile_row:
-  "{i} <*> below (2 * n) : tiling domino"
-  (is "?B n : ?T")
+  "{i} \<times> below (2 * n) \<in> tiling domino"
+  (is "?B n \<in> ?T")
 proof (induct n)
   case 0
   show ?case by (simp add: below_0 tiling.empty)
 next
   case (Suc n)
-  let ?a = "{i} <*> {2 * n + 1} Un {i} <*> {2 * n}"
-  have "?B (Suc n) = ?a Un ?B n"
+  let ?a = "{i} \<times> {2 * n + 1} \<union> {i} \<times> {2 * n}"
+  have "?B (Suc n) = ?a \<union> ?B n"
     by (auto simp add: Sigma_Suc Un_assoc)
-  also have "... : ?T"
+  also have "\<dots> \<in> ?T"
   proof (rule tiling.Un)
-    have "{(i, 2 * n), (i, 2 * n + 1)} : domino"
+    have "{(i, 2 * n), (i, 2 * n + 1)} \<in> domino"
       by (rule domino.horiz)
     also have "{(i, 2 * n), (i, 2 * n + 1)} = ?a" by blast
-    finally show "... : domino" .
-    show "?B n : ?T" by (rule Suc)
-    show "?a <= - ?B n" by blast
+    finally show "\<dots> \<in> domino" .
+    show "?B n \<in> ?T" by (rule Suc)
+    show "?a \<subseteq> - ?B n" by blast
   qed
   finally show ?case .
 qed
 
 lemma dominoes_tile_matrix:
-  "below m <*> below (2 * n) : tiling domino"
-  (is "?B m : ?T")
+  "below m \<times> below (2 * n) \<in> tiling domino"
+  (is "?B m \<in> ?T")
 proof (induct m)
   case 0
   show ?case by (simp add: below_0 tiling.empty)
 next
   case (Suc m)
-  let ?t = "{m} <*> below (2 * n)"
-  have "?B (Suc m) = ?t Un ?B m" by (simp add: Sigma_Suc)
-  also have "... : ?T"
+  let ?t = "{m} \<times> below (2 * n)"
+  have "?B (Suc m) = ?t \<union> ?B m" by (simp add: Sigma_Suc)
+  also have "\<dots> \<in> ?T"
   proof (rule tiling_Un)
-    show "?t : ?T" by (rule dominoes_tile_row)
-    show "?B m : ?T" by (rule Suc)
-    show "?t Int ?B m = {}" by blast
+    show "?t \<in> ?T" by (rule dominoes_tile_row)
+    show "?B m \<in> ?T" by (rule Suc)
+    show "?t \<inter> ?B m = {}" by blast
   qed
   finally show ?case .
 qed
 
 lemma domino_singleton:
-  assumes "d : domino"
+  assumes "d \<in> domino"
     and "b < 2"
-  shows "EX i j. evnodd d b = {(i, j)}"  (is "?P d")
+  shows "\<exists>i j. evnodd d b = {(i, j)}"  (is "?P d")
   using assms
 proof induct
-  from `b < 2` have b_cases: "b = 0 | b = 1" by arith
+  from `b < 2` have b_cases: "b = 0 \<or> b = 1" by arith
   fix i j
   note [simp] = evnodd_empty evnodd_insert mod_Suc
   from b_cases show "?P {(i, j), (i, j + 1)}" by rule auto
@@ -173,7 +172,7 @@ proof induct
 qed
 
 lemma domino_finite:
-  assumes "d: domino"
+  assumes "d \<in> domino"
   shows "finite d"
   using assms
 proof induct
@@ -186,18 +185,19 @@ qed
 subsection {* Tilings of dominoes *}
 
 lemma tiling_domino_finite:
-  assumes t: "t : tiling domino"  (is "t : ?T")
+  assumes t: "t \<in> tiling domino"  (is "t \<in> ?T")
   shows "finite t"  (is "?F t")
   using t
 proof induct
   show "?F {}" by (rule finite.emptyI)
   fix a t assume "?F t"
-  assume "a : domino" then have "?F a" by (rule domino_finite)
-  from this and `?F t` show "?F (a Un t)" by (rule finite_UnI)
+  assume "a \<in> domino"
+  then have "?F a" by (rule domino_finite)
+  from this and `?F t` show "?F (a \<union> t)" by (rule finite_UnI)
 qed
 
 lemma tiling_domino_01:
-  assumes t: "t : tiling domino"  (is "t : ?T")
+  assumes t: "t \<in> tiling domino"  (is "t \<in> ?T")
   shows "card (evnodd t 0) = card (evnodd t 1)"
   using t
 proof induct
@@ -207,33 +207,34 @@ next
   case (Un a t)
   let ?e = evnodd
   note hyp = `card (?e t 0) = card (?e t 1)`
-    and at = `a <= - t`
+    and at = `a \<subseteq> - t`
   have card_suc:
-    "!!b. b < 2 ==> card (?e (a Un t) b) = Suc (card (?e t b))"
+    "\<And>b. b < 2 \<Longrightarrow> card (?e (a \<union> t) b) = Suc (card (?e t b))"
   proof -
-    fix b :: nat assume "b < 2"
-    have "?e (a Un t) b = ?e a b Un ?e t b" by (rule evnodd_Un)
+    fix b :: nat
+    assume "b < 2"
+    have "?e (a \<union> t) b = ?e a b \<union> ?e t b" by (rule evnodd_Un)
     also obtain i j where e: "?e a b = {(i, j)}"
     proof -
       from `a \<in> domino` and `b < 2`
-      have "EX i j. ?e a b = {(i, j)}" by (rule domino_singleton)
+      have "\<exists>i j. ?e a b = {(i, j)}" by (rule domino_singleton)
       then show ?thesis by (blast intro: that)
     qed
-    also have "... Un ?e t b = insert (i, j) (?e t b)" by simp
-    also have "card ... = Suc (card (?e t b))"
+    also have "\<dots> \<union> ?e t b = insert (i, j) (?e t b)" by simp
+    also have "card \<dots> = Suc (card (?e t b))"
     proof (rule card_insert_disjoint)
       from `t \<in> tiling domino` have "finite t"
         by (rule tiling_domino_finite)
       then show "finite (?e t b)"
         by (rule evnodd_finite)
-      from e have "(i, j) : ?e a b" by simp
-      with at show "(i, j) ~: ?e t b" by (blast dest: evnoddD)
+      from e have "(i, j) \<in> ?e a b" by simp
+      with at show "(i, j) \<notin> ?e t b" by (blast dest: evnoddD)
     qed
     finally show "?thesis b" .
   qed
-  then have "card (?e (a Un t) 0) = Suc (card (?e t 0))" by simp
+  then have "card (?e (a \<union> t) 0) = Suc (card (?e t 0))" by simp
   also from hyp have "card (?e t 0) = card (?e t 1)" .
-  also from card_suc have "Suc ... = card (?e (a Un t) 1)"
+  also from card_suc have "Suc \<dots> = card (?e (a \<union> t) 1)"
     by simp
   finally show ?case .
 qed
@@ -241,23 +242,23 @@ qed
 
 subsection {* Main theorem *}
 
-definition mutilated_board :: "nat => nat => (nat * nat) set"
+definition mutilated_board :: "nat \<Rightarrow> nat \<Rightarrow> (nat \<times> nat) set"
   where
     "mutilated_board m n =
-      below (2 * (m + 1)) <*> below (2 * (n + 1))
+      below (2 * (m + 1)) \<times> below (2 * (n + 1))
         - {(0, 0)} - {(2 * m + 1, 2 * n + 1)}"
 
-theorem mutil_not_tiling: "mutilated_board m n ~: tiling domino"
+theorem mutil_not_tiling: "mutilated_board m n \<notin> tiling domino"
 proof (unfold mutilated_board_def)
   let ?T = "tiling domino"
-  let ?t = "below (2 * (m + 1)) <*> below (2 * (n + 1))"
+  let ?t = "below (2 * (m + 1)) \<times> below (2 * (n + 1))"
   let ?t' = "?t - {(0, 0)}"
   let ?t'' = "?t' - {(2 * m + 1, 2 * n + 1)}"
 
-  show "?t'' ~: ?T"
+  show "?t'' \<notin> ?T"
   proof
-    have t: "?t : ?T" by (rule dominoes_tile_matrix)
-    assume t'': "?t'' : ?T"
+    have t: "?t \<in> ?T" by (rule dominoes_tile_matrix)
+    assume t'': "?t'' \<in> ?T"
 
     let ?e = evnodd
     have fin: "finite (?e ?t 0)"
@@ -271,23 +272,23 @@ proof (unfold mutilated_board_def)
       proof (rule card_Diff1_less)
         from _ fin show "finite (?e ?t' 0)"
           by (rule finite_subset) auto
-        show "(2 * m + 1, 2 * n + 1) : ?e ?t' 0" by simp
+        show "(2 * m + 1, 2 * n + 1) \<in> ?e ?t' 0" by simp
       qed
       then show ?thesis by simp
     qed
-    also have "... < card (?e ?t 0)"
+    also have "\<dots> < card (?e ?t 0)"
     proof -
-      have "(0, 0) : ?e ?t 0" by simp
+      have "(0, 0) \<in> ?e ?t 0" by simp
       with fin have "card (?e ?t 0 - {(0, 0)}) < card (?e ?t 0)"
         by (rule card_Diff1_less)
       then show ?thesis by simp
     qed
-    also from t have "... = card (?e ?t 1)"
+    also from t have "\<dots> = card (?e ?t 1)"
       by (rule tiling_domino_01)
     also have "?e ?t 1 = ?e ?t'' 1" by simp
-    also from t'' have "card ... = card (?e ?t'' 0)"
+    also from t'' have "card \<dots> = card (?e ?t'' 0)"
       by (rule tiling_domino_01 [symmetric])
-    finally have "... < ..." . then show False ..
+    finally have "\<dots> < \<dots>" . then show False ..
   qed
 qed
 

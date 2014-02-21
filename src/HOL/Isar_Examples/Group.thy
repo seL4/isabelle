@@ -27,19 +27,19 @@ theorem (in group) group_right_inverse: "x * inverse x = 1"
 proof -
   have "x * inverse x = 1 * (x * inverse x)"
     by (simp only: group_left_one)
-  also have "... = 1 * x * inverse x"
+  also have "\<dots> = 1 * x * inverse x"
     by (simp only: group_assoc)
-  also have "... = inverse (inverse x) * inverse x * x * inverse x"
+  also have "\<dots> = inverse (inverse x) * inverse x * x * inverse x"
     by (simp only: group_left_inverse)
-  also have "... = inverse (inverse x) * (inverse x * x) * inverse x"
+  also have "\<dots> = inverse (inverse x) * (inverse x * x) * inverse x"
     by (simp only: group_assoc)
-  also have "... = inverse (inverse x) * 1 * inverse x"
+  also have "\<dots> = inverse (inverse x) * 1 * inverse x"
     by (simp only: group_left_inverse)
-  also have "... = inverse (inverse x) * (1 * inverse x)"
+  also have "\<dots> = inverse (inverse x) * (1 * inverse x)"
     by (simp only: group_assoc)
-  also have "... = inverse (inverse x) * inverse x"
+  also have "\<dots> = inverse (inverse x) * inverse x"
     by (simp only: group_left_one)
-  also have "... = 1"
+  also have "\<dots> = 1"
     by (simp only: group_left_inverse)
   finally show ?thesis .
 qed
@@ -52,11 +52,11 @@ theorem (in group) group_right_one: "x * 1 = x"
 proof -
   have "x * 1 = x * (inverse x * x)"
     by (simp only: group_left_inverse)
-  also have "... = x * inverse x * x"
+  also have "\<dots> = x * inverse x * x"
     by (simp only: group_assoc)
-  also have "... = 1 * x"
+  also have "\<dots> = 1 * x"
     by (simp only: group_right_inverse)
-  also have "... = x"
+  also have "\<dots> = x"
     by (simp only: group_left_one)
   finally show ?thesis .
 qed
@@ -92,25 +92,25 @@ proof -
   note calculation = this
     -- {* first calculational step: init calculation register *}
 
-  have "... = x * inverse x * x"
+  have "\<dots> = x * inverse x * x"
     by (simp only: group_assoc)
 
   note calculation = trans [OF calculation this]
     -- {* general calculational step: compose with transitivity rule *}
 
-  have "... = 1 * x"
+  have "\<dots> = 1 * x"
     by (simp only: group_right_inverse)
 
   note calculation = trans [OF calculation this]
     -- {* general calculational step: compose with transitivity rule *}
 
-  have "... = x"
+  have "\<dots> = x"
     by (simp only: group_left_one)
 
   note calculation = trans [OF calculation this]
-    -- {* final calculational step: compose with transitivity rule ... *}
+    -- {* final calculational step: compose with transitivity rule \dots *}
   from calculation
-    -- {* ... and pick up the final result *}
+    -- {* \dots\ and pick up the final result *}
 
   show ?thesis .
 qed
@@ -168,13 +168,13 @@ theorem (in group) group_one_equality:
 proof -
   have "1 = x * inverse x"
     by (simp only: group_right_inverse)
-  also have "... = (e * x) * inverse x"
+  also have "\<dots> = (e * x) * inverse x"
     by (simp only: eq)
-  also have "... = e * (x * inverse x)"
+  also have "\<dots> = e * (x * inverse x)"
     by (simp only: group_assoc)
-  also have "... = e * 1"
+  also have "\<dots> = e * 1"
     by (simp only: group_right_inverse)
-  also have "... = e"
+  also have "\<dots> = e"
     by (simp only: group_right_one)
   finally show ?thesis .
 qed
@@ -187,13 +187,13 @@ theorem (in group) group_inverse_equality:
 proof -
   have "inverse x = 1 * inverse x"
     by (simp only: group_left_one)
-  also have "... = (x' * x) * inverse x"
+  also have "\<dots> = (x' * x) * inverse x"
     by (simp only: eq)
-  also have "... = x' * (x * inverse x)"
+  also have "\<dots> = x' * (x * inverse x)"
     by (simp only: group_assoc)
-  also have "... = x' * 1"
+  also have "\<dots> = x' * 1"
     by (simp only: group_right_inverse)
-  also have "... = x'"
+  also have "\<dots> = x'"
     by (simp only: group_right_one)
   finally show ?thesis .
 qed
@@ -207,11 +207,11 @@ proof (rule group_inverse_equality)
     have "(inverse y * inverse x) * (x * y) =
         (inverse y * (inverse x * x)) * y"
       by (simp only: group_assoc)
-    also have "... = (inverse y * 1) * y"
+    also have "\<dots> = (inverse y * 1) * y"
       by (simp only: group_left_inverse)
-    also have "... = inverse y * y"
+    also have "\<dots> = inverse y * y"
       by (simp only: group_right_one)
-    also have "... = 1"
+    also have "\<dots> = 1"
       by (simp only: group_left_inverse)
     finally show ?thesis .
   qed
@@ -229,15 +229,15 @@ theorem (in group) inverse_inject:
 proof -
   have "x = x * 1"
     by (simp only: group_right_one)
-  also have "... = x * (inverse y * y)"
+  also have "\<dots> = x * (inverse y * y)"
     by (simp only: group_left_inverse)
-  also have "... = x * (inverse x * y)"
+  also have "\<dots> = x * (inverse x * y)"
     by (simp only: eq)
-  also have "... = (x * inverse x) * y"
+  also have "\<dots> = (x * inverse x) * y"
     by (simp only: group_assoc)
-  also have "... = 1 * y"
+  also have "\<dots> = 1 * y"
     by (simp only: group_right_inverse)
-  also have "... = y"
+  also have "\<dots> = y"
     by (simp only: group_left_one)
   finally show ?thesis .
 qed

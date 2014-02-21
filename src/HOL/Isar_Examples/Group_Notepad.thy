@@ -14,7 +14,7 @@ begin
 
   fix prod :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "**" 70)
     and one :: "'a"
-    and inverse :: "'a => 'a"
+    and inverse :: "'a \<Rightarrow> 'a"
   assume assoc: "\<And>x y z. (x ** y) ** z = x ** (y ** z)"
     and left_one: "\<And>x. one ** x = x"
     and left_inverse: "\<And>x. inverse x ** x = one"

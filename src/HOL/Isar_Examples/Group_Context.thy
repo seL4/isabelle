@@ -13,7 +13,7 @@ text {* hypothetical group axiomatization *}
 context
   fixes prod :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "**" 70)
     and one :: "'a"
-    and inverse :: "'a => 'a"
+    and inverse :: "'a \<Rightarrow> 'a"
   assumes assoc: "(x ** y) ** z = x ** (y ** z)"
     and left_one: "one ** x = x"
     and left_inverse: "inverse x ** x = one"

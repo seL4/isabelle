@@ -32,7 +32,7 @@ text {* We look at few trivialities involving assignment and
 text {* Using the basic @{text assign} rule directly is a bit
   cumbersome. *}
 
-lemma "|- .{\<acute>(N_update (\<lambda>_. (2 * \<acute>N))) : .{\<acute>N = 10}.}. \<acute>N := 2 * \<acute>N .{\<acute>N = 10}."
+lemma "\<turnstile> \<lbrace>\<acute>(N_update (\<lambda>_. (2 * \<acute>N))) \<in> \<lbrace>\<acute>N = 10\<rbrace>\<rbrace> \<acute>N := 2 * \<acute>N \<lbrace>\<acute>N = 10\<rbrace>"
   by (rule assign)
 
 text {* Certainly we want the state modification already done, e.g.\
@@ -40,31 +40,31 @@ text {* Certainly we want the state modification already done, e.g.\
   update for us; we may apply the Simplifier afterwards to achieve
   ``obvious'' consequences as well. *}
 
-lemma "|- .{True}. \<acute>N := 10 .{\<acute>N = 10}."
+lemma "\<turnstile> \<lbrace>True\<rbrace> \<acute>N := 10 \<lbrace>\<acute>N = 10\<rbrace>"
   by hoare
 
-lemma "|- .{2 * \<acute>N = 10}. \<acute>N := 2 * \<acute>N .{\<acute>N = 10}."
+lemma "\<turnstile> \<lbrace>2 * \<acute>N = 10\<rbrace> \<acute>N := 2 * \<acute>N \<lbrace>\<acute>N = 10\<rbrace>"
   by hoare
 
-lemma "|- .{\<acute>N = 5}. \<acute>N := 2 * \<acute>N .{\<acute>N = 10}."
+lemma "\<turnstile> \<lbrace>\<acute>N = 5\<rbrace> \<acute>N := 2 * \<acute>N \<lbrace>\<acute>N = 10\<rbrace>"
   by hoare simp
 
-lemma "|- .{\<acute>N + 1 = a + 1}. \<acute>N := \<acute>N + 1 .{\<acute>N = a + 1}."
+lemma "\<turnstile> \<lbrace>\<acute>N + 1 = a + 1\<rbrace> \<acute>N := \<acute>N + 1 \<lbrace>\<acute>N = a + 1\<rbrace>"
   by hoare
 
-lemma "|- .{\<acute>N = a}. \<acute>N := \<acute>N + 1 .{\<acute>N = a + 1}."
+lemma "\<turnstile> \<lbrace>\<acute>N = a\<rbrace> \<acute>N := \<acute>N + 1 \<lbrace>\<acute>N = a + 1\<rbrace>"
   by hoare simp
 
-lemma "|- .{a = a & b = b}. \<acute>M := a; \<acute>N := b .{\<acute>M = a & \<acute>N = b}."
+lemma "\<turnstile> \<lbrace>a = a \<and> b = b\<rbrace> \<acute>M := a; \<acute>N := b \<lbrace>\<acute>M = a \<and> \<acute>N = b\<rbrace>"
   by hoare
 
-lemma "|- .{True}. \<acute>M := a; \<acute>N := b .{\<acute>M = a & \<acute>N = b}."
+lemma "\<turnstile> \<lbrace>True\<rbrace> \<acute>M := a; \<acute>N := b \<lbrace>\<acute>M = a \<and> \<acute>N = b\<rbrace>"
   by hoare simp
 
 lemma
-  "|- .{\<acute>M = a & \<acute>N = b}.
+  "\<turnstile> \<lbrace>\<acute>M = a \<and> \<acute>N = b\<rbrace>
       \<acute>I := \<acute>M; \<acute>M := \<acute>N; \<acute>N := \<acute>I
-      .{\<acute>M = b & \<acute>N = a}."
+      \<lbrace>\<acute>M = b \<and> \<acute>N = a\<rbrace>"
   by hoare simp
 
 text {* It is important to note that statements like the following one
@@ -72,10 +72,10 @@ text {* It is important to note that statements like the following one
   extra-logical nature of record fields, we cannot formulate a theorem
   relating record selectors and updates schematically. *}
 
-lemma "|- .{\<acute>N = a}. \<acute>N := \<acute>N .{\<acute>N = a}."
+lemma "\<turnstile> \<lbrace>\<acute>N = a\<rbrace> \<acute>N := \<acute>N \<lbrace>\<acute>N = a\<rbrace>"
   by hoare
 
-lemma "|- .{\<acute>x = a}. \<acute>x := \<acute>x .{\<acute>x = a}."
+lemma "\<turnstile> \<lbrace>\<acute>x = a\<rbrace> \<acute>x := \<acute>x \<lbrace>\<acute>x = a\<rbrace>"
   oops
 
 lemma
@@ -88,27 +88,27 @@ text {* In the following assignments we make use of the consequence
   rule in order to achieve the intended precondition.  Certainly, the
   \name{hoare} method is able to handle this case, too. *}
 
-lemma "|- .{\<acute>M = \<acute>N}. \<acute>M := \<acute>M + 1 .{\<acute>M ~= \<acute>N}."
+lemma "\<turnstile> \<lbrace>\<acute>M = \<acute>N\<rbrace> \<acute>M := \<acute>M + 1 \<lbrace>\<acute>M \<noteq> \<acute>N\<rbrace>"
 proof -
-  have ".{\<acute>M = \<acute>N}. <= .{\<acute>M + 1 ~= \<acute>N}."
+  have "\<lbrace>\<acute>M = \<acute>N\<rbrace> \<subseteq> \<lbrace>\<acute>M + 1 \<noteq> \<acute>N\<rbrace>"
     by auto
-  also have "|- ... \<acute>M := \<acute>M + 1 .{\<acute>M ~= \<acute>N}."
+  also have "\<turnstile> \<dots> \<acute>M := \<acute>M + 1 \<lbrace>\<acute>M \<noteq> \<acute>N\<rbrace>"
     by hoare
   finally show ?thesis .
 qed
 
-lemma "|- .{\<acute>M = \<acute>N}. \<acute>M := \<acute>M + 1 .{\<acute>M ~= \<acute>N}."
+lemma "\<turnstile> \<lbrace>\<acute>M = \<acute>N\<rbrace> \<acute>M := \<acute>M + 1 \<lbrace>\<acute>M \<noteq> \<acute>N\<rbrace>"
 proof -
-  have "!!m n::nat. m = n --> m + 1 ~= n"
+  have "\<And>m n::nat. m = n \<longrightarrow> m + 1 \<noteq> n"
       -- {* inclusion of assertions expressed in ``pure'' logic, *}
       -- {* without mentioning the state space *}
     by simp
-  also have "|- .{\<acute>M + 1 ~= \<acute>N}. \<acute>M := \<acute>M + 1 .{\<acute>M ~= \<acute>N}."
+  also have "\<turnstile> \<lbrace>\<acute>M + 1 \<noteq> \<acute>N\<rbrace> \<acute>M := \<acute>M + 1 \<lbrace>\<acute>M \<noteq> \<acute>N\<rbrace>"
     by hoare
   finally show ?thesis .
 qed
 
-lemma "|- .{\<acute>M = \<acute>N}. \<acute>M := \<acute>M + 1 .{\<acute>M ~= \<acute>N}."
+lemma "\<turnstile> \<lbrace>\<acute>M = \<acute>N\<rbrace> \<acute>M := \<acute>M + 1 \<lbrace>\<acute>M \<noteq> \<acute>N\<rbrace>"
   by hoare simp
 
 
@@ -120,24 +120,24 @@ text {* We now do some basic examples of actual \texttt{WHILE}
   structured proof based on single-step Hoare rules. *}
 
 lemma
-  "|- .{\<acute>M = 0 & \<acute>S = 0}.
-      WHILE \<acute>M ~= a
+  "\<turnstile> \<lbrace>\<acute>M = 0 \<and> \<acute>S = 0\<rbrace>
+      WHILE \<acute>M \<noteq> a
       DO \<acute>S := \<acute>S + b; \<acute>M := \<acute>M + 1 OD
-      .{\<acute>S = a * b}."
+      \<lbrace>\<acute>S = a * b\<rbrace>"
 proof -
-  let "|- _ ?while _" = ?thesis
-  let ".{\<acute>?inv}." = ".{\<acute>S = \<acute>M * b}."
+  let "\<turnstile> _ ?while _" = ?thesis
+  let "\<lbrace>\<acute>?inv\<rbrace>" = "\<lbrace>\<acute>S = \<acute>M * b\<rbrace>"
 
-  have ".{\<acute>M = 0 & \<acute>S = 0}. <= .{\<acute>?inv}." by auto
-  also have "|- ... ?while .{\<acute>?inv & ~ (\<acute>M ~= a)}."
+  have "\<lbrace>\<acute>M = 0 \<and> \<acute>S = 0\<rbrace> \<subseteq> \<lbrace>\<acute>?inv\<rbrace>" by auto
+  also have "\<turnstile> \<dots> ?while \<lbrace>\<acute>?inv \<and> \<not> (\<acute>M \<noteq> a)\<rbrace>"
   proof
     let ?c = "\<acute>S := \<acute>S + b; \<acute>M := \<acute>M + 1"
-    have ".{\<acute>?inv & \<acute>M ~= a}. <= .{\<acute>S + b = (\<acute>M + 1) * b}."
+    have "\<lbrace>\<acute>?inv \<and> \<acute>M \<noteq> a\<rbrace> \<subseteq> \<lbrace>\<acute>S + b = (\<acute>M + 1) * b\<rbrace>"
       by auto
-    also have "|- ... ?c .{\<acute>?inv}." by hoare
-    finally show "|- .{\<acute>?inv & \<acute>M ~= a}. ?c .{\<acute>?inv}." .
+    also have "\<turnstile> \<dots> ?c \<lbrace>\<acute>?inv\<rbrace>" by hoare
+    finally show "\<turnstile> \<lbrace>\<acute>?inv \<and> \<acute>M \<noteq> a\<rbrace> ?c \<lbrace>\<acute>?inv\<rbrace>" .
   qed
-  also have "... <= .{\<acute>S = a * b}." by auto
+  also have "\<dots> \<subseteq> \<lbrace>\<acute>S = a * b\<rbrace>" by auto
   finally show ?thesis .
 qed
 
@@ -147,11 +147,11 @@ text {* The subsequent version of the proof applies the @{text hoare}
   specify the \texttt{WHILE} loop invariant in the original statement. *}
 
 lemma
-  "|- .{\<acute>M = 0 & \<acute>S = 0}.
-      WHILE \<acute>M ~= a
-      INV .{\<acute>S = \<acute>M * b}.
+  "\<turnstile> \<lbrace>\<acute>M = 0 \<and> \<acute>S = 0\<rbrace>
+      WHILE \<acute>M \<noteq> a
+      INV \<lbrace>\<acute>S = \<acute>M * b\<rbrace>
       DO \<acute>S := \<acute>S + b; \<acute>M := \<acute>M + 1 OD
-      .{\<acute>S = a * b}."
+      \<lbrace>\<acute>S = a * b\<rbrace>"
   by hoare auto
 
 
@@ -168,37 +168,37 @@ text {* The following proof is quite explicit in the individual steps
   the state space. *}
 
 theorem
-  "|- .{True}.
+  "\<turnstile> \<lbrace>True\<rbrace>
       \<acute>S := 0; \<acute>I := 1;
-      WHILE \<acute>I ~= n
+      WHILE \<acute>I \<noteq> n
       DO
         \<acute>S := \<acute>S + \<acute>I;
         \<acute>I := \<acute>I + 1
       OD
-      .{\<acute>S = (SUM j<n. j)}."
-  (is "|- _ (_; ?while) _")
+      \<lbrace>\<acute>S = (\<Sum>j<n. j)\<rbrace>"
+  (is "\<turnstile> _ (_; ?while) _")
 proof -
-  let ?sum = "\<lambda>k::nat. SUM j<k. j"
+  let ?sum = "\<lambda>k::nat. \<Sum>j<k. j"
   let ?inv = "\<lambda>s i::nat. s = ?sum i"
 
-  have "|- .{True}. \<acute>S := 0; \<acute>I := 1 .{?inv \<acute>S \<acute>I}."
+  have "\<turnstile> \<lbrace>True\<rbrace> \<acute>S := 0; \<acute>I := 1 \<lbrace>?inv \<acute>S \<acute>I\<rbrace>"
   proof -
-    have "True --> 0 = ?sum 1"
+    have "True \<longrightarrow> 0 = ?sum 1"
       by simp
-    also have "|- .{...}. \<acute>S := 0; \<acute>I := 1 .{?inv \<acute>S \<acute>I}."
+    also have "\<turnstile> \<lbrace>\<dots>\<rbrace> \<acute>S := 0; \<acute>I := 1 \<lbrace>?inv \<acute>S \<acute>I\<rbrace>"
       by hoare
     finally show ?thesis .
   qed
-  also have "|- ... ?while .{?inv \<acute>S \<acute>I & ~ \<acute>I ~= n}."
+  also have "\<turnstile> \<dots> ?while \<lbrace>?inv \<acute>S \<acute>I \<and> \<not> \<acute>I \<noteq> n\<rbrace>"
   proof
     let ?body = "\<acute>S := \<acute>S + \<acute>I; \<acute>I := \<acute>I + 1"
-    have "!!s i. ?inv s i & i ~= n -->  ?inv (s + i) (i + 1)"
+    have "\<And>s i. ?inv s i \<and> i \<noteq> n \<longrightarrow> ?inv (s + i) (i + 1)"
       by simp
-    also have "|- .{\<acute>S + \<acute>I = ?sum (\<acute>I + 1)}. ?body .{?inv \<acute>S \<acute>I}."
+    also have "\<turnstile> \<lbrace>\<acute>S + \<acute>I = ?sum (\<acute>I + 1)\<rbrace> ?body \<lbrace>?inv \<acute>S \<acute>I\<rbrace>"
       by hoare
-    finally show "|- .{?inv \<acute>S \<acute>I & \<acute>I ~= n}. ?body .{?inv \<acute>S \<acute>I}." .
+    finally show "\<turnstile> \<lbrace>?inv \<acute>S \<acute>I \<and> \<acute>I \<noteq> n\<rbrace> ?body \<lbrace>?inv \<acute>S \<acute>I\<rbrace>" .
   qed
-  also have "!!s i. s = ?sum i & ~ i ~= n --> s = ?sum n"
+  also have "\<And>s i. s = ?sum i \<and> \<not> i \<noteq> n \<longrightarrow> s = ?sum n"
     by simp
   finally show ?thesis .
 qed
@@ -208,27 +208,29 @@ text {* The next version uses the @{text hoare} method, while still
   structured manner. *}
 
 theorem
-  "|- .{True}.
+  "\<turnstile> \<lbrace>True\<rbrace>
       \<acute>S := 0; \<acute>I := 1;
-      WHILE \<acute>I ~= n
-      INV .{\<acute>S = (SUM j<\<acute>I. j)}.
+      WHILE \<acute>I \<noteq> n
+      INV \<lbrace>\<acute>S = (\<Sum>j<\<acute>I. j)\<rbrace>
       DO
         \<acute>S := \<acute>S + \<acute>I;
         \<acute>I := \<acute>I + 1
       OD
-      .{\<acute>S = (SUM j<n. j)}."
+      \<lbrace>\<acute>S = (\<Sum>j<n. j)\<rbrace>"
 proof -
-  let ?sum = "\<lambda>k::nat. SUM j<k. j"
+  let ?sum = "\<lambda>k::nat. \<Sum>j<k. j"
   let ?inv = "\<lambda>s i::nat. s = ?sum i"
 
   show ?thesis
   proof hoare
     show "?inv 0 1" by simp
   next
-    fix s i assume "?inv s i & i ~= n"
+    fix s i
+    assume "?inv s i \<and> i \<noteq> n"
     then show "?inv (s + i) (i + 1)" by simp
   next
-    fix s i assume "?inv s i & ~ i ~= n"
+    fix s i
+    assume "?inv s i \<and> \<not> i \<noteq> n"
     then show "s = ?sum n" by simp
   qed
 qed
@@ -237,15 +239,15 @@ text {* Certainly, this proof may be done fully automatic as well,
   provided that the invariant is given beforehand. *}
 
 theorem
-  "|- .{True}.
+  "\<turnstile> \<lbrace>True\<rbrace>
       \<acute>S := 0; \<acute>I := 1;
-      WHILE \<acute>I ~= n
-      INV .{\<acute>S = (SUM j<\<acute>I. j)}.
+      WHILE \<acute>I \<noteq> n
+      INV \<lbrace>\<acute>S = (\<Sum>j<\<acute>I. j)\<rbrace>
       DO
         \<acute>S := \<acute>S + \<acute>I;
         \<acute>I := \<acute>I + 1
       OD
-      .{\<acute>S = (SUM j<n. j)}."
+      \<lbrace>\<acute>S = (\<Sum>j<n. j)\<rbrace>"
   by hoare auto
 
 
@@ -273,18 +275,18 @@ lemma lem: "(0::nat) < n \<Longrightarrow> n + n \<le> Suc (n * n)"
   by (induct n) simp_all
 
 lemma
-  "|- .{i = \<acute>I & \<acute>time = 0}.
-    timeit (
-    WHILE \<acute>I \<noteq> 0
-    INV .{2 *\<acute> time + \<acute>I * \<acute>I + 5 * \<acute>I = i * i + 5 * i}.
-    DO
-      \<acute>J := \<acute>I;
-      WHILE \<acute>J \<noteq> 0
-      INV .{0 < \<acute>I & 2 * \<acute>time + \<acute>I * \<acute>I + 3 * \<acute>I + 2 * \<acute>J - 2 = i * i + 5 * i}.
-      DO \<acute>J := \<acute>J - 1 OD;
-        \<acute>I := \<acute>I - 1
-    OD
-    ) .{2*\<acute>time = i*i + 5*i}."
+  "\<turnstile> \<lbrace>i = \<acute>I \<and> \<acute>time = 0\<rbrace>
+    (timeit
+      (WHILE \<acute>I \<noteq> 0
+        INV \<lbrace>2 *\<acute> time + \<acute>I * \<acute>I + 5 * \<acute>I = i * i + 5 * i\<rbrace>
+        DO
+          \<acute>J := \<acute>I;
+          WHILE \<acute>J \<noteq> 0
+          INV \<lbrace>0 < \<acute>I \<and> 2 * \<acute>time + \<acute>I * \<acute>I + 3 * \<acute>I + 2 * \<acute>J - 2 = i * i + 5 * i\<rbrace>
+          DO \<acute>J := \<acute>J - 1 OD;
+          \<acute>I := \<acute>I - 1
+        OD))
+    \<lbrace>2 * \<acute>time = i * i + 5 * i\<rbrace>"
   apply simp
   apply hoare
       apply simp

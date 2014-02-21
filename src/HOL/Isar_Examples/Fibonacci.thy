@@ -150,7 +150,7 @@ proof (induct n rule: nat_less_induct)
       with hyp have "gcd (fib m) (fib ((n - m) mod m))
           = gcd (fib m) (fib (n - m))" by simp
       also have "\<dots> = gcd (fib m) (fib n)"
-        using `m <= n` by (rule gcd_fib_diff)
+        using `m \<le> n` by (rule gcd_fib_diff)
       finally have "gcd (fib m) (fib ((n - m) mod m)) =
           gcd (fib m) (fib n)" .
       with False show ?thesis by simp
