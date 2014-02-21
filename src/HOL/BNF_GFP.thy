@@ -140,14 +140,13 @@ using assms unfolding relImage_def relInvImage_def by fast
 lemma subst_Pair: "P x y \<Longrightarrow> a = (x, y) \<Longrightarrow> P (fst a) (snd a)"
 by simp
 
-lemma fst_diag_id: "(fst \<circ> (%x. (x, x))) z = id z"
-by simp
+lemma fst_diag_id: "(fst \<circ> (%x. (x, x))) z = id z" by simp
+lemma snd_diag_id: "(snd \<circ> (%x. (x, x))) z = id z" by simp
 
-lemma snd_diag_id: "(snd \<circ> (%x. (x, x))) z = id z"
-by simp
-
-lemma image_convolD: "\<lbrakk>(a, b) \<in> <f, g> ` X\<rbrakk> \<Longrightarrow> \<exists>x. x \<in> X \<and> a = f x \<and> b = g x"
-unfolding convol_def by auto
+lemma fst_diag_fst: "fst o ((\<lambda>x. (x, x)) o fst) = fst" by auto
+lemma snd_diag_fst: "snd o ((\<lambda>x. (x, x)) o fst) = fst" by auto
+lemma fst_diag_snd: "fst o ((\<lambda>x. (x, x)) o snd) = snd" by auto
+lemma snd_diag_snd: "snd o ((\<lambda>x. (x, x)) o snd) = snd" by auto
 
 definition Succ where "Succ Kl kl = {k . kl @ [k] \<in> Kl}"
 definition Shift where "Shift Kl k = {kl. k # kl \<in> Kl}"

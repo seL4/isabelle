@@ -1500,15 +1500,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
 
     val UNIVs = map HOLogic.mk_UNIV Ts;
     val FTs = mk_FTs (passiveAs @ Ts);
-    val prodTs = map (HOLogic.mk_prodT o `I) Ts;
-    val prodFTs = mk_FTs (passiveAs @ prodTs);
     val FTs_setss = mk_setss (passiveAs @ Ts);
-    val prodFT_setss = mk_setss (passiveAs @ prodTs);
     val map_FTs = map2 (fn Ds => mk_map_of_bnf Ds treeQTs (passiveAs @ Ts)) Dss bnfs;
-    val map_FT_nths = map2 (fn Ds =>
-      mk_map_of_bnf Ds (passiveAs @ prodTs) (passiveAs @ Ts)) Dss bnfs;
-    val fstsTs = map fst_const prodTs;
-    val sndsTs = map snd_const prodTs;
     val unfold_fTs = map2 (curry op -->) activeAs Ts;
     val corec_sTs = map (Term.typ_subst_atomic (activeBs ~~ Ts)) sum_sTs;
     val corec_maps = map (Term.subst_atomic_types (activeBs ~~ Ts)) map_Inls;
@@ -1516,8 +1509,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
     val corec_Inls = map (Term.subst_atomic_types (activeBs ~~ Ts)) Inls;
     val corec_UNIVs = map2 (HOLogic.mk_UNIV oo curry mk_sumT) Ts activeAs;
 
-    val (((((((((((((Jzs, Jzs'), Jz's), Jzs_copy), Jz's_copy), Jzs1), Jzs2),
-      FJzs), TRs), unfold_fs), corec_ss), phis), dtor_set_induct_phiss),
+    val ((((((((((((Jzs, Jzs'), Jz's), Jzs_copy), Jz's_copy), Jzs1), Jzs2),
+      TRs), unfold_fs), corec_ss), phis), dtor_set_induct_phiss),
       names_lthy) = names_lthy
       |> mk_Frees' "z" Ts
       ||>> mk_Frees "y" Ts'
@@ -1525,7 +1518,6 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
       ||>> mk_Frees "y'" Ts'
       ||>> mk_Frees "z1" Ts
       ||>> mk_Frees "z2" Ts
-      ||>> mk_Frees "x" prodFTs
       ||>> mk_Frees "r" (map (mk_relT o `I) Ts)
       ||>> mk_Frees "f" unfold_fTs
       ||>> mk_Frees "s" corec_sTs
@@ -1814,7 +1806,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
 
     val timer = time (timer "corec definitions & thms");
 
-    val (dtor_map_coinduct_thm, coinduct_params, dtor_coinduct_thm) =
+    val (coinduct_params, dtor_coinduct_thm) =
       let
         val zs = Jzs1 @ Jzs2;
         val frees = phis @ zs;
@@ -1842,37 +1834,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
           Goal.prove_sorry lthy [] [] dtor_coinduct_goal
             (K (mk_dtor_coinduct_tac m raw_coind_thm bis_rel_thm rel_congs))
           |> Thm.close_derivation;
-
-        fun mk_prem phi dtor map_nth sets Jz Jz_copy FJz =
-          let
-            val xs = [Jz, Jz_copy];
-
-            fun mk_map_conjunct nths x =
-              HOLogic.mk_eq (Term.list_comb (map_nth, passive_ids @ nths) $ FJz, dtor $ x);
-
-            fun mk_set_conjunct set phi z1 z2 =
-              list_all_free [z1, z2]
-                (HOLogic.mk_imp (HOLogic.mk_mem (HOLogic.mk_prod (z1, z2), set $ FJz),
-                  phi $ z1 $ z2));
-
-            val concl = list_exists_free [FJz] (HOLogic.mk_conj
-              (Library.foldr1 HOLogic.mk_conj (map2 mk_map_conjunct [fstsTs, sndsTs] xs),
-              Library.foldr1 HOLogic.mk_conj
-                (map4 mk_set_conjunct (drop m sets) phis Jzs1 Jzs2)));
-          in
-            fold_rev Logic.all xs (Logic.mk_implies
-              (HOLogic.mk_Trueprop (Term.list_comb (phi, xs)), HOLogic.mk_Trueprop concl))
-          end;
-
-        val prems = map7 mk_prem phis dtors map_FT_nths prodFT_setss Jzs Jzs_copy FJzs;
-
-        val dtor_map_coinduct_goal = fold_rev Logic.all frees (Logic.list_implies (prems, concl));
-        val dtor_map_coinduct =
-          Goal.prove_sorry lthy [] [] dtor_map_coinduct_goal
-            (K (mk_dtor_map_coinduct_tac m ks raw_coind_thm bis_def))
-          |> Thm.close_derivation;
       in
-        (dtor_map_coinduct, rev (Term.add_tfrees dtor_map_coinduct_goal []), dtor_coinduct)
+        (rev (Term.add_tfrees dtor_coinduct_goal []), dtor_coinduct)
       end;
 
     val timer = time (timer "coinduction");
@@ -2339,7 +2302,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
               Jsetss_by_bnf Jzs' Jzs fs_Jmaps fs_copy_Jmaps Jys' Jys Jys'_copy Jys_copy;
 
             val coinduct = unfold_thms lthy Jset_defs
-              (Drule.instantiate' cTs (map SOME cphis) dtor_map_coinduct_thm);
+              (Drule.instantiate' cTs (map SOME cphis) dtor_coinduct_thm);
 
             val goal =
               HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
@@ -2349,7 +2312,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
               (Goal.prove_sorry lthy [] [] goal
                 (fn {context = ctxt, prems = _} => unfold_thms_tac ctxt Jset_defs THEN
                   mk_mcong_tac lthy m (rtac coinduct) map_comps dtor_Jmap_thms map_cong0s
-                    set_mapss set_hset_thmss set_hset_hset_thmsss))
+                    set_mapss set_hset_thmss set_hset_hset_thmsss in_rels))
               |> Thm.close_derivation
           in
             split_conj_thm thm
@@ -2458,17 +2421,17 @@ val lthy = Config.put quick_and_dirty false lthy (*XXX*)
             HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
               (map3 mk_helper_coind_concl Jz's Jz's_copy coind2_phis));
 
-          fun mk_helper_coind_thms concl cts =
+          fun mk_helper_coind_thms fst concl cts =
             Goal.prove_sorry lthy [] [] (Logic.list_implies (helper_prems, concl))
-              (fn {context = ctxt, prems = _} => mk_rel_coinduct_coind_tac ctxt m
-                (cterm_instantiate_pos cts dtor_map_coinduct_thm) ks map_comps map_cong0s
-                map_arg_cong_thms set_mapss dtor_unfold_thms dtor_Jmap_thms)
+              (fn {context = ctxt, prems = _} => mk_rel_coinduct_coind_tac ctxt fst m
+                (cterm_instantiate_pos cts dtor_coinduct_thm) ks map_comps map_cong0s
+                map_arg_cong_thms set_mapss dtor_unfold_thms dtor_Jmap_thms in_rels)
             |> Thm.close_derivation
             |> split_conj_thm
             |> Proof_Context.export names_lthy lthy;
 
-          val helper_coind1_thms = mk_helper_coind_thms helper_coind1_concl cts1;
-          val helper_coind2_thms = mk_helper_coind_thms helper_coind2_concl cts2;
+          val helper_coind1_thms = mk_helper_coind_thms true helper_coind1_concl cts1;
+          val helper_coind2_thms = mk_helper_coind_thms false helper_coind2_concl cts2;
 
           fun mk_helper_ind_phi phi ab fst snd z active_phi x y zip_unfold =
             list_all_free [x, y] (HOLogic.mk_imp
@@ -2617,7 +2580,6 @@ val lthy = Config.put quick_and_dirty false lthy (*XXX*)
 
       val common_notes =
         [(dtor_coinductN, [dtor_coinduct_thm]),
-        (dtor_map_coinductN, [dtor_map_coinduct_thm]),
         (rel_coinductN, [Jrel_coinduct_thm]),
         (dtor_unfold_transferN, dtor_unfold_transfer_thms)]
         |> map (fn (thmN, thms) =>
