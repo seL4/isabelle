@@ -35,6 +35,7 @@ sig
   val all_preds: 'a T -> key list -> key list
   val all_succs: 'a T -> key list -> key list
   val strong_conn: 'a T -> key list list
+  val map_strong_conn: ((key * 'a) list -> 'b list) -> 'a T -> 'b T
   val minimals: 'a T -> key list
   val maximals: 'a T -> key list
   val is_minimal: 'a T -> key -> bool
@@ -158,6 +159,15 @@ fun all_succs G = flat o #1 o reachable (imm_succs G);
   "Structuring Depth First Search Algorithms in Haskell"*)
 fun strong_conn G =
   rev (filter_out null (#1 (reachable (imm_preds G) (all_succs G (keys G)))));
+
+fun map_strong_conn f G =
+  let
+    val xss = strong_conn G;
+    fun map' xs =
+      fold2 (curry Table.update) xs (f (AList.make (get_node G) xs));
+    val tab' = Table.empty
+      |> fold map' xss;
+  in map_nodes (fn x => fn _ => the (Table.lookup tab' x)) G end;
 
 
 (* minimal and maximal elements *)
