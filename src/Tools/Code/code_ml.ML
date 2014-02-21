@@ -55,7 +55,6 @@ fun tuplify _ _ [] = NONE
 fun print_sml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
   let
     val deresolve_const = deresolve o Constant;
-    val deresolve_tyco = deresolve o Type_Constructor;
     val deresolve_class = deresolve o Type_Class;
     val deresolve_classrel = deresolve o Class_Relation;
     val deresolve_inst = deresolve o Class_Instance;
@@ -361,7 +360,6 @@ val literals_sml = Literals {
 fun print_ocaml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
   let
     val deresolve_const = deresolve o Constant;
-    val deresolve_tyco = deresolve o Type_Constructor;
     val deresolve_class = deresolve o Type_Class;
     val deresolve_classrel = deresolve o Class_Relation;
     val deresolve_inst = deresolve o Class_Instance;
