@@ -301,7 +301,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     if (snapshot.is_outdated) None
     else {
       val results =
-        snapshot.cumulate_markup[(Protocol.Status, Int)](
+        snapshot.cumulate_status[(Protocol.Status, Int)](
           range, (Protocol.Status.init, 0), Protocol.status_elements, _ =>
           {
             case ((status, pri), Text.Info(_, elem)) =>
