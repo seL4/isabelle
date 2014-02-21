@@ -231,19 +231,16 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   val overview_limit = options.int("jedit_text_overview_limit")
 
-  private val overview_elements =
-    Protocol.command_status_markup + Markup.WARNING + Markup.ERROR
-
   def overview_color(range: Text.Range): Option[Color] =
   {
     if (snapshot.is_outdated) None
     else {
       val results =
         snapshot.cumulate_markup[(Protocol.Status, Int)](
-          range, (Protocol.Status.init, 0), overview_elements, _ =>
+          range, (Protocol.Status.init, 0), Protocol.status_elements, _ =>
           {
             case ((status, pri), Text.Info(_, elem)) =>
-              if (Protocol.command_status_markup(elem.name))
+              if (Protocol.command_status_elements(elem.name))
                 Some((Protocol.command_status(status, elem.markup), pri))
               else
                 Some((status, pri max Rendering.message_pri(elem.name)))
@@ -534,7 +531,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     Rendering.warning_pri -> warning_color,
     Rendering.error_pri -> error_color)
 
-  private val squiggly_elements = Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR)
+  private val squiggly_elements =
+    Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR)
 
   def squiggly_underline(range: Text.Range): List[Text.Info[Color]] =
   {
@@ -597,7 +595,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   /* text background */
 
   private val background1_elements =
-    Protocol.command_status_markup + Markup.WRITELN_MESSAGE + Markup.TRACING_MESSAGE +
+    Protocol.command_status_elements + Markup.WRITELN_MESSAGE + Markup.TRACING_MESSAGE +
       Markup.WARNING_MESSAGE + Markup.ERROR_MESSAGE + Markup.BAD + Markup.INTENSIFY ++
       active_elements
 
@@ -611,7 +609,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
             range, (Some(Protocol.Status.init), None), background1_elements, command_state =>
             {
               case (((Some(status), color), Text.Info(_, XML.Elem(markup, _))))
-              if (Protocol.command_status_markup(markup.name)) =>
+              if (Protocol.command_status_elements(markup.name)) =>
                 Some((Some(Protocol.command_status(status, markup)), color))
               case (_, Text.Info(_, XML.Elem(Markup(Markup.BAD, _), _))) =>
                 Some((None, Some(bad_color)))
