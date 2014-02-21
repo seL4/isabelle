@@ -659,7 +659,7 @@ object Document
                 chunk <- thy_load_command.chunks.get(file_name).iterator
                 st = state.command_state(version, thy_load_command)
                 res = result(st)
-                Text.Info(r0, a) <- st.get_markup(markup_index).cumulate[A](
+                Text.Info(r0, a) <- st.markup(markup_index).cumulate[A](
                   former_range.restrict(chunk.range), info, elements,
                   { case (a, Text.Info(r0, b)) => res(a, Text.Info(convert(r0), b)) }
                 ).iterator
@@ -671,7 +671,7 @@ object Document
                 (command, command_start) <- node.command_range(former_range)
                 st = state.command_state(version, command)
                 res = result(st)
-                Text.Info(r0, a) <- st.get_markup(markup_index).cumulate[A](
+                Text.Info(r0, a) <- st.markup(markup_index).cumulate[A](
                   (former_range - command_start).restrict(command.range), info, elements,
                   {
                     case (a, Text.Info(r0, b)) => res(a, Text.Info(convert(r0 + command_start), b))

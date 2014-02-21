@@ -106,12 +106,10 @@ object Command
   {
     /* markup */
 
-    def get_markup(index: Markup_Index): Markup_Tree = markups(index)
-
-    def markup: Markup_Tree = get_markup(Markup_Index.markup)
+    def markup(index: Markup_Index): Markup_Tree = markups(index)
 
     def markup_to_XML(filter: XML.Elem => Boolean): XML.Body =
-      markup.to_XML(command.range, command.source, filter)
+      markup(Markup_Index.markup).to_XML(command.range, command.source, filter)
 
 
     /* content */

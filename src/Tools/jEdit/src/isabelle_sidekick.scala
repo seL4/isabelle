@@ -159,9 +159,10 @@ class Isabelle_Sidekick_Markup extends Isabelle_Sidekick("isabelle-markup")
       case Some(snapshot) =>
         val root = data.root
         for ((command, command_start) <- snapshot.node.command_range() if !stopped) {
-          Isabelle_Sidekick.swing_markup_tree(
-            snapshot.state.command_state(snapshot.version, command).markup, root,
-              (info: Text.Info[List[XML.Elem]]) =>
+          val markup =
+            snapshot.state.command_state(snapshot.version, command).
+              markup(Command.Markup_Index.markup)
+          Isabelle_Sidekick.swing_markup_tree(markup, root, (info: Text.Info[List[XML.Elem]]) =>
               {
                 val range = info.range + command_start
                 val content = command.source(info.range).replace('\n', ' ')
