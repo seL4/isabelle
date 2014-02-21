@@ -63,10 +63,6 @@ object Protocol
     def is_failed: Boolean = failed
   }
 
-  val command_status_markup: Set[String] =
-    Set(Markup.ACCEPTED, Markup.FORKED, Markup.JOINED, Markup.RUNNING,
-      Markup.FINISHED, Markup.FAILED)
-
   def command_status(status: Status, markup: Markup): Status =
     markup match {
       case Markup(Markup.ACCEPTED, _) => status.copy(accepted = true)
@@ -80,6 +76,13 @@ object Protocol
 
   def command_status(markups: List[Markup]): Status =
     (Status.init /: markups)(command_status(_, _))
+
+  val command_status_elements: Set[String] =
+    Set(Markup.ACCEPTED, Markup.FORKED, Markup.JOINED, Markup.RUNNING,
+      Markup.FINISHED, Markup.FAILED)
+
+  val status_elements: Set[String] =
+    command_status_elements + Markup.WARNING + Markup.ERROR
 
 
   /* command timing */
@@ -162,12 +165,12 @@ object Protocol
 
   /* result messages */
 
-  private val clean = Set(Markup.REPORT, Markup.NO_REPORT)
+  private val clean_elements = Set(Markup.REPORT, Markup.NO_REPORT)
 
   def clean_message(body: XML.Body): XML.Body =
     body filter {
-      case XML.Wrapped_Elem(Markup(name, _), _, _) => !clean(name)
-      case XML.Elem(Markup(name, _), _) => !clean(name)
+      case XML.Wrapped_Elem(Markup(name, _), _, _) => !clean_elements(name)
+      case XML.Elem(Markup(name, _), _) => !clean_elements(name)
       case _ => true
     } map {
       case XML.Wrapped_Elem(markup, body, ts) => XML.Wrapped_Elem(markup, body, clean_message(ts))
@@ -272,7 +275,8 @@ object Protocol
 
   /* reported positions */
 
-  private val include_pos = Set(Markup.BINDING, Markup.ENTITY, Markup.REPORT, Markup.POSITION)
+  private val position_elements =
+    Set(Markup.BINDING, Markup.ENTITY, Markup.REPORT, Markup.POSITION)
 
   def message_positions(
     command_id: Document_ID.Command,
@@ -294,9 +298,9 @@ object Protocol
     def positions(set: Set[Text.Range], tree: XML.Tree): Set[Text.Range] =
       tree match {
         case XML.Wrapped_Elem(Markup(name, props), _, body) =>
-          body.foldLeft(if (include_pos(name)) elem_positions(props, set) else set)(positions)
+          body.foldLeft(if (position_elements(name)) elem_positions(props, set) else set)(positions)
         case XML.Elem(Markup(name, props), body) =>
-          body.foldLeft(if (include_pos(name)) elem_positions(props, set) else set)(positions)
+          body.foldLeft(if (position_elements(name)) elem_positions(props, set) else set)(positions)
         case XML.Text(_) => set
       }
 

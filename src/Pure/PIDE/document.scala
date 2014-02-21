@@ -357,6 +357,7 @@ object Document
     val state: State
     val version: Version
     val is_outdated: Boolean
+
     def convert(i: Text.Offset): Text.Offset
     def revert(i: Text.Offset): Text.Offset
     def convert(range: Text.Range): Text.Range
@@ -366,15 +367,19 @@ object Document
     val node: Node
     val thy_load_commands: List[Command]
     def eq_content(other: Snapshot): Boolean
-    def cumulate_markup[A](
+
+    def cumulate[A](
       range: Text.Range,
       info: A,
       elements: String => Boolean,
-      result: Command.State => (A, Text.Markup) => Option[A]): List[Text.Info[A]]
-    def select_markup[A](
+      result: Command.State => (A, Text.Markup) => Option[A],
+      status: Boolean = false): List[Text.Info[A]]
+
+    def select[A](
       range: Text.Range,
       elements: String => Boolean,
-      result: Command.State => Text.Markup => Option[A]): List[Text.Info[A]]
+      result: Command.State => Text.Markup => Option[A],
+      status: Boolean = false): List[Text.Info[A]]
   }
 
   type Assign_Update =
@@ -601,13 +606,13 @@ object Document
         val version = stable.version.get_finished
         val is_outdated = !(pending_edits.isEmpty && latest == stable)
 
+
+        /* local node content */
+
         def convert(offset: Text.Offset) = (offset /: edits)((i, edit) => edit.convert(i))
         def revert(offset: Text.Offset) = (offset /: reverse_edits)((i, edit) => edit.revert(i))
         def convert(range: Text.Range) = (range /: edits)((r, edit) => edit.convert(r))
         def revert(range: Text.Range) = (range /: reverse_edits)((r, edit) => edit.revert(r))
-
-
-        /* local node content */
 
         val node_name = name
         val node = version.nodes(name)
@@ -629,38 +634,51 @@ object Document
           (thy_load_commands zip other.thy_load_commands).forall(eq_commands)
         }
 
-        def cumulate_markup[A](range: Text.Range, info: A, elements: String => Boolean,
-          result: Command.State => (A, Text.Markup) => Option[A]): List[Text.Info[A]] =
+
+        /* cumulate markup */
+
+        def cumulate[A](
+          range: Text.Range,
+          info: A,
+          elements: String => Boolean,
+          result: Command.State => (A, Text.Markup) => Option[A],
+          status: Boolean = false): List[Text.Info[A]] =
         {
           val former_range = revert(range)
           thy_load_commands match {
             case thy_load_command :: _ =>
               val file_name = node_name.node
+              val markup_index = Command.Markup_Index(status, file_name)
               (for {
                 chunk <- thy_load_command.chunks.get(file_name).iterator
                 st = state.command_state(version, thy_load_command)
                 res = result(st)
-                Text.Info(r0, a) <- st.get_markup(file_name).cumulate[A](
+                Text.Info(r0, a) <- st.markup(markup_index).cumulate[A](
                   former_range.restrict(chunk.range), info, elements,
                   { case (a, Text.Info(r0, b)) => res(a, Text.Info(convert(r0), b)) }
                 ).iterator
               } yield Text.Info(convert(r0), a)).toList
 
             case _ =>
+              val markup_index = Command.Markup_Index(status, "")
               (for {
                 (command, command_start) <- node.command_range(former_range)
                 st = state.command_state(version, command)
                 res = result(st)
-                Text.Info(r0, a) <- st.markup.cumulate[A](
+                Text.Info(r0, a) <- st.markup(markup_index).cumulate[A](
                   (former_range - command_start).restrict(command.range), info, elements,
-                  { case (a, Text.Info(r0, b)) => res(a, Text.Info(convert(r0 + command_start), b)) }
-                ).iterator
+                  {
+                    case (a, Text.Info(r0, b)) => res(a, Text.Info(convert(r0 + command_start), b))
+                  }).iterator
               } yield Text.Info(convert(r0 + command_start), a)).toList
           }
         }
 
-        def select_markup[A](range: Text.Range, elements: String => Boolean,
-          result: Command.State => Text.Markup => Option[A]): List[Text.Info[A]] =
+        def select[A](
+          range: Text.Range,
+          elements: String => Boolean,
+          result: Command.State => Text.Markup => Option[A],
+          status: Boolean = false): List[Text.Info[A]] =
         {
           def result1(st: Command.State): (Option[A], Text.Markup) => Option[Option[A]] =
           {
@@ -671,7 +689,7 @@ object Document
                 case some => Some(some)
               }
           }
-          for (Text.Info(r, Some(x)) <- cumulate_markup(range, None, elements, result1 _))
+          for (Text.Info(r, Some(x)) <- cumulate(range, None, elements, result1 _, status))
             yield Text.Info(r, x)
         }
       }

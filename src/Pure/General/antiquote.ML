@@ -32,7 +32,8 @@ fun is_text (Text _) = true
 (* reports *)
 
 fun antiq_reports ((_, {start, stop, range = (pos, _)}): antiq) =
-  [(start, Markup.antiquote), (stop, Markup.antiquote), (pos, Markup.antiquoted)];
+  [(start, Markup.antiquote), (stop, Markup.antiquote),
+   (pos, Markup.antiquoted), (pos, Markup.language_antiquotation)];
 
 fun antiquote_reports text =
   maps (fn Text x => text x | Antiq antiq => map (rpair "") (antiq_reports antiq));

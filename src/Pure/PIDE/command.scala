@@ -15,6 +15,8 @@ import scala.collection.immutable.SortedMap
 object Command
 {
   type Edit = (Option[Command], Option[Command])
+  type Blob = Exn.Result[(Document.Node.Name, Option[(SHA1.Digest, File)])]
+
 
 
   /** accumulated results from prover **/
@@ -54,21 +56,60 @@ object Command
   }
 
 
+  /* markup */
+
+  object Markup_Index
+  {
+    val markup: Markup_Index = Markup_Index(false, "")
+  }
+
+  sealed case class Markup_Index(status: Boolean, file_name: String)
+
+  object Markups
+  {
+    val empty: Markups = new Markups(Map.empty)
+
+    def init(markup: Markup_Tree): Markups =
+      new Markups(Map(Markup_Index.markup -> markup))
+  }
+
+  final class Markups private(private val rep: Map[Markup_Index, Markup_Tree])
+  {
+    def apply(index: Markup_Index): Markup_Tree =
+      rep.getOrElse(index, Markup_Tree.empty)
+
+    def add(index: Markup_Index, markup: Text.Markup): Markups =
+      new Markups(rep + (index -> (this(index) + markup)))
+
+    def ++ (other: Markups): Markups =
+      new Markups(
+        (rep.keySet ++ other.rep.keySet)
+          .map(index => index -> (this(index) ++ other(index))).toMap)
+
+    override def hashCode: Int = rep.hashCode
+    override def equals(that: Any): Boolean =
+      that match {
+        case other: Markups => rep == other.rep
+        case _ => false
+      }
+    override def toString: String = rep.iterator.mkString("Markups(", ", ", ")")
+  }
+
+
   /* state */
 
   sealed case class State(
     command: Command,
     status: List[Markup] = Nil,
     results: Results = Results.empty,
-    markups: Map[String, Markup_Tree] = Map.empty)
+    markups: Markups = Markups.empty)
   {
-    def get_markup(file_name: String): Markup_Tree =
-      markups.getOrElse(file_name, Markup_Tree.empty)
+    /* markup */
 
-    def markup: Markup_Tree = get_markup("")
+    def markup(index: Markup_Index): Markup_Tree = markups(index)
 
     def markup_to_XML(filter: XML.Elem => Boolean): XML.Body =
-      markup.to_XML(command.range, command.source, filter)
+      markup(Markup_Index.markup).to_XML(command.range, command.source, filter)
 
 
     /* content */
@@ -79,10 +120,17 @@ object Command
       results == other.results &&
       markups == other.markups
 
-    private def add_status(st: Markup): State = copy(status = st :: status)
+    private def add_status(st: Markup): State =
+      copy(status = st :: status)
 
-    private def add_markup(file_name: String, m: Text.Markup): State =
-      copy(markups = markups + (file_name -> (get_markup(file_name) + m)))
+    private def add_markup(status: Boolean, file_name: String, m: Text.Markup): State =
+    {
+      val markups1 =
+        if (status || Protocol.status_elements(m.info.name))
+          markups.add(Markup_Index(true, file_name), m)
+        else markups
+      copy(markups = markups1.add(Markup_Index(false, file_name), m))
+    }
 
     def + (alt_id: Document_ID.Generic, message: XML.Elem): State =
       message match {
@@ -90,8 +138,9 @@ object Command
           (this /: msgs)((state, msg) =>
             msg match {
               case elem @ XML.Elem(markup, Nil) =>
-                state.add_status(markup).add_markup("", Text.Info(command.proper_range, elem))
-
+                state.
+                  add_status(markup).
+                  add_markup(true, "", Text.Info(command.proper_range, elem))
               case _ =>
                 System.err.println("Ignored status message: " + msg)
                 state
@@ -111,8 +160,8 @@ object Command
                         case Some(range) =>
                           if (!range.is_singularity) {
                             val props = Position.purge(atts)
-                            state.add_markup(file_name,
-                              Text.Info(range, XML.Elem(Markup(name, props), args)))
+                            val info = Text.Info(range, XML.Elem(Markup(name, props), args))
+                            state.add_markup(false, file_name, info)
                           }
                           else state
                         case None => bad(); state
@@ -125,7 +174,7 @@ object Command
                   val range = command.proper_range
                   val props = Position.purge(atts)
                   val info: Text.Markup = Text.Info(range, XML.Elem(Markup(name, props), args))
-                  state.add_markup("", info)
+                  state.add_markup(false, "", info)
 
                 case _ => /* FIXME bad(); */ state
               }
@@ -141,7 +190,7 @@ object Command
                 for {
                   (file_name, chunk) <- command.chunks
                   range <- Protocol.message_positions(command.id, alt_id, chunk, message)
-                } st = st.add_markup(file_name, Text.Info(range, message2))
+                } st = st.add_markup(false, file_name, Text.Info(range, message2))
               }
               st
 
@@ -155,9 +204,7 @@ object Command
       copy(
         status = other.status ::: status,
         results = results ++ other.results,
-        markups =
-          (markups.keySet ++ other.markups.keySet)
-            .map(a => a -> (get_markup(a) ++ other.get_markup(a))).toMap
+        markups = markups ++ other.markups
       )
   }
 
@@ -189,15 +236,7 @@ object Command
   def name(span: List[Token]): String =
     span.find(_.is_command) match { case Some(tok) => tok.source case _ => "" }
 
-  type Blob = Exn.Result[(Document.Node.Name, Option[(SHA1.Digest, File)])]
-
-  def apply(
-    id: Document_ID.Command,
-    node_name: Document.Node.Name,
-    blobs: List[Blob],
-    span: List[Token],
-    results: Results = Results.empty,
-    markup: Markup_Tree = Markup_Tree.empty): Command =
+  private def source_span(span: List[Token]): (String, List[Token]) =
   {
     val source: String =
       span match {
@@ -213,16 +252,30 @@ object Command
       span1 += Token(kind, s1)
       i += n
     }
-
-    new Command(id, node_name, blobs, span1.toList, source, results, markup)
+    (source, span1.toList)
   }
 
-  val empty = Command(Document_ID.none, Document.Node.Name.empty, Nil, Nil)
+  def apply(
+    id: Document_ID.Command,
+    node_name: Document.Node.Name,
+    blobs: List[Blob],
+    span: List[Token]): Command =
+  {
+    val (source, span1) = source_span(span)
+    new Command(id, node_name, blobs, span1, source, Results.empty, Markup_Tree.empty)
+  }
 
-  def unparsed(id: Document_ID.Command, source: String, results: Results, markup: Markup_Tree)
-      : Command =
-    Command(id, Document.Node.Name.empty, Nil, List(Token(Token.Kind.UNPARSED, source)),
-      results, markup)
+  val empty: Command = Command(Document_ID.none, Document.Node.Name.empty, Nil, Nil)
+
+  def unparsed(
+    id: Document_ID.Command,
+    source: String,
+    results: Results,
+    markup: Markup_Tree): Command =
+  {
+    val (source1, span) = source_span(List(Token(Token.Kind.UNPARSED, source)))
+    new Command(id, Document.Node.Name.empty, Nil, span, source1, results, markup)
+  }
 
   def unparsed(source: String): Command =
     unparsed(Document_ID.none, source, Results.empty, Markup_Tree.empty)
@@ -316,7 +369,7 @@ final class Command private(
   /* accumulated results */
 
   val init_state: Command.State =
-    Command.State(this, results = init_results, markups = Map("" -> init_markup))
+    Command.State(this, results = init_results, markups = Command.Markups.init(init_markup))
 
   val empty_state: Command.State = Command.State(this)
 }

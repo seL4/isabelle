@@ -38,53 +38,29 @@ object Markup_Tree
 
   /* tree building blocks */
 
-  object Elements
-  {
-    val empty = new Elements(Set.empty)
-  }
-
-  final class Elements private(private val rep: Set[String])
-  {
-    def exists(pred: String => Boolean): Boolean = rep.exists(pred)
-
-    def + (name: String): Elements =
-      if (rep(name)) this
-      else new Elements(rep + name)
-
-    def + (elem: XML.Elem): Elements = this + elem.markup.name
-    def ++ (elems: Iterable[XML.Elem]): Elements = (this /: elems.iterator)(_ + _)
-
-    def ++ (other: Elements): Elements =
-      if (this eq other) this
-      else if (rep.isEmpty) other
-      else (this /: other.rep)(_ + _)
-  }
-
   object Entry
   {
     def apply(markup: Text.Markup, subtree: Markup_Tree): Entry =
-      Entry(markup.range, List(markup.info), Elements.empty + markup.info,
-        subtree, subtree.make_elements)
-
-    def apply(range: Text.Range, rev_markups: List[XML.Elem], subtree: Markup_Tree): Entry =
-      Entry(range, rev_markups, Elements.empty ++ rev_markups,
-        subtree, subtree.make_elements)
+      Entry(markup.range, List(markup.info), subtree)
   }
 
   sealed case class Entry(
     range: Text.Range,
     rev_markup: List[XML.Elem],
-    elements: Elements,
-    subtree: Markup_Tree,
-    subtree_elements: Elements)
+    subtree: Markup_Tree)
   {
     def markup: List[XML.Elem] = rev_markup.reverse
 
-    def + (markup: Text.Markup): Entry =
-      copy(rev_markup = markup.info :: rev_markup, elements = elements + markup.info)
+    def filter_markup(pred: String => Boolean): List[XML.Elem] =
+    {
+      var result: List[XML.Elem] = Nil
+      for { elem <- rev_markup; if (pred(elem.name)) }
+        result ::= elem
+      result.toList
+    }
 
-    def \ (markup: Text.Markup): Entry =
-      copy(subtree = subtree + markup, subtree_elements = subtree_elements + markup.info)
+    def + (markup: Text.Markup): Entry = copy(rev_markup = markup.info :: rev_markup)
+    def \ (markup: Text.Markup): Entry = copy(subtree = subtree + markup)
   }
 
   object Branches
@@ -153,10 +129,6 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
       case _ => bs
     }
   }
-
-  def make_elements: Elements =
-    (Elements.empty /: branches)(
-      { case (elements, (_, entry)) => elements ++ entry.subtree_elements ++ entry.elements })
 
   def + (new_markup: Text.Markup): Markup_Tree =
   {
@@ -230,8 +202,7 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
       var y = x
       var changed = false
       for {
-        elem <- entry.markup
-        if elements(elem.name)
+        elem <- entry.filter_markup(elements)
         y1 <- result(y, Text.Info(entry.range, elem))
       } { y = y1; changed = true }
       if (changed) Some(y) else None
@@ -244,13 +215,10 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
       stack match {
         case (parent, (range, entry) :: more) :: rest =>
           val subrange = range.restrict(root_range)
-          val subtree =
-            if (entry.subtree_elements.exists(elements))
-              entry.subtree.overlapping(subrange).toList
-            else Nil
+          val subtree = entry.subtree.overlapping(subrange).toList
           val start = subrange.start
 
-          (if (entry.elements.exists(elements)) results(parent.info, entry) else None) match {
+          results(parent.info, entry) match {
             case Some(res) =>
               val next = Text.Info(subrange, res)
               val nexts = traverse(start, (next, subtree) :: (parent, more) :: rest)
