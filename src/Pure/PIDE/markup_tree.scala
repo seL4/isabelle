@@ -80,6 +80,14 @@ object Markup_Tree
   {
     def markup: List[XML.Elem] = rev_markup.reverse
 
+    def filter_markup(pred: String => Boolean): List[XML.Elem] =
+    {
+      var result: List[XML.Elem] = Nil
+      for { elem <- rev_markup; if (pred(elem.name)) }
+        result ::= elem
+      result.toList
+    }
+
     def + (markup: Text.Markup): Entry =
       copy(rev_markup = markup.info :: rev_markup, elements = elements + markup.info)
 
@@ -230,8 +238,7 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
       var y = x
       var changed = false
       for {
-        elem <- entry.markup
-        if elements(elem.name)
+        elem <- entry.filter_markup(elements)
         y1 <- result(y, Text.Info(entry.range, elem))
       } { y = y1; changed = true }
       if (changed) Some(y) else None
