@@ -19,7 +19,7 @@ local
 
 (** maps (%x1 ... xn. t) to [x1,...,xn] **)
 fun abs2list (Const (@{const_name case_prod}, _) $ Abs (x, T, t)) = Free (x, T) :: abs2list t
-  | abs2list (Abs (x, T, t)) = [Free (x, T)]
+  | abs2list (Abs (x, T, _)) = [Free (x, T)]
   | abs2list _ = [];
 
 (** maps {(x1,...,xn). t} to [x1,...,xn] **)
@@ -115,7 +115,7 @@ fun split_simp_tac ctxt =
 (** simplification done by (split_all_tac)                                  **)
 (*****************************************************************************)
 
-fun set2pred_tac ctxt var_names = SUBGOAL (fn (goal, i) =>
+fun set2pred_tac ctxt var_names = SUBGOAL (fn (_, i) =>
   before_set2pred_simp_tac ctxt i THEN_MAYBE
   EVERY [
     rtac subsetI i,
@@ -175,6 +175,6 @@ fun hoare_rule_tac ctxt (vars, Mlem) tac =
 (** tac is the tactic the user chooses to solve or simplify **)
 (** the final verification conditions                       **)
 
-fun hoare_tac ctxt (tac: int -> tactic) = SUBGOAL (fn (goal, i) =>
+fun hoare_tac ctxt tac = SUBGOAL (fn (goal, i) =>
   SELECT_GOAL (hoare_rule_tac ctxt (Mset ctxt goal) tac true 1) i);
 
