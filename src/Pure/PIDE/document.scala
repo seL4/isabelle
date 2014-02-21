@@ -368,24 +368,18 @@ object Document
     val thy_load_commands: List[Command]
     def eq_content(other: Snapshot): Boolean
 
-    def cumulate_status[A](
+    def cumulate[A](
       range: Text.Range,
       info: A,
       elements: String => Boolean,
-      result: Command.State => (A, Text.Markup) => Option[A]): List[Text.Info[A]]
-    def select_status[A](
+      result: Command.State => (A, Text.Markup) => Option[A],
+      status: Boolean = false): List[Text.Info[A]]
+
+    def select[A](
       range: Text.Range,
       elements: String => Boolean,
-      result: Command.State => Text.Markup => Option[A]): List[Text.Info[A]]
-    def cumulate_markup[A](
-      range: Text.Range,
-      info: A,
-      elements: String => Boolean,
-      result: Command.State => (A, Text.Markup) => Option[A]): List[Text.Info[A]]
-    def select_markup[A](
-      range: Text.Range,
-      elements: String => Boolean,
-      result: Command.State => Text.Markup => Option[A]): List[Text.Info[A]]
+      result: Command.State => Text.Markup => Option[A],
+      status: Boolean = false): List[Text.Info[A]]
   }
 
   type Assign_Update =
@@ -643,12 +637,12 @@ object Document
 
         /* cumulate markup */
 
-        private def cumulate[A](
-          status: Boolean,
+        def cumulate[A](
           range: Text.Range,
           info: A,
           elements: String => Boolean,
-          result: Command.State => (A, Text.Markup) => Option[A]): List[Text.Info[A]] =
+          result: Command.State => (A, Text.Markup) => Option[A],
+          status: Boolean = false): List[Text.Info[A]] =
         {
           val former_range = revert(range)
           thy_load_commands match {
@@ -680,8 +674,11 @@ object Document
           }
         }
 
-        private def select[A](status: Boolean, range: Text.Range, elements: String => Boolean,
-          result: Command.State => Text.Markup => Option[A]): List[Text.Info[A]] =
+        def select[A](
+          range: Text.Range,
+          elements: String => Boolean,
+          result: Command.State => Text.Markup => Option[A],
+          status: Boolean = false): List[Text.Info[A]] =
         {
           def result1(st: Command.State): (Option[A], Text.Markup) => Option[Option[A]] =
           {
@@ -692,25 +689,9 @@ object Document
                 case some => Some(some)
               }
           }
-          for (Text.Info(r, Some(x)) <- cumulate_markup(range, None, elements, result1 _))
+          for (Text.Info(r, Some(x)) <- cumulate(range, None, elements, result1 _, status))
             yield Text.Info(r, x)
         }
-
-        def cumulate_status[A](range: Text.Range, info: A, elements: String => Boolean,
-            result: Command.State => (A, Text.Markup) => Option[A]): List[Text.Info[A]] =
-          cumulate(true, range, info, elements, result)
-
-        def select_status[A](range: Text.Range, elements: String => Boolean,
-            result: Command.State => Text.Markup => Option[A]): List[Text.Info[A]] =
-          select(true, range, elements, result)
-
-        def cumulate_markup[A](range: Text.Range, info: A, elements: String => Boolean,
-            result: Command.State => (A, Text.Markup) => Option[A]): List[Text.Info[A]] =
-          cumulate(false, range, info, elements, result)
-
-        def select_markup[A](range: Text.Range, elements: String => Boolean,
-            result: Command.State => Text.Markup => Option[A]): List[Text.Info[A]] =
-          select(false, range, elements, result)
       }
     }
   }
