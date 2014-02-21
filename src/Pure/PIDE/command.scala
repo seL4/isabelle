@@ -15,6 +15,8 @@ import scala.collection.immutable.SortedMap
 object Command
 {
   type Edit = (Option[Command], Option[Command])
+  type Blob = Exn.Result[(Document.Node.Name, Option[(SHA1.Digest, File)])]
+
 
 
   /** accumulated results from prover **/
@@ -189,15 +191,7 @@ object Command
   def name(span: List[Token]): String =
     span.find(_.is_command) match { case Some(tok) => tok.source case _ => "" }
 
-  type Blob = Exn.Result[(Document.Node.Name, Option[(SHA1.Digest, File)])]
-
-  def apply(
-    id: Document_ID.Command,
-    node_name: Document.Node.Name,
-    blobs: List[Blob],
-    span: List[Token],
-    results: Results = Results.empty,
-    markup: Markup_Tree = Markup_Tree.empty): Command =
+  private def source_span(span: List[Token]): (String, List[Token]) =
   {
     val source: String =
       span match {
@@ -213,16 +207,30 @@ object Command
       span1 += Token(kind, s1)
       i += n
     }
-
-    new Command(id, node_name, blobs, span1.toList, source, results, markup)
+    (source, span1.toList)
   }
 
-  val empty = Command(Document_ID.none, Document.Node.Name.empty, Nil, Nil)
+  def apply(
+    id: Document_ID.Command,
+    node_name: Document.Node.Name,
+    blobs: List[Blob],
+    span: List[Token]): Command =
+  {
+    val (source, span1) = source_span(span)
+    new Command(id, node_name, blobs, span1, source, Results.empty, Markup_Tree.empty)
+  }
 
-  def unparsed(id: Document_ID.Command, source: String, results: Results, markup: Markup_Tree)
-      : Command =
-    Command(id, Document.Node.Name.empty, Nil, List(Token(Token.Kind.UNPARSED, source)),
-      results, markup)
+  val empty: Command = Command(Document_ID.none, Document.Node.Name.empty, Nil, Nil)
+
+  def unparsed(
+    id: Document_ID.Command,
+    source: String,
+    results: Results,
+    markup: Markup_Tree): Command =
+  {
+    val (source1, span) = source_span(List(Token(Token.Kind.UNPARSED, source)))
+    new Command(id, Document.Node.Name.empty, Nil, span, source1, results, markup)
+  }
 
   def unparsed(source: String): Command =
     unparsed(Document_ID.none, source, Results.empty, Markup_Tree.empty)
