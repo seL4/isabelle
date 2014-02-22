@@ -72,7 +72,10 @@ proof (rule ccontr)
   {
     fix x
     assume "x \<in> (\<lambda>w. (f \<circ> (\<lambda>x. x $ 1)) w - (g \<circ> (\<lambda>x. x $ 2)) w) ` {- 1..1::real^2}"
-    then guess w unfolding image_iff .. note w = this
+    then obtain w :: "real^2" where w:
+        "w \<in> {- 1..1}"
+        "x = (f \<circ> (\<lambda>x. x $ 1)) w - (g \<circ> (\<lambda>x. x $ 2)) w"
+      unfolding image_iff ..
     then have "x \<noteq> 0"
       using as[of "w$1" "w$2"]
       unfolding mem_interval_cart
@@ -114,7 +117,10 @@ proof (rule ccontr)
     apply rule
   proof -
     case goal1
-    then guess y unfolding image_iff .. note y=this
+    then obtain y :: "real^2" where y:
+        "y \<in> {- 1..1}"
+        "x = (negatex \<circ> sqprojection \<circ> (\<lambda>w. (f \<circ> (\<lambda>x. x $ 1)) w - (g \<circ> (\<lambda>x. x $ 2)) w)) y"
+      unfolding image_iff ..
     have "?F y \<noteq> 0"
       apply (rule x0)
       using y(1)
@@ -140,12 +146,15 @@ proof (rule ccontr)
         done
     qed
   qed
-  guess x
+  obtain x :: "real^2" where x:
+      "x \<in> {- 1..1}"
+      "(negatex \<circ> sqprojection \<circ> (\<lambda>w. (f \<circ> (\<lambda>x. x $ 1)) w - (g \<circ> (\<lambda>x. x $ 2)) w)) x = x"
     apply (rule brouwer_weak[of "{- 1..1::real^2}" "negatex \<circ> sqprojection \<circ> ?F"])
-    apply (rule compact_interval convex_interval)+ unfolding interior_closed_interval
+    apply (rule compact_interval convex_interval)+
+    unfolding interior_closed_interval
     apply (rule 1 2 3)+
+    apply blast
     done
-  note x=this
   have "?F x \<noteq> 0"
     apply (rule x0)
     using x(1)
@@ -312,10 +321,14 @@ proof -
       using assms
       by (auto simp add: *)
   qed
-  then guess s .. from this(2) guess t .. note st=this
+  then obtain s t where st:
+      "s \<in> {- 1..1}"
+      "t \<in> {- 1..1}"
+      "(f \<circ> iscale) s = (g \<circ> iscale) t"
+    by blast
   show thesis
     apply (rule_tac z = "f (iscale s)" in that)
-    using st `s \<in> {- 1..1}`
+    using st
     unfolding o_def path_image_def image_iff
     apply -
     apply (rule_tac x="iscale s" in bexI)
@@ -360,7 +373,7 @@ next
     unfolding pathstart_def
     apply (auto simp add: less_eq_vec_def)
     done
-  then guess z .. note z=this
+  then obtain z :: "real^2" where z: "z \<in> path_image g" "z $ 2 = pathstart f $ 2" ..
   have "z \<in> {a..b}"
     using z(1) assms(4)
     unfolding path_image_def
@@ -392,7 +405,7 @@ next
     unfolding pathstart_def
     apply (auto simp add: less_eq_vec_def)
     done
-  then guess z .. note z=this
+  then obtain z where z: "z \<in> path_image f" "z $ 1 = pathstart g $ 1" ..
   have "z \<in> {a..b}"
     using z(1) assms(3)
     unfolding path_image_def
@@ -416,7 +429,9 @@ next
   assume as: "a $ 1 < b $ 1 \<and> a $ 2 < b $ 2"
   have int_nem: "{- 1..1::real^2} \<noteq> {}"
     unfolding interval_eq_empty_cart by auto
-  guess z
+  obtain z :: "real^2" where z:
+      "z \<in> (interval_bij (a, b) (- 1, 1) \<circ> f) ` {0..1}"
+      "z \<in> (interval_bij (a, b) (- 1, 1) \<circ> g) ` {0..1}"
     apply (rule fashoda_unit_path[of "interval_bij (a,b) (- 1,1) \<circ> f" "interval_bij (a,b) (- 1,1) \<circ> g"]) 
     unfolding path_def path_image_def pathstart_def pathfinish_def
     apply (rule_tac[1-2] continuous_on_compose)
@@ -426,8 +441,10 @@ next
   proof -
     fix x
     assume "x \<in> (interval_bij (a, b) (- 1, 1) \<circ> f) ` {0..1}"
-    then guess y
-      unfolding image_iff .. note y=this
+    then obtain y where y:
+        "y \<in> {0..1}"
+        "x = (interval_bij (a, b) (- 1, 1) \<circ> f) y"
+      unfolding image_iff ..
     show "x \<in> {- 1..1}"
       unfolding y o_def
       apply (rule in_interval_interval_bij)
@@ -438,7 +455,10 @@ next
   next
     fix x
     assume "x \<in> (interval_bij (a, b) (- 1, 1) \<circ> g) ` {0..1}"
-    then guess y unfolding image_iff .. note y=this
+    then obtain y where y:
+        "y \<in> {0..1}"
+        "x = (interval_bij (a, b) (- 1, 1) \<circ> g) y"
+      unfolding image_iff ..
     show "x \<in> {- 1..1}"
       unfolding y o_def
       apply (rule in_interval_interval_bij)
@@ -455,9 +475,14 @@ next
       by (simp_all add: axis_in_Basis cart_eq_inner_axis pathstart_def pathfinish_def interval_bij_def)
          (simp_all add: inner_axis)
   qed
-  note z=this
-  from z(1) guess zf unfolding image_iff .. note zf=this
-  from z(2) guess zg unfolding image_iff .. note zg=this
+  from z(1) obtain zf where zf:
+      "zf \<in> {0..1}"
+      "z = (interval_bij (a, b) (- 1, 1) \<circ> f) zf"
+    unfolding image_iff ..
+  from z(2) obtain zg where zg:
+      "zg \<in> {0..1}"
+      "z = (interval_bij (a, b) (- 1, 1) \<circ> g) zg"
+    unfolding image_iff ..
   have *: "\<forall>i. (- 1) $ i < (1::real^2) $ i \<and> a $ i < b $ i"
     unfolding forall_2
     using as
@@ -493,7 +518,12 @@ proof -
   }
   {
     assume ?L
-    then guess u by (elim exE conjE) note u=this
+    then obtain u where u:
+        "x $ 1 = (1 - u) * a $ 1 + u * b $ 1"
+        "x $ 2 = (1 - u) * a $ 2 + u * b $ 2"
+        "0 \<le> u"
+        "u \<le> 1"
+      by blast
     { fix b a
       assume "b + u * a > a + u * b"
       then have "(1 - u) * b > (1 - u) * a"
@@ -568,7 +598,12 @@ proof -
   }
   {
     assume ?L
-    then guess u by (elim exE conjE) note u=this
+    then obtain u where u:
+        "x $ 1 = (1 - u) * a $ 1 + u * b $ 1"
+        "x $ 2 = (1 - u) * a $ 2 + u * b $ 2"
+        "0 \<le> u"
+        "u \<le> 1"
+      by blast
     {
       fix b a
       assume "b + u * a > a + u * b"
@@ -677,7 +712,19 @@ proof -
       by(auto simp add: path_image_join path_linepath)
   have abab: "{a..b} \<subseteq> {?a..?b}"
     by (auto simp add:less_eq_vec_def forall_2 vector_2)
-  guess z
+  obtain z where
+    "z \<in> path_image
+          (linepath (vector [a $ 1 - 2, a $ 2 - 2]) (vector [pathstart f $ 1, a $ 2 - 2]) +++
+           linepath (vector [pathstart f $ 1, a $ 2 - 2]) (pathstart f) +++
+           f +++
+           linepath (pathfinish f) (vector [pathfinish f $ 1, a $ 2 - 2]) +++
+           linepath (vector [pathfinish f $ 1, a $ 2 - 2]) (vector [b $ 1 + 2, a $ 2 - 2]))"
+    "z \<in> path_image
+          (linepath (vector [pathstart g $ 1, pathstart g $ 2 - 3]) (pathstart g) +++
+           g +++
+           linepath (pathfinish g) (vector [pathfinish g $ 1, a $ 2 - 1]) +++
+           linepath (vector [pathfinish g $ 1, a $ 2 - 1]) (vector [b $ 1 + 1, a $ 2 - 1]) +++
+           linepath (vector [b $ 1 + 1, a $ 2 - 1]) (vector [b $ 1 + 1, b $ 2 + 3]))"
     apply (rule fashoda[of ?P1 ?P2 ?a ?b])
     unfolding pathstart_join pathfinish_join pathstart_linepath pathfinish_linepath vector_2
   proof -
