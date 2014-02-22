@@ -1,4 +1,4 @@
-/*  Title:      Pure/Isar/completion.scala
+/*  Title:      Pure/General/completion.scala
     Author:     Makarius
 
 Completion of keywords and symbols, with abbreviations.

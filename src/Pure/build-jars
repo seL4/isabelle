@@ -15,6 +15,7 @@ declare -a SOURCES=(
   Concurrent/volatile.scala
   General/antiquote.scala
   General/bytes.scala
+  General/completion.scala
   General/exn.scala
   General/file.scala
   General/graph.scala
@@ -39,7 +40,6 @@ declare -a SOURCES=(
   GUI/swing_thread.scala
   GUI/system_dialog.scala
   GUI/wrap_panel.scala
-  Isar/completion.scala
   Isar/keyword.scala
   Isar/outer_syntax.scala
   Isar/parse.scala
