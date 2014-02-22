@@ -21,7 +21,9 @@ of "\\", to avoid the optical illusion of escaped backslash within
 string token.  Minor INCOMPATIBILITY.
 
 * Lexical syntax (inner and outer) supports text cartouches with
-arbitrary nesting, and without escapes of quotes etc.
+arbitrary nesting, and without escapes of quotes etc.  The Prover IDE
+supports input methods via ` (backquote), or << and >> (double angle
+brackets).
 
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
