@@ -96,12 +96,6 @@ datatype theorem =
   Internal of Facts.ref * thm |
   External of Facts.ref * term; (* FIXME: Facts.ref not appropriate *)
 
-fun fact_ref_markup (Facts.Named ((name, pos), SOME [Facts.Single i])) =
-      Position.markup pos o Markup.properties [("name", name), ("index", Markup.print_int i)]
-  | fact_ref_markup (Facts.Named ((name, pos), NONE)) =
-      Position.markup pos o Markup.properties [("name", name)]
-  | fact_ref_markup fact_ref = raise Fail "bad fact ref";
-
 fun prop_of (Internal (_, thm)) = Thm.full_prop_of thm
   | prop_of (External (_, prop)) = prop;
 
@@ -375,9 +369,9 @@ fun rem_cdups nicer xs =
     fun rem_c rev_seen [] = rev rev_seen
       | rem_c rev_seen [x] = rem_c (x :: rev_seen) []
       | rem_c rev_seen ((x as (t, _)) :: (y as (t', _)) :: xs) =
-          if (prop_of t) aconv (prop_of t')
+          if prop_of t aconv prop_of t'
           then rem_c rev_seen ((if nicer (fact_ref_of t) (fact_ref_of t') then x else y) :: xs)
-          else rem_c (x :: rev_seen) (y :: xs)
+          else rem_c (x :: rev_seen) (y :: xs);
   in rem_c [] xs end;
 
 in
@@ -396,7 +390,8 @@ fun nicer_shortest ctxt =
     fun nicer (Facts.Named ((x, _), i)) (Facts.Named ((y, _), j)) =
           nicer_name (shorten x, i) (shorten y, j)
       | nicer (Facts.Fact _) (Facts.Named _) = true
-      | nicer (Facts.Named _) (Facts.Fact _) = false;
+      | nicer (Facts.Named _) (Facts.Fact _) = false
+      | nicer (Facts.Fact _) (Facts.Fact _) = true;
   in nicer end;
 
 fun rem_thm_dups nicer xs =
