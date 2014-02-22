@@ -27,8 +27,10 @@ sig
   val names_unique: bool Config.T
   val extern: Proof.context -> T -> string -> xstring
   val extern_ord: Proof.context -> T -> string * string -> order
+  val extern_shortest: Proof.context -> T -> string -> xstring
   val markup_extern: Proof.context -> T -> string -> Markup.T * xstring
   val pretty: Proof.context -> T -> string -> Pretty.T
+  val completion: Context.generic -> T -> xstring * Position.T -> Completion.T
   val hide: bool -> string -> T -> T
   val merge: T * T -> T
   type naming
@@ -151,10 +153,12 @@ fun valid_accesses (Name_Space {internals, ...}) name =
     if not (null names) andalso hd names = name then cons xname else I) internals [];
 
 
-(* intern and extern *)
+(* intern *)
 
 fun intern space xname = #1 (lookup space xname);
 
+
+(* extern *)
 
 val names_long_raw = Config.declare_option "names_long";
 val names_long = Config.bool names_long_raw;
@@ -185,9 +189,30 @@ fun extern ctxt space name =
 
 fun extern_ord ctxt space = string_ord o pairself (extern ctxt space);
 
-fun markup_extern ctxt space name = (markup space name, extern ctxt space name);
+fun extern_shortest ctxt =
+  extern
+    (ctxt
+      |> Config.put names_long false
+      |> Config.put names_short false
+      |> Config.put names_unique false);
 
+fun markup_extern ctxt space name = (markup space name, extern ctxt space name);
 fun pretty ctxt space name = Pretty.mark_str (markup_extern ctxt space name);
+
+
+(* completion *)
+
+fun completion context (space as Name_Space {internals, ...}) (xname, pos) =
+  if Context_Position.is_visible_generic context andalso Position.is_reported pos then
+    let
+      val replacements =
+        Symtab.fold (fn (a, (b :: _, _)) => String.isPrefix xname a ? cons b | _ => I)
+          internals []
+        |> take (Completion.limit ())
+        |> map (extern_shortest (Context.proof_of context) space)
+        |> sort_distinct string_ord;
+    in {original = xname, replacements = replacements} end
+  else Completion.none;
 
 
 (* modify internals *)
@@ -421,7 +446,9 @@ fun check context (space, tab) (xname, pos) =
   let val name = intern space xname in
     (case Symtab.lookup tab name of
       SOME x => (Context_Position.report_generic context pos (markup space name); (name, x))
-    | NONE => error (undefined (kind_of space) name ^ Position.here pos))
+    | NONE =>
+       (Completion.report pos (completion context space (xname, pos));
+        error (undefined (kind_of space) name ^ Position.here pos)))
   end;
 
 fun get (space, tab) name =

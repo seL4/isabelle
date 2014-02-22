@@ -37,6 +37,7 @@ sig
   val get_entity_kind: T -> string option
   val defN: string
   val refN: string
+  val completionN: string val completion: T
   val lineN: string
   val offsetN: string
   val end_offsetN: string
@@ -281,6 +282,11 @@ fun get_entity_kind (name, props) =
 
 val defN = "def";
 val refN = "ref";
+
+
+(* completion *)
+
+val (completionN, completion) = markup_elem "completion";
 
 
 (* position *)
@@ -544,6 +550,7 @@ val simp_trace_hintN = "simp_trace_hint";
 val simp_trace_ignoreN = "simp_trace_ignore";
 
 fun simp_trace_cancel i = [(functionN, "simp_trace_cancel"), (serialN, print_int i)];
+
 
 
 (** print mode operations **)

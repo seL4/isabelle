@@ -71,6 +71,7 @@ session Pure =
     "General/basics.ML"
     "General/binding.ML"
     "General/buffer.ML"
+    "General/completion.ML"
     "General/file.ML"
     "General/graph.ML"
     "General/graph_display.ML"

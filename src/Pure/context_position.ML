@@ -6,6 +6,7 @@ Context position visibility flag.
 
 signature CONTEXT_POSITION =
 sig
+  val is_visible_generic: Context.generic -> bool
   val is_visible: Proof.context -> bool
   val is_visible_global: theory -> bool
   val if_visible: Proof.context -> ('a -> unit) -> 'a -> unit

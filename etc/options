@@ -136,3 +136,9 @@ public option find_theorems_limit : int = 40
 public option find_theorems_tac_limit : int = 5
   -- "limit of tactic search for 'solves' criterion"
 
+
+section "Completion"
+
+public option completion_limit : int = 40
+  -- "limit for completion within the formal context"
+

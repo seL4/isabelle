@@ -67,6 +67,11 @@ object Markup
   }
 
 
+  /* completion */
+
+  val COMPLETION = "completion"
+
+
   /* position */
 
   val LINE = "line"
