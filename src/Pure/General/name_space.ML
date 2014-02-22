@@ -9,8 +9,6 @@ type xstring = string;    (*external names*)
 
 signature NAME_SPACE =
 sig
-  val hidden: string -> string
-  val is_hidden: string -> bool
   type T
   val empty: string -> T
   val kind_of: T -> string
@@ -71,12 +69,6 @@ struct
 
 
 (** name spaces **)
-
-(* hidden entries *)
-
-fun hidden name = "??." ^ name;
-val is_hidden = String.isPrefix "??.";
-
 
 (* datatype entry *)
 
@@ -147,7 +139,7 @@ fun lookup (Name_Space {internals, ...}) xname =
   | SOME ([], []) => (xname, true)
   | SOME ([name], _) => (name, true)
   | SOME (name :: _, _) => (name, false)
-  | SOME ([], name' :: _) => (hidden name', true));
+  | SOME ([], name' :: _) => (Long_Name.hidden name', true));
 
 fun get_accesses (Name_Space {entries, ...}) name =
   (case Symtab.lookup entries name of
@@ -183,7 +175,7 @@ fun extern ctxt space name =
       let val (name', is_unique) = lookup space xname
       in name = name' andalso (not require_unique orelse is_unique) end;
 
-    fun ext [] = if valid false name then name else hidden name
+    fun ext [] = if valid false name then name else Long_Name.hidden name
       | ext (nm :: nms) = if valid names_unique nm then nm else ext nms;
   in
     if names_long then name
@@ -212,7 +204,7 @@ val add_name' = map_internals o apsnd o update (op =);
 fun hide fully name space =
   if not (Long_Name.is_qualified name) then
     error ("Attempt to hide global name " ^ quote name)
-  else if is_hidden name then
+  else if Long_Name.is_hidden name then
     error ("Attempt to hide hidden name " ^ quote name)
   else
     let val names = valid_accesses space name in

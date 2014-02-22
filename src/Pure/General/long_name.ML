@@ -8,6 +8,8 @@ signature LONG_NAME =
 sig
   val separator: string
   val is_qualified: string -> bool
+  val hidden: string -> string
+  val is_hidden: string -> bool
   val implode: string list -> string
   val explode: string -> string list
   val append: string -> string -> string
@@ -22,6 +24,9 @@ struct
 
 val separator = ".";
 val is_qualified = exists_string (fn s => s = separator);
+
+fun hidden name = "??." ^ name;
+val is_hidden = String.isPrefix "??.";
 
 val implode = space_implode separator;
 val explode = space_explode separator;
