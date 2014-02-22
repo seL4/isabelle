@@ -1,7 +1,7 @@
 /*  Title:      Pure/Isar/completion.scala
     Author:     Makarius
 
-Completion of symbols and keywords.
+Completion of keywords and symbols, with abbreviations.
 */
 
 package isabelle
@@ -18,10 +18,13 @@ object Completion
 
   object Context
   {
-    val default = Context("", true)
+    val outer = Context("", true, false)
+    val inner = Context(Markup.Language.UNKNOWN, true, false)
+    val ML_outer = Context(Markup.Language.ML, false, false)
+    val ML_inner = Context(Markup.Language.ML, true, true)
   }
 
-  sealed case class Context(language: String, symbols: Boolean)
+  sealed case class Context(language: String, symbols: Boolean, antiquotes: Boolean)
   {
     def is_outer: Boolean = language == ""
   }
@@ -31,10 +34,11 @@ object Completion
 
   sealed case class Item(
     original: String,
+    name: String,
     replacement: String,
-    description: String,
+    move: Int,
     immediate: Boolean)
-  { override def toString: String = description }
+  { override def toString: String = name }
 
   sealed case class Result(original: String, unique: Boolean, items: List[Item])
 
@@ -92,8 +96,8 @@ object Completion
       new Ordering[Item] {
         def compare(item1: Item, item2: Item): Int =
         {
-          frequency(item1.replacement) compare frequency(item2.replacement) match {
-            case 0 => item1.replacement compare item2.replacement
+          frequency(item1.name) compare frequency(item2.name) match {
+            case 0 => item1.name compare item2.name
             case ord => - ord
           }
         }
@@ -122,7 +126,7 @@ object Completion
     }
 
     def update(item: Item, freq: Int = 1): Unit = synchronized {
-      history = history + (item.replacement -> freq)
+      history = history + (item.name -> freq)
     }
   }
 
@@ -154,6 +158,14 @@ object Completion
       }
     }
   }
+
+
+  /* abbreviations */
+
+  private val caret = '\007'
+  private val antiquote = "@{"
+  private val default_abbrs =
+    Map("@{" -> "@{\007}", "`" -> "\\<open>\007\\<close>")
 }
 
 final class Completion private(
@@ -182,9 +194,13 @@ final class Completion private(
       (for ((x, y) <- Symbol.names.toList) yield ("\\" + y, x)) :::
       (for ((x, y) <- Symbol.abbrevs.toList if Completion.Word_Parsers.is_word(y)) yield (y, x))
 
-    val abbrs =
+    val symbol_abbrs =
       (for ((x, y) <- Symbol.abbrevs.iterator if !Completion.Word_Parsers.is_word(y))
-        yield (y.reverse, (y, x))).toList
+        yield (y, x)).toList
+
+    val abbrs =
+      for ((a, b) <- symbol_abbrs ::: Completion.default_abbrs.toList)
+        yield (a.reverse, (a, b))
 
     new Completion(
       keywords,
@@ -205,17 +221,19 @@ final class Completion private(
     context: Completion.Context): Option[Completion.Result] =
   {
     val abbrevs_result =
-      if (context.symbols)
-        Scan.Parsers.parse(Scan.Parsers.literal(abbrevs_lex), new Library.Reverse(text)) match {
-          case Scan.Parsers.Success(reverse_a, _) =>
-            val abbrevs = abbrevs_map.get_list(reverse_a)
-            abbrevs match {
-              case Nil => None
-              case (a, _) :: _ => Some((a, abbrevs.map(_._2)))
-            }
-          case _ => None
-        }
-      else None
+      Scan.Parsers.parse(Scan.Parsers.literal(abbrevs_lex), new Library.Reverse(text)) match {
+        case Scan.Parsers.Success(reverse_a, _) =>
+          val abbrevs = abbrevs_map.get_list(reverse_a)
+          abbrevs match {
+            case Nil => None
+            case (a, _) :: _ =>
+              val ok =
+                if (a == Completion.antiquote) context.antiquotes
+                else context.symbols || Completion.default_abbrs.isDefinedAt(a)
+              if (ok) Some((a, abbrevs.map(_._2))) else None
+          }
+        case _ => None
+      }
 
     val words_result =
       abbrevs_result orElse {
@@ -241,7 +259,15 @@ final class Completion private(
           val immediate =
             !Completion.Word_Parsers.is_word(word) &&
             Character.codePointCount(word, 0, word.length) > 1
-          val items = ds.map(s => Completion.Item(word, s, s, explicit || immediate))
+          val items =
+            ds.map(s => {
+              val (s1, s2) =
+                space_explode(Completion.caret, s) match {
+                  case List(s1, s2) => (s1, s2)
+                  case _ => (s, "")
+                }
+              Completion.Item(word, s, s1 + s2, - s2.length, explicit || immediate)
+            })
           Some(Completion.Result(word, cs.length == 1, items.sorted(history.ordering)))
         }
       case None => None

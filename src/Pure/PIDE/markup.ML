@@ -21,7 +21,8 @@ sig
   val kindN: string
   val instanceN: string
   val symbolsN: string
-  val languageN: string val language: string -> bool -> T
+  val languageN: string
+  val language: {name: string, symbols: bool, antiquotes: bool} -> T
   val language_sort: T
   val language_type: T
   val language_term: T
@@ -249,18 +250,22 @@ val instanceN = "instance";
 (* embedded languages *)
 
 val symbolsN = "symbols";
+val antiquotesN = "antiquotes";
 val languageN = "language";
-fun language name symbols = (languageN, [(nameN, name), (symbolsN, print_bool symbols)]);
 
-val language_sort = language "sort" true;
-val language_type = language "type" true;
-val language_term = language "term" true;
-val language_prop = language "prop" true;
-val language_ML = language "ML" false;
-val language_document = language "document" false;
-val language_antiquotation = language "antiquotation" true;
-val language_text = language "text" true;
-val language_rail = language "rail" true;
+fun language {name, symbols, antiquotes} =
+  (languageN,
+    [(nameN, name), (symbolsN, print_bool symbols), (antiquotesN, print_bool antiquotes)]);
+
+val language_sort = language {name = "sort", symbols = true, antiquotes = false};
+val language_type = language {name = "type", symbols = true, antiquotes = false};
+val language_term = language {name = "term", symbols = true, antiquotes = false};
+val language_prop = language {name = "prop", symbols = true, antiquotes = false};
+val language_ML = language {name = "ML", symbols = false, antiquotes = true};
+val language_document = language {name = "document", symbols = false, antiquotes = true};
+val language_antiquotation = language {name = "antiquotation", symbols = true, antiquotes = false};
+val language_text = language {name = "text", symbols = true, antiquotes = false};
+val language_rail = language {name = "rail", symbols = true, antiquotes = true};
 
 
 (* formal entities *)

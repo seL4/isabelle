@@ -33,7 +33,7 @@ object Isabelle
 
   private lazy val ml_syntax: Outer_Syntax =
     Outer_Syntax.init().no_tokens.
-      set_completion_context(Completion.Context(Markup.Language.ML, false))
+      set_completion_context(Completion.Context.ML_outer)
 
   private lazy val news_syntax: Outer_Syntax =
     Outer_Syntax.init().no_tokens

@@ -43,7 +43,7 @@ final class Outer_Syntax private(
   keywords: Map[String, (String, List[String])] = Map.empty,
   lexicon: Scan.Lexicon = Scan.Lexicon.empty,
   val completion: Completion = Completion.empty,
-  val completion_context: Completion.Context = Completion.Context.default,
+  val completion_context: Completion.Context = Completion.Context.outer,
   val has_tokens: Boolean = true)
 {
   override def toString: String =

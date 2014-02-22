@@ -87,6 +87,8 @@ object Completion_Popup
             case Some(text) if text == item.original =>
               buffer.remove(caret - len, len)
               buffer.insert(caret - len, item.replacement)
+              if (item.move != 0)
+                text_area.moveCaretPosition(text_area.getCaretPosition + item.move)
             case _ =>
           }
         }
@@ -265,7 +267,7 @@ object Completion_Popup
               content.substring(0, caret - len) +
               item.replacement +
               content.substring(caret))
-            text_field.getCaret.setDot(caret - len + item.replacement.length)
+            text_field.getCaret.setDot(caret - len + item.replacement.length + item.move)
           case _ =>
         }
       }

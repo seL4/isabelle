@@ -87,8 +87,8 @@ object Markup
 
   /* embedded languages */
 
-  val SYMBOLS = "symbols"
-  val Symbols = new Properties.Boolean(SYMBOLS)
+  val Symbols = new Properties.Boolean("symbols")
+  val Antiquotes = new Properties.Boolean("antiquotes")
 
   val LANGUAGE = "language"
   object Language
@@ -96,11 +96,12 @@ object Markup
     val ML = "ML"
     val UNKNOWN = "unknown"
 
-    def unapply(markup: Markup): Option[(String, Boolean)] =
+    def unapply(markup: Markup): Option[(String, Boolean, Boolean)] =
       markup match {
         case Markup(LANGUAGE, props) =>
-          (props, props) match {
-            case (Name(name), Symbols(symbols)) => Some((name, symbols))
+          (props, props, props) match {
+            case (Name(name), Symbols(symbols), Antiquotes(antiquotes)) =>
+              Some((name, symbols, antiquotes))
             case _ => None
           }
         case _ => None

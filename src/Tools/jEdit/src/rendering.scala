@@ -278,11 +278,11 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
           {
             case Text.Info(_, elem)
             if elem.name == Markup.ML_STRING || elem.name == Markup.ML_COMMENT =>
-              Some(Completion.Context(Markup.Language.ML, true))
-            case Text.Info(_, XML.Elem(Markup.Language(language, symbols), _)) =>
-              Some(Completion.Context(language, symbols))
-            case Text.Info(_, XML.Elem(markup, _)) =>
-              Some(Completion.Context(Markup.Language.UNKNOWN, true))
+              Some(Completion.Context.ML_inner)
+            case Text.Info(_, XML.Elem(Markup.Language(language, symbols, antiquotes), _)) =>
+              Some(Completion.Context(language, symbols, antiquotes))
+            case Text.Info(_, _) =>
+              Some(Completion.Context.inner)
           })
       result match {
         case Text.Info(_, context) :: _ => Some(context)
@@ -500,7 +500,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
             Some(add(prev, r, (true, pretty_typing("::", body))))
           case (prev, Text.Info(r, XML.Elem(Markup(Markup.ML_TYPING, _), body))) =>
             Some(add(prev, r, (false, pretty_typing("ML:", body))))
-          case (prev, Text.Info(r, XML.Elem(Markup.Language(language, _), _))) =>
+          case (prev, Text.Info(r, XML.Elem(Markup.Language(language, _, _), _))) =>
             Some(add(prev, r, (true, XML.Text("language: " + language))))
           case (prev, Text.Info(r, XML.Elem(Markup(name, _), _))) =>
             Rendering.tooltip_descriptions.get(name).
