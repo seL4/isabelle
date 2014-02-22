@@ -1,4 +1,4 @@
-# Default interpretation of some Isabelle symbols
+# Default interpretation of some Isabelle symbols (outdated version for WWW_Find)
 
 \<zero>                 code: 0x01d7ec  group: digit
 \<one>                  code: 0x01d7ed  group: digit
