@@ -1,7 +1,9 @@
 /*  Title:      Pure/General/completion.scala
     Author:     Makarius
 
-Completion of keywords and symbols, with abbreviations.
+Semantic completion within the formal context (reported by prover).
+Syntactic completion of keywords and symbols, with abbreviations
+(based on language context).
 */
 
 package isabelle
@@ -14,7 +16,38 @@ import scala.math.Ordering
 
 object Completion
 {
-  /* context */
+  /** semantic completion **/
+
+  object Reported
+  {
+    object Elem
+    {
+      private def decode: XML.Decode.T[(String, List[String])] =
+      {
+        import XML.Decode._
+        pair(string, list(string))
+      }
+
+      def unapply(tree: XML.Tree): Option[Reported] =
+        tree match {
+          case XML.Elem(Markup(Markup.COMPLETION, _), body) =>
+            try {
+              val (original, replacements) = decode(body)
+              Some(Reported(original, replacements))
+            }
+            catch { case _: XML.Error => None }
+          case _ => None
+        }
+    }
+  }
+
+  sealed case class Reported(original: String, replacements: List[String])
+
+
+
+  /** syntactic completion **/
+
+  /* language context */
 
   object Context
   {

@@ -150,7 +150,9 @@ object Rendering
 
   /* markup elements */
 
-  private val completion_elements =
+  private val completion_reported_elements = Set(Markup.COMPLETION)
+
+  private val completion_context_elements =
     Set(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM,
       Markup.CARTOUCHE, Markup.COMMENT, Markup.LANGUAGE,
       Markup.ML_STRING, Markup.ML_COMMENT)
@@ -269,12 +271,30 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val dynamic_color = color_value("dynamic_color")
 
 
-  /* completion context */
+  /* completion */
+
+  def completion_reported(caret: Text.Offset): Option[Completion.Reported] =
+    if (caret > 0)
+    {
+      val result =
+        snapshot.select(Text.Range(caret - 1, caret + 1),
+          Rendering.completion_reported_elements, _ =>
+          {
+            case Text.Info(_, Completion.Reported.Elem(reported)) => Some(reported)
+            case _ => None
+          })
+      result match {
+        case Text.Info(_, reported) :: _ => Some(reported)
+        case Nil => None
+      }
+    }
+    else None
 
   def completion_context(caret: Text.Offset): Option[Completion.Context] =
     if (caret > 0) {
       val result =
-        snapshot.select(Text.Range(caret - 1, caret + 1), Rendering.completion_elements, _ =>
+        snapshot.select(Text.Range(caret - 1, caret + 1),
+          Rendering.completion_context_elements, _ =>
           {
             case Text.Info(_, elem)
             if elem.name == Markup.ML_STRING || elem.name == Markup.ML_COMMENT =>

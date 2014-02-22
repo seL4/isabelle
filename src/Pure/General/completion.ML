@@ -1,7 +1,7 @@
 (*  Title:      Pure/Isar/completion.ML
     Author:     Makarius
 
-Completion within the formal context.
+Semantic completion within the formal context.
 *)
 
 signature COMPLETION =
