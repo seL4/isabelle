@@ -86,7 +86,7 @@ sig
     local_theory -> gfp_sugar_thms
 
   type co_datatype_spec =
-    ((((binding * (typ * sort)) list * binding) * (binding * binding)) * mixfix)
+    ((((binding option * (typ * sort)) list * binding) * (binding * binding)) * mixfix)
     * ((binding, binding * typ, term) Ctr_Sugar.ctr_spec * mixfix) list
 
   val co_datatypes: BNF_Util.fp_kind -> (mixfix list -> binding list -> binding list ->
@@ -285,7 +285,7 @@ fun reassoc_conjs thm =
   handle THM _ => thm;
 
 type co_datatype_spec =
-  ((((binding * (typ * sort)) list * binding) * (binding * binding)) * mixfix)
+  ((((binding option * (typ * sort)) list * binding) * (binding * binding)) * mixfix)
   * ((binding, binding * typ, term) ctr_spec * mixfix) list;
 
 fun type_args_named_constrained_of_spec ((((ncAs, _), _), _), _) = ncAs;
@@ -972,7 +972,9 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val unsorted_Ass0 = map (map (resort_tfree HOLogic.typeS)) Ass0;
     val unsorted_As = Library.foldr1 merge_type_args unsorted_Ass0;
     val num_As = length unsorted_As;
-    val set_bss = map (map fst o type_args_named_constrained_of_spec) specs;
+
+    val set_boss = map (map fst o type_args_named_constrained_of_spec) specs;
+    val set_bss = map (map (the_default Binding.empty)) set_boss;
 
     val (((Bs0, Cs), Xs), no_defs_lthy) =
       no_defs_lthy0
@@ -1470,18 +1472,6 @@ fun co_datatypes x = define_co_datatypes (K I) (K I) (K I) x;
 
 fun co_datatype_cmd x =
   define_co_datatypes Typedecl.read_constraint Syntax.parse_typ Syntax.parse_term x;
-
-val parse_type_arg_constrained =
-  Parse.type_ident -- Scan.option (@{keyword "::"} |-- Parse.!!! Parse.sort);
-
-val parse_type_arg_named_constrained = parse_opt_binding_colon -- parse_type_arg_constrained;
-
-(*FIXME: use parse_type_args_named_constrained from BNF_Util and thus 
-  allow users to kill certain arguments of a (co)datatype*)
-val parse_type_args_named_constrained =
-  parse_type_arg_constrained >> (single o pair Binding.empty) ||
-  @{keyword "("} |-- Parse.!!! (Parse.list1 parse_type_arg_named_constrained --| @{keyword ")"}) ||
-  Scan.succeed [];
 
 val parse_ctr_arg =
   @{keyword "("} |-- parse_binding_colon -- Parse.typ --| @{keyword ")"} ||
