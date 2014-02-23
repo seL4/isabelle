@@ -37,8 +37,7 @@ sig
   val get_entity_kind: T -> string option
   val defN: string
   val refN: string
-  val totalN: string
-  val completionN: string
+  val completionN: string val completion: T
   val lineN: string
   val offsetN: string
   val end_offsetN: string
@@ -287,8 +286,7 @@ val refN = "ref";
 
 (* completion *)
 
-val totalN = "total";
-val completionN = "completion";
+val (completionN, completion) = markup_elem "completion";
 
 
 (* position *)

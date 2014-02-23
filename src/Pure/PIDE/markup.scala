@@ -69,7 +69,6 @@ object Markup
 
   /* completion */
 
-  val TOTAL = "total"
   val COMPLETION = "completion"
 
 

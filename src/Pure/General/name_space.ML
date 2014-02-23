@@ -202,15 +202,18 @@ fun pretty ctxt space name = Pretty.mark_str (markup_extern ctxt space name);
 
 (* completion *)
 
-fun completion context (space as Name_Space {internals, ...}) (xname, pos) =
-  if Context_Position.is_visible_generic context andalso Position.is_reported pos then
+fun completion context space (xname, pos) =
+  if Context_Position.is_visible_generic context andalso Position.is_reported pos
+  then
     let
+      val Name_Space {kind = k, internals, ...} = space;
+      val ext = extern_shortest (Context.proof_of context) space;
       val names =
-        Symtab.fold (fn (a, (b :: _, _)) => String.isPrefix xname a ? cons b | _ => I)
-          internals []
-        |> map (extern_shortest (Context.proof_of context) space)
-        |> sort_distinct string_ord;
-    in Completion.make pos names end
+        Symtab.fold
+          (fn (a, (b :: _, _)) => String.isPrefix xname a ? cons (ext b, Long_Name.implode [k, b])
+            | _ => I) internals []
+        |> sort_distinct (string_ord o pairself #1);
+    in Completion.names pos names end
   else Completion.none;
 
 

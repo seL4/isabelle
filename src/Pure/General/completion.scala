@@ -15,71 +15,17 @@ import scala.math.Ordering
 
 object Completion
 {
-  /** semantic completion **/
-
-  object Names
-  {
-    object Info
-    {
-      def unapply(info: Text.Markup): Option[Names] =
-        info.info match {
-          case XML.Elem(Markup(Markup.COMPLETION,
-              (Markup.TOTAL, Properties.Value.Int(total)) :: names), _) =>
-            Some(Names(info.range, total, names.map(_._2)))
-          case _ => None
-        }
-    }
-  }
-
-  sealed case class Names(range: Text.Range, total: Int, names: List[String])
-  {
-    def complete(
-      history: Completion.History,
-      decode: Boolean,
-      original: String): Option[Completion.Result] =
-    {
-      val items =
-        for {
-          raw_name <- names
-          name = (if (decode) Symbol.decode(raw_name) else raw_name)
-          if name != original
-        } yield Item(range, original, name, name, 0, true)
-
-      if (items.isEmpty) None
-      else Some(Result(range, original, names.length == 1, items))
-    }
-  }
-
-
-
-  /** syntactic completion **/
-
-  /* language context */
-
-  object Context
-  {
-    val outer = Context("", true, false)
-    val inner = Context(Markup.Language.UNKNOWN, true, false)
-    val ML_outer = Context(Markup.Language.ML, false, false)
-    val ML_inner = Context(Markup.Language.ML, true, true)
-  }
-
-  sealed case class Context(language: String, symbols: Boolean, antiquotes: Boolean)
-  {
-    def is_outer: Boolean = language == ""
-  }
-
-
-  /* result */
+  /** completion result **/
 
   sealed case class Item(
     range: Text.Range,
     original: String,
     name: String,
+    description: String,
     replacement: String,
     move: Int,
     immediate: Boolean)
-  { override def toString: String = name }
+  { override def toString: String = description }
 
   sealed case class Result(
     range: Text.Range,
@@ -87,11 +33,6 @@ object Completion
     unique: Boolean,
     items: List[Item])
 
-
-  /* init */
-
-  val empty: Completion = new Completion()
-  def init(): Completion = empty.add_symbols()
 
 
   /** persistent history **/
@@ -176,7 +117,76 @@ object Completion
   }
 
 
-  /** word parsers **/
+
+  /** semantic completion **/
+
+  object Names
+  {
+    object Info
+    {
+      def unapply(info: Text.Markup): Option[Names] =
+        info.info match {
+          case XML.Elem(Markup(Markup.COMPLETION, _), body) =>
+            try {
+              val (total, names) =
+              {
+                import XML.Decode._
+                pair(int, list(pair(string, string)))(body)
+              }
+              Some(Names(info.range, total, names))
+            }
+            catch { case _: XML.Error => None }
+          case _ => None
+        }
+    }
+  }
+
+  sealed case class Names(range: Text.Range, total: Int, names: List[(String, String)])
+  {
+    def complete(
+      history: Completion.History,
+      decode: Boolean,
+      original: String): Option[Completion.Result] =
+    {
+      val items =
+        for {
+          (xname, name) <- names
+          xname1 = (if (decode) Symbol.decode(xname) else xname)
+          if xname1 != original
+        } yield Item(range, original, name, xname1, xname1, 0, true)
+
+      if (items.isEmpty) None
+      else Some(Result(range, original, names.length == 1, items.sorted(history.ordering)))
+    }
+  }
+
+
+
+  /** syntactic completion **/
+
+  /* language context */
+
+  object Context
+  {
+    val outer = Context("", true, false)
+    val inner = Context(Markup.Language.UNKNOWN, true, false)
+    val ML_outer = Context(Markup.Language.ML, false, false)
+    val ML_inner = Context(Markup.Language.ML, true, true)
+  }
+
+  sealed case class Context(language: String, symbols: Boolean, antiquotes: Boolean)
+  {
+    def is_outer: Boolean = language == ""
+  }
+
+
+  /* init */
+
+  val empty: Completion = new Completion()
+  def init(): Completion = empty.add_symbols()
+
+
+  /* word parsers */
 
   private object Word_Parsers extends RegexParsers
   {
@@ -313,7 +323,7 @@ final class Completion private(
                   case List(s1, s2) => (s1, s2)
                   case _ => (s, "")
                 }
-              Completion.Item(range, word, s, s1 + s2, - s2.length, explicit || immediate)
+              Completion.Item(range, word, s, s, s1 + s2, - s2.length, explicit || immediate)
             })
           Some(Completion.Result(range, word, cs.length == 1, items.sorted(history.ordering)))
         }
