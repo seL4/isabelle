@@ -172,7 +172,8 @@ object JEdit_Lib
           Text.Range(offset, offset + 2)
         else if (Character.isLowSurrogate(c) && Character.isHighSurrogate(text(offset - 1)))
           Text.Range(offset - 1, offset + 1)
-        else Text.Range(offset, offset + 1)
+        else
+          Text.Range(offset, offset + 1)
       }
       catch { case _: ArrayIndexOutOfBoundsException => Text.Range(offset, offset + 1) }
     }
