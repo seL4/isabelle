@@ -1406,7 +1406,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
 
         val set_bss =
           map (flat o map2 (fn B => fn b =>
-            if member (op =) resDs (TFree B) then [] else [b]) resBs) set_bss0;
+            if member (op =) deads (TFree B) then [] else [b]) resBs) set_bss0;
 
         val ctor_witss =
           let

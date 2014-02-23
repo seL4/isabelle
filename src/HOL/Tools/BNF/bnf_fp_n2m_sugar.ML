@@ -197,9 +197,22 @@ fun mutualize_fp_sugars fp bs fpTs get_indices callssss fp_sugars0 no_defs_lthy0
             Binding.qualify true b_name (Binding.name (n2mN ^ base_fp_name)))
           b_names base_fp_names;
 
+        val Type (s, Us) :: _ = fpTs;
+        val killed_As' =
+          (case bnf_of no_defs_lthy s of
+            NONE => As'
+          | SOME bnf =>
+            let
+              val Type (_, Ts) = T_of_bnf bnf;
+              val deads = deads_of_bnf bnf;
+              val dead_Us =
+                map_filter (fn (T, U) => if member (op =) deads T then SOME U else NONE) (Ts ~~ Us);
+            in fold Term.add_tfreesT dead_Us [] end);
+
         val (pre_bnfs, (fp_res as {xtor_co_iterss = xtor_co_iterss0, xtor_co_induct, dtor_injects,
                dtor_ctors, xtor_co_iter_thmss, ...}, lthy)) =
-          fp_bnf (construct_mutualized_fp fp fpTs fp_sugars0) fp_bs As' [](*### FIXME*) fp_eqs no_defs_lthy;
+          fp_bnf (construct_mutualized_fp fp fpTs fp_sugars0) fp_bs As' killed_As' fp_eqs
+            no_defs_lthy;
 
         val nesting_bnfs = nesty_bnfs lthy ctrXs_Tsss As;
         val nested_bnfs = nesty_bnfs lthy ctrXs_Tsss Xs;
