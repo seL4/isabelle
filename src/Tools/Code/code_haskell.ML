@@ -355,13 +355,19 @@ fun serialize_haskell module_prefix string_classes ctxt { module_name,
       deresolve (if string_classes then deriving_show else K false);
 
     (* print modules *)
-    fun print_module_frame module_name ps =
+    fun print_module_frame module_name exports ps =
       (module_name, Pretty.chunks2 (
-        str ("module " ^ module_name ^ " where {")
+        concat [str "module",
+          case exports of
+            SOME ps => Pretty.block [str module_name, enclose "(" ")" (commas ps)]
+          | NONE => str module_name,
+          str "where {"
+        ]
         :: ps
         @| str "}"
       ));
-    fun print_qualified_import module_name = semicolon [str "import qualified", str module_name];
+    fun print_qualified_import module_name =
+      semicolon [str "import qualified", str module_name];
     val import_common_ps =
       enclose "import Prelude (" ");" (commas (map str
         (map (Library.enclose "(" ")") prelude_import_operators @ prelude_import_unqualified)
@@ -371,14 +377,23 @@ fun serialize_haskell module_prefix string_classes ctxt { module_name,
     fun print_module module_name (gr, imports) =
       let
         val deresolve = deresolver module_name;
-        fun print_import module_name = (semicolon o map str) ["import qualified", module_name];
+        val deresolve_import = SOME o str o deresolve;
+        val deresolve_import_attached = SOME o str o suffix "(..)" o deresolve;
+        fun print_import (sym, Code_Thingol.Fun _) = deresolve_import sym
+          | print_import (sym, Code_Thingol.Datatype _) = deresolve_import_attached sym
+          | print_import (sym, Code_Thingol.Class _) = deresolve_import_attached sym
+          | print_import (sym, Code_Thingol.Classinst _) = NONE;
         val import_ps = import_common_ps @ map (print_qualified_import o fst) imports;
         fun print_stmt' sym = case Code_Symbol.Graph.get_node gr sym
          of (_, NONE) => NONE
-          | (_, SOME stmt) => SOME (markup_stmt sym (print_stmt deresolve (sym, stmt)));
-        val body_ps = map_filter print_stmt' ((flat o rev o Code_Symbol.Graph.strong_conn) gr);
+          | (_, SOME (export, stmt)) =>
+              SOME (if export then print_import (sym, stmt) else NONE, markup_stmt sym (print_stmt deresolve (sym, stmt)));
+        val (export_ps, body_ps) = (flat o rev o Code_Symbol.Graph.strong_conn) gr
+          |> map_filter print_stmt'
+          |> split_list
+          |> apfst (map_filter I);
       in
-        print_module_frame module_name
+        print_module_frame module_name (SOME export_ps)
           ((if null import_ps then [] else [Pretty.chunks import_ps]) @ body_ps)
       end;
 
@@ -399,7 +414,7 @@ fun serialize_haskell module_prefix string_classes ctxt { module_name,
       (fn width => fn destination => K () o map (write_module width destination))
       (fn present => fn width => rpair (try (deresolver ""))
         o (map o apsnd) (format present width))
-      (map (uncurry print_module_frame o apsnd single) includes
+      (map (fn (module_name, content) => print_module_frame module_name NONE [content]) includes
         @ map (fn module_name => print_module module_name (Graph.get_node haskell_program module_name))
           ((flat o rev o Graph.strong_conn) haskell_program))
   end;

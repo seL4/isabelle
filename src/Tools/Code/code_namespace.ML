@@ -18,7 +18,7 @@ sig
 
   datatype ('a, 'b) node =
       Dummy
-    | Stmt of 'a
+    | Stmt of bool * 'a
     | Module of ('b * (string * ('a, 'b) node) Code_Symbol.Graph.T)
   type ('a, 'b) hierarchical_program
   val hierarchical_program: Proof.context
@@ -32,7 +32,7 @@ sig
       -> { deresolver: string list -> Code_Symbol.T -> string,
            hierarchical_program: ('a, 'b) hierarchical_program }
   val print_hierarchical: { print_module: string list -> string -> 'b -> 'c list -> 'c,
-    print_stmt: string list -> Code_Symbol.T * 'a -> 'c,
+    print_stmt: string list -> Code_Symbol.T * (bool * 'a) -> 'c,
     lift_markup: (Pretty.T -> Pretty.T) -> 'c -> 'c }
       -> ('a, 'b) hierarchical_program -> 'c list
 end;
@@ -82,7 +82,7 @@ fun prioritize has_priority = uncurry append o List.partition has_priority;
 
 (** flat program structure **)
 
-type flat_program = ((string * Code_Thingol.stmt option) Code_Symbol.Graph.T * (string * Code_Symbol.T list) list) Graph.T;
+type flat_program = ((string * (bool * Code_Thingol.stmt) option) Code_Symbol.Graph.T * (string * Code_Symbol.T list) list) Graph.T;
 
 fun flat_program ctxt { module_prefix, module_name, reserved,
     identifiers, empty_nsp, namify_stmt, modify_stmt } program =
@@ -102,7 +102,7 @@ fun flat_program ctxt { module_prefix, module_name, reserved,
         val (module_name, base) = prep_sym sym;
       in
         Graph.default_node (module_name, (Code_Symbol.Graph.empty, []))
-        #> (Graph.map_node module_name o apfst) (Code_Symbol.Graph.new_node (sym, (base, stmt)))
+        #> (Graph.map_node module_name o apfst) (Code_Symbol.Graph.new_node (sym, (base, (true, stmt))))
       end;
     fun add_dep sym sym' =
       let
@@ -116,7 +116,7 @@ fun flat_program ctxt { module_prefix, module_name, reserved,
       { empty = Graph.empty, add_stmt = add_stmt, add_dep = add_dep } program;
 
     (* name declarations and statement modifications *)
-    fun declare sym (base, stmt) (gr, nsp) = 
+    fun declare sym (base, (_, stmt)) (gr, nsp) = 
       let
         val (base', nsp') = namify_stmt stmt base nsp;
         val gr' = (Code_Symbol.Graph.map_node sym o apfst) (K base') gr;
@@ -125,7 +125,8 @@ fun flat_program ctxt { module_prefix, module_name, reserved,
       |> fold (fn sym => declare sym (Code_Symbol.Graph.get_node gr sym))
           (prioritize sym_priority (Code_Symbol.Graph.keys gr))
       |> fst
-      |> (Code_Symbol.Graph.map o K o apsnd) modify_stmt;
+      |> (Code_Symbol.Graph.map o K o apsnd)
+        (fn (export, stmt) => Option.map (pair export) (modify_stmt stmt));
     val flat_program = proto_program
       |> (Graph.map o K o apfst) declarations;
 
@@ -162,10 +163,12 @@ fun flat_program ctxt { module_prefix, module_name, reserved,
 
 datatype ('a, 'b) node =
     Dummy
-  | Stmt of 'a
+  | Stmt of bool * 'a
   | Module of ('b * (string * ('a, 'b) node) Code_Symbol.Graph.T);
 
 type ('a, 'b) hierarchical_program = (string * ('a, 'b) node) Code_Symbol.Graph.T;
+
+fun the_stmt (Stmt (export, stmt)) = (export, stmt);
 
 fun map_module_content f (Module content) = Module (f content);
 
@@ -206,7 +209,7 @@ fun hierarchical_program ctxt { module_name, reserved, identifiers, empty_nsp,
       let
         val (name_fragments, base) = prep_sym sym;
       in
-        (map_module name_fragments o apsnd) (Code_Symbol.Graph.new_node (sym, (base, Stmt stmt)))
+        (map_module name_fragments o apsnd) (Code_Symbol.Graph.new_node (sym, (base, Stmt (true, stmt))))
       end;
     fun add_dep sym sym' =
       let
@@ -244,18 +247,18 @@ fun hierarchical_program ctxt { module_name, reserved, identifiers, empty_nsp,
           in (nsps', nodes') end;
         val (nsps', nodes') = (nsps, nodes)
           |> fold (declare (K namify_module)) module_fragments
-          |> fold (declare (namify_stmt o (fn Stmt stmt => stmt))) stmt_syms;
+          |> fold (declare (namify_stmt o snd o the_stmt)) stmt_syms;
         fun select_syms syms = case filter (member (op =) stmt_syms) syms
          of [] => NONE
           | syms => SOME syms;
-        fun select_stmt (sym, SOME stmt) = SOME (sym, stmt)
+        fun select_stmt (sym, (export, SOME stmt)) = SOME (sym, (export, stmt))
           | select_stmt _ = NONE;
         fun modify_stmts' syms =
           let
-            val stmts = map ((fn Stmt stmt => stmt) o snd o Code_Symbol.Graph.get_node nodes) syms;
+            val (exports, stmts) = map_split (the_stmt o snd o Code_Symbol.Graph.get_node nodes) syms;
             val stmts' = modify_stmts (syms ~~ stmts);
             val stmts'' = stmts' @ replicate (length syms - length stmts') NONE;
-          in map_filter select_stmt (syms ~~ stmts'') end;
+          in map_filter select_stmt (syms ~~ (exports ~~ stmts'')) end;
         val stmtss' = (maps modify_stmts' o map_filter select_syms o Code_Symbol.Graph.strong_conn) nodes;
         val nodes'' = Code_Symbol.Graph.map (fn sym => apsnd (fn Module content => Module (make_declarations nsps' content)
             | _ => case AList.lookup (op =) stmtss' sym of SOME stmt => Stmt stmt | _ => Dummy)) nodes';

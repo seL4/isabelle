@@ -795,10 +795,10 @@ fun serialize_ml print_ml_module print_ml_stmt ctxt
       ml_program_of_program ctxt module_name (Name.make_context reserved_syms) identifiers program;
 
     (* print statements *)
-    fun print_stmt prefix_fragments (_, stmt) = print_ml_stmt
+    fun print_stmt prefix_fragments (_, (export, stmt)) = print_ml_stmt
       tyco_syntax const_syntax (make_vars reserved_syms)
       (Code_Thingol.is_constr program) (deresolver prefix_fragments) stmt
-      |> apfst SOME;
+      |> apfst (fn decl => if export then SOME decl else NONE);
 
     (* print modules *)
     fun print_module _ base _ xs =

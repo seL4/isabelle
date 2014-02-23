@@ -145,26 +145,28 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
             |> single
             |> enclose "(" ")"
           end;
+    fun privatize false = concat o cons (str "private")
+      | privatize true = concat;
     fun print_context tyvars vs sym = applify "[" "]"
       (fn (v, sort) => (Pretty.block o map str)
         (lookup_tyvar tyvars v :: maps (fn class => [" : ", deresolve_class class]) sort))
           NOBR ((str o deresolve) sym) vs;
-    fun print_defhead tyvars vars const vs params tys ty =
-      Pretty.block [str "def ", constraint (applify "(" ")" (fn (param, ty) =>
+    fun print_defhead export tyvars vars const vs params tys ty =
+      privatize export [str "def", constraint (applify "(" ")" (fn (param, ty) =>
         constraint ((str o lookup_var vars) param) (print_typ tyvars NOBR ty))
           NOBR (print_context tyvars vs (Constant const)) (params ~~ tys)) (print_typ tyvars NOBR ty),
-            str " ="];
-    fun print_def const (vs, ty) [] =
+            str "="];
+    fun print_def export const (vs, ty) [] =
           let
             val (tys, ty') = Code_Thingol.unfold_fun ty;
             val params = Name.invent (snd reserved) "a" (length tys);
             val tyvars = intro_tyvars vs reserved;
             val vars = intro_vars params reserved;
           in
-            concat [print_defhead tyvars vars const vs params tys ty',
+            concat [print_defhead export tyvars vars const vs params tys ty',
               str ("sys.error(\"" ^ const ^ "\")")]
           end
-      | print_def const (vs, ty) eqs =
+      | print_def export const (vs, ty) eqs =
           let
             val tycos = fold (fn ((ts, t), _) =>
               fold Code_Thingol.add_tyconames (t :: ts)) eqs [];
@@ -196,7 +198,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
                   tuplify (map (print_term tyvars true some_thm vars' NOBR) ts),
                   str "=>", print_rhs vars' eq]
               end;
-            val head = print_defhead tyvars vars2 const vs params tys' ty';
+            val head = print_defhead export tyvars vars2 const vs params tys' ty';
           in if simple then
             concat [head, print_rhs vars2 (hd eqs)]
           else
@@ -206,14 +208,14 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
               (map print_clause eqs)
           end;
     val print_method = str o Library.enclose "`" "`" o deresolve_full o Constant;
-    fun print_stmt (Constant const, Code_Thingol.Fun (((vs, ty), raw_eqs), _)) =
-          print_def const (vs, ty) (filter (snd o snd) raw_eqs)
-      | print_stmt (Type_Constructor tyco, Code_Thingol.Datatype (vs, cos)) =
+    fun print_stmt (Constant const, (export, Code_Thingol.Fun (((vs, ty), raw_eqs), _))) =
+          print_def export const (vs, ty) (filter (snd o snd) raw_eqs)
+      | print_stmt (Type_Constructor tyco, (export, Code_Thingol.Datatype (vs, cos))) =
           let
             val tyvars = intro_tyvars (map (rpair []) vs) reserved;
             fun print_co ((co, vs_args), tys) =
               concat [Pretty.block ((applify "[" "]" (str o lookup_tyvar tyvars) NOBR
-                ((concat o map str) ["final", "case", "class", deresolve_const co]) vs_args)
+                ((privatize export o map str) ["final", "case", "class", deresolve_const co]) vs_args)
                 @@ enum "," "(" ")" (map (fn (v, arg) => constraint (str v) (print_typ tyvars NOBR arg))
                   (Name.invent_names (snd reserved) "a" tys))),
                 str "extends",
@@ -222,10 +224,10 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
               ];
           in
             Pretty.chunks (applify "[" "]" (str o lookup_tyvar tyvars)
-              NOBR ((concat o map str) ["abstract", "sealed", "class", deresolve_tyco tyco]) vs
+              NOBR ((privatize export o map str) ["abstract", "sealed", "class", deresolve_tyco tyco]) vs
                 :: map print_co cos)
           end
-      | print_stmt (Type_Class class, Code_Thingol.Class (v, (classrels, classparams))) =
+      | print_stmt (Type_Class class, (export, Code_Thingol.Class (v, (classrels, classparams)))) =
           let
             val tyvars = intro_tyvars [(v, [class])] reserved;
             fun add_typarg s = Pretty.block
@@ -244,7 +246,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
                 val auxs = Name.invent (snd proto_vars) "a" (length tys);
                 val vars = intro_vars auxs proto_vars;
               in
-                concat [str "def", constraint (Pretty.block [applify "(" ")"
+                privatize export [str "def", constraint (Pretty.block [applify "(" ")"
                   (fn (aux, ty) => constraint ((str o lookup_var vars) aux)
                   (print_typ tyvars NOBR ty)) NOBR (add_typarg (deresolve_const classparam))
                   (auxs ~~ tys), str "(implicit ", str implicit_name, str ": ",
@@ -255,14 +257,14 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
           in
             Pretty.chunks (
               (Pretty.block_enclose
-                (concat ([str "trait", (add_typarg o deresolve_class) class]
+                (privatize export ([str "trait", (add_typarg o deresolve_class) class]
                   @ the_list (print_super_classes classrels) @ [str "{"]), str "}")
                 (map print_classparam_val classparams))
               :: map print_classparam_def classparams
             )
           end
-      | print_stmt (sym, Code_Thingol.Classinst
-          { class, tyco, vs, inst_params, superinst_params, ... }) =
+      | print_stmt (sym, (export, Code_Thingol.Classinst
+          { class, tyco, vs, inst_params, superinst_params, ... })) =
           let
             val tyvars = intro_tyvars vs reserved;
             val classtyp = (class, tyco `%% map (ITyVar o fst) vs);
@@ -279,12 +281,12 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
                 val aux_abstr1 = abstract_using aux_dom1;
                 val aux_abstr2 = abstract_using aux_dom2;
               in
-                concat ([str "val", print_method classparam, str "="]
+                privatize export ([str "val", print_method classparam, str "="]
                   @ aux_abstr1 @ aux_abstr2 @| print_app tyvars false (SOME thm) vars NOBR
                     (const, map (IVar o SOME) auxs))
               end;
           in
-            Pretty.block_enclose (concat [str "implicit def",
+            Pretty.block_enclose (privatize export [str "implicit def",
               constraint (print_context tyvars vs sym) (print_dicttyp tyvars classtyp),
               str "=", str "new", print_dicttyp tyvars classtyp, str "{"], str "}")
                 (map print_classparam_instance (inst_params @ superinst_params))
