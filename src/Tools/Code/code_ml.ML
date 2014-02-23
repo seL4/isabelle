@@ -658,8 +658,8 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
               (concat o map str) ["let", deresolve_const classparam, w, "=",
                 w ^ "." ^ deresolve_const classparam ^ ";;"];
             val type_decl_p = concat [
-                str ("type '" ^ v),
-                (str o deresolve_class) class,
+                str "type",
+                print_dicttyp (class, ITyVar v),
                 str "=",
                 enum_default "unit" ";" "{" "}" (
                   map print_super_class_field classrels
