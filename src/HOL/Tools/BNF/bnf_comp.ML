@@ -602,7 +602,7 @@ fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
     val bnf_rel = expand_rels (mk_rel_of_bnf Ds As Bs bnf);
     val T = mk_T_of_bnf Ds As bnf;
 
-    (*bd should only depend on dead type variables!*)
+    (*bd may depend only on dead type variables*)
     val bd_repT = fst (dest_relT (fastype_of bnf_bd));
     val bdT_bind = qualify (Binding.suffix_name ("_" ^ bdTN) b);
     val params = fold Term.add_tfreesT Ds [];
@@ -652,9 +652,10 @@ fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
 
 exception BAD_DEAD of typ * typ;
 
-fun bnf_of_typ _ _ _ _ _ (T as TFree _) accum = ((ID_bnf, ([], [T])), accum)
+fun bnf_of_typ _ _ _ _ Ds0 (T as TFree T') accum =
+    (if member (op =) Ds0 T' then (DEADID_bnf, ([T], [])) else (ID_bnf, ([], [T])), accum)
   | bnf_of_typ _ _ _ _ _ (TVar _) _ = error "Unexpected schematic variable"
-  | bnf_of_typ const_policy qualify' sort Xs Ds0 (T as Type (C, Ts)) (unfold_set, lthy) =
+  | bnf_of_typ const_policy qualify' sort Xs Ds0 (T as Type (C, Ts)) (accum as (unfold_set, lthy)) =
     let
       fun check_bad_dead ((_, (deads, _)), _) =
         let val Ds = fold Term.add_tfreesT deads [] in
@@ -662,11 +663,11 @@ fun bnf_of_typ _ _ _ _ _ (T as TFree _) accum = ((ID_bnf, ([], [T])), accum)
            | X :: _ => raise BAD_DEAD (TFree X, T))
         end;
 
-      val tfrees = Term.add_tfreesT T [];
-      val bnf_opt = if subset (op =) (tfrees, Ds0) then NONE else bnf_of lthy C;
+      val tfrees = subtract (op =) Ds0 (Term.add_tfreesT T []);
+      val bnf_opt = if null tfrees then NONE else bnf_of lthy C;
     in
       (case bnf_opt of
-        NONE => ((DEADID_bnf, ([T], [])), (unfold_set, lthy))
+        NONE => ((DEADID_bnf, ([T], [])), accum)
       | SOME bnf =>
         if forall (can Term.dest_TFree) Ts andalso length Ts = length tfrees then
           let
@@ -692,7 +693,7 @@ fun bnf_of_typ _ _ _ _ _ (T as TFree _) accum = ((ID_bnf, ([], [T])), accum)
             val Ts' = map (nth Ts) (subtract (op =) oDs_pos (0 upto length Ts - 1));
             val ((inners, (Dss, Ass)), (unfold_set', lthy')) =
               apfst (apsnd split_list o split_list)
-                (fold_map2 (fn i => bnf_of_typ Smart_Inline (qualify i) sort Xs Ds0 )
+                (fold_map2 (fn i => bnf_of_typ Smart_Inline (qualify i) sort Xs Ds0)
                 (if length Ts' = 1 then [0] else (1 upto length Ts')) Ts' (unfold_set, lthy));
           in
             compose_bnf const_policy qualify sort bnf inners oDs Dss Ass (unfold_set', lthy')
