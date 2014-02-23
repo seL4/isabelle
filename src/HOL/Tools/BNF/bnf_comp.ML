@@ -17,8 +17,8 @@ sig
   exception BAD_DEAD of typ * typ
 
   val bnf_of_typ: BNF_Def.const_policy -> (binding -> binding) ->
-    ((string * sort) list list -> (string * sort) list) -> (string * sort) list -> typ ->
-    unfold_set * Proof.context ->
+    ((string * sort) list list -> (string * sort) list) -> (string * sort) list ->
+    (string * sort) list -> typ -> unfold_set * Proof.context ->
     (BNF_Def.bnf * (typ list * typ list)) * (unfold_set * Proof.context)
   val default_comp_sort: (string * sort) list list -> (string * sort) list
   val normalize_bnfs: (int -> binding -> binding) -> ''a list list -> ''a list ->
@@ -517,13 +517,11 @@ fun permute_bnf qualify src dest bnf (unfold_set, lthy) =
 (* Composition pipeline *)
 
 fun permute_and_kill qualify n src dest bnf =
-  bnf
-  |> permute_bnf qualify src dest
+  permute_bnf qualify src dest bnf
   #> uncurry (kill_bnf qualify n);
 
 fun lift_and_permute qualify n src dest bnf =
-  bnf
-  |> lift_bnf qualify n
+  lift_bnf qualify n bnf
   #> uncurry (permute_bnf qualify src dest);
 
 fun normalize_bnfs qualify Ass Ds sort bnfs unfold_set lthy =
@@ -547,7 +545,7 @@ fun normalize_bnfs qualify Ass Ds sort bnfs unfold_set lthy =
     val lift_ns = map (fn xs => length As - length xs) Ass';
   in
     ((kill_poss, As), fold_map5 (fn i => lift_and_permute (qualify i))
-      (if length bnfs = 1 then [0] else (1 upto length bnfs))
+      (if length bnfs = 1 then [0] else 1 upto length bnfs)
       lift_ns after_lift_src after_lift_dest inners' (unfold_set', lthy'))
   end;
 
@@ -654,9 +652,9 @@ fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
 
 exception BAD_DEAD of typ * typ;
 
-fun bnf_of_typ _ _ _ _ (T as TFree _) accum = ((ID_bnf, ([], [T])), accum)
-  | bnf_of_typ _ _ _ _ (TVar _) _ = error "Unexpected schematic variable"
-  | bnf_of_typ const_policy qualify' sort Xs (T as Type (C, Ts)) (unfold_set, lthy) =
+fun bnf_of_typ _ _ _ _ _ (T as TFree _) accum = ((ID_bnf, ([], [T])), accum)
+  | bnf_of_typ _ _ _ _ _ (TVar _) _ = error "Unexpected schematic variable"
+  | bnf_of_typ const_policy qualify' sort Xs Ds0 (T as Type (C, Ts)) (unfold_set, lthy) =
     let
       fun check_bad_dead ((_, (deads, _)), _) =
         let val Ds = fold Term.add_tfreesT deads [] in
@@ -665,7 +663,7 @@ fun bnf_of_typ _ _ _ _ (T as TFree _) accum = ((ID_bnf, ([], [T])), accum)
         end;
 
       val tfrees = Term.add_tfreesT T [];
-      val bnf_opt = if null tfrees then NONE else bnf_of lthy C;
+      val bnf_opt = if subset (op =) (tfrees, Ds0) then NONE else bnf_of lthy C;
     in
       (case bnf_opt of
         NONE => ((DEADID_bnf, ([T], [])), (unfold_set, lthy))
@@ -694,7 +692,7 @@ fun bnf_of_typ _ _ _ _ (T as TFree _) accum = ((ID_bnf, ([], [T])), accum)
             val Ts' = map (nth Ts) (subtract (op =) oDs_pos (0 upto length Ts - 1));
             val ((inners, (Dss, Ass)), (unfold_set', lthy')) =
               apfst (apsnd split_list o split_list)
-                (fold_map2 (fn i => bnf_of_typ Smart_Inline (qualify i) sort Xs)
+                (fold_map2 (fn i => bnf_of_typ Smart_Inline (qualify i) sort Xs Ds0 )
                 (if length Ts' = 1 then [0] else (1 upto length Ts')) Ts' (unfold_set, lthy));
           in
             compose_bnf const_policy qualify sort bnf inners oDs Dss Ass (unfold_set', lthy')
