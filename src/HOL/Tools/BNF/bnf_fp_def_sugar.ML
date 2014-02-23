@@ -273,12 +273,13 @@ fun liveness_of_fp_bnf n bnf =
     Type (_, Ts) => map (not o member (op =) (deads_of_bnf bnf)) Ts
   | _ => replicate n false);
 
-fun cannot_merge_types () = error "Mutually recursive types must have the same type parameters";
+fun cannot_merge_types fp =
+  error ("Mutually " ^ co_prefix fp ^ "recursive types must have the same type parameters");
 
-fun merge_type_arg T T' = if T = T' then T else cannot_merge_types ();
+fun merge_type_arg fp T T' = if T = T' then T else cannot_merge_types fp;
 
-fun merge_type_args (As, As') =
-  if length As = length As' then map2 merge_type_arg As As' else cannot_merge_types ();
+fun merge_type_args fp (As, As') =
+  if length As = length As' then map2 (merge_type_arg fp) As As' else cannot_merge_types fp;
 
 fun reassoc_conjs thm =
   reassoc_conjs (thm RS @{thm conj_assoc[THEN iffD1]})
@@ -970,7 +971,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
     val Ass0 = map (map prepare_type_arg o type_args_named_constrained_of_spec) specs;
     val unsorted_Ass0 = map (map (resort_tfree HOLogic.typeS)) Ass0;
-    val unsorted_As = Library.foldr1 merge_type_args unsorted_Ass0;
+    val unsorted_As = Library.foldr1 (merge_type_args fp) unsorted_Ass0;
     val num_As = length unsorted_As;
 
     val set_boss = map (map fst o type_args_named_constrained_of_spec) specs;
