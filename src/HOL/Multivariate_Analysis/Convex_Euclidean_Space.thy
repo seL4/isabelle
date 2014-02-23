@@ -4806,8 +4806,10 @@ lemma radon_ex_lemma:
   assumes "finite c" "affine_dependent c"
   shows "\<exists>u. setsum u c = 0 \<and> (\<exists>v\<in>c. u v \<noteq> 0) \<and> setsum (\<lambda>v. u v *\<^sub>R v) c = 0"
 proof -
-  from assms(2)[unfolded affine_dependent_explicit] guess s ..
-  then guess u ..
+  from assms(2)[unfolded affine_dependent_explicit]
+  obtain s u where
+      "finite s" "s \<subseteq> c" "setsum u s = 0" "\<exists>v\<in>s. u v \<noteq> 0" "(\<Sum>v\<in>s. u v *\<^sub>R v) = 0"
+    by blast
   then show ?thesis
     apply (rule_tac x="\<lambda>v. if v\<in>s then u v else 0" in exI)
     unfolding if_smult scaleR_zero_left and setsum_restrict_set[OF assms(1), symmetric]
@@ -4931,10 +4933,15 @@ lemma radon:
   assumes "affine_dependent c"
   obtains m p where "m \<subseteq> c" "p \<subseteq> c" "m \<inter> p = {}" "(convex hull m) \<inter> (convex hull p) \<noteq> {}"
 proof -
-  from assms[unfolded affine_dependent_explicit] guess s .. then guess u ..
+  from assms[unfolded affine_dependent_explicit]
+  obtain s u where
+      "finite s" "s \<subseteq> c" "setsum u s = 0" "\<exists>v\<in>s. u v \<noteq> 0" "(\<Sum>v\<in>s. u v *\<^sub>R v) = 0"
+    by blast
   then have *: "finite s" "affine_dependent s" and s: "s \<subseteq> c"
     unfolding affine_dependent_explicit by auto
-  from radon_partition[OF *] guess m .. then guess p ..
+  from radon_partition[OF *]
+  obtain m p where "m \<inter> p = {}" "m \<union> p = s" "convex hull m \<inter> convex hull p \<noteq> {}"
+    by blast
   then show ?thesis
     apply (rule_tac that[of p m])
     using s
@@ -5026,13 +5033,15 @@ next
       proof -
         fix x
         assume "x \<in> X ` g"
-        then guess y unfolding image_iff ..
+        then obtain y where "y \<in> g" "x = X y"
+          unfolding image_iff ..
         then show "x \<in> \<Inter>h"
           using X[THEN bspec[where x=y]] using * f by auto
       next
         fix x
         assume "x \<in> X ` h"
-        then guess y unfolding image_iff ..
+        then obtain y where "y \<in> h" "x = X y"
+          unfolding image_iff ..
         then show "x \<in> \<Inter>g"
           using X[THEN bspec[where x=y]] using * f by auto
       qed auto
@@ -6746,7 +6755,7 @@ proof -
 next
   fix x :: 'a
   assume as: "\<forall>i\<in>Basis. 0 < x \<bullet> i" "setsum (op \<bullet> x) Basis < 1"
-  guess a using UNIV_witness[where 'a='b] ..
+  obtain a :: 'b where "a \<in> UNIV" using UNIV_witness ..
   let ?d = "(1 - setsum (op \<bullet> x) Basis) / real (DIM('a))"
   have "Min ((op \<bullet> x) ` Basis) > 0"
     apply (rule Min_grI)
@@ -8938,14 +8947,16 @@ proof (cases rule: linorder_cases)
   assume "x < y"
   moreover
   have "open (interior I)" by auto
-  from openE[OF this `x \<in> interior I`] guess e . note e = this
+  from openE[OF this `x \<in> interior I`]
+  obtain e where e: "0 < e" "ball x e \<subseteq> interior I" .
   moreover def t \<equiv> "min (x + e / 2) ((x + y) / 2)"
   ultimately have "x < t" "t < y" "t \<in> ball x e"
     by (auto simp: dist_real_def field_simps split: split_min)
   with `x \<in> interior I` e interior_subset[of I] have "t \<in> I" "x \<in> I" by auto
 
   have "open (interior I)" by auto
-  from openE[OF this `x \<in> interior I`] guess e .
+  from openE[OF this `x \<in> interior I`]
+  obtain e where "0 < e" "ball x e \<subseteq> interior I" .
   moreover def K \<equiv> "x - e / 2"
   with `0 < e` have "K \<in> ball x e" "K < x"
     by (auto simp: dist_real_def)
@@ -8971,7 +8982,8 @@ next
   assume "y < x"
   moreover
   have "open (interior I)" by auto
-  from openE[OF this `x \<in> interior I`] guess e . note e = this
+  from openE[OF this `x \<in> interior I`]
+  obtain e where e: "0 < e" "ball x e \<subseteq> interior I" .
   moreover def t \<equiv> "x + e / 2"
   ultimately have "x < t" "t \<in> ball x e"
     by (auto simp: dist_real_def field_simps)
@@ -8990,7 +9002,8 @@ next
     finally show "(f x - f y) / (x - y) \<le> z" .
   next
     have "open (interior I)" by auto
-    from openE[OF this `x \<in> interior I`] guess e . note e = this
+    from openE[OF this `x \<in> interior I`]
+    obtain e where e: "0 < e" "ball x e \<subseteq> interior I" .
     then have "x + e / 2 \<in> ball x e"
       by (auto simp: dist_real_def)
     with e interior_subset[of I] have "x + e / 2 \<in> {x<..} \<inter> I"
