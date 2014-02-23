@@ -660,7 +660,7 @@ fun bnf_of_typ _ _ _ _ Ds0 (T as TFree T') accum =
       fun check_bad_dead ((_, (deads, _)), _) =
         let val Ds = fold Term.add_tfreesT deads [] in
           (case Library.inter (op =) Ds Xs of [] => ()
-           | X :: _ => raise BAD_DEAD (TFree X, T))
+          | X :: _ => raise BAD_DEAD (TFree X, T))
         end;
 
       val tfrees = subtract (op =) Ds0 (Term.add_tfreesT T []);

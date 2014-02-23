@@ -68,7 +68,7 @@ lemma Grp_fst_snd: "(Grp (Collect (split R)) fst)^--1 OO Grp (Collect (split R))
 unfolding Grp_def fun_eq_iff relcompp.simps by auto
 
 lemma OO_Grp_cong: "A = B \<Longrightarrow> (Grp A f)^--1 OO Grp A g = (Grp B f)^--1 OO Grp B g"
-by simp
+by (rule arg_cong)
 
 ML_file "Tools/BNF/bnf_comp_tactics.ML"
 ML_file "Tools/BNF/bnf_comp.ML"

@@ -501,7 +501,7 @@ define, its type parameters, and additional information:
 @{rail \<open>
   @{syntax_def dt_name}: @{syntax tyargs}? name @{syntax map_rel}? mixfix?
   ;
-  @{syntax_def tyargs}: typefree | '(' ((name ':')? typefree + ',') ')'
+  @{syntax_def tyargs}: typefree | '(' (((name | '-') ':')? typefree + ',') ')'
   ;
   @{syntax_def map_rel}: '(' ((('map' | 'rel') ':' name) +) ')'
 \<close>}
@@ -514,7 +514,14 @@ the usual parenthesized mixfix notation, and \synt{typefree} denotes fixed type
 variable (@{typ 'a}, @{typ 'b}, \ldots) \cite{isabelle-isar-ref}.
 
 The optional names preceding the type variables allow to override the default
-names of the set functions (@{text set1_t}, \ldots, @{text setM_t}).
+names of the set functions (@{text set1_t}, \ldots, @{text setM_t}). Type
+arguments can be marked as dead by entering ``-'' (hyphen) instead of an
+identifier for the corresponding set function; otherwise, they are live or dead
+(and a set function is generated or not) depending on where they occur in the
+right-hand sides of the definition. Declaring a type argument as dead can speed
+up the type definition but will prevent any later (co)recursion through that
+type argument.
+
 Inside a mutually recursive specification, all defined datatypes must
 mention exactly the same type variables in the same order.
 
@@ -2530,14 +2537,8 @@ text {*
 \end{matharray}
 
 @{rail \<open>
-  @@{command bnf_decl} target? @{syntax dt_name}
-  ;
-  @{syntax_def dt_name}: @{syntax tyargs}? name @{syntax map_rel}? \<newline>
+  @@{command bnf_decl} target? @{syntax tyargs}? name @{syntax map_rel}? \<newline>
     @{syntax wit_types}? mixfix?
-  ;
-  @{syntax_def tyargs}: typefree | '(' (((name | '-') ':')? typefree + ',') ')'
-  ;
-  @{syntax_def map_rel}: '(' ((('map' | 'rel') ':' name) +) ')'
   ;
   @{syntax_def wit_types}: '[' 'wits' ':' types ']'
 \<close>}
