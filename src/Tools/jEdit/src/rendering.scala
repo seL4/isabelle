@@ -150,7 +150,7 @@ object Rendering
 
   /* markup elements */
 
-  private val completion_reported_elements = Set(Markup.COMPLETION)
+  private val completion_names_elements = Set(Markup.COMPLETION)
 
   private val completion_context_elements =
     Set(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM,
@@ -273,20 +273,17 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   /* completion */
 
-  def completion_reported(caret: Text.Offset): Option[Completion.Reported] =
-    if (caret > 0)
+  def completion_names(caret: Text.Offset): Option[Completion.Names] =
+    if (caret > 0 && !snapshot.is_outdated)
     {
       val result =
         snapshot.select(Text.Range(caret - 1, caret + 1),
-          Rendering.completion_reported_elements, _ =>
+          Rendering.completion_names_elements, _ =>
           {
-            case Text.Info(_, Completion.Reported.Elem(reported)) => Some(reported)
+            case Completion.Names.Info(names) => Some(names)
             case _ => None
           })
-      result match {
-        case Text.Info(_, reported) :: _ => Some(reported)
-        case Nil => None
-      }
+      result.headOption.map(_.info)
     }
     else None
 
@@ -304,10 +301,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
             case Text.Info(_, _) =>
               Some(Completion.Context.inner)
           })
-      result match {
-        case Text.Info(_, context) :: _ => Some(context)
-        case Nil => None
-      }
+      result.headOption.map(_.info)
     }
     else None
 

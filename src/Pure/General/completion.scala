@@ -1,10 +1,9 @@
 /*  Title:      Pure/General/completion.scala
     Author:     Makarius
 
-Semantic completion within the formal context (reported by prover).
+Semantic completion within the formal context (reported names).
 Syntactic completion of keywords and symbols, with abbreviations
-(based on language context).
-*/
+(based on language context).  */
 
 package isabelle
 
@@ -18,30 +17,21 @@ object Completion
 {
   /** semantic completion **/
 
-  object Reported
+  object Names
   {
-    object Elem
+    object Info
     {
-      private def decode: XML.Decode.T[(String, List[String])] =
-      {
-        import XML.Decode._
-        pair(string, list(string))
-      }
-
-      def unapply(tree: XML.Tree): Option[Reported] =
-        tree match {
-          case XML.Elem(Markup(Markup.COMPLETION, _), body) =>
-            try {
-              val (original, replacements) = decode(body)
-              Some(Reported(original, replacements))
-            }
-            catch { case _: XML.Error => None }
+      def unapply(info: Text.Markup): Option[Names] =
+        info.info match {
+          case XML.Elem(Markup(Markup.COMPLETION,
+              (Markup.TOTAL, Properties.Value.Int(total)) :: names), _) =>
+            Some(Names(info.range, total, names.map(_._2)))
           case _ => None
         }
     }
   }
 
-  sealed case class Reported(original: String, replacements: List[String])
+  sealed case class Names(range: Text.Range, total: Int, names: List[String])
 
 
 

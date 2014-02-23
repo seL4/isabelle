@@ -6,32 +6,40 @@ Semantic completion within the formal context.
 
 signature COMPLETION =
 sig
-  val limit: unit -> int
-  type T = {original: string, replacements: string list}
+  type T
+  val make: Position.T -> string list -> T
   val none: T
-  val reported_text: Position.T -> T -> string
-  val report: Position.T -> T -> unit
+  val report: T -> unit
 end;
 
 structure Completion: COMPLETION =
 struct
 
-fun limit () = Options.default_int "completion_limit";
+abstype T = Completion of {pos: Position.T, total: int, names: string list}
+with
 
+fun dest (Completion args) = args;
 
-type T = {original: string, replacements: string list};
+fun make pos names =
+  Completion
+   {pos = pos,
+    total = length names,
+    names = take (Options.default_int "completion_limit") names};
 
-val none: T = {original = "", replacements = []};
+end;
 
-fun encode ({original, replacements}: T) =
-  (original, replacements)
-  |> let open XML.Encode in pair string (list string) end;
+val none = make Position.none [];
 
-fun reported_text pos (completion: T) =
-  if null (#replacements completion) then ""
-  else Position.reported_text pos Markup.completion (YXML.string_of_body (encode completion));
-
-fun report pos completion =
-  Output.report (reported_text pos completion);
+fun report completion =
+  let val {pos, total, names} = dest completion in
+    if Position.is_reported pos andalso not (null names) then
+      let
+        val props =
+          (Markup.totalN, Markup.print_int total) ::
+            (map Markup.print_int (1 upto length names) ~~ names);
+        val markup = (Markup.completionN, Position.properties_of pos @ props);
+      in Output.report (Markup.markup markup "") end
+    else ()
+  end;
 
 end;

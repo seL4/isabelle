@@ -205,13 +205,12 @@ fun pretty ctxt space name = Pretty.mark_str (markup_extern ctxt space name);
 fun completion context (space as Name_Space {internals, ...}) (xname, pos) =
   if Context_Position.is_visible_generic context andalso Position.is_reported pos then
     let
-      val replacements =
+      val names =
         Symtab.fold (fn (a, (b :: _, _)) => String.isPrefix xname a ? cons b | _ => I)
           internals []
-        |> take (Completion.limit ())
         |> map (extern_shortest (Context.proof_of context) space)
         |> sort_distinct string_ord;
-    in {original = xname, replacements = replacements} end
+    in Completion.make pos names end
   else Completion.none;
 
 
@@ -447,7 +446,7 @@ fun check context (space, tab) (xname, pos) =
     (case Symtab.lookup tab name of
       SOME x => (Context_Position.report_generic context pos (markup space name); (name, x))
     | NONE =>
-       (Completion.report pos (completion context space (xname, pos));
+       (Completion.report (completion context space (xname, pos));
         error (undefined (kind_of space) name ^ Position.here pos)))
   end;
 
