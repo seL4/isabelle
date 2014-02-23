@@ -308,7 +308,7 @@ fun dynamic_value_strict opts cookie thy postproc t =
     val ctxt = Proof_Context.init_global thy
     fun evaluator program ((_, vs_ty), t) deps =
       Exn.interruptible_capture (value opts ctxt cookie)
-        (Code_Target.evaluator thy target program deps (vs_ty, t));
+        (Code_Target.evaluator thy target program deps true (vs_ty, t));
   in Exn.release (Code_Thingol.dynamic_value thy (Exn.map_result o postproc) evaluator t) end;
 
 (** counterexample generator **)

@@ -9,6 +9,7 @@ sig
   datatype export = Private | Opaque | Public
   val is_public: export -> bool
   val not_private: export -> bool
+  val join_exports: export list -> export
 
   type flat_program
   val flat_program: Proof.context
@@ -30,8 +31,10 @@ sig
     reserved: Name.context, identifiers: Code_Target.identifier_data,
     empty_nsp: 'c, namify_module: string -> 'c -> string * 'c,
     namify_stmt: Code_Thingol.stmt -> string -> 'c -> string * 'c,
-    cyclic_modules: bool, empty_data: 'b, memorize_data: Code_Symbol.T -> 'b -> 'b,
-    modify_stmts: (Code_Symbol.T * Code_Thingol.stmt) list -> 'a option list }
+    cyclic_modules: bool,
+    class_transitive: bool, class_relation_public: bool,
+    empty_data: 'b, memorize_data: Code_Symbol.T -> 'b -> 'b,
+    modify_stmts: (Code_Symbol.T * (export * Code_Thingol.stmt)) list -> (export * 'a) option list }
       -> Code_Symbol.T list -> Code_Thingol.program
       -> { deresolver: string list -> Code_Symbol.T -> string,
            hierarchical_program: ('a, 'b) hierarchical_program }
@@ -54,6 +57,94 @@ fun is_public Public = true
 fun not_private Public = true
   | not_private Opaque = true
   | not_private _ = false;
+
+fun mark_export Public _ = Public
+  | mark_export _ Public = Public
+  | mark_export Opaque _ = Opaque
+  | mark_export _ Opaque = Opaque
+  | mark_export _ _ = Private;
+
+fun join_exports exports = fold mark_export exports Private;
+
+fun dependent_exports { program = program, class_transitive = class_transitive } =
+  let
+    fun is_datatype_or_class (Code_Symbol.Type_Constructor _) = true
+      | is_datatype_or_class (Code_Symbol.Type_Class _) = true
+      | is_datatype_or_class _ = false;
+    fun is_relevant (Code_Symbol.Class_Relation _) = true
+      | is_relevant sym = is_datatype_or_class sym;
+    val proto_gr = Code_Symbol.Graph.restrict is_relevant program;
+    val gr =
+      proto_gr
+      |> Code_Symbol.Graph.fold
+          (fn (sym, (_, (_, deps))) =>
+            if is_relevant sym
+            then I
+            else
+              Code_Symbol.Graph.new_node (sym, Code_Thingol.NoStmt)
+              #> Code_Symbol.Graph.Keys.fold
+               (fn sym' =>
+                if is_relevant sym'
+                then Code_Symbol.Graph.add_edge (sym, sym')
+                else I) deps) program
+      |> class_transitive ?
+          Code_Symbol.Graph.fold (fn (sym as Code_Symbol.Type_Class _, _) =>
+            fold (curry Code_Symbol.Graph.add_edge sym)
+              ((remove (op =) sym o Code_Symbol.Graph.all_succs proto_gr) [sym]) | _ => I) proto_gr
+    fun deps_of sym =
+      let
+        val succs = Code_Symbol.Graph.Keys.dest o Code_Symbol.Graph.imm_succs gr;
+        val deps1 = succs sym;
+        val deps2 = if class_transitive
+          then []
+          else [] |> fold (union (op =)) (map succs deps1) |> subtract (op =) deps1
+      in (deps1, deps2) end;
+  in
+    { is_datatype_or_class = is_datatype_or_class,
+      deps_of = deps_of }
+  end;
+
+fun mark_exports_aux { program = program, prefix_of = prefix_of, map_export = map_export,
+    is_datatype_or_class = is_datatype_or_class, deps_of = deps_of,
+    class_relation_public = class_relation_public } prefix sym =
+  let
+    val export = (if is_datatype_or_class sym then Opaque else Public);
+    val (dependent_export1, dependent_export2) =
+      case Code_Symbol.Graph.get_node program sym of
+          Code_Thingol.Fun _ => (SOME Opaque, NONE)
+        | Code_Thingol.Classinst _ => (SOME Opaque, NONE)
+        | Code_Thingol.Datatypecons _ => (SOME Public, SOME Opaque)
+        | Code_Thingol.Classparam _ => (SOME Public, SOME Opaque)
+        | Code_Thingol.Classrel _ =>
+           (if class_relation_public
+            then (SOME Public, SOME Opaque)
+            else (SOME Opaque, NONE))
+        | _ => (NONE, NONE);
+    val dependent_exports =
+      case dependent_export1 of
+        SOME export1 => (case dependent_export2 of
+          SOME export2 =>
+            let
+              val (deps1, deps2) = deps_of sym
+            in map (rpair export1) deps1 @ map (rpair export2) deps2 end
+        | NONE => map (rpair export1) (fst (deps_of sym)))
+      | NONE => [];
+  in 
+    map_export prefix sym (mark_export export)
+    #> fold (fn (sym, export) => map_export (prefix_of sym) sym (mark_export export))
+      dependent_exports
+  end;
+
+fun mark_exports { program = program, prefix_of = prefix_of, map_export = map_export,
+    class_transitive = class_transitive, class_relation_public = class_relation_public } =
+  let
+    val { is_datatype_or_class, deps_of } =
+      dependent_exports { program = program, class_transitive = class_transitive };
+  in
+    mark_exports_aux { program = program, prefix_of = prefix_of, map_export = map_export,
+      is_datatype_or_class = is_datatype_or_class, deps_of = deps_of,
+      class_relation_public = class_relation_public }
+  end;
 
 
 (** fundamental module name hierarchy **)
@@ -113,13 +204,17 @@ fun flat_program ctxt { module_prefix, module_name, reserved,
     val sym_priority = has_priority identifiers;
 
     (* distribute statements over hierarchy *)
+    val mark_exports = mark_exports { program = program, prefix_of = fst o prep_sym,
+      map_export = fn module_name => fn sym =>
+        Graph.map_node module_name o apfst o Code_Symbol.Graph.map_node sym o apsnd o apfst,
+        class_transitive = false, class_relation_public = false };
     fun add_stmt sym stmt =
       let
         val (module_name, base) = prep_sym sym;
       in
         Graph.default_node (module_name, (Code_Symbol.Graph.empty, []))
         #> (Graph.map_node module_name o apfst)
-          (Code_Symbol.Graph.new_node (sym, (base, (Public, stmt))))
+          (Code_Symbol.Graph.new_node (sym, (base, (if null exports then Public else Private, stmt))))
       end;
     fun add_dep sym sym' =
       let
@@ -129,9 +224,11 @@ fun flat_program ctxt { module_prefix, module_name, reserved,
         then (Graph.map_node module_name o apfst) (Code_Symbol.Graph.add_edge (sym, sym'))
         else (Graph.map_node module_name o apsnd)
           (AList.map_default (op =) (module_name', []) (insert (op =) sym'))
+          #> mark_exports module_name' sym'
       end;
     val proto_program = build_proto_program
-      { empty = Graph.empty, add_stmt = add_stmt, add_dep = add_dep } program;
+      { empty = Graph.empty, add_stmt = add_stmt, add_dep = add_dep } program
+      |> fold (fn sym => mark_exports ((fst o prep_sym) sym) sym) exports;
 
     (* name declarations and statement modifications *)
     fun declare sym (base, (_, stmt)) (gr, nsp) = 
@@ -200,7 +297,7 @@ fun map_module_stmts f_module f_stmts sym_base_nodes =
   let
     val some_modules =
       sym_base_nodes
-      |> map (fn (sym, (base, Module content)) => SOME (base, content) | _ => NONE)
+      |> map (fn (_, (base, Module content)) => SOME (base, content) | _ => NONE)
       |> (burrow_options o map o apsnd) f_module;
     val some_export_stmts =
       sym_base_nodes
@@ -214,7 +311,9 @@ fun map_module_stmts f_module f_stmts sym_base_nodes =
   end;
 
 fun hierarchical_program ctxt { module_name, reserved, identifiers, empty_nsp,
-      namify_module, namify_stmt, cyclic_modules, empty_data, memorize_data, modify_stmts }
+      namify_module, namify_stmt, cyclic_modules,
+      class_transitive, class_relation_public,
+      empty_data, memorize_data, modify_stmts }
       exports program =
   let
 
@@ -242,12 +341,17 @@ fun hierarchical_program ctxt { module_name, reserved, identifiers, empty_nsp,
           o Code_Symbol.lookup identifiers o fst) program;
 
     (* distribute statements over hierarchy *)
+    val mark_exports = mark_exports { program = program, prefix_of = fst o prep_sym,
+      map_export = fn name_fragments => fn sym => fn f =>
+        (map_module name_fragments o apsnd o Code_Symbol.Graph.map_node sym o apsnd)
+          (fn Stmt (export, stmt) => Stmt (f export, stmt)),
+      class_transitive = class_transitive, class_relation_public = class_relation_public };
     fun add_stmt sym stmt =
       let
         val (name_fragments, base) = prep_sym sym;
       in
         (map_module name_fragments o apsnd)
-          (Code_Symbol.Graph.new_node (sym, (base, Stmt (Public, stmt))))
+          (Code_Symbol.Graph.new_node (sym, (base, Stmt (if null exports then Public else Private, stmt))))
       end;
     fun add_edge_acyclic_error error_msg dep gr =
       Code_Symbol.Graph.add_edge_acyclic dep gr
@@ -266,9 +370,13 @@ fun hierarchical_program ctxt { module_name, reserved, identifiers, empty_nsp,
             ^ Code_Symbol.quote ctxt sym'
             ^ " would result in module dependency cycle") dep
           else Code_Symbol.Graph.add_edge dep;
-      in (map_module name_fragments_common o apsnd) add_edge end;
+      in
+        (map_module name_fragments_common o apsnd) add_edge
+        #> (if is_cross_module then mark_exports name_fragments' sym' else I)
+      end;
     val proto_program = build_proto_program
-      { empty = empty_program, add_stmt = add_stmt, add_dep = add_dep } program;
+      { empty = empty_program, add_stmt = add_stmt, add_dep = add_dep } program
+      |> fold (fn sym => mark_exports ((fst o prep_sym) sym) sym) exports;
 
     (* name declarations, data and statement modifications *)
     fun make_declarations nsps (data, nodes) =
@@ -292,14 +400,9 @@ fun hierarchical_program ctxt { module_name, reserved, identifiers, empty_nsp,
           let
             val stmts' = modify_stmts syms_stmts
           in stmts' @ replicate (length syms_stmts - length stmts') NONE end;
-        fun modify_stmts'' syms_exports_stmts =
-          syms_exports_stmts
-          |> map (fn (sym, (export, stmt)) => ((sym, stmt), export))
-          |> burrow_fst modify_stmts'
-          |> map (fn (SOME stmt, export) => SOME (export, stmt) | _ => NONE);
         val nodes'' =
           nodes'
-          |> Code_Symbol.Graph.map_strong_conn (map_module_stmts (make_declarations nsps') modify_stmts'');
+          |> Code_Symbol.Graph.map_strong_conn (map_module_stmts (make_declarations nsps') modify_stmts');
         val data' = fold memorize_data stmt_syms data;
       in (data', nodes'') end;
     val (_, hierarchical_program) = make_declarations empty_nsp proto_program;

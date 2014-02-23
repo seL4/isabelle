@@ -29,7 +29,7 @@ sig
 
   val generatedN: string
   val evaluator: theory -> string -> Code_Thingol.program
-    -> Code_Symbol.T list -> ((string * class list) list * Code_Thingol.itype) * Code_Thingol.iterm
+    -> Code_Symbol.T list -> bool -> ((string * class list) list * Code_Thingol.itype) * Code_Thingol.iterm
     -> (string * string) list * string
 
   type serializer
@@ -426,7 +426,7 @@ fun check_code_for thy target strict args program all_public syms =
     else Isabelle_System.with_tmp_dir "Code_Test" ext_check
   end;
 
-fun evaluation mounted_serializer prepared_program syms ((vs, ty), t) =
+fun evaluation mounted_serializer prepared_program syms all_public ((vs, ty), t) =
   let
     val _ = if Code_Thingol.contains_dict_var t then
       error "Term to be evaluated contains free dictionaries" else ();
@@ -439,7 +439,7 @@ fun evaluation mounted_serializer prepared_program syms ((vs, ty), t) =
       |> fold (curry (perhaps o try o
           Code_Symbol.Graph.add_edge) Code_Symbol.value) syms;
     val (program_code, deresolve) =
-      produce (mounted_serializer program [Code_Symbol.value]);
+      produce (mounted_serializer program (if all_public then [] else [Code_Symbol.value]));
     val value_name = the (deresolve Code_Symbol.value);
   in (program_code, value_name) end;
 

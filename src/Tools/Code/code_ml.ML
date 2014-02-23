@@ -37,7 +37,7 @@ datatype ml_binding =
 datatype ml_stmt =
     ML_Exc of string * (typscheme * int)
   | ML_Val of ml_binding
-  | ML_Funs of ml_binding list * Code_Symbol.T list
+  | ML_Funs of (Code_Namespace.export * ml_binding) list * Code_Symbol.T list
   | ML_Datas of (string * (vname list * ((string * vname list) * itype list) list)) list
   | ML_Class of string * (vname * ((class * class) list * (string * itype) list));
 
@@ -260,7 +260,7 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
             [sig_p]
             (semicolon [p])
           end
-      | print_stmt _ (ML_Funs (binding :: bindings, pseudo_funs)) =
+      | print_stmt _ (ML_Funs ((export, binding) :: exports_bindings, pseudo_funs)) =
           let
             val print_def' = print_def (member (op =) pseudo_funs) false;
             fun print_pseudo_fun sym = concat [
@@ -271,10 +271,11 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
                 str "();"
               ];
             val (sig_ps, (ps, p)) = (apsnd split_last o split_list)
-              (print_def' "fun" binding :: map (print_def' "and") bindings);
+              (print_def' "fun" binding :: map (print_def' "and" o snd) exports_bindings);
             val pseudo_ps = map print_pseudo_fun pseudo_funs;
           in pair
-            sig_ps
+            (map_filter (fn (export, p) => if Code_Namespace.not_private export then SOME p else NONE)
+              ((export :: map fst exports_bindings) ~~ sig_ps))
             (Pretty.chunks (ps @ semicolon [p] :: pseudo_ps))
           end
      | print_stmt _ (ML_Datas [(tyco, (vs, []))]) =
@@ -605,7 +606,7 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
             [sig_p]
             (doublesemicolon [p])
           end
-      | print_stmt _ (ML_Funs (binding :: bindings, pseudo_funs)) =
+      | print_stmt _ (ML_Funs ((export, binding) :: exports_bindings, pseudo_funs)) =
           let
             val print_def' = print_def (member (op =) pseudo_funs) false;
             fun print_pseudo_fun sym = concat [
@@ -616,10 +617,11 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
                 str "();;"
               ];
             val (sig_ps, (ps, p)) = (apsnd split_last o split_list)
-              (print_def' "let rec" binding :: map (print_def' "and") bindings);
+              (print_def' "let rec" binding :: map (print_def' "and" o snd) exports_bindings);
             val pseudo_ps = map print_pseudo_fun pseudo_funs;
           in pair
-            sig_ps
+            (map_filter (fn (export, p) => if Code_Namespace.not_private export then SOME p else NONE)
+              ((export :: map fst exports_bindings) ~~ sig_ps))
             (Pretty.chunks (ps @ doublesemicolon [p] :: pseudo_ps))
           end
      | print_stmt _ (ML_Datas [(tyco, (vs, []))]) =
@@ -667,7 +669,9 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
                 )
               ];
           in pair
-            (type_decl_p :: map print_classparam_decl classparams)
+           (if Code_Namespace.is_public export
+              then type_decl_p :: map print_classparam_decl classparams
+              else [concat [str "type", print_dicttyp (class, ITyVar v)]])
             (Pretty.chunks (
               doublesemicolon [type_decl_p]
               :: map print_classparam_proj classparams
@@ -733,7 +737,7 @@ fun ml_program_of_program ctxt module_name reserved identifiers =
       | namify_stmt (Code_Thingol.Classrel _) = namify_const false
       | namify_stmt (Code_Thingol.Classparam _) = namify_const false
       | namify_stmt (Code_Thingol.Classinst _) = namify_const false;
-    fun ml_binding_of_stmt (sym as Constant const, Code_Thingol.Fun ((tysm as (vs, ty), raw_eqs), _)) =
+    fun ml_binding_of_stmt (sym as Constant const, (export, Code_Thingol.Fun ((tysm as (vs, ty), raw_eqs), _))) =
           let
             val eqs = filter (snd o snd) raw_eqs;
             val (eqs', some_sym) = if null (filter_out (null o snd) vs) then case eqs
@@ -742,49 +746,58 @@ fun ml_program_of_program ctxt module_name reserved identifiers =
                   else (eqs, SOME (sym, member (op =) (Code_Thingol.add_constsyms t []) sym))
                 | _ => (eqs, NONE)
               else (eqs, NONE)
-          in (ML_Function (const, (tysm, eqs')), some_sym) end
-      | ml_binding_of_stmt (sym as Class_Instance inst, Code_Thingol.Classinst (stmt as { vs, ... })) =
-          (ML_Instance (inst, stmt), if forall (null o snd) vs then SOME (sym, false) else NONE)
+          in ((export, ML_Function (const, (tysm, eqs'))), some_sym) end
+      | ml_binding_of_stmt (sym as Class_Instance inst, (export, Code_Thingol.Classinst (stmt as { vs, ... }))) =
+          ((export, ML_Instance (inst, stmt)),
+            if forall (null o snd) vs then SOME (sym, false) else NONE)
       | ml_binding_of_stmt (sym, _) =
           error ("Binding block containing illegal statement: " ^ 
             Code_Symbol.quote ctxt sym)
-    fun modify_fun (sym, stmt) =
+    fun modify_fun (sym, (export, stmt)) =
       let
-        val (binding, some_value_sym) = ml_binding_of_stmt (sym, stmt);
+        val ((export', binding), some_value_sym) = ml_binding_of_stmt (sym, (export, stmt));
         val ml_stmt = case binding
          of ML_Function (const, ((vs, ty), [])) =>
               ML_Exc (const, ((vs, ty),
                 (length o filter_out (null o snd)) vs + (length o fst o Code_Thingol.unfold_fun) ty))
           | _ => case some_value_sym
-             of NONE => ML_Funs ([binding], [])
-              | SOME (sym, true) => ML_Funs ([binding], [sym])
+             of NONE => ML_Funs ([(export', binding)], [])
+              | SOME (sym, true) => ML_Funs ([(export, binding)], [sym])
               | SOME (sym, false) => ML_Val binding
-      in SOME ml_stmt end;
+      in SOME (export, ml_stmt) end;
     fun modify_funs stmts = single (SOME
-      (ML_Funs (map_split ml_binding_of_stmt stmts |> (apsnd o map_filter o Option.map) fst)))
-    fun modify_datatypes stmts = single (SOME
-      (ML_Datas (map_filter
-        (fn (Type_Constructor tyco, Code_Thingol.Datatype stmt) => SOME (tyco, stmt) | _ => NONE) stmts)))
-    fun modify_class stmts = single (SOME
-      (ML_Class (the_single (map_filter
-        (fn (Type_Class class, Code_Thingol.Class stmt) => SOME (class, stmt) | _ => NONE) stmts))))
-    fun modify_stmts ([stmt as (_, stmt' as Code_Thingol.Fun _)]) =
+      (Code_Namespace.Opaque, ML_Funs (map_split ml_binding_of_stmt stmts |> (apsnd o map_filter o Option.map) fst)))
+    fun modify_datatypes stmts =
+      map_filter
+        (fn (Type_Constructor tyco, (export, Code_Thingol.Datatype stmt)) => SOME (export, (tyco, stmt)) | _ => NONE) stmts
+      |> split_list
+      |> apfst Code_Namespace.join_exports
+      |> apsnd ML_Datas
+      |> SOME
+      |> single;
+    fun modify_class stmts =
+      the_single (map_filter
+        (fn (Type_Class class, (export, Code_Thingol.Class stmt)) => SOME (export, (class, stmt)) | _ => NONE) stmts)
+      |> apsnd ML_Class
+      |> SOME
+      |> single;
+    fun modify_stmts ([stmt as (_, (_, stmt' as Code_Thingol.Fun _))]) =
           if Code_Thingol.is_case stmt' then [] else [modify_fun stmt]
-      | modify_stmts ((stmts as (_, Code_Thingol.Fun _) :: _)) =
-          modify_funs (filter_out (Code_Thingol.is_case o snd) stmts)
-      | modify_stmts ((stmts as (_, Code_Thingol.Datatypecons _) :: _)) =
+      | modify_stmts ((stmts as (_, (_, Code_Thingol.Fun _)) :: _)) =
+          modify_funs (filter_out (Code_Thingol.is_case o snd o snd) stmts)
+      | modify_stmts ((stmts as (_, (_, Code_Thingol.Datatypecons _)) :: _)) =
           modify_datatypes stmts
-      | modify_stmts ((stmts as (_, Code_Thingol.Datatype _) :: _)) =
+      | modify_stmts ((stmts as (_, (_, Code_Thingol.Datatype _)) :: _)) =
           modify_datatypes stmts
-      | modify_stmts ((stmts as (_, Code_Thingol.Class _) :: _)) =
+      | modify_stmts ((stmts as (_, (_, Code_Thingol.Class _)) :: _)) =
           modify_class stmts
-      | modify_stmts ((stmts as (_, Code_Thingol.Classrel _) :: _)) =
+      | modify_stmts ((stmts as (_, (_, Code_Thingol.Classrel _)) :: _)) =
           modify_class stmts
-      | modify_stmts ((stmts as (_, Code_Thingol.Classparam _) :: _)) =
+      | modify_stmts ((stmts as (_, (_, Code_Thingol.Classparam _)) :: _)) =
           modify_class stmts
-      | modify_stmts ([stmt as (_, Code_Thingol.Classinst _)]) =
+      | modify_stmts ([stmt as (_, (_, Code_Thingol.Classinst _))]) =
           [modify_fun stmt]
-      | modify_stmts ((stmts as (_, Code_Thingol.Classinst _) :: _)) =
+      | modify_stmts ((stmts as (_, (_, Code_Thingol.Classinst _)) :: _)) =
           modify_funs stmts
       | modify_stmts stmts = error ("Illegal mutual dependencies: " ^
           (Library.commas o map (Code_Symbol.quote ctxt o fst)) stmts);
@@ -792,7 +805,9 @@ fun ml_program_of_program ctxt module_name reserved identifiers =
     Code_Namespace.hierarchical_program ctxt {
       module_name = module_name, reserved = reserved, identifiers = identifiers,
       empty_nsp = (reserved, reserved), namify_module = pair, namify_stmt = namify_stmt,
-      cyclic_modules = false, empty_data = (), memorize_data = K I, modify_stmts = modify_stmts }
+      cyclic_modules = false, class_transitive = false,
+      class_relation_public = true, empty_data = (),
+      memorize_data = K I, modify_stmts = modify_stmts }
   end;
 
 fun serialize_ml print_ml_module print_ml_stmt ctxt

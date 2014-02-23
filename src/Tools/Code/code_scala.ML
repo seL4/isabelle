@@ -249,7 +249,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
                 val auxs = Name.invent (snd proto_vars) "a" (length tys);
                 val vars = intro_vars auxs proto_vars;
               in
-                privatize export [str "def", constraint (Pretty.block [applify "(" ")"
+                privatize' export [str "def", constraint (Pretty.block [applify "(" ")"
                   (fn (aux, ty) => constraint ((str o lookup_var vars) aux)
                   (print_typ tyvars NOBR ty)) NOBR (add_typarg (deresolve_const classparam))
                   (auxs ~~ tys), str "(implicit ", str implicit_name, str ": ",
@@ -284,7 +284,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
                 val aux_abstr1 = abstract_using aux_dom1;
                 val aux_abstr2 = abstract_using aux_dom2;
               in
-                privatize export ([str "val", print_method classparam, str "="]
+                concat ([str "val", print_method classparam, str "="]
                   @ aux_abstr1 @ aux_abstr2 @| print_app tyvars false (SOME thm) vars NOBR
                     (const, map (IVar o SOME) auxs))
               end;
@@ -333,16 +333,17 @@ fun scala_program_of_program ctxt module_name reserved identifiers exports progr
         val implicits = filter (is_classinst o Code_Symbol.Graph.get_node program)
           (Code_Symbol.Graph.immediate_succs program sym);
       in union (op =) implicits end;
-    fun modify_stmt (_, Code_Thingol.Fun (_, SOME _)) = NONE
-      | modify_stmt (_, Code_Thingol.Datatypecons _) = NONE
-      | modify_stmt (_, Code_Thingol.Classrel _) = NONE
-      | modify_stmt (_, Code_Thingol.Classparam _) = NONE
-      | modify_stmt (_, stmt) = SOME stmt;
+    fun modify_stmt (_, (_, Code_Thingol.Fun (_, SOME _))) = NONE
+      | modify_stmt (_, (_, Code_Thingol.Datatypecons _)) = NONE
+      | modify_stmt (_, (_, Code_Thingol.Classrel _)) = NONE
+      | modify_stmt (_, (_, Code_Thingol.Classparam _)) = NONE
+      | modify_stmt (_, export_stmt) = SOME export_stmt;
   in
     Code_Namespace.hierarchical_program ctxt
       { module_name = module_name, reserved = reserved, identifiers = identifiers,
         empty_nsp = ((reserved, reserved), reserved), namify_module = namify_module,
-        namify_stmt = namify_stmt, cyclic_modules = true, empty_data = [],
+        namify_stmt = namify_stmt, cyclic_modules = true,
+        class_transitive = true, class_relation_public = false, empty_data = [],
         memorize_data = memorize_implicits, modify_stmts = map modify_stmt } exports program
   end;
 

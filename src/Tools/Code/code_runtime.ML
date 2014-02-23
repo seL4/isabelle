@@ -89,7 +89,7 @@ fun reject_vars thy t =
   in ((Sign.no_frees ctxt o Sign.no_vars ctxt o map_types (K dummyT)) t; t) end;
 
 fun obtain_evaluator thy some_target program consts expr =
-  Code_Target.evaluator thy (the_default target some_target) program consts expr
+  Code_Target.evaluator thy (the_default target some_target) program consts false expr
   |> apfst (fn ml_modules => space_implode "\n\n" (map snd ml_modules));
 
 fun obtain_evaluator' thy some_target program =
