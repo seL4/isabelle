@@ -1,266 +1,513 @@
 (* Generated from Cooper.thy; DO NOT EDIT! *)
 
 structure Cooper_Procedure : sig
-  val id : 'a -> 'a
-  type 'a equal
-  val equal : 'a equal -> 'a -> 'a -> bool
-  val eq : 'a equal -> 'a -> 'a -> bool
   datatype inta = Int_of_integer of int
-  datatype nat = Nat of int
-  datatype num = One | Bit0 of num | Bit1 of num
-  type 'a ord
-  val less_eq : 'a ord -> 'a -> 'a -> bool
-  val less : 'a ord -> 'a -> 'a -> bool
-  val ord_integer : int ord
-  val max : 'a ord -> 'a -> 'a -> 'a
-  val nat_of_integer : int -> nat
+  val integer_of_int : inta -> int
+  type nat
   val integer_of_nat : nat -> int
-  val plus_nat : nat -> nat -> nat
-  val suc : nat -> nat
   datatype numa = C of inta | Bound of nat | Cn of nat * inta * numa |
     Neg of numa | Add of numa * numa | Sub of numa * numa | Mul of inta * numa
   datatype fm = T | F | Lt of numa | Le of numa | Gt of numa | Ge of numa |
     Eq of numa | NEq of numa | Dvd of inta * numa | NDvd of inta * numa |
     Not of fm | And of fm * fm | Or of fm * fm | Imp of fm * fm | Iff of fm * fm
     | E of fm | A of fm | Closed of nat | NClosed of nat
-  val map : ('a -> 'b) -> 'a list -> 'b list
-  val disjuncts : fm -> fm list
-  val foldr : ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
-  val equal_nat : nat -> nat -> bool
-  val integer_of_int : inta -> int
-  val equal_inta : inta -> inta -> bool
-  val equal_numa : numa -> numa -> bool
-  val equal_fm : fm -> fm -> bool
-  val djf : ('a -> fm) -> 'a -> fm -> fm
-  val evaldjf : ('a -> fm) -> 'a list -> fm
-  val dj : (fm -> fm) -> fm -> fm
-  val minus_nat : nat -> nat -> nat
-  val zero_nat : nat
-  val minusinf : fm -> fm
-  val numsubst0 : numa -> numa -> numa
-  val subst0 : numa -> fm -> fm
-  type 'a plus
-  val plus : 'a plus -> 'a -> 'a -> 'a
-  type 'a semigroup_add
-  val plus_semigroup_add : 'a semigroup_add -> 'a plus
-  type 'a cancel_semigroup_add
-  val semigroup_add_cancel_semigroup_add :
-    'a cancel_semigroup_add -> 'a semigroup_add
-  type 'a ab_semigroup_add
-  val semigroup_add_ab_semigroup_add : 'a ab_semigroup_add -> 'a semigroup_add
-  type 'a cancel_ab_semigroup_add
-  val ab_semigroup_add_cancel_ab_semigroup_add :
-    'a cancel_ab_semigroup_add -> 'a ab_semigroup_add
-  val cancel_semigroup_add_cancel_ab_semigroup_add :
-    'a cancel_ab_semigroup_add -> 'a cancel_semigroup_add
-  type 'a zero
-  val zero : 'a zero -> 'a
-  type 'a monoid_add
-  val semigroup_add_monoid_add : 'a monoid_add -> 'a semigroup_add
-  val zero_monoid_add : 'a monoid_add -> 'a zero
-  type 'a comm_monoid_add
-  val ab_semigroup_add_comm_monoid_add :
-    'a comm_monoid_add -> 'a ab_semigroup_add
-  val monoid_add_comm_monoid_add : 'a comm_monoid_add -> 'a monoid_add
-  type 'a cancel_comm_monoid_add
-  val cancel_ab_semigroup_add_cancel_comm_monoid_add :
-    'a cancel_comm_monoid_add -> 'a cancel_ab_semigroup_add
-  val comm_monoid_add_cancel_comm_monoid_add :
-    'a cancel_comm_monoid_add -> 'a comm_monoid_add
-  type 'a times
-  val times : 'a times -> 'a -> 'a -> 'a
-  type 'a mult_zero
-  val times_mult_zero : 'a mult_zero -> 'a times
-  val zero_mult_zero : 'a mult_zero -> 'a zero
-  type 'a semigroup_mult
-  val times_semigroup_mult : 'a semigroup_mult -> 'a times
-  type 'a semiring
-  val ab_semigroup_add_semiring : 'a semiring -> 'a ab_semigroup_add
-  val semigroup_mult_semiring : 'a semiring -> 'a semigroup_mult
-  type 'a semiring_0
-  val comm_monoid_add_semiring_0 : 'a semiring_0 -> 'a comm_monoid_add
-  val mult_zero_semiring_0 : 'a semiring_0 -> 'a mult_zero
-  val semiring_semiring_0 : 'a semiring_0 -> 'a semiring
-  type 'a semiring_0_cancel
-  val cancel_comm_monoid_add_semiring_0_cancel :
-    'a semiring_0_cancel -> 'a cancel_comm_monoid_add
-  val semiring_0_semiring_0_cancel : 'a semiring_0_cancel -> 'a semiring_0
-  type 'a ab_semigroup_mult
-  val semigroup_mult_ab_semigroup_mult :
-    'a ab_semigroup_mult -> 'a semigroup_mult
-  type 'a comm_semiring
-  val ab_semigroup_mult_comm_semiring : 'a comm_semiring -> 'a ab_semigroup_mult
-  val semiring_comm_semiring : 'a comm_semiring -> 'a semiring
-  type 'a comm_semiring_0
-  val comm_semiring_comm_semiring_0 : 'a comm_semiring_0 -> 'a comm_semiring
-  val semiring_0_comm_semiring_0 : 'a comm_semiring_0 -> 'a semiring_0
-  type 'a comm_semiring_0_cancel
-  val comm_semiring_0_comm_semiring_0_cancel :
-    'a comm_semiring_0_cancel -> 'a comm_semiring_0
-  val semiring_0_cancel_comm_semiring_0_cancel :
-    'a comm_semiring_0_cancel -> 'a semiring_0_cancel
-  type 'a one
-  val one : 'a one -> 'a
-  type 'a power
-  val one_power : 'a power -> 'a one
-  val times_power : 'a power -> 'a times
-  type 'a monoid_mult
-  val semigroup_mult_monoid_mult : 'a monoid_mult -> 'a semigroup_mult
-  val power_monoid_mult : 'a monoid_mult -> 'a power
-  type 'a numeral
-  val one_numeral : 'a numeral -> 'a one
-  val semigroup_add_numeral : 'a numeral -> 'a semigroup_add
-  type 'a semiring_numeral
-  val monoid_mult_semiring_numeral : 'a semiring_numeral -> 'a monoid_mult
-  val numeral_semiring_numeral : 'a semiring_numeral -> 'a numeral
-  val semiring_semiring_numeral : 'a semiring_numeral -> 'a semiring
-  type 'a zero_neq_one
-  val one_zero_neq_one : 'a zero_neq_one -> 'a one
-  val zero_zero_neq_one : 'a zero_neq_one -> 'a zero
-  type 'a semiring_1
-  val semiring_numeral_semiring_1 : 'a semiring_1 -> 'a semiring_numeral
-  val semiring_0_semiring_1 : 'a semiring_1 -> 'a semiring_0
-  val zero_neq_one_semiring_1 : 'a semiring_1 -> 'a zero_neq_one
-  type 'a semiring_1_cancel
-  val semiring_0_cancel_semiring_1_cancel :
-    'a semiring_1_cancel -> 'a semiring_0_cancel
-  val semiring_1_semiring_1_cancel : 'a semiring_1_cancel -> 'a semiring_1
-  type 'a comm_monoid_mult
-  val ab_semigroup_mult_comm_monoid_mult :
-    'a comm_monoid_mult -> 'a ab_semigroup_mult
-  val monoid_mult_comm_monoid_mult : 'a comm_monoid_mult -> 'a monoid_mult
-  type 'a dvd
-  val times_dvd : 'a dvd -> 'a times
-  type 'a comm_semiring_1
-  val comm_monoid_mult_comm_semiring_1 :
-    'a comm_semiring_1 -> 'a comm_monoid_mult
-  val comm_semiring_0_comm_semiring_1 : 'a comm_semiring_1 -> 'a comm_semiring_0
-  val dvd_comm_semiring_1 : 'a comm_semiring_1 -> 'a dvd
-  val semiring_1_comm_semiring_1 : 'a comm_semiring_1 -> 'a semiring_1
-  type 'a comm_semiring_1_cancel
-  val comm_semiring_0_cancel_comm_semiring_1_cancel :
-    'a comm_semiring_1_cancel -> 'a comm_semiring_0_cancel
-  val comm_semiring_1_comm_semiring_1_cancel :
-    'a comm_semiring_1_cancel -> 'a comm_semiring_1
-  val semiring_1_cancel_comm_semiring_1_cancel :
-    'a comm_semiring_1_cancel -> 'a semiring_1_cancel
-  type 'a no_zero_divisors
-  val times_no_zero_divisors : 'a no_zero_divisors -> 'a times
-  val zero_no_zero_divisors : 'a no_zero_divisors -> 'a zero
-  type 'a diva
-  val dvd_div : 'a diva -> 'a dvd
-  val diva : 'a diva -> 'a -> 'a -> 'a
-  val moda : 'a diva -> 'a -> 'a -> 'a
-  type 'a semiring_div
-  val div_semiring_div : 'a semiring_div -> 'a diva
-  val comm_semiring_1_cancel_semiring_div :
-    'a semiring_div -> 'a comm_semiring_1_cancel
-  val no_zero_divisors_semiring_div : 'a semiring_div -> 'a no_zero_divisors
-  val plus_inta : inta -> inta -> inta
-  val plus_int : inta plus
-  val semigroup_add_int : inta semigroup_add
-  val cancel_semigroup_add_int : inta cancel_semigroup_add
-  val ab_semigroup_add_int : inta ab_semigroup_add
-  val cancel_ab_semigroup_add_int : inta cancel_ab_semigroup_add
-  val zero_inta : inta
-  val zero_int : inta zero
-  val monoid_add_int : inta monoid_add
-  val comm_monoid_add_int : inta comm_monoid_add
-  val cancel_comm_monoid_add_int : inta cancel_comm_monoid_add
-  val times_inta : inta -> inta -> inta
-  val times_int : inta times
-  val mult_zero_int : inta mult_zero
-  val semigroup_mult_int : inta semigroup_mult
-  val semiring_int : inta semiring
-  val semiring_0_int : inta semiring_0
-  val semiring_0_cancel_int : inta semiring_0_cancel
-  val ab_semigroup_mult_int : inta ab_semigroup_mult
-  val comm_semiring_int : inta comm_semiring
-  val comm_semiring_0_int : inta comm_semiring_0
-  val comm_semiring_0_cancel_int : inta comm_semiring_0_cancel
-  val one_inta : inta
-  val one_int : inta one
-  val power_int : inta power
-  val monoid_mult_int : inta monoid_mult
-  val numeral_int : inta numeral
-  val semiring_numeral_int : inta semiring_numeral
-  val zero_neq_one_int : inta zero_neq_one
-  val semiring_1_int : inta semiring_1
-  val semiring_1_cancel_int : inta semiring_1_cancel
-  val comm_monoid_mult_int : inta comm_monoid_mult
-  val dvd_int : inta dvd
-  val comm_semiring_1_int : inta comm_semiring_1
-  val comm_semiring_1_cancel_int : inta comm_semiring_1_cancel
-  val no_zero_divisors_int : inta no_zero_divisors
-  val sgn_integer : int -> int
-  val abs_integer : int -> int
-  val apsnd : ('a -> 'b) -> 'c * 'a -> 'c * 'b
-  val divmod_integer : int -> int -> int * int
-  val snd : 'a * 'b -> 'b
-  val mod_integer : int -> int -> int
-  val mod_int : inta -> inta -> inta
-  val fst : 'a * 'b -> 'a
-  val div_integer : int -> int -> int
-  val div_inta : inta -> inta -> inta
-  val div_int : inta diva
-  val semiring_div_int : inta semiring_div
-  val less_eq_int : inta -> inta -> bool
-  val uminus_int : inta -> inta
-  val nummul : inta -> numa -> numa
-  val numneg : numa -> numa
-  val less_eq_nat : nat -> nat -> bool
-  val numadd : numa * numa -> numa
-  val numsub : numa -> numa -> numa
-  val simpnum : numa -> numa
-  val less_int : inta -> inta -> bool
-  val equal_int : inta equal
-  val abs_int : inta -> inta
-  val nota : fm -> fm
-  val impa : fm -> fm -> fm
-  val iffa : fm -> fm -> fm
-  val disj : fm -> fm -> fm
-  val conj : fm -> fm -> fm
-  val dvd : 'a semiring_div * 'a equal -> 'a -> 'a -> bool
-  val simpfm : fm -> fm
-  val equal_num : numa equal
-  val gen_length : nat -> 'a list -> nat
-  val size_list : 'a list -> nat
-  val mirror : fm -> fm
-  val a_beta : fm -> inta -> fm
-  val member : 'a equal -> 'a list -> 'a -> bool
-  val remdups : 'a equal -> 'a list -> 'a list
-  val gcd_int : inta -> inta -> inta
-  val lcm_int : inta -> inta -> inta
-  val delta : fm -> inta
-  val alpha : fm -> numa list
-  val minus_int : inta -> inta -> inta
-  val zsplit0 : numa -> inta * numa
-  val zlfm : fm -> fm
-  val zeta : fm -> inta
-  val beta : fm -> numa list
-  val unita : fm -> fm * (numa list * inta)
-  val decrnum : numa -> numa
-  val decr : fm -> fm
-  val uptoa : inta -> inta -> inta list
-  val maps : ('a -> 'b list) -> 'a list -> 'b list
-  val cooper : fm -> fm
-  val qelim : fm -> (fm -> fm) -> fm
-  val prep : fm -> fm
   val pa : fm -> fm
+  val nat_of_integer : int -> nat
 end = struct
 
-fun id x = (fn xa => xa) x;
+datatype inta = Int_of_integer of int;
+
+fun integer_of_int (Int_of_integer k) = k;
+
+fun equal_inta k l = integer_of_int k = integer_of_int l;
 
 type 'a equal = {equal : 'a -> 'a -> bool};
 val equal = #equal : 'a equal -> 'a -> 'a -> bool;
 
-fun eq A_ a b = equal A_ a b;
+val equal_int = {equal = equal_inta} : inta equal;
 
-datatype inta = Int_of_integer of int;
+fun times_inta k l = Int_of_integer (integer_of_int k * integer_of_int l);
+
+type 'a times = {times : 'a -> 'a -> 'a};
+val times = #times : 'a times -> 'a -> 'a -> 'a;
+
+type 'a dvd = {times_dvd : 'a times};
+val times_dvd = #times_dvd : 'a dvd -> 'a times;
+
+val times_int = {times = times_inta} : inta times;
+
+val dvd_int = {times_dvd = times_int} : inta dvd;
+
+datatype num = One | Bit0 of num | Bit1 of num;
+
+val one_inta : inta = Int_of_integer (1 : IntInf.int);
+
+type 'a one = {one : 'a};
+val one = #one : 'a one -> 'a;
+
+val one_int = {one = one_inta} : inta one;
+
+fun sgn_integer k =
+  (if k = 0 then 0
+    else (if k < 0 then (~1 : IntInf.int) else (1 : IntInf.int)));
+
+fun abs_integer k = (if k < 0 then ~ k else k);
+
+fun apsnd f (x, y) = (x, f y);
+
+fun divmod_integer k l =
+  (if k = 0 then (0, 0)
+    else (if l = 0 then (0, k)
+           else (apsnd o (fn a => fn b => a * b) o sgn_integer) l
+                  (if sgn_integer k = sgn_integer l
+                    then Integer.div_mod (abs k) (abs l)
+                    else let
+                           val (r, s) = Integer.div_mod (abs k) (abs l);
+                         in
+                           (if s = 0 then (~ r, 0)
+                             else (~ r - (1 : IntInf.int), abs_integer l - s))
+                         end)));
+
+fun snd (x1, x2) = x2;
+
+fun mod_integer k l = snd (divmod_integer k l);
+
+fun mod_int k l =
+  Int_of_integer (mod_integer (integer_of_int k) (integer_of_int l));
+
+fun fst (x1, x2) = x1;
+
+fun div_integer k l = fst (divmod_integer k l);
+
+fun div_inta k l =
+  Int_of_integer (div_integer (integer_of_int k) (integer_of_int l));
+
+type 'a diva = {dvd_div : 'a dvd, diva : 'a -> 'a -> 'a, moda : 'a -> 'a -> 'a};
+val dvd_div = #dvd_div : 'a diva -> 'a dvd;
+val diva = #diva : 'a diva -> 'a -> 'a -> 'a;
+val moda = #moda : 'a diva -> 'a -> 'a -> 'a;
+
+val div_int = {dvd_div = dvd_int, diva = div_inta, moda = mod_int} : inta diva;
+
+fun plus_inta k l = Int_of_integer (integer_of_int k + integer_of_int l);
+
+type 'a plus = {plus : 'a -> 'a -> 'a};
+val plus = #plus : 'a plus -> 'a -> 'a -> 'a;
+
+val plus_int = {plus = plus_inta} : inta plus;
+
+val zero_inta : inta = Int_of_integer 0;
+
+type 'a zero = {zero : 'a};
+val zero = #zero : 'a zero -> 'a;
+
+val zero_int = {zero = zero_inta} : inta zero;
+
+type 'a semigroup_add = {plus_semigroup_add : 'a plus};
+val plus_semigroup_add = #plus_semigroup_add : 'a semigroup_add -> 'a plus;
+
+type 'a numeral =
+  {one_numeral : 'a one, semigroup_add_numeral : 'a semigroup_add};
+val one_numeral = #one_numeral : 'a numeral -> 'a one;
+val semigroup_add_numeral = #semigroup_add_numeral :
+  'a numeral -> 'a semigroup_add;
+
+val semigroup_add_int = {plus_semigroup_add = plus_int} : inta semigroup_add;
+
+val numeral_int =
+  {one_numeral = one_int, semigroup_add_numeral = semigroup_add_int} :
+  inta numeral;
+
+type 'a power = {one_power : 'a one, times_power : 'a times};
+val one_power = #one_power : 'a power -> 'a one;
+val times_power = #times_power : 'a power -> 'a times;
+
+val power_int = {one_power = one_int, times_power = times_int} : inta power;
+
+type 'a ab_semigroup_add = {semigroup_add_ab_semigroup_add : 'a semigroup_add};
+val semigroup_add_ab_semigroup_add = #semigroup_add_ab_semigroup_add :
+  'a ab_semigroup_add -> 'a semigroup_add;
+
+type 'a semigroup_mult = {times_semigroup_mult : 'a times};
+val times_semigroup_mult = #times_semigroup_mult :
+  'a semigroup_mult -> 'a times;
+
+type 'a semiring =
+  {ab_semigroup_add_semiring : 'a ab_semigroup_add,
+    semigroup_mult_semiring : 'a semigroup_mult};
+val ab_semigroup_add_semiring = #ab_semigroup_add_semiring :
+  'a semiring -> 'a ab_semigroup_add;
+val semigroup_mult_semiring = #semigroup_mult_semiring :
+  'a semiring -> 'a semigroup_mult;
+
+val ab_semigroup_add_int = {semigroup_add_ab_semigroup_add = semigroup_add_int}
+  : inta ab_semigroup_add;
+
+val semigroup_mult_int = {times_semigroup_mult = times_int} :
+  inta semigroup_mult;
+
+val semiring_int =
+  {ab_semigroup_add_semiring = ab_semigroup_add_int,
+    semigroup_mult_semiring = semigroup_mult_int}
+  : inta semiring;
+
+type 'a mult_zero = {times_mult_zero : 'a times, zero_mult_zero : 'a zero};
+val times_mult_zero = #times_mult_zero : 'a mult_zero -> 'a times;
+val zero_mult_zero = #zero_mult_zero : 'a mult_zero -> 'a zero;
+
+val mult_zero_int = {times_mult_zero = times_int, zero_mult_zero = zero_int} :
+  inta mult_zero;
+
+type 'a monoid_add =
+  {semigroup_add_monoid_add : 'a semigroup_add, zero_monoid_add : 'a zero};
+val semigroup_add_monoid_add = #semigroup_add_monoid_add :
+  'a monoid_add -> 'a semigroup_add;
+val zero_monoid_add = #zero_monoid_add : 'a monoid_add -> 'a zero;
+
+type 'a comm_monoid_add =
+  {ab_semigroup_add_comm_monoid_add : 'a ab_semigroup_add,
+    monoid_add_comm_monoid_add : 'a monoid_add};
+val ab_semigroup_add_comm_monoid_add = #ab_semigroup_add_comm_monoid_add :
+  'a comm_monoid_add -> 'a ab_semigroup_add;
+val monoid_add_comm_monoid_add = #monoid_add_comm_monoid_add :
+  'a comm_monoid_add -> 'a monoid_add;
+
+type 'a semiring_0 =
+  {comm_monoid_add_semiring_0 : 'a comm_monoid_add,
+    mult_zero_semiring_0 : 'a mult_zero, semiring_semiring_0 : 'a semiring};
+val comm_monoid_add_semiring_0 = #comm_monoid_add_semiring_0 :
+  'a semiring_0 -> 'a comm_monoid_add;
+val mult_zero_semiring_0 = #mult_zero_semiring_0 :
+  'a semiring_0 -> 'a mult_zero;
+val semiring_semiring_0 = #semiring_semiring_0 : 'a semiring_0 -> 'a semiring;
+
+val monoid_add_int =
+  {semigroup_add_monoid_add = semigroup_add_int, zero_monoid_add = zero_int} :
+  inta monoid_add;
+
+val comm_monoid_add_int =
+  {ab_semigroup_add_comm_monoid_add = ab_semigroup_add_int,
+    monoid_add_comm_monoid_add = monoid_add_int}
+  : inta comm_monoid_add;
+
+val semiring_0_int =
+  {comm_monoid_add_semiring_0 = comm_monoid_add_int,
+    mult_zero_semiring_0 = mult_zero_int, semiring_semiring_0 = semiring_int}
+  : inta semiring_0;
+
+type 'a monoid_mult =
+  {semigroup_mult_monoid_mult : 'a semigroup_mult,
+    power_monoid_mult : 'a power};
+val semigroup_mult_monoid_mult = #semigroup_mult_monoid_mult :
+  'a monoid_mult -> 'a semigroup_mult;
+val power_monoid_mult = #power_monoid_mult : 'a monoid_mult -> 'a power;
+
+type 'a semiring_numeral =
+  {monoid_mult_semiring_numeral : 'a monoid_mult,
+    numeral_semiring_numeral : 'a numeral,
+    semiring_semiring_numeral : 'a semiring};
+val monoid_mult_semiring_numeral = #monoid_mult_semiring_numeral :
+  'a semiring_numeral -> 'a monoid_mult;
+val numeral_semiring_numeral = #numeral_semiring_numeral :
+  'a semiring_numeral -> 'a numeral;
+val semiring_semiring_numeral = #semiring_semiring_numeral :
+  'a semiring_numeral -> 'a semiring;
+
+type 'a zero_neq_one = {one_zero_neq_one : 'a one, zero_zero_neq_one : 'a zero};
+val one_zero_neq_one = #one_zero_neq_one : 'a zero_neq_one -> 'a one;
+val zero_zero_neq_one = #zero_zero_neq_one : 'a zero_neq_one -> 'a zero;
+
+type 'a semiring_1 =
+  {semiring_numeral_semiring_1 : 'a semiring_numeral,
+    semiring_0_semiring_1 : 'a semiring_0,
+    zero_neq_one_semiring_1 : 'a zero_neq_one};
+val semiring_numeral_semiring_1 = #semiring_numeral_semiring_1 :
+  'a semiring_1 -> 'a semiring_numeral;
+val semiring_0_semiring_1 = #semiring_0_semiring_1 :
+  'a semiring_1 -> 'a semiring_0;
+val zero_neq_one_semiring_1 = #zero_neq_one_semiring_1 :
+  'a semiring_1 -> 'a zero_neq_one;
+
+val monoid_mult_int =
+  {semigroup_mult_monoid_mult = semigroup_mult_int,
+    power_monoid_mult = power_int}
+  : inta monoid_mult;
+
+val semiring_numeral_int =
+  {monoid_mult_semiring_numeral = monoid_mult_int,
+    numeral_semiring_numeral = numeral_int,
+    semiring_semiring_numeral = semiring_int}
+  : inta semiring_numeral;
+
+val zero_neq_one_int =
+  {one_zero_neq_one = one_int, zero_zero_neq_one = zero_int} :
+  inta zero_neq_one;
+
+val semiring_1_int =
+  {semiring_numeral_semiring_1 = semiring_numeral_int,
+    semiring_0_semiring_1 = semiring_0_int,
+    zero_neq_one_semiring_1 = zero_neq_one_int}
+  : inta semiring_1;
+
+type 'a ab_semigroup_mult =
+  {semigroup_mult_ab_semigroup_mult : 'a semigroup_mult};
+val semigroup_mult_ab_semigroup_mult = #semigroup_mult_ab_semigroup_mult :
+  'a ab_semigroup_mult -> 'a semigroup_mult;
+
+type 'a comm_semiring =
+  {ab_semigroup_mult_comm_semiring : 'a ab_semigroup_mult,
+    semiring_comm_semiring : 'a semiring};
+val ab_semigroup_mult_comm_semiring = #ab_semigroup_mult_comm_semiring :
+  'a comm_semiring -> 'a ab_semigroup_mult;
+val semiring_comm_semiring = #semiring_comm_semiring :
+  'a comm_semiring -> 'a semiring;
+
+val ab_semigroup_mult_int =
+  {semigroup_mult_ab_semigroup_mult = semigroup_mult_int} :
+  inta ab_semigroup_mult;
+
+val comm_semiring_int =
+  {ab_semigroup_mult_comm_semiring = ab_semigroup_mult_int,
+    semiring_comm_semiring = semiring_int}
+  : inta comm_semiring;
+
+type 'a cancel_semigroup_add =
+  {semigroup_add_cancel_semigroup_add : 'a semigroup_add};
+val semigroup_add_cancel_semigroup_add = #semigroup_add_cancel_semigroup_add :
+  'a cancel_semigroup_add -> 'a semigroup_add;
+
+type 'a cancel_ab_semigroup_add =
+  {ab_semigroup_add_cancel_ab_semigroup_add : 'a ab_semigroup_add,
+    cancel_semigroup_add_cancel_ab_semigroup_add : 'a cancel_semigroup_add};
+val ab_semigroup_add_cancel_ab_semigroup_add =
+  #ab_semigroup_add_cancel_ab_semigroup_add :
+  'a cancel_ab_semigroup_add -> 'a ab_semigroup_add;
+val cancel_semigroup_add_cancel_ab_semigroup_add =
+  #cancel_semigroup_add_cancel_ab_semigroup_add :
+  'a cancel_ab_semigroup_add -> 'a cancel_semigroup_add;
+
+type 'a cancel_comm_monoid_add =
+  {cancel_ab_semigroup_add_cancel_comm_monoid_add : 'a cancel_ab_semigroup_add,
+    comm_monoid_add_cancel_comm_monoid_add : 'a comm_monoid_add};
+val cancel_ab_semigroup_add_cancel_comm_monoid_add =
+  #cancel_ab_semigroup_add_cancel_comm_monoid_add :
+  'a cancel_comm_monoid_add -> 'a cancel_ab_semigroup_add;
+val comm_monoid_add_cancel_comm_monoid_add =
+  #comm_monoid_add_cancel_comm_monoid_add :
+  'a cancel_comm_monoid_add -> 'a comm_monoid_add;
+
+type 'a semiring_0_cancel =
+  {cancel_comm_monoid_add_semiring_0_cancel : 'a cancel_comm_monoid_add,
+    semiring_0_semiring_0_cancel : 'a semiring_0};
+val cancel_comm_monoid_add_semiring_0_cancel =
+  #cancel_comm_monoid_add_semiring_0_cancel :
+  'a semiring_0_cancel -> 'a cancel_comm_monoid_add;
+val semiring_0_semiring_0_cancel = #semiring_0_semiring_0_cancel :
+  'a semiring_0_cancel -> 'a semiring_0;
+
+type 'a comm_semiring_0 =
+  {comm_semiring_comm_semiring_0 : 'a comm_semiring,
+    semiring_0_comm_semiring_0 : 'a semiring_0};
+val comm_semiring_comm_semiring_0 = #comm_semiring_comm_semiring_0 :
+  'a comm_semiring_0 -> 'a comm_semiring;
+val semiring_0_comm_semiring_0 = #semiring_0_comm_semiring_0 :
+  'a comm_semiring_0 -> 'a semiring_0;
+
+type 'a comm_semiring_0_cancel =
+  {comm_semiring_0_comm_semiring_0_cancel : 'a comm_semiring_0,
+    semiring_0_cancel_comm_semiring_0_cancel : 'a semiring_0_cancel};
+val comm_semiring_0_comm_semiring_0_cancel =
+  #comm_semiring_0_comm_semiring_0_cancel :
+  'a comm_semiring_0_cancel -> 'a comm_semiring_0;
+val semiring_0_cancel_comm_semiring_0_cancel =
+  #semiring_0_cancel_comm_semiring_0_cancel :
+  'a comm_semiring_0_cancel -> 'a semiring_0_cancel;
+
+type 'a semiring_1_cancel =
+  {semiring_0_cancel_semiring_1_cancel : 'a semiring_0_cancel,
+    semiring_1_semiring_1_cancel : 'a semiring_1};
+val semiring_0_cancel_semiring_1_cancel = #semiring_0_cancel_semiring_1_cancel :
+  'a semiring_1_cancel -> 'a semiring_0_cancel;
+val semiring_1_semiring_1_cancel = #semiring_1_semiring_1_cancel :
+  'a semiring_1_cancel -> 'a semiring_1;
+
+type 'a comm_monoid_mult =
+  {ab_semigroup_mult_comm_monoid_mult : 'a ab_semigroup_mult,
+    monoid_mult_comm_monoid_mult : 'a monoid_mult};
+val ab_semigroup_mult_comm_monoid_mult = #ab_semigroup_mult_comm_monoid_mult :
+  'a comm_monoid_mult -> 'a ab_semigroup_mult;
+val monoid_mult_comm_monoid_mult = #monoid_mult_comm_monoid_mult :
+  'a comm_monoid_mult -> 'a monoid_mult;
+
+type 'a comm_semiring_1 =
+  {comm_monoid_mult_comm_semiring_1 : 'a comm_monoid_mult,
+    comm_semiring_0_comm_semiring_1 : 'a comm_semiring_0,
+    dvd_comm_semiring_1 : 'a dvd, semiring_1_comm_semiring_1 : 'a semiring_1};
+val comm_monoid_mult_comm_semiring_1 = #comm_monoid_mult_comm_semiring_1 :
+  'a comm_semiring_1 -> 'a comm_monoid_mult;
+val comm_semiring_0_comm_semiring_1 = #comm_semiring_0_comm_semiring_1 :
+  'a comm_semiring_1 -> 'a comm_semiring_0;
+val dvd_comm_semiring_1 = #dvd_comm_semiring_1 : 'a comm_semiring_1 -> 'a dvd;
+val semiring_1_comm_semiring_1 = #semiring_1_comm_semiring_1 :
+  'a comm_semiring_1 -> 'a semiring_1;
+
+type 'a comm_semiring_1_cancel =
+  {comm_semiring_0_cancel_comm_semiring_1_cancel : 'a comm_semiring_0_cancel,
+    comm_semiring_1_comm_semiring_1_cancel : 'a comm_semiring_1,
+    semiring_1_cancel_comm_semiring_1_cancel : 'a semiring_1_cancel};
+val comm_semiring_0_cancel_comm_semiring_1_cancel =
+  #comm_semiring_0_cancel_comm_semiring_1_cancel :
+  'a comm_semiring_1_cancel -> 'a comm_semiring_0_cancel;
+val comm_semiring_1_comm_semiring_1_cancel =
+  #comm_semiring_1_comm_semiring_1_cancel :
+  'a comm_semiring_1_cancel -> 'a comm_semiring_1;
+val semiring_1_cancel_comm_semiring_1_cancel =
+  #semiring_1_cancel_comm_semiring_1_cancel :
+  'a comm_semiring_1_cancel -> 'a semiring_1_cancel;
+
+type 'a no_zero_divisors =
+  {times_no_zero_divisors : 'a times, zero_no_zero_divisors : 'a zero};
+val times_no_zero_divisors = #times_no_zero_divisors :
+  'a no_zero_divisors -> 'a times;
+val zero_no_zero_divisors = #zero_no_zero_divisors :
+  'a no_zero_divisors -> 'a zero;
+
+type 'a semiring_div =
+  {div_semiring_div : 'a diva,
+    comm_semiring_1_cancel_semiring_div : 'a comm_semiring_1_cancel,
+    no_zero_divisors_semiring_div : 'a no_zero_divisors};
+val div_semiring_div = #div_semiring_div : 'a semiring_div -> 'a diva;
+val comm_semiring_1_cancel_semiring_div = #comm_semiring_1_cancel_semiring_div :
+  'a semiring_div -> 'a comm_semiring_1_cancel;
+val no_zero_divisors_semiring_div = #no_zero_divisors_semiring_div :
+  'a semiring_div -> 'a no_zero_divisors;
+
+val cancel_semigroup_add_int =
+  {semigroup_add_cancel_semigroup_add = semigroup_add_int} :
+  inta cancel_semigroup_add;
+
+val cancel_ab_semigroup_add_int =
+  {ab_semigroup_add_cancel_ab_semigroup_add = ab_semigroup_add_int,
+    cancel_semigroup_add_cancel_ab_semigroup_add = cancel_semigroup_add_int}
+  : inta cancel_ab_semigroup_add;
+
+val cancel_comm_monoid_add_int =
+  {cancel_ab_semigroup_add_cancel_comm_monoid_add = cancel_ab_semigroup_add_int,
+    comm_monoid_add_cancel_comm_monoid_add = comm_monoid_add_int}
+  : inta cancel_comm_monoid_add;
+
+val semiring_0_cancel_int =
+  {cancel_comm_monoid_add_semiring_0_cancel = cancel_comm_monoid_add_int,
+    semiring_0_semiring_0_cancel = semiring_0_int}
+  : inta semiring_0_cancel;
+
+val comm_semiring_0_int =
+  {comm_semiring_comm_semiring_0 = comm_semiring_int,
+    semiring_0_comm_semiring_0 = semiring_0_int}
+  : inta comm_semiring_0;
+
+val comm_semiring_0_cancel_int =
+  {comm_semiring_0_comm_semiring_0_cancel = comm_semiring_0_int,
+    semiring_0_cancel_comm_semiring_0_cancel = semiring_0_cancel_int}
+  : inta comm_semiring_0_cancel;
+
+val semiring_1_cancel_int =
+  {semiring_0_cancel_semiring_1_cancel = semiring_0_cancel_int,
+    semiring_1_semiring_1_cancel = semiring_1_int}
+  : inta semiring_1_cancel;
+
+val comm_monoid_mult_int =
+  {ab_semigroup_mult_comm_monoid_mult = ab_semigroup_mult_int,
+    monoid_mult_comm_monoid_mult = monoid_mult_int}
+  : inta comm_monoid_mult;
+
+val comm_semiring_1_int =
+  {comm_monoid_mult_comm_semiring_1 = comm_monoid_mult_int,
+    comm_semiring_0_comm_semiring_1 = comm_semiring_0_int,
+    dvd_comm_semiring_1 = dvd_int, semiring_1_comm_semiring_1 = semiring_1_int}
+  : inta comm_semiring_1;
+
+val comm_semiring_1_cancel_int =
+  {comm_semiring_0_cancel_comm_semiring_1_cancel = comm_semiring_0_cancel_int,
+    comm_semiring_1_comm_semiring_1_cancel = comm_semiring_1_int,
+    semiring_1_cancel_comm_semiring_1_cancel = semiring_1_cancel_int}
+  : inta comm_semiring_1_cancel;
+
+val no_zero_divisors_int =
+  {times_no_zero_divisors = times_int, zero_no_zero_divisors = zero_int} :
+  inta no_zero_divisors;
+
+val semiring_div_int =
+  {div_semiring_div = div_int,
+    comm_semiring_1_cancel_semiring_div = comm_semiring_1_cancel_int,
+    no_zero_divisors_semiring_div = no_zero_divisors_int}
+  : inta semiring_div;
 
 datatype nat = Nat of int;
 
-datatype num = One | Bit0 of num | Bit1 of num;
+fun integer_of_nat (Nat x) = x;
+
+fun equal_nat m n = integer_of_nat m = integer_of_nat n;
+
+datatype numa = C of inta | Bound of nat | Cn of nat * inta * numa | Neg of numa
+  | Add of numa * numa | Sub of numa * numa | Mul of inta * numa;
+
+fun equal_numa (Sub (num1, num2)) (Mul (inta, num)) = false
+  | equal_numa (Mul (inta, num)) (Sub (num1, num2)) = false
+  | equal_numa (Add (num1, num2)) (Mul (inta, num)) = false
+  | equal_numa (Mul (inta, num)) (Add (num1, num2)) = false
+  | equal_numa (Add (num1a, num2a)) (Sub (num1, num2)) = false
+  | equal_numa (Sub (num1a, num2a)) (Add (num1, num2)) = false
+  | equal_numa (Neg numa) (Mul (inta, num)) = false
+  | equal_numa (Mul (inta, numa)) (Neg num) = false
+  | equal_numa (Neg num) (Sub (num1, num2)) = false
+  | equal_numa (Sub (num1, num2)) (Neg num) = false
+  | equal_numa (Neg num) (Add (num1, num2)) = false
+  | equal_numa (Add (num1, num2)) (Neg num) = false
+  | equal_numa (Cn (nat, intaa, numa)) (Mul (inta, num)) = false
+  | equal_numa (Mul (intaa, numa)) (Cn (nat, inta, num)) = false
+  | equal_numa (Cn (nat, inta, num)) (Sub (num1, num2)) = false
+  | equal_numa (Sub (num1, num2)) (Cn (nat, inta, num)) = false
+  | equal_numa (Cn (nat, inta, num)) (Add (num1, num2)) = false
+  | equal_numa (Add (num1, num2)) (Cn (nat, inta, num)) = false
+  | equal_numa (Cn (nat, inta, numa)) (Neg num) = false
+  | equal_numa (Neg numa) (Cn (nat, inta, num)) = false
+  | equal_numa (Bound nat) (Mul (inta, num)) = false
+  | equal_numa (Mul (inta, num)) (Bound nat) = false
+  | equal_numa (Bound nat) (Sub (num1, num2)) = false
+  | equal_numa (Sub (num1, num2)) (Bound nat) = false
+  | equal_numa (Bound nat) (Add (num1, num2)) = false
+  | equal_numa (Add (num1, num2)) (Bound nat) = false
+  | equal_numa (Bound nat) (Neg num) = false
+  | equal_numa (Neg num) (Bound nat) = false
+  | equal_numa (Bound nata) (Cn (nat, inta, num)) = false
+  | equal_numa (Cn (nata, inta, num)) (Bound nat) = false
+  | equal_numa (C intaa) (Mul (inta, num)) = false
+  | equal_numa (Mul (intaa, num)) (C inta) = false
+  | equal_numa (C inta) (Sub (num1, num2)) = false
+  | equal_numa (Sub (num1, num2)) (C inta) = false
+  | equal_numa (C inta) (Add (num1, num2)) = false
+  | equal_numa (Add (num1, num2)) (C inta) = false
+  | equal_numa (C inta) (Neg num) = false
+  | equal_numa (Neg num) (C inta) = false
+  | equal_numa (C intaa) (Cn (nat, inta, num)) = false
+  | equal_numa (Cn (nat, intaa, num)) (C inta) = false
+  | equal_numa (C inta) (Bound nat) = false
+  | equal_numa (Bound nat) (C inta) = false
+  | equal_numa (Mul (intaa, numa)) (Mul (inta, num)) =
+    equal_inta intaa inta andalso equal_numa numa num
+  | equal_numa (Sub (num1a, num2a)) (Sub (num1, num2)) =
+    equal_numa num1a num1 andalso equal_numa num2a num2
+  | equal_numa (Add (num1a, num2a)) (Add (num1, num2)) =
+    equal_numa num1a num1 andalso equal_numa num2a num2
+  | equal_numa (Neg numa) (Neg num) = equal_numa numa num
+  | equal_numa (Cn (nata, intaa, numa)) (Cn (nat, inta, num)) =
+    equal_nat nata nat andalso
+      (equal_inta intaa inta andalso equal_numa numa num)
+  | equal_numa (Bound nata) (Bound nat) = equal_nat nata nat
+  | equal_numa (C intaa) (C inta) = equal_inta intaa inta;
+
+val equal_num = {equal = equal_numa} : numa equal;
 
 type 'a ord = {less_eq : 'a -> 'a -> bool, less : 'a -> 'a -> bool};
 val less_eq = #less_eq : 'a ord -> 'a -> 'a -> bool;
@@ -270,26 +517,20 @@ val ord_integer =
   {less_eq = (fn a => fn b => a <= b), less = (fn a => fn b => a < b)} :
   int ord;
 
-fun max A_ a b = (if less_eq A_ a b then b else a);
-
-fun nat_of_integer k = Nat (max ord_integer 0 k);
-
-fun integer_of_nat (Nat x) = x;
-
-fun plus_nat m n = Nat (integer_of_nat m + integer_of_nat n);
-
-fun suc n = plus_nat n (nat_of_integer (1 : IntInf.int));
-
-datatype numa = C of inta | Bound of nat | Cn of nat * inta * numa | Neg of numa
-  | Add of numa * numa | Sub of numa * numa | Mul of inta * numa;
-
 datatype fm = T | F | Lt of numa | Le of numa | Gt of numa | Ge of numa |
   Eq of numa | NEq of numa | Dvd of inta * numa | NDvd of inta * numa |
   Not of fm | And of fm * fm | Or of fm * fm | Imp of fm * fm | Iff of fm * fm |
   E of fm | A of fm | Closed of nat | NClosed of nat;
 
-fun map f [] = []
-  | map f (x :: xs) = f x :: map f xs;
+fun id x = (fn xa => xa) x;
+
+fun eq A_ a b = equal A_ a b;
+
+fun plus_nat m n = Nat (integer_of_nat m + integer_of_nat n);
+
+val one_nat : nat = Nat (1 : IntInf.int);
+
+fun suc n = plus_nat n one_nat;
 
 fun disjuncts (Or (p, q)) = disjuncts p @ disjuncts q
   | disjuncts F = []
@@ -314,409 +555,348 @@ fun disjuncts (Or (p, q)) = disjuncts p @ disjuncts q
 fun foldr f [] = id
   | foldr f (x :: xs) = f x o foldr f xs;
 
-fun equal_nat m n = integer_of_nat m = integer_of_nat n;
-
-fun integer_of_int (Int_of_integer k) = k;
-
-fun equal_inta k l = integer_of_int k = integer_of_int l;
-
-fun equal_numa (Mul (inta, num)) (Sub (num1, num2)) = false
-  | equal_numa (Sub (num1, num2)) (Mul (inta, num)) = false
-  | equal_numa (Mul (inta, num)) (Add (num1, num2)) = false
-  | equal_numa (Add (num1, num2)) (Mul (inta, num)) = false
-  | equal_numa (Sub (num1a, num2a)) (Add (num1, num2)) = false
-  | equal_numa (Add (num1a, num2a)) (Sub (num1, num2)) = false
-  | equal_numa (Mul (inta, numa)) (Neg num) = false
-  | equal_numa (Neg numa) (Mul (inta, num)) = false
-  | equal_numa (Sub (num1, num2)) (Neg num) = false
-  | equal_numa (Neg num) (Sub (num1, num2)) = false
-  | equal_numa (Add (num1, num2)) (Neg num) = false
-  | equal_numa (Neg num) (Add (num1, num2)) = false
-  | equal_numa (Mul (intaa, numa)) (Cn (nat, inta, num)) = false
-  | equal_numa (Cn (nat, intaa, numa)) (Mul (inta, num)) = false
-  | equal_numa (Sub (num1, num2)) (Cn (nat, inta, num)) = false
-  | equal_numa (Cn (nat, inta, num)) (Sub (num1, num2)) = false
-  | equal_numa (Add (num1, num2)) (Cn (nat, inta, num)) = false
-  | equal_numa (Cn (nat, inta, num)) (Add (num1, num2)) = false
-  | equal_numa (Neg numa) (Cn (nat, inta, num)) = false
-  | equal_numa (Cn (nat, inta, numa)) (Neg num) = false
-  | equal_numa (Mul (inta, num)) (Bound nat) = false
-  | equal_numa (Bound nat) (Mul (inta, num)) = false
-  | equal_numa (Sub (num1, num2)) (Bound nat) = false
-  | equal_numa (Bound nat) (Sub (num1, num2)) = false
-  | equal_numa (Add (num1, num2)) (Bound nat) = false
-  | equal_numa (Bound nat) (Add (num1, num2)) = false
-  | equal_numa (Neg num) (Bound nat) = false
-  | equal_numa (Bound nat) (Neg num) = false
-  | equal_numa (Cn (nata, inta, num)) (Bound nat) = false
-  | equal_numa (Bound nata) (Cn (nat, inta, num)) = false
-  | equal_numa (Mul (intaa, num)) (C inta) = false
-  | equal_numa (C intaa) (Mul (inta, num)) = false
-  | equal_numa (Sub (num1, num2)) (C inta) = false
-  | equal_numa (C inta) (Sub (num1, num2)) = false
-  | equal_numa (Add (num1, num2)) (C inta) = false
-  | equal_numa (C inta) (Add (num1, num2)) = false
-  | equal_numa (Neg num) (C inta) = false
-  | equal_numa (C inta) (Neg num) = false
-  | equal_numa (Cn (nat, intaa, num)) (C inta) = false
-  | equal_numa (C intaa) (Cn (nat, inta, num)) = false
-  | equal_numa (Bound nat) (C inta) = false
-  | equal_numa (C inta) (Bound nat) = false
-  | equal_numa (Mul (intaa, numa)) (Mul (inta, num)) =
-    equal_inta intaa inta andalso equal_numa numa num
-  | equal_numa (Sub (num1a, num2a)) (Sub (num1, num2)) =
-    equal_numa num1a num1 andalso equal_numa num2a num2
-  | equal_numa (Add (num1a, num2a)) (Add (num1, num2)) =
-    equal_numa num1a num1 andalso equal_numa num2a num2
-  | equal_numa (Neg numa) (Neg num) = equal_numa numa num
-  | equal_numa (Cn (nata, intaa, numa)) (Cn (nat, inta, num)) =
-    equal_nat nata nat andalso
-      (equal_inta intaa inta andalso equal_numa numa num)
-  | equal_numa (Bound nata) (Bound nat) = equal_nat nata nat
-  | equal_numa (C intaa) (C inta) = equal_inta intaa inta;
-
-fun equal_fm (NClosed nata) (Closed nat) = false
-  | equal_fm (Closed nata) (NClosed nat) = false
-  | equal_fm (NClosed nat) (A fm) = false
+fun equal_fm (Closed nata) (NClosed nat) = false
+  | equal_fm (NClosed nata) (Closed nat) = false
   | equal_fm (A fm) (NClosed nat) = false
-  | equal_fm (Closed nat) (A fm) = false
+  | equal_fm (NClosed nat) (A fm) = false
   | equal_fm (A fm) (Closed nat) = false
-  | equal_fm (NClosed nat) (E fm) = false
+  | equal_fm (Closed nat) (A fm) = false
   | equal_fm (E fm) (NClosed nat) = false
-  | equal_fm (Closed nat) (E fm) = false
+  | equal_fm (NClosed nat) (E fm) = false
   | equal_fm (E fm) (Closed nat) = false
-  | equal_fm (A fma) (E fm) = false
+  | equal_fm (Closed nat) (E fm) = false
   | equal_fm (E fma) (A fm) = false
-  | equal_fm (NClosed nat) (Iff (fm1, fm2)) = false
+  | equal_fm (A fma) (E fm) = false
   | equal_fm (Iff (fm1, fm2)) (NClosed nat) = false
-  | equal_fm (Closed nat) (Iff (fm1, fm2)) = false
+  | equal_fm (NClosed nat) (Iff (fm1, fm2)) = false
   | equal_fm (Iff (fm1, fm2)) (Closed nat) = false
-  | equal_fm (A fm) (Iff (fm1, fm2)) = false
+  | equal_fm (Closed nat) (Iff (fm1, fm2)) = false
   | equal_fm (Iff (fm1, fm2)) (A fm) = false
-  | equal_fm (E fm) (Iff (fm1, fm2)) = false
+  | equal_fm (A fm) (Iff (fm1, fm2)) = false
   | equal_fm (Iff (fm1, fm2)) (E fm) = false
-  | equal_fm (NClosed nat) (Imp (fm1, fm2)) = false
+  | equal_fm (E fm) (Iff (fm1, fm2)) = false
   | equal_fm (Imp (fm1, fm2)) (NClosed nat) = false
-  | equal_fm (Closed nat) (Imp (fm1, fm2)) = false
+  | equal_fm (NClosed nat) (Imp (fm1, fm2)) = false
   | equal_fm (Imp (fm1, fm2)) (Closed nat) = false
-  | equal_fm (A fm) (Imp (fm1, fm2)) = false
+  | equal_fm (Closed nat) (Imp (fm1, fm2)) = false
   | equal_fm (Imp (fm1, fm2)) (A fm) = false
-  | equal_fm (E fm) (Imp (fm1, fm2)) = false
+  | equal_fm (A fm) (Imp (fm1, fm2)) = false
   | equal_fm (Imp (fm1, fm2)) (E fm) = false
-  | equal_fm (Iff (fm1a, fm2a)) (Imp (fm1, fm2)) = false
+  | equal_fm (E fm) (Imp (fm1, fm2)) = false
   | equal_fm (Imp (fm1a, fm2a)) (Iff (fm1, fm2)) = false
-  | equal_fm (NClosed nat) (Or (fm1, fm2)) = false
+  | equal_fm (Iff (fm1a, fm2a)) (Imp (fm1, fm2)) = false
   | equal_fm (Or (fm1, fm2)) (NClosed nat) = false
-  | equal_fm (Closed nat) (Or (fm1, fm2)) = false
+  | equal_fm (NClosed nat) (Or (fm1, fm2)) = false
   | equal_fm (Or (fm1, fm2)) (Closed nat) = false
-  | equal_fm (A fm) (Or (fm1, fm2)) = false
+  | equal_fm (Closed nat) (Or (fm1, fm2)) = false
   | equal_fm (Or (fm1, fm2)) (A fm) = false
-  | equal_fm (E fm) (Or (fm1, fm2)) = false
+  | equal_fm (A fm) (Or (fm1, fm2)) = false
   | equal_fm (Or (fm1, fm2)) (E fm) = false
-  | equal_fm (Iff (fm1a, fm2a)) (Or (fm1, fm2)) = false
+  | equal_fm (E fm) (Or (fm1, fm2)) = false
   | equal_fm (Or (fm1a, fm2a)) (Iff (fm1, fm2)) = false
-  | equal_fm (Imp (fm1a, fm2a)) (Or (fm1, fm2)) = false
+  | equal_fm (Iff (fm1a, fm2a)) (Or (fm1, fm2)) = false
   | equal_fm (Or (fm1a, fm2a)) (Imp (fm1, fm2)) = false
-  | equal_fm (NClosed nat) (And (fm1, fm2)) = false
+  | equal_fm (Imp (fm1a, fm2a)) (Or (fm1, fm2)) = false
   | equal_fm (And (fm1, fm2)) (NClosed nat) = false
-  | equal_fm (Closed nat) (And (fm1, fm2)) = false
+  | equal_fm (NClosed nat) (And (fm1, fm2)) = false
   | equal_fm (And (fm1, fm2)) (Closed nat) = false
-  | equal_fm (A fm) (And (fm1, fm2)) = false
+  | equal_fm (Closed nat) (And (fm1, fm2)) = false
   | equal_fm (And (fm1, fm2)) (A fm) = false
-  | equal_fm (E fm) (And (fm1, fm2)) = false
+  | equal_fm (A fm) (And (fm1, fm2)) = false
   | equal_fm (And (fm1, fm2)) (E fm) = false
-  | equal_fm (Iff (fm1a, fm2a)) (And (fm1, fm2)) = false
+  | equal_fm (E fm) (And (fm1, fm2)) = false
   | equal_fm (And (fm1a, fm2a)) (Iff (fm1, fm2)) = false
-  | equal_fm (Imp (fm1a, fm2a)) (And (fm1, fm2)) = false
+  | equal_fm (Iff (fm1a, fm2a)) (And (fm1, fm2)) = false
   | equal_fm (And (fm1a, fm2a)) (Imp (fm1, fm2)) = false
-  | equal_fm (Or (fm1a, fm2a)) (And (fm1, fm2)) = false
+  | equal_fm (Imp (fm1a, fm2a)) (And (fm1, fm2)) = false
   | equal_fm (And (fm1a, fm2a)) (Or (fm1, fm2)) = false
-  | equal_fm (NClosed nat) (Not fm) = false
+  | equal_fm (Or (fm1a, fm2a)) (And (fm1, fm2)) = false
   | equal_fm (Not fm) (NClosed nat) = false
-  | equal_fm (Closed nat) (Not fm) = false
+  | equal_fm (NClosed nat) (Not fm) = false
   | equal_fm (Not fm) (Closed nat) = false
-  | equal_fm (A fma) (Not fm) = false
+  | equal_fm (Closed nat) (Not fm) = false
   | equal_fm (Not fma) (A fm) = false
-  | equal_fm (E fma) (Not fm) = false
+  | equal_fm (A fma) (Not fm) = false
   | equal_fm (Not fma) (E fm) = false
-  | equal_fm (Iff (fm1, fm2)) (Not fm) = false
+  | equal_fm (E fma) (Not fm) = false
   | equal_fm (Not fm) (Iff (fm1, fm2)) = false
-  | equal_fm (Imp (fm1, fm2)) (Not fm) = false
+  | equal_fm (Iff (fm1, fm2)) (Not fm) = false
   | equal_fm (Not fm) (Imp (fm1, fm2)) = false
-  | equal_fm (Or (fm1, fm2)) (Not fm) = false
+  | equal_fm (Imp (fm1, fm2)) (Not fm) = false
   | equal_fm (Not fm) (Or (fm1, fm2)) = false
-  | equal_fm (And (fm1, fm2)) (Not fm) = false
+  | equal_fm (Or (fm1, fm2)) (Not fm) = false
   | equal_fm (Not fm) (And (fm1, fm2)) = false
-  | equal_fm (NClosed nat) (NDvd (inta, num)) = false
+  | equal_fm (And (fm1, fm2)) (Not fm) = false
   | equal_fm (NDvd (inta, num)) (NClosed nat) = false
-  | equal_fm (Closed nat) (NDvd (inta, num)) = false
+  | equal_fm (NClosed nat) (NDvd (inta, num)) = false
   | equal_fm (NDvd (inta, num)) (Closed nat) = false
-  | equal_fm (A fm) (NDvd (inta, num)) = false
+  | equal_fm (Closed nat) (NDvd (inta, num)) = false
   | equal_fm (NDvd (inta, num)) (A fm) = false
-  | equal_fm (E fm) (NDvd (inta, num)) = false
+  | equal_fm (A fm) (NDvd (inta, num)) = false
   | equal_fm (NDvd (inta, num)) (E fm) = false
-  | equal_fm (Iff (fm1, fm2)) (NDvd (inta, num)) = false
+  | equal_fm (E fm) (NDvd (inta, num)) = false
   | equal_fm (NDvd (inta, num)) (Iff (fm1, fm2)) = false
-  | equal_fm (Imp (fm1, fm2)) (NDvd (inta, num)) = false
+  | equal_fm (Iff (fm1, fm2)) (NDvd (inta, num)) = false
   | equal_fm (NDvd (inta, num)) (Imp (fm1, fm2)) = false
-  | equal_fm (Or (fm1, fm2)) (NDvd (inta, num)) = false
+  | equal_fm (Imp (fm1, fm2)) (NDvd (inta, num)) = false
   | equal_fm (NDvd (inta, num)) (Or (fm1, fm2)) = false
-  | equal_fm (And (fm1, fm2)) (NDvd (inta, num)) = false
+  | equal_fm (Or (fm1, fm2)) (NDvd (inta, num)) = false
   | equal_fm (NDvd (inta, num)) (And (fm1, fm2)) = false
-  | equal_fm (Not fm) (NDvd (inta, num)) = false
+  | equal_fm (And (fm1, fm2)) (NDvd (inta, num)) = false
   | equal_fm (NDvd (inta, num)) (Not fm) = false
-  | equal_fm (NClosed nat) (Dvd (inta, num)) = false
+  | equal_fm (Not fm) (NDvd (inta, num)) = false
   | equal_fm (Dvd (inta, num)) (NClosed nat) = false
-  | equal_fm (Closed nat) (Dvd (inta, num)) = false
+  | equal_fm (NClosed nat) (Dvd (inta, num)) = false
   | equal_fm (Dvd (inta, num)) (Closed nat) = false
-  | equal_fm (A fm) (Dvd (inta, num)) = false
+  | equal_fm (Closed nat) (Dvd (inta, num)) = false
   | equal_fm (Dvd (inta, num)) (A fm) = false
-  | equal_fm (E fm) (Dvd (inta, num)) = false
+  | equal_fm (A fm) (Dvd (inta, num)) = false
   | equal_fm (Dvd (inta, num)) (E fm) = false
-  | equal_fm (Iff (fm1, fm2)) (Dvd (inta, num)) = false
+  | equal_fm (E fm) (Dvd (inta, num)) = false
   | equal_fm (Dvd (inta, num)) (Iff (fm1, fm2)) = false
-  | equal_fm (Imp (fm1, fm2)) (Dvd (inta, num)) = false
+  | equal_fm (Iff (fm1, fm2)) (Dvd (inta, num)) = false
   | equal_fm (Dvd (inta, num)) (Imp (fm1, fm2)) = false
-  | equal_fm (Or (fm1, fm2)) (Dvd (inta, num)) = false
+  | equal_fm (Imp (fm1, fm2)) (Dvd (inta, num)) = false
   | equal_fm (Dvd (inta, num)) (Or (fm1, fm2)) = false
-  | equal_fm (And (fm1, fm2)) (Dvd (inta, num)) = false
+  | equal_fm (Or (fm1, fm2)) (Dvd (inta, num)) = false
   | equal_fm (Dvd (inta, num)) (And (fm1, fm2)) = false
-  | equal_fm (Not fm) (Dvd (inta, num)) = false
+  | equal_fm (And (fm1, fm2)) (Dvd (inta, num)) = false
   | equal_fm (Dvd (inta, num)) (Not fm) = false
-  | equal_fm (NDvd (intaa, numa)) (Dvd (inta, num)) = false
+  | equal_fm (Not fm) (Dvd (inta, num)) = false
   | equal_fm (Dvd (intaa, numa)) (NDvd (inta, num)) = false
-  | equal_fm (NClosed nat) (NEq num) = false
+  | equal_fm (NDvd (intaa, numa)) (Dvd (inta, num)) = false
   | equal_fm (NEq num) (NClosed nat) = false
-  | equal_fm (Closed nat) (NEq num) = false
+  | equal_fm (NClosed nat) (NEq num) = false
   | equal_fm (NEq num) (Closed nat) = false
-  | equal_fm (A fm) (NEq num) = false
+  | equal_fm (Closed nat) (NEq num) = false
   | equal_fm (NEq num) (A fm) = false
-  | equal_fm (E fm) (NEq num) = false
+  | equal_fm (A fm) (NEq num) = false
   | equal_fm (NEq num) (E fm) = false
-  | equal_fm (Iff (fm1, fm2)) (NEq num) = false
+  | equal_fm (E fm) (NEq num) = false
   | equal_fm (NEq num) (Iff (fm1, fm2)) = false
-  | equal_fm (Imp (fm1, fm2)) (NEq num) = false
+  | equal_fm (Iff (fm1, fm2)) (NEq num) = false
   | equal_fm (NEq num) (Imp (fm1, fm2)) = false
-  | equal_fm (Or (fm1, fm2)) (NEq num) = false
+  | equal_fm (Imp (fm1, fm2)) (NEq num) = false
   | equal_fm (NEq num) (Or (fm1, fm2)) = false
-  | equal_fm (And (fm1, fm2)) (NEq num) = false
+  | equal_fm (Or (fm1, fm2)) (NEq num) = false
   | equal_fm (NEq num) (And (fm1, fm2)) = false
-  | equal_fm (Not fm) (NEq num) = false
+  | equal_fm (And (fm1, fm2)) (NEq num) = false
   | equal_fm (NEq num) (Not fm) = false
-  | equal_fm (NDvd (inta, numa)) (NEq num) = false
+  | equal_fm (Not fm) (NEq num) = false
   | equal_fm (NEq numa) (NDvd (inta, num)) = false
-  | equal_fm (Dvd (inta, numa)) (NEq num) = false
+  | equal_fm (NDvd (inta, numa)) (NEq num) = false
   | equal_fm (NEq numa) (Dvd (inta, num)) = false
-  | equal_fm (NClosed nat) (Eq num) = false
+  | equal_fm (Dvd (inta, numa)) (NEq num) = false
   | equal_fm (Eq num) (NClosed nat) = false
-  | equal_fm (Closed nat) (Eq num) = false
+  | equal_fm (NClosed nat) (Eq num) = false
   | equal_fm (Eq num) (Closed nat) = false
-  | equal_fm (A fm) (Eq num) = false
+  | equal_fm (Closed nat) (Eq num) = false
   | equal_fm (Eq num) (A fm) = false
-  | equal_fm (E fm) (Eq num) = false
+  | equal_fm (A fm) (Eq num) = false
   | equal_fm (Eq num) (E fm) = false
-  | equal_fm (Iff (fm1, fm2)) (Eq num) = false
+  | equal_fm (E fm) (Eq num) = false
   | equal_fm (Eq num) (Iff (fm1, fm2)) = false
-  | equal_fm (Imp (fm1, fm2)) (Eq num) = false
+  | equal_fm (Iff (fm1, fm2)) (Eq num) = false
   | equal_fm (Eq num) (Imp (fm1, fm2)) = false
-  | equal_fm (Or (fm1, fm2)) (Eq num) = false
+  | equal_fm (Imp (fm1, fm2)) (Eq num) = false
   | equal_fm (Eq num) (Or (fm1, fm2)) = false
-  | equal_fm (And (fm1, fm2)) (Eq num) = false
+  | equal_fm (Or (fm1, fm2)) (Eq num) = false
   | equal_fm (Eq num) (And (fm1, fm2)) = false
-  | equal_fm (Not fm) (Eq num) = false
+  | equal_fm (And (fm1, fm2)) (Eq num) = false
   | equal_fm (Eq num) (Not fm) = false
-  | equal_fm (NDvd (inta, numa)) (Eq num) = false
+  | equal_fm (Not fm) (Eq num) = false
   | equal_fm (Eq numa) (NDvd (inta, num)) = false
-  | equal_fm (Dvd (inta, numa)) (Eq num) = false
+  | equal_fm (NDvd (inta, numa)) (Eq num) = false
   | equal_fm (Eq numa) (Dvd (inta, num)) = false
-  | equal_fm (NEq numa) (Eq num) = false
+  | equal_fm (Dvd (inta, numa)) (Eq num) = false
   | equal_fm (Eq numa) (NEq num) = false
-  | equal_fm (NClosed nat) (Ge num) = false
+  | equal_fm (NEq numa) (Eq num) = false
   | equal_fm (Ge num) (NClosed nat) = false
-  | equal_fm (Closed nat) (Ge num) = false
+  | equal_fm (NClosed nat) (Ge num) = false
   | equal_fm (Ge num) (Closed nat) = false
-  | equal_fm (A fm) (Ge num) = false
+  | equal_fm (Closed nat) (Ge num) = false
   | equal_fm (Ge num) (A fm) = false
-  | equal_fm (E fm) (Ge num) = false
+  | equal_fm (A fm) (Ge num) = false
   | equal_fm (Ge num) (E fm) = false
-  | equal_fm (Iff (fm1, fm2)) (Ge num) = false
+  | equal_fm (E fm) (Ge num) = false
   | equal_fm (Ge num) (Iff (fm1, fm2)) = false
-  | equal_fm (Imp (fm1, fm2)) (Ge num) = false
+  | equal_fm (Iff (fm1, fm2)) (Ge num) = false
   | equal_fm (Ge num) (Imp (fm1, fm2)) = false
-  | equal_fm (Or (fm1, fm2)) (Ge num) = false
+  | equal_fm (Imp (fm1, fm2)) (Ge num) = false
   | equal_fm (Ge num) (Or (fm1, fm2)) = false
-  | equal_fm (And (fm1, fm2)) (Ge num) = false
+  | equal_fm (Or (fm1, fm2)) (Ge num) = false
   | equal_fm (Ge num) (And (fm1, fm2)) = false
-  | equal_fm (Not fm) (Ge num) = false
+  | equal_fm (And (fm1, fm2)) (Ge num) = false
   | equal_fm (Ge num) (Not fm) = false
-  | equal_fm (NDvd (inta, numa)) (Ge num) = false
+  | equal_fm (Not fm) (Ge num) = false
   | equal_fm (Ge numa) (NDvd (inta, num)) = false
-  | equal_fm (Dvd (inta, numa)) (Ge num) = false
+  | equal_fm (NDvd (inta, numa)) (Ge num) = false
   | equal_fm (Ge numa) (Dvd (inta, num)) = false
-  | equal_fm (NEq numa) (Ge num) = false
+  | equal_fm (Dvd (inta, numa)) (Ge num) = false
   | equal_fm (Ge numa) (NEq num) = false
-  | equal_fm (Eq numa) (Ge num) = false
+  | equal_fm (NEq numa) (Ge num) = false
   | equal_fm (Ge numa) (Eq num) = false
-  | equal_fm (NClosed nat) (Gt num) = false
+  | equal_fm (Eq numa) (Ge num) = false
   | equal_fm (Gt num) (NClosed nat) = false
-  | equal_fm (Closed nat) (Gt num) = false
+  | equal_fm (NClosed nat) (Gt num) = false
   | equal_fm (Gt num) (Closed nat) = false
-  | equal_fm (A fm) (Gt num) = false
+  | equal_fm (Closed nat) (Gt num) = false
   | equal_fm (Gt num) (A fm) = false
-  | equal_fm (E fm) (Gt num) = false
+  | equal_fm (A fm) (Gt num) = false
   | equal_fm (Gt num) (E fm) = false
-  | equal_fm (Iff (fm1, fm2)) (Gt num) = false
+  | equal_fm (E fm) (Gt num) = false
   | equal_fm (Gt num) (Iff (fm1, fm2)) = false
-  | equal_fm (Imp (fm1, fm2)) (Gt num) = false
+  | equal_fm (Iff (fm1, fm2)) (Gt num) = false
   | equal_fm (Gt num) (Imp (fm1, fm2)) = false
-  | equal_fm (Or (fm1, fm2)) (Gt num) = false
+  | equal_fm (Imp (fm1, fm2)) (Gt num) = false
   | equal_fm (Gt num) (Or (fm1, fm2)) = false
-  | equal_fm (And (fm1, fm2)) (Gt num) = false
+  | equal_fm (Or (fm1, fm2)) (Gt num) = false
   | equal_fm (Gt num) (And (fm1, fm2)) = false
-  | equal_fm (Not fm) (Gt num) = false
+  | equal_fm (And (fm1, fm2)) (Gt num) = false
   | equal_fm (Gt num) (Not fm) = false
-  | equal_fm (NDvd (inta, numa)) (Gt num) = false
+  | equal_fm (Not fm) (Gt num) = false
   | equal_fm (Gt numa) (NDvd (inta, num)) = false
-  | equal_fm (Dvd (inta, numa)) (Gt num) = false
+  | equal_fm (NDvd (inta, numa)) (Gt num) = false
   | equal_fm (Gt numa) (Dvd (inta, num)) = false
-  | equal_fm (NEq numa) (Gt num) = false
+  | equal_fm (Dvd (inta, numa)) (Gt num) = false
   | equal_fm (Gt numa) (NEq num) = false
-  | equal_fm (Eq numa) (Gt num) = false
+  | equal_fm (NEq numa) (Gt num) = false
   | equal_fm (Gt numa) (Eq num) = false
-  | equal_fm (Ge numa) (Gt num) = false
+  | equal_fm (Eq numa) (Gt num) = false
   | equal_fm (Gt numa) (Ge num) = false
-  | equal_fm (NClosed nat) (Le num) = false
+  | equal_fm (Ge numa) (Gt num) = false
   | equal_fm (Le num) (NClosed nat) = false
-  | equal_fm (Closed nat) (Le num) = false
+  | equal_fm (NClosed nat) (Le num) = false
   | equal_fm (Le num) (Closed nat) = false
-  | equal_fm (A fm) (Le num) = false
+  | equal_fm (Closed nat) (Le num) = false
   | equal_fm (Le num) (A fm) = false
-  | equal_fm (E fm) (Le num) = false
+  | equal_fm (A fm) (Le num) = false
   | equal_fm (Le num) (E fm) = false
-  | equal_fm (Iff (fm1, fm2)) (Le num) = false
+  | equal_fm (E fm) (Le num) = false
   | equal_fm (Le num) (Iff (fm1, fm2)) = false
-  | equal_fm (Imp (fm1, fm2)) (Le num) = false
+  | equal_fm (Iff (fm1, fm2)) (Le num) = false
   | equal_fm (Le num) (Imp (fm1, fm2)) = false
-  | equal_fm (Or (fm1, fm2)) (Le num) = false
+  | equal_fm (Imp (fm1, fm2)) (Le num) = false
   | equal_fm (Le num) (Or (fm1, fm2)) = false
-  | equal_fm (And (fm1, fm2)) (Le num) = false
+  | equal_fm (Or (fm1, fm2)) (Le num) = false
   | equal_fm (Le num) (And (fm1, fm2)) = false
-  | equal_fm (Not fm) (Le num) = false
+  | equal_fm (And (fm1, fm2)) (Le num) = false
   | equal_fm (Le num) (Not fm) = false
-  | equal_fm (NDvd (inta, numa)) (Le num) = false
+  | equal_fm (Not fm) (Le num) = false
   | equal_fm (Le numa) (NDvd (inta, num)) = false
-  | equal_fm (Dvd (inta, numa)) (Le num) = false
+  | equal_fm (NDvd (inta, numa)) (Le num) = false
   | equal_fm (Le numa) (Dvd (inta, num)) = false
-  | equal_fm (NEq numa) (Le num) = false
+  | equal_fm (Dvd (inta, numa)) (Le num) = false
   | equal_fm (Le numa) (NEq num) = false
-  | equal_fm (Eq numa) (Le num) = false
+  | equal_fm (NEq numa) (Le num) = false
   | equal_fm (Le numa) (Eq num) = false
-  | equal_fm (Ge numa) (Le num) = false
+  | equal_fm (Eq numa) (Le num) = false
   | equal_fm (Le numa) (Ge num) = false
-  | equal_fm (Gt numa) (Le num) = false
+  | equal_fm (Ge numa) (Le num) = false
   | equal_fm (Le numa) (Gt num) = false
-  | equal_fm (NClosed nat) (Lt num) = false
+  | equal_fm (Gt numa) (Le num) = false
   | equal_fm (Lt num) (NClosed nat) = false
-  | equal_fm (Closed nat) (Lt num) = false
+  | equal_fm (NClosed nat) (Lt num) = false
   | equal_fm (Lt num) (Closed nat) = false
-  | equal_fm (A fm) (Lt num) = false
+  | equal_fm (Closed nat) (Lt num) = false
   | equal_fm (Lt num) (A fm) = false
-  | equal_fm (E fm) (Lt num) = false
+  | equal_fm (A fm) (Lt num) = false
   | equal_fm (Lt num) (E fm) = false
-  | equal_fm (Iff (fm1, fm2)) (Lt num) = false
+  | equal_fm (E fm) (Lt num) = false
   | equal_fm (Lt num) (Iff (fm1, fm2)) = false
-  | equal_fm (Imp (fm1, fm2)) (Lt num) = false
+  | equal_fm (Iff (fm1, fm2)) (Lt num) = false
   | equal_fm (Lt num) (Imp (fm1, fm2)) = false
-  | equal_fm (Or (fm1, fm2)) (Lt num) = false
+  | equal_fm (Imp (fm1, fm2)) (Lt num) = false
   | equal_fm (Lt num) (Or (fm1, fm2)) = false
-  | equal_fm (And (fm1, fm2)) (Lt num) = false
+  | equal_fm (Or (fm1, fm2)) (Lt num) = false
   | equal_fm (Lt num) (And (fm1, fm2)) = false
-  | equal_fm (Not fm) (Lt num) = false
+  | equal_fm (And (fm1, fm2)) (Lt num) = false
   | equal_fm (Lt num) (Not fm) = false
-  | equal_fm (NDvd (inta, numa)) (Lt num) = false
+  | equal_fm (Not fm) (Lt num) = false
   | equal_fm (Lt numa) (NDvd (inta, num)) = false
-  | equal_fm (Dvd (inta, numa)) (Lt num) = false
+  | equal_fm (NDvd (inta, numa)) (Lt num) = false
   | equal_fm (Lt numa) (Dvd (inta, num)) = false
-  | equal_fm (NEq numa) (Lt num) = false
+  | equal_fm (Dvd (inta, numa)) (Lt num) = false
   | equal_fm (Lt numa) (NEq num) = false
-  | equal_fm (Eq numa) (Lt num) = false
+  | equal_fm (NEq numa) (Lt num) = false
   | equal_fm (Lt numa) (Eq num) = false
-  | equal_fm (Ge numa) (Lt num) = false
+  | equal_fm (Eq numa) (Lt num) = false
   | equal_fm (Lt numa) (Ge num) = false
-  | equal_fm (Gt numa) (Lt num) = false
+  | equal_fm (Ge numa) (Lt num) = false
   | equal_fm (Lt numa) (Gt num) = false
-  | equal_fm (Le numa) (Lt num) = false
+  | equal_fm (Gt numa) (Lt num) = false
   | equal_fm (Lt numa) (Le num) = false
-  | equal_fm (NClosed nat) F = false
+  | equal_fm (Le numa) (Lt num) = false
   | equal_fm F (NClosed nat) = false
-  | equal_fm (Closed nat) F = false
+  | equal_fm (NClosed nat) F = false
   | equal_fm F (Closed nat) = false
-  | equal_fm (A fm) F = false
+  | equal_fm (Closed nat) F = false
   | equal_fm F (A fm) = false
-  | equal_fm (E fm) F = false
+  | equal_fm (A fm) F = false
   | equal_fm F (E fm) = false
-  | equal_fm (Iff (fm1, fm2)) F = false
+  | equal_fm (E fm) F = false
   | equal_fm F (Iff (fm1, fm2)) = false
-  | equal_fm (Imp (fm1, fm2)) F = false
+  | equal_fm (Iff (fm1, fm2)) F = false
   | equal_fm F (Imp (fm1, fm2)) = false
-  | equal_fm (Or (fm1, fm2)) F = false
+  | equal_fm (Imp (fm1, fm2)) F = false
   | equal_fm F (Or (fm1, fm2)) = false
-  | equal_fm (And (fm1, fm2)) F = false
+  | equal_fm (Or (fm1, fm2)) F = false
   | equal_fm F (And (fm1, fm2)) = false
-  | equal_fm (Not fm) F = false
+  | equal_fm (And (fm1, fm2)) F = false
   | equal_fm F (Not fm) = false
-  | equal_fm (NDvd (inta, num)) F = false
+  | equal_fm (Not fm) F = false
   | equal_fm F (NDvd (inta, num)) = false
-  | equal_fm (Dvd (inta, num)) F = false
+  | equal_fm (NDvd (inta, num)) F = false
   | equal_fm F (Dvd (inta, num)) = false
-  | equal_fm (NEq num) F = false
+  | equal_fm (Dvd (inta, num)) F = false
   | equal_fm F (NEq num) = false
-  | equal_fm (Eq num) F = false
+  | equal_fm (NEq num) F = false
   | equal_fm F (Eq num) = false
-  | equal_fm (Ge num) F = false
+  | equal_fm (Eq num) F = false
   | equal_fm F (Ge num) = false
-  | equal_fm (Gt num) F = false
+  | equal_fm (Ge num) F = false
   | equal_fm F (Gt num) = false
-  | equal_fm (Le num) F = false
+  | equal_fm (Gt num) F = false
   | equal_fm F (Le num) = false
-  | equal_fm (Lt num) F = false
+  | equal_fm (Le num) F = false
   | equal_fm F (Lt num) = false
-  | equal_fm (NClosed nat) T = false
+  | equal_fm (Lt num) F = false
   | equal_fm T (NClosed nat) = false
-  | equal_fm (Closed nat) T = false
+  | equal_fm (NClosed nat) T = false
   | equal_fm T (Closed nat) = false
-  | equal_fm (A fm) T = false
+  | equal_fm (Closed nat) T = false
   | equal_fm T (A fm) = false
-  | equal_fm (E fm) T = false
+  | equal_fm (A fm) T = false
   | equal_fm T (E fm) = false
-  | equal_fm (Iff (fm1, fm2)) T = false
+  | equal_fm (E fm) T = false
   | equal_fm T (Iff (fm1, fm2)) = false
-  | equal_fm (Imp (fm1, fm2)) T = false
+  | equal_fm (Iff (fm1, fm2)) T = false
   | equal_fm T (Imp (fm1, fm2)) = false
-  | equal_fm (Or (fm1, fm2)) T = false
+  | equal_fm (Imp (fm1, fm2)) T = false
   | equal_fm T (Or (fm1, fm2)) = false
-  | equal_fm (And (fm1, fm2)) T = false
+  | equal_fm (Or (fm1, fm2)) T = false
   | equal_fm T (And (fm1, fm2)) = false
-  | equal_fm (Not fm) T = false
+  | equal_fm (And (fm1, fm2)) T = false
   | equal_fm T (Not fm) = false
-  | equal_fm (NDvd (inta, num)) T = false
+  | equal_fm (Not fm) T = false
   | equal_fm T (NDvd (inta, num)) = false
-  | equal_fm (Dvd (inta, num)) T = false
+  | equal_fm (NDvd (inta, num)) T = false
   | equal_fm T (Dvd (inta, num)) = false
-  | equal_fm (NEq num) T = false
+  | equal_fm (Dvd (inta, num)) T = false
   | equal_fm T (NEq num) = false
-  | equal_fm (Eq num) T = false
+  | equal_fm (NEq num) T = false
   | equal_fm T (Eq num) = false
-  | equal_fm (Ge num) T = false
+  | equal_fm (Eq num) T = false
   | equal_fm T (Ge num) = false
-  | equal_fm (Gt num) T = false
+  | equal_fm (Ge num) T = false
   | equal_fm T (Gt num) = false
-  | equal_fm (Le num) T = false
+  | equal_fm (Gt num) T = false
   | equal_fm T (Le num) = false
-  | equal_fm (Lt num) T = false
+  | equal_fm (Le num) T = false
   | equal_fm T (Lt num) = false
-  | equal_fm F T = false
+  | equal_fm (Lt num) T = false
   | equal_fm T F = false
+  | equal_fm F T = false
   | equal_fm (NClosed nata) (NClosed nat) = equal_nat nata nat
   | equal_fm (Closed nata) (Closed nat) = equal_nat nata nat
   | equal_fm (A fma) (A fm) = equal_fm fma fm
@@ -759,6 +939,8 @@ fun djf f p q =
 fun evaldjf f ps = foldr (djf f) ps F;
 
 fun dj f p = evaldjf f (disjuncts p);
+
+fun max A_ a b = (if less_eq A_ a b then b else a);
 
 fun minus_nat m n =
   Nat (max ord_integer 0 (integer_of_nat m - integer_of_nat n));
@@ -816,23 +998,25 @@ fun minusinf (And (p, q)) = And (minusinf p, minusinf q)
   | minusinf (NClosed aq) = NClosed aq
   | minusinf (Lt (Cn (cm, c, e))) =
     (if equal_nat cm zero_nat then T
-      else Lt (Cn (suc (minus_nat cm (nat_of_integer (1 : IntInf.int))), c, e)))
+      else Lt (Cn (suc (minus_nat cm one_nat), c, e)))
   | minusinf (Le (Cn (dm, c, e))) =
     (if equal_nat dm zero_nat then T
-      else Le (Cn (suc (minus_nat dm (nat_of_integer (1 : IntInf.int))), c, e)))
+      else Le (Cn (suc (minus_nat dm one_nat), c, e)))
   | minusinf (Gt (Cn (em, c, e))) =
     (if equal_nat em zero_nat then F
-      else Gt (Cn (suc (minus_nat em (nat_of_integer (1 : IntInf.int))), c, e)))
+      else Gt (Cn (suc (minus_nat em one_nat), c, e)))
   | minusinf (Ge (Cn (fm, c, e))) =
     (if equal_nat fm zero_nat then F
-      else Ge (Cn (suc (minus_nat fm (nat_of_integer (1 : IntInf.int))), c, e)))
+      else Ge (Cn (suc (minus_nat fm one_nat), c, e)))
   | minusinf (Eq (Cn (gm, c, e))) =
     (if equal_nat gm zero_nat then F
-      else Eq (Cn (suc (minus_nat gm (nat_of_integer (1 : IntInf.int))), c, e)))
+      else Eq (Cn (suc (minus_nat gm one_nat), c, e)))
   | minusinf (NEq (Cn (hm, c, e))) =
     (if equal_nat hm zero_nat then T
-      else NEq (Cn (suc (minus_nat hm (nat_of_integer (1 : IntInf.int))), c,
-                     e)));
+      else NEq (Cn (suc (minus_nat hm one_nat), c, e)));
+
+fun map fi [] = []
+  | map fi (x21a :: x22a) = fi x21a :: map fi x22a;
 
 fun numsubst0 t (C c) = C c
   | numsubst0 t (Bound n) = (if equal_nat n zero_nat then t else Bound n)
@@ -842,8 +1026,7 @@ fun numsubst0 t (C c) = C c
   | numsubst0 t (Mul (i, a)) = Mul (i, numsubst0 t a)
   | numsubst0 t (Cn (v, i, a)) =
     (if equal_nat v zero_nat then Add (Mul (i, t), numsubst0 t a)
-      else Cn (suc (minus_nat v (nat_of_integer (1 : IntInf.int))), i,
-                numsubst0 t a));
+      else Cn (suc (minus_nat v one_nat), i, numsubst0 t a));
 
 fun subst0 t T = T
   | subst0 t F = F
@@ -863,424 +1046,21 @@ fun subst0 t T = T
   | subst0 t (Closed p) = Closed p
   | subst0 t (NClosed p) = NClosed p;
 
-type 'a plus = {plus : 'a -> 'a -> 'a};
-val plus = #plus : 'a plus -> 'a -> 'a -> 'a;
-
-type 'a semigroup_add = {plus_semigroup_add : 'a plus};
-val plus_semigroup_add = #plus_semigroup_add : 'a semigroup_add -> 'a plus;
-
-type 'a cancel_semigroup_add =
-  {semigroup_add_cancel_semigroup_add : 'a semigroup_add};
-val semigroup_add_cancel_semigroup_add = #semigroup_add_cancel_semigroup_add :
-  'a cancel_semigroup_add -> 'a semigroup_add;
-
-type 'a ab_semigroup_add = {semigroup_add_ab_semigroup_add : 'a semigroup_add};
-val semigroup_add_ab_semigroup_add = #semigroup_add_ab_semigroup_add :
-  'a ab_semigroup_add -> 'a semigroup_add;
-
-type 'a cancel_ab_semigroup_add =
-  {ab_semigroup_add_cancel_ab_semigroup_add : 'a ab_semigroup_add,
-    cancel_semigroup_add_cancel_ab_semigroup_add : 'a cancel_semigroup_add};
-val ab_semigroup_add_cancel_ab_semigroup_add =
-  #ab_semigroup_add_cancel_ab_semigroup_add :
-  'a cancel_ab_semigroup_add -> 'a ab_semigroup_add;
-val cancel_semigroup_add_cancel_ab_semigroup_add =
-  #cancel_semigroup_add_cancel_ab_semigroup_add :
-  'a cancel_ab_semigroup_add -> 'a cancel_semigroup_add;
-
-type 'a zero = {zero : 'a};
-val zero = #zero : 'a zero -> 'a;
-
-type 'a monoid_add =
-  {semigroup_add_monoid_add : 'a semigroup_add, zero_monoid_add : 'a zero};
-val semigroup_add_monoid_add = #semigroup_add_monoid_add :
-  'a monoid_add -> 'a semigroup_add;
-val zero_monoid_add = #zero_monoid_add : 'a monoid_add -> 'a zero;
-
-type 'a comm_monoid_add =
-  {ab_semigroup_add_comm_monoid_add : 'a ab_semigroup_add,
-    monoid_add_comm_monoid_add : 'a monoid_add};
-val ab_semigroup_add_comm_monoid_add = #ab_semigroup_add_comm_monoid_add :
-  'a comm_monoid_add -> 'a ab_semigroup_add;
-val monoid_add_comm_monoid_add = #monoid_add_comm_monoid_add :
-  'a comm_monoid_add -> 'a monoid_add;
-
-type 'a cancel_comm_monoid_add =
-  {cancel_ab_semigroup_add_cancel_comm_monoid_add : 'a cancel_ab_semigroup_add,
-    comm_monoid_add_cancel_comm_monoid_add : 'a comm_monoid_add};
-val cancel_ab_semigroup_add_cancel_comm_monoid_add =
-  #cancel_ab_semigroup_add_cancel_comm_monoid_add :
-  'a cancel_comm_monoid_add -> 'a cancel_ab_semigroup_add;
-val comm_monoid_add_cancel_comm_monoid_add =
-  #comm_monoid_add_cancel_comm_monoid_add :
-  'a cancel_comm_monoid_add -> 'a comm_monoid_add;
-
-type 'a times = {times : 'a -> 'a -> 'a};
-val times = #times : 'a times -> 'a -> 'a -> 'a;
-
-type 'a mult_zero = {times_mult_zero : 'a times, zero_mult_zero : 'a zero};
-val times_mult_zero = #times_mult_zero : 'a mult_zero -> 'a times;
-val zero_mult_zero = #zero_mult_zero : 'a mult_zero -> 'a zero;
-
-type 'a semigroup_mult = {times_semigroup_mult : 'a times};
-val times_semigroup_mult = #times_semigroup_mult :
-  'a semigroup_mult -> 'a times;
-
-type 'a semiring =
-  {ab_semigroup_add_semiring : 'a ab_semigroup_add,
-    semigroup_mult_semiring : 'a semigroup_mult};
-val ab_semigroup_add_semiring = #ab_semigroup_add_semiring :
-  'a semiring -> 'a ab_semigroup_add;
-val semigroup_mult_semiring = #semigroup_mult_semiring :
-  'a semiring -> 'a semigroup_mult;
-
-type 'a semiring_0 =
-  {comm_monoid_add_semiring_0 : 'a comm_monoid_add,
-    mult_zero_semiring_0 : 'a mult_zero, semiring_semiring_0 : 'a semiring};
-val comm_monoid_add_semiring_0 = #comm_monoid_add_semiring_0 :
-  'a semiring_0 -> 'a comm_monoid_add;
-val mult_zero_semiring_0 = #mult_zero_semiring_0 :
-  'a semiring_0 -> 'a mult_zero;
-val semiring_semiring_0 = #semiring_semiring_0 : 'a semiring_0 -> 'a semiring;
-
-type 'a semiring_0_cancel =
-  {cancel_comm_monoid_add_semiring_0_cancel : 'a cancel_comm_monoid_add,
-    semiring_0_semiring_0_cancel : 'a semiring_0};
-val cancel_comm_monoid_add_semiring_0_cancel =
-  #cancel_comm_monoid_add_semiring_0_cancel :
-  'a semiring_0_cancel -> 'a cancel_comm_monoid_add;
-val semiring_0_semiring_0_cancel = #semiring_0_semiring_0_cancel :
-  'a semiring_0_cancel -> 'a semiring_0;
-
-type 'a ab_semigroup_mult =
-  {semigroup_mult_ab_semigroup_mult : 'a semigroup_mult};
-val semigroup_mult_ab_semigroup_mult = #semigroup_mult_ab_semigroup_mult :
-  'a ab_semigroup_mult -> 'a semigroup_mult;
-
-type 'a comm_semiring =
-  {ab_semigroup_mult_comm_semiring : 'a ab_semigroup_mult,
-    semiring_comm_semiring : 'a semiring};
-val ab_semigroup_mult_comm_semiring = #ab_semigroup_mult_comm_semiring :
-  'a comm_semiring -> 'a ab_semigroup_mult;
-val semiring_comm_semiring = #semiring_comm_semiring :
-  'a comm_semiring -> 'a semiring;
-
-type 'a comm_semiring_0 =
-  {comm_semiring_comm_semiring_0 : 'a comm_semiring,
-    semiring_0_comm_semiring_0 : 'a semiring_0};
-val comm_semiring_comm_semiring_0 = #comm_semiring_comm_semiring_0 :
-  'a comm_semiring_0 -> 'a comm_semiring;
-val semiring_0_comm_semiring_0 = #semiring_0_comm_semiring_0 :
-  'a comm_semiring_0 -> 'a semiring_0;
-
-type 'a comm_semiring_0_cancel =
-  {comm_semiring_0_comm_semiring_0_cancel : 'a comm_semiring_0,
-    semiring_0_cancel_comm_semiring_0_cancel : 'a semiring_0_cancel};
-val comm_semiring_0_comm_semiring_0_cancel =
-  #comm_semiring_0_comm_semiring_0_cancel :
-  'a comm_semiring_0_cancel -> 'a comm_semiring_0;
-val semiring_0_cancel_comm_semiring_0_cancel =
-  #semiring_0_cancel_comm_semiring_0_cancel :
-  'a comm_semiring_0_cancel -> 'a semiring_0_cancel;
-
-type 'a one = {one : 'a};
-val one = #one : 'a one -> 'a;
-
-type 'a power = {one_power : 'a one, times_power : 'a times};
-val one_power = #one_power : 'a power -> 'a one;
-val times_power = #times_power : 'a power -> 'a times;
-
-type 'a monoid_mult =
-  {semigroup_mult_monoid_mult : 'a semigroup_mult,
-    power_monoid_mult : 'a power};
-val semigroup_mult_monoid_mult = #semigroup_mult_monoid_mult :
-  'a monoid_mult -> 'a semigroup_mult;
-val power_monoid_mult = #power_monoid_mult : 'a monoid_mult -> 'a power;
-
-type 'a numeral =
-  {one_numeral : 'a one, semigroup_add_numeral : 'a semigroup_add};
-val one_numeral = #one_numeral : 'a numeral -> 'a one;
-val semigroup_add_numeral = #semigroup_add_numeral :
-  'a numeral -> 'a semigroup_add;
-
-type 'a semiring_numeral =
-  {monoid_mult_semiring_numeral : 'a monoid_mult,
-    numeral_semiring_numeral : 'a numeral,
-    semiring_semiring_numeral : 'a semiring};
-val monoid_mult_semiring_numeral = #monoid_mult_semiring_numeral :
-  'a semiring_numeral -> 'a monoid_mult;
-val numeral_semiring_numeral = #numeral_semiring_numeral :
-  'a semiring_numeral -> 'a numeral;
-val semiring_semiring_numeral = #semiring_semiring_numeral :
-  'a semiring_numeral -> 'a semiring;
-
-type 'a zero_neq_one = {one_zero_neq_one : 'a one, zero_zero_neq_one : 'a zero};
-val one_zero_neq_one = #one_zero_neq_one : 'a zero_neq_one -> 'a one;
-val zero_zero_neq_one = #zero_zero_neq_one : 'a zero_neq_one -> 'a zero;
-
-type 'a semiring_1 =
-  {semiring_numeral_semiring_1 : 'a semiring_numeral,
-    semiring_0_semiring_1 : 'a semiring_0,
-    zero_neq_one_semiring_1 : 'a zero_neq_one};
-val semiring_numeral_semiring_1 = #semiring_numeral_semiring_1 :
-  'a semiring_1 -> 'a semiring_numeral;
-val semiring_0_semiring_1 = #semiring_0_semiring_1 :
-  'a semiring_1 -> 'a semiring_0;
-val zero_neq_one_semiring_1 = #zero_neq_one_semiring_1 :
-  'a semiring_1 -> 'a zero_neq_one;
-
-type 'a semiring_1_cancel =
-  {semiring_0_cancel_semiring_1_cancel : 'a semiring_0_cancel,
-    semiring_1_semiring_1_cancel : 'a semiring_1};
-val semiring_0_cancel_semiring_1_cancel = #semiring_0_cancel_semiring_1_cancel :
-  'a semiring_1_cancel -> 'a semiring_0_cancel;
-val semiring_1_semiring_1_cancel = #semiring_1_semiring_1_cancel :
-  'a semiring_1_cancel -> 'a semiring_1;
-
-type 'a comm_monoid_mult =
-  {ab_semigroup_mult_comm_monoid_mult : 'a ab_semigroup_mult,
-    monoid_mult_comm_monoid_mult : 'a monoid_mult};
-val ab_semigroup_mult_comm_monoid_mult = #ab_semigroup_mult_comm_monoid_mult :
-  'a comm_monoid_mult -> 'a ab_semigroup_mult;
-val monoid_mult_comm_monoid_mult = #monoid_mult_comm_monoid_mult :
-  'a comm_monoid_mult -> 'a monoid_mult;
-
-type 'a dvd = {times_dvd : 'a times};
-val times_dvd = #times_dvd : 'a dvd -> 'a times;
-
-type 'a comm_semiring_1 =
-  {comm_monoid_mult_comm_semiring_1 : 'a comm_monoid_mult,
-    comm_semiring_0_comm_semiring_1 : 'a comm_semiring_0,
-    dvd_comm_semiring_1 : 'a dvd, semiring_1_comm_semiring_1 : 'a semiring_1};
-val comm_monoid_mult_comm_semiring_1 = #comm_monoid_mult_comm_semiring_1 :
-  'a comm_semiring_1 -> 'a comm_monoid_mult;
-val comm_semiring_0_comm_semiring_1 = #comm_semiring_0_comm_semiring_1 :
-  'a comm_semiring_1 -> 'a comm_semiring_0;
-val dvd_comm_semiring_1 = #dvd_comm_semiring_1 : 'a comm_semiring_1 -> 'a dvd;
-val semiring_1_comm_semiring_1 = #semiring_1_comm_semiring_1 :
-  'a comm_semiring_1 -> 'a semiring_1;
-
-type 'a comm_semiring_1_cancel =
-  {comm_semiring_0_cancel_comm_semiring_1_cancel : 'a comm_semiring_0_cancel,
-    comm_semiring_1_comm_semiring_1_cancel : 'a comm_semiring_1,
-    semiring_1_cancel_comm_semiring_1_cancel : 'a semiring_1_cancel};
-val comm_semiring_0_cancel_comm_semiring_1_cancel =
-  #comm_semiring_0_cancel_comm_semiring_1_cancel :
-  'a comm_semiring_1_cancel -> 'a comm_semiring_0_cancel;
-val comm_semiring_1_comm_semiring_1_cancel =
-  #comm_semiring_1_comm_semiring_1_cancel :
-  'a comm_semiring_1_cancel -> 'a comm_semiring_1;
-val semiring_1_cancel_comm_semiring_1_cancel =
-  #semiring_1_cancel_comm_semiring_1_cancel :
-  'a comm_semiring_1_cancel -> 'a semiring_1_cancel;
-
-type 'a no_zero_divisors =
-  {times_no_zero_divisors : 'a times, zero_no_zero_divisors : 'a zero};
-val times_no_zero_divisors = #times_no_zero_divisors :
-  'a no_zero_divisors -> 'a times;
-val zero_no_zero_divisors = #zero_no_zero_divisors :
-  'a no_zero_divisors -> 'a zero;
-
-type 'a diva = {dvd_div : 'a dvd, diva : 'a -> 'a -> 'a, moda : 'a -> 'a -> 'a};
-val dvd_div = #dvd_div : 'a diva -> 'a dvd;
-val diva = #diva : 'a diva -> 'a -> 'a -> 'a;
-val moda = #moda : 'a diva -> 'a -> 'a -> 'a;
-
-type 'a semiring_div =
-  {div_semiring_div : 'a diva,
-    comm_semiring_1_cancel_semiring_div : 'a comm_semiring_1_cancel,
-    no_zero_divisors_semiring_div : 'a no_zero_divisors};
-val div_semiring_div = #div_semiring_div : 'a semiring_div -> 'a diva;
-val comm_semiring_1_cancel_semiring_div = #comm_semiring_1_cancel_semiring_div :
-  'a semiring_div -> 'a comm_semiring_1_cancel;
-val no_zero_divisors_semiring_div = #no_zero_divisors_semiring_div :
-  'a semiring_div -> 'a no_zero_divisors;
-
-fun plus_inta k l = Int_of_integer (integer_of_int k + integer_of_int l);
-
-val plus_int = {plus = plus_inta} : inta plus;
-
-val semigroup_add_int = {plus_semigroup_add = plus_int} : inta semigroup_add;
-
-val cancel_semigroup_add_int =
-  {semigroup_add_cancel_semigroup_add = semigroup_add_int} :
-  inta cancel_semigroup_add;
-
-val ab_semigroup_add_int = {semigroup_add_ab_semigroup_add = semigroup_add_int}
-  : inta ab_semigroup_add;
-
-val cancel_ab_semigroup_add_int =
-  {ab_semigroup_add_cancel_ab_semigroup_add = ab_semigroup_add_int,
-    cancel_semigroup_add_cancel_ab_semigroup_add = cancel_semigroup_add_int}
-  : inta cancel_ab_semigroup_add;
-
-val zero_inta : inta = Int_of_integer 0;
-
-val zero_int = {zero = zero_inta} : inta zero;
-
-val monoid_add_int =
-  {semigroup_add_monoid_add = semigroup_add_int, zero_monoid_add = zero_int} :
-  inta monoid_add;
-
-val comm_monoid_add_int =
-  {ab_semigroup_add_comm_monoid_add = ab_semigroup_add_int,
-    monoid_add_comm_monoid_add = monoid_add_int}
-  : inta comm_monoid_add;
-
-val cancel_comm_monoid_add_int =
-  {cancel_ab_semigroup_add_cancel_comm_monoid_add = cancel_ab_semigroup_add_int,
-    comm_monoid_add_cancel_comm_monoid_add = comm_monoid_add_int}
-  : inta cancel_comm_monoid_add;
-
-fun times_inta k l = Int_of_integer (integer_of_int k * integer_of_int l);
-
-val times_int = {times = times_inta} : inta times;
-
-val mult_zero_int = {times_mult_zero = times_int, zero_mult_zero = zero_int} :
-  inta mult_zero;
-
-val semigroup_mult_int = {times_semigroup_mult = times_int} :
-  inta semigroup_mult;
-
-val semiring_int =
-  {ab_semigroup_add_semiring = ab_semigroup_add_int,
-    semigroup_mult_semiring = semigroup_mult_int}
-  : inta semiring;
-
-val semiring_0_int =
-  {comm_monoid_add_semiring_0 = comm_monoid_add_int,
-    mult_zero_semiring_0 = mult_zero_int, semiring_semiring_0 = semiring_int}
-  : inta semiring_0;
-
-val semiring_0_cancel_int =
-  {cancel_comm_monoid_add_semiring_0_cancel = cancel_comm_monoid_add_int,
-    semiring_0_semiring_0_cancel = semiring_0_int}
-  : inta semiring_0_cancel;
-
-val ab_semigroup_mult_int =
-  {semigroup_mult_ab_semigroup_mult = semigroup_mult_int} :
-  inta ab_semigroup_mult;
-
-val comm_semiring_int =
-  {ab_semigroup_mult_comm_semiring = ab_semigroup_mult_int,
-    semiring_comm_semiring = semiring_int}
-  : inta comm_semiring;
-
-val comm_semiring_0_int =
-  {comm_semiring_comm_semiring_0 = comm_semiring_int,
-    semiring_0_comm_semiring_0 = semiring_0_int}
-  : inta comm_semiring_0;
-
-val comm_semiring_0_cancel_int =
-  {comm_semiring_0_comm_semiring_0_cancel = comm_semiring_0_int,
-    semiring_0_cancel_comm_semiring_0_cancel = semiring_0_cancel_int}
-  : inta comm_semiring_0_cancel;
-
-val one_inta : inta = Int_of_integer (1 : IntInf.int);
-
-val one_int = {one = one_inta} : inta one;
-
-val power_int = {one_power = one_int, times_power = times_int} : inta power;
-
-val monoid_mult_int =
-  {semigroup_mult_monoid_mult = semigroup_mult_int,
-    power_monoid_mult = power_int}
-  : inta monoid_mult;
-
-val numeral_int =
-  {one_numeral = one_int, semigroup_add_numeral = semigroup_add_int} :
-  inta numeral;
-
-val semiring_numeral_int =
-  {monoid_mult_semiring_numeral = monoid_mult_int,
-    numeral_semiring_numeral = numeral_int,
-    semiring_semiring_numeral = semiring_int}
-  : inta semiring_numeral;
-
-val zero_neq_one_int =
-  {one_zero_neq_one = one_int, zero_zero_neq_one = zero_int} :
-  inta zero_neq_one;
-
-val semiring_1_int =
-  {semiring_numeral_semiring_1 = semiring_numeral_int,
-    semiring_0_semiring_1 = semiring_0_int,
-    zero_neq_one_semiring_1 = zero_neq_one_int}
-  : inta semiring_1;
-
-val semiring_1_cancel_int =
-  {semiring_0_cancel_semiring_1_cancel = semiring_0_cancel_int,
-    semiring_1_semiring_1_cancel = semiring_1_int}
-  : inta semiring_1_cancel;
-
-val comm_monoid_mult_int =
-  {ab_semigroup_mult_comm_monoid_mult = ab_semigroup_mult_int,
-    monoid_mult_comm_monoid_mult = monoid_mult_int}
-  : inta comm_monoid_mult;
-
-val dvd_int = {times_dvd = times_int} : inta dvd;
-
-val comm_semiring_1_int =
-  {comm_monoid_mult_comm_semiring_1 = comm_monoid_mult_int,
-    comm_semiring_0_comm_semiring_1 = comm_semiring_0_int,
-    dvd_comm_semiring_1 = dvd_int, semiring_1_comm_semiring_1 = semiring_1_int}
-  : inta comm_semiring_1;
-
-val comm_semiring_1_cancel_int =
-  {comm_semiring_0_cancel_comm_semiring_1_cancel = comm_semiring_0_cancel_int,
-    comm_semiring_1_comm_semiring_1_cancel = comm_semiring_1_int,
-    semiring_1_cancel_comm_semiring_1_cancel = semiring_1_cancel_int}
-  : inta comm_semiring_1_cancel;
-
-val no_zero_divisors_int =
-  {times_no_zero_divisors = times_int, zero_no_zero_divisors = zero_int} :
-  inta no_zero_divisors;
-
-fun sgn_integer k =
-  (if k = 0 then 0
-    else (if k < 0 then ~ (1 : IntInf.int) else (1 : IntInf.int)));
-
-fun abs_integer k = (if k < 0 then ~ k else k);
-
-fun apsnd f (x, y) = (x, f y);
-
-fun divmod_integer k l =
-  (if k = 0 then (0, 0)
-    else (if l = 0 then (0, k)
-           else (apsnd o (fn a => fn b => a * b) o sgn_integer) l
-                  (if sgn_integer k = sgn_integer l
-                    then Integer.div_mod (abs k) (abs l)
-                    else let
-                           val (r, s) = Integer.div_mod (abs k) (abs l);
-                         in
-                           (if s = 0 then (~ r, 0)
-                             else (~ r - (1 : IntInf.int), abs_integer l - s))
-                         end)));
-
-fun snd (a, b) = b;
-
-fun mod_integer k l = snd (divmod_integer k l);
-
-fun mod_int k l =
-  Int_of_integer (mod_integer (integer_of_int k) (integer_of_int l));
-
-fun fst (a, b) = a;
-
-fun div_integer k l = fst (divmod_integer k l);
-
-fun div_inta k l =
-  Int_of_integer (div_integer (integer_of_int k) (integer_of_int l));
-
-val div_int = {dvd_div = dvd_int, diva = div_inta, moda = mod_int} : inta diva;
-
-val semiring_div_int =
-  {div_semiring_div = div_int,
-    comm_semiring_1_cancel_semiring_div = comm_semiring_1_cancel_int,
-    no_zero_divisors_semiring_div = no_zero_divisors_int}
-  : inta semiring_div;
-
 fun less_eq_int k l = integer_of_int k <= integer_of_int l;
 
+fun less_int k l = integer_of_int k < integer_of_int l;
+
 fun uminus_int k = Int_of_integer (~ (integer_of_int k));
+
+fun abs_int i = (if less_int i zero_inta then uminus_int i else i);
+
+fun dvd (A1_, A2_) a b =
+  eq A2_ (moda (div_semiring_div A1_) b a)
+    (zero ((zero_mult_zero o mult_zero_semiring_0 o semiring_0_semiring_1 o
+             semiring_1_comm_semiring_1 o
+             comm_semiring_1_comm_semiring_1_cancel o
+             comm_semiring_1_cancel_semiring_div)
+            A1_));
 
 fun nummul i (C j) = C (times_inta i j)
   | nummul i (Cn (n, c, t)) = Cn (n, times_inta c i, nummul i t)
@@ -1371,11 +1151,14 @@ fun simpnum (C j) = C j
     (if equal_inta i zero_inta then C zero_inta else nummul i (simpnum t))
   | simpnum (Cn (v, va, vb)) = Cn (v, va, vb);
 
-fun less_int k l = integer_of_int k < integer_of_int l;
+fun disj p q =
+  (if equal_fm p T orelse equal_fm q T then T
+    else (if equal_fm p F then q else (if equal_fm q F then p else Or (p, q))));
 
-val equal_int = {equal = equal_inta} : inta equal;
-
-fun abs_int i = (if less_int i zero_inta then uminus_int i else i);
+fun conj p q =
+  (if equal_fm p F orelse equal_fm q F then F
+    else (if equal_fm p T then q
+           else (if equal_fm q T then p else And (p, q))));
 
 fun nota (Not p) = p
   | nota T = F
@@ -1397,12 +1180,12 @@ fun nota (Not p) = p
   | nota (Closed v) = Not (Closed v)
   | nota (NClosed v) = Not (NClosed v);
 
-fun impa p q =
+fun imp p q =
   (if equal_fm p F orelse equal_fm q T then T
     else (if equal_fm p T then q
            else (if equal_fm q F then nota p else Imp (p, q))));
 
-fun iffa p q =
+fun iff p q =
   (if equal_fm p q then T
     else (if equal_fm p (nota q) orelse equal_fm (nota p) q then F
            else (if equal_fm p F then nota q
@@ -1411,27 +1194,10 @@ fun iffa p q =
                                 else (if equal_fm q T then p
                                        else Iff (p, q)))))));
 
-fun disj p q =
-  (if equal_fm p T orelse equal_fm q T then T
-    else (if equal_fm p F then q else (if equal_fm q F then p else Or (p, q))));
-
-fun conj p q =
-  (if equal_fm p F orelse equal_fm q F then F
-    else (if equal_fm p T then q
-           else (if equal_fm q T then p else And (p, q))));
-
-fun dvd (A1_, A2_) a b =
-  eq A2_ (moda (div_semiring_div A1_) b a)
-    (zero ((zero_mult_zero o mult_zero_semiring_0 o semiring_0_semiring_1 o
-             semiring_1_comm_semiring_1 o
-             comm_semiring_1_comm_semiring_1_cancel o
-             comm_semiring_1_cancel_semiring_div)
-            A1_));
-
 fun simpfm (And (p, q)) = conj (simpfm p) (simpfm q)
   | simpfm (Or (p, q)) = disj (simpfm p) (simpfm q)
-  | simpfm (Imp (p, q)) = impa (simpfm p) (simpfm q)
-  | simpfm (Iff (p, q)) = iffa (simpfm p) (simpfm q)
+  | simpfm (Imp (p, q)) = imp (simpfm p) (simpfm q)
+  | simpfm (Iff (p, q)) = iff (simpfm p) (simpfm q)
   | simpfm (Not p) = nota (simpfm p)
   | simpfm (Lt a) =
     let
@@ -1515,99 +1281,10 @@ fun simpfm (And (p, q)) = conj (simpfm p) (simpfm q)
   | simpfm (Closed v) = Closed v
   | simpfm (NClosed v) = NClosed v;
 
-val equal_num = {equal = equal_numa} : numa equal;
-
 fun gen_length n (x :: xs) = gen_length (suc n) xs
   | gen_length n [] = n;
 
 fun size_list x = gen_length zero_nat x;
-
-fun mirror (And (p, q)) = And (mirror p, mirror q)
-  | mirror (Or (p, q)) = Or (mirror p, mirror q)
-  | mirror T = T
-  | mirror F = F
-  | mirror (Lt (C bo)) = Lt (C bo)
-  | mirror (Lt (Bound bp)) = Lt (Bound bp)
-  | mirror (Lt (Neg bt)) = Lt (Neg bt)
-  | mirror (Lt (Add (bu, bv))) = Lt (Add (bu, bv))
-  | mirror (Lt (Sub (bw, bx))) = Lt (Sub (bw, bx))
-  | mirror (Lt (Mul (by, bz))) = Lt (Mul (by, bz))
-  | mirror (Le (C co)) = Le (C co)
-  | mirror (Le (Bound cp)) = Le (Bound cp)
-  | mirror (Le (Neg ct)) = Le (Neg ct)
-  | mirror (Le (Add (cu, cv))) = Le (Add (cu, cv))
-  | mirror (Le (Sub (cw, cx))) = Le (Sub (cw, cx))
-  | mirror (Le (Mul (cy, cz))) = Le (Mul (cy, cz))
-  | mirror (Gt (C doa)) = Gt (C doa)
-  | mirror (Gt (Bound dp)) = Gt (Bound dp)
-  | mirror (Gt (Neg dt)) = Gt (Neg dt)
-  | mirror (Gt (Add (du, dv))) = Gt (Add (du, dv))
-  | mirror (Gt (Sub (dw, dx))) = Gt (Sub (dw, dx))
-  | mirror (Gt (Mul (dy, dz))) = Gt (Mul (dy, dz))
-  | mirror (Ge (C eo)) = Ge (C eo)
-  | mirror (Ge (Bound ep)) = Ge (Bound ep)
-  | mirror (Ge (Neg et)) = Ge (Neg et)
-  | mirror (Ge (Add (eu, ev))) = Ge (Add (eu, ev))
-  | mirror (Ge (Sub (ew, ex))) = Ge (Sub (ew, ex))
-  | mirror (Ge (Mul (ey, ez))) = Ge (Mul (ey, ez))
-  | mirror (Eq (C fo)) = Eq (C fo)
-  | mirror (Eq (Bound fp)) = Eq (Bound fp)
-  | mirror (Eq (Neg ft)) = Eq (Neg ft)
-  | mirror (Eq (Add (fu, fv))) = Eq (Add (fu, fv))
-  | mirror (Eq (Sub (fw, fx))) = Eq (Sub (fw, fx))
-  | mirror (Eq (Mul (fy, fz))) = Eq (Mul (fy, fz))
-  | mirror (NEq (C go)) = NEq (C go)
-  | mirror (NEq (Bound gp)) = NEq (Bound gp)
-  | mirror (NEq (Neg gt)) = NEq (Neg gt)
-  | mirror (NEq (Add (gu, gv))) = NEq (Add (gu, gv))
-  | mirror (NEq (Sub (gw, gx))) = NEq (Sub (gw, gx))
-  | mirror (NEq (Mul (gy, gz))) = NEq (Mul (gy, gz))
-  | mirror (Dvd (aa, C ho)) = Dvd (aa, C ho)
-  | mirror (Dvd (aa, Bound hp)) = Dvd (aa, Bound hp)
-  | mirror (Dvd (aa, Neg ht)) = Dvd (aa, Neg ht)
-  | mirror (Dvd (aa, Add (hu, hv))) = Dvd (aa, Add (hu, hv))
-  | mirror (Dvd (aa, Sub (hw, hx))) = Dvd (aa, Sub (hw, hx))
-  | mirror (Dvd (aa, Mul (hy, hz))) = Dvd (aa, Mul (hy, hz))
-  | mirror (NDvd (ac, C io)) = NDvd (ac, C io)
-  | mirror (NDvd (ac, Bound ip)) = NDvd (ac, Bound ip)
-  | mirror (NDvd (ac, Neg it)) = NDvd (ac, Neg it)
-  | mirror (NDvd (ac, Add (iu, iv))) = NDvd (ac, Add (iu, iv))
-  | mirror (NDvd (ac, Sub (iw, ix))) = NDvd (ac, Sub (iw, ix))
-  | mirror (NDvd (ac, Mul (iy, iz))) = NDvd (ac, Mul (iy, iz))
-  | mirror (Not ae) = Not ae
-  | mirror (Imp (aj, ak)) = Imp (aj, ak)
-  | mirror (Iff (al, am)) = Iff (al, am)
-  | mirror (E an) = E an
-  | mirror (A ao) = A ao
-  | mirror (Closed ap) = Closed ap
-  | mirror (NClosed aq) = NClosed aq
-  | mirror (Lt (Cn (cm, c, e))) =
-    (if equal_nat cm zero_nat then Gt (Cn (zero_nat, c, Neg e))
-      else Lt (Cn (suc (minus_nat cm (nat_of_integer (1 : IntInf.int))), c, e)))
-  | mirror (Le (Cn (dm, c, e))) =
-    (if equal_nat dm zero_nat then Ge (Cn (zero_nat, c, Neg e))
-      else Le (Cn (suc (minus_nat dm (nat_of_integer (1 : IntInf.int))), c, e)))
-  | mirror (Gt (Cn (em, c, e))) =
-    (if equal_nat em zero_nat then Lt (Cn (zero_nat, c, Neg e))
-      else Gt (Cn (suc (minus_nat em (nat_of_integer (1 : IntInf.int))), c, e)))
-  | mirror (Ge (Cn (fm, c, e))) =
-    (if equal_nat fm zero_nat then Le (Cn (zero_nat, c, Neg e))
-      else Ge (Cn (suc (minus_nat fm (nat_of_integer (1 : IntInf.int))), c, e)))
-  | mirror (Eq (Cn (gm, c, e))) =
-    (if equal_nat gm zero_nat then Eq (Cn (zero_nat, c, Neg e))
-      else Eq (Cn (suc (minus_nat gm (nat_of_integer (1 : IntInf.int))), c, e)))
-  | mirror (NEq (Cn (hm, c, e))) =
-    (if equal_nat hm zero_nat then NEq (Cn (zero_nat, c, Neg e))
-      else NEq (Cn (suc (minus_nat hm (nat_of_integer (1 : IntInf.int))), c,
-                     e)))
-  | mirror (Dvd (i, Cn (im, c, e))) =
-    (if equal_nat im zero_nat then Dvd (i, Cn (zero_nat, c, Neg e))
-      else Dvd (i, Cn (suc (minus_nat im (nat_of_integer (1 : IntInf.int))), c,
-                        e)))
-  | mirror (NDvd (i, Cn (jm, c, e))) =
-    (if equal_nat jm zero_nat then NDvd (i, Cn (zero_nat, c, Neg e))
-      else NDvd (i, Cn (suc (minus_nat jm (nat_of_integer (1 : IntInf.int))), c,
-                         e)));
 
 fun a_beta (And (p, q)) = (fn k => And (a_beta p k, a_beta q k))
   | a_beta (Or (p, q)) = (fn k => Or (a_beta p k, a_beta q k))
@@ -1673,74 +1350,51 @@ fun a_beta (And (p, q)) = (fn k => And (a_beta p k, a_beta q k))
       then (fn k =>
              Lt (Cn (zero_nat, Int_of_integer (1 : IntInf.int),
                       Mul (div_inta k c, e))))
-      else (fn _ =>
-             Lt (Cn (suc (minus_nat cm (nat_of_integer (1 : IntInf.int))), c,
-                      e))))
+      else (fn _ => Lt (Cn (suc (minus_nat cm one_nat), c, e))))
   | a_beta (Le (Cn (dm, c, e))) =
     (if equal_nat dm zero_nat
       then (fn k =>
              Le (Cn (zero_nat, Int_of_integer (1 : IntInf.int),
                       Mul (div_inta k c, e))))
-      else (fn _ =>
-             Le (Cn (suc (minus_nat dm (nat_of_integer (1 : IntInf.int))), c,
-                      e))))
+      else (fn _ => Le (Cn (suc (minus_nat dm one_nat), c, e))))
   | a_beta (Gt (Cn (em, c, e))) =
     (if equal_nat em zero_nat
       then (fn k =>
              Gt (Cn (zero_nat, Int_of_integer (1 : IntInf.int),
                       Mul (div_inta k c, e))))
-      else (fn _ =>
-             Gt (Cn (suc (minus_nat em (nat_of_integer (1 : IntInf.int))), c,
-                      e))))
+      else (fn _ => Gt (Cn (suc (minus_nat em one_nat), c, e))))
   | a_beta (Ge (Cn (fm, c, e))) =
     (if equal_nat fm zero_nat
       then (fn k =>
              Ge (Cn (zero_nat, Int_of_integer (1 : IntInf.int),
                       Mul (div_inta k c, e))))
-      else (fn _ =>
-             Ge (Cn (suc (minus_nat fm (nat_of_integer (1 : IntInf.int))), c,
-                      e))))
+      else (fn _ => Ge (Cn (suc (minus_nat fm one_nat), c, e))))
   | a_beta (Eq (Cn (gm, c, e))) =
     (if equal_nat gm zero_nat
       then (fn k =>
              Eq (Cn (zero_nat, Int_of_integer (1 : IntInf.int),
                       Mul (div_inta k c, e))))
-      else (fn _ =>
-             Eq (Cn (suc (minus_nat gm (nat_of_integer (1 : IntInf.int))), c,
-                      e))))
+      else (fn _ => Eq (Cn (suc (minus_nat gm one_nat), c, e))))
   | a_beta (NEq (Cn (hm, c, e))) =
     (if equal_nat hm zero_nat
       then (fn k =>
              NEq (Cn (zero_nat, Int_of_integer (1 : IntInf.int),
                        Mul (div_inta k c, e))))
-      else (fn _ =>
-             NEq (Cn (suc (minus_nat hm (nat_of_integer (1 : IntInf.int))), c,
-                       e))))
+      else (fn _ => NEq (Cn (suc (minus_nat hm one_nat), c, e))))
   | a_beta (Dvd (i, Cn (im, c, e))) =
     (if equal_nat im zero_nat
       then (fn k =>
              Dvd (times_inta (div_inta k c) i,
                    Cn (zero_nat, Int_of_integer (1 : IntInf.int),
                         Mul (div_inta k c, e))))
-      else (fn _ =>
-             Dvd (i, Cn (suc (minus_nat im (nat_of_integer (1 : IntInf.int))),
-                          c, e))))
+      else (fn _ => Dvd (i, Cn (suc (minus_nat im one_nat), c, e))))
   | a_beta (NDvd (i, Cn (jm, c, e))) =
     (if equal_nat jm zero_nat
       then (fn k =>
              NDvd (times_inta (div_inta k c) i,
                     Cn (zero_nat, Int_of_integer (1 : IntInf.int),
                          Mul (div_inta k c, e))))
-      else (fn _ =>
-             NDvd (i, Cn (suc (minus_nat jm (nat_of_integer (1 : IntInf.int))),
-                           c, e))));
-
-fun member A_ [] y = false
-  | member A_ (x :: xs) y = eq A_ x y orelse member A_ xs y;
-
-fun remdups A_ [] = []
-  | remdups A_ (x :: xs) =
-    (if member A_ xs x then remdups A_ xs else x :: remdups A_ xs);
+      else (fn _ => NDvd (i, Cn (suc (minus_nat jm one_nat), c, e))));
 
 fun gcd_int k l =
   abs_int
@@ -1835,13 +1489,241 @@ fun alpha (And (p, q)) = alpha p @ alpha q
   | alpha (Lt (Cn (cm, c, e))) = (if equal_nat cm zero_nat then [e] else [])
   | alpha (Le (Cn (dm, c, e))) =
     (if equal_nat dm zero_nat
-      then [Add (C (Int_of_integer (~1 : IntInf.int)), e)] else [])
+      then [Add (C (uminus_int (Int_of_integer (1 : IntInf.int))), e)] else [])
   | alpha (Gt (Cn (em, c, e))) = (if equal_nat em zero_nat then [] else [])
   | alpha (Ge (Cn (fm, c, e))) = (if equal_nat fm zero_nat then [] else [])
   | alpha (Eq (Cn (gm, c, e))) =
     (if equal_nat gm zero_nat
-      then [Add (C (Int_of_integer (~1 : IntInf.int)), e)] else [])
+      then [Add (C (uminus_int (Int_of_integer (1 : IntInf.int))), e)] else [])
   | alpha (NEq (Cn (hm, c, e))) = (if equal_nat hm zero_nat then [e] else []);
+
+fun zeta (And (p, q)) = lcm_int (zeta p) (zeta q)
+  | zeta (Or (p, q)) = lcm_int (zeta p) (zeta q)
+  | zeta T = Int_of_integer (1 : IntInf.int)
+  | zeta F = Int_of_integer (1 : IntInf.int)
+  | zeta (Lt (C bo)) = Int_of_integer (1 : IntInf.int)
+  | zeta (Lt (Bound bp)) = Int_of_integer (1 : IntInf.int)
+  | zeta (Lt (Neg bt)) = Int_of_integer (1 : IntInf.int)
+  | zeta (Lt (Add (bu, bv))) = Int_of_integer (1 : IntInf.int)
+  | zeta (Lt (Sub (bw, bx))) = Int_of_integer (1 : IntInf.int)
+  | zeta (Lt (Mul (by, bz))) = Int_of_integer (1 : IntInf.int)
+  | zeta (Le (C co)) = Int_of_integer (1 : IntInf.int)
+  | zeta (Le (Bound cp)) = Int_of_integer (1 : IntInf.int)
+  | zeta (Le (Neg ct)) = Int_of_integer (1 : IntInf.int)
+  | zeta (Le (Add (cu, cv))) = Int_of_integer (1 : IntInf.int)
+  | zeta (Le (Sub (cw, cx))) = Int_of_integer (1 : IntInf.int)
+  | zeta (Le (Mul (cy, cz))) = Int_of_integer (1 : IntInf.int)
+  | zeta (Gt (C doa)) = Int_of_integer (1 : IntInf.int)
+  | zeta (Gt (Bound dp)) = Int_of_integer (1 : IntInf.int)
+  | zeta (Gt (Neg dt)) = Int_of_integer (1 : IntInf.int)
+  | zeta (Gt (Add (du, dv))) = Int_of_integer (1 : IntInf.int)
+  | zeta (Gt (Sub (dw, dx))) = Int_of_integer (1 : IntInf.int)
+  | zeta (Gt (Mul (dy, dz))) = Int_of_integer (1 : IntInf.int)
+  | zeta (Ge (C eo)) = Int_of_integer (1 : IntInf.int)
+  | zeta (Ge (Bound ep)) = Int_of_integer (1 : IntInf.int)
+  | zeta (Ge (Neg et)) = Int_of_integer (1 : IntInf.int)
+  | zeta (Ge (Add (eu, ev))) = Int_of_integer (1 : IntInf.int)
+  | zeta (Ge (Sub (ew, ex))) = Int_of_integer (1 : IntInf.int)
+  | zeta (Ge (Mul (ey, ez))) = Int_of_integer (1 : IntInf.int)
+  | zeta (Eq (C fo)) = Int_of_integer (1 : IntInf.int)
+  | zeta (Eq (Bound fp)) = Int_of_integer (1 : IntInf.int)
+  | zeta (Eq (Neg ft)) = Int_of_integer (1 : IntInf.int)
+  | zeta (Eq (Add (fu, fv))) = Int_of_integer (1 : IntInf.int)
+  | zeta (Eq (Sub (fw, fx))) = Int_of_integer (1 : IntInf.int)
+  | zeta (Eq (Mul (fy, fz))) = Int_of_integer (1 : IntInf.int)
+  | zeta (NEq (C go)) = Int_of_integer (1 : IntInf.int)
+  | zeta (NEq (Bound gp)) = Int_of_integer (1 : IntInf.int)
+  | zeta (NEq (Neg gt)) = Int_of_integer (1 : IntInf.int)
+  | zeta (NEq (Add (gu, gv))) = Int_of_integer (1 : IntInf.int)
+  | zeta (NEq (Sub (gw, gx))) = Int_of_integer (1 : IntInf.int)
+  | zeta (NEq (Mul (gy, gz))) = Int_of_integer (1 : IntInf.int)
+  | zeta (Dvd (aa, C ho)) = Int_of_integer (1 : IntInf.int)
+  | zeta (Dvd (aa, Bound hp)) = Int_of_integer (1 : IntInf.int)
+  | zeta (Dvd (aa, Neg ht)) = Int_of_integer (1 : IntInf.int)
+  | zeta (Dvd (aa, Add (hu, hv))) = Int_of_integer (1 : IntInf.int)
+  | zeta (Dvd (aa, Sub (hw, hx))) = Int_of_integer (1 : IntInf.int)
+  | zeta (Dvd (aa, Mul (hy, hz))) = Int_of_integer (1 : IntInf.int)
+  | zeta (NDvd (ac, C io)) = Int_of_integer (1 : IntInf.int)
+  | zeta (NDvd (ac, Bound ip)) = Int_of_integer (1 : IntInf.int)
+  | zeta (NDvd (ac, Neg it)) = Int_of_integer (1 : IntInf.int)
+  | zeta (NDvd (ac, Add (iu, iv))) = Int_of_integer (1 : IntInf.int)
+  | zeta (NDvd (ac, Sub (iw, ix))) = Int_of_integer (1 : IntInf.int)
+  | zeta (NDvd (ac, Mul (iy, iz))) = Int_of_integer (1 : IntInf.int)
+  | zeta (Not ae) = Int_of_integer (1 : IntInf.int)
+  | zeta (Imp (aj, ak)) = Int_of_integer (1 : IntInf.int)
+  | zeta (Iff (al, am)) = Int_of_integer (1 : IntInf.int)
+  | zeta (E an) = Int_of_integer (1 : IntInf.int)
+  | zeta (A ao) = Int_of_integer (1 : IntInf.int)
+  | zeta (Closed ap) = Int_of_integer (1 : IntInf.int)
+  | zeta (NClosed aq) = Int_of_integer (1 : IntInf.int)
+  | zeta (Lt (Cn (cm, c, e))) =
+    (if equal_nat cm zero_nat then c else Int_of_integer (1 : IntInf.int))
+  | zeta (Le (Cn (dm, c, e))) =
+    (if equal_nat dm zero_nat then c else Int_of_integer (1 : IntInf.int))
+  | zeta (Gt (Cn (em, c, e))) =
+    (if equal_nat em zero_nat then c else Int_of_integer (1 : IntInf.int))
+  | zeta (Ge (Cn (fm, c, e))) =
+    (if equal_nat fm zero_nat then c else Int_of_integer (1 : IntInf.int))
+  | zeta (Eq (Cn (gm, c, e))) =
+    (if equal_nat gm zero_nat then c else Int_of_integer (1 : IntInf.int))
+  | zeta (NEq (Cn (hm, c, e))) =
+    (if equal_nat hm zero_nat then c else Int_of_integer (1 : IntInf.int))
+  | zeta (Dvd (i, Cn (im, c, e))) =
+    (if equal_nat im zero_nat then c else Int_of_integer (1 : IntInf.int))
+  | zeta (NDvd (i, Cn (jm, c, e))) =
+    (if equal_nat jm zero_nat then c else Int_of_integer (1 : IntInf.int));
+
+fun beta (And (p, q)) = beta p @ beta q
+  | beta (Or (p, q)) = beta p @ beta q
+  | beta T = []
+  | beta F = []
+  | beta (Lt (C bo)) = []
+  | beta (Lt (Bound bp)) = []
+  | beta (Lt (Neg bt)) = []
+  | beta (Lt (Add (bu, bv))) = []
+  | beta (Lt (Sub (bw, bx))) = []
+  | beta (Lt (Mul (by, bz))) = []
+  | beta (Le (C co)) = []
+  | beta (Le (Bound cp)) = []
+  | beta (Le (Neg ct)) = []
+  | beta (Le (Add (cu, cv))) = []
+  | beta (Le (Sub (cw, cx))) = []
+  | beta (Le (Mul (cy, cz))) = []
+  | beta (Gt (C doa)) = []
+  | beta (Gt (Bound dp)) = []
+  | beta (Gt (Neg dt)) = []
+  | beta (Gt (Add (du, dv))) = []
+  | beta (Gt (Sub (dw, dx))) = []
+  | beta (Gt (Mul (dy, dz))) = []
+  | beta (Ge (C eo)) = []
+  | beta (Ge (Bound ep)) = []
+  | beta (Ge (Neg et)) = []
+  | beta (Ge (Add (eu, ev))) = []
+  | beta (Ge (Sub (ew, ex))) = []
+  | beta (Ge (Mul (ey, ez))) = []
+  | beta (Eq (C fo)) = []
+  | beta (Eq (Bound fp)) = []
+  | beta (Eq (Neg ft)) = []
+  | beta (Eq (Add (fu, fv))) = []
+  | beta (Eq (Sub (fw, fx))) = []
+  | beta (Eq (Mul (fy, fz))) = []
+  | beta (NEq (C go)) = []
+  | beta (NEq (Bound gp)) = []
+  | beta (NEq (Neg gt)) = []
+  | beta (NEq (Add (gu, gv))) = []
+  | beta (NEq (Sub (gw, gx))) = []
+  | beta (NEq (Mul (gy, gz))) = []
+  | beta (Dvd (aa, ab)) = []
+  | beta (NDvd (ac, ad)) = []
+  | beta (Not ae) = []
+  | beta (Imp (aj, ak)) = []
+  | beta (Iff (al, am)) = []
+  | beta (E an) = []
+  | beta (A ao) = []
+  | beta (Closed ap) = []
+  | beta (NClosed aq) = []
+  | beta (Lt (Cn (cm, c, e))) = (if equal_nat cm zero_nat then [] else [])
+  | beta (Le (Cn (dm, c, e))) = (if equal_nat dm zero_nat then [] else [])
+  | beta (Gt (Cn (em, c, e))) = (if equal_nat em zero_nat then [Neg e] else [])
+  | beta (Ge (Cn (fm, c, e))) =
+    (if equal_nat fm zero_nat
+      then [Sub (C (uminus_int (Int_of_integer (1 : IntInf.int))), e)] else [])
+  | beta (Eq (Cn (gm, c, e))) =
+    (if equal_nat gm zero_nat
+      then [Sub (C (uminus_int (Int_of_integer (1 : IntInf.int))), e)] else [])
+  | beta (NEq (Cn (hm, c, e))) =
+    (if equal_nat hm zero_nat then [Neg e] else []);
+
+fun mirror (And (p, q)) = And (mirror p, mirror q)
+  | mirror (Or (p, q)) = Or (mirror p, mirror q)
+  | mirror T = T
+  | mirror F = F
+  | mirror (Lt (C bo)) = Lt (C bo)
+  | mirror (Lt (Bound bp)) = Lt (Bound bp)
+  | mirror (Lt (Neg bt)) = Lt (Neg bt)
+  | mirror (Lt (Add (bu, bv))) = Lt (Add (bu, bv))
+  | mirror (Lt (Sub (bw, bx))) = Lt (Sub (bw, bx))
+  | mirror (Lt (Mul (by, bz))) = Lt (Mul (by, bz))
+  | mirror (Le (C co)) = Le (C co)
+  | mirror (Le (Bound cp)) = Le (Bound cp)
+  | mirror (Le (Neg ct)) = Le (Neg ct)
+  | mirror (Le (Add (cu, cv))) = Le (Add (cu, cv))
+  | mirror (Le (Sub (cw, cx))) = Le (Sub (cw, cx))
+  | mirror (Le (Mul (cy, cz))) = Le (Mul (cy, cz))
+  | mirror (Gt (C doa)) = Gt (C doa)
+  | mirror (Gt (Bound dp)) = Gt (Bound dp)
+  | mirror (Gt (Neg dt)) = Gt (Neg dt)
+  | mirror (Gt (Add (du, dv))) = Gt (Add (du, dv))
+  | mirror (Gt (Sub (dw, dx))) = Gt (Sub (dw, dx))
+  | mirror (Gt (Mul (dy, dz))) = Gt (Mul (dy, dz))
+  | mirror (Ge (C eo)) = Ge (C eo)
+  | mirror (Ge (Bound ep)) = Ge (Bound ep)
+  | mirror (Ge (Neg et)) = Ge (Neg et)
+  | mirror (Ge (Add (eu, ev))) = Ge (Add (eu, ev))
+  | mirror (Ge (Sub (ew, ex))) = Ge (Sub (ew, ex))
+  | mirror (Ge (Mul (ey, ez))) = Ge (Mul (ey, ez))
+  | mirror (Eq (C fo)) = Eq (C fo)
+  | mirror (Eq (Bound fp)) = Eq (Bound fp)
+  | mirror (Eq (Neg ft)) = Eq (Neg ft)
+  | mirror (Eq (Add (fu, fv))) = Eq (Add (fu, fv))
+  | mirror (Eq (Sub (fw, fx))) = Eq (Sub (fw, fx))
+  | mirror (Eq (Mul (fy, fz))) = Eq (Mul (fy, fz))
+  | mirror (NEq (C go)) = NEq (C go)
+  | mirror (NEq (Bound gp)) = NEq (Bound gp)
+  | mirror (NEq (Neg gt)) = NEq (Neg gt)
+  | mirror (NEq (Add (gu, gv))) = NEq (Add (gu, gv))
+  | mirror (NEq (Sub (gw, gx))) = NEq (Sub (gw, gx))
+  | mirror (NEq (Mul (gy, gz))) = NEq (Mul (gy, gz))
+  | mirror (Dvd (aa, C ho)) = Dvd (aa, C ho)
+  | mirror (Dvd (aa, Bound hp)) = Dvd (aa, Bound hp)
+  | mirror (Dvd (aa, Neg ht)) = Dvd (aa, Neg ht)
+  | mirror (Dvd (aa, Add (hu, hv))) = Dvd (aa, Add (hu, hv))
+  | mirror (Dvd (aa, Sub (hw, hx))) = Dvd (aa, Sub (hw, hx))
+  | mirror (Dvd (aa, Mul (hy, hz))) = Dvd (aa, Mul (hy, hz))
+  | mirror (NDvd (ac, C io)) = NDvd (ac, C io)
+  | mirror (NDvd (ac, Bound ip)) = NDvd (ac, Bound ip)
+  | mirror (NDvd (ac, Neg it)) = NDvd (ac, Neg it)
+  | mirror (NDvd (ac, Add (iu, iv))) = NDvd (ac, Add (iu, iv))
+  | mirror (NDvd (ac, Sub (iw, ix))) = NDvd (ac, Sub (iw, ix))
+  | mirror (NDvd (ac, Mul (iy, iz))) = NDvd (ac, Mul (iy, iz))
+  | mirror (Not ae) = Not ae
+  | mirror (Imp (aj, ak)) = Imp (aj, ak)
+  | mirror (Iff (al, am)) = Iff (al, am)
+  | mirror (E an) = E an
+  | mirror (A ao) = A ao
+  | mirror (Closed ap) = Closed ap
+  | mirror (NClosed aq) = NClosed aq
+  | mirror (Lt (Cn (cm, c, e))) =
+    (if equal_nat cm zero_nat then Gt (Cn (zero_nat, c, Neg e))
+      else Lt (Cn (suc (minus_nat cm one_nat), c, e)))
+  | mirror (Le (Cn (dm, c, e))) =
+    (if equal_nat dm zero_nat then Ge (Cn (zero_nat, c, Neg e))
+      else Le (Cn (suc (minus_nat dm one_nat), c, e)))
+  | mirror (Gt (Cn (em, c, e))) =
+    (if equal_nat em zero_nat then Lt (Cn (zero_nat, c, Neg e))
+      else Gt (Cn (suc (minus_nat em one_nat), c, e)))
+  | mirror (Ge (Cn (fm, c, e))) =
+    (if equal_nat fm zero_nat then Le (Cn (zero_nat, c, Neg e))
+      else Ge (Cn (suc (minus_nat fm one_nat), c, e)))
+  | mirror (Eq (Cn (gm, c, e))) =
+    (if equal_nat gm zero_nat then Eq (Cn (zero_nat, c, Neg e))
+      else Eq (Cn (suc (minus_nat gm one_nat), c, e)))
+  | mirror (NEq (Cn (hm, c, e))) =
+    (if equal_nat hm zero_nat then NEq (Cn (zero_nat, c, Neg e))
+      else NEq (Cn (suc (minus_nat hm one_nat), c, e)))
+  | mirror (Dvd (i, Cn (im, c, e))) =
+    (if equal_nat im zero_nat then Dvd (i, Cn (zero_nat, c, Neg e))
+      else Dvd (i, Cn (suc (minus_nat im one_nat), c, e)))
+  | mirror (NDvd (i, Cn (jm, c, e))) =
+    (if equal_nat jm zero_nat then NDvd (i, Cn (zero_nat, c, Neg e))
+      else NDvd (i, Cn (suc (minus_nat jm one_nat), c, e)));
+
+fun member A_ [] y = false
+  | member A_ (x :: xs) y = eq A_ x y orelse member A_ xs y;
+
+fun remdups A_ [] = []
+  | remdups A_ (x :: xs) =
+    (if member A_ xs x then remdups A_ xs else x :: remdups A_ xs);
 
 fun minus_int k l = Int_of_integer (integer_of_int k - integer_of_int l);
 
@@ -1983,143 +1865,6 @@ fun zlfm (And (p, q)) = And (zlfm p, zlfm q)
   | zlfm (Closed aq) = Closed aq
   | zlfm (NClosed ar) = NClosed ar;
 
-fun zeta (And (p, q)) = lcm_int (zeta p) (zeta q)
-  | zeta (Or (p, q)) = lcm_int (zeta p) (zeta q)
-  | zeta T = Int_of_integer (1 : IntInf.int)
-  | zeta F = Int_of_integer (1 : IntInf.int)
-  | zeta (Lt (C bo)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Lt (Bound bp)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Lt (Neg bt)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Lt (Add (bu, bv))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Lt (Sub (bw, bx))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Lt (Mul (by, bz))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Le (C co)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Le (Bound cp)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Le (Neg ct)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Le (Add (cu, cv))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Le (Sub (cw, cx))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Le (Mul (cy, cz))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Gt (C doa)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Gt (Bound dp)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Gt (Neg dt)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Gt (Add (du, dv))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Gt (Sub (dw, dx))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Gt (Mul (dy, dz))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Ge (C eo)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Ge (Bound ep)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Ge (Neg et)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Ge (Add (eu, ev))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Ge (Sub (ew, ex))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Ge (Mul (ey, ez))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Eq (C fo)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Eq (Bound fp)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Eq (Neg ft)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Eq (Add (fu, fv))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Eq (Sub (fw, fx))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Eq (Mul (fy, fz))) = Int_of_integer (1 : IntInf.int)
-  | zeta (NEq (C go)) = Int_of_integer (1 : IntInf.int)
-  | zeta (NEq (Bound gp)) = Int_of_integer (1 : IntInf.int)
-  | zeta (NEq (Neg gt)) = Int_of_integer (1 : IntInf.int)
-  | zeta (NEq (Add (gu, gv))) = Int_of_integer (1 : IntInf.int)
-  | zeta (NEq (Sub (gw, gx))) = Int_of_integer (1 : IntInf.int)
-  | zeta (NEq (Mul (gy, gz))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Dvd (aa, C ho)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Dvd (aa, Bound hp)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Dvd (aa, Neg ht)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Dvd (aa, Add (hu, hv))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Dvd (aa, Sub (hw, hx))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Dvd (aa, Mul (hy, hz))) = Int_of_integer (1 : IntInf.int)
-  | zeta (NDvd (ac, C io)) = Int_of_integer (1 : IntInf.int)
-  | zeta (NDvd (ac, Bound ip)) = Int_of_integer (1 : IntInf.int)
-  | zeta (NDvd (ac, Neg it)) = Int_of_integer (1 : IntInf.int)
-  | zeta (NDvd (ac, Add (iu, iv))) = Int_of_integer (1 : IntInf.int)
-  | zeta (NDvd (ac, Sub (iw, ix))) = Int_of_integer (1 : IntInf.int)
-  | zeta (NDvd (ac, Mul (iy, iz))) = Int_of_integer (1 : IntInf.int)
-  | zeta (Not ae) = Int_of_integer (1 : IntInf.int)
-  | zeta (Imp (aj, ak)) = Int_of_integer (1 : IntInf.int)
-  | zeta (Iff (al, am)) = Int_of_integer (1 : IntInf.int)
-  | zeta (E an) = Int_of_integer (1 : IntInf.int)
-  | zeta (A ao) = Int_of_integer (1 : IntInf.int)
-  | zeta (Closed ap) = Int_of_integer (1 : IntInf.int)
-  | zeta (NClosed aq) = Int_of_integer (1 : IntInf.int)
-  | zeta (Lt (Cn (cm, c, e))) =
-    (if equal_nat cm zero_nat then c else Int_of_integer (1 : IntInf.int))
-  | zeta (Le (Cn (dm, c, e))) =
-    (if equal_nat dm zero_nat then c else Int_of_integer (1 : IntInf.int))
-  | zeta (Gt (Cn (em, c, e))) =
-    (if equal_nat em zero_nat then c else Int_of_integer (1 : IntInf.int))
-  | zeta (Ge (Cn (fm, c, e))) =
-    (if equal_nat fm zero_nat then c else Int_of_integer (1 : IntInf.int))
-  | zeta (Eq (Cn (gm, c, e))) =
-    (if equal_nat gm zero_nat then c else Int_of_integer (1 : IntInf.int))
-  | zeta (NEq (Cn (hm, c, e))) =
-    (if equal_nat hm zero_nat then c else Int_of_integer (1 : IntInf.int))
-  | zeta (Dvd (i, Cn (im, c, e))) =
-    (if equal_nat im zero_nat then c else Int_of_integer (1 : IntInf.int))
-  | zeta (NDvd (i, Cn (jm, c, e))) =
-    (if equal_nat jm zero_nat then c else Int_of_integer (1 : IntInf.int));
-
-fun beta (And (p, q)) = beta p @ beta q
-  | beta (Or (p, q)) = beta p @ beta q
-  | beta T = []
-  | beta F = []
-  | beta (Lt (C bo)) = []
-  | beta (Lt (Bound bp)) = []
-  | beta (Lt (Neg bt)) = []
-  | beta (Lt (Add (bu, bv))) = []
-  | beta (Lt (Sub (bw, bx))) = []
-  | beta (Lt (Mul (by, bz))) = []
-  | beta (Le (C co)) = []
-  | beta (Le (Bound cp)) = []
-  | beta (Le (Neg ct)) = []
-  | beta (Le (Add (cu, cv))) = []
-  | beta (Le (Sub (cw, cx))) = []
-  | beta (Le (Mul (cy, cz))) = []
-  | beta (Gt (C doa)) = []
-  | beta (Gt (Bound dp)) = []
-  | beta (Gt (Neg dt)) = []
-  | beta (Gt (Add (du, dv))) = []
-  | beta (Gt (Sub (dw, dx))) = []
-  | beta (Gt (Mul (dy, dz))) = []
-  | beta (Ge (C eo)) = []
-  | beta (Ge (Bound ep)) = []
-  | beta (Ge (Neg et)) = []
-  | beta (Ge (Add (eu, ev))) = []
-  | beta (Ge (Sub (ew, ex))) = []
-  | beta (Ge (Mul (ey, ez))) = []
-  | beta (Eq (C fo)) = []
-  | beta (Eq (Bound fp)) = []
-  | beta (Eq (Neg ft)) = []
-  | beta (Eq (Add (fu, fv))) = []
-  | beta (Eq (Sub (fw, fx))) = []
-  | beta (Eq (Mul (fy, fz))) = []
-  | beta (NEq (C go)) = []
-  | beta (NEq (Bound gp)) = []
-  | beta (NEq (Neg gt)) = []
-  | beta (NEq (Add (gu, gv))) = []
-  | beta (NEq (Sub (gw, gx))) = []
-  | beta (NEq (Mul (gy, gz))) = []
-  | beta (Dvd (aa, ab)) = []
-  | beta (NDvd (ac, ad)) = []
-  | beta (Not ae) = []
-  | beta (Imp (aj, ak)) = []
-  | beta (Iff (al, am)) = []
-  | beta (E an) = []
-  | beta (A ao) = []
-  | beta (Closed ap) = []
-  | beta (NClosed aq) = []
-  | beta (Lt (Cn (cm, c, e))) = (if equal_nat cm zero_nat then [] else [])
-  | beta (Le (Cn (dm, c, e))) = (if equal_nat dm zero_nat then [] else [])
-  | beta (Gt (Cn (em, c, e))) = (if equal_nat em zero_nat then [Neg e] else [])
-  | beta (Ge (Cn (fm, c, e))) =
-    (if equal_nat fm zero_nat
-      then [Sub (C (Int_of_integer (~1 : IntInf.int)), e)] else [])
-  | beta (Eq (Cn (gm, c, e))) =
-    (if equal_nat gm zero_nat
-      then [Sub (C (Int_of_integer (~1 : IntInf.int)), e)] else [])
-  | beta (NEq (Cn (hm, c, e))) =
-    (if equal_nat hm zero_nat then [Neg e] else []);
-
 fun unita p =
   let
     val pa = zlfm p;
@@ -2135,13 +1880,12 @@ fun unita p =
       else (mirror q, (a, d)))
   end;
 
-fun decrnum (Bound n) = Bound (minus_nat n (nat_of_integer (1 : IntInf.int)))
+fun decrnum (Bound n) = Bound (minus_nat n one_nat)
   | decrnum (Neg a) = Neg (decrnum a)
   | decrnum (Add (a, b)) = Add (decrnum a, decrnum b)
   | decrnum (Sub (a, b)) = Sub (decrnum a, decrnum b)
   | decrnum (Mul (c, a)) = Mul (c, decrnum a)
-  | decrnum (Cn (n, i, a)) =
-    Cn (minus_nat n (nat_of_integer (1 : IntInf.int)), i, decrnum a)
+  | decrnum (Cn (n, i, a)) = Cn (minus_nat n one_nat, i, decrnum a)
   | decrnum (C v) = C v;
 
 fun decr (Lt a) = Lt (decrnum a)
@@ -2164,9 +1908,11 @@ fun decr (Lt a) = Lt (decrnum a)
   | decr (Closed v) = Closed v
   | decr (NClosed v) = NClosed v;
 
-fun uptoa i j =
-  (if less_eq_int i j
-    then i :: uptoa (plus_inta i (Int_of_integer (1 : IntInf.int))) j else []);
+fun upto_aux i j js =
+  (if less_int j i then js
+    else upto_aux i (minus_int j (Int_of_integer (1 : IntInf.int))) (j :: js));
+
+fun uptoa i j = upto_aux i j [];
 
 fun maps f [] = []
   | maps f (x :: xs) = f x @ maps f xs;
@@ -2193,8 +1939,8 @@ fun qelim (E p) = (fn qe => dj qe (qelim p qe))
   | qelim (Not p) = (fn qe => nota (qelim p qe))
   | qelim (And (p, q)) = (fn qe => conj (qelim p qe) (qelim q qe))
   | qelim (Or (p, q)) = (fn qe => disj (qelim p qe) (qelim q qe))
-  | qelim (Imp (p, q)) = (fn qe => impa (qelim p qe) (qelim q qe))
-  | qelim (Iff (p, q)) = (fn qe => iffa (qelim p qe) (qelim q qe))
+  | qelim (Imp (p, q)) = (fn qe => imp (qelim p qe) (qelim q qe))
+  | qelim (Iff (p, q)) = (fn qe => iff (qelim p qe) (qelim q qe))
   | qelim T = (fn _ => simpfm T)
   | qelim F = (fn _ => simpfm F)
   | qelim (Lt v) = (fn _ => simpfm (Lt v))
@@ -2303,5 +2049,7 @@ fun prep (E T) = T
   | prep (NClosed aq) = NClosed aq;
 
 fun pa p = qelim (prep p) cooper;
+
+fun nat_of_integer k = Nat (max ord_integer 0 k);
 
 end; (*struct Cooper_Procedure*)

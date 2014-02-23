@@ -1995,7 +1995,7 @@ definition cooper_test :: "unit \<Rightarrow> fm"
 ML_val {* @{code cooper_test} () *}
 
 (*code_reflect Cooper_Procedure
-  functions pa
+  functions pa T Bound nat_of_integer integer_of_nat int_of_integer integer_of_int
   file "~~/src/HOL/Tools/Qelim/cooper_procedure.ML"*)
 
 oracle linzqe_oracle = {*
