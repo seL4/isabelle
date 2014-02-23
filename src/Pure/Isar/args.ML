@@ -291,8 +291,8 @@ fun syntax kind scan (Src ((s, args), pos)) st =
   (case Scan.error (Scan.finite' Token.stopper (Scan.option scan)) (st, args) of
     (SOME x, (st', [])) => (x, st')
   | (_, (_, args')) =>
-      error (kind ^ " " ^ quote s ^ Position.here pos ^ ": bad arguments\n  " ^
-        space_implode " " (map Token.unparse args')));
+      error (kind ^ " " ^ quote s ^ Position.here pos ^ ": bad arguments" ^
+        (if null args' then "" else "\n  " ^ space_implode " " (map Token.unparse args'))));
 
 fun context_syntax kind scan src = apsnd Context.the_proof o syntax kind scan src o Context.Proof;
 
