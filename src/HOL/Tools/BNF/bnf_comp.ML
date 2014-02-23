@@ -11,15 +11,18 @@ sig
   val ID_bnf: BNF_Def.bnf
   val DEADID_bnf: BNF_Def.bnf
 
+  type comp_cache
   type unfold_set
+
+  val empty_comp_cache: comp_cache
   val empty_unfolds: unfold_set
 
   exception BAD_DEAD of typ * typ
 
   val bnf_of_typ: BNF_Def.const_policy -> (binding -> binding) ->
     ((string * sort) list list -> (string * sort) list) -> (string * sort) list ->
-    (string * sort) list -> typ -> unfold_set * Proof.context ->
-    (BNF_Def.bnf * (typ list * typ list)) * (unfold_set * Proof.context)
+    (string * sort) list -> typ -> (comp_cache * unfold_set) * Proof.context ->
+    (BNF_Def.bnf * (typ list * typ list)) * ((comp_cache * unfold_set) * Proof.context)
   val default_comp_sort: (string * sort) list list -> (string * sort) list
   val normalize_bnfs: (int -> binding -> binding) -> ''a list list -> ''a list ->
     (''a list list -> ''a list) -> BNF_Def.bnf list -> unfold_set -> Proof.context ->
@@ -39,13 +42,16 @@ open BNF_Comp_Tactics
 val ID_bnf = the (bnf_of @{context} "Basic_BNFs.ID");
 val DEADID_bnf = the (bnf_of @{context} "Basic_BNFs.DEADID");
 
-(* TODO: Replace by "BNF_Defs.defs list" *)
+type comp_cache = (bnf * (typ list * typ list)) Typtab.table;
+
+(* TODO: Replace by "BNF_Defs.defs list"? *)
 type unfold_set = {
   map_unfolds: thm list,
   set_unfoldss: thm list list,
   rel_unfolds: thm list
 };
 
+val empty_comp_cache = Typtab.empty;
 val empty_unfolds = {map_unfolds = [], set_unfoldss = [], rel_unfolds = []};
 
 fun add_to_thms thms new = thms |> not (Thm.is_reflexive new) ? insert Thm.eq_thm new;
@@ -650,12 +656,19 @@ fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
     ((bnf', deads), lthy')
   end;
 
+fun key_of_types Ts = Type ("", Ts);
+val key_of_typess = key_of_types o map key_of_types;
+fun key_of_comp oDs Dss Ass T = key_of_types (map key_of_typess [[oDs], Dss, Ass, [[T]]]);
+
+fun cache_comp key cache (bnf_dead_lives, (unfold_set, lthy)) =
+  (bnf_dead_lives, ((Typtab.update (key, bnf_dead_lives) cache, unfold_set), lthy));
+
 exception BAD_DEAD of typ * typ;
 
 fun bnf_of_typ _ _ _ _ Ds0 (T as TFree T') accum =
     (if member (op =) Ds0 T' then (DEADID_bnf, ([T], [])) else (ID_bnf, ([], [T])), accum)
   | bnf_of_typ _ _ _ _ _ (TVar _) _ = error "Unexpected schematic variable"
-  | bnf_of_typ const_policy qualify' sort Xs Ds0 (T as Type (C, Ts)) (accum as (unfold_set, lthy)) =
+  | bnf_of_typ const_policy qualify' sort Xs Ds0 (T as Type (C, Ts)) (accum as (_, lthy)) =
     let
       fun check_bad_dead ((_, (deads, _)), _) =
         let val Ds = fold Term.add_tfreesT deads [] in
@@ -678,7 +691,7 @@ fun bnf_of_typ _ _ _ _ Ds0 (T as TFree T') accum =
             val deads_lives =
               pairself (map (Term.typ_subst_TVars (map fst tvars' ~~ map TFree tfrees)))
                 (deads, lives);
-          in ((bnf, deads_lives), (unfold_set, lthy)) end
+          in ((bnf, deads_lives), accum) end
         else
           let
             val name = Long_Name.base_name C;
@@ -691,12 +704,18 @@ fun bnf_of_typ _ _ _ _ Ds0 (T as TFree T') accum =
               (mk_T_of_bnf (replicate odead (TFree ("dead", []))) (replicate olive dummyT) bnf)));
             val oDs = map (nth Ts) oDs_pos;
             val Ts' = map (nth Ts) (subtract (op =) oDs_pos (0 upto length Ts - 1));
-            val ((inners, (Dss, Ass)), (unfold_set', lthy')) =
+            val ((inners, (Dss, Ass)), ((cache', unfold_set'), lthy')) =
               apfst (apsnd split_list o split_list)
                 (fold_map2 (fn i => bnf_of_typ Smart_Inline (qualify i) sort Xs Ds0)
-                (if length Ts' = 1 then [0] else (1 upto length Ts')) Ts' (unfold_set, lthy));
+                (if length Ts' = 1 then [0] else (1 upto length Ts')) Ts' accum);
+            val key = key_of_comp oDs Dss Ass T;
           in
-            compose_bnf const_policy qualify sort bnf inners oDs Dss Ass (unfold_set', lthy')
+            (case Typtab.lookup cache' key of
+              SOME bnf_deads_lives => (bnf_deads_lives, accum)
+            | NONE =>
+              (unfold_set', lthy')
+              |> compose_bnf const_policy qualify sort bnf inners oDs Dss Ass
+              |> cache_comp key cache')
           end)
       |> tap check_bad_dead
     end;
