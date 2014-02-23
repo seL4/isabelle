@@ -115,7 +115,9 @@ object Completion_Popup
             val context =
               (PIDE.document_view(text_area) match {
                 case None => None
-                case Some(doc_view) => doc_view.get_rendering().completion_context(caret)
+                case Some(doc_view) =>
+                  val rendering = doc_view.get_rendering()
+                  rendering.completion_context(JEdit_Lib.stretch_point_range(buffer, caret))
               }) getOrElse syntax.completion_context
 
             syntax.completion.complete(history, decode, explicit, text, context) match {

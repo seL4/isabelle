@@ -224,9 +224,12 @@ class Rich_Text_Area(
 
   /* text background */
 
-  private def get_caret_range(): Text.Range =
-    if (caret_visible && text_area.isCaretVisible)
-      JEdit_Lib.point_range(buffer, text_area.getCaretPosition)
+  private def get_caret_range(stretch: Boolean): Text.Range =
+    if (caret_visible && text_area.isCaretVisible) {
+      val caret = text_area.getCaretPosition
+      if (stretch) JEdit_Lib.stretch_point_range(buffer, caret)
+      else JEdit_Lib.point_range(buffer, caret)
+    }
     else Text.Range(-1)
 
   private val background_painter = new TextAreaExtension
@@ -306,7 +309,7 @@ class Rich_Text_Area(
     val clip_rect = gfx.getClipBounds
     val painter = text_area.getPainter
     val font_context = painter.getFontRenderContext
-    val caret_range = get_caret_range()
+    val caret_range = get_caret_range(false)
 
     var w = 0.0f
     var chunk = head
@@ -444,7 +447,7 @@ class Rich_Text_Area(
     {
       robust_rendering { rendering =>
         val painter = text_area.getPainter
-        val caret_range = get_caret_range()
+        val caret_range = get_caret_range(true)
 
         for (i <- 0 until physical_lines.length) {
           if (physical_lines(i) != -1) {
@@ -483,8 +486,8 @@ class Rich_Text_Area(
             for {
               caret <- caret_range.try_restrict(line_range)
               if !hyperlink_area.is_active
-              range <- rendering.completion_range(caret.start)
-              r <- JEdit_Lib.gfx_range(text_area, range)
+              names <- rendering.completion_names(caret)
+              r <- JEdit_Lib.gfx_range(text_area, names.range)
             } {
               gfx.setColor(painter.getCaretColor)
               gfx.drawRect(r.x, y + i * line_height, r.length - 1, line_height - 1)
