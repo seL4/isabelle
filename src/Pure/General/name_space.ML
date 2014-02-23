@@ -447,7 +447,9 @@ type 'a table = T * 'a Symtab.table;
 fun check context (space, tab) (xname, pos) =
   let val name = intern space xname in
     (case Symtab.lookup tab name of
-      SOME x => (Context_Position.report_generic context pos (markup space name); (name, x))
+      SOME x =>
+       (Context_Position.report_generic context pos (markup space name);
+        (name, x))
     | NONE =>
        (Completion.report (completion context space (xname, pos));
         error (undefined (kind_of space) name ^ Position.here pos)))
