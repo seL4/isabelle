@@ -145,8 +145,11 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
             |> single
             |> enclose "(" ")"
           end;
-    fun privatize false = concat o cons (str "private")
-      | privatize true = concat;
+    fun privatize Code_Namespace.Public = concat
+      | privatize _ = concat o cons (str "private");
+    fun privatize' Code_Namespace.Public = concat
+      | privatize' Code_Namespace.Opaque = concat
+      | privatize' _ = concat o cons (str "private");
     fun print_context tyvars vs sym = applify "[" "]"
       (fn (v, sort) => (Pretty.block o map str)
         (lookup_tyvar tyvars v :: maps (fn class => [" : ", deresolve_class class]) sort))
@@ -224,7 +227,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
               ];
           in
             Pretty.chunks (applify "[" "]" (str o lookup_tyvar tyvars)
-              NOBR ((privatize export o map str) ["abstract", "sealed", "class", deresolve_tyco tyco]) vs
+              NOBR ((privatize' export o map str) ["abstract", "sealed", "class", deresolve_tyco tyco]) vs
                 :: map print_co cos)
           end
       | print_stmt (Type_Class class, (export, Code_Thingol.Class (v, (classrels, classparams)))) =
@@ -257,7 +260,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
           in
             Pretty.chunks (
               (Pretty.block_enclose
-                (privatize export ([str "trait", (add_typarg o deresolve_class) class]
+                (privatize' export ([str "trait", (add_typarg o deresolve_class) class]
                   @ the_list (print_super_classes classrels) @ [str "{"]), str "}")
                 (map print_classparam_val classparams))
               :: map print_classparam_def classparams
@@ -349,7 +352,8 @@ fun serialize_scala ctxt { module_name, reserved_syms, identifiers,
 
     (* build program *)
     val { deresolver, hierarchical_program = scala_program } =
-      scala_program_of_program ctxt module_name (Name.make_context reserved_syms) identifiers program;
+      scala_program_of_program ctxt module_name (Name.make_context reserved_syms)
+        identifiers program;
 
     (* print statements *)
     fun lookup_constr tyco constr = case Code_Symbol.Graph.get_node program (Type_Constructor tyco)

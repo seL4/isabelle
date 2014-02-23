@@ -242,7 +242,7 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
               @@ print_dicttyp (class, tyco `%% map (ITyVar o fst) vs)
             ))
           end;
-    fun print_stmt (ML_Exc (const, (vs_ty, n))) = pair
+    fun print_stmt _ (ML_Exc (const, (vs_ty, n))) = pair
           [print_val_decl print_typscheme (Constant const, vs_ty)]
           ((semicolon o map str) (
             (if n = 0 then "val" else "fun")
@@ -253,14 +253,14 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
             :: "Fail"
             @@ ML_Syntax.print_string const
           ))
-      | print_stmt (ML_Val binding) =
+      | print_stmt _ (ML_Val binding) =
           let
             val (sig_p, p) = print_def (K false) true "val" binding
           in pair
             [sig_p]
             (semicolon [p])
           end
-      | print_stmt (ML_Funs (binding :: bindings, pseudo_funs)) =
+      | print_stmt _ (ML_Funs (binding :: bindings, pseudo_funs)) =
           let
             val print_def' = print_def (member (op =) pseudo_funs) false;
             fun print_pseudo_fun sym = concat [
@@ -277,24 +277,28 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
             sig_ps
             (Pretty.chunks (ps @ semicolon [p] :: pseudo_ps))
           end
-     | print_stmt (ML_Datas [(tyco, (vs, []))]) =
+     | print_stmt _ (ML_Datas [(tyco, (vs, []))]) =
           let
             val ty_p = print_tyco_expr (Type_Constructor tyco, map ITyVar vs);
           in
             pair
             [concat [str "type", ty_p]]
-            (concat [str "datatype", ty_p, str "=", str "EMPTY__"])
+            (semicolon [str "datatype", ty_p, str "=", str "EMPTY__"])
           end
-     | print_stmt (ML_Datas (data :: datas)) = 
+     | print_stmt export (ML_Datas (data :: datas)) = 
           let
-            val sig_ps = print_datatype_decl "datatype" data
+            val decl_ps = print_datatype_decl "datatype" data
               :: map (print_datatype_decl "and") datas;
-            val (ps, p) = split_last sig_ps;
+            val (ps, p) = split_last decl_ps;
           in pair
-            sig_ps
+            (if Code_Namespace.is_public export
+              then decl_ps
+              else map (fn (tyco, (vs, _)) =>
+                concat [str "type", print_tyco_expr (Type_Constructor tyco, map ITyVar vs)])
+                (data :: datas))
             (Pretty.chunks (ps @| semicolon [p]))
           end
-     | print_stmt (ML_Class (class, (v, (classrels, classparams)))) =
+     | print_stmt export (ML_Class (class, (v, (classrels, classparams)))) =
           let
             fun print_field s p = concat [str s, str ":", p];
             fun print_proj s p = semicolon
@@ -317,12 +321,14 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
                 (print_typscheme ([(v, [class])], ty));
           in pair
             (concat [str "type", print_dicttyp (class, ITyVar v)]
-              :: map print_super_class_decl classrels
-              @ map print_classparam_decl classparams)
+              :: (if Code_Namespace.is_public export
+                 then map print_super_class_decl classrels
+                   @ map print_classparam_decl classparams
+                 else []))
             (Pretty.chunks (
               concat [
-                str ("type '" ^ v),
-                (str o deresolve_class) class,
+                str "type",
+                print_dicttyp (class, ITyVar v),
                 str "=",
                 enum "," "{" "};" (
                   map print_super_class_field classrels
@@ -582,7 +588,7 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
               ]
             ))
           end;
-     fun print_stmt (ML_Exc (const, (vs_ty, n))) = pair
+     fun print_stmt _ (ML_Exc (const, (vs_ty, n))) = pair
           [print_val_decl print_typscheme (Constant const, vs_ty)]
           ((doublesemicolon o map str) (
             "let"
@@ -592,14 +598,14 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
             :: "failwith"
             @@ ML_Syntax.print_string const
           ))
-      | print_stmt (ML_Val binding) =
+      | print_stmt _ (ML_Val binding) =
           let
             val (sig_p, p) = print_def (K false) true "let" binding
           in pair
             [sig_p]
             (doublesemicolon [p])
           end
-      | print_stmt (ML_Funs (binding :: bindings, pseudo_funs)) =
+      | print_stmt _ (ML_Funs (binding :: bindings, pseudo_funs)) =
           let
             val print_def' = print_def (member (op =) pseudo_funs) false;
             fun print_pseudo_fun sym = concat [
@@ -616,24 +622,28 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
             sig_ps
             (Pretty.chunks (ps @ doublesemicolon [p] :: pseudo_ps))
           end
-     | print_stmt (ML_Datas [(tyco, (vs, []))]) =
+     | print_stmt _ (ML_Datas [(tyco, (vs, []))]) =
           let
             val ty_p = print_tyco_expr (Type_Constructor tyco, map ITyVar vs);
           in
             pair
             [concat [str "type", ty_p]]
-            (concat [str "type", ty_p, str "=", str "EMPTY__"])
+            (doublesemicolon [str "type", ty_p, str "=", str "EMPTY__"])
           end
-     | print_stmt (ML_Datas (data :: datas)) = 
+     | print_stmt export (ML_Datas (data :: datas)) = 
           let
-            val sig_ps = print_datatype_decl "type" data
+            val decl_ps = print_datatype_decl "type" data
               :: map (print_datatype_decl "and") datas;
-            val (ps, p) = split_last sig_ps;
+            val (ps, p) = split_last decl_ps;
           in pair
-            sig_ps
+            (if Code_Namespace.is_public export
+              then decl_ps
+              else map (fn (tyco, (vs, _)) =>
+                concat [str "type", print_tyco_expr (Type_Constructor tyco, map ITyVar vs)])
+                (data :: datas))
             (Pretty.chunks (ps @| doublesemicolon [p]))
           end
-     | print_stmt (ML_Class (class, (v, (classrels, classparams)))) =
+     | print_stmt export (ML_Class (class, (v, (classrels, classparams)))) =
           let
             fun print_field s p = concat [str s, str ":", p];
             fun print_super_class_field (classrel as (_, super_class)) =
@@ -705,7 +715,7 @@ in Literals {
 
 (** SML/OCaml generic part **)
 
-fun ml_program_of_program ctxt module_name reserved identifiers program =
+fun ml_program_of_program ctxt module_name reserved identifiers =
   let
     fun namify_const upper base (nsp_const, nsp_type) =
       let
@@ -782,7 +792,7 @@ fun ml_program_of_program ctxt module_name reserved identifiers program =
     Code_Namespace.hierarchical_program ctxt {
       module_name = module_name, reserved = reserved, identifiers = identifiers,
       empty_nsp = (reserved, reserved), namify_module = pair, namify_stmt = namify_stmt,
-      cyclic_modules = false, empty_data = (), memorize_data = K I, modify_stmts = modify_stmts } program
+      cyclic_modules = false, empty_data = (), memorize_data = K I, modify_stmts = modify_stmts }
   end;
 
 fun serialize_ml print_ml_module print_ml_stmt ctxt
@@ -792,13 +802,14 @@ fun serialize_ml print_ml_module print_ml_stmt ctxt
 
     (* build program *)
     val { deresolver, hierarchical_program = ml_program } =
-      ml_program_of_program ctxt module_name (Name.make_context reserved_syms) identifiers program;
+      ml_program_of_program ctxt module_name (Name.make_context reserved_syms)
+        identifiers program;
 
     (* print statements *)
     fun print_stmt prefix_fragments (_, (export, stmt)) = print_ml_stmt
       tyco_syntax const_syntax (make_vars reserved_syms)
-      (Code_Thingol.is_constr program) (deresolver prefix_fragments) stmt
-      |> apfst (fn decl => if export then SOME decl else NONE);
+      (Code_Thingol.is_constr program) (deresolver prefix_fragments) export stmt
+      |> apfst (fn decl => if Code_Namespace.not_private export then SOME decl else NONE);
 
     (* print modules *)
     fun print_module _ base _ xs =

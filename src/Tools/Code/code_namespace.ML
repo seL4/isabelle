@@ -6,6 +6,10 @@ Mastering target language namespaces.
 
 signature CODE_NAMESPACE =
 sig
+  datatype export = Private | Opaque | Public
+  val is_public: export -> bool
+  val not_private: export -> bool
+
   type flat_program
   val flat_program: Proof.context
     -> { module_prefix: string, module_name: string,
@@ -18,7 +22,7 @@ sig
 
   datatype ('a, 'b) node =
       Dummy
-    | Stmt of bool * 'a
+    | Stmt of export * 'a
     | Module of ('b * (string * ('a, 'b) node) Code_Symbol.Graph.T)
   type ('a, 'b) hierarchical_program
   val hierarchical_program: Proof.context
@@ -32,13 +36,25 @@ sig
       -> { deresolver: string list -> Code_Symbol.T -> string,
            hierarchical_program: ('a, 'b) hierarchical_program }
   val print_hierarchical: { print_module: string list -> string -> 'b -> 'c list -> 'c,
-    print_stmt: string list -> Code_Symbol.T * (bool * 'a) -> 'c,
+    print_stmt: string list -> Code_Symbol.T * (export * 'a) -> 'c,
     lift_markup: (Pretty.T -> Pretty.T) -> 'c -> 'c }
       -> ('a, 'b) hierarchical_program -> 'c list
 end;
 
 structure Code_Namespace : CODE_NAMESPACE =
 struct
+
+(** export **)
+
+datatype export = Private | Opaque | Public;
+
+fun is_public Public = true
+  | is_public _ = false;
+
+fun not_private Public = true
+  | not_private Opaque = true
+  | not_private _ = false;
+
 
 (** fundamental module name hierarchy **)
 
@@ -82,7 +98,7 @@ fun prioritize has_priority = uncurry append o List.partition has_priority;
 
 (** flat program structure **)
 
-type flat_program = ((string * (bool * Code_Thingol.stmt) option) Code_Symbol.Graph.T * (string * Code_Symbol.T list) list) Graph.T;
+type flat_program = ((string * (export * Code_Thingol.stmt) option) Code_Symbol.Graph.T * (string * Code_Symbol.T list) list) Graph.T;
 
 fun flat_program ctxt { module_prefix, module_name, reserved,
     identifiers, empty_nsp, namify_stmt, modify_stmt } program =
@@ -103,7 +119,7 @@ fun flat_program ctxt { module_prefix, module_name, reserved,
       in
         Graph.default_node (module_name, (Code_Symbol.Graph.empty, []))
         #> (Graph.map_node module_name o apfst)
-          (Code_Symbol.Graph.new_node (sym, (base, (true, stmt))))
+          (Code_Symbol.Graph.new_node (sym, (base, (Public, stmt))))
       end;
     fun add_dep sym sym' =
       let
@@ -166,7 +182,7 @@ fun flat_program ctxt { module_prefix, module_name, reserved,
 
 datatype ('a, 'b) node =
     Dummy
-  | Stmt of bool * 'a
+  | Stmt of export * 'a
   | Module of ('b * (string * ('a, 'b) node) Code_Symbol.Graph.T);
 
 type ('a, 'b) hierarchical_program = (string * ('a, 'b) node) Code_Symbol.Graph.T;
@@ -230,7 +246,7 @@ fun hierarchical_program ctxt { module_name, reserved, identifiers, empty_nsp,
         val (name_fragments, base) = prep_sym sym;
       in
         (map_module name_fragments o apsnd)
-          (Code_Symbol.Graph.new_node (sym, (base, Stmt (true, stmt))))
+          (Code_Symbol.Graph.new_node (sym, (base, Stmt (Public, stmt))))
       end;
     fun add_edge_acyclic_error error_msg dep gr =
       Code_Symbol.Graph.add_edge_acyclic dep gr

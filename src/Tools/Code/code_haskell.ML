@@ -379,15 +379,17 @@ fun serialize_haskell module_prefix string_classes ctxt { module_name,
         val deresolve = deresolver module_name;
         val deresolve_import = SOME o str o deresolve;
         val deresolve_import_attached = SOME o str o suffix "(..)" o deresolve;
-        fun print_import (sym, Code_Thingol.Fun _) = deresolve_import sym
-          | print_import (sym, Code_Thingol.Datatype _) = deresolve_import_attached sym
-          | print_import (sym, Code_Thingol.Class _) = deresolve_import_attached sym
-          | print_import (sym, Code_Thingol.Classinst _) = NONE;
+        fun print_import (sym, (_, Code_Thingol.Fun _)) = deresolve_import sym
+          | print_import (sym, (Code_Namespace.Public, Code_Thingol.Datatype _)) = deresolve_import_attached sym
+          | print_import (sym, (Code_Namespace.Opaque, Code_Thingol.Datatype _)) = deresolve_import sym
+          | print_import (sym, (Code_Namespace.Public, Code_Thingol.Class _)) = deresolve_import_attached sym
+          | print_import (sym, (Code_Namespace.Opaque, Code_Thingol.Class _)) = deresolve_import sym
+          | print_import (sym, (_, Code_Thingol.Classinst _)) = NONE;
         val import_ps = import_common_ps @ map (print_qualified_import o fst) imports;
         fun print_stmt' sym = case Code_Symbol.Graph.get_node gr sym
          of (_, NONE) => NONE
           | (_, SOME (export, stmt)) =>
-              SOME (if export then print_import (sym, stmt) else NONE, markup_stmt sym (print_stmt deresolve (sym, stmt)));
+              SOME (if Code_Namespace.not_private export then print_import (sym, (export, stmt)) else NONE, markup_stmt sym (print_stmt deresolve (sym, stmt)));
         val (export_ps, body_ps) = (flat o rev o Code_Symbol.Graph.strong_conn) gr
           |> map_filter print_stmt'
           |> split_list
