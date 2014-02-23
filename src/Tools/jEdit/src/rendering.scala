@@ -348,12 +348,10 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   /* highlighted area */
 
   def highlight(range: Text.Range): Option[Text.Info[Color]] =
-  {
     snapshot.select(range, Rendering.highlight_elements, _ =>
       {
         case info => Some(Text.Info(snapshot.convert(info.range), highlight_color))
-      }) match { case Text.Info(_, info) :: _ => Some(info) case _ => None }
-  }
+      }).headOption.map(_.info)
 
 
   /* hyperlinks */
@@ -430,8 +428,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
             }
           }
           else Some(Text.Info(snapshot.convert(info_range), elem))
-      }) match { case Text.Info(_, info) :: _ => Some(info) case _ => None }
-
+      }).headOption.map(_.info)
 
   def command_results(range: Text.Range): Command.Results =
   {
