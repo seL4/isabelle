@@ -102,7 +102,8 @@ fun flat_program ctxt { module_prefix, module_name, reserved,
         val (module_name, base) = prep_sym sym;
       in
         Graph.default_node (module_name, (Code_Symbol.Graph.empty, []))
-        #> (Graph.map_node module_name o apfst) (Code_Symbol.Graph.new_node (sym, (base, (true, stmt))))
+        #> (Graph.map_node module_name o apfst)
+          (Code_Symbol.Graph.new_node (sym, (base, (true, stmt))))
       end;
     fun add_dep sym sym' =
       let
@@ -110,7 +111,8 @@ fun flat_program ctxt { module_prefix, module_name, reserved,
         val (module_name', _) = prep_sym sym';
       in if module_name = module_name'
         then (Graph.map_node module_name o apfst) (Code_Symbol.Graph.add_edge (sym, sym'))
-        else (Graph.map_node module_name o apsnd) (AList.map_default (op =) (module_name', []) (insert (op =) sym'))
+        else (Graph.map_node module_name o apsnd)
+          (AList.map_default (op =) (module_name', []) (insert (op =) sym'))
       end;
     val proto_program = build_proto_program
       { empty = Graph.empty, add_stmt = add_stmt, add_dep = add_dep } program;
@@ -125,8 +127,9 @@ fun flat_program ctxt { module_prefix, module_name, reserved,
       |> fold (fn sym => declare sym (Code_Symbol.Graph.get_node gr sym))
           (prioritize sym_priority (Code_Symbol.Graph.keys gr))
       |> fst
-      |> (Code_Symbol.Graph.map o K o apsnd)
-        (fn (export, stmt) => Option.map (pair export) (modify_stmt stmt));
+      |> Code_Symbol.Graph.map_strong_conn (fn syms_bases_exports_stmts =>
+        map snd syms_bases_exports_stmts
+        |> (map o apsnd) (fn (export, stmt) => Option.map (pair export) (modify_stmt stmt)));
     val flat_program = proto_program
       |> (Graph.map o K o apfst) declarations;
 
@@ -177,6 +180,23 @@ fun map_module [] = I
       apsnd o Code_Symbol.Graph.map_node (Code_Symbol.Module name_fragment) o apsnd o map_module_content
         o map_module name_fragments;
 
+fun map_module_stmts f_module f_stmts sym_base_nodes =
+  let
+    val some_modules =
+      sym_base_nodes
+      |> map (fn (sym, (base, Module content)) => SOME (base, content) | _ => NONE)
+      |> (burrow_options o map o apsnd) f_module;
+    val some_export_stmts =
+      sym_base_nodes
+      |> map (fn (sym, (base, Stmt export_stmt)) => SOME ((sym, export_stmt), base) | _ => NONE)
+      |> (burrow_options o burrow_fst) (fn [] => [] | xs => f_stmts xs)
+  in
+    map2 (fn SOME (base, content) => (K (base, Module content))
+      | NONE => fn SOME (some_export_stmt, base) =>
+          (base, case some_export_stmt of SOME export_stmt => Stmt export_stmt | NONE => Dummy))
+      some_modules some_export_stmts
+  end;
+
 fun hierarchical_program ctxt { module_name, reserved, identifiers, empty_nsp,
       namify_module, namify_stmt, cyclic_modules, empty_data, memorize_data, modify_stmts } program =
   let
@@ -209,23 +229,26 @@ fun hierarchical_program ctxt { module_name, reserved, identifiers, empty_nsp,
       let
         val (name_fragments, base) = prep_sym sym;
       in
-        (map_module name_fragments o apsnd) (Code_Symbol.Graph.new_node (sym, (base, Stmt (true, stmt))))
+        (map_module name_fragments o apsnd)
+          (Code_Symbol.Graph.new_node (sym, (base, Stmt (true, stmt))))
       end;
+    fun add_edge_acyclic_error error_msg dep gr =
+      Code_Symbol.Graph.add_edge_acyclic dep gr
+        handle Graph.CYCLES _ => error (error_msg ())
     fun add_dep sym sym' =
       let
         val (name_fragments, _) = prep_sym sym;
         val (name_fragments', _) = prep_sym sym';
         val (name_fragments_common, (diff, diff')) =
           chop_prefix (op =) (name_fragments, name_fragments');
-        val is_module = not (null diff andalso null diff');
+        val is_cross_module = not (null diff andalso null diff');
         val dep = pairself hd (map Code_Symbol.Module diff @ [sym], map Code_Symbol.Module diff' @ [sym']);
-        val add_edge = if is_module andalso not cyclic_modules
-          then (fn node => Code_Symbol.Graph.add_edge_acyclic dep node
-            handle Graph.CYCLES _ => error ("Dependency "
-              ^ Code_Symbol.quote ctxt sym ^ " -> "
-              ^ Code_Symbol.quote ctxt sym'
-              ^ " would result in module dependency cycle"))
-          else Code_Symbol.Graph.add_edge dep
+        val add_edge = if is_cross_module andalso not cyclic_modules
+          then add_edge_acyclic_error (fn _ => "Dependency "
+            ^ Code_Symbol.quote ctxt sym ^ " -> "
+            ^ Code_Symbol.quote ctxt sym'
+            ^ " would result in module dependency cycle") dep
+          else Code_Symbol.Graph.add_edge dep;
       in (map_module name_fragments_common o apsnd) add_edge end;
     val proto_program = build_proto_program
       { empty = empty_program, add_stmt = add_stmt, add_dep = add_dep } program;
@@ -248,20 +271,18 @@ fun hierarchical_program ctxt { module_name, reserved, identifiers, empty_nsp,
         val (nsps', nodes') = (nsps, nodes)
           |> fold (declare (K namify_module)) module_fragments
           |> fold (declare (namify_stmt o snd o the_stmt)) stmt_syms;
-        fun select_syms syms = case filter (member (op =) stmt_syms) syms
-         of [] => NONE
-          | syms => SOME syms;
-        fun select_stmt (sym, (export, SOME stmt)) = SOME (sym, (export, stmt))
-          | select_stmt _ = NONE;
-        fun modify_stmts' syms =
+        fun modify_stmts' syms_stmts =
           let
-            val (exports, stmts) = map_split (the_stmt o snd o Code_Symbol.Graph.get_node nodes) syms;
-            val stmts' = modify_stmts (syms ~~ stmts);
-            val stmts'' = stmts' @ replicate (length syms - length stmts') NONE;
-          in map_filter select_stmt (syms ~~ (exports ~~ stmts'')) end;
-        val stmtss' = (maps modify_stmts' o map_filter select_syms o Code_Symbol.Graph.strong_conn) nodes;
-        val nodes'' = Code_Symbol.Graph.map (fn sym => apsnd (fn Module content => Module (make_declarations nsps' content)
-            | _ => case AList.lookup (op =) stmtss' sym of SOME stmt => Stmt stmt | _ => Dummy)) nodes';
+            val stmts' = modify_stmts syms_stmts
+          in stmts' @ replicate (length syms_stmts - length stmts') NONE end;
+        fun modify_stmts'' syms_exports_stmts =
+          syms_exports_stmts
+          |> map (fn (sym, (export, stmt)) => ((sym, stmt), export))
+          |> burrow_fst modify_stmts'
+          |> map (fn (SOME stmt, export) => SOME (export, stmt) | _ => NONE);
+        val nodes'' =
+          nodes'
+          |> Code_Symbol.Graph.map_strong_conn (map_module_stmts (make_declarations nsps') modify_stmts'');
         val data' = fold memorize_data stmt_syms data;
       in (data', nodes'') end;
     val (_, hierarchical_program) = make_declarations empty_nsp proto_program;
