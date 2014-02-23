@@ -104,6 +104,7 @@ class Rich_Text_Area(
   {
     private var the_text_info: Option[(String, Text.Info[A])] = None
 
+    def is_active: Boolean = the_text_info.isDefined
     def text_info: Option[(String, Text.Info[A])] = the_text_info
     def info: Option[Text.Info[A]] = the_text_info.map(_._2)
 
@@ -223,6 +224,11 @@ class Rich_Text_Area(
 
   /* text background */
 
+  private def get_caret_range(): Text.Range =
+    if (caret_visible && text_area.isCaretVisible)
+      JEdit_Lib.point_range(buffer, text_area.getCaretPosition)
+    else Text.Range(-1)
+
   private val background_painter = new TextAreaExtension
   {
     override def paintScreenLineRange(gfx: Graphics2D,
@@ -300,6 +306,7 @@ class Rich_Text_Area(
     val clip_rect = gfx.getClipBounds
     val painter = text_area.getPainter
     val font_context = painter.getFontRenderContext
+    val caret_range = get_caret_range()
 
     var w = 0.0f
     var chunk = head
@@ -316,11 +323,6 @@ class Rich_Text_Area(
         def string_width(s: String): Float =
           if (s.isEmpty) 0.0f
           else chunk_font.getStringBounds(s, font_context).getWidth.toFloat
-
-        val caret_range =
-          if (caret_visible && text_area.isCaretVisible)
-            JEdit_Lib.point_range(buffer, text_area.getCaretPosition)
-          else Text.Range(-1)
 
         val markup =
           for {
@@ -441,6 +443,9 @@ class Rich_Text_Area(
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
       robust_rendering { rendering =>
+        val painter = text_area.getPainter
+        val caret_range = get_caret_range()
+
         for (i <- 0 until physical_lines.length) {
           if (physical_lines(i) != -1) {
             val line_range = Text.Range(start(i), end(i))
@@ -471,6 +476,17 @@ class Rich_Text_Area(
               r <- JEdit_Lib.gfx_range(text_area, range)
             } {
               gfx.setColor(rendering.hyperlink_color)
+              gfx.drawRect(r.x, y + i * line_height, r.length - 1, line_height - 1)
+            }
+
+            // completion range
+            for {
+              caret <- caret_range.try_restrict(line_range)
+              if !hyperlink_area.is_active
+              range <- rendering.completion_range(caret.start)
+              r <- JEdit_Lib.gfx_range(text_area, range)
+            } {
+              gfx.setColor(painter.getCaretColor)
               gfx.drawRect(r.x, y + i * line_height, r.length - 1, line_height - 1)
             }
           }

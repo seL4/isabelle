@@ -273,35 +273,39 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   /* completion */
 
+  def completion_range(caret: Text.Offset): Option[Text.Range] =
+    if (!snapshot.is_outdated) {
+      snapshot.select(Text.Range(caret - 1, caret + 1), Rendering.completion_names_elements, _ =>
+        {
+          case Completion.Names.Info(names) => Some(names.range)
+          case _ => None
+        }).headOption.map(_.info)
+    }
+    else None
+
   def completion_names(caret: Text.Offset): Option[Completion.Names] =
     if (caret > 0 && !snapshot.is_outdated)
     {
-      val result =
-        snapshot.select(Text.Range(caret - 1, caret + 1),
-          Rendering.completion_names_elements, _ =>
-          {
-            case Completion.Names.Info(names) => Some(names)
-            case _ => None
-          })
-      result.headOption.map(_.info)
+      snapshot.select(Text.Range(caret - 1, caret + 1), Rendering.completion_names_elements, _ =>
+        {
+          case Completion.Names.Info(names) => Some(names)
+          case _ => None
+        }).headOption.map(_.info)
     }
     else None
 
   def completion_context(caret: Text.Offset): Option[Completion.Context] =
     if (caret > 0) {
-      val result =
-        snapshot.select(Text.Range(caret - 1, caret + 1),
-          Rendering.completion_context_elements, _ =>
-          {
-            case Text.Info(_, elem)
-            if elem.name == Markup.ML_STRING || elem.name == Markup.ML_COMMENT =>
-              Some(Completion.Context.ML_inner)
-            case Text.Info(_, XML.Elem(Markup.Language(language, symbols, antiquotes), _)) =>
-              Some(Completion.Context(language, symbols, antiquotes))
-            case Text.Info(_, _) =>
-              Some(Completion.Context.inner)
-          })
-      result.headOption.map(_.info)
+      snapshot.select(Text.Range(caret - 1, caret + 1), Rendering.completion_context_elements, _ =>
+        {
+          case Text.Info(_, elem)
+          if elem.name == Markup.ML_STRING || elem.name == Markup.ML_COMMENT =>
+            Some(Completion.Context.ML_inner)
+          case Text.Info(_, XML.Elem(Markup.Language(language, symbols, antiquotes), _)) =>
+            Some(Completion.Context(language, symbols, antiquotes))
+          case Text.Info(_, _) =>
+            Some(Completion.Context.inner)
+        }).headOption.map(_.info)
     }
     else None
 
