@@ -99,17 +99,70 @@ object Completion_Popup
       val layered = view.getLayeredPane
       val buffer = text_area.getBuffer
       val painter = text_area.getPainter
+      val caret = text_area.getCaretPosition
 
-      if (buffer.isEditable) {
+      val history = PIDE.completion_history.value
+      val decode = Isabelle_Encoding.is_active(buffer)
+
+      def open_popup(result: Completion.Result)
+      {
+        val font =
+          painter.getFont.deriveFont(Rendering.font_size("jedit_popup_font_scale"))
+
+        val loc1 = text_area.offsetToXY(result.range.start)
+        if (loc1 != null) {
+          val loc2 =
+            SwingUtilities.convertPoint(painter,
+              loc1.x, loc1.y + painter.getFontMetrics.getHeight, layered)
+
+          val completion =
+            new Completion_Popup(layered, loc2, font, result.items) {
+              override def complete(item: Completion.Item) {
+                PIDE.completion_history.update(item)
+                insert(item)
+              }
+              override def propagate(evt: KeyEvent) {
+                JEdit_Lib.propagate_key(view, evt)
+                input(evt)
+              }
+              override def refocus() { text_area.requestFocus }
+            }
+          completion_popup = Some(completion)
+          completion.show_popup()
+        }
+      }
+
+      def semantic_completion(): Boolean =
+        explicit && {
+          PIDE.document_view(text_area) match {
+            case Some(doc_view) =>
+              val rendering = doc_view.get_rendering()
+              rendering.completion_names(JEdit_Lib.stretch_point_range(buffer, caret)) match {
+                case None => false
+                case Some(names) =>
+                  JEdit_Lib.try_get_text(buffer, names.range) match {
+                    case Some(original) =>
+                      names.complete(history, decode, original) match {
+                        case Some(result) if !result.items.isEmpty =>
+                          open_popup(result)
+                          true
+                        case _ => false
+                      }
+                    case None => false
+                  }
+              }
+            case _ => false
+          }
+        }
+
+      def syntax_completion(): Boolean =
+      {
         Isabelle.mode_syntax(JEdit_Lib.buffer_mode(buffer)) match {
           case Some(syntax) =>
-            val caret = text_area.getCaretPosition
             val line = buffer.getLineOfOffset(caret)
             val start = buffer.getLineStartOffset(line)
             val text = buffer.getSegment(start, caret - start)
 
-            val history = PIDE.completion_history.value
-            val decode = Isabelle_Encoding.is_active(buffer)
             val context =
               (PIDE.document_view(text_area) match {
                 case None => None
@@ -120,39 +173,23 @@ object Completion_Popup
 
             syntax.completion.complete(history, decode, explicit, start, text, context) match {
               case Some(result) =>
-                if (result.unique && result.items.head.immediate && immediate)
-                  insert(result.items.head)
-                else {
-                  val font =
-                    painter.getFont.deriveFont(Rendering.font_size("jedit_popup_font_scale"))
-
-                  val loc1 = text_area.offsetToXY(caret - result.original.length)
-                  if (loc1 != null) {
-                    val loc2 =
-                      SwingUtilities.convertPoint(painter,
-                        loc1.x, loc1.y + painter.getFontMetrics.getHeight, layered)
-
-                    val completion =
-                      new Completion_Popup(layered, loc2, font, result.items) {
-                        override def complete(item: Completion.Item) {
-                          PIDE.completion_history.update(item)
-                          insert(item)
-                        }
-                        override def propagate(evt: KeyEvent) {
-                          JEdit_Lib.propagate_key(view, evt)
-                          input(evt)
-                        }
-                        override def refocus() { text_area.requestFocus }
-                      }
-                    completion_popup = Some(completion)
-                    completion.show_popup()
-                  }
+                result.items match {
+                  case List(item) if result.unique && item.immediate && immediate =>
+                    insert(item)
+                    true
+                  case _ :: _ =>
+                    open_popup(result)
+                    true
+                  case _ => false
                 }
-              case None =>
+              case None => false
             }
-          case None =>
+          case None => false
         }
       }
+
+      if (buffer.isEditable)
+        semantic_completion() || syntax_completion()
     }
 
 

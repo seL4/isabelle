@@ -32,6 +32,23 @@ object Completion
   }
 
   sealed case class Names(range: Text.Range, total: Int, names: List[String])
+  {
+    def complete(
+      history: Completion.History,
+      decode: Boolean,
+      original: String): Option[Completion.Result] =
+    {
+      val items =
+        for {
+          raw_name <- names
+          name = (if (decode) Symbol.decode(raw_name) else raw_name)
+          if name != original
+        } yield Item(range, original, name, name, 0, true)
+
+      if (items.isEmpty) None
+      else Some(Result(range, original, names.length == 1, items))
+    }
+  }
 
 
 
@@ -64,7 +81,11 @@ object Completion
     immediate: Boolean)
   { override def toString: String = name }
 
-  sealed case class Result(original: String, unique: Boolean, items: List[Item])
+  sealed case class Result(
+    range: Text.Range,
+    original: String,
+    unique: Boolean,
+    items: List[Item])
 
 
   /* init */
@@ -278,6 +299,7 @@ final class Completion private(
 
     words_result match {
       case Some((word, cs)) =>
+        val range = Text.Range(- word.length, 0) + (text_start + text.length)
         val ds = (if (decode) cs.map(Symbol.decode(_)) else cs).filter(_ != word)
         if (ds.isEmpty) None
         else {
@@ -291,10 +313,9 @@ final class Completion private(
                   case List(s1, s2) => (s1, s2)
                   case _ => (s, "")
                 }
-              val range = Text.Range(- word.length, 0) + (text_start + text.length)
               Completion.Item(range, word, s, s1 + s2, - s2.length, explicit || immediate)
             })
-          Some(Completion.Result(word, cs.length == 1, items.sorted(history.ordering)))
+          Some(Completion.Result(range, word, cs.length == 1, items.sorted(history.ordering)))
         }
       case None => None
     }
