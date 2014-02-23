@@ -36,7 +36,6 @@ sig
     declaration list ->
     (string * (Attrib.binding * (thm list * Attrib.src list) list) list) list ->
     (string * morphism) list -> theory -> theory
-  val intern: theory -> xstring -> string
   val check: theory -> xstring * Position.T -> string
   val extern: theory -> string -> xstring
   val markup_name: Proof.context -> string -> string
@@ -160,7 +159,6 @@ structure Locales = Theory_Data
   val merge = Name_Space.join_tables (K merge_locale);
 );
 
-val intern = Name_Space.intern o #1 o Locales.get;
 fun check thy = #1 o Name_Space.check (Context.Theory thy) (Locales.get thy);
 
 fun extern thy = Name_Space.extern (Proof_Context.init_global thy) (#1 (Locales.get thy));
