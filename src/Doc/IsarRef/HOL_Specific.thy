@@ -2393,7 +2393,7 @@ text {* For validation purposes, it is often useful to \emph{execute}
   \end{matharray}
 
   @{rail \<open>
-    @@{command (HOL) export_code} ( constexpr + ) \<newline>
+    @@{command (HOL) export_code} ( @'open' ) ? ( constexpr + ) \<newline>
        ( ( @'in' target ( @'module_name' @{syntax string} ) ? \<newline>
         ( @'file' @{syntax string} ) ? ( '(' args ')' ) ?) + ) ?
     ;
@@ -2521,8 +2521,12 @@ text {* For validation purposes, it is often useful to \emph{execute}
 
   Constants may be specified by giving them literally, referring to
   all executable constants within a certain theory by giving @{text
-  "name.*"}, or referring to \emph{all} executable constants currently
-  available by giving @{text "*"}.
+  "name._"}, or referring to \emph{all} executable constants currently
+  available by giving @{text "_"}.
+
+  By default, exported identifiers are minimized per module.  This
+  can be suppressed by prepending @{keyword "open"} before the list
+  of contants.
 
   By default, for each involved theory one corresponding name space
   module is generated.  Alternatively, a module name may be specified

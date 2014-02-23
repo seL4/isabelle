@@ -90,6 +90,8 @@ differently).
 
 *** HOL ***
 
+* Code generator: minimize exported identifiers by default.
+
 * Code generation for SML and OCaml: dropped arcane "no_signatures" option.
 
 * Simproc "finite_Collect" is no longer enabled by default, due to
