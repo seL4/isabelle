@@ -10,6 +10,7 @@ import System.Exit
 import Data.Maybe
 import Data.List (partition, findIndex)
 import qualified Generated_Code
+import qualified Typerep
 
 type Pos = [Int]
 
@@ -156,8 +157,8 @@ answer genuine_only a known unknown =
 -- presentation of counterexample
 
 
-instance Show Generated_Code.Typerep where {
-  show (Generated_Code.Typerep c ts) = "Type (\"" ++ c ++ "\", " ++ show ts ++ ")";
+instance Show Typerep.Typerep where {
+  show (Typerep.Typerep c ts) = "Type (\"" ++ c ++ "\", " ++ show ts ++ ")";
 };
 
 instance Show Generated_Code.Term where {

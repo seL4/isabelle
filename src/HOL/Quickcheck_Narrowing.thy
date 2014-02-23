@@ -14,8 +14,11 @@ subsubsection {* Code generation setup *}
 setup {* Code_Target.extend_target ("Haskell_Quickcheck", (Code_Haskell.target, I)) *}
 
 code_printing
-  type_constructor typerep \<rightharpoonup> (Haskell_Quickcheck) "Typerep"
-| constant Typerep.Typerep \<rightharpoonup> (Haskell_Quickcheck) "Typerep"
+  code_module Typerep \<rightharpoonup> (Haskell_Quickcheck) {*
+data Typerep = Typerep String [Typerep]
+*}
+| type_constructor typerep \<rightharpoonup> (Haskell_Quickcheck) "Typerep.Typerep"
+| constant Typerep.Typerep \<rightharpoonup> (Haskell_Quickcheck) "Typerep.Typerep"
 | type_constructor integer \<rightharpoonup> (Haskell_Quickcheck) "Prelude.Int"
 
 code_reserved Haskell_Quickcheck Typerep

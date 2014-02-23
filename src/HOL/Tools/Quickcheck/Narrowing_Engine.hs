@@ -4,6 +4,7 @@ import Control.Monad;
 import Control.Exception;
 import System.IO;
 import System.Exit;
+import qualified Typerep;
 import qualified Generated_Code;
 
 type Pos = [Int];
@@ -67,8 +68,8 @@ sumMapM f n (a:as) = seq n (do m <- f a ; sumMapM f (n+m) as);
 
 -- Testable
 
-instance Show Generated_Code.Typerep where {
-  show (Generated_Code.Typerep c ts) = "Type (\"" ++ c ++ "\", " ++ show ts ++ ")";
+instance Show Typerep.Typerep where {
+  show (Typerep.Typerep c ts) = "Type (\"" ++ c ++ "\", " ++ show ts ++ ")";
 };
 
 instance Show Generated_Code.Term where {

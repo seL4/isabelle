@@ -247,12 +247,9 @@ fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size)) ctxt
           "main = getArgs >>= \\[potential, size] -> " ^
           "Narrowing_Engine.depthCheck (read potential) (read size) (" ^ generatedN ^ ".value ())\n\n" ^
           "}\n"
-        val code' = code
-          |> unsuffix "}\n"
-          |> suffix "data Typerep = Typerep String [Typerep];\n\n}\n" (* FIXME *)
         val _ = map (uncurry File.write) (includes @
           [(narrowing_engine_file, if contains_existentials then pnf_narrowing_engine else narrowing_engine),
-           (code_file, code'), (main_file, main)])
+           (code_file, code), (main_file, main)])
         val executable = File.shell_path (Path.append in_path (Path.basic "isabelle_quickcheck_narrowing"))
         val cmd = "exec \"$ISABELLE_GHC\" " ^ Code_Haskell.language_params ^ " " ^
           ghc_options ^ " " ^
