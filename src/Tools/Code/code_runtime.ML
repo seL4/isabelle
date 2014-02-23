@@ -199,7 +199,7 @@ fun evaluation_code thy module_name tycos consts =
     val program = Code_Thingol.consts_program thy consts;
     val (ml_modules, target_names) =
       Code_Target.produce_code_for thy
-        target NONE module_name [] program (map Constant consts @ map Type_Constructor tycos);
+        target NONE module_name [] program false (map Constant consts @ map Type_Constructor tycos);
     val ml_code = space_implode "\n\n" (map snd ml_modules);
     val (consts', tycos') = chop (length consts) target_names;
     val consts_map = map2 (fn const =>
@@ -440,7 +440,7 @@ fun add_definiendum (ml_name, (b, T)) thy =
   |-> (fn ([Const (const, _)], _) =>
     Code_Target.set_printings (Constant (const,
       [(target, SOME (Code_Printer.simple_const_syntax (0, (K o K o K o Code_Printer.str) ml_name)))]))
-  #> tap (fn thy => Code_Target.produce_code thy [const] target NONE structure_generated []));
+  #> tap (fn thy => Code_Target.produce_code thy false [const] target NONE structure_generated []));
 
 fun process_file filepath (definienda, thy) =
   let

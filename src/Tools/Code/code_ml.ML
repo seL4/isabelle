@@ -797,13 +797,13 @@ fun ml_program_of_program ctxt module_name reserved identifiers =
 
 fun serialize_ml print_ml_module print_ml_stmt ctxt
     { module_name, reserved_syms, identifiers, includes,
-      class_syntax, tyco_syntax, const_syntax } program =
+      class_syntax, tyco_syntax, const_syntax } exports program =
   let
 
     (* build program *)
     val { deresolver, hierarchical_program = ml_program } =
       ml_program_of_program ctxt module_name (Name.make_context reserved_syms)
-        identifiers program;
+        identifiers exports program;
 
     (* print statements *)
     fun print_stmt prefix_fragments (_, (export, stmt)) = print_ml_stmt

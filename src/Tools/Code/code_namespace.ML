@@ -16,7 +16,7 @@ sig
     reserved: Name.context, identifiers: Code_Target.identifier_data, empty_nsp: 'a,
     namify_stmt: Code_Thingol.stmt -> string -> 'a -> string * 'a,
     modify_stmt: Code_Thingol.stmt -> Code_Thingol.stmt option }
-      -> Code_Thingol.program
+      -> Code_Symbol.T list -> Code_Thingol.program
       -> { deresolver: string -> Code_Symbol.T -> string,
            flat_program: flat_program }
 
@@ -32,7 +32,7 @@ sig
     namify_stmt: Code_Thingol.stmt -> string -> 'c -> string * 'c,
     cyclic_modules: bool, empty_data: 'b, memorize_data: Code_Symbol.T -> 'b -> 'b,
     modify_stmts: (Code_Symbol.T * Code_Thingol.stmt) list -> 'a option list }
-      -> Code_Thingol.program
+      -> Code_Symbol.T list -> Code_Thingol.program
       -> { deresolver: string list -> Code_Symbol.T -> string,
            hierarchical_program: ('a, 'b) hierarchical_program }
   val print_hierarchical: { print_module: string list -> string -> 'b -> 'c list -> 'c,
@@ -101,7 +101,7 @@ fun prioritize has_priority = uncurry append o List.partition has_priority;
 type flat_program = ((string * (export * Code_Thingol.stmt) option) Code_Symbol.Graph.T * (string * Code_Symbol.T list) list) Graph.T;
 
 fun flat_program ctxt { module_prefix, module_name, reserved,
-    identifiers, empty_nsp, namify_stmt, modify_stmt } program =
+    identifiers, empty_nsp, namify_stmt, modify_stmt } exports program =
   let
 
     (* building module name hierarchy *)
@@ -214,7 +214,8 @@ fun map_module_stmts f_module f_stmts sym_base_nodes =
   end;
 
 fun hierarchical_program ctxt { module_name, reserved, identifiers, empty_nsp,
-      namify_module, namify_stmt, cyclic_modules, empty_data, memorize_data, modify_stmts } program =
+      namify_module, namify_stmt, cyclic_modules, empty_data, memorize_data, modify_stmts }
+      exports program =
   let
 
     (* building module name hierarchy *)

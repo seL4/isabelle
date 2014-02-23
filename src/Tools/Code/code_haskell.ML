@@ -329,13 +329,13 @@ val prelude_import_unqualified_constr = [
 ];
 
 fun serialize_haskell module_prefix string_classes ctxt { module_name,
-    reserved_syms, identifiers, includes, class_syntax, tyco_syntax, const_syntax } program =
+    reserved_syms, identifiers, includes, class_syntax, tyco_syntax, const_syntax } exports program =
   let
 
     (* build program *)
     val reserved = fold (insert (op =) o fst) includes reserved_syms;
     val { deresolver, flat_program = haskell_program } = haskell_program_of_program
-      ctxt module_prefix module_name (Name.make_context reserved) identifiers program;
+      ctxt module_prefix module_name (Name.make_context reserved) identifiers exports program;
 
     (* print statements *)
     fun deriving_show tyco =

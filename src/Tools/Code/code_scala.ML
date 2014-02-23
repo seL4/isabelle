@@ -296,7 +296,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
           end;
   in print_stmt end;
 
-fun scala_program_of_program ctxt module_name reserved identifiers program =
+fun scala_program_of_program ctxt module_name reserved identifiers exports program =
   let
     fun namify_module name_fragment ((nsp_class, nsp_object), nsp_common) =
       let
@@ -343,17 +343,17 @@ fun scala_program_of_program ctxt module_name reserved identifiers program =
       { module_name = module_name, reserved = reserved, identifiers = identifiers,
         empty_nsp = ((reserved, reserved), reserved), namify_module = namify_module,
         namify_stmt = namify_stmt, cyclic_modules = true, empty_data = [],
-        memorize_data = memorize_implicits, modify_stmts = map modify_stmt } program
+        memorize_data = memorize_implicits, modify_stmts = map modify_stmt } exports program
   end;
 
 fun serialize_scala ctxt { module_name, reserved_syms, identifiers,
-    includes, class_syntax, tyco_syntax, const_syntax } program =
+    includes, class_syntax, tyco_syntax, const_syntax } exports program =
   let
 
     (* build program *)
     val { deresolver, hierarchical_program = scala_program } =
       scala_program_of_program ctxt module_name (Name.make_context reserved_syms)
-        identifiers program;
+        identifiers exports program;
 
     (* print statements *)
     fun lookup_constr tyco constr = case Code_Symbol.Graph.get_node program (Type_Constructor tyco)
