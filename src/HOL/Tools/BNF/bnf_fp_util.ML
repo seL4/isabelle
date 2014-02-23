@@ -180,8 +180,8 @@ sig
 
   val fp_bnf: (binding list -> (string * sort) list -> typ list * typ list list ->
       BNF_Def.bnf list -> local_theory -> 'a) ->
-    binding list -> (string * sort) list -> ((string * sort) * typ) list -> local_theory ->
-    BNF_Def.bnf list * 'a
+    binding list -> (string * sort) list -> (string * sort) list -> ((string * sort) * typ) list ->
+    local_theory -> BNF_Def.bnf list * 'a
 end;
 
 structure BNF_FP_Util : BNF_FP_UTIL =
@@ -562,7 +562,7 @@ fun mk_strong_coinduct_thm coind rel_eqs rel_monos ctxt =
     |> unfold_thms ctxt unfolds
   end;
 
-fun fp_bnf construct_fp bs resBs fp_eqs lthy =
+fun fp_bnf construct_fp bs resBs Ds0 fp_eqs lthy =
   let
     val time = time lthy;
     val timer = time (Timer.startRealTimer ());
@@ -590,7 +590,7 @@ fun fp_bnf construct_fp bs resBs fp_eqs lthy =
 
     val Ass = map (map dest_TFree) livess;
     val resDs = fold (subtract (op =)) Ass resBs;
-    val Ds = fold (fold Term.add_tfreesT) deadss [];
+    val Ds = fold (fold Term.add_tfreesT) deadss Ds0;
 
     val timer = time (timer "Construction of BNFs");
 

@@ -199,7 +199,7 @@ fun mutualize_fp_sugars fp bs fpTs get_indices callssss fp_sugars0 no_defs_lthy0
 
         val (pre_bnfs, (fp_res as {xtor_co_iterss = xtor_co_iterss0, xtor_co_induct, dtor_injects,
                dtor_ctors, xtor_co_iter_thmss, ...}, lthy)) =
-          fp_bnf (construct_mutualized_fp fp fpTs fp_sugars0) fp_bs As' fp_eqs no_defs_lthy;
+          fp_bnf (construct_mutualized_fp fp fpTs fp_sugars0) fp_bs As' [](*### FIXME*) fp_eqs no_defs_lthy;
 
         val nesting_bnfs = nesty_bnfs lthy ctrXs_Tsss As;
         val nested_bnfs = nesty_bnfs lthy ctrXs_Tsss Xs;

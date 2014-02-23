@@ -1057,12 +1057,16 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       | extras => List.app (fn extra => warning ("Unused type variable on right-hand side of " ^
           co_prefix fp ^ "datatype definition: " ^ qsoty (TFree extra))) extras);
 
+    val killed_As =
+      map_filter (fn (A, set_bos) => if exists is_none set_bos then SOME A else NONE)
+        (unsorted_As ~~ transpose set_boss);
+
     val (pre_bnfs, (fp_res as {bnfs = fp_bnfs as any_fp_bnf :: _, ctors = ctors0, dtors = dtors0,
            xtor_co_iterss = xtor_co_iterss0, xtor_co_induct, dtor_ctors, ctor_dtors, ctor_injects,
            dtor_injects, xtor_map_thms, xtor_set_thmss, xtor_rel_thms, xtor_co_iter_thmss, ...},
            lthy)) =
-      fp_bnf (construct_fp mixfixes map_bs rel_bs set_bss) fp_bs (map dest_TFree unsorted_As) fp_eqs
-        no_defs_lthy0
+      fp_bnf (construct_fp mixfixes map_bs rel_bs set_bss) fp_bs (map dest_TFree unsorted_As)
+        (map dest_TFree killed_As) fp_eqs no_defs_lthy0
       handle BAD_DEAD (X, X_backdrop) =>
         (case X_backdrop of
           Type (bad_tc, _) =>
