@@ -56,6 +56,7 @@ object Completion
   /* result */
 
   sealed case class Item(
+    range: Text.Range,
     original: String,
     name: String,
     replacement: String,
@@ -240,6 +241,7 @@ final class Completion private(
     history: Completion.History,
     decode: Boolean,
     explicit: Boolean,
+    text_start: Text.Offset,
     text: CharSequence,
     context: Completion.Context): Option[Completion.Result] =
   {
@@ -289,7 +291,8 @@ final class Completion private(
                   case List(s1, s2) => (s1, s2)
                   case _ => (s, "")
                 }
-              Completion.Item(word, s, s1 + s2, - s2.length, explicit || immediate)
+              val range = Text.Range(- word.length, 0) + (text_start + text.length)
+              Completion.Item(range, word, s, s1 + s2, - s2.length, explicit || immediate)
             })
           Some(Completion.Result(word, cs.length == 1, items.sorted(history.ordering)))
         }

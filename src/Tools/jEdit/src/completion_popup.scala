@@ -79,16 +79,14 @@ object Completion_Popup
       Swing_Thread.require()
 
       val buffer = text_area.getBuffer
-      val len = item.original.length
-      if (buffer.isEditable && len > 0) {
+      val range = item.range
+      if (buffer.isEditable && range.length > 0) {
         JEdit_Lib.buffer_edit(buffer) {
-          val caret = text_area.getCaretPosition
-          JEdit_Lib.try_get_text(buffer, Text.Range(caret - len, caret)) match {
+          JEdit_Lib.try_get_text(buffer, range) match {
             case Some(text) if text == item.original =>
-              buffer.remove(caret - len, len)
-              buffer.insert(caret - len, item.replacement)
-              if (item.move != 0)
-                text_area.moveCaretPosition(text_area.getCaretPosition + item.move)
+              buffer.remove(range.start, range.length)
+              buffer.insert(range.start, item.replacement)
+              text_area.moveCaretPosition(range.start + item.replacement.length + item.move)
             case _ =>
           }
         }
@@ -120,7 +118,7 @@ object Completion_Popup
                   rendering.completion_context(JEdit_Lib.stretch_point_range(buffer, caret))
               }) getOrElse syntax.completion_context
 
-            syntax.completion.complete(history, decode, explicit, text, context) match {
+            syntax.completion.complete(history, decode, explicit, start, text, context) match {
               case Some(result) =>
                 if (result.unique && result.items.head.immediate && immediate)
                   insert(result.items.head)
@@ -259,17 +257,16 @@ object Completion_Popup
     {
       Swing_Thread.require()
 
-      val len = item.original.length
-      if (text_field.isEditable && len > 0) {
-        val caret = text_field.getCaret.getDot
+      val range = item.range
+      if (text_field.isEditable && range.length > 0) {
         val content = text_field.getText
-        JEdit_Lib.try_get_text(content, Text.Range(caret - len, caret)) match {
+        JEdit_Lib.try_get_text(content, range) match {
           case Some(text) if text == item.original =>
             text_field.setText(
-              content.substring(0, caret - len) +
+              content.substring(0, range.start) +
               item.replacement +
-              content.substring(caret))
-            text_field.getCaret.setDot(caret - len + item.replacement.length + item.move)
+              content.substring(range.stop))
+            text_field.getCaret.setDot(range.start + item.replacement.length + item.move)
           case _ =>
         }
       }
@@ -288,7 +285,7 @@ object Completion_Popup
           val text = text_field.getText.substring(0, caret)
 
           syntax.completion.complete(
-              history, decode = true, explicit = false, text, syntax.completion_context) match {
+              history, decode = true, explicit = false, 0, text, syntax.completion_context) match {
             case Some(result) =>
               val fm = text_field.getFontMetrics(text_field.getFont)
               val loc =
