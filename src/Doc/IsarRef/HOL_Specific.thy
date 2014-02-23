@@ -2535,10 +2535,7 @@ text {* For validation purposes, it is often useful to \emph{execute}
   module hierarchy.  Omitting the file specification denotes standard
   output.
 
-  Serializers take an optional list of arguments in parentheses.  For
-  \emph{SML} and \emph{OCaml}, ``@{text no_signatures}`` omits
-  explicit module signatures.
-
+  Serializers take an optional list of arguments in parentheses.
   For \emph{Haskell} a module name prefix may be given using the
   ``@{text "root:"}'' argument; ``@{text string_classes}'' adds a
   ``@{verbatim "deriving (Read, Show)"}'' clause to each appropriate

@@ -335,13 +335,13 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
           end;
   in print_stmt end;
 
-fun print_sml_module name some_decls body =
+fun print_sml_module name decls body =
   Pretty.chunks2 (
-    Pretty.chunks (
-      str ("structure " ^ name ^ (if is_some some_decls then " : sig" else " ="))
-      :: (the_list o Option.map (indent 2 o Pretty.chunks)) some_decls
-      @| (if is_some some_decls then str "end = struct" else str "struct")
-    )
+    Pretty.chunks [
+      str ("structure " ^ name ^ " : sig"),
+      (indent 2 o Pretty.chunks) decls,
+      str "end = struct"
+    ]
     :: body
     @| str ("end; (*struct " ^ name ^ "*)")
   );
@@ -665,13 +665,13 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
           end;
   in print_stmt end;
 
-fun print_ocaml_module name some_decls body =
+fun print_ocaml_module name decls body =
   Pretty.chunks2 (
-    Pretty.chunks (
-      str ("module " ^ name ^ (if is_some some_decls then " : sig" else " ="))
-      :: (the_list o Option.map (indent 2 o Pretty.chunks)) some_decls
-      @| (if is_some some_decls then str "end = struct" else str "struct")
-    )
+    Pretty.chunks [
+      str ("module " ^ name ^ " : sig"),
+      (indent 2 o Pretty.chunks) decls,
+      str "end = struct"
+    ]
     :: body
     @| str ("end;; (*struct " ^ name ^ "*)")
   );
@@ -785,7 +785,7 @@ fun ml_program_of_program ctxt module_name reserved identifiers program =
       cyclic_modules = false, empty_data = (), memorize_data = K I, modify_stmts = modify_stmts } program
   end;
 
-fun serialize_ml print_ml_module print_ml_stmt with_signatures ctxt
+fun serialize_ml print_ml_module print_ml_stmt ctxt
     { module_name, reserved_syms, identifiers, includes,
       class_syntax, tyco_syntax, const_syntax } program =
   let
@@ -804,7 +804,7 @@ fun serialize_ml print_ml_module print_ml_stmt with_signatures ctxt
     fun print_module _ base _ xs =
       let
         val (raw_decls, body) = split_list xs;
-        val decls = if with_signatures then SOME (maps these raw_decls) else NONE 
+        val decls = maps these raw_decls
       in (NONE, print_ml_module base decls body) end;
 
     (* serialization *)
@@ -820,12 +820,10 @@ fun serialize_ml print_ml_module print_ml_stmt with_signatures ctxt
   end;
 
 val serializer_sml : Code_Target.serializer =
-  Code_Target.parse_args (Scan.optional (Args.$$$ "no_signatures" >> K false) true
-  >> (fn with_signatures => serialize_ml print_sml_module print_sml_stmt with_signatures));
+  Code_Target.parse_args (Scan.succeed ()) #> K (serialize_ml print_sml_module print_sml_stmt);
 
 val serializer_ocaml : Code_Target.serializer =
-  Code_Target.parse_args (Scan.optional (Args.$$$ "no_signatures" >> K false) true
-  >> (fn with_signatures => serialize_ml print_ocaml_module print_ocaml_stmt with_signatures));
+  Code_Target.parse_args (Scan.succeed ()) #> K (serialize_ml print_ocaml_module print_ocaml_stmt);
 
 
 (** Isar setup **)
