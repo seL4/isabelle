@@ -222,6 +222,9 @@ object Rendering
 
 class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 {
+  override def toString: String = "Rendering(" + snapshot.toString + ")"
+
+
   /* colors */
 
   def color_value(s: String): Color = Color_Value(options.string(s))

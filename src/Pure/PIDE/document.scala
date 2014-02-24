@@ -634,6 +634,10 @@ object Document
           (thy_load_commands zip other.thy_load_commands).forall(eq_commands)
         }
 
+        override def toString: String =
+          "Snapshot(node = " + node_name.node + ", version = " + version.id +
+            (if (is_outdated) ", outdated" else "") + ")"
+
 
         /* cumulate markup */
 
