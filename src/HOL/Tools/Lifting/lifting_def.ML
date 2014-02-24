@@ -265,7 +265,7 @@ fun generate_rep_eq ctxt def_thm rsp_thm (rty, qty) =
     val unabs_def = unabs_all_def ctxt unfolded_def
   in  
     if body_type rty = body_type qty then 
-      SOME (simplify_code_eq ctxt unabs_def)
+      SOME (simplify_code_eq ctxt (unabs_def RS @{thm meta_eq_to_obj_eq}))
     else 
       let
         val thy = Proof_Context.theory_of ctxt
