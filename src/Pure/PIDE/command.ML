@@ -132,7 +132,7 @@ fun read init master_dir blobs span =
       Position.set_range (Token.position_range_of (#1 (take_suffix Token.is_improper span)));
     val pos =
       (case find_first Token.is_command span of
-        SOME tok => Token.position_of tok
+        SOME tok => Token.pos_of tok
       | NONE => proper_range);
 
     val (is_malformed, token_reports) = Thy_Syntax.reports_of_tokens span;

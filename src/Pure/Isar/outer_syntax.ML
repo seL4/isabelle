@@ -310,7 +310,7 @@ fun command_reports outer_syntax tok =
     let val name = Token.content_of tok in
       (case lookup_commands outer_syntax name of
         NONE => []
-      | SOME cmd => [((Token.position_of tok, command_markup false (name, cmd)), "")])
+      | SOME cmd => [((Token.pos_of tok, command_markup false (name, cmd)), "")])
     end
   else [];
 

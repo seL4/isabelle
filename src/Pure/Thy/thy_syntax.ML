@@ -86,7 +86,7 @@ fun reports_of_token tok =
           then SOME ((pos, Markup.bad), "Malformed symbolic character") else NONE);
     val is_malformed = Token.is_error tok orelse not (null malformed_symbols);
     val (markup, txt) = token_markup tok;
-    val reports = ((Token.position_of tok, markup), txt) :: malformed_symbols;
+    val reports = ((Token.pos_of tok, markup), txt) :: malformed_symbols;
   in (is_malformed, reports) end;
 
 in
@@ -121,7 +121,7 @@ local
 
 fun make_span toks =
   if not (null toks) andalso Token.is_command (hd toks) then
-    Span (Command (Token.content_of (hd toks), Token.position_of (hd toks)), toks)
+    Span (Command (Token.content_of (hd toks), Token.pos_of (hd toks)), toks)
   else if forall Token.is_improper toks then Span (Ignored, toks)
   else Span (Malformed, toks);
 
@@ -162,8 +162,8 @@ fun find_file ((_, tok) :: toks) =
       if Token.is_command tok then
         toks |> get_first (fn (i, tok) =>
           if Token.is_name tok then
-            SOME (i, (Path.explode (Token.content_of tok), Token.position_of tok))
-              handle ERROR msg => error (msg ^ Token.pos_of tok)
+            SOME (i, (Path.explode (Token.content_of tok), Token.pos_of tok))
+              handle ERROR msg => error (msg ^ Position.here (Token.pos_of tok))
           else NONE)
       else NONE
   | find_file [] = NONE;
