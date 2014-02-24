@@ -17,7 +17,7 @@ sig
   type T
   val str_of_kind: kind -> string
   val pos_of: T -> Position.T
-  val position_range_of: T list -> Position.range
+  val range_of: T list -> Position.range
   val eof: T
   val is_eof: T -> bool
   val not_eof: T -> bool
@@ -131,8 +131,10 @@ val str_of_kind =
 fun pos_of (Token ((_, (pos, _)), _, _)) = pos;
 fun end_pos_of (Token ((_, (_, pos)), _, _)) = pos;
 
-fun position_range_of [] = Position.no_range
-  | position_range_of toks = (pos_of (hd toks), end_pos_of (List.last toks));
+fun range_of (toks as tok :: _) =
+      let val pos' = end_pos_of (List.last toks)
+      in Position.range (pos_of tok) pos' end
+  | range_of [] = Position.no_range;
 
 
 (* control tokens *)

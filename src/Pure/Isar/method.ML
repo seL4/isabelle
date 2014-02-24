@@ -425,7 +425,7 @@ and meth0 x = (Parse.enum1 "|" meth1 >> (fn [m] => m | ms => Orelse ms)) x;
 in
 
 val parse =
-  Scan.trace meth3 >> (fn (m, toks) => (m, Token.position_range_of toks));
+  Scan.trace meth3 >> (fn (m, toks) => (m, Token.range_of toks));
 
 end;
 
@@ -438,7 +438,7 @@ fun text NONE = NONE
   | text (SOME (txt, _)) = SOME txt;
 
 fun position NONE = Position.none
-  | position (SOME (_, range)) = Position.set_range range;
+  | position (SOME (_, (pos, _))) = pos;
 
 
 (* theory setup *)

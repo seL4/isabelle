@@ -178,8 +178,8 @@ val recover_cartouche = Scan.pass 0 scan_cartouche_depth;
 fun cartouche_content syms =
   let
     fun err () =
-      error ("Malformed text cartouche: " ^ quote (content syms) ^
-        Position.here (Position.set_range (range syms)));
+      error ("Malformed text cartouche: "
+        ^ quote (content syms) ^ Position.here (#1 (range syms)));
   in
     (case syms of
       ("\\<open>", _) :: rest =>
