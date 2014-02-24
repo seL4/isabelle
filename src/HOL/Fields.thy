@@ -1156,6 +1156,12 @@ lemma abs_div_pos: "0 < y ==>
   apply (simp add: order_less_imp_le)
 done
 
+lemma zero_le_divide_abs_iff [simp]: "(0 \<le> a / abs b) = (0 \<le> a | b = 0)" 
+by (auto simp: zero_le_divide_iff)
+
+lemma divide_le_0_abs_iff [simp]: "(a / abs b \<le> 0) = (a \<le> 0 | b = 0)" 
+by (auto simp: divide_le_0_iff)
+
 lemma field_le_mult_one_interval:
   assumes *: "\<And>z. \<lbrakk> 0 < z ; z < 1 \<rbrakk> \<Longrightarrow> z * x \<le> y"
   shows "x \<le> y"

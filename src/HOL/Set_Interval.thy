@@ -1459,6 +1459,14 @@ next
   finally show ?case .
 qed
 
+lemma setsum_last_plus: "n \<noteq> 0 \<Longrightarrow> (\<Sum>i = 0..n. f i) = f n + (\<Sum>i = 0..n - Suc 0. f i)"
+  using atLeastAtMostSuc_conv [of 0 "n - 1"]
+  by auto
+
+lemma nested_setsum_swap:
+     "(\<Sum>i = 0..n. (\<Sum>j = 0..<i. a i j)) = (\<Sum>j = 0..<n. \<Sum>i = Suc j..n. a i j)"
+  by (induction n) (auto simp: setsum_addf)
+
 
 subsection {* The formula for geometric sums *}
 
@@ -1565,6 +1573,14 @@ next
   show ?case by simp
 qed
 
+lemma nat_diff_setsum_reindex:
+  fixes x :: "'a::{comm_ring,monoid_mult}"
+  shows "(\<Sum>i=0..<n. f (n - Suc i)) = (\<Sum>i=0..<n. f i)"
+apply (subst setsum_reindex_cong [of "%i. n - Suc i" "{0..< n}"])
+apply (auto simp: inj_on_def)
+apply (rule_tac x="n - Suc x" in image_eqI, auto)
+done
+
 subsection {* Products indexed over intervals *}
 
 syntax
@@ -1648,5 +1664,10 @@ next
   then show ?thesis
     by auto
 qed
+
+lemma setprod_power_distrib:
+  fixes f :: "'a \<Rightarrow> 'b::comm_semiring_1"
+  shows "finite A \<Longrightarrow> setprod f A ^ n = setprod (\<lambda>x. (f x)^n) A"
+  by (induct set: finite) (auto simp: power_mult_distrib)
 
 end

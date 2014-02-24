@@ -610,6 +610,11 @@ end
 
 subsection {* Miscellaneous rules *}
 
+lemma self_le_power:
+  fixes x::"'a::linordered_semidom" 
+  shows "1 \<le> x \<Longrightarrow> 0 < n \<Longrightarrow> x \<le> x ^ n"
+  by (metis gr_implies_not0 le_eq_less_or_eq less_one nat_le_linear power_increasing power_one_right)
+
 lemma power_eq_if: "p ^ m = (if m=0 then 1 else p * (p ^ (m - 1)))"
   unfolding One_nat_def by (cases m) simp_all
 
