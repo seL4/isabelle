@@ -825,8 +825,7 @@ fun end_proof bot (prev_pos, (opt_text, immed)) =
     val (finish_text, terminal_pos, finished_pos) =
       (case opt_text of
         NONE => (Method.finish_text (NONE, immed), Position.none, prev_pos)
-      | SOME (text, (pos, end_pos)) =>
-          (Method.finish_text (SOME text, immed), Position.set_range (pos, end_pos), end_pos));
+      | SOME (text, (pos, end_pos)) => (Method.finish_text (SOME text, immed), pos, end_pos));
   in
     Seq.APPEND (fn state =>
       state
@@ -861,11 +860,11 @@ fun apply text = assert_backward #> refine text #> Seq.map (using_facts []);
 
 fun apply_end text = assert_forward #> refine_end text;
 
-fun apply_results (text, range) =
-  Seq.APPEND (apply text #> Seq.make_results, method_error "" (Position.set_range range));
+fun apply_results (text, (pos, _)) =
+  Seq.APPEND (apply text #> Seq.make_results, method_error "" pos);
 
-fun apply_end_results (text, range) =
-  Seq.APPEND (apply_end text #> Seq.make_results, method_error "" (Position.set_range range));
+fun apply_end_results (text, (pos, _)) =
+  Seq.APPEND (apply_end text #> Seq.make_results, method_error "" pos);
 
 
 

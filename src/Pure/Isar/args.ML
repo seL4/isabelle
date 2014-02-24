@@ -191,7 +191,7 @@ fun named_fact get = internal_fact || named >> evaluate Token.Fact (get o Token.
 
 fun named_attribute att =
   internal_attribute ||
-  named >> evaluate Token.Attribute (fn tok => att (Token.content_of tok, Token.position_of tok));
+  named >> evaluate Token.Attribute (fn tok => att (Token.content_of tok, Token.pos_of tok));
 
 
 (* terms and types *)

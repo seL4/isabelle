@@ -35,9 +35,10 @@ Open text buffers take precedence over copies within the file-system.
 auxiliary ML files.
 
 * Improved completion based on context information about embedded
-languages: keywords are only completed for outer syntax, symbols for
-languages that support them.  E.g. no symbol completion for ML source,
-but within ML strings, comments, antiquotations.
+languages: keywords are only completed for outer syntax, symbols or
+antiquotations for languages that support them.  E.g. no symbol
+completion for ML source, but within ML strings, comments,
+antiquotations.
 
 * Document panel: simplied interaction where every single mouse click
 (re)opens document via desktop environment or as jEdit buffer.

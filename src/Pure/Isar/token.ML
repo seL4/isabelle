@@ -16,10 +16,8 @@ sig
     Attribute of morphism -> attribute | Files of file Exn.result list
   type T
   val str_of_kind: kind -> string
-  val position_of: T -> Position.T
-  val end_position_of: T -> Position.T
-  val position_range_of: T list -> Position.range
-  val pos_of: T -> string
+  val pos_of: T -> Position.T
+  val range_of: T list -> Position.range
   val eof: T
   val is_eof: T -> bool
   val not_eof: T -> bool
@@ -130,13 +128,13 @@ val str_of_kind =
 
 (* position *)
 
-fun position_of (Token ((_, (pos, _)), _, _)) = pos;
-fun end_position_of (Token ((_, (_, pos)), _, _)) = pos;
+fun pos_of (Token ((_, (pos, _)), _, _)) = pos;
+fun end_pos_of (Token ((_, (_, pos)), _, _)) = pos;
 
-fun position_range_of [] = Position.no_range
-  | position_range_of toks = (position_of (hd toks), end_position_of (List.last toks));
-
-val pos_of = Position.here o position_of;
+fun range_of (toks as tok :: _) =
+      let val pos' = end_pos_of (List.last toks)
+      in Position.range (pos_of tok) pos' end
+  | range_of [] = Position.no_range;
 
 
 (* control tokens *)
@@ -153,7 +151,7 @@ fun not_sync (Token (_, (Sync, _), _)) = false
   | not_sync _ = true;
 
 val stopper =
-  Scan.stopper (fn [] => eof | toks => mk_eof (end_position_of (List.last toks))) is_eof;
+  Scan.stopper (fn [] => eof | toks => mk_eof (end_pos_of (List.last toks))) is_eof;
 
 
 (* kind of token *)
@@ -251,8 +249,7 @@ fun get_files (Token (_, _, Value (SOME (Files files)))) = files
 
 fun put_files [] tok = tok
   | put_files files (Token (x, y, Slot)) = Token (x, y, Value (SOME (Files files)))
-  | put_files _ tok =
-      raise Fail ("Cannot put inlined files here" ^ Position.here (position_of tok));
+  | put_files _ tok = raise Fail ("Cannot put inlined files here" ^ Position.here (pos_of tok));
 
 
 (* access values *)

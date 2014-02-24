@@ -128,12 +128,11 @@ fun read init master_dir blobs span =
     val outer_syntax = #2 (Outer_Syntax.get_syntax ());
     val command_reports = Outer_Syntax.command_reports outer_syntax;
 
-    val proper_range =
-      Position.set_range (Token.position_range_of (#1 (take_suffix Token.is_improper span)));
+    val proper_range = Token.range_of (#1 (take_suffix Token.is_improper span));
     val pos =
       (case find_first Token.is_command span of
-        SOME tok => Token.position_of tok
-      | NONE => proper_range);
+        SOME tok => Token.pos_of tok
+      | NONE => #1 proper_range);
 
     val (is_malformed, token_reports) = Thy_Syntax.reports_of_tokens span;
     val _ = Position.reports_text (token_reports @ maps command_reports span);
@@ -145,9 +144,9 @@ fun read init master_dir blobs span =
           if Keyword.is_control (Toplevel.name_of tr) then
             Toplevel.malformed pos "Illegal control command"
           else Toplevel.modify_init init tr
-      | [] => Toplevel.ignored (Position.set_range (Token.position_range_of span))
-      | _ => Toplevel.malformed proper_range "Exactly one command expected")
-      handle ERROR msg => Toplevel.malformed proper_range msg
+      | [] => Toplevel.ignored (#1 (Token.range_of span))
+      | _ => Toplevel.malformed (#1 proper_range) "Exactly one command expected")
+      handle ERROR msg => Toplevel.malformed (#1 proper_range) msg
   end;
 
 

@@ -18,7 +18,7 @@ import javax.swing.event.{CaretListener, CaretEvent}
 
 import org.gjt.sp.jedit.jEdit
 import org.gjt.sp.jedit.options.GutterOptionPane
-import org.gjt.sp.jedit.textarea.{JEditTextArea, TextAreaExtension, TextAreaPainter}
+import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaExtension, TextAreaPainter}
 
 
 object Document_View
@@ -27,7 +27,7 @@ object Document_View
 
   private val key = new Object
 
-  def apply(text_area: JEditTextArea): Option[Document_View] =
+  def apply(text_area: TextArea): Option[Document_View] =
   {
     Swing_Thread.require()
     text_area.getClientProperty(key) match {

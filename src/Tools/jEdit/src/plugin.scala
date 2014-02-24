@@ -68,7 +68,7 @@ object PIDE
 
   def document_model(buffer: Buffer): Option[Document_Model] = Document_Model(buffer)
 
-  def document_view(text_area: JEditTextArea): Option[Document_View] = Document_View(text_area)
+  def document_view(text_area: TextArea): Option[Document_View] = Document_View(text_area)
 
   def document_views(buffer: Buffer): List[Document_View] =
     for {

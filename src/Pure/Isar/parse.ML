@@ -122,9 +122,11 @@ fun group s scan = scan || Scan.fail_with
         (fn () =>
           (case Token.text_of tok of
             (txt, "") =>
-              s () ^ " expected,\nbut " ^ txt ^ Token.pos_of tok ^ " was found"
+              s () ^ " expected,\nbut " ^ txt ^ Position.here (Token.pos_of tok) ^
+              " was found"
           | (txt1, txt2) =>
-              s () ^ " expected,\nbut " ^ txt1 ^ Token.pos_of tok ^ " was found:\n" ^ txt2)));
+              s () ^ " expected,\nbut " ^ txt1 ^ Position.here (Token.pos_of tok) ^
+              " was found:\n" ^ txt2)));
 
 
 (* cut *)
@@ -132,7 +134,7 @@ fun group s scan = scan || Scan.fail_with
 fun cut kind scan =
   let
     fun get_pos [] = " (end-of-input)"
-      | get_pos (tok :: _) = Token.pos_of tok;
+      | get_pos (tok :: _) = Position.here (Token.pos_of tok);
 
     fun err (toks, NONE) = (fn () => kind ^ get_pos toks)
       | err (toks, SOME msg) =
@@ -165,7 +167,7 @@ fun RESET_VALUE atom = (*required for all primitive parsers*)
 
 val not_eof = RESET_VALUE (Scan.one Token.not_eof);
 
-fun position scan = (Scan.ahead not_eof >> Token.position_of) -- scan >> Library.swap;
+fun position scan = (Scan.ahead not_eof >> Token.pos_of) -- scan >> Library.swap;
 fun source_position atom = Scan.ahead atom |-- not_eof >> Token.source_position_of;
 fun inner_syntax atom = Scan.ahead atom |-- not_eof >> Token.inner_syntax_of;
 

@@ -85,7 +85,7 @@ fun parse_files cmd =
       [] =>
         let
           val master_dir = master_directory thy;
-          val pos = Token.position_of tok;
+          val pos = Token.pos_of tok;
           val src_paths = Keyword.command_files cmd (Path.explode name);
         in map (Command.read_file master_dir pos) src_paths end
     | files => map Exn.release files));
