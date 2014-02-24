@@ -24,6 +24,7 @@ sig
   val mk_eqn: theory -> thm * bool -> thm * bool
   val mk_eqn_liberal: theory -> thm -> (thm * bool) option
   val assert_eqn: theory -> thm * bool -> thm * bool
+  val assert_abs_eqn: theory -> string option -> thm -> thm * string
   val const_typ_eqn: theory -> thm -> string * typ
   val expand_eta: theory -> int -> thm -> thm
   type cert
