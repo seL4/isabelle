@@ -222,15 +222,24 @@ class Rich_Text_Area(
   }
 
 
-  /* text background */
+  /* caret */
 
   private def get_caret_range(stretch: Boolean): Text.Range =
-    if (caret_visible && text_area.isCaretVisible) {
+    if (caret_visible) {
       val caret = text_area.getCaretPosition
       if (stretch) JEdit_Lib.stretch_point_range(buffer, caret)
       else JEdit_Lib.point_range(buffer, caret)
     }
     else Text.Range(-1)
+
+  private def get_caret_color(rendering: Rendering): Color =
+  {
+    if (text_area.isCaretVisible) text_area.getPainter.getCaretColor
+    else rendering.caret_invisible_color
+  }
+
+
+  /* text background */
 
   private val background_painter = new TextAreaExtension
   {
@@ -360,7 +369,7 @@ class Rich_Text_Area(
 
               val astr = new AttributedString(s2)
               astr.addAttribute(TextAttribute.FONT, chunk_font)
-              astr.addAttribute(TextAttribute.FOREGROUND, painter.getCaretColor)
+              astr.addAttribute(TextAttribute.FOREGROUND, get_caret_color(rendering))
               astr.addAttribute(TextAttribute.SWAP_COLORS, TextAttribute.SWAP_COLORS_ON)
               gfx.drawString(astr.getIterator, x1 + string_width(s1), y)
 
@@ -446,7 +455,6 @@ class Rich_Text_Area(
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
       robust_rendering { rendering =>
-        val painter = text_area.getPainter
         val caret_range = get_caret_range(true)
 
         for (i <- 0 until physical_lines.length) {
@@ -486,7 +494,7 @@ class Rich_Text_Area(
             if (!hyperlink_area.is_active) {
               def paint_completion(range: Text.Range) {
                 for (r <- JEdit_Lib.gfx_range(text_area, range)) {
-                  gfx.setColor(painter.getCaretColor)
+                  gfx.setColor(get_caret_color(rendering))
                   gfx.drawRect(r.x, y + i * line_height, r.length - 1, line_height - 1)
                 }
               }
@@ -531,8 +539,8 @@ class Rich_Text_Area(
     override def paintValidLine(gfx: Graphics2D,
       screen_line: Int, physical_line: Int, start: Int, end: Int, y: Int)
     {
-      robust_rendering { _ =>
-        if (caret_visible && text_area.isCaretVisible) {
+      robust_rendering { rendering =>
+        if (caret_visible) {
           val caret = text_area.getCaretPosition
           if (start <= caret && caret == end - 1) {
             val painter = text_area.getPainter
@@ -541,7 +549,7 @@ class Rich_Text_Area(
 
             val offset = caret - text_area.getLineStartOffset(physical_line)
             val x = text_area.offsetToXY(physical_line, offset).x
-            gfx.setColor(painter.getCaretColor)
+            gfx.setColor(get_caret_color(rendering))
             gfx.drawRect(x, y, (metric.unit * metric.average).round.toInt - 1, fm.getHeight - 1)
           }
         }

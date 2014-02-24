@@ -260,6 +260,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val keyword1_color = color_value("keyword1_color")
   val keyword2_color = color_value("keyword2_color")
   val keyword3_color = color_value("keyword3_color")
+  val caret_invisible_color = color_value("caret_invisible_color")
 
   val tfree_color = color_value("tfree_color")
   val tvar_color = color_value("tvar_color")
