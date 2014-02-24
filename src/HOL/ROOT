@@ -173,7 +173,7 @@ session "HOL-Import" in Import = HOL +
 session "HOL-Number_Theory" in Number_Theory = HOL +
   description {*
     Fundamental Theorem of Arithmetic, Chinese Remainder Theorem, Fermat/Euler
-    Theorem, Wilson's Theorem, Quadratic Reciprocity.
+    Theorem, Wilson's Theorem, some lemmas for Quadratic Reciprocity.
   *}
   options [document_graph]
   theories [document = false]
@@ -183,6 +183,7 @@ session "HOL-Number_Theory" in Number_Theory = HOL +
     "~~/src/HOL/Algebra/FiniteProduct"
   theories
     Pocklington
+    Gauss
     Number_Theory
   files
     "document/root.tex"
