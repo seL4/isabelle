@@ -47,6 +47,8 @@ sig
   val add_eqn: thm -> theory -> theory
   val add_nbe_eqn: thm -> theory -> theory
   val add_abs_eqn: thm -> theory -> theory
+  val add_abs_eqn_attribute: attribute
+  val add_abs_eqn_attrib: Attrib.src
   val add_default_eqn: thm -> theory -> theory
   val add_default_eqn_attribute: attribute
   val add_default_eqn_attrib: Attrib.src
@@ -1120,6 +1122,10 @@ val add_nbe_default_eqn_attribute = Thm.declaration_attribute
 val add_nbe_default_eqn_attrib = Attrib.internal (K add_nbe_default_eqn_attribute);
 
 fun add_abs_eqn raw_thm thy = gen_add_abs_eqn (mk_abs_eqn thy raw_thm) thy;
+
+val add_abs_eqn_attribute = Thm.declaration_attribute
+  (fn thm => Context.mapping (add_abs_eqn thm) I);
+val add_abs_eqn_attrib = Attrib.internal (K add_abs_eqn_attribute);
 
 fun add_eqn_maybe_abs thm thy =
   case mk_eqn_maybe_abs thy thm
