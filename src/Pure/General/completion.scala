@@ -170,8 +170,8 @@ object Completion
   {
     val outer = Context("", true, false)
     val inner = Context(Markup.Language.UNKNOWN, true, false)
-    val ML_outer = Context(Markup.Language.ML, false, false)
-    val ML_inner = Context(Markup.Language.ML, true, true)
+    val ML_outer = Context(Markup.Language.ML, false, true)
+    val ML_inner = Context(Markup.Language.ML, true, false)
   }
 
   sealed case class Context(language: String, symbols: Boolean, antiquotes: Boolean)
