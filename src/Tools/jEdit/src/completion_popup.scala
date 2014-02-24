@@ -19,7 +19,7 @@ import scala.swing.{ListView, ScrollPane}
 import scala.swing.event.MouseClicked
 
 import org.gjt.sp.jedit.View
-import org.gjt.sp.jedit.textarea.{TextArea, JEditTextArea}
+import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
 import org.gjt.sp.jedit.gui.{HistoryTextField, KeyEventWorkaround}
 
 
@@ -31,20 +31,19 @@ object Completion_Popup
   {
     private val key = new Object
 
-    def apply(text_area: JEditTextArea): Option[Completion_Popup.Text_Area] =
+    def apply(text_area: TextArea): Option[Completion_Popup.Text_Area] =
+    {
+      Swing_Thread.require()
       text_area.getClientProperty(key) match {
         case text_area_completion: Completion_Popup.Text_Area => Some(text_area_completion)
         case _ => None
       }
+    }
 
-    def active_range(text_area0: TextArea): Option[Text.Range] =
-      text_area0 match {
-        case text_area: JEditTextArea =>
-          apply(text_area) match {
-            case Some(text_area_completion) => text_area_completion.active_range
-            case None => None
-          }
-        case _ => None
+    def active_range(text_area: TextArea): Option[Text.Range] =
+      apply(text_area) match {
+        case Some(text_area_completion) => text_area_completion.active_range
+        case None => None
       }
 
     def exit(text_area: JEditTextArea)
@@ -67,7 +66,7 @@ object Completion_Popup
       text_area_completion
     }
 
-    def dismissed(text_area: JEditTextArea): Boolean =
+    def dismissed(text_area: TextArea): Boolean =
     {
       Swing_Thread.require()
       apply(text_area) match {
