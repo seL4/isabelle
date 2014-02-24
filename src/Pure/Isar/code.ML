@@ -548,7 +548,7 @@ fun assert_abs_eqn thy some_tyco thm =
       else error ("Type arguments do not satisfy sort constraints of abstype certificate.");
   in (thm, tyco) end;
 
-fun assert_eqn thy = error_thm (gen_assert_eqn thy true) thy;
+fun assert_eqn thy = gen_assert_eqn thy true;
 
 fun meta_rewrite thy = Local_Defs.meta_rewrite_rule (Proof_Context.init_global thy);
 
@@ -752,7 +752,7 @@ fun cert_of_eqns ctxt c [] = Equations (dummy_thm ctxt c, [])
       let
         val thy = Proof_Context.theory_of ctxt;
         val eqns = burrow_fst (canonize_thms thy) raw_eqns;
-        val _ = map (assert_eqn thy) eqns;
+        val _ = map (error_thm (assert_eqn thy) thy) eqns;
         val (thms, propers) = split_list eqns;
         val _ = map (fn thm => if c = const_eqn thy thm then ()
           else error ("Wrong head of code equation,\nexpected constant "
