@@ -109,7 +109,7 @@ fun add_wacky_syntax ctxt =
                           Mixfix (step_mixfix (), [1000], 1000)) thy
   in
     (pairself (pairself name_of) ((maybe_t, abs_t), (base_t, step_t)),
-     Proof_Context.transfer_syntax thy ctxt)
+     Proof_Context.transfer thy ctxt)
   end
 
 (** Term reconstruction **)

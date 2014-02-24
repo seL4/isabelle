@@ -456,6 +456,7 @@ class Rich_Text_Area(
     {
       robust_rendering { rendering =>
         val caret_range = get_caret_range(true)
+        val caret_color = text_area.getPainter.getCaretColor
 
         for (i <- 0 until physical_lines.length) {
           if (physical_lines(i) != -1) {
@@ -494,7 +495,7 @@ class Rich_Text_Area(
             if (!hyperlink_area.is_active) {
               def paint_completion(range: Text.Range) {
                 for (r <- JEdit_Lib.gfx_range(text_area, range)) {
-                  gfx.setColor(get_caret_color(rendering))
+                  gfx.setColor(caret_color)
                   gfx.drawRect(r.x, y + i * line_height, r.length - 1, line_height - 1)
                 }
               }
