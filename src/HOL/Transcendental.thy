@@ -60,6 +60,23 @@ lemma lemma_realpow_rev_sumr:
   apply (metis atLeastLessThan_iff diff_diff_cancel diff_less_Suc imageI le0 less_Suc_eq_le)
   done
 
+lemma power_diff_1_eq:
+  fixes x :: "'a::{comm_ring,monoid_mult}"
+  shows "n \<noteq> 0 \<Longrightarrow> x^n - 1 = (x - 1) * (\<Sum>i=0..<n. (x^i))"
+using lemma_realpow_diff_sumr2 [of x _ 1] 
+  by (cases n) auto
+
+lemma one_diff_power_eq':
+  fixes x :: "'a::{comm_ring,monoid_mult}"
+  shows "n \<noteq> 0 \<Longrightarrow> 1 - x^n = (1 - x) * (\<Sum>i=0..<n. x^(n - Suc i))"
+using lemma_realpow_diff_sumr2 [of 1 _ x] 
+  by (cases n) auto
+
+lemma one_diff_power_eq:
+  fixes x :: "'a::{comm_ring,monoid_mult}"
+  shows "n \<noteq> 0 \<Longrightarrow> 1 - x^n = (1 - x) * (\<Sum>i=0..<n. x^i)"
+by (metis one_diff_power_eq' [of n x] nat_diff_setsum_reindex)
+
 text{*Power series has a `circle` of convergence, i.e. if it sums for @{term
   x}, then it sums absolutely for @{term z} with @{term "\<bar>z\<bar> < \<bar>x\<bar>"}.*}
 

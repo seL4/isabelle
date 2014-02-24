@@ -385,13 +385,18 @@ apply (rule range_eqI)
 apply (erule nonzero_of_real_inverse [symmetric])
 done
 
-lemma Reals_inverse [simp]:
+lemma Reals_inverse:
   fixes a :: "'a::{real_div_algebra, division_ring_inverse_zero}"
   shows "a \<in> Reals \<Longrightarrow> inverse a \<in> Reals"
 apply (auto simp add: Reals_def)
 apply (rule range_eqI)
 apply (rule of_real_inverse [symmetric])
 done
+
+lemma Reals_inverse_iff [simp]: 
+  fixes x:: "'a :: {real_div_algebra, division_ring_inverse_zero}"
+  shows "inverse x \<in> \<real> \<longleftrightarrow> x \<in> \<real>"
+by (metis Reals_inverse inverse_inverse_eq)
 
 lemma nonzero_Reals_divide:
   fixes a b :: "'a::real_field"
@@ -425,6 +430,24 @@ proof -
   from `q \<in> \<real>` have "q \<in> range of_real" unfolding Reals_def .
   then obtain r where "q = of_real r" ..
   then show thesis ..
+qed
+
+lemma setsum_in_Reals: assumes "\<And>i. i \<in> s \<Longrightarrow> f i \<in> \<real>" shows "setsum f s \<in> \<real>"
+proof (cases "finite s")
+  case True then show ?thesis using assms
+    by (induct s rule: finite_induct) auto
+next
+  case False then show ?thesis using assms
+    by (metis Reals_0 setsum_infinite)
+qed
+
+lemma setprod_in_Reals: assumes "\<And>i. i \<in> s \<Longrightarrow> f i \<in> \<real>" shows "setprod f s \<in> \<real>"
+proof (cases "finite s")
+  case True then show ?thesis using assms
+    by (induct s rule: finite_induct) auto
+next
+  case False then show ?thesis using assms
+    by (metis Reals_1 setprod_infinite)
 qed
 
 lemma Reals_induct [case_names of_real, induct set: Reals]:
@@ -719,6 +742,11 @@ proof -
   finally show ?thesis .
 qed
 
+lemma norm_triangle_mono: 
+  fixes a b :: "'a::real_normed_vector"
+  shows "\<lbrakk>norm a \<le> r; norm b \<le> s\<rbrakk> \<Longrightarrow> norm (a + b) \<le> r + s"
+by (metis add_mono_thms_linordered_semiring(1) norm_triangle_ineq order.trans)
+
 lemma abs_norm_cancel [simp]:
   fixes a :: "'a::real_normed_vector"
   shows "\<bar>norm a\<bar> = norm a"
@@ -801,6 +829,17 @@ lemma norm_power:
   fixes x :: "'a::{real_normed_div_algebra}"
   shows "norm (x ^ n) = norm x ^ n"
 by (induct n) (simp_all add: norm_mult)
+
+lemma setprod_norm:
+  fixes f :: "'a \<Rightarrow> 'b::{comm_semiring_1,real_normed_div_algebra}"
+  shows "setprod (\<lambda>x. norm(f x)) A = norm (setprod f A)"
+proof (cases "finite A")
+  case True then show ?thesis 
+    by (induct A rule: finite_induct) (auto simp: norm_mult)
+next
+  case False then show ?thesis
+    by (metis norm_one setprod.infinite) 
+qed
 
 
 subsection {* Metric spaces *}

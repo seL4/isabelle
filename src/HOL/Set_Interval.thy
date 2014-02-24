@@ -1667,7 +1667,13 @@ qed
 
 lemma setprod_power_distrib:
   fixes f :: "'a \<Rightarrow> 'b::comm_semiring_1"
-  shows "finite A \<Longrightarrow> setprod f A ^ n = setprod (\<lambda>x. (f x)^n) A"
-  by (induct set: finite) (auto simp: power_mult_distrib)
+  shows "setprod f A ^ n = setprod (\<lambda>x. (f x)^n) A"
+proof (cases "finite A") 
+  case True then show ?thesis 
+    by (induct A rule: finite_induct) (auto simp add: power_mult_distrib)
+next
+  case False then show ?thesis 
+    by (metis setprod_infinite power_one)
+qed
 
 end
