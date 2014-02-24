@@ -19,11 +19,8 @@ sig
   val mk_comp_set_map0_tac: thm -> thm -> thm -> thm list -> tactic
   val mk_comp_wit_tac: Proof.context -> thm list -> thm -> thm list -> tactic
 
-  val mk_kill_bd_card_order_tac: int -> thm -> tactic
-  val mk_kill_bd_cinfinite_tac: thm -> tactic
   val kill_in_alt_tac: tactic
   val mk_kill_map_cong0_tac: Proof.context -> int -> int -> thm -> tactic
-  val mk_kill_set_bd_tac: thm -> thm -> tactic
 
   val empty_natural_tac: tactic
   val lift_in_alt_tac: tactic
@@ -42,10 +39,8 @@ struct
 open BNF_Util
 open BNF_Tactics
 
-val Cnotzero_UNIV = @{thm Cnotzero_UNIV};
 val arg_cong_Union = @{thm arg_cong[of _ _ Union]};
 val comp_eq_dest_lhs = @{thm comp_eq_dest_lhs};
-val csum_Cnotzero1 = @{thm csum_Cnotzero1};
 val trans_image_cong_o_apply = @{thm trans[OF image_cong[OF o_apply refl]]};
 val trans_o_apply = @{thm trans[OF o_apply]};
 
@@ -179,28 +174,6 @@ fun mk_comp_wit_tac ctxt Gwit_thms collect_set_map Fwit_thms =
 fun mk_kill_map_cong0_tac ctxt n m map_cong0 =
   (rtac map_cong0 THEN' EVERY' (replicate n (rtac refl)) THEN'
     EVERY' (replicate m (Goal.assume_rule_tac ctxt))) 1;
-
-fun mk_kill_bd_card_order_tac n bd_card_order =
-  (rtac @{thm card_order_cprod} THEN'
-  K (REPEAT_DETERM_N (n - 1)
-    ((rtac @{thm card_order_csum} THEN'
-    rtac @{thm card_of_card_order_on}) 1)) THEN'
-  rtac @{thm card_of_card_order_on} THEN'
-  rtac bd_card_order) 1;
-
-fun mk_kill_bd_cinfinite_tac bd_Cinfinite =
-  (rtac @{thm cinfinite_cprod2} THEN'
-  TRY o rtac csum_Cnotzero1 THEN'
-  rtac Cnotzero_UNIV THEN'
-  rtac bd_Cinfinite) 1;
-
-fun mk_kill_set_bd_tac bd_Card_order set_bd =
-  (rtac ctrans THEN'
-  rtac set_bd THEN'
-  rtac @{thm ordLeq_cprod2} THEN'
-  TRY o rtac csum_Cnotzero1 THEN'
-  rtac Cnotzero_UNIV THEN'
-  rtac bd_Card_order) 1
 
 val kill_in_alt_tac =
   ((rtac @{thm Collect_cong} THEN' rtac iffI) 1 THEN

@@ -301,10 +301,7 @@ fun kill_bnf qualify n bnf (unfold_set, lthy) = if n = 0 then (bnf, (unfold_set,
     val bnf_sets = mk_sets_of_bnf (replicate live Ds) (replicate live As) bnf;
     val sets = drop n bnf_sets;
 
-    (*(|UNIV :: A1 set| +c ... +c |UNIV :: An set|) *c bnf.bd*)
-    val bnf_bd = mk_bd_of_bnf Ds As bnf;
-    val bd = mk_cprod
-      (Library.foldr1 (uncurry mk_csum) (map (mk_card_of o HOLogic.mk_UNIV) killedAs)) bnf_bd;
+    val bd = mk_bd_of_bnf Ds As bnf;
 
     fun map_id0_tac _ = rtac (map_id0_of_bnf bnf) 1;
     fun map_comp0_tac ctxt =
@@ -313,11 +310,9 @@ fun kill_bnf qualify n bnf (unfold_set, lthy) = if n = 0 then (bnf, (unfold_set,
     fun map_cong0_tac ctxt =
       mk_kill_map_cong0_tac ctxt n (live - n) (map_cong0_of_bnf bnf);
     val set_map0_tacs = map (fn thm => fn _ => rtac thm 1) (drop n (set_map0_of_bnf bnf));
-    fun bd_card_order_tac _ = mk_kill_bd_card_order_tac n (bd_card_order_of_bnf bnf);
-    fun bd_cinfinite_tac _ = mk_kill_bd_cinfinite_tac (bd_Cinfinite_of_bnf bnf);
-    val set_bd_tacs =
-      map (fn thm => fn _ => mk_kill_set_bd_tac (bd_Card_order_of_bnf bnf) thm)
-        (drop n (set_bd_of_bnf bnf));
+    fun bd_card_order_tac _ = rtac (bd_card_order_of_bnf bnf) 1;
+    fun bd_cinfinite_tac _ = rtac (bd_cinfinite_of_bnf bnf) 1;
+    val set_bd_tacs = map (fn thm => fn _ => rtac thm 1) (drop n (set_bd_of_bnf bnf));
 
     val in_alt_thm =
       let
@@ -611,8 +606,9 @@ fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
     (*bd may depend only on dead type variables*)
     val bd_repT = fst (dest_relT (fastype_of bnf_bd));
     val bdT_bind = qualify (Binding.suffix_name ("_" ^ bdTN) b);
-    val params = fold Term.add_tfreesT Ds [];
+    val params = Term.add_tfreesT bd_repT [];
     val deads = map TFree params;
+    val all_deads = map TFree (fold Term.add_tfreesT Ds []);
 
     val ((bdT_name, (bdT_glob_info, bdT_loc_info)), lthy) =
       typedef (bdT_bind, params, NoSyn)
@@ -649,11 +645,11 @@ fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
       mk_simple_wit_tac (map (unfold_all ctxt) (wit_thms_of_bnf bnf));
 
     val (bnf', lthy') =
-      bnf_def Hardly_Inline (user_policy Dont_Note) qualify tacs wit_tac (SOME deads)
+      bnf_def Hardly_Inline (user_policy Dont_Note) qualify tacs wit_tac (SOME all_deads)
         Binding.empty Binding.empty []
         ((((((b, T), bnf_map), bnf_sets), bnf_bd'), bnf_wits), SOME bnf_rel) lthy;
   in
-    ((bnf', deads), lthy')
+    ((bnf', all_deads), lthy')
   end;
 
 fun key_of_types Ts = Type ("", Ts);

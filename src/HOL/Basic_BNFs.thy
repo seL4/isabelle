@@ -25,11 +25,9 @@ done
 
 bnf DEADID: 'a
   map: "id :: 'a \<Rightarrow> 'a"
-  bd: "natLeq +c |UNIV :: 'a set|"
+  bd: natLeq
   rel: "op = :: 'a \<Rightarrow> 'a \<Rightarrow> bool"
-by (auto simp add: Grp_def
-  card_order_csum natLeq_card_order card_of_card_order_on
-  cinfinite_csum natLeq_cinfinite)
+by (auto simp add: Grp_def natLeq_card_order natLeq_cinfinite)
 
 definition setl :: "'a + 'b \<Rightarrow> 'a set" where
 "setl x = (case x of Inl z => {z} | _ => {})"
