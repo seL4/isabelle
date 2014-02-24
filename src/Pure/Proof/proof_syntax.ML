@@ -246,7 +246,7 @@ fun proof_of full thm =
 
 fun pretty_proof ctxt prf =
   Proof_Context.pretty_term_abbrev
-    (Proof_Context.transfer_syntax (proof_syntax prf (Proof_Context.theory_of ctxt)) ctxt)
+    (Proof_Context.transfer (proof_syntax prf (Proof_Context.theory_of ctxt)) ctxt)
     (term_of_proof prf);
 
 fun pretty_proof_of ctxt full th =

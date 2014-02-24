@@ -50,7 +50,6 @@ sig
   val extern_const: Proof.context -> string -> xstring
   val markup_const: Proof.context -> string -> string
   val pretty_const: Proof.context -> string -> Pretty.T
-  val transfer_syntax: theory -> Proof.context -> Proof.context
   val transfer: theory -> Proof.context -> Proof.context
   val background_theory: (theory -> theory) -> Proof.context -> Proof.context
   val background_theory_result: (theory -> 'a * theory) -> Proof.context -> 'a * Proof.context
