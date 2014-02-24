@@ -483,14 +483,22 @@ class Rich_Text_Area(
             }
 
             // completion range
-            for {
-              caret <- caret_range.try_restrict(line_range)
-              if !hyperlink_area.is_active
-              names <- rendering.completion_names(caret)
-              r <- JEdit_Lib.gfx_range(text_area, names.range)
-            } {
-              gfx.setColor(painter.getCaretColor)
-              gfx.drawRect(r.x, y + i * line_height, r.length - 1, line_height - 1)
+            if (!hyperlink_area.is_active) {
+              def paint_completion(range: Text.Range) {
+                for (r <- JEdit_Lib.gfx_range(text_area, range)) {
+                  gfx.setColor(painter.getCaretColor)
+                  gfx.drawRect(r.x, y + i * line_height, r.length - 1, line_height - 1)
+                }
+              }
+              Completion_Popup.Text_Area.active_range(text_area) match {
+                case Some(range) if range.try_restrict(line_range).isDefined =>
+                  paint_completion(range.try_restrict(line_range).get)
+                case _ =>
+                  for {
+                    caret <- caret_range.try_restrict(line_range)
+                    names <- rendering.completion_names(caret)
+                  } paint_completion(names.range)
+              }
             }
           }
         }

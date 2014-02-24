@@ -19,7 +19,7 @@ import scala.swing.{ListView, ScrollPane}
 import scala.swing.event.MouseClicked
 
 import org.gjt.sp.jedit.View
-import org.gjt.sp.jedit.textarea.JEditTextArea
+import org.gjt.sp.jedit.textarea.{TextArea, JEditTextArea}
 import org.gjt.sp.jedit.gui.{HistoryTextField, KeyEventWorkaround}
 
 
@@ -34,6 +34,16 @@ object Completion_Popup
     def apply(text_area: JEditTextArea): Option[Completion_Popup.Text_Area] =
       text_area.getClientProperty(key) match {
         case text_area_completion: Completion_Popup.Text_Area => Some(text_area_completion)
+        case _ => None
+      }
+
+    def active_range(text_area0: TextArea): Option[Text.Range] =
+      text_area0 match {
+        case text_area: JEditTextArea =>
+          apply(text_area) match {
+            case Some(text_area_completion) => text_area_completion.active_range
+            case None => None
+          }
         case _ => None
       }
 
@@ -69,7 +79,18 @@ object Completion_Popup
 
   class Text_Area private(text_area: JEditTextArea)
   {
+    // owned by Swing thread
     private var completion_popup: Option[Completion_Popup] = None
+
+    def active_range: Option[Text.Range] =
+      completion_popup match {
+        case Some(completion) =>
+          completion.active_range match {
+            case Some((range, _)) if completion.isDisplayable => Some(range)
+            case _ => None
+          }
+        case None => None
+      }
 
 
     /* completion action */
@@ -109,14 +130,17 @@ object Completion_Popup
         val font =
           painter.getFont.deriveFont(Rendering.font_size("jedit_popup_font_scale"))
 
-        val loc1 = text_area.offsetToXY(result.range.start)
+        val range = result.range
+        def invalidate(): Unit = JEdit_Lib.invalidate_range(text_area, range)
+
+        val loc1 = text_area.offsetToXY(range.start)
         if (loc1 != null) {
           val loc2 =
             SwingUtilities.convertPoint(painter,
               loc1.x, loc1.y + painter.getFontMetrics.getHeight, layered)
 
           val completion =
-            new Completion_Popup(layered, loc2, font, result.items) {
+            new Completion_Popup(Some((range, invalidate _)), layered, loc2, font, result.items) {
               override def complete(item: Completion.Item) {
                 PIDE.completion_history.update(item)
                 insert(item)
@@ -128,6 +152,7 @@ object Completion_Popup
               override def refocus() { text_area.requestFocus }
             }
           completion_popup = Some(completion)
+          invalidate()
           completion.show_popup()
         }
       }
@@ -270,6 +295,7 @@ object Completion_Popup
     // see https://forums.oracle.com/thread/1361677
     if (GUI.is_macos_laf) text_field.setCaret(new DefaultCaret)
 
+    // owned by Swing thread
     private var completion_popup: Option[Completion_Popup] = None
 
 
@@ -328,7 +354,8 @@ object Completion_Popup
               val loc =
                 SwingUtilities.convertPoint(text_field, fm.stringWidth(text), fm.getHeight, layered)
 
-              val completion = new Completion_Popup(layered, loc, text_field.getFont, result.items)
+              val completion =
+                new Completion_Popup(None, layered, loc, text_field.getFont, result.items)
               {
                 override def complete(item: Completion.Item) {
                   PIDE.completion_history.update(item)
@@ -395,6 +422,7 @@ object Completion_Popup
 
 
 class Completion_Popup private(
+  val active_range: Option[(Text.Range, () => Unit)],
   layered: JLayeredPane,
   location: Point,
   font: Font,
@@ -535,6 +563,7 @@ class Completion_Popup private(
 
   private val hide_popup_delay =
     Swing_Thread.delay_last(PIDE.options.seconds("jedit_completion_dismiss_delay")) {
+      active_range match { case Some((_, invalidate)) => invalidate() case _ => }
       popup.hide
     }
 
@@ -542,8 +571,10 @@ class Completion_Popup private(
   {
     if (list_view.peer.isFocusOwner) refocus()
 
-    if (PIDE.options.seconds("jedit_completion_dismiss_delay").is_zero)
+    if (PIDE.options.seconds("jedit_completion_dismiss_delay").is_zero) {
+      active_range match { case Some((_, invalidate)) => invalidate() case _ => }
       popup.hide
+    }
     else hide_popup_delay.invoke()
   }
 }
