@@ -108,7 +108,7 @@ object Completion_Popup
                 rendering.completion_names(range) match {
                   case Some(names) => Some(names.range)
                   case None =>
-                    syntax_completion(Some(rendering), false) match {
+                    syntax_completion(false, Some(rendering)) match {
                       case Some(result) => Some(result.range)
                       case None => None
                     }
@@ -124,7 +124,7 @@ object Completion_Popup
     /* syntax completion */
 
     def syntax_completion(
-      opt_rendering: Option[Rendering], explicit: Boolean): Option[Completion.Result] =
+      explicit: Boolean, opt_rendering: Option[Rendering] = None): Option[Completion.Result] =
     {
       val buffer = text_area.getBuffer
       val history = PIDE.completion_history.value
@@ -219,43 +219,37 @@ object Completion_Popup
         }
       }
 
-      def semantic_completion(): Boolean =
-        explicit && {
+      def semantic_completion(): Option[Completion.Result] =
+        if (explicit) {
           PIDE.document_view(text_area) match {
             case Some(doc_view) =>
               val rendering = doc_view.get_rendering()
               rendering.completion_names(JEdit_Lib.stretch_point_range(buffer, caret)) match {
-                case None => false
+                case None => None
                 case Some(names) =>
                   JEdit_Lib.try_get_text(buffer, names.range) match {
-                    case Some(original) =>
-                      names.complete(history, decode, original) match {
-                        case Some(result) if !result.items.isEmpty =>
-                          open_popup(result)
-                          true
-                        case _ => false
-                      }
-                    case None => false
+                    case Some(original) => names.complete(history, decode, original)
+                    case None => None
                   }
               }
-            case _ => false
+            case None => None
           }
         }
+        else None
 
-      def syntactic_completion(): Boolean =
-        syntax_completion(None, explicit) match {
+      if (buffer.isEditable) {
+        semantic_completion() orElse syntax_completion(explicit) match {
           case Some(result) =>
             result.items match {
               case List(item) if result.unique && item.immediate && immediate =>
-                insert(item); true
-              case _ :: _ => open_popup(result); true
-              case _ => false
+                insert(item)
+              case _ :: _ =>
+                open_popup(result)
+              case _ =>
             }
-          case None => false
+          case None =>
         }
-
-      if (buffer.isEditable)
-        semantic_completion() || syntactic_completion()
+      }
     }
 
 
