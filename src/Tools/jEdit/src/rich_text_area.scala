@@ -222,23 +222,6 @@ class Rich_Text_Area(
   }
 
 
-  /* caret */
-
-  private def get_caret_range(stretch: Boolean): Text.Range =
-    if (caret_visible) {
-      val caret = text_area.getCaretPosition
-      if (stretch) JEdit_Lib.stretch_point_range(buffer, caret)
-      else JEdit_Lib.point_range(buffer, caret)
-    }
-    else Text.Range(-1)
-
-  private def get_caret_color(rendering: Rendering): Color =
-  {
-    if (text_area.isCaretVisible) text_area.getPainter.getCaretColor
-    else rendering.caret_invisible_color
-  }
-
-
   /* text background */
 
   private val background_painter = new TextAreaExtension
@@ -312,13 +295,23 @@ class Rich_Text_Area(
 
   /* text */
 
+  private def caret_color(rendering: Rendering): Color =
+  {
+    if (text_area.isCaretVisible)
+      text_area.getPainter.getCaretColor
+    else rendering.caret_invisible_color
+  }
+
   private def paint_chunk_list(rendering: Rendering,
     gfx: Graphics2D, line_start: Text.Offset, head: Chunk, x: Float, y: Float): Float =
   {
     val clip_rect = gfx.getClipBounds
     val painter = text_area.getPainter
     val font_context = painter.getFontRenderContext
-    val caret_range = get_caret_range(false)
+
+    val caret_range =
+      if (caret_visible) JEdit_Lib.point_range(buffer, text_area.getCaretPosition)
+      else Text.Range(-1)
 
     var w = 0.0f
     var chunk = head
@@ -369,7 +362,7 @@ class Rich_Text_Area(
 
               val astr = new AttributedString(s2)
               astr.addAttribute(TextAttribute.FONT, chunk_font)
-              astr.addAttribute(TextAttribute.FOREGROUND, get_caret_color(rendering))
+              astr.addAttribute(TextAttribute.FOREGROUND, caret_color(rendering))
               astr.addAttribute(TextAttribute.SWAP_COLORS, TextAttribute.SWAP_COLORS_ON)
               gfx.drawString(astr.getIterator, x1 + string_width(s1), y)
 
@@ -455,9 +448,6 @@ class Rich_Text_Area(
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
       robust_rendering { rendering =>
-        val caret_range = get_caret_range(true)
-        val caret_color = text_area.getPainter.getCaretColor
-
         for (i <- 0 until physical_lines.length) {
           if (physical_lines(i) != -1) {
             val line_range = Text.Range(start(i), end(i))
@@ -492,21 +482,14 @@ class Rich_Text_Area(
             }
 
             // completion range
-            if (!hyperlink_area.is_active) {
-              def paint_completion(range: Text.Range) {
-                for (r <- JEdit_Lib.gfx_range(text_area, range)) {
-                  gfx.setColor(caret_color)
-                  gfx.drawRect(r.x, y + i * line_height, r.length - 1, line_height - 1)
-                }
-              }
-              Completion_Popup.Text_Area.active_range(text_area) match {
-                case Some(range) if range.try_restrict(line_range).isDefined =>
-                  paint_completion(range.try_restrict(line_range).get)
-                case _ =>
-                  for {
-                    caret <- caret_range.try_restrict(line_range)
-                    names <- rendering.completion_names(caret)
-                  } paint_completion(names.range)
+            if (!hyperlink_area.is_active && caret_visible) {
+              for {
+                completion <- Completion_Popup.Text_Area(text_area)
+                Text.Info(range, color) <- completion.rendering(rendering, line_range)
+                r <- JEdit_Lib.gfx_range(text_area, range)
+              } {
+                gfx.setColor(color)
+                gfx.drawRect(r.x, y + i * line_height, r.length - 1, line_height - 1)
               }
             }
           }
@@ -550,7 +533,7 @@ class Rich_Text_Area(
 
             val offset = caret - text_area.getLineStartOffset(physical_line)
             val x = text_area.offsetToXY(physical_line, offset).x
-            gfx.setColor(get_caret_color(rendering))
+            gfx.setColor(caret_color(rendering))
             gfx.drawRect(x, y, (metric.unit * metric.average).round.toInt - 1, fm.getHeight - 1)
           }
         }
