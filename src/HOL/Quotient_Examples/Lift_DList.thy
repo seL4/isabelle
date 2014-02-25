@@ -45,19 +45,7 @@ lift_definition fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a
 
 lift_definition foldr :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a dlist \<Rightarrow> 'b \<Rightarrow> 'b" is List.foldr .
 
-lift_definition concat :: "'a dlist dlist \<Rightarrow> 'a dlist" is "remdups o List.concat"
-proof -
-  {
-    fix x y
-    have "list_all2 cr_dlist x y \<Longrightarrow> x = List.map list_of_dlist y"
-      unfolding list_all2_iff cr_dlist_def by (induction x y rule: list_induct2') auto
-  }
-  note cr = this
-  fix x :: "'a list list" and y :: "'a list list"
-  assume "(list_all2 cr_dlist OO Lifting.invariant distinct OO (list_all2 cr_dlist)\<inverse>\<inverse>) x y"
-  then have "x = y" by (auto dest: cr simp add: Lifting.invariant_def)
-  then show "?thesis x y" unfolding Lifting.invariant_def by auto
-qed
+lift_definition concat :: "'a dlist dlist \<Rightarrow> 'a dlist" is "remdups o List.concat" by auto
 
 text {* We can export code: *}
 

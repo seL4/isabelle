@@ -71,7 +71,7 @@ lemma abs_fset_eq_iff: "abs_fset xs = abs_fset ys \<longleftrightarrow> list_eq 
   using Quotient_rel [OF Quotient_fset] by simp
 
 lift_definition fconcat :: "'a fset fset \<Rightarrow> 'a fset" is concat parametric concat_transfer
-proof -
+proof (simp only: fset.pcr_cr_eq)
   fix xss yss :: "'a list list"
   assume "(list_all2 cr_fset OO list_eq OO (list_all2 cr_fset)\<inverse>\<inverse>) xss yss"
   then obtain uss vss where

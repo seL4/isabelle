@@ -176,16 +176,8 @@ interpretation lifting_syntax .
 lift_definition ffilter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a fset \<Rightarrow> 'a fset" is Set.filter 
   parametric Lifting_Set.filter_transfer unfolding Set.filter_def by simp
 
-lemma compose_rel_to_Domainp:
-  assumes "left_unique R"
-  assumes "(R ===> op=) P P'"
-  shows "(R OO Lifting.invariant P' OO R\<inverse>\<inverse>) x y \<longleftrightarrow> Domainp R x \<and> P x \<and> x = y"
-using assms unfolding OO_def conversep_iff Domainp_iff left_unique_def fun_rel_def invariant_def
-by blast
-
 lift_definition fPow :: "'a fset \<Rightarrow> 'a fset fset" is Pow parametric Pow_transfer 
-by (subst compose_rel_to_Domainp [OF _ finite_transfer]) (auto intro: transfer_raw finite_subset 
-  simp add: fset.pcr_cr_eq[symmetric] Domainp_set fset.domain_eq)
+by (simp add: finite_subset)
 
 lift_definition fcard :: "'a fset \<Rightarrow> nat" is card parametric card_transfer .
 
@@ -198,9 +190,7 @@ lift_definition fthe_elem :: "'a fset \<Rightarrow> 'a" is the_elem .
 lift_definition fbind :: "'a fset \<Rightarrow> ('a \<Rightarrow> 'b fset) \<Rightarrow> 'b fset" is Set.bind parametric bind_transfer
 unfolding invariant_def Set.bind_def by clarsimp metis
 
-lift_definition ffUnion :: "'a fset fset \<Rightarrow> 'a fset" is Union parametric Union_transfer
-by (subst(asm) compose_rel_to_Domainp [OF _ finite_transfer])
-  (auto intro: transfer_raw simp add: fset.pcr_cr_eq[symmetric] Domainp_set fset.domain_eq invariant_def)
+lift_definition ffUnion :: "'a fset fset \<Rightarrow> 'a fset" is Union parametric Union_transfer by simp
 
 lift_definition fBall :: "'a fset \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" is Ball parametric Ball_transfer .
 lift_definition fBex :: "'a fset \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" is Bex parametric Bex_transfer .
