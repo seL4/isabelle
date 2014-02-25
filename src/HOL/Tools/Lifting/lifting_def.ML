@@ -29,7 +29,7 @@ infix 0 MRSL
 
 fun mono_eq_prover ctxt prop =
   let
-    val rules = ((Transfer.get_relator_eq_raw ctxt) @ (Lifting_Info.get_reflexivity_rules ctxt))
+    val rules = Lifting_Info.get_reflexivity_rules ctxt
   in
     SOME (Goal.prove ctxt [] [] prop (K (REPEAT_ALL_NEW (resolve_tac rules) 1)))
       handle ERROR _ => NONE
