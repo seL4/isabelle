@@ -42,7 +42,9 @@ sig
   val inner_syntax_of: T -> string
   val source_position_of: T -> Symbol_Pos.text * Position.T
   val content_of: T -> string
+  val markup: T -> Markup.T * string
   val unparse: T -> string
+  val print: T -> string
   val text_of: T -> string * string
   val get_files: T -> file Exn.result list
   val put_files: file Exn.result list -> T -> T
@@ -213,6 +215,42 @@ fun source_position_of (Token ((source, (pos, _)), _, _)) = (source, pos);
 fun content_of (Token (_, (_, x), _)) = x;
 
 
+(* markup *)
+
+local
+
+val token_kind_markup =
+ fn Command       => (Markup.command, "")
+  | Keyword       => (Markup.keyword2, "")
+  | Ident         => (Markup.empty, "")
+  | LongIdent     => (Markup.empty, "")
+  | SymIdent      => (Markup.empty, "")
+  | Var           => (Markup.var, "")
+  | TypeIdent     => (Markup.tfree, "")
+  | TypeVar       => (Markup.tvar, "")
+  | Nat           => (Markup.empty, "")
+  | Float         => (Markup.empty, "")
+  | String        => (Markup.string, "")
+  | AltString     => (Markup.altstring, "")
+  | Verbatim      => (Markup.verbatim, "")
+  | Cartouche     => (Markup.cartouche, "")
+  | Space         => (Markup.empty, "")
+  | Comment       => (Markup.comment, "")
+  | InternalValue => (Markup.empty, "")
+  | Error msg     => (Markup.bad, msg)
+  | Sync          => (Markup.control, "")
+  | EOF           => (Markup.control, "");
+
+in
+
+fun markup tok =
+  if keyword_with (not o Symbol.is_ascii_identifier) tok
+  then (Markup.operator, "")
+  else token_kind_markup (kind_of tok);
+
+end;
+
+
 (* unparse *)
 
 fun unparse (Token (_, (kind, x), _)) =
@@ -226,16 +264,20 @@ fun unparse (Token (_, (kind, x), _)) =
   | EOF => ""
   | _ => x);
 
+fun print tok = Markup.markup (#1 (markup tok)) (unparse tok);
+
 fun text_of tok =
   if is_semicolon tok then ("terminator", "")
   else
     let
       val k = str_of_kind (kind_of tok);
+      val (m, _) = markup tok;
       val s = unparse tok;
     in
       if s = "" then (k, "")
-      else if size s < 40 andalso not (exists_string (fn c => c = "\n") s) then (k ^ " " ^ s, "")
-      else (k, s)
+      else if size s < 40 andalso not (exists_string (fn c => c = "\n") s)
+      then (k ^ " " ^ Markup.markup m s, "")
+      else (k, Markup.markup m s)
     end;
 
 

@@ -25,7 +25,7 @@ sig
   val ml_store_thm: string * thm -> unit
   type antiq = Proof.context -> string * string
   val add_antiq: binding -> antiq context_parser -> theory -> theory
-  val check_antiq: theory -> xstring * Position.T -> string
+  val check_antiq: Proof.context -> xstring * Position.T -> string
   val trace_raw: Config.raw
   val trace: bool Config.T
   val eval_antiquotes: ML_Lex.token Antiquote.antiquote list * Position.T ->
@@ -107,16 +107,17 @@ structure Antiq_Parsers = Theory_Data
   fun merge data : T = Name_Space.merge_tables data;
 );
 
+val get_antiqs = Antiq_Parsers.get o Proof_Context.theory_of;
+
 fun add_antiq name scan thy = thy
   |> Antiq_Parsers.map (Name_Space.define (Context.Theory thy) true (name, scan) #> snd);
 
-fun check_antiq thy = #1 o Name_Space.check (Context.Theory thy) (Antiq_Parsers.get thy);
+fun check_antiq ctxt = #1 o Name_Space.check (Context.Proof ctxt) (get_antiqs ctxt);
 
 fun antiquotation src ctxt =
   let
-    val thy = Proof_Context.theory_of ctxt;
     val ((xname, _), pos) = Args.dest_src src;
-    val (_, scan) = Name_Space.check (Context.Proof ctxt) (Antiq_Parsers.get thy) (xname, pos);
+    val (_, scan) = Name_Space.check (Context.Proof ctxt) (get_antiqs ctxt) (xname, pos);
   in Args.context_syntax Markup.ML_antiquotationN scan src ctxt end;
 
 

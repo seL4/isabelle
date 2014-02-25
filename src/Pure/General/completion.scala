@@ -166,15 +166,15 @@ object Completion
 
   /* language context */
 
-  object Context
+  object Language_Context
   {
-    val outer = Context("", true, false)
-    val inner = Context(Markup.Language.UNKNOWN, true, false)
-    val ML_outer = Context(Markup.Language.ML, false, true)
-    val ML_inner = Context(Markup.Language.ML, true, false)
+    val outer = Language_Context("", true, false)
+    val inner = Language_Context(Markup.Language.UNKNOWN, true, false)
+    val ML_outer = Language_Context(Markup.Language.ML, false, true)
+    val ML_inner = Language_Context(Markup.Language.ML, true, false)
   }
 
-  sealed case class Context(language: String, symbols: Boolean, antiquotes: Boolean)
+  sealed case class Language_Context(language: String, symbols: Boolean, antiquotes: Boolean)
   {
     def is_outer: Boolean = language == ""
   }
@@ -187,6 +187,12 @@ object Completion
 
 
   /* word parsers */
+
+  def word_context(text: Option[String]): Boolean =
+    text match {
+      case None => false
+      case Some(s) => Word_Parsers.is_word(s)
+    }
 
   private object Word_Parsers extends RegexParsers
   {
@@ -274,7 +280,8 @@ final class Completion private(
     explicit: Boolean,
     text_start: Text.Offset,
     text: CharSequence,
-    context: Completion.Context): Option[Completion.Result] =
+    word_context: Boolean,
+    language_context: Completion.Language_Context): Option[Completion.Result] =
   {
     val abbrevs_result =
       Scan.Parsers.parse(Scan.Parsers.literal(abbrevs_lex), new Library.Reverse(text)) match {
@@ -284,8 +291,8 @@ final class Completion private(
             case Nil => None
             case (a, _) :: _ =>
               val ok =
-                if (a == Completion.antiquote) context.antiquotes
-                else context.symbols || Completion.default_abbrs.isDefinedAt(a)
+                if (a == Completion.antiquote) language_context.antiquotes
+                else language_context.symbols || Completion.default_abbrs.isDefinedAt(a)
               if (ok) Some((a, abbrevs.map(_._2))) else None
           }
         case _ => None
@@ -293,18 +300,20 @@ final class Completion private(
 
     val words_result =
       abbrevs_result orElse {
-        Completion.Word_Parsers.read(explicit, text) match {
-          case Some(word) =>
-            val completions =
-              for {
-                s <- words_lex.completions(word)
-                if (if (keywords(s)) context.is_outer else context.symbols)
-                r <- words_map.get_list(s)
-              } yield r
-            if (completions.isEmpty) None
-            else Some(word, completions)
-          case None => None
-        }
+        if (word_context) None
+        else
+          Completion.Word_Parsers.read(explicit, text) match {
+            case Some(word) =>
+              val completions =
+                for {
+                  s <- words_lex.completions(word)
+                  if (if (keywords(s)) language_context.is_outer else language_context.symbols)
+                  r <- words_map.get_list(s)
+                } yield r
+              if (completions.isEmpty) None
+              else Some(word, completions)
+            case None => None
+          }
       }
 
     words_result match {

@@ -156,8 +156,6 @@ fun command_check (name, pos) =
       val _ = List.app (Position.report pos) markup;
     in true end;
 
-fun thy_check check ctxt = can (check (Proof_Context.theory_of ctxt));
-
 fun check_tool (name, pos) =
   let
     fun tool dir =
@@ -212,19 +210,19 @@ val entity_setup =
   entity_antiqs (K command_check) "isacommand" "command" #>
   entity_antiqs (K (Keyword.is_keyword o #1)) "isakeyword" "keyword" #>
   entity_antiqs (K (Keyword.is_keyword o #1)) "isakeyword" "element" #>
-  entity_antiqs (thy_check Method.check) "" "method" #>
-  entity_antiqs (thy_check Attrib.check) "" "attribute" #>
+  entity_antiqs (can o Method.check_name) "" "method" #>
+  entity_antiqs (can o Attrib.check o Proof_Context.theory_of) "" "attribute" #>
   entity_antiqs no_check "" "fact" #>
   entity_antiqs no_check "" "variable" #>
   entity_antiqs no_check "" "case" #>
-  entity_antiqs (thy_check Thy_Output.check_command) "" "antiquotation" #>
-  entity_antiqs (thy_check Thy_Output.check_option) "" "antiquotation option" #>
+  entity_antiqs (can o Thy_Output.check_command) "" "antiquotation" #>
+  entity_antiqs (can o Thy_Output.check_option) "" "antiquotation option" #>
   entity_antiqs no_check "isatt" "setting" #>
   entity_antiqs no_check "isatt" "system option" #>
   entity_antiqs no_check "" "inference" #>
   entity_antiqs no_check "isatt" "executable" #>
   entity_antiqs (K check_tool) "isatool" "tool" #>
-  entity_antiqs (thy_check ML_Context.check_antiq) "" Markup.ML_antiquotationN;
+  entity_antiqs (can o ML_Context.check_antiq) "" Markup.ML_antiquotationN;
 
 end;
 

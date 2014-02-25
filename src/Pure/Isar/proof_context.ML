@@ -933,7 +933,7 @@ fun retrieve_thms pick ctxt (Facts.Fact s) =
             [res] => res
           | [] => err "Failed to retrieve literal fact"
           | _ => err "Ambiguous specification of literal fact");
-      in pick "" [res] end
+      in pick ("", Position.none) [res] end
   | retrieve_thms pick ctxt xthmref =
       let
         val thy = theory_of ctxt;
@@ -950,7 +950,7 @@ fun retrieve_thms pick ctxt (Facts.Fact s) =
                   (Name_Space.markup (Facts.space_of local_facts) name);
                  map (Thm.transfer thy) (Facts.select thmref ths))
             | NONE => Global_Theory.get_fact (Context.Proof ctxt) thy xthmref);
-      in pick name thms end;
+      in pick (name, pos) thms end;
 
 in
 

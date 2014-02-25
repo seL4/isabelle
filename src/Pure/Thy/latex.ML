@@ -178,10 +178,8 @@ fun latex_output str =
   in (output_symbols syms, Symbol.length syms) end;
 
 fun latex_markup (s, _) =
-  if s = Markup.commandN orelse s = Markup.keyword1N
-    then ("\\isacommand{", "}")
-  else if s = Markup.keywordN orelse s = Markup.keyword2N
-    then ("\\isakeyword{", "}")
+  if s = Markup.commandN orelse s = Markup.keyword1N then ("\\isacommand{", "}")
+  else if s = Markup.keyword2N then ("\\isakeyword{", "}")
   else Markup.no_output;
 
 fun latex_indent "" _ = ""

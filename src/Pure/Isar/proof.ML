@@ -392,13 +392,13 @@ fun goal_cases st =
   Rule_Cases.make_common
     (Thm.theory_of_thm st, Thm.prop_of st) (map (rpair [] o rpair []) (goals st));
 
-fun apply_method current_context meth state =
+fun apply_method current_context method state =
   let
     val (goal_ctxt, (_, {statement, messages = _, using, goal, before_qed, after_qed})) =
       find_goal state;
     val ctxt = if current_context then context_of state else goal_ctxt;
   in
-    Method.apply meth ctxt using goal |> Seq.map (fn (meth_cases, goal') =>
+    Method.apply method ctxt using goal |> Seq.map (fn (meth_cases, goal') =>
       state
       |> map_goal
           (Proof_Context.update_cases false (no_goal_cases goal @ goal_cases goal') #>
@@ -416,13 +416,13 @@ fun select_goals n meth state =
       |> Seq.lift provide_goal (PRIMITIVE (Goal.unrestrict 1) (#2 (#2 (get_goal state')))))
     |> Seq.maps (apply_method true (K Method.succeed)));
 
-fun apply_text cc text state =
+fun apply_text current_context text state =
   let
-    val thy = theory_of state;
+    val ctxt = context_of state;
 
-    fun eval (Method.Basic m) = apply_method cc m
-      | eval (Method.Source src) = apply_method cc (Method.method thy src)
-      | eval (Method.Source_i src) = apply_method cc (Method.method_i thy src)
+    fun eval (Method.Basic m) = apply_method current_context m
+      | eval (Method.Source src) =
+          apply_method current_context (Method.the_method ctxt (Method.check_source ctxt src))
       | eval (Method.Then txts) = Seq.EVERY (map eval txts)
       | eval (Method.Orelse txts) = Seq.FIRST (map eval txts)
       | eval (Method.Try txt) = Seq.TRY (eval txt)

@@ -43,7 +43,7 @@ final class Outer_Syntax private(
   keywords: Map[String, (String, List[String])] = Map.empty,
   lexicon: Scan.Lexicon = Scan.Lexicon.empty,
   val completion: Completion = Completion.empty,
-  val completion_context: Completion.Context = Completion.Context.outer,
+  val language_context: Completion.Language_Context = Completion.Language_Context.outer,
   val has_tokens: Boolean = true)
 {
   override def toString: String =
@@ -73,7 +73,7 @@ final class Outer_Syntax private(
     val completion1 =
       if (Keyword.control(kind._1) || replace == Some("")) completion
       else completion + (name, replace getOrElse name)
-    new Outer_Syntax(keywords1, lexicon1, completion1, completion_context, true)
+    new Outer_Syntax(keywords1, lexicon1, completion1, language_context, true)
   }
 
   def + (name: String, kind: (String, List[String])): Outer_Syntax =
@@ -151,7 +151,7 @@ final class Outer_Syntax private(
 
   /* language context */
 
-  def set_completion_context(context: Completion.Context): Outer_Syntax =
+  def set_language_context(context: Completion.Language_Context): Outer_Syntax =
     new Outer_Syntax(keywords, lexicon, completion, context, has_tokens)
 
   def no_tokens: Outer_Syntax =
@@ -159,7 +159,7 @@ final class Outer_Syntax private(
     require(keywords.isEmpty && lexicon.isEmpty)
     new Outer_Syntax(
       completion = completion,
-      completion_context = completion_context,
+      language_context = language_context,
       has_tokens = false)
   }
 }

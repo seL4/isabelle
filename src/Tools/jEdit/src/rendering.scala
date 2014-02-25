@@ -152,7 +152,7 @@ object Rendering
 
   private val completion_names_elements = Set(Markup.COMPLETION)
 
-  private val completion_context_elements =
+  private val language_context_elements =
     Set(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM,
       Markup.CARTOUCHE, Markup.COMMENT, Markup.LANGUAGE,
       Markup.ML_STRING, Markup.ML_COMMENT)
@@ -261,6 +261,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val keyword2_color = color_value("keyword2_color")
   val keyword3_color = color_value("keyword3_color")
   val caret_invisible_color = color_value("caret_invisible_color")
+  val completion_color = color_value("completion_color")
 
   val tfree_color = color_value("tfree_color")
   val tvar_color = color_value("tvar_color")
@@ -287,16 +288,16 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
         }).headOption.map(_.info)
     }
 
-  def completion_context(range: Text.Range): Option[Completion.Context] =
-    snapshot.select(range, Rendering.completion_context_elements, _ =>
+  def language_context(range: Text.Range): Option[Completion.Language_Context] =
+    snapshot.select(range, Rendering.language_context_elements, _ =>
       {
+        case Text.Info(_, XML.Elem(Markup.Language(language, symbols, antiquotes), _)) =>
+          Some(Completion.Language_Context(language, symbols, antiquotes))
         case Text.Info(_, elem)
         if elem.name == Markup.ML_STRING || elem.name == Markup.ML_COMMENT =>
-          Some(Completion.Context.ML_inner)
-        case Text.Info(_, XML.Elem(Markup.Language(language, symbols, antiquotes), _)) =>
-          Some(Completion.Context(language, symbols, antiquotes))
+          Some(Completion.Language_Context.ML_inner)
         case Text.Info(_, _) =>
-          Some(Completion.Context.inner)
+          Some(Completion.Language_Context.inner)
       }).headOption.map(_.info)
 
 

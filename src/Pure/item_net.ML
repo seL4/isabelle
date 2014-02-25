@@ -54,8 +54,12 @@ fun cons x (Items {eq, index, content, next, net}) =
   mk_items eq index (x :: content) (next - 1)
     (fold (fn t => Net.insert_term (K false) (t, (next, x))) (index x) net);
 
-fun merge (items1, Items {content = content2, ...}) =
-  fold_rev (fn y => if member items1 y then I else cons y) content2 items1;
+fun merge
+    (items1 as Items {net = net1, ...},
+     items2 as Items {net = net2, content = content2, ...}) =
+  if pointer_eq (net1, net2) then items1
+  else if Net.is_empty net1 then items2
+  else fold_rev (fn y => if member items1 y then I else cons y) content2 items1;
 
 fun remove x (items as Items {eq, index, content, next, net}) =
   if member items x then

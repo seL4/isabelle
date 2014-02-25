@@ -231,7 +231,7 @@ fun gen_thm pick = Scan.depend (fn context =>
       let
         val atts = map (attribute_generic context) srcs;
         val (th', context') = fold (uncurry o Thm.apply_attribute) atts (Drule.dummy_thm, context);
-      in (context', pick "" [th']) end)
+      in (context', pick ("", Position.none) [th']) end)
     ||
     (Scan.ahead Args.alt_name -- Args.named_fact get_fact
       >> (fn (s, fact) => ("", Facts.Fact s, fact)) ||
@@ -244,7 +244,7 @@ fun gen_thm pick = Scan.depend (fn context =>
         val atts = map (attribute_generic context) srcs;
         val (ths', context') =
           fold_map (curry (fold (uncurry o Thm.apply_attribute) atts)) ths context;
-      in (context', pick name ths') end)
+      in (context', pick (name, Facts.pos_of_ref thmref) ths') end)
   end);
 
 in

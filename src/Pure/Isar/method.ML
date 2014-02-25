@@ -46,9 +46,8 @@ sig
   val raw_tactic: string * Position.T -> Proof.context -> method
   type src = Args.src
   datatype text =
-    Basic of Proof.context -> method |
     Source of src |
-    Source_i of src |
+    Basic of Proof.context -> method |
     Then of text list |
     Orelse of text list |
     Try of text |
@@ -61,11 +60,10 @@ sig
   val done_text: text
   val sorry_text: bool -> text
   val finish_text: text option * bool -> text
-  val print_methods: theory -> unit
-  val check: theory -> xstring * Position.T -> string
-  val intern: theory -> xstring -> string
-  val method: theory -> src -> Proof.context -> method
-  val method_i: theory -> src -> Proof.context -> method
+  val print_methods: Proof.context -> unit
+  val the_method: Proof.context -> src -> Proof.context -> method
+  val check_name: Proof.context -> xstring * Position.T -> string
+  val check_source: Proof.context -> src -> src
   val syntax: 'a context_parser -> src -> Proof.context -> 'a * Proof.context
   val setup: binding -> (Proof.context -> method) context_parser -> string -> theory -> theory
   val method_setup: bstring * Position.T -> Symbol_Pos.text * Position.T -> string ->
@@ -284,9 +282,8 @@ fun raw_tactic txt ctxt = RAW_METHOD (ml_tactic txt ctxt);
 type src = Args.src;
 
 datatype text =
-  Basic of Proof.context -> method |
   Source of src |
-  Source_i of src |
+  Basic of Proof.context -> method |
   Then of text list |
   Orelse of text list |
   Try of text |
@@ -314,10 +311,11 @@ structure Methods = Theory_Data
   fun merge data : T = Name_Space.merge_tables data;
 );
 
-fun print_methods thy =
+val get_methods = Methods.get o Proof_Context.theory_of;
+
+fun print_methods ctxt =
   let
-    val ctxt = Proof_Context.init_global thy;
-    val meths = Methods.get thy;
+    val meths = get_methods ctxt;
     fun prt_meth (name, (_, "")) = Pretty.mark_str name
       | prt_meth (name, (_, comment)) =
           Pretty.block
@@ -330,25 +328,26 @@ fun print_methods thy =
 fun add_method name meth comment thy = thy
   |> Methods.map (Name_Space.define (Context.Theory thy) true (name, (meth, comment)) #> snd);
 
-
-(* get methods *)
-
-fun check thy = #1 o Name_Space.check (Context.Theory thy) (Methods.get thy);
-
-val intern = Name_Space.intern o #1 o Methods.get;
-
-fun method_i thy =
-  let
-    val (space, tab) = Methods.get thy;
-    fun meth src =
+fun the_method ctxt =
+  let val (_, tab) = get_methods ctxt in
+    fn src =>
       let val ((name, _), pos) = Args.dest_src src in
         (case Symtab.lookup tab name of
-          NONE => error ("Unknown proof method: " ^ quote name ^ Position.here pos)
-        | SOME (mth, _) => (Position.report pos (Name_Space.markup space name); mth src))
-      end;
-  in meth end;
+          NONE => error ("Undefined method: " ^ quote name ^ Position.here pos)
+        | SOME (method, _) => method src)
+      end
+  end;
 
-fun method thy = method_i thy o Args.map_name (intern thy);
+
+(* check *)
+
+fun check_name ctxt = #1 o Name_Space.check (Context.Proof ctxt) (get_methods ctxt);
+
+fun check_source ctxt src =
+  let
+    val ((xname, toks), pos) = Args.dest_src src;
+    val name = check_name ctxt (xname, pos);
+  in Args.src ((name, toks), pos) end;
 
 
 (* method setup *)
@@ -406,7 +405,6 @@ local
 
 fun meth4 x =
  (Parse.position (Parse.xname >> rpair []) >> (Source o Args.src) ||
-  (* FIXME implicit "cartouche" method (experimental, undocumented) *)
   Scan.ahead Parse.cartouche |-- Parse.not_eof >> (fn tok =>
     Source (Args.src (("cartouche", [tok]), Token.pos_of tok))) ||
   Parse.$$$ "(" |-- Parse.!!! (meth0 --| Parse.$$$ ")")) x

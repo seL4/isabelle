@@ -809,7 +809,7 @@ val _ =
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_methods"} "print methods of this theory"
     (Scan.succeed (Toplevel.unknown_theory o
-      Toplevel.keep (Method.print_methods o Toplevel.theory_of)));
+      Toplevel.keep (Method.print_methods o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_antiquotations"} "print antiquotations"

@@ -86,6 +86,7 @@ option keyword1_color : string = "006699FF"
 option keyword2_color : string = "009966FF"
 option keyword3_color : string = "0099FFFF"
 option caret_invisible_color : string = "50000080"
+option completion_color : string = "0000FFFF"
 
 option tfree_color : string = "A020F0FF"
 option tvar_color : string = "A020F0FF"

@@ -42,41 +42,6 @@ fun parse_tokens lexs pos =
 
 local
 
-val token_kind_markup =
- fn Token.Command       => (Markup.command, "")
-  | Token.Keyword       => (Markup.keyword, "")
-  | Token.Ident         => (Markup.empty, "")
-  | Token.LongIdent     => (Markup.empty, "")
-  | Token.SymIdent      => (Markup.empty, "")
-  | Token.Var           => (Markup.var, "")
-  | Token.TypeIdent     => (Markup.tfree, "")
-  | Token.TypeVar       => (Markup.tvar, "")
-  | Token.Nat           => (Markup.empty, "")
-  | Token.Float         => (Markup.empty, "")
-  | Token.String        => (Markup.string, "")
-  | Token.AltString     => (Markup.altstring, "")
-  | Token.Verbatim      => (Markup.verbatim, "")
-  | Token.Cartouche     => (Markup.cartouche, "")
-  | Token.Space         => (Markup.empty, "")
-  | Token.Comment       => (Markup.comment, "")
-  | Token.InternalValue => (Markup.empty, "")
-  | Token.Error msg     => (Markup.bad, msg)
-  | Token.Sync          => (Markup.control, "")
-  | Token.EOF           => (Markup.control, "");
-
-fun token_markup tok =
-  if Token.keyword_with (not o Symbol.is_ascii_identifier) tok
-  then (Markup.operator, "")
-  else
-    let
-      val kind = Token.kind_of tok;
-      val props =
-        if kind = Token.Command
-        then Markup.properties [(Markup.nameN, Token.content_of tok)]
-        else I;
-      val (markup, txt) = token_kind_markup kind;
-    in (props markup, txt) end;
-
 fun reports_of_token tok =
   let
     val malformed_symbols =
@@ -85,7 +50,7 @@ fun reports_of_token tok =
           if Symbol.is_malformed sym
           then SOME ((pos, Markup.bad), "Malformed symbolic character") else NONE);
     val is_malformed = Token.is_error tok orelse not (null malformed_symbols);
-    val (markup, txt) = token_markup tok;
+    val (markup, txt) = Token.markup tok;
     val reports = ((Token.pos_of tok, markup), txt) :: malformed_symbols;
   in (is_malformed, reports) end;
 
@@ -96,7 +61,7 @@ fun reports_of_tokens toks =
   in (exists fst results, maps snd results) end;
 
 fun present_token tok =
-  Markup.enclose (fst (token_markup tok)) (Output.output (Token.unparse tok));
+  Markup.enclose (fst (Token.markup tok)) (Output.output (Token.unparse tok));
 
 end;
 

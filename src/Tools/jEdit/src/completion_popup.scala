@@ -92,6 +92,69 @@ object Completion_Popup
       }
 
 
+    /* rendering */
+
+    def rendering(rendering: Rendering, line_range: Text.Range): Option[Text.Info[Color]] =
+    {
+      active_range match {
+        case Some(range) => range.try_restrict(line_range)
+        case None =>
+          val buffer = text_area.getBuffer
+          val caret = text_area.getCaretPosition
+
+          if (line_range.contains(caret)) {
+            JEdit_Lib.stretch_point_range(buffer, caret).try_restrict(line_range) match {
+              case Some(range) if !range.is_singularity =>
+                rendering.completion_names(range) match {
+                  case Some(names) => Some(names.range)
+                  case None =>
+                    syntax_completion(false, Some(rendering)) match {
+                      case Some(result) => Some(result.range)
+                      case None => None
+                    }
+                }
+              case _ => None
+            }
+          }
+          else None
+      }
+    }.map(range => Text.Info(range, rendering.completion_color))
+
+
+    /* syntax completion */
+
+    def syntax_completion(
+      explicit: Boolean, opt_rendering: Option[Rendering] = None): Option[Completion.Result] =
+    {
+      val buffer = text_area.getBuffer
+      val history = PIDE.completion_history.value
+      val decode = Isabelle_Encoding.is_active(buffer)
+
+      Isabelle.mode_syntax(JEdit_Lib.buffer_mode(buffer)) match {
+        case Some(syntax) =>
+          val caret = text_area.getCaretPosition
+          val line = buffer.getLineOfOffset(caret)
+          val start = buffer.getLineStartOffset(line)
+          val text = buffer.getSegment(start, caret - start)
+
+          val word_context =
+            Completion.word_context(
+              JEdit_Lib.try_get_text(buffer, JEdit_Lib.point_range(buffer, caret)))
+
+          val context =
+            (opt_rendering orElse PIDE.document_view(text_area).map(_.get_rendering()) match {
+              case Some(rendering) =>
+                rendering.language_context(JEdit_Lib.stretch_point_range(buffer, caret))
+              case None => None
+            }) getOrElse syntax.language_context
+
+          syntax.completion.complete(history, decode, explicit, start, text, word_context, context)
+
+        case None => None
+      }
+    }
+
+
     /* completion action */
 
     private def insert(item: Completion.Item)
@@ -156,64 +219,37 @@ object Completion_Popup
         }
       }
 
-      def semantic_completion(): Boolean =
-        explicit && {
+      def semantic_completion(): Option[Completion.Result] =
+        if (explicit) {
           PIDE.document_view(text_area) match {
             case Some(doc_view) =>
               val rendering = doc_view.get_rendering()
               rendering.completion_names(JEdit_Lib.stretch_point_range(buffer, caret)) match {
-                case None => false
+                case None => None
                 case Some(names) =>
                   JEdit_Lib.try_get_text(buffer, names.range) match {
-                    case Some(original) =>
-                      names.complete(history, decode, original) match {
-                        case Some(result) if !result.items.isEmpty =>
-                          open_popup(result)
-                          true
-                        case _ => false
-                      }
-                    case None => false
+                    case Some(original) => names.complete(history, decode, original)
+                    case None => None
                   }
               }
-            case _ => false
+            case None => None
           }
         }
+        else None
 
-      def syntax_completion(): Boolean =
-      {
-        Isabelle.mode_syntax(JEdit_Lib.buffer_mode(buffer)) match {
-          case Some(syntax) =>
-            val line = buffer.getLineOfOffset(caret)
-            val start = buffer.getLineStartOffset(line)
-            val text = buffer.getSegment(start, caret - start)
-
-            val context =
-              (PIDE.document_view(text_area) match {
-                case None => None
-                case Some(doc_view) =>
-                  val rendering = doc_view.get_rendering()
-                  rendering.completion_context(JEdit_Lib.stretch_point_range(buffer, caret))
-              }) getOrElse syntax.completion_context
-
-            syntax.completion.complete(history, decode, explicit, start, text, context) match {
-              case Some(result) =>
-                result.items match {
-                  case List(item) if result.unique && item.immediate && immediate =>
-                    insert(item)
-                    true
-                  case _ :: _ =>
-                    open_popup(result)
-                    true
-                  case _ => false
-                }
-              case None => false
+      if (buffer.isEditable) {
+        semantic_completion() orElse syntax_completion(explicit) match {
+          case Some(result) =>
+            result.items match {
+              case List(item) if result.unique && item.immediate && immediate =>
+                insert(item)
+              case _ :: _ =>
+                open_popup(result)
+              case _ =>
             }
-          case None => false
+          case None =>
         }
       }
-
-      if (buffer.isEditable)
-        semantic_completion() || syntax_completion()
     }
 
 
@@ -346,8 +382,13 @@ object Completion_Popup
           val caret = text_field.getCaret.getDot
           val text = text_field.getText.substring(0, caret)
 
-          syntax.completion.complete(
-              history, decode = true, explicit = false, 0, text, syntax.completion_context) match {
+          val word_context =
+            Completion.word_context(JEdit_Lib.try_get_text(text_field.getText,
+              Text.Range(caret, caret + 1)))  // FIXME proper point range!?
+
+          val context = syntax.language_context
+
+          syntax.completion.complete(history, true, false, 0, text, word_context, context) match {
             case Some(result) =>
               val fm = text_field.getFontMetrics(text_field.getFont)
               val loc =
