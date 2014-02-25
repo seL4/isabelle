@@ -144,9 +144,9 @@ object Completion_Popup
           val context =
             (opt_rendering orElse PIDE.document_view(text_area).map(_.get_rendering()) match {
               case Some(rendering) =>
-                rendering.completion_context(JEdit_Lib.stretch_point_range(buffer, caret))
+                rendering.language_context(JEdit_Lib.stretch_point_range(buffer, caret))
               case None => None
-            }) getOrElse syntax.completion_context
+            }) getOrElse syntax.language_context
 
           syntax.completion.complete(history, decode, explicit, start, text, word_context, context)
 
@@ -392,7 +392,7 @@ object Completion_Popup
             Completion.word_context(JEdit_Lib.try_get_text(text_field.getText,
               Text.Range(caret, caret + 1)))  // FIXME proper point range!?
 
-          val context = syntax.completion_context
+          val context = syntax.language_context
 
           syntax.completion.complete(history, true, false, 0, text, word_context, context) match {
             case Some(result) =>

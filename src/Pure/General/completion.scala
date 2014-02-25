@@ -166,15 +166,15 @@ object Completion
 
   /* language context */
 
-  object Context
+  object Language_Context
   {
-    val outer = Context("", true, false)
-    val inner = Context(Markup.Language.UNKNOWN, true, false)
-    val ML_outer = Context(Markup.Language.ML, false, true)
-    val ML_inner = Context(Markup.Language.ML, true, false)
+    val outer = Language_Context("", true, false)
+    val inner = Language_Context(Markup.Language.UNKNOWN, true, false)
+    val ML_outer = Language_Context(Markup.Language.ML, false, true)
+    val ML_inner = Language_Context(Markup.Language.ML, true, false)
   }
 
-  sealed case class Context(language: String, symbols: Boolean, antiquotes: Boolean)
+  sealed case class Language_Context(language: String, symbols: Boolean, antiquotes: Boolean)
   {
     def is_outer: Boolean = language == ""
   }
@@ -281,7 +281,7 @@ final class Completion private(
     text_start: Text.Offset,
     text: CharSequence,
     word_context: Boolean,
-    context: Completion.Context): Option[Completion.Result] =
+    language_context: Completion.Language_Context): Option[Completion.Result] =
   {
     val abbrevs_result =
       Scan.Parsers.parse(Scan.Parsers.literal(abbrevs_lex), new Library.Reverse(text)) match {
@@ -291,8 +291,8 @@ final class Completion private(
             case Nil => None
             case (a, _) :: _ =>
               val ok =
-                if (a == Completion.antiquote) context.antiquotes
-                else context.symbols || Completion.default_abbrs.isDefinedAt(a)
+                if (a == Completion.antiquote) language_context.antiquotes
+                else language_context.symbols || Completion.default_abbrs.isDefinedAt(a)
               if (ok) Some((a, abbrevs.map(_._2))) else None
           }
         case _ => None
@@ -307,7 +307,7 @@ final class Completion private(
               val completions =
                 for {
                   s <- words_lex.completions(word)
-                  if (if (keywords(s)) context.is_outer else context.symbols)
+                  if (if (keywords(s)) language_context.is_outer else language_context.symbols)
                   r <- words_map.get_list(s)
                 } yield r
               if (completions.isEmpty) None
