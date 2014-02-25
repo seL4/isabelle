@@ -614,16 +614,18 @@ val _ = Keyword.define ("by", NONE);  (*overlap with command category*)
 
 val _ = Theory.setup
   (antiquotation (Binding.name "lemma")
-    (Args.prop -- Scan.lift (Args.$$$ "by" |-- Method.parse -- Scan.option Method.parse))
-    (fn {source, context, ...} => fn (prop, methods) =>
+    (Args.prop --
+      Scan.lift (Parse.position (Args.$$$ "by") -- (Method.parse -- Scan.option Method.parse)))
+    (fn {source, context = ctxt, ...} => fn (prop, ((_, by_pos), methods)) =>
       let
         val prop_src =
           (case Args.dest_src source of ((a, arg :: _), pos) => Args.src ((a, [arg]), pos));
+        val _ = Context_Position.report ctxt by_pos Markup.keyword1;
         (* FIXME check proof!? *)
-        val _ = context
+        val _ = ctxt
           |> Proof.theorem NONE (K I) [[(prop, [])]]
           |> Proof.global_terminal_proof methods;
-      in output context (maybe_pretty_source pretty_term context prop_src [prop]) end));
+      in output ctxt (maybe_pretty_source pretty_term ctxt prop_src [prop]) end));
 
 
 (* ML text *)
