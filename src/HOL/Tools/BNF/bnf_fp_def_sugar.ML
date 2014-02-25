@@ -14,6 +14,7 @@ sig
      fp_res_index: int,
      fp_res: BNF_FP_Util.fp_result,
      pre_bnf: BNF_Def.bnf,
+     absT_info: BNF_Comp.absT_info,
      nested_bnfs: BNF_Def.bnf list,
      nesting_bnfs: BNF_Def.bnf list,
      ctrXs_Tss: typ list list,
@@ -56,7 +57,7 @@ sig
   val transfer_gfp_sugar_thms: Proof.context -> gfp_sugar_thms -> gfp_sugar_thms
 
   val mk_co_iters_prelims: BNF_Util.fp_kind -> typ list list list -> typ list -> typ list ->
-    int list -> int list list -> term list list -> Proof.context ->
+    typ list -> typ list -> int list -> int list list -> term list list -> Proof.context ->
     (term list list
      * (typ list list * typ list list list list * term list list
         * term list list list list) list option
@@ -65,26 +66,30 @@ sig
     * Proof.context
   val repair_nullary_single_ctr: typ list list -> typ list list
   val mk_coiter_p_pred_types: typ list -> int list -> typ list list
+  val mk_coiter_fun_arg_types: typ list list list -> typ list -> typ list -> typ list -> int list ->
+    int list list -> term ->
+    typ list list
+    * (typ list list list list * typ list list list * typ list list list list * typ list)
   val define_iters: string list ->
     (typ list list * typ list list list list * term list list * term list list list list) list ->
-    (string -> binding) -> typ list -> typ list -> term list -> Proof.context ->
+    (string -> binding) -> typ list -> typ list -> term list -> term list -> Proof.context ->
     (term list * thm list) * Proof.context
   val define_coiters: string list -> string * term list * term list list
     * ((term list list * term list list list) * typ list) list ->
-    (string -> binding) -> typ list -> typ list -> term list -> Proof.context ->
+    (string -> binding) -> typ list -> typ list -> term list -> term list -> Proof.context ->
     (term list * thm list) * Proof.context
   val derive_induct_iters_thms_for_types: BNF_Def.bnf list ->
     (typ list list * typ list list list list * term list list * term list list list list) list ->
     thm -> thm list list -> BNF_Def.bnf list -> BNF_Def.bnf list -> typ list -> typ list ->
-    typ list -> typ list list list -> term list list -> thm list list -> term list list ->
-    thm list list -> local_theory -> lfp_sugar_thms
+    typ list -> typ list list list -> thm list -> thm list -> thm list -> term list list ->
+    thm list list -> term list list -> thm list list -> local_theory -> lfp_sugar_thms
   val derive_coinduct_coiters_thms_for_types: BNF_Def.bnf list ->
     string * term list * term list list * ((term list list * term list list list)
       * typ list) list ->
     thm -> thm list -> thm list -> thm list list -> BNF_Def.bnf list -> typ list -> typ list ->
-    typ list -> typ list list list -> int list list -> int list list -> int list -> thm list list ->
-    Ctr_Sugar.ctr_sugar list -> term list list -> thm list list -> (thm list -> thm list) ->
-    local_theory -> gfp_sugar_thms
+    typ list -> typ list list list -> int list list -> int list list -> int list -> thm list ->
+    thm list -> (thm -> thm) -> thm list list -> Ctr_Sugar.ctr_sugar list -> term list list ->
+    thm list list -> (thm list -> thm list) -> local_theory -> gfp_sugar_thms
 
   type co_datatype_spec =
     ((((binding option * (typ * sort)) list * binding) * (binding * binding)) * mixfix)
@@ -92,12 +97,14 @@ sig
 
   val co_datatypes: BNF_Util.fp_kind -> (mixfix list -> binding list -> binding list ->
       binding list list -> binding list -> (string * sort) list -> typ list * typ list list ->
-      BNF_Def.bnf list -> local_theory -> BNF_FP_Util.fp_result * local_theory) ->
+      BNF_Def.bnf list -> BNF_Comp.absT_info list -> local_theory ->
+      BNF_FP_Util.fp_result * local_theory) ->
     (bool * bool) * co_datatype_spec list ->
     local_theory -> local_theory
   val parse_co_datatype_cmd: BNF_Util.fp_kind -> (mixfix list -> binding list -> binding list ->
       binding list list -> binding list -> (string * sort) list -> typ list * typ list list ->
-      BNF_Def.bnf list -> local_theory -> BNF_FP_Util.fp_result * local_theory) ->
+      BNF_Def.bnf list -> BNF_Comp.absT_info list -> local_theory ->
+      BNF_FP_Util.fp_result * local_theory) ->
     (local_theory -> local_theory) parser
 end;
 
@@ -121,6 +128,7 @@ type fp_sugar =
    fp_res_index: int,
    fp_res: fp_result,
    pre_bnf: bnf,
+   absT_info: absT_info,
    nested_bnfs: bnf list,
    nesting_bnfs: bnf list,
    ctrXs_Tss: typ list list,
@@ -134,15 +142,16 @@ type fp_sugar =
    disc_co_iterss: thm list list,
    sel_co_itersss: thm list list list};
 
-fun morph_fp_sugar phi ({T, X, fp, fp_res, fp_res_index, pre_bnf, nested_bnfs, nesting_bnfs,
-    ctrXs_Tss, ctr_defs, ctr_sugar, co_iters, maps, common_co_inducts, co_inducts, co_iter_thmss,
-    disc_co_iterss, sel_co_itersss} : fp_sugar) =
+fun morph_fp_sugar phi ({T, X, fp, fp_res, fp_res_index, pre_bnf, absT_info, nested_bnfs,
+    nesting_bnfs, ctrXs_Tss, ctr_defs, ctr_sugar, co_iters, maps, common_co_inducts, co_inducts,
+    co_iter_thmss, disc_co_iterss, sel_co_itersss} : fp_sugar) =
   {T = Morphism.typ phi T,
    X = Morphism.typ phi X,
    fp = fp,
    fp_res = morph_fp_result phi fp_res,
    fp_res_index = fp_res_index,
    pre_bnf = morph_bnf phi pre_bnf,
+   absT_info = morph_absT_info phi absT_info,
    nested_bnfs = map (morph_bnf phi) nested_bnfs,
    nesting_bnfs = map (morph_bnf phi) nesting_bnfs,
    ctrXs_Tss = map (map (Morphism.typ phi)) ctrXs_Tss,
@@ -183,17 +192,18 @@ fun register_fp_sugar key fp_sugar =
   Local_Theory.declaration {syntax = false, pervasive = true}
     (fn phi => Data.map (Symtab.update (key, morph_fp_sugar phi fp_sugar)));
 
-fun register_fp_sugars Xs fp pre_bnfs nested_bnfs nesting_bnfs (fp_res as {Ts, ...}) ctrXs_Tsss
-    ctr_defss ctr_sugars co_iterss mapss common_co_inducts co_inductss co_iter_thmsss
+fun register_fp_sugars Xs fp pre_bnfs absT_infos nested_bnfs nesting_bnfs (fp_res as {Ts, ...})
+    ctrXs_Tsss ctr_defss ctr_sugars co_iterss mapss common_co_inducts co_inductss co_iter_thmsss
     disc_co_itersss sel_co_iterssss lthy =
   (0, lthy)
   |> fold (fn T as Type (s, _) => fn (kk, lthy) => (kk + 1,
     register_fp_sugar s {T = T, X = nth Xs kk, fp = fp, fp_res = fp_res, fp_res_index = kk,
-        pre_bnf = nth pre_bnfs kk, nested_bnfs = nested_bnfs, nesting_bnfs = nesting_bnfs,
-        ctrXs_Tss = nth ctrXs_Tsss kk, ctr_defs = nth ctr_defss kk, ctr_sugar = nth ctr_sugars kk,
-        co_iters = nth co_iterss kk, maps = nth mapss kk, common_co_inducts = common_co_inducts,
-        co_inducts = nth co_inductss kk, co_iter_thmss = nth co_iter_thmsss kk,
-        disc_co_iterss = nth disc_co_itersss kk, sel_co_itersss = nth sel_co_iterssss kk}
+        pre_bnf = nth pre_bnfs kk, absT_info = nth absT_infos kk, nested_bnfs = nested_bnfs,
+        nesting_bnfs = nesting_bnfs, ctrXs_Tss = nth ctrXs_Tsss kk, ctr_defs = nth ctr_defss kk,
+        ctr_sugar = nth ctr_sugars kk, co_iters = nth co_iterss kk, maps = nth mapss kk,
+        common_co_inducts = common_co_inducts, co_inducts = nth co_inductss kk,
+        co_iter_thmss = nth co_iter_thmsss kk, disc_co_iterss = nth disc_co_itersss kk,
+        sel_co_itersss = nth sel_co_iterssss kk}
       lthy)) Ts
   |> snd;
 
@@ -226,12 +236,6 @@ fun flat_corec_predss_getterss qss fss = maps (op @) (qss ~~ fss);
 fun flat_corec_preds_predsss_gettersss [] [qss] [fss] = flat_corec_predss_getterss qss fss
   | flat_corec_preds_predsss_gettersss (p :: ps) (qss :: qsss) (fss :: fsss) =
     p :: flat_corec_predss_getterss qss fss @ flat_corec_preds_predsss_gettersss ps qsss fsss;
-
-fun mk_tupled_fun x f xs =
-  if xs = [x] then f else HOLogic.tupled_lambda x (Term.list_comb (f, xs));
-
-fun mk_uncurried2_fun f xss =
-  mk_tupled_fun (HOLogic.mk_tuple (map HOLogic.mk_tuple xss)) f (flat_rec_arg_args xss);
 
 fun mk_flip (x, Type (_, [T1, Type (_, [T2, T3])])) =
   Abs ("x", T1, Abs ("y", T2, Var (x, T2 --> T1 --> T3) $ Bound 0 $ Bound 1));
@@ -350,12 +354,12 @@ fun morph_gfp_sugar_thms phi ((coinducts_pairs, coinduct_attrs),
 val transfer_gfp_sugar_thms =
   morph_gfp_sugar_thms o Morphism.transfer_morphism o Proof_Context.theory_of;
 
-fun mk_iter_fun_arg_types n ms = map2 dest_tupleT ms o dest_sumTN_balanced n o domain_type;
-
-fun mk_iters_args_types ctr_Tsss Cs ns mss ctor_iter_fun_Tss lthy =
+fun mk_iters_args_types ctr_Tsss Cs absTs repTs ns mss ctor_iter_fun_Tss lthy =
   let
     val Css = map2 replicate ns Cs;
-    val y_Tsss = map3 mk_iter_fun_arg_types ns mss (map un_fold_of ctor_iter_fun_Tss);
+    val y_Tsss = map5 (fn absT => fn repT => fn n => fn ms =>
+        dest_absumprodT absT repT n ms o domain_type)
+      absTs repTs ns mss (map un_fold_of ctor_iter_fun_Tss);
     val g_Tss = map2 (fn C => map (fn y_Ts => y_Ts ---> C)) Cs y_Tsss;
 
     val ((gss, ysss), lthy) =
@@ -367,11 +371,10 @@ fun mk_iters_args_types ctr_Tsss Cs ns mss ctor_iter_fun_Tss lthy =
     val yssss = map (map (map single)) ysss;
 
     val z_Tssss =
-      map4 (fn n => fn ms => fn ctr_Tss => fn ctor_iter_fun_Ts =>
-          map3 (fn m => fn ctr_Ts => fn ctor_iter_fun_T =>
-              map2 unzip_recT ctr_Ts (dest_tupleT m ctor_iter_fun_T))
-            ms ctr_Tss (dest_sumTN_balanced n (domain_type (co_rec_of ctor_iter_fun_Ts))))
-        ns mss ctr_Tsss ctor_iter_fun_Tss;
+      map6 (fn absT => fn repT => fn n => fn ms => fn ctr_Tss => fn ctor_iter_fun_Ts =>
+          map2 (map2 unzip_recT)
+            ctr_Tss (dest_absumprodT absT repT n ms (domain_type (co_rec_of ctor_iter_fun_Ts))))
+        absTs repTs ns mss ctr_Tsss ctor_iter_fun_Tss;
 
     val z_Tsss' = map (map flat_rec_arg_args) z_Tssss;
     val h_Tss = map2 (map2 (curry (op --->))) z_Tsss' Css;
@@ -390,31 +393,36 @@ fun mk_iters_args_types ctr_Tsss Cs ns mss ctor_iter_fun_Tss lthy =
 fun repair_nullary_single_ctr [[]] = [[@{typ unit}]]
   | repair_nullary_single_ctr Tss = Tss;
 
-fun mk_coiter_fun_arg_types0 ctr_Tsss Cs ns fun_Ts =
+fun mk_coiter_fun_arg_types0 ctr_Tsss Cs absTs repTs ns mss fun_Ts =
   let
     val ctr_Tsss' = map repair_nullary_single_ctr ctr_Tsss;
-    val f_sum_prod_Ts = map range_type fun_Ts;
-    val f_prod_Tss = map2 dest_sumTN_balanced ns f_sum_prod_Ts;
-    val f_Tsss = map2 (map2 (dest_tupleT o length)) ctr_Tsss' f_prod_Tss;
+    val f_absTs = map range_type fun_Ts;
+    val f_Tsss = map repair_nullary_single_ctr (map5 dest_absumprodT absTs repTs ns mss f_absTs);
     val f_Tssss = map3 (fn C => map2 (map2 (map (curry (op -->) C) oo unzip_corecT)))
       Cs ctr_Tsss' f_Tsss;
     val q_Tssss = map (map (map (fn [_] => [] | [_, T] => [mk_pred1T (domain_type T)]))) f_Tssss;
   in
-    (q_Tssss, f_Tsss, f_Tssss, f_sum_prod_Ts)
+    (q_Tssss, f_Tsss, f_Tssss, f_absTs)
   end;
 
 fun mk_coiter_p_pred_types Cs ns = map2 (fn n => replicate (Int.max (0, n - 1)) o mk_pred1T) ns Cs;
 
-fun mk_coiters_args_types ctr_Tsss Cs ns dtor_coiter_fun_Tss lthy =
+fun mk_coiter_fun_arg_types ctr_Tsss Cs absTs repTs ns mss dtor_coiter =
+  (mk_coiter_p_pred_types Cs ns,
+   mk_coiter_fun_arg_types0 ctr_Tsss Cs absTs repTs ns mss
+     (binder_fun_types (fastype_of dtor_coiter)));
+
+fun mk_coiters_args_types ctr_Tsss Cs absTs repTs ns mss dtor_coiter_fun_Tss lthy =
   let
     val p_Tss = mk_coiter_p_pred_types Cs ns;
 
     fun mk_types get_Ts =
       let
         val fun_Ts = map get_Ts dtor_coiter_fun_Tss;
-        val (q_Tssss, f_Tsss, f_Tssss, f_sum_prod_Ts) = mk_coiter_fun_arg_types0 ctr_Tsss Cs ns fun_Ts;
+        val (q_Tssss, f_Tsss, f_Tssss, f_repTs) =
+          mk_coiter_fun_arg_types0 ctr_Tsss Cs absTs repTs ns mss fun_Ts;
       in
-        (q_Tssss, f_Tsss, f_Tssss, f_sum_prod_Ts)
+        (q_Tssss, f_Tsss, f_Tssss, f_repTs)
       end;
 
     val (r_Tssss, g_Tsss, g_Tssss, unfold_types) = mk_types un_fold_of;
@@ -458,7 +466,7 @@ fun mk_coiters_args_types ctr_Tsss Cs ns dtor_coiter_fun_Tss lthy =
     ((z, cs, cpss, [(unfold_args, unfold_types), (corec_args, corec_types)]), lthy)
   end;
 
-fun mk_co_iters_prelims fp ctr_Tsss fpTs Cs ns mss xtor_co_iterss0 lthy =
+fun mk_co_iters_prelims fp ctr_Tsss fpTs Cs absTs repTs ns mss xtor_co_iterss0 lthy =
   let
     val thy = Proof_Context.theory_of lthy;
 
@@ -469,17 +477,21 @@ fun mk_co_iters_prelims fp ctr_Tsss fpTs Cs ns mss xtor_co_iterss0 lthy =
 
     val ((iters_args_types, coiters_args_types), lthy') =
       if fp = Least_FP then
-        mk_iters_args_types ctr_Tsss Cs ns mss xtor_co_iter_fun_Tss lthy |>> (rpair NONE o SOME)
+        mk_iters_args_types ctr_Tsss Cs absTs repTs ns mss xtor_co_iter_fun_Tss lthy
+        |>> (rpair NONE o SOME)
       else
-        mk_coiters_args_types ctr_Tsss Cs ns xtor_co_iter_fun_Tss lthy |>> (pair NONE o SOME);
+        mk_coiters_args_types ctr_Tsss Cs absTs repTs ns mss xtor_co_iter_fun_Tss lthy
+        |>> (pair NONE o SOME);
   in
     ((xtor_co_iterss, iters_args_types, coiters_args_types), lthy')
   end;
 
-fun mk_preds_getterss_join c cps sum_prod_T cqfss =
-  let val n = length cqfss in
-    Term.lambda c (mk_IfN sum_prod_T cps
-      (map2 (mk_InN_balanced sum_prod_T n) (map HOLogic.mk_tuple cqfss) (1 upto n)))
+fun mk_preds_getterss_join c cps absT abs cqfss =
+  let
+    val n = length cqfss;
+    val ts = map2 (mk_absumprod absT abs n) (1 upto n) cqfss;
+  in
+    Term.lambda c (mk_IfN absT cps ts)
   end;
 
 fun define_co_iters fp fpT Cs binding_specs lthy0 =
@@ -503,39 +515,43 @@ fun define_co_iters fp fpT Cs binding_specs lthy0 =
     ((csts', defs'), lthy')
   end;
 
-fun define_iters iterNs iter_args_typess' mk_binding fpTs Cs ctor_iters lthy =
+fun define_iters iterNs iter_args_typess' mk_binding fpTs Cs reps ctor_iters lthy =
   let
     val nn = length fpTs;
-
-    val Type (_, [fpT, _]) = snd (strip_typeN nn (fastype_of (hd ctor_iters)));
+    val fpT = domain_type (snd (strip_typeN nn (fastype_of (un_fold_of ctor_iters))));
 
     fun generate_iter pre (_, _, fss, xssss) ctor_iter =
-      (mk_binding pre,
-       fold_rev (fold_rev Term.lambda) fss (Term.list_comb (ctor_iter,
-         map2 (mk_case_sumN_balanced oo map2 mk_uncurried2_fun) fss xssss)));
+      let val ctor_iter_absTs = map domain_type (fst (strip_typeN nn (fastype_of ctor_iter))) in
+        (mk_binding pre,
+         fold_rev (fold_rev Term.lambda) fss (Term.list_comb (ctor_iter,
+           map4 (fn ctor_iter_absT => fn rep => fn fs => fn xsss =>
+               mk_case_absumprod ctor_iter_absT rep fs
+                 (map (HOLogic.mk_tuple o map HOLogic.mk_tuple) xsss) (map flat_rec_arg_args xsss))
+             ctor_iter_absTs reps fss xssss)))
+      end;
   in
     define_co_iters Least_FP fpT Cs (map3 generate_iter iterNs iter_args_typess' ctor_iters) lthy
   end;
 
-fun define_coiters coiterNs (_, cs, cpss, coiter_args_typess') mk_binding fpTs Cs dtor_coiters
+fun define_coiters coiterNs (_, cs, cpss, coiter_args_typess') mk_binding fpTs Cs abss dtor_coiters
     lthy =
   let
     val nn = length fpTs;
 
     val Type (_, [_, fpT]) = snd (strip_typeN nn (fastype_of (hd dtor_coiters)));
 
-    fun generate_coiter pre ((pfss, cqfsss), f_sum_prod_Ts) dtor_coiter =
+    fun generate_coiter pre ((pfss, cqfsss), f_absTs) dtor_coiter =
       (mk_binding pre,
        fold_rev (fold_rev Term.lambda) pfss (Term.list_comb (dtor_coiter,
-         map4 mk_preds_getterss_join cs cpss f_sum_prod_Ts cqfsss)));
+         map5 mk_preds_getterss_join cs cpss f_absTs abss cqfsss)));
   in
     define_co_iters Greatest_FP fpT Cs
       (map3 generate_coiter coiterNs coiter_args_typess' dtor_coiters) lthy
   end;
 
 fun derive_induct_iters_thms_for_types pre_bnfs [fold_args_types, rec_args_types] ctor_induct
-    ctor_iter_thmss nesting_bnfs nested_bnfs fpTs Cs Xs ctrXs_Tsss ctrss ctr_defss iterss iter_defss
-    lthy =
+    ctor_iter_thmss nesting_bnfs nested_bnfs fpTs Cs Xs ctrXs_Tsss fp_abs_inverses
+    fp_type_definitions abs_inverses ctrss ctr_defss iterss iter_defss lthy =
   let
     val iterss' = transpose iterss;
     val iter_defss' = transpose iter_defss;
@@ -632,12 +648,12 @@ fun derive_induct_iters_thms_for_types pre_bnfs [fold_args_types, rec_args_types
 
         val kksss = map (map (map (fst o snd) o #2)) raw_premss;
 
-        val ctor_induct' = ctor_induct OF (map mk_sumEN_tupled_balanced mss);
+        val ctor_induct' = ctor_induct OF (map2 mk_absumprodE fp_type_definitions mss);
 
         val thm =
           Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
-            mk_induct_tac ctxt nn ns mss kksss (flat ctr_defss) ctor_induct' nested_set_maps
-              pre_set_defss)
+            mk_induct_tac ctxt nn ns mss kksss (flat ctr_defss) ctor_induct' fp_abs_inverses
+              abs_inverses nested_set_maps pre_set_defss)
           |> singleton (Proof_Context.export names_lthy lthy)
           (* for "datatype_realizer.ML": *)
           |> Thm.name_derivation (fst (dest_Type (hd fpTs)) ^ Long_Name.separator ^
@@ -678,8 +694,8 @@ fun derive_induct_iters_thms_for_types pre_bnfs [fold_args_types, rec_args_types
         val goalss = map5 (map4 o mk_goal fss) fiters xctrss fss xsss fxsss;
 
         val tacss =
-          map2 (map o mk_iter_tac pre_map_defs (nested_map_idents @ nesting_map_idents) iter_defs)
-            ctor_iter_thms ctr_defss;
+          map4 (map ooo mk_iter_tac pre_map_defs (nested_map_idents @ nesting_map_idents) iter_defs)
+            ctor_iter_thms fp_abs_inverses abs_inverses ctr_defss;
 
         fun prove goal tac =
           Goal.prove_sorry lthy [] [] goal (tac o #context)
@@ -698,7 +714,8 @@ fun derive_induct_iters_thms_for_types pre_bnfs [fold_args_types, rec_args_types
 fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
       coiters_args_types as [((pgss, crgsss), _), ((phss, cshsss), _)])
     dtor_coinduct dtor_injects dtor_ctors dtor_coiter_thmss nesting_bnfs fpTs Cs Xs ctrXs_Tsss kss
-    mss ns ctr_defss (ctr_sugars : ctr_sugar list) coiterss coiter_defss export_args lthy =
+    mss ns fp_abs_inverses abs_inverses mk_vimage2p ctr_defss (ctr_sugars : ctr_sugar list)
+    coiterss coiter_defss export_args lthy =
   let
     fun mk_ctor_dtor_coiter_thm dtor_inject dtor_ctor coiter =
       iffD1 OF [dtor_inject, trans OF [coiter, dtor_ctor RS sym]];
@@ -787,8 +804,8 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
 
         fun prove dtor_coinduct' goal =
           Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
-            mk_coinduct_tac ctxt nesting_rel_eqs nn ns dtor_coinduct' pre_rel_defs dtor_ctors
-              exhausts ctr_defss disc_thmsss sel_thmsss)
+            mk_coinduct_tac ctxt nesting_rel_eqs nn ns dtor_coinduct' pre_rel_defs fp_abs_inverses
+              abs_inverses dtor_ctors exhausts ctr_defss disc_thmsss sel_thmsss)
           |> singleton (Proof_Context.export names_lthy lthy)
           |> Thm.close_derivation;
 
@@ -801,7 +818,7 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
         val rel_eqs = map rel_eq_of_bnf pre_bnfs;
         val rel_monos = map rel_mono_of_bnf pre_bnfs;
         val dtor_coinducts =
-          [dtor_coinduct, mk_strong_coinduct_thm dtor_coinduct rel_eqs rel_monos lthy];
+          [dtor_coinduct, mk_strong_coinduct_thm dtor_coinduct rel_eqs rel_monos mk_vimage2p lthy]
       in
         map2 (postproc nn oo prove) dtor_coinducts goals
       end;
@@ -860,11 +877,11 @@ fun derive_coinduct_coiters_thms_for_types pre_bnfs (z, cs, cpss,
         val corec_goalss = map8 (map4 oooo mk_goal phss) cs cpss hcorecs ns kss ctrss mss cshsss';
 
         val unfold_tacss =
-          map3 (map oo mk_coiter_tac unfold_defs nesting_map_idents)
-            (map un_fold_of ctor_dtor_coiter_thmss) pre_map_defs ctr_defss;
+          map4 (map ooo mk_coiter_tac unfold_defs nesting_map_idents)
+            (map un_fold_of ctor_dtor_coiter_thmss) pre_map_defs abs_inverses ctr_defss;
         val corec_tacss =
-          map3 (map oo mk_coiter_tac corec_defs nesting_map_idents)
-            (map co_rec_of ctor_dtor_coiter_thmss) pre_map_defs ctr_defss;
+          map4 (map ooo mk_coiter_tac corec_defs nesting_map_idents)
+            (map co_rec_of ctor_dtor_coiter_thmss) pre_map_defs abs_inverses ctr_defss;
 
         fun prove goal tac =
           Goal.prove_sorry lthy [] [] goal (tac o #context)
@@ -1048,10 +1065,10 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val unfreeze_fp = Term.typ_subst_atomic (Xs ~~ fake_Ts);
 
     val ctrXs_Tsss = map (map (map freeze_fp)) fake_ctr_Tsss;
-    val ctrXs_sum_prod_Ts = map (mk_sumTN_balanced o map HOLogic.mk_tupleT) ctrXs_Tsss;
+    val ctrXs_repTs = map (mk_sumTN_balanced o map HOLogic.mk_tupleT) ctrXs_Tsss;
 
     val fp_eqs =
-      map dest_TFree Xs ~~ map (Term.typ_subst_atomic (As ~~ unsorted_As)) ctrXs_sum_prod_Ts;
+      map dest_TFree Xs ~~ map (Term.typ_subst_atomic (As ~~ unsorted_As)) ctrXs_repTs;
 
     val rhsXs_As' = fold (fold (fold Term.add_tfreesT)) ctrXs_Tsss [];
     val _ = (case subtract (op =) rhsXs_As' As' of [] => ()
@@ -1062,9 +1079,10 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       map_filter (fn (A, set_bos) => if exists is_none set_bos then SOME A else NONE)
         (unsorted_As ~~ transpose set_boss);
 
-    val (pre_bnfs, (fp_res as {bnfs = fp_bnfs as any_fp_bnf :: _, ctors = ctors0, dtors = dtors0,
-           xtor_co_iterss = xtor_co_iterss0, xtor_co_induct, dtor_ctors, ctor_dtors, ctor_injects,
-           dtor_injects, xtor_map_thms, xtor_set_thmss, xtor_rel_thms, xtor_co_iter_thmss, ...},
+    val ((pre_bnfs, absT_infos), (fp_res as {bnfs = fp_bnfs as any_fp_bnf :: _, ctors = ctors0,
+             dtors = dtors0, xtor_co_iterss = xtor_co_iterss0, xtor_co_induct, dtor_ctors,
+             ctor_dtors, ctor_injects, dtor_injects, xtor_map_thms, xtor_set_thmss, xtor_rel_thms,
+             xtor_co_iter_thmss, ...},
            lthy)) =
       fp_bnf (construct_fp mixfixes map_bs rel_bs set_bss) fp_bs (map dest_TFree unsorted_As)
         (map dest_TFree killed_As) fp_eqs no_defs_lthy0
@@ -1093,6 +1111,14 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                 " via type constructor " ^ quote bad_tc ^ " in type expression " ^ fake_T_backdrop ^
                 register_hint ())
           end);
+
+    val abss = map #abs absT_infos;
+    val reps = map #rep absT_infos;
+    val absTs = map #absT absT_infos;
+    val repTs = map #repT absT_infos;
+    val abs_injects = map #abs_inject absT_infos;
+    val abs_inverses = map #abs_inverse absT_infos;
+    val type_definitions = map #type_definition absT_infos;
 
     val time = time lthy;
     val timer = time (Timer.startRealTimer ());
@@ -1142,34 +1168,30 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val mss = map (map length) ctr_Tsss;
 
     val ((xtor_co_iterss, iters_args_types, coiters_args_types), lthy') =
-      mk_co_iters_prelims fp ctr_Tsss fpTs Cs ns mss xtor_co_iterss0 lthy;
+      mk_co_iters_prelims fp ctr_Tsss fpTs Cs absTs repTs ns mss xtor_co_iterss0 lthy;
 
-    fun define_ctrs_dtrs_for_type (((((((((((((((((((((((fp_bnf, fp_b), fpT), ctor), dtor),
-            xtor_co_iters), ctor_dtor), dtor_ctor), ctor_inject), pre_map_def), pre_set_defs),
-          pre_rel_def), fp_map_thm), fp_set_thms), fp_rel_thm), n), ks), ms), ctr_bindings),
-        ctr_mixfixes), ctr_Tss), disc_bindings), sel_bindingss), raw_sel_defaultss) no_defs_lthy =
+    fun define_ctrs_dtrs_for_type (((((((((((((((((((((((((((fp_bnf, fp_b), fpT), ctor), dtor),
+              xtor_co_iters), ctor_dtor), dtor_ctor), ctor_inject), pre_map_def), pre_set_defs),
+            pre_rel_def), fp_map_thm), fp_set_thms), fp_rel_thm), n), ks), ms), abs),
+          abs_inject), abs_inverse), type_definition), ctr_bindings), ctr_mixfixes), ctr_Tss),
+        disc_bindings), sel_bindingss), raw_sel_defaultss) no_defs_lthy =
       let
         val fp_b_name = Binding.name_of fp_b;
 
-        val dtorT = domain_type (fastype_of ctor);
-        val ctr_prod_Ts = map HOLogic.mk_tupleT ctr_Tss;
-        val ctr_sum_prod_T = mk_sumTN_balanced ctr_prod_Ts;
+        val ctr_absT = domain_type (fastype_of ctor);
 
         val ((((w, xss), yss), u'), names_lthy) =
           no_defs_lthy
-          |> yield_singleton (mk_Frees "w") dtorT
+          |> yield_singleton (mk_Frees "w") ctr_absT
           ||>> mk_Freess "x" ctr_Tss
           ||>> mk_Freess "y" (map (map B_ify) ctr_Tss)
           ||>> yield_singleton Variable.variant_fixes fp_b_name;
 
         val u = Free (u', fpT);
 
-        val tuple_xs = map HOLogic.mk_tuple xss;
-        val tuple_ys = map HOLogic.mk_tuple yss;
-
         val ctr_rhss =
-          map3 (fn k => fn xs => fn tuple_x => fold_rev Term.lambda xs (ctor $
-            mk_InN_balanced ctr_sum_prod_T n tuple_x k)) ks xss tuple_xs;
+          map2 (fn k => fn xs => fold_rev Term.lambda xs (ctor $ mk_absumprod ctr_absT abs n k xs))
+            ks xss;
 
         val maybe_conceal_def_binding = Thm.def_binding
           #> Config.get no_defs_lthy bnf_note_all = false ? Binding.conceal;
@@ -1200,28 +1222,27 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                         (mk_Trueprop_eq (HOLogic.mk_eq (u, ctor $ w), HOLogic.mk_eq (dtor $ u, w)));
                   in
                     Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
-                      mk_ctor_iff_dtor_tac ctxt (map (SOME o certifyT lthy) [dtorT, fpT])
+                      mk_ctor_iff_dtor_tac ctxt (map (SOME o certifyT lthy) [ctr_absT, fpT])
                         (certify lthy ctor) (certify lthy dtor) ctor_dtor dtor_ctor)
                     |> Morphism.thm phi
                     |> Thm.close_derivation
                   end;
 
                 val sumEN_thm' =
-                  unfold_thms lthy @{thms unit_all_eq1}
-                    (Drule.instantiate' (map (SOME o certifyT lthy) ctr_prod_Ts) []
-                       (mk_sumEN_balanced n))
+                  unfold_thms lthy @{thms unit_all_eq1} (mk_absumprodE type_definition ms)
                   |> Morphism.thm phi;
               in
                 mk_exhaust_tac ctxt n ctr_defs ctor_iff_dtor_thm sumEN_thm'
               end;
 
             val inject_tacss =
-              map2 (fn 0 => K [] | _ => fn ctr_def => [fn {context = ctxt, ...} =>
-                mk_inject_tac ctxt ctr_def ctor_inject]) ms ctr_defs;
+              map2 (fn ctr_def => fn 0 => [] | _ => [fn {context = ctxt, ...} =>
+                mk_inject_tac ctxt ctr_def ctor_inject abs_inject]) ctr_defs ms;
 
             val half_distinct_tacss =
               map (map (fn (def, def') => fn {context = ctxt, ...} =>
-                mk_half_distinct_tac ctxt ctor_inject [def, def'])) (mk_half_pairss (`I ctr_defs));
+                  mk_half_distinct_tac ctxt ctor_inject abs_inject [def, def']))
+                (mk_half_pairss (`I ctr_defs));
 
             val tacss = [exhaust_tac] :: inject_tacss @ half_distinct_tacss;
 
@@ -1249,17 +1270,21 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                     cterm_instantiate_pos [NONE, NONE, SOME (certify lthy ctor')] arg_cong
                   end;
 
-              fun mk_cIn ify =
-                certify lthy o (fp = Greatest_FP ? curry (op $) (map_types ify ctor)) oo
-                mk_InN_balanced (ify ctr_sum_prod_T) n;
+              fun mk_cIn ctor k xs =
+                let val absT = domain_type (fastype_of ctor) in
+                  mk_absumprod absT abs n k xs
+                  |> fp = Greatest_FP ? curry (op $) ctor
+                  |> certify lthy
+                end;
 
-              val cxIns = map2 (mk_cIn I) tuple_xs ks;
-              val cyIns = map2 (mk_cIn B_ify) tuple_ys ks;
+              val cxIns = map2 (mk_cIn ctor) ks xss;
+              val cyIns = map2 (mk_cIn (map_types B_ify ctor)) ks yss;
 
               fun mk_map_thm ctr_def' cxIn =
                 fold_thms lthy [ctr_def']
-                  (unfold_thms lthy (pre_map_def ::
-                       (if fp = Least_FP then [] else [ctor_dtor, dtor_ctor]) @ sum_prod_thms_map)
+                  (unfold_thms lthy (o_apply :: pre_map_def ::
+                       (if fp = Least_FP then [] else [ctor_dtor, dtor_ctor]) @ sum_prod_thms_map @
+                       abs_inverses)
                      (cterm_instantiate_pos (nones @ [SOME cxIn])
                         (if fp = Least_FP then fp_map_thm else fp_map_thm RS ctor_cong)))
                 |> singleton (Proof_Context.export names_lthy no_defs_lthy);
@@ -1267,7 +1292,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
               fun mk_set_thm fp_set_thm ctr_def' cxIn =
                 fold_thms lthy [ctr_def']
                   (unfold_thms lthy (pre_set_defs @ nested_set_maps @ nesting_set_maps @
-                       (if fp = Least_FP then [] else [dtor_ctor]) @ sum_prod_thms_set)
+                       (if fp = Least_FP then [] else [dtor_ctor]) @ sum_prod_thms_set @
+                       abs_inverses)
                      (cterm_instantiate_pos [SOME cxIn] fp_set_thm))
                 |> singleton (Proof_Context.export names_lthy no_defs_lthy);
 
@@ -1281,8 +1307,9 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
               fun mk_rel_thm postproc ctr_defs' cxIn cyIn =
                 fold_thms lthy ctr_defs'
-                  (unfold_thms lthy (@{thm Inl_Inr_False} :: pre_rel_def ::
-                       (if fp = Least_FP then [] else [dtor_ctor]) @ sum_prod_thms_rel)
+                  (unfold_thms lthy (pre_rel_def :: abs_inverse ::
+                       (if fp = Least_FP then [] else [dtor_ctor]) @ sum_prod_thms_rel @
+                       @{thms vimage2p_def Inl_Inr_False})
                      (cterm_instantiate_pos (nones @ [SOME cxIn, SOME cyIn]) fp_rel_thm))
                 |> postproc
                 |> singleton (Proof_Context.export names_lthy no_defs_lthy);
@@ -1341,9 +1368,11 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         (wrap_ctrs
          #> derive_maps_sets_rels
          ##>>
-           (if fp = Least_FP then define_iters [foldN, recN] (the iters_args_types)
-            else define_coiters [unfoldN, corecN] (the coiters_args_types))
-             mk_binding fpTs Cs xtor_co_iters
+           (if fp = Least_FP then
+             define_iters [foldN, recN] (the iters_args_types) mk_binding fpTs Cs reps xtor_co_iters
+           else
+             define_coiters [unfoldN, corecN] (the coiters_args_types) mk_binding fpTs Cs abss
+               xtor_co_iters)
          #> massage_res, lthy')
       end;
 
@@ -1363,8 +1392,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       let
         val ((induct_thms, induct_thm, induct_attrs), (fold_thmss, rec_thmss, iter_attrs)) =
           derive_induct_iters_thms_for_types pre_bnfs (the iters_args_types) xtor_co_induct
-            xtor_co_iter_thmss nesting_bnfs nested_bnfs fpTs Cs Xs ctrXs_Tsss ctrss ctr_defss iterss
-            iter_defss lthy;
+            xtor_co_iter_thmss nesting_bnfs nested_bnfs fpTs Cs Xs ctrXs_Tsss abs_inverses
+            type_definitions abs_inverses ctrss ctr_defss iterss iter_defss lthy;
 
         val induct_type_attr = Attrib.internal o K o Induct.induct_type;
 
@@ -1386,8 +1415,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         |> Spec_Rules.add Spec_Rules.Equational (map un_fold_of iterss, flat fold_thmss)
         |> Spec_Rules.add Spec_Rules.Equational (map co_rec_of iterss, flat rec_thmss)
         |> Local_Theory.notes (common_notes @ notes) |> snd
-        |> register_fp_sugars Xs Least_FP pre_bnfs nested_bnfs nesting_bnfs fp_res ctrXs_Tsss
-          ctr_defss ctr_sugars iterss mapss [induct_thm] (map single induct_thms)
+        |> register_fp_sugars Xs Least_FP pre_bnfs absT_infos nested_bnfs nesting_bnfs fp_res
+          ctrXs_Tsss ctr_defss ctr_sugars iterss mapss [induct_thm] (map single induct_thms)
           (transpose [fold_thmss, rec_thmss]) (replicate nn []) (replicate nn [])
       end;
 
@@ -1403,8 +1432,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
              (sel_unfold_thmsss, sel_corec_thmsss, sel_coiter_attrs)) =
           derive_coinduct_coiters_thms_for_types pre_bnfs (the coiters_args_types) xtor_co_induct
             dtor_injects dtor_ctors xtor_co_iter_thmss nesting_bnfs fpTs Cs Xs ctrXs_Tsss kss mss ns
-            ctr_defss ctr_sugars coiterss coiter_defss (Proof_Context.export lthy' no_defs_lthy)
-            lthy;
+            abs_inverses abs_inverses I ctr_defss ctr_sugars coiterss coiter_defss
+            (Proof_Context.export lthy' no_defs_lthy) lthy;
 
         val sel_unfold_thmss = map flat sel_unfold_thmsss;
         val sel_corec_thmss = map flat sel_corec_thmsss;
@@ -1451,8 +1480,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         |> add_spec_rules un_fold_of sel_unfold_thmss unfold_thmss
         |> add_spec_rules co_rec_of sel_corec_thmss corec_thmss
         |> Local_Theory.notes (common_notes @ notes) |> snd
-        |> register_fp_sugars Xs Greatest_FP pre_bnfs nested_bnfs nesting_bnfs fp_res ctrXs_Tsss
-          ctr_defss ctr_sugars coiterss mapss [coinduct_thm, strong_coinduct_thm]
+        |> register_fp_sugars Xs Greatest_FP pre_bnfs absT_infos nested_bnfs nesting_bnfs fp_res
+          ctrXs_Tsss ctr_defss ctr_sugars coiterss mapss [coinduct_thm, strong_coinduct_thm]
           (transpose [coinduct_thms, strong_coinduct_thms])
           (transpose [unfold_thmss, corec_thmss]) (transpose [disc_unfold_thmss, disc_corec_thmss])
           (transpose [sel_unfold_thmsss, sel_corec_thmsss])
@@ -1462,8 +1491,9 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       |> fold_map define_ctrs_dtrs_for_type (fp_bnfs ~~ fp_bs ~~ fpTs ~~ ctors ~~ dtors ~~
         xtor_co_iterss ~~ ctor_dtors ~~ dtor_ctors ~~ ctor_injects ~~ pre_map_defs ~~
         pre_set_defss ~~ pre_rel_defs ~~ xtor_map_thms ~~ xtor_set_thmss ~~ xtor_rel_thms ~~ ns ~~
-        kss ~~ mss ~~ ctr_bindingss ~~ ctr_mixfixess ~~ ctr_Tsss ~~ disc_bindingss ~~
-        sel_bindingsss ~~ raw_sel_defaultsss)
+        kss ~~ mss ~~ abss ~~ abs_injects ~~ abs_inverses ~~ type_definitions ~~
+        ctr_bindingss ~~ ctr_mixfixess ~~ ctr_Tsss ~~ disc_bindingss ~~ sel_bindingsss ~~
+        raw_sel_defaultsss)
       |> wrap_types_etc
       |> fp_case fp derive_note_induct_iters_thms_for_types
            derive_note_coinduct_coiters_thms_for_types;

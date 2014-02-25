@@ -27,8 +27,23 @@ sig
   val normalize_bnfs: (int -> binding -> binding) -> ''a list list -> ''a list ->
     (''a list list -> ''a list) -> BNF_Def.bnf list -> unfold_set -> Proof.context ->
     (int list list * ''a list) * (BNF_Def.bnf list * (unfold_set * Proof.context))
+
+  type absT_info =
+    {absT: typ,
+     repT: typ,
+     abs: term,
+     rep: term,
+     abs_inject: thm,
+     abs_inverse: thm,
+     type_definition: thm}
+
+  val morph_absT_info: morphism -> absT_info -> absT_info
+  val mk_absT: theory -> typ -> typ -> typ -> typ
+  val mk_repT: typ -> typ -> typ -> typ
+  val mk_abs: typ -> term -> term
+  val mk_rep: typ -> term -> term
   val seal_bnf: (binding -> binding) -> unfold_set -> binding -> typ list -> BNF_Def.bnf ->
-    Proof.context -> (BNF_Def.bnf * typ list) * local_theory
+    Proof.context -> (BNF_Def.bnf * (typ list * absT_info)) * local_theory
 end;
 
 structure BNF_Comp : BNF_COMP =
@@ -572,6 +587,41 @@ fun compose_bnf const_policy qualify sort outer inners oDs Dss tfreess (unfold_s
 
 (* Hide the type of the bound (optimization) and unfold the definitions (nicer to the user) *)
 
+type absT_info =
+  {absT: typ,
+   repT: typ,
+   abs: term,
+   rep: term,
+   abs_inject: thm,
+   abs_inverse: thm,
+   type_definition: thm};
+
+fun morph_absT_info phi
+  {absT, repT, abs, rep, abs_inject, abs_inverse, type_definition} =
+  {absT = Morphism.typ phi absT,
+   repT = Morphism.typ phi repT,
+   abs = Morphism.term phi abs,
+   rep = Morphism.term phi rep,
+   abs_inject = Morphism.thm phi abs_inject,
+   abs_inverse = Morphism.thm phi abs_inverse,
+   type_definition = Morphism.thm phi type_definition};
+
+fun mk_absT thy repT absT repU =
+  let val rho = Vartab.fold (cons o apsnd snd) (Sign.typ_match thy (repT, repU) Vartab.empty) [];
+  in Term.typ_subst_TVars rho absT end;
+
+fun mk_repT (t as Type (C, Ts)) repT (u as Type (C', Us)) =
+    if C = C' andalso length Ts = length Us then Term.typ_subst_atomic (Ts ~~ Us) repT
+    else raise Term.TYPE ("mk_repT", [t, repT, u], [])
+  | mk_repT t repT u =  raise Term.TYPE ("mk_repT", [t, repT, u], []);
+
+fun mk_abs_or_rep getT (Type (_, Us)) abs =
+  let val Ts = snd (dest_Type (getT (fastype_of abs)))
+  in Term.subst_atomic_types (Ts ~~ Us) abs end;
+
+val mk_abs = mk_abs_or_rep range_type;
+val mk_rep = mk_abs_or_rep domain_type;
+
 fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
   let
     val live = live_of_bnf bnf;
@@ -581,6 +631,10 @@ fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
       (Variable.invent_types (replicate live HOLogic.typeS) (fold Variable.declare_typ Ds lthy));
     val (Bs, _) = apfst (map TFree)
       (Variable.invent_types (replicate live HOLogic.typeS) lthy1);
+
+    val (((fs, fs'), (Rs, Rs')), _(*names_lthy*)) = lthy
+      |> mk_Frees' "f" (map2 (curry op -->) As Bs)
+      ||>> mk_Frees' "R" (map2 mk_pred2T As Bs)
 
     val map_unfolds = #map_unfolds unfold_set;
     val set_unfoldss = #set_unfoldss unfold_set;
@@ -596,12 +650,35 @@ fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
     fun unfold_sets ctxt = fold (unfold_thms ctxt) set_unfoldss;
     fun unfold_rels ctxt = unfold_thms ctxt rel_unfolds;
     fun unfold_all ctxt = unfold_sets ctxt o unfold_maps ctxt o unfold_rels ctxt;
-    val bnf_map = expand_maps (mk_map_of_bnf Ds As Bs bnf);
-    val bnf_sets = map (expand_maps o expand_sets)
+
+    val repTA = mk_T_of_bnf Ds As bnf;
+    val repTB = mk_T_of_bnf Ds Bs bnf;
+    val T_bind = qualify b;
+    val TA_params = Term.add_tfreesT repTA [];
+    val TB_params = Term.add_tfreesT repTB [];
+    val ((T_name, (T_glob_info, T_loc_info)), lthy) =
+      typedef (T_bind, TA_params, NoSyn)
+        (HOLogic.mk_UNIV repTA) NONE (EVERY' [rtac exI, rtac UNIV_I] 1) lthy;
+    val TA = Type (T_name, map TFree TA_params);
+    val TB = Type (T_name, map TFree TB_params);
+    val RepA = Const (#Rep_name T_glob_info, TA --> repTA);
+    val RepB = Const (#Rep_name T_glob_info, TB --> repTB);
+    val AbsA = Const (#Abs_name T_glob_info, repTA --> TA);
+    val AbsB = Const (#Abs_name T_glob_info, repTB --> TB);
+    val typedef_thm = #type_definition T_loc_info;
+    val Abs_inject' = #Abs_inject T_loc_info OF @{thms UNIV_I UNIV_I};
+    val Abs_inverse' = #Abs_inverse T_loc_info OF @{thms UNIV_I};
+
+    val absT_info = {absT = TA, repT = repTA, abs = AbsA, rep = RepA, abs_inject = Abs_inject',
+      abs_inverse = Abs_inverse', type_definition = typedef_thm};
+
+    val bnf_map = fold_rev Term.absfree fs' (HOLogic.mk_comp (HOLogic.mk_comp (AbsB,
+      Term.list_comb (expand_maps (mk_map_of_bnf Ds As Bs bnf), fs)), RepA));
+    val bnf_sets = map ((fn t => HOLogic.mk_comp (t, RepA)) o expand_maps o expand_sets)
       (mk_sets_of_bnf (replicate live Ds) (replicate live As) bnf);
     val bnf_bd = mk_bd_of_bnf Ds As bnf;
-    val bnf_rel = expand_rels (mk_rel_of_bnf Ds As Bs bnf);
-    val T = mk_T_of_bnf Ds As bnf;
+    val bnf_rel = fold_rev Term.absfree Rs' (mk_vimage2p RepA RepB $
+      (Term.list_comb (expand_rels (mk_rel_of_bnf Ds As Bs bnf), Rs)));
 
     (*bd may depend only on dead type variables*)
     val bd_repT = fst (dest_relT (fastype_of bnf_bd));
@@ -626,30 +703,44 @@ fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
     val bd_cinfinite =
       (@{thm Cinfinite_cong} OF [bd_ordIso, bd_Cinfinite_of_bnf bnf]) RS conjunct1;
 
-    val set_bds =
-      map (fn thm => @{thm ordLeq_ordIso_trans} OF [thm, bd_ordIso]) (set_bd_of_bnf bnf);
+    fun map_id0_tac ctxt =
+      rtac (@{thm type_copy_map_id0} OF [typedef_thm, unfold_maps ctxt (map_id0_of_bnf bnf)]) 1;
+    fun map_comp0_tac ctxt =
+      rtac (@{thm type_copy_map_comp0} OF [typedef_thm, unfold_maps ctxt (map_comp0_of_bnf bnf)]) 1;
+    fun map_cong0_tac ctxt =
+      EVERY' (rtac @{thm type_copy_map_cong0} :: rtac (unfold_all ctxt (map_cong0_of_bnf bnf)) ::
+        map (fn i => EVERY' [select_prem_tac live (dtac meta_spec) i, etac meta_mp,
+          etac (o_apply RS equalityD2 RS set_mp)]) (1 upto live)) 1;
+    fun set_map0_tac thm ctxt =
+      rtac (@{thm type_copy_set_map0} OF [typedef_thm, unfold_all ctxt thm]) 1;
+    val set_bd_tacs = map (fn thm => fn ctxt => rtac (@{thm ordLeq_ordIso_trans} OF
+        [unfold_sets ctxt thm, bd_ordIso] RS @{thm type_copy_set_bd}) 1)
+      (set_bd_of_bnf bnf);
+    fun le_rel_OO_tac ctxt =
+      rtac (unfold_rels ctxt (le_rel_OO_of_bnf bnf) RS @{thm vimage2p_relcompp_mono}) 1;
+    fun rel_OO_Grp_tac ctxt =
+      (rtac (unfold_all ctxt (rel_OO_Grp_of_bnf bnf) RS @{thm vimage2p_cong} RS trans) THEN'
+      SELECT_GOAL (unfold_thms_tac ctxt [o_apply, typedef_thm RS @{thm type_copy_vimage2p_Grp_Rep},
+        typedef_thm RS @{thm vimage2p_relcompp_converse}]) THEN' rtac refl) 1;
 
-    fun mk_tac thm ctxt =
-      (rtac (unfold_all ctxt thm) THEN'
-      SOLVE o REPEAT_DETERM o (atac ORELSE' Goal.assume_rule_tac ctxt)) 1;
+    val tacs = zip_axioms map_id0_tac map_comp0_tac map_cong0_tac
+      (map set_map0_tac (set_map0_of_bnf bnf)) (K (rtac bd_card_order 1)) (K (rtac bd_cinfinite 1))
+      set_bd_tacs le_rel_OO_tac rel_OO_Grp_tac;
 
-    val tacs = zip_axioms (mk_tac (map_id0_of_bnf bnf)) (mk_tac (map_comp0_of_bnf bnf))
-      (mk_tac (map_cong0_of_bnf bnf)) (map mk_tac (set_map0_of_bnf bnf))
-      (K (rtac bd_card_order 1)) (K (rtac bd_cinfinite 1)) (map mk_tac set_bds)
-      (mk_tac (le_rel_OO_of_bnf bnf))
-      (mk_tac (rel_OO_Grp_of_bnf bnf));
+    val bnf_wits = map (fn (I, t) =>
+        fold Term.absdummy (map (nth As) I)
+          (AbsA $ Term.list_comb (t, map Bound (0 upto length I - 1))))
+      (mk_wits_of_bnf (replicate nwits Ds) (replicate nwits As) bnf);
 
-    val bnf_wits = map snd (mk_wits_of_bnf (replicate nwits Ds) (replicate nwits As) bnf);
-
-    fun wit_tac ctxt =
+    fun wit_tac ctxt = ALLGOALS (dtac (typedef_thm RS @{thm type_copy_wit})) THEN
       mk_simple_wit_tac (map (unfold_all ctxt) (wit_thms_of_bnf bnf));
 
     val (bnf', lthy') =
       bnf_def Hardly_Inline (user_policy Dont_Note) qualify tacs wit_tac (SOME all_deads)
         Binding.empty Binding.empty []
-        ((((((b, T), bnf_map), bnf_sets), bnf_bd'), bnf_wits), SOME bnf_rel) lthy;
+        ((((((b, TA), bnf_map), bnf_sets), bnf_bd'), bnf_wits), SOME bnf_rel) lthy;
   in
-    ((bnf', all_deads), lthy')
+    ((bnf', (all_deads, absT_info)), lthy')
   end;
 
 fun key_of_types Ts = Type ("", Ts);

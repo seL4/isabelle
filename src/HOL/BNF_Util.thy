@@ -44,6 +44,9 @@ definition "Gr A f = {(a, f a) | a. a \<in> A}"
 
 definition "Grp A f = (\<lambda>a b. b = f a \<and> a \<in> A)"
 
+definition vimage2p where
+  "vimage2p f g R = (\<lambda>x y. R (f x) (g y))"
+
 ML_file "Tools/BNF/bnf_util.ML"
 ML_file "Tools/BNF/bnf_tactics.ML"
 

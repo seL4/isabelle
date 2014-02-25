@@ -43,6 +43,11 @@ sig
       'o -> 'p -> 'q) ->
     'a list -> 'b list -> 'c list -> 'd list -> 'e list -> 'f list -> 'g list -> 'h list ->
     'i list -> 'j list -> 'k list -> 'l list -> 'm list -> 'n list -> 'o list -> 'p list -> 'q list
+  val map17: ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> 'h -> 'i -> 'j -> 'k -> 'l -> 'm -> 'n ->
+      'o -> 'p -> 'q -> 'r) ->
+    'a list -> 'b list -> 'c list -> 'd list -> 'e list -> 'f list -> 'g list -> 'h list ->
+    'i list -> 'j list -> 'k list -> 'l list -> 'm list -> 'n list -> 'o list -> 'p list ->
+    'q list -> 'r list
   val fold_map4: ('a -> 'b -> 'c -> 'd -> 'e -> 'f * 'e) ->
     'a list -> 'b list -> 'c list -> 'd list -> 'e -> 'f list * 'e
   val fold_map5: ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g * 'f) ->
@@ -109,6 +114,7 @@ sig
   val mk_ordLeq: term -> term -> term
   val mk_rel_comp: term * term -> term
   val mk_rel_compp: term * term -> term
+  val mk_vimage2p: term -> term -> term
 
   (*parameterized terms*)
   val mk_nthN: int -> term -> int -> term
@@ -224,6 +230,14 @@ fun map16 _ [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] = []
     f x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 ::
       map16 f x1s x2s x3s x4s x5s x6s x7s x8s x9s x10s x11s x12s x13s x14s x15s x16s
   | map16 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ = raise ListPair.UnequalLengths;
+
+fun map17 _ [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] [] = []
+  | map17 f (x1::x1s) (x2::x2s) (x3::x3s) (x4::x4s) (x5::x5s) (x6::x6s) (x7::x7s) (x8::x8s)
+      (x9::x9s) (x10::x10s) (x11::x11s) (x12::x12s) (x13::x13s) (x14::x14s) (x15::x15s)
+      (x16::x16s) (x17::x17s) =
+    f x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 ::
+      map17 f x1s x2s x3s x4s x5s x6s x7s x8s x9s x10s x11s x12s x13s x14s x15s x16s x17s
+  | map17 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ = raise ListPair.UnequalLengths;
 
 fun fold_map4 _ [] [] [] [] acc = ([], acc)
   | fold_map4 f (x1::x1s) (x2::x2s) (x3::x3s) (x4::x4s) acc =
@@ -497,6 +511,15 @@ val ctwo = @{term ctwo};
 fun mk_collect xs defT =
   let val T = (case xs of [] => defT | (x::_) => fastype_of x);
   in Const (@{const_name collect}, HOLogic.mk_setT T --> T) $ (HOLogic.mk_set T xs) end;
+
+fun mk_vimage2p f g =
+  let
+    val (T1, T2) = dest_funT (fastype_of f);
+    val (U1, U2) = dest_funT (fastype_of g);
+  in
+    Const (@{const_name vimage2p},
+      (T1 --> T2) --> (U1 --> U2) --> mk_pred2T T2 U2 --> mk_pred2T T1 U1) $ f $ g
+  end;
 
 fun mk_trans thm1 thm2 = trans OF [thm1, thm2];
 fun mk_sym thm = thm RS sym;

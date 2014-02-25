@@ -137,9 +137,6 @@ lemma If_the_inv_into_f_f:
   ((\<lambda>i. if i \<in> g ` C then the_inv_into C g i else x) o g) i = id i"
 unfolding Func_def by (auto elim: the_inv_into_f_f)
 
-definition vimage2p where
-  "vimage2p f g R = (\<lambda>x y. R (f x) (g y))"
-
 lemma vimage2pI: "R (f x) (g y) \<Longrightarrow> vimage2p f g R x y"
   unfolding vimage2p_def by -
 

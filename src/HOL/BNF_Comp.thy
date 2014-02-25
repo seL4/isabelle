@@ -70,6 +70,49 @@ unfolding Grp_def fun_eq_iff relcompp.simps by auto
 lemma OO_Grp_cong: "A = B \<Longrightarrow> (Grp A f)^--1 OO Grp A g = (Grp B f)^--1 OO Grp B g"
 by (rule arg_cong)
 
+lemma vimage2p_relcompp_mono: "R OO S \<le> T \<Longrightarrow>
+  vimage2p f g R OO vimage2p g h S \<le> vimage2p f h T"
+  unfolding vimage2p_def by auto
+
+lemma type_copy_map_cong0: "M (g x) = N (h x) \<Longrightarrow> (f o M o g) x = (f o N o h) x"
+  by auto
+
+lemma type_copy_set_bd: "(\<And>y. |S y| \<le>o bd) \<Longrightarrow> |(S o Rep) x| \<le>o bd"
+  by auto
+
+lemma vimage2p_cong: "R = S \<Longrightarrow> vimage2p f g R = vimage2p f g S"
+  by simp
+
+context
+fixes Rep Abs
+assumes type_copy: "type_definition Rep Abs UNIV"
+begin
+
+lemma type_copy_map_id0: "M = id \<Longrightarrow> Abs o M o Rep = id"
+  using type_definition.Rep_inverse[OF type_copy] by auto
+lemma type_copy_map_comp0: "M = M1 o M2 \<Longrightarrow> f o M o g = (f o M1 o Rep) o (Abs o M2 o g)"
+  using type_definition.Abs_inverse[OF type_copy UNIV_I] by auto
+lemma type_copy_set_map0: "S o M = image f o S' \<Longrightarrow> (S o Rep) o (Abs o M o g) = image f o (S' o g)"
+  using type_definition.Abs_inverse[OF type_copy UNIV_I] by (auto simp: o_def fun_eq_iff)
+lemma type_copy_wit: "x \<in> (S o Rep) (Abs y) \<Longrightarrow> x \<in> S y"
+  using type_definition.Abs_inverse[OF type_copy UNIV_I] by auto
+lemma type_copy_vimage2p_Grp_Rep: "vimage2p f Rep (Grp (Collect P) h) =
+    Grp (Collect (\<lambda>x. P (f x))) (Abs o h o f)"
+  unfolding vimage2p_def Grp_def fun_eq_iff
+  by (auto simp: type_definition.Abs_inverse[OF type_copy UNIV_I]
+   type_definition.Rep_inverse[OF type_copy] dest: sym)
+lemma type_copy_vimage2p_Grp_Abs:
+  "\<And>h. vimage2p g Abs (Grp (Collect P) h) = Grp (Collect (\<lambda>x. P (g x))) (Rep o h o g)"
+  unfolding vimage2p_def Grp_def fun_eq_iff
+  by (auto simp: type_definition.Abs_inverse[OF type_copy UNIV_I]
+   type_definition.Rep_inverse[OF type_copy] dest: sym)
+lemma vimage2p_relcompp_converse:
+  "vimage2p f g (R^--1 OO S) = (vimage2p Rep f R)^--1 OO vimage2p Rep g S"
+  unfolding vimage2p_def relcompp.simps conversep.simps fun_eq_iff image_def
+  by (metis surjD[OF type_definition.Rep_range[OF type_copy]])
+
+end
+
 ML_file "Tools/BNF/bnf_comp_tactics.ML"
 ML_file "Tools/BNF/bnf_comp.ML"
 

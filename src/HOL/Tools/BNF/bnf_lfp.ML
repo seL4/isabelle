@@ -10,7 +10,7 @@ signature BNF_LFP =
 sig
   val construct_lfp: mixfix list -> binding list -> binding list -> binding list list ->
     binding list -> (string * sort) list -> typ list * typ list list -> BNF_Def.bnf list ->
-    local_theory -> BNF_FP_Util.fp_result * local_theory
+    BNF_Comp.absT_info list -> local_theory -> BNF_FP_Util.fp_result * local_theory
 end;
 
 structure BNF_LFP : BNF_LFP =
@@ -26,7 +26,7 @@ open BNF_LFP_Util
 open BNF_LFP_Tactics
 
 (*all BNFs have the same lives*)
-fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lthy =
+fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ lthy =
   let
     val time = time lthy;
     val timer = time (Timer.startRealTimer ());
@@ -701,6 +701,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
       let
         val i_field = HOLogic.mk_mem (idx, field_suc_bd);
         val min_algs = mk_min_algs ss;
+
         val min_algss = map (fn k => mk_nthN n (min_algs $ idx) k) ks;
 
         val concl = HOLogic.mk_Trueprop

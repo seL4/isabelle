@@ -11,7 +11,7 @@ signature BNF_GFP =
 sig
   val construct_gfp: mixfix list -> binding list -> binding list -> binding list list ->
     binding list -> (string * sort) list -> typ list * typ list list -> BNF_Def.bnf list ->
-    local_theory -> BNF_FP_Util.fp_result * local_theory
+    BNF_Comp.absT_info list -> local_theory -> BNF_FP_Util.fp_result * local_theory
 end;
 
 structure BNF_GFP : BNF_GFP =
@@ -55,7 +55,7 @@ fun tree_to_coind_wits _ (Wit_Leaf _) = []
      ((i, I), nth (nth lwitss i) nwit) :: maps (tree_to_coind_wits lwitss) subtrees;
 
 (*all BNFs have the same lives*)
-fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lthy =
+fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ lthy =
   let
     val time = time lthy;
     val timer = time (Timer.startRealTimer ());

@@ -64,6 +64,11 @@ by simp
 lemma obj_one_pointE: "\<forall>x. s = x \<longrightarrow> P \<Longrightarrow> P"
 by blast
 
+lemma type_copy_obj_one_point_absE:
+  assumes "type_definition Rep Abs UNIV"
+  shows "\<forall>x. s = Abs x \<longrightarrow> P \<Longrightarrow> P"
+  using type_definition.Rep_inverse[OF assms] by metis
+
 lemma obj_sumE_f:
 "\<lbrakk>\<forall>x. s = f (Inl x) \<longrightarrow> P; \<forall>x. s = f (Inr x) \<longrightarrow> P\<rbrakk> \<Longrightarrow> \<forall>x. s = f x \<longrightarrow> P"
 by (rule allI) (metis sumE)
@@ -132,7 +137,7 @@ lemma case_sum_o_sum_map_id: "(case_sum id g o sum_map f id) x = case_sum (f o i
   unfolding case_sum_o_sum_map id_comp comp_id ..
 
 lemma fun_rel_def_butlast:
-  "(fun_rel R (fun_rel S T)) f g = (\<forall>x y. R x y \<longrightarrow> (fun_rel S T) (f x) (g y))"
+  "fun_rel R (fun_rel S T) f g = (\<forall>x y. R x y \<longrightarrow> (fun_rel S T) (f x) (g y))"
   unfolding fun_rel_def ..
 
 lemma subst_eq_imp: "(\<forall>a b. a = b \<longrightarrow> P a b) \<equiv> (\<forall>a. P a a)"
@@ -147,6 +152,30 @@ lemma eq_le_Grp_id_iff: "(op = \<le> Grp (Collect R) id) = (All R)"
 lemma Grp_id_mono_subst: "(\<And>x y. Grp P id x y \<Longrightarrow> Grp Q id (f x) (f y)) \<equiv>
    (\<And>x. x \<in> P \<Longrightarrow> f x \<in> Q)"
   unfolding Grp_def by rule auto
+
+lemma vimage2p_mono: "vimage2p f g R x y \<Longrightarrow> R \<le> S \<Longrightarrow> vimage2p f g S x y"
+  unfolding vimage2p_def by blast
+
+lemma vimage2p_refl: "(\<And>x. R x x) \<Longrightarrow> vimage2p f f R x x"
+  unfolding vimage2p_def by auto
+
+lemma
+  assumes "type_definition Rep Abs UNIV"
+  shows type_copy_Rep_o_Abs: "Rep \<circ> Abs = id" and type_copy_Abs_o_Rep: "Abs o Rep = id"
+  unfolding fun_eq_iff comp_apply id_apply
+    type_definition.Abs_inverse[OF assms UNIV_I] type_definition.Rep_inverse[OF assms] by simp_all
+
+lemma type_copy_map_comp0_undo:
+  assumes "type_definition Rep Abs UNIV"
+          "type_definition Rep' Abs' UNIV"
+          "type_definition Rep'' Abs'' UNIV"
+  shows "Abs' o M o Rep'' = (Abs' o M1 o Rep) o (Abs o M2 o Rep'') \<Longrightarrow> M1 o M2 = M"
+  by (rule sym) (auto simp: fun_eq_iff type_definition.Abs_inject[OF assms(2) UNIV_I UNIV_I]
+    type_definition.Abs_inverse[OF assms(1) UNIV_I]
+    type_definition.Abs_inverse[OF assms(3) UNIV_I] dest: spec[of _ "Abs'' x" for x])
+
+lemma vimage2p_comp: "vimage2p (f1 o f2) (g1 o g2) = vimage2p f2 g2 o vimage2p f1 g1"
+  unfolding fun_eq_iff vimage2p_def o_apply by simp
 
 ML_file "Tools/BNF/bnf_fp_util.ML"
 ML_file "Tools/BNF/bnf_fp_def_sugar_tactics.ML"
