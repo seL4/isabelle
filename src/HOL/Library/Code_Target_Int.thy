@@ -12,6 +12,10 @@ code_datatype int_of_integer
 
 declare [[code drop: integer_of_int]]
 
+context
+includes integer.lifting
+begin
+
 lemma [code]:
   "integer_of_int (int_of_integer k) = k"
   by transfer rule
@@ -86,6 +90,7 @@ lemma [code]:
 lemma [code]:
   "k < l \<longleftrightarrow> (of_int k :: integer) < of_int l"
   by transfer rule
+end
 
 lemma (in ring_1) of_int_code_if:
   "of_int k = (if k = 0 then 0
@@ -105,7 +110,7 @@ declare of_int_code_if [code]
 
 lemma [code]:
   "nat = nat_of_integer \<circ> of_int"
-  by transfer (simp add: fun_eq_iff)
+  including integer.lifting by transfer (simp add: fun_eq_iff)
 
 code_identifier
   code_module Code_Target_Int \<rightharpoonup>

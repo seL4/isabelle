@@ -10,6 +10,10 @@ begin
 
 subsection {* Implementation for @{typ nat} *}
 
+context
+includes natural.lifting integer.lifting
+begin
+
 lift_definition Nat :: "integer \<Rightarrow> nat"
   is nat
   .
@@ -96,6 +100,8 @@ lemma num_of_nat_code [code]:
   "num_of_nat = num_of_integer \<circ> of_nat"
   by transfer (simp add: fun_eq_iff)
 
+end
+
 lemma (in semiring_1) of_nat_code_if:
   "of_nat n = (if n = 0 then 0
      else let
@@ -120,7 +126,7 @@ lemma [code]:
 
 lemma [code abstract]:
   "integer_of_nat (nat k) = max 0 (integer_of_int k)"
-  by transfer auto
+  including integer.lifting by transfer auto
 
 lemma term_of_nat_code [code]:
   -- {* Use @{term Code_Numeral.nat_of_integer} in term reconstruction
@@ -139,7 +145,7 @@ lemma nat_of_integer_code_post [code_post]:
   "nat_of_integer 0 = 0"
   "nat_of_integer 1 = 1"
   "nat_of_integer (numeral k) = numeral k"
-  by (transfer, simp)+
+  including integer.lifting by (transfer, simp)+
 
 code_identifier
   code_module Code_Target_Nat \<rightharpoonup>

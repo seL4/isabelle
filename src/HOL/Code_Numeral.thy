@@ -928,6 +928,11 @@ lemma [code]:
 
 hide_const (open) Nat
 
+lifting_update integer.lifting
+lifting_forget integer.lifting
+
+lifting_update natural.lifting
+lifting_forget natural.lifting
 
 code_reflect Code_Numeral
   datatypes natural = _
