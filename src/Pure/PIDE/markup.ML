@@ -97,7 +97,7 @@ sig
   val document_antiquotation_optionN: string
   val paragraphN: string val paragraph: T
   val text_foldN: string val text_fold: T
-  val commandN: string
+  val commandN: string val command: T
   val operatorN: string val operator: T
   val stringN: string val string: T
   val altstringN: string val altstring: T
@@ -395,8 +395,7 @@ val (text_foldN, text_fold) = markup_elem "text_fold";
 
 (* outer syntax *)
 
-val commandN = "command";
-
+val (commandN, command) = markup_elem "command";
 val (keyword1N, keyword1) = markup_elem "keyword1";
 val (keyword2N, keyword2) = markup_elem "keyword2";
 val (operatorN, operator) = markup_elem "operator";

@@ -220,7 +220,7 @@ fun content_of (Token (_, (_, x), _)) = x;
 local
 
 val token_kind_markup =
- fn Command       => (Markup.keyword1, "")
+ fn Command       => (Markup.command, "")
   | Keyword       => (Markup.keyword2, "")
   | Ident         => (Markup.empty, "")
   | LongIdent     => (Markup.empty, "")

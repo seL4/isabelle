@@ -178,7 +178,7 @@ fun latex_output str =
   in (output_symbols syms, Symbol.length syms) end;
 
 fun latex_markup (s, _) =
-  if s = Markup.keyword1N then ("\\isacommand{", "}")
+  if s = Markup.commandN orelse s = Markup.keyword1N then ("\\isacommand{", "}")
   else if s = Markup.keyword2N then ("\\isakeyword{", "}")
   else Markup.no_output;
 
