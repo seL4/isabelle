@@ -296,7 +296,10 @@ lemma invariant_to_eq:
   shows "x = y"
 using assms by (simp add: invariant_def)
 
-lemma fun_rel_eq_invariant:
+lemma fun_rel_eq_invariant: "(op= ===> Lifting.invariant P) = Lifting.invariant (\<lambda>f. \<forall>x. P(f x))"
+unfolding invariant_def fun_rel_def by auto
+
+lemma fun_rel_invariant_rel:
   shows "((invariant R) ===> S) = (\<lambda>f g. \<forall>x. R x \<longrightarrow> S (f x) (g x))"
 by (auto simp add: invariant_def fun_rel_def)
 

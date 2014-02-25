@@ -506,6 +506,7 @@ fun mk_readable_rsp_thm_eq tm lthy =
       let
         val unfold_conv = Conv.rewrs_conv 
           [@{thm fun_rel_eq_invariant[THEN eq_reflection]}, 
+            @{thm fun_rel_invariant_rel[THEN eq_reflection]},
             @{thm fun_rel_eq[THEN eq_reflection]},
             @{thm fun_rel_eq_rel[THEN eq_reflection]}, 
             @{thm fun_rel_def[THEN eq_reflection]}]
