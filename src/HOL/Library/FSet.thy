@@ -186,9 +186,8 @@ lift_definition fimage :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a fset \<Rightar
 
 lift_definition fthe_elem :: "'a fset \<Rightarrow> 'a" is the_elem .
 
-(* FIXME why is not invariant here unfolded ? *)
-lift_definition fbind :: "'a fset \<Rightarrow> ('a \<Rightarrow> 'b fset) \<Rightarrow> 'b fset" is Set.bind parametric bind_transfer
-unfolding invariant_def Set.bind_def by clarsimp metis
+lift_definition fbind :: "'a fset \<Rightarrow> ('a \<Rightarrow> 'b fset) \<Rightarrow> 'b fset" is Set.bind parametric bind_transfer 
+by (simp add: Set.bind_def)
 
 lift_definition ffUnion :: "'a fset fset \<Rightarrow> 'a fset" is Union parametric Union_transfer by simp
 
