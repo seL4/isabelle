@@ -2158,12 +2158,19 @@ proof -
         done
     qed
   qed
-  then guess f
+  then obtain f where f:
+    "\<forall>x.
+      \<not> P {fst x..snd x} \<longrightarrow>
+      \<not> P {fst (f x)..snd (f x)} \<and>
+        (\<forall>i\<in>Basis.
+            fst x \<bullet> i \<le> fst (f x) \<bullet> i \<and>
+            fst (f x) \<bullet> i \<le> snd (f x) \<bullet> i \<and>
+            snd (f x) \<bullet> i \<le> snd x \<bullet> i \<and>
+            2 * (snd (f x) \<bullet> i - fst (f x) \<bullet> i) \<le> snd x \<bullet> i - fst x \<bullet> i)"
     apply -
     apply (drule choice)
-    apply (erule exE)
+    apply blast
     done
-  note f = this
   def AB \<equiv> "\<lambda>n. (f ^^ n) (a,b)"
   def A \<equiv> "\<lambda>n. fst(AB n)"
   def B \<equiv> "\<lambda>n. snd(AB n)"
@@ -2300,7 +2307,14 @@ proof -
   then show thesis ..
 next
   assume as: "\<not> (\<exists>p. p tagged_division_of {a..b} \<and> g fine p)"
-  guess x
+  obtain x where x:
+    "x \<in> {a..b}"
+    "\<And>e. 0 < e \<Longrightarrow>
+      \<exists>c d.
+        x \<in> {c..d} \<and>
+        {c..d} \<subseteq> ball x e \<and>
+        {c..d} \<subseteq> {a..b} \<and>
+        \<not> (\<exists>p. p tagged_division_of {c..d} \<and> g fine p)"
     apply (rule interval_bisection[of "\<lambda>s. \<exists>p. p tagged_division_of s \<and> g fine p",rule_format,OF _ _ as])
     apply (rule_tac x="{}" in exI)
     defer
@@ -2320,7 +2334,7 @@ next
       apply (rule fine_union)
       apply auto
       done
-  qed note x = this
+  qed blast
   obtain e where e: "e > 0" "ball x e \<subseteq> g x"
     using gaugeD[OF assms, of x] unfolding open_contains_ball by auto
   from x(2)[OF e(1)] obtain c d where c_d:
@@ -2354,9 +2368,20 @@ proof (rule ccontr)
     case goal1
     let ?e = "norm (k1 - k2) / 2"
     from goal1(3) have e: "?e > 0" by auto
-    guess d1 by (rule has_integralD[OF goal1(1) e]) note d1=this
-    guess d2 by (rule has_integralD[OF goal1(2) e]) note d2=this
-    guess p by (rule fine_division_exists[OF gauge_inter[OF d1(1) d2(1)],of a b]) note p=this
+    obtain d1 where d1:
+        "gauge d1"
+        "\<And>p. p tagged_division_of {a..b} \<Longrightarrow>
+          d1 fine p \<Longrightarrow> norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - k1) < norm (k1 - k2) / 2"
+      by (rule has_integralD[OF goal1(1) e]) blast
+    obtain d2 where d2:
+        "gauge d2"
+        "\<And>p. p tagged_division_of {a..b} \<Longrightarrow>
+          d2 fine p \<Longrightarrow> norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - k2) < norm (k1 - k2) / 2"
+      by (rule has_integralD[OF goal1(2) e]) blast
+    obtain p where p:
+        "p tagged_division_of {a..b}"
+        "(\<lambda>x. d1 x \<inter> d2 x) fine p"
+      by (rule fine_division_exists[OF gauge_inter[OF d1(1) d2(1)]])
     let ?c = "(\<Sum>(x, k)\<in>p. content k *\<^sub>R f x)"
     have "norm (k1 - k2) \<le> norm (?c - k2) + norm (?c - k1)"
       using norm_triangle_ineq4[of "k1 - ?c" "k2 - ?c"]
@@ -2379,8 +2404,18 @@ proof (rule ccontr)
       done
   }
   assume as: "\<not> (\<exists>a b. i = {a..b})"
-  guess B1 by (rule has_integral_altD[OF assms(1) as,OF e]) note B1=this[rule_format]
-  guess B2 by (rule has_integral_altD[OF assms(2) as,OF e]) note B2=this[rule_format]
+  obtain B1 where B1:
+      "0 < B1"
+      "\<And>a b. ball 0 B1 \<subseteq> {a..b} \<Longrightarrow>
+        \<exists>z. ((\<lambda>x. if x \<in> i then f x else 0) has_integral z) {a..b} \<and>
+          norm (z - k1) < norm (k1 - k2) / 2"
+    by (rule has_integral_altD[OF assms(1) as,OF e]) blast
+  obtain B2 where B2:
+      "0 < B2"
+      "\<And>a b. ball 0 B2 \<subseteq> {a..b} \<Longrightarrow>
+        \<exists>z. ((\<lambda>x. if x \<in> i then f x else 0) has_integral z) {a..b} \<and>
+          norm (z - k2) < norm (k1 - k2) / 2"
+    by (rule has_integral_altD[OF assms(2) as,OF e]) blast
   have "\<exists>a b::'n. ball 0 B1 \<union> ball 0 B2 \<subseteq> {a..b}"
     apply (rule bounded_subset_closed_interval)
     using bounded_Un bounded_ball
@@ -2718,8 +2753,18 @@ proof -
     case goal1
     then have *: "e/2 > 0"
       by auto
-    from has_integral_altD[OF assms(1) as *] guess B1 . note B1=this[rule_format]
-    from has_integral_altD[OF assms(2) as *] guess B2 . note B2=this[rule_format]
+    from has_integral_altD[OF assms(1) as *]
+    obtain B1 where B1:
+        "0 < B1"
+        "\<And>a b. ball 0 B1 \<subseteq> {a..b} \<Longrightarrow>
+          \<exists>z. ((\<lambda>x. if x \<in> s then f x else 0) has_integral z) {a..b} \<and> norm (z - k) < e / 2"
+      by blast
+    from has_integral_altD[OF assms(2) as *]
+    obtain B2 where B2:
+        "0 < B2"
+        "\<And>a b. ball 0 B2 \<subseteq> {a..b} \<Longrightarrow>
+          \<exists>z. ((\<lambda>x. if x \<in> s then g x else 0) has_integral z) {a..b} \<and> norm (z - l) < e / 2"
+      by blast
     show ?case
       apply (rule_tac x="max B1 B2" in exI)
       apply rule
