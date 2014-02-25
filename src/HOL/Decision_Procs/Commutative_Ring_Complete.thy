@@ -14,15 +14,15 @@ begin
 text {* Formalization of normal form *}
 fun isnorm :: "'a::comm_ring pol \<Rightarrow> bool"
 where
-    "isnorm (Pc c) \<longleftrightarrow> True"
-  | "isnorm (Pinj i (Pc c)) \<longleftrightarrow> False"
-  | "isnorm (Pinj i (Pinj j Q)) \<longleftrightarrow> False"
-  | "isnorm (Pinj 0 P) \<longleftrightarrow> False"
-  | "isnorm (Pinj i (PX Q1 j Q2)) \<longleftrightarrow> isnorm (PX Q1 j Q2)"
-  | "isnorm (PX P 0 Q) \<longleftrightarrow> False"
-  | "isnorm (PX (Pc c) i Q) \<longleftrightarrow> c \<noteq> 0 \<and> isnorm Q"
-  | "isnorm (PX (PX P1 j (Pc c)) i Q) \<longleftrightarrow> c \<noteq> 0 \<and> isnorm (PX P1 j (Pc c)) \<and> isnorm Q"
-  | "isnorm (PX P i Q) \<longleftrightarrow> isnorm P \<and> isnorm Q"
+  "isnorm (Pc c) \<longleftrightarrow> True"
+| "isnorm (Pinj i (Pc c)) \<longleftrightarrow> False"
+| "isnorm (Pinj i (Pinj j Q)) \<longleftrightarrow> False"
+| "isnorm (Pinj 0 P) \<longleftrightarrow> False"
+| "isnorm (Pinj i (PX Q1 j Q2)) \<longleftrightarrow> isnorm (PX Q1 j Q2)"
+| "isnorm (PX P 0 Q) \<longleftrightarrow> False"
+| "isnorm (PX (Pc c) i Q) \<longleftrightarrow> c \<noteq> 0 \<and> isnorm Q"
+| "isnorm (PX (PX P1 j (Pc c)) i Q) \<longleftrightarrow> c \<noteq> 0 \<and> isnorm (PX P1 j (Pc c)) \<and> isnorm Q"
+| "isnorm (PX P i Q) \<longleftrightarrow> isnorm P \<and> isnorm Q"
 
 (* Some helpful lemmas *)
 lemma norm_Pinj_0_False: "isnorm (Pinj 0 P) = False"
@@ -35,12 +35,24 @@ lemma norm_Pinj: "isnorm (Pinj i Q) \<Longrightarrow> isnorm Q"
   by (cases i) (simp add: norm_Pinj_0_False norm_PX_0_False, cases Q, auto)
 
 lemma norm_PX2: "isnorm (PX P i Q) \<Longrightarrow> isnorm Q"
-  by (cases i) (auto, cases P, auto, case_tac pol2, auto)
+  apply (cases i)
+  apply auto
+  apply (cases P)
+  apply auto
+  apply (case_tac pol2)
+  apply auto
+  done
 
 lemma norm_PX1: "isnorm (PX P i Q) \<Longrightarrow> isnorm P"
-  by (cases i) (auto, cases P, auto, case_tac pol2, auto)
+  apply (cases i)
+  apply auto
+  apply (cases P)
+  apply auto
+  apply (case_tac pol2)
+  apply auto
+  done
 
-lemma mkPinj_cn: "y ~= 0 \<Longrightarrow> isnorm Q \<Longrightarrow> isnorm (mkPinj y Q)"
+lemma mkPinj_cn: "y \<noteq> 0 \<Longrightarrow> isnorm Q \<Longrightarrow> isnorm (mkPinj y Q)"
   apply (auto simp add: mkPinj_def norm_Pinj_0_False split: pol.split)
   apply (case_tac nat, auto simp add: norm_Pinj_0_False)
   apply (case_tac pol, auto)
@@ -48,11 +60,17 @@ lemma mkPinj_cn: "y ~= 0 \<Longrightarrow> isnorm Q \<Longrightarrow> isnorm (mk
   done
 
 lemma norm_PXtrans: 
-  assumes A: "isnorm (PX P x Q)" and "isnorm Q2" 
+  assumes A: "isnorm (PX P x Q)"
+    and "isnorm Q2" 
   shows "isnorm (PX P x Q2)"
 proof (cases P)
   case (PX p1 y p2)
-  with assms show ?thesis by (cases x) (auto, cases p2, auto)
+  with assms show ?thesis
+    apply (cases x)
+    apply auto
+    apply (cases p2)
+    apply auto
+    done
 next
   case Pc
   with assms show ?thesis by (cases x) auto
@@ -63,10 +81,15 @@ qed
  
 lemma norm_PXtrans2:
   assumes "isnorm (PX P x Q)" and "isnorm Q2"
-  shows "isnorm (PX P (Suc (n+x)) Q2)"
+  shows "isnorm (PX P (Suc (n + x)) Q2)"
 proof (cases P)
   case (PX p1 y p2)
-  with assms show ?thesis by (cases x) (auto, cases p2, auto)
+  with assms show ?thesis
+    apply (cases x)
+    apply auto
+    apply (cases p2)
+    apply auto
+    done
 next
   case Pc
   with assms show ?thesis by (cases x) auto
@@ -77,14 +100,18 @@ qed
 
 text {* mkPX conserves normalizedness (@{text "_cn"}) *}
 lemma mkPX_cn: 
-  assumes "x \<noteq> 0" and "isnorm P" and "isnorm Q" 
+  assumes "x \<noteq> 0"
+    and "isnorm P"
+    and "isnorm Q" 
   shows "isnorm (mkPX P x Q)"
-proof(cases P)
+proof (cases P)
   case (Pc c)
-  with assms show ?thesis by (cases x) (auto simp add: mkPinj_cn mkPX_def)
+  with assms show ?thesis
+    by (cases x) (auto simp add: mkPinj_cn mkPX_def)
 next
   case (Pinj i Q)
-  with assms show ?thesis by (cases x) (auto simp add: mkPinj_cn mkPX_def)
+  with assms show ?thesis
+    by (cases x) (auto simp add: mkPinj_cn mkPX_def)
 next
   case (PX P1 y P2)
   with assms have Y0: "y > 0" by (cases y) auto
@@ -98,10 +125,10 @@ text {* add conserves normalizedness *}
 lemma add_cn: "isnorm P \<Longrightarrow> isnorm Q \<Longrightarrow> isnorm (P \<oplus> Q)"
 proof (induct P Q rule: add.induct)
   case (2 c i P2)
-  thus ?case by (cases P2) (simp_all, cases i, simp_all)
+  then show ?case by (cases P2) (simp_all, cases i, simp_all)
 next
   case (3 i P2 c)
-  thus ?case by (cases P2) (simp_all, cases i, simp_all)
+  then show ?case by (cases P2) (simp_all, cases i, simp_all)
 next
   case (4 c P2 i Q2)
   then have "isnorm P2" "isnorm Q2"
@@ -120,7 +147,8 @@ next
   with 6 have X0: "x>0" by (cases x) (auto simp add: norm_Pinj_0_False)
   have "x < y \<or> x = y \<or> x > y" by arith
   moreover
-  { assume "x<y" hence "EX d. y =d + x" by arith
+  { assume "x < y"
+    then have "\<exists>d. y = d + x" by arith
     then obtain d where y: "y = d + x" ..
     moreover
     note 6 X0
@@ -132,7 +160,7 @@ next
       by (cases d, simp, cases Q2, auto)
     ultimately have ?case by (simp add: mkPinj_cn) }
   moreover
-  { assume "x=y"
+  { assume "x = y"
     moreover
     from 6 have "isnorm P2" "isnorm Q2"
       by (auto simp add: norm_Pinj[of _ P2] norm_Pinj[of _ Q2])
@@ -140,7 +168,7 @@ next
     note 6 Y0
     ultimately have ?case by (simp add: mkPinj_cn) }
   moreover
-  { assume "x>y" hence "EX d. x = d + y" by arith
+  { assume "x > y" then have "\<exists>d. x = d + y" by arith
     then obtain d where x: "x = d + y"..
     moreover
     note 6 Y0
@@ -166,7 +194,7 @@ next
     with 7 `x = 1` have ?case
       by (simp add: norm_PXtrans[of Q2 y _]) }
   moreover
-  { assume "x > 1" hence "EX d. x=Suc (Suc d)" by arith
+  { assume "x > 1" then have "\<exists>d. x=Suc (Suc d)" by arith
     then obtain d where X: "x=Suc (Suc d)" ..
     with 7 have NR: "isnorm R" "isnorm P2"
       by (auto simp add: norm_Pinj[of _ P2] norm_PX2[of Q2 y R])
@@ -186,7 +214,7 @@ next
     with 8 `x = 1` have "isnorm (R \<oplus> P2)" by simp
     with 8 `x = 1` have ?case by (simp add: norm_PXtrans[of Q2 y _]) }
   moreover
-  { assume "x > 1" hence "EX d. x=Suc (Suc d)" by arith
+  { assume "x > 1" then have "\<exists>d. x=Suc (Suc d)" by arith
     then obtain d where X: "x = Suc (Suc d)" ..
     with 8 have NR: "isnorm R" "isnorm P2"
       by (auto simp add: norm_Pinj[of _ P2] norm_PX2[of Q2 y R])
@@ -204,7 +232,7 @@ next
     by (auto simp add: norm_PX1[of Q1 _ Q2] norm_PX2[of Q1 _ Q2])
   have "y < x \<or> x = y \<or> x < y" by arith
   moreover
-  { assume sm1: "y < x" hence "EX d. x = d + y" by arith
+  { assume sm1: "y < x" then have "\<exists>d. x = d + y" by arith
     then obtain d where sm2: "x = d + y" ..
     note 9 NQ1 NP1 NP2 NQ2 sm1 sm2
     moreover
@@ -224,7 +252,7 @@ next
     with 9 NP1 NP2 NQ1 NQ2 have "isnorm (P2 \<oplus> Q2)" "isnorm (P1 \<oplus> Q1)" by auto
     with `x = y` Y0 have ?case by (simp add: mkPX_cn) }
   moreover
-  { assume sm1: "x < y" hence "EX d. y = d + x" by arith
+  { assume sm1: "x < y" then have "\<exists>d. y = d + x" by arith
     then obtain d where sm2: "y = d + x" ..
     note 9 NQ1 NP1 NP2 NQ2 sm1 sm2
     moreover
@@ -245,10 +273,10 @@ qed simp
 text {* mul concerves normalizedness *}
 lemma mul_cn: "isnorm P \<Longrightarrow> isnorm Q \<Longrightarrow> isnorm (P \<otimes> Q)"
 proof (induct P Q rule: mul.induct)
-  case (2 c i P2) thus ?case 
+  case (2 c i P2) then show ?case 
     by (cases P2) (simp_all, cases i, simp_all add: mkPinj_cn)
 next
-  case (3 i P2 c) thus ?case 
+  case (3 i P2 c) then show ?case 
     by (cases P2) (simp_all, cases i, simp_all add: mkPinj_cn)
 next
   case (4 c P2 i Q2)
@@ -266,7 +294,7 @@ next
   case (6 x P2 y Q2)
   have "x < y \<or> x = y \<or> x > y" by arith
   moreover
-  { assume "x < y" hence "EX d. y = d + x" by arith
+  { assume "x < y" then have "\<exists>d. y = d + x" by arith
     then obtain d where y: "y = d + x" ..
     moreover
     note 6
@@ -287,7 +315,7 @@ next
     note 6
     ultimately have ?case by (simp add: mkPinj_cn) }
   moreover
-  { assume "x > y" hence "EX d. x = d + y" by arith
+  { assume "x > y" then have "\<exists>d. x = d + y" by arith
     then obtain d where x: "x = d + y" ..
     moreover
     note 6
@@ -311,7 +339,7 @@ next
     with 7 `x = 1` have "isnorm (R \<otimes> P2)" "isnorm Q2" by (auto simp add: norm_PX1[of Q2 y R])
     with 7 `x = 1` Y0 have ?case by (simp add: mkPX_cn) }
   moreover
-  { assume "x > 1" hence "EX d. x = Suc (Suc d)" by arith
+  { assume "x > 1" then have "\<exists>d. x = Suc (Suc d)" by arith
     then obtain d where X: "x = Suc (Suc d)" ..
     from 7 have NR: "isnorm R" "isnorm Q2"
       by (auto simp add: norm_PX2[of Q2 y R] norm_PX1[of Q2 y R])
@@ -326,7 +354,7 @@ next
   ultimately show ?case by blast
 next
   case (8 Q2 y R x P2)
-  then have Y0: "y>0" by (cases y) auto
+  then have Y0: "y > 0" by (cases y) auto
   have "x = 0 \<or> x = 1 \<or> x > 1" by arith
   moreover
   { assume "x = 0" with 8 have ?case by (auto simp add: norm_Pinj_0_False) }
@@ -336,7 +364,7 @@ next
     with 8 `x = 1` have "isnorm (R \<otimes> P2)" "isnorm Q2" by (auto simp add: norm_PX1[of Q2 y R])
     with 8 `x = 1` Y0 have ?case by (simp add: mkPX_cn) }
   moreover
-  { assume "x > 1" hence "EX d. x = Suc (Suc d)" by arith
+  { assume "x > 1" then have "\<exists>d. x = Suc (Suc d)" by arith
     then obtain d where X: "x = Suc (Suc d)" ..
     from 8 have NR: "isnorm R" "isnorm Q2"
       by (auto simp add: norm_PX2[of Q2 y R] norm_PX1[of Q2 y R])
@@ -366,7 +394,7 @@ next
     "isnorm (mkPX (P1 \<otimes> mkPinj (Suc 0) Q2) x (Pc 0))"  
     "isnorm (mkPX (Q1 \<otimes> mkPinj (Suc 0) P2) y (Pc 0))" 
     by (auto simp add: mkPX_cn)
-  thus ?case by (simp add: add_cn)
+  then show ?case by (simp add: add_cn)
 qed simp
 
 text {* neg conserves normalizedness *}
@@ -404,7 +432,7 @@ next
     by (cases Q) (auto simp add: mkPX_cn mkPinj_cn, cases i, auto simp add: mkPX_cn mkPinj_cn)
 next 
   case (PX P1 x P2)
-  then have "x + x ~= 0" "isnorm P2" "isnorm P1"
+  then have "x + x \<noteq> 0" "isnorm P2" "isnorm P1"
     by (cases x, auto simp add: norm_PX1[of P1 x P2] norm_PX2[of P1 x P2])
   with PX have "isnorm (mkPX (Pc (1 + 1) \<otimes> P1 \<otimes> mkPinj (Suc 0) P2) x (Pc 0))"
       and "isnorm (mkPX (sqr P1) (x + x) (sqr P2))"
