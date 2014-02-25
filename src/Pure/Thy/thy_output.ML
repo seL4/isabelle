@@ -14,8 +14,8 @@ sig
   val modes: string Config.T
   val add_wrapper: ((unit -> string) -> unit -> string) -> Proof.context -> Proof.context
   val add_option: binding -> (string -> Proof.context -> Proof.context) -> theory -> theory
-  val check_command: theory -> xstring * Position.T -> string
-  val check_option: theory -> xstring * Position.T -> string
+  val check_command: Proof.context -> xstring * Position.T -> string
+  val check_option: Proof.context -> xstring * Position.T -> string
   val print_antiquotations: Proof.context -> unit
   val antiquotation: binding -> 'a context_parser ->
     ({source: Args.src, state: Toplevel.state, context: Proof.context} -> 'a -> string) ->
@@ -79,21 +79,23 @@ structure Antiquotations = Theory_Data
       Name_Space.merge_tables (options1, options2));
 );
 
+val get_antiquotations = Antiquotations.get o Proof_Context.theory_of;
+
 fun add_command name cmd thy = thy
   |> Antiquotations.map (apfst (Name_Space.define (Context.Theory thy) true (name, cmd) #> snd));
 
 fun add_option name opt thy = thy
   |> Antiquotations.map (apsnd (Name_Space.define (Context.Theory thy) true (name, opt) #> snd));
 
-fun check_command thy = #1 o Name_Space.check (Context.Theory thy) (#1 (Antiquotations.get thy));
+fun check_command ctxt = #1 o Name_Space.check (Context.Proof ctxt) (#1 (get_antiquotations ctxt));
 
-fun check_option thy = #1 o Name_Space.check (Context.Theory thy) (#2 (Antiquotations.get thy));
+fun check_option ctxt = #1 o Name_Space.check (Context.Proof ctxt) (#2 (get_antiquotations ctxt));
 
 fun command src state ctxt =
   let
-    val thy = Proof_Context.theory_of ctxt;
     val ((xname, _), pos) = Args.dest_src src;
-    val (name, f) = Name_Space.check (Context.Proof ctxt) (#1 (Antiquotations.get thy)) (xname, pos);
+    val (name, f) =
+      Name_Space.check (Context.Proof ctxt) (#1 (get_antiquotations ctxt)) (xname, pos);
   in
     f src state ctxt handle ERROR msg =>
       cat_error msg ("The error(s) above occurred in document antiquotation: " ^
@@ -102,14 +104,13 @@ fun command src state ctxt =
 
 fun option ((xname, pos), s) ctxt =
   let
-    val thy = Proof_Context.theory_of ctxt;
-    val (_, opt) = Name_Space.check (Context.Proof ctxt) (#2 (Antiquotations.get thy)) (xname, pos);
+    val (_, opt) =
+      Name_Space.check (Context.Proof ctxt) (#2 (get_antiquotations ctxt)) (xname, pos);
   in opt s ctxt end;
 
 fun print_antiquotations ctxt =
   let
-    val thy = Proof_Context.theory_of ctxt;
-    val (commands, options) = Antiquotations.get thy;
+    val (commands, options) = get_antiquotations ctxt;
     val command_names = map #1 (Name_Space.extern_table ctxt commands);
     val option_names = map #1 (Name_Space.extern_table ctxt options);
   in
