@@ -209,18 +209,17 @@ object Markup
 
   /* outer syntax */
 
-  val KEYWORD = "keyword"
-  val OPERATOR = "operator"
   val COMMAND = "command"
+
+  val KEYWORD1 = "keyword1"
+  val KEYWORD2 = "keyword2"
+  val OPERATOR = "operator"
   val STRING = "string"
   val ALTSTRING = "altstring"
   val VERBATIM = "verbatim"
   val CARTOUCHE = "cartouche"
   val COMMENT = "comment"
   val CONTROL = "control"
-
-  val KEYWORD1 = "keyword1"
-  val KEYWORD2 = "keyword2"
 
 
   /* timing */
