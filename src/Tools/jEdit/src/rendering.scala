@@ -290,11 +290,11 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   def completion_context(range: Text.Range): Option[Completion.Context] =
     snapshot.select(range, Rendering.completion_context_elements, _ =>
       {
+        case Text.Info(_, XML.Elem(Markup.Language(language, symbols, antiquotes), _)) =>
+          Some(Completion.Context(language, symbols, antiquotes))
         case Text.Info(_, elem)
         if elem.name == Markup.ML_STRING || elem.name == Markup.ML_COMMENT =>
           Some(Completion.Context.ML_inner)
-        case Text.Info(_, XML.Elem(Markup.Language(language, symbols, antiquotes), _)) =>
-          Some(Completion.Context(language, symbols, antiquotes))
         case Text.Info(_, _) =>
           Some(Completion.Context.inner)
       }).headOption.map(_.info)
