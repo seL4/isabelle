@@ -6,7 +6,7 @@ Proving equalities in commutative rings done "right" in Isabelle/HOL.
 header {* Proving equalities in commutative rings *}
 
 theory Commutative_Ring
-imports Main Parity
+imports Parity
 begin
 
 text {* Syntax of multivariate polynomials (pol) and polynomial expressions. *}
@@ -26,15 +26,13 @@ datatype 'a polex =
 
 text {* Interpretation functions for the shadow syntax. *}
 
-primrec
-  Ipol :: "'a::{comm_ring_1} list \<Rightarrow> 'a pol \<Rightarrow> 'a"
+primrec Ipol :: "'a::{comm_ring_1} list \<Rightarrow> 'a pol \<Rightarrow> 'a"
 where
     "Ipol l (Pc c) = c"
   | "Ipol l (Pinj i P) = Ipol (drop i l) P"
   | "Ipol l (PX P x Q) = Ipol l P * (hd l)^x + Ipol (drop 1 l) Q"
 
-primrec
-  Ipolex :: "'a::{comm_ring_1} list \<Rightarrow> 'a polex \<Rightarrow> 'a"
+primrec Ipolex :: "'a::{comm_ring_1} list \<Rightarrow> 'a polex \<Rightarrow> 'a"
 where
     "Ipolex l (Pol P) = Ipol l P"
   | "Ipolex l (Add P Q) = Ipolex l P + Ipolex l Q"
@@ -45,111 +43,106 @@ where
 
 text {* Create polynomial normalized polynomials given normalized inputs. *}
 
-definition
-  mkPinj :: "nat \<Rightarrow> 'a pol \<Rightarrow> 'a pol" where
+definition mkPinj :: "nat \<Rightarrow> 'a pol \<Rightarrow> 'a pol"
+where
   "mkPinj x P = (case P of
     Pc c \<Rightarrow> Pc c |
     Pinj y P \<Rightarrow> Pinj (x + y) P |
     PX p1 y p2 \<Rightarrow> Pinj x P)"
 
-definition
-  mkPX :: "'a::{comm_ring} pol \<Rightarrow> nat \<Rightarrow> 'a pol \<Rightarrow> 'a pol" where
-  "mkPX P i Q = (case P of
-    Pc c \<Rightarrow> (if (c = 0) then (mkPinj 1 Q) else (PX P i Q)) |
-    Pinj j R \<Rightarrow> PX P i Q |
-    PX P2 i2 Q2 \<Rightarrow> (if (Q2 = (Pc 0)) then (PX P2 (i+i2) Q) else (PX P i Q)) )"
+definition mkPX :: "'a::comm_ring pol \<Rightarrow> nat \<Rightarrow> 'a pol \<Rightarrow> 'a pol"
+where
+  "mkPX P i Q =
+    (case P of
+      Pc c \<Rightarrow> if c = 0 then mkPinj 1 Q else PX P i Q
+    | Pinj j R \<Rightarrow> PX P i Q
+    | PX P2 i2 Q2 \<Rightarrow> if Q2 = Pc 0 then PX P2 (i + i2) Q else PX P i Q)"
 
 text {* Defining the basic ring operations on normalized polynomials *}
 
-function
-  add :: "'a::{comm_ring} pol \<Rightarrow> 'a pol \<Rightarrow> 'a pol" (infixl "\<oplus>" 65)
+function add :: "'a::comm_ring pol \<Rightarrow> 'a pol \<Rightarrow> 'a pol"  (infixl "\<oplus>" 65)
 where
-    "Pc a \<oplus> Pc b = Pc (a + b)"
-  | "Pc c \<oplus> Pinj i P = Pinj i (P \<oplus> Pc c)"
-  | "Pinj i P \<oplus> Pc c = Pinj i (P \<oplus> Pc c)"
-  | "Pc c \<oplus> PX P i Q = PX P i (Q \<oplus> Pc c)"
-  | "PX P i Q \<oplus> Pc c = PX P i (Q \<oplus> Pc c)"
-  | "Pinj x P \<oplus> Pinj y Q =
-      (if x = y then mkPinj x (P \<oplus> Q)
-       else (if x > y then mkPinj y (Pinj (x - y) P \<oplus> Q)
-         else mkPinj x (Pinj (y - x) Q \<oplus> P)))"
-  | "Pinj x P \<oplus> PX Q y R =
-      (if x = 0 then P \<oplus> PX Q y R
-       else (if x = 1 then PX Q y (R \<oplus> P)
-         else PX Q y (R \<oplus> Pinj (x - 1) P)))"
-  | "PX P x R \<oplus> Pinj y Q =
-      (if y = 0 then PX P x R \<oplus> Q
-       else (if y = 1 then PX P x (R \<oplus> Q)
-         else PX P x (R \<oplus> Pinj (y - 1) Q)))"
-  | "PX P1 x P2 \<oplus> PX Q1 y Q2 =
-      (if x = y then mkPX (P1 \<oplus> Q1) x (P2 \<oplus> Q2)
-       else (if x > y then mkPX (PX P1 (x - y) (Pc 0) \<oplus> Q1) y (P2 \<oplus> Q2)
-         else mkPX (PX Q1 (y-x) (Pc 0) \<oplus> P1) x (P2 \<oplus> Q2)))"
+  "Pc a \<oplus> Pc b = Pc (a + b)"
+| "Pc c \<oplus> Pinj i P = Pinj i (P \<oplus> Pc c)"
+| "Pinj i P \<oplus> Pc c = Pinj i (P \<oplus> Pc c)"
+| "Pc c \<oplus> PX P i Q = PX P i (Q \<oplus> Pc c)"
+| "PX P i Q \<oplus> Pc c = PX P i (Q \<oplus> Pc c)"
+| "Pinj x P \<oplus> Pinj y Q =
+    (if x = y then mkPinj x (P \<oplus> Q)
+     else (if x > y then mkPinj y (Pinj (x - y) P \<oplus> Q)
+       else mkPinj x (Pinj (y - x) Q \<oplus> P)))"
+| "Pinj x P \<oplus> PX Q y R =
+    (if x = 0 then P \<oplus> PX Q y R
+     else (if x = 1 then PX Q y (R \<oplus> P)
+       else PX Q y (R \<oplus> Pinj (x - 1) P)))"
+| "PX P x R \<oplus> Pinj y Q =
+    (if y = 0 then PX P x R \<oplus> Q
+     else (if y = 1 then PX P x (R \<oplus> Q)
+       else PX P x (R \<oplus> Pinj (y - 1) Q)))"
+| "PX P1 x P2 \<oplus> PX Q1 y Q2 =
+    (if x = y then mkPX (P1 \<oplus> Q1) x (P2 \<oplus> Q2)
+     else (if x > y then mkPX (PX P1 (x - y) (Pc 0) \<oplus> Q1) y (P2 \<oplus> Q2)
+       else mkPX (PX Q1 (y-x) (Pc 0) \<oplus> P1) x (P2 \<oplus> Q2)))"
 by pat_completeness auto
 termination by (relation "measure (\<lambda>(x, y). size x + size y)") auto
 
-function
-  mul :: "'a::{comm_ring} pol \<Rightarrow> 'a pol \<Rightarrow> 'a pol" (infixl "\<otimes>" 70)
+function mul :: "'a::{comm_ring} pol \<Rightarrow> 'a pol \<Rightarrow> 'a pol"  (infixl "\<otimes>" 70)
 where
-    "Pc a \<otimes> Pc b = Pc (a * b)"
-  | "Pc c \<otimes> Pinj i P =
-      (if c = 0 then Pc 0 else mkPinj i (P \<otimes> Pc c))"
-  | "Pinj i P \<otimes> Pc c =
-      (if c = 0 then Pc 0 else mkPinj i (P \<otimes> Pc c))"
-  | "Pc c \<otimes> PX P i Q =
-      (if c = 0 then Pc 0 else mkPX (P \<otimes> Pc c) i (Q \<otimes> Pc c))"
-  | "PX P i Q \<otimes> Pc c =
-      (if c = 0 then Pc 0 else mkPX (P \<otimes> Pc c) i (Q \<otimes> Pc c))"
-  | "Pinj x P \<otimes> Pinj y Q =
-      (if x = y then mkPinj x (P \<otimes> Q) else
-         (if x > y then mkPinj y (Pinj (x-y) P \<otimes> Q)
-           else mkPinj x (Pinj (y - x) Q \<otimes> P)))"
-  | "Pinj x P \<otimes> PX Q y R =
-      (if x = 0 then P \<otimes> PX Q y R else
-         (if x = 1 then mkPX (Pinj x P \<otimes> Q) y (R \<otimes> P)
-           else mkPX (Pinj x P \<otimes> Q) y (R \<otimes> Pinj (x - 1) P)))"
-  | "PX P x R \<otimes> Pinj y Q =
-      (if y = 0 then PX P x R \<otimes> Q else
-         (if y = 1 then mkPX (Pinj y Q \<otimes> P) x (R \<otimes> Q)
-           else mkPX (Pinj y Q \<otimes> P) x (R \<otimes> Pinj (y - 1) Q)))"
-  | "PX P1 x P2 \<otimes> PX Q1 y Q2 =
-      mkPX (P1 \<otimes> Q1) (x + y) (P2 \<otimes> Q2) \<oplus>
-        (mkPX (P1 \<otimes> mkPinj 1 Q2) x (Pc 0) \<oplus>
-          (mkPX (Q1 \<otimes> mkPinj 1 P2) y (Pc 0)))"
+  "Pc a \<otimes> Pc b = Pc (a * b)"
+| "Pc c \<otimes> Pinj i P =
+    (if c = 0 then Pc 0 else mkPinj i (P \<otimes> Pc c))"
+| "Pinj i P \<otimes> Pc c =
+    (if c = 0 then Pc 0 else mkPinj i (P \<otimes> Pc c))"
+| "Pc c \<otimes> PX P i Q =
+    (if c = 0 then Pc 0 else mkPX (P \<otimes> Pc c) i (Q \<otimes> Pc c))"
+| "PX P i Q \<otimes> Pc c =
+    (if c = 0 then Pc 0 else mkPX (P \<otimes> Pc c) i (Q \<otimes> Pc c))"
+| "Pinj x P \<otimes> Pinj y Q =
+    (if x = y then mkPinj x (P \<otimes> Q) else
+       (if x > y then mkPinj y (Pinj (x-y) P \<otimes> Q)
+         else mkPinj x (Pinj (y - x) Q \<otimes> P)))"
+| "Pinj x P \<otimes> PX Q y R =
+    (if x = 0 then P \<otimes> PX Q y R else
+       (if x = 1 then mkPX (Pinj x P \<otimes> Q) y (R \<otimes> P)
+         else mkPX (Pinj x P \<otimes> Q) y (R \<otimes> Pinj (x - 1) P)))"
+| "PX P x R \<otimes> Pinj y Q =
+    (if y = 0 then PX P x R \<otimes> Q else
+       (if y = 1 then mkPX (Pinj y Q \<otimes> P) x (R \<otimes> Q)
+         else mkPX (Pinj y Q \<otimes> P) x (R \<otimes> Pinj (y - 1) Q)))"
+| "PX P1 x P2 \<otimes> PX Q1 y Q2 =
+    mkPX (P1 \<otimes> Q1) (x + y) (P2 \<otimes> Q2) \<oplus>
+      (mkPX (P1 \<otimes> mkPinj 1 Q2) x (Pc 0) \<oplus>
+        (mkPX (Q1 \<otimes> mkPinj 1 P2) y (Pc 0)))"
 by pat_completeness auto
 termination by (relation "measure (\<lambda>(x, y). size x + size y)")
   (auto simp add: mkPinj_def split: pol.split)
 
 text {* Negation*}
-primrec
-  neg :: "'a::{comm_ring} pol \<Rightarrow> 'a pol"
+primrec neg :: "'a::{comm_ring} pol \<Rightarrow> 'a pol"
 where
-    "neg (Pc c) = Pc (-c)"
-  | "neg (Pinj i P) = Pinj i (neg P)"
-  | "neg (PX P x Q) = PX (neg P) x (neg Q)"
+  "neg (Pc c) = Pc (-c)"
+| "neg (Pinj i P) = Pinj i (neg P)"
+| "neg (PX P x Q) = PX (neg P) x (neg Q)"
 
 text {* Substraction *}
-definition
-  sub :: "'a::{comm_ring} pol \<Rightarrow> 'a pol \<Rightarrow> 'a pol" (infixl "\<ominus>" 65)
-where
-  "sub P Q = P \<oplus> neg Q"
+definition sub :: "'a::{comm_ring} pol \<Rightarrow> 'a pol \<Rightarrow> 'a pol"  (infixl "\<ominus>" 65)
+  where "sub P Q = P \<oplus> neg Q"
 
 text {* Square for Fast Exponentation *}
-primrec
-  sqr :: "'a::{comm_ring_1} pol \<Rightarrow> 'a pol"
+primrec sqr :: "'a::{comm_ring_1} pol \<Rightarrow> 'a pol"
 where
-    "sqr (Pc c) = Pc (c * c)"
-  | "sqr (Pinj i P) = mkPinj i (sqr P)"
-  | "sqr (PX A x B) = mkPX (sqr A) (x + x) (sqr B) \<oplus>
-      mkPX (Pc (1 + 1) \<otimes> A \<otimes> mkPinj 1 B) x (Pc 0)"
+  "sqr (Pc c) = Pc (c * c)"
+| "sqr (Pinj i P) = mkPinj i (sqr P)"
+| "sqr (PX A x B) =
+    mkPX (sqr A) (x + x) (sqr B) \<oplus> mkPX (Pc (1 + 1) \<otimes> A \<otimes> mkPinj 1 B) x (Pc 0)"
 
 text {* Fast Exponentation *}
-fun
-  pow :: "nat \<Rightarrow> 'a::{comm_ring_1} pol \<Rightarrow> 'a pol"
+fun pow :: "nat \<Rightarrow> 'a::{comm_ring_1} pol \<Rightarrow> 'a pol"
 where
-    "pow 0 P = Pc 1"
-  | "pow n P = (if even n then pow (n div 2) (sqr P)
-       else P \<otimes> pow (n div 2) (sqr P))"
+  "pow 0 P = Pc 1"
+| "pow n P =
+    (if even n then pow (n div 2) (sqr P)
+     else P \<otimes> pow (n div 2) (sqr P))"
   
 lemma pow_if:
   "pow n P =
@@ -160,15 +153,14 @@ lemma pow_if:
 
 text {* Normalization of polynomial expressions *}
 
-primrec
-  norm :: "'a::{comm_ring_1} polex \<Rightarrow> 'a pol"
+primrec norm :: "'a::{comm_ring_1} polex \<Rightarrow> 'a pol"
 where
-    "norm (Pol P) = P"
-  | "norm (Add P Q) = norm P \<oplus> norm Q"
-  | "norm (Sub P Q) = norm P \<ominus> norm Q"
-  | "norm (Mul P Q) = norm P \<otimes> norm Q"
-  | "norm (Pow P n) = pow n (norm P)"
-  | "norm (Neg P) = neg (norm P)"
+  "norm (Pol P) = P"
+| "norm (Add P Q) = norm P \<oplus> norm Q"
+| "norm (Sub P Q) = norm P \<ominus> norm Q"
+| "norm (Mul P Q) = norm P \<otimes> norm Q"
+| "norm (Pow P n) = pow n (norm P)"
+| "norm (Neg P) = neg (norm P)"
 
 text {* mkPinj preserve semantics *}
 lemma mkPinj_ci: "Ipol l (mkPinj a B) = Ipol l (Pinj a B)"
