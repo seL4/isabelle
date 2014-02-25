@@ -86,7 +86,7 @@ fun get_fact context thy xthmref =
   end;
 
 fun get_thms thy = get_fact (Context.Theory thy) thy o Facts.named;
-fun get_thm thy name = Facts.the_single name (get_thms thy name);
+fun get_thm thy name = Facts.the_single (name, Position.none) (get_thms thy name);
 
 fun all_thms_of thy =
   Facts.fold_static (fn (_, ths) => append (map (`(Thm.get_name_hint)) ths)) (facts_of thy) [];

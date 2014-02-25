@@ -6,7 +6,7 @@ Environment of named facts, optionally indexed by proposition.
 
 signature FACTS =
 sig
-  val the_single: string -> thm list -> thm
+  val the_single: string * Position.T -> thm list -> thm
   datatype interval = FromTo of int * int | From of int | Single of int
   datatype ref =
     Named of (string * Position.T) * interval list option |
@@ -46,7 +46,9 @@ struct
 (** fact references **)
 
 fun the_single _ [th] : thm = th
-  | the_single name _ = error ("Expected singleton fact " ^ quote name);
+  | the_single (name, pos) ths =
+      error ("Expected singleton fact " ^ quote name ^
+        " (length " ^ string_of_int (length ths) ^ ")" ^ Position.here pos);
 
 
 (* datatype interval *)
@@ -77,11 +79,14 @@ datatype ref =
 
 fun named name = Named ((name, Position.none), NONE);
 
+fun name_of_ref (Named ((name, _), _)) = name
+  | name_of_ref (Fact _) = raise Fail "Illegal literal fact";
+
+fun pos_of_ref (Named ((_, pos), _)) = pos
+  | pos_of_ref (Fact _) = Position.none;
+
 fun name_pos_of_ref (Named (name_pos, _)) = name_pos
   | name_pos_of_ref (Fact _) = raise Fail "Illegal literal fact";
-
-val name_of_ref = #1 o name_pos_of_ref;
-val pos_of_ref = #2 o name_pos_of_ref;
 
 fun map_name_of_ref f (Named ((name, pos), is)) = Named ((f name, pos), is)
   | map_name_of_ref _ r = r;
@@ -101,7 +106,7 @@ fun select (Fact _) ths = ths
       let
         val n = length ths;
         fun err msg =
-          error (msg ^ " for " ^ quote name ^ " (length " ^ string_of_int n ^ ")" ^
+          error (msg ^ " for fact " ^ quote name ^ " (length " ^ string_of_int n ^ ")" ^
             Position.here pos);
         fun sel i =
           if i < 1 orelse i > n then err ("Bad subscript " ^ string_of_int i)
