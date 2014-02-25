@@ -98,27 +98,29 @@ text{* The triangle inequality for cmod *}
 lemma complex_mod_triangle_sub: "cmod w \<le> cmod (w + z) + norm z"
   using complex_mod_triangle_ineq2[of "w + z" "-z"] by auto
 
-subsection{* Basic lemmas about complex polynomials *}
+subsection{* Basic lemmas about polynomials *}
 
 lemma poly_bound_exists:
-  shows "\<exists>m. m > 0 \<and> (\<forall>z. cmod z <= r \<longrightarrow> cmod (poly p z) \<le> m)"
+  fixes p:: "('a::{comm_semiring_0,real_normed_div_algebra}) poly" 
+  shows "\<exists>m. m > 0 \<and> (\<forall>z. norm z <= r \<longrightarrow> norm (poly p z) \<le> m)"
 proof(induct p)
   case 0 thus ?case by (rule exI[where x=1], simp)
 next
   case (pCons c cs)
-  from pCons.hyps obtain m where m: "\<forall>z. cmod z \<le> r \<longrightarrow> cmod (poly cs z) \<le> m"
+  from pCons.hyps obtain m where m: "\<forall>z. norm z \<le> r \<longrightarrow> norm (poly cs z) \<le> m"
     by blast
-  let ?k = " 1 + cmod c + \<bar>r * m\<bar>"
+  let ?k = " 1 + norm c + \<bar>r * m\<bar>"
   have kp: "?k > 0" using abs_ge_zero[of "r*m"] norm_ge_zero[of c] by arith
-  {fix z
-    assume H: "cmod z \<le> r"
-    from m H have th: "cmod (poly cs z) \<le> m" by blast
+  {fix z :: 'a 
+    assume H: "norm z \<le> r"
+    from m H have th: "norm (poly cs z) \<le> m" by blast
     from H have rp: "r \<ge> 0" using norm_ge_zero[of z] by arith
-    have "cmod (poly (pCons c cs) z) \<le> cmod c + cmod (z* poly cs z)"
+    have "norm (poly (pCons c cs) z) \<le> norm c + norm (z* poly cs z)"
       using norm_triangle_ineq[of c "z* poly cs z"] by simp
-    also have "\<dots> \<le> cmod c + r*m" using mult_mono[OF H th rp norm_ge_zero[of "poly cs z"]] by (simp add: norm_mult)
+    also have "\<dots> \<le> norm c + r*m" using mult_mono[OF H th rp norm_ge_zero[of "poly cs z"]]
+      by (simp add: norm_mult)
     also have "\<dots> \<le> ?k" by simp
-    finally have "cmod (poly (pCons c cs) z) \<le> ?k" .}
+    finally have "norm (poly (pCons c cs) z) \<le> ?k" .}
   with kp show ?case by blast
 qed
 
@@ -174,7 +176,9 @@ definition
 lemma psize_eq_0_iff [simp]: "psize p = 0 \<longleftrightarrow> p = 0"
   unfolding psize_def by simp
 
-lemma poly_offset: "\<exists> q. psize q = psize p \<and> (\<forall>x. poly q (x::complex) = poly p (a + x))"
+lemma poly_offset: 
+  fixes p:: "('a::comm_ring_1) poly" 
+  shows "\<exists> q. psize q = psize p \<and> (\<forall>x. poly q x = poly p (a + x))"
 proof (intro exI conjI)
   show "psize (offset_poly p a) = psize p"
     unfolding psize_def
@@ -331,8 +335,9 @@ qed
 text{* Polynomial is continuous. *}
 
 lemma poly_cont:
+  fixes p:: "('a::{comm_semiring_0,real_normed_div_algebra}) poly" 
   assumes ep: "e > 0"
-  shows "\<exists>d >0. \<forall>w. 0 < cmod (w - z) \<and> cmod (w - z) < d \<longrightarrow> cmod (poly p w - poly p z) < e"
+  shows "\<exists>d >0. \<forall>w. 0 < norm (w - z) \<and> norm (w - z) < d \<longrightarrow> norm (poly p w - poly p z) < e"
 proof-
   obtain q where q: "degree q = degree p" "\<And>x. poly q x = poly p (z + x)"
   proof
@@ -350,7 +355,7 @@ proof-
   next
     case (pCons c cs)
     from poly_bound_exists[of 1 "cs"]
-    obtain m where m: "m > 0" "\<And>z. cmod z \<le> 1 \<Longrightarrow> cmod (poly cs z) \<le> m" by blast
+    obtain m where m: "m > 0" "\<And>z. norm z \<le> 1 \<Longrightarrow> norm (poly cs z) \<le> m" by blast
     from ep m(1) have em0: "e/m > 0" by (simp add: field_simps)
     have one0: "1 > (0::real)"  by arith
     from real_lbound_gt_zero[OF one0 em0]
@@ -360,12 +365,12 @@ proof-
     show ?case
       proof(rule ex_forward[OF real_lbound_gt_zero[OF one0 em0]], clarsimp simp add: norm_mult)
         fix d w
-        assume H: "d > 0" "d < 1" "d < e/m" "w\<noteq>z" "cmod (w-z) < d"
-        hence d1: "cmod (w-z) \<le> 1" "d \<ge> 0" by simp_all
+        assume H: "d > 0" "d < 1" "d < e/m" "w\<noteq>z" "norm (w-z) < d"
+        hence d1: "norm (w-z) \<le> 1" "d \<ge> 0" by simp_all
         from H(3) m(1) have dme: "d*m < e" by (simp add: field_simps)
-        from H have th: "cmod (w-z) \<le> d" by simp
+        from H have th: "norm (w-z) \<le> d" by simp
         from mult_mono[OF th m(2)[OF d1(1)] d1(2) norm_ge_zero] dme
-        show "cmod (w - z) * cmod (poly cs (w - z)) < e" by simp
+        show "norm (w - z) * norm (poly cs (w - z)) < e" by simp
       qed
     qed
 qed
@@ -482,41 +487,42 @@ lemma "(rcis (sqrt (abs r)) ((pi + a)/2))\<^sup>2 = rcis (- abs r) a"
 text {* Nonzero polynomial in z goes to infinity as z does. *}
 
 lemma poly_infinity:
+  fixes p:: "('a::{comm_semiring_0,real_normed_div_algebra}) poly" 
   assumes ex: "p \<noteq> 0"
-  shows "\<exists>r. \<forall>z. r \<le> cmod z \<longrightarrow> d \<le> cmod (poly (pCons a p) z)"
+  shows "\<exists>r. \<forall>z. r \<le> norm z \<longrightarrow> d \<le> norm (poly (pCons a p) z)"
 using ex
 proof(induct p arbitrary: a d)
   case (pCons c cs a d)
   {assume H: "cs \<noteq> 0"
-    with pCons.hyps obtain r where r: "\<forall>z. r \<le> cmod z \<longrightarrow> d + cmod a \<le> cmod (poly (pCons c cs) z)" by blast
+    with pCons.hyps obtain r where r: "\<forall>z. r \<le> norm z \<longrightarrow> d + norm a \<le> norm (poly (pCons c cs) z)" by blast
     let ?r = "1 + \<bar>r\<bar>"
-    {fix z assume h: "1 + \<bar>r\<bar> \<le> cmod z"
-      have r0: "r \<le> cmod z" using h by arith
+    {fix z::'a assume h: "1 + \<bar>r\<bar> \<le> norm z"
+      have r0: "r \<le> norm z" using h by arith
       from r[rule_format, OF r0]
-      have th0: "d + cmod a \<le> 1 * cmod(poly (pCons c cs) z)" by arith
-      from h have z1: "cmod z \<ge> 1" by arith
+      have th0: "d + norm a \<le> 1 * norm(poly (pCons c cs) z)" by arith
+      from h have z1: "norm z \<ge> 1" by arith
       from order_trans[OF th0 mult_right_mono[OF z1 norm_ge_zero[of "poly (pCons c cs) z"]]]
-      have th1: "d \<le> cmod(z * poly (pCons c cs) z) - cmod a"
+      have th1: "d \<le> norm(z * poly (pCons c cs) z) - norm a"
         unfolding norm_mult by (simp add: algebra_simps)
-      from complex_mod_triangle_sub[of "z * poly (pCons c cs) z" a]
-      have th2: "cmod(z * poly (pCons c cs) z) - cmod a \<le> cmod (poly (pCons a (pCons c cs)) z)"
+      from norm_diff_ineq[of "z * poly (pCons c cs) z" a]
+      have th2: "norm(z * poly (pCons c cs) z) - norm a \<le> norm (poly (pCons a (pCons c cs)) z)"
         by (simp add: algebra_simps)
-      from th1 th2 have "d \<le> cmod (poly (pCons a (pCons c cs)) z)"  by arith}
+      from th1 th2 have "d \<le> norm (poly (pCons a (pCons c cs)) z)"  by arith}
     hence ?case by blast}
   moreover
   {assume cs0: "\<not> (cs \<noteq> 0)"
     with pCons.prems have c0: "c \<noteq> 0" by simp
     from cs0 have cs0': "cs = 0" by simp
-    {fix z
-      assume h: "(\<bar>d\<bar> + cmod a) / cmod c \<le> cmod z"
-      from c0 have "cmod c > 0" by simp
-      from h c0 have th0: "\<bar>d\<bar> + cmod a \<le> cmod (z*c)"
+    {fix z::'a
+      assume h: "(\<bar>d\<bar> + norm a) / norm c \<le> norm z"
+      from c0 have "norm c > 0" by simp
+      from h c0 have th0: "\<bar>d\<bar> + norm a \<le> norm (z*c)"
         by (simp add: field_simps norm_mult)
       have ath: "\<And>mzh mazh ma. mzh <= mazh + ma ==> abs(d) + ma <= mzh ==> d <= mazh" by arith
-      from complex_mod_triangle_sub[of "z*c" a ]
-      have th1: "cmod (z * c) \<le> cmod (a + z * c) + cmod a"
+      from norm_diff_ineq[of "z*c" a ]
+      have th1: "norm (z * c) \<le> norm (a + z * c) + norm a"
         by (simp add: algebra_simps)
-      from ath[OF th1 th0] have "d \<le> cmod (poly (pCons a (pCons c cs)) z)"
+      from ath[OF th1 th0] have "d \<le> norm (poly (pCons a (pCons c cs)) z)"
         using cs0' by simp}
     then have ?case  by blast}
   ultimately show ?case by blast
@@ -850,7 +856,7 @@ proof(induct n arbitrary: p q rule: nat_less_induct)
               from h have "poly p x = 0" by (subst s, simp)
               with pq0 have "poly q x = 0" by blast
               with r xa have "poly r x = 0"
-                by (auto simp add: uminus_add_conv_diff)}
+                by auto}
             note impth = this
             from IH[rule_format, OF dsn, of s r] impth ds0
             have "s dvd (r ^ (degree s))" by blast
@@ -945,44 +951,38 @@ by (metis dvd_imp_degree_le pq)
 (* Arithmetic operations on multivariate polynomials.                        *)
 
 lemma mpoly_base_conv:
-  "(0::complex) \<equiv> poly 0 x" "c \<equiv> poly [:c:] x" "x \<equiv> poly [:0,1:] x" by simp_all
+  fixes x :: "'a::comm_ring_1" 
+  shows "0 = poly 0 x" "c = poly [:c:] x" "x = poly [:0,1:] x"
+  by simp_all
 
 lemma mpoly_norm_conv:
-  "poly [:0:] (x::complex) \<equiv> poly 0 x" "poly [:poly 0 y:] x \<equiv> poly 0 x" by simp_all
+  fixes x :: "'a::comm_ring_1" 
+  shows "poly [:0:] x = poly 0 x" "poly [:poly 0 y:] x = poly 0 x" by simp_all
 
 lemma mpoly_sub_conv:
-  "poly p (x::complex) - poly q x \<equiv> poly p x + -1 * poly q x"
+  fixes x :: "'a::comm_ring_1" 
+  shows "poly p x - poly q x = poly p x + -1 * poly q x"
   by simp
 
-lemma poly_pad_rule: "poly p x = 0 ==> poly (pCons 0 p) x = (0::complex)" by simp
+lemma poly_pad_rule: "poly p x = 0 ==> poly (pCons 0 p) x = 0" by simp
 
-lemma poly_cancel_eq_conv: "p = (0::complex) \<Longrightarrow> a \<noteq> 0 \<Longrightarrow> (q = 0) \<equiv> (a * q - b * p = 0)" apply (atomize (full)) by auto
-
-lemma resolve_eq_raw:  "poly 0 x \<equiv> 0" "poly [:c:] x \<equiv> (c::complex)" by auto
+lemma poly_cancel_eq_conv:
+  fixes x :: "'a::field" 
+  shows "x = 0 \<Longrightarrow> a \<noteq> 0 \<Longrightarrow> (y = 0) = (a * y - b * x = 0)" 
+  by auto
 
 lemma poly_divides_pad_rule:
-  fixes p q :: "complex poly"
+  fixes p:: "('a::comm_ring_1) poly" 
   assumes pq: "p dvd q"
-  shows "p dvd (pCons (0::complex) q)"
+shows "p dvd (pCons 0 q)"
 proof-
   have "pCons 0 q = q * [:0,1:]" by simp
   then have "q dvd (pCons 0 q)" ..
   with pq show ?thesis by (rule dvd_trans)
 qed
 
-lemma poly_divides_pad_const_rule:
-  fixes p q :: "complex poly"
-  assumes pq: "p dvd q"
-  shows "p dvd (smult a q)"
-proof-
-  have "smult a q = q * [:a:]" by simp
-  then have "q dvd smult a q" ..
-  with pq show ?thesis by (rule dvd_trans)
-qed
-
-
 lemma poly_divides_conv0:
-  fixes p :: "complex poly"
+  fixes p:: "('a::field) poly" 
   assumes lgpq: "degree q < degree p" and lq:"p \<noteq> 0"
   shows "p dvd q \<equiv> q = 0" (is "?lhs \<equiv> ?rhs")
 proof-
@@ -1003,9 +1003,10 @@ proof-
 qed
 
 lemma poly_divides_conv1:
-  assumes a0: "a\<noteq> (0::complex)" and pp': "(p::complex poly) dvd p'"
+  fixes p:: "('a::field) poly" 
+  assumes a0: "a\<noteq> 0" and pp': "p dvd p'"
   and qrp': "smult a q - p' \<equiv> r"
-  shows "p dvd q \<equiv> p dvd (r::complex poly)" (is "?lhs \<equiv> ?rhs")
+  shows "p dvd q \<equiv> p dvd r" (is "?lhs \<equiv> ?rhs")
 proof-
   {
   from pp' obtain t where t: "p' = p * t" ..
@@ -1068,8 +1069,9 @@ proof-
   thus "p dvd (q ^ n) \<longleftrightarrow> p dvd r" by simp
 qed
 
-lemma complex_entire: "(z::complex) \<noteq> 0 \<and> w \<noteq> 0 \<equiv> z*w \<noteq> 0" by simp
-
-lemma poly_const_conv: "poly [:c:] (x::complex) = y \<longleftrightarrow> c = y" by simp
+lemma poly_const_conv:
+  fixes x :: "'a::comm_ring_1" 
+  shows "poly [:c:] x = y \<longleftrightarrow> c = y" by simp
 
 end
+
