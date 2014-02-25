@@ -89,7 +89,7 @@ fun pretty_src ctxt src =
       | SOME (Token.Typ T) => Syntax.pretty_typ ctxt T
       | SOME (Token.Term t) => Syntax.pretty_term ctxt t
       | SOME (Token.Fact ths) => Pretty.enclose "(" ")" (Pretty.breaks (map prt_thm ths))
-      | _ => Pretty.str (Token.unparse arg));
+      | _ => Pretty.mark_str (#1 (Token.markup arg), Token.unparse arg));
     val (s, args) = #1 (dest_src src);
   in Pretty.block (Pretty.breaks (Pretty.str s :: map prt args)) end;
 
@@ -291,8 +291,8 @@ fun syntax kind scan (Src ((s, args), pos)) st =
   (case Scan.error (Scan.finite' Token.stopper (Scan.option scan)) (st, args) of
     (SOME x, (st', [])) => (x, st')
   | (_, (_, args')) =>
-      error (kind ^ " " ^ quote s ^ Position.here pos ^ ": bad arguments" ^
-        (if null args' then "" else "\n  " ^ space_implode " " (map Token.unparse args'))));
+      error ("Bad arguments for " ^ kind ^ " " ^ quote s ^ Position.here pos ^
+        (if null args' then "" else ":\n  " ^ space_implode " " (map Token.print args'))));
 
 fun context_syntax kind scan src = apsnd Context.the_proof o syntax kind scan src o Context.Proof;
 

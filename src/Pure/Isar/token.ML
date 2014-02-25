@@ -44,6 +44,7 @@ sig
   val content_of: T -> string
   val markup: T -> Markup.T * string
   val unparse: T -> string
+  val print: T -> string
   val text_of: T -> string * string
   val get_files: T -> file Exn.result list
   val put_files: file Exn.result list -> T -> T
@@ -262,6 +263,8 @@ fun unparse (Token (_, (kind, x), _)) =
   | Sync => ""
   | EOF => ""
   | _ => x);
+
+fun print tok = Markup.markup (#1 (markup tok)) (unparse tok);
 
 fun text_of tok =
   if is_semicolon tok then ("terminator", "")
