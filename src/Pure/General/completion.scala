@@ -188,6 +188,12 @@ object Completion
 
   /* word parsers */
 
+  def word_context(text: Option[String]): Boolean =
+    text match {
+      case None => false
+      case Some(s) => Word_Parsers.is_word(s)
+    }
+
   private object Word_Parsers extends RegexParsers
   {
     override val whiteSpace = "".r
@@ -274,6 +280,7 @@ final class Completion private(
     explicit: Boolean,
     text_start: Text.Offset,
     text: CharSequence,
+    word_context: Boolean,
     context: Completion.Context): Option[Completion.Result] =
   {
     val abbrevs_result =
@@ -293,18 +300,20 @@ final class Completion private(
 
     val words_result =
       abbrevs_result orElse {
-        Completion.Word_Parsers.read(explicit, text) match {
-          case Some(word) =>
-            val completions =
-              for {
-                s <- words_lex.completions(word)
-                if (if (keywords(s)) context.is_outer else context.symbols)
-                r <- words_map.get_list(s)
-              } yield r
-            if (completions.isEmpty) None
-            else Some(word, completions)
-          case None => None
-        }
+        if (word_context) None
+        else
+          Completion.Word_Parsers.read(explicit, text) match {
+            case Some(word) =>
+              val completions =
+                for {
+                  s <- words_lex.completions(word)
+                  if (if (keywords(s)) context.is_outer else context.symbols)
+                  r <- words_map.get_list(s)
+                } yield r
+              if (completions.isEmpty) None
+              else Some(word, completions)
+            case None => None
+          }
       }
 
     words_result match {

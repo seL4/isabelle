@@ -137,6 +137,10 @@ object Completion_Popup
           val start = buffer.getLineStartOffset(line)
           val text = buffer.getSegment(start, caret - start)
 
+          val word_context =
+            Completion.word_context(
+              JEdit_Lib.try_get_text(buffer, JEdit_Lib.point_range(buffer, caret)))
+
           val context =
             (opt_rendering orElse PIDE.document_view(text_area).map(_.get_rendering()) match {
               case Some(rendering) =>
@@ -144,7 +148,7 @@ object Completion_Popup
               case None => None
             }) getOrElse syntax.completion_context
 
-          syntax.completion.complete(history, decode, explicit, start, text, context)
+          syntax.completion.complete(history, decode, explicit, start, text, word_context, context)
 
         case None => None
       }
@@ -384,8 +388,13 @@ object Completion_Popup
           val caret = text_field.getCaret.getDot
           val text = text_field.getText.substring(0, caret)
 
-          syntax.completion.complete(
-              history, decode = true, explicit = false, 0, text, syntax.completion_context) match {
+          val word_context =
+            Completion.word_context(JEdit_Lib.try_get_text(text_field.getText,
+              Text.Range(caret, caret + 1)))  // FIXME proper point range!?
+
+          val context = syntax.completion_context
+
+          syntax.completion.complete(history, true, false, 0, text, word_context, context) match {
             case Some(result) =>
               val fm = text_field.getFontMetrics(text_field.getFont)
               val loc =
