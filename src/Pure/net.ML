@@ -20,6 +20,7 @@ sig
   val encode_type: typ -> term
   type 'a net
   val empty: 'a net
+  val is_empty: 'a net -> bool
   exception INSERT
   val insert: ('a * 'a -> bool) -> key list * 'a -> 'a net -> 'a net
   val insert_term: ('a * 'a -> bool) -> term * 'a -> 'a net -> 'a net
@@ -251,7 +252,8 @@ fun dest (Leaf xs) = map (pair []) xs
       map (cons_fst VarK) (dest var) @
       maps (fn (a, net) => map (cons_fst (AtomK a)) (dest net)) (Symtab.dest atoms);
 
-fun merge eq (net1, net2) = fold (insert_safe eq) (dest net2) net1;
+fun merge eq (net1, net2) =
+  fold (insert_safe eq) (dest net2) net1;  (* FIXME non-standard merge order!?! *)
 
 fun content net = map #2 (dest net);
 
