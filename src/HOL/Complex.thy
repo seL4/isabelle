@@ -557,6 +557,109 @@ lemmas isCont_cnj [simp] =
   bounded_linear.isCont [OF bounded_linear_cnj]
 
 
+subsection{*Basic Lemmas*}
+
+lemma complex_eq_0: "z=0 \<longleftrightarrow> (Re z)\<^sup>2 + (Im z)\<^sup>2 = 0"
+  by (metis complex_Im_zero complex_Re_zero complex_eqI sum_power2_eq_zero_iff)
+
+lemma complex_neq_0: "z\<noteq>0 \<longleftrightarrow> (Re z)\<^sup>2 + (Im z)\<^sup>2 > 0"
+by (metis complex_eq_0 less_numeral_extra(3) sum_power2_gt_zero_iff)
+
+lemma complex_norm_square: "of_real ((norm z)\<^sup>2) = z * cnj z"
+apply (cases z, auto)
+by (metis complex_of_real_def of_real_add of_real_power power2_eq_square)
+
+lemma complex_div_eq_0: 
+    "(Re(a / b) = 0 \<longleftrightarrow> Re(a * cnj b) = 0) & (Im(a / b) = 0 \<longleftrightarrow> Im(a * cnj b) = 0)"
+proof (cases "b=0")
+  case True then show ?thesis by auto
+next
+  case False
+  show ?thesis
+  proof (cases b)
+    case (Complex x y)
+    then have "x\<^sup>2 + y\<^sup>2 > 0"
+      by (metis Complex_eq_0 False sum_power2_gt_zero_iff)
+    then have "!!u v. u / (x\<^sup>2 + y\<^sup>2) + v / (x\<^sup>2 + y\<^sup>2) = (u + v) / (x\<^sup>2 + y\<^sup>2)"
+      by (metis add_divide_distrib)
+    with Complex False show ?thesis
+      by (auto simp: complex_divide_def)
+  qed
+qed
+
+lemma re_complex_div_eq_0: "Re(a / b) = 0 \<longleftrightarrow> Re(a * cnj b) = 0"
+  and im_complex_div_eq_0: "Im(a / b) = 0 \<longleftrightarrow> Im(a * cnj b) = 0"
+using complex_div_eq_0 by auto
+
+
+lemma complex_div_gt_0: 
+    "(Re(a / b) > 0 \<longleftrightarrow> Re(a * cnj b) > 0) & (Im(a / b) > 0 \<longleftrightarrow> Im(a * cnj b) > 0)"
+proof (cases "b=0")
+  case True then show ?thesis by auto
+next
+  case False
+  show ?thesis
+  proof (cases b)
+    case (Complex x y)
+    then have "x\<^sup>2 + y\<^sup>2 > 0"
+      by (metis Complex_eq_0 False sum_power2_gt_zero_iff)
+    moreover have "!!u v. u / (x\<^sup>2 + y\<^sup>2) + v / (x\<^sup>2 + y\<^sup>2) = (u + v) / (x\<^sup>2 + y\<^sup>2)"
+      by (metis add_divide_distrib)
+    ultimately show ?thesis using Complex False `0 < x\<^sup>2 + y\<^sup>2`
+      apply (simp add: complex_divide_def  zero_less_divide_iff less_divide_eq)
+      apply (metis less_divide_eq mult_zero_left diff_conv_add_uminus minus_divide_left)
+      done
+  qed
+qed
+
+lemma re_complex_div_gt_0: "Re(a / b) > 0 \<longleftrightarrow> Re(a * cnj b) > 0"
+  and im_complex_div_gt_0: "Im(a / b) > 0 \<longleftrightarrow> Im(a * cnj b) > 0"
+using complex_div_gt_0 by auto
+
+lemma re_complex_div_ge_0: "Re(a / b) \<ge> 0 \<longleftrightarrow> Re(a * cnj b) \<ge> 0"
+  by (metis le_less re_complex_div_eq_0 re_complex_div_gt_0)
+
+lemma im_complex_div_ge_0: "Im(a / b) \<ge> 0 \<longleftrightarrow> Im(a * cnj b) \<ge> 0"
+  by (metis im_complex_div_eq_0 im_complex_div_gt_0 le_less)
+
+lemma re_complex_div_lt_0: "Re(a / b) < 0 \<longleftrightarrow> Re(a * cnj b) < 0"
+  by (smt re_complex_div_eq_0 re_complex_div_gt_0)
+
+lemma im_complex_div_lt_0: "Im(a / b) < 0 \<longleftrightarrow> Im(a * cnj b) < 0"
+  by (metis im_complex_div_eq_0 im_complex_div_gt_0 less_asym neq_iff)
+
+lemma re_complex_div_le_0: "Re(a / b) \<le> 0 \<longleftrightarrow> Re(a * cnj b) \<le> 0"
+  by (metis not_le re_complex_div_gt_0)
+
+lemma im_complex_div_le_0: "Im(a / b) \<le> 0 \<longleftrightarrow> Im(a * cnj b) \<le> 0"
+  by (metis im_complex_div_gt_0 not_le)
+
+lemma Re_setsum: "finite s \<Longrightarrow> Re(setsum f s) = setsum (%x. Re(f x)) s"
+  by (induct s rule: finite_induct) auto
+
+lemma Im_setsum: "finite s \<Longrightarrow> Im(setsum f s) = setsum (%x. Im(f x)) s"
+  by (induct s rule: finite_induct) auto
+
+lemma Complex_setsum': "finite s \<Longrightarrow> setsum (%x. Complex (f x) 0) s = Complex (setsum f s) 0"
+  by (induct s rule: finite_induct) auto
+
+lemma Complex_setsum: "finite s \<Longrightarrow> Complex (setsum f s) 0 = setsum (%x. Complex (f x) 0) s"
+  by (metis Complex_setsum')
+
+lemma cnj_setsum: "finite s \<Longrightarrow> cnj (setsum f s) = setsum (%x. cnj (f x)) s"
+  by (induct s rule: finite_induct) (auto simp: complex_cnj_add)
+
+lemma Reals_cnj_iff: "z \<in> \<real> \<longleftrightarrow> cnj z = z"
+by (metis Reals_cases Reals_of_real complex.exhaust complex.inject complex_cnj 
+          complex_of_real_def equal_neg_zero)
+
+lemma Complex_in_Reals: "Complex x 0 \<in> \<real>"
+  by (metis Reals_of_real complex_of_real_def)
+
+lemma in_Reals_norm: "z \<in> \<real> \<Longrightarrow> norm(z) = abs(Re z)"
+  by (metis Re_complex_of_real Reals_cases norm_of_real)
+
+
 subsection{*Finally! Polar Form for Complex Numbers*}
 
 subsubsection {* $\cos \theta + i \sin \theta$ *}

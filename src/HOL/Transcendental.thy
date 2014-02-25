@@ -52,6 +52,12 @@ next
   finally show ?case .
 qed
 
+corollary power_diff_sumr2: --{*COMPLEX_POLYFUN in HOL Light*}
+  fixes x :: "'a::{comm_ring,monoid_mult}"
+  shows   "x^n - y^n = (x - y) * (\<Sum>i=0..<n. y^(n - Suc i) * x^i)"
+using lemma_realpow_diff_sumr2[of x "n - 1" y]
+by (cases "n = 0") (simp_all add: field_simps)
+
 lemma lemma_realpow_rev_sumr:
    "(\<Sum>p=0..<Suc n. (x ^ p) * (y ^ (n - p))) =
     (\<Sum>p=0..<Suc n. (x ^ (n - p)) * (y ^ p))"

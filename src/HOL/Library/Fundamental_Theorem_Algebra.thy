@@ -7,6 +7,7 @@ imports Polynomial Complex_Main
 begin
 
 subsection {* Square root of complex numbers *}
+
 definition csqrt :: "complex \<Rightarrow> complex" where
 "csqrt z = (if Im z = 0 then
             if 0 \<le> Re z then Complex (sqrt(Re z)) 0
@@ -54,6 +55,39 @@ proof-
   ultimately show ?thesis by blast
 qed
 
+lemma csqrt_Complex: "x \<ge> 0 \<Longrightarrow> csqrt (Complex x 0) = Complex (sqrt x) 0"
+  by (simp add: csqrt_def)
+
+lemma csqrt_0 [simp]: "csqrt 0 = 0"
+  by (simp add: csqrt_def)
+
+lemma csqrt_1 [simp]: "csqrt 1 = 1"
+  by (simp add: csqrt_def)
+
+lemma csqrt_principal: "0 < Re(csqrt(z)) | Re(csqrt(z)) = 0 & 0 \<le> Im(csqrt(z))"
+proof (cases z)
+  case (Complex x y)
+  then show ?thesis
+    using real_sqrt_sum_squares_ge1 [of "x" y]
+          real_sqrt_sum_squares_ge1 [of "-x" y]
+          real_sqrt_sum_squares_eq_cancel [of x y]
+    apply (auto simp: csqrt_def intro!: Rings.ordered_ring_class.split_mult_pos_le)
+    apply (metis add_commute diff_add_cancel le_add_same_cancel1 real_sqrt_sum_squares_ge1)
+    by (metis add_commute less_eq_real_def power_minus_Bit0 real_0_less_add_iff real_sqrt_sum_squares_eq_cancel)
+qed
+
+lemma Re_csqrt: "0 \<le> Re(csqrt z)"
+  by (metis csqrt_principal le_less)
+
+lemma csqrt_square: "(0 < Re z | Re z = 0 & 0 \<le> Im z) \<Longrightarrow> csqrt (z^2) = z"
+  using csqrt [of "z^2"] csqrt_principal [of "z^2"]
+  by (cases z) (auto simp: power2_eq_iff)
+
+lemma csqrt_eq_0 [simp]: "csqrt z = 0 \<longleftrightarrow> z = 0"
+  by auto (metis csqrt power_eq_0_iff)
+
+lemma csqrt_eq_1 [simp]: "csqrt z = 1 \<longleftrightarrow> z = 1"
+  by auto (metis csqrt power2_eq_1_iff)
 
 subsection{* More lemmas about module of complex numbers *}
 

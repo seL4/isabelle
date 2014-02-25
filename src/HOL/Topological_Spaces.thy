@@ -1706,6 +1706,11 @@ lemma continuous_on_open_vimage:
   unfolding continuous_on_open_invariant
   by (metis open_Int Int_absorb Int_commute[of s] Int_assoc[of _ _ s])
 
+corollary continuous_imp_open_vimage:
+  assumes "continuous_on s f" "open s" "open B" "f -` B \<subseteq> s"
+    shows "open (f -` B)"
+by (metis assms continuous_on_open_vimage le_iff_inf)
+
 lemma continuous_on_closed_invariant:
   "continuous_on s f \<longleftrightarrow> (\<forall>B. closed B \<longrightarrow> (\<exists>A. closed A \<and> A \<inter> s = f -` B \<inter> s))"
 proof -
