@@ -447,16 +447,6 @@ local
    end
   
   fun rewrs_imp rules = first_imp (map rewr_imp rules)
-
-  fun map_interrupt f l =
-    let
-      fun map_interrupt' _ [] l = SOME (rev l)
-       | map_interrupt' f (x::xs) l = (case f x of
-        NONE => NONE
-        | SOME v => map_interrupt' f xs (v::l))
-    in
-      map_interrupt' f l []
-    end
 in
 
   (*

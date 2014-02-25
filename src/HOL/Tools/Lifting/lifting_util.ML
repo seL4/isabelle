@@ -31,6 +31,7 @@ sig
   val relation_types: typ -> typ * typ
   val mk_HOL_eq: thm -> thm
   val safe_HOL_meta_eq: thm -> thm
+  val map_interrupt: ('a -> 'b option) -> 'a list -> 'b list option
 end
 
 
@@ -120,5 +121,15 @@ fun relation_types typ =
 fun mk_HOL_eq r = r RS @{thm meta_eq_to_obj_eq}
 
 fun safe_HOL_meta_eq r = mk_HOL_eq r handle Thm.THM _ => r
+
+fun map_interrupt f l =
+  let
+    fun map_interrupt' _ [] l = SOME (rev l)
+     | map_interrupt' f (x::xs) l = (case f x of
+      NONE => NONE
+      | SOME v => map_interrupt' f xs (v::l))
+  in
+    map_interrupt' f l []
+  end
 
 end

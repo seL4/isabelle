@@ -443,10 +443,65 @@ fun add_lift_def var qty rhs rsp_thm par_thms lthy =
       |> register_code_eq abs_eq_thm opt_rep_eq_thm (rty_forced, qty)
   end
 
+local
+  val invariant_assms_tac_fixed_rules = map (Transfer.prep_transfer_domain_thm @{context})
+    [@{thm pcr_Domainp_total}, @{thm pcr_Domainp_par_left_total}, @{thm pcr_Domainp_par}, 
+      @{thm pcr_Domainp}]
+in
 fun mk_readable_rsp_thm_eq tm lthy =
   let
     val ctm = cterm_of (Proof_Context.theory_of lthy) tm
     
+    (* This is not very cheap way of getting the rules but we have only few active
+      liftings in the current setting *)
+    fun get_cr_pcr_eqs ctxt =
+      let
+        fun collect (data : Lifting_Info.quotient) l =
+          if is_some (#pcr_info data) 
+          then ((Thm.symmetric o safe_mk_meta_eq o #pcr_cr_eq o the o #pcr_info) data :: l) 
+          else l
+        val table = Lifting_Info.get_quotients ctxt
+      in
+        Symtab.fold (fn (_, data) => fn l => collect data l) table []
+      end
+
+    fun assms_rewr_conv tactic rule ct =
+      let
+        fun prove_extra_assms thm =
+          let
+            val assms = cprems_of thm
+            fun finish thm = if Thm.no_prems thm then SOME (Goal.conclude thm) else NONE
+            fun prove ctm = Option.mapPartial finish (SINGLE tactic (Goal.init ctm))
+          in
+            map_interrupt prove assms
+          end
+    
+        fun cconl_of thm = Drule.strip_imp_concl (cprop_of thm)
+        fun lhs_of thm = fst (Thm.dest_equals (cconl_of thm))
+        fun rhs_of thm = snd (Thm.dest_equals (cconl_of thm))
+        val rule1 = Thm.incr_indexes (#maxidx (Thm.rep_cterm ct) + 1) rule;
+        val lhs = lhs_of rule1;
+        val rule2 = Thm.rename_boundvars (Thm.term_of lhs) (Thm.term_of ct) rule1;
+        val rule3 =
+          Thm.instantiate (Thm.match (lhs, ct)) rule2
+            handle Pattern.MATCH => raise CTERM ("assms_rewr_conv", [lhs, ct]);
+        val proved_assms = prove_extra_assms rule3
+      in
+        case proved_assms of
+          SOME proved_assms =>
+            let
+              val rule3 = proved_assms MRSL rule3
+              val rule4 =
+                if lhs_of rule3 aconvc ct then rule3
+                else
+                  let val ceq = Thm.dest_fun2 (Thm.cprop_of rule3)
+                  in rule3 COMP Thm.trivial (Thm.mk_binop ceq ct (rhs_of rule3)) end
+            in Thm.transitive rule4 (Thm.beta_conversion true (rhs_of rule4)) end
+          | NONE => Conv.no_conv ct
+      end
+
+    fun assms_rewrs_conv tactic rules = Conv.first_conv (map (assms_rewr_conv tactic) rules)
+
     fun simp_arrows_conv ctm =
       let
         val unfold_conv = Conv.rewrs_conv 
@@ -455,8 +510,13 @@ fun mk_readable_rsp_thm_eq tm lthy =
             @{thm fun_rel_eq_rel[THEN eq_reflection]}, 
             @{thm fun_rel_def[THEN eq_reflection]}]
         fun binop_conv2 cv1 cv2 = Conv.combination_conv (Conv.arg_conv cv1) cv2
+        val invariant_assms_tac_rules = @{thm left_unique_composition} :: 
+            invariant_assms_tac_fixed_rules @ (Transfer.get_transfer_raw lthy)
+        val invariant_assms_tac = (TRY o REPEAT_ALL_NEW (resolve_tac invariant_assms_tac_rules) 
+          THEN_ALL_NEW (DETERM o Transfer.eq_tac lthy)) 1
         val invariant_commute_conv = Conv.bottom_conv
-          (K (Conv.try_conv (Conv.rewrs_conv (Lifting_Info.get_invariant_commute_rules lthy)))) lthy
+          (K (Conv.try_conv (assms_rewrs_conv invariant_assms_tac
+            (Lifting_Info.get_invariant_commute_rules lthy)))) lthy
         val relator_eq_conv = Conv.bottom_conv
           (K (Conv.try_conv (Conv.rewrs_conv (Transfer.get_relator_eq lthy)))) lthy
       in
@@ -467,8 +527,9 @@ fun mk_readable_rsp_thm_eq tm lthy =
       end
     
     val unfold_ret_val_invs = Conv.bottom_conv 
-      (K (Conv.try_conv (Conv.rewr_conv @{thm invariant_same_args}))) lthy 
-    val simp_conv = HOLogic.Trueprop_conv (Conv.fun2_conv simp_arrows_conv)
+      (K (Conv.try_conv (Conv.rewr_conv @{thm invariant_same_args}))) lthy
+    val cr_to_pcr_conv = Raw_Simplifier.rewrite lthy false (get_cr_pcr_eqs lthy)
+    val simp_conv = HOLogic.Trueprop_conv (Conv.fun2_conv (cr_to_pcr_conv then_conv simp_arrows_conv))
     val univq_conv = Conv.rewr_conv @{thm HOL.all_simps(6)[symmetric, THEN eq_reflection]}
     val univq_prenex_conv = Conv.top_conv (K (Conv.try_conv univq_conv)) lthy
     val beta_conv = Thm.beta_conversion true
@@ -477,6 +538,7 @@ fun mk_readable_rsp_thm_eq tm lthy =
   in
     Object_Logic.rulify lthy (eq_thm RS Drule.equal_elim_rule2)
   end
+end
 
 fun rename_to_tnames ctxt term =
   let

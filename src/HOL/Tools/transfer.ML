@@ -25,10 +25,13 @@ sig
   val transfer_raw_del: thm -> Context.generic -> Context.generic
   val transferred_attribute: thm list -> attribute
   val untransferred_attribute: thm list -> attribute
+  val prep_transfer_domain_thm: Proof.context -> thm -> thm
   val transfer_domain_add: attribute
   val transfer_domain_del: attribute
   val transfer_rule_of_term: Proof.context -> bool -> term -> thm
   val transfer_rule_of_lhs: Proof.context -> term -> thm
+  val eq_tac: Proof.context -> int -> tactic
+  val transfer_step_tac: Proof.context -> int -> tactic
   val transfer_tac: bool -> Proof.context -> int -> tactic
   val transfer_prover_tac: Proof.context -> int -> tactic
   val gen_frees_tac: (string * typ) list -> Proof.context -> int -> tactic
@@ -346,11 +349,14 @@ fun detect_transfer_rules thm =
 
 (** Adding transfer domain rules **)
 
-fun add_transfer_domain_thm thm ctxt = 
-  (add_transfer_thm o abstract_equalities_domain (Context.proof_of ctxt) o detect_transfer_rules) thm ctxt
+fun prep_transfer_domain_thm ctxt thm = 
+  (abstract_equalities_domain ctxt o detect_transfer_rules) thm 
 
-fun del_transfer_domain_thm thm ctxt = 
-  (del_transfer_thm o abstract_equalities_domain (Context.proof_of ctxt) o detect_transfer_rules) thm ctxt
+fun add_transfer_domain_thm thm ctxt = (add_transfer_thm o 
+  prep_transfer_domain_thm (Context.proof_of ctxt)) thm ctxt
+
+fun del_transfer_domain_thm thm ctxt = (del_transfer_thm o 
+  prep_transfer_domain_thm (Context.proof_of ctxt)) thm ctxt
 
 (** Transfer proof method **)
 
@@ -571,7 +577,13 @@ fun transfer_rule_of_lhs ctxt t : thm =
       |> Thm.instantiate (map tinst binsts, map inst binsts)
   end
 
-fun eq_tac eq_rules = TRY o REPEAT_ALL_NEW (resolve_tac eq_rules) THEN_ALL_NEW rtac @{thm is_equality_eq}
+fun eq_rules_tac eq_rules = TRY o REPEAT_ALL_NEW (resolve_tac eq_rules) 
+  THEN_ALL_NEW rtac @{thm is_equality_eq}
+
+fun eq_tac ctxt = eq_rules_tac (get_relator_eq_raw ctxt)
+
+fun transfer_step_tac ctxt = (REPEAT_ALL_NEW (resolve_tac (get_transfer_raw ctxt)) 
+  THEN_ALL_NEW (DETERM o eq_rules_tac (get_relator_eq_raw ctxt)))
 
 fun transfer_tac equiv ctxt i =
   let
@@ -587,7 +599,7 @@ fun transfer_tac equiv ctxt i =
       rtac start_rule i THEN
       (rtac (transfer_rule_of_term ctxt equiv (HOLogic.dest_Trueprop t))
         THEN_ALL_NEW
-          (SOLVED' (REPEAT_ALL_NEW (resolve_tac rules) THEN_ALL_NEW (DETERM o eq_tac eq_rules))
+          (SOLVED' (REPEAT_ALL_NEW (resolve_tac rules) THEN_ALL_NEW (DETERM o eq_rules_tac eq_rules))
             ORELSE' end_tac)) (i + 1)
         handle TERM (_, ts) => raise TERM (err_msg, ts)
   in
@@ -612,7 +624,7 @@ fun transfer_prover_tac ctxt = SUBGOAL (fn (t, i) =>
        rtac @{thm transfer_prover_start} i,
        ((rtac rule1 ORELSE' (CONVERSION expand_eq_in_rel THEN' rtac rule1))
         THEN_ALL_NEW
-         (REPEAT_ALL_NEW (resolve_tac rules) THEN_ALL_NEW (DETERM o eq_tac eq_rules))) (i+1),
+         (REPEAT_ALL_NEW (resolve_tac rules) THEN_ALL_NEW (DETERM o eq_rules_tac eq_rules))) (i+1),
        rtac @{thm refl} i]
   end)
 
@@ -640,7 +652,7 @@ fun transferred ctxt extra_rules thm =
       (rtac rule
         THEN_ALL_NEW
           (SOLVED' (REPEAT_ALL_NEW (resolve_tac rules)
-            THEN_ALL_NEW (DETERM o eq_tac eq_rules)))) 1
+            THEN_ALL_NEW (DETERM o eq_rules_tac eq_rules)))) 1
         handle TERM (_, ts) => raise TERM (err_msg, ts)
     val thm3 = Goal.prove_internal ctxt' [] @{cpat "Trueprop ?P"} (K tac)
     val tnames = map (fst o dest_TFree o snd) instT
@@ -676,7 +688,7 @@ fun untransferred ctxt extra_rules thm =
       (rtac rule
         THEN_ALL_NEW
           (SOLVED' (REPEAT_ALL_NEW (resolve_tac rules)
-            THEN_ALL_NEW (DETERM o eq_tac eq_rules)))) 1
+            THEN_ALL_NEW (DETERM o eq_rules_tac eq_rules)))) 1
         handle TERM (_, ts) => raise TERM (err_msg, ts)
     val thm3 = Goal.prove_internal ctxt' [] @{cpat "Trueprop ?P"} (K tac)
     val tnames = map (fst o dest_TFree o snd) instT

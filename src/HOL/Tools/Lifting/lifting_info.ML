@@ -516,6 +516,11 @@ val setup =
   #> relfexivity_rule_setup
   #> relator_distr_attribute_setup
 
+(* setup fixed invariant rules *)
+
+val _ = Context.>> (fold (Invariant_Commute.add_thm o Transfer.prep_transfer_domain_thm @{context}) 
+  [@{thm composed_equiv_rel_invariant}, @{thm composed_equiv_rel_eq_invariant}])
+
 (* outer syntax commands *)
 
 val _ =

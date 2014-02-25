@@ -591,6 +591,21 @@ shows "(R OO R' ===> S OO S') \<le> ((R ===> S) OO (R' ===> S'))"
 
 subsection {* Domains *}
 
+lemma composed_equiv_rel_invariant:
+  assumes "left_unique R"
+  assumes "(R ===> op=) P P'"
+  assumes "Domainp R = P''"
+  shows "(R OO Lifting.invariant P' OO R\<inverse>\<inverse>) = Lifting.invariant (inf P'' P)"
+using assms unfolding OO_def conversep_iff Domainp_iff[abs_def] left_unique_def fun_rel_def invariant_def
+fun_eq_iff by blast
+
+lemma composed_equiv_rel_eq_invariant:
+  assumes "left_unique R"
+  assumes "Domainp R = P"
+  shows "(R OO op= OO R\<inverse>\<inverse>) = Lifting.invariant P"
+using assms unfolding OO_def conversep_iff Domainp_iff[abs_def] left_unique_def invariant_def
+fun_eq_iff is_equality_def by metis
+
 lemma pcr_Domainp_par_left_total:
   assumes "Domainp B = P"
   assumes "left_total A"
