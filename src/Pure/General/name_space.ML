@@ -1,8 +1,8 @@
 (*  Title:      Pure/General/name_space.ML
     Author:     Markus Wenzel, TU Muenchen
 
-Generic name spaces with declared and hidden entries.  Unknown names
-are considered global; no support for absolute addressing.
+Generic name spaces with declared and hidden entries; no support for
+absolute addressing.
 *)
 
 type xstring = string;    (*external names*)
@@ -120,7 +120,7 @@ fun defined_entry (Name_Space {entries, ...}) = Symtab.defined entries;
 
 fun the_entry (Name_Space {kind, entries, ...}) name =
   (case Symtab.lookup entries name of
-    NONE => error ("Unknown " ^ kind ^ " " ^ quote name)
+    NONE => error (undefined kind name)
   | SOME (_, entry) => entry);
 
 fun entry_ord space = int_ord o pairself (#id o the_entry space);

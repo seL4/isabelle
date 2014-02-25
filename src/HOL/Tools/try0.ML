@@ -55,9 +55,10 @@ val parse_method =
   #> Scan.read Token.stopper Method.parse
   #> (fn SOME (Method.Source src, _) => src | _ => raise Fail "expected Source");
 
-fun apply_named_method_on_first_goal thy =
+fun apply_named_method_on_first_goal ctxt =
   parse_method
-  #> Method.method thy
+  #> Method.check_source ctxt
+  #> Method.the_method ctxt
   #> Method.Basic
   #> curry Method.Select_Goals 1
   #> Proof.refine;
@@ -77,7 +78,7 @@ fun apply_named_method (name, ((all_goals, run_if_auto_try), attrs)) mode timeou
         ((name ^ attrs |> attrs <> "" ? enclose "(" ")") ^
          (if all_goals andalso nprems_of (#goal (Proof.goal st)) > 1 then "[1]" else ""))
         I (#goal o Proof.goal)
-        (apply_named_method_on_first_goal (Proof.theory_of st) (name ^ attrs)) st
+        (apply_named_method_on_first_goal (Proof.context_of st) (name ^ attrs)) st
     end
   else
     NONE;

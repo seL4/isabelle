@@ -212,7 +212,7 @@ val entity_setup =
   entity_antiqs (K command_check) "isacommand" "command" #>
   entity_antiqs (K (Keyword.is_keyword o #1)) "isakeyword" "keyword" #>
   entity_antiqs (K (Keyword.is_keyword o #1)) "isakeyword" "element" #>
-  entity_antiqs (thy_check Method.check) "" "method" #>
+  entity_antiqs (can o Method.check_name) "" "method" #>
   entity_antiqs (thy_check Attrib.check) "" "attribute" #>
   entity_antiqs no_check "" "fact" #>
   entity_antiqs no_check "" "variable" #>
