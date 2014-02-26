@@ -33,8 +33,9 @@ theory Pure
   and "ML" :: thy_decl % "ML"
   and "ML_prf" :: prf_decl % "proof"  (* FIXME % "ML" ?? *)
   and "ML_val" "ML_command" :: diag % "ML"
+  and "simproc_setup" :: thy_decl % "ML" == ""
   and "setup" "local_setup" "attribute_setup" "method_setup"
-    "declaration" "syntax_declaration" "simproc_setup"
+    "declaration" "syntax_declaration"
     "parse_ast_translation" "parse_translation" "print_translation"
     "typed_print_translation" "print_ast_translation" "oracle" :: thy_decl % "ML"
   and "bundle" :: thy_decl
