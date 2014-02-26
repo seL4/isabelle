@@ -45,14 +45,16 @@ sig
   val tactic: string * Position.T -> Proof.context -> method
   val raw_tactic: string * Position.T -> Proof.context -> method
   type src = Args.src
+  type combinator_info
+  val no_combinator_info: combinator_info
   datatype text =
     Source of src |
     Basic of Proof.context -> method |
-    Then of text list |
-    Orelse of text list |
-    Try of text |
-    Repeat1 of text |
-    Select_Goals of int * text
+    Then of combinator_info * text list |
+    Orelse of combinator_info * text list |
+    Try of combinator_info * text |
+    Repeat1 of combinator_info * text |
+    Select_Goals of combinator_info * int * text
   val primitive_text: (Proof.context -> thm -> thm) -> text
   val succeed_text: text
   val default_text: text
@@ -72,9 +74,11 @@ sig
   val section: modifier parser list -> thm list context_parser
   val sections: modifier parser list -> thm list list context_parser
   type text_range = text * Position.range
-  val parse: text_range parser
   val text: text_range option -> text option
   val position: text_range option -> Position.T
+  val parse: text_range parser
+  val parse_report: text_range parser
+  val parse_context_report: text_range context_parser
 end;
 
 structure Method: METHOD =
@@ -281,14 +285,31 @@ fun raw_tactic txt ctxt = RAW_METHOD (ml_tactic txt ctxt);
 
 type src = Args.src;
 
+datatype combinator_info = Combinator_Info of {keywords: Position.T list};
+fun combinator_info keywords = Combinator_Info {keywords = keywords};
+val no_combinator_info = combinator_info [];
+
 datatype text =
   Source of src |
   Basic of Proof.context -> method |
-  Then of text list |
-  Orelse of text list |
-  Try of text |
-  Repeat1 of text |
-  Select_Goals of int * text;
+  Then of combinator_info * text list |
+  Orelse of combinator_info * text list |
+  Try of combinator_info * text |
+  Repeat1 of combinator_info * text |
+  Select_Goals of combinator_info * int * text;
+
+fun keyword_positions (Source _) = []
+  | keyword_positions (Basic _) = []
+  | keyword_positions (Then (Combinator_Info {keywords}, texts)) =
+      keywords @ maps keyword_positions texts
+  | keyword_positions (Orelse (Combinator_Info {keywords}, texts)) =
+      keywords @ maps keyword_positions texts
+  | keyword_positions (Try (Combinator_Info {keywords}, text)) =
+      keywords @ keyword_positions text
+  | keyword_positions (Repeat1 (Combinator_Info {keywords}, text)) =
+      keywords @ keyword_positions text
+  | keyword_positions (Select_Goals (Combinator_Info {keywords}, _, text)) =
+      keywords @ keyword_positions text;
 
 fun primitive_text r = Basic (SIMPLE_METHOD o PRIMITIVE o r);
 val succeed_text = Basic (K succeed);
@@ -298,7 +319,7 @@ val done_text = Basic (K (SIMPLE_METHOD all_tac));
 fun sorry_text int = Basic (fn ctxt => cheating ctxt int);
 
 fun finish_text (NONE, immed) = Basic (finish immed)
-  | finish_text (SOME txt, immed) = Then [txt, Basic (finish immed)];
+  | finish_text (SOME txt, immed) = Then (no_combinator_info, [txt, Basic (finish immed)]);
 
 
 (* method definitions *)
@@ -396,6 +417,20 @@ fun xrule_meth meth =
   (fn (n, ths) => fn ctxt => meth ctxt n ths);
 
 
+(* text range *)
+
+type text_range = text * Position.range;
+
+fun reports (text, (pos, _)) =
+  (pos, Markup.language_method) :: map (rpair Markup.keyword3) (keyword_positions text);
+
+fun text NONE = NONE
+  | text (SOME (txt, _)) = SOME txt;
+
+fun position NONE = Position.none
+  | position (SOME (_, (pos, _))) = pos;
+
+
 (* outer parser *)
 
 fun is_symid_meth s =
@@ -409,34 +444,37 @@ fun meth4 x =
     Source (Args.src (("cartouche", [tok]), Token.pos_of tok))) ||
   Parse.$$$ "(" |-- Parse.!!! (meth0 --| Parse.$$$ ")")) x
 and meth3 x =
- (meth4 --| Parse.$$$ "?" >> Try ||
-  meth4 --| Parse.$$$ "+" >> Repeat1 ||
-  meth4 -- (Parse.$$$ "[" |-- Scan.optional Parse.nat 1 --| Parse.$$$ "]")
-    >> (Select_Goals o swap) ||
+ (meth4 -- Parse.position (Parse.$$$ "?")
+    >> (fn (m, (_, pos)) => Try (combinator_info [pos], m)) ||
+  meth4 -- Parse.position (Parse.$$$ "+")
+    >> (fn (m, (_, pos)) => Repeat1 (combinator_info [pos], m)) ||
+  meth4 --
+    (Parse.position (Parse.$$$ "[") -- Scan.optional Parse.nat 1 -- Parse.position (Parse.$$$ "]"))
+    >> (fn (m, (((_, pos1), n), (_, pos2))) =>
+        Select_Goals (combinator_info [pos1, pos2], n, m)) ||
   meth4) x
 and meth2 x =
  (Parse.position (Parse.xname -- Args.parse1 is_symid_meth) >> (Source o Args.src) ||
   meth3) x
-and meth1 x = (Parse.enum1 "," meth2 >> (fn [m] => m | ms => Then ms)) x
-and meth0 x = (Parse.enum1 "|" meth1 >> (fn [m] => m | ms => Orelse ms)) x;
+and meth1 x =
+  (Parse.enum1_positions "," meth2
+    >> (fn ([m], _) => m | (ms, ps) => Then (combinator_info ps, ms))) x
+and meth0 x =
+  (Parse.enum1_positions "|" meth1
+    >> (fn ([m], _) => m | (ms, ps) => Orelse (combinator_info ps, ms))) x;
 
 in
 
 val parse =
   Scan.trace meth3 >> (fn (m, toks) => (m, Token.range_of toks));
 
+(*parse with observable effect!*)
+val parse_report = parse >> (tap (Position.reports o reports));
+val parse_context_report =
+  Args.context -- Scan.lift parse >>
+    (fn (ctxt, text_range) => (Context_Position.reports ctxt (reports text_range); text_range));
+
 end;
-
-
-(* text position *)
-
-type text_range = text * Position.range;
-
-fun text NONE = NONE
-  | text (SOME (txt, _)) = SOME txt;
-
-fun position NONE = Position.none
-  | position (SOME (_, (pos, _))) = pos;
 
 
 (* theory setup *)

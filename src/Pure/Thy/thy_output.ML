@@ -616,8 +616,9 @@ val _ = Keyword.define ("by", NONE);  (*overlap with command category*)
 val _ = Theory.setup
   (antiquotation (Binding.name "lemma")
     (Args.prop --
-      Scan.lift (Parse.position (Args.$$$ "by") -- (Method.parse -- Scan.option Method.parse)))
-    (fn {source, context = ctxt, ...} => fn (prop, ((_, by_pos), methods)) =>
+      Scan.lift (Parse.position (Args.$$$ "by")) --
+      (Method.parse_context_report -- Scan.option Method.parse_context_report))
+    (fn {source, context = ctxt, ...} => fn ((prop, (_, by_pos)), methods) =>
       let
         val prop_src =
           (case Args.dest_src source of ((a, arg :: _), pos) => Args.src ((a, [arg]), pos));

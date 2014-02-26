@@ -139,7 +139,7 @@ fun target_declaration (Target {target, ...}) {syntax, pervasive} decl lthy =
 fun pretty (Target {target, is_locale, is_class, ...}) ctxt =
   let
     val target_name =
-      [Pretty.command (if is_class then "class" else "locale"), Pretty.brk 1,
+      [Pretty.keyword1 (if is_class then "class" else "locale"), Pretty.brk 1,
         Locale.pretty_name ctxt target];
     val fixes =
       map (fn (x, T) => (Binding.name x, SOME T, NoSyn))
@@ -156,7 +156,7 @@ fun pretty (Target {target, is_locale, is_class, ...}) ctxt =
       else [Pretty.block (Pretty.fbreaks (Pretty.block (target_name @ [Pretty.str " ="]) ::
         map (Pretty.chunks o Element.pretty_ctxt ctxt) elems))];
   in
-    Pretty.block [Pretty.command "theory", Pretty.brk 1,
+    Pretty.block [Pretty.keyword1 "theory", Pretty.brk 1,
       Pretty.str (Context.theory_name (Proof_Context.theory_of ctxt))] :: body_elems
   end;
 

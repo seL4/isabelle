@@ -23,6 +23,7 @@ sig
   val symbolsN: string
   val languageN: string
   val language: {name: string, symbols: bool, antiquotes: bool} -> T
+  val language_method: T
   val language_sort: T
   val language_type: T
   val language_term: T
@@ -108,6 +109,7 @@ sig
   val tokenN: string val token: Properties.T -> T
   val keyword1N: string val keyword1: T
   val keyword2N: string val keyword2: T
+  val keyword3N: string val keyword3: T
   val elapsedN: string
   val cpuN: string
   val gcN: string
@@ -257,6 +259,7 @@ fun language {name, symbols, antiquotes} =
   (languageN,
     [(nameN, name), (symbolsN, print_bool symbols), (antiquotesN, print_bool antiquotes)]);
 
+val language_method = language {name = "method", symbols = true, antiquotes = false};
 val language_sort = language {name = "sort", symbols = true, antiquotes = false};
 val language_type = language {name = "type", symbols = true, antiquotes = false};
 val language_term = language {name = "term", symbols = true, antiquotes = false};
@@ -398,6 +401,7 @@ val (text_foldN, text_fold) = markup_elem "text_fold";
 val (commandN, command) = markup_elem "command";
 val (keyword1N, keyword1) = markup_elem "keyword1";
 val (keyword2N, keyword2) = markup_elem "keyword2";
+val (keyword3N, keyword3) = markup_elem "keyword3";
 val (operatorN, operator) = markup_elem "operator";
 val (stringN, string) = markup_elem "string";
 val (altstringN, altstring) = markup_elem "altstring";

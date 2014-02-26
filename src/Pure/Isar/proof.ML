@@ -423,11 +423,11 @@ fun apply_text current_context text state =
     fun eval (Method.Basic m) = apply_method current_context m
       | eval (Method.Source src) =
           apply_method current_context (Method.the_method ctxt (Method.check_source ctxt src))
-      | eval (Method.Then txts) = Seq.EVERY (map eval txts)
-      | eval (Method.Orelse txts) = Seq.FIRST (map eval txts)
-      | eval (Method.Try txt) = Seq.TRY (eval txt)
-      | eval (Method.Repeat1 txt) = Seq.REPEAT1 (eval txt)
-      | eval (Method.Select_Goals (n, txt)) = select_goals n (eval txt);
+      | eval (Method.Then (_, txts)) = Seq.EVERY (map eval txts)
+      | eval (Method.Orelse (_, txts)) = Seq.FIRST (map eval txts)
+      | eval (Method.Try (_, txt)) = Seq.TRY (eval txt)
+      | eval (Method.Repeat1 (_, txt)) = Seq.REPEAT1 (eval txt)
+      | eval (Method.Select_Goals (_, n, txt)) = select_goals n (eval txt);
   in eval text state end;
 
 in

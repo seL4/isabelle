@@ -50,7 +50,7 @@ datatype mixfix =
 local
 
 val quoted = Pretty.quote o Pretty.str;
-val keyword = Pretty.keyword;
+val keyword = Pretty.keyword2;
 val parens = Pretty.enclose "(" ")";
 val brackets = Pretty.enclose "[" "]";
 val int = Pretty.str o string_of_int;

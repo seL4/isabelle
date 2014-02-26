@@ -295,6 +295,9 @@ class Rich_Text_Area(
 
   /* text */
 
+  private def caret_enabled: Boolean =
+    caret_visible && (!text_area.hasFocus || text_area.isCaretVisible)
+
   private def caret_color(rendering: Rendering): Color =
   {
     if (text_area.isCaretVisible)
@@ -310,7 +313,7 @@ class Rich_Text_Area(
     val font_context = painter.getFontRenderContext
 
     val caret_range =
-      if (caret_visible) JEdit_Lib.point_range(buffer, text_area.getCaretPosition)
+      if (caret_enabled) JEdit_Lib.point_range(buffer, text_area.getCaretPosition)
       else Text.Range(-1)
 
     var w = 0.0f
@@ -526,7 +529,7 @@ class Rich_Text_Area(
       robust_rendering { rendering =>
         if (caret_visible) {
           val caret = text_area.getCaretPosition
-          if (start <= caret && caret == end - 1) {
+          if (caret_enabled && start <= caret && caret == end - 1) {
             val painter = text_area.getPainter
             val fm = painter.getFontMetrics
             val metric = JEdit_Lib.pretty_metric(painter)

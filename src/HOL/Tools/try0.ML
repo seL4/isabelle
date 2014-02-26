@@ -60,7 +60,7 @@ fun apply_named_method_on_first_goal ctxt =
   #> Method.check_source ctxt
   #> Method.the_method ctxt
   #> Method.Basic
-  #> curry Method.Select_Goals 1
+  #> (fn m => Method.Select_Goals (Method.no_combinator_info, 1, m))
   #> Proof.refine;
 
 fun add_attr_text (NONE, _) s = s

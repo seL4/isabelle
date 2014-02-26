@@ -113,8 +113,8 @@ fun transform_facts phi facts =
 
 fun pretty_items _ _ [] = []
   | pretty_items keyword sep (x :: ys) =
-      Pretty.block [Pretty.keyword keyword, Pretty.brk 1, x] ::
-        map (fn y => Pretty.block [Pretty.str "  ", Pretty.keyword sep, Pretty.brk 1, y]) ys;
+      Pretty.block [Pretty.keyword2 keyword, Pretty.brk 1, x] ::
+        map (fn y => Pretty.block [Pretty.str "  ", Pretty.keyword2 sep, Pretty.brk 1, y]) ys;
 
 fun pretty_name_atts ctxt (b, atts) sep =
   if Attrib.is_empty_binding (b, atts) then []
@@ -129,7 +129,7 @@ fun pretty_stmt ctxt =
   let
     val prt_typ = Pretty.quote o Syntax.pretty_typ ctxt;
     val prt_term = Pretty.quote o Syntax.pretty_term ctxt;
-    val prt_terms = separate (Pretty.keyword "and") o map prt_term;
+    val prt_terms = separate (Pretty.keyword2 "and") o map prt_term;
     val prt_name_atts = pretty_name_atts ctxt;
 
     fun prt_show (a, ts) =
@@ -138,11 +138,11 @@ fun pretty_stmt ctxt =
     fun prt_var (x, SOME T) = Pretty.block
           [Pretty.str (Binding.name_of x ^ " ::"), Pretty.brk 1, prt_typ T]
       | prt_var (x, NONE) = Pretty.str (Binding.name_of x);
-    val prt_vars = separate (Pretty.keyword "and") o map prt_var;
+    val prt_vars = separate (Pretty.keyword2 "and") o map prt_var;
 
     fun prt_obtain (_, ([], ts)) = Pretty.block (Pretty.breaks (prt_terms ts))
       | prt_obtain (_, (xs, ts)) = Pretty.block (Pretty.breaks
-          (prt_vars xs @ [Pretty.keyword "where"] @ prt_terms ts));
+          (prt_vars xs @ [Pretty.keyword2 "where"] @ prt_terms ts));
   in
     fn Shows shows => pretty_items "shows" "and" (map prt_show shows)
      | Obtains obtains => pretty_items "obtains" "|" (map prt_obtain obtains)
@@ -204,9 +204,9 @@ fun standard_elim th =
 fun thm_name kind th prts =
   let val head =
     if Thm.has_name_hint th then
-      Pretty.block [Pretty.command kind,
+      Pretty.block [Pretty.keyword1 kind,
         Pretty.brk 1, Pretty.str (Long_Name.base_name (Thm.get_name_hint th) ^ ":")]
-    else Pretty.command kind
+    else Pretty.keyword1 kind
   in Pretty.block (Pretty.fbreaks (head :: prts)) end;
 
 fun obtain prop ctxt =

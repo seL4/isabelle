@@ -173,7 +173,7 @@ fun pretty lthy =
       Pretty.block (Pretty.breaks
         [Pretty.str v, Pretty.str "==", Proof_Context.pretty_const lthy c,
           Pretty.str "::", Syntax.pretty_typ lthy ty]);
-  in Pretty.command "overloading" :: map pr_operation overloading end;
+  in Pretty.keyword1 "overloading" :: map pr_operation overloading end;
 
 fun conclude lthy =
   let

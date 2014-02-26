@@ -620,11 +620,11 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_spec "qed"} "conclude proof"
-    (Scan.option Method.parse >> Isar_Cmd.qed);
+    (Scan.option Method.parse_report >> Isar_Cmd.qed);
 
 val _ =
   Outer_Syntax.command @{command_spec "by"} "terminal backward proof"
-    (Method.parse -- Scan.option Method.parse >> Isar_Cmd.terminal_proof);
+    (Method.parse_report -- Scan.option Method.parse_report >> Isar_Cmd.terminal_proof);
 
 val _ =
   Outer_Syntax.command @{command_spec ".."} "default proof"
@@ -659,15 +659,15 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_spec "apply"} "initial refinement step (unstructured)"
-    (Method.parse >> (Toplevel.print oo (Toplevel.proofs o Proof.apply_results)));
+    (Method.parse_report >> (Toplevel.print oo (Toplevel.proofs o Proof.apply_results)));
 
 val _ =
   Outer_Syntax.command @{command_spec "apply_end"} "terminal refinement step (unstructured)"
-    (Method.parse >> (Toplevel.print oo (Toplevel.proofs o Proof.apply_end_results)));
+    (Method.parse_report >> (Toplevel.print oo (Toplevel.proofs o Proof.apply_end_results)));
 
 val _ =
   Outer_Syntax.command @{command_spec "proof"} "backward proof step"
-    (Scan.option Method.parse >> (fn m => Toplevel.print o
+    (Scan.option Method.parse_report >> (fn m => Toplevel.print o
       Toplevel.actual_proof (Proof_Node.applys (Proof.proof_results m)) o
       Toplevel.skip_proof (fn i => i + 1)));
 

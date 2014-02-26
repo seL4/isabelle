@@ -247,7 +247,7 @@ val antiq_setup =
               map pretty_typ_bracket tys));
         val pretty_datatype =
           Pretty.block
-           (Pretty.command "datatype" :: Pretty.brk 1 ::
+           (Pretty.keyword1 "datatype" :: Pretty.brk 1 ::
             Syntax.pretty_typ ctxt ty ::
             Pretty.str " =" :: Pretty.brk 1 ::
             flat (separate [Pretty.brk 1, Pretty.str "| "] (map (single o pretty_constr) cos)));

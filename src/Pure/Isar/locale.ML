@@ -647,7 +647,7 @@ fun pretty_locale thy show_facts name =
       |> snd |> rev;
   in
     Pretty.block
-      (Pretty.command "locale" :: Pretty.brk 1 :: pretty_name locale_ctxt name ::
+      (Pretty.keyword1 "locale" :: Pretty.brk 1 :: pretty_name locale_ctxt name ::
         maps (fn elem => [Pretty.fbrk, Pretty.chunks (Element.pretty_ctxt locale_ctxt elem)]) elems)
   end;
 
