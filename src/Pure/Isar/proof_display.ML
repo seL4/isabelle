@@ -100,7 +100,7 @@ fun subgoals 0 = []
 in
 
 fun pretty_goal_header goal =
-  Pretty.block ([Pretty.command "goal"] @ subgoals (Thm.nprems_of goal) @ [Pretty.str ":"]);
+  Pretty.block ([Pretty.keyword1 "goal"] @ subgoals (Thm.nprems_of goal) @ [Pretty.str ":"]);
 
 end;
 
@@ -113,7 +113,7 @@ fun string_of_goal ctxt goal =
 fun pretty_goal_facts ctxt s ths =
   (Pretty.block o Pretty.fbreaks)
     [if s = "" then Pretty.str "this:"
-     else Pretty.block [Pretty.command s, Pretty.brk 1, Pretty.str "this:"],
+     else Pretty.block [Pretty.keyword1 s, Pretty.brk 1, Pretty.str "this:"],
      Proof_Context.pretty_fact ctxt ("", ths)];
 
 
@@ -135,13 +135,13 @@ fun method_error kind pos {context = ctxt, facts, goal} = Seq.Error (fn () =>
 
 local
 
-fun pretty_fact_name (kind, "") = Pretty.command kind
+fun pretty_fact_name (kind, "") = Pretty.keyword1 kind
   | pretty_fact_name (kind, name) =
-      Pretty.block [Pretty.command kind, Pretty.brk 1,
+      Pretty.block [Pretty.keyword1 kind, Pretty.brk 1,
         Pretty.str (Long_Name.base_name name), Pretty.str ":"];
 
 fun pretty_facts ctxt =
-  flat o (separate [Pretty.fbrk, Pretty.keyword "and", Pretty.str " "]) o
+  flat o (separate [Pretty.fbrk, Pretty.keyword2 "and", Pretty.str " "]) o
     map (single o Proof_Context.pretty_fact ctxt);
 
 in
@@ -150,7 +150,7 @@ fun print_results markup do_print ctxt ((kind, name), facts) =
   if not do_print orelse kind = "" then ()
   else if name = "" then
     (Pretty.writeln o Pretty.mark markup)
-      (Pretty.block (Pretty.command kind :: Pretty.brk 1 :: pretty_facts ctxt facts))
+      (Pretty.block (Pretty.keyword1 kind :: Pretty.brk 1 :: pretty_facts ctxt facts))
   else
     (Pretty.writeln o Pretty.mark markup)
       (case facts of

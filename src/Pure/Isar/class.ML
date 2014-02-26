@@ -187,7 +187,7 @@ fun print_classes ctxt =
 
     fun prt_entry class =
       Pretty.block
-        ([Pretty.command "class", Pretty.brk 1,
+        ([Pretty.keyword1 "class", Pretty.brk 1,
           Name_Space.pretty ctxt class_space class, Pretty.str ":", Pretty.fbrk,
           Pretty.block [Pretty.str "supersort: ", prt_supersort class]] @
           (case try (Axclass.get_info thy) class of
@@ -530,7 +530,7 @@ fun pretty lthy =
       Pretty.block (Pretty.breaks
         [Pretty.str v, Pretty.str "==", Proof_Context.pretty_const lthy c,
           Pretty.str "::", Syntax.pretty_typ lthy ty]);
-  in Pretty.command "instantiation" :: map pr_arity tycos @ map pr_param params end;
+  in Pretty.keyword1 "instantiation" :: map pr_arity tycos @ map pr_param params end;
 
 fun conclude lthy =
   let

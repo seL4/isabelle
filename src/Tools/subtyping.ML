@@ -1070,7 +1070,7 @@ fun print_coercions ctxt =
         Pretty.str "<:", Pretty.brk 1,
         Syntax.pretty_typ ctxt (Type (b, Us)), Pretty.brk 3,
         Pretty.block
-         [Pretty.keyword "using", Pretty.brk 1,
+         [Pretty.keyword2 "using", Pretty.brk 1,
           Pretty.quote (Syntax.pretty_term ctxt t)]]];
 
     val type_space = Proof_Context.type_space ctxt;
