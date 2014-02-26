@@ -623,7 +623,7 @@ lemma im_complex_div_ge_0: "Im(a / b) \<ge> 0 \<longleftrightarrow> Im(a * cnj b
   by (metis im_complex_div_eq_0 im_complex_div_gt_0 le_less)
 
 lemma re_complex_div_lt_0: "Re(a / b) < 0 \<longleftrightarrow> Re(a * cnj b) < 0"
-  by (smt re_complex_div_eq_0 re_complex_div_gt_0)
+  by (metis less_asym neq_iff re_complex_div_eq_0 re_complex_div_gt_0)
 
 lemma im_complex_div_lt_0: "Im(a / b) < 0 \<longleftrightarrow> Im(a * cnj b) < 0"
   by (metis im_complex_div_eq_0 im_complex_div_gt_0 less_asym neq_iff)
