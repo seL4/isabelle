@@ -210,9 +210,9 @@ object Markup
   /* outer syntax */
 
   val COMMAND = "command"
-
   val KEYWORD1 = "keyword1"
   val KEYWORD2 = "keyword2"
+  val KEYWORD3 = "keyword3"
   val OPERATOR = "operator"
   val STRING = "string"
   val ALTSTRING = "altstring"

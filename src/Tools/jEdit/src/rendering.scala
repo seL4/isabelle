@@ -682,6 +682,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   private lazy val text_colors: Map[String, Color] = Map(
       Markup.KEYWORD1 -> keyword1_color,
       Markup.KEYWORD2 -> keyword2_color,
+      Markup.KEYWORD3 -> keyword3_color,
       Markup.STRING -> Color.BLACK,
       Markup.ALTSTRING -> Color.BLACK,
       Markup.VERBATIM -> Color.BLACK,
