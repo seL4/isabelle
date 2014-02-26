@@ -79,27 +79,28 @@ sig
   val map_terms_stmt: (iterm -> iterm) -> stmt -> stmt
   val is_constr: program -> Code_Symbol.T -> bool
   val is_case: stmt -> bool
-  val group_stmts: theory -> program
+  val group_stmts: Proof.context -> program
     -> ((Code_Symbol.T * stmt) list * (Code_Symbol.T * stmt) list
       * ((Code_Symbol.T * stmt) list * (Code_Symbol.T * stmt) list)) list
 
-  val read_const_exprs: theory -> string list -> string list
+  val read_const_exprs: Proof.context -> string list -> string list
   val consts_program: theory -> string list -> program
-  val dynamic_conv: theory -> (program
+  val dynamic_conv: Proof.context -> (program
     -> ((string * sort) list * typscheme) * iterm -> Code_Symbol.T list -> conv)
     -> conv
-  val dynamic_value: theory -> ((term -> term) -> 'a -> 'a) -> (program
+  val dynamic_value: Proof.context -> ((term -> term) -> 'a -> 'a) -> (program
     -> ((string * sort) list * typscheme) * iterm -> Code_Symbol.T list -> 'a)
     -> term -> 'a
-  val static_conv: theory -> string list -> (program -> string list
-    -> ((string * sort) list * typscheme) * iterm -> Code_Symbol.T list -> conv)
-    -> conv
-  val static_conv_simple: theory -> string list
-    -> (program -> (string * sort) list -> term -> conv) -> conv
-  val static_value: theory -> ((term -> term) -> 'a -> 'a) -> string list ->
+  val static_conv: Proof.context -> string list -> (program -> string list
+    -> Proof.context -> ((string * sort) list * typscheme) * iterm -> Code_Symbol.T list -> conv)
+    -> Proof.context -> conv
+  val static_conv_simple: Proof.context -> string list
+    -> (program -> Proof.context -> (string * sort) list -> term -> conv)
+    -> Proof.context -> conv
+  val static_value: Proof.context -> ((term -> term) -> 'a -> 'a) -> string list ->
     (program -> string list
-      -> ((string * sort) list * typscheme) * iterm -> Code_Symbol.T list -> 'a)
-    -> term -> 'a
+      -> Proof.context -> ((string * sort) list * typscheme) * iterm -> Code_Symbol.T list -> 'a)
+    -> Proof.context -> term -> 'a
 end;
 
 structure Code_Thingol: CODE_THINGOL =
@@ -334,7 +335,7 @@ fun linear_stmts program =
   rev (Code_Symbol.Graph.strong_conn program)
   |> map (AList.make (Code_Symbol.Graph.get_node program));
 
-fun group_stmts thy program =
+fun group_stmts ctxt program =
   let
     fun is_fun (_, Fun _) = true | is_fun _ = false;
     fun is_datatypecons (_, Datatypecons _) = true | is_datatypecons _ = false;
@@ -351,8 +352,7 @@ fun group_stmts thy program =
       else if forall (is_fun orf is_classinst) stmts
       then ([], [], List.partition is_fun stmts)
       else error ("Illegal mutual dependencies: " ^ (commas
-        o map (Code_Symbol.quote (Proof_Context.init_global thy)
-        o fst)) stmts);
+        o map (Code_Symbol.quote ctxt o fst)) stmts);
   in
     linear_stmts program
     |> map group
@@ -388,12 +388,11 @@ fun ensure_stmt symbolize generate x (deps, program) =
 
 exception PERMISSIVE of unit;
 
-fun translation_error thy program permissive some_thm deps msg sub_msg =
+fun translation_error ctxt program permissive some_thm deps msg sub_msg =
   if permissive
   then raise PERMISSIVE ()
   else
     let
-      val ctxt = Proof_Context.init_global thy;
       val thm_msg =
         Option.map (fn thm => "in code equation " ^ Display.string_of_thm ctxt thm) some_thm;
       val dep_msg = if null (tl deps) then NONE
@@ -409,14 +408,14 @@ fun translation_error thy program permissive some_thm deps msg sub_msg =
 fun maybe_permissive f prgrm =
   f prgrm |>> SOME handle PERMISSIVE () => (NONE, prgrm);
 
-fun not_wellsorted thy program permissive some_thm deps ty sort e =
+fun not_wellsorted ctxt program permissive some_thm deps ty sort e =
   let
-    val err_class = Sorts.class_error (Context.pretty_global thy) e;
+    val err_class = Sorts.class_error (Context.pretty ctxt) e;
     val err_typ =
-      "Type " ^ Syntax.string_of_typ_global thy ty ^ " not of sort " ^
-        Syntax.string_of_sort_global thy sort;
+      "Type " ^ Syntax.string_of_typ ctxt ty ^ " not of sort " ^
+        Syntax.string_of_sort ctxt sort;
   in
-    translation_error thy program permissive some_thm deps
+    translation_error ctxt program permissive some_thm deps
       "Wellsortedness error" (err_typ ^ "\n" ^ err_class)
   end;
 
@@ -442,25 +441,25 @@ fun tag_term (proj_sort, _) eqngr =
       | tag (Free _) (t as Free _) = t
       | tag (Var _) (t as Var _) = t
       | tag (Bound _) (t as Bound _) = t;
-  in
-    tag
-  end
+  in tag end
 
-fun annotate thy algbr eqngr (c, ty) args rhs =
+fun annotate ctxt algbr eqngr (c, ty) args rhs =
   let
-    val ctxt = Proof_Context.init_global thy |> Config.put Type_Infer_Context.const_sorts false
-    val erase = map_types (fn _ => Type_Infer.anyT [])
-    val reinfer = singleton (Type_Infer_Context.infer_types ctxt)
-    val lhs = list_comb (Const (c, ty), map (map_types Type.strip_sorts o fst) args)
-    val reinferred_rhs = snd (Logic.dest_equals (reinfer (Logic.mk_equals (lhs, erase rhs))))
+    val erase = map_types (fn _ => Type_Infer.anyT []);
+    val reinfer = singleton (Type_Infer_Context.infer_types ctxt);
+    val lhs = list_comb (Const (c, ty), map (map_types Type.strip_sorts o fst) args);
+    val reinferred_rhs = snd (Logic.dest_equals (reinfer (Logic.mk_equals (lhs, erase rhs))));
+  in tag_term algbr eqngr reinferred_rhs rhs end
+
+fun annotate_eqns ctxt algbr eqngr (c, ty) eqns =
+  let
+    val ctxt' = ctxt |> Proof_Context.theory_of |> Proof_Context.init_global
+      |> Config.put Type_Infer_Context.const_sorts false;
+      (*avoid spurious fixed variables: there is no eigen context for equations*)
   in
-    tag_term algbr eqngr reinferred_rhs rhs
-  end
-
-fun annotate_eqns thy algbr eqngr (c, ty) eqns = 
-  map (apfst (fn (args, (rhs, some_abs)) => (args,
-    (annotate thy algbr eqngr (c, ty) args rhs, some_abs)))) eqns
-
+    map (apfst (fn (args, (rhs, some_abs)) => (args,
+      (annotate ctxt' algbr eqngr (c, ty) args rhs, some_abs)))) eqns
+  end;
 
 (* abstract dictionary construction *)
 
@@ -470,7 +469,7 @@ and plain_typarg_witness =
     Global of (string * class) * typarg_witness list list
   | Local of string * (int * sort);
 
-fun construct_dictionaries thy (proj_sort, algebra) permissive some_thm (ty, sort) (deps, program) =
+fun construct_dictionaries ctxt (proj_sort, algebra) permissive some_thm (ty, sort) (deps, program) =
   let
     fun class_relation ((Weakening (classrels, x)), sub_class) super_class =
       Weakening ((sub_class, super_class) :: classrels, x);
@@ -484,42 +483,44 @@ fun construct_dictionaries thy (proj_sort, algebra) permissive some_thm (ty, sor
       {class_relation = K (Sorts.classrel_derivation algebra class_relation),
        type_constructor = type_constructor,
        type_variable = type_variable} (ty, proj_sort sort)
-      handle Sorts.CLASS_ERROR e => not_wellsorted thy program permissive some_thm deps ty sort e;
+      handle Sorts.CLASS_ERROR e => not_wellsorted ctxt program permissive some_thm deps ty sort e;
   in (typarg_witnesses, (deps, program)) end;
 
 
 (* translation *)
 
-fun ensure_tyco thy algbr eqngr permissive tyco =
+fun ensure_tyco ctxt algbr eqngr permissive tyco =
   let
+    val thy = Proof_Context.theory_of ctxt;
     val ((vs, cos), _) = Code.get_type thy tyco;
     val stmt_datatype =
-      fold_map (translate_tyvar_sort thy algbr eqngr permissive) vs
+      fold_map (translate_tyvar_sort ctxt algbr eqngr permissive) vs
       #>> map fst
       ##>> fold_map (fn (c, (vs, tys)) =>
-        ensure_const thy algbr eqngr permissive c
+        ensure_const ctxt algbr eqngr permissive c
         ##>> pair (map (unprefix "'" o fst) vs)
-        ##>> fold_map (translate_typ thy algbr eqngr permissive) tys) cos
+        ##>> fold_map (translate_typ ctxt algbr eqngr permissive) tys) cos
       #>> Datatype;
   in ensure_stmt Type_Constructor stmt_datatype tyco end
-and ensure_const thy algbr eqngr permissive c =
+and ensure_const ctxt algbr eqngr permissive c =
   let
+    val thy = Proof_Context.theory_of ctxt;
     fun stmt_datatypecons tyco =
-      ensure_tyco thy algbr eqngr permissive tyco
+      ensure_tyco ctxt algbr eqngr permissive tyco
       #>> Datatypecons;
     fun stmt_classparam class =
-      ensure_class thy algbr eqngr permissive class
+      ensure_class ctxt algbr eqngr permissive class
       #>> Classparam;
     fun stmt_fun cert = case Code.equations_of_cert thy cert
      of (_, NONE) => pair NoStmt
       | ((vs, ty), SOME eqns) =>
           let
-            val eqns' = annotate_eqns thy algbr eqngr (c, ty) eqns
+            val eqns' = annotate_eqns ctxt algbr eqngr (c, ty) eqns
             val some_case_cong = Code.get_case_cong thy c;
           in
-            fold_map (translate_tyvar_sort thy algbr eqngr permissive) vs
-            ##>> translate_typ thy algbr eqngr permissive ty
-            ##>> translate_eqns thy algbr eqngr permissive eqns'
+            fold_map (translate_tyvar_sort ctxt algbr eqngr permissive) vs
+            ##>> translate_typ ctxt algbr eqngr permissive ty
+            ##>> translate_eqns ctxt algbr eqngr permissive eqns'
             #>>
              (fn (_, NONE) => NoStmt
                | (tyscm, SOME eqns) => Fun ((tyscm, eqns), some_case_cong))
@@ -530,26 +531,28 @@ and ensure_const thy algbr eqngr permissive c =
          of SOME class => stmt_classparam class
           | NONE => stmt_fun (Code_Preproc.cert eqngr c))
   in ensure_stmt Constant stmt_const c end
-and ensure_class thy (algbr as (_, algebra)) eqngr permissive class =
+and ensure_class ctxt (algbr as (_, algebra)) eqngr permissive class =
   let
+    val thy = Proof_Context.theory_of ctxt;
     val super_classes = (Sorts.minimize_sort algebra o Sorts.super_classes algebra) class;
     val cs = #params (Axclass.get_info thy class);
     val stmt_class =
       fold_map (fn super_class =>
-        ensure_classrel thy algbr eqngr permissive (class, super_class)) super_classes
-      ##>> fold_map (fn (c, ty) => ensure_const thy algbr eqngr permissive c
-        ##>> translate_typ thy algbr eqngr permissive ty) cs
+        ensure_classrel ctxt algbr eqngr permissive (class, super_class)) super_classes
+      ##>> fold_map (fn (c, ty) => ensure_const ctxt algbr eqngr permissive c
+        ##>> translate_typ ctxt algbr eqngr permissive ty) cs
       #>> (fn info => Class (unprefix "'" Name.aT, info))
   in ensure_stmt Type_Class stmt_class class end
-and ensure_classrel thy algbr eqngr permissive (sub_class, super_class) =
+and ensure_classrel ctxt algbr eqngr permissive (sub_class, super_class) =
   let
     val stmt_classrel =
-      ensure_class thy algbr eqngr permissive sub_class
-      ##>> ensure_class thy algbr eqngr permissive super_class
+      ensure_class ctxt algbr eqngr permissive sub_class
+      ##>> ensure_class ctxt algbr eqngr permissive super_class
       #>> Classrel;
   in ensure_stmt Class_Relation stmt_classrel (sub_class, super_class) end
-and ensure_inst thy (algbr as (_, algebra)) eqngr permissive (tyco, class) =
+and ensure_inst ctxt (algbr as (_, algebra)) eqngr permissive (tyco, class) =
   let
+    val thy = Proof_Context.theory_of ctxt;
     val super_classes = (Sorts.minimize_sort algebra o Sorts.super_classes algebra) class;
     val these_class_params = these o try (#params o Axclass.get_info thy);
     val class_params = these_class_params class;
@@ -562,8 +565,8 @@ and ensure_inst thy (algbr as (_, algebra)) eqngr permissive (tyco, class) =
     val arity_typ = Type (tyco, map TFree vs);
     val arity_typ' = Type (tyco, map (fn (v, sort) => TVar ((v, 0), sort)) vs');
     fun translate_super_instance super_class =
-      ensure_class thy algbr eqngr permissive super_class
-      ##>> translate_dicts thy algbr eqngr permissive NONE (arity_typ, [super_class])
+      ensure_class ctxt algbr eqngr permissive super_class
+      ##>> translate_dicts ctxt algbr eqngr permissive NONE (arity_typ, [super_class])
       #>> (fn (super_class, [Dict ([], Dict_Const (_, dss))]) => (super_class, dss));
     fun translate_classparam_instance (c, ty) =
       let
@@ -573,14 +576,14 @@ and ensure_inst thy (algbr as (_, algebra)) eqngr permissive (tyco, class) =
         val const = (apsnd Logic.unvarifyT_global o dest_Const o snd
           o Logic.dest_equals o Thm.prop_of) thm;
       in
-        ensure_const thy algbr eqngr permissive c
-        ##>> translate_const thy algbr eqngr permissive (SOME thm) (const, NONE)
+        ensure_const ctxt algbr eqngr permissive c
+        ##>> translate_const ctxt algbr eqngr permissive (SOME thm) (const, NONE)
         #>> (fn (c, IConst const') => ((c, (const', dom_length)), (thm, true)))
       end;
     val stmt_inst =
-      ensure_class thy algbr eqngr permissive class
-      ##>> ensure_tyco thy algbr eqngr permissive tyco
-      ##>> fold_map (translate_tyvar_sort thy algbr eqngr permissive) vs
+      ensure_class ctxt algbr eqngr permissive class
+      ##>> ensure_tyco ctxt algbr eqngr permissive tyco
+      ##>> fold_map (translate_tyvar_sort ctxt algbr eqngr permissive) vs
       ##>> fold_map translate_super_instance super_classes
       ##>> fold_map translate_classparam_instance class_params
       ##>> fold_map translate_classparam_instance superclass_params
@@ -588,69 +591,72 @@ and ensure_inst thy (algbr as (_, algebra)) eqngr permissive (tyco, class) =
           Classinst { class = class, tyco = tyco, vs = vs,
             superinsts = superinsts, inst_params = inst_params, superinst_params = superinst_params });
   in ensure_stmt Class_Instance stmt_inst (tyco, class) end
-and translate_typ thy algbr eqngr permissive (TFree (v, _)) =
+and translate_typ ctxt algbr eqngr permissive (TFree (v, _)) =
       pair (ITyVar (unprefix "'" v))
-  | translate_typ thy algbr eqngr permissive (Type (tyco, tys)) =
-      ensure_tyco thy algbr eqngr permissive tyco
-      ##>> fold_map (translate_typ thy algbr eqngr permissive) tys
+  | translate_typ ctxt algbr eqngr permissive (Type (tyco, tys)) =
+      ensure_tyco ctxt algbr eqngr permissive tyco
+      ##>> fold_map (translate_typ ctxt algbr eqngr permissive) tys
       #>> (fn (tyco, tys) => tyco `%% tys)
-and translate_term thy algbr eqngr permissive some_thm (Const (c, ty), some_abs) =
-      translate_app thy algbr eqngr permissive some_thm (((c, ty), []), some_abs)
-  | translate_term thy algbr eqngr permissive some_thm (Free (v, _), some_abs) =
+and translate_term ctxt algbr eqngr permissive some_thm (Const (c, ty), some_abs) =
+      translate_app ctxt algbr eqngr permissive some_thm (((c, ty), []), some_abs)
+  | translate_term ctxt algbr eqngr permissive some_thm (Free (v, _), some_abs) =
       pair (IVar (SOME v))
-  | translate_term thy algbr eqngr permissive some_thm (Abs (v, ty, t), some_abs) =
+  | translate_term ctxt algbr eqngr permissive some_thm (Abs (v, ty, t), some_abs) =
       let
         val (v', t') = Syntax_Trans.variant_abs (Name.desymbolize false v, ty, t);
         val v'' = if member (op =) (Term.add_free_names t' []) v'
           then SOME v' else NONE
       in
-        translate_typ thy algbr eqngr permissive ty
-        ##>> translate_term thy algbr eqngr permissive some_thm (t', some_abs)
+        translate_typ ctxt algbr eqngr permissive ty
+        ##>> translate_term ctxt algbr eqngr permissive some_thm (t', some_abs)
         #>> (fn (ty, t) => (v'', ty) `|=> t)
       end
-  | translate_term thy algbr eqngr permissive some_thm (t as _ $ _, some_abs) =
+  | translate_term ctxt algbr eqngr permissive some_thm (t as _ $ _, some_abs) =
       case strip_comb t
        of (Const (c, ty), ts) =>
-            translate_app thy algbr eqngr permissive some_thm (((c, ty), ts), some_abs)
+            translate_app ctxt algbr eqngr permissive some_thm (((c, ty), ts), some_abs)
         | (t', ts) =>
-            translate_term thy algbr eqngr permissive some_thm (t', some_abs)
-            ##>> fold_map (translate_term thy algbr eqngr permissive some_thm o rpair NONE) ts
+            translate_term ctxt algbr eqngr permissive some_thm (t', some_abs)
+            ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm o rpair NONE) ts
             #>> (fn (t, ts) => t `$$ ts)
-and translate_eqn thy algbr eqngr permissive ((args, (rhs, some_abs)), (some_thm, proper)) =
-  fold_map (translate_term thy algbr eqngr permissive some_thm) args
-  ##>> translate_term thy algbr eqngr permissive some_thm (rhs, some_abs)
+and translate_eqn ctxt algbr eqngr permissive ((args, (rhs, some_abs)), (some_thm, proper)) =
+  fold_map (translate_term ctxt algbr eqngr permissive some_thm) args
+  ##>> translate_term ctxt algbr eqngr permissive some_thm (rhs, some_abs)
   #>> rpair (some_thm, proper)
-and translate_eqns thy algbr eqngr permissive eqns =
-  maybe_permissive (fold_map (translate_eqn thy algbr eqngr permissive) eqns)
-and translate_const thy algbr eqngr permissive some_thm ((c, ty), some_abs) (deps, program) =
+and translate_eqns ctxt algbr eqngr permissive eqns =
+  maybe_permissive (fold_map (translate_eqn ctxt algbr eqngr permissive) eqns)
+and translate_const ctxt algbr eqngr permissive some_thm ((c, ty), some_abs) (deps, program) =
   let
+    val thy = Proof_Context.theory_of ctxt;
     val _ = if (case some_abs of NONE => true | SOME abs => not (c = abs))
         andalso Code.is_abstr thy c
-        then translation_error thy program permissive some_thm deps
+        then translation_error ctxt program permissive some_thm deps
           "Abstraction violation" ("constant " ^ Code.string_of_const thy c)
       else ()
-  in translate_const_proper thy algbr eqngr permissive some_thm (c, ty) (deps, program) end
-and translate_const_proper thy algbr eqngr permissive some_thm (c, ty) =
+  in translate_const_proper ctxt algbr eqngr permissive some_thm (c, ty) (deps, program) end
+and translate_const_proper ctxt algbr eqngr permissive some_thm (c, ty) =
   let
+    val thy = Proof_Context.theory_of ctxt;
     val (annotate, ty') = dest_tagged_type ty;
     val typargs = Sign.const_typargs thy (c, ty');
     val sorts = Code_Preproc.sortargs eqngr c;
     val (dom, range) = Term.strip_type ty';
   in
-    ensure_const thy algbr eqngr permissive c
-    ##>> fold_map (translate_typ thy algbr eqngr permissive) typargs
-    ##>> fold_map (translate_dicts thy algbr eqngr permissive some_thm) (typargs ~~ sorts)
-    ##>> fold_map (translate_typ thy algbr eqngr permissive) (range :: dom)
+    ensure_const ctxt algbr eqngr permissive c
+    ##>> fold_map (translate_typ ctxt algbr eqngr permissive) typargs
+    ##>> fold_map (translate_dicts ctxt algbr eqngr permissive some_thm) (typargs ~~ sorts)
+    ##>> fold_map (translate_typ ctxt algbr eqngr permissive) (range :: dom)
     #>> (fn (((c, typargs), dss), range :: dom) =>
       IConst { sym = Constant c, typargs = typargs, dicts = dss,
         dom = dom, range = range, annotate = annotate })
   end
-and translate_app_const thy algbr eqngr permissive some_thm ((c_ty, ts), some_abs) =
-  translate_const thy algbr eqngr permissive some_thm (c_ty, some_abs)
-  ##>> fold_map (translate_term thy algbr eqngr permissive some_thm o rpair NONE) ts
+and translate_app_const ctxt algbr eqngr permissive some_thm ((c_ty, ts), some_abs) =
+  translate_const ctxt algbr eqngr permissive some_thm (c_ty, some_abs)
+  ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm o rpair NONE) ts
   #>> (fn (t, ts) => t `$$ ts)
-and translate_case thy algbr eqngr permissive some_thm (num_args, (t_pos, case_pats)) (c_ty, ts) =
+and translate_case ctxt algbr eqngr permissive some_thm (num_args, (t_pos, case_pats)) (c_ty, ts) =
   let
+    val thy = Proof_Context.theory_of ctxt;
     val undefineds = Code.undefineds thy;
     fun arg_types num_args ty = fst (chop num_args (binder_types ty));
     val tys = arg_types num_args (snd c_ty);
@@ -696,53 +702,53 @@ and translate_case thy algbr eqngr permissive some_thm (num_args, (t_pos, case_p
                 (case_pats ~~ ts_clause)));
       in ICase { term = t, typ = ty, clauses = clauses, primitive = t_app `$$ ts } end;
   in
-    translate_const thy algbr eqngr permissive some_thm (c_ty, NONE)
-    ##>> fold_map (fn (constr, n) => translate_const thy algbr eqngr permissive some_thm (constr, NONE)
+    translate_const ctxt algbr eqngr permissive some_thm (c_ty, NONE)
+    ##>> fold_map (fn (constr, n) => translate_const ctxt algbr eqngr permissive some_thm (constr, NONE)
       #>> rpair n) constrs
-    ##>> translate_typ thy algbr eqngr permissive ty
-    ##>> fold_map (translate_term thy algbr eqngr permissive some_thm o rpair NONE) ts
+    ##>> translate_typ ctxt algbr eqngr permissive ty
+    ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm o rpair NONE) ts
     #>> (fn (((t, constrs), ty), ts) =>
       casify constrs ty t ts)
   end
-and translate_app_case thy algbr eqngr permissive some_thm (case_scheme as (num_args, _)) ((c, ty), ts) =
+and translate_app_case ctxt algbr eqngr permissive some_thm (case_scheme as (num_args, _)) ((c, ty), ts) =
   if length ts < num_args then
     let
       val k = length ts;
       val tys = (take (num_args - k) o drop k o fst o strip_type) ty;
-      val ctxt = (fold o fold_aterms) Term.declare_term_frees ts Name.context;
-      val vs = Name.invent_names ctxt "a" tys;
+      val names = (fold o fold_aterms) Term.declare_term_frees ts Name.context;
+      val vs = Name.invent_names names "a" tys;
     in
-      fold_map (translate_typ thy algbr eqngr permissive) tys
-      ##>> translate_case thy algbr eqngr permissive some_thm case_scheme ((c, ty), ts @ map Free vs)
+      fold_map (translate_typ ctxt algbr eqngr permissive) tys
+      ##>> translate_case ctxt algbr eqngr permissive some_thm case_scheme ((c, ty), ts @ map Free vs)
       #>> (fn (tys, t) => map2 (fn (v, _) => pair (SOME v)) vs tys `|==> t)
     end
   else if length ts > num_args then
-    translate_case thy algbr eqngr permissive some_thm case_scheme ((c, ty), take num_args ts)
-    ##>> fold_map (translate_term thy algbr eqngr permissive some_thm o rpair NONE) (drop num_args ts)
+    translate_case ctxt algbr eqngr permissive some_thm case_scheme ((c, ty), take num_args ts)
+    ##>> fold_map (translate_term ctxt algbr eqngr permissive some_thm o rpair NONE) (drop num_args ts)
     #>> (fn (t, ts) => t `$$ ts)
   else
-    translate_case thy algbr eqngr permissive some_thm case_scheme ((c, ty), ts)
-and translate_app thy algbr eqngr permissive some_thm (c_ty_ts as ((c, _), _), some_abs) =
-  case Code.get_case_scheme thy c
-   of SOME case_scheme => translate_app_case thy algbr eqngr permissive some_thm case_scheme c_ty_ts
-    | NONE => translate_app_const thy algbr eqngr permissive some_thm (c_ty_ts, some_abs)
-and translate_tyvar_sort thy (algbr as (proj_sort, _)) eqngr permissive (v, sort) =
-  fold_map (ensure_class thy algbr eqngr permissive) (proj_sort sort)
+    translate_case ctxt algbr eqngr permissive some_thm case_scheme ((c, ty), ts)
+and translate_app ctxt algbr eqngr permissive some_thm (c_ty_ts as ((c, _), _), some_abs) =
+  case Code.get_case_scheme (Proof_Context.theory_of ctxt) c
+   of SOME case_scheme => translate_app_case ctxt algbr eqngr permissive some_thm case_scheme c_ty_ts
+    | NONE => translate_app_const ctxt algbr eqngr permissive some_thm (c_ty_ts, some_abs)
+and translate_tyvar_sort ctxt (algbr as (proj_sort, _)) eqngr permissive (v, sort) =
+  fold_map (ensure_class ctxt algbr eqngr permissive) (proj_sort sort)
   #>> (fn sort => (unprefix "'" v, sort))
-and translate_dicts thy algbr eqngr permissive some_thm (ty, sort) =
+and translate_dicts ctxt algbr eqngr permissive some_thm (ty, sort) =
   let
     fun mk_dict (Weakening (classrels, x)) =
-          fold_map (ensure_classrel thy algbr eqngr permissive) classrels
+          fold_map (ensure_classrel ctxt algbr eqngr permissive) classrels
           ##>> mk_plain_dict x
           #>> Dict 
     and mk_plain_dict (Global (inst, dss)) =
-          ensure_inst thy algbr eqngr permissive inst
+          ensure_inst ctxt algbr eqngr permissive inst
           ##>> (fold_map o fold_map) mk_dict dss
           #>> (fn (inst, dss) => Dict_Const (inst, dss))
       | mk_plain_dict (Local (v, (n, sort))) =
           pair (Dict_Var (unprefix "'" v, (n, length sort)))
   in
-    construct_dictionaries thy algbr permissive some_thm (ty, sort)
+    construct_dictionaries ctxt algbr permissive some_thm (ty, sort)
     #-> (fn typarg_witnesses => fold_map mk_dict typarg_witnesses)
   end;
 
@@ -758,7 +764,7 @@ structure Program = Code_Data
 fun invoke_generation ignore_cache thy (algebra, eqngr) generate thing =
   Program.change_yield (if ignore_cache then NONE else SOME thy)
     (fn program => ([], program)
-      |> generate thy algebra eqngr thing
+      |> generate (Proof_Context.init_global thy) algebra eqngr thing
       |-> (fn thing => fn (_, program) => (thing, program)));
 
 
@@ -766,8 +772,8 @@ fun invoke_generation ignore_cache thy (algebra, eqngr) generate thing =
 
 fun consts_program_internal thy permissive consts =
   let
-    fun generate_consts thy algebra eqngr =
-      fold_map (ensure_const thy algebra eqngr permissive);
+    fun generate_consts ctxt algebra eqngr =
+      fold_map (ensure_const ctxt algebra eqngr permissive);
   in
     invoke_generation permissive thy (Code_Preproc.obtain false thy consts [])
       generate_consts consts
@@ -789,17 +795,17 @@ fun consts_program thy consts =
 
 (* value evaluation *)
 
-fun ensure_value thy algbr eqngr t =
+fun ensure_value ctxt algbr eqngr t =
   let
     val ty = fastype_of t;
     val vs = fold_term_types (K (fold_atyps (insert (eq_fst op =)
       o dest_TFree))) t [];
-    val t' = annotate thy algbr eqngr (@{const_name dummy_pattern}, ty) [] t;
+    val t' = annotate ctxt algbr eqngr (@{const_name dummy_pattern}, ty) [] t;
     val dummy_constant = Constant @{const_name dummy_pattern};
     val stmt_value =
-      fold_map (translate_tyvar_sort thy algbr eqngr false) vs
-      ##>> translate_typ thy algbr eqngr false ty
-      ##>> translate_term thy algbr eqngr false NONE (t', NONE)
+      fold_map (translate_tyvar_sort ctxt algbr eqngr false) vs
+      ##>> translate_typ ctxt algbr eqngr false ty
+      ##>> translate_term ctxt algbr eqngr false NONE (t', NONE)
       #>> (fn ((vs, ty), t) => Fun
         (((vs, ty), [(([], t), (NONE, true))]), NONE));
     fun term_value (deps, program1) =
@@ -820,62 +826,61 @@ fun ensure_value thy algbr eqngr t =
 fun original_sorts vs =
   map (fn (v, _) => (v, (the o AList.lookup (op =) vs o prefix "'") v));
 
-fun dynamic_evaluator thy evaluator algebra eqngr vs t =
+fun dynamic_evaluator ctxt evaluator algebra eqngr vs t =
   let
     val ((program, (((vs', ty'), t'), deps)), _) =
-      invoke_generation false thy (algebra, eqngr) ensure_value t;
+      invoke_generation false (Proof_Context.theory_of ctxt) (algebra, eqngr) ensure_value t;
   in evaluator program ((original_sorts vs vs', (vs', ty')), t') deps end;
 
-fun dynamic_conv thy evaluator =
-  Code_Preproc.dynamic_conv thy (dynamic_evaluator thy evaluator);
+fun dynamic_conv ctxt conv =
+  Code_Preproc.dynamic_conv ctxt (dynamic_evaluator ctxt conv);
 
-fun dynamic_value thy postproc evaluator =
-  Code_Preproc.dynamic_value thy postproc (dynamic_evaluator thy evaluator);
+fun dynamic_value ctxt postproc evaluator =
+  Code_Preproc.dynamic_value ctxt postproc (dynamic_evaluator ctxt evaluator);
 
-fun lift_evaluation thy evaluation' algebra eqngr program vs t =
+fun lift_evaluation ctxt evaluation algebra eqngr program vs t =
   let
     val ((_, (((vs', ty'), t'), deps)), _) =
-      ensure_value thy algebra eqngr t ([], program);
-  in evaluation' ((original_sorts vs vs', (vs', ty')), t') deps end;
+      ensure_value ctxt algebra eqngr t ([], program);
+  in evaluation ctxt ((original_sorts vs vs', (vs', ty')), t') deps end;
 
-fun lift_evaluator thy evaluator' consts algebra eqngr =
+fun lift_evaluator ctxt evaluator consts algebra eqngr =
   let
-    fun generate_consts thy algebra eqngr =
-      fold_map (ensure_const thy algebra eqngr false);
+    fun generate_consts ctxt algebra eqngr =
+      fold_map (ensure_const ctxt algebra eqngr false);
     val (consts', program) =
-      invoke_generation true thy (algebra, eqngr) generate_consts consts;
-    val evaluation' = evaluator' program consts';
-  in lift_evaluation thy evaluation' algebra eqngr program end;
+      invoke_generation true (Proof_Context.theory_of ctxt) (algebra, eqngr) generate_consts consts;
+    val evaluation = evaluator program consts';
+  in fn ctxt' => lift_evaluation ctxt' evaluation algebra eqngr program end;
 
-fun lift_evaluator_simple thy evaluator' consts algebra eqngr =
+fun lift_evaluator_simple ctxt evaluator consts algebra eqngr =
   let
-    fun generate_consts thy algebra eqngr =
-      fold_map (ensure_const thy algebra eqngr false);
+    fun generate_consts ctxt algebra eqngr =
+      fold_map (ensure_const ctxt algebra eqngr false);
     val (_, program) =
-      invoke_generation true thy (algebra, eqngr) generate_consts consts;
-  in evaluator' program end;
+      invoke_generation true (Proof_Context.theory_of ctxt) (algebra, eqngr) generate_consts consts;
+  in evaluator program end;
 
-fun static_conv thy consts conv =
-  Code_Preproc.static_conv thy consts (lift_evaluator thy conv consts);
+fun static_conv ctxt consts conv =
+  Code_Preproc.static_conv ctxt consts (lift_evaluator ctxt conv consts);
 
-fun static_conv_simple thy consts conv =
-  Code_Preproc.static_conv thy consts (lift_evaluator_simple thy conv consts);
+fun static_conv_simple ctxt consts conv =
+  Code_Preproc.static_conv ctxt consts (lift_evaluator_simple ctxt conv consts);
 
-fun static_value thy postproc consts evaluator =
-  Code_Preproc.static_value thy postproc consts (lift_evaluator thy evaluator consts);
+fun static_value ctxt postproc consts evaluator =
+  Code_Preproc.static_value ctxt postproc consts (lift_evaluator ctxt evaluator consts);
 
 
 (** constant expressions **)
 
-fun read_const_exprs_internal thy =
+fun read_const_exprs_internal ctxt =
   let
+    val thy = Proof_Context.theory_of ctxt;
     fun consts_of thy' = Symtab.fold (fn (c, (_, NONE)) => cons c | _ => I)
       ((snd o #constants o Consts.dest o Sign.consts_of) thy') [];
     fun belongs_here thy' c = forall
       (fn thy'' => not (Sign.declared_const thy'' c)) (Theory.parents_of thy');
     fun consts_of_select thy' = filter (belongs_here thy') (consts_of thy');
-
-    val ctxt = Proof_Context.init_global thy;
     fun read_const_expr str =
       (case Syntax.parse_token ctxt (K NONE) Markup.empty (SOME o Symbol_Pos.implode o #1) str of
         SOME "_" => ([], consts_of thy)
@@ -886,28 +891,30 @@ fun read_const_exprs_internal thy =
       | NONE => ([Code.read_const thy str], []));
   in pairself flat o split_list o map read_const_expr end;
 
-fun read_const_exprs_all thy = op @ o read_const_exprs_internal thy;
+fun read_const_exprs_all ctxt = op @ o read_const_exprs_internal ctxt;
 
-fun read_const_exprs thy const_exprs =
+fun read_const_exprs ctxt const_exprs =
   let
-    val (consts, consts_permissive) = read_const_exprs_internal thy const_exprs;
-    val consts' = implemented_deps (consts_program_permissive thy consts_permissive);
+    val (consts, consts_permissive) = read_const_exprs_internal ctxt const_exprs;
+    val consts' = implemented_deps
+      (consts_program_permissive ((Proof_Context.theory_of ctxt)) consts_permissive);
   in union (op =) consts' consts end;
 
 
 (** diagnostic commands **)
 
-fun code_depgr thy consts =
+fun code_depgr ctxt consts =
   let
-    val (_, eqngr) = Code_Preproc.obtain true thy consts [];
+    val (_, eqngr) = Code_Preproc.obtain true ((Proof_Context.theory_of ctxt)) consts [];
     val all_consts = Graph.all_succs eqngr consts;
   in Graph.restrict (member (op =) all_consts) eqngr end;
 
-fun code_thms thy = Pretty.writeln o Code_Preproc.pretty thy o code_depgr thy;
+fun code_thms ctxt = Pretty.writeln o Code_Preproc.pretty ctxt o code_depgr ctxt;
 
-fun code_deps thy consts =
+fun code_deps ctxt consts =
   let
-    val eqngr = code_depgr thy consts;
+    val thy = Proof_Context.theory_of ctxt;
+    val eqngr = code_depgr ctxt consts;
     val constss = Graph.strong_conn eqngr;
     val mapping = Symtab.empty |> fold (fn consts => fold (fn const =>
       Symtab.update (const, consts)) consts) constss;
@@ -926,8 +933,8 @@ fun code_deps thy consts =
 
 local
 
-fun code_thms_cmd thy = code_thms thy o read_const_exprs_all thy;
-fun code_deps_cmd thy = code_deps thy o read_const_exprs_all thy;
+fun code_thms_cmd ctxt = code_thms ctxt o read_const_exprs_all ctxt;
+fun code_deps_cmd ctxt = code_deps ctxt o read_const_exprs_all ctxt;
 
 in
 
@@ -935,15 +942,15 @@ val _ =
   Outer_Syntax.improper_command @{command_spec "code_thms"}
     "print system of code equations for code"
     (Scan.repeat1 Parse.term >> (fn cs =>
-      Toplevel.unknown_theory o
-      Toplevel.keep (fn state => code_thms_cmd (Toplevel.theory_of state) cs)));
+      Toplevel.unknown_context o
+      Toplevel.keep (fn state => code_thms_cmd (Toplevel.context_of state) cs)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "code_deps"}
     "visualize dependencies of code equations for code"
     (Scan.repeat1 Parse.term >> (fn cs =>
-      Toplevel.unknown_theory o
-      Toplevel.keep (fn state => code_deps_cmd (Toplevel.theory_of state) cs)));
+      Toplevel.unknown_context o
+      Toplevel.keep (fn state => code_deps_cmd (Toplevel.context_of state) cs)));
 
 end;
 

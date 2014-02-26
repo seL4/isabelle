@@ -6,10 +6,10 @@ Normalization by evaluation, based on generic code generator.
 
 signature NBE =
 sig
-  val dynamic_conv: theory -> conv
-  val dynamic_value: theory -> term -> term
-  val static_conv: theory -> string list -> conv
-  val static_value: theory -> string list -> term -> term
+  val dynamic_conv: Proof.context -> conv
+  val dynamic_value: Proof.context -> term -> term
+  val static_conv: Proof.context -> string list -> Proof.context -> conv
+  val static_value: Proof.context -> string list -> Proof.context -> term -> term
 
   datatype Univ =
       Const of int * Univ list               (*named (uninterpreted) constants*)
@@ -83,8 +83,9 @@ val (_, triv_of_class) = Context.>>> (Context.map_theory_result
 
 in
 
-fun lift_triv_classes_conv thy conv ct =
+fun lift_triv_classes_conv ctxt conv ct =
   let
+    val thy = Proof_Context.theory_of ctxt;
     val algebra = Sign.classes_of thy;
     val certT = Thm.ctyp_of thy;
     val triv_classes = get_triv_classes thy;
@@ -128,8 +129,9 @@ fun lift_triv_classes_conv thy conv ct =
     |> strip_of_class
   end;
 
-fun lift_triv_classes_rew thy rew t =
+fun lift_triv_classes_rew ctxt rew t =
   let
+    val thy = Proof_Context.theory_of ctxt;
     val algebra = Sign.classes_of thy;
     val triv_classes = get_triv_classes thy;
     val vs = Term.add_tfrees t [];
@@ -388,10 +390,9 @@ fun assemble_eqnss idx_of deps eqnss =
 
 (* compile equations *)
 
-fun compile_eqnss thy nbe_program raw_deps [] = []
-  | compile_eqnss thy nbe_program raw_deps eqnss =
+fun compile_eqnss ctxt nbe_program raw_deps [] = []
+  | compile_eqnss ctxt nbe_program raw_deps eqnss =
       let
-        val ctxt = Proof_Context.init_global thy;
         val (deps, deps_vals) = split_list (map_filter
           (fn dep => Option.map (fn univ => (dep, univ)) (fst ((Code_Symbol.Graph.get_node nbe_program dep)))) raw_deps);
         val idx_of = raw_deps
@@ -453,7 +454,7 @@ fun ensure_const_idx name (nbe_program, (maxidx, idx_tab)) =
   else (Code_Symbol.Graph.new_node (name, (NONE, maxidx)) nbe_program,
     (maxidx + 1, Inttab.update_new (maxidx, name) idx_tab));
 
-fun compile_stmts thy stmts_deps =
+fun compile_stmts ctxt stmts_deps =
   let
     val names = map (fst o fst) stmts_deps;
     val names_deps = map (fn ((name, _), deps) => (name, deps)) stmts_deps;
@@ -463,7 +464,7 @@ fun compile_stmts thy stmts_deps =
       |> distinct (op =)
       |> fold (insert (op =)) names;
     fun compile nbe_program = eqnss
-      |> compile_eqnss thy nbe_program refl_deps
+      |> compile_eqnss ctxt nbe_program refl_deps
       |> rpair nbe_program;
   in
     fold ensure_const_idx refl_deps
@@ -472,12 +473,12 @@ fun compile_stmts thy stmts_deps =
       #-> fold (fn (name, univ) => (Code_Symbol.Graph.map_node name o apfst) (K (SOME univ))))
   end;
 
-fun compile_program thy program =
+fun compile_program ctxt program =
   let
     fun add_stmts names (nbe_program, (maxidx, idx_tab)) = if exists ((can o Code_Symbol.Graph.get_node) nbe_program) names
       then (nbe_program, (maxidx, idx_tab))
       else (nbe_program, (maxidx, idx_tab))
-        |> compile_stmts thy (map (fn name => ((name, Code_Symbol.Graph.get_node program name),
+        |> compile_stmts ctxt (map (fn name => ((name, Code_Symbol.Graph.get_node program name),
           Code_Symbol.Graph.immediate_succs program name)) names);
   in
     fold_rev add_stmts (Code_Symbol.Graph.strong_conn program)
@@ -488,12 +489,12 @@ fun compile_program thy program =
 
 (* term evaluation by compilation *)
 
-fun compile_term thy nbe_program deps (vs : (string * sort) list, t) =
+fun compile_term ctxt nbe_program deps (vs : (string * sort) list, t) =
   let 
     val dict_frees = maps (fn (v, sort) => map_index (curry DFree v o fst) sort) vs;
   in
     (Code_Symbol.value, (vs, [([], t)]))
-    |> singleton (compile_eqnss thy nbe_program deps)
+    |> singleton (compile_eqnss ctxt nbe_program deps)
     |> snd
     |> (fn t => apps t (rev dict_frees))
   end;
@@ -506,7 +507,7 @@ fun typ_of_itype vs (tyco `%% itys) =
   | typ_of_itype vs (ITyVar v) =
       TFree ("'" ^ v, (the o AList.lookup (op =) vs) v);
 
-fun term_of_univ thy (idx_tab : Code_Symbol.T Inttab.table) t =
+fun term_of_univ ctxt (idx_tab : Code_Symbol.T Inttab.table) t =
   let
     fun take_until f [] = []
       | take_until f (x :: xs) = if f x then [] else x :: take_until f xs;
@@ -527,7 +528,7 @@ fun term_of_univ thy (idx_tab : Code_Symbol.T Inttab.table) t =
             val const = const_of_idx idx;
             val T = map_type_tvar (fn ((v, i), _) =>
               Type_Infer.param typidx (v ^ string_of_int i, []))
-                (Sign.the_const_type thy const);
+                (Sign.the_const_type (Proof_Context.theory_of ctxt) const);
             val typidx' = typidx + 1;
           in of_apps bounds (Term.Const (const, T), ts') typidx' end
       | of_univ bounds (BVar (n, ts)) typidx =
@@ -541,9 +542,9 @@ fun term_of_univ thy (idx_tab : Code_Symbol.T Inttab.table) t =
 
 (* evaluation with type reconstruction *)
 
-fun eval_term thy (nbe_program, idx_tab) ((vs0, (vs, ty)), t) deps =
+fun eval_term raw_ctxt (nbe_program, idx_tab) ((vs0, (vs, ty)), t) deps =
   let
-    val ctxt = Syntax.init_pretty_global thy;
+    val ctxt = Syntax.init_pretty_global (Proof_Context.theory_of raw_ctxt);
     val string_of_term = Syntax.string_of_term (Config.put show_types true ctxt);
     val ty' = typ_of_itype vs0 ty;
     fun type_infer t =
@@ -553,8 +554,8 @@ fun eval_term thy (nbe_program, idx_tab) ((vs0, (vs, ty)), t) deps =
       if null (Term.add_tvars t []) then t
       else error ("Illegal schematic type variables in normalized term: " ^ string_of_term t);
   in
-    compile_term thy nbe_program deps (vs, t)
-    |> term_of_univ thy idx_tab
+    compile_term ctxt nbe_program deps (vs, t)
+    |> term_of_univ ctxt idx_tab
     |> traced (fn t => "Normalized:\n" ^ string_of_term t)
     |> type_infer
     |> traced (fn t => "Types inferred:\n" ^ string_of_term t)
@@ -571,18 +572,19 @@ structure Nbe_Functions = Code_Data
   val empty = (Code_Symbol.Graph.empty, (0, Inttab.empty));
 );
 
-fun compile ignore_cache thy program =
+fun compile ignore_cache ctxt program =
   let
     val (nbe_program, (_, idx_tab)) =
-      Nbe_Functions.change (if ignore_cache then NONE else SOME thy)
-        (compile_program thy program);
+      Nbe_Functions.change (if ignore_cache then NONE else SOME (Proof_Context.theory_of ctxt))
+        (compile_program ctxt program);
   in (nbe_program, idx_tab) end;
 
 
 (* evaluation oracle *)
 
-fun mk_equals thy lhs raw_rhs =
+fun mk_equals ctxt lhs raw_rhs =
   let
+    val thy = Proof_Context.theory_of ctxt;
     val ty = Thm.typ_of (Thm.ctyp_of_term lhs);
     val eq = Thm.cterm_of thy (Term.Const ("==", ty --> ty --> propT));
     val rhs = Thm.cterm_of thy raw_rhs;
@@ -590,28 +592,33 @@ fun mk_equals thy lhs raw_rhs =
 
 val (_, raw_oracle) = Context.>>> (Context.map_theory_result
   (Thm.add_oracle (@{binding normalization_by_evaluation},
-    fn (thy, nbe_program_idx_tab, vsp_ty_t, deps, ct) =>
-      mk_equals thy ct (eval_term thy nbe_program_idx_tab vsp_ty_t deps))));
+    fn (ctxt, nbe_program_idx_tab, vsp_ty_t, deps, ct) =>
+      mk_equals ctxt ct (eval_term ctxt nbe_program_idx_tab vsp_ty_t deps))));
 
-fun oracle thy nbe_program_idx_tab vsp_ty_t deps ct =
-  raw_oracle (thy, nbe_program_idx_tab, vsp_ty_t, deps, ct);
+fun oracle ctxt nbe_program_idx_tab vsp_ty_t deps ct =
+  raw_oracle (ctxt, nbe_program_idx_tab, vsp_ty_t, deps, ct);
 
-fun dynamic_conv thy = lift_triv_classes_conv thy
-  (Code_Thingol.dynamic_conv thy (oracle thy o compile false thy));
+fun dynamic_conv ctxt = lift_triv_classes_conv ctxt
+  (Code_Thingol.dynamic_conv ctxt (oracle ctxt o compile false ctxt));
 
-fun dynamic_value thy = lift_triv_classes_rew thy
-  (Code_Thingol.dynamic_value thy I (eval_term thy o compile false thy));
+fun dynamic_value ctxt = lift_triv_classes_rew ctxt
+  (Code_Thingol.dynamic_value ctxt I (eval_term ctxt o compile false ctxt));
 
-fun static_conv thy consts = lift_triv_classes_conv thy
-  (Code_Thingol.static_conv thy consts (K o oracle thy o compile true thy));
+fun static_conv ctxt consts =
+  let
+    val evaluator = Code_Thingol.static_conv ctxt consts
+      (fn program => fn _ => K (oracle ctxt (compile true ctxt program)));
+  in fn ctxt' => lift_triv_classes_conv ctxt' (evaluator ctxt') end;
 
-fun static_value thy consts = lift_triv_classes_rew thy
-  (Code_Thingol.static_value thy I consts (K o eval_term thy o compile true thy));
+fun static_value ctxt consts =
+  let
+    val evaluator = Code_Thingol.static_value ctxt I consts
+      (fn program => fn _ => K (eval_term ctxt (compile true ctxt program)));
+  in fn ctxt' => lift_triv_classes_rew ctxt' (evaluator ctxt') end;
 
 
 (** setup **)
 
-val setup = Value.add_evaluator ("nbe", dynamic_value o Proof_Context.theory_of);
+val setup = Value.add_evaluator ("nbe", dynamic_value);
 
 end;
- 

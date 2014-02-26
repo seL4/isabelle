@@ -296,7 +296,7 @@ fun compile_term compilation options ctxt t =
           let
             val compiled_term =
               Code_Runtime.dynamic_value_strict (Dseq_Result.get, put_dseq_result, "Predicate_Compile_Quickcheck.put_dseq_result")
-                thy4 (SOME target)
+                (Proof_Context.init_global thy4) (SOME target)
                 (fn proc => fn g => fn n => fn size => fn s => g n size s |>> (Limited_Sequence.map o map) proc)
                 qc_term []
           in
@@ -309,7 +309,7 @@ fun compile_term compilation options ctxt t =
             val compiled_term =
               Code_Runtime.dynamic_value_strict
                 (Lseq_Result.get, put_lseq_result, "Predicate_Compile_Quickcheck.put_lseq_result")
-                thy4 (SOME target)
+                (Proof_Context.init_global thy4) (SOME target)
                 (fn proc => fn g => fn nrandom => fn size => fn s => fn depth =>
                   g nrandom size s depth |> (Lazy_Sequence.map o map) proc)
                   qc_term []
@@ -325,7 +325,7 @@ fun compile_term compilation options ctxt t =
             val compiled_term =
               Code_Runtime.dynamic_value_strict
                 (New_Dseq_Result.get, put_new_dseq_result, "Predicate_Compile_Quickcheck.put_new_dseq_result")
-                thy4 (SOME target)
+                (Proof_Context.init_global thy4) (SOME target)
                 (fn proc => fn g => fn depth => g depth |> (Lazy_Sequence.map o map) proc)
                 qc_term []
           in
@@ -336,7 +336,7 @@ fun compile_term compilation options ctxt t =
             val compiled_term =
               Code_Runtime.dynamic_value_strict
                 (CPS_Result.get, put_cps_result, "Predicate_Compile_Quickcheck.put_cps_result")
-                thy4 (SOME target)
+                (Proof_Context.init_global thy4) (SOME target)
                 (fn proc => fn g => fn depth => g depth |> Option.map (apsnd (map proc)))
                 qc_term []
           in
@@ -346,7 +346,7 @@ fun compile_term compilation options ctxt t =
           let
             val compiled_term = Code_Runtime.dynamic_value_strict
               (Pred_Result.get, put_pred_result, "Predicate_Compile_Quickcheck.put_pred_result")
-                thy4 (SOME target) (fn proc => fn g => fn depth => fn nrandom => fn size => fn seed =>
+                (Proof_Context.init_global thy4) (SOME target) (fn proc => fn g => fn depth => fn nrandom => fn size => fn seed =>
                   g depth nrandom size seed |> (Predicate.map o map) proc)
                 qc_term []
           in

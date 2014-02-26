@@ -258,7 +258,7 @@ text %mlref {*
   @{index_ML Code_Preproc.map_pre: "(Proof.context -> Proof.context) -> theory -> theory"} \\
   @{index_ML Code_Preproc.map_post: "(Proof.context -> Proof.context) -> theory -> theory"} \\
   @{index_ML Code_Preproc.add_functrans: "
-    string * (theory -> (thm * bool) list -> (thm * bool) list option)
+    string * (Proof.context -> (thm * bool) list -> (thm * bool) list option)
       -> theory -> theory"} \\
   @{index_ML Code_Preproc.del_functrans: "string -> theory -> theory"} \\
   @{index_ML Code.add_datatype: "(string * typ) list -> theory -> theory"} \\

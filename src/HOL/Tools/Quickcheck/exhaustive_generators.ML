@@ -471,7 +471,6 @@ val target = "Quickcheck";
 
 fun compile_generator_expr_raw ctxt ts =
   let
-    val thy = Proof_Context.theory_of ctxt
     val mk_generator_expr = 
       if Config.get ctxt fast then mk_fast_generator_expr
       else if Config.get ctxt bounded_forall then mk_bounded_forall_generator_expr
@@ -479,7 +478,7 @@ fun compile_generator_expr_raw ctxt ts =
     val t' = mk_parametric_generator_expr mk_generator_expr ctxt ts;
     val compile = Code_Runtime.dynamic_value_strict
       (Counterexample.get, put_counterexample, "Exhaustive_Generators.put_counterexample")
-      thy (SOME target) (fn proc => fn g =>
+      ctxt (SOME target) (fn proc => fn g =>
         fn card => fn genuine_only => fn size => g card genuine_only size
           |> (Option.map o apsnd o map) proc) t' []
   in
@@ -497,12 +496,11 @@ fun compile_generator_expr ctxt ts =
 
 fun compile_generator_exprs_raw ctxt ts =
   let
-    val thy = Proof_Context.theory_of ctxt
     val ts' = map (fn t => mk_generator_expr ctxt (t, [])) ts;
     val compiles = Code_Runtime.dynamic_value_strict
       (Counterexample_Batch.get, put_counterexample_batch,
         "Exhaustive_Generators.put_counterexample_batch")
-      thy (SOME target) (fn proc => map (fn g => g #> (Option.map o map) proc))
+      ctxt (SOME target) (fn proc => map (fn g => g #> (Option.map o map) proc))
       (HOLogic.mk_list @{typ "natural => term list option"} ts') []
   in
     map (fn compile => fn size => compile size
@@ -515,12 +513,11 @@ fun compile_generator_exprs ctxt ts =
 
 fun compile_validator_exprs_raw ctxt ts =
   let
-    val thy = Proof_Context.theory_of ctxt
     val ts' = map (mk_validator_expr ctxt) ts
   in
     Code_Runtime.dynamic_value_strict
       (Validator_Batch.get, put_validator_batch, "Exhaustive_Generators.put_validator_batch")
-      thy (SOME target) (K I) (HOLogic.mk_list @{typ "natural => bool"} ts') []
+      ctxt (SOME target) (K I) (HOLogic.mk_list @{typ "natural => bool"} ts') []
   end;
 
 fun compile_validator_exprs ctxt ts =

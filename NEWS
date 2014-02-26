@@ -91,9 +91,14 @@ differently).
 
 *** HOL ***
 
+* Code generator: explicit proof contexts in many ML interfaces.
+INCOMPATIBILITY.
+
 * Code generator: minimize exported identifiers by default.
+Minor INCOMPATIBILITY.
 
 * Code generation for SML and OCaml: dropped arcane "no_signatures" option.
+Minor INCOMPATIBILITY.
 
 * Simproc "finite_Collect" is no longer enabled by default, due to
 spurious crashes and other surprises.  Potential INCOMPATIBILITY.

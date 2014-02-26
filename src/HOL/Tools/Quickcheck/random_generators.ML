@@ -406,7 +406,6 @@ val empty_report = Quickcheck.Report { iterations = 0, raised_match_errors = 0,
     
 fun compile_generator_expr_raw ctxt ts =
   let
-    val thy = Proof_Context.theory_of ctxt
     val iterations = Config.get ctxt Quickcheck.iterations
   in
     if Config.get ctxt Quickcheck.report then
@@ -414,7 +413,7 @@ fun compile_generator_expr_raw ctxt ts =
         val t' = mk_parametric_reporting_generator_expr ctxt ts;
         val compile = Code_Runtime.dynamic_value_strict
           (Counterexample_Report.get, put_counterexample_report, "Random_Generators.put_counterexample_report")
-          thy (SOME target)
+          ctxt (SOME target)
           (fn proc => fn g => fn c => fn b => fn s => g c b s
             #>> (apfst o Option.map o apsnd o map) proc) t' [];
         fun single_tester c b s = compile c b s |> Random_Engine.run
@@ -436,7 +435,7 @@ fun compile_generator_expr_raw ctxt ts =
         val t' = mk_parametric_generator_expr ctxt ts;
         val compile = Code_Runtime.dynamic_value_strict
           (Counterexample.get, put_counterexample, "Random_Generators.put_counterexample")
-          thy (SOME target)
+          ctxt (SOME target)
           (fn proc => fn g => fn c => fn b => fn s => g c b s
             #>> (Option.map o apsnd o map) proc) t' [];
         fun single_tester c b s = compile c b s |> Random_Engine.run

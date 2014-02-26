@@ -303,13 +303,12 @@ fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size)) ctxt
     with_tmp_dir tmp_prefix run
   end;
 
-fun dynamic_value_strict opts cookie thy postproc t =
+fun dynamic_value_strict opts cookie ctxt postproc t =
   let
-    val ctxt = Proof_Context.init_global thy
     fun evaluator program ((_, vs_ty), t) deps =
       Exn.interruptible_capture (value opts ctxt cookie)
-        (Code_Target.evaluator thy target program deps true (vs_ty, t));
-  in Exn.release (Code_Thingol.dynamic_value thy (Exn.map_result o postproc) evaluator t) end;
+        (Code_Target.evaluator ctxt target program deps true (vs_ty, t));
+  in Exn.release (Code_Thingol.dynamic_value ctxt (Exn.map_result o postproc) evaluator t) end;
 
 (** counterexample generator **)
 
@@ -462,7 +461,7 @@ fun test_term ctxt catch_code_errors (t, _) =
         val execute = dynamic_value_strict (true, opts)
           ((K true, fn _ => error ""), (Existential_Counterexample.get, Existential_Counterexample.put,
             "Narrowing_Generators.put_existential_counterexample"))
-          thy (apfst o Option.map o map_counterexample)
+          ctxt (apfst o Option.map o map_counterexample)
       in  
         case act execute (mk_property qs prop_t) of 
           SOME (counterexample, result) => Quickcheck.Result
@@ -488,7 +487,7 @@ fun test_term ctxt catch_code_errors (t, _) =
         val execute = dynamic_value_strict (false, opts)
           ((is_genuine, counterexample_of),
             (Counterexample.get, Counterexample.put, "Narrowing_Generators.put_counterexample"))
-          thy (apfst o Option.map o apsnd o map)
+          ctxt (apfst o Option.map o apsnd o map)
       in
         case act execute (ensure_testable (finitize t')) of 
           SOME (counterexample, result) =>

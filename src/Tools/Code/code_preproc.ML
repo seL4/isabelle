@@ -10,27 +10,29 @@ sig
   val map_pre: (Proof.context -> Proof.context) -> theory -> theory
   val map_post: (Proof.context -> Proof.context) -> theory -> theory
   val add_unfold: thm -> theory -> theory
-  val add_functrans: string * (theory -> (thm * bool) list -> (thm * bool) list option) -> theory -> theory
+  val add_functrans: string * (Proof.context -> (thm * bool) list -> (thm * bool) list option) -> theory -> theory
   val del_functrans: string -> theory -> theory
-  val simple_functrans: (theory -> thm list -> thm list option)
-    -> theory -> (thm * bool) list -> (thm * bool) list option
-  val print_codeproc: theory -> unit
+  val simple_functrans: (Proof.context -> thm list -> thm list option)
+    -> Proof.context -> (thm * bool) list -> (thm * bool) list option
+  val print_codeproc: Proof.context -> unit
 
   type code_algebra
   type code_graph
   val cert: code_graph -> string -> Code.cert
   val sortargs: code_graph -> string -> sort list
   val all: code_graph -> string list
-  val pretty: theory -> code_graph -> Pretty.T
+  val pretty: Proof.context -> code_graph -> Pretty.T
   val obtain: bool -> theory -> string list -> term list -> code_algebra * code_graph
-  val dynamic_conv: theory
+  val dynamic_conv: Proof.context
     -> (code_algebra -> code_graph -> (string * sort) list -> term -> conv) -> conv
-  val dynamic_value: theory -> ((term -> term) -> 'a -> 'a)
+  val dynamic_value: Proof.context -> ((term -> term) -> 'a -> 'a)
     -> (code_algebra -> code_graph -> (string * sort) list -> term -> 'a) -> term -> 'a
-  val static_conv: theory -> string list
-    -> (code_algebra -> code_graph -> (string * sort) list -> term -> conv) -> conv
-  val static_value: theory -> ((term -> term) -> 'a -> 'a) -> string list
-    -> (code_algebra -> code_graph -> (string * sort) list -> term -> 'a) -> term -> 'a
+  val static_conv: Proof.context -> string list
+    -> (code_algebra -> code_graph -> Proof.context -> (string * sort) list -> term -> conv)
+    -> Proof.context -> conv
+  val static_value: Proof.context -> ((term -> term) -> 'a -> 'a) -> string list
+    -> (code_algebra -> code_graph -> Proof.context -> (string * sort) list -> term -> 'a)
+    -> Proof.context -> term -> 'a
 
   val setup: theory -> theory
 end
@@ -45,7 +47,7 @@ struct
 datatype thmproc = Thmproc of {
   pre: simpset,
   post: simpset,
-  functrans: (string * (serial * (theory -> (thm * bool) list -> (thm * bool) list option))) list
+  functrans: (string * (serial * (Proof.context -> (thm * bool) list -> (thm * bool) list option))) list
 };
 
 fun make_thmproc ((pre, post), functrans) =
@@ -110,9 +112,10 @@ fun del_functrans name = (map_data o apsnd)
 
 (* post- and preprocessing *)
 
-fun no_variables_conv conv ct =
+fun no_variables_conv ctxt conv ct =
   let
-    val cert = Thm.cterm_of (Thm.theory_of_cterm ct);
+    val thy = Proof_Context.theory_of ctxt;
+    val cert = Thm.cterm_of thy;
     val all_vars = fold_aterms (fn t as Free _ => insert (op aconvc) (cert t)
       | t as Var _ => insert (op aconvc) (cert t)
       | _ => I) (Thm.term_of ct) [];
@@ -128,48 +131,52 @@ fun no_variables_conv conv ct =
 
 fun trans_conv_rule conv thm = Thm.transitive thm ((conv o Thm.rhs_of) thm);
 
-fun term_of_conv thy conv =
-  Thm.cterm_of thy
-  #> conv
+fun term_of_conv ctxt conv =
+  Thm.cterm_of (Proof_Context.theory_of ctxt)
+  #> conv ctxt
   #> Thm.prop_of
   #> Logic.dest_equals
   #> snd;
 
-fun term_of_conv_resubst thy conv t =
+fun term_of_conv_resubst ctxt conv t =
   let
     val all_vars = fold_aterms (fn t as Free _ => insert (op aconv) t
       | t as Var _ => insert (op aconv) t
       | _ => I) t [];
     val resubst = curry (Term.betapplys o swap) all_vars;
-  in (resubst, term_of_conv thy conv (fold_rev lambda all_vars t)) end;
+  in (resubst, term_of_conv ctxt conv (fold_rev lambda all_vars t)) end;
 
-fun global_simpset_context thy ss =
-  Proof_Context.init_global thy
-  |> put_simpset ss;
-
-fun preprocess_conv thy =
+fun preprocess_conv ctxt =
   let
-    val pre = global_simpset_context thy ((#pre o the_thmproc) thy);
-  in
-    Simplifier.rewrite pre
-    #> trans_conv_rule (Axclass.unoverload_conv thy)
+    val thy = Proof_Context.theory_of ctxt;
+    val ss = (#pre o the_thmproc) thy;
+  in fn ctxt' =>
+    Simplifier.rewrite (put_simpset ss ctxt')
+    #> trans_conv_rule (Axclass.unoverload_conv (Proof_Context.theory_of ctxt'))
   end;
 
-fun preprocess_term thy = term_of_conv_resubst thy (preprocess_conv thy);
-
-fun postprocess_conv thy =
+fun preprocess_term ctxt =
   let
-    val post = global_simpset_context thy ((#post o the_thmproc) thy);
-  in
-    Axclass.overload_conv thy
-    #> trans_conv_rule (Simplifier.rewrite post)
+    val conv = preprocess_conv ctxt;
+  in fn ctxt' => term_of_conv_resubst ctxt' conv end;
+
+fun postprocess_conv ctxt =
+  let
+    val thy = Proof_Context.theory_of ctxt;
+    val ss = (#post o the_thmproc) thy;
+  in fn ctxt' =>
+    Axclass.overload_conv (Proof_Context.theory_of ctxt')
+    #> trans_conv_rule (Simplifier.rewrite (put_simpset ss ctxt'))
   end;
 
-fun postprocess_term thy = term_of_conv thy (postprocess_conv thy);
-
-fun print_codeproc thy =
+fun postprocess_term ctxt =
   let
-    val ctxt = Proof_Context.init_global thy;
+    val conv = postprocess_conv ctxt;
+  in fn ctxt' => term_of_conv ctxt' conv end;
+
+fun print_codeproc ctxt =
+  let
+    val thy = Proof_Context.theory_of ctxt;
     val pre = (#pre o the_thmproc) thy;
     val post = (#post o the_thmproc) thy;
     val functrans = (map fst o #functrans o the_thmproc) thy;
@@ -193,7 +200,7 @@ fun print_codeproc thy =
     ]
   end;
 
-fun simple_functrans f thy eqns = case f thy (map fst eqns)
+fun simple_functrans f ctxt eqns = case f ctxt (map fst eqns)
  of SOME thms' => SOME (map (rpair (forall snd eqns)) thms')
   | NONE => NONE;
 
@@ -210,12 +217,16 @@ fun cert eqngr = snd o get_node eqngr;
 fun sortargs eqngr = map snd o fst o get_node eqngr;
 fun all eqngr = Graph.keys eqngr;
 
-fun pretty thy eqngr =
-  AList.make (snd o Graph.get_node eqngr) (Graph.keys eqngr)
-  |> (map o apfst) (Code.string_of_const thy)
-  |> sort (string_ord o pairself fst)
-  |> map (fn (s, cert) => (Pretty.block o Pretty.fbreaks) (Pretty.str s :: Code.pretty_cert thy cert))
-  |> Pretty.chunks;
+fun pretty ctxt eqngr =
+  let
+    val thy = Proof_Context.theory_of ctxt;
+  in
+    AList.make (snd o Graph.get_node eqngr) (Graph.keys eqngr)
+    |> (map o apfst) (Code.string_of_const thy)
+    |> sort (string_ord o pairself fst)
+    |> map (fn (s, cert) => (Pretty.block o Pretty.fbreaks) (Pretty.str s :: Code.pretty_cert thy cert))
+    |> Pretty.chunks
+  end;
 
 
 (** the Waisenhaus algorithm **)
@@ -269,17 +280,18 @@ fun obtain_eqns ctxt eqngr c =
    of SOME (lhs, cert) => ((lhs, []), cert)
     | NONE => let
         val thy = Proof_Context.theory_of ctxt;
-        val functrans = (map (fn (_, (_, f)) => f thy)
+        val functrans = (map (fn (_, (_, f)) => f ctxt)
           o #functrans o the_thmproc) thy;
         val cert = Code.get_cert thy { functrans = functrans, ss = simpset_of ctxt } c; (*FIXME*)
         val (lhs, rhss) =
           Code.typargs_deps_of_cert thy cert;
       in ((lhs, rhss), cert) end;
 
-fun obtain_instance thy arities (inst as (class, tyco)) =
+fun obtain_instance ctxt arities (inst as (class, tyco)) =
   case AList.lookup (op =) arities inst
    of SOME classess => (classess, ([], []))
     | NONE => let
+        val thy = Proof_Context.theory_of ctxt;
         val all_classes = complete_proper_sort thy [class];
         val super_classes = remove (op =) class all_classes;
         val classess = map (complete_proper_sort thy)
@@ -331,7 +343,7 @@ and ensure_inst ctxt arities eqngr (inst as (class, tyco)) (vardeps_data as (_, 
   if member (op =) insts inst then vardeps_data
   else let
     val (classess, (super_classes, inst_params)) =
-      obtain_instance (Proof_Context.theory_of ctxt) arities inst;
+      obtain_instance ctxt arities inst;
   in
     vardeps_data
     |> (apsnd o apsnd) (insert (op =) inst)
@@ -381,8 +393,9 @@ and ensure_fun ctxt arities eqngr c (vardeps_data as (_, (eqntab, _))) =
 
 (* applying instantiations *)
 
-fun dicts_of thy (proj_sort, algebra) (T, sort) =
+fun dicts_of ctxt (proj_sort, algebra) (T, sort) =
   let
+    val thy = Proof_Context.theory_of ctxt;
     fun class_relation (x, _) _ = x;
     fun type_constructor (tyco, _) xs class =
       inst_params thy tyco (Sorts.complete_sort algebra [class])
@@ -395,14 +408,15 @@ fun dicts_of thy (proj_sort, algebra) (T, sort) =
        handle Sorts.CLASS_ERROR _ => [] (*permissive!*))
   end;
 
-fun add_arity thy vardeps (class, tyco) =
+fun add_arity ctxt vardeps (class, tyco) =
   AList.default (op =) ((class, tyco),
     map_range (fn k => (snd o Vargraph.get_node vardeps) (Inst (class, tyco), k))
-      (Sign.arity_number thy tyco));
+      (Sign.arity_number (Proof_Context.theory_of ctxt) tyco));
 
-fun add_cert thy vardeps (c, (proto_lhs, proto_cert)) (rhss, eqngr) =
+fun add_cert ctxt vardeps (c, (proto_lhs, proto_cert)) (rhss, eqngr) =
   if can (Graph.get_node eqngr) c then (rhss, eqngr)
   else let
+    val thy = Proof_Context.theory_of ctxt;
     val lhs = map_index (fn (k, (v, _)) =>
       (v, snd (Vargraph.get_node vardeps (Fun c, k)))) proto_lhs;
     val cert = proto_cert
@@ -412,20 +426,21 @@ fun add_cert thy vardeps (c, (proto_lhs, proto_cert)) (rhss, eqngr) =
     val eqngr' = Graph.new_node (c, (vs, cert)) eqngr;
   in (map (pair c) rhss' @ rhss, eqngr') end;
 
-fun extend_arities_eqngr thy cs ts (arities, (eqngr : code_graph)) =
+fun extend_arities_eqngr raw_ctxt cs ts (arities, (eqngr : code_graph)) =
   let
+    val thy = Proof_Context.theory_of raw_ctxt;
     val {pre, ...} = the_thmproc thy;
-    val ctxt = thy |> Proof_Context.init_global |> put_simpset pre;
+    val ctxt = put_simpset pre raw_ctxt;
     val cs_rhss = (fold o fold_aterms) (fn Const (c_ty as (c, _)) =>
       insert (op =) (c, (map (styp_of NONE) o Sign.const_typargs thy) c_ty) | _ => I) ts [];
     val (vardeps, (eqntab, insts)) = empty_vardeps_data
       |> fold (ensure_fun ctxt arities eqngr) cs
       |> fold (ensure_rhs ctxt arities eqngr) cs_rhss;
-    val arities' = fold (add_arity thy vardeps) insts arities;
+    val arities' = fold (add_arity ctxt vardeps) insts arities;
     val algebra = Sorts.subalgebra (Context.pretty_global thy) (is_proper_class thy)
       (AList.lookup (op =) arities') (Sign.classes_of thy);
-    val (rhss, eqngr') = Symtab.fold (add_cert thy vardeps) eqntab ([], eqngr);
-    fun deps_of (c, rhs) = c :: maps (dicts_of thy algebra)
+    val (rhss, eqngr') = Symtab.fold (add_cert ctxt vardeps) eqntab ([], eqngr);
+    fun deps_of (c, rhs) = c :: maps (dicts_of ctxt algebra)
       (rhs ~~ sortargs eqngr' c);
     val eqngr'' = fold (fn (c, rhs) => fold
       (curry Graph.add_edge c) (deps_of rhs)) rhss eqngr';
@@ -444,59 +459,62 @@ structure Wellsorted = Code_Data
 (** retrieval and evaluation interfaces **)
 
 fun obtain ignore_cache thy consts ts = apsnd snd
-  (Wellsorted.change_yield (if ignore_cache then NONE else SOME thy) (extend_arities_eqngr thy consts ts));
+  (Wellsorted.change_yield (if ignore_cache then NONE else SOME thy)
+    (extend_arities_eqngr (Proof_Context.init_global thy) consts ts));
 
 fun dest_cterm ct = let val t = Thm.term_of ct in (Term.add_tfrees t [], t) end;
 
-fun dynamic_conv thy conv = no_variables_conv (fn ct =>
+fun dynamic_conv ctxt conv = no_variables_conv ctxt (fn ct =>
   let
-    val thm1 = preprocess_conv thy ct;
+    val thm1 = preprocess_conv ctxt ctxt ct;
     val ct' = Thm.rhs_of thm1;
     val (vs', t') = dest_cterm ct';
     val consts = fold_aterms
       (fn Const (c, _) => insert (op =) c | _ => I) t' [];
-    val (algebra', eqngr') = obtain false thy consts [t'];
+    val (algebra', eqngr') = obtain false (Proof_Context.theory_of ctxt) consts [t'];
     val thm2 = conv algebra' eqngr' vs' t' ct';
-    val thm3 = postprocess_conv thy (Thm.rhs_of thm2);
+    val thm3 = postprocess_conv ctxt ctxt (Thm.rhs_of thm2);
   in
     Thm.transitive thm1 (Thm.transitive thm2 thm3) handle THM _ =>
       error ("could not construct evaluation proof:\n"
-      ^ (cat_lines o map (Display.string_of_thm_global thy)) [thm1, thm2, thm3])
+      ^ (cat_lines o map (Display.string_of_thm ctxt)) [thm1, thm2, thm3])
   end);
 
-fun dynamic_value thy postproc evaluator t =
+fun dynamic_value ctxt postproc evaluator t =
   let
-    val (resubst, t') = preprocess_term thy t;
+    val (resubst, t') = preprocess_term ctxt ctxt t;
     val vs' = Term.add_tfrees t' [];
     val consts = fold_aterms
       (fn Const (c, _) => insert (op =) c | _ => I) t' [];
-    val (algebra', eqngr') = obtain false thy consts [t'];
+    val (algebra', eqngr') = obtain false (Proof_Context.theory_of ctxt) consts [t'];
   in
     t'
     |> evaluator algebra' eqngr' vs'
-    |> postproc (postprocess_term thy o resubst)
+    |> postproc (postprocess_term ctxt ctxt o resubst)
   end;
 
-fun static_conv thy consts conv =
+fun static_conv ctxt consts conv =
   let
-    val (algebra, eqngr) = obtain true thy consts [];
+    val (algebra, eqngr) = obtain true (Proof_Context.theory_of ctxt) consts [];
+    val pre_conv = preprocess_conv ctxt;
     val conv' = conv algebra eqngr;
-  in
-    no_variables_conv ((preprocess_conv thy)
-      then_conv (fn ct => uncurry conv' (dest_cterm ct) ct)
-      then_conv (postprocess_conv thy))
+    val post_conv = postprocess_conv ctxt;
+  in fn ctxt' => no_variables_conv ctxt' ((pre_conv ctxt')
+    then_conv (fn ct => uncurry (conv' ctxt') (dest_cterm ct) ct)
+    then_conv (post_conv ctxt'))
   end;
 
-fun static_value thy postproc consts evaluator =
+fun static_value ctxt postproc consts evaluator =
   let
-    val (algebra, eqngr) = obtain true thy consts [];
+    val (algebra, eqngr) = obtain true (Proof_Context.theory_of ctxt) consts [];
+    val preproc = preprocess_term ctxt;
     val evaluator' = evaluator algebra eqngr;
-    val postproc' = postprocess_term thy;
-  in 
-    preprocess_term thy
+    val postproc' = postprocess_term ctxt;
+  in fn ctxt' => 
+    preproc ctxt'
     #-> (fn resubst => fn t => t
-      |> evaluator' (Term.add_tfrees t [])
-      |> postproc (postproc' o resubst))
+      |> evaluator' ctxt' (Term.add_tfrees t [])
+      |> postproc (postproc' ctxt' o resubst))
   end;
 
 
@@ -518,7 +536,6 @@ val setup =
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_codeproc"} "print code preprocessor setup"
-    (Scan.succeed (Toplevel.unknown_theory o
-      Toplevel.keep (print_codeproc o Toplevel.theory_of)));
+    (Scan.succeed (Toplevel.unknown_context o Toplevel.keep (print_codeproc o Toplevel.context_of)));
 
 end; (*struct*)

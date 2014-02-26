@@ -11,20 +11,20 @@ sig
     (Proof.context -> unit -> 'a) * ((unit -> 'a) -> Proof.context -> Proof.context) * string ->
     string * string -> 'a
   type 'a cookie = (Proof.context -> unit -> 'a) * ((unit -> 'a) -> Proof.context -> Proof.context) * string
-  val dynamic_value: 'a cookie -> theory -> string option
+  val dynamic_value: 'a cookie -> Proof.context -> string option
     -> ((term -> term) -> 'a -> 'a) -> term -> string list -> 'a option
-  val dynamic_value_strict: 'a cookie -> theory -> string option
+  val dynamic_value_strict: 'a cookie -> Proof.context -> string option
     -> ((term -> term) -> 'a -> 'a) -> term -> string list -> 'a
-  val dynamic_value_exn: 'a cookie -> theory -> string option
+  val dynamic_value_exn: 'a cookie -> Proof.context -> string option
     -> ((term -> term) -> 'a -> 'a) -> term -> string list -> 'a Exn.result
-  val static_value: 'a cookie -> theory -> string option
-    -> ((term -> term) -> 'a -> 'a) -> string list -> term -> 'a option
-  val static_value_strict: 'a cookie -> theory -> string option
-    -> ((term -> term) -> 'a -> 'a) -> string list -> term -> 'a
-  val static_value_exn: 'a cookie -> theory -> string option
-    -> ((term -> term) -> 'a -> 'a) -> string list -> term -> 'a Exn.result
-  val dynamic_holds_conv: theory -> conv
-  val static_holds_conv: theory -> string list -> conv
+  val static_value: 'a cookie -> Proof.context -> string option
+    -> ((term -> term) -> 'a -> 'a) -> string list -> Proof.context -> term -> 'a option
+  val static_value_strict: 'a cookie -> Proof.context -> string option
+    -> ((term -> term) -> 'a -> 'a) -> string list -> Proof.context -> term -> 'a
+  val static_value_exn: 'a cookie -> Proof.context -> string option
+    -> ((term -> term) -> 'a -> 'a) -> string list -> Proof.context -> term -> 'a Exn.result
+  val dynamic_holds_conv: Proof.context -> conv
+  val static_holds_conv: Proof.context -> string list -> Proof.context -> conv
   val code_reflect: (string * string list option) list -> string list -> string
     -> string option -> theory -> theory
   datatype truth = Holds
@@ -83,21 +83,19 @@ fun value ctxt (get, put, put_ml) (prelude, value) =
 
 type 'a cookie = (Proof.context -> unit -> 'a) * ((unit -> 'a) -> Proof.context -> Proof.context) * string;
 
-fun reject_vars thy t =
+fun reject_vars ctxt t =
+  ((Sign.no_frees ctxt o Sign.no_vars ctxt o map_types (K dummyT)) t; t);
+
+fun obtain_evaluator ctxt some_target program consts =
   let
-    val ctxt = Proof_Context.init_global thy;
-  in ((Sign.no_frees ctxt o Sign.no_vars ctxt o map_types (K dummyT)) t; t) end;
+    val evaluator' = Code_Target.evaluator ctxt (the_default target some_target) program consts false;
+  in
+    evaluator'
+    #> apfst (fn ml_modules => space_implode "\n\n" (map snd ml_modules))
+  end;
 
-fun obtain_evaluator thy some_target program consts expr =
-  Code_Target.evaluator thy (the_default target some_target) program consts false expr
-  |> apfst (fn ml_modules => space_implode "\n\n" (map snd ml_modules));
-
-fun obtain_evaluator' thy some_target program =
-  obtain_evaluator thy some_target program o map Constant;
-
-fun evaluation cookie thy evaluator vs_t args =
+fun evaluation cookie ctxt evaluator vs_t args =
   let
-    val ctxt = Proof_Context.init_global thy;
     val (program_code, value_name) = evaluator vs_t;
     val value_code = space_implode " "
       (value_name :: "()" :: map (enclose "(" ")") args);
@@ -108,36 +106,39 @@ fun partiality_as_none e = SOME (Exn.release e)
     | General.Bind => NONE
     | General.Fail _ => NONE;
 
-fun dynamic_value_exn cookie thy some_target postproc t args =
+fun dynamic_value_exn cookie ctxt some_target postproc t args =
   let
-    val _ = reject_vars thy t;
+    val _ = reject_vars ctxt t;
     val _ = if ! trace
-      then tracing ("Evaluation of term " ^ quote (Syntax.string_of_term_global thy t))
+      then tracing ("Evaluation of term " ^ quote (Syntax.string_of_term ctxt t))
       else ()
     fun evaluator program ((_, vs_ty), t) deps =
-      evaluation cookie thy (obtain_evaluator thy some_target program deps) (vs_ty, t) args;
-  in Code_Thingol.dynamic_value thy (Exn.map_result o postproc) evaluator t end;
+      evaluation cookie ctxt (obtain_evaluator ctxt some_target program deps) (vs_ty, t) args;
+  in Code_Thingol.dynamic_value ctxt (Exn.map_result o postproc) evaluator t end;
 
-fun dynamic_value_strict cookie thy some_target postproc t args =
-  Exn.release (dynamic_value_exn cookie thy some_target postproc t args);
+fun dynamic_value_strict cookie ctxt some_target postproc t args =
+  Exn.release (dynamic_value_exn cookie ctxt some_target postproc t args);
 
-fun dynamic_value cookie thy some_target postproc t args =
-  partiality_as_none (dynamic_value_exn cookie thy some_target postproc t args);
+fun dynamic_value cookie ctxt some_target postproc t args =
+  partiality_as_none (dynamic_value_exn cookie ctxt some_target postproc t args);
 
-fun static_evaluator cookie thy some_target program consts' =
+fun static_evaluator cookie ctxt some_target program consts' =
   let
-    val evaluator = obtain_evaluator' thy some_target program consts'
-  in fn ((_, vs_ty), t) => fn _ => evaluation cookie thy evaluator (vs_ty, t) [] end;
+    val evaluator = obtain_evaluator ctxt some_target program (map Constant consts');
+    val evaluation' = evaluation cookie ctxt evaluator;
+  in fn _ => fn ((_, vs_ty), t) => fn _ => evaluation' (vs_ty, t) [] end;
 
-fun static_value_exn cookie thy some_target postproc consts =
-  Code_Thingol.static_value thy (Exn.map_result o postproc) consts
-    (static_evaluator cookie thy some_target) o reject_vars thy;
+fun static_value_exn cookie ctxt some_target postproc consts =
+  let
+    val evaluator = Code_Thingol.static_value ctxt (Exn.map_result o postproc) consts
+      (static_evaluator cookie ctxt some_target);
+  in fn ctxt' => evaluator ctxt' o reject_vars ctxt' end;
 
-fun static_value_strict cookie thy some_target postproc consts =
-  Exn.release o static_value_exn cookie thy some_target postproc consts;
+fun static_value_strict cookie ctxt some_target postproc consts =
+  Exn.release oo static_value_exn cookie ctxt some_target postproc consts;
 
 fun static_value cookie thy some_target postproc consts =
-  partiality_as_none o static_value_exn cookie thy some_target postproc consts;
+  partiality_as_none oo static_value_exn cookie thy some_target postproc consts;
 
 
 (* evaluation for truth or nothing *)
@@ -151,18 +152,19 @@ structure Truth_Result = Proof_Data
 val put_truth = Truth_Result.put;
 val truth_cookie = (Truth_Result.get, put_truth, Long_Name.append this "put_truth");
 
-val reject_vars = fn thy => tap (reject_vars thy o Thm.term_of);
+val reject_vars = fn ctxt => tap (reject_vars ctxt o Thm.term_of);
 
 local
 
-fun check_holds thy evaluator vs_t ct =
+fun check_holds ctxt evaluator vs_t ct =
   let
+    val thy = Proof_Context.theory_of ctxt;
     val t = Thm.term_of ct;
     val _ = if fastype_of t <> propT
       then error ("Not a proposition: " ^ Syntax.string_of_term_global thy t)
       else ();
     val iff = Thm.cterm_of thy (Term.Const ("==", propT --> propT --> propT));
-    val result = case partiality_as_none (evaluation truth_cookie thy evaluator vs_t [])
+    val result = case partiality_as_none (evaluation truth_cookie ctxt evaluator vs_t [])
      of SOME Holds => true
       | _ => false;
   in
@@ -171,34 +173,39 @@ fun check_holds thy evaluator vs_t ct =
 
 val (_, raw_check_holds_oracle) = Context.>>> (Context.map_theory_result
   (Thm.add_oracle (@{binding holds_by_evaluation},
-  fn (thy, evaluator, vs_t, ct) => check_holds thy evaluator vs_t ct)));
+  fn (ctxt, evaluator, vs_t, ct) => check_holds ctxt evaluator vs_t ct)));
 
-fun check_holds_oracle thy evaluator ((_, vs_ty), t) deps ct =
-  raw_check_holds_oracle (thy, evaluator, (vs_ty, t), ct);
+fun check_holds_oracle ctxt evaluator ((_, vs_ty), t) deps ct =
+  raw_check_holds_oracle (ctxt, evaluator, (vs_ty, t), ct);
 
 in
 
-fun dynamic_holds_conv thy = Code_Thingol.dynamic_conv thy
+fun dynamic_holds_conv ctxt = Code_Thingol.dynamic_conv ctxt
   (fn program => fn vs_t => fn deps =>
-    check_holds_oracle thy (obtain_evaluator thy NONE program deps) vs_t deps)
-      o reject_vars thy;
+    check_holds_oracle ctxt (obtain_evaluator ctxt NONE program deps) vs_t deps)
+      o reject_vars ctxt;
 
-fun static_holds_conv thy consts = Code_Thingol.static_conv thy consts
-  (fn program => fn consts' =>
-    check_holds_oracle thy (obtain_evaluator' thy NONE program consts'))
-      o reject_vars thy;
+fun static_holds_conv ctxt consts =
+  Code_Thingol.static_conv ctxt consts (fn program => fn consts' =>
+    let
+      val evaluator' = obtain_evaluator ctxt NONE program (map Constant consts')
+    in
+      fn ctxt' => fn vs_t => fn deps => check_holds_oracle ctxt' evaluator' vs_t deps o reject_vars ctxt'
+    end);
+
+(* o reject_vars ctxt'*)
 
 end; (*local*)
 
 
 (** instrumentalization **)
 
-fun evaluation_code thy module_name tycos consts =
+fun evaluation_code ctxt module_name tycos consts =
   let
-    val ctxt = Proof_Context.init_global thy;
+    val thy = Proof_Context.theory_of ctxt;
     val program = Code_Thingol.consts_program thy consts;
     val (ml_modules, target_names) =
-      Code_Target.produce_code_for thy
+      Code_Target.produce_code_for ctxt
         target NONE module_name [] program false (map Constant consts @ map Type_Constructor tycos);
     val ml_code = space_implode "\n\n" (map snd ml_modules);
     val (consts', tycos') = chop (length consts) target_names;
@@ -234,7 +241,7 @@ fun register_code new_tycos new_consts ctxt =
     val tycos' = fold (insert (op =)) new_tycos tycos;
     val consts' = fold (insert (op =)) new_consts consts;
     val acc_code = Lazy.lazy (fn () =>
-      evaluation_code (Proof_Context.theory_of ctxt) structure_generated tycos' consts'
+      evaluation_code ctxt structure_generated tycos' consts'
       |> apsnd snd);
   in Code_Antiq_Data.put ((tycos', consts'), (false, acc_code)) ctxt end;
 
@@ -330,12 +337,13 @@ fun process_reflection (code, (tyco_map, (constr_map, const_map))) module_name N
 
 fun gen_code_reflect prep_type prep_const raw_datatypes raw_functions module_name some_file thy  =
   let
+    val ctxt = Proof_Context.init_global thy;
     val datatypes = map (fn (raw_tyco, raw_cos) =>
-      (prep_type thy raw_tyco, (Option.map o map) (prep_const thy) raw_cos)) raw_datatypes;
+      (prep_type ctxt raw_tyco, (Option.map o map) (prep_const thy) raw_cos)) raw_datatypes;
     val (tycos, constrs) = map_split (uncurry (check_datatype thy)) datatypes
       |> apsnd flat;
     val functions = map (prep_const thy) raw_functions;
-    val result = evaluation_code thy module_name tycos (constrs @ functions)
+    val result = evaluation_code ctxt module_name tycos (constrs @ functions)
       |> (apsnd o apsnd) (chop (length constrs));
   in
     thy
@@ -440,7 +448,7 @@ fun add_definiendum (ml_name, (b, T)) thy =
   |-> (fn ([Const (const, _)], _) =>
     Code_Target.set_printings (Constant (const,
       [(target, SOME (Code_Printer.simple_const_syntax (0, (K o K o K o Code_Printer.str) ml_name)))]))
-  #> tap (fn thy => Code_Target.produce_code thy false [const] target NONE structure_generated []));
+  #> tap (fn thy => Code_Target.produce_code (Proof_Context.init_global thy) false [const] target NONE structure_generated []));
 
 fun process_file filepath (definienda, thy) =
   let

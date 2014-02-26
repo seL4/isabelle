@@ -7,11 +7,11 @@ Connecting the simplifier and the code generator.
 signature CODE_SIMP =
 sig
   val map_ss: (Proof.context -> Proof.context) -> theory -> theory
-  val dynamic_conv: theory -> conv
-  val dynamic_tac: theory -> int -> tactic
-  val dynamic_value: theory -> term -> term
-  val static_conv: theory -> simpset option -> string list -> conv
-  val static_tac: theory -> simpset option -> string list -> Proof.context -> int -> tactic
+  val dynamic_conv: Proof.context -> conv
+  val dynamic_tac: Proof.context -> int -> tactic
+  val dynamic_value: Proof.context -> term -> term
+  val static_conv: Proof.context -> simpset option -> string list -> Proof.context -> conv
+  val static_tac: Proof.context -> simpset option -> string list -> Proof.context -> int -> tactic
   val setup: theory -> theory
   val trace: bool Config.T
 end;
@@ -31,11 +31,11 @@ structure Simpset = Theory_Data
 
 fun map_ss f thy = Simpset.map (simpset_map (Proof_Context.init_global thy) f) thy;
 
-fun simpset_default thy some_ss = the_default (Simpset.get thy) some_ss;
+fun simpset_default ctxt some_ss = the_default (Simpset.get (Proof_Context.theory_of ctxt)) some_ss;
 
-fun simp_ctxt_default thy some_ss =
-  Proof_Context.init_global thy
-  |> put_simpset (simpset_default thy some_ss);
+(*fun simp_ctxt_default ctxt some_ss =
+  Proof_Context.init_global ctxt
+  |> put_simpset (simpset_default ctxt some_ss);*)
 
 
 (* diagnostic *)
@@ -50,7 +50,7 @@ fun set_trace ctxt =
   end;
 
 
-(* build simpset and conversion from program *)
+(* build simpset context and conversion from program *)
 
 fun add_stmt (Code_Thingol.Fun ((_, eqs), some_cong)) ss =
       ss
@@ -63,43 +63,49 @@ fun add_stmt (Code_Thingol.Fun ((_, eqs), some_cong)) ss =
 
 val add_program = Code_Symbol.Graph.fold (add_stmt o fst o snd);
 
-fun simp_ctxt_program thy some_ss program =
-  simp_ctxt_default thy some_ss
-  |> add_program program;
+fun simpset_program ctxt some_ss program =
+  simpset_map ctxt (add_program program) (simpset_default ctxt some_ss);
 
-fun rewrite_modulo thy some_ss program =
-  Simplifier.full_rewrite (simp_ctxt_program thy some_ss program |> set_trace);
+fun rewrite_modulo ctxt some_ss program =
+  let
+    val ss = simpset_program ctxt some_ss program;
+  in fn ctxt => Simplifier.full_rewrite (ctxt |> put_simpset ss |> set_trace) end;
 
-fun conclude_tac thy some_ss =
-  Simplifier.full_simp_tac o Simplifier.put_simpset (simpset_default thy some_ss);
+fun conclude_tac ctxt some_ss =
+  let
+    val ss = simpset_default ctxt some_ss
+  in fn ctxt => Simplifier.full_simp_tac (ctxt |> put_simpset ss) end;
 
 
 (* evaluation with dynamic code context *)
 
-fun dynamic_conv thy = Code_Thingol.dynamic_conv thy
-  (fn program => fn _ => fn _ => rewrite_modulo thy NONE program);
+fun dynamic_conv ctxt = Code_Thingol.dynamic_conv ctxt
+  (fn program => fn _ => fn _ => rewrite_modulo ctxt NONE program ctxt);
 
-fun dynamic_tac thy = CONVERSION (dynamic_conv thy) THEN' conclude_tac thy NONE (Proof_Context.init_global thy);
+fun dynamic_tac ctxt = CONVERSION (dynamic_conv ctxt)
+  THEN' conclude_tac ctxt NONE ctxt;
 
-fun dynamic_value thy = snd o Logic.dest_equals o Thm.prop_of o dynamic_conv thy o Thm.cterm_of thy;
+fun dynamic_value ctxt =
+  snd o Logic.dest_equals o Thm.prop_of o dynamic_conv ctxt o Thm.cterm_of (Proof_Context.theory_of ctxt);
 
 val setup =
   Method.setup @{binding code_simp}
-    (Scan.succeed (SIMPLE_METHOD' o (CHANGED_PROP oo dynamic_tac o Proof_Context.theory_of)))
+    (Scan.succeed (SIMPLE_METHOD' o (CHANGED_PROP oo dynamic_tac)))
     "simplification with code equations"
-  #> Value.add_evaluator ("simp", dynamic_value o Proof_Context.theory_of);
+  #> Value.add_evaluator ("simp", dynamic_value);
 
 
 (* evaluation with static code context *)
 
-fun static_conv thy some_ss consts =
-  Code_Thingol.static_conv_simple thy consts
-    (fn program => fn _ => fn _ => rewrite_modulo thy some_ss program);
+fun static_conv ctxt some_ss consts =
+  Code_Thingol.static_conv_simple ctxt consts
+    (fn program => let val conv' = rewrite_modulo ctxt some_ss program
+     in fn ctxt' => fn _ => fn _ => conv' ctxt' end);
 
-fun static_tac thy some_ss consts =
+fun static_tac ctxt some_ss consts =
   let
-    val conv = static_conv thy some_ss consts;
-    val tac = conclude_tac thy some_ss;
-  in fn ctxt => CONVERSION conv THEN' tac ctxt end;
+    val conv = static_conv ctxt some_ss consts;
+    val tac = conclude_tac ctxt some_ss;
+  in fn ctxt' => CONVERSION (conv ctxt') THEN' (tac ctxt') end;
 
 end;

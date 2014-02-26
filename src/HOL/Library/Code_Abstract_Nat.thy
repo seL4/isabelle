@@ -50,8 +50,9 @@ text {*
 setup {*
 let
 
-fun remove_suc thy thms =
+fun remove_suc ctxt thms =
   let
+    val thy = Proof_Context.theory_of ctxt;
     val vname = singleton (Name.variant_list (map fst
       (fold (Term.add_var_names o Thm.full_prop_of) thms []))) "n";
     val cv = cterm_of thy (Var ((vname, 0), HOLogic.natT));

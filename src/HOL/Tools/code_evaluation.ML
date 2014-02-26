@@ -6,14 +6,14 @@ Evaluation and reconstruction of terms in ML.
 
 signature CODE_EVALUATION =
 sig
-  val dynamic_value: theory -> term -> term option
-  val dynamic_value_strict: theory -> term -> term
-  val dynamic_value_exn: theory -> term -> term Exn.result
-  val static_value: theory -> string list -> typ list -> term -> term option
-  val static_value_strict: theory -> string list -> typ list -> term -> term
-  val static_value_exn: theory -> string list -> typ list -> term -> term Exn.result
-  val dynamic_conv: theory -> conv
-  val static_conv: theory -> string list -> typ list -> conv
+  val dynamic_value: Proof.context -> term -> term option
+  val dynamic_value_strict: Proof.context -> term -> term
+  val dynamic_value_exn: Proof.context -> term -> term Exn.result
+  val static_value: Proof.context -> string list -> typ list -> Proof.context -> term -> term option
+  val static_value_strict: Proof.context -> string list -> typ list -> Proof.context -> term -> term
+  val static_value_exn: Proof.context -> string list -> typ list -> Proof.context -> term -> term Exn.result
+  val dynamic_conv: Proof.context -> conv
+  val static_conv: Proof.context -> string list -> typ list -> Proof.context -> conv
   val put_term: (unit -> term) -> Proof.context -> Proof.context
   val tracing: string -> 'a -> 'a
   val setup: theory -> theory
@@ -171,44 +171,48 @@ fun mk_term_of t = HOLogic.mk_term_of (fastype_of t) t;
 
 fun term_of_const_for thy = Axclass.unoverload_const thy o dest_Const o HOLogic.term_of_const;
 
-fun gen_dynamic_value dynamic_value thy t =
-  dynamic_value cookie thy NONE I (mk_term_of t) [];
+fun gen_dynamic_value dynamic_value ctxt t =
+  dynamic_value cookie ctxt NONE I (mk_term_of t) [];
 
 val dynamic_value = gen_dynamic_value Code_Runtime.dynamic_value;
 val dynamic_value_strict = gen_dynamic_value Code_Runtime.dynamic_value_strict;
 val dynamic_value_exn = gen_dynamic_value Code_Runtime.dynamic_value_exn;
 
-fun gen_static_value static_value thy consts Ts =
-  static_value cookie thy NONE I (union (op =) (map (term_of_const_for thy) Ts) consts)
-  o mk_term_of;
+fun gen_static_value static_value ctxt consts Ts =
+  let
+    val static_value' = static_value cookie ctxt NONE I
+      (union (op =) (map (term_of_const_for (Proof_Context.theory_of ctxt)) Ts) consts)
+  in fn ctxt' => fn t => static_value' ctxt' (mk_term_of t) end;
 
 val static_value = gen_static_value Code_Runtime.static_value;
 val static_value_strict = gen_static_value Code_Runtime.static_value_strict;
 val static_value_exn = gen_static_value Code_Runtime.static_value_exn;
 
-fun certify_eval thy value conv ct =
+fun certify_eval ctxt value conv ct =
   let
+    val cert = Thm.cterm_of (Proof_Context.theory_of ctxt);
     val t = Thm.term_of ct;
     val T = fastype_of t;
-    val mk_eq = Thm.mk_binop (Thm.cterm_of thy (Const ("==", T --> T --> propT)));
-  in case value t
+    val mk_eq = Thm.mk_binop (cert (Const ("==", T --> T --> propT)));
+  in case value ctxt t
    of NONE => Thm.reflexive ct
-    | SOME t' => conv (mk_eq ct (Thm.cterm_of thy t')) RS @{thm eq_eq_TrueD}
+    | SOME t' => conv ctxt (mk_eq ct (cert t')) RS @{thm eq_eq_TrueD}
         handle THM _ =>
-          error ("Failed to certify evaluation result of " ^ Syntax.string_of_term_global thy t)
+          error ("Failed to certify evaluation result of " ^ Syntax.string_of_term ctxt t)
   end;
 
-fun dynamic_conv thy = certify_eval thy (dynamic_value thy)
-  (Code_Runtime.dynamic_holds_conv thy);
+fun dynamic_conv ctxt = certify_eval ctxt dynamic_value
+  Code_Runtime.dynamic_holds_conv;
 
-fun static_conv thy consts Ts =
+fun static_conv ctxt consts Ts =
   let
     val eqs = "==" :: @{const_name HOL.eq} ::
-      map (fn T => Axclass.unoverload_const thy (@{const_name HOL.equal}, T)) Ts;
-        (*assumes particular code equations for "==" etc.*)
+      map (fn T => Axclass.unoverload_const (Proof_Context.theory_of ctxt)
+        (@{const_name HOL.equal}, T)) Ts; (*assumes particular code equations for "==" etc.*)
+    val value = static_value ctxt consts Ts;
+    val holds = Code_Runtime.static_holds_conv ctxt (union (op =) eqs consts);
   in
-    certify_eval thy (static_value thy consts Ts)
-      (Code_Runtime.static_holds_conv thy (union (op =) eqs consts))
+    fn ctxt' => certify_eval ctxt' value holds
   end;
 
 
@@ -225,6 +229,6 @@ val setup =
   #> Code.datatype_interpretation ensure_term_of_code
   #> Code.abstype_interpretation ensure_abs_term_of_code
   #> Context.theory_map (Syntax_Phases.term_check 0 "termify" check_termify)
-  #> Value.add_evaluator ("code", dynamic_value_strict o Proof_Context.theory_of);
+  #> Value.add_evaluator ("code", dynamic_value_strict);
 
 end;

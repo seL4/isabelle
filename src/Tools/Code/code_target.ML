@@ -6,29 +6,29 @@ Generic infrastructure for target language data.
 
 signature CODE_TARGET =
 sig
-  val cert_tyco: theory -> string -> string
-  val read_tyco: theory -> string -> string
+  val cert_tyco: Proof.context -> string -> string
+  val read_tyco: Proof.context -> string -> string
 
-  val export_code_for: theory -> Path.T option -> string -> int option -> string -> Token.T list
+  val export_code_for: Proof.context -> Path.T option -> string -> int option -> string -> Token.T list
     -> Code_Thingol.program -> bool -> Code_Symbol.T list -> unit
-  val produce_code_for: theory -> string -> int option -> string -> Token.T list
+  val produce_code_for: Proof.context -> string -> int option -> string -> Token.T list
     -> Code_Thingol.program -> bool -> Code_Symbol.T list -> (string * string) list * string option list
-  val present_code_for: theory -> string -> int option -> string -> Token.T list
+  val present_code_for: Proof.context -> string -> int option -> string -> Token.T list
     -> Code_Thingol.program -> Code_Symbol.T list * Code_Symbol.T list -> string
-  val check_code_for: theory -> string -> bool -> Token.T list
+  val check_code_for: Proof.context -> string -> bool -> Token.T list
     -> Code_Thingol.program -> bool -> Code_Symbol.T list -> unit
 
-  val export_code: theory -> bool -> string list
+  val export_code: Proof.context -> bool -> string list
     -> (((string * string) * Path.T option) * Token.T list) list -> unit
-  val produce_code: theory -> bool -> string list
+  val produce_code: Proof.context -> bool -> string list
     -> string -> int option -> string -> Token.T list -> (string * string) list * string option list
-  val present_code: theory -> string list -> Code_Symbol.T list
+  val present_code: Proof.context -> string list -> Code_Symbol.T list
     -> string -> int option -> string -> Token.T list -> string
-  val check_code: theory -> bool -> string list
+  val check_code: Proof.context -> bool -> string list
     -> ((string * bool) * Token.T list) list -> unit
 
   val generatedN: string
-  val evaluator: theory -> string -> Code_Thingol.program
+  val evaluator: Proof.context -> string -> Code_Thingol.program
     -> Code_Symbol.T list -> bool -> ((string * class list) list * Code_Thingol.itype) * Code_Thingol.iterm
     -> (string * string) list * string
 
@@ -40,8 +40,8 @@ sig
   val extend_target: string *
       (string * (Code_Thingol.program -> Code_Thingol.program))
     -> theory -> theory
-  val assert_target: theory -> string -> string
-  val the_literals: theory -> string -> literals
+  val assert_target: Proof.context -> string -> string
+  val the_literals: Proof.context -> string -> literals
   type serialization
   val parse_args: 'a parser -> Token.T list -> 'a
   val serialization: (int -> Path.T option -> 'a -> unit)
@@ -83,45 +83,45 @@ type raw_const_syntax = Code_Printer.raw_const_syntax;
 
 (** checking and parsing of symbols **)
 
-fun cert_const thy const =
+fun cert_const ctxt const =
   let
-    val _ = if Sign.declared_const thy const then ()
+    val _ = if Sign.declared_const (Proof_Context.theory_of ctxt) const then ()
       else error ("No such constant: " ^ quote const);
   in const end;
 
-fun cert_tyco thy tyco =
+fun read_const ctxt = Code.read_const (Proof_Context.theory_of ctxt);
+
+fun cert_tyco ctxt tyco =
   let
-    val _ = if Sign.declared_tyname thy tyco then ()
+    val _ = if Sign.declared_tyname (Proof_Context.theory_of ctxt) tyco then ()
       else error ("No such type constructor: " ^ quote tyco);
   in tyco end;
 
-fun read_tyco thy = #1 o dest_Type
-  o Proof_Context.read_type_name_proper (Proof_Context.init_global thy) true;
+fun read_tyco ctxt = #1 o dest_Type
+  o Proof_Context.read_type_name_proper ctxt true;
 
-fun cert_class thy class =
+fun cert_class ctxt class =
   let
-    val _ = Axclass.get_info thy class;
+    val _ = Axclass.get_info (Proof_Context.theory_of ctxt) class;
   in class end;
-
-fun read_class thy = Proof_Context.read_class (Proof_Context.init_global thy);
 
 val parse_classrel_ident = Parse.class --| @{keyword "<"} -- Parse.class;
 
-fun cert_inst thy (class, tyco) =
-  (cert_class thy class, cert_tyco thy tyco);
+fun cert_inst ctxt (class, tyco) =
+  (cert_class ctxt class, cert_tyco ctxt tyco);
 
-fun read_inst thy (raw_tyco, raw_class) =
-  (read_tyco thy raw_tyco, read_class thy raw_class);
+fun read_inst ctxt (raw_tyco, raw_class) =
+  (read_tyco ctxt raw_tyco, Proof_Context.read_class ctxt raw_class);
 
 val parse_inst_ident = Parse.xname --| @{keyword "::"} -- Parse.class;
 
-fun cert_syms thy =
-  Code_Symbol.map_attr (apfst (cert_const thy)) (apfst (cert_tyco thy))
-    (apfst (cert_class thy)) ((apfst o pairself) (cert_class thy)) (apfst (cert_inst thy)) I;
+fun cert_syms ctxt =
+  Code_Symbol.map_attr (apfst (cert_const ctxt)) (apfst (cert_tyco ctxt))
+    (apfst (cert_class ctxt)) ((apfst o pairself) (cert_class ctxt)) (apfst (cert_inst ctxt)) I;
 
-fun read_syms thy =
-  Code_Symbol.map_attr (apfst (Code.read_const thy)) (apfst (read_tyco thy))
-    (apfst (read_class thy)) ((apfst o pairself) (read_class thy)) (apfst (read_inst thy)) I;
+fun read_syms ctxt =
+  Code_Symbol.map_attr (apfst (read_const ctxt)) (apfst (read_tyco ctxt))
+    (apfst (Proof_Context.read_class ctxt)) ((apfst o pairself) (Proof_Context.read_class ctxt)) (apfst (read_inst ctxt)) I;
 
 fun check_name is_module s =
   let
@@ -231,7 +231,8 @@ structure Targets = Theory_Data
     (Symtab.join (merge_target true) (target1, target2), Int.max (width1, width2));
 );
 
-fun assert_target thy target = if Symtab.defined (fst (Targets.get thy)) target
+fun assert_target ctxt target =
+  if Symtab.defined (fst (Targets.get (Proof_Context.theory_of ctxt))) target
   then target
   else error ("Unknown code target language: " ^ quote target);
 
@@ -264,7 +265,7 @@ fun extend_target (target, (super, modify)) =
 
 fun map_target_data target f thy =
   let
-    val _ = assert_target thy target;
+    val _ = assert_target (Proof_Context.init_global thy) target;
   in
     thy
     |> (Targets.map o apfst o Symtab.map_entry target o map_target o apsnd) f
@@ -284,9 +285,9 @@ fun set_default_code_width k = (Targets.map o apsnd) (K k);
 
 (* montage *)
 
-fun the_fundamental thy =
+fun the_fundamental ctxt =
   let
-    val (targets, _) = Targets.get thy;
+    val (targets, _) = Targets.get (Proof_Context.theory_of ctxt);
     fun fundamental target = case Symtab.lookup targets target
      of SOME data => (case the_description data
          of Fundamental data => data
@@ -294,11 +295,11 @@ fun the_fundamental thy =
       | NONE => error ("Unknown code target language: " ^ quote target);
   in fundamental end;
 
-fun the_literals thy = #literals o the_fundamental thy;
+fun the_literals ctxt = #literals o the_fundamental ctxt;
 
-fun collapse_hierarchy thy =
+fun collapse_hierarchy ctxt =
   let
-    val (targets, _) = Targets.get thy;
+    val (targets, _) = Targets.get (Proof_Context.theory_of ctxt);
     fun collapse target =
       let
         val data = case Symtab.lookup targets target
@@ -314,15 +315,15 @@ fun collapse_hierarchy thy =
 
 local
 
-fun activate_target thy target =
+fun activate_target ctxt target =
   let
+    val thy = Proof_Context.theory_of ctxt;
     val (_, default_width) = Targets.get thy;
-    val (modify, data) = collapse_hierarchy thy target;
+    val (modify, data) = collapse_hierarchy ctxt target;
   in (default_width, data, modify) end;
 
-fun project_program thy syms_hidden syms1 program2 =
+fun project_program ctxt syms_hidden syms1 program2 =
   let
-    val ctxt = Proof_Context.init_global thy;
     val syms2 = subtract (op =) syms_hidden syms1;
     val program3 = Code_Symbol.Graph.restrict (not o member (op =) syms_hidden) program2;
     val syms4 = Code_Symbol.Graph.all_succs program3 syms2;
@@ -334,17 +335,17 @@ fun project_program thy syms_hidden syms1 program2 =
     val program4 = Code_Symbol.Graph.restrict (member (op =) syms4) program3;
   in (syms4, program4) end;
 
-fun prepare_serializer thy (serializer : serializer) reserved identifiers
+fun prepare_serializer ctxt (serializer : serializer) reserved identifiers
     printings module_name args proto_program syms =
   let
     val syms_hidden = Code_Symbol.symbols_of printings;
-    val (syms_all, program) = project_program thy syms_hidden syms proto_program;
+    val (syms_all, program) = project_program ctxt syms_hidden syms proto_program;
     fun select_include (name, (content, cs)) =
       if null cs orelse exists (fn c => member (op =) syms_all (Constant c)) cs
       then SOME (name, content) else NONE;
     val includes = map_filter select_include (Code_Symbol.dest_module_data printings);
   in
-    (serializer args (Proof_Context.init_global thy) {
+    (serializer args ctxt {
       module_name = module_name,
       reserved_syms = reserved,
       identifiers = identifiers,
@@ -355,62 +356,62 @@ fun prepare_serializer thy (serializer : serializer) reserved identifiers
       (syms_all, program))
   end;
 
-fun mount_serializer thy target some_width module_name args program syms =
+fun mount_serializer ctxt target some_width module_name args program syms =
   let
-    val (default_width, data, modify) = activate_target thy target;
+    val (default_width, data, modify) = activate_target ctxt target;
     val serializer = case the_description data
      of Fundamental seri => #serializer seri;
     val (prepared_serializer, (prepared_syms, prepared_program)) =
-      prepare_serializer thy serializer
+      prepare_serializer ctxt serializer
         (the_reserved data) (the_identifiers data) (the_printings data)
         module_name args (modify program) syms
     val width = the_default default_width some_width;
   in (fn program => fn syms => prepared_serializer syms program width, (prepared_syms, prepared_program)) end;
 
-fun invoke_serializer thy target some_width raw_module_name args program all_public syms =
+fun invoke_serializer ctxt target some_width raw_module_name args program all_public syms =
   let
     val module_name = if raw_module_name = "" then ""
       else (check_name true raw_module_name; raw_module_name)
-    val (mounted_serializer, (prepared_syms, prepared_program)) = mount_serializer thy
-      target some_width module_name args program syms;
+    val (mounted_serializer, (prepared_syms, prepared_program)) =
+      mount_serializer ctxt target some_width module_name args program syms;
   in mounted_serializer prepared_program (if all_public then prepared_syms else []) end;
 
 fun assert_module_name "" = error "Empty module name not allowed here"
   | assert_module_name module_name = module_name;
 
-fun using_master_directory thy =
-  Option.map (Path.append (File.pwd ()) o Path.append (Thy_Load.master_directory thy));
+fun using_master_directory ctxt =
+  Option.map (Path.append (File.pwd ()) o Path.append (Thy_Load.master_directory (Proof_Context.theory_of ctxt)));
 
 in
 
 val generatedN = "Generated_Code";
 
-fun export_code_for thy some_path target some_width module_name args =
-  export (using_master_directory thy some_path)
-  ooo invoke_serializer thy target some_width module_name args;
+fun export_code_for ctxt some_path target some_width module_name args =
+  export (using_master_directory ctxt some_path)
+  ooo invoke_serializer ctxt target some_width module_name args;
 
-fun produce_code_for thy target some_width module_name args =
+fun produce_code_for ctxt target some_width module_name args =
   let
-    val serializer = invoke_serializer thy target some_width (assert_module_name module_name) args;
+    val serializer = invoke_serializer ctxt target some_width (assert_module_name module_name) args;
   in fn program => fn all_public => fn syms =>
     produce (serializer program all_public syms) |> apsnd (fn deresolve => map deresolve syms)
   end;
 
-fun present_code_for thy target some_width module_name args =
+fun present_code_for ctxt target some_width module_name args =
   let
-    val serializer = invoke_serializer thy target some_width (assert_module_name module_name) args;
+    val serializer = invoke_serializer ctxt target some_width (assert_module_name module_name) args;
   in fn program => fn (syms, selects) =>
     present selects (serializer program false syms)
   end;
 
-fun check_code_for thy target strict args program all_public syms =
+fun check_code_for ctxt target strict args program all_public syms =
   let
     val { env_var, make_destination, make_command } =
-      (#check o the_fundamental thy) target;
+      (#check o the_fundamental ctxt) target;
     fun ext_check p =
       let
         val destination = make_destination p;
-        val _ = export (SOME destination) (invoke_serializer thy target (SOME 80)
+        val _ = export (SOME destination) (invoke_serializer ctxt target (SOME 80)
           generatedN args program all_public syms);
         val cmd = make_command generatedN;
       in
@@ -443,10 +444,10 @@ fun evaluation mounted_serializer prepared_program syms all_public ((vs, ty), t)
     val value_name = the (deresolve Code_Symbol.value);
   in (program_code, value_name) end;
 
-fun evaluator thy target program syms =
+fun evaluator ctxt target program syms =
   let
     val (mounted_serializer, (_, prepared_program)) =
-      mount_serializer thy target NONE generatedN [] program syms;
+      mount_serializer ctxt target NONE generatedN [] program syms;
   in evaluation mounted_serializer prepared_program syms end;
 
 end; (* local *)
@@ -457,60 +458,66 @@ end; (* local *)
 fun prep_destination "" = NONE
   | prep_destination s = SOME (Path.explode s);
 
-fun export_code thy all_public cs seris =
+fun export_code ctxt all_public cs seris =
   let
+    val thy = Proof_Context.theory_of ctxt;
     val program = Code_Thingol.consts_program thy cs;
     val _ = map (fn (((target, module_name), some_path), args) =>
-      export_code_for thy some_path target NONE module_name args program all_public (map Constant cs)) seris;
+      export_code_for ctxt some_path target NONE module_name args program all_public (map Constant cs)) seris;
   in () end;
 
-fun export_code_cmd all_public raw_cs seris thy =
-  export_code thy all_public
-    (Code_Thingol.read_const_exprs thy raw_cs)
+fun export_code_cmd all_public raw_cs seris ctxt =
+  export_code ctxt all_public
+    (Code_Thingol.read_const_exprs ctxt raw_cs)
     ((map o apfst o apsnd) prep_destination seris);
 
-fun produce_code thy all_public cs target some_width some_module_name args =
+fun produce_code ctxt all_public cs target some_width some_module_name args =
   let
+    val thy = Proof_Context.theory_of ctxt;
     val program = Code_Thingol.consts_program thy cs;
-  in produce_code_for thy target some_width some_module_name args program all_public (map Constant cs) end;
+  in produce_code_for ctxt target some_width some_module_name args program all_public (map Constant cs) end;
 
-fun present_code thy cs syms target some_width some_module_name args =
+fun present_code ctxt cs syms target some_width some_module_name args =
   let
+    val thy = Proof_Context.theory_of ctxt;
     val program = Code_Thingol.consts_program thy cs;
-  in present_code_for thy target some_width some_module_name args program (map Constant cs, syms) end;
+  in present_code_for ctxt target some_width some_module_name args program (map Constant cs, syms) end;
 
-fun check_code thy all_public cs seris =
+fun check_code ctxt all_public cs seris =
   let
+    val thy = Proof_Context.theory_of ctxt;
     val program = Code_Thingol.consts_program thy cs;
     val _ = map (fn ((target, strict), args) =>
-      check_code_for thy target strict args program all_public (map Constant cs)) seris;
+      check_code_for ctxt target strict args program all_public (map Constant cs)) seris;
   in () end;
 
-fun check_code_cmd all_public raw_cs seris thy =
-  check_code thy all_public
-    (Code_Thingol.read_const_exprs thy raw_cs) seris;
+fun check_code_cmd all_public raw_cs seris ctxt =
+  check_code ctxt all_public
+    (Code_Thingol.read_const_exprs ctxt raw_cs) seris;
 
 local
 
 val parse_const_terms = Scan.repeat1 Args.term
-  >> (fn ts => fn thy => map (Code.check_const thy) ts);
+  >> (fn ts => fn ctxt => map (Code.check_const (Proof_Context.theory_of ctxt)) ts);
 
 fun parse_names category parse internalize mark_symbol =
   Scan.lift (Args.parens (Args.$$$ category)) |-- Scan.repeat1 parse
-  >> (fn xs => fn thy => map (mark_symbol o internalize thy) xs);
+  >> (fn xs => fn ctxt => map (mark_symbol o internalize ctxt) xs);
 
 val parse_consts = parse_names "consts" Args.term
-  Code.check_const Constant;
+  (Code.check_const o Proof_Context.theory_of) Constant;
 
 val parse_types = parse_names "types" (Scan.lift Args.name)
-  Sign.intern_type Type_Constructor;
+  (Sign.intern_type o Proof_Context.theory_of) Type_Constructor;
 
 val parse_classes = parse_names "classes" (Scan.lift Args.name)
-  Sign.intern_class Type_Class;
+  (Sign.intern_class o Proof_Context.theory_of) Type_Class;
 
 val parse_instances = parse_names "instances" (Scan.lift (Args.name --| Args.$$$ "::" -- Args.name))
-  (fn thy => fn (raw_tyco, raw_class) => (Sign.intern_class thy raw_tyco, Sign.intern_type thy raw_class))
-    Class_Instance;
+  (fn ctxt => fn (raw_tyco, raw_class) =>
+    let
+      val thy = Proof_Context.theory_of ctxt;
+    in (Sign.intern_class thy raw_tyco, Sign.intern_type thy raw_class) end) Class_Instance;
 
 in
 
@@ -520,11 +527,9 @@ val antiq_setup =
       Scan.repeat (parse_consts || parse_types || parse_classes || parse_instances)
       -- Scan.lift (Args.parens (Args.name -- Scan.option Parse.int)))
     (fn {context = ctxt, ...} => fn ((mk_cs, mk_stmtss), (target, some_width)) =>
-      let val thy = Proof_Context.theory_of ctxt in
-        present_code thy (mk_cs thy)
-          (maps (fn f => f thy) mk_stmtss)
-          target some_width "Example" []
-      end);
+        present_code ctxt (mk_cs ctxt)
+          (maps (fn f => f ctxt) mk_stmtss)
+          target some_width "Example" []);
 
 end;
 
@@ -535,7 +540,7 @@ end;
 
 fun add_reserved target sym thy =
   let
-    val (_, data) = collapse_hierarchy thy target;
+    val (_, data) = collapse_hierarchy (Proof_Context.init_global thy) target;
     val _ = if member (op =) (the_reserved data) sym
       then error ("Reserved symbol " ^ quote sym ^ " already declared")
       else ();
@@ -547,13 +552,13 @@ fun add_reserved target sym thy =
 
 (* checking of syntax *)
 
-fun check_const_syntax thy target c syn =
-  if Code_Printer.requires_args syn > Code.args_number thy c
+fun check_const_syntax ctxt target c syn =
+  if Code_Printer.requires_args syn > Code.args_number (Proof_Context.theory_of ctxt) c
   then error ("Too many arguments in syntax for constant " ^ quote c)
-  else Code_Printer.prep_const_syntax thy (the_literals thy target) c syn;
+  else Code_Printer.prep_const_syntax (Proof_Context.theory_of ctxt) (the_literals ctxt target) c syn;
 
-fun check_tyco_syntax thy target tyco syn =
-  if fst syn <> Sign.arity_number thy tyco
+fun check_tyco_syntax ctxt target tyco syn =
+  if fst syn <> Sign.arity_number (Proof_Context.theory_of ctxt) tyco
   then error ("Number of arguments mismatch in syntax for type constructor " ^ quote tyco)
   else syn;
 
@@ -569,14 +574,14 @@ fun arrange_name_decls x =
       (arrange false) (arrange false) (arrange true) x
   end;
 
-fun cert_name_decls thy = cert_syms thy #> arrange_name_decls;
+fun cert_name_decls ctxt = cert_syms ctxt #> arrange_name_decls;
 
-fun read_name_decls thy = read_syms thy #> arrange_name_decls;
+fun read_name_decls ctxt = read_syms ctxt #> arrange_name_decls;
 
 fun set_identifier (target, sym_name) = map_identifiers target (Code_Symbol.set_data sym_name);
 
 fun gen_set_identifiers prep_name_decl raw_name_decls thy =
-  fold set_identifier (prep_name_decl thy raw_name_decls) thy;
+  fold set_identifier (prep_name_decl (Proof_Context.init_global thy) raw_name_decls) thy;
 
 val set_identifiers = gen_set_identifiers cert_name_decls;
 val set_identifiers_cmd = gen_set_identifiers read_name_decls;
@@ -584,26 +589,26 @@ val set_identifiers_cmd = gen_set_identifiers read_name_decls;
 
 (* custom printings *)
 
-fun arrange_printings prep_const thy =
+fun arrange_printings prep_const ctxt =
   let
     fun arrange check (sym, target_syns) =
-      map (fn (target, some_syn) => (target, (sym, Option.map (check thy target sym) some_syn))) target_syns;
+      map (fn (target, some_syn) => (target, (sym, Option.map (check ctxt target sym) some_syn))) target_syns;
   in
     Code_Symbol.maps_attr'
       (arrange check_const_syntax) (arrange check_tyco_syntax)
         (arrange ((K o K o K) I)) (arrange ((K o K o K) I)) (arrange ((K o K o K) I))
-        (arrange (fn thy => fn _ => fn _ => fn (raw_content, raw_cs) =>
-          (Code_Printer.str raw_content, map (prep_const thy) raw_cs)))
+        (arrange (fn ctxt => fn _ => fn _ => fn (raw_content, raw_cs) =>
+          (Code_Printer.str raw_content, map (prep_const ctxt) raw_cs)))
   end;
 
-fun cert_printings thy = cert_syms thy #> arrange_printings cert_const thy;
+fun cert_printings ctxt = cert_syms ctxt #> arrange_printings cert_const ctxt;
 
-fun read_printings thy = read_syms thy #> arrange_printings Code.read_const thy;
+fun read_printings ctxt = read_syms ctxt #> arrange_printings read_const ctxt;
 
 fun set_printing (target, sym_syn) = map_printings target (Code_Symbol.set_data sym_syn);
 
 fun gen_set_printings prep_print_decl raw_print_decls thy =
-  fold set_printing (prep_print_decl thy raw_print_decls) thy;
+  fold set_printing (prep_print_decl (Proof_Context.init_global thy) raw_print_decls) thy;
 
 val set_printings = gen_set_printings cert_printings;
 val set_printings_cmd = gen_set_printings read_printings;
@@ -680,18 +685,18 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_spec "export_code"} "generate executable code for constants"
-    (Parse.!!! code_exprP >> (fn f => Toplevel.keep (f o Toplevel.theory_of)));
+    (Parse.!!! code_exprP >> (fn f => Toplevel.keep (f o Toplevel.context_of)));
 
 
 (** external entrance point -- for codegen tool **)
 
 fun codegen_tool thyname cmd_expr =
   let
-    val thy = Thy_Info.get_theory thyname;
+    val ctxt = Proof_Context.init_global (Thy_Info.get_theory thyname);
     val parse = Scan.read Token.stopper (Parse.!!! code_exprP) o
       (filter Token.is_proper o Outer_Syntax.scan Position.none);
   in case parse cmd_expr
-   of SOME f => (writeln "Now generating code..."; f thy)
+   of SOME f => (writeln "Now generating code..."; f ctxt)
     | NONE => error ("Bad directive " ^ quote cmd_expr)
   end;
 
