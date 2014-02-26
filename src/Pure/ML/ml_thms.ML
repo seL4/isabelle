@@ -86,25 +86,21 @@ val _ = Theory.setup
 val and_ = Args.$$$ "and";
 val by = Args.$$$ "by";
 val goal = Scan.unless (by || and_) Args.name_inner_syntax;
-val goals1 = Scan.repeat1 goal;
 
 val _ = Theory.setup
   (ML_Context.add_antiq @{binding lemma}
     (Scan.depend (fn context =>
-      Args.mode "open" -- goals1 -- Scan.repeat (Parse.position and_ -- Parse.!!! goals1) --
+      Args.mode "open" -- Parse.enum1_positions "and" (Scan.repeat1 goal) --
       (Parse.position by --
         Scan.pass context (Method.parse_context_report -- Scan.option Method.parse_context_report))
-     >> (fn (((is_open, raw_props), and_propss), ((_, by_pos), methods)) =>
+     >> (fn ((is_open, (raw_propss, and_positions)), ((_, by_pos), methods)) =>
           let
             val ctxt = Context.proof_of context;
 
-            val reports =
-              (by_pos, Markup.keyword1) ::
-                map (fn ((_, and_pos), _) => (and_pos, Markup.keyword2)) and_propss;
+            val reports = (by_pos, Markup.keyword1) :: map (rpair Markup.keyword2) and_positions;
             val _ = Context_Position.reports ctxt reports;
 
-            val propss =
-              burrow (map (rpair []) o Syntax.read_props ctxt) (raw_props :: map #2 and_propss);
+            val propss = burrow (map (rpair []) o Syntax.read_props ctxt) raw_propss;
             val prep_result = Goal.norm_result ctxt #> not is_open ? Thm.close_derivation;
             fun after_qed res goal_ctxt =
               Proof_Context.put_thms false (Auto_Bind.thisN,

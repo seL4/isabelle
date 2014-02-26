@@ -52,6 +52,8 @@ sig
   val nat: int parser
   val int: int parser
   val real: real parser
+  val enum_positions: string -> 'a parser -> ('a list * Position.T list) parser
+  val enum1_positions: string -> 'a parser -> ('a list * Position.T list) parser
   val enum: string -> 'a parser -> 'a list parser
   val enum1: string -> 'a parser -> 'a list parser
   val and_list: 'a parser -> 'a list parser
@@ -229,6 +231,12 @@ val opt_begin = Scan.optional (begin >> K true) false;
 
 
 (* enumerations *)
+
+fun enum1_positions sep scan =
+  scan -- Scan.repeat (position ($$$ sep) -- !!! scan) >>
+    (fn (x, ys) => (x :: map #2 ys, map (#2 o #1) ys));
+fun enum_positions sep scan =
+  enum1_positions sep scan || Scan.succeed ([], []);
 
 fun enum1 sep scan = scan ::: Scan.repeat ($$$ sep |-- !!! scan);
 fun enum sep scan = enum1 sep scan || Scan.succeed [];
