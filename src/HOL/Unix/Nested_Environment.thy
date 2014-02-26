@@ -563,9 +563,4 @@ qed simp_all
 lemma [code nbe]: "HOL.equal (x :: (_, _, _) env) x \<longleftrightarrow> True"
   by (fact equal_refl)
 
-lemma [code, code del]:
-  "(Code_Evaluation.term_of ::
-    ('a::{term_of, type}, 'b::{term_of, type}, 'c::{term_of, type}) env \<Rightarrow> term) =
-      Code_Evaluation.term_of" ..
-
 end
