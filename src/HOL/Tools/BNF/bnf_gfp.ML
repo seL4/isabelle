@@ -248,7 +248,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
       in
         Goal.prove_sorry lthy [] []
           (fold_rev Logic.all (x :: fs @ all_gs) (mk_Trueprop_eq (lhs, rhs)))
-          (K (mk_map_comp_id_tac map_comp0))
+          (fn {context = ctxt, prems = _} => mk_map_comp_id_tac ctxt map_comp0)
         |> Thm.close_derivation
       end;
 

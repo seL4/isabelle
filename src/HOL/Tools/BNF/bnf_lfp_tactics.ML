@@ -16,7 +16,7 @@ sig
   val mk_bd_card_order_tac: thm list -> tactic
   val mk_bd_limit_tac: int -> thm -> tactic
   val mk_card_of_min_alg_tac: thm -> thm -> thm -> thm -> thm -> tactic
-  val mk_copy_alg_tac: thm list list -> thm list -> thm -> thm -> thm -> tactic
+  val mk_copy_alg_tac: Proof.context -> thm list list -> thm list -> thm -> thm -> thm -> tactic
   val mk_copy_str_tac: thm list list -> thm -> thm list -> tactic
   val mk_ctor_induct_tac: Proof.context -> int -> thm list list -> thm -> thm list -> thm ->
     thm list -> thm list -> thm list -> tactic
@@ -216,7 +216,8 @@ fun mk_copy_str_tac set_maps alg_def alg_sets =
     val copy_str_tac =
       CONJ_WRAP' (fn (thms, thm) =>
         EVERY' [rtac ballI, REPEAT_DETERM o eresolve_tac [CollectE, conjE], rtac set_mp,
-          rtac equalityD1, etac @{thm bij_betw_imageE}, rtac imageI, etac thm,
+          rtac equalityD1, etac @{thm bij_betw_imageE},
+          REPEAT_DETERM_N 2 o rtac @{thm ssubst_mem[OF o_apply]}, rtac imageI, etac thm,
           REPEAT_DETERM_N n o set_tac thms])
       (set_maps ~~ alg_sets);
   in
@@ -224,7 +225,7 @@ fun mk_copy_str_tac set_maps alg_def alg_sets =
     stac alg_def THEN' copy_str_tac) 1
   end;
 
-fun mk_copy_alg_tac set_maps alg_sets mor_def iso_alt copy_str =
+fun mk_copy_alg_tac ctxt set_maps alg_sets mor_def iso_alt copy_str =
   let
     val n = length alg_sets;
     val fbetw_tac = CONJ_WRAP' (K (etac @{thm bij_betwE})) alg_sets;
@@ -234,12 +235,11 @@ fun mk_copy_alg_tac set_maps alg_sets mor_def iso_alt copy_str =
         rtac equalityD1, etac @{thm bij_betw_imageE}];
     val mor_tac =
       CONJ_WRAP' (fn (thms, thm) =>
-        EVERY' [rtac ballI, etac CollectE, etac @{thm inverE}, etac thm,
-          REPEAT_DETERM_N n o set_tac thms])
+        EVERY' [rtac ballI, etac CollectE, SELECT_GOAL (unfold_thms_tac ctxt [o_apply]),
+          etac @{thm inverE}, etac thm, REPEAT_DETERM_N n o set_tac thms])
       (set_maps ~~ alg_sets);
   in
-    (rtac (iso_alt RS iffD2) THEN'
-    etac copy_str THEN' REPEAT_DETERM o atac THEN'
+    (rtac (iso_alt RS iffD2) THEN' etac copy_str THEN' REPEAT_DETERM o atac THEN'
     rtac conjI THEN' stac mor_def THEN' rtac conjI THEN' fbetw_tac THEN' mor_tac THEN'
     CONJ_WRAP' (K atac) alg_sets) 1
   end;

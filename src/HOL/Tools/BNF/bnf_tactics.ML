@@ -20,7 +20,7 @@ sig
   val mk_Abs_bij_thm: Proof.context -> thm -> thm -> thm
   val mk_Abs_inj_thm: thm -> thm
 
-  val mk_map_comp_id_tac: thm -> tactic
+  val mk_map_comp_id_tac: Proof.context -> thm -> tactic
   val mk_map_cong0_tac: Proof.context -> int -> thm -> tactic
   val mk_map_cong0L_tac: int -> thm -> thm -> tactic
 end;
@@ -82,8 +82,8 @@ fun mk_rotate_eq_tac refl_tac trans assoc com cong =
     gen_tac
   end;
 
-fun mk_map_comp_id_tac map_comp0 =
-  (rtac trans THEN' rtac map_comp0 THEN' REPEAT_DETERM o stac @{thm comp_id} THEN' rtac refl) 1;
+fun mk_map_comp_id_tac ctxt map_comp0 =
+  (rtac trans THEN' rtac map_comp0 THEN' K (unfold_thms_tac ctxt @{thms comp_id}) THEN' rtac refl) 1;
 
 fun mk_map_cong0_tac ctxt m map_cong0 =
   EVERY' [rtac mp, rtac map_cong0,

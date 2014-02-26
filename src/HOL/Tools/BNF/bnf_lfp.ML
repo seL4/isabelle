@@ -119,8 +119,8 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
       bd0s Dss bnfs;
     val witss = map wits_of_bnf bnfs;
 
-    val ((((((((((((((((((zs, zs'), Bs), Bs_copy), B's), B''s), ss), prod_ss), s's), s''s),
-      fs), fs_copy), inv_fs), self_fs), gs), all_gs), (xFs, xFs')), (yFs, yFs')),
+    val (((((((((((((((((zs, zs'), Bs), Bs_copy), B's), B''s), ss), prod_ss), s's), s''s),
+      fs), fs_copy), inv_fs), self_fs), gs), all_gs), (xFs, xFs')),
       names_lthy) = lthy
       |> mk_Frees' "z" activeAs
       ||>> mk_Frees "B" BTs
@@ -137,8 +137,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
       ||>> mk_Frees "f" self_fTs
       ||>> mk_Frees "g" gTs
       ||>> mk_Frees "g" all_gTs
-      ||>> mk_Frees' "x" FTsAs
-      ||>> mk_Frees' "y" FTsBs;
+      ||>> mk_Frees' "x" FTsAs;
 
     val passive_UNIVs = map HOLogic.mk_UNIV passiveAs;
     val active_UNIVs = map HOLogic.mk_UNIV activeAs;
@@ -211,7 +210,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
       in
         Goal.prove_sorry lthy [] []
           (fold_rev Logic.all (x :: fs @ all_gs) (mk_Trueprop_eq (lhs, rhs)))
-          (K (mk_map_comp_id_tac map_comp0))
+          (fn {context = ctxt, prems = _} => mk_map_comp_id_tac ctxt map_comp0)
         |> Thm.close_derivation
       end;
 
@@ -515,11 +514,11 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
         val inver_prems = map HOLogic.mk_Trueprop
           (map3 mk_inver inv_fs fs Bs @ map3 mk_inver fs inv_fs B's);
         val all_prems = prems @ inver_prems;
-        fun mk_s f s mapT y y' = Term.absfree y' (f $ (s $
-          (Term.list_comb (mapT, passive_ids @ inv_fs) $ y)));
+        fun mk_s f s mapT = Library.foldl1 HOLogic.mk_comp [f, s,
+          Term.list_comb (mapT, passive_ids @ inv_fs)];
 
         val alg = HOLogic.mk_Trueprop
-          (mk_alg B's (map5 mk_s fs ss mapsBsAs yFs yFs'));
+          (mk_alg B's (map3 mk_s fs ss mapsBsAs));
         val copy_str_thm = Goal.prove_sorry lthy [] []
           (fold_rev Logic.all (Bs @ ss @ B's @ inv_fs @ fs)
             (Logic.list_implies (all_prems, alg)))
@@ -527,11 +526,12 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
           |> Thm.close_derivation;
 
         val iso = HOLogic.mk_Trueprop
-          (mk_iso B's (map5 mk_s fs ss mapsBsAs yFs yFs') Bs ss inv_fs fs_copy);
+          (mk_iso B's (map3 mk_s fs ss mapsBsAs) Bs ss inv_fs fs_copy);
         val copy_alg_thm = Goal.prove_sorry lthy [] []
           (fold_rev Logic.all (Bs @ ss @ B's @ inv_fs @ fs)
             (Logic.list_implies (all_prems, iso)))
-          (K (mk_copy_alg_tac set_mapss alg_set_thms mor_def iso_alt_thm copy_str_thm))
+          (fn {context = ctxt, prems = _} =>
+            mk_copy_alg_tac ctxt set_mapss alg_set_thms mor_def iso_alt_thm copy_str_thm)
           |> Thm.close_derivation;
 
         val ex = HOLogic.mk_Trueprop
@@ -983,11 +983,11 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
     val rec_fsts = map (Term.subst_atomic_types (activeBs ~~ Ts)) fsts;
     val rec_UNIVs = map2 (HOLogic.mk_UNIV oo curry HOLogic.mk_prodT) Ts activeAs;
 
-    val (((((((((Izs1, Izs1'), (Izs2, Izs2')), (xFs, xFs')), yFs), (AFss, AFss')),
+    val (((((((((Izs1, Izs1'), (Izs2, Izs2')), xFs), yFs), (AFss, AFss')),
       (fold_f, fold_f')), fs), rec_ss), names_lthy) = names_lthy
       |> mk_Frees' "z1" Ts
       ||>> mk_Frees' "z2" Ts'
-      ||>> mk_Frees' "x" FTs
+      ||>> mk_Frees "x" FTs
       ||>> mk_Frees "y" FTs'
       ||>> mk_Freess' "z" setFTss
       ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "f") foldT
@@ -1001,16 +1001,16 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
     fun ctor_bind i = nth external_bs (i - 1) |> Binding.prefix_name (ctorN ^ "_");
     val ctor_def_bind = rpair [] o Binding.conceal o Thm.def_binding o ctor_bind;
 
-    fun ctor_spec abs str map_FT_init x x' =
-      Term.absfree x' (abs $ (str $
-          (Term.list_comb (map_FT_init, map HOLogic.id_const passiveAs @ Rep_Ts) $ x)));
+    fun ctor_spec abs str map_FT_init =
+      Library.foldl1 HOLogic.mk_comp [abs, str,
+        Term.list_comb (map_FT_init, map HOLogic.id_const passiveAs @ Rep_Ts)];
 
     val ((ctor_frees, (_, ctor_def_frees)), (lthy, lthy_old)) =
       lthy
-      |> fold_map6 (fn i => fn abs => fn str => fn mapx => fn x => fn x' =>
+      |> fold_map4 (fn i => fn abs => fn str => fn mapx =>
         Local_Theory.define
-          ((ctor_bind i, NoSyn), (ctor_def_bind i, ctor_spec abs str mapx x x')))
-          ks Abs_Ts str_inits map_FT_inits xFs xFs'
+          ((ctor_bind i, NoSyn), (ctor_def_bind i, ctor_spec abs str mapx)))
+          ks Abs_Ts str_inits map_FT_inits
       |>> apsnd split_list o split_list
       ||> `Local_Theory.restore;
 
