@@ -122,8 +122,16 @@ interpretation lifting_syntax .
 
 text {* Handling of domains *}
 
+lemma Domainp_iff: "Domainp T x \<longleftrightarrow> (\<exists>y. T x y)"
+  by auto
+
 lemma Domaimp_refl[transfer_domain_rule]:
   "Domainp T = Domainp T" ..
+
+lemma Domainp_prod_fun_eq[transfer_domain_rule]:
+  assumes "Domainp T = P"
+  shows "Domainp (op= ===> T) = (\<lambda>f. \<forall>x. P (f x))"
+by (auto intro: choice simp: assms[symmetric] Domainp_iff fun_rel_def fun_eq_iff)
 
 subsection {* Predicates on relations, i.e. ``class constraints'' *}
 
@@ -274,9 +282,6 @@ lemma bi_unique_fun [transfer_rule]:
 
 
 subsection {* Transfer rules *}
-
-lemma Domainp_iff: "Domainp T x \<longleftrightarrow> (\<exists>y. T x y)"
-  by auto
 
 lemma Domainp_forall_transfer [transfer_rule]:
   assumes "right_total A"
