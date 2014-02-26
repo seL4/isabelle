@@ -82,6 +82,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
 
     fun mk_FTs Ts = map2 (fn Ds => mk_T_of_bnf Ds Ts) Dss bnfs;
     val (params, params') = `(map Term.dest_TFree) (mk_params passiveAs);
+    val (dead_params, dead_params') = `(map Term.dest_TFree) (subtract (op =) passiveAs params');
     val FTsAs = mk_FTs allAs;
     val FTsBs = mk_FTs allBs;
     val FTsCs = mk_FTs allCs;
@@ -159,7 +160,6 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
     val bd_Cinfinites = map (fn thm => thm RS @{thm Cinfinite_csum1}) bd0_Cinfinites;
     val bd_Cnotzeros = map (fn thm => thm RS @{thm Cinfinite_Cnotzero}) bd_Cinfinites;
     val bd_Cinfinite = hd bd_Cinfinites;
-    val bd_Cnotzero = hd bd_Cnotzeros;
     val set_bdss =
       map2 (fn set_bd0s => fn bd0_Card_order =>
         map (fn thm => ctrans OF [thm, bd0_Card_order RS @{thm ordLeq_csum1}]) set_bd0s)
@@ -552,32 +552,87 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
 
     (* bounds *)
 
-    val sum_Card_order = if n = 1 then bd_Card_order else @{thm Card_order_csum};
-    val sum_Cnotzero = if n = 1 then bd_Cnotzero else bd_Cnotzero RS @{thm csum_Cnotzero1};
-    val sum_Cinfinite = if n = 1 then bd_Cinfinite else bd_Cinfinite RS @{thm Cinfinite_csum1};
-    fun mk_set_bd_sums i bd_Card_order bds =
-      if n = 1 then bds
-      else map (fn thm => bd_Card_order RS mk_ordLeq_csum n i thm) bds;
-    val set_bd_sumss = map3 mk_set_bd_sums ks bd_Card_orders set_bdss;
-
-    fun mk_in_bd_sum i Co Cnz bd =
-      if n = 1 then bd
-      else Cnz RS ((Co RS mk_ordLeq_csum n i (Co RS @{thm ordLeq_refl})) RS
-        (bd RS @{thm ordLeq_transitive[OF _ cexp_mono2_Cnotzero[OF _ Card_order_csum]]}));
-    val in_bd_sums = map4 mk_in_bd_sum ks bd_Card_orders bd_Cnotzeros in_bds;
-
     val sum_bd = Library.foldr1 (uncurry mk_csum) bds;
-    val suc_bd = mk_cardSuc sum_bd;
+    val sum_bdT = fst (dest_relT (fastype_of sum_bd));
+
+    val (lthy, sbd, sbd_card_order, sbd_Cinfinite, sbd_Card_order, set_sbdss, in_sbds) =
+      if n = 1
+      then (lthy, sum_bd, hd bd_card_orders, bd_Cinfinite, bd_Card_order, set_bdss, in_bds)
+      else
+        let
+          val sbdT_bind = mk_internal_b sum_bdTN;
+
+          val ((sbdT_name, (sbdT_glob_info, sbdT_loc_info)), lthy) =
+            typedef (sbdT_bind, dead_params, NoSyn)
+              (HOLogic.mk_UNIV sum_bdT) NONE (EVERY' [rtac exI, rtac UNIV_I] 1) lthy;
+
+          val sbdT = Type (sbdT_name, dead_params');
+          val Abs_sbdT = Const (#Abs_name sbdT_glob_info, sum_bdT --> sbdT);
+
+          val sbd_bind = mk_internal_b sum_bdN;
+          val sbd_def_bind = (Thm.def_binding sbd_bind, []);
+
+          val sbd_spec = mk_dir_image sum_bd Abs_sbdT;
+
+          val ((sbd_free, (_, sbd_def_free)), (lthy, lthy_old)) =
+            lthy
+            |> Local_Theory.define ((sbd_bind, NoSyn), (sbd_def_bind, sbd_spec))
+            ||> `Local_Theory.restore;
+
+          val phi = Proof_Context.export_morphism lthy_old lthy;
+
+          val sbd_def = Morphism.thm phi sbd_def_free RS meta_eq_to_obj_eq;
+          val sbd = Const (fst (Term.dest_Const (Morphism.term phi sbd_free)), mk_relT (`I sbdT));
+
+          val Abs_sbdT_inj = mk_Abs_inj_thm (#Abs_inject sbdT_loc_info);
+          val Abs_sbdT_bij = mk_Abs_bij_thm lthy Abs_sbdT_inj (#Abs_cases sbdT_loc_info);
+
+          fun mk_sum_Cinfinite [thm] = thm
+            | mk_sum_Cinfinite (thm :: thms) =
+              @{thm Cinfinite_csum_strong} OF [thm, mk_sum_Cinfinite thms];
+
+          val sum_Cinfinite = mk_sum_Cinfinite bd_Cinfinites;
+          val sum_Card_order = sum_Cinfinite RS conjunct2;
+
+          fun mk_sum_card_order [thm] = thm
+            | mk_sum_card_order (thm :: thms) =
+              @{thm card_order_csum} OF [thm, mk_sum_card_order thms];
+
+          val sum_card_order = mk_sum_card_order bd_card_orders;
+
+          val sbd_ordIso = @{thm ssubst_Pair_rhs} OF
+            [@{thm dir_image} OF [Abs_sbdT_inj, sum_Card_order], sbd_def];
+          val sbd_Cinfinite = @{thm Cinfinite_cong} OF [sbd_ordIso, sum_Cinfinite];
+          val sbd_Card_order = sbd_Cinfinite RS conjunct2;
+
+          val sbd_card_order = @{thm iffD2[OF arg_cong[of _ _ card_order]]} OF
+            [sbd_def, @{thm card_order_dir_image} OF [Abs_sbdT_bij, sum_card_order]];
+
+          fun mk_set_sbd i bd_Card_order bds =
+            map (fn thm => @{thm ordLeq_ordIso_trans} OF
+              [bd_Card_order RS mk_ordLeq_csum n i thm, sbd_ordIso]) bds;
+          val set_sbdss = map3 mk_set_sbd ks bd_Card_orders set_bdss;
+
+          fun mk_in_bd_sum i Co Cnz bd =
+            Cnz RS ((@{thm ordLeq_ordIso_trans} OF
+              [Co RS mk_ordLeq_csum n i (Co RS @{thm ordLeq_refl}), sbd_ordIso]) RS
+              (bd RS @{thm ordLeq_transitive[OF _ cexp_mono2_Cnotzero[OF _ Card_order_csum]]}));
+          val in_sbds = map4 mk_in_bd_sum ks bd_Card_orders bd_Cnotzeros in_bds;
+       in
+         (lthy, sbd, sbd_card_order, sbd_Cinfinite, sbd_Card_order, set_sbdss, in_sbds)
+       end;
+
+    val sbd_Cnotzero = sbd_Cinfinite RS @{thm Cinfinite_Cnotzero};
+    val suc_bd = mk_cardSuc sbd;
+
     val field_suc_bd = mk_Field suc_bd;
     val suc_bdT = fst (dest_relT (fastype_of suc_bd));
     fun mk_Asuc_bd [] = mk_cexp ctwo suc_bd
       | mk_Asuc_bd As =
         mk_cexp (mk_csum (Library.foldr1 (uncurry mk_csum) (map mk_card_of As)) ctwo) suc_bd;
 
-    val suc_bd_Card_order = if n = 1 then bd_Card_order RS @{thm cardSuc_Card_order}
-      else @{thm cardSuc_Card_order[OF Card_order_csum]};
-    val suc_bd_Cinfinite = if n = 1 then bd_Cinfinite RS @{thm Cinfinite_cardSuc}
-      else bd_Cinfinite RS @{thm Cinfinite_cardSuc[OF Cinfinite_csum1]};
+    val suc_bd_Card_order =  sbd_Card_order RS @{thm cardSuc_Card_order};
+    val suc_bd_Cinfinite = sbd_Cinfinite RS @{thm Cinfinite_cardSuc};
     val suc_bd_Cnotzero = suc_bd_Cinfinite RS @{thm Cinfinite_Cnotzero};
     val suc_bd_worel = suc_bd_Card_order RS @{thm Card_order_wo_rel}
     val basis_Asuc = if m = 0 then @{thm ordLeq_refl[OF Card_order_ctwo]}
@@ -679,8 +734,8 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
           (Goal.prove_sorry lthy [] []
             (HOLogic.mk_Trueprop (HOLogic.mk_imp (i_field, card_conjunction)))
             (K (mk_min_algs_card_of_tac card_cT card_ct
-              m suc_bd_worel min_algs_thms in_bd_sums
-              sum_Card_order sum_Cnotzero suc_bd_Card_order suc_bd_Cinfinite suc_bd_Cnotzero
+              m suc_bd_worel min_algs_thms in_sbds
+              sbd_Card_order sbd_Cnotzero suc_bd_Card_order suc_bd_Cinfinite suc_bd_Cnotzero
               suc_bd_Asuc_bd Asuc_bd_Cinfinite)))
           |> Thm.close_derivation;
 
@@ -741,8 +796,8 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
 
         val goal = fold_rev Logic.all ss (HOLogic.mk_Trueprop (mk_alg min_algs ss));
         val alg_min_alg = Goal.prove_sorry lthy [] [] goal
-          (K (mk_alg_min_alg_tac m alg_def min_alg_defs suc_bd_limit_thm sum_Cinfinite
-            set_bd_sumss min_algs_thms min_algs_mono_thms))
+          (K (mk_alg_min_alg_tac m alg_def min_alg_defs suc_bd_limit_thm sbd_Cinfinite
+            set_sbdss min_algs_thms min_algs_mono_thms))
           |> Thm.close_derivation;
 
         fun mk_card_of_thm min_alg def = Goal.prove_sorry lthy [] []
@@ -1438,7 +1493,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
               fn T => fn lthy =>
             define_bnf_consts Dont_Inline (user_policy Note_Some lthy) (SOME deads)
               map_b rel_b set_bs
-              ((((((b, T), fold_rev Term.absfree fs' mapx), sets), sum_bd), wits), NONE) lthy)
+              ((((((b, T), fold_rev Term.absfree fs' mapx), sets), sbd), wits), NONE) lthy)
           bs map_bs rel_bs set_bss fs_maps setss_by_bnf ctor_witss Ts lthy;
 
         val (_, Iconsts, Iconst_defs, mk_Iconsts) = split_list4 Ibnf_consts;
@@ -1586,7 +1641,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
           let
             fun mk_set_bd z bd set = mk_ordLeq (mk_card_of (set $ z)) bd;
 
-            fun mk_cphi z set = certify lthy (Term.absfree (dest_Free z) (mk_set_bd z sum_bd set));
+            fun mk_cphi z set = certify lthy (Term.absfree (dest_Free z) (mk_set_bd z sbd set));
 
             val cphiss = map (map2 mk_cphi Izs) Isetss_by_range;
 
@@ -1598,7 +1653,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
                 HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
                   (map3 mk_set_bd Izs Ibds sets))) Isetss_by_range;
 
-            fun mk_tac ctxt induct = mk_set_bd_tac ctxt m (rtac induct) sum_Cinfinite set_bd_sumss;
+            fun mk_tac ctxt induct = mk_set_bd_tac ctxt m (rtac induct) sbd_Cinfinite set_sbdss;
             val thms =
               map4 (fn goal => fn ctor_sets => fn induct => fn i =>
                 singleton (Proof_Context.export names_lthy lthy)
@@ -1705,9 +1760,9 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
         val map_cong0_tacs = map (fn thm => fn ctxt => mk_map_cong0_tac ctxt m thm) Imap_cong0_thms;
         val set_map0_tacss = map (map (K o mk_set_map0_tac)) (transpose Iset_Imap0_thmss);
         val bd_co_tacs = replicate n (fn ctxt =>
-          unfold_thms_tac ctxt Ibd_defs THEN mk_bd_card_order_tac bd_card_orders);
+          unfold_thms_tac ctxt Ibd_defs THEN rtac sbd_card_order 1);
         val bd_cinf_tacs = replicate n (fn ctxt =>
-          unfold_thms_tac ctxt Ibd_defs THEN rtac (sum_Cinfinite RS conjunct1) 1);
+          unfold_thms_tac ctxt Ibd_defs THEN rtac (sbd_Cinfinite RS conjunct1) 1);
         val set_bd_tacss = map (map (fn thm => K (rtac thm 1))) (transpose Iset_bd_thmss);
         val le_rel_OO_tacs = map (fn i =>
           K ((rtac @{thm predicate2I} THEN' etac (le_Irel_OO_thm RS mk_conjunctN n i RS mp)) 1)) ks;

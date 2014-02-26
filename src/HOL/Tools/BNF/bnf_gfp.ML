@@ -966,10 +966,10 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs lth
 
           val sum_card_order = mk_sum_card_order bd_card_orders;
 
-          val sbd_ordIso = fold_thms lthy [sbd_def]
-            (@{thm dir_image} OF [Abs_sbdT_inj, sum_Card_order]);
-          val sbd_card_order =  fold_thms lthy [sbd_def]
-            (@{thm card_order_dir_image} OF [Abs_sbdT_bij, sum_card_order]);
+          val sbd_ordIso = @{thm ssubst_Pair_rhs} OF
+            [@{thm dir_image} OF [Abs_sbdT_inj, sum_Card_order], sbd_def];
+          val sbd_card_order = @{thm iffD2[OF arg_cong[of _ _ card_order]]} OF
+            [sbd_def, @{thm card_order_dir_image} OF [Abs_sbdT_bij, sum_card_order]];
           val sbd_Cinfinite = @{thm Cinfinite_cong} OF [sbd_ordIso, sum_Cinfinite];
           val sbd_Card_order = sbd_Cinfinite RS conjunct2;
 
