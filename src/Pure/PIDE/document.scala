@@ -292,6 +292,8 @@ object Document
     val nodes: Nodes = Nodes.empty)
   {
     def is_init: Boolean = id == Document_ID.none
+
+    override def toString: String = "Version(" + id + ")"
   }
 
 

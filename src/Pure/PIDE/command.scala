@@ -228,6 +228,8 @@ object Command
     val range = Text.Range(0, length)
     private val symbol_index = Symbol.Index(text)
     def decode(r: Text.Range): Text.Range = symbol_index.decode(r)
+
+    override def toString: String = "Command.File(" + file_name + ")"
   }
 
 
