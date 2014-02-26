@@ -72,9 +72,11 @@ sig
   val section: modifier parser list -> thm list context_parser
   val sections: modifier parser list -> thm list list context_parser
   type text_range = text * Position.range
-  val parse: text_range parser
   val text: text_range option -> text option
   val position: text_range option -> Position.T
+  val parse: text_range parser
+  val parse_report: text_range parser
+  val parse_context_report: text_range context_parser
 end;
 
 structure Method: METHOD =
@@ -396,6 +398,19 @@ fun xrule_meth meth =
   (fn (n, ths) => fn ctxt => meth ctxt n ths);
 
 
+(* text range *)
+
+type text_range = text * Position.range;
+
+fun reports (text, (pos, _)) = [(pos, Markup.language_method)];
+
+fun text NONE = NONE
+  | text (SOME (txt, _)) = SOME txt;
+
+fun position NONE = Position.none
+  | position (SOME (_, (pos, _))) = pos;
+
+
 (* outer parser *)
 
 fun is_symid_meth s =
@@ -425,18 +440,13 @@ in
 val parse =
   Scan.trace meth3 >> (fn (m, toks) => (m, Token.range_of toks));
 
+(*parse with observable effect!*)
+val parse_report = parse >> (tap (Position.reports o reports));
+val parse_context_report =
+  Args.context -- Scan.lift parse >>
+    (fn (ctxt, text_range) => (Context_Position.reports ctxt (reports text_range); text_range));
+
 end;
-
-
-(* text position *)
-
-type text_range = text * Position.range;
-
-fun text NONE = NONE
-  | text (SOME (txt, _)) = SOME txt;
-
-fun position NONE = Position.none
-  | position (SOME (_, (pos, _))) = pos;
 
 
 (* theory setup *)

@@ -23,6 +23,7 @@ sig
   val symbolsN: string
   val languageN: string
   val language: {name: string, symbols: bool, antiquotes: bool} -> T
+  val language_method: T
   val language_sort: T
   val language_type: T
   val language_term: T
@@ -257,6 +258,7 @@ fun language {name, symbols, antiquotes} =
   (languageN,
     [(nameN, name), (symbolsN, print_bool symbols), (antiquotesN, print_bool antiquotes)]);
 
+val language_method = language {name = "method", symbols = true, antiquotes = false};
 val language_sort = language {name = "sort", symbols = true, antiquotes = false};
 val language_type = language {name = "type", symbols = true, antiquotes = false};
 val language_term = language {name = "term", symbols = true, antiquotes = false};

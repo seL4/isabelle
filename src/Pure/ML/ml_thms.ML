@@ -92,8 +92,9 @@ val _ = Theory.setup
   (ML_Context.add_antiq @{binding lemma}
     (Scan.depend (fn context =>
       Args.mode "open" -- goals1 -- Scan.repeat (Parse.position and_ -- Parse.!!! goals1) --
-      (Parse.position by -- (Method.parse -- Scan.option Method.parse)) >>
-        (fn (((is_open, raw_props), and_propss), ((_, by_pos), methods)) =>
+      (Parse.position by --
+        Scan.pass context (Method.parse_context_report -- Scan.option Method.parse_context_report))
+     >> (fn (((is_open, raw_props), and_propss), ((_, by_pos), methods)) =>
           let
             val ctxt = Context.proof_of context;
 
