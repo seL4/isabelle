@@ -92,6 +92,16 @@ object Completion_Popup
       }
 
 
+    /* caret */
+
+    def before_caret_range(rendering: Rendering): Text.Range =
+    {
+      val snapshot = rendering.snapshot
+      val former_caret = snapshot.revert(text_area.getCaretPosition)
+      snapshot.convert(Text.Range(former_caret - 1, former_caret))
+    }
+
+
     /* rendering */
 
     def rendering(rendering: Rendering, line_range: Text.Range): Option[Text.Info[Color]] =
@@ -100,10 +110,8 @@ object Completion_Popup
         case Some(range) => range.try_restrict(line_range)
         case None =>
           val buffer = text_area.getBuffer
-          val caret = text_area.getCaretPosition
-
-          if (line_range.contains(caret)) {
-            JEdit_Lib.stretch_point_range(buffer, caret).try_restrict(line_range) match {
+          if (line_range.contains(text_area.getCaretPosition)) {
+            before_caret_range(rendering).try_restrict(line_range) match {
               case Some(range) if !range.is_singularity =>
                 rendering.completion_names(range) match {
                   case Some(names) => Some(names.range)
@@ -144,7 +152,7 @@ object Completion_Popup
           val context =
             (opt_rendering orElse PIDE.document_view(text_area).map(_.get_rendering()) match {
               case Some(rendering) =>
-                rendering.language_context(JEdit_Lib.stretch_point_range(buffer, caret))
+                rendering.language_context(before_caret_range(rendering))
               case None => None
             }) getOrElse syntax.language_context
 
@@ -182,7 +190,6 @@ object Completion_Popup
       val layered = view.getLayeredPane
       val buffer = text_area.getBuffer
       val painter = text_area.getPainter
-      val caret = text_area.getCaretPosition
 
       val history = PIDE.completion_history.value
       val decode = Isabelle_Encoding.is_active(buffer)
@@ -224,7 +231,7 @@ object Completion_Popup
           PIDE.document_view(text_area) match {
             case Some(doc_view) =>
               val rendering = doc_view.get_rendering()
-              rendering.completion_names(JEdit_Lib.stretch_point_range(buffer, caret)) match {
+              rendering.completion_names(before_caret_range(rendering)) match {
                 case None => None
                 case Some(names) =>
                   JEdit_Lib.try_get_text(buffer, names.range) match {

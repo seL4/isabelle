@@ -178,16 +178,6 @@ object JEdit_Lib
       catch { case _: ArrayIndexOutOfBoundsException => Text.Range(offset, offset + 1) }
     }
 
-  def stretch_point_range(buffer: JEditBuffer, offset: Text.Offset): Text.Range =
-  {
-    val range = point_range(buffer, offset)
-    val left = point_range(buffer, range.start - 1)
-    val right = point_range(buffer, range.stop)
-    val range1 = range.try_join(left) getOrElse range
-    val range2 = range1.try_join(right) getOrElse range1
-    range2
-  }
-
 
   /* visible text range */
 
