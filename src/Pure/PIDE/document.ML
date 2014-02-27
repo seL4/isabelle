@@ -18,7 +18,7 @@ sig
   type state
   val init_state: state
   val define_blob: string -> string -> state -> state
-  val define_command: Document_ID.command -> string -> Command.blob list -> string ->
+  val define_command: Document_ID.command -> string -> Command.blob_digest list -> string ->
     state -> state
   val remove_versions: Document_ID.version list -> state -> state
   val start_execution: state -> state
@@ -234,8 +234,8 @@ fun new_execution version_id delay_request frontier : execution =
 
 abstype state = State of
  {versions: version Inttab.table,  (*version id -> document content*)
-  blobs: string Symtab.table,  (*digest -> text*)
-  commands: (string * Command.blob list * Token.T list lazy) Inttab.table,
+  blobs: (SHA1.digest * string list) Symtab.table,  (*digest -> digest, lines*)
+  commands: (string * Command.blob_digest list * Token.T list lazy) Inttab.table,
     (*command id -> name, inlined files, command span*)
   execution: execution}  (*current execution process*)
 with
@@ -275,13 +275,18 @@ fun delete_version version_id versions =
 
 fun define_blob digest text =
   map_state (fn (versions, blobs, commands, execution) =>
-    let val blobs' = Symtab.update (digest, text) blobs
+    let
+      val sha1_digest = SHA1.digest text;
+      val _ =
+        digest = SHA1.rep sha1_digest orelse
+          error ("Ill-defined blob: bad SHA1 digest " ^ digest ^ " vs. " ^ SHA1.rep sha1_digest);
+      val blobs' = Symtab.update (digest, (sha1_digest, split_lines text)) blobs;
     in (versions, blobs', commands, execution) end);
 
 fun the_blob (State {blobs, ...}) digest =
   (case Symtab.lookup blobs digest of
     NONE => error ("Undefined blob: " ^ digest)
-  | SOME text => text);
+  | SOME content => content);
 
 
 (* commands *)
@@ -496,8 +501,8 @@ fun new_exec state node proper_init command_id' (assign_update, command_exec, in
 
       val command_visible = visible_command node command_id';
       val command_overlays = overlays node command_id';
-      val (command_name, blobs0, span0) = the_command state command_id';
-      val blobs = (map o Exn.map_result o apsnd o Option.map) (the_blob state) blobs0;
+      val (command_name, blob_digests, span0) = the_command state command_id';
+      val blobs = (map o Exn.map_result o apsnd o Option.map) (the_blob state) blob_digests;
       val span = Lazy.force span0;
 
       val eval' =

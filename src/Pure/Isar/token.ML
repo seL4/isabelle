@@ -10,7 +10,7 @@ sig
     Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
     Nat | Float | String | AltString | Verbatim | Cartouche | Space | Comment | InternalValue |
     Error of string | Sync | EOF
-  type file = {src_path: Path.T, text: string, pos: Position.T}
+  type file = {src_path: Path.T, lines: string list, digest: SHA1.digest, pos: Position.T}
   datatype value =
     Text of string | Typ of typ | Term of term | Fact of thm list |
     Attribute of morphism -> attribute | Files of file Exn.result list
@@ -80,7 +80,7 @@ struct
   args.ML).  Note that an assignable ref designates an intermediate
   state of internalization -- it is NOT meant to persist.*)
 
-type file = {src_path: Path.T, text: string, pos: Position.T};
+type file = {src_path: Path.T, lines: string list, digest: SHA1.digest, pos: Position.T};
 
 datatype value =
   Text of string |

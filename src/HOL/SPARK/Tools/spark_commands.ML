@@ -15,15 +15,15 @@ struct
 
 fun spark_open header (prfx, files) thy =
   let
-    val ([{src_path, text = vc_text, pos = vc_pos, ...}: Token.file,
-      {text = fdl_text, pos = fdl_pos, ...},
-      {text = rls_text, pos = rls_pos, ...}], thy') = files thy;
+    val ([{src_path, lines = vc_lines, pos = vc_pos, ...}: Token.file,
+      {lines = fdl_lines, pos = fdl_pos, ...},
+      {lines = rls_lines, pos = rls_pos, ...}], thy') = files thy;
     val base = fst (Path.split_ext (File.full_path (Thy_Load.master_directory thy') src_path));
   in
     SPARK_VCs.set_vcs
-      (snd (Fdl_Parser.parse_declarations fdl_pos fdl_text))
-      (Fdl_Parser.parse_rules rls_pos rls_text)
-      (snd (Fdl_Parser.parse_vcs header vc_pos vc_text))
+      (snd (Fdl_Parser.parse_declarations fdl_pos (cat_lines fdl_lines)))
+      (Fdl_Parser.parse_rules rls_pos (cat_lines rls_lines))
+      (snd (Fdl_Parser.parse_vcs header vc_pos (cat_lines vc_lines)))
       base prfx thy'
   end;
 

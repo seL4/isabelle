@@ -22,11 +22,11 @@ val _ =
     "ML text from file"
     (Thy_Load.parse_files "ML_file" >> (fn files => Toplevel.generic_theory (fn gthy =>
         let
-          val [{src_path, text, pos}] = files (Context.theory_of gthy);
-          val provide = Thy_Load.provide (src_path, SHA1.digest text);
+          val [{src_path, lines, digest, pos}] = files (Context.theory_of gthy);
+          val provide = Thy_Load.provide (src_path, digest);
         in
           gthy
-          |> ML_Context.exec (fn () => ML_Context.eval_text true pos text)
+          |> ML_Context.exec (fn () => ML_Context.eval_text true pos (cat_lines lines))
           |> Local_Theory.propagate_ml_env
           |> Context.mapping provide (Local_Theory.background_theory provide)
         end)));

@@ -100,7 +100,7 @@ fun provide_parse_files cmd =
   parse_files cmd >> (fn files => fn thy =>
     let
       val fs = files thy;
-      val thy' = fold (fn {src_path, text, ...} => provide (src_path, SHA1.digest text)) fs thy;
+      val thy' = fold (fn {src_path, digest, ...} => provide (src_path, digest)) fs thy;
     in (fs, thy') end);
 
 fun load_file thy src_path =

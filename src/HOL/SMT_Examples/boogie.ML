@@ -6,7 +6,7 @@ Proving Boogie-generated verification conditions.
 
 signature BOOGIE =
 sig
-  val boogie_prove: theory -> string -> unit
+  val boogie_prove: theory -> string list -> unit
 end
 
 structure Boogie: BOOGIE =
@@ -252,15 +252,13 @@ fun parse_lines [] cx = cx
 
 
 
-(* splitting of text into a lists of lists of tokens *)
+(* splitting of text lines into a lists of tokens *)
 
 fun is_blank c = (c = " " orelse c = "\t" orelse c = "\r" orelse c = "\n")
 
-fun explode_lines text =
-  text
-  |> split_lines
-  |> map (String.tokens (is_blank o str))
-  |> filter (fn [] => false | _ => true)
+val token_lines =
+  map (String.tokens (is_blank o str))
+  #> filter (fn [] => false | _ => true)
 
 
 
@@ -299,13 +297,11 @@ fun boogie_tac ctxt axioms =
   ALLGOALS (SMT_Solver.smt_tac ctxt (boogie_rules @ axioms))
 
 
-fun boogie_prove thy text =
+fun boogie_prove thy lines =
   let
-    val lines = explode_lines text
-
     val ((axioms, vc), ctxt) =
       empty_context
-      |> parse_lines lines
+      |> parse_lines (token_lines lines)
       |> add_unique_axioms
       |> build_proof_context thy
 
@@ -324,8 +320,8 @@ val _ =
     (Thy_Load.provide_parse_files "boogie_file" >> (fn files =>
       Toplevel.theory (fn thy =>
         let
-          val ([{text, ...}], thy') = files thy;
-          val _ = boogie_prove thy' text;
+          val ([{lines, ...}], thy') = files thy;
+          val _ = boogie_prove thy' lines;
         in thy' end)))
 
 end
