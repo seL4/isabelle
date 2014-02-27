@@ -370,33 +370,44 @@ fun map_thms_of_typ ctxt (Type (s, _)) =
     (case fp_sugar_of ctxt s of SOME {maps, ...} => maps | NONE => [])
   | map_thms_of_typ _ _ = [];
 
-fun corec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy0 =
+fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
   let
     val thy = Proof_Context.theory_of lthy0;
 
-    val ((missing_res_Ts, perm0_kks,
-          fp_sugars as {nested_bnfs, fp_res = {xtor_co_iterss = dtor_coiters1 :: _, ...},
-            common_co_inducts = common_coinduct_thms, ...} :: _, (_, gfp_sugar_thms)), lthy) =
-      nested_to_mutual_fps Greatest_FP bs res_Ts get_indices callssss0 lthy0;
+    val ((missing_res_Ts, perm0_kks, fp_sugars as {nested_bnfs, co_iters = coiter1 :: _,
+            common_co_inducts = common_coinduct_thms, ...} :: _,
+          (_, gfp_sugar_thms)), lthy) =
+      nested_to_mutual_fps Greatest_FP bs res_Ts callers callssss0 lthy0;
 
     val perm_fp_sugars = sort (int_ord o pairself #fp_res_index) fp_sugars;
 
     val indices = map #fp_res_index fp_sugars;
     val perm_indices = map #fp_res_index perm_fp_sugars;
 
-    val perm_ctrss = map (#ctrs o #ctr_sugar) perm_fp_sugars;
-    val perm_ctr_Tsss = map (map (binder_types o fastype_of)) perm_ctrss;
-    val perm_gfpTs = map (body_type o fastype_of o hd) perm_ctrss;
+    val perm_gfpTs = map #T perm_fp_sugars;
+    val perm_ctrXs_Tsss' = map (repair_nullary_single_ctr o #ctrXs_Tss) perm_fp_sugars;
 
     val nn0 = length res_Ts;
     val nn = length perm_gfpTs;
     val kks = 0 upto nn - 1;
-    val perm_ns = map length perm_ctr_Tsss;
+    val perm_ns' = map length perm_ctrXs_Tsss';
 
-    val perm_Cs = map (fn {fp_res, fp_res_index, ...} => domain_type (body_fun_type (fastype_of
-      (co_rec_of (nth (#xtor_co_iterss fp_res) fp_res_index))))) perm_fp_sugars;
-    val (perm_p_Tss, (perm_q_Tssss, _, perm_f_Tssss, _)) =
-      mk_coiter_fun_arg_types perm_ctr_Tsss perm_Cs perm_ns (co_rec_of dtor_coiters1);
+    val perm_Ts = map #T perm_fp_sugars;
+    val perm_Xs = map #X perm_fp_sugars;
+    val perm_Cs = map (domain_type o body_fun_type o fastype_of o co_rec_of o #co_iters) perm_fp_sugars;
+    val Xs_TCs = perm_Xs ~~ (perm_Ts ~~ perm_Cs);
+
+    fun zip_corecT (Type (s, Us)) = [Type (s, map (mk_sumTN o zip_corecT) Us)]
+      | zip_corecT U =
+        (case AList.lookup (op =) Xs_TCs U of
+          SOME (T, C) => [T, C]
+        | NONE => [U]);
+
+    val perm_p_Tss = mk_coiter_p_pred_types perm_Cs perm_ns';
+    val perm_f_Tssss =
+      map2 (fn C => map (map (map (curry (op -->) C) o zip_corecT))) perm_Cs perm_ctrXs_Tsss';
+    val perm_q_Tssss =
+      map (map (map (fn [_] => [] | [_, T] => [mk_pred1T (domain_type T)]))) perm_f_Tssss;
 
     val (perm_p_hss, h) = indexedd perm_p_Tss 0;
     val (perm_q_hssss, h') = indexedddd perm_q_Tssss h;
@@ -915,7 +926,8 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
 
     val fun_names = map Binding.name_of bs;
     val basic_ctr_specss = map (basic_corec_specs_of lthy) res_Ts;
-    val has_call = exists_subterm (map (fst #>> Binding.name_of #> Free) fixes |> member (op =));
+    val frees = map (fst #>> Binding.name_of #> Free) fixes;
+    val has_call = exists_subterm (member (op =) frees);
     val eqns_data =
       fold_map2 (dissect_coeqn lthy has_call fun_names sequentials basic_ctr_specss) (tag_list 0 (map snd specs))
         of_specs_opt []
@@ -936,7 +948,7 @@ val _ = tracing ("callssss = " ^ @{make_string} callssss);
 
     val ((n2m, corec_specs', _, coinduct_thm, strong_coinduct_thm, coinduct_thms,
           strong_coinduct_thms), lthy') =
-      corec_specs_of bs arg_Ts res_Ts (get_free_indices fixes) callssss lthy;
+      corec_specs_of bs arg_Ts res_Ts frees callssss lthy;
     val corec_specs = take actual_nn corec_specs';
     val ctr_specss = map #ctr_specs corec_specs;
 

@@ -21,9 +21,9 @@ sig
   type lfp_rec_extension =
     {nested_simps: thm list,
      is_new_datatype: Proof.context -> string -> bool,
-     get_basic_lfp_sugars: binding list -> typ list -> (term -> int list) ->
-      (term * term list list) list list -> local_theory ->
-      typ list * int list * basic_lfp_sugar list * thm list * thm list * thm * bool * local_theory,
+     get_basic_lfp_sugars: binding list -> typ list -> term list ->
+       (term * term list list) list list -> local_theory ->
+       typ list * int list * basic_lfp_sugar list * thm list * thm list * thm * bool * local_theory,
      rewrite_nested_rec_call: Proof.context -> (term -> bool) -> (string -> int) -> typ list ->
        term -> term -> term -> term};
 
@@ -92,9 +92,9 @@ type basic_lfp_sugar =
 type lfp_rec_extension =
   {nested_simps: thm list,
    is_new_datatype: Proof.context -> string -> bool,
-   get_basic_lfp_sugars: binding list -> typ list -> (term -> int list) ->
-    (term * term list list) list list -> local_theory ->
-    typ list * int list * basic_lfp_sugar list * thm list * thm list * thm * bool * local_theory,
+   get_basic_lfp_sugars: binding list -> typ list -> term list ->
+     (term * term list list) list list -> local_theory ->
+     typ list * int list * basic_lfp_sugar list * thm list * thm list * thm * bool * local_theory,
    rewrite_nested_rec_call: Proof.context -> (term -> bool) -> (string -> int) -> typ list ->
      term -> term -> term -> term};
 
@@ -118,22 +118,22 @@ fun is_new_datatype ctxt =
     SOME {is_new_datatype, ...} => is_new_datatype ctxt
   | NONE => K false);
 
-fun get_basic_lfp_sugars bs arg_Ts get_indices callssss lthy =
+fun get_basic_lfp_sugars bs arg_Ts callers callssss lthy =
   (case Data.get (Proof_Context.theory_of lthy) of
-    SOME {get_basic_lfp_sugars, ...} => get_basic_lfp_sugars bs arg_Ts get_indices callssss lthy
-  | NONE => error "Not implemented yet");
+    SOME {get_basic_lfp_sugars, ...} => get_basic_lfp_sugars bs arg_Ts callers callssss lthy
+  | NONE => error "Functionality not loaded yet");
 
 fun rewrite_nested_rec_call ctxt =
   (case Data.get (Proof_Context.theory_of ctxt) of
     SOME {rewrite_nested_rec_call, ...} => rewrite_nested_rec_call ctxt);
 
-fun rec_specs_of bs arg_Ts res_Ts get_indices callssss0 lthy0 =
+fun rec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
   let
     val thy = Proof_Context.theory_of lthy0;
 
     val (missing_arg_Ts, perm0_kks, basic_lfp_sugars, nested_map_idents, nested_map_comps,
          induct_thm, n2m, lthy) =
-      get_basic_lfp_sugars bs arg_Ts get_indices callssss0 lthy0;
+      get_basic_lfp_sugars bs arg_Ts callers callssss0 lthy0;
 
     val perm_basic_lfp_sugars = sort (int_ord o pairself #fp_res_index) basic_lfp_sugars;
 
@@ -427,7 +427,8 @@ fun prepare_primrec fixes specs lthy0 =
       |> map (fn (x, y) => the_single y
           handle List.Empty => raise PRIMREC ("missing equations for function " ^ quote x, []));
 
-    val has_call = exists_subterm (map (fst #>> Binding.name_of #> Free) fixes |> member (op =));
+    val frees = map (fst #>> Binding.name_of #> Free) fixes;
+    val has_call = exists_subterm (member (op =) frees);
     val arg_Ts = map (#rec_type o hd) funs_data;
     val res_Ts = map (#res_type o hd) funs_data;
     val callssss = funs_data
@@ -444,7 +445,7 @@ fun prepare_primrec fixes specs lthy0 =
       | (b, _) :: _ => raise PRIMREC ("type of " ^ Binding.print b ^ " contains top sort", []));
 
     val ((n2m, rec_specs, _, induct_thm, induct_thms), lthy) =
-      rec_specs_of bs arg_Ts res_Ts (get_free_indices fixes) callssss lthy0;
+      rec_specs_of bs arg_Ts res_Ts frees callssss lthy0;
 
     val actual_nn = length funs_data;
 
@@ -469,7 +470,8 @@ fun prepare_primrec fixes specs lthy0 =
           |> map_filter (try (fn (x, [y]) =>
             (#fun_name x, #user_eqn x, length (#left_args x) + length (#right_args x), #rec_thm y)))
           |> map2 (fn j => fn (fun_name, user_eqn, num_extra_args, rec_thm) =>
-              mk_primrec_tac lthy' num_extra_args nested_map_idents nested_map_comps def_thms rec_thm
+              mk_primrec_tac lthy' num_extra_args nested_map_idents nested_map_comps def_thms
+                rec_thm
               |> K |> Goal.prove_sorry lthy' [] [] user_eqn
               (* for code extraction from proof terms: *)
               |> singleton (Proof_Context.export lthy' lthy)

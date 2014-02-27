@@ -10,12 +10,12 @@ sig
   val unfold_lets_splits: term -> term
   val dest_map: Proof.context -> string -> term -> term * term list
 
-  val mutualize_fp_sugars: BNF_Util.fp_kind -> binding list -> typ list -> (term -> int list) ->
+  val mutualize_fp_sugars: BNF_Util.fp_kind -> binding list -> typ list -> term list ->
     term list list list list -> BNF_FP_Def_Sugar.fp_sugar list -> local_theory ->
     (BNF_FP_Def_Sugar.fp_sugar list
      * (BNF_FP_Def_Sugar.lfp_sugar_thms option * BNF_FP_Def_Sugar.gfp_sugar_thms option))
     * local_theory
-  val nested_to_mutual_fps: BNF_Util.fp_kind -> binding list -> typ list -> (term -> int list) ->
+  val nested_to_mutual_fps: BNF_Util.fp_kind -> binding list -> typ list -> term list ->
     (term * term list list) list list -> local_theory ->
     (typ list * int list * BNF_FP_Def_Sugar.fp_sugar list
      * (BNF_FP_Def_Sugar.lfp_sugar_thms option * BNF_FP_Def_Sugar.gfp_sugar_thms option))
@@ -103,8 +103,13 @@ fun map_partition f xs =
 fun key_of_fp_eqs fp fpTs fp_eqs =
   Type (fp_case fp "l" "g", fpTs @ maps (fn (x, T) => [TFree x, T]) fp_eqs);
 
+fun get_indices callers t =
+  callers
+  |> map_index (fn (i, v) => if exists_subterm (equal v) t then SOME i else NONE)
+  |> map_filter I;
+
 (* TODO: test with sort constraints on As *)
-fun mutualize_fp_sugars fp bs fpTs get_indices callssss fp_sugars0 no_defs_lthy0 =
+fun mutualize_fp_sugars fp bs fpTs callers callssss fp_sugars0 no_defs_lthy0 =
   let
     val thy = Proof_Context.theory_of no_defs_lthy0;
 
@@ -112,6 +117,8 @@ fun mutualize_fp_sugars fp bs fpTs get_indices callssss fp_sugars0 no_defs_lthy0
 
     fun incompatible_calls ts =
       error ("Incompatible " ^ co_prefix fp ^ "recursive calls: " ^ commas (map qsotm ts));
+    fun mutual_self_call caller t =
+      error ("Unsupported mutual self-call " ^ qsotm t ^ " from " ^ qsotm caller);
     fun nested_self_call t =
       error ("Unsupported nested self-call " ^ qsotm t);
 
@@ -146,7 +153,7 @@ fun mutualize_fp_sugars fp bs fpTs get_indices callssss fp_sugars0 no_defs_lthy0
       ||>> variant_tfrees fp_b_names;
 
     fun check_call_dead live_call call =
-      if null (get_indices call) then () else incompatible_calls [live_call, call];
+      if null (get_indices callers call) then () else incompatible_calls [live_call, call];
 
     fun freeze_fpTs_type_based_default (T as Type (s, Ts)) =
         (case filter (curry (op =) T o snd) (map_index I fpTs) of
@@ -154,31 +161,36 @@ fun mutualize_fp_sugars fp bs fpTs get_indices callssss fp_sugars0 no_defs_lthy0
         | _ => Type (s, map freeze_fpTs_type_based_default Ts))
       | freeze_fpTs_type_based_default T = T;
 
-    fun freeze_fpTs_mutual_call calls T =
-      (case fold (union (op =)) (map get_indices calls) [] of
-        [] => freeze_fpTs_type_based_default T
-      | [kk] => nth Xs kk
+    fun freeze_fpTs_mutual_call kk fpT calls T =
+      (case fold (union (op =)) (map (get_indices callers) calls) [] of
+        [] => if T = fpT then nth Xs kk else freeze_fpTs_type_based_default T
+      | [kk'] =>
+        if T = fpT andalso kk' <> kk then
+          mutual_self_call (nth callers kk)
+            (the (find_first (not o null o get_indices callers) calls))
+        else
+          nth Xs kk'
       | _ => incompatible_calls calls);
 
-    fun freeze_fpTs_map (fpT as Type (_, Ts')) (callss, (live_call :: _, dead_calls))
+    fun freeze_fpTs_map kk (fpT as Type (_, Ts')) (callss, (live_call :: _, dead_calls))
         (Type (s, Ts)) =
       if Ts' = Ts then
         nested_self_call live_call
       else
         (List.app (check_call_dead live_call) dead_calls;
-         Type (s, map2 (freeze_fpTs_call fpT)
+         Type (s, map2 (freeze_fpTs_call kk fpT)
            (flatten_type_args_of_bnf (the (bnf_of no_defs_lthy s)) [] (transpose callss)) Ts))
-    and freeze_fpTs_call fpT calls (T as Type (s, _)) =
+    and freeze_fpTs_call kk fpT calls (T as Type (s, _)) =
         (case map_partition (try (snd o dest_map no_defs_lthy s)) calls of
           ([], _) =>
           (case map_partition (try (snd o dest_abs_or_applied_map no_defs_lthy s)) calls of
-            ([], _) => freeze_fpTs_mutual_call calls T
-          | callsp => freeze_fpTs_map fpT callsp T)
-        | callsp => freeze_fpTs_map fpT callsp T)
-      | freeze_fpTs_call _ _ T = T;
+            ([], _) => freeze_fpTs_mutual_call kk fpT calls T
+          | callsp => freeze_fpTs_map kk fpT callsp T)
+        | callsp => freeze_fpTs_map kk fpT callsp T)
+      | freeze_fpTs_call _ _ _ T = T;
 
     val ctr_Tsss = map (map binder_types) ctr_Tss;
-    val ctrXs_Tsss = map3 (map2 o map2 o freeze_fpTs_call) fpTs callssss ctr_Tsss;
+    val ctrXs_Tsss = map4 (map2 o map2 oo freeze_fpTs_call) kks fpTs callssss ctr_Tsss;
     val ctrXs_sum_prod_Ts = map (mk_sumTN_balanced o map HOLogic.mk_tupleT) ctrXs_Tsss;
 
     val ns = map length ctr_Tsss;
@@ -254,11 +266,12 @@ fun mutualize_fp_sugars fp bs fpTs get_indices callssss fp_sugars0 no_defs_lthy0
 
         val phi = Proof_Context.export_morphism no_defs_lthy no_defs_lthy0;
 
-        fun mk_target_fp_sugar T kk pre_bnf ctr_defs ctr_sugar co_iters maps co_inducts un_fold_thms
-            co_rec_thms disc_unfold_thms disc_corec_thms sel_unfold_thmss sel_corec_thmss =
-          {T = T, fp = fp, fp_res = fp_res, fp_res_index = kk, pre_bnf = pre_bnf,
-           nested_bnfs = nested_bnfs, nesting_bnfs = nesting_bnfs, ctr_defs = ctr_defs,
-           ctr_sugar = ctr_sugar, co_iters = co_iters, maps = maps,
+        fun mk_target_fp_sugar T X kk pre_bnf ctrXs_Tss ctr_defs ctr_sugar co_iters maps co_inducts
+            un_fold_thms co_rec_thms disc_unfold_thms disc_corec_thms sel_unfold_thmss
+            sel_corec_thmss =
+          {T = T, X = X, fp = fp, fp_res = fp_res, fp_res_index = kk, pre_bnf = pre_bnf,
+           nested_bnfs = nested_bnfs, nesting_bnfs = nesting_bnfs, ctrXs_Tss = ctrXs_Tss,
+           ctr_defs = ctr_defs, ctr_sugar = ctr_sugar, co_iters = co_iters, maps = maps,
            common_co_inducts = common_co_inducts, co_inducts = co_inducts,
            co_iter_thmss = [un_fold_thms, co_rec_thms],
            disc_co_iterss = [disc_unfold_thms, disc_corec_thms],
@@ -266,9 +279,9 @@ fun mutualize_fp_sugars fp bs fpTs get_indices callssss fp_sugars0 no_defs_lthy0
           |> morph_fp_sugar phi;
 
         val target_fp_sugars =
-          map14 mk_target_fp_sugar fpTs kks pre_bnfs ctr_defss ctr_sugars co_iterss mapss
-            (transpose co_inductss) un_fold_thmss co_rec_thmss disc_unfold_thmss disc_corec_thmss
-            sel_unfold_thmsss sel_corec_thmsss;
+          map16 mk_target_fp_sugar fpTs Xs kks pre_bnfs ctrXs_Tsss ctr_defss ctr_sugars co_iterss
+            mapss (transpose co_inductss) un_fold_thmss co_rec_thmss disc_unfold_thmss
+            disc_corec_thmss sel_unfold_thmsss sel_corec_thmsss;
 
         val n2m_sugar = (target_fp_sugars, fp_sugar_thms);
       in
@@ -292,7 +305,9 @@ fun fold_subtype_pairs f (T as Type (s, Ts), U as Type (s', Us)) =
     f (T, U) #> (if s = s' then fold (fold_subtype_pairs f) (Ts ~~ Us) else I)
   | fold_subtype_pairs f TU = f TU;
 
-fun nested_to_mutual_fps fp actual_bs actual_Ts get_indices actual_callssss0 lthy =
+val impossible_caller = Bound ~1;
+
+fun nested_to_mutual_fps fp actual_bs actual_Ts actual_callers actual_callssss0 lthy =
   let
     val qsoty = quote o Syntax.string_of_typ lthy;
     val qsotys = space_implode " or " o map qsoty;
@@ -391,23 +406,23 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts get_indices actual_callssss0 lth
 
     val common_name = mk_common_name (map Binding.name_of actual_bs);
     val bs = pad_list (Binding.name common_name) nn actual_bs;
+    val callers = pad_list impossible_caller nn actual_callers;
 
     fun permute xs = permute_like (op =) Ts perm_Ts xs;
     fun unpermute perm_xs = permute_like (op =) perm_Ts Ts perm_xs;
 
     val perm_bs = permute bs;
+    val perm_callers = permute callers;
     val perm_kks = permute kks;
     val perm_callssss0 = permute callssss0;
     val perm_fp_sugars0 = map (the o fp_sugar_of lthy o fst o dest_Type) perm_Ts;
 
     val perm_callssss = map2 (indexify_callsss o #ctrs o #ctr_sugar) perm_fp_sugars0 perm_callssss0;
 
-    val get_perm_indices = map (fn kk => find_index (curry (op =) kk) perm_kks) o get_indices;
-
     val ((perm_fp_sugars, fp_sugar_thms), lthy) =
       if num_groups > 1 then
-        mutualize_fp_sugars fp perm_bs perm_frozen_gen_Ts get_perm_indices perm_callssss
-          perm_fp_sugars0 lthy
+        mutualize_fp_sugars fp perm_bs perm_frozen_gen_Ts perm_callers perm_callssss perm_fp_sugars0
+          lthy
       else
         ((perm_fp_sugars0, (NONE, NONE)), lthy);
 

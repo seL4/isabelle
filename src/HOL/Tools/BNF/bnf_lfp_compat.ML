@@ -99,8 +99,6 @@ fun datatype_compat_cmd raw_fpT_names lthy =
       | NONE => error ("Unsupported recursion via type constructor " ^ quote s ^
           " not corresponding to new-style datatype (cf. \"datatype_new\")"));
 
-    fun get_var_indices (Var ((_, kk), _)) = [kk];
-
     val (Tparentss_kkssss, _) = nested_Tparentss_indicessss_of [] fpT1 0;
     val Tparentss = map fst Tparentss_kkssss;
     val Ts = map (fst o hd) Tparentss;
@@ -110,14 +108,6 @@ fun datatype_compat_cmd raw_fpT_names lthy =
     val ctrss0 = map (#ctrs o #ctr_sugar) fp_sugars0;
     val ctr_Tsss0 = map (map (binder_types o fastype_of)) ctrss0;
 
-    fun apply_comps n kk =
-      mk_partial_compN n (replicate n @{typ unit} ---> @{typ unit})
-        (Var ((Name.uu, kk), @{typ "unit => unit"}));
-
-    val callssss =
-      map2 (map2 (map2 (fn kks => fn ctr_T => map (apply_comps (num_binder_types ctr_T)) kks)))
-        kkssss ctr_Tsss0;
-
     val b_names = Name.variant_list [] (map base_name_of_typ Ts);
     val compat_b_names = map (prefix compatN) b_names;
     val compat_bs = map Binding.name compat_b_names;
@@ -126,9 +116,18 @@ fun datatype_compat_cmd raw_fpT_names lthy =
     val nn_fp = length fpTs;
     val nn = length Ts;
 
+    val callers = map (fn kk => Var ((Name.uu, kk), @{typ "unit => unit"})) (0 upto nn - 1);
+
+    fun apply_comps n kk =
+      mk_partial_compN n (replicate n @{typ unit} ---> @{typ unit}) (nth callers kk);
+
+    val callssss =
+      map2 (map2 (map2 (fn kks => fn ctr_T => map (apply_comps (num_binder_types ctr_T)) kks)))
+        kkssss ctr_Tsss0;
+
     val ((fp_sugars, (lfp_sugar_thms, _)), lthy) =
       if nn > nn_fp then
-        mutualize_fp_sugars Least_FP compat_bs Ts get_var_indices callssss fp_sugars0 lthy
+        mutualize_fp_sugars Least_FP compat_bs Ts callers callssss fp_sugars0 lthy
       else
         ((fp_sugars0, (NONE, NONE)), lthy);
 

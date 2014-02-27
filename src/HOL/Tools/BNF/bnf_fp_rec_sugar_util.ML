@@ -38,7 +38,6 @@ sig
   val mk_compN: int -> typ list -> term * term -> term
   val mk_comp: typ list -> term * term -> term
 
-  val get_free_indices: ((binding * typ) * 'a) list -> term -> int list
   val mk_co_iter: theory -> fp_kind -> typ -> typ list -> term -> term
 
   val mk_conjunctN: int -> int -> thm
@@ -108,10 +107,6 @@ fun mk_compN n bound_Ts (g, f) =
   end;
 
 val mk_comp = mk_compN 1;
-
-fun get_free_indices fixes t = map (fst #>> Binding.name_of #> Free) fixes
-  |> map_index (fn (i, v) => if exists_subterm (equal v) t then SOME i else NONE)
-  |> map_filter I;
 
 fun mk_co_iter thy fp fpT Cs t =
   let
