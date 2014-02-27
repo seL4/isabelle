@@ -530,12 +530,16 @@ fun mk_readable_rsp_thm_eq tm lthy =
     val unfold_ret_val_invs = Conv.bottom_conv 
       (K (Conv.try_conv (Conv.rewr_conv @{thm invariant_same_args}))) lthy
     val cr_to_pcr_conv = Raw_Simplifier.rewrite lthy false (get_cr_pcr_eqs lthy)
-    val simp_conv = HOLogic.Trueprop_conv (Conv.fun2_conv (cr_to_pcr_conv then_conv simp_arrows_conv))
+    val unfold_inv_conv = 
+      Conv.top_sweep_conv (K (Conv.rewr_conv @{thm invariant_def[THEN eq_reflection]})) lthy
+    val simp_conv = HOLogic.Trueprop_conv (Conv.fun2_conv 
+      (cr_to_pcr_conv then_conv simp_arrows_conv))
     val univq_conv = Conv.rewr_conv @{thm HOL.all_simps(6)[symmetric, THEN eq_reflection]}
     val univq_prenex_conv = Conv.top_conv (K (Conv.try_conv univq_conv)) lthy
     val beta_conv = Thm.beta_conversion true
     val eq_thm = 
-      (simp_conv then_conv univq_prenex_conv then_conv beta_conv then_conv unfold_ret_val_invs) ctm
+      (simp_conv then_conv univq_prenex_conv then_conv beta_conv then_conv unfold_ret_val_invs
+         then_conv unfold_inv_conv) ctm
   in
     Object_Logic.rulify lthy (eq_thm RS Drule.equal_elim_rule2)
   end
