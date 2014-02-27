@@ -4,13 +4,7 @@
 
 Isar commands for handling SPARK/Ada verification conditions.
 *)
-
-signature SPARK_COMMANDS =
-sig
-  val setup: theory -> theory
-end
-
-structure SPARK_Commands: SPARK_COMMANDS =
+structure SPARK_Commands: sig end =
 struct
 
 fun spark_open header (prfx, files) thy =
@@ -172,11 +166,11 @@ val _ =
          (Parse.reserved "incomplete" --| @{keyword ")"}) >> K true) false >>
        (Toplevel.theory o SPARK_VCs.close));
 
-val setup = Theory.at_end (fn thy =>
+val _ = Theory.setup (Theory.at_end (fn thy =>
   let
     val _ = SPARK_VCs.is_closed thy
       orelse error ("Found the end of the theory, " ^ 
         "but the last SPARK environment is still open.")
-  in NONE end);
+  in NONE end));
 
 end;

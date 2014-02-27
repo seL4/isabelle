@@ -183,6 +183,4 @@ text {* Load the package *}
 ML_file "Tools/spark_vcs.ML"
 ML_file "Tools/spark_commands.ML"
 
-setup SPARK_Commands.setup
-
 end
