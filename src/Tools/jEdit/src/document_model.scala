@@ -99,8 +99,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
   val empty_perspective: Document.Node.Perspective_Text =
     Document.Node.Perspective(false, Text.Perspective.empty, Document.Node.Overlays.empty)
 
-  def node_perspective(changed_blobs: Set[Document.Node.Name])
-    : (Boolean, Document.Node.Perspective_Text) =
+  def node_perspective(doc_blobs: Document.Blobs): (Boolean, Document.Node.Perspective_Text) =
   {
     Swing_Thread.require()
 
@@ -127,7 +126,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
         } yield range
 
       val reparse =
-        snapshot.node.thy_load_commands.exists(cmd => cmd.blobs_names.exists(changed_blobs(_)))
+        snapshot.node.thy_load_commands.exists(cmd => cmd.blobs_names.exists(doc_blobs.changed))
 
       (reparse,
         Document.Node.Perspective(node_required,
@@ -144,15 +143,21 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
 
   private def reset_blob(): Unit = Swing_Thread.require { _blob = None }
 
-  def blob(): (Bytes, Command.File) =
+  def get_blob(): Option[Document.Blob] =
     Swing_Thread.require {
-      _blob match {
-        case Some(x) => x
-        case None =>
-          val b = PIDE.thy_load.file_content(buffer)
-          val file = new Command.File(node_name.node, buffer.getSegment(0, buffer.getLength))
-          _blob = Some((b, file))
-          (b, file)
+      if (is_theory) None
+      else {
+        val (bytes, file) =
+          _blob match {
+            case Some(x) => x
+            case None =>
+              val bytes = PIDE.thy_load.file_content(buffer)
+              val file = new Command.File(node_name.node, buffer.getSegment(0, buffer.getLength))
+              _blob = Some((bytes, file))
+              (bytes, file)
+          }
+        val changed = pending_edits.is_pending()
+        Some(Document.Blob(bytes, file, changed))
       }
     }
 
@@ -165,7 +170,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
 
     val header = node_header()
     val text = JEdit_Lib.buffer_text(buffer)
-    val (_, perspective) = node_perspective(Set.empty)
+    val (_, perspective) = node_perspective(Document.Blobs.empty)
 
     if (is_theory)
       List(session.header_edit(node_name, header),
@@ -213,11 +218,11 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
     def is_pending(): Boolean = pending_clear || !pending.isEmpty
     def snapshot(): List[Text.Edit] = pending.toList
 
-    def flushed_edits(changed_blobs: Set[Document.Node.Name]): List[Document.Edit_Text] =
+    def flushed_edits(doc_blobs: Document.Blobs): List[Document.Edit_Text] =
     {
       val clear = pending_clear
       val edits = snapshot()
-      val (reparse, perspective) = node_perspective(changed_blobs)
+      val (reparse, perspective) = node_perspective(doc_blobs)
       if (clear || reparse || !edits.isEmpty || last_perspective != perspective) {
         pending_clear = false
         pending.clear
@@ -240,14 +245,11 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
     }
   }
 
-  def has_pending_edits(): Boolean =
-    Swing_Thread.require { pending_edits.is_pending() }
-
   def snapshot(): Document.Snapshot =
     Swing_Thread.require { session.snapshot(node_name, pending_edits.snapshot()) }
 
-  def flushed_edits(changed_blobs: Set[Document.Node.Name]): List[Document.Edit_Text] =
-    Swing_Thread.require { pending_edits.flushed_edits(changed_blobs) }
+  def flushed_edits(doc_blobs: Document.Blobs): List[Document.Edit_Text] =
+    Swing_Thread.require { pending_edits.flushed_edits(doc_blobs) }
 
 
   /* buffer listener */

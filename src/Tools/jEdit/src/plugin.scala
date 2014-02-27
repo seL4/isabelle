@@ -83,11 +83,12 @@ object PIDE
     } yield model
 
   def document_blobs(): Document.Blobs =
-    (for {
-      buffer <- JEdit_Lib.jedit_buffers()
-      model <- document_model(buffer)
-      if !model.is_theory
-    } yield (model.node_name -> model.blob())).toMap
+    Document.Blobs(
+      (for {
+        buffer <- JEdit_Lib.jedit_buffers()
+        model <- document_model(buffer)
+        blob <- model.get_blob()
+      } yield (model.node_name -> blob)).toMap)
 
   def exit_models(buffers: List[Buffer])
   {

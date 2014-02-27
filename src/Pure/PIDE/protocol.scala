@@ -315,8 +315,9 @@ trait Protocol extends Isabelle_Process
 {
   /* inlined files */
 
-  def define_blob(blob: Bytes): Unit =
-    protocol_command_raw("Document.define_blob", Bytes(blob.sha1_digest.toString), blob)
+  def define_blob(blob: Document.Blob): Unit =
+    protocol_command_raw(
+      "Document.define_blob", Bytes(blob.bytes.sha1_digest.toString), blob.bytes)
 
 
   /* commands */

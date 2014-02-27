@@ -378,11 +378,12 @@ class Session(val thy_load: Thy_Load)
           digest <- command.blobs_digests
           if !global_state().defined_blob(digest)
         } {
-          doc_blobs.collectFirst({ case (_, (b, _)) if b.sha1_digest == digest => b }) match {
+          doc_blobs.retrieve(digest) match {
             case Some(blob) =>
               global_state >> (_.define_blob(digest))
               prover.get.define_blob(blob)
-            case None => System.err.println("Missing blob for SHA1 digest " + digest)
+            case None =>
+              System.err.println("Missing blob for SHA1 digest " + digest)
           }
         }
 
@@ -524,7 +525,7 @@ class Session(val thy_load: Thy_Load)
         case Update_Options(options) if prover.isDefined =>
           if (is_ready) {
             prover.get.options(options)
-            handle_raw_edits(Map.empty, Nil)
+            handle_raw_edits(Document.Blobs.empty, Nil)
           }
           global_options.event(Session.Global_Options(options))
           reply(())
