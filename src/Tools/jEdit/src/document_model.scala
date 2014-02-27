@@ -125,8 +125,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
           range = snapshot.convert(cmd.proper_range + start)
         } yield range
 
-      val reparse =
-        snapshot.node.thy_load_commands.exists(cmd => cmd.blobs_names.exists(doc_blobs.changed))
+      val reparse = snapshot.node.thy_load_commands.exists(_.blobs_changed(doc_blobs))
 
       (reparse,
         Document.Node.Perspective(node_required,

@@ -448,8 +448,9 @@ object Thy_Syntax
       val reparse =
         (reparse0 /: nodes0.entries)({
           case (reparse, (name, node)) =>
-            if (node.thy_load_commands.isEmpty) reparse
-            else name :: reparse
+            if (node.thy_load_commands.exists(_.blobs_changed(doc_blobs)))
+              name :: reparse
+            else reparse
           })
       val reparse_set = reparse.toSet
 

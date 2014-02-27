@@ -340,6 +340,9 @@ final class Command private(
 
   /* blobs */
 
+  def blobs_changed(doc_blobs: Document.Blobs): Boolean =
+    blobs.exists({ case Exn.Res((name, _)) => doc_blobs.changed(name) case _ => false })
+
   def blobs_names: List[Document.Node.Name] =
     for (Exn.Res((name, _)) <- blobs) yield name
 
