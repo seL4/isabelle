@@ -143,7 +143,7 @@ where
 | "pow n P =
     (if even n then pow (n div 2) (sqr P)
      else P \<otimes> pow (n div 2) (sqr P))"
-  
+
 lemma pow_if:
   "pow n P =
    (if n = 0 then Pc 1 else if even n then pow (n div 2) (sqr P)
