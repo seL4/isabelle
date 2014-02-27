@@ -1711,6 +1711,12 @@ corollary continuous_imp_open_vimage:
     shows "open (f -` B)"
 by (metis assms continuous_on_open_vimage le_iff_inf)
 
+corollary open_vimage:
+  assumes "open s" and "continuous_on UNIV f"
+  shows "open (f -` s)"
+  using assms unfolding continuous_on_open_vimage [OF open_UNIV]
+  by simp
+
 lemma continuous_on_closed_invariant:
   "continuous_on s f \<longleftrightarrow> (\<forall>B. closed B \<longrightarrow> (\<exists>A. closed A \<and> A \<inter> s = f -` B \<inter> s))"
 proof -

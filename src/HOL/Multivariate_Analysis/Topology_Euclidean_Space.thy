@@ -569,10 +569,7 @@ proof -
     fix K
     assume K: "K \<subseteq> Collect ?L"
     have th0: "Collect ?L = (\<lambda>S. S \<inter> V) ` Collect (openin U)"
-      apply (rule set_eqI)
-      apply (simp add: Ball_def image_iff)
-      apply metis
-      done
+      by blast
     from K[unfolded th0 subset_image_iff]
     obtain Sk where Sk: "Sk \<subseteq> Collect (openin U)" "K = (\<lambda>S. S \<inter> V) ` Sk"
       by blast
@@ -595,21 +592,11 @@ lemma topspace_subtopology: "topspace (subtopology U V) = topspace U \<inter> V"
 
 lemma closedin_subtopology: "closedin (subtopology U V) S \<longleftrightarrow> (\<exists>T. closedin U T \<and> S = T \<inter> V)"
   unfolding closedin_def topspace_subtopology
-  apply (simp add: openin_subtopology)
-  apply (rule iffI)
-  apply clarify
-  apply (rule_tac x="topspace U - T" in exI)
-  apply auto
-  done
+  by (auto simp add: openin_subtopology)
 
 lemma openin_subtopology_refl: "openin (subtopology U V) V \<longleftrightarrow> V \<subseteq> topspace U"
   unfolding openin_subtopology
-  apply (rule iffI, clarify)
-  apply (frule openin_subset[of U])
-  apply blast
-  apply (rule exI[where x="topspace U"])
-  apply auto
-  done
+  by auto (metis IntD1 in_mono openin_subset)
 
 lemma subtopology_superset:
   assumes UV: "topspace U \<subseteq> V"
@@ -695,11 +682,7 @@ lemma closedin_closed_Int: "closed S \<Longrightarrow> closedin (subtopology euc
 
 lemma closed_closedin_trans:
   "closed S \<Longrightarrow> closed T \<Longrightarrow> T \<subseteq> S \<Longrightarrow> closedin (subtopology euclidean S) T"
-  apply (subgoal_tac "S \<inter> T = T" )
-  apply auto
-  apply (frule closedin_closed_Int[of T S])
-  apply simp
-  done
+  by (metis closedin_closed inf.absorb2)
 
 lemma closed_subset: "S \<subseteq> T \<Longrightarrow> closed S \<Longrightarrow> closedin (subtopology euclidean T) S"
   by (auto simp add: closedin_closed)
@@ -720,16 +703,10 @@ next
     apply clarsimp
     apply (rule_tac x="d - dist x a" in exI)
     apply (clarsimp simp add: less_diff_eq)
-    apply (erule rev_bexI)
-    apply (rule_tac x=d in exI, clarify)
-    apply (erule le_less_trans [OF dist_triangle])
-    done
+    by (metis dist_commute dist_triangle_lt)
   assume ?rhs then have 2: "S = U \<inter> T"
-    unfolding T_def
-    apply auto
-    apply (drule (1) bspec, erule rev_bexI)
-    apply auto
-    done
+    unfolding T_def 
+    by auto (metis dist_self)
   from 1 2 show ?lhs
     unfolding openin_open open_dist by fast
 qed
@@ -810,12 +787,6 @@ lemma diff_le_iff:
   "a - b \<le> c \<longleftrightarrow> a \<le> c + b"
   "a - b \<ge> c \<longleftrightarrow> a \<ge> c + b"
   by arith+
-
-lemma open_vimage: (* TODO: move to Topological_Spaces.thy *)
-  assumes "open s" and "continuous_on UNIV f"
-  shows "open (vimage f s)"
-  using assms unfolding continuous_on_open_vimage [OF open_UNIV]
-  by simp
 
 lemma open_ball [intro, simp]: "open (ball x e)"
 proof -
@@ -955,9 +926,7 @@ lemma connected_local:
       e1 \<noteq> {} \<and>
       e2 \<noteq> {})"
   unfolding connected_def openin_open
-  apply safe
-  apply blast+
-  done
+  by blast
 
 lemma exists_diff:
   fixes P :: "'a set \<Rightarrow> bool"
@@ -984,9 +953,7 @@ proof -
   have "\<not> connected S \<longleftrightarrow>
     (\<exists>e1 e2. open e1 \<and> open (- e2) \<and> S \<subseteq> e1 \<union> (- e2) \<and> e1 \<inter> (- e2) \<inter> S = {} \<and> e1 \<inter> S \<noteq> {} \<and> (- e2) \<inter> S \<noteq> {})"
     unfolding connected_def openin_open closedin_closed
-    apply (subst exists_diff)
-    apply blast
-    done
+    by (metis double_complement)
   then have th0: "connected S \<longleftrightarrow>
     \<not> (\<exists>e2 e1. closed e2 \<and> open e1 \<and> S \<subseteq> e1 \<union> (- e2) \<and> e1 \<inter> (- e2) \<inter> S = {} \<and> e1 \<inter> S \<noteq> {} \<and> (- e2) \<inter> S \<noteq> {})"
     (is " _ \<longleftrightarrow> \<not> (\<exists>e2 e1. ?P e2 e1)")
@@ -1430,13 +1397,8 @@ proof
 next
   assume "\<not> a islimpt S"
   then show "trivial_limit (at a within S)"
-    unfolding trivial_limit_def
-    unfolding eventually_at_topological
-    unfolding islimpt_def
-    apply clarsimp
-    apply (rule_tac x=T in exI)
-    apply auto
-    done
+    unfolding trivial_limit_def eventually_at_topological islimpt_def
+    by metis
 qed
 
 lemma trivial_limit_at_iff: "trivial_limit (at a) \<longleftrightarrow> \<not> a islimpt UNIV"
@@ -1926,9 +1888,7 @@ qed
 lemma closed_sequential_limits:
   fixes S :: "'a::first_countable_topology set"
   shows "closed S \<longleftrightarrow> (\<forall>x l. (\<forall>n. x n \<in> S) \<and> (x ---> l) sequentially \<longrightarrow> l \<in> S)"
-  using closure_sequential [where 'a='a] closure_closed [where 'a='a]
-    closed_limpt [where 'a='a] islimpt_sequential [where 'a='a] mem_delete [where 'a='a]
-  by metis
+by (metis closure_sequential closure_subset_eq subset_iff)
 
 lemma closure_approachable:
   fixes S :: "'a::metric_space set"
@@ -2483,13 +2443,7 @@ lemma bounded_subset_cball: "bounded S \<longleftrightarrow> (\<exists>e x. S \<
 
 lemma bounded_any_center: "bounded S \<longleftrightarrow> (\<exists>e. \<forall>y\<in>S. dist a y \<le> e)"
   unfolding bounded_def
-  apply safe
-  apply (rule_tac x="dist a x + e" in exI)
-  apply clarify
-  apply (drule (1) bspec)
-  apply (erule order_trans [OF dist_triangle add_left_mono])
-  apply auto
-  done
+  by auto (metis add_commute add_le_cancel_right dist_commute dist_triangle_le)
 
 lemma bounded_iff: "bounded S \<longleftrightarrow> (\<exists>a. \<forall>x\<in>S. norm x \<le> a)"
   unfolding bounded_any_center [where a=0]
@@ -2499,10 +2453,7 @@ lemma bounded_realI:
   assumes "\<forall>x\<in>s. abs (x::real) \<le> B"
   shows "bounded s"
   unfolding bounded_def dist_real_def
-  apply (rule_tac x=0 in exI)
-  using assms
-  apply auto
-  done
+  by (metis abs_minus_commute assms diff_0_right)
 
 lemma bounded_empty [simp]: "bounded {}"
   by (simp add: bounded_def)
@@ -2550,17 +2501,7 @@ lemma bounded_ball[simp,intro]: "bounded (ball x e)"
 
 lemma bounded_Un[simp]: "bounded (S \<union> T) \<longleftrightarrow> bounded S \<and> bounded T"
   apply (auto simp add: bounded_def)
-  apply (rename_tac x y r s)
-  apply (rule_tac x=x in exI)
-  apply (rule_tac x="max r (dist x y + s)" in exI)
-  apply (rule ballI)
-  apply safe
-  apply (drule (1) bspec)
-  apply simp
-  apply (drule (1) bspec)
-  apply (rule max.coboundedI2)
-  apply (erule order_trans [OF dist_triangle add_left_mono])
-  done
+  by (metis Un_iff add_le_cancel_left dist_triangle le_max_iff_disj max.order_iff)
 
 lemma bounded_Union[intro]: "finite F \<Longrightarrow> \<forall>S\<in>F. bounded S \<Longrightarrow> bounded (\<Union>F)"
   by (induct rule: finite_induct[of F]) auto
@@ -3847,25 +3788,11 @@ qed
 
 lemma bounded_fst: "bounded s \<Longrightarrow> bounded (fst ` s)"
   unfolding bounded_def
-  apply clarify
-  apply (rule_tac x="a" in exI)
-  apply (rule_tac x="e" in exI)
-  apply clarsimp
-  apply (drule (1) bspec)
-  apply (simp add: dist_Pair_Pair)
-  apply (erule order_trans [OF real_sqrt_sum_squares_ge1])
-  done
+  by (metis (erased, hide_lams) dist_fst_le image_iff order_trans)
 
 lemma bounded_snd: "bounded s \<Longrightarrow> bounded (snd ` s)"
   unfolding bounded_def
-  apply clarify
-  apply (rule_tac x="b" in exI)
-  apply (rule_tac x="e" in exI)
-  apply clarsimp
-  apply (drule (1) bspec)
-  apply (simp add: dist_Pair_Pair)
-  apply (erule order_trans [OF real_sqrt_sum_squares_ge2])
-  done
+  by (metis (no_types, hide_lams) dist_snd_le image_iff order.trans)
 
 instance prod :: (heine_borel, heine_borel) heine_borel
 proof
@@ -3916,7 +3843,6 @@ proof -
       using assms unfolding compact_def by blast
 
     note lr' = seq_suble [OF lr(2)]
-
     {
       fix e :: real
       assume "e > 0"
@@ -4434,10 +4360,8 @@ lemma continuous_within_eps_delta:
   "continuous (at x within s) f \<longleftrightarrow> (\<forall>e>0. \<exists>d>0. \<forall>x'\<in> s.  dist x' x < d --> dist (f x') (f x) < e)"
   unfolding continuous_within and Lim_within
   apply auto
-  unfolding dist_nz[symmetric]
-  apply (auto del: allE elim!:allE)
-  apply(rule_tac x=d in exI)
-  apply auto
+  apply (metis dist_nz dist_self)
+  apply blast
   done
 
 lemma continuous_at_eps_delta:
@@ -4521,11 +4445,7 @@ lemma continuous_on_iff:
   "continuous_on s f \<longleftrightarrow>
     (\<forall>x\<in>s. \<forall>e>0. \<exists>d>0. \<forall>x'\<in>s. dist x' x < d \<longrightarrow> dist (f x') (f x) < e)"
   unfolding continuous_on_def Lim_within
-  apply (intro ball_cong [OF refl] all_cong ex_cong)
-  apply (rename_tac y, case_tac "y = x")
-  apply simp
-  apply (simp add: dist_nz)
-  done
+  by (metis dist_pos_lt dist_self)
 
 definition uniformly_continuous_on :: "'a set \<Rightarrow> ('a::metric_space \<Rightarrow> 'b::metric_space) \<Rightarrow> bool"
   where "uniformly_continuous_on s f \<longleftrightarrow>
@@ -4552,10 +4472,7 @@ lemma continuous_within_subset:
 
 lemma continuous_on_interior:
   "continuous_on s f \<Longrightarrow> x \<in> interior s \<Longrightarrow> continuous (at x) f"
-  apply (erule interiorE)
-  apply (drule (1) continuous_on_subset)
-  apply (simp add: continuous_on_eq_continuous_at)
-  done
+  by (metis continuous_on_eq_continuous_at continuous_on_subset interiorE)
 
 lemma continuous_on_eq:
   "(\<forall>x \<in> s. f x = g x) \<Longrightarrow> continuous_on s f \<Longrightarrow> continuous_on s g"

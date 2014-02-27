@@ -925,16 +925,9 @@ lemma (in real_vector) span_setsum: "finite A \<Longrightarrow> \<forall>x \<in>
   by (rule subspace_setsum, rule subspace_span)
 
 lemma span_add_eq: "x \<in> span S \<Longrightarrow> x + y \<in> span S \<longleftrightarrow> y \<in> span S"
-  apply (auto simp only: span_add span_sub)
-  apply (subgoal_tac "(x + y) - x \<in> span S")
-  apply simp
-  apply (simp only: span_add span_sub)
-  done
+  by (metis add_minus_cancel scaleR_minus1_left subspace_def subspace_span)
 
 text {* Mapping under linear image. *}
-
-lemma image_subset_iff_subset_vimage: "f ` A \<subseteq> B \<longleftrightarrow> A \<subseteq> f -` B"
-  by auto (* TODO: move *)
 
 lemma span_linear_image:
   assumes lf: "linear f"
@@ -1271,28 +1264,12 @@ next
     assume i: ?rhs
     show ?lhs
       using i False
-      apply simp
       apply (auto simp add: dependent_def)
-      apply (case_tac "aa = a")
-      apply auto
-      apply (subgoal_tac "insert a S - {aa} = insert a (S - {aa})")
-      apply simp
-      apply (subgoal_tac "a \<in> span (insert aa (S - {aa}))")
-      apply (subgoal_tac "insert aa (S - {aa}) = S")
-      apply simp
-      apply blast
-      apply (rule in_span_insert)
-      apply assumption
-      apply blast
-      apply blast
-      done
+      by (metis in_span_insert insert_Diff insert_Diff_if insert_iff)
   qed
 qed
 
 text {* The degenerate case of the Exchange Lemma. *}
-
-lemma mem_delete: "x \<in> (A - {a}) \<longleftrightarrow> x \<noteq> a \<and> x \<in> A"
-  by blast
 
 lemma spanning_subset_independent:
   assumes BA: "B \<subseteq> A"
@@ -1345,23 +1322,16 @@ proof (induct "card (t - s)" arbitrary: s t rule: less_induct)
   let ?P = "\<lambda>t'. card t' = card t \<and> finite t' \<and> s \<subseteq> t' \<and> t' \<subseteq> s \<union> t \<and> s \<subseteq> span t'"
   let ?ths = "\<exists>t'. ?P t'"
   {
-    assume st: "s \<subseteq> t"
-    from st ft span_mono[OF st]
-    have ?ths
-      apply -
-      apply (rule exI[where x=t])
-      apply (auto intro: span_superset)
-      done
+    assume "s \<subseteq> t"
+    then have ?ths
+      by (metis ft Un_commute sp sup_ge1)
   }
   moreover
   {
     assume st: "t \<subseteq> s"
     from spanning_subset_independent[OF st s sp] st ft span_mono[OF st]
     have ?ths
-      apply -
-      apply (rule exI[where x=t])
-      apply (auto intro: span_superset)
-      done
+      by (metis Un_absorb sp)
   }
   moreover
   {
@@ -3099,12 +3069,7 @@ lemma norm_cauchy_schwarz_equal: "abs (x \<bullet> y) = norm x * norm y \<longle
   unfolding scaleR_scaleR
   unfolding norm_scaleR
   apply (subgoal_tac "norm x * c = \<bar>c\<bar> * norm x \<or> norm x * c = - \<bar>c\<bar> * norm x")
-  apply (case_tac "c \<le> 0", simp add: field_simps)
-  apply (simp add: field_simps)
-  apply (case_tac "c \<le> 0", simp add: field_simps)
-  apply (simp add: field_simps)
-  apply simp
-  apply simp
+  apply (auto simp add: field_simps)
   done
 
 end
