@@ -8137,7 +8137,7 @@ proof -
     then have "rel_interior (S \<times> T) = rel_interior ((S \<times> (UNIV :: 'm set)) \<inter> ((UNIV :: 'n set) \<times> T))"
       by auto
     also have "\<dots> = rel_interior (S \<times> (UNIV :: 'm set)) \<inter> rel_interior ((UNIV :: 'n set) \<times> T)"
-       apply (subst convex_rel_interior_inter_two[of "S \<times> (UNIV :: 'm set)" "(UNIV :: 'n set) <*> T"])
+       apply (subst convex_rel_interior_inter_two[of "S \<times> (UNIV :: 'm set)" "(UNIV :: 'n set) \<times> T"])
        using * ri assms convex_Times
        apply auto
        done
@@ -8338,7 +8338,7 @@ qed
 lemma rel_interior_convex_cone_aux:
   fixes S :: "'m::euclidean_space set"
   assumes "convex S"
-  shows "(c, x) \<in> rel_interior (cone hull ({(1 :: real)} <*> S)) \<longleftrightarrow>
+  shows "(c, x) \<in> rel_interior (cone hull ({(1 :: real)} \<times> S)) \<longleftrightarrow>
     c > 0 \<and> x \<in> ((op *\<^sub>R c) ` (rel_interior S))"
 proof (cases "S = {}")
   case True
@@ -8347,33 +8347,33 @@ proof (cases "S = {}")
 next
   case False
   then obtain s where "s \<in> S" by auto
-  have conv: "convex ({(1 :: real)} <*> S)"
+  have conv: "convex ({(1 :: real)} \<times> S)"
     using convex_Times[of "{(1 :: real)}" S] assms convex_singleton[of "1 :: real"]
     by auto
-  def f \<equiv> "\<lambda>y. {z. (y, z) \<in> cone hull ({1 :: real} <*> S)}"
-  then have *: "(c, x) \<in> rel_interior (cone hull ({(1 :: real)} <*> S)) =
+  def f \<equiv> "\<lambda>y. {z. (y, z) \<in> cone hull ({1 :: real} \<times> S)}"
+  then have *: "(c, x) \<in> rel_interior (cone hull ({(1 :: real)} \<times> S)) =
     (c \<in> rel_interior {y. f y \<noteq> {}} \<and> x \<in> rel_interior (f c))"
-    apply (subst rel_interior_projection[of "cone hull ({(1 :: real)} <*> S)" f c x])
-    using convex_cone_hull[of "{(1 :: real)} <*> S"] conv
+    apply (subst rel_interior_projection[of "cone hull ({(1 :: real)} \<times> S)" f c x])
+    using convex_cone_hull[of "{(1 :: real)} \<times> S"] conv
     apply auto
     done
   {
     fix y :: real
     assume "y \<ge> 0"
-    then have "y *\<^sub>R (1,s) \<in> cone hull ({1 :: real} <*> S)"
-      using cone_hull_expl[of "{(1 :: real)} <*> S"] `s \<in> S` by auto
+    then have "y *\<^sub>R (1,s) \<in> cone hull ({1 :: real} \<times> S)"
+      using cone_hull_expl[of "{(1 :: real)} \<times> S"] `s \<in> S` by auto
     then have "f y \<noteq> {}"
       using f_def by auto
   }
   then have "{y. f y \<noteq> {}} = {0..}"
-    using f_def cone_hull_expl[of "{1 :: real} <*> S"] by auto
+    using f_def cone_hull_expl[of "{1 :: real} \<times> S"] by auto
   then have **: "rel_interior {y. f y \<noteq> {}} = {0<..}"
     using rel_interior_real_semiline by auto
   {
     fix c :: real
     assume "c > 0"
     then have "f c = (op *\<^sub>R c ` S)"
-      using f_def cone_hull_expl[of "{1 :: real} <*> S"] by auto
+      using f_def cone_hull_expl[of "{1 :: real} \<times> S"] by auto
     then have "rel_interior (f c) = op *\<^sub>R c ` rel_interior S"
       using rel_interior_convex_scaleR[of S c] assms by auto
   }
@@ -8383,7 +8383,7 @@ qed
 lemma rel_interior_convex_cone:
   fixes S :: "'m::euclidean_space set"
   assumes "convex S"
-  shows "rel_interior (cone hull ({1 :: real} <*> S)) =
+  shows "rel_interior (cone hull ({1 :: real} \<times> S)) =
     {(c, c *\<^sub>R x) | c x. c > 0 \<and> x \<in> rel_interior S}"
   (is "?lhs = ?rhs")
 proof -
@@ -8621,13 +8621,13 @@ lemma convex_hull_sum:
   fixes S T :: "'n::euclidean_space set"
   shows "convex hull (S + T) = convex hull S + convex hull T"
 proof -
-  have "convex hull S + convex hull T = (\<lambda>(x,y). x + y) ` ((convex hull S) <*> (convex hull T))"
+  have "convex hull S + convex hull T = (\<lambda>(x,y). x + y) ` ((convex hull S) \<times> (convex hull T))"
     by (simp add: set_plus_image)
-  also have "\<dots> = (\<lambda>(x,y). x + y) ` (convex hull (S <*> T))"
+  also have "\<dots> = (\<lambda>(x,y). x + y) ` (convex hull (S \<times> T))"
     using convex_hull_Times by auto
   also have "\<dots> = convex hull (S + T)"
     using fst_snd_linear linear_conv_bounded_linear
-      convex_hull_linear_image[of "(\<lambda>(x,y). x + y)" "S <*> T"]
+      convex_hull_linear_image[of "(\<lambda>(x,y). x + y)" "S \<times> T"]
     by (auto simp add: set_plus_image)
   finally show ?thesis ..
 qed
@@ -8638,13 +8638,13 @@ lemma rel_interior_sum:
     and "convex T"
   shows "rel_interior (S + T) = rel_interior S + rel_interior T"
 proof -
-  have "rel_interior S + rel_interior T = (\<lambda>(x,y). x + y) ` (rel_interior S <*> rel_interior T)"
+  have "rel_interior S + rel_interior T = (\<lambda>(x,y). x + y) ` (rel_interior S \<times> rel_interior T)"
     by (simp add: set_plus_image)
-  also have "\<dots> = (\<lambda>(x,y). x + y) ` rel_interior (S <*> T)"
+  also have "\<dots> = (\<lambda>(x,y). x + y) ` rel_interior (S \<times> T)"
     using rel_interior_direct_sum assms by auto
   also have "\<dots> = rel_interior (S + T)"
     using fst_snd_linear convex_Times assms
-      rel_interior_convex_linear_image[of "(\<lambda>(x,y). x + y)" "S <*> T"]
+      rel_interior_convex_linear_image[of "(\<lambda>(x,y). x + y)" "S \<times> T"]
     by (auto simp add: set_plus_image)
   finally show ?thesis ..
 qed
@@ -8685,7 +8685,7 @@ lemma convex_rel_open_direct_sum:
     and "rel_open S"
     and "convex T"
     and "rel_open T"
-  shows "convex (S <*> T) \<and> rel_open (S <*> T)"
+  shows "convex (S \<times> T) \<and> rel_open (S \<times> T)"
   by (metis assms convex_Times rel_interior_direct_sum rel_open_def)
 
 lemma convex_rel_open_sum:
@@ -8799,8 +8799,8 @@ next
   def C0 \<equiv> "convex hull (\<Union>(S ` I))"
   have "\<forall>i\<in>I. C0 \<ge> S i"
     unfolding C0_def using hull_subset[of "\<Union>(S ` I)"] by auto
-  def K0 \<equiv> "cone hull ({1 :: real} <*> C0)"
-  def K \<equiv> "\<lambda>i. cone hull ({1 :: real} <*> S i)"
+  def K0 \<equiv> "cone hull ({1 :: real} \<times> C0)"
+  def K \<equiv> "\<lambda>i. cone hull ({1 :: real} \<times> S i)"
   have "\<forall>i\<in>I. K i \<noteq> {}"
     unfolding K_def using assms
     by (simp add: cone_hull_empty_iff[symmetric])
@@ -8838,13 +8838,13 @@ next
     done
   ultimately have geq: "K0 \<supseteq> convex hull (\<Union>(K ` I))"
     using hull_minimal[of _ "K0" "convex"] by blast
-  have "\<forall>i\<in>I. K i \<supseteq> {1 :: real} <*> S i"
+  have "\<forall>i\<in>I. K i \<supseteq> {1 :: real} \<times> S i"
     using K_def by (simp add: hull_subset)
-  then have "\<Union>(K ` I) \<supseteq> {1 :: real} <*> \<Union>(S ` I)"
+  then have "\<Union>(K ` I) \<supseteq> {1 :: real} \<times> \<Union>(S ` I)"
     by auto
-  then have "convex hull \<Union>(K ` I) \<supseteq> convex hull ({1 :: real} <*> \<Union>(S ` I))"
+  then have "convex hull \<Union>(K ` I) \<supseteq> convex hull ({1 :: real} \<times> \<Union>(S ` I))"
     by (simp add: hull_mono)
-  then have "convex hull \<Union>(K ` I) \<supseteq> {1 :: real} <*> C0"
+  then have "convex hull \<Union>(K ` I) \<supseteq> {1 :: real} \<times> C0"
     unfolding C0_def
     using convex_hull_Times[of "{(1 :: real)}" "\<Union>(S ` I)"] convex_hull_singleton
     by auto
@@ -8889,7 +8889,7 @@ next
     {
       fix i
       assume "i \<in> I"
-      then have "convex (S i) \<and> k i \<in> rel_interior (cone hull {1} <*> S i)"
+      then have "convex (S i) \<and> k i \<in> rel_interior (cone hull {1} \<times> S i)"
         using k K_def assms by auto
       then have "\<exists>ci si. k i = (ci, ci *\<^sub>R si) \<and> 0 < ci \<and> si \<in> rel_interior (S i)"
         using rel_interior_convex_cone[of "S i"] by auto
