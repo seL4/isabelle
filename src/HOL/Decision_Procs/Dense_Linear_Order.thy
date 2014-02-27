@@ -12,8 +12,6 @@ begin
 ML_file "langford_data.ML"
 ML_file "ferrante_rackoff_data.ML"
 
-setup {* Langford_Data.setup #> Ferrante_Rackoff_Data.setup *}
-
 context linorder
 begin
 
