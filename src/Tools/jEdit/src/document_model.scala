@@ -164,13 +164,13 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
 
   /* edits */
 
-  def init_edits(): List[Document.Edit_Text] =
+  def init_edits(doc_blobs: Document.Blobs): List[Document.Edit_Text] =
   {
     Swing_Thread.require()
 
     val header = node_header()
     val text = JEdit_Lib.buffer_text(buffer)
-    val (_, perspective) = node_perspective(Document.Blobs.empty)
+    val (_, perspective) = node_perspective(doc_blobs)
 
     if (is_theory)
       List(session.header_edit(node_name, header),

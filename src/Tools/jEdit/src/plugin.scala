@@ -106,6 +106,7 @@ object PIDE
   {
     Swing_Thread.now {
       PIDE.editor.flush()
+      val doc_blobs = document_blobs()
       val init_edits =
         (List.empty[Document.Edit_Text] /: buffers) { case (edits, buffer) =>
           JEdit_Lib.buffer_lock(buffer) {
@@ -117,7 +118,7 @@ object PIDE
                   case Some(model) if model.node_name == node_name => (Nil, model)
                   case _ =>
                     val model = Document_Model.init(session, buffer, node_name)
-                    (model.init_edits(), model)
+                    (model.init_edits(doc_blobs), model)
                 }
               for {
                 text_area <- JEdit_Lib.jedit_text_areas(buffer)
@@ -127,7 +128,7 @@ object PIDE
             }
           }
         }
-      session.update(document_blobs(), init_edits)
+      session.update(doc_blobs, init_edits)
     }
   }
 
