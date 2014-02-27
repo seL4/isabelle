@@ -805,7 +805,7 @@ fun ml_program_of_program ctxt module_name reserved identifiers =
     Code_Namespace.hierarchical_program ctxt {
       module_name = module_name, reserved = reserved, identifiers = identifiers,
       empty_nsp = (reserved, reserved), namify_module = pair, namify_stmt = namify_stmt,
-      cyclic_modules = false, class_transitive = false,
+      cyclic_modules = false, class_transitive = true,
       class_relation_public = true, empty_data = (),
       memorize_data = K I, modify_stmts = modify_stmts }
   end;

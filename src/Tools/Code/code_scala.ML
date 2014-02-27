@@ -145,17 +145,12 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
             |> single
             |> enclose "(" ")"
           end;
-    fun privatize Code_Namespace.Public = concat
-      | privatize _ = concat o cons (str "private");
-    fun privatize' Code_Namespace.Public = concat
-      | privatize' Code_Namespace.Opaque = concat
-      | privatize' _ = concat o cons (str "private");
     fun print_context tyvars vs sym = applify "[" "]"
       (fn (v, sort) => (Pretty.block o map str)
         (lookup_tyvar tyvars v :: maps (fn class => [" : ", deresolve_class class]) sort))
           NOBR ((str o deresolve) sym) vs;
     fun print_defhead export tyvars vars const vs params tys ty =
-      privatize export [str "def", constraint (applify "(" ")" (fn (param, ty) =>
+      concat [str "def", constraint (applify "(" ")" (fn (param, ty) =>
         constraint ((str o lookup_var vars) param) (print_typ tyvars NOBR ty))
           NOBR (print_context tyvars vs (Constant const)) (params ~~ tys)) (print_typ tyvars NOBR ty),
             str "="];
@@ -218,7 +213,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
             val tyvars = intro_tyvars (map (rpair []) vs) reserved;
             fun print_co ((co, vs_args), tys) =
               concat [Pretty.block ((applify "[" "]" (str o lookup_tyvar tyvars) NOBR
-                ((privatize export o map str) ["final", "case", "class", deresolve_const co]) vs_args)
+                ((concat o map str) ["final", "case", "class", deresolve_const co]) vs_args)
                 @@ enum "," "(" ")" (map (fn (v, arg) => constraint (str v) (print_typ tyvars NOBR arg))
                   (Name.invent_names (snd reserved) "a" tys))),
                 str "extends",
@@ -227,7 +222,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
               ];
           in
             Pretty.chunks (applify "[" "]" (str o lookup_tyvar tyvars)
-              NOBR ((privatize' export o map str) ["abstract", "sealed", "class", deresolve_tyco tyco]) vs
+              NOBR ((concat o map str) ["abstract", "sealed", "class", deresolve_tyco tyco]) vs
                 :: map print_co cos)
           end
       | print_stmt (Type_Class class, (export, Code_Thingol.Class (v, (classrels, classparams)))) =
@@ -249,7 +244,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
                 val auxs = Name.invent (snd proto_vars) "a" (length tys);
                 val vars = intro_vars auxs proto_vars;
               in
-                privatize' export [str "def", constraint (Pretty.block [applify "(" ")"
+                concat [str "def", constraint (Pretty.block [applify "(" ")"
                   (fn (aux, ty) => constraint ((str o lookup_var vars) aux)
                   (print_typ tyvars NOBR ty)) NOBR (add_typarg (deresolve_const classparam))
                   (auxs ~~ tys), str "(implicit ", str implicit_name, str ": ",
@@ -260,7 +255,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
           in
             Pretty.chunks (
               (Pretty.block_enclose
-                (privatize' export ([str "trait", (add_typarg o deresolve_class) class]
+                (concat ([str "trait", (add_typarg o deresolve_class) class]
                   @ the_list (print_super_classes classrels) @ [str "{"]), str "}")
                 (map print_classparam_val classparams))
               :: map print_classparam_def classparams
@@ -289,7 +284,7 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
                     (const, map (IVar o SOME) auxs))
               end;
           in
-            Pretty.block_enclose (privatize export [str "implicit def",
+            Pretty.block_enclose (concat [str "implicit def",
               constraint (print_context tyvars vs sym) (print_dicttyp tyvars classtyp),
               str "=", str "new", print_dicttyp tyvars classtyp, str "{"], str "}")
                 (map print_classparam_instance (inst_params @ superinst_params))

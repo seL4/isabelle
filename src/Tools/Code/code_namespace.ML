@@ -95,9 +95,7 @@ fun dependent_exports { program = program, class_transitive = class_transitive }
       let
         val succs = Code_Symbol.Graph.Keys.dest o Code_Symbol.Graph.imm_succs gr;
         val deps1 = succs sym;
-        val deps2 = if class_transitive
-          then []
-          else [] |> fold (union (op =)) (map succs deps1) |> subtract (op =) deps1
+        val deps2 = [] |> fold (union (op =)) (map succs deps1) |> subtract (op =) deps1
       in (deps1, deps2) end;
   in
     { is_datatype_or_class = is_datatype_or_class,
@@ -115,6 +113,7 @@ fun mark_exports_aux { program = program, prefix_of = prefix_of, map_export = ma
         | Code_Thingol.Classinst _ => (SOME Opaque, NONE)
         | Code_Thingol.Datatypecons _ => (SOME Public, SOME Opaque)
         | Code_Thingol.Classparam _ => (SOME Public, SOME Opaque)
+        | Code_Thingol.Class _ => (SOME Opaque, NONE)
         | Code_Thingol.Classrel _ =>
            (if class_relation_public
             then (SOME Public, SOME Opaque)

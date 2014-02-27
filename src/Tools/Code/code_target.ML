@@ -353,7 +353,7 @@ fun prepare_serializer ctxt (serializer : serializer) reserved identifiers
       const_syntax = Code_Symbol.lookup_constant_data printings,
       tyco_syntax = Code_Symbol.lookup_type_constructor_data printings,
       class_syntax = Code_Symbol.lookup_type_class_data printings },
-      (syms_all, program))
+      (subtract (op =) syms_hidden syms, program))
   end;
 
 fun mount_serializer ctxt target some_width module_name args program syms =
@@ -374,7 +374,7 @@ fun invoke_serializer ctxt target some_width raw_module_name args program all_pu
       else (check_name true raw_module_name; raw_module_name)
     val (mounted_serializer, (prepared_syms, prepared_program)) =
       mount_serializer ctxt target some_width module_name args program syms;
-  in mounted_serializer prepared_program (if all_public then prepared_syms else []) end;
+  in mounted_serializer prepared_program (if all_public then [] else prepared_syms) end;
 
 fun assert_module_name "" = error "Empty module name not allowed here"
   | assert_module_name module_name = module_name;
