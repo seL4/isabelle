@@ -97,6 +97,19 @@ where
      | MyCons t ts => MyCons (id_tree t) (id_trees2 ts))"
 
 primcorec
+  trunc_tree :: "'a bin_rose_tree \<Rightarrow> 'a bin_rose_tree" and
+  trunc_trees1 :: "'a bin_rose_tree mylist \<Rightarrow> 'a bin_rose_tree mylist" and
+  trunc_trees2 :: "'a bin_rose_tree mylist \<Rightarrow> 'a bin_rose_tree mylist"
+where
+  "trunc_tree t = (case t of BRTree a ts ts' => BRTree a (trunc_trees1 ts) (trunc_trees2 ts'))" |
+  "trunc_trees1 ts = (case ts of
+       MyNil => MyNil
+     | MyCons t _ => MyCons (trunc_tree t) MyNil)" |
+  "trunc_trees2 ts = (case ts of
+       MyNil => MyNil
+     | MyCons t ts => MyCons (trunc_tree t) MyNil)"
+
+primcorec
   freeze_exp :: "('b \<Rightarrow> 'a) \<Rightarrow> ('a, 'b) exp \<Rightarrow> ('a, 'b) exp" and
   freeze_trm :: "('b \<Rightarrow> 'a) \<Rightarrow> ('a, 'b) trm \<Rightarrow> ('a, 'b) trm" and
   freeze_factor :: "('b \<Rightarrow> 'a) \<Rightarrow> ('a, 'b) factor \<Rightarrow> ('a, 'b) factor"

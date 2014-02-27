@@ -102,6 +102,17 @@ where
   "id_trees2 (MyCons t ts) = MyCons (id_tree t) (id_trees2 ts)"
 
 primrec
+  trunc_tree :: "'a bin_rose_tree \<Rightarrow> 'a bin_rose_tree" and
+  trunc_trees1 :: "'a bin_rose_tree mylist \<Rightarrow> 'a bin_rose_tree mylist" and
+  trunc_trees2 :: "'a bin_rose_tree mylist \<Rightarrow> 'a bin_rose_tree mylist"
+where
+  "trunc_tree (BRTree a ts ts') = BRTree a (trunc_trees1 ts) (trunc_trees2 ts')" |
+  "trunc_trees1 MyNil = MyNil" |
+  "trunc_trees1 (MyCons t ts) = MyCons (id_tree t) MyNil" |
+  "trunc_trees2 MyNil = MyNil" |
+  "trunc_trees2 (MyCons t ts) = MyCons (id_tree t) MyNil"
+
+primrec
   is_ground_exp :: "('a, 'b) exp \<Rightarrow> bool" and
   is_ground_trm :: "('a, 'b) trm \<Rightarrow> bool" and
   is_ground_factor :: "('a, 'b) factor \<Rightarrow> bool"
