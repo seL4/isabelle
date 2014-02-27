@@ -12,19 +12,20 @@ structure LangfordQE: LANGFORD_QE =
 struct
 
 val dest_set =
- let
-  fun h acc ct =
-   case term_of ct of
-     Const (@{const_name Orderings.bot}, _) => acc
-   | Const (@{const_name insert}, _) $ _ $ t => h (Thm.dest_arg1 ct :: acc) (Thm.dest_arg ct)
-in h [] end;
+  let
+    fun h acc ct =
+      (case term_of ct of
+        Const (@{const_name Orderings.bot}, _) => acc
+      | Const (@{const_name insert}, _) $ _ $ t => h (Thm.dest_arg1 ct :: acc) (Thm.dest_arg ct));
+  in h [] end;
 
 fun prove_finite cT u =
-let val [th0,th1] = map (instantiate' [SOME cT] []) @{thms "finite.intros"}
+  let
+    val [th0, th1] = map (instantiate' [SOME cT] []) @{thms "finite.intros"}
     fun ins x th =
-     Thm.implies_elim (instantiate' [] [(SOME o Thm.dest_arg o Thm.dest_arg)
-                                     (Thm.cprop_of th), SOME x] th1) th
-in fold ins u th0 end;
+      Thm.implies_elim
+        (instantiate' [] [(SOME o Thm.dest_arg o Thm.dest_arg) (Thm.cprop_of th), SOME x] th1) th
+  in fold ins u th0 end;
 
 fun simp_rule ctxt =
   Conv.fconv_rule

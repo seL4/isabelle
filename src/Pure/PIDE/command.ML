@@ -6,15 +6,17 @@ Prover command execution: read -- eval -- print.
 
 signature COMMAND =
 sig
-  type blob = (string * string option) Exn.result
+  type 'a blob = (string * 'a option) Exn.result
+  type blob_digest = string blob
+  type content = SHA1.digest * string list
   val read_file: Path.T -> Position.T -> Path.T -> Token.file
-  val read: (unit -> theory) -> Path.T -> blob list -> Token.T list -> Toplevel.transition
+  val read: (unit -> theory) -> Path.T -> content blob list -> Token.T list -> Toplevel.transition
   type eval
   val eval_eq: eval * eval -> bool
   val eval_running: eval -> bool
   val eval_finished: eval -> bool
   val eval_result_state: eval -> Toplevel.state
-  val eval: (unit -> theory) -> Path.T -> blob list -> Token.T list -> eval -> eval
+  val eval: (unit -> theory) -> Path.T -> content blob list -> Token.T list -> eval -> eval
   type print
   val print: bool -> (string * string list) list -> string ->
     eval -> print list -> print list option
@@ -86,13 +88,29 @@ end;
 
 (* read *)
 
-type blob = (string * string option) Exn.result;  (*file node name, digest or text*)
+type 'a blob = (string * 'a option) Exn.result;  (*file node name, content*)
+type blob_digest = string blob;  (*raw digest*)
+type content = SHA1.digest * string list;  (*digest, lines*)
 
 fun read_file master_dir pos src_path =
   let
     val full_path = File.check_file (File.full_path master_dir src_path);
     val _ = Position.report pos (Markup.path (Path.implode full_path));
-  in {src_path = src_path, text = File.read full_path, pos = Path.position full_path} end;
+    val text = File.read full_path;
+    val lines = split_lines text;
+    val digest = SHA1.digest text;
+  in {src_path = src_path, lines = lines, digest = digest, pos = Path.position full_path} end;
+
+local
+
+fun blob_file src_path file (digest, lines) =
+  let
+    val file_pos =
+      Position.file file (*sic!*) |>
+      (case Position.get_id (Position.thread_data ()) of
+        NONE => I
+      | SOME exec_id => Position.put_id exec_id);
+  in {src_path = src_path, lines = lines, digest = digest, pos = file_pos} end
 
 fun resolve_files master_dir blobs toks =
   (case Thy_Syntax.parse_spans toks of
@@ -101,17 +119,10 @@ fun resolve_files master_dir blobs toks =
         let
           fun make_file src_path (Exn.Res (_, NONE)) =
                 Exn.interruptible_capture (fn () => read_file master_dir pos src_path) ()
-            | make_file src_path (Exn.Res (file, SOME text)) =
-                let
-                  val _ = Position.report pos (Markup.path file);
-                  val file_pos =
-                    Position.file file (*sic!*) |>
-                    (case Position.get_id (Position.thread_data ()) of
-                      NONE => I
-                    | SOME exec_id => Position.put_id exec_id);
-                in Exn.Res {src_path = src_path, text = text, pos = file_pos} end
+            | make_file src_path (Exn.Res (file, SOME content)) =
+               (Position.report pos (Markup.path file);
+                Exn.Res (blob_file src_path file content))
             | make_file _ (Exn.Exn e) = Exn.Exn e;
-
           val src_paths = Keyword.command_files cmd path;
         in
           if null blobs then
@@ -122,6 +133,8 @@ fun resolve_files master_dir blobs toks =
         end)
       |> Thy_Syntax.span_content
   | _ => toks);
+
+in
 
 fun read init master_dir blobs span =
   let
@@ -148,6 +161,8 @@ fun read init master_dir blobs span =
       | _ => Toplevel.malformed (#1 proper_range) "Exactly one command expected")
       handle ERROR msg => Toplevel.malformed (#1 proper_range) msg
   end;
+
+end;
 
 
 (* eval *)

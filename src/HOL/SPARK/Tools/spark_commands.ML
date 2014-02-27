@@ -4,26 +4,20 @@
 
 Isar commands for handling SPARK/Ada verification conditions.
 *)
-
-signature SPARK_COMMANDS =
-sig
-  val setup: theory -> theory
-end
-
-structure SPARK_Commands: SPARK_COMMANDS =
+structure SPARK_Commands: sig end =
 struct
 
 fun spark_open header (prfx, files) thy =
   let
-    val ([{src_path, text = vc_text, pos = vc_pos, ...}: Token.file,
-      {text = fdl_text, pos = fdl_pos, ...},
-      {text = rls_text, pos = rls_pos, ...}], thy') = files thy;
+    val ([{src_path, lines = vc_lines, pos = vc_pos, ...}: Token.file,
+      {lines = fdl_lines, pos = fdl_pos, ...},
+      {lines = rls_lines, pos = rls_pos, ...}], thy') = files thy;
     val base = fst (Path.split_ext (File.full_path (Thy_Load.master_directory thy') src_path));
   in
     SPARK_VCs.set_vcs
-      (snd (Fdl_Parser.parse_declarations fdl_pos fdl_text))
-      (Fdl_Parser.parse_rules rls_pos rls_text)
-      (snd (Fdl_Parser.parse_vcs header vc_pos vc_text))
+      (snd (Fdl_Parser.parse_declarations fdl_pos (cat_lines fdl_lines)))
+      (Fdl_Parser.parse_rules rls_pos (cat_lines rls_lines))
+      (snd (Fdl_Parser.parse_vcs header vc_pos (cat_lines vc_lines)))
       base prfx thy'
   end;
 
@@ -172,11 +166,11 @@ val _ =
          (Parse.reserved "incomplete" --| @{keyword ")"}) >> K true) false >>
        (Toplevel.theory o SPARK_VCs.close));
 
-val setup = Theory.at_end (fn thy =>
+val _ = Theory.setup (Theory.at_end (fn thy =>
   let
     val _ = SPARK_VCs.is_closed thy
       orelse error ("Found the end of the theory, " ^ 
         "but the last SPARK environment is still open.")
-  in NONE end);
+  in NONE end));
 
 end;

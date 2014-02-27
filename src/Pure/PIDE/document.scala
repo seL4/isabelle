@@ -24,6 +24,8 @@ object Document
 
   final class Overlays private(rep: Map[Node.Name, Node.Overlays])
   {
+    override def toString: String = rep.mkString("Overlays(", ",", ")")
+
     def apply(name: Document.Node.Name): Node.Overlays =
       rep.getOrElse(name, Node.Overlays.empty)
 
@@ -41,13 +43,38 @@ object Document
   }
 
 
-  /* individual nodes */
+  /* document blobs: auxiliary files */
+
+  sealed case class Blob(bytes: Bytes, file: Command.File, changed: Boolean)
+
+  object Blobs
+  {
+    def apply(blobs: Map[Node.Name, Blob]): Blobs = new Blobs(blobs)
+    val empty: Blobs = apply(Map.empty)
+  }
+
+  final class Blobs private(blobs: Map[Node.Name, Blob])
+  {
+    override def toString: String = blobs.mkString("Blobs(", ",", ")")
+
+    def get(name: Node.Name): Option[Blob] = blobs.get(name)
+
+    def changed(name: Node.Name): Boolean =
+      get(name) match {
+        case Some(blob) => blob.changed
+        case None => false
+      }
+
+    def retrieve(digest: SHA1.Digest): Option[Blob] =
+      blobs.collectFirst({ case (_, blob) if blob.bytes.sha1_digest == digest => blob })
+  }
+
+
+  /* document nodes: theories and auxiliary files */
 
   type Edit[A, B] = (Node.Name, Node.Edit[A, B])
   type Edit_Text = Edit[Text.Edit, Text.Perspective]
   type Edit_Command = Edit[Command.Edit, Command.Perspective]
-
-  type Blobs = Map[Node.Name, (Bytes, Command.File)]
 
   object Node
   {
@@ -104,6 +131,8 @@ object Document
 
     final class Overlays private(rep: Multi_Map[Command, (String, List[String])])
     {
+      override def toString: String = rep.mkString("Node.Overlays(", ",", ")")
+
       def commands: Set[Command] = rep.keySet
       def is_empty: Boolean = rep.isEmpty
       def dest: List[(Command, (String, List[String]))] = rep.iterator.toList
@@ -292,6 +321,8 @@ object Document
     val nodes: Nodes = Nodes.empty)
   {
     def is_init: Boolean = id == Document_ID.none
+
+    override def toString: String = "Version(" + id + ")"
   }
 
 

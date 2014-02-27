@@ -245,9 +245,9 @@ class Rich_Text_Area(
               gfx.fillRect(0, y + i * line_height, text_area.getWidth, line_height - sep)
             }
 
-            // background color (1)
+            // background color
             for {
-              Text.Info(range, color) <- rendering.background1(line_range)
+              Text.Info(range, color) <- rendering.background(line_range)
               r <- JEdit_Lib.gfx_range(text_area, range)
             } {
               gfx.setColor(color)
@@ -262,15 +262,6 @@ class Rich_Text_Area(
             } {
               gfx.setColor(rendering.active_hover_color)
               gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
-            }
-
-            // background color (2)
-            for {
-              Text.Info(range, color) <- rendering.background2(line_range)
-              r <- JEdit_Lib.gfx_range(text_area, range)
-            } {
-              gfx.setColor(color)
-              gfx.fillRect(r.x + 2, y + i * line_height + 2, r.length - 4, line_height - 4)
             }
 
             // squiggly underline

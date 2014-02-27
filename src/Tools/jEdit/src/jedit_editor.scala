@@ -26,8 +26,9 @@ class JEdit_Editor extends Editor[View]
   {
     Swing_Thread.require()
 
-    val edits = PIDE.document_models().flatMap(_.flushed_edits())
-    if (!edits.isEmpty) session.update(PIDE.document_blobs(), edits)
+    val doc_blobs = PIDE.document_blobs()
+    val edits = PIDE.document_models().flatMap(_.flushed_edits(doc_blobs))
+    if (!edits.isEmpty) session.update(doc_blobs, edits)
   }
 
   private val delay_flush =

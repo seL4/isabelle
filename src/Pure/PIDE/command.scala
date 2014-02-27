@@ -228,6 +228,8 @@ object Command
     val range = Text.Range(0, length)
     private val symbol_index = Symbol.Index(text)
     def decode(r: Text.Range): Text.Range = symbol_index.decode(r)
+
+    override def toString: String = "Command.File(" + file_name + ")"
   }
 
 
@@ -337,6 +339,9 @@ final class Command private(
 
 
   /* blobs */
+
+  def blobs_changed(doc_blobs: Document.Blobs): Boolean =
+    blobs.exists({ case Exn.Res((name, _)) => doc_blobs.changed(name) case _ => false })
 
   def blobs_names: List[Document.Node.Name] =
     for (Exn.Res((name, _)) <- blobs) yield name

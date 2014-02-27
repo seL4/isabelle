@@ -268,27 +268,25 @@ object Thy_Syntax
       Exn.capture {
         val name =
           Document.Node.Name(thy_load.append(node_name.master_dir, Path.explode(file_name)))
-        val blob =
-          doc_blobs.get(name) match {
-            case Some((bytes, file)) => Some((bytes.sha1_digest, file))
-            case None => None
-          }
+        val blob = doc_blobs.get(name).map(blob => ((blob.bytes.sha1_digest, blob.file)))
         (name, blob)
-      }
-    )
+      })
   }
 
 
   /* reparse range of command spans */
 
   @tailrec private def chop_common(
-      cmds: List[Command], spans: List[(List[Command.Blob], List[Token])])
-      : (List[Command], List[(List[Command.Blob], List[Token])]) =
-    (cmds, spans) match {
-      case (c :: cs, (blobs, span) :: ps) if c.blobs == blobs && c.span == span =>
-        chop_common(cs, ps)
-      case _ => (cmds, spans)
+      cmds: List[Command],
+      blobs_spans: List[(List[Command.Blob], List[Token])])
+    : (List[Command], List[(List[Command.Blob], List[Token])]) =
+  {
+    (cmds, blobs_spans) match {
+      case (cmd :: cmds, (blobs, span) :: rest) if cmd.blobs == blobs && cmd.span == span =>
+        chop_common(cmds, rest)
+      case _ => (cmds, blobs_spans)
     }
+  }
 
   private def reparse_spans(
     thy_load: Thy_Load,
@@ -299,24 +297,24 @@ object Thy_Syntax
     first: Command, last: Command): Linear_Set[Command] =
   {
     val cmds0 = commands.iterator(first, last).toList
-    val spans0 =
+    val blobs_spans0 =
       parse_spans(syntax.scan(cmds0.iterator.map(_.source).mkString)).
         map(span => (resolve_files(thy_load, syntax, name, span, doc_blobs), span))
 
-    val (cmds1, spans1) = chop_common(cmds0, spans0)
+    val (cmds1, blobs_spans1) = chop_common(cmds0, blobs_spans0)
 
-    val (rev_cmds2, rev_spans2) = chop_common(cmds1.reverse, spans1.reverse)
+    val (rev_cmds2, rev_blobs_spans2) = chop_common(cmds1.reverse, blobs_spans1.reverse)
     val cmds2 = rev_cmds2.reverse
-    val spans2 = rev_spans2.reverse
+    val blobs_spans2 = rev_blobs_spans2.reverse
 
     cmds2 match {
       case Nil =>
-        assert(spans2.isEmpty)
+        assert(blobs_spans2.isEmpty)
         commands
       case cmd :: _ =>
         val hook = commands.prev(cmd)
         val inserted =
-          spans2.map({ case (blobs, span) => Command(Document_ID.make(), name, blobs, span) })
+          blobs_spans2.map({ case (blobs, span) => Command(Document_ID.make(), name, blobs, span) })
         (commands /: cmds2)(_ - _).append_after(hook, inserted)
     }
   }
@@ -450,8 +448,9 @@ object Thy_Syntax
       val reparse =
         (reparse0 /: nodes0.entries)({
           case (reparse, (name, node)) =>
-            if (node.thy_load_commands.isEmpty) reparse
-            else name :: reparse
+            if (node.thy_load_commands.exists(_.blobs_changed(doc_blobs)))
+              name :: reparse
+            else reparse
           })
       val reparse_set = reparse.toSet
 

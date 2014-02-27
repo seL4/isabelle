@@ -38,10 +38,7 @@ object PIDE
   @volatile var plugin: Plugin = null
   @volatile var session: Session = new Session(new JEdit_Thy_Load(Set.empty, Outer_Syntax.empty))
 
-  def options_changed() {
-    session.global_options.event(Session.Global_Options(options.value))
-    plugin.load_theories()
-  }
+  def options_changed() { plugin.options_changed() }
 
   def thy_load(): JEdit_Thy_Load =
     session.thy_load.asInstanceOf[JEdit_Thy_Load]
@@ -83,7 +80,12 @@ object PIDE
     } yield model
 
   def document_blobs(): Document.Blobs =
-    document_models().filterNot(_.is_theory).map(model => (model.node_name -> model.blob())).toMap
+    Document.Blobs(
+      (for {
+        buffer <- JEdit_Lib.jedit_buffers()
+        model <- document_model(buffer)
+        blob <- model.get_blob()
+      } yield (model.node_name -> blob)).toMap)
 
   def exit_models(buffers: List[Buffer])
   {
@@ -97,32 +99,30 @@ object PIDE
       }
   }
 
-  def init_models(buffers: List[Buffer])
+  def init_models()
   {
     Swing_Thread.now {
       PIDE.editor.flush()
-      val init_edits =
-        (List.empty[Document.Edit_Text] /: buffers) { case (edits, buffer) =>
-          JEdit_Lib.buffer_lock(buffer) {
-            if (buffer.getBooleanProperty(Buffer.GZIPPED)) edits
-            else {
-              val node_name = thy_load.node_name(buffer)
-              val (model_edits, model) =
-                document_model(buffer) match {
-                  case Some(model) if model.node_name == node_name => (Nil, model)
-                  case _ =>
-                    val model = Document_Model.init(session, buffer, node_name)
-                    (model.init_edits(), model)
-                }
-              for {
-                text_area <- JEdit_Lib.jedit_text_areas(buffer)
-                if document_view(text_area).map(_.model) != Some(model)
-              } Document_View.init(model, text_area)
-              model_edits ::: edits
+
+      for {
+        buffer <- JEdit_Lib.jedit_buffers()
+        if buffer != null && !buffer.isLoading && !buffer.getBooleanProperty(Buffer.GZIPPED)
+      } {
+        JEdit_Lib.buffer_lock(buffer) {
+          val node_name = thy_load.node_name(buffer)
+          val model =
+            document_model(buffer) match {
+              case Some(model) if model.node_name == node_name => model
+              case _ => Document_Model.init(session, buffer, node_name)
             }
-          }
+          for {
+            text_area <- JEdit_Lib.jedit_text_areas(buffer)
+            if document_view(text_area).map(_.model) != Some(model)
+          } Document_View.init(model, text_area)
         }
-      session.update(document_blobs(), init_edits)
+      }
+
+      PIDE.editor.invoke()
     }
   }
 
@@ -168,15 +168,21 @@ object PIDE
 
 class Plugin extends EBPlugin
 {
+  /* options */
+
+  def options_changed() {
+    PIDE.session.global_options.event(Session.Global_Options(PIDE.options.value))
+    Swing_Thread.later { delay_load.invoke() }
+  }
+
+
   /* theory files */
 
   private lazy val delay_init =
     Swing_Thread.delay_last(PIDE.options.seconds("editor_load_delay"))
     {
-      PIDE.init_models(JEdit_Lib.jedit_buffers().toList)
+      PIDE.init_models()
     }
-
-  def load_theories() { Swing_Thread.later { delay_load.invoke() }}
 
   private lazy val delay_load =
     Swing_Thread.delay_last(PIDE.options.seconds("editor_load_delay"))
@@ -245,7 +251,7 @@ class Plugin extends EBPlugin
 
             case Session.Ready =>
               PIDE.session.update_options(PIDE.options.value)
-              PIDE.init_models(JEdit_Lib.jedit_buffers().toList)
+              PIDE.init_models()
               Swing_Thread.later { delay_load.invoke() }
 
             case Session.Shutdown =>
@@ -285,9 +291,8 @@ class Plugin extends EBPlugin
         case msg: BufferUpdate
         if msg.getWhat == BufferUpdate.LOADED || msg.getWhat == BufferUpdate.PROPERTIES_CHANGED =>
           if (PIDE.session.is_ready) {
-            val buffer = msg.getBuffer
-            if (buffer != null && !buffer.isLoading) delay_init.invoke()
-            load_theories()
+            delay_init.invoke()
+            delay_load.invoke()
           }
 
         case msg: EditPaneUpdate

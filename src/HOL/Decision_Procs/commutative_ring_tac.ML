@@ -22,31 +22,40 @@ fun polT t = Type (@{type_name Commutative_Ring.pol}, [t]);
 fun polexT t = Type (@{type_name Commutative_Ring.polex}, [t]);
 
 (* pol *)
-fun pol_Pc t = Const (@{const_name Commutative_Ring.pol.Pc}, t --> polT t);
-fun pol_Pinj t = Const (@{const_name Commutative_Ring.pol.Pinj}, HOLogic.natT --> polT t --> polT t);
-fun pol_PX t = Const (@{const_name Commutative_Ring.pol.PX}, polT t --> HOLogic.natT --> polT t --> polT t);
+fun pol_Pc t =
+  Const (@{const_name Commutative_Ring.pol.Pc}, t --> polT t);
+fun pol_Pinj t =
+  Const (@{const_name Commutative_Ring.pol.Pinj}, HOLogic.natT --> polT t --> polT t);
+fun pol_PX t =
+  Const (@{const_name Commutative_Ring.pol.PX}, polT t --> HOLogic.natT --> polT t --> polT t);
 
 (* polex *)
-fun polex_add t = Const (@{const_name Commutative_Ring.polex.Add}, polexT t --> polexT t --> polexT t);
-fun polex_sub t = Const (@{const_name Commutative_Ring.polex.Sub}, polexT t --> polexT t --> polexT t);
-fun polex_mul t = Const (@{const_name Commutative_Ring.polex.Mul}, polexT t --> polexT t --> polexT t);
-fun polex_neg t = Const (@{const_name Commutative_Ring.polex.Neg}, polexT t --> polexT t);
-fun polex_pol t = Const (@{const_name Commutative_Ring.polex.Pol}, polT t --> polexT t);
-fun polex_pow t = Const (@{const_name Commutative_Ring.polex.Pow}, polexT t --> HOLogic.natT --> polexT t);
+fun polex_add t =
+  Const (@{const_name Commutative_Ring.polex.Add}, polexT t --> polexT t --> polexT t);
+fun polex_sub t =
+  Const (@{const_name Commutative_Ring.polex.Sub}, polexT t --> polexT t --> polexT t);
+fun polex_mul t =
+  Const (@{const_name Commutative_Ring.polex.Mul}, polexT t --> polexT t --> polexT t);
+fun polex_neg t =
+  Const (@{const_name Commutative_Ring.polex.Neg}, polexT t --> polexT t);
+fun polex_pol t =
+  Const (@{const_name Commutative_Ring.polex.Pol}, polT t --> polexT t);
+fun polex_pow t =
+  Const (@{const_name Commutative_Ring.polex.Pow}, polexT t --> HOLogic.natT --> polexT t);
 
 (* reification of polynoms : primitive cring expressions *)
 fun reif_pol T vs (t as Free _) =
       let
         val one = @{term "1::nat"};
         val i = find_index (fn t' => t' = t) vs
-      in if i = 0
-        then pol_PX T $ (pol_Pc T $ cring_one T)
-          $ one $ (pol_Pc T $ cring_zero T)
-        else pol_Pinj T $ HOLogic.mk_nat i
-          $ (pol_PX T $ (pol_Pc T $ cring_one T)
-            $ one $ (pol_Pc T $ cring_zero T))
+      in
+        if i = 0 then
+          pol_PX T $ (pol_Pc T $ cring_one T) $ one $ (pol_Pc T $ cring_zero T)
+        else
+          pol_Pinj T $ HOLogic.mk_nat i $
+            (pol_PX T $ (pol_Pc T $ cring_one T) $ one $ (pol_Pc T $ cring_zero T))
         end
-  | reif_pol T vs t = pol_Pc T $ t;
+  | reif_pol T _ t = pol_Pc T $ t;
 
 (* reification of polynom expressions *)
 fun reif_polex T vs (Const (@{const_name Groups.plus}, _) $ a $ b) =
@@ -62,34 +71,33 @@ fun reif_polex T vs (Const (@{const_name Groups.plus}, _) $ a $ b) =
   | reif_polex T vs t = polex_pol T $ reif_pol T vs t;
 
 (* reification of the equation *)
-val cr_sort = @{sort "comm_ring_1"};
+val cr_sort = @{sort comm_ring_1};
 
-fun reif_eq thy (eq as Const(@{const_name HOL.eq}, Type("fun", [T, _])) $ lhs $ rhs) =
-      if Sign.of_sort thy (T, cr_sort) then
+fun reif_eq ctxt (eq as Const (@{const_name HOL.eq}, Type (@{type_name fun}, [T, _])) $ lhs $ rhs) =
+      if Sign.of_sort (Proof_Context.theory_of ctxt) (T, cr_sort) then
         let
+          val thy = Proof_Context.theory_of ctxt;
           val fs = Misc_Legacy.term_frees eq;
           val cvs = cterm_of thy (HOLogic.mk_list T fs);
           val clhs = cterm_of thy (reif_polex T fs lhs);
           val crhs = cterm_of thy (reif_polex T fs rhs);
           val ca = ctyp_of thy T;
         in (ca, cvs, clhs, crhs) end
-      else error ("reif_eq: not an equation over " ^ Syntax.string_of_sort_global thy cr_sort)
+      else error ("reif_eq: not an equation over " ^ Syntax.string_of_sort ctxt cr_sort)
   | reif_eq _ _ = error "reif_eq: not an equation";
 
 (* The cring tactic *)
 (* Attention: You have to make sure that no t^0 is in the goal!! *)
 (* Use simply rewriting t^0 = 1 *)
 val cring_simps =
-  [@{thm mkPX_def}, @{thm mkPinj_def}, @{thm sub_def}, @{thm power_add},
-    @{thm even_def}, @{thm pow_if}, sym OF [@{thm power_add}]];
+  @{thms mkPX_def mkPinj_def sub_def power_add even_def pow_if power_add [symmetric]};
 
 fun tac ctxt = SUBGOAL (fn (g, i) =>
   let
-    val thy = Proof_Context.theory_of ctxt;
     val cring_ctxt = ctxt addsimps cring_simps;  (*FIXME really the full simpset!?*)
-    val (ca, cvs, clhs, crhs) = reif_eq thy (HOLogic.dest_Trueprop g)
+    val (ca, cvs, clhs, crhs) = reif_eq ctxt (HOLogic.dest_Trueprop g);
     val norm_eq_th =
-      simplify cring_ctxt (instantiate' [SOME ca] [SOME clhs, SOME crhs, SOME cvs] @{thm norm_eq})
+      simplify cring_ctxt (instantiate' [SOME ca] [SOME clhs, SOME crhs, SOME cvs] @{thm norm_eq});
   in
     cut_tac norm_eq_th i
     THEN (simp_tac cring_ctxt i)

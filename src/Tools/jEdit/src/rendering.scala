@@ -201,13 +201,11 @@ object Rendering
 
   private val separator_elements = Set(Markup.SEPARATOR)
 
-  private val background1_elements =
+  private val background_elements =
     Protocol.command_status_elements + Markup.WRITELN_MESSAGE +
       Markup.TRACING_MESSAGE + Markup.WARNING_MESSAGE +
       Markup.ERROR_MESSAGE + Markup.BAD + Markup.INTENSIFY ++
       active_elements
-
-  private val background2_elements = Set(Markup.TOKEN_RANGE)
 
   private val foreground_elements =
     Set(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM,
@@ -234,7 +232,6 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val unprocessed1_color = color_value("unprocessed1_color")
   val running_color = color_value("running_color")
   val running1_color = color_value("running1_color")
-  val light_color = color_value("light_color")
   val bullet_color = color_value("bullet_color")
   val tooltip_color = color_value("tooltip_color")
   val writeln_color = color_value("writeln_color")
@@ -624,14 +621,14 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   /* text background */
 
-  def background1(range: Text.Range): List[Text.Info[Color]] =
+  def background(range: Text.Range): List[Text.Info[Color]] =
   {
     if (snapshot.is_outdated) List(Text.Info(range, outdated_color))
     else
       for {
         Text.Info(r, result) <-
           snapshot.cumulate[(Option[Protocol.Status], Option[Color])](
-            range, (Some(Protocol.Status.init), None), Rendering.background1_elements,
+            range, (Some(Protocol.Status.init), None), Rendering.background_elements,
             command_state =>
               {
                 case (((Some(status), color), Text.Info(_, XML.Elem(markup, _))))
@@ -662,9 +659,6 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
           })
       } yield Text.Info(r, color)
   }
-
-  def background2(range: Text.Range): List[Text.Info[Color]] =
-    snapshot.select(range, Rendering.background2_elements, _ => _ => Some(light_color))
 
 
   /* text foreground */
