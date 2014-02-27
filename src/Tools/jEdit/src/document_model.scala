@@ -163,24 +163,6 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
 
   /* edits */
 
-  def init_edits(doc_blobs: Document.Blobs): List[Document.Edit_Text] =
-  {
-    Swing_Thread.require()
-
-    val header = node_header()
-    val text = JEdit_Lib.buffer_text(buffer)
-    val (_, perspective) = node_perspective(doc_blobs)
-
-    if (is_theory)
-      List(session.header_edit(node_name, header),
-        node_name -> Document.Node.Clear(),
-        node_name -> Document.Node.Edits(List(Text.Edit.insert(0, text))),
-        node_name -> perspective)
-    else
-      List(node_name -> Document.Node.Blob(),
-        node_name -> Document.Node.Edits(List(Text.Edit.insert(0, text))))
-  }
-
   def node_edits(
     clear: Boolean,
     text_edits: List[Text.Edit],
@@ -257,7 +239,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
   {
     override def bufferLoaded(buffer: JEditBuffer)
     {
-      pending_edits.edit(true, Text.Edit.insert(0, buffer.getText(0, buffer.getLength)))
+      pending_edits.edit(true, Text.Edit.insert(0, JEdit_Lib.buffer_text(buffer)))
     }
 
     override def contentInserted(buffer: JEditBuffer,
@@ -280,6 +262,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
 
   private def activate()
   {
+    pending_edits.edit(true, Text.Edit.insert(0, JEdit_Lib.buffer_text(buffer)))
     buffer.addBufferListener(buffer_listener)
     Token_Markup.refresh_buffer(buffer)
   }
