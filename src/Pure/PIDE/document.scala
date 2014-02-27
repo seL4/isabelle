@@ -24,6 +24,8 @@ object Document
 
   final class Overlays private(rep: Map[Node.Name, Node.Overlays])
   {
+    override def toString: String = rep.mkString("Overlays(", ",", ")")
+
     def apply(name: Document.Node.Name): Node.Overlays =
       rep.getOrElse(name, Node.Overlays.empty)
 
@@ -104,6 +106,8 @@ object Document
 
     final class Overlays private(rep: Multi_Map[Command, (String, List[String])])
     {
+      override def toString: String = rep.mkString("Node.Overlays(", ",", ")")
+
       def commands: Set[Command] = rep.keySet
       def is_empty: Boolean = rep.isEmpty
       def dest: List[(Command, (String, List[String]))] = rep.iterator.toList
