@@ -26,7 +26,16 @@ class JEdit_Editor extends Editor[View]
   {
     Swing_Thread.require()
 
-    val edits = PIDE.document_models().flatMap(_.flushed_edits())
+    val models = PIDE.document_models()
+    val changed_blobs =
+      (for {
+        model <- models.iterator
+        if !model.is_theory && model.has_pending_edits
+      } yield model.node_name).toSet
+
+    System.console.writer.println("\nchanged_blobs = " + changed_blobs)
+
+    val edits = models.flatMap(_.flushed_edits(changed_blobs))
     if (!edits.isEmpty) session.update(PIDE.document_blobs(), edits)
   }
 
