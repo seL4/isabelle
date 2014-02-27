@@ -26,12 +26,25 @@ hide_const (open) smember
 
 (* TODO: Provide by the package*)
 theorem sset_induct:
-  "\<lbrakk>\<And>s. P (shd s) s; \<And>s y. \<lbrakk>y \<in> sset (stl s); P y (stl s)\<rbrakk> \<Longrightarrow> P y s\<rbrakk> \<Longrightarrow>
-    \<forall>y \<in> sset s. P y s"
-  apply (rule stream.dtor_set_induct)
-  apply (auto simp add: shd_def stl_def fsts_def snds_def split_beta)
-  apply (metis SCons_def fst_conv stream.case stream.dtor_ctor stream.exhaust)
-  by (metis SCons_def sndI stl_def stream.collapse stream.dtor_ctor)
+  assumes Base: "\<And>s. P (shd s) s" and Step: "\<And>s y. \<lbrakk>y \<in> sset (stl s); P y (stl s)\<rbrakk> \<Longrightarrow> P y s"
+  shows "\<forall>y \<in> sset s. P y s"
+proof (rule stream.dtor_set_induct)
+  fix a :: 'a and s :: "'a stream"
+  assume "a \<in> set1_pre_stream (dtor_stream s)"
+  then have "a = shd s"
+    by (cases "dtor_stream s")
+      (auto simp: shd_def fsts_def set1_pre_stream_def stream.dtor_ctor SCons_def
+        Abs_stream_pre_stream_inverse Abs_stream_pre_stream_inject split: stream.splits)
+  with Base show "P a s" by simp
+next
+  fix a :: 'a and s' :: "'a stream"  and s :: "'a stream"
+  assume "s' \<in> set2_pre_stream (dtor_stream s)" and prems: "a \<in> sset s'" "P a s'"
+  then have "s' = stl s"
+    by (cases "dtor_stream s")
+      (auto simp: stl_def snds_def set2_pre_stream_def stream.dtor_ctor SCons_def
+        Abs_stream_pre_stream_inverse Abs_stream_pre_stream_inject split: stream.splits)
+  with Step prems show "P a s" by simp
+qed
 
 lemma smap_simps[simp]:
   "shd (smap f s) = f (shd s)" "stl (smap f s) = smap f (stl s)"

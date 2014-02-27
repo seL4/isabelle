@@ -126,7 +126,7 @@ lemma sp\<^sub>\<mu>_comp_sp\<^sub>\<mu>_comp2[simp]: "sp o\<^sub>\<mu> sp' = sp
 (*will be provided by the package*)
 lemma sp\<^sub>\<mu>_rel_map_map[unfolded vimage2p_def, simp]:
   "rel_sp\<^sub>\<mu> R1 R2 (map_sp\<^sub>\<mu> f1 f2 sp) (map_sp\<^sub>\<mu> g1 g2 sp') =
-  rel_sp\<^sub>\<mu> (BNF_Def.vimage2p f1 g1 R1) (BNF_Def.vimage2p f2 g2 R2) sp sp'"
+  rel_sp\<^sub>\<mu> (BNF_Util.vimage2p f1 g1 R1) (BNF_Util.vimage2p f2 g2 R2) sp sp'"
 by (tactic {*
   let val ks = 1 upto 2;
   in
