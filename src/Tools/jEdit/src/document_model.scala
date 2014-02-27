@@ -2,7 +2,8 @@
     Author:     Fabian Immler, TU Munich
     Author:     Makarius
 
-Document model connected to jEdit buffer -- single node in theory graph.
+Document model connected to jEdit buffer (node in theory graph or
+auxiliary file).
 */
 
 package isabelle.jedit
