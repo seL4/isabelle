@@ -269,7 +269,7 @@ where
 lemma numsubst0_numbound0:
   assumes nb: "numbound0 t"
   shows "numbound0 (numsubst0 t a)"
-  using nb apply (induct a) 
+  using nb apply (induct a)
   apply simp_all
   apply (case_tac nat, simp_all)
   done
@@ -2001,8 +2001,9 @@ ML_val {* @{code cooper_test} () *}
 oracle linzqe_oracle = {*
 let
 
-fun num_of_term vs (t as Free (xn, xT)) = (case AList.lookup (op =) vs t
-     of NONE => error "Variable not found in the list!"
+fun num_of_term vs (t as Free (xn, xT)) =
+      (case AList.lookup (op =) vs t of
+        NONE => error "Variable not found in the list!"
       | SOME n => @{code Bound} (@{code nat_of_integer} n))
   | num_of_term vs @{term "0::int"} = @{code C} (@{code int_of_integer} 0)
   | num_of_term vs @{term "1::int"} = @{code C} (@{code int_of_integer} 1)
@@ -2018,11 +2019,12 @@ fun num_of_term vs (t as Free (xn, xT)) = (case AList.lookup (op =) vs t
   | num_of_term vs (@{term "op - :: int \<Rightarrow> int \<Rightarrow> int"} $ t1 $ t2) =
       @{code Sub} (num_of_term vs t1, num_of_term vs t2)
   | num_of_term vs (@{term "op * :: int \<Rightarrow> int \<Rightarrow> int"} $ t1 $ t2) =
-      (case try HOLogic.dest_number t1
-       of SOME (_, i) => @{code Mul} (@{code int_of_integer} i, num_of_term vs t2)
-        | NONE => (case try HOLogic.dest_number t2
-                of SOME (_, i) => @{code Mul} (@{code int_of_integer} i, num_of_term vs t1)
-                 | NONE => error "num_of_term: unsupported multiplication"))
+      (case try HOLogic.dest_number t1 of
+        SOME (_, i) => @{code Mul} (@{code int_of_integer} i, num_of_term vs t2)
+      | NONE =>
+          (case try HOLogic.dest_number t2 of
+            SOME (_, i) => @{code Mul} (@{code int_of_integer} i, num_of_term vs t1)
+          | NONE => error "num_of_term: unsupported multiplication"))
   | num_of_term vs t = error ("num_of_term: unknown term " ^ Syntax.string_of_term @{context} t);
 
 fun fm_of_term ps vs @{term True} = @{code T}
@@ -2034,9 +2036,9 @@ fun fm_of_term ps vs @{term True} = @{code T}
   | fm_of_term ps vs (@{term "op = :: int \<Rightarrow> int \<Rightarrow> bool"} $ t1 $ t2) =
       @{code Eq} (@{code Sub} (num_of_term vs t1, num_of_term vs t2))
   | fm_of_term ps vs (@{term "op dvd :: int \<Rightarrow> int \<Rightarrow> bool"} $ t1 $ t2) =
-      (case try HOLogic.dest_number t1
-       of SOME (_, i) => @{code Dvd} (@{code int_of_integer} i, num_of_term vs t2)
-        | NONE => error "num_of_term: unsupported dvd")
+      (case try HOLogic.dest_number t1 of
+        SOME (_, i) => @{code Dvd} (@{code int_of_integer} i, num_of_term vs t2)
+      | NONE => error "num_of_term: unsupported dvd")
   | fm_of_term ps vs (@{term "op = :: bool \<Rightarrow> bool \<Rightarrow> bool"} $ t1 $ t2) =
       @{code Iff} (fm_of_term ps vs t1, fm_of_term ps vs t2)
   | fm_of_term ps vs (@{term HOL.conj} $ t1 $ t2) =
@@ -2071,7 +2073,8 @@ fun term_of_num vs (@{code C} i) = HOLogic.mk_number HOLogic.intT (@{code intege
       term_of_num vs t1 $ term_of_num vs t2
   | term_of_num vs (@{code Mul} (i, t2)) = @{term "op * :: int \<Rightarrow> int \<Rightarrow> int"} $
       term_of_num vs (@{code C} i) $ term_of_num vs t2
-  | term_of_num vs (@{code CN} (n, i, t)) = term_of_num vs (@{code Add} (@{code Mul} (i, @{code Bound} n), t));
+  | term_of_num vs (@{code CN} (n, i, t)) =
+      term_of_num vs (@{code Add} (@{code Mul} (i, @{code Bound} n), t));
 
 fun term_of_fm ps vs @{code T} = @{term True}
   | term_of_fm ps vs @{code F} = @{term False}
@@ -2109,30 +2112,36 @@ fun term_of_fm ps vs @{code T} = @{term True}
 
 fun term_bools acc t =
   let
-    val is_op = member (op =) [@{term HOL.conj}, @{term HOL.disj}, @{term HOL.implies}, @{term "op = :: bool => _"},
+    val is_op =
+      member (op =) [@{term HOL.conj}, @{term HOL.disj}, @{term HOL.implies},
+      @{term "op = :: bool => _"},
       @{term "op = :: int => _"}, @{term "op < :: int => _"},
       @{term "op <= :: int => _"}, @{term "Not"}, @{term "All :: (int => _) => _"},
       @{term "Ex :: (int => _) => _"}, @{term "True"}, @{term "False"}]
     fun is_ty t = not (fastype_of t = HOLogic.boolT)
-  in case t
-   of (l as f $ a) $ b => if is_ty t orelse is_op t then term_bools (term_bools acc l)b
+  in
+    (case t of
+      (l as f $ a) $ b =>
+        if is_ty t orelse is_op t then term_bools (term_bools acc l) b
         else insert (op aconv) t acc
-    | f $ a => if is_ty t orelse is_op t then term_bools (term_bools acc f) a
+    | f $ a =>
+        if is_ty t orelse is_op t then term_bools (term_bools acc f) a
         else insert (op aconv) t acc
     | Abs p => term_bools acc (snd (Syntax_Trans.variant_abs p))  (* FIXME !? *)
-    | _ => if is_ty t orelse is_op t then acc else insert (op aconv) t acc
+    | _ => if is_ty t orelse is_op t then acc else insert (op aconv) t acc)
   end;
 
-in fn ct =>
-  let
-    val thy = Thm.theory_of_cterm ct;
-    val t = Thm.term_of ct;
-    val fs = Misc_Legacy.term_frees t;
-    val bs = term_bools [] t;
-    val vs = map_index swap fs;
-    val ps = map_index swap bs;
-    val t' = (term_of_fm ps vs o @{code pa} o fm_of_term ps vs) t;
-  in (Thm.cterm_of thy o HOLogic.mk_Trueprop o HOLogic.mk_eq) (t, t') end
+in
+  fn ct =>
+    let
+      val thy = Thm.theory_of_cterm ct;
+      val t = Thm.term_of ct;
+      val fs = Misc_Legacy.term_frees t;
+      val bs = term_bools [] t;
+      val vs = map_index swap fs;
+      val ps = map_index swap bs;
+      val t' = (term_of_fm ps vs o @{code pa} o fm_of_term ps vs) t;
+    in Thm.cterm_of thy (HOLogic.mk_Trueprop (HOLogic.mk_eq (t, t'))) end
 end;
 *}
 
@@ -2146,83 +2155,86 @@ method_setup cooper = {*
 
 text {* Tests *}
 
-lemma "\<exists>(j::int). \<forall>x\<ge>j. (\<exists>a b. x = 3*a+5*b)"
+lemma "\<exists>(j::int). \<forall>x\<ge>j. \<exists>a b. x = 3*a+5*b"
   by cooper
 
-lemma "ALL (x::int) >=8. EX i j. 5*i + 3*j = x"
+lemma "\<forall>(x::int) \<ge> 8. \<exists>i j. 5*i + 3*j = x"
   by cooper
 
-theorem "(\<forall>(y::int). 3 dvd y) ==> \<forall>(x::int). b < x --> a \<le> x"
+theorem "(\<forall>(y::int). 3 dvd y) \<Longrightarrow> \<forall>(x::int). b < x \<longrightarrow> a \<le> x"
   by cooper
 
-theorem "!! (y::int) (z::int) (n::int). 3 dvd z ==> 2 dvd (y::int) ==>
-  (\<exists>(x::int).  2*x =  y) & (\<exists>(k::int). 3*k = z)"
+theorem "\<And>(y::int) (z::int) (n::int). 3 dvd z \<Longrightarrow> 2 dvd (y::int) \<Longrightarrow>
+    (\<exists>(x::int). 2*x = y) \<and> (\<exists>(k::int). 3*k = z)"
   by cooper
 
-theorem "!! (y::int) (z::int) n. Suc(n::nat) < 6 ==>  3 dvd z ==>
-  2 dvd (y::int) ==> (\<exists>(x::int).  2*x =  y) & (\<exists>(k::int). 3*k = z)"
+theorem "\<And>(y::int) (z::int) n. Suc n < 6 \<Longrightarrow> 3 dvd z \<Longrightarrow>
+    2 dvd (y::int) \<Longrightarrow> (\<exists>(x::int).  2*x = y) \<and> (\<exists>(k::int). 3*k = z)"
   by cooper
 
-theorem "\<forall>(x::nat). \<exists>(y::nat). (0::nat) \<le> 5 --> y = 5 + x "
+theorem "\<forall>(x::nat). \<exists>(y::nat). (0::nat) \<le> 5 \<longrightarrow> y = 5 + x"
   by cooper
 
-lemma "ALL (x::int) >=8. EX i j. 5*i + 3*j = x"
+lemma "\<forall>(x::int) \<ge> 8. \<exists>i j. 5*i + 3*j = x"
   by cooper
 
-lemma "ALL (y::int) (z::int) (n::int). 3 dvd z --> 2 dvd (y::int) --> (EX (x::int).  2*x =  y) & (EX (k::int). 3*k = z)"
+lemma "\<forall>(y::int) (z::int) (n::int).
+    3 dvd z \<longrightarrow> 2 dvd (y::int) \<longrightarrow> (\<exists>(x::int). 2*x = y) \<and> (\<exists>(k::int). 3*k = z)"
   by cooper
 
-lemma "ALL(x::int) y. x < y --> 2 * x + 1 < 2 * y"
+lemma "\<forall>(x::int) y. x < y \<longrightarrow> 2 * x + 1 < 2 * y"
   by cooper
 
-lemma "ALL(x::int) y. 2 * x + 1 ~= 2 * y"
+lemma "\<forall>(x::int) y. 2 * x + 1 \<noteq> 2 * y"
   by cooper
 
-lemma "EX(x::int) y. 0 < x  & 0 <= y  & 3 * x - 5 * y = 1"
+lemma "\<exists>(x::int) y. 0 < x \<and> 0 \<le> y \<and> 3 * x - 5 * y = 1"
   by cooper
 
-lemma "~ (EX(x::int) (y::int) (z::int). 4*x + (-6::int)*y = 1)"
+lemma "\<not> (\<exists>(x::int) (y::int) (z::int). 4*x + (-6::int)*y = 1)"
   by cooper
 
-lemma "ALL(x::int). (2 dvd x) --> (EX(y::int). x = 2*y)"
+lemma "\<forall>(x::int). 2 dvd x \<longrightarrow> (\<exists>(y::int). x = 2*y)"
   by cooper
 
-lemma "ALL(x::int). (2 dvd x) = (EX(y::int). x = 2*y)"
+lemma "\<forall>(x::int). 2 dvd x \<longleftrightarrow> (\<exists>(y::int). x = 2*y)"
   by cooper
 
-lemma "ALL(x::int). ((2 dvd x) = (ALL(y::int). x ~= 2*y + 1))"
+lemma "\<forall>(x::int). 2 dvd x \<longleftrightarrow> (\<forall>(y::int). x \<noteq> 2*y + 1)"
   by cooper
 
-lemma "~ (ALL(x::int). ((2 dvd x) = (ALL(y::int). x ~= 2*y+1) | (EX(q::int) (u::int) i. 3*i + 2*q - u < 17) --> 0 < x | ((~ 3 dvd x) &(x + 8 = 0))))"
+lemma "\<not> (\<forall>(x::int).
+    (2 dvd x \<longleftrightarrow> (ALL(y::int). x \<noteq> 2*y+1) \<or>
+      (\<exists>(q::int) (u::int) i. 3*i + 2*q - u < 17) \<longrightarrow> 0 < x \<or> (\<not> 3 dvd x \<and> x + 8 = 0)))"
   by cooper
 
-lemma "~ (ALL(i::int). 4 <= i --> (EX x y. 0 <= x & 0 <= y & 3 * x + 5 * y = i))"
+lemma "\<not> (\<forall>(i::int). 4 \<le> i \<longrightarrow> (\<exists>x y. 0 \<le> x \<and> 0 \<le> y \<and> 3 * x + 5 * y = i))"
   by cooper
 
-lemma "EX j. ALL (x::int) >= j. EX i j. 5*i + 3*j = x"
+lemma "\<exists>j. \<forall>(x::int) \<ge> j. \<exists>i j. 5*i + 3*j = x"
   by cooper
 
-theorem "(\<forall>(y::int). 3 dvd y) ==> \<forall>(x::int). b < x --> a \<le> x"
+theorem "(\<forall>(y::int). 3 dvd y) \<Longrightarrow> \<forall>(x::int). b < x \<longrightarrow> a \<le> x"
   by cooper
 
-theorem "!! (y::int) (z::int) (n::int). 3 dvd z ==> 2 dvd (y::int) ==>
-  (\<exists>(x::int).  2*x =  y) & (\<exists>(k::int). 3*k = z)"
+theorem "\<And>(y::int) (z::int) (n::int). 3 dvd z \<Longrightarrow> 2 dvd (y::int) \<Longrightarrow>
+  (\<exists>(x::int). 2*x = y) \<and> (\<exists>(k::int). 3*k = z)"
   by cooper
 
-theorem "!! (y::int) (z::int) n. Suc(n::nat) < 6 ==>  3 dvd z ==>
-  2 dvd (y::int) ==> (\<exists>(x::int).  2*x =  y) & (\<exists>(k::int). 3*k = z)"
+theorem "\<And>(y::int) (z::int) n. Suc n < 6 \<Longrightarrow> 3 dvd z \<Longrightarrow>
+    2 dvd (y::int) \<Longrightarrow> (\<exists>(x::int). 2*x = y) \<and> (\<exists>(k::int). 3*k = z)"
   by cooper
 
-theorem "\<forall>(x::nat). \<exists>(y::nat). (0::nat) \<le> 5 --> y = 5 + x "
+theorem "\<forall>(x::nat). \<exists>(y::nat). (0::nat) \<le> 5 \<longrightarrow> y = 5 + x"
   by cooper
 
-theorem "\<forall>(x::nat). \<exists>(y::nat). y = 5 + x | x div 6 + 1= 2"
+theorem "\<forall>(x::nat). \<exists>(y::nat). y = 5 + x \<or> x div 6 + 1 = 2"
   by cooper
 
 theorem "\<exists>(x::int). 0 < x"
   by cooper
 
-theorem "\<forall>(x::int) y. x < y --> 2 * x + 1 < 2 * y"
+theorem "\<forall>(x::int) y. x < y \<longrightarrow> 2 * x + 1 < 2 * y"
   by cooper
 
 theorem "\<forall>(x::int) y. 2 * x + 1 \<noteq> 2 * y"
@@ -2231,43 +2243,45 @@ theorem "\<forall>(x::int) y. 2 * x + 1 \<noteq> 2 * y"
 theorem "\<exists>(x::int) y. 0 < x  & 0 \<le> y  & 3 * x - 5 * y = 1"
   by cooper
 
-theorem "~ (\<exists>(x::int) (y::int) (z::int). 4*x + (-6::int)*y = 1)"
+theorem "\<not> (\<exists>(x::int) (y::int) (z::int). 4*x + (-6::int)*y = 1)"
   by cooper
 
-theorem "~ (\<exists>(x::int). False)"
+theorem "\<not> (\<exists>(x::int). False)"
   by cooper
 
-theorem "\<forall>(x::int). (2 dvd x) --> (\<exists>(y::int). x = 2*y)"
+theorem "\<forall>(x::int). 2 dvd x \<longrightarrow> (\<exists>(y::int). x = 2*y)"
   by cooper
 
-theorem "\<forall>(x::int). (2 dvd x) --> (\<exists>(y::int). x = 2*y)"
+theorem "\<forall>(x::int). 2 dvd x \<longrightarrow> (\<exists>(y::int). x = 2*y)"
   by cooper
 
-theorem "\<forall>(x::int). (2 dvd x) = (\<exists>(y::int). x = 2*y)"
+theorem "\<forall>(x::int). 2 dvd x \<longleftrightarrow> (\<exists>(y::int). x = 2*y)"
   by cooper
 
-theorem "\<forall>(x::int). ((2 dvd x) = (\<forall>(y::int). x \<noteq> 2*y + 1))"
+theorem "\<forall>(x::int). 2 dvd x \<longleftrightarrow> (\<forall>(y::int). x \<noteq> 2*y + 1)"
   by cooper
 
-theorem "~ (\<forall>(x::int).
-            ((2 dvd x) = (\<forall>(y::int). x \<noteq> 2*y+1) |
-             (\<exists>(q::int) (u::int) i. 3*i + 2*q - u < 17)
-             --> 0 < x | ((~ 3 dvd x) &(x + 8 = 0))))"
+theorem
+  "\<not> (\<forall>(x::int).
+    (2 dvd x \<longleftrightarrow>
+      (\<forall>(y::int). x \<noteq> 2*y+1) \<or>
+      (\<exists>(q::int) (u::int) i. 3*i + 2*q - u < 17)
+       \<longrightarrow> 0 < x \<or> (\<not> 3 dvd x \<and> x + 8 = 0)))"
   by cooper
 
-theorem "~ (\<forall>(i::int). 4 \<le> i --> (\<exists>x y. 0 \<le> x & 0 \<le> y & 3 * x + 5 * y = i))"
+theorem "\<not> (\<forall>(i::int). 4 \<le> i \<longrightarrow> (\<exists>x y. 0 \<le> x \<and> 0 \<le> y \<and> 3 * x + 5 * y = i))"
   by cooper
 
-theorem "\<forall>(i::int). 8 \<le> i --> (\<exists>x y. 0 \<le> x & 0 \<le> y & 3 * x + 5 * y = i)"
+theorem "\<forall>(i::int). 8 \<le> i \<longrightarrow> (\<exists>x y. 0 \<le> x \<and> 0 \<le> y \<and> 3 * x + 5 * y = i)"
   by cooper
 
-theorem "\<exists>(j::int). \<forall>i. j \<le> i --> (\<exists>x y. 0 \<le> x & 0 \<le> y & 3 * x + 5 * y = i)"
+theorem "\<exists>(j::int). \<forall>i. j \<le> i \<longrightarrow> (\<exists>x y. 0 \<le> x \<and> 0 \<le> y \<and> 3 * x + 5 * y = i)"
   by cooper
 
-theorem "~ (\<forall>j (i::int). j \<le> i --> (\<exists>x y. 0 \<le> x & 0 \<le> y & 3 * x + 5 * y = i))"
+theorem "\<not> (\<forall>j (i::int). j \<le> i \<longrightarrow> (\<exists>x y. 0 \<le> x \<and> 0 \<le> y \<and> 3 * x + 5 * y = i))"
   by cooper
 
-theorem "(\<exists>m::nat. n = 2 * m) --> (n + 1) div 2 = n div 2"
+theorem "(\<exists>m::nat. n = 2 * m) \<longrightarrow> (n + 1) div 2 = n div 2"
   by cooper
 
 end
