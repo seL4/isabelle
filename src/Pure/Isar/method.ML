@@ -76,9 +76,9 @@ sig
   type text_range = text * Position.range
   val text: text_range option -> text option
   val position: text_range option -> Position.T
+  val reports_of: text_range -> Position.report list
+  val report: text_range -> unit
   val parse: text_range parser
-  val parse_report: text_range parser
-  val parse_context_report: text_range context_parser
 end;
 
 structure Method: METHOD =
@@ -298,19 +298,6 @@ datatype text =
   Repeat1 of combinator_info * text |
   Select_Goals of combinator_info * int * text;
 
-fun keyword_positions (Source _) = []
-  | keyword_positions (Basic _) = []
-  | keyword_positions (Then (Combinator_Info {keywords}, texts)) =
-      keywords @ maps keyword_positions texts
-  | keyword_positions (Orelse (Combinator_Info {keywords}, texts)) =
-      keywords @ maps keyword_positions texts
-  | keyword_positions (Try (Combinator_Info {keywords}, text)) =
-      keywords @ keyword_positions text
-  | keyword_positions (Repeat1 (Combinator_Info {keywords}, text)) =
-      keywords @ keyword_positions text
-  | keyword_positions (Select_Goals (Combinator_Info {keywords}, _, text)) =
-      keywords @ keyword_positions text;
-
 fun primitive_text r = Basic (SIMPLE_METHOD o PRIMITIVE o r);
 val succeed_text = Basic (K succeed);
 val default_text = Source (Args.src (("default", []), Position.none));
@@ -421,14 +408,39 @@ fun xrule_meth meth =
 
 type text_range = text * Position.range;
 
-fun reports (text, (pos, _)) =
-  (pos, Markup.language_method) :: map (rpair Markup.keyword3) (keyword_positions text);
-
 fun text NONE = NONE
   | text (SOME (txt, _)) = SOME txt;
 
 fun position NONE = Position.none
   | position (SOME (_, (pos, _))) = pos;
+
+
+(* reports *)
+
+local
+
+fun keyword_positions (Source _) = []
+  | keyword_positions (Basic _) = []
+  | keyword_positions (Then (Combinator_Info {keywords}, texts)) =
+      keywords @ maps keyword_positions texts
+  | keyword_positions (Orelse (Combinator_Info {keywords}, texts)) =
+      keywords @ maps keyword_positions texts
+  | keyword_positions (Try (Combinator_Info {keywords}, text)) =
+      keywords @ keyword_positions text
+  | keyword_positions (Repeat1 (Combinator_Info {keywords}, text)) =
+      keywords @ keyword_positions text
+  | keyword_positions (Select_Goals (Combinator_Info {keywords}, _, text)) =
+      keywords @ keyword_positions text;
+
+in
+
+fun reports_of ((text, (pos, _)): text_range) =
+  (pos, Markup.language_method) ::
+    map (rpair Markup.keyword3) (keyword_positions text);
+
+val report = Position.reports o reports_of;
+
+end;
 
 
 (* outer parser *)
@@ -467,12 +479,6 @@ in
 
 val parse =
   Scan.trace meth3 >> (fn (m, toks) => (m, Token.range_of toks));
-
-(*parse with observable effect!*)
-val parse_report = parse >> (tap (Position.reports o reports));
-val parse_context_report =
-  Args.context -- Scan.lift parse >>
-    (fn (ctxt, text_range) => (Context_Position.reports ctxt (reports text_range); text_range));
 
 end;
 

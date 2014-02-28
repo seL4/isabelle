@@ -91,13 +91,15 @@ val _ = Theory.setup
   (ML_Context.add_antiq @{binding lemma}
     (Scan.depend (fn context =>
       Args.mode "open" -- Parse.enum1_positions "and" (Scan.repeat1 goal) --
-      (Parse.position by --
-        Scan.pass context (Method.parse_context_report -- Scan.option Method.parse_context_report))
-     >> (fn ((is_open, (raw_propss, and_positions)), ((_, by_pos), methods)) =>
+      Parse.position by -- Method.parse -- Scan.option Method.parse
+     >> (fn ((((is_open, (raw_propss, and_positions)), (_, by_pos)), m1), m2) =>
           let
             val ctxt = Context.proof_of context;
 
-            val reports = (by_pos, Markup.keyword1) :: map (rpair Markup.keyword2) and_positions;
+            val reports =
+              (by_pos, Markup.keyword1) ::
+                map (rpair Markup.keyword2) and_positions @
+                maps Method.reports_of (m1 :: the_list m2);
             val _ = Context_Position.reports ctxt reports;
 
             val propss = burrow (map (rpair []) o Syntax.read_props ctxt) raw_propss;
@@ -108,7 +110,7 @@ val _ = Theory.setup
 
             val ctxt' = ctxt
               |> Proof.theorem NONE after_qed propss
-              |> Proof.global_terminal_proof methods;
+              |> Proof.global_terminal_proof (m1, m2);
             val thms =
               Proof_Context.get_fact ctxt'
                 (Facts.named (Proof_Context.full_name ctxt' (Binding.name Auto_Bind.thisN)));
