@@ -14,8 +14,14 @@ import java.security.MessageDigest
 
 object SHA1
 {
-  sealed case class Digest(rep: String)
+  final class Digest private[SHA1](val rep: String)
   {
+    override def hashCode: Int = rep.hashCode
+    override def equals(that: Any): Boolean =
+      that match {
+        case other: Digest => rep == other.rep
+        case _ => false
+      }
     override def toString: String = rep
   }
 
@@ -27,7 +33,7 @@ object SHA1
       if (i < 16) result += '0'
       result ++= Integer.toHexString(i)
     }
-    Digest(result.toString)
+    new Digest(result.toString)
   }
 
   def digest(file: JFile): Digest =
