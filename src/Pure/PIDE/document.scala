@@ -55,6 +55,10 @@ object Document
 
   final class Blobs private(blobs: Map[Node.Name, Blob])
   {
+    private lazy val digests: Map[SHA1.Digest, Blob] =
+      for ((_, blob) <- blobs) yield (blob.bytes.sha1_digest, blob)
+
+    def get(digest: SHA1.Digest): Option[Blob] = digests.get(digest)
     def get(name: Node.Name): Option[Blob] = blobs.get(name)
 
     def changed(name: Node.Name): Boolean =
@@ -62,9 +66,6 @@ object Document
         case Some(blob) => blob.changed
         case None => false
       }
-
-    def retrieve(digest: SHA1.Digest): Option[Blob] =
-      blobs.collectFirst({ case (_, blob) if blob.bytes.sha1_digest == digest => blob })
 
     override def toString: String = blobs.mkString("Blobs(", ",", ")")
   }

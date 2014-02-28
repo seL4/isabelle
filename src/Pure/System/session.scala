@@ -378,7 +378,7 @@ class Session(val thy_load: Thy_Load)
           digest <- command.blobs_digests
           if !global_state().defined_blob(digest)
         } {
-          doc_blobs.retrieve(digest) match {
+          doc_blobs.get(digest) match {
             case Some(blob) =>
               global_state >> (_.define_blob(digest))
               prover.get.define_blob(blob)
