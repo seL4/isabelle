@@ -158,11 +158,11 @@ next
 next
   fix x
   show "|{fst x}| \<le>o natLeq"
-    by (metis ordLess_imp_ordLeq finite_iff_ordLess_natLeq finite.emptyI finite_insert)
+    by (rule ordLess_imp_ordLeq) (simp add: finite_iff_ordLess_natLeq[symmetric])
 next
   fix x
   show "|{snd x}| \<le>o natLeq"
-    by (metis ordLess_imp_ordLeq finite_iff_ordLess_natLeq finite.emptyI finite_insert)
+    by (rule ordLess_imp_ordLeq) (simp add: finite_iff_ordLess_natLeq[symmetric])
 next
   fix R1 R2 S1 S2
   show "prod_rel R1 R2 OO prod_rel S1 S2 \<le> prod_rel (R1 OO S1) (R2 OO S2)" by auto
@@ -215,8 +215,14 @@ next
   show "fun_rel op = R =
         (Grp {x. range x \<subseteq> Collect (split R)} (op \<circ> fst))\<inverse>\<inverse> OO
          Grp {x. range x \<subseteq> Collect (split R)} (op \<circ> snd)"
-  unfolding fun_rel_def Grp_def fun_eq_iff relcompp.simps conversep.simps  subset_iff image_iff
-  by auto (force, metis (no_types) pair_collapse)
+  unfolding fun_rel_def Grp_def fun_eq_iff relcompp.simps conversep.simps subset_iff image_iff
+    comp_apply mem_Collect_eq split_beta bex_UNIV
+  proof (safe, unfold fun_eq_iff[symmetric])
+    fix x xa a b c xb y aa ba
+    assume *: "x = a" "xa = c" "a = ba" "b = aa" "c = (\<lambda>x. snd (b x))" "ba = (\<lambda>x. fst (aa x))" and
+       **: "\<forall>t. (\<exists>x. t = aa x) \<longrightarrow> R (fst t) (snd t)"
+    show "R (x y) (xa y)" unfolding * by (rule mp[OF spec[OF **]]) blast
+  qed force
 qed
 
 end

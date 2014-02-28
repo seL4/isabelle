@@ -793,7 +793,7 @@ proof-
   {assume "r' \<le>o r"
    then obtain h where "inj_on h (Field r') \<and> h ` (Field r') \<le> Field r"
    unfolding ordLeq_def using assms embed_inj_on embed_Field by blast
-   hence False using finite_imageD finite_subset FIN INF by metis
+   hence False using finite_imageD finite_subset FIN INF by blast
   }
   thus ?thesis using WELL WELL' ordLess_or_ordLeq by blast
 qed
@@ -819,7 +819,7 @@ proof-
     hence "bij_betw f A A" unfolding bij_betw_def using FIN endo_inj_surj by blast
     thus "r =o r'" unfolding ordIso_def iso_def[abs_def] using 1 2 by auto
   qed
-  ultimately show ?thesis using assms ordLeq_total ordIso_symmetric by metis
+  ultimately show ?thesis using assms ordLeq_total ordIso_symmetric by blast
 qed
 
 subsection{* @{text "<o"} is well-founded *}
@@ -987,7 +987,7 @@ proof(unfold wf_eq_minimal2, intro allI impI, elim conjE)
   have "A \<noteq> {} \<and> A \<le> Field r"
   using A_def dir_image_Field[of r f] SUB NE by blast
   then obtain a where 1: "a \<in> A \<and> (\<forall>b \<in> A. (b,a) \<notin> r)"
-  using WF unfolding wf_eq_minimal2 by metis
+  using WF unfolding wf_eq_minimal2 by blast
   have "\<forall>b' \<in> A'. (b',f a) \<notin> dir_image r f"
   proof(clarify)
     fix b' assume *: "b' \<in> A'" and **: "(b',f a) \<in> dir_image r f"
@@ -1597,7 +1597,7 @@ lemma Func_is_emp:
 proof
   assume L: ?L
   moreover {assume "A = {}" hence False using L Func_empty by auto}
-  moreover {assume "B \<noteq> {}" hence False using L Func_non_emp by metis}
+  moreover {assume "B \<noteq> {}" hence False using L Func_non_emp[of B A] by simp }
   ultimately show ?R by blast
 next
   assume R: ?R
@@ -1624,7 +1624,8 @@ next
     fix h assume h: "h \<in> Func B2 B1"
     def j1 \<equiv> "inv_into A1 f1"
     have "\<forall> a2 \<in> f2 ` B2. \<exists> b2. b2 \<in> B2 \<and> f2 b2 = a2" by blast
-    then obtain k where k: "\<forall> a2 \<in> f2 ` B2. k a2 \<in> B2 \<and> f2 (k a2) = a2" by metis
+    then obtain k where k: "\<forall> a2 \<in> f2 ` B2. k a2 \<in> B2 \<and> f2 (k a2) = a2"
+      by atomize_elim (rule bchoice)
     {fix b2 assume b2: "b2 \<in> B2"
      hence "f2 (k (f2 b2)) = f2 b2" using k A2(2) by auto
      moreover have "k (f2 b2) \<in> B2" using b2 A2(2) k by auto

@@ -305,8 +305,7 @@ proof(auto simp add: embed_compat embed_inj_on embed_Field_ofilter,
   (* Main proof *)
   show "bij_betw f (under r a) (under r' (f a))"
   proof(unfold bij_betw_def, auto)
-    show  "inj_on f (under r a)"
-    using * by (metis (no_types) under_Field subset_inj_on)
+    show  "inj_on f (under r a)" by (rule subset_inj_on[OF * under_Field])
   next
     fix b assume "b \<in> under r a"
     thus "f b \<in> under r' (f a)"
@@ -1035,8 +1034,7 @@ next
   {fix a assume ***: "a \<in> Field r"
    have "bij_betw f (under r a) (under r' (f a))"
    proof(unfold bij_betw_def, auto)
-     show "inj_on f (under r a)"
-     using 1 2 by (metis subset_inj_on)
+     show "inj_on f (under r a)" using 1 2 subset_inj_on by blast
    next
      fix b assume "b \<in> under r a"
      hence "a \<in> Field r \<and> b \<in> Field r \<and> (b,a) \<in> r"

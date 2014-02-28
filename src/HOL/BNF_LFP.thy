@@ -50,8 +50,16 @@ using snd_convol unfolding convol_def by simp
 lemma convol_expand_snd: "fst o f = g \<Longrightarrow>  <g, snd o f> = f"
 unfolding convol_def by auto
 
-lemma convol_expand_snd': "(fst o f = g) \<Longrightarrow> (h = snd o f) \<longleftrightarrow> (<g, h> = f)"
-  by (metis convol_expand_snd snd_convol)
+lemma convol_expand_snd':
+  assumes "(fst o f = g)"
+  shows "h = snd o f \<longleftrightarrow> <g, h> = f"
+proof -
+  from assms have *: "<g, snd o f> = f" by (rule convol_expand_snd)
+  then have "h = snd o f \<longleftrightarrow> h = snd o <g, snd o f>" by simp
+  moreover have "\<dots> \<longleftrightarrow> h = snd o f" by (simp add: snd_convol)
+  moreover have "\<dots> \<longleftrightarrow> <g, h> = f" by (subst (2) *[symmetric]) (auto simp: convol_def fun_eq_iff)
+  ultimately show ?thesis by simp
+qed
 
 definition inver where
   "inver g f A = (ALL a : A. g (f a) = a)"
@@ -67,7 +75,11 @@ proof (rule iffI)
     using bchoice[of B ?phi] by blast
   hence gg: "ALL b : f ` A. g b : A \<and> f (g b) = b" using f by blast
   have gf: "inver g f A" unfolding inver_def
-    by (metis (no_types) gg imageI[of _ A f] the_inv_into_f_f[OF inj_f])
+  proof
+    fix a assume "a \<in> A"
+    then show "g (f a) = a" using the_inv_into_f_f[OF inj_f, of "g (f a)"]
+      the_inv_into_f_f[OF inj_f, of a] gg imageI[of a A f] by auto
+  qed
   moreover have "g ` B \<le> A \<and> inver f g B" using g unfolding inver_def by blast
   moreover have "A \<le> g ` B"
   proof safe
@@ -224,8 +236,13 @@ lemma meta_spec2:
 by (rule assms)
 
 lemma nchotomy_relcomppE:
-  "\<lbrakk>\<And>y. \<exists>x. y = f x; (r OO s) a c; \<And>b. r a (f b) \<Longrightarrow> s (f b) c \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
-  by (metis relcompp.cases)
+  assumes "\<And>y. \<exists>x. y = f x" "(r OO s) a c" "\<And>b. r a (f b) \<Longrightarrow> s (f b) c \<Longrightarrow> P"
+  shows P
+proof (rule relcompp.cases[OF assms(2)], hypsubst)
+  fix b assume "r a b" "s b c"
+  moreover from assms(1) obtain b' where "b = f b'" by blast
+  ultimately show P by (blast intro: assms(3))
+qed
 
 lemma vimage2p_fun_rel: "fun_rel (vimage2p f g R) R f g"
   unfolding fun_rel_def vimage2p_def by auto

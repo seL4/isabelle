@@ -90,26 +90,41 @@ begin
 
 lemma type_copy_map_id0: "M = id \<Longrightarrow> Abs o M o Rep = id"
   using type_definition.Rep_inverse[OF type_copy] by auto
+
 lemma type_copy_map_comp0: "M = M1 o M2 \<Longrightarrow> f o M o g = (f o M1 o Rep) o (Abs o M2 o g)"
   using type_definition.Abs_inverse[OF type_copy UNIV_I] by auto
+
 lemma type_copy_set_map0: "S o M = image f o S' \<Longrightarrow> (S o Rep) o (Abs o M o g) = image f o (S' o g)"
   using type_definition.Abs_inverse[OF type_copy UNIV_I] by (auto simp: o_def fun_eq_iff)
+
 lemma type_copy_wit: "x \<in> (S o Rep) (Abs y) \<Longrightarrow> x \<in> S y"
   using type_definition.Abs_inverse[OF type_copy UNIV_I] by auto
+
 lemma type_copy_vimage2p_Grp_Rep: "vimage2p f Rep (Grp (Collect P) h) =
     Grp (Collect (\<lambda>x. P (f x))) (Abs o h o f)"
   unfolding vimage2p_def Grp_def fun_eq_iff
   by (auto simp: type_definition.Abs_inverse[OF type_copy UNIV_I]
    type_definition.Rep_inverse[OF type_copy] dest: sym)
+
 lemma type_copy_vimage2p_Grp_Abs:
   "\<And>h. vimage2p g Abs (Grp (Collect P) h) = Grp (Collect (\<lambda>x. P (g x))) (Rep o h o g)"
   unfolding vimage2p_def Grp_def fun_eq_iff
   by (auto simp: type_definition.Abs_inverse[OF type_copy UNIV_I]
    type_definition.Rep_inverse[OF type_copy] dest: sym)
+
+lemma type_copy_ex_RepI: "(\<exists>b. F b) = (\<exists>b. F (Rep b))"
+proof safe
+  fix b assume "F b"
+  show "\<exists>b'. F (Rep b')"
+  proof (rule exI)
+    from `F b` show "F (Rep (Abs b))" using type_definition.Abs_inverse[OF type_copy] by auto
+  qed
+qed blast
+
 lemma vimage2p_relcompp_converse:
   "vimage2p f g (R^--1 OO S) = (vimage2p Rep f R)^--1 OO vimage2p Rep g S"
   unfolding vimage2p_def relcompp.simps conversep.simps fun_eq_iff image_def
-  by (metis surjD[OF type_definition.Rep_range[OF type_copy]])
+  by (auto simp: type_copy_ex_RepI)
 
 end
 

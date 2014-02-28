@@ -65,13 +65,16 @@ lemma obj_one_pointE: "\<forall>x. s = x \<longrightarrow> P \<Longrightarrow> P
 by blast
 
 lemma type_copy_obj_one_point_absE:
-  assumes "type_definition Rep Abs UNIV"
-  shows "\<forall>x. s = Abs x \<longrightarrow> P \<Longrightarrow> P"
-  using type_definition.Rep_inverse[OF assms] by metis
+  assumes "type_definition Rep Abs UNIV" "\<forall>x. s = Abs x \<longrightarrow> P" shows P
+  using type_definition.Rep_inverse[OF assms(1)]
+  by (intro mp[OF spec[OF assms(2), of "Rep s"]]) simp
 
 lemma obj_sumE_f:
-"\<lbrakk>\<forall>x. s = f (Inl x) \<longrightarrow> P; \<forall>x. s = f (Inr x) \<longrightarrow> P\<rbrakk> \<Longrightarrow> \<forall>x. s = f x \<longrightarrow> P"
-by (rule allI) (metis sumE)
+  assumes "\<forall>x. s = f (Inl x) \<longrightarrow> P" "\<forall>x. s = f (Inr x) \<longrightarrow> P"
+  shows "\<forall>x. s = f x \<longrightarrow> P"
+proof
+  fix x from assms show "s = f x \<longrightarrow> P" by (cases x) auto
+qed
 
 lemma obj_sumE: "\<lbrakk>\<forall>x. s = Inl x \<longrightarrow> P; \<forall>x. s = Inr x \<longrightarrow> P\<rbrakk> \<Longrightarrow> P"
 by (cases s) auto

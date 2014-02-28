@@ -3117,7 +3117,7 @@ lemma set_upto[simp]: "set[i..j] = {i..j}"
 proof(induct i j rule:upto.induct)
   case (1 i j)
   from this show ?case
-    unfolding upto.simps[of i j] simp_from_to[of i j] by auto
+    unfolding upto.simps[of i j] by auto
 qed
 
 text{* Tail recursive version for code generation: *}

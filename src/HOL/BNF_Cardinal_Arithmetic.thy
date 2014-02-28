@@ -57,15 +57,19 @@ proof -
                   \<lambda>x. if x \<in> A then snd (fg x) else undefined)"
   let ?G = "\<lambda>(f, g) x. if x \<in> A then (f x, g x) else undefined"
   have "bij_betw ?F ?LHS ?RHS" unfolding bij_betw_def inj_on_def
-  apply safe
-     apply (simp add: Func_def fun_eq_iff)
-     apply (metis (no_types) pair_collapse)
-    apply (auto simp: Func_def fun_eq_iff)[2]
-  proof -
-    fix f g assume "f \<in> Func A B" "g \<in> Func A C"
-    thus "(f, g) \<in> ?F ` Func A (B \<times> C)"
-      by (intro image_eqI[of _ _ "?G (f, g)"]) (auto simp: Func_def)
-  qed
+  proof (intro conjI impI ballI equalityI subsetI)
+    fix f g assume *: "f \<in> Func A (B \<times> C)" "g \<in> Func A (B \<times> C)" "?F f = ?F g"
+    show "f = g"
+    proof
+      fix x from * have "fst (f x) = fst (g x) \<and> snd (f x) = snd (g x)"
+        by (case_tac "x \<in> A") (auto simp: Func_def fun_eq_iff split: if_splits)
+      then show "f x = g x" by (subst (1 2) surjective_pairing) simp
+    qed
+  next
+    fix fg assume "fg \<in> Func A B \<times> Func A C"
+    thus "fg \<in> ?F ` Func A (B \<times> C)"
+      by (intro image_eqI[of _ _ "?G fg"]) (auto simp: Func_def)
+  qed (auto simp: Func_def fun_eq_iff)
   thus ?thesis using card_of_ordIso by blast
 qed
 
@@ -89,7 +93,7 @@ abbreviation Cnotzero where
 
 (*helper*)
 lemma Cnotzero_imp_not_empty: "Cnotzero r \<Longrightarrow> Field r \<noteq> {}"
-by (metis Card_order_iff_ordIso_card_of czero_def)
+  unfolding Card_order_iff_ordIso_card_of czero_def by force
 
 lemma czeroI:
   "\<lbrakk>Card_order r; Field r = {}\<rbrakk> \<Longrightarrow> r =o czero"
@@ -127,33 +131,35 @@ abbreviation Cfinite where
 
 lemma Cfinite_ordLess_Cinfinite: "\<lbrakk>Cfinite r; Cinfinite s\<rbrakk> \<Longrightarrow> r <o s"
   unfolding cfinite_def cinfinite_def
-  by (metis card_order_on_well_order_on finite_ordLess_infinite)
+  by (blast intro: finite_ordLess_infinite card_order_on_well_order_on)
 
 lemmas natLeq_card_order = natLeq_Card_order[unfolded Field_natLeq]
 
 lemma natLeq_cinfinite: "cinfinite natLeq"
-unfolding cinfinite_def Field_natLeq by (metis infinite_UNIV_nat)
+unfolding cinfinite_def Field_natLeq by (rule infinite_UNIV_nat)
 
 lemma natLeq_ordLeq_cinfinite:
   assumes inf: "Cinfinite r"
   shows "natLeq \<le>o r"
 proof -
-  from inf have "natLeq \<le>o |Field r|" by (metis cinfinite_def infinite_iff_natLeq_ordLeq)
+  from inf have "natLeq \<le>o |Field r|" unfolding cinfinite_def
+    using infinite_iff_natLeq_ordLeq by blast
   also from inf have "|Field r| =o r" by (simp add: card_of_unique ordIso_symmetric)
   finally show ?thesis .
 qed
 
 lemma cinfinite_not_czero: "cinfinite r \<Longrightarrow> \<not> (r =o (czero :: 'a rel))"
-unfolding cinfinite_def by (metis czeroE finite.emptyI)
+unfolding cinfinite_def by (cases "Field r = {}") (auto dest: czeroE)
 
 lemma Cinfinite_Cnotzero: "Cinfinite r \<Longrightarrow> Cnotzero r"
-by (metis cinfinite_not_czero)
+by (rule conjI[OF cinfinite_not_czero]) simp_all
 
 lemma Cinfinite_cong: "\<lbrakk>r1 =o r2; Cinfinite r1\<rbrakk> \<Longrightarrow> Cinfinite r2"
-by (metis Card_order_ordIso2 card_of_mono2 card_of_ordLeq_infinite cinfinite_def ordIso_iff_ordLeq)
+using Card_order_ordIso2[of r1 r2] unfolding cinfinite_def ordIso_iff_ordLeq
+by (auto dest: card_of_ordLeq_infinite[OF card_of_mono2])
 
 lemma cinfinite_mono: "\<lbrakk>r1 \<le>o r2; cinfinite r1\<rbrakk> \<Longrightarrow> cinfinite r2"
-by (metis card_of_mono2 card_of_ordLeq_infinite cinfinite_def)
+unfolding cinfinite_def by (auto dest: card_of_ordLeq_infinite[OF card_of_mono2])
 
 
 subsection {* Binary sum *}
@@ -170,8 +176,8 @@ unfolding csum_def by (simp add: card_of_Card_order)
 
 lemma csum_Cnotzero1:
   "Cnotzero r1 \<Longrightarrow> Cnotzero (r1 +c r2)"
-unfolding csum_def
-by (metis Cnotzero_imp_not_empty Plus_eq_empty_conv card_of_Card_order card_of_ordIso_czero_iff_empty)
+unfolding csum_def using Cnotzero_imp_not_empty[of r1] Plus_eq_empty_conv[of "Field r1" "Field r2"]
+   card_of_ordIso_czero_iff_empty[of "Field r1 <+> Field r2"] by (auto intro: card_of_Card_order)
 
 lemma card_order_csum:
   assumes "card_order r1" "card_order r2"
@@ -187,15 +193,15 @@ unfolding cinfinite_def csum_def by (auto simp: Field_card_of)
 
 lemma Cinfinite_csum1:
   "Cinfinite r1 \<Longrightarrow> Cinfinite (r1 +c r2)"
-unfolding cinfinite_def csum_def by (metis Field_card_of card_of_Card_order finite_Plus_iff)
+unfolding cinfinite_def csum_def by (rule conjI[OF _ card_of_Card_order]) (auto simp: Field_card_of)
 
 lemma Cinfinite_csum:
   "Cinfinite r1 \<or> Cinfinite r2 \<Longrightarrow> Cinfinite (r1 +c r2)"
-unfolding cinfinite_def csum_def by (metis Field_card_of card_of_Card_order finite_Plus_iff)
+unfolding cinfinite_def csum_def by (rule conjI[OF _ card_of_Card_order]) (auto simp: Field_card_of)
 
 lemma Cinfinite_csum_strong:
   "\<lbrakk>Cinfinite r1; Cinfinite r2\<rbrakk> \<Longrightarrow> Cinfinite (r1 +c r2)"
-by (metis Cinfinite_csum)
+by (erule Cinfinite_csum1)
 
 lemma csum_cong: "\<lbrakk>p1 =o r1; p2 =o r2\<rbrakk> \<Longrightarrow> p1 +c p2 =o r1 +c r2"
 by (simp only: csum_def ordIso_Plus_cong)
@@ -233,15 +239,15 @@ lemma Cfinite_csum: "\<lbrakk>Cfinite r; Cfinite s\<rbrakk> \<Longrightarrow> Cf
 lemma csum_csum: "(r1 +c r2) +c (r3 +c r4) =o (r1 +c r3) +c (r2 +c r4)"
 proof -
   have "(r1 +c r2) +c (r3 +c r4) =o r1 +c r2 +c (r3 +c r4)"
-    by (metis csum_assoc)
+    by (rule csum_assoc)
   also have "r1 +c r2 +c (r3 +c r4) =o r1 +c (r2 +c r3) +c r4"
-    by (metis csum_assoc csum_cong2 ordIso_symmetric)
+    by (intro csum_assoc csum_cong2 ordIso_symmetric)
   also have "r1 +c (r2 +c r3) +c r4 =o r1 +c (r3 +c r2) +c r4"
-    by (metis csum_com csum_cong1 csum_cong2)
+    by (intro csum_com csum_cong1 csum_cong2)
   also have "r1 +c (r3 +c r2) +c r4 =o r1 +c r3 +c r2 +c r4"
-    by (metis csum_assoc csum_cong2 ordIso_symmetric)
+    by (intro csum_assoc csum_cong2 ordIso_symmetric)
   also have "r1 +c r3 +c r2 +c r4 =o (r1 +c r3) +c (r2 +c r4)"
-    by (metis csum_assoc ordIso_symmetric)
+    by (intro csum_assoc ordIso_symmetric)
   finally show ?thesis .
 qed
 
@@ -264,10 +270,10 @@ lemma Cfinite_cone: "Cfinite cone"
   unfolding cfinite_def by (simp add: Card_order_cone)
 
 lemma cone_not_czero: "\<not> (cone =o czero)"
-unfolding czero_def cone_def by (metis empty_not_insert card_of_empty3[of "{()}"] ordIso_iff_ordLeq)
+unfolding czero_def cone_def ordIso_iff_ordLeq using card_of_empty3 empty_not_insert by blast
 
 lemma cone_ordLeq_Cnotzero: "Cnotzero r \<Longrightarrow> cone \<le>o r"
-unfolding cone_def by (metis Card_order_singl_ordLeq czeroI)
+unfolding cone_def by (rule Card_order_singl_ordLeq) (auto intro: czeroI)
 
 
 subsection {* Two *}
@@ -280,7 +286,7 @@ unfolding ctwo_def by (rule card_of_Card_order)
 
 lemma ctwo_not_czero: "\<not> (ctwo =o czero)"
 using card_of_empty3[of "UNIV :: bool set"] ordIso_iff_ordLeq
-unfolding czero_def ctwo_def by (metis UNIV_not_empty)
+unfolding czero_def ctwo_def using UNIV_not_empty by auto
 
 lemma ctwo_Cnotzero: "Cnotzero ctwo"
 by (simp add: ctwo_not_czero Card_order_ctwo)
@@ -330,13 +336,13 @@ lemma cprod_mono2: "p2 \<le>o r2 \<Longrightarrow> q *c p2 \<le>o q *c r2"
 by (simp only: cprod_def ordLeq_Times_mono2)
 
 lemma ordLeq_cprod2: "\<lbrakk>Cnotzero p1; Card_order p2\<rbrakk> \<Longrightarrow> p2 \<le>o p1 *c p2"
-unfolding cprod_def by (metis Card_order_Times2 czeroI)
+unfolding cprod_def by (rule Card_order_Times2) (auto intro: czeroI)
 
 lemma cinfinite_cprod: "\<lbrakk>cinfinite r1; cinfinite r2\<rbrakk> \<Longrightarrow> cinfinite (r1 *c r2)"
 by (simp add: cinfinite_def cprod_def Field_card_of infinite_cartesian_product)
 
 lemma cinfinite_cprod2: "\<lbrakk>Cnotzero r1; Cinfinite r2\<rbrakk> \<Longrightarrow> cinfinite (r1 *c r2)"
-by (metis cinfinite_mono ordLeq_cprod2)
+by (rule cinfinite_mono) (auto intro: ordLeq_cprod2)
 
 lemma Cinfinite_cprod2: "\<lbrakk>Cnotzero r1; Cinfinite r2\<rbrakk> \<Longrightarrow> Cinfinite (r1 *c r2)"
 by (blast intro: cinfinite_cprod2 Card_order_cprod)
@@ -364,7 +370,8 @@ lemma cprod_csum_distrib1: "r1 *c r2 +c r1 *c r3 =o r1 *c (r2 +c r3)"
 unfolding csum_def cprod_def by (simp add: Field_card_of card_of_Times_Plus_distrib ordIso_symmetric)
 
 lemma csum_absorb2': "\<lbrakk>Card_order r2; r1 \<le>o r2; cinfinite r1 \<or> cinfinite r2\<rbrakk> \<Longrightarrow> r1 +c r2 =o r2"
-unfolding csum_def by (metis Card_order_Plus_infinite cinfinite_def cinfinite_mono)
+unfolding csum_def by (rule conjunct2[OF Card_order_Plus_infinite])
+  (auto simp: cinfinite_def dest: cinfinite_mono)
 
 lemma csum_absorb1':
   assumes card: "Card_order r2"
@@ -390,10 +397,10 @@ lemma cexp_mono':
   shows "p1 ^c p2 \<le>o r1 ^c r2"
 proof(cases "Field p1 = {}")
   case True
-  hence "|Field |Func (Field p2) (Field p1)|| \<le>o cone"
+  hence "Field p2 \<noteq> {} \<Longrightarrow> Func (Field p2) {} = {}" unfolding Func_is_emp by simp
+  with True have "|Field |Func (Field p2) (Field p1)|| \<le>o cone"
     unfolding cone_def Field_card_of
-    by (cases "Field p2 = {}", auto intro: card_of_ordLeqI2 simp: Func_empty)
-       (metis Func_is_emp card_of_empty ex_in_conv)
+    by (cases "Field p2 = {}", auto intro: surj_imp_ordLeq simp: Func_empty)
   hence "|Func (Field p2) (Field p1)| \<le>o cone" by (simp add: Field_card_of cexp_def)
   hence "p1 ^c p2 \<le>o cone" unfolding cexp_def .
   thus ?thesis
@@ -429,7 +436,7 @@ lemma cexp_mono:
   assumes 1: "p1 \<le>o r1" and 2: "p2 \<le>o r2"
   and n: "p2 =o czero \<Longrightarrow> r2 =o czero" and card: "Card_order p2"
   shows "p1 ^c p2 \<le>o r1 ^c r2"
-  by (metis (full_types) "1" "2" card cexp_mono' czeroE czeroI n)
+  by (rule cexp_mono'[OF 1 2 czeroE[OF n[OF czeroI[OF card]]]])
 
 lemma cexp_mono1:
   assumes 1: "p1 \<le>o r1" and q: "Card_order q"
@@ -451,7 +458,7 @@ using ordLeq_refl[OF q] by (rule cexp_mono[OF _ 2 n card]) auto
 lemma cexp_mono2_Cnotzero:
   assumes "p2 \<le>o r2" "Card_order q" "Cnotzero p2"
   shows "q ^c p2 \<le>o q ^c r2"
-by (metis assms cexp_mono2' czeroI)
+using assms(3) czeroI by (blast intro: cexp_mono2'[OF assms(1,2)])
 
 lemma cexp_cong:
   assumes 1: "p1 =o r1" and 2: "p2 =o r2"
@@ -466,7 +473,7 @@ proof -
     and p: "r2 =o czero \<Longrightarrow> p2 =o czero"
      using 0 Cr Cp czeroE czeroI by auto
   show ?thesis using 0 1 2 unfolding ordIso_iff_ordLeq
-    using r p cexp_mono[OF _ _ _ Cp] cexp_mono[OF _ _ _ Cr] by metis
+    using r p cexp_mono[OF _ _ _ Cp] cexp_mono[OF _ _ _ Cr] by blast
 qed
 
 lemma cexp_cong1:
@@ -575,7 +582,7 @@ next
 qed
 
 lemma cinfinite_cexp: "\<lbrakk>ctwo \<le>o q; Cinfinite r\<rbrakk> \<Longrightarrow> cinfinite (q ^c r)"
-by (metis assms cinfinite_mono ordLeq_cexp2)
+by (rule cinfinite_mono[OF ordLeq_cexp2]) simp_all
 
 lemma Cinfinite_cexp:
   "\<lbrakk>ctwo \<le>o q; Cinfinite r\<rbrakk> \<Longrightarrow> Cinfinite (q ^c r)"
@@ -586,7 +593,7 @@ unfolding ctwo_def using finite_UNIV natLeq_cinfinite natLeq_Card_order
 by (intro Cfinite_ordLess_Cinfinite) (auto simp: cfinite_def card_of_Card_order)
 
 lemma ctwo_ordLess_Cinfinite: "Cinfinite r \<Longrightarrow> ctwo <o r"
-by (metis ctwo_ordLess_natLeq natLeq_ordLeq_cinfinite ordLess_ordLeq_trans)
+by (rule ordLess_ordLeq_trans[OF ctwo_ordLess_natLeq natLeq_ordLeq_cinfinite])
 
 lemma ctwo_ordLeq_Cinfinite:
   assumes "Cinfinite r"
@@ -663,9 +670,10 @@ proof (cases "s \<le>o ctwo")
   case True thus ?thesis using t by (blast intro: cexp_mono1)
 next
   case False
-  hence "ctwo \<le>o s" by (metis card_order_on_well_order_on ctwo_Cnotzero ordLeq_total s)
-  hence "Cnotzero s" by (metis Cnotzero_mono ctwo_Cnotzero s)
-  hence st: "Cnotzero (s *c t)" by (metis Cinfinite_cprod2 cinfinite_not_czero t)
+  hence "ctwo \<le>o s" using ordLeq_total[of s ctwo] Card_order_ctwo s
+    by (auto intro: card_order_on_well_order_on)
+  hence "Cnotzero s" using Cnotzero_mono[OF ctwo_Cnotzero] s by blast
+  hence st: "Cnotzero (s *c t)" by (intro Cinfinite_Cnotzero[OF Cinfinite_cprod2]) (auto simp: t)
   have "s ^c t \<le>o (ctwo ^c s) ^c t"
     using assms by (blast intro: cexp_mono1 ordLess_imp_ordLeq[OF ordLess_ctwo_cexp])
   also have "(ctwo ^c s) ^c t =o ctwo ^c (s *c t)"

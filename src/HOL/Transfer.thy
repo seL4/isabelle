@@ -6,7 +6,7 @@
 header {* Generic theorem transfer using relations *}
 
 theory Transfer
-imports Hilbert_Choice Basic_BNFs
+imports Hilbert_Choice Basic_BNFs Metis
 begin
 
 subsection {* Relator for function space *}

@@ -6,7 +6,7 @@
 header {* Hilbert's Epsilon-Operator and the Axiom of Choice *}
 
 theory Hilbert_Choice
-imports Nat Wellfounded Metis
+imports Nat Wellfounded
 keywords "specification" "ax_specification" :: thy_goal
 begin
 
@@ -292,12 +292,13 @@ proof -
   def Sseq \<equiv> "rec_nat S (\<lambda>n T. T - {SOME e. e \<in> T})"
   def pick \<equiv> "\<lambda>n. (SOME e. e \<in> Sseq n)"
   { fix n have "Sseq n \<subseteq> S" "\<not> finite (Sseq n)" by (induct n) (auto simp add: Sseq_def inf) }
-  moreover then have *: "\<And>n. pick n \<in> Sseq n" by (metis someI_ex pick_def ex_in_conv finite.simps)
+  moreover then have *: "\<And>n. pick n \<in> Sseq n"
+    unfolding pick_def by (subst (asm) finite.simps) (auto simp add: ex_in_conv intro: someI_ex)
   ultimately have "range pick \<subseteq> S" by auto
   moreover
   { fix n m                 
     have "pick n \<notin> Sseq (n + Suc m)" by (induct m) (auto simp add: Sseq_def pick_def)
-    hence "pick n \<noteq> pick (n + Suc m)" by (metis *)
+    with * have "pick n \<noteq> pick (n + Suc m)" by auto
   }
   then have "inj pick" by (intro linorder_injI) (auto simp add: less_iff_Suc_add)
   ultimately show ?thesis by blast
@@ -305,7 +306,7 @@ qed
 
 lemma infinite_iff_countable_subset: "\<not> finite S \<longleftrightarrow> (\<exists>f. inj (f::nat \<Rightarrow> 'a) \<and> range f \<subseteq> S)"
   -- {* Courtesy of Stephan Merz *}
-  by (metis finite_imageD finite_subset infinite_UNIV_char_0 infinite_countable_subset)
+  using finite_imageD finite_subset infinite_UNIV_char_0 infinite_countable_subset by auto
 
 lemma image_inv_into_cancel:
   assumes SURJ: "f`A=A'" and SUB: "B' \<le> A'"
@@ -706,9 +707,13 @@ proof -
     then have "\<And>n. f n < f (Suc n)"
       using  `mono f` by (auto simp: le_less mono_iff_le_Suc)
     with lift_Suc_mono_less_iff[of f]
-    have "\<And>n m. n < m \<Longrightarrow> f n < f m" by auto
-    then have "inj f"
-      by (auto simp: inj_on_def) (metis linorder_less_linear order_less_imp_not_eq)
+    have *: "\<And>n m. n < m \<Longrightarrow> f n < f m" by auto
+    have "inj f"
+    proof (intro injI)
+      fix x y
+      assume "f x = f y"
+      then show "x = y" by (cases x y rule: linorder_cases) (auto dest: *)
+    qed
     with `finite (range f)` have "finite (UNIV::nat set)"
       by (rule finite_imageD)
     then show False by simp

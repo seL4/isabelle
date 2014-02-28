@@ -2314,7 +2314,7 @@ qed
 
 lemma card_of_set_of:
 "(card_of {M. set_of M \<subseteq> A}, card_of {as. set as \<subseteq> A}) \<in> ordLeq"
-apply(rule card_of_ordLeqI2[of _ multiset_of]) using multiset_of_surj by auto
+apply(rule surj_imp_ordLeq[of _ multiset_of]) using multiset_of_surj by auto
 
 lemma nat_sum_induct:
 assumes "\<And>n1 n2. (\<And> m1 m2. m1 + m2 < n1 + n2 \<Longrightarrow> phi m1 m2) \<Longrightarrow> phi n1 n2"

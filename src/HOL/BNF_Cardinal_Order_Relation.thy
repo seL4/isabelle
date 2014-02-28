@@ -394,17 +394,12 @@ proof(cases "A = {}", simp add: card_of_empty)
 qed
 
 lemma surj_imp_ordLeq:
-assumes "B <= f ` A"
-shows "|B| <=o |A|"
+assumes "B \<subseteq> f ` A"
+shows "|B| \<le>o |A|"
 proof-
   have "|B| <=o |f ` A|" using assms card_of_mono1 by auto
   thus ?thesis using card_of_image ordLeq_transitive by blast
 qed
-
-lemma card_of_ordLeqI2:
-assumes "B \<subseteq> f ` A"
-shows "|B| \<le>o |A|"
-using assms by (metis surj_imp_ordLeq)
 
 lemma card_of_singl_ordLeq:
 assumes "A \<noteq> {}"
@@ -529,7 +524,7 @@ proof-
     }
     ultimately show ?thesis unfolding inj_on_def by auto
   qed
-  thus ?thesis using card_of_ordLeq by metis
+  thus ?thesis using card_of_ordLeq by blast
 qed
 
 corollary ordLeq_Plus_mono1:
@@ -678,7 +673,7 @@ proof-
   "g = (\<lambda>(a,c::'c). (f a,c))" by blast
   have "inj_on g (A \<times> C) \<and> g ` (A \<times> C) \<le> (B \<times> C)"
   using 1 unfolding inj_on_def using g_def by auto
-  thus ?thesis using card_of_ordLeq by metis
+  thus ?thesis using card_of_ordLeq by blast
 qed
 
 corollary ordLeq_Times_mono1:
@@ -706,11 +701,12 @@ proof-
   have "\<forall>i. i \<in> I \<longrightarrow> (\<exists>f. inj_on f (A i) \<and> f ` (A i) \<le> B i)"
   using assms by (auto simp add: card_of_ordLeq)
   with choice[of "\<lambda> i f. i \<in> I \<longrightarrow> inj_on f (A i) \<and> f ` (A i) \<le> B i"]
-  obtain F where 1: "\<forall>i \<in> I. inj_on (F i) (A i) \<and> (F i) ` (A i) \<le> B i" by metis
+  obtain F where 1: "\<forall>i \<in> I. inj_on (F i) (A i) \<and> (F i) ` (A i) \<le> B i"
+    by atomize_elim (auto intro: bchoice)
   obtain g where g_def: "g = (\<lambda>(i,a::'b). (i,F i a))" by blast
   have "inj_on g (Sigma I A) \<and> g ` (Sigma I A) \<le> (Sigma I B)"
   using 1 unfolding inj_on_def using g_def by force
-  thus ?thesis using card_of_ordLeq by metis
+  thus ?thesis using card_of_ordLeq by blast
 qed
 
 corollary card_of_Sigma_Times:
@@ -719,7 +715,7 @@ using card_of_Sigma_mono1[of I A "\<lambda>i. B"] .
 
 lemma card_of_UNION_Sigma:
 "|\<Union>i \<in> I. A i| \<le>o |SIGMA i : I. A i|"
-using Ex_inj_on_UNION_Sigma[of I A] card_of_ordLeq by metis
+using Ex_inj_on_UNION_Sigma[of I A] card_of_ordLeq by blast
 
 lemma card_of_bool:
 assumes "a1 \<noteq> a2"
@@ -745,8 +741,7 @@ proof-
        hence "?f False = a" by auto  thus ?thesis by blast
      qed
     }
-    ultimately show ?thesis unfolding bij_betw_def inj_on_def
-    by (metis (no_types) image_subsetI order_eq_iff subsetI)
+    ultimately show ?thesis unfolding bij_betw_def inj_on_def by blast
   qed
   thus ?thesis using card_of_ordIso by blast
 qed
@@ -758,7 +753,7 @@ shows "|A <+> B| \<le>o |A \<times> B|"
 proof-
   have 1: "|UNIV::bool set| \<le>o |A|"
   using A2 card_of_mono1[of "{a1,a2}"] card_of_bool[of a1 a2]
-        ordIso_ordLeq_trans[of "|UNIV::bool set|"] by metis
+        ordIso_ordLeq_trans[of "|UNIV::bool set|"] by blast
   (*  *)
   have "|A <+> B| \<le>o |B <+> B|"
   using LEQ card_of_Plus_mono1 by blast
@@ -789,11 +784,11 @@ proof-
    using assms by (auto simp add: card_of_Plus_Times_aux)
    hence ?thesis
    using card_of_Plus_commute card_of_Times_commute
-         ordIso_ordLeq_trans ordLeq_ordIso_trans by metis
+         ordIso_ordLeq_trans ordLeq_ordIso_trans by blast
   }
   ultimately show ?thesis
   using card_of_Well_order[of A] card_of_Well_order[of B]
-        ordLeq_total[of "|A|"] by metis
+        ordLeq_total[of "|A|"] by blast
 qed
 
 lemma card_of_ordLeq_finite:
@@ -852,7 +847,7 @@ proof(auto)
     let ?r' = "Restr r (underS r a)"
     assume Case2: "a \<in> Field r"
     hence 1: "under r a = underS r a \<union> {a} \<and> a \<notin> underS r a"
-    using 0 Refl_under_underS underS_notIn by metis
+    using 0 Refl_under_underS[of r a] underS_notIn[of a r] by blast
     have 2: "wo_rel.ofilter r (underS r a) \<and> underS r a < Field r"
     using 0 wo_rel.underS_ofilter * 1 Case2 by fast
     hence "?r' <o r" using 0 using ofilter_ordLess by blast
@@ -951,7 +946,7 @@ proof-
     (*  *)
     have "\<not> finite (Field r)" using 1 unfolding phi_def by simp
     hence "\<not> finite ?B" using 8 3 card_of_ordIso_finite_Field[of r ?B] by blast
-    hence "\<not> finite A1" using 9 finite_cartesian_product finite_subset by metis
+    hence "\<not> finite A1" using 9 finite_cartesian_product finite_subset by blast
     moreover have temp4: "Field |A1| = A1 \<and> Well_order |A1| \<and> Card_order |A1|"
     using card_of_Card_order[of A1] card_of_Well_order[of A1]
     by (simp add: Field_card_of)
@@ -1110,7 +1105,7 @@ proof(cases "B = {}", simp add: card_of_Plus_empty1 card_of_Plus_empty2 ordIso_s
     by (auto simp add: card_of_Plus_Times)
     moreover have "|A \<times> B| =o |A|"
     using assms * by (simp add: card_of_Times_infinite_simps)
-    ultimately have "|A <+> B| \<le>o |A|" using ordLeq_ordIso_trans by metis
+    ultimately have "|A <+> B| \<le>o |A|" using ordLeq_ordIso_trans by blast
     thus ?thesis using card_of_Plus1 ordIso_iff_ordLeq by blast
   qed
 qed
@@ -1256,7 +1251,7 @@ using infinite_iff_card_of_nat[of A] card_of_nat
 corollary finite_iff_ordLess_natLeq:
 "finite A = ( |A| <o natLeq)"
 using infinite_iff_natLeq_ordLeq not_ordLeq_iff_ordLess
-      card_of_Well_order natLeq_Well_order by metis
+      card_of_Well_order natLeq_Well_order by blast
 
 
 subsection {* The successor of a cardinal *}
@@ -1394,7 +1389,7 @@ next
   then show "finite (Field (cardSuc |A| ))"
   proof (rule card_of_ordLeq_finite[OF card_of_mono2, rotated])
     show "cardSuc |A| \<le>o |Pow A|"
-      by (metis cardSuc_ordLess_ordLeq card_of_Card_order card_of_Pow)
+      by (rule iffD1[OF cardSuc_ordLess_ordLeq card_of_Pow]) (simp_all add: card_of_Card_order)
   qed
 qed
 
@@ -1655,7 +1650,7 @@ apply(rule ordIso_symmetric) proof(intro card_of_ordIsoI)
   unfolding bij_betw_def inj_on_def proof safe
     fix h :: "'a \<Rightarrow> 'b" assume h: "h \<in> Func UNIV B"
     hence "\<forall> a. \<exists> b. h a = b" unfolding Func_def by auto
-    then obtain f where f: "\<forall> a. h a = f a" by metis
+    then obtain f where f: "\<forall> a. h a = f a" by blast
     hence "range f \<subseteq> B" using h unfolding Func_def by auto
     thus "h \<in> (\<lambda>f a. f a) ` {f. range f \<subseteq> B}" using f unfolding image_def by auto
   qed(unfold Func_def fun_eq_iff, auto)

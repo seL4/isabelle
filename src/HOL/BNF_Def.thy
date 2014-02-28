@@ -116,7 +116,7 @@ lemma Collect_split_mono_strong:
 
 
 lemma predicate2_eqD: "A = B \<Longrightarrow> A a b \<longleftrightarrow> B a b"
-by metis
+by simp
 
 lemma case_sum_o_inj:
 "case_sum f g \<circ> Inl = f"

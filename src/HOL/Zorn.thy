@@ -70,7 +70,7 @@ lemma not_maxchain_Some:
 
 lemma suc_not_equals:
   "chain C \<Longrightarrow> \<not> maxchain C \<Longrightarrow> suc C \<noteq> C"
-  by (auto simp: suc_def) (metis (no_types) less_irrefl not_maxchain_Some)
+  using not_maxchain_Some by (auto simp: suc_def)
 
 lemma subset_suc:
   assumes "X \<subseteq> Y" shows "X \<subseteq> suc Y"
@@ -257,7 +257,7 @@ lemma suc_Union_closed_chain:
   shows "chain X"
 using assms
 proof (induct)
-  case (suc X) then show ?case by (simp add: suc_def) (metis (no_types) not_maxchain_Some)
+  case (suc X) then show ?case using not_maxchain_Some by (simp add: suc_def)
 next
   case (Union X)
   then have "\<Union>X \<subseteq> A" by (auto dest: suc_Union_closed_in_carrier)
@@ -377,7 +377,7 @@ proof -
         using `subset.maxchain A M` by (auto simp: subset.maxchain_def)
     qed
   qed
-  ultimately show ?thesis by metis
+  ultimately show ?thesis by blast
 qed
 
 text{*Alternative version of Zorn's lemma for the subset relation.*}
@@ -440,8 +440,7 @@ lemma Chains_subset':
 lemma Chains_alt_def:
   assumes "refl r"
   shows "Chains r = {C. pred_on.chain UNIV (\<lambda>x y. (x, y) \<in> r) C}"
-  using assms
-  by (metis Chains_subset Chains_subset' subset_antisym)
+  using assms Chains_subset Chains_subset' by blast
 
 lemma Zorn_Lemma:
   "\<forall>C\<in>chains A. \<Union>C \<in> A \<Longrightarrow> \<exists>M\<in>A. \<forall>X\<in>A. M \<subseteq> X \<longrightarrow> X = M"
@@ -534,16 +533,28 @@ lemma Chains_init_seg_of_Union:
   by (auto simp: init_seg_of_def Ball_def Chains_def) blast
 
 lemma chain_subset_trans_Union:
-  "chain\<^sub>\<subseteq> R \<Longrightarrow> \<forall>r\<in>R. trans r \<Longrightarrow> trans (\<Union>R)"
-apply (auto simp add: chain_subset_def)
-apply (simp (no_asm_use) add: trans_def)
-by (metis subsetD)
+  assumes "chain\<^sub>\<subseteq> R" "\<forall>r\<in>R. trans r"
+  shows "trans (\<Union>R)"
+proof (intro transI, elim UnionE)
+  fix  S1 S2 :: "'a rel" and x y z :: 'a
+  assume "S1 \<in> R" "S2 \<in> R"
+  with assms(1) have "S1 \<subseteq> S2 \<or> S2 \<subseteq> S1" unfolding chain_subset_def by blast
+  moreover assume "(x, y) \<in> S1" "(y, z) \<in> S2"
+  ultimately have "((x, y) \<in> S1 \<and> (y, z) \<in> S1) \<or> ((x, y) \<in> S2 \<and> (y, z) \<in> S2)" by blast
+  with `S1 \<in> R` `S2 \<in> R` assms(2) show "(x, z) \<in> \<Union>R" by (auto elim: transE)
+qed
 
 lemma chain_subset_antisym_Union:
-  "chain\<^sub>\<subseteq> R \<Longrightarrow> \<forall>r\<in>R. antisym r \<Longrightarrow> antisym (\<Union>R)"
-unfolding chain_subset_def antisym_def
-apply simp
-by (metis (no_types) subsetD)
+  assumes "chain\<^sub>\<subseteq> R" "\<forall>r\<in>R. antisym r"
+  shows "antisym (\<Union>R)"
+proof (intro antisymI, elim UnionE)
+  fix  S1 S2 :: "'a rel" and x y :: 'a
+  assume "S1 \<in> R" "S2 \<in> R"
+  with assms(1) have "S1 \<subseteq> S2 \<or> S2 \<subseteq> S1" unfolding chain_subset_def by blast
+  moreover assume "(x, y) \<in> S1" "(y, x) \<in> S2"
+  ultimately have "((x, y) \<in> S1 \<and> (y, x) \<in> S1) \<or> ((x, y) \<in> S2 \<and> (y, x) \<in> S2)" by blast
+  with `S1 \<in> R` `S2 \<in> R` assms(2) show "x = y" unfolding antisym_def by auto
+qed
 
 lemma chain_subset_Total_Union:
   assumes "chain\<^sub>\<subseteq> R" and "\<forall>r\<in>R. Total r"
@@ -554,12 +565,12 @@ proof (simp add: total_on_def Ball_def, auto del: disjCI)
     by (auto simp add: chain_subset_def)
   thus "(\<exists>r\<in>R. (a, b) \<in> r) \<or> (\<exists>r\<in>R. (b, a) \<in> r)"
   proof
-    assume "r \<subseteq> s" hence "(a, b) \<in> s \<or> (b, a) \<in> s" using assms(2) A
-      by (simp add: total_on_def) (metis (no_types) mono_Field subsetD)
+    assume "r \<subseteq> s" hence "(a, b) \<in> s \<or> (b, a) \<in> s" using assms(2) A mono_Field[of r s]
+      by (auto simp add: total_on_def)
     thus ?thesis using `s \<in> R` by blast
   next
-    assume "s \<subseteq> r" hence "(a, b) \<in> r \<or> (b, a) \<in> r" using assms(2) A
-      by (simp add: total_on_def) (metis (no_types) mono_Field subsetD)
+    assume "s \<subseteq> r" hence "(a, b) \<in> r \<or> (b, a) \<in> r" using assms(2) A mono_Field[of s r]
+      by (fastforce simp add: total_on_def)
     thus ?thesis using `r \<in> R` by blast
   qed
 qed
@@ -633,8 +644,8 @@ proof -
     moreover have "\<forall>r \<in> R. r initial_segment_of \<Union>R" using Ris
       by(simp add: Chains_init_seg_of_Union)
     ultimately have "\<Union>R \<in> ?WO \<and> (\<forall>r\<in>R. (r, \<Union>R) \<in> I)"
-      using mono_Chains [OF I_init] and `R \<in> Chains I`
-      by (simp (no_asm) add: I_def del: Field_Union) (metis Chains_wo)
+      using mono_Chains [OF I_init] Chains_wo[of R] and `R \<in> Chains I`
+      unfolding I_def by blast
   }
   hence 1: "\<forall>R \<in> Chains I. \<exists>u\<in>Field I. \<forall>r\<in>R. (r, u) \<in> I" by (subst FI) blast
 --{*Zorn's Lemma yields a maximal well-order m:*}
@@ -671,8 +682,8 @@ proof -
     moreover have "Total ?m" using `Total m` and Fm by (auto simp: total_on_def)
     moreover have "wf (?m - Id)"
     proof -
-      have "wf ?s" using `x \<notin> Field m`
-        by (auto simp add: wf_eq_minimal Field_def) metis
+      have "wf ?s" using `x \<notin> Field m` unfolding wf_eq_minimal Field_def
+        by (auto simp: Bex_def)
       thus ?thesis using `wf (m - Id)` and `x \<notin> Field m`
         wf_subset [OF `wf ?s` Diff_subset]
         unfolding Un_Diff Field_def by (auto intro: wf_Un)

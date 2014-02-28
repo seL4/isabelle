@@ -232,7 +232,8 @@ fun un_fold_of [f, _] = f;
 fun co_rec_of [_, r] = r;
 
 fun time ctxt timer msg = (if Config.get ctxt bnf_timing
-  then warning (msg ^ ": " ^ ATP_Util.string_of_time (Timer.checkRealTimer timer))
+  then warning (msg ^ ": " ^ string_of_int (Time.toMilliseconds (Timer.checkRealTimer timer)) ^
+    "ms")
   else (); Timer.startRealTimer ());
 
 val preN = "pre_"
