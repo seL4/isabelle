@@ -358,6 +358,12 @@ done
 lemma mset_less_of_empty[simp]: "A < {#} \<longleftrightarrow> False"
   by (auto simp add: mset_less_def mset_le_def multiset_eq_iff)
 
+lemma empty_le[simp]: "{#} \<le> A"
+  unfolding mset_le_exists_conv by auto
+
+lemma le_empty[simp]: "(M \<le> {#}) = (M = {#})"
+  unfolding mset_le_exists_conv by auto
+
 lemma multi_psub_of_add_self[simp]: "A < A + {#x#}"
   by (auto simp: mset_le_def mset_less_def)
 
@@ -560,6 +566,9 @@ lemma finite_set_of [iff]: "finite (set_of M)"
 
 lemma finite_Collect_mem [iff]: "finite {x. x :# M}"
   unfolding set_of_def[symmetric] by simp
+
+lemma set_of_mono: "A \<le> B \<Longrightarrow> set_of A \<subseteq> set_of B"  
+  by (metis mset_leD subsetI mem_set_of_iff)
 
 subsubsection {* Size *}
 
@@ -2083,24 +2092,68 @@ lemma [code]:
   "mcard (multiset_of xs) = length xs"
   by (simp add: mcard_multiset_of)
 
-lemma [code]:
-  "A \<le> B \<longleftrightarrow> A #\<inter> B = A" 
-  by (auto simp add: inf.order_iff)
+fun ms_lesseq_impl :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool option" where 
+  "ms_lesseq_impl [] ys = Some (ys \<noteq> [])"
+| "ms_lesseq_impl (Cons x xs) ys = (case List.extract (op = x) ys of 
+     None \<Rightarrow> None
+   | Some (ys1,_,ys2) \<Rightarrow> ms_lesseq_impl xs (ys1 @ ys2))"
+
+lemma ms_lesseq_impl: "(ms_lesseq_impl xs ys = None \<longleftrightarrow> \<not> multiset_of xs \<le> multiset_of ys) \<and>
+  (ms_lesseq_impl xs ys = Some True \<longleftrightarrow> multiset_of xs < multiset_of ys) \<and>
+  (ms_lesseq_impl xs ys = Some False \<longrightarrow> multiset_of xs = multiset_of ys)"
+proof (induct xs arbitrary: ys)
+  case (Nil ys)
+  show ?case by (auto simp: mset_less_empty_nonempty)
+next
+  case (Cons x xs ys)
+  show ?case
+  proof (cases "List.extract (op = x) ys")
+    case None
+    hence x: "x \<notin> set ys" by (simp add: extract_None_iff)
+    {
+      assume "multiset_of (x # xs) \<le> multiset_of ys"
+      from set_of_mono[OF this] x have False by simp
+    } note nle = this
+    moreover
+    {
+      assume "multiset_of (x # xs) < multiset_of ys"
+      hence "multiset_of (x # xs) \<le> multiset_of ys" by auto
+      from nle[OF this] have False .
+    }
+    ultimately show ?thesis using None by auto
+  next
+    case (Some res)
+    obtain ys1 y ys2 where res: "res = (ys1,y,ys2)" by (cases res, auto)
+    note Some = Some[unfolded res]
+    from extract_SomeE[OF Some] have "ys = ys1 @ x # ys2" by simp
+    hence id: "multiset_of ys = multiset_of (ys1 @ ys2) + {#x#}" 
+      by (auto simp: ac_simps)
+    show ?thesis unfolding ms_lesseq_impl.simps
+      unfolding Some option.simps split
+      unfolding id
+      using Cons[of "ys1 @ ys2"]
+      unfolding mset_le_def mset_less_def by auto
+  qed
+qed
+
+lemma [code]: "multiset_of xs \<le> multiset_of ys \<longleftrightarrow> ms_lesseq_impl xs ys \<noteq> None"
+  using ms_lesseq_impl[of xs ys] by (cases "ms_lesseq_impl xs ys", auto)
+
+lemma [code]: "multiset_of xs < multiset_of ys \<longleftrightarrow> ms_lesseq_impl xs ys = Some True"
+  using ms_lesseq_impl[of xs ys] by (cases "ms_lesseq_impl xs ys", auto)
 
 instantiation multiset :: (equal) equal
 begin
 
 definition
-  [code]: "HOL.equal A B \<longleftrightarrow> (A::'a multiset) \<le> B \<and> B \<le> A"
+  [code del]: "HOL.equal A (B :: 'a multiset) \<longleftrightarrow> A = B"
+lemma [code]: "HOL.equal (multiset_of xs) (multiset_of ys) \<longleftrightarrow> ms_lesseq_impl xs ys = Some False"
+  unfolding equal_multiset_def
+  using ms_lesseq_impl[of xs ys] by (cases "ms_lesseq_impl xs ys", auto)
 
 instance
-  by default (simp add: equal_multiset_def eq_iff)
-
+  by default (simp add: equal_multiset_def)
 end
-
-lemma [code]:
-  "(A::'a multiset) < B \<longleftrightarrow> A \<le> B \<and> A \<noteq> B"
-  by auto
 
 lemma [code]:
   "msetsum (multiset_of xs) = listsum xs"
