@@ -155,12 +155,6 @@ object JEdit_Lib
     catch { case _: IndexOutOfBoundsException => None }
 
 
-  /* buffer range */
-
-  def buffer_range(buffer: JEditBuffer): Text.Range =
-    Text.Range(0, (buffer.getLength - 1) max 0)
-
-
   /* point range */
 
   def point_range(buffer: JEditBuffer, offset: Text.Offset): Text.Range =
@@ -179,7 +173,10 @@ object JEdit_Lib
     }
 
 
-  /* visible text range */
+  /* text ranges */
+
+  def buffer_range(buffer: JEditBuffer): Text.Range =
+    Text.Range(0, buffer.getLength)
 
   def visible_range(text_area: TextArea): Option[Text.Range] =
   {
@@ -197,9 +194,13 @@ object JEdit_Lib
   def invalidate_range(text_area: TextArea, range: Text.Range)
   {
     val buffer = text_area.getBuffer
-    text_area.invalidateLineRange(
-      buffer.getLineOfOffset(range.start),
-      buffer.getLineOfOffset(range.stop))
+    buffer_range(buffer).try_restrict(range) match {
+      case Some(range1) if !range1.is_singularity =>
+        text_area.invalidateLineRange(
+          buffer.getLineOfOffset(range1.start),
+          buffer.getLineOfOffset(range1.stop))
+      case _ =>
+    }
   }
 
 
