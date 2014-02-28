@@ -6,17 +6,15 @@ Prover command execution: read -- eval -- print.
 
 signature COMMAND =
 sig
-  type 'a blob = (string * 'a option) Exn.result
-  type blob_digest = string blob
-  type content = SHA1.digest * string list
+  type blob = (string * (SHA1.digest * string list) option) Exn.result
   val read_file: Path.T -> Position.T -> Path.T -> Token.file
-  val read: (unit -> theory) -> Path.T -> content blob list -> Token.T list -> Toplevel.transition
+  val read: (unit -> theory) -> Path.T -> blob list -> Token.T list -> Toplevel.transition
   type eval
   val eval_eq: eval * eval -> bool
   val eval_running: eval -> bool
   val eval_finished: eval -> bool
   val eval_result_state: eval -> Toplevel.state
-  val eval: (unit -> theory) -> Path.T -> content blob list -> Token.T list -> eval -> eval
+  val eval: (unit -> theory) -> Path.T -> blob list -> Token.T list -> eval -> eval
   type print
   val print: bool -> (string * string list) list -> string ->
     eval -> print list -> print list option
@@ -88,9 +86,8 @@ end;
 
 (* read *)
 
-type 'a blob = (string * 'a option) Exn.result;  (*file node name, content*)
-type blob_digest = string blob;  (*raw digest*)
-type content = SHA1.digest * string list;  (*digest, lines*)
+type blob =
+  (string * (SHA1.digest * string list) option) Exn.result;  (*file node name, digest, lines*)
 
 fun read_file master_dir pos src_path =
   let
@@ -103,7 +100,7 @@ fun read_file master_dir pos src_path =
 
 local
 
-fun blob_file src_path file (digest, lines) =
+fun blob_file src_path lines digest file =
   let
     val file_pos =
       Position.file file (*sic!*) |>
@@ -119,9 +116,9 @@ fun resolve_files master_dir blobs toks =
         let
           fun make_file src_path (Exn.Res (_, NONE)) =
                 Exn.interruptible_capture (fn () => read_file master_dir pos src_path) ()
-            | make_file src_path (Exn.Res (file, SOME content)) =
+            | make_file src_path (Exn.Res (file, SOME (digest, lines))) =
                (Position.report pos (Markup.path file);
-                Exn.Res (blob_file src_path file content))
+                Exn.Res (blob_file src_path lines digest file))
             | make_file _ (Exn.Exn e) = Exn.Exn e;
           val src_paths = Keyword.command_files cmd path;
         in

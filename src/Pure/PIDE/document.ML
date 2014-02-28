@@ -18,7 +18,8 @@ sig
   type state
   val init_state: state
   val define_blob: string -> string -> state -> state
-  val define_command: Document_ID.command -> string -> Command.blob_digest list -> string ->
+  type blob_digest = (string * string option) Exn.result
+  val define_command: Document_ID.command -> string -> blob_digest list -> string ->
     state -> state
   val remove_versions: Document_ID.version list -> state -> state
   val start_execution: state -> state
@@ -218,6 +219,8 @@ end;
 
 (** main state -- document structure and execution process **)
 
+type blob_digest = (string * string option) Exn.result;  (* file name, raw digest*)
+
 type execution =
  {version_id: Document_ID.version,  (*static version id*)
   execution_id: Document_ID.execution,  (*dynamic execution id*)
@@ -234,8 +237,8 @@ fun new_execution version_id delay_request frontier : execution =
 
 abstype state = State of
  {versions: version Inttab.table,  (*version id -> document content*)
-  blobs: (SHA1.digest * string list) Symtab.table,  (*digest -> digest, lines*)
-  commands: (string * Command.blob_digest list * Token.T list lazy) Inttab.table,
+  blobs: (SHA1.digest * string list) Symtab.table,  (*raw digest -> digest, lines*)
+  commands: (string * blob_digest list * Token.T list lazy) Inttab.table,
     (*command id -> name, inlined files, command span*)
   execution: execution}  (*current execution process*)
 with
