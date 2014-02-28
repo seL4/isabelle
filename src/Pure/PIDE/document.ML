@@ -219,7 +219,7 @@ end;
 
 (** main state -- document structure and execution process **)
 
-type blob_digest = (string * string option) Exn.result;  (* file name, raw digest*)
+type blob_digest = (string * string option) Exn.result;  (* file node name, raw digest*)
 
 type execution =
  {version_id: Document_ID.version,  (*static version id*)
