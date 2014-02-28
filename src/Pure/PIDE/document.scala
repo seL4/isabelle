@@ -24,8 +24,6 @@ object Document
 
   final class Overlays private(rep: Map[Node.Name, Node.Overlays])
   {
-    override def toString: String = rep.mkString("Overlays(", ",", ")")
-
     def apply(name: Document.Node.Name): Node.Overlays =
       rep.getOrElse(name, Node.Overlays.empty)
 
@@ -40,6 +38,8 @@ object Document
 
     def remove(command: Command, fn: String, args: List[String]): Overlays =
       update(command.node_name, _.remove(command, fn, args))
+
+    override def toString: String = rep.mkString("Overlays(", ",", ")")
   }
 
 
@@ -55,8 +55,6 @@ object Document
 
   final class Blobs private(blobs: Map[Node.Name, Blob])
   {
-    override def toString: String = blobs.mkString("Blobs(", ",", ")")
-
     def get(name: Node.Name): Option[Blob] = blobs.get(name)
 
     def changed(name: Node.Name): Boolean =
@@ -67,6 +65,8 @@ object Document
 
     def retrieve(digest: SHA1.Digest): Option[Blob] =
       blobs.collectFirst({ case (_, blob) if blob.bytes.sha1_digest == digest => blob })
+
+    override def toString: String = blobs.mkString("Blobs(", ",", ")")
   }
 
 
@@ -131,8 +131,6 @@ object Document
 
     final class Overlays private(rep: Multi_Map[Command, (String, List[String])])
     {
-      override def toString: String = rep.mkString("Node.Overlays(", ",", ")")
-
       def commands: Set[Command] = rep.keySet
       def is_empty: Boolean = rep.isEmpty
       def dest: List[(Command, (String, List[String]))] = rep.iterator.toList
@@ -140,6 +138,8 @@ object Document
         new Overlays(rep.insert(cmd, (fn, args)))
       def remove(cmd: Command, fn: String, args: List[String]): Overlays =
         new Overlays(rep.remove(cmd, (fn, args)))
+
+      override def toString: String = rep.mkString("Node.Overlays(", ",", ")")
     }
 
 
@@ -665,10 +665,6 @@ object Document
           (thy_load_commands zip other.thy_load_commands).forall(eq_commands)
         }
 
-        override def toString: String =
-          "Snapshot(node = " + node_name.node + ", version = " + version.id +
-            (if (is_outdated) ", outdated" else "") + ")"
-
 
         /* cumulate markup */
 
@@ -727,6 +723,13 @@ object Document
           for (Text.Info(r, Some(x)) <- cumulate(range, None, elements, result1 _, status))
             yield Text.Info(r, x)
         }
+
+
+        /* output */
+
+        override def toString: String =
+          "Snapshot(node = " + node_name.node + ", version = " + version.id +
+            (if (is_outdated) ", outdated" else "") + ")"
       }
     }
   }
