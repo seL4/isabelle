@@ -48,11 +48,9 @@ end;
 
 (* messages *)
 
-fun loader_msg txt [] = "Theory loader: " ^ txt
-  | loader_msg txt names = "Theory loader: " ^ txt ^ " " ^ commas_quote names;
-
 val show_path = space_implode " via " o map quote;
-fun cycle_msg names = loader_msg ("cyclic dependency of " ^ show_path names) [];
+
+fun cycle_msg names = "Cyclic dependency of " ^ show_path names;
 
 
 (* derived graph operations *)
@@ -101,7 +99,7 @@ val known_thy = is_some o lookup_thy;
 fun get_thy name =
   (case lookup_thy name of
     SOME thy => thy
-  | NONE => error (loader_msg "nothing known about theory" [name]));
+  | NONE => error ("Theory loader: nothing known about theory " ^ quote name));
 
 
 (* access deps *)
@@ -123,7 +121,7 @@ fun lookup_theory name =
 fun get_theory name =
   (case lookup_theory name of
     SOME theory => theory
-  | _ => error (loader_msg "undefined theory entry for" [name]));
+  | _ => error ("Theory loader: undefined entry for theory " ^ quote name));
 
 val get_imports = Thy_Load.imports_of o get_theory;
 
@@ -140,11 +138,11 @@ fun loaded_files name = NAMED_CRITICAL "Thy_Info" (fn () =>
 (* main loader actions *)
 
 fun remove_thy name = NAMED_CRITICAL "Thy_Info" (fn () =>
-  if is_finished name then error (loader_msg "cannot update finished theory" [name])
+  if is_finished name then error ("Cannot update finished theory " ^ quote name)
   else
     let
       val succs = thy_graph String_Graph.all_succs [name];
-      val _ = Output.urgent_message (loader_msg "removing" succs);
+      val _ = Output.urgent_message ("Theory loader: removing " ^ commas_quote succs);
       val _ = List.app (perform Remove) succs;
       val _ = change_thys (fold String_Graph.del_node succs);
     in () end);
@@ -222,8 +220,9 @@ val schedule_futures = uninterruptible (fn _ => fn tasks =>
                 (case filter (not o can Future.join o #2) deps of
                   [] => body (map (result_theory o Future.join) (task_parents deps parents))
                 | bad =>
-                    error (loader_msg ("failed to load " ^ quote name ^
-                      " (unresolved " ^ commas_quote (map #1 bad) ^ ")") [])))
+                    error
+                      ("Failed to load theory " ^ quote name ^
+                        " (unresolved " ^ commas_quote (map #1 bad) ^ ")")))
         | Finished theory => Future.value (theory_result theory)));
 
     val results1 = futures
@@ -252,7 +251,7 @@ in
 fun schedule_tasks tasks =
   if not (Multithreading.enabled ()) then schedule_seq tasks
   else if Multithreading.self_critical () then
-     (warning (loader_msg "no multithreading within critical section" []);
+     (warning "Theory loader: no multithreading within critical section";
       schedule_seq tasks)
   else schedule_futures tasks;
 
@@ -322,7 +321,7 @@ and require_thy document last_timing initiators dir (str, require_pos) tasks =
     fun check_entry (Task (node_name', _, _)) =
           if node_name = node_name' then ()
           else
-            error (loader_msg "incoherent imports for theory" [name] ^
+            error ("Incoherent imports for theory " ^ quote name ^
               Position.here require_pos ^ ":\n" ^
               "  " ^ Path.print node_name ^ "\n" ^
               "  " ^ Path.print node_name')
@@ -336,9 +335,10 @@ and require_thy document last_timing initiators dir (str, require_pos) tasks =
           val _ = member (op =) initiators name andalso error (cycle_msg initiators);
 
           val (current, deps, theory_pos, imports, keywords) = check_deps dir' name
-            handle ERROR msg => cat_error msg
-              (loader_msg "the error(s) above occurred for theory" [name] ^
-                Position.here require_pos ^ required_by "\n" initiators);
+            handle ERROR msg =>
+              cat_error msg
+                ("The error(s) above occurred for theory " ^ quote name ^
+                  Position.here require_pos ^ required_by "\n" initiators);
 
           val parents = map (base_name o #1) imports;
           val (parents_current, tasks') =
