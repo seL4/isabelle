@@ -117,10 +117,13 @@ fun if_z3_non_commercial f =
       error (Pretty.string_of (Pretty.para
         "The SMT solver Z3 may only be used for non-commercial applications."))
   | Z3_Non_Commercial_Unknown =>
-      error (Pretty.string_of (Pretty.para
-        ("The SMT solver Z3 is not activated. To activate it, set the Isabelle \
-         \system option \"z3_non_commercial\" to \"yes\" (e.g. via \
-         \the Isabelle/jEdit menu Plugin Options / Isabelle / General)."))))
+      error
+        (Pretty.string_of
+          (Pretty.para
+            ("The SMT solver Z3 is not activated. To activate it, set the Isabelle \
+             \system option \"z3_non_commercial\" to \"yes\" (e.g. via \
+             \the Isabelle/jEdit menu Plugin Options / Isabelle / General).")) ^
+        "\n\nSee also " ^ Url.print (Url.explode "http://z3.codeplex.com/license")))
 
 end
 
