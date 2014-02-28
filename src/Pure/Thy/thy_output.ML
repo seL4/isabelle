@@ -96,11 +96,7 @@ fun command src state ctxt =
     val ((xname, _), pos) = Args.dest_src src;
     val (name, f) =
       Name_Space.check (Context.Proof ctxt) (#1 (get_antiquotations ctxt)) (xname, pos);
-  in
-    f src state ctxt handle ERROR msg =>
-      cat_error msg ("The error(s) above occurred in document antiquotation: " ^
-        quote name ^ Position.here pos)
-  end;
+  in f src state ctxt end;
 
 fun option ((xname, pos), s) ctxt =
   let
