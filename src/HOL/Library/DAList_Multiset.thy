@@ -66,6 +66,18 @@ lemma [code, code del]:
   "sorted_list_of_multiset = sorted_list_of_multiset"
   ..
 
+lemma [code, code del]:
+  "ord_multiset_inst.less_eq_multiset = ord_multiset_inst.less_eq_multiset"
+  ..
+
+lemma [code, code del]:
+  "ord_multiset_inst.less_multiset = ord_multiset_inst.less_multiset"
+  ..
+
+lemma [code, code del]:
+  "equal_multiset_inst.equal_multiset = equal_multiset_inst.equal_multiset"
+  ..
+
 
 text {* Raw operations on lists *}
 
@@ -214,6 +226,10 @@ by (rule multiset_eqI)
 lemma filter_Bag [code]:
   "Multiset.filter P (Bag xs) = Bag (DAList.filter (P \<circ> fst) xs)"
 by (rule multiset_eqI) (simp add: count_of_filter DAList.filter.rep_eq)
+
+
+lemma mset_eq [code]: "HOL.equal (m1::'a::equal multiset) m2 \<longleftrightarrow> m1 \<le> m2 \<and> m2 \<le> m1"
+by (metis equal_multiset_def eq_iff)
 
 lemma mset_less_eq_Bag [code]:
   "Bag xs \<le> A \<longleftrightarrow> (\<forall>(x, n) \<in> set (DAList.impl_of xs). count_of (DAList.impl_of xs) x \<le> count A x)"
