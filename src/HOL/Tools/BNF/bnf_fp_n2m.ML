@@ -436,7 +436,7 @@ fun construct_mutualized_fp fp fpTs (fp_sugars : fp_sugar list) bs resBs (resDs,
           @{thms fst_convol map_pair_o_convol convol_o}
           @{thms case_sum_o_inj(1) case_sum_o_sum_map o_case_sum};
 
-        val eq_thm_prop_untyped = op Term.aconv_untyped o pairself Thm.full_prop_of;
+        val eq_thm_prop_untyped = Term.aconv_untyped o pairself Thm.full_prop_of;
 
         val map_thms = no_refl (maps (fn bnf =>
            let val map_comp0 = map_comp0_of_bnf bnf RS sym
