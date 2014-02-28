@@ -182,6 +182,15 @@ primrec find :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a 
 
 hide_const (open) find
 
+definition
+   "extract" :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> ('a list * 'a * 'a list) option"
+where "extract P xs =
+  (case dropWhile (Not o P) xs of
+     [] \<Rightarrow> None |
+     y#ys \<Rightarrow> Some(takeWhile (Not o P) xs, y, ys))"
+
+hide_const (open) "extract"
+
 primrec those :: "'a option list \<Rightarrow> 'a list option"
 where
 "those [] = Some []" |
@@ -287,6 +296,8 @@ text{*
 @{lemma "List.insert 3 [0::nat,1,2] = [3,0,1,2]" by (simp add: List.insert_def)}\\
 @{lemma "List.find (%i::int. i>0) [0,0] = None" by simp}\\
 @{lemma "List.find (%i::int. i>0) [0,1,0,2] = Some 1" by simp}\\
+@{lemma "List.extract (%i::int. i>0) [0,0] = None" by(simp add: extract_def)}\\
+@{lemma "List.extract (%i::int. i>0) [0,1,0,2] = Some([0], 1, [0,2])" by(simp add: extract_def)}\\
 @{lemma "remove1 2 [2,0,2,1::nat,2] = [0,2,1,2]" by simp}\\
 @{lemma "removeAll 2 [2,0,2,1::nat,2] = [0,1]" by simp}\\
 @{lemma "nth [a,b,c,d] 2 = c" by simp}\\
@@ -3646,6 +3657,34 @@ lemma find_dropWhile:
    of [] \<Rightarrow> None
     | x # _ \<Rightarrow> Some x)"
   by (induct xs) simp_all
+
+
+subsubsection {* @{const List.extract} *}
+
+lemma extract_None_iff: "List.extract P xs = None \<longleftrightarrow> \<not> (\<exists> x\<in>set xs. P x)"
+by(auto simp: extract_def dropWhile_eq_Cons_conv split: list.splits)
+  (metis in_set_conv_decomp)
+
+lemma extract_SomeE:
+ "List.extract P xs = Some (ys, y, zs) \<Longrightarrow>
+  xs = ys @ y # zs \<and> P y \<and> \<not> (\<exists> y \<in> set ys. P y)" 
+by(auto simp: extract_def dropWhile_eq_Cons_conv split: list.splits)
+
+lemma extract_Some_iff:
+  "List.extract P xs = Some (ys, y, zs) \<longleftrightarrow>
+   xs = ys @ y # zs \<and> P y \<and> \<not> (\<exists> y \<in> set ys. P y)" 
+by(auto simp: extract_def dropWhile_eq_Cons_conv dest: set_takeWhileD split: list.splits)
+
+lemma extract_Nil_code[code]: "List.extract P [] = None"
+by(simp add: extract_def)
+
+lemma extract_Cons_code[code]:
+  "List.extract P (x # xs) = (if P x then Some ([], x, xs) else
+   (case List.extract P xs of
+      None \<Rightarrow> None |
+      Some (ys, y, zs) \<Rightarrow> Some (x#ys, y, zs)))"
+by(auto simp add: extract_def split: list.splits)
+  (metis comp_def dropWhile_eq_Nil_conv list.distinct(1))
 
 
 subsubsection {* @{const remove1} *}
