@@ -188,12 +188,6 @@ object Completion
 
   /* word parsers */
 
-  def word_context(text: Option[String]): Boolean =
-    text match {
-      case None => false
-      case Some(s) => Word_Parsers.is_word(s)
-    }
-
   private object Word_Parsers extends RegexParsers
   {
     override val whiteSpace = "".r
@@ -206,10 +200,29 @@ object Completion
     private def word: Parser[String] = word_regex
     private def word3: Parser[String] = """[a-zA-Z0-9_']{3,}""".r
 
-    def is_word(s: CharSequence): Boolean =
-      word_regex.pattern.matcher(s).matches
+    def is_word(s: CharSequence): Boolean = word_regex.pattern.matcher(s).matches
+    def is_word_char(c: Char): Boolean = Symbol.is_ascii_letdig(c)
 
-    def read(explicit: Boolean, in: CharSequence): Option[String] =
+    def extend_word(text: CharSequence, offset: Text.Offset): Text.Offset =
+    {
+      val n = text.length
+      var i = offset
+      while (i < n && is_word_char(text.charAt(i))) i += 1
+      if (i < n && text.charAt(i) == '>' && read_symbol(text.subSequence(0, i + 1)).isDefined)
+        i + 1
+      else i
+    }
+
+    def read_symbol(in: CharSequence): Option[String] =
+    {
+      val reverse_in = new Library.Reverse(in)
+      parse(reverse_symbol ^^ (_.reverse), reverse_in) match {
+        case Success(result, _) => Some(result)
+        case _ => None
+      }
+    }
+
+    def read_word(explicit: Boolean, in: CharSequence): Option[String] =
     {
       val parse_word = if (explicit) word else word3
       val reverse_in = new Library.Reverse(in)
@@ -223,7 +236,7 @@ object Completion
 
   /* abbreviations */
 
-  private val caret = '\007'
+  private val caret_indicator = '\007'
   private val antiquote = "@{"
   private val default_abbrs =
     Map("@{" -> "@{\007}", "`" -> "\\<open>\007\\<close>")
@@ -278,13 +291,18 @@ final class Completion private(
     history: Completion.History,
     decode: Boolean,
     explicit: Boolean,
-    text_start: Text.Offset,
+    start: Text.Offset,
     text: CharSequence,
-    word_context: Boolean,
+    caret: Int,
+    extend_word: Boolean,
     language_context: Completion.Language_Context): Option[Completion.Result] =
   {
+    val length = text.length
+
     val abbrevs_result =
-      Scan.Parsers.parse(Scan.Parsers.literal(abbrevs_lex), new Library.Reverse(text)) match {
+    {
+      val reverse_in = new Library.Reverse(text.subSequence(0, caret))
+      Scan.Parsers.parse(Scan.Parsers.literal(abbrevs_lex), reverse_in) match {
         case Scan.Parsers.Success(reverse_a, _) =>
           val abbrevs = abbrevs_map.get_list(reverse_a)
           abbrevs match {
@@ -293,32 +311,42 @@ final class Completion private(
               val ok =
                 if (a == Completion.antiquote) language_context.antiquotes
                 else language_context.symbols || Completion.default_abbrs.isDefinedAt(a)
-              if (ok) Some((a, abbrevs.map(_._2))) else None
+              if (ok) Some(((a, abbrevs.map(_._2)), caret))
+              else None
           }
         case _ => None
       }
+    }
 
     val words_result =
       abbrevs_result orElse {
-        if (word_context) None
-        else
-          Completion.Word_Parsers.read(explicit, text) match {
-            case Some(word) =>
-              val completions =
-                for {
-                  s <- words_lex.completions(word)
-                  if (if (keywords(s)) language_context.is_outer else language_context.symbols)
-                  r <- words_map.get_list(s)
-                } yield r
-              if (completions.isEmpty) None
-              else Some(word, completions)
-            case None => None
-          }
+        val end =
+          if (extend_word) Completion.Word_Parsers.extend_word(text, caret)
+          else caret
+        (Completion.Word_Parsers.read_symbol(text.subSequence(0, end)) match {
+          case Some(symbol) => Some(symbol)
+          case None =>
+            val word_context =
+              end < length && Completion.Word_Parsers.is_word_char(text.charAt(end))
+            if (word_context) None
+            else Completion.Word_Parsers.read_word(explicit, text.subSequence(0, end))
+        }) match {
+          case Some(word) =>
+            val completions =
+              for {
+                s <- words_lex.completions(word)
+                if (if (keywords(s)) language_context.is_outer else language_context.symbols)
+                r <- words_map.get_list(s)
+              } yield r
+            if (completions.isEmpty) None
+            else Some(((word, completions), end))
+          case None => None
+        }
       }
 
     words_result match {
-      case Some((word, cs)) =>
-        val range = Text.Range(- word.length, 0) + (text_start + text.length)
+      case Some(((word, cs), end)) =>
+        val range = Text.Range(- word.length, 0) + end + start
         val ds = (if (decode) cs.map(Symbol.decode(_)) else cs).filter(_ != word)
         if (ds.isEmpty) None
         else {
@@ -328,7 +356,7 @@ final class Completion private(
           val items =
             ds.map(s => {
               val (s1, s2) =
-                space_explode(Completion.caret, s) match {
+                space_explode(Completion.caret_indicator, s) match {
                   case List(s1, s2) => (s1, s2)
                   case _ => (s, "")
                 }

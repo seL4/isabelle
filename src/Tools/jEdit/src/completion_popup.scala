@@ -141,13 +141,11 @@ object Completion_Popup
       Isabelle.mode_syntax(JEdit_Lib.buffer_mode(buffer)) match {
         case Some(syntax) =>
           val caret = text_area.getCaretPosition
-          val line = buffer.getLineOfOffset(caret)
-          val start = buffer.getLineStartOffset(line)
-          val text = buffer.getSegment(start, caret - start)
 
-          val word_context =
-            Completion.word_context(
-              JEdit_Lib.try_get_text(buffer, JEdit_Lib.point_range(buffer, caret)))
+          val line = buffer.getLineOfOffset(caret)
+          val line_start = buffer.getLineStartOffset(line)
+          val line_length = (buffer.getLineEndOffset(line) min buffer.getLength) - line_start
+          val line_text = buffer.getSegment(line_start, line_length)
 
           val context =
             (opt_rendering orElse PIDE.document_view(text_area).map(_.get_rendering()) match {
@@ -156,7 +154,8 @@ object Completion_Popup
               case None => None
             }) getOrElse syntax.language_context
 
-          syntax.completion.complete(history, decode, explicit, start, text, word_context, context)
+          syntax.completion.complete(
+            history, decode, explicit, line_start, line_text, caret - line_start, true, context)
 
         case None => None
       }
@@ -387,15 +386,11 @@ object Completion_Popup
           val history = PIDE.completion_history.value
 
           val caret = text_field.getCaret.getDot
-          val text = text_field.getText.substring(0, caret)
-
-          val word_context =
-            Completion.word_context(JEdit_Lib.try_get_text(text_field.getText,
-              Text.Range(caret, caret + 1)))  // FIXME proper point range!?
+          val text = text_field.getText
 
           val context = syntax.language_context
 
-          syntax.completion.complete(history, true, false, 0, text, word_context, context) match {
+          syntax.completion.complete(history, true, false, 0, text, caret, false, context) match {
             case Some(result) =>
               val fm = text_field.getFontMetrics(text_field.getFont)
               val loc =
