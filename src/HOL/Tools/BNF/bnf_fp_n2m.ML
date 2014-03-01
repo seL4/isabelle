@@ -47,7 +47,7 @@ fun mk_sum_map f g =
   end;
 
 fun construct_mutualized_fp fp fpTs (fp_sugars : fp_sugar list) bs resBs (resDs, Dss) bnfs
-    absT_infos lthy =
+    (absT_infos : absT_info list) lthy =
   let
     fun of_fp_res get =
       map (fn {fp_res, fp_res_index, ...} => nth (get fp_res) fp_res_index) fp_sugars;
@@ -122,13 +122,10 @@ fun construct_mutualized_fp fp fpTs (fp_sugars : fp_sugar list) bs resBs (resDs,
     val xTs = map (domain_type o fastype_of) xtors;
     val yTs = map (domain_type o fastype_of) xtor's;
 
-    fun abs_of allAs Ds bnf = mk_abs (mk_T_of_bnf Ds allAs bnf) o #abs;
-    fun rep_of absAT = mk_rep absAT o #rep;
-
-    val absAs = map3 (abs_of allAs) Dss bnfs absT_infos;
-    val absBs = map3 (abs_of allBs) Dss bnfs absT_infos;
-    val fp_repAs = map2 rep_of absATs fp_absT_infos;
-    val fp_repBs = map2 rep_of absBTs fp_absT_infos;
+    val absAs = map3 (fn Ds => mk_abs o mk_T_of_bnf Ds allAs) Dss bnfs abss;
+    val absBs = map3 (fn Ds => mk_abs o mk_T_of_bnf Ds allBs) Dss bnfs abss;
+    val fp_repAs = map2 mk_rep absATs fp_reps;
+    val fp_repBs = map2 mk_rep absBTs fp_reps;
 
     val (((((phis, phis'), pre_phis), xs), ys), names_lthy) = names_lthy
       |> mk_Frees' "R" phiTs
