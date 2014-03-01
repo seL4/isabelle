@@ -251,9 +251,9 @@ lemma mod_nat_sub:
 
 lemma int_mod_eq:
   "(0 :: int) <= b ==> b < n ==> a mod n = b mod n ==> a mod n = b"
-  by clarsimp (rule mod_pos_pos_trivial)
+  by (metis mod_pos_pos_trivial)
 
-lemmas int_mod_eq' = refl [THEN [3] int_mod_eq]
+lemmas int_mod_eq' = mod_pos_pos_trivial (* FIXME delete *)
 
 lemma int_mod_le: "(0::int) <= a ==> a mod n <= a"
   by (fact zmod_le_nonneg_dividend) (* FIXME: delete *)
@@ -357,7 +357,9 @@ lemma less_le_mult':
   apply assumption
   done
 
-lemmas less_le_mult = less_le_mult' [simplified distrib_right, simplified]
+lemma less_le_mult:
+  "w * c < b * c \<Longrightarrow> 0 \<le> c \<Longrightarrow> w * c + c \<le> b * (c::int)"
+  using less_le_mult' [of w c b] by (simp add: algebra_simps)
 
 lemmas less_le_mult_minus = iffD2 [OF le_diff_eq less_le_mult, 
   simplified left_diff_distrib]

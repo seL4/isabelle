@@ -18,7 +18,7 @@ text {* See @{file "Examples/WordExamples.thy"} for examples. *}
 
 subsection {* Type definition *}
 
-typedef 'a word = "{(0::int) ..< 2^len_of TYPE('a::len0)}"
+typedef 'a word = "{(0::int) ..< 2 ^ len_of TYPE('a::len0)}"
   morphisms uint Abs_word by auto
 
 lemma uint_nonnegative:
@@ -35,11 +35,19 @@ lemma uint_idem:
   shows "uint w mod 2 ^ len_of TYPE('a) = uint w"
   using uint_nonnegative uint_bounded by (rule mod_pos_pos_trivial)
 
+lemma word_uint_eq_iff:
+  "a = b \<longleftrightarrow> uint a = uint b"
+  by (simp add: uint_inject)
+
+lemma word_uint_eqI:
+  "uint a = uint b \<Longrightarrow> a = b"
+  by (simp add: word_uint_eq_iff)
+
 definition word_of_int :: "int \<Rightarrow> 'a\<Colon>len0 word"
 where
-  -- {* representation of words using unsigned or signed bins, 
-        only difference in these is the type class *}
-  "word_of_int k = Abs_word (k mod 2 ^ len_of TYPE('a))" 
+  -- {* representation of words using unsigned or signed bins,
+    only difference in these is the type class *}
+  "word_of_int k = Abs_word (k mod 2 ^ len_of TYPE('a))"
 
 lemma uint_word_of_int:
   "uint (word_of_int k :: 'a::len0 word) = k mod 2 ^ len_of TYPE('a)"
@@ -49,13 +57,183 @@ lemma word_of_int_uint:
   "word_of_int (uint w) = w"
   by (simp add: word_of_int_def uint_idem uint_inverse)
 
-lemma word_uint_eq_iff:
-  "a = b \<longleftrightarrow> uint a = uint b"
-  by (simp add: uint_inject)
+lemma split_word_all:
+  "(\<And>x::'a::len0 word. PROP P x) \<equiv> (\<And>x. PROP P (word_of_int x))"
+proof
+  fix x :: "'a word"
+  assume "\<And>x. PROP P (word_of_int x)"
+  then have "PROP P (word_of_int (uint x))" .
+  find_theorems word_of_int uint
+  then show "PROP P x" by (simp add: word_of_int_uint)
+qed
 
-lemma word_uint_eqI:
-  "uint a = uint b \<Longrightarrow> a = b"
-  by (simp add: word_uint_eq_iff)
+
+subsection {* Type conversions and casting *}
+
+definition sint :: "'a::len word \<Rightarrow> int"
+where
+  -- {* treats the most-significant-bit as a sign bit *}
+  sint_uint: "sint w = sbintrunc (len_of TYPE ('a) - 1) (uint w)"
+
+definition unat :: "'a::len0 word \<Rightarrow> nat"
+where
+  "unat w = nat (uint w)"
+
+definition uints :: "nat \<Rightarrow> int set"
+where
+  -- "the sets of integers representing the words"
+  "uints n = range (bintrunc n)"
+
+definition sints :: "nat \<Rightarrow> int set"
+where
+  "sints n = range (sbintrunc (n - 1))"
+
+lemma uints_num:
+  "uints n = {i. 0 \<le> i \<and> i < 2 ^ n}"
+  by (simp add: uints_def range_bintrunc)
+
+lemma sints_num:
+  "sints n = {i. - (2 ^ (n - 1)) \<le> i \<and> i < 2 ^ (n - 1)}"
+  by (simp add: sints_def range_sbintrunc)
+
+definition unats :: "nat \<Rightarrow> nat set"
+where
+  "unats n = {i. i < 2 ^ n}"
+
+definition norm_sint :: "nat \<Rightarrow> int \<Rightarrow> int"
+where
+  "norm_sint n w = (w + 2 ^ (n - 1)) mod 2 ^ n - 2 ^ (n - 1)"
+
+definition scast :: "'a::len word \<Rightarrow> 'b::len word"
+where
+  -- "cast a word to a different length"
+  "scast w = word_of_int (sint w)"
+
+definition ucast :: "'a::len0 word \<Rightarrow> 'b::len0 word"
+where
+  "ucast w = word_of_int (uint w)"
+
+instantiation word :: (len0) size
+begin
+
+definition
+  word_size: "size (w :: 'a word) = len_of TYPE('a)"
+
+instance ..
+
+end
+
+lemma word_size_gt_0 [iff]:
+  "0 < size (w::'a::len word)"
+  by (simp add: word_size)
+
+lemmas lens_gt_0 = word_size_gt_0 len_gt_0
+
+lemma lens_not_0 [iff]:
+  shows "size (w::'a::len word) \<noteq> 0"
+  and "len_of TYPE('a::len) \<noteq> 0"
+  by auto
+
+definition source_size :: "('a::len0 word \<Rightarrow> 'b) \<Rightarrow> nat"
+where
+  -- "whether a cast (or other) function is to a longer or shorter length"
+  "source_size c = (let arb = undefined ; x = c arb in size arb)"  
+
+definition target_size :: "('a \<Rightarrow> 'b::len0 word) \<Rightarrow> nat"
+where
+  "target_size c = size (c undefined)"
+
+definition is_up :: "('a::len0 word \<Rightarrow> 'b::len0 word) \<Rightarrow> bool"
+where
+  "is_up c \<longleftrightarrow> source_size c \<le> target_size c"
+
+definition is_down :: "('a :: len0 word \<Rightarrow> 'b :: len0 word) \<Rightarrow> bool"
+where
+  "is_down c \<longleftrightarrow> target_size c \<le> source_size c"
+
+definition of_bl :: "bool list \<Rightarrow> 'a::len0 word"
+where
+  "of_bl bl = word_of_int (bl_to_bin bl)"
+
+definition to_bl :: "'a::len0 word \<Rightarrow> bool list"
+where
+  "to_bl w = bin_to_bl (len_of TYPE ('a)) (uint w)"
+
+definition word_reverse :: "'a::len0 word \<Rightarrow> 'a word"
+where
+  "word_reverse w = of_bl (rev (to_bl w))"
+
+definition word_int_case :: "(int \<Rightarrow> 'b) \<Rightarrow> 'a::len0 word \<Rightarrow> 'b" 
+where
+  "word_int_case f w = f (uint w)"
+
+translations
+  "case x of XCONST of_int y => b" == "CONST word_int_case (%y. b) x"
+  "case x of (XCONST of_int :: 'a) y => b" => "CONST word_int_case (%y. b) x"
+
+
+subsection {* Type-definition locale instantiations *}
+
+lemmas uint_0 = uint_nonnegative (* FIXME duplicate *)
+lemmas uint_lt = uint_bounded (* FIXME duplicate *)
+lemmas uint_mod_same = uint_idem (* FIXME duplicate *)
+
+lemma td_ext_uint: 
+  "td_ext (uint :: 'a word \<Rightarrow> int) word_of_int (uints (len_of TYPE('a::len0))) 
+    (\<lambda>w::int. w mod 2 ^ len_of TYPE('a))"
+  apply (unfold td_ext_def')
+  apply (simp add: uints_num word_of_int_def bintrunc_mod2p)
+  apply (simp add: uint_mod_same uint_0 uint_lt
+                   word.uint_inverse word.Abs_word_inverse int_mod_lem)
+  done
+
+interpretation word_uint:
+  td_ext "uint::'a::len0 word \<Rightarrow> int" 
+         word_of_int 
+         "uints (len_of TYPE('a::len0))"
+         "\<lambda>w. w mod 2 ^ len_of TYPE('a::len0)"
+  by (fact td_ext_uint)
+
+lemmas td_uint = word_uint.td_thm
+lemmas int_word_uint = word_uint.eq_norm
+
+lemma td_ext_ubin:
+  "td_ext (uint :: 'a word \<Rightarrow> int) word_of_int (uints (len_of TYPE('a::len0)))
+    (bintrunc (len_of TYPE('a)))"
+  by (unfold no_bintr_alt1) (fact td_ext_uint)
+
+interpretation word_ubin:
+  td_ext "uint::'a::len0 word \<Rightarrow> int" 
+         word_of_int 
+         "uints (len_of TYPE('a::len0))"
+         "bintrunc (len_of TYPE('a::len0))"
+  by (fact td_ext_ubin)
+
+
+subsection {* Correspondence relation for theorem transfer *}
+
+definition cr_word :: "int \<Rightarrow> 'a::len0 word \<Rightarrow> bool"
+where
+  "cr_word = (\<lambda>x y. word_of_int x = y)"
+
+lemma Quotient_word:
+  "Quotient (\<lambda>x y. bintrunc (len_of TYPE('a)) x = bintrunc (len_of TYPE('a)) y)
+    word_of_int uint (cr_word :: _ \<Rightarrow> 'a::len0 word \<Rightarrow> bool)"
+  unfolding Quotient_alt_def cr_word_def
+  by (simp add: word_ubin.norm_eq_iff)
+
+lemma reflp_word:
+  "reflp (\<lambda>x y. bintrunc (len_of TYPE('a::len0)) x = bintrunc (len_of TYPE('a)) y)"
+  by (simp add: reflp_def)
+
+setup_lifting (no_code) Quotient_word reflp_word
+
+text {* TODO: The next lemma could be generated automatically. *}
+
+lemma uint_transfer [transfer_rule]:
+  "(fun_rel pcr_word op =) (bintrunc (len_of TYPE('a)))
+    (uint :: 'a::len0 word \<Rightarrow> int)"
+  unfolding fun_rel_def word.pcr_cr_eq cr_word_def by (simp add: word_ubin.eq_norm)
 
 
 subsection {* Basic code generation setup *}
@@ -66,7 +244,7 @@ where
 
 lemma [code abstype]:
   "Word (uint w) = w"
-  by (simp add: Word_def word_of_int_uint)
+  by (simp add: Word_def)
 
 declare uint_word_of_int [code abstract]
 
@@ -78,7 +256,7 @@ where
   "equal_word k l \<longleftrightarrow> HOL.equal (uint k) (uint l)"
 
 instance proof
-qed (simp add: equal equal_word_def word_uint_eq_iff)
+qed (simp add: equal equal_word_def)
 
 end
 
@@ -101,178 +279,7 @@ no_notation fcomp (infixl "\<circ>>" 60)
 no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
 
-subsection {* Type conversions and casting *}
-
-definition sint :: "'a :: len word => int"
-where
-  -- {* treats the most-significant-bit as a sign bit *}
-  sint_uint: "sint w = sbintrunc (len_of TYPE ('a) - 1) (uint w)"
-
-definition unat :: "'a :: len0 word => nat"
-where
-  "unat w = nat (uint w)"
-
-definition uints :: "nat => int set"
-where
-  -- "the sets of integers representing the words"
-  "uints n = range (bintrunc n)"
-
-definition sints :: "nat => int set"
-where
-  "sints n = range (sbintrunc (n - 1))"
-
-definition unats :: "nat => nat set"
-where
-  "unats n = {i. i < 2 ^ n}"
-
-definition norm_sint :: "nat => int => int"
-where
-  "norm_sint n w = (w + 2 ^ (n - 1)) mod 2 ^ n - 2 ^ (n - 1)"
-
-definition scast :: "'a :: len word => 'b :: len word"
-where
-  -- "cast a word to a different length"
-  "scast w = word_of_int (sint w)"
-
-definition ucast :: "'a :: len0 word => 'b :: len0 word"
-where
-  "ucast w = word_of_int (uint w)"
-
-instantiation word :: (len0) size
-begin
-
-definition
-  word_size: "size (w :: 'a word) = len_of TYPE('a)"
-
-instance ..
-
-end
-
-definition source_size :: "('a :: len0 word => 'b) => nat"
-where
-  -- "whether a cast (or other) function is to a longer or shorter length"
-  "source_size c = (let arb = undefined ; x = c arb in size arb)"  
-
-definition target_size :: "('a => 'b :: len0 word) => nat"
-where
-  "target_size c = size (c undefined)"
-
-definition is_up :: "('a :: len0 word => 'b :: len0 word) => bool"
-where
-  "is_up c \<longleftrightarrow> source_size c <= target_size c"
-
-definition is_down :: "('a :: len0 word => 'b :: len0 word) => bool"
-where
-  "is_down c \<longleftrightarrow> target_size c <= source_size c"
-
-definition of_bl :: "bool list => 'a :: len0 word"
-where
-  "of_bl bl = word_of_int (bl_to_bin bl)"
-
-definition to_bl :: "'a :: len0 word => bool list"
-where
-  "to_bl w = bin_to_bl (len_of TYPE ('a)) (uint w)"
-
-definition word_reverse :: "'a :: len0 word => 'a word"
-where
-  "word_reverse w = of_bl (rev (to_bl w))"
-
-definition word_int_case :: "(int => 'b) => ('a :: len0 word) => 'b" 
-where
-  "word_int_case f w = f (uint w)"
-
-translations
-  "case x of XCONST of_int y => b" == "CONST word_int_case (%y. b) x"
-  "case x of (XCONST of_int :: 'a) y => b" => "CONST word_int_case (%y. b) x"
-
-subsection {* Type-definition locale instantiations *}
-
-lemma word_size_gt_0 [iff]: "0 < size (w::'a::len word)"
-  by (fact xtr1 [OF word_size len_gt_0])
-
-lemmas lens_gt_0 = word_size_gt_0 len_gt_0
-lemmas lens_not_0 [iff] = lens_gt_0 [THEN gr_implies_not0]
-
-lemma uints_num: "uints n = {i. 0 \<le> i \<and> i < 2 ^ n}"
-  by (simp add: uints_def range_bintrunc)
-
-lemma sints_num: "sints n = {i. - (2 ^ (n - 1)) \<le> i \<and> i < 2 ^ (n - 1)}"
-  by (simp add: sints_def range_sbintrunc)
-
-lemma 
-  uint_0:"0 <= uint x" and 
-  uint_lt: "uint (x::'a::len0 word) < 2 ^ len_of TYPE('a)"
-  by (auto simp: uint [unfolded atLeastLessThan_iff])
-
-lemma uint_mod_same:
-  "uint x mod 2 ^ len_of TYPE('a) = uint (x::'a::len0 word)"
-  by (simp add: int_mod_eq uint_lt uint_0)
-
-lemma td_ext_uint: 
-  "td_ext (uint :: 'a word => int) word_of_int (uints (len_of TYPE('a::len0))) 
-    (%w::int. w mod 2 ^ len_of TYPE('a))"
-  apply (unfold td_ext_def')
-  apply (simp add: uints_num word_of_int_def bintrunc_mod2p)
-  apply (simp add: uint_mod_same uint_0 uint_lt
-                   word.uint_inverse word.Abs_word_inverse int_mod_lem)
-  done
-
-interpretation word_uint:
-  td_ext "uint::'a::len0 word \<Rightarrow> int" 
-         word_of_int 
-         "uints (len_of TYPE('a::len0))"
-         "\<lambda>w. w mod 2 ^ len_of TYPE('a::len0)"
-  by (rule td_ext_uint)
-
-lemmas td_uint = word_uint.td_thm
-
-lemmas int_word_uint = word_uint.eq_norm
-
-lemmas td_ext_ubin = td_ext_uint 
-  [unfolded len_gt_0 no_bintr_alt1 [symmetric]]
-
-interpretation word_ubin:
-  td_ext "uint::'a::len0 word \<Rightarrow> int" 
-         word_of_int 
-         "uints (len_of TYPE('a::len0))"
-         "bintrunc (len_of TYPE('a::len0))"
-  by (rule td_ext_ubin)
-
-lemma split_word_all:
-  "(\<And>x::'a::len0 word. PROP P x) \<equiv> (\<And>x. PROP P (word_of_int x))"
-proof
-  fix x :: "'a word"
-  assume "\<And>x. PROP P (word_of_int x)"
-  hence "PROP P (word_of_int (uint x))" .
-  thus "PROP P x" by simp
-qed
-
-subsection {* Correspondence relation for theorem transfer *}
-
-definition cr_word :: "int \<Rightarrow> 'a::len0 word \<Rightarrow> bool"
-where
-  "cr_word = (\<lambda>x y. word_of_int x = y)"
-
-lemma Quotient_word:
-  "Quotient (\<lambda>x y. bintrunc (len_of TYPE('a)) x = bintrunc (len_of TYPE('a)) y)
-    word_of_int uint (cr_word :: _ \<Rightarrow> 'a::len0 word \<Rightarrow> bool)"
-  unfolding Quotient_alt_def cr_word_def
-  by (simp add: word_ubin.norm_eq_iff)
-
-lemma reflp_word:
-  "reflp (\<lambda>x y. bintrunc (len_of TYPE('a::len0)) x = bintrunc (len_of TYPE('a)) y)"
-  by (simp add: reflp_def)
-
-setup_lifting(no_code) Quotient_word reflp_word
-
-text {* TODO: The next lemma could be generated automatically. *}
-
-lemma uint_transfer [transfer_rule]:
-  "(fun_rel pcr_word op =) (bintrunc (len_of TYPE('a)))
-    (uint :: 'a::len0 word \<Rightarrow> int)"
-  unfolding fun_rel_def word.pcr_cr_eq cr_word_def by (simp add: word_ubin.eq_norm)
-
-subsection  "Arithmetic operations"
+subsection {* Arithmetic operations *}
 
 lift_definition word_succ :: "'a::len0 word \<Rightarrow> 'a word" is "\<lambda>x. x + 1"
   by (metis bintr_ariths(6))
@@ -365,7 +372,7 @@ where
   "a udvd b = (EX n>=0. uint b = n * uint a)"
 
 
-subsection "Ordering"
+subsection {* Ordering *}
 
 instantiation word :: (len0) linorder
 begin
@@ -390,7 +397,7 @@ where
   "(x <s y) = (x <=s y & x ~= y)"
 
 
-subsection "Bit-wise operations"
+subsection {* Bit-wise operations *}
 
 instantiation word :: (len0) bits
 begin
@@ -467,7 +474,7 @@ where
   "clearBit w n = set_bit w n False"
 
 
-subsection "Shift operations"
+subsection {* Shift operations *}
 
 definition sshiftr1 :: "'a :: len word => 'a word"
 where 
@@ -498,7 +505,7 @@ where
   "slice n w = slice1 (size w - n) w"
 
 
-subsection "Rotation"
+subsection {* Rotation *}
 
 definition rotater1 :: "'a list => 'a list"
 where
@@ -523,7 +530,7 @@ where
                     else word_rotl (nat (- i)) w)"
 
 
-subsection "Split and cat operations"
+subsection {* Split and cat operations *}
 
 definition word_cat :: "'a :: len0 word => 'b :: len0 word => 'c :: len0 word"
 where
@@ -549,8 +556,8 @@ definition max_word :: "'a::len word" -- "Largest representable machine integer.
 where
   "max_word = word_of_int (2 ^ len_of TYPE('a) - 1)"
 
-(* FIXME: only provide one theorem name *)
-lemmas of_nth_def = word_set_bits_def
+lemmas of_nth_def = word_set_bits_def (* FIXME duplicate *)
+
 
 subsection {* Theorems about typedefs *}
 
@@ -578,7 +585,7 @@ lemma wi_bintr:
   by (clarsimp simp add: word_ubin.norm_eq_iff [symmetric] min.absorb1)
 
 lemma td_ext_sbin: 
-  "td_ext (sint :: 'a word => int) word_of_int (sints (len_of TYPE('a::len))) 
+  "td_ext (sint :: 'a word \<Rightarrow> int) word_of_int (sints (len_of TYPE('a::len))) 
     (sbintrunc (len_of TYPE('a) - 1))"
   apply (unfold td_ext_def' sint_uint)
   apply (simp add : word_ubin.eq_norm)
@@ -591,8 +598,11 @@ lemma td_ext_sbin:
   apply simp
   done
 
-lemmas td_ext_sint = td_ext_sbin 
-  [simplified len_gt_0 no_sbintr_alt2 Suc_pred' [symmetric]]
+lemma td_ext_sint:
+  "td_ext (sint :: 'a word \<Rightarrow> int) word_of_int (sints (len_of TYPE('a::len)))
+     (\<lambda>w. (w + 2 ^ (len_of TYPE('a) - 1)) mod 2 ^ len_of TYPE('a) -
+         2 ^ (len_of TYPE('a) - 1))"
+  using td_ext_sbin [where ?'a = 'a] by (simp add: no_sbintr_alt2)
 
 (* We do sint before sbin, before sint is the user version
    and interpretations do not produce thm duplicates. I.e. 
@@ -706,8 +716,8 @@ lemma uint_m2p_not_non_neg:
   by (simp only: not_le uint_m2p_neg)
 
 lemma lt2p_lem:
-  "len_of TYPE('a) <= n \<Longrightarrow> uint (w :: 'a :: len0 word) < 2 ^ n"
-  by (rule xtr8 [OF _ uint_lt2p]) simp
+  "len_of TYPE('a) \<le> n \<Longrightarrow> uint (w :: 'a::len0 word) < 2 ^ n"
+  by (metis bintr_uint bintrunc_mod2p int_mod_lem zless2p)
 
 lemma uint_le_0_iff [simp]: "uint x \<le> 0 \<longleftrightarrow> uint x = 0"
   by (fact uint_ge_0 [THEN leD, THEN linorder_antisym_conv1])
@@ -739,10 +749,12 @@ lemma sint_numeral: "sint (numeral b :: 'a :: len word) = (numeral b +
     2 ^ (len_of TYPE('a) - 1)"
   unfolding word_numeral_alt by (rule int_word_sint)
 
-lemma word_of_int_0 [simp, code_post]: "word_of_int 0 = 0"
+lemma word_of_int_0 [simp, code_post]:
+  "word_of_int 0 = 0"
   unfolding word_0_wi ..
 
-lemma word_of_int_1 [simp, code_post]: "word_of_int 1 = 1"
+lemma word_of_int_1 [simp, code_post]:
+  "word_of_int 1 = 1"
   unfolding word_1_wi ..
 
 lemma word_of_int_neg_1 [simp]: "word_of_int (- 1) = - 1"
@@ -766,14 +778,14 @@ lemma word_int_split:
     (ALL i. x = (word_of_int i :: 'b :: len0 word) & 
       0 <= i & i < 2 ^ len_of TYPE('b) --> P (f i))"
   unfolding word_int_case_def
-  by (auto simp: word_uint.eq_norm int_mod_eq')
+  by (auto simp: word_uint.eq_norm mod_pos_pos_trivial)
 
 lemma word_int_split_asm: 
   "P (word_int_case f x) = 
     (~ (EX n. x = (word_of_int n :: 'b::len0 word) &
       0 <= n & n < 2 ^ len_of TYPE('b::len0) & ~ P (f n)))"
   unfolding word_int_case_def
-  by (auto simp: word_uint.eq_norm int_mod_eq')
+  by (auto simp: word_uint.eq_norm mod_pos_pos_trivial)
 
 lemmas uint_range' = word_uint.Rep [unfolded uints_num mem_Collect_eq]
 lemmas sint_range' = word_sint.Rep [unfolded One_nat_def sints_num mem_Collect_eq]
@@ -791,6 +803,7 @@ lemma sint_above_size: "2 ^ (size (w::'a::len word) - 1) \<le> x \<Longrightarro
 lemma sint_below_size:
   "x \<le> - (2 ^ (size (w::'a::len word) - 1)) \<Longrightarrow> x \<le> sint w"
   unfolding word_size by (rule order_trans [OF _ sint_ge])
+
 
 subsection {* Testing bits *}
 
@@ -855,7 +868,7 @@ interpretation word_bl:
   type_definition "to_bl :: 'a::len0 word => bool list"
                   of_bl  
                   "{bl. length bl = len_of TYPE('a::len0)}"
-  by (rule td_bl)
+  by (fact td_bl)
 
 lemmas word_bl_Rep' = word_bl.Rep [unfolded mem_Collect_eq, iff]
 
@@ -1279,7 +1292,8 @@ lemmas word_arith_alts =
   word_sub_wi
   word_arith_wis (* FIXME: duplicate *)
 
-subsection  "Transferring goals from words to ints"
+
+subsection {* Transferring goals from words to ints *}
 
 lemma word_ths:  
   shows
@@ -1327,7 +1341,7 @@ lemma word_of_int_Ex:
   by (rule_tac x="uint x" in exI) simp
 
 
-subsection "Order on fixed-length words"
+subsection {* Order on fixed-length words *}
 
 lemma word_zero_le [simp] :
   "0 <= (y :: 'a :: len0 word)"
@@ -1389,28 +1403,22 @@ lemma udvd_iff_dvd: "x udvd y <-> unat x dvd unat y"
 
 lemmas unat_mono = word_less_nat_alt [THEN iffD1]
 
-lemma unat_minus_one: "x ~= 0 \<Longrightarrow> unat (x - 1) = unat x - 1"
-  apply (unfold unat_def)
-  apply (simp only: int_word_uint word_arith_alts rdmods)
-  apply (subgoal_tac "uint x >= 1")
-   prefer 2
-   apply (drule contrapos_nn)
-    apply (erule word_uint.Rep_inverse' [symmetric])
-   apply (insert uint_ge_0 [of x])[1]
-   apply arith
-  apply (rule box_equals)
-    apply (rule nat_diff_distrib)
-     prefer 2
-     apply assumption
-    apply simp
-   apply (subst mod_pos_pos_trivial)
-     apply arith
-    apply (insert uint_lt2p [of x])[1]
-    apply arith
-   apply (rule refl)
-  apply simp
-  done
-    
+lemma unat_minus_one:
+  assumes "w \<noteq> 0"
+  shows "unat (w - 1) = unat w - 1"
+proof -
+  have "0 \<le> uint w" by (fact uint_nonnegative)
+  moreover from assms have "0 \<noteq> uint w" by (simp add: uint_0_iff)
+  ultimately have "1 \<le> uint w" by arith
+  from uint_lt2p [of w] have "uint w - 1 < 2 ^ len_of TYPE('a)" by arith
+  with `1 \<le> uint w` have "(uint w - 1) mod 2 ^ len_of TYPE('a) = uint w - 1"
+    by (auto intro: mod_pos_pos_trivial)
+  with `1 \<le> uint w` have "nat ((uint w - 1) mod 2 ^ len_of TYPE('a)) = nat (uint w) - 1"
+    by auto
+  then show ?thesis
+    by (simp only: unat_def int_word_uint word_arith_alts mod_diff_right_eq [symmetric])
+qed
+
 lemma measure_unat: "p ~= 0 \<Longrightarrow> unat (p - 1) < unat p"
   by (simp add: unat_minus_one) (simp add: unat_0_iff [symmetric])
   
@@ -1423,7 +1431,7 @@ lemma uint_sub_lt2p [simp]:
   using uint_ge_0 [of y] uint_lt2p [of x] by arith
 
 
-subsection "Conditions for the addition (etc) of two words to overflow"
+subsection {* Conditions for the addition (etc) of two words to overflow *}
 
 lemma uint_add_lem: 
   "(uint x + uint y < 2 ^ len_of TYPE('a)) = 
@@ -1440,16 +1448,35 @@ lemma uint_sub_lem:
   by (unfold uint_word_ariths) (auto intro!: trans [OF _ int_mod_lem])
 
 lemma uint_add_le: "uint (x + y) <= uint x + uint y"
-  unfolding uint_word_ariths by (auto simp: mod_add_if_z)
+  unfolding uint_word_ariths by (metis uint_add_ge0 zmod_le_nonneg_dividend)
 
 lemma uint_sub_ge: "uint (x - y) >= uint x - uint y"
-  unfolding uint_word_ariths by (auto simp: mod_sub_if_z)
+  unfolding uint_word_ariths by (metis int_mod_ge uint_sub_lt2p zless2p)
 
-lemmas uint_sub_if' = trans [OF uint_word_ariths(1) mod_sub_if_z, simplified]
-lemmas uint_plus_if' = trans [OF uint_word_ariths(2) mod_add_if_z, simplified]
+lemma mod_add_if_z:
+  "(x :: int) < z ==> y < z ==> 0 <= y ==> 0 <= x ==> 0 <= z ==> 
+   (x + y) mod z = (if x + y < z then x + y else x + y - z)"
+  by (auto intro: int_mod_eq)
+
+lemma uint_plus_if':
+  "uint ((a::'a word) + b) =
+  (if uint a + uint b < 2 ^ len_of TYPE('a::len0) then uint a + uint b
+   else uint a + uint b - 2 ^ len_of TYPE('a))"
+  using mod_add_if_z [of "uint a" _ "uint b"] by (simp add: uint_word_ariths)
+
+lemma mod_sub_if_z:
+  "(x :: int) < z ==> y < z ==> 0 <= y ==> 0 <= x ==> 0 <= z ==> 
+   (x - y) mod z = (if y <= x then x - y else x - y + z)"
+  by (auto intro: int_mod_eq)
+
+lemma uint_sub_if':
+  "uint ((a::'a word) - b) =
+  (if uint b \<le> uint a then uint a - uint b
+   else uint a - uint b + 2 ^ len_of TYPE('a::len0))"
+  using mod_sub_if_z [of "uint a" _ "uint b"] by (simp add: uint_word_ariths)
 
 
-subsection {* Definition of uint\_arith *}
+subsection {* Definition of @{text uint_arith} *}
 
 lemma word_of_int_inverse:
   "word_of_int r = a \<Longrightarrow> 0 <= r \<Longrightarrow> r < 2 ^ len_of TYPE('a) \<Longrightarrow> 
@@ -1463,7 +1490,7 @@ lemma uint_split:
   shows "P (uint x) = 
          (ALL i. word_of_int i = x & 0 <= i & i < 2^len_of TYPE('a) --> P i)"
   apply (fold word_int_case_def)
-  apply (auto dest!: word_of_int_inverse simp: int_word_uint int_mod_eq'
+  apply (auto dest!: word_of_int_inverse simp: int_word_uint mod_pos_pos_trivial
               split: word_int_split)
   done
 
@@ -1472,7 +1499,7 @@ lemma uint_split_asm:
   shows "P (uint x) = 
          (~(EX i. word_of_int i = x & 0 <= i & i < 2^len_of TYPE('a) & ~ P i))"
   by (auto dest!: word_of_int_inverse 
-           simp: int_word_uint int_mod_eq'
+           simp: int_word_uint mod_pos_pos_trivial
            split: uint_split)
 
 lemmas uint_splits = uint_split uint_split_asm
@@ -1523,7 +1550,7 @@ method_setup uint_arith =
   "solving word arithmetic via integers and arith"
 
 
-subsection "More on overflows and monotonicity"
+subsection {* More on overflows and monotonicity *}
 
 lemma no_plus_overflow_uint_size: 
   "((x :: 'a :: len0 word) <= x + y) = (uint x + uint y < 2 ^ size x)"
@@ -1654,6 +1681,7 @@ lemma udvd_incr_lem:
   "up < uq \<Longrightarrow> up = ua + n * uint K \<Longrightarrow> 
     uq = ua + n' * uint K \<Longrightarrow> up + uint K <= uq"
   apply clarsimp
+  
   apply (drule less_le_mult)
   apply safe
   done
@@ -1748,7 +1776,7 @@ lemma rtb_rbl_ariths:
                  word_pred_rbl word_mult_rbl word_add_rbl)
 
 
-subsection "Arithmetic type class instantiations"
+subsection {* Arithmetic type class instantiations *}
 
 lemmas word_le_0_iff [simp] =
   word_zero_le [THEN leD, THEN linorder_antisym_conv1]
@@ -1771,7 +1799,7 @@ lemmas word_eq_numeral_iff_iszero [simp] =
   eq_numeral_iff_iszero [where 'a="'a::len word"]
 
 
-subsection "Word and nat"
+subsection {* Word and nat *}
 
 lemma td_ext_unat [OF refl]:
   "n = len_of TYPE ('a :: len) \<Longrightarrow> 
@@ -1962,7 +1990,7 @@ lemma uint_mod: "uint ((x :: 'a :: len word) mod y) = uint x mod uint y"
   unfolding uint_nat by (simp add : unat_mod zmod_int)
 
 
-subsection {* Definition of unat\_arith tactic *}
+subsection {* Definition of @[text unat_arith} tactic *}
 
 lemma unat_split:
   fixes x::"'a::len word"
@@ -2157,7 +2185,7 @@ lemma of_bl_length_less:
   done
 
 
-subsection "Cardinality, finiteness of set of words"
+subsection {* Cardinality, finiteness of set of words *}
 
 instance word :: (len0) finite
   by (default, simp add: type_definition.univ [OF type_definition_word])
@@ -2865,7 +2893,8 @@ lemma sshiftr_div_2n: "sint (sshiftr w n) = sint w div 2 ^ n"
                    zdiv_zmult2_eq [symmetric])
   done
 
-subsubsection "shift functions in terms of lists of bools"
+
+subsubsection {* shift functions in terms of lists of bools *}
 
 lemmas bshiftr1_numeral [simp] = 
   bshiftr1_def [where w="numeral w", unfolded to_bl_numeral] for w
@@ -3152,7 +3181,8 @@ lemma aligned_bl_add_size [OF refl]:
      apply (simp_all add: word_size)
   done
 
-subsubsection "Mask"
+
+subsubsection {* Mask *}
 
 lemma nth_mask [OF refl, simp]:
   "m = mask n \<Longrightarrow> test_bit m i = (i < n & i < size m)"
@@ -3240,7 +3270,7 @@ lemma word_2p_lem:
   "n < size w \<Longrightarrow> w < 2 ^ n = (uint (w :: 'a :: len word) < 2 ^ n)"
   apply (unfold word_size word_less_alt word_numeral_alt)
   apply (clarsimp simp add: word_of_int_power_hom word_uint.eq_norm 
-                            int_mod_eq'
+                            mod_pos_pos_trivial
                   simp del: word_of_int_numeral)
   done
 
@@ -3287,7 +3317,7 @@ lemma mask_power_eq:
   by (clarsimp simp: and_mask_wi word_of_int_power_hom bintr_ariths)
 
 
-subsubsection "Revcast"
+subsubsection {* Revcast *}
 
 lemmas revcast_def' = revcast_def [simplified]
 lemmas revcast_def'' = revcast_def' [simplified word_size]
@@ -3402,7 +3432,7 @@ lemmas ucast_down =
   rc2 [simplified rev_shiftr revcast_ucast [symmetric]]
 
 
-subsubsection "Slices"
+subsubsection {* Slices *}
 
 lemma slice1_no_bin [simp]:
   "slice1 n (numeral w :: 'b word) = of_bl (takefill False n (bin_to_bl (len_of TYPE('b :: len0)) (numeral w)))"
@@ -3542,7 +3572,7 @@ lemma sofl_test:
   done
 
 
-subsection "Split and cat"
+subsection {* Split and cat *}
 
 lemmas word_split_bin' = word_split_def
 lemmas word_cat_bin' = word_cat_def
@@ -3707,7 +3737,7 @@ lemma word_cat_split_alt:
 lemmas word_cat_split_size = sym [THEN [2] word_cat_split_alt [symmetric]]
 
 
-subsubsection "Split and slice"
+subsubsection {* Split and slice *}
 
 lemma split_slices: 
   "word_split w = (u, v) \<Longrightarrow> u = slice (size v) w & v = slice 0 w"
@@ -3911,7 +3941,7 @@ lemma word_rsplit_rcat_size [OF refl]:
   done
 
 
-subsection "Rotation"
+subsection {* Rotation *}
 
 lemmas rotater_0' [simp] = rotater_def [where n = "0", simplified]
 
@@ -3933,7 +3963,7 @@ lemmas rotate_eqs =
   rotate_eq_mod
 
 
-subsubsection "Rotation of list to right"
+subsubsection {* Rotation of list to right *}
 
 lemma rotate1_rl': "rotater1 (l @ [a]) = a # l"
   unfolding rotater1_def by (cases l) auto
@@ -4008,7 +4038,7 @@ lemmas rotater_0 = rotater_eqs (1)
 lemmas rotater_add = rotater_eqs (2)
 
 
-subsubsection "map, map2, commuting with rotate(r)"
+subsubsection {* map, map2, commuting with rotate(r) *}
 
 lemma butlast_map:
   "xs ~= [] \<Longrightarrow> butlast (map f xs) = map f (butlast xs)"
@@ -4184,7 +4214,7 @@ lemma word_roti_conv_mod': "word_roti n w = word_roti (n mod int (size w)) w"
 lemmas word_roti_conv_mod = word_roti_conv_mod' [unfolded word_size]
 
 
-subsubsection "Word rotation commutes with bit-wise operations"
+subsubsection {* "Word rotation commutes with bit-wise operations *}
 
 (* using locale to not pollute lemma namespace *)
 locale word_rotate 
@@ -4279,7 +4309,7 @@ lemma max_word_eq: "(max_word::'a::len word) = 2^len_of TYPE('a) - 1"
 
 lemma max_word_max [simp,intro!]: "n \<le> max_word"
   by (cases n rule: word_int_cases)
-    (simp add: max_word_def word_le_def int_word_uint int_mod_eq' del: minus_mod_self1)
+    (simp add: max_word_def word_le_def int_word_uint mod_pos_pos_trivial del: minus_mod_self1)
   
 lemma word_of_int_2p_len: "word_of_int (2 ^ len_of TYPE('a)) = (0::'a::len0 word)"
   by (subst word_uint.Abs_norm [symmetric]) simp
@@ -4574,6 +4604,7 @@ lemma word_induct2 [induct type]:
   apply (case_tac "1+n = 0", auto)
   done
 
+
 subsection {* Recursion combinator for words *}
 
 definition word_rec :: "'a \<Rightarrow> ('b::len word \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'b word \<Rightarrow> 'a"
@@ -4692,4 +4723,6 @@ setup SMT_Word.setup
 hide_const (open) Word
 
 end
+
+
 
