@@ -440,7 +440,7 @@ fun parse_ast_pattern ctxt (root, str) =
           else decode_appl ps asts
       | decode ps (Ast.Appl asts) = decode_appl ps asts;
 
-    val {text, pos, ...} = Syntax.read_token_source str;
+    val {text, pos, ...} = Syntax.read_token str;
     val syms = Symbol_Pos.explode (text, pos);
     val ast =
       parse_asts ctxt true root (syms, pos)

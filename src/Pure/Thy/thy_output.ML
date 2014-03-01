@@ -467,10 +467,11 @@ fun tweak_line ctxt s =
 fun pretty_text ctxt =
   Pretty.chunks o map Pretty.str o map (tweak_line ctxt) o split_lines;
 
-fun pretty_text_report ctxt {delimited, text, pos} =
+fun pretty_text_report ctxt source =
   let
+    val {delimited, pos, ...} = source;
     val _ = Context_Position.report ctxt pos (Markup.language_text delimited);
-    val s = Symbol_Pos.content (Symbol_Pos.explode (text, pos));
+    val (s, _) = Symbol_Pos.source_content source;
   in pretty_text ctxt s end;
 
 fun pretty_term ctxt t = Syntax.pretty_term (Variable.auto_fixes t ctxt) t;
@@ -641,9 +642,10 @@ val verb_text =
 local
 
 fun ml_text name ml = antiquotation name (Scan.lift Args.name_source_position)
-  (fn {context, ...} => fn source as {text, pos, ...} =>
-   (ML_Context.eval_in (SOME context) false pos (ml source);
-    Symbol_Pos.content (Symbol_Pos.explode (text, pos))
+  (fn {context, ...} => fn source =>
+   (ML_Context.eval_in (SOME context) false (#pos source) (ml source);
+    Symbol_Pos.source_content source
+    |> #1
     |> (if Config.get context quotes then quote else I)
     |> (if Config.get context display then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"
         else verb_text)));
@@ -663,9 +665,9 @@ val _ = Theory.setup
     (ml_enclose "functor XXX() = struct structure XX = " " end;") #>
 
   ml_text (Binding.name "ML_functor")   (* FIXME formal treatment of functor name (!?) *)
-    (fn {text, pos, ...} =>
+    (fn source =>
       ML_Lex.read Position.none ("ML_Env.check_functor " ^
-        ML_Syntax.print_string (Symbol_Pos.content (Symbol_Pos.explode (text, pos))))) #>
+        ML_Syntax.print_string (#1 (Symbol_Pos.source_content source)))) #>
 
   ml_text (Binding.name "ML_text") (K []));
 

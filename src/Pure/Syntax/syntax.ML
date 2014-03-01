@@ -15,8 +15,7 @@ sig
   val ambiguity_limit_raw: Config.raw
   val ambiguity_limit: int Config.T
   val read_token_pos: string -> Position.T
-  val read_token_source: string -> Symbol_Pos.source
-  val read_token_content: string -> string * Position.T
+  val read_token: string -> Symbol_Pos.source
   val parse_token: Proof.context -> (XML.tree list -> 'a) ->
     (bool -> Markup.T) -> (Symbol_Pos.T list * Position.T -> 'a) -> string -> 'a
   val parse_sort: Proof.context -> string -> sort
@@ -178,13 +177,7 @@ in
 
 fun read_token_pos str = #2 (token_position (YXML.parse str handle Fail msg => error msg));
 
-fun read_token_source str = token_source (YXML.parse str handle Fail msg => error msg);
-
-fun read_token_content str =
-  let
-    val {text, pos, ...} = read_token_source str;
-    val syms = Symbol_Pos.explode (text, pos);
-  in (Symbol_Pos.content syms, pos) end;
+fun read_token str = token_source (YXML.parse str handle Fail msg => error msg);
 
 fun parse_token ctxt decode markup parse str =
   let
