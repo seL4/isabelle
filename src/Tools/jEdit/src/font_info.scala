@@ -17,9 +17,6 @@ import org.gjt.sp.jedit.{jEdit, View}
 
 object Font_Info
 {
-  val dummy: Font_Info = Font_Info("Dialog", 12.0f)
-
-
   /* size range */
 
   val min_size = 5

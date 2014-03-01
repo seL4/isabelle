@@ -61,7 +61,7 @@ class Pretty_Text_Area(
 
   Swing_Thread.require()
 
-  private var current_font_info: Font_Info = Font_Info.dummy
+  private var current_font_info: Font_Info = Font_Info.main()
   private var current_body: XML.Body = Nil
   private var current_base_snapshot = Document.Snapshot.init
   private var current_base_results = Command.Results.empty
