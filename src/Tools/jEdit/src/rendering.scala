@@ -54,11 +54,14 @@ object Rendering
 
   def font_size_change(view: View, change: Int => Int)
   {
-    val size = change(view_font_size()) max font_size0 min font_size1
-    jEdit.setIntegerProperty("view.fontsize", size)
-    jEdit.propertiesChanged()
-    jEdit.saveSettings()
-    view.getStatus.setMessageAndClear("Text font size: " + size)
+    val size0 = view_font_size()
+    val size = change(size0) max font_size0 min font_size1
+    if (size != size0) {
+      jEdit.setIntegerProperty("view.fontsize", size)
+      jEdit.propertiesChanged()
+      jEdit.saveSettings()
+      view.getStatus.setMessageAndClear("Text font size: " + size)
+    }
   }
 
 

@@ -186,14 +186,39 @@ object Isabelle
 
   /* font size */
 
+  private object font_size
+  {
+    // owned by Swing thread
+    private var last_view: Option[View] = None
+    private var steps = 0
+    private val delay = Swing_Thread.delay_last(PIDE.options.seconds("editor_input_delay"))
+    {
+      val view = last_view getOrElse jEdit.getActiveView()
+      Rendering.font_size_change(view, i =>
+        {
+          var j = i
+          while (steps != 0 && j > 0) {
+            if (steps > 0)
+              { j += (j / 10) max 1; steps -= 1 }
+            else
+              { j -= (j / 10) max 1; steps += 1 }
+          }
+          steps = 0
+          j
+        })
+    }
+    def step(view: View, i: Int) { last_view = Some(view); steps += i; delay.invoke() }
+    def reset() { delay.revoke(); last_view = None; steps = 0 }
+  }
+
   def reset_font_size(view: View): Unit =
+  {
+    font_size.reset()
     Rendering.font_size_change(view, _ => PIDE.options.int("jedit_reset_font_size"))
+  }
 
-  def increase_font_size(view: View): Unit =
-    Rendering.font_size_change(view, i => i + ((i / 10) max 1))
-
-  def decrease_font_size(view: View): Unit =
-    Rendering.font_size_change(view, i => i - ((i / 10) max 1))
+  def increase_font_size(view: View): Unit = font_size.step(view, 1)
+  def decrease_font_size(view: View): Unit = font_size.step(view, -1)
 
 
   /* structured edits */
