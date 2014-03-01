@@ -172,6 +172,76 @@ translations
   "case x of (XCONST of_int :: 'a) y => b" => "CONST word_int_case (%y. b) x"
 
 
+subsection {* Correspondence relation for theorem transfer *}
+
+definition cr_word :: "int \<Rightarrow> 'a::len0 word \<Rightarrow> bool"
+where
+  "cr_word = (\<lambda>x y. word_of_int x = y)"
+
+lemma Quotient_word:
+  "Quotient (\<lambda>x y. bintrunc (len_of TYPE('a)) x = bintrunc (len_of TYPE('a)) y)
+    word_of_int uint (cr_word :: _ \<Rightarrow> 'a::len0 word \<Rightarrow> bool)"
+  unfolding Quotient_alt_def cr_word_def
+  by (simp add: no_bintr_alt1 word_of_int_uint) (simp add: word_of_int_def Abs_word_inject)
+
+lemma reflp_word:
+  "reflp (\<lambda>x y. bintrunc (len_of TYPE('a::len0)) x = bintrunc (len_of TYPE('a)) y)"
+  by (simp add: reflp_def)
+
+setup_lifting (no_code) Quotient_word reflp_word
+
+text {* TODO: The next lemma could be generated automatically. *}
+
+lemma uint_transfer [transfer_rule]:
+  "(fun_rel pcr_word op =) (bintrunc (len_of TYPE('a)))
+    (uint :: 'a::len0 word \<Rightarrow> int)"
+  unfolding fun_rel_def word.pcr_cr_eq cr_word_def
+  by (simp add: no_bintr_alt1 uint_word_of_int)
+
+
+subsection {* Basic code generation setup *}
+
+definition Word :: "int \<Rightarrow> 'a::len0 word"
+where
+  [code_post]: "Word = word_of_int"
+
+lemma [code abstype]:
+  "Word (uint w) = w"
+  by (simp add: Word_def word_of_int_uint)
+
+declare uint_word_of_int [code abstract]
+
+instantiation word :: (len0) equal
+begin
+
+definition equal_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> bool"
+where
+  "equal_word k l \<longleftrightarrow> HOL.equal (uint k) (uint l)"
+
+instance proof
+qed (simp add: equal equal_word_def word_uint_eq_iff)
+
+end
+
+notation fcomp (infixl "\<circ>>" 60)
+notation scomp (infixl "\<circ>\<rightarrow>" 60)
+
+instantiation word :: ("{len0, typerep}") random
+begin
+
+definition
+  "random_word i = Random.range i \<circ>\<rightarrow> (\<lambda>k. Pair (
+     let j = word_of_int (int_of_integer (integer_of_natural k)) :: 'a word
+     in (j, \<lambda>_::unit. Code_Evaluation.term_of j)))"
+
+instance ..
+
+end
+
+no_notation fcomp (infixl "\<circ>>" 60)
+no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
+
+
 subsection {* Type-definition locale instantiations *}
 
 lemmas uint_0 = uint_nonnegative (* FIXME duplicate *)
@@ -208,75 +278,6 @@ interpretation word_ubin:
          "uints (len_of TYPE('a::len0))"
          "bintrunc (len_of TYPE('a::len0))"
   by (fact td_ext_ubin)
-
-
-subsection {* Correspondence relation for theorem transfer *}
-
-definition cr_word :: "int \<Rightarrow> 'a::len0 word \<Rightarrow> bool"
-where
-  "cr_word = (\<lambda>x y. word_of_int x = y)"
-
-lemma Quotient_word:
-  "Quotient (\<lambda>x y. bintrunc (len_of TYPE('a)) x = bintrunc (len_of TYPE('a)) y)
-    word_of_int uint (cr_word :: _ \<Rightarrow> 'a::len0 word \<Rightarrow> bool)"
-  unfolding Quotient_alt_def cr_word_def
-  by (simp add: word_ubin.norm_eq_iff)
-
-lemma reflp_word:
-  "reflp (\<lambda>x y. bintrunc (len_of TYPE('a::len0)) x = bintrunc (len_of TYPE('a)) y)"
-  by (simp add: reflp_def)
-
-setup_lifting (no_code) Quotient_word reflp_word
-
-text {* TODO: The next lemma could be generated automatically. *}
-
-lemma uint_transfer [transfer_rule]:
-  "(fun_rel pcr_word op =) (bintrunc (len_of TYPE('a)))
-    (uint :: 'a::len0 word \<Rightarrow> int)"
-  unfolding fun_rel_def word.pcr_cr_eq cr_word_def by (simp add: word_ubin.eq_norm)
-
-
-subsection {* Basic code generation setup *}
-
-definition Word :: "int \<Rightarrow> 'a::len0 word"
-where
-  [code_post]: "Word = word_of_int"
-
-lemma [code abstype]:
-  "Word (uint w) = w"
-  by (simp add: Word_def)
-
-declare uint_word_of_int [code abstract]
-
-instantiation word :: (len0) equal
-begin
-
-definition equal_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> bool"
-where
-  "equal_word k l \<longleftrightarrow> HOL.equal (uint k) (uint l)"
-
-instance proof
-qed (simp add: equal equal_word_def)
-
-end
-
-notation fcomp (infixl "\<circ>>" 60)
-notation scomp (infixl "\<circ>\<rightarrow>" 60)
-
-instantiation word :: ("{len0, typerep}") random
-begin
-
-definition
-  "random_word i = Random.range i \<circ>\<rightarrow> (\<lambda>k. Pair (
-     let j = word_of_int (int_of_integer (integer_of_natural k)) :: 'a word
-     in (j, \<lambda>_::unit. Code_Evaluation.term_of j)))"
-
-instance ..
-
-end
-
-no_notation fcomp (infixl "\<circ>>" 60)
-no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
 
 subsection {* Arithmetic operations *}
