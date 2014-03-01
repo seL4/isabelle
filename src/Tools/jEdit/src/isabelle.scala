@@ -186,37 +186,11 @@ object Isabelle
 
   /* font size */
 
-  private object font_size
-  {
-    // owned by Swing thread
-    private var steps = 0
-    private val delay = Swing_Thread.delay_last(PIDE.options.seconds("editor_input_delay"))
-    {
-      Font_Info.main_change(size =>
-        {
-          var i = size.round
-          while (steps != 0 && i > 0) {
-            if (steps > 0)
-              { i += (i / 10) max 1; steps -= 1 }
-            else
-              { i -= (i / 10) max 1; steps += 1 }
-          }
-          steps = 0
-          i.toFloat
-        })
-    }
-    def step(i: Int) { steps += i; delay.invoke() }
-    def reset() { delay.revoke(); steps = 0 }
+  def reset_font_size() {
+    Font_Info.main_change.reset(PIDE.options.int("jedit_reset_font_size").toFloat)
   }
-
-  def reset_font_size()
-  {
-    font_size.reset()
-    Font_Info.main_change(_ => PIDE.options.int("jedit_reset_font_size").toFloat)
-  }
-
-  def increase_font_size() { font_size.step(1) }
-  def decrease_font_size() { font_size.step(-1) }
+  def increase_font_size() { Font_Info.main_change.step(1) }
+  def decrease_font_size() { Font_Info.main_change.step(-1) }
 
 
   /* structured edits */

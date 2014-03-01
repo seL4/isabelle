@@ -1,7 +1,7 @@
-/*  Title:      Tools/jEdit/src/jedit_font.scala
+/*  Title:      Tools/jEdit/src/font_info.scala
     Author:     Makarius
 
-Font information, derived from main view font.
+Font information, derived from main jEdit view font.
 */
 
 package isabelle.jedit
@@ -25,7 +25,7 @@ object Font_Info
   def restrict_size(size: Float): Float = size max min_size min max_size
 
 
-  /* jEdit font */
+  /* main jEdit font */
 
   def main_family(): String = jEdit.getProperty("view.font")
 
@@ -35,15 +35,54 @@ object Font_Info
   def main(scale: Double = 1.0): Font_Info =
     Font_Info(main_family(), main_size(scale))
 
-  def main_change(change: Float => Float)
+
+  /* incremental size change */
+
+  object main_change
   {
-    val size0 = main_size()
-    val size = restrict_size(change(size0)).round
-    if (size != size0) {
-      jEdit.setIntegerProperty("view.fontsize", size)
-      jEdit.propertiesChanged()
-      jEdit.saveSettings()
-      jEdit.getActiveView().getStatus.setMessageAndClear("Text font size: " + size)
+    private def change_size(change: Float => Float)
+    {
+      Swing_Thread.require()
+
+      val size0 = main_size()
+      val size = restrict_size(change(size0)).round
+      if (size != size0) {
+        jEdit.setIntegerProperty("view.fontsize", size)
+        jEdit.propertiesChanged()
+        jEdit.saveSettings()
+        jEdit.getActiveView().getStatus.setMessageAndClear("Text font size: " + size)
+      }
+    }
+
+    // owned by Swing thread
+    private var steps = 0
+    private val delay = Swing_Thread.delay_last(PIDE.options.seconds("editor_input_delay"))
+    {
+      change_size(size =>
+        {
+          var i = size.round
+          while (steps != 0 && i > 0) {
+            if (steps > 0)
+              { i += (i / 10) max 1; steps -= 1 }
+            else
+              { i -= (i / 10) max 1; steps += 1 }
+          }
+          steps = 0
+          i.toFloat
+        })
+    }
+
+    def step(i: Int)
+    {
+      steps += i
+      delay.invoke()
+    }
+
+    def reset(size: Float)
+    {
+      delay.revoke()
+      steps = 0
+      change_size(_ => size)
     }
   }
 }
