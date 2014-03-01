@@ -156,14 +156,11 @@ object Command
                 if id == command.id || id == alt_id =>
                   command.chunks.get(file_name) match {
                     case Some(chunk) =>
-                      chunk.decode(raw_range).try_restrict(chunk.range) match {
+                      chunk.incorporate(raw_range) match {
                         case Some(range) =>
-                          if (!range.is_singularity) {
-                            val props = Position.purge(atts)
-                            val info = Text.Info(range, XML.Elem(Markup(name, props), args))
-                            state.add_markup(false, file_name, info)
-                          }
-                          else state
+                          val props = Position.purge(atts)
+                          val info = Text.Info(range, XML.Elem(Markup(name, props), args))
+                          state.add_markup(false, file_name, info)
                         case None => bad(); state
                       }
                     case None => bad(); state
@@ -219,7 +216,17 @@ object Command
     def file_name: String
     def length: Int
     def range: Text.Range
-    def decode(r: Text.Range): Text.Range
+    def decode(raw_range: Text.Range): Text.Range
+
+    def incorporate(raw_range: Text.Range): Option[Text.Range] =
+    {
+      def inc(r: Text.Range): Option[Text.Range] =
+        range.try_restrict(decode(r)) match {
+          case Some(r1) if !r1.is_singularity => Some(r1)
+          case _ => None
+        }
+     inc(raw_range) orElse inc(raw_range - 1)
+    }
   }
 
   class File(val file_name: String, text: CharSequence) extends Chunk
@@ -227,7 +234,7 @@ object Command
     val length = text.length
     val range = Text.Range(0, length)
     private val symbol_index = Symbol.Index(text)
-    def decode(r: Text.Range): Text.Range = symbol_index.decode(r)
+    def decode(raw_range: Text.Range): Text.Range = symbol_index.decode(raw_range)
 
     override def toString: String = "Command.File(" + file_name + ")"
   }
@@ -367,8 +374,8 @@ final class Command private(
   def source(range: Text.Range): String = source.substring(range.start, range.stop)
 
   private lazy val symbol_index = Symbol.Index(source)
-  def decode(i: Text.Offset): Text.Offset = symbol_index.decode(i)
-  def decode(r: Text.Range): Text.Range = symbol_index.decode(r)
+  def decode(raw_offset: Text.Offset): Text.Offset = symbol_index.decode(raw_offset)
+  def decode(raw_range: Text.Range): Text.Range = symbol_index.decode(raw_range)
 
 
   /* accumulated results */

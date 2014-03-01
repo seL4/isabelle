@@ -156,7 +156,7 @@ class JEdit_Editor extends Editor[View]
   override def hyperlink_file(name: String, line: Int = 0, column: Int = 0): Hyperlink =
     new Hyperlink { def follow(view: View) = goto(view, name, line, column) }
 
-  override def hyperlink_command(snapshot: Document.Snapshot, command: Command, offset: Int = 0)
+  override def hyperlink_command(snapshot: Document.Snapshot, command: Command, raw_offset: Int = 0)
     : Option[Hyperlink] =
   {
     if (snapshot.is_outdated) None
@@ -167,8 +167,8 @@ class JEdit_Editor extends Editor[View]
           val file_name = command.node_name.node
           val sources =
             node.commands.iterator.takeWhile(_ != command).map(_.source) ++
-              (if (offset == 0) Iterator.empty
-               else Iterator.single(command.source(Text.Range(0, command.decode(offset)))))
+              (if (raw_offset == 0) Iterator.empty
+               else Iterator.single(command.source(Text.Range(0, command.decode(raw_offset)))))
           val (line, column) = ((1, 1) /: sources)(Symbol.advance_line_column)
           Some(new Hyperlink { def follow(view: View) { goto(view, file_name, line, column) } })
       }

@@ -289,8 +289,8 @@ object Protocol
       props match {
         case Position.Reported(id, file_name, raw_range)
         if (id == command_id || id == alt_id) && file_name == chunk.file_name =>
-          chunk.decode(raw_range).try_restrict(chunk.range) match {
-            case Some(range) if !range.is_singularity => set + range
+          chunk.incorporate(raw_range) match {
+            case Some(range) => set + range
             case _ => set
           }
         case _ => set
