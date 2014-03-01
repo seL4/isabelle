@@ -882,7 +882,7 @@ fun read_const_exprs_internal ctxt =
       (fn thy'' => not (Sign.declared_const thy'' c)) (Theory.parents_of thy');
     fun consts_of_select thy' = filter (belongs_here thy') (consts_of thy');
     fun read_const_expr str =
-      (case Syntax.parse_token ctxt (K NONE) Markup.empty (SOME o Symbol_Pos.implode o #1) str of
+      (case Syntax.parse_token ctxt (K NONE) (K Markup.empty) (SOME o Symbol_Pos.implode o #1) str of
         SOME "_" => ([], consts_of thy)
       | SOME s =>
           if String.isSuffix "._" s

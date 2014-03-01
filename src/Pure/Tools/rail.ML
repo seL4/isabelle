@@ -192,10 +192,11 @@ val rules = enum1 ";" (Scan.option rule) >> map_filter I;
 
 in
 
-fun read ctxt (s, pos) =
+fun read ctxt (source: Symbol_Pos.source) =
   let
+    val {text, pos, ...} = source;
     val _ = Context_Position.report ctxt pos Markup.language_rail;
-    val toks = tokenize (Symbol_Pos.explode (s, pos));
+    val toks = tokenize (Symbol_Pos.explode (text, pos));
     val _ = Context_Position.reports ctxt (maps reports_of_token toks);
   in #1 (Scan.error (Scan.finite stopper (rules --| !!! (Scan.ahead (Scan.one is_eof)))) toks) end;
 

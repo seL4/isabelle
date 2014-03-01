@@ -20,18 +20,21 @@ sig
   val name: string -> T -> T
   val kindN: string
   val instanceN: string
-  val symbolsN: string
   val languageN: string
-  val language: {name: string, symbols: bool, antiquotes: bool} -> T
+  val symbolsN: string
+  val delimitedN: string
+  val is_delimited: Properties.T -> bool
+  val language: {name: string, symbols: bool, antiquotes: bool, delimited: bool} -> T
+  val language': {name: string, symbols: bool, antiquotes: bool} -> bool -> T
   val language_method: T
-  val language_sort: T
-  val language_type: T
-  val language_term: T
-  val language_prop: T
-  val language_ML: T
-  val language_document: T
+  val language_sort: bool -> T
+  val language_type: bool -> T
+  val language_term: bool -> T
+  val language_prop: bool -> T
+  val language_ML: bool -> T
+  val language_document: bool -> T
   val language_antiquotation: T
-  val language_text: T
+  val language_text: bool -> T
   val language_rail: T
   val bindingN: string val binding: T
   val entityN: string val entity: string -> string -> T
@@ -106,7 +109,7 @@ sig
   val cartoucheN: string val cartouche: T
   val commentN: string val comment: T
   val controlN: string val control: T
-  val tokenN: string val token: Properties.T -> T
+  val tokenN: string val token: bool -> Properties.T -> T
   val keyword1N: string val keyword1: T
   val keyword2N: string val keyword2: T
   val keyword3N: string val keyword3: T
@@ -251,24 +254,36 @@ val instanceN = "instance";
 
 (* embedded languages *)
 
+val languageN = "language";
 val symbolsN = "symbols";
 val antiquotesN = "antiquotes";
-val languageN = "language";
+val delimitedN = "delimited"
 
-fun language {name, symbols, antiquotes} =
+fun is_delimited props =
+  Properties.get props delimitedN = SOME "true";
+
+fun language {name, symbols, antiquotes, delimited} =
   (languageN,
-    [(nameN, name), (symbolsN, print_bool symbols), (antiquotesN, print_bool antiquotes)]);
+   [(nameN, name),
+    (symbolsN, print_bool symbols),
+    (antiquotesN, print_bool antiquotes),
+    (delimitedN, print_bool delimited)]);
 
-val language_method = language {name = "method", symbols = true, antiquotes = false};
-val language_sort = language {name = "sort", symbols = true, antiquotes = false};
-val language_type = language {name = "type", symbols = true, antiquotes = false};
-val language_term = language {name = "term", symbols = true, antiquotes = false};
-val language_prop = language {name = "prop", symbols = true, antiquotes = false};
-val language_ML = language {name = "ML", symbols = false, antiquotes = true};
-val language_document = language {name = "document", symbols = false, antiquotes = true};
-val language_antiquotation = language {name = "antiquotation", symbols = true, antiquotes = false};
-val language_text = language {name = "text", symbols = true, antiquotes = false};
-val language_rail = language {name = "rail", symbols = true, antiquotes = true};
+fun language' {name, symbols, antiquotes} delimited =
+  language {name = name, symbols = symbols, antiquotes = antiquotes, delimited = delimited};
+
+val language_method =
+  language {name = "method", symbols = true, antiquotes = false, delimited = false};
+val language_sort = language' {name = "sort", symbols = true, antiquotes = false};
+val language_type = language' {name = "type", symbols = true, antiquotes = false};
+val language_term = language' {name = "term", symbols = true, antiquotes = false};
+val language_prop = language' {name = "prop", symbols = true, antiquotes = false};
+val language_ML = language' {name = "ML", symbols = false, antiquotes = true};
+val language_document = language' {name = "document", symbols = false, antiquotes = true};
+val language_antiquotation =
+  language {name = "antiquotation", symbols = true, antiquotes = false, delimited = true};
+val language_text = language' {name = "text", symbols = true, antiquotes = false};
+val language_rail = language {name = "rail", symbols = true, antiquotes = true, delimited = true};
 
 
 (* formal entities *)
@@ -411,7 +426,7 @@ val (commentN, comment) = markup_elem "comment";
 val (controlN, control) = markup_elem "control";
 
 val tokenN = "token";
-fun token props = (tokenN, props);
+fun token delimited props = (tokenN, (delimitedN, print_bool delimited) :: props);
 
 
 (* timing *)

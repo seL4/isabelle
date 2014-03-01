@@ -31,10 +31,10 @@ sig
   val eval_antiquotes: ML_Lex.token Antiquote.antiquote list * Position.T ->
     Context.generic option -> (ML_Lex.token list * ML_Lex.token list) * Context.generic option
   val eval: bool -> Position.T -> ML_Lex.token Antiquote.antiquote list -> unit
-  val eval_text: bool -> Position.T -> Symbol_Pos.text -> unit
+  val eval_source: bool -> Symbol_Pos.source -> unit
   val eval_in: Proof.context option -> bool -> Position.T ->
     ML_Lex.token Antiquote.antiquote list -> unit
-  val eval_text_in: Proof.context option -> bool -> Position.T -> Symbol_Pos.text -> unit
+  val eval_source_in: Proof.context option -> bool -> Symbol_Pos.source -> unit
   val expression: Position.T -> string -> string -> ML_Lex.token Antiquote.antiquote list ->
     Context.generic -> Context.generic
 end
@@ -208,13 +208,14 @@ end;
 
 (* derived versions *)
 
-fun eval_text verbose pos txt = eval verbose pos (ML_Lex.read pos txt);
+fun eval_source verbose source =
+  eval verbose (#pos source) (ML_Lex.read_source source);
 
 fun eval_in ctxt verbose pos ants =
   Context.setmp_thread_data (Option.map Context.Proof ctxt) (fn () => eval verbose pos ants) ();
 
-fun eval_text_in ctxt verbose pos txt =
-  Context.setmp_thread_data (Option.map Context.Proof ctxt) (fn () => eval_text verbose pos txt) ();
+fun eval_source_in ctxt verbose source =
+  Context.setmp_thread_data (Option.map Context.Proof ctxt) (fn () => eval_source verbose source) ();
 
 fun expression pos bind body ants =
   exec (fn () => eval false pos

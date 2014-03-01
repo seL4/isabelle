@@ -37,6 +37,7 @@ sig
   val source: Position.T -> (Symbol.symbol, 'a) Source.source ->
     (T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source
   type text = string
+  type source = {delimited: bool, text: text, pos: Position.T}
   val implode: T list -> text
   val implode_range: Position.T -> Position.T -> T list -> text * Position.range
   val explode: text * Position.T -> T list
@@ -232,6 +233,7 @@ fun source pos =
 (* compact representation -- with Symbol.DEL padding *)
 
 type text = string;
+type source = {delimited: bool, text: text, pos: Position.T}
 
 fun pad [] = []
   | pad [(s, _)] = [s]

@@ -26,6 +26,7 @@ sig
       Source.source) Source.source
   val tokenize: string -> token list
   val read: Position.T -> Symbol_Pos.text -> token Antiquote.antiquote list
+  val read_source: Symbol_Pos.source -> token Antiquote.antiquote list
 end;
 
 structure ML_Lex: ML_LEX =
@@ -298,10 +299,9 @@ fun source src =
 
 val tokenize = Source.of_string #> Symbol.source #> source #> Source.exhaust;
 
-fun read pos txt =
+fun read pos text =
   let
-    val _ = Position.report pos Markup.language_ML;
-    val syms = Symbol_Pos.explode (txt, pos);
+    val syms = Symbol_Pos.explode (text, pos);
     val termination =
       if null syms then []
       else
@@ -317,6 +317,9 @@ fun read pos txt =
         |> tap (Position.reports_text o Antiquote.antiquote_reports (single o report_of_token))
         |> tap (List.app (fn Antiquote.Text tok => (check_content_of tok; warn tok) | _ => ())));
   in input @ termination end;
+
+fun read_source {delimited, text, pos} =
+  (Position.report pos (Markup.language_ML delimited); read pos text);
 
 end;
 

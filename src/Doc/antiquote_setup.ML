@@ -86,7 +86,9 @@ fun index_ml name kind ml = Thy_Output.antiquotation name
         then txt1 ^ ": " ^ txt2
         else txt1 ^ " : " ^ txt2;
       val txt' = if kind = "" then txt else kind ^ " " ^ txt;
-      val _ = ML_Context.eval_text_in (SOME ctxt) false Position.none (ml (txt1, txt2));  (* ML_Lex.read (!?) *)
+      val _ =  (* ML_Lex.read (!?) *)
+        ML_Context.eval_source_in (SOME ctxt) false
+          {delimited = false, text = ml (txt1, txt2), pos = Position.none};
       val kind' = if kind = "" then "ML" else "ML " ^ kind;
     in
       "\\indexdef{}{" ^ kind' ^ "}{" ^ clean_string (ml_name txt1) ^ "}" ^

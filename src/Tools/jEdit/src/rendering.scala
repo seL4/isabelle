@@ -132,7 +132,7 @@ object Rendering
   private val completion_names_elements =
     Document.Elements(Markup.COMPLETION)
 
-  private val language_context_elements =
+  private val completion_language_elements =
     Document.Elements(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM,
       Markup.CARTOUCHE, Markup.COMMENT, Markup.LANGUAGE,
       Markup.ML_STRING, Markup.ML_COMMENT)
@@ -267,11 +267,12 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
         }).headOption.map(_.info)
     }
 
-  def language_context(range: Text.Range): Option[Completion.Language_Context] =
-    snapshot.select(range, Rendering.language_context_elements, _ =>
+  def completion_language(range: Text.Range): Option[Completion.Language_Context] =
+    snapshot.select(range, Rendering.completion_language_elements, _ =>
       {
-        case Text.Info(_, XML.Elem(Markup.Language(language, symbols, antiquotes), _)) =>
-          Some(Completion.Language_Context(language, symbols, antiquotes))
+        case Text.Info(_, XML.Elem(Markup.Language(language, symbols, antiquotes, delimited), _)) =>
+          if (delimited) Some(Completion.Language_Context(language, symbols, antiquotes))
+          else None
         case Text.Info(_, elem)
         if elem.name == Markup.ML_STRING || elem.name == Markup.ML_COMMENT =>
           Some(Completion.Language_Context.ML_inner)
@@ -485,7 +486,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
             Some(add(prev, r, (true, pretty_typing("::", body))))
           case (prev, Text.Info(r, XML.Elem(Markup(Markup.ML_TYPING, _), body))) =>
             Some(add(prev, r, (false, pretty_typing("ML:", body))))
-          case (prev, Text.Info(r, XML.Elem(Markup.Language(language, _, _), _))) =>
+          case (prev, Text.Info(r, XML.Elem(Markup.Language(language, _, _, _), _))) =>
             Some(add(prev, r, (true, XML.Text("language: " + language))))
           case (prev, Text.Info(r, XML.Elem(Markup(name, _), _))) =>
             Rendering.tooltip_descriptions.get(name).

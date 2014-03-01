@@ -150,7 +150,7 @@ object Completion_Popup
           val context =
             (opt_rendering orElse PIDE.document_view(text_area).map(_.get_rendering()) match {
               case Some(rendering) =>
-                rendering.language_context(before_caret_range(rendering))
+                rendering.completion_language(before_caret_range(rendering))
               case None => None
             }) getOrElse syntax.language_context
 

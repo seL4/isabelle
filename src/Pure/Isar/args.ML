@@ -30,9 +30,9 @@ sig
   val mode: string -> bool parser
   val maybe: 'a parser -> 'a option parser
   val cartouche_inner_syntax: string parser
-  val cartouche_source_position: (Symbol_Pos.text * Position.T) parser
+  val cartouche_source_position: Symbol_Pos.source parser
   val name_inner_syntax: string parser
-  val name_source_position: (Symbol_Pos.text * Position.T) parser
+  val name_source_position: Symbol_Pos.source parser
   val name: string parser
   val binding: binding parser
   val alt_name: string parser

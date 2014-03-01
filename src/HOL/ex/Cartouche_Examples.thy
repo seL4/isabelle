@@ -114,13 +114,13 @@ setup -- "ML antiquotation"
 setup -- "document antiquotation"
 {*
   Thy_Output.antiquotation @{binding ML_cartouche}
-    (Scan.lift Args.cartouche_source_position) (fn {context, ...} => fn (txt, pos) =>
+    (Scan.lift Args.cartouche_source_position) (fn {context, ...} => fn source =>
       let
         val toks =
           ML_Lex.read Position.none "fn _ => (" @
-          ML_Lex.read pos txt @
+          ML_Lex.read_source source @
           ML_Lex.read Position.none ");";
-        val _ = ML_Context.eval_in (SOME context) false pos toks;
+        val _ = ML_Context.eval_in (SOME context) false (#pos source) toks;
       in "" end);
 *}
 
@@ -177,19 +177,19 @@ ML {*
 structure ML_Tactic:
 sig
   val set: (Proof.context -> tactic) -> Proof.context -> Proof.context
-  val ml_tactic: string * Position.T -> Proof.context -> tactic
+  val ml_tactic: Symbol_Pos.source -> Proof.context -> tactic
 end =
 struct
   structure Data = Proof_Data(type T = Proof.context -> tactic fun init _ = K no_tac);
 
   val set = Data.put;
 
-  fun ml_tactic (txt, pos) ctxt =
+  fun ml_tactic source ctxt =
     let
       val ctxt' = ctxt |> Context.proof_map
-        (ML_Context.expression pos
+        (ML_Context.expression (#pos source)
           "fun tactic (ctxt : Proof.context) : tactic"
-          "Context.map_proof (ML_Tactic.set tactic)" (ML_Lex.read pos txt));
+          "Context.map_proof (ML_Tactic.set tactic)" (ML_Lex.read_source source));
     in Data.get ctxt' ctxt end;
 end;
 *}
