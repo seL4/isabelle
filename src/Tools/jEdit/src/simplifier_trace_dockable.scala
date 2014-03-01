@@ -84,7 +84,7 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
   private def do_paint()
   {
     Swing_Thread.later {
-        text_area.resize(Rendering.font_family(), Rendering.font_size("jedit_font_scale").round)
+      text_area.resize(Font_Info.main(PIDE.options.real("jedit_font_scale")))
     }
   }
 

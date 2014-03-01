@@ -41,27 +41,6 @@ object Rendering
     Markup.ERROR -> error_pri, Markup.ERROR_MESSAGE -> error_pri)
 
 
-  /* jEdit font */
-
-  def font_family(): String = jEdit.getProperty("view.font")
-
-  private def view_font_size(): Int = jEdit.getIntegerProperty("view.fontsize", 16)
-  private val font_size0 = 5
-  private val font_size1 = 250
-
-  def font_size(scale: String): Float =
-    (view_font_size() * PIDE.options.real(scale)).toFloat max font_size0 min font_size1
-
-  def font_size_change(view: View, change: Int => Int)
-  {
-    val size = change(view_font_size()) max font_size0 min font_size1
-    jEdit.setIntegerProperty("view.fontsize", size)
-    jEdit.propertiesChanged()
-    jEdit.saveSettings()
-    view.getStatus.setMessageAndClear("Text font size: " + size)
-  }
-
-
   /* popup window bounds */
 
   def popup_bounds: Double = (PIDE.options.real("jedit_popup_bounds") max 0.2) min 0.8
@@ -150,28 +129,29 @@ object Rendering
 
   /* markup elements */
 
-  private val completion_names_elements = Set(Markup.COMPLETION)
+  private val completion_names_elements =
+    Document.Elements(Markup.COMPLETION)
 
-  private val language_context_elements =
-    Set(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM,
+  private val completion_language_elements =
+    Document.Elements(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM,
       Markup.CARTOUCHE, Markup.COMMENT, Markup.LANGUAGE,
       Markup.ML_STRING, Markup.ML_COMMENT)
 
   private val highlight_elements =
-    Set(Markup.LANGUAGE, Markup.ML_TYPING, Markup.TOKEN_RANGE,
+    Document.Elements(Markup.LANGUAGE, Markup.ML_TYPING, Markup.TOKEN_RANGE,
       Markup.ENTITY, Markup.PATH, Markup.URL, Markup.SORTING,
       Markup.TYPING, Markup.FREE, Markup.SKOLEM, Markup.BOUND,
       Markup.VAR, Markup.TFREE, Markup.TVAR)
 
   private val hyperlink_elements =
-    Set(Markup.ENTITY, Markup.PATH, Markup.POSITION, Markup.URL)
+    Document.Elements(Markup.ENTITY, Markup.PATH, Markup.POSITION, Markup.URL)
 
   private val active_elements =
-    Set(Markup.DIALOG, Markup.BROWSER, Markup.GRAPHVIEW,
+    Document.Elements(Markup.DIALOG, Markup.BROWSER, Markup.GRAPHVIEW,
       Markup.SENDBACK, Markup.SIMP_TRACE)
 
   private val tooltip_message_elements =
-    Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR, Markup.BAD)
+    Document.Elements(Markup.WRITELN, Markup.WARNING, Markup.ERROR, Markup.BAD)
 
   private val tooltip_descriptions =
     Map(
@@ -184,22 +164,23 @@ object Rendering
       Markup.TVAR -> "schematic type variable")
 
   private val tooltip_elements =
-    Set(Markup.LANGUAGE, Markup.TIMING, Markup.ENTITY, Markup.SORTING,
+    Document.Elements(Markup.LANGUAGE, Markup.TIMING, Markup.ENTITY, Markup.SORTING,
       Markup.TYPING, Markup.ML_TYPING, Markup.PATH, Markup.URL) ++
-      tooltip_descriptions.keys
+    Document.Elements(tooltip_descriptions.keySet)
 
   private val gutter_elements =
-    Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR)
+    Document.Elements(Markup.WRITELN, Markup.WARNING, Markup.ERROR)
 
   private val squiggly_elements =
-    Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR)
+    Document.Elements(Markup.WRITELN, Markup.WARNING, Markup.ERROR)
 
   private val line_background_elements =
-    Set(Markup.WRITELN_MESSAGE, Markup.TRACING_MESSAGE,
+    Document.Elements(Markup.WRITELN_MESSAGE, Markup.TRACING_MESSAGE,
       Markup.WARNING_MESSAGE, Markup.ERROR_MESSAGE,
       Markup.INFORMATION)
 
-  private val separator_elements = Set(Markup.SEPARATOR)
+  private val separator_elements =
+    Document.Elements(Markup.SEPARATOR)
 
   private val background_elements =
     Protocol.command_status_elements + Markup.WRITELN_MESSAGE +
@@ -208,13 +189,14 @@ object Rendering
       active_elements
 
   private val foreground_elements =
-    Set(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM,
+    Document.Elements(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM,
       Markup.CARTOUCHE, Markup.ANTIQUOTED)
 
-  private val bullet_elements = Set(Markup.BULLET)
+  private val bullet_elements =
+    Document.Elements(Markup.BULLET)
 
   private val fold_depth_elements =
-    Set(Markup.TEXT_FOLD, Markup.GOAL, Markup.SUBGOAL)
+    Document.Elements(Markup.TEXT_FOLD, Markup.GOAL, Markup.SUBGOAL)
 }
 
 
@@ -285,11 +267,12 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
         }).headOption.map(_.info)
     }
 
-  def language_context(range: Text.Range): Option[Completion.Language_Context] =
-    snapshot.select(range, Rendering.language_context_elements, _ =>
+  def completion_language(range: Text.Range): Option[Completion.Language_Context] =
+    snapshot.select(range, Rendering.completion_language_elements, _ =>
       {
-        case Text.Info(_, XML.Elem(Markup.Language(language, symbols, antiquotes), _)) =>
-          Some(Completion.Language_Context(language, symbols, antiquotes))
+        case Text.Info(_, XML.Elem(Markup.Language(language, symbols, antiquotes, delimited), _)) =>
+          if (delimited) Some(Completion.Language_Context(language, symbols, antiquotes))
+          else None
         case Text.Info(_, elem)
         if elem.name == Markup.ML_STRING || elem.name == Markup.ML_COMMENT =>
           Some(Completion.Language_Context.ML_inner)
@@ -421,7 +404,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   def command_results(range: Text.Range): Command.Results =
   {
     val results =
-      snapshot.select[Command.Results](range, _ => true, command_state =>
+      snapshot.select[Command.Results](range, Document.Elements.full, command_state =>
         { case _ => Some(command_state.results) }).map(_.info)
     (Command.Results.empty /: results)(_ ++ _)
   }
@@ -503,7 +486,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
             Some(add(prev, r, (true, pretty_typing("::", body))))
           case (prev, Text.Info(r, XML.Elem(Markup(Markup.ML_TYPING, _), body))) =>
             Some(add(prev, r, (false, pretty_typing("ML:", body))))
-          case (prev, Text.Info(r, XML.Elem(Markup.Language(language, _, _), _))) =>
+          case (prev, Text.Info(r, XML.Elem(Markup.Language(language, _, _, _), _))) =>
             Some(add(prev, r, (true, XML.Text("language: " + language))))
           case (prev, Text.Info(r, XML.Elem(Markup(name, _), _))) =>
             Rendering.tooltip_descriptions.get(name).
@@ -703,7 +686,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       Markup.ML_STRING -> inner_quoted_color,
       Markup.ML_COMMENT -> inner_comment_color)
 
-  private lazy val text_color_elements = text_colors.keySet
+  private lazy val text_color_elements =
+    Document.Elements(text_colors.keySet)
 
   def text_color(range: Text.Range, color: Color): List[Text.Info[Color]] =
   {

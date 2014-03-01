@@ -25,7 +25,7 @@ sig
   datatype markup = Markup | MarkupEnv | Verbatim
   val eval_antiq: Scan.lexicon -> Toplevel.state -> Antiquote.antiq -> string
   val eval_antiquote: Scan.lexicon -> Toplevel.state -> Symbol_Pos.text * Position.T -> string
-  val check_text: Symbol_Pos.text * Position.T -> Toplevel.state -> unit
+  val check_text: Symbol_Pos.source -> Toplevel.state -> unit
   val present_thy: Scan.lexicon -> (string -> string list) -> (markup -> string -> bool) ->
     (Toplevel.transition * Toplevel.state) list -> Token.T list -> Buffer.T
   val pretty_text: Proof.context -> string -> Pretty.T
@@ -184,10 +184,10 @@ fun eval_antiquote lex state (txt, pos) =
   end;
 
 
-fun check_text (txt, pos) state =
- (Position.report pos Markup.language_document;
+fun check_text {delimited, text, pos} state =
+ (Position.report pos (Markup.language_document delimited);
   if Toplevel.is_skipped_proof state then ()
-  else ignore (eval_antiquote (#1 (Keyword.get_lexicons ())) state (txt, pos)));
+  else ignore (eval_antiquote (#1 (Keyword.get_lexicons ())) state (text, pos)));
 
 
 
@@ -360,9 +360,9 @@ fun present_thy lex default_tags is_markup command_results toks =
         Parse.position (Scan.one (Token.is_command andf is_markup mark o Token.content_of)) --
       Scan.repeat tag --
       Parse.!!!! ((improper -- locale -- improper) |-- Parse.document_source --| improper_end)
-      >> (fn (((tok, pos), tags), txt) =>
+      >> (fn (((tok, pos'), tags), {text, pos, ...}) =>
         let val name = Token.content_of tok
-        in (SOME (name, pos, tags), (mk (name, txt), (flag, d))) end));
+        in (SOME (name, pos', tags), (mk (name, (text, pos)), (flag, d))) end));
 
     val command = Scan.peek (fn d =>
       Parse.position (Scan.one (Token.is_command)) --
@@ -373,7 +373,7 @@ fun present_thy lex default_tags is_markup command_results toks =
 
     val cmt = Scan.peek (fn d =>
       Parse.$$$ "--" |-- Parse.!!!! (improper |-- Parse.document_source)
-      >> (fn txt => (NONE, (MarkupToken ("cmt", txt), ("", d)))));
+      >> (fn {text, pos, ...} => (NONE, (MarkupToken ("cmt", (text, pos)), ("", d)))));
 
     val other = Scan.peek (fn d =>
        Parse.not_eof >> (fn tok => (NONE, (BasicToken tok, ("", d)))));
@@ -467,8 +467,12 @@ fun tweak_line ctxt s =
 fun pretty_text ctxt =
   Pretty.chunks o map Pretty.str o map (tweak_line ctxt) o split_lines;
 
-fun pretty_text_report ctxt (s, pos) =
-  (Context_Position.report ctxt pos Markup.language_text; pretty_text ctxt s);
+fun pretty_text_report ctxt source =
+  let
+    val {delimited, pos, ...} = source;
+    val _ = Context_Position.report ctxt pos (Markup.language_text delimited);
+    val (s, _) = Symbol_Pos.source_content source;
+  in pretty_text ctxt s end;
 
 fun pretty_term ctxt t = Syntax.pretty_term (Variable.auto_fixes t ctxt) t;
 
@@ -574,7 +578,7 @@ val _ = Theory.setup
   basic_entity (Binding.name "typ") Args.typ_abbrev Syntax.pretty_typ #>
   basic_entity (Binding.name "class") (Scan.lift Args.name_inner_syntax) pretty_class #>
   basic_entity (Binding.name "type") (Scan.lift Args.name) pretty_type #>
-  basic_entity (Binding.name "text") (Scan.lift (Parse.position Args.name)) pretty_text_report #>
+  basic_entity (Binding.name "text") (Scan.lift Args.name_source_position) pretty_text_report #>
   basic_entities (Binding.name "prf") Attrib.thms (pretty_prf false) #>
   basic_entities (Binding.name "full_prf") Attrib.thms (pretty_prf true) #>
   basic_entity (Binding.name "theory") (Scan.lift (Parse.position Args.name)) pretty_theory);
@@ -638,15 +642,18 @@ val verb_text =
 local
 
 fun ml_text name ml = antiquotation name (Scan.lift Args.name_source_position)
-  (fn {context, ...} => fn (txt, pos) =>
-   (ML_Context.eval_in (SOME context) false pos (ml pos txt);
-    Symbol_Pos.content (Symbol_Pos.explode (txt, pos))
+  (fn {context, ...} => fn source =>
+   (ML_Context.eval_in (SOME context) false (#pos source) (ml source);
+    Symbol_Pos.source_content source
+    |> #1
     |> (if Config.get context quotes then quote else I)
     |> (if Config.get context display then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"
         else verb_text)));
 
-fun ml_enclose bg en pos txt =
-  ML_Lex.read Position.none bg @ ML_Lex.read pos txt @ ML_Lex.read Position.none en;
+fun ml_enclose bg en source =
+  ML_Lex.read Position.none bg @
+  ML_Lex.read_source source @
+  ML_Lex.read Position.none en;
 
 in
 
@@ -658,11 +665,11 @@ val _ = Theory.setup
     (ml_enclose "functor XXX() = struct structure XX = " " end;") #>
 
   ml_text (Binding.name "ML_functor")   (* FIXME formal treatment of functor name (!?) *)
-    (fn pos => fn txt =>
+    (fn source =>
       ML_Lex.read Position.none ("ML_Env.check_functor " ^
-        ML_Syntax.print_string (Symbol_Pos.content (Symbol_Pos.explode (txt, pos))))) #>
+        ML_Syntax.print_string (#1 (Symbol_Pos.source_content source)))) #>
 
-  ml_text (Binding.name "ML_text") (K (K [])));
+  ml_text (Binding.name "ML_text") (K []));
 
 end;
 

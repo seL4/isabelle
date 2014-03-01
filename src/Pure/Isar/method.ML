@@ -42,8 +42,8 @@ sig
   val drule: Proof.context -> int -> thm list -> method
   val frule: Proof.context -> int -> thm list -> method
   val set_tactic: (thm list -> tactic) -> Proof.context -> Proof.context
-  val tactic: string * Position.T -> Proof.context -> method
-  val raw_tactic: string * Position.T -> Proof.context -> method
+  val tactic: Symbol_Pos.source -> Proof.context -> method
+  val raw_tactic: Symbol_Pos.source -> Proof.context -> method
   type src = Args.src
   type combinator_info
   val no_combinator_info: combinator_info
@@ -68,8 +68,7 @@ sig
   val check_source: Proof.context -> src -> src
   val syntax: 'a context_parser -> src -> Proof.context -> 'a * Proof.context
   val setup: binding -> (Proof.context -> method) context_parser -> string -> theory -> theory
-  val method_setup: bstring * Position.T -> Symbol_Pos.text * Position.T -> string ->
-    theory -> theory
+  val method_setup: bstring * Position.T -> Symbol_Pos.source -> string -> theory -> theory
   type modifier = (Proof.context -> Proof.context) * attribute
   val section: modifier parser list -> thm list context_parser
   val sections: modifier parser list -> thm list list context_parser
@@ -266,16 +265,16 @@ structure ML_Tactic = Proof_Data
 
 val set_tactic = ML_Tactic.put;
 
-fun ml_tactic (txt, pos) ctxt =
+fun ml_tactic source ctxt =
   let
     val ctxt' = ctxt |> Context.proof_map
-      (ML_Context.expression pos
+      (ML_Context.expression (#pos source)
         "fun tactic (facts: thm list) : tactic"
-        "Context.map_proof (Method.set_tactic tactic)" (ML_Lex.read pos txt));
+        "Context.map_proof (Method.set_tactic tactic)" (ML_Lex.read_source source));
   in Context.setmp_thread_data (SOME (Context.Proof ctxt)) (ML_Tactic.get ctxt') end;
 
-fun tactic txt ctxt = METHOD (ml_tactic txt ctxt);
-fun raw_tactic txt ctxt = RAW_METHOD (ml_tactic txt ctxt);
+fun tactic source ctxt = METHOD (ml_tactic source ctxt);
+fun raw_tactic source ctxt = RAW_METHOD (ml_tactic source ctxt);
 
 
 
@@ -366,12 +365,12 @@ fun setup name scan =
   add_method name
     (fn src => fn ctxt => let val (m, ctxt') = syntax scan src ctxt in m ctxt' end);
 
-fun method_setup name (txt, pos) cmt =
-  Context.theory_map (ML_Context.expression pos
+fun method_setup name source cmt =
+  Context.theory_map (ML_Context.expression (#pos source)
     "val (name, scan, comment): binding * (Proof.context -> Proof.method) context_parser * string"
     "Context.map_theory (Method.setup name scan comment)"
     (ML_Lex.read Position.none ("(" ^ ML_Syntax.make_binding name ^ ", ") @
-      ML_Lex.read pos txt @
+      ML_Lex.read_source source @
       ML_Lex.read Position.none (", " ^ ML_Syntax.print_string cmt ^ ")")));
 
 

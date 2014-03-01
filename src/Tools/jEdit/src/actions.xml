@@ -34,27 +34,27 @@
 	</ACTION>
 	<ACTION NAME="isabelle.reset-font-size">
 	  <CODE>
-	    isabelle.jedit.Isabelle.reset_font_size(view);
+	    isabelle.jedit.Isabelle.reset_font_size();
 	  </CODE>
 	</ACTION>
 	<ACTION NAME="isabelle.increase-font-size">
 	  <CODE>
-	    isabelle.jedit.Isabelle.increase_font_size(view);
+	    isabelle.jedit.Isabelle.increase_font_size();
 	  </CODE>
 	</ACTION>
 	<ACTION NAME="isabelle.increase-font-size2">
 	  <CODE>
-	    isabelle.jedit.Isabelle.increase_font_size(view);
+	    isabelle.jedit.Isabelle.increase_font_size();
 	  </CODE>
 	</ACTION>
 	<ACTION NAME="isabelle.decrease-font-size">
 	  <CODE>
-	    isabelle.jedit.Isabelle.decrease_font_size(view);
+	    isabelle.jedit.Isabelle.decrease_font_size();
 	  </CODE>
 	</ACTION>
 	<ACTION NAME="isabelle.decrease-font-size2">
 	  <CODE>
-	    isabelle.jedit.Isabelle.decrease_font_size(view);
+	    isabelle.jedit.Isabelle.decrease_font_size();
 	  </CODE>
 	</ACTION>
 	<ACTION NAME="isabelle.complete">

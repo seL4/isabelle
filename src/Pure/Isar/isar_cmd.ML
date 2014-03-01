@@ -6,20 +6,20 @@ Miscellaneous Isar commands.
 
 signature ISAR_CMD =
 sig
-  val global_setup: Symbol_Pos.text * Position.T -> theory -> theory
-  val local_setup: Symbol_Pos.text * Position.T -> Proof.context -> Proof.context
-  val parse_ast_translation: Symbol_Pos.text * Position.T -> theory -> theory
-  val parse_translation: Symbol_Pos.text * Position.T -> theory -> theory
-  val print_translation: Symbol_Pos.text * Position.T -> theory -> theory
-  val typed_print_translation: Symbol_Pos.text * Position.T -> theory -> theory
-  val print_ast_translation: Symbol_Pos.text * Position.T -> theory -> theory
+  val global_setup: Symbol_Pos.source -> theory -> theory
+  val local_setup: Symbol_Pos.source -> Proof.context -> Proof.context
+  val parse_ast_translation: Symbol_Pos.source -> theory -> theory
+  val parse_translation: Symbol_Pos.source -> theory -> theory
+  val print_translation: Symbol_Pos.source -> theory -> theory
+  val typed_print_translation: Symbol_Pos.source -> theory -> theory
+  val print_ast_translation: Symbol_Pos.source -> theory -> theory
   val translations: (xstring * string) Syntax.trrule list -> theory -> theory
   val no_translations: (xstring * string) Syntax.trrule list -> theory -> theory
-  val oracle: bstring * Position.T -> Symbol_Pos.text * Position.T -> theory -> theory
+  val oracle: bstring * Position.T -> Symbol_Pos.source -> theory -> theory
   val add_defs: (bool * bool) * ((binding * string) * Attrib.src list) list -> theory -> theory
   val declaration: {syntax: bool, pervasive: bool} ->
-    Symbol_Pos.text * Position.T -> local_theory -> local_theory
-  val simproc_setup: string * Position.T -> string list -> Symbol_Pos.text * Position.T ->
+    Symbol_Pos.source -> local_theory -> local_theory
+  val simproc_setup: string * Position.T -> string list -> Symbol_Pos.source ->
     string list -> local_theory -> local_theory
   val hide_class: bool -> xstring list -> theory -> theory
   val hide_type: bool -> xstring list -> theory -> theory
@@ -36,7 +36,7 @@ sig
   val immediate_proof: Toplevel.transition -> Toplevel.transition
   val done_proof: Toplevel.transition -> Toplevel.transition
   val skip_proof: Toplevel.transition -> Toplevel.transition
-  val ml_diag: bool -> Symbol_Pos.text * Position.T -> Toplevel.transition -> Toplevel.transition
+  val ml_diag: bool -> Symbol_Pos.source -> Toplevel.transition -> Toplevel.transition
   val diag_state: Proof.context -> Toplevel.state
   val diag_goal: Proof.context -> {context: Proof.context, facts: thm list, goal: thm}
   val print_theorems: bool -> Toplevel.transition -> Toplevel.transition
@@ -56,10 +56,10 @@ sig
   val print_term: (string list * string) -> Toplevel.transition -> Toplevel.transition
   val print_type: (string list * (string * string option)) ->
     Toplevel.transition -> Toplevel.transition
-  val header_markup: Symbol_Pos.text * Position.T -> Toplevel.transition -> Toplevel.transition
-  val local_theory_markup: (xstring * Position.T) option * (Symbol_Pos.text * Position.T) ->
+  val header_markup: Symbol_Pos.source -> Toplevel.transition -> Toplevel.transition
+  val local_theory_markup: (xstring * Position.T) option * (Symbol_Pos.source) ->
     Toplevel.transition -> Toplevel.transition
-  val proof_markup: Symbol_Pos.text * Position.T -> Toplevel.transition -> Toplevel.transition
+  val proof_markup: Symbol_Pos.source -> Toplevel.transition -> Toplevel.transition
 end;
 
 structure Isar_Cmd: ISAR_CMD =
@@ -70,50 +70,50 @@ struct
 
 (* generic setup *)
 
-fun global_setup (txt, pos) =
-  ML_Lex.read pos txt
-  |> ML_Context.expression pos "val setup: theory -> theory" "Context.map_theory setup"
+fun global_setup source =
+  ML_Lex.read_source source
+  |> ML_Context.expression (#pos source) "val setup: theory -> theory" "Context.map_theory setup"
   |> Context.theory_map;
 
-fun local_setup (txt, pos) =
-  ML_Lex.read pos txt
-  |> ML_Context.expression pos "val setup: local_theory -> local_theory" "Context.map_proof setup"
+fun local_setup source =
+  ML_Lex.read_source source
+  |> ML_Context.expression (#pos source) "val setup: local_theory -> local_theory" "Context.map_proof setup"
   |> Context.proof_map;
 
 
 (* translation functions *)
 
-fun parse_ast_translation (txt, pos) =
-  ML_Lex.read pos txt
-  |> ML_Context.expression pos
+fun parse_ast_translation source =
+  ML_Lex.read_source source
+  |> ML_Context.expression (#pos source)
     "val parse_ast_translation: (string * (Proof.context -> Ast.ast list -> Ast.ast)) list"
     "Context.map_theory (Sign.parse_ast_translation parse_ast_translation)"
   |> Context.theory_map;
 
-fun parse_translation (txt, pos) =
-  ML_Lex.read pos txt
-  |> ML_Context.expression pos
+fun parse_translation source =
+  ML_Lex.read_source source
+  |> ML_Context.expression (#pos source)
     "val parse_translation: (string * (Proof.context -> term list -> term)) list"
     "Context.map_theory (Sign.parse_translation parse_translation)"
   |> Context.theory_map;
 
-fun print_translation (txt, pos) =
-  ML_Lex.read pos txt
-  |> ML_Context.expression pos
+fun print_translation source =
+  ML_Lex.read_source source
+  |> ML_Context.expression (#pos source)
     "val print_translation: (string * (Proof.context -> term list -> term)) list"
     "Context.map_theory (Sign.print_translation print_translation)"
   |> Context.theory_map;
 
-fun typed_print_translation (txt, pos) =
-  ML_Lex.read pos txt
-  |> ML_Context.expression pos
+fun typed_print_translation source =
+  ML_Lex.read_source source
+  |> ML_Context.expression (#pos source)
     "val typed_print_translation: (string * (Proof.context -> typ -> term list -> term)) list"
     "Context.map_theory (Sign.typed_print_translation typed_print_translation)"
   |> Context.theory_map;
 
-fun print_ast_translation (txt, pos) =
-  ML_Lex.read pos txt
-  |> ML_Context.expression pos
+fun print_ast_translation source =
+  ML_Lex.read_source source
+  |> ML_Context.expression (#pos source)
     "val print_ast_translation: (string * (Proof.context -> Ast.ast list -> Ast.ast)) list"
     "Context.map_theory (Sign.print_ast_translation print_ast_translation)"
   |> Context.theory_map;
@@ -135,18 +135,19 @@ fun no_translations args thy = Sign.del_trrules (read_trrules thy args) thy;
 
 (* oracles *)
 
-fun oracle (name, pos) (body_txt, body_pos) =
+fun oracle (name, pos) source =
   let
-    val body = ML_Lex.read body_pos body_txt;
+    val body = ML_Lex.read_source source;
     val ants =
       ML_Lex.read Position.none
        ("local\n\
         \  val binding = " ^ ML_Syntax.make_binding (name, pos) ^ ";\n\
         \  val body = ") @ body @ ML_Lex.read Position.none (";\n\
         \in\n\
-        \  val " ^ name ^ " = snd (Context.>>> (Context.map_theory_result (Thm.add_oracle (binding, body))));\n\
+        \  val " ^ name ^
+        " = snd (Context.>>> (Context.map_theory_result (Thm.add_oracle (binding, body))));\n\
         \end;\n");
-  in Context.theory_map (ML_Context.exec (fn () => ML_Context.eval false body_pos ants)) end;
+  in Context.theory_map (ML_Context.exec (fn () => ML_Context.eval false (#pos source) ants)) end;
 
 
 (* old-style defs *)
@@ -161,9 +162,9 @@ fun add_defs ((unchecked, overloaded), args) thy =
 
 (* declarations *)
 
-fun declaration {syntax, pervasive} (txt, pos) =
-  ML_Lex.read pos txt
-  |> ML_Context.expression pos
+fun declaration {syntax, pervasive} source =
+  ML_Lex.read_source source
+  |> ML_Context.expression (#pos source)
     "val declaration: Morphism.declaration"
     ("Context.map_proof (Local_Theory.declaration {syntax = " ^ Bool.toString syntax ^ ", \
       \pervasive = " ^ Bool.toString pervasive ^ "} declaration)")
@@ -172,9 +173,9 @@ fun declaration {syntax, pervasive} (txt, pos) =
 
 (* simprocs *)
 
-fun simproc_setup name lhss (txt, pos) identifier =
-  ML_Lex.read pos txt
-  |> ML_Context.expression pos
+fun simproc_setup name lhss source identifier =
+  ML_Lex.read_source source
+  |> ML_Context.expression (#pos source)
     "val proc: Morphism.morphism -> Proof.context -> cterm -> thm option"
     ("Context.map_proof (Simplifier.def_simproc_cmd {name = " ^ ML_Syntax.make_binding name ^ ", \
       \lhss = " ^ ML_Syntax.print_strings lhss ^ ", proc = proc, \
@@ -253,11 +254,11 @@ structure Diag_State = Proof_Data
   fun init _ = Toplevel.toplevel;
 );
 
-fun ml_diag verbose (txt, pos) = Toplevel.keep (fn state =>
+fun ml_diag verbose source = Toplevel.keep (fn state =>
   let val opt_ctxt =
     try Toplevel.generic_theory_of state
     |> Option.map (Context.proof_of #> Diag_State.put state)
-  in ML_Context.eval_text_in opt_ctxt verbose pos txt end);
+  in ML_Context.eval_source_in opt_ctxt verbose source end);
 
 val diag_state = Diag_State.get;
 

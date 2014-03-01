@@ -186,14 +186,11 @@ object Isabelle
 
   /* font size */
 
-  def reset_font_size(view: View): Unit =
-    Rendering.font_size_change(view, _ => PIDE.options.int("jedit_reset_font_size"))
-
-  def increase_font_size(view: View): Unit =
-    Rendering.font_size_change(view, i => i + ((i / 10) max 1))
-
-  def decrease_font_size(view: View): Unit =
-    Rendering.font_size_change(view, i => i - ((i / 10) max 1))
+  def reset_font_size() {
+    Font_Info.main_change.reset(PIDE.options.int("jedit_reset_font_size").toFloat)
+  }
+  def increase_font_size() { Font_Info.main_change.step(1) }
+  def decrease_font_size() { Font_Info.main_change.step(-1) }
 
 
   /* structured edits */

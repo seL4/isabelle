@@ -377,8 +377,8 @@ fun pretty_fact ctxt =
 fun read_class ctxt text =
   let
     val tsig = tsig_of ctxt;
-    val (syms, pos) = Syntax.read_token text;
-    val c = Type.cert_class tsig (Type.intern_class tsig (Symbol_Pos.content syms))
+    val (s, pos) = Symbol_Pos.source_content (Syntax.read_token text);
+    val c = Type.cert_class tsig (Type.intern_class tsig s)
       handle TYPE (msg, _, _) => error (msg ^ Position.here pos);
     val _ = Context_Position.report ctxt pos (Name_Space.markup (Type.class_space tsig) c);
   in c end;
@@ -439,8 +439,6 @@ fun inferred_fixes ctxt =
 
 local
 
-val token_content = Syntax.read_token #>> Symbol_Pos.content;
-
 fun prep_const_proper ctxt strict (c, pos) =
   let
     fun err msg = error (msg ^ Position.here pos);
@@ -461,7 +459,7 @@ in
 fun read_type_name ctxt strict text =
   let
     val tsig = tsig_of ctxt;
-    val (c, pos) = token_content text;
+    val (c, pos) = Symbol_Pos.source_content (Syntax.read_token text);
   in
     if Lexicon.is_tid c then
      (Context_Position.report ctxt pos Markup.tfree;
@@ -486,11 +484,12 @@ fun read_type_name_proper ctxt strict text =
   | T => error ("Not a type constructor: " ^ Syntax.string_of_typ ctxt T));
 
 
-fun read_const_proper ctxt strict = prep_const_proper ctxt strict o token_content;
+fun read_const_proper ctxt strict =
+  prep_const_proper ctxt strict o Symbol_Pos.source_content o Syntax.read_token;
 
 fun read_const ctxt strict ty text =
   let
-    val (c, pos) = token_content text;
+    val (c, pos) = Symbol_Pos.source_content (Syntax.read_token text);
     val _ = no_skolem false c;
   in
     (case (Variable.lookup_fixed ctxt c, Variable.is_const ctxt c) of

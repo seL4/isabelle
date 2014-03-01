@@ -376,8 +376,32 @@ object Document
   }
 
 
+  /* markup elements */
 
-  /** global state -- document structure, execution process, editing history **/
+  object Elements
+  {
+    def apply(elems: Set[String]): Elements = new Elements(elems)
+    def apply(elems: String*): Elements = apply(Set(elems: _*))
+    val empty: Elements = apply()
+    val full: Elements = new Full_Elements
+  }
+
+  sealed class Elements private[Document](private val rep: Set[String])
+  {
+    def apply(elem: String): Boolean = rep.contains(elem)
+    def + (elem: String): Elements = new Elements(rep + elem)
+    def ++ (elems: Elements): Elements = new Elements(rep ++ elems.rep)
+    override def toString: String = rep.mkString("Elements(", ",", ")")
+  }
+
+  private class Full_Elements extends Elements(Set.empty)
+  {
+    override def apply(elem: String): Boolean = true
+    override def toString: String = "Full_Elements()"
+  }
+
+
+  /* snapshot */
 
   object Snapshot
   {
@@ -403,16 +427,20 @@ object Document
     def cumulate[A](
       range: Text.Range,
       info: A,
-      elements: String => Boolean,
+      elements: Elements,
       result: Command.State => (A, Text.Markup) => Option[A],
       status: Boolean = false): List[Text.Info[A]]
 
     def select[A](
       range: Text.Range,
-      elements: String => Boolean,
+      elements: Elements,
       result: Command.State => Text.Markup => Option[A],
       status: Boolean = false): List[Text.Info[A]]
   }
+
+
+
+  /** global state -- document structure, execution process, editing history **/
 
   type Assign_Update =
     List[(Document_ID.Command, List[Document_ID.Exec])]  // update of exec state assignment
@@ -672,7 +700,7 @@ object Document
         def cumulate[A](
           range: Text.Range,
           info: A,
-          elements: String => Boolean,
+          elements: Elements,
           result: Command.State => (A, Text.Markup) => Option[A],
           status: Boolean = false): List[Text.Info[A]] =
         {
@@ -708,7 +736,7 @@ object Document
 
         def select[A](
           range: Text.Range,
-          elements: String => Boolean,
+          elements: Elements,
           result: Command.State => Text.Markup => Option[A],
           status: Boolean = false): List[Text.Info[A]] =
         {

@@ -44,14 +44,15 @@ local
 
 fun reports_of_token tok =
   let
+    val {text, pos, ...} = Token.source_position_of tok;
     val malformed_symbols =
-      Symbol_Pos.explode (Token.source_position_of tok)
+      Symbol_Pos.explode (text, pos)
       |> map_filter (fn (sym, pos) =>
           if Symbol.is_malformed sym
           then SOME ((pos, Markup.bad), "Malformed symbolic character") else NONE);
     val is_malformed = Token.is_error tok orelse not (null malformed_symbols);
-    val (markup, txt) = Token.markup tok;
-    val reports = ((Token.pos_of tok, markup), txt) :: malformed_symbols;
+    val (markup, msg) = Token.markup tok;
+    val reports = ((Token.pos_of tok, markup), msg) :: malformed_symbols;
   in (is_malformed, reports) end;
 
 in

@@ -40,7 +40,7 @@ sig
   val is_blank: T -> bool
   val is_newline: T -> bool
   val inner_syntax_of: T -> string
-  val source_position_of: T -> Symbol_Pos.text * Position.T
+  val source_position_of: T -> Symbol_Pos.source
   val content_of: T -> string
   val markup: T -> Markup.T * string
   val unparse: T -> string
@@ -127,6 +127,8 @@ val str_of_kind =
   | Sync => "sync marker"
   | EOF => "end-of-input";
 
+val delimited_kind = member (op =) [String, AltString, Verbatim, Cartouche, Comment];
+
 
 (* position *)
 
@@ -206,11 +208,16 @@ fun is_newline (Token (_, (Space, x), _)) = String.isSuffix "\n" x
 
 (* token content *)
 
-fun inner_syntax_of (Token ((source, (pos, _)), (_, x), _)) =
+fun inner_syntax_of (Token ((source, (pos, _)), (kind, x), _)) =
   if YXML.detect x then x
-  else YXML.string_of (XML.Elem (Markup.token (Position.properties_of pos), [XML.Text source]));
+  else
+    let
+      val delimited = delimited_kind kind;
+      val tree = XML.Elem (Markup.token delimited (Position.properties_of pos), [XML.Text source]);
+    in YXML.string_of tree end;
 
-fun source_position_of (Token ((source, (pos, _)), _, _)) = (source, pos);
+fun source_position_of (Token ((source, (pos, _)), (kind, _), _)) =
+  {delimited = delimited_kind kind, text = source, pos = pos};
 
 fun content_of (Token (_, (_, x), _)) = x;
 

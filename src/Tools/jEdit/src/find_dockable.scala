@@ -56,8 +56,8 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
   {
     Swing_Thread.require()
 
-    pretty_text_area.resize(Rendering.font_family(),
-      (Rendering.font_size("jedit_font_scale") * zoom_factor / 100).round)
+    pretty_text_area.resize(
+      Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom_factor / 100))
   }
 
   private val delay_resize =
@@ -121,7 +121,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
     { val max = getPreferredSize; max.width = Integer.MAX_VALUE; setMaximumSize(max) }
     setColumns(40)
     setToolTipText(query_label.tooltip)
-    setFont(GUI.imitate_font(Rendering.font_family(), getFont, 1.2))
+    setFont(GUI.imitate_font(Font_Info.main_family(), getFont, 1.2))
   }
 
   private case class Context_Entry(val name: String, val description: String)

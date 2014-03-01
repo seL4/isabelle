@@ -16,7 +16,7 @@ sig
   val triple_swap: ('a * 'b) * 'c -> ('a * 'c) * 'b
   val not_eof: Token.T parser
   val position: 'a parser -> ('a * Position.T) parser
-  val source_position: 'a parser -> (Symbol_Pos.text * Position.T) parser
+  val source_position: 'a parser -> Symbol_Pos.source parser
   val inner_syntax: 'a parser -> string parser
   val command: string parser
   val keyword: string parser
@@ -93,8 +93,8 @@ sig
   val simple_fixes: (binding * string option) list parser
   val fixes: (binding * string option * mixfix) list parser
   val for_fixes: (binding * string option * mixfix) list parser
-  val ML_source: (Symbol_Pos.text * Position.T) parser
-  val document_source: (Symbol_Pos.text * Position.T) parser
+  val ML_source: Symbol_Pos.source parser
+  val document_source: Symbol_Pos.source parser
   val term_group: string parser
   val prop_group: string parser
   val term: string parser

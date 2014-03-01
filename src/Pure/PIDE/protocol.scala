@@ -77,11 +77,11 @@ object Protocol
   def command_status(markups: List[Markup]): Status =
     (Status.init /: markups)(command_status(_, _))
 
-  val command_status_elements: Set[String] =
-    Set(Markup.ACCEPTED, Markup.FORKED, Markup.JOINED, Markup.RUNNING,
+  val command_status_elements =
+    Document.Elements(Markup.ACCEPTED, Markup.FORKED, Markup.JOINED, Markup.RUNNING,
       Markup.FINISHED, Markup.FAILED)
 
-  val status_elements: Set[String] =
+  val status_elements =
     command_status_elements + Markup.WARNING + Markup.ERROR
 
 
@@ -165,7 +165,8 @@ object Protocol
 
   /* result messages */
 
-  private val clean_elements = Set(Markup.REPORT, Markup.NO_REPORT)
+  private val clean_elements =
+    Document.Elements(Markup.REPORT, Markup.NO_REPORT)
 
   def clean_message(body: XML.Body): XML.Body =
     body filter {
@@ -276,7 +277,7 @@ object Protocol
   /* reported positions */
 
   private val position_elements =
-    Set(Markup.BINDING, Markup.ENTITY, Markup.REPORT, Markup.POSITION)
+    Document.Elements(Markup.BINDING, Markup.ENTITY, Markup.REPORT, Markup.POSITION)
 
   def message_positions(
     command_id: Document_ID.Command,
@@ -288,8 +289,8 @@ object Protocol
       props match {
         case Position.Reported(id, file_name, raw_range)
         if (id == command_id || id == alt_id) && file_name == chunk.file_name =>
-          chunk.decode(raw_range).try_restrict(chunk.range) match {
-            case Some(range) if !range.is_singularity => set + range
+          chunk.incorporate(raw_range) match {
+            case Some(range) => set + range
             case _ => set
           }
         case _ => set

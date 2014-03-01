@@ -94,6 +94,7 @@ object Markup
 
   val Symbols = new Properties.Boolean("symbols")
   val Antiquotes = new Properties.Boolean("antiquotes")
+  val Delimited = new Properties.Boolean("delimited")
 
   val LANGUAGE = "language"
   object Language
@@ -101,12 +102,12 @@ object Markup
     val ML = "ML"
     val UNKNOWN = "unknown"
 
-    def unapply(markup: Markup): Option[(String, Boolean, Boolean)] =
+    def unapply(markup: Markup): Option[(String, Boolean, Boolean, Boolean)] =
       markup match {
         case Markup(LANGUAGE, props) =>
-          (props, props, props) match {
-            case (Name(name), Symbols(symbols), Antiquotes(antiquotes)) =>
-              Some((name, symbols, antiquotes))
+          (props, props, props, props) match {
+            case (Name(name), Symbols(symbols), Antiquotes(antiquotes), Delimited(delimited)) =>
+              Some((name, symbols, antiquotes, delimited))
             case _ => None
           }
         case _ => None

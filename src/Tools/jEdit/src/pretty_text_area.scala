@@ -61,8 +61,7 @@ class Pretty_Text_Area(
 
   Swing_Thread.require()
 
-  private var current_font_family = "Dialog"
-  private var current_font_size: Int = 12
+  private var current_font_info: Font_Info = Font_Info.main()
   private var current_body: XML.Body = Nil
   private var current_base_snapshot = Document.Snapshot.init
   private var current_base_results = Command.Results.empty
@@ -80,18 +79,19 @@ class Pretty_Text_Area(
   {
     Swing_Thread.require()
 
-    val font = new Font(current_font_family, Font.PLAIN, current_font_size)
+    val font = current_font_info.font
     getPainter.setFont(font)
     getPainter.setAntiAlias(new AntiAlias(jEdit.getProperty("view.antiAlias")))
     getPainter.setFractionalFontMetricsEnabled(jEdit.getBooleanProperty("view.fracFontMetrics"))
-    getPainter.setStyles(SyntaxUtilities.loadStyles(current_font_family, current_font_size))
+    getPainter.setStyles(
+      SyntaxUtilities.loadStyles(current_font_info.family, current_font_info.size.round))
 
     val fold_line_style = new Array[SyntaxStyle](4)
     for (i <- 0 to 3) {
       fold_line_style(i) =
         SyntaxUtilities.parseStyle(
           jEdit.getProperty("view.style.foldLine." + i),
-          current_font_family, current_font_size, true)
+          current_font_info.family, current_font_info.size.round, true)
     }
     getPainter.setFoldLineStyle(fold_line_style)
 
@@ -139,12 +139,11 @@ class Pretty_Text_Area(
     }
   }
 
-  def resize(font_family: String, font_size: Int)
+  def resize(font_info: Font_Info)
   {
     Swing_Thread.require()
 
-    current_font_family = font_family
-    current_font_size = font_size
+    current_font_info = font_info
     refresh()
   }
 

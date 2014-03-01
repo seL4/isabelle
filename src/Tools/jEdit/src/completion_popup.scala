@@ -150,7 +150,7 @@ object Completion_Popup
           val context =
             (opt_rendering orElse PIDE.document_view(text_area).map(_.get_rendering()) match {
               case Some(rendering) =>
-                rendering.language_context(before_caret_range(rendering))
+                rendering.completion_language(before_caret_range(rendering))
               case None => None
             }) getOrElse syntax.language_context
 
@@ -196,7 +196,8 @@ object Completion_Popup
       def open_popup(result: Completion.Result)
       {
         val font =
-          painter.getFont.deriveFont(Rendering.font_size("jedit_popup_font_scale"))
+          painter.getFont.deriveFont(
+            Font_Info.main_size(PIDE.options.real("jedit_popup_font_scale")))
 
         val range = result.range
         def invalidate(): Unit = JEdit_Lib.invalidate_range(text_area, range)

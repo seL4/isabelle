@@ -35,8 +35,7 @@ sig
     Context.generic -> (string * thm list) list * Context.generic
   val eval_thms: Proof.context -> (Facts.ref * src list) list -> thm list
   val setup: Binding.binding -> attribute context_parser -> string -> theory -> theory
-  val attribute_setup: bstring * Position.T -> Symbol_Pos.text * Position.T -> string ->
-    theory -> theory
+  val attribute_setup: bstring * Position.T -> Symbol_Pos.source -> string -> theory -> theory
   val internal: (morphism -> attribute) -> src
   val add_del: attribute -> attribute -> attribute context_parser
   val thm_sel: Facts.interval list parser
@@ -185,12 +184,12 @@ fun setup name scan =
   add_attribute name
     (fn src => fn (ctxt, th) => let val (a, ctxt') = syntax scan src ctxt in a (ctxt', th) end);
 
-fun attribute_setup name (txt, pos) cmt =
-  Context.theory_map (ML_Context.expression pos
+fun attribute_setup name source cmt =
+  Context.theory_map (ML_Context.expression (#pos source)
     "val (name, scan, comment): binding * attribute context_parser * string"
     "Context.map_theory (Attrib.setup name scan comment)"
     (ML_Lex.read Position.none ("(" ^ ML_Syntax.make_binding name ^ ", ") @
-      ML_Lex.read pos txt @
+      ML_Lex.read_source source @
       ML_Lex.read Position.none (", " ^ ML_Syntax.print_string cmt ^ ")")));
 
 

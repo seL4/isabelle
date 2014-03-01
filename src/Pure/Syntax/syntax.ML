@@ -14,10 +14,10 @@ sig
   val ambiguity_warning: bool Config.T
   val ambiguity_limit_raw: Config.raw
   val ambiguity_limit: int Config.T
-  val read_token: string -> Symbol_Pos.T list * Position.T
   val read_token_pos: string -> Position.T
+  val read_token: string -> Symbol_Pos.source
   val parse_token: Proof.context -> (XML.tree list -> 'a) ->
-    Markup.T -> (Symbol_Pos.T list * Position.T -> 'a) -> string -> 'a
+    (bool -> Markup.T) -> (Symbol_Pos.T list * Position.T -> 'a) -> string -> 'a
   val parse_sort: Proof.context -> string -> sort
   val parse_typ: Proof.context -> string -> typ
   val parse_term: Proof.context -> string -> term
@@ -159,26 +159,33 @@ val ambiguity_limit = Config.int ambiguity_limit_raw;
 
 (* outer syntax token -- with optional YXML content *)
 
-fun token_position (XML.Elem ((name, props), _)) =
-      if name = Markup.tokenN then Position.of_properties props
-      else Position.none
-  | token_position (XML.Text _) = Position.none;
+local
 
-fun explode_token tree =
+fun token_position (XML.Elem ((name, props), _)) =
+      if name = Markup.tokenN
+      then (Markup.is_delimited props, Position.of_properties props)
+      else (false, Position.none)
+  | token_position (XML.Text _) = (false, Position.none);
+
+fun token_source tree =
   let
     val text = XML.content_of [tree];
-    val pos = token_position tree;
-  in (Symbol_Pos.explode (text, pos), pos) end;
+    val (delimited, pos) = token_position tree;
+  in {delimited = delimited, text = text, pos = pos} end;
 
-fun read_token str = explode_token (YXML.parse str handle Fail msg => error msg);
-fun read_token_pos str = token_position (YXML.parse str handle Fail msg => error msg);
+in
+
+fun read_token_pos str = #2 (token_position (YXML.parse str handle Fail msg => error msg));
+
+fun read_token str = token_source (YXML.parse str handle Fail msg => error msg);
 
 fun parse_token ctxt decode markup parse str =
   let
     fun parse_tree tree =
       let
-        val (syms, pos) = explode_token tree;
-        val _ = Context_Position.report ctxt pos markup;
+        val {delimited, text, pos} = token_source tree;
+        val syms = Symbol_Pos.explode (text, pos);
+        val _ = Context_Position.report ctxt pos (markup delimited);
       in parse (syms, pos) end;
   in
     (case YXML.parse_body str handle Fail msg => error msg of
@@ -187,6 +194,8 @@ fun parse_token ctxt decode markup parse str =
     | [tree as XML.Text _] => parse_tree tree
     | body => decode body)
   end;
+
+end;
 
 
 (* (un)parsing *)

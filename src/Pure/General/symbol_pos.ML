@@ -40,6 +40,8 @@ sig
   val implode: T list -> text
   val implode_range: Position.T -> Position.T -> T list -> text * Position.range
   val explode: text * Position.T -> T list
+  type source = {delimited: bool, text: text, pos: Position.T}
+  val source_content: source -> string * Position.T
   val scan_ident: T list -> T list * T list
   val is_identifier: string -> bool
 end;
@@ -253,6 +255,14 @@ fun explode (str, pos) =
       fold (fn s => fn (res, p) => ((s, p) :: res, Position.advance s p))
         (Symbol.explode str) ([], Position.reset_range pos);
   in fold (fn (s, p) => if s = Symbol.DEL then I else cons (s, p)) res [] end;
+
+
+(* full source information *)
+
+type source = {delimited: bool, text: text, pos: Position.T};
+
+fun source_content {delimited = _, text, pos} =
+  let val syms = explode (text, pos) in (content syms, pos) end;
 
 
 (* identifiers *)
