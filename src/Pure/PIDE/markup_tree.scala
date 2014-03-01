@@ -51,10 +51,10 @@ object Markup_Tree
   {
     def markup: List[XML.Elem] = rev_markup.reverse
 
-    def filter_markup(pred: String => Boolean): List[XML.Elem] =
+    def filter_markup(elements: Document.Elements): List[XML.Elem] =
     {
       var result: List[XML.Elem] = Nil
-      for { elem <- rev_markup; if (pred(elem.name)) }
+      for { elem <- rev_markup; if (elements(elem.name)) }
         result ::= elem
       result.toList
     }
@@ -194,7 +194,7 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
   def to_XML(text: CharSequence): XML.Body =
     to_XML(Text.Range(0, text.length), text, (_: XML.Elem) => true)
 
-  def cumulate[A](root_range: Text.Range, root_info: A, elements: String => Boolean,
+  def cumulate[A](root_range: Text.Range, root_info: A, elements: Document.Elements,
     result: (A, Text.Markup) => Option[A]): List[Text.Info[A]] =
   {
     def results(x: A, entry: Entry): Option[A] =

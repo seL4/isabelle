@@ -150,28 +150,29 @@ object Rendering
 
   /* markup elements */
 
-  private val completion_names_elements = Set(Markup.COMPLETION)
+  private val completion_names_elements =
+    Document.Elements(Markup.COMPLETION)
 
   private val language_context_elements =
-    Set(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM,
+    Document.Elements(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM,
       Markup.CARTOUCHE, Markup.COMMENT, Markup.LANGUAGE,
       Markup.ML_STRING, Markup.ML_COMMENT)
 
   private val highlight_elements =
-    Set(Markup.LANGUAGE, Markup.ML_TYPING, Markup.TOKEN_RANGE,
+    Document.Elements(Markup.LANGUAGE, Markup.ML_TYPING, Markup.TOKEN_RANGE,
       Markup.ENTITY, Markup.PATH, Markup.URL, Markup.SORTING,
       Markup.TYPING, Markup.FREE, Markup.SKOLEM, Markup.BOUND,
       Markup.VAR, Markup.TFREE, Markup.TVAR)
 
   private val hyperlink_elements =
-    Set(Markup.ENTITY, Markup.PATH, Markup.POSITION, Markup.URL)
+    Document.Elements(Markup.ENTITY, Markup.PATH, Markup.POSITION, Markup.URL)
 
   private val active_elements =
-    Set(Markup.DIALOG, Markup.BROWSER, Markup.GRAPHVIEW,
+    Document.Elements(Markup.DIALOG, Markup.BROWSER, Markup.GRAPHVIEW,
       Markup.SENDBACK, Markup.SIMP_TRACE)
 
   private val tooltip_message_elements =
-    Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR, Markup.BAD)
+    Document.Elements(Markup.WRITELN, Markup.WARNING, Markup.ERROR, Markup.BAD)
 
   private val tooltip_descriptions =
     Map(
@@ -184,22 +185,23 @@ object Rendering
       Markup.TVAR -> "schematic type variable")
 
   private val tooltip_elements =
-    Set(Markup.LANGUAGE, Markup.TIMING, Markup.ENTITY, Markup.SORTING,
+    Document.Elements(Markup.LANGUAGE, Markup.TIMING, Markup.ENTITY, Markup.SORTING,
       Markup.TYPING, Markup.ML_TYPING, Markup.PATH, Markup.URL) ++
-      tooltip_descriptions.keys
+    Document.Elements(tooltip_descriptions.keySet)
 
   private val gutter_elements =
-    Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR)
+    Document.Elements(Markup.WRITELN, Markup.WARNING, Markup.ERROR)
 
   private val squiggly_elements =
-    Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR)
+    Document.Elements(Markup.WRITELN, Markup.WARNING, Markup.ERROR)
 
   private val line_background_elements =
-    Set(Markup.WRITELN_MESSAGE, Markup.TRACING_MESSAGE,
+    Document.Elements(Markup.WRITELN_MESSAGE, Markup.TRACING_MESSAGE,
       Markup.WARNING_MESSAGE, Markup.ERROR_MESSAGE,
       Markup.INFORMATION)
 
-  private val separator_elements = Set(Markup.SEPARATOR)
+  private val separator_elements =
+    Document.Elements(Markup.SEPARATOR)
 
   private val background_elements =
     Protocol.command_status_elements + Markup.WRITELN_MESSAGE +
@@ -208,13 +210,14 @@ object Rendering
       active_elements
 
   private val foreground_elements =
-    Set(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM,
+    Document.Elements(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM,
       Markup.CARTOUCHE, Markup.ANTIQUOTED)
 
-  private val bullet_elements = Set(Markup.BULLET)
+  private val bullet_elements =
+    Document.Elements(Markup.BULLET)
 
   private val fold_depth_elements =
-    Set(Markup.TEXT_FOLD, Markup.GOAL, Markup.SUBGOAL)
+    Document.Elements(Markup.TEXT_FOLD, Markup.GOAL, Markup.SUBGOAL)
 }
 
 
@@ -421,7 +424,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   def command_results(range: Text.Range): Command.Results =
   {
     val results =
-      snapshot.select[Command.Results](range, _ => true, command_state =>
+      snapshot.select[Command.Results](range, Document.Elements.full, command_state =>
         { case _ => Some(command_state.results) }).map(_.info)
     (Command.Results.empty /: results)(_ ++ _)
   }
@@ -703,7 +706,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       Markup.ML_STRING -> inner_quoted_color,
       Markup.ML_COMMENT -> inner_comment_color)
 
-  private lazy val text_color_elements = text_colors.keySet
+  private lazy val text_color_elements =
+    Document.Elements(text_colors.keySet)
 
   def text_color(range: Text.Range, color: Color): List[Text.Info[Color]] =
   {
