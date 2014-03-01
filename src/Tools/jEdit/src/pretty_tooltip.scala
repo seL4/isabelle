@@ -199,8 +199,7 @@ class Pretty_Tooltip private(
     }
   })
 
-  pretty_text_area.resize(Rendering.font_family(),
-    Rendering.font_size("jedit_popup_font_scale").round)
+  pretty_text_area.resize(Font_Info.main(PIDE.options.real("jedit_popup_font_scale")))
 
 
   /* main content */

@@ -181,7 +181,7 @@ class Simplifier_Trace_Window(
   def do_paint()
   {
     Swing_Thread.later {
-      area.resize(Rendering.font_family(), Rendering.font_size("jedit_font_scale").round)
+      area.resize(Font_Info.main(PIDE.options.real("jedit_font_scale")))
     }
   }
 

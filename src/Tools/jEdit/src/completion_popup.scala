@@ -196,7 +196,8 @@ object Completion_Popup
       def open_popup(result: Completion.Result)
       {
         val font =
-          painter.getFont.deriveFont(Rendering.font_size("jedit_popup_font_scale"))
+          painter.getFont.deriveFont(
+            Font_Info.main_size(PIDE.options.real("jedit_popup_font_scale")))
 
         val range = result.range
         def invalidate(): Unit = JEdit_Lib.invalidate_range(text_area, range)

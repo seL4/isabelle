@@ -16,6 +16,7 @@ declare -a SOURCES=(
   "src/documentation_dockable.scala"
   "src/find_dockable.scala"
   "src/fold_handling.scala"
+  "src/font_info.scala"
   "src/graphview_dockable.scala"
   "src/info_dockable.scala"
   "src/isabelle.scala"

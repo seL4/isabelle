@@ -26,7 +26,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
   private class Symbol_Component(val symbol: String) extends Button
   {
     private val decoded = Symbol.decode(symbol)
-    private val font_size = Rendering.font_size("jedit_font_scale").round
+    private val font_size = Font_Info.main_size(PIDE.options.real("jedit_font_scale")).round
 
     font =
       Symbol.fonts.get(symbol) match {

@@ -41,30 +41,6 @@ object Rendering
     Markup.ERROR -> error_pri, Markup.ERROR_MESSAGE -> error_pri)
 
 
-  /* jEdit font */
-
-  def font_family(): String = jEdit.getProperty("view.font")
-
-  private def view_font_size(): Int = jEdit.getIntegerProperty("view.fontsize", 16)
-  private val font_size0 = 5
-  private val font_size1 = 250
-
-  def font_size(scale: String): Float =
-    (view_font_size() * PIDE.options.real(scale)).toFloat max font_size0 min font_size1
-
-  def font_size_change(change: Int => Int)
-  {
-    val size0 = view_font_size()
-    val size = change(size0) max font_size0 min font_size1
-    if (size != size0) {
-      jEdit.setIntegerProperty("view.fontsize", size)
-      jEdit.propertiesChanged()
-      jEdit.saveSettings()
-      jEdit.getActiveView().getStatus.setMessageAndClear("Text font size: " + size)
-    }
-  }
-
-
   /* popup window bounds */
 
   def popup_bounds: Double = (PIDE.options.real("jedit_popup_bounds") max 0.2) min 0.8

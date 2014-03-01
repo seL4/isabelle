@@ -192,17 +192,17 @@ object Isabelle
     private var steps = 0
     private val delay = Swing_Thread.delay_last(PIDE.options.seconds("editor_input_delay"))
     {
-      Rendering.font_size_change(i =>
+      Font_Info.main_change(size =>
         {
-          var j = i
-          while (steps != 0 && j > 0) {
+          var i = size.round
+          while (steps != 0 && i > 0) {
             if (steps > 0)
-              { j += (j / 10) max 1; steps -= 1 }
+              { i += (i / 10) max 1; steps -= 1 }
             else
-              { j -= (j / 10) max 1; steps += 1 }
+              { i -= (i / 10) max 1; steps += 1 }
           }
           steps = 0
-          j
+          i.toFloat
         })
     }
     def step(i: Int) { steps += i; delay.invoke() }
@@ -212,7 +212,7 @@ object Isabelle
   def reset_font_size()
   {
     font_size.reset()
-    Rendering.font_size_change(_ => PIDE.options.int("jedit_reset_font_size"))
+    Font_Info.main_change(_ => PIDE.options.int("jedit_reset_font_size").toFloat)
   }
 
   def increase_font_size() { font_size.step(1) }
