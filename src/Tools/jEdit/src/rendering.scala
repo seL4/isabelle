@@ -52,7 +52,7 @@ object Rendering
   def font_size(scale: String): Float =
     (view_font_size() * PIDE.options.real(scale)).toFloat max font_size0 min font_size1
 
-  def font_size_change(view: View, change: Int => Int)
+  def font_size_change(change: Int => Int)
   {
     val size0 = view_font_size()
     val size = change(size0) max font_size0 min font_size1
@@ -60,7 +60,7 @@ object Rendering
       jEdit.setIntegerProperty("view.fontsize", size)
       jEdit.propertiesChanged()
       jEdit.saveSettings()
-      view.getStatus.setMessageAndClear("Text font size: " + size)
+      jEdit.getActiveView().getStatus.setMessageAndClear("Text font size: " + size)
     }
   }
 
