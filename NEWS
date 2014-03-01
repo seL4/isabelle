@@ -91,6 +91,13 @@ differently).
 
 *** HOL ***
 
+* HOL-Word:
+  * Abandoned fact collection "word_arith_alts", which is a
+  duplicate of "word_arith_wis".
+  * Dropped first (duplicated) element in fact collections
+  "sint_word_ariths", "word_arith_alts", "uint_word_ariths",
+  "uint_word_arith_bintrs".
+
 * Code generator: explicit proof contexts in many ML interfaces.
 INCOMPATIBILITY.
 

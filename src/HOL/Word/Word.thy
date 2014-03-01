@@ -1192,7 +1192,7 @@ lemmas word_log_defs = word_and_def word_or_def word_xor_def word_not_def
 subsection {* Word Arithmetic *}
 
 lemma word_less_alt: "(a < b) = (uint a < uint b)"
-  unfolding word_less_def word_le_def by (simp add: less_le)
+  by (fact word_less_def)
 
 lemma signed_linorder: "class.linorder word_sle word_sless"
   by default (unfold word_sle_def word_sless_def, auto)
@@ -1236,16 +1236,20 @@ lemma to_bl_0 [simp]:
   unfolding uint_bl
   by (simp add: word_size bin_to_bl_zero)
 
-lemma uint_0_iff: "(uint x = 0) = (x = 0)"
-  by (auto intro!: word_uint.Rep_eqD)
+lemma uint_0_iff:
+  "uint x = 0 \<longleftrightarrow> x = 0"
+  by (simp add: word_uint_eq_iff)
 
-lemma unat_0_iff: "(unat x = 0) = (x = 0)"
+lemma unat_0_iff:
+  "unat x = 0 \<longleftrightarrow> x = 0"
   unfolding unat_def by (auto simp add : nat_eq_iff uint_0_iff)
 
-lemma unat_0 [simp]: "unat 0 = 0"
+lemma unat_0 [simp]:
+  "unat 0 = 0"
   unfolding unat_def by auto
 
-lemma size_0_same': "size w = 0 \<Longrightarrow> w = (v :: 'a :: len0 word)"
+lemma size_0_same':
+  "size w = 0 \<Longrightarrow> w = (v :: 'a :: len0 word)"
   apply (unfold word_size)
   apply (rule box_equals)
     defer
@@ -1278,8 +1282,7 @@ lemma scast_n1 [simp]: "scast (- 1) = - 1"
   unfolding scast_def by simp
 
 lemma uint_1 [simp]: "uint (1::'a::len word) = 1"
-  unfolding word_1_wi
-  by (simp add: word_ubin.eq_norm bintrunc_minus_simps del: word_of_int_1)
+  by (simp only: word_1_wi word_ubin.eq_norm) (simp add: bintrunc_minus_simps(4))
 
 lemma unat_1 [simp]: "unat (1::'a::len word) = 1"
   unfolding unat_def by simp
@@ -1288,10 +1291,6 @@ lemma ucast_1 [simp]: "ucast (1::'a::len word) = 1"
   unfolding ucast_def by simp
 
 (* now, to get the weaker results analogous to word_div/mod_def *)
-
-lemmas word_arith_alts = 
-  word_sub_wi
-  word_arith_wis (* FIXME: duplicate *)
 
 
 subsection {* Transferring goals from words to ints *}
@@ -1308,16 +1307,44 @@ lemma word_ths:
 lemma uint_cong: "x = y \<Longrightarrow> uint x = uint y"
   by simp
 
-lemmas uint_word_ariths = 
-  word_arith_alts [THEN trans [OF uint_cong int_word_uint]]
+lemma uint_word_ariths:
+  fixes a b :: "'a::len0 word"
+  shows "uint (a + b) = (uint a + uint b) mod 2 ^ len_of TYPE('a::len0)"
+    and "uint (a - b) = (uint a - uint b) mod 2 ^ len_of TYPE('a)"
+    and "uint (a * b) = uint a * uint b mod 2 ^ len_of TYPE('a)"
+    and "uint (- a) = - uint a mod 2 ^ len_of TYPE('a)"
+    and "uint (word_succ a) = (uint a + 1) mod 2 ^ len_of TYPE('a)"
+    and "uint (word_pred a) = (uint a - 1) mod 2 ^ len_of TYPE('a)"
+    and "uint (0 :: 'a word) = 0 mod 2 ^ len_of TYPE('a)"
+    and "uint (1 :: 'a word) = 1 mod 2 ^ len_of TYPE('a)"
+  by (simp_all add: word_arith_wis [THEN trans [OF uint_cong int_word_uint]])
 
-lemmas uint_word_arith_bintrs = uint_word_ariths [folded bintrunc_mod2p]
+lemma uint_word_arith_bintrs:
+  fixes a b :: "'a::len0 word"
+  shows "uint (a + b) = bintrunc (len_of TYPE('a)) (uint a + uint b)"
+    and "uint (a - b) = bintrunc (len_of TYPE('a)) (uint a - uint b)"
+    and "uint (a * b) = bintrunc (len_of TYPE('a)) (uint a * uint b)"
+    and "uint (- a) = bintrunc (len_of TYPE('a)) (- uint a)"
+    and "uint (word_succ a) = bintrunc (len_of TYPE('a)) (uint a + 1)"
+    and "uint (word_pred a) = bintrunc (len_of TYPE('a)) (uint a - 1)"
+    and "uint (0 :: 'a word) = bintrunc (len_of TYPE('a)) 0"
+    and "uint (1 :: 'a word) = bintrunc (len_of TYPE('a)) 1"
+  by (simp_all add: uint_word_ariths bintrunc_mod2p)
 
-(* similar expressions for sint (arith operations) *)
-lemmas sint_word_ariths = uint_word_arith_bintrs
-  [THEN uint_sint [symmetric, THEN trans],
-  unfolded uint_sint bintr_arith1s bintr_ariths 
-    len_gt_0 [THEN bin_sbin_eq_iff'] word_sbin.norm_Rep]
+lemma sint_word_ariths:
+  fixes a b :: "'a::len word"
+  shows "sint (a + b) = sbintrunc (len_of TYPE('a) - 1) (sint a + sint b)"
+    and "sint (a - b) = sbintrunc (len_of TYPE('a) - 1) (sint a - sint b)"
+    and "sint (a * b) = sbintrunc (len_of TYPE('a) - 1) (sint a * sint b)"
+    and "sint (- a) = sbintrunc (len_of TYPE('a) - 1) (- sint a)"
+    and "sint (word_succ a) = sbintrunc (len_of TYPE('a) - 1) (sint a + 1)"
+    and "sint (word_pred a) = sbintrunc (len_of TYPE('a) - 1) (sint a - 1)"
+    and "sint (0 :: 'a word) = sbintrunc (len_of TYPE('a) - 1) 0"
+    and "sint (1 :: 'a word) = sbintrunc (len_of TYPE('a) - 1) 1"
+  by (simp_all add: uint_word_arith_bintrs
+    [THEN uint_sint [symmetric, THEN trans],
+    unfolded uint_sint bintr_arith1s bintr_ariths 
+      len_gt_0 [THEN bin_sbin_eq_iff'] word_sbin.norm_Rep])
 
 lemmas uint_div_alt = word_div_def [THEN trans [OF uint_cong int_word_uint]]
 lemmas uint_mod_alt = word_mod_def [THEN trans [OF uint_cong int_word_uint]]
@@ -1417,7 +1444,7 @@ proof -
   with `1 \<le> uint w` have "nat ((uint w - 1) mod 2 ^ len_of TYPE('a)) = nat (uint w) - 1"
     by auto
   then show ?thesis
-    by (simp only: unat_def int_word_uint word_arith_alts mod_diff_right_eq [symmetric])
+    by (simp only: unat_def int_word_uint word_arith_wis mod_diff_right_eq [symmetric])
 qed
 
 lemma measure_unat: "p ~= 0 \<Longrightarrow> unat (p - 1) < unat p"
@@ -3930,7 +3957,7 @@ lemma word_rsplit_rcat_size [OF refl]:
      apply (clarsimp simp: word_size)+
   apply (rule trans)
   apply (rule test_bit_rcat [OF refl refl])
-  apply (simp add: word_size msrevs)
+  apply (simp add: word_size)
   apply (subst nth_rev)
    apply arith
   apply (simp add: le0 [THEN [2] xtr7, THEN diff_Suc_less])
@@ -4480,7 +4507,7 @@ lemma uint_plus_if_size:
       uint x + uint y 
    else 
       uint x + uint y - 2^size x)" 
-  by (simp add: word_arith_alts int_word_uint mod_add_if_z 
+  by (simp add: word_arith_wis int_word_uint mod_add_if_z 
                 word_size)
 
 lemma unat_plus_if_size:
@@ -4501,16 +4528,7 @@ lemma word_neq_0_conv:
 
 lemma max_lt:
   "unat (max a b div c) = unat (max a b) div unat (c:: 'a :: len word)"
-  apply (subst word_arith_nat_defs)
-  apply (subst word_unat.eq_norm)
-  apply (subst mod_if)
-  apply clarsimp
-  apply (erule notE)
-  apply (insert div_le_dividend [of "unat (max a b)" "unat c"])
-  apply (erule order_le_less_trans)
-  apply (insert unat_lt2p [of "max a b"])
-  apply simp
-  done
+  by (fact unat_div)
 
 lemma uint_sub_if_size:
   "uint (x - y) = 
@@ -4518,7 +4536,7 @@ lemma uint_sub_if_size:
       uint x - uint y 
    else 
       uint x - uint y + 2^size x)"
-  by (simp add: word_arith_alts int_word_uint mod_sub_if_z 
+  by (simp add: word_arith_wis int_word_uint mod_sub_if_z 
                 word_size)
 
 lemma unat_sub:
@@ -4724,6 +4742,4 @@ setup SMT_Word.setup
 hide_const (open) Word
 
 end
-
-
 

@@ -456,7 +456,7 @@ proof -
     unfolding round_def
     unfolding steps_to_steps'
     unfolding H1[symmetric]
-    by (simp add: uint_word_ariths(2) rdmods
+    by (simp add: uint_word_ariths(1) rdmods
       uint_word_of_int_id)
 qed
 
