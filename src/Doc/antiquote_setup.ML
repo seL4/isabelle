@@ -51,21 +51,29 @@ val verbatim_setup =
 
 local
 
-fun ml_val (txt1, "") = "fn _ => (" ^ txt1 ^ ");"
-  | ml_val (txt1, txt2) = "fn _ => (" ^ txt1 ^ " : " ^ txt2 ^ ");";
+val ml_toks = ML_Lex.read Position.none;
 
-fun ml_op (txt1, "") = "fn _ => (op " ^ txt1 ^ ");"
-  | ml_op (txt1, txt2) = "fn _ => (op " ^ txt1 ^ " : " ^ txt2 ^ ");";
+fun ml_val (toks1, []) = ml_toks "fn _ => (" @ toks1 @ ml_toks ");"
+  | ml_val (toks1, toks2) = ml_toks "fn _ => (" @ toks1 @ ml_toks " : " @ toks2 @ ml_toks ");";
 
-fun ml_type (txt1, "") = "val _ = NONE : (" ^ txt1 ^ ") option;"
-  | ml_type (txt1, txt2) = "val _ = [NONE : (" ^ txt1 ^ ") option, NONE : (" ^ txt2 ^ ") option];";
+fun ml_op (toks1, []) = ml_toks "fn _ => (op " @ toks1 @ ml_toks ");"
+  | ml_op (toks1, toks2) = ml_toks "fn _ => (op " @ toks1 @ ml_toks " : " @ toks2 @ ml_toks ");";
 
-fun ml_exn (txt1, "") = "fn _ => (" ^ txt1 ^ " : exn);"
-  | ml_exn (txt1, txt2) = "fn _ => (" ^ txt1 ^ " : " ^ txt2 ^ " -> exn);";
+fun ml_type (toks1, []) = ml_toks "val _ = NONE : (" @ toks1 @ ml_toks ") option;"
+  | ml_type (toks1, toks2) =
+      ml_toks "val _ = [NONE : (" @ toks1 @ ml_toks ") option, NONE : (" @
+        toks2 @ ml_toks ") option];";
 
-fun ml_structure (txt, _) = "functor XXX() = struct structure XX = " ^ txt ^ " end;";
+fun ml_exn (toks1, []) = ml_toks "fn _ => (" @ toks1 @ ml_toks " : exn);"
+  | ml_exn (toks1, toks2) =
+      ml_toks "fn _ => (" @ toks1 @ ml_toks " : " @ toks2 @ ml_toks " -> exn);";
 
-fun ml_functor (txt, _) = "ML_Env.check_functor " ^ ML_Syntax.print_string txt;
+fun ml_structure (toks, _) =
+  ml_toks "functor XXX() = struct structure XX = " @ toks @ ml_toks " end;";
+
+fun ml_functor (Antiquote.Text tok :: _, _) =
+      ml_toks "ML_Env.check_functor " @ ml_toks (ML_Syntax.print_string (ML_Lex.content_of tok))
+  | ml_functor _ = raise Fail "Bad ML functor specification";
 
 val is_name = ML_Lex.kind_of #> (fn kind => kind = ML_Lex.Ident orelse kind = ML_Lex.LongIdent);
 
@@ -74,10 +82,19 @@ fun ml_name txt =
     toks as [_] => ML_Lex.flatten toks
   | _ => error ("Single ML name expected in input: " ^ quote txt));
 
+fun prep_ml source =
+  (#1 (Symbol_Pos.source_content source), ML_Lex.read_source source);
+
 fun index_ml name kind ml = Thy_Output.antiquotation name
-  (Scan.lift (Args.name -- Scan.optional (Args.colon |-- Args.name) ""))
-  (fn {context = ctxt, ...} => fn (txt1, txt2) =>
+  (Scan.lift (Args.name_source_position -- Scan.option (Args.colon |-- Args.name_source_position)))
+  (fn {context = ctxt, ...} => fn (source1, opt_source2) =>
     let
+      val (txt1, toks1) = prep_ml source1;
+      val (txt2, toks2) =
+        (case opt_source2 of
+          SOME source => prep_ml source
+        | NONE => ("", []));
+
       val txt =
         if txt2 = "" then txt1
         else if kind = "type" then txt1 ^ " = " ^ txt2
@@ -86,15 +103,15 @@ fun index_ml name kind ml = Thy_Output.antiquotation name
         then txt1 ^ ": " ^ txt2
         else txt1 ^ " : " ^ txt2;
       val txt' = if kind = "" then txt else kind ^ " " ^ txt;
-      val _ =  (* ML_Lex.read (!?) *)
-        ML_Context.eval_source_in (SOME ctxt) false
-          {delimited = false, text = ml (txt1, txt2), pos = Position.none};
+
+      val _ = ML_Context.eval_in (SOME ctxt) false (#pos source1) (ml (toks1, toks2));
       val kind' = if kind = "" then "ML" else "ML " ^ kind;
     in
       "\\indexdef{}{" ^ kind' ^ "}{" ^ clean_string (ml_name txt1) ^ "}" ^
       (txt'
       |> (if Config.get ctxt Thy_Output.quotes then quote else I)
-      |> (if Config.get ctxt Thy_Output.display then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"
+      |> (if Config.get ctxt Thy_Output.display
+          then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"
           else split_lines #> map verbatim #> space_implode "\\isasep\\isanewline%\n"))
     end);
 
@@ -105,7 +122,7 @@ val index_ml_setup =
   index_ml @{binding index_ML_op} "infix" ml_op #>
   index_ml @{binding index_ML_type} "type" ml_type #>
   index_ml @{binding index_ML_exn} "exception" ml_exn #>
-  index_ml @{binding index_ML_structure} "structure" ml_structure #>
+  index_ml @{binding index_ML_struct} "structure" ml_structure #>
   index_ml @{binding index_ML_functor} "functor" ml_functor;
 
 end;
