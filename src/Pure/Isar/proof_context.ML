@@ -472,15 +472,13 @@ fun read_type_name ctxt strict text =
       TFree (c, default_sort ctxt (c, ~1)))
     else
       let
-        val d = intern_type ctxt c;
-        val decl = Type.the_decl tsig (d, pos);
+        val (d, decl) = Type.check_decl (Context.Proof ctxt) tsig (c, pos);
         fun err () = error ("Bad type name: " ^ quote d ^ Position.here pos);
         val args =
           (case decl of
             Type.LogicalType n => n
           | Type.Abbreviation (vs, _, _) => if strict then err () else length vs
           | Type.Nonterminal => if strict then err () else 0);
-        val _ = Context_Position.report ctxt pos (Name_Space.markup (Type.type_space tsig) d);
       in Type (d, replicate args dummyT) end
   end;
 
