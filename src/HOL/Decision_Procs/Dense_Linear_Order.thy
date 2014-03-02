@@ -325,7 +325,7 @@ lemmas dnf_simps[no_atp] = weak_dnf_simps nnf_simps ex_distrib
 
 ML_file "langford.ML"
 method_setup dlo = {*
-  Scan.succeed (SIMPLE_METHOD' o LangfordQE.dlo_tac)
+  Scan.succeed (SIMPLE_METHOD' o Langford.dlo_tac)
 *} "Langford's algorithm for quantifier elimination in dense linear orders"
 
 

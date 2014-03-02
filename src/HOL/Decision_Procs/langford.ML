@@ -2,13 +2,13 @@
     Author:     Amine Chaieb, TU Muenchen
 *)
 
-signature LANGFORD_QE =
+signature LANGFORD =
 sig
   val dlo_tac : Proof.context -> int -> tactic
   val dlo_conv : Proof.context -> cterm -> thm
 end
 
-structure LangfordQE: LANGFORD_QE =
+structure Langford: LANGFORD =
 struct
 
 val dest_set =
