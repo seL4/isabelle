@@ -377,11 +377,15 @@ fun pretty_fact ctxt =
 fun read_class ctxt text =
   let
     val tsig = tsig_of ctxt;
-    val (s, pos) = Symbol_Pos.source_content (Syntax.read_token text);
-    val c = Type.cert_class tsig (Type.intern_class tsig s)
-      handle TYPE (msg, _, _) => error (msg ^ Position.here pos);
-    val _ = Context_Position.report ctxt pos (Name_Space.markup (Type.class_space tsig) c);
-  in c end;
+    val class_space = Type.class_space tsig;
+
+    val (xname, pos) = Symbol_Pos.source_content (Syntax.read_token text);
+    val name = Type.cert_class tsig (Type.intern_class tsig xname)
+      handle TYPE (msg, _, _) =>
+       (Completion.report (Name_Space.completion (Context.Proof ctxt) class_space (xname, pos));
+        error (msg ^ Position.here pos));
+    val _ = Context_Position.report ctxt pos (Name_Space.markup class_space name);
+  in name end;
 
 
 (* types *)
