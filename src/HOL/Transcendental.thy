@@ -52,7 +52,7 @@ next
   finally show ?case .
 qed
 
-corollary power_diff_sumr2: --{*COMPLEX_POLYFUN in HOL Light*}
+corollary power_diff_sumr2: --{* @{text COMPLEX_POLYFUN} in HOL Light *}
   fixes x :: "'a::{comm_ring,monoid_mult}"
   shows   "x^n - y^n = (x - y) * (\<Sum>i=0..<n. y^(n - Suc i) * x^i)"
 using lemma_realpow_diff_sumr2[of x "n - 1" y]
