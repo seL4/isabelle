@@ -180,7 +180,9 @@ end;
 
 fun raw_dlo_conv ctxt dlo_ss ({qe_bnds, qe_nolb, qe_noub, gst, gs, ...}: Langford_Data.entry) =
   let
-    val ctxt' = put_simpset dlo_ss ctxt addsimps @{thms dnf_simps} addsimprocs [reduce_ex_simproc]
+    val ctxt' =
+      Context_Position.set_visible false (put_simpset dlo_ss ctxt)
+        addsimps @{thms dnf_simps} addsimprocs [reduce_ex_simproc]
     val dnfex_conv = Simplifier.rewrite ctxt'
     val pcv =
       Simplifier.rewrite
