@@ -206,11 +206,12 @@ fun completion context space (xname, pos) =
   if Context_Position.is_visible_generic context andalso Position.is_reported pos
   then
     let
+      val x = Name.clean xname;
       val Name_Space {kind = k, internals, ...} = space;
       val ext = extern_shortest (Context.proof_of context) space;
       val names =
         Symtab.fold
-          (fn (a, (b :: _, _)) => String.isPrefix xname a ? cons (ext b, Long_Name.implode [k, b])
+          (fn (a, (b :: _, _)) => String.isPrefix x a ? cons (ext b, Long_Name.implode [k, b])
             | _ => I) internals []
         |> sort_distinct (string_ord o pairself #1);
     in Completion.names pos names end
@@ -451,8 +452,9 @@ fun check context (space, tab) (xname, pos) =
        (Context_Position.report_generic context pos (markup space name);
         (name, x))
     | NONE =>
-       (Completion.report (completion context space (xname, pos));
-        error (undefined (kind_of space) name ^ Position.here pos)))
+        error (undefined (kind_of space) name ^ Position.here pos ^
+          Markup.markup Markup.report
+            (Completion.reported_text (completion context space (xname, pos)))))
   end;
 
 fun get (space, tab) name =

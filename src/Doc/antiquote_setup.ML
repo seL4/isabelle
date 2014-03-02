@@ -64,8 +64,8 @@ fun ml_type (toks1, []) = ml_toks "val _ = NONE : (" @ toks1 @ ml_toks ") option
       ml_toks "val _ = [NONE : (" @ toks1 @ ml_toks ") option, NONE : (" @
         toks2 @ ml_toks ") option];";
 
-fun ml_exn (toks1, []) = ml_toks "fn _ => (" @ toks1 @ ml_toks " : exn);"
-  | ml_exn (toks1, toks2) =
+fun ml_exception (toks1, []) = ml_toks "fn _ => (" @ toks1 @ ml_toks " : exn);"
+  | ml_exception (toks1, toks2) =
       ml_toks "fn _ => (" @ toks1 @ ml_toks " : " @ toks2 @ ml_toks " -> exn);";
 
 fun ml_structure (toks, _) =
@@ -121,8 +121,8 @@ val index_ml_setup =
   index_ml @{binding index_ML} "" ml_val #>
   index_ml @{binding index_ML_op} "infix" ml_op #>
   index_ml @{binding index_ML_type} "type" ml_type #>
-  index_ml @{binding index_ML_exn} "exception" ml_exn #>
-  index_ml @{binding index_ML_struct} "structure" ml_structure #>
+  index_ml @{binding index_ML_exception} "exception" ml_exception #>
+  index_ml @{binding index_ML_structure} "structure" ml_structure #>
   index_ml @{binding index_ML_functor} "functor" ml_functor;
 
 end;

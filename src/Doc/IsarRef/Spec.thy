@@ -1059,7 +1059,7 @@ text {*
   defines an attribute in the current theory.  The given @{text
   "text"} has to be an ML expression of type
   @{ML_type "attribute context_parser"}, cf.\ basic parsers defined in
-  structure @{ML_struct Args} and @{ML_struct Attrib}.
+  structure @{ML_structure Args} and @{ML_structure Attrib}.
 
   In principle, attributes can operate both on a given theorem and the
   implicit context, although in practice only one is modified and the

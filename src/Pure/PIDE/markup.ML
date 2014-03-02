@@ -92,7 +92,7 @@ sig
   val ML_commentN: string val ML_comment: T
   val ML_defN: string
   val ML_openN: string
-  val ML_structN: string
+  val ML_structureN: string
   val ML_typingN: string val ML_typing: T
   val antiquotedN: string val antiquoted: T
   val antiquoteN: string val antiquote: T
@@ -391,7 +391,7 @@ val (ML_commentN, ML_comment) = markup_elem "ML_comment";
 
 val ML_defN = "ML_def";
 val ML_openN = "ML_open";
-val ML_structN = "ML_struct";
+val ML_structureN = "ML_structure";
 val (ML_typingN, ML_typing) = markup_elem "ML_typing";
 
 

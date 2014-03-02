@@ -48,7 +48,7 @@ text {* The Isar toplevel may be considered the central hub of the
 text %mlref {*
   \begin{mldecls}
   @{index_ML_type Toplevel.state} \\
-  @{index_ML Toplevel.UNDEF: "exn"} \\
+  @{index_ML_exception Toplevel.UNDEF} \\
   @{index_ML Toplevel.is_toplevel: "Toplevel.state -> bool"} \\
   @{index_ML Toplevel.theory_of: "Toplevel.state -> theory"} \\
   @{index_ML Toplevel.proof_of: "Toplevel.state -> Proof.state"} \\

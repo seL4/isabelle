@@ -661,7 +661,7 @@ val _ = Theory.setup
  (ml_text (Binding.name "ML") (ml_enclose "fn _ => (" ");") #>
   ml_text (Binding.name "ML_op") (ml_enclose "fn _ => (op " ");") #>
   ml_text (Binding.name "ML_type") (ml_enclose "val _ = NONE : (" ") option;") #>
-  ml_text (Binding.name "ML_struct")
+  ml_text (Binding.name "ML_structure")
     (ml_enclose "functor XXX() = struct structure XX = " " end;") #>
 
   ml_text (Binding.name "ML_functor")   (* FIXME formal treatment of functor name (!?) *)

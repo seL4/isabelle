@@ -104,7 +104,7 @@ ML {*
 *}
 
 text {*
-  The @{ML_struct Par_List} module provides high-level combinators for
+  The @{ML_structure Par_List} module provides high-level combinators for
   parallel list operations. *}
 
 ML {* timeit (fn () => map (fn n => ackermann 3 n) (1 upto 10)) *}

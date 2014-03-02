@@ -709,7 +709,7 @@ text %mlref {*
   of declared type and term variable names.  Projecting a proof
   context down to a primitive name context is occasionally useful when
   invoking lower-level operations.  Regular management of ``fresh
-  variables'' is done by suitable operations of structure @{ML_struct
+  variables'' is done by suitable operations of structure @{ML_structure
   Variable}, which is also able to provide an official status of
   ``locally fixed variable'' within the logical environment (cf.\
   \secref{sec:variables}).

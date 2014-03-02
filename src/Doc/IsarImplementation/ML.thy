@@ -1159,8 +1159,8 @@ text %mlref {*
   \begin{mldecls}
   @{index_ML try: "('a -> 'b) -> 'a -> 'b option"} \\
   @{index_ML can: "('a -> 'b) -> 'a -> bool"} \\
-  @{index_ML ERROR: "string -> exn"} \\
-  @{index_ML Fail: "string -> exn"} \\
+  @{index_ML_exception ERROR: string} \\
+  @{index_ML_exception Fail: string} \\
   @{index_ML Exn.is_interrupt: "exn -> bool"} \\
   @{index_ML reraise: "exn -> 'a"} \\
   @{index_ML ML_Compiler.exn_trace: "(unit -> 'a) -> 'a"} \\
@@ -1439,8 +1439,8 @@ text %mlref {*
   Literal integers in ML text are forced to be of this one true
   integer type --- adhoc overloading of SML97 is disabled.
 
-  Structure @{ML_struct IntInf} of SML97 is obsolete and superseded by
-  @{ML_struct Int}.  Structure @{ML_struct Integer} in @{file
+  Structure @{ML_structure IntInf} of SML97 is obsolete and superseded by
+  @{ML_structure Int}.  Structure @{ML_structure Integer} in @{file
   "~~/src/Pure/General/integer.ML"} provides some additional
   operations.
 
@@ -1487,7 +1487,7 @@ text %mlref {*
 *}
 
 text {* Apart from @{ML Option.map} most other operations defined in
-  structure @{ML_struct Option} are alien to Isabelle/ML an never
+  structure @{ML_structure Option} are alien to Isabelle/ML an never
   used.  The operations shown above are defined in @{file
   "~~/src/Pure/General/basics.ML"}.  *}
 

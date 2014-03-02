@@ -377,11 +377,17 @@ fun pretty_fact ctxt =
 fun read_class ctxt text =
   let
     val tsig = tsig_of ctxt;
-    val (s, pos) = Symbol_Pos.source_content (Syntax.read_token text);
-    val c = Type.cert_class tsig (Type.intern_class tsig s)
-      handle TYPE (msg, _, _) => error (msg ^ Position.here pos);
-    val _ = Context_Position.report ctxt pos (Name_Space.markup (Type.class_space tsig) c);
-  in c end;
+    val class_space = Type.class_space tsig;
+
+    val (xname, pos) = Symbol_Pos.source_content (Syntax.read_token text);
+    val name = Type.cert_class tsig (Type.intern_class tsig xname)
+      handle TYPE (msg, _, _) =>
+        error (msg ^ Position.here pos ^
+          Markup.markup Markup.report
+            (Completion.reported_text
+              (Name_Space.completion (Context.Proof ctxt) class_space (xname, pos))));
+    val _ = Context_Position.report ctxt pos (Name_Space.markup class_space name);
+  in name end;
 
 
 (* types *)
@@ -435,26 +441,7 @@ fun inferred_fixes ctxt =
   in (xs ~~ Ts, ctxt') end;
 
 
-(* type and constant names *)
-
-local
-
-fun prep_const_proper ctxt strict (c, pos) =
-  let
-    fun err msg = error (msg ^ Position.here pos);
-    val consts = consts_of ctxt;
-    val t as Const (d, _) =
-      (case Variable.lookup_const ctxt c of
-        SOME d =>
-          Const (d, Consts.type_scheme (consts_of ctxt) d handle TYPE (msg, _, _) => err msg)
-      | NONE => Consts.read_const consts (c, pos));
-    val _ =
-      if strict then ignore (Consts.the_const consts d) handle TYPE (msg, _, _) => err msg
-      else ();
-    val _ = Context_Position.report ctxt pos (Name_Space.markup (Consts.space_of consts) d);
-  in t end;
-
-in
+(* type names *)
 
 fun read_type_name ctxt strict text =
   let
@@ -466,15 +453,13 @@ fun read_type_name ctxt strict text =
       TFree (c, default_sort ctxt (c, ~1)))
     else
       let
-        val d = intern_type ctxt c;
-        val decl = Type.the_decl tsig (d, pos);
+        val (d, decl) = Type.check_decl (Context.Proof ctxt) tsig (c, pos);
         fun err () = error ("Bad type name: " ^ quote d ^ Position.here pos);
         val args =
           (case decl of
             Type.LogicalType n => n
           | Type.Abbreviation (vs, _, _) => if strict then err () else length vs
           | Type.Nonterminal => if strict then err () else 0);
-        val _ = Context_Position.report ctxt pos (Name_Space.markup (Type.type_space tsig) d);
       in Type (d, replicate args dummyT) end
   end;
 
@@ -483,6 +468,30 @@ fun read_type_name_proper ctxt strict text =
     T as Type _ => T
   | T => error ("Not a type constructor: " ^ Syntax.string_of_typ ctxt T));
 
+
+(* constant names *)
+
+local
+
+fun prep_const_proper ctxt strict (c, pos) =
+  let
+    fun err msg = error (msg ^ Position.here pos);
+    val consts = consts_of ctxt;
+    val t as Const (d, _) =
+      (case Variable.lookup_const ctxt c of
+        SOME d =>
+          let
+            val T = Consts.type_scheme (consts_of ctxt) d handle TYPE (msg, _, _) => err msg;
+            val _ = Context_Position.report ctxt pos (Name_Space.markup (Consts.space_of consts) d);
+          in Const (d, T) end
+      | NONE => Consts.check_const (Context.Proof ctxt) consts (c, pos));
+    val _ =
+      if strict
+      then ignore (Consts.the_const consts d) handle TYPE (msg, _, _) => err msg
+      else ();
+  in t end;
+
+in
 
 fun read_const_proper ctxt strict =
   prep_const_proper ctxt strict o Symbol_Pos.source_content o Syntax.read_token;
