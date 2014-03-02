@@ -2018,7 +2018,7 @@ lemma uint_mod: "uint ((x :: 'a :: len word) mod y) = uint x mod uint y"
   unfolding uint_nat by (simp add : unat_mod zmod_int)
 
 
-subsection {* Definition of @[text unat_arith} tactic *}
+subsection {* Definition of @{text unat_arith} tactic *}
 
 lemma unat_split:
   fixes x::"'a::len word"
