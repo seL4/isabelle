@@ -1159,8 +1159,8 @@ text %mlref {*
   \begin{mldecls}
   @{index_ML try: "('a -> 'b) -> 'a -> 'b option"} \\
   @{index_ML can: "('a -> 'b) -> 'a -> bool"} \\
-  @{index_ML ERROR: "string -> exn"} \\
-  @{index_ML Fail: "string -> exn"} \\
+  @{index_ML_exception ERROR: string} \\
+  @{index_ML_exception Fail: string} \\
   @{index_ML Exn.is_interrupt: "exn -> bool"} \\
   @{index_ML reraise: "exn -> 'a"} \\
   @{index_ML ML_Compiler.exn_trace: "(unit -> 'a) -> 'a"} \\
