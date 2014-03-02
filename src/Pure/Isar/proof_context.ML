@@ -480,12 +480,15 @@ fun prep_const_proper ctxt strict (c, pos) =
     val t as Const (d, _) =
       (case Variable.lookup_const ctxt c of
         SOME d =>
-          Const (d, Consts.type_scheme (consts_of ctxt) d handle TYPE (msg, _, _) => err msg)
-      | NONE => Consts.read_const consts (c, pos));
+          let
+            val T = Consts.type_scheme (consts_of ctxt) d handle TYPE (msg, _, _) => err msg;
+            val _ = Context_Position.report ctxt pos (Name_Space.markup (Consts.space_of consts) d);
+          in Const (d, T) end
+      | NONE => Consts.check_const (Context.Proof ctxt) consts (c, pos));
     val _ =
-      if strict then ignore (Consts.the_const consts d) handle TYPE (msg, _, _) => err msg
+      if strict
+      then ignore (Consts.the_const consts d) handle TYPE (msg, _, _) => err msg
       else ();
-    val _ = Context_Position.report ctxt pos (Name_Space.markup (Consts.space_of consts) d);
   in t end;
 
 in
