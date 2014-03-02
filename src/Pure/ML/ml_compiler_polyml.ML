@@ -64,7 +64,7 @@ fun report_parse_tree depth space =
       | reported loc (PolyML.PTopenedAt decl) =
           cons (reported_entity Markup.ML_openN loc decl)
       | reported loc (PolyML.PTstructureAt decl) =
-          cons (reported_entity Markup.ML_structN loc decl)
+          cons (reported_entity Markup.ML_structureN loc decl)
       | reported _ (PolyML.PTnextSibling tree) = reported_tree (tree ())
       | reported _ (PolyML.PTfirstChild tree) = reported_tree (tree ())
       | reported _ _ = I

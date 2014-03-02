@@ -123,7 +123,8 @@ text {*
     @{antiquotation_def ML} & : & @{text antiquotation} \\
     @{antiquotation_def ML_op} & : & @{text antiquotation} \\
     @{antiquotation_def ML_type} & : & @{text antiquotation} \\
-    @{antiquotation_def ML_struct} & : & @{text antiquotation} \\
+    @{antiquotation_def ML_structure} & : & @{text antiquotation} \\
+    @{antiquotation_def ML_functor} & : & @{text antiquotation} \\
     @{antiquotation_def "file"} & : & @{text antiquotation} \\
     @{antiquotation_def "url"} & : & @{text antiquotation} \\
   \end{matharray}
@@ -175,7 +176,8 @@ text {*
       @@{antiquotation ML} options @{syntax name} |
       @@{antiquotation ML_op} options @{syntax name} |
       @@{antiquotation ML_type} options @{syntax name} |
-      @@{antiquotation ML_struct} options @{syntax name} |
+      @@{antiquotation ML_structure} options @{syntax name} |
+      @@{antiquotation ML_functor} options @{syntax name} |
       @@{antiquotation "file"} options @{syntax name} |
       @@{antiquotation file_unchecked} options @{syntax name} |
       @@{antiquotation url} options @{syntax name}
@@ -263,9 +265,9 @@ text {*
   ``@{text _}'' placeholders there.
   
   \item @{text "@{ML s}"}, @{text "@{ML_op s}"}, @{text "@{ML_type
-  s}"}, and @{text "@{ML_struct s}"} check text @{text s} as ML value,
-  infix operator, type, and structure, respectively.  The source is
-  printed verbatim.
+  s}"}, @{text "@{ML_structure s}"}, and @{text "@{ML_functor s}"}
+  check text @{text s} as ML value, infix operator, type, structure,
+  and functor respectively.  The source is printed verbatim.
 
   \item @{text "@{file path}"} checks that @{text "path"} refers to a
   file (or directory) and prints it verbatim.

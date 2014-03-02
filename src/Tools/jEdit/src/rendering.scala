@@ -359,7 +359,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
           case (links, Text.Info(info_range, XML.Elem(Markup(Markup.ENTITY, props), _)))
           if !props.exists(
             { case (Markup.KIND, Markup.ML_OPEN) => true
-              case (Markup.KIND, Markup.ML_STRUCT) => true
+              case (Markup.KIND, Markup.ML_STRUCTURE) => true
               case _ => false }) =>
 
             val opt_link =

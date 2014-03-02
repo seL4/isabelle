@@ -926,7 +926,7 @@ text {*
   defines a proof method in the current theory.  The given @{text
   "text"} has to be an ML expression of type
   @{ML_type "(Proof.context -> Proof.method) context_parser"}, cf.\
-  basic parsers defined in structure @{ML_struct Args} and @{ML_struct
+  basic parsers defined in structure @{ML_structure Args} and @{ML_structure
   Attrib}.  There are also combinators like @{ML METHOD} and @{ML
   SIMPLE_METHOD} to turn certain tactic forms into official proof
   methods; the primed versions refer to tactics with explicit goal

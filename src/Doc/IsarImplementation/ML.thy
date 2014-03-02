@@ -1439,8 +1439,8 @@ text %mlref {*
   Literal integers in ML text are forced to be of this one true
   integer type --- adhoc overloading of SML97 is disabled.
 
-  Structure @{ML_struct IntInf} of SML97 is obsolete and superseded by
-  @{ML_struct Int}.  Structure @{ML_struct Integer} in @{file
+  Structure @{ML_structure IntInf} of SML97 is obsolete and superseded by
+  @{ML_structure Int}.  Structure @{ML_structure Integer} in @{file
   "~~/src/Pure/General/integer.ML"} provides some additional
   operations.
 
@@ -1487,7 +1487,7 @@ text %mlref {*
 *}
 
 text {* Apart from @{ML Option.map} most other operations defined in
-  structure @{ML_struct Option} are alien to Isabelle/ML an never
+  structure @{ML_structure Option} are alien to Isabelle/ML an never
   used.  The operations shown above are defined in @{file
   "~~/src/Pure/General/basics.ML"}.  *}
 

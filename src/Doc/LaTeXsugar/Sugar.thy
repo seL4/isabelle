@@ -398,7 +398,7 @@ Beware that any options must be placed \emph{before} the style, as in this examp
 
 Further use cases can be found in \S\ref{sec:yourself}.
 If you are not afraid of ML, you may also define your own styles.
-Have a look at module @{ML_struct Term_Style}.
+Have a look at module @{ML_structure Term_Style}.
 
 
 \section {Proofs}

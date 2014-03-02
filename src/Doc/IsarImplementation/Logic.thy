@@ -696,7 +696,7 @@ text %mlref {*
   abstract types @{ML_type ctyp} and @{ML_type cterm} are part of the
   same inference kernel that is mainly responsible for @{ML_type thm}.
   Thus syntactic operations on @{ML_type ctyp} and @{ML_type cterm}
-  are located in the @{ML_struct Thm} module, even though theorems are
+  are located in the @{ML_structure Thm} module, even though theorems are
   not yet involved at that stage.
 
   \item @{ML Thm.ctyp_of}~@{text "thy \<tau>"} and @{ML
@@ -717,7 +717,7 @@ text %mlref {*
 
   \item Type @{ML_type thm} represents proven propositions.  This is
   an abstract datatype that guarantees that its values have been
-  constructed by basic principles of the @{ML_struct Thm} module.
+  constructed by basic principles of the @{ML_structure Thm} module.
   Every @{ML_type thm} value refers its background theory,
   cf.\ \secref{sec:context-theory}.
 
