@@ -157,14 +157,11 @@ apply (induction arbitrary: t rule: small_step.induct)
 apply auto
 done
 
-lemma small_big_continue:
-  "cs \<rightarrow>* cs' \<Longrightarrow> cs' \<Rightarrow> t \<Longrightarrow> cs \<Rightarrow> t"
-apply (induction rule: star.induct)
+lemma small_to_big:
+  "cs \<rightarrow>* (SKIP,t) \<Longrightarrow> cs \<Rightarrow> t"
+apply (induction cs "(SKIP,t)" arbitrary: t rule: star.induct)
 apply (auto intro: small1_big_continue)
 done
-
-lemma small_to_big: "cs \<rightarrow>* (SKIP,t) \<Longrightarrow> cs \<Rightarrow> t"
-by (metis small_big_continue Skip)
 
 text {*
   Finally, the equivalence theorem:
