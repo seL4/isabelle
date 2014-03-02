@@ -9,6 +9,7 @@ sig
   type T
   val names: Position.T -> (string * string) list -> T
   val none: T
+  val reported_text: T -> string
   val report: T -> unit
 end;
 
@@ -30,15 +31,17 @@ end;
 
 val none = names Position.none [];
 
-fun report completion =
+fun reported_text completion =
   let val {pos, total, names} = dest completion in
     if Position.is_reported pos andalso not (null names) then
       let
         val markup = Position.markup pos Markup.completion;
         val body = (total, names) |>
           let open XML.Encode in pair int (list (pair string string)) end;
-      in Output.report (YXML.string_of (XML.Elem (markup, body))) end
-    else ()
+      in YXML.string_of (XML.Elem (markup, body)) end
+    else ""
   end;
+
+val report = Output.report o reported_text;
 
 end;

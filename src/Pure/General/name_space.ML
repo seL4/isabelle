@@ -451,8 +451,9 @@ fun check context (space, tab) (xname, pos) =
        (Context_Position.report_generic context pos (markup space name);
         (name, x))
     | NONE =>
-       (Completion.report (completion context space (xname, pos));
-        error (undefined (kind_of space) name ^ Position.here pos)))
+        error (undefined (kind_of space) name ^ Position.here pos ^
+          Markup.markup Markup.report
+            (Completion.reported_text (completion context space (xname, pos)))))
   end;
 
 fun get (space, tab) name =

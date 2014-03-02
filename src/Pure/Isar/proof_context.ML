@@ -382,8 +382,10 @@ fun read_class ctxt text =
     val (xname, pos) = Symbol_Pos.source_content (Syntax.read_token text);
     val name = Type.cert_class tsig (Type.intern_class tsig xname)
       handle TYPE (msg, _, _) =>
-       (Completion.report (Name_Space.completion (Context.Proof ctxt) class_space (xname, pos));
-        error (msg ^ Position.here pos));
+        error (msg ^ Position.here pos ^
+          Markup.markup Markup.report
+            (Completion.reported_text
+              (Name_Space.completion (Context.Proof ctxt) class_space (xname, pos))));
     val _ = Context_Position.report ctxt pos (Name_Space.markup class_space name);
   in name end;
 
