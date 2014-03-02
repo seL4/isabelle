@@ -159,7 +159,7 @@ done
 
 lemma small_to_big:
   "cs \<rightarrow>* (SKIP,t) \<Longrightarrow> cs \<Rightarrow> t"
-apply (induction cs "(SKIP,t)" arbitrary: t rule: star.induct)
+apply (induction cs "(SKIP,t)" rule: star.induct)
 apply (auto intro: small1_big_continue)
 done
 
