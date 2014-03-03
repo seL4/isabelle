@@ -282,7 +282,7 @@ text {* File specifications in jEdit follow various formats and
   \emph{all} platforms.\footnote{Isabelle on Windows uses Cygwin
   file-system access.}  Moreover, environment variables from the
   Isabelle process may be used freely, e.g.\ @{file
-  "$ISABELLE_HOME/etc/symbols"} or @{file "$POLYML_HOME/README"}.
+  "$ISABELLE_HOME/etc/symbols"} or @{file_unchecked "$POLYML_HOME/README"}.
   There are special shortcuts: @{file "~"} for @{file "$USER_HOME"}
   and @{file "~~"} for @{file "$ISABELLE_HOME"}.
 
