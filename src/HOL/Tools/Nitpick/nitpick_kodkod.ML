@@ -55,8 +55,7 @@ structure KK = Kodkod
 
 fun pull x xs = x :: filter_out (curry (op =) x) xs
 
-fun is_datatype_acyclic ({co = false, standard = true, deep = true, ...}
-                         : datatype_spec) = true
+fun is_datatype_acyclic ({co = false, deep = true, ...} : datatype_spec) = true
   | is_datatype_acyclic _ = false
 
 fun flip_nums n = index_seq 1 n @ [0] |> map KK.Num
@@ -1499,7 +1498,6 @@ fun nfa_transitions_for_constr hol_ctxt binarize kk rel_table dtypes
   maps (nfa_transitions_for_sel hol_ctxt binarize kk rel_table dtypes x)
        (index_seq 0 (num_sels_for_constr_type T))
 fun nfa_entry_for_datatype _ _ _ _ _ ({co = true, ...} : datatype_spec) = NONE
-  | nfa_entry_for_datatype _ _ _ _ _ {standard = false, ...} = NONE
   | nfa_entry_for_datatype _ _ _ _ _ {deep = false, ...} = NONE
   | nfa_entry_for_datatype hol_ctxt binarize kk rel_table dtypes
                            {typ, constrs, ...} =

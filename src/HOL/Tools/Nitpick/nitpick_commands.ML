@@ -48,7 +48,6 @@ val default_default_params =
    ("box", "smart"),
    ("finitize", "smart"),
    ("mono", "smart"),
-   ("std", "true"),
    ("wf", "smart"),
    ("sat_solver", "smart"),
    ("batch_size", "smart"),
@@ -85,7 +84,6 @@ val negated_params =
   [("dont_box", "box"),
    ("dont_finitize", "finitize"),
    ("non_mono", "mono"),
-   ("non_std", "std"),
    ("non_wf", "wf"),
    ("non_blocking", "blocking"),
    ("satisfy", "falsify"),
@@ -115,8 +113,7 @@ fun is_known_raw_param s =
                  "expect"] s orelse
   exists (fn p => String.isPrefix (p ^ " ") s)
          ["card", "max", "iter", "box", "dont_box", "finitize", "dont_finitize",
-          "mono", "non_mono", "std", "non_std", "wf", "non_wf", "format",
-          "atoms"]
+          "mono", "non_mono", "wf", "non_wf", "format", "atoms"]
 
 fun check_raw_param (s, _) =
   if is_known_raw_param s then ()
@@ -218,8 +215,6 @@ fun extract_params ctxt mode default_params override_params =
     fun lookup_ints_assigns read prefix min_int =
       lookup_assigns read prefix (signed_string_of_int min_int)
                      (int_seq_from_string prefix min_int)
-    fun lookup_bool_assigns read prefix =
-      lookup_assigns read prefix "" (the o parse_bool_option false prefix)
     fun lookup_bool_option_assigns read prefix =
       lookup_assigns read prefix "" (parse_bool_option true prefix)
     fun lookup_strings_assigns read prefix =
@@ -247,7 +242,6 @@ fun extract_params ctxt mode default_params override_params =
     val finitizes = lookup_bool_option_assigns read_type_polymorphic "finitize"
     val monos = if mode = Auto_Try then [(NONE, SOME true)]
                 else lookup_bool_option_assigns read_type_polymorphic "mono"
-    val stds = lookup_bool_assigns read_type_polymorphic "std"
     val wfs = lookup_bool_option_assigns read_const_polymorphic "wf"
     val sat_solver = lookup_string "sat_solver"
     val blocking = mode <> Normal orelse lookup_bool "blocking"
@@ -290,19 +284,24 @@ fun extract_params ctxt mode default_params override_params =
       | NONE => if debug then 1 else 50
     val expect = lookup_string "expect"
   in
-    {cards_assigns = cards_assigns, maxes_assigns = maxes_assigns, iters_assigns = iters_assigns,
-     bitss = bitss, bisim_depths = bisim_depths, boxes = boxes, finitizes = finitizes,
-     monos = monos, stds = stds, wfs = wfs, sat_solver = sat_solver, blocking = blocking,
-     falsify = falsify, debug = debug, verbose = verbose, overlord = overlord, spy = spy,
-     user_axioms = user_axioms, assms = assms, whacks = whacks, merge_type_vars = merge_type_vars,
-     binary_ints = binary_ints, destroy_constrs = destroy_constrs, specialize = specialize,
-     star_linear_preds = star_linear_preds, total_consts = total_consts, needs = needs,
-     peephole_optim = peephole_optim, datatype_sym_break = datatype_sym_break,
-     kodkod_sym_break = kodkod_sym_break, timeout = timeout, tac_timeout = tac_timeout,
-     max_threads = max_threads, show_datatypes = show_datatypes, show_skolems = show_skolems,
-     show_consts = show_consts, evals = evals, formats = formats, atomss = atomss,
-     max_potential = max_potential, max_genuine = max_genuine, check_potential = check_potential,
-     check_genuine = check_genuine, batch_size = batch_size, expect = expect}
+    {cards_assigns = cards_assigns, maxes_assigns = maxes_assigns,
+     iters_assigns = iters_assigns, bitss = bitss, bisim_depths = bisim_depths,
+     boxes = boxes, finitizes = finitizes, monos = monos, wfs = wfs,
+     sat_solver = sat_solver, blocking = blocking, falsify = falsify,
+     debug = debug, verbose = verbose, overlord = overlord, spy = spy,
+     user_axioms = user_axioms, assms = assms, whacks = whacks,
+     merge_type_vars = merge_type_vars, binary_ints = binary_ints,
+     destroy_constrs = destroy_constrs, specialize = specialize,
+     star_linear_preds = star_linear_preds, total_consts = total_consts,
+     needs = needs, peephole_optim = peephole_optim,
+     datatype_sym_break = datatype_sym_break,
+     kodkod_sym_break = kodkod_sym_break, timeout = timeout,
+     tac_timeout = tac_timeout, max_threads = max_threads,
+     show_datatypes = show_datatypes, show_skolems = show_skolems,
+     show_consts = show_consts, evals = evals, formats = formats,
+     atomss = atomss, max_potential = max_potential, max_genuine = max_genuine,
+     check_potential = check_potential, check_genuine = check_genuine,
+     batch_size = batch_size, expect = expect}
   end
 
 fun default_params thy =

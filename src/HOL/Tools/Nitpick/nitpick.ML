@@ -21,7 +21,6 @@ sig
      boxes: (typ option * bool option) list,
      finitizes: (typ option * bool option) list,
      monos: (typ option * bool option) list,
-     stds: (typ option * bool) list,
      wfs: (styp option * bool option) list,
      sat_solver: string,
      blocking: bool,
@@ -107,7 +106,6 @@ type params =
    boxes: (typ option * bool option) list,
    finitizes: (typ option * bool option) list,
    monos: (typ option * bool option) list,
-   stds: (typ option * bool) list,
    wfs: (styp option * bool option) list,
    sat_solver: string,
    blocking: bool,
@@ -227,8 +225,8 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
             error "You must import the theory \"Nitpick\" to use Nitpick"
 *)
     val {cards_assigns, maxes_assigns, iters_assigns, bitss, bisim_depths,
-         boxes, finitizes, monos, stds, wfs, sat_solver, falsify, debug,
-         verbose, overlord, spy, user_axioms, assms, whacks, merge_type_vars,
+         boxes, finitizes, monos, wfs, sat_solver, falsify, debug, verbose,
+         overlord, spy, user_axioms, assms, whacks, merge_type_vars,
          binary_ints, destroy_constrs, specialize, star_linear_preds,
          total_consts, needs, peephole_optim, datatype_sym_break,
          kodkod_sym_break, tac_timeout, max_threads, show_datatypes,
@@ -291,7 +289,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
     val original_max_potential = max_potential
     val original_max_genuine = max_genuine
     val max_bisim_depth = fold Integer.max bisim_depths ~1
-    val case_names = case_const_names ctxt stds
+    val case_names = case_const_names ctxt
     val defs = def_assm_ts @ all_defs_of thy subst
     val nondefs = all_nondefs_of ctxt subst
     val def_tables = const_def_tables ctxt subst defs
@@ -306,12 +304,11 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
     val ersatz_table = ersatz_table ctxt
     val hol_ctxt as {wf_cache, ...} =
       {thy = thy, ctxt = ctxt, max_bisim_depth = max_bisim_depth, boxes = boxes,
-       stds = stds, wfs = wfs, user_axioms = user_axioms, debug = debug,
-       whacks = whacks, binary_ints = binary_ints,
-       destroy_constrs = destroy_constrs, specialize = specialize,
-       star_linear_preds = star_linear_preds, total_consts = total_consts,
-       needs = needs, tac_timeout = tac_timeout, evals = evals,
-       case_names = case_names, def_tables = def_tables,
+       wfs = wfs, user_axioms = user_axioms, debug = debug, whacks = whacks,
+       binary_ints = binary_ints, destroy_constrs = destroy_constrs,
+       specialize = specialize, star_linear_preds = star_linear_preds,
+       total_consts = total_consts, needs = needs, tac_timeout = tac_timeout,
+       evals = evals, case_names = case_names, def_tables = def_tables,
        nondef_table = nondef_table, nondefs = nondefs, simp_table = simp_table,
        psimp_table = psimp_table, choice_spec_table = choice_spec_table,
        intro_table = intro_table, ground_thm_table = ground_thm_table,
@@ -359,7 +356,6 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
     val (sel_names, nonsel_names) =
       List.partition (is_sel o nickname_of) const_names
     val sound_finitizes = none_true finitizes
-    val standard = forall snd stds
 (*
     val _ =
       List.app (print_g o string_for_nut ctxt) (nondef_us @ def_us @ need_us)
@@ -380,7 +376,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
                  ". " ^ extra))
       end
     fun is_type_fundamentally_monotonic T =
-      (is_datatype ctxt stds T andalso not (is_quot_type ctxt T) andalso
+      (is_datatype ctxt T andalso not (is_quot_type ctxt T) andalso
        (not (is_pure_typedef ctxt T) orelse is_univ_typedef ctxt T)) orelse
       is_number_type ctxt T orelse is_bit_type T
     fun is_type_actually_monotonic T =
@@ -406,8 +402,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
           SOME (SOME b) => b
         | _ => is_type_kind_of_monotonic T
     fun is_datatype_deep T =
-      not standard orelse T = @{typ unit} orelse T = nat_T orelse
-      is_word_type T orelse
+      T = @{typ unit} orelse T = nat_T orelse is_word_type T orelse
       exists (curry (op =) T o domain_type o type_of) sel_names
     val all_Ts = ground_types_in_terms hol_ctxt binarize (nondef_ts @ def_ts)
                  |> sort Term_Ord.typ_ord
@@ -416,7 +411,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
          exists (member (op =) [nat_T, int_T]) all_Ts then
         print_v (K "The option \"binary_ints\" will be ignored because of the \
                    \presence of rationals, reals, \"Suc\", \"gcd\", or \"lcm\" \
-                   \in the problem or because of the \"non_std\" option.")
+                   \in the problem.")
       else
         ()
     val _ =
@@ -441,7 +436,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
       else
         ()
     val (deep_dataTs, shallow_dataTs) =
-      all_Ts |> filter (is_datatype ctxt stds)
+      all_Ts |> filter (is_datatype ctxt)
              |> List.partition is_datatype_deep
     val finitizable_dataTs =
       (deep_dataTs |> filter_out (is_finite_type hol_ctxt)
@@ -454,26 +449,6 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
                          "Nitpick can use a more precise finite encoding."))
       else
         ()
-    (* This detection code is an ugly hack. Fortunately, it is used only to
-       provide a hint to the user. *)
-    fun is_struct_induct_step (name, (Rule_Cases.Case {fixes, assumes, ...}, _)) =
-      not (null fixes) andalso
-      exists (String.isSuffix ".hyps" o Name_Space.full_name Name_Space.default_naming o fst) assumes andalso
-      exists (exists (curry (op =) name o shortest_name o fst)
-              o datatype_constrs hol_ctxt) deep_dataTs
-    val likely_in_struct_induct_step =
-      exists is_struct_induct_step (Proof_Context.dest_cases ctxt)
-    val _ = if standard andalso likely_in_struct_induct_step then
-              pprint_nt (fn () => Pretty.blk (0,
-                  pstrs "Hint: To check that the induction hypothesis is \
-                        \general enough, try this command: " @
-                  [Pretty.mark
-                    (Active.make_markup Markup.sendbackN
-                      {implicit = false, properties = [Markup.padding_command]})
-                    (Pretty.blk (0,
-                       pstrs ("nitpick [non_std, show_all]")))] @ pstrs "."))
-            else
-              ()
 (*
     val _ = print_g "Monotonic types:"
     val _ = List.app (print_g o string_for_type ctxt) mono_Ts
@@ -649,9 +624,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
                   "scope.");
               NONE)
 
-    val das_wort_model =
-      (if falsify then "counterexample" else "model")
-      |> not standard ? prefix "nonstandard "
+    val das_wort_model = if falsify then "counterexample" else "model"
 
     val scopes = Unsynchronized.ref []
     val generated_scopes = Unsynchronized.ref []
@@ -704,7 +677,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
               Pretty.indent indent_size reconstructed_model]);
          print_t (K "% SZS output end FiniteModel");
          if genuine then
-           (if check_genuine andalso standard then
+           (if check_genuine then
               case prove_hol_model scope tac_timeout free_names sel_names
                                    rel_table bounds (assms_prop ()) of
                 SOME true =>
@@ -720,13 +693,6 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
                    print ("Refutation by \"auto\": The above " ^
                           das_wort_model ^ " is spurious.")
                | NONE => print "No confirmation by \"auto\"."
-            else
-              ();
-            if not standard andalso likely_in_struct_induct_step then
-              print "The existence of a nonstandard model suggests that the \
-                    \induction hypothesis is not general enough or may even be \
-                    \wrong. See the Nitpick manual's \"Inductive Properties\" \
-                    \section for details (\"isabelle doc nitpick\")."
             else
               ();
             if has_lonely_bool_var orig_t then
@@ -1018,13 +984,8 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
         else if max_genuine = original_max_genuine then
           if max_potential = original_max_potential then
             (print_t (K "% SZS status Unknown");
-             print_nt (fn () =>
-                 "Nitpick found no " ^ das_wort_model ^ "." ^
-                 (if not standard andalso likely_in_struct_induct_step then
-                    " This suggests that the induction hypothesis might be \
-                    \general enough to prove this subgoal."
-                  else
-                    "")); if skipped > 0 then unknownN else noneN)
+             print_nt (fn () => "Nitpick found no " ^ das_wort_model ^ ".");
+             if skipped > 0 then unknownN else noneN)
           else
             (print_nt (fn () =>
                  excipit ("could not find a" ^

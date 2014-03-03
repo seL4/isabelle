@@ -1,6 +1,6 @@
 (*  Title:      HOL/Nitpick_Examples/Manual_Nits.thy
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2009-2013
+    Copyright   2009-2014
 
 Examples from the Nitpick manual.
 *)
@@ -15,9 +15,11 @@ theory Manual_Nits
 imports Main Real "~~/src/HOL/Library/Quotient_Product"
 begin
 
-chapter {* 2. First Steps *}
+
+section {* 2. First Steps *}
 
 nitpick_params [sat_solver = MiniSat_JNI, max_threads = 1, timeout = 240]
+
 
 subsection {* 2.1. Propositional Logic *}
 
@@ -28,11 +30,13 @@ nitpick [expect = genuine] 1
 nitpick [expect = genuine] 2
 oops
 
+
 subsection {* 2.2. Type Variables *}
 
 lemma "x \<in> A \<Longrightarrow> (THE y. y \<in> A) \<in> A"
 nitpick [verbose, expect = genuine]
 oops
+
 
 subsection {* 2.3. Constants *}
 
@@ -47,6 +51,7 @@ nitpick [card 'a = 1\<emdash>50, expect = none]
 (* sledgehammer *)
 by (metis the_equality)
 
+
 subsection {* 2.4. Skolemization *}
 
 lemma "\<exists>g. \<forall>x. g (f x) = x \<Longrightarrow> \<forall>y. \<exists>x. y = f x"
@@ -60,6 +65,7 @@ oops
 lemma "refl r \<Longrightarrow> sym r"
 nitpick [expect = genuine]
 oops
+
 
 subsection {* 2.5. Natural Numbers and Integers *}
 
@@ -81,6 +87,7 @@ nitpick [card nat = 1, expect = genuine]
 nitpick [card nat = 2, expect = none]
 oops
 
+
 subsection {* 2.6. Inductive Datatypes *}
 
 lemma "hd (xs @ [y, y]) = hd xs"
@@ -91,6 +98,7 @@ oops
 lemma "\<lbrakk>length xs = 1; length ys = 1\<rbrakk> \<Longrightarrow> xs = ys"
 nitpick [show_datatypes, expect = genuine]
 oops
+
 
 subsection {* 2.7. Typedefs, Records, Rationals, and Reals *}
 
@@ -149,6 +157,7 @@ lemma "4 * x + 3 * (y\<Colon>real) \<noteq> 1 / 2"
 nitpick [show_datatypes, expect = genuine]
 oops
 
+
 subsection {* 2.8. Inductive and Coinductive Predicates *}
 
 inductive even where
@@ -191,6 +200,7 @@ lemma "odd n \<Longrightarrow> odd (n - 2)"
 nitpick [card nat = 4, show_consts, expect = genuine]
 oops
 
+
 subsection {* 2.9. Coinductive Datatypes *}
 
 codatatype 'a llist = LNil | LCons 'a "'a llist"
@@ -210,6 +220,7 @@ lemma "\<lbrakk>xs = LCons a xs; ys = LCons a ys\<rbrakk> \<Longrightarrow> xs =
 nitpick [bisim_depth = -1, show_datatypes, expect = quasi_genuine]
 nitpick [card = 1\<emdash>5, expect = none]
 sorry
+
 
 subsection {* 2.10. Boxing *}
 
@@ -247,6 +258,7 @@ lemma "\<not> loose t 0 \<Longrightarrow> subst\<^sub>2 \<sigma> t = t"
 nitpick [card = 1\<emdash>5, expect = none]
 sorry
 
+
 subsection {* 2.11. Scope Monotonicity *}
 
 lemma "length xs = length ys \<Longrightarrow> rev (zip xs ys) = zip xs (rev ys)"
@@ -257,6 +269,7 @@ lemma "\<exists>g. \<forall>x\<Colon>'b. g (f x) = x \<Longrightarrow> \<forall>
 nitpick [mono, expect = none]
 nitpick [expect = genuine]
 oops
+
 
 subsection {* 2.12. Inductive Properties *}
 
@@ -286,44 +299,11 @@ oops
 lemma "n \<in> reach \<Longrightarrow> 2 dvd n \<and> n \<ge> 4"
 by (induct set: reach) arith+
 
-datatype 'a bin_tree = Leaf 'a | Branch "'a bin_tree" "'a bin_tree"
-
-primrec labels where
-"labels (Leaf a) = {a}" |
-"labels (Branch t u) = labels t \<union> labels u"
-
-primrec swap where
-"swap (Leaf c) a b =
- (if c = a then Leaf b else if c = b then Leaf a else Leaf c)" |
-"swap (Branch t u) a b = Branch (swap t a b) (swap u a b)"
-
-lemma "{a, b} \<subseteq> labels t \<Longrightarrow> labels (swap t a b) = labels t"
-(* nitpick *)
-proof (induct t)
-  case Leaf thus ?case by simp
-next
-  case (Branch t u) thus ?case
-  (* nitpick *)
-  nitpick [non_std, show_all, expect = genuine]
-oops
-
-lemma "labels (swap t a b) =
-       (if a \<in> labels t then
-          if b \<in> labels t then labels t else (labels t - {a}) \<union> {b}
-        else
-          if b \<in> labels t then (labels t - {b}) \<union> {a} else labels t)"
-(* nitpick *)
-proof (induct t)
-  case Leaf thus ?case by simp
-next
-  case (Branch t u) thus ?case
-  nitpick [non_std, card = 1\<emdash>4, expect = none]
-  by auto
-qed
 
 section {* 3. Case Studies *}
 
 nitpick_params [max_potential = 0]
+
 
 subsection {* 3.1. A Context-Free Grammar *}
 
@@ -398,6 +378,7 @@ theorem S\<^sub>4_A\<^sub>4_B\<^sub>4_sound_and_complete:
 "w \<in> B\<^sub>4 \<longleftrightarrow> length [x \<leftarrow> w. x = b] = length [x \<leftarrow> w. x = a] + 1"
 nitpick [card = 1\<emdash>5, expect = none]
 sorry
+
 
 subsection {* 3.2. AA Trees *}
 

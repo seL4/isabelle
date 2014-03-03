@@ -22,10 +22,9 @@ exception BUG
 
 val thy = @{theory}
 val ctxt = @{context}
-val stds = [(NONE, true)]
 val subst = []
 val tac_timeout = seconds 1.0
-val case_names = case_const_names ctxt stds
+val case_names = case_const_names ctxt
 val defs = all_defs_of thy subst
 val nondefs = all_nondefs_of ctxt subst
 val def_tables = const_def_tables ctxt subst defs
@@ -37,18 +36,17 @@ val intro_table = inductive_intro_table ctxt subst def_tables
 val ground_thm_table = ground_theorem_table thy
 val ersatz_table = ersatz_table ctxt
 val hol_ctxt as {thy, ...} : hol_context =
-  {thy = thy, ctxt = ctxt, max_bisim_depth = ~1, boxes = [],
-   stds = stds, wfs = [], user_axioms = NONE, debug = false,
-   whacks = [], binary_ints = SOME false, destroy_constrs = true,
-   specialize = false, star_linear_preds = false, total_consts = NONE,
-   needs = NONE, tac_timeout = tac_timeout, evals = [], case_names = case_names,
-   def_tables = def_tables, nondef_table = nondef_table, nondefs = nondefs,
-   simp_table = simp_table, psimp_table = psimp_table,
-   choice_spec_table = choice_spec_table, intro_table = intro_table,
-   ground_thm_table = ground_thm_table, ersatz_table = ersatz_table,
-   skolems = Unsynchronized.ref [], special_funs = Unsynchronized.ref [],
-   unrolled_preds = Unsynchronized.ref [], wf_cache = Unsynchronized.ref [],
-   constr_cache = Unsynchronized.ref []}
+  {thy = thy, ctxt = ctxt, max_bisim_depth = ~1, boxes = [], wfs = [],
+   user_axioms = NONE, debug = false, whacks = [], binary_ints = SOME false,
+   destroy_constrs = true, specialize = false, star_linear_preds = false,
+   total_consts = NONE, needs = NONE, tac_timeout = tac_timeout, evals = [],
+   case_names = case_names, def_tables = def_tables,
+   nondef_table = nondef_table, nondefs = nondefs, simp_table = simp_table,
+   psimp_table = psimp_table, choice_spec_table = choice_spec_table,
+   intro_table = intro_table, ground_thm_table = ground_thm_table,
+   ersatz_table = ersatz_table, skolems = Unsynchronized.ref [],
+   special_funs = Unsynchronized.ref [], unrolled_preds = Unsynchronized.ref [],
+   wf_cache = Unsynchronized.ref [], constr_cache = Unsynchronized.ref []}
 val binarize = false
 
 fun is_mono t =

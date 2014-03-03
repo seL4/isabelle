@@ -356,8 +356,8 @@ fun all_values_of_type pool wacky_names (scope as {card_assigns, ...} : scope)
   in index_seq 0 card |> map nth_value_of_type |> sort nice_term_ord end
 and reconstruct_term maybe_opt unfold pool
         (wacky_names as ((maybe_name, abs_name), _))
-        (scope as {hol_ctxt as {thy, ctxt, stds, ...}, binarize, card_assigns,
-                   bits, datatypes, ofs, ...})
+        (scope as {hol_ctxt as {thy, ctxt, ...}, binarize, card_assigns, bits,
+                   datatypes, ofs, ...})
         atomss sel_names rel_table bounds =
   let
     val for_auto = (maybe_name = "")
@@ -507,7 +507,7 @@ and reconstruct_term maybe_opt unfold pool
       | term_for_atom _ @{typ bool} _ j _ =
         if j = 0 then @{const False} else @{const True}
       | term_for_atom seen T _ j k =
-        if T = nat_T andalso is_standard_datatype thy stds nat_T then
+        if T = nat_T then
           HOLogic.mk_number nat_T j
         else if T = int_T then
           HOLogic.mk_number int_T (int_for_atom (k, 0) j)
@@ -518,7 +518,7 @@ and reconstruct_term maybe_opt unfold pool
         else case datatype_spec datatypes T of
           NONE => nth_atom thy atomss pool for_auto T j
         | SOME {deep = false, ...} => nth_atom thy atomss pool for_auto T j
-        | SOME {co, standard, constrs, ...} =>
+        | SOME {co, constrs, ...} =>
           let
             fun tuples_for_const (s, T) =
               tuple_list_for_name rel_table bounds (ConstName (s, T, Any))
@@ -553,9 +553,8 @@ and reconstruct_term maybe_opt unfold pool
               map (map_filter (fn js => if hd js = real_j then SOME (tl js)
                                         else NONE)) sel_jsss
             val uncur_arg_Ts = binder_types constr_T
-            val maybe_cyclic = co orelse not standard
           in
-            if maybe_cyclic andalso not (null seen) andalso
+            if co andalso not (null seen) andalso
                member (op =) (seen |> unfold ? (fst o split_last)) (T, j) then
               cyclic_var ()
             else if constr_s = @{const_name Word} then
@@ -564,7 +563,7 @@ and reconstruct_term maybe_opt unfold pool
                   (value_of_bits (the_single arg_jsss))
             else
               let
-                val seen = seen |> maybe_cyclic ? cons (T, j)
+                val seen = seen |> co ? cons (T, j)
                 val ts =
                   if length arg_Ts = 0 then
                     []
@@ -587,16 +586,9 @@ and reconstruct_term maybe_opt unfold pool
                   else
                     list_comb (Const constr_x, ts)
               in
-                if maybe_cyclic then
+                if co then
                   let val var = cyclic_var () in
-                    if unfold andalso not standard andalso
-                       length seen = 1 andalso
-                       exists_subterm
-                           (fn Const (s, _) =>
-                               String.isPrefix (cyclic_const_prefix ()) s
-                             | t' => t' = var) t then
-                      subst_atomic [(var, cyclic_atom ())] t
-                    else if exists_subterm (curry (op =) var) t then
+                    if exists_subterm (curry (op =) var) t then
                       if co then
                         Const (@{const_name The}, (T --> bool_T) --> T)
                         $ Abs (cyclic_co_val_name (), T,
@@ -876,7 +868,7 @@ fun bisimilar_values _ 0 _ = true
     end
 
 fun reconstruct_hol_model {show_datatypes, show_skolems, show_consts}
-        ({hol_ctxt = {thy, ctxt, max_bisim_depth, boxes, stds, wfs, user_axioms,
+        ({hol_ctxt = {thy, ctxt, max_bisim_depth, boxes, wfs, user_axioms,
                       debug, whacks, binary_ints, destroy_constrs, specialize,
                       star_linear_preds, total_consts, needs, tac_timeout,
                       evals, case_names, def_tables, nondef_table, nondefs,
@@ -892,12 +884,11 @@ fun reconstruct_hol_model {show_datatypes, show_skolems, show_consts}
       add_wacky_syntax ctxt
     val hol_ctxt =
       {thy = thy, ctxt = ctxt, max_bisim_depth = max_bisim_depth, boxes = boxes,
-       stds = stds, wfs = wfs, user_axioms = user_axioms, debug = debug,
-       whacks = whacks, binary_ints = binary_ints,
-       destroy_constrs = destroy_constrs, specialize = specialize,
-       star_linear_preds = star_linear_preds, total_consts = total_consts,
-       needs = needs, tac_timeout = tac_timeout, evals = evals,
-       case_names = case_names, def_tables = def_tables,
+       wfs = wfs, user_axioms = user_axioms, debug = debug, whacks = whacks,
+       binary_ints = binary_ints, destroy_constrs = destroy_constrs,
+       specialize = specialize, star_linear_preds = star_linear_preds,
+       total_consts = total_consts, needs = needs, tac_timeout = tac_timeout,
+       evals = evals, case_names = case_names, def_tables = def_tables,
        nondef_table = nondef_table, nondefs = nondefs, simp_table = simp_table,
        psimp_table = psimp_table, choice_spec_table = choice_spec_table,
        intro_table = intro_table, ground_thm_table = ground_thm_table,
@@ -960,14 +951,12 @@ fun reconstruct_hol_model {show_datatypes, show_skolems, show_consts}
                   else [Pretty.str (unrep ())]))]))
     fun integer_datatype T =
       [{typ = T, card = card_of_type card_assigns T, co = false,
-        standard = true, self_rec = true, complete = (false, false),
-        concrete = (true, true), deep = true, constrs = []}]
+        self_rec = true, complete = (false, false), concrete = (true, true),
+        deep = true, constrs = []}]
       handle TYPE ("Nitpick_HOL.card_of_type", _, _) => []
     val (codatatypes, datatypes) =
       datatypes |> filter #deep |> List.partition #co
-                ||> append (integer_datatype int_T
-                            |> is_standard_datatype thy stds nat_T
-                               ? append (integer_datatype nat_T))
+                ||> append (integer_datatype nat_T @ integer_datatype int_T)
     val block_of_datatypes =
       if show_datatypes andalso not (null datatypes) then
         [Pretty.big_list ("Datatype" ^ plural_s_for_list datatypes ^ ":")

@@ -129,7 +129,7 @@ fun could_exist_alpha_subtype alpha_T (T as Type (_, Ts)) =
 fun could_exist_alpha_sub_mtype _ (alpha_T as TFree _) T =
     could_exist_alpha_subtype alpha_T T
   | could_exist_alpha_sub_mtype ctxt alpha_T T =
-    (T = alpha_T orelse is_datatype ctxt [(NONE, true)] T)
+    (T = alpha_T orelse is_datatype ctxt T)
 
 fun exists_alpha_sub_mtype MAlpha = true
   | exists_alpha_sub_mtype (MFun (M1, _, M2)) =
@@ -737,13 +737,11 @@ fun consider_connective mdata (conn, mk_quasi_clauses) do_t1 do_t2
                                            frame2)
   end
 
-fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
-                             max_fresh, ...}) =
+fun consider_term (mdata as {hol_ctxt = {ctxt, ...}, alpha_T, max_fresh, ...}) =
   let
     fun is_enough_eta_expanded t =
       case strip_comb t of
-        (Const x, ts) => the_default 0 (arity_of_built_in_const thy stds x)
-        <= length ts
+        (Const x, ts) => the_default 0 (arity_of_built_in_const x) <= length ts
       | _ => true
     val mtype_for = fresh_mtype_for_type mdata false
     fun mtype_for_set x T = MFun (mtype_for (pseudo_domain_type T), V x, bool_M)
@@ -894,9 +892,9 @@ fun consider_term (mdata as {hol_ctxt = {thy, ctxt, stds, ...}, alpha_T,
                 do_fragile_set_operation T accum
               else if is_sel s then
                 (mtype_for_sel mdata x, accum)
-              else if is_constr ctxt stds x then
+              else if is_constr ctxt x then
                 (mtype_for_constr mdata x, accum)
-              else if is_built_in_const thy stds x then
+              else if is_built_in_const x then
                 (fresh_mtype_for_type mdata true T, accum)
               else
                 let val M = mtype_for T in
@@ -1074,20 +1072,20 @@ val harmless_consts =
   [@{const_name ord_class.less}, @{const_name ord_class.less_eq}]
 val bounteous_consts = [@{const_name bisim}]
 
-fun is_harmless_axiom ({hol_ctxt = {thy, stds, ...}, ...} : mdata) t =
-    Term.add_consts t []
-    |> filter_out (is_built_in_const thy stds)
-    |> (forall (member (op =) harmless_consts o original_name o fst) orf
-        exists (member (op =) bounteous_consts o fst))
+fun is_harmless_axiom t =
+  Term.add_consts t []
+  |> filter_out is_built_in_const
+  |> (forall (member (op =) harmless_consts o original_name o fst) orf
+      exists (member (op =) bounteous_consts o fst))
 
 fun consider_nondefinitional_axiom mdata t =
-  if is_harmless_axiom mdata t then I
+  if is_harmless_axiom t then I
   else consider_general_formula mdata Plus t
 
 fun consider_definitional_axiom (mdata as {hol_ctxt = {ctxt, ...}, ...} : mdata) t =
   if not (is_constr_pattern_formula ctxt t) then
     consider_nondefinitional_axiom mdata t
-  else if is_harmless_axiom mdata t then
+  else if is_harmless_axiom t then
     I
   else
     let

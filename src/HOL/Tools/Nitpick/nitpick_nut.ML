@@ -418,7 +418,7 @@ fun factorize (z as (Type (@{type_name prod}, _), _)) =
     maps factorize [mk_fst z, mk_snd z]
   | factorize z = [z]
 
-fun nut_from_term (hol_ctxt as {thy, ctxt, stds, ...}) eq =
+fun nut_from_term (hol_ctxt as {ctxt, ...}) eq =
   let
     fun aux eq ss Ts t =
       let
@@ -525,8 +525,8 @@ fun nut_from_term (hol_ctxt as {thy, ctxt, stds, ...}) eq =
         | (Const (@{const_name relcomp}, T), [t1, t2]) =>
           Op2 (Composition, nth_range_type 2 T, Any, sub t1, sub t2)
         | (Const (x as (s as @{const_name Suc}, T)), []) =>
-          if is_built_in_const thy stds x then Cst (Suc, T, Any)
-          else if is_constr ctxt stds x then do_construct x []
+          if is_built_in_const x then Cst (Suc, T, Any)
+          else if is_constr ctxt x then do_construct x []
           else ConstName (s, T, Any)
         | (Const (@{const_name finite}, T), [t1]) =>
           (if is_finite_type hol_ctxt (domain_type T) then
@@ -536,27 +536,27 @@ fun nut_from_term (hol_ctxt as {thy, ctxt, stds, ...}) eq =
            | _ => Op1 (Finite, bool_T, Any, sub t1))
         | (Const (@{const_name nat}, T), []) => Cst (IntToNat, T, Any)
         | (Const (x as (s as @{const_name zero_class.zero}, T)), []) =>
-          if is_built_in_const thy stds x then Cst (Num 0, T, Any)
-          else if is_constr ctxt stds x then do_construct x []
+          if is_built_in_const x then Cst (Num 0, T, Any)
+          else if is_constr ctxt x then do_construct x []
           else ConstName (s, T, Any)
         | (Const (x as (s as @{const_name one_class.one}, T)), []) =>
-          if is_built_in_const thy stds x then Cst (Num 1, T, Any)
+          if is_built_in_const x then Cst (Num 1, T, Any)
           else ConstName (s, T, Any)
         | (Const (x as (s as @{const_name plus_class.plus}, T)), []) =>
-          if is_built_in_const thy stds x then Cst (Add, T, Any)
+          if is_built_in_const x then Cst (Add, T, Any)
           else ConstName (s, T, Any)
         | (Const (x as (s as @{const_name minus_class.minus}, T)), []) =>
-          if is_built_in_const thy stds x then Cst (Subtract, T, Any)
+          if is_built_in_const x then Cst (Subtract, T, Any)
           else ConstName (s, T, Any)
         | (Const (x as (s as @{const_name times_class.times}, T)), []) =>
-          if is_built_in_const thy stds x then Cst (Multiply, T, Any)
+          if is_built_in_const x then Cst (Multiply, T, Any)
           else ConstName (s, T, Any)
         | (Const (x as (s as @{const_name div_class.div}, T)), []) =>
-          if is_built_in_const thy stds x then Cst (Divide, T, Any)
+          if is_built_in_const x then Cst (Divide, T, Any)
           else ConstName (s, T, Any)
         | (t0 as Const (x as (@{const_name ord_class.less}, _)),
            ts as [t1, t2]) =>
-          if is_built_in_const thy stds x then
+          if is_built_in_const x then
             Op2 (Less, bool_T, Any, sub t1, sub t2)
           else
             do_apply t0 ts
@@ -564,7 +564,7 @@ fun nut_from_term (hol_ctxt as {thy, ctxt, stds, ...}) eq =
            ts as [t1, t2]) =>
           if is_set_like_type (domain_type T) then
             Op2 (Subset, bool_T, Any, sub t1, sub t2)
-          else if is_built_in_const thy stds x then
+          else if is_built_in_const x then
             (* FIXME: find out if this case is necessary *)
             Op1 (Not, bool_T, Any, Op2 (Less, bool_T, Any, sub t2, sub t1))
           else
@@ -572,7 +572,7 @@ fun nut_from_term (hol_ctxt as {thy, ctxt, stds, ...}) eq =
         | (Const (@{const_name Nitpick.nat_gcd}, T), []) => Cst (Gcd, T, Any)
         | (Const (@{const_name Nitpick.nat_lcm}, T), []) => Cst (Lcm, T, Any)
         | (Const (x as (s as @{const_name uminus_class.uminus}, T)), []) =>
-          if is_built_in_const thy stds x then
+          if is_built_in_const x then
             let val num_T = domain_type T in
               Op2 (Apply, num_T --> num_T, Any,
                    Cst (Subtract, num_T --> num_T --> num_T, Any),
@@ -595,12 +595,12 @@ fun nut_from_term (hol_ctxt as {thy, ctxt, stds, ...}) eq =
                   T as @{typ "unsigned_bit word => signed_bit word"}), []) =>
           Cst (NatToInt, T, Any)
         | (t0 as Const (x as (s, T)), ts) =>
-          if is_constr ctxt stds x then
+          if is_constr ctxt x then
             do_construct x ts
           else if String.isPrefix numeral_prefix s then
             Cst (Num (the (Int.fromString (unprefix numeral_prefix s))), T, Any)
           else
-            (case arity_of_built_in_const thy stds x of
+            (case arity_of_built_in_const x of
                SOME n =>
                (case n - length ts of
                   0 => raise TERM ("Nitpick_Nut.nut_from_term.aux", [t])

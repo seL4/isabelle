@@ -22,7 +22,6 @@ sig
     {typ: typ,
      card: int,
      co: bool,
-     standard: bool,
      self_rec: bool,
      complete: bool * bool,
      concrete: bool * bool,
@@ -76,7 +75,6 @@ type datatype_spec =
   {typ: typ,
    card: int,
    co: bool,
-   standard: bool,
    self_rec: bool,
    complete: bool * bool,
    concrete: bool * bool,
@@ -142,7 +140,7 @@ fun spec_of_type ({card_assigns, ofs, ...} : scope) T =
    handle TYPE ("Nitpick_HOL.card_of_type", _, _) => ~1, offset_of_type ofs T)
 
 fun quintuple_for_scope code_type code_term code_string
-        ({hol_ctxt = {ctxt, stds, ...}, card_assigns, bits, bisim_depth,
+        ({hol_ctxt = {ctxt, ...}, card_assigns, bits, bisim_depth,
          datatypes, ...} : scope) =
   let
     val boring_Ts = [@{typ unsigned_bit}, @{typ signed_bit},
@@ -152,7 +150,7 @@ fun quintuple_for_scope code_type code_term code_string
                    |> List.partition (is_fp_iterator_type o fst)
     val (secondary_card_assigns, primary_card_assigns) =
       card_assigns
-      |> List.partition ((is_integer_type orf is_datatype ctxt stds) o fst)
+      |> List.partition ((is_integer_type orf is_datatype ctxt) o fst)
     val cards =
       map (fn (T, k) =>
               [code_type ctxt T, code_string (" = " ^ string_of_int k)])
@@ -433,13 +431,12 @@ fun has_exact_card hol_ctxt facto finitizable_dataTs card_assigns T =
                card_assigns T
   end
 
-fun datatype_spec_from_scope_descriptor (hol_ctxt as {thy, ctxt, stds, ...})
+fun datatype_spec_from_scope_descriptor (hol_ctxt as {ctxt, ...})
         binarize deep_dataTs finitizable_dataTs (desc as (card_assigns, _))
         (T, card) =
   let
     val deep = member (op =) deep_dataTs T
     val co = is_codatatype ctxt T
-    val standard = is_standard_datatype thy stds T
     val xs = binarized_and_boxed_datatype_constrs hol_ctxt binarize T
     val self_recs = map (is_self_recursive_constr_type o snd) xs
     val (num_self_recs, num_non_self_recs) =
@@ -459,21 +456,21 @@ fun datatype_spec_from_scope_descriptor (hol_ctxt as {thy, ctxt, stds, ...})
     fun sum_dom_cards max =
       map (domain_card max card_assigns o snd) xs |> Integer.sum
     val constrs =
-      fold_rev (add_constr_spec desc (not co andalso standard) card
-                                sum_dom_cards num_self_recs num_non_self_recs)
+      fold_rev (add_constr_spec desc (not co) card sum_dom_cards num_self_recs
+                                num_non_self_recs)
                (sort (bool_ord o swap o pairself fst) (self_recs ~~ xs)) []
   in
-    {typ = T, card = card, co = co, standard = standard, self_rec = self_rec,
-     complete = complete, concrete = concrete, deep = deep, constrs = constrs}
+    {typ = T, card = card, co = co, self_rec = self_rec, complete = complete,
+     concrete = concrete, deep = deep, constrs = constrs}
   end
 
-fun scope_from_descriptor (hol_ctxt as {ctxt, stds, ...}) binarize deep_dataTs
+fun scope_from_descriptor (hol_ctxt as {ctxt, ...}) binarize deep_dataTs
                           finitizable_dataTs (desc as (card_assigns, _)) =
   let
     val datatypes =
       map (datatype_spec_from_scope_descriptor hol_ctxt binarize deep_dataTs
                                                finitizable_dataTs desc)
-          (filter (is_datatype ctxt stds o fst) card_assigns)
+          (filter (is_datatype ctxt o fst) card_assigns)
     val bits = card_of_type card_assigns @{typ signed_bit} - 1
                handle TYPE ("Nitpick_HOL.card_of_type", _, _) =>
                       card_of_type card_assigns @{typ unsigned_bit}
