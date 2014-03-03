@@ -352,12 +352,6 @@ fun mk_iters_args_types ctr_Tsss Cs absTs repTs ns mss ctor_iter_fun_Tss lthy =
     val y_Tsss = map5 (fn absT => fn repT => fn n => fn ms =>
         dest_absumprodT absT repT n ms o domain_type)
       absTs repTs ns mss (map un_fold_of ctor_iter_fun_Tss);
-    val g_Tss = map2 (fn C => map (fn y_Ts => y_Ts ---> C)) Cs y_Tsss;
-
-    val ((gss, ysss), lthy) =
-      lthy
-      |> mk_Freess "f" g_Tss
-      ||>> mk_Freesss "x" y_Tsss;
 
     val z_Tssss =
       map6 (fn absT => fn repT => fn n => fn ms => fn ctr_Tss => fn ctor_iter_fun_Ts =>
@@ -368,12 +362,11 @@ fun mk_iters_args_types ctr_Tsss Cs absTs repTs ns mss ctor_iter_fun_Tss lthy =
     val z_Tsss' = map (map flat_rec_arg_args) z_Tssss;
     val h_Tss = map2 (map2 (curry (op --->))) z_Tsss' Css;
 
-    val hss = map2 (map2 retype_free) h_Tss gss;
-    val zssss_hd = map2 (map2 (map2 (retype_free o hd))) z_Tssss ysss;
-    val (zssss_tl, lthy) =
+    val (((hss, ysss), zssss), lthy) =
       lthy
-      |> mk_Freessss "y" (map (map (map tl)) z_Tssss);
-    val zssss = map2 (map2 (map2 cons)) zssss_hd zssss_tl;
+      |> mk_Freess "f" h_Tss
+      ||>> mk_Freesss "x" (*###*)y_Tsss
+      ||>> mk_Freessss "y" z_Tssss;
   in
     ((h_Tss, z_Tssss, hss, zssss), lthy)
   end;
