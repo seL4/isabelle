@@ -245,7 +245,7 @@ fun mutualize_fp_sugars fp bs fpTs callers callssss fp_sugars0 no_defs_lthy0 =
 
         fun mk_binding b suf = Binding.suffix_name ("_" ^ suf) b;
 
-        val ((co_iterss, co_iter_defss), lthy) =
+        val ((co_recs, co_rec_defs), lthy) =
           fold_map2 (fn b =>
             if fp = Least_FP then define_iter iters_args_types (mk_binding b) fpTs Cs reps
             else define_coiter (the coiters_args_types) (mk_binding b) fpTs Cs abss)
@@ -257,7 +257,7 @@ fun mutualize_fp_sugars fp bs fpTs callers callssss fp_sugars0 no_defs_lthy0 =
           if fp = Least_FP then
             derive_induct_iters_thms_for_types pre_bnfs iters_args_types xtor_co_induct
               xtor_co_iter_thmss nesting_bnfs nested_bnfs fpTs Cs Xs ctrXs_Tsss fp_abs_inverses
-              fp_type_definitions abs_inverses ctrss ctr_defss co_iterss co_iter_defss lthy
+              fp_type_definitions abs_inverses ctrss ctr_defss co_recs co_rec_defs lthy
             |> `(fn ((inducts, induct, _), (rec_thmss, _)) =>
               ([induct], [inducts], rec_thmss, replicate nn [], replicate nn []))
             ||> (fn info => (SOME info, NONE))
@@ -265,7 +265,7 @@ fun mutualize_fp_sugars fp bs fpTs callers callssss fp_sugars0 no_defs_lthy0 =
             derive_coinduct_coiters_thms_for_types pre_bnfs (the coiters_args_types) xtor_co_induct
               dtor_injects dtor_ctors xtor_co_iter_thmss nesting_bnfs fpTs Cs Xs ctrXs_Tsss kss mss
               ns fp_abs_inverses abs_inverses (fn thm => thm RS @{thm vimage2p_refl}) ctr_defss
-              ctr_sugars co_iterss co_iter_defss (Proof_Context.export lthy no_defs_lthy) lthy
+              ctr_sugars co_recs co_rec_defs (Proof_Context.export lthy no_defs_lthy) lthy
             |> `(fn ((coinduct_thms_pairs, _), (corec_thmss, _), (disc_corec_thmss, _), _,
                      (sel_corec_thmsss, _)) =>
               (map snd coinduct_thms_pairs, map fst coinduct_thms_pairs, corec_thmss,
@@ -286,8 +286,7 @@ fun mutualize_fp_sugars fp bs fpTs callers callssss fp_sugars0 no_defs_lthy0 =
 
         val target_fp_sugars =
           map14 mk_target_fp_sugar fpTs Xs kks pre_bnfs absT_infos ctrXs_Tsss ctr_defss ctr_sugars
-            (map the_single co_iterss) mapss (transpose co_inductss) co_rec_thmss disc_corec_thmss
-            sel_corec_thmsss;
+            co_recs mapss (transpose co_inductss) co_rec_thmss disc_corec_thmss sel_corec_thmsss;
 
         val n2m_sugar = (target_fp_sugars, fp_sugar_thms);
       in
