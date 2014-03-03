@@ -97,7 +97,7 @@ fun expand_term_const defs =
 
 fun is_sum_prod_natLeq (Const (@{const_name csum}, _) $ t $ u) = forall is_sum_prod_natLeq [t, u]
   | is_sum_prod_natLeq (Const (@{const_name cprod}, _) $ t $ u) = forall is_sum_prod_natLeq [t, u]
-  | is_sum_prod_natLeq t = (t = @{term natLeq});
+  | is_sum_prod_natLeq t = t aconv @{term natLeq};
 
 fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
   let
