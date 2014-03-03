@@ -30,8 +30,6 @@ sig
      rel_xtor_co_induct_thm: thm}
 
   val morph_fp_result: morphism -> fp_result -> fp_result
-  val un_fold_of: 'a list -> 'a
-  val co_rec_of: 'a list -> 'a
 
   val time: Proof.context -> Timer.real_timer -> string -> Timer.real_timer
 
@@ -235,11 +233,6 @@ fun morph_fp_result phi {Ts, bnfs, ctors, dtors, xtor_co_folds, xtor_co_recs, xt
    xtor_co_fold_o_map_thms = map (Morphism.thm phi) xtor_co_fold_o_map_thms,
    xtor_co_rec_o_map_thms = map (Morphism.thm phi) xtor_co_rec_o_map_thms,
    rel_xtor_co_induct_thm = Morphism.thm phi rel_xtor_co_induct_thm};
-
-fun un_fold_of [f, _] = f;
-
-fun co_rec_of [r] = r
-  | co_rec_of [_, r] = r;
 
 fun time ctxt timer msg = (if Config.get ctxt bnf_timing
   then warning (msg ^ ": " ^ string_of_int (Time.toMilliseconds (Timer.checkRealTimer timer)) ^

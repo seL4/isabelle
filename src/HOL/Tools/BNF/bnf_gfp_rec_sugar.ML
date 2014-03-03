@@ -403,7 +403,7 @@ fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
           SOME (T, C) => [T, C]
         | NONE => [U]);
 
-    val perm_p_Tss = mk_coiter_p_pred_types perm_Cs perm_ns';
+    val perm_p_Tss = mk_corec_p_pred_types perm_Cs perm_ns';
     val perm_f_Tssss =
       map2 (fn C => map (map (map (curry (op -->) C) o zip_corecT))) perm_Cs perm_ctrXs_Tsss';
     val perm_q_Tssss =
@@ -463,7 +463,7 @@ fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
     fun mk_spec ({T, ctr_sugar as {disc_exhausts, ...}, co_rec = corec,
         co_rec_thms = corec_thms, disc_co_recs = disc_corecs,
         sel_co_recss = sel_corecss, ...} : fp_sugar) p_is q_isss f_isss f_Tsss =
-      {corec = mk_co_iter thy Greatest_FP (substAT T) perm_Cs' corec,
+      {corec = mk_co_rec thy Greatest_FP (substAT T) perm_Cs' corec,
        disc_exhausts = disc_exhausts,
        nested_maps = maps (map_thms_of_typ lthy o T_of_bnf) nested_bnfs,
        nested_map_idents = map (unfold_thms lthy @{thms id_def} o map_id0_of_bnf) nested_bnfs,

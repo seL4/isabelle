@@ -37,7 +37,7 @@ sig
   val mk_compN: int -> typ list -> term * term -> term
   val mk_comp: typ list -> term * term -> term
 
-  val mk_co_iter: theory -> fp_kind -> typ -> typ list -> term -> term
+  val mk_co_rec: theory -> fp_kind -> typ -> typ list -> term -> term
 
   val mk_conjunctN: int -> int -> thm
   val conj_dests: int -> thm -> thm list
@@ -104,7 +104,7 @@ fun mk_compN n bound_Ts (g, f) =
 
 val mk_comp = mk_compN 1;
 
-fun mk_co_iter thy fp fpT Cs t =
+fun mk_co_rec thy fp fpT Cs t =
   let
     val ((f_Cs, prebody), body) = strip_type (fastype_of t) |>> split_last;
     val fpT0 = fp_case fp prebody body;

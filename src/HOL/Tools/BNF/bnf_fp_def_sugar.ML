@@ -349,21 +349,21 @@ val transfer_gfp_sugar_thms =
 fun mk_recs_args_types ctr_Tsss Cs absTs repTs ns mss ctor_rec_fun_Ts lthy =
   let
     val Css = map2 replicate ns Cs;
-    val z_Tssss =
+    val x_Tssss =
       map6 (fn absT => fn repT => fn n => fn ms => fn ctr_Tss => fn ctor_rec_fun_T =>
           map2 (map2 unzip_recT)
             ctr_Tss (dest_absumprodT absT repT n ms (domain_type ctor_rec_fun_T)))
         absTs repTs ns mss ctr_Tsss ctor_rec_fun_Ts;
 
-    val z_Tsss' = map (map flat_rec_arg_args) z_Tssss;
-    val h_Tss = map2 (map2 (curry (op --->))) z_Tsss' Css;
+    val x_Tsss' = map (map flat_rec_arg_args) x_Tssss;
+    val f_Tss = map2 (map2 (curry (op --->))) x_Tsss' Css;
 
-    val ((hss, zssss), lthy) =
+    val ((fss, xssss), lthy) =
       lthy
-      |> mk_Freess "f" h_Tss
-      ||>> mk_Freessss "x" z_Tssss;
+      |> mk_Freess "f" f_Tss
+      ||>> mk_Freessss "x" x_Tssss;
   in
-    ((h_Tss, z_Tssss, hss, zssss), lthy)
+    ((f_Tss, x_Tssss, fss, xssss), lthy)
   end;
 
 (*avoid "'a itself" arguments in corecursors*)
@@ -373,13 +373,13 @@ fun repair_nullary_single_ctr [[]] = [[@{typ unit}]]
 fun mk_corec_fun_arg_types0 ctr_Tsss Cs absTs repTs ns mss fun_Ts =
   let
     val ctr_Tsss' = map repair_nullary_single_ctr ctr_Tsss;
-    val f_absTs = map range_type fun_Ts;
-    val f_Tsss = map repair_nullary_single_ctr (map5 dest_absumprodT absTs repTs ns mss f_absTs);
-    val f_Tssss = map3 (fn C => map2 (map2 (map (curry (op -->) C) oo unzip_corecT)))
-      Cs ctr_Tsss' f_Tsss;
-    val q_Tssss = map (map (map (fn [_] => [] | [_, T] => [mk_pred1T (domain_type T)]))) f_Tssss;
+    val g_absTs = map range_type fun_Ts;
+    val g_Tsss = map repair_nullary_single_ctr (map5 dest_absumprodT absTs repTs ns mss g_absTs);
+    val g_Tssss = map3 (fn C => map2 (map2 (map (curry (op -->) C) oo unzip_corecT)))
+      Cs ctr_Tsss' g_Tsss;
+    val q_Tssss = map (map (map (fn [_] => [] | [_, T] => [mk_pred1T (domain_type T)]))) g_Tssss;
   in
-    (q_Tssss, f_Tsss, f_Tssss, f_absTs)
+    (q_Tssss, g_Tsss, g_Tssss, g_absTs)
   end;
 
 fun mk_corec_p_pred_types Cs ns = map2 (fn n => replicate (Int.max (0, n - 1)) o mk_pred1T) ns Cs;
@@ -393,16 +393,16 @@ fun mk_corecs_args_types ctr_Tsss Cs absTs repTs ns mss dtor_corec_fun_Ts lthy =
   let
     val p_Tss = mk_corec_p_pred_types Cs ns;
 
-    val (s_Tssss, h_Tsss, h_Tssss, corec_types) =
+    val (q_Tssss, g_Tsss, g_Tssss, corec_types) =
       mk_corec_fun_arg_types0 ctr_Tsss Cs absTs repTs ns mss dtor_corec_fun_Ts;
 
-    val (((((Free (z, _), cs), pss), sssss), hssss), lthy) =
+    val (((((Free (x, _), cs), pss), qssss), gssss), lthy) =
       lthy
-      |> yield_singleton (mk_Frees "z") dummyT
+      |> yield_singleton (mk_Frees "x") dummyT
       ||>> mk_Frees "a" Cs
       ||>> mk_Freess "p" p_Tss
-      ||>> mk_Freessss "q" s_Tssss
-      ||>> mk_Freessss "g" h_Tssss;
+      ||>> mk_Freessss "q" q_Tssss
+      ||>> mk_Freessss "g" g_Tssss;
 
     val cpss = map2 (map o rapp) cs pss;
 
@@ -413,17 +413,12 @@ fun mk_corecs_args_types ctr_Tsss Cs absTs repTs ns mss dtor_corec_fun_Ts lthy =
         mk_If cq (build_sum_inj Inl_const (fastype_of cf, T) $ cf)
           (build_sum_inj Inr_const (fastype_of cf', T) $ cf');
 
-    fun mk_args qssss fssss f_Tsss =
-      let
-        val pfss = map3 flat_corec_preds_predsss_gettersss pss qssss fssss;
-        val cqssss = map2 (map o map o map o rapp) cs qssss;
-        val cfssss = map2 (map o map o map o rapp) cs fssss;
-        val cqfsss = map3 (map3 (map3 build_dtor_corec_arg)) f_Tsss cqssss cfssss;
-      in (pfss, cqfsss) end;
-
-    val corec_args = mk_args sssss hssss h_Tsss;
+    val pgss = map3 flat_corec_preds_predsss_gettersss pss qssss gssss;
+    val cqssss = map2 (map o map o map o rapp) cs qssss;
+    val cgssss = map2 (map o map o map o rapp) cs gssss;
+    val cqgsss = map3 (map3 (map3 build_dtor_corec_arg)) g_Tsss cqssss cgssss;
   in
-    ((z, cs, cpss, (corec_args, corec_types)), lthy)
+    ((x, cs, cpss, ((pgss, cqgsss), corec_types)), lthy)
   end;
 
 fun mk_co_recs_prelims fp ctr_Tsss fpTs Cs absTs repTs ns mss xtor_co_recs0 lthy =
@@ -448,10 +443,10 @@ fun mk_co_recs_prelims fp ctr_Tsss fpTs Cs absTs repTs ns mss xtor_co_recs0 lthy
     ((xtor_co_recs, recs_args_types, corecs_args_types), lthy')
   end;
 
-fun mk_preds_getterss_join c cps absT abs cqfss =
+fun mk_preds_getterss_join c cps absT abs cqgss =
   let
-    val n = length cqfss;
-    val ts = map2 (mk_absumprod absT abs n) (1 upto n) cqfss;
+    val n = length cqgss;
+    val ts = map2 (mk_absumprod absT abs n) (1 upto n) cqgss;
   in
     Term.lambda c (mk_IfN absT cps ts)
   end;
@@ -469,7 +464,7 @@ fun define_co_rec fp fpT Cs b rhs lthy0 =
 
     val phi = Proof_Context.export_morphism lthy lthy';
 
-    val cst' = mk_co_iter thy fp fpT Cs (Morphism.term phi cst);
+    val cst' = mk_co_rec thy fp fpT Cs (Morphism.term phi cst);
     val def' = Morphism.thm phi def;
   in
     ((cst', def'), lthy')
@@ -490,14 +485,14 @@ fun define_rec NONE _ _ _ _ _ = pair (Term.dummy, refl)
              ctor_rec_absTs reps fss xssss)))
     end;
 
-fun define_corec (_, cs, cpss, ((pfss, cqfsss), f_absTs)) mk_binding fpTs Cs abss dtor_corec =
+fun define_corec (_, cs, cpss, ((pgss, cqgsss), f_absTs)) mk_binding fpTs Cs abss dtor_corec =
   let
     val nn = length fpTs;
     val fpT = range_type (snd (strip_typeN nn (fastype_of dtor_corec)));
   in
     define_co_rec Greatest_FP fpT Cs (mk_binding corecN)
-      (fold_rev (fold_rev Term.lambda) pfss (Term.list_comb (dtor_corec,
-         map5 mk_preds_getterss_join cs cpss f_absTs abss cqfsss)))
+      (fold_rev (fold_rev Term.lambda) pgss (Term.list_comb (dtor_corec,
+         map5 mk_preds_getterss_join cs cpss f_absTs abss cqgsss)))
   end;
 
 fun derive_induct_recs_thms_for_types pre_bnfs rec_args_typess ctor_induct ctor_rec_thms
@@ -635,7 +630,6 @@ fun derive_induct_recs_thms_for_types pre_bnfs rec_args_typess ctor_induct ctor_
               (fn kk => fn TU => maybe_tick TU (nth us kk) (nth frecs kk))) (T, U) $ x;
 
         val fxsss = map2 (map2 (flat_rec_arg_args oo map2 (map o build_rec))) xsss x_Tssss;
-
         val goalss = map5 (map4 o mk_goal fss) frecs xctrss fss xsss fxsss;
 
         val tacss =
@@ -658,8 +652,8 @@ fun derive_induct_recs_thms_for_types pre_bnfs rec_args_typess ctor_induct ctor_
      (rec_thmss, code_nitpicksimp_attrs @ simp_attrs))
   end;
 
-fun derive_coinduct_corecs_thms_for_types pre_bnfs (z, cs, cpss,
-      corecs_args_types as ((phss, cshsss), _))
+fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss,
+      corecs_args_types as ((pgss, cqgsss), _))
     dtor_coinduct dtor_injects dtor_ctors dtor_corec_thms nesting_bnfs fpTs Cs Xs ctrXs_Tsss kss
     mss ns fp_abs_inverses abs_inverses mk_vimage2p ctr_defss (ctr_sugars : ctr_sugar list)
     corecs corec_defs export_args lthy =
@@ -781,39 +775,35 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (z, cs, cpss,
 
     fun mk_maybe_not pos = not pos ? HOLogic.mk_not;
 
-    val fcorecss' as [hcorecs] =
-      map2 (fn (pfss, _) => map (lists_bmoc pfss)) [fst corecs_args_types] [corecs];
+    val gcorecs = map (lists_bmoc pgss) corecs;
 
     val corec_thmss =
       let
-        fun mk_goal pfss c cps fcorec n k ctr m cfs' =
-          fold_rev (fold_rev Logic.all) ([c] :: pfss)
+        fun mk_goal c cps gcorec n k ctr m cfs' =
+          fold_rev (fold_rev Logic.all) ([c] :: pgss)
             (Logic.list_implies (seq_conds (HOLogic.mk_Trueprop oo mk_maybe_not) n k cps,
-               mk_Trueprop_eq (fcorec $ c, Term.list_comb (ctr, take m cfs'))));
+               mk_Trueprop_eq (gcorec $ c, Term.list_comb (ctr, take m cfs'))));
 
-        fun mk_U maybe_mk_sumT =
-          typ_subst_nonatomic (map2 (fn C => fn fpT => (maybe_mk_sumT fpT C, fpT)) Cs fpTs);
+        val mk_U = typ_subst_nonatomic (map2 (fn C => fn fpT => (mk_sumT (fpT, C), fpT)) Cs fpTs);
 
-        fun tack z_name (c, u) f =
-          let val z = Free (z_name, mk_sumT (fastype_of u, fastype_of c)) in
-            Term.lambda z (mk_case_sum (Term.lambda u u, Term.lambda c (f $ c)) $ z)
+        fun tack (c, u) f =
+          let val x' = Free (x, mk_sumT (fastype_of u, fastype_of c)) in
+            Term.lambda x' (mk_case_sum (Term.lambda u u, Term.lambda c (f $ c)) $ x')
           end;
 
-        fun build_corec fcorecs maybe_mk_sumT maybe_tack cqf =
-          let val T = fastype_of cqf in
+        fun build_corec cqg =
+          let val T = fastype_of cqg in
             if exists_subtype_in Cs T then
-              let val U = mk_U maybe_mk_sumT T in
-                build_map lthy (indexify fst (map2 maybe_mk_sumT fpTs Cs) (fn kk => fn _ =>
-                  maybe_tack (nth cs kk, nth us kk) (nth fcorecs kk))) (T, U) $ cqf
+              let val U = mk_U T in
+                build_map lthy (indexify fst (map2 (curry mk_sumT) fpTs Cs) (fn kk => fn _ =>
+                  tack (nth cs kk, nth us kk) (nth gcorecs kk))) (T, U) $ cqg
               end
             else
-              cqf
+              cqg
           end;
 
-        val cshsss' = map (map (map (build_corec (co_rec_of fcorecss') (curry mk_sumT) (tack z))))
-          cshsss;
-
-        val goalss = map8 (map4 oooo mk_goal phss) cs cpss hcorecs ns kss ctrss mss cshsss';
+        val cqgsss' = map (map (map build_corec)) cqgsss;
+        val goalss = map8 (map4 oooo mk_goal) cs cpss gcorecs ns kss ctrss mss cqgsss';
 
         val tacss =
           map4 (map ooo mk_corec_tac corec_defs nesting_map_idents)
@@ -829,12 +819,12 @@ fun derive_coinduct_corecs_thms_for_types pre_bnfs (z, cs, cpss,
 
     val disc_corec_iff_thmss =
       let
-        fun mk_goal c cps fcorec n k disc =
-          mk_Trueprop_eq (disc $ (fcorec $ c),
+        fun mk_goal c cps gcorec n k disc =
+          mk_Trueprop_eq (disc $ (gcorec $ c),
             if n = 1 then @{const True}
             else Library.foldr1 HOLogic.mk_conj (seq_conds mk_maybe_not n k cps));
 
-        val goalss = map6 (map2 oooo mk_goal) cs cpss hcorecs ns kss discss;
+        val goalss = map6 (map2 oooo mk_goal) cs cpss gcorecs ns kss discss;
 
         fun mk_case_split' cp = Drule.instantiate' [] [SOME (certify lthy cp)] @{thm case_split};
 
@@ -1312,7 +1302,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         ((((mapss, rel_injects, rel_distincts, setss), (ctrss, _, ctr_defss, ctr_sugars)),
           (recs, rec_defs)), lthy) =
       let
-        val ((induct_thms, induct_thm, induct_attrs), (rec_thmss, iter_attrs)) =
+        val ((induct_thms, induct_thm, induct_attrs), (rec_thmss, rec_attrs)) =
           derive_induct_recs_thms_for_types pre_bnfs recs_args_types xtor_co_induct xtor_co_rec_thms
             nesting_bnfs nested_bnfs fpTs Cs Xs ctrXs_Tsss abs_inverses type_definitions
             abs_inverses ctrss ctr_defss recs rec_defs lthy;
@@ -1332,7 +1322,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
         val notes =
           [(inductN, map single induct_thms, fn T_name => induct_attrs @ [induct_type_attr T_name]),
-           (recN, rec_thmss, K iter_attrs),
+           (recN, rec_thmss, K rec_attrs),
            (simpsN, simp_thmss, K [])]
           |> massage_multi_notes;
       in
