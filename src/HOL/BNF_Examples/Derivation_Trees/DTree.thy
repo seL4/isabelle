@@ -20,7 +20,7 @@ subsection{* Transporting the Characteristic Lemmas from @{text "fset"} to @{tex
 
 definition "Node n as \<equiv> NNode n (the_inv fset as)"
 definition "cont \<equiv> fset o ccont"
-definition "unfold rt ct \<equiv> unfold_dtree rt (the_inv fset o ct)"
+definition "unfold rt ct \<equiv> corec_dtree rt (the_inv fset o image (sum_map id Inr) o ct)"
 definition "corec rt ct \<equiv> corec_dtree rt (the_inv fset o ct)"
 
 lemma finite_cont[simp]: "finite (cont tr)"
@@ -75,18 +75,16 @@ apply(rule Lift[unfolded set_rel_cont]) .
 lemma unfold:
 "root (unfold rt ct b) = rt b"
 "finite (ct b) \<Longrightarrow> cont (unfold rt ct b) = image (id \<oplus> unfold rt ct) (ct b)"
-using dtree.sel_unfold[of rt "the_inv fset \<circ> ct" b] unfolding unfold_def
-apply - apply metis
+using dtree.sel_corec[of rt "the_inv fset o image (sum_map id Inr) o ct" b] unfolding unfold_def
+apply blast
 unfolding cont_def comp_def
-by simp
+by (simp add: case_sum_o_inj sum_map.compositionality image_image)
 
 lemma corec:
 "root (corec rt ct b) = rt b"
 "finite (ct b) \<Longrightarrow> cont (corec rt ct b) = image (id \<oplus> ([[id, corec rt ct]])) (ct b)"
 using dtree.sel_corec[of rt "the_inv fset \<circ> ct" b] unfolding corec_def
-apply -
-apply simp
 unfolding cont_def comp_def id_def
-by simp
+by simp_all
 
 end
