@@ -1291,7 +1291,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                 (the_single exhaust_thms) disc_thms disc_thmss' (flat disc_excludess)
               |> K |> Goal.prove_sorry lthy [] [] goal
               |> Thm.close_derivation
-              |> fold (fn rule => perhaps (try (fn thm => thm RS rule)))
+              |> fold (fn rule => perhaps (try (fn thm => Meson.first_order_resolve thm rule)))
                 @{thms eqTrueE eq_False[THEN iffD1] notnotD}
               |> pair eqn_pos
               |> single
