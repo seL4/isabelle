@@ -11,7 +11,7 @@ theory Refute_Nits
 imports Main
 begin
 
-nitpick_params [verbose, card = 1\<emdash>6, max_potential = 0,
+nitpick_params [verbose, card = 1-6, max_potential = 0,
                 sat_solver = MiniSat_JNI, max_threads = 1, timeout = 240]
 
 lemma "P \<and> Q"
@@ -283,7 +283,7 @@ oops
 text {* ``Every point is a fixed point of some function.'' *}
 
 lemma "\<exists>f. f x = x"
-nitpick [card = 1\<emdash>7, expect = none]
+nitpick [card = 1-7, expect = none]
 apply (rule_tac x = "\<lambda>x. x" in exI)
 apply simp
 done
@@ -700,7 +700,7 @@ nitpick [expect = genuine]
 oops
 
 lemma "rec_T3 e (E x) = e x"
-nitpick [card = 1\<emdash>4, expect = none]
+nitpick [card = 1-4, expect = none]
 apply simp
 done
 
@@ -729,7 +729,7 @@ nitpick [expect = genuine]
 oops
 
 lemma "P Suc"
-nitpick [card = 1\<emdash>7, expect = none]
+nitpick [card = 1-7, expect = none]
 oops
 
 lemma "rec_nat zero suc 0 = zero"
@@ -765,12 +765,12 @@ nitpick [expect = genuine]
 oops
 
 lemma "rec_list nil cons [] = nil"
-nitpick [card = 1\<emdash>5, expect = none]
+nitpick [card = 1-5, expect = none]
 apply simp
 done
 
 lemma "rec_list nil cons (x#xs) = cons x xs (rec_list nil cons xs)"
-nitpick [card = 1\<emdash>5, expect = none]
+nitpick [card = 1-5, expect = none]
 apply simp
 done
 
@@ -843,7 +843,7 @@ apply simp
 done
 
 lemma "rec_BinTree l n (Node x y) = n x y (rec_BinTree l n x) (rec_BinTree l n y)"
-nitpick [card = 1\<emdash>5, expect = none]
+nitpick [card = 1-5, expect = none]
 apply simp
 done
 
@@ -881,12 +881,12 @@ nitpick [expect = genuine]
 oops
 
 lemma "rec_aexp_bexp_1 number ite equal (Number x) = number x"
-nitpick [card = 1\<emdash>3, expect = none]
+nitpick [card = 1-3, expect = none]
 apply simp
 done
 
 lemma "rec_aexp_bexp_1 number ite equal (ITE x y z) = ite x y z (rec_aexp_bexp_2 number ite equal x) (rec_aexp_bexp_1 number ite equal y) (rec_aexp_bexp_1 number ite equal z)"
-nitpick [card = 1\<emdash>3, expect = none]
+nitpick [card = 1-3, expect = none]
 apply simp
 done
 
@@ -899,7 +899,7 @@ nitpick [expect = genuine]
 oops
 
 lemma "rec_aexp_bexp_2 number ite equal (Equal x y) = equal x y (rec_aexp_bexp_1 number ite equal x) (rec_aexp_bexp_1 number ite equal y)"
-nitpick [card = 1\<emdash>3, expect = none]
+nitpick [card = 1-3, expect = none]
 apply simp
 done
 
@@ -959,32 +959,32 @@ nitpick [expect = genuine]
 oops
 
 lemma "rec_X_Y_1 a b c d e f A = a"
-nitpick [card = 1\<emdash>5, expect = none]
+nitpick [card = 1-5, expect = none]
 apply simp
 done
 
 lemma "rec_X_Y_1 a b c d e f (B x) = b x (rec_X_Y_1 a b c d e f x)"
-nitpick [card = 1\<emdash>5, expect = none]
+nitpick [card = 1-5, expect = none]
 apply simp
 done
 
 lemma "rec_X_Y_1 a b c d e f (C y) = c y (rec_X_Y_2 a b c d e f y)"
-nitpick [card = 1\<emdash>5, expect = none]
+nitpick [card = 1-5, expect = none]
 apply simp
 done
 
 lemma "rec_X_Y_2 a b c d e f (D x) = d x (rec_X_Y_1 a b c d e f x)"
-nitpick [card = 1\<emdash>5, expect = none]
+nitpick [card = 1-5, expect = none]
 apply simp
 done
 
 lemma "rec_X_Y_2 a b c d e f (E y) = e y (rec_X_Y_2 a b c d e f y)"
-nitpick [card = 1\<emdash>5, expect = none]
+nitpick [card = 1-5, expect = none]
 apply simp
 done
 
 lemma "rec_X_Y_2 a b c d e f F = f"
-nitpick [card = 1\<emdash>5, expect = none]
+nitpick [card = 1-5, expect = none]
 apply simp
 done
 
@@ -1015,32 +1015,32 @@ nitpick [expect = genuine]
 oops
 
 lemma "rec_XOpt_1 cx dx n1 s1 n2 s2 (CX x) = cx x (rec_XOpt_2 cx dx n1 s1 n2 s2 x)"
-nitpick [card = 1\<emdash>5, expect = none]
+nitpick [card = 1-5, expect = none]
 apply simp
 done
 
 lemma "rec_XOpt_1 cx dx n1 s1 n2 s2 (DX x) = dx x (\<lambda>b. rec_XOpt_3 cx dx n1 s1 n2 s2 (x b))"
-nitpick [card = 1\<emdash>3, expect = none]
+nitpick [card = 1-3, expect = none]
 apply simp
 done
 
 lemma "rec_XOpt_2 cx dx n1 s1 n2 s2 None = n1"
-nitpick [card = 1\<emdash>4, expect = none]
+nitpick [card = 1-4, expect = none]
 apply simp
 done
 
 lemma "rec_XOpt_2 cx dx n1 s1 n2 s2 (Some x) = s1 x (rec_XOpt_1 cx dx n1 s1 n2 s2 x)"
-nitpick [card = 1\<emdash>4, expect = none]
+nitpick [card = 1-4, expect = none]
 apply simp
 done
 
 lemma "rec_XOpt_3 cx dx n1 s1 n2 s2 None = n2"
-nitpick [card = 1\<emdash>4, expect = none]
+nitpick [card = 1-4, expect = none]
 apply simp
 done
 
 lemma "rec_XOpt_3 cx dx n1 s1 n2 s2 (Some x) = s2 x (rec_XOpt_1 cx dx n1 s1 n2 s2 x)"
-nitpick [card = 1\<emdash>4, expect = none]
+nitpick [card = 1-4, expect = none]
 apply simp
 done
 
@@ -1071,17 +1071,17 @@ nitpick [expect = genuine]
 oops
 
 lemma "rec_YOpt_1 cy n s (CY x) = cy x (rec_YOpt_2 cy n s x)"
-nitpick [card = 1\<emdash>2, expect = none]
+nitpick [card = 1-2, expect = none]
 apply simp
 done
 
 lemma "rec_YOpt_2 cy n s None = n"
-nitpick [card = 1\<emdash>2, expect = none]
+nitpick [card = 1-2, expect = none]
 apply simp
 done
 
 lemma "rec_YOpt_2 cy n s (Some x) = s x (\<lambda>a. rec_YOpt_1 cy n s (x a))"
-nitpick [card = 1\<emdash>2, expect = none]
+nitpick [card = 1-2, expect = none]
 apply simp
 done
 
@@ -1108,17 +1108,17 @@ nitpick [expect = genuine]
 oops
 
 lemma "rec_Trie_1 tr nil cons (TR x) = tr x (rec_Trie_2 tr nil cons x)"
-nitpick [card = 1\<emdash>4, expect = none]
+nitpick [card = 1-4, expect = none]
 apply simp
 done
 
 lemma "rec_Trie_2 tr nil cons [] = nil"
-nitpick [card = 1\<emdash>4, expect = none]
+nitpick [card = 1-4, expect = none]
 apply simp
 done
 
 lemma "rec_Trie_2 tr nil cons (x#xs) = cons x xs (rec_Trie_1 tr nil cons x) (rec_Trie_2 tr nil cons xs)"
-nitpick [card = 1\<emdash>4, expect = none]
+nitpick [card = 1-4, expect = none]
 apply simp
 done
 
@@ -1145,12 +1145,12 @@ nitpick [expect = genuine]
 oops
 
 lemma "rec_InfTree leaf node Leaf = leaf"
-nitpick [card = 1\<emdash>3, expect = none]
+nitpick [card = 1-3, expect = none]
 apply simp
 done
 
 lemma "rec_InfTree leaf node (Node x) = node x (\<lambda>n. rec_InfTree leaf node (x n))"
-nitpick [card = 1\<emdash>3, expect = none]
+nitpick [card = 1-3, expect = none]
 apply simp
 done
 
@@ -1169,22 +1169,22 @@ nitpick [expect = genuine]
 oops
 
 lemma "P (Lam (\<lambda>a. Var a))"
-nitpick [card = 1\<emdash>5, expect = none]
+nitpick [card = 1-5, expect = none]
 nitpick [card 'a = 4, card "'a lambda" = 5, expect = genuine]
 oops
 
 lemma "rec_lambda var app lam (Var x) = var x"
-nitpick [card = 1\<emdash>3, expect = none]
+nitpick [card = 1-3, expect = none]
 apply simp
 done
 
 lemma "rec_lambda var app lam (App x y) = app x y (rec_lambda var app lam x) (rec_lambda var app lam y)"
-nitpick [card = 1\<emdash>3, expect = none]
+nitpick [card = 1-3, expect = none]
 apply simp
 done
 
 lemma "rec_lambda var app lam (Lam x) = lam x (\<lambda>a. rec_lambda var app lam (x a))"
-nitpick [card = 1\<emdash>3, expect = none]
+nitpick [card = 1-3, expect = none]
 apply simp
 done
 
@@ -1210,27 +1210,27 @@ nitpick [expect = genuine]
 oops
 
 lemma "rec_U_1 e c d nil cons (E x) = e x (rec_U_2 e c d nil cons x)"
-nitpick [card = 1\<emdash>3, expect = none]
+nitpick [card = 1-3, expect = none]
 apply simp
 done
 
 lemma "rec_U_2 e c d nil cons (C x) = c x"
-nitpick [card = 1\<emdash>3, expect = none]
+nitpick [card = 1-3, expect = none]
 apply simp
 done
 
 lemma "rec_U_2 e c d nil cons (D x) = d x (rec_U_3 e c d nil cons x)"
-nitpick [card = 1\<emdash>3, expect = none]
+nitpick [card = 1-3, expect = none]
 apply simp
 done
 
 lemma "rec_U_3 e c d nil cons [] = nil"
-nitpick [card = 1\<emdash>3, expect = none]
+nitpick [card = 1-3, expect = none]
 apply simp
 done
 
 lemma "rec_U_3 e c d nil cons (x#xs) = cons x xs (rec_U_1 e c d nil cons x) (rec_U_3 e c d nil cons xs)"
-nitpick [card = 1\<emdash>3, expect = none]
+nitpick [card = 1-3, expect = none]
 apply simp
 done
 

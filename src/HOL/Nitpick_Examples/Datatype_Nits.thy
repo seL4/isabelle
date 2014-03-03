@@ -11,7 +11,7 @@ theory Datatype_Nits
 imports Main
 begin
 
-nitpick_params [verbose, card = 1\<emdash>8, max_potential = 0,
+nitpick_params [verbose, card = 1-8, max_potential = 0,
                 sat_solver = MiniSat_JNI, max_threads = 1, timeout = 240]
 
 primrec rot where
@@ -23,7 +23,7 @@ primrec rot where
 "rot NibbleF = Nibble0"
 
 lemma "rot n \<noteq> n"
-nitpick [card = 1\<emdash>8,16, verbose, expect = none]
+nitpick [card = 1-8,16, verbose, expect = none]
 sorry
 
 lemma "rot Nibble2 \<noteq> Nibble3"

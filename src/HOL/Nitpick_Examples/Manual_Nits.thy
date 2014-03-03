@@ -12,9 +12,21 @@ header {* Examples from the Nitpick Manual *}
    suite. *)
 
 theory Manual_Nits
-imports Main Real "~~/src/HOL/Library/Quotient_Product"
+imports Real "~~/src/HOL/Library/Quotient_Product"
 begin
 
+declaration {*
+  Nitpick_HOL.register_frac_type @{type_name real}
+   [(@{const_name zero_real_inst.zero_real}, @{const_name Nitpick.zero_frac}),
+    (@{const_name one_real_inst.one_real}, @{const_name Nitpick.one_frac}),
+    (@{const_name plus_real_inst.plus_real}, @{const_name Nitpick.plus_frac}),
+    (@{const_name times_real_inst.times_real}, @{const_name Nitpick.times_frac}),
+    (@{const_name uminus_real_inst.uminus_real}, @{const_name Nitpick.uminus_frac}),
+    (@{const_name inverse_real_inst.inverse_real}, @{const_name Nitpick.inverse_frac}),
+    (@{const_name ord_real_inst.less_real}, @{const_name Nitpick.less_frac}),
+    (@{const_name ord_real_inst.less_eq_real}, @{const_name Nitpick.less_eq_frac})]
+*}
+(*###*)
 
 section {* 2. First Steps *}
 
@@ -47,7 +59,7 @@ oops
 
 lemma "\<exists>!x. x \<in> A \<Longrightarrow> (THE y. y \<in> A) \<in> A"
 nitpick [expect = none]
-nitpick [card 'a = 1\<emdash>50, expect = none]
+nitpick [card 'a = 1-50, expect = none]
 (* sledgehammer *)
 by (metis the_equality)
 
@@ -218,7 +230,7 @@ oops
 
 lemma "\<lbrakk>xs = LCons a xs; ys = LCons a ys\<rbrakk> \<Longrightarrow> xs = ys"
 nitpick [bisim_depth = -1, show_types, expect = quasi_genuine]
-nitpick [card = 1\<emdash>5, expect = none]
+nitpick [card = 1-5, expect = none]
 sorry
 
 
@@ -255,7 +267,7 @@ primrec subst\<^sub>2 where
 "subst\<^sub>2 \<sigma> (App t u) = App (subst\<^sub>2 \<sigma> t) (subst\<^sub>2 \<sigma> u)"
 
 lemma "\<not> loose t 0 \<Longrightarrow> subst\<^sub>2 \<sigma> t = t"
-nitpick [card = 1\<emdash>5, expect = none]
+nitpick [card = 1-5, expect = none]
 sorry
 
 
@@ -282,7 +294,7 @@ lemma "n \<in> reach \<Longrightarrow> 2 dvd n"
 (* nitpick *)
 apply (induct set: reach)
   apply auto
- nitpick [card = 1\<emdash>4, bits = 1\<emdash>4, expect = none]
+ nitpick [card = 1-4, bits = 1-4, expect = none]
  apply (thin_tac "n \<in> reach")
  nitpick [expect = genuine]
 oops
@@ -291,7 +303,7 @@ lemma "n \<in> reach \<Longrightarrow> 2 dvd n \<and> n \<noteq> 0"
 (* nitpick *)
 apply (induct set: reach)
   apply auto
- nitpick [card = 1\<emdash>4, bits = 1\<emdash>4, expect = none]
+ nitpick [card = 1-4, bits = 1-4, expect = none]
  apply (thin_tac "n \<in> reach")
  nitpick [expect = genuine]
 oops
@@ -345,7 +357,7 @@ inductive_set S\<^sub>3 and A\<^sub>3 and B\<^sub>3 where
 
 theorem S\<^sub>3_sound:
 "w \<in> S\<^sub>3 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
-nitpick [card = 1\<emdash>5, expect = none]
+nitpick [card = 1-5, expect = none]
 sorry
 
 theorem S\<^sub>3_complete:
@@ -364,19 +376,19 @@ inductive_set S\<^sub>4 and A\<^sub>4 and B\<^sub>4 where
 
 theorem S\<^sub>4_sound:
 "w \<in> S\<^sub>4 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
-nitpick [card = 1\<emdash>5, expect = none]
+nitpick [card = 1-5, expect = none]
 sorry
 
 theorem S\<^sub>4_complete:
 "length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] \<longrightarrow> w \<in> S\<^sub>4"
-nitpick [card = 1\<emdash>5, expect = none]
+nitpick [card = 1-5, expect = none]
 sorry
 
 theorem S\<^sub>4_A\<^sub>4_B\<^sub>4_sound_and_complete:
 "w \<in> S\<^sub>4 \<longleftrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
 "w \<in> A\<^sub>4 \<longleftrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] + 1"
 "w \<in> B\<^sub>4 \<longleftrightarrow> length [x \<leftarrow> w. x = b] = length [x \<leftarrow> w. x = a] + 1"
-nitpick [card = 1\<emdash>5, expect = none]
+nitpick [card = 1-5, expect = none]
 sorry
 
 
@@ -431,13 +443,13 @@ fun split where
 theorem dataset_skew_split:
 "dataset (skew t) = dataset t"
 "dataset (split t) = dataset t"
-nitpick [card = 1\<emdash>5, expect = none]
+nitpick [card = 1-5, expect = none]
 sorry
 
 theorem wf_skew_split:
 "wf t \<Longrightarrow> skew t = t"
 "wf t \<Longrightarrow> split t = t"
-nitpick [card = 1\<emdash>5, expect = none]
+nitpick [card = 1-5, expect = none]
 sorry
 
 primrec insort\<^sub>1 where
@@ -461,11 +473,11 @@ primrec insort\<^sub>2 where
                        (if x > y then insort\<^sub>2 u x else u))"
 
 theorem wf_insort\<^sub>2: "wf t \<Longrightarrow> wf (insort\<^sub>2 t x)"
-nitpick [card = 1\<emdash>5, expect = none]
+nitpick [card = 1-5, expect = none]
 sorry
 
 theorem dataset_insort\<^sub>2: "dataset (insort\<^sub>2 t x) = {x} \<union> dataset t"
-nitpick [card = 1\<emdash>5, expect = none]
+nitpick [card = 1-5, expect = none]
 sorry
 
 end

@@ -160,10 +160,8 @@ sig
   val unregister_codatatype :
     typ -> morphism -> Context.generic -> Context.generic
   val unregister_codatatype_global : typ -> theory -> theory
-  val data_type_constrs : hol_context -> typ -> (string * typ) list
   val binarized_and_boxed_data_type_constrs :
     hol_context -> bool -> typ -> (string * typ) list
-  val num_data_type_constrs : hol_context -> typ -> int
   val constr_name_for_sel_like : string -> string
   val binarized_and_boxed_constr_for_sel : hol_context -> bool ->
     string * typ -> string * typ
@@ -991,41 +989,42 @@ fun zero_const T = Const (@{const_name zero_class.zero}, T)
 fun suc_const T = Const (@{const_name Suc}, T --> T)
 
 fun uncached_data_type_constrs ({thy, ctxt, ...} : hol_context)
-                               (T as Type (s, Ts)) =
-    (case AList.lookup (op =) (#codatatypes (Data.get (Context.Proof ctxt)))
-                       s of
-       SOME (_, xs' as (_ :: _)) => map (apsnd (repair_constr_type T)) xs'
-     | _ =>
-       if is_frac_type ctxt T then
-         case typedef_info ctxt s of
-           SOME {abs_type, rep_type, Abs_name, ...} =>
-           [(Abs_name,
-             varify_and_instantiate_type ctxt abs_type T rep_type --> T)]
-         | NONE => [] (* impossible *)
-       else if is_data_type ctxt T then
-         case Ctr_Sugar.ctr_sugar_of ctxt s of
-           SOME {ctrs, ...} =>
-           map (apsnd (repair_constr_type T) o dest_Const) ctrs
-         | NONE =>
-           if is_record_type T then
-             let
-               val s' = unsuffix Record.ext_typeN s ^ Record.extN
-               val T' = (Record.get_extT_fields thy T
-                        |> apsnd single |> uncurry append |> map snd) ---> T
-             in [(s', T')] end
-           else if is_raw_quot_type ctxt T then
-             [(@{const_name Quot}, rep_type_for_quot_type ctxt T --> T)]
-           else case typedef_info ctxt s of
+                               (T as Type (s, _)) =
+    if is_interpreted_type s then
+      []
+    else
+      (case AList.lookup (op =) (#codatatypes (Data.get (Context.Proof ctxt)))
+                         s of
+         SOME (_, xs' as (_ :: _)) => map (apsnd (repair_constr_type T)) xs'
+       | _ =>
+         if is_frac_type ctxt T then
+           case typedef_info ctxt s of
              SOME {abs_type, rep_type, Abs_name, ...} =>
              [(Abs_name,
                varify_and_instantiate_type ctxt abs_type T rep_type --> T)]
+           | NONE => [] (* impossible *)
+         else
+           case Ctr_Sugar.ctr_sugar_of ctxt s of
+             SOME {ctrs, ...} =>
+             map (apsnd (repair_constr_type T) o dest_Const) ctrs
            | NONE =>
-             if T = @{typ ind} then
-               [dest_Const @{const Zero_Rep}, dest_Const @{const Suc_Rep}]
-             else
-               []
-       else
-         [])
+             if is_record_type T then
+               let
+                 val s' = unsuffix Record.ext_typeN s ^ Record.extN
+                 val T' = (Record.get_extT_fields thy T
+                          |> apsnd single |> uncurry append |> map snd) ---> T
+               in [(s', T')] end
+             else if is_raw_quot_type ctxt T then
+               [(@{const_name Quot}, rep_type_for_quot_type ctxt T --> T)]
+             else case typedef_info ctxt s of
+               SOME {abs_type, rep_type, Abs_name, ...} =>
+               [(Abs_name,
+                 varify_and_instantiate_type ctxt abs_type T rep_type --> T)]
+             | NONE =>
+               if T = @{typ ind} then
+                 [dest_Const @{const Zero_Rep}, dest_Const @{const Suc_Rep}]
+               else
+                 [])
   | uncached_data_type_constrs _ _ = []
 
 fun data_type_constrs (hol_ctxt as {constr_cache, ...}) T =
@@ -1039,7 +1038,6 @@ fun data_type_constrs (hol_ctxt as {constr_cache, ...}) T =
 fun binarized_and_boxed_data_type_constrs hol_ctxt binarize =
   map (apsnd ((binarize ? binarize_nat_and_int_in_type)
               o box_type hol_ctxt InConstr)) o data_type_constrs hol_ctxt
-val num_data_type_constrs = length oo data_type_constrs
 
 fun constr_name_for_sel_like @{const_name fst} = @{const_name Pair}
   | constr_name_for_sel_like @{const_name snd} = @{const_name Pair}
@@ -1222,7 +1220,7 @@ fun discr_term_for_constr hol_ctxt (x as (s, T)) =
     if s = @{const_name Suc} then
       Abs (Name.uu, dataT,
            @{const Not} $ HOLogic.mk_eq (zero_const dataT, Bound 0))
-    else if num_data_type_constrs hol_ctxt dataT >= 2 then
+    else if length (data_type_constrs hol_ctxt dataT) >= 2 then
       Const (discr_for_constr x)
     else
       Abs (Name.uu, dataT, @{const True})
@@ -1505,8 +1503,12 @@ fun unfold_mutually_inductive_preds thy table =
                | t => t)
 
 fun case_const_names ctxt =
-  map_filter (fn {casex, ...} => SOME (apsnd (fn T => num_binder_types T - 1) (dest_Const casex)))
-      (Ctr_Sugar.ctr_sugars_of ctxt) @
+  map_filter (fn {casex = Const (s, T), ...} =>
+      let val Ts = binder_types T in
+        if is_data_type ctxt (List.last Ts) then SOME (s, length Ts - 1)
+        else NONE
+      end)
+    (Ctr_Sugar.ctr_sugars_of ctxt) @
   map (apsnd length o snd) (#codatatypes (Data.get (Context.Proof ctxt)))
 
 fun fixpoint_kind_of_const thy table x =

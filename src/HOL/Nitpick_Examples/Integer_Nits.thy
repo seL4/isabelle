@@ -11,7 +11,7 @@ theory Integer_Nits
 imports Main
 begin
 
-nitpick_params [verbose, card = 1\<emdash>5, bits = 1,2,3,4,6,
+nitpick_params [verbose, card = 1-5, bits = 1,2,3,4,6,
                 sat_solver = MiniSat_JNI, max_threads = 1, timeout = 240]
 
 lemma "Suc x = x + 1"
@@ -187,7 +187,7 @@ oops
 
 lemma "y \<noteq> 0 \<Longrightarrow> x * y div y = (x::int)"
 nitpick [unary_ints, expect = none]
-nitpick [binary_ints, card = 1\<emdash>4, bits = 1\<emdash>4, expect = none]
+nitpick [binary_ints, card = 1-4, bits = 1-4, expect = none]
 sorry
 
 lemma "(x * y < 0) \<longleftrightarrow> (x > 0 \<and> y < 0) \<or> (x < 0 \<and> y > (0::int))"

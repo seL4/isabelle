@@ -11,7 +11,7 @@ theory Typedef_Nits
 imports Complex_Main
 begin
 
-nitpick_params [verbose, card = 1\<emdash>4, sat_solver = MiniSat_JNI, max_threads = 1,
+nitpick_params [verbose, card = 1-4, sat_solver = MiniSat_JNI, max_threads = 1,
                 timeout = 240]
 
 definition "three = {0\<Colon>nat, 1, 2}"
@@ -73,7 +73,7 @@ nitpick [expect = potential] (* unfortunate *)
 sorry
 
 lemma "x \<noteq> (y\<Colon>(bool \<times> bool) bounded) \<Longrightarrow> z = x \<or> z = y"
-nitpick [card = 1\<emdash>5, expect = genuine]
+nitpick [card = 1-5, expect = genuine]
 oops
 
 lemma "True \<equiv> ((\<lambda>x\<Colon>bool. x) = (\<lambda>x. x))"
@@ -101,11 +101,11 @@ nitpick [expect = genuine]
 oops
 
 lemma "Pair a b = Abs_prod (Pair_Rep a b)"
-nitpick [card = 1\<emdash>2, expect = none]
+nitpick [card = 1-2, expect = none]
 by (rule Pair_def)
 
 lemma "Pair a b = Abs_prod (Pair_Rep b a)"
-nitpick [card = 1\<emdash>2, expect = none]
+nitpick [card = 1-2, expect = none]
 nitpick [dont_box, expect = genuine]
 oops
 
@@ -114,7 +114,7 @@ nitpick [card = 2, expect = none]
 by (simp add: Pair_def [THEN sym])
 
 lemma "fst (Abs_prod (Pair_Rep a b)) = b"
-nitpick [card = 1\<emdash>2, expect = none]
+nitpick [card = 1-2, expect = none]
 nitpick [dont_box, expect = genuine]
 oops
 
@@ -164,7 +164,7 @@ nitpick [expect = none]
 by (rule Rep_Nat_inverse)
 
 lemma "Abs_list (Rep_list a) = a"
-(* nitpick [card = 1\<emdash>2, expect = none] FIXME *)
+(* nitpick [card = 1-2, expect = none] FIXME *)
 by (rule Rep_list_inverse)
 
 record point =
@@ -186,11 +186,11 @@ by (rule Rep_rat_inverse)
 typedef check = "{x\<Colon>nat. x < 2}" by (rule exI[of _ 0], auto)
 
 lemma "Rep_check (Abs_check n) = n \<Longrightarrow> n < 2"
-nitpick [card = 1\<emdash>3, expect = none]
+nitpick [card = 1-3, expect = none]
 using Rep_check[of "Abs_check n"] by auto
 
 lemma "Rep_check (Abs_check n) = n \<Longrightarrow> n < 1"
-nitpick [card = 1\<emdash>3, expect = genuine]
+nitpick [card = 1-3, expect = genuine]
 oops
 
 end
