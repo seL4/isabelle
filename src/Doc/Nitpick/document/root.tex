@@ -556,7 +556,7 @@ To see why the counterexample is genuine, we enable \textit{show\_consts}
 and \textit{show\_\allowbreak datatypes}:
 
 \prew
-{\slshape Datatype:} \\
+{\slshape Type:} \\
 \hbox{}\qquad $'a$~\textit{list}~= $\{[],\, [a_1],\, [a_1, a_1],\, \unr\}$ \\
 {\slshape Constants:} \\
 \hbox{}\qquad $\lambda x_1.\; x_1 \mathbin{@} [y, y] = \unkef([] := [a_1, a_1])$ \\
@@ -570,7 +570,7 @@ The second constant, $\lambda x_1.\; x_1 \mathbin{@} [y, y]$, is simply the
 append operator whose second argument is fixed to be $[y, y]$. Appending $[a_1,
 a_1]$ to $[a_1]$ would normally give $[a_1, a_1, a_1]$, but this value is not
 representable in the subset of $'a$~\textit{list} considered by Nitpick, which
-is shown under the ``Datatype'' heading; hence the result is $\unk$. Similarly,
+is shown under the ``Type'' heading; hence the result is $\unk$. Similarly,
 appending $[a_1, a_1]$ to itself gives $\unk$.
 
 Given \textit{card}~$'a = 3$ and \textit{card}~$'a~\textit{list} = 3$, Nitpick
@@ -614,7 +614,7 @@ Here's another m\"ochtegern-lemma that Nitpick can refute without a blink:
 \hbox{}\qquad Free variables: \nopagebreak \\
 \hbox{}\qquad\qquad $\textit{xs} = [a_2]$ \\
 \hbox{}\qquad\qquad $\textit{ys} = [a_1]$ \\
-\hbox{}\qquad Datatypes: \\
+\hbox{}\qquad Types: \\
 \hbox{}\qquad\qquad $\textit{nat} = \{0,\, 1,\, 2,\, \unr\}$ \\
 \hbox{}\qquad\qquad $'a$~\textit{list} = $\{[],\, [a_1],\, [a_2],\, \unr\}$
 \postw
@@ -643,7 +643,7 @@ For example:
 \hbox{}\qquad Free variables: \nopagebreak \\
 \hbox{}\qquad\qquad $X = \{\Abs{0},\, \Abs{1}\}$ \\
 \hbox{}\qquad\qquad $c = \Abs{2}$ \\
-\hbox{}\qquad Datatypes: \\
+\hbox{}\qquad Types: \\
 \hbox{}\qquad\qquad $\textit{nat} = \{0,\, 1,\, 2,\, \unr\}$ \\
 \hbox{}\qquad\qquad $\textit{three} = \{\Abs{0},\, \Abs{1},\, \Abs{2},\, \unr\}$
 \postw
@@ -672,7 +672,7 @@ natural numbers $(m, n)$ such that $x + n = m$:
 \hbox{}\qquad Free variables: \nopagebreak \\
 \hbox{}\qquad\qquad $x = \Abs{(0,\, 0)}$ \\
 \hbox{}\qquad\qquad $y = \Abs{(0,\, 1)}$ \\
-\hbox{}\qquad Datatypes: \\
+\hbox{}\qquad Types: \\
 \hbox{}\qquad\qquad $\textit{nat} = \{0,\, 1,\, \unr\}$ \\
 \hbox{}\qquad\qquad $\textit{nat} \times \textit{nat}~[\textsl{boxed\/}] = \{(0,\, 0),\> (1,\, 0),\> \unr\}$ \\
 \hbox{}\qquad\qquad $\textit{my\_int} = \{\Abs{(0,\, 0)},\> \Abs{(0,\, 1)},\> \unr\}$
@@ -714,7 +714,7 @@ Records are handled as datatypes with a single constructor:
 \hbox{}\qquad Free variables: \nopagebreak \\
 \hbox{}\qquad\qquad $p = \lparr\textit{Xcoord} = 1,\> \textit{Ycoord} = 1\rparr$ \\
 \hbox{}\qquad\qquad $q = \lparr\textit{Xcoord} = 0,\> \textit{Ycoord} = 0\rparr$ \\
-\hbox{}\qquad Datatypes: \\
+\hbox{}\qquad Types: \\
 \hbox{}\qquad\qquad $\textit{int} = \{0,\, 1,\, \unr\}$ \\
 \hbox{}\qquad\qquad $\textit{point} = \{\!\begin{aligned}[t]
 & \lparr\textit{Xcoord} = 0,\> \textit{Ycoord} = 0\rparr, \\[-2pt] %% TYPESETTING
@@ -731,7 +731,7 @@ similar approach:
 \hbox{}\qquad Free variables: \nopagebreak \\
 \hbox{}\qquad\qquad $x = 1/2$ \\
 \hbox{}\qquad\qquad $y = -1/2$ \\
-\hbox{}\qquad Datatypes: \\
+\hbox{}\qquad Types: \\
 \hbox{}\qquad\qquad $\textit{nat} = \{0,\, 1,\, 2,\, 3,\, 4,\, 5,\, 6,\, 7,\, \unr\}$ \\
 \hbox{}\qquad\qquad $\textit{int} = \{-3,\, -2,\, -1,\, 0,\, 1,\, 2,\, 3,\, 4,\, \unr\}$ \\
 \hbox{}\qquad\qquad $\textit{real} = \{-3/2,\, -1/2,\, 0,\, 1/2,\, 1,\, 2,\, 3,\, 4,\, \unr\}$
@@ -1055,7 +1055,7 @@ predicate or as an after-the-fact check) to prevent spurious counterexamples:
 \hbox{}\qquad\qquad $\textit{xs} = \textsl{THE}~\omega.\; \omega =
 \textit{LCons}~a_1~\omega$ \\
 \hbox{}\qquad\qquad $\textit{ys} = \textsl{THE}~\omega.\; \omega = \textit{LCons}~a_1~\omega$ \\
-\hbox{}\qquad Codatatype:\strut \nopagebreak \\
+\hbox{}\qquad Type:\strut \nopagebreak \\
 \hbox{}\qquad\qquad $'a~\textit{llist} =
 \{\!\begin{aligned}[t]
   & \textsl{THE}~\omega.\; \omega = \textit{LCons}~a_1~\omega, \\[-2pt]
