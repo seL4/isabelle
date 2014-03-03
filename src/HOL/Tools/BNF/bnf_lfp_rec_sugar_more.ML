@@ -21,10 +21,10 @@ val nested_simps = @{thms id_def split comp_def fst_conv snd_conv};
 fun is_new_datatype ctxt s =
   (case fp_sugar_of ctxt s of SOME {fp = Least_FP, ...} => true | _ => false);
 
-fun basic_lfp_sugar_of C fun_arg_Tsss ({T, fp_res_index, ctr_defs, ctr_sugar, co_iters = iters,
-    co_iter_thmss = iter_thmss, ...} : fp_sugar) =
+fun basic_lfp_sugar_of C fun_arg_Tsss ({T, fp_res_index, ctr_defs, ctr_sugar, co_rec = recx,
+    co_rec_thms = rec_thms, ...} : fp_sugar) =
   {T = T, fp_res_index = fp_res_index, C = C, fun_arg_Tsss = fun_arg_Tsss, ctr_defs = ctr_defs,
-   ctr_sugar = ctr_sugar, recx = co_rec_of iters, rec_thms = co_rec_of iter_thmss};
+   ctr_sugar = ctr_sugar, recx = recx, rec_thms = rec_thms};
 
 fun get_basic_lfp_sugars bs arg_Ts callers callssss0 lthy0 =
   let
@@ -35,7 +35,7 @@ fun get_basic_lfp_sugars bs arg_Ts callers callssss0 lthy0 =
 
     val Ts = map #T fp_sugars;
     val Xs = map #X fp_sugars;
-    val Cs = map (body_type o fastype_of o co_rec_of o #co_iters) fp_sugars;
+    val Cs = map (body_type o fastype_of o #co_rec) fp_sugars;
     val Xs_TCs = Xs ~~ (Ts ~~ Cs);
 
     fun zip_recT (Type (s, Us)) = [Type (s, map (HOLogic.mk_tupleT o zip_recT) Us)]

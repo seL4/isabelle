@@ -274,19 +274,20 @@ fun mutualize_fp_sugars fp bs fpTs callers callssss fp_sugars0 no_defs_lthy0 =
 
         val phi = Proof_Context.export_morphism no_defs_lthy no_defs_lthy0;
 
-        fun mk_target_fp_sugar T X kk pre_bnf absT_info ctrXs_Tss ctr_defs ctr_sugar co_iters maps
+        fun mk_target_fp_sugar T X kk pre_bnf absT_info ctrXs_Tss ctr_defs ctr_sugar co_rec maps
             co_inducts co_rec_thms disc_corec_thms sel_corec_thmss =
           {T = T, X = X, fp = fp, fp_res = fp_res, fp_res_index = kk, pre_bnf = pre_bnf,
            absT_info = absT_info, nested_bnfs = nested_bnfs, nesting_bnfs = nesting_bnfs,
-           ctrXs_Tss = ctrXs_Tss, ctr_defs = ctr_defs, ctr_sugar = ctr_sugar, co_iters = co_iters,
+           ctrXs_Tss = ctrXs_Tss, ctr_defs = ctr_defs, ctr_sugar = ctr_sugar, co_rec = co_rec,
            maps = maps, common_co_inducts = common_co_inducts, co_inducts = co_inducts,
-           co_iter_thmss = [co_rec_thms], disc_co_iterss = [disc_corec_thms],
-           sel_co_itersss = [sel_corec_thmss]}
+           co_rec_thms = co_rec_thms, disc_co_recs = disc_corec_thms,
+           sel_co_recss = sel_corec_thmss}
           |> morph_fp_sugar phi;
 
         val target_fp_sugars =
           map14 mk_target_fp_sugar fpTs Xs kks pre_bnfs absT_infos ctrXs_Tsss ctr_defss ctr_sugars
-            co_iterss mapss (transpose co_inductss) co_rec_thmss disc_corec_thmss sel_corec_thmsss;
+            (map the_single co_iterss) mapss (transpose co_inductss) co_rec_thmss disc_corec_thmss
+            sel_corec_thmsss;
 
         val n2m_sugar = (target_fp_sugars, fp_sugar_thms);
       in

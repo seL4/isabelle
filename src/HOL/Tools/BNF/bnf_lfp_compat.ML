@@ -146,8 +146,8 @@ fun datatype_compat_cmd raw_fpT_names lthy =
       (kk, (T_name, map (mk_dtyp (map snd (take 1 parents))) Ts, map2 (mk_ctr_descr Ts) kksss ctrs0));
 
     val descr = map3 mk_typ_descr kkssss Tparentss ctrss0;
-    val recs = map (fst o dest_Const o co_rec_of o #co_iters) fp_sugars;
-    val rec_thms = maps (co_rec_of o #co_iter_thmss) fp_sugars;
+    val recs = map (fst o dest_Const o #co_rec) fp_sugars;
+    val rec_thms = maps #co_rec_thms fp_sugars;
 
     fun mk_info (kk, {T = Type (T_name0, _), ctr_sugar = {casex, exhaust, nchotomy, injects,
         distincts, case_thms, case_cong, weak_case_cong, split, split_asm, ...}, ...} : fp_sugar) =

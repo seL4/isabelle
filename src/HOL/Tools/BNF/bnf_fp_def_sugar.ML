@@ -20,13 +20,13 @@ sig
      ctrXs_Tss: typ list list,
      ctr_defs: thm list,
      ctr_sugar: Ctr_Sugar.ctr_sugar,
-     co_iters: term list,
+     co_rec: term,
      maps: thm list,
      common_co_inducts: thm list,
      co_inducts: thm list,
-     co_iter_thmss: thm list list,
-     disc_co_iterss: thm list list,
-     sel_co_itersss: thm list list list};
+     co_rec_thms: thm list,
+     disc_co_recs: thm list,
+     sel_co_recss: thm list list};
 
   val morph_fp_sugar: morphism -> fp_sugar -> fp_sugar
   val transfer_fp_sugar: Proof.context -> fp_sugar -> fp_sugar
@@ -131,17 +131,17 @@ type fp_sugar =
    ctrXs_Tss: typ list list,
    ctr_defs: thm list,
    ctr_sugar: Ctr_Sugar.ctr_sugar,
-   co_iters: term list,
+   co_rec: term,
    maps: thm list,
    common_co_inducts: thm list,
    co_inducts: thm list,
-   co_iter_thmss: thm list list,
-   disc_co_iterss: thm list list,
-   sel_co_itersss: thm list list list};
+   co_rec_thms: thm list,
+   disc_co_recs: thm list,
+   sel_co_recss: thm list list};
 
 fun morph_fp_sugar phi ({T, X, fp, fp_res, fp_res_index, pre_bnf, absT_info, nested_bnfs,
-    nesting_bnfs, ctrXs_Tss, ctr_defs, ctr_sugar, co_iters, maps, common_co_inducts, co_inducts,
-    co_iter_thmss, disc_co_iterss, sel_co_itersss} : fp_sugar) =
+    nesting_bnfs, ctrXs_Tss, ctr_defs, ctr_sugar, co_rec, maps, common_co_inducts, co_inducts,
+    co_rec_thms, disc_co_recs, sel_co_recss} : fp_sugar) =
   {T = Morphism.typ phi T,
    X = Morphism.typ phi X,
    fp = fp,
@@ -154,13 +154,13 @@ fun morph_fp_sugar phi ({T, X, fp, fp_res, fp_res_index, pre_bnf, absT_info, nes
    ctrXs_Tss = map (map (Morphism.typ phi)) ctrXs_Tss,
    ctr_defs = map (Morphism.thm phi) ctr_defs,
    ctr_sugar = morph_ctr_sugar phi ctr_sugar,
-   co_iters = map (Morphism.term phi) co_iters,
+   co_rec = Morphism.term phi co_rec,
    maps = map (Morphism.thm phi) maps,
    common_co_inducts = map (Morphism.thm phi) common_co_inducts,
    co_inducts = map (Morphism.thm phi) co_inducts,
-   co_iter_thmss = map (map (Morphism.thm phi)) co_iter_thmss,
-   disc_co_iterss = map (map (Morphism.thm phi)) disc_co_iterss,
-   sel_co_itersss = map (map (map (Morphism.thm phi))) sel_co_itersss};
+   co_rec_thms = map (Morphism.thm phi) co_rec_thms,
+   disc_co_recs = map (Morphism.thm phi) disc_co_recs,
+   sel_co_recss = map (map (Morphism.thm phi)) sel_co_recss};
 
 val transfer_fp_sugar =
   morph_fp_sugar o Morphism.transfer_morphism o Proof_Context.theory_of;
@@ -190,17 +190,17 @@ fun register_fp_sugar key fp_sugar =
     (fn phi => Data.map (Symtab.update (key, morph_fp_sugar phi fp_sugar)));
 
 fun register_fp_sugars Xs fp pre_bnfs absT_infos nested_bnfs nesting_bnfs (fp_res as {Ts, ...})
-    ctrXs_Tsss ctr_defss ctr_sugars co_iterss mapss common_co_inducts co_inductss co_iter_thmsss
-    disc_co_itersss sel_co_iterssss lthy =
+    ctrXs_Tsss ctr_defss ctr_sugars co_recs mapss common_co_inducts co_inductss co_rec_thmss
+    disc_co_recss sel_co_recsss lthy =
   (0, lthy)
   |> fold (fn T as Type (s, _) => fn (kk, lthy) => (kk + 1,
     register_fp_sugar s {T = T, X = nth Xs kk, fp = fp, fp_res = fp_res, fp_res_index = kk,
         pre_bnf = nth pre_bnfs kk, absT_info = nth absT_infos kk, nested_bnfs = nested_bnfs,
         nesting_bnfs = nesting_bnfs, ctrXs_Tss = nth ctrXs_Tsss kk, ctr_defs = nth ctr_defss kk,
-        ctr_sugar = nth ctr_sugars kk, co_iters = nth co_iterss kk, maps = nth mapss kk,
+        ctr_sugar = nth ctr_sugars kk, co_rec = nth co_recs kk, maps = nth mapss kk,
         common_co_inducts = common_co_inducts, co_inducts = nth co_inductss kk,
-        co_iter_thmss = nth co_iter_thmsss kk, disc_co_iterss = nth disc_co_itersss kk,
-        sel_co_itersss = nth sel_co_iterssss kk}
+        co_rec_thms = nth co_rec_thmss kk, disc_co_recs = nth disc_co_recss kk,
+        sel_co_recss = nth sel_co_recsss kk}
       lthy)) Ts
   |> snd;
 
@@ -1364,9 +1364,9 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
         val induct_type_attr = Attrib.internal o K o Induct.induct_type;
 
-        val (iterss', rec_thmss') =
-          if iterss = [[]] then ([map #casex ctr_sugars], map #case_thms ctr_sugars)
-          else (iterss, rec_thmss);
+        val (recs, rec_thmss') =
+          if iterss = [[]] then (map #casex ctr_sugars, map #case_thms ctr_sugars)
+          else (map the_single iterss, rec_thmss);
 
         val simp_thmss =
           map6 mk_simp_thms ctr_sugars rec_thmss mapss rel_injects rel_distincts setss;
@@ -1388,8 +1388,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
               I)
         |> Local_Theory.notes (common_notes @ notes) |> snd
         |> register_fp_sugars Xs Least_FP pre_bnfs absT_infos nested_bnfs nesting_bnfs fp_res
-          ctrXs_Tsss ctr_defss ctr_sugars iterss' mapss [induct_thm] (map single induct_thms)
-          (map single rec_thmss') (replicate nn []) (replicate nn [])
+          ctrXs_Tsss ctr_defss ctr_sugars recs mapss [induct_thm] (map single induct_thms)
+          rec_thmss' (replicate nn []) (replicate nn [])
       end;
 
     fun derive_note_coinduct_coiters_thms_for_types
@@ -1446,9 +1446,9 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         |> add_spec_rules co_rec_of sel_corec_thmss corec_thmss
         |> Local_Theory.notes (common_notes @ notes) |> snd
         |> register_fp_sugars Xs Greatest_FP pre_bnfs absT_infos nested_bnfs nesting_bnfs fp_res
-          ctrXs_Tsss ctr_defss ctr_sugars coiterss mapss [coinduct_thm, strong_coinduct_thm]
-          (transpose [coinduct_thms, strong_coinduct_thms]) (map single corec_thmss)
-          (map single disc_corec_thmss) (map single sel_corec_thmsss)
+          ctrXs_Tsss ctr_defss ctr_sugars (map the_single coiterss) mapss
+          [coinduct_thm, strong_coinduct_thm] (transpose [coinduct_thms, strong_coinduct_thms])
+          corec_thmss disc_corec_thmss sel_corec_thmsss
       end;
 
     val lthy'' = lthy'
