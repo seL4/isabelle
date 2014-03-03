@@ -88,7 +88,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
     extends Entry
   {
     def print: String = Time.print_seconds(timing) + "s theory " + quote(name.theory)
-    def follow(snapshot: Document.Snapshot) { PIDE.editor.goto(view, name.node) }
+    def follow(snapshot: Document.Snapshot) { PIDE.editor.goto_file(view, name.node) }
   }
 
   private case class Command_Entry(command: Command, timing: Double) extends Entry

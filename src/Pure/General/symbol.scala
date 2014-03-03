@@ -16,6 +16,10 @@ object Symbol
 {
   type Symbol = String
 
+  // counting Isabelle symbols, starting from 1
+  type Offset = Text.Offset
+  type Range = Text.Range
+
 
   /* ASCII characters */
 
@@ -142,9 +146,9 @@ object Symbol
       buf.toArray
     }
 
-    def decode(sym1: Int): Int =
+    def decode(symbol_offset: Offset): Text.Offset =
     {
-      val sym = sym1 - 1
+      val sym = symbol_offset - 1
       val end = index.length
       @tailrec def bisect(a: Int, b: Int): Int =
       {
@@ -160,7 +164,7 @@ object Symbol
       if (i < 0) sym
       else index(i).chr + sym - index(i).sym
     }
-    def decode(range: Text.Range): Text.Range = range.map(decode(_))
+    def decode(symbol_range: Range): Text.Range = symbol_range.map(decode(_))
   }
 
 

@@ -18,7 +18,7 @@ object Thy_Load
 
   def thy_path(path: Path): Path = path.ext("thy")
 
-  def is_ok(str: String): Boolean =
+  def is_wellformed(str: String): Boolean =
     try { thy_path(Path.explode(str)); true }
     catch { case ERROR(_) => false }
 }

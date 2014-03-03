@@ -327,27 +327,13 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   /* hyperlinks */
 
-  private def hyperlink_file(line: Int, name: String): Option[PIDE.editor.Hyperlink] =
-    if (Path.is_ok(name))
-      Isabelle_System.source_file(Path.explode(name)).map(path =>
-        PIDE.editor.hyperlink_file(Isabelle_System.platform_path(path), line))
-    else None
-
-  private def hyperlink_command(id: Document_ID.Generic, offset: Text.Offset)
-      : Option[PIDE.editor.Hyperlink] =
-    snapshot.state.find_command(snapshot.version, id) match {
-      case Some((node, command)) =>
-        PIDE.editor.hyperlink_command(snapshot, command, offset)
-      case None => None
-    }
-
   def hyperlink(range: Text.Range): Option[Text.Info[PIDE.editor.Hyperlink]] =
   {
     snapshot.cumulate[Vector[Text.Info[PIDE.editor.Hyperlink]]](
       range, Vector.empty, Rendering.hyperlink_elements, _ =>
         {
           case (links, Text.Info(info_range, XML.Elem(Markup.Path(name), _)))
-          if Path.is_ok(name) =>
+          if Path.is_valid(name) =>
             val jedit_file = PIDE.thy_load.append(snapshot.node_name.master_dir, Path.explode(name))
             val link = PIDE.editor.hyperlink_file(jedit_file)
             Some(links :+ Text.Info(snapshot.convert(info_range), link))
@@ -361,11 +347,13 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
             { case (Markup.KIND, Markup.ML_OPEN) => true
               case (Markup.KIND, Markup.ML_STRUCTURE) => true
               case _ => false }) =>
-
             val opt_link =
               props match {
-                case Position.Def_Line_File(line, name) => hyperlink_file(line, name)
-                case Position.Def_Id_Offset(id, offset) => hyperlink_command(id, offset)
+                case Position.Def_Line_File(line, name) =>
+                  val offset = Position.Def_Offset.unapply(props) getOrElse 0
+                  PIDE.editor.hyperlink_source_file(name, line, offset)
+                case Position.Def_Id_Offset(id, offset) =>
+                  PIDE.editor.hyperlink_command_id(snapshot, id, offset)
                 case _ => None
               }
             opt_link.map(link => (links :+ Text.Info(snapshot.convert(info_range), link)))
@@ -373,11 +361,14 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
           case (links, Text.Info(info_range, XML.Elem(Markup(Markup.POSITION, props), _))) =>
             val opt_link =
               props match {
-                case Position.Line_File(line, name) => hyperlink_file(line, name)
-                case Position.Id_Offset(id, offset) => hyperlink_command(id, offset)
+                case Position.Line_File(line, name) =>
+                  val offset = Position.Offset.unapply(props) getOrElse 0
+                  PIDE.editor.hyperlink_source_file(name, line, offset)
+                case Position.Id_Offset(id, offset) =>
+                  PIDE.editor.hyperlink_command_id(snapshot, id, offset)
                 case _ => None
               }
-            opt_link.map(link => links :+ (Text.Info(snapshot.convert(info_range), link)))
+            opt_link.map(link => (links :+ Text.Info(snapshot.convert(info_range), link)))
 
           case _ => None
         }) match { case Text.Info(_, _ :+ info) :: _ => Some(info) case _ => None }
@@ -476,7 +467,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
               else ""
             Some(add(prev, r, (true, XML.Text(txt1 + txt2))))
           case (prev, Text.Info(r, XML.Elem(Markup.Path(name), _)))
-          if Path.is_ok(name) =>
+          if Path.is_valid(name) =>
             val jedit_file = PIDE.thy_load.append(snapshot.node_name.master_dir, Path.explode(name))
             Some(add(prev, r, (true, XML.Text("file " + quote(jedit_file)))))
           case (prev, Text.Info(r, XML.Elem(Markup.Url(name), _))) =>

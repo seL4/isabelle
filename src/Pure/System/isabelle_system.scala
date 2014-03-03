@@ -212,7 +212,8 @@ object Isabelle_System
     if (path.is_absolute || path.is_current) check(path)
     else {
       check(Path.explode("~~/src/Pure") + path) orElse
-        (if (getenv("ML_SOURCES") == "") None else check(Path.explode("$ML_SOURCES") + path))
+        (if (getenv("ML_SOURCES") == "") None
+         else check(Path.explode("$ML_SOURCES") + path))
     }
   }
 

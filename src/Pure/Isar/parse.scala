@@ -62,9 +62,9 @@ object Parse
     def ML_source: Parser[String] = atom("ML source", _.is_text)
     def document_source: Parser[String] = atom("document source", _.is_text)
     def path: Parser[String] =
-      atom("file name/path specification", tok => tok.is_name && Path.is_ok(tok.content))
+      atom("file name/path specification", tok => tok.is_name && Path.is_wellformed(tok.content))
     def theory_name: Parser[String] =
-      atom("theory name", tok => tok.is_name && Thy_Load.is_ok(tok.content))
+      atom("theory name", tok => tok.is_name && Thy_Load.is_wellformed(tok.content))
 
     private def tag_name: Parser[String] =
       atom("tag name", tok =>

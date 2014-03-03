@@ -50,8 +50,8 @@ object Position
 
   object Range
   {
-    def apply(range: Text.Range): T = Offset(range.start) ::: Offset(range.stop)
-    def unapply(pos: T): Option[Text.Range] =
+    def apply(range: Symbol.Range): T = Offset(range.start) ::: Offset(range.stop)
+    def unapply(pos: T): Option[Symbol.Range] =
       (pos, pos) match {
         case (Offset(start), End_Offset(stop)) if start <= stop => Some(Text.Range(start, stop))
         case (Offset(start), _) => Some(Text.Range(start, start + 1))
@@ -61,7 +61,7 @@ object Position
 
   object Id_Offset
   {
-    def unapply(pos: T): Option[(Long, Text.Offset)] =
+    def unapply(pos: T): Option[(Long, Symbol.Offset)] =
       (pos, pos) match {
         case (Id(id), Offset(offset)) => Some((id, offset))
         case _ => None
@@ -70,7 +70,7 @@ object Position
 
   object Def_Id_Offset
   {
-    def unapply(pos: T): Option[(Long, Text.Offset)] =
+    def unapply(pos: T): Option[(Long, Symbol.Offset)] =
       (pos, pos) match {
         case (Def_Id(id), Def_Offset(offset)) => Some((id, offset))
         case _ => None
@@ -79,7 +79,7 @@ object Position
 
   object Reported
   {
-    def unapply(pos: T): Option[(Long, String, Text.Range)] =
+    def unapply(pos: T): Option[(Long, String, Symbol.Range)] =
       (pos, pos) match {
         case (Id(id), Range(range)) =>
           Some((id, File.unapply(pos).getOrElse(""), range))

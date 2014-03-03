@@ -287,9 +287,9 @@ object Protocol
   {
     def elem_positions(props: Properties.T, set: Set[Text.Range]): Set[Text.Range] =
       props match {
-        case Position.Reported(id, file_name, raw_range)
+        case Position.Reported(id, file_name, symbol_range)
         if (id == command_id || id == alt_id) && file_name == chunk.file_name =>
-          chunk.incorporate(raw_range) match {
+          chunk.incorporate(symbol_range) match {
             case Some(range) => set + range
             case _ => set
           }
