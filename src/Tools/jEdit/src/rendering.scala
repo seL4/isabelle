@@ -327,16 +327,6 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   /* hyperlinks */
 
-  private def hyperlink_file(props: Properties.T): Option[PIDE.editor.Hyperlink] =
-    props match {
-      case Position.Def_Line_File(line, name) =>
-        val offset = Position.Def_Offset.unapply(props) getOrElse 0
-        PIDE.editor.hyperlink_source_file(name, line, offset)
-      case Position.Def_Id_Offset(id, offset) =>
-        PIDE.editor.hyperlink_command_id(snapshot, id, offset)
-      case _ => None
-    }
-
   def hyperlink(range: Text.Range): Option[Text.Info[PIDE.editor.Hyperlink]] =
   {
     snapshot.cumulate[Vector[Text.Info[PIDE.editor.Hyperlink]]](
@@ -357,12 +347,28 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
             { case (Markup.KIND, Markup.ML_OPEN) => true
               case (Markup.KIND, Markup.ML_STRUCTURE) => true
               case _ => false }) =>
-            hyperlink_file(props).map(link =>
-              (links :+ Text.Info(snapshot.convert(info_range), link)))
+            val opt_link =
+              props match {
+                case Position.Def_Line_File(line, name) =>
+                  val offset = Position.Def_Offset.unapply(props) getOrElse 0
+                  PIDE.editor.hyperlink_source_file(name, line, offset)
+                case Position.Def_Id_Offset(id, offset) =>
+                  PIDE.editor.hyperlink_command_id(snapshot, id, offset)
+                case _ => None
+              }
+            opt_link.map(link => (links :+ Text.Info(snapshot.convert(info_range), link)))
 
           case (links, Text.Info(info_range, XML.Elem(Markup(Markup.POSITION, props), _))) =>
-            hyperlink_file(props).map(link =>
-              (links :+ Text.Info(snapshot.convert(info_range), link)))
+            val opt_link =
+              props match {
+                case Position.Line_File(line, name) =>
+                  val offset = Position.Offset.unapply(props) getOrElse 0
+                  PIDE.editor.hyperlink_source_file(name, line, offset)
+                case Position.Id_Offset(id, offset) =>
+                  PIDE.editor.hyperlink_command_id(snapshot, id, offset)
+                case _ => None
+              }
+            opt_link.map(link => (links :+ Text.Info(snapshot.convert(info_range), link)))
 
           case _ => None
         }) match { case Text.Info(_, _ :+ info) :: _ => Some(info) case _ => None }
