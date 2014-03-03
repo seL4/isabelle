@@ -142,20 +142,6 @@ class JEdit_Editor extends Editor[View]
     }
   }
 
-  override def hyperlink_url(name: String): Hyperlink =
-    new Hyperlink {
-      def follow(view: View) =
-        default_thread_pool.submit(() =>
-          try { Isabelle_System.open(name) }
-          catch {
-            case exn: Throwable =>
-              GUI.error_dialog(view, "System error", GUI.scrollable_text(Exn.message(exn)))
-          })
-    }
-
-  override def hyperlink_file(name: String, line: Int = 0, column: Int = 0): Hyperlink =
-    new Hyperlink { def follow(view: View) = goto(view, name, line, column) }
-
   override def hyperlink_command(snapshot: Document.Snapshot, command: Command, raw_offset: Int = 0)
     : Option[Hyperlink] =
   {
@@ -174,4 +160,35 @@ class JEdit_Editor extends Editor[View]
       }
     }
   }
+
+  def hyperlink_command_id(
+    snapshot: Document.Snapshot,
+    id: Document_ID.Generic,
+    raw_offset: Text.Offset): Option[Hyperlink] =
+  {
+    snapshot.state.find_command(snapshot.version, id) match {
+      case Some((node, command)) => hyperlink_command(snapshot, command, raw_offset)
+      case None => None
+    }
+  }
+
+  def hyperlink_file(name: String, line: Int = 0, column: Int = 0): Hyperlink =
+    new Hyperlink { def follow(view: View) = goto(view, name, line, column) }
+
+  def hyperlink_source_file(name: String, line: Int): Option[Hyperlink] =
+    if (Path.is_ok(name))
+      Isabelle_System.source_file(Path.explode(name)).map(path =>
+        hyperlink_file(Isabelle_System.platform_path(path), line))
+    else None
+
+  def hyperlink_url(name: String): Hyperlink =
+    new Hyperlink {
+      def follow(view: View) =
+        default_thread_pool.submit(() =>
+          try { Isabelle_System.open(name) }
+          catch {
+            case exn: Throwable =>
+              GUI.error_dialog(view, "System error", GUI.scrollable_text(Exn.message(exn)))
+          })
+    }
 }
