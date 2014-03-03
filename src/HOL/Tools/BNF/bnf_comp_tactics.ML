@@ -15,7 +15,7 @@ sig
   val mk_comp_map_cong0_tac: thm list -> thm -> thm list -> tactic
   val mk_comp_map_id0_tac: thm -> thm -> thm list -> tactic
   val mk_comp_set_alt_tac: Proof.context -> thm -> tactic
-  val mk_comp_set_bd_tac: Proof.context -> thm -> thm list -> tactic
+  val mk_comp_set_bd_tac: Proof.context -> thm option -> thm -> thm list -> tactic
   val mk_comp_set_map0_tac: thm -> thm -> thm -> thm list -> tactic
   val mk_comp_wit_tac: Proof.context -> thm list -> thm -> thm list -> tactic
 
@@ -31,6 +31,7 @@ sig
   val mk_le_rel_OO_tac: thm -> thm -> thm list -> tactic
   val mk_simple_rel_OO_Grp_tac: thm -> thm -> tactic
   val mk_simple_wit_tac: thm list -> tactic
+  val bd_ordIso_natLeq_tac: tactic
 end;
 
 structure BNF_Comp_Tactics : BNF_COMP_TACTICS =
@@ -43,7 +44,6 @@ val arg_cong_Union = @{thm arg_cong[of _ _ Union]};
 val comp_eq_dest_lhs = @{thm comp_eq_dest_lhs};
 val trans_image_cong_o_apply = @{thm trans[OF image_cong[OF o_apply refl]]};
 val trans_o_apply = @{thm trans[OF o_apply]};
-
 
 
 (* Composition *)
@@ -101,6 +101,7 @@ fun mk_comp_map_cong0_tac comp_set_alts map_cong0 map_cong0s =
   end;
 
 fun mk_comp_bd_card_order_tac Fbd_card_orders Gbd_card_order =
+  rtac @{thm natLeq_card_order} 1 ORELSE
   let
     val (card_orders, last_card_order) = split_last Fbd_card_orders;
     fun gen_before thm = rtac @{thm card_order_csum} THEN' rtac thm;
@@ -111,14 +112,15 @@ fun mk_comp_bd_card_order_tac Fbd_card_orders Gbd_card_order =
   end;
 
 fun mk_comp_bd_cinfinite_tac Fbd_cinfinite Gbd_cinfinite =
-  (rtac @{thm cinfinite_cprod} THEN'
+  (rtac @{thm natLeq_cinfinite} ORELSE'
+   rtac @{thm cinfinite_cprod} THEN'
    ((K (TRY ((rtac @{thm cinfinite_csum} THEN' rtac disjI1) 1)) THEN'
      ((rtac @{thm cinfinite_csum} THEN' rtac disjI1 THEN' rtac Fbd_cinfinite) ORELSE'
       rtac Fbd_cinfinite)) ORELSE'
     rtac Fbd_cinfinite) THEN'
    rtac Gbd_cinfinite) 1;
 
-fun mk_comp_set_bd_tac ctxt comp_set_alt Gset_Fset_bds =
+fun mk_comp_set_bd_tac ctxt bd_ordIso_natLeq_opt comp_set_alt Gset_Fset_bds =
   let
     val (bds, last_bd) = split_last Gset_Fset_bds;
     fun gen_before bd =
@@ -127,6 +129,9 @@ fun mk_comp_set_bd_tac ctxt comp_set_alt Gset_Fset_bds =
       rtac bd;
     fun gen_after _ = rtac @{thm ordIso_imp_ordLeq} THEN' rtac @{thm cprod_csum_distrib1};
   in
+    (case bd_ordIso_natLeq_opt of
+      SOME thm => rtac (thm RS rotate_prems 1 @{thm ordLeq_ordIso_trans}) 1
+    | NONE => all_tac) THEN
     unfold_thms_tac ctxt [comp_set_alt] THEN
     rtac @{thm comp_set_bd_Union_o_collect} 1 THEN
     unfold_thms_tac ctxt @{thms Union_image_insert Union_image_empty Union_Un_distrib o_apply} THEN
@@ -168,7 +173,6 @@ fun mk_comp_wit_tac ctxt Gwit_thms collect_set_map Fwit_thms =
     (etac FalseE ORELSE' atac))) 1);
 
 
-
 (* Kill operation *)
 
 fun mk_kill_map_cong0_tac ctxt n m map_cong0 =
@@ -185,7 +189,6 @@ val kill_in_alt_tac =
   REPEAT_DETERM (CHANGED ((etac conjI ORELSE' atac) 1))) ORELSE
   ((rtac @{thm UNIV_eq_I} THEN' rtac CollectI) 1 THEN
     REPEAT_DETERM (TRY (rtac conjI 1) THEN rtac subset_UNIV 1));
-
 
 
 (* Lift operation *)
@@ -206,13 +209,15 @@ val lift_in_alt_tac =
     REPEAT_DETERM (TRY (rtac conjI 1) THEN rtac @{thm empty_subsetI} 1));
 
 
-
 (* Permute operation *)
 
 fun mk_permute_in_alt_tac src dest =
   (rtac @{thm Collect_cong} THEN'
   mk_rotate_eq_tac (rtac refl) trans @{thm conj_assoc} @{thm conj_commute} @{thm conj_cong}
     dest src) 1;
+
+
+(* Miscellaneous *)
 
 fun mk_le_rel_OO_tac outer_le_rel_OO outer_rel_mono inner_le_rel_OOs =
   EVERY' (map rtac (@{thm order_trans} :: outer_le_rel_OO :: outer_rel_mono :: inner_le_rel_OOs)) 1;
@@ -221,5 +226,14 @@ fun mk_simple_rel_OO_Grp_tac rel_OO_Grp in_alt_thm =
   rtac (trans OF [rel_OO_Grp, in_alt_thm RS @{thm OO_Grp_cong} RS sym]) 1;
 
 fun mk_simple_wit_tac wit_thms = ALLGOALS (atac ORELSE' eresolve_tac (@{thm emptyE} :: wit_thms));
+
+val csum_thms =
+  @{thms csum_cong1 csum_cong2 csum_cong  csum_dup[OF natLeq_cinfinite natLeq_Card_order]};
+val cprod_thms =
+  @{thms cprod_cong1 cprod_cong2 cprod_cong cprod_dup[OF natLeq_cinfinite natLeq_Card_order]};
+
+val bd_ordIso_natLeq_tac =
+  HEADGOAL (REPEAT_DETERM o resolve_tac
+    (@{thm ordIso_refl[OF natLeq_Card_order]} :: csum_thms @ cprod_thms));
 
 end;

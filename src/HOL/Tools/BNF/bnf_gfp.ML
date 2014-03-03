@@ -953,17 +953,8 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           val Abs_sbdT_inj = mk_Abs_inj_thm (#Abs_inject sbdT_loc_info);
           val Abs_sbdT_bij = mk_Abs_bij_thm lthy Abs_sbdT_inj (#Abs_cases sbdT_loc_info);
 
-          fun mk_sum_Cinfinite [thm] = thm
-            | mk_sum_Cinfinite (thm :: thms) =
-              @{thm Cinfinite_csum_strong} OF [thm, mk_sum_Cinfinite thms];
-
           val sum_Cinfinite = mk_sum_Cinfinite bd_Cinfinites;
           val sum_Card_order = sum_Cinfinite RS conjunct2;
-
-          fun mk_sum_card_order [thm] = thm
-            | mk_sum_card_order (thm :: thms) =
-              @{thm card_order_csum} OF [thm, mk_sum_card_order thms];
-
           val sum_card_order = mk_sum_card_order bd_card_orders;
 
           val sbd_ordIso = @{thm ssubst_Pair_rhs} OF

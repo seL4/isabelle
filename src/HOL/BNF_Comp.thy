@@ -128,6 +128,12 @@ lemma vimage2p_relcompp_converse:
 
 end
 
+lemma csum_dup: "cinfinite r \<Longrightarrow> Card_order r \<Longrightarrow> p +c p' =o r +c r \<Longrightarrow> p +c p' =o r"
+by (metis csum_absorb2' ordIso_transitive ordLeq_refl)
+
+lemma cprod_dup: "cinfinite r \<Longrightarrow> Card_order r \<Longrightarrow> p *c p' =o r *c r \<Longrightarrow> p *c p' =o r"
+by (metis cprod_infinite ordIso_transitive)
+
 ML_file "Tools/BNF/bnf_comp_tactics.ML"
 ML_file "Tools/BNF/bnf_comp.ML"
 

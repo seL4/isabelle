@@ -199,7 +199,7 @@ lemma Cinfinite_csum:
   "Cinfinite r1 \<or> Cinfinite r2 \<Longrightarrow> Cinfinite (r1 +c r2)"
 unfolding cinfinite_def csum_def by (rule conjI[OF _ card_of_Card_order]) (auto simp: Field_card_of)
 
-lemma Cinfinite_csum_strong:
+lemma Cinfinite_csum_weak:
   "\<lbrakk>Cinfinite r1; Cinfinite r2\<rbrakk> \<Longrightarrow> Cinfinite (r1 +c r2)"
 by (erule Cinfinite_csum1)
 
@@ -335,6 +335,9 @@ by (simp only: cprod_def ordLeq_Times_mono1)
 lemma cprod_mono2: "p2 \<le>o r2 \<Longrightarrow> q *c p2 \<le>o q *c r2"
 by (simp only: cprod_def ordLeq_Times_mono2)
 
+lemma cprod_mono: "\<lbrakk>p1 \<le>o r1; p2 \<le>o r2\<rbrakk> \<Longrightarrow> p1 *c p2 \<le>o r1 *c r2"
+by (rule ordLeq_transitive[OF cprod_mono1 cprod_mono2])
+
 lemma ordLeq_cprod2: "\<lbrakk>Cnotzero p1; Card_order p2\<rbrakk> \<Longrightarrow> p2 \<le>o p1 *c p2"
 unfolding cprod_def by (rule Card_order_Times2) (auto intro: czeroI)
 
@@ -346,6 +349,15 @@ by (rule cinfinite_mono) (auto intro: ordLeq_cprod2)
 
 lemma Cinfinite_cprod2: "\<lbrakk>Cnotzero r1; Cinfinite r2\<rbrakk> \<Longrightarrow> Cinfinite (r1 *c r2)"
 by (blast intro: cinfinite_cprod2 Card_order_cprod)
+
+lemma cprod_cong: "\<lbrakk>p1 =o r1; p2 =o r2\<rbrakk> \<Longrightarrow> p1 *c p2 =o r1 *c r2"
+by (metis cprod_mono ordIso_iff_ordLeq)
+
+lemma cprod_cong1: "\<lbrakk>p1 =o r1\<rbrakk> \<Longrightarrow> p1 *c p2 =o r1 *c p2"
+by (metis cprod_mono1 ordIso_iff_ordLeq)
+
+lemma cprod_cong2: "p2 =o r2 \<Longrightarrow> q *c p2 =o q *c r2"
+by (metis cprod_mono2 ordIso_iff_ordLeq)
 
 lemma cprod_com: "p1 *c p2 =o p2 *c p1"
 by (simp only: cprod_def card_of_Times_commute)
@@ -513,6 +525,9 @@ qed
 lemma cprod_infinite1': "\<lbrakk>Cinfinite r; Cnotzero p; p \<le>o r\<rbrakk> \<Longrightarrow> r *c p =o r"
 unfolding cinfinite_def cprod_def
 by (rule Card_order_Times_infinite[THEN conjunct1]) (blast intro: czeroI)+
+
+lemma cprod_infinite: "Cinfinite r \<Longrightarrow> r *c r =o r"
+using cprod_infinite1' Cinfinite_Cnotzero ordLeq_refl by blast
 
 lemma cexp_cprod_ordLeq:
   assumes r1: "Card_order r1" and r2: "Cinfinite r2"

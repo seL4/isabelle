@@ -66,17 +66,9 @@ lemma cprod_cone: "Card_order r \<Longrightarrow> r *c cone =o r"
   unfolding cprod_def cone_def Field_card_of
   by (drule card_of_Field_ordIso) (erule ordIso_transitive[OF card_of_Times_singleton])
 
-lemma cprod_cong2: "p2 =o r2 \<Longrightarrow> q *c p2 =o q *c r2"
-by (simp only: cprod_def ordIso_Times_cong2)
 
 lemma ordLeq_cprod1: "\<lbrakk>Card_order p1; Cnotzero p2\<rbrakk> \<Longrightarrow> p1 \<le>o p1 *c p2"
 unfolding cprod_def by (metis Card_order_Times1 czeroI)
-
-lemma cprod_infinite: "Cinfinite r \<Longrightarrow> r *c r =o r"
-using cprod_infinite1' Cinfinite_Cnotzero ordLeq_refl by blast
-
-lemma cprod_mono: "\<lbrakk>p1 \<le>o r1; p2 \<le>o r2\<rbrakk> \<Longrightarrow> p1 *c p2 \<le>o r1 *c r2"
-  by (rule ordLeq_transitive[OF cprod_mono1 cprod_mono2])
 
 
 subsection {* Exponentiation *}

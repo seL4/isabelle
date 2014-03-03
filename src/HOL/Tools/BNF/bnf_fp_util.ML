@@ -32,6 +32,8 @@ sig
 
   val time: Proof.context -> Timer.real_timer -> string -> Timer.real_timer
 
+  val fixpoint: ('a * 'a -> bool) -> ('a list -> 'a list) -> 'a list -> 'a list
+
   val IITN: string
   val LevN: string
   val algN: string
@@ -164,7 +166,8 @@ sig
   val mk_sum_caseN: int -> int -> thm
   val mk_sum_caseN_balanced: int -> int -> thm
 
-  val fixpoint: ('a * 'a -> bool) -> ('a list -> 'a list) -> 'a list -> 'a list
+  val mk_sum_Cinfinite: thm list -> thm
+  val mk_sum_card_order: thm list -> thm
 
   val mk_rel_xtor_co_induct_thm: BNF_Util.fp_kind -> term list -> term list -> term list ->
     term list -> term list -> term list -> term list -> term list ->
@@ -473,6 +476,12 @@ fun mk_sum_caseN_balanced 1 1 = refl
   | mk_sum_caseN_balanced n k =
     Balanced_Tree.access {left = mk_sum_step @{thm sum.case(1)} @{thm case_sum_step(1)},
       right = mk_sum_step @{thm sum.case(2)} @{thm case_sum_step(2)}, init = refl} n k;
+
+fun mk_sum_Cinfinite [thm] = thm
+  | mk_sum_Cinfinite (thm :: thms) = @{thm Cinfinite_csum_weak} OF [thm, mk_sum_Cinfinite thms];
+
+fun mk_sum_card_order [thm] = thm
+  | mk_sum_card_order (thm :: thms) = @{thm card_order_csum} OF [thm, mk_sum_card_order thms];
 
 fun mk_rel_xtor_co_induct_thm fp pre_rels pre_phis rels phis xs ys xtors xtor's tac lthy =
   let

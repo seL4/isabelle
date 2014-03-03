@@ -95,6 +95,10 @@ fun expand_term_const defs =
     val get = fn Const (x, _) => AList.lookup (op =) eqs x | _ => NONE;
   in Envir.expand_term get end;
 
+fun is_sum_prod_natLeq (Const (@{const_name csum}, _) $ t $ u) = forall is_sum_prod_natLeq [t, u]
+  | is_sum_prod_natLeq (Const (@{const_name cprod}, _) $ t $ u) = forall is_sum_prod_natLeq [t, u]
+  | is_sum_prod_natLeq t = (t = @{term natLeq});
+
 fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
   let
     val olive = live_of_bnf outer;
@@ -170,6 +174,20 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
     (*(inner_1.bd +c ... +c inner_m.bd) *c outer.bd*)
     val bd = mk_cprod (Library.foldr1 (uncurry mk_csum) inner_bds) outer_bd;
 
+    val (bd', bd_ordIso_natLeq_thm_opt) =
+      if is_sum_prod_natLeq bd then
+        let
+          val bd' = @{term natLeq};
+          val bd_bd' = HOLogic.mk_prod (bd, bd');
+          val ordIso = Const (@{const_name ordIso}, HOLogic.mk_setT (fastype_of bd_bd'));
+          val goal = HOLogic.mk_Trueprop (HOLogic.mk_mem (bd_bd', ordIso));
+        in
+          (bd', SOME (Goal.prove_sorry lthy [] [] goal (K bd_ordIso_natLeq_tac)
+            |> Thm.close_derivation))
+        end
+      else
+        (bd, NONE);
+
     fun map_id0_tac _ =
       mk_comp_map_id0_tac (map_id0_of_bnf outer) (map_cong0_of_bnf outer)
         (map map_id0_of_bnf inners);
@@ -220,7 +238,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
             map ((fn f => map f (0 upto olive - 1)) o single_set_bd_thm) (0 upto ilive - 1);
         in
           map2 (fn set_alt => fn single_set_bds => fn ctxt =>
-            mk_comp_set_bd_tac ctxt set_alt single_set_bds)
+            mk_comp_set_bd_tac ctxt bd_ordIso_natLeq_thm_opt set_alt single_set_bds)
           set_alt_thms single_set_bd_thmss
         end;
 
@@ -278,7 +296,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
 
     val (bnf', lthy') =
       bnf_def const_policy (K Dont_Note) qualify tacs wit_tac (SOME (oDs @ flat Dss)) Binding.empty
-        Binding.empty [] ((((((b, CCA), mapx), sets), bd), wits), SOME rel) lthy;
+        Binding.empty [] ((((((b, CCA), mapx), sets), bd'), wits), SOME rel) lthy;
   in
     (bnf', (add_bnf_to_unfolds bnf' unfold_set, lthy'))
   end;
