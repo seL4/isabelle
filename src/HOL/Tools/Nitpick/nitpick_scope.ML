@@ -7,11 +7,10 @@ Scope enumerator for Nitpick.
 
 signature NITPICK_SCOPE =
 sig
-  type styp = Nitpick_Util.styp
   type hol_context = Nitpick_HOL.hol_context
 
   type constr_spec =
-    {const: styp,
+    {const: string * typ,
      delta: int,
      epsilon: int,
      exclusive: bool,
@@ -39,7 +38,7 @@ sig
 
   val is_asymmetric_nondatatype : typ -> bool
   val datatype_spec : datatype_spec list -> typ -> datatype_spec option
-  val constr_spec : datatype_spec list -> styp -> constr_spec
+  val constr_spec : datatype_spec list -> string * typ -> constr_spec
   val is_complete_type : datatype_spec list -> bool -> typ -> bool
   val is_concrete_type : datatype_spec list -> bool -> typ -> bool
   val is_exact_type : datatype_spec list -> bool -> typ -> bool
@@ -51,10 +50,10 @@ sig
   val scope_less_eq : scope -> scope -> bool
   val is_self_recursive_constr_type : typ -> bool
   val all_scopes :
-    hol_context -> bool -> (typ option * int list) list
-    -> (styp option * int list) list -> (styp option * int list) list
-    -> int list -> int list -> typ list -> typ list -> typ list -> typ list
-    -> int * scope list
+    hol_context -> bool -> (typ option * int list) list ->
+    ((string * typ) option * int list) list ->
+    ((string * typ) option * int list) list -> int list -> int list ->
+    typ list -> typ list -> typ list -> typ list -> int * scope list
 end;
 
 structure Nitpick_Scope : NITPICK_SCOPE =
@@ -64,7 +63,7 @@ open Nitpick_Util
 open Nitpick_HOL
 
 type constr_spec =
-  {const: styp,
+  {const: string * typ,
    delta: int,
    epsilon: int,
    exclusive: bool,
@@ -90,7 +89,7 @@ type scope =
    datatypes: datatype_spec list,
    ofs: int Typtab.table}
 
-datatype row_kind = Card of typ | Max of styp
+datatype row_kind = Card of typ | Max of string * typ
 
 type row = row_kind * int list
 type block = row list
@@ -212,23 +211,29 @@ fun multiline_string_for_scope scope =
 
 fun scopes_equivalent (s1 : scope, s2 : scope) =
   #datatypes s1 = #datatypes s2 andalso #card_assigns s1 = #card_assigns s2
+
 fun scope_less_eq (s1 : scope) (s2 : scope) =
   (s1, s2) |> pairself (map snd o #card_assigns) |> op ~~ |> forall (op <=)
 
 fun rank_of_row (_, ks) = length ks
+
 fun rank_of_block block = fold Integer.max (map rank_of_row block) 1
+
 fun project_row _ (y, []) = (y, [1]) (* desperate measure *)
   | project_row column (y, ks) = (y, [nth ks (Int.min (column, length ks - 1))])
+
 fun project_block (column, block) = map (project_row column) block
 
 fun lookup_ints_assign eq assigns key =
   case triple_lookup eq assigns key of
     SOME ks => ks
   | NONE => raise ARG ("Nitpick_Scope.lookup_ints_assign", "")
+
 fun lookup_type_ints_assign thy assigns T =
   map (Integer.max 1) (lookup_ints_assign (type_match thy) assigns T)
   handle ARG ("Nitpick_Scope.lookup_ints_assign", _) =>
          raise TYPE ("Nitpick_Scope.lookup_type_ints_assign", [T], [])
+
 fun lookup_const_ints_assign thy assigns x =
   lookup_ints_assign (const_match thy) assigns x
   handle ARG ("Nitpick_Scope.lookup_ints_assign", _) =>
@@ -295,7 +300,7 @@ fun is_self_recursive_constr_type T =
 
 fun constr_max maxes x = the_default ~1 (AList.lookup (op =) maxes x)
 
-type scope_desc = (typ * int) list * (styp * int) list
+type scope_desc = (typ * int) list * ((string * typ) * int) list
 
 fun is_surely_inconsistent_card_assign hol_ctxt binarize
                                        (card_assigns, max_assigns) (T, k) =
@@ -311,6 +316,7 @@ fun is_surely_inconsistent_card_assign hol_ctxt binarize
         | effective_max card max = Int.min (card, max)
       val max = map2 effective_max dom_cards maxes |> Integer.sum
     in max < k end
+
 fun is_surely_inconsistent_scope_description hol_ctxt binarize seen rest
                                              max_assigns =
   exists (is_surely_inconsistent_card_assign hol_ctxt binarize
@@ -348,8 +354,10 @@ fun add_row_to_scope_descriptor (kind, ks) (card_assigns, max_assigns) =
   case kind of
     Card T => ((T, the_single ks) :: card_assigns, max_assigns)
   | Max x => (card_assigns, (x, the_single ks) :: max_assigns)
+
 fun scope_descriptor_from_block block =
   fold_rev add_row_to_scope_descriptor block ([], [])
+
 fun scope_descriptor_from_combination (hol_ctxt as {ctxt, ...}) binarize blocks
                                       columns =
   let

@@ -97,8 +97,10 @@ and string_for_rep Any = "X"
 
 fun is_Func (Func _) = true
   | is_Func _ = false
+
 fun is_Opt (Opt _) = true
   | is_Opt _ = false
+
 fun is_opt_rep (Func (_, R2)) = is_opt_rep R2
   | is_opt_rep (Opt _) = true
   | is_opt_rep _ = false
@@ -111,6 +113,7 @@ fun card_of_rep Any = raise REP ("Nitpick_Rep.card_of_rep", [Any])
   | card_of_rep (Func (R1, R2)) =
     reasonable_power (card_of_rep R2) (card_of_rep R1)
   | card_of_rep (Opt R) = card_of_rep R
+
 fun arity_of_rep Any = raise REP ("Nitpick_Rep.arity_of_rep", [Any])
   | arity_of_rep (Formula _) = 0
   | arity_of_rep (Atom _) = 1
@@ -118,6 +121,7 @@ fun arity_of_rep Any = raise REP ("Nitpick_Rep.arity_of_rep", [Any])
   | arity_of_rep (Vect (k, R)) = k * arity_of_rep R
   | arity_of_rep (Func (R1, R2)) = arity_of_rep R1 + arity_of_rep R2
   | arity_of_rep (Opt R) = arity_of_rep R
+
 fun min_univ_card_of_rep Any =
     raise REP ("Nitpick_Rep.min_univ_card_of_rep", [Any])
   | min_univ_card_of_rep (Formula _) = 0
@@ -133,11 +137,13 @@ fun is_one_rep (Atom _) = true
   | is_one_rep (Struct _) = true
   | is_one_rep (Vect _) = true
   | is_one_rep _ = false
+
 fun is_lone_rep (Opt R) = is_one_rep R
   | is_lone_rep R = is_one_rep R
 
 fun dest_Func (Func z) = z
   | dest_Func R = raise REP ("Nitpick_Rep.dest_Func", [R])
+
 fun lazy_range_rep _ _ _ (Vect (_, R)) = R
   | lazy_range_rep _ _ _ (Func (_, R2)) = R2
   | lazy_range_rep ofs T ran_card (Opt R) =
@@ -150,6 +156,7 @@ fun lazy_range_rep _ _ _ (Vect (_, R)) = R
 
 fun binder_reps (Func (R1, R2)) = R1 :: binder_reps R2
   | binder_reps _ = []
+
 fun body_rep (Func (_, R2)) = body_rep R2
   | body_rep R = R
 
@@ -163,16 +170,19 @@ fun one_rep _ _ Any = raise REP ("Nitpick_Rep.one_rep", [Any])
   | one_rep _ _ (Vect z) = Vect z
   | one_rep ofs T (Opt R) = one_rep ofs T R
   | one_rep ofs T R = Atom (card_of_rep R, offset_of_type ofs T)
+
 fun optable_rep ofs (Type (@{type_name fun}, [_, T2])) (Func (R1, R2)) =
     Func (R1, optable_rep ofs T2 R2)
   | optable_rep ofs (Type (@{type_name set}, [T'])) R =
     optable_rep ofs (T' --> bool_T) R
   | optable_rep ofs T R = one_rep ofs T R
+
 fun opt_rep ofs (Type (@{type_name fun}, [_, T2])) (Func (R1, R2)) =
     Func (R1, opt_rep ofs T2 R2)
   | opt_rep ofs (Type (@{type_name set}, [T'])) R =
     opt_rep ofs (T' --> bool_T) R
   | opt_rep ofs T R = Opt (optable_rep ofs T R)
+
 fun unopt_rep (Func (R1, R2)) = Func (R1, unopt_rep R2)
   | unopt_rep (Opt R) = R
   | unopt_rep R = R
@@ -254,6 +264,7 @@ fun best_opt_set_rep_for_type scope (Type (@{type_name fun}, [T1, T2])) =
     best_opt_set_rep_for_type scope (T' --> bool_T)
   | best_opt_set_rep_for_type (scope as {ofs, ...}) T =
     opt_rep ofs T (best_one_rep_for_type scope T)
+
 fun best_non_opt_set_rep_for_type scope (Type (@{type_name fun}, [T1, T2])) =
     (case (best_one_rep_for_type scope T1,
            best_non_opt_set_rep_for_type scope T2) of
@@ -262,9 +273,11 @@ fun best_non_opt_set_rep_for_type scope (Type (@{type_name fun}, [T1, T2])) =
   | best_non_opt_set_rep_for_type scope (Type (@{type_name set}, [T'])) =
     best_non_opt_set_rep_for_type scope (T' --> bool_T)
   | best_non_opt_set_rep_for_type scope T = best_one_rep_for_type scope T
+
 fun best_set_rep_for_type (scope as {datatypes, ...}) T =
   (if is_exact_type datatypes true T then best_non_opt_set_rep_for_type
    else best_opt_set_rep_for_type) scope T
+
 fun best_non_opt_symmetric_reps_for_fun_type (scope as {ofs, ...})
                                            (Type (@{type_name fun}, [T1, T2])) =
     (optable_rep ofs T1 (best_one_rep_for_type scope T1),

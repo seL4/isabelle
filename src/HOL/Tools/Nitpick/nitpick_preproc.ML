@@ -74,7 +74,7 @@ fun add_to_uncurry_table ctxt t =
         let val table = aux t2 [] table in aux t1 (t2 :: args) table end
       | aux (Abs (_, _, t')) _ table = aux t' [] table
       | aux (t as Const (x as (s, _))) args table =
-        if is_built_in_const x orelse is_constr_like ctxt x orelse
+        if is_built_in_const x orelse is_nonfree_constr ctxt x orelse
            is_sel s orelse s = @{const_name Sigma} then
           table
         else
@@ -230,7 +230,7 @@ fun box_fun_and_pair_in_term (hol_ctxt as {ctxt, ...}) def orig_t =
                     else if is_built_in_const x orelse
                             s = @{const_name Sigma} then
                       T
-                    else if is_constr_like ctxt x then
+                    else if is_nonfree_constr ctxt x then
                       box_type hol_ctxt InConstr T
                     else if is_sel s orelse is_rep_fun ctxt x then
                       box_type hol_ctxt InSel T
@@ -617,8 +617,8 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_tables, skolems, ...})
         | (t0 as Const (@{const_name Let}, _)) $ t1 $ t2 =>
           t0 $ t1 $ aux ss Ts js skolemizable polar t2
         | Const (x as (s, T)) =>
-          if is_real_inductive_pred hol_ctxt x andalso
-             not (is_real_equational_fun hol_ctxt x) andalso
+          if is_raw_inductive_pred hol_ctxt x andalso
+             not (is_raw_equational_fun hol_ctxt x) andalso
              not (is_well_founded_inductive_pred hol_ctxt x) then
             let
               val gfp = (fixpoint_kind_of_const thy def_tables x = Gfp)
@@ -704,6 +704,7 @@ fun static_args_in_term ({ersatz_table, ...} : hol_context) x t =
                  | [t as Free _] => cons (j, SOME t)
                  | _ => I) indexed_sets []
   end
+
 fun static_args_in_terms hol_ctxt x =
   map (static_args_in_term hol_ctxt x)
   #> fold1 (Ord_List.inter (prod_ord int_ord (option_ord Term_Ord.term_ord)))
@@ -740,7 +741,7 @@ fun specialize_consts_in_term
           ((if not (member (op =) blacklist x) andalso not (null args) andalso
                not (String.isPrefix special_prefix s) andalso
                not (is_built_in_const x) andalso
-               (is_equational_fun_but_no_plain_def hol_ctxt x orelse
+               (is_equational_fun hol_ctxt x orelse
                 (is_some (def_of_const thy def_tables x) andalso
                  not (is_of_class_const thy x) andalso
                  not (is_constr ctxt x) andalso
@@ -804,7 +805,7 @@ fun specialize_consts_in_term
         | aux args _ t = list_comb (t, args)
     in aux [] [] t end
 
-type special_triple = int list * term list * styp
+type special_triple = int list * term list * (string * typ)
 
 val cong_var_prefix = "c"
 
@@ -880,6 +881,7 @@ fun assumption_exclusively_defines_free assm_ts t =
   | NONE => false
 
 fun all_table_entries table = Symtab.fold (append o snd) table []
+
 fun extra_table tables s =
   Symtab.make [(s, pairself all_table_entries tables |> op @)]
 
@@ -899,7 +901,7 @@ fun axioms_for_term
     val (def_assm_ts, nondef_assm_ts) =
       List.partition (assumption_exclusively_defines_free assm_ts) assm_ts
     val def_assm_table = map (`(the o defined_free_by_assumption)) def_assm_ts
-    type accumulator = styp list * (term list * term list)
+    type accumulator = (string * typ) list * (term list * term list)
     fun add_axiom get app def depth t (accum as (seen, axs)) =
       let
         val t = t |> unfold_defs_in_term hol_ctxt
@@ -951,7 +953,7 @@ fun axioms_for_term
              else if is_descr (original_name s) then
                fold (add_nondef_axiom depth) (equational_fun_axioms hol_ctxt x)
                     accum
-             else if is_equational_fun_but_no_plain_def hol_ctxt x then
+             else if is_equational_fun hol_ctxt x then
                fold (add_eq_axiom depth) (equational_fun_axioms hol_ctxt x)
                     accum
              else if is_choice_spec_fun hol_ctxt x then
@@ -1066,7 +1068,7 @@ fun simplify_constrs_and_sels ctxt t =
         do_term t1 []
       | do_term (t1 $ t2) args = do_term t1 (do_term t2 [] :: args)
       | do_term (t as Const (x as (s, T))) (args as _ :: _) =
-        ((if is_constr_like ctxt x then
+        ((if is_nonfree_constr ctxt x then
             if length args = num_binder_types T then
               case hd args of
                 Const (_, T') $ t' =>
@@ -1082,7 +1084,7 @@ fun simplify_constrs_and_sels ctxt t =
           else if is_sel_like_and_no_discr s then
             case strip_comb (hd args) of
               (Const (x' as (s', T')), ts') =>
-              if is_constr_like_injective ctxt x' andalso
+              if is_free_constr ctxt x' andalso
                  constr_name_for_sel_like s = s' andalso
                  not (exists is_pair_type (binder_types T')) then
                 list_comb (nth ts' (sel_no_from_name s), tl args)

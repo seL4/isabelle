@@ -92,11 +92,11 @@ subsection {* 2.6. Inductive Datatypes *}
 
 lemma "hd (xs @ [y, y]) = hd xs"
 nitpick [expect = genuine]
-nitpick [show_consts, show_datatypes, expect = genuine]
+nitpick [show_consts, show_types, expect = genuine]
 oops
 
 lemma "\<lbrakk>length xs = 1; length ys = 1\<rbrakk> \<Longrightarrow> xs = ys"
-nitpick [show_datatypes, expect = genuine]
+nitpick [show_types, expect = genuine]
 oops
 
 
@@ -111,7 +111,7 @@ definition B :: three where "B \<equiv> Abs_three 1"
 definition C :: three where "C \<equiv> Abs_three 2"
 
 lemma "\<lbrakk>A \<in> X; B \<in> X\<rbrakk> \<Longrightarrow> c \<in> X"
-nitpick [show_datatypes, expect = genuine]
+nitpick [show_types, expect = genuine]
 oops
 
 fun my_int_rel where
@@ -127,7 +127,7 @@ quotient_definition "add\<Colon>my_int \<Rightarrow> my_int \<Rightarrow> my_int
 unfolding add_raw_def by auto
 
 lemma "add x y = add x x"
-nitpick [show_datatypes, expect = genuine]
+nitpick [show_types, expect = genuine]
 oops
 
 ML {*
@@ -142,7 +142,7 @@ Nitpick_Model.register_term_postprocessor @{typ my_int} my_int_postproc
 *}
 
 lemma "add x y = add x x"
-nitpick [show_datatypes]
+nitpick [show_types]
 oops
 
 record point =
@@ -150,11 +150,11 @@ record point =
   Ycoord :: int
 
 lemma "Xcoord (p\<Colon>point) = Xcoord (q\<Colon>point)"
-nitpick [show_datatypes, expect = genuine]
+nitpick [show_types, expect = genuine]
 oops
 
 lemma "4 * x + 3 * (y\<Colon>real) \<noteq> 1 / 2"
-nitpick [show_datatypes, expect = genuine]
+nitpick [show_types, expect = genuine]
 oops
 
 
@@ -217,7 +217,7 @@ nitpick [verbose, expect = genuine]
 oops
 
 lemma "\<lbrakk>xs = LCons a xs; ys = LCons a ys\<rbrakk> \<Longrightarrow> xs = ys"
-nitpick [bisim_depth = -1, show_datatypes, expect = quasi_genuine]
+nitpick [bisim_depth = -1, show_types, expect = quasi_genuine]
 nitpick [card = 1\<emdash>5, expect = none]
 sorry
 

@@ -367,6 +367,11 @@ INCOMPATIBILITY
 * Nitpick:
   - Fixed soundness bug whereby mutually recursive datatypes could take
     infinite values.
+  - Fixed soundness bug with low-level number functions such as "Abs_Integ" and
+    "Rep_Integ".
+  - Removed "std" option.
+  - Renamed "show_datatypes" to "show_types" and "hide_datatypes" to
+    "hide_types".
 
 * HOL-Multivariate_Analysis:
   - type class ordered_real_vector for ordered vector spaces
@@ -812,16 +817,16 @@ HOL-Multivariate_Analysis to HOL-Complex_Main.
 INCOMPATIBILITY.
 
 * Nitpick:
-  - Added option "spy"
-  - Reduce incidence of "too high arity" errors
+  - Added option "spy".
+  - Reduce incidence of "too high arity" errors.
 
 * Sledgehammer:
   - Renamed option:
       isar_shrink ~> isar_compress
     INCOMPATIBILITY.
-  - Added options "isar_try0", "spy"
-  - Better support for "isar_proofs"
-  - MaSh has been fined-tuned and now runs as a local server
+  - Added options "isar_try0", "spy".
+  - Better support for "isar_proofs".
+  - MaSh has been fined-tuned and now runs as a local server.
 
 * Improved support for ad hoc overloading of constants (see also
 isar-ref manual and ~~/src/HOL/ex/Adhoc_Overloading_Examples.thy).

@@ -42,12 +42,13 @@ type mdata =
    alpha_T: typ,
    max_fresh: int Unsynchronized.ref,
    datatype_mcache: ((string * typ list) * mtyp) list Unsynchronized.ref,
-   constr_mcache: (styp * mtyp) list Unsynchronized.ref}
+   constr_mcache: ((string * typ) * mtyp) list Unsynchronized.ref}
 
 exception UNSOLVABLE of unit
 exception MTYPE of string * mtyp list * typ list
 
 val trace = Unsynchronized.ref false
+
 fun trace_msg msg = if !trace then tracing (msg ()) else ()
 
 fun string_for_sign Plus = "+"
@@ -57,8 +58,10 @@ fun negate_sign Plus = Minus
   | negate_sign Minus = Plus
 
 val string_for_var = signed_string_of_int
+
 fun string_for_vars sep [] = "0\<^bsub>" ^ sep ^ "\<^esub>"
   | string_for_vars sep xs = space_implode sep (map string_for_var xs)
+
 fun subscript_string_for_vars sep xs =
   if null xs then "" else "\<^bsub>" ^ string_for_vars sep xs ^ "\<^esub>"
 
@@ -79,6 +82,7 @@ val dummy_M = MType (nitpick_prefix ^ "dummy", [])
 
 fun is_MRec (MRec _) = true
   | is_MRec _ = false
+
 fun dest_MFun (MFun z) = z
   | dest_MFun M = raise MTYPE ("Nitpick_Mono.dest_MFun", [M], [])
 
@@ -126,6 +130,7 @@ fun could_exist_alpha_subtype alpha_T (T as Type (_, Ts)) =
     T = alpha_T orelse (not (is_fp_iterator_type T) andalso
                         exists (could_exist_alpha_subtype alpha_T) Ts)
   | could_exist_alpha_subtype alpha_T T = (T = alpha_T)
+
 fun could_exist_alpha_sub_mtype _ (alpha_T as TFree _) T =
     could_exist_alpha_subtype alpha_T T
   | could_exist_alpha_sub_mtype ctxt alpha_T T =
@@ -269,9 +274,11 @@ val ground_and_sole_base_constrs = []
 
 fun prodM_factors (MPair (M1, M2)) = maps prodM_factors [M1, M2]
   | prodM_factors M = [M]
+
 fun curried_strip_mtype (MFun (M1, _, M2)) =
     curried_strip_mtype M2 |>> append (prodM_factors M1)
   | curried_strip_mtype M = ([], M)
+
 fun sel_mtype_from_constr_mtype s M =
   let
     val (arg_Ms, dataM) = curried_strip_mtype M
@@ -299,6 +306,7 @@ fun mtype_for_constr (mdata as {hol_ctxt = {ctxt, ...}, alpha_T, constr_mcache,
                  AList.lookup (op =) (!constr_mcache) x |> the)
   else
     fresh_mtype_for_type mdata false T
+
 fun mtype_for_sel (mdata as {hol_ctxt, binarize, ...}) (x as (s, _)) =
   x |> binarized_and_boxed_constr_for_sel hol_ctxt binarize
     |> mtype_for_constr mdata |> sel_mtype_from_constr_mtype s
@@ -306,6 +314,7 @@ fun mtype_for_sel (mdata as {hol_ctxt, binarize, ...}) (x as (s, _)) =
 fun resolve_annotation_atom asgs (V x) =
     x |> AList.lookup (op =) asgs |> Option.map A |> the_default (V x)
   | resolve_annotation_atom _ aa = aa
+
 fun resolve_mtype asgs =
   let
     fun aux MAlpha = MAlpha
@@ -474,29 +483,37 @@ val bools_from_annotation = AList.lookup (op =) bool_table #> the
 val annotation_from_bools = AList.find (op =) bool_table #> the_single
 
 fun prop_for_bool b = if b then Prop_Logic.True else Prop_Logic.False
+
 fun prop_for_bool_var_equality (v1, v2) =
   Prop_Logic.SAnd (Prop_Logic.SOr (Prop_Logic.BoolVar v1,
                                    Prop_Logic.SNot (Prop_Logic.BoolVar v2)),
                    Prop_Logic.SOr (Prop_Logic.SNot (Prop_Logic.BoolVar v1),
                                    Prop_Logic.BoolVar v2))
+
 fun prop_for_assign (x, a) =
   let val (b1, b2) = bools_from_annotation a in
     Prop_Logic.SAnd (Prop_Logic.BoolVar (fst_var x) |> not b1 ? Prop_Logic.SNot,
                      Prop_Logic.BoolVar (snd_var x) |> not b2 ? Prop_Logic.SNot)
   end
+
 fun prop_for_assign_literal (x, (Plus, a)) = prop_for_assign (x, a)
   | prop_for_assign_literal (x, (Minus, a)) =
     Prop_Logic.SNot (prop_for_assign (x, a))
+
 fun prop_for_atom_assign (A a', a) = prop_for_bool (a = a')
   | prop_for_atom_assign (V x, a) = prop_for_assign_literal (x, (Plus, a))
+
 fun prop_for_atom_equality (aa1, A a2) = prop_for_atom_assign (aa1, a2)
   | prop_for_atom_equality (A a1, aa2) = prop_for_atom_assign (aa2, a1)
   | prop_for_atom_equality (V x1, V x2) =
     Prop_Logic.SAnd (prop_for_bool_var_equality (pairself fst_var (x1, x2)),
              prop_for_bool_var_equality (pairself snd_var (x1, x2)))
+
 val prop_for_assign_clause = Prop_Logic.exists o map prop_for_assign_literal
+
 fun prop_for_exists_var_assign_literal xs a =
   Prop_Logic.exists (map (fn x => prop_for_assign_literal (x, (Plus, a))) xs)
+
 fun prop_for_comp (aa1, aa2, Eq, []) =
     Prop_Logic.SAnd (prop_for_comp (aa1, aa2, Leq, []),
              prop_for_comp (aa2, aa1, Leq, []))
@@ -578,16 +595,18 @@ type mcontext =
   {bound_Ts: typ list,
    bound_Ms: mtyp list,
    frame: (int * annotation_atom) list,
-   frees: (styp * mtyp) list,
-   consts: (styp * mtyp) list}
+   frees: ((string * typ) * mtyp) list,
+   consts: ((string * typ) * mtyp) list}
 
 fun string_for_bound ctxt Ms (j, aa) =
   Syntax.string_of_term ctxt (Bound (length Ms - j - 1)) ^ " :\<^bsup>" ^
   string_for_annotation_atom aa ^ "\<^esup> " ^
   string_for_mtype (nth Ms (length Ms - j - 1))
+
 fun string_for_free relevant_frees ((s, _), M) =
   if member (op =) relevant_frees s then SOME (s ^ " : " ^ string_for_mtype M)
   else NONE
+
 fun string_for_mcontext ctxt t ({bound_Ms, frame, frees, ...} : mcontext) =
   (map_filter (string_for_free (Term.add_free_names t [])) frees @
    map (string_for_bound ctxt bound_Ms) frame)
@@ -599,6 +618,7 @@ val initial_gamma =
 fun push_bound aa T M {bound_Ts, bound_Ms, frame, frees, consts} =
   {bound_Ts = T :: bound_Ts, bound_Ms = M :: bound_Ms,
    frame = frame @ [(length bound_Ts, aa)], frees = frees, consts = consts}
+
 fun pop_bound {bound_Ts, bound_Ms, frame, frees, consts} =
   {bound_Ts = tl bound_Ts, bound_Ms = tl bound_Ms,
    frame = frame |> filter_out (fn (j, _) => j = length bound_Ts - 1),
@@ -678,6 +698,7 @@ fun add_connective_var conn mk_quasi_clauses res_aa aa1 aa2 =
                        string_for_annotation_atom aa2);
    fold (add_assign_clause o assign_clause_from_quasi_clause)
         (mk_quasi_clauses res_aa aa1 aa2))
+
 fun add_connective_frames conn mk_quasi_clauses res_frame frame1 frame2 =
   fold I (map3 (fn (_, res_aa) => fn (_, aa1) => fn (_, aa2) =>
                    add_connective_var conn mk_quasi_clauses res_aa aa1 aa2)
@@ -709,6 +730,7 @@ fun add_annotation_atom_comp_alt _ (A Gen) _ _ = I
 
 fun add_arg_order1 ((_, aa), (_, prev_aa)) = I
   add_annotation_atom_comp_alt Neq prev_aa (A Gen) aa
+
 fun add_app1 fun_aa ((_, res_aa), (_, arg_aa)) = I
   let
     val clause = [(arg_aa, (Eq, New)), (res_aa, (Eq, Gen))]
@@ -718,6 +740,7 @@ fun add_app1 fun_aa ((_, res_aa), (_, arg_aa)) = I
     apsnd (add_assign_clause clause)
     #> add_annotation_atom_comp_alt Leq arg_aa fun_aa res_aa
   end
+
 fun add_app _ [] [] = I
   | add_app fun_aa res_frame arg_frame =
     add_comp_frame (A New) Leq arg_frame
@@ -986,6 +1009,7 @@ fun force_gen_funs 0 _ = I
   | force_gen_funs n (M as MFun (M1, _, M2)) =
     add_mtypes_equal M (MFun (M1, A Gen, M2)) #> force_gen_funs (n - 1) M2
   | force_gen_funs _ M = raise MTYPE ("Nitpick_Mono.force_gen_funs", [M], [])
+
 fun consider_general_equals mdata def t1 t2 accum =
   let
     val (M1, accum) = consider_term mdata t1 accum

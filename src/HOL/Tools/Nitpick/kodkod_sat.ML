@@ -74,6 +74,7 @@ fun dynamic_entry_for_external name dev home exec args markers =
                        else [if dev = ToFile then out_file else ""]) @ markers @
                      (if dev = ToFile then [out_file] else []) @ args
                    end)
+
 fun dynamic_entry_for_info incremental (name, Internal (Java, mode, ss)) =
     if incremental andalso mode = Batch then NONE else SOME (name, K ss)
   | dynamic_entry_for_info incremental
@@ -98,6 +99,7 @@ fun dynamic_entry_for_info incremental (name, Internal (Java, mode, ss)) =
         (name, ExternalV2 (dev, home, exec, args, m1, m2, m3)) =
     dynamic_entry_for_external name dev home exec args [m1, m2, m3]
   | dynamic_entry_for_info true _ = NONE
+
 fun dynamic_list incremental =
   map_filter (dynamic_entry_for_info incremental) static_list
 

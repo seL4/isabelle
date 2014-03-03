@@ -7,13 +7,12 @@ Model reconstruction for Nitpick.
 
 signature NITPICK_MODEL =
 sig
-  type styp = Nitpick_Util.styp
   type scope = Nitpick_Scope.scope
   type rep = Nitpick_Rep.rep
   type nut = Nitpick_Nut.nut
 
   type params =
-    {show_datatypes: bool,
+    {show_types: bool,
      show_skolems: bool,
      show_consts: bool}
 
@@ -37,9 +36,9 @@ sig
   val dest_plain_fun : term -> bool * (term list * term list)
   val reconstruct_hol_model :
     params -> scope -> (term option * int list) list
-    -> (typ option * string list) list -> styp list -> styp list -> nut list
-    -> nut list -> nut list -> nut NameTable.table -> Kodkod.raw_bound list
-    -> Pretty.T * bool
+    -> (typ option * string list) list -> (string * typ) list ->
+    (string * typ) list -> nut list -> nut list -> nut list ->
+    nut NameTable.table -> Kodkod.raw_bound list -> Pretty.T * bool
   val prove_hol_model :
     scope -> Time.time -> nut list -> nut list -> nut NameTable.table
     -> Kodkod.raw_bound list -> term -> bool option
@@ -58,7 +57,7 @@ open Nitpick_Nut
 structure KK = Kodkod
 
 type params =
-  {show_datatypes: bool,
+  {show_types: bool,
    show_skolems: bool,
    show_consts: bool}
 
@@ -122,10 +121,12 @@ fun nth_atom_number pool T j =
               length js + 1)
      | n => length js - n)
   | NONE => (Unsynchronized.change pool (cons (T, [j])); 1)
+
 fun atom_suffix s =
   nat_subscript
   #> (s <> "" andalso Symbol.is_ascii_digit (List.last (raw_explode s)))  (* FIXME Symbol.explode (?) *)
      ? prefix "\<^sub>,"
+
 fun nth_atom_name thy atomss pool prefix T j =
   let
     val ss = these (triple_lookup (type_match thy) atomss T)
@@ -144,6 +145,7 @@ fun nth_atom_name thy atomss pool prefix T j =
     | TFree (s, _) => prefix ^ perhaps (try (unprefix "'")) s ^ atom_suffix s m
     | _ => raise TYPE ("Nitpick_Model.nth_atom_name", [T], [])
   end
+
 fun nth_atom thy atomss pool for_auto T j =
   if for_auto then
     Free (nth_atom_name thy atomss pool (hd (space_explode "." nitpick_prefix))
@@ -154,6 +156,7 @@ fun nth_atom thy atomss pool for_auto T j =
 fun extract_real_number (Const (@{const_name divide}, _) $ t1 $ t2) =
     real (snd (HOLogic.dest_number t1)) / real (snd (HOLogic.dest_number t2))
   | extract_real_number t = real (snd (HOLogic.dest_number t))
+
 fun nice_term_ord (Abs (_, _, t1), Abs (_, _, t2)) = nice_term_ord (t1, t2)
   | nice_term_ord tp = Real.compare (pairself extract_real_number tp)
     handle TERM ("dest_number", _) =>
@@ -166,16 +169,20 @@ fun nice_term_ord (Abs (_, _, t1), Abs (_, _, t2)) = nice_term_ord (t1, t2)
 
 fun register_term_postprocessor_generic T postproc =
   Data.map (cons (T, postproc))
+
 (* TODO: Consider morphism. *)
 fun register_term_postprocessor T postproc (_ : morphism) =
   register_term_postprocessor_generic T postproc
+
 val register_term_postprocessor_global =
   Context.theory_map oo register_term_postprocessor_generic
 
 fun unregister_term_postprocessor_generic T = Data.map (AList.delete (op =) T)
 (* TODO: Consider morphism. *)
+
 fun unregister_term_postprocessor T (_ : morphism) =
   unregister_term_postprocessor_generic T
+
 val unregister_term_postprocessor_global =
   Context.theory_map o unregister_term_postprocessor_generic
 
@@ -238,6 +245,7 @@ fun make_plain_fun maybe_opt T1 T2 =
         Const (@{const_name fun_upd}, (T1 --> T2) --> T1 --> T2 --> T1 --> T2)
         $ aux T1 T2 tps $ t1 $ t2
   in aux T1 T2 o rev end
+
 fun is_plain_fun (Const (s, _)) = (s = opt_flag orelse s = non_opt_flag)
   | is_plain_fun (Const (@{const_name fun_upd}, _) $ t0 $ _ $ _) =
     is_plain_fun t0
@@ -260,6 +268,7 @@ fun break_in_two T T1 T2 t =
     val (ps1, ps2) = pairself HOLogic.flat_tupleT_paths (T1, T2)
     val (ts1, ts2) = t |> HOLogic.strip_ptuple ps |> chop cut
   in (HOLogic.mk_ptuple ps1 T1 ts1, HOLogic.mk_ptuple ps2 T2 ts2) end
+
 fun pair_up (Type (@{type_name prod}, [T1', T2']))
             (t1 as Const (@{const_name Pair},
                           Type (@{type_name fun},
@@ -268,6 +277,7 @@ fun pair_up (Type (@{type_name prod}, [T1', T2']))
     if T1 = T1' then HOLogic.mk_prod (t1, t2)
     else HOLogic.mk_prod (t11, pair_up T2' t12 t2)
   | pair_up _ t1 t2 = HOLogic.mk_prod (t1, t2)
+
 fun multi_pair_up T1 t1 (ts2, ts3) = map2 (pair o pair_up T1 t1) ts2 ts3
 
 fun format_fun T' T1 T2 t =
@@ -689,6 +699,7 @@ fun const_format thy def_tables (x as (s, T)) =
                else
                  [num_binder_types T]
   | NONE => [num_binder_types T]
+
 fun intersect_formats _ [] = []
   | intersect_formats [] _ = []
   | intersect_formats ks1 ks2 =
@@ -727,6 +738,7 @@ fun format_type default_format format T =
           |> map (HOLogic.mk_tupleT o rev)
       in List.foldl (op -->) body_T batched end
   end
+
 fun format_term_type thy def_tables formats t =
   format_type (the (AList.lookup (op =) formats NONE))
               (lookup_format thy def_tables formats t) (fastype_of t)
@@ -851,6 +863,7 @@ fun unfold_outer_the_binders (t as Const (@{const_name The}, _)
                                                 $ Bound 0 $ t')) =
     betapply (Abs (s, T, t'), t) |> unfold_outer_the_binders
   | unfold_outer_the_binders t = t
+
 fun bisimilar_values _ 0 _ = true
   | bisimilar_values coTs max_depth (t1, t2) =
     let val T = fastype_of t1 in
@@ -867,7 +880,7 @@ fun bisimilar_values _ 0 _ = true
         t1 = t2
     end
 
-fun reconstruct_hol_model {show_datatypes, show_skolems, show_consts}
+fun reconstruct_hol_model {show_types, show_skolems, show_consts}
         ({hol_ctxt = {thy, ctxt, max_bisim_depth, boxes, wfs, user_axioms,
                       debug, whacks, binary_ints, destroy_constrs, specialize,
                       star_linear_preds, total_consts, needs, tac_timeout,
@@ -958,13 +971,13 @@ fun reconstruct_hol_model {show_datatypes, show_skolems, show_consts}
       datatypes |> filter #deep |> List.partition #co
                 ||> append (integer_datatype nat_T @ integer_datatype int_T)
     val block_of_datatypes =
-      if show_datatypes andalso not (null datatypes) then
+      if show_types andalso not (null datatypes) then
         [Pretty.big_list ("Datatype" ^ plural_s_for_list datatypes ^ ":")
                          (map pretty_for_datatype datatypes)]
       else
         []
     val block_of_codatatypes =
-      if show_datatypes andalso not (null codatatypes) then
+      if show_types andalso not (null codatatypes) then
         [Pretty.big_list ("Codatatype" ^ plural_s_for_list codatatypes ^ ":")
                          (map pretty_for_datatype codatatypes)]
       else

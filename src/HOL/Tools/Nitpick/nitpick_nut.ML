@@ -7,7 +7,6 @@ Nitpick underlying terms (nuts).
 
 signature NITPICK_NUT =
 sig
-  type styp = Nitpick_Util.styp
   type hol_context = Nitpick_HOL.hol_context
   type scope = Nitpick_Scope.scope
   type name_pool = Nitpick_Peephole.name_pool
@@ -100,7 +99,7 @@ sig
   val nut_from_term : hol_context -> op2 -> term -> nut
   val is_fully_representable_set : nut -> bool
   val choose_reps_for_free_vars :
-    scope -> styp list -> nut list -> rep NameTable.table
+    scope -> (string * typ) list -> nut list -> rep NameTable.table
     -> nut list * rep NameTable.table
   val choose_reps_for_consts :
     scope -> bool -> nut list -> rep NameTable.table
@@ -333,9 +332,11 @@ fun is_skolem_name u =
   space_explode name_sep (nickname_of u)
   |> exists (String.isPrefix skolem_prefix)
   handle NUT ("Nitpick_Nut.nickname_of", _) => false
+
 fun is_eval_name u =
   String.isPrefix eval_prefix (nickname_of u)
   handle NUT ("Nitpick_Nut.nickname_of", _) => false
+
 fun is_Cst cst (Cst (cst', _, _)) = (cst = cst')
   | is_Cst _ _ = false
 
@@ -347,6 +348,7 @@ fun fold_nut f u =
   | Tuple (_, _, us) => fold (fold_nut f) us
   | Construct (us', _, _, us) => fold (fold_nut f) us #> fold (fold_nut f) us'
   | _ => f u
+
 fun map_nut f u =
   case u of
     Op1 (oper, T, R, u1) => Op1 (oper, T, R, map_nut f u1)
@@ -398,6 +400,7 @@ fun the_name table name =
   case NameTable.lookup table name of
     SOME u => u
   | NONE => raise NUT ("Nitpick_Nut.the_name", [name])
+
 fun the_rel table name =
   case the_name table name of
     FreeRel (x, _, _, _) => x
@@ -408,12 +411,14 @@ fun mk_fst (_, Const (@{const_name Pair}, T) $ t1 $ _) = (domain_type T, t1)
     let val res_T = fst (HOLogic.dest_prodT T) in
       (res_T, Const (@{const_name fst}, T --> res_T) $ t)
     end
+
 fun mk_snd (_, Const (@{const_name Pair}, T) $ _ $ t2) =
     (domain_type (range_type T), t2)
   | mk_snd (T, t) =
     let val res_T = snd (HOLogic.dest_prodT T) in
       (res_T, Const (@{const_name snd}, T --> res_T) $ t)
     end
+
 fun factorize (z as (Type (@{type_name prod}, _), _)) =
     maps factorize [mk_fst z, mk_snd z]
   | factorize z = [z]
@@ -649,6 +654,7 @@ fun choose_rep_for_free_var scope pseudo_frees v (vs, table) =
                best_non_opt_set_rep_for_type) scope (type_of v)
     val v = modify_name_rep v R
   in (v :: vs, NameTable.update (v, R) table) end
+
 fun choose_rep_for_const (scope as {hol_ctxt = {ctxt, ...}, ...}) total_consts v
                          (vs, table) =
   let
@@ -674,6 +680,7 @@ fun choose_rep_for_const (scope as {hol_ctxt = {ctxt, ...}, ...}) total_consts v
 
 fun choose_reps_for_free_vars scope pseudo_frees vs table =
   fold (choose_rep_for_free_var scope pseudo_frees) vs ([], table)
+
 fun choose_reps_for_consts scope total_consts vs table =
   fold (choose_rep_for_const scope total_consts) vs ([], table)
 
@@ -690,12 +697,15 @@ fun choose_rep_for_nth_sel_for_constr (scope as {hol_ctxt, binarize, ...})
                best_opt_set_rep_for_type scope T' |> unopt_rep
     val v = ConstName (s', T', R')
   in (v :: vs, NameTable.update (v, R') table) end
+
 fun choose_rep_for_sels_for_constr scope (x as (_, T)) =
   fold_rev (choose_rep_for_nth_sel_for_constr scope x)
            (~1 upto num_sels_for_constr_type T - 1)
+
 fun choose_rep_for_sels_of_datatype _ ({deep = false, ...} : datatype_spec) = I
   | choose_rep_for_sels_of_datatype scope {constrs, ...} =
     fold_rev (choose_rep_for_sels_for_constr scope o #const) constrs
+
 fun choose_reps_for_all_sels (scope as {datatypes, ...}) =
   fold (choose_rep_for_sels_of_datatype scope) datatypes o pair []
 
@@ -744,6 +754,7 @@ fun s_op1 oper T R u1 =
     else
       raise SAME ())
    handle SAME () => Op1 (oper, T, R, u1))
+
 fun s_op2 oper T R u1 u2 =
   ((case oper of
       All => if is_subnut_of u1 u2 then Op2 (All, T, R, u1, u2) else u2
@@ -785,6 +796,7 @@ fun s_op2 oper T R u1 u2 =
         raise SAME ()
     | _ => raise SAME ())
    handle SAME () => Op2 (oper, T, R, u1, u2))
+
 fun s_op3 oper T R u1 u2 u3 =
   ((case oper of
       Let =>
@@ -794,6 +806,7 @@ fun s_op3 oper T R u1 u2 u3 =
         raise SAME ()
     | _ => raise SAME ())
    handle SAME () => Op3 (oper, T, R, u1, u2, u3))
+
 fun s_tuple T R us =
   if exists (is_Cst Unrep) us then Cst (Unrep, T, R) else Tuple (T, R, us)
 
@@ -1077,19 +1090,23 @@ fun fresh_n_ary_index n [] ys = (0, (n, 1) :: ys)
   | fresh_n_ary_index n ((m, j) :: xs) ys =
     if m = n then (j, ys @ ((m, j + 1) :: xs))
     else fresh_n_ary_index n xs ((m, j) :: ys)
+
 fun fresh_rel n {rels, vars, formula_reg, rel_reg} =
   let val (j, rels') = fresh_n_ary_index n rels [] in
     (j, {rels = rels', vars = vars, formula_reg = formula_reg,
          rel_reg = rel_reg})
   end
+
 fun fresh_var n {rels, vars, formula_reg, rel_reg} =
   let val (j, vars') = fresh_n_ary_index n vars [] in
     (j, {rels = rels, vars = vars', formula_reg = formula_reg,
          rel_reg = rel_reg})
   end
+
 fun fresh_formula_reg {rels, vars, formula_reg, rel_reg} =
   (formula_reg, {rels = rels, vars = vars, formula_reg = formula_reg + 1,
                  rel_reg = rel_reg})
+
 fun fresh_rel_reg {rels, vars, formula_reg, rel_reg} =
   (rel_reg, {rels = rels, vars = vars, formula_reg = formula_reg,
              rel_reg = rel_reg + 1})

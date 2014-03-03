@@ -609,7 +609,7 @@ Here's another m\"ochtegern-lemma that Nitpick can refute without a blink:
 \textbf{lemma} ``$\lbrakk \textit{length}~\textit{xs} = 1;\> \textit{length}~\textit{ys} = 1
 \rbrakk \,\Longrightarrow\, \textit{xs} = \textit{ys\/}$''
 \\
-\textbf{nitpick} [\textit{show\_datatypes}] \\[2\smallskipamount]
+\textbf{nitpick} [\textit{show\_types}] \\[2\smallskipamount]
 \slshape Nitpick found a counterexample for \textit{card} $'a$~= 3: \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
 \hbox{}\qquad\qquad $\textit{xs} = [a_2]$ \\
@@ -638,7 +638,7 @@ For example:
 \textbf{definition}~$B \mathbin{\Colon} \textit{three}$ \textbf{where} ``$B \,\equiv\, \textit{Abs\_three}~1$'' \\
 \textbf{definition}~$C \mathbin{\Colon} \textit{three}$ \textbf{where} ``$C \,\equiv\, \textit{Abs\_three}~2$'' \\[2\smallskipamount]
 \textbf{lemma} ``$\lbrakk A \in X;\> B \in X\rbrakk \,\Longrightarrow\, c \in X$'' \\
-\textbf{nitpick} [\textit{show\_datatypes}] \\[2\smallskipamount]
+\textbf{nitpick} [\textit{show\_types}] \\[2\smallskipamount]
 \slshape Nitpick found a counterexample: \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
 \hbox{}\qquad\qquad $X = \{\Abs{0},\, \Abs{1}\}$ \\
@@ -667,7 +667,7 @@ natural numbers $(m, n)$ such that $x + n = m$:
 \textbf{quotient\_definition} ``$\textit{add\/}\Colon\textit{my\_int} \Rightarrow \textit{my\_int} \Rightarrow \textit{my\_int\/}$'' \textbf{is} \textit{add\_raw} \\[2\smallskipamount]
 %
 \textbf{lemma} ``$\textit{add}~x~y = \textit{add}~x~x$'' \\
-\textbf{nitpick} [\textit{show\_datatypes}] \\[2\smallskipamount]
+\textbf{nitpick} [\textit{show\_types}] \\[2\smallskipamount]
 \slshape Nitpick found a counterexample: \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
 \hbox{}\qquad\qquad $x = \Abs{(0,\, 0)}$ \\
@@ -709,7 +709,7 @@ Records are handled as datatypes with a single constructor:
 \hbox{}\quad $\textit{Xcoord} \mathbin{\Colon} \textit{int}$ \\
 \hbox{}\quad $\textit{Ycoord} \mathbin{\Colon} \textit{int}$ \\[2\smallskipamount]
 \textbf{lemma} ``$\textit{Xcoord}~(p\Colon\textit{point}) = \textit{Xcoord}~(q\Colon\textit{point})$'' \\
-\textbf{nitpick} [\textit{show\_datatypes}] \\[2\smallskipamount]
+\textbf{nitpick} [\textit{show\_types}] \\[2\smallskipamount]
 \slshape Nitpick found a counterexample: \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
 \hbox{}\qquad\qquad $p = \lparr\textit{Xcoord} = 1,\> \textit{Ycoord} = 1\rparr$ \\
@@ -726,7 +726,7 @@ similar approach:
 
 \prew
 \textbf{lemma} ``$4 * x + 3 * (y\Colon\textit{real}) \not= 1/2$'' \\
-\textbf{nitpick} [\textit{show\_datatypes}] \\[2\smallskipamount]
+\textbf{nitpick} [\textit{show\_types}] \\[2\smallskipamount]
 \slshape Nitpick found a counterexample: \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
 \hbox{}\qquad\qquad $x = 1/2$ \\
@@ -1048,7 +1048,7 @@ predicate or as an after-the-fact check) to prevent spurious counterexamples:
 \prew
 \textbf{lemma} ``$\lbrakk xs = \textit{LCons}~a~\textit{xs};\>\, \textit{ys} = \textit{LCons}~a~\textit{ys}\rbrakk
 \,\Longrightarrow\, \textit{xs} = \textit{ys\/}$'' \\
-\textbf{nitpick} [\textit{bisim\_depth} = $-1$, \textit{show\_datatypes}] \\[2\smallskipamount]
+\textbf{nitpick} [\textit{bisim\_depth} = $-1$, \textit{show\_types}] \\[2\smallskipamount]
 \slshape Nitpick found a quasi genuine counterexample for $\textit{card}~'a$ = 2: \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
 \hbox{}\qquad\qquad $a = a_1$ \\
@@ -1916,7 +1916,7 @@ problems that refer to the types \textit{rat} or \textit{real} or the constants
 \textit{Suc}, \textit{gcd}, or \textit{lcm}.
 
 {\small See also \textit{bits} (\S\ref{scope-of-search}) and
-\textit{show\_datatypes} (\S\ref{output-format}).}
+\textit{show\_types} (\S\ref{output-format}).}
 
 \opdefault{bits}{int\_seq}{\upshape 1--10}
 Specifies the number of bits to use to represent natural numbers and integers in
@@ -2079,7 +2079,7 @@ option is implicitly disabled for automatic runs.
 \textit{overlord} (\S\ref{mode-of-operation}), and
 \textit{batch\_size} (\S\ref{optimizations}).}
 
-\opfalse{show\_datatypes}{hide\_datatypes}
+\opfalse{show\_types}{hide\_types}
 Specifies whether the subsets used to approximate (co)in\-duc\-tive data\-types should
 be displayed as part of counterexamples. Such subsets are sometimes helpful when
 investigating whether a potentially spurious counterexample is genuine, but
@@ -2098,7 +2098,7 @@ sometimes helpful when investigating why a counterexample is
 genuine, but they can clutter the output.
 
 \opnodefault{show\_all}{bool}
-Abbreviation for \textit{show\_datatypes}, \textit{show\_skolems}, and
+Abbreviation for \textit{show\_types}, \textit{show\_skolems}, and
 \textit{show\_consts}.
 
 \opdefault{max\_potential}{int}{\upshape 1}

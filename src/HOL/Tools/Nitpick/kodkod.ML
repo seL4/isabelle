@@ -433,6 +433,7 @@ type 'a fold_tuple_funcs =
    tuple_set_func: tuple_set -> 'a -> 'a}
 
 fun fold_tuple (F : 'a fold_tuple_funcs) = #tuple_func F
+
 fun fold_tuple_set F tuple_set =
   case tuple_set of
     TupleUnion (ts1, ts2) => fold_tuple_set F ts1 #> fold_tuple_set F ts2
@@ -445,18 +446,22 @@ fun fold_tuple_set F tuple_set =
   | TupleArea (t1, t2) => fold_tuple F t1 #> fold_tuple F t2
   | TupleAtomSeq _ => #tuple_set_func F tuple_set
   | TupleSetReg _ => #tuple_set_func F tuple_set
+
 fun fold_tuple_assign F assign =
   case assign of
     AssignTuple (x, t) => fold_tuple F (TupleReg x) #> fold_tuple F t
   | AssignTupleSet (x, ts) =>
     fold_tuple_set F (TupleSetReg x) #> fold_tuple_set F ts
+
 fun fold_bound expr_F tuple_F (zs, tss) =
   fold (fold_rel_expr expr_F) (map (Rel o fst) zs)
   #> fold (fold_tuple_set tuple_F) tss
+
 fun fold_int_bound F (_, tss) = fold (fold_tuple_set F) tss
 
 fun max_arity univ_card = floor (Math.ln 2147483647.0
                                  / Math.ln (Real.fromInt univ_card))
+
 fun arity_of_rel_expr (RelLet (_, r)) = arity_of_rel_expr r
   | arity_of_rel_expr (RelIf (_, r1, _)) = arity_of_rel_expr r1
   | arity_of_rel_expr (Union (r1, _)) = arity_of_rel_expr r1
@@ -539,6 +544,7 @@ fun inline_comment "" = ""
   | inline_comment comment =
     " /* " ^ translate_string (fn "\n" => " " | "*" => "* " | s => s) comment ^
     " */"
+
 fun block_comment "" = ""
   | block_comment comment = prefix_lines "// " comment ^ "\n"
 

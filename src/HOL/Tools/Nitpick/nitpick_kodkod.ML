@@ -126,7 +126,9 @@ val tuple_set_from_atom_schema = fold1 tuple_product o map KK.TupleAtomSeq
 val upper_bound_for_rep = tuple_set_from_atom_schema o atom_schema_of_rep
 
 val single_atom = KK.TupleSet o single o KK.Tuple o single
+
 fun sequential_int_bounds n = [(NONE, map single_atom (index_seq 0 n))]
+
 fun pow_of_two_int_bounds bits j0 =
   let
     fun aux 0  _ _ = []
@@ -164,6 +166,7 @@ fun tabulate_func1 debug univ_card (k, j0) f =
                           else
                             NONE
                         end) (index_seq 0 k))
+
 fun tabulate_op2 debug univ_card (k, j0) res_j0 f =
   (check_table_size (k * k);
    map_filter (fn j => let
@@ -177,6 +180,7 @@ fun tabulate_op2 debug univ_card (k, j0) res_j0 f =
                          else
                            NONE
                        end) (index_seq 0 (k * k)))
+
 fun tabulate_op2_2 debug univ_card (k, j0) res_j0 f =
   (check_table_size (k * k);
    map_filter (fn j => let
@@ -191,11 +195,14 @@ fun tabulate_op2_2 debug univ_card (k, j0) res_j0 f =
                          else
                            NONE
                        end) (index_seq 0 (k * k)))
+
 fun tabulate_nat_op2 debug univ_card (k, j0) f =
   tabulate_op2 debug univ_card (k, j0) j0 (atom_for_nat (k, 0) o f)
+
 fun tabulate_int_op2 debug univ_card (k, j0) f =
   tabulate_op2 debug univ_card (k, j0) j0
                (atom_for_int (k, 0) o f o pairself (int_for_atom (k, 0)))
+
 fun tabulate_int_op2_2 debug univ_card (k, j0) f =
   tabulate_op2_2 debug univ_card (k, j0) j0
                  (pairself (atom_for_int (k, 0)) o f
@@ -203,10 +210,13 @@ fun tabulate_int_op2_2 debug univ_card (k, j0) f =
 
 fun isa_div (m, n) = m div n handle General.Div => 0
 fun isa_mod (m, n) = m mod n handle General.Div => m
+
 fun isa_gcd (m, 0) = m
   | isa_gcd (m, n) = isa_gcd (n, isa_mod (m, n))
+
 fun isa_lcm (m, n) = isa_div (m * n, isa_gcd (m, n))
 val isa_zgcd = isa_gcd o pairself abs
+
 fun isa_norm_frac (m, n) =
   if n < 0 then isa_norm_frac (~m, ~n)
   else if m = 0 orelse n = 0 then (0, 1)
@@ -282,6 +292,7 @@ fun axiom_for_built_in_rel (x as (n, j)) =
     end
   else
     NONE
+
 fun bounds_and_axioms_for_built_in_rels_in_formulas debug univ_card nat_card
                                                     int_card main_j0 formulas =
   let val rels = built_in_rels_in_formulas formulas in
@@ -424,6 +435,7 @@ fun merge_bounds bs =
 fun unary_var_seq j0 n = map (curry KK.Var 1) (index_seq j0 n)
 
 val singleton_from_combination = foldl1 KK.Product o map KK.Atom
+
 fun all_singletons_for_rep R =
   if is_lone_rep R then
     all_combinations_for_rep R |> map singleton_from_combination
@@ -433,10 +445,12 @@ fun all_singletons_for_rep R =
 fun unpack_products (KK.Product (r1, r2)) =
     unpack_products r1 @ unpack_products r2
   | unpack_products r = [r]
+
 fun unpack_joins (KK.Join (r1, r2)) = unpack_joins r1 @ unpack_joins r2
   | unpack_joins r = [r]
 
 val empty_rel_for_rep = empty_n_ary_rel o arity_of_rep
+
 fun full_rel_for_rep R =
   case atom_schema_of_rep R of
     [] => raise REP ("Nitpick_Kodkod.full_rel_for_rep", [R])
@@ -471,6 +485,7 @@ fun d_n_ary_function ({kk_all, kk_join, kk_lone, kk_one, ...} : kodkod_constrs)
     else
       KK.True
   end
+
 fun kk_n_ary_function kk R (r as KK.Rel x) =
     if not (is_opt_rep R) then
       if x = suc_rel then
@@ -499,15 +514,19 @@ fun basic_rel_rel_let j ({kk_rel_let, ...} : kodkod_constrs) f r =
     let val x = (KK.arity_of_rel_expr r, j) in
       kk_rel_let [KK.AssignRelReg (x, r)] (f (KK.RelReg x))
     end
+
 val single_rel_rel_let = basic_rel_rel_let 0
+
 fun double_rel_rel_let kk f r1 r2 =
   single_rel_rel_let kk (fn r1 => basic_rel_rel_let 1 kk (f r1) r2) r1
+
 fun triple_rel_rel_let kk f r1 r2 r3 =
   double_rel_rel_let kk
       (fn r1 => fn r2 => basic_rel_rel_let 2 kk (f r1 r2) r3) r1 r2
 
 fun atom_from_formula ({kk_rel_if, ...} : kodkod_constrs) j0 f =
   kk_rel_if f (KK.Atom (j0 + 1)) (KK.Atom j0)
+
 fun rel_expr_from_formula kk R f =
   case unopt_rep R of
     Atom (2, j0) => atom_from_formula kk j0 f
@@ -723,7 +742,9 @@ fun bit_set_from_atom ({kk_join, ...} : kodkod_constrs) T r =
                        unsigned_bit_word_sel_rel
                      else
                        signed_bit_word_sel_rel))
+
 val int_expr_from_atom = KK.SetSum ooo bit_set_from_atom
+
 fun atom_from_int_expr (kk as {kk_rel_eq, kk_comprehension, ...}
                         : kodkod_constrs) T R i =
   kk_comprehension (decls_for_atom_schema ~1 (atom_schema_of_rep R))
@@ -1493,10 +1514,12 @@ fun nfa_transitions_for_sel hol_ctxt binarize
                    else SOME ((x, kk_project r (map KK.Num [0, j])), T))
                (index_seq 1 (arity - 1) ~~ tl type_schema)
   end
+
 fun nfa_transitions_for_constr hol_ctxt binarize kk rel_table dtypes
                                (x as (_, T)) =
   maps (nfa_transitions_for_sel hol_ctxt binarize kk rel_table dtypes x)
        (index_seq 0 (num_sels_for_constr_type T))
+
 fun nfa_entry_for_datatype _ _ _ _ _ ({co = true, ...} : datatype_spec) = NONE
   | nfa_entry_for_datatype _ _ _ _ _ {deep = false, ...} = NONE
   | nfa_entry_for_datatype hol_ctxt binarize kk rel_table dtypes
@@ -1551,6 +1574,7 @@ fun acyclicity_axioms_for_datatype _ [_] _ = []
     [kk_no (kk_intersect
                 (loop_path_rel_expr kk nfa (pull start_T (map fst nfa)) start_T)
                 KK.Iden)]
+
 fun acyclicity_axioms_for_datatypes kk =
   maps (fn nfa => maps (acyclicity_axioms_for_datatype kk nfa o fst) nfa)
 
@@ -1603,6 +1627,7 @@ fun needed_value_axioms_for_datatype _ _ _ (_, NONE) = [KK.False]
 
 fun all_ge ({kk_join, kk_reflexive_closure, ...} : kodkod_constrs) z r =
   kk_join r (kk_reflexive_closure (KK.Rel (suc_rel_for_atom_seq z)))
+
 fun gt ({kk_subset, kk_join, kk_closure, ...} : kodkod_constrs) z r1 r2 =
   kk_subset r1 (kk_join r2 (kk_closure (KK.Rel (suc_rel_for_atom_seq z))))
 
@@ -1794,6 +1819,7 @@ fun sel_axioms_for_sel hol_ctxt binarize j0
                                (kk_n_ary_function kk R2 r') (kk_no r'))]
       end
   end
+
 fun sel_axioms_for_constr hol_ctxt binarize bits j0 kk need_vals rel_table
         dtype (constr as {const, delta, epsilon, explicit_max, ...}) =
   let
@@ -1822,6 +1848,7 @@ fun sel_axioms_for_constr hol_ctxt binarize bits j0 kk need_vals rel_table
              (index_seq 0 (num_sels_for_constr_type (snd const)))
       end
   end
+
 fun sel_axioms_for_datatype hol_ctxt binarize bits j0 kk rel_table need_vals
                             (dtype as {constrs, ...}) =
   maps (sel_axioms_for_constr hol_ctxt binarize bits j0 kk rel_table need_vals
@@ -1851,12 +1878,14 @@ fun uniqueness_axioms_for_constr hol_ctxt binarize
                    (fold1 kk_and (map (conjunct_for_sel o #1) (tl triples)))
                    (kk_rel_eq (KK.Var (1, 0)) (KK.Var (1, 1))))]
   end
+
 fun uniqueness_axioms_for_datatype hol_ctxt binarize kk need_vals rel_table
                                    (dtype as {constrs, ...}) =
   maps (uniqueness_axioms_for_constr hol_ctxt binarize kk need_vals rel_table
                                      dtype) constrs
 
 fun effective_constr_max ({delta, epsilon, ...} : constr_spec) = epsilon - delta
+
 fun partition_axioms_for_datatype j0 (kk as {kk_rel_eq, kk_union, ...})
         need_vals rel_table (dtype as {card, constrs, ...}) =
   if forall #exclusive constrs then

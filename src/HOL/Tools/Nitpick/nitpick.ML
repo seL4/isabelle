@@ -7,21 +7,20 @@ Finite model generation for HOL formulas using Kodkod.
 
 signature NITPICK =
 sig
-  type styp = Nitpick_Util.styp
   type term_postprocessor = Nitpick_Model.term_postprocessor
 
   datatype mode = Auto_Try | Try | Normal | TPTP
 
   type params =
     {cards_assigns: (typ option * int list) list,
-     maxes_assigns: (styp option * int list) list,
-     iters_assigns: (styp option * int list) list,
+     maxes_assigns: ((string * typ) option * int list) list,
+     iters_assigns: ((string * typ) option * int list) list,
      bitss: int list,
      bisim_depths: int list,
      boxes: (typ option * bool option) list,
      finitizes: (typ option * bool option) list,
      monos: (typ option * bool option) list,
-     wfs: (styp option * bool option) list,
+     wfs: ((string * typ) option * bool option) list,
      sat_solver: string,
      blocking: bool,
      falsify: bool,
@@ -45,7 +44,7 @@ sig
      timeout: Time.time,
      tac_timeout: Time.time,
      max_threads: int,
-     show_datatypes: bool,
+     show_types: bool,
      show_skolems: bool,
      show_consts: bool,
      evals: term list,
@@ -65,7 +64,8 @@ sig
   val unknownN : string
   val register_frac_type : string -> (string * string) list -> theory -> theory
   val unregister_frac_type : string -> theory -> theory
-  val register_codatatype : typ -> string -> styp list -> theory -> theory
+  val register_codatatype : typ -> string -> (string * typ) list -> theory ->
+    theory
   val unregister_codatatype : typ -> theory -> theory
   val register_term_postprocessor :
     typ -> term_postprocessor -> theory -> theory
@@ -99,14 +99,14 @@ fun is_mode_nt mode = (mode = Normal orelse mode = TPTP)
 
 type params =
   {cards_assigns: (typ option * int list) list,
-   maxes_assigns: (styp option * int list) list,
-   iters_assigns: (styp option * int list) list,
+   maxes_assigns: ((string * typ) option * int list) list,
+   iters_assigns: ((string * typ) option * int list) list,
    bitss: int list,
    bisim_depths: int list,
    boxes: (typ option * bool option) list,
    finitizes: (typ option * bool option) list,
    monos: (typ option * bool option) list,
-   wfs: (styp option * bool option) list,
+   wfs: ((string * typ) option * bool option) list,
    sat_solver: string,
    blocking: bool,
    falsify: bool,
@@ -130,7 +130,7 @@ type params =
    timeout: Time.time,
    tac_timeout: Time.time,
    max_threads: int,
-   show_datatypes: bool,
+   show_types: bool,
    show_skolems: bool,
    show_consts: bool,
    evals: term list,
@@ -181,13 +181,14 @@ fun pretties_for_formulas _ _ [] = []
 
 val isabelle_wrong_message =
   "Something appears to be wrong with your Isabelle installation."
-fun java_not_found_message () =
+val java_not_found_message =
   "Java could not be launched. " ^ isabelle_wrong_message
-fun java_too_old_message () =
+val java_too_old_message =
   "The Java version is too old. " ^ isabelle_wrong_message
-fun kodkodi_not_installed_message () =
+val kodkodi_not_installed_message =
   "Nitpick requires the external Java program Kodkodi."
-fun kodkodi_too_old_message () = "The installed Kodkodi version is too old."
+val kodkodi_too_old_message = "The installed Kodkodi version is too old."
+
 val max_unsound_delay_ms = 200
 val max_unsound_delay_percent = 2
 
@@ -205,6 +206,7 @@ fun has_lonely_bool_var (@{const Pure.conjunction}
 val syntactic_sorts =
   @{sort "{default,zero,one,plus,minus,uminus,times,inverse,abs,sgn,ord,equal}"} @
   @{sort numeral}
+
 fun has_tfree_syntactic_sort (TFree (_, S as _ :: _)) =
     subset (op =) (S, syntactic_sorts)
   | has_tfree_syntactic_sort _ = false
@@ -229,9 +231,9 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
          overlord, spy, user_axioms, assms, whacks, merge_type_vars,
          binary_ints, destroy_constrs, specialize, star_linear_preds,
          total_consts, needs, peephole_optim, datatype_sym_break,
-         kodkod_sym_break, tac_timeout, max_threads, show_datatypes,
-         show_skolems, show_consts, evals, formats, atomss, max_potential,
-         max_genuine, check_potential, check_genuine, batch_size, ...} = params
+         kodkod_sym_break, tac_timeout, max_threads, show_types, show_skolems,
+         show_consts, evals, formats, atomss, max_potential, max_genuine,
+         check_potential, check_genuine, batch_size, ...} = params
     val state_ref = Unsynchronized.ref state
     fun pprint print =
       if mode = Auto_Try then
@@ -652,7 +654,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
                "% SZS output start FiniteModel")
         val (reconstructed_model, codatatypes_ok) =
           reconstruct_hol_model
-              {show_datatypes = show_datatypes, show_skolems = show_skolems,
+              {show_types = show_types, show_skolems = show_skolems,
                show_consts = show_consts}
               scope formats atomss real_frees pseudo_frees free_names sel_names
               nonsel_names rel_table bounds
@@ -771,16 +773,16 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
           case KK.solve_any_problem debug overlord deadline max_threads
                                     max_solutions (map fst problems) of
             KK.JavaNotFound =>
-            (print_nt java_not_found_message;
+            (print_nt (K java_not_found_message);
              (found_really_genuine, max_potential, max_genuine, donno + 1))
           | KK.JavaTooOld =>
-            (print_nt java_too_old_message;
+            (print_nt (K java_too_old_message);
              (found_really_genuine, max_potential, max_genuine, donno + 1))
           | KK.KodkodiNotInstalled =>
-            (print_nt kodkodi_not_installed_message;
+            (print_nt (K kodkodi_not_installed_message);
              (found_really_genuine, max_potential, max_genuine, donno + 1))
           | KK.KodkodiTooOld =>
-            (print_nt kodkodi_too_old_message;
+            (print_nt (K kodkodi_too_old_message);
              (found_really_genuine, max_potential, max_genuine, donno + 1))
           | KK.Normal ([], unsat_js, s) =>
             (update_checked_problems problems unsat_js; show_kodkod_warning s;
@@ -1029,7 +1031,7 @@ fun pick_nits_in_term state (params as {timeout, expect, ...}) mode i n step
     if getenv "KODKODI" = "" then
       (* The "expect" argument is deliberately ignored if Kodkodi is missing so
          that the "Nitpick_Examples" can be processed on any machine. *)
-      (print_nt (Pretty.string_of (plazy kodkodi_not_installed_message));
+      (print_nt (Pretty.string_of (plazy (K kodkodi_not_installed_message)));
        ("no_kodkodi", state))
     else
       let
@@ -1062,6 +1064,7 @@ fun is_fixed_equation ctxt
                       (Const (@{const_name "=="}, _) $ Free (s, _) $ Const _) =
     Variable.is_fixed ctxt s
   | is_fixed_equation _ _ = false
+
 fun extract_fixed_frees ctxt (assms, t) =
   let
     val (subst, other_assms) =

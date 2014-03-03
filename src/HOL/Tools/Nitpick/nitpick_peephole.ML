@@ -128,14 +128,18 @@ fun atom_for_bool j0 = Atom o Integer.add j0 o int_from_bool
 fun formula_for_bool b = if b then True else False
 
 fun atom_for_nat (k, j0) n = if n < 0 orelse n >= k then ~1 else n + j0
+
 fun min_int_for_card k = ~k div 2 + 1
 fun max_int_for_card k = k div 2
+
 fun int_for_atom (k, j0) j =
   let val j = j - j0 in if j <= max_int_for_card k then j else j - k end
+
 fun atom_for_int (k, j0) n =
   if n < min_int_for_card k orelse n > max_int_for_card k then ~1
   else if n < 0 then n + k + j0
   else n + j0
+
 fun is_twos_complement_representable bits n =
   let val max = reasonable_power 2 bits in n >= ~ max andalso n < max end
 
@@ -147,6 +151,7 @@ fun squeeze (m, n) =
                      "too large cardinality (" ^ string_of_int n ^ ")")
   else
     (max_squeeze_card + 1) * m + n
+
 fun unsqueeze p = (p div (max_squeeze_card + 1), p mod (max_squeeze_card + 1))
 
 fun boolify (j, b) = 2 * j + (if b then 0 else 1)
@@ -154,6 +159,7 @@ fun unboolify j = (j div 2, j mod 2 = 0)
 
 fun suc_rel_for_atom_seq (x, tabulate) =
   (2, suc_rels_base - boolify (squeeze x, tabulate))
+
 fun atom_seq_for_suc_rel (_, j) = unboolify (~ j + suc_rels_base) |>> unsqueeze
 
 fun is_none_product (Product (r1, r2)) =
@@ -206,8 +212,10 @@ fun decl_one_set (DeclOne (_, r)) = r
 
 fun is_Num (Num _) = true
   | is_Num _ = false
+
 fun dest_Num (Num k) = k
   | dest_Num _ = raise ARG ("Nitpick_Peephole.dest_Num", "not \"Num\"")
+
 fun num_seq j0 n = map Num (index_seq j0 n)
 
 fun occurs_in_union r (Union (r1, r2)) =

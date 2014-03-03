@@ -7,7 +7,6 @@ General-purpose functions used by the Nitpick modules.
 
 signature NITPICK_UTIL =
 sig
-  type styp = string * typ
   datatype polarity = Pos | Neg | Neut
 
   exception ARG of string * string
@@ -61,7 +60,6 @@ sig
   val int_T : typ
   val simple_string_of_typ : typ -> string
   val num_binder_types : typ -> int
-  val is_real_constr : theory -> string * typ -> bool
   val typ_of_dtyp : Datatype.descr -> (Datatype.dtyp * typ) list -> Datatype.dtyp -> typ
   val varify_type : Proof.context -> typ -> typ
   val instantiate_type : theory -> typ -> typ -> typ -> typ
@@ -83,8 +81,6 @@ end;
 
 structure Nitpick_Util : NITPICK_UTIL =
 struct
-
-type styp = string * typ
 
 datatype polarity = Pos | Neg | Neut
 
@@ -154,6 +150,7 @@ fun replicate_list 0 _ = []
   | replicate_list n xs = xs @ replicate_list (n - 1) xs
 
 fun offset_list ns = rev (tl (fold (fn x => fn xs => (x + hd xs) :: xs) ns [0]))
+
 fun index_seq j0 n = if j0 < 0 then j0 downto j0 - n + 1 else j0 upto j0 + n - 1
 
 fun filter_indices js xs =
@@ -164,6 +161,7 @@ fun filter_indices js xs =
       | aux _ _ _ = raise ARG ("Nitpick_Util.filter_indices",
                                "indices unordered or out of range")
   in aux 0 js xs end
+
 fun filter_out_indices js xs =
   let
     fun aux _ [] xs = xs
@@ -212,6 +210,7 @@ fun double_lookup eq ps key =
                     (SOME key) of
     SOME z => SOME z
   | NONE => ps |> find_first (is_none o fst) |> Option.map snd
+
 fun triple_lookup _ [(NONE, z)] _ = SOME z
   | triple_lookup eq ps key =
     case AList.lookup (op =) ps (SOME key) of
@@ -242,6 +241,7 @@ val parse_time = Sledgehammer_Util.parse_time
 val string_of_time = ATP_Util.string_of_time
 
 val subscript = implode o map (prefix "\<^sub>") o Symbol.explode
+
 fun nat_subscript n =
   n |> signed_string_of_int |> print_mode_active Symbol.xsymbolsN ? subscript
 
@@ -259,16 +259,6 @@ fun simple_string_of_typ (Type (s, _)) = s
   | simple_string_of_typ (TVar ((s, _), _)) = s
 
 val num_binder_types = BNF_Util.num_binder_types
-
-fun is_real_constr thy (s, T) =
-  case body_type T of
-    Type (s', _) =>
-    (case Datatype.get_constrs thy s' of
-       SOME constrs =>
-       List.exists (fn (cname, cty) =>
-         cname = s andalso Sign.typ_instance thy (T, cty)) constrs
-     | NONE => false)
-  | _  => false
 
 fun typ_of_dtyp _ typ_assoc (Datatype.DtTFree a) =
     the (AList.lookup (op =) typ_assoc (Datatype.DtTFree a))
@@ -309,6 +299,7 @@ val pstrs = Pretty.breaks o map Pretty.str o space_explode " "
 val unyxml = ATP_Util.unyxml
 
 val maybe_quote = ATP_Util.maybe_quote
+
 fun pretty_maybe_quote pretty =
   let val s = Pretty.str_of pretty in
     if maybe_quote s = s then pretty else Pretty.enum "" "\"" "\"" [pretty]
