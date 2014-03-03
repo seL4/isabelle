@@ -128,11 +128,10 @@ lemma vimage2p_relcompp_converse:
 
 end
 
-definition id_rep :: "'a \<Rightarrow> 'a" where "id_rep = (\<lambda>x. x)"
-definition id_abs :: "'a \<Rightarrow> 'a" where "id_abs = (\<lambda>x. x)"
+definition id_bnf_comp :: "'a \<Rightarrow> 'a" where "id_bnf_comp = (\<lambda>x. x)"
 
-lemma type_definition_id_rep_abs_UNIV: "type_definition id_rep id_abs UNIV"
-  unfolding id_rep_def id_abs_def by unfold_locales auto
+lemma type_definition_id_bnf_comp_UNIV: "type_definition id_bnf_comp id_bnf_comp UNIV"
+  unfolding id_bnf_comp_def by unfold_locales auto
 
 lemma csum_dup: "cinfinite r \<Longrightarrow> Card_order r \<Longrightarrow> p +c p' =o r +c r \<Longrightarrow> p +c p' =o r"
 by (metis csum_absorb2' ordIso_transitive ordLeq_refl)
@@ -143,7 +142,7 @@ by (metis cprod_infinite ordIso_transitive)
 ML_file "Tools/BNF/bnf_comp_tactics.ML"
 ML_file "Tools/BNF/bnf_comp.ML"
 
-hide_const id_rep id_abs
-hide_fact id_rep_def id_abs_def type_definition_id_rep_abs_UNIV
+hide_const id_bnf_comp
+hide_fact id_bnf_comp_def type_definition_id_bnf_comp_UNIV
 
 end

@@ -639,10 +639,8 @@ fun mk_repT absT repT absU =
         else raise Term.TYPE ("mk_repT", [absT, repT, absT], [])
     | _ => raise Term.TYPE ("mk_repT", [absT, repT, absT], []));
 
-fun mk_abs_or_rep _ absU (Const (@{const_name id_abs}, _)) =
-    Const (@{const_name id_abs}, absU --> absU)
-  | mk_abs_or_rep _ absU (Const (@{const_name id_rep}, _)) =
-    Const (@{const_name id_rep}, absU --> absU)
+fun mk_abs_or_rep _ absU (Const (@{const_name id_bnf_comp}, _)) =
+    Const (@{const_name id_bnf_comp}, absU --> absU)
   | mk_abs_or_rep getT (Type (_, Us)) abs =
     let val Ts = snd (dest_Type (getT (fastype_of abs)))
     in Term.subst_atomic_types (Ts ~~ Us) abs end;
@@ -659,9 +657,10 @@ fun maybe_typedef (b, As, mx) set opt_morphs tac =
   in
     if inline then
       pair (repT,
-        (@{const_name id_rep}, @{const_name id_abs}, @{thm type_definition_id_rep_abs_UNIV},
-         @{thm type_definition.Abs_inverse[OF type_definition_id_rep_abs_UNIV]},
-         @{thm type_definition.Abs_inject[OF type_definition_id_rep_abs_UNIV]}))
+        (@{const_name id_bnf_comp}, @{const_name id_bnf_comp},
+         @{thm type_definition_id_bnf_comp_UNIV},
+         @{thm type_definition.Abs_inverse[OF type_definition_id_bnf_comp_UNIV]},
+         @{thm type_definition.Abs_inject[OF type_definition_id_bnf_comp_UNIV]}))
     else
       typedef (b, As, mx) set opt_morphs tac
       #>> (fn (T_name, ({Rep_name, Abs_name, ...},
