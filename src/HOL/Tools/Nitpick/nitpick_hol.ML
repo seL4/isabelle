@@ -1775,17 +1775,24 @@ fun unfold_defs_in_term
                 raise NOT_SUPPORTED ("(non-co)constructors of codatatypes \
                                      \(\"" ^ s ^ "\")")
               else if is_quot_abs_fun ctxt x then
-                let
-                  val rep_T = domain_type T
-                  val abs_T = range_type T
-                in
-                  (Abs (Name.uu, rep_T,
-                        Const (@{const_name Quot}, rep_T --> abs_T)
-                               $ (Const (quot_normal_name_for_type ctxt abs_T,
-                                         rep_T --> rep_T) $ Bound 0)), ts)
-                end
+                case T of
+                  Type (@{type_name fun}, [rep_T, abs_T as Type (abs_s, _)]) =>
+                  if is_basic_datatype thy [(NONE, true)] abs_s then
+                    raise NOT_SUPPORTED ("abstraction function on " ^
+                                         quote abs_s)
+                  else
+                    (Abs (Name.uu, rep_T,
+                          Const (@{const_name Quot}, rep_T --> abs_T)
+                                 $ (Const (quot_normal_name_for_type ctxt abs_T,
+                                           rep_T --> rep_T) $ Bound 0)), ts)
               else if is_quot_rep_fun ctxt x then
-                quot_rep_of depth Ts (domain_type T) (range_type T) ts
+                case T of
+                  Type (@{type_name fun}, [abs_T as Type (abs_s, _), rep_T]) =>
+                  if is_basic_datatype thy [(NONE, true)] abs_s then
+                    raise NOT_SUPPORTED ("representation function on " ^
+                                         quote abs_s)
+                  else
+                    quot_rep_of depth Ts abs_T rep_T ts
               else if is_record_get thy x then
                 case length ts of
                   0 => (do_term depth Ts (eta_expand Ts t 1), [])
