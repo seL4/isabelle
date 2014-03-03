@@ -192,14 +192,25 @@ fun load_thy document last_timing update_time master_dir header text_pos text pa
 
 (* document antiquotation *)
 
-fun file_antiq do_check ctxt (name, pos) =
+fun file_antiq strict ctxt (name, pos) =
   let
     val dir = master_directory (Proof_Context.theory_of ctxt);
-    val path = Path.append dir (Path.explode name);
-    val _ =
-      if not do_check orelse File.exists path then ()
-      else error ("Bad file: " ^ Path.print (Path.expand path) ^ Position.here pos);
+    val path = Path.append dir (Path.explode name)
+      handle ERROR msg => error (msg ^ Position.here pos);
+
     val _ = Context_Position.report ctxt pos (Markup.path name);
+    val _ =
+      if can Path.expand path andalso File.exists path then ()
+      else
+        let
+          val path' = perhaps (try Path.expand) path;
+          val msg = "Bad file: " ^ Path.print path' ^ Position.here pos;
+        in
+          if strict then error msg
+          else
+            Context_Position.if_visible ctxt Output.report
+              (Markup.markup (Markup.bad |> Markup.properties (Position.properties_of pos)) msg)
+        end;
   in
     space_explode "/" name
     |> map Thy_Output.verb_text
