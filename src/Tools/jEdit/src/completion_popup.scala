@@ -155,7 +155,7 @@ object Completion_Popup
             }) getOrElse syntax.language_context
 
           syntax.completion.complete(
-            history, decode, explicit, line_start, line_text, caret - line_start, true, context)
+            history, decode, explicit, line_start, line_text, caret - line_start, false, context)
 
         case None => None
       }
