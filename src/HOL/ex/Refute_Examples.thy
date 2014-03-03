@@ -547,18 +547,6 @@ lemma "P (Some x)"
 refute [expect = genuine]
 oops
 
-lemma "rec_option n s None = n"
-refute [expect = none]
-by simp
-
-lemma "rec_option n s (Some x) = s x"
-refute [maxsize = 4, expect = none]
-by simp
-
-lemma "P (rec_option n s x)"
-refute [expect = genuine]
-oops
-
 lemma "P (case x of None \<Rightarrow> n | Some u \<Rightarrow> s u)"
 refute [expect = genuine]
 oops

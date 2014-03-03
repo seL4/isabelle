@@ -28,7 +28,6 @@ text {* Compatibility: *}
 setup {* Sign.mandatory_path "option" *}
 
 lemmas inducts = option.induct
-lemmas recs = option.rec
 lemmas cases = option.case
 
 setup {* Sign.parent_path *}

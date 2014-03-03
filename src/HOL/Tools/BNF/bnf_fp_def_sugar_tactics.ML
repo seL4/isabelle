@@ -14,16 +14,16 @@ sig
   val mk_coinduct_tac: Proof.context -> thm list -> int -> int list -> thm -> thm list ->
     thm list -> thm list -> thm list -> thm list -> thm list list -> thm list list list ->
     thm list list list -> tactic
-  val mk_coiter_tac: thm list -> thm list -> thm -> thm -> thm -> thm -> Proof.context -> tactic
+  val mk_corec_tac: thm list -> thm list -> thm -> thm -> thm -> thm -> Proof.context -> tactic
   val mk_ctor_iff_dtor_tac: Proof.context -> ctyp option list -> cterm -> cterm -> thm -> thm ->
     tactic
-  val mk_disc_coiter_iff_tac: thm list -> thm list -> thm list -> Proof.context -> tactic
+  val mk_disc_corec_iff_tac: thm list -> thm list -> thm list -> Proof.context -> tactic
   val mk_exhaust_tac: Proof.context -> int -> thm list -> thm -> thm -> tactic
   val mk_half_distinct_tac: Proof.context -> thm -> thm -> thm list -> tactic
   val mk_induct_tac: Proof.context -> int -> int list -> int list list -> int list list list ->
     thm list -> thm -> thm list -> thm list -> thm list -> thm list list -> tactic
   val mk_inject_tac: Proof.context -> thm -> thm -> thm -> tactic
-  val mk_iter_tac: thm list -> thm list -> thm list -> thm -> thm -> thm -> thm -> Proof.context ->
+  val mk_rec_tac: thm list -> thm list -> thm list -> thm -> thm -> thm -> thm -> Proof.context ->
     tactic
 end;
 
@@ -87,32 +87,32 @@ fun mk_inject_tac ctxt ctr_def ctor_inject abs_inject =
   unfold_thms_tac ctxt (abs_inject :: @{thms sum.inject Pair_eq conj_assoc}) THEN
   HEADGOAL (rtac refl);
 
-val iter_unfold_thms =
+val rec_unfold_thms =
   @{thms comp_def convol_def fst_conv id_def case_prod_Pair_iden snd_conv split_conv
       case_unit_Unity} @ sum_prod_thms_map;
 
-fun mk_iter_tac pre_map_defs map_idents iter_defs ctor_iter fp_abs_inverse abs_inverse ctr_def ctxt =
-  unfold_thms_tac ctxt (ctr_def :: ctor_iter :: fp_abs_inverse :: abs_inverse :: iter_defs @
-    pre_map_defs @ map_idents @ iter_unfold_thms) THEN HEADGOAL (rtac refl);
+fun mk_rec_tac pre_map_defs map_idents rec_defs ctor_rec fp_abs_inverse abs_inverse ctr_def ctxt =
+  unfold_thms_tac ctxt (ctr_def :: ctor_rec :: fp_abs_inverse :: abs_inverse :: rec_defs @
+    pre_map_defs @ map_idents @ rec_unfold_thms) THEN HEADGOAL (rtac refl);
 
-val coiter_unfold_thms = @{thms id_def} @ sum_prod_thms_map;
+val corec_unfold_thms = @{thms id_def} @ sum_prod_thms_map;
 
-fun mk_coiter_tac coiter_defs map_idents ctor_dtor_coiter pre_map_def abs_inverse ctr_def ctxt =
+fun mk_corec_tac corec_defs map_idents ctor_dtor_corec pre_map_def abs_inverse ctr_def ctxt =
   let
-    val ss = ss_only (pre_map_def :: abs_inverse :: map_idents @ coiter_unfold_thms @
+    val ss = ss_only (pre_map_def :: abs_inverse :: map_idents @ corec_unfold_thms @
       @{thms o_apply vimage2p_def if_True if_False}) ctxt;
   in
-    unfold_thms_tac ctxt (ctr_def :: coiter_defs) THEN
-    HEADGOAL (rtac (ctor_dtor_coiter RS trans) THEN' asm_simp_tac ss) THEN_MAYBE
+    unfold_thms_tac ctxt (ctr_def :: corec_defs) THEN
+    HEADGOAL (rtac (ctor_dtor_corec RS trans) THEN' asm_simp_tac ss) THEN_MAYBE
     HEADGOAL (rtac refl ORELSE' rtac (@{thm unit_eq} RS arg_cong))
   end;
 
-fun mk_disc_coiter_iff_tac case_splits' coiters discs ctxt =
-  EVERY (map3 (fn case_split_tac => fn coiter_thm => fn disc =>
-      HEADGOAL case_split_tac THEN unfold_thms_tac ctxt [coiter_thm] THEN
+fun mk_disc_corec_iff_tac case_splits' corecs discs ctxt =
+  EVERY (map3 (fn case_split_tac => fn corec_thm => fn disc =>
+      HEADGOAL case_split_tac THEN unfold_thms_tac ctxt [corec_thm] THEN
       HEADGOAL (asm_simp_tac (ss_only basic_simp_thms ctxt)) THEN
       (if is_refl disc then all_tac else HEADGOAL (rtac disc)))
-    (map rtac case_splits' @ [K all_tac]) coiters discs);
+    (map rtac case_splits' @ [K all_tac]) corecs discs);
 
 fun solve_prem_prem_tac ctxt =
   REPEAT o (eresolve_tac @{thms bexE rev_bexI} ORELSE' rtac @{thm rev_bexI[OF UNIV_I]} ORELSE'

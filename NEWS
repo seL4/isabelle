@@ -169,10 +169,12 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
     Option.set ~> set_option
     Option.map ~> map_option
     option_rel ~> rel_option
+    option_rec ~> case_option
   Renamed theorems:
     set_def ~> set_rec[abs_def]
     map_def ~> map_rec[abs_def]
     Option.map_def ~> map_option_case[abs_def] (with "case_option" instead of "rec_option")
+    option.recs ~> option.case
     list_all2_def ~> list_all2_iff
     set.simps ~> set_simps (or the slightly different "list.set")
     map.simps ~> list.map

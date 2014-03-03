@@ -585,20 +585,6 @@ lemma "P (Some x)"
 nitpick [expect = genuine]
 oops
 
-lemma "rec_option n s None = n"
-nitpick [expect = none]
-apply simp
-done
-
-lemma "rec_option n s (Some x) = s x"
-nitpick [expect = none]
-apply simp
-done
-
-lemma "P (rec_option n s x)"
-nitpick [expect = genuine]
-oops
-
 lemma "P (case x of None \<Rightarrow> n | Some u \<Rightarrow> s u)"
 nitpick [expect = genuine]
 oops

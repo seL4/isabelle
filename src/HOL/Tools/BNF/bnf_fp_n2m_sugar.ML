@@ -240,31 +240,33 @@ fun mutualize_fp_sugars fp bs fpTs callers callssss fp_sugars0 no_defs_lthy0 =
         val nesting_bnfs = nesty_bnfs lthy ctrXs_Tsss As;
         val nested_bnfs = nesty_bnfs lthy ctrXs_Tsss Xs;
 
-        val ((xtor_co_iterss, iters_args_types, coiters_args_types), _) =
-          mk_co_iters_prelims fp ctr_Tsss fpTs Cs absTs repTs ns mss xtor_co_iterss0 lthy;
+        val xtor_co_rec_thms = map co_rec_of xtor_co_iter_thmss;
+        val ((xtor_co_recs, recs_args_types, corecs_args_types), _) =
+          mk_co_recs_prelims fp ctr_Tsss fpTs Cs absTs repTs ns mss (map co_rec_of xtor_co_iterss0)
+            lthy;
 
         fun mk_binding b suf = Binding.suffix_name ("_" ^ suf) b;
 
         val ((co_recs, co_rec_defs), lthy) =
           fold_map2 (fn b =>
-            if fp = Least_FP then define_iter iters_args_types (mk_binding b) fpTs Cs reps
-            else define_coiter (the coiters_args_types) (mk_binding b) fpTs Cs abss)
-            fp_bs (map co_rec_of xtor_co_iterss) lthy
+              if fp = Least_FP then define_rec recs_args_types (mk_binding b) fpTs Cs reps
+              else define_corec (the corecs_args_types) (mk_binding b) fpTs Cs abss)
+            fp_bs xtor_co_recs lthy
           |>> split_list;
 
         val ((common_co_inducts, co_inductss, co_rec_thmss, disc_corec_thmss, sel_corec_thmsss),
              fp_sugar_thms) =
           if fp = Least_FP then
-            derive_induct_iters_thms_for_types pre_bnfs iters_args_types xtor_co_induct
-              xtor_co_iter_thmss nesting_bnfs nested_bnfs fpTs Cs Xs ctrXs_Tsss fp_abs_inverses
+            derive_induct_recs_thms_for_types pre_bnfs recs_args_types xtor_co_induct
+              xtor_co_rec_thms nesting_bnfs nested_bnfs fpTs Cs Xs ctrXs_Tsss fp_abs_inverses
               fp_type_definitions abs_inverses ctrss ctr_defss co_recs co_rec_defs lthy
             |> `(fn ((inducts, induct, _), (rec_thmss, _)) =>
               ([induct], [inducts], rec_thmss, replicate nn [], replicate nn []))
             ||> (fn info => (SOME info, NONE))
           else
-            derive_coinduct_coiters_thms_for_types pre_bnfs (the coiters_args_types) xtor_co_induct
-              dtor_injects dtor_ctors xtor_co_iter_thmss nesting_bnfs fpTs Cs Xs ctrXs_Tsss kss mss
-              ns fp_abs_inverses abs_inverses (fn thm => thm RS @{thm vimage2p_refl}) ctr_defss
+            derive_coinduct_corecs_thms_for_types pre_bnfs (the corecs_args_types) xtor_co_induct
+              dtor_injects dtor_ctors xtor_co_rec_thms nesting_bnfs fpTs Cs Xs ctrXs_Tsss kss mss ns
+              fp_abs_inverses abs_inverses (fn thm => thm RS @{thm vimage2p_refl}) ctr_defss
               ctr_sugars co_recs co_rec_defs (Proof_Context.export lthy no_defs_lthy) lthy
             |> `(fn ((coinduct_thms_pairs, _), (corec_thmss, _), (disc_corec_thmss, _), _,
                      (sel_corec_thmsss, _)) =>
