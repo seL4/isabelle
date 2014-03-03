@@ -33,16 +33,16 @@ proof (rule stream.dtor_set_induct)
   assume "a \<in> set1_pre_stream (dtor_stream s)"
   then have "a = shd s"
     by (cases "dtor_stream s")
-      (auto simp: shd_def fsts_def set1_pre_stream_def stream.dtor_ctor SCons_def
-        Abs_stream_pre_stream_inverse Abs_stream_pre_stream_inject split: stream.splits)
+      (auto simp: BNF_Comp.id_bnf_comp_def shd_def fsts_def set1_pre_stream_def stream.dtor_ctor SCons_def
+        split: stream.splits)
   with Base show "P a s" by simp
 next
   fix a :: 'a and s' :: "'a stream"  and s :: "'a stream"
   assume "s' \<in> set2_pre_stream (dtor_stream s)" and prems: "a \<in> sset s'" "P a s'"
   then have "s' = stl s"
     by (cases "dtor_stream s")
-      (auto simp: stl_def snds_def set2_pre_stream_def stream.dtor_ctor SCons_def
-        Abs_stream_pre_stream_inverse Abs_stream_pre_stream_inject split: stream.splits)
+      (auto simp: BNF_Comp.id_bnf_comp_def stl_def snds_def set2_pre_stream_def stream.dtor_ctor SCons_def
+        split: stream.splits)
   with Step prems show "P a s" by simp
 qed
 

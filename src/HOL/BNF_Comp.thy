@@ -147,7 +147,7 @@ by simp
 ML_file "Tools/BNF/bnf_comp_tactics.ML"
 ML_file "Tools/BNF/bnf_comp.ML"
 
-hide_const id_bnf_comp
-hide_fact id_bnf_comp_def type_definition_id_bnf_comp_UNIV
+hide_const (open) id_bnf_comp
+hide_fact (open) id_bnf_comp_def type_definition_id_bnf_comp_UNIV
 
 end
