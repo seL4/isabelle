@@ -611,7 +611,7 @@ fun typedef_info ctxt s =
   | _ => NONE
 
 val is_raw_typedef = is_some oo typedef_info
-val is_raw_old_datatype = is_some oo Datatype.get_info
+val is_raw_free_datatype = is_some oo Ctr_Sugar.ctr_sugar_of
 
 val is_interpreted_type =
   member (op =) [@{type_name prod}, @{type_name set}, @{type_name bool},
@@ -688,12 +688,12 @@ val unregister_codatatype_global =
   Context.theory_map o unregister_codatatype_generic
 
 fun is_raw_codatatype ctxt s =
-  not (null (these (Option.map snd (AList.lookup (op =)
-    (#codatatypes (Data.get (Context.Proof ctxt))) s))))
-
-fun is_registered_codatatype ctxt s =
   Option.map #fp (BNF_FP_Def_Sugar.fp_sugar_of ctxt s)
   = SOME BNF_Util.Greatest_FP
+
+fun is_registered_codatatype ctxt s =
+  not (null (these (Option.map snd (AList.lookup (op =)
+    (#codatatypes (Data.get (Context.Proof ctxt))) s))))
 
 fun is_codatatype ctxt (Type (s, _)) =
     is_raw_codatatype ctxt s orelse is_registered_codatatype ctxt s
@@ -712,13 +712,11 @@ fun is_quot_type ctxt T =
   T <> @{typ int}
 
 fun is_pure_typedef ctxt (T as Type (s, _)) =
-    let val thy = Proof_Context.theory_of ctxt in
-      is_frac_type ctxt T orelse
-      (is_raw_typedef ctxt s andalso
-       not (is_raw_old_datatype thy s orelse is_raw_quot_type ctxt T orelse
-            is_codatatype ctxt T orelse is_record_type T orelse
-            is_integer_like_type T))
-    end
+    is_frac_type ctxt T orelse
+    (is_raw_typedef ctxt s andalso
+     not (is_raw_free_datatype ctxt s orelse is_raw_quot_type ctxt T orelse
+          is_codatatype ctxt T orelse is_record_type T orelse
+          is_integer_like_type T))
   | is_pure_typedef _ _ = false
 
 fun is_univ_typedef ctxt (Type (s, _)) =
@@ -835,32 +833,29 @@ fun equiv_relation_for_quot_type thy (Type (s, Ts)) =
   | equiv_relation_for_quot_type _ T =
     raise TYPE ("Nitpick_HOL.equiv_relation_for_quot_type", [T], [])
 
-fun is_raw_old_datatype_constr thy (s, T) =
+fun is_raw_free_datatype_constr ctxt (s, T) =
   case body_type T of
-    Type (s', _) =>
-    (case Datatype.get_constrs thy s' of
-       SOME constrs =>
-       List.exists (fn (cname, cty) =>
-         cname = s andalso Sign.typ_instance thy (T, cty)) constrs
-     | NONE => false)
+    dtT as Type (dt_s, _) =>
+    let
+      val ctrs =
+        case Ctr_Sugar.ctr_sugar_of ctxt dt_s of
+          SOME {ctrs, ...} => map dest_Const ctrs
+        | _ => []
+    in
+      exists (fn (s', T') => s = s' andalso repair_constr_type dtT T' = T) ctrs
+    end
   | _  => false
 
-fun is_coconstr ctxt (s, T) =
+fun is_registered_coconstr ctxt (s, T) =
   case body_type T of
     coT as Type (co_s, _) =>
     let
-      val ctrs1 =
+      val ctrs =
         co_s
         |> AList.lookup (op =) (#codatatypes (Data.get (Context.Proof ctxt)))
         |> Option.map snd |> these
-      val ctrs2 =
-        (case BNF_FP_Def_Sugar.fp_sugar_of ctxt co_s of
-           SOME (fp_sugar as {fp = BNF_Util.Greatest_FP, ...}) =>
-           map dest_Const (#ctrs (#ctr_sugar fp_sugar))
-         | _ => [])
     in
-      exists (fn (s', T') => s = s' andalso repair_constr_type coT T' = T)
-             (ctrs1 @ ctrs2)
+      exists (fn (s', T') => s = s' andalso repair_constr_type coT T' = T) ctrs
     end
   | _ => false
 
@@ -868,13 +863,10 @@ fun is_nonfree_constr ctxt (s, T) =
   member (op =) [@{const_name FunBox}, @{const_name PairBox},
                  @{const_name Quot}, @{const_name Zero_Rep},
                  @{const_name Suc_Rep}] s orelse
-  let
-    val thy = Proof_Context.theory_of ctxt
-    val (x as (_, T)) = (s, unarize_unbox_etc_type T)
-  in
-    is_raw_old_datatype_constr thy x orelse is_record_constr x orelse
+  let val (x as (_, T)) = (s, unarize_unbox_etc_type T) in
+    is_raw_free_datatype_constr ctxt x orelse is_record_constr x orelse
     (is_abs_fun ctxt x andalso is_pure_typedef ctxt (range_type T)) orelse
-    is_coconstr ctxt x
+    is_registered_coconstr ctxt x
   end
 
 fun is_free_constr ctxt (s, T) =
@@ -885,7 +877,7 @@ fun is_free_constr ctxt (s, T) =
 
 fun is_stale_constr ctxt (x as (s, T)) =
   is_registered_type ctxt (body_type T) andalso is_nonfree_constr ctxt x andalso
-  not (s = @{const_name Nitpick.Abs_Frac} orelse is_coconstr ctxt x)
+  not (s = @{const_name Nitpick.Abs_Frac} orelse is_registered_coconstr ctxt x)
 
 fun is_constr ctxt (x as (_, T)) =
   is_nonfree_constr ctxt x andalso
@@ -1004,47 +996,36 @@ fun uncached_data_type_constrs ({thy, ctxt, ...} : hol_context)
                        s of
        SOME (_, xs' as (_ :: _)) => map (apsnd (repair_constr_type T)) xs'
      | _ =>
-       (case BNF_FP_Def_Sugar.fp_sugar_of ctxt s of
-          SOME (fp_sugar as {fp = BNF_Util.Greatest_FP, ...}) =>
-          map (apsnd (repair_constr_type T) o dest_Const)
-              (#ctrs (#ctr_sugar fp_sugar))
-        | _ =>
-          if is_frac_type ctxt T then
-            case typedef_info ctxt s of
-              SOME {abs_type, rep_type, Abs_name, ...} =>
-              [(Abs_name,
-                varify_and_instantiate_type ctxt abs_type T rep_type --> T)]
-            | NONE => [] (* impossible *)
-          else if is_data_type ctxt T then
-            case Datatype.get_info thy s of
-              SOME {index, descr, ...} =>
-              let
-                val (_, dtyps, constrs) = AList.lookup (op =) descr index |> the
-              in
-                map (apsnd (fn Us =>
-                               map (typ_of_dtyp descr (dtyps ~~ Ts)) Us ---> T))
-                    constrs
-              end
-            | NONE =>
-              if is_record_type T then
-                let
-                  val s' = unsuffix Record.ext_typeN s ^ Record.extN
-                  val T' = (Record.get_extT_fields thy T
-                           |> apsnd single |> uncurry append |> map snd) ---> T
-                in [(s', T')] end
-              else if is_raw_quot_type ctxt T then
-                [(@{const_name Quot}, rep_type_for_quot_type ctxt T --> T)]
-              else case typedef_info ctxt s of
-                SOME {abs_type, rep_type, Abs_name, ...} =>
-                [(Abs_name,
-                  varify_and_instantiate_type ctxt abs_type T rep_type --> T)]
-              | NONE =>
-                if T = @{typ ind} then
-                  [dest_Const @{const Zero_Rep}, dest_Const @{const Suc_Rep}]
-                else
-                  []
-          else
-            []))
+       if is_frac_type ctxt T then
+         case typedef_info ctxt s of
+           SOME {abs_type, rep_type, Abs_name, ...} =>
+           [(Abs_name,
+             varify_and_instantiate_type ctxt abs_type T rep_type --> T)]
+         | NONE => [] (* impossible *)
+       else if is_data_type ctxt T then
+         case Ctr_Sugar.ctr_sugar_of ctxt s of
+           SOME {ctrs, ...} =>
+           map (apsnd (repair_constr_type T) o dest_Const) ctrs
+         | NONE =>
+           if is_record_type T then
+             let
+               val s' = unsuffix Record.ext_typeN s ^ Record.extN
+               val T' = (Record.get_extT_fields thy T
+                        |> apsnd single |> uncurry append |> map snd) ---> T
+             in [(s', T')] end
+           else if is_raw_quot_type ctxt T then
+             [(@{const_name Quot}, rep_type_for_quot_type ctxt T --> T)]
+           else case typedef_info ctxt s of
+             SOME {abs_type, rep_type, Abs_name, ...} =>
+             [(Abs_name,
+               varify_and_instantiate_type ctxt abs_type T rep_type --> T)]
+           | NONE =>
+             if T = @{typ ind} then
+               [dest_Const @{const Zero_Rep}, dest_Const @{const Suc_Rep}]
+             else
+               []
+       else
+         [])
   | uncached_data_type_constrs _ _ = []
 
 fun data_type_constrs (hol_ctxt as {constr_cache, ...}) T =
@@ -1524,22 +1505,9 @@ fun unfold_mutually_inductive_preds thy table =
                | t => t)
 
 fun case_const_names ctxt =
-  let val thy = Proof_Context.theory_of ctxt in
-    Symtab.fold (fn (dtype_s, {index, descr, case_name, ...}) =>
-                    if is_interpreted_type dtype_s then
-                      I
-                    else
-                      cons (case_name, AList.lookup (op =) descr index
-                                       |> the |> #3 |> length))
-                (Datatype.get_all thy) [] @
-    map (apsnd length o snd) (#codatatypes (Data.get (Context.Proof ctxt))) @
-    map_filter (fn {fp, ctr_sugar = {casex, ...}, ...} =>
-                   if fp = BNF_Util.Greatest_FP then
-                     SOME (apsnd num_binder_types (dest_Const casex))
-                   else
-                     NONE)
-        (BNF_FP_Def_Sugar.fp_sugars_of ctxt)
-  end
+  map_filter (fn {casex, ...} => SOME (apsnd (fn T => num_binder_types T - 1) (dest_Const casex)))
+      (Ctr_Sugar.ctr_sugars_of ctxt) @
+  map (apsnd length o snd) (#codatatypes (Data.get (Context.Proof ctxt)))
 
 fun fixpoint_kind_of_const thy table x =
   if is_built_in_const x then NoFp

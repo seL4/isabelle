@@ -60,7 +60,6 @@ sig
   val int_T : typ
   val simple_string_of_typ : typ -> string
   val num_binder_types : typ -> int
-  val typ_of_dtyp : Datatype.descr -> (Datatype.dtyp * typ) list -> Datatype.dtyp -> typ
   val varify_type : Proof.context -> typ -> typ
   val instantiate_type : theory -> typ -> typ -> typ -> typ
   val varify_and_instantiate_type : Proof.context -> typ -> typ -> typ -> typ
@@ -259,15 +258,6 @@ fun simple_string_of_typ (Type (s, _)) = s
   | simple_string_of_typ (TVar ((s, _), _)) = s
 
 val num_binder_types = BNF_Util.num_binder_types
-
-fun typ_of_dtyp _ typ_assoc (Datatype.DtTFree a) =
-    the (AList.lookup (op =) typ_assoc (Datatype.DtTFree a))
-  | typ_of_dtyp descr typ_assoc (Datatype.DtType (s, Us)) =
-    Type (s, map (typ_of_dtyp descr typ_assoc) Us)
-  | typ_of_dtyp descr typ_assoc (Datatype.DtRec i) =
-    let val (s, ds, _) = the (AList.lookup (op =) descr i) in
-      Type (s, map (typ_of_dtyp descr typ_assoc) ds)
-    end
 
 val varify_type = ATP_Util.varify_type
 val instantiate_type = ATP_Util.instantiate_type
