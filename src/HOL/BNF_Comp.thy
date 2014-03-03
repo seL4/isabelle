@@ -134,10 +134,15 @@ lemma type_definition_id_bnf_comp_UNIV: "type_definition id_bnf_comp id_bnf_comp
   unfolding id_bnf_comp_def by unfold_locales auto
 
 lemma csum_dup: "cinfinite r \<Longrightarrow> Card_order r \<Longrightarrow> p +c p' =o r +c r \<Longrightarrow> p +c p' =o r"
-by (metis csum_absorb2' ordIso_transitive ordLeq_refl)
+apply (erule ordIso_transitive)
+apply (frule csum_absorb2')
+apply (erule ordLeq_refl)
+by simp
 
 lemma cprod_dup: "cinfinite r \<Longrightarrow> Card_order r \<Longrightarrow> p *c p' =o r *c r \<Longrightarrow> p *c p' =o r"
-by (metis cprod_infinite ordIso_transitive)
+apply (erule ordIso_transitive)
+apply (rule cprod_infinite)
+by simp
 
 ML_file "Tools/BNF/bnf_comp_tactics.ML"
 ML_file "Tools/BNF/bnf_comp.ML"

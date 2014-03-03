@@ -351,13 +351,13 @@ lemma Cinfinite_cprod2: "\<lbrakk>Cnotzero r1; Cinfinite r2\<rbrakk> \<Longright
 by (blast intro: cinfinite_cprod2 Card_order_cprod)
 
 lemma cprod_cong: "\<lbrakk>p1 =o r1; p2 =o r2\<rbrakk> \<Longrightarrow> p1 *c p2 =o r1 *c r2"
-by (metis cprod_mono ordIso_iff_ordLeq)
+unfolding ordIso_iff_ordLeq by (blast intro: cprod_mono)
 
 lemma cprod_cong1: "\<lbrakk>p1 =o r1\<rbrakk> \<Longrightarrow> p1 *c p2 =o r1 *c p2"
-by (metis cprod_mono1 ordIso_iff_ordLeq)
+unfolding ordIso_iff_ordLeq by (blast intro: cprod_mono1)
 
 lemma cprod_cong2: "p2 =o r2 \<Longrightarrow> q *c p2 =o q *c r2"
-by (metis cprod_mono2 ordIso_iff_ordLeq)
+unfolding ordIso_iff_ordLeq by (blast intro: cprod_mono2)
 
 lemma cprod_com: "p1 *c p2 =o p2 *c p1"
 by (simp only: cprod_def card_of_Times_commute)
