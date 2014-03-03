@@ -41,7 +41,7 @@ type mdata =
    binarize: bool,
    alpha_T: typ,
    max_fresh: int Unsynchronized.ref,
-   datatype_mcache: ((string * typ list) * mtyp) list Unsynchronized.ref,
+   data_type_mcache: ((string * typ list) * mtyp) list Unsynchronized.ref,
    constr_mcache: ((string * typ) * mtyp) list Unsynchronized.ref}
 
 exception UNSOLVABLE of unit
@@ -123,7 +123,7 @@ fun flatten_mtype (MPair (M1, M2)) = maps flatten_mtype [M1, M2]
 
 fun initial_mdata hol_ctxt binarize alpha_T =
   ({hol_ctxt = hol_ctxt, binarize = binarize, alpha_T = alpha_T,
-    max_fresh = Unsynchronized.ref 0, datatype_mcache = Unsynchronized.ref [],
+    max_fresh = Unsynchronized.ref 0, data_type_mcache = Unsynchronized.ref [],
     constr_mcache = Unsynchronized.ref []} : mdata)
 
 fun could_exist_alpha_subtype alpha_T (T as Type (_, Ts)) =
@@ -134,7 +134,7 @@ fun could_exist_alpha_subtype alpha_T (T as Type (_, Ts)) =
 fun could_exist_alpha_sub_mtype _ (alpha_T as TFree _) T =
     could_exist_alpha_subtype alpha_T T
   | could_exist_alpha_sub_mtype ctxt alpha_T T =
-    (T = alpha_T orelse is_datatype ctxt T)
+    (T = alpha_T orelse is_data_type ctxt T)
 
 fun exists_alpha_sub_mtype MAlpha = true
   | exists_alpha_sub_mtype (MFun (M1, _, M2)) =
@@ -170,7 +170,7 @@ fun repair_mtype _ _ MAlpha = MAlpha
     | M => if member (op =) seen M then MType (s, [])
            else repair_mtype cache (M :: seen) M
 
-fun repair_datatype_mcache cache =
+fun repair_data_type_mcache cache =
   let
     fun repair_one (z, M) =
       Unsynchronized.change cache
@@ -219,7 +219,7 @@ fun fresh_mfun_for_fun_type (mdata as {max_fresh, ...} : mdata) all_minus
                A Gen
   in (M1, aa, M2) end
 and fresh_mtype_for_type (mdata as {hol_ctxt as {ctxt, ...}, binarize, alpha_T,
-                                    datatype_mcache, constr_mcache, ...})
+                                    data_type_mcache, constr_mcache, ...})
                          all_minus =
   let
     fun do_type T =
@@ -232,12 +232,12 @@ and fresh_mtype_for_type (mdata as {hol_ctxt as {ctxt, ...}, binarize, alpha_T,
       | Type (@{type_name set}, [T']) => do_type (T' --> bool_T)
       | Type (z as (s, _)) =>
         if could_exist_alpha_sub_mtype ctxt alpha_T T then
-          case AList.lookup (op =) (!datatype_mcache) z of
+          case AList.lookup (op =) (!data_type_mcache) z of
             SOME M => M
           | NONE =>
             let
-              val _ = Unsynchronized.change datatype_mcache (cons (z, MRec z))
-              val xs = binarized_and_boxed_datatype_constrs hol_ctxt binarize T
+              val _ = Unsynchronized.change data_type_mcache (cons (z, MRec z))
+              val xs = binarized_and_boxed_data_type_constrs hol_ctxt binarize T
               val (all_Ms, constr_Ms) =
                 fold_rev (fn (_, T') => fn (all_Ms, constr_Ms) =>
                              let
@@ -252,15 +252,15 @@ and fresh_mtype_for_type (mdata as {hol_ctxt as {ctxt, ...}, binarize, alpha_T,
                              end)
                          xs ([], [])
               val M = MType (s, all_Ms)
-              val _ = Unsynchronized.change datatype_mcache
+              val _ = Unsynchronized.change data_type_mcache
                           (AList.update (op =) (z, M))
               val _ = Unsynchronized.change constr_mcache
                           (append (xs ~~ constr_Ms))
             in
-              if forall (not o is_MRec o snd) (!datatype_mcache) then
-                (repair_datatype_mcache datatype_mcache;
-                 repair_constr_mcache (!datatype_mcache) constr_mcache;
-                 AList.lookup (op =) (!datatype_mcache) z |> the)
+              if forall (not o is_MRec o snd) (!data_type_mcache) then
+                (repair_data_type_mcache data_type_mcache;
+                 repair_constr_mcache (!data_type_mcache) constr_mcache;
+                 AList.lookup (op =) (!data_type_mcache) z |> the)
               else
                 M
             end

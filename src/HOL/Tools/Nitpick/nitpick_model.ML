@@ -367,7 +367,7 @@ fun all_values_of_type pool wacky_names (scope as {card_assigns, ...} : scope)
 and reconstruct_term maybe_opt unfold pool
         (wacky_names as ((maybe_name, abs_name), _))
         (scope as {hol_ctxt as {thy, ctxt, ...}, binarize, card_assigns, bits,
-                   datatypes, ofs, ...})
+                   data_types, ofs, ...})
         atomss sel_names rel_table bounds =
   let
     val for_auto = (maybe_name = "")
@@ -403,7 +403,7 @@ and reconstruct_term maybe_opt unfold pool
         val empty_const = Const (@{const_abbrev Set.empty}, set_T)
         val insert_const = Const (@{const_name insert}, T --> set_T --> set_T)
         fun aux [] =
-            if maybe_opt andalso not (is_complete_type datatypes false T) then
+            if maybe_opt andalso not (is_complete_type data_types false T) then
               insert_const $ Const (unrep (), T) $ empty_const
             else
               empty_const
@@ -432,7 +432,7 @@ and reconstruct_term maybe_opt unfold pool
                Const (@{const_name None}, _) => aux' tps
              | _ => update_const $ aux' tps $ t1 $ t2)
         fun aux tps =
-          if maybe_opt andalso not (is_complete_type datatypes false T1) then
+          if maybe_opt andalso not (is_complete_type data_types false T1) then
             update_const $ aux' tps $ Const (unrep (), T1)
             $ (Const (@{const_name Some}, T2' --> T2) $ Const (unknown, T2'))
           else
@@ -463,7 +463,7 @@ and reconstruct_term maybe_opt unfold pool
              | Const (s, Type (@{type_name fun}, [T1, T2])) =>
                if s = opt_flag orelse s = non_opt_flag then
                  Abs ("x", T1,
-                      Const (if is_complete_type datatypes false T1 then
+                      Const (if is_complete_type data_types false T1 then
                                irrelevant
                              else
                                unknown, T2))
@@ -525,7 +525,7 @@ and reconstruct_term maybe_opt unfold pool
           HOLogic.mk_number nat_T (k - j - 1)
         else if T = @{typ bisim_iterator} then
           HOLogic.mk_number nat_T j
-        else case datatype_spec datatypes T of
+        else case data_type_spec data_types T of
           NONE => nth_atom thy atomss pool for_auto T j
         | SOME {deep = false, ...} => nth_atom thy atomss pool for_auto T j
         | SOME {co, constrs, ...} =>
@@ -888,7 +888,7 @@ fun reconstruct_hol_model {show_types, show_skolems, show_consts}
                       simp_table, psimp_table, choice_spec_table, intro_table,
                       ground_thm_table, ersatz_table, skolems, special_funs,
                       unrolled_preds, wf_cache, constr_cache}, binarize,
-                      card_assigns, bits, bisim_depth, datatypes, ofs} : scope)
+                      card_assigns, bits, bisim_depth, data_types, ofs} : scope)
         formats atomss real_frees pseudo_frees free_names sel_names nonsel_names
         rel_table bounds =
   let
@@ -910,15 +910,16 @@ fun reconstruct_hol_model {show_types, show_skolems, show_consts}
        wf_cache = wf_cache, constr_cache = constr_cache}
     val scope =
       {hol_ctxt = hol_ctxt, binarize = binarize, card_assigns = card_assigns,
-       bits = bits, bisim_depth = bisim_depth, datatypes = datatypes, ofs = ofs}
+       bits = bits, bisim_depth = bisim_depth, data_types = data_types,
+       ofs = ofs}
     fun term_for_rep maybe_opt unfold =
       reconstruct_term maybe_opt unfold pool wacky_names scope atomss
                        sel_names rel_table bounds
     val all_values =
       all_values_of_type pool wacky_names scope atomss sel_names rel_table
                          bounds
-    fun is_codatatype_wellformed (cos : datatype_spec list)
-                                 ({typ, card, ...} : datatype_spec) =
+    fun is_codatatype_wellformed (cos : data_type_spec list)
+                                 ({typ, card, ...} : data_type_spec) =
       let
         val ts = all_values card typ
         val max_depth = Integer.sum (map #card cos)
@@ -950,7 +951,7 @@ fun reconstruct_hol_model {show_types, show_skolems, show_consts}
             [Syntax.pretty_term ctxt t1, Pretty.str oper,
              Syntax.pretty_term ctxt t2])
       end
-    fun pretty_for_datatype ({typ, card, complete, ...} : datatype_spec) =
+    fun pretty_for_data_type ({typ, card, complete, ...} : data_type_spec) =
       Pretty.block (Pretty.breaks
           (pretty_for_type ctxt typ ::
            (case typ of
@@ -962,24 +963,18 @@ fun reconstruct_hol_model {show_types, show_skolems, show_consts}
                 (map (Syntax.pretty_term ctxt) (all_values card typ) @
                  (if fun_from_pair complete false then []
                   else [Pretty.str (unrep ())]))]))
-    fun integer_datatype T =
+    fun integer_data_type T =
       [{typ = T, card = card_of_type card_assigns T, co = false,
         self_rec = true, complete = (false, false), concrete = (true, true),
         deep = true, constrs = []}]
       handle TYPE ("Nitpick_HOL.card_of_type", _, _) => []
-    val (codatatypes, datatypes) =
-      datatypes |> filter #deep |> List.partition #co
-                ||> append (integer_datatype nat_T @ integer_datatype int_T)
-    val block_of_datatypes =
-      if show_types andalso not (null datatypes) then
-        [Pretty.big_list ("Datatype" ^ plural_s_for_list datatypes ^ ":")
-                         (map pretty_for_datatype datatypes)]
-      else
-        []
-    val block_of_codatatypes =
-      if show_types andalso not (null codatatypes) then
-        [Pretty.big_list ("Codatatype" ^ plural_s_for_list codatatypes ^ ":")
-                         (map pretty_for_datatype codatatypes)]
+    val data_types =
+      data_types |> filter #deep
+                 |> append (maps integer_data_type [nat_T, int_T])
+    val block_of_data_types =
+      if show_types andalso not (null data_types) then
+        [Pretty.big_list ("Type" ^ plural_s_for_list data_types ^ ":")
+                         (map pretty_for_data_type data_types)]
       else
         []
     fun block_of_names show title names =
@@ -1010,9 +1005,10 @@ fun reconstruct_hol_model {show_types, show_skolems, show_consts}
     val chunks = block_of_names true "Free variable" real_free_names @
                  block_of_names show_skolems "Skolem constant" skolem_names @
                  block_of_names true "Evaluated term" eval_names @
-                 block_of_datatypes @ block_of_codatatypes @
+                 block_of_data_types @
                  block_of_names show_consts "Constant"
                                 noneval_nonskolem_nonsel_names
+    val codatatypes = filter #co data_types;
   in
     (Pretty.chunks (if null chunks then [Pretty.str "Empty assignment"]
                     else chunks),

@@ -115,7 +115,7 @@ sig
   val is_quot_type : Proof.context -> typ -> bool
   val is_pure_typedef : Proof.context -> typ -> bool
   val is_univ_typedef : Proof.context -> typ -> bool
-  val is_datatype : Proof.context -> typ -> bool
+  val is_data_type : Proof.context -> typ -> bool
   val is_record_constr : string * typ -> bool
   val is_record_get : theory -> string * typ -> bool
   val is_record_update : theory -> string * typ -> bool
@@ -160,10 +160,10 @@ sig
   val unregister_codatatype :
     typ -> morphism -> Context.generic -> Context.generic
   val unregister_codatatype_global : typ -> theory -> theory
-  val datatype_constrs : hol_context -> typ -> (string * typ) list
-  val binarized_and_boxed_datatype_constrs :
+  val data_type_constrs : hol_context -> typ -> (string * typ) list
+  val binarized_and_boxed_data_type_constrs :
     hol_context -> bool -> typ -> (string * typ) list
-  val num_datatype_constrs : hol_context -> typ -> int
+  val num_data_type_constrs : hol_context -> typ -> int
   val constr_name_for_sel_like : string -> string
   val binarized_and_boxed_constr_for_sel : hol_context -> bool ->
     string * typ -> string * typ
@@ -613,9 +613,7 @@ fun typedef_info ctxt s =
 val is_raw_typedef = is_some oo typedef_info
 val is_raw_old_datatype = is_some oo Datatype.get_info
 
-(* FIXME: Use antiquotation for "natural" below or detect "rep_datatype",
-   e.g., by adding a field to "Datatype_Aux.info". *)
-val is_basic_datatype =
+val is_interpreted_type =
   member (op =) [@{type_name prod}, @{type_name set}, @{type_name bool},
                  @{type_name nat}, @{type_name int}, @{type_name natural},
                  @{type_name integer}]
@@ -665,7 +663,7 @@ fun register_codatatype_generic coT case_name constr_xs generic =
     val (co_s, coTs) = dest_Type coT
     val _ =
       if forall is_TFree coTs andalso not (has_duplicates (op =) coTs) andalso
-         co_s <> @{type_name fun} andalso not (is_basic_datatype co_s) then
+         co_s <> @{type_name fun} andalso not (is_interpreted_type co_s) then
         ()
       else
         raise TYPE ("Nitpick_HOL.register_codatatype_generic", [coT], [])
@@ -744,11 +742,11 @@ fun is_univ_typedef ctxt (Type (s, _)) =
      | NONE => false)
   | is_univ_typedef _ _ = false
 
-fun is_datatype ctxt (T as Type (s, _)) =
+fun is_data_type ctxt (T as Type (s, _)) =
     (is_raw_typedef ctxt s orelse is_registered_type ctxt T orelse
      T = @{typ ind} orelse is_raw_quot_type ctxt T) andalso
-    not (is_basic_datatype s)
-  | is_datatype _ _ = false
+    not (is_interpreted_type s)
+  | is_data_type _ _ = false
 
 fun all_record_fields thy T =
   let val (recs, more) = Record.get_extT_fields thy T in
@@ -891,7 +889,7 @@ fun is_stale_constr ctxt (x as (s, T)) =
 
 fun is_constr ctxt (x as (_, T)) =
   is_nonfree_constr ctxt x andalso
-  not (is_basic_datatype (fst (dest_Type (unarize_type (body_type T))))) andalso
+  not (is_interpreted_type (fst (dest_Type (unarize_type (body_type T))))) andalso
   not (is_stale_constr ctxt x)
 
 val is_sel = String.isPrefix discr_prefix orf String.isPrefix sel_prefix
@@ -1000,8 +998,8 @@ fun distinctness_formula T =
 fun zero_const T = Const (@{const_name zero_class.zero}, T)
 fun suc_const T = Const (@{const_name Suc}, T --> T)
 
-fun uncached_datatype_constrs ({thy, ctxt, ...} : hol_context)
-                              (T as Type (s, Ts)) =
+fun uncached_data_type_constrs ({thy, ctxt, ...} : hol_context)
+                               (T as Type (s, Ts)) =
     (case AList.lookup (op =) (#codatatypes (Data.get (Context.Proof ctxt)))
                        s of
        SOME (_, xs' as (_ :: _)) => map (apsnd (repair_constr_type T)) xs'
@@ -1017,7 +1015,7 @@ fun uncached_datatype_constrs ({thy, ctxt, ...} : hol_context)
               [(Abs_name,
                 varify_and_instantiate_type ctxt abs_type T rep_type --> T)]
             | NONE => [] (* impossible *)
-          else if is_datatype ctxt T then
+          else if is_data_type ctxt T then
             case Datatype.get_info thy s of
               SOME {index, descr, ...} =>
               let
@@ -1047,20 +1045,20 @@ fun uncached_datatype_constrs ({thy, ctxt, ...} : hol_context)
                   []
           else
             []))
-  | uncached_datatype_constrs _ _ = []
+  | uncached_data_type_constrs _ _ = []
 
-fun datatype_constrs (hol_ctxt as {constr_cache, ...}) T =
+fun data_type_constrs (hol_ctxt as {constr_cache, ...}) T =
   case AList.lookup (op =) (!constr_cache) T of
     SOME xs => xs
   | NONE =>
-    let val xs = uncached_datatype_constrs hol_ctxt T in
+    let val xs = uncached_data_type_constrs hol_ctxt T in
       (Unsynchronized.change constr_cache (cons (T, xs)); xs)
     end
 
-fun binarized_and_boxed_datatype_constrs hol_ctxt binarize =
+fun binarized_and_boxed_data_type_constrs hol_ctxt binarize =
   map (apsnd ((binarize ? binarize_nat_and_int_in_type)
-              o box_type hol_ctxt InConstr)) o datatype_constrs hol_ctxt
-val num_datatype_constrs = length oo datatype_constrs
+              o box_type hol_ctxt InConstr)) o data_type_constrs hol_ctxt
+val num_data_type_constrs = length oo data_type_constrs
 
 fun constr_name_for_sel_like @{const_name fst} = @{const_name Pair}
   | constr_name_for_sel_like @{const_name snd} = @{const_name Pair}
@@ -1069,7 +1067,7 @@ fun constr_name_for_sel_like @{const_name fst} = @{const_name Pair}
 fun binarized_and_boxed_constr_for_sel hol_ctxt binarize (s', T') =
   let val s = constr_name_for_sel_like s' in
     AList.lookup (op =)
-        (binarized_and_boxed_datatype_constrs hol_ctxt binarize (domain_type T'))
+        (binarized_and_boxed_data_type_constrs hol_ctxt binarize (domain_type T'))
         s
     |> the |> pair s
   end
@@ -1146,7 +1144,7 @@ fun bounded_exact_card_of_type hol_ctxt finitizable_dataTs max default_card
        | @{typ prop} => 2
        | @{typ bool} => 2
        | Type _ =>
-         (case datatype_constrs hol_ctxt T of
+         (case data_type_constrs hol_ctxt T of
             [] => if is_integer_type T orelse is_bit_type T then 0
                   else raise SAME ()
           | constrs =>
@@ -1243,7 +1241,7 @@ fun discr_term_for_constr hol_ctxt (x as (s, T)) =
     if s = @{const_name Suc} then
       Abs (Name.uu, dataT,
            @{const Not} $ HOLogic.mk_eq (zero_const dataT, Bound 0))
-    else if num_datatype_constrs hol_ctxt dataT >= 2 then
+    else if num_data_type_constrs hol_ctxt dataT >= 2 then
       Const (discr_for_constr x)
     else
       Abs (Name.uu, dataT, @{const True})
@@ -1317,7 +1315,7 @@ fun constr_expand (hol_ctxt as {ctxt, ...}) T t =
                  (@{const_name Pair}, T1 --> T2 --> T)
                end
              else
-               datatype_constrs hol_ctxt T |> hd
+               data_type_constrs hol_ctxt T |> hd
            val arg_Ts = binder_types T'
          in
            list_comb (Const x', map2 (select_nth_constr_arg ctxt x' t)
@@ -1383,7 +1381,6 @@ fun is_ground_term (t1 $ t2) = is_ground_term t1 andalso is_ground_term t2
 fun special_bounds ts =
   fold Term.add_vars ts [] |> sort (Term_Ord.fast_indexname_ord o pairself fst)
 
-(* FIXME: detect "rep_datatype"? *)
 fun is_funky_typedef_name ctxt s =
   member (op =) [@{type_name unit}, @{type_name prod}, @{type_name set},
                  @{type_name Sum_Type.sum}, @{type_name int}] s orelse
@@ -1529,7 +1526,7 @@ fun unfold_mutually_inductive_preds thy table =
 fun case_const_names ctxt =
   let val thy = Proof_Context.theory_of ctxt in
     Symtab.fold (fn (dtype_s, {index, descr, case_name, ...}) =>
-                    if is_basic_datatype dtype_s then
+                    if is_interpreted_type dtype_s then
                       I
                     else
                       cons (case_name, AList.lookup (op =) descr index
@@ -1668,7 +1665,7 @@ fun add_constr_case res_T (body_t, guard_t) res_t =
 
 fun optimized_case_def (hol_ctxt as {ctxt, ...}) Ts dataT res_T func_ts =
   let
-    val xs = datatype_constrs hol_ctxt dataT
+    val xs = data_type_constrs hol_ctxt dataT
     val cases =
       func_ts ~~ xs
       |> map (fn (func_t, x) =>
@@ -1695,7 +1692,7 @@ fun optimized_case_def (hol_ctxt as {ctxt, ...}) Ts dataT res_T func_ts =
   |> absdummy dataT
 
 fun optimized_record_get (hol_ctxt as {thy, ctxt, ...}) s rec_T res_T t =
-  let val constr_x = hd (datatype_constrs hol_ctxt rec_T) in
+  let val constr_x = hd (data_type_constrs hol_ctxt rec_T) in
     case no_of_record_field thy s rec_T of
       ~1 => (case rec_T of
                Type (_, Ts as _ :: _) =>
@@ -1714,7 +1711,7 @@ fun optimized_record_get (hol_ctxt as {thy, ctxt, ...}) s rec_T res_T t =
 fun optimized_record_update (hol_ctxt as {thy, ctxt, ...}) s rec_T fun_t
                             rec_t =
   let
-    val constr_x as (_, constr_T) = hd (datatype_constrs hol_ctxt rec_T)
+    val constr_x as (_, constr_T) = hd (data_type_constrs hol_ctxt rec_T)
     val Ts = binder_types constr_T
     val n = length Ts
     val special_j = no_of_record_field thy s rec_T
@@ -1858,7 +1855,7 @@ fun unfold_defs_in_term
               else if is_quot_abs_fun ctxt x then
                 case T of
                   Type (@{type_name fun}, [rep_T, abs_T as Type (abs_s, _)]) =>
-                  if is_basic_datatype abs_s then
+                  if is_interpreted_type abs_s then
                     raise NOT_SUPPORTED ("abstraction function on " ^
                                          quote abs_s)
                   else
@@ -1869,7 +1866,7 @@ fun unfold_defs_in_term
               else if is_quot_rep_fun ctxt x then
                 case T of
                   Type (@{type_name fun}, [abs_T as Type (abs_s, _), rep_T]) =>
-                  if is_basic_datatype abs_s then
+                  if is_interpreted_type abs_s then
                     raise NOT_SUPPORTED ("representation function on " ^
                                          quote abs_s)
                   else
@@ -2109,7 +2106,7 @@ fun optimized_quot_type_axioms ctxt abs_z =
 
 fun codatatype_bisim_axioms (hol_ctxt as {ctxt, ...}) T =
   let
-    val xs = datatype_constrs hol_ctxt T
+    val xs = data_type_constrs hol_ctxt T
     val pred_T = T --> bool_T
     val iter_T = @{typ bisim_iterator}
     val bisim_max = @{const bisim_iterator_max}
@@ -2495,8 +2492,8 @@ fun add_ground_types hol_ctxt binarize =
           accum
         else
           T :: accum
-          |> fold aux (case binarized_and_boxed_datatype_constrs hol_ctxt
-                                                                 binarize T of
+          |> fold aux (case binarized_and_boxed_data_type_constrs hol_ctxt
+                                                                  binarize T of
                          [] => Ts
                        | xs => map snd xs)
       | _ => insert (op =) T accum

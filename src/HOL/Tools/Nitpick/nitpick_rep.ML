@@ -274,8 +274,8 @@ fun best_non_opt_set_rep_for_type scope (Type (@{type_name fun}, [T1, T2])) =
     best_non_opt_set_rep_for_type scope (T' --> bool_T)
   | best_non_opt_set_rep_for_type scope T = best_one_rep_for_type scope T
 
-fun best_set_rep_for_type (scope as {datatypes, ...}) T =
-  (if is_exact_type datatypes true T then best_non_opt_set_rep_for_type
+fun best_set_rep_for_type (scope as {data_types, ...}) T =
+  (if is_exact_type data_types true T then best_non_opt_set_rep_for_type
    else best_opt_set_rep_for_type) scope T
 
 fun best_non_opt_symmetric_reps_for_fun_type (scope as {ofs, ...})

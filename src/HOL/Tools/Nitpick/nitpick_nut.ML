@@ -702,12 +702,12 @@ fun choose_rep_for_sels_for_constr scope (x as (_, T)) =
   fold_rev (choose_rep_for_nth_sel_for_constr scope x)
            (~1 upto num_sels_for_constr_type T - 1)
 
-fun choose_rep_for_sels_of_datatype _ ({deep = false, ...} : datatype_spec) = I
-  | choose_rep_for_sels_of_datatype scope {constrs, ...} =
+fun choose_rep_for_sels_of_data_type _ ({deep = false, ...} : data_type_spec) = I
+  | choose_rep_for_sels_of_data_type scope {constrs, ...} =
     fold_rev (choose_rep_for_sels_for_constr scope o #const) constrs
 
-fun choose_reps_for_all_sels (scope as {datatypes, ...}) =
-  fold (choose_rep_for_sels_of_datatype scope) datatypes o pair []
+fun choose_reps_for_all_sels (scope as {data_types, ...}) =
+  fold (choose_rep_for_sels_of_data_type scope) data_types o pair []
 
 val min_univ_card = 2
 
@@ -813,7 +813,7 @@ fun s_tuple T R us =
 fun untuple f (Tuple (_, _, us)) = maps (untuple f) us
   | untuple f u = [f u]
 
-fun choose_reps_in_nut (scope as {card_assigns, bits, datatypes, ofs, ...})
+fun choose_reps_in_nut (scope as {card_assigns, bits, data_types, ofs, ...})
                        unsound table def =
   let
     val bool_atom_R = Atom (2, offset_of_type ofs bool_T)
@@ -924,7 +924,7 @@ fun choose_reps_in_nut (scope as {card_assigns, bits, datatypes, ofs, ...})
             if is_opt_rep R then
               triad_fn (fn polar => s_op2 Subset T (Formula polar) u1 u2)
             else if not opt orelse unsound orelse polar = Neg orelse
-                    is_concrete_type datatypes true (type_of u1) then
+                    is_concrete_type data_types true (type_of u1) then
               s_op2 Subset T R u1 u2
             else
               Cst (False, T, Formula Pos)
@@ -947,7 +947,7 @@ fun choose_reps_in_nut (scope as {card_assigns, bits, datatypes, ofs, ...})
               else opt_opt_case ()
           in
             if unsound orelse polar = Neg orelse
-               is_concrete_type datatypes true (type_of u1) then
+               is_concrete_type data_types true (type_of u1) then
               case (is_opt_rep (rep_of u1'), is_opt_rep (rep_of u2')) of
                 (true, true) => opt_opt_case ()
               | (true, false) => hybrid_case u1'
@@ -1002,7 +1002,7 @@ fun choose_reps_in_nut (scope as {card_assigns, bits, datatypes, ofs, ...})
                 let val quant_u = s_op2 oper T (Formula polar) u1' u2' in
                   if def orelse
                      (unsound andalso (polar = Pos) = (oper = All)) orelse
-                     is_complete_type datatypes true (type_of u1) then
+                     is_complete_type data_types true (type_of u1) then
                     quant_u
                   else
                     let
@@ -1072,7 +1072,7 @@ fun choose_reps_in_nut (scope as {card_assigns, bits, datatypes, ofs, ...})
             val Rs = map rep_of us
             val R = best_one_rep_for_type scope T
             val {total, ...} =
-              constr_spec datatypes (original_name (nickname_of (hd us')), T)
+              constr_spec data_types (original_name (nickname_of (hd us')), T)
             val opt = exists is_opt_rep Rs orelse not total
           in Construct (map sub us', T, R |> opt ? Opt, us) end
         | _ =>

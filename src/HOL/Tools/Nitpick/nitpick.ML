@@ -378,7 +378,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
                  ". " ^ extra))
       end
     fun is_type_fundamentally_monotonic T =
-      (is_datatype ctxt T andalso not (is_quot_type ctxt T) andalso
+      (is_data_type ctxt T andalso not (is_quot_type ctxt T) andalso
        (not (is_pure_typedef ctxt T) orelse is_univ_typedef ctxt T)) orelse
       is_number_type ctxt T orelse is_bit_type T
     fun is_type_actually_monotonic T =
@@ -395,15 +395,15 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
         SOME (SOME b) => b
       | _ => is_type_fundamentally_monotonic T orelse
              is_type_actually_monotonic T
-    fun is_deep_datatype_finitizable T =
+    fun is_deep_data_type_finitizable T =
       triple_lookup (type_match thy) finitizes T = SOME (SOME true)
-    fun is_shallow_datatype_finitizable (T as Type (@{type_name fun_box}, _)) =
+    fun is_shallow_data_type_finitizable (T as Type (@{type_name fun_box}, _)) =
         is_type_kind_of_monotonic T
-      | is_shallow_datatype_finitizable T =
+      | is_shallow_data_type_finitizable T =
         case triple_lookup (type_match thy) finitizes T of
           SOME (SOME b) => b
         | _ => is_type_kind_of_monotonic T
-    fun is_datatype_deep T =
+    fun is_data_type_deep T =
       T = @{typ unit} orelse T = nat_T orelse is_word_type T orelse
       exists (curry (op =) T o domain_type o type_of) sel_names
     val all_Ts = ground_types_in_terms hol_ctxt binarize (nondef_ts @ def_ts)
@@ -438,13 +438,13 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
       else
         ()
     val (deep_dataTs, shallow_dataTs) =
-      all_Ts |> filter (is_datatype ctxt)
-             |> List.partition is_datatype_deep
+      all_Ts |> filter (is_data_type ctxt)
+             |> List.partition is_data_type_deep
     val finitizable_dataTs =
       (deep_dataTs |> filter_out (is_finite_type hol_ctxt)
-                   |> filter is_deep_datatype_finitizable) @
+                   |> filter is_deep_data_type_finitizable) @
       (shallow_dataTs |> filter_out (is_finite_type hol_ctxt)
-                      |> filter is_shallow_datatype_finitizable)
+                      |> filter is_shallow_data_type_finitizable)
     val _ =
       if verbose andalso not (null finitizable_dataTs) then
         pprint_v (K (monotonicity_message finitizable_dataTs
@@ -484,7 +484,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
     val too_big_scopes = Unsynchronized.ref []
 
     fun problem_for_scope unsound
-            (scope as {card_assigns, bits, bisim_depth, datatypes, ofs, ...}) =
+            (scope as {card_assigns, bits, bisim_depth, data_types, ofs, ...}) =
       let
         val _ = not (exists (fn other => scope_less_eq other scope)
                             (!too_big_scopes)) orelse
@@ -500,7 +500,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
         val effective_total_consts =
           case total_consts of
             SOME b => b
-          | NONE => forall (is_exact_type datatypes true) all_Ts
+          | NONE => forall (is_exact_type data_types true) all_Ts
         val main_j0 = offset_of_type ofs bool_T
         val (nat_card, nat_j0) = spec_of_type scope nat_T
         val (int_card, int_j0) = spec_of_type scope int_T
@@ -569,12 +569,13 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
         val plain_axioms = map (declarative_axiom_for_plain_rel kk) plain_rels
         val need_vals =
           map (fn dtype as {typ, ...} =>
-                  (typ, needed_values_for_datatype need_us ofs dtype)) datatypes
+                  (typ, needed_values_for_data_type need_us ofs dtype))
+              data_types
         val sel_bounds =
-          map (bound_for_sel_rel ctxt debug need_vals datatypes) sel_rels
+          map (bound_for_sel_rel ctxt debug need_vals data_types) sel_rels
         val dtype_axioms =
-          declarative_axioms_for_datatypes hol_ctxt binarize need_us need_vals
-              datatype_sym_break bits ofs kk rel_table datatypes
+          declarative_axioms_for_data_types hol_ctxt binarize need_us need_vals
+              datatype_sym_break bits ofs kk rel_table data_types
         val declarative_axioms = plain_axioms @ dtype_axioms
         val univ_card = Int.max (univ_card nat_card int_card main_j0
                                      (plain_bounds @ sel_bounds) formula,
@@ -607,7 +608,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
                problem_for_scope unsound
                    {hol_ctxt = hol_ctxt, binarize = binarize,
                     card_assigns = card_assigns, bits = bits,
-                    bisim_depth = bisim_depth, datatypes = datatypes,
+                    bisim_depth = bisim_depth, data_types = data_types,
                     ofs = Typtab.empty}
              else if loc = "Nitpick.pick_them_nits_in_term.\
                            \problem_for_scope" then
