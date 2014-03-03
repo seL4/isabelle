@@ -90,7 +90,7 @@ sig
 
   val zip_axioms: 'a -> 'a -> 'a -> 'a list -> 'a -> 'a -> 'a list -> 'a -> 'a -> 'a list
 
-  datatype const_policy = Dont_Inline | Hardly_Inline | Smart_Inline | Do_Inline
+  datatype inline_policy = Dont_Inline | Hardly_Inline | Smart_Inline | Do_Inline
   datatype fact_policy = Dont_Note | Note_Some | Note_All
 
   val bnf_note_all: bool Config.T
@@ -100,7 +100,7 @@ sig
     Proof.context
 
   val print_bnfs: Proof.context -> unit
-  val prepare_def: const_policy -> (Proof.context -> fact_policy) -> (binding -> binding) ->
+  val prepare_def: inline_policy -> (Proof.context -> fact_policy) -> (binding -> binding) ->
     (Proof.context -> 'a -> typ) -> (Proof.context -> 'b -> term) -> typ list option ->
     binding -> binding -> binding list ->
     (((((binding * 'a) * 'b) * 'b list) * 'b) * 'b list) * 'b option -> Proof.context ->
@@ -109,7 +109,7 @@ sig
     ((thm list -> thm list list) -> thm list list -> Proof.context -> bnf * local_theory) *
     local_theory * thm list
 
-  val define_bnf_consts: const_policy -> fact_policy -> typ list option ->
+  val define_bnf_consts: inline_policy -> fact_policy -> typ list option ->
     binding -> binding -> binding list ->
     (((((binding * typ) * term) * term list) * term) * term list) * term option -> local_theory ->
       ((typ list * typ list * typ list * typ) *
@@ -121,7 +121,7 @@ sig
         (typ list -> typ list -> typ list -> term) *
         (typ list -> typ list -> typ list -> term))) * local_theory
 
-  val bnf_def: const_policy -> (Proof.context -> fact_policy) -> (binding -> binding) ->
+  val bnf_def: inline_policy -> (Proof.context -> fact_policy) -> (binding -> binding) ->
     (Proof.context -> tactic) list ->
     (Proof.context -> tactic) -> typ list option -> binding ->
     binding -> binding list ->
@@ -583,7 +583,7 @@ val rel_mono_strongN = "rel_mono_strong"
 val rel_comppN = "rel_compp";
 val rel_compp_GrpN = "rel_compp_Grp";
 
-datatype const_policy = Dont_Inline | Hardly_Inline | Smart_Inline | Do_Inline;
+datatype inline_policy = Dont_Inline | Hardly_Inline | Smart_Inline | Do_Inline;
 
 datatype fact_policy = Dont_Note | Note_Some | Note_All;
 
@@ -592,7 +592,7 @@ val bnf_timing = Attrib.setup_config_bool @{binding bnf_timing} (K false);
 
 fun user_policy policy ctxt = if Config.get ctxt bnf_note_all then Note_All else policy;
 
-val smart_max_inline_size = 25; (*FUDGE*)
+val smart_max_inline_term_size = 25; (*FUDGE*)
 
 fun note_bnf_thms fact_policy qualify' bnf_b bnf =
   let
@@ -676,7 +676,7 @@ fun define_bnf_consts const_policy fact_policy Ds_opt map_b rel_b set_bs
           (case const_policy of
             Dont_Inline => false
           | Hardly_Inline => Term.is_Free rhs orelse Term.is_Const rhs
-          | Smart_Inline => Term.size_of_term rhs <= smart_max_inline_size
+          | Smart_Inline => Term.size_of_term rhs <= smart_max_inline_term_size
           | Do_Inline => true)
       in
         if inline then

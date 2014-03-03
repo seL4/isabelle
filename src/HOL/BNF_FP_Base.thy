@@ -177,6 +177,9 @@ lemma type_copy_map_comp0_undo:
     type_definition.Abs_inverse[OF assms(1) UNIV_I]
     type_definition.Abs_inverse[OF assms(3) UNIV_I] dest: spec[of _ "Abs'' x" for x])
 
+lemma vimage2p_id: "vimage2p id id R = R"
+  unfolding vimage2p_def by auto
+
 lemma vimage2p_comp: "vimage2p (f1 o f2) (g1 o g2) = vimage2p f2 g2 o vimage2p f1 g1"
   unfolding fun_eq_iff vimage2p_def o_apply by simp
 

@@ -207,7 +207,7 @@ fun construct_mutualized_fp fp fpTs (fp_sugars : fp_sugar list) bs resBs (resDs,
             |> unfold_thms lthy (@{thms eq_le_Grp_id_iff all_simps(1,2)[symmetric]} @ rel_eqs)
             |> funpow n (fn thm => thm RS spec)
             |> unfold_thms lthy (@{thm eq_alt} :: map rel_Grp_of_bnf bnfs @ map_id0s)
-            |> unfold_thms lthy (@{thms vimage2p_comp comp_apply comp_id
+            |> unfold_thms lthy (@{thms vimage2p_id vimage2p_comp comp_apply comp_id
                Grp_id_mono_subst eqTrueI[OF subset_UNIV] simp_thms(22)} @
                maps mk_fp_type_copy_thms fp_type_definitions @
                maps mk_type_copy_thms type_definitions)
