@@ -62,8 +62,6 @@ sig
   val ctor_relN: string
   val ctor_set_inclN: string
   val ctor_set_set_inclN: string
-  val disc_unfoldN: string
-  val disc_unfold_iffN: string
   val disc_corecN: string
   val disc_corec_iffN: string
   val dtorN: string
@@ -87,7 +85,6 @@ sig
   val dtor_unfold_transferN: string
   val dtor_unfold_uniqueN: string
   val exhaustN: string
-  val foldN: string
   val hsetN: string
   val hset_recN: string
   val inductN: string
@@ -108,7 +105,6 @@ sig
   val sel_corecN: string
   val set_inclN: string
   val set_set_inclN: string
-  val sel_unfoldN: string
   val setN: string
   val simpsN: string
   val strTN: string
@@ -116,7 +112,6 @@ sig
   val strong_coinductN: string
   val sum_bdN: string
   val sum_bdTN: string
-  val unfoldN: string
   val uniqueN: string
 
   (* TODO: Don't index set facts. Isabelle packages traditionally generate uniform names. *)
@@ -232,7 +227,9 @@ fun morph_fp_result phi {Ts, bnfs, ctors, dtors, xtor_co_iterss, xtor_co_induct,
    rel_xtor_co_induct_thm = Morphism.thm phi rel_xtor_co_induct_thm};
 
 fun un_fold_of [f, _] = f;
-fun co_rec_of [_, r] = r;
+
+fun co_rec_of [r] = r
+  | co_rec_of [_, r] = r;
 
 fun time ctxt timer msg = (if Config.get ctxt bnf_timing
   then warning (msg ^ ": " ^ string_of_int (Time.toMilliseconds (Timer.checkRealTimer timer)) ^
@@ -325,10 +322,8 @@ val dtor_set_set_inclN = dtorN ^ "_" ^ set_set_inclN
 
 val caseN = "case"
 val discN = "disc"
-val disc_unfoldN = discN ^ "_" ^ unfoldN
 val disc_corecN = discN ^ "_" ^ corecN
 val iffN = "_iff"
-val disc_unfold_iffN = discN ^ "_" ^ unfoldN ^ iffN
 val disc_corec_iffN = discN ^ "_" ^ corecN ^ iffN
 val distinctN = "distinct"
 val rel_distinctN = relN ^ "_" ^ distinctN
@@ -337,7 +332,6 @@ val rel_injectN = relN ^ "_" ^ injectN
 val rel_coinductN = relN ^ "_" ^ coinductN
 val rel_inductN = relN ^ "_" ^ inductN
 val selN = "sel"
-val sel_unfoldN = selN ^ "_" ^ unfoldN
 val sel_corecN = selN ^ "_" ^ corecN
 
 fun co_prefix fp = (if fp = Greatest_FP then "co" else "");

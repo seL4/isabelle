@@ -21,7 +21,7 @@ sig
 
   exception BAD_DEAD of typ * typ
 
-  val bnf_of_typ: BNF_Def.const_policy -> (binding -> binding) ->
+  val bnf_of_typ: BNF_Def.inline_policy -> (binding -> binding) ->
     ((string * sort) list list -> (string * sort) list) -> (string * sort) list ->
     (string * sort) list -> typ -> (comp_cache * unfold_set) * Proof.context ->
     (BNF_Def.bnf * (typ list * typ list)) * ((comp_cache * unfold_set) * Proof.context)

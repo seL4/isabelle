@@ -264,4 +264,6 @@ ML_file "Tools/BNF/bnf_lfp_rec_sugar_more.ML"
 
 hide_fact (open) id_transfer
 
+datatype_new 'a F = F 'a
+
 end
