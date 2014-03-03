@@ -94,7 +94,7 @@ fun invalid_map ctxt t =
 fun unexpected_corec_call ctxt t =
   error ("Unexpected corecursive call: " ^ quote (Syntax.string_of_term ctxt t));
 
-fun order_list_duplicates xs = map snd (sort (int_ord o pairself fst) xs)
+fun sort_list_duplicates xs = map snd (sort (int_ord o pairself fst) xs);
 
 val mk_conjs = try (foldr1 HOLogic.mk_conj) #> the_default @{const True};
 val mk_disjs = try (foldr1 HOLogic.mk_disj) #> the_default @{const False};
@@ -1265,14 +1265,14 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
         val disc_alistss = map3 (map oo prove_disc) corec_specs excludessss disc_eqnss;
         val disc_alists = map (map snd o flat) disc_alistss;
         val sel_alists = map4 (map ooo prove_sel) corec_specs disc_eqnss excludessss sel_eqnss;
-        val disc_thmss = map (map snd o order_list_duplicates o flat) disc_alistss;
+        val disc_thmss = map (map snd o sort_list_duplicates o flat) disc_alistss;
         val disc_thmsss' = map (map (map (snd o snd))) disc_alistss;
-        val sel_thmss = map (map snd o order_list_duplicates) sel_alists;
+        val sel_thmss = map (map snd o sort_list_duplicates) sel_alists;
 
         fun prove_disc_iff ({ctr_specs, ...} : corec_spec) exhaust_thms disc_thmss'
             (({fun_args = exhaust_fun_args, ...} : coeqn_data_disc) :: _) disc_thms
             ({fun_name, fun_T, fun_args, ctr_no, prems, eqn_pos, ...} : coeqn_data_disc) =
-          if null exhaust_thms orelse null (tl ctr_specs) then
+          if null exhaust_thms orelse null disc_thms then
             []
           else
             let
@@ -1294,7 +1294,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
 
         val disc_iff_thmss = map6 (flat ooo map2 oooo prove_disc_iff) corec_specs exhaust_thmss
           disc_thmsss' disc_eqnss disc_thmsss' disc_eqnss
-          |> map order_list_duplicates;
+          |> map sort_list_duplicates;
 
         val ctr_alists = map5 (maps oooo prove_ctr) disc_alists (map (map snd) sel_alists) disc_eqnss
           sel_eqnss ctr_specss;
