@@ -40,7 +40,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
               } model.node_required = !model.node_required
             }
           }
-          else if (clicks == 2) PIDE.editor.goto(view, listData(index).node)
+          else if (clicks == 2) PIDE.editor.goto_file(view, listData(index).node)
         }
       case MouseMoved(_, point, _) =>
         val index = peer.locationToIndex(point)

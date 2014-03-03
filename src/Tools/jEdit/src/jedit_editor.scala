@@ -109,9 +109,9 @@ class JEdit_Editor extends Editor[View]
     synchronized { overlays = overlays.remove(command, fn, args) }
 
 
-  /* hyperlinks */
+  /* navigation */
 
-  def goto(view: View, name: String, line: Int = 0, column: Int = 0)
+  def goto_file(view: View, name: String, line: Int = 0, column: Int = 0)
   {
     Swing_Thread.require()
 
@@ -142,6 +142,9 @@ class JEdit_Editor extends Editor[View]
     }
   }
 
+
+  /* hyperlinks */
+
   override def hyperlink_command(snapshot: Document.Snapshot, command: Command, raw_offset: Int = 0)
     : Option[Hyperlink] =
   {
@@ -156,7 +159,7 @@ class JEdit_Editor extends Editor[View]
               (if (raw_offset == 0) Iterator.empty
                else Iterator.single(command.source(Text.Range(0, command.decode(raw_offset)))))
           val (line, column) = ((1, 1) /: sources)(Symbol.advance_line_column)
-          Some(new Hyperlink { def follow(view: View) { goto(view, file_name, line, column) } })
+          Some(new Hyperlink { def follow(view: View) { goto_file(view, file_name, line, column) } })
       }
     }
   }
@@ -173,7 +176,7 @@ class JEdit_Editor extends Editor[View]
   }
 
   def hyperlink_file(name: String, line: Int = 0, column: Int = 0): Hyperlink =
-    new Hyperlink { def follow(view: View) = goto(view, name, line, column) }
+    new Hyperlink { def follow(view: View) = goto_file(view, name, line, column) }
 
   def hyperlink_source_file(name: String, line: Int): Option[Hyperlink] =
     if (Path.is_ok(name))
