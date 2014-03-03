@@ -523,7 +523,7 @@ fun define_coiters coiterNs (_, cs, cpss, coiter_args_typess') mk_binding fpTs C
     lthy =
   let
     val nn = length fpTs;
-    val fpTs = range_type (snd (strip_typeN nn (fastype_of (co_rec_of dtor_coiters))));
+    val fpT = range_type (snd (strip_typeN nn (fastype_of (co_rec_of dtor_coiters))));
 
     fun generate_coiter pre ((pfss, cqfsss), f_absTs) dtor_coiter =
       (mk_binding pre,
