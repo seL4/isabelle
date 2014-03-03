@@ -619,9 +619,9 @@ A few remarks concern nested recursive datatypes:
 \begin{itemize}
 \setlength{\itemsep}{0pt}
 
-\item The old-style, nested-as-mutual induction rule, iterator theorems, and
-recursor theorems are generated under their usual names but with ``@{text
-"compat_"}'' prefixed (e.g., @{text compat_tree.induct}).
+\item The old-style, nested-as-mutual induction rule and recursor theorems are
+generated under their usual names but with ``@{text "compat_"}'' prefixed
+(e.g., @{text compat_tree.induct}).
 
 \item All types through which recursion takes place must be new-style datatypes
 or the function type. In principle, it should be possible to support old-style
@@ -665,8 +665,6 @@ Map function: &
   @{text t.map_t} \\
 Relator: &
   @{text t.rel_t} \\
-Iterator: &
-   @{text t.fold_t} \\
 Recursor: &
   @{text t.rec_t}
 \end{tabular}
@@ -934,10 +932,6 @@ The inductive theorems are as follows:
 Given $m > 1$ mutually recursive datatypes, this induction rule can be used to
 prove $m$ properties simultaneously.
 
-\item[@{text "t."}\hthm{fold} @{text "[simp, code]"}\rm:] ~ \\
-@{thm list.fold(1)[no_vars]} \\
-@{thm list.fold(2)[no_vars]}
-
 \item[@{text "t."}\hthm{rec} @{text "[simp, code]"}\rm:] ~ \\
 @{thm list.rec(1)[no_vars]} \\
 @{thm list.rec(2)[no_vars]}
@@ -951,7 +945,7 @@ For convenience, @{command datatype_new} also provides the following collection:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{simps} = @{text t.inject} @{text t.distinct} @{text t.case} @{text t.rec} @{text t.fold} @{text t.map} @{text t.rel_inject}] ~ \\
+\item[@{text "t."}\hthm{simps} = @{text t.inject} @{text t.distinct} @{text t.case} @{text t.rec} @{text t.map} @{text t.rel_inject}] ~ \\
 @{text t.rel_distinct} @{text t.set}
 
 \end{description}
@@ -1402,7 +1396,7 @@ text {*
 %  * induct
 %    * mutualized
 %    * without some needless induction hypotheses if not used
-%  * fold, rec
+%  * rec
 %    * mutualized
 *}
 *)
@@ -1627,13 +1621,11 @@ Given a codatatype @{text "('a\<^sub>1, \<dots>, 'a\<^sub>m) t"}
 with $m > 0$ live type variables and $n$ constructors @{text "t.C\<^sub>1"},
 \ldots, @{text "t.C\<^sub>n"}, the same auxiliary constants are generated as for
 datatypes (Section~\ref{ssec:datatype-generated-constants}), except that the
-iterator and the recursor are replaced by dual concepts:
+recursor is replaced by a dual concept:
 
 \medskip
 
 \begin{tabular}{@ {}ll@ {}}
-Coiterator: &
-  @{text unfold_t} \\
 Corecursor: &
   @{text corec_t}
 \end{tabular}
@@ -1696,33 +1688,17 @@ The coinductive theorems are listed below for @{typ "'a llist"}:
 Given $m > 1$ mutually corecursive codatatypes, these coinduction rules can be
 used to prove $m$ properties simultaneously.
 
-\item[@{text "t."}\hthm{unfold}\rm:] ~ \\
-@{thm llist.unfold(1)[no_vars]} \\
-@{thm llist.unfold(2)[no_vars]}
-
 \item[@{text "t."}\hthm{corec}\rm:] ~ \\
 @{thm llist.corec(1)[no_vars]} \\
 @{thm llist.corec(2)[no_vars]}
-
-\item[@{text "t."}\hthm{disc\_unfold}\rm:] ~ \\
-@{thm llist.disc_unfold(1)[no_vars]} \\
-@{thm llist.disc_unfold(2)[no_vars]}
 
 \item[@{text "t."}\hthm{disc\_corec}\rm:] ~ \\
 @{thm llist.disc_corec(1)[no_vars]} \\
 @{thm llist.disc_corec(2)[no_vars]}
 
-\item[@{text "t."}\hthm{disc\_unfold\_iff} @{text "[simp]"}\rm:] ~ \\
-@{thm llist.disc_unfold_iff(1)[no_vars]} \\
-@{thm llist.disc_unfold_iff(2)[no_vars]}
-
 \item[@{text "t."}\hthm{disc\_corec\_iff} @{text "[simp]"}\rm:] ~ \\
 @{thm llist.disc_corec_iff(1)[no_vars]} \\
 @{thm llist.disc_corec_iff(2)[no_vars]}
-
-\item[@{text "t."}\hthm{sel\_unfold} @{text "[simp]"}\rm:] ~ \\
-@{thm llist.sel_unfold(1)[no_vars]} \\
-@{thm llist.sel_unfold(2)[no_vars]}
 
 \item[@{text "t."}\hthm{sel\_corec} @{text "[simp]"}\rm:] ~ \\
 @{thm llist.sel_corec(1)[no_vars]} \\
@@ -1738,8 +1714,7 @@ For convenience, @{command codatatype} also provides the following collection:
 \begin{description}
 
 \item[@{text "t."}\hthm{simps} = @{text t.inject} @{text t.distinct} @{text t.case} @{text t.disc_corec} @{text t.disc_corec_iff}] ~ \\
-@{text t.sel_corec} @{text t.disc_unfold} @{text t.disc_unfold_iff} @{text t.sel_unfold} @{text t.map} \\
-@{text t.rel_inject} @{text t.rel_distinct} @{text t.set}
+@{text t.sel_corec} @{text t.map} @{text t.rel_inject} @{text t.rel_distinct} @{text t.set}
 
 \end{description}
 \end{indentblock}

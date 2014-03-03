@@ -374,9 +374,8 @@ fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
   let
     val thy = Proof_Context.theory_of lthy0;
 
-    val ((missing_res_Ts, perm0_kks, fp_sugars as {nested_bnfs, co_rec = corec,
-            common_co_inducts = common_coinduct_thms, ...} :: _,
-          (_, gfp_sugar_thms)), lthy) =
+    val ((missing_res_Ts, perm0_kks, fp_sugars as {nested_bnfs,
+          common_co_inducts = common_coinduct_thms, ...} :: _, (_, gfp_sugar_thms)), lthy) =
       nested_to_mutual_fps Greatest_FP bs res_Ts callers callssss0 lthy0;
 
     val perm_fp_sugars = sort (int_ord o pairself #fp_res_index) fp_sugars;
@@ -924,8 +923,8 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
     val frees = map (fst #>> Binding.name_of #> Free) fixes;
     val has_call = exists_subterm (member (op =) frees);
     val eqns_data =
-      fold_map2 (dissect_coeqn lthy has_call fun_names sequentials basic_ctr_specss) (tag_list 0 (map snd specs))
-        of_specs_opt []
+      fold_map2 (dissect_coeqn lthy has_call fun_names sequentials basic_ctr_specss)
+        (tag_list 0 (map snd specs)) of_specs_opt []
       |> flat o fst;
 
     val callssss =
@@ -1296,8 +1295,8 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
           disc_thmsss' disc_eqnss disc_thmsss' disc_eqnss
           |> map sort_list_duplicates;
 
-        val ctr_alists = map5 (maps oooo prove_ctr) disc_alists (map (map snd) sel_alists) disc_eqnss
-          sel_eqnss ctr_specss;
+        val ctr_alists = map5 (maps oooo prove_ctr) disc_alists (map (map snd) sel_alists)
+          disc_eqnss sel_eqnss ctr_specss;
         val ctr_thmss' = map (map snd) ctr_alists;
         val ctr_thmss = map (map snd o order_list) ctr_alists;
 

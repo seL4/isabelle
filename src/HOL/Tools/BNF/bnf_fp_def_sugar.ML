@@ -228,11 +228,11 @@ val simp_attrs = @{attributes [simp]};
 
 val lists_bmoc = fold (fn xs => fn t => Term.list_comb (t, xs));
 
-fun flat_corec_predss_getterss qss fss = maps (op @) (qss ~~ fss);
+fun flat_corec_predss_getterss qss gss = maps (op @) (qss ~~ gss);
 
-fun flat_corec_preds_predsss_gettersss [] [qss] [fss] = flat_corec_predss_getterss qss fss
-  | flat_corec_preds_predsss_gettersss (p :: ps) (qss :: qsss) (fss :: fsss) =
-    p :: flat_corec_predss_getterss qss fss @ flat_corec_preds_predsss_gettersss ps qsss fsss;
+fun flat_corec_preds_predsss_gettersss [] [qss] [gss] = flat_corec_predss_getterss qss gss
+  | flat_corec_preds_predsss_gettersss (p :: ps) (qss :: qsss) (gss :: gsss) =
+    p :: flat_corec_predss_getterss qss gss @ flat_corec_preds_predsss_gettersss ps qsss gsss;
 
 fun mk_flip (x, Type (_, [T1, Type (_, [T2, T3])])) =
   Abs ("x", T1, Abs ("y", T2, Var (x, T2 --> T1 --> T3) $ Bound 0 $ Bound 1));
@@ -334,14 +334,14 @@ type gfp_sugar_thms =
   * (thm list list list * Args.src list);
 
 fun morph_gfp_sugar_thms phi ((coinducts_pairs, coinduct_attrs),
-    (corecss, corec_attrs), (disc_corecss, disc_rec_attrs),
-    (disc_corec_iffss, disc_rec_iff_attrs), (sel_corecsss, sel_rec_attrs)) =
+    (corecss, corec_attrs), (disc_corecss, disc_corec_attrs),
+    (disc_corec_iffss, disc_corec_iff_attrs), (sel_corecsss, sel_corec_attrs)) =
   ((map (apfst (map (Morphism.thm phi)) o apsnd (Morphism.thm phi)) coinducts_pairs,
     coinduct_attrs),
    (map (map (Morphism.thm phi)) corecss, corec_attrs),
-   (map (map (Morphism.thm phi)) disc_corecss, disc_rec_attrs),
-   (map (map (Morphism.thm phi)) disc_corec_iffss, disc_rec_iff_attrs),
-   (map (map (map (Morphism.thm phi))) sel_corecsss, sel_rec_attrs)) : gfp_sugar_thms;
+   (map (map (Morphism.thm phi)) disc_corecss, disc_corec_attrs),
+   (map (map (Morphism.thm phi)) disc_corec_iffss, disc_corec_iff_attrs),
+   (map (map (map (Morphism.thm phi))) sel_corecsss, sel_corec_attrs)) : gfp_sugar_thms;
 
 val transfer_gfp_sugar_thms =
   morph_gfp_sugar_thms o Morphism.transfer_morphism o Proof_Context.theory_of;
@@ -408,10 +408,10 @@ fun mk_corecs_args_types ctr_Tsss Cs absTs repTs ns mss dtor_corec_fun_Ts lthy =
 
     fun build_sum_inj mk_inj = build_map lthy (uncurry mk_inj o dest_sumT o snd);
 
-    fun build_dtor_corec_arg _ [] [cf] = cf
-      | build_dtor_corec_arg T [cq] [cf, cf'] =
-        mk_If cq (build_sum_inj Inl_const (fastype_of cf, T) $ cf)
-          (build_sum_inj Inr_const (fastype_of cf', T) $ cf');
+    fun build_dtor_corec_arg _ [] [cg] = cg
+      | build_dtor_corec_arg T [cq] [cg, cg'] =
+        mk_If cq (build_sum_inj Inl_const (fastype_of cg, T) $ cg)
+          (build_sum_inj Inr_const (fastype_of cg', T) $ cg');
 
     val pgss = map3 flat_corec_preds_predsss_gettersss pss qssss gssss;
     val cqssss = map2 (map o map o map o rapp) cs qssss;
@@ -612,7 +612,7 @@ fun derive_induct_recs_thms_for_types pre_bnfs rec_args_typess ctor_induct ctor_
       let
         val frecs = map (lists_bmoc fss) recs;
 
-        fun mk_goal fss frec xctr f xs fxs =
+        fun mk_goal frec xctr f xs fxs =
           fold_rev (fold_rev Logic.all) (xs :: fss)
             (mk_Trueprop_eq (frec $ xctr, Term.list_comb (f, fxs)));
 
@@ -630,7 +630,7 @@ fun derive_induct_recs_thms_for_types pre_bnfs rec_args_typess ctor_induct ctor_
               (fn kk => fn TU => maybe_tick TU (nth us kk) (nth frecs kk))) (T, U) $ x;
 
         val fxsss = map2 (map2 (flat_rec_arg_args oo map2 (map o build_rec))) xsss x_Tssss;
-        val goalss = map5 (map4 o mk_goal fss) frecs xctrss fss xsss fxsss;
+        val goalss = map5 (map4 o mk_goal) frecs xctrss fss xsss fxsss;
 
         val tacss =
           map4 (map ooo mk_rec_tac pre_map_defs (nested_map_idents @ nesting_map_idents) rec_defs)
@@ -652,8 +652,7 @@ fun derive_induct_recs_thms_for_types pre_bnfs rec_args_typess ctor_induct ctor_
      (rec_thmss, code_nitpicksimp_attrs @ simp_attrs))
   end;
 
-fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss,
-      corecs_args_types as ((pgss, cqgsss), _))
+fun derive_coinduct_corecs_thms_for_types pre_bnfs (x, cs, cpss, ((pgss, cqgsss), _))
     dtor_coinduct dtor_injects dtor_ctors dtor_corec_thms nesting_bnfs fpTs Cs Xs ctrXs_Tsss kss
     mss ns fp_abs_inverses abs_inverses mk_vimage2p ctr_defss (ctr_sugars : ctr_sugar list)
     corecs corec_defs export_args lthy =
@@ -1343,10 +1342,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       let
         val (([(coinduct_thms, coinduct_thm), (strong_coinduct_thms, strong_coinduct_thm)],
               coinduct_attrs),
-             (corec_thmss, corec_attrs),
-             (disc_corec_thmss, disc_corec_attrs),
-             (disc_corec_iff_thmss, disc_corec_iff_attrs),
-             (sel_corec_thmsss, sel_corec_attrs)) =
+             (corec_thmss, corec_attrs), (disc_corec_thmss, disc_corec_attrs),
+             (disc_corec_iff_thmss, disc_corec_iff_attrs), (sel_corec_thmsss, sel_corec_attrs)) =
           derive_coinduct_corecs_thms_for_types pre_bnfs (the corecs_args_types) xtor_co_induct
             dtor_injects dtor_ctors xtor_co_rec_thms nesting_bnfs fpTs Cs Xs ctrXs_Tsss kss mss ns
             abs_inverses abs_inverses I ctr_defss ctr_sugars corecs corec_defs
