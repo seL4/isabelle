@@ -266,4 +266,7 @@ hide_fact (open) id_transfer
 
 datatype_new 'a F = F 'a
 
+primrec f where
+  "f (F x) = x"
+
 end

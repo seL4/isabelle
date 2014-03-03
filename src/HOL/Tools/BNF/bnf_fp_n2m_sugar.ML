@@ -247,17 +247,15 @@ fun mutualize_fp_sugars fp bs fpTs callers callssss fp_sugars0 no_defs_lthy0 =
 
         val ((co_iterss, co_iter_defss), lthy) =
           fold_map2 (fn b =>
-            if fp = Least_FP then
-              define_iters [recN] (the iters_args_types) (mk_binding b) fpTs Cs reps
-            else
-              define_coiters [corecN] (the coiters_args_types) (mk_binding b) fpTs Cs abss)
-            fp_bs (map (single o co_rec_of) xtor_co_iterss) lthy
+            if fp = Least_FP then define_iter iters_args_types (mk_binding b) fpTs Cs reps
+            else define_coiter (the coiters_args_types) (mk_binding b) fpTs Cs abss)
+            fp_bs (map co_rec_of xtor_co_iterss) lthy
           |>> split_list;
 
         val ((common_co_inducts, co_inductss, co_rec_thmss, disc_corec_thmss, sel_corec_thmsss),
              fp_sugar_thms) =
           if fp = Least_FP then
-            derive_induct_iters_thms_for_types pre_bnfs (the iters_args_types) xtor_co_induct
+            derive_induct_iters_thms_for_types pre_bnfs iters_args_types xtor_co_induct
               xtor_co_iter_thmss nesting_bnfs nested_bnfs fpTs Cs Xs ctrXs_Tsss fp_abs_inverses
               fp_type_definitions abs_inverses ctrss ctr_defss co_iterss co_iter_defss lthy
             |> `(fn ((inducts, induct, _), (rec_thmss, _)) =>
