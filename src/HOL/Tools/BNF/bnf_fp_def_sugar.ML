@@ -268,7 +268,6 @@ fun mk_co_iters thy fp fpTs Cs ts0 =
     map (Term.subst_TVars rho) ts0
   end;
 
-
 fun unzip_recT (Type (@{type_name prod}, _)) T = [T]
   | unzip_recT _ (Type (@{type_name prod}, Ts)) = Ts
   | unzip_recT _ T = [T];
@@ -423,15 +422,13 @@ fun mk_coiters_args_types ctr_Tsss Cs absTs repTs ns mss dtor_coiter_fun_Tss lth
 
     val (s_Tssss, h_Tsss, h_Tssss, corec_types) = mk_types co_rec_of;
 
-    val ((((((Free (z, _), cs), pss), sssss), hssss_hd), hssss_tl), lthy) =
+    val (((((Free (z, _), cs), pss), sssss), hssss), lthy) =
       lthy
       |> yield_singleton (mk_Frees "z") dummyT
       ||>> mk_Frees "a" Cs
       ||>> mk_Freess "p" p_Tss
       ||>> mk_Freessss "q" s_Tssss
-      ||>> mk_Freessss "g" h_Tssss
-      ||>> mk_Freessss "h" (map (map (map tl)) h_Tssss);
-    val hssss = map2 (map2 (map2 append)) hssss_hd hssss_tl;
+      ||>> mk_Freessss "g" h_Tssss;
 
     val cpss = map2 (map o rapp) cs pss;
 
@@ -526,8 +523,7 @@ fun define_coiters coiterNs (_, cs, cpss, coiter_args_typess') mk_binding fpTs C
     lthy =
   let
     val nn = length fpTs;
-
-    val Type (_, [_, fpT]) = snd (strip_typeN nn (fastype_of (hd dtor_coiters)));
+    val fpTs = range_type (snd (strip_typeN nn (fastype_of (co_rec_of dtor_coiters))));
 
     fun generate_coiter pre ((pfss, cqfsss), f_absTs) dtor_coiter =
       (mk_binding pre,
