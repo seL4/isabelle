@@ -1315,11 +1315,15 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
 
         val common_name = mk_common_name fun_names;
 
+        val anonymous_notes =
+          [(flat disc_iff_or_disc_thmss, simp_attrs)]
+          |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
+
         val notes =
           [(coinductN, map (if n2m then single else K []) coinduct_thms, []),
            (codeN, code_thmss, code_nitpicksimp_attrs),
            (ctrN, ctr_thmss, []),
-           (discN, disc_thmss, simp_attrs),
+           (discN, disc_thmss, []),
            (disc_iffN, disc_iff_thmss, []),
            (excludeN, exclude_thmss, []),
            (exhaustN, nontriv_exhaust_thmss, []),
@@ -1343,7 +1347,7 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
         |> Spec_Rules.add Spec_Rules.Equational (map fst def_infos, flat sel_thmss)
         |> Spec_Rules.add Spec_Rules.Equational (map fst def_infos, flat ctr_thmss)
         |> Spec_Rules.add Spec_Rules.Equational (map fst def_infos, flat code_thmss)
-        |> Local_Theory.notes (notes @ common_notes)
+        |> Local_Theory.notes (anonymous_notes @ notes @ common_notes)
         |> snd
       end;
 
