@@ -178,11 +178,30 @@ class JEdit_Editor extends Editor[View]
   def hyperlink_file(name: String, line: Int = 0, column: Int = 0): Hyperlink =
     new Hyperlink { def follow(view: View) = goto_file(view, name, line, column) }
 
-  def hyperlink_source_file(name: String, line: Int): Option[Hyperlink] =
-    if (Path.is_ok(name))
-      Isabelle_System.source_file(Path.explode(name)).map(path =>
-        hyperlink_file(Isabelle_System.platform_path(path), line))
+  def hyperlink_source_file(source_name: String, line: Int, raw_offset: Text.Offset)
+    : Option[Hyperlink] =
+  {
+    if (Path.is_ok(source_name)) {
+      Isabelle_System.source_file(Path.explode(source_name)) match {
+        case Some(path) =>
+          val name = Isabelle_System.platform_path(path)
+          JEdit_Lib.jedit_buffer(name) match {
+            case Some(buffer) if raw_offset > 0 =>
+              val (line, column) =
+                JEdit_Lib.buffer_lock(buffer) {
+                  ((1, 1) /:
+                    (Symbol.iterator(JEdit_Lib.buffer_text(buffer)).
+                      zipWithIndex.takeWhile(p => p._2 < raw_offset - 1).map(_._1)))(
+                        Symbol.advance_line_column)
+                }
+              Some(hyperlink_file(name, line, column))
+            case _ => Some(hyperlink_file(name, line))
+          }
+        case None => None
+      }
+    }
     else None
+  }
 
   def hyperlink_url(name: String): Hyperlink =
     new Hyperlink {

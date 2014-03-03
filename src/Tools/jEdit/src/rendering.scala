@@ -330,7 +330,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   private def hyperlink_file(props: Properties.T): Option[PIDE.editor.Hyperlink] =
     props match {
       case Position.Def_Line_File(line, name) =>
-        PIDE.editor.hyperlink_source_file(name, line)
+        val offset = Position.Def_Offset.unapply(props) getOrElse 0
+        PIDE.editor.hyperlink_source_file(name, line, offset)
       case Position.Def_Id_Offset(id, offset) =>
         PIDE.editor.hyperlink_command_id(snapshot, id, offset)
       case _ => None
