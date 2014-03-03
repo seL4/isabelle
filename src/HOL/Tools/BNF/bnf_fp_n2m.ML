@@ -236,7 +236,8 @@ fun construct_mutualized_fp fp fpTs (fp_sugars : fp_sugar list) bs resBs (resDs,
       |> mk_Frees' "s" fold_strTs
       ||>> mk_Frees' "s" rec_strTs;
 
-    val co_iters = of_fp_res #xtor_co_iterss;
+    val co_folds = of_fp_res #xtor_co_folds;
+    val co_recs = of_fp_res #xtor_co_recs;
     val ns = map (length o #Ts o #fp_res) fp_sugars;
 
     fun substT rho (Type (@{type_name "fun"}, [T, U])) = substT rho T --> substT rho U
@@ -245,11 +246,11 @@ fun construct_mutualized_fp fp fpTs (fp_sugars : fp_sugar list) bs resBs (resDs,
 
     val typ_subst_nonatomic_sorted = fold_rev (typ_subst_nonatomic o single);
 
-    fun force_iter is_rec i TU TU_rec raw_iters =
+    fun force_iter is_rec i TU TU_rec raw_fold raw_rec =
       let
         val thy = Proof_Context.theory_of lthy;
 
-        val approx_fold = un_fold_of raw_iters
+        val approx_fold = raw_fold
           |> force_typ names_lthy
             (replicate (nth ns i) dummyT ---> (if is_rec then TU_rec else TU));
         val subst = Term.typ_subst_atomic fold_thetaAs;
@@ -269,9 +270,8 @@ fun construct_mutualized_fp fp fpTs (fp_sugars : fp_sugar list) bs resBs (resDs,
 
         val js = find_indices Type.could_unify TUs cands;
         val Tpats = map (fn j => mk_co_algT (nth fold_pre_deads_only_Ts j) (nth Xs j)) js;
-        val iter = raw_iters |> (if is_rec then co_rec_of else un_fold_of);
       in
-        force_typ names_lthy (Tpats ---> TU) iter
+        force_typ names_lthy (Tpats ---> TU) (if is_rec then raw_rec else raw_fold)
       end;
 
     fun mk_co_comp_abs_rep fp_absT absT fp_abs fp_rep abs rep t =
@@ -286,10 +286,11 @@ fun construct_mutualized_fp fp fpTs (fp_sugars : fp_sugar list) bs resBs (resDs,
         val i = find_index (fn T => x = T) Xs;
         val TUiter =
           (case find_first (fn f => body_fun_type (fastype_of f) = TU) iters of
-            NONE => nth co_iters i
-              |> force_iter is_rec i
+            NONE => 
+              force_iter is_rec i
                 (TU |> (is_none b_opt andalso not is_rec) ? substT (fpTs ~~ Xs))
-                (TU |> (is_none b_opt) ? substT (map2 mk_co_productT fpTs Xs ~~ Xs))
+                (TU |> is_none b_opt ? substT (map2 mk_co_productT fpTs Xs ~~ Xs))
+                (nth co_folds i) (nth co_recs i)
           | SOME f => f);
 
         val TUs = binder_fun_types (fastype_of TUiter);
@@ -373,6 +374,9 @@ fun construct_mutualized_fp fp fpTs (fp_sugars : fp_sugar list) bs resBs (resDs,
     val un_folds = map (Morphism.term phi) raw_un_folds;
     val co_recs = map (Morphism.term phi) raw_co_recs;
 
+    val fp_fold_o_maps = of_fp_res #xtor_co_fold_o_map_thms;
+    val fp_rec_o_maps = of_fp_res #xtor_co_rec_o_map_thms;
+
     val (xtor_un_fold_thms, xtor_co_rec_thms) =
       let
         val folds = map (fn f => Term.list_comb (f, fold_strs)) raw_un_folds;
@@ -419,13 +423,9 @@ fun construct_mutualized_fp fp fpTs (fp_sugars : fp_sugar list) bs resBs (resDs,
 
         val unfold_map = map (unfold_thms lthy (id_apply :: pre_map_defs));
 
-        val fp_xtor_co_iterss = of_fp_res #xtor_co_iter_thmss;
-        val fp_xtor_un_folds = map (mk_pointfree lthy o un_fold_of) fp_xtor_co_iterss;
-        val fp_xtor_co_recs = map (mk_pointfree lthy o co_rec_of) fp_xtor_co_iterss;
+        val fp_xtor_un_folds = map (mk_pointfree lthy) (of_fp_res #xtor_co_fold_thms);
+        val fp_xtor_co_recs = map (mk_pointfree lthy) (of_fp_res #xtor_co_rec_thms);
 
-        val fp_co_iter_o_mapss = of_fp_res #xtor_co_iter_o_map_thmss;
-        val fp_fold_o_maps = map un_fold_of fp_co_iter_o_mapss;
-        val fp_rec_o_maps = map co_rec_of fp_co_iter_o_mapss;
         val fold_thms = fp_case fp @{thm comp_assoc} @{thm comp_assoc[symmetric]} ::
           map (fn thm => thm RS rewrite_comp_comp) @{thms map_pair.comp sum_map.comp} @
           @{thms id_apply comp_id id_comp map_pair.comp map_pair.id sum_map.comp sum_map.id};
@@ -464,12 +464,8 @@ fun construct_mutualized_fp fp fpTs (fp_sugars : fp_sugar list) bs resBs (resDs,
     (* These results are half broken. This is deliberate. We care only about those fields that are
        used by "primrec", "primcorecursive", and "datatype_compat". *)
     val fp_res =
-      ({Ts = fpTs,
-        bnfs = of_fp_res #bnfs,
-        dtors = dtors,
-        ctors = ctors,
-        xtor_co_iterss = transpose [un_folds, co_recs],
-        xtor_co_induct = xtor_co_induct_thm,
+      ({Ts = fpTs, bnfs = of_fp_res #bnfs, dtors = dtors, ctors = ctors, xtor_co_folds = un_folds,
+        xtor_co_recs = co_recs, xtor_co_induct = xtor_co_induct_thm,
         dtor_ctors = of_fp_res #dtor_ctors (*too general types*),
         ctor_dtors = of_fp_res #ctor_dtors (*too general types*),
         ctor_injects = of_fp_res #ctor_injects (*too general types*),
@@ -477,9 +473,10 @@ fun construct_mutualized_fp fp fpTs (fp_sugars : fp_sugar list) bs resBs (resDs,
         xtor_map_thms = of_fp_res #xtor_map_thms (*too general types and terms*),
         xtor_set_thmss = of_fp_res #xtor_set_thmss (*too general types and terms*),
         xtor_rel_thms = of_fp_res #xtor_rel_thms (*too general types and terms*),
-        xtor_co_iter_thmss = transpose [xtor_un_fold_thms, xtor_co_rec_thms],
-        xtor_co_iter_o_map_thmss = of_fp_res #xtor_co_iter_o_map_thmss
-          (*theorem about old constant*),
+        xtor_co_fold_thms = xtor_un_fold_thms,
+        xtor_co_rec_thms = xtor_co_rec_thms,
+        xtor_co_fold_o_map_thms = fp_fold_o_maps (*theorems about old constants*),
+        xtor_co_rec_o_map_thms = fp_rec_o_maps (*theorems about old constants*),
         rel_xtor_co_induct_thm = rel_xtor_co_induct_thm}
        |> morph_fp_result (Morphism.term_morphism "BNF" (singleton (Variable.polymorphic lthy))));
   in

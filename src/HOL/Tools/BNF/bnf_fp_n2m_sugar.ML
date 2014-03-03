@@ -223,8 +223,8 @@ fun mutualize_fp_sugars fp bs fpTs callers callssss fp_sugars0 no_defs_lthy0 =
 
         val fp_absT_infos = map #absT_info fp_sugars0;
 
-        val ((pre_bnfs, absT_infos), (fp_res as {xtor_co_iterss = xtor_co_iterss0, xtor_co_induct,
-               dtor_injects, dtor_ctors, xtor_co_iter_thmss, ...}, lthy)) =
+        val ((pre_bnfs, absT_infos), (fp_res as {xtor_co_recs = xtor_co_recs0, xtor_co_induct,
+               dtor_injects, dtor_ctors, xtor_co_rec_thms, ...}, lthy)) =
           fp_bnf (construct_mutualized_fp fp fpTs fp_sugars0) fp_bs As' killed_As' fp_eqs
             no_defs_lthy0;
 
@@ -240,10 +240,8 @@ fun mutualize_fp_sugars fp bs fpTs callers callssss fp_sugars0 no_defs_lthy0 =
         val nesting_bnfs = nesty_bnfs lthy ctrXs_Tsss As;
         val nested_bnfs = nesty_bnfs lthy ctrXs_Tsss Xs;
 
-        val xtor_co_rec_thms = map co_rec_of xtor_co_iter_thmss;
         val ((xtor_co_recs, recs_args_types, corecs_args_types), _) =
-          mk_co_recs_prelims fp ctr_Tsss fpTs Cs absTs repTs ns mss (map co_rec_of xtor_co_iterss0)
-            lthy;
+          mk_co_recs_prelims fp ctr_Tsss fpTs Cs absTs repTs ns mss xtor_co_recs0 lthy;
 
         fun mk_binding b suf = Binding.suffix_name ("_" ^ suf) b;
 

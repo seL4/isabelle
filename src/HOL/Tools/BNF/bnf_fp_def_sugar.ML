@@ -1006,9 +1006,9 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         (unsorted_As ~~ transpose set_boss);
 
     val ((pre_bnfs, absT_infos), (fp_res as {bnfs = fp_bnfs as any_fp_bnf :: _, ctors = ctors0,
-             dtors = dtors0, xtor_co_iterss = xtor_co_iterss0, xtor_co_induct, dtor_ctors,
+             dtors = dtors0, xtor_co_recs = xtor_co_recs0, xtor_co_induct, dtor_ctors,
              ctor_dtors, ctor_injects, dtor_injects, xtor_map_thms, xtor_set_thmss, xtor_rel_thms,
-             xtor_co_iter_thmss, ...},
+             xtor_co_rec_thms, ...},
            lthy)) =
       fp_bnf (construct_fp mixfixes map_bs rel_bs set_bss) fp_bs (map dest_TFree unsorted_As)
         (map dest_TFree killed_As) fp_eqs no_defs_lthy0
@@ -1094,8 +1094,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val mss = map (map length) ctr_Tsss;
 
     val ((xtor_co_recs, recs_args_types, corecs_args_types), lthy') =
-      mk_co_recs_prelims fp ctr_Tsss fpTs Cs absTs repTs ns mss (map co_rec_of xtor_co_iterss0)
-        lthy;
+      mk_co_recs_prelims fp ctr_Tsss fpTs Cs absTs repTs ns mss xtor_co_recs0 lthy;
 
     fun define_ctrs_dtrs_for_type (((((((((((((((((((((((((((fp_bnf, fp_b), fpT), ctor), dtor),
               xtor_co_rec), ctor_dtor), dtor_ctor), ctor_inject), pre_map_def), pre_set_defs),
@@ -1314,9 +1313,9 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
           (recs, rec_defs)), lthy) =
       let
         val ((induct_thms, induct_thm, induct_attrs), (rec_thmss, iter_attrs)) =
-          derive_induct_recs_thms_for_types pre_bnfs recs_args_types xtor_co_induct
-            (map co_rec_of xtor_co_iter_thmss) nesting_bnfs nested_bnfs fpTs Cs Xs ctrXs_Tsss
-            abs_inverses type_definitions abs_inverses ctrss ctr_defss recs rec_defs lthy;
+          derive_induct_recs_thms_for_types pre_bnfs recs_args_types xtor_co_induct xtor_co_rec_thms
+            nesting_bnfs nested_bnfs fpTs Cs Xs ctrXs_Tsss abs_inverses type_definitions
+            abs_inverses ctrss ctr_defss recs rec_defs lthy;
 
         val induct_type_attr = Attrib.internal o K o Induct.induct_type;
 
@@ -1359,8 +1358,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
              (disc_corec_iff_thmss, disc_corec_iff_attrs),
              (sel_corec_thmsss, sel_corec_attrs)) =
           derive_coinduct_corecs_thms_for_types pre_bnfs (the corecs_args_types) xtor_co_induct
-            dtor_injects dtor_ctors (map co_rec_of xtor_co_iter_thmss) nesting_bnfs fpTs Cs Xs
-            ctrXs_Tsss kss mss ns abs_inverses abs_inverses I ctr_defss ctr_sugars corecs corec_defs
+            dtor_injects dtor_ctors xtor_co_rec_thms nesting_bnfs fpTs Cs Xs ctrXs_Tsss kss mss ns
+            abs_inverses abs_inverses I ctr_defss ctr_sugars corecs corec_defs
             (Proof_Context.export lthy' no_defs_lthy) lthy;
 
         val sel_corec_thmss = map flat sel_corec_thmsss;

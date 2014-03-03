@@ -266,8 +266,13 @@ hide_fact (open) id_transfer
 
 datatype_new 'a F = F0 | F 'a "'a F"
 datatype_compat F
+datatype_new 'a T = T 'a "'a T F"
 
 primrec f where
   "f (F x y) = F x (f y)"
 
+primrec h and g where
+  "h (T x ts) = T x (g ts)" |
+  "g F0 = F0"
+  
 end
