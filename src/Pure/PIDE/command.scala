@@ -152,11 +152,12 @@ object Command
               def bad(): Unit = System.err.println("Ignored report message: " + msg)
 
               msg match {
-                case XML.Elem(Markup(name, atts @ Position.Reported(id, file_name, raw_range)), args)
+                case XML.Elem(Markup(name,
+                  atts @ Position.Reported(id, file_name, symbol_range)), args)
                 if id == command.id || id == alt_id =>
                   command.chunks.get(file_name) match {
                     case Some(chunk) =>
-                      chunk.incorporate(raw_range) match {
+                      chunk.incorporate(symbol_range) match {
                         case Some(range) =>
                           val props = Position.purge(atts)
                           val info = Text.Info(range, XML.Elem(Markup(name, props), args))
@@ -216,16 +217,16 @@ object Command
     def file_name: String
     def length: Int
     def range: Text.Range
-    def decode(raw_range: Text.Range): Text.Range
+    def decode(symbol_range: Symbol.Range): Text.Range
 
-    def incorporate(raw_range: Text.Range): Option[Text.Range] =
+    def incorporate(symbol_range: Symbol.Range): Option[Text.Range] =
     {
-      def inc(r: Text.Range): Option[Text.Range] =
+      def inc(r: Symbol.Range): Option[Text.Range] =
         range.try_restrict(decode(r)) match {
           case Some(r1) if !r1.is_singularity => Some(r1)
           case _ => None
         }
-     inc(raw_range) orElse inc(raw_range - 1)
+     inc(symbol_range) orElse inc(symbol_range - 1)
     }
   }
 
@@ -234,7 +235,7 @@ object Command
     val length = text.length
     val range = Text.Range(0, length)
     private val symbol_index = Symbol.Index(text)
-    def decode(raw_range: Text.Range): Text.Range = symbol_index.decode(raw_range)
+    def decode(symbol_range: Symbol.Range): Text.Range = symbol_index.decode(symbol_range)
 
     override def toString: String = "Command.File(" + file_name + ")"
   }
@@ -374,8 +375,8 @@ final class Command private(
   def source(range: Text.Range): String = source.substring(range.start, range.stop)
 
   private lazy val symbol_index = Symbol.Index(source)
-  def decode(raw_offset: Text.Offset): Text.Offset = symbol_index.decode(raw_offset)
-  def decode(raw_range: Text.Range): Text.Range = symbol_index.decode(raw_range)
+  def decode(symbol_offset: Symbol.Offset): Text.Offset = symbol_index.decode(symbol_offset)
+  def decode(symbol_range: Symbol.Range): Text.Range = symbol_index.decode(symbol_range)
 
 
   /* accumulated results */

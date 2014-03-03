@@ -145,8 +145,8 @@ class JEdit_Editor extends Editor[View]
 
   /* hyperlinks */
 
-  override def hyperlink_command(snapshot: Document.Snapshot, command: Command, raw_offset: Int = 0)
-    : Option[Hyperlink] =
+  override def hyperlink_command(
+    snapshot: Document.Snapshot, command: Command, offset: Symbol.Offset = 0): Option[Hyperlink] =
   {
     if (snapshot.is_outdated) None
     else {
@@ -156,8 +156,8 @@ class JEdit_Editor extends Editor[View]
           val file_name = command.node_name.node
           val sources =
             node.commands.iterator.takeWhile(_ != command).map(_.source) ++
-              (if (raw_offset == 0) Iterator.empty
-               else Iterator.single(command.source(Text.Range(0, command.decode(raw_offset)))))
+              (if (offset == 0) Iterator.empty
+               else Iterator.single(command.source(Text.Range(0, command.decode(offset)))))
           val (line, column) = ((1, 1) /: sources)(Symbol.advance_line_column)
           Some(new Hyperlink { def follow(view: View) { goto_file(view, file_name, line, column) } })
       }
@@ -167,10 +167,10 @@ class JEdit_Editor extends Editor[View]
   def hyperlink_command_id(
     snapshot: Document.Snapshot,
     id: Document_ID.Generic,
-    raw_offset: Text.Offset): Option[Hyperlink] =
+    offset: Symbol.Offset): Option[Hyperlink] =
   {
     snapshot.state.find_command(snapshot.version, id) match {
-      case Some((node, command)) => hyperlink_command(snapshot, command, raw_offset)
+      case Some((node, command)) => hyperlink_command(snapshot, command, offset)
       case None => None
     }
   }
@@ -178,7 +178,7 @@ class JEdit_Editor extends Editor[View]
   def hyperlink_file(name: String, line: Int = 0, column: Int = 0): Hyperlink =
     new Hyperlink { def follow(view: View) = goto_file(view, name, line, column) }
 
-  def hyperlink_source_file(source_name: String, line: Int, raw_offset: Text.Offset)
+  def hyperlink_source_file(source_name: String, line: Int, offset: Symbol.Offset)
     : Option[Hyperlink] =
   {
     if (Path.is_valid(source_name)) {
@@ -186,12 +186,12 @@ class JEdit_Editor extends Editor[View]
         case Some(path) =>
           val name = Isabelle_System.platform_path(path)
           JEdit_Lib.jedit_buffer(name) match {
-            case Some(buffer) if raw_offset > 0 =>
+            case Some(buffer) if offset > 0 =>
               val (line, column) =
                 JEdit_Lib.buffer_lock(buffer) {
                   ((1, 1) /:
                     (Symbol.iterator(JEdit_Lib.buffer_text(buffer)).
-                      zipWithIndex.takeWhile(p => p._2 < raw_offset - 1).map(_._1)))(
+                      zipWithIndex.takeWhile(p => p._2 < offset - 1).map(_._1)))(
                         Symbol.advance_line_column)
                 }
               Some(hyperlink_file(name, line, column))
