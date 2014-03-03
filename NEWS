@@ -112,8 +112,7 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
 
 * Moved new (co)datatype package and its dependencies from "HOL-BNF" to "HOL".
   The "bnf", "wrap_free_constructors", "datatype_new", "codatatype",
-  "primrec_new", "primcorec", and "primcorecursive" command are now part of
-  "Main".
+  "primcorec", and "primcorecursive" commands are now part of "Main".
   Theory renamings:
     FunDef.thy ~> Fun_Def.thy (and Fun_Def_Base.thy)
     Library/Wfrec.thy ~> Wfrec.thy
@@ -146,18 +145,26 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
   Discontinued theories:
     BNF/BNF.thy
     BNF/Equiv_Relations_More.thy
-  Renamed commands:
-    datatype_new_compat ~> datatype_compat
-    primrec_new ~> primrec
-    wrap_free_constructors ~> free_constructors
   INCOMPATIBILITY.
+
+* New datatype package:
+  * "primcorec" is fully implemented.
+  * Renamed commands:
+      datatype_new_compat ~> datatype_compat
+      primrec_new ~> primrec
+      wrap_free_constructors ~> free_constructors
+    INCOMPATIBILITY.
+  * The generated constants "xxx_case" and "xxx_rec" have been renamed
+    "case_xxx" and "rec_xxx" (e.g., "prod_case" ~> "case_prod").
+    INCOMPATIBILITY.
+  * The constant "xxx_(un)fold" and related theorems are no longer generated.
+    Use "xxx_(co)rec" or define "xxx_(un)fold" manually using "prim(co)rec".
+    INCOMPATIBILITY.
 
 * Old datatype package:
   * The generated theorems "xxx.cases" and "xxx.recs" have been renamed
     "xxx.case" and "xxx.rec" (e.g., "sum.cases" -> "sum.case").
     INCOMPATIBILITY.
-
-* Old and new (co)datatype packages:
   * The generated constants "xxx_case" and "xxx_rec" have been renamed
     "case_xxx" and "rec_xxx" (e.g., "prod_case" ~> "case_prod").
     INCOMPATIBILITY.
