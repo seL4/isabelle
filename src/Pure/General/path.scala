@@ -97,8 +97,11 @@ object Path
     new Path(norm_elems(elems.reverse ::: roots))
   }
 
-  def is_ok(str: String): Boolean =
+  def is_wellformed(str: String): Boolean =
     try { explode(str); true } catch { case ERROR(_) => false }
+
+  def is_valid(str: String): Boolean =
+    try { explode(str).expand; true } catch { case ERROR(_) => false }
 
   def split(str: String): List[Path] =
     space_explode(':', str).filterNot(_.isEmpty).map(explode)

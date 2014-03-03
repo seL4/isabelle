@@ -181,7 +181,7 @@ class JEdit_Editor extends Editor[View]
   def hyperlink_source_file(source_name: String, line: Int, raw_offset: Text.Offset)
     : Option[Hyperlink] =
   {
-    if (Path.is_ok(source_name)) {
+    if (Path.is_valid(source_name)) {
       Isabelle_System.source_file(Path.explode(source_name)) match {
         case Some(path) =>
           val name = Isabelle_System.platform_path(path)
