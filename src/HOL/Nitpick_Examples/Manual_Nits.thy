@@ -15,19 +15,6 @@ theory Manual_Nits
 imports Real "~~/src/HOL/Library/Quotient_Product"
 begin
 
-declaration {*
-  Nitpick_HOL.register_frac_type @{type_name real}
-   [(@{const_name zero_real_inst.zero_real}, @{const_name Nitpick.zero_frac}),
-    (@{const_name one_real_inst.one_real}, @{const_name Nitpick.one_frac}),
-    (@{const_name plus_real_inst.plus_real}, @{const_name Nitpick.plus_frac}),
-    (@{const_name times_real_inst.times_real}, @{const_name Nitpick.times_frac}),
-    (@{const_name uminus_real_inst.uminus_real}, @{const_name Nitpick.uminus_frac}),
-    (@{const_name inverse_real_inst.inverse_real}, @{const_name Nitpick.inverse_frac}),
-    (@{const_name ord_real_inst.less_real}, @{const_name Nitpick.less_frac}),
-    (@{const_name ord_real_inst.less_eq_real}, @{const_name Nitpick.less_eq_frac})]
-*}
-(*###*)
-
 section {* 2. First Steps *}
 
 nitpick_params [sat_solver = MiniSat_JNI, max_threads = 1, timeout = 240]
