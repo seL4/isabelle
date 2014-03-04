@@ -627,8 +627,10 @@ fun morph_absT_info phi
    type_definition = Morphism.thm phi type_definition};
 
 fun mk_absT thy repT absT repU =
-  let val rho = Vartab.fold (cons o apsnd snd) (Sign.typ_match thy (repT, repU) Vartab.empty) [];
-  in Term.typ_subst_TVars rho absT end;
+  let
+ val rho = Vartab.fold (cons o apsnd snd) (Sign.typ_match thy (repT, repU) Vartab.empty) [];
+  in Term.typ_subst_TVars rho absT end
+  handle Type.TYPE_MATCH => raise Term.TYPE ("mk_absT", [repT, absT, repU], []);
 
 fun mk_repT absT repT absU =
   if absT = repT then absU
