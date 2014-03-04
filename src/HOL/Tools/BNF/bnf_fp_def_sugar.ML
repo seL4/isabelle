@@ -1267,7 +1267,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
               (((map_thms, rel_inject_thms, rel_distinct_thms, set_thmss), ctr_sugar),
                lthy
                |> Spec_Rules.add Spec_Rules.Equational (`(single o lhs_head_of o hd) map_thms)
-               |> Spec_Rules.add Spec_Rules.Equational (`(single o lhs_head_of o hd) rel_eq_thms)
+               |> fp = Least_FP
+                 ? Spec_Rules.add Spec_Rules.Equational (`(single o lhs_head_of o hd) rel_eq_thms)
                |> Spec_Rules.add Spec_Rules.Equational (`(single o lhs_head_of o hd) set_thms)
                |> Local_Theory.notes (anonymous_notes @ notes)
                |> snd)
