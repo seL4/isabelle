@@ -1713,8 +1713,8 @@ For convenience, @{command codatatype} also provides the following collection:
 \begin{indentblock}
 \begin{description}
 
-\item[@{text "t."}\hthm{simps} = @{text t.inject} @{text t.distinct} @{text t.case} @{text t.disc_corec} @{text t.disc_corec_iff}] ~ \\
-@{text t.sel_corec} @{text t.map} @{text t.rel_inject} @{text t.rel_distinct} @{text t.set}
+\item[@{text "t."}\hthm{simps} = @{text t.inject} @{text t.distinct} @{text t.case} @{text t.disc_corec_iff}] @{text t.sel_corec} ~ \\
+@{text t.map} @{text t.rel_inject} @{text t.rel_distinct} @{text t.set}
 
 \end{description}
 \end{indentblock}
