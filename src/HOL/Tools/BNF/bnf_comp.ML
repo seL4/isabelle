@@ -142,11 +142,11 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
       (Variable.invent_types (replicate ilive HOLogic.typeS) lthy2);
     val As = if ilive > 0 then hd Ass else [];
     val Ass_repl = replicate olive As;
-    val (Bs, _(*lthy4*)) = apfst (map TFree)
+    val (Bs, names_lthy) = apfst (map TFree)
       (Variable.invent_types (replicate ilive HOLogic.typeS) lthy3);
     val Bss_repl = replicate olive Bs;
 
-    val ((((fs', Qs'), Asets), xs), _(*names_lthy*)) = lthy
+    val ((((fs', Qs'), Asets), xs), _) = names_lthy
       |> apfst snd o mk_Frees' "f" (map2 (curry op -->) As Bs)
       ||>> apfst snd o mk_Frees' "Q" (map2 mk_pred2T As Bs)
       ||>> mk_Frees "A" (map HOLogic.mk_setT As)
@@ -192,6 +192,24 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
 
     val (sets, sets_alt) = map_split mk_set (0 upto ilive - 1);
 
+    fun mk_simplified_set set =
+      let
+        val setT = fastype_of set;
+        val schem_set' = Const (@{const_name id_bnf_comp}, setT --> setT) $ Var (("?x", 0), setT);
+        val goal = mk_Trueprop_eq (schem_set', set);
+        fun tac {context = ctxt, prems = _} = mk_simplified_set_tac ctxt;
+        val set'_eq_set =
+          Goal.prove_sorry names_lthy [] [] goal tac
+          |> Thm.close_derivation;
+        val set' = fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.prop_of set'_eq_set)));
+      in
+        (set', set'_eq_set)
+      end;
+
+    val (sets', set'_eq_sets) =
+      map_split mk_simplified_set sets
+      ||> Proof_Context.export names_lthy lthy;
+
     (*(inner_1.bd +c ... +c inner_m.bd) *c outer.bd*)
     val bd = mk_cprod (Library.foldr1 (uncurry mk_csum) inner_bds) outer_bd;
 
@@ -217,9 +235,9 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
       mk_comp_map_comp0_tac (map_comp0_of_bnf outer) (map_cong0_of_bnf outer)
         (map map_comp0_of_bnf inners);
 
-    fun mk_single_set_map0_tac i _ =
-      mk_comp_set_map0_tac (map_comp0_of_bnf outer) (map_cong0_of_bnf outer)
-        (collect_set_map_of_bnf outer)
+    fun mk_single_set_map0_tac i ctxt =
+      mk_comp_set_map0_tac ctxt (nth set'_eq_sets i) (map_comp0_of_bnf outer)
+        (map_cong0_of_bnf outer) (collect_set_map_of_bnf outer)
         (map ((fn thms => nth thms i) o set_map0_of_bnf) inners);
 
     val set_map0_tacs = map mk_single_set_map0_tac (0 upto ilive - 1);
@@ -241,8 +259,9 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
           |> Thm.close_derivation)
         (map2 (curry (HOLogic.mk_Trueprop o HOLogic.mk_eq)) sets sets_alt);
 
-    fun map_cong0_tac _ =
-      mk_comp_map_cong0_tac set_alt_thms (map_cong0_of_bnf outer) (map map_cong0_of_bnf inners);
+    fun map_cong0_tac ctxt =
+      mk_comp_map_cong0_tac ctxt set'_eq_sets set_alt_thms (map_cong0_of_bnf outer)
+        (map map_cong0_of_bnf inners);
 
     val set_bd_tacs =
       if Config.get lthy quick_and_dirty then
@@ -258,9 +277,9 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
           val single_set_bd_thmss =
             map ((fn f => map f (0 upto olive - 1)) o single_set_bd_thm) (0 upto ilive - 1);
         in
-          map2 (fn set_alt => fn single_set_bds => fn ctxt =>
-            mk_comp_set_bd_tac ctxt bd_ordIso_natLeq_thm_opt set_alt single_set_bds)
-          set_alt_thms single_set_bd_thmss
+          map3 (fn set'_eq_set => fn set_alt => fn single_set_bds => fn ctxt =>
+            mk_comp_set_bd_tac ctxt set'_eq_set bd_ordIso_natLeq_thm_opt set_alt single_set_bds)
+          set'_eq_sets set_alt_thms single_set_bd_thmss
         end;
 
     val in_alt_thm =
@@ -277,7 +296,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
     fun le_rel_OO_tac _ = mk_le_rel_OO_tac (le_rel_OO_of_bnf outer) (rel_mono_of_bnf outer)
       (map le_rel_OO_of_bnf inners);
 
-    fun rel_OO_Grp_tac _ =
+    fun rel_OO_Grp_tac ctxt =
       let
         val outer_rel_Grp = rel_Grp_of_bnf outer RS sym;
         val outer_rel_cong = rel_cong_of_bnf outer;
@@ -287,10 +306,9 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
                [trans OF [outer_rel_Grp RS @{thm arg_cong[of _ _ conversep]},
                  rel_conversep_of_bnf outer RS sym], outer_rel_Grp],
                trans OF [rel_OO_of_bnf outer RS sym, outer_rel_cong OF
-                 (map (fn bnf => rel_OO_Grp_of_bnf bnf RS sym) inners)]]] RS sym)
-          (*|> unfold_thms lthy (rel_def_of_bnf outer :: map rel_def_of_bnf inners)*);
+                 (map (fn bnf => rel_OO_Grp_of_bnf bnf RS sym) inners)]]] RS sym);
       in
-        rtac thm 1
+        unfold_thms_tac ctxt set'_eq_sets THEN rtac thm 1
       end;
 
     val tacs = zip_axioms map_id0_tac map_comp0_tac map_cong0_tac set_map0_tacs bd_card_order_tac
@@ -312,14 +330,21 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
       |> map (fn (frees, t) => fold absfree frees t);
 
     fun wit_tac ctxt =
-      mk_comp_wit_tac ctxt (wit_thms_of_bnf outer) (collect_set_map_of_bnf outer)
+      mk_comp_wit_tac ctxt set'_eq_sets (wit_thms_of_bnf outer) (collect_set_map_of_bnf outer)
         (maps wit_thms_of_bnf inners);
 
     val (bnf', lthy') =
       bnf_def const_policy (K Dont_Note) qualify tacs wit_tac (SOME (oDs @ flat Dss)) Binding.empty
-        Binding.empty [] ((((((b, CCA), mapx), sets), bd'), wits), SOME rel) lthy;
+        Binding.empty [] ((((((b, CCA), mapx), sets'), bd'), wits), SOME rel) lthy;
+
+    val phi =
+      Morphism.thm_morphism "BNF" (unfold_thms lthy' @{thms id_bnf_comp_def})
+      $> Morphism.term_morphism "BNF" (Raw_Simplifier.rewrite_term (Proof_Context.theory_of lthy')
+        @{thms id_bnf_comp_def[abs_def]} []);
+
+    val bnf'' = morph_bnf phi bnf';
   in
-    (bnf', (add_bnf_to_unfolds bnf' unfold_set, lthy'))
+    (bnf'', (add_bnf_to_unfolds bnf'' unfold_set, lthy'))
   end;
 
 (* Killing live variables *)

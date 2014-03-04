@@ -38,11 +38,11 @@ val basic_simp_thms = @{thms simp_thms(7,8,12,14,22,24)};
 val more_simp_thms = basic_simp_thms @ @{thms simp_thms(11,15,16,21)};
 
 val sum_prod_thms_map = @{thms id_apply map_pair_simp prod.case sum.case sum_map.simps};
-val sum_prod_thms_set0 =
+val sum_prod_thms_set =
   @{thms SUP_empty Sup_empty Sup_insert UN_insert Un_empty_left Un_empty_right Un_iff
       Union_Un_distrib collect_def[abs_def] image_def o_apply map_pair_simp
-      mem_Collect_eq mem_UN_compreh_eq prod_set_simps sum_map.simps sum_set_simps};
-val sum_prod_thms_set = @{thms UN_compreh_eq_eq} @ sum_prod_thms_set0;
+      mem_Collect_eq mem_UN_compreh_ex_eq prod_set_simps sum_map.simps sum_set_simps
+      UN_compreh_ex_eq_eq UN_compreh_eq_eq ex_in_single};
 val sum_prod_thms_rel = @{thms prod_rel_apply sum_rel_simps id_apply};
 
 fun hhf_concl_conv cv ctxt ct =
@@ -122,7 +122,7 @@ fun mk_induct_leverage_prem_prems_tac ctxt nn kks fp_abs_inverses abs_inverses s
     pre_set_defs =
   HEADGOAL (EVERY' (maps (fn kk => [select_prem_tac nn (dtac meta_spec) kk, etac meta_mp,
     SELECT_GOAL (unfold_thms_tac ctxt (pre_set_defs @ fp_abs_inverses @ abs_inverses @ set_maps @
-      sum_prod_thms_set0)),
+      sum_prod_thms_set)),
     solve_prem_prem_tac ctxt]) (rev kks)));
 
 fun mk_induct_discharge_prem_tac ctxt nn n fp_abs_inverses abs_inverses set_maps pre_set_defs m k

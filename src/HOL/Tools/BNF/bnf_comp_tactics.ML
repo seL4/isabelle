@@ -12,12 +12,12 @@ sig
   val mk_comp_bd_cinfinite_tac: thm -> thm -> tactic
   val mk_comp_in_alt_tac: Proof.context -> thm list -> tactic
   val mk_comp_map_comp0_tac: thm -> thm -> thm list -> tactic
-  val mk_comp_map_cong0_tac: thm list -> thm -> thm list -> tactic
+  val mk_comp_map_cong0_tac: Proof.context -> thm list -> thm list -> thm -> thm list -> tactic
   val mk_comp_map_id0_tac: thm -> thm -> thm list -> tactic
   val mk_comp_set_alt_tac: Proof.context -> thm -> tactic
-  val mk_comp_set_bd_tac: Proof.context -> thm option -> thm -> thm list -> tactic
-  val mk_comp_set_map0_tac: thm -> thm -> thm -> thm list -> tactic
-  val mk_comp_wit_tac: Proof.context -> thm list -> thm -> thm list -> tactic
+  val mk_comp_set_bd_tac: Proof.context -> thm -> thm option -> thm -> thm list -> tactic
+  val mk_comp_set_map0_tac: Proof.context -> thm -> thm -> thm -> thm -> thm list -> tactic
+  val mk_comp_wit_tac: Proof.context -> thm list -> thm list -> thm -> thm list -> tactic
 
   val kill_in_alt_tac: tactic
   val mk_kill_map_cong0_tac: Proof.context -> int -> int -> thm -> tactic
@@ -31,6 +31,7 @@ sig
   val mk_le_rel_OO_tac: thm -> thm -> thm list -> tactic
   val mk_simple_rel_OO_Grp_tac: thm -> thm -> tactic
   val mk_simple_wit_tac: thm list -> tactic
+  val mk_simplified_set_tac: Proof.context -> tactic
   val bd_ordIso_natLeq_tac: tactic
 end;
 
@@ -62,7 +63,8 @@ fun mk_comp_map_comp0_tac Gmap_comp0 Gmap_cong0 map_comp0s =
     rtac (Gmap_comp0 RS sym RS comp_eq_dest_lhs RS trans), rtac Gmap_cong0] @
     map (fn thm => rtac (thm RS sym RS fun_cong)) map_comp0s) 1;
 
-fun mk_comp_set_map0_tac Gmap_comp0 Gmap_cong0 Gset_map0 set_map0s =
+fun mk_comp_set_map0_tac ctxt set'_eq_set Gmap_comp0 Gmap_cong0 Gset_map0 set_map0s =
+  unfold_thms_tac ctxt [set'_eq_set] THEN
   EVERY' ([rtac ext] @
     replicate 3 (rtac trans_o_apply) @
     [rtac (arg_cong_Union RS trans),
@@ -82,10 +84,11 @@ fun mk_comp_set_map0_tac Gmap_comp0 Gmap_cong0 Gset_map0 set_map0s =
         rtac @{thm sym[OF trans[OF o_apply]]}, rtac @{thm image_cong[OF refl o_apply]}],
      rtac @{thm image_empty}]) 1;
 
-fun mk_comp_map_cong0_tac comp_set_alts map_cong0 map_cong0s =
+fun mk_comp_map_cong0_tac ctxt set'_eq_sets comp_set_alts map_cong0 map_cong0s =
   let
      val n = length comp_set_alts;
   in
+    unfold_thms_tac ctxt set'_eq_sets THEN
     (if n = 0 then rtac refl 1
     else rtac map_cong0 1 THEN
       EVERY' (map_index (fn (i, map_cong0) =>
@@ -120,7 +123,7 @@ fun mk_comp_bd_cinfinite_tac Fbd_cinfinite Gbd_cinfinite =
     rtac Fbd_cinfinite) THEN'
    rtac Gbd_cinfinite) 1;
 
-fun mk_comp_set_bd_tac ctxt bd_ordIso_natLeq_opt comp_set_alt Gset_Fset_bds =
+fun mk_comp_set_bd_tac ctxt set'_eq_set bd_ordIso_natLeq_opt comp_set_alt Gset_Fset_bds =
   let
     val (bds, last_bd) = split_last Gset_Fset_bds;
     fun gen_before bd =
@@ -132,7 +135,7 @@ fun mk_comp_set_bd_tac ctxt bd_ordIso_natLeq_opt comp_set_alt Gset_Fset_bds =
     (case bd_ordIso_natLeq_opt of
       SOME thm => rtac (thm RSN (2, @{thm ordLeq_ordIso_trans})) 1
     | NONE => all_tac) THEN
-    unfold_thms_tac ctxt [comp_set_alt] THEN
+    unfold_thms_tac ctxt [set'_eq_set, comp_set_alt] THEN
     rtac @{thm comp_set_bd_Union_o_collect} 1 THEN
     unfold_thms_tac ctxt @{thms Union_image_insert Union_image_empty Union_Un_distrib o_apply} THEN
     (rtac ctrans THEN'
@@ -161,7 +164,8 @@ fun mk_comp_in_alt_tac ctxt comp_set_alts =
 val comp_wit_thms = @{thms Union_empty_conv o_apply collect_def SUP_def
   Union_image_insert Union_image_empty};
 
-fun mk_comp_wit_tac ctxt Gwit_thms collect_set_map Fwit_thms =
+fun mk_comp_wit_tac ctxt set'_eq_sets Gwit_thms collect_set_map Fwit_thms =
+  unfold_thms_tac ctxt set'_eq_sets THEN
   ALLGOALS (dtac @{thm in_Union_o_assoc}) THEN
   unfold_thms_tac ctxt (collect_set_map :: comp_wit_thms) THEN
   REPEAT_DETERM ((atac ORELSE'
@@ -231,6 +235,15 @@ val csum_thms =
   @{thms csum_cong1 csum_cong2 csum_cong  csum_dup[OF natLeq_cinfinite natLeq_Card_order]};
 val cprod_thms =
   @{thms cprod_cong1 cprod_cong2 cprod_cong cprod_dup[OF natLeq_cinfinite natLeq_Card_order]};
+
+(*inspired by "bnf_fp_def_sugar_tactics.ML"*)
+val simplified_set_simps =
+  @{thms SUP_empty Sup_empty Sup_insert UN_insert Un_empty_left Un_empty_right Un_iff
+      Union_Un_distrib collect_def[abs_def] image_def o_def map_pair_simp mem_Collect_eq
+      mem_UN_compreh_ex_eq UN_compreh_ex_eq_eq sum.set_map prod.set_map id_bnf_comp_def};
+
+fun mk_simplified_set_tac ctxt =
+  unfold_thms_tac ctxt simplified_set_simps THEN rtac refl 1;
 
 val bd_ordIso_natLeq_tac =
   HEADGOAL (REPEAT_DETERM o resolve_tac
