@@ -2376,7 +2376,6 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
       fun Jrel_coinduct_tac {context = ctxt, prems = CIHs} =
         let
-val lthy = Config.put quick_and_dirty false lthy (*XXX*)
           fun mk_helper_prem phi in_phi zip x y map map' dtor dtor' =
             let
               val zipxy = zip $ x $ y;
