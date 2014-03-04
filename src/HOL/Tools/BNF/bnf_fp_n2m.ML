@@ -55,6 +55,7 @@ fun construct_mutualized_fp fp fpTs (fp_sugars : fp_sugar list) bs resBs (resDs,
     fun mk_co_algT T U = fp_case fp (T --> U) (U --> T);
     fun co_swap pair = fp_case fp I swap pair;
     val mk_co_comp = HOLogic.mk_comp o co_swap;
+    val co_productC = BNF_FP_Rec_Sugar_Util.fp_case fp @{type_name prod} @{type_name sum};
 
     val dest_co_algT = co_swap o dest_funT;
     val co_alg_argT = fp_case fp range_type domain_type;
@@ -234,7 +235,6 @@ fun construct_mutualized_fp fp fpTs (fp_sugars : fp_sugar list) bs resBs (resDs,
     val ((rec_strs, rec_strs'), names_lthy) = names_lthy
       |> mk_Frees' "s" rec_strTs;
 
-    val co_folds = of_fp_res #xtor_co_folds;
     val co_recs = of_fp_res #xtor_co_recs;
     val ns = map (length o #Ts o #fp_res) fp_sugars;
 
@@ -244,11 +244,22 @@ fun construct_mutualized_fp fp fpTs (fp_sugars : fp_sugar list) bs resBs (resDs,
 
     val typ_subst_nonatomic_sorted = fold_rev (typ_subst_nonatomic o single);
 
-    fun force_rec i TU TU_rec raw_fold raw_rec =
+    fun foldT_of_recT recT =
+      let
+        val ((FTXs, Xs), TX) = strip_fun_type recT |>> map_split dest_co_algT;
+        fun subst (Type (C, Ts as [_, X])) =
+            if C = co_productC andalso member op = Xs X then X else Type (C, map subst Ts)
+          | subst (Type (C, Ts)) = Type (C, map subst Ts)
+          | subst T = T;
+      in
+        map2 (mk_co_algT o subst) FTXs Xs ---> TX
+      end;
+
+    fun force_rec i TU TU_rec raw_rec =
       let
         val thy = Proof_Context.theory_of lthy;
 
-        val approx_fold = raw_fold
+        val approx_rec = raw_rec
           |> force_typ names_lthy (replicate (nth ns i) dummyT ---> TU_rec);
         val subst = Term.typ_subst_atomic fold_thetaAs;
 
@@ -260,7 +271,7 @@ fun construct_mutualized_fp fp fpTs (fp_sugars : fp_sugar list) bs resBs (resDs,
         val fold_pre_deads_only_Ts =
           map (typ_subst_nonatomic_sorted (map (rpair dummyT) (As @ fpTs))) fold_preTs';
 
-        val TUs = map_split dest_co_algT (binder_fun_types (fastype_of approx_fold))
+        val TUs = map_split dest_co_algT (binder_fun_types (foldT_of_recT (fastype_of approx_rec)))
           |>> map subst
           |> uncurry (map2 mk_co_algT);
         val cands = map2 mk_co_algT fold_preTs' Xs;
@@ -285,8 +296,7 @@ fun construct_mutualized_fp fp fpTs (fp_sugars : fp_sugar list) bs resBs (resDs,
           (case find_first (fn f => body_fun_type (fastype_of f) = TU) recs of
             NONE => 
               force_rec i TU
-                (TU |> is_none b_opt ? substT (map2 mk_co_productT fpTs Xs ~~ Xs))
-                (nth co_folds i) (nth co_recs i)
+                (TU |> is_none b_opt ? substT (map2 mk_co_productT fpTs Xs ~~ Xs)) (nth co_recs i)
           | SOME f => f);
 
         val TUs = binder_fun_types (fastype_of TUrec);
@@ -436,7 +446,6 @@ fun construct_mutualized_fp fp fpTs (fp_sugars : fp_sugar list) bs resBs (resDs,
        used by "primrec", "primcorecursive", and "datatype_compat". *)
     val fp_res =
       ({Ts = fpTs, bnfs = of_fp_res #bnfs, dtors = dtors, ctors = ctors,
-        xtor_co_folds = co_recs (*theorems about wrong constants*),
         xtor_co_recs = co_recs, xtor_co_induct = xtor_co_induct_thm,
         dtor_ctors = of_fp_res #dtor_ctors (*too general types*),
         ctor_dtors = of_fp_res #ctor_dtors (*too general types*),
@@ -445,9 +454,7 @@ fun construct_mutualized_fp fp fpTs (fp_sugars : fp_sugar list) bs resBs (resDs,
         xtor_map_thms = of_fp_res #xtor_map_thms (*too general types and terms*),
         xtor_set_thmss = of_fp_res #xtor_set_thmss (*too general types and terms*),
         xtor_rel_thms = of_fp_res #xtor_rel_thms (*too general types and terms*),
-        xtor_co_fold_thms = xtor_co_rec_thms (*theorems about wrong constants*),
         xtor_co_rec_thms = xtor_co_rec_thms,
-        xtor_co_fold_o_map_thms = fp_rec_o_maps (*theorems about wrong, old constants*),
         xtor_co_rec_o_map_thms = fp_rec_o_maps (*theorems about old constants*),
         rel_xtor_co_induct_thm = rel_xtor_co_induct_thm}
        |> morph_fp_result (Morphism.term_morphism "BNF" (singleton (Variable.polymorphic lthy))));
