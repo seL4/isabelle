@@ -2765,21 +2765,13 @@ constants (e.g., \textit{Abs\_} and \textit{Rep\_} constants) are in general
 ignored. Again, such nonconservative extensions are generally considered bad
 style.
 
-\item[\labelitemi] Nitpick maintains a global cache of wellfoundedness conditions,
-which can become invalid if you change the definition of an inductive predicate
-that is registered in the cache. To clear the cache,
-run Nitpick with the \textit{tac\_timeout} option set to a new value (e.g.,
-$0.51$).
-
 \item[\labelitemi] Nitpick produces spurious counterexamples when invoked after a
 \textbf{guess} command in a structured proof.
 
-\item[\labelitemi] Datatypes defined using \textbf{datatype\_new} are not
-supported.
-
-\item[\labelitemi] Codatatypes defined using \textbf{codatatype} that
-involve nested recursion through non-codatatypes are not properly supported
-and may result in spurious counterexamples.
+\item[\labelitemi] Datatypes defined using \textbf{datatype\_new} and
+codatatypes defined using \textbf{codatatype} that involve nested (co)recursion
+through non-(co)datatypes are not properly supported and may result in spurious
+counterexamples.
 
 \item[\labelitemi] The \textit{nitpick\_xxx} attributes and the
 \textit{Nitpick\_xxx.register\_yyy} functions can cause havoc if used
