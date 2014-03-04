@@ -584,7 +584,7 @@ fun fp_bnf construct_fp bs resBs Ds0 fp_eqs lthy =
         #> Binding.conceal
       end;
 
-    val ((bnfs, (deadss, livess)), ((_, unfold_set), lthy)) =
+    val ((bnfs, (deadss, livess)), accum) =
       apfst (apsnd split_list o split_list)
         (fold_map2 (fn b => bnf_of_typ Smart_Inline (raw_qualify b) fp_sort Xs Ds0) bs rhsXs
           ((empty_comp_cache, empty_unfolds), lthy));
@@ -598,8 +598,8 @@ fun fp_bnf construct_fp bs resBs Ds0 fp_eqs lthy =
 
     val timer = time (timer "Construction of BNFs");
 
-    val ((kill_poss, _), (bnfs', (unfold_set', lthy'))) =
-      normalize_bnfs norm_qualify Ass Ds fp_sort bnfs unfold_set lthy;
+    val ((kill_poss, _), (bnfs', ((_, unfold_set'), lthy'))) =
+      normalize_bnfs norm_qualify Ass Ds fp_sort bnfs accum;
 
     val Dss = map3 (append oo map o nth) livess kill_poss deadss;
 
