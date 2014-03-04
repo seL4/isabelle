@@ -6,6 +6,9 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* March 2014: René Thiemann
+  Improved code generation for multisets.
+
 * January 2014: Lars Hupel, TUM
   An improved, interactive simplifier trace with integration into the
   Isabelle/jEdit Prover IDE.
