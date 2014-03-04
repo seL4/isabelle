@@ -111,7 +111,6 @@ proof -
   then show "convex {a<..<b}" by (simp only: convex_Int 3 4)
 qed
 
-
 subsection {* Explicit expressions for convexity in terms of arbitrary sums. *}
 
 lemma convex_setsum:
@@ -119,44 +118,34 @@ lemma convex_setsum:
   assumes "finite s" and "convex C" and "(\<Sum> i \<in> s. a i) = 1"
   assumes "\<And>i. i \<in> s \<Longrightarrow> a i \<ge> 0" and "\<And>i. i \<in> s \<Longrightarrow> y i \<in> C"
   shows "(\<Sum> j \<in> s. a j *\<^sub>R y j) \<in> C"
-  using assms
-proof (induct s arbitrary:a rule: finite_induct)
+  using assms(1,3,4,5)
+proof (induct arbitrary: a set: finite)
   case empty
-  then show ?case by auto
+  then show ?case by simp
 next
-  case (insert i s) note asms = this
-  { assume "a i = 1"
-    then have "(\<Sum> j \<in> s. a j) = 0"
-      using asms by auto
-    then have "\<And>j. j \<in> s \<Longrightarrow> a j = 0"
-      using setsum_nonneg_0[where 'b=real] asms by fastforce
-    then have ?case using asms by auto }
-  moreover
-  { assume asm: "a i \<noteq> 1"
-    from asms have yai: "y i \<in> C" "a i \<ge> 0" by auto
-    have fis: "finite (insert i s)" using asms by auto
-    then have ai1: "a i \<le> 1" using setsum_nonneg_leq_bound[of "insert i s" a 1] asms by simp
-    then have "a i < 1" using asm by auto
-    then have i0: "1 - a i > 0" by auto
-    let ?a = "\<lambda>j. a j / (1 - a i)"
-    { fix j assume "j \<in> s"
-      then have "?a j \<ge> 0"
-        using i0 asms divide_nonneg_pos
-        by fastforce
-    } note a_nonneg = this
-    have "(\<Sum> j \<in> insert i s. a j) = 1" using asms by auto
-    then have "(\<Sum> j \<in> s. a j) = 1 - a i" using setsum.insert asms by fastforce
-    then have "(\<Sum> j \<in> s. a j) / (1 - a i) = 1" using i0 by auto
-    then have a1: "(\<Sum> j \<in> s. ?a j) = 1" unfolding setsum_divide_distrib by simp
-    with asms have "(\<Sum>j\<in>s. ?a j *\<^sub>R y j) \<in> C" using a_nonneg by fastforce
-    then have "a i *\<^sub>R y i + (1 - a i) *\<^sub>R (\<Sum> j \<in> s. ?a j *\<^sub>R y j) \<in> C"
-      using asms yai ai1 by (auto intro: convexD)
-    then have "a i *\<^sub>R y i + (\<Sum> j \<in> s. (1 - a i) *\<^sub>R (?a j *\<^sub>R y j)) \<in> C"
-      using scaleR_right.setsum[of "(1 - a i)" "\<lambda> j. ?a j *\<^sub>R y j" s] by auto
-    then have "a i *\<^sub>R y i + (\<Sum> j \<in> s. a j *\<^sub>R y j) \<in> C" using i0 by auto
-    then have ?case using setsum.insert asms by auto
-  }
-  ultimately show ?case by auto
+  case (insert i s) note IH = this(3)
+  have "a i + setsum a s = 1" and "0 \<le> a i" and "\<forall>j\<in>s. 0 \<le> a j" and "y i \<in> C" and "\<forall>j\<in>s. y j \<in> C"
+    using insert.hyps(1,2) insert.prems by simp_all
+  then have "0 \<le> setsum a s" by (simp add: setsum_nonneg)
+  have "a i *\<^sub>R y i + (\<Sum>j\<in>s. a j *\<^sub>R y j) \<in> C"
+  proof (cases)
+    assume z: "setsum a s = 0"
+    with `a i + setsum a s = 1` have "a i = 1" by simp
+    from setsum_nonneg_0 [OF `finite s` _ z] `\<forall>j\<in>s. 0 \<le> a j` have "\<forall>j\<in>s. a j = 0" by simp
+    show ?thesis using `a i = 1` and `\<forall>j\<in>s. a j = 0` and `y i \<in> C` by simp
+  next
+    assume nz: "setsum a s \<noteq> 0"
+    with `0 \<le> setsum a s` have "0 < setsum a s" by simp
+    then have "(\<Sum>j\<in>s. (a j / setsum a s) *\<^sub>R y j) \<in> C"
+      using `\<forall>j\<in>s. 0 \<le> a j` and `\<forall>j\<in>s. y j \<in> C`
+      by (simp add: IH divide_nonneg_pos setsum_divide_distrib [symmetric])
+    from `convex C` and `y i \<in> C` and this and `0 \<le> a i`
+      and `0 \<le> setsum a s` and `a i + setsum a s = 1`
+    have "a i *\<^sub>R y i + setsum a s *\<^sub>R (\<Sum>j\<in>s. (a j / setsum a s) *\<^sub>R y j) \<in> C"
+      by (rule convexD)
+    then show ?thesis by (simp add: scaleR_setsum_right nz)
+  qed
+  then show ?case using `finite s` and `i \<notin> s` by simp
 qed
 
 lemma convex:
@@ -246,6 +235,8 @@ proof safe
    using sum[THEN spec[where x="\<lambda>x. if x\<in>t then u x else 0"]] as *
    by (auto simp: assms setsum_cases if_distrib if_distrib_arg)
 qed (erule_tac x=s in allE, erule_tac x=u in allE, auto)
+
+subsection {* Functions that are convex on a set *}
 
 definition convex_on :: "'a::real_vector set \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> bool"
   where "convex_on s f \<longleftrightarrow>
