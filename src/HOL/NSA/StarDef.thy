@@ -967,16 +967,6 @@ by (simp add: star_numeral_def)
 lemma star_of_numeral [simp]: "star_of (numeral k) = numeral k"
 by transfer (rule refl)
 
-lemma star_neg_numeral_def [transfer_unfold]:
-  "- numeral k = star_of (- numeral k)"
-by (simp only: star_of_minus star_of_numeral)
-
-lemma Standard_neg_numeral [simp]: "- numeral k \<in> Standard"
-  using star_neg_numeral_def [of k] by simp
-
-lemma star_of_neg_numeral [simp]: "star_of (- numeral k) = - numeral k"
-by transfer (rule refl)
-
 lemma star_of_nat_def [transfer_unfold]: "of_nat n = star_of (of_nat n)"
 by (induct n, simp_all)
 

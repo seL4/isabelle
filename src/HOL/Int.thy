@@ -766,13 +766,6 @@ simproc_setup fast_arith ("(m::'a::linordered_idom) < n" |
   {* fn _ => fn ss => fn ct => Lin_Arith.simproc ss (term_of ct) *}
 
 
-subsection{*Lemmas About Small Numerals*}
-
-lemma abs_power_minus_one [simp]:
-  "abs(-1 ^ n) = (1::'a::linordered_idom)"
-by (simp add: power_abs)
-
-
 subsection{*More Inequality Reasoning*}
 
 lemma zless_add1_eq: "(w < z + (1::int)) = (w<z | w=z)"
@@ -1225,9 +1218,6 @@ text{*Division By @{text "-1"}*}
 lemma divide_minus1 [simp]: "(x::'a::field) / -1 = - x"
   unfolding nonzero_minus_divide_right [OF one_neq_zero, symmetric]
   by simp
-
-lemma minus1_divide [simp]: "-1 / (x::'a::field) = - (1 / x)"
-  by (fact divide_minus_left)
 
 lemma half_gt_zero_iff:
   "(0 < r/2) = (0 < (r::'a::linordered_field_inverse_zero))"
