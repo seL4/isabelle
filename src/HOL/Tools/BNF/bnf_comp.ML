@@ -195,11 +195,11 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
     fun mk_simplified_set set =
       let
         val setT = fastype_of set;
-        val schem_set' = Const (@{const_name id_bnf_comp}, setT --> setT) $ Var (("?x", 0), setT);
-        val goal = mk_Trueprop_eq (schem_set', set);
+        val var_set' = Const (@{const_name id_bnf_comp}, setT --> setT) $ Var ((Name.uu, 0), setT);
+        val goal = mk_Trueprop_eq (var_set', set);
         fun tac {context = ctxt, prems = _} = mk_simplified_set_tac ctxt;
         val set'_eq_set =
-          Goal.prove_sorry names_lthy [] [] goal tac
+          Goal.prove names_lthy [] [] goal tac
           |> Thm.close_derivation;
         val set' = fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.prop_of set'_eq_set)));
       in
