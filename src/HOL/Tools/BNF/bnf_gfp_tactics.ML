@@ -1083,7 +1083,7 @@ fun mk_rel_coinduct_tac ctxt CIHs in_rels in_Jrels helper_indss helper_coind1s h
     (in_Jrels ~~ (helper_indss ~~ (helper_coind1s ~~ helper_coind2s))) 1
   end;
 
-fun mk_unfold_transfer_tac ctxt m rel_coinduct map_transfers unfolds =
+fun mk_unfold_transfer_tac ctxt m ctor_rel_coinduct map_transfers unfolds =
   let
     val n = length map_transfers;
   in
@@ -1091,7 +1091,7 @@ fun mk_unfold_transfer_tac ctxt m rel_coinduct map_transfers unfolds =
       @{thms fun_rel_def_butlast all_conj_distrib[symmetric] imp_conjR[symmetric]} THEN
     unfold_thms_tac ctxt @{thms fun_rel_iff_geq_image2p} THEN
     HEADGOAL (EVERY'
-      [REPEAT_DETERM o resolve_tac [allI, impI], rtac rel_coinduct,
+      [REPEAT_DETERM o resolve_tac [allI, impI], rtac ctor_rel_coinduct,
       EVERY' (map (fn map_transfer => EVERY'
         [REPEAT_DETERM o resolve_tac [allI, impI], etac @{thm image2pE}, hyp_subst_tac ctxt,
         SELECT_GOAL (unfold_thms_tac ctxt unfolds),

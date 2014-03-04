@@ -58,6 +58,7 @@ sig
   val ctor_rec_o_mapN: string
   val ctor_rec_uniqueN: string
   val ctor_relN: string
+  val ctor_rel_inductN: string
   val ctor_set_inclN: string
   val ctor_set_set_inclN: string
   val disc_corecN: string
@@ -75,6 +76,7 @@ sig
   val dtor_map_strong_coinductN: string
   val dtor_map_uniqueN: string
   val dtor_relN: string
+  val dtor_rel_coinductN: string
   val dtor_set_inclN: string
   val dtor_set_set_inclN: string
   val dtor_strong_coinductN: string
@@ -323,7 +325,9 @@ val rel_distinctN = relN ^ "_" ^ distinctN
 val injectN = "inject"
 val rel_injectN = relN ^ "_" ^ injectN
 val rel_coinductN = relN ^ "_" ^ coinductN
+val dtor_rel_coinductN = dtorN ^ "_" ^ rel_coinductN
 val rel_inductN = relN ^ "_" ^ inductN
+val ctor_rel_inductN = ctorN ^ "_" ^ rel_inductN
 val selN = "sel"
 val sel_corecN = selN ^ "_" ^ corecN
 

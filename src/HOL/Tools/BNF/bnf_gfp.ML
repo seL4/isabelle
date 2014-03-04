@@ -2570,7 +2570,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
       val common_notes =
         [(dtor_coinductN, [dtor_coinduct_thm]),
-        (rel_coinductN, [Jrel_coinduct_thm]),
+        (dtor_rel_coinductN, [Jrel_coinduct_thm]),
         (dtor_unfold_transferN, dtor_unfold_transfer_thms)]
         |> map (fn (thmN, thms) =>
           ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));

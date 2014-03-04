@@ -183,8 +183,6 @@ fun fp_sugars_of ctxt =
 fun co_induct_of (i :: _) = i;
 fun strong_co_induct_of [_, s] = s;
 
-(* TODO: register "sum" and "prod" as datatypes to enable N2M reduction for them *)
-
 fun register_fp_sugar key fp_sugar =
   Local_Theory.declaration {syntax = false, pervasive = true}
     (fn phi => Data.map (Symtab.update (key, morph_fp_sugar phi fp_sugar)));

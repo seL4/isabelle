@@ -783,7 +783,7 @@ fun mk_rel_induct_tac ctxt IHs m ctor_induct2 ks ctor_rels rel_mono_strongs =
       IHs ctor_rels rel_mono_strongs)] 1
   end;
 
-fun mk_fold_transfer_tac ctxt m rel_induct map_transfers folds =
+fun mk_fold_transfer_tac ctxt m ctor_rel_induct map_transfers folds =
   let
     val n = length map_transfers;
   in
@@ -791,7 +791,7 @@ fun mk_fold_transfer_tac ctxt m rel_induct map_transfers folds =
       @{thms fun_rel_def_butlast all_conj_distrib[symmetric] imp_conjR[symmetric]} THEN
     unfold_thms_tac ctxt @{thms fun_rel_iff_leq_vimage2p} THEN
     HEADGOAL (EVERY'
-      [REPEAT_DETERM o resolve_tac [allI, impI], rtac rel_induct,
+      [REPEAT_DETERM o resolve_tac [allI, impI], rtac ctor_rel_induct,
       EVERY' (map (fn map_transfer => EVERY'
         [REPEAT_DETERM o resolve_tac [allI, impI, @{thm vimage2pI}],
         SELECT_GOAL (unfold_thms_tac ctxt folds),
