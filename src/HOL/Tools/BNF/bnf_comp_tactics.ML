@@ -130,7 +130,7 @@ fun mk_comp_set_bd_tac ctxt bd_ordIso_natLeq_opt comp_set_alt Gset_Fset_bds =
     fun gen_after _ = rtac @{thm ordIso_imp_ordLeq} THEN' rtac @{thm cprod_csum_distrib1};
   in
     (case bd_ordIso_natLeq_opt of
-      SOME thm => rtac (thm RS rotate_prems 1 @{thm ordLeq_ordIso_trans}) 1
+      SOME thm => rtac (thm RSN (2, @{thm ordLeq_ordIso_trans})) 1
     | NONE => all_tac) THEN
     unfold_thms_tac ctxt [comp_set_alt] THEN
     rtac @{thm comp_set_bd_Union_o_collect} 1 THEN
