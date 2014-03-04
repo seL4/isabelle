@@ -1008,40 +1008,21 @@ lemma in_span_insert:
     and na: "a \<notin> span S"
   shows "b \<in> span (insert a S)"
 proof -
-  from span_breakdown[of b "insert b S" a, OF insertI1 a]
-  obtain k where k: "a - k*\<^sub>R b \<in> span (S - {b})" by auto
+  from a obtain k where k: "a - k *\<^sub>R b \<in> span S"
+    unfolding span_insert by fast
   show ?thesis
   proof (cases "k = 0")
     case True
-    with k have "a \<in> span S"
-      apply (simp)
-      apply (rule set_rev_mp)
-      apply assumption
-      apply (rule span_mono)
-      apply blast
-      done
-    with na show ?thesis by blast
+    with k have "a \<in> span S" by simp
+    with na show ?thesis by simp
   next
     case False
-    have eq: "b = (1/k) *\<^sub>R a - ((1/k) *\<^sub>R a - b)" by simp
-    from False have eq': "(1/k) *\<^sub>R (a - k*\<^sub>R b) = (1/k) *\<^sub>R a - b"
-      by (simp add: algebra_simps)
-    from k have "(1/k) *\<^sub>R (a - k*\<^sub>R b) \<in> span (S - {b})"
+    from k have "(- inverse k) *\<^sub>R (a - k *\<^sub>R b) \<in> span S"
       by (rule span_mul)
-    then have th: "(1/k) *\<^sub>R a - b \<in> span (S - {b})"
-      unfolding eq' .
-    from k show ?thesis
-      apply (subst eq)
-      apply (rule span_sub)
-      apply (rule span_mul)
-      apply (rule span_superset)
-      apply blast
-      apply (rule set_rev_mp)
-      apply (rule th)
-      apply (rule span_mono)
-      using na
-      apply blast
-      done
+    then have "b - inverse k *\<^sub>R a \<in> span S"
+      using `k \<noteq> 0` by (simp add: scaleR_diff_right)
+    then show ?thesis
+      unfolding span_insert by fast
   qed
 qed
 
@@ -1079,28 +1060,21 @@ lemma span_explicit:
 proof -
   {
     fix x
-    assume x: "x \<in> ?E"
-    then obtain S u where fS: "finite S" and SP: "S\<subseteq>P" and u: "setsum (\<lambda>v. u v *\<^sub>R v) S = x"
+    assume "?h x"
+    then obtain S u where "finite S" and "S \<subseteq> P" and "setsum (\<lambda>v. u v *\<^sub>R v) S = x"
       by blast
-    have "x \<in> span P"
-      unfolding u[symmetric]
-      apply (rule span_setsum[OF fS])
-      using span_mono[OF SP]
-      apply (auto intro: span_superset span_mul)
-      done
+    then have "x \<in> span P"
+      by (auto intro: span_setsum span_mul span_superset)
   }
   moreover
-  have "\<forall>x \<in> span P. x \<in> ?E"
+  have "\<forall>x \<in> span P. ?h x"
   proof (rule span_induct_alt')
-    show "0 \<in> Collect ?h"
-      unfolding mem_Collect_eq
-      apply (rule exI[where x="{}"])
-      apply simp
-      done
+    show "?h 0"
+      by (rule exI[where x="{}"], simp)
   next
     fix c x y
     assume x: "x \<in> P"
-    assume hy: "y \<in> Collect ?h"
+    assume hy: "?h y"
     from hy obtain S u where fS: "finite S" and SP: "S\<subseteq>P"
       and u: "setsum (\<lambda>v. u v *\<^sub>R v) S = y" by blast
     let ?S = "insert x S"
@@ -1110,17 +1084,10 @@ proof -
     have "?Q ?S ?u (c*\<^sub>R x + y)"
     proof cases
       assume xS: "x \<in> S"
-      have S1: "S = (S - {x}) \<union> {x}"
-        and Sss:"finite (S - {x})" "finite {x}" "(S - {x}) \<inter> {x} = {}"
-        using xS fS by auto
-      have "setsum (\<lambda>v. ?u v *\<^sub>R v) ?S =(\<Sum>v\<in>S - {x}. u v *\<^sub>R v) + (u x + c) *\<^sub>R x"
-        using xS
-        by (simp add: setsum_Un_disjoint[OF Sss, unfolded S1[symmetric]]
-          setsum_clauses(2)[OF fS] cong del: if_weak_cong)
+      have "setsum (\<lambda>v. ?u v *\<^sub>R v) ?S = (\<Sum>v\<in>S - {x}. u v *\<^sub>R v) + (u x + c) *\<^sub>R x"
+        using xS by (simp add: setsum.remove [OF fS xS] insert_absorb)
       also have "\<dots> = (\<Sum>v\<in>S. u v *\<^sub>R v) + c *\<^sub>R x"
-        apply (simp add: setsum_Un_disjoint[OF Sss, unfolded S1[symmetric]])
-        apply (simp add: algebra_simps)
-        done
+        by (simp add: setsum.remove [OF fS xS] algebra_simps)
       also have "\<dots> = c*\<^sub>R x + y"
         by (simp add: add_commute u)
       finally have "setsum (\<lambda>v. ?u v *\<^sub>R v) ?S = c*\<^sub>R x + y" .
@@ -1134,15 +1101,10 @@ proof -
         apply auto
         done
       show ?thesis using fS xS th0
-        by (simp add: th00 setsum_clauses add_commute cong del: if_weak_cong)
+        by (simp add: th00 add_commute cong del: if_weak_cong)
     qed
-    then show "(c*\<^sub>R x + y) \<in> Collect ?h"
-      unfolding mem_Collect_eq
-      apply -
-      apply (rule exI[where x="?S"])
-      apply (rule exI[where x="?u"])
-      apply metis
-      done
+    then show "?h (c*\<^sub>R x + y)"
+      by fast
   qed
   ultimately show ?thesis by blast
 qed
@@ -1165,17 +1127,12 @@ proof -
       by auto
     have s0: "setsum (\<lambda>v. ?u v *\<^sub>R v) ?S = 0"
       using fS aS
-      apply (simp add: setsum_clauses field_simps)
+      apply simp
       apply (subst (2) ua[symmetric])
       apply (rule setsum_cong2)
       apply auto
       done
-    with th0 have ?rhs
-      apply -
-      apply (rule exI[where x= "?S"])
-      apply (rule exI[where x= "?u"])
-      apply auto
-      done
+    with th0 have ?rhs by fast
   }
   moreover
   {
