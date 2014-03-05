@@ -15,6 +15,8 @@ sig
   val set_visible_global: bool -> theory -> theory
   val restore_visible: Proof.context -> Proof.context -> Proof.context
   val restore_visible_global: theory -> theory -> theory
+  val is_reported_generic: Context.generic -> Position.T -> bool
+  val is_reported: Proof.context -> Position.T -> bool
   val report_generic: Context.generic -> Position.T -> Markup.T -> unit
   val reported_text: Proof.context -> Position.T -> Markup.T -> string -> string
   val report_text: Proof.context -> Position.T -> Markup.T -> string -> unit
@@ -47,13 +49,16 @@ val set_visible_global = Context.theory_map o Data.put o SOME;
 val restore_visible = set_visible o is_visible;
 val restore_visible_global = set_visible_global o is_visible_global;
 
+fun is_reported_generic context pos = is_visible_generic context andalso Position.is_reported pos;
+fun is_reported ctxt pos = is_visible ctxt andalso Position.is_reported pos;
+
 fun report_generic context pos markup =
-  if is_visible_generic context then
+  if is_reported_generic context pos then
     Output.report (Position.reported_text pos markup "")
   else ();
 
 fun reported_text ctxt pos markup txt =
-  if is_visible ctxt then Position.reported_text pos markup txt else "";
+  if is_reported ctxt pos then Position.reported_text pos markup txt else "";
 
 fun report_text ctxt pos markup txt = Output.report (reported_text ctxt pos markup txt);
 fun report ctxt pos markup = report_text ctxt pos markup "";

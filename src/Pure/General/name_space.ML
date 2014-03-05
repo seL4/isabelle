@@ -205,8 +205,7 @@ fun pretty ctxt space name = Pretty.mark_str (markup_extern ctxt space name);
 (* completion *)
 
 fun completion context space (xname, pos) =
-  if Context_Position.is_visible_generic context andalso Position.is_reported pos
-  then
+  if Context_Position.is_reported_generic context pos then
     let
       val x = Name.clean xname;
       val Name_Space {kind = k, internals, ...} = space;
@@ -453,7 +452,7 @@ fun check_reports context (space, tab) (xname, pos) =
       SOME x =>
         let
           val reports =
-            if Context_Position.is_visible_generic context andalso Position.is_reported pos
+            if Context_Position.is_reported_generic context pos
             then [(pos, markup space name)] else [];
         in ((name, reports), x) end
     | NONE =>

@@ -391,7 +391,7 @@ fun check_class ctxt (xname, pos) =
             (Completion.reported_text
               (Name_Space.completion (Context.Proof ctxt) class_space (xname, pos))));
     val reports =
-      if Context_Position.is_visible ctxt andalso Position.is_reported pos
+      if Context_Position.is_reported ctxt pos
       then [(pos, Name_Space.markup class_space name)] else [];
   in (name, reports) end;
 
@@ -459,7 +459,7 @@ fun check_type_name ctxt strict (c, pos) =
   if Lexicon.is_tid c then
     let
       val reports =
-        if Context_Position.is_visible ctxt andalso Position.is_reported pos
+        if Context_Position.is_reported ctxt pos
         then [(pos, Markup.tfree)] else [];
     in (TFree (c, default_sort ctxt (c, ~1)), reports) end
   else
