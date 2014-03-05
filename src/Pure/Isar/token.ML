@@ -336,10 +336,8 @@ fun reports_of_value tok =
   (case get_value tok of
     NONE => []
   | SOME v =>
-      if is_kind Keyword tok then []
-      else
-        let val pos = pos_of tok
-        in if Position.is_reported pos then map (pair pos) (value_markup v) else [] end);
+      let val pos = pos_of tok
+      in if Position.is_reported pos then map (pair pos) (value_markup v) else [] end);
 
 
 (* make values *)
