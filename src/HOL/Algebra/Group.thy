@@ -721,7 +721,7 @@ subsection {* The Lattice of Subgroups of a Group *}
 text_raw {* \label{sec:subgroup-lattice} *}
 
 theorem (in group) subgroups_partial_order:
-  "partial_order (| carrier = {H. subgroup H G}, eq = op =, le = op \<subseteq> |)"
+  "partial_order \<lparr>carrier = {H. subgroup H G}, eq = op =, le = op \<subseteq>\<rparr>"
   by default simp_all
 
 lemma (in group) subgroup_self:
@@ -729,7 +729,7 @@ lemma (in group) subgroup_self:
   by (rule subgroupI) auto
 
 lemma (in group) subgroup_imp_group:
-  "subgroup H G ==> group (G(| carrier := H |))"
+  "subgroup H G ==> group (G\<lparr>carrier := H\<rparr>)"
   by (erule subgroup.subgroup_is_group) (rule group_axioms)
 
 lemma (in group) is_monoid [intro, simp]:
@@ -737,7 +737,7 @@ lemma (in group) is_monoid [intro, simp]:
   by (auto intro: monoid.intro m_assoc) 
 
 lemma (in group) subgroup_inv_equality:
-  "[| subgroup H G; x \<in> H |] ==> m_inv (G (| carrier := H |)) x = inv x"
+  "[| subgroup H G; x \<in> H |] ==> m_inv (G \<lparr>carrier := H\<rparr>) x = inv x"
 apply (rule_tac inv_equality [THEN sym])
   apply (rule group.l_inv [OF subgroup_imp_group, simplified], assumption+)
  apply (rule subsetD [OF subgroup.subset], assumption+)
@@ -766,7 +766,7 @@ next
 qed
 
 theorem (in group) subgroups_complete_lattice:
-  "complete_lattice (| carrier = {H. subgroup H G}, eq = op =, le = op \<subseteq> |)"
+  "complete_lattice \<lparr>carrier = {H. subgroup H G}, eq = op =, le = op \<subseteq>\<rparr>"
     (is "complete_lattice ?L")
 proof (rule partial_order.complete_lattice_criterion1)
   show "partial_order ?L" by (rule subgroups_partial_order)
@@ -784,7 +784,7 @@ next
     fix H
     assume H: "H \<in> A"
     with L have subgroupH: "subgroup H G" by auto
-    from subgroupH have groupH: "group (G (| carrier := H |))" (is "group ?H")
+    from subgroupH have groupH: "group (G \<lparr>carrier := H\<rparr>)" (is "group ?H")
       by (rule subgroup_imp_group)
     from groupH have monoidH: "monoid ?H"
       by (rule group.is_monoid)

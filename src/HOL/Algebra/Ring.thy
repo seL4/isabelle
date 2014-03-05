@@ -19,7 +19,7 @@ text {* Derived operations. *}
 
 definition
   a_inv :: "[('a, 'm) ring_scheme, 'a ] => 'a" ("\<ominus>\<index> _" [81] 80)
-  where "a_inv R = m_inv (| carrier = carrier R, mult = add R, one = zero R |)"
+  where "a_inv R = m_inv \<lparr>carrier = carrier R, mult = add R, one = zero R\<rparr>"
 
 definition
   a_minus :: "[('a, 'm) ring_scheme, 'a, 'a] => 'a" (infixl "\<ominus>\<index>" 65)
@@ -28,11 +28,11 @@ definition
 locale abelian_monoid =
   fixes G (structure)
   assumes a_comm_monoid:
-     "comm_monoid (| carrier = carrier G, mult = add G, one = zero G |)"
+     "comm_monoid \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
 
 definition
   finsum :: "[('b, 'm) ring_scheme, 'a => 'b, 'a set] => 'b" where
-  "finsum G = finprod (| carrier = carrier G, mult = add G, one = zero G |)"
+  "finsum G = finprod \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
 
 syntax
   "_finsum" :: "index => idt => 'a set => 'b => 'b"
@@ -50,7 +50,7 @@ translations
 
 locale abelian_group = abelian_monoid +
   assumes a_comm_group:
-     "comm_group (| carrier = carrier G, mult = add G, one = zero G |)"
+     "comm_group \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
 
 
 subsection {* Basic Properties *}
@@ -87,11 +87,11 @@ lemma abelian_groupI:
     intro: assms)
 
 lemma (in abelian_monoid) a_monoid:
-  "monoid (| carrier = carrier G, mult = add G, one = zero G |)"
+  "monoid \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
 by (rule comm_monoid.axioms, rule a_comm_monoid) 
 
 lemma (in abelian_group) a_group:
-  "group (| carrier = carrier G, mult = add G, one = zero G |)"
+  "group \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
   by (simp add: group_def a_monoid)
     (simp add: comm_group.axioms group.axioms a_comm_group)
 
@@ -100,10 +100,10 @@ lemmas monoid_record_simps = partial_object.simps monoid.simps
 text {* Transfer facts from multiplicative structures via interpretation. *}
 
 sublocale abelian_monoid <
-  add!: monoid "(| carrier = carrier G, mult = add G, one = zero G |)"
-  where "carrier (| carrier = carrier G, mult = add G, one = zero G |) = carrier G"
-    and "mult (| carrier = carrier G, mult = add G, one = zero G |) = add G"
-    and "one (| carrier = carrier G, mult = add G, one = zero G |) = zero G"
+  add!: monoid "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
+  where "carrier \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = carrier G"
+    and "mult \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = add G"
+    and "one \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = zero G"
   by (rule a_monoid) auto
 
 context abelian_monoid begin
@@ -118,11 +118,11 @@ lemmas minus_unique = add.inv_unique
 end
 
 sublocale abelian_monoid <
-  add!: comm_monoid "(| carrier = carrier G, mult = add G, one = zero G |)"
-  where "carrier (| carrier = carrier G, mult = add G, one = zero G |) = carrier G"
-    and "mult (| carrier = carrier G, mult = add G, one = zero G |) = add G"
-    and "one (| carrier = carrier G, mult = add G, one = zero G |) = zero G"
-    and "finprod (| carrier = carrier G, mult = add G, one = zero G |) = finsum G"
+  add!: comm_monoid "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
+  where "carrier \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = carrier G"
+    and "mult \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = add G"
+    and "one \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = zero G"
+    and "finprod \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = finsum G"
   by (rule a_comm_monoid) (auto simp: finsum_def)
 
 context abelian_monoid begin
@@ -173,14 +173,15 @@ lemmas finsum_singleton = add.finprod_singleton
 end
 
 sublocale abelian_group <
-  add!: group "(| carrier = carrier G, mult = add G, one = zero G |)"
-  where "carrier (| carrier = carrier G, mult = add G, one = zero G |) = carrier G"
-    and "mult (| carrier = carrier G, mult = add G, one = zero G |) = add G"
-    and "one (| carrier = carrier G, mult = add G, one = zero G |) = zero G"
-    and "m_inv (| carrier = carrier G, mult = add G, one = zero G |) = a_inv G"
+  add!: group "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
+  where "carrier \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = carrier G"
+    and "mult \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = add G"
+    and "one \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = zero G"
+    and "m_inv \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = a_inv G"
   by (rule a_group) (auto simp: m_inv_def a_inv_def)
 
-context abelian_group begin
+context abelian_group
+begin
 
 lemmas a_inv_closed = add.inv_closed
 
@@ -200,12 +201,12 @@ lemmas minus_equality = add.inv_equality
 end
 
 sublocale abelian_group <
-  add!: comm_group "(| carrier = carrier G, mult = add G, one = zero G |)"
-  where "carrier (| carrier = carrier G, mult = add G, one = zero G |) = carrier G"
-    and "mult (| carrier = carrier G, mult = add G, one = zero G |) = add G"
-    and "one (| carrier = carrier G, mult = add G, one = zero G |) = zero G"
-    and "m_inv (| carrier = carrier G, mult = add G, one = zero G |) = a_inv G"
-    and "finprod (| carrier = carrier G, mult = add G, one = zero G |) = finsum G"
+  add!: comm_group "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
+  where "carrier \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = carrier G"
+    and "mult \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = add G"
+    and "one \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = zero G"
+    and "m_inv \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = a_inv G"
+    and "finprod \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> = finsum G"
   by (rule a_comm_group) (auto simp: m_inv_def a_inv_def finsum_def)
 
 lemmas (in abelian_group) minus_add = add.inv_mult

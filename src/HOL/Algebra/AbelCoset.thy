@@ -54,8 +54,8 @@ definition
 locale abelian_group_hom = G: abelian_group G + H: abelian_group H
     for G (structure) and H (structure) +
   fixes h
-  assumes a_group_hom: "group_hom (| carrier = carrier G, mult = add G, one = zero G |)
-                                  (| carrier = carrier H, mult = add H, one = zero H |) h"
+  assumes a_group_hom: "group_hom \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>
+                                  \<lparr>carrier = carrier H, mult = add H, one = zero H\<rparr> h"
 
 lemmas a_r_coset_defs =
   a_r_coset_def r_coset_def
@@ -129,12 +129,12 @@ by (rule group.coset_mult_inv2 [OF a_group,
     folded a_r_coset_def a_inv_def, simplified monoid_record_simps])
 
 lemma (in abelian_group) a_coset_join1:
-     "[| H +> x = H;  x \<in> carrier G;  subgroup H (|carrier = carrier G, mult = add G, one = zero G|) |] ==> x \<in> H"
+     "[| H +> x = H;  x \<in> carrier G;  subgroup H \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr> |] ==> x \<in> H"
 by (rule group.coset_join1 [OF a_group,
     folded a_r_coset_def, simplified monoid_record_simps])
 
 lemma (in abelian_group) a_solve_equation:
-    "\<lbrakk>subgroup H (|carrier = carrier G, mult = add G, one = zero G|); x \<in> H; y \<in> H\<rbrakk> \<Longrightarrow> \<exists>h\<in>H. y = h \<oplus> x"
+    "\<lbrakk>subgroup H \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>; x \<in> H; y \<in> H\<rbrakk> \<Longrightarrow> \<exists>h\<in>H. y = h \<oplus> x"
 by (rule group.solve_equation [OF a_group,
     folded a_r_coset_def, simplified monoid_record_simps])
 
@@ -535,8 +535,8 @@ subsubsection {* Homomorphisms *}
 lemma abelian_group_homI:
   assumes "abelian_group G"
   assumes "abelian_group H"
-  assumes a_group_hom: "group_hom (| carrier = carrier G, mult = add G, one = zero G |)
-                                  (| carrier = carrier H, mult = add H, one = zero H |) h"
+  assumes a_group_hom: "group_hom \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>
+                                  \<lparr>carrier = carrier H, mult = add H, one = zero H\<rparr> h"
   shows "abelian_group_hom G H h"
 proof -
   interpret G: abelian_group G by fact
@@ -636,7 +636,7 @@ text{*If @{term h} is a homomorphism from @{term G} onto @{term H}, then the
 theorem (in abelian_group_hom) A_FactGroup_iso:
   "h ` carrier G = carrier H
    \<Longrightarrow> (\<lambda>X. the_elem (h`X)) \<in> (G A_Mod (a_kernel G H h)) \<cong>
-          (| carrier = carrier H, mult = add H, one = zero H |)"
+          \<lparr>carrier = carrier H, mult = add H, one = zero H\<rparr>"
 by (rule group_hom.FactGroup_iso[OF a_group_hom,
     folded a_kernel_def A_FactGroup_def, simplified ring_record_simps])
 

@@ -57,7 +57,7 @@ definition
   where "up R = {f. f \<in> UNIV -> carrier R & (EX n. bound \<zero>\<^bsub>R\<^esub> n f)}"
 
 definition UP :: "('a, 'm) ring_scheme => ('a, nat => 'a) up_ring"
-  where "UP R = (|
+  where "UP R = \<lparr>
    carrier = up R,
    mult = (%p:up R. %q:up R. %n. \<Oplus>\<^bsub>R\<^esub>i \<in> {..n}. p i \<otimes>\<^bsub>R\<^esub> q (n-i)),
    one = (%i. if i=0 then \<one>\<^bsub>R\<^esub> else \<zero>\<^bsub>R\<^esub>),
@@ -65,7 +65,7 @@ definition UP :: "('a, 'm) ring_scheme => ('a, nat => 'a) up_ring"
    add = (%p:up R. %q:up R. %i. p i \<oplus>\<^bsub>R\<^esub> q i),
    smult = (%a:carrier R. %p:up R. %i. a \<otimes>\<^bsub>R\<^esub> p i),
    monom = (%a:carrier R. %n i. if i=n then a else \<zero>\<^bsub>R\<^esub>),
-   coeff = (%p:up R. %n. p n) |)"
+   coeff = (%p:up R. %n. p n)\<rparr>"
 
 text {*
   Properties of the set of polynomials @{term up}.
@@ -1814,7 +1814,7 @@ lemma UP_pre_univ_propI:
 
 definition
   INTEG :: "int ring"
-  where "INTEG = (| carrier = UNIV, mult = op *, one = 1, zero = 0, add = op + |)"
+  where "INTEG = \<lparr>carrier = UNIV, mult = op *, one = 1, zero = 0, add = op +\<rparr>"
 
 lemma INTEG_cring: "cring INTEG"
   by (unfold INTEG_def) (auto intro!: cringI abelian_groupI comm_monoidI
