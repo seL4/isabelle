@@ -71,11 +71,10 @@ lemma [code_unfold]:
 lemma inj_ereal[simp]: "inj_on ereal A"
   unfolding inj_on_def by auto
 
-lemma ereal_cases[case_names real PInf MInf, cases type: ereal]:
-  assumes "\<And>r. x = ereal r \<Longrightarrow> P"
-  assumes "x = \<infinity> \<Longrightarrow> P"
-  assumes "x = -\<infinity> \<Longrightarrow> P"
-  shows P
+lemma ereal_cases[cases type: ereal]:
+  obtains (real) r where "x = ereal r"
+    | (PInf) "x = \<infinity>"
+    | (MInf) "x = -\<infinity>"
   using assms by (cases x) auto
 
 lemmas ereal2_cases = ereal_cases[case_product ereal_cases]

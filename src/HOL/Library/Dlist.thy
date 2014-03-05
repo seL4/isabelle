@@ -154,23 +154,24 @@ proof (cases dxs)
   with dxs show "P dxs" by simp
 qed
 
-lemma dlist_case [case_names empty insert, cases type: dlist]:
-  assumes empty: "dxs = empty \<Longrightarrow> P"
-  assumes insert: "\<And>x dys. \<not> member dys x \<Longrightarrow> dxs = insert x dys \<Longrightarrow> P"
-  shows P
+lemma dlist_case [cases type: dlist]:
+  obtains (empty) "dxs = empty"
+    | (insert) x dys where "\<not> member dys x" and "dxs = insert x dys"
 proof (cases dxs)
   case (Abs_dlist xs)
   then have dxs: "dxs = Dlist xs" and distinct: "distinct xs"
     by (simp_all add: Dlist_def distinct_remdups_id)
-  show P proof (cases xs)
-    case Nil with dxs have "dxs = empty" by (simp add: empty_def) 
-    with empty show P .
+  show thesis
+  proof (cases xs)
+    case Nil with dxs
+    have "dxs = empty" by (simp add: empty_def) 
+    with empty show ?thesis .
   next
     case (Cons x xs)
     with dxs distinct have "\<not> member (Dlist xs) x"
       and "dxs = insert x (Dlist xs)"
       by (simp_all add: member_def List.member_def insert_def distinct_remdups_id)
-    with insert show P .
+    with insert show ?thesis .
   qed
 qed
 

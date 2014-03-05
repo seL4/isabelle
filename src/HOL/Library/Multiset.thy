@@ -647,11 +647,10 @@ qed
 lemma multi_nonempty_split: "M \<noteq> {#} \<Longrightarrow> \<exists>A a. M = A + {#a#}"
 by (induct M) auto
 
-lemma multiset_cases [cases type, case_names empty add]:
-assumes em:  "M = {#} \<Longrightarrow> P"
-assumes add: "\<And>N x. M = N + {#x#} \<Longrightarrow> P"
-shows "P"
-using assms by (induct M) simp_all
+lemma multiset_cases [cases type]:
+  obtains (empty) "M = {#}"
+    | (add) N x where "M = N + {#x#}"
+  using assms by (induct M) simp_all
 
 lemma multi_drop_mem_not_eq: "c \<in># B \<Longrightarrow> B - {#c#} \<noteq> B"
 by (cases "B = {#}") (auto dest: multi_member_split)
