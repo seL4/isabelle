@@ -10,7 +10,7 @@ sig
   val decode_sort: term -> sort
   val decode_typ: term -> typ
   val decode_term: Proof.context ->
-    Position.report list * term Exn.result -> Position.report list * term Exn.result
+    Position.report_text list * term Exn.result -> Position.report_text list * term Exn.result
   val parse_ast_pattern: Proof.context -> string * string -> Ast.ast
   val term_of_typ: Proof.context -> typ -> term
   val print_checks: Proof.context -> unit
@@ -138,7 +138,7 @@ fun decode_typ tm =
 
 fun parsetree_to_ast ctxt trf parsetree =
   let
-    val reports = Unsynchronized.ref ([]: Position.report list);
+    val reports = Unsynchronized.ref ([]: Position.report_text list);
     fun report pos = Position.store_reports reports [pos];
 
     fun trans a args =
@@ -163,17 +163,15 @@ fun parsetree_to_ast ctxt trf parsetree =
     and asts_of (Parser.Node ("_class_name", [Parser.Tip tok])) =
           let
             val pos = Lexicon.pos_of_token tok;
-            val c = Proof_Context.read_class ctxt (Lexicon.str_of_token tok)
-              handle ERROR msg => error (msg ^ Position.here pos);
-            val _ = report pos (markup_class ctxt) c;
+            val (c, rs) = Proof_Context.check_class ctxt (Lexicon.str_of_token tok, pos);
+            val _ = Unsynchronized.change reports (append (map (rpair "") rs));
           in [Ast.Constant (Lexicon.mark_class c)] end
       | asts_of (Parser.Node ("_type_name", [Parser.Tip tok])) =
           let
             val pos = Lexicon.pos_of_token tok;
-            val Type (c, _) =
-              Proof_Context.read_type_name_proper ctxt false (Lexicon.str_of_token tok)
-                handle ERROR msg => error (msg ^ Position.here pos);
-            val _ = report pos (markup_type ctxt) c;
+            val (Type (c, _), rs) =
+              Proof_Context.check_type_name_proper ctxt false (Lexicon.str_of_token tok, pos);
+            val _ = Unsynchronized.change reports (append (map (rpair "") rs));
           in [Ast.Constant (Lexicon.mark_type c)] end
       | asts_of (Parser.Node ("_position", [Parser.Tip tok])) = asts_of_position "_constrain" tok
       | asts_of (Parser.Node ("_position_sort", [Parser.Tip tok])) = asts_of_position "_ofsort" tok
@@ -222,7 +220,7 @@ fun ast_to_term ctxt trf =
 
 (* decode_term -- transform parse tree into raw term *)
 
-fun decode_term _ (result as (_: Position.report list, Exn.Exn _)) = result
+fun decode_term _ (result as (_: Position.report_text list, Exn.Exn _)) = result
   | decode_term ctxt (reports0, Exn.Res tm) =
       let
         fun get_const a =
@@ -286,8 +284,8 @@ fun failed_results results = map_filter (fn (y, Exn.Exn e) => SOME (y, e) | _ =>
 
 fun report_result ctxt pos ambig_msgs results =
   (case (proper_results results, failed_results results) of
-    ([], (reports, exn) :: _) => (Context_Position.reports ctxt reports; reraise exn)
-  | ([(reports, x)], _) => (Context_Position.reports ctxt reports; x)
+    ([], (reports, exn) :: _) => (Context_Position.reports_text ctxt reports; reraise exn)
+  | ([(reports, x)], _) => (Context_Position.reports_text ctxt reports; x)
   | _ =>
       if null ambig_msgs then
         error ("Parse error: ambiguous syntax" ^ Position.here pos)
@@ -421,7 +419,7 @@ fun parse_ast_pattern ctxt (root, str) =
   let
     val syn = Proof_Context.syn_of ctxt;
 
-    val reports = Unsynchronized.ref ([]: Position.report list);
+    val reports = Unsynchronized.ref ([]: Position.report_text list);
     fun report ps = Position.store_reports reports ps;
 
     fun decode_const ps c = (report ps (markup_entity ctxt) c; Ast.Constant c);
@@ -446,7 +444,7 @@ fun parse_ast_pattern ctxt (root, str) =
       parse_asts ctxt true root (syms, pos)
       |> uncurry (report_result ctxt pos)
       |> decode [];
-    val _ = Context_Position.reports ctxt (! reports);
+    val _ = Context_Position.reports_text ctxt (! reports);
   in ast end;
 
 

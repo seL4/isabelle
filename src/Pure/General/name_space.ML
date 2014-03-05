@@ -55,6 +55,8 @@ sig
   val map_naming: (naming -> naming) -> Context.generic -> Context.generic
   val declare: Context.generic -> bool -> binding -> T -> string * T
   type 'a table = T * 'a Symtab.table
+  val check_reports: Context.generic -> 'a table ->
+    xstring * Position.T -> (string * Position.report list) * 'a
   val check: Context.generic -> 'a table -> xstring * Position.T -> string * 'a
   val get: 'a table -> string -> 'a
   val define: Context.generic -> bool -> binding * 'a -> 'a table -> string * 'a table
@@ -445,17 +447,26 @@ fun declare context strict binding space =
 
 type 'a table = T * 'a Symtab.table;
 
-fun check context (space, tab) (xname, pos) =
+fun check_reports context (space, tab) (xname, pos) =
   let val name = intern space xname in
     (case Symtab.lookup tab name of
       SOME x =>
-       (Context_Position.report_generic context pos (markup space name);
-        (name, x))
+        let
+          val reports =
+            if Context_Position.is_visible_generic context andalso Position.is_reported pos
+            then [(pos, markup space name)] else [];
+        in ((name, reports), x) end
     | NONE =>
         error (undefined (kind_of space) name ^ Position.here pos ^
           Markup.markup Markup.report
             (Completion.reported_text (completion context space (xname, pos)))))
   end;
+
+fun check context table arg =
+  let
+    val ((name, reports), x) = check_reports context table arg;
+    val _ = Position.reports reports;
+  in (name, x) end;
 
 fun get (space, tab) name =
   (case Symtab.lookup tab name of

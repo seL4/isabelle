@@ -57,7 +57,8 @@ sig
   val pretty_term_abbrev: Proof.context -> term -> Pretty.T
   val markup_fact: Proof.context -> string -> Markup.T
   val pretty_fact: Proof.context -> string * thm list -> Pretty.T
-  val read_class: Proof.context -> xstring -> class
+  val check_class: Proof.context -> xstring * Position.T -> class * Position.report list
+  val read_class: Proof.context -> string -> class
   val read_typ: Proof.context -> string -> typ
   val read_typ_syntax: Proof.context -> string -> typ
   val read_typ_abbrev: Proof.context -> string -> typ
@@ -67,6 +68,10 @@ sig
   val infer_type: Proof.context -> string * typ -> typ
   val inferred_param: string -> Proof.context -> typ * Proof.context
   val inferred_fixes: Proof.context -> (string * typ) list * Proof.context
+  val check_type_name: Proof.context -> bool ->
+    xstring * Position.T -> typ * Position.report list
+  val check_type_name_proper: Proof.context -> bool ->
+    xstring * Position.T -> typ * Position.report list
   val read_type_name: Proof.context -> bool -> string -> typ
   val read_type_name_proper: Proof.context -> bool -> string -> typ
   val read_const_proper: Proof.context -> bool -> string -> term
@@ -374,20 +379,27 @@ fun pretty_fact ctxt =
 
 (* classes *)
 
-fun read_class ctxt text =
+fun check_class ctxt (xname, pos) =
   let
     val tsig = tsig_of ctxt;
     val class_space = Type.class_space tsig;
 
-    val (xname, pos) = Symbol_Pos.source_content (Syntax.read_token text);
     val name = Type.cert_class tsig (Type.intern_class tsig xname)
       handle TYPE (msg, _, _) =>
         error (msg ^ Position.here pos ^
           Markup.markup Markup.report
             (Completion.reported_text
               (Name_Space.completion (Context.Proof ctxt) class_space (xname, pos))));
-    val _ = Context_Position.report ctxt pos (Name_Space.markup class_space name);
-  in name end;
+    val reports =
+      if Context_Position.is_visible ctxt andalso Position.is_reported pos
+      then [(pos, Name_Space.markup class_space name)] else [];
+  in (name, reports) end;
+
+fun read_class ctxt text =
+  let
+    val (c, reports) = check_class ctxt (Symbol_Pos.source_content (Syntax.read_token text));
+    val _ = Position.reports reports;
+  in c end;
 
 
 (* types *)
@@ -443,30 +455,34 @@ fun inferred_fixes ctxt =
 
 (* type names *)
 
-fun read_type_name ctxt strict text =
-  let
-    val tsig = tsig_of ctxt;
-    val (c, pos) = Symbol_Pos.source_content (Syntax.read_token text);
-  in
-    if Lexicon.is_tid c then
-     (Context_Position.report ctxt pos Markup.tfree;
-      TFree (c, default_sort ctxt (c, ~1)))
-    else
-      let
-        val (d, decl) = Type.check_decl (Context.Proof ctxt) tsig (c, pos);
-        fun err () = error ("Bad type name: " ^ quote d ^ Position.here pos);
-        val args =
-          (case decl of
-            Type.LogicalType n => n
-          | Type.Abbreviation (vs, _, _) => if strict then err () else length vs
-          | Type.Nonterminal => if strict then err () else 0);
-      in Type (d, replicate args dummyT) end
-  end;
+fun check_type_name ctxt strict (c, pos) =
+  if Lexicon.is_tid c then
+    let
+      val reports =
+        if Context_Position.is_visible ctxt andalso Position.is_reported pos
+        then [(pos, Markup.tfree)] else [];
+    in (TFree (c, default_sort ctxt (c, ~1)), reports) end
+  else
+    let
+      val ((d, reports), decl) = Type.check_decl (Context.Proof ctxt) (tsig_of ctxt) (c, pos);
+      fun err () = error ("Bad type name: " ^ quote d ^ Position.here pos);
+      val args =
+        (case decl of
+          Type.LogicalType n => n
+        | Type.Abbreviation (vs, _, _) => if strict then err () else length vs
+        | Type.Nonterminal => if strict then err () else 0);
+    in (Type (d, replicate args dummyT), reports) end;
 
-fun read_type_name_proper ctxt strict text =
-  (case read_type_name ctxt strict text of
-    T as Type _ => T
-  | T => error ("Not a type constructor: " ^ Syntax.string_of_typ ctxt T));
+fun check_type_name_proper ctxt strict arg =
+  (case check_type_name ctxt strict arg of
+    res as (Type _, _) => res
+  | (T, _) => error ("Not a type constructor: " ^ Syntax.string_of_typ ctxt T));
+
+fun read_type_name ctxt strict =
+  Syntax.read_token #> Symbol_Pos.source_content #> check_type_name ctxt strict #> #1;
+
+fun read_type_name_proper ctxt strict =
+  Syntax.read_token #> Symbol_Pos.source_content #> check_type_name_proper ctxt strict #> #1;
 
 
 (* constant names *)

@@ -41,7 +41,8 @@ sig
   type report_text = report * string
   val reports_text: report_text list -> unit
   val reports: report list -> unit
-  val store_reports: report list Unsynchronized.ref -> T list -> ('a -> Markup.T list) -> 'a -> unit
+  val store_reports: report_text list Unsynchronized.ref ->
+    T list -> ('a -> Markup.T list) -> 'a -> unit
   val here: T -> string
   val here_list: T list -> string
   type range = T * T
@@ -177,9 +178,9 @@ val reports_text =
 val reports = map (rpair "") #> reports_text;
 
 fun store_reports _ [] _ _ = ()
-  | store_reports (r: report list Unsynchronized.ref) ps markup x =
+  | store_reports (r: report_text list Unsynchronized.ref) ps markup x =
       let val ms = markup x
-      in Unsynchronized.change r (fold (fn p => fold (fn m => cons (p, m)) ms) ps) end;
+      in Unsynchronized.change r (fold (fn p => fold (fn m => cons ((p, m), "")) ms) ps) end;
 
 
 (* here: inlined formal markup *)
