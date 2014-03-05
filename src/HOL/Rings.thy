@@ -1066,7 +1066,7 @@ lemma dvd_if_abs_eq:
   "\<bar>l\<bar> = \<bar>k\<bar> \<Longrightarrow> l dvd k"
 by(subst abs_dvd_iff[symmetric]) simp
 
-text {* The following lemmas can be proven in more generale structures, but
+text {* The following lemmas can be proven in more general structures, but
 are dangerous as simp rules in absence of @{thm neg_equal_zero}, 
 @{thm neg_less_pos}, @{thm neg_less_eq_nonneg}. *}
 
