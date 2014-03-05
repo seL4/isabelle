@@ -369,8 +369,8 @@ proof clarify
   assume qf: "qfree p"
   have th: "DJ f p = evaldjf f (disjuncts p)"
     by (simp add: DJ_def)
-  from disjuncts_qf[OF qf] have "\<forall>q\<in> set (disjuncts p). qfree q" .
-  with fqf have th':"\<forall>q\<in> set (disjuncts p). qfree (f q)"
+  from disjuncts_qf[OF qf] have "\<forall>q \<in> set (disjuncts p). qfree q" .
+  with fqf have th':"\<forall>q \<in> set (disjuncts p). qfree (f q)"
     by blast
   from evaldjf_qf[OF th'] th show "qfree (DJ f p)"
     by simp
@@ -385,13 +385,13 @@ proof clarify
   assume qf: "qfree p"
   from qe have qth: "\<forall>p. qfree p \<longrightarrow> qfree (qe p)"
     by blast
-  from DJ_qf[OF qth] qf have qfth:"qfree (DJ qe p)"
+  from DJ_qf[OF qth] qf have qfth: "qfree (DJ qe p)"
     by auto
   have "Ifm bbs bs (DJ qe p) = (\<exists>q\<in> set (disjuncts p). Ifm bbs bs (qe q))"
     by (simp add: DJ_def evaldjf_ex)
-  also have "\<dots> = (\<exists>q \<in> set(disjuncts p). Ifm bbs bs (E q))"
+  also have "\<dots> \<longleftrightarrow> (\<exists>q \<in> set(disjuncts p). Ifm bbs bs (E q))"
     using qe disjuncts_qf[OF qf] by auto
-  also have "\<dots> = Ifm bbs bs (E p)"
+  also have "\<dots> \<longleftrightarrow> Ifm bbs bs (E p)"
     by (induct p rule: disjuncts.induct) auto
   finally show "qfree (DJ qe p) \<and> Ifm bbs bs (DJ qe p) = Ifm bbs bs (E p)"
     using qfth by blast
@@ -630,146 +630,231 @@ lemma simpfm: "Ifm bbs bs (simpfm p) = Ifm bbs bs p"
 proof (induct p rule: simpfm.induct)
   case (6 a)
   let ?sa = "simpnum a"
-  from simpnum_ci have sa: "Inum bs ?sa = Inum bs a" by simp
-  { fix v assume "?sa = C v" then have ?case using sa by simp }
+  from simpnum_ci have sa: "Inum bs ?sa = Inum bs a"
+    by simp
+  {
+    fix v
+    assume "?sa = C v"
+    then have ?case using sa
+      by simp
+  }
   moreover {
     assume "\<not> (\<exists>v. ?sa = C v)"
-    then have ?case using sa by (cases ?sa) (simp_all add: Let_def)
+    then have ?case
+      using sa by (cases ?sa) (simp_all add: Let_def)
   }
   ultimately show ?case by blast
 next
   case (7 a)
   let ?sa = "simpnum a"
-  from simpnum_ci have sa: "Inum bs ?sa = Inum bs a" by simp
-  { fix v assume "?sa = C v" then have ?case using sa by simp }
+  from simpnum_ci have sa: "Inum bs ?sa = Inum bs a"
+    by simp
+  {
+    fix v
+    assume "?sa = C v"
+    then have ?case using sa
+      by simp
+  }
   moreover {
     assume "\<not> (\<exists>v. ?sa = C v)"
-    then have ?case using sa by (cases ?sa) (simp_all add: Let_def)
+    then have ?case
+      using sa by (cases ?sa) (simp_all add: Let_def)
   }
   ultimately show ?case by blast
 next
   case (8 a)
   let ?sa = "simpnum a"
-  from simpnum_ci have sa: "Inum bs ?sa = Inum bs a" by simp
-  { fix v assume "?sa = C v" then have ?case using sa by simp }
+  from simpnum_ci have sa: "Inum bs ?sa = Inum bs a"
+    by simp
+  {
+    fix v
+    assume "?sa = C v"
+    then have ?case using sa
+      by simp
+  }
   moreover {
     assume "\<not> (\<exists>v. ?sa = C v)"
-    then have ?case using sa by (cases ?sa) (simp_all add: Let_def)
+    then have ?case
+      using sa by (cases ?sa) (simp_all add: Let_def)
   }
   ultimately show ?case by blast
 next
   case (9 a)
   let ?sa = "simpnum a"
-  from simpnum_ci have sa: "Inum bs ?sa = Inum bs a" by simp
-  { fix v assume "?sa = C v" then have ?case using sa by simp }
+  from simpnum_ci have sa: "Inum bs ?sa = Inum bs a"
+    by simp
+  {
+    fix v
+    assume "?sa = C v"
+    then have ?case using sa
+      by simp
+  }
   moreover {
     assume "\<not> (\<exists>v. ?sa = C v)"
-    then have ?case using sa by (cases ?sa) (simp_all add: Let_def)
+    then have ?case using sa
+      by (cases ?sa) (simp_all add: Let_def)
   }
   ultimately show ?case by blast
 next
   case (10 a)
   let ?sa = "simpnum a"
-  from simpnum_ci have sa: "Inum bs ?sa = Inum bs a" by simp
-  { fix v assume "?sa = C v" then have ?case using sa by simp }
+  from simpnum_ci have sa: "Inum bs ?sa = Inum bs a"
+    by simp
+  {
+    fix v
+    assume "?sa = C v"
+    then have ?case
+      using sa by simp
+  }
   moreover {
     assume "\<not> (\<exists>v. ?sa = C v)"
-    then have ?case using sa by (cases ?sa) (simp_all add: Let_def)
+    then have ?case
+      using sa by (cases ?sa) (simp_all add: Let_def)
   }
   ultimately show ?case by blast
 next
   case (11 a)
   let ?sa = "simpnum a"
-  from simpnum_ci have sa: "Inum bs ?sa = Inum bs a" by simp
-  { fix v assume "?sa = C v" then have ?case using sa by simp }
+  from simpnum_ci have sa: "Inum bs ?sa = Inum bs a"
+    by simp
+  {
+    fix v
+    assume "?sa = C v"
+    then have ?case using sa
+      by simp
+  }
   moreover {
     assume "\<not> (\<exists>v. ?sa = C v)"
-    then have ?case using sa by (cases ?sa) (simp_all add: Let_def)
+    then have ?case
+      using sa by (cases ?sa) (simp_all add: Let_def)
   }
   ultimately show ?case by blast
 next
   case (12 i a)
   let ?sa = "simpnum a"
-  from simpnum_ci have sa: "Inum bs ?sa = Inum bs a" by simp
-  { assume "i=0" then have ?case using "12.hyps" by (simp add: dvd_def Let_def) }
+  from simpnum_ci have sa: "Inum bs ?sa = Inum bs a"
+    by simp
+  {
+    assume "i = 0"
+    then have ?case using "12.hyps"
+      by (simp add: dvd_def Let_def)
+  }
   moreover
-  { assume i1: "abs i = 1"
+  {
+    assume i1: "abs i = 1"
     from one_dvd[of "Inum bs a"] uminus_dvd_conv[where d="1" and t="Inum bs a"]
-    have ?case using i1
-      apply (cases "i=0", simp_all add: Let_def)
-      apply (cases "i > 0", simp_all)
+    have ?case
+      using i1
+      apply (cases "i = 0")
+      apply (simp_all add: Let_def)
+      apply (cases "i > 0")
+      apply simp_all
       done
   }
   moreover
-  { assume inz: "i\<noteq>0" and cond: "abs i \<noteq> 1"
-    { fix v assume "?sa = C v"
-      then have ?case using sa[symmetric] inz cond
-        by (cases "abs i = 1") auto }
-    moreover {
+  {
+    assume inz: "i \<noteq> 0" and cond: "abs i \<noteq> 1"
+    {
+      fix v
+      assume "?sa = C v"
+      then have ?case
+        using sa[symmetric] inz cond
+        by (cases "abs i = 1") auto
+    }
+    moreover
+    {
       assume "\<not> (\<exists>v. ?sa = C v)"
-      then have "simpfm (Dvd i a) = Dvd i ?sa" using inz cond
-        by (cases ?sa) (auto simp add: Let_def)
-      then have ?case using sa by simp }
-    ultimately have ?case by blast }
+      then have "simpfm (Dvd i a) = Dvd i ?sa"
+        using inz cond by (cases ?sa) (auto simp add: Let_def)
+      then have ?case
+        using sa by simp
+    }
+    ultimately have ?case by blast
+  }
   ultimately show ?case by blast
 next
   case (13 i a)
-  let ?sa = "simpnum a" from simpnum_ci
-  have sa: "Inum bs ?sa = Inum bs a" by simp
-  { assume "i=0" then have ?case using "13.hyps" by (simp add: dvd_def Let_def) }
+  let ?sa = "simpnum a"
+  from simpnum_ci have sa: "Inum bs ?sa = Inum bs a"
+    by simp
+  {
+    assume "i = 0"
+    then have ?case using "13.hyps"
+      by (simp add: dvd_def Let_def)
+  }
   moreover
-  { assume i1: "abs i = 1"
+  {
+    assume i1: "abs i = 1"
     from one_dvd[of "Inum bs a"] uminus_dvd_conv[where d="1" and t="Inum bs a"]
-    have ?case using i1
-      apply (cases "i=0", simp_all add: Let_def)
-      apply (cases "i > 0", simp_all)
+    have ?case
+      using i1
+      apply (cases "i = 0")
+      apply (simp_all add: Let_def)
+      apply (cases "i > 0")
+      apply simp_all
       done
   }
   moreover
-  { assume inz: "i\<noteq>0" and cond: "abs i \<noteq> 1"
-    { fix v assume "?sa = C v"
-      then have ?case using sa[symmetric] inz cond
-        by (cases "abs i = 1") auto }
-    moreover {
+  {
+    assume inz: "i \<noteq> 0" and cond: "abs i \<noteq> 1"
+    {
+      fix v
+      assume "?sa = C v"
+      then have ?case
+        using sa[symmetric] inz cond by (cases "abs i = 1") auto
+    }
+    moreover
+    {
       assume "\<not> (\<exists>v. ?sa = C v)"
-      then have "simpfm (NDvd i a) = NDvd i ?sa" using inz cond
-        by (cases ?sa) (auto simp add: Let_def)
-      then have ?case using sa by simp }
-    ultimately have ?case by blast }
+      then have "simpfm (NDvd i a) = NDvd i ?sa"
+        using inz cond by (cases ?sa) (auto simp add: Let_def)
+      then have ?case using sa
+        by simp
+    }
+    ultimately have ?case by blast
+  }
   ultimately show ?case by blast
 qed (simp_all add: conj disj imp iff not)
 
 lemma simpfm_bound0: "bound0 p \<Longrightarrow> bound0 (simpfm p)"
 proof (induct p rule: simpfm.induct)
-  case (6 a) then have nb: "numbound0 a" by simp
+  case (6 a)
+  then have nb: "numbound0 a" by simp
   then have "numbound0 (simpnum a)" by (simp only: simpnum_numbound0[OF nb])
   then show ?case by (cases "simpnum a") (auto simp add: Let_def)
 next
-  case (7 a) then have nb: "numbound0 a" by simp
+  case (7 a)
+  then have nb: "numbound0 a" by simp
   then have "numbound0 (simpnum a)" by (simp only: simpnum_numbound0[OF nb])
   then show ?case by (cases "simpnum a") (auto simp add: Let_def)
 next
-  case (8 a) then have nb: "numbound0 a" by simp
+  case (8 a)
+  then have nb: "numbound0 a" by simp
   then have "numbound0 (simpnum a)" by (simp only: simpnum_numbound0[OF nb])
   then show ?case by (cases "simpnum a") (auto simp add: Let_def)
 next
-  case (9 a) then have nb: "numbound0 a" by simp
+  case (9 a)
+  then have nb: "numbound0 a" by simp
   then have "numbound0 (simpnum a)" by (simp only: simpnum_numbound0[OF nb])
   then show ?case by (cases "simpnum a") (auto simp add: Let_def)
 next
-  case (10 a) then have nb: "numbound0 a" by simp
+  case (10 a)
+  then have nb: "numbound0 a" by simp
   then have "numbound0 (simpnum a)" by (simp only: simpnum_numbound0[OF nb])
   then show ?case by (cases "simpnum a") (auto simp add: Let_def)
 next
-  case (11 a) then have nb: "numbound0 a" by simp
+  case (11 a)
+  then have nb: "numbound0 a" by simp
   then have "numbound0 (simpnum a)" by (simp only: simpnum_numbound0[OF nb])
   then show ?case by (cases "simpnum a") (auto simp add: Let_def)
 next
-  case (12 i a) then have nb: "numbound0 a" by simp
+  case (12 i a)
+  then have nb: "numbound0 a" by simp
   then have "numbound0 (simpnum a)" by (simp only: simpnum_numbound0[OF nb])
   then show ?case by (cases "simpnum a") (auto simp add: Let_def)
 next
-  case (13 i a) then have nb: "numbound0 a" by simp
+  case (13 i a)
+  then have nb: "numbound0 a" by simp
   then have "numbound0 (simpnum a)" by (simp only: simpnum_numbound0[OF nb])
   then show ?case by (cases "simpnum a") (auto simp add: Let_def)
 qed (auto simp add: disj_def imp_def iff_def conj_def not_bn)
