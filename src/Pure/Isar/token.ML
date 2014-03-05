@@ -42,7 +42,6 @@ sig
   val inner_syntax_of: T -> string
   val source_position_of: T -> Symbol_Pos.source
   val content_of: T -> string
-  val keyword_markup: string -> Markup.T
   val value_markup: value -> Markup.T list
   val completion_report: T -> Position.report_text list
   val report: T -> Position.report_text
@@ -254,14 +253,13 @@ val token_kind_markup =
   | Sync          => (Markup.control, "")
   | EOF           => (Markup.control, "");
 
+fun keyword_markup keyword x =
+  if Symbol.is_ascii_identifier x then keyword else Markup.operator;
+
 in
 
-fun keyword_markup x =
-  if Symbol.is_ascii_identifier x
-  then Markup.keyword2
-  else Markup.operator;
-
-fun value_markup (Literal x) = keyword_markup x :: Completion.suppress_abbrevs x
+fun value_markup (Literal x) =
+      keyword_markup Markup.quasi_keyword x :: Completion.suppress_abbrevs x
   | value_markup _ = [];
 
 fun completion_report tok =
@@ -271,7 +269,7 @@ fun completion_report tok =
 
 fun report tok =
   if is_kind Keyword tok then
-    ((pos_of tok, keyword_markup (content_of tok)), "")
+    ((pos_of tok, keyword_markup Markup.keyword2 (content_of tok)), "")
   else
     let val (m, text) = token_kind_markup (kind_of tok)
     in ((pos_of tok, m), text) end;

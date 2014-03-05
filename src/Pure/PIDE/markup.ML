@@ -114,6 +114,7 @@ sig
   val keyword1N: string val keyword1: T
   val keyword2N: string val keyword2: T
   val keyword3N: string val keyword3: T
+  val quasi_keywordN: string val quasi_keyword: T
   val elapsedN: string
   val cpuN: string
   val gcN: string
@@ -419,6 +420,7 @@ val (commandN, command) = markup_elem "command";
 val (keyword1N, keyword1) = markup_elem "keyword1";
 val (keyword2N, keyword2) = markup_elem "keyword2";
 val (keyword3N, keyword3) = markup_elem "keyword3";
+val (quasi_keywordN, quasi_keyword) = markup_elem "quasi_keyword";
 val (operatorN, operator) = markup_elem "operator";
 val (stringN, string) = markup_elem "string";
 val (altstringN, altstring) = markup_elem "altstring";

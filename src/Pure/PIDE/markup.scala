@@ -215,6 +215,7 @@ object Markup
   val KEYWORD1 = "keyword1"
   val KEYWORD2 = "keyword2"
   val KEYWORD3 = "keyword3"
+  val QUASI_KEYWORD = "quasi_keyword"
   val OPERATOR = "operator"
   val STRING = "string"
   val ALTSTRING = "altstring"
