@@ -6377,7 +6377,6 @@ qed
 text{* "Isometry" (up to constant bounds) of injective linear map etc.           *}
 
 lemma cauchy_isometric:
-  fixes x :: "nat \<Rightarrow> 'a::euclidean_space"
   assumes e: "e > 0"
     and s: "subspace s"
     and f: "bounded_linear f"
@@ -6412,7 +6411,6 @@ proof -
 qed
 
 lemma complete_isometric_image:
-  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "0 < e"
     and s: "subspace s"
     and f: "bounded_linear f"
