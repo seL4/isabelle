@@ -42,7 +42,6 @@ sig
   val text_fold: T list -> T
   val keyword1: string -> T
   val keyword2: string -> T
-  val keyword3: string -> T
   val text: string -> T list
   val paragraph: T list -> T
   val para: string -> T
@@ -166,7 +165,6 @@ val text_fold = markup Markup.text_fold;
 
 fun keyword1 name = mark_str (Markup.keyword1, name);
 fun keyword2 name = mark_str (Markup.keyword2, name);
-fun keyword3 name = mark_str (Markup.keyword3, name);
 
 val text = breaks o map str o Symbol.explode_words;
 val paragraph = markup Markup.paragraph;
