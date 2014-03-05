@@ -42,6 +42,7 @@ sig
   val defN: string
   val refN: string
   val completionN: string val completion: T
+  val no_completionN: string val no_completion: T
   val lineN: string
   val offsetN: string
   val end_offsetN: string
@@ -304,6 +305,7 @@ val refN = "ref";
 (* completion *)
 
 val (completionN, completion) = markup_elem "completion";
+val (no_completionN, no_completion) = markup_elem "no_completion";
 
 
 (* position *)

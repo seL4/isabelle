@@ -13,7 +13,7 @@ sig
   val pretty_src: Proof.context -> src -> Pretty.T
   val map_name: (string -> string) -> src -> src
   val transform_values: morphism -> src -> src
-  val assignable: src -> src
+  val init_assignable: src -> src
   val closure: src -> src
   val context: Proof.context context_parser
   val theory: theory context_parser
@@ -85,7 +85,8 @@ fun pretty_src ctxt src =
     val prt_thm = Pretty.backquote o Display.pretty_thm ctxt;
     fun prt arg =
       (case Token.get_value arg of
-        SOME (Token.Text s) => Pretty.str (quote s)
+        SOME (v as Token.Literal s) => Pretty.marks_str (Token.value_markup false v, s)
+      | SOME (Token.Text s) => Pretty.str (quote s)
       | SOME (Token.Typ T) => Syntax.pretty_typ ctxt T
       | SOME (Token.Term t) => Syntax.pretty_term ctxt t
       | SOME (Token.Fact ths) => Pretty.enclose "(" ")" (Pretty.breaks (map prt_thm ths))
@@ -100,14 +101,13 @@ fun map_args f (Src ((s, args), pos)) = Src ((s, map f args), pos);
 (* values *)
 
 fun transform_values phi = map_args (Token.map_value
-  (fn Token.Text s => Token.Text s
-    | Token.Typ T => Token.Typ (Morphism.typ phi T)
+  (fn Token.Typ T => Token.Typ (Morphism.typ phi T)
     | Token.Term t => Token.Term (Morphism.term phi t)
     | Token.Fact ths => Token.Fact (Morphism.fact phi ths)
     | Token.Attribute att => Token.Attribute (Morphism.transform phi att)
-    | tok as Token.Files _ => tok));
+    | tok => tok));
 
-val assignable = map_args Token.assignable;
+val init_assignable = map_args Token.init_assignable;
 val closure = map_args Token.closure;
 
 
@@ -132,8 +132,10 @@ val string = token (Parse.string || Parse.verbatim);
 val alt_string = token Parse.alt_string;
 val symbolic = token Parse.keyword_ident_or_symbolic;
 
-fun $$$ x = (ident >> Token.content_of || Parse.keyword)
-  :|-- (fn y => if x = y then Scan.succeed x else Scan.fail);
+fun $$$ x =
+  (ident || token Parse.keyword) :|-- (fn tok =>
+    let val y = Token.content_of tok
+    in if x = y then (Token.assign (SOME (Token.Literal x)) tok; Scan.succeed x) else Scan.fail end);
 
 
 val named = ident || string;
@@ -287,13 +289,25 @@ fun opt_thm_name intern s =
 
 (** syntax wrapper **)
 
-fun syntax kind scan (Src ((s, args), pos)) st =
-  (case Scan.error (Scan.finite' Token.stopper (Scan.option scan)) (st, args) of
-    (SOME x, (st', [])) => (x, st')
-  | (_, (_, args')) =>
-      error ("Bad arguments for " ^ kind ^ " " ^ quote s ^ Position.here pos ^
-        (if null args' then "" else ":\n  " ^ space_implode " " (map Token.print args'))));
+fun syntax kind scan (Src ((s, args0), pos)) context =
+  let
+    val args1 = map Token.init_assignable args0;
+    fun reported_text () =
+      if Context_Position.is_visible_generic context then
+        maps (Token.reports_of_value o Token.closure) args1
+        |> map (fn (p, m) => Position.reported_text p m "")
+        |> implode
+      else "";
+  in
+    (case Scan.error (Scan.finite' Token.stopper (Scan.option scan)) (context, args1) of
+      (SOME x, (context', [])) => (Output.report (reported_text ()); (x, context'))
+    | (_, (_, args2)) =>
+        error ("Bad arguments for " ^ kind ^ " " ^ quote s ^ Position.here pos ^
+          (if null args2 then "" else ":\n  " ^ space_implode " " (map Token.print args2)) ^
+          Markup.markup Markup.report (reported_text ())))
+  end;
 
-fun context_syntax kind scan src = apsnd Context.the_proof o syntax kind scan src o Context.Proof;
+fun context_syntax kind scan src =
+  apsnd Context.the_proof o syntax kind scan src o Context.Proof;
 
 end;

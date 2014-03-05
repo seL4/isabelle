@@ -12,7 +12,7 @@ sig
     Error of string | Sync | EOF
   type file = {src_path: Path.T, lines: string list, digest: SHA1.digest, pos: Position.T}
   datatype value =
-    Text of string | Typ of typ | Term of term | Fact of thm list |
+    Literal of string | Text of string | Typ of typ | Term of term | Fact of thm list |
     Attribute of morphism -> attribute | Files of file Exn.result list
   type T
   val str_of_kind: kind -> string
@@ -43,6 +43,7 @@ sig
   val source_position_of: T -> Symbol_Pos.source
   val content_of: T -> string
   val markup: T -> Markup.T * string
+  val value_markup: bool -> value -> Markup.T list
   val unparse: T -> string
   val print: T -> string
   val text_of: T -> string * string
@@ -50,12 +51,13 @@ sig
   val put_files: file Exn.result list -> T -> T
   val get_value: T -> value option
   val map_value: (value -> value) -> T -> T
+  val reports_of_value: T -> Position.report list
   val mk_text: string -> T
   val mk_typ: typ -> T
   val mk_term: term -> T
   val mk_fact: thm list -> T
   val mk_attribute: (morphism -> attribute) -> T
-  val assignable: T -> T
+  val init_assignable: T -> T
   val assign: value option -> T -> unit
   val closure: T -> T
   val ident_or_symbolic: string -> bool
@@ -83,6 +85,7 @@ struct
 type file = {src_path: Path.T, lines: string list, digest: SHA1.digest, pos: Position.T};
 
 datatype value =
+  Literal of string |
   Text of string |
   Typ of typ |
   Term of term |
@@ -248,12 +251,23 @@ val token_kind_markup =
   | Sync          => (Markup.control, "")
   | EOF           => (Markup.control, "");
 
+fun keyword_markup x =
+  if Symbol.is_ascii_identifier x
+  then Markup.keyword2
+  else Markup.operator;
+
 in
 
 fun markup tok =
-  if keyword_with (not o Symbol.is_ascii_identifier) tok
-  then (Markup.operator, "")
+  if is_kind Keyword tok
+  then (keyword_markup (content_of tok), "")
   else token_kind_markup (kind_of tok);
+
+fun value_markup known_keyword (Literal x) =
+      (if known_keyword then [] else [keyword_markup x]) @
+      (if Symbol.is_ascii_identifier x orelse length (Symbol.explode x) > 1 then []
+       else [Markup.no_completion])
+  | value_markup _ _ = [];
 
 end;
 
@@ -309,6 +323,18 @@ fun get_value (Token (_, _, Value v)) = v
 fun map_value f (Token (x, y, Value (SOME v))) = Token (x, y, Value (SOME (f v)))
   | map_value _ tok = tok;
 
+fun reports_of_value tok =
+  (case get_value tok of
+    NONE => []
+  | SOME v =>
+      let
+        val pos = pos_of tok;
+        val known_keyword = is_kind Keyword tok;
+      in
+        if Position.is_reported pos then map (pair pos) (value_markup known_keyword v)
+        else []
+      end);
+
 
 (* make values *)
 
@@ -323,9 +349,10 @@ val mk_attribute = mk_value "<attribute>" o Attribute;
 
 (* static binding *)
 
-(*1st stage: make empty slots assignable*)
-fun assignable (Token (x, y, Slot)) = Token (x, y, Assignable (Unsynchronized.ref NONE))
-  | assignable tok = tok;
+(*1st stage: initialize assignable slots*)
+fun init_assignable (Token (x, y, Slot)) = Token (x, y, Assignable (Unsynchronized.ref NONE))
+  | init_assignable (tok as Token (_, _, Assignable r)) = (r := NONE; tok)
+  | init_assignable tok = tok;
 
 (*2nd stage: assign values as side-effect of scanning*)
 fun assign v (Token (_, _, Assignable r)) = r := v

@@ -70,6 +70,7 @@ object Markup
   /* completion */
 
   val COMPLETION = "completion"
+  val NO_COMPLETION = "no_completion"
 
 
   /* position */

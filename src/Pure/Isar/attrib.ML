@@ -262,7 +262,7 @@ local
 
 fun apply_att src (context, th) =
   let
-    val src1 = Args.assignable src;
+    val src1 = Args.init_assignable src;
     val result = attribute_generic context src1 (context, th);
     val src2 = Args.closure src1;
   in (src2, result) end;

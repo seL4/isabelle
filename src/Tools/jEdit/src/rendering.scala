@@ -130,7 +130,7 @@ object Rendering
   /* markup elements */
 
   private val completion_names_elements =
-    Document.Elements(Markup.COMPLETION)
+    Document.Elements(Markup.COMPLETION, Markup.NO_COMPLETION)
 
   private val completion_language_elements =
     Document.Elements(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM,

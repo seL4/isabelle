@@ -512,7 +512,7 @@ end;
 fun activate_i elem ctxt =
   let
     val elem' =
-      (case map_ctxt_attrib Args.assignable elem of
+      (case map_ctxt_attrib Args.init_assignable elem of
         Defines defs =>
           Defines (defs |> map (fn ((a, atts), (t, ps)) =>
             ((Thm.def_binding_optional (Binding.name (#1 (#1 (Local_Defs.cert_def ctxt t)))) a, atts),

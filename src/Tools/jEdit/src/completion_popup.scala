@@ -114,7 +114,9 @@ object Completion_Popup
             before_caret_range(rendering).try_restrict(line_range) match {
               case Some(range) if !range.is_singularity =>
                 rendering.completion_names(range) match {
-                  case Some(names) => Some(names.range)
+                  case Some(names) =>
+                    if (names.no_completion) None
+                    else Some(names.range)
                   case None =>
                     syntax_completion(false, Some(rendering)) match {
                       case Some(result) => Some(result.range)
@@ -232,12 +234,15 @@ object Completion_Popup
             case Some(doc_view) =>
               val rendering = doc_view.get_rendering()
               rendering.completion_names(before_caret_range(rendering)) match {
-                case None => None
                 case Some(names) =>
-                  JEdit_Lib.try_get_text(buffer, names.range) match {
-                    case Some(original) => names.complete(history, decode, original)
-                    case None => None
-                  }
+                  if (names.no_completion)
+                    Some(Completion.Result.empty(names.range))
+                  else
+                    JEdit_Lib.try_get_text(buffer, names.range) match {
+                      case Some(original) => names.complete(history, decode, original)
+                      case None => None
+                    }
+                case None => None
               }
             case None => None
           }

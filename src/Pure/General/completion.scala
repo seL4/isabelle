@@ -27,6 +27,11 @@ object Completion
     immediate: Boolean)
   { override def toString: String = description }
 
+  object Result
+  {
+    def empty(range: Text.Range): Result = Result(range, "", false, Nil)
+  }
+
   sealed case class Result(
     range: Text.Range,
     original: String,
@@ -136,6 +141,8 @@ object Completion
               Some(Names(info.range, total, names))
             }
             catch { case _: XML.Error => None }
+          case XML.Elem(Markup(Markup.NO_COMPLETION, _), _) =>
+            Some(Names(info.range, 0, Nil))
           case _ => None
         }
     }
@@ -143,6 +150,8 @@ object Completion
 
   sealed case class Names(range: Text.Range, total: Int, names: List[(String, String)])
   {
+    def no_completion: Boolean = total == 0 && names.isEmpty
+
     def complete(
       history: Completion.History,
       decode: Boolean,
