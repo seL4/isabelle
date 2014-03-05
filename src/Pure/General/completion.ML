@@ -11,6 +11,7 @@ sig
   val none: T
   val reported_text: T -> string
   val report: T -> unit
+  val suppress_abbrevs: string -> Markup.T list
 end;
 
 structure Completion: COMPLETION =
@@ -18,6 +19,8 @@ struct
 
 abstype T = Completion of {pos: Position.T, total: int, names: (string * string) list}
 with
+
+(* completion of names *)
 
 fun dest (Completion args) = args;
 
@@ -43,5 +46,13 @@ fun reported_text completion =
   end;
 
 val report = Output.report o reported_text;
+
+
+(* suppress short abbreviations *)
+
+fun suppress_abbrevs s =
+  if not (Symbol.is_ascii_identifier s) andalso (length (Symbol.explode s) = 1 orelse s = "::")
+  then [Markup.no_completion]
+  else [];
 
 end;

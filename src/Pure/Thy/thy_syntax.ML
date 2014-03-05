@@ -51,8 +51,7 @@ fun reports_of_token tok =
           if Symbol.is_malformed sym
           then SOME ((pos, Markup.bad), "Malformed symbolic character") else NONE);
     val is_malformed = Token.is_error tok orelse not (null malformed_symbols);
-    val (markup, msg) = Token.markup tok;
-    val reports = ((Token.pos_of tok, markup), msg) :: malformed_symbols;
+    val reports = Token.report tok :: Token.completion_report tok @ malformed_symbols;
   in (is_malformed, reports) end;
 
 in
@@ -62,7 +61,7 @@ fun reports_of_tokens toks =
   in (exists fst results, maps snd results) end;
 
 fun present_token tok =
-  Markup.enclose (fst (Token.markup tok)) (Output.output (Token.unparse tok));
+  Markup.enclose (Token.markup tok) (Output.output (Token.unparse tok));
 
 end;
 

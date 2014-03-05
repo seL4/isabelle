@@ -42,8 +42,11 @@ sig
   val inner_syntax_of: T -> string
   val source_position_of: T -> Symbol_Pos.source
   val content_of: T -> string
-  val markup: T -> Markup.T * string
-  val value_markup: bool -> value -> Markup.T list
+  val keyword_markup: string -> Markup.T
+  val value_markup: value -> Markup.T list
+  val completion_report: T -> Position.report_text list
+  val report: T -> Position.report_text
+  val markup: T -> Markup.T
   val unparse: T -> string
   val print: T -> string
   val text_of: T -> string * string
@@ -225,7 +228,7 @@ fun source_position_of (Token ((source, (pos, _)), (kind, _), _)) =
 fun content_of (Token (_, (_, x), _)) = x;
 
 
-(* markup *)
+(* markup reports *)
 
 local
 
@@ -251,23 +254,29 @@ val token_kind_markup =
   | Sync          => (Markup.control, "")
   | EOF           => (Markup.control, "");
 
+in
+
 fun keyword_markup x =
   if Symbol.is_ascii_identifier x
   then Markup.keyword2
   else Markup.operator;
 
-in
+fun value_markup (Literal x) = keyword_markup x :: Completion.suppress_abbrevs x
+  | value_markup _ = [];
 
-fun markup tok =
+fun completion_report tok =
   if is_kind Keyword tok
-  then (keyword_markup (content_of tok), "")
-  else token_kind_markup (kind_of tok);
+  then map (fn m => ((pos_of tok, m), "")) (Completion.suppress_abbrevs (content_of tok))
+  else [];
 
-fun value_markup known_keyword (Literal x) =
-      (if known_keyword then [] else [keyword_markup x]) @
-      (if Symbol.is_ascii_identifier x orelse length (Symbol.explode x) > 1 then []
-       else [Markup.no_completion])
-  | value_markup _ _ = [];
+fun report tok =
+  if is_kind Keyword tok then
+    ((pos_of tok, keyword_markup (content_of tok)), "")
+  else
+    let val (m, text) = token_kind_markup (kind_of tok)
+    in ((pos_of tok, m), text) end;
+
+val markup = #2 o #1 o report;
 
 end;
 
@@ -285,14 +294,14 @@ fun unparse (Token (_, (kind, x), _)) =
   | EOF => ""
   | _ => x);
 
-fun print tok = Markup.markup (#1 (markup tok)) (unparse tok);
+fun print tok = Markup.markup (markup tok) (unparse tok);
 
 fun text_of tok =
   if is_semicolon tok then ("terminator", "")
   else
     let
       val k = str_of_kind (kind_of tok);
-      val (m, _) = markup tok;
+      val m = markup tok;
       val s = unparse tok;
     in
       if s = "" then (k, "")
@@ -327,13 +336,10 @@ fun reports_of_value tok =
   (case get_value tok of
     NONE => []
   | SOME v =>
-      let
-        val pos = pos_of tok;
-        val known_keyword = is_kind Keyword tok;
-      in
-        if Position.is_reported pos then map (pair pos) (value_markup known_keyword v)
-        else []
-      end);
+      if is_kind Keyword tok then []
+      else
+        let val pos = pos_of tok
+        in if Position.is_reported pos then map (pair pos) (value_markup v) else [] end);
 
 
 (* make values *)

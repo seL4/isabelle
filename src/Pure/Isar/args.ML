@@ -85,12 +85,12 @@ fun pretty_src ctxt src =
     val prt_thm = Pretty.backquote o Display.pretty_thm ctxt;
     fun prt arg =
       (case Token.get_value arg of
-        SOME (v as Token.Literal s) => Pretty.marks_str (Token.value_markup false v, s)
+        SOME (v as Token.Literal s) => Pretty.marks_str (Token.value_markup v, s)
       | SOME (Token.Text s) => Pretty.str (quote s)
       | SOME (Token.Typ T) => Syntax.pretty_typ ctxt T
       | SOME (Token.Term t) => Syntax.pretty_term ctxt t
       | SOME (Token.Fact ths) => Pretty.enclose "(" ")" (Pretty.breaks (map prt_thm ths))
-      | _ => Pretty.mark_str (#1 (Token.markup arg), Token.unparse arg));
+      | _ => Pretty.mark_str (Token.markup arg, Token.unparse arg));
     val (s, args) = #1 (dest_src src);
   in Pretty.block (Pretty.breaks (Pretty.str s :: map prt args)) end;
 
