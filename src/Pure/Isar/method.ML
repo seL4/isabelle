@@ -435,7 +435,8 @@ in
 
 fun reports_of ((text, (pos, _)): text_range) =
   (pos, Markup.language_method) ::
-    map (rpair Markup.keyword3) (keyword_positions text);
+    maps (fn p => map (pair p) (Markup.keyword3 :: Completion.suppress_abbrevs ""))
+      (keyword_positions text);
 
 val report = Position.reports o reports_of;
 

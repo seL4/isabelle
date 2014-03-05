@@ -51,7 +51,7 @@ val report = Output.report o reported_text;
 (* suppress short abbreviations *)
 
 fun suppress_abbrevs s =
-  if not (Symbol.is_ascii_identifier s) andalso (length (Symbol.explode s) = 1 orelse s = "::")
+  if not (Symbol.is_ascii_identifier s) andalso (length (Symbol.explode s) <= 1 orelse s = "::")
   then [Markup.no_completion]
   else [];
 
