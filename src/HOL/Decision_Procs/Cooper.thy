@@ -405,10 +405,10 @@ text {* Algebraic simplifications for nums *}
 fun bnds :: "num \<Rightarrow> nat list"
 where
   "bnds (Bound n) = [n]"
-| "bnds (CN n c a) = n#(bnds a)"
+| "bnds (CN n c a) = n # bnds a"
 | "bnds (Neg a) = bnds a"
-| "bnds (Add a b) = (bnds a)@(bnds b)"
-| "bnds (Sub a b) = (bnds a)@(bnds b)"
+| "bnds (Add a b) = bnds a @ bnds b"
+| "bnds (Sub a b) =  bnds a @ bnds b"
 | "bnds (Mul i a) = bnds a"
 | "bnds a = []"
 
@@ -422,12 +422,12 @@ definition lex_bnd :: "num \<Rightarrow> num \<Rightarrow> bool"
   where "lex_bnd t s = lex_ns (bnds t) (bnds s)"
 
 consts numadd:: "num \<times> num \<Rightarrow> num"
-recdef numadd "measure (\<lambda>(t,s). num_size t + num_size s)"
+recdef numadd "measure (\<lambda>(t, s). num_size t + num_size s)"
   "numadd (CN n1 c1 r1 ,CN n2 c2 r2) =
     (if n1 = n2 then
       (let c = c1 + c2
-       in if c=0 then numadd (r1, r2) else CN n1 c (numadd (r1, r2)))
-     else if n1 \<le> n2 then CN n1 c1 (numadd (r1,Add (Mul c2 (Bound n2)) r2))
+       in if c = 0 then numadd (r1, r2) else CN n1 c (numadd (r1, r2)))
+     else if n1 \<le> n2 then CN n1 c1 (numadd (r1, Add (Mul c2 (Bound n2)) r2))
      else CN n2 c2 (numadd (Add (Mul c1 (Bound n1)) r1, r2)))"
   "numadd (CN n1 c1 r1, t) = CN n1 c1 (numadd (r1, t))"
   "numadd (t, CN n2 c2 r2) = CN n2 c2 (numadd (t, r2))"
@@ -608,20 +608,20 @@ where
 | "simpfm (Imp p q) = imp (simpfm p) (simpfm q)"
 | "simpfm (Iff p q) = iff (simpfm p) (simpfm q)"
 | "simpfm (NOT p) = not (simpfm p)"
-| "simpfm (Lt a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v < 0) then T else F | _ \<Rightarrow> Lt a')"
-| "simpfm (Le a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v \<le> 0)  then T else F | _ \<Rightarrow> Le a')"
-| "simpfm (Gt a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v > 0)  then T else F | _ \<Rightarrow> Gt a')"
-| "simpfm (Ge a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v \<ge> 0)  then T else F | _ \<Rightarrow> Ge a')"
-| "simpfm (Eq a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v = 0)  then T else F | _ \<Rightarrow> Eq a')"
-| "simpfm (NEq a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v \<noteq> 0)  then T else F | _ \<Rightarrow> NEq a')"
+| "simpfm (Lt a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if v < 0 then T else F | _ \<Rightarrow> Lt a')"
+| "simpfm (Le a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if v \<le> 0 then T else F | _ \<Rightarrow> Le a')"
+| "simpfm (Gt a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if v > 0 then T else F | _ \<Rightarrow> Gt a')"
+| "simpfm (Ge a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if v \<ge> 0 then T else F | _ \<Rightarrow> Ge a')"
+| "simpfm (Eq a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if v = 0 then T else F | _ \<Rightarrow> Eq a')"
+| "simpfm (NEq a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if v \<noteq> 0 then T else F | _ \<Rightarrow> NEq a')"
 | "simpfm (Dvd i a) =
     (if i = 0 then simpfm (Eq a)
      else if abs i = 1 then T
-     else let a' = simpnum a in case a' of C v \<Rightarrow> if (i dvd v)  then T else F | _ \<Rightarrow> Dvd i a')"
+     else let a' = simpnum a in case a' of C v \<Rightarrow> if i dvd v then T else F | _ \<Rightarrow> Dvd i a')"
 | "simpfm (NDvd i a) =
     (if i = 0 then simpfm (NEq a)
      else if abs i = 1 then F
-     else let a' = simpnum a in case a' of C v \<Rightarrow> if (\<not>(i dvd v)) then T else F | _ \<Rightarrow> NDvd i a')"
+     else let a' = simpnum a in case a' of C v \<Rightarrow> if \<not>( i dvd v) then T else F | _ \<Rightarrow> NDvd i a')"
 | "simpfm p = p"
   by pat_completeness auto
 termination by (relation "measure fmsize") auto
@@ -823,7 +823,8 @@ where
 | "zsplit0 (Mul i a) = (let (i', a') = zsplit0 a in (i*i', Mul i a'))"
 
 lemma zsplit0_I:
-  shows "\<And>n a. zsplit0 t = (n,a) \<Longrightarrow> (Inum ((x::int) #bs) (CN 0 n a) = Inum (x #bs) t) \<and> numbound0 a"
+  shows "\<And>n a. zsplit0 t = (n, a) \<Longrightarrow>
+    (Inum ((x::int) # bs) (CN 0 n a) = Inum (x # bs) t) \<and> numbound0 a"
   (is "\<And>n a. ?S t = (n,a) \<Longrightarrow> (?I x (CN 0 n a) = ?I x t) \<and> ?N a")
 proof (induct t rule: zsplit0.induct)
   case (1 c n a)
@@ -1308,7 +1309,7 @@ next
 qed simp_all
 
 
-consts a_\<beta> :: "fm \<Rightarrow> int \<Rightarrow> fm"  -- {* adjust the coeffitients of a formula *}
+consts a_\<beta> :: "fm \<Rightarrow> int \<Rightarrow> fm"  -- {* adjust the coefficients of a formula *}
 recdef a_\<beta> "measure size"
   "a_\<beta> (And p q) = (\<lambda>k. And (a_\<beta> p k) (a_\<beta> q k))"
   "a_\<beta> (Or p q) = (\<lambda>k. Or (a_\<beta> p k) (a_\<beta> q k))"
@@ -1428,110 +1429,147 @@ next
     by simp_all
   fix a
   from 4 have "\<forall>x < (- Inum (a#bs) e). c*x + Inum (x#bs) e \<noteq> 0"
-  proof(clarsimp)
-    fix x assume "x < (- Inum (a#bs) e)" and"x + Inum (x#bs) e = 0"
+  proof clarsimp
+    fix x
+    assume "x < (- Inum (a#bs) e)" and"x + Inum (x # bs) e = 0"
     with numbound0_I[OF nb, where bs="bs" and b="a" and b'="x"]
     show "False" by simp
   qed
   then show ?case by auto
 next
-  case (5 c e) then have c1: "c=1" and nb: "numbound0 e" by simp_all
+  case (5 c e)
+  then have c1: "c = 1" and nb: "numbound0 e"
+    by simp_all
   fix a
   from 5 have "\<forall>x<(- Inum (a#bs) e). c*x + Inum (x#bs) e < 0"
-  proof(clarsimp)
-    fix x assume "x < (- Inum (a#bs) e)"
+  proof clarsimp
+    fix x
+    assume "x < (- Inum (a#bs) e)"
     with numbound0_I[OF nb, where bs="bs" and b="a" and b'="x"]
-    show "x + Inum (x#bs) e < 0" by simp
+    show "x + Inum (x # bs) e < 0"
+      by simp
   qed
   then show ?case by auto
 next
-  case (6 c e) then have c1: "c=1" and nb: "numbound0 e" by simp_all
+  case (6 c e)
+  then have c1: "c = 1" and nb: "numbound0 e"
+    by simp_all
   fix a
   from 6 have "\<forall>x<(- Inum (a#bs) e). c*x + Inum (x#bs) e \<le> 0"
-  proof(clarsimp)
-    fix x assume "x < (- Inum (a#bs) e)"
+  proof clarsimp
+    fix x
+    assume "x < (- Inum (a#bs) e)"
     with numbound0_I[OF nb, where bs="bs" and b="a" and b'="x"]
     show "x + Inum (x#bs) e \<le> 0" by simp
   qed
   then show ?case by auto
 next
-  case (7 c e) then have c1: "c=1" and nb: "numbound0 e" by simp_all
+  case (7 c e)
+  then have c1: "c = 1" and nb: "numbound0 e"
+    by simp_all
   fix a
   from 7 have "\<forall>x<(- Inum (a#bs) e). \<not> (c*x + Inum (x#bs) e > 0)"
-  proof(clarsimp)
-    fix x assume "x < (- Inum (a#bs) e)" and"x + Inum (x#bs) e > 0"
+  proof clarsimp
+    fix x
+    assume "x < (- Inum (a#bs) e)" and"x + Inum (x#bs) e > 0"
     with numbound0_I[OF nb, where bs="bs" and b="a" and b'="x"]
-    show "False" by simp
+    show False by simp
   qed
   then show ?case by auto
 next
-  case (8 c e) then have c1: "c=1" and nb: "numbound0 e" by simp_all
+  case (8 c e)
+  then have c1: "c = 1" and nb: "numbound0 e"
+    by simp_all
   fix a
   from 8 have "\<forall>x<(- Inum (a#bs) e). \<not> (c*x + Inum (x#bs) e \<ge> 0)"
-  proof(clarsimp)
-    fix x assume "x < (- Inum (a#bs) e)" and"x + Inum (x#bs) e \<ge> 0"
+  proof clarsimp
+    fix x
+    assume "x < (- Inum (a#bs) e)" and "x + Inum (x#bs) e \<ge> 0"
     with numbound0_I[OF nb, where bs="bs" and b="a" and b'="x"]
-    show "False" by simp
+    show False by simp
   qed
   then show ?case by auto
 qed auto
 
 lemma minusinf_repeats:
-  assumes d: "d_\<delta> p d" and linp: "iszlfm p"
-  shows "Ifm bbs ((x - k*d)#bs) (minusinf p) = Ifm bbs (x #bs) (minusinf p)"
+  assumes d: "d_\<delta> p d"
+    and linp: "iszlfm p"
+  shows "Ifm bbs ((x - k * d) # bs) (minusinf p) = Ifm bbs (x # bs) (minusinf p)"
   using linp d
 proof (induct p rule: iszlfm.induct)
   case (9 i c e)
-  then have nbe: "numbound0 e" and id: "i dvd d" by simp_all
-  then have "\<exists>k. d=i*k" by (simp add: dvd_def)
-  then obtain "di" where di_def: "d=i*di" by blast
+  then have nbe: "numbound0 e" and id: "i dvd d"
+    by simp_all
+  then have "\<exists>k. d = i * k"
+    by (simp add: dvd_def)
+  then obtain "di" where di_def: "d = i * di"
+    by blast
   show ?case
   proof (simp add: numbound0_I[OF nbe,where bs="bs" and b="x - k * d" and b'="x"] right_diff_distrib,
       rule iffI)
-    assume "i dvd c * x - c*(k*d) + Inum (x # bs) e"
+    assume "i dvd c * x - c * (k * d) + Inum (x # bs) e"
       (is "?ri dvd ?rc*?rx - ?rc*(?rk*?rd) + ?I x e" is "?ri dvd ?rt")
-    then have "\<exists>(l::int). ?rt = i * l" by (simp add: dvd_def)
-    then have "\<exists>(l::int). c*x+ ?I x e = i*l+c*(k * i*di)"
+    then have "\<exists>l::int. ?rt = i * l"
+      by (simp add: dvd_def)
+    then have "\<exists>l::int. c*x+ ?I x e = i * l + c * (k * i * di)"
       by (simp add: algebra_simps di_def)
-    then have "\<exists>(l::int). c*x+ ?I x e = i*(l + c*k*di)"
+    then have "\<exists>l::int. c*x+ ?I x e = i*(l + c * k * di)"
       by (simp add: algebra_simps)
-    then have "\<exists>(l::int). c*x+ ?I x e = i*l" by blast
-    then show "i dvd c*x + Inum (x # bs) e" by (simp add: dvd_def)
+    then have "\<exists>l::int. c * x + ?I x e = i * l"
+      by blast
+    then show "i dvd c * x + Inum (x # bs) e"
+      by (simp add: dvd_def)
   next
-    assume "i dvd c*x + Inum (x # bs) e" (is "?ri dvd ?rc*?rx+?e")
-    then have "\<exists>(l::int). c*x+?e = i*l" by (simp add: dvd_def)
-    then have "\<exists>(l::int). c*x - c*(k*d) +?e = i*l - c*(k*d)" by simp
-    then have "\<exists>(l::int). c*x - c*(k*d) +?e = i*l - c*(k*i*di)" by (simp add: di_def)
-    then have "\<exists>(l::int). c*x - c*(k*d) +?e = i*((l - c*k*di))" by (simp add: algebra_simps)
-    then have "\<exists>(l::int). c*x - c * (k*d) +?e = i*l" by blast
-    then show "i dvd c*x - c*(k*d) + Inum (x # bs) e" by (simp add: dvd_def)
+    assume "i dvd c*x + Inum (x # bs) e" (is "?ri dvd ?rc * ?rx + ?e")
+    then have "\<exists>l::int. c * x + ?e = i * l"
+      by (simp add: dvd_def)
+    then have "\<exists>l::int. c * x - c * (k * d) + ?e = i * l - c * (k * d)"
+      by simp
+    then have "\<exists>l::int. c * x - c * (k * d) + ?e = i * l - c * (k * i * di)"
+      by (simp add: di_def)
+    then have "\<exists>l::int. c * x - c * (k * d) + ?e = i * ((l - c * k * di))"
+      by (simp add: algebra_simps)
+    then have "\<exists>l::int. c * x - c * (k * d) + ?e = i * l"
+      by blast
+    then show "i dvd c * x - c * (k * d) + Inum (x # bs) e"
+      by (simp add: dvd_def)
   qed
 next
   case (10 i c e)
-  then have nbe: "numbound0 e"  and id: "i dvd d" by simp_all
-  then have "\<exists>k. d=i*k" by (simp add: dvd_def)
-  then obtain "di" where di_def: "d=i*di" by blast
+  then have nbe: "numbound0 e" and id: "i dvd d"
+    by simp_all
+  then have "\<exists>k. d = i * k"
+    by (simp add: dvd_def)
+  then obtain di where di_def: "d = i * di"
+    by blast
   show ?case
-  proof(simp add: numbound0_I[OF nbe,where bs="bs" and b="x - k * d" and b'="x"] right_diff_distrib, rule iffI)
-    assume "i dvd c * x - c*(k*d) + Inum (x # bs) e"
+  proof (simp add: numbound0_I[OF nbe,where bs="bs" and b="x - k * d" and b'="x"] right_diff_distrib, rule iffI)
+    assume "i dvd c * x - c * (k * d) + Inum (x # bs) e"
       (is "?ri dvd ?rc*?rx - ?rc*(?rk*?rd) + ?I x e" is "?ri dvd ?rt")
-    then have "\<exists>(l::int). ?rt = i * l" by (simp add: dvd_def)
-    then have "\<exists>(l::int). c*x+ ?I x e = i*l+c*(k * i*di)"
+    then have "\<exists>l::int. ?rt = i * l"
+      by (simp add: dvd_def)
+    then have "\<exists>l::int. c * x + ?I x e = i * l + c * (k * i * di)"
       by (simp add: algebra_simps di_def)
-    then have "\<exists>(l::int). c*x+ ?I x e = i*(l + c*k*di)"
+    then have "\<exists>l::int. c * x+ ?I x e = i * (l + c * k * di)"
       by (simp add: algebra_simps)
-    then have "\<exists>(l::int). c*x+ ?I x e = i*l" by blast
-    then show "i dvd c*x + Inum (x # bs) e" by (simp add: dvd_def)
-  next
-    assume
-      "i dvd c*x + Inum (x # bs) e" (is "?ri dvd ?rc*?rx+?e")
-    then have "\<exists>(l::int). c*x+?e = i*l" by (simp add: dvd_def)
-    then have "\<exists>(l::int). c*x - c*(k*d) +?e = i*l - c*(k*d)" by simp
-    then have "\<exists>(l::int). c*x - c*(k*d) +?e = i*l - c*(k*i*di)" by (simp add: di_def)
-    then have "\<exists>(l::int). c*x - c*(k*d) +?e = i*((l - c*k*di))" by (simp add: algebra_simps)
-    then have "\<exists>(l::int). c*x - c * (k*d) +?e = i*l"
+    then have "\<exists>l::int. c * x + ?I x e = i * l"
       by blast
-    then show "i dvd c*x - c*(k*d) + Inum (x # bs) e" by (simp add: dvd_def)
+    then show "i dvd c * x + Inum (x # bs) e"
+      by (simp add: dvd_def)
+  next
+    assume "i dvd c * x + Inum (x # bs) e" (is "?ri dvd ?rc * ?rx + ?e")
+    then have "\<exists>l::int. c * x + ?e = i * l"
+      by (simp add: dvd_def)
+    then have "\<exists>l::int. c * x - c * (k * d) + ?e = i * l - c * (k * d)"
+      by simp
+    then have "\<exists>l::int. c * x - c * (k * d) + ?e = i * l - c * (k * i * di)"
+      by (simp add: di_def)
+    then have "\<exists>l::int. c * x - c * (k * d) + ?e = i * ((l - c * k * di))"
+      by (simp add: algebra_simps)
+    then have "\<exists>l::int. c * x - c * (k * d) + ?e = i * l"
+      by blast
+    then show "i dvd c * x - c * (k * d) + Inum (x # bs) e"
+      by (simp add: dvd_def)
   qed
 qed (auto simp add: gr0_conv_Suc numbound0_I[where bs="bs" and b="x - k*d" and b'="x"])
 
@@ -1542,7 +1580,7 @@ lemma mirror_\<alpha>_\<beta>:
 
 lemma mirror:
   assumes lp: "iszlfm p"
-  shows "Ifm bbs (x#bs) (mirror p) = Ifm bbs ((- x)#bs) p"
+  shows "Ifm bbs (x # bs) (mirror p) = Ifm bbs ((- x) # bs) p"
   using lp
 proof (induct p rule: iszlfm.induct)
   case (9 j c e)
@@ -1616,22 +1654,27 @@ next
 qed (auto simp add: lcm_pos_int)
 
 lemma a_\<beta>:
-  assumes linp: "iszlfm p" and d: "d_\<beta> p l" and lp: "l > 0"
+  assumes linp: "iszlfm p"
+    and d: "d_\<beta> p l"
+    and lp: "l > 0"
   shows "iszlfm (a_\<beta> p l) \<and> d_\<beta> (a_\<beta> p l) 1 \<and> (Ifm bbs (l*x #bs) (a_\<beta> p l) = Ifm bbs (x#bs) p)"
   using linp d
 proof (induct p rule: iszlfm.induct)
   case (5 c e)
-  then have cp: "c>0" and be: "numbound0 e" and d': "c dvd l" by simp_all
-  from lp cp have clel: "c\<le>l" by (simp add: zdvd_imp_le [OF d' lp])
-  from cp have cnz: "c \<noteq> 0" by simp
-  have "c div c\<le> l div c"
+  then have cp: "c>0" and be: "numbound0 e" and d': "c dvd l"
+    by simp_all
+  from lp cp have clel: "c \<le> l"
+    by (simp add: zdvd_imp_le [OF d' lp])
+  from cp have cnz: "c \<noteq> 0"
+    by simp
+  have "c div c \<le> l div c"
     by (simp add: zdiv_mono1[OF clel cp])
   then have ldcp:"0 < l div c"
     by (simp add: div_self[OF cnz])
-  have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"]
-    by simp
-  then have cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric]
-    by simp
+  have "c * (l div c) = c * (l div c) + l mod c"
+    using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
+  then have cl: "c * (l div c) =l"
+    using zmod_zdiv_equality[where a="l" and b="c", symmetric] by simp
   then have "(l*x + (l div c) * Inum (x # bs) e < 0) =
       ((c * (l div c)) * x + (l div c) * Inum (x # bs) e < 0)"
     by simp
@@ -1643,19 +1686,23 @@ proof (induct p rule: iszlfm.induct)
     using numbound0_I[OF be,where b="l*x" and b'="x" and bs="bs"] be by simp
 next
   case (6 c e)
-  then have cp: "c>0" and be: "numbound0 e" and d': "c dvd l" by simp_all
-  from lp cp have clel: "c\<le>l" by (simp add: zdvd_imp_le [OF d' lp])
-  from cp have cnz: "c \<noteq> 0" by simp
+  then have cp: "c > 0" and be: "numbound0 e" and d': "c dvd l"
+    by simp_all
+  from lp cp have clel: "c \<le> l"
+    by (simp add: zdvd_imp_le [OF d' lp])
+  from cp have cnz: "c \<noteq> 0"
+    by simp
   have "c div c\<le> l div c"
     by (simp add: zdiv_mono1[OF clel cp])
   then have ldcp:"0 < l div c"
     by (simp add: div_self[OF cnz])
-  have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"]
-    by simp
-  then have cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric]
-    by simp
+  have "c * (l div c) = c* (l div c) + l mod c"
+    using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
+  then have cl: "c * (l div c) = l"
+    using zmod_zdiv_equality[where a="l" and b="c", symmetric] by simp
   then have "(l*x + (l div c) * Inum (x# bs) e \<le> 0) =
-      ((c * (l div c)) * x + (l div c) * Inum (x # bs) e \<le> 0)" by simp
+      ((c * (l div c)) * x + (l div c) * Inum (x # bs) e \<le> 0)"
+    by simp
   also have "\<dots> = ((l div c) * (c * x + Inum (x # bs) e) \<le> ((l div c)) * 0)"
     by (simp add: algebra_simps)
   also have "\<dots> = (c*x + Inum (x # bs) e \<le> 0)"
@@ -1664,10 +1711,68 @@ next
     using numbound0_I[OF be,where b="l*x" and b'="x" and bs="bs"] be by simp
 next
   case (7 c e)
-  then have cp: "c>0" and be: "numbound0 e" and d': "c dvd l" by simp_all
-  from lp cp have clel: "c\<le>l" by (simp add: zdvd_imp_le [OF d' lp])
-  from cp have cnz: "c \<noteq> 0" by simp
-  have "c div c\<le> l div c"
+  then have cp: "c > 0" and be: "numbound0 e" and d': "c dvd l"
+    by simp_all
+  from lp cp have clel: "c \<le> l"
+    by (simp add: zdvd_imp_le [OF d' lp])
+  from cp have cnz: "c \<noteq> 0"
+    by simp
+  have "c div c \<le> l div c"
+    by (simp add: zdiv_mono1[OF clel cp])
+  then have ldcp:"0 < l div c"
+    by (simp add: div_self[OF cnz])
+  have "c * (l div c) = c* (l div c) + l mod c"
+    using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
+  then have cl:"c * (l div c) = l"
+    using zmod_zdiv_equality[where a="l" and b="c", symmetric] by simp
+  then have "(l * x + (l div c) * Inum (x # bs) e > 0) =
+      ((c * (l div c)) * x + (l div c) * Inum (x # bs) e > 0)"
+    by simp
+  also have "\<dots> = ((l div c) * (c * x + Inum (x # bs) e) > ((l div c)) * 0)"
+    by (simp add: algebra_simps)
+  also have "\<dots> = (c * x + Inum (x # bs) e > 0)"
+    using zero_less_mult_iff [where a="(l div c)" and b="c * x + Inum (x # bs) e"] ldcp
+    by simp
+  finally show ?case
+    using numbound0_I[OF be,where b="(l * x)" and b'="x" and bs="bs"] be
+    by simp
+next
+  case (8 c e)
+  then have cp: "c > 0" and be: "numbound0 e" and d': "c dvd l"
+    by simp_all
+  from lp cp have clel: "c \<le> l"
+    by (simp add: zdvd_imp_le [OF d' lp])
+  from cp have cnz: "c \<noteq> 0"
+    by simp
+  have "c div c \<le> l div c"
+    by (simp add: zdiv_mono1[OF clel cp])
+  then have ldcp: "0 < l div c"
+    by (simp add: div_self[OF cnz])
+  have "c * (l div c) = c* (l div c) + l mod c"
+    using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
+  then have cl: "c * (l div c) =l"
+    using zmod_zdiv_equality[where a="l" and b="c", symmetric]
+    by simp
+  then have "(l*x + (l div c)* Inum (x # bs) e \<ge> 0) =
+      ((c*(l div c))*x + (l div c)* Inum (x # bs) e \<ge> 0)"
+    by simp
+  also have "\<dots> = ((l div c)*(c*x + Inum (x # bs) e) \<ge> ((l div c)) * 0)"
+    by (simp add: algebra_simps)
+  also have "\<dots> = (c*x + Inum (x # bs) e \<ge> 0)"
+    using ldcp zero_le_mult_iff [where a="l div c" and b="c*x + Inum (x # bs) e"]
+    by simp
+  finally show ?case
+    using be numbound0_I[OF be,where b="l*x" and b'="x" and bs="bs"]
+    by simp
+next
+  case (3 c e)
+  then have cp: "c > 0" and be: "numbound0 e" and d': "c dvd l"
+    by simp_all
+  from lp cp have clel: "c \<le> l"
+    by (simp add: zdvd_imp_le [OF d' lp])
+  from cp have cnz: "c \<noteq> 0"
+    by simp
+  have "c div c \<le> l div c"
     by (simp add: zdiv_mono1[OF clel cp])
   then have ldcp:"0 < l div c"
     by (simp add: div_self[OF cnz])
@@ -1675,131 +1780,121 @@ next
     using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
   then have cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric]
     by simp
-  then have "(l*x + (l div c)* Inum (x # bs) e > 0) =
-      ((c * (l div c)) * x + (l div c) * Inum (x # bs) e > 0)" by simp
-  also have "\<dots> = ((l div c) * (c * x + Inum (x # bs) e) > ((l div c)) * 0)"
-    by (simp add: algebra_simps)
-  also have "\<dots> = (c * x + Inum (x # bs) e > 0)"
-    using zero_less_mult_iff [where a="(l div c)" and b="c * x + Inum (x # bs) e"] ldcp by simp
-  finally show ?case
-    using numbound0_I[OF be,where b="(l * x)" and b'="x" and bs="bs"] be by simp
-next
-  case (8 c e)
-  then have cp: "c>0" and be: "numbound0 e" and d': "c dvd l" by simp_all
-  from lp cp have clel: "c\<le>l" by (simp add: zdvd_imp_le [OF d' lp])
-  from cp have cnz: "c \<noteq> 0" by simp
-  have "c div c\<le> l div c"
-    by (simp add: zdiv_mono1[OF clel cp])
-  then have ldcp:"0 < l div c"
-    by (simp add: div_self[OF cnz])
-  have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"]
-    by simp
-  then have cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric]
-    by simp
-  then have "(l*x + (l div c)* Inum (x # bs) e \<ge> 0) =
-      ((c*(l div c))*x + (l div c)* Inum (x # bs) e \<ge> 0)" by simp
-  also have "\<dots> = ((l div c)*(c*x + Inum (x # bs) e) \<ge> ((l div c)) * 0)"
-    by (simp add: algebra_simps)
-  also have "\<dots> = (c*x + Inum (x # bs) e \<ge> 0)"
-    using ldcp zero_le_mult_iff [where a="l div c" and b="c*x + Inum (x # bs) e"] by simp
-  finally show ?case
-    using be numbound0_I[OF be,where b="l*x" and b'="x" and bs="bs"] by simp
-next
-  case (3 c e)
-  then have cp: "c>0" and be: "numbound0 e" and d': "c dvd l" by simp_all
-  from lp cp have clel: "c\<le>l" by (simp add: zdvd_imp_le [OF d' lp])
-  from cp have cnz: "c \<noteq> 0" by simp
-  have "c div c\<le> l div c"
-    by (simp add: zdiv_mono1[OF clel cp])
-  then have ldcp:"0 < l div c"
-    by (simp add: div_self[OF cnz])
-  have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"]
-    by simp
-  then have cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric]
-    by simp
   then have "(l * x + (l div c) * Inum (x # bs) e = 0) =
-      ((c * (l div c)) * x + (l div c) * Inum (x # bs) e = 0)" by simp
+      ((c * (l div c)) * x + (l div c) * Inum (x # bs) e = 0)"
+    by simp
   also have "\<dots> = ((l div c) * (c * x + Inum (x # bs) e) = ((l div c)) * 0)"
     by (simp add: algebra_simps)
   also have "\<dots> = (c * x + Inum (x # bs) e = 0)"
-    using mult_eq_0_iff [where a="(l div c)" and b="c * x + Inum (x # bs) e"] ldcp by simp
+    using mult_eq_0_iff [where a="(l div c)" and b="c * x + Inum (x # bs) e"] ldcp
+    by simp
   finally show ?case
-    using numbound0_I[OF be,where b="(l * x)" and b'="x" and bs="bs"] be by simp
+    using numbound0_I[OF be,where b="(l * x)" and b'="x" and bs="bs"] be
+    by simp
 next
   case (4 c e)
-  then have cp: "c>0" and be: "numbound0 e" and d': "c dvd l" by simp_all
-  from lp cp have clel: "c\<le>l" by (simp add: zdvd_imp_le [OF d' lp])
-  from cp have cnz: "c \<noteq> 0" by simp
-  have "c div c\<le> l div c"
+  then have cp: "c > 0" and be: "numbound0 e" and d': "c dvd l"
+    by simp_all
+  from lp cp have clel: "c \<le> l"
+    by (simp add: zdvd_imp_le [OF d' lp])
+  from cp have cnz: "c \<noteq> 0"
+    by simp
+  have "c div c \<le> l div c"
     by (simp add: zdiv_mono1[OF clel cp])
   then have ldcp:"0 < l div c"
     by (simp add: div_self[OF cnz])
-  have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"]
+  have "c * (l div c) = c* (l div c) + l mod c"
+    using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
+  then have cl: "c * (l div c) = l"
+    using zmod_zdiv_equality[where a="l" and b="c", symmetric] by simp
+  then have "(l * x + (l div c) * Inum (x # bs) e \<noteq> 0) \<longleftrightarrow>
+      (c * (l div c)) * x + (l div c) * Inum (x # bs) e \<noteq> 0"
     by simp
-  then have cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric]
-    by simp
-  then have "(l * x + (l div c) * Inum (x # bs) e \<noteq> 0) =
-      ((c * (l div c)) * x + (l div c) * Inum (x # bs) e \<noteq> 0)" by simp
-  also have "\<dots> = ((l div c) * (c * x + Inum (x # bs) e) \<noteq> ((l div c)) * 0)"
+  also have "\<dots> \<longleftrightarrow> (l div c) * (c * x + Inum (x # bs) e) \<noteq> (l div c) * 0"
     by (simp add: algebra_simps)
-  also have "\<dots> = (c * x + Inum (x # bs) e \<noteq> 0)"
-    using zero_le_mult_iff [where a="(l div c)" and b="c * x + Inum (x # bs) e"] ldcp by simp
+  also have "\<dots> \<longleftrightarrow> c * x + Inum (x # bs) e \<noteq> 0"
+    using zero_le_mult_iff [where a="(l div c)" and b="c * x + Inum (x # bs) e"] ldcp
+    by simp
   finally show ?case
-    using numbound0_I[OF be,where b="(l * x)" and b'="x" and bs="bs"] be by simp
+    using numbound0_I[OF be,where b="(l * x)" and b'="x" and bs="bs"] be
+    by simp
 next
   case (9 j c e)
-  then have cp: "c>0" and be: "numbound0 e" and jp: "j > 0" and d': "c dvd l" by simp_all
-  from lp cp have clel: "c\<le>l" by (simp add: zdvd_imp_le [OF d' lp])
+  then have cp: "c > 0" and be: "numbound0 e" and jp: "j > 0" and d': "c dvd l"
+    by simp_all
+  from lp cp have clel: "c \<le> l"
+    by (simp add: zdvd_imp_le [OF d' lp])
   from cp have cnz: "c \<noteq> 0" by simp
   have "c div c\<le> l div c"
     by (simp add: zdiv_mono1[OF clel cp])
   then have ldcp:"0 < l div c"
     by (simp add: div_self[OF cnz])
-  have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"]
+  have "c * (l div c) = c* (l div c) + l mod c"
+    using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
+  then have cl: "c * (l div c) = l"
+    using zmod_zdiv_equality[where a="l" and b="c", symmetric] by simp
+  then have "(\<exists>k::int. l * x + (l div c) * Inum (x # bs) e = ((l div c) * j) * k) \<longleftrightarrow>
+      (\<exists>(k::int). (c * (l div c)) * x + (l div c) * Inum (x # bs) e = ((l div c) * j) * k)"
     by simp
-  then have cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric]
-    by simp
-  then have "(\<exists>(k::int). l * x + (l div c) * Inum (x # bs) e = ((l div c) * j) * k) =
-    (\<exists>(k::int). (c * (l div c)) * x + (l div c) * Inum (x # bs) e = ((l div c) * j) * k)" by simp
-  also have "\<dots> = (\<exists>(k::int). (l div c) * (c * x + Inum (x # bs) e - j * k) = (l div c)*0)"
+  also have "\<dots> \<longleftrightarrow> (\<exists>(k::int). (l div c) * (c * x + Inum (x # bs) e - j * k) = (l div c) * 0)"
     by (simp add: algebra_simps)
-  also have "\<dots> = (\<exists>(k::int). c * x + Inum (x # bs) e - j * k = 0)"
+  also
+  fix k
+  have "\<dots> \<longleftrightarrow> (\<exists>k::int. c * x + Inum (x # bs) e - j * k = 0)"
     using zero_le_mult_iff [where a="(l div c)" and b="c * x + Inum (x # bs) e - j * k"] ldcp
     by simp
-  also have "\<dots> = (\<exists>(k::int). c * x + Inum (x # bs) e = j * k)" by simp
+  also have "\<dots> \<longleftrightarrow> (\<exists>k::int. c * x + Inum (x # bs) e = j * k)"
+    by simp
   finally show ?case
-    using numbound0_I[OF be,where b="(l * x)" and b'="x" and bs="bs"] be mult_strict_mono[OF ldcp jp ldcp ]
+    using numbound0_I[OF be,where b="(l * x)" and b'="x" and bs="bs"]
+      be mult_strict_mono[OF ldcp jp ldcp ]
     by (simp add: dvd_def)
 next
   case (10 j c e)
-  then have cp: "c>0" and be: "numbound0 e" and jp: "j > 0" and d': "c dvd l" by simp_all
-  from lp cp have clel: "c\<le>l" by (simp add: zdvd_imp_le [OF d' lp])
-  from cp have cnz: "c \<noteq> 0" by simp
-  have "c div c\<le> l div c"
+  then have cp: "c > 0" and be: "numbound0 e" and jp: "j > 0" and d': "c dvd l"
+    by simp_all
+  from lp cp have clel: "c \<le> l"
+    by (simp add: zdvd_imp_le [OF d' lp])
+  from cp have cnz: "c \<noteq> 0"
+    by simp
+  have "c div c \<le> l div c"
     by (simp add: zdiv_mono1[OF clel cp])
-  then have ldcp:"0 < l div c"
+  then have ldcp: "0 < l div c"
     by (simp add: div_self[OF cnz])
   have "c * (l div c) = c* (l div c) + l mod c"
     using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
   then have cl:"c * (l div c) =l"
-    using zmod_zdiv_equality[where a="l" and b="c", symmetric] by simp
-  then have "(\<exists>(k::int). l * x + (l div c) * Inum (x # bs) e =
-      ((l div c) * j) * k) = (\<exists>(k::int). (c * (l div c)) * x + (l div c) * Inum (x # bs) e = ((l div c) * j) * k)"
+    using zmod_zdiv_equality[where a="l" and b="c", symmetric]
     by simp
-  also have "\<dots> = (\<exists>(k::int). (l div c) * (c * x + Inum (x # bs) e - j * k) = (l div c)*0)" by (simp add: algebra_simps)
-  also fix k have "\<dots> = (\<exists>(k::int). c * x + Inum (x # bs) e - j * k = 0)"
-    using zero_le_mult_iff [where a="(l div c)" and b="c * x + Inum (x # bs) e - j * k"] ldcp by simp
-  also have "\<dots> = (\<exists>(k::int). c * x + Inum (x # bs) e = j * k)" by simp
-  finally show ?case using numbound0_I[OF be,where b="(l * x)" and b'="x" and bs="bs"] be  mult_strict_mono[OF ldcp jp ldcp ] by (simp add: dvd_def)
+  then have "(\<exists>k::int. l * x + (l div c) * Inum (x # bs) e = ((l div c) * j) * k) \<longleftrightarrow>
+      (\<exists>k::int. (c * (l div c)) * x + (l div c) * Inum (x # bs) e = ((l div c) * j) * k)"
+    by simp
+  also have "\<dots> \<longleftrightarrow> (\<exists>k::int. (l div c) * (c * x + Inum (x # bs) e - j * k) = (l div c) * 0)"
+    by (simp add: algebra_simps)
+  also
+  fix k
+  have "\<dots> = (\<exists>k::int. c * x + Inum (x # bs) e - j * k = 0)"
+    using zero_le_mult_iff [where a="(l div c)" and b="c * x + Inum (x # bs) e - j * k"] ldcp
+    by simp
+  also have "\<dots> = (\<exists>k::int. c * x + Inum (x # bs) e = j * k)"
+    by simp
+  finally show ?case
+    using numbound0_I[OF be,where b="(l * x)" and b'="x" and bs="bs"] be
+      mult_strict_mono[OF ldcp jp ldcp ]
+    by (simp add: dvd_def)
 qed (auto simp add: gr0_conv_Suc numbound0_I[where bs="bs" and b="(l * x)" and b'="x"])
 
-lemma a_\<beta>_ex: assumes linp: "iszlfm p" and d: "d_\<beta> p l" and lp: "l>0"
-  shows "(\<exists>x. l dvd x \<and> Ifm bbs (x #bs) (a_\<beta> p l)) = (\<exists>(x::int). Ifm bbs (x#bs) p)"
-  (is "(\<exists>x. l dvd x \<and> ?P x) = (\<exists>x. ?P' x)")
+lemma a_\<beta>_ex:
+  assumes linp: "iszlfm p"
+    and d: "d_\<beta> p l"
+    and lp: "l > 0"
+  shows "(\<exists>x. l dvd x \<and> Ifm bbs (x #bs) (a_\<beta> p l)) \<longleftrightarrow> (\<exists>x::int. Ifm bbs (x#bs) p)"
+  (is "(\<exists>x. l dvd x \<and> ?P x) \<longleftrightarrow> (\<exists>x. ?P' x)")
 proof-
-  have "(\<exists>x. l dvd x \<and> ?P x) = (\<exists>(x::int). ?P (l*x))"
+  have "(\<exists>x. l dvd x \<and> ?P x) \<longleftrightarrow> (\<exists>(x::int). ?P (l*x))"
     using unity_coeff_ex[where l="l" and P="?P", simplified] by simp
-  also have "\<dots> = (\<exists>(x::int). ?P' x)" using a_\<beta>[OF linp d lp] by simp
+  also have "\<dots> = (\<exists>x::int. ?P' x)"
+    using a_\<beta>[OF linp d lp] by simp
   finally show ?thesis  .
 qed
 
@@ -2157,7 +2252,7 @@ proof -
     lq: "iszlfm ?q" and
     Bn: "\<forall>b\<in> set ?B. numbound0 b" by auto
   from zlin_qfree[OF lq] have qfq: "qfree ?q" .
-  from simpfm_qf[OF minusinf_qfree[OF qfq]] have qfmq: "qfree ?smq".
+  from simpfm_qf[OF minusinf_qfree[OF qfq]] have qfmq: "qfree ?smq" .
   have jsnb: "\<forall>j \<in> set ?js. numbound0 (C j)" by simp
   then have "\<forall>j\<in> set ?js. bound0 (subst0 (C j) ?smq)"
     by (auto simp only: subst0_bound0[OF qfmq])
@@ -2174,10 +2269,13 @@ proof -
     by auto
   from evaldjf_bound0 [OF th'] have qdb: "bound0 ?qd" by simp
   from mdb qdb
-  have mdqdb: "bound0 (disj ?md ?qd)" unfolding disj_def by (cases "?md=T \<or> ?qd=T") simp_all
+  have mdqdb: "bound0 (disj ?md ?qd)"
+    unfolding disj_def by (cases "?md=T \<or> ?qd=T") simp_all
   from trans [OF pq_ex cp_thm'[OF lq uq dd dp,where i="i"]] B
-  have "?lhs = (\<exists>j\<in> {1.. ?d}. ?I j ?mq \<or> (\<exists>b\<in> ?N ` set ?B. Ifm bbs ((b+ j)#bs) ?q))" by auto
-  also have "\<dots> = (\<exists>j\<in> {1.. ?d}. ?I j ?mq \<or> (\<exists>b\<in> set ?B. Ifm bbs ((?N b+ j)#bs) ?q))" by simp
+  have "?lhs = (\<exists>j\<in> {1.. ?d}. ?I j ?mq \<or> (\<exists>b\<in> ?N ` set ?B. Ifm bbs ((b+ j)#bs) ?q))"
+    by auto
+  also have "\<dots> = (\<exists>j\<in> {1.. ?d}. ?I j ?mq \<or> (\<exists>b\<in> set ?B. Ifm bbs ((?N b+ j)#bs) ?q))"
+    by simp
   also have "\<dots> = ((\<exists>j\<in> {1.. ?d}. ?I j ?mq ) \<or>
       (\<exists>j\<in> {1.. ?d}. \<exists>b\<in> set ?B. Ifm bbs ((?N (Add b (C j)))#bs) ?q))"
     by (simp only: Inum.simps) blast
@@ -2195,27 +2293,38 @@ proof -
   also have "\<dots> = (?I i ?md \<or> (?I i (evaldjf (\<lambda>(b,j). simpfm (subst0 (Add b (C j)) ?q)) ?Bjs)))"
     by (simp only: evaldjf_ex[where bs="i#bs" and f="\<lambda>(b,j). simpfm (subst0 (Add b (C j)) ?q)" and ps="?Bjs"])
       (auto simp add: split_def)
-  finally have mdqd: "?lhs = (?I i ?md \<or> ?I i ?qd)" by simp
-  also have "\<dots> = (?I i (disj ?md ?qd))" by (simp add: disj)
-  also have "\<dots> = (Ifm bbs bs (decr (disj ?md ?qd)))" by (simp only: decr [OF mdqdb])
+  finally have mdqd: "?lhs = (?I i ?md \<or> ?I i ?qd)"
+    by simp
+  also have "\<dots> = (?I i (disj ?md ?qd))"
+    by (simp add: disj)
+  also have "\<dots> = (Ifm bbs bs (decr (disj ?md ?qd)))"
+    by (simp only: decr [OF mdqdb])
   finally have mdqd2: "?lhs = (Ifm bbs bs (decr (disj ?md ?qd)))" .
-  { assume mdT: "?md = T"
-    then have cT:"cooper p = T"
+  {
+    assume mdT: "?md = T"
+    then have cT: "cooper p = T"
       by (simp only: cooper_def unit_def split_def Let_def if_True) simp
-    from mdT have lhs:"?lhs" using mdqd by simp
-    from mdT have "?rhs" by (simp add: cooper_def unit_def split_def)
-    with lhs cT have ?thesis by simp }
+    from mdT have lhs: "?lhs"
+      using mdqd by simp
+    from mdT have "?rhs"
+      by (simp add: cooper_def unit_def split_def)
+    with lhs cT have ?thesis by simp
+  }
   moreover
-  { assume mdT: "?md \<noteq> T" then have "cooper p = decr (disj ?md ?qd)"
+  {
+    assume mdT: "?md \<noteq> T"
+    then have "cooper p = decr (disj ?md ?qd)"
       by (simp only: cooper_def unit_def split_def Let_def if_False)
-    with mdqd2 decr_qf[OF mdqdb] have ?thesis by simp }
+    with mdqd2 decr_qf[OF mdqdb] have ?thesis
+      by simp
+  }
   ultimately show ?thesis by blast
 qed
 
-definition pa :: "fm \<Rightarrow> fm" where
-  "pa p = qelim (prep p) cooper"
+definition pa :: "fm \<Rightarrow> fm"
+  where "pa p = qelim (prep p) cooper"
 
-theorem mirqe: "(Ifm bbs bs (pa p) = Ifm bbs bs p) \<and> qfree (pa p)"
+theorem mirqe: "Ifm bbs bs (pa p) = Ifm bbs bs p \<and> qfree (pa p)"
   using qelim_ci cooper prep by (auto simp add: pa_def)
 
 definition cooper_test :: "unit \<Rightarrow> fm"
@@ -2436,7 +2545,7 @@ lemma "\<forall>(x::int). 2 dvd x \<longleftrightarrow> (\<forall>(y::int). x \<
   by cooper
 
 lemma "\<not> (\<forall>(x::int).
-    (2 dvd x \<longleftrightarrow> (ALL(y::int). x \<noteq> 2*y+1) \<or>
+    (2 dvd x \<longleftrightarrow> (\<forall>(y::int). x \<noteq> 2*y+1) \<or>
       (\<exists>(q::int) (u::int) i. 3*i + 2*q - u < 17) \<longrightarrow> 0 < x \<or> (\<not> 3 dvd x \<and> x + 8 = 0)))"
   by cooper
 
