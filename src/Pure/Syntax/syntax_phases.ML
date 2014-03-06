@@ -274,14 +274,15 @@ fun decode_term _ (result as (_: Position.report_text list, Exn.Exn _)) = result
                     val _ = report ps (markup_const ctxt) c;
                   in Const (c, T) end)
           | decode ps _ _ (Free (a, T)) =
-              (Name.reject_internal (a, ps);
-               case (get_free a, get_const a) of
-                (SOME x, _) => (report ps (markup_free ctxt) x; Free (x, T))
-              | (_, (true, c)) => (report ps (markup_const ctxt) c; Const (c, T))
-              | (_, (false, c)) =>
-                  if Long_Name.is_qualified c
-                  then (report ps (markup_const ctxt) c; Const (c, T))
-                  else (report ps (markup_free ctxt) c; Free (c, T)))
+              ((Name.reject_internal (a, ps) handle ERROR msg =>
+                  error (msg ^ Proof_Context.consts_completion_message ctxt (a, ps)));
+                (case (get_free a, get_const a) of
+                  (SOME x, _) => (report ps (markup_free ctxt) x; Free (x, T))
+                | (_, (true, c)) => (report ps (markup_const ctxt) c; Const (c, T))
+                | (_, (false, c)) =>
+                    if Long_Name.is_qualified c
+                    then (report ps (markup_const ctxt) c; Const (c, T))
+                    else (report ps (markup_free ctxt) c; Free (c, T))))
           | decode ps _ _ (Var (xi, T)) = (report ps markup_var xi; Var (xi, T))
           | decode ps _ bs (t as Bound i) =
               (case try (nth bs) i of
@@ -322,8 +323,7 @@ fun parse_asts ctxt raw root (syms, pos) =
 
     val pts = Syntax.parse syn root (filter Lexicon.is_proper toks)
       handle ERROR msg =>
-        error (msg ^
-          implode (map (Markup.markup Markup.report o Lexicon.reported_token_range ctxt) toks));
+        error (msg ^ implode (map (Markup.markup_report o Lexicon.reported_token_range ctxt) toks));
     val len = length pts;
 
     val limit = Config.get ctxt Syntax.ambiguity_limit;
@@ -355,7 +355,7 @@ fun parse_tree ctxt root input =
 
 fun parse_failed ctxt pos msg kind =
   cat_error msg ("Failed to parse " ^ kind ^
-    Markup.markup Markup.report (Context_Position.reported_text ctxt pos Markup.bad ""));
+    Markup.markup_report (Context_Position.reported_text ctxt pos Markup.bad ""));
 
 fun parse_sort ctxt =
   Syntax.parse_token ctxt Term_XML.Decode.sort Markup.language_sort

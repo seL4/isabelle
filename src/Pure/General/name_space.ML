@@ -56,7 +56,7 @@ sig
   val declare: Context.generic -> bool -> binding -> T -> string * T
   type 'a table = T * 'a Symtab.table
   val check_reports: Context.generic -> 'a table ->
-    xstring * Position.T -> (string * Position.report list) * 'a
+    xstring * Position.T list -> (string * Position.report list) * 'a
   val check: Context.generic -> 'a table -> xstring * Position.T -> string * 'a
   val get: 'a table -> string -> 'a
   val define: Context.generic -> bool -> binding * 'a -> 'a table -> string * 'a table
@@ -446,24 +446,27 @@ fun declare context strict binding space =
 
 type 'a table = T * 'a Symtab.table;
 
-fun check_reports context (space, tab) (xname, pos) =
+fun check_reports context (space, tab) (xname, ps) =
   let val name = intern space xname in
     (case Symtab.lookup tab name of
       SOME x =>
         let
           val reports =
-            if Context_Position.is_reported_generic context pos
-            then [(pos, markup space name)] else [];
+            filter (Context_Position.is_reported_generic context) ps
+            |> map (fn pos => (pos, markup space name));
         in ((name, reports), x) end
     | NONE =>
-        error (undefined (kind_of space) name ^ Position.here pos ^
-          Markup.markup Markup.report
-            (Completion.reported_text (completion context space (xname, pos)))))
+        let
+          val completions = map (fn pos => completion context space (xname, pos)) ps;
+        in
+          error (undefined (kind_of space) name ^ Position.here_list ps ^
+            implode (map (Markup.markup_report o Completion.reported_text) completions))
+        end)
   end;
 
-fun check context table arg =
+fun check context table (xname, pos) =
   let
-    val ((name, reports), x) = check_reports context table arg;
+    val ((name, reports), x) = check_reports context table (xname, [pos]);
     val _ = Position.reports reports;
   in (name, x) end;
 

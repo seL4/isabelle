@@ -189,6 +189,7 @@ sig
   val enclose: T -> Output.output -> Output.output
   val markup: T -> string -> string
   val markup_only: T -> string
+  val markup_report: string -> string
 end;
 
 structure Markup: MARKUP =
@@ -601,5 +602,8 @@ fun markup m =
   in Library.enclose (Output.escape bg) (Output.escape en) end;
 
 fun markup_only m = markup m "";
+
+fun markup_report "" = ""
+  | markup_report txt = markup report txt;
 
 end;

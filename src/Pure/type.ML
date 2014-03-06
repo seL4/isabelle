@@ -259,7 +259,8 @@ fun undecl_type c = "Undeclared type constructor: " ^ quote c;
 
 fun lookup_type (TSig {types = (_, types), ...}) = Symtab.lookup types;
 
-fun check_decl context (TSig {types, ...}) = Name_Space.check_reports context types;
+fun check_decl context (TSig {types, ...}) (c, pos) =
+  Name_Space.check_reports context types (c, [pos]);
 
 fun the_decl tsig (c, pos) =
   (case lookup_type tsig c of

@@ -71,6 +71,7 @@ sig
   val check_type_name: Proof.context -> {proper: bool, strict: bool} ->
     xstring * Position.T -> typ * Position.report list
   val read_type_name: Proof.context -> {proper: bool, strict: bool} -> string -> typ
+  val consts_completion_message: Proof.context -> xstring * Position.T list -> string
   val check_const: Proof.context -> {proper: bool, strict: bool} ->
     xstring * Position.T -> term * Position.report list
   val read_const: Proof.context -> {proper: bool, strict: bool} -> string -> term
@@ -384,9 +385,8 @@ fun check_class ctxt (xname, pos) =
     val name = Type.cert_class tsig (Type.intern_class tsig xname)
       handle TYPE (msg, _, _) =>
         error (msg ^ Position.here pos ^
-          Markup.markup Markup.report
-            (Completion.reported_text
-              (Name_Space.completion (Context.Proof ctxt) class_space (xname, pos))));
+          Markup.markup_report (Completion.reported_text
+            (Name_Space.completion (Context.Proof ctxt) class_space (xname, pos))));
     val reports =
       if Context_Position.is_reported ctxt pos
       then [(pos, Name_Space.markup class_space name)] else [];
@@ -469,8 +469,18 @@ fun read_type_name ctxt flags text =
 
 (* constant names *)
 
+fun consts_completion_message ctxt (c, ps) =
+  ps |> map (fn pos =>
+    Name_Space.completion (Context.Proof ctxt) (Consts.space_of (consts_of ctxt)) (c, pos)
+    |> Completion.reported_text)
+  |> implode
+  |> Markup.markup_report;
+
 fun check_const ctxt {proper, strict} (c, pos) =
   let
+    val _ =
+      Name.reject_internal (c, [pos]) handle ERROR msg =>
+        error (msg ^ consts_completion_message ctxt (c, [pos]));
     fun err msg = error (msg ^ Position.here pos);
     val consts = consts_of ctxt;
     val fixed = if proper then NONE else Variable.lookup_fixed ctxt c;
@@ -478,7 +488,6 @@ fun check_const ctxt {proper, strict} (c, pos) =
       (case (fixed, Variable.lookup_const ctxt c) of
         (SOME x, NONE) =>
           let
-            val _ = Name.reject_internal (c, [pos]);
             val reports =
               if Context_Position.is_reported ctxt pos then
                 [(pos, Markup.name x (if Name.is_skolem x then Markup.skolem else Markup.free))]
@@ -491,7 +500,7 @@ fun check_const ctxt {proper, strict} (c, pos) =
               if Context_Position.is_reported ctxt pos
               then [(pos, Name_Space.markup (Consts.space_of consts) d)] else [];
           in (Const (d, T), reports) end
-      | _ => Consts.check_const (Context.Proof ctxt) consts (c, pos));
+      | _ => Consts.check_const (Context.Proof ctxt) consts (c, [pos]));
     val _ =
       (case (strict, t) of
         (true, Const (d, _)) =>

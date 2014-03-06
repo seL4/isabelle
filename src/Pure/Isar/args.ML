@@ -299,7 +299,7 @@ fun syntax kind scan (Src ((s, args0), pos)) context =
     | (_, (_, args2)) =>
         error ("Bad arguments for " ^ kind ^ " " ^ quote s ^ Position.here pos ^
           (if null args2 then "" else ":\n  " ^ space_implode " " (map Token.print args2)) ^
-          Markup.markup Markup.report (reported_text ())))
+          Markup.markup_report (reported_text ())))
   end;
 
 fun context_syntax kind scan src =
