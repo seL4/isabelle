@@ -6734,7 +6734,7 @@ lemma butlast_transfer [transfer_rule]:
   by (rule fun_relI, erule list_all2_induct, auto)
 
 lemma set_transfer [transfer_rule]:
-  "(list_all2 A ===> set_rel A) set set"
+  "(list_all2 A ===> rel_set A) set set"
   unfolding set_rec[abs_def] by transfer_prover
 
 lemma map_rec: "map f xs = rec_list Nil (%x _ y. Cons (f x) y) xs"
@@ -6864,7 +6864,7 @@ lemma list_all2_transfer [transfer_rule]:
   done
 
 lemma sublist_transfer [transfer_rule]:
-  "(list_all2 A ===> set_rel (op =) ===> list_all2 A) sublist sublist"
+  "(list_all2 A ===> rel_set (op =) ===> list_all2 A) sublist sublist"
   unfolding sublist_def [abs_def] by transfer_prover
 
 lemma partition_transfer [transfer_rule]:
@@ -6873,25 +6873,25 @@ lemma partition_transfer [transfer_rule]:
   unfolding partition_def by transfer_prover
 
 lemma lists_transfer [transfer_rule]:
-  "(set_rel A ===> set_rel (list_all2 A)) lists lists"
-  apply (rule fun_relI, rule set_relI)
+  "(rel_set A ===> rel_set (list_all2 A)) lists lists"
+  apply (rule fun_relI, rule rel_setI)
   apply (erule lists.induct, simp)
-  apply (simp only: set_rel_def list_all2_Cons1, metis lists.Cons)
+  apply (simp only: rel_set_def list_all2_Cons1, metis lists.Cons)
   apply (erule lists.induct, simp)
-  apply (simp only: set_rel_def list_all2_Cons2, metis lists.Cons)
+  apply (simp only: rel_set_def list_all2_Cons2, metis lists.Cons)
   done
 
 lemma set_Cons_transfer [transfer_rule]:
-  "(set_rel A ===> set_rel (list_all2 A) ===> set_rel (list_all2 A))
+  "(rel_set A ===> rel_set (list_all2 A) ===> rel_set (list_all2 A))
     set_Cons set_Cons"
-  unfolding fun_rel_def set_rel_def set_Cons_def
+  unfolding fun_rel_def rel_set_def set_Cons_def
   apply safe
   apply (simp add: list_all2_Cons1, fast)
   apply (simp add: list_all2_Cons2, fast)
   done
 
 lemma listset_transfer [transfer_rule]:
-  "(list_all2 (set_rel A) ===> set_rel (list_all2 A)) listset listset"
+  "(list_all2 (rel_set A) ===> rel_set (list_all2 A)) listset listset"
   unfolding listset_def by transfer_prover
 
 lemma null_transfer [transfer_rule]:

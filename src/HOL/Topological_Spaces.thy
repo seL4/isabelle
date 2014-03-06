@@ -2497,19 +2497,19 @@ lemma sup_filter_parametric [transfer_rule]:
 by(fastforce simp add: filter_rel_eventually[abs_def] eventually_sup dest: fun_relD)
 
 lemma Sup_filter_parametric [transfer_rule]:
-  "(set_rel (filter_rel A) ===> filter_rel A) Sup Sup"
+  "(rel_set (filter_rel A) ===> filter_rel A) Sup Sup"
 proof(rule fun_relI)
   fix S T
-  assume [transfer_rule]: "set_rel (filter_rel A) S T"
+  assume [transfer_rule]: "rel_set (filter_rel A) S T"
   show "filter_rel A (Sup S) (Sup T)"
     by(simp add: filter_rel_eventually eventually_Sup) transfer_prover
 qed
 
 lemma principal_parametric [transfer_rule]:
-  "(set_rel A ===> filter_rel A) principal principal"
+  "(rel_set A ===> filter_rel A) principal principal"
 proof(rule fun_relI)
   fix S S'
-  assume [transfer_rule]: "set_rel A S S'"
+  assume [transfer_rule]: "rel_set A S S'"
   show "filter_rel A (principal S) (principal S')"
     by(simp add: filter_rel_eventually eventually_principal) transfer_prover
 qed
@@ -2532,7 +2532,7 @@ context
 begin
 
 lemma Inf_filter_parametric [transfer_rule]:
-  "(set_rel (filter_rel A) ===> filter_rel A) Inf Inf"
+  "(rel_set (filter_rel A) ===> filter_rel A) Inf Inf"
 unfolding Inf_filter_def[abs_def] by transfer_prover
 
 lemma inf_filter_parametric [transfer_rule]:

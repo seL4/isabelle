@@ -60,17 +60,17 @@ assumes "root tr = root tr'" and "cont tr = cont tr'"
 shows "tr = tr'"
 by (metis Node_root_cont assms)
 
-lemma set_rel_cont:
-"set_rel \<chi> (cont tr1) (cont tr2) = rel_fset \<chi> (ccont tr1) (ccont tr2)"
+lemma rel_set_cont:
+"rel_set \<chi> (cont tr1) (cont tr2) = rel_fset \<chi> (ccont tr1) (ccont tr2)"
 unfolding cont_def comp_def rel_fset_fset ..
 
 lemma dtree_coinduct[elim, consumes 1, case_names Lift, induct pred: "HOL.eq"]:
 assumes phi: "\<phi> tr1 tr2" and
 Lift: "\<And> tr1 tr2. \<phi> tr1 tr2 \<Longrightarrow>
-                  root tr1 = root tr2 \<and> set_rel (sum_rel op = \<phi>) (cont tr1) (cont tr2)"
+                  root tr1 = root tr2 \<and> rel_set (sum_rel op = \<phi>) (cont tr1) (cont tr2)"
 shows "tr1 = tr2"
 using phi apply(elim dtree.coinduct)
-apply(rule Lift[unfolded set_rel_cont]) .
+apply(rule Lift[unfolded rel_set_cont]) .
 
 lemma unfold:
 "root (unfold rt ct b) = rt b"

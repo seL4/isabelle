@@ -37,7 +37,7 @@ unfolding fun_rel_def rel_option_iff equal_None_def by (auto split: option.split
 
 lemma dom_transfer:
   assumes [transfer_rule]: "bi_total A"
-  shows "((A ===> rel_option B) ===> set_rel A) dom dom" 
+  shows "((A ===> rel_option B) ===> rel_set A) dom dom" 
 unfolding dom_def[abs_def] equal_None_def[symmetric] 
 by transfer_prover
 

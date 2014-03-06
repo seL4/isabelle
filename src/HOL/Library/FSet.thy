@@ -78,14 +78,14 @@ interpretation lifting_syntax .
 
 lemma right_total_Inf_fset_transfer:
   assumes [transfer_rule]: "bi_unique A" and [transfer_rule]: "right_total A"
-  shows "(set_rel (set_rel A) ===> set_rel A) 
+  shows "(rel_set (rel_set A) ===> rel_set A) 
     (\<lambda>S. if finite (Inter S \<inter> Collect (Domainp A)) then Inter S \<inter> Collect (Domainp A) else {}) 
       (\<lambda>S. if finite (Inf S) then Inf S else {})"
     by transfer_prover
 
 lemma Inf_fset_transfer:
   assumes [transfer_rule]: "bi_unique A" and [transfer_rule]: "bi_total A"
-  shows "(set_rel (set_rel A) ===> set_rel A) (\<lambda>A. if finite (Inf A) then Inf A else {}) 
+  shows "(rel_set (rel_set A) ===> rel_set A) (\<lambda>A. if finite (Inf A) then Inf A else {}) 
     (\<lambda>A. if finite (Inf A) then Inf A else {})"
   by transfer_prover
 
@@ -94,7 +94,7 @@ parametric right_total_Inf_fset_transfer Inf_fset_transfer by simp
 
 lemma Sup_fset_transfer:
   assumes [transfer_rule]: "bi_unique A"
-  shows "(set_rel (set_rel A) ===> set_rel A) (\<lambda>A. if finite (Sup A) then Sup A else {})
+  shows "(rel_set (rel_set A) ===> rel_set A) (\<lambda>A. if finite (Sup A) then Sup A else {})
   (\<lambda>A. if finite (Sup A) then Sup A else {})" by transfer_prover
 
 lift_definition Sup_fset :: "'a fset set \<Rightarrow> 'a fset" is "\<lambda>A. if finite (Sup A) then Sup A else {}"
@@ -103,7 +103,7 @@ parametric Sup_fset_transfer by simp
 lemma finite_Sup: "\<exists>z. finite z \<and> (\<forall>a. a \<in> X \<longrightarrow> a \<le> z) \<Longrightarrow> finite (Sup X)"
 by (auto intro: finite_subset)
 
-lemma transfer_bdd_below[transfer_rule]: "(set_rel (pcr_fset op =) ===> op =) bdd_below bdd_below"
+lemma transfer_bdd_below[transfer_rule]: "(rel_set (pcr_fset op =) ===> op =) bdd_below bdd_below"
   by auto
 
 instance
@@ -762,53 +762,53 @@ subsection {* Setup for Lifting/Transfer *}
 
 subsubsection {* Relator and predicator properties *}
 
-lift_definition rel_fset :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a fset \<Rightarrow> 'b fset \<Rightarrow> bool" is set_rel
-parametric set_rel_transfer .
+lift_definition rel_fset :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a fset \<Rightarrow> 'b fset \<Rightarrow> bool" is rel_set
+parametric rel_set_transfer .
 
 lemma rel_fset_alt_def: "rel_fset R = (\<lambda>A B. (\<forall>x.\<exists>y. x|\<in>|A \<longrightarrow> y|\<in>|B \<and> R x y) 
   \<and> (\<forall>y. \<exists>x. y|\<in>|B \<longrightarrow> x|\<in>|A \<and> R x y))"
 apply (rule ext)+
 apply transfer'
-apply (subst set_rel_def[unfolded fun_eq_iff]) 
+apply (subst rel_set_def[unfolded fun_eq_iff]) 
 by blast
 
 lemma rel_fset_conversep: "rel_fset (conversep R) = conversep (rel_fset R)"
   unfolding rel_fset_alt_def by auto
 
-lemmas rel_fset_eq [relator_eq] = set_rel_eq[Transfer.transferred]
+lemmas rel_fset_eq [relator_eq] = rel_set_eq[Transfer.transferred]
 
 lemma rel_fset_mono[relator_mono]: "A \<le> B \<Longrightarrow> rel_fset A \<le> rel_fset B"
 unfolding rel_fset_alt_def by blast
 
-lemma finite_set_rel:
+lemma finite_rel_set:
   assumes fin: "finite X" "finite Z"
-  assumes R_S: "set_rel (R OO S) X Z"
-  shows "\<exists>Y. finite Y \<and> set_rel R X Y \<and> set_rel S Y Z"
+  assumes R_S: "rel_set (R OO S) X Z"
+  shows "\<exists>Y. finite Y \<and> rel_set R X Y \<and> rel_set S Y Z"
 proof -
   obtain f where f: "\<forall>x\<in>X. R x (f x) \<and> (\<exists>z\<in>Z. S (f x) z)"
   apply atomize_elim
   apply (subst bchoice_iff[symmetric])
-  using R_S[unfolded set_rel_def OO_def] by blast
+  using R_S[unfolded rel_set_def OO_def] by blast
   
   obtain g where g: "\<forall>z\<in>Z. S (g z) z \<and> (\<exists>x\<in>X. R  x (g z))"
   apply atomize_elim
   apply (subst bchoice_iff[symmetric])
-  using R_S[unfolded set_rel_def OO_def] by blast
+  using R_S[unfolded rel_set_def OO_def] by blast
   
   let ?Y = "f ` X \<union> g ` Z"
   have "finite ?Y" by (simp add: fin)
-  moreover have "set_rel R X ?Y"
-    unfolding set_rel_def
+  moreover have "rel_set R X ?Y"
+    unfolding rel_set_def
     using f g by clarsimp blast
-  moreover have "set_rel S ?Y Z"
-    unfolding set_rel_def
+  moreover have "rel_set S ?Y Z"
+    unfolding rel_set_def
     using f g by clarsimp blast
   ultimately show ?thesis by metis
 qed
 
 lemma rel_fset_OO[relator_distr]: "rel_fset R OO rel_fset S = rel_fset (R OO S)"
 apply (rule ext)+
-by transfer (auto intro: finite_set_rel set_rel_OO[unfolded fun_eq_iff, rule_format, THEN iffD1])
+by transfer (auto intro: finite_rel_set rel_set_OO[unfolded fun_eq_iff, rule_format, THEN iffD1])
 
 lemma Domainp_fset[relator_domain]:
   assumes "Domainp T = P"
@@ -832,7 +832,7 @@ apply transfer
 apply (subst(asm) choice_iff)
 apply clarsimp
 apply (rename_tac A f y, rule_tac x = "f ` y" in exI)
-by (auto simp add: set_rel_def)
+by (auto simp add: rel_set_def)
 
 lemma left_total_rel_fset[reflexivity_rule]: "left_total A \<Longrightarrow> left_total (rel_fset A)"
 unfolding left_total_def 
@@ -840,10 +840,10 @@ apply transfer
 apply (subst(asm) choice_iff)
 apply clarsimp
 apply (rename_tac A f y, rule_tac x = "f ` y" in exI)
-by (auto simp add: set_rel_def)
+by (auto simp add: rel_set_def)
 
-lemmas right_unique_rel_fset[transfer_rule] = right_unique_set_rel[Transfer.transferred]
-lemmas left_unique_rel_fset[reflexivity_rule] = left_unique_set_rel[Transfer.transferred]
+lemmas right_unique_rel_fset[transfer_rule] = right_unique_rel_set[Transfer.transferred]
+lemmas left_unique_rel_fset[reflexivity_rule] = left_unique_rel_set[Transfer.transferred]
 
 thm right_unique_rel_fset left_unique_rel_fset
 
@@ -911,7 +911,7 @@ lemma rel_fset_transfer [transfer_rule]:
   "((A ===> B ===> op =) ===> rel_fset A ===> rel_fset B ===> op =)
     rel_fset rel_fset"
   unfolding fun_rel_def
-  using set_rel_transfer[unfolded fun_rel_def,rule_format, Transfer.transferred, where A = A and B = B]
+  using rel_set_transfer[unfolded fun_rel_def,rule_format, Transfer.transferred, where A = A and B = B]
   by simp
 
 lemma bind_transfer [transfer_rule]:
@@ -945,7 +945,7 @@ lemma fsubset_transfer [transfer_rule]:
   using subset_transfer[unfolded fun_rel_def, rule_format, Transfer.transferred] by blast
 
 lemma fSup_transfer [transfer_rule]:
-  "bi_unique A \<Longrightarrow> (set_rel (rel_fset A) ===> rel_fset A) Sup Sup"
+  "bi_unique A \<Longrightarrow> (rel_set (rel_fset A) ===> rel_fset A) Sup Sup"
   using assms unfolding fun_rel_def
   apply clarify
   apply transfer'
@@ -955,7 +955,7 @@ lemma fSup_transfer [transfer_rule]:
 
 lemma fInf_transfer [transfer_rule]:
   assumes "bi_unique A" and "bi_total A"
-  shows "(set_rel (rel_fset A) ===> rel_fset A) Inf Inf"
+  shows "(rel_set (rel_fset A) ===> rel_fset A) Inf Inf"
   using assms unfolding fun_rel_def
   apply clarify
   apply transfer'
@@ -986,7 +986,7 @@ begin
 
 lemma rel_fset_alt:
   "rel_fset R a b \<longleftrightarrow> (\<forall>t \<in> fset a. \<exists>u \<in> fset b. R t u) \<and> (\<forall>t \<in> fset b. \<exists>u \<in> fset a. R u t)"
-by transfer (simp add: set_rel_def)
+by transfer (simp add: rel_set_def)
 
 lemma fset_to_fset: "finite A \<Longrightarrow> fset (the_inv fset A) = A"
 apply (rule f_the_inv_into_f[unfolded inj_on_def])
@@ -1037,7 +1037,7 @@ apply -
 apply transfer apply simp
 done
 
-lemma rel_fset_fset: "set_rel \<chi> (fset A1) (fset A2) = rel_fset \<chi> A1 A2"
+lemma rel_fset_fset: "rel_set \<chi> (fset A1) (fset A2) = rel_fset \<chi> A1 A2"
   by transfer (rule refl)
 
 end
@@ -1049,50 +1049,50 @@ subsection {* Advanced relator customization *}
 
 (* Set vs. sum relators: *)
 
-lemma set_rel_sum_rel[simp]: 
-"set_rel (sum_rel \<chi> \<phi>) A1 A2 \<longleftrightarrow> 
- set_rel \<chi> (Inl -` A1) (Inl -` A2) \<and> set_rel \<phi> (Inr -` A1) (Inr -` A2)"
+lemma rel_set_sum_rel[simp]: 
+"rel_set (sum_rel \<chi> \<phi>) A1 A2 \<longleftrightarrow> 
+ rel_set \<chi> (Inl -` A1) (Inl -` A2) \<and> rel_set \<phi> (Inr -` A1) (Inr -` A2)"
 (is "?L \<longleftrightarrow> ?Rl \<and> ?Rr")
 proof safe
   assume L: "?L"
-  show ?Rl unfolding set_rel_def Bex_def vimage_eq proof safe
+  show ?Rl unfolding rel_set_def Bex_def vimage_eq proof safe
     fix l1 assume "Inl l1 \<in> A1"
     then obtain a2 where a2: "a2 \<in> A2" and "sum_rel \<chi> \<phi> (Inl l1) a2"
-    using L unfolding set_rel_def by auto
+    using L unfolding rel_set_def by auto
     then obtain l2 where "a2 = Inl l2 \<and> \<chi> l1 l2" by (cases a2, auto)
     thus "\<exists> l2. Inl l2 \<in> A2 \<and> \<chi> l1 l2" using a2 by auto
   next
     fix l2 assume "Inl l2 \<in> A2"
     then obtain a1 where a1: "a1 \<in> A1" and "sum_rel \<chi> \<phi> a1 (Inl l2)"
-    using L unfolding set_rel_def by auto
+    using L unfolding rel_set_def by auto
     then obtain l1 where "a1 = Inl l1 \<and> \<chi> l1 l2" by (cases a1, auto)
     thus "\<exists> l1. Inl l1 \<in> A1 \<and> \<chi> l1 l2" using a1 by auto
   qed
-  show ?Rr unfolding set_rel_def Bex_def vimage_eq proof safe
+  show ?Rr unfolding rel_set_def Bex_def vimage_eq proof safe
     fix r1 assume "Inr r1 \<in> A1"
     then obtain a2 where a2: "a2 \<in> A2" and "sum_rel \<chi> \<phi> (Inr r1) a2"
-    using L unfolding set_rel_def by auto
+    using L unfolding rel_set_def by auto
     then obtain r2 where "a2 = Inr r2 \<and> \<phi> r1 r2" by (cases a2, auto)
     thus "\<exists> r2. Inr r2 \<in> A2 \<and> \<phi> r1 r2" using a2 by auto
   next
     fix r2 assume "Inr r2 \<in> A2"
     then obtain a1 where a1: "a1 \<in> A1" and "sum_rel \<chi> \<phi> a1 (Inr r2)"
-    using L unfolding set_rel_def by auto
+    using L unfolding rel_set_def by auto
     then obtain r1 where "a1 = Inr r1 \<and> \<phi> r1 r2" by (cases a1, auto)
     thus "\<exists> r1. Inr r1 \<in> A1 \<and> \<phi> r1 r2" using a1 by auto
   qed
 next
   assume Rl: "?Rl" and Rr: "?Rr"
-  show ?L unfolding set_rel_def Bex_def vimage_eq proof safe
+  show ?L unfolding rel_set_def Bex_def vimage_eq proof safe
     fix a1 assume a1: "a1 \<in> A1"
     show "\<exists> a2. a2 \<in> A2 \<and> sum_rel \<chi> \<phi> a1 a2"
     proof(cases a1)
       case (Inl l1) then obtain l2 where "Inl l2 \<in> A2 \<and> \<chi> l1 l2"
-      using Rl a1 unfolding set_rel_def by blast
+      using Rl a1 unfolding rel_set_def by blast
       thus ?thesis unfolding Inl by auto
     next
       case (Inr r1) then obtain r2 where "Inr r2 \<in> A2 \<and> \<phi> r1 r2"
-      using Rr a1 unfolding set_rel_def by blast
+      using Rr a1 unfolding rel_set_def by blast
       thus ?thesis unfolding Inr by auto
     qed
   next
@@ -1100,11 +1100,11 @@ next
     show "\<exists> a1. a1 \<in> A1 \<and> sum_rel \<chi> \<phi> a1 a2"
     proof(cases a2)
       case (Inl l2) then obtain l1 where "Inl l1 \<in> A1 \<and> \<chi> l1 l2"
-      using Rl a2 unfolding set_rel_def by blast
+      using Rl a2 unfolding rel_set_def by blast
       thus ?thesis unfolding Inl by auto
     next
       case (Inr r2) then obtain r1 where "Inr r1 \<in> A1 \<and> \<phi> r1 r2"
-      using Rr a2 unfolding set_rel_def by blast
+      using Rr a2 unfolding rel_set_def by blast
       thus ?thesis unfolding Inr by auto
     qed
   qed

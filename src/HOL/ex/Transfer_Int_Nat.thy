@@ -96,19 +96,19 @@ lemma ZN_gcd [transfer_rule]: "(ZN ===> ZN ===> ZN) gcd gcd"
   unfolding fun_rel_def ZN_def by (simp add: transfer_int_nat_gcd)
 
 lemma ZN_atMost [transfer_rule]:
-  "(ZN ===> set_rel ZN) (atLeastAtMost 0) atMost"
-  unfolding fun_rel_def ZN_def set_rel_def
+  "(ZN ===> rel_set ZN) (atLeastAtMost 0) atMost"
+  unfolding fun_rel_def ZN_def rel_set_def
   by (clarsimp simp add: Bex_def, arith)
 
 lemma ZN_atLeastAtMost [transfer_rule]:
-  "(ZN ===> ZN ===> set_rel ZN) atLeastAtMost atLeastAtMost"
-  unfolding fun_rel_def ZN_def set_rel_def
+  "(ZN ===> ZN ===> rel_set ZN) atLeastAtMost atLeastAtMost"
+  unfolding fun_rel_def ZN_def rel_set_def
   by (clarsimp simp add: Bex_def, arith)
 
 lemma ZN_setsum [transfer_rule]:
-  "bi_unique A \<Longrightarrow> ((A ===> ZN) ===> set_rel A ===> ZN) setsum setsum"
+  "bi_unique A \<Longrightarrow> ((A ===> ZN) ===> rel_set A ===> ZN) setsum setsum"
   apply (intro fun_relI)
-  apply (erule (1) bi_unique_set_rel_lemma)
+  apply (erule (1) bi_unique_rel_set_lemma)
   apply (simp add: setsum.reindex int_setsum ZN_def fun_rel_def)
   apply (rule setsum_cong2, simp)
   done

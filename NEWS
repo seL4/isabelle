@@ -195,6 +195,7 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
     map_pair ~> prod_map
     fset_rel ~> rel_fset
     cset_rel ~> rel_cset
+    set_rel ~> rel_set
 
 * New theory:
     Cardinals/Ordinal_Arithmetic.thy
