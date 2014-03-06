@@ -109,7 +109,6 @@ fun mk_liftN n = "_lift" ^ string_of_int n;
 fun mk_permuteN src dest =
   "_permute_" ^ implode (map string_of_int src) ^ "_" ^ implode (map string_of_int dest);
 
-val id_bnf_comp_def = @{thm id_bnf_comp_def}
 
 (*copied from Envir.expand_term_free*)
 fun expand_term_const defs =
@@ -117,6 +116,10 @@ fun expand_term_const defs =
     val eqs = map ((fn ((x, U), u) => (x, (U, u))) o apfst dest_Const) defs;
     val get = fn Const (x, _) => AList.lookup (op =) eqs x | _ => NONE;
   in Envir.expand_term get end;
+
+val id_bnf_comp_def = @{thm id_bnf_comp_def};
+val expand_id_bnf_comp_def =
+  expand_term_const [Thm.prop_of id_bnf_comp_def |> Logic.dest_equals];
 
 fun is_sum_prod_natLeq (Const (@{const_name csum}, _) $ t $ u) = forall is_sum_prod_natLeq [t, u]
   | is_sum_prod_natLeq (Const (@{const_name cprod}, _) $ t $ u) = forall is_sum_prod_natLeq [t, u]
@@ -342,8 +345,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
 
     val phi =
       Morphism.thm_morphism "BNF" (unfold_thms lthy' [id_bnf_comp_def])
-      $> Morphism.term_morphism "BNF" (Raw_Simplifier.rewrite_term (Proof_Context.theory_of lthy')
-        [id_bnf_comp_def] []);
+      $> Morphism.term_morphism "BNF" expand_id_bnf_comp_def;
 
     val bnf'' = morph_bnf phi bnf';
   in
@@ -761,10 +763,8 @@ fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
 
     val (((fs, fs'), (Rs, Rs')), _(*names_lthy*)) = lthy
       |> mk_Frees' "f" (map2 (curry op -->) As Bs)
-      ||>> mk_Frees' "R" (map2 mk_pred2T As Bs)
+      ||>> mk_Frees' "R" (map2 mk_pred2T As Bs);
 
-    val expand_id_bnf_comp_def =
-      expand_term_const [Thm.prop_of id_bnf_comp_def |> Logic.dest_equals]
     val map_unfolds = #map_unfolds unfold_set;
     val set_unfoldss = #set_unfoldss unfold_set;
     val rel_unfolds = #rel_unfolds unfold_set;
