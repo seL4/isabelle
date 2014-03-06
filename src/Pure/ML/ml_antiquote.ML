@@ -151,7 +151,7 @@ val _ = Theory.setup
 fun const_name check = Args.context -- Scan.lift (Parse.position Args.name_inner_syntax)
   >> (fn (ctxt, (s, pos)) =>
     let
-      val Const (c, _) = Proof_Context.read_const_proper ctxt false s;
+      val Const (c, _) = Proof_Context.read_const ctxt {proper = true, strict = false} dummyT s;
       val res = check (Proof_Context.consts_of ctxt, c)
         handle TYPE (msg, _, _) => error (msg ^ Position.here pos);
     in ML_Syntax.print_string res end);
@@ -175,7 +175,8 @@ val _ = Theory.setup
         (Scan.lift (Args.$$$ "(") |-- Parse.enum1' "," Args.typ --| Scan.lift (Args.$$$ ")")) []
       >> (fn ((ctxt, raw_c), Ts) =>
         let
-          val Const (c, _) = Proof_Context.read_const_proper ctxt true raw_c;
+          val Const (c, _) =
+            Proof_Context.read_const ctxt {proper = true, strict = true} dummyT raw_c;
           val consts = Proof_Context.consts_of ctxt;
           val n = length (Consts.typargs consts (c, Consts.type_scheme consts c));
           val _ = length Ts <> n andalso

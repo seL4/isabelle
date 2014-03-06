@@ -71,10 +71,9 @@ sig
   val check_type_name: Proof.context -> {proper: bool, strict: bool} ->
     xstring * Position.T -> typ * Position.report list
   val read_type_name: Proof.context -> {proper: bool, strict: bool} -> string -> typ
-  val check_const_proper: Proof.context -> bool ->
-    xstring * Position.T -> term * Position.report list
-  val read_const_proper: Proof.context -> bool -> string -> term
-  val read_const: Proof.context -> bool -> typ -> string -> term
+  val check_const: Proof.context -> {proper: bool, strict: bool} ->
+    typ -> xstring * Position.T -> term * Position.report list
+  val read_const: Proof.context -> {proper: bool, strict: bool} -> typ -> string -> term
   val read_arity: Proof.context -> xstring * string list * string -> arity
   val cert_arity: Proof.context -> arity -> arity
   val allow_dummies: Proof.context -> Proof.context
@@ -470,47 +469,40 @@ fun read_type_name ctxt flags text =
 
 (* constant names *)
 
-fun check_const_proper ctxt strict (c, pos) =
+fun check_const ctxt {proper, strict} ty (c, pos) =
   let
     fun err msg = error (msg ^ Position.here pos);
     val consts = consts_of ctxt;
-    val (t as Const (d, _), reports) =
-      (case Variable.lookup_const ctxt c of
-        SOME d =>
+    val fixed = if proper then NONE else Variable.lookup_fixed ctxt c;
+    val (t, reports) =
+      (case (fixed, Variable.lookup_const ctxt c) of
+        (SOME x, NONE) =>
           let
-            val T = Consts.type_scheme (consts_of ctxt) d handle TYPE (msg, _, _) => err msg;
+            val _ = Name.reject_internal (c, [pos]);
+            val reports =
+              if Context_Position.is_reported ctxt pos then
+                [(pos, Markup.name x (if Name.is_skolem x then Markup.skolem else Markup.free))]
+              else [];
+          in (Free (x, infer_type ctxt (x, ty)), reports) end
+      | (_, SOME d) =>
+          let
+            val T = Consts.type_scheme consts d handle TYPE (msg, _, _) => err msg;
             val reports =
               if Context_Position.is_reported ctxt pos
               then [(pos, Name_Space.markup (Consts.space_of consts) d)] else [];
           in (Const (d, T), reports) end
-      | NONE => Consts.check_const (Context.Proof ctxt) consts (c, pos));
+      | _ => Consts.check_const (Context.Proof ctxt) consts (c, pos));
     val _ =
-      if strict
-      then ignore (Consts.the_const consts d) handle TYPE (msg, _, _) => err msg
-      else ();
+      (case (strict, t) of
+        (true, Const (d, _)) =>
+          (ignore (Consts.the_const consts d) handle TYPE (msg, _, _) => err msg)
+      | _ => ());
   in (t, reports) end;
 
-fun read_const_proper ctxt strict text =
+fun read_const ctxt flags ty text =
   let
     val (t, reports) =
-      check_const_proper ctxt strict (Symbol_Pos.source_content (Syntax.read_token text));
-    val _ = Position.reports reports;
-  in t end;
-
-fun read_const ctxt strict ty text =
-  let
-    val (c, pos) = Symbol_Pos.source_content (Syntax.read_token text);
-    val _ = Name.reject_internal (c, [pos]);
-    val (t, reports) =
-      (case (Variable.lookup_fixed ctxt c, Variable.is_const ctxt c) of
-        (SOME x, false) =>
-          let
-            val reports =
-              if Context_Position.is_reported ctxt pos
-              then [(pos, Markup.name x (if Name.is_skolem x then Markup.skolem else Markup.free))]
-              else [];
-          in (Free (x, infer_type ctxt (x, ty)), reports) end
-      | _ => check_const_proper ctxt strict (c, pos));
+      check_const ctxt flags ty (Symbol_Pos.source_content (Syntax.read_token text));
     val _ = Position.reports reports;
   in t end;
 

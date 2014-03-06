@@ -222,7 +222,9 @@ fun ast_to_term ctxt trf =
 (* decode_term -- transform parse tree into raw term *)
 
 fun decode_const ctxt c =
-  let val (Const (c', _), _) = Proof_Context.check_const_proper ctxt false (c, Position.none)
+  let
+    val (Const (c', _), _) =
+      Proof_Context.check_const ctxt {proper = true, strict = false} dummyT (c, Position.none);
   in c' end;
 
 fun decode_term _ (result as (_: Position.report_text list, Exn.Exn _)) = result

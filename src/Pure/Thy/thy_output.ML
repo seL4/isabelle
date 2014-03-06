@@ -573,7 +573,7 @@ val _ = Theory.setup
   basic_entity (Binding.name "term") (Term_Style.parse -- Args.term) pretty_term_style #>
   basic_entity (Binding.name "term_type") (Term_Style.parse -- Args.term) pretty_term_typ #>
   basic_entity (Binding.name "typeof") (Term_Style.parse -- Args.term) pretty_term_typeof #>
-  basic_entity (Binding.name "const") (Args.const_proper false) pretty_const #>
+  basic_entity (Binding.name "const") (Args.const {proper = true, strict = false}) pretty_const #>
   basic_entity (Binding.name "abbrev") (Scan.lift Args.name_inner_syntax) pretty_abbrev #>
   basic_entity (Binding.name "typ") Args.typ_abbrev Syntax.pretty_typ #>
   basic_entity (Binding.name "class") (Scan.lift Args.name_inner_syntax) pretty_class #>

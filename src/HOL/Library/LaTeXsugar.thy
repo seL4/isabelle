@@ -100,7 +100,7 @@ syntax (IfThenNoBox output)
 setup{*
   let
     fun pretty ctxt c =
-      let val tc = Proof_Context.read_const_proper ctxt false c
+      let val tc = Proof_Context.read_const ctxt {proper = true, strict = false} dummyT c
       in Pretty.block [Thy_Output.pretty_term ctxt tc, Pretty.str " ::",
             Pretty.brk 1, Syntax.pretty_typ ctxt (fastype_of tc)]
       end

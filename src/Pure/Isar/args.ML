@@ -57,8 +57,7 @@ sig
   val term_abbrev: term context_parser
   val prop: term context_parser
   val type_name: {proper: bool, strict: bool} -> string context_parser
-  val const: bool -> string context_parser
-  val const_proper: bool -> string context_parser
+  val const: {proper: bool, strict: bool} -> string context_parser
   val goal_spec: ((int -> tactic) -> tactic) context_parser
   val parse: Token.T list parser
   val parse1: (string -> bool) -> Token.T list parser
@@ -212,13 +211,9 @@ fun type_name flags =
   Scan.peek (fn ctxt => named_typ (Proof_Context.read_type_name (Context.proof_of ctxt) flags))
   >> (fn Type (c, _) => c | TFree (a, _) => a | _ => "");
 
-fun const strict =
-  Scan.peek (fn ctxt => named_term (Proof_Context.read_const (Context.proof_of ctxt) strict dummyT))
+fun const flags =
+  Scan.peek (fn ctxt => named_term (Proof_Context.read_const (Context.proof_of ctxt) flags dummyT))
   >> (fn Const (c, _) => c | Free (x, _) => x | _ => "");
-
-fun const_proper strict =
-  Scan.peek (fn ctxt => named_term (Proof_Context.read_const_proper (Context.proof_of ctxt) strict))
-  >> (fn Const (c, _) => c | _ => "");
 
 
 (* improper method arguments *)

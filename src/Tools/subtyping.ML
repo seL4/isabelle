@@ -1105,7 +1105,7 @@ val setup =
     (Args.term >> (fn t => Thm.declaration_attribute (K (add_type_map t))))
     "declaration of new map functions" #>
   Attrib.setup @{binding coercion_args}
-    (Args.const false -- Scan.lift (Scan.repeat1 parse_coerce_args) >>
+    (Args.const {proper = false, strict = false} -- Scan.lift (Scan.repeat1 parse_coerce_args) >>
       (fn spec => Thm.declaration_attribute (K (map_coerce_args (Symtab.update spec)))))
     "declaration of new constants with coercion-invariant arguments";
 
