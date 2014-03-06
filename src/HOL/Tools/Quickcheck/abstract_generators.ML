@@ -63,7 +63,7 @@ val quickcheck_generator = gen_quickcheck_generator (K I) (K I)
   
 val quickcheck_generator_cmd =
   gen_quickcheck_generator
-    (fn ctxt => fst o dest_Type o Proof_Context.read_type_name ctxt {proper = true, strict = false})
+    (fn ctxt => fst o dest_Type o Proof_Context.read_type_name ctxt {proper = true, strict = true})
     Syntax.read_term
   
 val _ =
