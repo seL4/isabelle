@@ -8589,19 +8589,11 @@ qed
 subsection {* Convexity on direct sums *}
 
 lemma closure_sum:
-  fixes S T :: "'n::euclidean_space set"
+  fixes S T :: "'a::real_normed_vector set"
   shows "closure S + closure T \<subseteq> closure (S + T)"
-proof -
-  have "closure S + closure T = (\<lambda>(x,y). x + y) ` (closure S \<times> closure T)"
-    by (simp add: set_plus_image)
-  also have "\<dots> = (\<lambda>(x,y). x + y) ` closure (S \<times> T)"
-    using closure_Times by auto
-  also have "\<dots> \<subseteq> closure (S + T)"
-    using fst_snd_linear closure_linear_image[of "(\<lambda>(x,y). x + y)" "S \<times> T"]
-    by (auto simp: set_plus_image)
-  finally show ?thesis
-    by auto
-qed
+  unfolding set_plus_image closure_Times [symmetric] split_def
+  by (intro closure_bounded_linear_image bounded_linear_add
+    bounded_linear_fst bounded_linear_snd)
 
 lemma convex_oplus:
   fixes S T :: "'n::euclidean_space set"
