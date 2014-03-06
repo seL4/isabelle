@@ -190,6 +190,9 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
     the.simps ~> option.sel
   INCOMPATIBILITY.
 
+* The following map function has been renamed:
+    map_sum ~> sum_map
+
 * New theory:
     Cardinals/Ordinal_Arithmetic.thy
 

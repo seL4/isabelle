@@ -334,13 +334,13 @@ proof safe
   thus "t \<in> Inl -` cont tr" by(cases ttr, auto)
 next
   fix t assume "Inl t \<in> cont tr" thus "t \<in> Inl -` prodOf tr"
-  by (metis (lifting) id_def image_iff sum_map.simps(1) vimageI2)
+  by (metis (lifting) id_def image_iff map_sum.simps(1) vimageI2)
 qed
 
 lemma root_prodOf:
 assumes "Inr tr' \<in> cont tr"
 shows "Inr (root tr') \<in> prodOf tr"
-by (metis (lifting) assms image_iff sum_map.simps(2))
+by (metis (lifting) assms image_iff map_sum.simps(2))
 
 
 subsection{* Well-Formed Derivation Trees *}
@@ -480,8 +480,8 @@ lemma wf_deftr: "wf (deftr n)"
 proof-
   {fix tr assume "\<exists> n. tr = deftr n" hence "wf tr"
    apply(induct rule: wf_raw_coind) apply safe
-   unfolding deftr_simps image_compose[symmetric] sum_map.comp id_comp
-   root_o_deftr sum_map.id image_id id_apply apply(rule S_P)
+   unfolding deftr_simps image_compose[symmetric] map_sum.comp id_comp
+   root_o_deftr map_sum.id image_id id_apply apply(rule S_P)
    unfolding inj_on_def by auto
   }
   thus ?thesis by auto
@@ -565,7 +565,7 @@ proof-
        show "(root (hsubst tr), prodOf (hsubst tr)) \<in> P"
        unfolding tr1 apply(cases "root tr = root tr0")
        using  wf_P[OF dtr] wf_P[OF tr0]
-       by (auto simp add: image_compose[symmetric] sum_map.comp)
+       by (auto simp add: image_compose[symmetric] map_sum.comp)
        show "inj_on root (Inr -` cont (hsubst tr))"
        apply(cases "root tr = root tr0") using wf_inj_on[OF dtr] wf_inj_on[OF tr0]
        unfolding inj_on_def by (auto, blast)
@@ -958,7 +958,7 @@ unfolding root_H_pick root_pick[OF assms] ..
 
 lemma cont_H[simp]:
 "cont (H n) = (id \<oplus> (H o root)) ` cont (pick n)"
-apply(subst id_comp[symmetric, of id]) unfolding sum_map.comp[symmetric]
+apply(subst id_comp[symmetric, of id]) unfolding map_sum.comp[symmetric]
 unfolding image_compose unfolding H_c_def[symmetric]
 using unfold(2)[of H_c n H_r, OF finite_H_c]
 unfolding H_def ..
@@ -1001,9 +1001,9 @@ lemma root_H_root:
 assumes n: "inItr UNIV tr0 n" and t_tr: "t_tr \<in> cont (pick n)"
 shows "(id \<oplus> (root \<circ> H \<circ> root)) t_tr = (id \<oplus> root) t_tr"
 using assms apply(cases t_tr)
-  apply (metis (lifting) sum_map.simps(1))
+  apply (metis (lifting) map_sum.simps(1))
   using pick H_def H_r_def unfold(1)
-      inItr.Base comp_apply subtr_StepL subtr_inItr sum_map.simps(2)
+      inItr.Base comp_apply subtr_StepL subtr_inItr map_sum.simps(2)
   by (metis UNIV_I)
 
 lemma H_P:
@@ -1011,7 +1011,7 @@ assumes tr0: "wf tr0" and n: "inItr UNIV tr0 n"
 shows "(n, (id \<oplus> root) ` cont (H n)) \<in> P" (is "?L \<in> P")
 proof-
   have "?L = (n, (id \<oplus> root) ` cont (pick n))"
-  unfolding cont_H image_compose[symmetric] sum_map.comp id_comp comp_assoc[symmetric]
+  unfolding cont_H image_compose[symmetric] map_sum.comp id_comp comp_assoc[symmetric]
   unfolding Pair_eq apply(rule conjI[OF refl]) apply(rule image_cong[OF refl])
   by (rule root_H_root[OF n])
   moreover have "... \<in> P" by (metis (lifting) wf_pick root_pick wf_P n tr0)

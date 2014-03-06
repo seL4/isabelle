@@ -275,7 +275,7 @@ apply (induct_tac x, simp_all add: deflation.below)
 done
 
 lemma encode_option_option_map:
-  "encode_option\<cdot>(map_option (\<lambda>x. f\<cdot>x) (decode_option\<cdot>x)) = sum_map' ID f\<cdot>x"
+  "encode_option\<cdot>(map_option (\<lambda>x. f\<cdot>x) (decode_option\<cdot>x)) = map_sum' ID f\<cdot>x"
 by (induct x, simp_all add: decode_option_def encode_option_def)
 
 lemma isodefl_option [domain_isodefl]:

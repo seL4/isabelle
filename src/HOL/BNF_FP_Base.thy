@@ -125,11 +125,11 @@ lemma map_pair_o_convol_id: "(map_pair f id \<circ> <id , g>) x = <id \<circ> f 
 lemma o_case_sum: "h o case_sum f g = case_sum (h o f) (h o g)"
   unfolding comp_def by (auto split: sum.splits)
 
-lemma case_sum_o_sum_map: "case_sum f g o sum_map h1 h2 = case_sum (f o h1) (g o h2)"
+lemma case_sum_o_map_sum: "case_sum f g o map_sum h1 h2 = case_sum (f o h1) (g o h2)"
   unfolding comp_def by (auto split: sum.splits)
 
-lemma case_sum_o_sum_map_id: "(case_sum id g o sum_map f id) x = case_sum (f o id) g x"
-  unfolding case_sum_o_sum_map id_comp comp_id ..
+lemma case_sum_o_map_sum_id: "(case_sum id g o map_sum f id) x = case_sum (f o id) g x"
+  unfolding case_sum_o_map_sum id_comp comp_id ..
 
 lemma fun_rel_def_butlast:
   "fun_rel R (fun_rel S T) f g = (\<forall>x y. R x y \<longrightarrow> (fun_rel S T) (f x) (g y))"

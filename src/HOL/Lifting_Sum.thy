@@ -59,8 +59,7 @@ subsection {* Quotient theorem for the Lifting package *}
 lemma Quotient_sum[quot_map]:
   assumes "Quotient R1 Abs1 Rep1 T1"
   assumes "Quotient R2 Abs2 Rep2 T2"
-  shows "Quotient (sum_rel R1 R2) (sum_map Abs1 Abs2)
-    (sum_map Rep1 Rep2) (sum_rel T1 T2)"
+  shows "Quotient (sum_rel R1 R2) (map_sum Abs1 Abs2) (map_sum Rep1 Rep2) (sum_rel T1 T2)"
   using assms unfolding Quotient_alt_def
   by (simp add: split_sum_all)
 

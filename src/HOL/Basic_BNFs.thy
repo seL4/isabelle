@@ -53,22 +53,22 @@ lemma sum_rel_simps[simp]:
   unfolding sum_rel_def by simp_all
 
 bnf "'a + 'b"
-  map: sum_map
+  map: map_sum
   sets: setl setr
   bd: natLeq
   wits: Inl Inr
   rel: sum_rel
 proof -
-  show "sum_map id id = id" by (rule sum_map.id)
+  show "map_sum id id = id" by (rule map_sum.id)
 next
   fix f1 :: "'o \<Rightarrow> 's" and f2 :: "'p \<Rightarrow> 't" and g1 :: "'s \<Rightarrow> 'q" and g2 :: "'t \<Rightarrow> 'r"
-  show "sum_map (g1 o f1) (g2 o f2) = sum_map g1 g2 o sum_map f1 f2"
-    by (rule sum_map.comp[symmetric])
+  show "map_sum (g1 o f1) (g2 o f2) = map_sum g1 g2 o map_sum f1 f2"
+    by (rule map_sum.comp[symmetric])
 next
   fix x and f1 :: "'o \<Rightarrow> 'q" and f2 :: "'p \<Rightarrow> 'r" and g1 g2
   assume a1: "\<And>z. z \<in> setl x \<Longrightarrow> f1 z = g1 z" and
          a2: "\<And>z. z \<in> setr x \<Longrightarrow> f2 z = g2 z"
-  thus "sum_map f1 f2 x = sum_map g1 g2 x"
+  thus "map_sum f1 f2 x = map_sum g1 g2 x"
   proof (cases x)
     case Inl thus ?thesis using a1 by (clarsimp simp: setl_def)
   next
@@ -76,11 +76,11 @@ next
   qed
 next
   fix f1 :: "'o \<Rightarrow> 'q" and f2 :: "'p \<Rightarrow> 'r"
-  show "setl o sum_map f1 f2 = image f1 o setl"
+  show "setl o map_sum f1 f2 = image f1 o setl"
     by (rule ext, unfold o_apply) (simp add: setl_def split: sum.split)
 next
   fix f1 :: "'o \<Rightarrow> 'q" and f2 :: "'p \<Rightarrow> 'r"
-  show "setr o sum_map f1 f2 = image f2 o setr"
+  show "setr o map_sum f1 f2 = image f2 o setr"
     by (rule ext, unfold o_apply) (simp add: setr_def split: sum.split)
 next
   show "card_order natLeq" by (rule natLeq_card_order)
@@ -105,8 +105,8 @@ next
 next
   fix R S
   show "sum_rel R S =
-        (Grp {x. setl x \<subseteq> Collect (split R) \<and> setr x \<subseteq> Collect (split S)} (sum_map fst fst))\<inverse>\<inverse> OO
-        Grp {x. setl x \<subseteq> Collect (split R) \<and> setr x \<subseteq> Collect (split S)} (sum_map snd snd)"
+        (Grp {x. setl x \<subseteq> Collect (split R) \<and> setr x \<subseteq> Collect (split S)} (map_sum fst fst))\<inverse>\<inverse> OO
+        Grp {x. setl x \<subseteq> Collect (split R) \<and> setr x \<subseteq> Collect (split S)} (map_sum snd snd)"
   unfolding setl_def setr_def sum_rel_def Grp_def relcompp.simps conversep.simps fun_eq_iff
   by (fastforce split: sum.splits)
 qed (auto simp: sum_set_defs)

@@ -177,15 +177,15 @@ using assms by (simp add: cont2cont_case_sum prod_cont_iff)
 
 text {* Continuity of map function. *}
 
-lemma sum_map_eq: "sum_map f g = case_sum (\<lambda>a. Inl (f a)) (\<lambda>b. Inr (g b))"
+lemma map_sum_eq: "map_sum f g = case_sum (\<lambda>a. Inl (f a)) (\<lambda>b. Inr (g b))"
 by (rule ext, case_tac x, simp_all)
 
-lemma cont2cont_sum_map [simp, cont2cont]:
+lemma cont2cont_map_sum [simp, cont2cont]:
   assumes f: "cont (\<lambda>(x, y). f x y)"
   assumes g: "cont (\<lambda>(x, y). g x y)"
   assumes h: "cont (\<lambda>x. h x)"
-  shows "cont (\<lambda>x. sum_map (\<lambda>y. f x y) (\<lambda>y. g x y) (h x))"
-using assms by (simp add: sum_map_eq prod_cont_iff)
+  shows "cont (\<lambda>x. map_sum (\<lambda>y. f x y) (\<lambda>y. g x y) (h x))"
+using assms by (simp add: map_sum_eq prod_cont_iff)
 
 subsection {* Compactness and chain-finiteness *}
 
@@ -334,21 +334,21 @@ lemma liftdefl_sum [domain_defl_simps]:
     sum_liftdefl\<cdot>LIFTDEFL('a)\<cdot>LIFTDEFL('b)"
 by (rule liftdefl_sum_def)
 
-abbreviation sum_map'
-  where "sum_map' f g \<equiv> Abs_cfun (sum_map (Rep_cfun f) (Rep_cfun g))"
+abbreviation map_sum'
+  where "map_sum' f g \<equiv> Abs_cfun (map_sum (Rep_cfun f) (Rep_cfun g))"
 
-lemma sum_map_ID [domain_map_ID]: "sum_map' ID ID = ID"
-by (simp add: ID_def cfun_eq_iff sum_map.identity id_def)
+lemma map_sum_ID [domain_map_ID]: "map_sum' ID ID = ID"
+by (simp add: ID_def cfun_eq_iff map_sum.identity id_def)
 
-lemma deflation_sum_map [domain_deflation]:
-  "\<lbrakk>deflation d1; deflation d2\<rbrakk> \<Longrightarrow> deflation (sum_map' d1 d2)"
+lemma deflation_map_sum [domain_deflation]:
+  "\<lbrakk>deflation d1; deflation d2\<rbrakk> \<Longrightarrow> deflation (map_sum' d1 d2)"
 apply default
 apply (induct_tac x, simp_all add: deflation.idem)
 apply (induct_tac x, simp_all add: deflation.below)
 done
 
-lemma encode_sum_u_sum_map:
-  "encode_sum_u\<cdot>(u_map\<cdot>(sum_map' f g)\<cdot>(decode_sum_u\<cdot>x))
+lemma encode_sum_u_map_sum:
+  "encode_sum_u\<cdot>(u_map\<cdot>(map_sum' f g)\<cdot>(decode_sum_u\<cdot>x))
     = ssum_map\<cdot>(u_map\<cdot>f)\<cdot>(u_map\<cdot>g)\<cdot>x"
 apply (induct x, simp add: decode_sum_u_def encode_sum_u_def)
 apply (case_tac x, simp, simp add: decode_sum_u_def encode_sum_u_def)
@@ -358,10 +358,10 @@ done
 lemma isodefl_sum [domain_isodefl]:
   fixes d :: "'a::predomain \<rightarrow> 'a"
   assumes "isodefl' d1 t1" and "isodefl' d2 t2"
-  shows "isodefl' (sum_map' d1 d2) (sum_liftdefl\<cdot>t1\<cdot>t2)"
+  shows "isodefl' (map_sum' d1 d2) (sum_liftdefl\<cdot>t1\<cdot>t2)"
 using assms unfolding isodefl'_def liftemb_sum_def liftprj_sum_def
 apply (simp add: sum_liftdefl_def cast_udefl cast_ssum_defl cast_u_liftdefl)
-apply (simp add: cfcomp1 encode_sum_u_sum_map)
+apply (simp add: cfcomp1 encode_sum_u_map_sum)
 apply (simp add: ssum_map_map u_emb_bottom)
 done
 

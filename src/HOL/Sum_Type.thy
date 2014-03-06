@@ -119,24 +119,24 @@ lemmas simps = sum.inject sum.distinct sum.case sum.rec
 
 setup {* Sign.parent_path *}
 
-primrec sum_map :: "('a \<Rightarrow> 'c) \<Rightarrow> ('b \<Rightarrow> 'd) \<Rightarrow> 'a + 'b \<Rightarrow> 'c + 'd" where
-  "sum_map f1 f2 (Inl a) = Inl (f1 a)"
-| "sum_map f1 f2 (Inr a) = Inr (f2 a)"
+primrec map_sum :: "('a \<Rightarrow> 'c) \<Rightarrow> ('b \<Rightarrow> 'd) \<Rightarrow> 'a + 'b \<Rightarrow> 'c + 'd" where
+  "map_sum f1 f2 (Inl a) = Inl (f1 a)"
+| "map_sum f1 f2 (Inr a) = Inr (f2 a)"
 
-functor sum_map: sum_map proof -
+functor map_sum: map_sum proof -
   fix f g h i
-  show "sum_map f g \<circ> sum_map h i = sum_map (f \<circ> h) (g \<circ> i)"
+  show "map_sum f g \<circ> map_sum h i = map_sum (f \<circ> h) (g \<circ> i)"
   proof
     fix s
-    show "(sum_map f g \<circ> sum_map h i) s = sum_map (f \<circ> h) (g \<circ> i) s"
+    show "(map_sum f g \<circ> map_sum h i) s = map_sum (f \<circ> h) (g \<circ> i) s"
       by (cases s) simp_all
   qed
 next
   fix s
-  show "sum_map id id = id"
+  show "map_sum id id = id"
   proof
     fix s
-    show "sum_map id id s = id s" 
+    show "map_sum id id s = id s" 
       by (cases s) simp_all
   qed
 qed

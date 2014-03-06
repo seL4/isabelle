@@ -953,7 +953,7 @@ lemma osum_congL:
 proof -
   from assms(1) obtain f where r: "Well_order r" and s: "Well_order s" and f: "iso r s f"
     unfolding ordIso_def by blast
-  let ?f = "sum_map f id"
+  let ?f = "map_sum f id"
   from f have "inj_on ?f (Field ?L)"
     unfolding Field_osum iso_def bij_betw_def inj_on_def by fastforce
   with f have "bij_betw ?f (Field ?L) (Field ?R)"
@@ -971,7 +971,7 @@ lemma osum_congR:
 proof -
   from assms(1) obtain f where r: "Well_order r" and s: "Well_order s" and f: "iso r s f"
     unfolding ordIso_def by blast
-  let ?f = "sum_map id f"
+  let ?f = "map_sum id f"
   from f have "inj_on ?f (Field ?L)"
     unfolding Field_osum iso_def bij_betw_def inj_on_def by fastforce
   with f have "bij_betw ?f (Field ?L) (Field ?R)"
@@ -1129,7 +1129,7 @@ proof -
   hence *: "inj_on f (Field s)" "compat s t f" "ofilter t (f ` Field s)" "f ` Field s \<subset> Field t"
     using embed_iff_compat_inj_on_ofilter[OF s t, of f] embedS_iff[OF s, of t f]
     unfolding embedS_def by auto
-  let ?f = "sum_map id f"
+  let ?f = "map_sum id f"
   from *(1) have "inj_on ?f (Field ?L)" unfolding Field_osum inj_on_def by fastforce
   moreover
   from *(2,4) have "compat ?L ?R ?f" unfolding compat_def osum_def map_pair_def by fastforce
@@ -1153,7 +1153,7 @@ lemma osum_monoL:
 proof -
   from assms obtain f where f: "\<forall>a\<in>Field r. f a \<in> Field s \<and> f ` underS r a \<subseteq> underS s (f a)"
     unfolding ordLeq_def2 by blast
-  let ?f = "sum_map f id"
+  let ?f = "map_sum f id"
   from f have "\<forall>a\<in>Field (r +o t).
      ?f a \<in> Field (s +o t) \<and> ?f ` underS (r +o t) a \<subseteq> underS (s +o t) (?f a)"
      unfolding Field_osum underS_def by (fastforce simp: osum_def)
