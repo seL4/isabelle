@@ -2338,13 +2338,13 @@ subsection {* Setup @{typ "'a filter"} for lifting and transfer *}
 
 context begin interpretation lifting_syntax .
 
-definition filter_rel :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a filter \<Rightarrow> 'b filter \<Rightarrow> bool"
-where "filter_rel R F G = ((R ===> op =) ===> op =) (Rep_filter F) (Rep_filter G)"
+definition rel_filter :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a filter \<Rightarrow> 'b filter \<Rightarrow> bool"
+where "rel_filter R F G = ((R ===> op =) ===> op =) (Rep_filter F) (Rep_filter G)"
 
-lemma filter_rel_eventually:
-  "filter_rel R F G \<longleftrightarrow> 
+lemma rel_filter_eventually:
+  "rel_filter R F G \<longleftrightarrow> 
   ((R ===> op =) ===> op =) (\<lambda>P. eventually P F) (\<lambda>P. eventually P G)"
-by(simp add: filter_rel_def eventually_def)
+by(simp add: rel_filter_def eventually_def)
 
 lemma filtermap_id [simp, id_simps]: "filtermap id = id"
 by(simp add: fun_eq_iff id_def filtermap_ident)
@@ -2354,40 +2354,40 @@ using filtermap_id unfolding id_def .
 
 lemma Quotient_filter [quot_map]:
   assumes Q: "Quotient R Abs Rep T"
-  shows "Quotient (filter_rel R) (filtermap Abs) (filtermap Rep) (filter_rel T)"
+  shows "Quotient (rel_filter R) (filtermap Abs) (filtermap Rep) (rel_filter T)"
 unfolding Quotient_alt_def
 proof(intro conjI strip)
   from Q have *: "\<And>x y. T x y \<Longrightarrow> Abs x = y"
     unfolding Quotient_alt_def by blast
 
   fix F G
-  assume "filter_rel T F G"
+  assume "rel_filter T F G"
   thus "filtermap Abs F = G" unfolding filter_eq_iff
-    by(auto simp add: eventually_filtermap filter_rel_eventually * fun_relI del: iffI elim!: fun_relD)
+    by(auto simp add: eventually_filtermap rel_filter_eventually * fun_relI del: iffI elim!: fun_relD)
 next
   from Q have *: "\<And>x. T (Rep x) x" unfolding Quotient_alt_def by blast
 
   fix F
-  show "filter_rel T (filtermap Rep F) F" 
+  show "rel_filter T (filtermap Rep F) F" 
     by(auto elim: fun_relD intro: * intro!: ext arg_cong[where f="\<lambda>P. eventually P F"] fun_relI
-            del: iffI simp add: eventually_filtermap filter_rel_eventually)
-qed(auto simp add: map_fun_def o_def eventually_filtermap filter_eq_iff fun_eq_iff filter_rel_eventually
+            del: iffI simp add: eventually_filtermap rel_filter_eventually)
+qed(auto simp add: map_fun_def o_def eventually_filtermap filter_eq_iff fun_eq_iff rel_filter_eventually
          fun_quotient[OF fun_quotient[OF Q identity_quotient] identity_quotient, unfolded Quotient_alt_def])
 
 lemma eventually_parametric [transfer_rule]:
-  "((A ===> op =) ===> filter_rel A ===> op =) eventually eventually"
-by(simp add: fun_rel_def filter_rel_eventually)
+  "((A ===> op =) ===> rel_filter A ===> op =) eventually eventually"
+by(simp add: fun_rel_def rel_filter_eventually)
 
-lemma filter_rel_eq [relator_eq]: "filter_rel op = = op ="
-by(auto simp add: filter_rel_eventually fun_rel_eq fun_eq_iff filter_eq_iff)
+lemma rel_filter_eq [relator_eq]: "rel_filter op = = op ="
+by(auto simp add: rel_filter_eventually fun_rel_eq fun_eq_iff filter_eq_iff)
 
-lemma filter_rel_mono [relator_mono]:
-  "A \<le> B \<Longrightarrow> filter_rel A \<le> filter_rel B"
-unfolding filter_rel_eventually[abs_def]
+lemma rel_filter_mono [relator_mono]:
+  "A \<le> B \<Longrightarrow> rel_filter A \<le> rel_filter B"
+unfolding rel_filter_eventually[abs_def]
 by(rule le_funI)+(intro fun_mono fun_mono[THEN le_funD, THEN le_funD] order.refl)
 
-lemma filter_rel_conversep [simp]: "filter_rel A\<inverse>\<inverse> = (filter_rel A)\<inverse>\<inverse>"
-by(auto simp add: filter_rel_eventually fun_eq_iff fun_rel_def)
+lemma rel_filter_conversep [simp]: "rel_filter A\<inverse>\<inverse> = (rel_filter A)\<inverse>\<inverse>"
+by(auto simp add: rel_filter_eventually fun_eq_iff fun_rel_def)
 
 lemma is_filter_parametric_aux:
   assumes "is_filter F"
@@ -2434,9 +2434,9 @@ apply(erule is_filter_parametric_aux[where A="conversep A"])
 apply(auto simp add: fun_rel_def)
 done
 
-lemma left_total_filter_rel [reflexivity_rule]:
+lemma left_total_rel_filter [reflexivity_rule]:
   assumes [transfer_rule]: "bi_total A" "bi_unique A"
-  shows "left_total (filter_rel A)"
+  shows "left_total (rel_filter A)"
 proof(rule left_totalI)
   fix F :: "'a filter"
   from bi_total_fun[OF bi_unique_fun[OF `bi_total A` bi_unique_eq] bi_total_eq]
@@ -2444,27 +2444,27 @@ proof(rule left_totalI)
     unfolding  bi_total_def by blast
   moreover have "is_filter (\<lambda>P. eventually P F) \<longleftrightarrow> is_filter G" by transfer_prover
   hence "is_filter G" by(simp add: eventually_def is_filter_Rep_filter)
-  ultimately have "filter_rel A F (Abs_filter G)"
-    by(simp add: filter_rel_eventually eventually_Abs_filter)
-  thus "\<exists>G. filter_rel A F G" ..
+  ultimately have "rel_filter A F (Abs_filter G)"
+    by(simp add: rel_filter_eventually eventually_Abs_filter)
+  thus "\<exists>G. rel_filter A F G" ..
 qed
 
-lemma right_total_filter_rel [transfer_rule]:
-  "\<lbrakk> bi_total A; bi_unique A \<rbrakk> \<Longrightarrow> right_total (filter_rel A)"
-using left_total_filter_rel[of "A\<inverse>\<inverse>"] by simp
+lemma right_total_rel_filter [transfer_rule]:
+  "\<lbrakk> bi_total A; bi_unique A \<rbrakk> \<Longrightarrow> right_total (rel_filter A)"
+using left_total_rel_filter[of "A\<inverse>\<inverse>"] by simp
 
-lemma bi_total_filter_rel [transfer_rule]:
+lemma bi_total_rel_filter [transfer_rule]:
   assumes "bi_total A" "bi_unique A"
-  shows "bi_total (filter_rel A)"
+  shows "bi_total (rel_filter A)"
 unfolding bi_total_conv_left_right using assms
-by(simp add: left_total_filter_rel right_total_filter_rel)
+by(simp add: left_total_rel_filter right_total_rel_filter)
 
-lemma left_unique_filter_rel [reflexivity_rule]:
+lemma left_unique_rel_filter [reflexivity_rule]:
   assumes "left_unique A"
-  shows "left_unique (filter_rel A)"
+  shows "left_unique (rel_filter A)"
 proof(rule left_uniqueI)
   fix F F' G
-  assume [transfer_rule]: "filter_rel A F G" "filter_rel A F' G"
+  assume [transfer_rule]: "rel_filter A F G" "rel_filter A F' G"
   show "F = F'"
     unfolding filter_eq_iff
   proof
@@ -2477,41 +2477,41 @@ proof(rule left_uniqueI)
   qed
 qed
 
-lemma right_unique_filter_rel [transfer_rule]:
-  "right_unique A \<Longrightarrow> right_unique (filter_rel A)"
-using left_unique_filter_rel[of "A\<inverse>\<inverse>"] by simp
+lemma right_unique_rel_filter [transfer_rule]:
+  "right_unique A \<Longrightarrow> right_unique (rel_filter A)"
+using left_unique_rel_filter[of "A\<inverse>\<inverse>"] by simp
 
-lemma bi_unique_filter_rel [transfer_rule]:
-  "bi_unique A \<Longrightarrow> bi_unique (filter_rel A)"
-by(simp add: bi_unique_conv_left_right left_unique_filter_rel right_unique_filter_rel)
+lemma bi_unique_rel_filter [transfer_rule]:
+  "bi_unique A \<Longrightarrow> bi_unique (rel_filter A)"
+by(simp add: bi_unique_conv_left_right left_unique_rel_filter right_unique_rel_filter)
 
 lemma top_filter_parametric [transfer_rule]:
-  "bi_total A \<Longrightarrow> (filter_rel A) top top"
-by(simp add: filter_rel_eventually All_transfer)
+  "bi_total A \<Longrightarrow> (rel_filter A) top top"
+by(simp add: rel_filter_eventually All_transfer)
 
-lemma bot_filter_parametric [transfer_rule]: "(filter_rel A) bot bot"
-by(simp add: filter_rel_eventually fun_rel_def)
+lemma bot_filter_parametric [transfer_rule]: "(rel_filter A) bot bot"
+by(simp add: rel_filter_eventually fun_rel_def)
 
 lemma sup_filter_parametric [transfer_rule]:
-  "(filter_rel A ===> filter_rel A ===> filter_rel A) sup sup"
-by(fastforce simp add: filter_rel_eventually[abs_def] eventually_sup dest: fun_relD)
+  "(rel_filter A ===> rel_filter A ===> rel_filter A) sup sup"
+by(fastforce simp add: rel_filter_eventually[abs_def] eventually_sup dest: fun_relD)
 
 lemma Sup_filter_parametric [transfer_rule]:
-  "(rel_set (filter_rel A) ===> filter_rel A) Sup Sup"
+  "(rel_set (rel_filter A) ===> rel_filter A) Sup Sup"
 proof(rule fun_relI)
   fix S T
-  assume [transfer_rule]: "rel_set (filter_rel A) S T"
-  show "filter_rel A (Sup S) (Sup T)"
-    by(simp add: filter_rel_eventually eventually_Sup) transfer_prover
+  assume [transfer_rule]: "rel_set (rel_filter A) S T"
+  show "rel_filter A (Sup S) (Sup T)"
+    by(simp add: rel_filter_eventually eventually_Sup) transfer_prover
 qed
 
 lemma principal_parametric [transfer_rule]:
-  "(rel_set A ===> filter_rel A) principal principal"
+  "(rel_set A ===> rel_filter A) principal principal"
 proof(rule fun_relI)
   fix S S'
   assume [transfer_rule]: "rel_set A S S'"
-  show "filter_rel A (principal S) (principal S')"
-    by(simp add: filter_rel_eventually eventually_principal) transfer_prover
+  show "rel_filter A (principal S) (principal S')"
+    by(simp add: rel_filter_eventually eventually_principal) transfer_prover
 qed
 
 context
@@ -2520,11 +2520,11 @@ context
 begin
 
 lemma le_filter_parametric [transfer_rule]:
-  "(filter_rel A ===> filter_rel A ===> op =) op \<le> op \<le>"
+  "(rel_filter A ===> rel_filter A ===> op =) op \<le> op \<le>"
 unfolding le_filter_def[abs_def] by transfer_prover
 
 lemma less_filter_parametric [transfer_rule]:
-  "(filter_rel A ===> filter_rel A ===> op =) op < op <"
+  "(rel_filter A ===> rel_filter A ===> op =) op < op <"
 unfolding less_filter_def[abs_def] by transfer_prover
 
 context
@@ -2532,16 +2532,16 @@ context
 begin
 
 lemma Inf_filter_parametric [transfer_rule]:
-  "(rel_set (filter_rel A) ===> filter_rel A) Inf Inf"
+  "(rel_set (rel_filter A) ===> rel_filter A) Inf Inf"
 unfolding Inf_filter_def[abs_def] by transfer_prover
 
 lemma inf_filter_parametric [transfer_rule]:
-  "(filter_rel A ===> filter_rel A ===> filter_rel A) inf inf"
+  "(rel_filter A ===> rel_filter A ===> rel_filter A) inf inf"
 proof(intro fun_relI)+
   fix F F' G G'
-  assume [transfer_rule]: "filter_rel A F F'" "filter_rel A G G'"
-  have "filter_rel A (Inf {F, G}) (Inf {F', G'})" by transfer_prover
-  thus "filter_rel A (inf F G) (inf F' G')" by simp
+  assume [transfer_rule]: "rel_filter A F F'" "rel_filter A G G'"
+  have "rel_filter A (Inf {F, G}) (Inf {F', G'})" by transfer_prover
+  thus "rel_filter A (inf F G) (inf F' G')" by simp
 qed
 
 end

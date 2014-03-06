@@ -193,10 +193,11 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
 * The following map functions and relators have been renamed:
     sum_map ~> map_sum
     map_pair ~> map_prod
+    set_rel ~> rel_set
+    filter_rel ~> rel_filter
     fset_rel ~> rel_fset (in "Library/FSet.thy")
     cset_rel ~> rel_cset (in "Library/Countable_Set_Type.thy")
-    set_rel ~> rel_set
-    rel_vset ~> vset_rel (in "Library/Quotient_Set.thy")
+    vset ~> rel_vset (in "Library/Quotient_Set.thy")
 
 * New theory:
     Cardinals/Ordinal_Arithmetic.thy
