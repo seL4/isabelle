@@ -811,16 +811,15 @@ fun type_constraint_tr' ctxt (Type ("fun", [T, _])) (t :: ts) =
 
 (* authentic syntax *)
 
-fun const_ast_tr intern ctxt [Ast.Variable c] =
+fun const_ast_tr intern ctxt asts =
+  (case asts of
+    [Ast.Appl [Ast.Constant "_constrain", Ast.Variable c, T as Ast.Variable p]] =>
       let
-        val (c', _) = decode_const ctxt (c, []);
+        val pos = the_default Position.none (Term_Position.decode p);
+        val (c', _) = decode_const ctxt (c, [pos]);
         val d = if intern then Lexicon.mark_const c' else c;
-      in Ast.Constant d end
-  | const_ast_tr intern ctxt [Ast.Appl [Ast.Constant "_constrain", x, T as Ast.Variable pos]] =
-      (Ast.Appl [Ast.Constant "_constrain", const_ast_tr intern ctxt [x], T]
-        handle ERROR msg =>
-          error (msg ^ Position.here (the_default Position.none (Term_Position.decode pos))))
-  | const_ast_tr _ _ asts = raise Ast.AST ("const_ast_tr", asts);
+      in Ast.Appl [Ast.Constant "_constrain", Ast.Constant d, T] end
+  | _ => raise Ast.AST ("const_ast_tr", asts));
 
 
 (* setup translations *)
