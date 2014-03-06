@@ -5823,6 +5823,14 @@ proof -
   finally show "convex (s + t)" .
 qed
 
+lemma convex_set_setsum:
+  assumes "\<And>i. i \<in> A \<Longrightarrow> convex (B i)"
+  shows "convex (\<Sum>i\<in>A. B i)"
+proof (cases "finite A")
+  case True then show ?thesis using assms
+    by induct (auto simp: convex_set_plus)
+qed auto
+
 lemma finite_set_setsum:
   assumes "finite A" and "\<forall>i\<in>A. finite (B i)" shows "finite (\<Sum>i\<in>A. B i)"
   using assms by (induct set: finite, simp, simp add: finite_set_plus)
@@ -8595,35 +8603,6 @@ lemma closure_sum:
   by (intro closure_bounded_linear_image bounded_linear_add
     bounded_linear_fst bounded_linear_snd)
 
-lemma convex_oplus:
-  fixes S T :: "'n::euclidean_space set"
-  assumes "convex S"
-    and "convex T"
-  shows "convex (S + T)"
-proof -
-  have "{x + y |x y. x \<in> S \<and> y \<in> T} = {c. \<exists>a\<in>S. \<exists>b\<in>T. c = a + b}"
-    by auto
-  then show ?thesis
-    unfolding set_plus_def
-    using convex_sums[of S T] assms
-    by auto
-qed
-
-lemma convex_hull_sum:
-  fixes S T :: "'n::euclidean_space set"
-  shows "convex hull (S + T) = convex hull S + convex hull T"
-proof -
-  have "convex hull S + convex hull T = (\<lambda>(x,y). x + y) ` ((convex hull S) \<times> (convex hull T))"
-    by (simp add: set_plus_image)
-  also have "\<dots> = (\<lambda>(x,y). x + y) ` (convex hull (S \<times> T))"
-    using convex_hull_Times by auto
-  also have "\<dots> = convex hull (S + T)"
-    using fst_snd_linear linear_conv_bounded_linear
-      convex_hull_linear_image[of "(\<lambda>(x,y). x + y)" "S \<times> T"]
-    by (auto simp add: set_plus_image)
-  finally show ?thesis ..
-qed
-
 lemma rel_interior_sum:
   fixes S T :: "'n::euclidean_space set"
   assumes "convex S"
@@ -8641,34 +8620,13 @@ proof -
   finally show ?thesis ..
 qed
 
-lemma convex_sum_gen:
-  fixes S :: "'a \<Rightarrow> 'n::euclidean_space set"
-  assumes "\<And>i. i \<in> I \<Longrightarrow> (convex (S i))"
-  shows "convex (setsum S I)"
-proof (cases "finite I")
-  case True
-  from this and assms show ?thesis
-    by induct (auto simp: convex_oplus)
-next
-  case False
-  then show ?thesis by auto
-qed
-
-lemma convex_hull_sum_gen:
-  fixes S :: "'a \<Rightarrow> 'n::euclidean_space set"
-  shows "convex hull (setsum S I) = setsum (\<lambda>i. convex hull (S i)) I"
-  apply (subst setsum_set_linear)
-  using convex_hull_sum convex_hull_singleton
-  apply auto
-  done
-
 lemma rel_interior_sum_gen:
   fixes S :: "'a \<Rightarrow> 'n::euclidean_space set"
   assumes "\<forall>i\<in>I. convex (S i)"
   shows "rel_interior (setsum S I) = setsum (\<lambda>i. rel_interior (S i)) I"
   apply (subst setsum_set_cond_linear[of convex])
   using rel_interior_sum rel_interior_sing[of "0"] assms
-  apply (auto simp add: convex_oplus)
+  apply (auto simp add: convex_set_plus)
   done
 
 lemma convex_rel_open_direct_sum:
@@ -8687,7 +8645,7 @@ lemma convex_rel_open_sum:
     and "convex T"
     and "rel_open T"
   shows "convex (S + T) \<and> rel_open (S + T)"
-  by (metis assms convex_oplus rel_interior_sum rel_open_def)
+  by (metis assms convex_set_plus rel_interior_sum rel_open_def)
 
 lemma convex_hull_finite_union_cones:
   assumes "finite I"
