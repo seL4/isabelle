@@ -43,6 +43,7 @@ sig
   val reports: report list -> unit
   val store_reports: report_text list Unsynchronized.ref ->
     T list -> ('a -> Markup.T list) -> 'a -> unit
+  val append_reports: report_text list Unsynchronized.ref -> report list -> unit
   val here: T -> string
   val here_list: T list -> string
   type range = T * T
@@ -181,6 +182,9 @@ fun store_reports _ [] _ _ = ()
   | store_reports (r: report_text list Unsynchronized.ref) ps markup x =
       let val ms = markup x
       in Unsynchronized.change r (fold (fn p => fold (fn m => cons ((p, m), "")) ms) ps) end;
+
+fun append_reports (r: report_text list Unsynchronized.ref) reports =
+  Unsynchronized.change r (append (map (rpair "") reports));
 
 
 (* here: inlined formal markup *)
