@@ -42,7 +42,7 @@ val sum_prod_thms_set =
   @{thms UN_empty UN_insert Un_empty_left Un_empty_right Un_iff UN_simps(10) UN_iff
       Union_Un_distrib image_iff o_apply map_prod_simp
       mem_Collect_eq prod_set_simps map_sum.simps sum_set_simps};
-val sum_prod_thms_rel = @{thms prod_rel_apply sum_rel_simps id_apply};
+val sum_prod_thms_rel = @{thms prod_rel_apply rel_sum_simps id_apply};
 
 fun hhf_concl_conv cv ctxt ct =
   (case Thm.term_of ct of

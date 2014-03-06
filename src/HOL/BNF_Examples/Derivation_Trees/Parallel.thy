@@ -67,10 +67,10 @@ using Inr_cont_par[of tr1 tr2] unfolding vimage_def by auto
 
 subsection{* Structural Coinduction Proofs *}
 
-lemma rel_set_sum_rel_eq[simp]:
-"rel_set (sum_rel (op =) \<phi>) A1 A2 \<longleftrightarrow>
+lemma rel_set_rel_sum_eq[simp]:
+"rel_set (rel_sum (op =) \<phi>) A1 A2 \<longleftrightarrow>
  Inl -` A1 = Inl -` A2 \<and> rel_set \<phi> (Inr -` A1) (Inr -` A2)"
-unfolding rel_set_sum_rel rel_set_eq ..
+unfolding rel_set_rel_sum rel_set_eq ..
 
 (* Detailed proofs of commutativity and associativity: *)
 theorem par_com: "tr1 \<parallel> tr2 = tr2 \<parallel> tr1"
@@ -79,7 +79,7 @@ proof-
   {fix trA trB
    assume "?\<theta> trA trB" hence "trA = trB"
    apply (induct rule: dtree_coinduct)
-   unfolding rel_set_sum_rel rel_set_eq unfolding rel_set_def proof safe
+   unfolding rel_set_rel_sum rel_set_eq unfolding rel_set_def proof safe
      fix tr1 tr2  show "root (tr1 \<parallel> tr2) = root (tr2 \<parallel> tr1)"
      unfolding root_par by (rule Nplus_comm)
    next
@@ -114,7 +114,7 @@ proof-
   {fix trA trB
    assume "?\<theta> trA trB" hence "trA = trB"
    apply (induct rule: dtree_coinduct)
-   unfolding rel_set_sum_rel rel_set_eq unfolding rel_set_def proof safe
+   unfolding rel_set_rel_sum rel_set_eq unfolding rel_set_def proof safe
      fix tr1 tr2 tr3  show "root ((tr1 \<parallel> tr2) \<parallel> tr3) = root (tr1 \<parallel> (tr2 \<parallel> tr3))"
      unfolding root_par by (rule Nplus_assoc)
    next

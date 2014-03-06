@@ -1049,34 +1049,34 @@ subsection {* Advanced relator customization *}
 
 (* Set vs. sum relators: *)
 
-lemma rel_set_sum_rel[simp]: 
-"rel_set (sum_rel \<chi> \<phi>) A1 A2 \<longleftrightarrow> 
+lemma rel_set_rel_sum[simp]: 
+"rel_set (rel_sum \<chi> \<phi>) A1 A2 \<longleftrightarrow> 
  rel_set \<chi> (Inl -` A1) (Inl -` A2) \<and> rel_set \<phi> (Inr -` A1) (Inr -` A2)"
 (is "?L \<longleftrightarrow> ?Rl \<and> ?Rr")
 proof safe
   assume L: "?L"
   show ?Rl unfolding rel_set_def Bex_def vimage_eq proof safe
     fix l1 assume "Inl l1 \<in> A1"
-    then obtain a2 where a2: "a2 \<in> A2" and "sum_rel \<chi> \<phi> (Inl l1) a2"
+    then obtain a2 where a2: "a2 \<in> A2" and "rel_sum \<chi> \<phi> (Inl l1) a2"
     using L unfolding rel_set_def by auto
     then obtain l2 where "a2 = Inl l2 \<and> \<chi> l1 l2" by (cases a2, auto)
     thus "\<exists> l2. Inl l2 \<in> A2 \<and> \<chi> l1 l2" using a2 by auto
   next
     fix l2 assume "Inl l2 \<in> A2"
-    then obtain a1 where a1: "a1 \<in> A1" and "sum_rel \<chi> \<phi> a1 (Inl l2)"
+    then obtain a1 where a1: "a1 \<in> A1" and "rel_sum \<chi> \<phi> a1 (Inl l2)"
     using L unfolding rel_set_def by auto
     then obtain l1 where "a1 = Inl l1 \<and> \<chi> l1 l2" by (cases a1, auto)
     thus "\<exists> l1. Inl l1 \<in> A1 \<and> \<chi> l1 l2" using a1 by auto
   qed
   show ?Rr unfolding rel_set_def Bex_def vimage_eq proof safe
     fix r1 assume "Inr r1 \<in> A1"
-    then obtain a2 where a2: "a2 \<in> A2" and "sum_rel \<chi> \<phi> (Inr r1) a2"
+    then obtain a2 where a2: "a2 \<in> A2" and "rel_sum \<chi> \<phi> (Inr r1) a2"
     using L unfolding rel_set_def by auto
     then obtain r2 where "a2 = Inr r2 \<and> \<phi> r1 r2" by (cases a2, auto)
     thus "\<exists> r2. Inr r2 \<in> A2 \<and> \<phi> r1 r2" using a2 by auto
   next
     fix r2 assume "Inr r2 \<in> A2"
-    then obtain a1 where a1: "a1 \<in> A1" and "sum_rel \<chi> \<phi> a1 (Inr r2)"
+    then obtain a1 where a1: "a1 \<in> A1" and "rel_sum \<chi> \<phi> a1 (Inr r2)"
     using L unfolding rel_set_def by auto
     then obtain r1 where "a1 = Inr r1 \<and> \<phi> r1 r2" by (cases a1, auto)
     thus "\<exists> r1. Inr r1 \<in> A1 \<and> \<phi> r1 r2" using a1 by auto
@@ -1085,7 +1085,7 @@ next
   assume Rl: "?Rl" and Rr: "?Rr"
   show ?L unfolding rel_set_def Bex_def vimage_eq proof safe
     fix a1 assume a1: "a1 \<in> A1"
-    show "\<exists> a2. a2 \<in> A2 \<and> sum_rel \<chi> \<phi> a1 a2"
+    show "\<exists> a2. a2 \<in> A2 \<and> rel_sum \<chi> \<phi> a1 a2"
     proof(cases a1)
       case (Inl l1) then obtain l2 where "Inl l2 \<in> A2 \<and> \<chi> l1 l2"
       using Rl a1 unfolding rel_set_def by blast
@@ -1097,7 +1097,7 @@ next
     qed
   next
     fix a2 assume a2: "a2 \<in> A2"
-    show "\<exists> a1. a1 \<in> A1 \<and> sum_rel \<chi> \<phi> a1 a2"
+    show "\<exists> a1. a1 \<in> A1 \<and> rel_sum \<chi> \<phi> a1 a2"
     proof(cases a2)
       case (Inl l2) then obtain l1 where "Inl l1 \<in> A1 \<and> \<chi> l1 l2"
       using Rl a2 unfolding rel_set_def by blast

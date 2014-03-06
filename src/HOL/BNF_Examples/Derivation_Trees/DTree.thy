@@ -67,7 +67,7 @@ unfolding cont_def comp_def rel_fset_fset ..
 lemma dtree_coinduct[elim, consumes 1, case_names Lift, induct pred: "HOL.eq"]:
 assumes phi: "\<phi> tr1 tr2" and
 Lift: "\<And> tr1 tr2. \<phi> tr1 tr2 \<Longrightarrow>
-                  root tr1 = root tr2 \<and> rel_set (sum_rel op = \<phi>) (cont tr1) (cont tr2)"
+                  root tr1 = root tr2 \<and> rel_set (rel_sum op = \<phi>) (cont tr1) (cont tr2)"
 shows "tr1 = tr2"
 using phi apply(elim dtree.coinduct)
 apply(rule Lift[unfolded rel_set_cont]) .

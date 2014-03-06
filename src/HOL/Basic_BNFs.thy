@@ -22,26 +22,26 @@ definition setr :: "'a + 'b \<Rightarrow> 'b set" where
 lemmas sum_set_defs = setl_def[abs_def] setr_def[abs_def]
 
 definition
-   sum_rel :: "('a \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> 'a + 'b \<Rightarrow> 'c + 'd \<Rightarrow> bool"
+   rel_sum :: "('a \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> 'a + 'b \<Rightarrow> 'c + 'd \<Rightarrow> bool"
 where
-   "sum_rel R1 R2 x y =
+   "rel_sum R1 R2 x y =
      (case (x, y) of (Inl x, Inl y) \<Rightarrow> R1 x y
      | (Inr x, Inr y) \<Rightarrow> R2 x y
      | _ \<Rightarrow> False)"
 
-lemma sum_rel_simps[simp]:
-  "sum_rel R1 R2 (Inl a1) (Inl b1) = R1 a1 b1"
-  "sum_rel R1 R2 (Inl a1) (Inr b2) = False"
-  "sum_rel R1 R2 (Inr a2) (Inl b1) = False"
-  "sum_rel R1 R2 (Inr a2) (Inr b2) = R2 a2 b2"
-  unfolding sum_rel_def by simp_all
+lemma rel_sum_simps[simp]:
+  "rel_sum R1 R2 (Inl a1) (Inl b1) = R1 a1 b1"
+  "rel_sum R1 R2 (Inl a1) (Inr b2) = False"
+  "rel_sum R1 R2 (Inr a2) (Inl b1) = False"
+  "rel_sum R1 R2 (Inr a2) (Inr b2) = R2 a2 b2"
+  unfolding rel_sum_def by simp_all
 
 bnf "'a + 'b"
   map: map_sum
   sets: setl setr
   bd: natLeq
   wits: Inl Inr
-  rel: sum_rel
+  rel: rel_sum
 proof -
   show "map_sum id id = id" by (rule map_sum.id)
 next
@@ -84,14 +84,14 @@ next
     by (simp add: setr_def split: sum.split)
 next
   fix R1 R2 S1 S2
-  show "sum_rel R1 R2 OO sum_rel S1 S2 \<le> sum_rel (R1 OO S1) (R2 OO S2)"
-    by (auto simp: sum_rel_def split: sum.splits)
+  show "rel_sum R1 R2 OO rel_sum S1 S2 \<le> rel_sum (R1 OO S1) (R2 OO S2)"
+    by (auto simp: rel_sum_def split: sum.splits)
 next
   fix R S
-  show "sum_rel R S =
+  show "rel_sum R S =
         (Grp {x. setl x \<subseteq> Collect (split R) \<and> setr x \<subseteq> Collect (split S)} (map_sum fst fst))\<inverse>\<inverse> OO
         Grp {x. setl x \<subseteq> Collect (split R) \<and> setr x \<subseteq> Collect (split S)} (map_sum snd snd)"
-  unfolding setl_def setr_def sum_rel_def Grp_def relcompp.simps conversep.simps fun_eq_iff
+  unfolding setl_def setr_def rel_sum_def Grp_def relcompp.simps conversep.simps fun_eq_iff
   by (fastforce split: sum.splits)
 qed (auto simp: sum_set_defs)
 

@@ -23,7 +23,7 @@ subsection {* Basic properties *}
 
 declare
   rel_pre_process_def[simp]
-  sum_rel_def[simp]
+  rel_sum_def[simp]
   prod_rel_def[simp]
 
 (* Constructors versus discriminators *)
