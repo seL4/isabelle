@@ -460,7 +460,7 @@ fun check_reports context (space, tab) (xname, ps) =
           val completions = map (fn pos => completion context space (xname, pos)) ps;
         in
           error (undefined (kind_of space) name ^ Position.here_list ps ^
-            implode (map (Markup.markup_report o Completion.reported_text) completions))
+            Markup.markup_report (implode (map Completion.reported_text completions)))
         end)
   end;
 

@@ -323,7 +323,7 @@ fun parse_asts ctxt raw root (syms, pos) =
 
     val pts = Syntax.parse syn root (filter Lexicon.is_proper toks)
       handle ERROR msg =>
-        error (msg ^ implode (map (Markup.markup_report o Lexicon.reported_token_range ctxt) toks));
+        error (msg ^ Markup.markup_report (implode (map (Lexicon.reported_token_range ctxt) toks)));
     val len = length pts;
 
     val limit = Config.get ctxt Syntax.ambiguity_limit;
