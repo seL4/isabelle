@@ -13,22 +13,6 @@ theory Basic_BNFs
 imports BNF_Def
 begin
 
-bnf ID: 'a
-  map: "id :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
-  sets: "\<lambda>x. {x}"
-  bd: natLeq
-  rel: "id :: ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool"
-apply (auto simp: Grp_def fun_eq_iff relcompp.simps natLeq_card_order natLeq_cinfinite)
-apply (rule ordLess_imp_ordLeq[OF finite_ordLess_infinite[OF _ natLeq_Well_order]])
-apply (auto simp add: Field_card_of Field_natLeq card_of_well_order_on)[3]
-done
-
-bnf DEADID: 'a
-  map: "id :: 'a \<Rightarrow> 'a"
-  bd: natLeq
-  rel: "op = :: 'a \<Rightarrow> 'a \<Rightarrow> bool"
-by (auto simp add: Grp_def natLeq_card_order natLeq_cinfinite)
-
 definition setl :: "'a + 'b \<Rightarrow> 'a set" where
 "setl x = (case x of Inl z => {z} | _ => {})"
 
