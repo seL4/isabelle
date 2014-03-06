@@ -1565,7 +1565,7 @@ text {*
     using the same attribute. For example:
 
     @{text "bi_unique A \<Longrightarrow> (list_all2 A ===> op =) distinct distinct"}\\
-    @{text "\<lbrakk>bi_unique A; bi_unique B\<rbrakk> \<Longrightarrow> bi_unique (prod_rel A B)"}
+    @{text "\<lbrakk>bi_unique A; bi_unique B\<rbrakk> \<Longrightarrow> bi_unique (rel_prod A B)"}
 
   \item @{attribute (HOL) "transfer_domain_rule"} attribute maintains a collection
     of rules, which specify a domain of a transfer relation by a predicate.

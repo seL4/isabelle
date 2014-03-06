@@ -104,19 +104,19 @@ definition snds :: "'a \<times> 'b \<Rightarrow> 'b set" where
 lemmas prod_set_defs = fsts_def[abs_def] snds_def[abs_def]
 
 definition
-  prod_rel :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('c \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> 'a \<times> 'c \<Rightarrow> 'b \<times> 'd \<Rightarrow> bool"
+  rel_prod :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('c \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> 'a \<times> 'c \<Rightarrow> 'b \<times> 'd \<Rightarrow> bool"
 where
-  "prod_rel R1 R2 = (\<lambda>(a, b) (c, d). R1 a c \<and> R2 b d)"
+  "rel_prod R1 R2 = (\<lambda>(a, b) (c, d). R1 a c \<and> R2 b d)"
 
-lemma prod_rel_apply [simp]:
-  "prod_rel R1 R2 (a, b) (c, d) \<longleftrightarrow> R1 a c \<and> R2 b d"
-  by (simp add: prod_rel_def)
+lemma rel_prod_apply [simp]:
+  "rel_prod R1 R2 (a, b) (c, d) \<longleftrightarrow> R1 a c \<and> R2 b d"
+  by (simp add: rel_prod_def)
 
 bnf "'a \<times> 'b"
   map: map_prod
   sets: fsts snds
   bd: natLeq
-  rel: prod_rel
+  rel: rel_prod
 proof (unfold prod_set_defs)
   show "map_prod id id = id" by (rule map_prod.id)
 next
@@ -149,13 +149,13 @@ next
     by (rule ordLess_imp_ordLeq) (simp add: finite_iff_ordLess_natLeq[symmetric])
 next
   fix R1 R2 S1 S2
-  show "prod_rel R1 R2 OO prod_rel S1 S2 \<le> prod_rel (R1 OO S1) (R2 OO S2)" by auto
+  show "rel_prod R1 R2 OO rel_prod S1 S2 \<le> rel_prod (R1 OO S1) (R2 OO S2)" by auto
 next
   fix R S
-  show "prod_rel R S =
+  show "rel_prod R S =
         (Grp {x. {fst x} \<subseteq> Collect (split R) \<and> {snd x} \<subseteq> Collect (split S)} (map_prod fst fst))\<inverse>\<inverse> OO
         Grp {x. {fst x} \<subseteq> Collect (split R) \<and> {snd x} \<subseteq> Collect (split S)} (map_prod snd snd)"
-  unfolding prod_set_defs prod_rel_def Grp_def relcompp.simps conversep.simps fun_eq_iff
+  unfolding prod_set_defs rel_prod_def Grp_def relcompp.simps conversep.simps fun_eq_iff
   by auto
 qed
 

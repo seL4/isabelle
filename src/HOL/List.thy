@@ -6793,11 +6793,11 @@ lemma dropWhile_transfer [transfer_rule]:
   unfolding dropWhile_def by transfer_prover
 
 lemma zip_transfer [transfer_rule]:
-  "(list_all2 A ===> list_all2 B ===> list_all2 (prod_rel A B)) zip zip"
+  "(list_all2 A ===> list_all2 B ===> list_all2 (rel_prod A B)) zip zip"
   unfolding zip_def by transfer_prover
 
 lemma product_transfer [transfer_rule]:
-  "(list_all2 A ===> list_all2 B ===> list_all2 (prod_rel A B)) List.product List.product"
+  "(list_all2 A ===> list_all2 B ===> list_all2 (rel_prod A B)) List.product List.product"
   unfolding List.product_def by transfer_prover
 
 lemma product_lists_transfer [transfer_rule]:
@@ -6868,7 +6868,7 @@ lemma sublist_transfer [transfer_rule]:
   unfolding sublist_def [abs_def] by transfer_prover
 
 lemma partition_transfer [transfer_rule]:
-  "((A ===> op =) ===> list_all2 A ===> prod_rel (list_all2 A) (list_all2 A))
+  "((A ===> op =) ===> list_all2 A ===> rel_prod (list_all2 A) (list_all2 A))
     partition partition"
   unfolding partition_def by transfer_prover
 

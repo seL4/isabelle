@@ -43,7 +43,7 @@ by transfer_prover
 
 lemma map_of_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique R1"
-  shows "(list_all2 (prod_rel R1 R2) ===> R1 ===> rel_option R2) map_of map_of"
+  shows "(list_all2 (rel_prod R1 R2) ===> R1 ===> rel_option R2) map_of map_of"
 unfolding map_of_def by transfer_prover
 
 lemma tabulate_transfer: 

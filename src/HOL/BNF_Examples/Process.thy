@@ -24,7 +24,7 @@ subsection {* Basic properties *}
 declare
   rel_pre_process_def[simp]
   rel_sum_def[simp]
-  prod_rel_def[simp]
+  rel_prod_def[simp]
 
 (* Constructors versus discriminators *)
 theorem isAction_isChoice:
