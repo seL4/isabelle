@@ -8,7 +8,7 @@ Composition of bounded natural functors.
 header {* Composition of Bounded Natural Functors *}
 
 theory BNF_Comp
-imports Basic_BNFs
+imports BNF_Def
 begin
 
 lemma empty_natural: "(\<lambda>_. {}) o f = image g o (\<lambda>_. {})"
