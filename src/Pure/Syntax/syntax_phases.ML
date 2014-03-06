@@ -233,12 +233,12 @@ fun decode_term _ (result as (_: Position.report_text list, Exn.Exn _)) = result
             (false, Consts.intern (Proof_Context.consts_of ctxt) c);
         fun get_free x =
           let
-            val skolem = Variable.lookup_fixed ctxt x;
+            val fixed = Variable.lookup_fixed ctxt x;
             val is_const = can (decode_const ctxt) x orelse Long_Name.is_qualified x;
             val is_declared = is_some (Variable.def_type ctxt false (x, ~1));
           in
             if Variable.is_const ctxt x then NONE
-            else if is_some skolem then skolem
+            else if is_some fixed then fixed
             else if not is_const orelse is_declared then SOME x
             else NONE
           end;
