@@ -322,6 +322,8 @@ fun err_bad binding = error (Binding.bad binding);
 fun transform_binding (Naming {conceal = true, ...}) = Binding.conceal
   | transform_binding _ = I;
 
+val bad_specs = ["", "??", "__"];
+
 fun name_spec (naming as Naming {path, ...}) raw_binding =
   let
     val binding = transform_binding naming raw_binding;
@@ -332,7 +334,7 @@ fun name_spec (naming as Naming {path, ...}) raw_binding =
     val spec2 = if name = "" then [] else [(name, true)];
     val spec = spec1 @ spec2;
     val _ =
-      exists (fn (a, _) => a = "" orelse a = "??" orelse exists_string (fn s => s = "\"") a) spec
+      exists (fn (a, _) => member (op =) bad_specs a orelse exists_string (fn s => s = "\"") a) spec
       andalso err_bad binding;
   in (concealed, if null spec2 then [] else spec) end;
 
