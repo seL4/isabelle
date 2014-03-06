@@ -190,8 +190,10 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
     the.simps ~> option.sel
   INCOMPATIBILITY.
 
-* The following map function has been renamed:
+* The following map functions and relators have been renamed:
     map_sum ~> sum_map
+    map_pair ~> prod_map
+    fset_rel ~> rel_fset
 
 * New theory:
     Cardinals/Ordinal_Arithmetic.thy

@@ -20,6 +20,6 @@ primcorec tmap where
 "sub (tmap f t) = fimage (tmap f) (sub t)"
 
 lemma "tmap (f o g) x = tmap f (tmap g x)"
-  by (coinduction arbitrary: x) (auto simp: fset_rel_alt)
+  by (coinduction arbitrary: x) (auto simp: rel_fset_alt)
 
 end

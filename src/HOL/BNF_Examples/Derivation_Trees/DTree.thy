@@ -61,8 +61,8 @@ shows "tr = tr'"
 by (metis Node_root_cont assms)
 
 lemma set_rel_cont:
-"set_rel \<chi> (cont tr1) (cont tr2) = fset_rel \<chi> (ccont tr1) (ccont tr2)"
-unfolding cont_def comp_def fset_rel_fset ..
+"set_rel \<chi> (cont tr1) (cont tr2) = rel_fset \<chi> (ccont tr1) (ccont tr2)"
+unfolding cont_def comp_def rel_fset_fset ..
 
 lemma dtree_coinduct[elim, consumes 1, case_names Lift, induct pred: "HOL.eq"]:
 assumes phi: "\<phi> tr1 tr2" and
