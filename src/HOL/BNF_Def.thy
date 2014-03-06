@@ -140,8 +140,8 @@ unfolding Func_def by (auto elim: the_inv_into_f_f)
 lemma vimage2pI: "R (f x) (g y) \<Longrightarrow> vimage2p f g R x y"
   unfolding vimage2p_def by -
 
-lemma fun_rel_iff_leq_vimage2p: "(fun_rel R S) f g = (R \<le> vimage2p f g S)"
-  unfolding fun_rel_def vimage2p_def by auto
+lemma rel_fun_iff_leq_vimage2p: "(rel_fun R S) f g = (R \<le> vimage2p f g S)"
+  unfolding rel_fun_def vimage2p_def by auto
 
 lemma convol_image_vimage2p: "<f o fst, g o snd> ` Collect (split (vimage2p f g R)) \<subseteq> Collect (split R)"
   unfolding vimage2p_def convol_def by auto

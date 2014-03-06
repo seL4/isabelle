@@ -788,17 +788,17 @@ fun mk_fold_transfer_tac ctxt m ctor_rel_induct map_transfers folds =
     val n = length map_transfers;
   in
     unfold_thms_tac ctxt
-      @{thms fun_rel_def_butlast all_conj_distrib[symmetric] imp_conjR[symmetric]} THEN
-    unfold_thms_tac ctxt @{thms fun_rel_iff_leq_vimage2p} THEN
+      @{thms rel_fun_def_butlast all_conj_distrib[symmetric] imp_conjR[symmetric]} THEN
+    unfold_thms_tac ctxt @{thms rel_fun_iff_leq_vimage2p} THEN
     HEADGOAL (EVERY'
       [REPEAT_DETERM o resolve_tac [allI, impI], rtac ctor_rel_induct,
       EVERY' (map (fn map_transfer => EVERY'
         [REPEAT_DETERM o resolve_tac [allI, impI, @{thm vimage2pI}],
         SELECT_GOAL (unfold_thms_tac ctxt folds),
         etac @{thm predicate2D_vimage2p},
-        rtac (funpow (m + n + 1) (fn thm => thm RS @{thm fun_relD}) map_transfer),
+        rtac (funpow (m + n + 1) (fn thm => thm RS @{thm rel_funD}) map_transfer),
         REPEAT_DETERM_N m o rtac @{thm id_transfer},
-        REPEAT_DETERM_N n o rtac @{thm vimage2p_fun_rel},
+        REPEAT_DETERM_N n o rtac @{thm vimage2p_rel_fun},
         atac])
       map_transfers)])
   end;

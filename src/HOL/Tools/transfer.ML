@@ -389,7 +389,7 @@ fun transfer_rule_of_terms (prj : typ * typ -> typ) ctxt tab t u =
           val r2 = rel T2 U2
           val rT = fastype_of r1 --> fastype_of r2 --> mk_relT (T, U)
         in
-          Const (@{const_name fun_rel}, rT) $ r1 $ r2
+          Const (@{const_name rel_fun}, rT) $ r1 $ r2
         end
       | rel T U =
         let
@@ -617,7 +617,7 @@ fun transfer_prover_tac ctxt = SUBGOAL (fn (t, i) =>
     val rule1 = transfer_rule_of_term ctxt false rhs
     val rules = get_transfer_raw ctxt
     val eq_rules = get_relator_eq_raw ctxt
-    val expand_eq_in_rel = transfer_rel_conv (top_rewr_conv [@{thm fun_rel_eq[symmetric,THEN eq_reflection]}])
+    val expand_eq_in_rel = transfer_rel_conv (top_rewr_conv [@{thm rel_fun_eq[symmetric,THEN eq_reflection]}])
   in
     EVERY
       [CONVERSION prep_conv i,

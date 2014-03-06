@@ -1260,12 +1260,12 @@ fun prepare_def const_policy mk_fact_policy qualify prep_typ prep_term Ds_opt ma
 
         fun mk_map_transfer () =
           let
-            val rels = map2 mk_fun_rel transfer_domRs transfer_ranRs;
-            val rel = mk_fun_rel
+            val rels = map2 mk_rel_fun transfer_domRs transfer_ranRs;
+            val rel = mk_rel_fun
               (Term.list_comb (mk_bnf_rel transfer_domRTs CA' CB1, transfer_domRs))
               (Term.list_comb (mk_bnf_rel transfer_ranRTs CB' CB2, transfer_ranRs));
             val concl = HOLogic.mk_Trueprop
-              (fold_rev mk_fun_rel rels rel $ bnf_map_AsBs $ mk_bnf_map B1Ts B2Ts);
+              (fold_rev mk_rel_fun rels rel $ bnf_map_AsBs $ mk_bnf_map B1Ts B2Ts);
           in
             Goal.prove_sorry lthy [] []
               (fold_rev Logic.all (transfer_domRs @ transfer_ranRs) concl)

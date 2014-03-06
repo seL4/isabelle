@@ -78,8 +78,8 @@ lemma int_def: "int n = Abs_Integ (n, 0)"
     simp add: one_int.abs_eq plus_int.abs_eq)
 
 lemma int_transfer [transfer_rule]:
-  "(fun_rel (op =) cr_int) (\<lambda>n. (n, 0)) int"
-  unfolding fun_rel_def cr_int_def int_def by simp
+  "(rel_fun (op =) cr_int) (\<lambda>n. (n, 0)) int"
+  unfolding rel_fun_def cr_int_def int_def by simp
 
 lemma int_diff_cases:
   obtains (diff) m n where "z = int m - int n"

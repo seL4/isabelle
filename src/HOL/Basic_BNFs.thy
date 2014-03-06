@@ -163,7 +163,7 @@ bnf "'a \<Rightarrow> 'b"
   map: "op \<circ>"
   sets: range
   bd: "natLeq +c |UNIV :: 'a set|"
-  rel: "fun_rel op ="
+  rel: "rel_fun op ="
 proof
   fix f show "id \<circ> f = id f" by simp
 next
@@ -193,13 +193,13 @@ next
   finally show "|range f| \<le>o natLeq +c ?U" .
 next
   fix R S
-  show "fun_rel op = R OO fun_rel op = S \<le> fun_rel op = (R OO S)" by (auto simp: fun_rel_def)
+  show "rel_fun op = R OO rel_fun op = S \<le> rel_fun op = (R OO S)" by (auto simp: rel_fun_def)
 next
   fix R
-  show "fun_rel op = R =
+  show "rel_fun op = R =
         (Grp {x. range x \<subseteq> Collect (split R)} (op \<circ> fst))\<inverse>\<inverse> OO
          Grp {x. range x \<subseteq> Collect (split R)} (op \<circ> snd)"
-  unfolding fun_rel_def Grp_def fun_eq_iff relcompp.simps conversep.simps subset_iff image_iff
+  unfolding rel_fun_def Grp_def fun_eq_iff relcompp.simps conversep.simps subset_iff image_iff
     comp_apply mem_Collect_eq split_beta bex_UNIV
   proof (safe, unfold fun_eq_iff[symmetric])
     fix x xa a b c xb y aa ba

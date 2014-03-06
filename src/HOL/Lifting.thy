@@ -52,7 +52,7 @@ lemma left_unique_transfer [transfer_rule]:
   assumes [transfer_rule]: "right_total B"
   assumes [transfer_rule]: "bi_unique A"
   shows "((A ===> B ===> op=) ===> implies) left_unique left_unique"
-using assms unfolding left_unique_def[abs_def] right_total_def bi_unique_def fun_rel_def
+using assms unfolding left_unique_def[abs_def] right_total_def bi_unique_def rel_fun_def
 by metis
 
 lemma bi_unique_iff: "bi_unique A = (right_unique A \<and> left_unique A)"
@@ -69,7 +69,7 @@ unfolding left_unique_def by blast
 
 lemma left_total_fun:
   "\<lbrakk>left_unique A; left_total B\<rbrakk> \<Longrightarrow> left_total (A ===> B)"
-  unfolding left_total_def fun_rel_def
+  unfolding left_total_def rel_fun_def
   apply (rule allI, rename_tac f)
   apply (rule_tac x="\<lambda>y. SOME z. B (f (THE x. A x y)) z" in exI)
   apply clarify
@@ -83,7 +83,7 @@ lemma left_total_fun:
 
 lemma left_unique_fun:
   "\<lbrakk>left_total A; left_unique B\<rbrakk> \<Longrightarrow> left_unique (A ===> B)"
-  unfolding left_total_def left_unique_def fun_rel_def
+  unfolding left_total_def left_unique_def rel_fun_def
   by (clarify, rule ext, fast)
 
 lemma left_total_eq: "left_total op=" unfolding left_total_def by blast
@@ -242,7 +242,7 @@ lemma fun_quotient:
   assumes 2: "Quotient R2 abs2 rep2 T2"
   shows "Quotient (R1 ===> R2) (rep1 ---> abs2) (abs1 ---> rep2) (T1 ===> T2)"
   using assms unfolding Quotient_alt_def2
-  unfolding fun_rel_def fun_eq_iff map_fun_apply
+  unfolding rel_fun_def fun_eq_iff map_fun_apply
   by (safe, metis+)
 
 lemma apply_rsp:
@@ -250,12 +250,12 @@ lemma apply_rsp:
   assumes q: "Quotient R1 Abs1 Rep1 T1"
   and     a: "(R1 ===> R2) f g" "R1 x y"
   shows "R2 (f x) (g y)"
-  using a by (auto elim: fun_relE)
+  using a by (auto elim: rel_funE)
 
 lemma apply_rsp':
   assumes a: "(R1 ===> R2) f g" "R1 x y"
   shows "R2 (f x) (g y)"
-  using a by (auto elim: fun_relE)
+  using a by (auto elim: rel_funE)
 
 lemma apply_rsp'':
   assumes "Quotient R Abs Rep T"
@@ -296,12 +296,12 @@ lemma invariant_to_eq:
   shows "x = y"
 using assms by (simp add: invariant_def)
 
-lemma fun_rel_eq_invariant: "(op= ===> Lifting.invariant P) = Lifting.invariant (\<lambda>f. \<forall>x. P(f x))"
-unfolding invariant_def fun_rel_def by auto
+lemma rel_fun_eq_invariant: "(op= ===> Lifting.invariant P) = Lifting.invariant (\<lambda>f. \<forall>x. P(f x))"
+unfolding invariant_def rel_fun_def by auto
 
-lemma fun_rel_invariant_rel:
+lemma rel_fun_invariant_rel:
   shows "((invariant R) ===> S) = (\<lambda>f g. \<forall>x. R x \<longrightarrow> S (f x) (g x))"
-by (auto simp add: invariant_def fun_rel_def)
+by (auto simp add: invariant_def rel_fun_def)
 
 lemma invariant_same_args:
   shows "invariant P x x \<equiv> P x"
@@ -376,7 +376,7 @@ lemma Quotient_right_total: "right_total T"
   using 1 unfolding Quotient_alt_def right_total_def by metis
 
 lemma Quotient_rel_eq_transfer: "(T ===> T ===> op =) R (op =)"
-  using 1 unfolding Quotient_alt_def fun_rel_def by simp
+  using 1 unfolding Quotient_alt_def rel_fun_def by simp
 
 lemma Quotient_abs_induct:
   assumes "\<And>y. R y y \<Longrightarrow> P (Abs y)" shows "P x"
@@ -395,7 +395,7 @@ lemma Quotient_bi_total: "bi_total T"
   using 1 2 unfolding Quotient_alt_def bi_total_def reflp_def by auto
 
 lemma Quotient_id_abs_transfer: "(op = ===> T) (\<lambda>x. x) Abs"
-  using 1 2 unfolding Quotient_alt_def reflp_def fun_rel_def by simp
+  using 1 2 unfolding Quotient_alt_def reflp_def rel_fun_def by simp
 
 lemma Quotient_total_abs_induct: "(\<And>y. P (Abs y)) \<Longrightarrow> P x"
   using 1 2 assms unfolding Quotient_alt_def reflp_def by metis
@@ -432,7 +432,7 @@ lemma typedef_right_total: "right_total T"
   by blast
 
 lemma typedef_rep_transfer: "(T ===> op =) (\<lambda>x. x) Rep"
-  unfolding fun_rel_def T_def by simp
+  unfolding rel_fun_def T_def by simp
 
 end
 
@@ -557,10 +557,10 @@ lemma fun_mono:
   assumes "A \<ge> C"
   assumes "B \<le> D"
   shows   "(A ===> B) \<le> (C ===> D)"
-using assms unfolding fun_rel_def by blast
+using assms unfolding rel_fun_def by blast
 
 lemma pos_fun_distr: "((R ===> S) OO (R' ===> S')) \<le> ((R OO R') ===> (S OO S'))"
-unfolding OO_def fun_rel_def by blast
+unfolding OO_def rel_fun_def by blast
 
 lemma functional_relation: "right_unique R \<Longrightarrow> left_total R \<Longrightarrow> \<forall>x. \<exists>!y. R x y"
 unfolding right_unique_def left_total_def by blast
@@ -573,7 +573,7 @@ assumes 1: "left_unique R" "right_total R"
 assumes 2: "right_unique R'" "left_total R'"
 shows "(R OO R' ===> S OO S') \<le> ((R ===> S) OO (R' ===> S')) "
   using functional_relation[OF 2] functional_converse_relation[OF 1]
-  unfolding fun_rel_def OO_def
+  unfolding rel_fun_def OO_def
   apply clarify
   apply (subst all_comm)
   apply (subst all_conj_distrib[symmetric])
@@ -585,7 +585,7 @@ assumes 1: "right_unique R'" "left_total R'"
 assumes 2: "left_unique S'" "right_total S'"
 shows "(R OO R' ===> S OO S') \<le> ((R ===> S) OO (R' ===> S'))"
   using functional_converse_relation[OF 2] functional_relation[OF 1]
-  unfolding fun_rel_def OO_def
+  unfolding rel_fun_def OO_def
   apply clarify
   apply (subst all_comm)
   apply (subst all_conj_distrib[symmetric])
@@ -599,7 +599,7 @@ lemma composed_equiv_rel_invariant:
   assumes "(R ===> op=) P P'"
   assumes "Domainp R = P''"
   shows "(R OO Lifting.invariant P' OO R\<inverse>\<inverse>) = Lifting.invariant (inf P'' P)"
-using assms unfolding OO_def conversep_iff Domainp_iff[abs_def] left_unique_def fun_rel_def invariant_def
+using assms unfolding OO_def conversep_iff Domainp_iff[abs_def] left_unique_def rel_fun_def invariant_def
 fun_eq_iff by blast
 
 lemma composed_equiv_rel_eq_invariant:
@@ -615,7 +615,7 @@ lemma pcr_Domainp_par_left_total:
   assumes "(A ===> op=) P' P"
   shows "Domainp (A OO B) = P'"
 using assms
-unfolding Domainp_iff[abs_def] OO_def bi_unique_def left_total_def fun_rel_def 
+unfolding Domainp_iff[abs_def] OO_def bi_unique_def left_total_def rel_fun_def 
 by (fast intro: fun_eq_iff)
 
 lemma pcr_Domainp_par:
@@ -623,7 +623,7 @@ assumes "Domainp B = P2"
 assumes "Domainp A = P1"
 assumes "(A ===> op=) P2' P2"
 shows "Domainp (A OO B) = (inf P1 P2')"
-using assms unfolding fun_rel_def Domainp_iff[abs_def] OO_def
+using assms unfolding rel_fun_def Domainp_iff[abs_def] OO_def
 by (fast intro: fun_eq_iff)
 
 definition rel_pred_comp :: "('a => 'b => bool) => ('b => bool) => 'a => bool"

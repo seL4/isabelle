@@ -109,13 +109,13 @@ fun mk_readable_rsp_thm_eq tm lthy =
     fun simp_arrows_conv ctm =
       let
         val unfold_conv = Conv.rewrs_conv 
-          [@{thm fun_rel_eq_invariant[THEN eq_reflection]}, @{thm fun_rel_eq_rel[THEN eq_reflection]}, 
-            @{thm fun_rel_def[THEN eq_reflection]}]
+          [@{thm rel_fun_eq_invariant[THEN eq_reflection]}, @{thm rel_fun_eq_rel[THEN eq_reflection]}, 
+            @{thm rel_fun_def[THEN eq_reflection]}]
         val left_conv = simp_arrows_conv then_conv Conv.try_conv norm_fun_eq
         fun binop_conv2 cv1 cv2 = Conv.combination_conv (Conv.arg_conv cv1) cv2
       in
         case (Thm.term_of ctm) of
-          Const (@{const_name fun_rel}, _) $ _ $ _ => 
+          Const (@{const_name rel_fun}, _) $ _ $ _ => 
             (binop_conv2 left_conv simp_arrows_conv then_conv unfold_conv) ctm
           | _ => Conv.all_conv ctm
       end

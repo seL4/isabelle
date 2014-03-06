@@ -50,7 +50,7 @@ lemma empty_set_rsp[quot_respect]:
 lemma collect_rsp[quot_respect]:
   assumes "Quotient3 R Abs Rep"
   shows "((R ===> op =) ===> rel_vset R) Collect Collect"
-  by (intro fun_relI) (simp add: fun_rel_def rel_vset_def)
+  by (intro rel_funI) (simp add: rel_fun_def rel_vset_def)
 
 lemma collect_prs[quot_preserve]:
   assumes "Quotient3 R Abs Rep"
@@ -61,7 +61,7 @@ lemma collect_prs[quot_preserve]:
 lemma union_rsp[quot_respect]:
   assumes "Quotient3 R Abs Rep"
   shows "(rel_vset R ===> rel_vset R ===> rel_vset R) op \<union> op \<union>"
-  by (intro fun_relI) (simp add: rel_vset_def)
+  by (intro rel_funI) (simp add: rel_vset_def)
 
 lemma union_prs[quot_preserve]:
   assumes "Quotient3 R Abs Rep"
@@ -72,7 +72,7 @@ lemma union_prs[quot_preserve]:
 lemma diff_rsp[quot_respect]:
   assumes "Quotient3 R Abs Rep"
   shows "(rel_vset R ===> rel_vset R ===> rel_vset R) op - op -"
-  by (intro fun_relI) (simp add: rel_vset_def)
+  by (intro rel_funI) (simp add: rel_vset_def)
 
 lemma diff_prs[quot_preserve]:
   assumes "Quotient3 R Abs Rep"
@@ -83,7 +83,7 @@ lemma diff_prs[quot_preserve]:
 lemma inter_rsp[quot_respect]:
   assumes "Quotient3 R Abs Rep"
   shows "(rel_vset R ===> rel_vset R ===> rel_vset R) op \<inter> op \<inter>"
-  by (intro fun_relI) (auto simp add: rel_vset_def)
+  by (intro rel_funI) (auto simp add: rel_vset_def)
 
 lemma inter_prs[quot_preserve]:
   assumes "Quotient3 R Abs Rep"
@@ -98,6 +98,6 @@ lemma mem_prs[quot_preserve]:
 
 lemma mem_rsp[quot_respect]:
   shows "(R ===> rel_vset R ===> op =) op \<in> op \<in>"
-  by (intro fun_relI) (simp add: rel_vset_def)
+  by (intro rel_funI) (simp add: rel_vset_def)
 
 end

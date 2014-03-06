@@ -2380,7 +2380,7 @@ text {* \blankline *}
     lift_definition
       rel_fn :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('d, 'a) fn \<Rightarrow> ('d, 'b) fn \<Rightarrow> bool"
     is
-      "fun_rel (op =)" .
+      "rel_fun (op =)" .
 
 text {* \blankline *}
 
@@ -2423,7 +2423,7 @@ text {* \blankline *}
     next
       fix R S
       show "rel_fn R OO rel_fn S \<le> rel_fn (R OO S)"
-        by (rule, transfer) (auto simp add: fun_rel_def)
+        by (rule, transfer) (auto simp add: rel_fun_def)
     next
       fix R
       show "rel_fn R =
@@ -2431,7 +2431,7 @@ text {* \blankline *}
              BNF_Util.Grp {x. set_fn x \<subseteq> Collect (split R)} (map_fn snd)"
         unfolding Grp_def fun_eq_iff relcompp.simps conversep.simps
         apply transfer
-        unfolding fun_rel_def subset_iff image_iff
+        unfolding rel_fun_def subset_iff image_iff
         by auto (force, metis pair_collapse)
     qed
 

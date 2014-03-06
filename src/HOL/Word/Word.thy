@@ -193,9 +193,9 @@ setup_lifting (no_code) Quotient_word reflp_word
 text {* TODO: The next lemma could be generated automatically. *}
 
 lemma uint_transfer [transfer_rule]:
-  "(fun_rel pcr_word op =) (bintrunc (len_of TYPE('a)))
+  "(rel_fun pcr_word op =) (bintrunc (len_of TYPE('a)))
     (uint :: 'a::len0 word \<Rightarrow> int)"
-  unfolding fun_rel_def word.pcr_cr_eq cr_word_def
+  unfolding rel_fun_def word.pcr_cr_eq cr_word_def
   by (simp add: no_bintr_alt1 uint_word_of_int)
 
 
@@ -651,9 +651,9 @@ lemma word_neg_numeral_alt:
 declare word_neg_numeral_alt [symmetric, code_abbrev]
 
 lemma word_numeral_transfer [transfer_rule]:
-  "(fun_rel op = pcr_word) numeral numeral"
-  "(fun_rel op = pcr_word) (- numeral) (- numeral)"
-  apply (simp_all add: fun_rel_def word.pcr_cr_eq cr_word_def)
+  "(rel_fun op = pcr_word) numeral numeral"
+  "(rel_fun op = pcr_word) (- numeral) (- numeral)"
+  apply (simp_all add: rel_fun_def word.pcr_cr_eq cr_word_def)
   using word_numeral_alt [symmetric] word_neg_numeral_alt [symmetric] by blast+
 
 lemma uint_bintrunc [simp]:
@@ -2295,9 +2295,9 @@ lemma test_bit_wi [simp]:
   by (simp add: word_ubin.eq_norm nth_bintr)
 
 lemma word_test_bit_transfer [transfer_rule]:
-  "(fun_rel pcr_word (fun_rel op = op =))
+  "(rel_fun pcr_word (rel_fun op = op =))
     (\<lambda>x n. n < len_of TYPE('a) \<and> bin_nth x n) (test_bit :: 'a::len0 word \<Rightarrow> _)"
-  unfolding fun_rel_def word.pcr_cr_eq cr_word_def by simp
+  unfolding rel_fun_def word.pcr_cr_eq cr_word_def by simp
 
 lemma word_ops_nth_size:
   "n < size (x::'a::len0 word) \<Longrightarrow> 

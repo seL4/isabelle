@@ -76,27 +76,27 @@ qed (transfer, simp add: algebra_simps)+
 end
 
 lemma [transfer_rule]:
-  "fun_rel HOL.eq pcr_integer (of_nat :: nat \<Rightarrow> int) (of_nat :: nat \<Rightarrow> integer)"
+  "rel_fun HOL.eq pcr_integer (of_nat :: nat \<Rightarrow> int) (of_nat :: nat \<Rightarrow> integer)"
   by (unfold of_nat_def [abs_def]) transfer_prover
 
 lemma [transfer_rule]:
-  "fun_rel HOL.eq pcr_integer (\<lambda>k :: int. k :: int) (of_int :: int \<Rightarrow> integer)"
+  "rel_fun HOL.eq pcr_integer (\<lambda>k :: int. k :: int) (of_int :: int \<Rightarrow> integer)"
 proof -
-  have "fun_rel HOL.eq pcr_integer (of_int :: int \<Rightarrow> int) (of_int :: int \<Rightarrow> integer)"
+  have "rel_fun HOL.eq pcr_integer (of_int :: int \<Rightarrow> int) (of_int :: int \<Rightarrow> integer)"
     by (unfold of_int_of_nat [abs_def]) transfer_prover
   then show ?thesis by (simp add: id_def)
 qed
 
 lemma [transfer_rule]:
-  "fun_rel HOL.eq pcr_integer (numeral :: num \<Rightarrow> int) (numeral :: num \<Rightarrow> integer)"
+  "rel_fun HOL.eq pcr_integer (numeral :: num \<Rightarrow> int) (numeral :: num \<Rightarrow> integer)"
 proof -
-  have "fun_rel HOL.eq pcr_integer (numeral :: num \<Rightarrow> int) (\<lambda>n. of_int (numeral n))"
+  have "rel_fun HOL.eq pcr_integer (numeral :: num \<Rightarrow> int) (\<lambda>n. of_int (numeral n))"
     by transfer_prover
   then show ?thesis by simp
 qed
 
 lemma [transfer_rule]:
-  "fun_rel HOL.eq (fun_rel HOL.eq pcr_integer) (Num.sub :: _ \<Rightarrow> _ \<Rightarrow> int) (Num.sub :: _ \<Rightarrow> _ \<Rightarrow> integer)"
+  "rel_fun HOL.eq (rel_fun HOL.eq pcr_integer) (Num.sub :: _ \<Rightarrow> _ \<Rightarrow> int) (Num.sub :: _ \<Rightarrow> _ \<Rightarrow> integer)"
   by (unfold Num.sub_def [abs_def]) transfer_prover
 
 lemma int_of_integer_of_nat [simp]:
@@ -192,11 +192,11 @@ qed (transfer, simp add: algebra_simps equal less_le_not_le [symmetric] mult_str
 end
 
 lemma [transfer_rule]:
-  "fun_rel pcr_integer (fun_rel pcr_integer pcr_integer) (min :: _ \<Rightarrow> _ \<Rightarrow> int) (min :: _ \<Rightarrow> _ \<Rightarrow> integer)"
+  "rel_fun pcr_integer (rel_fun pcr_integer pcr_integer) (min :: _ \<Rightarrow> _ \<Rightarrow> int) (min :: _ \<Rightarrow> _ \<Rightarrow> integer)"
   by (unfold min_def [abs_def]) transfer_prover
 
 lemma [transfer_rule]:
-  "fun_rel pcr_integer (fun_rel pcr_integer pcr_integer) (max :: _ \<Rightarrow> _ \<Rightarrow> int) (max :: _ \<Rightarrow> _ \<Rightarrow> integer)"
+  "rel_fun pcr_integer (rel_fun pcr_integer pcr_integer) (max :: _ \<Rightarrow> _ \<Rightarrow> int) (max :: _ \<Rightarrow> _ \<Rightarrow> integer)"
   by (unfold max_def [abs_def]) transfer_prover
 
 lemma int_of_integer_min [simp]:
@@ -249,7 +249,7 @@ where
   [simp, code_abbrev]: "Pos = numeral"
 
 lemma [transfer_rule]:
-  "fun_rel HOL.eq pcr_integer numeral Pos"
+  "rel_fun HOL.eq pcr_integer numeral Pos"
   by simp transfer_prover
 
 definition Neg :: "num \<Rightarrow> integer"
@@ -257,7 +257,7 @@ where
   [simp, code_abbrev]: "Neg n = - Pos n"
 
 lemma [transfer_rule]:
-  "fun_rel HOL.eq pcr_integer (\<lambda>n. - numeral n) Neg"
+  "rel_fun HOL.eq pcr_integer (\<lambda>n. - numeral n) Neg"
   by (simp add: Neg_def [abs_def]) transfer_prover
 
 code_datatype "0::integer" Pos Neg
@@ -680,17 +680,17 @@ qed (transfer, simp add: algebra_simps)+
 end
 
 lemma [transfer_rule]:
-  "fun_rel HOL.eq pcr_natural (\<lambda>n::nat. n) (of_nat :: nat \<Rightarrow> natural)"
+  "rel_fun HOL.eq pcr_natural (\<lambda>n::nat. n) (of_nat :: nat \<Rightarrow> natural)"
 proof -
-  have "fun_rel HOL.eq pcr_natural (of_nat :: nat \<Rightarrow> nat) (of_nat :: nat \<Rightarrow> natural)"
+  have "rel_fun HOL.eq pcr_natural (of_nat :: nat \<Rightarrow> nat) (of_nat :: nat \<Rightarrow> natural)"
     by (unfold of_nat_def [abs_def]) transfer_prover
   then show ?thesis by (simp add: id_def)
 qed
 
 lemma [transfer_rule]:
-  "fun_rel HOL.eq pcr_natural (numeral :: num \<Rightarrow> nat) (numeral :: num \<Rightarrow> natural)"
+  "rel_fun HOL.eq pcr_natural (numeral :: num \<Rightarrow> nat) (numeral :: num \<Rightarrow> natural)"
 proof -
-  have "fun_rel HOL.eq pcr_natural (numeral :: num \<Rightarrow> nat) (\<lambda>n. of_nat (numeral n))"
+  have "rel_fun HOL.eq pcr_natural (numeral :: num \<Rightarrow> nat) (\<lambda>n. of_nat (numeral n))"
     by transfer_prover
   then show ?thesis by simp
 qed
@@ -748,11 +748,11 @@ qed (transfer, simp add: algebra_simps equal less_le_not_le [symmetric] linear)+
 end
 
 lemma [transfer_rule]:
-  "fun_rel pcr_natural (fun_rel pcr_natural pcr_natural) (min :: _ \<Rightarrow> _ \<Rightarrow> nat) (min :: _ \<Rightarrow> _ \<Rightarrow> natural)"
+  "rel_fun pcr_natural (rel_fun pcr_natural pcr_natural) (min :: _ \<Rightarrow> _ \<Rightarrow> nat) (min :: _ \<Rightarrow> _ \<Rightarrow> natural)"
   by (unfold min_def [abs_def]) transfer_prover
 
 lemma [transfer_rule]:
-  "fun_rel pcr_natural (fun_rel pcr_natural pcr_natural) (max :: _ \<Rightarrow> _ \<Rightarrow> nat) (max :: _ \<Rightarrow> _ \<Rightarrow> natural)"
+  "rel_fun pcr_natural (rel_fun pcr_natural pcr_natural) (max :: _ \<Rightarrow> _ \<Rightarrow> nat) (max :: _ \<Rightarrow> _ \<Rightarrow> natural)"
   by (unfold max_def [abs_def]) transfer_prover
 
 lemma nat_of_natural_min [simp]:

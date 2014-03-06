@@ -878,99 +878,99 @@ lemmas fempty_transfer [transfer_rule] = empty_transfer[Transfer.transferred]
 
 lemma finsert_transfer [transfer_rule]:
   "(A ===> rel_fset A ===> rel_fset A) finsert finsert"
-  unfolding fun_rel_def rel_fset_alt_def by blast
+  unfolding rel_fun_def rel_fset_alt_def by blast
 
 lemma funion_transfer [transfer_rule]:
   "(rel_fset A ===> rel_fset A ===> rel_fset A) funion funion"
-  unfolding fun_rel_def rel_fset_alt_def by blast
+  unfolding rel_fun_def rel_fset_alt_def by blast
 
 lemma ffUnion_transfer [transfer_rule]:
   "(rel_fset (rel_fset A) ===> rel_fset A) ffUnion ffUnion"
-  unfolding fun_rel_def rel_fset_alt_def by transfer (simp, fast)
+  unfolding rel_fun_def rel_fset_alt_def by transfer (simp, fast)
 
 lemma fimage_transfer [transfer_rule]:
   "((A ===> B) ===> rel_fset A ===> rel_fset B) fimage fimage"
-  unfolding fun_rel_def rel_fset_alt_def by simp blast
+  unfolding rel_fun_def rel_fset_alt_def by simp blast
 
 lemma fBall_transfer [transfer_rule]:
   "(rel_fset A ===> (A ===> op =) ===> op =) fBall fBall"
-  unfolding rel_fset_alt_def fun_rel_def by blast
+  unfolding rel_fset_alt_def rel_fun_def by blast
 
 lemma fBex_transfer [transfer_rule]:
   "(rel_fset A ===> (A ===> op =) ===> op =) fBex fBex"
-  unfolding rel_fset_alt_def fun_rel_def by blast
+  unfolding rel_fset_alt_def rel_fun_def by blast
 
 (* FIXME transfer doesn't work here *)
 lemma fPow_transfer [transfer_rule]:
   "(rel_fset A ===> rel_fset (rel_fset A)) fPow fPow"
-  unfolding fun_rel_def
-  using Pow_transfer[unfolded fun_rel_def, rule_format, Transfer.transferred]
+  unfolding rel_fun_def
+  using Pow_transfer[unfolded rel_fun_def, rule_format, Transfer.transferred]
   by blast
 
 lemma rel_fset_transfer [transfer_rule]:
   "((A ===> B ===> op =) ===> rel_fset A ===> rel_fset B ===> op =)
     rel_fset rel_fset"
-  unfolding fun_rel_def
-  using rel_set_transfer[unfolded fun_rel_def,rule_format, Transfer.transferred, where A = A and B = B]
+  unfolding rel_fun_def
+  using rel_set_transfer[unfolded rel_fun_def,rule_format, Transfer.transferred, where A = A and B = B]
   by simp
 
 lemma bind_transfer [transfer_rule]:
   "(rel_fset A ===> (A ===> rel_fset B) ===> rel_fset B) fbind fbind"
-  using assms unfolding fun_rel_def
-  using bind_transfer[unfolded fun_rel_def, rule_format, Transfer.transferred] by blast
+  using assms unfolding rel_fun_def
+  using bind_transfer[unfolded rel_fun_def, rule_format, Transfer.transferred] by blast
 
 text {* Rules requiring bi-unique, bi-total or right-total relations *}
 
 lemma fmember_transfer [transfer_rule]:
   assumes "bi_unique A"
   shows "(A ===> rel_fset A ===> op =) (op |\<in>|) (op |\<in>|)"
-  using assms unfolding fun_rel_def rel_fset_alt_def bi_unique_def by metis
+  using assms unfolding rel_fun_def rel_fset_alt_def bi_unique_def by metis
 
 lemma finter_transfer [transfer_rule]:
   assumes "bi_unique A"
   shows "(rel_fset A ===> rel_fset A ===> rel_fset A) finter finter"
-  using assms unfolding fun_rel_def
-  using inter_transfer[unfolded fun_rel_def, rule_format, Transfer.transferred] by blast
+  using assms unfolding rel_fun_def
+  using inter_transfer[unfolded rel_fun_def, rule_format, Transfer.transferred] by blast
 
 lemma fminus_transfer [transfer_rule]:
   assumes "bi_unique A"
   shows "(rel_fset A ===> rel_fset A ===> rel_fset A) (op |-|) (op |-|)"
-  using assms unfolding fun_rel_def
-  using Diff_transfer[unfolded fun_rel_def, rule_format, Transfer.transferred] by blast
+  using assms unfolding rel_fun_def
+  using Diff_transfer[unfolded rel_fun_def, rule_format, Transfer.transferred] by blast
 
 lemma fsubset_transfer [transfer_rule]:
   assumes "bi_unique A"
   shows "(rel_fset A ===> rel_fset A ===> op =) (op |\<subseteq>|) (op |\<subseteq>|)"
-  using assms unfolding fun_rel_def
-  using subset_transfer[unfolded fun_rel_def, rule_format, Transfer.transferred] by blast
+  using assms unfolding rel_fun_def
+  using subset_transfer[unfolded rel_fun_def, rule_format, Transfer.transferred] by blast
 
 lemma fSup_transfer [transfer_rule]:
   "bi_unique A \<Longrightarrow> (rel_set (rel_fset A) ===> rel_fset A) Sup Sup"
-  using assms unfolding fun_rel_def
+  using assms unfolding rel_fun_def
   apply clarify
   apply transfer'
-  using Sup_fset_transfer[unfolded fun_rel_def] by blast
+  using Sup_fset_transfer[unfolded rel_fun_def] by blast
 
 (* FIXME: add right_total_fInf_transfer *)
 
 lemma fInf_transfer [transfer_rule]:
   assumes "bi_unique A" and "bi_total A"
   shows "(rel_set (rel_fset A) ===> rel_fset A) Inf Inf"
-  using assms unfolding fun_rel_def
+  using assms unfolding rel_fun_def
   apply clarify
   apply transfer'
-  using Inf_fset_transfer[unfolded fun_rel_def] by blast
+  using Inf_fset_transfer[unfolded rel_fun_def] by blast
 
 lemma ffilter_transfer [transfer_rule]:
   assumes "bi_unique A"
   shows "((A ===> op=) ===> rel_fset A ===> rel_fset A) ffilter ffilter"
-  using assms unfolding fun_rel_def
-  using Lifting_Set.filter_transfer[unfolded fun_rel_def, rule_format, Transfer.transferred] by blast
+  using assms unfolding rel_fun_def
+  using Lifting_Set.filter_transfer[unfolded rel_fun_def, rule_format, Transfer.transferred] by blast
 
 lemma card_transfer [transfer_rule]:
   "bi_unique A \<Longrightarrow> (rel_fset A ===> op =) fcard fcard"
-  using assms unfolding fun_rel_def
-  using card_transfer[unfolded fun_rel_def, rule_format, Transfer.transferred] by blast
+  using assms unfolding rel_fun_def
+  using card_transfer[unfolded rel_fun_def, rule_format, Transfer.transferred] by blast
 
 end
 

@@ -502,9 +502,9 @@ fun mk_un_fold_transfer_thms fp pre_rels pre_phis rels phis un_folds un_folds' t
     val relphis = map (fn rel => Term.list_comb (rel, phis)) rels;
     fun flip f x y = if fp = Greatest_FP then f y x else f x y;
 
-    val arg_rels = map2 (flip mk_fun_rel) pre_relphis pre_phis;
+    val arg_rels = map2 (flip mk_rel_fun) pre_relphis pre_phis;
     fun mk_transfer relphi pre_phi un_fold un_fold' =
-      fold_rev mk_fun_rel arg_rels (flip mk_fun_rel relphi pre_phi) $ un_fold $ un_fold';
+      fold_rev mk_rel_fun arg_rels (flip mk_rel_fun relphi pre_phi) $ un_fold $ un_fold';
     val transfers = map4 mk_transfer relphis pre_phis un_folds un_folds';
 
     val goal = fold_rev Logic.all (phis @ pre_phis)

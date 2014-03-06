@@ -146,7 +146,7 @@ proof -
     using q1 q2 by (simp add: Quotient3_def fun_eq_iff)
   moreover
   have "\<And>a.(R1 ===> R2) ((abs1 ---> rep2) a) ((abs1 ---> rep2) a)"
-    by (rule fun_relI)
+    by (rule rel_funI)
       (insert q1 q2 Quotient3_rel_abs [of R1 abs1 rep1] Quotient3_rel_rep [of R2 abs2 rep2],
         simp (no_asm) add: Quotient3_def, simp)
   
@@ -157,17 +157,17 @@ proof -
         (rep1 ---> abs2) r  = (rep1 ---> abs2) s)"
   proof -
     
-    have "(R1 ===> R2) r s \<Longrightarrow> (R1 ===> R2) r r" unfolding fun_rel_def
+    have "(R1 ===> R2) r s \<Longrightarrow> (R1 ===> R2) r r" unfolding rel_fun_def
       using Quotient3_part_equivp[OF q1] Quotient3_part_equivp[OF q2] 
       by (metis (full_types) part_equivp_def)
-    moreover have "(R1 ===> R2) r s \<Longrightarrow> (R1 ===> R2) s s" unfolding fun_rel_def
+    moreover have "(R1 ===> R2) r s \<Longrightarrow> (R1 ===> R2) s s" unfolding rel_fun_def
       using Quotient3_part_equivp[OF q1] Quotient3_part_equivp[OF q2] 
       by (metis (full_types) part_equivp_def)
     moreover have "(R1 ===> R2) r s \<Longrightarrow> (rep1 ---> abs2) r  = (rep1 ---> abs2) s"
-      apply(auto simp add: fun_rel_def fun_eq_iff) using q1 q2 unfolding Quotient3_def by metis
+      apply(auto simp add: rel_fun_def fun_eq_iff) using q1 q2 unfolding Quotient3_def by metis
     moreover have "((R1 ===> R2) r r \<and> (R1 ===> R2) s s \<and>
         (rep1 ---> abs2) r  = (rep1 ---> abs2) s) \<Longrightarrow> (R1 ===> R2) r s"
-      apply(auto simp add: fun_rel_def fun_eq_iff) using q1 q2 unfolding Quotient3_def 
+      apply(auto simp add: rel_fun_def fun_eq_iff) using q1 q2 unfolding Quotient3_def 
     by (metis map_fun_apply)
   
     ultimately show ?thesis by blast
@@ -204,7 +204,7 @@ lemma apply_rspQ3:
   assumes q: "Quotient3 R1 Abs1 Rep1"
   and     a: "(R1 ===> R2) f g" "R1 x y"
   shows "R2 (f x) (g y)"
-  using a by (auto elim: fun_relE)
+  using a by (auto elim: rel_funE)
 
 lemma apply_rspQ3'':
   assumes "Quotient3 R Abs Rep"
@@ -261,7 +261,7 @@ lemma ball_reg_eqv_range:
   apply(rule iffI)
   apply(rule allI)
   apply(drule_tac x="\<lambda>y. f x" in bspec)
-  apply(simp add: in_respects fun_rel_def)
+  apply(simp add: in_respects rel_fun_def)
   apply(rule impI)
   using a equivp_reflp_symp_transp[of "R2"]
   apply (auto elim: equivpE reflpE)
@@ -273,7 +273,7 @@ lemma bex_reg_eqv_range:
   apply(auto)
   apply(rule_tac x="\<lambda>y. f x" in bexI)
   apply(simp)
-  apply(simp add: Respects_def in_respects fun_rel_def)
+  apply(simp add: Respects_def in_respects rel_fun_def)
   apply(rule impI)
   using a equivp_reflp_symp_transp[of "R2"]
   apply (auto elim: equivpE reflpE)
@@ -326,10 +326,10 @@ lemma babs_rsp:
   assumes q: "Quotient3 R1 Abs1 Rep1"
   and     a: "(R1 ===> R2) f g"
   shows      "(R1 ===> R2) (Babs (Respects R1) f) (Babs (Respects R1) g)"
-  apply (auto simp add: Babs_def in_respects fun_rel_def)
+  apply (auto simp add: Babs_def in_respects rel_fun_def)
   apply (subgoal_tac "x \<in> Respects R1 \<and> y \<in> Respects R1")
-  using a apply (simp add: Babs_def fun_rel_def)
-  apply (simp add: in_respects fun_rel_def)
+  using a apply (simp add: Babs_def rel_fun_def)
+  apply (simp add: in_respects rel_fun_def)
   using Quotient3_rel[OF q]
   by metis
 
@@ -349,7 +349,7 @@ lemma babs_simp:
   shows "((R1 ===> R2) (Babs (Respects R1) f) (Babs (Respects R1) g)) = ((R1 ===> R2) f g)"
   apply(rule iffI)
   apply(simp_all only: babs_rsp[OF q])
-  apply(auto simp add: Babs_def fun_rel_def)
+  apply(auto simp add: Babs_def rel_fun_def)
   apply (subgoal_tac "x \<in> Respects R1 \<and> y \<in> Respects R1")
   apply(metis Babs_def)
   apply (simp add: in_respects)
@@ -367,17 +367,17 @@ lemma babs_reg_eqv:
 lemma ball_rsp:
   assumes a: "(R ===> (op =)) f g"
   shows "Ball (Respects R) f = Ball (Respects R) g"
-  using a by (auto simp add: Ball_def in_respects elim: fun_relE)
+  using a by (auto simp add: Ball_def in_respects elim: rel_funE)
 
 lemma bex_rsp:
   assumes a: "(R ===> (op =)) f g"
   shows "(Bex (Respects R) f = Bex (Respects R) g)"
-  using a by (auto simp add: Bex_def in_respects elim: fun_relE)
+  using a by (auto simp add: Bex_def in_respects elim: rel_funE)
 
 lemma bex1_rsp:
   assumes a: "(R ===> (op =)) f g"
   shows "Ex1 (\<lambda>x. x \<in> Respects R \<and> f x) = Ex1 (\<lambda>x. x \<in> Respects R \<and> g x)"
-  using a by (auto elim: fun_relE simp add: Ex1_def in_respects) 
+  using a by (auto elim: rel_funE simp add: Ex1_def in_respects) 
 
 (* 2 lemmas needed for cleaning of quantifiers *)
 lemma all_prs:
@@ -440,7 +440,7 @@ lemma bex1_rel_aux2:
 lemma bex1_rel_rsp:
   assumes a: "Quotient3 R absf repf"
   shows "((R ===> op =) ===> op =) (Bex1_rel R) (Bex1_rel R)"
-  apply (simp add: fun_rel_def)
+  apply (simp add: rel_fun_def)
   apply clarify
   apply rule
   apply (simp_all add: bex1_rel_aux bex1_rel_aux2)
@@ -519,7 +519,7 @@ subsection {* Various respects and preserve lemmas *}
 lemma quot_rel_rsp:
   assumes a: "Quotient3 R Abs Rep"
   shows "(R ===> R ===> op =) R R"
-  apply(rule fun_relI)+
+  apply(rule rel_funI)+
   apply(rule equals_rsp[OF a])
   apply(assumption)+
   done
@@ -536,7 +536,7 @@ lemma o_prs:
 lemma o_rsp:
   "((R2 ===> R3) ===> (R1 ===> R2) ===> (R1 ===> R3)) op \<circ> op \<circ>"
   "(op = ===> (R1 ===> op =) ===> R1 ===> op =) op \<circ> op \<circ>"
-  by (force elim: fun_relE)+
+  by (force elim: rel_funE)+
 
 lemma cond_prs:
   assumes a: "Quotient3 R absf repf"
@@ -563,7 +563,7 @@ lemma let_prs:
 
 lemma let_rsp:
   shows "(R1 ===> (R1 ===> R2) ===> R2) Let Let"
-  by (force elim: fun_relE)
+  by (force elim: rel_funE)
 
 lemma id_rsp:
   shows "(R ===> R) id id"
@@ -759,7 +759,7 @@ text {* Auxiliary data for the quotient package *}
 ML_file "Tools/Quotient/quotient_info.ML"
 setup Quotient_Info.setup
 
-declare [[mapQ3 "fun" = (fun_rel, fun_quotient3)]]
+declare [[mapQ3 "fun" = (rel_fun, fun_quotient3)]]
 
 lemmas [quot_thm] = fun_quotient3
 lemmas [quot_respect] = quot_rel_rsp if_rsp o_rsp let_rsp id_rsp

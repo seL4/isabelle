@@ -11,6 +11,6 @@ begin
 notation
   rel_conj (infixr "OOO" 75) and
   map_fun (infixr "--->" 55) and
-  fun_rel (infixr "===>" 55)
+  rel_fun (infixr "===>" 55)
 
 end

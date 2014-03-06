@@ -86,11 +86,11 @@ lemma None_transfer [transfer_rule]: "(rel_option A) None None"
   by (rule option.rel_inject)
 
 lemma Some_transfer [transfer_rule]: "(A ===> rel_option A) Some Some"
-  unfolding fun_rel_def by simp
+  unfolding rel_fun_def by simp
 
 lemma case_option_transfer [transfer_rule]:
   "(B ===> (A ===> B) ===> rel_option A ===> B) case_option case_option"
-  unfolding fun_rel_def split_option_all by simp
+  unfolding rel_fun_def split_option_all by simp
 
 lemma map_option_transfer [transfer_rule]:
   "((A ===> B) ===> rel_option A ===> rel_option B) map_option map_option"
@@ -99,7 +99,7 @@ lemma map_option_transfer [transfer_rule]:
 lemma option_bind_transfer [transfer_rule]:
   "(rel_option A ===> (A ===> rel_option B) ===> rel_option B)
     Option.bind Option.bind"
-  unfolding fun_rel_def split_option_all by simp
+  unfolding rel_fun_def split_option_all by simp
 
 end
 

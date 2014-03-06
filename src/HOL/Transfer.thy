@@ -13,7 +13,7 @@ subsection {* Relator for function space *}
 
 locale lifting_syntax
 begin
-  notation fun_rel (infixr "===>" 55)
+  notation rel_fun (infixr "===>" 55)
   notation map_fun (infixr "--->" 55)
 end
 
@@ -21,21 +21,21 @@ context
 begin
 interpretation lifting_syntax .
 
-lemma fun_relD2:
-  assumes "fun_rel A B f g" and "A x x"
+lemma rel_funD2:
+  assumes "rel_fun A B f g" and "A x x"
   shows "B (f x) (g x)"
-  using assms by (rule fun_relD)
+  using assms by (rule rel_funD)
 
-lemma fun_relE:
-  assumes "fun_rel A B f g" and "A x y"
+lemma rel_funE:
+  assumes "rel_fun A B f g" and "A x y"
   obtains "B (f x) (g y)"
-  using assms by (simp add: fun_rel_def)
+  using assms by (simp add: rel_fun_def)
 
-lemmas fun_rel_eq = fun.rel_eq
+lemmas rel_fun_eq = fun.rel_eq
 
-lemma fun_rel_eq_rel:
-shows "fun_rel (op =) R = (\<lambda>f g. \<forall>x. R (f x) (g x))"
-  by (simp add: fun_rel_def)
+lemma rel_fun_eq_rel:
+shows "rel_fun (op =) R = (\<lambda>f g. \<forall>x. R (f x) (g x))"
+  by (simp add: rel_fun_def)
 
 
 subsection {* Transfer method *}
@@ -98,12 +98,12 @@ lemma Rel_eq_refl: "Rel (op =) x x"
 lemma Rel_app:
   assumes "Rel (A ===> B) f g" and "Rel A x y"
   shows "Rel B (f x) (g y)"
-  using assms unfolding Rel_def fun_rel_def by fast
+  using assms unfolding Rel_def rel_fun_def by fast
 
 lemma Rel_abs:
   assumes "\<And>x y. Rel A x y \<Longrightarrow> Rel B (f x) (g y)"
   shows "Rel (A ===> B) (\<lambda>x. f x) (\<lambda>y. g y)"
-  using assms unfolding Rel_def fun_rel_def by fast
+  using assms unfolding Rel_def rel_fun_def by fast
 
 end
 
@@ -112,7 +112,7 @@ setup Transfer.setup
 
 declare refl [transfer_rule]
 
-declare fun_rel_eq [relator_eq]
+declare rel_fun_eq [relator_eq]
 
 hide_const (open) Rel
 
@@ -131,7 +131,7 @@ lemma Domaimp_refl[transfer_domain_rule]:
 lemma Domainp_prod_fun_eq[transfer_domain_rule]:
   assumes "Domainp T = P"
   shows "Domainp (op= ===> T) = (\<lambda>f. \<forall>x. P (f x))"
-by (auto intro: choice simp: assms[symmetric] Domainp_iff fun_rel_def fun_eq_iff)
+by (auto intro: choice simp: assms[symmetric] Domainp_iff rel_fun_def fun_eq_iff)
 
 subsection {* Predicates on relations, i.e. ``class constraints'' *}
 
@@ -163,7 +163,7 @@ unfolding right_unique_def by blast
 
 lemma right_total_alt_def:
   "right_total R \<longleftrightarrow> ((R ===> op \<longrightarrow>) ===> op \<longrightarrow>) All All"
-  unfolding right_total_def fun_rel_def
+  unfolding right_total_def rel_fun_def
   apply (rule iffI, fast)
   apply (rule allI)
   apply (drule_tac x="\<lambda>x. True" in spec)
@@ -173,11 +173,11 @@ lemma right_total_alt_def:
 
 lemma right_unique_alt_def:
   "right_unique R \<longleftrightarrow> (R ===> R ===> op \<longrightarrow>) (op =) (op =)"
-  unfolding right_unique_def fun_rel_def by auto
+  unfolding right_unique_def rel_fun_def by auto
 
 lemma bi_total_alt_def:
   "bi_total R \<longleftrightarrow> ((R ===> op =) ===> op =) All All"
-  unfolding bi_total_def fun_rel_def
+  unfolding bi_total_def rel_fun_def
   apply (rule iffI, fast)
   apply safe
   apply (drule_tac x="\<lambda>x. \<exists>y. R x y" in spec)
@@ -190,7 +190,7 @@ lemma bi_total_alt_def:
 
 lemma bi_unique_alt_def:
   "bi_unique R \<longleftrightarrow> (R ===> R ===> op =) (op =) (op =)"
-  unfolding bi_unique_def fun_rel_def by auto
+  unfolding bi_unique_def rel_fun_def by auto
 
 lemma bi_unique_conversep [simp]: "bi_unique R\<inverse>\<inverse> = bi_unique R"
 by(auto simp add: bi_unique_def)
@@ -234,7 +234,7 @@ lemma bi_unique_eq [transfer_rule]: "bi_unique (op =)"
 
 lemma right_total_fun [transfer_rule]:
   "\<lbrakk>right_unique A; right_total B\<rbrakk> \<Longrightarrow> right_total (A ===> B)"
-  unfolding right_total_def fun_rel_def
+  unfolding right_total_def rel_fun_def
   apply (rule allI, rename_tac g)
   apply (rule_tac x="\<lambda>x. SOME z. B z (g (THE y. A x y))" in exI)
   apply clarify
@@ -248,12 +248,12 @@ lemma right_total_fun [transfer_rule]:
 
 lemma right_unique_fun [transfer_rule]:
   "\<lbrakk>right_total A; right_unique B\<rbrakk> \<Longrightarrow> right_unique (A ===> B)"
-  unfolding right_total_def right_unique_def fun_rel_def
+  unfolding right_total_def right_unique_def rel_fun_def
   by (clarify, rule ext, fast)
 
 lemma bi_total_fun [transfer_rule]:
   "\<lbrakk>bi_unique A; bi_total B\<rbrakk> \<Longrightarrow> bi_total (A ===> B)"
-  unfolding bi_total_def fun_rel_def
+  unfolding bi_total_def rel_fun_def
   apply safe
   apply (rename_tac f)
   apply (rule_tac x="\<lambda>y. SOME z. B (f (THE x. A x y)) z" in exI)
@@ -277,7 +277,7 @@ lemma bi_total_fun [transfer_rule]:
 
 lemma bi_unique_fun [transfer_rule]:
   "\<lbrakk>bi_total A; bi_unique B\<rbrakk> \<Longrightarrow> bi_unique (A ===> B)"
-  unfolding bi_total_def bi_unique_def fun_rel_def fun_eq_iff
+  unfolding bi_total_def bi_unique_def rel_fun_def fun_eq_iff
   by (safe, metis, fast)
 
 
@@ -288,7 +288,7 @@ lemma Domainp_forall_transfer [transfer_rule]:
   shows "((A ===> op =) ===> op =)
     (transfer_bforall (Domainp A)) transfer_forall"
   using assms unfolding right_total_def
-  unfolding transfer_forall_def transfer_bforall_def fun_rel_def Domainp_iff
+  unfolding transfer_forall_def transfer_bforall_def rel_fun_def Domainp_iff
   by metis
 
 text {* Transfer rules using implication instead of equality on booleans. *}
@@ -299,7 +299,7 @@ lemma transfer_forall_transfer [transfer_rule]:
   "right_total A \<Longrightarrow> ((A ===> implies) ===> implies) transfer_forall transfer_forall"
   "bi_total A \<Longrightarrow> ((A ===> op =) ===> rev_implies) transfer_forall transfer_forall"
   "bi_total A \<Longrightarrow> ((A ===> rev_implies) ===> rev_implies) transfer_forall transfer_forall"
-  unfolding transfer_forall_def rev_implies_def fun_rel_def right_total_def bi_total_def
+  unfolding transfer_forall_def rev_implies_def rel_fun_def right_total_def bi_total_def
   by metis+
 
 lemma transfer_implies_transfer [transfer_rule]:
@@ -312,7 +312,7 @@ lemma transfer_implies_transfer [transfer_rule]:
   "(implies     ===> op =        ===> rev_implies) transfer_implies transfer_implies"
   "(op =        ===> rev_implies ===> rev_implies) transfer_implies transfer_implies"
   "(op =        ===> op =        ===> rev_implies) transfer_implies transfer_implies"
-  unfolding transfer_implies_def rev_implies_def fun_rel_def by auto
+  unfolding transfer_implies_def rev_implies_def rel_fun_def by auto
 
 lemma eq_imp_transfer [transfer_rule]:
   "right_unique A \<Longrightarrow> (A ===> A ===> op \<longrightarrow>) (op =) (op =)"
@@ -321,42 +321,42 @@ lemma eq_imp_transfer [transfer_rule]:
 lemma eq_transfer [transfer_rule]:
   assumes "bi_unique A"
   shows "(A ===> A ===> op =) (op =) (op =)"
-  using assms unfolding bi_unique_def fun_rel_def by auto
+  using assms unfolding bi_unique_def rel_fun_def by auto
 
 lemma right_total_Ex_transfer[transfer_rule]:
   assumes "right_total A"
   shows "((A ===> op=) ===> op=) (Bex (Collect (Domainp A))) Ex"
-using assms unfolding right_total_def Bex_def fun_rel_def Domainp_iff[abs_def]
+using assms unfolding right_total_def Bex_def rel_fun_def Domainp_iff[abs_def]
 by blast
 
 lemma right_total_All_transfer[transfer_rule]:
   assumes "right_total A"
   shows "((A ===> op =) ===> op =) (Ball (Collect (Domainp A))) All"
-using assms unfolding right_total_def Ball_def fun_rel_def Domainp_iff[abs_def]
+using assms unfolding right_total_def Ball_def rel_fun_def Domainp_iff[abs_def]
 by blast
 
 lemma All_transfer [transfer_rule]:
   assumes "bi_total A"
   shows "((A ===> op =) ===> op =) All All"
-  using assms unfolding bi_total_def fun_rel_def by fast
+  using assms unfolding bi_total_def rel_fun_def by fast
 
 lemma Ex_transfer [transfer_rule]:
   assumes "bi_total A"
   shows "((A ===> op =) ===> op =) Ex Ex"
-  using assms unfolding bi_total_def fun_rel_def by fast
+  using assms unfolding bi_total_def rel_fun_def by fast
 
 lemma If_transfer [transfer_rule]: "(op = ===> A ===> A ===> A) If If"
-  unfolding fun_rel_def by simp
+  unfolding rel_fun_def by simp
 
 lemma Let_transfer [transfer_rule]: "(A ===> (A ===> B) ===> B) Let Let"
-  unfolding fun_rel_def by simp
+  unfolding rel_fun_def by simp
 
 lemma id_transfer [transfer_rule]: "(A ===> A) id id"
-  unfolding fun_rel_def by simp
+  unfolding rel_fun_def by simp
 
 lemma comp_transfer [transfer_rule]:
   "((B ===> C) ===> (A ===> B) ===> (A ===> C)) (op \<circ>) (op \<circ>)"
-  unfolding fun_rel_def by simp
+  unfolding rel_fun_def by simp
 
 lemma fun_upd_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
@@ -365,11 +365,11 @@ lemma fun_upd_transfer [transfer_rule]:
 
 lemma case_nat_transfer [transfer_rule]:
   "(A ===> (op = ===> A) ===> op = ===> A) case_nat case_nat"
-  unfolding fun_rel_def by (simp split: nat.split)
+  unfolding rel_fun_def by (simp split: nat.split)
 
 lemma rec_nat_transfer [transfer_rule]:
   "(A ===> (op = ===> A ===> A) ===> op = ===> A) rec_nat rec_nat"
-  unfolding fun_rel_def by (clarsimp, rename_tac n, induct_tac n, simp_all)
+  unfolding rel_fun_def by (clarsimp, rename_tac n, induct_tac n, simp_all)
 
 lemma funpow_transfer [transfer_rule]:
   "(op = ===> (A ===> A) ===> (A ===> A)) compow compow"
@@ -409,7 +409,7 @@ lemma reflp_transfer[transfer_rule]:
   "right_total A \<Longrightarrow> ((A ===> A ===> op=) ===> implies) reflp reflp"
   "bi_total A \<Longrightarrow> ((A ===> A ===> rev_implies) ===> rev_implies) reflp reflp"
   "bi_total A \<Longrightarrow> ((A ===> A ===> op=) ===> rev_implies) reflp reflp"
-using assms unfolding reflp_def[abs_def] rev_implies_def bi_total_def right_total_def fun_rel_def 
+using assms unfolding reflp_def[abs_def] rev_implies_def bi_total_def right_total_def rel_fun_def 
 by fast+
 
 lemma right_unique_transfer [transfer_rule]:
@@ -417,7 +417,7 @@ lemma right_unique_transfer [transfer_rule]:
   assumes [transfer_rule]: "right_total B"
   assumes [transfer_rule]: "bi_unique B"
   shows "((A ===> B ===> op=) ===> implies) right_unique right_unique"
-using assms unfolding right_unique_def[abs_def] right_total_def bi_unique_def fun_rel_def
+using assms unfolding right_unique_def[abs_def] right_total_def bi_unique_def rel_fun_def
 by metis
 
 end

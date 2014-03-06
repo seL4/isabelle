@@ -37,79 +37,79 @@ lemma ZN_1 [transfer_rule]: "ZN 1 1"
   unfolding ZN_def by simp
 
 lemma ZN_add [transfer_rule]: "(ZN ===> ZN ===> ZN) (op +) (op +)"
-  unfolding fun_rel_def ZN_def by simp
+  unfolding rel_fun_def ZN_def by simp
 
 lemma ZN_mult [transfer_rule]: "(ZN ===> ZN ===> ZN) (op *) (op *)"
-  unfolding fun_rel_def ZN_def by (simp add: int_mult)
+  unfolding rel_fun_def ZN_def by (simp add: int_mult)
 
 lemma ZN_diff [transfer_rule]: "(ZN ===> ZN ===> ZN) tsub (op -)"
-  unfolding fun_rel_def ZN_def tsub_def by (simp add: zdiff_int)
+  unfolding rel_fun_def ZN_def tsub_def by (simp add: zdiff_int)
 
 lemma ZN_power [transfer_rule]: "(ZN ===> op = ===> ZN) (op ^) (op ^)"
-  unfolding fun_rel_def ZN_def by (simp add: int_power)
+  unfolding rel_fun_def ZN_def by (simp add: int_power)
 
 lemma ZN_nat_id [transfer_rule]: "(ZN ===> op =) nat id"
-  unfolding fun_rel_def ZN_def by simp
+  unfolding rel_fun_def ZN_def by simp
 
 lemma ZN_id_int [transfer_rule]: "(ZN ===> op =) id int"
-  unfolding fun_rel_def ZN_def by simp
+  unfolding rel_fun_def ZN_def by simp
 
 lemma ZN_All [transfer_rule]:
   "((ZN ===> op =) ===> op =) (Ball {0..}) All"
-  unfolding fun_rel_def ZN_def by (auto dest: zero_le_imp_eq_int)
+  unfolding rel_fun_def ZN_def by (auto dest: zero_le_imp_eq_int)
 
 lemma ZN_transfer_forall [transfer_rule]:
   "((ZN ===> op =) ===> op =) (transfer_bforall (\<lambda>x. 0 \<le> x)) transfer_forall"
   unfolding transfer_forall_def transfer_bforall_def
-  unfolding fun_rel_def ZN_def by (auto dest: zero_le_imp_eq_int)
+  unfolding rel_fun_def ZN_def by (auto dest: zero_le_imp_eq_int)
 
 lemma ZN_Ex [transfer_rule]: "((ZN ===> op =) ===> op =) (Bex {0..}) Ex"
-  unfolding fun_rel_def ZN_def Bex_def atLeast_iff
+  unfolding rel_fun_def ZN_def Bex_def atLeast_iff
   by (metis zero_le_imp_eq_int zero_zle_int)
 
 lemma ZN_le [transfer_rule]: "(ZN ===> ZN ===> op =) (op \<le>) (op \<le>)"
-  unfolding fun_rel_def ZN_def by simp
+  unfolding rel_fun_def ZN_def by simp
 
 lemma ZN_less [transfer_rule]: "(ZN ===> ZN ===> op =) (op <) (op <)"
-  unfolding fun_rel_def ZN_def by simp
+  unfolding rel_fun_def ZN_def by simp
 
 lemma ZN_eq [transfer_rule]: "(ZN ===> ZN ===> op =) (op =) (op =)"
-  unfolding fun_rel_def ZN_def by simp
+  unfolding rel_fun_def ZN_def by simp
 
 lemma ZN_Suc [transfer_rule]: "(ZN ===> ZN) (\<lambda>x. x + 1) Suc"
-  unfolding fun_rel_def ZN_def by simp
+  unfolding rel_fun_def ZN_def by simp
 
 lemma ZN_numeral [transfer_rule]:
   "(op = ===> ZN) numeral numeral"
-  unfolding fun_rel_def ZN_def by simp
+  unfolding rel_fun_def ZN_def by simp
 
 lemma ZN_dvd [transfer_rule]: "(ZN ===> ZN ===> op =) (op dvd) (op dvd)"
-  unfolding fun_rel_def ZN_def by (simp add: zdvd_int)
+  unfolding rel_fun_def ZN_def by (simp add: zdvd_int)
 
 lemma ZN_div [transfer_rule]: "(ZN ===> ZN ===> ZN) (op div) (op div)"
-  unfolding fun_rel_def ZN_def by (simp add: zdiv_int)
+  unfolding rel_fun_def ZN_def by (simp add: zdiv_int)
 
 lemma ZN_mod [transfer_rule]: "(ZN ===> ZN ===> ZN) (op mod) (op mod)"
-  unfolding fun_rel_def ZN_def by (simp add: zmod_int)
+  unfolding rel_fun_def ZN_def by (simp add: zmod_int)
 
 lemma ZN_gcd [transfer_rule]: "(ZN ===> ZN ===> ZN) gcd gcd"
-  unfolding fun_rel_def ZN_def by (simp add: transfer_int_nat_gcd)
+  unfolding rel_fun_def ZN_def by (simp add: transfer_int_nat_gcd)
 
 lemma ZN_atMost [transfer_rule]:
   "(ZN ===> rel_set ZN) (atLeastAtMost 0) atMost"
-  unfolding fun_rel_def ZN_def rel_set_def
+  unfolding rel_fun_def ZN_def rel_set_def
   by (clarsimp simp add: Bex_def, arith)
 
 lemma ZN_atLeastAtMost [transfer_rule]:
   "(ZN ===> ZN ===> rel_set ZN) atLeastAtMost atLeastAtMost"
-  unfolding fun_rel_def ZN_def rel_set_def
+  unfolding rel_fun_def ZN_def rel_set_def
   by (clarsimp simp add: Bex_def, arith)
 
 lemma ZN_setsum [transfer_rule]:
   "bi_unique A \<Longrightarrow> ((A ===> ZN) ===> rel_set A ===> ZN) setsum setsum"
-  apply (intro fun_relI)
+  apply (intro rel_funI)
   apply (erule (1) bi_unique_rel_set_lemma)
-  apply (simp add: setsum.reindex int_setsum ZN_def fun_rel_def)
+  apply (simp add: setsum.reindex int_setsum ZN_def rel_fun_def)
   apply (rule setsum_cong2, simp)
   done
 

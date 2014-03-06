@@ -233,11 +233,11 @@ lemma image2pI: "R x y \<Longrightarrow> image2p f g R (f x) (g y)"
 lemma image2pE: "\<lbrakk>image2p f g R fx gy; (\<And>x y. fx = f x \<Longrightarrow> gy = g y \<Longrightarrow> R x y \<Longrightarrow> P)\<rbrakk> \<Longrightarrow> P"
   unfolding image2p_def by blast
 
-lemma fun_rel_iff_geq_image2p: "fun_rel R S f g = (image2p f g R \<le> S)"
-  unfolding fun_rel_def image2p_def by auto
+lemma rel_fun_iff_geq_image2p: "rel_fun R S f g = (image2p f g R \<le> S)"
+  unfolding rel_fun_def image2p_def by auto
 
-lemma fun_rel_image2p: "fun_rel R (image2p f g R) f g"
-  unfolding fun_rel_def image2p_def by auto
+lemma rel_fun_image2p: "rel_fun R (image2p f g R) f g"
+  unfolding rel_fun_def image2p_def by auto
 
 
 subsection {* Equivalence relations, quotients, and Hilbert's choice *}

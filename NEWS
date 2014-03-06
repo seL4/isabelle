@@ -195,6 +195,7 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
     map_pair ~> map_prod
     prod_rel ~> rel_prod
     sum_rel ~> rel_sum
+    fun_rel ~> rel_fun
     set_rel ~> rel_set
     filter_rel ~> rel_filter
     fset_rel ~> rel_fset (in "Library/FSet.thy")

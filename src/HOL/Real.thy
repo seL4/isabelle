@@ -389,7 +389,7 @@ qed
 lemma eq_Real:
   "cauchy X \<Longrightarrow> cauchy Y \<Longrightarrow> Real X = Real Y \<longleftrightarrow> vanishes (\<lambda>n. X n - Y n)"
   using real.rel_eq_transfer
-  unfolding real.pcr_cr_eq cr_real_def fun_rel_def realrel_def by simp
+  unfolding real.pcr_cr_eq cr_real_def rel_fun_def realrel_def by simp
 
 lemma Domainp_pcr_real [transfer_domain_rule]: "Domainp pcr_real = cauchy"
 by (simp add: real.domain_eq realrel_def)
@@ -445,13 +445,13 @@ lemma add_Real:
   assumes X: "cauchy X" and Y: "cauchy Y"
   shows "Real X + Real Y = Real (\<lambda>n. X n + Y n)"
   using assms plus_real.transfer
-  unfolding cr_real_eq fun_rel_def by simp
+  unfolding cr_real_eq rel_fun_def by simp
 
 lemma minus_Real:
   assumes X: "cauchy X"
   shows "- Real X = Real (\<lambda>n. - X n)"
   using assms uminus_real.transfer
-  unfolding cr_real_eq fun_rel_def by simp
+  unfolding cr_real_eq rel_fun_def by simp
 
 lemma diff_Real:
   assumes X: "cauchy X" and Y: "cauchy Y"
@@ -463,14 +463,14 @@ lemma mult_Real:
   assumes X: "cauchy X" and Y: "cauchy Y"
   shows "Real X * Real Y = Real (\<lambda>n. X n * Y n)"
   using assms times_real.transfer
-  unfolding cr_real_eq fun_rel_def by simp
+  unfolding cr_real_eq rel_fun_def by simp
 
 lemma inverse_Real:
   assumes X: "cauchy X"
   shows "inverse (Real X) =
     (if vanishes X then 0 else Real (\<lambda>n. inverse (X n)))"
   using assms inverse_real.transfer zero_real.transfer
-  unfolding cr_real_eq fun_rel_def by (simp split: split_if_asm, metis)
+  unfolding cr_real_eq rel_fun_def by (simp split: split_if_asm, metis)
 
 instance proof
   fix a b c :: real
@@ -546,7 +546,7 @@ lemma positive_Real:
   assumes X: "cauchy X"
   shows "positive (Real X) \<longleftrightarrow> (\<exists>r>0. \<exists>k. \<forall>n\<ge>k. r < X n)"
   using assms positive.transfer
-  unfolding cr_real_eq fun_rel_def by simp
+  unfolding cr_real_eq rel_fun_def by simp
 
 lemma positive_zero: "\<not> positive 0"
   by transfer auto

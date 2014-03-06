@@ -70,14 +70,14 @@ begin
 interpretation lifting_syntax .
 
 lemma Inl_transfer [transfer_rule]: "(A ===> rel_sum A B) Inl Inl"
-  unfolding fun_rel_def by simp
+  unfolding rel_fun_def by simp
 
 lemma Inr_transfer [transfer_rule]: "(B ===> rel_sum A B) Inr Inr"
-  unfolding fun_rel_def by simp
+  unfolding rel_fun_def by simp
 
 lemma case_sum_transfer [transfer_rule]:
   "((A ===> C) ===> (B ===> C) ===> rel_sum A B ===> C) case_sum case_sum"
-  unfolding fun_rel_def rel_sum_def by (simp split: sum.split)
+  unfolding rel_fun_def rel_sum_def by (simp split: sum.split)
 
 end
 

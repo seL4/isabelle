@@ -166,11 +166,11 @@ fun get_body_types (Type ("fun", [_, U]), Type ("fun", [_, V])) = get_body_types
 fun get_binder_types (Type ("fun", [T, U]), Type ("fun", [V, W])) = (T, V) :: get_binder_types (U, W)
   | get_binder_types _ = []
 
-fun get_binder_types_by_rel (Const (@{const_name "fun_rel"}, _) $ _ $ S) (Type ("fun", [T, U]), Type ("fun", [V, W])) = 
+fun get_binder_types_by_rel (Const (@{const_name "rel_fun"}, _) $ _ $ S) (Type ("fun", [T, U]), Type ("fun", [V, W])) = 
     (T, V) :: get_binder_types_by_rel S (U, W)
   | get_binder_types_by_rel _ _ = []
 
-fun get_body_type_by_rel (Const (@{const_name "fun_rel"}, _) $ _ $ S) (Type ("fun", [_, U]), Type ("fun", [_, V])) = 
+fun get_body_type_by_rel (Const (@{const_name "rel_fun"}, _) $ _ $ S) (Type ("fun", [_, U]), Type ("fun", [_, V])) = 
     get_body_type_by_rel S (U, V)
   | get_body_type_by_rel _ (U, V)  = (U, V)
 
@@ -270,8 +270,8 @@ fun generate_rep_eq ctxt def_thm rsp_thm (rty, qty) =
       let
         val thy = Proof_Context.theory_of ctxt
         val quot_thm = Lifting_Term.prove_quot_thm ctxt (get_body_types (rty, qty))
-        val fun_rel = prove_rel ctxt rsp_thm (rty, qty)
-        val rep_abs_thm = [quot_thm, fun_rel] MRSL @{thm Quotient_rep_abs_eq}
+        val rel_fun = prove_rel ctxt rsp_thm (rty, qty)
+        val rep_abs_thm = [quot_thm, rel_fun] MRSL @{thm Quotient_rep_abs_eq}
       in
         case mono_eq_prover ctxt (hd(prems_of rep_abs_thm)) of
           SOME mono_eq_thm =>
@@ -311,7 +311,7 @@ fun generate_abs_eq ctxt def_thm rsp_thm quot_thm =
           end
       in
         rep_abs_folded_unmapped_thm
-        |> fold (fn _ => fn thm => thm RS @{thm fun_relD2}) ty_args
+        |> fold (fn _ => fn thm => thm RS @{thm rel_funD2}) ty_args
         |> (fn x => x RS (@{thm Quotient_rel_abs2} OF [quot_ret_thm]))
       end
     
@@ -505,11 +505,11 @@ fun mk_readable_rsp_thm_eq tm lthy =
     fun simp_arrows_conv ctm =
       let
         val unfold_conv = Conv.rewrs_conv 
-          [@{thm fun_rel_eq_invariant[THEN eq_reflection]}, 
-            @{thm fun_rel_invariant_rel[THEN eq_reflection]},
-            @{thm fun_rel_eq[THEN eq_reflection]},
-            @{thm fun_rel_eq_rel[THEN eq_reflection]}, 
-            @{thm fun_rel_def[THEN eq_reflection]}]
+          [@{thm rel_fun_eq_invariant[THEN eq_reflection]}, 
+            @{thm rel_fun_invariant_rel[THEN eq_reflection]},
+            @{thm rel_fun_eq[THEN eq_reflection]},
+            @{thm rel_fun_eq_rel[THEN eq_reflection]}, 
+            @{thm rel_fun_def[THEN eq_reflection]}]
         fun binop_conv2 cv1 cv2 = Conv.combination_conv (Conv.arg_conv cv1) cv2
         val invariant_assms_tac_rules = @{thm left_unique_composition} :: 
             invariant_assms_tac_fixed_rules @ (Transfer.get_transfer_raw lthy)
@@ -522,7 +522,7 @@ fun mk_readable_rsp_thm_eq tm lthy =
           (K (Conv.try_conv (Conv.rewrs_conv (Transfer.get_relator_eq lthy)))) lthy
       in
         case (Thm.term_of ctm) of
-          Const (@{const_name "fun_rel"}, _) $ _ $ _ => 
+          Const (@{const_name "rel_fun"}, _) $ _ $ _ => 
             (binop_conv2 simp_arrows_conv simp_arrows_conv then_conv unfold_conv) ctm
           | _ => (invariant_commute_conv then_conv relator_eq_conv) ctm
       end

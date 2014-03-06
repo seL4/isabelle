@@ -403,7 +403,7 @@ lemma Nil_rsp2 [quot_respect]:
 
 lemma Cons_rsp2 [quot_respect]:
   shows "(op \<approx> ===> list_all2 op \<approx> OOO op \<approx> ===> list_all2 op \<approx> OOO op \<approx>) Cons Cons"
-  apply (auto intro!: fun_relI)
+  apply (auto intro!: rel_funI)
   apply (rule_tac b="x # b" in relcomppI)
   apply auto
   apply (rule_tac b="x # ba" in relcomppI)
@@ -459,24 +459,24 @@ lemma append_rsp2_pre:
 lemma compositional_rsp3:
   assumes "(R1 ===> R2 ===> R3) C C" and "(R4 ===> R5 ===> R6) C C"
   shows "(R1 OOO R4 ===> R2 OOO R5 ===> R3 OOO R6) C C"
-  by (auto intro!: fun_relI)
-     (metis (full_types) assms fun_relE relcomppI)
+  by (auto intro!: rel_funI)
+     (metis (full_types) assms rel_funE relcomppI)
 
 lemma append_rsp2 [quot_respect]:
   "(list_all2 op \<approx> OOO op \<approx> ===> list_all2 op \<approx> OOO op \<approx> ===> list_all2 op \<approx> OOO op \<approx>) append append"
   by (intro compositional_rsp3)
-     (auto intro!: fun_relI simp add: append_rsp2_pre)
+     (auto intro!: rel_funI simp add: append_rsp2_pre)
 
 lemma map_rsp2 [quot_respect]:
   "((op \<approx> ===> op \<approx>) ===> list_all2 op \<approx> OOO op \<approx> ===> list_all2 op \<approx> OOO op \<approx>) map map"
-proof (auto intro!: fun_relI)
+proof (auto intro!: rel_funI)
   fix f f' :: "'a list \<Rightarrow> 'b list"
   fix xa ya x y :: "'a list list"
   assume fs: "(op \<approx> ===> op \<approx>) f f'" and x: "list_all2 op \<approx> xa x" and xy: "set x = set y" and y: "list_all2 op \<approx> y ya"
   have a: "(list_all2 op \<approx>) (map f xa) (map f x)"
     using x
     by (induct xa x rule: list_induct2')
-       (simp_all, metis fs fun_relE list_eq_def)
+       (simp_all, metis fs rel_funE list_eq_def)
   have b: "set (map f x) = set (map f y)"
     using xy fs
     by (induct x y rule: list_induct2')

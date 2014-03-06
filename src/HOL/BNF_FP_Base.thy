@@ -131,9 +131,9 @@ lemma case_sum_o_map_sum: "case_sum f g o map_sum h1 h2 = case_sum (f o h1) (g o
 lemma case_sum_o_map_sum_id: "(case_sum id g o map_sum f id) x = case_sum (f o id) g x"
   unfolding case_sum_o_map_sum id_comp comp_id ..
 
-lemma fun_rel_def_butlast:
-  "fun_rel R (fun_rel S T) f g = (\<forall>x y. R x y \<longrightarrow> (fun_rel S T) (f x) (g y))"
-  unfolding fun_rel_def ..
+lemma rel_fun_def_butlast:
+  "rel_fun R (rel_fun S T) f g = (\<forall>x y. R x y \<longrightarrow> (rel_fun S T) (f x) (g y))"
+  unfolding rel_fun_def ..
 
 lemma subst_eq_imp: "(\<forall>a b. a = b \<longrightarrow> P a b) \<equiv> (\<forall>a. P a a)"
   by auto

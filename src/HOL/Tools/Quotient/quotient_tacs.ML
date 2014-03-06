@@ -114,11 +114,11 @@ fun calculate_inst ctxt ball_bex_thm redex R1 R2 =
 fun ball_bex_range_simproc ctxt redex =
   case redex of
     (Const (@{const_name "Ball"}, _) $ (Const (@{const_name "Respects"}, _) $
-      (Const (@{const_name "fun_rel"}, _) $ R1 $ R2)) $ _) =>
+      (Const (@{const_name "rel_fun"}, _) $ R1 $ R2)) $ _) =>
         calculate_inst ctxt @{thm ball_reg_eqv_range[THEN eq_reflection]} redex R1 R2
 
   | (Const (@{const_name "Bex"}, _) $ (Const (@{const_name "Respects"}, _) $
-      (Const (@{const_name "fun_rel"}, _) $ R1 $ R2)) $ _) =>
+      (Const (@{const_name "rel_fun"}, _) $ R1 $ R2)) $ _) =>
         calculate_inst ctxt @{thm bex_reg_eqv_range[THEN eq_reflection]} redex R1 R2
 
   | _ => NONE
@@ -306,7 +306,7 @@ fun rep_abs_rsp_tac ctxt =
    The deterministic part:
     - remove lambdas from both sides
     - prove Ball/Bex/Babs equalities using ball_rsp, bex_rsp, babs_rsp
-    - prove Ball/Bex relations using fun_relI
+    - prove Ball/Bex relations using rel_funI
     - reflexivity of equality
     - prove equality of relations using equals_rsp
     - use user-supplied RSP theorems
@@ -324,8 +324,8 @@ fun rep_abs_rsp_tac ctxt =
 fun injection_match_tac ctxt = SUBGOAL (fn (goal, i) =>
   (case bare_concl goal of
       (* (R1 ===> R2) (%x...) (%x...) ----> [|R1 x y|] ==> R2 (...x) (...y) *)
-    (Const (@{const_name fun_rel}, _) $ _ $ _) $ (Abs _) $ (Abs _)
-        => rtac @{thm fun_relI} THEN' quot_true_tac ctxt unlam
+    (Const (@{const_name rel_fun}, _) $ _ $ _) $ (Abs _) $ (Abs _)
+        => rtac @{thm rel_funI} THEN' quot_true_tac ctxt unlam
 
       (* (op =) (Ball...) (Ball...) ----> (op =) (...) (...) *)
   | (Const (@{const_name HOL.eq},_) $
@@ -334,10 +334,10 @@ fun injection_match_tac ctxt = SUBGOAL (fn (goal, i) =>
         => rtac @{thm ball_rsp} THEN' dtac @{thm QT_all}
 
       (* (R1 ===> op =) (Ball...) (Ball...) ----> [|R1 x y|] ==> (Ball...x) = (Ball...y) *)
-  | (Const (@{const_name fun_rel}, _) $ _ $ _) $
+  | (Const (@{const_name rel_fun}, _) $ _ $ _) $
       (Const(@{const_name Ball},_) $ (Const (@{const_name Respects}, _) $ _) $ _) $
       (Const(@{const_name Ball},_) $ (Const (@{const_name Respects}, _) $ _) $ _)
-        => rtac @{thm fun_relI} THEN' quot_true_tac ctxt unlam
+        => rtac @{thm rel_funI} THEN' quot_true_tac ctxt unlam
 
       (* (op =) (Bex...) (Bex...) ----> (op =) (...) (...) *)
   | Const (@{const_name HOL.eq},_) $
@@ -346,12 +346,12 @@ fun injection_match_tac ctxt = SUBGOAL (fn (goal, i) =>
         => rtac @{thm bex_rsp} THEN' dtac @{thm QT_ex}
 
       (* (R1 ===> op =) (Bex...) (Bex...) ----> [|R1 x y|] ==> (Bex...x) = (Bex...y) *)
-  | (Const (@{const_name fun_rel}, _) $ _ $ _) $
+  | (Const (@{const_name rel_fun}, _) $ _ $ _) $
       (Const(@{const_name Bex},_) $ (Const (@{const_name Respects}, _) $ _) $ _) $
       (Const(@{const_name Bex},_) $ (Const (@{const_name Respects}, _) $ _) $ _)
-        => rtac @{thm fun_relI} THEN' quot_true_tac ctxt unlam
+        => rtac @{thm rel_funI} THEN' quot_true_tac ctxt unlam
 
-  | (Const (@{const_name fun_rel}, _) $ _ $ _) $
+  | (Const (@{const_name rel_fun}, _) $ _ $ _) $
       (Const(@{const_name Bex1_rel},_) $ _) $ (Const(@{const_name Bex1_rel},_) $ _)
         => rtac @{thm bex1_rel_rsp} THEN' quotient_tac ctxt
 
@@ -369,7 +369,7 @@ fun injection_match_tac ctxt = SUBGOAL (fn (goal, i) =>
   | Const (@{const_name HOL.eq},_) $ _ $ _ => rtac @{thm refl}
 
      (* respectfulness of constants; in particular of a simple relation *)
-  | _ $ (Const _) $ (Const _)  (* fun_rel, list_rel, etc but not equality *)
+  | _ $ (Const _) $ (Const _)  (* rel_fun, list_rel, etc but not equality *)
       => resolve_tac (Quotient_Info.rsp_rules ctxt) THEN_ALL_NEW quotient_tac ctxt
 
       (* R (...) (Rep (Abs ...)) ----> R (...) (...) *)

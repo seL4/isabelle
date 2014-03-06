@@ -27,7 +27,7 @@ sig
   val same_type_constrs: typ * typ -> bool
   val Targs: typ -> typ list
   val Tname: typ -> string
-  val is_fun_rel: term -> bool
+  val is_rel_fun: term -> bool
   val relation_types: typ -> typ * typ
   val mk_HOL_eq: thm -> thm
   val safe_HOL_meta_eq: thm -> thm
@@ -110,8 +110,8 @@ fun Targs (Type (_, args)) = args
 fun Tname (Type (name, _)) = name
   | Tname _ = ""
 
-fun is_fun_rel (Const (@{const_name "fun_rel"}, _) $ _ $ _) = true
-  | is_fun_rel _ = false
+fun is_rel_fun (Const (@{const_name "rel_fun"}, _) $ _ $ _) = true
+  | is_rel_fun _ = false
 
 fun relation_types typ = 
   case strip_type typ of

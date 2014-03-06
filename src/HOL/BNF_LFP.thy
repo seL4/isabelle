@@ -244,14 +244,14 @@ proof (rule relcompp.cases[OF assms(2)], hypsubst)
   ultimately show P by (blast intro: assms(3))
 qed
 
-lemma vimage2p_fun_rel: "fun_rel (vimage2p f g R) R f g"
-  unfolding fun_rel_def vimage2p_def by auto
+lemma vimage2p_rel_fun: "rel_fun (vimage2p f g R) R f g"
+  unfolding rel_fun_def vimage2p_def by auto
 
 lemma predicate2D_vimage2p: "\<lbrakk>R \<le> vimage2p f g S; R x y\<rbrakk> \<Longrightarrow> S (f x) (g y)"
   unfolding vimage2p_def by auto
 
-lemma id_transfer: "fun_rel A A id id"
-  unfolding fun_rel_def by simp
+lemma id_transfer: "rel_fun A A id id"
+  unfolding rel_fun_def by simp
 
 lemma ssubst_Pair_rhs: "\<lbrakk>(r, s) \<in> R; s' = s\<rbrakk> \<Longrightarrow> (r, s') \<in> R"
   by (rule ssubst)

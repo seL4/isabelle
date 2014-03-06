@@ -109,19 +109,19 @@ lemma empty_transfer [transfer_rule]: "(rel_set A) {} {}"
 
 lemma insert_transfer [transfer_rule]:
   "(A ===> rel_set A ===> rel_set A) insert insert"
-  unfolding fun_rel_def rel_set_def by auto
+  unfolding rel_fun_def rel_set_def by auto
 
 lemma union_transfer [transfer_rule]:
   "(rel_set A ===> rel_set A ===> rel_set A) union union"
-  unfolding fun_rel_def rel_set_def by auto
+  unfolding rel_fun_def rel_set_def by auto
 
 lemma Union_transfer [transfer_rule]:
   "(rel_set (rel_set A) ===> rel_set A) Union Union"
-  unfolding fun_rel_def rel_set_def by simp fast
+  unfolding rel_fun_def rel_set_def by simp fast
 
 lemma image_transfer [transfer_rule]:
   "((A ===> B) ===> rel_set A ===> rel_set B) image image"
-  unfolding fun_rel_def rel_set_def by simp fast
+  unfolding rel_fun_def rel_set_def by simp fast
 
 lemma UNION_transfer [transfer_rule]:
   "(rel_set A ===> (A ===> rel_set B) ===> rel_set B) UNION UNION"
@@ -129,15 +129,15 @@ lemma UNION_transfer [transfer_rule]:
 
 lemma Ball_transfer [transfer_rule]:
   "(rel_set A ===> (A ===> op =) ===> op =) Ball Ball"
-  unfolding rel_set_def fun_rel_def by fast
+  unfolding rel_set_def rel_fun_def by fast
 
 lemma Bex_transfer [transfer_rule]:
   "(rel_set A ===> (A ===> op =) ===> op =) Bex Bex"
-  unfolding rel_set_def fun_rel_def by fast
+  unfolding rel_set_def rel_fun_def by fast
 
 lemma Pow_transfer [transfer_rule]:
   "(rel_set A ===> rel_set (rel_set A)) Pow Pow"
-  apply (rule fun_relI, rename_tac X Y, rule rel_setI)
+  apply (rule rel_funI, rename_tac X Y, rule rel_setI)
   apply (rename_tac X', rule_tac x="{y\<in>Y. \<exists>x\<in>X'. A x y}" in rev_bexI, clarsimp)
   apply (simp add: rel_set_def, fast)
   apply (rename_tac Y', rule_tac x="{x\<in>X. \<exists>y\<in>Y'. A x y}" in rev_bexI, clarsimp)
@@ -147,16 +147,16 @@ lemma Pow_transfer [transfer_rule]:
 lemma rel_set_transfer [transfer_rule]:
   "((A ===> B ===> op =) ===> rel_set A ===> rel_set B ===> op =)
     rel_set rel_set"
-  unfolding fun_rel_def rel_set_def by fast
+  unfolding rel_fun_def rel_set_def by fast
 
 lemma SUPR_parametric [transfer_rule]:
   "(rel_set R ===> (R ===> op =) ===> op =) SUPR (SUPR :: _ \<Rightarrow> _ \<Rightarrow> _::complete_lattice)"
-proof(rule fun_relI)+
+proof(rule rel_funI)+
   fix A B f and g :: "'b \<Rightarrow> 'c"
   assume AB: "rel_set R A B"
     and fg: "(R ===> op =) f g"
   show "SUPR A f = SUPR B g"
-    by(rule SUPR_eq)(auto 4 4 dest: rel_setD1[OF AB] rel_setD2[OF AB] fun_relD[OF fg] intro: rev_bexI)
+    by(rule SUPR_eq)(auto 4 4 dest: rel_setD1[OF AB] rel_setD2[OF AB] rel_funD[OF fg] intro: rev_bexI)
 qed
 
 lemma bind_transfer [transfer_rule]:
@@ -168,27 +168,27 @@ subsubsection {* Rules requiring bi-unique, bi-total or right-total relations *}
 lemma member_transfer [transfer_rule]:
   assumes "bi_unique A"
   shows "(A ===> rel_set A ===> op =) (op \<in>) (op \<in>)"
-  using assms unfolding fun_rel_def rel_set_def bi_unique_def by fast
+  using assms unfolding rel_fun_def rel_set_def bi_unique_def by fast
 
 lemma right_total_Collect_transfer[transfer_rule]:
   assumes "right_total A"
   shows "((A ===> op =) ===> rel_set A) (\<lambda>P. Collect (\<lambda>x. P x \<and> Domainp A x)) Collect"
-  using assms unfolding right_total_def rel_set_def fun_rel_def Domainp_iff by fast
+  using assms unfolding right_total_def rel_set_def rel_fun_def Domainp_iff by fast
 
 lemma Collect_transfer [transfer_rule]:
   assumes "bi_total A"
   shows "((A ===> op =) ===> rel_set A) Collect Collect"
-  using assms unfolding fun_rel_def rel_set_def bi_total_def by fast
+  using assms unfolding rel_fun_def rel_set_def bi_total_def by fast
 
 lemma inter_transfer [transfer_rule]:
   assumes "bi_unique A"
   shows "(rel_set A ===> rel_set A ===> rel_set A) inter inter"
-  using assms unfolding fun_rel_def rel_set_def bi_unique_def by fast
+  using assms unfolding rel_fun_def rel_set_def bi_unique_def by fast
 
 lemma Diff_transfer [transfer_rule]:
   assumes "bi_unique A"
   shows "(rel_set A ===> rel_set A ===> rel_set A) (op -) (op -)"
-  using assms unfolding fun_rel_def rel_set_def bi_unique_def
+  using assms unfolding rel_fun_def rel_set_def bi_unique_def
   unfolding Ball_def Bex_def Diff_eq
   by (safe, simp, metis, simp, metis)
 
@@ -232,7 +232,7 @@ lemma Inter_transfer [transfer_rule]:
 lemma filter_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
   shows "((A ===> op=) ===> rel_set A ===> rel_set A) Set.filter Set.filter"
-  unfolding Set.filter_def[abs_def] fun_rel_def rel_set_def by blast
+  unfolding Set.filter_def[abs_def] rel_fun_def rel_set_def by blast
 
 lemma bi_unique_rel_set_lemma:
   assumes "bi_unique R" and "rel_set R X Y"
@@ -270,12 +270,12 @@ qed
 
 lemma finite_transfer [transfer_rule]:
   "bi_unique A \<Longrightarrow> (rel_set A ===> op =) finite finite"
-  by (rule fun_relI, erule (1) bi_unique_rel_set_lemma,
+  by (rule rel_funI, erule (1) bi_unique_rel_set_lemma,
     auto dest: finite_imageD)
 
 lemma card_transfer [transfer_rule]:
   "bi_unique A \<Longrightarrow> (rel_set A ===> op =) card card"
-  by (rule fun_relI, erule (1) bi_unique_rel_set_lemma, simp add: card_image)
+  by (rule rel_funI, erule (1) bi_unique_rel_set_lemma, simp add: card_image)
 
 lemma vimage_parametric [transfer_rule]:
   assumes [transfer_rule]: "bi_total A" "bi_unique B"
@@ -285,7 +285,7 @@ unfolding vimage_def[abs_def] by transfer_prover
 lemma setsum_parametric [transfer_rule]:
   assumes "bi_unique A"
   shows "((A ===> op =) ===> rel_set A ===> op =) setsum setsum"
-proof(rule fun_relI)+
+proof(rule rel_funI)+
   fix f :: "'a \<Rightarrow> 'c" and g S T
   assume fg: "(A ===> op =) f g"
     and ST: "rel_set A S T"
@@ -313,7 +313,7 @@ proof(rule fun_relI)+
     assume "t \<in> T"
     with ST obtain s where "A s t" "s \<in> S" by(auto dest: rel_setD2)
     hence "?f t = s" by(auto dest: bi_uniqueDl[OF assms])
-    moreover from fg `A s t` have "f s = g t" by(rule fun_relD)
+    moreover from fg `A s t` have "f s = g t" by(rule rel_funD)
     ultimately show "g t = f (?f t)" by simp
   qed
 qed

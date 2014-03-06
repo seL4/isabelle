@@ -2289,7 +2289,7 @@ begin
 interpretation lifting_syntax .
 
 lemma set_of_transfer[transfer_rule]: "(pcr_multiset op = ===> op =) (\<lambda>f. {a. 0 < f a}) set_of"
-  unfolding set_of_def pcr_multiset_def cr_multiset_def fun_rel_def by auto
+  unfolding set_of_def pcr_multiset_def cr_multiset_def rel_fun_def by auto
 
 end
 

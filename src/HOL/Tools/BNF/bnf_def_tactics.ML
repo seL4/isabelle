@@ -195,8 +195,8 @@ fun mk_map_transfer_tac ctxt rel_mono in_rel set_maps map_cong0 map_comp =
           @{thm ord_eq_le_trans[OF _ subset_trans[OF image_mono convol_image_vimage2p]]}))
       set_maps;
   in
-    REPEAT_DETERM_N n (HEADGOAL (rtac @{thm fun_relI})) THEN
-    unfold_thms_tac ctxt @{thms fun_rel_iff_leq_vimage2p} THEN
+    REPEAT_DETERM_N n (HEADGOAL (rtac @{thm rel_funI})) THEN
+    unfold_thms_tac ctxt @{thms rel_fun_iff_leq_vimage2p} THEN
     HEADGOAL (EVERY' [rtac @{thm order_trans}, rtac rel_mono, REPEAT_DETERM_N n o atac,
       rtac @{thm predicate2I}, dtac (in_rel RS iffD1),
       REPEAT_DETERM o eresolve_tac [exE, CollectE, conjE], hyp_subst_tac ctxt,
