@@ -430,7 +430,7 @@ fun instantiate_if_induct_rule ctxt stmt stmt_xs (ax as (_, th)) =
   | NONE => [ax])
 
 fun external_frees t =
-  [] |> Term.add_frees t |> filter_out (can Name.dest_internal o fst)
+  [] |> Term.add_frees t |> filter_out (Name.is_internal o fst)
 
 fun maybe_instantiate_inducts ctxt hyp_ts concl_t =
   if Config.get ctxt instantiate_inducts then

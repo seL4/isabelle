@@ -13,8 +13,12 @@ sig
   val is_bound: string -> bool
   val internal: string -> string
   val dest_internal: string -> string
+  val is_internal: string -> bool
+  val reject_internal: string * Position.T list -> unit
   val skolem: string -> string
   val dest_skolem: string -> string
+  val is_skolem: string -> bool
+  val reject_skolem: string * Position.T list -> unit
   val clean_index: string * int -> string * int
   val clean: string -> string
   type context
@@ -59,13 +63,19 @@ fun bound n =
 val is_bound = String.isPrefix ":";
 
 
-(* internal names *)
+(* internal names -- NB: internal subsumes skolem *)
 
 val internal = suffix "_";
 val dest_internal = unsuffix "_";
+val is_internal = String.isSuffix "_";
+fun reject_internal (x, ps) =
+  if is_internal x then error ("Bad name: " ^ quote x ^ Position.here_list ps) else ();
 
 val skolem = suffix "__";
 val dest_skolem = unsuffix "__";
+val is_skolem = String.isSuffix "__";
+fun reject_skolem (x, ps) =
+  if is_skolem x then error ("Bad name: " ^ quote x ^ Position.here_list ps) else ();
 
 fun clean_index (x, i) =
   (case try dest_internal x of

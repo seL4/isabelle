@@ -399,7 +399,7 @@ in
 fun add_fixes_binding bs ctxt =
   let
     val _ =
-      (case filter (can Name.dest_skolem o Binding.name_of) bs of
+      (case filter (Name.is_skolem o Binding.name_of) bs of
         [] => ()
       | bads => error ("Illegal internal Skolem constant(s): " ^ commas (map Binding.print bads)));
     val _ =
@@ -417,7 +417,7 @@ fun add_fixes_binding bs ctxt =
 fun variant_fixes raw_xs ctxt =
   let
     val names = names_of ctxt;
-    val xs = map (fn x => Name.clean x |> can Name.dest_internal x ? Name.internal) raw_xs;
+    val xs = map (fn x => Name.clean x |> Name.is_internal x ? Name.internal) raw_xs;
     val (xs', names') = fold_map Name.variant xs names |>> (is_body ctxt ? map Name.skolem);
   in ctxt |> new_fixes names' xs xs' (replicate (length xs) Position.none) end;
 

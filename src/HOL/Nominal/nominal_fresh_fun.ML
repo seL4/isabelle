@@ -185,7 +185,7 @@ val options_syntax =
      (Scan.succeed false);
 
 fun setup_generate_fresh x =
-  (Args.goal_spec -- Args.type_name true >>
+  (Args.goal_spec -- Args.type_name {proper = true, strict = true} >>
     (fn (quant, s) => K (SIMPLE_METHOD'' quant (generate_fresh_tac s)))) x;
 
 fun setup_fresh_fun_simp x =

@@ -97,8 +97,8 @@ fun cert_tyco ctxt tyco =
       else error ("No such type constructor: " ^ quote tyco);
   in tyco end;
 
-fun read_tyco ctxt = #1 o dest_Type
-  o Proof_Context.read_type_name_proper ctxt true;
+fun read_tyco ctxt =
+  #1 o dest_Type o Proof_Context.read_type_name ctxt {proper = true, strict = true};
 
 fun cert_class ctxt class =
   let

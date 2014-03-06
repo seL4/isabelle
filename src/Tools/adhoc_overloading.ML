@@ -220,7 +220,8 @@ fun adhoc_overloading_cmd' add args phi =
 
 fun adhoc_overloading_cmd add raw_args lthy =
   let
-    fun const_name ctxt = fst o dest_Const o Proof_Context.read_const ctxt false dummyT;
+    fun const_name ctxt =
+      fst o dest_Const o Proof_Context.read_const ctxt {proper = false, strict = false};  (* FIXME {proper = true, strict = true} (!?) *)
     fun read_term ctxt = singleton (Variable.polymorphic ctxt) o Syntax.read_term ctxt;
     val args =
       raw_args

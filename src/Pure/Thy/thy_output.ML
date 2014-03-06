@@ -515,7 +515,7 @@ fun pretty_class ctxt =
   Pretty.str o Proof_Context.extern_class ctxt o Proof_Context.read_class ctxt;
 
 fun pretty_type ctxt s =
-  let val Type (name, _) = Proof_Context.read_type_name_proper ctxt false s
+  let val Type (name, _) = Proof_Context.read_type_name ctxt {proper = true, strict = false} s
   in Pretty.str (Proof_Context.extern_type ctxt name) end;
 
 fun pretty_prf full ctxt = Proof_Syntax.pretty_proof_of ctxt full;
@@ -573,7 +573,7 @@ val _ = Theory.setup
   basic_entity (Binding.name "term") (Term_Style.parse -- Args.term) pretty_term_style #>
   basic_entity (Binding.name "term_type") (Term_Style.parse -- Args.term) pretty_term_typ #>
   basic_entity (Binding.name "typeof") (Term_Style.parse -- Args.term) pretty_term_typeof #>
-  basic_entity (Binding.name "const") (Args.const_proper false) pretty_const #>
+  basic_entity (Binding.name "const") (Args.const {proper = true, strict = false}) pretty_const #>
   basic_entity (Binding.name "abbrev") (Scan.lift Args.name_inner_syntax) pretty_abbrev #>
   basic_entity (Binding.name "typ") Args.typ_abbrev Syntax.pretty_typ #>
   basic_entity (Binding.name "class") (Scan.lift Args.name_inner_syntax) pretty_class #>

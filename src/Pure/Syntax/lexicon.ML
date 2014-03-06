@@ -261,8 +261,8 @@ fun token kind ss = Token (kind, Symbol_Pos.content ss, Symbol_Pos.range ss);
 fun tokenize lex xids syms =
   let
     val scan_xid =
-      if xids then $$$ "_" @@@ scan_id || scan_id
-      else scan_id;
+      (if xids then $$$ "_" @@@ scan_id || scan_id else scan_id) ||
+      $$$ "_" @@@ $$$ "_";
 
     val scan_num = scan_hex || scan_bin || scan_int;
 

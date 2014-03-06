@@ -129,9 +129,9 @@ fun named_rule k arg get =
       | NONE => error ("No rule for " ^ k ^ " " ^ quote name))))));
 
 fun rule get_type get_pred =
-  named_rule Induct.typeN (Args.type_name false) get_type ||
-  named_rule Induct.predN (Args.const false) get_pred ||
-  named_rule Induct.setN (Args.const false) get_pred ||
+  named_rule Induct.typeN (Args.type_name {proper = false, strict = false}) get_type ||
+  named_rule Induct.predN (Args.const {proper = false, strict = false}) get_pred ||
+  named_rule Induct.setN (Args.const {proper = false, strict = false}) get_pred ||
   Scan.lift (Args.$$$ ruleN -- Args.colon) |-- Attrib.thms;
 
 val coinduct_rule = rule Induct.lookup_coinductT Induct.lookup_coinductP >> single_rule;

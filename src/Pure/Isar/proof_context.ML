@@ -68,21 +68,19 @@ sig
   val infer_type: Proof.context -> string * typ -> typ
   val inferred_param: string -> Proof.context -> typ * Proof.context
   val inferred_fixes: Proof.context -> (string * typ) list * Proof.context
-  val check_type_name: Proof.context -> bool ->
+  val check_type_name: Proof.context -> {proper: bool, strict: bool} ->
     xstring * Position.T -> typ * Position.report list
-  val check_type_name_proper: Proof.context -> bool ->
-    xstring * Position.T -> typ * Position.report list
-  val read_type_name: Proof.context -> bool -> string -> typ
-  val read_type_name_proper: Proof.context -> bool -> string -> typ
-  val read_const_proper: Proof.context -> bool -> string -> term
-  val read_const: Proof.context -> bool -> typ -> string -> term
+  val read_type_name: Proof.context -> {proper: bool, strict: bool} -> string -> typ
+  val consts_completion_message: Proof.context -> xstring * Position.T list -> string
+  val check_const: Proof.context -> {proper: bool, strict: bool} ->
+    xstring * Position.T list -> term * Position.report list
+  val read_const: Proof.context -> {proper: bool, strict: bool} -> string -> term
   val read_arity: Proof.context -> xstring * string list * string -> arity
   val cert_arity: Proof.context -> arity -> arity
   val allow_dummies: Proof.context -> Proof.context
   val prepare_sortsT: Proof.context -> typ list -> string * typ list
   val prepare_sorts: Proof.context -> term list -> string * term list
   val check_tfree: Proof.context -> string * sort -> string * sort
-  val intern_skolem: Proof.context -> string -> string option
   val read_term_pattern: Proof.context -> string -> term
   val read_term_schematic: Proof.context -> string -> term
   val read_term_abbrev: Proof.context -> string -> term
@@ -387,9 +385,8 @@ fun check_class ctxt (xname, pos) =
     val name = Type.cert_class tsig (Type.intern_class tsig xname)
       handle TYPE (msg, _, _) =>
         error (msg ^ Position.here pos ^
-          Markup.markup Markup.report
-            (Completion.reported_text
-              (Name_Space.completion (Context.Proof ctxt) class_space (xname, pos))));
+          Markup.markup_report (Completion.reported_text
+            (Name_Space.completion (Context.Proof ctxt) class_space (xname, pos))));
     val reports =
       if Context_Position.is_reported ctxt pos
       then [(pos, Name_Space.markup class_space name)] else [];
@@ -422,19 +419,6 @@ val cert_typ_abbrev = cert_typ_mode Type.mode_abbrev;
 
 
 
-(** prepare variables **)
-
-(* check Skolem constants *)
-
-fun no_skolem internal x =
-  if can Name.dest_skolem x then
-    error ("Illegal reference to internal Skolem constant: " ^ quote x)
-  else if not internal andalso can Name.dest_internal x then
-    error ("Illegal reference to internal variable: " ^ quote x)
-  else x;
-
-
-
 (** prepare terms and propositions **)
 
 (* inferred types of parameters *)
@@ -455,13 +439,15 @@ fun inferred_fixes ctxt =
 
 (* type names *)
 
-fun check_type_name ctxt strict (c, pos) =
+fun check_type_name ctxt {proper, strict} (c, pos) =
   if Lexicon.is_tid c then
-    let
-      val reports =
-        if Context_Position.is_reported ctxt pos
-        then [(pos, Markup.tfree)] else [];
-    in (TFree (c, default_sort ctxt (c, ~1)), reports) end
+    if proper then error ("Not a type constructor: " ^ c ^ Position.here pos)
+    else
+      let
+        val reports =
+          if Context_Position.is_reported ctxt pos
+          then [(pos, Markup.tfree)] else [];
+      in (TFree (c, default_sort ctxt (c, ~1)), reports) end
   else
     let
       val ((d, reports), decl) = Type.check_decl (Context.Proof ctxt) (tsig_of ctxt) (c, pos);
@@ -473,59 +459,61 @@ fun check_type_name ctxt strict (c, pos) =
         | Type.Nonterminal => if strict then err () else 0);
     in (Type (d, replicate args dummyT), reports) end;
 
-fun check_type_name_proper ctxt strict arg =
-  (case check_type_name ctxt strict arg of
-    res as (Type _, _) => res
-  | (T, _) => error ("Not a type constructor: " ^ Syntax.string_of_typ ctxt T));
-
-fun read_type_name ctxt strict =
-  Syntax.read_token #> Symbol_Pos.source_content #> check_type_name ctxt strict #> #1;
-
-fun read_type_name_proper ctxt strict =
-  Syntax.read_token #> Symbol_Pos.source_content #> check_type_name_proper ctxt strict #> #1;
+fun read_type_name ctxt flags text =
+  let
+    val (T, reports) =
+      check_type_name ctxt flags (Symbol_Pos.source_content (Syntax.read_token text));
+    val _ = Position.reports reports;
+  in T end;
 
 
 (* constant names *)
 
-local
+fun consts_completion_message ctxt (c, ps) =
+  ps |> map (fn pos =>
+    Name_Space.completion (Context.Proof ctxt) (Consts.space_of (consts_of ctxt)) (c, pos)
+    |> Completion.reported_text)
+  |> implode
+  |> Markup.markup_report;
 
-fun prep_const_proper ctxt strict (c, pos) =
+fun check_const ctxt {proper, strict} (c, ps) =
   let
-    fun err msg = error (msg ^ Position.here pos);
-    val consts = consts_of ctxt;
-    val t as Const (d, _) =
-      (case Variable.lookup_const ctxt c of
-        SOME d =>
-          let
-            val T = Consts.type_scheme (consts_of ctxt) d handle TYPE (msg, _, _) => err msg;
-            val _ = Context_Position.report ctxt pos (Name_Space.markup (Consts.space_of consts) d);
-          in Const (d, T) end
-      | NONE => Consts.check_const (Context.Proof ctxt) consts (c, pos));
     val _ =
-      if strict
-      then ignore (Consts.the_const consts d) handle TYPE (msg, _, _) => err msg
-      else ();
-  in t end;
+      Name.reject_internal (c, ps) handle ERROR msg =>
+        error (msg ^ consts_completion_message ctxt (c, ps));
+    fun err msg = error (msg ^ Position.here_list ps);
+    val consts = consts_of ctxt;
+    val fixed = if proper then NONE else Variable.lookup_fixed ctxt c;
+    val (t, reports) =
+      (case (fixed, Variable.lookup_const ctxt c) of
+        (SOME x, NONE) =>
+          let
+            val reports = ps
+              |> filter (Context_Position.is_reported ctxt)
+              |> map (fn pos =>
+                (pos, Markup.name x (if Name.is_skolem x then Markup.skolem else Markup.free)));
+          in (Free (x, infer_type ctxt (x, dummyT)), reports) end
+      | (_, SOME d) =>
+          let
+            val T = Consts.type_scheme consts d handle TYPE (msg, _, _) => err msg;
+            val reports = ps
+              |> filter (Context_Position.is_reported ctxt)
+              |> map (fn pos => (pos, Name_Space.markup (Consts.space_of consts) d));
+          in (Const (d, T), reports) end
+      | _ => Consts.check_const (Context.Proof ctxt) consts (c, ps));
+    val _ =
+      (case (strict, t) of
+        (true, Const (d, _)) =>
+          (ignore (Consts.the_const consts d) handle TYPE (msg, _, _) => err msg)
+      | _ => ());
+  in (t, reports) end;
 
-in
-
-fun read_const_proper ctxt strict =
-  prep_const_proper ctxt strict o Symbol_Pos.source_content o Syntax.read_token;
-
-fun read_const ctxt strict ty text =
+fun read_const ctxt flags text =
   let
-    val (c, pos) = Symbol_Pos.source_content (Syntax.read_token text);
-    val _ = no_skolem false c;
-  in
-    (case (Variable.lookup_fixed ctxt c, Variable.is_const ctxt c) of
-      (SOME x, false) =>
-        (Context_Position.report ctxt pos
-            (Markup.name x (if can Name.dest_skolem x then Markup.skolem else Markup.free));
-          Free (x, infer_type ctxt (x, ty)))
-    | _ => prep_const_proper ctxt strict (c, pos))
-  end;
-
-end;
+    val (xname, pos) = Symbol_Pos.source_content (Syntax.read_token text);
+    val (t, reports) = check_const ctxt flags (xname, [pos]);
+    val _ = Position.reports reports;
+  in t end;
 
 
 (* type arities *)
@@ -539,27 +527,12 @@ fun prep_arity prep_tycon prep_sort ctxt (t, Ss, S) =
 in
 
 val read_arity =
-  prep_arity (fn ctxt => #1 o dest_Type o read_type_name_proper ctxt true) Syntax.read_sort;
+  prep_arity (fn ctxt => #1 o dest_Type o read_type_name ctxt {proper = true, strict = true})
+    Syntax.read_sort;
 
 val cert_arity = prep_arity (K I) (Type.cert_sort o tsig_of);
 
 end;
-
-
-(* skolem variables *)
-
-fun intern_skolem ctxt x =
-  let
-    val _ = no_skolem false x;
-    val sko = Variable.lookup_fixed ctxt x;
-    val is_const = can (read_const_proper ctxt false) x orelse Long_Name.is_qualified x;
-    val is_declared = is_some (Variable.def_type ctxt false (x, ~1));
-  in
-    if Variable.is_const ctxt x then NONE
-    else if is_some sko then sko
-    else if not is_const orelse is_declared then SOME x
-    else NONE
-  end;
 
 
 (* read_term *)
@@ -1033,8 +1006,10 @@ fun prep_vars prep_typ internal =
   fold_map (fn (b, raw_T, mx) => fn ctxt =>
     let
       val x = Variable.check_name b;
-      val _ = Symbol_Pos.is_identifier (no_skolem internal x) orelse
-        error ("Illegal variable name: " ^ Binding.print b);
+      val check_name = if internal then Name.reject_skolem else Name.reject_internal;
+      val _ =
+        if can check_name (x, []) andalso Symbol_Pos.is_identifier x then ()
+        else error ("Bad name: " ^ Binding.print b);
 
       fun cond_tvars T =
         if internal then T
@@ -1375,7 +1350,7 @@ fun pretty_ctxt ctxt =
         if x = x' then Pretty.str x
         else Pretty.block [Pretty.str x, Pretty.str " =", Pretty.brk 1, prt_term (Syntax.free x')];
       val fixes =
-        filter_out ((can Name.dest_internal orf member (op =) structs) o #1)
+        filter_out ((Name.is_internal orf member (op =) structs) o #1)
           (Variable.dest_fixes ctxt);
       val prt_fixes =
         if null fixes then []

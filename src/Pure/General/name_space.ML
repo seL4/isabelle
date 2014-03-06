@@ -56,7 +56,7 @@ sig
   val declare: Context.generic -> bool -> binding -> T -> string * T
   type 'a table = T * 'a Symtab.table
   val check_reports: Context.generic -> 'a table ->
-    xstring * Position.T -> (string * Position.report list) * 'a
+    xstring * Position.T list -> (string * Position.report list) * 'a
   val check: Context.generic -> 'a table -> xstring * Position.T -> string * 'a
   val get: 'a table -> string -> 'a
   val define: Context.generic -> bool -> binding * 'a -> 'a table -> string * 'a table
@@ -205,7 +205,7 @@ fun pretty ctxt space name = Pretty.mark_str (markup_extern ctxt space name);
 (* completion *)
 
 fun completion context space (xname, pos) =
-  if Context_Position.is_reported_generic context pos then
+  if Position.is_reported pos then
     let
       val x = Name.clean xname;
       val Name_Space {kind = k, internals, ...} = space;
@@ -322,6 +322,8 @@ fun err_bad binding = error (Binding.bad binding);
 fun transform_binding (Naming {conceal = true, ...}) = Binding.conceal
   | transform_binding _ = I;
 
+val bad_specs = ["", "??", "__"];
+
 fun name_spec (naming as Naming {path, ...}) raw_binding =
   let
     val binding = transform_binding naming raw_binding;
@@ -332,7 +334,7 @@ fun name_spec (naming as Naming {path, ...}) raw_binding =
     val spec2 = if name = "" then [] else [(name, true)];
     val spec = spec1 @ spec2;
     val _ =
-      exists (fn (a, _) => a = "" orelse a = "??" orelse exists_string (fn s => s = "\"") a) spec
+      exists (fn (a, _) => member (op =) bad_specs a orelse exists_string (fn s => s = "\"") a) spec
       andalso err_bad binding;
   in (concealed, if null spec2 then [] else spec) end;
 
@@ -446,24 +448,27 @@ fun declare context strict binding space =
 
 type 'a table = T * 'a Symtab.table;
 
-fun check_reports context (space, tab) (xname, pos) =
+fun check_reports context (space, tab) (xname, ps) =
   let val name = intern space xname in
     (case Symtab.lookup tab name of
       SOME x =>
         let
           val reports =
-            if Context_Position.is_reported_generic context pos
-            then [(pos, markup space name)] else [];
+            filter (Context_Position.is_reported_generic context) ps
+            |> map (fn pos => (pos, markup space name));
         in ((name, reports), x) end
     | NONE =>
-        error (undefined (kind_of space) name ^ Position.here pos ^
-          Markup.markup Markup.report
-            (Completion.reported_text (completion context space (xname, pos)))))
+        let
+          val completions = map (fn pos => completion context space (xname, pos)) ps;
+        in
+          error (undefined (kind_of space) name ^ Position.here_list ps ^
+            Markup.markup_report (implode (map Completion.reported_text completions)))
+        end)
   end;
 
-fun check context table arg =
+fun check context table (xname, pos) =
   let
-    val ((name, reports), x) = check_reports context table arg;
+    val ((name, reports), x) = check_reports context table (xname, [pos]);
     val _ = Position.reports reports;
   in (name, x) end;
 

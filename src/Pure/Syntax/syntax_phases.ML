@@ -51,7 +51,7 @@ fun markup_const ctxt c =
   [Name_Space.markup (Consts.space_of (Proof_Context.consts_of ctxt)) c];
 
 fun markup_free ctxt x =
-  [if can Name.dest_skolem x then Markup.skolem else Markup.free] @
+  [if Name.is_skolem x then Markup.skolem else Markup.free] @
   (if Variable.is_body ctxt orelse Variable.is_fixed ctxt x
    then [Variable.markup_fixed ctxt x]
    else []);
@@ -140,6 +140,7 @@ fun parsetree_to_ast ctxt trf parsetree =
   let
     val reports = Unsynchronized.ref ([]: Position.report_text list);
     fun report pos = Position.store_reports reports [pos];
+    val append_reports = Position.append_reports reports;
 
     fun trans a args =
       (case trf a of
@@ -164,14 +165,15 @@ fun parsetree_to_ast ctxt trf parsetree =
           let
             val pos = Lexicon.pos_of_token tok;
             val (c, rs) = Proof_Context.check_class ctxt (Lexicon.str_of_token tok, pos);
-            val _ = Unsynchronized.change reports (append (map (rpair "") rs));
+            val _ = append_reports rs;
           in [Ast.Constant (Lexicon.mark_class c)] end
       | asts_of (Parser.Node ("_type_name", [Parser.Tip tok])) =
           let
             val pos = Lexicon.pos_of_token tok;
             val (Type (c, _), rs) =
-              Proof_Context.check_type_name_proper ctxt false (Lexicon.str_of_token tok, pos);
-            val _ = Unsynchronized.change reports (append (map (rpair "") rs));
+              Proof_Context.check_type_name ctxt {proper = true, strict = false}
+                (Lexicon.str_of_token tok, pos);
+            val _ = append_reports rs;
           in [Ast.Constant (Lexicon.mark_type c)] end
       | asts_of (Parser.Node ("_position", [Parser.Tip tok])) = asts_of_position "_constrain" tok
       | asts_of (Parser.Node ("_position_sort", [Parser.Tip tok])) = asts_of_position "_ofsort" tok
@@ -220,16 +222,36 @@ fun ast_to_term ctxt trf =
 
 (* decode_term -- transform parse tree into raw term *)
 
+fun decode_const ctxt (c, ps) =
+  let
+    val (Const (c', _), reports) =
+      Proof_Context.check_const ctxt {proper = true, strict = false} (c, ps);
+  in (c', reports) end;
+
 fun decode_term _ (result as (_: Position.report_text list, Exn.Exn _)) = result
   | decode_term ctxt (reports0, Exn.Res tm) =
       let
-        fun get_const a =
-          ((true, #1 (Term.dest_Const (Proof_Context.read_const_proper ctxt false a)))
-            handle ERROR _ => (false, Consts.intern (Proof_Context.consts_of ctxt) a));
-        val get_free = Proof_Context.intern_skolem ctxt;
-
         val reports = Unsynchronized.ref reports0;
         fun report ps = Position.store_reports reports ps;
+        val append_reports = Position.append_reports reports;
+
+        fun get_free x =
+          let
+            val fixed = Variable.lookup_fixed ctxt x;
+            val is_const = can (decode_const ctxt) (x, []) orelse Long_Name.is_qualified x;
+            val is_declared = is_some (Variable.def_type ctxt false (x, ~1));
+          in
+            if Variable.is_const ctxt x then NONE
+            else if is_some fixed then fixed
+            else if not is_const orelse is_declared then SOME x
+            else NONE
+          end;
+
+        fun the_const (a, ps) =
+          let
+            val (c, rs) = decode_const ctxt (a, ps);
+            val _ = append_reports rs;
+          in c end;
 
         fun decode ps qs bs (Const ("_constrain", _) $ t $ typ) =
               (case Term_Position.decode_position typ of
@@ -252,18 +274,15 @@ fun decode_term _ (result as (_: Position.report_text list, Exn.Exn _)) = result
                   let
                     val c =
                       (case try Lexicon.unmark_const a of
-                        SOME c => c
-                      | NONE => snd (get_const a));
-                    val _ = report ps (markup_const ctxt) c;
+                        SOME c => (report ps (markup_const ctxt) c; c)
+                      | NONE => the_const (a, ps));
                   in Const (c, T) end)
           | decode ps _ _ (Free (a, T)) =
-              (case (get_free a, get_const a) of
-                (SOME x, _) => (report ps (markup_free ctxt) x; Free (x, T))
-              | (_, (true, c)) => (report ps (markup_const ctxt) c; Const (c, T))
-              | (_, (false, c)) =>
-                  if Long_Name.is_qualified c
-                  then (report ps (markup_const ctxt) c; Const (c, T))
-                  else (report ps (markup_free ctxt) c; Free (c, T)))
+              ((Name.reject_internal (a, ps) handle ERROR msg =>
+                  error (msg ^ Proof_Context.consts_completion_message ctxt (a, ps)));
+                (case get_free a of
+                  SOME x => (report ps (markup_free ctxt) x; Free (x, T))
+                | NONE => Const (the_const (a, ps), T)))
           | decode ps _ _ (Var (xi, T)) = (report ps markup_var xi; Var (xi, T))
           | decode ps _ bs (t as Bound i) =
               (case try (nth bs) i of
@@ -304,8 +323,7 @@ fun parse_asts ctxt raw root (syms, pos) =
 
     val pts = Syntax.parse syn root (filter Lexicon.is_proper toks)
       handle ERROR msg =>
-        error (msg ^
-          implode (map (Markup.markup Markup.report o Lexicon.reported_token_range ctxt) toks));
+        error (msg ^ Markup.markup_report (implode (map (Lexicon.reported_token_range ctxt) toks)));
     val len = length pts;
 
     val limit = Config.get ctxt Syntax.ambiguity_limit;
@@ -337,7 +355,7 @@ fun parse_tree ctxt root input =
 
 fun parse_failed ctxt pos msg kind =
   cat_error msg ("Failed to parse " ^ kind ^
-    Markup.markup Markup.report (Context_Position.reported_text ctxt pos Markup.bad ""));
+    Markup.markup_report (Context_Position.reported_text ctxt pos Markup.bad ""));
 
 fun parse_sort ctxt =
   Syntax.parse_token ctxt Term_XML.Decode.sort Markup.language_sort
@@ -664,7 +682,7 @@ fun free_or_skolem ctxt x =
       if Variable.is_fixed ctxt x orelse Syntax.is_pretty_global ctxt
       then Markup.fixed x else Markup.intensify;
   in
-    if can Name.dest_skolem x
+    if Name.is_skolem x
     then ([m, Markup.skolem], Variable.revert_fixed ctxt x)
     else ([m, Markup.free], x)
   end;
@@ -793,16 +811,15 @@ fun type_constraint_tr' ctxt (Type ("fun", [T, _])) (t :: ts) =
 
 (* authentic syntax *)
 
-fun const_ast_tr intern ctxt [Ast.Variable c] =
+fun const_ast_tr intern ctxt asts =
+  (case asts of
+    [Ast.Appl [Ast.Constant "_constrain", Ast.Variable c, T as Ast.Variable p]] =>
       let
-        val Const (c', _) = Proof_Context.read_const_proper ctxt false c;
+        val pos = the_default Position.none (Term_Position.decode p);
+        val (c', _) = decode_const ctxt (c, [pos]);
         val d = if intern then Lexicon.mark_const c' else c;
-      in Ast.Constant d end
-  | const_ast_tr intern ctxt [Ast.Appl [Ast.Constant "_constrain", x, T as Ast.Variable pos]] =
-      (Ast.Appl [Ast.Constant "_constrain", const_ast_tr intern ctxt [x], T]
-        handle ERROR msg =>
-          error (msg ^ Position.here (the_default Position.none (Term_Position.decode pos))))
-  | const_ast_tr _ _ asts = raise Ast.AST ("const_ast_tr", asts);
+      in Ast.Appl [Ast.Constant "_constrain", Ast.Constant d, T] end
+  | _ => raise Ast.AST ("const_ast_tr", asts));
 
 
 (* setup translations *)

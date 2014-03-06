@@ -40,6 +40,13 @@ antiquotations for languages that support them.  E.g. no symbol
 completion for ML source, but within ML strings, comments,
 antiquotations.
 
+* Semantic completions may get extended by appending a suffix of
+underscores to an already recognized name, e.g. "foo_" to complete
+"foo" or "foobar" if these are known in the context.  The special
+identifier "__" serves as a wild-card in this respect: it completes to
+the full collection of names from the name space (truncated according
+to the system option "completion_limit").
+
 * Document panel: simplied interaction where every single mouse click
 (re)opens document via desktop environment or as jEdit buffer.
 

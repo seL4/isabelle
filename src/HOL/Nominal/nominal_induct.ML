@@ -63,7 +63,7 @@ fun rename_params_rule internal xs rule =
   let
     val tune =
       if internal then Name.internal
-      else fn x => the_default x (try Name.dest_internal x);
+      else perhaps (try Name.dest_internal);
     val n = length xs;
     fun rename prem =
       let

@@ -124,7 +124,7 @@ fun lambda_ast_tr [pats, body] = Ast.fold_ast_p "_abs" (Ast.unfold_ast "_pttrns"
   | lambda_ast_tr asts = raise Ast.AST ("lambda_ast_tr", asts);
 
 fun absfree_proper (x, T) t =
-  if can Name.dest_internal x
+  if Name.is_internal x
   then error ("Illegal internal variable in abstraction: " ^ quote x)
   else absfree (x, T) t;
 
@@ -316,7 +316,7 @@ fun strip_abss vars_of body_of tm =
     val body = body_of tm;
     val rev_new_vars = Term.rename_wrt_term body vars;
     fun subst (x, T) b =
-      if can Name.dest_internal x andalso not (Term.is_dependent b)
+      if Name.is_internal x andalso not (Term.is_dependent b)
       then (Const ("_idtdummy", T), incr_boundvars ~1 b)
       else (mark_bound_abs (x, T), Term.subst_bound (mark_bound_body (x, T), b));
     val (rev_vars', body') = fold_map subst rev_new_vars body;

@@ -144,7 +144,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
         val do_preplay = preplay_timeout <> Time.zeroTime
         val compress_isar = if isar_proofs = NONE andalso do_preplay then 1000.0 else compress_isar
 
-        val is_fixed = Variable.is_declared ctxt orf can Name.dest_skolem
+        val is_fixed = Variable.is_declared ctxt orf Name.is_skolem
         fun skolems_of t = Term.add_frees t [] |> filter_out (is_fixed o fst) |> rev
 
         fun get_role keep_role ((num, _), role, t, rule, _) =
