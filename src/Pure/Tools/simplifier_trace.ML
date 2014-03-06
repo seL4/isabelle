@@ -34,7 +34,6 @@ structure Data = Generic_Data
 (
   type T =
     {max_depth: int,
-     depth: int,
      mode: mode,
      interactive: bool,
      memory: bool,
@@ -42,7 +41,6 @@ structure Data = Generic_Data
      breakpoints: term Item_Net.T * rrule Item_Net.T}
   val empty =
     {max_depth = 10,
-     depth = 0,
      mode = Disabled,
      interactive = false,
      memory = true,
@@ -55,7 +53,6 @@ structure Data = Generic_Data
      {max_depth = max_depth2, mode = mode2, interactive = interactive2,
       memory = memory2, breakpoints = breakpoints2, ...}: T) =
     {max_depth = Int.max (max_depth1, max_depth2),
-     depth = 0,
      mode = merge_modes mode1 mode2,
      interactive = interactive1 orelse interactive2,
      memory = memory1 andalso memory2,
@@ -65,9 +62,8 @@ structure Data = Generic_Data
 
 fun map_breakpoints f_term f_thm =
   Data.map
-    (fn {max_depth, depth, mode, interactive, parent, memory, breakpoints = (term_bs, thm_bs)} =>
+    (fn {max_depth, mode, interactive, parent, memory, breakpoints = (term_bs, thm_bs)} =>
       {max_depth = max_depth,
-       depth = depth,
        mode = mode,
        interactive = interactive,
        memory = memory,
@@ -110,9 +106,8 @@ fun config raw_mode interactive max_depth memory =
       | "full" => Full
       | _ => error ("Simplifier_Trace.config: unknown mode " ^ raw_mode))
 
-    val update = Data.map (fn {depth, parent, breakpoints, ...} =>
+    val update = Data.map (fn {parent, breakpoints, ...} =>
       {max_depth = max_depth,
-       depth = depth,
        mode = mode,
        interactive = interactive,
        memory = memory,
@@ -154,7 +149,7 @@ fun empty_payload () : payload =
 
 fun mk_generic_result markup text triggered (payload : unit -> payload) ctxt =
   let
-    val {max_depth, depth, mode, interactive, memory, parent, ...} = Data.get (Context.Proof ctxt)
+    val {mode, interactive, memory, parent, ...} = Data.get (Context.Proof ctxt)
 
     val eligible =
       (case mode of
@@ -167,7 +162,7 @@ fun mk_generic_result markup text triggered (payload : unit -> payload) ctxt =
       then Markup.simp_trace_logN
       else markup
   in
-    if not eligible orelse depth > max_depth then NONE
+    if not eligible then NONE
     else
       let
         val {props = more_props, pretty} = payload ()
@@ -240,7 +235,7 @@ fun step ({term, thm, unconditional, ctxt, rrule}: data) =
         {props = [], pretty = pretty}
       end
 
-    val {max_depth, depth, mode, interactive, memory, breakpoints, ...} =
+    val {max_depth, mode, interactive, memory, breakpoints, ...} =
       Data.get (Context.Proof ctxt)
 
     fun mk_promise result =
@@ -249,7 +244,6 @@ fun step ({term, thm, unconditional, ctxt, rrule}: data) =
 
         fun put mode' interactive' = Data.put
           {max_depth = max_depth,
-           depth = depth,
            mode = mode',
            interactive = interactive',
            memory = memory,
@@ -276,18 +270,17 @@ fun step ({term, thm, unconditional, ctxt, rrule}: data) =
     | SOME res => mk_promise res)
   end
 
-fun recurse text term ctxt =
+fun recurse text depth term ctxt =
   let
     fun payload () =
       {props = [],
        pretty = Syntax.pretty_term ctxt term}
 
-    val {max_depth, depth, mode, interactive, memory, breakpoints, ...} =
+    val {max_depth, mode, interactive, memory, breakpoints, ...} =
       Data.get (Context.Proof ctxt)
 
     fun put result_id = Data.put
       {max_depth = max_depth,
-       depth = depth + 1,
        mode = if depth >= max_depth then Disabled else mode,
        interactive = interactive,
        memory = memory,
@@ -325,12 +318,9 @@ fun indicate_failure ({term, ctxt, thm, rrule, ...}: data) ctxt' =
       end
 
     val {interactive, ...} = Data.get (Context.Proof ctxt)
-    val {parent, ...} = Data.get (Context.Proof ctxt')
 
     fun mk_promise result =
       let
-        val result_id = #1 result
-
         fun to_response "exit" = false
           | to_response "redo" =
               (Option.app output_result
@@ -389,7 +379,7 @@ val _ = Session.protocol_handler "isabelle.Simplifier_Trace$Handler"
 
 val _ = Theory.setup
   (Simplifier.set_trace_ops
-    {trace_invoke = fn {depth, term} => recurse "Simplifier invoked" term,
+    {trace_invoke = fn {depth, term} => recurse "Simplifier invoked" depth term,
      trace_apply = simp_apply})
 
 val _ =
