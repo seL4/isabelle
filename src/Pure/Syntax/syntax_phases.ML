@@ -257,7 +257,8 @@ fun decode_term _ (result as (_: Position.report_text list, Exn.Exn _)) = result
                     val _ = report ps (markup_const ctxt) c;
                   in Const (c, T) end)
           | decode ps _ _ (Free (a, T)) =
-              (case (get_free a, get_const a) of
+              (Name.reject_internal (a, ps);
+               case (get_free a, get_const a) of
                 (SOME x, _) => (report ps (markup_free ctxt) x; Free (x, T))
               | (_, (true, c)) => (report ps (markup_const ctxt) c; Const (c, T))
               | (_, (false, c)) =>

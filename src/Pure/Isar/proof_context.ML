@@ -422,19 +422,6 @@ val cert_typ_abbrev = cert_typ_mode Type.mode_abbrev;
 
 
 
-(** prepare variables **)
-
-(* check Skolem constants *)
-
-fun no_skolem internal x =
-  if Name.is_skolem x then
-    error ("Illegal reference to internal Skolem constant: " ^ quote x)
-  else if not internal andalso Name.is_internal x then
-    error ("Illegal reference to internal variable: " ^ quote x)
-  else x;
-
-
-
 (** prepare terms and propositions **)
 
 (* inferred types of parameters *)
@@ -515,7 +502,7 @@ fun read_const_proper ctxt strict =
 fun read_const ctxt strict ty text =
   let
     val (c, pos) = Symbol_Pos.source_content (Syntax.read_token text);
-    val _ = no_skolem false c;
+    val _ = Name.reject_internal (c, [pos]);
   in
     (case (Variable.lookup_fixed ctxt c, Variable.is_const ctxt c) of
       (SOME x, false) =>
@@ -550,13 +537,12 @@ end;
 
 fun intern_skolem ctxt x =
   let
-    val _ = no_skolem false x;
-    val sko = Variable.lookup_fixed ctxt x;
+    val skolem = Variable.lookup_fixed ctxt x;
     val is_const = can (read_const_proper ctxt false) x orelse Long_Name.is_qualified x;
     val is_declared = is_some (Variable.def_type ctxt false (x, ~1));
   in
     if Variable.is_const ctxt x then NONE
-    else if is_some sko then sko
+    else if is_some skolem then skolem
     else if not is_const orelse is_declared then SOME x
     else NONE
   end;
@@ -1033,8 +1019,10 @@ fun prep_vars prep_typ internal =
   fold_map (fn (b, raw_T, mx) => fn ctxt =>
     let
       val x = Variable.check_name b;
-      val _ = Symbol_Pos.is_identifier (no_skolem internal x) orelse
-        error ("Illegal variable name: " ^ Binding.print b);
+      val check_name = if internal then Name.reject_skolem else Name.reject_internal;
+      val _ =
+        if can check_name (x, []) andalso Symbol_Pos.is_identifier x then ()
+        else error ("Bad name: " ^ Binding.print b);
 
       fun cond_tvars T =
         if internal then T
