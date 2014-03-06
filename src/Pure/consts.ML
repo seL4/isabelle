@@ -25,7 +25,7 @@ sig
   val extern: Proof.context -> T -> string -> xstring
   val intern_syntax: T -> xstring -> string
   val extern_syntax: Proof.context -> T -> string -> xstring
-  val check_const: Context.generic -> T -> xstring * Position.T -> term
+  val check_const: Context.generic -> T -> xstring * Position.T -> term * Position.report list
   val certify: Context.pretty -> Type.tsig -> bool -> T -> term -> term  (*exception TYPE*)
   val typargs: T -> string * typ -> typ list
   val instance: T -> string * typ list -> typ
@@ -146,9 +146,9 @@ fun extern_syntax ctxt consts s =
 fun check_const context consts (xname, pos) =
   let
     val Consts {decls, ...} = consts;
-    val (c, _) = Name_Space.check context decls (xname, pos);
+    val ((c, reports), _) = Name_Space.check_reports context decls (xname, pos);
     val T = type_scheme consts c handle TYPE (msg, _, _) => error (msg ^ Position.here pos);
-  in Const (c, T) end;
+  in (Const (c, T), reports) end;
 
 
 (* certify *)

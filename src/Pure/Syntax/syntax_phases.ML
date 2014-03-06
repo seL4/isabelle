@@ -220,13 +220,27 @@ fun ast_to_term ctxt trf =
 
 (* decode_term -- transform parse tree into raw term *)
 
+fun decode_const ctxt c =
+  let val (Const (c', _), _) = Proof_Context.check_const_proper ctxt false (c, Position.none)
+  in c' end;
+
 fun decode_term _ (result as (_: Position.report_text list, Exn.Exn _)) = result
   | decode_term ctxt (reports0, Exn.Res tm) =
       let
-        fun get_const a =
-          ((true, #1 (Term.dest_Const (Proof_Context.read_const_proper ctxt false a)))
-            handle ERROR _ => (false, Consts.intern (Proof_Context.consts_of ctxt) a));
-        val get_free = Proof_Context.intern_skolem ctxt;
+        fun get_const c =
+          (true, decode_const ctxt c) handle ERROR _ =>
+            (false, Consts.intern (Proof_Context.consts_of ctxt) c);
+        fun get_free x =
+          let
+            val skolem = Variable.lookup_fixed ctxt x;
+            val is_const = can (decode_const ctxt) x orelse Long_Name.is_qualified x;
+            val is_declared = is_some (Variable.def_type ctxt false (x, ~1));
+          in
+            if Variable.is_const ctxt x then NONE
+            else if is_some skolem then skolem
+            else if not is_const orelse is_declared then SOME x
+            else NONE
+          end;
 
         val reports = Unsynchronized.ref reports0;
         fun report ps = Position.store_reports reports ps;
@@ -796,7 +810,7 @@ fun type_constraint_tr' ctxt (Type ("fun", [T, _])) (t :: ts) =
 
 fun const_ast_tr intern ctxt [Ast.Variable c] =
       let
-        val Const (c', _) = Proof_Context.read_const_proper ctxt false c;
+        val c' = decode_const ctxt c;
         val d = if intern then Lexicon.mark_const c' else c;
       in Ast.Constant d end
   | const_ast_tr intern ctxt [Ast.Appl [Ast.Constant "_constrain", x, T as Ast.Variable pos]] =
