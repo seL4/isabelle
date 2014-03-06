@@ -197,7 +197,8 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
         val setT = fastype_of set;
         val var_set' = Const (@{const_name id_bnf_comp}, setT --> setT) $ Var ((Name.uu, 0), setT);
         val goal = mk_Trueprop_eq (var_set', set);
-        fun tac {context = ctxt, prems = _} = mk_simplified_set_tac ctxt;
+        fun tac {context = ctxt, prems = _} =
+          mk_simplified_set_tac ctxt (collect_set_map_of_bnf outer);
         val set'_eq_set =
           Goal.prove names_lthy [] [] goal tac
           |> Thm.close_derivation;

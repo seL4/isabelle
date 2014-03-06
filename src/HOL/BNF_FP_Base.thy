@@ -98,13 +98,6 @@ lemma sum_set_simps:
 "setr (Inr x) = {x}"
 unfolding sum_set_defs by simp+
 
-lemma UN_compreh_eq_eq:
-"\<Union>{y. y = A} = A"
-by blast+
-
-lemma ex_in_single: "(\<exists>x \<in> {y}. P x) = P y"
-by blast
-
 lemma spec2: "\<forall>x y. P x y \<Longrightarrow> P x y"
 by blast
 

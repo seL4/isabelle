@@ -31,7 +31,7 @@ sig
   val mk_le_rel_OO_tac: thm -> thm -> thm list -> tactic
   val mk_simple_rel_OO_Grp_tac: thm -> thm -> tactic
   val mk_simple_wit_tac: thm list -> tactic
-  val mk_simplified_set_tac: Proof.context -> tactic
+  val mk_simplified_set_tac: Proof.context -> thm -> tactic
   val bd_ordIso_natLeq_tac: tactic
 end;
 
@@ -144,12 +144,13 @@ fun mk_comp_set_bd_tac ctxt set'_eq_set bd_ordIso_natLeq_opt comp_set_alt Gset_F
      rtac @{thm cprod_com}) 1
   end;
 
-val comp_in_alt_thms = @{thms o_apply collect_def SUP_def image_insert image_empty Union_insert
-  Union_empty Un_empty_right Union_Un_distrib Un_subset_iff conj_subset_def UN_image_subset
+val comp_in_alt_thms = @{thms o_apply collect_def image_insert image_empty Union_insert UN_insert
+  UN_empty Union_empty Un_empty_right Union_Un_distrib Un_subset_iff conj_subset_def UN_image_subset
   conj_assoc};
 
 fun mk_comp_in_alt_tac ctxt comp_set_alts =
-  unfold_thms_tac ctxt (comp_set_alts @ comp_in_alt_thms) THEN
+  unfold_thms_tac ctxt comp_set_alts THEN
+  unfold_thms_tac ctxt comp_in_alt_thms THEN
   unfold_thms_tac ctxt @{thms set_eq_subset} THEN
   rtac conjI 1 THEN
   REPEAT_DETERM (
@@ -161,13 +162,14 @@ fun mk_comp_in_alt_tac ctxt comp_set_alts =
        atac ORELSE'
        (rtac subset_UNIV)) 1)) ORELSE rtac subset_UNIV 1));
 
-val comp_wit_thms = @{thms Union_empty_conv o_apply collect_def SUP_def
+val comp_wit_thms = @{thms Union_empty_conv o_apply collect_def UN_insert UN_empty Un_empty_right
   Union_image_insert Union_image_empty};
 
 fun mk_comp_wit_tac ctxt set'_eq_sets Gwit_thms collect_set_map Fwit_thms =
   unfold_thms_tac ctxt set'_eq_sets THEN
   ALLGOALS (dtac @{thm in_Union_o_assoc}) THEN
-  unfold_thms_tac ctxt (collect_set_map :: comp_wit_thms) THEN
+  unfold_thms_tac ctxt [collect_set_map] THEN
+  unfold_thms_tac ctxt comp_wit_thms THEN
   REPEAT_DETERM ((atac ORELSE'
     REPEAT_DETERM o eresolve_tac @{thms UnionE UnE} THEN'
     etac imageE THEN' TRY o dresolve_tac Gwit_thms THEN'
@@ -236,13 +238,12 @@ val csum_thms =
 val cprod_thms =
   @{thms cprod_cong1 cprod_cong2 cprod_cong cprod_dup[OF natLeq_cinfinite natLeq_Card_order]};
 
-(*inspired by "bnf_fp_def_sugar_tactics.ML"*)
 val simplified_set_simps =
-  @{thms SUP_empty Sup_empty Sup_insert UN_insert Un_empty_left Un_empty_right Un_iff
-      Union_Un_distrib collect_def[abs_def] image_def o_def map_pair_simp mem_Collect_eq
-      mem_UN_compreh_ex_eq UN_compreh_ex_eq_eq sum.set_map prod.set_map id_bnf_comp_def};
+  @{thms collect_def[abs_def] UN_insert UN_empty Un_empty_right Un_empty_left
+    o_def Union_Un_distrib Union_image_eq UN_empty2 UN_singleton id_bnf_comp_def};
 
-fun mk_simplified_set_tac ctxt =
+fun mk_simplified_set_tac ctxt collect_set_map =
+  unfold_thms_tac ctxt (collect_set_map :: @{thms comp_assoc}) THEN
   unfold_thms_tac ctxt simplified_set_simps THEN rtac refl 1;
 
 val bd_ordIso_natLeq_tac =
