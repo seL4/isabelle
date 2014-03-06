@@ -516,7 +516,7 @@ val setup =
   Attrib.setup @{binding ind_realizer}
     ((Scan.option (Scan.lift (Args.$$$ "irrelevant") |--
       Scan.option (Scan.lift (Args.colon) |--
-        Scan.repeat1 (Args.const {proper = false, strict = true})))) >> rlz_attrib)
+        Scan.repeat1 (Args.const {proper = true, strict = true})))) >> rlz_attrib)
     "add realizers for inductive set";
 
 end;
