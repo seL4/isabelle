@@ -13,8 +13,10 @@ sig
   val is_bound: string -> bool
   val internal: string -> string
   val dest_internal: string -> string
+  val is_internal: string -> bool
   val skolem: string -> string
   val dest_skolem: string -> string
+  val is_skolem: string -> bool
   val clean_index: string * int -> string * int
   val clean: string -> string
   type context
@@ -63,9 +65,11 @@ val is_bound = String.isPrefix ":";
 
 val internal = suffix "_";
 val dest_internal = unsuffix "_";
+val is_internal = String.isSuffix "_";
 
 val skolem = suffix "__";
 val dest_skolem = unsuffix "__";
+val is_skolem = String.isSuffix "__";
 
 fun clean_index (x, i) =
   (case try dest_internal x of

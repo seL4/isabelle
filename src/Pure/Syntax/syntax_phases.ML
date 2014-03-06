@@ -51,7 +51,7 @@ fun markup_const ctxt c =
   [Name_Space.markup (Consts.space_of (Proof_Context.consts_of ctxt)) c];
 
 fun markup_free ctxt x =
-  [if can Name.dest_skolem x then Markup.skolem else Markup.free] @
+  [if Name.is_skolem x then Markup.skolem else Markup.free] @
   (if Variable.is_body ctxt orelse Variable.is_fixed ctxt x
    then [Variable.markup_fixed ctxt x]
    else []);
@@ -664,7 +664,7 @@ fun free_or_skolem ctxt x =
       if Variable.is_fixed ctxt x orelse Syntax.is_pretty_global ctxt
       then Markup.fixed x else Markup.intensify;
   in
-    if can Name.dest_skolem x
+    if Name.is_skolem x
     then ([m, Markup.skolem], Variable.revert_fixed ctxt x)
     else ([m, Markup.free], x)
   end;

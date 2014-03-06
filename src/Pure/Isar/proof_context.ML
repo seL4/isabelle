@@ -427,9 +427,9 @@ val cert_typ_abbrev = cert_typ_mode Type.mode_abbrev;
 (* check Skolem constants *)
 
 fun no_skolem internal x =
-  if can Name.dest_skolem x then
+  if Name.is_skolem x then
     error ("Illegal reference to internal Skolem constant: " ^ quote x)
-  else if not internal andalso can Name.dest_internal x then
+  else if not internal andalso Name.is_internal x then
     error ("Illegal reference to internal variable: " ^ quote x)
   else x;
 
@@ -520,7 +520,7 @@ fun read_const ctxt strict ty text =
     (case (Variable.lookup_fixed ctxt c, Variable.is_const ctxt c) of
       (SOME x, false) =>
         (Context_Position.report ctxt pos
-            (Markup.name x (if can Name.dest_skolem x then Markup.skolem else Markup.free));
+            (Markup.name x (if Name.is_skolem x then Markup.skolem else Markup.free));
           Free (x, infer_type ctxt (x, ty)))
     | _ => prep_const_proper ctxt strict (c, pos))
   end;
@@ -1375,7 +1375,7 @@ fun pretty_ctxt ctxt =
         if x = x' then Pretty.str x
         else Pretty.block [Pretty.str x, Pretty.str " =", Pretty.brk 1, prt_term (Syntax.free x')];
       val fixes =
-        filter_out ((can Name.dest_internal orf member (op =) structs) o #1)
+        filter_out ((Name.is_internal orf member (op =) structs) o #1)
           (Variable.dest_fixes ctxt);
       val prt_fixes =
         if null fixes then []
