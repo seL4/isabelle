@@ -61,8 +61,10 @@ fun gen_quickcheck_generator prep_tyco prep_term tyco_raw opt_pred_raw constrs_r
 
 val quickcheck_generator = gen_quickcheck_generator (K I) (K I)
   
-val quickcheck_generator_cmd = gen_quickcheck_generator
-  (fn ctxt => fst o dest_Type o Proof_Context.read_type_name_proper ctxt false) Syntax.read_term
+val quickcheck_generator_cmd =
+  gen_quickcheck_generator
+    (fn ctxt => fst o dest_Type o Proof_Context.read_type_name ctxt {proper = true, strict = false})
+    Syntax.read_term
   
 val _ =
   Outer_Syntax.command @{command_spec "quickcheck_generator"}

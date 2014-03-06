@@ -56,7 +56,7 @@ sig
   val term_pattern: term context_parser
   val term_abbrev: term context_parser
   val prop: term context_parser
-  val type_name: bool -> string context_parser
+  val type_name: {proper: bool, strict: bool} -> string context_parser
   val const: bool -> string context_parser
   val const_proper: bool -> string context_parser
   val goal_spec: ((int -> tactic) -> tactic) context_parser
@@ -208,8 +208,8 @@ val prop = Scan.peek (named_term o Syntax.read_prop o Context.proof_of);
 
 (* type and constant names *)
 
-fun type_name strict =
-  Scan.peek (fn ctxt => named_typ (Proof_Context.read_type_name (Context.proof_of ctxt) strict))
+fun type_name flags =
+  Scan.peek (fn ctxt => named_typ (Proof_Context.read_type_name (Context.proof_of ctxt) flags))
   >> (fn Type (c, _) => c | TFree (a, _) => a | _ => "");
 
 fun const strict =

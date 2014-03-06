@@ -170,7 +170,8 @@ fun parsetree_to_ast ctxt trf parsetree =
           let
             val pos = Lexicon.pos_of_token tok;
             val (Type (c, _), rs) =
-              Proof_Context.check_type_name_proper ctxt false (Lexicon.str_of_token tok, pos);
+              Proof_Context.check_type_name ctxt {proper = true, strict = false}
+                (Lexicon.str_of_token tok, pos);
             val _ = Unsynchronized.change reports (append (map (rpair "") rs));
           in [Ast.Constant (Lexicon.mark_type c)] end
       | asts_of (Parser.Node ("_position", [Parser.Tip tok])) = asts_of_position "_constrain" tok

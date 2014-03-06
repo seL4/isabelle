@@ -127,7 +127,7 @@ val _ = Theory.setup
 fun type_name kind check = Args.context -- Scan.lift (Parse.position Args.name_inner_syntax)
   >> (fn (ctxt, (s, pos)) =>
     let
-      val Type (c, _) = Proof_Context.read_type_name_proper ctxt false s;
+      val Type (c, _) = Proof_Context.read_type_name ctxt {proper = true, strict = false} s;
       val decl = Type.the_decl (Proof_Context.tsig_of ctxt) (c, pos);
       val res =
         (case try check (c, decl) of

@@ -68,12 +68,9 @@ sig
   val infer_type: Proof.context -> string * typ -> typ
   val inferred_param: string -> Proof.context -> typ * Proof.context
   val inferred_fixes: Proof.context -> (string * typ) list * Proof.context
-  val check_type_name: Proof.context -> bool ->
+  val check_type_name: Proof.context -> {proper: bool, strict: bool} ->
     xstring * Position.T -> typ * Position.report list
-  val check_type_name_proper: Proof.context -> bool ->
-    xstring * Position.T -> typ * Position.report list
-  val read_type_name: Proof.context -> bool -> string -> typ
-  val read_type_name_proper: Proof.context -> bool -> string -> typ
+  val read_type_name: Proof.context -> {proper: bool, strict: bool} -> string -> typ
   val check_const_proper: Proof.context -> bool ->
     xstring * Position.T -> term * Position.report list
   val read_const_proper: Proof.context -> bool -> string -> term
@@ -443,13 +440,15 @@ fun inferred_fixes ctxt =
 
 (* type names *)
 
-fun check_type_name ctxt strict (c, pos) =
+fun check_type_name ctxt {proper, strict} (c, pos) =
   if Lexicon.is_tid c then
-    let
-      val reports =
-        if Context_Position.is_reported ctxt pos
-        then [(pos, Markup.tfree)] else [];
-    in (TFree (c, default_sort ctxt (c, ~1)), reports) end
+    if proper then error ("Not a type constructor: " ^ c ^ Position.here pos)
+    else
+      let
+        val reports =
+          if Context_Position.is_reported ctxt pos
+          then [(pos, Markup.tfree)] else [];
+      in (TFree (c, default_sort ctxt (c, ~1)), reports) end
   else
     let
       val ((d, reports), decl) = Type.check_decl (Context.Proof ctxt) (tsig_of ctxt) (c, pos);
@@ -461,16 +460,12 @@ fun check_type_name ctxt strict (c, pos) =
         | Type.Nonterminal => if strict then err () else 0);
     in (Type (d, replicate args dummyT), reports) end;
 
-fun check_type_name_proper ctxt strict arg =
-  (case check_type_name ctxt strict arg of
-    res as (Type _, _) => res
-  | (T, _) => error ("Not a type constructor: " ^ Syntax.string_of_typ ctxt T));
-
-fun read_type_name ctxt strict =
-  Syntax.read_token #> Symbol_Pos.source_content #> check_type_name ctxt strict #> #1;
-
-fun read_type_name_proper ctxt strict =
-  Syntax.read_token #> Symbol_Pos.source_content #> check_type_name_proper ctxt strict #> #1;
+fun read_type_name ctxt flags text =
+  let
+    val (T, reports) =
+      check_type_name ctxt flags (Symbol_Pos.source_content (Syntax.read_token text));
+    val _ = Position.reports reports;
+  in T end;
 
 
 (* constant names *)
@@ -531,7 +526,8 @@ fun prep_arity prep_tycon prep_sort ctxt (t, Ss, S) =
 in
 
 val read_arity =
-  prep_arity (fn ctxt => #1 o dest_Type o read_type_name_proper ctxt true) Syntax.read_sort;
+  prep_arity (fn ctxt => #1 o dest_Type o read_type_name ctxt {proper = true, strict = true})
+    Syntax.read_sort;
 
 val cert_arity = prep_arity (K I) (Type.cert_sort o tsig_of);
 

@@ -234,7 +234,7 @@ end;
 (** document antiquotation **)
 
 val antiq_setup =
-  Thy_Output.antiquotation @{binding datatype} (Args.type_name true)
+  Thy_Output.antiquotation @{binding datatype} (Args.type_name {proper = false, strict = true})
     (fn {source = src, context = ctxt, ...} => fn dtco =>
       let
         val thy = Proof_Context.theory_of ctxt;
