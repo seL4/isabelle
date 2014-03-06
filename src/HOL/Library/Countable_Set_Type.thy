@@ -124,12 +124,12 @@ lemma Collect_Int_Times:
 "{(x, y). R x y} \<inter> A \<times> B = {(x, y). R x y \<and> x \<in> A \<and> y \<in> B}"
 by auto
 
-definition cset_rel :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a cset \<Rightarrow> 'b cset \<Rightarrow> bool" where
-"cset_rel R a b \<longleftrightarrow>
+definition rel_cset :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a cset \<Rightarrow> 'b cset \<Rightarrow> bool" where
+"rel_cset R a b \<longleftrightarrow>
  (\<forall>t \<in> rcset a. \<exists>u \<in> rcset b. R t u) \<and>
  (\<forall>t \<in> rcset b. \<exists>u \<in> rcset a. R u t)"
 
-lemma cset_rel_aux:
+lemma rel_cset_aux:
 "(\<forall>t \<in> rcset a. \<exists>u \<in> rcset b. R t u) \<and> (\<forall>t \<in> rcset b. \<exists>u \<in> rcset a. R u t) \<longleftrightarrow>
  ((Grp {x. rcset x \<subseteq> {(a, b). R a b}} (cimage fst))\<inverse>\<inverse> OO
           Grp {x. rcset x \<subseteq> {(a, b). R a b}} (cimage snd)) a b" (is "?L = ?R")
@@ -155,7 +155,7 @@ bnf "'a cset"
   sets: rcset
   bd: natLeq
   wits: "cempty"
-  rel: cset_rel
+  rel: rel_cset
 proof -
   show "cimage id = id" by transfer' simp
 next
@@ -173,14 +173,14 @@ next
   fix C show "|rcset C| \<le>o natLeq" by transfer (unfold countable_card_le_natLeq)
 next
   fix R S
-  show "cset_rel R OO cset_rel S \<le> cset_rel (R OO S)"
-    unfolding cset_rel_def[abs_def] by fast
+  show "rel_cset R OO rel_cset S \<le> rel_cset (R OO S)"
+    unfolding rel_cset_def[abs_def] by fast
 next
   fix R
-  show "cset_rel R =
+  show "rel_cset R =
         (Grp {x. rcset x \<subseteq> Collect (split R)} (cimage fst))\<inverse>\<inverse> OO
          Grp {x. rcset x \<subseteq> Collect (split R)} (cimage snd)"
-  unfolding cset_rel_def[abs_def] cset_rel_aux by simp
+  unfolding rel_cset_def[abs_def] rel_cset_aux by simp
 qed (transfer, simp)
 
 end
