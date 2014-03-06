@@ -191,8 +191,8 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
   INCOMPATIBILITY.
 
 * The following map functions and relators have been renamed:
-    map_sum ~> sum_map
-    map_pair ~> prod_map
+    sum_map ~> map_sum
+    map_pair ~> map_prod
     fset_rel ~> rel_fset
     cset_rel ~> rel_cset
     set_rel ~> rel_set
