@@ -66,32 +66,32 @@ qed
 text {* Relator for 'a endofun. *}
 
 definition
-  endofun_rel' :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> bool" 
+  rel_endofun' :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> bool" 
 where
-  "endofun_rel' R = (\<lambda>f g. (R ===> R) f g)"
+  "rel_endofun' R = (\<lambda>f g. (R ===> R) f g)"
 
-quotient_definition "endofun_rel :: ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a endofun \<Rightarrow> 'b endofun \<Rightarrow> bool" is
-  endofun_rel' done
+quotient_definition "rel_endofun :: ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a endofun \<Rightarrow> 'b endofun \<Rightarrow> bool" is
+  rel_endofun' done
 
 lemma endofun_quotient:
 assumes a: "Quotient3 R Abs Rep"
-shows "Quotient3 (endofun_rel R) (map_endofun Abs Rep) (map_endofun Rep Abs)"
+shows "Quotient3 (rel_endofun R) (map_endofun Abs Rep) (map_endofun Rep Abs)"
 proof (intro Quotient3I)
   show "\<And>a. map_endofun Abs Rep (map_endofun Rep Abs a) = a"
     by (metis (hide_lams, no_types) a abs_o_rep id_apply map_endofun.comp map_endofun.id o_eq_dest_lhs)
 next
-  show "\<And>a. endofun_rel R (map_endofun Rep Abs a) (map_endofun Rep Abs a)"
+  show "\<And>a. rel_endofun R (map_endofun Rep Abs a) (map_endofun Rep Abs a)"
   using fun_quotient3[OF a a, THEN Quotient3_rep_reflp]
-  unfolding endofun_rel_def map_endofun_def map_fun_def o_def map_endofun'_def endofun_rel'_def id_def 
+  unfolding rel_endofun_def map_endofun_def map_fun_def o_def map_endofun'_def rel_endofun'_def id_def 
     by (metis (mono_tags) Quotient3_endofun rep_abs_rsp)
 next
   have abs_to_eq: "\<And> x y. abs_endofun x = abs_endofun y \<Longrightarrow> x = y" 
   by (drule arg_cong[where f=rep_endofun]) (simp add: Quotient3_rep_abs[OF Quotient3_endofun])
   fix r s
-  show "endofun_rel R r s =
-          (endofun_rel R r r \<and>
-           endofun_rel R s s \<and> map_endofun Abs Rep r = map_endofun Abs Rep s)"
-    apply(auto simp add: endofun_rel_def endofun_rel'_def map_endofun_def map_endofun'_def)
+  show "rel_endofun R r s =
+          (rel_endofun R r r \<and>
+           rel_endofun R s s \<and> map_endofun Abs Rep r = map_endofun Abs Rep s)"
+    apply(auto simp add: rel_endofun_def rel_endofun'_def map_endofun_def map_endofun'_def)
     using fun_quotient3[OF a a,THEN Quotient3_refl1]
     apply metis
     using fun_quotient3[OF a a,THEN Quotient3_refl2]
@@ -101,7 +101,7 @@ next
     by (auto intro: fun_quotient3[OF a a, THEN Quotient3_rel, THEN iffD1] simp add: abs_to_eq)
 qed
 
-declare [[mapQ3 endofun = (endofun_rel, endofun_quotient)]]
+declare [[mapQ3 endofun = (rel_endofun, endofun_quotient)]]
 
 quotient_definition "endofun_id_id :: ('a endofun) endofun" is "id :: ('a \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> 'a)" done
 
