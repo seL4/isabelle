@@ -212,7 +212,7 @@ fun type_name flags =
   >> (fn Type (c, _) => c | TFree (a, _) => a | _ => "");
 
 fun const flags =
-  Scan.peek (fn ctxt => named_term (Proof_Context.read_const (Context.proof_of ctxt) flags dummyT))
+  Scan.peek (fn ctxt => named_term (Proof_Context.read_const (Context.proof_of ctxt) flags))
   >> (fn Const (c, _) => c | Free (x, _) => x | _ => "");
 
 

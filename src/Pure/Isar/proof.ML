@@ -575,13 +575,17 @@ fun gen_write prep_arg mode args =
   #> map_context (fn ctxt => ctxt |> Proof_Context.notation true mode (map (prep_arg ctxt) args))
   #> reset_facts;
 
+fun read_arg ctxt (c, mx) =
+  (case Proof_Context.read_const ctxt {proper = false, strict = false} c of
+    Free (x, _) =>
+      let val T = Proof_Context.infer_type ctxt (x, Mixfix.mixfixT mx)
+      in (Free (x, T), mx) end
+  | t => (t, mx));
+
 in
 
 val write = gen_write (K I);
-
-val write_cmd =
-  gen_write (fn ctxt => fn (c, mx) =>
-    (Proof_Context.read_const ctxt {proper = false, strict = false} (Mixfix.mixfixT mx) c, mx));
+val write_cmd = gen_write read_arg;
 
 end;
 

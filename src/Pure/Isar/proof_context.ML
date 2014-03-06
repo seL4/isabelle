@@ -72,8 +72,8 @@ sig
     xstring * Position.T -> typ * Position.report list
   val read_type_name: Proof.context -> {proper: bool, strict: bool} -> string -> typ
   val check_const: Proof.context -> {proper: bool, strict: bool} ->
-    typ -> xstring * Position.T -> term * Position.report list
-  val read_const: Proof.context -> {proper: bool, strict: bool} -> typ -> string -> term
+    xstring * Position.T -> term * Position.report list
+  val read_const: Proof.context -> {proper: bool, strict: bool} -> string -> term
   val read_arity: Proof.context -> xstring * string list * string -> arity
   val cert_arity: Proof.context -> arity -> arity
   val allow_dummies: Proof.context -> Proof.context
@@ -469,7 +469,7 @@ fun read_type_name ctxt flags text =
 
 (* constant names *)
 
-fun check_const ctxt {proper, strict} ty (c, pos) =
+fun check_const ctxt {proper, strict} (c, pos) =
   let
     fun err msg = error (msg ^ Position.here pos);
     val consts = consts_of ctxt;
@@ -483,7 +483,7 @@ fun check_const ctxt {proper, strict} ty (c, pos) =
               if Context_Position.is_reported ctxt pos then
                 [(pos, Markup.name x (if Name.is_skolem x then Markup.skolem else Markup.free))]
               else [];
-          in (Free (x, infer_type ctxt (x, ty)), reports) end
+          in (Free (x, infer_type ctxt (x, dummyT)), reports) end
       | (_, SOME d) =>
           let
             val T = Consts.type_scheme consts d handle TYPE (msg, _, _) => err msg;
@@ -499,10 +499,10 @@ fun check_const ctxt {proper, strict} ty (c, pos) =
       | _ => ());
   in (t, reports) end;
 
-fun read_const ctxt flags ty text =
+fun read_const ctxt flags text =
   let
     val (t, reports) =
-      check_const ctxt flags ty (Symbol_Pos.source_content (Syntax.read_token text));
+      check_const ctxt flags (Symbol_Pos.source_content (Syntax.read_token text));
     val _ = Position.reports reports;
   in t end;
 

@@ -281,7 +281,7 @@ val type_notation_cmd =
 
 val notation = gen_notation (K I);
 val notation_cmd =
-  gen_notation (fn ctxt => Proof_Context.read_const ctxt {proper = false, strict = false} dummyT);
+  gen_notation (fn ctxt => Proof_Context.read_const ctxt {proper = false, strict = false});
 
 end;
 

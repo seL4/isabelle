@@ -224,7 +224,7 @@ fun ast_to_term ctxt trf =
 fun decode_const ctxt c =
   let
     val (Const (c', _), _) =
-      Proof_Context.check_const ctxt {proper = true, strict = false} dummyT (c, Position.none);
+      Proof_Context.check_const ctxt {proper = true, strict = false} (c, Position.none);
   in c' end;
 
 fun decode_term _ (result as (_: Position.report_text list, Exn.Exn _)) = result
