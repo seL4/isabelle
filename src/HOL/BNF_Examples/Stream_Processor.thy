@@ -158,8 +158,8 @@ definition \<theta> :: "('p,'a) F * 'b \<Rightarrow> ('p,'a * 'b) F" where
   "\<theta> xb = F id <id, \<lambda> a. (snd xb)> (fst xb)"
 
 (* The strength laws for \<theta>: *)
-lemma \<theta>_natural: "F id (map_pair f g) o \<theta> = \<theta> o map_pair (F id f) g"
-  unfolding \<theta>_def F.map_comp comp_def id_apply convol_def map_pair_def split_beta fst_conv snd_conv ..
+lemma \<theta>_natural: "F id (map_prod f g) o \<theta> = \<theta> o map_prod (F id f) g"
+  unfolding \<theta>_def F.map_comp comp_def id_apply convol_def map_prod_def split_beta fst_conv snd_conv ..
 
 definition assl :: "'a * ('b * 'c) \<Rightarrow> ('a * 'b) * 'c" where
   "assl abc = ((fst abc, fst (snd abc)), snd (snd abc))"
@@ -167,8 +167,8 @@ definition assl :: "'a * ('b * 'c) \<Rightarrow> ('a * 'b) * 'c" where
 lemma \<theta>_rid: "F id fst o \<theta> = fst"
   unfolding \<theta>_def F.map_comp F.map_id comp_def id_apply convol_def fst_conv sym[OF id_def] ..
 
-lemma \<theta>_assl: "F id assl o \<theta> = \<theta> o map_pair \<theta> id o assl"
-  unfolding assl_def \<theta>_def F.map_comp comp_def id_apply convol_def map_pair_def split fst_conv snd_conv ..
+lemma \<theta>_assl: "F id assl o \<theta> = \<theta> o map_prod \<theta> id o assl"
+  unfolding assl_def \<theta>_def F.map_comp comp_def id_apply convol_def map_prod_def split fst_conv snd_conv ..
 
 datatype_new ('a, 'b, 'c) spF\<^sub>\<mu> = GetF "'a \<Rightarrow> ('a, 'b, 'c) spF\<^sub>\<mu>" | PutF "('b,'c) F"
 codatatype ('a, 'b) spF\<^sub>\<nu> = InF (outF: "('a, 'b, ('a, 'b) spF\<^sub>\<nu>) spF\<^sub>\<mu>")

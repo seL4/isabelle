@@ -1564,8 +1564,8 @@ code_pred implies_itself .
 text {* Case expressions *}
 
 definition
-  "map_pairs xs ys = (map (%((a, b), c). (a, b, c)) xs = ys)"
+  "map_prods xs ys = (map (%((a, b), c). (a, b, c)) xs = ys)"
 
-code_pred [inductify] map_pairs .
+code_pred [inductify] map_prods .
 
 end

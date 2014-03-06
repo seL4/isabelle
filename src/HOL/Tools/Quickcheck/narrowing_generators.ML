@@ -366,7 +366,7 @@ fun finitize_functions (xTs, t) =
           val (ft', fT') = eval_function fT
           val (st', sT') = eval_function sT
           val T' = Type (@{type_name prod}, [fT', sT'])
-          val map_const = Const (@{const_name map_pair}, (fT' --> fT) --> (sT' --> sT) --> T' --> T)
+          val map_const = Const (@{const_name map_prod}, (fT' --> fT) --> (sT' --> sT) --> T' --> T)
           fun apply_dummy T t = absdummy T (t (Bound 0))
         in
           (fn t => list_comb (map_const, [apply_dummy fT' ft', apply_dummy sT' st', t]), T')

@@ -70,8 +70,7 @@ subsection {* Quotient theorem for the Lifting package *}
 lemma Quotient_prod[quot_map]:
   assumes "Quotient R1 Abs1 Rep1 T1"
   assumes "Quotient R2 Abs2 Rep2 T2"
-  shows "Quotient (prod_rel R1 R2) (map_pair Abs1 Abs2)
-    (map_pair Rep1 Rep2) (prod_rel T1 T2)"
+  shows "Quotient (prod_rel R1 R2) (map_prod Abs1 Abs2) (map_prod Rep1 Rep2) (prod_rel T1 T2)"
   using assms unfolding Quotient_alt_def by auto
 
 subsection {* Transfer rules for the Transfer package *}
@@ -97,10 +96,10 @@ lemma curry_transfer [transfer_rule]:
   "((prod_rel A B ===> C) ===> A ===> B ===> C) curry curry"
   unfolding curry_def by transfer_prover
 
-lemma map_pair_transfer [transfer_rule]:
+lemma map_prod_transfer [transfer_rule]:
   "((A ===> C) ===> (B ===> D) ===> prod_rel A B ===> prod_rel C D)
-    map_pair map_pair"
-  unfolding map_pair_def [abs_def] by transfer_prover
+    map_prod map_prod"
+  unfolding map_prod_def [abs_def] by transfer_prover
 
 lemma prod_rel_transfer [transfer_rule]:
   "((A ===> B ===> op =) ===> (C ===> D ===> op =) ===>

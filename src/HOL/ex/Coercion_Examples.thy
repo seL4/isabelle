@@ -52,10 +52,10 @@ definition map_fun :: "('a \<Rightarrow> 'b) \<Rightarrow> ('c \<Rightarrow> 'd)
 
 declare [[coercion_map "\<lambda> f g h . g o h o f"]]
 
-primrec map_pair :: "('a \<Rightarrow> 'c) \<Rightarrow> ('b \<Rightarrow> 'd) \<Rightarrow> ('a * 'b) \<Rightarrow> ('c * 'd)" where
- "map_pair f g (x,y) = (f x, g y)"
+primrec map_prod :: "('a \<Rightarrow> 'c) \<Rightarrow> ('b \<Rightarrow> 'd) \<Rightarrow> ('a * 'b) \<Rightarrow> ('c * 'd)" where
+ "map_prod f g (x,y) = (f x, g y)"
 
-declare [[coercion_map map_pair]]
+declare [[coercion_map map_prod]]
 
 (* Examples taken from the haskell draft implementation *)
 

@@ -5251,7 +5251,7 @@ primrec -- {*The lexicographic ordering for lists of the specified length*}
   lexn :: "('a \<times> 'a) set \<Rightarrow> nat \<Rightarrow> ('a list \<times> 'a list) set" where
 "lexn r 0 = {}" |
 "lexn r (Suc n) =
-  (map_pair (%(x, xs). x#xs) (%(x, xs). x#xs) ` (r <*lex*> lexn r n)) Int
+  (map_prod (%(x, xs). x#xs) (%(x, xs). x#xs) ` (r <*lex*> lexn r n)) Int
   {(xs, ys). length xs = Suc n \<and> length ys = Suc n}"
 
 definition lex :: "('a \<times> 'a) set \<Rightarrow> ('a list \<times> 'a list) set" where
@@ -5265,7 +5265,7 @@ lemma wf_lexn: "wf r ==> wf (lexn r n)"
 apply (induct n, simp, simp)
 apply(rule wf_subset)
  prefer 2 apply (rule Int_lower1)
-apply(rule wf_map_pair_image)
+apply(rule wf_map_prod_image)
  prefer 2 apply (rule inj_onI, auto)
 done
 

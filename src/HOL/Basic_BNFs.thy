@@ -129,27 +129,27 @@ lemma prod_rel_apply [simp]:
   by (simp add: prod_rel_def)
 
 bnf "'a \<times> 'b"
-  map: map_pair
+  map: map_prod
   sets: fsts snds
   bd: natLeq
   rel: prod_rel
 proof (unfold prod_set_defs)
-  show "map_pair id id = id" by (rule map_pair.id)
+  show "map_prod id id = id" by (rule map_prod.id)
 next
   fix f1 f2 g1 g2
-  show "map_pair (g1 o f1) (g2 o f2) = map_pair g1 g2 o map_pair f1 f2"
-    by (rule map_pair.comp[symmetric])
+  show "map_prod (g1 o f1) (g2 o f2) = map_prod g1 g2 o map_prod f1 f2"
+    by (rule map_prod.comp[symmetric])
 next
   fix x f1 f2 g1 g2
   assume "\<And>z. z \<in> {fst x} \<Longrightarrow> f1 z = g1 z" "\<And>z. z \<in> {snd x} \<Longrightarrow> f2 z = g2 z"
-  thus "map_pair f1 f2 x = map_pair g1 g2 x" by (cases x) simp
+  thus "map_prod f1 f2 x = map_prod g1 g2 x" by (cases x) simp
 next
   fix f1 f2
-  show "(\<lambda>x. {fst x}) o map_pair f1 f2 = image f1 o (\<lambda>x. {fst x})"
+  show "(\<lambda>x. {fst x}) o map_prod f1 f2 = image f1 o (\<lambda>x. {fst x})"
     by (rule ext, unfold o_apply) simp
 next
   fix f1 f2
-  show "(\<lambda>x. {snd x}) o map_pair f1 f2 = image f2 o (\<lambda>x. {snd x})"
+  show "(\<lambda>x. {snd x}) o map_prod f1 f2 = image f2 o (\<lambda>x. {snd x})"
     by (rule ext, unfold o_apply) simp
 next
   show "card_order natLeq" by (rule natLeq_card_order)
@@ -169,8 +169,8 @@ next
 next
   fix R S
   show "prod_rel R S =
-        (Grp {x. {fst x} \<subseteq> Collect (split R) \<and> {snd x} \<subseteq> Collect (split S)} (map_pair fst fst))\<inverse>\<inverse> OO
-        Grp {x. {fst x} \<subseteq> Collect (split R) \<and> {snd x} \<subseteq> Collect (split S)} (map_pair snd snd)"
+        (Grp {x. {fst x} \<subseteq> Collect (split R) \<and> {snd x} \<subseteq> Collect (split S)} (map_prod fst fst))\<inverse>\<inverse> OO
+        Grp {x. {fst x} \<subseteq> Collect (split R) \<and> {snd x} \<subseteq> Collect (split S)} (map_prod snd snd)"
   unfolding prod_set_defs prod_rel_def Grp_def relcompp.simps conversep.simps fun_eq_iff
   by auto
 qed

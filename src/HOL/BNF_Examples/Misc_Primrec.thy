@@ -51,7 +51,7 @@ primrec rename_lam :: "(string \<Rightarrow> string) \<Rightarrow> lambda \<Righ
   "rename_lam f (Var s) = Var (f s)" |
   "rename_lam f (App l l') = App (rename_lam f l) (rename_lam f l')" |
   "rename_lam f (Abs s l) = Abs (f s) (rename_lam f l)" |
-  "rename_lam f (Let SL l) = Let (fimage (map_pair f (rename_lam f)) SL) (rename_lam f l)"
+  "rename_lam f (Let SL l) = Let (fimage (map_prod f (rename_lam f)) SL) (rename_lam f l)"
 
 primrec
   sum_i1 :: "('a\<Colon>{zero,plus}) I1 \<Rightarrow> 'a" and

@@ -13,7 +13,7 @@ begin
 
 definition osum :: "'a rel \<Rightarrow> 'b rel \<Rightarrow> ('a + 'b) rel"  (infixr "+o" 70)
 where
-  "r +o r' = map_pair Inl Inl ` r \<union> map_pair Inr Inr ` r' \<union> 
+  "r +o r' = map_prod Inl Inl ` r \<union> map_prod Inr Inr ` r' \<union> 
      {(Inl a, Inr a') | a a' . a \<in> Field r \<and> a' \<in> Field r'}"
 
 lemma Field_osum: "Field(r +o r') = Inl ` Field r \<union> Inr ` Field r'"
@@ -100,11 +100,11 @@ lemma osum_minus_Id:
   unfolding osum_def Total_Id_Field[OF r] Total_Id_Field[OF r'] by auto
 
 lemma osum_minus_Id1:
-  "r \<le> Id \<Longrightarrow> (r +o r') - Id \<le> (Inl ` Field r \<times> Inr ` Field r') \<union> (map_pair Inr Inr ` (r' - Id))"
+  "r \<le> Id \<Longrightarrow> (r +o r') - Id \<le> (Inl ` Field r \<times> Inr ` Field r') \<union> (map_prod Inr Inr ` (r' - Id))"
   unfolding osum_def by auto
 
 lemma osum_minus_Id2:
-  "r' \<le> Id \<Longrightarrow> (r +o r') - Id \<le> (map_pair Inl Inl ` (r - Id)) \<union> (Inl ` Field r \<times> Inr ` Field r')"
+  "r' \<le> Id \<Longrightarrow> (r +o r') - Id \<le> (map_prod Inl Inl ` (r - Id)) \<union> (Inl ` Field r \<times> Inr ` Field r')"
   unfolding osum_def by auto
 
 lemma osum_wf_Id:
@@ -122,11 +122,11 @@ next
   proof (elim disjE)
     assume "r \<subseteq> Id"
     thus "wf ((r +o r') - Id)"
-      by (rule wf_subset[rotated, OF osum_minus_Id1 wf_Un[OF 1 wf_map_pair_image[OF WF']]]) auto
+      by (rule wf_subset[rotated, OF osum_minus_Id1 wf_Un[OF 1 wf_map_prod_image[OF WF']]]) auto
   next
     assume "r' \<subseteq> Id"
     thus "wf ((r +o r') - Id)"
-      by (rule wf_subset[rotated, OF osum_minus_Id2 wf_Un[OF wf_map_pair_image[OF WF] 1]]) auto
+      by (rule wf_subset[rotated, OF osum_minus_Id2 wf_Un[OF wf_map_prod_image[OF WF] 1]]) auto
   qed
 qed
 
@@ -158,10 +158,10 @@ corollary osum_ordLeqL:
   shows "r \<le>o r +o r'"
   using assms osum_embedL osum_Well_order unfolding ordLeq_def by blast
 
-lemma dir_image_alt: "dir_image r f = map_pair f f ` r"
-  unfolding dir_image_def map_pair_def by auto
+lemma dir_image_alt: "dir_image r f = map_prod f f ` r"
+  unfolding dir_image_def map_prod_def by auto
 
-lemma map_pair_ordIso: "\<lbrakk>Well_order r; inj_on f (Field r)\<rbrakk> \<Longrightarrow> map_pair f f ` r =o r"
+lemma map_prod_ordIso: "\<lbrakk>Well_order r; inj_on f (Field r)\<rbrakk> \<Longrightarrow> map_prod f f ` r =o r"
   unfolding dir_image_alt[symmetric] by (rule ordIso_symmetric[OF dir_image_ordIso])
 
 definition oprod :: "'a rel \<Rightarrow> 'b rel \<Rightarrow> ('a \<times> 'b) rel"  (infixr "*o" 80)
@@ -960,7 +960,7 @@ proof -
     unfolding Field_osum iso_def bij_betw_def image_image image_Un by auto
   moreover from f have "compat ?L ?R ?f"
     unfolding osum_def iso_iff3[OF r s] compat_def bij_betw_def 
-    by (auto simp: map_pair_imageI)
+    by (auto simp: map_prod_imageI)
   ultimately have "iso ?L ?R ?f" by (subst iso_iff3) (auto intro: osum_Well_order r s t)
   thus ?thesis unfolding ordIso_def by (auto intro: osum_Well_order r s t)
 qed
@@ -978,7 +978,7 @@ proof -
     unfolding Field_osum iso_def bij_betw_def image_image image_Un by auto
   moreover from f have "compat ?L ?R ?f"
     unfolding osum_def iso_iff3[OF r s] compat_def bij_betw_def 
-    by (auto simp: map_pair_imageI)
+    by (auto simp: map_prod_imageI)
   ultimately have "iso ?L ?R ?f" by (subst iso_iff3) (auto intro: osum_Well_order r s t)
   thus ?thesis unfolding ordIso_def by (auto intro: osum_Well_order r s t)
 qed
@@ -1019,14 +1019,14 @@ lemma oprod_congL:
 proof -
   from assms(1) obtain f where r: "Well_order r" and s: "Well_order s" and f: "iso r s f"
     unfolding ordIso_def by blast
-  let ?f = "map_pair f id"
+  let ?f = "map_prod f id"
   from f have "inj_on ?f (Field ?L)"
     unfolding Field_oprod iso_def bij_betw_def inj_on_def by fastforce
   with f have "bij_betw ?f (Field ?L) (Field ?R)"
-    unfolding Field_oprod iso_def bij_betw_def by (auto intro!: map_pair_surj_on)
+    unfolding Field_oprod iso_def bij_betw_def by (auto intro!: map_prod_surj_on)
   moreover from f have "compat ?L ?R ?f"
     unfolding iso_iff3[OF r s] compat_def oprod_def bij_betw_def
-    by (auto simp: map_pair_imageI)
+    by (auto simp: map_prod_imageI)
   ultimately have "iso ?L ?R ?f" by (subst iso_iff3) (auto intro: oprod_Well_order r s t)
   thus ?thesis unfolding ordIso_def by (auto intro: oprod_Well_order r s t)
 qed
@@ -1037,14 +1037,14 @@ lemma oprod_congR:
 proof -
   from assms(1) obtain f where r: "Well_order r" and s: "Well_order s" and f: "iso r s f"
     unfolding ordIso_def by blast
-  let ?f = "map_pair id f"
+  let ?f = "map_prod id f"
   from f have "inj_on ?f (Field ?L)"
     unfolding Field_oprod iso_def bij_betw_def inj_on_def by fastforce
   with f have "bij_betw ?f (Field ?L) (Field ?R)"
-    unfolding Field_oprod iso_def bij_betw_def by (auto intro!: map_pair_surj_on)
+    unfolding Field_oprod iso_def bij_betw_def by (auto intro!: map_prod_surj_on)
   moreover from f well_order_on_domain[OF r] have "compat ?L ?R ?f"
     unfolding iso_iff3[OF r s] compat_def oprod_def bij_betw_def
-    by (auto simp: map_pair_imageI dest: inj_onD)
+    by (auto simp: map_prod_imageI dest: inj_onD)
   ultimately have "iso ?L ?R ?f" by (subst iso_iff3) (auto intro: oprod_Well_order r s t)
   thus ?thesis unfolding ordIso_def by (auto intro: oprod_Well_order r s t)
 qed
@@ -1095,10 +1095,10 @@ context
 begin
 
 lemma osum_ozeroL: "ozero +o r =o r"
-  using r unfolding osum_def ozero_def by (auto intro: map_pair_ordIso)
+  using r unfolding osum_def ozero_def by (auto intro: map_prod_ordIso)
 
 lemma osum_ozeroR: "r +o ozero =o r"
-  using r unfolding osum_def ozero_def by (auto intro: map_pair_ordIso)
+  using r unfolding osum_def ozero_def by (auto intro: map_prod_ordIso)
 
 lemma osum_assoc: "(r +o s) +o t =o r +o s +o t" (is "?L =o ?R")
 proof -
@@ -1113,7 +1113,7 @@ proof -
     assume "(a, b) \<in> ?L"
     thus "(?f a, ?f b) \<in> ?R"
       unfolding osum_def[of "r +o s" t] osum_def[of r "s +o t"] Field_osum
-      unfolding osum_def Field_osum image_iff image_Un map_pair_def
+      unfolding osum_def Field_osum image_iff image_Un map_prod_def
       by fastforce
   qed
   ultimately have "iso ?L ?R ?f" using r s t by (subst iso_iff3) (auto intro: osum_Well_order)
@@ -1132,7 +1132,7 @@ proof -
   let ?f = "map_sum id f"
   from *(1) have "inj_on ?f (Field ?L)" unfolding Field_osum inj_on_def by fastforce
   moreover
-  from *(2,4) have "compat ?L ?R ?f" unfolding compat_def osum_def map_pair_def by fastforce
+  from *(2,4) have "compat ?L ?R ?f" unfolding compat_def osum_def map_prod_def by fastforce
   moreover
   interpret t!: wo_rel t by unfold_locales (rule t)
   interpret rt!: wo_rel ?R by unfold_locales (rule osum_Well_order[OF r t])
@@ -1194,7 +1194,7 @@ proof -
   hence *: "inj_on f (Field s)" "compat s t f" "ofilter t (f ` Field s)" "f ` Field s \<subset> Field t"
     using embed_iff_compat_inj_on_ofilter[OF s t, of f] embedS_iff[OF s, of t f]
     unfolding embedS_def by auto
-  let ?f = "map_pair id f"
+  let ?f = "map_prod id f"
   from *(1) have "inj_on ?f (Field ?L)" unfolding Field_oprod inj_on_def by fastforce
   moreover
   from *(2,4) the_inv_into_f_f[OF *(1)] have "compat ?L ?R ?f" unfolding compat_def oprod_def
@@ -1211,7 +1211,7 @@ proof -
   from not_ordLess_ordIso[OF assms(1)] have "r \<noteq> {}" by (metis ozero_def ozero_ordIso)
   hence "Field r \<noteq> {}" unfolding Field_def by auto
   with *(4) have "?f ` Field ?L \<subset> Field ?R" unfolding Field_oprod
-    by auto (metis SigmaD2 SigmaI map_pair_surj_on)
+    by auto (metis SigmaD2 SigmaI map_prod_surj_on)
   ultimately have "embedS ?L ?R ?f" using embedS_iff[OF oprod_Well_order[OF r s], of ?R ?f] by auto
   thus ?thesis unfolding ordLess_def by (auto intro: oprod_Well_order r s t)
 qed
@@ -1222,10 +1222,10 @@ lemma oprod_monoL:
 proof -
   from assms obtain f where f: "\<forall>a\<in>Field r. f a \<in> Field s \<and> f ` underS r a \<subseteq> underS s (f a)"
     unfolding ordLeq_def2 by blast
-  let ?f = "map_pair f id"
+  let ?f = "map_prod f id"
   from f have "\<forall>a\<in>Field (r *o t).
      ?f a \<in> Field (s *o t) \<and> ?f ` underS (r *o t) a \<subseteq> underS (s *o t) (?f a)"
-     unfolding Field_oprod underS_def unfolding map_pair_def oprod_def by auto
+     unfolding Field_oprod underS_def unfolding map_prod_def oprod_def by auto
   thus ?thesis unfolding ordLeq_def2 by (auto intro: oprod_Well_order r s t)
 qed
 

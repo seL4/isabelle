@@ -116,11 +116,11 @@ lemma rewriteL_comp_comp2: "\<lbrakk>f o g = l1 o l2; l2 o h = r\<rbrakk> \<Long
 lemma convol_o: "<f, g> o h = <f o h, g o h>"
   unfolding convol_def by auto
 
-lemma map_pair_o_convol: "map_pair h1 h2 o <f, g> = <h1 o f, h2 o g>"
+lemma map_prod_o_convol: "map_prod h1 h2 o <f, g> = <h1 o f, h2 o g>"
   unfolding convol_def by auto
 
-lemma map_pair_o_convol_id: "(map_pair f id \<circ> <id , g>) x = <id \<circ> f , g> x"
-  unfolding map_pair_o_convol id_comp comp_id ..
+lemma map_prod_o_convol_id: "(map_prod f id \<circ> <id , g>) x = <id \<circ> f , g> x"
+  unfolding map_prod_o_convol id_comp comp_id ..
 
 lemma o_case_sum: "h o case_sum f g = case_sum (h o f) (h o g)"
   unfolding comp_def by (auto split: sum.splits)

@@ -160,7 +160,7 @@ lemma "f \<in> (\<lambda>u v. b \<times> u \<times> v) ` A \<Longrightarrow> \<f
 by (metis (lifting) imageE)
 
 lemma image_TimesA: "(\<lambda>(x, y). (f x, g y)) ` (A \<times> B) = (f ` A) \<times> (g ` B)"
-by (metis map_pair_def map_pair_surj_on)
+by (metis map_prod_def map_prod_surj_on)
 
 lemma image_TimesB:
     "(\<lambda>(x, y, z). (f x, g y, h z)) ` (A \<times> B \<times> C) = (f ` A) \<times> (g ` B) \<times> (h ` C)"

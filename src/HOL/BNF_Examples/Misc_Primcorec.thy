@@ -45,7 +45,7 @@ primcorec rename_lam :: "(string \<Rightarrow> string) \<Rightarrow> lambda \<Ri
        Var s \<Rightarrow> Var (f s)
      | App l l' \<Rightarrow> App (rename_lam f l) (rename_lam f l')
      | Abs s l \<Rightarrow> Abs (f s) (rename_lam f l)
-     | Let SL l \<Rightarrow> Let (fimage (map_pair f (rename_lam f)) SL) (rename_lam f l))"
+     | Let SL l \<Rightarrow> Let (fimage (map_prod f (rename_lam f)) SL) (rename_lam f l))"
 
 primcorec
   j1_sum :: "('a\<Colon>{zero,one,plus}) \<Rightarrow> 'a J1" and

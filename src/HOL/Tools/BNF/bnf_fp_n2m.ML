@@ -34,7 +34,7 @@ fun mk_prod_map f g =
     val ((fAT, fBT), fT) = `dest_funT (fastype_of f);
     val ((gAT, gBT), gT) = `dest_funT (fastype_of g);
   in
-    Const (@{const_name map_pair},
+    Const (@{const_name map_prod},
       fT --> gT --> HOLogic.mk_prodT (fAT, gAT) --> HOLogic.mk_prodT (fBT, gBT)) $ f $ g
   end;
 
@@ -404,10 +404,10 @@ fun construct_mutualized_fp fp fpTs (fp_sugars : fp_sugar list) bs resBs (resDs,
         val fp_xtor_co_recs = map (mk_pointfree lthy) (of_fp_res #xtor_co_rec_thms);
 
         val fold_thms = fp_case fp @{thm comp_assoc} @{thm comp_assoc[symmetric]} ::
-          map (fn thm => thm RS rewrite_comp_comp) @{thms map_pair.comp map_sum.comp} @
-          @{thms id_apply comp_id id_comp map_pair.comp map_pair.id map_sum.comp map_sum.id};
+          map (fn thm => thm RS rewrite_comp_comp) @{thms map_prod.comp map_sum.comp} @
+          @{thms id_apply comp_id id_comp map_prod.comp map_prod.id map_sum.comp map_sum.id};
         val rec_thms = fold_thms @ fp_case fp
-          @{thms fst_convol map_pair_o_convol convol_o}
+          @{thms fst_convol map_prod_o_convol convol_o}
           @{thms case_sum_o_inj(1) case_sum_o_map_sum o_case_sum};
 
         val eq_thm_prop_untyped = Term.aconv_untyped o pairself Thm.full_prop_of;

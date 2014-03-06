@@ -631,11 +631,11 @@ subsection "update"
 
 definition
   abupd :: "(abopt \<Rightarrow> abopt) \<Rightarrow> state \<Rightarrow> state"
-  where "abupd f = map_pair f id"
+  where "abupd f = map_prod f id"
 
 definition
   supd :: "(st \<Rightarrow> st) \<Rightarrow> state \<Rightarrow> state"
-  where "supd = map_pair id"
+  where "supd = map_prod id"
   
 lemma abupd_def2 [simp]: "abupd f (x,s) = (f x,s)"
 by (simp add: abupd_def)

@@ -10,8 +10,8 @@ begin
 
 subsection {* Rules for the Quotient package *}
 
-lemma map_pair_id [id_simps]:
-  shows "map_pair id id = id"
+lemma map_prod_id [id_simps]:
+  shows "map_prod id id = id"
   by (simp add: fun_eq_iff)
 
 lemma prod_rel_eq [id_simps]:
@@ -27,9 +27,9 @@ lemma prod_equivp [quot_equiv]:
 lemma prod_quotient [quot_thm]:
   assumes "Quotient3 R1 Abs1 Rep1"
   assumes "Quotient3 R2 Abs2 Rep2"
-  shows "Quotient3 (prod_rel R1 R2) (map_pair Abs1 Abs2) (map_pair Rep1 Rep2)"
+  shows "Quotient3 (prod_rel R1 R2) (map_prod Abs1 Abs2) (map_prod Rep1 Rep2)"
   apply (rule Quotient3I)
-  apply (simp add: map_pair.compositionality comp_def map_pair.identity
+  apply (simp add: map_prod.compositionality comp_def map_prod.identity
      Quotient3_abs_rep [OF assms(1)] Quotient3_abs_rep [OF assms(2)])
   apply (simp add: split_paired_all Quotient3_rel_rep [OF assms(1)] Quotient3_rel_rep [OF assms(2)])
   using Quotient3_rel [OF assms(1)] Quotient3_rel [OF assms(2)]
@@ -47,7 +47,7 @@ lemma Pair_rsp [quot_respect]:
 lemma Pair_prs [quot_preserve]:
   assumes q1: "Quotient3 R1 Abs1 Rep1"
   assumes q2: "Quotient3 R2 Abs2 Rep2"
-  shows "(Rep1 ---> Rep2 ---> (map_pair Abs1 Abs2)) Pair = Pair"
+  shows "(Rep1 ---> Rep2 ---> (map_prod Abs1 Abs2)) Pair = Pair"
   apply(simp add: fun_eq_iff)
   apply(simp add: Quotient3_abs_rep[OF q1] Quotient3_abs_rep[OF q2])
   done
@@ -61,7 +61,7 @@ lemma fst_rsp [quot_respect]:
 lemma fst_prs [quot_preserve]:
   assumes q1: "Quotient3 R1 Abs1 Rep1"
   assumes q2: "Quotient3 R2 Abs2 Rep2"
-  shows "(map_pair Rep1 Rep2 ---> Abs1) fst = fst"
+  shows "(map_prod Rep1 Rep2 ---> Abs1) fst = fst"
   by (simp add: fun_eq_iff Quotient3_abs_rep[OF q1])
 
 lemma snd_rsp [quot_respect]:
@@ -73,7 +73,7 @@ lemma snd_rsp [quot_respect]:
 lemma snd_prs [quot_preserve]:
   assumes q1: "Quotient3 R1 Abs1 Rep1"
   assumes q2: "Quotient3 R2 Abs2 Rep2"
-  shows "(map_pair Rep1 Rep2 ---> Abs2) snd = snd"
+  shows "(map_prod Rep1 Rep2 ---> Abs2) snd = snd"
   by (simp add: fun_eq_iff Quotient3_abs_rep[OF q2])
 
 lemma split_rsp [quot_respect]:
@@ -83,7 +83,7 @@ lemma split_rsp [quot_respect]:
 lemma split_prs [quot_preserve]:
   assumes q1: "Quotient3 R1 Abs1 Rep1"
   and     q2: "Quotient3 R2 Abs2 Rep2"
-  shows "(((Abs1 ---> Abs2 ---> id) ---> map_pair Rep1 Rep2 ---> id) split) = split"
+  shows "(((Abs1 ---> Abs2 ---> id) ---> map_prod Rep1 Rep2 ---> id) split) = split"
   by (simp add: fun_eq_iff Quotient3_abs_rep[OF q1] Quotient3_abs_rep[OF q2])
 
 lemma [quot_respect]:
@@ -95,7 +95,7 @@ lemma [quot_preserve]:
   assumes q1: "Quotient3 R1 abs1 rep1"
   and     q2: "Quotient3 R2 abs2 rep2"
   shows "((abs1 ---> abs1 ---> id) ---> (abs2 ---> abs2 ---> id) --->
-  map_pair rep1 rep2 ---> map_pair rep1 rep2 ---> id) prod_rel = prod_rel"
+  map_prod rep1 rep2 ---> map_prod rep1 rep2 ---> id) prod_rel = prod_rel"
   by (simp add: fun_eq_iff Quotient3_abs_rep[OF q1] Quotient3_abs_rep[OF q2])
 
 lemma [quot_preserve]:
