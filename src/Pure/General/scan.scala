@@ -7,6 +7,7 @@ Efficient scanning of keywords and tokens.
 package isabelle
 
 
+import scala.annotation.tailrec
 import scala.collection.{IndexedSeq, TraversableOnce}
 import scala.collection.immutable.PagedSeq
 import scala.util.parsing.input.{OffsetPosition, Position => InputPosition, Reader}
@@ -323,14 +324,15 @@ object Scan
     private def lookup(str: CharSequence): Option[(Boolean, Lexicon.Tree)] =
     {
       val len = str.length
-      def look(tree: Lexicon.Tree, tip: Boolean, i: Int): Option[(Boolean, Lexicon.Tree)] =
+      @tailrec def look(tree: Lexicon.Tree, tip: Boolean, i: Int): Option[(Boolean, Lexicon.Tree)] =
       {
         if (i < len) {
           tree.branches.get(str.charAt(i)) match {
             case Some((s, tr)) => look(tr, !s.isEmpty, i + 1)
             case None => None
           }
-        } else Some(tip, tree)
+        }
+        else Some(tip, tree)
       }
       look(rep, false, 0)
     }
