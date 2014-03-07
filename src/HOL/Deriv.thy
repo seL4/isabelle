@@ -389,11 +389,29 @@ lemma FDERIV_inverse[simp, FDERIV_intros]:
 
 lemma FDERIV_divide[simp, FDERIV_intros]:
   fixes f :: "_ \<Rightarrow> 'a::real_normed_div_algebra"
-  assumes g: "FDERIV g x : s :> g'"
-  assumes x:  "f x \<noteq> 0" and f: "FDERIV f x : s :> f'"
-  shows "FDERIV (\<lambda>x. g x / f x) x : s :> (\<lambda>h. - g x * (inverse (f x) * f' h * inverse (f x)) + g' h / f x)"
-  using FDERIV_mult[OF g FDERIV_inverse[OF x f]]
-  by (simp add: divide_inverse)
+  assumes f: "FDERIV f x : s :> f'" and g: "FDERIV g x : s :> g'" 
+  assumes x: "g x \<noteq> 0"
+  shows "FDERIV (\<lambda>x. f x / g x) x : s :>
+                (\<lambda>h. - f x * (inverse (g x) * g' h * inverse (g x)) + f' h / g x)"
+  using FDERIV_mult[OF f FDERIV_inverse[OF x g]]
+  by (simp add: divide_inverse field_simps)
+
+text{*Conventional form requires mult-AC laws. Types real and complex only.*}
+lemma FDERIV_divide'[FDERIV_intros]: 
+  fixes f :: "_ \<Rightarrow> 'a::real_normed_field"
+  assumes f: "FDERIV f x : s :> f'" and g: "FDERIV g x : s :> g'" and x: "g x \<noteq> 0"
+  shows "FDERIV (\<lambda>x. f x / g x) x : s :>
+                (\<lambda>h. (f' h * g x - f x * g' h) / (g x * g x))"
+proof -
+  { fix h
+    have "f' h / g x - f x * (inverse (g x) * g' h * inverse (g x)) =
+          (f' h * g x - f x * g' h) / (g x * g x)"
+      by (simp add: divide_inverse field_simps nonzero_inverse_mult_distrib x)
+   }
+  then show ?thesis
+    using FDERIV_divide [OF f g] x
+    by simp
+qed
 
 subsection {* Uniqueness *}
 
@@ -605,6 +623,10 @@ lemma DERIV_cmult:
   "DERIV f x : s :> D ==> DERIV (%x. c * f x) x : s :> c*D"
   by (drule DERIV_mult' [OF DERIV_const], simp)
 
+lemma DERIV_cmult_right:
+  "DERIV f x : s :> D ==> DERIV (%x. f x * c) x : s :> D * c"
+  using DERIV_cmult   by (force simp add: mult_ac)
+
 lemma DERIV_cmult_Id [simp]: "DERIV (op * c) x : s :> c"
   by (cut_tac c = c and x = x in DERIV_ident [THEN DERIV_cmult], simp)
 
@@ -674,13 +696,33 @@ lemma DERIV_chain': "DERIV f x : s :> D \<Longrightarrow> DERIV g (f x) :> E \<L
   using FDERIV_compose[of f "\<lambda>x. x * D" x s g "\<lambda>x. x * E"]
   by (auto simp: deriv_fderiv ac_simps dest: FDERIV_subset)
 
+corollary DERIV_chain2: "DERIV f (g x) :> Da \<Longrightarrow> DERIV g x : s :> Db \<Longrightarrow> DERIV (%x. f (g x)) x : s :> Da * Db"
+  by (rule DERIV_chain')
+
 text {* Standard version *}
 
 lemma DERIV_chain: "DERIV f (g x) :> Da \<Longrightarrow> DERIV g x : s :> Db \<Longrightarrow> DERIV (f o g) x : s :> Da * Db"
   by (drule (1) DERIV_chain', simp add: o_def mult_commute)
 
-lemma DERIV_chain2: "DERIV f (g x) :> Da \<Longrightarrow> DERIV g x : s :> Db \<Longrightarrow> DERIV (%x. f (g x)) x : s :> Da * Db"
-  by (auto dest: DERIV_chain simp add: o_def)
+lemma DERIV_image_chain: 
+  "DERIV f (g x) : (g ` s) :> Da \<Longrightarrow> DERIV g x : s :> Db \<Longrightarrow> DERIV (f o g) x : s :> Da * Db"
+  using FDERIV_in_compose [of g "\<lambda>x. x * Db" x s f "\<lambda>x. x * Da "]
+  by (simp add: deriv_fderiv o_def  mult_ac)
+
+(*These two are from HOL Light: HAS_COMPLEX_DERIVATIVE_CHAIN*)
+lemma DERIV_chain_s:
+  assumes "(\<And>x. x \<in> s \<Longrightarrow> DERIV g x :> g'(x))"
+      and "DERIV f x :> f'" 
+      and "f x \<in> s"
+    shows "DERIV (\<lambda>x. g(f x)) x :> f' * g'(f x)"
+  by (metis (full_types) DERIV_chain' mult_commute assms)
+
+lemma DERIV_chain3: (*HAS_COMPLEX_DERIVATIVE_CHAIN_UNIV*)
+  assumes "(\<And>x. DERIV g x :> g'(x))"
+      and "DERIV f x :> f'" 
+    shows "DERIV (\<lambda>x. g(f x)) x :> f' * g'(f x)"
+  by (metis UNIV_I DERIV_chain_s [of UNIV] assms)
+
 
 subsubsection {* @{text "DERIV_intros"} *}
 

@@ -534,14 +534,35 @@ by (simp add: power2_eq_square)
 
 subsection {* Square Root of Sum of Squares *}
 
-lemma real_sqrt_sum_squares_ge_zero: "0 \<le> sqrt (x\<^sup>2 + y\<^sup>2)"
-  by simp (* TODO: delete *)
+lemma sum_squares_bound: 
+  fixes x:: "'a::linordered_field"
+  shows "2*x*y \<le> x^2 + y^2"
+proof -
+  have "(x-y)^2 = x*x - 2*x*y + y*y"
+    by algebra
+  then have "0 \<le> x^2 - 2*x*y + y^2"
+    by (metis sum_power2_ge_zero zero_le_double_add_iff_zero_le_single_add power2_eq_square)
+  then show ?thesis
+    by arith
+qed
 
-declare real_sqrt_sum_squares_ge_zero [THEN abs_of_nonneg, simp]
+lemma arith_geo_mean: 
+  fixes u:: "'a::linordered_field" assumes "u\<^sup>2 = x*y" "x\<ge>0" "y\<ge>0" shows "u \<le> (x + y)/2"
+    apply (rule power2_le_imp_le)
+    using sum_squares_bound assms
+    apply (auto simp: zero_le_mult_iff)
+    by (auto simp: algebra_simps power2_eq_square)
+
+lemma arith_geo_mean_sqrt: 
+  fixes x::real assumes "x\<ge>0" "y\<ge>0" shows "sqrt(x*y) \<le> (x + y)/2"
+  apply (rule arith_geo_mean)
+  using assms
+  apply (auto simp: zero_le_mult_iff)
+  done
 
 lemma real_sqrt_sum_squares_mult_ge_zero [simp]:
      "0 \<le> sqrt ((x\<^sup>2 + y\<^sup>2)*(xa\<^sup>2 + ya\<^sup>2))"
-  by (simp add: zero_le_mult_iff)
+  by (metis real_sqrt_ge_0_iff split_mult_pos_le sum_power2_ge_zero)
 
 lemma real_sqrt_sum_squares_mult_squared_eq [simp]:
      "(sqrt ((x\<^sup>2 + y\<^sup>2) * (xa\<^sup>2 + ya\<^sup>2)))\<^sup>2 = (x\<^sup>2 + y\<^sup>2) * (xa\<^sup>2 + ya\<^sup>2)"
