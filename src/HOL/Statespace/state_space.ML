@@ -78,16 +78,6 @@ fun fold1 f xs = fold f (tl xs) (hd xs)
 fun fold1' f [] x = x
   | fold1' f xs _ = fold1 f xs
 
-fun sublist_idx eq xs ys =
-  let
-    fun sublist n xs ys =
-         if is_prefix eq xs ys then SOME n
-         else (case ys of [] => NONE
-               | (y::ys') => sublist (n+1) xs ys')
-  in sublist 0 xs ys end;
-
-fun is_sublist eq xs ys = is_some (sublist_idx eq xs ys);
-
 fun sorted_subset eq [] ys = true
   | sorted_subset eq (x::xs) [] = false
   | sorted_subset eq (x::xs) (y::ys) = if eq (x,y) then sorted_subset eq xs ys
@@ -116,13 +106,6 @@ structure NameSpaceData = Generic_Data
 
 fun make_namespace_data declinfo distinctthm silent =
      {declinfo=declinfo,distinctthm=distinctthm,silent=silent};
-
-
-fun delete_declinfo n ctxt =
-  let val {declinfo,distinctthm,silent} = NameSpaceData.get ctxt;
-  in NameSpaceData.put
-       (make_namespace_data (Termtab.delete_safe n declinfo) distinctthm silent) ctxt
-  end;
 
 
 fun update_declinfo (n,v) ctxt =
@@ -252,7 +235,6 @@ fun namespace_definition name nameT parent_expr parent_comps new_comps thy =
   let
     val all_comps = parent_comps @ new_comps;
     val vars = (map (fn n => (Binding.name n, NONE, NoSyn)) all_comps);
-    val full_name = Sign.full_bname thy name;
     val dist_thm_name = distinct_compsN;
 
     val dist_thm_full_name = dist_thm_name;
@@ -296,7 +278,7 @@ fun namespace_definition name nameT parent_expr parent_comps new_comps thy =
     |> interprete_parent name dist_thm_full_name parent_expr
   end;
 
-fun encode_dot x = if x= #"." then #"_" else x;
+fun encode_dot x = if x = #"." then #"_" else x;
 
 fun encode_type (TFree (s, _)) = s
   | encode_type (TVar ((s,i),_)) = "?" ^ s ^ string_of_int i
@@ -308,23 +290,6 @@ fun encode_type (TFree (s, _)) = s
 
 fun project_name T = projectN ^"_"^encode_type T;
 fun inject_name T = injectN ^"_"^encode_type T;
-
-fun project_free T pT V = Free (project_name T, V --> pT);
-fun inject_free T pT V = Free (inject_name T, pT --> V);
-
-fun get_name n = getN ^ "_" ^ n;
-fun put_name n = putN ^ "_" ^ n;
-fun get_const n T nT V = Free (get_name n, (nT --> V) --> T);
-fun put_const n T nT V = Free (put_name n, T --> (nT --> V) --> (nT --> V));
-
-fun lookup_const T nT V =
-  Const (@{const_name StateFun.lookup}, (V --> T) --> nT --> (nT --> V) --> T);
-
-fun update_const T nT V =
-  Const (@{const_name StateFun.update},
-    (V --> T) --> (T --> V) --> nT --> (T --> T) --> (nT --> V) --> (nT --> V));
-
-fun K_const T = Const (@{const_name K_statefun}, T --> T --> T);
 
 
 fun add_declaration name decl thy =
@@ -347,15 +312,12 @@ fun parent_components thy (Ts, pname, renaming) =
     val all_comps = rename renaming (parent_comps @ map (apsnd subst) components);
   in all_comps end;
 
-fun take_upto i xs = List.take(xs,i) handle General.Subscript => xs;
-
 fun statespace_definition state_type args name parents parent_comps components thy =
   let
     val full_name = Sign.full_bname thy name;
     val all_comps = parent_comps @ components;
 
     val components' = map (fn (n,T) => (n,(T,full_name))) components;
-    val all_comps' = map (fn (n,T) => (n,(T,full_name))) all_comps;
 
     fun parent_expr (prefix, (_, n, rs)) =
       (suffix namespaceN n, (prefix, Expression.Positional rs));
@@ -451,11 +413,6 @@ fun statespace_definition state_type args name parents parent_comps components t
 
 
 (* prepare arguments *)
-
-fun read_raw_parent ctxt raw_T =
-  (case Proof_Context.read_typ_abbrev ctxt raw_T of
-    Type (name, Ts) => (Ts, name)
-  | T => error ("Bad parent statespace specification: " ^ Syntax.string_of_typ ctxt T));
 
 fun read_typ ctxt raw_T env =
   let
@@ -587,16 +544,15 @@ val define_statespace_i = gen_define_statespace cert_typ;
 (*** parse/print - translations ***)
 
 local
+
 fun map_get_comp f ctxt (Free (name,_)) =
       (case (get_comp ctxt name) of
         SOME (T,_) => f T T dummyT
       | NONE => (Syntax.free "arbitrary"(*; error "context not ready"*)))
   | map_get_comp _ _ _ = Syntax.free "arbitrary";
 
-val get_comp_projection = map_get_comp project_free;
-val get_comp_injection  = map_get_comp inject_free;
-
 fun name_of (Free (n,_)) = n;
+
 in
 
 fun gen_lookup_tr ctxt s n =
@@ -624,7 +580,7 @@ fun lookup_tr' ctxt [_ $ Free (prj, _), n as (_ $ Free (name, _)), s] =
           then Syntax.const "_statespace_lookup" $ s $ n
           else raise Match
       | NONE => raise Match)
-  | lookup_tr' _ ts = raise Match;
+  | lookup_tr' _ _ = raise Match;
 
 fun gen_update_tr id ctxt n v s =
   let
