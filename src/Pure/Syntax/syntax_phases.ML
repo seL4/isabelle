@@ -337,7 +337,7 @@ fun parse_asts ctxt raw root (syms, pos) =
       else
         [cat_lines
           (("Ambiguous input" ^ Position.here (Position.reset_range pos) ^
-            "\nproduces " ^ string_of_int len ^ " parse trees" ^
+            " produces " ^ string_of_int len ^ " parse trees" ^
             (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
             map (Pretty.string_of o Pretty.item o single o Parser.pretty_parsetree)
               (take limit pts))];
@@ -417,12 +417,11 @@ fun parse_term is_prop ctxt =
             report_result ctxt pos []
               [(reports', Exn.Exn (Exn.EXCEPTIONS (map ERROR ambig_msgs @ errs)))]
           else if checked_len = 1 then
-            (if parsed_len > 1 andalso ambiguity_warning then
+            (if not (null ambig_msgs) andalso ambiguity_warning then
               Context_Position.if_visible ctxt warning
                 (cat_lines (ambig_msgs @
-                  ["Fortunately, only one parse tree is type correct" ^
-                  Position.here (Position.reset_range pos) ^
-                  ",\nbut you may still want to disambiguate your grammar or your input."]))
+                  ["Fortunately, only one parse tree is well-formed and type-correct,\n\
+                   \but you may still want to disambiguate your grammar or your input."]))
              else (); report_result ctxt pos [] results')
           else
             report_result ctxt pos []
