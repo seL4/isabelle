@@ -790,7 +790,7 @@ lemma DERIV_mirror:
 
 text {* Caratheodory formulation of derivative at a point *}
 
-lemma CARAT_DERIV:
+lemma CARAT_DERIV: (*FIXME: SUPERSEDED BY THE ONE IN Deriv.thy. But still used by NSA/HDeriv.thy*)
   "(DERIV f x :> l) \<longleftrightarrow> (\<exists>g. (\<forall>z. f z - f x = g z * (z - x)) \<and> isCont g x \<and> g x = l)"
       (is "?lhs = ?rhs")
 proof

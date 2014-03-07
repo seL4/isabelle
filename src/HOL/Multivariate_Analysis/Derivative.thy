@@ -142,6 +142,48 @@ proof -
     by (simp add: bounded_linear_mult_right has_derivative_within)
 qed
 
+subsubsection {*Caratheodory characterization*}
+
+lemma DERIV_within_iff:
+  "(DERIV f a : s :> D) \<longleftrightarrow> ((\<lambda>z. (f z - f a) / (z - a)) ---> D) (at a within s)"
+proof -
+  have 1: "\<And>w y. ~(w = a) ==> y / (w - a) - D = (y - (w - a)*D)/(w - a)"
+    by (metis divide_diff_eq_iff eq_iff_diff_eq_0)
+  show ?thesis
+    apply (simp add: deriv_fderiv has_derivative_within bounded_linear_mult_left)
+    apply (simp add: LIM_zero_iff [where l = D, symmetric])
+    apply (simp add: Lim_within dist_norm)
+    apply (simp add: nonzero_norm_divide [symmetric])
+    apply (simp add: 1 diff_add_eq_diff_diff)
+    done
+qed
+
+lemma DERIV_caratheodory_within:
+  "(DERIV f x : s :> l) \<longleftrightarrow> 
+   (\<exists>g. (\<forall>z. f z - f x = g z * (z - x)) \<and> continuous (at x within s) g \<and> g x = l)"
+      (is "?lhs = ?rhs")
+proof
+  assume der: "DERIV f x : s :> l"
+  show ?rhs
+  proof (intro exI conjI)
+    let ?g = "(%z. if z = x then l else (f z - f x) / (z-x))"
+    show "\<forall>z. f z - f x = ?g z * (z-x)" by simp
+    show "continuous (at x within s) ?g" using der
+      by (auto simp add: continuous_within DERIV_within_iff cong: Lim_cong_within)
+    show "?g x = l" by simp
+  qed
+next
+  assume ?rhs
+  then obtain g where
+    "(\<forall>z. f z - f x = g z * (z-x))" and "continuous (at x within s) g" and "g x = l" by blast
+  thus "(DERIV f x : s :> l)"
+    by (auto simp add: continuous_within DERIV_within_iff cong: Lim_cong_within)
+qed
+
+lemma CARAT_DERIV: (*FIXME: REPLACES THE ONE IN Deriv.thy*)
+  "(DERIV f x :> l) \<longleftrightarrow> (\<exists>g. (\<forall>z. f z - f x = g z * (z - x)) \<and> isCont g x \<and> g x = l)"
+by (rule DERIV_caratheodory_within)
+
 
 subsubsection {* Limit transformation for derivatives *}
 
@@ -151,20 +193,10 @@ lemma has_derivative_transform_within:
     and "\<forall>x'\<in>s. dist x' x < d \<longrightarrow> f x' = g x'"
     and "(f has_derivative f') (at x within s)"
   shows "(g has_derivative f') (at x within s)"
-  using assms(4)
+  using assms
   unfolding has_derivative_within
-  apply -
-  apply (erule conjE)
-  apply rule
-  apply assumption
-  apply (rule Lim_transform_within[OF assms(1)])
-  defer
-  apply assumption
-  apply rule
-  apply rule
-  apply (drule assms(3)[rule_format])
-  using assms(3)[rule_format, OF assms(2)]
-  apply auto
+  apply clarify
+  apply (rule Lim_transform_within, auto)
   done
 
 lemma has_derivative_transform_at:
@@ -181,20 +213,10 @@ lemma has_derivative_transform_within_open:
     and "\<forall>y\<in>s. f y = g y"
     and "(f has_derivative f') (at x)"
   shows "(g has_derivative f') (at x)"
-  using assms(4)
+  using assms
   unfolding has_derivative_at
-  apply -
-  apply (erule conjE)
-  apply rule
-  apply assumption
-  apply (rule Lim_transform_within_open[OF assms(1,2)])
-  defer
-  apply assumption
-  apply rule
-  apply rule
-  apply (drule assms(3)[rule_format])
-  using assms(3)[rule_format, OF assms(2)]
-  apply auto
+  apply clarify
+  apply (rule Lim_transform_within_open[OF assms(1,2)], auto)
   done
 
 subsection {* Differentiability *}
@@ -275,17 +297,11 @@ lemma Lim_mul_norm_within:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   shows "(f ---> 0) (at a within s) \<Longrightarrow> ((\<lambda>x. norm(x - a) *\<^sub>R f x) ---> 0) (at a within s)"
   unfolding Lim_within
-  apply rule
-  apply rule
+  apply (auto simp: )
   apply (erule_tac x=e in allE)
-  apply (erule impE)
-  apply assumption
-  apply (erule exE)
-  apply (erule conjE)
+  apply (auto simp: )
   apply (rule_tac x="min d 1" in exI)
-  apply rule
-  defer
-  apply rule
+  apply (auto simp: )
   apply (erule_tac x=x in ballE)
   unfolding dist_norm diff_0_right
   apply (auto intro!: mult_strict_mono[of _ "1::real", unfolded mult_1_left])
@@ -334,24 +350,12 @@ lemma has_derivative_within_alt:
 proof
   assume ?lhs
   then show ?rhs
-    unfolding has_derivative_within
-    apply -
-    apply (erule conjE)
-    apply rule
-    apply assumption
-    unfolding Lim_within
-    apply rule
+    unfolding has_derivative_within Lim_within
+    apply clarify
     apply (erule_tac x=e in allE)
-    apply rule
-    apply (erule impE)
-    apply assumption
-    apply (erule exE)
+    apply safe
     apply (rule_tac x=d in exI)
-    apply (erule conjE)
-    apply rule
-    apply assumption
-    apply rule
-    apply rule
+    apply clarify
   proof-
     fix x y e d
     assume as:
@@ -384,39 +388,14 @@ proof
 next
   assume ?rhs
   then show ?lhs
-    unfolding has_derivative_within Lim_within
-    apply -
-    apply (erule conjE)
-    apply rule
-    apply assumption
-    apply rule
-    apply (erule_tac x="e/2" in allE)
-    apply rule
-    apply (erule impE)
-    defer
-    apply (erule exE)
-    apply (rule_tac x=d in exI)
-    apply (erule conjE)
-    apply rule
-    apply assumption
-    apply rule
-    apply rule
+    apply (auto simp: has_derivative_within Lim_within)
+    apply (erule_tac x="e/2" in allE, auto)
+    apply (rule_tac x=d in exI, auto)
     unfolding dist_norm diff_0_right norm_scaleR
-    apply (erule_tac x=xa in ballE)
-    apply (erule impE)
-  proof -
-    fix e d y
-    assume "bounded_linear f'"
-      and "0 < e"
-      and "0 < d"
-      and "y \<in> s"
-      and "0 < norm (y - x) \<and> norm (y - x) < d"
-      and "norm (f y - f x - f' (y - x)) \<le> e / 2 * norm (y - x)"
-    then show "\<bar>1 / norm (y - x)\<bar> * norm (f y - (f x + f' (y - x))) < e"
-      apply (rule_tac le_less_trans[of _ "e/2"])
-      apply (auto intro!: mult_imp_div_pos_le simp add: algebra_simps)
-      done
-  qed auto
+    apply (erule_tac x=xa in ballE, auto)
+    apply (rule_tac y="e/2" in le_less_trans)
+    apply (auto intro!: mult_imp_div_pos_le simp add: algebra_simps)
+    done
 qed
 
 lemma has_derivative_at_alt:
@@ -488,11 +467,8 @@ proof -
       done
   qed
   then have *: "netlimit (at x within s) = x"
-    apply -
-    apply (rule netlimit_within)
-    unfolding trivial_limit_within
-    apply simp
-    done
+    apply (auto intro!: netlimit_within)
+    by (metis trivial_limit_within)
   show ?thesis
     apply (rule linear_eq_stdbasis)
     unfolding linear_conv_bounded_linear
@@ -621,13 +597,8 @@ lemma frechet_derivative_within_closed_interval:
     and "x \<in> {a..b}"
     and "(f has_derivative f') (at x within {a..b})"
   shows "frechet_derivative f (at x within {a..b}) = f'"
-  apply (rule frechet_derivative_unique_within_closed_interval[where f=f])
-  apply (rule assms(1,2))+
-  unfolding frechet_derivative_works[symmetric]
-  unfolding differentiable_def
-  using assms(3)
-  apply auto
-  done
+  using assms
+  by (metis Derivative.differentiableI frechet_derivative_unique_within_closed_interval frechet_derivative_works)
 
 
 subsection {* The traditional Rolle theorem in one dimension *}
@@ -778,12 +749,7 @@ proof -
     proof (cases "d \<in> box a b \<or> c \<in> box a b")
       case True
       then show ?thesis
-        apply (erule_tac disjE)
-        apply (rule_tac x=d in bexI)
-        apply (rule_tac[3] x=c in bexI)
-        using d c
-        apply (auto simp: box_real)
-        done
+        by (metis c(2) d(2) interval_open_subset_closed subset_iff)
     next
       def e \<equiv> "(a + b) /2"
       case False
@@ -791,10 +757,7 @@ proof -
         using d c assms(2) by (auto simp: box_real)
       then have "\<And>x. x \<in> {a..b} \<Longrightarrow> f x = f d"
         using c d
-        apply -
-        apply (erule_tac x=x in ballE)+
-        apply auto
-        done
+        by force
       then show ?thesis
         apply (rule_tac x=e in bexI)
         unfolding e_def
@@ -806,23 +769,11 @@ proof -
   then obtain x where x: "x \<in> box a b" "(\<forall>y\<in>box a b. f x \<le> f y) \<or> (\<forall>y\<in>box a b. f y \<le> f x)" ..
   then have "f' x = (\<lambda>v. 0)"
     apply (rule_tac differential_zero_maxmin[of x "box a b" f "f' x"])
-    defer
-    apply (rule open_interval)
-    apply (rule assms(4)[unfolded has_derivative_at[symmetric],THEN bspec[where x=x]])
-    apply assumption
-    unfolding o_def
-    apply (erule disjE)
-    apply (rule disjI2)
+    using assms
     apply auto
     done
   then show ?thesis
-    apply (rule_tac x=x in bexI)
-    unfolding o_def
-    apply rule
-    apply (drule_tac x=v in fun_cong)
-    using x(1)
-    apply auto
-    done
+    by (metis x(1))
 qed
 
 
@@ -847,10 +798,7 @@ proof -
     "x \<in> box a b"
     "(\<lambda>xa. f' x xa - (f b - f a) / (b - a) * xa) = (\<lambda>v. 0)" ..
   then show ?thesis
-    apply (rule_tac x=x in bexI)
-    apply (drule fun_cong[of _ _ "b - a"])
-    apply (auto simp: box_real)
-    done
+    by (metis (erased, hide_lams) assms(1) box_real diff_less_iff(1) eq_iff_diff_eq_0 linordered_field_class.sign_simps(41) nonzero_mult_divide_cancel_right not_real_square_gt_zero times_divide_eq_left)
 qed
 
 lemma mvt_simple:
@@ -1196,11 +1144,7 @@ proof -
   proof -
     case goal1
     then have *: "e / B >0"
-      apply -
-      apply (rule divide_pos_pos)
-      using `B > 0`
-      apply auto
-      done
+      by (metis `0 < B` divide_pos_pos)
     obtain d' where d':
         "0 < d'"
         "\<forall>z. norm (z - y) < d' \<longrightarrow> norm (g z - g y - g' (z - y)) \<le> e / B * norm (g z - g y)"
@@ -1209,10 +1153,7 @@ proof -
       using real_lbound_gt_zero[OF d(1) d'(1)] by blast
     show ?case
       apply (rule_tac x=k in exI)
-      apply rule
-      defer
-      apply rule
-      apply rule
+      apply auto
     proof -
       fix z
       assume as: "norm (z - y) < k"
@@ -1296,9 +1237,7 @@ proof -
     apply (rule continuous_on_interior[OF _ assms(3)])
     apply (rule continuous_on_inv[OF assms(4,1)])
     apply (rule assms(2,5) assms(5)[rule_format] open_interior assms(3))+
-    apply rule
-    apply (rule *)
-    apply assumption
+    apply (metis *)
     done
 qed
 
@@ -1554,9 +1493,7 @@ proof -
     using linear_inverse_left
     by auto
   moreover have *:"\<forall>t\<subseteq>s. x \<in> interior t \<longrightarrow> f x \<in> interior (f ` t)"
-    apply rule
-    apply rule
-    apply rule
+    apply clarify
     apply (rule sussmann_open_mapping)
     apply (rule assms ling)+
     apply auto
@@ -1604,12 +1541,8 @@ proof -
     then show ?case
       using assms(4) by auto
   qed
-  ultimately show ?thesis
-    apply -
-    apply (rule has_derivative_inverse_basic_x[OF assms(5)])
-    using assms
-    apply auto
-    done
+  ultimately show ?thesis using assms
+    by (metis has_derivative_inverse_basic_x open_interior)
 qed
 
 text {* A rewrite based on the other domain. *}
@@ -2078,10 +2011,7 @@ proof (cases "s = {}")
   show ?thesis
     apply (rule *)
     apply (rule has_derivative_sequence[OF assms(1) _ assms(3), of "\<lambda>n x. f n x + (f 0 a - f n a)"])
-    apply rule
-    apply rule
-    apply (rule has_derivative_add_const, rule assms(2)[rule_format])
-    apply assumption
+    apply (metis assms(2) has_derivative_add_const)
     apply (rule `a \<in> s`)
     apply auto
     done
@@ -2097,11 +2027,7 @@ proof -
   have *: "\<forall>n. \<exists>f f'. \<forall>x\<in>s.
     (f has_derivative (f' x)) (at x within s) \<and>
     (\<forall>h. norm(f' x h - g' x h) \<le> inverse (real (Suc n)) * norm h)"
-    apply rule
-    using assms(2)
-    apply (erule_tac x="inverse (real (Suc n))" in allE)
-    apply auto
-    done
+    by (metis assms(2) inverse_positive_iff_positive real_of_nat_Suc_gt_zero)
   obtain f where
     *: "\<forall>x. \<exists>f'. \<forall>xa\<in>s. FDERIV (f x) xa : s :> f' xa \<and>
       (\<forall>h. norm (f' xa h - g' xa h) \<le> inverse (real (Suc x)) * norm h)"
@@ -2157,11 +2083,7 @@ lemma has_derivative_series:
   shows "\<exists>g. \<forall>x\<in>s. ((\<lambda>n. f n x) sums_seq (g x)) k \<and> (g has_derivative g' x) (at x within s)"
   unfolding sums_seq_def
   apply (rule has_derivative_sequence[OF assms(1) _ assms(3)])
-  apply rule
-  apply rule
-  apply (rule has_derivative_setsum)
-  apply (rule assms(2)[rule_format])
-  apply assumption
+  apply (metis assms(2) has_derivative_setsum)
   using assms(4-5)
   unfolding sums_seq_def
   apply auto
@@ -2296,10 +2218,9 @@ lemma has_vector_derivative_cmul:
 lemma has_vector_derivative_cmul_eq:
   assumes "c \<noteq> 0"
   shows "(((\<lambda>x. c *\<^sub>R f x) has_vector_derivative (c *\<^sub>R f')) net \<longleftrightarrow> (f has_vector_derivative f') net)"
-  apply rule
+  apply (rule iffI)
   apply (drule has_vector_derivative_cmul[where c="1/c"])
-  defer
-  apply (rule has_vector_derivative_cmul)
+  apply (rule_tac [2] has_vector_derivative_cmul)
   using assms
   apply auto
   done
