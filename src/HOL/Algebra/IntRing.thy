@@ -12,7 +12,8 @@ section {* The Ring of Integers *}
 subsection {* Some properties of @{typ int} *}
 
 lemma dvds_eq_abseq:
-  "(l dvd k \<and> k dvd l) = (abs l = abs (k::int))"
+  fixes k :: int
+  shows "l dvd k \<and> k dvd l \<longleftrightarrow> abs l = abs k"
 apply rule
  apply (simp add: zdvd_antisym_abs)
 apply (simp add: dvd_if_abs_eq)
@@ -21,16 +22,13 @@ done
 
 subsection {* @{text "\<Z>"}: The Set of Integers as Algebraic Structure *}
 
-abbreviation
-  int_ring :: "int ring" ("\<Z>") where
-  "int_ring == \<lparr>carrier = UNIV, mult = op *, one = 1, zero = 0, add = op +\<rparr>"
+abbreviation int_ring :: "int ring" ("\<Z>")
+  where "int_ring \<equiv> \<lparr>carrier = UNIV, mult = op *, one = 1, zero = 0, add = op +\<rparr>"
 
-lemma int_Zcarr [intro!, simp]:
-  "k \<in> carrier \<Z>"
+lemma int_Zcarr [intro!, simp]: "k \<in> carrier \<Z>"
   by simp
 
-lemma int_is_cring:
-  "cring \<Z>"
+lemma int_is_cring: "cring \<Z>"
 apply (rule cringI)
   apply (rule abelian_groupI, simp_all)
   defer 1
@@ -70,8 +68,7 @@ proof -
 
   -- "Operations"
   { fix x y show "mult \<Z> x y = x * y" by simp }
-  note mult = this
-  show one: "one \<Z> = 1" by simp
+  show "one \<Z> = 1" by simp
   show "pow \<Z> x n = x^n" by (induct n) simp_all
 qed
 
@@ -88,13 +85,18 @@ proof -
   have one: "one \<Z> = 1" by simp
   show "finprod \<Z> f A = (if finite A then setprod f A else undefined)"
   proof (cases "finite A")
-    case True then show ?thesis proof induct
-      case empty show ?case by (simp add: one)
+    case True
+    then show ?thesis
+    proof induct
+      case empty
+      show ?case by (simp add: one)
     next
-      case insert then show ?case by (simp add: Pi_def mult)
+      case insert
+      then show ?case by (simp add: Pi_def mult)
     qed
   next
-    case False then show ?thesis by (simp add: finprod_def)
+    case False
+    then show ?thesis by (simp add: finprod_def)
   qed
 qed
 
@@ -114,16 +116,22 @@ proof -
   -- "Operations"
   { fix x y show "add \<Z> x y = x + y" by simp }
   note add = this
-  show zero: "zero \<Z> = 0" by simp
+  show zero: "zero \<Z> = 0"
+    by simp
   show "finsum \<Z> f A = (if finite A then setsum f A else undefined)"
   proof (cases "finite A")
-    case True then show ?thesis proof induct
-      case empty show ?case by (simp add: zero)
+    case True
+    then show ?thesis
+    proof induct
+      case empty
+      show ?case by (simp add: zero)
     next
-      case insert then show ?case by (simp add: Pi_def add)
+      case insert
+      then show ?case by (simp add: Pi_def add)
     qed
   next
-    case False then show ?thesis by (simp add: finsum_def finprod_def)
+    case False
+    then show ?thesis by (simp add: finsum_def finprod_def)
   qed
 qed
 
@@ -142,7 +150,9 @@ proof -
   -- "Specification"
   show "abelian_group \<Z>"
   proof (rule abelian_groupI)
-    show "!!x. x \<in> carrier \<Z> ==> EX y : carrier \<Z>. y \<oplus>\<^bsub>\<Z>\<^esub> x = \<zero>\<^bsub>\<Z>\<^esub>"
+    fix x
+    assume "x \<in> carrier \<Z>"
+    then show "\<exists>y \<in> carrier \<Z>. y \<oplus>\<^bsub>\<Z>\<^esub> x = \<zero>\<^bsub>\<Z>\<^esub>"
       by simp arith
   qed auto
   then interpret int: abelian_group \<Z> .
@@ -150,11 +160,16 @@ proof -
   { fix x y have "add \<Z> x y = x + y" by simp }
   note add = this
   have zero: "zero \<Z> = 0" by simp
-  { fix x
-    have "add \<Z> (-x) x = zero \<Z>" by (simp add: add zero)
-    then show "a_inv \<Z> x = - x" by (simp add: int.minus_equality) }
+  {
+    fix x
+    have "add \<Z> (- x) x = zero \<Z>"
+      by (simp add: add zero)
+    then show "a_inv \<Z> x = - x"
+      by (simp add: int.minus_equality)
+  }
   note a_inv = this
-  show "a_minus \<Z> x y = x - y" by (simp add: int.minus_eq add a_inv)
+  show "a_minus \<Z> x y = x - y"
+    by (simp add: int.minus_eq add a_inv)
 qed (simp add: int_carrier_eq int_zero_eq int_add_eq int_finsum_eq)+
 
 interpretation int: "domain" \<Z>
@@ -165,21 +180,21 @@ interpretation int: "domain" \<Z>
     and "a_inv \<Z> x = - x"
     and "a_minus \<Z> x y = x - y"
 proof -
-  show "domain \<Z>" by unfold_locales (auto simp: distrib_right distrib_left)
-qed (simp
-    add: int_carrier_eq int_zero_eq int_add_eq int_finsum_eq int_a_inv_eq int_a_minus_eq)+
+  show "domain \<Z>"
+    by unfold_locales (auto simp: distrib_right distrib_left)
+qed (simp add: int_carrier_eq int_zero_eq int_add_eq int_finsum_eq int_a_inv_eq int_a_minus_eq)+
 
 
 text {* Removal of occurrences of @{term UNIV} in interpretation result
   --- experimental. *}
 
 lemma UNIV:
-  "x \<in> UNIV = True"
-  "A \<subseteq> UNIV = True"
-  "(ALL x : UNIV. P x) = (ALL x. P x)"
-  "(EX x : UNIV. P x) = (EX x. P x)"
-  "(True --> Q) = Q"
-  "(True ==> PROP R) == PROP R"
+  "x \<in> UNIV \<longleftrightarrow> True"
+  "A \<subseteq> UNIV \<longleftrightarrow> True"
+  "(\<forall>x \<in> UNIV. P x) \<longleftrightarrow> (\<forall>x. P x)"
+  "(EX x : UNIV. P x) \<longleftrightarrow> (EX x. P x)"
+  "(True \<longrightarrow> Q) \<longleftrightarrow> Q"
+  "(True \<Longrightarrow> PROP R) \<equiv> PROP R"
   by simp_all
 
 interpretation int (* FIXME [unfolded UNIV] *) :
@@ -231,15 +246,13 @@ interpretation int (* [unfolded UNIV] *) :
 
 subsection {* Generated Ideals of @{text "\<Z>"} *}
 
-lemma int_Idl:
-  "Idl\<^bsub>\<Z>\<^esub> {a} = {x * a | x. True}"
+lemma int_Idl: "Idl\<^bsub>\<Z>\<^esub> {a} = {x * a | x. True}"
   apply (subst int.cgenideal_eq_genideal[symmetric]) apply simp
   apply (simp add: cgenideal_def)
   done
 
-lemma multiples_principalideal:
-  "principalideal {x * a | x. True } \<Z>"
-by (metis UNIV_I int.cgenideal_eq_genideal int.cgenideal_is_principalideal int_Idl)
+lemma multiples_principalideal: "principalideal {x * a | x. True } \<Z>"
+  by (metis UNIV_I int.cgenideal_eq_genideal int.cgenideal_is_principalideal int_Idl)
 
 lemma prime_primeideal:
   assumes prime: "prime p"
@@ -254,15 +267,15 @@ apply (rule primeidealI)
 proof -
   fix a b x
   assume "a * b = x * int p"
-  hence "p dvd a * b" by simp
-  hence "p dvd a | p dvd b"
+  then have "p dvd a * b" by simp
+  then have "p dvd a \<or> p dvd b"
     by (metis prime prime_dvd_mult_eq_int)
-  thus "(\<exists>x. a = x * int p) \<or> (\<exists>x. b = x * int p)"
+  then show "(\<exists>x. a = x * int p) \<or> (\<exists>x. b = x * int p)"
     by (metis dvd_def mult_commute)
 next
   assume "UNIV = {uu. EX x. uu = x * int p}"
   then obtain x where "1 = x * int p" by best
-  hence "\<bar>int p * x\<bar> = 1" by (simp add: mult_commute)
+  then have "\<bar>int p * x\<bar> = 1" by (simp add: mult_commute)
   then show False
     by (metis abs_of_nat int_1 of_nat_eq_iff abs_zmult_eq_1 one_not_prime_nat prime)
 qed
@@ -270,42 +283,39 @@ qed
 
 subsection {* Ideals and Divisibility *}
 
-lemma int_Idl_subset_ideal:
-  "Idl\<^bsub>\<Z>\<^esub> {k} \<subseteq> Idl\<^bsub>\<Z>\<^esub> {l} = (k \<in> Idl\<^bsub>\<Z>\<^esub> {l})"
-by (rule int.Idl_subset_ideal', simp+)
+lemma int_Idl_subset_ideal: "Idl\<^bsub>\<Z>\<^esub> {k} \<subseteq> Idl\<^bsub>\<Z>\<^esub> {l} = (k \<in> Idl\<^bsub>\<Z>\<^esub> {l})"
+  by (rule int.Idl_subset_ideal') simp_all
 
-lemma Idl_subset_eq_dvd:
-  "(Idl\<^bsub>\<Z>\<^esub> {k} \<subseteq> Idl\<^bsub>\<Z>\<^esub> {l}) = (l dvd k)"
-apply (subst int_Idl_subset_ideal, subst int_Idl, simp)
-apply (rule, clarify)
-apply (simp add: dvd_def)
-apply (simp add: dvd_def mult_ac)
-done
+lemma Idl_subset_eq_dvd: "Idl\<^bsub>\<Z>\<^esub> {k} \<subseteq> Idl\<^bsub>\<Z>\<^esub> {l} \<longleftrightarrow> l dvd k"
+  apply (subst int_Idl_subset_ideal, subst int_Idl, simp)
+  apply (rule, clarify)
+  apply (simp add: dvd_def)
+  apply (simp add: dvd_def mult_ac)
+  done
 
-lemma dvds_eq_Idl:
-  "(l dvd k \<and> k dvd l) = (Idl\<^bsub>\<Z>\<^esub> {k} = Idl\<^bsub>\<Z>\<^esub> {l})"
+lemma dvds_eq_Idl: "l dvd k \<and> k dvd l \<longleftrightarrow> Idl\<^bsub>\<Z>\<^esub> {k} = Idl\<^bsub>\<Z>\<^esub> {l}"
 proof -
-  have a: "l dvd k = (Idl\<^bsub>\<Z>\<^esub> {k} \<subseteq> Idl\<^bsub>\<Z>\<^esub> {l})" by (rule Idl_subset_eq_dvd[symmetric])
-  have b: "k dvd l = (Idl\<^bsub>\<Z>\<^esub> {l} \<subseteq> Idl\<^bsub>\<Z>\<^esub> {k})" by (rule Idl_subset_eq_dvd[symmetric])
+  have a: "l dvd k \<longleftrightarrow> (Idl\<^bsub>\<Z>\<^esub> {k} \<subseteq> Idl\<^bsub>\<Z>\<^esub> {l})"
+    by (rule Idl_subset_eq_dvd[symmetric])
+  have b: "k dvd l \<longleftrightarrow> (Idl\<^bsub>\<Z>\<^esub> {l} \<subseteq> Idl\<^bsub>\<Z>\<^esub> {k})"
+    by (rule Idl_subset_eq_dvd[symmetric])
 
-  have "(l dvd k \<and> k dvd l) = ((Idl\<^bsub>\<Z>\<^esub> {k} \<subseteq> Idl\<^bsub>\<Z>\<^esub> {l}) \<and> (Idl\<^bsub>\<Z>\<^esub> {l} \<subseteq> Idl\<^bsub>\<Z>\<^esub> {k}))"
-  by (subst a, subst b, simp)
-  also have "((Idl\<^bsub>\<Z>\<^esub> {k} \<subseteq> Idl\<^bsub>\<Z>\<^esub> {l}) \<and> (Idl\<^bsub>\<Z>\<^esub> {l} \<subseteq> Idl\<^bsub>\<Z>\<^esub> {k})) = (Idl\<^bsub>\<Z>\<^esub> {k} = Idl\<^bsub>\<Z>\<^esub> {l})" by (rule, fast+)
-  finally
-    show ?thesis .
+  have "l dvd k \<and> k dvd l \<longleftrightarrow> Idl\<^bsub>\<Z>\<^esub> {k} \<subseteq> Idl\<^bsub>\<Z>\<^esub> {l} \<and> Idl\<^bsub>\<Z>\<^esub> {l} \<subseteq> Idl\<^bsub>\<Z>\<^esub> {k}"
+    by (subst a, subst b, simp)
+  also have "Idl\<^bsub>\<Z>\<^esub> {k} \<subseteq> Idl\<^bsub>\<Z>\<^esub> {l} \<and> Idl\<^bsub>\<Z>\<^esub> {l} \<subseteq> Idl\<^bsub>\<Z>\<^esub> {k} \<longleftrightarrow> Idl\<^bsub>\<Z>\<^esub> {k} = Idl\<^bsub>\<Z>\<^esub> {l}"
+    by blast
+  finally show ?thesis .
 qed
 
-lemma Idl_eq_abs:
-  "(Idl\<^bsub>\<Z>\<^esub> {k} = Idl\<^bsub>\<Z>\<^esub> {l}) = (abs l = abs k)"
-apply (subst dvds_eq_abseq[symmetric])
-apply (rule dvds_eq_Idl[symmetric])
-done
+lemma Idl_eq_abs: "Idl\<^bsub>\<Z>\<^esub> {k} = Idl\<^bsub>\<Z>\<^esub> {l} \<longleftrightarrow> abs l = abs k"
+  apply (subst dvds_eq_abseq[symmetric])
+  apply (rule dvds_eq_Idl[symmetric])
+  done
 
 
 subsection {* Ideals and the Modulus *}
 
-definition
-  ZMod :: "int => int => int set"
+definition ZMod :: "int \<Rightarrow> int \<Rightarrow> int set"
   where "ZMod k r = (Idl\<^bsub>\<Z>\<^esub> {k}) +>\<^bsub>\<Z>\<^esub> r"
 
 lemmas ZMod_defs =
@@ -313,59 +323,56 @@ lemmas ZMod_defs =
 
 lemma rcos_zfact:
   assumes kIl: "k \<in> ZMod l r"
-  shows "EX x. k = x * l + r"
+  shows "\<exists>x. k = x * l + r"
 proof -
-  from kIl[unfolded ZMod_def]
-      have "\<exists>xl\<in>Idl\<^bsub>\<Z>\<^esub> {l}. k = xl + r" by (simp add: a_r_coset_defs)
-  then obtain xl
-      where xl: "xl \<in> Idl\<^bsub>\<Z>\<^esub> {l}"
-      and k: "k = xl + r"
-      by auto
-  from xl obtain x
-      where "xl = x * l"
-      by (simp add: int_Idl, fast)
-  from k and this
-      have "k = x * l + r" by simp
-  thus "\<exists>x. k = x * l + r" ..
+  from kIl[unfolded ZMod_def] have "\<exists>xl\<in>Idl\<^bsub>\<Z>\<^esub> {l}. k = xl + r"
+    by (simp add: a_r_coset_defs)
+  then obtain xl where xl: "xl \<in> Idl\<^bsub>\<Z>\<^esub> {l}" and k: "k = xl + r"
+    by auto
+  from xl obtain x where "xl = x * l"
+    by (auto simp: int_Idl)
+  with k have "k = x * l + r"
+    by simp
+  then show "\<exists>x. k = x * l + r" ..
 qed
 
 lemma ZMod_imp_zmod:
   assumes zmods: "ZMod m a = ZMod m b"
   shows "a mod m = b mod m"
 proof -
-  interpret ideal "Idl\<^bsub>\<Z>\<^esub> {m}" \<Z> by (rule int.genideal_ideal, fast)
-  from zmods
-      have "b \<in> ZMod m a"
-      unfolding ZMod_def
-      by (simp add: a_repr_independenceD)
-  then
-      have "EX x. b = x * m + a" by (rule rcos_zfact)
-  then obtain x
-      where "b = x * m + a"
-      by fast
-
-  hence "b mod m = (x * m + a) mod m" by simp
-  also
-      have "\<dots> = ((x * m) mod m) + (a mod m)" by (simp add: mod_add_eq)
-  also
-      have "\<dots> = a mod m" by simp
-  finally
-      have "b mod m = a mod m" .
-  thus "a mod m = b mod m" ..
+  interpret ideal "Idl\<^bsub>\<Z>\<^esub> {m}" \<Z>
+    by (rule int.genideal_ideal) fast
+  from zmods have "b \<in> ZMod m a"
+    unfolding ZMod_def by (simp add: a_repr_independenceD)
+  then have "\<exists>x. b = x * m + a"
+    by (rule rcos_zfact)
+  then obtain x where "b = x * m + a"
+    by fast
+  then have "b mod m = (x * m + a) mod m"
+    by simp
+  also have "\<dots> = ((x * m) mod m) + (a mod m)"
+    by (simp add: mod_add_eq)
+  also have "\<dots> = a mod m"
+    by simp
+  finally have "b mod m = a mod m" .
+  then show "a mod m = b mod m" ..
 qed
 
-lemma ZMod_mod:
-  shows "ZMod m a = ZMod m (a mod m)"
+lemma ZMod_mod: "ZMod m a = ZMod m (a mod m)"
 proof -
-  interpret ideal "Idl\<^bsub>\<Z>\<^esub> {m}" \<Z> by (rule int.genideal_ideal, fast)
+  interpret ideal "Idl\<^bsub>\<Z>\<^esub> {m}" \<Z>
+    by (rule int.genideal_ideal) fast
   show ?thesis
-      unfolding ZMod_def
-  apply (rule a_repr_independence'[symmetric])
-  apply (simp add: int_Idl a_r_coset_defs)
+    unfolding ZMod_def
+    apply (rule a_repr_independence'[symmetric])
+    apply (simp add: int_Idl a_r_coset_defs)
   proof -
-    have "a = m * (a div m) + (a mod m)" by (simp add: zmod_zdiv_equality)
-    hence "a = (a div m) * m + (a mod m)" by simp
-    thus "\<exists>h. (\<exists>x. h = x * m) \<and> a = h + a mod m" by fast
+    have "a = m * (a div m) + (a mod m)"
+      by (simp add: zmod_zdiv_equality)
+    then have "a = (a div m) * m + (a mod m)"
+      by simp
+    then show "\<exists>h. (\<exists>x. h = x * m) \<and> a = h + a mod m"
+      by fast
   qed simp
 qed
 
@@ -373,58 +380,59 @@ lemma zmod_imp_ZMod:
   assumes modeq: "a mod m = b mod m"
   shows "ZMod m a = ZMod m b"
 proof -
-  have "ZMod m a = ZMod m (a mod m)" by (rule ZMod_mod)
-  also have "\<dots> = ZMod m (b mod m)" by (simp add: modeq[symmetric])
-  also have "\<dots> = ZMod m b" by (rule ZMod_mod[symmetric])
+  have "ZMod m a = ZMod m (a mod m)"
+    by (rule ZMod_mod)
+  also have "\<dots> = ZMod m (b mod m)"
+    by (simp add: modeq[symmetric])
+  also have "\<dots> = ZMod m b"
+    by (rule ZMod_mod[symmetric])
   finally show ?thesis .
 qed
 
-corollary ZMod_eq_mod:
-  shows "(ZMod m a = ZMod m b) = (a mod m = b mod m)"
-by (rule, erule ZMod_imp_zmod, erule zmod_imp_ZMod)
+corollary ZMod_eq_mod: "ZMod m a = ZMod m b \<longleftrightarrow> a mod m = b mod m"
+  apply (rule iffI)
+  apply (erule ZMod_imp_zmod)
+  apply (erule zmod_imp_ZMod)
+  done
 
 
 subsection {* Factorization *}
 
-definition
-  ZFact :: "int \<Rightarrow> int set ring"
+definition ZFact :: "int \<Rightarrow> int set ring"
   where "ZFact k = \<Z> Quot (Idl\<^bsub>\<Z>\<^esub> {k})"
 
 lemmas ZFact_defs = ZFact_def FactRing_def
 
-lemma ZFact_is_cring:
-  shows "cring (ZFact k)"
-apply (unfold ZFact_def)
-apply (rule ideal.quotient_is_cring)
- apply (intro ring.genideal_ideal)
-  apply (simp add: cring.axioms[OF int_is_cring] ring.intro)
- apply simp
-apply (rule int_is_cring)
-done
+lemma ZFact_is_cring: "cring (ZFact k)"
+  apply (unfold ZFact_def)
+  apply (rule ideal.quotient_is_cring)
+   apply (intro ring.genideal_ideal)
+    apply (simp add: cring.axioms[OF int_is_cring] ring.intro)
+   apply simp
+  apply (rule int_is_cring)
+  done
 
-lemma ZFact_zero:
-  "carrier (ZFact 0) = (\<Union>a. {{a}})"
-apply (insert int.genideal_zero)
-apply (simp add: ZFact_defs A_RCOSETS_defs r_coset_def ring_record_simps)
-done
+lemma ZFact_zero: "carrier (ZFact 0) = (\<Union>a. {{a}})"
+  apply (insert int.genideal_zero)
+  apply (simp add: ZFact_defs A_RCOSETS_defs r_coset_def)
+  done
 
-lemma ZFact_one:
-  "carrier (ZFact 1) = {UNIV}"
-apply (simp only: ZFact_defs A_RCOSETS_defs r_coset_def ring_record_simps)
-apply (subst int.genideal_one)
-apply (rule, rule, clarsimp)
- apply (rule, rule, clarsimp)
- apply (rule, clarsimp, arith)
-apply (rule, clarsimp)
-apply (rule exI[of _ "0"], clarsimp)
-done
+lemma ZFact_one: "carrier (ZFact 1) = {UNIV}"
+  apply (simp only: ZFact_defs A_RCOSETS_defs r_coset_def ring_record_simps)
+  apply (subst int.genideal_one)
+  apply (rule, rule, clarsimp)
+   apply (rule, rule, clarsimp)
+   apply (rule, clarsimp, arith)
+  apply (rule, clarsimp)
+  apply (rule exI[of _ "0"], clarsimp)
+  done
 
 lemma ZFact_prime_is_domain:
   assumes pprime: "prime p"
   shows "domain (ZFact p)"
-apply (unfold ZFact_def)
-apply (rule primeideal.quotient_is_domain)
-apply (rule prime_primeideal[OF pprime])
-done
+  apply (unfold ZFact_def)
+  apply (rule primeideal.quotient_is_domain)
+  apply (rule prime_primeideal[OF pprime])
+  done
 
 end
