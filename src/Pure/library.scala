@@ -97,6 +97,9 @@ object Library
     else ""
   }
 
+  def plain_words(str: String): String =
+    space_explode('_', str).mkString(" ")
+
 
   /* strings */
 

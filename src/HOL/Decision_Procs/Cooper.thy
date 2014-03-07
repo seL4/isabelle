@@ -62,25 +62,25 @@ lemma fmsize_pos: "fmsize p > 0"
 
 primrec Ifm :: "bool list \<Rightarrow> int list \<Rightarrow> fm \<Rightarrow> bool"  -- {* Semantics of formulae (fm) *}
 where
-  "Ifm bbs bs T = True"
-| "Ifm bbs bs F = False"
-| "Ifm bbs bs (Lt a) = (Inum bs a < 0)"
-| "Ifm bbs bs (Gt a) = (Inum bs a > 0)"
-| "Ifm bbs bs (Le a) = (Inum bs a \<le> 0)"
-| "Ifm bbs bs (Ge a) = (Inum bs a \<ge> 0)"
-| "Ifm bbs bs (Eq a) = (Inum bs a = 0)"
-| "Ifm bbs bs (NEq a) = (Inum bs a \<noteq> 0)"
-| "Ifm bbs bs (Dvd i b) = (i dvd Inum bs b)"
-| "Ifm bbs bs (NDvd i b) = (\<not>(i dvd Inum bs b))"
-| "Ifm bbs bs (NOT p) = (\<not> (Ifm bbs bs p))"
-| "Ifm bbs bs (And p q) = (Ifm bbs bs p \<and> Ifm bbs bs q)"
-| "Ifm bbs bs (Or p q) = (Ifm bbs bs p \<or> Ifm bbs bs q)"
-| "Ifm bbs bs (Imp p q) = ((Ifm bbs bs p) \<longrightarrow> (Ifm bbs bs q))"
-| "Ifm bbs bs (Iff p q) = (Ifm bbs bs p = Ifm bbs bs q)"
-| "Ifm bbs bs (E p) = (\<exists>x. Ifm bbs (x#bs) p)"
-| "Ifm bbs bs (A p) = (\<forall>x. Ifm bbs (x#bs) p)"
-| "Ifm bbs bs (Closed n) = bbs!n"
-| "Ifm bbs bs (NClosed n) = (\<not> bbs!n)"
+  "Ifm bbs bs T \<longleftrightarrow> True"
+| "Ifm bbs bs F \<longleftrightarrow> False"
+| "Ifm bbs bs (Lt a) \<longleftrightarrow> Inum bs a < 0"
+| "Ifm bbs bs (Gt a) \<longleftrightarrow> Inum bs a > 0"
+| "Ifm bbs bs (Le a) \<longleftrightarrow> Inum bs a \<le> 0"
+| "Ifm bbs bs (Ge a) \<longleftrightarrow> Inum bs a \<ge> 0"
+| "Ifm bbs bs (Eq a) \<longleftrightarrow> Inum bs a = 0"
+| "Ifm bbs bs (NEq a) \<longleftrightarrow> Inum bs a \<noteq> 0"
+| "Ifm bbs bs (Dvd i b) \<longleftrightarrow> i dvd Inum bs b"
+| "Ifm bbs bs (NDvd i b) \<longleftrightarrow> \<not> i dvd Inum bs b"
+| "Ifm bbs bs (NOT p) \<longleftrightarrow> \<not> Ifm bbs bs p"
+| "Ifm bbs bs (And p q) \<longleftrightarrow> Ifm bbs bs p \<and> Ifm bbs bs q"
+| "Ifm bbs bs (Or p q) \<longleftrightarrow> Ifm bbs bs p \<or> Ifm bbs bs q"
+| "Ifm bbs bs (Imp p q) \<longleftrightarrow> (Ifm bbs bs p \<longrightarrow> Ifm bbs bs q)"
+| "Ifm bbs bs (Iff p q) \<longleftrightarrow> Ifm bbs bs p = Ifm bbs bs q"
+| "Ifm bbs bs (E p) \<longleftrightarrow> (\<exists>x. Ifm bbs (x # bs) p)"
+| "Ifm bbs bs (A p) \<longleftrightarrow> (\<forall>x. Ifm bbs (x # bs) p)"
+| "Ifm bbs bs (Closed n) \<longleftrightarrow> bbs!n"
+| "Ifm bbs bs (NClosed n) \<longleftrightarrow> \<not> bbs!n"
 
 consts prep :: "fm \<Rightarrow> fm"
 recdef prep "measure fmsize"
@@ -129,44 +129,44 @@ text {* Boundedness and substitution *}
 
 primrec numbound0 :: "num \<Rightarrow> bool"  -- {* a num is INDEPENDENT of Bound 0 *}
 where
-  "numbound0 (C c) = True"
-| "numbound0 (Bound n) = (n>0)"
-| "numbound0 (CN n i a) = (n >0 \<and> numbound0 a)"
-| "numbound0 (Neg a) = numbound0 a"
-| "numbound0 (Add a b) = (numbound0 a \<and> numbound0 b)"
-| "numbound0 (Sub a b) = (numbound0 a \<and> numbound0 b)"
-| "numbound0 (Mul i a) = numbound0 a"
+  "numbound0 (C c) \<longleftrightarrow> True"
+| "numbound0 (Bound n) \<longleftrightarrow> n > 0"
+| "numbound0 (CN n i a) \<longleftrightarrow> n > 0 \<and> numbound0 a"
+| "numbound0 (Neg a) \<longleftrightarrow> numbound0 a"
+| "numbound0 (Add a b) \<longleftrightarrow> numbound0 a \<and> numbound0 b"
+| "numbound0 (Sub a b) \<longleftrightarrow> numbound0 a \<and> numbound0 b"
+| "numbound0 (Mul i a) \<longleftrightarrow> numbound0 a"
 
 lemma numbound0_I:
   assumes nb: "numbound0 a"
-  shows "Inum (b#bs) a = Inum (b'#bs) a"
+  shows "Inum (b # bs) a = Inum (b' # bs) a"
   using nb by (induct a rule: num.induct) (auto simp add: gr0_conv_Suc)
 
 primrec bound0 :: "fm \<Rightarrow> bool" -- {* A Formula is independent of Bound 0 *}
 where
-  "bound0 T = True"
-| "bound0 F = True"
-| "bound0 (Lt a) = numbound0 a"
-| "bound0 (Le a) = numbound0 a"
-| "bound0 (Gt a) = numbound0 a"
-| "bound0 (Ge a) = numbound0 a"
-| "bound0 (Eq a) = numbound0 a"
-| "bound0 (NEq a) = numbound0 a"
-| "bound0 (Dvd i a) = numbound0 a"
-| "bound0 (NDvd i a) = numbound0 a"
-| "bound0 (NOT p) = bound0 p"
-| "bound0 (And p q) = (bound0 p \<and> bound0 q)"
-| "bound0 (Or p q) = (bound0 p \<and> bound0 q)"
-| "bound0 (Imp p q) = ((bound0 p) \<and> (bound0 q))"
-| "bound0 (Iff p q) = (bound0 p \<and> bound0 q)"
-| "bound0 (E p) = False"
-| "bound0 (A p) = False"
-| "bound0 (Closed P) = True"
-| "bound0 (NClosed P) = True"
+  "bound0 T \<longleftrightarrow> True"
+| "bound0 F \<longleftrightarrow> True"
+| "bound0 (Lt a) \<longleftrightarrow> numbound0 a"
+| "bound0 (Le a) \<longleftrightarrow> numbound0 a"
+| "bound0 (Gt a) \<longleftrightarrow> numbound0 a"
+| "bound0 (Ge a) \<longleftrightarrow> numbound0 a"
+| "bound0 (Eq a) \<longleftrightarrow> numbound0 a"
+| "bound0 (NEq a) \<longleftrightarrow> numbound0 a"
+| "bound0 (Dvd i a) \<longleftrightarrow> numbound0 a"
+| "bound0 (NDvd i a) \<longleftrightarrow> numbound0 a"
+| "bound0 (NOT p) \<longleftrightarrow> bound0 p"
+| "bound0 (And p q) \<longleftrightarrow> bound0 p \<and> bound0 q"
+| "bound0 (Or p q) \<longleftrightarrow> bound0 p \<and> bound0 q"
+| "bound0 (Imp p q) \<longleftrightarrow> bound0 p \<and> bound0 q"
+| "bound0 (Iff p q) \<longleftrightarrow> bound0 p \<and> bound0 q"
+| "bound0 (E p) \<longleftrightarrow> False"
+| "bound0 (A p) \<longleftrightarrow> False"
+| "bound0 (Closed P) \<longleftrightarrow> True"
+| "bound0 (NClosed P) \<longleftrightarrow> True"
 
 lemma bound0_I:
   assumes bp: "bound0 p"
-  shows "Ifm bbs (b#bs) p = Ifm bbs (b'#bs) p"
+  shows "Ifm bbs (b # bs) p = Ifm bbs (b' # bs) p"
   using bp numbound0_I[where b="b" and bs="bs" and b'="b'"]
   by (induct p rule: fm.induct) (auto simp add: gr0_conv_Suc)
 
@@ -256,19 +256,19 @@ lemma decr_qf: "bound0 p \<Longrightarrow> qfree (decr p)"
 
 fun isatom :: "fm \<Rightarrow> bool"  -- {* test for atomicity *}
 where
-  "isatom T = True"
-| "isatom F = True"
-| "isatom (Lt a) = True"
-| "isatom (Le a) = True"
-| "isatom (Gt a) = True"
-| "isatom (Ge a) = True"
-| "isatom (Eq a) = True"
-| "isatom (NEq a) = True"
-| "isatom (Dvd i b) = True"
-| "isatom (NDvd i b) = True"
-| "isatom (Closed P) = True"
-| "isatom (NClosed P) = True"
-| "isatom p = False"
+  "isatom T \<longleftrightarrow> True"
+| "isatom F \<longleftrightarrow> True"
+| "isatom (Lt a) \<longleftrightarrow> True"
+| "isatom (Le a) \<longleftrightarrow> True"
+| "isatom (Gt a) \<longleftrightarrow> True"
+| "isatom (Ge a) \<longleftrightarrow> True"
+| "isatom (Eq a) \<longleftrightarrow> True"
+| "isatom (NEq a) \<longleftrightarrow> True"
+| "isatom (Dvd i b) \<longleftrightarrow> True"
+| "isatom (NDvd i b) \<longleftrightarrow> True"
+| "isatom (Closed P) \<longleftrightarrow> True"
+| "isatom (NClosed P) \<longleftrightarrow> True"
+| "isatom p \<longleftrightarrow> False"
 
 lemma numsubst0_numbound0:
   assumes "numbound0 t"
@@ -423,10 +423,10 @@ definition lex_bnd :: "num \<Rightarrow> num \<Rightarrow> bool"
 
 consts numadd:: "num \<times> num \<Rightarrow> num"
 recdef numadd "measure (\<lambda>(t, s). num_size t + num_size s)"
-  "numadd (CN n1 c1 r1 ,CN n2 c2 r2) =
+  "numadd (CN n1 c1 r1, CN n2 c2 r2) =
     (if n1 = n2 then
-      (let c = c1 + c2
-       in if c = 0 then numadd (r1, r2) else CN n1 c (numadd (r1, r2)))
+       let c = c1 + c2
+       in if c = 0 then numadd (r1, r2) else CN n1 c (numadd (r1, r2))
      else if n1 \<le> n2 then CN n1 c1 (numadd (r1, Add (Mul c2 (Bound n2)) r2))
      else CN n2 c2 (numadd (Add (Mul c1 (Bound n1)) r1, r2)))"
   "numadd (CN n1 c1 r1, t) = CN n1 c1 (numadd (r1, t))"
@@ -1108,8 +1108,8 @@ recdef zlfm "measure fmsize"
 
 lemma zlfm_I:
   assumes qfp: "qfree p"
-  shows "(Ifm bbs (i # bs) (zlfm p) = Ifm bbs (i # bs) p) \<and> iszlfm (zlfm p)"
-  (is "(?I (?l p) = ?I p) \<and> ?L (?l p)")
+  shows "Ifm bbs (i # bs) (zlfm p) = Ifm bbs (i # bs) p \<and> iszlfm (zlfm p)"
+  (is "?I (?l p) = ?I p \<and> ?L (?l p)")
   using qfp
 proof (induct p rule: zlfm.induct)
   case (5 a)
@@ -2204,20 +2204,20 @@ lemma cpmi_eq:
     \<Longrightarrow> (\<exists>(x::int). P x) = ((\<exists>(j::int) \<in> {1..D}. P1 j) \<or> (\<exists>(j::int) \<in> {1..D}. \<exists>(b::int) \<in> B. P (b + j)))"
   apply(rule iffI)
   prefer 2
-  apply(drule minusinfinity)
+  apply (drule minusinfinity)
   apply assumption+
-  apply(fastforce)
+  apply fastforce
   apply clarsimp
-  apply(subgoal_tac "!!k. 0<=k \<Longrightarrow> !x. P x \<longrightarrow> P (x - k*D)")
-  apply(frule_tac x = x and z=z in decr_lemma)
-  apply(subgoal_tac "P1(x - (\<bar>x - z\<bar> + 1) * D)")
+  apply (subgoal_tac "\<And>k. 0 \<le> k \<Longrightarrow> \<forall>x. P x \<longrightarrow> P (x - k * D)")
+  apply (frule_tac x = x and z=z in decr_lemma)
+  apply (subgoal_tac "P1 (x - (\<bar>x - z\<bar> + 1) * D)")
   prefer 2
-  apply(subgoal_tac "0 <= (\<bar>x - z\<bar> + 1)")
+  apply (subgoal_tac "0 \<le> \<bar>x - z\<bar> + 1")
   prefer 2 apply arith
    apply fastforce
-  apply(drule (1)  periodic_finite_ex)
+  apply (drule (1)  periodic_finite_ex)
   apply blast
-  apply(blast dest:decr_mult_lemma)
+  apply (blast dest: decr_mult_lemma)
   done
 
 theorem cp_thm:
@@ -2297,7 +2297,7 @@ lemma unit:
 proof -
   fix q B d
   assume qBd: "unit p = (q,B,d)"
-  let ?thes = "((\<exists>x. Ifm bbs (x#bs) p) = (\<exists>x. Ifm bbs (x#bs) q)) \<and>
+  let ?thes = "((\<exists>x. Ifm bbs (x#bs) p) \<longleftrightarrow> (\<exists>x. Ifm bbs (x#bs) q)) \<and>
     Inum (i#bs) ` set B = Inum (i#bs) ` set (\<beta> q) \<and>
     d_\<beta> q 1 \<and> d_\<delta> q d \<and> 0 < d \<and> iszlfm q \<and> (\<forall>b\<in> set B. numbound0 b)"
   let ?I = "\<lambda>x p. Ifm bbs (x#bs) p"
@@ -2319,34 +2319,47 @@ proof -
   from lp' lp a_\<beta>[OF lp' dl lp] have lq:"iszlfm ?q" and uq: "d_\<beta> ?q 1"  by auto
   from \<delta>[OF lq] have dp:"?d >0" and dd: "d_\<delta> ?q ?d" by blast+
   let ?N = "\<lambda>t. Inum (i#bs) t"
-  have "?N ` set ?B' = ((?N o simpnum) ` ?B)" by auto
-  also have "\<dots> = ?N ` ?B" using simpnum_ci[where bs="i#bs"] by auto
+  have "?N ` set ?B' = ((?N \<circ> simpnum) ` ?B)"
+    by auto
+  also have "\<dots> = ?N ` ?B"
+    using simpnum_ci[where bs="i#bs"] by auto
   finally have BB': "?N ` set ?B' = ?N ` ?B" .
-  have "?N ` set ?A' = ((?N o simpnum) ` ?A)" by auto
-  also have "\<dots> = ?N ` ?A" using simpnum_ci[where bs="i#bs"] by auto
+  have "?N ` set ?A' = ((?N \<circ> simpnum) ` ?A)"
+    by auto
+  also have "\<dots> = ?N ` ?A"
+    using simpnum_ci[where bs="i#bs"] by auto
   finally have AA': "?N ` set ?A' = ?N ` ?A" .
   from \<beta>_numbound0[OF lq] have B_nb:"\<forall>b\<in> set ?B'. numbound0 b"
     by (simp add: simpnum_numbound0)
   from \<alpha>_l[OF lq] have A_nb: "\<forall>b\<in> set ?A'. numbound0 b"
     by (simp add: simpnum_numbound0)
-    {assume "length ?B' \<le> length ?A'"
-    then have q:"q=?q" and "B = ?B'" and d:"d = ?d"
+  {
+    assume "length ?B' \<le> length ?A'"
+    then have q: "q = ?q" and "B = ?B'" and d: "d = ?d"
       using qBd by (auto simp add: Let_def unit_def)
-    with BB' B_nb have b: "?N ` (set B) = ?N ` set (\<beta> q)"
-      and bn: "\<forall>b\<in> set B. numbound0 b" by simp_all
-  with pq_ex dp uq dd lq q d have ?thes by simp}
+    with BB' B_nb
+    have b: "?N ` (set B) = ?N ` set (\<beta> q)" and bn: "\<forall>b\<in> set B. numbound0 b"
+      by simp_all
+    with pq_ex dp uq dd lq q d have ?thes
+      by simp
+  }
   moreover
-  {assume "\<not> (length ?B' \<le> length ?A')"
+  {
+    assume "\<not> (length ?B' \<le> length ?A')"
     then have q:"q=mirror ?q" and "B = ?A'" and d:"d = ?d"
       using qBd by (auto simp add: Let_def unit_def)
     with AA' mirror_\<alpha>_\<beta>[OF lq] A_nb have b:"?N ` (set B) = ?N ` set (\<beta> q)"
       and bn: "\<forall>b\<in> set B. numbound0 b" by simp_all
     from mirror_ex[OF lq] pq_ex q
-    have pqm_eq:"(\<exists>(x::int). ?I x p) = (\<exists>(x::int). ?I x q)" by simp
+    have pqm_eq:"(\<exists>(x::int). ?I x p) = (\<exists>(x::int). ?I x q)"
+      by simp
     from lq uq q mirror_l[where p="?q"]
-    have lq': "iszlfm q" and uq: "d_\<beta> q 1" by auto
-    from \<delta>[OF lq'] mirror_\<delta>[OF lq] q d have dq:"d_\<delta> q d " by auto
-    from pqm_eq b bn uq lq' dp dq q dp d have ?thes by simp
+    have lq': "iszlfm q" and uq: "d_\<beta> q 1"
+      by auto
+    from \<delta>[OF lq'] mirror_\<delta>[OF lq] q d have dq: "d_\<delta> q d"
+      by auto
+    from pqm_eq b bn uq lq' dp dq q dp d have ?thes
+      by simp
   }
   ultimately show ?thes by blast
 qed
@@ -2354,7 +2367,8 @@ qed
 
 text {* Cooper's Algorithm *}
 
-definition cooper :: "fm \<Rightarrow> fm" where
+definition cooper :: "fm \<Rightarrow> fm"
+where
   "cooper p =
     (let
       (q, B, d) = unit p;
@@ -2386,60 +2400,67 @@ proof -
   let ?Bjs = "[(b,j). b\<leftarrow>?B,j\<leftarrow>?js]"
   let ?qd = "evaldjf (\<lambda>(b,j). simpfm (subst0 (Add b (C j)) ?q)) ?Bjs"
   have qbf:"unit p = (?q,?B,?d)" by simp
-  from unit[OF qf qbf] have pq_ex: "(\<exists>(x::int). ?I x p) = (\<exists>(x::int). ?I x ?q)" and
-    B:"?N ` set ?B = ?N ` set (\<beta> ?q)" and
-    uq:"d_\<beta> ?q 1" and dd: "d_\<delta> ?q ?d" and dp: "?d > 0" and
-    lq: "iszlfm ?q" and
-    Bn: "\<forall>b\<in> set ?B. numbound0 b" by auto
+  from unit[OF qf qbf]
+  have pq_ex: "(\<exists>(x::int). ?I x p) \<longleftrightarrow> (\<exists>(x::int). ?I x ?q)"
+    and B: "?N ` set ?B = ?N ` set (\<beta> ?q)"
+    and uq: "d_\<beta> ?q 1"
+    and dd: "d_\<delta> ?q ?d"
+    and dp: "?d > 0"
+    and lq: "iszlfm ?q"
+    and Bn: "\<forall>b\<in> set ?B. numbound0 b"
+    by auto
   from zlin_qfree[OF lq] have qfq: "qfree ?q" .
   from simpfm_qf[OF minusinf_qfree[OF qfq]] have qfmq: "qfree ?smq" .
-  have jsnb: "\<forall>j \<in> set ?js. numbound0 (C j)" by simp
+  have jsnb: "\<forall>j \<in> set ?js. numbound0 (C j)"
+    by simp
   then have "\<forall>j\<in> set ?js. bound0 (subst0 (C j) ?smq)"
     by (auto simp only: subst0_bound0[OF qfmq])
   then have th: "\<forall>j\<in> set ?js. bound0 (simpfm (subst0 (C j) ?smq))"
     by (auto simp add: simpfm_bound0)
-  from evaldjf_bound0[OF th] have mdb: "bound0 ?md" by simp
+  from evaldjf_bound0[OF th] have mdb: "bound0 ?md"
+    by simp
   from Bn jsnb have "\<forall>(b,j) \<in> set ?Bjs. numbound0 (Add b (C j))"
     by simp
   then have "\<forall>(b,j) \<in> set ?Bjs. bound0 (subst0 (Add b (C j)) ?q)"
     using subst0_bound0[OF qfq] by blast
   then have "\<forall>(b,j) \<in> set ?Bjs. bound0 (simpfm (subst0 (Add b (C j)) ?q))"
-    using simpfm_bound0  by blast
+    using simpfm_bound0 by blast
   then have th': "\<forall>x \<in> set ?Bjs. bound0 ((\<lambda>(b,j). simpfm (subst0 (Add b (C j)) ?q)) x)"
     by auto
-  from evaldjf_bound0 [OF th'] have qdb: "bound0 ?qd" by simp
-  from mdb qdb
-  have mdqdb: "bound0 (disj ?md ?qd)"
-    unfolding disj_def by (cases "?md=T \<or> ?qd=T") simp_all
-  from trans [OF pq_ex cp_thm'[OF lq uq dd dp,where i="i"]] B
-  have "?lhs = (\<exists>j\<in> {1.. ?d}. ?I j ?mq \<or> (\<exists>b\<in> ?N ` set ?B. Ifm bbs ((b+ j)#bs) ?q))"
-    by auto
-  also have "\<dots> = (\<exists>j\<in> {1.. ?d}. ?I j ?mq \<or> (\<exists>b\<in> set ?B. Ifm bbs ((?N b+ j)#bs) ?q))"
+  from evaldjf_bound0 [OF th'] have qdb: "bound0 ?qd"
     by simp
-  also have "\<dots> = ((\<exists>j\<in> {1.. ?d}. ?I j ?mq ) \<or>
-      (\<exists>j\<in> {1.. ?d}. \<exists>b\<in> set ?B. Ifm bbs ((?N (Add b (C j)))#bs) ?q))"
+  from mdb qdb have mdqdb: "bound0 (disj ?md ?qd)"
+    unfolding disj_def by (cases "?md = T \<or> ?qd = T") simp_all
+  from trans [OF pq_ex cp_thm'[OF lq uq dd dp,where i="i"]] B
+  have "?lhs \<longleftrightarrow> (\<exists>j \<in> {1.. ?d}. ?I j ?mq \<or> (\<exists>b \<in> ?N ` set ?B. Ifm bbs ((b + j) # bs) ?q))"
+    by auto
+  also have "\<dots> \<longleftrightarrow> (\<exists>j \<in> {1.. ?d}. ?I j ?mq \<or> (\<exists>b \<in> set ?B. Ifm bbs ((?N b + j) # bs) ?q))"
+    by simp
+  also have "\<dots> \<longleftrightarrow> (\<exists>j \<in> {1.. ?d}. ?I j ?mq ) \<or>
+      (\<exists>j\<in> {1.. ?d}. \<exists>b \<in> set ?B. Ifm bbs ((?N (Add b (C j))) # bs) ?q)"
     by (simp only: Inum.simps) blast
-  also have "\<dots> = ((\<exists>j\<in> {1.. ?d}. ?I j ?smq ) \<or>
-      (\<exists>j\<in> {1.. ?d}. \<exists>b\<in> set ?B. Ifm bbs ((?N (Add b (C j)))#bs) ?q))"
+  also have "\<dots> \<longleftrightarrow> (\<exists>j \<in> {1.. ?d}. ?I j ?smq) \<or>
+      (\<exists>j \<in> {1.. ?d}. \<exists>b \<in> set ?B. Ifm bbs ((?N (Add b (C j))) # bs) ?q)"
     by (simp add: simpfm)
-  also have "\<dots> = ((\<exists>j\<in> set ?js. (\<lambda>j. ?I i (simpfm (subst0 (C j) ?smq))) j) \<or>
-      (\<exists>j\<in> set ?js. \<exists>b\<in> set ?B. Ifm bbs ((?N (Add b (C j)))#bs) ?q))"
+  also have "\<dots> \<longleftrightarrow> (\<exists>j\<in> set ?js. (\<lambda>j. ?I i (simpfm (subst0 (C j) ?smq))) j) \<or>
+      (\<exists>j\<in> set ?js. \<exists>b\<in> set ?B. Ifm bbs ((?N (Add b (C j)))#bs) ?q)"
     by (simp only: simpfm subst0_I[OF qfmq] set_upto) auto
-  also have "\<dots> = (?I i (evaldjf (\<lambda>j. simpfm (subst0 (C j) ?smq)) ?js) \<or>
-      (\<exists>j\<in> set ?js. \<exists>b\<in> set ?B. ?I i (subst0 (Add b (C j)) ?q)))"
+  also have "\<dots> \<longleftrightarrow> ?I i (evaldjf (\<lambda>j. simpfm (subst0 (C j) ?smq)) ?js) \<or>
+      (\<exists>j\<in> set ?js. \<exists>b\<in> set ?B. ?I i (subst0 (Add b (C j)) ?q))"
     by (simp only: evaldjf_ex subst0_I[OF qfq])
-  also have "\<dots>= (?I i ?md \<or> (\<exists>(b,j) \<in> set ?Bjs. (\<lambda>(b,j). ?I i (simpfm (subst0 (Add b (C j)) ?q))) (b,j)))"
+  also have "\<dots> \<longleftrightarrow> ?I i ?md \<or>
+      (\<exists>(b,j) \<in> set ?Bjs. (\<lambda>(b,j). ?I i (simpfm (subst0 (Add b (C j)) ?q))) (b,j))"
     by (simp only: simpfm set_concat set_map concat_map_singleton UN_simps) blast
-  also have "\<dots> = (?I i ?md \<or> (?I i (evaldjf (\<lambda>(b,j). simpfm (subst0 (Add b (C j)) ?q)) ?Bjs)))"
+  also have "\<dots> \<longleftrightarrow> ?I i ?md \<or> ?I i (evaldjf (\<lambda>(b,j). simpfm (subst0 (Add b (C j)) ?q)) ?Bjs)"
     by (simp only: evaldjf_ex[where bs="i#bs" and f="\<lambda>(b,j). simpfm (subst0 (Add b (C j)) ?q)" and ps="?Bjs"])
       (auto simp add: split_def)
-  finally have mdqd: "?lhs = (?I i ?md \<or> ?I i ?qd)"
+  finally have mdqd: "?lhs \<longleftrightarrow> ?I i ?md \<or> ?I i ?qd"
     by simp
-  also have "\<dots> = (?I i (disj ?md ?qd))"
+  also have "\<dots> \<longleftrightarrow> ?I i (disj ?md ?qd)"
     by (simp add: disj)
-  also have "\<dots> = (Ifm bbs bs (decr (disj ?md ?qd)))"
+  also have "\<dots> \<longleftrightarrow> Ifm bbs bs (decr (disj ?md ?qd))"
     by (simp only: decr [OF mdqdb])
-  finally have mdqd2: "?lhs = (Ifm bbs bs (decr (disj ?md ?qd)))" .
+  finally have mdqd2: "?lhs \<longleftrightarrow> Ifm bbs bs (decr (disj ?md ?qd))" .
   {
     assume mdT: "?md = T"
     then have cT: "cooper p = T"
@@ -2448,7 +2469,8 @@ proof -
       using mdqd by simp
     from mdT have "?rhs"
       by (simp add: cooper_def unit_def split_def)
-    with lhs cT have ?thesis by simp
+    with lhs cT have ?thesis
+      by simp
   }
   moreover
   {

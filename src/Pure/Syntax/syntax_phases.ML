@@ -228,30 +228,28 @@ fun decode_const ctxt (c, ps) =
       Proof_Context.check_const ctxt {proper = true, strict = false} (c, ps);
   in (c', reports) end;
 
+local
+
+fun get_free ctxt x =
+  let
+    val fixed = Variable.lookup_fixed ctxt x;
+    val is_const = can (decode_const ctxt) (x, []) orelse Long_Name.is_qualified x;
+    val is_declared = is_some (Variable.def_type ctxt false (x, ~1));
+  in
+    if Variable.is_const ctxt x then NONE
+    else if is_some fixed then fixed
+    else if not is_const orelse is_declared then SOME x
+    else NONE
+  end;
+
+in
+
 fun decode_term _ (result as (_: Position.report_text list, Exn.Exn _)) = result
   | decode_term ctxt (reports0, Exn.Res tm) =
       let
         val reports = Unsynchronized.ref reports0;
         fun report ps = Position.store_reports reports ps;
         val append_reports = Position.append_reports reports;
-
-        fun get_free x =
-          let
-            val fixed = Variable.lookup_fixed ctxt x;
-            val is_const = can (decode_const ctxt) (x, []) orelse Long_Name.is_qualified x;
-            val is_declared = is_some (Variable.def_type ctxt false (x, ~1));
-          in
-            if Variable.is_const ctxt x then NONE
-            else if is_some fixed then fixed
-            else if not is_const orelse is_declared then SOME x
-            else NONE
-          end;
-
-        fun the_const (a, ps) =
-          let
-            val (c, rs) = decode_const ctxt (a, ps);
-            val _ = append_reports rs;
-          in c end;
 
         fun decode ps qs bs (Const ("_constrain", _) $ t $ typ) =
               (case Term_Position.decode_position typ of
@@ -274,15 +272,20 @@ fun decode_term _ (result as (_: Position.report_text list, Exn.Exn _)) = result
                   let
                     val c =
                       (case try Lexicon.unmark_const a of
-                        SOME c => (report ps (markup_const ctxt) c; c)
-                      | NONE => the_const (a, ps));
+                        SOME c => c
+                      | NONE => #1 (decode_const ctxt (a, [])));
+                    val _ = report ps (markup_const ctxt) c;
                   in Const (c, T) end)
           | decode ps _ _ (Free (a, T)) =
               ((Name.reject_internal (a, ps) handle ERROR msg =>
                   error (msg ^ Proof_Context.consts_completion_message ctxt (a, ps)));
-                (case get_free a of
+                (case get_free ctxt a of
                   SOME x => (report ps (markup_free ctxt) x; Free (x, T))
-                | NONE => Const (the_const (a, ps), T)))
+                | NONE =>
+                    let
+                      val (c, rs) = decode_const ctxt (a, ps);
+                      val _ = append_reports rs;
+                    in Const (c, T) end))
           | decode ps _ _ (Var (xi, T)) = (report ps markup_var xi; Var (xi, T))
           | decode ps _ bs (t as Bound i) =
               (case try (nth bs) i of
@@ -291,6 +294,8 @@ fun decode_term _ (result as (_: Position.report_text list, Exn.Exn _)) = result
 
         val tm' = Exn.interruptible_capture (fn () => decode [] [] [] tm) ();
       in (! reports, tm') end;
+
+end;
 
 
 
@@ -332,7 +337,7 @@ fun parse_asts ctxt raw root (syms, pos) =
       else
         [cat_lines
           (("Ambiguous input" ^ Position.here (Position.reset_range pos) ^
-            "\nproduces " ^ string_of_int len ^ " parse trees" ^
+            " produces " ^ string_of_int len ^ " parse trees" ^
             (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
             map (Pretty.string_of o Pretty.item o single o Parser.pretty_parsetree)
               (take limit pts))];
@@ -412,12 +417,11 @@ fun parse_term is_prop ctxt =
             report_result ctxt pos []
               [(reports', Exn.Exn (Exn.EXCEPTIONS (map ERROR ambig_msgs @ errs)))]
           else if checked_len = 1 then
-            (if parsed_len > 1 andalso ambiguity_warning then
+            (if not (null ambig_msgs) andalso ambiguity_warning then
               Context_Position.if_visible ctxt warning
                 (cat_lines (ambig_msgs @
-                  ["Fortunately, only one parse tree is type correct" ^
-                  Position.here (Position.reset_range pos) ^
-                  ",\nbut you may still want to disambiguate your grammar or your input."]))
+                  ["Fortunately, only one parse tree is well-formed and type-correct,\n\
+                   \but you may still want to disambiguate your grammar or your input."]))
              else (); report_result ctxt pos [] results')
           else
             report_result ctxt pos []

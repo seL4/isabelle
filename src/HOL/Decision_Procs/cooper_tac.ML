@@ -12,22 +12,6 @@ struct
 
 val cooper_ss = simpset_of @{context};
 
-val nT = HOLogic.natT;
-val comp_arith = @{thms simp_thms}
-
-val zdvd_int = @{thm zdvd_int};
-val zdiff_int_split = @{thm zdiff_int_split};
-val split_zdiv = @{thm split_zdiv};
-val split_zmod = @{thm split_zmod};
-val mod_div_equality' = @{thm mod_div_equality'};
-val split_div' = @{thm split_div'};
-val Suc_eq_plus1 = @{thm Suc_eq_plus1};
-val mod_add_left_eq = @{thm mod_add_left_eq} RS sym;
-val mod_add_right_eq = @{thm mod_add_right_eq} RS sym;
-val mod_add_eq = @{thm mod_add_eq} RS sym;
-val nat_div_add_eq = @{thm div_add1_eq} RS sym;
-val int_div_add_eq = @{thm zdiv_zadd1_eq} RS sym;
-
 fun prepare_for_linz q fm =
   let
     val ps = Logic.strip_params fm
@@ -42,53 +26,51 @@ fun prepare_for_linz q fm =
     val np = length ps
     val (fm',np) = List.foldr (fn ((x, T), (fm,n)) => mk_all ((x, T), (fm,n)))
       (List.foldr HOLogic.mk_imp c rhs, np) ps
-    val (vs, _) = List.partition (fn t => q orelse (type_of t) = nT)
+    val (vs, _) = List.partition (fn t => q orelse (type_of t) = @{typ nat})
       (Misc_Legacy.term_frees fm' @ Misc_Legacy.term_vars fm');
     val fm2 = List.foldr mk_all2 fm' vs
   in (fm2, np + length vs, length rhs) end;
 
 (*Object quantifier to meta --*)
-fun spec_step n th = if (n=0) then th else (spec_step (n-1) th) RS spec ;
+fun spec_step n th = if n = 0 then th else (spec_step (n - 1) th) RS spec;
 
 (* object implication to meta---*)
-fun mp_step n th = if (n=0) then th else (mp_step (n-1) th) RS mp;
+fun mp_step n th = if n = 0 then th else (mp_step (n - 1) th) RS mp;
 
 
 fun linz_tac ctxt q = Object_Logic.atomize_prems_tac ctxt THEN' SUBGOAL (fn (g, i) =>
   let
-    val thy = Proof_Context.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt;
     (* Transform the term*)
-    val (t,np,nh) = prepare_for_linz q g
+    val (t, np, nh) = prepare_for_linz q g;
     (* Some simpsets for dealing with mod div abs and nat*)
     val mod_div_simpset =
       put_simpset HOL_basic_ss ctxt
-      addsimps [refl,mod_add_eq, mod_add_left_eq,
-          mod_add_right_eq,
-          nat_div_add_eq, int_div_add_eq,
-          @{thm mod_self},
-          @{thm div_by_0}, @{thm mod_by_0}, @{thm div_0}, @{thm mod_0},
-          @{thm div_by_1}, @{thm mod_by_1}, @{thm div_1}, @{thm mod_1},
-          Suc_eq_plus1]
+      addsimps @{thms refl mod_add_eq [symmetric] mod_add_left_eq [symmetric]
+          mod_add_right_eq [symmetric]
+          div_add1_eq [symmetric] zdiv_zadd1_eq [symmetric]
+          mod_self
+          div_by_0 mod_by_0 div_0 mod_0
+          div_by_1 mod_by_1 div_1 mod_1
+          Suc_eq_plus1}
       addsimps @{thms add_ac}
       addsimprocs [@{simproc cancel_div_mod_nat}, @{simproc cancel_div_mod_int}]
     val simpset0 =
       put_simpset HOL_basic_ss ctxt
-      addsimps [mod_div_equality', Suc_eq_plus1]
-      addsimps comp_arith
-      |> fold Splitter.add_split
-          [split_zdiv, split_zmod, split_div', @{thm "split_min"}, @{thm "split_max"}]
+      addsimps @{thms mod_div_equality' Suc_eq_plus1 simp_thms}
+      |> fold Splitter.add_split @{thms split_zdiv split_zmod split_div' split_min split_max}
     (* Simp rules for changing (n::int) to int n *)
     val simpset1 =
       put_simpset HOL_basic_ss ctxt
-      addsimps [zdvd_int] @ map (fn r => r RS sym)
-        [@{thm int_numeral}, @{thm int_int_eq}, @{thm zle_int}, @{thm zless_int}, @{thm zadd_int}, @{thm zmult_int}]
-      |> Splitter.add_split zdiff_int_split
+      addsimps @{thms zdvd_int} @
+        map (fn r => r RS sym) @{thms int_numeral int_int_eq zle_int zless_int zadd_int zmult_int}
+      |> Splitter.add_split @{thm zdiff_int_split}
     (*simp rules for elimination of int n*)
 
     val simpset2 =
       put_simpset HOL_basic_ss ctxt
       addsimps [@{thm nat_0_le}, @{thm all_nat}, @{thm ex_nat}, @{thm zero_le_numeral}, @{thm order_refl}(* FIXME: necessary? *), @{thm int_0}, @{thm int_1}]
-      |> fold Simplifier.add_cong [@{thm conj_le_cong}, @{thm imp_le_cong}]
+      |> fold Simplifier.add_cong @{thms conj_le_cong imp_le_cong}
     (* simp rules for elimination of abs *)
     val simpset3 = put_simpset HOL_basic_ss ctxt |> Splitter.add_split @{thm abs_split}
     val ct = cterm_of thy (HOLogic.mk_Trueprop t)
@@ -100,14 +82,16 @@ fun linz_tac ctxt q = Object_Logic.atomize_prems_tac ctxt THEN' SUBGOAL (fn (g, 
       (Thm.trivial ct))
     fun assm_tac i = REPEAT_DETERM_N nh (assume_tac i)
     (* The result of the quantifier elimination *)
-    val (th, tac) = case (prop_of pre_thm) of
+    val (th, tac) =
+      (case (prop_of pre_thm) of
         Const ("==>", _) $ (Const (@{const_name Trueprop}, _) $ t1) $ _ =>
-    let val pth = linzqe_oracle (cterm_of thy (Envir.eta_long [] t1))
-    in
-          ((pth RS iffD2) RS pre_thm,
-            assm_tac (i + 1) THEN (if q then I else TRY) (rtac TrueI i))
-    end
-      | _ => (pre_thm, assm_tac i)
-  in rtac (((mp_step nh) o (spec_step np)) th) i THEN tac end);
+          let
+            val pth = linzqe_oracle (cterm_of thy (Envir.eta_long [] t1))
+          in
+            ((pth RS iffD2) RS pre_thm,
+              assm_tac (i + 1) THEN (if q then I else TRY) (rtac TrueI i))
+          end
+      | _ => (pre_thm, assm_tac i))
+  in rtac (mp_step nh (spec_step np th)) i THEN tac end);
 
 end

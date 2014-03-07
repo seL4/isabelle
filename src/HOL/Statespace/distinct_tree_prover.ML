@@ -77,14 +77,6 @@ fun find_tree e t =
   | x => x);
 
 
-fun index_tree (Const (@{const_name Tip}, _)) path tab = tab
-  | index_tree (Const (@{const_name Node}, _) $ l $ x $ _ $ r) path tab =
-      tab
-      |> Termtab.update_new (x, path)
-      |> index_tree l (path @ [Left])
-      |> index_tree r (path @ [Right])
-  | index_tree t _ _ = raise TERM ("index_tree: input not a tree", [t])
-
 fun split_common_prefix xs [] = ([], xs, [])
   | split_common_prefix [] ys = ([], [], ys)
   | split_common_prefix (xs as (x :: xs')) (ys as (y :: ys')) =
@@ -138,7 +130,6 @@ val naive_typ_match =
  *)
 fun naive_cterm_first_order_match (t, ct) env =
   let
-    val thy = theory_of_cterm ct;
     fun mtch (env as (tyinsts, insts)) =
       fn (Var (ixn, T), ct) =>
           (case AList.lookup (op =) insts ixn of

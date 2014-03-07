@@ -174,7 +174,7 @@ val update_simproc =
   Simplifier.simproc_global @{theory} "update_simp" ["update d c n v s"]
     (fn ctxt => fn t =>
       (case t of
-        ((upd as Const (@{const_name StateFun.update}, uT)) $ d $ c $ n $ v $ s) =>
+        Const (@{const_name StateFun.update}, uT) $ _ $ _ $ _ $ _ $ _ =>
           let
             val (_ :: _ :: _ :: _ :: sT :: _) = binder_types uT;
               (*"('v => 'a1) => ('a2 => 'v) => 'n => ('a1 => 'a2) => ('n => 'v) => ('n => 'v)"*)
@@ -208,7 +208,7 @@ val update_simproc =
                 * updates again, the optimised term is constructed.
                 *)
             fun mk_updterm already
-                (t as ((upd as Const (@{const_name StateFun.update}, uT)) $ d $ c $ n $ v $ s)) =
+                ((upd as Const (@{const_name StateFun.update}, uT)) $ d $ c $ n $ v $ s) =
                   let
                     fun rest already = mk_updterm already;
                     val (dT :: cT :: nT :: vT :: sT :: _) = binder_types uT;
@@ -238,7 +238,8 @@ val update_simproc =
                               Const (@{const_name StateFun.update},
                                 d'T --> c'T --> nT --> vT' --> sT --> sT);
                           in
-                            (upd $ d $ c $ n $ kb $ trm, upd' $ d' $ c' $ n $ f' $ trm', kv :: vars, comps', b)
+                            (upd $ d $ c $ n $ kb $ trm, upd' $ d' $ c' $ n $ f' $ trm', kv :: vars,
+                              comps', b)
                           end)
                   end
               | mk_updterm _ t = init_seed t;

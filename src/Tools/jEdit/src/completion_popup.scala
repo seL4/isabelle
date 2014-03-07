@@ -25,6 +25,22 @@ import org.gjt.sp.jedit.gui.{HistoryTextField, KeyEventWorkaround}
 
 object Completion_Popup
 {
+  /** items with HTML rendering **/
+
+  private class Item(val item: Completion.Item)
+  {
+    private val html =
+      item.description match {
+        case a :: bs =>
+          "<html><b>" + HTML.encode(a) + "</b>" +
+            HTML.encode(bs.map(" " + _).mkString) + "</html>"
+        case Nil => ""
+      }
+    override def toString: String = html
+  }
+
+
+
   /** jEdit text area **/
 
   object Text_Area
@@ -210,8 +226,10 @@ object Completion_Popup
             SwingUtilities.convertPoint(painter,
               loc1.x, loc1.y + painter.getFontMetrics.getHeight, layered)
 
+          val items = result.items.map(new Item(_))
           val completion =
-            new Completion_Popup(Some((range, invalidate _)), layered, loc2, font, result.items) {
+            new Completion_Popup(Some((range, invalidate _)), layered, loc2, font, items)
+            {
               override def complete(item: Completion.Item) {
                 PIDE.completion_history.update(item)
                 insert(item)
@@ -402,18 +420,19 @@ object Completion_Popup
               val loc =
                 SwingUtilities.convertPoint(text_field, fm.stringWidth(text), fm.getHeight, layered)
 
+              val items = result.items.map(new Item(_))
               val completion =
-                new Completion_Popup(None, layered, loc, text_field.getFont, result.items)
-              {
-                override def complete(item: Completion.Item) {
-                  PIDE.completion_history.update(item)
-                  insert(item)
+                new Completion_Popup(None, layered, loc, text_field.getFont, items)
+                {
+                  override def complete(item: Completion.Item) {
+                    PIDE.completion_history.update(item)
+                    insert(item)
+                  }
+                  override def propagate(evt: KeyEvent) {
+                    if (!evt.isConsumed) text_field.processKeyEvent(evt)
+                  }
+                  override def refocus() { text_field.requestFocus }
                 }
-                override def propagate(evt: KeyEvent) {
-                  if (!evt.isConsumed) text_field.processKeyEvent(evt)
-                }
-                override def refocus() { text_field.requestFocus }
-              }
               completion_popup = Some(completion)
               completion.show_popup()
 
@@ -474,7 +493,7 @@ class Completion_Popup private(
   layered: JLayeredPane,
   location: Point,
   font: Font,
-  items: List[Completion.Item]) extends JPanel(new BorderLayout)
+  items: List[Completion_Popup.Item]) extends JPanel(new BorderLayout)
 {
   completion =>
 
@@ -508,7 +527,7 @@ class Completion_Popup private(
   private def complete_selected(): Boolean =
   {
     list_view.selection.items.toList match {
-      case item :: _ => complete(item); true
+      case item :: _ => complete(item.item); true
       case _ => false
     }
   }

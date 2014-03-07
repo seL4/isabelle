@@ -1155,12 +1155,16 @@ parse_translation {*
       let
         fun mk 1 = Syntax.const @{const_syntax Num.One}
           | mk i =
-              let val (q, r) = Integer.div_mod i 2
-              in HOLogic.mk_bit r $ (mk q) end;
+              let
+                val (q, r) = Integer.div_mod i 2;
+                val bit = if r = 0 then @{const_syntax Num.Bit0} else @{const_syntax Num.Bit1};
+              in Syntax.const bit $ (mk q) end;
       in
         if i = 0 then Syntax.const @{const_syntax Groups.zero}
         else if i > 0 then Syntax.const @{const_syntax Num.numeral} $ mk i
-        else Syntax.const @{const_syntax Groups.uminus} $ (Syntax.const @{const_syntax Num.numeral} $ mk (~i))
+        else
+          Syntax.const @{const_syntax Groups.uminus} $
+            (Syntax.const @{const_syntax Num.numeral} $ mk (~ i))
       end;
 
     fun mk_frac str =
@@ -1180,6 +1184,7 @@ parse_translation {*
 text{* Test: *}
 lemma "123.456 = -111.111 + 200 + 30 + 4 + 5/10 + 6/100 + (7/1000::rat)"
   by simp
+
 
 subsection {* Hiding implementation details *}
 

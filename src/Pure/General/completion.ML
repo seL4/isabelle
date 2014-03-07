@@ -7,7 +7,7 @@ Semantic completion within the formal context.
 signature COMPLETION =
 sig
   type T
-  val names: Position.T -> (string * string) list -> T
+  val names: Position.T -> (string * (string * string)) list -> T
   val none: T
   val reported_text: T -> string
   val report: T -> unit
@@ -17,7 +17,8 @@ end;
 structure Completion: COMPLETION =
 struct
 
-abstype T = Completion of {pos: Position.T, total: int, names: (string * string) list}
+abstype T =
+  Completion of {pos: Position.T, total: int, names: (string * (string * string)) list}
 with
 
 (* completion of names *)
@@ -40,7 +41,7 @@ fun reported_text completion =
       let
         val markup = Position.markup pos Markup.completion;
         val body = (total, names) |>
-          let open XML.Encode in pair int (list (pair string string)) end;
+          let open XML.Encode in pair int (list (pair string (pair string string))) end;
       in YXML.string_of (XML.Elem (markup, body)) end
     else ""
   end;
