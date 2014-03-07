@@ -128,6 +128,7 @@ sig
   val split_conj_prems: int -> thm -> thm
 
   val mk_sumTN: typ list -> typ
+  val mk_tupleT_balanced: typ list -> typ
   val mk_sumprodT_balanced: typ list list -> typ
 
   val mk_proj: typ -> int -> int -> term
@@ -136,6 +137,8 @@ sig
 
   val Inl_const: typ -> typ -> term
   val Inr_const: typ -> typ -> term
+  val mk_tuple_balanced: term list -> term
+  val mk_tuple1_balanced: typ list -> term list -> term
 
   val mk_case_sum: term * term -> term
   val mk_case_sumN: term list -> term
@@ -373,8 +376,13 @@ fun mk_Inl RT t = Inl_const (fastype_of t) RT $ t;
 fun Inr_const LT RT = Const (@{const_name Inr}, RT --> mk_sumT (LT, RT));
 fun mk_Inr LT t = Inr_const LT (fastype_of t) $ t;
 
-fun mk_tuple_balanced [] = HOLogic.unit
-  | mk_tuple_balanced ts = Balanced_Tree.make HOLogic.mk_prod ts;
+fun mk_prod1 bound_Ts (t, u) =
+  HOLogic.pair_const (fastype_of1 (bound_Ts, t)) (fastype_of1 (bound_Ts, u)) $ t $ u;
+
+fun mk_tuple1_balanced _ [] = HOLogic.unit
+  | mk_tuple1_balanced bound_Ts ts = Balanced_Tree.make (mk_prod1 bound_Ts) ts;
+
+val mk_tuple_balanced = mk_tuple1_balanced [];
 
 fun mk_absumprod absT abs0 n k ts =
   let val abs = mk_abs absT abs0;

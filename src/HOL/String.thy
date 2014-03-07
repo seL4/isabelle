@@ -3,7 +3,7 @@
 header {* Character and string types *}
 
 theory String
-imports List Enum
+imports Enum
 begin
 
 subsection {* Characters and strings *}
@@ -443,4 +443,3 @@ code_printing constant Code.abort \<rightharpoonup>
 hide_type (open) literal
 
 end
-

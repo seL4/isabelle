@@ -477,7 +477,7 @@ fun corec_specs_of bs arg_Ts res_Ts callers callssss0 lthy0 =
 
 val undef_const = Const (@{const_name undefined}, dummyT);
 
-val abs_tuple = HOLogic.tupled_lambda o HOLogic.mk_tuple;
+val abs_tuple_balanced = HOLogic.tupled_lambda o mk_tuple_balanced;
 
 fun abstract vs =
   let
@@ -488,10 +488,6 @@ fun abstract vs =
           if j < 0 then t else Bound (n + j)
         end;
   in abs 0 end;
-
-fun mk_prod1 bound_Ts (t, u) =
-  HOLogic.pair_const (fastype_of1 (bound_Ts, t)) (fastype_of1 (bound_Ts, u)) $ t $ u;
-fun mk_tuple1 bound_Ts = the_default HOLogic.unit o try (foldr1 (mk_prod1 bound_Ts));
 
 type coeqn_data_disc = {
   fun_name: string,
@@ -734,12 +730,12 @@ fun build_corec_arg_disc (ctr_specs : corec_ctr_spec list)
   if is_none (#pred (nth ctr_specs ctr_no)) then I else
     s_conjs prems
     |> curry subst_bounds (List.rev fun_args)
-    |> HOLogic.tupled_lambda (HOLogic.mk_tuple fun_args)
+    |> abs_tuple_balanced fun_args
     |> K |> nth_map (the (#pred (nth ctr_specs ctr_no)));
 
 fun build_corec_arg_no_call (sel_eqns : coeqn_data_sel list) sel =
   find_first (curry (op =) sel o #sel) sel_eqns
-  |> try (fn SOME {fun_args, rhs_term, ...} => abs_tuple fun_args rhs_term)
+  |> try (fn SOME {fun_args, rhs_term, ...} => abs_tuple_balanced fun_args rhs_term)
   |> the_default undef_const
   |> K;
 
@@ -752,9 +748,9 @@ fun build_corec_args_mutual_call lthy has_call (sel_eqns : coeqn_data_sel list) 
       fun rewrite_stop _ t = if has_call t then @{term False} else @{term True};
       fun rewrite_end _ t = if has_call t then undef_const else t;
       fun rewrite_cont bound_Ts t =
-        if has_call t then mk_tuple1 bound_Ts (snd (strip_comb t)) else undef_const;
+        if has_call t then mk_tuple1_balanced bound_Ts (snd (strip_comb t)) else undef_const;
       fun massage f _ = massage_let_if_case lthy has_call f bound_Ts rhs_term
-        |> abs_tuple fun_args;
+        |> abs_tuple_balanced fun_args;
     in
       (massage rewrite_stop, massage rewrite_end, massage rewrite_cont)
     end);
@@ -770,7 +766,7 @@ fun build_corec_arg_nested_call lthy has_call (sel_eqns : coeqn_data_sel list) s
             | rewrite bound_Ts (t as _ $ _) =
               let val (u, vs) = strip_comb t in
                 if is_Free u andalso has_call u then
-                  Inr_const U T $ mk_tuple1 bound_Ts vs
+                  Inr_const U T $ mk_tuple1_balanced bound_Ts vs
                 else if try (fst o dest_Const) u = SOME @{const_name case_prod} then
                   map (rewrite bound_Ts) vs |> chop 1
                   |>> HOLogic.mk_split o the_single
@@ -789,7 +785,7 @@ fun build_corec_arg_nested_call lthy has_call (sel_eqns : coeqn_data_sel list) s
       fun build t =
         rhs_term
         |> massage_nested_corec_call lthy has_call massage bound_Ts (range_type (fastype_of t))
-        |> abs_tuple fun_args;
+        |> abs_tuple_balanced fun_args;
     in
       build
     end);
@@ -827,7 +823,7 @@ fun build_codefs lthy bs mxs has_call arg_Tss (corec_specs : corec_spec list)
       |> fold2 (fold o build_corec_arg_disc) ctr_specss disc_eqnss
       |> fold2 (fold o build_corec_args_sel lthy has_call) sel_eqnss ctr_specss;
     fun currys [] t = t
-      | currys Ts t = t $ mk_tuple1 (List.rev Ts) (map Bound (length Ts - 1 downto 0))
+      | currys Ts t = t $ mk_tuple1_balanced (List.rev Ts) (map Bound (length Ts - 1 downto 0))
           |> fold_rev (Term.abs o pair Name.uu) Ts;
 
 (*
@@ -907,7 +903,7 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
     val thy = Proof_Context.theory_of lthy;
 
     val (bs, mxs) = map_split (apfst fst) fixes;
-    val (arg_Ts, res_Ts) = map (strip_type o snd o fst #>> HOLogic.mk_tupleT) fixes |> split_list;
+    val (arg_Ts, res_Ts) = map (strip_type o snd o fst #>> mk_tupleT_balanced) fixes |> split_list;
 
     val _ = (case filter_out (fn (_, T) => Sign.of_sort thy (T, HOLogic.typeS)) (bs ~~ arg_Ts) of
         [] => ()
