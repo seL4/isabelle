@@ -1144,8 +1144,8 @@ order relation on
 shall be the restrictions of these relations to the numbers smaller than
 fixed numbers @{text "n"}, that we abbreviate by @{text "natLeq_on n"}. *}
 
-abbreviation "(natLeq::(nat * nat) set) \<equiv> {(x,y). x \<le> y}"
-abbreviation "(natLess::(nat * nat) set) \<equiv> {(x,y). x < y}"
+definition "(natLeq::(nat * nat) set) \<equiv> {(x,y). x \<le> y}"
+definition "(natLess::(nat * nat) set) \<equiv> {(x,y). x < y}"
 
 abbreviation natLeq_on :: "nat \<Rightarrow> (nat * nat) set"
 where "natLeq_on n \<equiv> {(x,y). x < n \<and> y < n \<and> x \<le> y}"
@@ -1164,47 +1164,47 @@ qed
 subsubsection {* First as well-orders *}
 
 lemma Field_natLeq: "Field natLeq = (UNIV::nat set)"
-by(unfold Field_def, auto)
+by(unfold Field_def natLeq_def, auto)
 
 lemma natLeq_Refl: "Refl natLeq"
-unfolding refl_on_def Field_def by auto
+unfolding refl_on_def Field_def natLeq_def by auto
 
 lemma natLeq_trans: "trans natLeq"
-unfolding trans_def by auto
+unfolding trans_def natLeq_def by auto
 
 lemma natLeq_Preorder: "Preorder natLeq"
 unfolding preorder_on_def
 by (auto simp add: natLeq_Refl natLeq_trans)
 
 lemma natLeq_antisym: "antisym natLeq"
-unfolding antisym_def by auto
+unfolding antisym_def natLeq_def by auto
 
 lemma natLeq_Partial_order: "Partial_order natLeq"
 unfolding partial_order_on_def
 by (auto simp add: natLeq_Preorder natLeq_antisym)
 
 lemma natLeq_Total: "Total natLeq"
-unfolding total_on_def by auto
+unfolding total_on_def natLeq_def by auto
 
 lemma natLeq_Linear_order: "Linear_order natLeq"
 unfolding linear_order_on_def
 by (auto simp add: natLeq_Partial_order natLeq_Total)
 
 lemma natLeq_natLess_Id: "natLess = natLeq - Id"
-by auto
+unfolding natLeq_def natLess_def by auto
 
 lemma natLeq_Well_order: "Well_order natLeq"
 unfolding well_order_on_def
-using natLeq_Linear_order wf_less natLeq_natLess_Id by auto
+using natLeq_Linear_order wf_less natLeq_natLess_Id natLeq_def natLess_def by auto
 
 lemma Field_natLeq_on: "Field (natLeq_on n) = {x. x < n}"
 unfolding Field_def by auto
 
 lemma natLeq_underS_less: "underS natLeq n = {x. x < n}"
-unfolding underS_def by auto
+unfolding underS_def natLeq_def by auto
 
 lemma Restr_natLeq: "Restr natLeq {x. x < n} = natLeq_on n"
-by force
+unfolding natLeq_def by force
 
 lemma Restr_natLeq2:
 "Restr natLeq (underS natLeq n) = natLeq_on n"

@@ -1008,7 +1008,7 @@ subsection {* The cardinal $\omega$ and the finite cardinals *}
 subsubsection {* First as well-orders *}
 
 lemma Field_natLess: "Field natLess = (UNIV::nat set)"
-by(unfold Field_def, auto)
+by(unfold Field_def natLess_def, auto)
 
 lemma natLeq_well_order_on: "well_order_on UNIV natLeq"
 using natLeq_Well_order Field_natLeq by auto
@@ -1018,11 +1018,11 @@ unfolding wo_rel_def using natLeq_Well_order .
 
 lemma natLeq_ofilter_less: "ofilter natLeq {0 ..< n}"
 by(auto simp add: natLeq_wo_rel wo_rel.ofilter_def,
-   simp add: Field_natLeq, unfold under_def, auto)
+   simp add: Field_natLeq, unfold under_def natLeq_def, auto)
 
 lemma natLeq_ofilter_leq: "ofilter natLeq {0 .. n}"
 by(auto simp add: natLeq_wo_rel wo_rel.ofilter_def,
-   simp add: Field_natLeq, unfold under_def, auto)
+   simp add: Field_natLeq, unfold under_def natLeq_def, auto)
 
 lemma natLeq_UNIV_ofilter: "wo_rel.ofilter natLeq UNIV"
 using natLeq_wo_rel Field_natLeq wo_rel.Field_ofilter[of natLeq] by auto
@@ -1052,8 +1052,8 @@ lemma natLeq_ofilter_iff:
 "ofilter natLeq A = (A = UNIV \<or> (\<exists>n. A = {0 ..< n}))"
 proof(rule iffI)
   assume "ofilter natLeq A"
-  hence "\<forall>m n. n \<in> A \<and> m \<le> n \<longrightarrow> m \<in> A"
-  by(auto simp add: natLeq_wo_rel wo_rel.ofilter_def under_def)
+  hence "\<forall>m n. n \<in> A \<and> m \<le> n \<longrightarrow> m \<in> A" using natLeq_wo_rel
+  by(auto simp add: natLeq_def wo_rel.ofilter_def under_def)
   thus "A = UNIV \<or> (\<exists>n. A = {0 ..< n})" using closed_nat_set_iff by blast
 next
   assume "A = UNIV \<or> (\<exists>n. A = {0 ..< n})"
@@ -1062,7 +1062,7 @@ next
 qed
 
 lemma natLeq_under_leq: "under natLeq n = {0 .. n}"
-unfolding under_def by auto
+unfolding under_def natLeq_def by auto
 
 lemma natLeq_on_ofilter_less_eq:
 "n \<le> m \<Longrightarrow> wo_rel.ofilter (natLeq_on m) {0 ..< n}"
