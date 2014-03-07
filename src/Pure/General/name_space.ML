@@ -208,11 +208,13 @@ fun completion context space (xname, pos) =
   if Position.is_reported pos then
     let
       val x = Name.clean xname;
-      val Name_Space {kind = k, internals, ...} = space;
+      val Name_Space {kind, internals, ...} = space;
       val ext = extern_shortest (Context.proof_of context) space;
       val names =
         Symtab.fold
-          (fn (a, (b :: _, _)) => String.isPrefix x a ? cons (ext b, Long_Name.implode [k, b])
+          (fn (a, (name :: _, _)) =>
+              if String.isPrefix x a andalso not (is_concealed space name)
+              then cons (ext name, Long_Name.implode [kind, name]) else I
             | _ => I) internals []
         |> sort_distinct (string_ord o pairself #1);
     in Completion.names pos names end
