@@ -21,11 +21,10 @@ object Completion
     range: Text.Range,
     original: String,
     name: String,
-    description: String,
+    description: List[String],
     replacement: String,
     move: Int,
     immediate: Boolean)
-  { override def toString: String = description }
 
   object Result
   {
@@ -167,7 +166,7 @@ object Completion
           (full_name, descr_name) =
             if (kind == "") (name, quote(decode(name)))
             else (kind + "." + name, Library.plain_words(kind) + " " + quote(decode(name)))
-          description = xname1 + "   (" + descr_name + ")"
+          description = List(xname1, "(" + descr_name + ")")
         } yield Item(range, original, full_name, description, xname1, 0, true)
 
       if (items.isEmpty) None
@@ -377,13 +376,14 @@ final class Completion private(
                   case List(s1, s2) => (s1, s2)
                   case _ => (name1, "")
                 }
+              val move = - s2.length
               val description =
-                if (keywords(name)) name1 + "   (keyword)"
+                if (move != 0) List(name1, "(template)")
+                else if (keywords(name)) List(name1, "(keyword)")
                 else if (Symbol.names.isDefinedAt(name) && name != name1)
-                  name1 + "   (symbol " + quote(name) + ")"
-                else name1
-              Completion.Item(
-                range, word, name1, description, s1 + s2, - s2.length, explicit || immediate)
+                  List(name1, "(symbol " + quote(name) + ")")
+                else List(name1)
+              Completion.Item(range, word, name1, description, s1 + s2, move, explicit || immediate)
             }
           Some(Completion.Result(range, word, cs.length == 1, items.sorted(history.ordering)))
         }
