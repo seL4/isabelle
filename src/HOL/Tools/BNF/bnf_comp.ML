@@ -6,8 +6,6 @@
 Composition of bounded natural functors.
 *)
 
-val inline_ref = Unsynchronized.ref true;
-
 signature BNF_COMP =
 sig
   val ID_bnf: BNF_Def.bnf
