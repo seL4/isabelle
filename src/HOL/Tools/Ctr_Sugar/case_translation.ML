@@ -169,7 +169,7 @@ fun case_tr err ctxt [t, u] =
         fun dest_case2 (Const (@{syntax_const "_case2"}, _) $ t $ u) = t :: dest_case2 u
           | dest_case2 t = [t];
 
-        val errt = if err then @{term True} else @{term False};
+        val errt = Syntax.const (if err then @{const_syntax True} else @{const_syntax False});
       in
         Syntax.const @{const_syntax case_guard} $ errt $ t $
           (fold_rev

@@ -285,14 +285,14 @@ parse_translation {*
     fun num_of_int n =
       if n > 0 then
         (case IntInf.quotRem (n, 2) of
-          (0, 1) => Syntax.const @{const_name One}
-        | (n, 0) => Syntax.const @{const_name Bit0} $ num_of_int n
-        | (n, 1) => Syntax.const @{const_name Bit1} $ num_of_int n)
+          (0, 1) => Syntax.const @{const_syntax One}
+        | (n, 0) => Syntax.const @{const_syntax Bit0} $ num_of_int n
+        | (n, 1) => Syntax.const @{const_syntax Bit1} $ num_of_int n)
       else raise Match
-    val numeral = Syntax.const @{const_name numeral}
-    val uminus = Syntax.const @{const_name uminus}
-    val one = Syntax.const @{const_name Groups.one}
-    val zero = Syntax.const @{const_name Groups.zero}
+    val numeral = Syntax.const @{const_syntax numeral}
+    val uminus = Syntax.const @{const_syntax uminus}
+    val one = Syntax.const @{const_syntax Groups.one}
+    val zero = Syntax.const @{const_syntax Groups.zero}
     fun numeral_tr [(c as Const (@{syntax_const "_constrain"}, _)) $ t $ u] =
           c $ numeral_tr [t] $ u
       | numeral_tr [Const (num, _)] =
@@ -303,10 +303,10 @@ parse_translation {*
             if value > 0
             then numeral $ num_of_int value
             else if value = ~1 then uminus $ one
-            else uminus $ (numeral $ num_of_int (~value))
+            else uminus $ (numeral $ num_of_int (~ value))
           end
       | numeral_tr ts = raise TERM ("numeral_tr", ts);
-  in [("_Numeral", K numeral_tr)] end
+  in [(@{syntax_const "_Numeral"}, K numeral_tr)] end
 *}
 
 typed_print_translation {*
