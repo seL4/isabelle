@@ -12,5 +12,6 @@ ML_file "Tools/Function/function_lib.ML"
 ML_file "Tools/Function/function_common.ML"
 ML_file "Tools/Function/context_tree.ML"
 setup Function_Ctx_Tree.setup
+ML_file "Tools/Function/sum_tree.ML"
 
 end

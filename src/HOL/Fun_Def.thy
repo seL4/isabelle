@@ -83,7 +83,6 @@ lemma wf_in_rel:
   by (simp add: wfP_def)
 
 ML_file "Tools/Function/function_core.ML"
-ML_file "Tools/Function/sum_tree.ML"
 ML_file "Tools/Function/mutual.ML"
 ML_file "Tools/Function/pattern_split.ML"
 ML_file "Tools/Function/relation.ML"

@@ -6,10 +6,8 @@ Measure functions, generated heuristically.
 
 signature MEASURE_FUNCTIONS =
 sig
-
   val get_measure_functions : Proof.context -> typ -> term list
   val setup : theory -> theory
-
 end
 
 structure MeasureFunctions : MEASURE_FUNCTIONS =
@@ -40,12 +38,12 @@ fun constant_0 T = Abs ("x", T, HOLogic.zero)
 fun constant_1 T = Abs ("x", T, HOLogic.Suc_zero)
 
 fun mk_funorder_funs (Type (@{type_name Sum_Type.sum}, [fT, sT])) =
-  map (fn m => SumTree.mk_sumcase fT sT HOLogic.natT m (constant_0 sT)) (mk_funorder_funs fT)
-  @ map (fn m => SumTree.mk_sumcase fT sT HOLogic.natT (constant_0 fT) m) (mk_funorder_funs sT)
+  map (fn m => Sum_Tree.mk_sumcase fT sT HOLogic.natT m (constant_0 sT)) (mk_funorder_funs fT)
+  @ map (fn m => Sum_Tree.mk_sumcase fT sT HOLogic.natT (constant_0 fT) m) (mk_funorder_funs sT)
   | mk_funorder_funs T = [ constant_1 T ]
 
 fun mk_ext_base_funs ctxt (Type (@{type_name Sum_Type.sum}, [fT, sT])) =
-    map_product (SumTree.mk_sumcase fT sT HOLogic.natT)
+    map_product (Sum_Tree.mk_sumcase fT sT HOLogic.natT)
       (mk_ext_base_funs ctxt fT) (mk_ext_base_funs ctxt sT)
   | mk_ext_base_funs ctxt T = find_measures ctxt T
 

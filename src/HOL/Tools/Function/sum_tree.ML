@@ -16,7 +16,7 @@ sig
   val mk_sumcases: typ -> term list -> term
 end
 
-structure SumTree: SUM_TREE =
+structure Sum_Tree: SUM_TREE =
 struct
 
 (* Theory dependencies *)

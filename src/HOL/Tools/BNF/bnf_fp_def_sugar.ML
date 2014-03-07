@@ -478,8 +478,8 @@ fun define_rec NONE _ _ _ _ _ = pair (Term.dummy, refl)
       define_co_rec Least_FP fpT Cs (mk_binding recN)
         (fold_rev (fold_rev Term.lambda) fss (Term.list_comb (ctor_rec,
            map4 (fn ctor_rec_absT => fn rep => fn fs => fn xsss =>
-               mk_case_absumprod ctor_rec_absT rep fs
-                 (map (mk_tuple_balanced o map HOLogic.mk_tuple) xsss) (map flat_rec_arg_args xsss))
+               mk_case_absumprod ctor_rec_absT rep fs (map (map HOLogic.mk_tuple) xsss)
+                 (map flat_rec_arg_args xsss))
              ctor_rec_absTs reps fss xssss)))
     end;
 

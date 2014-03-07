@@ -139,11 +139,10 @@ sig
 
   val mk_case_sum: term * term -> term
   val mk_case_sumN: term list -> term
-  val mk_case_absumprod: typ -> term -> term list -> term list -> term list list -> term
+  val mk_case_absumprod: typ -> term -> term list -> term list list -> term list list -> term
 
   val mk_Inl: typ -> term -> term
   val mk_Inr: typ -> term -> term
-  val mk_tuple_balanced: term list -> term
   val mk_absumprod: typ -> term -> int -> int -> term list -> term
 
   val dest_sumT: typ -> typ * typ
@@ -374,35 +373,19 @@ fun mk_Inl RT t = Inl_const (fastype_of t) RT $ t;
 fun Inr_const LT RT = Const (@{const_name Inr}, RT --> mk_sumT (LT, RT));
 fun mk_Inr LT t = Inr_const LT (fastype_of t) $ t;
 
-(* FIXME: reuse "mk_inj" in function package *)
-fun mk_InN_balanced sum_T n t k =
-  let
-    fun repair_types T (Const (s as @{const_name Inl}, _) $ t) = repair_inj_types T s fst t
-      | repair_types T (Const (s as @{const_name Inr}, _) $ t) = repair_inj_types T s snd t
-      | repair_types _ t = t
-    and repair_inj_types T s get t =
-      let val T' = get (dest_sumT T) in
-        Const (s, T' --> T) $ repair_types T' t
-      end;
-  in
-    Balanced_Tree.access {left = mk_Inl dummyT, right = mk_Inr dummyT, init = t} n k
-    |> repair_types sum_T
-  end;
-
 fun mk_tuple_balanced [] = HOLogic.unit
   | mk_tuple_balanced ts = Balanced_Tree.make HOLogic.mk_prod ts;
 
 fun mk_absumprod absT abs0 n k ts =
   let val abs = mk_abs absT abs0;
-  in abs $ mk_InN_balanced (domain_type (fastype_of abs)) n (mk_tuple_balanced ts) k end;
+  in abs $ Sum_Tree.mk_inj (domain_type (fastype_of abs)) n k (mk_tuple_balanced ts) end;
 
 fun mk_case_sum (f, g) =
   let
-    val fT = fastype_of f;
-    val gT = fastype_of g;
+    val (fT, T') = dest_funT (fastype_of f);
+    val (gT, _) = dest_funT (fastype_of g);
   in
-    Const (@{const_name case_sum},
-      fT --> gT --> mk_sumT (domain_type fT, domain_type gT) --> range_type fT) $ f $ g
+    Sum_Tree.mk_sumcase fT gT T' f g
   end;
 
 val mk_case_sumN = Library.foldr1 mk_case_sum;
@@ -411,8 +394,9 @@ val mk_case_sumN_balanced = Balanced_Tree.make mk_case_sum;
 fun mk_tupled_fun f x xs =
   if xs = [x] then f else HOLogic.tupled_lambda x (Term.list_comb (f, xs));
 
-fun mk_case_absumprod absT rep fs xs xss =
-  HOLogic.mk_comp (mk_case_sumN_balanced (map3 mk_tupled_fun fs xs xss), mk_rep absT rep);
+fun mk_case_absumprod absT rep fs xss xss' =
+  HOLogic.mk_comp (mk_case_sumN_balanced (map3 mk_tupled_fun fs (map mk_tuple_balanced xss) xss'),
+    mk_rep absT rep);
 
 fun If_const T = Const (@{const_name If}, HOLogic.boolT --> T --> T --> T);
 fun mk_If p t f = let val T = fastype_of t in If_const T $ p $ t $ f end;

@@ -6,7 +6,6 @@ Mutual recursive function definitions.
 
 signature FUNCTION_MUTUAL =
 sig
-
   val prepare_function_mutual : Function_Common.function_config
     -> string (* defname *)
     -> ((string * typ) * mixfix) list
@@ -15,9 +14,7 @@ sig
     -> ((thm (* goalstate *)
         * (thm -> Function_Common.function_result) (* proof continuation *)
        ) * local_theory)
-
 end
-
 
 structure Function_Mutual: FUNCTION_MUTUAL =
 struct
@@ -88,8 +85,8 @@ fun analyze_eqs ctxt defname fs eqs =
     val dresultTs = distinct (op =) resultTs
     val n' = length dresultTs
 
-    val RST = Balanced_Tree.make (uncurry SumTree.mk_sumT) dresultTs
-    val ST = Balanced_Tree.make (uncurry SumTree.mk_sumT) argTs
+    val RST = Balanced_Tree.make (uncurry Sum_Tree.mk_sumT) dresultTs
+    val ST = Balanced_Tree.make (uncurry Sum_Tree.mk_sumT) argTs
 
     val fsum_type = ST --> RST
 
@@ -101,7 +98,7 @@ fun analyze_eqs ctxt defname fs eqs =
         val vars = map_index (fn (j,T) => Free ("x" ^ string_of_int j, T)) caTs (* FIXME: Bind xs properly *)
         val i' = find_index (fn Ta => Ta = resultT) dresultTs + 1
 
-        val f_exp = SumTree.mk_proj RST n' i' (Free fsum_var $ SumTree.mk_inj ST num i (foldr1 HOLogic.mk_prod vars))
+        val f_exp = Sum_Tree.mk_proj RST n' i' (Free fsum_var $ Sum_Tree.mk_inj ST num i (foldr1 HOLogic.mk_prod vars))
         val def = Term.abstract_over (Free fsum_var, fold_rev lambda vars f_exp)
 
         val rew = (n, fold_rev lambda vars f_exp)
@@ -117,8 +114,8 @@ fun analyze_eqs ctxt defname fs eqs =
         val rhs' = rhs
           |> map_aterms (fn t as Free (n, _) => the_default t (AList.lookup (op =) rews n) | t => t)
       in
-        (qs, gs, SumTree.mk_inj ST num i (foldr1 (mk_prod_abs qs) args),
-         Envir.beta_norm (SumTree.mk_inj RST n' i' rhs'))
+        (qs, gs, Sum_Tree.mk_inj ST num i (foldr1 (mk_prod_abs qs) args),
+         Envir.beta_norm (Sum_Tree.mk_inj RST n' i' rhs'))
       end
 
     val qglrs = map convert_eqs fqgars
@@ -227,21 +224,21 @@ fun mutual_induct_rules ctxt induct all_f_defs (Mutual {n, ST, parts, ...}) =
       end
 
     val Ps = map2 mk_P parts newPs
-    val case_exp = SumTree.mk_sumcases HOLogic.boolT Ps
+    val case_exp = Sum_Tree.mk_sumcases HOLogic.boolT Ps
 
     val induct_inst =
       Thm.forall_elim (cert case_exp) induct
-      |> full_simplify (put_simpset SumTree.sumcase_split_ss ctxt)
+      |> full_simplify (put_simpset Sum_Tree.sumcase_split_ss ctxt)
       |> full_simplify (put_simpset HOL_basic_ss ctxt addsimps all_f_defs)
 
     fun project rule (MutualPart {cargTs, i, ...}) k =
       let
         val afs = map_index (fn (j,T) => Free ("a" ^ string_of_int (j + k), T)) cargTs (* FIXME! *)
-        val inj = SumTree.mk_inj ST n i (foldr1 HOLogic.mk_prod afs)
+        val inj = Sum_Tree.mk_inj ST n i (foldr1 HOLogic.mk_prod afs)
       in
         (rule
          |> Thm.forall_elim (cert inj)
-         |> full_simplify (put_simpset SumTree.sumcase_split_ss ctxt)
+         |> full_simplify (put_simpset Sum_Tree.sumcase_split_ss ctxt)
          |> fold_rev (Thm.forall_intr o cert) (afs @ newPs),
          k + length cargTs)
       end
@@ -260,7 +257,7 @@ fun mutual_cases_rule ctxt cases_rule n ST (MutualPart {i, cargTs, ...}) =
 
     val cert = cterm_of (Proof_Context.theory_of ctxt)
 
-    val sumtree_inj = SumTree.mk_inj ST n i args
+    val sumtree_inj = Sum_Tree.mk_inj ST n i args
 
     val sum_elims =
       @{thms HOL.notE[OF Sum_Type.sum.distinct(1)] HOL.notE[OF Sum_Type.sum.distinct(2)]}

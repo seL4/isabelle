@@ -114,7 +114,7 @@ fun mk_partial_elim_rules ctxt result =
         val args = HOLogic.mk_tuple arg_vars;
         val domT = R |> dest_Free |> snd |> hd o snd o dest_Type;
 
-        val sumtree_inj = SumTree.mk_inj domT n_fs (idx+1) args;
+        val sumtree_inj = Sum_Tree.mk_inj domT n_fs (idx+1) args;
 
         val cprop = cert prop;
 
@@ -155,4 +155,3 @@ fun mk_partial_elim_rules ctxt result =
 end;
 
 end;
-

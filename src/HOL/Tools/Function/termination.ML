@@ -6,7 +6,6 @@ Context data for termination proofs.
 
 signature TERMINATION =
 sig
-
   type data
   datatype cell = Less of thm | LessEq of thm * thm | None of thm * thm | False of thm
 
@@ -122,7 +121,7 @@ type data =
 (* Build case expression *)
 fun mk_sumcases (sk, _, _, _, _) T fs =
   mk_tree (fn i => (nth fs i, domain_type (fastype_of (nth fs i))))
-          (fn ((f, fT), (g, gT)) => (SumTree.mk_sumcase fT gT T f g, SumTree.mk_sumT fT gT))
+          (fn ((f, fT), (g, gT)) => (Sum_Tree.mk_sumcase fT gT T f g, Sum_Tree.mk_sumT fT gT))
           sk
   |> fst
 

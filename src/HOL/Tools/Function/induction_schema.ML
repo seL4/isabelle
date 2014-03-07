@@ -11,7 +11,6 @@ sig
   val induction_schema_tac : Proof.context -> thm list -> tactic
 end
 
-
 structure Induction_Schema : INDUCTION_SCHEMA =
 struct
 
@@ -111,7 +110,7 @@ fun mk_scheme' ctxt cases concl =
     fun PT_of (SchemeBranch { xs, ...}) =
       foldr1 HOLogic.mk_prodT (map snd xs)
 
-    val ST = Balanced_Tree.make (uncurry SumTree.mk_sumT) (map PT_of branches)
+    val ST = Balanced_Tree.make (uncurry Sum_Tree.mk_sumT) (map PT_of branches)
   in
     IndScheme {T=ST, cases=map mk_case cases', branches=branches }
   end
@@ -146,7 +145,7 @@ fun mk_wf R (IndScheme {T, ...}) =
 fun mk_ineqs R (IndScheme {T, cases, branches}) =
   let
     fun inject i ts =
-       SumTree.mk_inj T (length branches) (i + 1) (foldr1 HOLogic.mk_prod ts)
+       Sum_Tree.mk_inj T (length branches) (i + 1) (foldr1 HOLogic.mk_prod ts)
 
     val thesis = Free ("thesis", HOLogic.boolT) (* FIXME *)
 
@@ -199,7 +198,7 @@ fun mk_ind_goal ctxt branches =
       |> Object_Logic.drop_judgment thy
       |> HOLogic.tupled_lambda (foldr1 HOLogic.mk_prod (map Free xs))
   in
-    SumTree.mk_sumcases HOLogic.boolT (map brnch branches)
+    Sum_Tree.mk_sumcases HOLogic.boolT (map brnch branches)
   end
 
 fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
@@ -212,7 +211,7 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
     val scases_idx = map_index I scases
 
     fun inject i ts =
-      SumTree.mk_inj T n (i + 1) (foldr1 HOLogic.mk_prod ts)
+      Sum_Tree.mk_inj T n (i + 1) (foldr1 HOLogic.mk_prod ts)
     val P_of = nth (map (fn (SchemeBranch { P, ... }) => P) branches)
 
     val P_comp = mk_ind_goal ctxt branches
@@ -372,12 +371,12 @@ fun mk_ind_tac comp_tac pres_tac term_tac ctxt facts =
     fun project (i, SchemeBranch {xs, ...}) =
       let
         val inst = (foldr1 HOLogic.mk_prod (map Free xs))
-          |> SumTree.mk_inj ST (length branches) (i + 1)
+          |> Sum_Tree.mk_inj ST (length branches) (i + 1)
           |> cert
       in
         indthm
         |> Drule.instantiate' [] [SOME inst]
-        |> simplify (put_simpset SumTree.sumcase_split_ss ctxt'')
+        |> simplify (put_simpset Sum_Tree.sumcase_split_ss ctxt'')
         |> Conv.fconv_rule (ind_rulify ctxt'')
       end
 
