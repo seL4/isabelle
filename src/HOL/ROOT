@@ -213,7 +213,6 @@ session "HOL-Hoare" in Hoare = HOL +
     Verification of imperative programs (verification conditions are generated
     automatically from pre/post conditions and loop invariants).
   *}
-
   theories Hoare
   files "document/root.bib" "document/root.tex"
 
