@@ -334,7 +334,8 @@ final class Completion private(
     }
 
     val words_result =
-      abbrevs_result orElse {
+      if (abbrevs_result.isDefined) None
+      else {
         val end =
           if (extend_word) Completion.Word_Parsers.extend_word(text, caret)
           else caret
@@ -359,7 +360,7 @@ final class Completion private(
         }
       }
 
-    words_result match {
+    (abbrevs_result orElse words_result) match {
       case Some(((word, cs), end)) =>
         val range = Text.Range(- word.length, 0) + end + start
         val ds = cs.map(decode(_)).filter(_ != word)
@@ -379,7 +380,7 @@ final class Completion private(
               val move = - s2.length
               val description =
                 if (move != 0) List(name1, "(template)")
-                else if (keywords(name)) List(name1, "(keyword)")
+                else if (words_result.isDefined && keywords(name)) List(name1, "(keyword)")
                 else if (Symbol.names.isDefinedAt(name) && name != name1)
                   List(name1, "(symbol " + quote(name) + ")")
                 else List(name1)
