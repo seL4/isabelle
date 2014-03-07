@@ -27,7 +27,6 @@ declare [[coercion_args case_abs -]]
 declare [[coercion_args case_elem - +]]
 
 ML_file "Tools/Ctr_Sugar/case_translation.ML"
-setup Case_Translation.setup
 
 lemma iffI_np: "\<lbrakk>x \<Longrightarrow> \<not> y; \<not> x \<Longrightarrow> y\<rbrakk> \<Longrightarrow> \<not> x \<longleftrightarrow> y"
 by (erule iffI) (erule contrapos_pn)

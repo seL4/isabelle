@@ -21,7 +21,6 @@ sig
   val strip_case: Proof.context -> bool -> term -> (term * (term * term) list) option
   val strip_case_full: Proof.context -> bool -> term -> term
   val show_cases: bool Config.T
-  val setup: theory -> theory
   val register: term -> term list -> Context.generic -> Context.generic
 end;
 
@@ -180,7 +179,7 @@ fun case_tr err ctxt [t, u] =
       end
   | case_tr _ _ _ = case_error "case_tr";
 
-val trfun_setup = Sign.parse_translation [(@{syntax_const "_case_syntax"}, case_tr true)];
+val _ = Theory.setup (Sign.parse_translation [(@{syntax_const "_case_syntax"}, case_tr true)]);
 
 
 (* print translation *)
@@ -207,7 +206,7 @@ fun case_tr' (_ :: x :: t :: ts) =
       end
   | case_tr' _ = raise Match;
 
-val trfun_setup' = Sign.print_translation [(@{const_syntax "case_guard"}, K case_tr')];
+val _ = Theory.setup (Sign.print_translation [(@{const_syntax "case_guard"}, K case_tr')]);
 
 
 (* declarations *)
@@ -228,6 +227,12 @@ fun register raw_case_comb raw_constrs context =
     |> map_constrs update_constrs
     |> map_cases update_cases
   end;
+
+val _ = Theory.setup
+  (Attrib.setup @{binding case_translation}
+    (Args.term -- Scan.repeat1 Args.term >>
+      (fn (t, ts) => Thm.declaration_attribute (K (register t ts))))
+    "declaration of case combinators and constructors");
 
 
 (* (Un)check phases *)
@@ -453,8 +458,7 @@ fun check_case ctxt =
     map decode_case
   end;
 
-val term_check_setup =
-  Context.theory_map (Syntax_Phases.term_check 1 "case" check_case);
+val _ = Context.>> (Syntax_Phases.term_check 1 "case" check_case);
 
 
 (* Pretty printing of nested case expressions *)
@@ -595,21 +599,7 @@ fun uncheck_case ctxt ts =
   then map (fn t => if can Term.type_of t then strip_case_full ctxt true t else t) ts
   else ts;
 
-val term_uncheck_setup =
-  Context.theory_map (Syntax_Phases.term_uncheck 1 "case" uncheck_case);
-
-
-(* theory setup *)
-
-val setup =
-  trfun_setup #>
-  trfun_setup' #>
-  term_check_setup #>
-  term_uncheck_setup #>
-  Attrib.setup @{binding case_translation}
-    (Args.term -- Scan.repeat1 Args.term >>
-      (fn (t, ts) => Thm.declaration_attribute (K (register t ts))))
-    "declaration of case combinators and constructors";
+val _ = Context.>>  (Syntax_Phases.term_uncheck 1 "case" uncheck_case);
 
 
 (* outer syntax commands *)
