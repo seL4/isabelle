@@ -174,7 +174,7 @@ fun mk_mor_convol_tac ks mor_def =
 fun mk_mor_UNIV_tac m morEs mor_def =
   let
     val n = length morEs;
-    fun mor_tac morE = EVERY' [rtac ext, rtac trans, rtac o_apply, rtac trans, etac morE,
+    fun mor_tac morE = EVERY' [rtac @{thm ext}, rtac trans, rtac o_apply, rtac trans, etac morE,
       rtac CollectI, CONJ_WRAP' (K (rtac subset_UNIV)) (1 upto m + n),
       rtac sym, rtac o_apply];
   in
@@ -507,7 +507,7 @@ fun mk_fold_unique_mor_tac type_defs init_unique_mors Reps mor_comp mor_Abs mor_
   end;
 
 fun mk_dtor_o_ctor_tac dtor_def foldx map_comp_id map_cong0L ctor_o_folds =
-  EVERY' [stac dtor_def, rtac ext, rtac trans, rtac o_apply, rtac trans, rtac foldx,
+  EVERY' [stac dtor_def, rtac @{thm ext}, rtac trans, rtac o_apply, rtac trans, rtac foldx,
     rtac trans, rtac map_comp_id, rtac trans, rtac map_cong0L,
     EVERY' (map (fn thm => rtac ballI THEN' rtac (trans OF [thm RS fun_cong, id_apply]))
       ctor_o_folds),
@@ -568,7 +568,8 @@ fun mk_ctor_induct2_tac ctxt cTs cts ctor_induct weak_ctor_inducts =
   end;
 
 fun mk_map_tac m n foldx map_comp_id map_cong0 =
-  EVERY' [rtac ext, rtac trans, rtac o_apply, rtac trans, rtac foldx, rtac trans, rtac o_apply,
+  EVERY' [rtac @{thm ext}, rtac trans, rtac o_apply, rtac trans, rtac foldx, rtac trans,
+    rtac o_apply,
     rtac trans, rtac (map_comp_id RS arg_cong), rtac trans, rtac (map_cong0 RS arg_cong),
     REPEAT_DETERM_N m o rtac refl,
     REPEAT_DETERM_N n o (EVERY' (map rtac [trans, o_apply, id_apply])),
@@ -579,7 +580,7 @@ fun mk_ctor_map_unique_tac ctxt fold_unique sym_map_comps =
   unfold_thms_tac ctxt (sym_map_comps @ @{thms comp_assoc id_comp comp_id}) THEN
   ALLGOALS atac;
 
-fun mk_set_tac foldx = EVERY' [rtac ext, rtac trans, rtac o_apply,
+fun mk_set_tac foldx = EVERY' [rtac @{thm ext}, rtac trans, rtac o_apply,
   rtac trans, rtac foldx, rtac sym, rtac o_apply] 1;
 
 fun mk_ctor_set_tac set set_map set_maps =
@@ -674,7 +675,7 @@ fun mk_map_comp0_tac map_comp0s ctor_maps unique iplus1 =
     val map_comp0s' = drop i map_comp0s @ take i map_comp0s;
     val ctor_maps' = drop i ctor_maps @ take i ctor_maps;
     fun mk_comp comp simp =
-      EVERY' [rtac ext, rtac trans, rtac o_apply, rtac trans, rtac o_apply,
+      EVERY' [rtac @{thm ext}, rtac trans, rtac o_apply, rtac trans, rtac o_apply,
         rtac trans, rtac (simp RS arg_cong), rtac trans, rtac simp,
         rtac trans, rtac (comp RS arg_cong), rtac sym, rtac o_apply];
   in
@@ -682,7 +683,7 @@ fun mk_map_comp0_tac map_comp0s ctor_maps unique iplus1 =
   end;
 
 fun mk_set_map0_tac set_nat =
-  EVERY' (map rtac [ext, trans, o_apply, sym, trans, o_apply, set_nat]) 1;
+  EVERY' (map rtac [@{thm ext}, trans, o_apply, sym, trans, o_apply, set_nat]) 1;
 
 fun mk_bd_card_order_tac bd_card_orders =
   CONJ_WRAP_GEN' (rtac @{thm card_order_csum}) rtac bd_card_orders 1;

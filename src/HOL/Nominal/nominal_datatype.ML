@@ -1723,8 +1723,8 @@ fun gen_nominal_datatype prep_specs config dts thy =
                 (finite_thss ~~ finite_ctxt_ths) @
             maps (fn ((_, idxss), elim) => maps (fn idxs =>
               [full_simp_tac (put_simpset HOL_ss context addsimps [Thm.symmetric fresh_def, supp_prod, Un_iff]) 1,
-               REPEAT_DETERM (eresolve_tac [conjE, ex1E] 1),
-               rtac ex1I 1,
+               REPEAT_DETERM (eresolve_tac @{thms conjE ex1E} 1),
+               rtac @{thm ex1I} 1,
                (resolve_tac rec_intrs THEN_ALL_NEW atac) 1,
                rotate_tac ~1 1,
                ((DETERM o etac elim) THEN_ALL_NEW full_simp_tac

@@ -106,7 +106,7 @@ fun strong_ind_simproc tab =
               SOME (close (Goal.prove ctxt [] [])
                 (Logic.mk_equals (t, fold_rev Term.abs xs (m $ p $ (bop $ S $ S'))))
                 (K (EVERY
-                  [rtac eq_reflection 1, REPEAT (rtac ext 1), rtac iffI 1,
+                  [rtac eq_reflection 1, REPEAT (rtac @{thm ext} 1), rtac iffI 1,
                    EVERY [etac conjE 1, rtac IntI 1, simp, simp,
                      etac IntE 1, rtac conjI 1, simp, simp] ORELSE
                    EVERY [etac disjE 1, rtac UnI1 1, simp, rtac UnI2 1, simp,
@@ -527,7 +527,7 @@ fun add_ind_set_def
                fold_rev (Term.abs o pair "x") Ts
                 (HOLogic.mk_mem (HOLogic.mk_ptuple fs U (map Bound (length fs downto 0)),
                   list_comb (c, params))))))
-            (K (REPEAT (rtac ext 1) THEN simp_tac (put_simpset HOL_basic_ss lthy addsimps
+            (K (REPEAT (rtac @{thm ext} 1) THEN simp_tac (put_simpset HOL_basic_ss lthy addsimps
               [def, mem_Collect_eq, @{thm split_conv}]) 1))
         in
           lthy |> Local_Theory.note ((Binding.name (s ^ "p_" ^ s ^ "_eq"),

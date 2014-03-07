@@ -382,7 +382,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
                    (map (pair "x") Ts, S $ Datatype_Aux.app_bnds f i)),
                  HOLogic.mk_Trueprop (HOLogic.mk_eq (fold_rev (Term.abs o pair "x") Ts
                    (r $ (a $ Datatype_Aux.app_bnds f i)), f))))
-              (fn _ => EVERY [REPEAT_DETERM_N i (rtac ext 1),
+              (fn _ => EVERY [REPEAT_DETERM_N i (rtac @{thm ext} 1),
                  REPEAT (etac allE 1), rtac thm 1, atac 1])
           end
       in map (fn r => r RS subst) (thm :: map mk_thm arities) end;
@@ -432,7 +432,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
                           map make_elim [Leaf_inject, Inl_inject, Inr_inject]) 1),
                         REPEAT (cong_tac 1), rtac refl 1,
                         REPEAT (atac 1 ORELSE (EVERY
-                          [REPEAT (rtac ext 1),
+                          [REPEAT (rtac @{thm ext} 1),
                            REPEAT (eresolve_tac (mp :: allE ::
                              map make_elim (Suml_inject :: Sumr_inject ::
                                Lim_inject :: inj_thms') @ fun_congs) 1),
@@ -487,7 +487,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
                 Thm.symmetric (mk_meta_eq @{thm fun_eq_iff}) :: range_eqs),
               rewrite_goals_tac ctxt (map Thm.symmetric range_eqs),
               REPEAT (EVERY
-                [REPEAT (eresolve_tac ([rangeE, ex1_implies_ex RS exE] @
+                [REPEAT (eresolve_tac ([rangeE, @{thm ex1_implies_ex} RS exE] @
                    maps (mk_funs_inv thy5 o #1) newT_iso_axms) 1),
                  TRY (hyp_subst_tac ctxt 1),
                  rtac (sym RS range_eqI) 1,
@@ -559,10 +559,10 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
           (fn {context = ctxt, ...} => EVERY
             [rtac iffI 1,
              REPEAT (etac conjE 2), hyp_subst_tac ctxt 2, rtac refl 2,
-             dresolve_tac rep_congs 1, dtac box_equals 1,
+             dresolve_tac rep_congs 1, dtac @{thm box_equals} 1,
              REPEAT (resolve_tac rep_thms 1),
              REPEAT (eresolve_tac inj_thms 1),
-             REPEAT (ares_tac [conjI] 1 ORELSE (EVERY [REPEAT (rtac ext 1),
+             REPEAT (ares_tac [conjI] 1 ORELSE (EVERY [REPEAT (rtac @{thm ext} 1),
                REPEAT (eresolve_tac (make_elim fun_cong :: inj_thms) 1),
                atac 1]))])
       end;

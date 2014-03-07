@@ -33,7 +33,7 @@ struct
 structure LA_Logic: LIN_ARITH_LOGIC =
 struct
 
-val ccontr = ccontr;
+val ccontr = @{thm ccontr};
 val conjI = conjI;
 val notI = notI;
 val sym = sym;
@@ -733,7 +733,7 @@ fun split_once_tac ctxt split_thms =
     EVERY' [
       REPEAT_DETERM o etac rev_mp,
       cond_split_tac,
-      rtac ccontr,
+      rtac @{thm ccontr},
       prem_nnf_tac ctxt,
       TRY o REPEAT_ALL_NEW (DETERM o (eresolve_tac [conjE, exE] ORELSE' etac disjE))
     ]

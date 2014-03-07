@@ -55,17 +55,17 @@ fun mk_comp_set_alt_tac ctxt collect_set_map =
   rtac refl 1;
 
 fun mk_comp_map_id0_tac Gmap_id0 Gmap_cong0 map_id0s =
-  EVERY' ([rtac ext, rtac (Gmap_cong0 RS trans)] @
+  EVERY' ([rtac @{thm ext}, rtac (Gmap_cong0 RS trans)] @
     map (fn thm => rtac (thm RS fun_cong)) map_id0s @ [rtac (Gmap_id0 RS fun_cong)]) 1;
 
 fun mk_comp_map_comp0_tac Gmap_comp0 Gmap_cong0 map_comp0s =
-  EVERY' ([rtac ext, rtac sym, rtac trans_o_apply,
+  EVERY' ([rtac @{thm ext}, rtac sym, rtac trans_o_apply,
     rtac (Gmap_comp0 RS sym RS comp_eq_dest_lhs RS trans), rtac Gmap_cong0] @
     map (fn thm => rtac (thm RS sym RS fun_cong)) map_comp0s) 1;
 
 fun mk_comp_set_map0_tac ctxt set'_eq_set Gmap_comp0 Gmap_cong0 Gset_map0 set_map0s =
   unfold_thms_tac ctxt [set'_eq_set] THEN
-  EVERY' ([rtac ext] @
+  EVERY' ([rtac @{thm ext}] @
     replicate 3 (rtac trans_o_apply) @
     [rtac (arg_cong_Union RS trans),
      rtac (@{thm arg_cong2[of _ _ _ _ collect, OF refl]} RS trans),
@@ -79,7 +79,7 @@ fun mk_comp_set_map0_tac ctxt set'_eq_set Gmap_comp0 Gmap_cong0 Gset_map0 set_ma
      rtac @{thm trans[OF comp_eq_dest_lhs[OF image_o_collect[symmetric]]]},
      rtac @{thm fun_cong[OF arg_cong[of _ _ collect]]}] @
      [REPEAT_DETERM_N (length set_map0s) o EVERY' [rtac @{thm trans[OF image_insert]},
-        rtac @{thm arg_cong2[of _ _ _ _ insert]}, rtac ext, rtac trans_o_apply,
+        rtac @{thm arg_cong2[of _ _ _ _ insert]}, rtac @{thm ext}, rtac trans_o_apply,
         rtac trans_image_cong_o_apply, rtac @{thm trans[OF image_image]},
         rtac @{thm sym[OF trans[OF o_apply]]}, rtac @{thm image_cong[OF refl o_apply]}],
      rtac @{thm image_empty}]) 1;

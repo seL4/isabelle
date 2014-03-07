@@ -84,7 +84,8 @@ fun mk_rel_Grp_tac ctxt rel_OO_Grps map_id0 map_cong0 map_id map_comp set_maps =
         hyp_subst_tac ctxt,
         rtac @{thm relcomppI}, rtac @{thm conversepI},
         EVERY' (map2 (fn convol => fn map_id0 =>
-          EVERY' [rtac @{thm GrpI}, rtac (box_equals OF [map_cong0, map_comp RS sym, map_id0]),
+          EVERY' [rtac @{thm GrpI},
+            rtac (@{thm box_equals} OF [map_cong0, map_comp RS sym, map_id0]),
             REPEAT_DETERM_N n o rtac (convol RS fun_cong),
             REPEAT_DETERM o eresolve_tac [CollectE, conjE],
             rtac CollectI,
@@ -203,7 +204,7 @@ fun mk_map_transfer_tac ctxt rel_mono in_rel set_maps map_cong0 map_comp =
       rtac @{thm vimage2pI}, rtac (in_rel RS iffD2), rtac exI, rtac conjI, in_tac,
       rtac conjI,
       EVERY' (map (fn convol =>
-        rtac (box_equals OF [map_cong0, map_comp RS sym, map_comp RS sym]) THEN'
+        rtac (@{thm box_equals} OF [map_cong0, map_comp RS sym, map_comp RS sym]) THEN'
         REPEAT_DETERM_N n o rtac (convol RS fun_cong)) @{thms fst_convol snd_convol})])
   end;
 
@@ -254,7 +255,7 @@ fun mk_in_bd_tac ctxt live surj_imp_ordLeq_inst map_comp map_id map_cong0 set_ma
           (K (etac @{thm If_the_inv_into_in_Func} THEN' atac)) set_maps,
         rtac sym,
         rtac (Drule.rotate_prems 1
-           ((box_equals OF [map_cong0 OF replicate live @{thm If_the_inv_into_f_f},
+           ((@{thm box_equals} OF [map_cong0 OF replicate live @{thm If_the_inv_into_f_f},
              map_comp RS sym, map_id]) RSN (2, trans))),
         REPEAT_DETERM_N (2 * live) o atac,
         REPEAT_DETERM_N live o rtac (@{thm prod.case} RS trans),
@@ -265,7 +266,7 @@ fun mk_in_bd_tac ctxt live surj_imp_ordLeq_inst map_comp map_id map_cong0 set_ma
           rtac (thm RS ord_eq_le_trans) THEN' etac @{thm subset_trans[OF image_mono Un_upper1]})
         set_maps,
         rtac sym,
-        rtac (box_equals OF [map_cong0 OF replicate live @{thm fun_cong[OF case_sum_o_inj(1)]},
+        rtac (@{thm box_equals} OF [map_cong0 OF replicate live @{thm fun_cong[OF case_sum_o_inj(1)]},
            map_comp RS sym, map_id])] 1
   end;
 

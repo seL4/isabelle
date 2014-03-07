@@ -707,7 +707,7 @@ fun skolemize_prems_tac ctxt prems =
 fun MESON preskolem_tac mkcl cltac ctxt i st =
   SELECT_GOAL
     (EVERY [Object_Logic.atomize_prems_tac ctxt 1,
-            rtac ccontr 1,
+            rtac @{thm ccontr} 1,
             preskolem_tac,
             Subgoal.FOCUS (fn {context = ctxt', prems = negs, ...} =>
                       EVERY1 [skolemize_prems_tac ctxt negs,

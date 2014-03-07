@@ -172,7 +172,7 @@ fun prove_primrec_thms (config : Datatype_Aux.config) new_type_names descr
           in
             (EVERY
               [DETERM tac,
-                REPEAT (etac ex1E 1), rtac ex1I 1,
+                REPEAT (etac @{thm ex1E} 1), rtac @{thm ex1I} 1,
                 DEPTH_SOLVE_1 (ares_tac [intr] 1),
                 REPEAT_DETERM_N k (etac thin_rl 1 THEN rotate_tac 1 1),
                 etac elim 1,

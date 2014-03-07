@@ -366,7 +366,7 @@ fun mk_uniqueness_case ctxt globals G f ihyp ih_intro G_cases compat_store claus
     val P2 = cterm_of thy (lambda y (G $ lhs $ y)) (* P2 y := (lhs, y): G *)
 
     val exactly_one =
-      ex1I |> instantiate' [SOME (ctyp_of thy ranT)] [SOME P2, SOME (cterm_of thy rhsC)]
+      @{thm ex1I} |> instantiate' [SOME (ctyp_of thy ranT)] [SOME P2, SOME (cterm_of thy rhsC)]
       |> curry (op COMP) existence
       |> curry (op COMP) uniqueness
       |> simplify (put_simpset HOL_basic_ss ctxt addsimps [case_hyp RS sym])

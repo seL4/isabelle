@@ -419,7 +419,7 @@ fun rawsat_tac ctxt i =
 (* ------------------------------------------------------------------------- *)
 
 fun pre_cnf_tac ctxt =
-  rtac ccontr THEN'
+  rtac @{thm ccontr} THEN'
   Object_Logic.atomize_prems_tac ctxt THEN'
   CONVERSION Drule.beta_eta_conversion;
 

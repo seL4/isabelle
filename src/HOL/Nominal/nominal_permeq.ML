@@ -241,7 +241,7 @@ fun unfold_perm_fun_def_tac i =
 (* applies the ext-rule such that      *)
 (*                                     *)
 (*    f = g   goes to  /\x. f x = g x  *)
-fun ext_fun_tac i = ("extensionality expansion of functions", rtac ext i);
+fun ext_fun_tac i = ("extensionality expansion of functions", rtac @{thm ext} i);
 
 
 (* perm_extend_simp_tac_i is perm_simp plus additional tactics        *)

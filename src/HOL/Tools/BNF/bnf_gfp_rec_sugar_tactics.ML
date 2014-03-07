@@ -140,7 +140,7 @@ fun mk_primcorec_sel_tac ctxt defs distincts splits split_asms mapsx map_idents 
     (CHANGED o SELECT_GOAL (unfold_thms_tac ctxt (@{thms fst_conv snd_conv id_def comp_def split_def
        sum.case} @ mapsx @ map_comps @ map_idents))) ORELSE'
     fo_rtac @{thm cong} ctxt ORELSE'
-    rtac ext));
+    rtac @{thm ext}));
 
 fun mk_primcorec_ctr_tac ctxt m collapse disc_fun_opt sel_funs =
   HEADGOAL (rtac ((if null sel_funs then collapse else collapse RS sym) RS trans) THEN'

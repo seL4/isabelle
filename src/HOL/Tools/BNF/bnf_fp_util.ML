@@ -525,7 +525,8 @@ fun mk_xtor_un_fold_o_map_thms fp is_rec m un_fold_unique xtor_maps xtor_un_fold
     val map_cong_active_args2 = replicate n (if is_rec
       then case_fp fp @{thm map_prod_o_convol_id} @{thm case_sum_o_map_sum_id}
       else case_fp fp @{thm id_comp} @{thm comp_id} RS fun_cong);
-    fun mk_map_congs passive active = map (fn thm => thm OF (passive @ active) RS ext) map_cong0s;
+    fun mk_map_congs passive active =
+      map (fn thm => thm OF (passive @ active) RS @{thm ext}) map_cong0s;
     val map_cong1s = mk_map_congs map_cong_passive_args1 map_cong_active_args1;
     val map_cong2s = mk_map_congs map_cong_passive_args2 map_cong_active_args2;
     

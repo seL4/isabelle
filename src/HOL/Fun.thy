@@ -895,7 +895,7 @@ let
           SOME (Goal.prove ctxt [] [] (Logic.mk_equals (t, rhs))
             (fn _ =>
               rtac eq_reflection 1 THEN
-              rtac ext 1 THEN
+              rtac @{thm ext} 1 THEN
               simp_tac (put_simpset ss ctxt) 1))
     end
 in proc end

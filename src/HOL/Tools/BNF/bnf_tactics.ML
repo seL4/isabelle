@@ -47,7 +47,7 @@ fun mk_pointfree ctxt thm = thm
   |> pairself (dest_comb #> apsnd (dest_comb #> fst) #> HOLogic.mk_comp)
   |> mk_Trueprop_eq
   |> (fn goal => Goal.prove_sorry ctxt [] [] goal
-    (K (rtac ext 1 THEN unfold_thms_tac ctxt [o_apply, mk_sym thm] THEN rtac refl 1)))
+    (K (rtac @{thm ext} 1 THEN unfold_thms_tac ctxt [o_apply, mk_sym thm] THEN rtac refl 1)))
   |> Thm.close_derivation;
 
 
