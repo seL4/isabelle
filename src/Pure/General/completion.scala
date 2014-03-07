@@ -136,7 +136,7 @@ object Completion
               val (total, names) =
               {
                 import XML.Decode._
-                pair(int, list(pair(string, string)))(body)
+                pair(int, list(pair(string, pair(string, string))))(body)
               }
               Some(Names(info.range, total, names))
             }
@@ -148,21 +148,27 @@ object Completion
     }
   }
 
-  sealed case class Names(range: Text.Range, total: Int, names: List[(String, String)])
+  sealed case class Names(
+    range: Text.Range, total: Int, names: List[(String, (String, String))])
   {
     def no_completion: Boolean = total == 0 && names.isEmpty
 
     def complete(
       history: Completion.History,
-      decode: Boolean,
+      do_decode: Boolean,
       original: String): Option[Completion.Result] =
     {
+      def decode(s: String): String = if (do_decode) Symbol.decode(s) else s
       val items =
         for {
-          (xname, name) <- names
-          xname1 = (if (decode) Symbol.decode(xname) else xname)
+          (xname, (kind, name)) <- names
+          xname1 = decode(xname)
           if xname1 != original
-        } yield Item(range, original, name, xname1, xname1, 0, true)
+          (full_name, descr_name) =
+            if (kind == "") (name, quote(decode(name)))
+            else (kind + "." + name, Library.plain_words(kind) + " " + quote(decode(name)))
+          description = xname1 + "   (" + descr_name + ")"
+        } yield Item(range, original, full_name, description, xname1, 0, true)
 
       if (items.isEmpty) None
       else Some(Result(range, original, names.length == 1, items.sorted(history.ordering)))
@@ -298,7 +304,7 @@ final class Completion private(
 
   def complete(
     history: Completion.History,
-    decode: Boolean,
+    do_decode: Boolean,
     explicit: Boolean,
     start: Text.Offset,
     text: CharSequence,
@@ -306,6 +312,7 @@ final class Completion private(
     extend_word: Boolean,
     language_context: Completion.Language_Context): Option[Completion.Result] =
   {
+    def decode(s: String): String = if (do_decode) Symbol.decode(s) else s
     val length = text.length
 
     val abbrevs_result =
@@ -356,21 +363,28 @@ final class Completion private(
     words_result match {
       case Some(((word, cs), end)) =>
         val range = Text.Range(- word.length, 0) + end + start
-        val ds = (if (decode) cs.map(Symbol.decode(_)) else cs).filter(_ != word)
+        val ds = cs.map(decode(_)).filter(_ != word)
         if (ds.isEmpty) None
         else {
           val immediate =
             !Completion.Word_Parsers.is_word(word) &&
             Character.codePointCount(word, 0, word.length) > 1
           val items =
-            ds.map(s => {
+            for { (name, name1) <- cs zip ds }
+            yield {
               val (s1, s2) =
-                space_explode(Completion.caret_indicator, s) match {
+                space_explode(Completion.caret_indicator, name1) match {
                   case List(s1, s2) => (s1, s2)
-                  case _ => (s, "")
+                  case _ => (name1, "")
                 }
-              Completion.Item(range, word, s, s, s1 + s2, - s2.length, explicit || immediate)
-            })
+              val description =
+                if (keywords(name)) name1 + "   (keyword)"
+                else if (Symbol.names.isDefinedAt(name) && name != name1)
+                  name1 + "   (symbol " + quote(name) + ")"
+                else name1
+              Completion.Item(
+                range, word, name1, description, s1 + s2, - s2.length, explicit || immediate)
+            }
           Some(Completion.Result(range, word, cs.length == 1, items.sorted(history.ordering)))
         }
       case None => None
