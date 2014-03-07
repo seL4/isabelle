@@ -257,7 +257,7 @@ object Completion
 }
 
 final class Completion private(
-  keywords: Set[String] = Set.empty,
+  keywords: Map[String, Boolean] = Map.empty,
   words_lex: Scan.Lexicon = Scan.Lexicon.empty,
   words_map: Multi_Map[String, String] = Multi_Map.empty,
   abbrevs_lex: Scan.Lexicon = Scan.Lexicon.empty,
@@ -265,11 +265,14 @@ final class Completion private(
 {
   /* keywords */
 
-  def + (keyword: String, replace: String): Completion =
+  def is_keyword(name: String): Boolean = keywords.isDefinedAt(name)
+  def is_keyword_template(name: String): Boolean = keywords.get(name) == Some(true)
+
+  def + (keyword: String, template: String): Completion =
     new Completion(
-      keywords + keyword,
+      keywords + (keyword -> (keyword != template)),
       words_lex + keyword,
-      words_map + (keyword -> replace),
+      words_map + (keyword -> template),
       abbrevs_lex,
       abbrevs_map)
 
@@ -354,7 +357,7 @@ final class Completion private(
             val completions =
               for {
                 s <- words_lex.completions(word)
-                if (if (keywords(s)) language_context.is_outer else language_context.symbols)
+                if (if (is_keyword(s)) language_context.is_outer else language_context.symbols)
                 r <- words_map.get_list(s)
               } yield r
             if (completions.isEmpty) None
@@ -384,10 +387,14 @@ final class Completion private(
                 }
               move = - s2.length
               description =
-                if (move != 0) List(name1, "(template)")
-                else if (words_result.isDefined && keywords(name0)) List(name1, "(keyword)")
-                else if (Symbol.names.isDefinedAt(name0) && name0 != name1)
-                  List(name1, "(symbol " + quote(name0) + ")")
+                if (Symbol.names.isDefinedAt(name0)) {
+                  if (name0 == name1) List(name0)
+                  else List(name1, "(symbol " + quote(name0) + ")")
+                }
+                else if (move != 0 || is_keyword_template(name0))
+                  List(name1, "(template)")
+                else if (is_keyword(name0))
+                  List(name1, "(keyword)")
                 else List(name1)
             }
             yield Completion.Item(range, original, name1, description, s1 + s2, move, immediate)
