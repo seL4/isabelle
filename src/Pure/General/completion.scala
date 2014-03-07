@@ -265,8 +265,8 @@ final class Completion private(
 {
   /* keywords */
 
-  def is_keyword(name: String): Boolean = keywords.isDefinedAt(name)
-  def is_keyword_template(name: String): Boolean = keywords.get(name) == Some(true)
+  private def is_keyword(name: String): Boolean = keywords.isDefinedAt(name)
+  private def is_keyword_template(name: String): Boolean = keywords.get(name) == Some(true)
 
   def + (keyword: String, template: String): Completion =
     new Completion(
@@ -280,6 +280,9 @@ final class Completion private(
 
 
   /* symbols with abbreviations */
+
+  private def is_symbol(name: String): Boolean =
+    Symbol.names.isDefinedAt(name)
 
   private def add_symbols(): Completion =
   {
@@ -369,38 +372,40 @@ final class Completion private(
     (abbrevs_result orElse words_result) match {
       case Some(((original, completions0), end)) =>
         val completions1 = completions0.map(decode(_))
-        if (completions1.exists(_ != original)) {
-          val range = Text.Range(- original.length, 0) + end + start
-          val immediate =
-            explicit ||
-              (!Completion.Word_Parsers.is_word(original) &&
-                Character.codePointCount(original, 0, original.length) > 1)
-          val unique = completions0.length == 1
-          val items =
-            for {
-              (name0, name1) <- completions0 zip completions1
-              if name1 != original
-              (s1, s2) =
-                space_explode(Completion.caret_indicator, name1) match {
-                  case List(s1, s2) => (s1, s2)
-                  case _ => (name1, "")
-                }
-              move = - s2.length
-              description =
-                if (Symbol.names.isDefinedAt(name0)) {
-                  if (name0 == name1) List(name0)
-                  else List(name1, "(symbol " + quote(name0) + ")")
-                }
-                else if (move != 0 || is_keyword_template(name0))
-                  List(name1, "(template)")
-                else if (is_keyword(name0))
-                  List(name1, "(keyword)")
-                else List(name1)
-            }
-            yield Completion.Item(range, original, name1, description, s1 + s2, move, immediate)
-          Some(Completion.Result(range, original, unique, items.sorted(history.ordering)))
-        }
-        else None
+
+        val range = Text.Range(- original.length, 0) + end + start
+        val immediate =
+          explicit ||
+            (!Completion.Word_Parsers.is_word(original) &&
+              Character.codePointCount(original, 0, original.length) > 1)
+        val unique = completions0.length == 1
+
+        val items =
+          for {
+            (name0, name1) <- completions0 zip completions1
+            if name1 != original
+            (s1, s2) =
+              space_explode(Completion.caret_indicator, name1) match {
+                case List(s1, s2) => (s1, s2)
+                case _ => (name1, "")
+              }
+            move = - s2.length
+            description =
+              if (is_symbol(name0)) {
+                if (name0 == name1) List(name0)
+                else List(name1, "(symbol " + quote(name0) + ")")
+              }
+              else if (move != 0 || is_keyword_template(name0))
+                List(name1, "(template)")
+              else if (is_keyword(name0))
+                List(name1, "(keyword)")
+              else List(name1)
+          }
+          yield Completion.Item(range, original, name1, description, s1 + s2, move, immediate)
+
+        if (items.isEmpty) None
+        else Some(Completion.Result(range, original, unique, items.sorted(history.ordering)))
+
       case None => None
     }
   }
