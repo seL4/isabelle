@@ -52,20 +52,20 @@ fun construct_mutualized_fp fp fpTs (fp_sugars : fp_sugar list) bs resBs (resDs,
     fun of_fp_res get =
       map (fn {fp_res, fp_res_index, ...} => nth (get fp_res) fp_res_index) fp_sugars;
 
-    fun mk_co_algT T U = fp_case fp (T --> U) (U --> T);
-    fun co_swap pair = fp_case fp I swap pair;
+    fun mk_co_algT T U = case_fp fp (T --> U) (U --> T);
+    fun co_swap pair = case_fp fp I swap pair;
     val mk_co_comp = HOLogic.mk_comp o co_swap;
-    val co_productC = BNF_FP_Rec_Sugar_Util.fp_case fp @{type_name prod} @{type_name sum};
+    val co_productC = BNF_FP_Rec_Sugar_Util.case_fp fp @{type_name prod} @{type_name sum};
 
     val dest_co_algT = co_swap o dest_funT;
-    val co_alg_argT = fp_case fp range_type domain_type;
-    val co_alg_funT = fp_case fp domain_type range_type;
-    val mk_co_product = curry (fp_case fp mk_convol mk_case_sum);
-    val mk_map_co_product = fp_case fp mk_prod_map mk_map_sum;
-    val co_proj1_const = fp_case fp (fst_const o fst) (uncurry Inl_const o dest_sumT o snd);
-    val mk_co_productT = curry (fp_case fp HOLogic.mk_prodT mk_sumT);
-    val dest_co_productT = fp_case fp HOLogic.dest_prodT dest_sumT;
-    val rewrite_comp_comp = fp_case fp @{thm rewriteL_comp_comp} @{thm rewriteR_comp_comp};
+    val co_alg_argT = case_fp fp range_type domain_type;
+    val co_alg_funT = case_fp fp domain_type range_type;
+    val mk_co_product = curry (case_fp fp mk_convol mk_case_sum);
+    val mk_map_co_product = case_fp fp mk_prod_map mk_map_sum;
+    val co_proj1_const = case_fp fp (fst_const o fst) (uncurry Inl_const o dest_sumT o snd);
+    val mk_co_productT = curry (case_fp fp HOLogic.mk_prodT mk_sumT);
+    val dest_co_productT = case_fp fp HOLogic.dest_prodT dest_sumT;
+    val rewrite_comp_comp = case_fp fp @{thm rewriteL_comp_comp} @{thm rewriteR_comp_comp};
 
     val fp_absT_infos = map #absT_info fp_sugars;
     val fp_bnfs = of_fp_res #bnfs;
@@ -115,7 +115,7 @@ fun construct_mutualized_fp fp fpTs (fp_sugars : fp_sugar list) bs resBs (resDs,
         val ctors = map2 (force_typ names_lthy o (fn T => dummyT --> T)) fpTs (of_fp_res #ctors);
         val dtors = map2 (force_typ names_lthy o (fn T => T --> dummyT)) fpTs (of_fp_res #dtors);
       in
-        ((ctors, dtors), `(map (Term.subst_atomic_types thetaBs)) (fp_case fp ctors dtors))
+        ((ctors, dtors), `(map (Term.subst_atomic_types thetaBs)) (case_fp fp ctors dtors))
       end;
 
     val absATs = map (domain_type o fastype_of) ctors;
@@ -283,7 +283,7 @@ fun construct_mutualized_fp fp fpTs (fp_sugars : fp_sugar list) bs resBs (resDs,
       end;
 
     fun mk_co_comp_abs_rep fp_absT absT fp_abs fp_rep abs rep t =
-      fp_case fp (HOLogic.mk_comp (HOLogic.mk_comp (t, mk_abs absT abs), mk_rep fp_absT fp_rep))
+      case_fp fp (HOLogic.mk_comp (HOLogic.mk_comp (t, mk_abs absT abs), mk_rep fp_absT fp_rep))
         (HOLogic.mk_comp (mk_abs fp_absT fp_abs, HOLogic.mk_comp (mk_rep absT rep, t)));
 
     fun mk_rec b_opt recs lthy TU =
@@ -358,7 +358,7 @@ fun construct_mutualized_fp fp fpTs (fp_sugars : fp_sugar list) bs resBs (resDs,
             fold_rev Term.absfree rec_strs' t)) lthy |>> apsnd snd)
       end;
 
-    val recN = fp_case fp ctor_recN dtor_corecN;
+    val recN = case_fp fp ctor_recN dtor_corecN;
     fun mk_recs lthy =
       fold2 (fn TU => fn b => fn ((recs, defs), lthy) =>
         mk_rec (SOME b) recs lthy TU |>> (fn (f, d) => (f :: recs, d :: defs)))
@@ -403,10 +403,10 @@ fun construct_mutualized_fp fp fpTs (fp_sugars : fp_sugar list) bs resBs (resDs,
 
         val fp_xtor_co_recs = map (mk_pointfree lthy) (of_fp_res #xtor_co_rec_thms);
 
-        val fold_thms = fp_case fp @{thm comp_assoc} @{thm comp_assoc[symmetric]} ::
+        val fold_thms = case_fp fp @{thm comp_assoc} @{thm comp_assoc[symmetric]} ::
           map (fn thm => thm RS rewrite_comp_comp) @{thms map_prod.comp map_sum.comp} @
           @{thms id_apply comp_id id_comp map_prod.comp map_prod.id map_sum.comp map_sum.id};
-        val rec_thms = fold_thms @ fp_case fp
+        val rec_thms = fold_thms @ case_fp fp
           @{thms fst_convol map_prod_o_convol convol_o}
           @{thms case_sum_o_inj(1) case_sum_o_map_sum o_case_sum};
 
@@ -415,7 +415,7 @@ fun construct_mutualized_fp fp fpTs (fp_sugars : fp_sugar list) bs resBs (resDs,
         val map_thms = no_refl (maps (fn bnf =>
            let val map_comp0 = map_comp0_of_bnf bnf RS sym
            in [map_comp0, map_comp0 RS rewrite_comp_comp, map_id0_of_bnf bnf] end) fp_nesty_bnfs) @
-          remove eq_thm_prop_untyped (fp_case fp @{thm comp_assoc[symmetric]} @{thm comp_assoc})
+          remove eq_thm_prop_untyped (case_fp fp @{thm comp_assoc[symmetric]} @{thm comp_assoc})
           (map2 (fn thm => fn bnf =>
             @{thm type_copy_map_comp0_undo} OF
               (replicate 3 thm @ unfold_map [map_comp0_of_bnf bnf]) RS

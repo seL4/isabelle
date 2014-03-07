@@ -7,9 +7,9 @@ Tactics for datatype and codatatype sugar.
 
 signature BNF_FP_DEF_SUGAR_TACTICS =
 sig
-  val sum_prod_thms_map: thm list
-  val sum_prod_thms_set: thm list
-  val sum_prod_thms_rel: thm list
+  val sumprod_thms_map: thm list
+  val sumprod_thms_set: thm list
+  val sumprod_thms_rel: thm list
 
   val mk_coinduct_tac: Proof.context -> thm list -> int -> int list -> thm -> thm list ->
     thm list -> thm list -> thm list -> thm list -> thm list list -> thm list list list ->
@@ -37,12 +37,12 @@ open BNF_FP_Util
 val basic_simp_thms = @{thms simp_thms(7,8,12,14,22,24)};
 val more_simp_thms = basic_simp_thms @ @{thms simp_thms(11,15,16,21)};
 
-val sum_prod_thms_map = @{thms id_apply map_prod_simp prod.case sum.case map_sum.simps};
-val sum_prod_thms_set =
+val sumprod_thms_map = @{thms id_apply map_prod_simp prod.case sum.case map_sum.simps};
+val sumprod_thms_set =
   @{thms UN_empty UN_insert Un_empty_left Un_empty_right Un_iff UN_simps(10) UN_iff
       Union_Un_distrib image_iff o_apply map_prod_simp
       mem_Collect_eq prod_set_simps map_sum.simps sum_set_simps};
-val sum_prod_thms_rel = @{thms rel_prod_apply rel_sum_simps id_apply};
+val sumprod_thms_rel = @{thms rel_prod_apply rel_sum_simps id_apply};
 
 fun hhf_concl_conv cv ctxt ct =
   (case Thm.term_of ct of
@@ -87,13 +87,13 @@ fun mk_inject_tac ctxt ctr_def ctor_inject abs_inject =
 
 val rec_unfold_thms =
   @{thms comp_def convol_def fst_conv id_def case_prod_Pair_iden snd_conv split_conv
-      case_unit_Unity} @ sum_prod_thms_map;
+      case_unit_Unity} @ sumprod_thms_map;
 
 fun mk_rec_tac pre_map_defs map_idents rec_defs ctor_rec fp_abs_inverse abs_inverse ctr_def ctxt =
   unfold_thms_tac ctxt (ctr_def :: ctor_rec :: fp_abs_inverse :: abs_inverse :: rec_defs @
     pre_map_defs @ map_idents @ rec_unfold_thms) THEN HEADGOAL (rtac refl);
 
-val corec_unfold_thms = @{thms id_def} @ sum_prod_thms_map;
+val corec_unfold_thms = @{thms id_def} @ sumprod_thms_map;
 
 fun mk_corec_tac corec_defs map_idents ctor_dtor_corec pre_map_def abs_inverse ctr_def ctxt =
   let
@@ -121,7 +121,7 @@ fun mk_induct_leverage_prem_prems_tac ctxt nn kks fp_abs_inverses abs_inverses s
     pre_set_defs =
   HEADGOAL (EVERY' (maps (fn kk => [select_prem_tac nn (dtac meta_spec) kk, etac meta_mp,
     SELECT_GOAL (unfold_thms_tac ctxt (pre_set_defs @ fp_abs_inverses @ abs_inverses @ set_maps @
-      sum_prod_thms_set)),
+      sumprod_thms_set)),
     solve_prem_prem_tac ctxt]) (rev kks)));
 
 fun mk_induct_discharge_prem_tac ctxt nn n fp_abs_inverses abs_inverses set_maps pre_set_defs m k
@@ -153,7 +153,7 @@ fun mk_coinduct_same_ctr_tac ctxt rel_eqs pre_rel_def fp_abs_inverse abs_inverse
     (Conv.top_conv (K (Conv.try_conv (Conv.rewr_conv ctr_def))) ctxt) ctxt) THEN'
   SELECT_GOAL (unfold_thms_tac ctxt (pre_rel_def :: dtor_ctor :: sels)) THEN'
   SELECT_GOAL (unfold_thms_tac ctxt (pre_rel_def :: fp_abs_inverse :: abs_inverse :: dtor_ctor ::
-    sels @ sum_prod_thms_rel @ @{thms o_apply vimage2p_def})) THEN'
+    sels @ sumprod_thms_rel @ @{thms o_apply vimage2p_def})) THEN'
   (atac ORELSE' REPEAT o etac conjE THEN'
      full_simp_tac
        (ss_only (@{thm prod.inject} :: no_refl discs @ rel_eqs @ more_simp_thms) ctxt) THEN'

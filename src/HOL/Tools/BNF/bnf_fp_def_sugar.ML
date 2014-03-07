@@ -365,7 +365,7 @@ fun mk_recs_args_types ctr_Tsss Cs absTs repTs ns mss ctor_rec_fun_Ts lthy =
   end;
 
 (*avoid "'a itself" arguments in corecursors*)
-fun repair_nullary_single_ctr [[]] = [[@{typ unit}]]
+fun repair_nullary_single_ctr [[]] = [[HOLogic.unitT]]
   | repair_nullary_single_ctr Tss = Tss;
 
 fun mk_corec_fun_arg_types0 ctr_Tsss Cs absTs repTs ns mss fun_Ts =
@@ -479,7 +479,7 @@ fun define_rec NONE _ _ _ _ _ = pair (Term.dummy, refl)
         (fold_rev (fold_rev Term.lambda) fss (Term.list_comb (ctor_rec,
            map4 (fn ctor_rec_absT => fn rep => fn fs => fn xsss =>
                mk_case_absumprod ctor_rec_absT rep fs
-                 (map (HOLogic.mk_tuple o map HOLogic.mk_tuple) xsss) (map flat_rec_arg_args xsss))
+                 (map (mk_tuple_balanced o map HOLogic.mk_tuple) xsss) (map flat_rec_arg_args xsss))
              ctor_rec_absTs reps fss xssss)))
     end;
 
@@ -978,7 +978,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val unfreeze_fp = Term.typ_subst_atomic (Xs ~~ fake_Ts);
 
     val ctrXs_Tsss = map (map (map freeze_fp)) fake_ctr_Tsss;
-    val ctrXs_repTs = map (mk_sumTN_balanced o map HOLogic.mk_tupleT) ctrXs_Tsss;
+    val ctrXs_repTs = map mk_sumprodT_balanced ctrXs_Tsss;
 
     val fp_eqs =
       map dest_TFree Xs ~~ map (Term.typ_subst_atomic (As ~~ unsorted_As)) ctrXs_repTs;
@@ -1196,7 +1196,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
               fun mk_map_thm ctr_def' cxIn =
                 fold_thms lthy [ctr_def']
                   (unfold_thms lthy (o_apply :: pre_map_def ::
-                       (if fp = Least_FP then [] else [ctor_dtor, dtor_ctor]) @ sum_prod_thms_map @
+                       (if fp = Least_FP then [] else [ctor_dtor, dtor_ctor]) @ sumprod_thms_map @
                        abs_inverses)
                      (cterm_instantiate_pos (nones @ [SOME cxIn])
                         (if fp = Least_FP then fp_map_thm else fp_map_thm RS ctor_cong)))
@@ -1205,7 +1205,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
               fun mk_set_thm fp_set_thm ctr_def' cxIn =
                 fold_thms lthy [ctr_def']
                   (unfold_thms lthy (pre_set_defs @ nested_set_maps @ nesting_set_maps @
-                       (if fp = Least_FP then [] else [dtor_ctor]) @ sum_prod_thms_set @
+                       (if fp = Least_FP then [] else [dtor_ctor]) @ sumprod_thms_set @
                        abs_inverses)
                      (cterm_instantiate_pos [SOME cxIn] fp_set_thm))
                 |> singleton (Proof_Context.export names_lthy no_defs_lthy);
@@ -1221,7 +1221,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
               fun mk_rel_thm postproc ctr_defs' cxIn cyIn =
                 fold_thms lthy ctr_defs'
                   (unfold_thms lthy (pre_rel_def :: abs_inverse ::
-                       (if fp = Least_FP then [] else [dtor_ctor]) @ sum_prod_thms_rel @
+                       (if fp = Least_FP then [] else [dtor_ctor]) @ sumprod_thms_rel @
                        @{thms vimage2p_def Inl_Inr_False})
                      (cterm_instantiate_pos (nones @ [SOME cxIn, SOME cyIn]) fp_rel_thm))
                 |> postproc
@@ -1396,7 +1396,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         abss ~~ abs_injects ~~ abs_inverses ~~ type_definitions ~~ ctr_bindingss ~~ ctr_mixfixess ~~
         ctr_Tsss ~~ disc_bindingss ~~ sel_bindingsss ~~ raw_sel_defaultsss)
       |> wrap_types_etc
-      |> fp_case fp derive_note_induct_recs_thms_for_types
+      |> case_fp fp derive_note_induct_recs_thms_for_types
            derive_note_coinduct_corecs_thms_for_types;
 
     val timer = time (timer ("Constructors, discriminators, selectors, etc., for the new " ^

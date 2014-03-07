@@ -21,6 +21,12 @@ setup {*
 Sign.const_alias @{binding proj} @{const_name Equiv_Relations.proj}
 *}
 
+lemma one_pointE: "\<lbrakk>\<And>x. s = x \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+by simp
+
+lemma obj_sumE: "\<lbrakk>\<forall>x. s = Inl x \<longrightarrow> P; \<forall>x. s = Inr x \<longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+by (cases s) auto
+
 lemma not_TrueE: "\<not> True \<Longrightarrow> P"
 by (erule notE, rule TrueI)
 

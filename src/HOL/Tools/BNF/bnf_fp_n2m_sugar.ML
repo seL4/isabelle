@@ -101,7 +101,7 @@ fun map_partition f xs =
     xs ([], ([], []));
 
 fun key_of_fp_eqs fp fpTs fp_eqs =
-  Type (fp_case fp "l" "g", fpTs @ maps (fn (x, T) => [TFree x, T]) fp_eqs);
+  Type (case_fp fp "l" "g", fpTs @ maps (fn (x, T) => [TFree x, T]) fp_eqs);
 
 fun get_indices callers t =
   callers
@@ -191,7 +191,7 @@ fun mutualize_fp_sugars fp bs fpTs callers callssss fp_sugars0 no_defs_lthy0 =
 
     val ctr_Tsss = map (map binder_types) ctr_Tss;
     val ctrXs_Tsss = map4 (map2 o map2 oo freeze_fpTs_call) kks fpTs callssss ctr_Tsss;
-    val ctrXs_repTs = map (mk_sumTN_balanced o map HOLogic.mk_tupleT) ctrXs_Tsss;
+    val ctrXs_repTs = map mk_sumprodT_balanced ctrXs_Tsss;
 
     val ns = map length ctr_Tsss;
     val kss = map (fn n => 1 upto n) ns;

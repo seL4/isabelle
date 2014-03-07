@@ -28,12 +28,6 @@ by simp
 lemma unit_all_impI: "(P () \<Longrightarrow> Q ()) \<Longrightarrow> \<forall>x. P x \<longrightarrow> Q x"
 by simp
 
-lemma prod_all_impI: "(\<And>x y. P (x, y) \<Longrightarrow> Q (x, y)) \<Longrightarrow> \<forall>x. P x \<longrightarrow> Q x"
-by clarify
-
-lemma prod_all_impI_step: "(\<And>x. \<forall>y. P (x, y) \<longrightarrow> Q (x, y)) \<Longrightarrow> \<forall>x. P x \<longrightarrow> Q x"
-by auto
-
 lemma pointfree_idE: "f \<circ> g = id \<Longrightarrow> f (g x) = x"
 unfolding comp_def fun_eq_iff by simp
 
@@ -58,9 +52,6 @@ lemma case_sum_step:
 "case_sum f (case_sum f' g') (Inr p) = case_sum f' g' p"
 by auto
 
-lemma one_pointE: "\<lbrakk>\<And>x. s = x \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
-by simp
-
 lemma obj_one_pointE: "\<forall>x. s = x \<longrightarrow> P \<Longrightarrow> P"
 by blast
 
@@ -75,9 +66,6 @@ lemma obj_sumE_f:
 proof
   fix x from assms show "s = f x \<longrightarrow> P" by (cases x) auto
 qed
-
-lemma obj_sumE: "\<lbrakk>\<forall>x. s = Inl x \<longrightarrow> P; \<forall>x. s = Inr x \<longrightarrow> P\<rbrakk> \<Longrightarrow> P"
-by (cases s) auto
 
 lemma case_sum_if:
 "case_sum f g (if p then Inl x else Inr y) = (if p then f x else g y)"

@@ -821,7 +821,7 @@ fun build_codefs lthy bs mxs has_call arg_Tss (corec_specs : corec_spec list)
     val ctr_specss = map #ctr_specs corec_specs;
     val corec_args = hd corecs
       |> fst o split_last o binder_types o fastype_of
-      |> map (fn T => if range_type T = @{typ bool}
+      |> map (fn T => if range_type T = HOLogic.boolT
           then Abs (Name.uu_, domain_type T, @{term False})
           else Const (@{const_name undefined}, T))
       |> fold2 (fold o build_corec_arg_disc) ctr_specss disc_eqnss
@@ -1227,9 +1227,9 @@ val _ = tracing ("exclusiveness properties:\n    \<cdot> " ^
                            split_last (map_filter I ctr_conds_argss_opt) ||> snd
                          else
                            Const (@{const_name Code.abort}, @{typ String.literal} -->
-                               (@{typ unit} --> body_type fun_T) --> body_type fun_T) $
+                               (HOLogic.unitT --> body_type fun_T) --> body_type fun_T) $
                              HOLogic.mk_literal fun_name $
-                             absdummy @{typ unit} (incr_boundvars 1 lhs)
+                             absdummy HOLogic.unitT (incr_boundvars 1 lhs)
                            |> pair (map_filter I ctr_conds_argss_opt))
                          |-> fold_rev (fn (prems, u) => mk_If (s_conjs prems) u)
                     in

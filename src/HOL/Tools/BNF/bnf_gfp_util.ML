@@ -12,6 +12,7 @@ sig
   val dest_listT: typ -> typ
 
   val mk_Cons: term -> term -> term
+  val mk_InN: typ list -> term -> int -> term
   val mk_Shift: term -> term -> term
   val mk_Succ: term -> term -> term
   val mk_Times: term * term -> term
@@ -36,17 +37,24 @@ sig
   val mk_InN_Field: int -> int -> thm
   val mk_InN_inject: int -> int -> thm
   val mk_InN_not_InM: int -> int -> thm
+  val mk_sumEN: int -> thm
 end;
 
 structure BNF_GFP_Util : BNF_GFP_UTIL =
 struct
 
 open BNF_Util
+open BNF_FP_Util
 
 val mk_append = HOLogic.mk_binop @{const_name append};
 
 fun mk_equiv B R =
   Const (@{const_name equiv}, fastype_of B --> fastype_of R --> HOLogic.boolT) $ B $ R;
+
+fun mk_InN [_] t 1 = t
+  | mk_InN (_ :: Ts) t 1 = mk_Inl (mk_sumTN Ts) t
+  | mk_InN (LT :: Ts) t m = mk_Inr LT (mk_InN Ts t (m - 1))
+  | mk_InN Ts t _ = raise TYPE ("mk_InN", Ts, [t]);
 
 fun mk_Sigma (A, B) =
   let
@@ -159,6 +167,12 @@ fun mk_InN_inject 1 _ = @{thm TrueE[OF TrueI]}
   | mk_InN_inject _ 1 = @{thm Inl_inject}
   | mk_InN_inject 2 2 = @{thm Inr_inject}
   | mk_InN_inject n m = @{thm Inr_inject} RS mk_InN_inject (n - 1) (m - 1);
+
+fun mk_sumEN 1 = @{thm one_pointE}
+  | mk_sumEN 2 = @{thm sumE}
+  | mk_sumEN n =
+    (fold (fn i => fn thm => @{thm obj_sumE_f} RSN (i, thm)) (2 upto n - 1) @{thm obj_sumE}) OF
+      replicate n (impI RS allI);
 
 fun mk_specN 0 thm = thm
   | mk_specN n thm = mk_specN (n - 1) (thm RS spec);

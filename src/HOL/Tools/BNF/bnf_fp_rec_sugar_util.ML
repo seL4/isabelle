@@ -10,7 +10,7 @@ signature BNF_FP_REC_SUGAR_UTIL =
 sig
   datatype fp_kind = Least_FP | Greatest_FP
 
-  val fp_case: fp_kind -> 'a -> 'a -> 'a
+  val case_fp: fp_kind -> 'a -> 'a -> 'a
 
   val flat_rec_arg_args: 'a list list -> 'a list
 
@@ -48,8 +48,8 @@ struct
 
 datatype fp_kind = Least_FP | Greatest_FP;
 
-fun fp_case Least_FP l _ = l
-  | fp_case Greatest_FP _ g = g;
+fun case_fp Least_FP l _ = l
+  | case_fp Greatest_FP _ g = g;
 
 fun flat_rec_arg_args xss =
   (* FIXME (once the old datatype package is phased out): The first line below gives the preferred
@@ -107,8 +107,8 @@ val mk_comp = mk_compN 1;
 fun mk_co_rec thy fp fpT Cs t =
   let
     val ((f_Cs, prebody), body) = strip_type (fastype_of t) |>> split_last;
-    val fpT0 = fp_case fp prebody body;
-    val Cs0 = distinct (op =) (map (fp_case fp body_type domain_type) f_Cs);
+    val fpT0 = case_fp fp prebody body;
+    val Cs0 = distinct (op =) (map (case_fp fp body_type domain_type) f_Cs);
     val rho = tvar_subst thy (fpT0 :: Cs0) (fpT :: Cs);
   in
     Term.subst_TVars rho t

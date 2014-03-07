@@ -120,7 +120,7 @@ fun datatype_compat_cmd raw_fpT_names lthy =
     val callers = map (fn kk => Var ((Name.uu, kk), @{typ "unit => unit"})) (0 upto nn - 1);
 
     fun apply_comps n kk =
-      mk_partial_compN n (replicate n @{typ unit} ---> @{typ unit}) (nth callers kk);
+      mk_partial_compN n (replicate n HOLogic.unitT ---> HOLogic.unitT) (nth callers kk);
 
     val callssss =
       map2 (map2 (map2 (fn kks => fn ctr_T => map (apply_comps (num_binder_types ctr_T)) kks)))
