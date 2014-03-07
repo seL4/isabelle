@@ -265,8 +265,9 @@ final class Completion private(
 {
   /* keywords */
 
-  private def is_keyword(name: String): Boolean = keywords.isDefinedAt(name)
-  private def is_keyword_template(name: String): Boolean = keywords.get(name) == Some(true)
+  private def is_symbol(name: String): Boolean = Symbol.names.isDefinedAt(name)
+  private def is_keyword(name: String): Boolean = !is_symbol(name) && keywords.isDefinedAt(name)
+  private def is_keyword_template(name: String): Boolean = is_keyword(name) && keywords(name)
 
   def + (keyword: String, template: String): Completion =
     new Completion(
@@ -280,9 +281,6 @@ final class Completion private(
 
 
   /* symbols with abbreviations */
-
-  private def is_symbol(name: String): Boolean =
-    Symbol.names.isDefinedAt(name)
 
   private def add_symbols(): Completion =
   {
