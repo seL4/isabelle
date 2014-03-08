@@ -302,7 +302,7 @@ fun eval src ((th, dyn), (decls, context)) =
 in
 
 fun partial_evaluation ctxt facts =
-  (facts, Context.Proof (Context_Position.set_visible false ctxt)) |->
+  (facts, Context.Proof ctxt) |->
     fold_map (fn ((b, more_atts), fact) => fn context =>
       let
         val (fact', (decls, context')) =
