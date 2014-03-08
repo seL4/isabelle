@@ -202,8 +202,7 @@ end
 
 fun case_of_simps_cmd (bind, thms_ref) lthy =
   let
-    val thy = Proof_Context.theory_of lthy
-    val bind' = apsnd (map (Attrib.intern_src thy)) bind
+    val bind' = apsnd (map (Attrib.check_src lthy)) bind
     val thm = (Attrib.eval_thms lthy) thms_ref |> to_case lthy
   in
     Local_Theory.note (bind', [thm]) lthy |> snd
@@ -211,8 +210,7 @@ fun case_of_simps_cmd (bind, thms_ref) lthy =
 
 fun simps_of_case_cmd ((bind, thm_ref), splits_ref) lthy =
   let
-    val thy = Proof_Context.theory_of lthy
-    val bind' = apsnd (map (Attrib.intern_src thy)) bind
+    val bind' = apsnd (map (Attrib.check_src lthy)) bind
     val thm = singleton (Attrib.eval_thms lthy) thm_ref
     val simps = if null splits_ref
       then to_simps lthy thm

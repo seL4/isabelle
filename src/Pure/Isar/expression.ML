@@ -851,8 +851,7 @@ fun prep_interpretation prep_expr prep_prop prep_attr expression raw_eqns initia
   let
     val ((propss, deps, export), expr_ctxt) = prep_expr expression initial_ctxt;
     val eqns = prep_with_extended_syntax prep_prop deps expr_ctxt raw_eqns;
-    val attrss =
-      map (apsnd (map (prep_attr (Proof_Context.theory_of initial_ctxt))) o fst) raw_eqns;
+    val attrss = map (apsnd (map (prep_attr initial_ctxt)) o fst) raw_eqns;
     val goal_ctxt = fold Variable.auto_fixes eqns expr_ctxt;
     val export' = Variable.export_morphism goal_ctxt expr_ctxt;
   in (((propss, deps, export, export'), (eqns, attrss)), goal_ctxt) end;
@@ -861,7 +860,7 @@ val cert_interpretation =
   prep_interpretation cert_goal_expression (K I) (K I);
 
 val read_interpretation =
-  prep_interpretation read_goal_expression Syntax.parse_prop Attrib.intern_src;
+  prep_interpretation read_goal_expression Syntax.parse_prop Attrib.check_src;
 
 
 (* generic interpretation machinery *)

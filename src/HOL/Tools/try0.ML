@@ -57,8 +57,7 @@ val parse_method =
 
 fun apply_named_method_on_first_goal ctxt =
   parse_method
-  #> Method.check_source ctxt
-  #> Method.the_method ctxt
+  #> Method.method_cmd ctxt
   #> Method.Basic
   #> (fn m => Method.Select_Goals (Method.no_combinator_info, 1, m))
   #> Proof.refine;

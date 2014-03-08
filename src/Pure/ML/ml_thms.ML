@@ -39,10 +39,9 @@ val _ = Theory.setup
     (Scan.depend (fn context => Parse_Spec.attribs >> (fn raw_srcs =>
       let
         val ctxt = Context.the_proof context;
-        val thy = Proof_Context.theory_of ctxt;
 
         val i = serial ();
-        val srcs = map (Attrib.intern_src thy) raw_srcs;
+        val srcs = map (Attrib.check_src ctxt) raw_srcs;
         val _ = map (Attrib.attribute ctxt) srcs;
         val (a, ctxt') = ctxt
           |> ML_Antiquote.variant "attributes" ||> put_attributes (i, srcs);

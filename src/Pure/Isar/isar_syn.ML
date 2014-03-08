@@ -799,7 +799,7 @@ val _ =
   Outer_Syntax.improper_command @{command_spec "print_attributes"}
     "print attributes of this theory"
     (Scan.succeed (Toplevel.unknown_theory o
-      Toplevel.keep (Attrib.print_attributes o Toplevel.theory_of)));
+      Toplevel.keep (Attrib.print_attributes o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_simpset"}

@@ -63,9 +63,10 @@ sig
   val sorry_text: bool -> text
   val finish_text: text option * bool -> text
   val print_methods: Proof.context -> unit
-  val the_method: Proof.context -> src -> Proof.context -> method
   val check_name: Proof.context -> xstring * Position.T -> string
-  val check_source: Proof.context -> src -> src
+  val check_src: Proof.context -> src -> src
+  val method: Proof.context -> src -> Proof.context -> method
+  val method_cmd: Proof.context -> src -> Proof.context -> method
   val syntax: 'a context_parser -> src -> Proof.context -> 'a * Proof.context
   val setup: binding -> (Proof.context -> method) context_parser -> string -> theory -> theory
   val method_setup: bstring * Position.T -> Symbol_Pos.source -> string -> theory -> theory
@@ -335,26 +336,31 @@ fun print_methods ctxt =
 fun add_method name meth comment thy = thy
   |> Methods.map (Name_Space.define (Context.Theory thy) true (name, (meth, comment)) #> snd);
 
-fun the_method ctxt =
-  let val (_, tab) = get_methods ctxt in
-    fn src =>
-      let val ((name, _), pos) = Args.dest_src src in
-        (case Symtab.lookup tab name of
-          NONE => error ("Undefined method: " ^ quote name ^ Position.here pos)
-        | SOME (method, _) => method src)
-      end
-  end;
-
 
 (* check *)
 
 fun check_name ctxt = #1 o Name_Space.check (Context.Proof ctxt) (get_methods ctxt);
 
-fun check_source ctxt src =
+fun check_src ctxt src =
   let
     val ((xname, toks), pos) = Args.dest_src src;
     val name = check_name ctxt (xname, pos);
   in Args.src ((name, toks), pos) end;
+
+
+(* get methods *)
+
+fun method ctxt =
+  let val (_, tab) = get_methods ctxt in
+    fn src =>
+      let val ((name, _), pos) = Args.dest_src src in
+        (case Symtab.lookup tab name of
+          NONE => error ("Undefined method: " ^ quote name ^ Position.here pos)
+        | SOME (meth, _) => meth src)
+      end
+  end;
+
+fun method_cmd ctxt = method ctxt o check_src ctxt;
 
 
 (* method setup *)

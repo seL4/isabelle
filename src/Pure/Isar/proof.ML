@@ -421,8 +421,7 @@ fun apply_text current_context text state =
     val ctxt = context_of state;
 
     fun eval (Method.Basic m) = apply_method current_context m
-      | eval (Method.Source src) =
-          apply_method current_context (Method.the_method ctxt (Method.check_source ctxt src))
+      | eval (Method.Source src) = apply_method current_context (Method.method_cmd ctxt src)
       | eval (Method.Then (_, txts)) = Seq.EVERY (map eval txts)
       | eval (Method.Orelse (_, txts)) = Seq.FIRST (map eval txts)
       | eval (Method.Try (_, txt)) = Seq.TRY (eval txt)

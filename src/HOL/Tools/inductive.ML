@@ -576,16 +576,15 @@ end;
 
 fun gen_inductive_cases prep_att prep_prop args lthy =
   let
-    val thy = Proof_Context.theory_of lthy;
     val thmss =
       map snd args
       |> burrow (grouped 10 Par_List.map (mk_cases lthy o prep_prop lthy));
     val facts =
-      map2 (fn ((a, atts), _) => fn thms => ((a, map (prep_att thy) atts), [(thms, [])]))
+      map2 (fn ((a, atts), _) => fn thms => ((a, map (prep_att lthy) atts), [(thms, [])]))
         args thmss;
   in lthy |> Local_Theory.notes facts end;
 
-val inductive_cases = gen_inductive_cases Attrib.intern_src Syntax.read_prop;
+val inductive_cases = gen_inductive_cases Attrib.check_src Syntax.read_prop;
 val inductive_cases_i = gen_inductive_cases (K I) Syntax.check_prop;
 
 
@@ -635,13 +634,12 @@ fun mk_simp_eq ctxt prop =
 
 fun gen_inductive_simps prep_att prep_prop args lthy =
   let
-    val thy = Proof_Context.theory_of lthy;
     val facts = args |> map (fn ((a, atts), props) =>
-      ((a, map (prep_att thy) atts),
+      ((a, map (prep_att lthy) atts),
         map (Thm.no_attributes o single o mk_simp_eq lthy o prep_prop lthy) props));
   in lthy |> Local_Theory.notes facts end;
 
-val inductive_simps = gen_inductive_simps Attrib.intern_src Syntax.read_prop;
+val inductive_simps = gen_inductive_simps Attrib.check_src Syntax.read_prop;
 val inductive_simps_i = gen_inductive_simps (K I) Syntax.check_prop;
 
 

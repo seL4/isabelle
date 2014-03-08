@@ -113,8 +113,6 @@ fun close_forms ctxt i xs As =
 
 fun prepare prep_vars parse_prop prep_att do_close raw_vars raw_specss ctxt =
   let
-    val thy = Proof_Context.theory_of ctxt;
-
     val (vars, vars_ctxt) = ctxt |> prep_vars raw_vars;
     val (xs, params_ctxt) = vars_ctxt |> Proof_Context.add_fixes vars;
 
@@ -136,7 +134,7 @@ fun prepare prep_vars parse_prop prep_att do_close raw_vars raw_specss ctxt =
 
     val Ts = specs_ctxt |> fold_map Proof_Context.inferred_param xs |> fst;
     val params = map2 (fn (b, _, mx) => fn T => ((b, T), mx)) vars Ts;
-    val name_atts = map (fn ((name, atts), _) => (name, map (prep_att thy) atts)) (flat raw_specss);
+    val name_atts = map (fn ((name, atts), _) => (name, map (prep_att ctxt) atts)) (flat raw_specss);
   in ((params, name_atts ~~ specs), specs_ctxt) end;
 
 
@@ -150,16 +148,16 @@ fun prep_spec prep_vars parse_prop prep_att do_close vars specs =
 in
 
 fun check_spec x = prep_spec Proof_Context.cert_vars (K I) (K I) true x;
-fun read_spec x = prep_spec Proof_Context.read_vars Syntax.parse_prop Attrib.intern_src true x;
+fun read_spec x = prep_spec Proof_Context.read_vars Syntax.parse_prop Attrib.check_src true x;
 
 fun check_free_spec x = prep_spec Proof_Context.cert_vars (K I) (K I) false x;
-fun read_free_spec x = prep_spec Proof_Context.read_vars Syntax.parse_prop Attrib.intern_src false x;
+fun read_free_spec x = prep_spec Proof_Context.read_vars Syntax.parse_prop Attrib.check_src false x;
 
 fun check_specification vars specs =
   prepare Proof_Context.cert_vars (K I) (K I) true vars [specs];
 
 fun read_specification vars specs =
-  prepare Proof_Context.read_vars Syntax.parse_prop Attrib.intern_src true vars [specs];
+  prepare Proof_Context.read_vars Syntax.parse_prop Attrib.check_src true vars [specs];
 
 end;
 
@@ -293,10 +291,9 @@ local
 fun gen_theorems prep_fact prep_att prep_vars
     kind raw_facts raw_fixes int lthy =
   let
-    val attrib = prep_att (Proof_Context.theory_of lthy);
     val facts = raw_facts |> map (fn ((name, atts), bs) =>
-      ((name, map attrib atts),
-        bs |> map (fn (b, more_atts) => (prep_fact lthy b, map attrib more_atts))));
+      ((name, map (prep_att lthy) atts),
+        bs |> map (fn (b, more_atts) => (prep_fact lthy b, map (prep_att lthy) more_atts))));
     val (_, ctxt') = lthy |> prep_vars raw_fixes |-> Proof_Context.add_fixes;
 
     val facts' = facts
@@ -309,7 +306,7 @@ fun gen_theorems prep_fact prep_att prep_vars
 in
 
 val theorems = gen_theorems (K I) (K I) Proof_Context.cert_vars;
-val theorems_cmd = gen_theorems Proof_Context.get_fact Attrib.intern_src Proof_Context.read_vars;
+val theorems_cmd = gen_theorems Proof_Context.get_fact Attrib.check_src Proof_Context.read_vars;
 
 end;
 
@@ -384,15 +381,12 @@ fun gen_theorem schematic prep_bundle prep_att prep_stmt
     kind before_qed after_qed (name, raw_atts) raw_includes raw_elems raw_concl int lthy =
   let
     val _ = Local_Theory.assert lthy;
-    val thy = Proof_Context.theory_of lthy;
 
-    val attrib = prep_att thy;
-
-    val elems = raw_elems |> map (Element.map_ctxt_attrib attrib);
+    val elems = raw_elems |> map (Element.map_ctxt_attrib (prep_att lthy));
     val ((more_atts, prems, stmt, facts), goal_ctxt) = lthy
       |> Bundle.includes (map (prep_bundle lthy) raw_includes)
-      |> prep_statement attrib prep_stmt elems raw_concl;
-    val atts = more_atts @ map attrib raw_atts;
+      |> prep_statement (prep_att lthy) prep_stmt elems raw_concl;
+    val atts = more_atts @ map (prep_att lthy) raw_atts;
 
     fun after_qed' results goal_ctxt' =
       let
@@ -428,11 +422,11 @@ in
 
 val theorem = gen_theorem false (K I) (K I) Expression.cert_statement;
 val theorem_cmd =
-  gen_theorem false Bundle.check Attrib.intern_src Expression.read_statement;
+  gen_theorem false Bundle.check Attrib.check_src Expression.read_statement;
 
 val schematic_theorem = gen_theorem true (K I) (K I) Expression.cert_statement;
 val schematic_theorem_cmd =
-  gen_theorem true Bundle.check Attrib.intern_src Expression.read_statement;
+  gen_theorem true Bundle.check Attrib.check_src Expression.read_statement;
 
 fun add_theorem_hook f = Theorem_Hook.map (cons (f, stamp ()));
 

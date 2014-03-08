@@ -230,7 +230,7 @@ val entity_setup =
   entity_antiqs (K (Keyword.is_keyword o #1)) "isakeyword" "keyword" #>
   entity_antiqs (K (Keyword.is_keyword o #1)) "isakeyword" "element" #>
   entity_antiqs (can o Method.check_name) "" "method" #>
-  entity_antiqs (can o Attrib.check o Proof_Context.theory_of) "" "attribute" #>
+  entity_antiqs (can o Attrib.check_name) "" "attribute" #>
   entity_antiqs no_check "" "fact" #>
   entity_antiqs no_check "" "variable" #>
   entity_antiqs no_check "" "case" #>

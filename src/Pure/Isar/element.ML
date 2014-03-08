@@ -528,7 +528,7 @@ fun activate raw_elem ctxt =
     term = I,
     pattern = I,
     fact = Proof_Context.get_fact ctxt,
-    attrib = Attrib.intern_src (Proof_Context.theory_of ctxt)}
+    attrib = Attrib.check_src ctxt}
   in activate_i elem ctxt end;
 
 end;

@@ -10,10 +10,11 @@ sig
   type binding = binding * src list
   val empty_binding: binding
   val is_empty_binding: binding -> bool
-  val print_attributes: theory -> unit
-  val check: theory -> xstring * Position.T -> string
-  val intern: theory -> xstring -> string
-  val intern_src: theory -> src -> src
+  val print_attributes: Proof.context -> unit
+  val check_name_generic: Context.generic -> xstring * Position.T -> string
+  val check_src_generic: Context.generic -> src -> src
+  val check_name: Proof.context -> xstring * Position.T -> string
+  val check_src: Proof.context -> src -> src
   val pretty_attribs: Proof.context -> src list -> Pretty.T list
   val attribute: Proof.context -> src -> attribute
   val attribute_global: theory -> src -> attribute
@@ -94,10 +95,11 @@ structure Attributes = Theory_Data
   fun merge data : T = Name_Space.merge_tables data;
 );
 
-fun print_attributes thy =
+val get_attributes = Attributes.get o Context.theory_of;
+
+fun print_attributes ctxt =
   let
-    val ctxt = Proof_Context.init_global thy;
-    val attribs = Attributes.get thy;
+    val attribs = get_attributes (Context.Proof ctxt);
     fun prt_attr (name, (_, "")) = Pretty.mark_str name
       | prt_attr (name, (_, comment)) =
           Pretty.block
@@ -111,17 +113,23 @@ fun add_attribute name att comment thy = thy
   |> Attributes.map (Name_Space.define (Context.Theory thy) true (name, (att, comment)) #> snd);
 
 
-(* name space *)
+(* check *)
 
-fun check thy = #1 o Name_Space.check (Context.Theory thy) (Attributes.get thy);
+fun check_name_generic context = #1 o Name_Space.check context (get_attributes context);
 
-val intern = Name_Space.intern o #1 o Attributes.get;
-val intern_src = Args.map_name o intern;
+fun check_src_generic context src =
+  let
+    val ((xname, toks), pos) = Args.dest_src src;
+    val name = check_name_generic context (xname, pos);
+  in Args.src ((name, toks), pos) end;
 
-fun extern ctxt = Name_Space.extern ctxt (#1 (Attributes.get (Proof_Context.theory_of ctxt)));
+val check_name = check_name_generic o Context.Proof;
+val check_src = check_src_generic o Context.Proof;
 
 
 (* pretty printing *)
+
+fun extern ctxt = Name_Space.extern ctxt (#1 (get_attributes (Context.Proof ctxt)));
 
 fun pretty_attribs _ [] = []
   | pretty_attribs ctxt srcs =
@@ -131,23 +139,20 @@ fun pretty_attribs _ [] = []
 (* get attributes *)
 
 fun attribute_generic context =
-  let
-    val thy = Context.theory_of context;
-    val (space, tab) = Attributes.get thy;
-    fun attr src =
+  let val (_, tab) = get_attributes context in
+    fn src =>
       let val ((name, _), pos) = Args.dest_src src in
         (case Symtab.lookup tab name of
-          NONE => error ("Unknown attribute: " ^ quote name ^ Position.here pos)
-        | SOME (att, _) =>
-            (Context_Position.report_generic context pos (Name_Space.markup space name); att src))
-      end;
-  in attr end;
+          NONE => error ("Undefined attribute: " ^ quote name ^ Position.here pos)
+        | SOME (att, _) => att src)
+      end
+  end;
 
 val attribute = attribute_generic o Context.Proof;
 val attribute_global = attribute_generic o Context.Theory;
 
-fun attribute_cmd ctxt = attribute ctxt o intern_src (Proof_Context.theory_of ctxt);
-fun attribute_cmd_global thy = attribute_global thy o intern_src thy;
+fun attribute_cmd ctxt = attribute ctxt o check_src ctxt;
+fun attribute_cmd_global thy = attribute_global thy o check_src_generic (Context.Theory thy);
 
 
 (* attributed declarations *)
@@ -221,12 +226,11 @@ val fact_name = Args.internal_fact >> K "<fact>" || Args.name;
 
 fun gen_thm pick = Scan.depend (fn context =>
   let
-    val thy = Context.theory_of context;
     val get = Context.cases (Global_Theory.get_fact context) Proof_Context.get_fact context;
     val get_fact = get o Facts.Fact;
     fun get_named pos name = get (Facts.Named ((name, pos), NONE));
   in
-    Parse.$$$ "[" |-- Args.attribs (intern thy) --| Parse.$$$ "]" >> (fn srcs =>
+    Parse.$$$ "[" |-- Args.attribs (check_name_generic context) --| Parse.$$$ "]" >> (fn srcs =>
       let
         val atts = map (attribute_generic context) srcs;
         val (th', context') = fold (uncurry o Thm.apply_attribute) atts (Drule.dummy_thm, context);
@@ -237,7 +241,7 @@ fun gen_thm pick = Scan.depend (fn context =>
      Scan.ahead (Parse.position fact_name) :|-- (fn (name, pos) =>
       Args.named_fact (get_named pos) -- Scan.option thm_sel
         >> (fn (fact, sel) => (name, Facts.Named ((name, pos), sel), fact))))
-    -- Args.opt_attribs (intern thy) >> (fn ((name, thmref, fact), srcs) =>
+    -- Args.opt_attribs (check_name_generic context) >> (fn ((name, thmref, fact), srcs) =>
       let
         val ths = Facts.select thmref fact;
         val atts = map (attribute_generic context) srcs;
@@ -340,13 +344,13 @@ structure Configs = Theory_Data
 
 fun print_options ctxt =
   let
-    val thy = Proof_Context.theory_of ctxt;
     fun prt (name, config) =
       let val value = Config.get ctxt config in
         Pretty.block [Pretty.mark_str name, Pretty.str (": " ^ Config.print_type value ^ " ="),
           Pretty.brk 1, Pretty.str (Config.print_value value)]
       end;
-    val configs = Name_Space.extern_table ctxt (#1 (Attributes.get thy), Configs.get thy);
+    val space = #1 (get_attributes (Context.Proof ctxt));
+    val configs = Name_Space.extern_table ctxt (space, Configs.get (Proof_Context.theory_of ctxt));
   in Pretty.writeln (Pretty.big_list "configuration options" (map prt configs)) end;
 
 

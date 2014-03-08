@@ -76,9 +76,7 @@ fun gen_bundle prep_fact prep_att prep_vars (binding, raw_bundle) fixes lthy =
 in
 
 val bundle = gen_bundle (K I) (K I) Proof_Context.cert_vars;
-val bundle_cmd =
-  gen_bundle Proof_Context.get_fact (Attrib.intern_src o Proof_Context.theory_of)
-    Proof_Context.read_vars;
+val bundle_cmd = gen_bundle Proof_Context.get_fact Attrib.check_src Proof_Context.read_vars;
 
 end;
 

@@ -61,10 +61,10 @@ sig
   val goal_spec: ((int -> tactic) -> tactic) context_parser
   val parse: Token.T list parser
   val parse1: (string -> bool) -> Token.T list parser
-  val attribs: (string -> string) -> src list parser
-  val opt_attribs: (string -> string) -> src list parser
-  val thm_name: (string -> string) -> string -> (binding * src list) parser
-  val opt_thm_name: (string -> string) -> string -> (binding * src list) parser
+  val attribs: (xstring * Position.T -> string) -> src list parser
+  val opt_attribs: (xstring * Position.T -> string) -> src list parser
+  val thm_name: (xstring * Position.T -> string) -> string -> (binding * src list) parser
+  val opt_thm_name: (xstring * Position.T -> string) -> string -> (binding * src list) parser
   val syntax: string -> 'a context_parser -> src -> Context.generic -> 'a * Context.generic
   val context_syntax: string -> 'a context_parser -> src -> Proof.context -> 'a * Proof.context
 end;
@@ -261,23 +261,23 @@ fun parse1 is_symid = #2 (parse_args is_symid) false;
 
 (* attributes *)
 
-fun attribs intern =
+fun attribs check =
   let
-    val attrib_name = internal_text || (symbolic || named)
-      >> evaluate Token.Text (intern o Token.content_of);
+    fun intern tok = check (Token.content_of tok, Token.pos_of tok);
+    val attrib_name = internal_text || (symbolic || named) >> evaluate Token.Text intern;
     val attrib = Parse.position (attrib_name -- Parse.!!! parse) >> src;
   in $$$ "[" |-- Parse.!!! (Parse.list attrib --| $$$ "]") end;
 
-fun opt_attribs intern = Scan.optional (attribs intern) [];
+fun opt_attribs check = Scan.optional (attribs check) [];
 
 
 (* theorem specifications *)
 
-fun thm_name intern s = binding -- opt_attribs intern --| $$$ s;
+fun thm_name check_attrib s = binding -- opt_attribs check_attrib --| $$$ s;
 
-fun opt_thm_name intern s =
+fun opt_thm_name check_attrib s =
   Scan.optional
-    ((binding -- opt_attribs intern || attribs intern >> pair Binding.empty) --| $$$ s)
+    ((binding -- opt_attribs check_attrib || attribs check_attrib >> pair Binding.empty) --| $$$ s)
     (Binding.empty, []);
 
 

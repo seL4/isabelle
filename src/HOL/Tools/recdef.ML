@@ -253,7 +253,7 @@ fun gen_recdef_tc prep_att prep_name (bname, raw_atts) raw_name opt_i int lthy =
   let
     val thy = Proof_Context.theory_of lthy;
     val name = prep_name thy raw_name;
-    val atts = map (prep_att thy) raw_atts;
+    val atts = map (prep_att lthy) raw_atts;
     val tcs =
       (case get_recdef thy name of
         NONE => error ("No recdef definition of constant: " ^ quote name)
@@ -268,7 +268,7 @@ fun gen_recdef_tc prep_att prep_name (bname, raw_atts) raw_name opt_i int lthy =
       (Element.Shows [(Attrib.empty_binding, [(HOLogic.mk_Trueprop tc, [])])]) int lthy
   end;
 
-val recdef_tc = gen_recdef_tc Attrib.intern_src Sign.intern_const;
+val recdef_tc = gen_recdef_tc Attrib.check_src Sign.intern_const;
 val recdef_tc_i = gen_recdef_tc (K I) (K I);
 
 
