@@ -115,14 +115,14 @@ lemma prep: "Ifm bbs bs (prep p) = Ifm bbs bs p"
 
 fun qfree :: "fm \<Rightarrow> bool"  -- {* Quantifier freeness *}
 where
-  "qfree (E p) = False"
-| "qfree (A p) = False"
-| "qfree (NOT p) = qfree p"
-| "qfree (And p q) = (qfree p \<and> qfree q)"
-| "qfree (Or  p q) = (qfree p \<and> qfree q)"
-| "qfree (Imp p q) = (qfree p \<and> qfree q)"
-| "qfree (Iff p q) = (qfree p \<and> qfree q)"
-| "qfree p = True"
+  "qfree (E p) \<longleftrightarrow> False"
+| "qfree (A p) \<longleftrightarrow> False"
+| "qfree (NOT p) \<longleftrightarrow> qfree p"
+| "qfree (And p q) \<longleftrightarrow> qfree p \<and> qfree q"
+| "qfree (Or  p q) \<longleftrightarrow> qfree p \<and> qfree q"
+| "qfree (Imp p q) \<longleftrightarrow> qfree p \<and> qfree q"
+| "qfree (Iff p q) \<longleftrightarrow> qfree p \<and> qfree q"
+| "qfree p \<longleftrightarrow> True"
 
 
 text {* Boundedness and substitution *}
@@ -209,9 +209,9 @@ where
 | "subst0 t (NClosed P) = (NClosed P)"
 
 lemma subst0_I:
-  assumes qfp: "qfree p"
+  assumes "qfree p"
   shows "Ifm bbs (b # bs) (subst0 a p) = Ifm bbs (Inum (b # bs) a # bs) p"
-  using qfp numsubst0_I[where b="b" and bs="bs" and a="a"]
+  using assms numsubst0_I[where b="b" and bs="bs" and a="a"]
   by (induct p) (simp_all add: gr0_conv_Suc)
 
 fun decrnum:: "num \<Rightarrow> num"
@@ -329,19 +329,20 @@ lemma disjuncts: "(\<exists>q \<in> set (disjuncts p). Ifm bbs bs q) \<longleftr
   by (induct p rule: disjuncts.induct) auto
 
 lemma disjuncts_nb:
-  assumes nb: "bound0 p"
+  assumes "bound0 p"
   shows "\<forall>q \<in> set (disjuncts p). bound0 q"
 proof -
-  from nb have "list_all bound0 (disjuncts p)"
+  from assms have "list_all bound0 (disjuncts p)"
     by (induct p rule: disjuncts.induct) auto
-  then show ?thesis by (simp only: list_all_iff)
+  then show ?thesis
+    by (simp only: list_all_iff)
 qed
 
 lemma disjuncts_qf:
-  assumes qf: "qfree p"
+  assumes "qfree p"
   shows "\<forall>q \<in> set (disjuncts p). qfree q"
 proof -
-  from qf have "list_all qfree (disjuncts p)"
+  from assms have "list_all qfree (disjuncts p)"
     by (induct p rule: disjuncts.induct) auto
   then show ?thesis by (simp only: list_all_iff)
 qed
@@ -350,19 +351,19 @@ definition DJ :: "(fm \<Rightarrow> fm) \<Rightarrow> fm \<Rightarrow> fm"
   where "DJ f p = evaldjf f (disjuncts p)"
 
 lemma DJ:
-  assumes fdj: "\<forall>p q. f (Or p q) = Or (f p) (f q)"
-    and fF: "f F = F"
+  assumes "\<forall>p q. f (Or p q) = Or (f p) (f q)"
+    and "f F = F"
   shows "Ifm bbs bs (DJ f p) = Ifm bbs bs (f p)"
 proof -
-  have "Ifm bbs bs (DJ f p) = (\<exists>q \<in> set (disjuncts p). Ifm bbs bs (f q))"
+  have "Ifm bbs bs (DJ f p) \<longleftrightarrow> (\<exists>q \<in> set (disjuncts p). Ifm bbs bs (f q))"
     by (simp add: DJ_def evaldjf_ex)
-  also have "\<dots> = Ifm bbs bs (f p)"
-    using fdj fF by (induct p rule: disjuncts.induct) auto
+  also from assms have "\<dots> = Ifm bbs bs (f p)"
+    by (induct p rule: disjuncts.induct) auto
   finally show ?thesis .
 qed
 
 lemma DJ_qf:
-  assumes fqf: "\<forall>p. qfree p \<longrightarrow> qfree (f p)"
+  assumes "\<forall>p. qfree p \<longrightarrow> qfree (f p)"
   shows "\<forall>p. qfree p \<longrightarrow> qfree (DJ f p) "
 proof clarify
   fix p
@@ -370,7 +371,7 @@ proof clarify
   have th: "DJ f p = evaldjf f (disjuncts p)"
     by (simp add: DJ_def)
   from disjuncts_qf[OF qf] have "\<forall>q \<in> set (disjuncts p). qfree q" .
-  with fqf have th':"\<forall>q \<in> set (disjuncts p). qfree (f q)"
+  with assms have th': "\<forall>q \<in> set (disjuncts p). qfree (f q)"
     by blast
   from evaldjf_qf[OF th'] th show "qfree (DJ f p)"
     by simp
@@ -389,7 +390,7 @@ proof clarify
     by auto
   have "Ifm bbs bs (DJ qe p) = (\<exists>q\<in> set (disjuncts p). Ifm bbs bs (qe q))"
     by (simp add: DJ_def evaldjf_ex)
-  also have "\<dots> \<longleftrightarrow> (\<exists>q \<in> set(disjuncts p). Ifm bbs bs (E q))"
+  also have "\<dots> \<longleftrightarrow> (\<exists>q \<in> set (disjuncts p). Ifm bbs bs (E q))"
     using qe disjuncts_qf[OF qf] by auto
   also have "\<dots> \<longleftrightarrow> Ifm bbs bs (E p)"
     by (induct p rule: disjuncts.induct) auto
@@ -408,7 +409,7 @@ where
 | "bnds (CN n c a) = n # bnds a"
 | "bnds (Neg a) = bnds a"
 | "bnds (Add a b) = bnds a @ bnds b"
-| "bnds (Sub a b) =  bnds a @ bnds b"
+| "bnds (Sub a b) = bnds a @ bnds b"
 | "bnds (Mul i a) = bnds a"
 | "bnds a = []"
 
@@ -1363,7 +1364,7 @@ lemma delta_mono:
     and d: "d dvd d'"
     and ad: "d_\<delta> p d"
   shows "d_\<delta> p d'"
-  using lin ad d
+  using lin ad
 proof (induct p rule: iszlfm.induct)
   case (9 i c e)
   then show ?case using d
@@ -1467,8 +1468,8 @@ recdef \<beta> "measure size"
 
 consts \<alpha> :: "fm \<Rightarrow> num list"
 recdef \<alpha> "measure size"
-  "\<alpha> (And p q) = (\<alpha> p @ \<alpha> q)"
-  "\<alpha> (Or p q) = (\<alpha> p @ \<alpha> q)"
+  "\<alpha> (And p q) = \<alpha> p @ \<alpha> q"
+  "\<alpha> (Or p q) = \<alpha> p @ \<alpha> q"
   "\<alpha> (Eq  (CN 0 c e)) = [Add (C -1) e]"
   "\<alpha> (NEq (CN 0 c e)) = [e]"
   "\<alpha> (Lt  (CN 0 c e)) = [e]"
@@ -1517,10 +1518,10 @@ next
   then have c1: "c = 1" and nb: "numbound0 e"
     by simp_all
   fix a
-  from 3 have "\<forall>x<(- Inum (a#bs) e). c * x + Inum (x # bs) e \<noteq> 0"
+  from 3 have "\<forall>x<(- Inum (a # bs) e). c * x + Inum (x # bs) e \<noteq> 0"
   proof clarsimp
     fix x
-    assume "x < (- Inum (a#bs) e)" and "x + Inum (x#bs) e = 0"
+    assume "x < (- Inum (a # bs) e)" and "x + Inum (x # bs) e = 0"
     with numbound0_I[OF nb, where bs="bs" and b="a" and b'="x"]
     show False by simp
   qed
@@ -1543,7 +1544,7 @@ next
   then have c1: "c = 1" and nb: "numbound0 e"
     by simp_all
   fix a
-  from 5 have "\<forall>x<(- Inum (a # bs) e). c*x + Inum (x # bs) e < 0"
+  from 5 have "\<forall>x<(- Inum (a # bs) e). c * x + Inum (x # bs) e < 0"
   proof clarsimp
     fix x
     assume "x < (- Inum (a # bs) e)"
@@ -1583,10 +1584,10 @@ next
   then have c1: "c = 1" and nb: "numbound0 e"
     by simp_all
   fix a
-  from 8 have "\<forall>x<(- Inum (a#bs) e). \<not> (c*x + Inum (x#bs) e \<ge> 0)"
+  from 8 have "\<forall>x<(- Inum (a # bs) e). \<not> c * x + Inum (x # bs) e \<ge> 0"
   proof clarsimp
     fix x
-    assume "x < (- Inum (a#bs) e)" and "x + Inum (x#bs) e \<ge> 0"
+    assume "x < (- Inum (a # bs) e)" and "x + Inum (x # bs) e \<ge> 0"
     with numbound0_I[OF nb, where bs="bs" and b="a" and b'="x"]
     show False by simp
   qed
@@ -1610,7 +1611,7 @@ proof (induct p rule: iszlfm.induct)
   proof (simp add: numbound0_I[OF nbe,where bs="bs" and b="x - k * d" and b'="x"] right_diff_distrib,
       rule iffI)
     assume "i dvd c * x - c * (k * d) + Inum (x # bs) e"
-      (is "?ri dvd ?rc*?rx - ?rc*(?rk*?rd) + ?I x e" is "?ri dvd ?rt")
+      (is "?ri dvd ?rc * ?rx - ?rc * (?rk * ?rd) + ?I x e" is "?ri dvd ?rt")
     then have "\<exists>l::int. ?rt = i * l"
       by (simp add: dvd_def)
     then have "\<exists>l::int. c * x + ?I x e = i * l + c * (k * i * di)"
@@ -1645,9 +1646,10 @@ next
   then obtain di where di_def: "d = i * di"
     by blast
   show ?case
-  proof (simp add: numbound0_I[OF nbe,where bs="bs" and b="x - k * d" and b'="x"] right_diff_distrib, rule iffI)
+  proof (simp add: numbound0_I[OF nbe,where bs="bs" and b="x - k * d" and b'="x"] right_diff_distrib,
+      rule iffI)
     assume "i dvd c * x - c * (k * d) + Inum (x # bs) e"
-      (is "?ri dvd ?rc*?rx - ?rc*(?rk*?rd) + ?I x e" is "?ri dvd ?rt")
+      (is "?ri dvd ?rc * ?rx - ?rc * (?rk * ?rd) + ?I x e" is "?ri dvd ?rt")
     then have "\<exists>l::int. ?rt = i * l"
       by (simp add: dvd_def)
     then have "\<exists>l::int. c * x + ?I x e = i * l + c * (k * i * di)"
@@ -1666,7 +1668,7 @@ next
       by simp
     then have "\<exists>l::int. c * x - c * (k * d) + ?e = i * l - c * (k * i * di)"
       by (simp add: di_def)
-    then have "\<exists>l::int. c * x - c * (k * d) + ?e = i * ((l - c * k * di))"
+    then have "\<exists>l::int. c * x - c * (k * d) + ?e = i * (l - c * k * di)"
       by (simp add: algebra_simps)
     then have "\<exists>l::int. c * x - c * (k * d) + ?e = i * l"
       by blast
@@ -1734,14 +1736,14 @@ lemma d_\<beta>_mono:
   by (induct p rule: iszlfm.induct) simp_all
 
 lemma \<alpha>_l:
-  assumes lp: "iszlfm p"
+  assumes "iszlfm p"
   shows "\<forall>b \<in> set (\<alpha> p). numbound0 b"
-  using lp by (induct p rule: \<alpha>.induct) auto
+  using assms by (induct p rule: \<alpha>.induct) auto
 
 lemma \<zeta>:
-  assumes linp: "iszlfm p"
+  assumes "iszlfm p"
   shows "\<zeta> p > 0 \<and> d_\<beta> p (\<zeta> p)"
-  using linp
+  using assms
 proof (induct p rule: iszlfm.induct)
   case (1 p q)
   from 1 have dl1: "\<zeta> p dvd lcm (\<zeta> p) (\<zeta> q)"
@@ -1782,7 +1784,7 @@ proof (induct p rule: iszlfm.induct)
     by simp
   have "c div c \<le> l div c"
     by (simp add: zdiv_mono1[OF clel cp])
-  then have ldcp:"0 < l div c"
+  then have ldcp: "0 < l div c"
     by (simp add: div_self[OF cnz])
   have "c * (l div c) = c * (l div c) + l mod c"
     using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
@@ -1791,7 +1793,7 @@ proof (induct p rule: iszlfm.induct)
   then have "(l * x + (l div c) * Inum (x # bs) e < 0) \<longleftrightarrow>
       ((c * (l div c)) * x + (l div c) * Inum (x # bs) e < 0)"
     by simp
-  also have "\<dots> \<longleftrightarrow> (l div c) * (c*x + Inum (x # bs) e) < (l div c) * 0"
+  also have "\<dots> \<longleftrightarrow> (l div c) * (c * x + Inum (x # bs) e) < (l div c) * 0"
     by (simp add: algebra_simps)
   also have "\<dots> \<longleftrightarrow> c * x + Inum (x # bs) e < 0"
     using mult_less_0_iff [where a="(l div c)" and b="c*x + Inum (x # bs) e"] ldcp
@@ -2006,7 +2008,7 @@ lemma a_\<beta>_ex:
   shows "(\<exists>x. l dvd x \<and> Ifm bbs (x #bs) (a_\<beta> p l)) \<longleftrightarrow> (\<exists>x::int. Ifm bbs (x#bs) p)"
   (is "(\<exists>x. l dvd x \<and> ?P x) \<longleftrightarrow> (\<exists>x. ?P' x)")
 proof-
-  have "(\<exists>x. l dvd x \<and> ?P x) \<longleftrightarrow> (\<exists>(x::int). ?P (l*x))"
+  have "(\<exists>x. l dvd x \<and> ?P x) \<longleftrightarrow> (\<exists>x::int. ?P (l * x))"
     using unity_coeff_ex[where l="l" and P="?P", simplified] by simp
   also have "\<dots> = (\<exists>x::int. ?P' x)"
     using a_\<beta>[OF linp d lp] by simp
@@ -2014,14 +2016,14 @@ proof-
 qed
 
 lemma \<beta>:
-  assumes lp: "iszlfm p"
-    and u: "d_\<beta> p 1"
-    and d: "d_\<delta> p d"
+  assumes "iszlfm p"
+    and "d_\<beta> p 1"
+    and "d_\<delta> p d"
     and dp: "d > 0"
-    and nob: "\<not> (\<exists>j::int \<in> {1 .. d}. \<exists>b \<in> Inum (a # bs) ` set (\<beta> p). x = b + j)"
+    and "\<not> (\<exists>j::int \<in> {1 .. d}. \<exists>b \<in> Inum (a # bs) ` set (\<beta> p). x = b + j)"
     and p: "Ifm bbs (x # bs) p" (is "?P x")
   shows "?P (x - d)"
-  using lp u d dp nob p
+  using assms
 proof (induct p rule: iszlfm.induct)
   case (5 c e)
   then have c1: "c = 1" and  bn: "numbound0 e"
@@ -2198,11 +2200,14 @@ proof clarify
 qed
 
 lemma cpmi_eq:
-  "0 < D \<Longrightarrow> (\<exists>z::int. \<forall>x. x < z \<longrightarrow> P x = P1 x)
-    \<Longrightarrow> \<forall>x. \<not>(\<exists>(j::int) \<in> {1..D}. \<exists>(b::int) \<in> B. P (b + j)) \<longrightarrow> P x \<longrightarrow> P (x - D)
-    \<Longrightarrow> (\<forall>(x::int). \<forall>(k::int). P1 x = (P1 (x - k * D)))
-    \<Longrightarrow> (\<exists>(x::int). P x) = ((\<exists>(j::int) \<in> {1..D}. P1 j) \<or> (\<exists>(j::int) \<in> {1..D}. \<exists>(b::int) \<in> B. P (b + j)))"
-  apply(rule iffI)
+  fixes P P1 :: "int \<Rightarrow> bool"
+  assumes "0 < D"
+    and "\<exists>z. \<forall>x. x < z \<longrightarrow> P x = P1 x"
+    and "\<forall>x. \<not> (\<exists>j \<in> {1..D}. \<exists>b \<in> B. P (b + j)) \<longrightarrow> P x \<longrightarrow> P (x - D)"
+    and "\<forall>x k. P1 x = P1 (x - k * D)"
+  shows "(\<exists>x. P x) \<longleftrightarrow> (\<exists>j \<in> {1..D}. P1 j) \<or> (\<exists>j \<in> {1..D}. \<exists>b \<in> B. P (b + j))"
+  apply (insert assms)
+  apply (rule iffI)
   prefer 2
   apply (drule minusinfinity)
   apply assumption+
@@ -2225,13 +2230,13 @@ theorem cp_thm:
     and u: "d_\<beta> p 1"
     and d: "d_\<delta> p d"
     and dp: "d > 0"
-  shows "(\<exists>(x::int). Ifm bbs (x # bs) p) \<longleftrightarrow>
+  shows "(\<exists>x. Ifm bbs (x # bs) p) \<longleftrightarrow>
     (\<exists>j \<in> {1.. d}. Ifm bbs (j # bs) (minusinf p) \<or>
       (\<exists>b \<in> set (\<beta> p). Ifm bbs ((Inum (i # bs) b + j) # bs) p))"
-  (is "(\<exists>(x::int). ?P (x)) = (\<exists>j\<in> ?D. ?M j \<or> (\<exists>b\<in> ?B. ?P (?I b + j)))")
+  (is "(\<exists>x. ?P x) \<longleftrightarrow> (\<exists>j \<in> ?D. ?M j \<or> (\<exists>b \<in> ?B. ?P (?I b + j)))")
 proof -
   from minusinf_inf[OF lp u]
-  have th: "\<exists>z::int. \<forall>x<z. ?P (x) = ?M x"
+  have th: "\<exists>z. \<forall>x<z. ?P x = ?M x"
     by blast
   let ?B' = "{?I b | b. b \<in> ?B}"
   have BB': "(\<exists>j\<in>?D. \<exists>b \<in> ?B. ?P (?I b + j)) \<longleftrightarrow> (\<exists>j \<in> ?D. \<exists>b \<in> ?B'. ?P (b + j))"
@@ -2247,34 +2252,34 @@ qed
 
 (* Implement the right hand sides of Cooper's theorem and Ferrante and Rackoff. *)
 lemma mirror_ex:
-  assumes lp: "iszlfm p"
-  shows "(\<exists>x. Ifm bbs (x#bs) (mirror p)) = (\<exists>x. Ifm bbs (x#bs) p)"
+  assumes "iszlfm p"
+  shows "(\<exists>x. Ifm bbs (x#bs) (mirror p)) \<longleftrightarrow> (\<exists>x. Ifm bbs (x#bs) p)"
   (is "(\<exists>x. ?I x ?mp) = (\<exists>x. ?I x p)")
 proof auto
   fix x
   assume "?I x ?mp"
   then have "?I (- x) p"
-    using mirror[OF lp] by blast
+    using mirror[OF assms] by blast
   then show "\<exists>x. ?I x p"
     by blast
 next
   fix x
   assume "?I x p"
   then have "?I (- x) ?mp"
-    using mirror[OF lp, where x="- x", symmetric] by auto
+    using mirror[OF assms, where x="- x", symmetric] by auto
   then show "\<exists>x. ?I x ?mp"
     by blast
 qed
 
 lemma cp_thm':
-  assumes lp: "iszlfm p"
-    and up: "d_\<beta> p 1"
-    and dd: "d_\<delta> p d"
-    and dp: "d > 0"
+  assumes "iszlfm p"
+    and "d_\<beta> p 1"
+    and "d_\<delta> p d"
+    and "d > 0"
   shows "(\<exists>x. Ifm bbs (x # bs) p) \<longleftrightarrow>
     ((\<exists>j\<in> {1 .. d}. Ifm bbs (j#bs) (minusinf p)) \<or>
       (\<exists>j\<in> {1.. d}. \<exists>b\<in> (Inum (i#bs)) ` set (\<beta> p). Ifm bbs ((b + j) # bs) p))"
-  using cp_thm[OF lp up dd dp,where i="i"] by auto
+  using cp_thm[OF assms,where i="i"] by auto
 
 definition unit :: "fm \<Rightarrow> fm \<times> num list \<times> int"
 where
