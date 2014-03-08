@@ -334,7 +334,7 @@ final class Completion private(
               val ok =
                 if (a == Completion.antiquote) language_context.antiquotes
                 else language_context.symbols || Completion.default_abbrs.isDefinedAt(a)
-              if (ok) Some(((a, abbrevs.map(_._2)), caret))
+              if (ok) Some(((a, abbrevs), caret))
               else None
           }
         case _ => None
@@ -360,27 +360,30 @@ final class Completion private(
           {
             val completions =
               for {
-                s <- words_lex.completions(word)
-                if (if (is_keyword(s)) language_context.is_outer else language_context.symbols)
-                r <- words_map.get_list(s)
-              } yield r
+                complete_word <- words_lex.completions(word)
+                ok =
+                  if (is_keyword(complete_word)) language_context.is_outer
+                  else language_context.symbols
+                if ok
+                completion <- words_map.get_list(complete_word)
+              } yield (complete_word, completion)
             (((word, completions), end))
           })
       }
 
     (abbrevs_result orElse words_result) match {
-      case Some(((original, completions0), end)) if !completions0.isEmpty =>
+      case Some(((original, completions), end)) if !completions.isEmpty =>
         val range = Text.Range(- original.length, 0) + end + start
         val immediate =
           explicit ||
             (!Completion.Word_Parsers.is_word(original) &&
               Character.codePointCount(original, 0, original.length) > 1)
-        val unique = completions0.length == 1
+        val unique = completions.length == 1
 
-        val completions1 = completions0.map(decode(_))
         val items =
           for {
-            (name0, name1) <- completions0 zip completions1
+            (complete_word, name0) <- completions
+            name1 = decode(name0)
             if name1 != original
             (s1, s2) =
               space_explode(Completion.caret_indicator, name1) match {
@@ -393,10 +396,10 @@ final class Completion private(
                 if (name0 == name1) List(name0)
                 else List(name1, "(symbol " + quote(name0) + ")")
               }
-              else if (move != 0 || is_keyword_template(name0))
-                List(name1, "(template)")
-              else if (is_keyword(name0))
-                List(name1, "(keyword)")
+              else if (is_keyword_template(complete_word))
+                List(name1, "(template " + quote(complete_word) + ")")
+              else if (move != 0) List(name1, "(template)")
+              else if (is_keyword(complete_word)) List(name1, "(keyword)")
               else List(name1)
           }
           yield Completion.Item(range, original, name1, description, s1 + s2, move, immediate)
