@@ -3,7 +3,8 @@
 
 Semantic completion within the formal context (reported names).
 Syntactic completion of keywords and symbols, with abbreviations
-(based on language context).  */
+(based on language context).
+*/
 
 package isabelle
 
@@ -346,31 +347,29 @@ final class Completion private(
         val end =
           if (extend_word) Completion.Word_Parsers.extend_word(text, caret)
           else caret
-        (Completion.Word_Parsers.read_symbol(text.subSequence(0, end)) match {
-          case Some(symbol) => Some(symbol)
-          case None =>
-            val word_context =
-              end < length && Completion.Word_Parsers.is_word_char(text.charAt(end))
-            if (word_context) None
-            else Completion.Word_Parsers.read_word(explicit, text.subSequence(0, end))
-        }) match {
-          case Some(word) =>
+        val opt_word =
+          Completion.Word_Parsers.read_symbol(text.subSequence(0, end)) match {
+            case Some(symbol) => Some(symbol)
+            case None =>
+              val word_context =
+                end < length && Completion.Word_Parsers.is_word_char(text.charAt(end))
+              if (word_context) None
+              else Completion.Word_Parsers.read_word(explicit, text.subSequence(0, end))
+          }
+        opt_word.map(word =>
+          {
             val completions =
               for {
                 s <- words_lex.completions(word)
                 if (if (is_keyword(s)) language_context.is_outer else language_context.symbols)
                 r <- words_map.get_list(s)
               } yield r
-            if (completions.isEmpty) None
-            else Some(((word, completions), end))
-          case None => None
-        }
+            (((word, completions), end))
+          })
       }
 
     (abbrevs_result orElse words_result) match {
-      case Some(((original, completions0), end)) =>
-        val completions1 = completions0.map(decode(_))
-
+      case Some(((original, completions0), end)) if !completions0.isEmpty =>
         val range = Text.Range(- original.length, 0) + end + start
         val immediate =
           explicit ||
@@ -378,6 +377,7 @@ final class Completion private(
               Character.codePointCount(original, 0, original.length) > 1)
         val unique = completions0.length == 1
 
+        val completions1 = completions0.map(decode(_))
         val items =
           for {
             (name0, name1) <- completions0 zip completions1
@@ -404,7 +404,7 @@ final class Completion private(
         if (items.isEmpty) None
         else Some(Completion.Result(range, original, unique, items.sorted(history.ordering)))
 
-      case None => None
+      case _ => None
     }
   }
 }
