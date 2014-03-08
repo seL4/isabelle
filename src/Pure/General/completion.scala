@@ -213,7 +213,8 @@ object Completion
 
     private val word_regex = "[a-zA-Z0-9_']+".r
     private def word: Parser[String] = word_regex
-    private def word3: Parser[String] = """[a-zA-Z0-9_']{3,}""".r
+    private def word3: Parser[String] = "[a-zA-Z0-9_']{3,}".r
+    private def underscores: Parser[String] = "_*".r
 
     def is_word(s: CharSequence): Boolean = word_regex.pattern.matcher(s).matches
     def is_word_char(c: Char): Boolean = Symbol.is_ascii_letdig(c)
@@ -237,11 +238,14 @@ object Completion
       }
     }
 
-    def read_word(explicit: Boolean, in: CharSequence): Option[String] =
+    def read_word(explicit: Boolean, in: CharSequence): Option[(String, String)] =
     {
       val parse_word = if (explicit) word else word3
       val reverse_in = new Library.Reverse(in)
-      parse((reverse_symbol | reverse_symb | escape | parse_word) ^^ (_.reverse), reverse_in) match {
+      val parser =
+        (reverse_symbol | reverse_symb | escape) ^^ (x => (x.reverse, "")) |
+        underscores ~ parse_word ^^ { case x ~ y => (y.reverse, x) }
+      parse(parser, reverse_in) match {
         case Success(result, _) => Some(result)
         case _ => None
       }
@@ -347,30 +351,32 @@ final class Completion private(
         val end =
           if (extend_word) Completion.Word_Parsers.extend_word(text, caret)
           else caret
-        val opt_word =
+        val result =
           Completion.Word_Parsers.read_symbol(text.subSequence(0, end)) match {
-            case Some(symbol) => Some(symbol)
+            case Some(symbol) => Some((symbol, ""))
             case None =>
               val word_context =
                 end < length && Completion.Word_Parsers.is_word_char(text.charAt(end))
               if (word_context) None
               else Completion.Word_Parsers.read_word(explicit, text.subSequence(0, end))
           }
-        opt_word.map(word =>
+        result.map(
           {
-            val complete_words = words_lex.completions(word)
-            val completions =
-              if (complete_words.contains(word)) Nil
-              else
-                for {
-                  complete_word <- complete_words
-                  ok =
-                    if (is_keyword(complete_word)) language_context.is_outer
-                    else language_context.symbols
-                  if ok
-                  completion <- words_map.get_list(complete_word)
-                } yield (complete_word, completion)
-            (((word, completions), end))
+            case (word, underscores) =>
+              val complete_words = words_lex.completions(word)
+              val full_word = word + underscores
+              val completions =
+                if (complete_words.contains(full_word)) Nil
+                else
+                  for {
+                    complete_word <- complete_words
+                    ok =
+                      if (is_keyword(complete_word)) language_context.is_outer
+                      else language_context.symbols
+                    if ok
+                    completion <- words_map.get_list(complete_word)
+                  } yield (complete_word, completion)
+              (((full_word, completions), end))
           })
       }
 
