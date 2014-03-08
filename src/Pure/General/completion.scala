@@ -358,15 +358,18 @@ final class Completion private(
           }
         opt_word.map(word =>
           {
+            val complete_words = words_lex.completions(word)
             val completions =
-              for {
-                complete_word <- words_lex.completions(word)
-                ok =
-                  if (is_keyword(complete_word)) language_context.is_outer
-                  else language_context.symbols
-                if ok
-                completion <- words_map.get_list(complete_word)
-              } yield (complete_word, completion)
+              if (complete_words.contains(word)) Nil
+              else
+                for {
+                  complete_word <- complete_words
+                  ok =
+                    if (is_keyword(complete_word)) language_context.is_outer
+                    else language_context.symbols
+                  if ok
+                  completion <- words_map.get_list(complete_word)
+                } yield (complete_word, completion)
             (((word, completions), end))
           })
       }
