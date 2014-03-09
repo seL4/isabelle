@@ -765,9 +765,9 @@ fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
       |> mk_Frees' "f" (map2 (curry op -->) As Bs)
       ||>> mk_Frees' "R" (map2 mk_pred2T As Bs);
 
-    val map_unfolds = #map_unfolds unfold_set;
+    val map_unfolds = map (unfold_thms lthy [id_bnf_comp_def]) (#map_unfolds unfold_set);
     val set_unfoldss = #set_unfoldss unfold_set;
-    val rel_unfolds = #rel_unfolds unfold_set;
+    val rel_unfolds = map (unfold_thms lthy [id_bnf_comp_def]) (#rel_unfolds unfold_set);
 
     val expand_maps = expand_id_bnf_comp_def o
       fold expand_term_const (map (single o Logic.dest_equals o Thm.prop_of) map_unfolds);
