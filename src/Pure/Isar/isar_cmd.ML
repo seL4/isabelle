@@ -21,10 +21,6 @@ sig
     Symbol_Pos.source -> local_theory -> local_theory
   val simproc_setup: string * Position.T -> string list -> Symbol_Pos.source ->
     string list -> local_theory -> local_theory
-  val hide_class: bool -> xstring list -> theory -> theory
-  val hide_type: bool -> xstring list -> theory -> theory
-  val hide_const: bool -> xstring list -> theory -> theory
-  val hide_fact: bool -> xstring list -> theory -> theory
   val have: (Attrib.binding * (string * string list) list) list -> bool -> Proof.state -> Proof.state
   val hence: (Attrib.binding * (string * string list) list) list -> bool -> Proof.state -> Proof.state
   val show: (Attrib.binding * (string * string list) list) list -> bool -> Proof.state -> Proof.state
@@ -181,24 +177,6 @@ fun simproc_setup name lhss source identifier =
       \lhss = " ^ ML_Syntax.print_strings lhss ^ ", proc = proc, \
       \identifier = Library.maps ML_Context.thms " ^ ML_Syntax.print_strings identifier ^ "})")
   |> Context.proof_map;
-
-
-(* hide names *)
-
-fun hide_names intern check hide fully xnames thy =
-  let
-    val names = map (intern thy) xnames;
-    val bads = filter_out (check thy) names;
-  in
-    if null bads then fold (hide fully) names thy
-    else error ("Attempt to hide undeclared item(s): " ^ commas_quote bads)
-  end;
-
-val hide_class = hide_names Sign.intern_class (can o Sign.certify_class) Sign.hide_class;
-val hide_type = hide_names Sign.intern_type Sign.declared_tyname Sign.hide_type;
-val hide_const = hide_names Sign.intern_const Sign.declared_const Sign.hide_const;
-val hide_fact =
-  hide_names Global_Theory.intern_fact Global_Theory.defined_fact Global_Theory.hide_fact;
 
 
 (* goals *)

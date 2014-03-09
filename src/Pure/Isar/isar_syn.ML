@@ -231,17 +231,36 @@ val _ =
           #2 oo Specification.theorems_cmd "" [(Attrib.empty_binding, flat facts)] fixes));
 
 
-(* name space entry path *)
+(* hide names *)
 
-fun hide_names spec hide what =
-  Outer_Syntax.command spec ("hide " ^ what ^ " from name space")
-    ((Parse.opt_keyword "open" >> not) -- Scan.repeat1 Parse.xname >>
-      (Toplevel.theory o uncurry hide));
+local
 
-val _ = hide_names @{command_spec "hide_class"} Isar_Cmd.hide_class "classes";
-val _ = hide_names @{command_spec "hide_type"} Isar_Cmd.hide_type "types";
-val _ = hide_names @{command_spec "hide_const"} Isar_Cmd.hide_const "constants";
-val _ = hide_names @{command_spec "hide_fact"} Isar_Cmd.hide_fact "facts";
+fun hide_names command_spec what hide parse prep =
+  Outer_Syntax.command command_spec ("hide " ^ what ^ " from name space")
+    ((Parse.opt_keyword "open" >> not) -- Scan.repeat1 parse >> (fn (fully, args) =>
+      (Toplevel.theory (fn thy =>
+        let val ctxt = Proof_Context.init_global thy
+        in fold (hide fully o prep ctxt) args thy end))));
+
+in
+
+val _ =
+  hide_names @{command_spec "hide_class"} "classes" Sign.hide_class Parse.class
+    Proof_Context.read_class;
+
+val _ =
+  hide_names @{command_spec "hide_type"} "types" Sign.hide_type Parse.type_const
+    ((#1 o dest_Type) oo Proof_Context.read_type_name {proper = true, strict = false});
+
+val _ =
+  hide_names @{command_spec "hide_const"} "constants" Sign.hide_const Parse.const
+    ((#1 o dest_Const) oo Proof_Context.read_const {proper = true, strict = false});
+
+val _ =
+  hide_names @{command_spec "hide_fact"} "facts" Global_Theory.hide_fact
+    (Parse.position Parse.xname) (Global_Theory.check_fact o Proof_Context.theory_of);
+
+end;
 
 
 (* use ML text *)
