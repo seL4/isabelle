@@ -68,13 +68,13 @@ sig
   val infer_type: Proof.context -> string * typ -> typ
   val inferred_param: string -> Proof.context -> typ * Proof.context
   val inferred_fixes: Proof.context -> (string * typ) list * Proof.context
-  val check_type_name: Proof.context -> {proper: bool, strict: bool} ->
+  val check_type_name: {proper: bool, strict: bool} -> Proof.context ->
     xstring * Position.T -> typ * Position.report list
-  val read_type_name: Proof.context -> {proper: bool, strict: bool} -> string -> typ
+  val read_type_name: {proper: bool, strict: bool} -> Proof.context -> string -> typ
   val consts_completion_message: Proof.context -> xstring * Position.T list -> string
-  val check_const: Proof.context -> {proper: bool, strict: bool} ->
+  val check_const: {proper: bool, strict: bool} -> Proof.context ->
     xstring * Position.T list -> term * Position.report list
-  val read_const: Proof.context -> {proper: bool, strict: bool} -> string -> term
+  val read_const: {proper: bool, strict: bool} -> Proof.context -> string -> term
   val read_arity: Proof.context -> xstring * string list * string -> arity
   val cert_arity: Proof.context -> arity -> arity
   val allow_dummies: Proof.context -> Proof.context
@@ -439,7 +439,7 @@ fun inferred_fixes ctxt =
 
 (* type names *)
 
-fun check_type_name ctxt {proper, strict} (c, pos) =
+fun check_type_name {proper, strict} ctxt (c, pos) =
   if Lexicon.is_tid c then
     if proper then error ("Not a type constructor: " ^ c ^ Position.here pos)
     else
@@ -476,7 +476,7 @@ fun consts_completion_message ctxt (c, ps) =
   |> implode
   |> Markup.markup_report;
 
-fun check_const ctxt {proper, strict} (c, ps) =
+fun check_const {proper, strict} ctxt (c, ps) =
   let
     val _ =
       Name.reject_internal (c, ps) handle ERROR msg =>
@@ -527,8 +527,7 @@ fun prep_arity prep_tycon prep_sort ctxt (t, Ss, S) =
 in
 
 val read_arity =
-  prep_arity (fn ctxt => #1 o dest_Type o read_type_name ctxt {proper = true, strict = true})
-    Syntax.read_sort;
+  prep_arity ((#1 o dest_Type) oo read_type_name {proper = true, strict = true}) Syntax.read_sort;
 
 val cert_arity = prep_arity (K I) (Type.cert_sort o tsig_of);
 

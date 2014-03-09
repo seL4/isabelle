@@ -171,7 +171,7 @@ fun parsetree_to_ast ctxt trf parsetree =
           let
             val pos = Lexicon.pos_of_token tok;
             val (Type (c, _), rs) =
-              Proof_Context.check_type_name ctxt {proper = true, strict = false}
+              Proof_Context.check_type_name {proper = true, strict = false} ctxt
                 (Lexicon.str_of_token tok, pos);
             val _ = append_reports rs;
           in [Ast.Constant (Lexicon.mark_type c)] end
@@ -225,7 +225,7 @@ fun ast_to_term ctxt trf =
 fun decode_const ctxt (c, ps) =
   let
     val (Const (c', _), reports) =
-      Proof_Context.check_const ctxt {proper = true, strict = false} (c, ps);
+      Proof_Context.check_const {proper = true, strict = false} ctxt (c, ps);
   in (c', reports) end;
 
 local

@@ -98,7 +98,7 @@ fun cert_tyco ctxt tyco =
   in tyco end;
 
 fun read_tyco ctxt =
-  #1 o dest_Type o Proof_Context.read_type_name ctxt {proper = true, strict = true};
+  #1 o dest_Type o Proof_Context.read_type_name {proper = true, strict = true} ctxt;
 
 fun cert_class ctxt class =
   let

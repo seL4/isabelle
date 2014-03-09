@@ -275,11 +275,10 @@ in
 
 val type_notation = gen_type_notation (K I);
 val type_notation_cmd =
-  gen_type_notation (fn ctxt => Proof_Context.read_type_name ctxt {proper = true, strict = false});
+  gen_type_notation (Proof_Context.read_type_name {proper = true, strict = false});
 
 val notation = gen_notation (K I);
-val notation_cmd =
-  gen_notation (fn ctxt => Proof_Context.read_const ctxt {proper = false, strict = false});
+val notation_cmd = gen_notation (Proof_Context.read_const {proper = false, strict = false});
 
 end;
 

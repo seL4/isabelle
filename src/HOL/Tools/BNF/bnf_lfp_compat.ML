@@ -33,7 +33,7 @@ fun datatype_compat_cmd raw_fpT_names lthy =
       error ("{" ^ commas ss ^ "} is not a complete set of mutually recursive new-style datatypes");
 
     val fpT_names =
-      map (fst o dest_Type o Proof_Context.read_type_name lthy {proper = true, strict = false})
+      map (fst o dest_Type o Proof_Context.read_type_name {proper = true, strict = false} lthy)
         raw_fpT_names;
 
     fun lfp_sugar_of s =

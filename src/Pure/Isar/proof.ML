@@ -575,7 +575,7 @@ fun gen_write prep_arg mode args =
   #> reset_facts;
 
 fun read_arg ctxt (c, mx) =
-  (case Proof_Context.read_const ctxt {proper = false, strict = false} c of
+  (case Proof_Context.read_const {proper = false, strict = false} ctxt c of
     Free (x, _) =>
       let val T = Proof_Context.infer_type ctxt (x, Mixfix.mixfixT mx)
       in (Free (x, T), mx) end

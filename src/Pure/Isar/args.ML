@@ -208,11 +208,11 @@ val prop = Scan.peek (named_term o Syntax.read_prop o Context.proof_of);
 (* type and constant names *)
 
 fun type_name flags =
-  Scan.peek (fn ctxt => named_typ (Proof_Context.read_type_name (Context.proof_of ctxt) flags))
+  Scan.peek (named_typ o Proof_Context.read_type_name flags o Context.proof_of)
   >> (fn Type (c, _) => c | TFree (a, _) => a | _ => "");
 
 fun const flags =
-  Scan.peek (fn ctxt => named_term (Proof_Context.read_const (Context.proof_of ctxt) flags))
+  Scan.peek (named_term o Proof_Context.read_const flags o Context.proof_of)
   >> (fn Const (c, _) => c | Free (x, _) => x | _ => "");
 
 

@@ -127,7 +127,7 @@ val _ = Theory.setup
 fun type_name kind check = Args.context -- Scan.lift (Parse.position Args.name_inner_syntax)
   >> (fn (ctxt, (s, pos)) =>
     let
-      val Type (c, _) = Proof_Context.read_type_name ctxt {proper = true, strict = false} s;
+      val Type (c, _) = Proof_Context.read_type_name {proper = true, strict = false} ctxt s;
       val decl = Type.the_decl (Proof_Context.tsig_of ctxt) (c, pos);
       val res =
         (case try check (c, decl) of
@@ -151,7 +151,7 @@ val _ = Theory.setup
 fun const_name check = Args.context -- Scan.lift (Parse.position Args.name_inner_syntax)
   >> (fn (ctxt, (s, pos)) =>
     let
-      val Const (c, _) = Proof_Context.read_const ctxt {proper = true, strict = false} s;
+      val Const (c, _) = Proof_Context.read_const {proper = true, strict = false} ctxt s;
       val res = check (Proof_Context.consts_of ctxt, c)
         handle TYPE (msg, _, _) => error (msg ^ Position.here pos);
     in ML_Syntax.print_string res end);
@@ -176,7 +176,7 @@ val _ = Theory.setup
       >> (fn ((ctxt, raw_c), Ts) =>
         let
           val Const (c, _) =
-            Proof_Context.read_const ctxt {proper = true, strict = true} raw_c;
+            Proof_Context.read_const {proper = true, strict = true} ctxt raw_c;
           val consts = Proof_Context.consts_of ctxt;
           val n = length (Consts.typargs consts (c, Consts.type_scheme consts c));
           val _ = length Ts <> n andalso
