@@ -382,7 +382,7 @@ fun check_class ctxt (xname, pos) =
     val tsig = tsig_of ctxt;
     val class_space = Type.class_space tsig;
 
-    val name = Type.cert_class tsig (Type.intern_class tsig xname)
+    val name = Type.cert_class tsig (Name_Space.intern class_space xname)
       handle TYPE (msg, _, _) =>
         error (msg ^ Position.here pos ^
           Markup.markup_report (Completion.reported_text
