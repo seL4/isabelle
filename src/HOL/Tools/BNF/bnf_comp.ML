@@ -741,12 +741,14 @@ fun maybe_typedef (b, As, mx) set opt_morphs tac =
         (@{const_name id_bnf_comp}, @{const_name id_bnf_comp},
          @{thm type_definition_id_bnf_comp_UNIV},
          @{thm type_definition.Abs_inverse[OF type_definition_id_bnf_comp_UNIV]},
-         @{thm type_definition.Abs_inject[OF type_definition_id_bnf_comp_UNIV]}))
+         @{thm type_definition.Abs_inject[OF type_definition_id_bnf_comp_UNIV]},
+         @{thm type_definition.Abs_cases[OF type_definition_id_bnf_comp_UNIV]}))
     else
       typedef (b, As, mx) set opt_morphs tac
       #>> (fn (T_name, ({Rep_name, Abs_name, ...},
-          {type_definition, Abs_inverse, Abs_inject, ...}) : Typedef.info) =>
-        (Type (T_name, map TFree As), (Rep_name, Abs_name, type_definition, Abs_inverse, Abs_inject)))
+          {type_definition, Abs_inverse, Abs_inject, Abs_cases, ...}) : Typedef.info) =>
+        (Type (T_name, map TFree As),
+          (Rep_name, Abs_name, type_definition, Abs_inverse, Abs_inject, Abs_cases)))
   end;
 
 fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
@@ -781,7 +783,7 @@ fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
     val repTA = mk_T_of_bnf Ds As bnf;
     val T_bind = qualify b;
     val TA_params = Term.add_tfreesT repTA [];
-    val ((TA, (Rep_name, Abs_name, type_definition, Abs_inverse, Abs_inject)), lthy) =
+    val ((TA, (Rep_name, Abs_name, type_definition, Abs_inverse, Abs_inject, _)), lthy) =
       maybe_typedef (T_bind, TA_params, NoSyn)
         (HOLogic.mk_UNIV repTA) NONE (EVERY' [rtac exI, rtac UNIV_I] 1) lthy;
 
@@ -809,24 +811,30 @@ fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
     val bd_repT = fst (dest_relT (fastype_of bnf_bd));
     val bdT_bind = qualify (Binding.suffix_name ("_" ^ bdTN) b);
     val params = Term.add_tfreesT bd_repT [];
-    val deads = map TFree params;
     val all_deads = map TFree (fold Term.add_tfreesT Ds []);
 
-    val ((bdT_name, (bdT_glob_info, bdT_loc_info)), lthy) =
-      typedef (bdT_bind, params, NoSyn)
+    val ((bdT, (_, Abs_bd_name, _, _, Abs_bdT_inject, Abs_bdT_cases)), lthy) =
+      maybe_typedef (bdT_bind, params, NoSyn)
         (HOLogic.mk_UNIV bd_repT) NONE (EVERY' [rtac exI, rtac UNIV_I] 1) lthy;
 
-    val bnf_bd' = mk_dir_image bnf_bd
-      (Const (#Abs_name bdT_glob_info, bd_repT --> Type (bdT_name, deads)))
+    val (bnf_bd', bd_ordIso, bd_card_order, bd_cinfinite) =
+      if bdT = bd_repT then (bnf_bd, bd_Card_order_of_bnf bnf RS @{thm ordIso_refl},
+        bd_card_order_of_bnf bnf, bd_cinfinite_of_bnf bnf)
+      else
+        let
+          val bnf_bd' = mk_dir_image bnf_bd (Const (Abs_bd_name, bd_repT --> bdT));
 
-    val Abs_bdT_inj = mk_Abs_inj_thm (#Abs_inject bdT_loc_info);
-    val Abs_bdT_bij = mk_Abs_bij_thm lthy Abs_bdT_inj (#Abs_cases bdT_loc_info);
-
-    val bd_ordIso = @{thm dir_image} OF [Abs_bdT_inj, bd_Card_order_of_bnf bnf];
-    val bd_card_order =
-      @{thm card_order_dir_image} OF [Abs_bdT_bij, bd_card_order_of_bnf bnf];
-    val bd_cinfinite =
-      (@{thm Cinfinite_cong} OF [bd_ordIso, bd_Cinfinite_of_bnf bnf]) RS conjunct1;
+          val Abs_bdT_inj = mk_Abs_inj_thm Abs_bdT_inject;
+          val Abs_bdT_bij = mk_Abs_bij_thm lthy Abs_bdT_inj Abs_bdT_cases;
+      
+          val bd_ordIso = @{thm dir_image} OF [Abs_bdT_inj, bd_Card_order_of_bnf bnf];
+          val bd_card_order =
+            @{thm card_order_dir_image} OF [Abs_bdT_bij, bd_card_order_of_bnf bnf];
+          val bd_cinfinite =
+            (@{thm Cinfinite_cong} OF [bd_ordIso, bd_Cinfinite_of_bnf bnf]) RS conjunct1;
+        in
+          (bnf_bd', bd_ordIso, bd_card_order, bd_cinfinite)
+        end;
 
     fun map_id0_tac ctxt =
       rtac (@{thm type_copy_map_id0} OF [type_definition, unfold_maps ctxt (map_id0_of_bnf bnf)]) 1;
