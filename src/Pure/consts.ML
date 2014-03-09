@@ -22,9 +22,7 @@ sig
   val alias: Name_Space.naming -> binding -> string -> T -> T
   val is_concealed: T -> string -> bool
   val intern: T -> xstring -> string
-  val extern: Proof.context -> T -> string -> xstring
   val intern_syntax: T -> xstring -> string
-  val extern_syntax: Proof.context -> T -> string -> xstring
   val check_const: Context.generic -> T -> xstring * Position.T list -> term * Position.report list
   val certify: Context.pretty -> Type.tsig -> bool -> T -> term -> term  (*exception TYPE*)
   val typargs: T -> string * typ -> typ list
@@ -128,17 +126,11 @@ fun alias naming binding name = map_consts (fn ((space, decls), constraints, rev
 val is_concealed = Name_Space.is_concealed o space_of;
 
 val intern = Name_Space.intern o space_of;
-fun extern ctxt = Name_Space.extern ctxt o space_of;
 
 fun intern_syntax consts s =
   (case try Lexicon.unmark_const s of
     SOME c => c
   | NONE => intern consts s);
-
-fun extern_syntax ctxt consts s =
-  (case try Lexicon.unmark_const s of
-    SOME c => extern ctxt consts c
-  | NONE => s);
 
 
 (* check_const *)

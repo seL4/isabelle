@@ -28,8 +28,6 @@ sig
   val empty_tsig: tsig
   val class_space: tsig -> Name_Space.T
   val class_alias: Name_Space.naming -> binding -> string -> tsig -> tsig
-  val intern_class: tsig -> xstring -> string
-  val extern_class: Proof.context -> tsig -> string -> xstring
   val defaultS: tsig -> sort
   val logical_types: tsig -> string list
   val eq_sort: tsig -> sort * sort -> bool
@@ -49,8 +47,6 @@ sig
   val restore_mode: Proof.context -> Proof.context -> Proof.context
   val type_space: tsig -> Name_Space.T
   val type_alias: Name_Space.naming -> binding -> string -> tsig -> tsig
-  val intern_type: tsig -> xstring -> string
-  val extern_type: Proof.context -> tsig -> string -> xstring
   val is_logtype: tsig -> string -> bool
   val check_decl: Context.generic -> tsig ->
     xstring * Position.T -> (string * Position.report list) * decl
@@ -200,9 +196,6 @@ val class_space = #1 o #classes o rep_tsig;
 fun class_alias naming binding name = map_tsig (fn ((space, classes), default, types) =>
   ((Name_Space.alias naming binding name space, classes), default, types));
 
-val intern_class = Name_Space.intern o class_space;
-fun extern_class ctxt = Name_Space.extern ctxt o class_space;
-
 fun defaultS (TSig {default, ...}) = default;
 fun logical_types (TSig {log_types, ...}) = log_types;
 
@@ -248,9 +241,6 @@ val type_space = #1 o #types o rep_tsig;
 
 fun type_alias naming binding name = map_tsig (fn (classes, default, (space, types)) =>
   (classes, default, (Name_Space.alias naming binding name space, types)));
-
-val intern_type = Name_Space.intern o type_space;
-fun extern_type ctxt = Name_Space.extern ctxt o type_space;
 
 val is_logtype = member (op =) o logical_types;
 
