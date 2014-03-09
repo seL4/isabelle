@@ -130,7 +130,7 @@ val _ =
 
 val trans_pat =
   Scan.optional
-    (@{keyword "("} |-- Parse.!!! (Parse.xname --| @{keyword ")"})) "logic"
+    (@{keyword "("} |-- Parse.!!! (Parse.inner_syntax Parse.xname --| @{keyword ")"})) "logic"
     -- Parse.inner_syntax Parse.string;
 
 fun trans_arrow toks =

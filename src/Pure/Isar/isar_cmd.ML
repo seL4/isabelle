@@ -120,9 +120,11 @@ fun print_ast_translation source =
 fun read_trrules thy raw_rules =
   let
     val ctxt = Proof_Context.init_global thy;
+    val read_root =
+      #1 o dest_Type o Proof_Context.read_type_name {proper = true, strict = false} ctxt;
   in
-    raw_rules |> map (Syntax.map_trrule (fn (r, s) =>
-      Syntax_Phases.parse_ast_pattern ctxt (Proof_Context.intern_type ctxt r, s)))
+    raw_rules
+    |> map (Syntax.map_trrule (fn (r, s) => Syntax_Phases.parse_ast_pattern ctxt (read_root r, s)))
   end;
 
 fun translations args thy = Sign.add_trrules (read_trrules thy args) thy;
