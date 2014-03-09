@@ -7,7 +7,7 @@
 header {* Notions about functions *}
 
 theory Fun
-imports Complete_Lattices
+imports Set
 keywords "functor" :: thy_goal
 begin
 
@@ -78,14 +78,6 @@ lemma image_comp:
 lemma vimage_comp:
   "(g \<circ> f) -` x = f -` (g -` x)"
   by auto
-
-lemma INF_comp:
-  "INFI A (g \<circ> f) = INFI (f ` A) g"
-  by (simp add: INF_def image_comp)
-
-lemma SUP_comp:
-  "SUPR A (g \<circ> f) = SUPR (f ` A) g"
-  by (simp add: SUP_def image_comp)
 
 code_printing
   constant comp \<rightharpoonup> (SML) infixl 5 "o" and (Haskell) infixr 9 "."
@@ -188,44 +180,6 @@ by (simp add: inj_on_def)
 
 lemma inj_on_Int: "inj_on f A \<or> inj_on f B \<Longrightarrow> inj_on f (A \<inter> B)"
 unfolding inj_on_def by blast
-
-lemma inj_on_INTER:
-  "\<lbrakk>I \<noteq> {}; \<And> i. i \<in> I \<Longrightarrow> inj_on f (A i)\<rbrakk> \<Longrightarrow> inj_on f (\<Inter> i \<in> I. A i)"
-unfolding inj_on_def by blast
-
-lemma inj_on_Inter:
-  "\<lbrakk>S \<noteq> {}; \<And> A. A \<in> S \<Longrightarrow> inj_on f A\<rbrakk> \<Longrightarrow> inj_on f (Inter S)"
-unfolding inj_on_def by blast
-
-lemma inj_on_UNION_chain:
-  assumes CH: "\<And> i j. \<lbrakk>i \<in> I; j \<in> I\<rbrakk> \<Longrightarrow> A i \<le> A j \<or> A j \<le> A i" and
-         INJ: "\<And> i. i \<in> I \<Longrightarrow> inj_on f (A i)"
-  shows "inj_on f (\<Union> i \<in> I. A i)"
-proof -
-  {
-    fix i j x y
-    assume *: "i \<in> I" "j \<in> I" and **: "x \<in> A i" "y \<in> A j"
-      and ***: "f x = f y"
-    have "x = y"
-    proof -
-      {
-        assume "A i \<le> A j"
-        with ** have "x \<in> A j" by auto
-        with INJ * ** *** have ?thesis
-        by(auto simp add: inj_on_def)
-      }
-      moreover
-      {
-        assume "A j \<le> A i"
-        with ** have "y \<in> A i" by auto
-        with INJ * ** *** have ?thesis
-        by(auto simp add: inj_on_def)
-      }
-      ultimately show ?thesis using CH * by blast
-    qed
-  }
-  then show ?thesis by (unfold inj_on_def UNION_eq) auto
-qed
 
 lemma surj_id: "surj id"
 by simp
@@ -456,29 +410,6 @@ lemma bij_betw_combine:
   shows "bij_betw f (A \<union> C) (B \<union> D)"
   using assms unfolding bij_betw_def inj_on_Un image_Un by auto
 
-lemma bij_betw_UNION_chain:
-  assumes CH: "\<And> i j. \<lbrakk>i \<in> I; j \<in> I\<rbrakk> \<Longrightarrow> A i \<le> A j \<or> A j \<le> A i" and
-         BIJ: "\<And> i. i \<in> I \<Longrightarrow> bij_betw f (A i) (A' i)"
-  shows "bij_betw f (\<Union> i \<in> I. A i) (\<Union> i \<in> I. A' i)"
-proof (unfold bij_betw_def, auto)
-  have "\<And> i. i \<in> I \<Longrightarrow> inj_on f (A i)"
-  using BIJ bij_betw_def[of f] by auto
-  thus "inj_on f (\<Union> i \<in> I. A i)"
-  using CH inj_on_UNION_chain[of I A f] by auto
-next
-  fix i x
-  assume *: "i \<in> I" "x \<in> A i"
-  hence "f x \<in> A' i" using BIJ bij_betw_def[of f] by auto
-  thus "\<exists>j \<in> I. f x \<in> A' j" using * by blast
-next
-  fix i x'
-  assume *: "i \<in> I" "x' \<in> A' i"
-  hence "\<exists>x \<in> A i. x' = f x" using BIJ bij_betw_def[of f] by blast
-  then have "\<exists>j \<in> I. \<exists>x \<in> A j. x' = f x"
-    using * by blast
-  then show "x' \<in> f ` (\<Union>x\<in>I. A x)" by (simp add: image_def)
-qed
-
 lemma bij_betw_subset:
   assumes BIJ: "bij_betw f A A'" and
           SUB: "B \<le> A" and IM: "f ` B = B'"
@@ -538,20 +469,6 @@ by (simp add: inj_on_def, blast)
 
 lemma inj_image_eq_iff: "inj f ==> (f`A = f`B) = (A = B)"
 by (blast dest: injD)
-
-(*injectivity's required.  Left-to-right inclusion holds even if A is empty*)
-lemma image_INT:
-   "[| inj_on f C;  ALL x:A. B x <= C;  j:A |]
-    ==> f ` (INTER A B) = (INT x:A. f ` B x)"
-apply (simp add: inj_on_def, blast)
-done
-
-(*Compare with image_INT: no use of inj_on, and if f is surjective then
-  it doesn't matter whether A is empty*)
-lemma bij_image_INT: "bij f ==> f ` (INTER A B) = (INT x:A. f ` B x)"
-apply (simp add: bij_def)
-apply (simp add: inj_on_def surj_def, blast)
-done
 
 lemma surj_Compl_image_subset: "surj f ==> -(f`A) <= f`(-A)"
 by auto
@@ -706,10 +623,6 @@ by auto
 
 lemma fun_upd_comp: "f \<circ> (g(x := y)) = (f \<circ> g)(x := f y)"
   by auto
-
-lemma UNION_fun_upd:
-  "UNION J (A(i:=B)) = (UNION (J-{i}) A \<union> (if i\<in>J then B else {}))"
-by (auto split: if_splits)
 
 
 subsection {* @{text override_on} *}
@@ -927,3 +840,4 @@ lemmas image_compose = image_comp
 lemmas vimage_compose = vimage_comp
 
 end
+

@@ -3,7 +3,7 @@
 header {* Complete lattices *}
 
 theory Complete_Lattices
-imports Set
+imports Fun
 begin
 
 notation
@@ -20,6 +20,10 @@ begin
 definition INFI :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
   INF_def: "INFI A f = \<Sqinter>(f ` A)"
 
+lemma INF_comp: -- {* FIXME drop *}
+  "INFI A (g \<circ> f) = INFI (f ` A) g"
+  by (simp add: INF_def image_comp)
+
 lemma INF_image [simp]: "INFI (f`A) g = INFI A (\<lambda>x. g (f x))"
   by (simp add: INF_def image_image)
 
@@ -34,6 +38,10 @@ begin
 
 definition SUPR :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
   SUP_def: "SUPR A f = \<Squnion>(f ` A)"
+
+lemma SUP_comp: -- {* FIXME drop *}
+  "SUPR A (g \<circ> f) = SUPR (f ` A) g"
+  by (simp add: SUP_def image_comp)
 
 lemma SUP_image [simp]: "SUPR (f`A) g = SUPR A (%x. g (f x))"
   by (simp add: SUP_def image_image)
@@ -1222,6 +1230,88 @@ lemma Un_INT_distrib2: "(\<Inter>i\<in>I. A i) \<union> (\<Inter>j\<in>J. B j) =
 
 lemma Union_disjoint: "(\<Union>C \<inter> A = {}) \<longleftrightarrow> (\<forall>B\<in>C. B \<inter> A = {})"
   by (fact Sup_inf_eq_bot_iff)
+
+
+subsection {* Injections and bijections *}
+
+lemma inj_on_Inter:
+  "S \<noteq> {} \<Longrightarrow> (\<And>A. A \<in> S \<Longrightarrow> inj_on f A) \<Longrightarrow> inj_on f (\<Inter>S)"
+  unfolding inj_on_def by blast
+
+lemma inj_on_INTER:
+  "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> inj_on f (A i)) \<Longrightarrow> inj_on f (\<Inter>i \<in> I. A i)"
+  unfolding inj_on_def by blast
+
+lemma inj_on_UNION_chain:
+  assumes CH: "\<And> i j. \<lbrakk>i \<in> I; j \<in> I\<rbrakk> \<Longrightarrow> A i \<le> A j \<or> A j \<le> A i" and
+         INJ: "\<And> i. i \<in> I \<Longrightarrow> inj_on f (A i)"
+  shows "inj_on f (\<Union> i \<in> I. A i)"
+proof -
+  {
+    fix i j x y
+    assume *: "i \<in> I" "j \<in> I" and **: "x \<in> A i" "y \<in> A j"
+      and ***: "f x = f y"
+    have "x = y"
+    proof -
+      {
+        assume "A i \<le> A j"
+        with ** have "x \<in> A j" by auto
+        with INJ * ** *** have ?thesis
+        by(auto simp add: inj_on_def)
+      }
+      moreover
+      {
+        assume "A j \<le> A i"
+        with ** have "y \<in> A i" by auto
+        with INJ * ** *** have ?thesis
+        by(auto simp add: inj_on_def)
+      }
+      ultimately show ?thesis using CH * by blast
+    qed
+  }
+  then show ?thesis by (unfold inj_on_def UNION_eq) auto
+qed
+
+lemma bij_betw_UNION_chain:
+  assumes CH: "\<And> i j. \<lbrakk>i \<in> I; j \<in> I\<rbrakk> \<Longrightarrow> A i \<le> A j \<or> A j \<le> A i" and
+         BIJ: "\<And> i. i \<in> I \<Longrightarrow> bij_betw f (A i) (A' i)"
+  shows "bij_betw f (\<Union> i \<in> I. A i) (\<Union> i \<in> I. A' i)"
+proof (unfold bij_betw_def, auto)
+  have "\<And> i. i \<in> I \<Longrightarrow> inj_on f (A i)"
+  using BIJ bij_betw_def[of f] by auto
+  thus "inj_on f (\<Union> i \<in> I. A i)"
+  using CH inj_on_UNION_chain[of I A f] by auto
+next
+  fix i x
+  assume *: "i \<in> I" "x \<in> A i"
+  hence "f x \<in> A' i" using BIJ bij_betw_def[of f] by auto
+  thus "\<exists>j \<in> I. f x \<in> A' j" using * by blast
+next
+  fix i x'
+  assume *: "i \<in> I" "x' \<in> A' i"
+  hence "\<exists>x \<in> A i. x' = f x" using BIJ bij_betw_def[of f] by blast
+  then have "\<exists>j \<in> I. \<exists>x \<in> A j. x' = f x"
+    using * by blast
+  then show "x' \<in> f ` (\<Union>x\<in>I. A x)" by blast
+qed
+
+(*injectivity's required.  Left-to-right inclusion holds even if A is empty*)
+lemma image_INT:
+   "[| inj_on f C;  ALL x:A. B x <= C;  j:A |]
+    ==> f ` (INTER A B) = (INT x:A. f ` B x)"
+apply (simp add: inj_on_def, blast)
+done
+
+(*Compare with image_INT: no use of inj_on, and if f is surjective then
+  it doesn't matter whether A is empty*)
+lemma bij_image_INT: "bij f ==> f ` (INTER A B) = (INT x:A. f ` B x)"
+apply (simp add: bij_def)
+apply (simp add: inj_on_def surj_def, blast)
+done
+
+lemma UNION_fun_upd:
+  "UNION J (A(i:=B)) = (UNION (J-{i}) A \<union> (if i\<in>J then B else {}))"
+by (auto split: if_splits)
 
 
 subsubsection {* Complement *}
