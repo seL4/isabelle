@@ -86,9 +86,6 @@ fun name_of_ref (Named ((name, _), _)) = name
 fun pos_of_ref (Named ((_, pos), _)) = pos
   | pos_of_ref (Fact _) = Position.none;
 
-fun name_pos_of_ref (Named (name_pos, _)) = name_pos
-  | name_pos_of_ref (Fact _) = raise Fail "Illegal literal fact";
-
 fun map_name_of_ref f (Named ((name, pos), is)) = Named ((f name, pos), is)
   | map_name_of_ref _ r = r;
 
