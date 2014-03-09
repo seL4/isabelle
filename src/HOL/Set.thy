@@ -891,75 +891,171 @@ lemma singleton_Un_iff:
   "({x} = A \<union> B) = (A = {} \<and> B = {x} \<or> A = {x} \<and> B = {} \<or> A = {x} \<and> B = {x})"
 by auto
 
+
 subsubsection {* Image of a set under a function *}
 
 text {*
   Frequently @{term b} does not have the syntactic form of @{term "f x"}.
 *}
 
-definition image :: "('a => 'b) => 'a set => 'b set" (infixr "`" 90) where
-  image_def: "f ` A = {y. EX x:A. y = f(x)}"
+definition image :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'b set" (infixr "`" 90)
+where
+  "f ` A = {y. \<exists>x\<in>A. y = f x}"
 
-abbreviation
-  range :: "('a => 'b) => 'b set" where -- "of function"
-  "range f == f ` UNIV"
-
-lemma image_eqI [simp, intro]: "b = f x ==> x:A ==> b : f`A"
+lemma image_eqI [simp, intro]:
+  "b = f x \<Longrightarrow> x \<in> A \<Longrightarrow> b \<in> f ` A"
   by (unfold image_def) blast
 
-lemma imageI: "x : A ==> f x : f ` A"
+lemma imageI:
+  "x \<in> A \<Longrightarrow> f x \<in> f ` A"
   by (rule image_eqI) (rule refl)
 
-lemma rev_image_eqI: "x:A ==> b = f x ==> b : f`A"
+lemma rev_image_eqI:
+  "x \<in> A \<Longrightarrow> b = f x \<Longrightarrow> b \<in> f ` A"
   -- {* This version's more effective when we already have the
     required @{term x}. *}
-  by (unfold image_def) blast
+  by (rule image_eqI)
 
 lemma imageE [elim!]:
-  "b : (%x. f x)`A ==> (!!x. b = f x ==> x:A ==> P) ==> P"
-  -- {* The eta-expansion gives variable-name preservation. *}
-  by (unfold image_def) blast
+  assumes "b \<in> (\<lambda>x. f x) ` A" -- {* The eta-expansion gives variable-name preservation. *}
+  obtains x where "b = f x" and "x \<in> A"
+  using assms by (unfold image_def) blast
 
 lemma Compr_image_eq:
   "{x \<in> f ` A. P x} = f ` {x \<in> A. P (f x)}"
   by auto
 
-lemma image_Un: "f`(A Un B) = f`A Un f`B"
+lemma image_Un:
+  "f ` (A \<union> B) = f ` A \<union> f ` B"
   by blast
 
-lemma image_iff: "(z : f`A) = (EX x:A. z = f x)"
+lemma image_iff:
+  "z \<in> f ` A \<longleftrightarrow> (\<exists>x\<in>A. z = f x)"
   by blast
 
-lemma image_subset_iff: "(f`A \<subseteq> B) = (\<forall>x\<in>A. f x \<in> B)"
-  -- {* This rewrite rule would confuse users if made default. *}
-  by blast
-
-lemma subset_image_iff: "(B \<subseteq> f`A) = (EX AA. AA \<subseteq> A & B = f`AA)"
-  apply safe
-   prefer 2 apply fast
-  apply (rule_tac x = "{a. a : A & f a : B}" in exI, fast)
-  done
-
-lemma image_subsetI: "(!!x. x \<in> A ==> f x \<in> B) ==> f`A \<subseteq> B"
+lemma image_subsetI:
+  "(\<And>x. x \<in> A \<Longrightarrow> f x \<in> B) \<Longrightarrow> f ` A \<subseteq> B"
   -- {* Replaces the three steps @{text subsetI}, @{text imageE},
     @{text hypsubst}, but breaks too many existing proofs. *}
   by blast
+
+lemma image_subset_iff:
+  "f ` A \<subseteq> B \<longleftrightarrow> (\<forall>x\<in>A. f x \<in> B)"
+  -- {* This rewrite rule would confuse users if made default. *}
+  by blast
+
+lemma subset_imageE:
+  assumes "B \<subseteq> f ` A"
+  obtains C where "C \<subseteq> A" and "B = f ` C"
+proof -
+  from assms have "B = f ` {a \<in> A. f a \<in> B}" by fast
+  moreover have "{a \<in> A. f a \<in> B} \<subseteq> A" by blast
+  ultimately show thesis by (blast intro: that)
+qed
+
+lemma subset_image_iff:
+  "B \<subseteq> f ` A \<longleftrightarrow> (\<exists>AA\<subseteq>A. B = f ` AA)"
+  by (blast elim: subset_imageE)
+
+lemma image_ident [simp]:
+  "(\<lambda>x. x) ` Y = Y"
+  by blast
+
+lemma image_empty [simp]:
+  "f ` {} = {}"
+  by blast
+
+lemma image_insert [simp]:
+  "f ` insert a B = insert (f a) (f ` B)"
+  by blast
+
+lemma image_constant:
+  "x \<in> A \<Longrightarrow> (\<lambda>x. c) ` A = {c}"
+  by auto
+
+lemma image_constant_conv:
+  "(\<lambda>x. c) ` A = (if A = {} then {} else {c})"
+  by auto
+
+lemma image_image:
+  "f ` (g ` A) = (\<lambda>x. f (g x)) ` A"
+  by blast
+
+lemma insert_image [simp]:
+  "x \<in> A ==> insert (f x) (f ` A) = f ` A"
+  by blast
+
+lemma image_is_empty [iff]:
+  "f ` A = {} \<longleftrightarrow> A = {}"
+  by blast
+
+lemma empty_is_image [iff]:
+  "{} = f ` A \<longleftrightarrow> A = {}"
+  by blast
+
+lemma image_Collect:
+  "f ` {x. P x} = {f x | x. P x}"
+  -- {* NOT suitable as a default simprule: the RHS isn't simpler than the LHS,
+      with its implicit quantifier and conjunction.  Also image enjoys better
+      equational properties than does the RHS. *}
+  by blast
+
+lemma if_image_distrib [simp]:
+  "(\<lambda>x. if P x then f x else g x) ` S
+    = (f ` (S \<inter> {x. P x})) \<union> (g ` (S \<inter> {x. \<not> P x}))"
+  by (auto simp add: image_def)
+
+lemma image_cong:
+  "M = N \<Longrightarrow> (\<And>x. x \<in> N \<Longrightarrow> f x = g x) \<Longrightarrow> f ` M = g ` N"
+  by (simp add: image_def)
+
+lemma image_Int_subset:
+  "f ` (A \<inter> B) \<subseteq> f ` A \<inter> f ` B"
+  by blast
+
+lemma image_diff_subset:
+  "f ` A - f ` B \<subseteq> f ` (A - B)"
+  by blast
+
+lemma ball_imageD:
+  assumes "\<forall>x\<in>f ` A. P x"
+  shows "\<forall>x\<in>A. P (f x)"
+  using assms by simp
+
+lemma bex_imageD:
+  assumes "\<exists>x\<in>f ` A. P x"
+  shows "\<exists>x\<in>A. P (f x)"
+  using assms by auto
+
 
 text {*
   \medskip Range of a function -- just a translation for image!
 *}
 
-lemma image_ident [simp]: "(%x. x) ` Y = Y"
-  by blast
+abbreviation range :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b set"
+where -- "of function"
+  "range f \<equiv> f ` UNIV"
 
-lemma range_eqI: "b = f x ==> b \<in> range f"
+lemma range_eqI:
+  "b = f x \<Longrightarrow> b \<in> range f"
   by simp
 
-lemma rangeI: "f x \<in> range f"
+lemma rangeI:
+  "f x \<in> range f"
   by simp
 
-lemma rangeE [elim?]: "b \<in> range (\<lambda>x. f x) ==> (!!x. b = f x ==> P) ==> P"
-  by blast
+lemma rangeE [elim?]:
+  "b \<in> range (\<lambda>x. f x) \<Longrightarrow> (\<And>x. b = f x \<Longrightarrow> P) \<Longrightarrow> P"
+  by (rule imageE)
+
+lemma full_SetCompr_eq:
+  "{u. \<exists>x. u = f x} = range f"
+  by auto
+
+lemma range_composition: 
+  "range (\<lambda>x. f (g x)) = f ` range g"
+  by (subst image_image) simp
+
 
 subsubsection {* Some rules with @{text "if"} *}
 
@@ -1053,19 +1149,15 @@ lemmas [symmetric, rulify] = atomize_ball
   and [symmetric, defn] = atomize_ball
 
 lemma image_Pow_mono:
-  assumes "f ` A \<le> B"
-  shows "(image f) ` (Pow A) \<le> Pow B"
-using assms by blast
+  assumes "f ` A \<subseteq> B"
+  shows "image f ` Pow A \<subseteq> Pow B"
+  using assms by blast
 
 lemma image_Pow_surj:
   assumes "f ` A = B"
-  shows "(image f) ` (Pow A) = Pow B"
-using assms unfolding Pow_def proof(auto)
-  fix Y assume *: "Y \<le> f ` A"
-  obtain X where X_def: "X = {x \<in> A. f x \<in> Y}" by blast
-  have "f ` X = Y \<and> X \<le> A" unfolding X_def using * by auto
-  thus "Y \<in> (image f) ` {X. X \<le> A}" by blast
-qed
+  shows "image f ` Pow A = Pow B"
+  using assms by (blast elim: subset_imageE)
+
 
 subsubsection {* Derived rules involving subsets. *}
 
@@ -1193,62 +1285,6 @@ lemma disjoint_insert [simp]:
  "(B \<inter> insert a A = {}) = (a \<notin> B \<and> B \<inter> A = {})"
  "({} = A \<inter> insert b B) = (b \<notin> A \<and> {} = A \<inter> B)"
   by auto
-
-text {* \medskip @{text image}. *}
-
-lemma image_empty [simp]: "f`{} = {}"
-  by blast
-
-lemma image_insert [simp]: "f ` insert a B = insert (f a) (f`B)"
-  by blast
-
-lemma image_constant: "x \<in> A ==> (\<lambda>x. c) ` A = {c}"
-  by auto
-
-lemma image_constant_conv: "(%x. c) ` A = (if A = {} then {} else {c})"
-by auto
-
-lemma image_image: "f ` (g ` A) = (\<lambda>x. f (g x)) ` A"
-by blast
-
-lemma insert_image [simp]: "x \<in> A ==> insert (f x) (f`A) = f`A"
-by blast
-
-lemma image_is_empty [iff]: "(f`A = {}) = (A = {})"
-by blast
-
-lemma empty_is_image[iff]: "({} = f ` A) = (A = {})"
-by blast
-
-
-lemma image_Collect: "f ` {x. P x} = {f x | x. P x}"
-  -- {* NOT suitable as a default simprule: the RHS isn't simpler than the LHS,
-      with its implicit quantifier and conjunction.  Also image enjoys better
-      equational properties than does the RHS. *}
-  by blast
-
-lemma if_image_distrib [simp]:
-  "(\<lambda>x. if P x then f x else g x) ` S
-    = (f ` (S \<inter> {x. P x})) \<union> (g ` (S \<inter> {x. \<not> P x}))"
-  by (auto simp add: image_def)
-
-lemma image_cong: "M = N ==> (!!x. x \<in> N ==> f x = g x) ==> f`M = g`N"
-  by (simp add: image_def)
-
-lemma image_Int_subset: "f`(A Int B) <= f`A Int f`B"
-by blast
-
-lemma image_diff_subset: "f`A - f`B <= f`(A - B)"
-by blast
-
-
-text {* \medskip @{text range}. *}
-
-lemma full_SetCompr_eq: "{u. \<exists>x. u = f x} = range f"
-  by auto
-
-lemma range_composition: "range (\<lambda>x. f (g x)) = f`range g"
-by (subst image_image, simp)
 
 
 text {* \medskip @{text Int} *}
