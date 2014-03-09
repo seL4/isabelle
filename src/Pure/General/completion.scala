@@ -272,7 +272,8 @@ final class Completion private(
 
   private def is_symbol(name: String): Boolean = Symbol.names.isDefinedAt(name)
   private def is_keyword(name: String): Boolean = !is_symbol(name) && keywords.isDefinedAt(name)
-  private def is_keyword_template(name: String): Boolean = is_keyword(name) && keywords(name)
+  private def is_keyword_template(name: String, template: Boolean): Boolean =
+    is_keyword(name) && keywords(name) == template
 
   def + (keyword: String, template: String): Completion =
     new Completion(
@@ -366,7 +367,7 @@ final class Completion private(
               val complete_words = words_lex.completions(word)
               val full_word = word + underscores
               val completions =
-                if (complete_words.contains(full_word)) Nil
+                if (complete_words.contains(full_word) && is_keyword_template(full_word, false)) Nil
                 else
                   for {
                     complete_word <- complete_words
@@ -405,7 +406,7 @@ final class Completion private(
                 if (name0 == name1) List(name0)
                 else List(name1, "(symbol " + quote(name0) + ")")
               }
-              else if (is_keyword_template(complete_word))
+              else if (is_keyword_template(complete_word, true))
                 List(name1, "(template " + quote(complete_word) + ")")
               else if (move != 0) List(name1, "(template)")
               else if (is_keyword(complete_word)) List(name1, "(keyword)")
