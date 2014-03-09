@@ -23,6 +23,7 @@ sig
   val empty: T
   val space_of: T -> Name_Space.T
   val is_concealed: T -> string -> bool
+  val check: Context.generic -> T -> xstring * Position.T -> string
   val intern: T -> xstring -> string
   val extern: Proof.context -> T -> string -> xstring
   val lookup: Context.generic -> T -> string -> (bool * thm list) option
@@ -146,6 +147,15 @@ val space_of = #1 o facts_of;
 val table_of = #2 o facts_of;
 
 val is_concealed = Name_Space.is_concealed o space_of;
+
+fun check context facts (xname, pos) =
+  let
+    val (name, fact) = Name_Space.check context (facts_of facts) (xname, pos);
+    val _ =
+      (case fact of
+        Static _ => ()
+      | Dynamic _ => Context_Position.report_generic context pos (Markup.dynamic_fact name));
+  in name end;
 
 val intern = Name_Space.intern o space_of;
 fun extern ctxt = Name_Space.extern ctxt o space_of;

@@ -7,6 +7,7 @@ Global theory content: stored facts.
 signature GLOBAL_THEORY =
 sig
   val facts_of: theory -> Facts.T
+  val check_fact: theory -> xstring * Position.T -> string
   val intern_fact: theory -> xstring -> string
   val defined_fact: theory -> string -> bool
   val hide_fact: bool -> string -> theory -> theory
@@ -56,6 +57,7 @@ structure Data = Theory_Data
 
 val facts_of = Data.get;
 
+fun check_fact thy = Facts.check (Context.Theory thy) (facts_of thy);
 val intern_fact = Facts.intern o facts_of;
 val defined_fact = Facts.defined o facts_of;
 
