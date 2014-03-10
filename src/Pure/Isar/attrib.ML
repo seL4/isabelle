@@ -118,12 +118,7 @@ fun add_attribute name att comment thy = thy
 (* check *)
 
 fun check_name_generic context = #1 o Name_Space.check context (get_attributes context);
-
-fun check_src_generic context src =
-  let
-    val ((xname, toks), pos) = Args.dest_src src;
-    val name = check_name_generic context (xname, pos);
-  in Args.src ((name, toks), pos) end;
+fun check_src_generic context src = #1 (Args.check_src context (get_attributes context) src);
 
 val check_name = check_name_generic o Context.Proof;
 val check_src = check_src_generic o Context.Proof;
@@ -141,13 +136,8 @@ fun pretty_attribs _ [] = []
 (* get attributes *)
 
 fun attribute_generic context =
-  let val table = get_attributes context in
-    fn src =>
-      let
-        val ((name, _), _) = Args.dest_src src;
-        val (att, _) = Name_Space.get table name;
-      in att src end
-  end;
+  let val table = get_attributes context
+  in fn src => #1 (Name_Space.get table (#1 (Args.name_of_src src))) src end;
 
 val attribute = attribute_generic o Context.Proof;
 val attribute_global = attribute_generic o Context.Theory;
@@ -201,7 +191,7 @@ fun attribute_setup name source cmt =
 
 (* internal attribute *)
 
-fun internal att = Args.src (("Pure.attribute", [Token.mk_attribute att]), Position.none);
+fun internal att = Args.src ("Pure.attribute", Position.none) [Token.mk_attribute att];
 
 val _ = Theory.setup
  (setup (Binding.name "attribute") (Scan.lift Args.internal_attribute >> Morphism.form)
@@ -273,7 +263,7 @@ fun apply_att src (context, th) =
   in (src2, result) end;
 
 fun err msg src =
-  let val ((name, _), pos) = Args.dest_src src
+  let val (name, pos) = Args.name_of_src src
   in error (msg ^ " " ^ quote name ^ Position.here pos) end;
 
 fun eval src ((th, dyn), (decls, context)) =

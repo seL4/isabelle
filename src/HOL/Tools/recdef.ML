@@ -290,7 +290,8 @@ val setup =
 
 val hints =
   @{keyword "("} |--
-    Parse.!!! (Parse.position (@{keyword "hints"} -- Args.parse) --| @{keyword ")"}) >> Args.src;
+    Parse.!!! (Parse.position @{keyword "hints"} -- Args.parse --| @{keyword ")"})
+  >> uncurry Args.src;
 
 val recdef_decl =
   Scan.optional

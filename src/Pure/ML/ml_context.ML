@@ -115,10 +115,8 @@ fun add_antiq name scan thy = thy
 fun check_antiq ctxt = #1 o Name_Space.check (Context.Proof ctxt) (get_antiqs ctxt);
 
 fun antiquotation src ctxt =
-  let
-    val ((xname, _), pos) = Args.dest_src src;
-    val (_, scan) = Name_Space.check (Context.Proof ctxt) (get_antiqs ctxt) (xname, pos);
-  in Args.context_syntax Markup.ML_antiquotationN scan src ctxt end;
+  let val (src', scan) = Args.check_src (Context.Proof ctxt) (get_antiqs ctxt) src
+  in Args.context_syntax Markup.ML_antiquotationN scan src' ctxt end;
 
 
 (* parsing and evaluation *)
@@ -127,7 +125,7 @@ local
 
 val antiq =
   Parse.!!! (Parse.position Parse.xname -- Args.parse --| Scan.ahead Parse.eof)
-  >> (fn ((x, pos), y) => Args.src ((x, y), pos));
+  >> uncurry Args.src;
 
 val begin_env0 = ML_Lex.tokenize "structure Isabelle =\nstruct\n";
 

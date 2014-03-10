@@ -42,10 +42,10 @@ fun setup name style thy =
 
 (* style parsing *)
 
-fun parse_single ctxt = Parse.position (Parse.xname -- Args.parse)
-  >> (fn x as ((name, _), _) => fst (Args.context_syntax "style"
+fun parse_single ctxt = Parse.position Parse.xname -- Args.parse
+  >> (fn ((name, pos), args) => fst (Args.context_syntax "style"
        (Scan.lift (the_style (Proof_Context.theory_of ctxt) name))
-         (Args.src x) ctxt |>> (fn f => f ctxt)));
+         (Args.src (name, pos) args) ctxt |>> (fn f => f ctxt)));
 
 val parse = Args.context :|-- (fn ctxt => Scan.lift
   (Args.parens (parse_single ctxt ::: Scan.repeat (Args.$$$ "," |-- parse_single ctxt))

@@ -8,11 +8,12 @@ attributes, methods etc.
 signature ARGS =
 sig
   type src
-  val src: (string * Token.T list) * Position.T -> src
-  val dest_src: src -> (string * Token.T list) * Position.T
+  val src: xstring * Position.T -> Token.T list -> src
+  val name_of_src: src -> string * Position.T
+  val args_of_src: src -> Token.T list
   val unparse_src: src -> string list
   val pretty_src: (string -> Pretty.T) -> Proof.context -> src -> Pretty.T
-  val map_name: (string -> string) -> src -> src
+  val check_src: Context.generic -> 'a Name_Space.table -> src -> src * 'a
   val transform_values: morphism -> src -> src
   val init_assignable: src -> src
   val closure: src -> src
@@ -75,12 +76,16 @@ struct
 
 (** datatype src **)
 
-datatype src = Src of (string * Token.T list) * Position.T;
+datatype src = Src of (string * Position.T) * Token.T list;
 
-val src = Src;
-fun dest_src (Src src) = src;
+val src = curry Src;
 
-fun unparse_src (Src ((_, toks), _)) = map Token.unparse toks;
+fun map_args f (Src (name, args)) = Src (name, map f args);
+
+fun name_of_src (Src (name, _)) = name;
+fun args_of_src (Src (_, args)) = args;
+
+fun unparse_src (Src (_, args)) = map Token.unparse args;
 
 fun pretty_src pretty_name ctxt src =
   let
@@ -93,11 +98,15 @@ fun pretty_src pretty_name ctxt src =
       | SOME (Token.Term t) => Syntax.pretty_term ctxt t
       | SOME (Token.Fact ths) => Pretty.enclose "(" ")" (Pretty.breaks (map prt_thm ths))
       | _ => Pretty.mark_str (Token.markup arg, Token.unparse arg));
-    val (name, args) = #1 (dest_src src);
+    val Src ((name, _), args) = src;
   in Pretty.block (Pretty.breaks (pretty_name name :: map prt args)) end;
 
-fun map_name f (Src ((s, args), pos)) = Src ((f s, args), pos);
-fun map_args f (Src ((s, args), pos)) = Src ((s, map f args), pos);
+
+(* check *)
+
+fun check_src context table (Src ((xname, pos), args)) =
+  let val (name, x) = Name_Space.check context table (xname, pos)
+  in (Src ((name, pos), args), x) end;
 
 
 (* values *)
@@ -268,7 +277,7 @@ fun attribs check =
   let
     fun intern tok = check (Token.content_of tok, Token.pos_of tok);
     val attrib_name = internal_text || (symbolic || named) >> evaluate Token.Text intern;
-    val attrib = Parse.position (attrib_name -- Parse.!!! parse) >> src;
+    val attrib = Parse.position attrib_name -- Parse.!!! parse >> uncurry src;
   in $$$ "[" |-- Parse.!!! (Parse.list attrib --| $$$ "]") end;
 
 fun opt_attribs check = Scan.optional (attribs check) [];
@@ -287,7 +296,7 @@ fun opt_thm_name check_attrib s =
 
 (** syntax wrapper **)
 
-fun syntax kind scan (Src ((s, args0), pos)) context =
+fun syntax kind scan (Src ((name, pos), args0)) context =
   let
     val args1 = map Token.init_assignable args0;
     fun reported_text () =
@@ -300,7 +309,7 @@ fun syntax kind scan (Src ((s, args0), pos)) context =
     (case Scan.error (Scan.finite' Token.stopper (Scan.option scan)) (context, args1) of
       (SOME x, (context', [])) => (Output.report (reported_text ()); (x, context'))
     | (_, (_, args2)) =>
-        error ("Bad arguments for " ^ kind ^ " " ^ quote s ^ Position.here pos ^
+        error ("Bad arguments for " ^ kind ^ " " ^ quote name ^ Position.here pos ^
           (if null args2 then "" else ":\n  " ^ space_implode " " (map Token.print args2)) ^
           Markup.markup_report (reported_text ())))
   end;
