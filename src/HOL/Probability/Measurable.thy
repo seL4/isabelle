@@ -2,8 +2,12 @@
     Author:     Johannes Hölzl <hoelzl@in.tum.de>
 *)
 theory Measurable
-  imports Sigma_Algebra
+  imports
+    Sigma_Algebra
+    "~~/src/HOL/Library/Order_Continuity"
 begin
+
+hide_const (open) Order_Continuity.continuous
 
 subsection {* Measurability prover *}
 
@@ -255,6 +259,42 @@ lemma measurable_Least[measurable]:
 lemma measurable_count_space_insert[measurable (raw)]:
   "s \<in> S \<Longrightarrow> A \<in> sets (count_space S) \<Longrightarrow> insert s A \<in> sets (count_space S)"
   by simp
+
+subsection {* Measurability for (co)inductive predicates *}
+
+lemma measurable_lfp:
+  assumes "P = lfp F"
+  assumes "Order_Continuity.continuous F"
+  assumes *: "\<And>A. pred M A \<Longrightarrow> pred M (F A)"
+  shows "pred M P"
+proof -
+  { fix i have "Measurable.pred M (\<lambda>x. (F ^^ i) (\<lambda>x. False) x)"
+      by (induct i) (auto intro!: *) }
+  then have "Measurable.pred M (\<lambda>x. \<exists>i. (F ^^ i) (\<lambda>x. False) x)"
+    by measurable
+  also have "(\<lambda>x. \<exists>i. (F ^^ i) (\<lambda>x. False) x) = (SUP i. (F ^^ i) bot)"
+    by (auto simp add: bot_fun_def)
+  also have "\<dots> = P"
+    unfolding `P = lfp F` by (rule continuous_lfp[symmetric]) fact
+  finally show ?thesis .
+qed
+
+lemma measurable_gfp:
+  assumes "P = gfp F"
+  assumes "Order_Continuity.down_continuous F"
+  assumes *: "\<And>A. pred M A \<Longrightarrow> pred M (F A)"
+  shows "pred M P"
+proof -
+  { fix i have "Measurable.pred M (\<lambda>x. (F ^^ i) (\<lambda>x. True) x)"
+      by (induct i) (auto intro!: *) }
+  then have "Measurable.pred M (\<lambda>x. \<forall>i. (F ^^ i) (\<lambda>x. True) x)"
+    by measurable
+  also have "(\<lambda>x. \<forall>i. (F ^^ i) (\<lambda>x. True) x) = (INF i. (F ^^ i) top)"
+    by (auto simp add: top_fun_def)
+  also have "\<dots> = P"
+    unfolding `P = gfp F` by (rule down_continuous_gfp[symmetric]) fact
+  finally show ?thesis .
+qed
 
 hide_const (open) pred
 
