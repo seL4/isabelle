@@ -231,7 +231,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val rel_converseps = map rel_conversep_of_bnf bnfs;
     val rel_Grps = map rel_Grp_of_bnf bnfs;
     val rel_OOs = map rel_OO_of_bnf bnfs;
-    val rel_OO_Grps = map rel_OO_Grp_of_bnf bnfs;
+    val in_rels = map in_rel_of_bnf bnfs;
 
     val timer = time (timer "Extracted terms & thms");
 
@@ -757,7 +757,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         Goal.prove_sorry lthy [] []
           (fold_rev Logic.all (Bs @ ss @ B's @ s's @ Rs @ Rs_copy)
             (Logic.list_implies (prems, concl)))
-          (K ((hyp_subst_tac lthy THEN' atac) 1))
+          (fn {context = ctxt, prems = _} => (hyp_subst_tac ctxt THEN' atac) 1)
         |> Thm.close_derivation
       end;
 
@@ -775,7 +775,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         Goal.prove_sorry lthy [] []
           (fold_rev Logic.all (Bs @ ss @ B's @ s's @ Rs)
             (mk_Trueprop_eq (mk_bis Bs ss B's s's Rs, rhs)))
-          (K (mk_bis_rel_tac lthy m bis_def rel_OO_Grps map_comps map_cong0s set_mapss))
+          (K (mk_bis_rel_tac m bis_def in_rels map_comps map_cong0s set_mapss))
         |> Thm.close_derivation
       end;
 
@@ -1905,7 +1905,6 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
       ||>> mk_Frees "S" activephiTs
       ||>> mk_Frees "JR" activeJphiTs;
     val rels = map2 (fn Ds => mk_rel_of_bnf Ds (passiveAs @ Ts) (passiveBs @ Ts')) Dss bnfs;
-    val in_rels = map in_rel_of_bnf bnfs;
 
     fun mk_Jrel_DEADID_coinduct_thm () = 
       mk_rel_xtor_co_induct_thm Greatest_FP rels activeJphis (map HOLogic.eq_const Ts) Jphis

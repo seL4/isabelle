@@ -13,7 +13,7 @@ sig
   val mk_bis_O_tac: Proof.context -> int -> thm -> thm list -> thm list -> tactic
   val mk_bis_Union_tac: Proof.context -> thm -> thm list -> tactic
   val mk_bis_converse_tac: int -> thm -> thm list -> thm list -> tactic
-  val mk_bis_rel_tac: Proof.context -> int -> thm -> thm list -> thm list -> thm list ->
+  val mk_bis_rel_tac: int -> thm -> thm list -> thm list -> thm list ->
     thm list list -> tactic
   val mk_coalgT_tac: Proof.context -> int -> thm list -> thm list -> thm list list -> tactic
   val mk_coalg_final_tac: int -> thm -> thm list -> thm list -> thm list list -> thm list list ->
@@ -214,38 +214,36 @@ fun mk_mor_hset_rec_tac m n cts j rec_0s rec_Sucs morEs set_map0ss coalg_setss =
             (rev ((1 upto n) ~~ (active_set_map0s ~~ coalg_sets)))])
       (rec_Sucs ~~ (morEs ~~ (map (chop m) set_map0ss ~~ map (drop m) coalg_setss)))] 1;
 
-fun mk_bis_rel_tac ctxt m bis_def rel_OO_Grps map_comp0s map_cong0s set_map0ss =
+fun mk_bis_rel_tac m bis_def in_rels map_comp0s map_cong0s set_map0ss =
   let
-    val n = length rel_OO_Grps;
-    val thms = ((1 upto n) ~~ map_comp0s ~~ map_cong0s ~~ set_map0ss ~~ rel_OO_Grps);
+    val n = length in_rels;
+    val thms = ((1 upto n) ~~ map_comp0s ~~ map_cong0s ~~ set_map0ss ~~ in_rels);
 
-    fun mk_if_tac ((((i, map_comp0), map_cong0), set_map0s), rel_OO_Grp) =
+    fun mk_if_tac ((((i, map_comp0), map_cong0), set_map0s), in_rel) =
       EVERY' [rtac allI, rtac allI, rtac impI, dtac (mk_conjunctN n i),
-        etac allE, etac allE, etac impE, atac, etac bexE, etac conjE,
-        rtac (rel_OO_Grp RS sym RS @{thm eq_refl} RS @{thm predicate2D}),
-        rtac @{thm relcomppI}, rtac @{thm conversepI},
-        EVERY' (map (fn thm =>
-          EVERY' [rtac @{thm GrpI},
-            rtac trans, rtac trans, rtac map_comp0, rtac map_cong0, REPEAT_DETERM_N m o rtac thm,
-            REPEAT_DETERM_N n o rtac (@{thm comp_id} RS fun_cong), atac,
-            REPEAT_DETERM o eresolve_tac [CollectE, conjE], rtac CollectI,
-            CONJ_WRAP' (fn (i, thm) =>
-              if i <= m
-              then EVERY' [rtac ord_eq_le_trans, rtac thm, rtac subset_trans,
-                etac @{thm image_mono}, rtac @{thm image_subsetI}, rtac CollectI,
-                rtac @{thm case_prodI}, rtac refl]
-              else EVERY' [rtac ord_eq_le_trans, rtac trans, rtac thm,
-                rtac trans_fun_cong_image_id_id_apply, etac @{thm Collect_split_in_rel_leI}])
-            (1 upto (m + n) ~~ set_map0s)])
-          @{thms fst_diag_id snd_diag_id})];
+        etac allE, etac allE, etac impE, atac, etac bexE,
+        REPEAT_DETERM o eresolve_tac [CollectE, conjE],
+        rtac (in_rel RS iffD2), rtac exI, rtac (Drule.rotate_prems 1 conjI),
+        CONJ_WRAP' (fn thm => EVERY' [rtac trans, rtac trans, rtac map_comp0, rtac map_cong0,
+          REPEAT_DETERM_N m o rtac thm, REPEAT_DETERM_N n o rtac (@{thm comp_id} RS fun_cong),
+          atac])
+        @{thms fst_diag_id snd_diag_id},
+        rtac CollectI,
+        CONJ_WRAP' (fn (i, thm) =>
+          if i <= m
+          then EVERY' [rtac ord_eq_le_trans, rtac thm, rtac subset_trans,
+            etac @{thm image_mono}, rtac @{thm image_subsetI}, rtac CollectI,
+            rtac @{thm case_prodI}, rtac refl]
+          else EVERY' [rtac ord_eq_le_trans, rtac trans, rtac thm,
+            rtac trans_fun_cong_image_id_id_apply, etac @{thm Collect_split_in_rel_leI}])
+        (1 upto (m + n) ~~ set_map0s)];
 
-    fun mk_only_if_tac ((((i, map_comp0), map_cong0), set_map0s), rel_OO_Grp) =
+    fun mk_only_if_tac ((((i, map_comp0), map_cong0), set_map0s), in_rel) =
       EVERY' [dtac (mk_conjunctN n i), rtac allI, rtac allI, rtac impI,
         etac allE, etac allE, etac impE, atac,
-        dtac (rel_OO_Grp RS @{thm eq_refl} RS @{thm predicate2D}),
+        dtac (in_rel RS @{thm iffD1}),
         REPEAT_DETERM o eresolve_tac ([CollectE, conjE, exE] @
-          @{thms GrpE relcomppE conversepE CollectE Collect_split_in_rel_leE}),
-        hyp_subst_tac ctxt,
+          @{thms CollectE Collect_split_in_rel_leE}),
         rtac bexI, rtac conjI, rtac trans, rtac map_comp0, rtac trans, rtac map_cong0,
         REPEAT_DETERM_N m o rtac (@{thm id_comp} RS fun_cong),
         REPEAT_DETERM_N n o rtac (@{thm comp_id} RS fun_cong),
