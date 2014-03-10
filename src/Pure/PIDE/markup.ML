@@ -37,6 +37,7 @@ sig
   val language_antiquotation: T
   val language_text: bool -> T
   val language_rail: T
+  val language_path: T
   val bindingN: string val binding: T
   val entityN: string val entity: string -> string -> T
   val get_entity_kind: T -> string option
@@ -290,6 +291,7 @@ val language_antiquotation =
   language {name = "antiquotation", symbols = true, antiquotes = false, delimited = true};
 val language_text = language' {name = "text", symbols = true, antiquotes = false};
 val language_rail = language {name = "rail", symbols = true, antiquotes = true, delimited = true};
+val language_path = language {name = "path", symbols = false, antiquotes = false, delimited = true};
 
 
 (* formal entities *)

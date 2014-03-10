@@ -194,6 +194,8 @@ fun load_thy document last_timing update_time master_dir header text_pos text pa
 
 fun file_antiq strict ctxt (name, pos) =
   let
+    val _ = Context_Position.report ctxt pos Markup.language_path;
+
     val dir = master_directory (Proof_Context.theory_of ctxt);
     val path = Path.append dir (Path.explode name)
       handle ERROR msg => error (msg ^ Position.here pos);
