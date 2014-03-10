@@ -441,7 +441,7 @@ fun inferred_fixes ctxt =
 
 fun check_type_name {proper, strict} ctxt (c, pos) =
   if Lexicon.is_tid c then
-    if proper then error ("Not a type constructor: " ^ c ^ Position.here pos)
+    if proper then error ("Not a type constructor: " ^ quote c ^ Position.here pos)
     else
       let
         val reports =
