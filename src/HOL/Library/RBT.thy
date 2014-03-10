@@ -36,7 +36,6 @@ lemma RBT_impl_of [simp, code abstype]:
 subsection {* Primitive operations *}
 
 setup_lifting type_definition_rbt
-print_theorems
 
 lift_definition lookup :: "('a\<Colon>linorder, 'b) rbt \<Rightarrow> 'a \<rightharpoonup> 'b" is "rbt_lookup" .
 
@@ -186,5 +185,15 @@ lemma keys_def_alt:
 subsection {* Quickcheck generators *}
 
 quickcheck_generator rbt predicate: is_rbt constructors: empty, insert
+
+subsection {* Hide implementation details *}
+
+lifting_update rbt.lifting
+lifting_forget rbt.lifting
+
+hide_const (open) impl_of empty lookup keys entries bulkload delete map fold union insert map_entry foldi 
+  is_empty
+hide_fact (open) empty_def lookup_def keys_def entries_def bulkload_def delete_def map_def fold_def 
+  union_def insert_def map_entry_def foldi_def is_empty_def
 
 end

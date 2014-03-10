@@ -11,42 +11,46 @@ begin
 
 subsection {* Implementation of mappings *}
 
-lift_definition Mapping :: "('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a, 'b) mapping" is lookup .
+context includes rbt.lifting begin
+lift_definition Mapping :: "('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a, 'b) mapping" is RBT.lookup .
+end
 
 code_datatype Mapping
 
+context includes rbt.lifting begin
+
 lemma lookup_Mapping [simp, code]:
-  "Mapping.lookup (Mapping t) = lookup t"
+  "Mapping.lookup (Mapping t) = RBT.lookup t"
    by (transfer fixing: t) rule
 
-lemma empty_Mapping [code]: "Mapping.empty = Mapping empty"
+lemma empty_Mapping [code]: "Mapping.empty = Mapping RBT.empty"
 proof -
   note RBT.empty.transfer[transfer_rule del]
   show ?thesis by transfer simp
 qed
 
 lemma is_empty_Mapping [code]:
-  "Mapping.is_empty (Mapping t) \<longleftrightarrow> is_empty t"
+  "Mapping.is_empty (Mapping t) \<longleftrightarrow> RBT.is_empty t"
   unfolding is_empty_def by (transfer fixing: t) simp
 
 lemma insert_Mapping [code]:
-  "Mapping.update k v (Mapping t) = Mapping (insert k v t)"
+  "Mapping.update k v (Mapping t) = Mapping (RBT.insert k v t)"
   by (transfer fixing: t) simp
 
 lemma delete_Mapping [code]:
-  "Mapping.delete k (Mapping t) = Mapping (delete k t)"
+  "Mapping.delete k (Mapping t) = Mapping (RBT.delete k t)"
   by (transfer fixing: t) simp
 
 lemma map_entry_Mapping [code]:
-  "Mapping.map_entry k f (Mapping t) = Mapping (map_entry k f t)"
-  apply (transfer fixing: t) by (case_tac "lookup t k") auto
+  "Mapping.map_entry k f (Mapping t) = Mapping (RBT.map_entry k f t)"
+  apply (transfer fixing: t) by (case_tac "RBT.lookup t k") auto
 
 lemma keys_Mapping [code]:
-  "Mapping.keys (Mapping t) = set (keys t)"
+  "Mapping.keys (Mapping t) = set (RBT.keys t)"
 by (transfer fixing: t) (simp add: lookup_keys)
 
 lemma ordered_keys_Mapping [code]:
-  "Mapping.ordered_keys (Mapping t) = keys t"
+  "Mapping.ordered_keys (Mapping t) = RBT.keys t"
 unfolding ordered_keys_def 
 by (transfer fixing: t) (auto simp add: lookup_keys intro: sorted_distinct_set_unique)
 
@@ -55,7 +59,7 @@ lemma Mapping_size_card_keys: (*FIXME*)
 unfolding size_def by transfer simp
 
 lemma size_Mapping [code]:
-  "Mapping.size (Mapping t) = length (keys t)"
+  "Mapping.size (Mapping t) = length (RBT.keys t)"
 unfolding size_def
 by (transfer fixing: t) (simp add: lookup_keys distinct_card)
 
@@ -63,25 +67,24 @@ context
   notes RBT.bulkload.transfer[transfer_rule del]
 begin
   lemma tabulate_Mapping [code]:
-    "Mapping.tabulate ks f = Mapping (bulkload (List.map (\<lambda>k. (k, f k)) ks))"
+    "Mapping.tabulate ks f = Mapping (RBT.bulkload (List.map (\<lambda>k. (k, f k)) ks))"
   by transfer (simp add: map_of_map_restrict)
   
   lemma bulkload_Mapping [code]:
-    "Mapping.bulkload vs = Mapping (bulkload (List.map (\<lambda>n. (n, vs ! n)) [0..<length vs]))"
+    "Mapping.bulkload vs = Mapping (RBT.bulkload (List.map (\<lambda>n. (n, vs ! n)) [0..<length vs]))"
   by transfer (simp add: map_of_map_restrict fun_eq_iff)
 end
 
 lemma equal_Mapping [code]:
-  "HOL.equal (Mapping t1) (Mapping t2) \<longleftrightarrow> entries t1 = entries t2"
+  "HOL.equal (Mapping t1) (Mapping t2) \<longleftrightarrow> RBT.entries t1 = RBT.entries t2"
   by (transfer fixing: t1 t2) (simp add: entries_lookup)
 
 lemma [code nbe]:
   "HOL.equal (x :: (_, _) mapping) x \<longleftrightarrow> True"
   by (fact equal_refl)
 
+end
 
-hide_const (open) impl_of lookup empty insert delete
-  entries keys bulkload map_entry map fold
 (*>*)
 
 text {* 

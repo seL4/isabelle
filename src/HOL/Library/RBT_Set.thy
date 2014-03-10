@@ -19,7 +19,7 @@ begin
 section {* Definition of code datatype constructors *}
 
 definition Set :: "('a\<Colon>linorder, unit) rbt \<Rightarrow> 'a set" 
-  where "Set t = {x . lookup t x = Some ()}"
+  where "Set t = {x . RBT.lookup t x = Some ()}"
 
 definition Coset :: "('a\<Colon>linorder, unit) rbt \<Rightarrow> 'a set" 
   where [simp]: "Coset t = - Set t"
@@ -146,31 +146,31 @@ subsection {* Auxiliary lemmas *}
 lemma [simp]: "x \<noteq> Some () \<longleftrightarrow> x = None"
 by (auto simp: not_Some_eq[THEN iffD1])
 
-lemma Set_set_keys: "Set x = dom (lookup x)" 
+lemma Set_set_keys: "Set x = dom (RBT.lookup x)" 
 by (auto simp: Set_def)
 
 lemma finite_Set [simp, intro!]: "finite (Set x)"
 by (simp add: Set_set_keys)
 
-lemma set_keys: "Set t = set(keys t)"
+lemma set_keys: "Set t = set(RBT.keys t)"
 by (simp add: Set_set_keys lookup_keys)
 
 subsection {* fold and filter *}
 
 lemma finite_fold_rbt_fold_eq:
   assumes "comp_fun_commute f" 
-  shows "Finite_Set.fold f A (set(entries t)) = fold (curry f) t A"
+  shows "Finite_Set.fold f A (set (RBT.entries t)) = RBT.fold (curry f) t A"
 proof -
-  have *: "remdups (entries t) = entries t"
+  have *: "remdups (RBT.entries t) = RBT.entries t"
     using distinct_entries distinct_map by (auto intro: distinct_remdups_id)
   show ?thesis using assms by (auto simp: fold_def_alt comp_fun_commute.fold_set_fold_remdups *)
 qed
 
 definition fold_keys :: "('a :: linorder \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a, _) rbt \<Rightarrow> 'b \<Rightarrow> 'b" 
-  where [code_unfold]:"fold_keys f t A = fold (\<lambda>k _ t. f k t) t A"
+  where [code_unfold]:"fold_keys f t A = RBT.fold (\<lambda>k _ t. f k t) t A"
 
 lemma fold_keys_def_alt:
-  "fold_keys f t s = List.fold f (keys t) s"
+  "fold_keys f t s = List.fold f (RBT.keys t) s"
 by (auto simp: fold_map o_def split_def fold_def_alt keys_def_alt fold_keys_def)
 
 lemma finite_fold_fold_keys:
@@ -179,15 +179,15 @@ lemma finite_fold_fold_keys:
 using assms
 proof -
   interpret comp_fun_commute f by fact
-  have "set (keys t) = fst ` (set (entries t))" by (auto simp: fst_eq_Domain keys_entries)
-  moreover have "inj_on fst (set (entries t))" using distinct_entries distinct_map by auto
+  have "set (RBT.keys t) = fst ` (set (RBT.entries t))" by (auto simp: fst_eq_Domain keys_entries)
+  moreover have "inj_on fst (set (RBT.entries t))" using distinct_entries distinct_map by auto
   ultimately show ?thesis 
     by (auto simp add: set_keys fold_keys_def curry_def fold_image finite_fold_rbt_fold_eq 
       comp_comp_fun_commute)
 qed
 
 definition rbt_filter :: "('a :: linorder \<Rightarrow> bool) \<Rightarrow> ('a, 'b) rbt \<Rightarrow> 'a set" where
-  "rbt_filter P t = fold (\<lambda>k _ A'. if P k then Set.insert k A' else A') t {}"
+  "rbt_filter P t = RBT.fold (\<lambda>k _ A'. if P k then Set.insert k A' else A') t {}"
 
 lemma Set_filter_rbt_filter:
   "Set.filter P (Set t) = rbt_filter P t"
@@ -207,8 +207,8 @@ proof (induction t arbitrary: val)
     by (cases "RBT_Impl.fold (\<lambda>k v s. s \<and> P k) t1 True") (simp_all add: Ball_False) 
 qed simp
 
-lemma foldi_fold_conj: "foldi (\<lambda>s. s = True) (\<lambda>k v s. s \<and> P k) t val = fold_keys (\<lambda>k s. s \<and> P k) t val"
-unfolding fold_keys_def by transfer (rule rbt_foldi_fold_conj)
+lemma foldi_fold_conj: "RBT.foldi (\<lambda>s. s = True) (\<lambda>k v s. s \<and> P k) t val = fold_keys (\<lambda>k s. s \<and> P k) t val"
+unfolding fold_keys_def including rbt.lifting by transfer (rule rbt_foldi_fold_conj)
 
 
 subsection {* foldi and Bex *}
@@ -223,8 +223,8 @@ proof (induction t arbitrary: val)
     by (cases "RBT_Impl.fold (\<lambda>k v s. s \<or> P k) t1 False") (simp_all add: Bex_True) 
 qed simp
 
-lemma foldi_fold_disj: "foldi (\<lambda>s. s = False) (\<lambda>k v s. s \<or> P k) t val = fold_keys (\<lambda>k s. s \<or> P k) t val"
-unfolding fold_keys_def by transfer (rule rbt_foldi_fold_disj)
+lemma foldi_fold_disj: "RBT.foldi (\<lambda>s. s = False) (\<lambda>k v s. s \<or> P k) t val = fold_keys (\<lambda>k s. s \<or> P k) t val"
+unfolding fold_keys_def including rbt.lifting by transfer (rule rbt_foldi_fold_disj)
 
 
 subsection {* folding over non empty trees and selecting the minimal and maximal element *}
@@ -422,16 +422,17 @@ qed
 
 (** abstract **)
 
+context includes rbt.lifting begin
 lift_definition fold1_keys :: "('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> ('a::linorder, 'b) rbt \<Rightarrow> 'a"
   is rbt_fold1_keys .
 
 lemma fold1_keys_def_alt:
-  "fold1_keys f t = List.fold f (tl(keys t)) (hd(keys t))"
+  "fold1_keys f t = List.fold f (tl (RBT.keys t)) (hd (RBT.keys t))"
   by transfer (simp add: rbt_fold1_keys_def)
 
 lemma finite_fold1_fold1_keys:
   assumes "semilattice f"
-  assumes "\<not> is_empty t"
+  assumes "\<not> RBT.is_empty t"
   shows "semilattice_set.F f (Set t) = fold1_keys f t"
 proof -
   from `semilattice f` interpret semilattice_set f by (rule semilattice_set.intro)
@@ -449,13 +450,13 @@ lemma r_min_alt_def: "r_min t = fold1_keys min t"
 by transfer (simp add: rbt_min_def)
 
 lemma r_min_eq_r_min_opt:
-  assumes "\<not> (is_empty t)"
+  assumes "\<not> (RBT.is_empty t)"
   shows "r_min t = r_min_opt t"
 using assms unfolding is_empty_empty by transfer (auto intro: rbt_min_eq_rbt_min_opt)
 
 lemma fold_keys_min_top_eq:
   fixes t :: "('a :: {linorder, bounded_lattice_top}, unit) rbt"
-  assumes "\<not> (is_empty t)"
+  assumes "\<not> (RBT.is_empty t)"
   shows "fold_keys min t top = fold1_keys min t"
 proof -
   have *: "\<And>t. RBT_Impl.keys t \<noteq> [] \<Longrightarrow> List.fold min (RBT_Impl.keys t) top = 
@@ -487,13 +488,13 @@ lemma r_max_alt_def: "r_max t = fold1_keys max t"
 by transfer (simp add: rbt_max_def)
 
 lemma r_max_eq_r_max_opt:
-  assumes "\<not> (is_empty t)"
+  assumes "\<not> (RBT.is_empty t)"
   shows "r_max t = r_max_opt t"
 using assms unfolding is_empty_empty by transfer (auto intro: rbt_max_eq_rbt_max_opt)
 
 lemma fold_keys_max_bot_eq:
   fixes t :: "('a :: {linorder, bounded_lattice_bot}, unit) rbt"
-  assumes "\<not> (is_empty t)"
+  assumes "\<not> (RBT.is_empty t)"
   shows "fold_keys max t bot = fold1_keys max t"
 proof -
   have *: "\<And>t. RBT_Impl.keys t \<noteq> [] \<Longrightarrow> List.fold max (RBT_Impl.keys t) bot = 
@@ -515,6 +516,7 @@ proof -
   done
 qed
 
+end
 
 section {* Code equations *}
 
@@ -584,7 +586,7 @@ proof -
 qed
  
 lemma union_Set_Set [code]:
-  "Set t1 \<union> Set t2 = Set (union t1 t2)"
+  "Set t1 \<union> Set t2 = Set (RBT.union t1 t2)"
 by (auto simp add: lookup_union map_add_Some_iff Set_def)
 
 lemma inter_Coset [code]:
@@ -592,7 +594,7 @@ lemma inter_Coset [code]:
 by (simp add: Diff_eq [symmetric] minus_Set)
 
 lemma inter_Coset_Coset [code]:
-  "Coset t1 \<inter> Coset t2 = Coset (union t1 t2)"
+  "Coset t1 \<inter> Coset t2 = Coset (RBT.union t1 t2)"
 by (auto simp add: lookup_union map_add_Some_iff Set_def)
 
 lemma minus_Coset [code]:
@@ -611,7 +613,7 @@ proof -
 qed
 
 lemma Ball_Set [code]:
-  "Ball (Set t) P \<longleftrightarrow> foldi (\<lambda>s. s = True) (\<lambda>k v s. s \<and> P k) t True"
+  "Ball (Set t) P \<longleftrightarrow> RBT.foldi (\<lambda>s. s = True) (\<lambda>k v s. s \<and> P k) t True"
 proof -
   have "comp_fun_commute (\<lambda>k s. s \<and> P k)" by default auto
   then show ?thesis 
@@ -619,7 +621,7 @@ proof -
 qed
 
 lemma Bex_Set [code]:
-  "Bex (Set t) P \<longleftrightarrow> foldi (\<lambda>s. s = False) (\<lambda>k v s. s \<or> P k) t False"
+  "Bex (Set t) P \<longleftrightarrow> RBT.foldi (\<lambda>s. s = False) (\<lambda>k v s. s \<or> P k) t False"
 proof -
   have "comp_fun_commute (\<lambda>k s. s \<or> P k)" by default auto
   then show ?thesis 
@@ -632,11 +634,11 @@ lemma subset_code [code]:
 by auto
 
 lemma subset_Coset_empty_Set_empty [code]:
-  "Coset t1 \<le> Set t2 \<longleftrightarrow> (case (impl_of t1, impl_of t2) of 
+  "Coset t1 \<le> Set t2 \<longleftrightarrow> (case (RBT.impl_of t1, RBT.impl_of t2) of 
     (rbt.Empty, rbt.Empty) => False |
     (_, _) => Code.abort (STR ''non_empty_trees'') (\<lambda>_. Coset t1 \<le> Set t2))"
 proof -
-  have *: "\<And>t. impl_of t = rbt.Empty \<Longrightarrow> t = RBT rbt.Empty"
+  have *: "\<And>t. RBT.impl_of t = rbt.Empty \<Longrightarrow> t = RBT rbt.Empty"
     by (subst(asm) RBT_inverse[symmetric]) (auto simp: impl_of_inject)
   have **: "Lifting.invariant is_rbt rbt.Empty rbt.Empty" unfolding Lifting.invariant_def by simp
   show ?thesis  
@@ -645,7 +647,7 @@ qed
 
 text {* A frequent case – avoid intermediate sets *}
 lemma [code_unfold]:
-  "Set t1 \<subseteq> Set t2 \<longleftrightarrow> foldi (\<lambda>s. s = True) (\<lambda>k v s. s \<and> k \<in> Set t2) t1 True"
+  "Set t1 \<subseteq> Set t2 \<longleftrightarrow> RBT.foldi (\<lambda>s. s = True) (\<lambda>k v s. s \<and> k \<in> Set t2) t1 True"
 by (simp add: subset_code Ball_Set)
 
 lemma card_Set [code]:
@@ -662,7 +664,7 @@ qed
 
 lemma the_elem_set [code]:
   fixes t :: "('a :: linorder, unit) rbt"
-  shows "the_elem (Set t) = (case impl_of t of 
+  shows "the_elem (Set t) = (case RBT.impl_of t of 
     (Branch RBT_Impl.B RBT_Impl.Empty x () RBT_Impl.Empty) \<Rightarrow> x
     | _ \<Rightarrow> Code.abort (STR ''not_a_singleton_tree'') (\<lambda>_. the_elem (Set t)))"
 proof -
@@ -672,7 +674,7 @@ proof -
     have *:"?t \<in> {t. is_rbt t}" unfolding is_rbt_def by auto
     then have **:"Lifting.invariant is_rbt ?t ?t" unfolding Lifting.invariant_def by auto
 
-    have "impl_of t = ?t \<Longrightarrow> the_elem (Set t) = x" 
+    have "RBT.impl_of t = ?t \<Longrightarrow> the_elem (Set t) = x" 
       by (subst(asm) RBT_inverse[symmetric, OF *])
         (auto simp: Set_def the_elem_def lookup.abs_eq[OF **] impl_of_inject)
   }
@@ -726,7 +728,7 @@ by (simp add: wf_iff_acyclic_if_finite)
 
 lemma Min_fin_set_fold [code]:
   "Min (Set t) = 
-  (if is_empty t
+  (if RBT.is_empty t
    then Code.abort (STR ''not_non_empty_tree'') (\<lambda>_. Min (Set t))
    else r_min_opt t)"
 proof -
@@ -742,10 +744,10 @@ by (simp add: inf_min Inf_fin_def Min_def)
 
 lemma Inf_Set_fold:
   fixes t :: "('a :: {linorder, complete_lattice}, unit) rbt"
-  shows "Inf (Set t) = (if is_empty t then top else r_min_opt t)"
+  shows "Inf (Set t) = (if RBT.is_empty t then top else r_min_opt t)"
 proof -
   have "comp_fun_commute (min :: 'a \<Rightarrow> 'a \<Rightarrow> 'a)" by default (simp add: fun_eq_iff ac_simps)
-  then have "t \<noteq> empty \<Longrightarrow> Finite_Set.fold min top (Set t) = fold1_keys min t"
+  then have "t \<noteq> RBT.empty \<Longrightarrow> Finite_Set.fold min top (Set t) = fold1_keys min t"
     by (simp add: finite_fold_fold_keys fold_keys_min_top_eq)
   then show ?thesis 
     by (auto simp add: Inf_fold_inf inf_min empty_Set[symmetric] r_min_eq_r_min_opt[symmetric] r_min_alt_def)
@@ -767,7 +769,7 @@ qed
 
 lemma Max_fin_set_fold [code]:
   "Max (Set t) = 
-  (if is_empty t
+  (if RBT.is_empty t
    then Code.abort (STR ''not_non_empty_tree'') (\<lambda>_. Max (Set t))
    else r_max_opt t)"
 proof -
@@ -783,10 +785,10 @@ by (simp add: sup_max Sup_fin_def Max_def)
 
 lemma Sup_Set_fold:
   fixes t :: "('a :: {linorder, complete_lattice}, unit) rbt"
-  shows "Sup (Set t) = (if is_empty t then bot else r_max_opt t)"
+  shows "Sup (Set t) = (if RBT.is_empty t then bot else r_max_opt t)"
 proof -
   have "comp_fun_commute (max :: 'a \<Rightarrow> 'a \<Rightarrow> 'a)" by default (simp add: fun_eq_iff ac_simps)
-  then have "t \<noteq> empty \<Longrightarrow> Finite_Set.fold max bot (Set t) = fold1_keys max t"
+  then have "t \<noteq> RBT.empty \<Longrightarrow> Finite_Set.fold max bot (Set t) = fold1_keys max t"
     by (simp add: finite_fold_fold_keys fold_keys_max_bot_eq)
   then show ?thesis 
     by (auto simp add: Sup_fold_sup sup_max empty_Set[symmetric] r_max_eq_r_max_opt[symmetric] r_max_alt_def)
@@ -807,14 +809,14 @@ proof -
 qed
 
 lemma sorted_list_set[code]:
-  "sorted_list_of_set (Set t) = keys t"
+  "sorted_list_of_set (Set t) = RBT.keys t"
 by (auto simp add: set_keys intro: sorted_distinct_set_unique) 
 
 lemma Bleast_code [code]:
- "Bleast (Set t) P = (case filter P (keys t) of
+ "Bleast (Set t) P = (case filter P (RBT.keys t) of
     x#xs \<Rightarrow> x |
     [] \<Rightarrow> abort_Bleast (Set t) P)"
-proof (cases "filter P (keys t)")
+proof (cases "filter P (RBT.keys t)")
   case Nil thus ?thesis by (simp add: Bleast_def abort_Bleast_def)
 next
   case (Cons x ys)
@@ -830,7 +832,6 @@ next
   qed
   thus ?thesis using Cons by (simp add: Bleast_def)
 qed
-
 
 hide_const (open) RBT_Set.Set RBT_Set.Coset
 
