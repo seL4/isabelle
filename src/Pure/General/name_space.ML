@@ -207,6 +207,10 @@ fun pretty ctxt space name = Pretty.mark_str (markup_extern ctxt space name);
 fun completion context space (xname, pos) =
   if Position.is_reported pos andalso xname <> "" andalso xname <> "_" then
     let
+      fun result_ord ((s, _), (s', _)) =
+        (case int_ord (pairself Long_Name.qualification (s, s')) of
+          EQUAL => string_ord (s, s')
+        | ord => ord);
       val x = Name.clean xname;
       val Name_Space {kind, internals, ...} = space;
       val ext = extern_shortest (Context.proof_of context) space;
@@ -219,7 +223,7 @@ fun completion context space (xname, pos) =
                 in if a = a' then cons (a', (kind, name)) else I end
               else I
             | _ => I) internals []
-        |> sort_distinct (string_ord o pairself #1);
+        |> sort_distinct result_ord;
     in Completion.names pos names end
   else Completion.none;
 
