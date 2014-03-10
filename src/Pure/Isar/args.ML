@@ -331,7 +331,7 @@ fun syntax_generic scan (Src {name = (name, pos), args = args0, output_info}) co
           val print_name =
             (case output_info of
               NONE => quote name
-            | SOME (kind, markup) => kind ^ " " ^ quote (Markup.markup markup name));
+            | SOME (kind, markup) => plain_words kind ^ " " ^ quote (Markup.markup markup name));
           val print_args =
             if null args2 then "" else ":\n  " ^ space_implode " " (map Token.print args2);
         in

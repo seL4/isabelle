@@ -146,6 +146,7 @@ sig
   val cat_lines: string list -> string
   val space_explode: string -> string -> string list
   val split_lines: string -> string list
+  val plain_words: string -> string
   val prefix_lines: string -> string -> string
   val prefix: string -> string -> string
   val suffix: string -> string -> string
@@ -744,6 +745,8 @@ fun space_explode _ "" = []
   | space_explode sep s = String.fields (fn c => str c = sep) s;
 
 val split_lines = space_explode "\n";
+
+fun plain_words s = space_explode "_" s |> space_implode " ";
 
 fun prefix_lines "" txt = txt
   | prefix_lines prfx txt = txt |> split_lines |> map (fn s => prfx ^ s) |> cat_lines;

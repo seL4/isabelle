@@ -99,10 +99,10 @@ fun print_entry_ref kind (name, entry) =
   quote (Markup.markup (entry_markup false kind (name, entry)) name);
 
 fun err_dup kind entry1 entry2 pos =
-  error ("Duplicate " ^ kind ^ " declaration " ^
+  error ("Duplicate " ^ plain_words kind ^ " declaration " ^
     print_entry_ref kind entry1 ^ " vs. " ^ print_entry_ref kind entry2 ^ Position.here pos);
 
-fun undefined kind name = "Undefined " ^ kind ^ ": " ^ quote name;
+fun undefined kind name = "Undefined " ^ plain_words kind ^ ": " ^ quote name;
 
 
 (* datatype T *)
