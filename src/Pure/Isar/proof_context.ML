@@ -1293,18 +1293,18 @@ fun pretty_case (name, (fixes, ((asms, (lets, cs)), ctxt))) =
         else [Binding.pretty b, Pretty.str ":"]) @ map (Pretty.quote o prt_term) ts));
 
     fun prt_sect _ _ _ [] = []
-      | prt_sect s sep prt xs =
-          [Pretty.block (Pretty.breaks (Pretty.str s ::
+      | prt_sect head sep prt xs =
+          [Pretty.block (Pretty.breaks (head ::
             flat (separate sep (map (single o prt) xs))))];
   in
     Pretty.block (Pretty.fbreaks
       (Pretty.str (name ^ ":") ::
-        prt_sect "fix" [] (Pretty.str o Binding.name_of o fst) fixes @
-        prt_sect "let" [Pretty.str "and"] prt_let
+        prt_sect (Pretty.keyword1 "fix") [] (Pretty.str o Binding.name_of o fst) fixes @
+        prt_sect (Pretty.keyword1 "let") [Pretty.keyword2 "and"] prt_let
           (map_filter (fn (xi, SOME t) => SOME (xi, t) | _ => NONE) lets) @
         (if forall (null o #2) asms then []
-          else prt_sect "assume" [Pretty.str "and"] prt_asm asms) @
-        prt_sect "subcases:" [] (Pretty.str o fst) cs))
+          else prt_sect (Pretty.keyword1 "assume") [Pretty.keyword2 "and"] prt_asm asms) @
+        prt_sect (Pretty.str "subcases:") [] (Pretty.str o fst) cs))
   end;
 
 in
