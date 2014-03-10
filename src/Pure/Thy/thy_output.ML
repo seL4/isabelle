@@ -529,7 +529,7 @@ fun pretty_theory ctxt (name, pos) =
 
 (* default output *)
 
-val str_of_source = space_implode " " o map Token.unparse o #2 o #1 o Args.dest_src;
+val str_of_source = space_implode " " o Args.unparse_src;
 
 fun maybe_pretty_source pretty ctxt src xs =
   map (pretty ctxt) xs  (*always pretty in order to exhibit errors!*)

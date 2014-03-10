@@ -10,6 +10,7 @@ sig
   type src
   val src: (string * Token.T list) * Position.T -> src
   val dest_src: src -> (string * Token.T list) * Position.T
+  val unparse_src: src -> string list
   val pretty_src: (string -> Pretty.T) -> Proof.context -> src -> Pretty.T
   val map_name: (string -> string) -> src -> src
   val transform_values: morphism -> src -> src
@@ -78,6 +79,8 @@ datatype src = Src of (string * Token.T list) * Position.T;
 
 val src = Src;
 fun dest_src (Src src) = src;
+
+fun unparse_src (Src ((_, toks), _)) = map Token.unparse toks;
 
 fun pretty_src pretty_name ctxt src =
   let
