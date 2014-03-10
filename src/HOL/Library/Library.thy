@@ -7,7 +7,6 @@ imports
   BNF_Decl
   Boolean_Algebra
   Char_ord
-  Continuity
   ContNotDenum
   Convex
   Countable
@@ -41,6 +40,7 @@ imports
   Numeral_Type
   OptionalSugar
   Option_ord
+  Order_Continuity
   Parallel
   Permutation
   Permutations

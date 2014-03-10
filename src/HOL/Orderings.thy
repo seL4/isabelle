@@ -1010,6 +1010,28 @@ proof
   from assms show "f x \<le> f y" by (simp add: mono_def)
 qed
 
+definition antimono :: "('a \<Rightarrow> 'b\<Colon>order) \<Rightarrow> bool" where
+  "antimono f \<longleftrightarrow> (\<forall>x y. x \<le> y \<longrightarrow> f x \<ge> f y)"
+
+lemma antimonoI [intro?]:
+  fixes f :: "'a \<Rightarrow> 'b\<Colon>order"
+  shows "(\<And>x y. x \<le> y \<Longrightarrow> f x \<ge> f y) \<Longrightarrow> antimono f"
+  unfolding antimono_def by iprover
+
+lemma antimonoD [dest?]:
+  fixes f :: "'a \<Rightarrow> 'b\<Colon>order"
+  shows "antimono f \<Longrightarrow> x \<le> y \<Longrightarrow> f x \<ge> f y"
+  unfolding antimono_def by iprover
+
+lemma antimonoE:
+  fixes f :: "'a \<Rightarrow> 'b\<Colon>order"
+  assumes "antimono f"
+  assumes "x \<le> y"
+  obtains "f x \<ge> f y"
+proof
+  from assms show "f x \<ge> f y" by (simp add: antimono_def)
+qed
+
 definition strict_mono :: "('a \<Rightarrow> 'b\<Colon>order) \<Rightarrow> bool" where
   "strict_mono f \<longleftrightarrow> (\<forall>x y. x < y \<longrightarrow> f x < f y)"
 

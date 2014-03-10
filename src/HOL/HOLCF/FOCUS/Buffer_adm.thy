@@ -22,8 +22,8 @@ lemma BufAC_Asm_F_def3:
   (? d. ft\<cdot>s=Def(Md d)) & (rt\<cdot>s=<> | ft\<cdot>(rt\<cdot>s)=Def \<bullet> & rt\<cdot>(rt\<cdot>s):A))"
 by (unfold BufAC_Asm_F_def, auto)
 
-lemma cont_BufAC_Asm_F: "down_cont BufAC_Asm_F"
-by (auto simp add: down_cont_def BufAC_Asm_F_def3)
+lemma cont_BufAC_Asm_F: "down_continuous BufAC_Asm_F"
+by (auto simp add: down_continuous_def BufAC_Asm_F_def3)
 
 lemma BufAC_Cmt_F_def3:
  "((s,t):BufAC_Cmt_F C) = (!d x.
@@ -37,8 +37,8 @@ apply (simp)
 apply (auto intro: surjectiv_scons [symmetric])
 done
 
-lemma cont_BufAC_Cmt_F: "down_cont BufAC_Cmt_F"
-by (auto simp add: down_cont_def BufAC_Cmt_F_def3)
+lemma cont_BufAC_Cmt_F: "down_continuous BufAC_Cmt_F"
+by (auto simp add: down_continuous_def BufAC_Cmt_F_def3)
 
 
 (**** adm_BufAC_Asm ***********************************************************)
@@ -117,8 +117,8 @@ done
 
 (*adm_BufAC_Asm,BufAC_Asm_antiton,adm_non_BufAC_Asm,BufAC_Asm_cong*)
 lemma BufAC_Cmt_2stream_monoP: "f:BufEq ==> ? l. !i x s. s:BufAC_Asm --> x << s --> enat (l i) < #x --> 
-                     (x,f\<cdot>x):down_iterate BufAC_Cmt_F i --> 
-                     (s,f\<cdot>s):down_iterate BufAC_Cmt_F i"
+                     (x,f\<cdot>x):(BufAC_Cmt_F ^^ i) top --> 
+                     (s,f\<cdot>s):(BufAC_Cmt_F ^^ i) top"
 apply (rule_tac x="%i. 2*i" in exI)
 apply (rule allI)
 apply (induct_tac "i")
@@ -182,9 +182,9 @@ apply assumption
 apply assumption
 done
 
-lemma BufAC_Cmt_iterate_all: "(x\<in>BufAC_Cmt) = (\<forall>n. x\<in>down_iterate BufAC_Cmt_F n)"
+lemma BufAC_Cmt_iterate_all: "(x\<in>BufAC_Cmt) = (\<forall>n. x\<in>(BufAC_Cmt_F ^^ n) top)"
 apply (unfold BufAC_Cmt_def)
-apply (subst cont_BufAC_Cmt_F [THEN INTER_down_iterate_is_gfp])
+apply (subst cont_BufAC_Cmt_F [THEN down_continuous_gfp])
 apply (fast)
 done
 

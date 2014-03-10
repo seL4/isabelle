@@ -1193,25 +1193,24 @@ definition
         The use of disjunction here complicates proofs considerably.
         One alternative is to add a Boolean argument to indicate the direction.
         Another is to develop the notions of increasing and decreasing first.*}
-  "monoseq X = ((\<forall>m. \<forall>n\<ge>m. X m \<le> X n) | (\<forall>m. \<forall>n\<ge>m. X n \<le> X m))"
+  "monoseq X = ((\<forall>m. \<forall>n\<ge>m. X m \<le> X n) \<or> (\<forall>m. \<forall>n\<ge>m. X n \<le> X m))"
 
-definition
-  incseq :: "(nat \<Rightarrow> 'a::order) \<Rightarrow> bool" where
-    --{*Increasing sequence*}
-  "incseq X \<longleftrightarrow> (\<forall>m. \<forall>n\<ge>m. X m \<le> X n)"
+abbreviation incseq :: "(nat \<Rightarrow> 'a::order) \<Rightarrow> bool" where
+  "incseq X \<equiv> mono X"
 
-definition
-  decseq :: "(nat \<Rightarrow> 'a::order) \<Rightarrow> bool" where
-    --{*Decreasing sequence*}
-  "decseq X \<longleftrightarrow> (\<forall>m. \<forall>n\<ge>m. X n \<le> X m)"
+lemma incseq_def: "incseq X \<longleftrightarrow> (\<forall>m. \<forall>n\<ge>m. X n \<ge> X m)"
+  unfolding mono_def ..
+
+abbreviation decseq :: "(nat \<Rightarrow> 'a::order) \<Rightarrow> bool" where
+  "decseq X \<equiv> antimono X"
+
+lemma decseq_def: "decseq X \<longleftrightarrow> (\<forall>m. \<forall>n\<ge>m. X n \<le> X m)"
+  unfolding antimono_def ..
 
 definition
   subseq :: "(nat \<Rightarrow> nat) \<Rightarrow> bool" where
     --{*Definition of subsequence*}
   "subseq f \<longleftrightarrow> (\<forall>m. \<forall>n>m. f m < f n)"
-
-lemma incseq_mono: "mono f \<longleftrightarrow> incseq f"
-  unfolding mono_def incseq_def by auto
 
 lemma incseq_SucI:
   "(\<And>n. X n \<le> X (Suc n)) \<Longrightarrow> incseq X"

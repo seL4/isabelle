@@ -5,7 +5,7 @@
 header {* Admissibility for streams *}
 
 theory Stream_adm
-imports "~~/src/HOL/HOLCF/Library/Stream" "~~/src/HOL/Library/Continuity"
+imports "~~/src/HOL/HOLCF/Library/Stream" "~~/src/HOL/Library/Order_Continuity"
 begin
 
 definition
@@ -93,7 +93,7 @@ lemma ile_lemma: "enat (i + j) <= x ==> enat i <= x"
 
 lemma stream_monoP2I:
 "!!X. stream_monoP F ==> !i. ? l. !x y. 
-  enat l <= #x --> (x::'a::flat stream) << y --> x:down_iterate F i --> y:down_iterate F i"
+  enat l <= #x --> (x::'a::flat stream) << y --> x:(F ^^ i) top --> y:(F ^^ i) top"
 apply (unfold stream_monoP_def)
 apply (safe)
 apply (rule_tac x="i*ia" in exI)
@@ -120,9 +120,9 @@ apply (assumption)
 done
 
 lemma stream_monoP2_gfp_admI: "[| !i. ? l. !x y. 
- enat l <= #x --> (x::'a::flat stream) << y --> x:down_iterate F i --> y:down_iterate F i;
-    down_cont F |] ==> adm (%x. x:gfp F)"
-apply (erule INTER_down_iterate_is_gfp [THEN ssubst]) (* cont *)
+ enat l <= #x --> (x::'a::flat stream) << y --> x:(F ^^ i) top --> y:(F ^^ i) top;
+    down_continuous F |] ==> adm (%x. x:gfp F)"
+apply (erule down_continuous_gfp[of F, THEN ssubst])
 apply (simp (no_asm))
 apply (rule adm_lemmas)
 apply (rule flatstream_admI)
@@ -144,7 +144,7 @@ lemmas fstream_gfp_admI = stream_monoP2I [THEN stream_monoP2_gfp_admI]
 
 lemma stream_antiP2I:
 "!!X. [|stream_antiP (F::(('a::flat stream)set => ('a stream set)))|]
-  ==> !i x y. x << y --> y:down_iterate F i --> x:down_iterate F i"
+  ==> !i x y. x << y --> y:(F ^^ i) top --> x:(F ^^ i) top"
 apply (unfold stream_antiP_def)
 apply (rule allI)
 apply (induct_tac "i")
@@ -170,10 +170,10 @@ apply (assumption)
 done
 
 lemma stream_antiP2_non_gfp_admI:
-"!!X. [|!i x y. x << y --> y:down_iterate F i --> x:down_iterate F i; down_cont F |] 
+"!!X. [|!i x y. x << y --> y:(F ^^ i) top --> x:(F ^^ i) top; down_continuous F |] 
   ==> adm (%u. ~ u:gfp F)"
 apply (unfold adm_def)
-apply (simp add: INTER_down_iterate_is_gfp)
+apply (simp add: down_continuous_gfp)
 apply (fast dest!: is_ub_thelub)
 done
 

@@ -678,7 +678,7 @@ proof -
       by (auto simp: incseq_Suc_iff le_fun_def image_iff u' intro!: real_of_ereal_positive_mono)
     show "\<And>x. (\<lambda>k. u' k x) ----> f' x"
       using SUP_eq u(2)
-      by (intro SUP_eq_LIMSEQ[THEN iffD1]) (auto simp: u' f' incseq_mono incseq_Suc_iff le_fun_def)
+      by (intro SUP_eq_LIMSEQ[THEN iffD1]) (auto simp: u' f' incseq_Suc_iff le_fun_def)
     show "bounded {integral UNIV (u' k)|k. True}"
     proof (safe intro!: bounded_realI)
       fix k

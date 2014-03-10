@@ -1618,6 +1618,15 @@ proof (cases "n < n'")
     by (induct n n' rule: less_Suc_induct [consumes 1]) (auto intro: mono)
 qed (insert `n \<le> n'`, auto) -- {* trivial for @{prop "n = n'"} *}
 
+lemma lift_Suc_antimono_le:
+  assumes mono: "\<And>n. f n \<ge> f (Suc n)" and "n \<le> n'"
+  shows "f n \<ge> f n'"
+proof (cases "n < n'")
+  case True
+  then show ?thesis
+    by (induct n n' rule: less_Suc_induct [consumes 1]) (auto intro: mono)
+qed (insert `n \<le> n'`, auto) -- {* trivial for @{prop "n = n'"} *}
+
 lemma lift_Suc_mono_less:
   assumes mono: "\<And>n. f n < f (Suc n)" and "n < n'"
   shows "f n < f n'"
@@ -1634,6 +1643,10 @@ end
 lemma mono_iff_le_Suc:
   "mono f \<longleftrightarrow> (\<forall>n. f n \<le> f (Suc n))"
   unfolding mono_def by (auto intro: lift_Suc_mono_le [of f])
+
+lemma antimono_iff_le_Suc:
+  "antimono f \<longleftrightarrow> (\<forall>n. f (Suc n) \<le> f n)"
+  unfolding antimono_def by (auto intro: lift_Suc_antimono_le [of f])
 
 lemma mono_nat_linear_lb:
   fixes f :: "nat \<Rightarrow> nat"
