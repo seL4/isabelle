@@ -214,7 +214,10 @@ fun completion context space (xname, pos) =
         Symtab.fold
           (fn (a, (name :: _, _)) =>
               if String.isPrefix x a andalso not (is_concealed space name)
-              then cons (ext name, (kind, name)) else I
+              then
+                let val a' = ext name
+                in if a = a' then cons (a', (kind, name)) else I end
+              else I
             | _ => I) internals []
         |> sort_distinct (string_ord o pairself #1);
     in Completion.names pos names end
