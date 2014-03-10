@@ -115,8 +115,8 @@ fun add_antiq name scan thy = thy
 fun check_antiq ctxt = #1 o Name_Space.check (Context.Proof ctxt) (get_antiqs ctxt);
 
 fun antiquotation src ctxt =
-  let val (src', scan) = Args.check_src (Context.Proof ctxt) (get_antiqs ctxt) src
-  in Args.context_syntax Markup.ML_antiquotationN scan src' ctxt end;
+  let val (src', scan) = Args.check_src ctxt (get_antiqs ctxt) src
+  in Args.syntax scan src' ctxt end;
 
 
 (* parsing and evaluation *)

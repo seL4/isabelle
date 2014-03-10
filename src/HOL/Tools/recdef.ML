@@ -164,7 +164,7 @@ fun prepare_hints thy opt_src =
     val ctxt =
       (case opt_src of
         NONE => ctxt0
-      | SOME src => #2 (Method.syntax (Method.sections recdef_modifiers) src ctxt0));
+      | SOME src => #2 (Args.syntax (Method.sections recdef_modifiers) src ctxt0));
     val {simps, congs, wfs} = get_hints ctxt;
     val ctxt' = ctxt addsimps simps |> Simplifier.del_cong @{thm imp_cong};
   in (ctxt', rev (map snd congs), wfs) end;

@@ -67,7 +67,6 @@ sig
   val check_src: Proof.context -> src -> src
   val method: Proof.context -> src -> Proof.context -> method
   val method_cmd: Proof.context -> src -> Proof.context -> method
-  val syntax: 'a context_parser -> src -> Proof.context -> 'a * Proof.context
   val setup: binding -> (Proof.context -> method) context_parser -> string -> theory -> theory
   val method_setup: bstring * Position.T -> Symbol_Pos.source -> string -> theory -> theory
   type modifier = (Proof.context -> Proof.context) * attribute
@@ -340,7 +339,7 @@ fun add_method name meth comment thy = thy
 (* check *)
 
 fun check_name ctxt = #1 o Name_Space.check (Context.Proof ctxt) (get_methods ctxt);
-fun check_src ctxt src = #1 (Args.check_src (Context.Proof ctxt) (get_methods ctxt) src);
+fun check_src ctxt src = #1 (Args.check_src ctxt (get_methods ctxt) src);
 
 
 (* get methods *)
@@ -354,11 +353,9 @@ fun method_cmd ctxt = method ctxt o check_src ctxt;
 
 (* method setup *)
 
-fun syntax scan = Args.context_syntax "method" scan;
-
 fun setup name scan =
   add_method name
-    (fn src => fn ctxt => let val (m, ctxt') = syntax scan src ctxt in m ctxt' end);
+    (fn src => fn ctxt => let val (m, ctxt') = Args.syntax scan src ctxt in m ctxt' end);
 
 fun method_setup name source cmt =
   Context.theory_map (ML_Context.expression (#pos source)

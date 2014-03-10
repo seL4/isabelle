@@ -35,8 +35,8 @@ fun setup binding style thy =
 fun parse_single ctxt =
   Parse.position Parse.xname -- Args.parse >> (fn (name, args) =>
     let
-      val (src, parse) = Args.check_src (Context.Proof ctxt) (get_data ctxt) (Args.src name args);
-      val (f, _) = Args.context_syntax "antiquotation_style" (Scan.lift parse) src ctxt;
+      val (src, parse) = Args.check_src ctxt (get_data ctxt) (Args.src name args);
+      val (f, _) = Args.syntax (Scan.lift parse) src ctxt;
     in f ctxt end);
 
 val parse = Args.context :|-- (fn ctxt => Scan.lift

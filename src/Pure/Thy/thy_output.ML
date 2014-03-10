@@ -92,7 +92,7 @@ fun check_command ctxt = #1 o Name_Space.check (Context.Proof ctxt) (#1 (get_ant
 fun check_option ctxt = #1 o Name_Space.check (Context.Proof ctxt) (#2 (get_antiquotations ctxt));
 
 fun command src state ctxt =
-  let val (src', f) = Args.check_src (Context.Proof ctxt) (#1 (get_antiquotations ctxt)) src
+  let val (src', f) = Args.check_src ctxt (#1 (get_antiquotations ctxt)) src
   in f src' state ctxt end;
 
 fun option ((xname, pos), s) ctxt =
@@ -115,7 +115,7 @@ fun print_antiquotations ctxt =
 fun antiquotation name scan out =
   add_command name
     (fn src => fn state => fn ctxt =>
-      let val (x, ctxt') = Args.context_syntax "document antiquotation" scan src ctxt
+      let val (x, ctxt') = Args.syntax scan src ctxt
       in out {source = src, state = state, context = ctxt'} x end);
 
 

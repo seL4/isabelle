@@ -12,8 +12,8 @@ sig
   val name_of_src: src -> string * Position.T
   val args_of_src: src -> Token.T list
   val unparse_src: src -> string list
-  val pretty_src: (string -> Pretty.T) -> Proof.context -> src -> Pretty.T
-  val check_src: Context.generic -> 'a Name_Space.table -> src -> src * 'a
+  val pretty_src: Proof.context -> src -> Pretty.T
+  val check_src: Proof.context -> 'a Name_Space.table -> src -> src * 'a
   val transform_values: morphism -> src -> src
   val init_assignable: src -> src
   val closure: src -> src
@@ -67,8 +67,8 @@ sig
   val opt_attribs: (xstring * Position.T -> string) -> src list parser
   val thm_name: (xstring * Position.T -> string) -> string -> (binding * src list) parser
   val opt_thm_name: (xstring * Position.T -> string) -> string -> (binding * src list) parser
-  val syntax: string -> 'a context_parser -> src -> Context.generic -> 'a * Context.generic
-  val context_syntax: string -> 'a context_parser -> src -> Proof.context -> 'a * Proof.context
+  val syntax_generic: 'a context_parser -> src -> Context.generic -> 'a * Context.generic
+  val syntax: 'a context_parser -> src -> Proof.context -> 'a * Proof.context
 end;
 
 structure Args: ARGS =
@@ -76,18 +76,28 @@ struct
 
 (** datatype src **)
 
-datatype src = Src of (string * Position.T) * Token.T list;
+datatype src =
+  Src of
+   {name: string * Position.T,
+    args: Token.T list,
+    output_info: (string * Markup.T) option};
 
-val src = curry Src;
+fun src name args = Src {name = name, args = args, output_info = NONE};
 
-fun map_args f (Src (name, args)) = Src (name, map f args);
+fun map_args f (Src {name, args, output_info}) =
+  Src {name = name, args = map f args, output_info = output_info};
 
-fun name_of_src (Src (name, _)) = name;
-fun args_of_src (Src (_, args)) = args;
+fun name_of_src (Src {name, ...}) = name;
+fun args_of_src (Src {args, ...}) = args;
 
-fun unparse_src (Src (_, args)) = map Token.unparse args;
+fun unparse_src (Src {args, ...}) = map Token.unparse args;
 
-fun pretty_src pretty_name ctxt src =
+fun pretty_name (Src {name = (name, _), output_info, ...}) =
+  (case output_info of
+    NONE => Pretty.str name
+  | SOME (_, markup) => Pretty.mark_str (markup, name));
+
+fun pretty_src ctxt src =
   let
     val prt_thm = Pretty.backquote o Display.pretty_thm ctxt;
     fun prt arg =
@@ -98,15 +108,18 @@ fun pretty_src pretty_name ctxt src =
       | SOME (Token.Term t) => Syntax.pretty_term ctxt t
       | SOME (Token.Fact ths) => Pretty.enclose "(" ")" (Pretty.breaks (map prt_thm ths))
       | _ => Pretty.mark_str (Token.markup arg, Token.unparse arg));
-    val Src ((name, _), args) = src;
-  in Pretty.block (Pretty.breaks (pretty_name name :: map prt args)) end;
+  in Pretty.block (Pretty.breaks (pretty_name src :: map prt (args_of_src src))) end;
 
 
 (* check *)
 
-fun check_src context table (Src ((xname, pos), args)) =
-  let val (name, x) = Name_Space.check context table (xname, pos)
-  in (Src ((name, pos), args), x) end;
+fun check_src ctxt table (Src {name = (xname, pos), args, output_info = _}) =
+  let
+    val (name, x) = Name_Space.check (Context.Proof ctxt) table (xname, pos);
+    val space = Name_Space.space_of_table table;
+    val kind = Name_Space.kind_of space;
+    val markup = Name_Space.markup space name;
+  in (Src {name = (name, pos), args = args, output_info = SOME (kind, markup)}, x) end;
 
 
 (* values *)
@@ -296,9 +309,13 @@ fun opt_thm_name check_attrib s =
 
 (** syntax wrapper **)
 
-fun syntax kind scan (Src ((name, pos), args0)) context =
+fun syntax_generic scan (Src {name = (name, pos), args = args0, output_info}) context =
   let
     val args1 = map Token.init_assignable args0;
+    fun print_name () =
+      (case output_info of
+        NONE => quote name
+      | SOME (kind, markup) => kind ^ " " ^ Markup.markup markup (quote name));
     fun reported_text () =
       if Context_Position.is_visible_generic context then
         maps (Token.reports_of_value o Token.closure) args1
@@ -309,12 +326,11 @@ fun syntax kind scan (Src ((name, pos), args0)) context =
     (case Scan.error (Scan.finite' Token.stopper (Scan.option scan)) (context, args1) of
       (SOME x, (context', [])) => (Output.report (reported_text ()); (x, context'))
     | (_, (_, args2)) =>
-        error ("Bad arguments for " ^ kind ^ " " ^ quote name ^ Position.here pos ^
+        error ("Bad arguments for " ^ print_name () ^ Position.here pos ^
           (if null args2 then "" else ":\n  " ^ space_implode " " (map Token.print args2)) ^
           Markup.markup_report (reported_text ())))
   end;
 
-fun context_syntax kind scan src =
-  apsnd Context.the_proof o syntax kind scan src o Context.Proof;
+fun syntax scan src = apsnd Context.the_proof o syntax_generic scan src o Context.Proof;
 
 end;

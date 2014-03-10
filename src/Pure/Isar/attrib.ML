@@ -12,7 +12,6 @@ sig
   val is_empty_binding: binding -> bool
   val print_attributes: Proof.context -> unit
   val check_name_generic: Context.generic -> xstring * Position.T -> string
-  val check_src_generic: Context.generic -> src -> src
   val check_name: Proof.context -> xstring * Position.T -> string
   val check_src: Proof.context -> src -> src
   val pretty_attribs: Proof.context -> src list -> Pretty.T list
@@ -118,19 +117,15 @@ fun add_attribute name att comment thy = thy
 (* check *)
 
 fun check_name_generic context = #1 o Name_Space.check context (get_attributes context);
-fun check_src_generic context src = #1 (Args.check_src context (get_attributes context) src);
-
 val check_name = check_name_generic o Context.Proof;
-val check_src = check_src_generic o Context.Proof;
+
+fun check_src ctxt src = #1 (Args.check_src ctxt (get_attributes (Context.Proof ctxt)) src);
 
 
 (* pretty printing *)
 
-fun pretty_attrib ctxt =
-  Args.pretty_src (Name_Space.pretty ctxt (attribute_space ctxt)) ctxt;
-
 fun pretty_attribs _ [] = []
-  | pretty_attribs ctxt srcs = [Pretty.enum "," "[" "]" (map (pretty_attrib ctxt) srcs)];
+  | pretty_attribs ctxt srcs = [Pretty.enum "," "[" "]" (map (Args.pretty_src ctxt) srcs)];
 
 
 (* get attributes *)
@@ -143,7 +138,7 @@ val attribute = attribute_generic o Context.Proof;
 val attribute_global = attribute_generic o Context.Theory;
 
 fun attribute_cmd ctxt = attribute ctxt o check_src ctxt;
-fun attribute_cmd_global thy = attribute_global thy o check_src_generic (Context.Theory thy);
+fun attribute_cmd_global thy = attribute_global thy o check_src (Proof_Context.init_global thy);
 
 
 (* attributed declarations *)
@@ -174,11 +169,10 @@ fun eval_thms ctxt srcs = ctxt
 
 (* attribute setup *)
 
-fun syntax scan = Args.syntax "attribute" scan;
-
 fun setup name scan =
   add_attribute name
-    (fn src => fn (ctxt, th) => let val (a, ctxt') = syntax scan src ctxt in a (ctxt', th) end);
+    (fn src => fn (ctxt, th) =>
+      let val (a, ctxt') = Args.syntax_generic scan src ctxt in a (ctxt', th) end);
 
 fun attribute_setup name source cmt =
   Context.theory_map (ML_Context.expression (#pos source)
