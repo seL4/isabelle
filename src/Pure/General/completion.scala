@@ -217,7 +217,7 @@ object Completion
     private def underscores: Parser[String] = "_*".r
 
     def is_word(s: CharSequence): Boolean = word_regex.pattern.matcher(s).matches
-    def is_word_char(c: Char): Boolean = Symbol.is_ascii_letdig(c) || c == "."
+    def is_word_char(c: Char): Boolean = Symbol.is_ascii_letdig(c) || c == '.'
 
     def extend_word(text: CharSequence, offset: Text.Offset): Text.Offset =
     {
