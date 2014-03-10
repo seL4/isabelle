@@ -27,6 +27,7 @@ sig
   val language: {name: string, symbols: bool, antiquotes: bool, delimited: bool} -> T
   val language': {name: string, symbols: bool, antiquotes: bool} -> bool -> T
   val language_method: T
+  val language_attribute: T
   val language_sort: bool -> T
   val language_type: bool -> T
   val language_term: bool -> T
@@ -277,6 +278,8 @@ fun language' {name, symbols, antiquotes} delimited =
 
 val language_method =
   language {name = "method", symbols = true, antiquotes = false, delimited = false};
+val language_attribute =
+  language {name = "attribute", symbols = true, antiquotes = false, delimited = false};
 val language_sort = language' {name = "sort", symbols = true, antiquotes = false};
 val language_type = language' {name = "type", symbols = true, antiquotes = false};
 val language_term = language' {name = "term", symbols = true, antiquotes = false};

@@ -11,6 +11,7 @@ sig
   val src: xstring * Position.T -> Token.T list -> src
   val name_of_src: src -> string * Position.T
   val args_of_src: src -> Token.T list
+  val range_of_src: src -> Position.T
   val unparse_src: src -> string list
   val pretty_src: Proof.context -> src -> Pretty.T
   val check_src: Proof.context -> 'a Name_Space.table -> src -> src * 'a
@@ -90,6 +91,10 @@ fun map_args f (Src {name, args, output_info}) =
 fun name_of_src (Src {name, ...}) = name;
 fun args_of_src (Src {args, ...}) = args;
 
+fun range_of_src (Src {name = (_, pos), args, ...}) =
+  if null args then pos
+  else Position.set_range (pos, #2 (Token.range_of args));
+
 fun unparse_src (Src {args, ...}) = map Token.unparse args;
 
 fun pretty_name (Src {name = (name, _), output_info, ...}) =
@@ -113,7 +118,7 @@ fun pretty_src ctxt src =
 
 (* check *)
 
-fun check_src ctxt table (Src {name = (xname, pos), args, output_info = _}) =
+fun check_src ctxt table (Src {name = (xname, pos), args, output_info}) =
   let
     val (name, x) = Name_Space.check (Context.Proof ctxt) table (xname, pos);
     val space = Name_Space.space_of_table table;

@@ -119,7 +119,9 @@ fun add_attribute name att comment thy = thy
 fun check_name_generic context = #1 o Name_Space.check context (get_attributes context);
 val check_name = check_name_generic o Context.Proof;
 
-fun check_src ctxt src = #1 (Args.check_src ctxt (get_attributes (Context.Proof ctxt)) src);
+fun check_src ctxt src =
+ (Context_Position.report ctxt (Args.range_of_src src) Markup.language_attribute;
+  #1 (Args.check_src ctxt (get_attributes (Context.Proof ctxt)) src));
 
 
 (* pretty printing *)
