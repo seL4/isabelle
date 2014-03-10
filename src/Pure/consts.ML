@@ -11,8 +11,9 @@ sig
   val eq_consts: T * T -> bool
   val retrieve_abbrevs: T -> string list -> term -> (term * term) list
   val dest: T ->
-   {constants: (typ * term option) Name_Space.table,
-    constraints: typ Name_Space.table}
+   {const_space: Name_Space.T,
+    constants: (typ * term option) Symtab.table,
+    constraints: typ Symtab.table}
   val the_const: T -> string -> string * typ                   (*exception TYPE*)
   val the_abbreviation: T -> string -> typ * term              (*exception TYPE*)
   val type_scheme: T -> string -> typ                          (*exception TYPE*)
@@ -80,17 +81,18 @@ fun retrieve_abbrevs (Consts {rev_abbrevs, ...}) modes =
 
 (* dest consts *)
 
-fun dest (Consts {decls = (space, decls), constraints, ...}) =
- {constants = (space,
-    Symtab.fold (fn (c, ({T, ...}, abbr)) =>
-      Symtab.update (c, (T, Option.map #rhs abbr))) decls Symtab.empty),
-  constraints = (space, constraints)};
+fun dest (Consts {decls, constraints, ...}) =
+ {const_space = Name_Space.space_of_table decls,
+  constants =
+    Name_Space.fold_table (fn (c, ({T, ...}, abbr)) =>
+      Symtab.update (c, (T, Option.map #rhs abbr))) decls Symtab.empty,
+  constraints = constraints};
 
 
 (* lookup consts *)
 
-fun the_entry (Consts {decls = (_, tab), ...}) c =
-  (case Symtab.lookup_key tab c of
+fun the_entry (Consts {decls, ...}) c =
+  (case Name_Space.lookup_key decls c of
     SOME entry => entry
   | NONE => raise TYPE ("Unknown constant: " ^ quote c, [], []));
 
@@ -118,10 +120,10 @@ fun the_constraint (consts as Consts {constraints, ...}) c =
 
 (* name space and syntax *)
 
-fun space_of (Consts {decls = (space, _), ...}) = space;
+fun space_of (Consts {decls, ...}) = Name_Space.space_of_table decls;
 
-fun alias naming binding name = map_consts (fn ((space, decls), constraints, rev_abbrevs) =>
-  ((Name_Space.alias naming binding name space, decls), constraints, rev_abbrevs));
+fun alias naming binding name = map_consts (fn (decls, constraints, rev_abbrevs) =>
+  ((Name_Space.alias_table naming binding name decls), constraints, rev_abbrevs));
 
 val is_concealed = Name_Space.is_concealed o space_of;
 
@@ -219,7 +221,7 @@ fun instance consts (c, Ts) =
 (* name space *)
 
 fun hide fully c = map_consts (fn (decls, constraints, rev_abbrevs) =>
-  (apfst (Name_Space.hide fully c) decls, constraints, rev_abbrevs));
+  (Name_Space.hide_table fully c decls, constraints, rev_abbrevs));
 
 
 (* declarations *)

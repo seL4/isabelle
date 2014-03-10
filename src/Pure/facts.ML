@@ -140,8 +140,7 @@ val empty = make_facts (Name_Space.empty_table "fact") Net.empty;
 
 fun facts_of (Facts {facts, ...}) = facts;
 
-val space_of = #1 o facts_of;
-val table_of = #2 o facts_of;
+val space_of = Name_Space.space_of_table o facts_of;
 
 val is_concealed = Name_Space.is_concealed o space_of;
 
@@ -157,16 +156,16 @@ fun check context facts (xname, pos) =
 val intern = Name_Space.intern o space_of;
 fun extern ctxt = Name_Space.extern ctxt o space_of;
 
-val defined = Symtab.defined o table_of;
+val defined = is_some oo (Name_Space.lookup_key o facts_of);
 
 fun lookup context facts name =
-  (case Symtab.lookup (table_of facts) name of
+  (case Name_Space.lookup_key (facts_of facts) name of
     NONE => NONE
-  | SOME (Static ths) => SOME (true, ths)
-  | SOME (Dynamic f) => SOME (false, f context));
+  | SOME (_, Static ths) => SOME (true, ths)
+  | SOME (_, Dynamic f) => SOME (false, f context));
 
 fun fold_static f =
-  Symtab.fold (fn (name, Static ths) => f (name, ths) | _ => I) o table_of;
+  Name_Space.fold_table (fn (name, Static ths) => f (name, ths) | _ => I) o facts_of;
 
 
 (* content difference *)
@@ -221,13 +220,10 @@ fun add_dynamic context (b, f) (Facts {facts, props}) =
 
 (* remove entries *)
 
-fun del name (Facts {facts = (space, tab), props}) =
-  let
-    val space' = Name_Space.hide true name space handle ERROR _ => space;
-    val tab' = Symtab.delete_safe name tab;
-  in make_facts (space', tab') props end;
+fun del name (Facts {facts, props}) =
+  make_facts (Name_Space.del_table name facts) props;
 
-fun hide fully name (Facts {facts = (space, tab), props}) =
-  make_facts (Name_Space.hide fully name space, tab) props;
+fun hide fully name (Facts {facts, props}) =
+  make_facts (Name_Space.hide_table fully name facts) props;
 
 end;

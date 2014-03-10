@@ -584,8 +584,8 @@ fun name_derivation name (thm as Thm (der, args)) =
 fun axiom theory name =
   let
     fun get_ax thy =
-      Symtab.lookup (Theory.axiom_table thy) name
-      |> Option.map (fn prop =>
+      Name_Space.lookup_key (Theory.axiom_table thy) name
+      |> Option.map (fn (_, prop) =>
            let
              val der = deriv_rule0 (Proofterm.axm_proof name prop);
              val maxidx = maxidx_of_term prop;
@@ -602,7 +602,7 @@ fun axiom theory name =
 
 (*return additional axioms of this theory node*)
 fun axioms_of thy =
-  map (fn s => (s, axiom thy s)) (Symtab.keys (Theory.axiom_table thy));
+  map (fn (name, _) => (name, axiom thy name)) (Theory.axioms_of thy);
 
 
 (* tags *)

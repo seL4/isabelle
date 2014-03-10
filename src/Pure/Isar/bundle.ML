@@ -46,8 +46,8 @@ structure Data = Generic_Data
 val get_bundles = Data.get o Context.Proof;
 
 fun the_bundle ctxt name =
-  (case Symtab.lookup (#2 (get_bundles ctxt)) name of
-    SOME bundle => bundle
+  (case Name_Space.lookup_key (get_bundles ctxt) name of
+    SOME (_, bundle) => bundle
   | NONE => error ("Unknown bundle " ^ quote name));
 
 fun check ctxt = #1 o Name_Space.check (Context.Proof ctxt) (get_bundles ctxt);

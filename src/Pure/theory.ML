@@ -17,8 +17,8 @@ sig
   val requires: theory -> string -> string -> unit
   val setup: (theory -> theory) -> unit
   val get_markup: theory -> Markup.T
+  val axiom_table: theory -> term Name_Space.table
   val axiom_space: theory -> Name_Space.T
-  val axiom_table: theory -> term Symtab.table
   val axioms_of: theory -> (string * term) list
   val all_axioms_of: theory -> (string * term) list
   val defs_of: theory -> Defs.T
@@ -139,10 +139,10 @@ fun get_markup thy =
 
 (* basic operations *)
 
-val axiom_space = #1 o #axioms o rep_theory;
-val axiom_table = #2 o #axioms o rep_theory;
+val axiom_table = #axioms o rep_theory;
+val axiom_space = Name_Space.space_of_table o axiom_table;
 
-val axioms_of = Symtab.dest o #2 o #axioms o rep_theory;
+fun axioms_of thy = rev (Name_Space.fold_table cons (axiom_table thy) []);
 fun all_axioms_of thy = maps axioms_of (nodes_of thy);
 
 val defs_of = #defs o rep_theory;

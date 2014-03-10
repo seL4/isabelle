@@ -129,7 +129,8 @@ val check_src = check_src_generic o Context.Proof;
 
 (* pretty printing *)
 
-fun extern ctxt = Name_Space.extern ctxt (#1 (get_attributes (Context.Proof ctxt)));
+fun extern ctxt =
+  Name_Space.extern ctxt (Name_Space.space_of_table (get_attributes (Context.Proof ctxt)));
 
 fun pretty_attribs _ [] = []
   | pretty_attribs ctxt srcs =
@@ -139,12 +140,12 @@ fun pretty_attribs _ [] = []
 (* get attributes *)
 
 fun attribute_generic context =
-  let val (_, tab) = get_attributes context in
+  let val table = get_attributes context in
     fn src =>
       let val ((name, _), pos) = Args.dest_src src in
-        (case Symtab.lookup tab name of
+        (case Name_Space.lookup_key table name of
           NONE => error ("Undefined attribute: " ^ quote name ^ Position.here pos)
-        | SOME (att, _) => att src)
+        | SOME (_, (att, _)) => att src)
       end
   end;
 
@@ -349,8 +350,8 @@ fun print_options ctxt =
         Pretty.block [Pretty.mark_str name, Pretty.str (": " ^ Config.print_type value ^ " ="),
           Pretty.brk 1, Pretty.str (Config.print_value value)]
       end;
-    val space = #1 (get_attributes (Context.Proof ctxt));
-    val configs = Name_Space.extern_table ctxt (space, Configs.get (Proof_Context.theory_of ctxt));
+    val space = Name_Space.space_of_table (get_attributes (Context.Proof ctxt));
+    val configs = Name_Space.extern_table' ctxt space (Configs.get (Proof_Context.theory_of ctxt));
   in Pretty.writeln (Pretty.big_list "configuration options" (map prt configs)) end;
 
 

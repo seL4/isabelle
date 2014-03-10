@@ -175,7 +175,7 @@ fun restore_body ctxt = set_body (is_body ctxt);
 
 val names_of = #names o rep_data;
 val fixes_of = #fixes o rep_data;
-val fixes_space = #1 o fixes_of;
+val fixes_space = Name_Space.space_of_table o fixes_of;
 val binds_of = #binds o rep_data;
 val type_occs_of = #type_occs o rep_data;
 val maxidx_of = #maxidx o rep_data;
@@ -342,8 +342,8 @@ fun lookup_fixed ctxt x =
   in if is_fixed ctxt x' then SOME x' else NONE end;
 
 fun revert_fixed ctxt x =
-  (case Symtab.lookup (#2 (fixes_of ctxt)) x of
-    SOME x' => if intern_fixed ctxt x' = x then x' else x
+  (case Name_Space.lookup_key (fixes_of ctxt) x of
+    SOME (_, x') => if intern_fixed ctxt x' = x then x' else x
   | NONE => x);
 
 fun markup_fixed ctxt x =
@@ -351,8 +351,8 @@ fun markup_fixed ctxt x =
   |> Markup.name (revert_fixed ctxt x);
 
 fun dest_fixes ctxt =
-  let val (space, tab) = fixes_of ctxt
-  in sort (Name_Space.entry_ord space o pairself #2) (map swap (Symtab.dest tab)) end;
+  Name_Space.fold_table (fn (x, y) => cons (y, x)) (fixes_of ctxt) []
+  |> sort (Name_Space.entry_ord (fixes_space ctxt) o pairself #2);
 
 
 (* collect variables *)
@@ -383,8 +383,8 @@ fun new_fixed ((x, x'), pos) ctxt =
     let val context = Context.Proof ctxt |> Name_Space.map_naming (K Name_Space.default_naming) in
       ctxt
       |> map_fixes
-        (Name_Space.define context true (Binding.make (x', pos), x) #> snd #>>
-          Name_Space.alias Name_Space.default_naming (Binding.make (x, pos)) x')
+        (Name_Space.define context true (Binding.make (x', pos), x) #> snd #>
+          Name_Space.alias_table Name_Space.default_naming (Binding.make (x, pos)) x')
       |> declare_fixed x
       |> declare_constraints (Syntax.free x')
   end;
@@ -450,8 +450,8 @@ fun export_inst inner outer =
     val still_fixed = not o newly_fixed inner outer;
 
     val gen_fixes =
-      Symtab.fold (fn (y, _) => not (is_fixed outer y) ? cons y)
-        (#2 (fixes_of inner)) [];
+      Name_Space.fold_table (fn (y, _) => not (is_fixed outer y) ? cons y)
+        (fixes_of inner) [];
 
     val type_occs_inner = type_occs_of inner;
     fun gen_fixesT ts =

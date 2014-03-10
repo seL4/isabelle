@@ -351,12 +351,12 @@ fun check_src ctxt src =
 (* get methods *)
 
 fun method ctxt =
-  let val (_, tab) = get_methods ctxt in
+  let val table = get_methods ctxt in
     fn src =>
       let val ((name, _), pos) = Args.dest_src src in
-        (case Symtab.lookup tab name of
+        (case Name_Space.lookup_key table name of
           NONE => error ("Undefined method: " ^ quote name ^ Position.here pos)
-        | SOME (meth, _) => meth src)
+        | SOME (_, (meth, _)) => meth src)
       end
   end;
 

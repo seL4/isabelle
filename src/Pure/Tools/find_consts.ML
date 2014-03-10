@@ -58,8 +58,8 @@ fun pretty_criterion (b, c) =
 fun pretty_const ctxt (c, ty) =
   let
     val ty' = Logic.unvarifyT_global ty;
-    val consts_space = Consts.space_of (Sign.consts_of (Proof_Context.theory_of ctxt));
-    val markup = Name_Space.markup consts_space c;
+    val const_space = Consts.space_of (Sign.consts_of (Proof_Context.theory_of ctxt));
+    val markup = Name_Space.markup const_space c;
   in
     Pretty.block
      [Pretty.mark markup (Pretty.str c), Pretty.str " ::", Pretty.brk 1,
@@ -103,13 +103,13 @@ fun find_consts ctxt raw_criteria =
     val criteria = map make_criterion raw_criteria;
 
     val consts = Sign.consts_of thy;
-    val (_, consts_tab) = #constants (Consts.dest consts);
+    val {constants, ...} = Consts.dest consts;
     fun eval_entry c =
       fold (filter_const c) (user_visible consts :: criteria) (SOME low_ranking);
 
     val matches =
       Symtab.fold (fn c => (case eval_entry c of NONE => I | SOME rank => cons (rank, c)))
-        consts_tab []
+        constants []
       |> sort (prod_ord (rev_order o int_ord) (string_ord o pairself fst))
       |> map (apsnd fst o snd);
   in
