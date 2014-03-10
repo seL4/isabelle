@@ -10,7 +10,7 @@ begin
 
 subsection{* Datatype of polynomial expressions *}
 
-datatype poly = C Num| Bound nat| Add poly poly|Sub poly poly
+datatype poly = C Num | Bound nat | Add poly poly | Sub poly poly
   | Mul poly poly| Neg poly| Pw poly nat| CN poly nat poly
 
 abbreviation poly_0 :: "poly" ("0\<^sub>p") where "0\<^sub>p \<equiv> C (0\<^sub>N)"
@@ -142,7 +142,7 @@ definition polysub :: "poly \<Rightarrow> poly \<Rightarrow> poly" (infixl "-\<^
 
 fun polymul :: "poly \<Rightarrow> poly \<Rightarrow> poly" (infixl "*\<^sub>p" 60)
 where
-  "polymul (C c) (C c') = C (c*\<^sub>Nc')"
+  "polymul (C c) (C c') = C (c *\<^sub>N c')"
 | "polymul (C c) (CN c' n' p') =
     (if c = 0\<^sub>N then 0\<^sub>p else CN (polymul (C c) c') n' (polymul (C c) p'))"
 | "polymul (CN c n p) (C c') =
@@ -556,7 +556,7 @@ next
     let ?d1 = "degreen ?cnp m"
     let ?d2 = "degreen ?cnp' m"
     let ?eq = "?d = (if ?cnp = 0\<^sub>p \<or> ?cnp' = 0\<^sub>p then 0  else ?d1 + ?d2)"
-    have "n'<n \<or> n < n' \<or> n' = n" by auto
+    have "n' < n \<or> n < n' \<or> n' = n" by auto
     moreover
     {
       assume "n' < n \<or> n < n'"
@@ -570,10 +570,16 @@ next
       from "4.hyps"(16,18)[of n n' n]
         "4.hyps"(13,14)[of n "Suc n'" n]
         np np' nn'
-      have norm: "isnpolyh ?cnp n" "isnpolyh c' (Suc n)" "isnpolyh (?cnp *\<^sub>p c') n"
-        "isnpolyh p' n" "isnpolyh (?cnp *\<^sub>p p') n" "isnpolyh (CN 0\<^sub>p n (CN c n p *\<^sub>p p')) n"
-        "(?cnp *\<^sub>p c' = 0\<^sub>p) = (c' = 0\<^sub>p)"
-        "?cnp *\<^sub>p p' \<noteq> 0\<^sub>p" by (auto simp add: min_def)
+      have norm:
+        "isnpolyh ?cnp n"
+        "isnpolyh c' (Suc n)"
+        "isnpolyh (?cnp *\<^sub>p c') n"
+        "isnpolyh p' n"
+        "isnpolyh (?cnp *\<^sub>p p') n"
+        "isnpolyh (CN 0\<^sub>p n (CN c n p *\<^sub>p p')) n"
+        "?cnp *\<^sub>p c' = 0\<^sub>p \<longleftrightarrow> c' = 0\<^sub>p"
+        "?cnp *\<^sub>p p' \<noteq> 0\<^sub>p"
+        by (auto simp add: min_def)
       {
         assume mn: "m = n"
         from "4.hyps"(17,18)[OF norm(1,4), of n]
@@ -627,7 +633,8 @@ next
     case (2 n0 n1)
     then have np: "isnpolyh ?cnp n0"
       and np': "isnpolyh ?cnp' n1"
-      and m: "m \<le> min n0 n1" by simp_all
+      and m: "m \<le> min n0 n1"
+      by simp_all
     then have mn: "m \<le> n" by simp
     let ?c0p = "CN 0\<^sub>p n (?cnp *\<^sub>p p')"
     {
@@ -700,10 +707,17 @@ proof (cases "headconst p = 0\<^sub>N", simp_all add: headconst_zero[OF np])
   assume pz: "p \<noteq> 0\<^sub>p"
   {
     assume hz: "INum ?h = (0::'a)"
-    from headconst_isnormNum[OF np] have norm: "isnormNum ?h" "isnormNum 0\<^sub>N" by simp_all
-    from isnormNum_unique[where ?'a = 'a, OF norm] hz have "?h = 0\<^sub>N" by simp
-    with headconst_zero[OF np] have "p =0\<^sub>p" by blast with pz have "False" by blast}
-  then show "INum (headconst p) = (0::'a) \<longrightarrow> \<lparr>p\<rparr>\<^sub>p\<^bsup>bs\<^esup> = 0" by blast
+    from headconst_isnormNum[OF np] have norm: "isnormNum ?h" "isnormNum 0\<^sub>N"
+      by simp_all
+    from isnormNum_unique[where ?'a = 'a, OF norm] hz have "?h = 0\<^sub>N"
+      by simp
+    with headconst_zero[OF np] have "p = 0\<^sub>p"
+      by blast
+    with pz have False
+      by blast
+  }
+  then show "INum (headconst p) = (0::'a) \<longrightarrow> \<lparr>p\<rparr>\<^sub>p\<^bsup>bs\<^esup> = 0"
+    by blast
 qed
 
 
@@ -755,33 +769,42 @@ lemma polypow[simp]:
   "Ipoly bs (polypow n p) = (Ipoly bs p :: 'a::{field_char_0,field_inverse_zero}) ^ n"
 proof (induct n rule: polypow.induct)
   case 1
-  then show ?case by simp
+  then show ?case
+    by simp
 next
   case (2 n)
   let ?q = "polypow ((Suc n) div 2) p"
   let ?d = "polymul ?q ?q"
-  have "odd (Suc n) \<or> even (Suc n)" by simp
+  have "odd (Suc n) \<or> even (Suc n)"
+    by simp
   moreover
-  { assume odd: "odd (Suc n)"
+  {
+    assume odd: "odd (Suc n)"
     have th: "(Suc (Suc (Suc 0) * (Suc n div Suc (Suc 0)))) = Suc n div 2 + Suc n div 2 + 1"
       by arith
-    from odd have "Ipoly bs (p ^\<^sub>p Suc n) = Ipoly bs (polymul p ?d)" by (simp add: Let_def)
-    also have "\<dots> = (Ipoly bs p) * (Ipoly bs p)^(Suc n div 2)*(Ipoly bs p)^(Suc n div 2)"
+    from odd have "Ipoly bs (p ^\<^sub>p Suc n) = Ipoly bs (polymul p ?d)"
+      by (simp add: Let_def)
+    also have "\<dots> = (Ipoly bs p) * (Ipoly bs p)^(Suc n div 2) * (Ipoly bs p)^(Suc n div 2)"
       using "2.hyps" by simp
     also have "\<dots> = (Ipoly bs p) ^ (Suc n div 2 + Suc n div 2 + 1)"
       by (simp only: power_add power_one_right) simp
     also have "\<dots> = (Ipoly bs p) ^ (Suc (Suc (Suc 0) * (Suc n div Suc (Suc 0))))"
       by (simp only: th)
     finally have ?case
-    using odd_nat_div_two_times_two_plus_one[OF odd, symmetric] by simp  }
+    using odd_nat_div_two_times_two_plus_one[OF odd, symmetric] by simp
+  }
   moreover
-  { assume even: "even (Suc n)"
+  {
+    assume even: "even (Suc n)"
     have th: "(Suc (Suc 0)) * (Suc n div Suc (Suc 0)) = Suc n div 2 + Suc n div 2"
       by arith
-    from even have "Ipoly bs (p ^\<^sub>p Suc n) = Ipoly bs ?d" by (simp add: Let_def)
+    from even have "Ipoly bs (p ^\<^sub>p Suc n) = Ipoly bs ?d"
+      by (simp add: Let_def)
     also have "\<dots> = (Ipoly bs p) ^ (Suc n div 2 + Suc n div 2)"
-      using "2.hyps" apply (simp only: power_add) by simp
-    finally have ?case using even_nat_div_two_times_two[OF even] by (simp only: th)}
+      using "2.hyps" by (simp only: power_add) simp
+    finally have ?case using even_nat_div_two_times_two[OF even]
+      by (simp only: th)
+  }
   ultimately show ?case by blast
 qed
 
@@ -789,14 +812,21 @@ lemma polypow_normh:
   assumes "SORT_CONSTRAINT('a::{field_char_0,field_inverse_zero})"
   shows "isnpolyh p n \<Longrightarrow> isnpolyh (polypow k p) n"
 proof (induct k arbitrary: n rule: polypow.induct)
+  case 1
+  then show ?case by auto
+next
   case (2 k n)
   let ?q = "polypow (Suc k div 2) p"
   let ?d = "polymul ?q ?q"
-  from 2 have th1:"isnpolyh ?q n" and th2: "isnpolyh p n" by blast+
-  from polymul_normh[OF th1 th1] have dn: "isnpolyh ?d n" by simp
-  from polymul_normh[OF th2 dn] have on: "isnpolyh (polymul p ?d) n" by simp
-  from dn on show ?case by (simp add: Let_def)
-qed auto
+  from 2 have th1: "isnpolyh ?q n" and th2: "isnpolyh p n"
+    by blast+
+  from polymul_normh[OF th1 th1] have dn: "isnpolyh ?d n"
+    by simp
+  from polymul_normh[OF th2 dn] have on: "isnpolyh (polymul p ?d) n"
+    by simp
+  from dn on show ?case
+    by (simp add: Let_def)
+qed
 
 lemma polypow_norm:
   assumes "SORT_CONSTRAINT('a::{field_char_0,field_inverse_zero})"
@@ -830,12 +860,12 @@ lemma shift1_isnpoly:
 
 lemma shift1_nz[simp]:"shift1 p \<noteq> 0\<^sub>p"
   by (simp add: shift1_def)
-lemma funpow_shift1_isnpoly:
-  "\<lbrakk> isnpoly p ; p \<noteq> 0\<^sub>p\<rbrakk> \<Longrightarrow> isnpoly (funpow n shift1 p)"
+
+lemma funpow_shift1_isnpoly: "isnpoly p \<Longrightarrow> p \<noteq> 0\<^sub>p \<Longrightarrow> isnpoly (funpow n shift1 p)"
   by (induct n arbitrary: p) (auto simp add: shift1_isnpoly funpow_swap1)
 
 lemma funpow_isnpolyh:
-  assumes f: "\<And> p. isnpolyh p n \<Longrightarrow> isnpolyh (f p) n"
+  assumes f: "\<And>p. isnpolyh p n \<Longrightarrow> isnpolyh (f p) n"
     and np: "isnpolyh p n"
   shows "isnpolyh (funpow k f p) n"
   using f np by (induct k arbitrary: p) auto
@@ -845,7 +875,7 @@ lemma funpow_shift1:
     Ipoly bs (Mul (Pw (Bound 0) n) p)"
   by (induct n arbitrary: p) (simp_all add: shift1_isnpoly shift1)
 
-lemma shift1_isnpolyh: "isnpolyh p n0 \<Longrightarrow> p\<noteq> 0\<^sub>p \<Longrightarrow> isnpolyh (shift1 p) 0"
+lemma shift1_isnpolyh: "isnpolyh p n0 \<Longrightarrow> p \<noteq> 0\<^sub>p \<Longrightarrow> isnpolyh (shift1 p) 0"
   using isnpolyh_mono[where n="n0" and n'="0" and p="p"] by (simp add: shift1_def)
 
 lemma funpow_shift1_1:
@@ -900,7 +930,7 @@ lemma decrpoly_zero[simp]: "decrpoly p = 0\<^sub>p \<longleftrightarrow> p = 0\<
 lemma decrpoly_normh: "isnpolyh p n0 \<Longrightarrow> polybound0 p \<Longrightarrow> isnpolyh (decrpoly p) (n0 - 1)"
   apply (induct p arbitrary: n0)
   apply auto
-  apply (atomize)
+  apply atomize
   apply (erule_tac x = "Suc nat" in allE)
   apply auto
   done
@@ -924,7 +954,7 @@ lemma polysubst0_I':
 
 lemma decrpoly:
   assumes nb: "polybound0 t"
-  shows "Ipoly (x#bs) t = Ipoly bs (decrpoly t)"
+  shows "Ipoly (x # bs) t = Ipoly bs (decrpoly t)"
   using nb by (induct t rule: decrpoly.induct) simp_all
 
 lemma polysubst0_polybound0:
@@ -935,7 +965,8 @@ lemma polysubst0_polybound0:
 lemma degree0_polybound0: "isnpolyh p n \<Longrightarrow> degree p = 0 \<Longrightarrow> polybound0 p"
   by (induct p arbitrary: n rule: degree.induct) (auto simp add: isnpolyh_polybound0)
 
-primrec maxindex :: "poly \<Rightarrow> nat" where
+primrec maxindex :: "poly \<Rightarrow> nat"
+where
   "maxindex (Bound n) = n + 1"
 | "maxindex (CN c n p) = max  (n + 1) (max (maxindex c) (maxindex p))"
 | "maxindex (Add p q) = max (maxindex p) (maxindex q)"
@@ -948,7 +979,7 @@ primrec maxindex :: "poly \<Rightarrow> nat" where
 definition wf_bs :: "'a list \<Rightarrow> poly \<Rightarrow> bool"
   where "wf_bs bs p \<longleftrightarrow> length bs \<ge> maxindex p"
 
-lemma wf_bs_coefficients: "wf_bs bs p \<Longrightarrow> \<forall> c \<in> set (coefficients p). wf_bs bs c"
+lemma wf_bs_coefficients: "wf_bs bs p \<Longrightarrow> \<forall>c \<in> set (coefficients p). wf_bs bs c"
 proof (induct p rule: coefficients.induct)
   case (1 c p)
   show ?case
@@ -961,7 +992,7 @@ proof (induct p rule: coefficients.induct)
     {
       assume "x = c"
       then have "wf_bs bs x"
-        using "1.prems"  unfolding wf_bs_def by simp
+        using "1.prems" unfolding wf_bs_def by simp
     }
     moreover
     {
@@ -976,7 +1007,7 @@ proof (induct p rule: coefficients.induct)
   qed
 qed simp_all
 
-lemma maxindex_coefficients: "\<forall>c\<in> set (coefficients p). maxindex c \<le> maxindex p"
+lemma maxindex_coefficients: "\<forall>c \<in> set (coefficients p). maxindex c \<le> maxindex p"
   by (induct p rule: coefficients.induct) auto
 
 lemma wf_bs_I: "wf_bs bs p \<Longrightarrow> Ipoly (bs @ bs') p = Ipoly bs p"
@@ -992,7 +1023,7 @@ proof -
     unfolding wf_bs_def by simp
   then have wf': "wf_bs ?tbs p"
     unfolding wf_bs_def by  simp
-  have eq: "bs = ?tbs @ (drop ?ip bs)"
+  have eq: "bs = ?tbs @ drop ?ip bs"
     by simp
   from wf_bs_I[OF wf', of "drop ?ip bs"] show ?thesis
     using eq by simp
@@ -1007,13 +1038,11 @@ lemma wf_bs_insensitive: "length bs = length bs' \<Longrightarrow> wf_bs bs p = 
 lemma wf_bs_insensitive': "wf_bs (x#bs) p = wf_bs (y#bs) p"
   unfolding wf_bs_def by simp
 
-
-
 lemma wf_bs_coefficients': "\<forall>c \<in> set (coefficients p). wf_bs bs c \<Longrightarrow> wf_bs (x#bs) p"
   by (induct p rule: coefficients.induct) (auto simp add: wf_bs_def)
+
 lemma coefficients_Nil[simp]: "coefficients p \<noteq> []"
   by (induct p rule: coefficients.induct) simp_all
-
 
 lemma coefficients_head: "last (coefficients p) = head p"
   by (induct p rule: coefficients.induct) auto
@@ -1021,12 +1050,12 @@ lemma coefficients_head: "last (coefficients p) = head p"
 lemma wf_bs_decrpoly: "wf_bs bs (decrpoly p) \<Longrightarrow> wf_bs (x#bs) p"
   unfolding wf_bs_def by (induct p rule: decrpoly.induct) auto
 
-lemma length_le_list_ex: "length xs \<le> n \<Longrightarrow> \<exists> ys. length (xs @ ys) = n"
+lemma length_le_list_ex: "length xs \<le> n \<Longrightarrow> \<exists>ys. length (xs @ ys) = n"
   apply (rule exI[where x="replicate (n - length xs) z"])
   apply simp
   done
 
-lemma isnpolyh_Suc_const:"isnpolyh p (Suc n) \<Longrightarrow> isconstant p"
+lemma isnpolyh_Suc_const: "isnpolyh p (Suc n) \<Longrightarrow> isconstant p"
   apply (cases p)
   apply auto
   apply (case_tac "nat")
@@ -1052,16 +1081,17 @@ lemma wf_bs_polyneg: "wf_bs bs p \<Longrightarrow> wf_bs bs (~\<^sub>p p)"
   unfolding wf_bs_def by (induct p rule: polyneg.induct) auto
 
 lemma wf_bs_polysub: "wf_bs bs p \<Longrightarrow> wf_bs bs q \<Longrightarrow> wf_bs bs (p -\<^sub>p q)"
-  unfolding polysub_def split_def fst_conv snd_conv using wf_bs_polyadd wf_bs_polyneg by blast
+  unfolding polysub_def split_def fst_conv snd_conv
+  using wf_bs_polyadd wf_bs_polyneg by blast
 
 
-subsection{* Canonicity of polynomial representation, see lemma isnpolyh_unique*}
+subsection {* Canonicity of polynomial representation, see lemma isnpolyh_unique *}
 
 definition "polypoly bs p = map (Ipoly bs) (coefficients p)"
-definition "polypoly' bs p = map ((Ipoly bs o decrpoly)) (coefficients p)"
-definition "poly_nate bs p = map ((Ipoly bs o decrpoly)) (coefficients (polynate p))"
+definition "polypoly' bs p = map (Ipoly bs \<circ> decrpoly) (coefficients p)"
+definition "poly_nate bs p = map (Ipoly bs \<circ> decrpoly) (coefficients (polynate p))"
 
-lemma coefficients_normh: "isnpolyh p n0 \<Longrightarrow> \<forall> q \<in> set (coefficients p). isnpolyh q n0"
+lemma coefficients_normh: "isnpolyh p n0 \<Longrightarrow> \<forall>q \<in> set (coefficients p). isnpolyh q n0"
 proof (induct p arbitrary: n0 rule: coefficients.induct)
   case (1 c p n0)
   have cp: "isnpolyh (CN c 0 p) n0"
@@ -1072,44 +1102,51 @@ proof (induct p arbitrary: n0 rule: coefficients.induct)
     by simp
 qed auto
 
-lemma coefficients_isconst:
-  "isnpolyh p n \<Longrightarrow> \<forall>q\<in>set (coefficients p). isconstant q"
-  by (induct p arbitrary: n rule: coefficients.induct)
-    (auto simp add: isnpolyh_Suc_const)
+lemma coefficients_isconst: "isnpolyh p n \<Longrightarrow> \<forall>q \<in> set (coefficients p). isconstant q"
+  by (induct p arbitrary: n rule: coefficients.induct) (auto simp add: isnpolyh_Suc_const)
 
 lemma polypoly_polypoly':
   assumes np: "isnpolyh p n0"
-  shows "polypoly (x#bs) p = polypoly' bs p"
-proof-
+  shows "polypoly (x # bs) p = polypoly' bs p"
+proof -
   let ?cf = "set (coefficients p)"
   from coefficients_normh[OF np] have cn_norm: "\<forall> q\<in> ?cf. isnpolyh q n0" .
-  {fix q assume q: "q \<in> ?cf"
-    from q cn_norm have th: "isnpolyh q n0" by blast
-    from coefficients_isconst[OF np] q have "isconstant q" by blast
-    with isconstant_polybound0[OF th] have "polybound0 q" by blast}
+  {
+    fix q
+    assume q: "q \<in> ?cf"
+    from q cn_norm have th: "isnpolyh q n0"
+      by blast
+    from coefficients_isconst[OF np] q have "isconstant q"
+      by blast
+    with isconstant_polybound0[OF th] have "polybound0 q"
+      by blast
+  }
   then have "\<forall>q \<in> ?cf. polybound0 q" ..
-  then have "\<forall>q \<in> ?cf. Ipoly (x#bs) q = Ipoly bs (decrpoly q)"
+  then have "\<forall>q \<in> ?cf. Ipoly (x # bs) q = Ipoly bs (decrpoly q)"
     using polybound0_I[where b=x and bs=bs and b'=y] decrpoly[where x=x and bs=bs]
     by auto
-  then show ?thesis unfolding polypoly_def polypoly'_def by simp
+  then show ?thesis
+    unfolding polypoly_def polypoly'_def by simp
 qed
 
 lemma polypoly_poly:
-  assumes np: "isnpolyh p n0"
-  shows "Ipoly (x#bs) p = poly (polypoly (x#bs) p) x"
-  using np
+  assumes "isnpolyh p n0"
+  shows "Ipoly (x # bs) p = poly (polypoly (x # bs) p) x"
+  using assms
   by (induct p arbitrary: n0 bs rule: coefficients.induct) (auto simp add: polypoly_def)
 
 lemma polypoly'_poly:
-  assumes np: "isnpolyh p n0"
+  assumes "isnpolyh p n0"
   shows "\<lparr>p\<rparr>\<^sub>p\<^bsup>x # bs\<^esup> = poly (polypoly' bs p) x"
-  using polypoly_poly[OF np, simplified polypoly_polypoly'[OF np]] .
+  using polypoly_poly[OF assms, simplified polypoly_polypoly'[OF assms]] .
 
 
 lemma polypoly_poly_polybound0:
-  assumes np: "isnpolyh p n0" and nb: "polybound0 p"
+  assumes "isnpolyh p n0"
+    and "polybound0 p"
   shows "polypoly bs p = [Ipoly bs p]"
-  using np nb unfolding polypoly_def
+  using assms
+  unfolding polypoly_def
   apply (cases p)
   apply auto
   apply (case_tac nat)
@@ -1119,13 +1156,13 @@ lemma polypoly_poly_polybound0:
 lemma head_isnpolyh: "isnpolyh p n0 \<Longrightarrow> isnpolyh (head p) n0"
   by (induct p rule: head.induct) auto
 
-lemma headn_nz[simp]: "isnpolyh p n0 \<Longrightarrow> (headn p m = 0\<^sub>p) = (p = 0\<^sub>p)"
+lemma headn_nz[simp]: "isnpolyh p n0 \<Longrightarrow> headn p m = 0\<^sub>p \<longleftrightarrow> p = 0\<^sub>p"
   by (cases p) auto
 
 lemma head_eq_headn0: "head p = headn p 0"
   by (induct p rule: head.induct) simp_all
 
-lemma head_nz[simp]: "isnpolyh p n0 \<Longrightarrow> (head p = 0\<^sub>p) = (p = 0\<^sub>p)"
+lemma head_nz[simp]: "isnpolyh p n0 \<Longrightarrow> head p = 0\<^sub>p \<longleftrightarrow> p = 0\<^sub>p"
   by (simp add: head_eq_headn0)
 
 lemma isnpolyh_zero_iff:
@@ -1269,7 +1306,8 @@ lemma polymul_commute:
     and np: "isnpolyh p n0"
     and nq: "isnpolyh q n1"
   shows "p *\<^sub>p q = q *\<^sub>p p"
-  using isnpolyh_unique[OF polymul_normh[OF np nq] polymul_normh[OF nq np], where ?'a = "'a::{field_char_0,field_inverse_zero, power}"]
+  using isnpolyh_unique[OF polymul_normh[OF np nq] polymul_normh[OF nq np],
+    where ?'a = "'a::{field_char_0,field_inverse_zero, power}"]
   by simp
 
 declare polyneg_polyneg [simp]
@@ -1278,7 +1316,9 @@ lemma isnpolyh_polynate_id [simp]:
   assumes "SORT_CONSTRAINT('a::{field_char_0,field_inverse_zero})"
     and np: "isnpolyh p n0"
   shows "polynate p = p"
-  using isnpolyh_unique[where ?'a= "'a::{field_char_0,field_inverse_zero}", OF polynate_norm[of p, unfolded isnpoly_def] np] polynate[where ?'a = "'a::{field_char_0,field_inverse_zero}"]
+  using isnpolyh_unique[where ?'a= "'a::{field_char_0,field_inverse_zero}",
+      OF polynate_norm[of p, unfolded isnpoly_def] np]
+    polynate[where ?'a = "'a::{field_char_0,field_inverse_zero}"]
   by simp
 
 lemma polynate_idempotent[simp]:
@@ -1301,16 +1341,18 @@ lemma degree_eq_degreen0: "degree p = degreen p 0"
   by (induct p rule: degree.induct) simp_all
 
 lemma degree_polyneg:
-  assumes n: "isnpolyh p n"
+  assumes "isnpolyh p n"
   shows "degree (polyneg p) = degree p"
-  apply (induct p arbitrary: n rule: polyneg.induct)
-  using n apply simp_all
+  apply (induct p rule: polyneg.induct)
+  using assms
+  apply simp_all
   apply (case_tac na)
   apply auto
   done
 
 lemma degree_polyadd:
-  assumes np: "isnpolyh p n0" and nq: "isnpolyh q n1"
+  assumes np: "isnpolyh p n0"
+    and nq: "isnpolyh q n1"
   shows "degree (p +\<^sub>p q) \<le> max (degree p) (degree q)"
   using degreen_polyadd[OF np nq, where m= "0"] degree_eq_degreen0 by simp
 
@@ -1320,13 +1362,17 @@ lemma degree_polysub:
     and nq: "isnpolyh q n1"
   shows "degree (p -\<^sub>p q) \<le> max (degree p) (degree q)"
 proof-
-  from nq have nq': "isnpolyh (~\<^sub>p q) n1" using polyneg_normh by simp
-  from degree_polyadd[OF np nq'] show ?thesis by (simp add: polysub_def degree_polyneg[OF nq])
+  from nq have nq': "isnpolyh (~\<^sub>p q) n1"
+    using polyneg_normh by simp
+  from degree_polyadd[OF np nq'] show ?thesis
+    by (simp add: polysub_def degree_polyneg[OF nq])
 qed
 
 lemma degree_polysub_samehead:
   assumes "SORT_CONSTRAINT('a::{field_char_0,field_inverse_zero})"
-    and np: "isnpolyh p n0" and nq: "isnpolyh q n1" and h: "head p = head q"
+    and np: "isnpolyh p n0"
+    and nq: "isnpolyh q n1"
+    and h: "head p = head q"
     and d: "degree p = degree q"
   shows "degree (p -\<^sub>p q) < degree p \<or> (p -\<^sub>p q = 0\<^sub>p)"
   unfolding polysub_def split_def fst_conv snd_conv
