@@ -10,7 +10,7 @@ sig
   type src
   val src: (string * Token.T list) * Position.T -> src
   val dest_src: src -> (string * Token.T list) * Position.T
-  val pretty_src: Proof.context -> src -> Pretty.T
+  val pretty_src: (string -> Pretty.T) -> Proof.context -> src -> Pretty.T
   val map_name: (string -> string) -> src -> src
   val transform_values: morphism -> src -> src
   val init_assignable: src -> src
@@ -79,7 +79,7 @@ datatype src = Src of (string * Token.T list) * Position.T;
 val src = Src;
 fun dest_src (Src src) = src;
 
-fun pretty_src ctxt src =
+fun pretty_src pretty_name ctxt src =
   let
     val prt_thm = Pretty.backquote o Display.pretty_thm ctxt;
     fun prt arg =
@@ -90,8 +90,8 @@ fun pretty_src ctxt src =
       | SOME (Token.Term t) => Syntax.pretty_term ctxt t
       | SOME (Token.Fact ths) => Pretty.enclose "(" ")" (Pretty.breaks (map prt_thm ths))
       | _ => Pretty.mark_str (Token.markup arg, Token.unparse arg));
-    val (s, args) = #1 (dest_src src);
-  in Pretty.block (Pretty.breaks (Pretty.str s :: map prt args)) end;
+    val (name, args) = #1 (dest_src src);
+  in Pretty.block (Pretty.breaks (pretty_name name :: map prt args)) end;
 
 fun map_name f (Src ((s, args), pos)) = Src ((f s, args), pos);
 fun map_args f (Src ((s, args), pos)) = Src ((s, map f args), pos);

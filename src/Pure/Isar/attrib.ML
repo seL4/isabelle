@@ -109,6 +109,8 @@ fun print_attributes ctxt =
     |> Pretty.chunks |> Pretty.writeln
   end;
 
+val attribute_space = Name_Space.space_of_table o get_attributes o Context.Proof;
+
 fun add_attribute name att comment thy = thy
   |> Attributes.map (Name_Space.define (Context.Theory thy) true (name, (att, comment)) #> snd);
 
@@ -129,12 +131,11 @@ val check_src = check_src_generic o Context.Proof;
 
 (* pretty printing *)
 
-fun extern ctxt =
-  Name_Space.extern ctxt (Name_Space.space_of_table (get_attributes (Context.Proof ctxt)));
+fun pretty_attrib ctxt =
+  Args.pretty_src (Name_Space.pretty ctxt (attribute_space ctxt)) ctxt;
 
 fun pretty_attribs _ [] = []
-  | pretty_attribs ctxt srcs =
-      [Pretty.enum "," "[" "]" (map (Args.pretty_src ctxt o Args.map_name (extern ctxt)) srcs)];
+  | pretty_attribs ctxt srcs = [Pretty.enum "," "[" "]" (map (pretty_attrib ctxt) srcs)];
 
 
 (* get attributes *)
@@ -349,7 +350,7 @@ fun print_options ctxt =
         Pretty.block [Pretty.mark_str name, Pretty.str (": " ^ Config.print_type value ^ " ="),
           Pretty.brk 1, Pretty.str (Config.print_value value)]
       end;
-    val space = Name_Space.space_of_table (get_attributes (Context.Proof ctxt));
+    val space = attribute_space ctxt;
     val configs = Name_Space.extern_table' ctxt space (Configs.get (Proof_Context.theory_of ctxt));
   in Pretty.writeln (Pretty.big_list "configuration options" (map prt configs)) end;
 
