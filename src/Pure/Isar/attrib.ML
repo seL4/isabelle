@@ -12,7 +12,6 @@ sig
   val is_empty_binding: binding -> bool
   val print_attributes: Proof.context -> unit
   val check_name_generic: Context.generic -> xstring * Position.T -> string
-  val check_src_generic: Context.generic -> src -> src
   val check_name: Proof.context -> xstring * Position.T -> string
   val check_src: Proof.context -> src -> src
   val pretty_attribs: Proof.context -> src list -> Pretty.T list
@@ -109,6 +108,8 @@ fun print_attributes ctxt =
     |> Pretty.chunks |> Pretty.writeln
   end;
 
+val attribute_space = Name_Space.space_of_table o get_attributes o Context.Proof;
+
 fun add_attribute name att comment thy = thy
   |> Attributes.map (Name_Space.define (Context.Theory thy) true (name, (att, comment)) #> snd);
 
@@ -116,43 +117,30 @@ fun add_attribute name att comment thy = thy
 (* check *)
 
 fun check_name_generic context = #1 o Name_Space.check context (get_attributes context);
-
-fun check_src_generic context src =
-  let
-    val ((xname, toks), pos) = Args.dest_src src;
-    val name = check_name_generic context (xname, pos);
-  in Args.src ((name, toks), pos) end;
-
 val check_name = check_name_generic o Context.Proof;
-val check_src = check_src_generic o Context.Proof;
+
+fun check_src ctxt src =
+ (Context_Position.report ctxt (Args.range_of_src src) Markup.language_attribute;
+  #1 (Args.check_src ctxt (get_attributes (Context.Proof ctxt)) src));
 
 
 (* pretty printing *)
 
-fun extern ctxt = Name_Space.extern ctxt (#1 (get_attributes (Context.Proof ctxt)));
-
 fun pretty_attribs _ [] = []
-  | pretty_attribs ctxt srcs =
-      [Pretty.enum "," "[" "]" (map (Args.pretty_src ctxt o Args.map_name (extern ctxt)) srcs)];
+  | pretty_attribs ctxt srcs = [Pretty.enum "," "[" "]" (map (Args.pretty_src ctxt) srcs)];
 
 
 (* get attributes *)
 
 fun attribute_generic context =
-  let val (_, tab) = get_attributes context in
-    fn src =>
-      let val ((name, _), pos) = Args.dest_src src in
-        (case Symtab.lookup tab name of
-          NONE => error ("Undefined attribute: " ^ quote name ^ Position.here pos)
-        | SOME (att, _) => att src)
-      end
-  end;
+  let val table = get_attributes context
+  in fn src => #1 (Name_Space.get table (#1 (Args.name_of_src src))) src end;
 
 val attribute = attribute_generic o Context.Proof;
 val attribute_global = attribute_generic o Context.Theory;
 
 fun attribute_cmd ctxt = attribute ctxt o check_src ctxt;
-fun attribute_cmd_global thy = attribute_global thy o check_src_generic (Context.Theory thy);
+fun attribute_cmd_global thy = attribute_global thy o check_src (Proof_Context.init_global thy);
 
 
 (* attributed declarations *)
@@ -183,11 +171,10 @@ fun eval_thms ctxt srcs = ctxt
 
 (* attribute setup *)
 
-fun syntax scan = Args.syntax "attribute" scan;
-
 fun setup name scan =
   add_attribute name
-    (fn src => fn (ctxt, th) => let val (a, ctxt') = syntax scan src ctxt in a (ctxt', th) end);
+    (fn src => fn (ctxt, th) =>
+      let val (a, ctxt') = Args.syntax_generic scan src ctxt in a (ctxt', th) end);
 
 fun attribute_setup name source cmt =
   Context.theory_map (ML_Context.expression (#pos source)
@@ -200,7 +187,7 @@ fun attribute_setup name source cmt =
 
 (* internal attribute *)
 
-fun internal att = Args.src (("Pure.attribute", [Token.mk_attribute att]), Position.none);
+fun internal att = Args.src ("Pure.attribute", Position.none) [Token.mk_attribute att];
 
 val _ = Theory.setup
  (setup (Binding.name "attribute") (Scan.lift Args.internal_attribute >> Morphism.form)
@@ -272,7 +259,7 @@ fun apply_att src (context, th) =
   in (src2, result) end;
 
 fun err msg src =
-  let val ((name, _), pos) = Args.dest_src src
+  let val (name, pos) = Args.name_of_src src
   in error (msg ^ " " ^ quote name ^ Position.here pos) end;
 
 fun eval src ((th, dyn), (decls, context)) =
@@ -349,8 +336,8 @@ fun print_options ctxt =
         Pretty.block [Pretty.mark_str name, Pretty.str (": " ^ Config.print_type value ^ " ="),
           Pretty.brk 1, Pretty.str (Config.print_value value)]
       end;
-    val space = #1 (get_attributes (Context.Proof ctxt));
-    val configs = Name_Space.extern_table ctxt (space, Configs.get (Proof_Context.theory_of ctxt));
+    val space = attribute_space ctxt;
+    val configs = Name_Space.extern_table' ctxt space (Configs.get (Proof_Context.theory_of ctxt));
   in Pretty.writeln (Pretty.big_list "configuration options" (map prt configs)) end;
 
 

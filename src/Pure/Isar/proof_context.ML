@@ -441,7 +441,7 @@ fun inferred_fixes ctxt =
 
 fun check_type_name {proper, strict} ctxt (c, pos) =
   if Lexicon.is_tid c then
-    if proper then error ("Not a type constructor: " ^ c ^ Position.here pos)
+    if proper then error ("Not a type constructor: " ^ quote c ^ Position.here pos)
     else
       let
         val reports =
@@ -1152,16 +1152,14 @@ end;
 (** cases **)
 
 fun dest_cases ctxt =
-  Symtab.fold (fn (a, (c, i)) => cons (i, (a, c))) (#2 (cases_of ctxt)) []
+  Name_Space.fold_table (fn (a, (c, i)) => cons (i, (a, c))) (cases_of ctxt) []
   |> sort (int_ord o pairself #1) |> map #2;
 
 local
 
 fun update_case _ _ ("", _) res = res
-  | update_case _ _ (name, NONE) ((space, tab), index) =
-      let
-        val tab' = Symtab.delete_safe name tab;
-      in ((space, tab'), index) end
+  | update_case _ _ (name, NONE) (cases, index) =
+      (Name_Space.del_table name cases, index)
   | update_case context is_proper (name, SOME c) (cases, index) =
       let
         val (_, cases') = cases |> Name_Space.define context false
@@ -1179,7 +1177,7 @@ fun update_cases is_proper args ctxt =
   let
     val context = Context.Proof ctxt |> Name_Space.map_naming (K Name_Space.default_naming);
     val cases = cases_of ctxt;
-    val index = Symtab.fold (fn _ => Integer.add 1) (#2 cases) 0;
+    val index = Name_Space.fold_table (fn _ => Integer.add 1) cases 0;
     val (cases', _) = fold (update_case context is_proper) args (cases, index);
   in map_cases (K cases') ctxt end;
 
@@ -1230,14 +1228,15 @@ val print_syntax = Syntax.print_syntax o syn_of;
 
 fun pretty_abbrevs show_globals ctxt =
   let
-    val ((space, consts), (_, globals)) =
+    val space = const_space ctxt;
+    val (constants, globals) =
       pairself (#constants o Consts.dest) (#consts (rep_data ctxt));
     fun add_abbr (_, (_, NONE)) = I
       | add_abbr (c, (T, SOME t)) =
           if not show_globals andalso Symtab.defined globals c then I
           else cons (c, Logic.mk_equals (Const (c, T), t));
     val abbrevs =
-      Name_Space.extern_table ctxt (space, Symtab.make (Symtab.fold add_abbr consts []));
+      Name_Space.extern_table' ctxt space (Symtab.make (Symtab.fold add_abbr constants []));
   in
     if null abbrevs then []
     else [Pretty.big_list "abbreviations:" (map (pretty_term_abbrev ctxt o #2) abbrevs)]
@@ -1294,18 +1293,18 @@ fun pretty_case (name, (fixes, ((asms, (lets, cs)), ctxt))) =
         else [Binding.pretty b, Pretty.str ":"]) @ map (Pretty.quote o prt_term) ts));
 
     fun prt_sect _ _ _ [] = []
-      | prt_sect s sep prt xs =
-          [Pretty.block (Pretty.breaks (Pretty.str s ::
+      | prt_sect head sep prt xs =
+          [Pretty.block (Pretty.breaks (head ::
             flat (separate sep (map (single o prt) xs))))];
   in
     Pretty.block (Pretty.fbreaks
       (Pretty.str (name ^ ":") ::
-        prt_sect "fix" [] (Pretty.str o Binding.name_of o fst) fixes @
-        prt_sect "let" [Pretty.str "and"] prt_let
+        prt_sect (Pretty.keyword1 "fix") [] (Pretty.str o Binding.name_of o fst) fixes @
+        prt_sect (Pretty.keyword1 "let") [Pretty.keyword2 "and"] prt_let
           (map_filter (fn (xi, SOME t) => SOME (xi, t) | _ => NONE) lets) @
         (if forall (null o #2) asms then []
-          else prt_sect "assume" [Pretty.str "and"] prt_asm asms) @
-        prt_sect "subcases:" [] (Pretty.str o fst) cs))
+          else prt_sect (Pretty.keyword1 "assume") [Pretty.keyword2 "and"] prt_asm asms) @
+        prt_sect (Pretty.str "subcases:") [] (Pretty.str o fst) cs))
   end;
 
 in

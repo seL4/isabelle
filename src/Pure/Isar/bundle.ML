@@ -7,8 +7,9 @@ Bundled declarations (notes etc.).
 signature BUNDLE =
 sig
   type bundle = (thm list * Args.src list) list
-  val the_bundle: Proof.context -> string -> bundle
   val check: Proof.context -> xstring * Position.T -> string
+  val get_bundle: Proof.context -> string -> bundle
+  val get_bundle_cmd: Proof.context -> xstring * Position.T -> bundle
   val bundle: binding * (thm list * Args.src list) list ->
     (binding * typ option * mixfix) list -> local_theory -> local_theory
   val bundle_cmd: binding * (Facts.ref * Args.src list) list ->
@@ -45,12 +46,10 @@ structure Data = Generic_Data
 
 val get_bundles = Data.get o Context.Proof;
 
-fun the_bundle ctxt name =
-  (case Symtab.lookup (#2 (get_bundles ctxt)) name of
-    SOME bundle => bundle
-  | NONE => error ("Unknown bundle " ^ quote name));
-
 fun check ctxt = #1 o Name_Space.check (Context.Proof ctxt) (get_bundles ctxt);
+
+val get_bundle = Name_Space.get o get_bundles;
+fun get_bundle_cmd ctxt = get_bundle ctxt o check ctxt;
 
 
 (* define bundle *)
@@ -85,17 +84,17 @@ end;
 
 local
 
-fun gen_includes prep args ctxt =
-  let val decls = maps (the_bundle ctxt o prep ctxt) args
+fun gen_includes get args ctxt =
+  let val decls = maps (get ctxt) args
   in #2 (Attrib.local_notes "" [((Binding.empty, []), decls)] ctxt) end;
 
-fun gen_context prep_bundle prep_decl raw_incls raw_elems gthy =
+fun gen_context get prep_decl raw_incls raw_elems gthy =
   let
     val (after_close, lthy) =
       gthy |> Context.cases (pair Local_Theory.exit o Named_Target.theory_init)
         (pair I o Local_Theory.assert);
     val ((_, _, _, lthy'), _) = lthy
-      |> gen_includes prep_bundle raw_incls
+      |> gen_includes get raw_incls
       |> prep_decl ([], []) I raw_elems;
   in
     lthy' |> Local_Theory.open_target
@@ -104,8 +103,8 @@ fun gen_context prep_bundle prep_decl raw_incls raw_elems gthy =
 
 in
 
-val includes = gen_includes (K I);
-val includes_cmd = gen_includes check;
+val includes = gen_includes get_bundle;
+val includes_cmd = gen_includes get_bundle_cmd;
 
 fun include_ bs = Proof.assert_forward #> Proof.map_context (includes bs) #> Proof.reset_facts;
 fun include_cmd bs =
@@ -114,8 +113,8 @@ fun include_cmd bs =
 fun including bs = Proof.assert_backward #> Proof.map_context (includes bs);
 fun including_cmd bs = Proof.assert_backward #> Proof.map_context (includes_cmd bs);
 
-val context = gen_context (K I) Expression.cert_declaration;
-val context_cmd = gen_context check Expression.read_declaration;
+val context = gen_context get_bundle Expression.cert_declaration;
+val context_cmd = gen_context get_bundle_cmd Expression.read_declaration;
 
 end;
 

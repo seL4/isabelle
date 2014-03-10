@@ -160,19 +160,20 @@ structure Locales = Theory_Data
   val merge = Name_Space.join_tables (K merge_locale);
 );
 
-val intern = Name_Space.intern o #1 o Locales.get;
+val locale_space = Name_Space.space_of_table o Locales.get;
+val intern = Name_Space.intern o locale_space;
 fun check thy = #1 o Name_Space.check (Context.Theory thy) (Locales.get thy);
 
-fun extern thy = Name_Space.extern (Proof_Context.init_global thy) (#1 (Locales.get thy));
+fun extern thy = Name_Space.extern (Proof_Context.init_global thy) (locale_space thy);
 
 fun markup_extern ctxt =
-  Name_Space.markup_extern ctxt (#1 (Locales.get (Proof_Context.theory_of ctxt)));
+  Name_Space.markup_extern ctxt (locale_space (Proof_Context.theory_of ctxt));
 
 fun markup_name ctxt name = markup_extern ctxt name |-> Markup.markup;
 fun pretty_name ctxt name = markup_extern ctxt name |> Pretty.mark_str;
 
-val get_locale = Symtab.lookup o #2 o Locales.get;
-val defined = Symtab.defined o #2 o Locales.get;
+val get_locale = Option.map #2 oo (Name_Space.lookup_key o Locales.get);
+val defined = is_some oo get_locale;
 
 fun the_locale thy name =
   (case get_locale thy name of
@@ -189,7 +190,7 @@ fun register_locale binding parameters spec intros axioms syntax_decls notes dep
           (* FIXME Morphism.identity *)
 
 fun change_locale name =
-  Locales.map o apsnd o Symtab.map_entry name o map_locale o apsnd;
+  Locales.map o Name_Space.map_table_entry name o map_locale o apsnd;
 
 
 (** Primitive operations **)
@@ -680,6 +681,7 @@ fun pretty_locale_deps thy =
      {name = name,
       parents = map (fst o fst) (dependencies_of thy name),
       body = pretty_locale thy false name};
-  in map make_node (Symtab.keys (#2 (Locales.get thy))) end;
+    val names = sort_strings (Name_Space.fold_table (cons o #1) (Locales.get thy) []);
+  in map make_node names end;
 
 end;

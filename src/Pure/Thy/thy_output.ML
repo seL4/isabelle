@@ -92,11 +92,8 @@ fun check_command ctxt = #1 o Name_Space.check (Context.Proof ctxt) (#1 (get_ant
 fun check_option ctxt = #1 o Name_Space.check (Context.Proof ctxt) (#2 (get_antiquotations ctxt));
 
 fun command src state ctxt =
-  let
-    val ((xname, _), pos) = Args.dest_src src;
-    val (name, f) =
-      Name_Space.check (Context.Proof ctxt) (#1 (get_antiquotations ctxt)) (xname, pos);
-  in f src state ctxt end;
+  let val (src', f) = Args.check_src ctxt (#1 (get_antiquotations ctxt)) src
+  in f src' state ctxt end;
 
 fun option ((xname, pos), s) ctxt =
   let
@@ -118,7 +115,7 @@ fun print_antiquotations ctxt =
 fun antiquotation name scan out =
   add_command name
     (fn src => fn state => fn ctxt =>
-      let val (x, ctxt') = Args.context_syntax "document antiquotation" scan src ctxt
+      let val (x, ctxt') = Args.syntax scan src ctxt
       in out {source = src, state = state, context = ctxt'} x end);
 
 
@@ -155,7 +152,7 @@ in
 val antiq =
   Parse.!!!
     (Parse.position Parse.liberal_name -- properties -- Args.parse --| Scan.ahead Parse.eof)
-  >> (fn (((x, pos), y), z) => (y, Args.src ((x, z), pos)));
+  >> (fn ((name, props), args) => (props, Args.src name args));
 
 end;
 
@@ -529,7 +526,7 @@ fun pretty_theory ctxt (name, pos) =
 
 (* default output *)
 
-val str_of_source = space_implode " " o map Token.unparse o #2 o #1 o Args.dest_src;
+val str_of_source = space_implode " " o Args.unparse_src;
 
 fun maybe_pretty_source pretty ctxt src xs =
   map (pretty ctxt) xs  (*always pretty in order to exhibit errors!*)
@@ -615,12 +612,11 @@ val _ = Keyword.define ("by", NONE);  (*overlap with command category*)
 
 val _ = Theory.setup
   (antiquotation (Binding.name "lemma")
-    (Args.prop --
+    (Scan.lift (Scan.ahead Parse.not_eof) -- Args.prop --
       Scan.lift (Parse.position (Args.$$$ "by") -- Method.parse -- Scan.option Method.parse))
-    (fn {source, context = ctxt, ...} => fn (prop, (((_, by_pos), m1), m2)) =>
+    (fn {source, context = ctxt, ...} => fn ((prop_token, prop), (((_, by_pos), m1), m2)) =>
       let
-        val prop_src =
-          (case Args.dest_src source of ((a, arg :: _), pos) => Args.src ((a, [arg]), pos));
+        val prop_src = Args.src (Args.name_of_src source) [prop_token];
 
         val reports = (by_pos, Markup.keyword1) :: maps Method.reports_of (m1 :: the_list m2);
         val _ = Context_Position.reports ctxt reports;
@@ -679,6 +675,7 @@ end;
 val _ = Theory.setup
   (antiquotation (Binding.name "url") (Scan.lift (Parse.position Parse.name))
     (fn {context = ctxt, ...} => fn (name, pos) =>
-      (Context_Position.report ctxt pos (Markup.url name); enclose "\\url{" "}" name)));
+      (Context_Position.reports ctxt [(pos, Markup.language_path), (pos, Markup.url name)];
+       enclose "\\url{" "}" name)));
 
 end;

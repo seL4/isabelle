@@ -19,10 +19,10 @@ structure Syntax_Termtab = Table(type key = term val ord = Term_Ord.syntax_term_
 
 fun init thy =
   let
-    val {classes = (_, algebra), types = (_, types), ...} = Type.rep_tsig (Sign.tsig_of thy);
+    val {classes = (_, algebra), types, ...} = Type.rep_tsig (Sign.tsig_of thy);
 
     val class = perhaps (try (#1 o Graph.get_entry (Sorts.classes_of algebra)));
-    val tycon = perhaps (Option.map #1 o Symtab.lookup_key types);
+    val tycon = perhaps (Option.map #1 o Name_Space.lookup_key types);
     val const = perhaps (try (#1 o Consts.the_const (Sign.consts_of thy)));
 
     val typs = Unsynchronized.ref (Typtab.empty: unit Typtab.table);

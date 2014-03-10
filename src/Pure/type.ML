@@ -177,7 +177,7 @@ fun make_tsig (classes, default, types, log_types) =
 fun build_tsig (classes, default, types) =
   let
     val log_types =
-      Symtab.fold (fn (c, LogicalType n) => cons (c, n) | _ => I) (snd types) []
+      Name_Space.fold_table (fn (c, LogicalType n) => cons (c, n) | _ => I) types []
       |> Library.sort (int_ord o pairself snd) |> map fst;
   in make_tsig (classes, default, types, log_types) end;
 
@@ -237,17 +237,17 @@ fun restore_mode ctxt = set_mode (get_mode ctxt);
 
 (* types *)
 
-val type_space = #1 o #types o rep_tsig;
+val type_space = Name_Space.space_of_table o #types o rep_tsig;
 
-fun type_alias naming binding name = map_tsig (fn (classes, default, (space, types)) =>
-  (classes, default, (Name_Space.alias naming binding name space, types)));
+fun type_alias naming binding name = map_tsig (fn (classes, default, types) =>
+  (classes, default, (Name_Space.alias_table naming binding name types)));
 
 val is_logtype = member (op =) o logical_types;
 
 
 fun undecl_type c = "Undeclared type constructor: " ^ quote c;
 
-fun lookup_type (TSig {types = (_, types), ...}) = Symtab.lookup types;
+fun lookup_type (TSig {types, ...}) = Option.map #2 o Name_Space.lookup_key types;
 
 fun check_decl context (TSig {types, ...}) (c, pos) =
   Name_Space.check_reports context types (c, [pos]);
@@ -639,14 +639,15 @@ fun new_decl context (c, decl) types =
 
 fun map_types f = map_tsig (fn (classes, default, types) =>
   let
-    val (space', tab') = f types;
-    val _ = Name_Space.intern space' "dummy" = "dummy" orelse
-      error "Illegal declaration of dummy type";
-  in (classes, default, (space', tab')) end);
+    val types' = f types;
+    val _ =
+      Name_Space.intern (Name_Space.space_of_table types') "dummy" = "dummy" orelse
+        error "Illegal declaration of dummy type";
+  in (classes, default, types') end);
 
-fun syntactic types (Type (c, Ts)) =
-      (case Symtab.lookup types c of SOME Nonterminal => true | _ => false)
-        orelse exists (syntactic types) Ts
+fun syntactic tsig (Type (c, Ts)) =
+      (case lookup_type tsig c of SOME Nonterminal => true | _ => false)
+        orelse exists (syntactic tsig) Ts
   | syntactic _ _ = false;
 
 in
@@ -669,14 +670,14 @@ fun add_abbrev context (a, vs, rhs) tsig = tsig |> map_types (fn types =>
       (case subtract (op =) vs (map #1 (Term.add_tfreesT rhs' [])) of
         [] => []
       | extras => err ("Extra variables on rhs: " ^ commas_quote extras));
-  in types |> new_decl context (a, Abbreviation (vs, rhs', syntactic (#2 types) rhs')) end);
+  in types |> new_decl context (a, Abbreviation (vs, rhs', syntactic tsig rhs')) end);
 
 fun add_nonterminal context = map_types o new_decl context o rpair Nonterminal;
 
 end;
 
-fun hide_type fully c = map_tsig (fn (classes, default, (space, types)) =>
-  (classes, default, (Name_Space.hide fully c space, types)));
+fun hide_type fully c = map_tsig (fn (classes, default, types) =>
+  (classes, default, Name_Space.hide_table fully c types));
 
 
 (* merge type signatures *)

@@ -91,6 +91,7 @@ type blob =
 
 fun read_file master_dir pos src_path =
   let
+    val _ = Position.report pos Markup.language_path;
     val full_path = File.check_file (File.full_path master_dir src_path);
     val _ = Position.report pos (Markup.path (Path.implode full_path));
     val text = File.read full_path;
@@ -117,7 +118,7 @@ fun resolve_files master_dir blobs toks =
           fun make_file src_path (Exn.Res (_, NONE)) =
                 Exn.interruptible_capture (fn () => read_file master_dir pos src_path) ()
             | make_file src_path (Exn.Res (file, SOME (digest, lines))) =
-               (Position.report pos (Markup.path file);
+               (Position.reports [(pos, Markup.language_path), (pos, Markup.path file)];
                 Exn.Res (blob_file src_path lines digest file))
             | make_file _ (Exn.Exn e) = Exn.Exn e;
           val src_paths = Keyword.command_files cmd path;

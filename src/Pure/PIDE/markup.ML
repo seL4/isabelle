@@ -27,6 +27,7 @@ sig
   val language: {name: string, symbols: bool, antiquotes: bool, delimited: bool} -> T
   val language': {name: string, symbols: bool, antiquotes: bool} -> bool -> T
   val language_method: T
+  val language_attribute: T
   val language_sort: bool -> T
   val language_type: bool -> T
   val language_term: bool -> T
@@ -36,6 +37,7 @@ sig
   val language_antiquotation: T
   val language_text: bool -> T
   val language_rail: T
+  val language_path: T
   val bindingN: string val binding: T
   val entityN: string val entity: string -> string -> T
   val get_entity_kind: T -> string option
@@ -277,6 +279,8 @@ fun language' {name, symbols, antiquotes} delimited =
 
 val language_method =
   language {name = "method", symbols = true, antiquotes = false, delimited = false};
+val language_attribute =
+  language {name = "attribute", symbols = true, antiquotes = false, delimited = false};
 val language_sort = language' {name = "sort", symbols = true, antiquotes = false};
 val language_type = language' {name = "type", symbols = true, antiquotes = false};
 val language_term = language' {name = "term", symbols = true, antiquotes = false};
@@ -287,6 +291,7 @@ val language_antiquotation =
   language {name = "antiquotation", symbols = true, antiquotes = false, delimited = true};
 val language_text = language' {name = "text", symbols = true, antiquotes = false};
 val language_rail = language {name = "rail", symbols = true, antiquotes = true, delimited = true};
+val language_path = language {name = "path", symbols = false, antiquotes = false, delimited = true};
 
 
 (* formal entities *)

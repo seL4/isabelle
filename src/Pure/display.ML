@@ -145,33 +145,34 @@ fun pretty_full_theory verbose thy =
     fun pretty_restrict (const, name) =
       Pretty.block ([prt_const' const, Pretty.brk 2, Pretty.str ("(from " ^ quote name ^ ")")]);
 
-    val axioms = (Theory.axiom_space thy, Theory.axiom_table thy);
     val defs = Theory.defs_of thy;
     val {restricts, reducts} = Defs.dest defs;
     val tsig = Sign.tsig_of thy;
     val consts = Sign.consts_of thy;
-    val {constants, constraints} = Consts.dest consts;
-    val extern_const = Name_Space.extern ctxt (#1 constants);
+    val {const_space, constants, constraints} = Consts.dest consts;
+    val extern_const = Name_Space.extern ctxt const_space;
     val {classes, default, types, ...} = Type.rep_tsig tsig;
     val (class_space, class_algebra) = classes;
     val classes = Sorts.classes_of class_algebra;
     val arities = Sorts.arities_of class_algebra;
 
     val clsses =
-      Name_Space.dest_table ctxt (class_space,
-        Symtab.make (map (fn ((c, _), cs) => (c, Sign.minimize_sort thy cs)) (Graph.dest classes)));
-    val tdecls = Name_Space.dest_table ctxt types;
-    val arties = Name_Space.dest_table ctxt (Type.type_space tsig, arities);
+      Name_Space.dest_table' ctxt class_space
+        (Symtab.make (map (fn ((c, _), cs) => (c, Sign.minimize_sort thy cs)) (Graph.dest classes)))
+      |> map (apfst #1);
+    val tdecls = Name_Space.dest_table ctxt types |> map (apfst #1);
+    val arties = Name_Space.dest_table' ctxt (Type.type_space tsig) arities |> map (apfst #1);
 
     fun prune_const c = not verbose andalso Consts.is_concealed consts c;
-    val cnsts = Name_Space.extern_table ctxt (#1 constants,
-      Symtab.make (filter_out (prune_const o fst) (Symtab.dest (#2 constants))));
+    val cnsts =
+      Name_Space.extern_table' ctxt const_space
+        (Symtab.make (filter_out (prune_const o fst) (Symtab.dest constants)));
 
     val log_cnsts = map_filter (fn (c, (ty, NONE)) => SOME (c, ty) | _ => NONE) cnsts;
     val abbrevs = map_filter (fn (c, (ty, SOME t)) => SOME (c, (ty, t)) | _ => NONE) cnsts;
-    val cnstrs = Name_Space.extern_table ctxt constraints;
+    val cnstrs = Name_Space.extern_table' ctxt const_space constraints;
 
-    val axms = Name_Space.extern_table ctxt axioms;
+    val axms = Name_Space.extern_table ctxt (Theory.axiom_table thy);
 
     val (reds0, (reds1, reds2)) = filter_out (prune_const o fst o fst) reducts
       |> map (fn (lhs, rhs) =>

@@ -54,17 +54,26 @@ sig
   val naming_of: Context.generic -> naming
   val map_naming: (naming -> naming) -> Context.generic -> Context.generic
   val declare: Context.generic -> bool -> binding -> T -> string * T
-  type 'a table = T * 'a Symtab.table
+  type 'a table
+  val space_of_table: 'a table -> T
   val check_reports: Context.generic -> 'a table ->
     xstring * Position.T list -> (string * Position.report list) * 'a
   val check: Context.generic -> 'a table -> xstring * Position.T -> string * 'a
+  val lookup_key: 'a table -> string -> (string * 'a) option
   val get: 'a table -> string -> 'a
   val define: Context.generic -> bool -> binding * 'a -> 'a table -> string * 'a table
+  val alias_table: naming -> binding -> string -> 'a table -> 'a table
+  val hide_table: bool -> string -> 'a table -> 'a table
+  val del_table: string -> 'a table -> 'a table
+  val map_table_entry: string -> ('a -> 'a) -> 'a table -> 'a table
+  val fold_table: (string * 'a -> 'b -> 'b) -> 'a table -> 'b -> 'b
   val empty_table: string -> 'a table
   val merge_tables: 'a table * 'a table -> 'a table
   val join_tables: (string -> 'a * 'a -> 'a) (*Symtab.SAME*) ->
     'a table * 'a table -> 'a table
-  val dest_table: Proof.context -> 'a table -> (string * 'a) list
+  val dest_table': Proof.context -> T -> 'a Symtab.table -> ((string * xstring) * 'a) list
+  val dest_table: Proof.context -> 'a table -> ((string * xstring) * 'a) list
+  val extern_table': Proof.context -> T -> 'a Symtab.table -> ((Markup.T * xstring) * 'a) list
   val extern_table: Proof.context -> 'a table -> ((Markup.T * xstring) * 'a) list
 end;
 
@@ -90,10 +99,10 @@ fun print_entry_ref kind (name, entry) =
   quote (Markup.markup (entry_markup false kind (name, entry)) name);
 
 fun err_dup kind entry1 entry2 pos =
-  error ("Duplicate " ^ kind ^ " declaration " ^
+  error ("Duplicate " ^ plain_words kind ^ " declaration " ^
     print_entry_ref kind entry1 ^ " vs. " ^ print_entry_ref kind entry2 ^ Position.here pos);
 
-fun undefined kind name = "Undefined " ^ kind ^ ": " ^ quote name;
+fun undefined kind name = "Undefined " ^ plain_words kind ^ ": " ^ quote name;
 
 
 (* datatype T *)
@@ -207,6 +216,10 @@ fun pretty ctxt space name = Pretty.mark_str (markup_extern ctxt space name);
 fun completion context space (xname, pos) =
   if Position.is_reported pos andalso xname <> "" andalso xname <> "_" then
     let
+      fun result_ord ((s, _), (s', _)) =
+        (case int_ord (pairself Long_Name.qualification (s, s')) of
+          EQUAL => string_ord (s, s')
+        | ord => ord);
       val x = Name.clean xname;
       val Name_Space {kind, internals, ...} = space;
       val ext = extern_shortest (Context.proof_of context) space;
@@ -214,9 +227,12 @@ fun completion context space (xname, pos) =
         Symtab.fold
           (fn (a, (name :: _, _)) =>
               if String.isPrefix x a andalso not (is_concealed space name)
-              then cons (ext name, (kind, name)) else I
+              then
+                let val a' = ext name
+                in if a = a' then cons (a', (kind, name)) else I end
+              else I
             | _ => I) internals []
-        |> sort_distinct (string_ord o pairself #1);
+        |> sort_distinct result_ord;
     in Completion.names pos names end
   else Completion.none;
 
@@ -448,9 +464,11 @@ fun declare context strict binding space =
 
 (* definition in symbol table *)
 
-type 'a table = T * 'a Symtab.table;
+datatype 'a table = Table of T * 'a Symtab.table;
 
-fun check_reports context (space, tab) (xname, ps) =
+fun space_of_table (Table (space, _)) = space;
+
+fun check_reports context (Table (space, tab)) (xname, ps) =
   let val name = intern space xname in
     (case Symtab.lookup tab name of
       SOME x =>
@@ -474,31 +492,61 @@ fun check context table (xname, pos) =
     val _ = Position.reports reports;
   in (name, x) end;
 
-fun get (space, tab) name =
-  (case Symtab.lookup tab name of
-    SOME x => x
-  | NONE => error (undefined (kind_of space) name));
+fun lookup_key (Table (_, tab)) name = Symtab.lookup_key tab name;
 
-fun define context strict (binding, x) (space, tab) =
-  let val (name, space') = declare context strict binding space
-  in (name, (space', Symtab.update (name, x) tab)) end;
+fun get table name =
+  (case lookup_key table name of
+    SOME (_, x) => x
+  | NONE => error (undefined (kind_of (space_of_table table)) name));
 
-fun empty_table kind = (empty kind, Symtab.empty);
+fun define context strict (binding, x) (Table (space, tab)) =
+  let
+    val (name, space') = declare context strict binding space;
+    val tab' = Symtab.update (name, x) tab;
+  in (name, Table (space', tab')) end;
 
-fun merge_tables ((space1, tab1), (space2, tab2)) =
-  (merge (space1, space2), Symtab.merge (K true) (tab1, tab2));
 
-fun join_tables f ((space1, tab1), (space2, tab2)) =
-  (merge (space1, space2), Symtab.join f (tab1, tab2));
+(* derived table operations *)
 
-fun ext_table ctxt (space, tab) =
+fun alias_table naming binding name (Table (space, tab)) =
+  Table (alias naming binding name space, tab);
+
+fun hide_table fully name (Table (space, tab)) =
+  Table (hide fully name space, tab);
+
+fun del_table name (Table (space, tab)) =
+  let
+    val space' = hide true name space handle ERROR _ => space;
+    val tab' = Symtab.delete_safe name tab;
+  in Table (space', tab') end;
+
+fun map_table_entry name f (Table (space, tab)) =
+  Table (space, Symtab.map_entry name f tab);
+
+fun fold_table f (Table (_, tab)) = Symtab.fold f tab;
+
+fun empty_table kind = Table (empty kind, Symtab.empty);
+
+fun merge_tables (Table (space1, tab1), Table (space2, tab2)) =
+  Table (merge (space1, space2), Symtab.merge (K true) (tab1, tab2));
+
+fun join_tables f (Table (space1, tab1), Table (space2, tab2)) =
+  Table (merge (space1, space2), Symtab.join f (tab1, tab2));
+
+
+(* present table content *)
+
+fun dest_table' ctxt space tab =
   Symtab.fold (fn (name, x) => cons ((name, extern ctxt space name), x)) tab []
   |> Library.sort_wrt (#2 o #1);
 
-fun dest_table ctxt table = map (apfst #1) (ext_table ctxt table);
+fun dest_table ctxt (Table (space, tab)) = dest_table' ctxt space tab;
 
-fun extern_table ctxt (space, tab) =
-  map (fn ((name, xname), x) => ((markup space name, xname), x)) (ext_table ctxt (space, tab));
+fun extern_table' ctxt space tab =
+  dest_table' ctxt space tab
+  |> map (fn ((name, xname), x) => ((markup space name, xname), x));
+
+fun extern_table ctxt (Table (space, tab)) = extern_table' ctxt space tab;
 
 end;
 

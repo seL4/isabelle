@@ -192,7 +192,7 @@ val const_instance = Consts.instance o consts_of;
 
 fun mk_const thy (c, Ts) = Const (c, const_instance thy (c, Ts));
 
-val declared_tyname = Symtab.defined o #2 o #types o Type.rep_tsig o tsig_of;
+fun declared_tyname ctxt c = can (Type.the_decl (tsig_of ctxt)) (c, Position.none);
 val declared_const = can o the_const_constraint;
 
 

@@ -150,7 +150,8 @@ thm d1_def d2_def  (* should print as "d1(?x) <-> ..." and "d2(?x) <-> ..." *)
 ML {*
   fun check_syntax ctxt thm expected =
     let
-      val obtained = Print_Mode.setmp [] (Display.string_of_thm ctxt) thm;
+      val obtained =
+        Print_Mode.setmp [] (Display.string_of_thm (Config.put show_markup false ctxt)) thm;
     in
       if obtained <> expected
       then error ("Theorem syntax '" ^ obtained ^ "' obtained, but '" ^ expected ^ "' expected.")

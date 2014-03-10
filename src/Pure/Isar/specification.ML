@@ -376,14 +376,14 @@ structure Theorem_Hook = Generic_Data
   fun merge data : T = Library.merge (eq_snd op =) data;
 );
 
-fun gen_theorem schematic prep_bundle prep_att prep_stmt
+fun gen_theorem schematic bundle_includes prep_att prep_stmt
     kind before_qed after_qed (name, raw_atts) raw_includes raw_elems raw_concl int lthy =
   let
     val _ = Local_Theory.assert lthy;
 
     val elems = raw_elems |> map (Element.map_ctxt_attrib (prep_att lthy));
     val ((more_atts, prems, stmt, facts), goal_ctxt) = lthy
-      |> Bundle.includes (map (prep_bundle lthy) raw_includes)
+      |> bundle_includes raw_includes
       |> prep_statement (prep_att lthy) prep_stmt elems raw_concl;
     val atts = more_atts @ map (prep_att lthy) raw_atts;
 
@@ -419,13 +419,15 @@ fun gen_theorem schematic prep_bundle prep_att prep_stmt
 
 in
 
-val theorem = gen_theorem false (K I) (K I) Expression.cert_statement;
+val theorem =
+  gen_theorem false Bundle.includes (K I) Expression.cert_statement;
 val theorem_cmd =
-  gen_theorem false Bundle.check Attrib.check_src Expression.read_statement;
+  gen_theorem false Bundle.includes_cmd Attrib.check_src Expression.read_statement;
 
-val schematic_theorem = gen_theorem true (K I) (K I) Expression.cert_statement;
+val schematic_theorem =
+  gen_theorem true Bundle.includes (K I) Expression.cert_statement;
 val schematic_theorem_cmd =
-  gen_theorem true Bundle.check Attrib.check_src Expression.read_statement;
+  gen_theorem true Bundle.includes_cmd Attrib.check_src Expression.read_statement;
 
 fun add_theorem_hook f = Theorem_Hook.map (cons (f, stamp ()));
 

@@ -67,7 +67,6 @@ sig
   val check_src: Proof.context -> src -> src
   val method: Proof.context -> src -> Proof.context -> method
   val method_cmd: Proof.context -> src -> Proof.context -> method
-  val syntax: 'a context_parser -> src -> Proof.context -> 'a * Proof.context
   val setup: binding -> (Proof.context -> method) context_parser -> string -> theory -> theory
   val method_setup: bstring * Position.T -> Symbol_Pos.source -> string -> theory -> theory
   type modifier = (Proof.context -> Proof.context) * attribute
@@ -300,7 +299,7 @@ datatype text =
 
 fun primitive_text r = Basic (SIMPLE_METHOD o PRIMITIVE o r);
 val succeed_text = Basic (K succeed);
-val default_text = Source (Args.src (("default", []), Position.none));
+val default_text = Source (Args.src ("default", Position.none) []);
 val this_text = Basic (K this);
 val done_text = Basic (K (SIMPLE_METHOD all_tac));
 fun sorry_text int = Basic (fn ctxt => cheating ctxt int);
@@ -340,36 +339,23 @@ fun add_method name meth comment thy = thy
 (* check *)
 
 fun check_name ctxt = #1 o Name_Space.check (Context.Proof ctxt) (get_methods ctxt);
-
-fun check_src ctxt src =
-  let
-    val ((xname, toks), pos) = Args.dest_src src;
-    val name = check_name ctxt (xname, pos);
-  in Args.src ((name, toks), pos) end;
+fun check_src ctxt src = #1 (Args.check_src ctxt (get_methods ctxt) src);
 
 
 (* get methods *)
 
 fun method ctxt =
-  let val (_, tab) = get_methods ctxt in
-    fn src =>
-      let val ((name, _), pos) = Args.dest_src src in
-        (case Symtab.lookup tab name of
-          NONE => error ("Undefined method: " ^ quote name ^ Position.here pos)
-        | SOME (meth, _) => meth src)
-      end
-  end;
+  let val table = get_methods ctxt
+  in fn src => #1 (Name_Space.get table (#1 (Args.name_of_src src))) src end;
 
 fun method_cmd ctxt = method ctxt o check_src ctxt;
 
 
 (* method setup *)
 
-fun syntax scan = Args.context_syntax "method" scan;
-
 fun setup name scan =
   add_method name
-    (fn src => fn ctxt => let val (m, ctxt') = syntax scan src ctxt in m ctxt' end);
+    (fn src => fn ctxt => let val (m, ctxt') = Args.syntax scan src ctxt in m ctxt' end);
 
 fun method_setup name source cmt =
   Context.theory_map (ML_Context.expression (#pos source)
@@ -457,9 +443,9 @@ fun is_symid_meth s =
 local
 
 fun meth4 x =
- (Parse.position (Parse.xname >> rpair []) >> (Source o Args.src) ||
+ (Parse.position Parse.xname >> (fn name => Source (Args.src name [])) ||
   Scan.ahead Parse.cartouche |-- Parse.not_eof >> (fn tok =>
-    Source (Args.src (("cartouche", [tok]), Token.pos_of tok))) ||
+    Source (Args.src ("cartouche", Token.pos_of tok) [tok])) ||
   Parse.$$$ "(" |-- Parse.!!! (meth0 --| Parse.$$$ ")")) x
 and meth3 x =
  (meth4 -- Parse.position (Parse.$$$ "?")
@@ -472,7 +458,7 @@ and meth3 x =
         Select_Goals (combinator_info [pos1, pos2], n, m)) ||
   meth4) x
 and meth2 x =
- (Parse.position (Parse.xname -- Args.parse1 is_symid_meth) >> (Source o Args.src) ||
+ (Parse.position Parse.xname -- Args.parse1 is_symid_meth >> (Source o uncurry Args.src) ||
   meth3) x
 and meth1 x =
   (Parse.enum1_positions "," meth2
