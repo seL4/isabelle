@@ -338,8 +338,8 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
         (maps wit_thms_of_bnf inners);
 
     val (bnf', lthy') =
-      bnf_def const_policy (K Dont_Note) qualify tacs wit_tac (SOME (oDs @ flat Dss)) Binding.empty
-        Binding.empty [] ((((((b, CCA), mapx), sets'), bd'), wits), SOME rel) lthy;
+      bnf_def const_policy (K Dont_Note) true qualify tacs wit_tac (SOME (oDs @ flat Dss))
+        Binding.empty Binding.empty [] ((((((b, CCA), mapx), sets'), bd'), wits), SOME rel) lthy;
 
     val phi =
       Morphism.thm_morphism "BNF" (unfold_thms lthy' [id_bnf_comp_def])
@@ -436,8 +436,8 @@ fun raw_kill_bnf qualify n bnf (accum as (unfold_set, lthy)) =
     fun wit_tac _ = mk_simple_wit_tac (wit_thms_of_bnf bnf);
 
     val (bnf', lthy') =
-      bnf_def Smart_Inline (K Dont_Note) qualify tacs wit_tac (SOME (killedAs @ Ds)) Binding.empty
-        Binding.empty [] ((((((b, T), mapx), sets), bd), wits), SOME rel) lthy;
+      bnf_def Smart_Inline (K Dont_Note) true qualify tacs wit_tac (SOME (killedAs @ Ds))
+        Binding.empty Binding.empty [] ((((((b, T), mapx), sets), bd), wits), SOME rel) lthy;
   in
     (bnf', (add_bnf_to_unfolds bnf' unfold_set, lthy'))
   end;
@@ -526,8 +526,8 @@ fun raw_lift_bnf qualify n bnf (accum as (unfold_set, lthy)) =
     fun wit_tac _ = mk_simple_wit_tac (wit_thms_of_bnf bnf);
 
     val (bnf', lthy') =
-      bnf_def Smart_Inline (K Dont_Note) qualify tacs wit_tac (SOME Ds) Binding.empty Binding.empty
-        [] ((((((b, T), mapx), sets), bd), wits), SOME rel) lthy;
+      bnf_def Smart_Inline (K Dont_Note) true qualify tacs wit_tac (SOME Ds) Binding.empty
+        Binding.empty [] ((((((b, T), mapx), sets), bd), wits), SOME rel) lthy;
   in
     (bnf', (add_bnf_to_unfolds bnf' unfold_set, lthy'))
   end;
@@ -607,8 +607,8 @@ fun raw_permute_bnf qualify src dest bnf (accum as (unfold_set, lthy)) =
     fun wit_tac _ = mk_simple_wit_tac (wit_thms_of_bnf bnf);
 
     val (bnf', lthy') =
-      bnf_def Smart_Inline (K Dont_Note) qualify tacs wit_tac (SOME Ds) Binding.empty Binding.empty
-        [] ((((((b, T), mapx), sets), bd), wits), SOME rel) lthy;
+      bnf_def Smart_Inline (K Dont_Note) true qualify tacs wit_tac (SOME Ds) Binding.empty
+        Binding.empty [] ((((((b, T), mapx), sets), bd), wits), SOME rel) lthy;
   in
     (bnf', (add_bnf_to_unfolds bnf' unfold_set, lthy'))
   end;
@@ -765,21 +765,6 @@ fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
       |> mk_Frees' "f" (map2 (curry op -->) As Bs)
       ||>> mk_Frees' "R" (map2 mk_pred2T As Bs);
 
-    val map_unfolds = map (unfold_thms lthy [id_bnf_comp_def]) (#map_unfolds unfold_set);
-    val set_unfoldss = #set_unfoldss unfold_set;
-    val rel_unfolds = map (unfold_thms lthy [id_bnf_comp_def]) (#rel_unfolds unfold_set);
-
-    val expand_maps = expand_id_bnf_comp_def o
-      fold expand_term_const (map (single o Logic.dest_equals o Thm.prop_of) map_unfolds);
-    val expand_sets =
-      fold expand_term_const (map (map (Logic.dest_equals o Thm.prop_of)) set_unfoldss);
-    val expand_rels = expand_id_bnf_comp_def o
-      fold expand_term_const (map (single o Logic.dest_equals o Thm.prop_of) rel_unfolds);
-    fun unfold_maps ctxt = fold (unfold_thms ctxt o single) (id_bnf_comp_def :: map_unfolds);
-    fun unfold_sets ctxt = fold (unfold_thms ctxt) set_unfoldss;
-    fun unfold_rels ctxt = fold (unfold_thms ctxt o single) (id_bnf_comp_def :: rel_unfolds);
-    fun unfold_all ctxt = unfold_sets ctxt o unfold_maps ctxt o unfold_rels ctxt;
-
     val repTA = mk_T_of_bnf Ds As bnf;
     val T_bind = qualify b;
     val TA_params = Term.add_tfreesT repTA [];
@@ -800,12 +785,12 @@ fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
       abs_inverse = Abs_inverse', type_definition = type_definition};
 
     val bnf_map = fold_rev Term.absfree fs' (HOLogic.mk_comp (HOLogic.mk_comp (AbsB,
-      Term.list_comb (expand_maps (mk_map_of_bnf Ds As Bs bnf), fs)), RepA));
-    val bnf_sets = map ((fn t => HOLogic.mk_comp (t, RepA)) o expand_maps o expand_sets)
+      Term.list_comb (mk_map_of_bnf Ds As Bs bnf, fs)), RepA));
+    val bnf_sets = map ((fn t => HOLogic.mk_comp (t, RepA)))
       (mk_sets_of_bnf (replicate live Ds) (replicate live As) bnf);
     val bnf_bd = mk_bd_of_bnf Ds As bnf;
     val bnf_rel = fold_rev Term.absfree Rs' (mk_vimage2p RepA RepB $
-      (Term.list_comb (expand_rels (mk_rel_of_bnf Ds As Bs bnf), Rs)));
+      (Term.list_comb (mk_rel_of_bnf Ds As Bs bnf, Rs)));
 
     (*bd may depend only on dead type variables*)
     val bd_repT = fst (dest_relT (fastype_of bnf_bd));
@@ -836,24 +821,22 @@ fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
           (bnf_bd', bd_ordIso, bd_card_order, bd_cinfinite)
         end;
 
-    fun map_id0_tac ctxt =
-      rtac (@{thm type_copy_map_id0} OF [type_definition, unfold_maps ctxt (map_id0_of_bnf bnf)]) 1;
-    fun map_comp0_tac ctxt =
-      rtac (@{thm type_copy_map_comp0} OF
-        [type_definition, unfold_maps ctxt (map_comp0_of_bnf bnf)]) 1;
-    fun map_cong0_tac ctxt =
-      EVERY' (rtac @{thm type_copy_map_cong0} :: rtac (unfold_all ctxt (map_cong0_of_bnf bnf)) ::
+    fun map_id0_tac _ =
+      rtac (@{thm type_copy_map_id0} OF [type_definition, map_id0_of_bnf bnf]) 1;
+    fun map_comp0_tac _ =
+      rtac (@{thm type_copy_map_comp0} OF [type_definition, map_comp0_of_bnf bnf]) 1;
+    fun map_cong0_tac _ =
+      EVERY' (rtac @{thm type_copy_map_cong0} :: rtac (map_cong0_of_bnf bnf) ::
         map (fn i => EVERY' [select_prem_tac live (dtac meta_spec) i, etac meta_mp,
           etac (o_apply RS equalityD2 RS set_mp)]) (1 upto live)) 1;
-    fun set_map0_tac thm ctxt =
-      rtac (@{thm type_copy_set_map0} OF [type_definition, unfold_all ctxt thm]) 1;
-    val set_bd_tacs = map (fn thm => fn ctxt => rtac (@{thm ordLeq_ordIso_trans} OF
-        [unfold_sets ctxt thm, bd_ordIso] RS @{thm type_copy_set_bd}) 1)
-      (set_bd_of_bnf bnf);
-    fun le_rel_OO_tac ctxt =
-      rtac (unfold_rels ctxt (le_rel_OO_of_bnf bnf) RS @{thm vimage2p_relcompp_mono}) 1;
+    fun set_map0_tac thm _ =
+      rtac (@{thm type_copy_set_map0} OF [type_definition, thm]) 1;
+    val set_bd_tacs = map (fn thm => fn _ => rtac (@{thm ordLeq_ordIso_trans} OF
+        [thm, bd_ordIso] RS @{thm type_copy_set_bd}) 1) (set_bd_of_bnf bnf);
+    fun le_rel_OO_tac _ =
+      rtac (le_rel_OO_of_bnf bnf RS @{thm vimage2p_relcompp_mono}) 1;
     fun rel_OO_Grp_tac ctxt =
-      (rtac (unfold_all ctxt (rel_OO_Grp_of_bnf bnf) RS @{thm vimage2p_cong} RS trans) THEN'
+      (rtac (rel_OO_Grp_of_bnf bnf RS @{thm vimage2p_cong} RS trans) THEN'
       SELECT_GOAL (unfold_thms_tac ctxt [o_apply,
         type_definition RS @{thm type_copy_vimage2p_Grp_Rep},
         type_definition RS @{thm vimage2p_relcompp_converse}]) THEN' rtac refl) 1;
@@ -864,18 +847,40 @@ fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
 
     val bnf_wits = map (fn (I, t) =>
         fold Term.absdummy (map (nth As) I)
-          (AbsA $ Term.list_comb (expand_id_bnf_comp_def t, map Bound (0 upto length I - 1))))
+          (AbsA $ Term.list_comb (t, map Bound (0 upto length I - 1))))
       (mk_wits_of_bnf (replicate nwits Ds) (replicate nwits As) bnf);
 
-    fun wit_tac ctxt = ALLGOALS (dtac (type_definition RS @{thm type_copy_wit})) THEN
-      mk_simple_wit_tac (map (unfold_all ctxt) (wit_thms_of_bnf bnf));
+    fun wit_tac _ = ALLGOALS (dtac (type_definition RS @{thm type_copy_wit})) THEN
+      mk_simple_wit_tac (wit_thms_of_bnf bnf);
 
     val (bnf', lthy') =
-      bnf_def Hardly_Inline (user_policy Dont_Note) qualify tacs wit_tac (SOME all_deads)
+      bnf_def Hardly_Inline (user_policy Dont_Note) true qualify tacs wit_tac (SOME all_deads)
         Binding.empty Binding.empty []
         ((((((b, TA), bnf_map), bnf_sets), bnf_bd'), bnf_wits), SOME bnf_rel) lthy;
+
+    val unfolds = @{thm id_bnf_comp_apply} ::
+      (#map_unfolds unfold_set @ flat (#set_unfoldss unfold_set) @ #rel_unfolds unfold_set);
+
+    val bnf'' = bnf' |> morph_bnf_defs (Morphism.thm_morphism "BNF" (unfold_thms lthy' unfolds));
+    
+    val map_def = map_def_of_bnf bnf'';
+    val set_defs = set_defs_of_bnf bnf'';
+    val rel_def = map_def_of_bnf bnf'';
+
+    val bnf_b = qualify b;
+    val def_qualify =
+      Thm.def_binding o Binding.conceal o Binding.qualify false (Binding.name_of bnf_b);
+    fun mk_prefix_binding pre = Binding.prefix_name (pre ^ "_") bnf_b;
+    val map_b = def_qualify (mk_prefix_binding mapN);
+    val rel_b = def_qualify (mk_prefix_binding relN);
+    val set_bs = if live = 1 then [def_qualify (mk_prefix_binding setN)]
+      else map (fn i => def_qualify (mk_prefix_binding (mk_setN i))) (1 upto live);
+
+    val notes = (map_b, map_def) :: (rel_b, rel_def) :: (set_bs ~~ set_defs)
+      |> map (fn (b, def) => ((b, []), [([def], [])]))
+    val lthy'' = lthy' |> Local_Theory.notes notes |> snd
   in
-    ((bnf', (all_deads, absT_info)), lthy')
+    ((bnf'', (all_deads, absT_info)), lthy'')
   end;
 
 exception BAD_DEAD of typ * typ;

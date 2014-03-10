@@ -147,6 +147,9 @@ by (auto simp add: Grp_def natLeq_card_order natLeq_cinfinite)
 
 definition id_bnf_comp :: "'a \<Rightarrow> 'a" where "id_bnf_comp \<equiv> (\<lambda>x. x)"
 
+lemma id_bnf_comp_apply: "id_bnf_comp x = x"
+  unfolding id_bnf_comp_def by simp
+
 bnf ID: 'a
   map: "id_bnf_comp :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
   sets: "\<lambda>x. {x}"

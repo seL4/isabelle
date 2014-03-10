@@ -68,7 +68,7 @@ fun prepare_decl prepare_constraint prepare_typ raw_vars b mx user_mapb user_rel
     val Fwits = map2 (fn witb => fn witT =>
       Const (Local_Theory.full_name lthy witb, witT)) witbs witTs;
     val (key, goals, (triv_tac_opt, wit_goalss), after_qed, lthy, _) =
-      prepare_def Do_Inline (user_policy Note_Some) I (K I) (K I) (SOME (map TFree deads))
+      prepare_def Do_Inline (user_policy Note_Some) false I (K I) (K I) (SOME (map TFree deads))
       user_mapb user_relb user_setbs ((((((Binding.empty, T), Fmap), Fsets), Fbd), Fwits), NONE)
       lthy;
 

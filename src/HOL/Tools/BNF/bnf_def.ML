@@ -12,6 +12,7 @@ sig
   type nonemptiness_witness = {I: int list, wit: term, prop: thm list}
 
   val morph_bnf: morphism -> bnf -> bnf
+  val morph_bnf_defs: morphism -> bnf -> bnf
   val bnf_of: Proof.context -> string -> bnf option
   val register_bnf: string -> (bnf * local_theory) -> (bnf * local_theory)
 
@@ -100,16 +101,16 @@ sig
     Proof.context
 
   val print_bnfs: Proof.context -> unit
-  val prepare_def: inline_policy -> (Proof.context -> fact_policy) -> (binding -> binding) ->
-    (Proof.context -> 'a -> typ) -> (Proof.context -> 'b -> term) -> typ list option ->
-    binding -> binding -> binding list ->
+  val prepare_def: inline_policy -> (Proof.context -> fact_policy) -> bool ->
+    (binding -> binding) -> (Proof.context -> 'a -> typ) -> (Proof.context -> 'b -> term) ->
+    typ list option -> binding -> binding -> binding list ->
     (((((binding * 'a) * 'b) * 'b list) * 'b) * 'b list) * 'b option -> Proof.context ->
     string * term list *
     ((Proof.context -> thm list -> tactic) option * term list list) *
     ((thm list -> thm list list) -> thm list list -> Proof.context -> bnf * local_theory) *
     local_theory * thm list
 
-  val define_bnf_consts: inline_policy -> fact_policy -> typ list option ->
+  val define_bnf_consts: inline_policy -> fact_policy -> bool -> typ list option ->
     binding -> binding -> binding list ->
     (((((binding * typ) * term) * term list) * term) * term list) * term option -> local_theory ->
       ((typ list * typ list * typ list * typ) *
@@ -121,7 +122,7 @@ sig
         (typ list -> typ list -> typ list -> term) *
         (typ list -> typ list -> typ list -> term))) * local_theory
 
-  val bnf_def: inline_policy -> (Proof.context -> fact_policy) -> (binding -> binding) ->
+  val bnf_def: inline_policy -> (Proof.context -> fact_policy) -> bool -> (binding -> binding) ->
     (Proof.context -> tactic) list ->
     (Proof.context -> tactic) -> typ list option -> binding ->
     binding -> binding list ->
@@ -434,22 +435,27 @@ fun mk_bnf name T live lives lives' dead deads map sets bd axioms defs facts wit
        axioms = axioms, defs = defs, facts = facts,
        nwits = length wits, wits = wits, rel = rel};
 
-fun morph_bnf phi (BNF {name = name, T = T, live = live, lives = lives, lives' = lives',
+fun map_bnf f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16
+  (BNF {name = name, T = T, live = live, lives = lives, lives' = lives',
   dead = dead, deads = deads, map = map, sets = sets, bd = bd,
   axioms = axioms, defs = defs, facts = facts,
   nwits = nwits, wits = wits, rel = rel}) =
-  BNF {name = Morphism.binding phi name, T = Morphism.typ phi T,
-    live = live, lives = List.map (Morphism.typ phi) lives,
-    lives' = List.map (Morphism.typ phi) lives',
-    dead = dead, deads = List.map (Morphism.typ phi) deads,
-    map = Morphism.term phi map, sets = List.map (Morphism.term phi) sets,
-    bd = Morphism.term phi bd,
-    axioms = morph_axioms phi axioms,
-    defs = morph_defs phi defs,
-    facts = morph_facts phi facts,
-    nwits = nwits,
-    wits = List.map (morph_witness phi) wits,
-    rel = Morphism.term phi rel};
+  BNF {name = f1 name, T = f2 T,
+       live = f3 live, lives = f4 lives, lives' = f5 lives', dead = f6 dead, deads = f7 deads,
+       map = f8 map, sets = f9 sets, bd = f10 bd,
+       axioms = f11 axioms, defs = f12 defs, facts = f13 facts,
+       nwits = f14 nwits, wits = f15 wits, rel = f16 rel};
+
+fun morph_bnf phi =
+  let
+    val Tphi = Morphism.typ phi;
+    val tphi = Morphism.term phi;
+  in
+    map_bnf (Morphism.binding phi) Tphi I (map Tphi) (map Tphi) I (map Tphi) tphi (map tphi) tphi
+      (morph_axioms phi) (morph_defs phi) (morph_facts phi) I (map (morph_witness phi)) tphi
+  end;
+
+fun morph_bnf_defs phi = map_bnf I I I I I I I I I I I (morph_defs phi) I I I I;
 
 structure Data = Generic_Data
 (
@@ -660,7 +666,7 @@ fun note_bnf_thms fact_policy qualify' bnf_b bnf =
 
 (* Define new BNFs *)
 
-fun define_bnf_consts const_policy fact_policy Ds_opt map_b rel_b set_bs
+fun define_bnf_consts const_policy fact_policy internal Ds_opt map_b rel_b set_bs
   ((((((bnf_b, T_rhs), map_rhs), set_rhss), bd_rhs), wit_rhss), rel_rhs_opt) no_defs_lthy =
   let
     val live = length set_rhss;
@@ -683,8 +689,9 @@ fun define_bnf_consts const_policy fact_policy Ds_opt map_b rel_b set_bs
           ((rhs, Drule.reflexive_thm), lthy)
         else
           let val b = b () in
-            apfst (apsnd snd) (Local_Theory.define ((b, NoSyn), ((Thm.def_binding b, []), rhs))
-              lthy)
+            apfst (apsnd snd)
+              ((if internal then Local_Theory.define_internal else Local_Theory.define)
+                ((b, NoSyn), ((Thm.def_binding b, []), rhs)) lthy)
           end
       end;
 
@@ -830,8 +837,8 @@ fun define_bnf_consts const_policy fact_policy Ds_opt map_b rel_b set_bs
      (mk_bnf_map, mk_bnf_t, mk_bnf_T, mk_bnf_rel, mk_OO_Grp)), lthy)
   end;
 
-fun prepare_def const_policy mk_fact_policy qualify prep_typ prep_term Ds_opt map_b rel_b set_bs
-  ((((((raw_bnf_b, raw_bnf_T), raw_map), raw_sets), raw_bd), raw_wits), raw_rel_opt)
+fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term Ds_opt map_b rel_b
+  set_bs ((((((raw_bnf_b, raw_bnf_T), raw_map), raw_sets), raw_bd), raw_wits), raw_rel_opt)
   no_defs_lthy =
   let
     val fact_policy = mk_fact_policy no_defs_lthy;
@@ -861,7 +868,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_typ prep_term Ds_opt ma
      (bnf_map, bnf_sets, bnf_bd, bnf_wits, bnf_rel),
      (bnf_map_def, bnf_set_defs, bnf_bd_def, bnf_wit_defs, bnf_rel_def),
      (mk_bnf_map_Ds, mk_bnf_t_Ds, mk_bnf_T_Ds, _, mk_OO_Grp)), lthy) =
-       define_bnf_consts const_policy fact_policy Ds_opt map_b rel_b set_bs
+       define_bnf_consts const_policy fact_policy internal Ds_opt map_b rel_b set_bs
          ((((((bnf_b, T_rhs), map_rhs), set_rhss), bd_rhs), wit_rhss), rel_rhs_opt) no_defs_lthy;
 
     val dead = length deads;
@@ -1304,7 +1311,7 @@ fun register_bnf key (bnf, lthy) =
   (bnf, Local_Theory.declaration {syntax = false, pervasive = true}
     (fn phi => Data.map (Symtab.update (key, morph_bnf phi bnf))) lthy);
 
-fun bnf_def const_policy fact_policy qualify tacs wit_tac Ds map_b rel_b set_bs =
+fun bnf_def const_policy fact_policy internal qualify tacs wit_tac Ds map_b rel_b set_bs =
   (fn (_, goals, (triv_tac_opt, wit_goalss), after_qed, lthy, one_step_defs) =>
   let
     fun mk_wits_tac ctxt set_maps =
@@ -1324,7 +1331,7 @@ fun bnf_def const_policy fact_policy qualify tacs wit_tac Ds map_b rel_b set_bs 
       goals (map (fn tac => fn {context = ctxt, prems = _} =>
         unfold_thms_tac ctxt one_step_defs THEN tac ctxt) tacs)
     |> (fn thms => after_qed mk_wit_thms (map single thms) lthy)
-  end) oo prepare_def const_policy fact_policy qualify (K I) (K I) Ds map_b rel_b set_bs;
+  end) oo prepare_def const_policy fact_policy internal qualify (K I) (K I) Ds map_b rel_b set_bs;
 
 val bnf_cmd = (fn (key, goals, (triv_tac_opt, wit_goalss), after_qed, lthy, defs) =>
   let
@@ -1343,8 +1350,8 @@ val bnf_cmd = (fn (key, goals, (triv_tac_opt, wit_goalss), after_qed, lthy, defs
     Proof.unfolding ([[(defs, [])]])
       (Proof.theorem NONE (snd o register_bnf key oo after_qed mk_wit_thms)
         (map (single o rpair []) goals @ nontriv_wit_goals) lthy)
-  end) oo prepare_def Do_Inline (user_policy Note_Some) I Syntax.read_typ Syntax.read_term NONE
-    Binding.empty Binding.empty [];
+  end) oo prepare_def Do_Inline (user_policy Note_Some) false I Syntax.read_typ Syntax.read_term
+    NONE Binding.empty Binding.empty [];
 
 fun print_bnfs ctxt =
   let

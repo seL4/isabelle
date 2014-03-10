@@ -2088,7 +2088,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val (Jbnf_consts, lthy) =
           fold_map8 (fn b => fn map_b => fn rel_b => fn set_bs => fn mapx => fn sets => fn wits =>
               fn T => fn lthy =>
-            define_bnf_consts Dont_Inline (user_policy Note_Some lthy) (SOME deads)
+            define_bnf_consts Dont_Inline (user_policy Note_Some lthy) false (SOME deads)
               map_b rel_b set_bs
               ((((((b, T), fold_rev Term.absfree fs' mapx), sets), sbd), wits), NONE) lthy)
           bs map_bs rel_bs set_bss fs_maps setss_by_bnf all_witss Ts lthy;
@@ -2516,7 +2516,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val (Jbnfs, lthy) =
           fold_map7 (fn b => fn tacs => fn map_b => fn rel_b => fn set_bs => fn Jwit_thms =>
               fn consts => fn lthy =>
-            bnf_def Do_Inline (user_policy Note_Some) I tacs (wit_tac Jwit_thms) (SOME deads)
+            bnf_def Do_Inline (user_policy Note_Some) false I tacs (wit_tac Jwit_thms) (SOME deads)
               map_b rel_b set_bs consts lthy
             |> register_bnf (Local_Theory.full_name lthy b))
           bs tacss map_bs rel_bs set_bss Jwit_thmss
