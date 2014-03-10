@@ -6,46 +6,38 @@ Styles for term printing.
 
 signature TERM_STYLE =
 sig
-  val setup: string -> (Proof.context -> term -> term) parser -> theory -> theory
+  val setup: binding -> (Proof.context -> term -> term) parser -> theory -> theory
   val parse: (term -> term) context_parser
 end;
 
 structure Term_Style: TERM_STYLE =
 struct
 
-(* style data *)
+(* theory data *)
 
-fun err_dup_style name =
-  error ("Duplicate declaration of antiquote style: " ^ quote name);
-
-structure Styles = Theory_Data
+structure Data = Theory_Data
 (
-  type T = ((Proof.context -> term -> term) parser * stamp) Symtab.table;
-  val empty = Symtab.empty;
+  type T = (Proof.context -> term -> term) parser Name_Space.table;
+  val empty : T = Name_Space.empty_table "antiquotation_style";
   val extend = I;
-  fun merge data : T = Symtab.merge (eq_snd (op =)) data
-    handle Symtab.DUP dup => err_dup_style dup;
+  fun merge data : T = Name_Space.merge_tables data;
 );
 
+val get_data = Data.get o Proof_Context.theory_of;
+val get_style = Name_Space.get o get_data;
 
-(* accessors *)
-
-fun the_style thy name =
-  (case Symtab.lookup (Styles.get thy) name of
-    NONE => error ("Unknown antiquote style: " ^ quote name)
-  | SOME (style, _) => style);
-
-fun setup name style thy =
-  Styles.map (Symtab.update_new (name, (style, stamp ()))) thy
-    handle Symtab.DUP _ => err_dup_style name;
+fun setup binding style thy =
+  Data.map (#2 o Name_Space.define (Context.Theory thy) true (binding, style)) thy;
 
 
 (* style parsing *)
 
-fun parse_single ctxt = Parse.position Parse.xname -- Args.parse
-  >> (fn ((name, pos), args) => fst (Args.context_syntax "style"
-       (Scan.lift (the_style (Proof_Context.theory_of ctxt) name))
-         (Args.src (name, pos) args) ctxt |>> (fn f => f ctxt)));
+fun parse_single ctxt =
+  Parse.position Parse.xname -- Args.parse >> (fn (name, args) =>
+    let
+      val (src, parse) = Args.check_src (Context.Proof ctxt) (get_data ctxt) (Args.src name args);
+      val (f, _) = Args.context_syntax "antiquotation_style" (Scan.lift parse) src ctxt;
+    in f ctxt end);
 
 val parse = Args.context :|-- (fn ctxt => Scan.lift
   (Args.parens (parse_single ctxt ::: Scan.repeat (Args.$$$ "," |-- parse_single ctxt))
@@ -61,7 +53,7 @@ fun style_lhs_rhs proj = Scan.succeed (fn ctxt => fn t =>
       Object_Logic.drop_judgment (Proof_Context.theory_of ctxt) (Logic.strip_imp_concl t)
   in
     (case concl of
-      (_ $ l $ r) => proj (l, r)
+      _ $ l $ r => proj (l, r)
     | _ => error ("Binary operator expected in term: " ^ Syntax.string_of_term ctxt concl))
   end);
 
@@ -92,10 +84,10 @@ fun sub_term (Free (n, T)) = Free (sub_name n, T)
   | sub_term t = t;
 
 val _ = Theory.setup
- (setup "lhs" (style_lhs_rhs fst) #>
-  setup "rhs" (style_lhs_rhs snd) #>
-  setup "prem" style_prem #>
-  setup "concl" (Scan.succeed (K Logic.strip_imp_concl)) #>
-  setup "sub" (Scan.succeed (K sub_term)));
+ (setup (Binding.name "lhs") (style_lhs_rhs fst) #>
+  setup (Binding.name "rhs") (style_lhs_rhs snd) #>
+  setup (Binding.name "prem") style_prem #>
+  setup (Binding.name "concl") (Scan.succeed (K Logic.strip_imp_concl)) #>
+  setup (Binding.name "sub") (Scan.succeed (K sub_term)));
 
 end;
