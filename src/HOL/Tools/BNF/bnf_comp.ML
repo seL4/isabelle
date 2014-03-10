@@ -865,7 +865,7 @@ fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
     
     val map_def = map_def_of_bnf bnf'';
     val set_defs = set_defs_of_bnf bnf'';
-    val rel_def = map_def_of_bnf bnf'';
+    val rel_def = rel_def_of_bnf bnf'';
 
     val bnf_b = qualify b;
     val def_qualify =
