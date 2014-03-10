@@ -10,7 +10,6 @@ sig
   type src
   val src: xstring * Position.T -> Token.T list -> src
   val name_of_src: src -> string * Position.T
-  val args_of_src: src -> Token.T list
   val range_of_src: src -> Position.T
   val unparse_src: src -> string list
   val pretty_src: Proof.context -> src -> Pretty.T

@@ -958,12 +958,10 @@ fun pointer_of_bundle_name bundle_name ctxt =
   in
     case bundle of
       [(_, [arg_src])] => 
-        (let
-          val tokens = Args.args_of_src arg_src
-        in
-          (fst (Args.name tokens))
-          handle _ => error "The provided bundle is not a lifting bundle."
-        end)
+        let
+          val (name, _) = Args.syntax (Scan.lift Args.name) arg_src ctxt
+            handle ERROR _ => error "The provided bundle is not a lifting bundle."
+        in name end
       | _ => error "The provided bundle is not a lifting bundle."
   end
 
