@@ -142,11 +142,10 @@ fun pretty_attribs _ [] = []
 fun attribute_generic context =
   let val table = get_attributes context in
     fn src =>
-      let val ((name, _), pos) = Args.dest_src src in
-        (case Name_Space.lookup_key table name of
-          NONE => error ("Undefined attribute: " ^ quote name ^ Position.here pos)
-        | SOME (_, (att, _)) => att src)
-      end
+      let
+        val ((name, _), _) = Args.dest_src src;
+        val (att, _) = Name_Space.get table name;
+      in att src end
   end;
 
 val attribute = attribute_generic o Context.Proof;

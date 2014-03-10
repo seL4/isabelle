@@ -353,11 +353,10 @@ fun check_src ctxt src =
 fun method ctxt =
   let val table = get_methods ctxt in
     fn src =>
-      let val ((name, _), pos) = Args.dest_src src in
-        (case Name_Space.lookup_key table name of
-          NONE => error ("Undefined method: " ^ quote name ^ Position.here pos)
-        | SOME (_, (meth, _)) => meth src)
-      end
+      let
+        val ((name, _), _) = Args.dest_src src;
+        val (meth, _) = Name_Space.get table name;
+      in meth src end
   end;
 
 fun method_cmd ctxt = method ctxt o check_src ctxt;

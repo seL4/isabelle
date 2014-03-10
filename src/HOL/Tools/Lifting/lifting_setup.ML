@@ -954,8 +954,7 @@ fun get_transfer_rel (qinfo : Lifting_Info.quotient) =
 
 fun pointer_of_bundle_name bundle_name ctxt =
   let
-    val bundle_name = Bundle.check ctxt bundle_name
-    val bundle = Bundle.the_bundle ctxt bundle_name
+    val bundle = Bundle.get_bundle_cmd ctxt bundle_name
   in
     case bundle of
       [(_, [arg_src])] => 
