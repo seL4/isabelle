@@ -13,6 +13,7 @@ sig
   val implode: string list -> string
   val explode: string -> string list
   val append: string -> string -> string
+  val qualification: string -> int
   val qualify: string -> string -> string
   val qualifier: string -> string
   val base_name: string -> string
@@ -34,6 +35,9 @@ val explode = space_explode separator;
 fun append name1 "" = name1
   | append "" name2 = name2
   | append name1 name2 = name1 ^ separator ^ name2;
+
+fun qualification "" = 0
+  | qualification name = fold_string (fn s => s = separator ? Integer.add 1) name 1;
 
 fun qualify qual name =
   if qual = "" orelse name = "" then name
