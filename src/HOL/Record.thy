@@ -9,7 +9,7 @@
 header {* Extensible records with structural subtyping *}
 
 theory Record
-imports Quickcheck_Exhaustive Quickcheck_Narrowing
+imports Quickcheck_Exhaustive
 keywords "record" :: thy_decl
 begin
 
