@@ -1222,7 +1222,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                 fold_thms lthy ctr_defs'
                   (unfold_thms lthy (pre_rel_def :: abs_inverse ::
                        (if fp = Least_FP then [] else [dtor_ctor]) @ sumprod_thms_rel @
-                       @{thms vimage2p_def Inl_Inr_False})
+                       @{thms vimage2p_def sum.inject Inl_Inr_False})
                      (cterm_instantiate_pos (nones @ [SOME cxIn, SOME cyIn]) fp_rel_thm))
                 |> postproc
                 |> singleton (Proof_Context.export names_lthy no_defs_lthy);
