@@ -425,7 +425,6 @@ lemma [z3_rule]:  (* for def-axiom *)
   by auto
 
 
-
 hide_type (open) pattern
 hide_const Pattern fun_app term_true term_false z3div z3mod
 hide_const (open) trigger pat nopat weight

@@ -5,7 +5,7 @@
 header {* Word examples for for SMT binding *}
 
 theory SMT_Word_Examples
-imports Word
+imports "~~/src/HOL/Word/Word"
 begin
 
 declare [[smt_oracle = true]]
