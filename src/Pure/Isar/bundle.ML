@@ -133,7 +133,7 @@ fun print_bundles ctxt =
       Pretty.block (Pretty.keyword1 "bundle" :: Pretty.str " " :: Pretty.mark_str name ::
         Pretty.breaks (Pretty.str " =" :: maps prt_fact bundle));
   in
-    map prt_bundle (Name_Space.extern_table ctxt (get_bundles ctxt))
+    map prt_bundle (Name_Space.markup_table ctxt (get_bundles ctxt))
   end |> Pretty.chunks |> Pretty.writeln;
 
 end;

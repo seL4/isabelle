@@ -71,10 +71,10 @@ sig
   val merge_tables: 'a table * 'a table -> 'a table
   val join_tables: (string -> 'a * 'a -> 'a) (*Symtab.SAME*) ->
     'a table * 'a table -> 'a table
-  val dest_table': Proof.context -> T -> 'a Symtab.table -> ((string * xstring) * 'a) list
-  val dest_table: Proof.context -> 'a table -> ((string * xstring) * 'a) list
-  val extern_table': Proof.context -> T -> 'a Symtab.table -> ((Markup.T * xstring) * 'a) list
-  val extern_table: Proof.context -> 'a table -> ((Markup.T * xstring) * 'a) list
+  val extern_entries: Proof.context -> T -> (string * 'a) list -> ((string * xstring) * 'a) list
+  val markup_entries: Proof.context -> T -> (string * 'a) list -> ((Markup.T * xstring) * 'a) list
+  val extern_table: Proof.context -> 'a table -> ((string * xstring) * 'a) list
+  val markup_table: Proof.context -> 'a table -> ((Markup.T * xstring) * 'a) list
 end;
 
 structure Name_Space: NAME_SPACE =
@@ -536,17 +536,16 @@ fun join_tables f (Table (space1, tab1), Table (space2, tab2)) =
 
 (* present table content *)
 
-fun dest_table' ctxt space tab =
-  Symtab.fold (fn (name, x) => cons ((name, extern ctxt space name), x)) tab []
+fun extern_entries ctxt space entries =
+  fold (fn (name, x) => cons ((name, extern ctxt space name), x)) entries []
   |> Library.sort_wrt (#2 o #1);
 
-fun dest_table ctxt (Table (space, tab)) = dest_table' ctxt space tab;
-
-fun extern_table' ctxt space tab =
-  dest_table' ctxt space tab
+fun markup_entries ctxt space entries =
+  extern_entries ctxt space entries
   |> map (fn ((name, xname), x) => ((markup space name, xname), x));
 
-fun extern_table ctxt (Table (space, tab)) = extern_table' ctxt space tab;
+fun extern_table ctxt (Table (space, tab)) = extern_entries ctxt space (Symtab.dest tab);
+fun markup_table ctxt (Table (space, tab)) = markup_entries ctxt space (Symtab.dest tab);
 
 end;
 

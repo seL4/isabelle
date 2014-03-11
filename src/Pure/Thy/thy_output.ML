@@ -104,8 +104,8 @@ fun option ((xname, pos), s) ctxt =
 fun print_antiquotations ctxt =
   let
     val (commands, options) = get_antiquotations ctxt;
-    val command_names = map #1 (Name_Space.extern_table ctxt commands);
-    val option_names = map #1 (Name_Space.extern_table ctxt options);
+    val command_names = map #1 (Name_Space.markup_table ctxt commands);
+    val option_names = map #1 (Name_Space.markup_table ctxt options);
   in
     [Pretty.big_list "document antiquotations:" (map Pretty.mark_str command_names),
       Pretty.big_list "document antiquotation options:" (map Pretty.mark_str option_names)]
