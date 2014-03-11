@@ -50,8 +50,10 @@ fun disjoint_args (Ts, Us) =
       handle Type.TUNIFY => true);
 
 fun match_args (Ts, Us) =
-  Option.map Envir.subst_type
-    (SOME (Type.raw_matches (Ts, Us) Vartab.empty) handle Type.TYPE_MATCH => NONE);
+  if Type.could_matches (Ts, Us) then
+    Option.map Envir.subst_type
+      (SOME (Type.raw_matches (Ts, Us) Vartab.empty) handle Type.TYPE_MATCH => NONE)
+  else NONE;
 
 
 (* datatype defs *)
