@@ -15,6 +15,7 @@ sig
   type 'a T
   val table_of: 'a T -> 'a Table.table
   val empty: 'a T
+  val is_empty: 'a T -> bool
   val change_base: bool -> 'a T -> 'a T
   val join: (key -> 'a * 'a -> 'a) (*exception SAME*) -> 'a T * 'a T -> 'a T  (*exception DUP*)
   val merge: ('a * 'a -> bool) -> 'a T * 'a T -> 'a T  (*exception DUP*)
@@ -79,7 +80,9 @@ fun merge_change (NONE, NONE) = NONE
 datatype 'a T = Change_Table of {change: change option, table: 'a Table.table};
 
 fun table_of (Change_Table {table, ...}) = table;
+
 val empty = Change_Table {change = NONE, table = Table.empty};
+fun is_empty (Change_Table {change, table}) = is_none change andalso Table.is_empty table;
 
 fun make_change_table (change, table) = Change_Table {change = change, table = table};
 fun map_change_table f (Change_Table {change, table}) = make_change_table (f (change, table));
@@ -94,8 +97,9 @@ fun join f (arg1, arg2) =
     val Change_Table {change = change1, table = table1} = arg1;
     val Change_Table {change = change2, table = table2} = arg2;
   in
-    if pointer_eq (table1, table2) orelse Table.is_empty table2 then arg1
-    else if Table.is_empty table1 then arg2
+    if pointer_eq (change1, change2) andalso pointer_eq (table1, table2) then arg1
+    else if is_empty arg2 then arg1
+    else if is_empty arg1 then arg2
     else
       (case merge_change (change1, change2) of
         NONE => make_change_table (NONE, Table.join f (table1, table2))
