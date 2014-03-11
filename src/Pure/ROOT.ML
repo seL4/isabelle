@@ -64,6 +64,7 @@ use "General/sha1_samples.ML";
 use "PIDE/xml.ML";
 use "PIDE/yxml.ML";
 
+use "General/change_table.ML";
 use "General/graph.ML";
 
 use "System/options.ML";
