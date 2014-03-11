@@ -3,7 +3,7 @@
 header {* Counterexample generator performing narrowing-based testing *}
 
 theory Quickcheck_Narrowing
-imports Quickcheck_Exhaustive
+imports Quickcheck_Random
 keywords "find_unused_assms" :: diag
 begin
 
