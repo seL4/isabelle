@@ -175,6 +175,7 @@ fun init before_exit target thy =
       |> Name_Space.mandatory_path (Long_Name.base_name target);
   in
     thy
+    |> Sign.change_begin
     |> init_context ta
     |> Data.put (SOME ta)
     |> Local_Theory.init naming
@@ -183,7 +184,7 @@ fun init before_exit target thy =
         abbrev = Generic_Target.abbrev (target_abbrev ta),
         declaration = target_declaration ta,
         pretty = pretty ta,
-        exit = Local_Theory.target_of o before_exit}
+        exit = before_exit #> Local_Theory.target_of #> Sign.change_end_local}
   end;
 
 val theory_init = init I "";

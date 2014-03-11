@@ -7,6 +7,9 @@ signature, polymorphic constants.
 
 signature SIGN =
 sig
+  val change_begin: theory -> theory
+  val change_end: theory -> theory
+  val change_end_local: Proof.context -> Proof.context
   val syn_of: theory -> Syntax.syntax
   val tsig_of: theory -> Type.tsig
   val classes_of: theory -> Sorts.algebra
@@ -149,6 +152,18 @@ fun map_sign f = Data.map (fn Sign {syn, tsig, consts} => make_sign (f (syn, tsi
 fun map_syn f = map_sign (fn (syn, tsig, consts) => (f syn, tsig, consts));
 fun map_tsig f = map_sign (fn (syn, tsig, consts) => (syn, f tsig, consts));
 fun map_consts f = map_sign (fn (syn, tsig, consts) => (syn, tsig, f consts));
+
+
+(* linear change discipline *)
+
+fun change_base begin = map_sign (fn (syn, tsig, consts) =>
+  (syn, Type.change_base begin tsig, Consts.change_base begin consts));
+
+val change_begin = change_base true;
+val change_end = change_base false;
+
+fun change_end_local ctxt =
+  Context.raw_transfer (change_end (Proof_Context.theory_of ctxt)) ctxt;
 
 
 (* syntax *)

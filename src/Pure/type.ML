@@ -25,6 +25,7 @@ sig
     default: sort,
     types: decl Name_Space.table,
     log_types: string list}
+  val change_base: bool -> tsig -> tsig
   val empty_tsig: tsig
   val class_space: tsig -> Name_Space.T
   val class_alias: Name_Space.naming -> binding -> string -> tsig -> tsig
@@ -175,6 +176,9 @@ fun rep_tsig (TSig comps) = comps;
 
 fun make_tsig (classes, default, types, log_types) =
   TSig {classes = classes, default = default, types = types, log_types = log_types};
+
+fun change_base begin (TSig {classes, default, types, log_types}) =
+  make_tsig (classes, default, Name_Space.change_base begin types, log_types);
 
 fun build_tsig (classes, default, types) =
   let
