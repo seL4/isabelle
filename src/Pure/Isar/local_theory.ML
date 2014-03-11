@@ -65,6 +65,7 @@ sig
   val exit_global: local_theory -> theory
   val exit_result: (morphism -> 'a -> 'b) -> 'a * local_theory -> 'b * Proof.context
   val exit_result_global: (morphism -> 'a -> 'b) -> 'a * local_theory -> 'b * theory
+  val perhaps_exit_global: Proof.context -> theory
 end;
 
 structure Local_Theory: LOCAL_THEORY =
@@ -313,6 +314,7 @@ fun activate dep_morph mixin export =
   mark_brittle #> activate_nonbrittle dep_morph mixin export;
 
 
+
 (** init and exit **)
 
 (* init *)
@@ -340,5 +342,10 @@ fun exit_result_global f (x, lthy) =
     val thy_ctxt = Proof_Context.init_global thy;
     val phi = standard_morphism lthy thy_ctxt;
   in (f phi x, thy) end;
+
+fun perhaps_exit_global ctxt =
+  if can assert ctxt
+  then exit_global (assert_bottom true ctxt)
+  else Proof_Context.theory_of ctxt;
 
 end;
