@@ -441,6 +441,9 @@ appropriate than Thm.eq_thm.
 ML_Context.antiquotation, to make it more close to the analogous
 Thy_Output.antiquotation.  Minor INCOMPATIBILTY.
 
+* ML antiquotation @{here} refers to its source position, which is
+occasionally useful for experimentation and diagnostic purposes.
+
 
 *** System ***
 

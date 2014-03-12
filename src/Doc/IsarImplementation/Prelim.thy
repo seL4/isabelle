@@ -1056,6 +1056,14 @@ ML_command {*
 text {* This illustrates a key virtue of formalized bindings as
   opposed to raw specifications of base names: the system can use this
   additional information for feedback given to the user (error
-  messages etc.). *}
+  messages etc.).
+
+  \medskip The following example refers to its source position
+  directly, which is occasionally useful for experimentation and
+  diagnostic purposes: *}
+
+ML_command {*
+  warning ("Look here" ^ Position.here @{here})
+*}
 
 end

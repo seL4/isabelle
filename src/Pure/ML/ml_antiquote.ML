@@ -52,7 +52,16 @@ fun value name scan =
 (** misc antiquotations **)
 
 val _ = Theory.setup
- (inline (Binding.name "assert")
+ (ML_Context.antiquotation (Binding.name "here") (Scan.succeed ())
+    (fn src => fn () => fn ctxt =>
+      let
+        val (a, ctxt') = variant "position" ctxt;
+        val (_, pos) = Args.name_of_src src;
+        val env = "val " ^ a ^ " = " ^ ML_Syntax.print_position pos ^ ";\n";
+        val body = "Isabelle." ^ a;
+      in (K (env, body), ctxt') end) #>
+
+  inline (Binding.name "assert")
     (Scan.succeed "(fn b => if b then () else raise General.Fail \"Assertion failed\")") #>
 
   inline (Binding.name "make_string") (Scan.succeed ml_make_string) #>
