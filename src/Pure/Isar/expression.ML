@@ -944,9 +944,16 @@ fun subscribe_locale_only lthy =
 
 fun gen_sublocale_global prep_loc prep_interpretation
     before_exit raw_locale expression raw_eqns thy =
-  thy
-  |> Named_Target.init before_exit (prep_loc thy raw_locale)
-  |> gen_local_theory_interpretation prep_interpretation subscribe_locale_only expression raw_eqns;
+  let
+    val lthy = Named_Target.init before_exit (prep_loc thy raw_locale) thy;
+    fun setup_proof after_qed =
+      Element.witness_proof_eqs
+        (fn wits => fn eqs => after_qed wits eqs #> Local_Theory.exit);
+  in
+    lthy |>
+      generic_interpretation prep_interpretation setup_proof
+        Local_Theory.notes_kind (subscribe_locale_only lthy) expression raw_eqns
+  end;
 
 in
 

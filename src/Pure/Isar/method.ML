@@ -328,7 +328,7 @@ fun print_methods ctxt =
           Pretty.block
             (Pretty.mark_str name :: Pretty.str ":" :: Pretty.brk 2 :: Pretty.text comment);
   in
-    [Pretty.big_list "methods:" (map prt_meth (Name_Space.extern_table ctxt meths))]
+    [Pretty.big_list "methods:" (map prt_meth (Name_Space.markup_table ctxt meths))]
     |> Pretty.chunks |> Pretty.writeln
   end;
 

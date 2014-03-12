@@ -1743,7 +1743,7 @@ structure Oracles = Theory_Data
 );
 
 fun extern_oracles ctxt =
-  map #1 (Name_Space.extern_table ctxt (Oracles.get (Proof_Context.theory_of ctxt)));
+  map #1 (Name_Space.markup_table ctxt (Oracles.get (Proof_Context.theory_of ctxt)));
 
 fun add_oracle (b, oracle) thy =
   let

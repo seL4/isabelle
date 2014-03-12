@@ -25,6 +25,7 @@ sig
     default: sort,
     types: decl Name_Space.table,
     log_types: string list}
+  val change_base: bool -> tsig -> tsig
   val empty_tsig: tsig
   val class_space: tsig -> Name_Space.T
   val class_alias: Name_Space.naming -> binding -> string -> tsig -> tsig
@@ -76,6 +77,8 @@ sig
   val typ_instance: tsig -> typ * typ -> bool
   val raw_match: typ * typ -> tyenv -> tyenv
   val raw_matches: typ list * typ list -> tyenv -> tyenv
+  val could_match: typ * typ -> bool
+  val could_matches: typ list * typ list -> bool
   val raw_instance: typ * typ -> bool
   exception TUNIFY
   val unify: tsig -> typ * typ -> tyenv * int -> tyenv * int
@@ -173,6 +176,9 @@ fun rep_tsig (TSig comps) = comps;
 
 fun make_tsig (classes, default, types, log_types) =
   TSig {classes = classes, default = default, types = types, log_types = log_types};
+
+fun change_base begin (TSig {classes, default, types, log_types}) =
+  make_tsig (classes, default, Name_Space.change_base begin types, log_types);
 
 fun build_tsig (classes, default, types) =
   let
@@ -461,8 +467,19 @@ and raw_matches (T :: Ts, U :: Us) subs = raw_matches (Ts, Us) (raw_match (T, U)
   | raw_matches ([], []) subs = subs
   | raw_matches _ _ = raise TYPE_MATCH;
 
+(*fast matching filter*)
+fun could_match (Type (a, Ts), Type (b, Us)) = a = b andalso could_matches (Ts, Us)
+  | could_match (TFree (a, _), TFree (b, _)) = a = b
+  | could_match (TVar _, _) = true
+  | could_match _ = false
+and could_matches (T :: Ts, U :: Us) = could_match (T, U) andalso could_matches (Ts, Us)
+  | could_matches ([], []) = true
+  | could_matches _ = false;
+
 fun raw_instance (T, U) =
-  (raw_match (U, T) Vartab.empty; true) handle TYPE_MATCH => false;
+  if could_match (U, T) then
+    (raw_match (U, T) Vartab.empty; true) handle TYPE_MATCH => false
+  else false;
 
 
 (* unification *)

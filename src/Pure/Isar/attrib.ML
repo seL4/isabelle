@@ -104,7 +104,7 @@ fun print_attributes ctxt =
           Pretty.block
             (Pretty.mark_str name :: Pretty.str ":" :: Pretty.brk 2 :: Pretty.text comment);
   in
-    [Pretty.big_list "attributes:" (map prt_attr (Name_Space.extern_table ctxt attribs))]
+    [Pretty.big_list "attributes:" (map prt_attr (Name_Space.markup_table ctxt attribs))]
     |> Pretty.chunks |> Pretty.writeln
   end;
 
@@ -337,7 +337,9 @@ fun print_options ctxt =
           Pretty.brk 1, Pretty.str (Config.print_value value)]
       end;
     val space = attribute_space ctxt;
-    val configs = Name_Space.extern_table' ctxt space (Configs.get (Proof_Context.theory_of ctxt));
+    val configs =
+      Name_Space.markup_entries ctxt space
+        (Symtab.dest (Configs.get (Proof_Context.theory_of ctxt)));
   in Pretty.writeln (Pretty.big_list "configuration options" (map prt configs)) end;
 
 

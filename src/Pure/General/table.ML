@@ -36,10 +36,10 @@ sig
   val update: key * 'a -> 'a table -> 'a table
   val update_new: key * 'a -> 'a table -> 'a table                     (*exception DUP*)
   val default: key * 'a -> 'a table -> 'a table
-  val map_entry: key -> ('a -> 'a) -> 'a table -> 'a table
+  val map_entry: key -> ('a -> 'a) (*exception SAME*) -> 'a table -> 'a table
   val map_default: key * 'a -> ('a -> 'a) -> 'a table -> 'a table
   val make: (key * 'a) list -> 'a table                                (*exception DUP*)
-  val join: (key -> 'a * 'a -> 'a) (*exception DUP/SAME*) ->
+  val join: (key -> 'a * 'a -> 'a) (*exception SAME*) ->
     'a table * 'a table -> 'a table                                    (*exception DUP*)
   val merge: ('a * 'a -> bool) -> 'a table * 'a table -> 'a table      (*exception DUP*)
   val delete: key -> 'a table -> 'a table                              (*exception UNDEF*)

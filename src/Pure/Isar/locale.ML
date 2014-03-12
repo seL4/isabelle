@@ -635,7 +635,7 @@ fun print_locales thy =
     (Pretty.breaks
       (Pretty.str "locales:" ::
         map (Pretty.mark_str o #1)
-          (Name_Space.extern_table (Proof_Context.init_global thy) (Locales.get thy))))
+          (Name_Space.markup_table (Proof_Context.init_global thy) (Locales.get thy))))
   |> Pretty.writeln;
 
 fun pretty_locale thy show_facts name =

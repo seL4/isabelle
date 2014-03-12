@@ -9,6 +9,7 @@ signature CONSTS =
 sig
   type T
   val eq_consts: T * T -> bool
+  val change_base: bool -> T -> T
   val retrieve_abbrevs: T -> string list -> term -> (term * term) list
   val dest: T ->
    {const_space: Name_Space.T,
@@ -64,6 +65,9 @@ fun make_consts (decls, constraints, rev_abbrevs) =
 
 fun map_consts f (Consts {decls, constraints, rev_abbrevs}) =
   make_consts (f (decls, constraints, rev_abbrevs));
+
+fun change_base begin = map_consts (fn (decls, constraints, rev_abbrevs) =>
+  (Name_Space.change_base begin decls, constraints, rev_abbrevs));
 
 
 (* reverted abbrevs *)

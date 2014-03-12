@@ -571,6 +571,7 @@ fun instantiation (tycos, vs, sort) thy =
       | NONE => NONE);
   in
     thy
+    |> Sign.change_begin
     |> Proof_Context.init_global
     |> Instantiation.put (mk_instantiation ((tycos, vs, sort), params))
     |> fold (Variable.declare_typ o TFree) vs
@@ -586,7 +587,7 @@ fun instantiation (tycos, vs, sort) thy =
         abbrev = Generic_Target.abbrev Generic_Target.theory_abbrev,
         declaration = K Generic_Target.theory_declaration,
         pretty = pretty,
-        exit = Local_Theory.target_of o conclude}
+        exit = conclude #> Local_Theory.target_of #> Sign.change_end_local}
   end;
 
 fun instantiation_cmd arities thy =
