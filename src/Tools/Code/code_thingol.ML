@@ -876,8 +876,9 @@ fun static_value ctxt postproc consts evaluator =
 fun read_const_exprs_internal ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
-    fun consts_of thy' = Symtab.fold (fn (c, (_, NONE)) => cons c | _ => I)
-      (#constants (Consts.dest (Sign.consts_of thy'))) [];
+    fun consts_of thy' =
+      fold (fn (c, (_, NONE)) => cons c | _ => I)
+        (#constants (Consts.dest (Sign.consts_of thy'))) [];
     fun belongs_here thy' c = forall
       (fn thy'' => not (Sign.declared_const thy'' c)) (Theory.parents_of thy');
     fun consts_of_select thy' = filter (belongs_here thy') (consts_of thy');

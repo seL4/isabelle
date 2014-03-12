@@ -33,10 +33,9 @@ fun all_unconcealed_thms_of thy =
 fun consts_of thy =
  let
    val {const_space, constants, ...} = Consts.dest (Sign.consts_of thy)
-   val consts = Symtab.dest constants
  in
    map_filter (fn (s, (T, NONE)) => SOME (s, T) | _ => NONE)
-     (filter_out (fn (s, _) => Name_Space.is_concealed const_space s) consts)
+     (filter_out (fn (s, _) => Name_Space.is_concealed const_space s) constants)
  end;
 
 

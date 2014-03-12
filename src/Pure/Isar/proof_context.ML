@@ -1229,14 +1229,14 @@ val print_syntax = Syntax.print_syntax o syn_of;
 fun pretty_abbrevs show_globals ctxt =
   let
     val space = const_space ctxt;
-    val (constants, globals) =
+    val (constants, global_constants) =
       pairself (#constants o Consts.dest) (#consts (rep_data ctxt));
+    val globals = Symtab.make global_constants;
     fun add_abbr (_, (_, NONE)) = I
       | add_abbr (c, (T, SOME t)) =
           if not show_globals andalso Symtab.defined globals c then I
           else cons (c, Logic.mk_equals (Const (c, T), t));
-    val abbrevs =
-      Name_Space.markup_entries ctxt space (Symtab.fold add_abbr constants []);
+    val abbrevs = Name_Space.markup_entries ctxt space (fold add_abbr constants []);
   in
     if null abbrevs then []
     else [Pretty.big_list "abbreviations:" (map (pretty_term_abbrev ctxt o #2) abbrevs)]

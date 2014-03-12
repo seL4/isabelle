@@ -13,8 +13,8 @@ sig
   val retrieve_abbrevs: T -> string list -> term -> (term * term) list
   val dest: T ->
    {const_space: Name_Space.T,
-    constants: (typ * term option) Symtab.table,
-    constraints: typ Symtab.table}
+    constants: (string * (typ * term option)) list,
+    constraints: (string * typ) list}
   val the_const: T -> string -> string * typ                   (*exception TYPE*)
   val the_abbreviation: T -> string -> typ * term              (*exception TYPE*)
   val type_scheme: T -> string -> typ                          (*exception TYPE*)
@@ -89,8 +89,8 @@ fun dest (Consts {decls, constraints, ...}) =
  {const_space = Name_Space.space_of_table decls,
   constants =
     Name_Space.fold_table (fn (c, ({T, ...}, abbr)) =>
-      Symtab.update (c, (T, Option.map #rhs abbr))) decls Symtab.empty,
-  constraints = constraints};
+      cons (c, (T, Option.map #rhs abbr))) decls [],
+  constraints = Symtab.dest constraints};
 
 
 (* lookup consts *)

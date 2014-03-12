@@ -168,11 +168,11 @@ fun pretty_full_theory verbose thy =
     fun prune_const c = not verbose andalso Consts.is_concealed consts c;
     val cnsts =
       Name_Space.markup_entries ctxt const_space
-        (filter_out (prune_const o fst) (Symtab.dest constants));
+        (filter_out (prune_const o fst) constants);
 
     val log_cnsts = map_filter (fn (c, (ty, NONE)) => SOME (c, ty) | _ => NONE) cnsts;
     val abbrevs = map_filter (fn (c, (ty, SOME t)) => SOME (c, (ty, t)) | _ => NONE) cnsts;
-    val cnstrs = Name_Space.markup_entries ctxt const_space (Symtab.dest constraints);
+    val cnstrs = Name_Space.markup_entries ctxt const_space constraints;
 
     val axms = Name_Space.markup_table ctxt (Theory.axiom_table thy);
 

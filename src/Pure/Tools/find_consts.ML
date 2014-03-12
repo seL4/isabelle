@@ -108,8 +108,7 @@ fun find_consts ctxt raw_criteria =
       fold (filter_const c) (user_visible consts :: criteria) (SOME low_ranking);
 
     val matches =
-      Symtab.fold (fn c => (case eval_entry c of NONE => I | SOME rank => cons (rank, c)))
-        constants []
+      fold (fn c => (case eval_entry c of NONE => I | SOME rank => cons (rank, c))) constants []
       |> sort (prod_ord (rev_order o int_ord) (string_ord o pairself fst))
       |> map (apsnd fst o snd);
   in
