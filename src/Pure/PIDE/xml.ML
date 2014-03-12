@@ -37,6 +37,7 @@ sig
   val unwrap_elem: tree -> (((string * attributes) * tree list) * tree list) option
   val add_content: tree -> Buffer.T -> Buffer.T
   val content_of: body -> string
+  val trim_blanks: body -> body
   val header: string
   val text: string -> string
   val element: string -> attributes -> string list -> string
@@ -95,6 +96,21 @@ fun add_content tree =
       | Text s => Buffer.add s));
 
 fun content_of body = Buffer.empty |> fold add_content body |> Buffer.content;
+
+
+(* trim blanks *)
+
+fun trim_blanks trees =
+  trees |> maps
+    (fn Elem (markup, body) => [Elem (markup, trim_blanks body)]
+      | Text s =>
+          let
+            val s' = s
+              |> raw_explode
+              |> take_prefix Symbol.is_blank |> #2
+              |> take_suffix Symbol.is_blank |> #1
+              |> implode;
+          in if s' = "" then [] else [Text s'] end);
 
 
 

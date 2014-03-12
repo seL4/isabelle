@@ -536,7 +536,7 @@ text {* \paragraph{Completion tables} are determined statically from
   within the underlying text area.
 
   \paragraph{Explicit completion} is triggered by the keyboard
-  shortcut @{verbatim "C+b"} (action @{verbatim "isabelle.complete"}).
+  shortcut @{verbatim "C+b"} (action @{action "isabelle.complete"}).
   This overrides the original jEdit binding for action @{verbatim
   "complete-word"}, but the latter is used as fall-back for
   non-Isabelle edit modes.  It is also possible to restore the
@@ -753,10 +753,10 @@ text {* Isabelle sources consist of \emph{symbols} that extend plain
   \medskip
   \begin{tabular}{llll}
     \textbf{style} & \textbf{symbol} & \textbf{shortcut} & \textbf{action} \\\hline
-    superscript & @{verbatim "\<^sup>"} & @{verbatim "C+e UP"} & @{verbatim "isabelle.control-sup"} \\
-    subscript & @{verbatim "\<^sub>"} & @{verbatim "C+e DOWN"} & @{verbatim "isabelle.control-sub"} \\
-    bold face & @{verbatim "\<^bold>"} & @{verbatim "C+e RIGHT"} & @{verbatim "isabelle.control-bold"} \\
-    reset & & @{verbatim "C+e LEFT"} & @{verbatim "isabelle.control-reset"} \\
+    superscript & @{verbatim "\<^sup>"} & @{verbatim "C+e UP"} & @{action "isabelle.control-sup"} \\
+    subscript & @{verbatim "\<^sub>"} & @{verbatim "C+e DOWN"} & @{action "isabelle.control-sub"} \\
+    bold face & @{verbatim "\<^bold>"} & @{verbatim "C+e RIGHT"} & @{action "isabelle.control-bold"} \\
+    reset & & @{verbatim "C+e LEFT"} & @{action "isabelle.control-reset"} \\
   \end{tabular}
   \medskip
 

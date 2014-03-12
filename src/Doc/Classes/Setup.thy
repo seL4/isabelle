@@ -6,7 +6,6 @@ ML_file "../antiquote_setup.ML"
 ML_file "../more_antiquote.ML"
 
 setup {*
-  Antiquote_Setup.setup #>
   More_Antiquote.setup #>
   Code_Target.set_default_code_width 74
 *}

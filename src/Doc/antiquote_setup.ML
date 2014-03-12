@@ -4,12 +4,7 @@
 Auxiliary antiquotations for the Isabelle manuals.
 *)
 
-signature ANTIQUOTE_SETUP =
-sig
-  val setup: theory -> theory
-end;
-
-structure Antiquote_Setup: ANTIQUOTE_SETUP =
+structure Antiquote_Setup: sig end =
 struct
 
 (* misc utils *)
@@ -42,9 +37,9 @@ fun clean_name "\<dots>" = "dots"
 
 val verbatim = space_implode "\\verb,|," o map (enclose "\\verb|" "|") o space_explode "|";
 
-val verbatim_setup =
-  Thy_Output.antiquotation @{binding verbatim} (Scan.lift Args.name)
-    (K (split_lines #> map verbatim #> space_implode "\\isasep\\isanewline%\n"));
+val _ =
+  Theory.setup (Thy_Output.antiquotation @{binding verbatim} (Scan.lift Args.name)
+    (K (split_lines #> map verbatim #> space_implode "\\isasep\\isanewline%\n")));
 
 
 (* ML text *)
@@ -117,21 +112,22 @@ fun index_ml name kind ml = Thy_Output.antiquotation name
 
 in
 
-val index_ml_setup =
-  index_ml @{binding index_ML} "" ml_val #>
-  index_ml @{binding index_ML_op} "infix" ml_op #>
-  index_ml @{binding index_ML_type} "type" ml_type #>
-  index_ml @{binding index_ML_exception} "exception" ml_exception #>
-  index_ml @{binding index_ML_structure} "structure" ml_structure #>
-  index_ml @{binding index_ML_functor} "functor" ml_functor;
+val _ =
+  Theory.setup
+   (index_ml @{binding index_ML} "" ml_val #>
+    index_ml @{binding index_ML_op} "infix" ml_op #>
+    index_ml @{binding index_ML_type} "type" ml_type #>
+    index_ml @{binding index_ML_exception} "exception" ml_exception #>
+    index_ml @{binding index_ML_structure} "structure" ml_structure #>
+    index_ml @{binding index_ML_functor} "functor" ml_functor);
 
 end;
 
 
 (* named theorems *)
 
-val named_thms_setup =
-  Thy_Output.antiquotation @{binding named_thms}
+val _ =
+  Theory.setup (Thy_Output.antiquotation @{binding named_thms}
     (Scan.repeat (Attrib.thm -- Scan.lift (Args.parens Args.name)))
     (fn {context = ctxt, ...} =>
       map (apfst (Thy_Output.pretty_thm ctxt))
@@ -148,15 +144,47 @@ val named_thms_setup =
               Output.output (Pretty.str_of p) ^
               "\\rulename{" ^ Output.output (Pretty.str_of (Thy_Output.pretty_text ctxt name)) ^ "}")
             #> space_implode "\\par\\smallskip%\n"
-            #> enclose "\\isa{" "}"));
+            #> enclose "\\isa{" "}")));
 
 
 (* theory file *)
 
-val thy_file_setup =
-  Thy_Output.antiquotation @{binding thy_file} (Scan.lift Args.name)
+val _ =
+  Theory.setup (Thy_Output.antiquotation @{binding thy_file} (Scan.lift Args.name)
     (fn {context = ctxt, ...} =>
-      fn name => (Thy_Load.check_thy Path.current name; Thy_Output.output ctxt [Pretty.str name]));
+      fn name => (Thy_Load.check_thy Path.current name; Thy_Output.output ctxt [Pretty.str name])));
+
+
+(* Isabelle/jEdit elements *)
+
+local
+
+fun parse_named a (XML.Elem ((b, props), _)) =
+      (case Properties.get props "NAME" of
+        SOME name => if a = b then [name] else []
+      | NONE => [])
+  | parse_named _ _ = [];
+
+fun parse_dockables [XML.Elem (("DOCKABLES", _), body)] = maps (parse_named "DOCKABLE") body
+  | parse_dockables _ = [];
+
+val jedit_actions =
+  (case XML.parse (File.read (Path.explode "~~/src/Tools/jEdit/src/actions.xml")) of
+    XML.Elem (("ACTIONS", _), body) => maps (parse_named "ACTION") body
+  | _ => []);
+
+val jedit_dockables =
+  (case XML.parse (File.read (Path.explode "~~/src/Tools/jEdit/src/dockables.xml")) of
+    XML.Elem (("DOCKABLES", _), body) => maps (parse_named "DOCKABLE") body
+  | _ => []);
+
+val all_actions = jedit_actions @ jedit_dockables;
+
+in
+
+fun is_action (name, pos) = member (op =) all_actions name;
+
+end;
 
 
 (* Isabelle/Isar entities (with index) *)
@@ -224,35 +252,27 @@ fun entity_antiqs check markup kind =
 
 in
 
-val entity_setup =
-  entity_antiqs no_check "" "syntax" #>
-  entity_antiqs (K command_check) "isacommand" "command" #>
-  entity_antiqs (K (Keyword.is_keyword o #1)) "isakeyword" "keyword" #>
-  entity_antiqs (K (Keyword.is_keyword o #1)) "isakeyword" "element" #>
-  entity_antiqs (can o Method.check_name) "" "method" #>
-  entity_antiqs (can o Attrib.check_name) "" "attribute" #>
-  entity_antiqs no_check "" "fact" #>
-  entity_antiqs no_check "" "variable" #>
-  entity_antiqs no_check "" "case" #>
-  entity_antiqs (can o Thy_Output.check_command) "" "antiquotation" #>
-  entity_antiqs (can o Thy_Output.check_option) "" "antiquotation option" #>
-  entity_antiqs no_check "isatt" "setting" #>
-  entity_antiqs no_check "isatt" "system option" #>
-  entity_antiqs no_check "" "inference" #>
-  entity_antiqs no_check "isatt" "executable" #>
-  entity_antiqs (K check_tool) "isatool" "tool" #>
-  entity_antiqs (can o ML_Context.check_antiq) "" Markup.ML_antiquotationN;
+val _ =
+  Theory.setup
+   (entity_antiqs no_check "" "syntax" #>
+    entity_antiqs (K command_check) "isacommand" "command" #>
+    entity_antiqs (K (Keyword.is_keyword o #1)) "isakeyword" "keyword" #>
+    entity_antiqs (K (Keyword.is_keyword o #1)) "isakeyword" "element" #>
+    entity_antiqs (can o Method.check_name) "" "method" #>
+    entity_antiqs (can o Attrib.check_name) "" "attribute" #>
+    entity_antiqs no_check "" "fact" #>
+    entity_antiqs no_check "" "variable" #>
+    entity_antiqs no_check "" "case" #>
+    entity_antiqs (can o Thy_Output.check_command) "" "antiquotation" #>
+    entity_antiqs (can o Thy_Output.check_option) "" "antiquotation option" #>
+    entity_antiqs no_check "isatt" "setting" #>
+    entity_antiqs no_check "isatt" "system option" #>
+    entity_antiqs no_check "" "inference" #>
+    entity_antiqs no_check "isatt" "executable" #>
+    entity_antiqs (K check_tool) "isatool" "tool" #>
+    entity_antiqs (can o ML_Context.check_antiq) "" Markup.ML_antiquotationN #>
+    entity_antiqs (K is_action) "isatt" "action");
 
 end;
-
-
-(* theory setup *)
-
-val setup =
-  verbatim_setup #>
-  index_ml_setup #>
-  named_thms_setup #>
-  thy_file_setup #>
-  entity_setup;
 
 end;
