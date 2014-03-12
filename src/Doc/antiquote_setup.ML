@@ -267,7 +267,7 @@ val _ =
     entity_antiqs no_check "" "inference" #>
     entity_antiqs no_check "isatt" "executable" #>
     entity_antiqs (K check_tool) "isatool" "tool" #>
-    entity_antiqs (can o ML_Context.check_antiq) "" Markup.ML_antiquotationN #>
+    entity_antiqs (can o ML_Context.check_antiquotation) "" Markup.ML_antiquotationN #>
     entity_antiqs (K (is_action o #1)) "isatt" "action");
 
 end;

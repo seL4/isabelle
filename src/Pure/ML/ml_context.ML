@@ -23,6 +23,7 @@ sig
   val get_stored_thm: unit -> thm
   val ml_store_thms: string * thm list -> unit
   val ml_store_thm: string * thm -> unit
+  val check_antiquotation: Proof.context -> xstring * Position.T -> string
   val print_antiquotations: Proof.context -> unit
   type decl = Proof.context -> string * string
   val antiquotation: binding -> 'a context_parser ->
@@ -108,6 +109,9 @@ structure Antiquotations = Theory_Data
 );
 
 val get_antiquotations = Antiquotations.get o Proof_Context.theory_of;
+
+fun check_antiquotation ctxt =
+  #1 o Name_Space.check (Context.Proof ctxt) (get_antiquotations ctxt);
 
 fun add_antiquotation name f thy = thy
   |> Antiquotations.map (Name_Space.define (Context.Theory thy) true (name, f) #> snd);
