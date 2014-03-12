@@ -43,33 +43,33 @@ exception DUP = Table.DUP;
 
 (* optional change *)
 
-datatype change = Change of {base: serial, depth: int, changes: Table.set};
+datatype change = No_Change | Change of {base: serial, depth: int, changes: Table.set};
 
-fun some_change base depth changes =
-  SOME (Change {base = base, depth = depth, changes = changes});
+fun make_change base depth changes =
+  Change {base = base, depth = depth, changes = changes};
 
-fun base_change true NONE =
-      some_change (serial ()) 0 Table.empty
-  | base_change true (SOME (Change {base, depth, changes})) =
-      some_change base (depth + 1) changes
-  | base_change false (SOME (Change {base, depth, changes})) =
-      if depth = 0 then NONE else some_change base (depth - 1) changes
-  | base_change false NONE = raise Fail "Unbalanced block structure of change table";
+fun base_change true No_Change =
+      make_change (serial ()) 0 Table.empty
+  | base_change true (Change {base, depth, changes}) =
+      make_change base (depth + 1) changes
+  | base_change false (Change {base, depth, changes}) =
+      if depth = 0 then No_Change else make_change base (depth - 1) changes
+  | base_change false No_Change = raise Fail "Unbalanced block structure of change table";
 
-fun update_change _ NONE = NONE
-  | update_change key (SOME (Change {base, depth, changes})) =
-      some_change base depth (Table.insert (K true) (key, ()) changes);
+fun update_change _ No_Change = No_Change
+  | update_change key (Change {base, depth, changes}) =
+      make_change base depth (Table.insert (K true) (key, ()) changes);
 
 fun cannot_merge () = raise Fail "Attempt to merge tables with incompatible change base";
 
-fun merge_change (NONE, NONE) = NONE
-  | merge_change (SOME (Change change1), SOME (Change change2)) =
+fun merge_change (No_Change, No_Change) = NONE
+  | merge_change (Change change1, Change change2) =
       let
         val {base = base1, depth = depth1, changes = changes1} = change1;
         val {base = base2, depth = depth2, changes = changes2} = change2;
       in
         if base1 = base1 andalso depth1 = depth2 then
-          SOME ((changes2, some_change base1 depth1 (Table.merge (K true) (changes1, changes2))))
+          SOME ((changes2, make_change base1 depth1 (Table.merge (K true) (changes1, changes2))))
         else cannot_merge ()
       end
   | merge_change _ = cannot_merge ();
@@ -77,12 +77,14 @@ fun merge_change (NONE, NONE) = NONE
 
 (* table with changes *)
 
-datatype 'a T = Change_Table of {change: change option, table: 'a Table.table};
+datatype 'a T = Change_Table of {change: change, table: 'a Table.table};
 
 fun table_of (Change_Table {table, ...}) = table;
 
-val empty = Change_Table {change = NONE, table = Table.empty};
-fun is_empty (Change_Table {change, table}) = is_none change andalso Table.is_empty table;
+val empty = Change_Table {change = No_Change, table = Table.empty};
+
+fun is_empty (Change_Table {change, table}) =
+  (case change of No_Change => Table.is_empty table | _ => false);
 
 fun make_change_table (change, table) = Change_Table {change = change, table = table};
 fun map_change_table f (Change_Table {change, table}) = make_change_table (f (change, table));
@@ -102,7 +104,7 @@ fun join f (arg1, arg2) =
     else if is_empty arg1 then arg2
     else
       (case merge_change (change1, change2) of
-        NONE => make_change_table (NONE, Table.join f (table1, table2))
+        NONE => make_change_table (No_Change, Table.join f (table1, table2))
       | SOME (changes2, change') =>
           let
             fun update key table =
