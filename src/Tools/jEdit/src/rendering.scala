@@ -653,6 +653,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       Markup.KEYWORD2 -> keyword2_color,
       Markup.KEYWORD3 -> keyword3_color,
       Markup.QUASI_KEYWORD -> quasi_keyword_color,
+      Markup.OPERATOR -> Color.BLACK,
       Markup.STRING -> Color.BLACK,
       Markup.ALTSTRING -> Color.BLACK,
       Markup.VERBATIM -> Color.BLACK,

@@ -12,7 +12,7 @@ sig
     Error of string | Sync | EOF
   type file = {src_path: Path.T, lines: string list, digest: SHA1.digest, pos: Position.T}
   datatype value =
-    Literal of string | Text of string | Typ of typ | Term of term | Fact of thm list |
+    Literal of Markup.T | Text of string | Typ of typ | Term of term | Fact of thm list |
     Attribute of morphism -> attribute | Files of file Exn.result list
   type T
   val str_of_kind: kind -> string
@@ -42,7 +42,7 @@ sig
   val inner_syntax_of: T -> string
   val source_position_of: T -> Symbol_Pos.source
   val content_of: T -> string
-  val value_markup: value -> Markup.T list
+  val keyword_markup: Markup.T -> string -> Markup.T
   val completion_report: T -> Position.report_text list
   val report: T -> Position.report_text
   val markup: T -> Markup.T
@@ -87,7 +87,7 @@ struct
 type file = {src_path: Path.T, lines: string list, digest: SHA1.digest, pos: Position.T};
 
 datatype value =
-  Literal of string |
+  Literal of Markup.T |
   Text of string |
   Typ of typ |
   Term of term |
@@ -253,14 +253,10 @@ val token_kind_markup =
   | Sync          => (Markup.control, "")
   | EOF           => (Markup.control, "");
 
-fun keyword_markup keyword x =
-  if Symbol.is_ascii_identifier x then keyword else Markup.operator;
-
 in
 
-fun value_markup (Literal x) =
-      keyword_markup Markup.quasi_keyword x :: Completion.suppress_abbrevs x
-  | value_markup _ = [];
+fun keyword_markup keyword x =
+  if Symbol.is_ascii_identifier x then keyword else Markup.operator;
 
 fun completion_report tok =
   if is_kind Keyword tok
@@ -332,10 +328,16 @@ fun map_value f (Token (x, y, Value (SOME v))) = Token (x, y, Value (SOME (f v))
 
 fun reports_of_value tok =
   (case get_value tok of
-    NONE => []
-  | SOME v =>
-      let val pos = pos_of tok
-      in if Position.is_reported pos then map (pair pos) (value_markup v) else [] end);
+    SOME (Literal markup) =>
+      let
+        val pos = pos_of tok;
+        val x = content_of tok;
+      in
+        if Position.is_reported pos then
+          map (pair pos) (keyword_markup markup x :: Completion.suppress_abbrevs x)
+        else []
+      end
+  | _ => []);
 
 
 (* make values *)

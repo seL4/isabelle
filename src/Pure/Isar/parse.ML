@@ -37,7 +37,6 @@ sig
   val eof: string parser
   val command_name: string -> string parser
   val keyword_with: (string -> bool) -> string parser
-  val keyword_ident_or_symbolic: string parser
   val $$$ : string -> string parser
   val reserved: string -> string parser
   val semicolon: string parser
@@ -195,7 +194,6 @@ val sync = kind Token.Sync;
 val eof = kind Token.EOF;
 
 fun keyword_with pred = RESET_VALUE (Scan.one (Token.keyword_with pred) >> Token.content_of);
-val keyword_ident_or_symbolic = keyword_with Token.ident_or_symbolic;
 
 fun command_name x =
   group (fn () => Token.str_of_kind Token.Command ^ " " ^ quote x)
@@ -204,7 +202,8 @@ fun command_name x =
 
 fun $$$ x =
   group (fn () => Token.str_of_kind Token.Keyword ^ " " ^ quote x)
-    (keyword_with (fn y => x = y));
+    (Scan.ahead not_eof -- keyword_with (fn y => x = y))
+  >> (fn (tok, x) => (Token.assign (SOME (Token.Literal Markup.quasi_keyword)) tok; x));
 
 fun reserved x =
   group (fn () => "reserved identifier " ^ quote x)
@@ -270,7 +269,7 @@ val text = group (fn () => "text")
 
 val path = group (fn () => "file name/path specification") name;
 
-val liberal_name = keyword_ident_or_symbolic || xname;
+val liberal_name = keyword_with Token.ident_or_symbolic || xname;
 
 val parname = Scan.optional ($$$ "(" |-- name --| $$$ ")") "";
 val parbinding = Scan.optional ($$$ "(" |-- binding --| $$$ ")") Binding.empty;

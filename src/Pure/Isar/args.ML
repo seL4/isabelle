@@ -102,7 +102,9 @@ fun pretty_src ctxt src =
     val prt_thm = Pretty.backquote o Display.pretty_thm ctxt;
     fun prt_arg arg =
       (case Token.get_value arg of
-        SOME (v as Token.Literal s) => Pretty.marks_str (Token.value_markup v, s)
+        SOME (Token.Literal markup) =>
+          let val x = Token.content_of arg
+          in Pretty.mark_str (Token.keyword_markup markup x, x) end
       | SOME (Token.Text s) => Pretty.str (quote s)
       | SOME (Token.Typ T) => Syntax.pretty_typ ctxt T
       | SOME (Token.Term t) => Syntax.pretty_term ctxt t
@@ -113,7 +115,7 @@ fun pretty_src ctxt src =
 
 (* check *)
 
-fun check_src ctxt table (Src {name = (xname, pos), args, output_info}) =
+fun check_src ctxt table (Src {name = (xname, pos), args, output_info = _}) =
   let
     val (name, x) = Name_Space.check (Context.Proof ctxt) table (xname, pos);
     val space = Name_Space.space_of_table table;
@@ -157,12 +159,15 @@ val ident = token
 
 val string = token (Parse.string || Parse.verbatim);
 val alt_string = token Parse.alt_string;
-val symbolic = token Parse.keyword_ident_or_symbolic;
+val symbolic = token (Parse.keyword_with Token.ident_or_symbolic);
 
 fun $$$ x =
   (ident || token Parse.keyword) :|-- (fn tok =>
-    let val y = Token.content_of tok
-    in if x = y then (Token.assign (SOME (Token.Literal x)) tok; Scan.succeed x) else Scan.fail end);
+    let val y = Token.content_of tok in
+      if x = y
+      then (Token.assign (SOME (Token.Literal Markup.quasi_keyword)) tok; Scan.succeed x)
+      else Scan.fail
+    end);
 
 
 val named = ident || string;
@@ -317,7 +322,7 @@ fun syntax_generic scan (Src {name = (name, pos), args = args0, output_info}) co
     val args1 = map Token.init_assignable args0;
     fun reported_text () =
       if Context_Position.is_visible_generic context then
-        maps (Token.reports_of_value o Token.closure) args1
+        ((pos, Markup.operator) :: maps (Token.reports_of_value o Token.closure) args1)
         |> map (fn (p, m) => Position.reported_text p m "")
         |> implode
       else "";
