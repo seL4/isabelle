@@ -165,9 +165,6 @@ fun parse_named a (XML.Elem ((b, props), _)) =
       | NONE => [])
   | parse_named _ _ = [];
 
-fun parse_dockables [XML.Elem (("DOCKABLES", _), body)] = maps (parse_named "DOCKABLE") body
-  | parse_dockables _ = [];
-
 val jedit_actions =
   (case XML.parse (File.read (Path.explode "~~/src/Tools/jEdit/src/actions.xml")) of
     XML.Elem (("ACTIONS", _), body) => maps (parse_named "ACTION") body
@@ -182,7 +179,7 @@ val all_actions = jedit_actions @ jedit_dockables;
 
 in
 
-fun is_action (name, pos) = member (op =) all_actions name;
+val is_action = member (op =) all_actions;
 
 end;
 
@@ -271,7 +268,7 @@ val _ =
     entity_antiqs no_check "isatt" "executable" #>
     entity_antiqs (K check_tool) "isatool" "tool" #>
     entity_antiqs (can o ML_Context.check_antiq) "" Markup.ML_antiquotationN #>
-    entity_antiqs (K is_action) "isatt" "action");
+    entity_antiqs (K (is_action o #1)) "isatt" "action");
 
 end;
 
