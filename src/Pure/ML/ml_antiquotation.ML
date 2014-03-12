@@ -1,17 +1,18 @@
-(*  Title:      Pure/ML/ml_antiquote.ML
+(*  Title:      Pure/ML/ml_antiquotation.ML
     Author:     Makarius
 
-Common ML antiquotations.
+Convenience operations for common ML antiquotations.  Miscellaneous
+predefined antiquotations.
 *)
 
-signature ML_ANTIQUOTE =
+signature ML_ANTIQUOTATION =
 sig
   val variant: string -> Proof.context -> string * Proof.context
   val inline: binding -> string context_parser -> theory -> theory
   val value: binding -> string context_parser -> theory -> theory
 end;
 
-structure ML_Antiquote: ML_ANTIQUOTE =
+structure ML_Antiquotation: ML_ANTIQUOTATION =
 struct
 
 (** generic tools **)

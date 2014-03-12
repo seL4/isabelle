@@ -42,7 +42,7 @@ val _ = Theory.setup
         val srcs = map (Attrib.check_src ctxt) raw_srcs;
         val _ = map (Attrib.attribute ctxt) srcs;
         val (a, ctxt') = ctxt
-          |> ML_Antiquote.variant "attributes" ||> put_attributes (i, srcs);
+          |> ML_Antiquotation.variant "attributes" ||> put_attributes (i, srcs);
         val ml =
           ("val " ^ a ^ " = ML_Thms.the_attributes ML_context " ^
             string_of_int i ^ ";\n", "Isabelle." ^ a);
@@ -54,7 +54,7 @@ val _ = Theory.setup
 fun thm_binding kind is_single thms ctxt =
   let
     val initial = null (get_thmss ctxt);
-    val (name, ctxt') = ML_Antiquote.variant kind ctxt;
+    val (name, ctxt') = ML_Antiquotation.variant kind ctxt;
     val ctxt'' = cons_thms ((name, is_single), thms) ctxt';
 
     val ml_body = "Isabelle." ^ name;

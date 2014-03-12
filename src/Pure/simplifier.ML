@@ -144,7 +144,7 @@ fun check_simproc ctxt = Name_Space.check (Context.Proof ctxt) (get_simprocs ctx
 val the_simproc = Name_Space.get o get_simprocs;
 
 val _ = Theory.setup
-  (ML_Antiquote.value (Binding.name "simproc")
+  (ML_Antiquotation.value (Binding.name "simproc")
     (Args.context -- Scan.lift (Parse.position Args.name)
       >> (fn (ctxt, name) =>
         "Simplifier.the_simproc ML_context " ^ ML_Syntax.print_string (check_simproc ctxt name))));

@@ -143,7 +143,7 @@ session Pure =
     "ML/exn_properties_polyml.ML"
     "ML/exn_trace_polyml-5.5.1.ML"
     "ML/install_pp_polyml.ML"
-    "ML/ml_antiquote.ML"
+    "ML/ml_antiquotation.ML"
     "ML/ml_compiler.ML"
     "ML/ml_compiler_polyml.ML"
     "ML/ml_context.ML"

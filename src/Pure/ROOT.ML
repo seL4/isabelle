@@ -233,7 +233,7 @@ use "Thy/latex.ML";
 (*basic proof engine*)
 use "Isar/proof_display.ML";
 use "Isar/attrib.ML";
-use "ML/ml_antiquote.ML";
+use "ML/ml_antiquotation.ML";
 use "Isar/context_rules.ML";
 use "Isar/method.ML";
 use "Isar/proof.ML";

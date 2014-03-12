@@ -106,7 +106,7 @@ subsubsection {* Further nesting: antiquotations *}
 
 setup -- "ML antiquotation"
 {*
-  ML_Antiquote.inline @{binding term_cartouche}
+  ML_Antiquotation.inline @{binding term_cartouche}
     (Args.context -- Scan.lift (Parse.inner_syntax Parse.cartouche) >>
       (fn (ctxt, s) => ML_Syntax.atomic (ML_Syntax.print_term (Syntax.read_term ctxt s))))
 *}
