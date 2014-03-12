@@ -10,6 +10,7 @@ sig
   val change_begin: theory -> theory
   val change_end: theory -> theory
   val change_end_local: Proof.context -> Proof.context
+  val change_check: theory -> theory
   val syn_of: theory -> Syntax.syntax
   val tsig_of: theory -> Type.tsig
   val classes_of: theory -> Sorts.algebra
@@ -164,6 +165,10 @@ val change_end = change_base false;
 
 fun change_end_local ctxt =
   Context.raw_transfer (change_end (Proof_Context.theory_of ctxt)) ctxt;
+
+fun change_check thy =
+  if can change_end thy
+  then raise Fail "Unfinished linear change of theory content" else thy;
 
 
 (* syntax *)

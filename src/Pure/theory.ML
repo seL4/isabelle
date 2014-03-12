@@ -175,7 +175,10 @@ fun begin_theory (name, pos) imports =
     end;
 
 fun end_theory thy =
-  thy |> apply_wrappers (end_wrappers thy) |> Context.finish_thy;
+  thy
+  |> apply_wrappers (end_wrappers thy)
+  |> Sign.change_check
+  |> Context.finish_thy;
 
 
 
