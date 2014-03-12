@@ -1,15 +1,10 @@
 (*  Title:      Doc/more_antiquote.ML
     Author:     Florian Haftmann, TU Muenchen
 
-More antiquotations.
+More antiquotations (depending on Isabelle/HOL).
 *)
 
-signature MORE_ANTIQUOTE =
-sig
-  val setup: theory -> theory
-end;
-
-structure More_Antiquote : MORE_ANTIQUOTE =
+structure More_Antiquote : sig end =
 struct
 
 (* code theorem antiquotation *)
@@ -42,9 +37,9 @@ fun pretty_code_thm src ctxt raw_const =
 
 in
 
-val setup =
-  Thy_Output.antiquotation @{binding code_thms} Args.term
-    (fn {source, context, ...} => pretty_code_thm source context);
+val _ =
+  Theory.setup (Thy_Output.antiquotation @{binding code_thms} Args.term
+    (fn {source, context, ...} => pretty_code_thm source context));
 
 end;
 

@@ -16,7 +16,6 @@ ML_file "../antiquote_setup.ML"
 ML_file "../more_antiquote.ML"
 
 setup {*
-  More_Antiquote.setup #>
 let
   val typ = Simple_Syntax.read_typ;
 in
