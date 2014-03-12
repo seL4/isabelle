@@ -37,18 +37,15 @@ fun variant a ctxt =
 (* specific antiquotations *)
 
 fun inline name scan =
-  ML_Context.add_antiq name
-    (Scan.depend (fn context => Scan.pass context scan >> (fn s => (context, K ("", s)))));
+  ML_Context.antiquotation name scan (fn _ => fn s => fn ctxt => (K ("", s), ctxt));
 
 fun value name scan =
-  ML_Context.add_antiq name
-    (Scan.depend (fn context => Scan.pass context scan >> (fn s =>
-      let
-        val ctxt = Context.the_proof context;
-        val (a, ctxt') = variant (Binding.name_of name) ctxt;
-        val env = "val " ^ a ^ " = " ^ s ^ ";\n";
-        val body = "Isabelle." ^ a;
-      in (Context.Proof ctxt', (K (env, body))) end)));
+  ML_Context.antiquotation name scan (fn _ => fn s => fn ctxt =>
+    let
+      val (a, ctxt') = variant (Binding.name_of name) ctxt;
+      val env = "val " ^ a ^ " = " ^ s ^ ";\n";
+      val body = "Isabelle." ^ a;
+    in (K (env, body), ctxt') end);
 
 
 

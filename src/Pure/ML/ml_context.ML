@@ -23,9 +23,10 @@ sig
   val get_stored_thm: unit -> thm
   val ml_store_thms: string * thm list -> unit
   val ml_store_thm: string * thm -> unit
-  type antiq = Proof.context -> string * string
-  val add_antiq: binding -> antiq context_parser -> theory -> theory
-  val check_antiq: Proof.context -> xstring * Position.T -> string
+  val print_antiquotations: Proof.context -> unit
+  type decl = Proof.context -> string * string
+  val antiquotation: binding -> 'a context_parser ->
+    (Args.src -> 'a -> Proof.context -> decl * Proof.context) -> theory -> theory
   val trace_raw: Config.raw
   val trace: bool Config.T
   val eval_antiquotes: ML_Lex.token Antiquote.antiquote list * Position.T ->
@@ -95,28 +96,36 @@ fun bind_thms (name, thms) = ml_store_thms (name, map Drule.export_without_conte
 
 (** ML antiquotations **)
 
-(* antiquotation commands *)
+(* theory data *)
 
-type antiq = Proof.context -> string * string;
-
-structure Antiq_Parsers = Theory_Data
+type decl = Proof.context -> string * string;  (*final context -> ML env, ML body*)
+structure Antiquotations = Theory_Data
 (
-  type T = antiq context_parser Name_Space.table;
+  type T = (Args.src -> Proof.context -> decl * Proof.context) Name_Space.table;
   val empty : T = Name_Space.empty_table Markup.ML_antiquotationN;
   val extend = I;
   fun merge data : T = Name_Space.merge_tables data;
 );
 
-val get_antiqs = Antiq_Parsers.get o Proof_Context.theory_of;
+val get_antiquotations = Antiquotations.get o Proof_Context.theory_of;
 
-fun add_antiq name scan thy = thy
-  |> Antiq_Parsers.map (Name_Space.define (Context.Theory thy) true (name, scan) #> snd);
+fun add_antiquotation name f thy = thy
+  |> Antiquotations.map (Name_Space.define (Context.Theory thy) true (name, f) #> snd);
 
-fun check_antiq ctxt = #1 o Name_Space.check (Context.Proof ctxt) (get_antiqs ctxt);
+fun print_antiquotations ctxt =
+  Pretty.big_list "ML antiquotations:"
+    (map (Pretty.mark_str o #1) (Name_Space.markup_table ctxt (get_antiquotations ctxt)))
+  |> Pretty.writeln;
 
-fun antiquotation src ctxt =
-  let val (src', scan) = Args.check_src ctxt (get_antiqs ctxt) src
-  in Args.syntax scan src' ctxt end;
+fun apply_antiquotation src ctxt =
+  let val (src', f) = Args.check_src ctxt (get_antiquotations ctxt) src
+  in f src' ctxt end;
+
+fun antiquotation name scan body =
+  add_antiquotation name
+    (fn src => fn orig_ctxt =>
+      let val (x, _) = Args.syntax scan src orig_ctxt
+      in body src x orig_ctxt end);
 
 
 (* parsing and evaluation *)
@@ -159,7 +168,8 @@ fun eval_antiquotes (ants, pos) opt_context =
           fun expand (Antiquote.Text tok) ctxt = (K ([], [tok]), ctxt)
             | expand (Antiquote.Antiq (ss, {range, ...})) ctxt =
                 let
-                  val (decl, ctxt') = antiquotation (Token.read_antiq lex antiq (ss, #1 range)) ctxt;
+                  val (decl, ctxt') =
+                    apply_antiquotation (Token.read_antiq lex antiq (ss, #1 range)) ctxt;
                   val decl' = decl #> pairself (ML_Lex.tokenize #> map (ML_Lex.set_range range));
                 in (decl', ctxt') end;
 
@@ -210,10 +220,12 @@ fun eval_source verbose source =
   eval verbose (#pos source) (ML_Lex.read_source source);
 
 fun eval_in ctxt verbose pos ants =
-  Context.setmp_thread_data (Option.map Context.Proof ctxt) (fn () => eval verbose pos ants) ();
+  Context.setmp_thread_data (Option.map Context.Proof ctxt)
+    (fn () => eval verbose pos ants) ();
 
 fun eval_source_in ctxt verbose source =
-  Context.setmp_thread_data (Option.map Context.Proof ctxt) (fn () => eval_source verbose source) ();
+  Context.setmp_thread_data (Option.map Context.Proof ctxt)
+    (fn () => eval_source verbose source) ();
 
 fun expression pos bind body ants =
   exec (fn () => eval false pos

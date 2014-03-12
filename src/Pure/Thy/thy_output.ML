@@ -112,11 +112,11 @@ fun print_antiquotations ctxt =
     |> Pretty.chunks |> Pretty.writeln
   end;
 
-fun antiquotation name scan out =
+fun antiquotation name scan body =
   add_command name
     (fn src => fn state => fn ctxt =>
       let val (x, ctxt') = Args.syntax scan src ctxt
-      in out {source = src, state = state, context = ctxt'} x end);
+      in body {source = src, state = state, context = ctxt'} x end);
 
 
 

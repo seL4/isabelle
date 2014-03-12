@@ -842,9 +842,16 @@ val _ =
       Toplevel.keep (Method.print_methods o Toplevel.context_of)));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_antiquotations"} "print antiquotations"
+  Outer_Syntax.improper_command @{command_spec "print_antiquotations"}
+    "print document antiquotations"
     (Scan.succeed (Toplevel.unknown_context o
       Toplevel.keep (Thy_Output.print_antiquotations o Toplevel.context_of)));
+
+val _ =
+  Outer_Syntax.improper_command @{command_spec "print_ML_antiquotations"}
+    "print ML antiquotations"
+    (Scan.succeed (Toplevel.unknown_context o
+      Toplevel.keep (ML_Context.print_antiquotations o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "thy_deps"} "visualize theory dependencies"

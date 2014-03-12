@@ -437,6 +437,10 @@ branches of the theory graph usually coincides (e.g. relevant for
 theory merge).  Note that the softer Thm.eq_thm_prop is often more
 appropriate than Thm.eq_thm.
 
+* Simplified programming interface to define ML antiquotations, see
+ML_Context.antiquotation, to make it more close to the analogous
+Thy_Output.antiquotation.  Minor INCOMPATIBILTY.
+
 
 *** System ***
 

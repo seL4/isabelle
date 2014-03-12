@@ -257,15 +257,12 @@ fun print_code is_first const ctxt =
 
 in
 
-fun ml_code_antiq context raw_const =
+fun ml_code_antiq raw_const ctxt =
   let
-    val ctxt = Context.the_proof context;
     val thy = Proof_Context.theory_of ctxt;
-
     val const = Code.check_const thy raw_const;
     val is_first = is_first_occ ctxt;
-    val ctxt' = register_const const ctxt;
-  in (Context.Proof ctxt', print_code is_first const) end;
+  in (print_code is_first const, register_const const ctxt) end;
 
 end; (*local*)
 
@@ -356,9 +353,8 @@ val code_reflect_cmd = gen_code_reflect Code_Target.read_tyco Code.read_const;
 
 (** Isar setup **)
 
-val _ = Theory.setup
-  (ML_Context.add_antiq @{binding code}
-    (Scan.depend (fn context => Scan.pass context Args.term >> ml_code_antiq context)));
+val _ =
+  Theory.setup (ML_Context.antiquotation @{binding code} Args.term (fn _ => ml_code_antiq));
 
 local
 
