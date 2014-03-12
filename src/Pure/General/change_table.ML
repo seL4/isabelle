@@ -68,7 +68,7 @@ fun merge_change (No_Change, No_Change) = NONE
         val {base = base1, depth = depth1, changes = changes1} = change1;
         val {base = base2, depth = depth2, changes = changes2} = change2;
       in
-        if base1 = base1 andalso depth1 = depth2 then
+        if base1 = base2 andalso depth1 = depth2 then
           SOME ((changes2, make_change base1 depth1 (Table.merge (K true) (changes1, changes2))))
         else cannot_merge ()
       end
