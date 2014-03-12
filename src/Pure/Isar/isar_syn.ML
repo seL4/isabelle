@@ -699,9 +699,14 @@ val _ =
 
 (* proof navigation *)
 
+fun report_back () =
+  Output.report (Markup.markup Markup.bad "Explicit backtracking");
+
 val _ =
-  Outer_Syntax.command @{command_spec "back"} "backtracking of proof command"
-    (Scan.succeed (Toplevel.print o Toplevel.actual_proof Proof_Node.back o Toplevel.skip_proof I));
+  Outer_Syntax.command @{command_spec "back"} "explicit backtracking of proof command"
+    (Scan.succeed (Toplevel.print o
+      Toplevel.actual_proof (fn prf => (report_back (); Proof_Node.back prf)) o
+      Toplevel.skip_proof (fn h => (report_back (); h))));
 
 
 (* nested commands *)

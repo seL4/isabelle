@@ -897,8 +897,10 @@ text {*
   front.
   
   \item @{command "back"} does back-tracking over the result sequence
-  of the latest proof command.  Basically, any proof command may
-  return multiple results.
+  of the latest proof command.  Any proof command may return multiple
+  results, and this command explores the possibilities step-by-step.
+  It is mainly useful for experimentation and interactive exploration,
+  and should be avoided in finished proofs.
   
   \end{description}
 
