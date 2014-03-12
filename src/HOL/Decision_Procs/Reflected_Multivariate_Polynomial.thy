@@ -1002,7 +1002,7 @@ proof (induct p rule: coefficients.induct)
       with "1.hyps" H have "wf_bs bs x"
         by blast
     }
-    ultimately  show "wf_bs bs x"
+    ultimately show "wf_bs bs x"
       by blast
   qed
 qed simp_all
@@ -1063,10 +1063,7 @@ lemma isnpolyh_Suc_const: "isnpolyh p (Suc n) \<Longrightarrow> isconstant p"
   done
 
 lemma wf_bs_polyadd: "wf_bs bs p \<and> wf_bs bs q \<longrightarrow> wf_bs bs (p +\<^sub>p q)"
-  unfolding wf_bs_def
-  apply (induct p q rule: polyadd.induct)
-  apply (auto simp add: Let_def)
-  done
+  unfolding wf_bs_def by (induct p q rule: polyadd.induct) (auto simp add: Let_def)
 
 lemma wf_bs_polyul: "wf_bs bs p \<Longrightarrow> wf_bs bs q \<Longrightarrow> wf_bs bs (p *\<^sub>p q)"
   unfolding wf_bs_def
@@ -1425,12 +1422,14 @@ next
   {
     assume nn': "n = n'"
     have "n = 0 \<or> n > 0" by arith
-    moreover {
+    moreover
+    {
       assume nz: "n = 0"
       then have ?case using 4 nn'
         by (auto simp add: Let_def degcmc')
     }
-    moreover {
+    moreover
+    {
       assume nz: "n > 0"
       with nn' H(3) have  cc': "c = c'" and pp': "p = p'"
         by (cases n, auto)+
@@ -1486,10 +1485,13 @@ proof (induct k arbitrary: n0 p)
   then show ?case by auto
 next
   case (Suc k n0 p)
-  then have "isnpolyh (shift1 p) 0" by (simp add: shift1_isnpolyh)
+  then have "isnpolyh (shift1 p) 0"
+    by (simp add: shift1_isnpolyh)
   with Suc have "head (funpow k shift1 (shift1 p)) = head (shift1 p)"
-    and "head (shift1 p) = head p" by (simp_all add: shift1_head)
-  then show ?case by (simp add: funpow_swap1)
+    and "head (shift1 p) = head p"
+    by (simp_all add: shift1_head)
+  then show ?case
+    by (simp add: funpow_swap1)
 qed
 
 lemma shift1_degree: "degree (shift1 p) = 1 + degree p"
@@ -1534,7 +1536,7 @@ lemma polyadd_head:
 
 lemma polymul_head_polyeq:
   assumes "SORT_CONSTRAINT('a::{field_char_0,field_inverse_zero})"
-  shows "\<lbrakk>isnpolyh p n0; isnpolyh q n1 ; p \<noteq> 0\<^sub>p ; q \<noteq> 0\<^sub>p \<rbrakk> \<Longrightarrow> head (p *\<^sub>p q) = head p *\<^sub>p head q"
+  shows "isnpolyh p n0 \<Longrightarrow> isnpolyh q n1 \<Longrightarrow> p \<noteq> 0\<^sub>p \<Longrightarrow> q \<noteq> 0\<^sub>p \<Longrightarrow> head (p *\<^sub>p q) = head p *\<^sub>p head q"
 proof (induct p q arbitrary: n0 n1 rule: polymul.induct)
   case (2 c c' n' p' n0 n1)
   then have "isnpolyh (head (CN c' n' p')) n1" "isnormNum c"
@@ -1545,11 +1547,11 @@ next
   case (3 c n p c' n0 n1)
   then have "isnpolyh (head (CN c n p)) n0" "isnormNum c'"
     by (simp_all add: head_isnpolyh)
-  then show ?case using 3
-    by (cases n) auto
+  then show ?case
+    using 3 by (cases n) auto
 next
   case (4 c n p c' n' p' n0 n1)
-  hence norm: "isnpolyh p n" "isnpolyh c (Suc n)" "isnpolyh p' n'" "isnpolyh c' (Suc n')"
+  then have norm: "isnpolyh p n" "isnpolyh c (Suc n)" "isnpolyh p' n'" "isnpolyh c' (Suc n')"
     "isnpolyh (CN c n p) n" "isnpolyh (CN c' n' p') n'"
     by simp_all
   have "n < n' \<or> n' < n \<or> n = n'" by arith
@@ -1576,7 +1578,8 @@ next
       apply auto
       done
   }
-  moreover {
+  moreover
+  {
     assume nn': "n' = n"
     from nn' polymul_normh[OF norm(5,4)]
     have ncnpc':"isnpolyh (CN c n p *\<^sub>p c') n" by (simp add: min_def)
@@ -1599,13 +1602,17 @@ next
       from polymul_degreen[OF norm(5,4), where m="0"]
         polymul_degreen[OF norm(5,3), where m="0"] nn' nz degree_eq_degreen0
       norm(5,6) degree_npolyhCN[OF norm(6)]
-    have dth:"degree (CN c 0 p *\<^sub>p c') < degree (CN 0\<^sub>p 0 (CN c 0 p *\<^sub>p p'))" by simp
-    hence dth':"degree (CN c 0 p *\<^sub>p c') \<noteq> degree (CN 0\<^sub>p 0 (CN c 0 p *\<^sub>p p'))" by simp
+    have dth: "degree (CN c 0 p *\<^sub>p c') < degree (CN 0\<^sub>p 0 (CN c 0 p *\<^sub>p p'))"
+      by simp
+    then have dth': "degree (CN c 0 p *\<^sub>p c') \<noteq> degree (CN 0\<^sub>p 0 (CN c 0 p *\<^sub>p p'))"
+      by simp
     from polyadd_head[OF ncnpc'[simplified nz] ncnpp0'[simplified nz] dth'] dth
-    have ?case   using norm "4.hyps"(6)[OF norm(5,3)]
-        "4.hyps"(5)[OF norm(5,4)] nn' nz by simp
+    have ?case
+      using norm "4.hyps"(6)[OF norm(5,3)] "4.hyps"(5)[OF norm(5,4)] nn' nz
+      by simp
     }
-    ultimately have ?case by (cases n) auto
+    ultimately have ?case
+      by (cases n) auto
   }
   ultimately show ?case by blast
 qed simp_all
@@ -1618,11 +1625,12 @@ lemma degree_head[simp]: "degree (head p) = 0"
 
 lemma degree_CN: "isnpolyh p n \<Longrightarrow> degree (CN c n p) \<le> 1 + degree p"
   by (cases n) simp_all
+
 lemma degree_CN': "isnpolyh p n \<Longrightarrow> degree (CN c n p) \<ge>  degree p"
   by (cases n) simp_all
 
 lemma polyadd_different_degree:
-  "\<lbrakk>isnpolyh p n0 ; isnpolyh q n1; degree p \<noteq> degree q\<rbrakk> \<Longrightarrow>
+  "isnpolyh p n0 \<Longrightarrow> isnpolyh q n1 \<Longrightarrow> degree p \<noteq> degree q \<Longrightarrow>
     degree (polyadd p q) = max (degree p) (degree q)"
   using polyadd_different_degreen degree_eq_degreen0 by simp
 
@@ -1651,14 +1659,14 @@ lemma polydivide_aux_properties:
     and ns: "isnpolyh s n1"
     and ap: "head p = a"
     and ndp: "degree p = n" and pnz: "p \<noteq> 0\<^sub>p"
-  shows "(polydivide_aux a n p k s = (k',r) \<longrightarrow> (k' \<ge> k) \<and> (degree r = 0 \<or> degree r < degree p)
-          \<and> (\<exists>nr. isnpolyh r nr) \<and> (\<exists>q n1. isnpolyh q n1 \<and> ((polypow (k' - k) a) *\<^sub>p s = p *\<^sub>p q +\<^sub>p r)))"
+  shows "polydivide_aux a n p k s = (k',r) \<longrightarrow> k' \<ge> k \<and> (degree r = 0 \<or> degree r < degree p) \<and>
+    (\<exists>nr. isnpolyh r nr) \<and> (\<exists>q n1. isnpolyh q n1 \<and> (polypow (k' - k) a) *\<^sub>p s = p *\<^sub>p q +\<^sub>p r)"
   using ns
 proof (induct "degree s" arbitrary: s k k' r n1 rule: less_induct)
   case less
   let ?qths = "\<exists>q n1. isnpolyh q n1 \<and> (a ^\<^sub>p (k' - k) *\<^sub>p s = p *\<^sub>p q +\<^sub>p r)"
-  let ?ths = "polydivide_aux a n p k s = (k', r) \<longrightarrow>  k \<le> k' \<and> (degree r = 0 \<or> degree r < degree p)
-    \<and> (\<exists>nr. isnpolyh r nr) \<and> ?qths"
+  let ?ths = "polydivide_aux a n p k s = (k', r) \<longrightarrow>  k \<le> k' \<and>
+    (degree r = 0 \<or> degree r < degree p) \<and> (\<exists>nr. isnpolyh r nr) \<and> ?qths"
   let ?b = "head s"
   let ?p' = "funpow (degree s - n) shift1 p"
   let ?xdn = "funpow (degree s - n) shift1 (1)\<^sub>p"
@@ -1675,46 +1683,62 @@ proof (induct "degree s" arbitrary: s k k' r n1 rule: less_induct)
     by (simp add: isnpoly_def)
   from polypow_normh [OF head_isnpolyh[OF np0], where k="k' - k"] ap
   have nakk':"isnpolyh ?akk' 0" by blast
-  { assume sz: "s = 0\<^sub>p"
-    hence ?ths using np polydivide_aux.simps
+  {
+    assume sz: "s = 0\<^sub>p"
+    then have ?ths
+      using np polydivide_aux.simps
       apply clarsimp
       apply (rule exI[where x="0\<^sub>p"])
       apply simp
-      done }
+      done
+  }
   moreover
-  { assume sz: "s \<noteq> 0\<^sub>p"
-    { assume dn: "degree s < n"
-      hence "?ths" using ns ndp np polydivide_aux.simps
+  {
+    assume sz: "s \<noteq> 0\<^sub>p"
+    {
+      assume dn: "degree s < n"
+      then have "?ths"
+        using ns ndp np polydivide_aux.simps
         apply auto
         apply (rule exI[where x="0\<^sub>p"])
         apply simp
-        done }
+        done
+    }
     moreover
-    { assume dn': "\<not> degree s < n" hence dn: "degree s \<ge> n" by arith
+    {
+      assume dn': "\<not> degree s < n"
+      then have dn: "degree s \<ge> n"
+        by arith
       have degsp': "degree s = degree ?p'"
-        using dn ndp funpow_shift1_degree[where k = "degree s - n" and p="p"] by simp
-      { assume ba: "?b = a"
-        hence headsp': "head s = head ?p'"
+        using dn ndp funpow_shift1_degree[where k = "degree s - n" and p="p"]
+        by simp
+      {
+        assume ba: "?b = a"
+        then have headsp': "head s = head ?p'"
           using ap headp' by simp
         have nr: "isnpolyh (s -\<^sub>p ?p') 0"
           using polysub_normh[OF ns np'] by simp
         from degree_polysub_samehead[OF ns np' headsp' degsp']
         have "degree (s -\<^sub>p ?p') < degree s \<or> s -\<^sub>p ?p' = 0\<^sub>p" by simp
         moreover
-        { assume deglt:"degree (s -\<^sub>p ?p') < degree s"
+        {
+          assume deglt:"degree (s -\<^sub>p ?p') < degree s"
           from polydivide_aux.simps sz dn' ba
           have eq: "polydivide_aux a n p k s = polydivide_aux a n p k (s -\<^sub>p ?p')"
             by (simp add: Let_def)
-          { assume h1: "polydivide_aux a n p k s = (k', r)"
+          {
+            assume h1: "polydivide_aux a n p k s = (k', r)"
             from less(1)[OF deglt nr, of k k' r] trans[OF eq[symmetric] h1]
             have kk': "k \<le> k'"
-              and nr:"\<exists>nr. isnpolyh r nr"
+              and nr: "\<exists>nr. isnpolyh r nr"
               and dr: "degree r = 0 \<or> degree r < degree p"
-              and q1: "\<exists>q nq. isnpolyh q nq \<and> (a ^\<^sub>p k' - k *\<^sub>p (s -\<^sub>p ?p') = p *\<^sub>p q +\<^sub>p r)"
+              and q1: "\<exists>q nq. isnpolyh q nq \<and> a ^\<^sub>p k' - k *\<^sub>p (s -\<^sub>p ?p') = p *\<^sub>p q +\<^sub>p r"
               by auto
             from q1 obtain q n1 where nq: "isnpolyh q n1"
-              and asp:"a^\<^sub>p (k' - k) *\<^sub>p (s -\<^sub>p ?p') = p *\<^sub>p q +\<^sub>p r" by blast
-            from nr obtain nr where nr': "isnpolyh r nr" by blast
+              and asp: "a^\<^sub>p (k' - k) *\<^sub>p (s -\<^sub>p ?p') = p *\<^sub>p q +\<^sub>p r"
+              by blast
+            from nr obtain nr where nr': "isnpolyh r nr"
+              by blast
             from polymul_normh[OF nakk' ns] have nakks': "isnpolyh (a ^\<^sub>p (k' - k) *\<^sub>p s) 0"
               by simp
             from polyadd_normh[OF polymul_normh[OF nakk' nxdn] nq]
@@ -1723,56 +1747,66 @@ proof (induct "degree s" arbitrary: s k k' r n1 rule: less_induct)
               polyadd_normh[OF polymul_normh[OF nakk' nxdn] nq]] nr']
             have nqr': "isnpolyh (p *\<^sub>p (?akk' *\<^sub>p ?xdn +\<^sub>p q) +\<^sub>p r) 0"
               by simp
-            from asp have "\<forall> (bs:: 'a::{field_char_0,field_inverse_zero} list). Ipoly bs (a^\<^sub>p (k' - k) *\<^sub>p (s -\<^sub>p ?p')) =
-              Ipoly bs (p *\<^sub>p q +\<^sub>p r)" by simp
-            hence " \<forall>(bs:: 'a::{field_char_0,field_inverse_zero} list). Ipoly bs (a^\<^sub>p (k' - k)*\<^sub>p s) =
+            from asp have "\<forall>bs :: 'a::{field_char_0,field_inverse_zero} list.
+              Ipoly bs (a^\<^sub>p (k' - k) *\<^sub>p (s -\<^sub>p ?p')) = Ipoly bs (p *\<^sub>p q +\<^sub>p r)"
+              by simp
+            then have "\<forall>bs :: 'a::{field_char_0,field_inverse_zero} list.
+              Ipoly bs (a^\<^sub>p (k' - k)*\<^sub>p s) =
               Ipoly bs (a^\<^sub>p (k' - k)) * Ipoly bs ?p' + Ipoly bs p * Ipoly bs q + Ipoly bs r"
               by (simp add: field_simps)
-            hence " \<forall>(bs:: 'a::{field_char_0,field_inverse_zero} list). Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) =
+            then have "\<forall>bs :: 'a::{field_char_0,field_inverse_zero} list.
+              Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) =
               Ipoly bs (a^\<^sub>p (k' - k)) * Ipoly bs (funpow (degree s - n) shift1 (1)\<^sub>p *\<^sub>p p) +
               Ipoly bs p * Ipoly bs q + Ipoly bs r"
               by (auto simp only: funpow_shift1_1)
-            hence "\<forall>(bs:: 'a::{field_char_0,field_inverse_zero} list). Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) =
+            then have "\<forall>bs:: 'a::{field_char_0,field_inverse_zero} list.
+              Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) =
               Ipoly bs p * (Ipoly bs (a^\<^sub>p (k' - k)) * Ipoly bs (funpow (degree s - n) shift1 (1)\<^sub>p) +
               Ipoly bs q) + Ipoly bs r"
               by (simp add: field_simps)
-            hence "\<forall>(bs:: 'a::{field_char_0,field_inverse_zero} list). Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) =
+            then have "\<forall>bs:: 'a::{field_char_0,field_inverse_zero} list.
+              Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) =
               Ipoly bs (p *\<^sub>p ((a^\<^sub>p (k' - k)) *\<^sub>p (funpow (degree s - n) shift1 (1)\<^sub>p) +\<^sub>p q) +\<^sub>p r)"
               by simp
             with isnpolyh_unique[OF nakks' nqr']
             have "a ^\<^sub>p (k' - k) *\<^sub>p s =
               p *\<^sub>p ((a^\<^sub>p (k' - k)) *\<^sub>p (funpow (degree s - n) shift1 (1)\<^sub>p) +\<^sub>p q) +\<^sub>p r"
               by blast
-            hence ?qths using nq'
+            then have ?qths using nq'
               apply (rule_tac x="(a^\<^sub>p (k' - k)) *\<^sub>p (funpow (degree s - n) shift1 (1)\<^sub>p) +\<^sub>p q" in exI)
               apply (rule_tac x="0" in exI)
               apply simp
               done
-            with kk' nr dr have "k \<le> k' \<and> (degree r = 0 \<or> degree r < degree p) \<and> (\<exists>nr. isnpolyh r nr) \<and> ?qths"
+            with kk' nr dr have "k \<le> k' \<and> (degree r = 0 \<or> degree r < degree p) \<and>
+              (\<exists>nr. isnpolyh r nr) \<and> ?qths"
               by blast
           }
-          hence ?ths by blast
+          then have ?ths by blast
         }
         moreover
-        { assume spz:"s -\<^sub>p ?p' = 0\<^sub>p"
+        {
+          assume spz:"s -\<^sub>p ?p' = 0\<^sub>p"
           from spz isnpolyh_unique[OF polysub_normh[OF ns np'], where q="0\<^sub>p", symmetric, where ?'a = "'a::{field_char_0,field_inverse_zero}"]
-          have " \<forall>(bs:: 'a::{field_char_0,field_inverse_zero} list). Ipoly bs s = Ipoly bs ?p'"
+          have "\<forall>bs:: 'a::{field_char_0,field_inverse_zero} list. Ipoly bs s = Ipoly bs ?p'"
             by simp
-          hence "\<forall>(bs:: 'a::{field_char_0,field_inverse_zero} list). Ipoly bs s = Ipoly bs (?xdn *\<^sub>p p)"
+          then have "\<forall>bs:: 'a::{field_char_0,field_inverse_zero} list. Ipoly bs s = Ipoly bs (?xdn *\<^sub>p p)"
             using np nxdn
             apply simp
             apply (simp only: funpow_shift1_1)
             apply simp
             done
-          hence sp': "s = ?xdn *\<^sub>p p" using isnpolyh_unique[OF ns polymul_normh[OF nxdn np]]
+          then have sp': "s = ?xdn *\<^sub>p p"
+            using isnpolyh_unique[OF ns polymul_normh[OF nxdn np]]
             by blast
-          { assume h1: "polydivide_aux a n p k s = (k',r)"
+          {
+            assume h1: "polydivide_aux a n p k s = (k',r)"
             from polydivide_aux.simps sz dn' ba
             have eq: "polydivide_aux a n p k s = polydivide_aux a n p k (s -\<^sub>p ?p')"
               by (simp add: Let_def)
             also have "\<dots> = (k,0\<^sub>p)"
               using polydivide_aux.simps spz by simp
-            finally have "(k',r) = (k,0\<^sub>p)" using h1 by simp
+            finally have "(k', r) = (k, 0\<^sub>p)"
+              using h1 by simp
             with sp'[symmetric] ns np nxdn polyadd_0(1)[OF polymul_normh[OF np nxdn]]
               polyadd_0(2)[OF polymul_normh[OF np nxdn]] have ?ths
               apply auto
@@ -1784,7 +1818,8 @@ proof (induct "degree s" arbitrary: s k k' r n1 rule: less_induct)
         ultimately have ?ths by blast
       }
       moreover
-      { assume ba: "?b \<noteq> a"
+      {
+        assume ba: "?b \<noteq> a"
         from polysub_normh[OF polymul_normh[OF head_isnpolyh[OF np0, simplified ap] ns]
           polymul_normh[OF head_isnpolyh[OF ns] np']]
         have nth: "isnpolyh ((a *\<^sub>p s) -\<^sub>p (?b *\<^sub>p ?p')) 0"
@@ -1807,12 +1842,14 @@ proof (induct "degree s" arbitrary: s k k' r n1 rule: less_induct)
           ndp dn
         have degth: "degree (a *\<^sub>p s) = degree (?b *\<^sub>p ?p')"
           by (simp add: degree_eq_degreen0[symmetric] funpow_shift1_degree)
-        { assume dth: "degree ((a *\<^sub>p s) -\<^sub>p (?b *\<^sub>p ?p')) < degree s"
+        {
+          assume dth: "degree ((a *\<^sub>p s) -\<^sub>p (?b *\<^sub>p ?p')) < degree s"
           from polysub_normh[OF polymul_normh[OF head_isnpolyh[OF np] ns]
             polymul_normh[OF head_isnpolyh[OF ns]np']] ap
           have nasbp': "isnpolyh ((a *\<^sub>p s) -\<^sub>p (?b *\<^sub>p ?p')) 0"
             by simp
-          { assume h1:"polydivide_aux a n p k s = (k', r)"
+          {
+            assume h1:"polydivide_aux a n p k s = (k', r)"
             from h1 polydivide_aux.simps sz dn' ba
             have eq:"polydivide_aux a n p (Suc k) ((a *\<^sub>p s) -\<^sub>p (?b *\<^sub>p ?p')) = (k',r)"
               by (simp add: Let_def)
@@ -1823,23 +1860,25 @@ proof (induct "degree s" arbitrary: s k k' r n1 rule: less_induct)
               and dr: "degree r = 0 \<or> degree r < degree p"
               and qr: "a ^\<^sub>p (k' - Suc k) *\<^sub>p ((a *\<^sub>p s) -\<^sub>p (?b *\<^sub>p ?p')) = p *\<^sub>p q +\<^sub>p r"
               by auto
-            from kk' have kk'':"Suc (k' - Suc k) = k' - k" by arith
+            from kk' have kk'': "Suc (k' - Suc k) = k' - k"
+              by arith
             {
-              fix bs:: "'a::{field_char_0,field_inverse_zero} list"
+              fix bs :: "'a::{field_char_0,field_inverse_zero} list"
               from qr isnpolyh_unique[OF polypow_normh[OF head_isnpolyh[OF np], where k="k' - Suc k", simplified ap] nasbp', symmetric]
               have "Ipoly bs (a ^\<^sub>p (k' - Suc k) *\<^sub>p ((a *\<^sub>p s) -\<^sub>p (?b *\<^sub>p ?p'))) = Ipoly bs (p *\<^sub>p q +\<^sub>p r)"
                 by simp
-              hence "Ipoly bs a ^ (Suc (k' - Suc k)) * Ipoly bs s =
+              then have "Ipoly bs a ^ (Suc (k' - Suc k)) * Ipoly bs s =
                 Ipoly bs p * Ipoly bs q + Ipoly bs a ^ (k' - Suc k) * Ipoly bs ?b * Ipoly bs ?p' + Ipoly bs r"
                 by (simp add: field_simps)
-              hence "Ipoly bs a ^ (k' - k)  * Ipoly bs s =
+              then have "Ipoly bs a ^ (k' - k)  * Ipoly bs s =
                 Ipoly bs p * Ipoly bs q + Ipoly bs a ^ (k' - Suc k) * Ipoly bs ?b * Ipoly bs ?xdn * Ipoly bs p + Ipoly bs r"
                 by (simp add: kk'' funpow_shift1_1[where n="degree s - n" and p="p"])
-              hence "Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) =
+              then have "Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) =
                 Ipoly bs p * (Ipoly bs q + Ipoly bs a ^ (k' - Suc k) * Ipoly bs ?b * Ipoly bs ?xdn) + Ipoly bs r"
                 by (simp add: field_simps)
             }
-            hence ieq:"\<forall>(bs :: 'a::{field_char_0,field_inverse_zero} list). Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) =
+            then have ieq:"\<forall>bs :: 'a::{field_char_0,field_inverse_zero} list.
+              Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) =
               Ipoly bs (p *\<^sub>p (q +\<^sub>p (a ^\<^sub>p (k' - Suc k) *\<^sub>p ?b *\<^sub>p ?xdn)) +\<^sub>p r)"
               by auto
             let ?q = "q +\<^sub>p (a ^\<^sub>p (k' - Suc k) *\<^sub>p ?b *\<^sub>p ?xdn)"
@@ -1857,29 +1896,33 @@ proof (induct "degree s" arbitrary: s k k' r n1 rule: less_induct)
               apply (rule exI[where x="0"], simp)
               done
           }
-          hence ?ths by blast
+          then have ?ths by blast
         }
         moreover
-        { assume spz: "a *\<^sub>p s -\<^sub>p (?b *\<^sub>p ?p') = 0\<^sub>p"
+        {
+          assume spz: "a *\<^sub>p s -\<^sub>p (?b *\<^sub>p ?p') = 0\<^sub>p"
           {
             fix bs :: "'a::{field_char_0,field_inverse_zero} list"
             from isnpolyh_unique[OF nth, where ?'a="'a" and q="0\<^sub>p",simplified,symmetric] spz
             have "Ipoly bs (a*\<^sub>p s) = Ipoly bs ?b * Ipoly bs ?p'"
               by simp
-            hence "Ipoly bs (a*\<^sub>p s) = Ipoly bs (?b *\<^sub>p ?xdn) * Ipoly bs p"
+            then have "Ipoly bs (a*\<^sub>p s) = Ipoly bs (?b *\<^sub>p ?xdn) * Ipoly bs p"
               by (simp add: funpow_shift1_1[where n="degree s - n" and p="p"])
-            hence "Ipoly bs (a*\<^sub>p s) = Ipoly bs (p *\<^sub>p (?b *\<^sub>p ?xdn))"
+            then have "Ipoly bs (a*\<^sub>p s) = Ipoly bs (p *\<^sub>p (?b *\<^sub>p ?xdn))"
               by simp
           }
-          hence hth: "\<forall> (bs:: 'a::{field_char_0,field_inverse_zero} list). Ipoly bs (a*\<^sub>p s) =
-            Ipoly bs (p *\<^sub>p (?b *\<^sub>p ?xdn))" ..
+          then have hth: "\<forall>bs :: 'a::{field_char_0,field_inverse_zero} list.
+            Ipoly bs (a *\<^sub>p s) = Ipoly bs (p *\<^sub>p (?b *\<^sub>p ?xdn))" ..
           from hth have asq: "a *\<^sub>p s = p *\<^sub>p (?b *\<^sub>p ?xdn)"
             using isnpolyh_unique[where ?'a = "'a::{field_char_0,field_inverse_zero}", OF polymul_normh[OF head_isnpolyh[OF np] ns]
                     polymul_normh[OF np polymul_normh[OF head_isnpolyh[OF ns] nxdn]],
-              simplified ap] by simp
-          { assume h1: "polydivide_aux a n p k s = (k', r)"
+              simplified ap]
+            by simp
+          {
+            assume h1: "polydivide_aux a n p k s = (k', r)"
             from h1 sz ba dn' spz polydivide_aux.simps polydivide_aux.simps
-            have "(k',r) = (Suc k, 0\<^sub>p)" by (simp add: Let_def)
+            have "(k', r) = (Suc k, 0\<^sub>p)"
+              by (simp add: Let_def)
             with h1 np head_isnpolyh[OF np, simplified ap] ns polymul_normh[OF head_isnpolyh[OF ns] nxdn]
               polymul_normh[OF np polymul_normh[OF head_isnpolyh[OF ns] nxdn]] asq
             have ?ths
@@ -1889,12 +1932,12 @@ proof (induct "degree s" arbitrary: s k k' r n1 rule: less_induct)
               apply (rule exI[where x="0"], simp)
               done
           }
-          hence ?ths by blast
+          then have ?ths by blast
         }
         ultimately have ?ths
-          using  degree_polysub_samehead[OF polymul_normh[OF head_isnpolyh[OF np0, simplified ap] ns] polymul_normh[OF head_isnpolyh[OF ns] np'] hdth degth] polymul_degreen[OF head_isnpolyh[OF np] ns, where m="0"]
+          using degree_polysub_samehead[OF polymul_normh[OF head_isnpolyh[OF np0, simplified ap] ns] polymul_normh[OF head_isnpolyh[OF ns] np'] hdth degth] polymul_degreen[OF head_isnpolyh[OF np] ns, where m="0"]
             head_nz[OF np] pnz sz ap[symmetric]
-          by (simp add: degree_eq_degreen0[symmetric]) blast
+          by (auto simp add: degree_eq_degreen0[symmetric])
       }
       ultimately have ?ths by blast
     }
@@ -1905,10 +1948,12 @@ qed
 
 lemma polydivide_properties:
   assumes "SORT_CONSTRAINT('a::{field_char_0,field_inverse_zero})"
-    and np: "isnpolyh p n0" and ns: "isnpolyh s n1" and pnz: "p \<noteq> 0\<^sub>p"
-  shows "\<exists>k r. polydivide s p = (k,r) \<and>
+    and np: "isnpolyh p n0"
+    and ns: "isnpolyh s n1"
+    and pnz: "p \<noteq> 0\<^sub>p"
+  shows "\<exists>k r. polydivide s p = (k, r) \<and>
     (\<exists>nr. isnpolyh r nr) \<and> (degree r = 0 \<or> degree r < degree p) \<and>
-    (\<exists>q n1. isnpolyh q n1 \<and> ((polypow k (head p)) *\<^sub>p s = p *\<^sub>p q +\<^sub>p r))"
+    (\<exists>q n1. isnpolyh q n1 \<and> polypow k (head p) *\<^sub>p s = p *\<^sub>p q +\<^sub>p r)"
 proof -
   have trv: "head p = head p" "degree p = degree p"
     by simp_all
@@ -1930,7 +1975,7 @@ proof -
 qed
 
 
-subsection{* More about polypoly and pnormal etc *}
+subsection {* More about polypoly and pnormal etc *}
 
 definition "isnonconstant p \<longleftrightarrow> \<not> isconstant p"
 
@@ -1940,19 +1985,23 @@ lemma isnonconstant_pnormal_iff:
 proof
   let ?p = "polypoly bs p"
   assume H: "pnormal ?p"
-  have csz: "coefficients p \<noteq> []" using nc by (cases p) auto
-
-  from coefficients_head[of p] last_map[OF csz, of "Ipoly bs"]
-    pnormal_last_nonzero[OF H]
-  show "Ipoly bs (head p) \<noteq> 0" by (simp add: polypoly_def)
+  have csz: "coefficients p \<noteq> []"
+    using nc by (cases p) auto
+  from coefficients_head[of p] last_map[OF csz, of "Ipoly bs"] pnormal_last_nonzero[OF H]
+  show "Ipoly bs (head p) \<noteq> 0"
+    by (simp add: polypoly_def)
 next
   assume h: "\<lparr>head p\<rparr>\<^sub>p\<^bsup>bs\<^esup> \<noteq> 0"
   let ?p = "polypoly bs p"
-  have csz: "coefficients p \<noteq> []" using nc by (cases p) auto
-  hence pz: "?p \<noteq> []" by (simp add: polypoly_def)
-  hence lg: "length ?p > 0" by simp
+  have csz: "coefficients p \<noteq> []"
+    using nc by (cases p) auto
+  then have pz: "?p \<noteq> []"
+    by (simp add: polypoly_def)
+  then have lg: "length ?p > 0"
+    by simp
   from h coefficients_head[of p] last_map[OF csz, of "Ipoly bs"]
-  have lz: "last ?p \<noteq> 0" by (simp add: polypoly_def)
+  have lz: "last ?p \<noteq> 0"
+    by (simp add: polypoly_def)
   from pnormal_last_length[OF lg lz] show "pnormal ?p" .
 qed
 
@@ -1971,12 +2020,14 @@ proof
   let ?p = "polypoly bs p"
   assume nc: "nonconstant ?p"
   from isnonconstant_pnormal_iff[OF inc, of bs] nc
-  show "\<lparr>head p\<rparr>\<^sub>p\<^bsup>bs\<^esup> \<noteq> 0" unfolding nonconstant_def by blast
+  show "\<lparr>head p\<rparr>\<^sub>p\<^bsup>bs\<^esup> \<noteq> 0"
+    unfolding nonconstant_def by blast
 next
   let ?p = "polypoly bs p"
   assume h: "\<lparr>head p\<rparr>\<^sub>p\<^bsup>bs\<^esup> \<noteq> 0"
   from isnonconstant_pnormal_iff[OF inc, of bs] h
-  have pn: "pnormal ?p" by blast
+  have pn: "pnormal ?p"
+    by blast
   {
     fix x
     assume H: "?p = [x]"
@@ -1989,7 +2040,7 @@ next
     using pn unfolding nonconstant_def by blast
 qed
 
-lemma pnormal_length: "p\<noteq>[] \<Longrightarrow> pnormal p \<longleftrightarrow> length (pnormalize p) = length p"
+lemma pnormal_length: "p \<noteq> [] \<Longrightarrow> pnormal p \<longleftrightarrow> length (pnormalize p) = length p"
   apply (induct p)
   apply (simp_all add: pnormal_def)
   apply (case_tac "p = []")
@@ -2005,15 +2056,17 @@ proof
   from isnonconstant_coefficients_length[OF inc] have pz: "?p \<noteq> []"
     unfolding polypoly_def by auto
   from H degree_coefficients[of p] isnonconstant_coefficients_length[OF inc]
-  have lg:"length (pnormalize ?p) = length ?p"
+  have lg: "length (pnormalize ?p) = length ?p"
     unfolding Polynomial_List.degree_def polypoly_def by simp
-  hence "pnormal ?p" using pnormal_length[OF pz] by blast
-  with isnonconstant_pnormal_iff[OF inc]
-  show "\<lparr>head p\<rparr>\<^sub>p\<^bsup>bs\<^esup> \<noteq> 0" by blast
+  then have "pnormal ?p"
+    using pnormal_length[OF pz] by blast
+  with isnonconstant_pnormal_iff[OF inc] show "\<lparr>head p\<rparr>\<^sub>p\<^bsup>bs\<^esup> \<noteq> 0"
+    by blast
 next
-  let  ?p = "polypoly bs p"
+  let ?p = "polypoly bs p"
   assume H: "\<lparr>head p\<rparr>\<^sub>p\<^bsup>bs\<^esup> \<noteq> 0"
-  with isnonconstant_pnormal_iff[OF inc] have "pnormal ?p" by blast
+  with isnonconstant_pnormal_iff[OF inc] have "pnormal ?p"
+    by blast
   with degree_coefficients[of p] isnonconstant_coefficients_length[OF inc]
   show "degree p = Polynomial_List.degree ?p"
     unfolding polypoly_def pnormal_def Polynomial_List.degree_def by auto
@@ -2022,7 +2075,8 @@ qed
 
 section {* Swaps ; Division by a certain variable *}
 
-primrec swap :: "nat \<Rightarrow> nat \<Rightarrow> poly \<Rightarrow> poly" where
+primrec swap :: "nat \<Rightarrow> nat \<Rightarrow> poly \<Rightarrow> poly"
+where
   "swap n m (C x) = C x"
 | "swap n m (Bound k) = Bound (if k = n then m else if k=m then n else k)"
 | "swap n m (Neg t) = Neg (swap n m t)"
@@ -2030,19 +2084,20 @@ primrec swap :: "nat \<Rightarrow> nat \<Rightarrow> poly \<Rightarrow> poly" wh
 | "swap n m (Sub s t) = Sub (swap n m s) (swap n m t)"
 | "swap n m (Mul s t) = Mul (swap n m s) (swap n m t)"
 | "swap n m (Pw t k) = Pw (swap n m t) k"
-| "swap n m (CN c k p) =
-    CN (swap n m c) (if k = n then m else if k=m then n else k) (swap n m p)"
+| "swap n m (CN c k p) = CN (swap n m c) (if k = n then m else if k=m then n else k) (swap n m p)"
 
 lemma swap:
-  assumes nbs: "n < length bs"
-    and mbs: "m < length bs"
+  assumes "n < length bs"
+    and "m < length bs"
   shows "Ipoly bs (swap n m t) = Ipoly ((bs[n:= bs!m])[m:= bs!n]) t"
 proof (induct t)
   case (Bound k)
-  then show ?case using nbs mbs by simp
+  then show ?case
+    using assms by simp
 next
   case (CN c k p)
-  then show ?case using nbs mbs by simp
+  then show ?case
+    using assms by simp
 qed simp_all
 
 lemma swap_swap_id [simp]: "swap n m (swap m n t) = t"
