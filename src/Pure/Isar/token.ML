@@ -256,7 +256,7 @@ val token_kind_markup =
 in
 
 fun keyword_markup keyword x =
-  if Symbol.is_ascii_identifier x then keyword else Markup.operator;
+  if Symbol.is_ascii_identifier x then keyword else Markup.delimiter;
 
 fun completion_report tok =
   if is_kind Keyword tok
