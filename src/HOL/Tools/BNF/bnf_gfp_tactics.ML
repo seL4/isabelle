@@ -32,8 +32,8 @@ sig
     thm -> thm -> thm list -> thm list -> thm list list -> tactic
   val mk_dtor_o_ctor_tac: Proof.context -> thm -> thm -> thm -> thm -> thm list -> tactic
   val mk_equiv_lsbis_tac: thm -> thm -> thm -> thm -> thm -> thm -> tactic
-  val mk_hset_minimal_tac: Proof.context -> int -> thm list -> thm -> tactic
-  val mk_hset_rec_minimal_tac: Proof.context -> int -> cterm option list -> thm list -> thm list ->
+  val mk_hset_minimal_tac: Proof.context -> int -> thm -> tactic
+  val mk_col_minimal_tac: Proof.context -> int -> cterm option list -> thm list -> thm list ->
     tactic
   val mk_incl_lsbis_tac: int -> int -> thm -> tactic
   val mk_length_Lev'_tac: thm -> tactic
@@ -56,7 +56,7 @@ sig
   val mk_mor_case_sum_tac: 'a list -> thm -> tactic
   val mk_mor_comp_tac: thm -> thm list -> thm list -> thm list -> tactic
   val mk_mor_elim_tac: thm -> tactic
-  val mk_mor_hset_rec_tac: int -> int -> cterm option list -> int -> thm list -> thm list ->
+  val mk_mor_col_tac: int -> int -> cterm option list -> int -> thm list -> thm list ->
     thm list -> thm list list -> thm list list -> tactic
   val mk_mor_incl_tac: thm -> thm list -> tactic
   val mk_mor_str_tac: 'a list -> thm -> tactic
@@ -74,14 +74,14 @@ sig
   val mk_sbis_lsbis_tac: Proof.context -> thm list -> thm -> thm -> tactic
   val mk_set_Lev_tac: Proof.context -> cterm option list -> thm list -> thm list -> thm list ->
     thm list -> thm list list -> tactic
-  val mk_set_bd_tac: thm -> thm -> thm -> tactic
-  val mk_set_hset_incl_hset_tac: int -> thm list -> thm -> int -> tactic
+  val mk_set_bd_tac: thm -> thm -> tactic
+  val mk_set_hset_incl_hset_tac: int -> thm -> int -> tactic
   val mk_set_image_Lev_tac: Proof.context -> cterm option list -> thm list -> thm list ->
     thm list -> thm list -> thm list list -> thm list list -> tactic
-  val mk_set_incl_hset_tac: thm -> thm -> tactic
+  val mk_set_incl_hset_tac: thm -> tactic
   val mk_set_ge_tac: int  -> thm -> thm list -> tactic
   val mk_set_le_tac: int -> thm -> thm list -> thm list list -> tactic
-  val mk_set_map0_tac: thm -> thm -> tactic
+  val mk_set_map0_tac: thm -> tactic
   val mk_unfold_unique_mor_tac: thm list -> thm -> thm -> thm list -> tactic
   val mk_unfold_transfer_tac: Proof.context -> int -> thm -> thm list -> thm list -> tactic
   val mk_wit_tac: Proof.context -> int -> thm list -> thm list -> thm list -> thm list -> tactic
@@ -160,18 +160,15 @@ fun mk_mor_str_tac ks mor_UNIV =
 fun mk_mor_case_sum_tac ks mor_UNIV =
   (stac mor_UNIV THEN' CONJ_WRAP' (K (rtac @{thm case_sum_o_inj(1)[symmetric]})) ks) 1;
 
-fun mk_set_incl_hset_tac def rec_Suc =
-  EVERY' (stac def ::
-    map rtac [@{thm SUP_upper2}, UNIV_I, @{thm ord_le_eq_trans}, @{thm Un_upper1},
-      sym, rec_Suc]) 1;
+fun mk_set_incl_hset_tac rec_Suc =
+  EVERY' (map rtac [@{thm SUP_upper2}, UNIV_I, @{thm ord_le_eq_trans}, @{thm Un_upper1}, sym,
+    rec_Suc]) 1;
 
-fun mk_set_hset_incl_hset_tac n defs rec_Suc i =
-  EVERY' (map (TRY oo stac) defs @
-    map rtac [@{thm UN_least}, subsetI, @{thm UN_I}, UNIV_I, set_mp, equalityD2, rec_Suc, UnI2,
-      mk_UnIN n i] @
-    [etac @{thm UN_I}, atac]) 1;
+fun mk_set_hset_incl_hset_tac n rec_Suc i =
+  EVERY' (map rtac [@{thm UN_least}, subsetI, @{thm UN_I}, UNIV_I, set_mp, equalityD2, rec_Suc,
+      UnI2, mk_UnIN n i] @ [etac @{thm UN_I}, atac]) 1;
 
-fun mk_hset_rec_minimal_tac ctxt m cts rec_0s rec_Sucs =
+fun mk_col_minimal_tac ctxt m cts rec_0s rec_Sucs =
   EVERY' [rtac (Drule.instantiate' [] cts nat_induct),
     REPEAT_DETERM o rtac allI,
     CONJ_WRAP' (fn thm => EVERY'
@@ -186,13 +183,12 @@ fun mk_hset_rec_minimal_tac ctxt m cts rec_0s rec_Sucs =
             rtac subset_trans, atac, Goal.assume_rule_tac ctxt])) rec_0s])
       rec_Sucs] 1;
 
-fun mk_hset_minimal_tac ctxt n hset_defs hset_rec_minimal =
-  (CONJ_WRAP' (fn def => (EVERY' [rtac ord_eq_le_trans, rtac def,
-    rtac @{thm UN_least}, rtac rev_mp, rtac hset_rec_minimal,
+fun mk_hset_minimal_tac ctxt n col_minimal =
+  (CONJ_WRAP' (K (EVERY' [rtac @{thm UN_least}, rtac rev_mp, rtac col_minimal,
     EVERY' (replicate ((n + 1) * n) (Goal.assume_rule_tac ctxt)), rtac impI,
-    REPEAT_DETERM o eresolve_tac [allE, conjE], atac])) hset_defs) 1
+    REPEAT_DETERM o eresolve_tac [allE, conjE], atac])) (1 upto n)) 1
 
-fun mk_mor_hset_rec_tac m n cts j rec_0s rec_Sucs morEs set_map0ss coalg_setss =
+fun mk_mor_col_tac m n cts j rec_0s rec_Sucs morEs set_map0ss coalg_setss =
   EVERY' [rtac (Drule.instantiate' [] cts nat_induct),
     REPEAT_DETERM o rtac allI,
     CONJ_WRAP' (fn thm => EVERY' (map rtac [impI, thm RS trans, thm RS sym])) rec_0s,
@@ -873,10 +869,9 @@ fun mk_col_natural_tac ctxt cts rec_0s rec_Sucs dtor_maps set_map0ss =
       (rec_Sucs ~~ (dtor_maps ~~ set_map0ss))] 1
   end;
 
-fun mk_set_map0_tac hset_def col_natural =
-  EVERY' (map rtac [@{thm ext}, o_apply RS trans, hset_def RS trans, sym,
-    o_apply RS trans, @{thm image_cong} OF [hset_def, refl] RS trans,
-    @{thm image_UN} RS trans, refl RS @{thm UN_cong}, col_natural]) 1;
+fun mk_set_map0_tac col_natural =
+  EVERY' (map rtac [@{thm ext}, o_apply RS trans, sym, o_apply RS trans, @{thm image_UN} RS trans,
+    refl RS @{thm UN_cong}, col_natural]) 1;
 
 fun mk_col_bd_tac m j cts rec_0s rec_Sucs sbd_Card_order sbd_Cinfinite set_sbdss =
   let
@@ -897,9 +892,8 @@ fun mk_col_bd_tac m j cts rec_0s rec_Sucs sbd_Card_order sbd_Cinfinite set_sbdss
       (rec_Sucs ~~ set_sbdss)] 1
   end;
 
-fun mk_set_bd_tac sbd_Cinfinite hset_def col_bd =
-  EVERY' (map rtac [ordIso_ordLeq_trans, @{thm card_of_ordIso_subst}, hset_def,
-    @{thm UNION_Cinfinite_bound}, ordIso_ordLeq_trans, @{thm card_of_nat},
+fun mk_set_bd_tac sbd_Cinfinite col_bd =
+  EVERY' (map rtac [@{thm UNION_Cinfinite_bound}, ordIso_ordLeq_trans, @{thm card_of_nat},
     @{thm natLeq_ordLeq_cinfinite}, sbd_Cinfinite, ballI, col_bd, sbd_Cinfinite]) 1;
 
 fun mk_le_rel_OO_tac coinduct rel_Jrels rel_OOs =

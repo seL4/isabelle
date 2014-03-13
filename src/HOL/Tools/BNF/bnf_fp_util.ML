@@ -85,8 +85,7 @@ sig
   val dtor_unfold_transferN: string
   val dtor_unfold_uniqueN: string
   val exhaustN: string
-  val hsetN: string
-  val hset_recN: string
+  val colN: string
   val inductN: string
   val injectN: string
   val isNodeN: string
@@ -307,8 +306,7 @@ val dtor_coinductN = dtorN ^ "_" ^ coinductN
 val strong_coinductN = "strong_" ^ coinductN
 val dtor_map_strong_coinductN = dtor_mapN ^ "_" ^ strong_coinductN
 val dtor_strong_coinductN = dtorN ^ "_" ^ strong_coinductN
-val hsetN = "Hset"
-val hset_recN = hsetN ^ "_rec"
+val colN = "col"
 val set_inclN = "set_incl"
 val ctor_set_inclN = ctorN ^ "_" ^ set_inclN
 val dtor_set_inclN = dtorN ^ "_" ^ set_inclN
