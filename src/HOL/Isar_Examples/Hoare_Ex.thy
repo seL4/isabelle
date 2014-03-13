@@ -59,7 +59,7 @@ lemma "\<turnstile> \<lbrace>a = a \<and> b = b\<rbrace> \<acute>M := a; \<acute
   by hoare
 
 lemma "\<turnstile> \<lbrace>True\<rbrace> \<acute>M := a; \<acute>N := b \<lbrace>\<acute>M = a \<and> \<acute>N = b\<rbrace>"
-  by hoare simp
+  by hoare
 
 lemma
   "\<turnstile> \<lbrace>\<acute>M = a \<and> \<acute>N = b\<rbrace>

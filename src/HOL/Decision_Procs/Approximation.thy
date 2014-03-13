@@ -2613,7 +2613,7 @@ next
     and inequality: "u \<le> lx \<and> ux \<le> l'"
     by (cases "approx prec x vs", auto,
       cases "approx prec a vs", auto,
-      cases "approx prec b vs", auto, blast)
+      cases "approx prec b vs", auto)
   from inequality approx[OF AtLeastAtMost.prems(2) l_eq] approx[OF AtLeastAtMost.prems(2) u_eq] approx[OF AtLeastAtMost.prems(2) x_eq]
   show ?case by auto
 qed
@@ -2902,7 +2902,7 @@ next
                (Mult (Inverse (Num (Float (int k) 0)))
                      (Mult (Add (Var (Suc (Suc 0))) (Minus (Num c)))
                            (Var (Suc 0))))) [Some (l1, u1), Some (l2, u2), vs!x]"
-      by (auto elim!: lift_bin) blast
+      by (auto elim!: lift_bin)
 
     from bnd_c `x < length xs`
     have bnd: "bounded_by (xs[x:=c]) (vs[x:= Some (c,c)])"

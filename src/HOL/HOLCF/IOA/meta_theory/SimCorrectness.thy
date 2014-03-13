@@ -99,7 +99,6 @@ apply (erule exE)
 apply (erule conjE)
 apply (simp add: Let_def)
 apply (rule_tac x = "ex" in someI)
-apply (erule conjE)
 apply assumption
 done
 

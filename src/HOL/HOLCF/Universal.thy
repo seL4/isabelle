@@ -111,12 +111,11 @@ where
   "ubasis_until P 0 = 0"
 | "finite S \<Longrightarrow> ubasis_until P (node i a S) =
     (if P (node i a S) then node i a S else ubasis_until P a)"
-    apply clarify
-    apply (rule_tac x=b in node_cases)
-     apply simp
+   apply clarify
+   apply (rule_tac x=b in node_cases)
     apply simp
-    apply fast
    apply simp
+   apply fast
   apply simp
  apply simp
 done

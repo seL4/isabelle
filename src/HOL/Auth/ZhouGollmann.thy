@@ -101,7 +101,7 @@ apply (rule_tac [2] zg.Nil
                      THEN zg.ZG2, THEN zg.Reception [of _ B A],
                      THEN zg.ZG3, THEN zg.Reception [of _ A TTP], 
                      THEN zg.ZG4])
-apply (possibility, auto)
+apply (basic_possibility, auto)
 done
 
 subsection {*Basic Lemmas*}

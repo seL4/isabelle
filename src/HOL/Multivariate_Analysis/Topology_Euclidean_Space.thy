@@ -2958,10 +2958,10 @@ proof (rule compactI)
   fix f
   assume *: "Ball f open" "s \<union> t \<subseteq> \<Union>f"
   from * `compact s` obtain s' where "s' \<subseteq> f \<and> finite s' \<and> s \<subseteq> \<Union>s'"
-    unfolding compact_eq_heine_borel by (auto elim!: allE[of _ f]) metis
+    unfolding compact_eq_heine_borel by (auto elim!: allE[of _ f])
   moreover
   from * `compact t` obtain t' where "t' \<subseteq> f \<and> finite t' \<and> t \<subseteq> \<Union>t'"
-    unfolding compact_eq_heine_borel by (auto elim!: allE[of _ f]) metis
+    unfolding compact_eq_heine_borel by (auto elim!: allE[of _ f])
   ultimately show "\<exists>f'\<subseteq>f. finite f' \<and> s \<union> t \<subseteq> \<Union>f'"
     by (auto intro!: exI[of _ "s' \<union> t'"])
 qed

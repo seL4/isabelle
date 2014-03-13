@@ -1268,7 +1268,6 @@ max_spec G cname (mname, pTsa) = {((md, T), pTs')} \<rbrakk>
   apply (frule max_spec2mheads, (erule exE)+, (erule conjE)+)
   apply (rule exI)+
   apply (simp add: wf_prog_ws_prog [THEN comp_method])
-  apply auto
   done
 
 
@@ -2517,16 +2516,13 @@ apply (subgoal_tac "(snd (compTpInitLvars (pns, lvars, blk, res) lvars
                               (start_ST, start_LT C pTs (length lvars))))
                 = (start_ST, inited_LT C pTs lvars)") 
    prefer 2 apply (rule compTpInitLvars_LT_ST) apply (rule HOL.refl) apply assumption
-apply (simp only:)
 apply (subgoal_tac "(snd (compTpStmt (pns, lvars, blk, res) G blk
                        (start_ST, inited_LT C pTs lvars))) 
                 = (start_ST, inited_LT C pTs lvars)") 
    prefer 2 apply (erule conjE)+
    apply (rule compTpStmt_LT_ST) apply (rule HOL.refl) apply assumption+
    apply (simp only:)+ apply (simp (no_asm_simp) add: is_inited_LT_def)
-apply (simp only:)
-apply (rule compTpExpr_LT_ST) apply (rule HOL.refl) apply assumption+
-   apply (simp only:)+ apply (simp (no_asm_simp) add: is_inited_LT_def)
+   apply (simp (no_asm_simp) add: is_inited_LT_def)
 
 
    (* Return *)

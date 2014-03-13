@@ -1702,32 +1702,13 @@ next
 next
   case (NotR y M d)
   then show ?case 
-    apply(auto simp add: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod)
-    apply(subgoal_tac "\<exists>a'::coname. a'\<sharp>(N,M{d:=(x).N},([(c,d)]\<bullet>M){c:=(x).N})")
-    apply(erule exE, simp add: fresh_prod)
-    apply(erule conjE)+
-    apply(simp add: fresh_fun_simp_NotR)
-    apply(simp add: trm.inject alpha)
-    apply(rule exists_fresh'(2)[OF fs_coname1])
-    done
+    by(auto simp add: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod)
 next
   case (AndR c1 M c2 M' c3)
   then show ?case
-    apply(simp)
-    apply(auto)
-    apply(simp add: fresh_prod calc_atm fresh_atm abs_fresh)
-    apply(simp add: fresh_prod calc_atm fresh_atm abs_fresh fresh_left)
-    apply(subgoal_tac "\<exists>a'::coname. a'\<sharp>(N,M{c3:=(x).N},
-                  M'{c3:=(x).N},c1,c2,c3,([(c,c3)]\<bullet>M){c:=(x).N},([(c,c3)]\<bullet>M'){c:=(x).N})")
-    apply(erule exE, simp add: fresh_prod)
-    apply(erule conjE)+
-    apply(simp add: fresh_fun_simp_AndR)
-    apply (auto simp add: calc_atm trm.inject alpha fresh_atm abs_fresh subst_fresh)
-    apply(rule exists_fresh'(2)[OF fs_coname1])
-    apply(simp add: fresh_prod calc_atm fresh_atm abs_fresh fresh_left)
-    apply(simp add: fresh_prod calc_atm fresh_atm abs_fresh fresh_left)
-    apply(auto simp add: trm.inject alpha)
-    done
+    apply(auto simp add: fresh_prod calc_atm fresh_atm abs_fresh fresh_left)
+    apply (metis (erased, hide_lams))
+    by metis
 next
   case AndL1
   then show ?case by (auto simp add: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod)
@@ -1737,25 +1718,11 @@ next
 next
   case (OrR1 d M e)
   then show ?case 
-    apply(auto simp add: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod)
-    apply(subgoal_tac "\<exists>a'::coname. a'\<sharp>(N,M{e:=(x).N},([(c,e)]\<bullet>M){c:=(x).N},d,e)")
-    apply(erule exE, simp add: fresh_prod)
-    apply(erule conjE)+
-    apply(simp add: fresh_fun_simp_OrR1)
-    apply(simp add: trm.inject alpha)
-    apply(rule exists_fresh'(2)[OF fs_coname1])
-    done
+    by(auto simp add: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod)
 next
   case (OrR2 d M e)
   then show ?case 
-    apply(auto simp add: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod)
-    apply(subgoal_tac "\<exists>a'::coname. a'\<sharp>(N,M{e:=(x).N},([(c,e)]\<bullet>M){c:=(x).N},d,e)")
-    apply(erule exE, simp add: fresh_prod)
-    apply(erule conjE)+
-    apply(simp add: fresh_fun_simp_OrR2)
-    apply(simp add: trm.inject alpha)
-    apply(rule exists_fresh'(2)[OF fs_coname1])
-    done
+    by(auto simp add: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod)
 next
   case (OrL x1 M x2 M' x3)
   then show ?case
@@ -1764,24 +1731,16 @@ next
   case ImpL
   then show ?case
     by (auto simp add: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod fresh_left)
+       metis
 next
   case (ImpR y d M e)
   then show ?case
-    apply(auto simp add: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod fresh_left)
-    apply(subgoal_tac "\<exists>a'::coname. a'\<sharp>(N,M{e:=(x).N},([(c,e)]\<bullet>M){c:=(x).N},d,e)")
-    apply(erule exE, simp add: fresh_prod)
-    apply(erule conjE)+
-    apply(simp add: fresh_fun_simp_ImpR)
-    apply(simp add: trm.inject alpha)
-    apply(rule exists_fresh'(2)[OF fs_coname1])
-    done
+    by(auto simp add: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod fresh_left)
 next
   case (Cut d M y M')
   then show ?case
-    apply(auto simp add: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod fresh_left)
-    apply(drule pt_bij1[OF pt_coname_inst, OF at_coname_inst])
-    apply(simp add: calc_atm)
-    done
+    by(simp add: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod fresh_left)
+      (metis crename.simps(1) crename_id crename_rename)
 qed
 
 lemma substc_rename2:
@@ -1885,14 +1844,7 @@ next
 next
   case (NotL d M z)
   then show ?case 
-    apply(auto simp add: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod)
-    apply(subgoal_tac "\<exists>a'::name. a'\<sharp>(N,M{x:=<a>.N},([(y,x)]\<bullet>M){y:=<a>.N})")
-    apply(erule exE, simp add: fresh_prod)
-    apply(erule conjE)+
-    apply(simp add: fresh_fun_simp_NotL)
-    apply(simp add: trm.inject alpha)
-    apply(rule exists_fresh'(1)[OF fs_name1])
-    done
+    by(auto simp add: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod)
 next
   case (AndR c1 M c2 M' c3)
   then show ?case
@@ -1906,37 +1858,16 @@ next
 next
   case (AndL1 u M v)
   then show ?case 
-    apply(auto simp add: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod)
-    apply(subgoal_tac "\<exists>a'::name. a'\<sharp>(N,M{x:=<a>.N},([(y,x)]\<bullet>M){y:=<a>.N},u,v)")
-    apply(erule exE, simp add: fresh_prod)
-    apply(erule conjE)+
-    apply(simp add: fresh_fun_simp_AndL1)
-    apply(simp add: trm.inject alpha)
-    apply(rule exists_fresh'(1)[OF fs_name1])
-    done
+    by(auto simp add: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod)
 next
   case (AndL2 u M v)
   then show ?case 
-    apply(auto simp add: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod)
-    apply(subgoal_tac "\<exists>a'::name. a'\<sharp>(N,M{x:=<a>.N},([(y,x)]\<bullet>M){y:=<a>.N},u,v)")
-    apply(erule exE, simp add: fresh_prod)
-    apply(erule conjE)+
-    apply(simp add: fresh_fun_simp_AndL2)
-    apply(simp add: trm.inject alpha)
-    apply(rule exists_fresh'(1)[OF fs_name1])
-    done
+    by(auto simp add: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod)
 next
   case (OrL x1 M x2 M' x3)
   then show ?case
-    apply(auto simp add: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod fresh_left)
-    apply(subgoal_tac 
-    "\<exists>a'::name. a'\<sharp>(N,M{x:=<a>.N},M'{x:=<a>.N},([(y,x)]\<bullet>M){y:=<a>.N},([(y,x)]\<bullet>M'){y:=<a>.N},x1,x2)")
-    apply(erule exE, simp add: fresh_prod)
-    apply(erule conjE)+
-    apply(simp add: fresh_fun_simp_OrL)
-    apply(simp add: trm.inject alpha)
-    apply(rule exists_fresh'(1)[OF fs_name1])
-    done
+    by(simp add: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod fresh_left)
+      (metis (poly_guards_query))
 next 
   case ImpR
   then show ?case
@@ -1944,21 +1875,15 @@ next
 next
   case (ImpL d M v M' u)
   then show ?case
-    apply(auto simp add: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod fresh_left)
-    apply(subgoal_tac 
-    "\<exists>a'::name. a'\<sharp>(N,M{u:=<a>.N},M'{u:=<a>.N},([(y,u)]\<bullet>M){y:=<a>.N},([(y,u)]\<bullet>M'){y:=<a>.N},d,v)")
-    apply(erule exE, simp add: fresh_prod)
-    apply(erule conjE)+
-    apply(simp add: fresh_fun_simp_ImpL)
-    apply(simp add: trm.inject alpha)
-    apply(rule exists_fresh'(1)[OF fs_name1])
-    done
+    by(simp add: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod fresh_left)
+       (metis (poly_guards_query))
 next
   case (Cut d M y M')
   then show ?case
     apply(auto simp add: calc_atm trm.inject alpha fresh_atm abs_fresh fresh_prod fresh_left)
     apply(drule pt_bij1[OF pt_name_inst, OF at_name_inst])
     apply(simp add: calc_atm)
+    apply metis
     done
 qed
 

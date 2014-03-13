@@ -236,7 +236,7 @@ proof -
     then obtain stk loc C sig pc frs' where
       xcp [simp]: "xcp = None" and
       frs [simp]: "frs = (stk,loc,C,sig,pc)#frs'" 
-      by (clarsimp simp add: neq_Nil_conv) fast
+      by (clarsimp simp add: neq_Nil_conv)
 
     from conforms obtain  ST LT rT maxs maxl ins et where
       hconf:  "G \<turnstile>h hp \<surd>" and
@@ -245,7 +245,7 @@ proof -
       phi:    "Phi C sig ! pc = Some (ST,LT)" and
       frame:  "correct_frame G hp (ST,LT) maxl ins (stk,loc,C,sig,pc)" and
       frames: "correct_frames G hp Phi rT sig frs'"
-      by (auto simp add: correct_state_def) (rule that)
+      by (auto simp add: correct_state_def)
 
     from frame obtain
       stk: "approx_stk G hp stk ST" and
@@ -354,7 +354,7 @@ proof -
         obtain D fs where
           hp: "hp (the_Addr x) = Some (D,fs)" and
           D:  "G \<turnstile> D \<preceq>C C"
-          by - (drule non_npD, assumption, clarsimp, blast)
+          by - (drule non_npD, assumption, clarsimp)
         hence "hp (the_Addr x) \<noteq> None" (is ?P1) by simp
         moreover
         from wf mth hp D

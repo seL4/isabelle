@@ -615,7 +615,7 @@ proof-
             from x(3)[rule_format, of z] z(2,3) have "z=x"
               unfolding modeq_def mod_less[OF y(2)] by simp}
           with xm x(1,2) have "\<exists>!x. x \<in> ?S \<and> (?h \<circ> op * a) x = y"
-            unfolding modeq_def mod_less[OF y(2)] by auto }
+            unfolding modeq_def mod_less[OF y(2)] by safe auto }
         thus "\<forall>y\<in>{m. coprime m n \<and> m < n}.
        \<exists>!x. x \<in> {m. coprime m n \<and> m < n} \<and> ((\<lambda>m. m mod n) \<circ> op * a) x = y" by blast
       next

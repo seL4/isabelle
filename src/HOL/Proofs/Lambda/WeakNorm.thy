@@ -93,7 +93,7 @@ proof (induct U)
         next
           case (Cons a as)
           with argsT obtain T'' Ts where Us: "Us = T'' # Ts"
-            by (cases Us) (rule FalseE, simp+, erule that)
+            by (cases Us) (rule FalseE, simp)
           from varT and Us have varT: "e\<langle>i:T\<rangle> \<turnstile> Var x : T'' \<Rightarrow> Ts \<Rrightarrow> T'"
             by simp
           from varT eq have T: "T = T'' \<Rightarrow> Ts \<Rrightarrow> T'" by cases auto

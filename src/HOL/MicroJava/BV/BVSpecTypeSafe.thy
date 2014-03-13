@@ -889,7 +889,7 @@ proof -
     loc:    "hp ref = Some obj" and
     obj_ty: "obj_ty obj = Class D" and
     D:      "G \<turnstile> Class D \<preceq> X"
-    by (auto simp add: conf_def) blast
+    by (auto simp add: conf_def)
   
   with X_Ref obtain X' where X': "X = Class X'"
     by (blast dest: widen_Class)
@@ -1052,7 +1052,7 @@ proof -
       meth'': "method (G, D) sig = Some (D'', rT'', body)" and
       ST0':   "ST' = rev apTs @ Class D # ST0'" and
       len':   "length apTs = length pt" 
-      by clarsimp blast    
+      by clarsimp
 
     from f frame'
     obtain
@@ -1074,7 +1074,7 @@ proof -
       methD':  "method (G, D') sig = Some (mD, rT0, body')" and
       lessD':  "G \<turnstile> X \<preceq> Class D'" and
       suc_pc': "Suc pc' < length ins'"
-      by (clarsimp simp add: wt_instr_def eff_def norm_eff_def) blast
+      by (clarsimp simp add: wt_instr_def eff_def norm_eff_def)
 
     from len len' ST0 ST0'
     have "X = Class D" by simp

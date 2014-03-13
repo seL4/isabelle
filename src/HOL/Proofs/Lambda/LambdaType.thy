@@ -130,10 +130,6 @@ lemma rev_exhaust2 [extraction_expand]:
   apply (case_tac ys)
   apply simp
   apply simp
-  apply atomize
-  apply (erule allE)+
-  apply (erule mp, rule conjI)
-  apply (rule refl)+
   done
 
 lemma types_snocE: "e \<tturnstile> ts @ [t] : Ts \<Longrightarrow>
@@ -142,7 +138,6 @@ lemma types_snocE: "e \<tturnstile> ts @ [t] : Ts \<Longrightarrow>
   apply simp
   apply (case_tac "ts @ [t]")
   apply (simp add: types_snoc_eq)+
-  apply iprover
   done
 
 

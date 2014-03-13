@@ -98,6 +98,12 @@ differently).
 
 *** HOL ***
 
+* Simplifier: Enhanced solver of preconditions of rewrite rules
+  can now deal with conjunctions.
+  For help with converting proofs, the old behaviour of the simplifier
+  can be restored like this:  declare/using [[simp_legacy_precond]]
+  This configuration option will disappear again in the future.
+
 * HOL-Word:
   * Abandoned fact collection "word_arith_alts", which is a
   duplicate of "word_arith_wis".

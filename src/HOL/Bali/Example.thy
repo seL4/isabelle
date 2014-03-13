@@ -1280,8 +1280,6 @@ apply   (simp add: arr_viewed_from_def)
 apply   (rule conjI)
 apply    (rule eval_Is (* Init Object *))
 apply    (simp)
-apply    (rule conjI, rule HOL.refl)+
-apply    (rule HOL.refl)
 apply   (simp)
 apply   (rule conjI, rule_tac [2] HOL.refl)
 apply   (rule eval_Is (* Expr *))

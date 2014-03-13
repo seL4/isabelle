@@ -473,7 +473,6 @@ proof (induct p q arbitrary: m n0 n1 c rule: polyadd.induct)
       then have ?case using 4
         apply (cases "p +\<^sub>p p' = 0\<^sub>p")
         apply (auto simp add: Let_def)
-        apply blast
         done
     }
     ultimately have ?case by blast

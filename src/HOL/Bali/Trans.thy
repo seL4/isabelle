@@ -23,12 +23,7 @@ lemma groundVar_cases:
     | (FVar) accC statDeclC stat a fn where "v={accC,statDeclC,stat}(Lit a)..fn"
     | (AVar) a i where "v=(Lit a).[Lit i]"
   using ground LVar FVar AVar
-  apply (cases v)
-  apply (simp add: groundVar_def)
-  apply (simp add: groundVar_def,blast)
-  apply (simp add: groundVar_def,blast)
-  apply (simp add: groundVar_def)
-  done
+  by (cases v) (auto simp add: groundVar_def)
 
 definition
   groundExprs :: "expr list \<Rightarrow> bool"

@@ -487,15 +487,7 @@ done
 
 lemma bex1_bexeq_reg:
   shows "(\<exists>!x\<in>Respects R. P x) \<longrightarrow> (Bex1_rel R (\<lambda>x. P x))"
-  apply (simp add: Ex1_def Bex1_rel_def in_respects)
-  apply clarify
-  apply auto
-  apply (rule bexI)
-  apply assumption
-  apply (simp add: in_respects)
-  apply (simp add: in_respects)
-  apply auto
-  done
+  by (auto simp add: Ex1_def Bex1_rel_def Bex_def Ball_def in_respects)
 
 lemma bex1_bexeq_reg_eqv:
   assumes a: "equivp R"

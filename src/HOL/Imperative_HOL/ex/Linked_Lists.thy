@@ -918,7 +918,7 @@ next
   from 3(7)[OF no_inter2] obtain rs where rs_def: "refs_of' h1 r1 rs" by (rule list_of'_refs_of')
   from refs_of'_merge[OF refs_of'_pn qrs_def 3(6) no_inter this] p_in have p_rs: "p \<notin> set rs" by auto
   with 3(7)[OF no_inter2] 3(1-5) 3(8) p_rs rs_def p_stays
-  show ?case by auto
+  show ?case by (auto simp: list_of'_set_ref)
 next
   case (4 x xs' y ys' p q pn qn h1 r1 h')
   from 4(1) obtain prs where prs_def: "refs_of' h p prs" by (rule list_of'_refs_of')
@@ -935,7 +935,7 @@ next
   from 4(7)[OF no_inter2] obtain rs where rs_def: "refs_of' h1 r1 rs" by (rule list_of'_refs_of')
   from refs_of'_merge[OF prs_def refs_of'_qn 4(6) no_inter this] q_in have q_rs: "q \<notin> set rs" by auto
   with 4(7)[OF no_inter2] 4(1-5) 4(8) q_rs rs_def q_stays
-  show ?case by auto
+  show ?case by (auto simp: list_of'_set_ref)
 qed
 
 section {* Code generation *}

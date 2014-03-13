@@ -5,7 +5,7 @@
 header {* Partial, Finite and Infinite Sequences (lazy lists), modeled as domain *}
 
 theory Seq
-imports HOLCF
+imports "../../HOLCF"
 begin
 
 default_sort pcpo

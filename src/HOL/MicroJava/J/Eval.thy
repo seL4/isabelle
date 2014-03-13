@@ -226,7 +226,7 @@ proof -
   next
     case (Call a b c d e f g h i j k l m n o p q r s t u v s4)
     with Call_code show ?thesis
-      by(cases "s4")(simp, (erule meta_allE meta_impE|rule conjI refl| assumption)+)
+      by(cases "s4") auto
   qed(erule (3) that[OF refl]|assumption)+
 next
   case evals

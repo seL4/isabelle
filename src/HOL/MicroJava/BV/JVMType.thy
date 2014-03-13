@@ -258,7 +258,7 @@ proof (induct a)
     assume l: "length (l#ls) = length b"
     
     then obtain b' bs where b: "b = b'#bs"
-      by (cases b) (simp, simp add: neq_Nil_conv, rule that)
+      by (cases b) (simp, simp add: neq_Nil_conv)
 
     with f
     have "\<forall>n. n < length ls \<longrightarrow> (G \<turnstile> (ls!n) <=o (bs!n))"

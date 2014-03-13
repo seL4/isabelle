@@ -109,10 +109,21 @@ fun mk_atomize pairs =
 fun mksimps pairs (_: Proof.context) =
   map_filter (try mk_eq) o mk_atomize pairs o gen_all;
 
+val simp_legacy_precond =
+  Attrib.setup_config_bool @{binding "simp_legacy_precond"} (K false)
+
 fun unsafe_solver_tac ctxt =
-  (fn i => REPEAT_DETERM (match_tac @{thms simp_impliesI} i)) THEN'
-  FIRST' [resolve_tac (reflexive_thm :: @{thm TrueI} :: @{thm refl} :: Simplifier.prems_of ctxt),
-    atac, etac @{thm FalseE}];
+  let
+    val intros =
+      if Config.get ctxt simp_legacy_precond then [] else [@{thm conjI}]
+    val sol_thms =
+      reflexive_thm :: @{thm TrueI} :: @{thm refl} :: Simplifier.prems_of ctxt;
+    fun sol_tac i =
+      FIRST [resolve_tac sol_thms i, atac i , etac @{thm FalseE} i] ORELSE
+      (match_tac intros THEN_ALL_NEW sol_tac) i
+  in
+    (fn i => REPEAT_DETERM (match_tac @{thms simp_impliesI} i)) THEN' sol_tac
+  end;
 
 val unsafe_solver = mk_solver "HOL unsafe" unsafe_solver_tac;
 

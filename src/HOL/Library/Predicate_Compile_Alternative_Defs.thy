@@ -204,7 +204,6 @@ proof -
     apply auto
     apply (case_tac xc)
     apply auto
-    apply fastforce
     done
 qed
 

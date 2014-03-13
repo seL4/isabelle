@@ -161,7 +161,7 @@ proof -
         where s2:  "s2 = (vT' # oT' # ST', LT')" and
               oT': "G\<turnstile> oT' \<preceq> oT" and
               vT': "G\<turnstile> vT' \<preceq> vT"
-        by - (cases s2, simp add: sup_state_Cons2, elim exE conjE, simp, rule that)
+        by - (cases s2, simp add: sup_state_Cons2, elim exE conjE, simp)
       moreover
       from vT' vT
       have "G \<turnstile> vT' \<preceq> b" by (rule widen_trans)

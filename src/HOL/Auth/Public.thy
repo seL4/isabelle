@@ -414,7 +414,7 @@ val analz_image_freshK_ss =
 (*Tactic for possibility theorems*)
 fun possibility_tac ctxt =
     REPEAT (*omit used_Says so that Nonces start from different traces!*)
-    (ALLGOALS (simp_tac (ctxt delsimps [@{thm used_Says}]))
+    (ALLGOALS (simp_tac (ctxt setSolver safe_solver delsimps [@{thm used_Says}]))
      THEN
      REPEAT_FIRST (eq_assume_tac ORELSE' 
                    resolve_tac [refl, conjI, @{thm Nonce_supply}]))

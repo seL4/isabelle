@@ -941,7 +941,6 @@ lemma bin_rsplit_aux_append:
   apply (subst bin_rsplit_aux.simps)
   apply (subst bin_rsplit_aux.simps)
   apply (clarsimp split: prod.split)
-  apply auto
   done
 
 lemma bin_rsplitl_aux_append:
@@ -950,7 +949,6 @@ lemma bin_rsplitl_aux_append:
   apply (subst bin_rsplitl_aux.simps)
   apply (subst bin_rsplitl_aux.simps)
   apply (clarsimp split: prod.split)
-  apply auto
   done
 
 lemmas rsplit_aux_apps [where bs = "[]"] =

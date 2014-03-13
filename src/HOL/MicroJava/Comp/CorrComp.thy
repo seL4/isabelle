@@ -523,7 +523,6 @@ apply (case_tac a) apply (simp (no_asm_simp) add: compInit_def)
 apply (rule_tac ?instrs0.0 = "[load_default_val b]" in progression_transitive, simp)
 apply (rule progression_one_step)
 apply (simp (no_asm_simp) add: load_default_val_def)
-apply (rule conjI, simp)+ apply (rule HOL.refl)
 
 apply (rule progression_one_step)
 apply (simp (no_asm_simp))
@@ -816,7 +815,7 @@ apply blast
 apply (rule_tac ?instrs0.0 = "[Dup]" in progression_transitive, simp)
 apply (rule progression_one_step)
 apply (simp add: gh_def)
-apply (rule conjI, simp)+ apply simp
+apply simp
 apply (rule progression_one_step)
 apply (simp add: gh_def)
 (* the following falls out of the general scheme *)
@@ -865,8 +864,6 @@ apply (rule_tac ?instrs0.0 = "[Dup_x1]" and ?instrs1.0 = "[Putfield fn T]" in pr
    (* Dup_x1 *)
    apply (rule progression_one_step)
    apply (simp add: gh_def)
-   apply (rule conjI, simp)+ apply simp
-
 
    (* Putfield \<longrightarrow> still looks nasty*)
    apply (rule progression_one_step)
@@ -948,7 +945,6 @@ apply (erule exE)
 apply simp
 apply (rule_tac ?instrs0.0 = "[LitPush (Bool False)]" in progression_transitive, simp (no_asm_simp))
 apply (rule progression_one_step,  simp)
-apply (rule conjI, rule HOL.refl)+ apply (rule HOL.refl)
 
 apply (rule_tac ?instrs0.0 = "compExpr (gmb G CL S) e" in progression_transitive, rule HOL.refl)
 apply fast
@@ -958,18 +954,17 @@ apply (case_tac b)
 apply simp
 apply (rule_tac ?instrs0.0 = "[Ifcmpeq (2 + int (length (compStmt (gmb G CL S) c1)))]" in progression_transitive, simp)
 apply (rule progression_one_step) apply simp
-apply (rule conjI, rule HOL.refl)+ apply (rule HOL.refl)
 apply (rule_tac ?instrs0.0 = "(compStmt (gmb G CL S) c1)" in progression_transitive, simp)
 apply fast
 apply (rule_tac ?instrs1.0 = "[]" in jump_fwd_progression)
-apply (simp, rule conjI, (rule HOL.refl)+)
+apply (simp)
 apply simp apply (rule conjI, simp) apply (simp add: nat_add_distrib)
 apply (rule progression_refl)
 
  (* case b= False *)
 apply simp
 apply (rule_tac ?instrs1.0 = "compStmt (gmb G CL S) c2" in jump_fwd_progression)
-apply (simp, rule conjI, (rule HOL.refl)+)
+apply (simp)
 apply (simp, rule conjI, rule HOL.refl, simp add: nat_add_distrib)
 apply fast
 
@@ -992,12 +987,11 @@ apply simp
 apply (rule_tac ?instrs0.0 = "[LitPush (Bool False)]" in progression_transitive, simp (no_asm_simp))
 apply (rule progression_one_step)
    apply simp 
-   apply (rule conjI, rule HOL.refl)+ apply (rule HOL.refl)
 
 apply (rule_tac ?instrs0.0 = "compExpr (gmb G CL S) e" in progression_transitive, rule HOL.refl)
 apply fast
 apply (rule_tac ?instrs1.0 = "[]" in jump_fwd_progression)
-apply (simp, rule conjI, rule HOL.refl, rule HOL.refl)
+apply (simp)
 apply (simp, rule conjI, rule HOL.refl, simp add: nat_add_distrib)
 apply (rule progression_refl)
 
@@ -1022,12 +1016,10 @@ apply (erule exE)
 apply simp
 apply (rule jump_bwd_progression) 
 apply simp
-apply (rule conjI, (rule HOL.refl)+)
 
 apply (rule_tac ?instrs0.0 = "[LitPush (Bool False)]" in progression_transitive, simp (no_asm_simp))
 apply (rule progression_one_step)
    apply simp 
-   apply (rule conjI, simp)+ apply simp
 
 apply (rule_tac ?instrs0.0 = "compExpr (gmb G CL S) e" in progression_transitive, rule HOL.refl)
 apply fast
@@ -1038,7 +1030,6 @@ apply simp
 
 apply (rule_tac ?instrs0.0 = "[Ifcmpeq (2 + int (length (compStmt (gmb G CL S) c)))]" in progression_transitive, simp)
 apply (rule progression_one_step) apply simp
-apply (rule conjI, rule HOL.refl)+ apply (rule HOL.refl)
 apply fast
 
  (* case b= False \<longrightarrow> contradiction*)
@@ -1126,7 +1117,6 @@ apply (intro allI impI conjI)
 apply (simp (no_asm_use) only: exec_instr.simps)
 apply (erule thin_rl, erule thin_rl, erule thin_rl)
 apply (simp add: compMethod_def raise_system_xcpt_def)
-apply (rule conjI, simp)+ apply (rule HOL.refl)
 
      (* get instructions of invoked method *)
 apply (simp (no_asm_simp) add: gis_def gmb_def compMethod_def)
@@ -1177,7 +1167,6 @@ apply (simp (no_asm_simp) add: class_sig_defined_def)
 apply (frule non_npD) apply assumption
 apply (erule exE)+ apply simp
 apply (rule conf_obj_AddrI) apply simp 
-apply (rule conjI, (rule HOL.refl)+)
 apply (rule widen_Class_Class [THEN iffD1], rule widen.refl)
 
 

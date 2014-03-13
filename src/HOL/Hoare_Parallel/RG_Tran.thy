@@ -196,7 +196,6 @@ apply(erule_tac x=sa in allE)
 apply(erule_tac x="Some P2" in allE)
 apply(erule allE,erule impE, assumption)
 apply(drule div_seq,simp)
-apply force
 apply clarify
 apply(erule disjE)
  apply clarify

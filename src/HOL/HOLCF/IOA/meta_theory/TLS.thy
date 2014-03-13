@@ -196,10 +196,7 @@ apply (tactic {* pair_tac @{context} "ex" 1 *})
 apply (tactic {* Seq_case_simp_tac @{context} "y" 1 *})
 apply (tactic {* pair_tac @{context} "a" 1 *})
 apply (tactic {* Seq_case_simp_tac @{context} "s" 1 *})
-apply blast
-apply fastforce
 apply (tactic {* pair_tac @{context} "a" 1 *})
- apply fastforce
 done
 
 end

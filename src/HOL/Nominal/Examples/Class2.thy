@@ -2869,15 +2869,9 @@ apply(auto simp add: ty.inject)
 apply(rotate_tac 10)
 apply(drule_tac x="a" in meta_spec)
 apply(auto simp add: ty.inject)
-apply(blast)
-apply(blast)
-apply(blast)
 apply(rotate_tac 10)
 apply(drule_tac x="a" in meta_spec)
 apply(auto simp add: ty.inject)
-apply(blast)
-apply(blast)
-apply(blast)
 done
 
 termination

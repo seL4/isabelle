@@ -261,7 +261,7 @@ lemma PFun_inj: "Elem F (PFun U V) \<Longrightarrow> Elem x F \<Longrightarrow> 
   apply (frule Elem_Elem_PFun[where p=y], simp)
   apply (subgoal_tac "isFun F")
   apply (simp add: isFun_def isOpair_def)  
-  apply (auto simp add: Fst Snd, blast)
+  apply (auto simp add: Fst Snd)
   apply (auto simp add: PFun_def Sep)
   done
 

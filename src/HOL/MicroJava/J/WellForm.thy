@@ -565,7 +565,7 @@ apply (erule (1) subcls1_induct)
 apply clarify
 apply (frule wf_prog_ws_prog)
 apply (frule fields_Object, assumption+)
-apply (simp only: is_class_Object) apply simp
+apply (simp only: is_class_Object)
 
 apply clarify
 apply (frule fields_rec)
