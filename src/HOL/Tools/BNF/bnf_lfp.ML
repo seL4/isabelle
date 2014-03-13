@@ -296,7 +296,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           (HOLogic.mk_Trueprop (mk_talg activeAs ss))
       in
         Goal.prove_sorry lthy [] [] goal
-          (K (stac alg_def 1 THEN CONJ_WRAP (K (EVERY' [rtac ballI, rtac UNIV_I] 1)) ss))
+          (K (rtac (alg_def RS iffD2) 1 THEN CONJ_WRAP (K (EVERY' [rtac ballI, rtac UNIV_I] 1)) ss))
         |> Thm.close_derivation
       end;
 
@@ -985,7 +985,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
       lthy
       |> fold_map3 (fn b => fn mx => fn car_init =>
         typedef (Binding.conceal b, params, mx) car_init NONE
-          (EVERY' [rtac ssubst, rtac @{thm ex_in_conv}, resolve_tac alg_not_empty_thms,
+          (EVERY' [rtac iffD2, rtac @{thm ex_in_conv}, resolve_tac alg_not_empty_thms,
             rtac alg_init_thm] 1)) bs mixfixes car_inits
       |>> apsnd split_list o split_list;
 
@@ -1005,7 +1005,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     fun mk_inver_thm mk_tac rep abs X thm =
       Goal.prove_sorry lthy [] []
         (HOLogic.mk_Trueprop (mk_inver rep abs X))
-        (K (EVERY' [rtac ssubst, rtac @{thm inver_def}, rtac ballI, mk_tac thm] 1))
+        (K (EVERY' [rtac iffD2, rtac @{thm inver_def}, rtac ballI, mk_tac thm] 1))
       |> Thm.close_derivation;
 
     val inver_Reps = map4 (mk_inver_thm rtac) Abs_Ts Rep_Ts (map HOLogic.mk_UNIV Ts) Rep_inverses;

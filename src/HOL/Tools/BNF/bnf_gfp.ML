@@ -348,7 +348,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           (HOLogic.mk_Trueprop (mk_tcoalg activeAs ss))
       in
         Goal.prove_sorry lthy [] [] goal
-          (K (stac coalg_def 1 THEN CONJ_WRAP
+          (K (rtac (coalg_def RS iffD2) 1 THEN CONJ_WRAP
             (K (EVERY' [rtac ballI, rtac CollectI,
               CONJ_WRAP' (K (EVERY' [rtac @{thm subset_UNIV}])) allAs] 1)) ss))
         |> Thm.close_derivation
