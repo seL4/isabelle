@@ -10,8 +10,7 @@ sig
   val atomize_conv: Proof.context -> conv
   type extra_norm = Proof.context -> thm list * thm list -> thm list * thm list
   val add_extra_norm: SMT2_Util.class * extra_norm -> Context.generic -> Context.generic
-  val normalize: (int * (int option * thm)) list -> Proof.context ->
-    (int * thm) list * Proof.context
+  val normalize: Proof.context -> (int option * thm) list -> (int * thm) list
 end
 
 structure SMT2_Normalize: SMT2_NORMALIZE =
@@ -497,7 +496,7 @@ fun burrow_ids f ithms =
   let
     val (is, thms) = split_list ithms
     val (thms', extra_thms) = f thms
-  in (is ~~ thms') @ tag_list (fold Integer.max is 0 + 1) extra_thms end
+  in (is ~~ thms') @ map (pair ~1) extra_thms end
 
 fun unfold2 ctxt ithms =
   ithms
@@ -558,14 +557,14 @@ fun monomorph ctxt xthms =
 
 end
 
-fun normalize iwthms ctxt =
-  iwthms
+fun normalize ctxt wthms =
+  wthms
+  |> map_index I
   |> gen_normalize ctxt
   |> unfold1 ctxt
   |> monomorph ctxt
   |> unfold2 ctxt
   |> apply_extra_norms ctxt
-  |> rpair ctxt
 
 val _ = Theory.setup (Context.theory_map (
   setup_atomize #>
