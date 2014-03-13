@@ -157,7 +157,7 @@ fun smt2_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instan
         val {outcome, used_facts, z3_steps} =
           SMT2_Solver.smt2_filter ctxt [] goal weighted_facts i slice_timeout
           handle exn =>
-            if Exn.is_interrupt exn then
+            if Exn.is_interrupt exn orelse debug then
               reraise exn
             else
               {outcome = SOME (SMT2_Failure.Other_Failure (ML_Compiler.exn_message exn)),

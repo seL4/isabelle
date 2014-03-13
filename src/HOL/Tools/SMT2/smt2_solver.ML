@@ -275,8 +275,7 @@ fun smt2_filter ctxt facts goal xwthms i time_limit =
     val cprop =
       (case try negate (Thm.rhs_of (SMT2_Normalize.atomize_conv ctxt concl)) of
         SOME ct => ct
-      | NONE => raise SMT2_Failure.SMT (SMT2_Failure.Other_Failure (
-          "goal is not a HOL term")))
+      | NONE => raise SMT2_Failure.SMT (SMT2_Failure.Other_Failure "goal is not a HOL term"))
 
     val xthms = map (apsnd snd) xwthms
 
