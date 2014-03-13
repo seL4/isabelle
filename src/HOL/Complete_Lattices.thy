@@ -503,6 +503,21 @@ lemma SUP_inf_distrib2:
   "(\<Squnion>a\<in>A. f a) \<sqinter> (\<Squnion>b\<in>B. g b) = (\<Squnion>a\<in>A. \<Squnion>b\<in>B. f a \<sqinter> g b)"
   by (subst SUP_commute) (simp add: inf_SUP SUP_inf)
 
+context
+  fixes f :: "'a \<Rightarrow> 'b::complete_lattice"
+  assumes "mono f"
+begin
+
+lemma mono_Inf:
+  shows "f (\<Sqinter>A) \<le> (\<Sqinter>x\<in>A. f x)"
+  using `mono f` by (auto intro: complete_lattice_class.INF_greatest Inf_lower dest: monoD)
+
+lemma mono_Sup:
+  shows "(\<Squnion>x\<in>A. f x) \<le> f (\<Squnion>A)"
+  using `mono f` by (auto intro: complete_lattice_class.SUP_least Sup_upper dest: monoD)
+
+end
+
 end
 
 class complete_boolean_algebra = boolean_algebra + complete_distrib_lattice
