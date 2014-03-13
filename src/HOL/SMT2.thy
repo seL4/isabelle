@@ -90,7 +90,7 @@ subsection {* Normalization *}
 lemma case_bool_if[abs_def]: "case_bool x y P = (if P then x else y)"
   by simp
 
-lemma nat_int: "\<forall>n. nat (int n) = n" by simp
+lemma nat_int': "\<forall>n. nat (int n) = n" by simp
 lemma int_nat_nneg: "\<forall>i. i \<ge> 0 \<longrightarrow> int (nat i) = i" by simp
 lemma int_nat_neg: "\<forall>i. i < 0 \<longrightarrow> int (nat i) = 0" by simp
 

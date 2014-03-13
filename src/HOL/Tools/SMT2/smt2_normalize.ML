@@ -296,15 +296,14 @@ fun gen_normalize1_conv ctxt weight =
   trigger_conv ctxt then_conv
   weight_conv weight ctxt
 
-fun gen_normalize1 ctxt weight thm =
-  thm
-  |> instantiate_elim
-  |> norm_def
-  |> Conv.fconv_rule (Thm.beta_conversion true then_conv Thm.eta_conversion)
-  |> Drule.forall_intr_vars
-  |> Conv.fconv_rule (gen_normalize1_conv ctxt weight)
+fun gen_normalize1 ctxt weight =
+  instantiate_elim #>
+  norm_def #>
+  Conv.fconv_rule (Thm.beta_conversion true then_conv Thm.eta_conversion) #>
+  Drule.forall_intr_vars #>
+  Conv.fconv_rule (gen_normalize1_conv ctxt weight) #>
   (* Z3 4.3.1 silently normalizes "P --> Q --> R" to "P & Q --> R" *)
-  |> Raw_Simplifier.rewrite_rule ctxt @{thms HOL.imp_conjL[symmetric, THEN eq_reflection]}
+  Raw_Simplifier.rewrite_rule ctxt @{thms HOL.imp_conjL[symmetric, THEN eq_reflection]}
 
 fun gen_norm1_safe ctxt (i, (weight, thm)) =
   (case try (gen_normalize1 ctxt weight) thm of
@@ -375,7 +374,7 @@ end
 (** embedding of standard natural number operations into integer operations **)
 
 local
-  val nat_embedding = @{thms nat_int int_nat_nneg int_nat_neg}
+  val nat_embedding = @{thms nat_int' int_nat_nneg int_nat_neg}
 
   val simple_nat_ops = [
     @{const less (nat)}, @{const less_eq (nat)},
