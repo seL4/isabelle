@@ -259,7 +259,7 @@ fun string_of_isar_proof ctxt i n proof =
 
     fun is_direct_method (Metis_Method _) = true
       | is_direct_method Meson_Method = true
-      | is_direct_method SMT_Method = true
+      | is_direct_method SMT2_Method = true
       | is_direct_method _ = false
 
     (* Local facts are always passed via "using", which affects "meson" and "metis". This is

@@ -17,8 +17,8 @@ lemma rel_option_iff:
     | _ \<Rightarrow> False)"
 by (auto split: prod.split option.split)
 
-abbreviation (input) option_pred :: "('a \<Rightarrow> bool) \<Rightarrow> 'a option \<Rightarrow> bool" where
-  "option_pred \<equiv> case_option True"
+abbreviation (input) pred_option :: "('a \<Rightarrow> bool) \<Rightarrow> 'a option \<Rightarrow> bool" where
+  "pred_option \<equiv> case_option True"
 
 lemma rel_option_eq [relator_eq]:
   "rel_option (op =) = (op =)"
@@ -35,7 +35,7 @@ by (rule ext)+ (auto simp: rel_option_iff OO_def split: option.split)
 
 lemma Domainp_option[relator_domain]:
   assumes "Domainp A = P"
-  shows "Domainp (rel_option A) = (option_pred P)"
+  shows "Domainp (rel_option A) = (pred_option P)"
 using assms unfolding Domainp_iff[abs_def] rel_option_iff[abs_def]
 by (auto iff: fun_eq_iff split: option.split)
 
@@ -64,7 +64,7 @@ lemma bi_unique_rel_option [transfer_rule]:
   unfolding bi_unique_def split_option_all by simp
 
 lemma option_invariant_commute [invariant_commute]:
-  "rel_option (Lifting.invariant P) = Lifting.invariant (option_pred P)"
+  "rel_option (Lifting.invariant P) = Lifting.invariant (pred_option P)"
   by (auto simp add: fun_eq_iff Lifting.invariant_def split_option_all)
 
 subsection {* Quotient theorem for the Lifting package *}

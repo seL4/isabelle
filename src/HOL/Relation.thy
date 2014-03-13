@@ -1135,7 +1135,4 @@ lemma relcomp_fold:
     (auto simp: comp_fun_commute.fold_insert comp_fun_commute_relcomp_fold insert_relcomp_fold
       cong: if_cong)
 
-
-
 end
-

@@ -234,7 +234,7 @@ fun run_smt_solver mode name (params as {debug, verbose, smt_proofs, preplay_tim
         NONE =>
         (Lazy.lazy (fn () =>
            play_one_line_proof mode debug verbose preplay_timeout used_pairs state subgoal
-             SMT_Method (bunch_of_proof_methods (smt_proofs <> SOME false) false liftingN)),
+             SMT2_Method (bunch_of_proof_methods (smt_proofs <> SOME false) false liftingN)),
          fn preplay =>
             let
               val one_line_params =

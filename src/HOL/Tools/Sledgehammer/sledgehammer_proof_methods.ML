@@ -12,7 +12,7 @@ sig
   datatype proof_method =
     Metis_Method of string option * string option |
     Meson_Method |
-    SMT_Method |
+    SMT2_Method |
     Blast_Method |
     Simp_Method |
     Simp_Size_Method |
@@ -26,8 +26,7 @@ sig
   datatype play_outcome =
     Played of Time.time |
     Play_Timed_Out of Time.time |
-    Play_Failed |
-    Not_Played
+    Play_Failed
 
   type minimize_command = string list -> string
   type one_line_params =
@@ -51,7 +50,7 @@ open ATP_Proof_Reconstruct
 datatype proof_method =
   Metis_Method of string option * string option |
   Meson_Method |
-  SMT_Method |
+  SMT2_Method |
   Blast_Method |
   Simp_Method |
   Simp_Size_Method |
@@ -65,8 +64,7 @@ datatype proof_method =
 datatype play_outcome =
   Played of Time.time |
   Play_Timed_Out of Time.time |
-  Play_Failed |
-  Not_Played
+  Play_Failed
 
 type minimize_command = string list -> string
 type one_line_params =
@@ -78,7 +76,7 @@ fun string_of_proof_method meth =
   | Metis_Method (type_enc_opt, lam_trans_opt) =>
     "metis (" ^ commas (map_filter I [type_enc_opt, lam_trans_opt]) ^ ")"
   | Meson_Method => "meson"
-  | SMT_Method => "smt"
+  | SMT2_Method => "smt2"
   | Blast_Method => "blast"
   | Simp_Method => "simp"
   | Simp_Size_Method => "simp add: size_ne_size_imp_ne"
@@ -93,7 +91,7 @@ fun string_of_proof_method meth =
    exceeded" warnings and the like. *)
 fun silence_proof_methods debug =
   Try0.silence_methods debug
-  #> Config.put SMT_Config.verbose debug
+  #> Config.put SMT2_Config.verbose debug
 
 fun tac_of_proof_method ctxt0 debug (local_facts, global_facts) meth =
   let val ctxt = silence_proof_methods debug ctxt0 in
@@ -103,8 +101,7 @@ fun tac_of_proof_method ctxt0 debug (local_facts, global_facts) meth =
       Metis_Tactic.metis_tac [type_enc_opt |> the_default (hd partial_type_encs)]
         (lam_trans_opt |> the_default default_metis_lam_trans) ctxt global_facts
     | Meson_Method => Meson.meson_tac ctxt global_facts
-
-    | SMT_Method => SMT_Solver.smt_tac ctxt global_facts
+    | SMT2_Method => SMT2_Solver.smt2_tac ctxt global_facts
     | _ =>
       Method.insert_tac global_facts THEN'
       (case meth of
@@ -121,17 +118,14 @@ fun tac_of_proof_method ctxt0 debug (local_facts, global_facts) meth =
   end
 
 fun string_of_play_outcome (Played time) = string_of_ext_time (false, time)
-  | string_of_play_outcome (Play_Timed_Out time) = string_of_ext_time (true, time) ^ ", timed out"
+  | string_of_play_outcome (Play_Timed_Out time) =
+    if time = Time.zeroTime then "" else string_of_ext_time (true, time) ^ ", timed out"
   | string_of_play_outcome Play_Failed = "failed"
-  | string_of_play_outcome _ = "unknown"
 
 fun play_outcome_ord (Played time1, Played time2) =
     int_ord (pairself Time.toMilliseconds (time1, time2))
   | play_outcome_ord (Played _, _) = LESS
   | play_outcome_ord (_, Played _) = GREATER
-  | play_outcome_ord (Not_Played, Not_Played) = EQUAL
-  | play_outcome_ord (Not_Played, _) = LESS
-  | play_outcome_ord (_, Not_Played) = GREATER
   | play_outcome_ord (Play_Timed_Out time1, Play_Timed_Out time2) =
     int_ord (pairself Time.toMilliseconds (time1, time2))
   | play_outcome_ord (Play_Timed_Out _, _) = LESS
@@ -160,11 +154,11 @@ fun proof_method_command meth i n used_chaineds num_chained ss =
   (* unusing_chained_facts used_chaineds num_chained ^ *)
   apply_on_subgoal i n ^ command_call (string_of_proof_method meth) ss
 
-fun show_time NONE = ""
-  | show_time (SOME ext_time) = " (" ^ string_of_ext_time ext_time ^ ")"
-
-fun try_command_line banner time command =
-  banner ^ ": " ^ Active.sendback_markup [Markup.padding_command] command ^ show_time time ^ "."
+fun try_command_line banner play command =
+  let val s = string_of_play_outcome play in
+    banner ^ ": " ^ Active.sendback_markup [Markup.padding_command] command ^
+    (s |> s <> "" ? enclose " (" ")") ^ "."
+  end
 
 fun minimize_line _ [] = ""
   | minimize_line minimize_command ss =
@@ -182,18 +176,11 @@ fun one_line_proof_text num_chained
   let
     val (chained, extra) = split_used_facts used_facts
 
-    val (failed, ext_time) =
-      (case play of
-        Played time => (false, (SOME (false, time)))
-      | Play_Timed_Out time => (false, SOME (true, time))
-      | Play_Failed => (true, NONE)
-      | Not_Played => (false, NONE))
-
     val try_line =
       map fst extra
       |> proof_method_command meth subgoal subgoal_count (map fst chained) num_chained
-      |> (if failed then enclose "One-line proof reconstruction failed: " "."
-          else try_command_line banner ext_time)
+      |> (if play = Play_Failed then enclose "One-line proof reconstruction failed: " "."
+          else try_command_line banner play)
   in
     try_line ^ minimize_line minimize_command (map fst (extra @ chained))
   end

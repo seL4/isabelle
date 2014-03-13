@@ -112,7 +112,7 @@ type isar_params =
   * (term, string) atp_step list * thm
 
 val basic_systematic_methods = [Metis_Method (NONE, NONE), Meson_Method, Blast_Method]
-val simp_based_methods = [Simp_Method, Auto_Method, Fastforce_Method, Force_Method]
+val simp_based_methods = [Auto_Method, Simp_Method, Fastforce_Method, Force_Method]
 val basic_arith_methods = [Linarith_Method, Presburger_Method, Algebra_Method]
 
 val arith_methods = basic_arith_methods @ simp_based_methods @ basic_systematic_methods
@@ -125,6 +125,8 @@ val skolem_methods = basic_systematic_methods
 fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
     (one_line_params as (_, _, _, _, subgoal, subgoal_count)) =
   let
+    val _ = if debug then Output.urgent_message "Constructing Isar proof..." else ()
+
     fun isar_proof_of () =
       let
         val SOME (verbose, alt_metis_args, preplay_timeout, compress_isar, try0_isar, minimize,
@@ -134,7 +136,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
 
         fun massage_methods (meths as meth :: _) =
           if not try0_isar then [meth]
-          else if smt_proofs = SOME true then SMT_Method :: meths
+          else if smt_proofs = SOME true then SMT2_Method :: meths
           else meths
 
         val (params, _, concl_t) = strip_subgoal goal subgoal ctxt
@@ -272,8 +274,6 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
         and isar_proof outer fix assms lems infs =
           Proof (fix, assms, lems @ isar_steps outer NONE [] infs)
 
-        val string_of_isar_proof = string_of_isar_proof ctxt subgoal subgoal_count
-
         val trace = Config.get ctxt trace
 
         val canonical_isar_proof =
@@ -303,7 +303,8 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
         fun trace_isar_proof label proof =
           if trace then
             tracing (timestamp () ^ "\n" ^ label ^ ":\n\n" ^
-              string_of_isar_proof (comment_isar_proof comment_of proof) ^ "\n")
+              string_of_isar_proof ctxt subgoal subgoal_count
+                (comment_isar_proof comment_of proof) ^ "\n")
           else
             ()
 
@@ -335,7 +336,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
                #> kill_useless_labels_in_isar_proof
                #> relabel_isar_proof_nicely)
       in
-        (case string_of_isar_proof isar_proof of
+        (case string_of_isar_proof ctxt subgoal subgoal_count isar_proof of
           "" =>
           if isar_proofs = SOME true then "\nNo structured proof available (proof too simple)."
           else ""
@@ -363,15 +364,14 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
         (case try isar_proof_of () of
           SOME s => s
         | NONE =>
-          if isar_proofs = SOME true then "\nWarning: The Isar proof construction failed." else "")
+          if isar_proofs = SOME true then "\nWarning: Isar proof construction failed." else "")
   in one_line_proof ^ isar_proof end
 
 fun isar_proof_would_be_a_good_idea smt_proofs (meth, play) =
   (case play of
-    Played _ => meth = SMT_Method andalso smt_proofs <> SOME true
-  | Play_Timed_Out _ => true
-  | Play_Failed => true
-  | Not_Played => false)
+    Played _ => meth = SMT2_Method andalso smt_proofs <> SOME true
+  | Play_Timed_Out time => Time.> (time, Time.zeroTime)
+  | Play_Failed => true)
 
 fun proof_text ctxt debug isar_proofs smt_proofs isar_params num_chained
     (one_line_params as (preplay, _, _, _, _, _)) =

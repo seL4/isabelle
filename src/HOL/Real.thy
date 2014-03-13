@@ -2197,7 +2197,20 @@ lemmas [nitpick_unfold] = inverse_real_inst.inverse_real one_real_inst.one_real
     times_real_inst.times_real uminus_real_inst.uminus_real
     zero_real_inst.zero_real
 
+
+subsection {* Setup for SMT *}
+
 ML_file "Tools/SMT/smt_real.ML"
 setup SMT_Real.setup
+ML_file "Tools/SMT2/smt2_real.ML"
+ML_file "Tools/SMT2/z3_new_real.ML"
+
+lemma [z3_new_rule]:
+  "0 + (x::real) = x"
+  "x + 0 = x"
+  "0 * x = 0"
+  "1 * x = x"
+  "x + y = y + x"
+  by auto
 
 end

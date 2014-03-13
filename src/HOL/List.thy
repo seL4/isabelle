@@ -1299,7 +1299,7 @@ next
   case (snoc a xs)
   show ?case
   proof cases
-    assume "x = a" thus ?case using snoc by (metis set_simps(1) emptyE)
+    assume "x = a" thus ?case using snoc by (auto intro!: exI)
   next
     assume "x \<noteq> a" thus ?case using snoc by fastforce
   qed
@@ -1332,7 +1332,8 @@ next
   show ?case
   proof cases
     assume "P x"
-    thus ?thesis by simp (metis Un_upper1 contra_subsetD in_set_conv_decomp_first self_append_conv2 set_append)
+    hence "x # xs = [] @ x # xs \<and> P x \<and> (\<forall>y\<in>set []. \<not> P y)" by simp
+    thus ?thesis by fast
   next
     assume "\<not> P x"
     hence "\<exists>x\<in>set xs. P x" using Cons(2) by simp
@@ -1359,7 +1360,7 @@ next
   case (snoc x xs)
   show ?case
   proof cases
-    assume "P x" thus ?thesis by (metis emptyE set_empty)
+    assume "P x" thus ?thesis by (auto intro!: exI)
   next
     assume "\<not> P x"
     hence "\<exists>x\<in>set xs. P x" using snoc(2) by simp
@@ -1375,7 +1376,8 @@ using split_list_last_prop [OF assms] by blast
 lemma split_list_last_prop_iff:
   "(\<exists>x \<in> set xs. P x) \<longleftrightarrow>
    (\<exists>ys x zs. xs = ys@x#zs \<and> P x \<and> (\<forall>z \<in> set zs. \<not> P z))"
-by (metis split_list_last_prop [where P=P] in_set_conv_decomp)
+  by rule (erule split_list_last_prop, auto)
+
 
 lemma finite_list: "finite A ==> EX xs. set xs = A"
   by (erule finite_induct) (auto simp add: set_simps(2) [symmetric] simp del: set_simps(2))
@@ -1773,7 +1775,7 @@ apply simp_all
 done
 
 lemma list_update_nonempty[simp]: "xs[k:=x] = [] \<longleftrightarrow> xs=[]"
-by(metis length_0_conv length_list_update)
+by (simp only: length_0_conv[symmetric] length_list_update)
 
 lemma list_update_same_conv:
 "i < length xs ==> (xs[i := x] = xs) = (xs!i = x)"
@@ -1936,7 +1938,7 @@ lemma map_butlast:
 
 lemma snoc_eq_iff_butlast:
   "xs @ [x] = ys \<longleftrightarrow> (ys \<noteq> [] & butlast ys = xs & last ys = x)"
-by (metis append_butlast_last_id append_is_Nil_conv butlast_snoc last_snoc not_Cons_self)
+by fastforce
 
 
 subsubsection {* @{const take} and @{const drop} *}
@@ -2121,8 +2123,7 @@ lemma set_drop_subset_set_drop:
   "m >= n \<Longrightarrow> set(drop m xs) <= set(drop n xs)"
 apply(induct xs arbitrary: m n)
 apply(auto simp:drop_Cons split:nat.split)
-apply (metis set_drop_subset subset_iff)
-done
+by (metis set_drop_subset subset_iff)
 
 lemma in_set_takeD: "x : set(take n xs) \<Longrightarrow> x : set xs"
 using set_take_subset by fast
@@ -3250,15 +3251,9 @@ apply (simp add: set_conv_nth)
  apply (case_tac j)
 apply (clarsimp simp add: set_conv_nth, simp)
 apply (rule conjI)
-(*TOO SLOW
-apply (metis Zero_neq_Suc gr0_conv_Suc in_set_conv_nth lessI less_trans_Suc nth_Cons' nth_Cons_Suc)
-*)
  apply (clarsimp simp add: set_conv_nth)
  apply (erule_tac x = 0 in allE, simp)
  apply (erule_tac x = "Suc i" in allE, simp, clarsimp)
-(*TOO SLOW
-apply (metis Suc_Suc_eq lessI less_trans_Suc nth_Cons_Suc)
-*)
 apply (erule_tac x = "Suc i" in allE, simp)
 apply (erule_tac x = "Suc j" in allE, simp)
 done
@@ -3403,8 +3398,7 @@ lemma distinct_singleton: "distinct [x]" by simp
 
 lemma distinct_length_2_or_more:
 "distinct (a # b # xs) \<longleftrightarrow> (a \<noteq> b \<and> distinct (a # xs) \<and> distinct (b # xs))"
-by (metis distinct.simps(2) list.sel(1) hd_in_set list.simps(2) set_ConsD set_rev_mp
-      set_subset_Cons)
+by force
 
 lemma remdups_adj_Cons: "remdups_adj (x # xs) =
   (case remdups_adj xs of [] \<Rightarrow> [x] | y # xs \<Rightarrow> if x = y then y # xs else x # y # xs)"
@@ -3636,8 +3630,8 @@ proof (induction xs)
   case Nil thus ?case by simp
 next
   case (Cons x xs) thus ?case
-    by(auto simp: nth_Cons' split: if_splits)
-      (metis One_nat_def diff_Suc_1 less_Suc_eq_0_disj)
+    apply(auto simp: nth_Cons' split: if_splits)
+    using diff_Suc_1[unfolded One_nat_def] less_Suc_eq_0_disj by fastforce
 qed
 
 lemma find_cong[fundef_cong]:
@@ -3683,8 +3677,8 @@ lemma extract_Cons_code[code]:
    (case List.extract P xs of
       None \<Rightarrow> None |
       Some (ys, y, zs) \<Rightarrow> Some (x#ys, y, zs)))"
-by(auto simp add: extract_def split: list.splits)
-  (metis comp_def dropWhile_eq_Nil_conv list.distinct(1))
+by(auto simp add: extract_def comp_def split: list.splits)
+  (metis dropWhile_eq_Nil_conv list.distinct(1))
 
 
 subsubsection {* @{const remove1} *}
@@ -3792,7 +3786,7 @@ by (induct xs) (simp_all add:inj_on_def)
 
 lemma map_removeAll_inj: "inj f \<Longrightarrow>
   map f (removeAll x xs) = removeAll (f x) (map f xs)"
-by(metis map_removeAll_inj_on subset_inj_on subset_UNIV)
+by (rule map_removeAll_inj_on, erule subset_inj_on, rule subset_UNIV)
 
 
 subsubsection {* @{const replicate} *}
@@ -3962,7 +3956,7 @@ proof (induct "length (xs @ ys)" arbitrary: xs ys rule: less_induct)
     with * show ?thesis by blast
   qed
   then show ?case
-    using xs'_def ys'_def by metis
+    using xs'_def ys'_def by meson
 qed
 
 lemma comm_append_is_replicate:
@@ -3974,7 +3968,7 @@ lemma comm_append_is_replicate:
 proof -
   obtain m n zs where "concat (replicate m zs) = xs"
     and "concat (replicate n zs) = ys"
-    using assms by (metis comm_append_are_replicate)
+    using comm_append_are_replicate[of xs ys, OF assms] by blast
   then have "m + n > 1" and "concat (replicate (m+n) zs) = xs @ ys"
     using `xs \<noteq> []` and `ys \<noteq> []`
     by (auto simp: replicate_add)
@@ -4511,10 +4505,11 @@ next
 qed
 
 lemma infinite_UNIV_listI: "~ finite(UNIV::'a list set)"
-apply(rule notI)
-apply(drule finite_maxlen)
-apply (metis UNIV_I length_replicate less_not_refl)
-done
+apply (rule notI)
+apply (drule finite_maxlen)
+apply clarsimp
+apply (erule_tac x = "replicate n undefined" in allE)
+by simp
 
 
 subsection {* Sorting *}
@@ -4726,7 +4721,7 @@ proof -
   proof(induct rule:list_induct2[OF 1])
     case 1 show ?case by simp
   next
-    case 2 thus ?case by (simp add:sorted_Cons)
+    case 2 thus ?case by (simp add: sorted_Cons)
        (metis Diff_insert_absorb antisym insertE insert_iff)
   qed
 qed
@@ -5660,10 +5655,10 @@ lemma Cons_listrel1_Cons [iff]:
 by (simp add: listrel1_def Cons_eq_append_conv) (blast)
 
 lemma listrel1I1: "(x,y) \<in> r \<Longrightarrow> (x # xs, y # xs) \<in> listrel1 r"
-by (metis Cons_listrel1_Cons)
+by fast
 
 lemma listrel1I2: "(xs, ys) \<in> listrel1 r \<Longrightarrow> (x # xs, x # ys) \<in> listrel1 r"
-by (metis Cons_listrel1_Cons)
+by fast
 
 lemma append_listrel1I:
   "(xs, ys) \<in> listrel1 r \<and> us = vs \<or> xs = ys \<and> (us, vs) \<in> listrel1 r
@@ -5757,8 +5752,8 @@ apply (fastforce dest!: in_set_conv_decomp[THEN iffD1] simp: listrel1_def)
 done
 
 lemma wf_listrel1_iff[simp]: "wf(listrel1 r) = wf r"
-by(metis wf_acc_iff in_lists_conv_set lists_accI lists_accD Cons_in_lists_iff)
-
+by (auto simp: wf_acc_iff
+      intro: lists_accD lists_accI[THEN Cons_in_lists_iff[THEN iffD1, THEN conjunct1]])
 
 subsubsection {* Lifting Relations to Lists: all elements *}
 
@@ -5901,7 +5896,7 @@ next
       case base show ?case by(auto simp add: listrel_iff_zip set_zip)
     next
       case (step ys zs)
-      thus ?case  by (metis listrel_reflcl_if_listrel1 listrel_rtrancl_trans)
+      thus ?case by (metis listrel_reflcl_if_listrel1 listrel_rtrancl_trans)
     qed
   qed
 qed

@@ -184,7 +184,7 @@ fun bunch_of_proof_methods smt_proofs needs_full_types desperate_lam_trans =
       Metis_Method (SOME full_typesN, NONE),
       Metis_Method (SOME no_typesN, SOME desperate_lam_trans),
       Metis_Method (SOME really_full_type_enc, SOME desperate_lam_trans)]) @
-  (if smt_proofs then [SMT_Method] else [])
+  (if smt_proofs then [SMT2_Method] else [])
 
 fun extract_proof_method ({type_enc, lam_trans, ...} : params)
       (Metis_Method (type_enc', lam_trans')) =
@@ -195,7 +195,7 @@ fun extract_proof_method ({type_enc, lam_trans, ...} : params)
         (if is_none lam_trans' andalso is_none lam_trans then []
          else [("lam_trans", [lam_trans' |> the_default default_metis_lam_trans])])
     in (metisN, override_params) end
-  | extract_proof_method _ SMT_Method = (smtN, [])
+  | extract_proof_method _ SMT2_Method = (smtN, [])
 
 (* based on "Mirabelle.can_apply" and generalized *)
 fun timed_apply timeout tac state i =
@@ -219,7 +219,7 @@ fun play_one_line_proof mode debug verbose timeout pairs state i preferred (meth
     fun get_preferred meths = if member (op =) meths preferred then preferred else meth
   in
     if timeout = Time.zeroTime then
-      (get_preferred meths, Not_Played)
+      (get_preferred meths, Play_Timed_Out Time.zeroTime)
     else
       let
         val _ = if mode = Minimize then Output.urgent_message "Preplaying proof..." else ()
@@ -247,9 +247,10 @@ fun play_one_line_proof mode debug verbose timeout pairs state i preferred (meth
   end
 
 val canonical_isar_supported_prover = eN
+val z3_newN = "z3_new"
 
 fun isar_supported_prover_of thy name =
-  if is_atp thy name then name
+  if is_atp thy name orelse name = z3_newN then name
   else if is_atp_installed thy canonical_isar_supported_prover then canonical_isar_supported_prover
   else name
 
@@ -260,7 +261,7 @@ fun choose_minimize_command thy (params as {isar_proofs, ...}) minimize_command 
     val maybe_isar_name = name |> isar_proofs = SOME true ? isar_supported_prover_of thy
     val (min_name, override_params) =
       (case preplay of
-        (meth, Played _) =>
+        (meth as Metis_Method _, Played _) =>
         if isar_proofs = SOME true then (maybe_isar_name, []) else extract_proof_method params meth
       | _ => (maybe_isar_name, []))
   in minimize_command override_params min_name end
@@ -279,7 +280,8 @@ fun supported_provers ctxt =
     val (remote_provers, local_provers) =
       proof_method_names @
       sort_strings (supported_atps thy) @
-      sort_strings (SMT_Solver.available_solvers_of ctxt)
+      sort_strings (SMT_Solver.available_solvers_of ctxt) @
+      sort_strings (SMT2_Solver.available_solvers_of ctxt)
       |> List.partition (String.isPrefix remote_prefix)
   in
     Output.urgent_message ("Supported provers: " ^

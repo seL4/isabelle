@@ -156,10 +156,10 @@ lemma bi_uniqueDl: "\<lbrakk> bi_unique A; A x y; A z y \<rbrakk> \<Longrightarr
 by(simp add: bi_unique_def)
 
 lemma right_uniqueI: "(\<And>x y z. \<lbrakk> A x y; A x z \<rbrakk> \<Longrightarrow> y = z) \<Longrightarrow> right_unique A"
-unfolding right_unique_def by blast
+unfolding right_unique_def by fast
 
 lemma right_uniqueD: "\<lbrakk> right_unique A; A x y; A x z \<rbrakk> \<Longrightarrow> y = z"
-unfolding right_unique_def by blast
+unfolding right_unique_def by fast
 
 lemma right_total_alt_def:
   "right_total R \<longleftrightarrow> ((R ===> op \<longrightarrow>) ===> op \<longrightarrow>) All All"
@@ -204,18 +204,18 @@ lemma OO_def: "R OO S = (\<lambda>x z. \<exists>y. R x y \<and> S y z)"
   by auto
 
 lemma bi_total_OO: "\<lbrakk>bi_total A; bi_total B\<rbrakk> \<Longrightarrow> bi_total (A OO B)"
-  unfolding bi_total_def OO_def by metis
+  unfolding bi_total_def OO_def by fast
 
 lemma bi_unique_OO: "\<lbrakk>bi_unique A; bi_unique B\<rbrakk> \<Longrightarrow> bi_unique (A OO B)"
-  unfolding bi_unique_def OO_def by metis
+  unfolding bi_unique_def OO_def by blast
 
 lemma right_total_OO:
   "\<lbrakk>right_total A; right_total B\<rbrakk> \<Longrightarrow> right_total (A OO B)"
-  unfolding right_total_def OO_def by metis
+  unfolding right_total_def OO_def by fast
 
 lemma right_unique_OO:
   "\<lbrakk>right_unique A; right_unique B\<rbrakk> \<Longrightarrow> right_unique (A OO B)"
-  unfolding right_unique_def OO_def by metis
+  unfolding right_unique_def OO_def by fast
 
 
 subsection {* Properties of relators *}
@@ -278,7 +278,7 @@ lemma bi_total_fun [transfer_rule]:
 lemma bi_unique_fun [transfer_rule]:
   "\<lbrakk>bi_total A; bi_unique B\<rbrakk> \<Longrightarrow> bi_unique (A ===> B)"
   unfolding bi_total_def bi_unique_def rel_fun_def fun_eq_iff
-  by (safe, metis, fast)
+  by fast+
 
 
 subsection {* Transfer rules *}
@@ -289,7 +289,7 @@ lemma Domainp_forall_transfer [transfer_rule]:
     (transfer_bforall (Domainp A)) transfer_forall"
   using assms unfolding right_total_def
   unfolding transfer_forall_def transfer_bforall_def rel_fun_def Domainp_iff
-  by metis
+  by fast
 
 text {* Transfer rules using implication instead of equality on booleans. *}
 
@@ -300,7 +300,7 @@ lemma transfer_forall_transfer [transfer_rule]:
   "bi_total A \<Longrightarrow> ((A ===> op =) ===> rev_implies) transfer_forall transfer_forall"
   "bi_total A \<Longrightarrow> ((A ===> rev_implies) ===> rev_implies) transfer_forall transfer_forall"
   unfolding transfer_forall_def rev_implies_def rel_fun_def right_total_def bi_total_def
-  by metis+
+  by fast+
 
 lemma transfer_implies_transfer [transfer_rule]:
   "(op =        ===> op =        ===> op =       ) transfer_implies transfer_implies"
@@ -327,13 +327,13 @@ lemma right_total_Ex_transfer[transfer_rule]:
   assumes "right_total A"
   shows "((A ===> op=) ===> op=) (Bex (Collect (Domainp A))) Ex"
 using assms unfolding right_total_def Bex_def rel_fun_def Domainp_iff[abs_def]
-by blast
+by fast
 
 lemma right_total_All_transfer[transfer_rule]:
   assumes "right_total A"
   shows "((A ===> op =) ===> op =) (Ball (Collect (Domainp A))) All"
 using assms unfolding right_total_def Ball_def rel_fun_def Domainp_iff[abs_def]
-by blast
+by fast
 
 lemma All_transfer [transfer_rule]:
   assumes "bi_total A"
