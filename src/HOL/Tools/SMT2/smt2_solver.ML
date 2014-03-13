@@ -278,7 +278,7 @@ fun smt2_filter ctxt facts goal xwthms i time_limit =
 
     val xthms = map (apsnd snd) xwthms
 
-    val filter_thms = if supports_filter ctxt then K xthms else map_filter (try (nth xthms))
+    val filter_thms = if supports_filter ctxt then map_filter (try (nth xthms)) else K xthms
   in
     map snd xwthms
     |> map_index I
