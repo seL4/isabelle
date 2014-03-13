@@ -10,9 +10,9 @@ sig
   val filter_builtins: (typ -> bool) -> Proof.context -> Proof.context
 
   (*built-in types*)
-  val add_builtin_typ: SMT2_Utils.class ->
-    typ * (typ -> string option) * (typ -> int -> string option) ->
-    Context.generic -> Context.generic
+  val add_builtin_typ: SMT2_Util.class ->
+    typ * (typ -> string option) * (typ -> int -> string option) -> Context.generic ->
+    Context.generic
   val add_builtin_typ_ext: typ * (typ -> bool) -> Context.generic ->
     Context.generic
   val dest_builtin_typ: Proof.context -> typ -> string option
@@ -26,10 +26,9 @@ sig
   (*built-in functions*)
   type 'a bfun = Proof.context -> typ -> term list -> 'a
   type bfunr = string * int * term list * (term list -> term)
-  val add_builtin_fun: SMT2_Utils.class ->
-    (string * typ) * bfunr option bfun -> Context.generic -> Context.generic
-  val add_builtin_fun': SMT2_Utils.class -> term * string -> Context.generic ->
+  val add_builtin_fun: SMT2_Util.class -> (string * typ) * bfunr option bfun -> Context.generic ->
     Context.generic
+  val add_builtin_fun': SMT2_Util.class -> term * string -> Context.generic -> Context.generic
   val add_builtin_fun_ext: (string * typ) * term list bfun ->
     Context.generic -> Context.generic
   val add_builtin_fun_ext': string * typ -> Context.generic -> Context.generic
@@ -56,7 +55,7 @@ struct
 
 datatype ('a, 'b) kind = Ext of 'a | Int of 'b
 
-type ('a, 'b) ttab = ((typ * ('a, 'b) kind) Ord_List.T) SMT2_Utils.dict 
+type ('a, 'b) ttab = ((typ * ('a, 'b) kind) Ord_List.T) SMT2_Util.dict 
 
 fun typ_ord ((T, _), (U, _)) =
   let
@@ -69,17 +68,15 @@ fun typ_ord ((T, _), (U, _)) =
   in tord (T, U) end
 
 fun insert_ttab cs T f =
-  SMT2_Utils.dict_map_default (cs, [])
+  SMT2_Util.dict_map_default (cs, [])
     (Ord_List.insert typ_ord (perhaps (try Logic.varifyT_global) T, f))
 
-fun merge_ttab ttabp =
-  SMT2_Utils.dict_merge (Ord_List.merge typ_ord) ttabp
+fun merge_ttab ttabp = SMT2_Util.dict_merge (Ord_List.merge typ_ord) ttabp
 
 fun lookup_ttab ctxt ttab T =
   let fun match (U, _) = Sign.typ_instance (Proof_Context.theory_of ctxt) (T, U)
   in
-    get_first (find_first match)
-      (SMT2_Utils.dict_lookup ttab (SMT2_Config.solver_class_of ctxt))
+    get_first (find_first match) (SMT2_Util.dict_lookup ttab (SMT2_Config.solver_class_of ctxt))
   end
 
 type ('a, 'b) btab = ('a, 'b) ttab Symtab.table
@@ -120,8 +117,7 @@ fun filter_builtins keep_T =
 fun add_builtin_typ cs (T, f, g) =
   Builtins.map (apfst (insert_ttab cs T (Int (f, g))))
 
-fun add_builtin_typ_ext (T, f) =
-  Builtins.map (apfst (insert_ttab SMT2_Utils.basicC T (Ext f)))
+fun add_builtin_typ_ext (T, f) = Builtins.map (apfst (insert_ttab SMT2_Util.basicC T (Ext f)))
 
 fun lookup_builtin_typ ctxt =
   lookup_ttab ctxt (fst (Builtins.get (Context.Proof ctxt)))
@@ -170,7 +166,7 @@ fun add_builtin_fun' cs (t, n) =
   in add_builtin_fun cs (c, bfun) end
 
 fun add_builtin_fun_ext ((n, T), f) =
-  Builtins.map (apsnd (insert_btab SMT2_Utils.basicC n T (Ext f)))
+  Builtins.map (apsnd (insert_btab SMT2_Util.basicC n T (Ext f)))
 
 fun add_builtin_fun_ext' c = add_builtin_fun_ext (c, fn _ => fn _ => I)
 

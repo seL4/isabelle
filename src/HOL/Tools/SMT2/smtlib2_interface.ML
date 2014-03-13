@@ -7,9 +7,8 @@ Interface to SMT solvers based on the SMT-LIB 2 format.
 
 signature SMTLIB2_INTERFACE =
 sig
-  val smtlib2C: SMT2_Utils.class
-  val add_logic: int * (term list -> string option) -> Context.generic ->
-    Context.generic
+  val smtlib2C: SMT2_Util.class
+  val add_logic: int * (term list -> string option) -> Context.generic -> Context.generic
   val translate_config: Proof.context -> SMT2_Translate.config
 end
 
@@ -24,8 +23,8 @@ val smtlib2C = ["smtlib2"]
 local
   fun int_num _ i = SOME (string_of_int i)
 
-  fun is_linear [t] = SMT2_Utils.is_number t
-    | is_linear [t, u] = SMT2_Utils.is_number t orelse SMT2_Utils.is_number u
+  fun is_linear [t] = SMT2_Util.is_number t
+    | is_linear [t, u] = SMT2_Util.is_number t orelse SMT2_Util.is_number u
     | is_linear _ = false
 
   fun times _ _ ts =

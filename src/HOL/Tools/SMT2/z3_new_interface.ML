@@ -6,7 +6,7 @@ Interface to Z3 based on a relaxed version of SMT-LIB.
 
 signature Z3_NEW_INTERFACE =
 sig
-  val smtlib2_z3C: SMT2_Utils.class
+  val smtlib2_z3C: SMT2_Util.class
 
   datatype sym = Sym of string * sym list
   type mk_builtins = {
@@ -145,26 +145,21 @@ val disj = Thm.cterm_of @{theory} @{const HOL.disj}
 fun mk_nary _ cu [] = cu
   | mk_nary ct _ cts = uncurry (fold_rev (Thm.mk_binop ct)) (split_last cts)
 
-val eq = SMT2_Utils.mk_const_pat @{theory} @{const_name HOL.eq} SMT2_Utils.destT1
-fun mk_eq ct cu = Thm.mk_binop (SMT2_Utils.instT' ct eq) ct cu
+val eq = SMT2_Util.mk_const_pat @{theory} @{const_name HOL.eq} SMT2_Util.destT1
+fun mk_eq ct cu = Thm.mk_binop (SMT2_Util.instT' ct eq) ct cu
 
 val if_term =
-  SMT2_Utils.mk_const_pat @{theory} @{const_name If}
-    (SMT2_Utils.destT1 o SMT2_Utils.destT2)
-fun mk_if cc ct cu =
-  Thm.mk_binop (Thm.apply (SMT2_Utils.instT' ct if_term) cc) ct cu
+  SMT2_Util.mk_const_pat @{theory} @{const_name If} (SMT2_Util.destT1 o SMT2_Util.destT2)
+fun mk_if cc ct = Thm.mk_binop (Thm.apply (SMT2_Util.instT' ct if_term) cc) ct
 
-val access =
-  SMT2_Utils.mk_const_pat @{theory} @{const_name fun_app} SMT2_Utils.destT1
-fun mk_access array = Thm.apply (SMT2_Utils.instT' array access) array
+val access = SMT2_Util.mk_const_pat @{theory} @{const_name fun_app} SMT2_Util.destT1
+fun mk_access array = Thm.apply (SMT2_Util.instT' array access) array
 
-val update = SMT2_Utils.mk_const_pat @{theory} @{const_name fun_upd}
-  (Thm.dest_ctyp o SMT2_Utils.destT1)
+val update =
+  SMT2_Util.mk_const_pat @{theory} @{const_name fun_upd} (Thm.dest_ctyp o SMT2_Util.destT1)
 fun mk_update array index value =
   let val cTs = Thm.dest_ctyp (Thm.ctyp_of_term array)
-  in
-    Thm.apply (Thm.mk_binop (SMT2_Utils.instTs cTs update) array index) value
-  end
+  in Thm.apply (Thm.mk_binop (SMT2_Util.instTs cTs update) array index) value end
 
 val mk_uminus = Thm.apply (Thm.cterm_of @{theory} @{const uminus (int)})
 val add = Thm.cterm_of @{theory} @{const plus (int)}

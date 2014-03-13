@@ -1,11 +1,11 @@
-(*  Title:      HOL/Tools/SMT2/z3_new_proof.ML
+(*  Title:      HOL/Tools/SMT2/z3_new_replay_methods.ML
     Author:     Sascha Boehme, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
 
 Proof methods for replaying Z3 proofs.
 *)
 
-signature Z3_NEW_PROOF_METHODS =
+signature Z3_NEW_REPLAY_METHODS =
 sig
   (*abstraction*)
   type abs_context = int * term Termtab.table
@@ -53,7 +53,7 @@ sig
   val method_for: Z3_New_Proof.z3_rule -> z3_method
 end
 
-structure Z3_New_Proof_Methods: Z3_NEW_PROOF_METHODS =
+structure Z3_New_Replay_Methods: Z3_NEW_REPLAY_METHODS =
 struct
 
 type z3_method = Proof.context -> thm list -> term -> thm
@@ -90,7 +90,7 @@ fun dest_prop (Const (@{const_name Trueprop}, _) $ t) = t
 
 fun dest_thm thm = dest_prop (Thm.concl_of thm)
 
-fun certify_prop ctxt t = SMT2_Utils.certify ctxt (as_prop t)
+fun certify_prop ctxt t = SMT2_Util.certify ctxt (as_prop t)
 
 fun try_provers ctxt rule [] thms t = replay_rule_error ctxt rule thms t
   | try_provers ctxt rule ((name, prover) :: named_provers) thms t =
@@ -116,12 +116,12 @@ fun match_instantiateT ctxt t thm =
 
 fun match_instantiate ctxt t thm =
   let
-    val cert = SMT2_Utils.certify ctxt
+    val cert = SMT2_Util.certify ctxt
     val thm' = match_instantiateT ctxt t thm
   in Thm.instantiate ([], gen_certify_inst snd Var cert ctxt thm' t) thm' end
 
 fun apply_rule ctxt t =
-  (case Z3_New_Proof_Rules.apply ctxt (certify_prop ctxt t) of
+  (case Z3_New_Replay_Rules.apply ctxt (certify_prop ctxt t) of
     SOME thm => thm
   | NONE => raise Fail "apply_rule")
 

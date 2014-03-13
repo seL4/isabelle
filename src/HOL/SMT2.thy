@@ -9,7 +9,7 @@ imports Record
 keywords "smt2_status" :: diag
 begin
 
-ML_file "Tools/SMT2/smt2_utils.ML"
+ML_file "Tools/SMT2/smt2_util.ML"
 ML_file "Tools/SMT2/smt2_failure.ML"
 ML_file "Tools/SMT2/smt2_config.ML"
 
@@ -51,7 +51,7 @@ them, because incorrect choices of weights might render a problem unsolvable.
 definition weight :: "int \<Rightarrow> bool \<Rightarrow> bool" where "weight _ P = P"
 
 text {*
-Weights must be non-negative.  The value @{text 0} is equivalent to providing
+Weights must be nonnegative.  The value @{text 0} is equivalent to providing
 no weight at all.
 
 Weights should only be used at quantifiers and only inside triggers (if the
@@ -105,14 +105,14 @@ ML_file "Tools/SMT2/smtlib2_interface.ML"
 ML_file "Tools/SMT2/z3_new_model.ML"
 ML_file "Tools/SMT2/z3_new_proof.ML"
 ML_file "Tools/SMT2/smt2_solver.ML"
-ML_file "Tools/SMT2/z3_new_interface.ML"
-ML_file "Tools/SMT2/z3_new_proof_tools.ML"
-ML_file "Tools/SMT2/z3_new_proof_literals.ML"
-ML_file "Tools/SMT2/z3_new_proof_rules.ML"
-ML_file "Tools/SMT2/z3_new_proof_methods.ML"
-ML_file "Tools/SMT2/z3_new_proof_replay.ML"
 ML_file "Tools/SMT2/z3_new_isar.ML"
-ML_file "Tools/SMT2/smt2_setup_solvers.ML"
+ML_file "Tools/SMT2/z3_new_interface.ML"
+ML_file "Tools/SMT2/z3_new_replay_util.ML"
+ML_file "Tools/SMT2/z3_new_replay_literals.ML"
+ML_file "Tools/SMT2/z3_new_replay_rules.ML"
+ML_file "Tools/SMT2/z3_new_replay_methods.ML"
+ML_file "Tools/SMT2/z3_new_replay.ML"
+ML_file "Tools/SMT2/smt2_systems.ML"
 
 method_setup smt2 = {*
   Scan.optional Attrib.thms [] >>

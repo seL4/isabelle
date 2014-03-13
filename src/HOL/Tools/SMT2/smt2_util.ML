@@ -1,10 +1,10 @@
-(*  Title:      HOL/Tools/SMT2/smt2_utils.ML
+(*  Title:      HOL/Tools/SMT2/smt2_util.ML
     Author:     Sascha Boehme, TU Muenchen
 
 General utility functions.
 *)
 
-signature SMT2_UTILS =
+signature SMT2_UTIL =
 sig
   (*basic combinators*)
   val repeat: ('a -> 'a option) -> 'a -> 'a
@@ -61,7 +61,7 @@ sig
   val prop_conv: conv -> conv
 end
 
-structure SMT2_Utils: SMT2_UTILS =
+structure SMT2_Util: SMT2_UTIL =
 struct
 
 (* basic combinators *)

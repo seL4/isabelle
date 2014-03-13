@@ -33,7 +33,7 @@ sig
     assms: (int * thm) list }
 
   (*translation*)
-  val add_config: SMT2_Utils.class * (Proof.context -> config) -> Context.generic -> Context.generic
+  val add_config: SMT2_Util.class * (Proof.context -> config) -> Context.generic -> Context.generic
   val translate: Proof.context -> string list -> (int * thm) list -> string * replay_data
 end
 
@@ -175,7 +175,7 @@ local
     in Abs (Name.uu, U, q $ eta I (Term.domain_type U) (Bound 0)) end
 
   fun expf k i T t =
-    let val Ts = drop i (fst (SMT2_Utils.dest_funT k T))
+    let val Ts = drop i (fst (SMT2_Util.dest_funT k T))
     in
       Term.incr_boundvars (length Ts) t
       |> fold_rev (fn i => fn u => u $ Bound i) (0 upto length Ts - 1)
@@ -256,7 +256,7 @@ local
   fun apply i t T ts =
     let
       val (ts1, ts2) = chop i ts
-      val (_, U) = SMT2_Utils.dest_funT i T
+      val (_, U) = SMT2_Util.dest_funT i T
     in fst (fold app ts2 (Term.list_comb (t, ts1), U)) end
 in
 
@@ -459,7 +459,7 @@ fun intermediate header dtyps builtin ctxt ts trx =
       | _ => raise TERM ("bad SMT term", [t]))
  
     and transs t T ts =
-      let val (Us, U) = SMT2_Utils.dest_funT (length ts) T
+      let val (Us, U) = SMT2_Util.dest_funT (length ts) T
       in
         fold_map transT Us ##>> transT U #-> (fn Up =>
         add_fun t (SOME Up) ##>> fold_map trans ts #>> SApp)
@@ -474,21 +474,21 @@ fun intermediate header dtyps builtin ctxt ts trx =
 
 structure Configs = Generic_Data
 (
-  type T = (Proof.context -> config) SMT2_Utils.dict
+  type T = (Proof.context -> config) SMT2_Util.dict
   val empty = []
   val extend = I
-  fun merge data = SMT2_Utils.dict_merge fst data
+  fun merge data = SMT2_Util.dict_merge fst data
 )
 
-fun add_config (cs, cfg) = Configs.map (SMT2_Utils.dict_update (cs, cfg))
+fun add_config (cs, cfg) = Configs.map (SMT2_Util.dict_update (cs, cfg))
 
 fun get_config ctxt = 
   let val cs = SMT2_Config.solver_class_of ctxt
   in
-    (case SMT2_Utils.dict_get (Configs.get (Context.Proof ctxt)) cs of
+    (case SMT2_Util.dict_get (Configs.get (Context.Proof ctxt)) cs of
       SOME cfg => cfg ctxt
     | NONE => error ("SMT: no translation configuration found " ^
-        "for solver class " ^ quote (SMT2_Utils.string_of_class cs)))
+        "for solver class " ^ quote (SMT2_Util.string_of_class cs)))
   end
 
 fun translate ctxt comments ithms =
@@ -498,7 +498,7 @@ fun translate ctxt comments ithms =
     fun no_dtyps (tr_context, ctxt) ts =
       ((Termtab.empty, [], tr_context, ctxt), ts)
 
-    val ts1 = map (Envir.beta_eta_contract o SMT2_Utils.prop_of o snd) ithms
+    val ts1 = map (Envir.beta_eta_contract o SMT2_Util.prop_of o snd) ithms
 
     val ((funcs, dtyps, tr_context, ctxt1), ts2) =
       ((empty_tr_context, ctxt), ts1)

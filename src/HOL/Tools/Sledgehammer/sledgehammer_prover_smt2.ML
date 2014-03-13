@@ -122,7 +122,7 @@ fun smt2_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instan
            |> Config.put SMT2_Config.infer_triggers (Config.get ctxt smt2_triggers)
            |> not (Config.get ctxt smt2_builtins)
               ? (SMT2_Builtin.filter_builtins is_boring_builtin_typ
-                 #> Config.put SMT2_Setup_Solvers.z3_extensions false)
+                 #> Config.put SMT2_Systems.z3_extensions false)
            |> repair_monomorph_context max_mono_iters default_max_mono_iters max_new_mono_instances
                 default_max_new_mono_instances
 

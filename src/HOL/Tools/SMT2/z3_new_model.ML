@@ -122,10 +122,8 @@ fun trans_expr _ True = pair @{const True}
   | trans_expr T (Value i) = pair (Var (("value", i), T))
   | trans_expr T (Array a) = trans_array T a
   | trans_expr T (App (n, es)) = get_term n T es #-> (fn (t, es') =>
-      let val Ts = fst (SMT2_Utils.dest_funT (length es') (Term.fastype_of t))
-      in
-        fold_map (uncurry trans_expr) (Ts ~~ es') #>> Term.list_comb o pair t
-      end)
+      let val Ts = fst (SMT2_Util.dest_funT (length es') (Term.fastype_of t))
+      in fold_map (uncurry trans_expr) (Ts ~~ es') #>> Term.list_comb o pair t end)
 
 and trans_array T a =
   let val (dT, rT) = Term.dest_funT T
@@ -164,7 +162,7 @@ fun mk_lambda Ts (t, pats) =
 fun translate ((t, k), (e, cs)) =
   let
     val T = Term.fastype_of t
-    val (Us, U) = SMT2_Utils.dest_funT k (Term.fastype_of t)
+    val (Us, U) = SMT2_Util.dest_funT k (Term.fastype_of t)
 
     fun mk_full_def u' pats =
       pats

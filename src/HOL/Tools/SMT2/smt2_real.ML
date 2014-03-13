@@ -21,8 +21,8 @@ fun smtlib_logic ts =
 local
   fun real_num _ i = SOME (string_of_int i ^ ".0")
 
-  fun is_linear [t] = SMT2_Utils.is_number t
-    | is_linear [t, u] = SMT2_Utils.is_number t orelse SMT2_Utils.is_number u
+  fun is_linear [t] = SMT2_Util.is_number t
+    | is_linear [t, u] = SMT2_Util.is_number t orelse SMT2_Util.is_number u
     | is_linear _ = false
 
   fun mk_times ts = Term.list_comb (@{const times (real)}, ts)

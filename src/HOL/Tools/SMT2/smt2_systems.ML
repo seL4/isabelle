@@ -1,10 +1,10 @@
-(*  Title:      HOL/Tools/SMT2/smt2_setup_solvers.ML
+(*  Title:      HOL/Tools/SMT2/smt2_systems.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Setup SMT solvers.
 *)
 
-signature SMT2_SETUP_SOLVERS =
+signature SMT2_SYSTEMS =
 sig
   datatype z3_non_commercial =
     Z3_Non_Commercial_Unknown |
@@ -14,7 +14,7 @@ sig
   val z3_extensions: bool Config.T
 end
 
-structure SMT2_Setup_Solvers: SMT2_SETUP_SOLVERS =
+structure SMT2_Systems: SMT2_SYSTEMS =
 struct
 
 (* helper functions *)
@@ -168,7 +168,7 @@ val z3: SMT2_Solver.solver_config = {
   supports_filter = true,
   outcome = z3_on_first_or_last_line,
   cex_parser = SOME Z3_New_Model.parse_counterex,
-  replay = SOME Z3_New_Proof_Replay.replay }
+  replay = SOME Z3_New_Replay.replay }
 
 end
 
