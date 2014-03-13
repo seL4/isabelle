@@ -55,7 +55,6 @@ fun under_fixes f ctxt (prems, nthms) names concl =
 
 fun replay_thm ctxt assumed nthms
     (Z3_New_Proof.Z3_Step {id, rule, concl, fixes, is_fix_step, ...}) =
-(tracing ("replay_thm: " ^ @{make_string} (id, rule) ^ " " ^ Syntax.string_of_term ctxt concl);
   if Z3_New_Proof_Methods.is_assumption rule then
     (case Inttab.lookup assumed id of
       SOME (_, thm) => thm
@@ -63,7 +62,6 @@ fun replay_thm ctxt assumed nthms
   else
     under_fixes (Z3_New_Proof_Methods.method_for rule) ctxt
       (if is_fix_step then (map snd nthms, []) else ([], nthms)) fixes concl
-) (*###*)
 
 fun replay_step ctxt assumed (step as Z3_New_Proof.Z3_Step {id, prems, fixes, ...}) proofs =
   let val nthms = map (the o Inttab.lookup proofs) prems
