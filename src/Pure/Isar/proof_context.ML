@@ -219,9 +219,12 @@ structure Data = Proof_Data
 (
   type T = data;
   fun init thy =
-    make_data (mode_default, Local_Syntax.init thy,
-      (Sign.tsig_of thy, Sign.tsig_of thy),
-      (Sign.consts_of thy, Sign.consts_of thy), Facts.empty, empty_cases);
+    make_data (mode_default,
+      Local_Syntax.init thy,
+      (Type.change_ignore (Sign.tsig_of thy), Sign.tsig_of thy),
+      (Consts.change_ignore (Sign.consts_of thy), Sign.consts_of thy),
+      Facts.empty,
+      empty_cases);
 );
 
 fun rep_data ctxt = Data.get ctxt |> (fn Data rep => rep);

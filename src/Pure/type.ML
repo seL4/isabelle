@@ -26,6 +26,7 @@ sig
     types: decl Name_Space.table,
     log_types: string list}
   val change_base: bool -> tsig -> tsig
+  val change_ignore: tsig -> tsig
   val empty_tsig: tsig
   val class_space: tsig -> Name_Space.T
   val class_alias: Name_Space.naming -> binding -> string -> tsig -> tsig
@@ -179,6 +180,9 @@ fun make_tsig (classes, default, types, log_types) =
 
 fun change_base begin (TSig {classes, default, types, log_types}) =
   make_tsig (classes, default, Name_Space.change_base begin types, log_types);
+
+fun change_ignore (TSig {classes, default, types, log_types}) =
+  make_tsig (classes, default, Name_Space.change_ignore types, log_types);
 
 fun build_tsig (classes, default, types) =
   let

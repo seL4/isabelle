@@ -56,6 +56,7 @@ sig
   val declare: Context.generic -> bool -> binding -> T -> string * T
   type 'a table
   val change_base: bool -> 'a table -> 'a table
+  val change_ignore: 'a table -> 'a table
   val space_of_table: 'a table -> T
   val check_reports: Context.generic -> 'a table ->
     xstring * Position.T list -> (string * Position.report list) * 'a
@@ -122,6 +123,9 @@ fun map_name_space f (Name_Space {kind = kind, internals = internals, entries = 
 
 fun change_base_space begin = map_name_space (fn (kind, internals, entries) =>
   (kind, Change_Table.change_base begin internals, Change_Table.change_base begin entries));
+
+val change_ignore_space = map_name_space (fn (kind, internals, entries) =>
+  (kind, Change_Table.change_ignore internals, Change_Table.change_ignore entries));
 
 fun map_internals f xname = map_name_space (fn (kind, internals, entries) =>
   (kind, Change_Table.map_default (xname, ([], [])) f internals, entries));
@@ -473,6 +477,9 @@ datatype 'a table = Table of T * 'a Change_Table.T;
 
 fun change_base begin (Table (space, tab)) =
   Table (change_base_space begin space, Change_Table.change_base begin tab);
+
+fun change_ignore (Table (space, tab)) =
+  Table (change_ignore_space space, Change_Table.change_ignore tab);
 
 fun space_of_table (Table (space, _)) = space;
 
