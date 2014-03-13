@@ -42,8 +42,7 @@ local
     | is_div_mod @{const mod (int)} = true
     | is_div_mod _ = false
 
-  val have_int_div_mod =
-    exists (Term.exists_subterm is_div_mod o Thm.prop_of)
+  val have_int_div_mod = exists (Term.exists_subterm is_div_mod o Thm.prop_of)
 
   fun add_div_mod _ (thms, extra_thms) =
     if have_int_div_mod thms orelse have_int_div_mod extra_thms then
@@ -101,8 +100,7 @@ structure Mk_Builtins = Generic_Data
   fun merge data = Ord_List.merge fst_int_ord data
 )
 
-fun add_mk_builtins mk =
-  Mk_Builtins.map (Ord_List.insert fst_int_ord (serial (), mk))
+fun add_mk_builtins mk = Mk_Builtins.map (Ord_List.insert fst_int_ord (serial (), mk))
 
 fun get_mk_builtins ctxt = map snd (Mk_Builtins.get (Context.Proof ctxt))
 

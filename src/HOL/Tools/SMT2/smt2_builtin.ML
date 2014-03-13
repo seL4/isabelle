@@ -29,20 +29,15 @@ sig
   val add_builtin_fun: SMT2_Util.class -> (string * typ) * bfunr option bfun -> Context.generic ->
     Context.generic
   val add_builtin_fun': SMT2_Util.class -> term * string -> Context.generic -> Context.generic
-  val add_builtin_fun_ext: (string * typ) * term list bfun ->
-    Context.generic -> Context.generic
+  val add_builtin_fun_ext: (string * typ) * term list bfun -> Context.generic -> Context.generic
   val add_builtin_fun_ext': string * typ -> Context.generic -> Context.generic
   val add_builtin_fun_ext'': string -> Context.generic -> Context.generic
-  val dest_builtin_fun: Proof.context -> string * typ -> term list ->
-    bfunr option
+  val dest_builtin_fun: Proof.context -> string * typ -> term list -> bfunr option
   val dest_builtin_eq: Proof.context -> term -> term -> bfunr option
-  val dest_builtin_pred: Proof.context -> string * typ -> term list ->
-    bfunr option
-  val dest_builtin_conn: Proof.context -> string * typ -> term list ->
-    bfunr option
+  val dest_builtin_pred: Proof.context -> string * typ -> term list -> bfunr option
+  val dest_builtin_conn: Proof.context -> string * typ -> term list -> bfunr option
   val dest_builtin: Proof.context -> string * typ -> term list -> bfunr option
-  val dest_builtin_ext: Proof.context -> string * typ -> term list ->
-    term list option
+  val dest_builtin_ext: Proof.context -> string * typ -> term list -> term list option
   val is_builtin_fun: Proof.context -> string * typ -> term list -> bool
   val is_builtin_fun_ext: Proof.context -> string * typ -> term list -> bool
 end

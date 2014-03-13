@@ -85,6 +85,39 @@ properties of such (extensional) arrays.
 lemmas array_rules = ext fun_upd_apply fun_upd_same fun_upd_other  fun_upd_upd fun_app_def
 
 
+subsection {* Normalization *}
+
+lemma case_bool_if[abs_def]: "case_bool x y P = (if P then x else y)"
+  by simp
+
+lemma nat_int: "\<forall>n. nat (int n) = n" by simp
+lemma int_nat_nneg: "\<forall>i. i \<ge> 0 \<longrightarrow> int (nat i) = i" by simp
+lemma int_nat_neg: "\<forall>i. i < 0 \<longrightarrow> int (nat i) = 0" by simp
+
+lemma nat_zero_as_int: "0 = nat 0" by (rule transfer_nat_int_numerals(1))
+lemma nat_one_as_int: "1 = nat 1" by (rule transfer_nat_int_numerals(2))
+lemma nat_numeral_as_int: "numeral = (\<lambda>i. nat (numeral i))" by simp
+lemma nat_less_as_int: "op < = (\<lambda>a b. int a < int b)" by simp
+lemma nat_leq_as_int: "op \<le> = (\<lambda>a b. int a <= int b)" by simp
+lemma Suc_as_int: "Suc = (\<lambda>a. nat (int a + 1))" by (rule ext) simp
+lemma nat_plus_as_int: "op + = (\<lambda>a b. nat (int a + int b))" by (rule ext)+ simp
+lemma nat_minus_as_int: "op - = (\<lambda>a b. nat (int a - int b))" by (rule ext)+ simp
+lemma nat_times_as_int: "op * = (\<lambda>a b. nat (int a * int b))" by (simp add: nat_mult_distrib)
+lemma nat_div_as_int: "op div = (\<lambda>a b. nat (int a div int b))" by (simp add: nat_div_distrib)
+lemma nat_mod_as_int: "op mod = (\<lambda>a b. nat (int a mod int b))" by (simp add: nat_mod_distrib)
+
+lemma int_Suc: "int (Suc n) = int n + 1" by simp
+lemma int_plus: "int (n + m) = int n + int m" by (rule of_nat_add)
+lemma int_minus: "int (n - m) = int (nat (int n - int m))" by auto
+
+lemmas Ex1_def_raw = Ex1_def[abs_def]
+lemmas Ball_def_raw = Ball_def[abs_def]
+lemmas Bex_def_raw = Bex_def[abs_def]
+lemmas abs_if_raw = abs_if[abs_def]
+lemmas min_def_raw = min_def[abs_def]
+lemmas max_def_raw = max_def[abs_def]
+
+
 subsection {* Integer division and modulo for Z3 *}
 
 text {*

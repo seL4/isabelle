@@ -58,36 +58,25 @@ fun norm_def thm =
 fun atomize_conv ctxt ct =
   (case Thm.term_of ct of
     @{const "==>"} $ _ $ _ =>
-      Conv.binop_conv (atomize_conv ctxt) then_conv
-      Conv.rewr_conv @{thm atomize_imp}
+      Conv.binop_conv (atomize_conv ctxt) then_conv Conv.rewr_conv @{thm atomize_imp}
   | Const (@{const_name "=="}, _) $ _ $ _ =>
-      Conv.binop_conv (atomize_conv ctxt) then_conv
-      Conv.rewr_conv @{thm atomize_eq}
+      Conv.binop_conv (atomize_conv ctxt) then_conv Conv.rewr_conv @{thm atomize_eq}
   | Const (@{const_name all}, _) $ Abs _ =>
-      Conv.binder_conv (atomize_conv o snd) ctxt then_conv
-      Conv.rewr_conv @{thm atomize_all}
+      Conv.binder_conv (atomize_conv o snd) ctxt then_conv Conv.rewr_conv @{thm atomize_all}
   | _ => Conv.all_conv) ct
 
 val setup_atomize =
-  fold SMT2_Builtin.add_builtin_fun_ext'' [@{const_name "==>"},
-    @{const_name "=="}, @{const_name all}, @{const_name Trueprop}]
+  fold SMT2_Builtin.add_builtin_fun_ext'' [@{const_name "==>"}, @{const_name "=="},
+    @{const_name all}, @{const_name Trueprop}]
 
 
 (** unfold special quantifiers **)
 
 local
-  val ex1_def = mk_meta_eq @{lemma
-    "Ex1 = (%P. EX x. P x & (ALL y. P y --> y = x))"
-    by (rule ext) (simp only: Ex1_def)}
-
-  val ball_def = mk_meta_eq @{lemma "Ball = (%A P. ALL x. x : A --> P x)"
-    by (rule ext)+ (rule Ball_def)}
-
-  val bex_def = mk_meta_eq @{lemma "Bex = (%A P. EX x. x : A & P x)"
-    by (rule ext)+ (rule Bex_def)}
-
-  val special_quants = [(@{const_name Ex1}, ex1_def),
-    (@{const_name Ball}, ball_def), (@{const_name Bex}, bex_def)]
+  val special_quants = [
+    (@{const_name Ex1}, @{thm Ex1_def_raw}),
+    (@{const_name Ball}, @{thm Ball_def_raw}),
+    (@{const_name Bex}, @{thm Bex_def_raw})]
   
   fun special_quant (Const (n, _)) = AList.lookup (op =) special_quants n
     | special_quant _ = NONE
@@ -101,8 +90,7 @@ in
 fun unfold_special_quants_conv ctxt =
   SMT2_Util.if_exists_conv (is_some o special_quant) (Conv.top_conv special_quant_conv ctxt)
 
-val setup_unfolded_quants =
-  fold (SMT2_Builtin.add_builtin_fun_ext'' o fst) special_quants
+val setup_unfolded_quants = fold (SMT2_Builtin.add_builtin_fun_ext'' o fst) special_quants
 
 end
 
@@ -202,8 +190,7 @@ local
   val mk_mpat_list = mk_list (mk_clist @{typ "SMT2.pattern list"})  
   fun mk_trigger ctss = mk_mpat_list (mk_pat_list mk_pat) ctss
 
-  val trigger_eq =
-    mk_meta_eq @{lemma "p = SMT2.trigger t p" by (simp add: trigger_def)}
+  val trigger_eq = mk_meta_eq @{lemma "p = SMT2.trigger t p" by (simp add: trigger_def)}
 
   fun insert_trigger_conv [] ct = Conv.all_conv ct
     | insert_trigger_conv ctss ct =
@@ -282,13 +269,10 @@ local
       @{const SMT2.trigger} $ _ $ _ => Conv.arg_conv cv
     | _ => cv) ct
 
-  val weight_eq =
-    mk_meta_eq @{lemma "p = SMT2.weight i p" by (simp add: weight_def)}
+  val weight_eq = mk_meta_eq @{lemma "p = SMT2.weight i p" by (simp add: weight_def)}
   fun mk_weight_eq w =
     let val cv = Thm.dest_arg1 (Thm.rhs_of weight_eq)
-    in
-      Thm.instantiate ([], [(cv, Numeral.mk_cnumber @{ctyp int} w)]) weight_eq
-    end
+    in Thm.instantiate ([], [(cv, Numeral.mk_cnumber @{ctyp int} w)]) weight_eq end
 
   fun add_weight_conv NONE _ = Conv.all_conv
     | add_weight_conv (SOME weight) ctxt =
@@ -348,18 +332,15 @@ local
   fun is_case_bool (Const (@{const_name "bool.case_bool"}, _)) = true
     | is_case_bool _ = false
 
-  val thm = mk_meta_eq @{lemma
-    "case_bool = (%x y P. if P then x else y)" by (rule ext)+ simp}
-
   fun unfold_conv _ =
-    SMT2_Util.if_true_conv (is_case_bool o Term.head_of) (expand_head_conv (Conv.rewr_conv thm))
+    SMT2_Util.if_true_conv (is_case_bool o Term.head_of)
+      (expand_head_conv (Conv.rewr_conv @{thm case_bool_if}))
 in
 
 fun rewrite_case_bool_conv ctxt =
   SMT2_Util.if_exists_conv is_case_bool (Conv.top_conv unfold_conv ctxt)
 
-val setup_case_bool =
-  SMT2_Builtin.add_builtin_fun_ext'' @{const_name "bool.case_bool"}
+val setup_case_bool = SMT2_Builtin.add_builtin_fun_ext'' @{const_name "bool.case_bool"}
 
 end
 
@@ -367,17 +348,10 @@ end
 (** unfold abs, min and max **)
 
 local
-  val abs_def = mk_meta_eq @{lemma "abs = (%a::'a::abs_if. if a < 0 then - a else a)"
-    by (rule ext) (rule abs_if)}
-
-  val min_def = mk_meta_eq @{lemma "min = (%a b. if a <= b then a else b)"
-    by (rule ext)+ (rule min_def)}
-
-  val max_def = mk_meta_eq  @{lemma "max = (%a b. if a <= b then b else a)"
-    by (rule ext)+ (rule max_def)}
-
-  val defs = [(@{const_name min}, min_def), (@{const_name max}, max_def),
-    (@{const_name abs}, abs_def)]
+  val defs = [
+    (@{const_name min}, @{thm min_def_raw}),
+    (@{const_name max}, @{thm max_def_raw}),
+    (@{const_name abs}, @{thm abs_if_raw})]
 
   fun abs_min_max ctxt (Const (n, Type (@{type_name fun}, [T, _]))) =
         (case AList.lookup (op =) defs n of
@@ -402,11 +376,7 @@ end
 (** embedding of standard natural number operations into integer operations **)
 
 local
-  val nat_embedding = @{lemma
-    "ALL n. nat (int n) = n"
-    "ALL i. i >= 0 --> int (nat i) = i"
-    "ALL i. i < 0 --> int (nat i) = 0"
-    by simp_all}
+  val nat_embedding = @{thms nat_int int_nat_nneg int_nat_neg}
 
   val simple_nat_ops = [
     @{const less (nat)}, @{const less_eq (nat)},
@@ -429,34 +399,13 @@ local
   fun is_nat_const' @{const of_nat (int)} = true
     | is_nat_const' t = is_nat_const t
 
-  val expands = map mk_meta_eq @{lemma
-    "0 = nat 0"
-    "1 = nat 1"
-    "(numeral :: num => nat) = (%i. nat (numeral i))"
-    "op < = (%a b. int a < int b)"
-    "op <= = (%a b. int a <= int b)"
-    "Suc = (%a. nat (int a + 1))"
-    "op + = (%a b. nat (int a + int b))"
-    "op - = (%a b. nat (int a - int b))"
-    "op * = (%a b. nat (int a * int b))"
-    "op div = (%a b. nat (int a div int b))"
-    "op mod = (%a b. nat (int a mod int b))"
-    by (fastforce simp add: nat_mult_distrib nat_div_distrib nat_mod_distrib)+}
+  val expands = map mk_meta_eq @{thms nat_zero_as_int nat_one_as_int nat_numeral_as_int
+    nat_less_as_int nat_leq_as_int Suc_as_int nat_plus_as_int nat_minus_as_int nat_times_as_int
+    nat_div_as_int nat_mod_as_int}
 
-  val ints = map mk_meta_eq @{lemma
-    "int 0 = 0"
-    "int 1 = 1"
-    "int (Suc n) = int n + 1"
-    "int (n + m) = int n + int m"
-    "int (n - m) = int (nat (int n - int m))"
-    "int (n * m) = int n * int m"
-    "int (n div m) = int n div int m"
-    "int (n mod m) = int n mod int m"
-    by (auto simp add: int_mult zdiv_int zmod_int)}
-
-  val int_if = mk_meta_eq @{lemma
-    "int (if P then n else m) = (if P then int n else int m)"
-    by simp}
+  val ints = map mk_meta_eq @{thms int_0 int_1 int_Suc int_plus int_minus int_mult zdiv_int
+    zmod_int}
+  val int_if = mk_meta_eq @{lemma "int (if P then n else m) = (if P then int n else int m)" by simp}
 
   fun mk_number_eq ctxt i lhs =
     let
