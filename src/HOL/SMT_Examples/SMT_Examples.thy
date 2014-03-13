@@ -338,16 +338,16 @@ lemma "~ (\<exists>x::int. False)" by smt2
 lemma "~ (\<exists>x::real. False)" by smt2
 
 lemma "\<exists>x::int. 0 < x"
-  using [[smt2_oracle=true]] (* no Z3 proof *)
-  by smt2
+  using [[smt_oracle=true]] (* no Z3 proof *)
+  by smt (* smt2 FIXME: requires Z3 4.3.1 *)
 
 lemma "\<exists>x::real. 0 < x"
-  using [[smt2_oracle=true]] (* no Z3 proof *)
-  by smt2
+  using [[smt_oracle=true]] (* no Z3 proof *)
+  by smt (* smt2 FIXME: requires Z3 4.3.1 *)
 
 lemma "\<forall>x::int. \<exists>y. y > x"
-  using [[smt2_oracle=true]] (* no Z3 proof *)
-  by smt2
+  using [[smt_oracle=true]] (* no Z3 proof *)
+  by smt (* smt2 FIXME: requires Z3 4.3.1 *)
 
 lemma "\<forall>x y::int. (x = 0 \<and> y = 1) \<longrightarrow> x \<noteq> y" by smt2
 lemma "\<exists>x::int. \<forall>y. x < y \<longrightarrow> y < 0 \<or> y >= 0" by smt2
@@ -355,12 +355,12 @@ lemma "\<forall>x y::int. x < y \<longrightarrow> (2 * x + 1) < (2 * y)" by smt2
 lemma "\<forall>x y::int. (2 * x + 1) \<noteq> (2 * y)" by smt2
 lemma "\<forall>x y::int. x + y > 2 \<or> x + y = 2 \<or> x + y < 2" by smt2
 lemma "\<forall>x::int. if x > 0 then x + 1 > 0 else 1 > x" by smt2
-lemma "if (ALL x::int. x < 0 \<or> x > 0) then False else True" by smt2
-lemma "(if (ALL x::int. x < 0 \<or> x > 0) then -1 else 3) > (0::int)" by smt2
+lemma "if (ALL x::int. x < 0 \<or> x > 0) then False else True"  by smt (* smt2 FIXME: requires Z3 4.3.1 *)
+lemma "(if (ALL x::int. x < 0 \<or> x > 0) then -1 else 3) > (0::int)" by smt (* smt2 FIXME: requires Z3 4.3.1 *)
 lemma "~ (\<exists>x y z::int. 4 * x + -6 * y = (1::int))" by smt2
 lemma "\<exists>x::int. \<forall>x y. 0 < x \<and> 0 < y \<longrightarrow> (0::int) < x + y" by smt2
 lemma "\<exists>u::int. \<forall>(x::int) y::real. 0 < x \<and> 0 < y \<longrightarrow> -1 < x" by smt2
-lemma "\<exists>x::int. (\<forall>y. y \<ge> x \<longrightarrow> y > 0) \<longrightarrow> x > 0" by smt2
+lemma "\<exists>x::int. (\<forall>y. y \<ge> x \<longrightarrow> y > 0) \<longrightarrow> x > 0" by smt (* smt2 FIXME: requires Z3 4.3.1 *)
 lemma "\<forall>x::int. SMT2.trigger [[SMT2.pat x]] (x < a \<longrightarrow> 2 * x < 2 * a)" by smt2
 lemma "\<forall>(a::int) b::int. 0 < b \<or> b < 1" by smt2
 
