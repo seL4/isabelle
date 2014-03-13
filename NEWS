@@ -445,6 +445,12 @@ INCOMPATIBILITY.
 * ML antiquotation @{here} refers to its source position, which is
 occasionally useful for experimentation and diagnostic purposes.
 
+* ML antiquotation @{path} produces a Path.T value, similarly to
+Path.explode, but with compile-time check against the file-system and
+some PIDE markup.  Note that unlike theory source, ML does not have a
+well-defined master directory, so an absolute symbolic path
+specification is usually required, e.g. "~~/src/HOL".
+
 
 *** System ***
 
