@@ -777,7 +777,8 @@ session "HOL-Word-SMT_Examples" in SMT_Examples = "HOL-Word" +
     "Boogie_Dijkstra.certs"
     "Boogie_Max.certs"
     "SMT_Examples.certs"
-    "SMT_Word_Examples.certs"
+    "SMT_Examples.certs2"
+    "SMT_Word_Examples.certs2"
     "VCC_Max.certs"
 
 session "HOL-SPARK" (main) in "SPARK" = "HOL-Word" +
