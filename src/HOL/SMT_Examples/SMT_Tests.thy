@@ -127,7 +127,7 @@ lemma
   "\<exists>x. P x \<longrightarrow> P a \<and> P b"
   "\<exists>x. (\<exists>y. P y) \<longrightarrow> P x"
   "(\<exists>x. Q \<longrightarrow> P x) \<longleftrightarrow> (Q \<longrightarrow> (\<exists>x. P x))"
-  by smt2+
+  oops (* smt2 FIXME: requires Z3 4.3.1 *)
 
 lemma
   "(\<not>(\<exists>x. P x)) \<longleftrightarrow> (\<forall>x. \<not> P x)"
@@ -146,7 +146,7 @@ lemma
   "(\<exists>x. \<forall>y. P x \<longleftrightarrow> P y) \<longrightarrow> ((\<exists>x. P x) \<longleftrightarrow> (\<forall>y. P y))"
   "\<exists>z. P z \<longrightarrow> (\<forall>x. P x)"
   "(\<exists>y. \<forall>x. R x y) \<longrightarrow> (\<forall>x. \<exists>y. R x y)"
-  by smt2+
+  by smt+ (* smt2 FIXME: requires Z3 4.3.1 *)
 
 lemma
   "(\<exists>!x. P x) \<longrightarrow> (\<exists>x. P x)"

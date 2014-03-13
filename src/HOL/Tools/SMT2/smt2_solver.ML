@@ -124,7 +124,7 @@ fun invoke name command ithms ctxt =
   let
     val options = SMT2_Config.solver_options_of ctxt
     val cmd = command ()
-    val comments = [space_implode " " (cmd @ options)]
+    val comments = [space_implode " " options]
 
     val (str, replay_data as {context=ctxt', ...}) =
       ithms
