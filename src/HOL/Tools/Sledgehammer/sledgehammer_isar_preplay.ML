@@ -178,7 +178,8 @@ fun set_preplay_outcomes_of_isar_step ctxt debug timeout preplay_data
     end
   | set_preplay_outcomes_of_isar_step _ _ _ _ _ _ = ()
 
-fun peek_at_outcome outcome = if Lazy.is_finished outcome then Lazy.force outcome else Not_Played
+fun peek_at_outcome outcome =
+  if Lazy.is_finished outcome then Lazy.force outcome else Play_Timed_Out Time.zeroTime
 
 fun get_best_method_outcome force =
   tap (List.app (K () o Lazy.future Future.default_params o snd)) (* optional parallelism *)
@@ -195,14 +196,17 @@ fun forced_intermediate_preplay_outcome_of_isar_step preplay_data l =
         outcome as Played _ => outcome
       | _ => snd (get_best_method_outcome Lazy.force meths_outcomes))
     else
-      (case get_best_method_outcome peek_at_outcome meths_outcomes of
-        (_, Not_Played) => snd (get_best_method_outcome Lazy.force meths_outcomes)
-      | (_, outcome) => outcome)
+      let val outcome = snd (get_best_method_outcome peek_at_outcome meths_outcomes) in
+        if outcome = Play_Timed_Out Time.zeroTime then
+          snd (get_best_method_outcome Lazy.force meths_outcomes)
+        else
+          outcome
+      end
   end
 
 fun preplay_outcome_of_isar_step_for_method preplay_data l =
   AList.lookup (op =) (the (Canonical_Label_Tab.lookup preplay_data l))
-  #> the_default (Lazy.value Not_Played)
+  #> the_default (Lazy.value (Play_Timed_Out Time.zeroTime))
 
 fun fastest_method_of_isar_step preplay_data =
   the o Canonical_Label_Tab.lookup preplay_data

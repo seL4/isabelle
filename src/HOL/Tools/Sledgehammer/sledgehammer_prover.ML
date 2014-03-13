@@ -219,7 +219,7 @@ fun play_one_line_proof mode debug verbose timeout pairs state i preferred (meth
     fun get_preferred meths = if member (op =) meths preferred then preferred else meth
   in
     if timeout = Time.zeroTime then
-      (get_preferred meths, Not_Played)
+      (get_preferred meths, Play_Timed_Out Time.zeroTime)
     else
       let
         val _ = if mode = Minimize then Output.urgent_message "Preplaying proof..." else ()

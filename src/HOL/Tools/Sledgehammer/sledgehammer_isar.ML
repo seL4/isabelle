@@ -369,9 +369,8 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
 fun isar_proof_would_be_a_good_idea smt_proofs (meth, play) =
   (case play of
     Played _ => meth = SMT2_Method andalso smt_proofs <> SOME true
-  | Play_Timed_Out _ => true
-  | Play_Failed => true
-  | Not_Played => false)
+  | Play_Timed_Out time => Time.> (time, Time.zeroTime)
+  | Play_Failed => true)
 
 fun proof_text ctxt debug isar_proofs smt_proofs isar_params num_chained
     (one_line_params as (preplay, _, _, _, _, _)) =
