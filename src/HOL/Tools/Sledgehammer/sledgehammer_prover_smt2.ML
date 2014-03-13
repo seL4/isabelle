@@ -154,14 +154,14 @@ fun smt2_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instan
         val birth = Timer.checkRealTimer timer
         val _ = if debug then Output.urgent_message "Invoking SMT solver..." else ()
 
-        val {outcome, used_facts, z3_steps} =
+        val {outcome, used_fact_infos, z3_proof} =
           SMT2_Solver.smt2_filter ctxt [] goal weighted_facts i slice_timeout
           handle exn =>
             if Exn.is_interrupt exn orelse debug then
               reraise exn
             else
               {outcome = SOME (SMT2_Failure.Other_Failure (ML_Compiler.exn_message exn)),
-               used_facts = [], z3_steps = []}
+               used_fact_infos = [], z3_proof = []}
 
         val death = Timer.checkRealTimer timer
         val outcome0 = if is_none outcome0 then SOME outcome else outcome0
@@ -206,8 +206,9 @@ fun smt2_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instan
             do_slice timeout (slice + 1) outcome0 time_so_far weighted_factss
           end
         else
-          {outcome = if is_none outcome then NONE else the outcome0, used_facts = used_facts,
-           used_from = map (apsnd snd) weighted_facts, z3_steps = z3_steps, run_time = time_so_far}
+          {outcome = if is_none outcome then NONE else the outcome0,
+           used_fact_infos = used_fact_infos, used_from = map (apsnd snd) weighted_facts,
+           z3_proof = z3_proof, run_time = time_so_far}
       end
   in
     do_slice timeout 1 NONE Time.zeroTime
@@ -225,21 +226,23 @@ fun run_smt2_solver mode name (params as {debug, verbose, isar_proofs, compress_
         map (weight_smt2_fact ctxt num_facts) (facts ~~ (0 upto num_facts - 1))
       end
 
-    val weighted_factss = factss |> map (apsnd weight_facts)
-    val {outcome, used_facts = used_pairs, used_from, z3_steps, run_time} =
+    val weighted_factss = map (apsnd weight_facts) factss
+    val {outcome, used_fact_infos, used_from, z3_proof, run_time} =
       smt2_filter_loop name params state goal subgoal weighted_factss
-    val used_facts = used_pairs |> map fst
-    val outcome = outcome |> Option.map failure_of_smt2_failure
+    val used_named_facts = map snd used_fact_infos
+    val used_facts = map fst used_named_facts
+    val outcome = Option.map failure_of_smt2_failure outcome
 
     val (preplay, message, message_tail) =
       (case outcome of
         NONE =>
         (Lazy.lazy (fn () =>
-           play_one_line_proof mode debug verbose preplay_timeout used_pairs state subgoal
+           play_one_line_proof mode debug verbose preplay_timeout used_named_facts state subgoal
              SMT2_Method (bunch_of_proof_methods (smt_proofs <> SOME false) false liftingN)),
          fn preplay =>
             let
-              val atp_proof = Z3_New_Isar.atp_proof_of_z3_proof thy z3_steps
+              val fact_ids = map (fn (id, ((name, _), _)) => (id, name)) used_fact_infos
+              val atp_proof = Z3_New_Isar.atp_proof_of_z3_proof thy z3_proof fact_ids
               val isar_params =
                 K (verbose, (NONE, NONE), preplay_timeout, compress_isar, try0_isar,
                    minimize <> SOME false, atp_proof, goal)

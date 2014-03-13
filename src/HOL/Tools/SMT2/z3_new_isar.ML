@@ -8,7 +8,8 @@ signature Z3_NEW_ISAR =
 sig
   type ('a, 'b) atp_step = ('a, 'b) ATP_Proof.atp_step
 
-  val atp_proof_of_z3_proof: theory -> Z3_New_Proof.z3_step list -> (term, string) atp_step list
+  val atp_proof_of_z3_proof: theory -> Z3_New_Proof.z3_step list -> (int * string) list ->
+    (term, string) atp_step list
 end;
 
 structure Z3_New_Isar: Z3_NEW_ISAR =
@@ -73,29 +74,24 @@ fun simplify_prop (@{const Not} $ t) = s_not (simplify_prop t)
 
 fun simplify_line (name, role, t, rule, deps) = (name, role, simplify_prop t, rule, deps)
 
-fun atp_proof_of_z3_proof thy proof =
+fun atp_proof_of_z3_proof thy proof fact_ids =
   let
-    fun step_name_of id = (string_of_int id, [])
-
-    (* FIXME: find actual conjecture *)
-    val id_of_conjecture =
-      proof
-      |> find_first (fn Z3_New_Proof.Z3_Step {rule, ...} => rule = Z3_New_Proof.Asserted)
-      |> Option.map (fn Z3_New_Proof.Z3_Step {id, ...} => id)
-
     fun step_of (Z3_New_Proof.Z3_Step {id, rule, prems, concl, ...}) =
       let
+        fun step_name_of id = (string_of_int id, the_list (AList.lookup (op =) fact_ids id))
+
+        val name as (_, ss) = step_name_of id
         val role =
           (case rule of
             Z3_New_Proof.Asserted =>
-              if id_of_conjecture = SOME id then Negated_Conjecture else Hypothesis
+              if null ss then Negated_Conjecture (* FIXME: or hypothesis! *) else Axiom
           | Z3_New_Proof.Rewrite => Lemma
           | Z3_New_Proof.Rewrite_Star => Lemma
           | Z3_New_Proof.Skolemize => Lemma
           | Z3_New_Proof.Th_Lemma _ => Lemma
           | _ => Plain)
       in
-        (step_name_of id, role, HOLogic.mk_Trueprop (Object_Logic.atomize_term thy concl),
+        (name, role, HOLogic.mk_Trueprop (Object_Logic.atomize_term thy concl),
          Z3_New_Proof.string_of_rule rule, map step_name_of prems)
       end
   in

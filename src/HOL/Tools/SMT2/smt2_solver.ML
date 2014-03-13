@@ -20,20 +20,20 @@ sig
     cex_parser: (Proof.context -> SMT2_Translate.replay_data -> string list ->
       term list * term list) option,
     replay: (Proof.context -> SMT2_Translate.replay_data -> string list ->
-      (int list * Z3_New_Proof.z3_step list) * thm) option }
+      ((int * int) list * Z3_New_Proof.z3_step list) * thm) option }
 
   (*registry*)
   val add_solver: solver_config -> theory -> theory
   val solver_name_of: Proof.context -> string
   val available_solvers_of: Proof.context -> string list
   val apply_solver: Proof.context -> (int * (int option * thm)) list ->
-    (int list * Z3_New_Proof.z3_step list) * thm
+    ((int * int) list * Z3_New_Proof.z3_step list) * thm
   val default_max_relevant: Proof.context -> string -> int
 
   (*filter*)
   val smt2_filter: Proof.context -> thm list -> thm -> ('a * (int option * thm)) list -> int ->
-    Time.time -> {outcome: SMT2_Failure.failure option, used_facts: ('a * thm) list,
-      z3_steps: Z3_New_Proof.z3_step list}
+    Time.time -> {outcome: SMT2_Failure.failure option, used_fact_infos: (int * ('a * thm)) list,
+      z3_proof: Z3_New_Proof.z3_step list}
 
   (*tactic*)
   val smt2_tac: Proof.context -> thm list -> int -> tactic
@@ -152,7 +152,7 @@ type solver_config = {
   cex_parser: (Proof.context -> SMT2_Translate.replay_data -> string list ->
     term list * term list) option,
   replay: (Proof.context -> SMT2_Translate.replay_data -> string list ->
-    (int list * Z3_New_Proof.z3_step list) * thm) option }
+    ((int * int) list * Z3_New_Proof.z3_step list) * thm) option }
 
 
 (* registry *)
@@ -162,7 +162,7 @@ type solver_info = {
   default_max_relevant: int,
   supports_filter: bool,
   replay: Proof.context -> string list * SMT2_Translate.replay_data ->
-    (int list * Z3_New_Proof.z3_step list) * thm }
+    ((int * int) list * Z3_New_Proof.z3_step list) * thm }
 
 structure Solvers = Generic_Data
 (
@@ -275,7 +275,9 @@ fun smt2_filter ctxt facts goal xwthms i time_limit =
 
     val xthms = map (apsnd snd) xwthms
 
-    val filter_thms = if supports_filter ctxt then map_filter (try (nth xthms)) else K xthms
+    val used_fact_infos_of =
+      if supports_filter ctxt then map_filter (try (apsnd (nth xthms)))
+      else K (map (pair ~1) xthms)
   in
     map snd xwthms
     |> map_index I
@@ -283,23 +285,24 @@ fun smt2_filter ctxt facts goal xwthms i time_limit =
     |> check_topsorts ctxt
     |> apply_solver ctxt
     |> fst
-    |> (fn (is, z3_steps) => {outcome = NONE, used_facts = filter_thms is, z3_steps = z3_steps})
+    |> (fn (idis, z3_proof) =>
+      {outcome = NONE, used_fact_infos = used_fact_infos_of idis, z3_proof = z3_proof})
   end
-  handle SMT2_Failure.SMT fail => {outcome = SOME fail, used_facts = [], z3_steps = []}
+  handle SMT2_Failure.SMT fail => {outcome = SOME fail, used_fact_infos = [], z3_proof = []}
 
 
 (* SMT tactic *)
 
 local
-  fun trace_assumptions ctxt iwthms idxs =
+  fun trace_assumptions ctxt iwthms idis =
     let
       val wthms =
-        idxs
+        idis
+        |> map snd
         |> filter (fn i => i >= 0)
         |> map_filter (AList.lookup (op =) iwthms)
     in
-      if Config.get ctxt SMT2_Config.trace_used_facts andalso length wthms > 0
-      then
+      if Config.get ctxt SMT2_Config.trace_used_facts andalso length wthms > 0 then
         tracing (Pretty.string_of (Pretty.big_list "SMT used facts:"
           (map (Display.pretty_thm ctxt o snd) wthms)))
       else ()
