@@ -600,7 +600,7 @@ assumes "A \<noteq> {}"
 shows "|B| \<le>o |B \<times> A|"
 proof(cases "B = {}", simp add: card_of_empty)
   assume *: "B \<noteq> {}"
-  have "fst `(B \<times> A) = B" unfolding image_def using assms by auto
+  have "fst `(B \<times> A) = B" using assms by auto
   thus ?thesis using inj_on_iff_surj[of B "B \<times> A"]
                      card_of_ordLeq[of B "B \<times> A"] * by blast
 qed
@@ -1652,7 +1652,7 @@ apply(rule ordIso_symmetric) proof(intro card_of_ordIsoI)
     hence "\<forall> a. \<exists> b. h a = b" unfolding Func_def by auto
     then obtain f where f: "\<forall> a. h a = f a" by blast
     hence "range f \<subseteq> B" using h unfolding Func_def by auto
-    thus "h \<in> (\<lambda>f a. f a) ` {f. range f \<subseteq> B}" using f unfolding image_def by auto
+    thus "h \<in> (\<lambda>f a. f a) ` {f. range f \<subseteq> B}" using f by auto
   qed(unfold Func_def fun_eq_iff, auto)
 qed
 

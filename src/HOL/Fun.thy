@@ -159,8 +159,8 @@ lemma inj_on_cong:
 unfolding inj_on_def by auto
 
 lemma inj_on_strict_subset:
-  "\<lbrakk> inj_on f B; A < B \<rbrakk> \<Longrightarrow> f`A < f`B"
-unfolding inj_on_def unfolding image_def by blast
+  "inj_on f B \<Longrightarrow> A \<subset> B \<Longrightarrow> f ` A \<subset> f ` B"
+  unfolding inj_on_def by blast
 
 lemma inj_comp:
   "inj f \<Longrightarrow> inj g \<Longrightarrow> inj (f \<circ> g)"
@@ -198,16 +198,14 @@ lemma inj_onD: "[| inj_on f A;  f(x)=f(y);  x:A;  y:A |] ==> x=y"
 by (unfold inj_on_def, blast)
 
 lemma inj_on_iff: "[| inj_on f A;  x:A;  y:A |] ==> (f(x)=f(y)) = (x=y)"
-by (blast dest!: inj_onD)
+  by (fact inj_on_eq_iff)
 
 lemma comp_inj_on:
      "[| inj_on f A;  inj_on g (f`A) |] ==> inj_on (g o f) A"
 by (simp add: comp_def inj_on_def)
 
 lemma inj_on_imageI: "inj_on (g o f) A \<Longrightarrow> inj_on g (f ` A)"
-apply(simp add:inj_on_def image_def)
-apply blast
-done
+  by (simp add: inj_on_def) blast
 
 lemma inj_on_image_iff: "\<lbrakk> ALL x:A. ALL y:A. (g(f x) = g(f y)) = (g x = g y);
   inj_on f A \<rbrakk> \<Longrightarrow> inj_on g (f ` A) = inj_on g A"
@@ -368,26 +366,26 @@ proof -
     using assms by(auto simp:bij_betw_def)
   let ?P = "%b a. a:A \<and> f a = b" let ?g = "%b. The (?P b)"
   { fix a b assume P: "?P b a"
-    hence ex1: "\<exists>a. ?P b a" using s unfolding image_def by blast
+    hence ex1: "\<exists>a. ?P b a" using s by blast
     hence uex1: "\<exists>!a. ?P b a" by(blast dest:inj_onD[OF i])
     hence " ?g b = a" using the1_equality[OF uex1, OF P] P by simp
   } note g = this
   have "inj_on ?g B"
   proof(rule inj_onI)
     fix x y assume "x:B" "y:B" "?g x = ?g y"
-    from s `x:B` obtain a1 where a1: "?P x a1" unfolding image_def by blast
-    from s `y:B` obtain a2 where a2: "?P y a2" unfolding image_def by blast
+    from s `x:B` obtain a1 where a1: "?P x a1" by blast
+    from s `y:B` obtain a2 where a2: "?P y a2" by blast
     from g[OF a1] a1 g[OF a2] a2 `?g x = ?g y` show "x=y" by simp
   qed
   moreover have "?g ` B = A"
-  proof(auto simp:image_def)
+  proof(auto simp: image_def)
     fix b assume "b:B"
-    with s obtain a where P: "?P b a" unfolding image_def by blast
+    with s obtain a where P: "?P b a" by blast
     thus "?g b \<in> A" using g[OF P] by auto
   next
     fix a assume "a:A"
-    then obtain b where P: "?P b a" using s unfolding image_def by blast
-    then have "b:B" using s unfolding image_def by blast
+    then obtain b where P: "?P b a" using s by blast
+    then have "b:B" using s by blast
     with g[OF P] show "\<exists>b\<in>B. a = ?g b" by blast
   qed
   ultimately show ?thesis by(auto simp:bij_betw_def)
@@ -614,8 +612,9 @@ by (simp add: fun_eq_iff)
 lemma fun_upd_twist: "a ~= c ==> (m(a:=b))(c:=d) = (m(c:=d))(a:=b)"
 by (rule ext, auto)
 
-lemma inj_on_fun_updI: "\<lbrakk> inj_on f A; y \<notin> f`A \<rbrakk> \<Longrightarrow> inj_on (f(x:=y)) A"
-by (fastforce simp:inj_on_def image_def)
+lemma inj_on_fun_updI:
+  "inj_on f A \<Longrightarrow> y \<notin> f ` A \<Longrightarrow> inj_on (f(x := y)) A"
+  by (fastforce simp: inj_on_def)
 
 lemma fun_upd_image:
      "f(x:=y) ` A = (if x \<in> A then insert y (f ` (A-{x})) else f ` A)"
@@ -750,7 +749,7 @@ done
 
 lemma inj_on_the_inv_into:
   "inj_on f A \<Longrightarrow> inj_on (the_inv_into A f) (f ` A)"
-by (auto intro: inj_onI simp: image_def the_inv_into_f_f)
+by (auto intro: inj_onI simp: the_inv_into_f_f)
 
 lemma bij_betw_the_inv_into:
   "bij_betw f A B \<Longrightarrow> bij_betw (the_inv_into A f) B A"

@@ -1125,7 +1125,7 @@ lemma swap_inj_on:
 
 lemma swap_product:
   "(%(i, j). (j, i)) ` (A \<times> B) = B \<times> A"
-  by (simp add: split_def image_def) blast
+  by (simp add: split_def image_def set_eq_iff)
 
 lemma image_split_eq_Sigma:
   "(\<lambda>x. (f x, g x)) ` A = Sigma (f ` A) (\<lambda>x. g ` (f -` {x} \<inter> A))"

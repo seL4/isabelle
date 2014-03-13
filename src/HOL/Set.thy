@@ -1003,7 +1003,7 @@ lemma image_Collect:
 lemma if_image_distrib [simp]:
   "(\<lambda>x. if P x then f x else g x) ` S
     = (f ` (S \<inter> {x. P x})) \<union> (g ` (S \<inter> {x. \<not> P x}))"
-  by (auto simp add: image_def)
+  by auto
 
 lemma image_cong:
   "M = N \<Longrightarrow> (\<And>x. x \<in> N \<Longrightarrow> f x = g x) \<Longrightarrow> f ` M = g ` N"
@@ -1054,7 +1054,7 @@ lemma full_SetCompr_eq:
 
 lemma range_composition: 
   "range (\<lambda>x. f (g x)) = f ` range g"
-  by (subst image_image) simp
+  by auto
 
 
 subsubsection {* Some rules with @{text "if"} *}

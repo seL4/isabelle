@@ -1653,9 +1653,9 @@ next
       qed(insert h, unfold Func_def Func_map_def, auto)
     qed
     moreover have "g \<in> Func A2 A1" unfolding g_def apply(rule Func_map[OF h])
-    using j2A2 B1 A2 unfolding j1_def image_def by (fast intro: inv_into_into)+
+    using j2A2 B1 A2 unfolding j1_def by (fast intro: inv_into_into)+
     ultimately show "h \<in> Func_map B2 f1 f2 ` Func A2 A1"
-    unfolding Func_map_def[abs_def] unfolding image_def by auto
+    unfolding Func_map_def[abs_def] by auto
   qed(insert B1 Func_map[OF _ _ A2(2)], auto)
 qed
 

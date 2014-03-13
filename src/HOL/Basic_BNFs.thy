@@ -175,7 +175,7 @@ next
   thus "f \<circ> x = g \<circ> x" by auto
 next
   fix f show "range \<circ> op \<circ> f = op ` f \<circ> range"
-  unfolding image_def comp_def[abs_def] by auto
+    by (auto simp add: fun_eq_iff)
 next
   show "card_order (natLeq +c |UNIV| )" (is "_ (_ +c ?U)")
   apply (rule card_order_csum)
