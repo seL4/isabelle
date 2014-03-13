@@ -138,8 +138,7 @@ fun serialize comments {header, sorts, dtyps, funcs} ts =
        (sort (fast_string_ord o pairself fst) funcs)
   |> fold (Buffer.add o enclose "(assert " ")\n" o SMTLIB2.str_of o
        tree_of_sterm 0) ts
-  |> Buffer.add "(check-sat)\n"
-  |> Buffer.add "(get-proof)\n"
+  |> Buffer.add "(check-sat)\n(get-proof)\n(get-model)\n"
   |> Buffer.content
 
 (* interface *)

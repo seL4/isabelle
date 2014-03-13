@@ -167,7 +167,7 @@ val z3: SMT2_Solver.solver_config = {
   default_max_relevant = 350 (* FUDGE *),
   supports_filter = true,
   outcome = z3_on_first_or_last_line,
-  cex_parser = NONE,
+  cex_parser = SOME Z3_New_Model.parse_counterex,
   replay = SOME Z3_New_Proof_Replay.replay }
 
 end
