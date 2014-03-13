@@ -195,7 +195,10 @@ fun could_unify (Facts {props, ...}) = Net.unify_term props;
 fun merge (Facts {facts = facts1, props = props1}, Facts {facts = facts2, props = props2}) =
   let
     val facts' = Name_Space.merge_tables (facts1, facts2);
-    val props' = Net.merge (is_equal o prop_ord) (props1, props2);
+    val props' =
+      if Net.is_empty props2 then props1
+      else if Net.is_empty props1 then props2
+      else Net.merge (is_equal o prop_ord) (props1, props2);  (*beware of non-canonical merge*)
   in make_facts facts' props' end;
 
 
