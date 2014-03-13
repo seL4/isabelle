@@ -49,8 +49,7 @@ fun norm_def thm =
   (case Thm.prop_of thm of
     @{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ _ $ Abs _) =>
       norm_def (thm RS @{thm fun_cong})
-  | Const (@{const_name "=="}, _) $ _ $ Abs _ =>
-      norm_def (thm RS @{thm meta_eq_to_obj_eq})
+  | Const (@{const_name "=="}, _) $ _ $ Abs _ => norm_def (thm RS @{thm meta_eq_to_obj_eq})
   | _ => thm)
 
 
@@ -368,8 +367,7 @@ end
 (** unfold abs, min and max **)
 
 local
-  val abs_def = mk_meta_eq @{lemma
-    "abs = (%a::'a::abs_if. if a < 0 then - a else a)"
+  val abs_def = mk_meta_eq @{lemma "abs = (%a::'a::abs_if. if a < 0 then - a else a)"
     by (rule ext) (rule abs_if)}
 
   val min_def = mk_meta_eq @{lemma "min = (%a b. if a <= b then a else b)"
@@ -381,13 +379,10 @@ local
   val defs = [(@{const_name min}, min_def), (@{const_name max}, max_def),
     (@{const_name abs}, abs_def)]
 
-  fun is_builtinT ctxt T =
-    SMT2_Builtin.is_builtin_typ_ext ctxt (Term.domain_type T)
-
-  fun abs_min_max ctxt (Const (n, T)) =
+  fun abs_min_max ctxt (Const (n, Type (@{type_name fun}, [T, _]))) =
         (case AList.lookup (op =) defs n of
           NONE => NONE
-        | SOME thm => if is_builtinT ctxt T then SOME thm else NONE)
+        | SOME thm => if SMT2_Builtin.is_builtin_typ_ext ctxt T then SOME thm else NONE)
     | abs_min_max _ _ = NONE
 
   fun unfold_amm_conv ctxt ct =
@@ -498,8 +493,7 @@ in
 val nat_as_int_conv = nat_conv
 
 fun add_nat_embedding thms =
-  if exists (uses_nat_int o Thm.prop_of) thms then (thms, nat_embedding)
-  else (thms, [])
+  if exists (uses_nat_int o Thm.prop_of) thms then (thms, nat_embedding) else (thms, [])
 
 val setup_nat_as_int =
   SMT2_Builtin.add_builtin_typ_ext (@{typ nat}, K true) #>
