@@ -247,9 +247,10 @@ fun play_one_line_proof mode debug verbose timeout pairs state i preferred (meth
   end
 
 val canonical_isar_supported_prover = eN
+val z3_newN = "z3_new"
 
 fun isar_supported_prover_of thy name =
-  if is_atp thy name then name
+  if is_atp thy name orelse name = z3_newN then name
   else if is_atp_installed thy canonical_isar_supported_prover then canonical_isar_supported_prover
   else name
 
@@ -260,7 +261,7 @@ fun choose_minimize_command thy (params as {isar_proofs, ...}) minimize_command 
     val maybe_isar_name = name |> isar_proofs = SOME true ? isar_supported_prover_of thy
     val (min_name, override_params) =
       (case preplay of
-        (meth, Played _) =>
+        (meth as Metis_Method _, Played _) =>
         if isar_proofs = SOME true then (maybe_isar_name, []) else extract_proof_method params meth
       | _ => (maybe_isar_name, []))
   in minimize_command override_params min_name end
