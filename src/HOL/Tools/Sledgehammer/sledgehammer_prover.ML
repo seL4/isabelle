@@ -184,7 +184,7 @@ fun bunch_of_proof_methods smt_proofs needs_full_types desperate_lam_trans =
       Metis_Method (SOME full_typesN, NONE),
       Metis_Method (SOME no_typesN, SOME desperate_lam_trans),
       Metis_Method (SOME really_full_type_enc, SOME desperate_lam_trans)]) @
-  (if smt_proofs then [SMT_Method] else [])
+  (if smt_proofs then [SMT2_Method] else [])
 
 fun extract_proof_method ({type_enc, lam_trans, ...} : params)
       (Metis_Method (type_enc', lam_trans')) =
@@ -195,7 +195,7 @@ fun extract_proof_method ({type_enc, lam_trans, ...} : params)
         (if is_none lam_trans' andalso is_none lam_trans then []
          else [("lam_trans", [lam_trans' |> the_default default_metis_lam_trans])])
     in (metisN, override_params) end
-  | extract_proof_method _ SMT_Method = (smtN, [])
+  | extract_proof_method _ SMT2_Method = (smtN, [])
 
 (* based on "Mirabelle.can_apply" and generalized *)
 fun timed_apply timeout tac state i =
@@ -279,7 +279,8 @@ fun supported_provers ctxt =
     val (remote_provers, local_provers) =
       proof_method_names @
       sort_strings (supported_atps thy) @
-      sort_strings (SMT_Solver.available_solvers_of ctxt)
+      sort_strings (SMT_Solver.available_solvers_of ctxt) @
+      sort_strings (SMT2_Solver.available_solvers_of ctxt)
       |> List.partition (String.isPrefix remote_prefix)
   in
     Output.urgent_message ("Supported provers: " ^

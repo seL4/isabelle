@@ -49,6 +49,7 @@ open Sledgehammer_Isar
 open Sledgehammer_Prover
 open Sledgehammer_Prover_ATP
 open Sledgehammer_Prover_SMT
+open Sledgehammer_Prover_SMT2
 
 fun run_proof_method mode name (params as {debug, verbose, timeout, type_enc, lam_trans, ...})
     minimize_command
@@ -56,7 +57,7 @@ fun run_proof_method mode name (params as {debug, verbose, timeout, type_enc, la
   let
     val meth =
       if name = metisN then Metis_Method (type_enc, lam_trans)
-      else if name = smtN then SMT_Method
+      else if name = smtN then SMT2_Method
       else raise Fail ("unknown proof_method: " ^ quote name)
     val used_facts = facts |> map fst
   in
@@ -89,11 +90,12 @@ fun run_proof_method mode name (params as {debug, verbose, timeout, type_enc, la
 
 fun is_prover_supported ctxt =
   let val thy = Proof_Context.theory_of ctxt in
-    is_proof_method orf is_atp thy orf is_smt_prover ctxt
+    is_proof_method orf is_atp thy orf is_smt_prover ctxt orf is_smt2_prover ctxt
   end
 
 fun is_prover_installed ctxt =
-  is_proof_method orf is_smt_prover ctxt orf is_atp_installed (Proof_Context.theory_of ctxt)
+  is_proof_method orf is_smt_prover ctxt orf is_smt2_prover ctxt orf
+  is_atp_installed (Proof_Context.theory_of ctxt)
 
 val proof_method_default_max_facts = 20
 
@@ -103,8 +105,12 @@ fun default_max_facts_of_prover ctxt name =
       proof_method_default_max_facts
     else if is_atp thy name then
       fold (Integer.max o fst o #1 o fst o snd) (#best_slices (get_atp thy name ()) ctxt) 0
-    else (* is_smt_prover ctxt name *)
+    else if is_smt_prover ctxt name then
       SMT_Solver.default_max_relevant ctxt name
+    else if is_smt2_prover ctxt name then
+      SMT2_Solver.default_max_relevant ctxt name
+    else
+      error ("No such prover: " ^ name ^ ".")
   end
 
 fun get_prover ctxt mode name =
@@ -112,6 +118,7 @@ fun get_prover ctxt mode name =
     if is_proof_method name then run_proof_method mode name
     else if is_atp thy name then run_atp mode name
     else if is_smt_prover ctxt name then run_smt_solver mode name
+    else if is_smt2_prover ctxt name then run_smt2_solver mode name
     else error ("No such prover: " ^ name ^ ".")
   end
 
@@ -344,7 +351,7 @@ fun maybe_minimize ctxt mode do_learn name (params as {verbose, isar_proofs, min
                                   adjust_proof_method_params override_params params))
                  else
                    (prover_fast_enough (), (name, params))
-               | (SMT_Method, Played timeout) =>
+               | (SMT2_Method, Played timeout) =>
                  (* Cheat: Assume the original prover is as fast as "smt" for the goal it proved
                     itself. *)
                  (can_min_fast_enough timeout, (name, params))

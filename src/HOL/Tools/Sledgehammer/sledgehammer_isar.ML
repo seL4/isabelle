@@ -134,7 +134,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
 
         fun massage_methods (meths as meth :: _) =
           if not try0_isar then [meth]
-          else if smt_proofs = SOME true then SMT_Method :: meths
+          else if smt_proofs = SOME true then SMT2_Method :: meths
           else meths
 
         val (params, _, concl_t) = strip_subgoal goal subgoal ctxt
@@ -368,7 +368,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
 
 fun isar_proof_would_be_a_good_idea smt_proofs (meth, play) =
   (case play of
-    Played _ => meth = SMT_Method andalso smt_proofs <> SOME true
+    Played _ => meth = SMT2_Method andalso smt_proofs <> SOME true
   | Play_Timed_Out _ => true
   | Play_Failed => true
   | Not_Played => false)

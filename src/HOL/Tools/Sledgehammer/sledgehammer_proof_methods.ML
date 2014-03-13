@@ -12,7 +12,7 @@ sig
   datatype proof_method =
     Metis_Method of string option * string option |
     Meson_Method |
-    SMT_Method |
+    SMT2_Method |
     Blast_Method |
     Simp_Method |
     Simp_Size_Method |
@@ -51,7 +51,7 @@ open ATP_Proof_Reconstruct
 datatype proof_method =
   Metis_Method of string option * string option |
   Meson_Method |
-  SMT_Method |
+  SMT2_Method |
   Blast_Method |
   Simp_Method |
   Simp_Size_Method |
@@ -78,7 +78,7 @@ fun string_of_proof_method meth =
   | Metis_Method (type_enc_opt, lam_trans_opt) =>
     "metis (" ^ commas (map_filter I [type_enc_opt, lam_trans_opt]) ^ ")"
   | Meson_Method => "meson"
-  | SMT_Method => "smt"
+  | SMT2_Method => "smt2"
   | Blast_Method => "blast"
   | Simp_Method => "simp"
   | Simp_Size_Method => "simp add: size_ne_size_imp_ne"
@@ -93,7 +93,7 @@ fun string_of_proof_method meth =
    exceeded" warnings and the like. *)
 fun silence_proof_methods debug =
   Try0.silence_methods debug
-  #> Config.put SMT_Config.verbose debug
+  #> Config.put SMT2_Config.verbose debug
 
 fun tac_of_proof_method ctxt0 debug (local_facts, global_facts) meth =
   let val ctxt = silence_proof_methods debug ctxt0 in
@@ -103,8 +103,7 @@ fun tac_of_proof_method ctxt0 debug (local_facts, global_facts) meth =
       Metis_Tactic.metis_tac [type_enc_opt |> the_default (hd partial_type_encs)]
         (lam_trans_opt |> the_default default_metis_lam_trans) ctxt global_facts
     | Meson_Method => Meson.meson_tac ctxt global_facts
-
-    | SMT_Method => SMT_Solver.smt_tac ctxt global_facts
+    | SMT2_Method => SMT2_Solver.smt2_tac ctxt global_facts
     | _ =>
       Method.insert_tac global_facts THEN'
       (case meth of

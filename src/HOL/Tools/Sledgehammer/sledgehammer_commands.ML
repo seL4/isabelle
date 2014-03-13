@@ -29,7 +29,7 @@ open Sledgehammer
 
 (* val cvc3N = "cvc3" *)
 val yicesN = "yices"
-val z3N = "z3"
+val z3_newN = "z3_new"
 
 val runN = "run"
 val minN = "min"
@@ -195,14 +195,6 @@ structure Data = Theory_Data
   fun merge data : T = AList.merge (op =) (K true) data
 )
 
-fun is_prover_supported ctxt =
-  let val thy = Proof_Context.theory_of ctxt in
-    is_proof_method orf is_atp thy orf is_smt_prover ctxt
-  end
-
-fun is_prover_installed ctxt =
-  is_proof_method orf is_smt_prover ctxt orf is_atp_installed (Proof_Context.theory_of ctxt)
-
 fun remotify_prover_if_supported_and_not_already_remote ctxt name =
   if String.isPrefix remote_prefix name then
     SOME name
@@ -220,7 +212,7 @@ fun remotify_prover_if_not_installed ctxt name =
 (* The first ATP of the list is used by Auto Sledgehammer. Because of the low
    timeout, it makes sense to put E first. *)
 fun default_provers_param_value mode ctxt =
-  [eN, spassN, z3N, e_sineN, vampireN, yicesN]
+  [eN, spassN, z3_newN, e_sineN, vampireN, yicesN]
   |> map_filter (remotify_prover_if_not_installed ctxt)
   (* In "try" mode, leave at least one thread to another slow tool (e.g. Nitpick) *)
   |> take (Multithreading.max_threads_value () - (if mode = Try then 1 else 0))
