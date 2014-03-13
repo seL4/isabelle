@@ -133,26 +133,6 @@ local
      "-T:" ^ string_of_int (Real.ceil (Config.get ctxt SMT2_Config.timeout)),
      "-smt2"]
 
-  fun z3_on_first_or_last_line solver_name lines =
-    let
-      fun junk l =
-        if String.isPrefix "WARNING: Out of allocated virtual memory" l
-        then raise SMT2_Failure.SMT SMT2_Failure.Out_Of_Memory
-        else
-          String.isPrefix "WARNING" l orelse
-          String.isPrefix "ERROR" l orelse
-          forall Symbol.is_ascii_blank (Symbol.explode l)
-      val lines = filter_out junk lines
-      fun outcome split =
-        the_default ("", []) (try split lines)
-        |>> outcome_of "unsat" "sat" "unknown" solver_name
-    in
-      (* Starting with version 4.0, Z3 puts the outcome on the first line of the
-         output rather than on the last line. *)
-      outcome (fn lines => (hd lines, tl lines))
-      handle SMT2_Failure.SMT _ => outcome (swap o split_last)
-    end
-
   fun select_class ctxt =
     if Config.get ctxt z3_extensions then Z3_New_Interface.smtlib2_z3C
     else SMTLIB2_Interface.smtlib2C
@@ -166,7 +146,7 @@ val z3: SMT2_Solver.solver_config = {
   options = z3_options,
   default_max_relevant = 350 (* FUDGE *),
   supports_filter = true,
-  outcome = z3_on_first_or_last_line,
+  outcome = on_first_line (outcome_of "unsat" "sat" "unknown"),
   cex_parser = SOME Z3_New_Model.parse_counterex,
   replay = SOME Z3_New_Replay.replay }
 
