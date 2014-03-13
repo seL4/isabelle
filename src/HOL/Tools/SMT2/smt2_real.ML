@@ -116,6 +116,6 @@ val _ = Theory.setup (Context.theory_map (
   SMTLIB2_Interface.add_logic (10, smtlib_logic) #>
   setup_builtins #>
   Z3_New_Interface.add_mk_builtins z3_mk_builtins #>
-  Z3_New_Proof_Tools.add_simproc real_linarith_proc))
+  Z3_New_Replay_Util.add_simproc real_linarith_proc))
 
 end

@@ -27,6 +27,6 @@ fun abstract abs t =
 val _ = Theory.setup (Context.theory_map (
   Z3_New_Proof.add_type_parser real_type_parser #>
   Z3_New_Proof.add_term_parser real_term_parser #>
-  Z3_New_Proof_Methods.add_arith_abstracter abstract))
+  Z3_New_Replay_Methods.add_arith_abstracter abstract))
 
 end
