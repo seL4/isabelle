@@ -78,9 +78,9 @@ fun atp_proof_of_z3_proof thy proof =
     fun step_name_of id = (string_of_int id, [])
 
     (* FIXME: find actual conjecture *)
-    val id_of_last_asserted =
+    val id_of_conjecture =
       proof
-      |> rev |> find_first (fn Z3_New_Proof.Z3_Step {rule, ...} => rule = Z3_New_Proof.Asserted)
+      |> find_first (fn Z3_New_Proof.Z3_Step {rule, ...} => rule = Z3_New_Proof.Asserted)
       |> Option.map (fn Z3_New_Proof.Z3_Step {id, ...} => id)
 
     fun step_of (Z3_New_Proof.Z3_Step {id, rule, prems, concl, ...}) =
@@ -88,7 +88,7 @@ fun atp_proof_of_z3_proof thy proof =
         val role =
           (case rule of
             Z3_New_Proof.Asserted =>
-              if id_of_last_asserted = SOME id then Negated_Conjecture else Hypothesis
+              if id_of_conjecture = SOME id then Negated_Conjecture else Hypothesis
           | Z3_New_Proof.Rewrite => Lemma
           | Z3_New_Proof.Rewrite_Star => Lemma
           | Z3_New_Proof.Skolemize => Lemma

@@ -39,6 +39,7 @@ open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
 open Sledgehammer_Util
 open Sledgehammer_Proof_Methods
+open Sledgehammer_Isar
 open Sledgehammer_Prover
 
 val smt2_builtins = Attrib.setup_config_bool @{binding sledgehammer_smt2_builtins} (K true)
@@ -153,16 +154,19 @@ fun smt2_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instan
         val birth = Timer.checkRealTimer timer
         val _ = if debug then Output.urgent_message "Invoking SMT solver..." else ()
 
-        val (outcome, used_facts) =
+        val {outcome, used_facts, z3_steps} =
           SMT2_Solver.smt2_filter ctxt [] goal weighted_facts i slice_timeout
-          |> (fn {outcome, used_facts} => (outcome, used_facts))
           handle exn =>
-            if Exn.is_interrupt exn then reraise exn
-            else (ML_Compiler.exn_message exn |> SMT2_Failure.Other_Failure |> SOME, [])
+            if Exn.is_interrupt exn then
+              reraise exn
+            else
+              {outcome = SOME (SMT2_Failure.Other_Failure (ML_Compiler.exn_message exn)),
+               used_facts = [], z3_steps = []}
 
         val death = Timer.checkRealTimer timer
         val outcome0 = if is_none outcome0 then SOME outcome else outcome0
         val time_so_far = Time.+ (time_so_far, Time.- (death, birth))
+        val timeout = Time.- (timeout, Timer.checkRealTimer timer)
 
         val too_many_facts_perhaps =
           (case outcome of
@@ -172,8 +176,6 @@ fun smt2_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instan
           | SOME (SMT2_Failure.Abnormal_Termination _) => true (* kind of *)
           | SOME SMT2_Failure.Out_Of_Memory => true
           | SOME (SMT2_Failure.Other_Failure _) => true)
-
-        val timeout = Time.- (timeout, Timer.checkRealTimer timer)
       in
         if too_many_facts_perhaps andalso slice < max_slices andalso num_facts > 0 andalso
            Time.> (timeout, Time.zeroTime) then
@@ -205,13 +207,14 @@ fun smt2_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instan
           end
         else
           {outcome = if is_none outcome then NONE else the outcome0, used_facts = used_facts,
-           used_from = map (apsnd snd) weighted_facts, run_time = time_so_far}
+           used_from = map (apsnd snd) weighted_facts, z3_steps = z3_steps, run_time = time_so_far}
       end
   in
     do_slice timeout 1 NONE Time.zeroTime
   end
 
-fun run_smt2_solver mode name (params as {debug, verbose, smt_proofs, preplay_timeout, ...})
+fun run_smt2_solver mode name (params as {debug, verbose, isar_proofs, compress_isar,
+      try0_isar, smt_proofs, minimize, preplay_timeout, ...})
     minimize_command ({state, goal, subgoal, subgoal_count, factss, ...} : prover_problem) =
   let
     val thy = Proof.theory_of state
@@ -223,7 +226,7 @@ fun run_smt2_solver mode name (params as {debug, verbose, smt_proofs, preplay_ti
       end
 
     val weighted_factss = factss |> map (apsnd weight_facts)
-    val {outcome, used_facts = used_pairs, used_from, run_time} =
+    val {outcome, used_facts = used_pairs, used_from, z3_steps, run_time} =
       smt2_filter_loop name params state goal subgoal weighted_factss
     val used_facts = used_pairs |> map fst
     val outcome = outcome |> Option.map failure_of_smt2_failure
@@ -236,13 +239,17 @@ fun run_smt2_solver mode name (params as {debug, verbose, smt_proofs, preplay_ti
              SMT2_Method (bunch_of_proof_methods (smt_proofs <> SOME false) false liftingN)),
          fn preplay =>
             let
+              val atp_proof = Z3_New_Isar.atp_proof_of_z3_proof thy z3_steps
+              val isar_params =
+                K (verbose, (NONE, NONE), preplay_timeout, compress_isar, try0_isar,
+                   minimize <> SOME false, atp_proof, goal)
               val one_line_params =
                 (preplay, proof_banner mode name, used_facts,
                  choose_minimize_command thy params minimize_command name preplay, subgoal,
                  subgoal_count)
               val num_chained = length (#facts (Proof.goal state))
             in
-              one_line_proof_text num_chained one_line_params
+              proof_text ctxt debug isar_proofs smt_proofs isar_params num_chained one_line_params
             end,
          if verbose then "\nSMT solver real CPU time: " ^ string_of_time run_time ^ "." else "")
       | SOME failure =>

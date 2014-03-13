@@ -7,7 +7,8 @@ Z3 proof replay.
 
 signature Z3_NEW_PROOF_REPLAY =
 sig
-  val replay: Proof.context -> SMT2_Translate.replay_data -> string list -> int list * thm
+  val replay: Proof.context -> SMT2_Translate.replay_data -> string list ->
+    (int list * Z3_New_Proof.z3_step list) * thm
 end
 
 structure Z3_New_Proof_Replay: Z3_NEW_PROOF_REPLAY =
@@ -185,8 +186,8 @@ fun replay outer_ctxt
     val proofs = fold (replay_step ctxt3 assumed) steps assumed
     val (_, Z3_New_Proof.Z3_Step {id, ...}) = split_last steps
   in
-    if Config.get ctxt3 SMT2_Config.filter_only_facts then (is, TrueI)
-    else ([], Inttab.lookup proofs id |> the |> snd |> discharge rules outer_ctxt ctxt3)
+    if Config.get ctxt3 SMT2_Config.filter_only_facts then ((is, steps), TrueI)
+    else (([], steps), Inttab.lookup proofs id |> the |> snd |> discharge rules outer_ctxt ctxt3)
   end
 
 end
