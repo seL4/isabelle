@@ -7,7 +7,7 @@
 header {* Sledgehammer: Isabelle--ATP Linkup *}
 
 theory Sledgehammer
-imports ATP SMT
+imports ATP SMT SMT2
 keywords "sledgehammer" :: diag and "sledgehammer_params" :: thy_decl
 begin
 
