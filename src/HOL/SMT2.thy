@@ -87,25 +87,23 @@ lemmas array_rules = ext fun_upd_apply fun_upd_same fun_upd_other  fun_upd_upd f
 
 subsection {* Integer division and modulo for Z3 *}
 
+text {*
+The following Z3-inspired definitions are overspecified for the case where @{text "l = 0"}. This
+Schönheitsfehler is corrected in the @{text div_as_z3div} and @{text mod_as_z3mod} theorems.
+*}
+
 definition z3div :: "int \<Rightarrow> int \<Rightarrow> int" where
-  "z3div k l = (if 0 \<le> l then k div l else -(k div (-l)))"
+  "z3div k l = (if l \<ge> 0 then k div l else - (k div - l))"
 
 definition z3mod :: "int \<Rightarrow> int \<Rightarrow> int" where
-  "z3mod k l = (if 0 \<le> l then k mod l else k mod (-l))"
+  "z3mod k l = k mod (if l \<ge> 0 then l else - l)"
 
 lemma div_as_z3div:
-  "\<forall>k l. k div l = (
-    if k = 0 \<or> l = 0 then 0
-    else if (0 < k & 0 < l) \<or> (k < 0 & 0 < l) then z3div k l
-    else z3div (-k) (-l))"
+  "\<forall>k l. k div l = (if l = 0 then 0 else if l > 0 then z3div k l else z3div (- k) (- l))"
   by (simp add: z3div_def)
 
 lemma mod_as_z3mod:
-  "\<forall>k l. k mod l = (
-    if l = 0 then k
-    else if k = 0 then 0
-    else if (0 < k & 0 < l) \<or> (k < 0 & 0 < l) then z3mod k l
-    else - z3mod (-k) (-l))"
+  "\<forall>k l. k mod l = (if l = 0 then k else if l > 0 then z3mod k l else - z3mod (- k) (- l))"
   by (simp add: z3mod_def)
 
 
@@ -396,7 +394,7 @@ lemma [z3_new_rule]:  (* for def-axiom *)
   "P \<or> y = (if P then x else y)"
   "P \<or> (if P then x else y) = y"
   "\<not>P \<or> x = (if P then x else y)"
-  "\<not>P \<or>  (if P then x else y) = x"
+  "\<not>P \<or> (if P then x else y) = x"
   "P \<or> R \<or> \<not>(if P then Q else R)"
   "\<not>P \<or> Q \<or> \<not>(if P then Q else R)"
   "\<not>(if P then Q else R) \<or> \<not>P \<or> Q"
