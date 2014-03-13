@@ -180,14 +180,18 @@ fun discharge rules outer_ctxt inner_ctxt =
 fun replay outer_ctxt
     ({context=ctxt, typs, terms, rewrite_rules, assms} : SMT2_Translate.replay_data) output =
   let
-    val (steps, ctxt1) = Z3_New_Proof.parse typs terms output ctxt
-    val ctxt2 = put_simpset (Z3_New_Replay_Util.make_simpset ctxt1 []) ctxt1
+    val (steps, ctxt2) = Z3_New_Proof.parse typs terms output ctxt
     val ((is, rules), (ctxt3, assumed)) = add_asserted outer_ctxt rewrite_rules assms steps ctxt2
-    val proofs = fold (replay_step ctxt3 assumed) steps assumed
-    val (_, Z3_New_Proof.Z3_Step {id, ...}) = split_last steps
   in
-    if Config.get ctxt3 SMT2_Config.filter_only_facts then ((is, steps), TrueI)
-    else (([], steps), Inttab.lookup proofs id |> the |> snd |> discharge rules outer_ctxt ctxt3)
+    if Config.get ctxt3 SMT2_Config.filter_only_facts then
+      ((is, steps), TrueI)
+    else
+      let
+        val ctxt4 = put_simpset (Z3_New_Replay_Util.make_simpset ctxt3 []) ctxt3
+        val proofs = fold (replay_step ctxt4 assumed) steps assumed
+        val (_, Z3_New_Proof.Z3_Step {id, ...}) = split_last steps
+        val thm = Inttab.lookup proofs id |> the |> snd |> discharge rules outer_ctxt ctxt4
+      in (([], steps), thm) end
   end
 
 end
