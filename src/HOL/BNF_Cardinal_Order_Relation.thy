@@ -711,7 +711,7 @@ qed
 
 corollary card_of_Sigma_Times:
 "\<forall>i \<in> I. |A i| \<le>o |B| \<Longrightarrow> |SIGMA i : I. A i| \<le>o |I \<times> B|"
-using card_of_Sigma_mono1[of I A "\<lambda>i. B"] .
+by (fact card_of_Sigma_mono1)
 
 lemma card_of_UNION_Sigma:
 "|\<Union>i \<in> I. A i| \<le>o |SIGMA i : I. A i|"
