@@ -154,8 +154,7 @@ fun smt2_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instan
         val _ = if debug then Output.urgent_message "Invoking SMT solver..." else ()
 
         val (outcome, used_facts) =
-          SMT2_Solver.smt2_filter_preprocess ctxt [] goal weighted_facts i
-          |> SMT2_Solver.smt2_filter_apply slice_timeout
+          SMT2_Solver.smt2_filter ctxt [] goal weighted_facts i slice_timeout
           |> (fn {outcome, used_facts} => (outcome, used_facts))
           handle exn =>
             if Exn.is_interrupt exn then reraise exn
