@@ -20,10 +20,6 @@ begin
 definition INFI :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
   INF_def: "INFI A f = \<Sqinter>(f ` A)"
 
-lemma INF_comp: -- {* FIXME drop *}
-  "INFI A (g \<circ> f) = INFI (f ` A) g"
-  by (simp add: INF_def image_comp)
-
 lemma INF_image [simp]: "INFI (f`A) g = INFI A (\<lambda>x. g (f x))"
   by (simp add: INF_def image_image)
 
@@ -38,10 +34,6 @@ begin
 
 definition SUPR :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
   SUP_def: "SUPR A f = \<Squnion>(f ` A)"
-
-lemma SUP_comp: -- {* FIXME drop *}
-  "SUPR A (g \<circ> f) = SUPR (f ` A) g"
-  by (simp add: SUP_def image_comp)
 
 lemma SUP_image [simp]: "SUPR (f`A) g = SUPR A (%x. g (f x))"
   by (simp add: SUP_def image_image)

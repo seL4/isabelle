@@ -104,6 +104,8 @@ differently).
   can be restored like this:  declare/using [[simp_legacy_precond]]
   This configuration option will disappear again in the future.
 
+* Dropped facts INF_comp, SUP_comp.  INCOMPATIBILITY.
+
 * HOL-Word:
   * Abandoned fact collection "word_arith_alts", which is a
   duplicate of "word_arith_wis".
