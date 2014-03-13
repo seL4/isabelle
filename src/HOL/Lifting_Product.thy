@@ -10,12 +10,12 @@ begin
 
 subsection {* Relator and predicator properties *}
 
-definition prod_pred :: "('a \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
-where "prod_pred R1 R2 = (\<lambda>(a, b). R1 a \<and> R2 b)"
+definition pred_prod :: "('a \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
+where "pred_prod R1 R2 = (\<lambda>(a, b). R1 a \<and> R2 b)"
 
-lemma prod_pred_apply [simp]:
-  "prod_pred P1 P2 (a, b) \<longleftrightarrow> P1 a \<and> P2 b"
-  by (simp add: prod_pred_def)
+lemma pred_prod_apply [simp]:
+  "pred_prod P1 P2 (a, b) \<longleftrightarrow> P1 a \<and> P2 b"
+  by (simp add: pred_prod_def)
 
 lemmas rel_prod_eq[relator_eq] = prod.rel_eq
 lemmas rel_prod_mono[relator_mono] = prod.rel_mono
@@ -27,8 +27,8 @@ by (rule ext)+ (auto simp: rel_prod_def OO_def)
 lemma Domainp_prod[relator_domain]:
   assumes "Domainp T1 = P1"
   assumes "Domainp T2 = P2"
-  shows "Domainp (rel_prod T1 T2) = (prod_pred P1 P2)"
-using assms unfolding rel_prod_def prod_pred_def by blast
+  shows "Domainp (rel_prod T1 T2) = (pred_prod P1 P2)"
+using assms unfolding rel_prod_def pred_prod_def by blast
 
 lemma left_total_rel_prod [reflexivity_rule]:
   assumes "left_total R1"
@@ -62,8 +62,8 @@ lemma bi_unique_rel_prod [transfer_rule]:
   using assms unfolding bi_unique_def rel_prod_def by auto
 
 lemma prod_invariant_commute [invariant_commute]: 
-  "rel_prod (Lifting.invariant P1) (Lifting.invariant P2) = Lifting.invariant (prod_pred P1 P2)"
-  by (simp add: fun_eq_iff rel_prod_def prod_pred_def Lifting.invariant_def) blast
+  "rel_prod (Lifting.invariant P1) (Lifting.invariant P2) = Lifting.invariant (pred_prod P1 P2)"
+  by (simp add: fun_eq_iff rel_prod_def pred_prod_def Lifting.invariant_def) blast
 
 subsection {* Quotient theorem for the Lifting package *}
 
@@ -109,4 +109,3 @@ lemma rel_prod_transfer [transfer_rule]:
 end
 
 end
-
