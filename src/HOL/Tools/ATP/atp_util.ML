@@ -48,8 +48,8 @@ sig
   val is_legitimate_tptp_def : term -> bool
   val transform_elim_prop : term -> term
   val specialize_type : theory -> (string * typ) -> term -> term
-  val strip_subgoal :
-    thm -> int -> Proof.context -> (string * typ) list * term list * term
+  val strip_subgoal : thm -> int -> Proof.context -> (string * typ) list * term list * term
+  val short_thm_name : Proof.context -> thm -> string
 end;
 
 structure ATP_Util : ATP_UTIL =
@@ -424,5 +424,14 @@ fun strip_subgoal goal i ctxt =
     val hyp_ts = t |> Logic.strip_assums_hyp |> map (curry subst_bounds frees)
     val concl_t = t |> Logic.strip_assums_concl |> curry subst_bounds frees
   in (rev params, hyp_ts, concl_t) end
+
+fun short_thm_name ctxt th =
+  let
+    val long = Thm.get_name_hint th
+    val short = Long_Name.base_name long
+  in
+    if Thm.eq_thm_prop (th, singleton (Attrib.eval_thms ctxt) (Facts.named short, [])) then short
+    else long
+  end
 
 end;

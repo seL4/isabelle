@@ -8,7 +8,7 @@ signature Z3_NEW_ISAR =
 sig
   type ('a, 'b) atp_step = ('a, 'b) ATP_Proof.atp_step
 
-  val atp_proof_of_z3_proof: theory -> Z3_New_Proof.z3_step list -> (int * string) list ->
+  val atp_proof_of_z3_proof: theory -> int -> (int * string) list -> Z3_New_Proof.z3_step list ->
     (term, string) atp_step list
 end;
 
@@ -74,7 +74,7 @@ fun simplify_prop (@{const Not} $ t) = s_not (simplify_prop t)
 
 fun simplify_line (name, role, t, rule, deps) = (name, role, simplify_prop t, rule, deps)
 
-fun atp_proof_of_z3_proof thy proof fact_ids =
+fun atp_proof_of_z3_proof thy conjecture_id fact_ids proof =
   let
     fun step_of (Z3_New_Proof.Z3_Step {id, rule, prems, concl, ...}) =
       let
@@ -84,7 +84,9 @@ fun atp_proof_of_z3_proof thy proof fact_ids =
         val role =
           (case rule of
             Z3_New_Proof.Asserted =>
-              if null ss then Negated_Conjecture (* FIXME: or hypothesis! *) else Axiom
+              if not (null ss) then Axiom
+              else if id = conjecture_id then Negated_Conjecture
+              else Hypothesis
           | Z3_New_Proof.Rewrite => Lemma
           | Z3_New_Proof.Rewrite_Star => Lemma
           | Z3_New_Proof.Skolemize => Lemma

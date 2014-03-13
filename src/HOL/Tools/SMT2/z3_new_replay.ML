@@ -8,7 +8,7 @@ Z3 proof replay.
 signature Z3_NEW_REPLAY =
 sig
   val replay: Proof.context -> SMT2_Translate.replay_data -> string list ->
-    ((int * int) list * Z3_New_Proof.z3_step list) * thm
+    ((int * (int * thm)) list * Z3_New_Proof.z3_step list) * thm
 end
 
 structure Z3_New_Replay: Z3_NEW_REPLAY =
@@ -106,14 +106,14 @@ fun add_asserted outer_ctxt rewrite_rules assms steps ctxt =
         val (thm', ctxt') = yield_singleton Assumption.add_assumes ct ctxt
       in (thm' RS thm, ctxt') end
 
-    fun add1 id fixes thm1 ((i, th), exact) ((idis, thms), (ctxt, ptab)) =
+    fun add1 id fixes thm1 ((i, th), exact) ((iidths, thms), (ctxt, ptab)) =
       let
         val (thm, ctxt') = if exact then (Thm.implies_elim thm1 th, ctxt) else assume thm1 ctxt
         val thms' = if exact then thms else th :: thms
-      in (((id, i) :: idis, thms'), (ctxt', Inttab.update (id, (fixes, thm)) ptab)) end
+      in (((i, (id, th)) :: iidths, thms'), (ctxt', Inttab.update (id, (fixes, thm)) ptab)) end
 
     fun add (Z3_New_Proof.Z3_Step {id, rule, concl, fixes, ...})
-        (cx as ((idis, thms), (ctxt, ptab))) =
+        (cx as ((iidths, thms), (ctxt, ptab))) =
       if Z3_New_Replay_Methods.is_assumption rule andalso rule <> Z3_New_Proof.Hypothesis then
         let
           val ct = SMT2_Util.certify ctxt concl
@@ -123,7 +123,7 @@ fun add_asserted outer_ctxt rewrite_rules assms steps ctxt =
           (case lookup_assm assms_net (Thm.cprem_of thm2 1) of
             [] =>
               let val (thm, ctxt') = assume thm1 ctxt
-              in ((idis, thms), (ctxt', Inttab.update (id, (fixes, thm)) ptab)) end
+              in ((iidths, thms), (ctxt', Inttab.update (id, (fixes, thm)) ptab)) end
           | ithms => fold (add1 id fixes thm1) ithms cx)
         end
       else
@@ -176,10 +176,10 @@ fun replay outer_ctxt
     ({context=ctxt, typs, terms, rewrite_rules, assms} : SMT2_Translate.replay_data) output =
   let
     val (steps, ctxt2) = Z3_New_Proof.parse typs terms output ctxt
-    val ((idis, rules), (ctxt3, assumed)) = add_asserted outer_ctxt rewrite_rules assms steps ctxt2
+    val ((iidths, rules), (ctxt3, assumed)) = add_asserted outer_ctxt rewrite_rules assms steps ctxt2
   in
     if Config.get ctxt3 SMT2_Config.filter_only_facts then
-      ((idis, steps), TrueI)
+      ((iidths, steps), TrueI)
     else
       let
         val ctxt4 = put_simpset (Z3_New_Replay_Util.make_simpset ctxt3 []) ctxt3

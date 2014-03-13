@@ -377,22 +377,12 @@ fun add_non_rec_defs fact_names accum =
       union (op =) (filter (fn (_, (_, status)) => status = Non_Rec_Def) facts) facts')
     accum fact_names
 
-val isa_ext = Thm.get_name_hint @{thm ext}
-val isa_short_ext = Long_Name.base_name isa_ext
-
-fun ext_name ctxt =
-  if Thm.eq_thm_prop (@{thm ext},
-       singleton (Attrib.eval_thms ctxt) (Facts.named isa_short_ext, [])) then
-    isa_short_ext
-  else
-    isa_ext
-
 val leo2_extcnf_equal_neg_rule = "extcnf_equal_neg"
 val leo2_unfold_def_rule = "unfold_def"
 
 fun add_fact ctxt fact_names ((_, ss), _, _, rule, deps) =
   (if rule = leo2_extcnf_equal_neg_rule then
-     insert (op =) (ext_name ctxt, (Global, General))
+     insert (op =) (short_thm_name ctxt ext, (Global, General))
    else if rule = leo2_unfold_def_rule then
      (* LEO 1.3.3 does not record definitions properly, leading to missing dependencies in the TSTP
         proof. Remove the next line once this is fixed. *)
@@ -401,7 +391,7 @@ fun add_fact ctxt fact_names ((_, ss), _, _, rule, deps) =
      (fn [] =>
          (* agsyHOL and Satallax don't include definitions in their unsatisfiable cores, so we
             assume the worst and include them all here. *)
-         [(ext_name ctxt, (Global, General))] |> add_non_rec_defs fact_names
+         [(short_thm_name ctxt ext, (Global, General))] |> add_non_rec_defs fact_names
        | facts => facts)
    else
      I)

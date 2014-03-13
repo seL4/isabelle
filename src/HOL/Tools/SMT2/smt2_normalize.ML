@@ -497,7 +497,7 @@ fun burrow_ids f ithms =
   let
     val (is, thms) = split_list ithms
     val (thms', extra_thms) = f thms
-  in (is ~~ thms') @ map (pair ~1) extra_thms end
+  in (is ~~ thms') @ tag_list (length is) extra_thms end
 
 fun unfold2 ctxt ithms =
   ithms

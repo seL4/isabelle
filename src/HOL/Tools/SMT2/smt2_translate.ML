@@ -321,8 +321,7 @@ local
   exception BAD_PATTERN of unit
 
   fun wrap_in_if pat t =
-    if pat then raise BAD_PATTERN ()
-    else @{const If (bool)} $ t $ @{const True} $ @{const False}
+    if pat then raise BAD_PATTERN () else @{const If (bool)} $ t $ @{const True} $ @{const False}
 
   fun is_builtin_conn_or_pred ctxt c ts =
     is_some (SMT2_Builtin.dest_builtin_conn ctxt c ts) orelse
@@ -338,8 +337,7 @@ fun folify ctxt =
         (@{const True}, []) => t
       | (@{const False}, []) => t
       | (u as Const (@{const_name If}, _), [t1, t2, t3]) =>
-          if pat then raise BAD_PATTERN ()
-          else u $ in_form t1 $ in_term pat t2 $ in_term pat t3
+          if pat then raise BAD_PATTERN () else u $ in_form t1 $ in_term pat t2 $ in_term pat t3
       | (Const (c as (n, _)), ts) =>
           if is_builtin_conn_or_pred ctxt c ts then wrap_in_if pat (in_form t)
           else if is_quant n then wrap_in_if pat (in_form t)
@@ -357,11 +355,9 @@ fun folify ctxt =
       | in_pat t = raise TERM ("bad pattern", [t])
 
     and in_pats ps =
-      in_list @{typ "SMT2.pattern list"}
-        (SOME o in_list @{typ SMT2.pattern} (try in_pat)) ps
+      in_list @{typ "SMT2.pattern list"} (SOME o in_list @{typ SMT2.pattern} (try in_pat)) ps
 
-    and in_trigger ((c as @{const SMT2.trigger}) $ p $ t) =
-          c $ in_pats p $ in_weight t
+    and in_trigger ((c as @{const SMT2.trigger}) $ p $ t) = c $ in_pats p $ in_weight t
       | in_trigger t = in_weight t
 
     and in_form t =
@@ -462,7 +458,7 @@ fun intermediate header dtyps builtin ctxt ts trx =
       let val (Us, U) = SMT2_Util.dest_funT (length ts) T
       in
         fold_map transT Us ##>> transT U #-> (fn Up =>
-        add_fun t (SOME Up) ##>> fold_map trans ts #>> SApp)
+          add_fun t (SOME Up) ##>> fold_map trans ts #>> SApp)
       end
 
     val (us, trx') = fold_map trans ts trx
@@ -528,13 +524,12 @@ fun translate ctxt comments ithms =
           |> pair ctxt')
 
     val ((rewrite_rules, builtin), ts4) = folify ctxt2 ts3
-
-    val rewrite_rules' = fun_app_eq :: rewrite_rules
+      |>> apfst (cons fun_app_eq)
   in
     (ts4, tr_context)
     |-> intermediate header dtyps (builtin SMT2_Builtin.dest_builtin) ctxt2
     |>> uncurry (serialize comments)
-    ||> replay_data_of ctxt2 rewrite_rules' ithms
+    ||> replay_data_of ctxt2 rewrite_rules ithms
   end
 
 end
