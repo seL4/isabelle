@@ -18,18 +18,11 @@ declare [[smt2_read_only_certificates = true]]
 section {* Propositional and first-order logic *}
 
 lemma "True" by smt2
-
 lemma "p \<or> \<not>p" by smt2
-
 lemma "(p \<and> True) = p" by smt2
-
 lemma "(p \<or> q) \<and> \<not>p \<Longrightarrow> q" by smt2
-
-lemma "(a \<and> b) \<or> (c \<and> d) \<Longrightarrow> (a \<and> b) \<or> (c \<and> d)"
-  by smt2
-
+lemma "(a \<and> b) \<or> (c \<and> d) \<Longrightarrow> (a \<and> b) \<or> (c \<and> d)" by smt2
 lemma "(p1 \<and> p2) \<or> p3 \<longrightarrow> (p1 \<longrightarrow> (p3 \<and> p2) \<or> (p1 \<and> p3)) \<or> p1" by smt2
-
 lemma "P = P = P = P = P = P = P = P = P = P" by smt2
 
 lemma
@@ -44,6 +37,7 @@ lemma
 
 axiomatization symm_f :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
   symm_f: "symm_f x y = symm_f y x"
+
 lemma "a = a \<and> symm_f a b = symm_f b a" by (smt2 symm_f)
 
 (*
@@ -263,19 +257,12 @@ section {* Arithmetic *}
 subsection {* Linear arithmetic over integers and reals *}
 
 lemma "(3::int) = 3" by smt2
-
 lemma "(3::real) = 3" by smt2
-
 lemma "(3 :: int) + 1 = 4" by smt2
-
 lemma "x + (y + z) = y + (z + (x::int))" by smt2
-
 lemma "max (3::int) 8 > 5" by smt2
-
 lemma "abs (x :: real) + abs y \<ge> abs (x + y)" by smt2
-
 lemma "P ((2::int) < 3) = P True" by smt2
-
 lemma "x + 3 \<ge> 4 \<or> x < (1::int)" by smt2
 
 lemma
@@ -329,12 +316,10 @@ lemma "\<lbrakk> x3 = abs x2 - x1; x4 = abs x3 - x2; x5 = abs x4 - x3;
 lemma "let P = 2 * x + 1 > x + (x::real) in P \<or> False \<or> P" by smt2
 
 lemma "x + (let y = x mod 2 in 2 * y + 1) \<ge> x + (1::int)"
-  using [[z3_new_extensions]]
-  by smt2
+  using [[z3_new_extensions]] by smt2
 
 lemma "x + (let y = x mod 2 in y + y) < x + (3::int)"
-  using [[z3_new_extensions]]
-  by smt2
+  using [[z3_new_extensions]] by smt2
 
 lemma
   assumes "x \<noteq> (0::real)"
@@ -350,7 +335,6 @@ lemma
 subsection {* Linear arithmetic with quantifiers *}
 
 lemma "~ (\<exists>x::int. False)" by smt2
-
 lemma "~ (\<exists>x::real. False)" by smt2
 
 lemma "\<exists>x::int. 0 < x"
@@ -366,31 +350,18 @@ lemma "\<forall>x::int. \<exists>y. y > x"
   by smt2
 
 lemma "\<forall>x y::int. (x = 0 \<and> y = 1) \<longrightarrow> x \<noteq> y" by smt2
-
 lemma "\<exists>x::int. \<forall>y. x < y \<longrightarrow> y < 0 \<or> y >= 0" by smt2
-
 lemma "\<forall>x y::int. x < y \<longrightarrow> (2 * x + 1) < (2 * y)" by smt2
-
 lemma "\<forall>x y::int. (2 * x + 1) \<noteq> (2 * y)" by smt2
-
 lemma "\<forall>x y::int. x + y > 2 \<or> x + y = 2 \<or> x + y < 2" by smt2
-
 lemma "\<forall>x::int. if x > 0 then x + 1 > 0 else 1 > x" by smt2
-
 lemma "if (ALL x::int. x < 0 \<or> x > 0) then False else True" by smt2
-
 lemma "(if (ALL x::int. x < 0 \<or> x > 0) then -1 else 3) > (0::int)" by smt2
-
 lemma "~ (\<exists>x y z::int. 4 * x + -6 * y = (1::int))" by smt2
-
 lemma "\<exists>x::int. \<forall>x y. 0 < x \<and> 0 < y \<longrightarrow> (0::int) < x + y" by smt2
-
 lemma "\<exists>u::int. \<forall>(x::int) y::real. 0 < x \<and> 0 < y \<longrightarrow> -1 < x" by smt2
-
 lemma "\<exists>x::int. (\<forall>y. y \<ge> x \<longrightarrow> y > 0) \<longrightarrow> x > 0" by smt2
-
 lemma "\<forall>x::int. SMT2.trigger [[SMT2.pat x]] (x < a \<longrightarrow> 2 * x < 2 * a)" by smt2
-
 lemma "\<forall>(a::int) b::int. 0 < b \<or> b < 1" by smt2
 
 
@@ -411,8 +382,7 @@ lemma "((x::real) * (1 + y) - x * (1 - y)) = (2 * x * y)"
 lemma
   "(U::int) + (1 + p) * (b + e) + p * d =
    U + (2 * (1 + p) * (b + e) + (1 + p) * d + d * p) - (1 + p) * (b + d + e)"
-  using [[z3_new_extensions]]
-  by smt2
+  using [[z3_new_extensions]] by smt2
 
 lemma [z3_rule, z3_new_rule]:
   fixes x :: "int"
@@ -449,28 +419,25 @@ lemma "prime_nat (4*m + 1) \<Longrightarrow> m \<ge> (1::nat)" by (smt2 prime_na
 section {* Pairs *}
 
 lemma "fst (x, y) = a \<Longrightarrow> x = a"
-  using fst_conv
-  by smt2
+  using fst_conv by smt2
 
 lemma "p1 = (x, y) \<and> p2 = (y, x) \<Longrightarrow> fst p1 = snd p2"
-  using fst_conv snd_conv
-  by smt2
+  using fst_conv snd_conv by smt2
 
 
 section {* Higher-order problems and recursion *}
 
 lemma "i \<noteq> i1 \<and> i \<noteq> i2 \<Longrightarrow> (f (i1 := v1, i2 := v2)) i = f i"
-  using fun_upd_same fun_upd_apply
-  by smt2
+  using fun_upd_same fun_upd_apply by smt2
 
 lemma "(f g (x::'a::type) = (g x \<and> True)) \<or> (f g x = True) \<or> (g x = True)"
   by smt2
 
-lemma "id x = x \<and> id True = True" by (smt id_def) (* smt2 FIXME: Option *)
+lemma "id x = x \<and> id True = True"
+  by (smt id_def) (* smt2 FIXME: Option *)
 
 lemma "i \<noteq> i1 \<and> i \<noteq> i2 \<Longrightarrow> ((f (i1 := v1)) (i2 := v2)) i = f i"
-  using fun_upd_same fun_upd_apply
-  by smt2
+  using fun_upd_same fun_upd_apply by smt2
 
 lemma
   "f (\<exists>x. g x) \<Longrightarrow> True"
@@ -478,28 +445,25 @@ lemma
   by smt2+
 
 lemma True using let_rsp by smt2
-
 lemma "le = op \<le> \<Longrightarrow> le (3::int) 42" by smt2
-
 lemma "map (\<lambda>i::nat. i + 1) [0, 1] = [1, 2]" by (smt2 list.map)
-
-
 lemma "(ALL x. P x) \<or> ~ All P" by smt2
 
 fun dec_10 :: "nat \<Rightarrow> nat" where
   "dec_10 n = (if n < 10 then n else dec_10 (n - 10))"
-lemma "dec_10 (4 * dec_10 4) = 6" by (smt2 dec_10.simps)
 
+lemma "dec_10 (4 * dec_10 4) = 6" by (smt2 dec_10.simps)
 
 axiomatization
   eval_dioph :: "int list \<Rightarrow> nat list \<Rightarrow> int"
-  where
+where
   eval_dioph_mod:
   "eval_dioph ks xs mod int n = eval_dioph ks (map (\<lambda>x. x mod n) xs) mod int n"
-  and
+and
   eval_dioph_div_mult:
   "eval_dioph ks (map (\<lambda>x. x div n) xs) * int n +
    eval_dioph ks (map (\<lambda>x. x mod n) xs) = eval_dioph ks xs"
+
 lemma
   "(eval_dioph ks xs = l) =
    (eval_dioph ks (map (\<lambda>x. x mod 2) xs) mod 2 = l mod 2 \<and>
@@ -527,6 +491,7 @@ section {* Monomorphization examples *}
 definition Pred :: "'a \<Rightarrow> bool" where "Pred x = True"
 
 lemma poly_Pred: "Pred x \<and> (Pred [x] \<or> \<not> Pred [x])" by (simp add: Pred_def)
+
 lemma "Pred (1::int)" by (smt2 poly_Pred)
 
 axiomatization g :: "'a \<Rightarrow> nat"
