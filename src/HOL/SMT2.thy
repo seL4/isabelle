@@ -93,6 +93,21 @@ definition z3div :: "int \<Rightarrow> int \<Rightarrow> int" where
 definition z3mod :: "int \<Rightarrow> int \<Rightarrow> int" where
   "z3mod k l = (if 0 \<le> l then k mod l else k mod (-l))"
 
+lemma div_as_z3div:
+  "\<forall>k l. k div l = (
+    if k = 0 \<or> l = 0 then 0
+    else if (0 < k & 0 < l) \<or> (k < 0 & 0 < l) then z3div k l
+    else z3div (-k) (-l))"
+  by (simp add: z3div_def)
+
+lemma mod_as_z3mod:
+  "\<forall>k l. k mod l = (
+    if l = 0 then k
+    else if k = 0 then 0
+    else if (0 < k & 0 < l) \<or> (k < 0 & 0 < l) then z3mod k l
+    else - z3mod (-k) (-l))"
+  by (simp add: z3mod_def)
+
 
 subsection {* Setup *}
 

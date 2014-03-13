@@ -42,27 +42,12 @@ local
     | is_div_mod @{const mod (int)} = true
     | is_div_mod _ = false
 
-  val div_as_z3div = @{lemma
-    "ALL k l. k div l = (
-      if k = 0 | l = 0 then 0
-      else if (0 < k & 0 < l) | (k < 0 & 0 < l) then z3div k l
-      else z3div (-k) (-l))"
-    by (simp add: SMT2.z3div_def)}
-
-  val mod_as_z3mod = @{lemma
-    "ALL k l. k mod l = (
-      if l = 0 then k
-      else if k = 0 then 0
-      else if (0 < k & 0 < l) | (k < 0 & 0 < l) then z3mod k l
-      else - z3mod (-k) (-l))"
-    by (simp add: z3mod_def)}
-
   val have_int_div_mod =
     exists (Term.exists_subterm is_div_mod o Thm.prop_of)
 
   fun add_div_mod _ (thms, extra_thms) =
     if have_int_div_mod thms orelse have_int_div_mod extra_thms then
-      (thms, div_as_z3div :: mod_as_z3mod :: extra_thms)
+      (thms, @{thms div_as_z3div mod_as_z3mod} @ extra_thms)
     else (thms, extra_thms)
 
   val setup_builtins =
