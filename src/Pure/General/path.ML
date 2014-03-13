@@ -195,18 +195,23 @@ fun eval (Variable s) =
 val expand = rep #> maps eval #> norm #> Path;
 
 
-(* smart replacement of $ISABELLE_HOME *)
+(* smart implode *)
 
 fun smart_implode path =
   let
     val full_name = implode_path (expand path);
-    val isabelle_home = implode_path (expand (explode_path "~~"));
+    fun fold_path a =
+      let val b = implode_path (expand (explode_path a)) in
+        if full_name = b then SOME a
+        else
+          (case try (unprefix (b ^ "/")) full_name of
+            SOME name => SOME (a ^ "/" ^ name)
+          | NONE => NONE)
+      end;
   in
-    if full_name = isabelle_home then "~~"
-    else
-      (case try (unprefix (isabelle_home ^ "/")) full_name of
-        SOME name => "~~/" ^ name
-      | NONE => implode_path path)
+    (case get_first fold_path ["~~", "$ISABELLE_HOME_USER", "~"] of
+      SOME name => name
+    | NONE => implode_path path)
   end;
 
 val position = Position.file o smart_implode;
