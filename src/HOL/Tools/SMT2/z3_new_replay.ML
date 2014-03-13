@@ -110,10 +110,7 @@ fun add_asserted outer_ctxt rewrite_rules assms steps ctxt =
       let
         val (thm, ctxt') = if exact then (Thm.implies_elim thm1 th, ctxt) else assume thm1 ctxt
         val thms' = if exact then thms else th :: thms
-      in 
-        ((insert (op =) i is, thms'),
-          (ctxt', Inttab.update (id, (fixes, thm)) ptab))
-      end
+      in ((insert (op =) i is, thms'), (ctxt', Inttab.update (id, (fixes, thm)) ptab)) end
 
     fun add (Z3_New_Proof.Z3_Step {id, rule, concl, fixes, ...})
         (cx as ((is, thms), (ctxt, ptab))) =

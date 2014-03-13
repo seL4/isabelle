@@ -91,14 +91,14 @@ fun suggested_name_of_term (Const (s, _)) = Long_Name.base_name s
   | suggested_name_of_term _ = Name.uu
 
 val empty_tr_context = (Name.context, Typtab.empty, Termtab.empty)
-val safe_prefix = "$"
+val safe_suffix = "$"
 
 fun add_typ T proper (cx as (names, typs, terms)) =
   (case Typtab.lookup typs T of
     SOME (name, _) => (name, cx)
   | NONE =>
       let
-        val sugg = safe_prefix ^ Name.desymbolize true (suggested_name_of_typ T)
+        val sugg = Name.desymbolize true (suggested_name_of_typ T) ^ safe_suffix
         val (name, names') = Name.variant sugg names
         val typs' = Typtab.update (T, (name, proper)) typs
       in (name, (names', typs', terms)) end)
@@ -108,7 +108,7 @@ fun add_fun t sort (cx as (names, typs, terms)) =
     SOME (name, _) => (name, cx)
   | NONE => 
       let
-        val sugg = safe_prefix ^ Name.desymbolize false (suggested_name_of_term t)
+        val sugg = Name.desymbolize false (suggested_name_of_term t) ^ safe_suffix
         val (name, names') = Name.variant sugg names
         val terms' = Termtab.update (t, (name, sort)) terms
       in (name, (names', typs, terms')) end)

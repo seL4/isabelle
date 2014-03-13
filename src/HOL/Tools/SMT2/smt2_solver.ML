@@ -231,13 +231,9 @@ fun apply_solver ctxt0 iwthms =
   let
     val (ithms, ctxt) = SMT2_Normalize.normalize iwthms ctxt0
     val (name, {command, replay, ...}) = name_and_info_of ctxt
-  in
-    invoke name command ithms ctxt
-    |> replay ctxt
-  end
+  in replay ctxt (invoke name command ithms ctxt) end
 
 val default_max_relevant = #default_max_relevant oo get_info
-
 val supports_filter = #supports_filter o snd o name_and_info_of 
 
 
