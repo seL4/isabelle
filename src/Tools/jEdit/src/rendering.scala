@@ -471,7 +471,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
           case (prev, Text.Info(r, XML.Elem(Markup.Path(name), _)))
           if Path.is_valid(name) =>
             val jedit_file = PIDE.thy_load.append(snapshot.node_name.master_dir, Path.explode(name))
-            Some(add(prev, r, (true, XML.Text("file " + quote(jedit_file)))))
+            val text = "path " + quote(name) + "\nfile " + quote(jedit_file)
+            Some(add(prev, r, (true, XML.Text(text))))
           case (prev, Text.Info(r, XML.Elem(Markup.Url(name), _))) =>
             Some(add(prev, r, (true, XML.Text("URL " + quote(name)))))
           case (prev, Text.Info(r, XML.Elem(Markup(name, _), body)))

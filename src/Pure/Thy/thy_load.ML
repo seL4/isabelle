@@ -200,7 +200,7 @@ fun file_antiq strict ctxt (name, pos) =
     val path = Path.append dir (Path.explode name)
       handle ERROR msg => error (msg ^ Position.here pos);
 
-    val _ = Context_Position.report ctxt pos (Markup.path name);
+    val _ = Context_Position.report ctxt pos (Markup.path (Path.smart_implode path));
     val _ =
       if can Path.expand path andalso File.exists path then ()
       else
