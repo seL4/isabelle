@@ -1245,7 +1245,7 @@ qed
 subsection {* Proving surjectivity via Brouwer fixpoint theorem *}
 
 lemma brouwer_surjective:
-  fixes f :: "'n::ordered_euclidean_space \<Rightarrow> 'n"
+  fixes f :: "'n::euclidean_space \<Rightarrow> 'n"
   assumes "compact t"
     and "convex t"
     and "t \<noteq> {}"
@@ -1266,7 +1266,7 @@ proof -
 qed
 
 lemma brouwer_surjective_cball:
-  fixes f :: "'n::ordered_euclidean_space \<Rightarrow> 'n"
+  fixes f :: "'n::euclidean_space \<Rightarrow> 'n"
   assumes "e > 0"
     and "continuous_on (cball a e) f"
     and "\<forall>x\<in>s. \<forall>y\<in>cball a e. x + (y - f y) \<in> cball a e"
@@ -1282,7 +1282,7 @@ lemma brouwer_surjective_cball:
 text {* See Sussmann: "Multidifferential calculus", Theorem 2.1.1 *}
 
 lemma sussmann_open_mapping:
-  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::ordered_euclidean_space"
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "open s"
     and "continuous_on s f"
     and "x \<in> s"
@@ -1469,7 +1469,7 @@ proof -
 qed
 
 lemma has_derivative_inverse_strong:
-  fixes f :: "'n::ordered_euclidean_space \<Rightarrow> 'n"
+  fixes f :: "'n::euclidean_space \<Rightarrow> 'n"
   assumes "open s"
     and "x \<in> s"
     and "continuous_on s f"
@@ -1548,7 +1548,7 @@ qed
 text {* A rewrite based on the other domain. *}
 
 lemma has_derivative_inverse_strong_x:
-  fixes f :: "'a::ordered_euclidean_space \<Rightarrow> 'a"
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'a"
   assumes "open s"
     and "g y \<in> s"
     and "continuous_on s f"
@@ -1564,7 +1564,7 @@ lemma has_derivative_inverse_strong_x:
 text {* On a region. *}
 
 lemma has_derivative_inverse_on:
-  fixes f :: "'n::ordered_euclidean_space \<Rightarrow> 'n"
+  fixes f :: "'n::euclidean_space \<Rightarrow> 'n"
   assumes "open s"
     and "\<forall>x\<in>s. (f has_derivative f'(x)) (at x)"
     and "\<forall>x\<in>s. g (f x) = x"
