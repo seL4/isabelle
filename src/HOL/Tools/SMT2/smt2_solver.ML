@@ -82,10 +82,12 @@ fun run ctxt name mk_cmd input =
             File.shell_path (Cache_IO.cache_path_of certs) ^ " ...")
             I output))
 
+(* Z3 returns 1 if "get-model" or "get-model" fails *)
+val normal_return_codes = [0, 1]
+
 fun run_solver ctxt name mk_cmd input =
   let
-    fun pretty tag ls = Pretty.string_of (Pretty.big_list tag
-      (map Pretty.str ls))
+    fun pretty tag ls = Pretty.string_of (Pretty.big_list tag (map Pretty.str ls))
 
     val _ = SMT2_Config.trace_msg ctxt (pretty "Problem:" o split_lines) input
 
@@ -96,7 +98,7 @@ fun run_solver ctxt name mk_cmd input =
     val output = fst (take_suffix (equal "") res)
     val _ = SMT2_Config.trace_msg ctxt (pretty "Result:") output
 
-    val _ = return_code <> 0 andalso
+    val _ = member (op =) normal_return_codes return_code orelse
       raise SMT2_Failure.SMT (SMT2_Failure.Abnormal_Termination return_code)
   in output end
 
