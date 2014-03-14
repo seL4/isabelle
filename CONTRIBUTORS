@@ -9,6 +9,15 @@ Contributions to this Isabelle version
 * March 2014: René Thiemann
   Improved code generation for multisets.
 
+* Fall 2013 and Winter 2014: Lorenz Panny, Dmitriy Traytel, and
+  Jasmin Blanchette, TUM
+  Various improvements to the BNF-based (co)datatype package, including
+  a more polished "primcorec" command, optimizations, and integration in
+  the "HOL" session.
+
+* Winter 2014: Sascha Boehme, QAware GmbH, and Jasmin Blanchette, TUM
+  "SMT2" module and "smt2" proof method, based on SMT-LIB 2 and Z3 4.3.
+
 * January 2014: Lars Hupel, TUM
   An improved, interactive simplifier trace with integration into the
   Isabelle/jEdit Prover IDE.
@@ -42,7 +51,7 @@ Contributions to Isabelle2013-1
 
 * Spring and Summer 2013: Lorenz Panny, Dmitriy Traytel, and
   Jasmin Blanchette, TUM
-  Various improvements to BNF-based (co)datatype package, including
+  Various improvements to the BNF-based (co)datatype package, including
   "primrec_new" and "primcorec" commands and a compatibility layer.
 
 * Spring and Summer 2013: Ondrej Kuncar, TUM
