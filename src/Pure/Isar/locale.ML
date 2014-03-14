@@ -561,7 +561,7 @@ fun add_thmss _ _ [] ctxt = ctxt
           (* Registrations *)
           (fn thy =>
             fold_rev (fn (_, morph) =>
-              snd o Attrib.global_notes kind (Element.transform_facts morph facts))  (* FIXME background_notes *)
+              snd o Attrib.global_notes kind (Element.transform_facts morph facts))
             (registrations_of (Context.Theory thy) loc) thy));
 
 

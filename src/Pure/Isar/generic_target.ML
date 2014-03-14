@@ -179,7 +179,8 @@ fun notes target_notes kind facts lthy =
   end;
 
 fun locale_notes locale kind global_facts local_facts =
-  Local_Theory.background_notes kind (Attrib.map_facts (K []) global_facts) #>
+  Local_Theory.background_theory
+    (Attrib.global_notes kind (Attrib.map_facts (K []) global_facts) #> snd) #>
   (fn lthy => lthy |>
     Local_Theory.target (fn ctxt => ctxt |>
       Locale.add_thmss locale kind (standard_facts lthy ctxt local_facts))) #>
@@ -310,7 +311,7 @@ fun theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) =
     |> pair (lhs, def));
 
 fun theory_notes kind global_facts local_facts =
-  Local_Theory.background_notes kind global_facts #>
+  Local_Theory.background_theory (Attrib.global_notes kind global_facts #> snd) #>
   (fn lthy => lthy |> Local_Theory.map_contexts (fn level => fn ctxt =>
     if level = Local_Theory.level lthy then ctxt
     else

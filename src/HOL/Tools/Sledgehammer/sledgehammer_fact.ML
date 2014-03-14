@@ -467,12 +467,14 @@ fun all_facts ctxt generous ho_atp reserved add_ths chained css =
     val unnamed_locals =
       union Thm.eq_thm_prop (Facts.props local_facts) chained
       |> filter is_good_unnamed_local |> map (pair "" o single)
+    val full_space =
+      Name_Space.merge (Facts.space_of global_facts, Facts.space_of local_facts)
     val is_blacklisted_or_something = is_blacklisted_or_something ctxt ho_atp
-    fun add_facts global foldx =
+    fun add_facts global foldx facts =
       foldx (fn (name0, ths) => fn accum =>
         if name0 <> "" andalso
            forall (not o member Thm.eq_thm_prop add_ths) ths andalso
-           (Facts.is_concealed local_facts name0 orelse
+           (Facts.is_concealed facts name0 orelse
             (not generous andalso is_blacklisted_or_something name0)) then
           accum
         else
@@ -497,7 +499,8 @@ fun all_facts ctxt generous ho_atp reserved add_ths chained css =
                            if name0 = "" then
                              backquote_thm ctxt th
                            else
-                             [Facts.extern ctxt local_facts name0]
+                             [Facts.extern ctxt facts name0,
+                              Name_Space.extern ctxt full_space name0]
                              |> find_first check_thms
                              |> the_default name0
                              |> make_name reserved multi j),
@@ -512,8 +515,8 @@ fun all_facts ctxt generous ho_atp reserved add_ths chained css =
     (* The single-theorem names go before the multiple-theorem ones (e.g.,
        "xxx" vs. "xxx(3)"), so that single names are preferred when both are
        available. *)
-    `I [] |> add_facts false fold (unnamed_locals @ named_locals)
-          |> add_facts true Facts.fold_static global_facts
+    `I [] |> add_facts false fold local_facts (unnamed_locals @ named_locals)
+          |> add_facts true Facts.fold_static global_facts global_facts
           |> op @
   end
 

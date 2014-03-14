@@ -30,7 +30,6 @@ sig
   val consts_of: Proof.context -> Consts.T
   val set_syntax_mode: Syntax.mode -> Proof.context -> Proof.context
   val restore_syntax_mode: Proof.context -> Proof.context -> Proof.context
-  val facts_of: Proof.context -> Facts.T
   val map_naming: (Name_Space.naming -> Name_Space.naming) -> Proof.context -> Proof.context
   val naming_of: Proof.context -> Name_Space.naming
   val restore_naming: Proof.context -> Proof.context -> Proof.context
@@ -53,6 +52,9 @@ sig
   val transfer: theory -> Proof.context -> Proof.context
   val background_theory: (theory -> theory) -> Proof.context -> Proof.context
   val background_theory_result: (theory -> 'a * theory) -> Proof.context -> 'a * Proof.context
+  val facts_of: Proof.context -> Facts.T
+  val facts_of_fact: Proof.context -> string -> Facts.T
+  val markup_extern_fact: Proof.context -> string -> Markup.T * xstring
   val pretty_term_abbrev: Proof.context -> term -> Pretty.T
   val pretty_fact: Proof.context -> string * thm list -> Pretty.T
   val check_class: Proof.context -> xstring * Position.T -> class * Position.report list
@@ -208,7 +210,7 @@ datatype data =
     syntax: Local_Syntax.T,      (*local syntax*)
     tsig: Type.tsig * Type.tsig, (*local/global type signature -- local name space / defsort only*)
     consts: Consts.T * Consts.T, (*local/global consts -- local name space / abbrevs only*)
-    facts: Facts.T,              (*cumulative facts*)
+    facts: Facts.T,              (*local facts, based on initial global facts*)
     cases: cases};               (*named case contexts: case, is_proper, running index*)
 
 fun make_data (mode, syntax, tsig, consts, facts, cases) =
@@ -276,7 +278,6 @@ val set_defsort = map_tsig o apfst o Type.set_defsort;
 fun default_sort ctxt = the_default (Type.defaultS (tsig_of ctxt)) o Variable.def_sort ctxt;
 
 val consts_of = #1 o #consts o rep_data;
-val facts_of = #facts o rep_data;
 val cases_of = #cases o rep_data;
 
 
@@ -336,13 +337,30 @@ fun background_theory_result f ctxt =
   in (res, ctxt |> transfer thy') end;
 
 
+(* hybrid facts *)
+
+val facts_of = #facts o rep_data;
+
+fun facts_of_fact ctxt name =
+  let
+    val local_facts = facts_of ctxt;
+    val global_facts = Global_Theory.facts_of (theory_of ctxt);
+  in
+    if is_some (Facts.lookup (Context.Proof ctxt) local_facts name)
+    then local_facts else global_facts
+  end;
+
+fun markup_extern_fact ctxt name =
+  Facts.markup_extern ctxt (facts_of_fact ctxt name) name;
+
+
 
 (** pretty printing **)
 
 fun pretty_term_abbrev ctxt = Syntax.pretty_term (set_mode mode_abbrev ctxt);
 
 fun pretty_fact_name ctxt a =
-  Pretty.block [Pretty.mark_str (Facts.markup_extern ctxt (facts_of ctxt) a), Pretty.str ":"];
+  Pretty.block [Pretty.mark_str (markup_extern_fact ctxt a), Pretty.str ":"];
 
 fun pretty_fact ctxt =
   let
@@ -896,7 +914,16 @@ end;
 
 local
 
-fun retrieve_thms pick context (Facts.Fact s) =
+fun retrieve_global context =
+  Facts.retrieve context (Global_Theory.facts_of (Context.theory_of context));
+
+fun retrieve_generic (context as Context.Proof ctxt) (xname, pos) =
+      if can (fn () => Facts.retrieve context (facts_of ctxt) (xname, Position.none)) ()
+      then Facts.retrieve context (facts_of ctxt) (xname, pos)
+      else retrieve_global context (xname, pos)
+  | retrieve_generic context arg = retrieve_global context arg;
+
+fun retrieve pick context (Facts.Fact s) =
       let
         val ctxt = Context.the_proof context;
         val pos = Syntax.read_token_pos s;
@@ -915,22 +942,21 @@ fun retrieve_thms pick context (Facts.Fact s) =
           | [] => err "Failed to retrieve literal fact"
           | _ => err "Ambiguous specification of literal fact");
       in pick ("", Position.none) [thm] end
-  | retrieve_thms pick context (Facts.Named ((xname, pos), ivs)) =
+  | retrieve pick context (Facts.Named ((xname, pos), ivs)) =
       let
         val thy = Context.theory_of context;
-        val facts = Context.cases Global_Theory.facts_of facts_of context;
         val (name, thms) =
           (case xname of
             "" => (xname, [Thm.transfer thy Drule.dummy_thm])
           | "_" => (xname, [Thm.transfer thy Drule.asm_rl])
-          | _ => Facts.retrieve context facts (xname, pos));
+          | _ => retrieve_generic context (xname, pos));
       in pick (name, pos) (Facts.select (Facts.Named ((name, pos), ivs)) thms) end;
 
 in
 
-val get_fact_generic = retrieve_thms (K I);
-val get_fact = retrieve_thms (K I) o Context.Proof;
-val get_fact_single = retrieve_thms Facts.the_single o Context.Proof;
+val get_fact_generic = retrieve (K I);
+val get_fact = retrieve (K I) o Context.Proof;
+val get_fact_single = retrieve Facts.the_single o Context.Proof;
 
 fun get_thms ctxt = get_fact ctxt o Facts.named;
 fun get_thm ctxt = get_fact_single ctxt o Facts.named;
