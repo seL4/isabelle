@@ -68,6 +68,8 @@ fun simplify_prop (@{const Not} $ t) = s_not (simplify_prop t)
   | simplify_prop (@{const disj} $ t $ u) = s_disj (simplify_prop t, simplify_prop u)
   | simplify_prop (@{const implies} $ t $ u) = s_imp (simplify_prop t, simplify_prop u)
   | simplify_prop (@{const HOL.eq (bool)} $ t $ u) = s_iff (simplify_prop t, simplify_prop u)
+  | simplify_prop (t as Const (@{const_name HOL.eq}, _) $ u $ v) =
+    if u aconv v then @{const True} else t
   | simplify_prop (t $ u) = simplify_prop t $ simplify_prop u
   | simplify_prop (Abs (s, T, t)) = Abs (s, T, simplify_prop t)
   | simplify_prop t = t

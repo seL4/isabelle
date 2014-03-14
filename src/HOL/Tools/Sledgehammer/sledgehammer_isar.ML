@@ -68,20 +68,20 @@ fun label_of_clause [(num, _)] = raw_label_of_num num
 fun add_fact_of_dependencies [(_, ss as _ :: _)] = apsnd (union (op =) ss)
   | add_fact_of_dependencies names = apfst (insert (op =) (label_of_clause names))
 
-(* No "real" literals means only type information (tfree_tcs, clsrel, or clsarity). *)
-fun is_only_type_information t = t aconv @{prop True}
+fun is_True_prop t = t aconv @{prop True}
 
 (* Discard facts; consolidate adjacent lines that prove the same formula, since they differ only in
    type information. *)
 fun add_line_pass1 (line as (name, role, t, rule, [])) lines =
     (* No dependencies: lemma (for Z3), fact, conjecture, or (for Vampire) internal facts or
        definitions. *)
-    if role = Lemma orelse role = Conjecture orelse role = Negated_Conjecture orelse
-       role = Hypothesis orelse is_arith_rule rule then
+    if role = Conjecture orelse role = Negated_Conjecture then
       line :: lines
+    else if role = Lemma orelse role = Hypothesis orelse is_arith_rule rule then
+      lines |> not (is_True_prop t) ? cons line
     else if role = Axiom then
       (* Facts are not proof lines. *)
-      lines |> is_only_type_information t ? map (replace_dependencies_in_line (name, []))
+      lines |> is_True_prop t ? map (replace_dependencies_in_line (name, []))
     else
       map (replace_dependencies_in_line (name, [])) lines
   | add_line_pass1 line lines = line :: lines
@@ -92,8 +92,8 @@ fun add_lines_pass2 res [] = rev res
       val is_last_line = null lines
 
       fun looks_interesting () =
-        not (is_only_type_information t) andalso null (Term.add_tvars t [])
-        andalso length deps >= 2 andalso not (can the_single lines)
+        not (is_True_prop t) andalso null (Term.add_tvars t []) andalso length deps >= 2 andalso
+        not (can the_single lines)
 
       fun is_skolemizing_line (_, _, _, rule', deps') =
         is_skolemize_rule rule' andalso member (op =) deps' name

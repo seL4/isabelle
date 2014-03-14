@@ -305,7 +305,7 @@ fun s_iff (@{const True}, t2) = t2
   | s_iff (t1, @{const True}) = t1
   | s_iff (@{const False}, t2) = s_not t2
   | s_iff (t1, @{const False}) = s_not t1
-  | s_iff (t1, t2) = HOLogic.eq_const HOLogic.boolT $ t1 $ t2
+  | s_iff (t1, t2) = if t1 aconv t2 then @{const True} else HOLogic.eq_const HOLogic.boolT $ t1 $ t2
 
 fun close_form t =
   fold (fn ((s, i), T) => fn t' =>
