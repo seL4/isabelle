@@ -8,6 +8,8 @@ Recursor sugar ("primrec").
 
 signature BNF_LFP_REC_SUGAR =
 sig
+  datatype primrec_option = Nonexhaustive_Option
+
   type basic_lfp_sugar =
     {T: typ,
      fp_res_index: int,
@@ -33,7 +35,7 @@ sig
 
   val add_primrec: (binding * typ option * mixfix) list ->
     (Attrib.binding * term) list -> local_theory -> (term list * thm list list) * local_theory
-  val add_primrec_cmd: (binding * string option * mixfix) list ->
+  val add_primrec_cmd: primrec_option list -> (binding * string option * mixfix) list ->
     (Attrib.binding * string) list -> local_theory -> (term list * thm list list) * local_theory
   val add_primrec_global: (binding * typ option * mixfix) list ->
     (Attrib.binding * term) list -> theory -> (term list * thm list list) * theory
@@ -61,6 +63,8 @@ val code_nitpicksimp_simp_attrs = Code.add_default_eqn_attrib :: nitpicksimp_att
 
 exception OLD_PRIMREC of unit;
 exception PRIMREC of string * term list;
+
+datatype primrec_option = Nonexhaustive_Option;
 
 datatype rec_call =
   No_Rec of int * typ |
@@ -346,7 +350,8 @@ fun build_rec_arg lthy (funs_data : eqn_data list list) has_call (ctr_spec : rec
       |> fold_rev lambda (args @ left_args @ right_args)
     end);
 
-fun build_defs lthy bs mxs (funs_data : eqn_data list list) (rec_specs : rec_spec list) has_call =
+fun build_defs lthy nonexhaustive bs mxs (funs_data : eqn_data list list)
+    (rec_specs : rec_spec list) has_call =
   let
     val n_funs = length funs_data;
 
@@ -355,8 +360,10 @@ fun build_defs lthy bs mxs (funs_data : eqn_data list list) (rec_specs : rec_spe
       |> maps (uncurry (finds (fn (x, y) => #ctr x = #ctr y))
           ##> (fn x => null x orelse
             raise PRIMREC ("excess equations in definition", map #rhs_term x)) #> fst);
-    val _ = ctr_spec_eqn_data_list' |> map (fn (_, x) => length x <= 1 orelse
-      raise PRIMREC ("multiple equations for constructor", map #user_eqn x));
+    val _ = ctr_spec_eqn_data_list' |> map (fn ({ctr, ...}, x) =>
+        if length x > 1 then raise PRIMREC ("multiple equations for constructor", map #user_eqn x)
+        else if length x = 1 orelse nonexhaustive then ()
+        else warning ("no equation for constructor " ^ Syntax.string_of_term lthy ctr));
 
     val ctr_spec_eqn_data_list =
       ctr_spec_eqn_data_list' @ (drop n_funs rec_specs |> maps #ctr_specs |> map (rpair []));
@@ -414,7 +421,7 @@ fun mk_primrec_tac ctxt num_extra_args map_idents map_comps fun_defs recx =
   unfold_thms_tac ctxt (nested_simps ctxt @ map_comps @ map_idents) THEN
   HEADGOAL (rtac refl);
 
-fun prepare_primrec fixes specs lthy0 =
+fun prepare_primrec nonexhaustive fixes specs lthy0 =
   let
     val thy = Proof_Context.theory_of lthy0;
 
@@ -455,7 +462,7 @@ fun prepare_primrec fixes specs lthy0 =
         raise PRIMREC ("argument " ^ quote (Syntax.string_of_term lthy ctr) ^
           " is not a constructor in left-hand side", [user_eqn])) eqns_data;
 
-    val defs = build_defs lthy bs mxs funs_data rec_specs has_call;
+    val defs = build_defs lthy nonexhaustive bs mxs funs_data rec_specs has_call;
 
     fun prove lthy' def_thms' ({ctr_specs, nested_map_idents, nested_map_comps, ...} : rec_spec)
         (fun_data : eqn_data list) =
@@ -505,9 +512,10 @@ fun prepare_primrec fixes specs lthy0 =
       lthy |> Local_Theory.notes (notes @ common_notes) |> snd)
   end;
 
-fun add_primrec_simple fixes ts lthy =
+fun add_primrec_simple' opts fixes ts lthy =
   let
-    val (((names, defs), prove), lthy') = prepare_primrec fixes ts lthy
+    val nonexhaustive = member (op =) opts Nonexhaustive_Option;
+    val (((names, defs), prove), lthy') = prepare_primrec nonexhaustive fixes ts lthy
       handle ERROR str => raise PRIMREC (str, []);
   in
     lthy'
@@ -521,8 +529,10 @@ fun add_primrec_simple fixes ts lthy =
            error ("primrec error:\n  " ^ str ^ "\nin\n  " ^
              space_implode "\n  " (map (quote o Syntax.string_of_term lthy) eqns));
 
-fun gen_primrec old_primrec prep_spec (raw_fixes : (binding * 'a option * mixfix) list) raw_spec
-    lthy =
+val add_primrec_simple = add_primrec_simple' [];
+
+fun gen_primrec old_primrec prep_spec opts
+    (raw_fixes : (binding * 'a option * mixfix) list) raw_spec lthy =
   let
     val d = duplicates (op =) (map (Binding.name_of o #1) raw_fixes)
     val _ = null d orelse raise PRIMREC ("duplicate function name(s): " ^ commas d, []);
@@ -543,7 +553,7 @@ fun gen_primrec old_primrec prep_spec (raw_fixes : (binding * 'a option * mixfix
         end);
   in
     lthy
-    |> add_primrec_simple fixes (map snd specs)
+    |> add_primrec_simple' opts fixes (map snd specs)
     |-> (fn (names, (ts, (jss, simpss))) =>
       Spec_Rules.add Spec_Rules.Equational (ts, flat simpss)
       #> Local_Theory.notes (mk_notes jss names simpss)
@@ -551,7 +561,7 @@ fun gen_primrec old_primrec prep_spec (raw_fixes : (binding * 'a option * mixfix
   end
   handle OLD_PRIMREC () => old_primrec raw_fixes raw_spec lthy |>> apsnd single;
 
-val add_primrec = gen_primrec Primrec.add_primrec Specification.check_spec;
+val add_primrec = gen_primrec Primrec.add_primrec Specification.check_spec [];
 val add_primrec_cmd = gen_primrec Primrec.add_primrec_cmd Specification.read_spec;
 
 fun add_primrec_global fixes specs =
@@ -564,8 +574,14 @@ fun add_primrec_overloaded ops fixes specs =
   #> add_primrec fixes specs
   ##> Local_Theory.exit_global;
 
+val primrec_option_parser = Parse.group (fn () => "option")
+  (Parse.reserved "nonexhaustive" >> K Nonexhaustive_Option)
+
 val _ = Outer_Syntax.local_theory @{command_spec "primrec"}
   "define primitive recursive functions"
-  (Parse.fixes -- Parse_Spec.where_alt_specs >> (snd oo uncurry add_primrec_cmd));
+  ((Scan.optional (@{keyword "("} |--
+      Parse.!!! (Parse.list1 primrec_option_parser) --| @{keyword ")"}) []) --
+    (Parse.fixes -- Parse_Spec.where_alt_specs)
+    >> (fn (opts, (fixes, spec)) => snd o add_primrec_cmd opts fixes spec));
 
 end;
