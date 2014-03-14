@@ -17,6 +17,7 @@ sig
   val empty: 'a T
   val is_empty: 'a T -> bool
   val change_base: bool -> 'a T -> 'a T
+  val change_ignore: 'a T -> 'a T
   val join: (key -> 'a * 'a -> 'a) (*exception SAME*) -> 'a T * 'a T -> 'a T  (*exception DUP*)
   val merge: ('a * 'a -> bool) -> 'a T * 'a T -> 'a T  (*exception DUP*)
   val fold: (key * 'b -> 'a -> 'a) -> 'b T -> 'a -> 'a
@@ -43,35 +44,42 @@ exception DUP = Table.DUP;
 
 (* optional change *)
 
-datatype change = No_Change | Change of {base: serial, depth: int, changes: Table.set};
+datatype change =
+  No_Change | Change of {base: serial, depth: int, changes: Table.set option};
 
 fun make_change base depth changes =
   Change {base = base, depth = depth, changes = changes};
 
+fun ignore_change (Change {base, depth, changes = SOME _}) =
+      make_change base depth NONE
+  | ignore_change change = change;
+
+fun update_change key (Change {base, depth, changes = SOME ch}) =
+      make_change base depth (SOME (Table.insert (K true) (key, ()) ch))
+  | update_change _ change = change;
+
 fun base_change true No_Change =
-      make_change (serial ()) 0 Table.empty
+      make_change (serial ()) 0 (SOME Table.empty)
   | base_change true (Change {base, depth, changes}) =
       make_change base (depth + 1) changes
   | base_change false (Change {base, depth, changes}) =
       if depth = 0 then No_Change else make_change base (depth - 1) changes
-  | base_change false No_Change = raise Fail "Unbalanced block structure of change table";
+  | base_change false No_Change = raise Fail "Unbalanced change structure";
 
-fun update_change _ No_Change = No_Change
-  | update_change key (Change {base, depth, changes}) =
-      make_change base depth (Table.insert (K true) (key, ()) changes);
-
-fun cannot_merge () = raise Fail "Attempt to merge tables with incompatible change base";
+fun cannot_merge () = raise Fail "Cannot merge: incompatible change structure";
 
 fun merge_change (No_Change, No_Change) = NONE
   | merge_change (Change change1, Change change2) =
       let
         val {base = base1, depth = depth1, changes = changes1} = change1;
         val {base = base2, depth = depth2, changes = changes2} = change2;
-      in
-        if base1 = base2 andalso depth1 = depth2 then
-          SOME ((changes2, make_change base1 depth1 (Table.merge (K true) (changes1, changes2))))
-        else cannot_merge ()
-      end
+        val _ = if base1 = base2 andalso depth1 = depth2 then () else cannot_merge ();
+        val (swapped, ch2) =
+          (case (changes1, changes2) of
+            (_, SOME ch2) => (false, ch2)
+          | (SOME ch1, _) => (true, ch1)
+          | _ => cannot_merge ());
+      in SOME (swapped, ch2, make_change base1 depth1 NONE) end
   | merge_change _ = cannot_merge ();
 
 
@@ -90,6 +98,7 @@ fun make_change_table (change, table) = Change_Table {change = change, table = t
 fun map_change_table f (Change_Table {change, table}) = make_change_table (f (change, table));
 
 fun change_base begin = (map_change_table o apfst) (base_change begin);
+fun change_ignore arg = (map_change_table o apfst) ignore_change arg;
 
 
 (* join and merge *)
@@ -105,20 +114,21 @@ fun join f (arg1, arg2) =
     else
       (case merge_change (change1, change2) of
         NONE => make_change_table (No_Change, Table.join f (table1, table2))
-      | SOME (changes2, change') =>
+      | SOME (swapped, ch2, change') =>
           let
-            fun update key table =
-              (case Table.lookup table2 key of
-                NONE => table
+            fun maybe_swap (x, y) = if swapped then (y, x) else (x, y);
+            val (tab1, tab2) = maybe_swap (table1, table2);
+            fun update key tab =
+              (case Table.lookup tab2 key of
+                NONE => tab
               | SOME y =>
-                  (case Table.lookup table key of
-                    NONE => Table.update (key, y) table
+                  (case Table.lookup tab key of
+                    NONE => Table.update (key, y) tab
                   | SOME x =>
-                      (case (SOME (f key (x, y)) handle Table.SAME => NONE) of
-                        NONE => table
-                      | SOME z => Table.update (key, z) table)));
-            val table' = Table.fold (update o #1) changes2 table1;
-          in make_change_table (change', table') end)
+                      (case (SOME (f key (maybe_swap (x, y))) handle Table.SAME => NONE) of
+                        NONE => tab
+                      | SOME z => Table.update (key, z) tab)));
+          in make_change_table (change', Table.fold (update o #1) ch2 tab1) end)
   end;
 
 fun merge eq =

@@ -30,6 +30,7 @@ sig
   val ext: string -> T -> T
   val split_ext: T -> T * string
   val expand: T -> T
+  val smart_implode: T -> string
   val position: T -> Position.T
 end;
 
@@ -194,21 +195,26 @@ fun eval (Variable s) =
 val expand = rep #> maps eval #> norm #> Path;
 
 
-(* source position -- with smart replacement of ISABELLE_HOME *)
+(* smart implode *)
 
-val isabelle_home = explode_path "~~";
-
-fun position path =
+fun smart_implode path =
   let
-    val s = implode_path path;
-    val prfx = implode_path (expand isabelle_home) ^ "/";
+    val full_name = implode_path (expand path);
+    fun fold_path a =
+      let val b = implode_path (expand (explode_path a)) in
+        if full_name = b then SOME a
+        else
+          (case try (unprefix (b ^ "/")) full_name of
+            SOME name => SOME (a ^ "/" ^ name)
+          | NONE => NONE)
+      end;
   in
-    Position.file
-      (case try (unprefix prfx) s of
-        NONE => s
-      | SOME s' => "~~/" ^ s')
+    (case get_first fold_path ["~~", "$ISABELLE_HOME_USER", "~"] of
+      SOME name => name
+    | NONE => implode_path path)
   end;
 
+val position = Position.file o smart_implode;
 
 (*final declarations of this structure!*)
 val implode = implode_path;

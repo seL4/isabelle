@@ -640,6 +640,11 @@ lemma Max_mono:
   shows "Max M \<le> Max N"
   using assms by (fact Max.antimono)
 
+end
+
+context linorder  (* FIXME *)
+begin
+
 lemma mono_Min_commute:
   assumes "mono f"
   assumes "finite A" and "A \<noteq> {}"

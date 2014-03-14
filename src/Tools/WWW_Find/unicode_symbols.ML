@@ -177,7 +177,7 @@ end;
 
 local
 val (fromsym, fromabbr, tosym, toabbr) =
-  read_symbols (Path.explode "~~/src/Tools/WWW_Find/etc/symbols");
+  read_symbols @{path "~~/src/Tools/WWW_Find/etc/symbols"};
 in
 val symbol_to_unicode = Symtab.lookup fromsym;
 val abbrev_to_unicode = Symtab.lookup fromabbr;

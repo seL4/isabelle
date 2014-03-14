@@ -190,17 +190,18 @@ fun load_thy document last_timing update_time master_dir header text_pos text pa
   in (thy, present, size text) end;
 
 
-(* document antiquotation *)
+(* antiquotations *)
 
-fun file_antiq strict ctxt (name, pos) =
+local
+
+fun check_path strict ctxt dir (name, pos) =
   let
     val _ = Context_Position.report ctxt pos Markup.language_path;
 
-    val dir = master_directory (Proof_Context.theory_of ctxt);
     val path = Path.append dir (Path.explode name)
       handle ERROR msg => error (msg ^ Position.here pos);
 
-    val _ = Context_Position.report ctxt pos (Markup.path name);
+    val _ = Context_Position.report ctxt pos (Markup.path (Path.smart_implode path));
     val _ =
       if can Path.expand path andalso File.exists path then ()
       else
@@ -213,16 +214,30 @@ fun file_antiq strict ctxt (name, pos) =
             Context_Position.if_visible ctxt Output.report
               (Markup.markup (Markup.bad |> Markup.properties (Position.properties_of pos)) msg)
         end;
+  in path end;
+
+fun file_antiq strict ctxt (name, pos) =
+  let
+    val dir = master_directory (Proof_Context.theory_of ctxt);
+    val _ = check_path strict ctxt dir (name, pos);
   in
     space_explode "/" name
     |> map Thy_Output.verb_text
     |> space_implode (Thy_Output.verb_text "/" ^ "\\discretionary{}{}{}")
   end;
 
+in
+
 val _ = Theory.setup
-  (Thy_Output.antiquotation (Binding.name "file") (Scan.lift (Parse.position Parse.path))
+ (Thy_Output.antiquotation (Binding.name "file") (Scan.lift (Parse.position Parse.path))
     (file_antiq true o #context) #>
-  (Thy_Output.antiquotation (Binding.name "file_unchecked") (Scan.lift (Parse.position Parse.path))
-    (file_antiq false o #context)));
+  Thy_Output.antiquotation (Binding.name "file_unchecked") (Scan.lift (Parse.position Parse.path))
+    (file_antiq false o #context) #>
+  ML_Antiquotation.value (Binding.name "path")
+    (Args.context -- Scan.lift (Parse.position Parse.path) >> (fn (ctxt, arg) =>
+      let val path = check_path true ctxt Path.current arg
+      in "Path.explode " ^ ML_Syntax.print_string (Path.implode path) end)));
+
+end;
 
 end;

@@ -367,6 +367,7 @@
     "hide_fact"
     "hide_type"
     "inductive"
+    "inductive_cases"
     "instantiation"
     "judgment"
     "lemmas"
@@ -404,7 +405,7 @@
     "typedecl"))
 
 (defconst isar-keywords-theory-script
-  '("inductive_cases"))
+  '())
 
 (defconst isar-keywords-theory-goal
   '("corollary"
