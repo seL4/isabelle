@@ -59,10 +59,9 @@ fun run ctxt name mk_cmd input =
   (case SMT2_Config.certificates_of ctxt of
     NONE =>
       if not (SMT2_Config.is_available ctxt name) then
-        error ("The SMT solver " ^ quote name ^ " is not installed.")
+        error ("The SMT solver " ^ quote name ^ " is not installed")
       else if Config.get ctxt SMT2_Config.debug_files = "" then
-        trace_and ctxt ("Invoking SMT solver " ^ quote name ^ " ...")
-          (Cache_IO.run mk_cmd) input
+        trace_and ctxt ("Invoking SMT solver " ^ quote name ^ " ...") (Cache_IO.run mk_cmd) input
       else
         let
           val base_path = Path.explode (Config.get ctxt SMT2_Config.debug_files)

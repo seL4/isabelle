@@ -112,7 +112,7 @@ fun if_z3_non_commercial f =
     Z3_Non_Commercial_Accepted => f ()
   | Z3_Non_Commercial_Declined =>
       error (Pretty.string_of (Pretty.para
-        "The SMT solver Z3 may only be used for non-commercial applications."))
+        "The SMT solver Z3 may be used only for non-commercial applications."))
   | Z3_Non_Commercial_Unknown =>
       error (Pretty.string_of (Pretty.para
         ("The SMT solver Z3 is not activated. To activate it, set the Isabelle \
