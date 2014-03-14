@@ -42,7 +42,7 @@ sig
   val read_dimacs_cnf_file : Path.T -> Prop_Logic.prop_formula
 
   (* generic solver interface *)
-  val solvers       : (string * solver) list Unsynchronized.ref
+  val get_solvers   : unit -> (string * solver) list
   val add_solver    : string * solver -> unit
   val invoke_solver : string -> solver  (* exception Option *)
 end;
@@ -348,22 +348,24 @@ struct
   end;
 
 (* ------------------------------------------------------------------------- *)
-(* solvers: a (reference to a) table of all registered SAT solvers           *)
+(* solvers: a table of all registered SAT solvers                            *)
 (* ------------------------------------------------------------------------- *)
 
-  val solvers = Unsynchronized.ref ([] : (string * solver) list);
+  val solvers = Synchronized.var "solvers" ([] : (string * solver) list);
+
+  fun get_solvers () = Synchronized.value solvers;
 
 (* ------------------------------------------------------------------------- *)
 (* add_solver: updates 'solvers' by adding a new solver                      *)
 (* ------------------------------------------------------------------------- *)
 
-    fun add_solver (name, new_solver) = CRITICAL (fn () =>
+  fun add_solver (name, new_solver) =
+    Synchronized.change solvers (fn the_solvers =>
       let
-        val the_solvers = !solvers;
         val _ = if AList.defined (op =) the_solvers name
           then warning ("SAT solver " ^ quote name ^ " was defined before")
           else ();
-      in solvers := AList.update (op =) (name, new_solver) the_solvers end);
+      in AList.update (op =) (name, new_solver) the_solvers end);
 
 (* ------------------------------------------------------------------------- *)
 (* invoke_solver: returns the solver associated with the given 'name'        *)
@@ -372,7 +374,7 @@ struct
 (* ------------------------------------------------------------------------- *)
 
   fun invoke_solver name =
-    (the o AList.lookup (op =) (!solvers)) name;
+    the (AList.lookup (op =) (get_solvers ()) name);
 
 end;  (* SatSolver *)
 
@@ -521,7 +523,7 @@ let
           handle SatSolver.NOT_CONFIGURED => loop solvers
       )
   in
-    loop (!SatSolver.solvers)
+    loop (SatSolver.get_solvers ())
   end
 in
   SatSolver.add_solver ("auto", auto_solver)

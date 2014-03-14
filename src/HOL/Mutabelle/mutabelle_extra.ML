@@ -40,14 +40,11 @@ val write_report : string -> report -> unit
 val mutate_theorems_and_write_report :
   theory -> int * int -> mtd list -> thm list -> string -> unit
 
-val random_seed : real Unsynchronized.ref
+val init_random : real -> unit
 end;
 
 structure MutabelleExtra : MUTABELLE_EXTRA =
 struct
-
-(* Own seed; can't rely on the Isabelle one to stay the same *)
-val random_seed = Unsynchronized.ref 1.0;
 
 (* Another Random engine *)
 
@@ -56,13 +53,20 @@ exception RANDOM;
 fun rmod x y = x - y * Real.realFloor (x / y);
 
 local
+  (* Own seed; can't rely on the Isabelle one to stay the same *)
+  val random_seed = Synchronized.var "random_seed" 1.0;
+
   val a = 16807.0;
   val m = 2147483647.0;
 in
 
-fun random () = CRITICAL (fn () =>
-  let val r = rmod (a * ! random_seed) m
-  in (random_seed := r; r) end);
+fun init_random r = Synchronized.change random_seed (K r);
+
+fun random () =
+  Synchronized.change_result random_seed
+    (fn s =>
+      let val r = rmod (a * s) m
+      in (r, r) end);
 
 end;
 

@@ -590,11 +590,12 @@ fun setmp_thread_position (Transition {pos, ...}) f x =
 (* post-transition hooks *)
 
 local
-  val hooks = Unsynchronized.ref ([]: (transition -> state -> state -> unit) list);
+  val hooks =
+    Synchronized.var "Toplevel.hooks" ([]: (transition -> state -> state -> unit) list);
 in
 
-fun add_hook f = CRITICAL (fn () => Unsynchronized.change hooks (cons f));
-fun get_hooks () = ! hooks;
+fun add_hook hook = Synchronized.change hooks (cons hook);
+fun get_hooks () = Synchronized.value hooks;
 
 end;
 
