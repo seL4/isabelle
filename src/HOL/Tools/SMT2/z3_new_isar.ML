@@ -63,18 +63,21 @@ fun inline_z3_hypotheses _ _ [] = []
           end
       end
 
-fun simplify_prop (@{const Not} $ t) = s_not (simplify_prop t)
-  | simplify_prop (@{const conj} $ t $ u) = s_conj (simplify_prop t, simplify_prop u)
-  | simplify_prop (@{const disj} $ t $ u) = s_disj (simplify_prop t, simplify_prop u)
-  | simplify_prop (@{const implies} $ t $ u) = s_imp (simplify_prop t, simplify_prop u)
-  | simplify_prop (@{const HOL.eq (bool)} $ t $ u) = s_iff (simplify_prop t, simplify_prop u)
-  | simplify_prop (t as Const (@{const_name HOL.eq}, _) $ u $ v) =
+fun simplify_bool (@{const Not} $ t) = s_not (simplify_bool t)
+  | simplify_bool (@{const conj} $ t $ u) = s_conj (simplify_bool t, simplify_bool u)
+  | simplify_bool (@{const disj} $ t $ u) = s_disj (simplify_bool t, simplify_bool u)
+  | simplify_bool (@{const implies} $ t $ u) = s_imp (simplify_bool t, simplify_bool u)
+  | simplify_bool (@{const HOL.eq (bool)} $ t $ u) = s_iff (simplify_bool t, simplify_bool u)
+  | simplify_bool (t as Const (@{const_name HOL.eq}, _) $ u $ v) =
     if u aconv v then @{const True} else t
-  | simplify_prop (t $ u) = simplify_prop t $ simplify_prop u
-  | simplify_prop (Abs (s, T, t)) = Abs (s, T, simplify_prop t)
-  | simplify_prop t = t
+  | simplify_bool (t $ u) = simplify_bool t $ simplify_bool u
+  | simplify_bool (Abs (s, T, t)) = Abs (s, T, simplify_bool t)
+  | simplify_bool t = t
 
-fun simplify_line (name, role, t, rule, deps) = (name, role, simplify_prop t, rule, deps)
+(* It is not entirely clear why this should be necessary, especially for abstractions variables. *)
+val unskolemize_names =
+  Term.map_abs_vars (perhaps (try Name.dest_skolem))
+  #> Term.map_aterms (perhaps (try (fn Free (s, T) => Free (Name.dest_skolem s, T))))
 
 fun atp_proof_of_z3_proof thy rewrite_rules conjecture_id fact_ids proof =
   let
@@ -99,6 +102,8 @@ fun atp_proof_of_z3_proof thy rewrite_rules conjecture_id fact_ids proof =
         val concl' = concl
           |> Raw_Simplifier.rewrite_term thy rewrite_rules []
           |> Object_Logic.atomize_term thy
+          |> simplify_bool
+          |> unskolemize_names
           |> HOLogic.mk_Trueprop
       in
         (name, role, concl', Z3_New_Proof.string_of_rule rule, map step_name_of prems)
@@ -108,7 +113,6 @@ fun atp_proof_of_z3_proof thy rewrite_rules conjecture_id fact_ids proof =
     |> map step_of
     |> inline_z3_defs []
     |> inline_z3_hypotheses [] []
-    |> map simplify_line
   end
 
 end;
