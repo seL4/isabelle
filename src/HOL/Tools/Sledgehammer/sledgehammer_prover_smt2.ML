@@ -48,7 +48,7 @@ val smt2_weights = Attrib.setup_config_bool @{binding sledgehammer_smt2_weights}
 val smt2_weight_min_facts =
   Attrib.setup_config_int @{binding sledgehammer_smt2_weight_min_facts} (K 20)
 
-fun is_smt2_prover ctxt = member (op =) (SMT2_Solver.available_solvers_of ctxt)
+val is_smt2_prover = member (op =) o SMT2_Config.available_solvers_of
 
 (* FUDGE *)
 val smt2_min_weight = Attrib.setup_config_int @{binding sledgehammer_smt2_min_weight} (K 0)

@@ -281,7 +281,7 @@ fun supported_provers ctxt =
       proof_method_names @
       sort_strings (supported_atps thy) @
       sort_strings (SMT_Solver.available_solvers_of ctxt) @
-      sort_strings (SMT2_Solver.available_solvers_of ctxt)
+      sort_strings (SMT2_Config.available_solvers_of ctxt)
       |> List.partition (String.isPrefix remote_prefix)
   in
     Output.urgent_message ("Supported provers: " ^
