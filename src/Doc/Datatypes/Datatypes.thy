@@ -481,7 +481,8 @@ datatypes specified by their constructors.
 The syntactic entity \synt{target} can be used to specify a local
 context---e.g., @{text "(in linorder)"} \cite{isabelle-isar-ref}.
 
-The optional target is potentially followed by datatype-specific options:
+The optional target is optionally followed by one or both of the following
+options:
 
 \begin{itemize}
 \setlength{\itemsep}{0pt}
@@ -1383,7 +1384,7 @@ The syntactic entity \synt{target} can be used to specify a local context,
 \synt{thmdecl} denotes an optional name for the formula that follows, and
 \synt{prop} denotes a HOL proposition \cite{isabelle-isar-ref}.
 
-The optional target is potentially followed by a recursion-specific option:
+The optional target is optionally followed by the following option:
 
 \begin{itemize}
 \setlength{\itemsep}{0pt}
@@ -1829,8 +1830,8 @@ element in a stream:
 
 text {*
 \noindent
-Constructs such as @{text "let"}---@{text "in"}, @{text
-"if"}---@{text "then"}---@{text "else"}, and @{text "case"}---@{text "of"} may
+Constructs such as @{text "let"}--@{text "in"}, @{text
+"if"}--@{text "then"}--@{text "else"}, and @{text "case"}--@{text "of"} may
 appear around constructors that guard corecursive calls:
 *}
 
@@ -2280,7 +2281,8 @@ The syntactic entity \synt{target} can be used to specify a local context,
 \synt{thmdecl} denotes an optional name for the formula that follows, and
 \synt{prop} denotes a HOL proposition \cite{isabelle-isar-ref}.
 
-The optional target is potentially followed by a corecursion-specific option:
+The optional target is optionally followed by one or both of the following
+options:
 
 \begin{itemize}
 \setlength{\itemsep}{0pt}
