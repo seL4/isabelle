@@ -53,9 +53,7 @@ sig
   val transfer: theory -> Proof.context -> Proof.context
   val background_theory: (theory -> theory) -> Proof.context -> Proof.context
   val background_theory_result: (theory -> 'a * theory) -> Proof.context -> 'a * Proof.context
-  val extern_fact: Proof.context -> string -> xstring
   val pretty_term_abbrev: Proof.context -> term -> Pretty.T
-  val markup_fact: Proof.context -> string -> Markup.T
   val pretty_fact: Proof.context -> string * thm list -> Pretty.T
   val check_class: Proof.context -> xstring * Position.T -> class * Position.report list
   val read_class: Proof.context -> string -> class
@@ -120,6 +118,7 @@ sig
     (term list list * (Proof.context -> Proof.context)) * Proof.context
   val fact_tac: Proof.context -> thm list -> int -> tactic
   val some_fact_tac: Proof.context -> int -> tactic
+  val get_fact_generic: Context.generic -> Facts.ref -> thm list
   val get_fact: Proof.context -> Facts.ref -> thm list
   val get_fact_single: Proof.context -> Facts.ref -> thm
   val get_thms: Proof.context -> xstring -> thm list
@@ -209,7 +208,7 @@ datatype data =
     syntax: Local_Syntax.T,      (*local syntax*)
     tsig: Type.tsig * Type.tsig, (*local/global type signature -- local name space / defsort only*)
     consts: Consts.T * Consts.T, (*local/global consts -- local name space / abbrevs only*)
-    facts: Facts.T,              (*local facts*)
+    facts: Facts.T,              (*cumulative facts*)
     cases: cases};               (*named case contexts: case, is_proper, running index*)
 
 fun make_data (mode, syntax, tsig, consts, facts, cases) =
@@ -223,7 +222,7 @@ structure Data = Proof_Data
       Local_Syntax.init thy,
       (Type.change_ignore (Sign.tsig_of thy), Sign.tsig_of thy),
       (Consts.change_ignore (Sign.consts_of thy), Sign.consts_of thy),
-      Facts.empty,
+      Global_Theory.facts_of thy,
       empty_cases);
 );
 
@@ -340,28 +339,10 @@ fun background_theory_result f ctxt =
 
 (** pretty printing **)
 
-(* extern *)
-
-fun which_facts ctxt name =
-  let
-    val local_facts = facts_of ctxt;
-    val global_facts = Global_Theory.facts_of (theory_of ctxt);
-  in
-    if is_some (Facts.lookup (Context.Proof ctxt) local_facts name)
-    then local_facts else global_facts
-  end;
-
-fun markup_fact ctxt name = Name_Space.markup (Facts.space_of (which_facts ctxt name)) name;
-
-fun extern_fact ctxt name = Facts.extern ctxt (which_facts ctxt name) name;
-
-
-(* pretty *)
-
 fun pretty_term_abbrev ctxt = Syntax.pretty_term (set_mode mode_abbrev ctxt);
 
 fun pretty_fact_name ctxt a =
-  Pretty.block [Pretty.mark_str (markup_fact ctxt a, extern_fact ctxt a), Pretty.str ":"];
+  Pretty.block [Pretty.mark_str (Facts.markup_extern ctxt (facts_of ctxt) a), Pretty.str ":"];
 
 fun pretty_fact ctxt =
   let
@@ -911,12 +892,13 @@ fun some_fact_tac ctxt = SUBGOAL (fn (goal, i) => fact_tac ctxt (potential_facts
 end;
 
 
-(* get_thm(s) *)
+(* get facts *)
 
 local
 
-fun retrieve_thms pick ctxt (Facts.Fact s) =
+fun retrieve_thms pick context (Facts.Fact s) =
       let
+        val ctxt = Context.the_proof context;
         val pos = Syntax.read_token_pos s;
         val prop =
           Syntax.read_prop (ctxt |> set_mode mode_default |> allow_dummies) s
@@ -927,34 +909,28 @@ fun retrieve_thms pick ctxt (Facts.Fact s) =
         fun prove_fact th =
           Goal.prove ctxt [] [] prop' (K (ALLGOALS (fact_tac ctxt [th])));
         val results = map_filter (try prove_fact) (potential_facts ctxt prop');
-        val res =
+        val thm =
           (case distinct Thm.eq_thm_prop results of
-            [res] => res
+            [thm] => thm
           | [] => err "Failed to retrieve literal fact"
           | _ => err "Ambiguous specification of literal fact");
-      in pick ("", Position.none) [res] end
-  | retrieve_thms pick ctxt xthmref =
+      in pick ("", Position.none) [thm] end
+  | retrieve_thms pick context (Facts.Named ((xname, pos), ivs)) =
       let
-        val thy = theory_of ctxt;
-        val local_facts = facts_of ctxt;
-        val thmref = Facts.map_name_of_ref (Facts.intern local_facts) xthmref;
-        val name = Facts.name_of_ref thmref;
-        val pos = Facts.pos_of_ref xthmref;
-        val thms =
-          if name = "" then [Thm.transfer thy Drule.dummy_thm]
-          else
-            (case Facts.lookup (Context.Proof ctxt) local_facts name of
-              SOME (_, ths) =>
-                (Context_Position.report ctxt pos
-                  (Name_Space.markup (Facts.space_of local_facts) name);
-                 map (Thm.transfer thy) (Facts.select thmref ths))
-            | NONE => Global_Theory.get_fact (Context.Proof ctxt) thy xthmref);
-      in pick (name, pos) thms end;
+        val thy = Context.theory_of context;
+        val facts = Context.cases Global_Theory.facts_of facts_of context;
+        val (name, thms) =
+          (case xname of
+            "" => (xname, [Thm.transfer thy Drule.dummy_thm])
+          | "_" => (xname, [Thm.transfer thy Drule.asm_rl])
+          | _ => Facts.retrieve context facts (xname, pos));
+      in pick (name, pos) (Facts.select (Facts.Named ((name, pos), ivs)) thms) end;
 
 in
 
-val get_fact = retrieve_thms (K I);
-val get_fact_single = retrieve_thms Facts.the_single;
+val get_fact_generic = retrieve_thms (K I);
+val get_fact = retrieve_thms (K I) o Context.Proof;
+val get_fact_single = retrieve_thms Facts.the_single o Context.Proof;
 
 fun get_thms ctxt = get_fact ctxt o Facts.named;
 fun get_thm ctxt = get_fact_single ctxt o Facts.named;

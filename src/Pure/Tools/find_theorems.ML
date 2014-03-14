@@ -381,14 +381,11 @@ end;
 
 fun all_facts_of ctxt =
   let
-    fun visible_facts facts =
+    val facts = Proof_Context.facts_of ctxt
+    val visible_facts =
       Facts.dest_static [] facts
       |> filter_out (Facts.is_concealed facts o #1);
-  in
-    maps Facts.selections
-     (visible_facts (Proof_Context.facts_of ctxt) @
-      visible_facts (Global_Theory.facts_of (Proof_Context.theory_of ctxt)))
-  end;
+  in maps Facts.selections visible_facts end;
 
 fun filter_theorems ctxt theorems query =
   let
@@ -453,9 +450,10 @@ fun pretty_ref ctxt thmref =
       (case thmref of
         Facts.Named ((name, _), sel) => (name, sel)
       | Facts.Fact _ => raise Fail "Illegal literal fact");
+    val (markup, _) = Facts.markup_extern ctxt (Proof_Context.facts_of ctxt) name;
   in
-    [Pretty.mark (Proof_Context.markup_fact ctxt name) (Pretty.str name),
-      Pretty.str (Facts.string_of_selection sel), Pretty.str ":", Pretty.brk 1]
+    [Pretty.mark_str (markup, name), Pretty.str (Facts.string_of_selection sel),
+      Pretty.str ":", Pretty.brk 1]
   end;
 
 in

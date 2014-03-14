@@ -32,6 +32,8 @@ sig
   val raw_theory: (theory -> theory) -> local_theory -> local_theory
   val background_theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
   val background_theory: (theory -> theory) -> local_theory -> local_theory
+  val background_notes: string -> (Attrib.binding * (thm list * Args.src list) list) list ->
+    local_theory -> local_theory
   val target_of: local_theory -> Proof.context
   val target: (Proof.context -> Proof.context) -> local_theory -> local_theory
   val target_morphism: local_theory -> morphism
@@ -214,6 +216,19 @@ fun background_theory_result f lthy =
     ||> Sign.restore_naming thy);
 
 fun background_theory f = #2 o background_theory_result (f #> pair ());
+
+fun background_notes kind facts lthy =
+  let
+    val facts1 = Attrib.partial_evaluation lthy facts;
+    val facts0 = Attrib.map_facts (K []) facts1;
+  in
+    lthy
+    |> background_theory (Attrib.global_notes kind facts1 #> snd)
+    |> map_contexts (fn _ => fn ctxt => ctxt
+      |> Proof_Context.map_naming (K (naming_of lthy))
+      |> Attrib.local_notes kind facts0 |> snd
+      |> Proof_Context.restore_naming ctxt)
+  end;
 
 
 (* target contexts *)
