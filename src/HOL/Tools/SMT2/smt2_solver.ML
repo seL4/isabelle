@@ -15,12 +15,12 @@ sig
     command: unit -> string list,
     options: Proof.context -> string list,
     default_max_relevant: int,
-    supports_filter: bool,
+    can_filter: bool,
     outcome: string -> string list -> outcome * string list,
     cex_parser: (Proof.context -> SMT2_Translate.replay_data -> string list ->
       term list * term list) option,
     replay: (Proof.context -> SMT2_Translate.replay_data -> string list ->
-      ((int * (int * thm)) list * Z3_New_Proof.z3_step list) * thm) option }
+      ((int * (int * thm)) list * Z3_New_Proof.z3_step list) * thm) option}
 
   (*registry*)
   val add_solver: solver_config -> theory -> theory
@@ -147,12 +147,12 @@ type solver_config = {
   command: unit -> string list,
   options: Proof.context -> string list,
   default_max_relevant: int,
-  supports_filter: bool,
+  can_filter: bool,
   outcome: string -> string list -> outcome * string list,
   cex_parser: (Proof.context -> SMT2_Translate.replay_data -> string list ->
     term list * term list) option,
   replay: (Proof.context -> SMT2_Translate.replay_data -> string list ->
-    ((int * (int * thm)) list * Z3_New_Proof.z3_step list) * thm) option }
+    ((int * (int * thm)) list * Z3_New_Proof.z3_step list) * thm) option}
 
 
 (* check well-sortedness *)
@@ -172,9 +172,9 @@ fun check_topsort ctxt thm =
 type solver_info = {
   command: unit -> string list,
   default_max_relevant: int,
-  supports_filter: bool,
-  replay: Proof.context -> string list * SMT2_Translate.replay_data ->
-    ((int * (int * thm)) list * Z3_New_Proof.z3_step list) * thm }
+  can_filter: bool,
+  finish: Proof.context -> SMT2_Translate.replay_data -> string list ->
+    ((int * (int * thm)) list * Z3_New_Proof.z3_step list) * thm}
 
 structure Solvers = Generic_Data
 (
@@ -186,7 +186,7 @@ structure Solvers = Generic_Data
 
 local
   fun finish outcome cex_parser replay ocl outer_ctxt
-      (output, (replay_data as {context=ctxt, ...} : SMT2_Translate.replay_data)) =
+      (replay_data as {context=ctxt, ...} : SMT2_Translate.replay_data) output =
     (case outcome output of
       (Unsat, ls) =>
         if not (Config.get ctxt SMT2_Config.oracle) andalso is_some replay
@@ -206,30 +206,25 @@ local
   val cfalse = Thm.cterm_of @{theory} (@{const Trueprop} $ @{const False})
 in
 
-fun add_solver cfg =
+fun add_solver ({name, class, avail, command, options, default_max_relevant, can_filter,
+    outcome, cex_parser, replay} : solver_config) =
   let
-    val {name, class, avail, command, options, default_max_relevant,
-      supports_filter, outcome, cex_parser, replay} = cfg
-
-    fun core_oracle () = cfalse
-
     fun solver ocl = {
       command = command,
       default_max_relevant = default_max_relevant,
-      supports_filter = supports_filter,
-      replay = finish (outcome name) cex_parser replay ocl }
+      can_filter = can_filter,
+      finish = finish (outcome name) cex_parser replay ocl}
 
     val info = {name=name, class=class, avail=avail, options=options}
   in
-    Thm.add_oracle (Binding.name name, core_oracle) #-> (fn (_, ocl) =>
+    Thm.add_oracle (Binding.name name, K cfalse) #-> (fn (_, ocl) =>
     Context.theory_map (Solvers.map (Symtab.update_new (name, solver ocl)))) #>
     Context.theory_map (SMT2_Config.add_solver info)
   end
 
 end
 
-fun get_info ctxt name =
-  the (Symtab.lookup (Solvers.get (Context.Proof ctxt)) name)
+fun get_info ctxt name = the (Symtab.lookup (Solvers.get (Context.Proof ctxt)) name)
 
 val solver_name_of = SMT2_Config.solver_of
 
@@ -242,11 +237,12 @@ fun name_and_info_of ctxt =
 fun apply_solver ctxt wthms0 =
   let
     val wthms = map (apsnd (check_topsort ctxt)) wthms0
-    val (name, {command, replay, ...}) = name_and_info_of ctxt
-  in replay ctxt (invoke name command (SMT2_Normalize.normalize ctxt wthms) ctxt) end
+    val (name, {command, finish, ...}) = name_and_info_of ctxt
+    val (output, replay_data) = invoke name command (SMT2_Normalize.normalize ctxt wthms) ctxt
+  in finish ctxt replay_data output end
 
 val default_max_relevant = #default_max_relevant oo get_info
-val supports_filter = #supports_filter o snd o name_and_info_of 
+val can_filter = #can_filter o snd o name_and_info_of 
 
 
 (* filter *)
@@ -282,7 +278,7 @@ fun smt2_filter ctxt goal xwfacts i time_limit =
     |> fst
     |> (fn (iidths0, z3_proof) =>
       let
-        val iidths = if supports_filter ctxt then iidths0 else map (apsnd (apfst (K no_id))) iwthms
+        val iidths = if can_filter ctxt then iidths0 else map (apsnd (apfst (K no_id))) iwthms
       in
         {outcome = NONE, 
          conjecture_id =

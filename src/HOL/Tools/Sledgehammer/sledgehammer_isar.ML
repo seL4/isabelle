@@ -87,7 +87,7 @@ fun add_line_pass1 (line as (name, role, t, rule, [])) lines =
   | add_line_pass1 line lines = line :: lines
 
 fun add_lines_pass2 res [] = rev res
-  | add_lines_pass2 res ((name, role, t, rule, deps) :: lines) =
+  | add_lines_pass2 res ((line as (name, role, t, rule, deps)) :: lines) =
     let
       val is_last_line = null lines
 
@@ -102,7 +102,7 @@ fun add_lines_pass2 res [] = rev res
       if role <> Plain orelse is_skolemize_rule rule orelse is_arith_rule rule orelse
          is_datatype_rule rule orelse is_last_line orelse looks_interesting () orelse
          is_before_skolemize_rule () then
-        add_lines_pass2 ((name, role, t, rule, deps) :: res) lines
+        add_lines_pass2 (line :: res) lines
       else
         add_lines_pass2 res (map (replace_dependencies_in_line (name, deps)) lines)
     end

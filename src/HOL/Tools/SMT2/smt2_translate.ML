@@ -250,8 +250,7 @@ local
       val (Ts, T) = Term.strip_type (Term.type_of t)
     in find_min 0 (take i (rev Ts)) T end
 
-  fun app u (t, T) =
-    (Const (@{const_name SMT2.fun_app}, T --> T) $ t $ u, Term.range_type T)
+  fun app u (t, T) = (Const (@{const_name SMT2.fun_app}, T --> T) $ t $ u, Term.range_type T)
 
   fun apply i t T ts =
     let

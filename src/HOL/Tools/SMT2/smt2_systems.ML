@@ -55,7 +55,7 @@ val cvc3: SMT2_Solver.solver_config = {
   command = make_command "CVC3_NEW",
   options = cvc3_options,
   default_max_relevant = 400 (* FUDGE *),
-  supports_filter = false,
+  can_filter = false,
   outcome =
     on_first_line (outcome_of "Unsatisfiable." "Satisfiable." "Unknown."),
   cex_parser = NONE,
@@ -77,7 +77,7 @@ val yices: SMT2_Solver.solver_config = {
       string_of_int (Real.ceil (Config.get ctxt SMT2_Config.timeout)),
     "--smtlib"]),
   default_max_relevant = 350 (* FUDGE *),
-  supports_filter = false,
+  can_filter = false,
   outcome = on_first_line (outcome_of "unsat" "sat" "unknown"),
   cex_parser = NONE,
   replay = NONE }
@@ -144,7 +144,7 @@ val z3: SMT2_Solver.solver_config = {
   command = z3_make_command "Z3_NEW",
   options = z3_options,
   default_max_relevant = 350 (* FUDGE *),
-  supports_filter = true,
+  can_filter = true,
   outcome = on_first_line (outcome_of "unsat" "sat" "unknown"),
   cex_parser = SOME Z3_New_Model.parse_counterex,
   replay = SOME Z3_New_Replay.replay }
