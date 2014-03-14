@@ -70,30 +70,29 @@ fun add_fact_of_dependencies [(_, ss as _ :: _)] = apsnd (union (op =) ss)
 
 fun is_True_prop t = t aconv @{prop True}
 
-(* Discard facts; consolidate adjacent lines that prove the same formula, since they differ only in
-   type information. *)
 fun add_line_pass1 (line as (name, role, t, rule, [])) lines =
     (* No dependencies: lemma (for Z3), fact, conjecture, or (for Vampire) internal facts or
        definitions. *)
     if role = Conjecture orelse role = Negated_Conjecture then
       line :: lines
+    else if is_True_prop t then
+      map (replace_dependencies_in_line (name, [])) lines
     else if role = Lemma orelse role = Hypothesis orelse is_arith_rule rule then
-      lines |> not (is_True_prop t) ? cons line
+      line :: lines
     else if role = Axiom then
-      (* Facts are not proof lines. *)
-      lines |> is_True_prop t ? map (replace_dependencies_in_line (name, []))
+      lines (* axioms (facts) need no proof lines *)
     else
       map (replace_dependencies_in_line (name, [])) lines
   | add_line_pass1 line lines = line :: lines
 
-fun add_lines_pass2 res [] = rev res
-  | add_lines_pass2 res ((line as (name, role, t, rule, deps)) :: lines) =
+fun add_lines_pass2 res _ [] = rev res
+  | add_lines_pass2 res prev_t ((line as (name, role, t, rule, deps)) :: lines) =
     let
       val is_last_line = null lines
 
       fun looks_interesting () =
-        not (is_True_prop t) andalso null (Term.add_tvars t []) andalso length deps >= 2 andalso
-        not (can the_single lines)
+        not (is_True_prop t) andalso not (t aconv prev_t) andalso null (Term.add_tvars t []) andalso
+        length deps >= 2 andalso not (can the_single lines)
 
       fun is_skolemizing_line (_, _, _, rule', deps') =
         is_skolemize_rule rule' andalso member (op =) deps' name
@@ -102,9 +101,9 @@ fun add_lines_pass2 res [] = rev res
       if role <> Plain orelse is_skolemize_rule rule orelse is_arith_rule rule orelse
          is_datatype_rule rule orelse is_last_line orelse looks_interesting () orelse
          is_before_skolemize_rule () then
-        add_lines_pass2 (line :: res) lines
+        add_lines_pass2 (line :: res) t lines
       else
-        add_lines_pass2 res (map (replace_dependencies_in_line (name, deps)) lines)
+        add_lines_pass2 res t (map (replace_dependencies_in_line (name, deps)) lines)
     end
 
 type isar_params =
@@ -155,7 +154,7 @@ fun isar_proof_text ctxt debug isar_proofs smt_proofs isar_params
         val atp_proof =
           atp_proof
           |> rpair [] |-> fold_rev add_line_pass1
-          |> add_lines_pass2 []
+          |> add_lines_pass2 [] Term.dummy
 
         val conjs =
           map_filter (fn (name, role, _, _, _) =>
