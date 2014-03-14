@@ -1073,7 +1073,7 @@ fun find_model ctxt
               handle Option.Option =>
                      error ("Unknown SAT solver: " ^ quote satsolver ^
                             ". Available solvers: " ^
-                            commas (map (quote o fst) (!SatSolver.solvers)) ^ ".")
+                            commas (map (quote o fst) (SatSolver.get_solvers ())) ^ ".")
           in
             Output.urgent_message "Invoking SAT solver...";
             (case solver fm of

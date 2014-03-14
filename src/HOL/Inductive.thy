@@ -7,8 +7,8 @@ header {* Knaster-Tarski Fixpoint Theorem and inductive definitions *}
 theory Inductive
 imports Complete_Lattices Ctr_Sugar
 keywords
-  "inductive" "coinductive" :: thy_decl and
-  "inductive_cases" "inductive_simps" :: thy_script and "monos" and
+  "inductive" "coinductive" "inductive_cases" "inductive_simps" :: thy_decl and
+  "monos" and
   "print_inductives" :: diag and
   "rep_datatype" :: thy_goal and
   "primrec" :: thy_decl

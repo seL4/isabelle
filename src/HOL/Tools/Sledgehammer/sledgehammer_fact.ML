@@ -459,7 +459,7 @@ fun all_facts ctxt generous ho_atp reserved add_ths chained css =
       else
         is_too_complex
     val local_facts = Proof_Context.facts_of ctxt
-    val named_locals = local_facts |> Facts.dest_static []
+    val named_locals = local_facts |> Facts.dest_static [global_facts]
     val assms = Assumption.all_assms_of ctxt
     fun is_good_unnamed_local th =
       not (Thm.has_name_hint th) andalso

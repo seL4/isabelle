@@ -448,8 +448,8 @@ interpretation int2?: semi "op +"
   by unfold_locales  (* subsumed, thm int2.assoc not generated *)
 
 ML {* (Global_Theory.get_thms @{theory} "int2.assoc";
-    error "thm int2.assoc was generated")
-  handle ERROR "Unknown fact \"int2.assoc\"" => ([]:thm list); *}
+    raise Fail "thm int2.assoc was generated")
+  handle ERROR _ => ([]:thm list); *}
 
 thm int.lone int.right.rone
   (* the latter comes through the sublocale relation *)
@@ -782,8 +782,8 @@ end
 context container begin
 ML {* (Context.>> (fn generic => let val context = Context.proof_of generic
   val _ = Proof_Context.get_thms context "private.true" in generic end);
-  error "thm private.true was persisted")
-  handle ERROR "Unknown fact \"private.true\"" => ([]:thm list); *}
+  raise Fail "thm private.true was persisted")
+  handle ERROR _ => ([]:thm list); *}
 thm true_copy
 end
 
