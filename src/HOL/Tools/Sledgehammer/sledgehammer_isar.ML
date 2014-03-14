@@ -89,6 +89,9 @@ fun add_line_pass1 (line as (name, role, t, rule, [])) lines =
 fun add_lines_pass2 res [] = rev res
   | add_lines_pass2 res ((line as (name, role, t, rule, deps)) :: lines) =
     let
+val line as (name, role, t, rule, deps) = (name, role, Term.map_aterms
+  (perhaps (try (fn Free (s, T) => Free (unsuffix "__" s, T)))) t
+  |> Term.map_abs_vars (perhaps (try (unsuffix "__"))), rule, deps) (*###*)
       val is_last_line = null lines
 
       fun looks_interesting () =
