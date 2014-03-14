@@ -8,8 +8,8 @@ signature Z3_NEW_ISAR =
 sig
   type ('a, 'b) atp_step = ('a, 'b) ATP_Proof.atp_step
 
-  val atp_proof_of_z3_proof: theory -> int -> (int * string) list -> Z3_New_Proof.z3_step list ->
-    (term, string) atp_step list
+  val atp_proof_of_z3_proof: theory -> thm list -> int -> (int * string) list ->
+    Z3_New_Proof.z3_step list -> (term, string) atp_step list
 end;
 
 structure Z3_New_Isar: Z3_NEW_ISAR =
@@ -76,13 +76,14 @@ fun simplify_prop (@{const Not} $ t) = s_not (simplify_prop t)
 
 fun simplify_line (name, role, t, rule, deps) = (name, role, simplify_prop t, rule, deps)
 
-fun atp_proof_of_z3_proof thy conjecture_id fact_ids proof =
+fun atp_proof_of_z3_proof thy rewrite_rules conjecture_id fact_ids proof =
   let
     fun step_of (Z3_New_Proof.Z3_Step {id, rule, prems, concl, ...}) =
       let
         fun step_name_of id = (string_of_int id, the_list (AList.lookup (op =) fact_ids id))
 
         val name as (_, ss) = step_name_of id
+
         val role =
           (case rule of
             Z3_New_Proof.Asserted =>
@@ -94,9 +95,13 @@ fun atp_proof_of_z3_proof thy conjecture_id fact_ids proof =
           | Z3_New_Proof.Skolemize => Lemma
           | Z3_New_Proof.Th_Lemma _ => Lemma
           | _ => Plain)
+
+        val concl' = concl
+          |> Raw_Simplifier.rewrite_term thy rewrite_rules []
+          |> Object_Logic.atomize_term thy
+          |> HOLogic.mk_Trueprop
       in
-        (name, role, HOLogic.mk_Trueprop (Object_Logic.atomize_term thy concl),
-         Z3_New_Proof.string_of_rule rule, map step_name_of prems)
+        (name, role, concl', Z3_New_Proof.string_of_rule rule, map step_name_of prems)
       end
   in
     proof

@@ -34,13 +34,4 @@ ML_file "Tools/Sledgehammer/sledgehammer_mash.ML"
 ML_file "Tools/Sledgehammer/sledgehammer.ML"
 ML_file "Tools/Sledgehammer/sledgehammer_commands.ML"
 
-definition plus1 where "plus1 x = x + (1::int)"
-
-ML {* print_depth 1000 *}
-
-lemma "map plus1 [0] = [1]"
-sledgehammer [z3_new, isar_proofs = true, mepo, debug, dont_preplay, dont_minimize, dont_try0_isar]
-(add: plus1_def)
-oops
-
 end

@@ -26,14 +26,13 @@ sig
   val add_solver: solver_config -> theory -> theory
   val solver_name_of: Proof.context -> string
   val available_solvers_of: Proof.context -> string list
-  val apply_solver: Proof.context -> (int option * thm) list ->
-    ((int * (int * thm)) list * Z3_New_Proof.z3_step list) * thm
   val default_max_relevant: Proof.context -> string -> int
 
   (*filter*)
   val smt2_filter: Proof.context -> thm -> ('a * (int option * thm)) list -> int -> Time.time ->
-    {outcome: SMT2_Failure.failure option, conjecture_id: int, helper_ids: (int * thm) list,
-     fact_ids: (int * ('a * thm)) list, z3_proof: Z3_New_Proof.z3_step list}
+    {outcome: SMT2_Failure.failure option, rewrite_rules: thm list, conjecture_id: int,
+     helper_ids: (int * thm) list, fact_ids: (int * ('a * thm)) list,
+     z3_proof: Z3_New_Proof.z3_step list}
 
   (*tactic*)
   val smt2_tac: Proof.context -> thm list -> int -> tactic
@@ -239,7 +238,7 @@ fun apply_solver ctxt wthms0 =
     val wthms = map (apsnd (check_topsort ctxt)) wthms0
     val (name, {command, finish, ...}) = name_and_info_of ctxt
     val (output, replay_data) = invoke name command (SMT2_Normalize.normalize ctxt wthms) ctxt
-  in finish ctxt replay_data output end
+  in (finish ctxt replay_data output, replay_data) end
 
 val default_max_relevant = #default_max_relevant oo get_info
 val can_filter = #can_filter o snd o name_and_info_of 
@@ -275,12 +274,11 @@ fun smt2_filter ctxt goal xwfacts i time_limit =
   in
     wthms
     |> apply_solver ctxt
-    |> fst
-    |> (fn (iidths0, z3_proof) =>
-      let
-        val iidths = if can_filter ctxt then iidths0 else map (apsnd (apfst (K no_id))) iwthms
+    |> (fn (((iidths0, z3_proof), _), {rewrite_rules, ...}) =>
+      let val iidths = if can_filter ctxt then iidths0 else map (apsnd (apfst (K no_id))) iwthms
       in
-        {outcome = NONE, 
+        {outcome = NONE,
+         rewrite_rules = rewrite_rules,
          conjecture_id =
            the_default no_id (Option.map fst (AList.lookup (op =) iidths conjecture_i)),
          helper_ids = map_filter (try (fn (~1, idth) => idth)) iidths,
@@ -289,8 +287,8 @@ fun smt2_filter ctxt goal xwfacts i time_limit =
          z3_proof = z3_proof}
       end)
   end
-  handle SMT2_Failure.SMT fail => {outcome = SOME fail, conjecture_id = no_id, helper_ids = [],
-    fact_ids = [], z3_proof = []}
+  handle SMT2_Failure.SMT fail => {outcome = SOME fail, rewrite_rules = [], conjecture_id = no_id,
+    helper_ids = [], fact_ids = [], z3_proof = []}
 
 
 (* SMT tactic *)
@@ -307,6 +305,7 @@ local
   fun solve ctxt wfacts =
     wfacts
     |> apply_solver ctxt
+    |> fst
     |>> apfst (trace_assumptions ctxt wfacts)
     |> snd
 

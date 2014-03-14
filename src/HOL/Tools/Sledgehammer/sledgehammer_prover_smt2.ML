@@ -161,7 +161,8 @@ fun smt2_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instan
               reraise exn
             else
               {outcome = SOME (SMT2_Failure.Other_Failure (ML_Compiler.exn_message exn)),
-               conjecture_id = ~1, helper_ids = [], fact_ids = [], z3_proof = []}
+               rewrite_rules = [], conjecture_id = ~1, helper_ids = [], fact_ids = [],
+               z3_proof = []}
 
         val death = Timer.checkRealTimer timer
         val outcome0 = if is_none outcome0 then SOME outcome else outcome0
@@ -226,8 +227,9 @@ fun run_smt2_solver mode name (params as {debug, verbose, isar_proofs, compress_
       end
 
     val weighted_factss = map (apsnd weight_facts) factss
-    val {outcome, filter_result = {conjecture_id, helper_ids, fact_ids, z3_proof, ...},
-         used_from, run_time} = smt2_filter_loop name params state goal subgoal weighted_factss
+    val {outcome, filter_result = {conjecture_id, rewrite_rules, helper_ids, fact_ids, z3_proof,
+           ...}, used_from, run_time} =
+      smt2_filter_loop name params state goal subgoal weighted_factss
     val used_named_facts = map snd fact_ids
     val used_facts = map fst used_named_facts
     val outcome = Option.map failure_of_smt2_failure outcome
@@ -243,7 +245,8 @@ fun run_smt2_solver mode name (params as {debug, verbose, isar_proofs, compress_
               val fact_ids =
                 map (fn (id, th) => (id, short_thm_name ctxt th)) helper_ids @
                 map (fn (id, ((name, _), _)) => (id, name)) fact_ids
-              val atp_proof = Z3_New_Isar.atp_proof_of_z3_proof thy conjecture_id fact_ids z3_proof
+              val atp_proof = Z3_New_Isar.atp_proof_of_z3_proof thy rewrite_rules conjecture_id
+                fact_ids z3_proof
               val isar_params =
                 K (verbose, (NONE, NONE), preplay_timeout, compress_isar, try0_isar,
                    minimize <> SOME false, atp_proof, goal)
