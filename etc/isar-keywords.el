@@ -530,7 +530,9 @@
     "import_tptp"
     "import_type_map"
     "inductive"
+    "inductive_cases"
     "inductive_set"
+    "inductive_simps"
     "instantiation"
     "judgment"
     "lemmas"
@@ -590,8 +592,7 @@
     "typedecl"))
 
 (defconst isar-keywords-theory-script
-  '("inductive_cases"
-    "inductive_simps"))
+  '())
 
 (defconst isar-keywords-theory-goal
   '("ax_specification"
