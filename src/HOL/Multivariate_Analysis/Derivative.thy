@@ -617,110 +617,84 @@ proof -
     unfolding euclidean_representation ..
 qed
 
-text {* We do not introduce @{text jacobian}, which is defined on matrices, instead we use
-  the unfolding of it. *}
+text {* Derivatives of local minima and maxima are zero. *}
 
-lemma jacobian_works:
-  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
-  shows "f differentiable net \<longleftrightarrow>
-    (f has_derivative (\<lambda>h. \<Sum>i\<in>Basis.
-      (\<Sum>j\<in>Basis. frechet_derivative f net j \<bullet> i * (h \<bullet> j)) *\<^sub>R i)) net"
-    (is "?differentiable \<longleftrightarrow> (f has_derivative (\<lambda>h. \<Sum>i\<in>Basis. ?SUM h i *\<^sub>R i)) net")
+lemma has_derivative_local_min:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> real"
+  assumes deriv: "(f has_derivative f') (at x)"
+  assumes min: "eventually (\<lambda>y. f x \<le> f y) (at x)"
+  shows "f' = (\<lambda>h. 0)"
 proof
-  assume *: ?differentiable
-  {
-    fix h i
-    have "?SUM h i = frechet_derivative f net h \<bullet> i"
-      using *
-      by (auto intro!: setsum_cong simp: linear_componentwise[of _ h i] linear_frechet_derivative)
-  }
-  with * show "(f has_derivative (\<lambda>h. \<Sum>i\<in>Basis. ?SUM h i *\<^sub>R i)) net"
-    by (simp add: frechet_derivative_works euclidean_representation)
-qed (auto intro!: differentiableI)
-
-lemma differential_zero_maxmin_component:
-  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
-  assumes k: "k \<in> Basis"
-    and ball: "0 < e" "(\<forall>y \<in> ball x e. (f y)\<bullet>k \<le> (f x)\<bullet>k) \<or> (\<forall>y\<in>ball x e. (f x)\<bullet>k \<le> (f y)\<bullet>k)"
-    and diff: "f differentiable (at x)"
-  shows "(\<Sum>j\<in>Basis. (frechet_derivative f (at x) j \<bullet> k) *\<^sub>R j) = (0::'a)" (is "?D k = 0")
-proof (rule ccontr)
-  assume "\<not> ?thesis"
-  then obtain j where j: "?D k \<bullet> j \<noteq> 0" "j \<in> Basis"
-    unfolding euclidean_eq_iff[of _ "0::'a"] by auto
-  then have *: "\<bar>?D k \<bullet> j\<bar> / 2 > 0"
-    by auto
-  note as = diff[unfolded jacobian_works has_derivative_at_alt]
-  obtain e' where e':
-    "0 < e'"
-    "(\<And>y. norm (y - x) < e' \<Longrightarrow>
-        norm (f y - f x -
-          (\<Sum>i\<in>Basis. (\<Sum>j\<in>Basis. frechet_derivative f (at x) j \<bullet> i * ((y - x) \<bullet> j)) *\<^sub>R i))
-        \<le> \<bar>(\<Sum>j\<in>Basis. (frechet_derivative f (at x) j \<bullet> k) *\<^sub>R j) \<bullet> j\<bar> / 2 * norm (y - x))"
-    using as[THEN conjunct2] * by blast
-  obtain d where d: "0 < d" "d < e" "d < e'"
-    using real_lbound_gt_zero[OF ball(1) e'(1)] by blast
-  {
-    fix c
-    assume "abs c \<le> d"
-    then have *: "norm (x + c *\<^sub>R j - x) < e'"
-      using norm_Basis[OF j(2)] d by auto
-    let ?v = "(\<Sum>i\<in>Basis. (\<Sum>l\<in>Basis. ?D i \<bullet> l * ((c *\<^sub>R j :: 'a) \<bullet> l)) *\<^sub>R i)"
-    have if_dist: "\<And> P a b c. a * (if P then b else c) = (if P then a * b else a * c)"
-      by auto
-    have "\<bar>(f (x + c *\<^sub>R j) - f x - ?v) \<bullet> k\<bar> \<le> norm (f (x + c *\<^sub>R j) - f x - ?v)"
-      by (rule Basis_le_norm[OF k])
-    also have "\<dots> \<le> \<bar>?D k \<bullet> j\<bar> / 2 * \<bar>c\<bar>"
-      using e'(2)[OF *] and norm_Basis[OF j(2)] j
-      by simp
-    finally have "\<bar>(f (x + c *\<^sub>R j) - f x - ?v) \<bullet> k\<bar> \<le> \<bar>?D k \<bullet> j\<bar> / 2 * \<bar>c\<bar>"
-      by simp
-    then have "\<bar>f (x + c *\<^sub>R j) \<bullet> k - f x \<bullet> k - c * (?D k \<bullet> j)\<bar> \<le> \<bar>?D k \<bullet> j\<bar> / 2 * \<bar>c\<bar>"
-      using j k
-      by (simp add: inner_simps field_simps inner_Basis setsum_cases if_dist)
-  }
-  note * = this
-  have "x + d *\<^sub>R j \<in> ball x e" "x - d *\<^sub>R j \<in> ball x e"
-    unfolding mem_ball dist_norm
-    using norm_Basis[OF j(2)] d
-    by auto
-  then have **: "((f (x - d *\<^sub>R j))\<bullet>k \<le> (f x)\<bullet>k \<and> (f (x + d *\<^sub>R j))\<bullet>k \<le> (f x)\<bullet>k) \<or>
-      ((f (x - d *\<^sub>R j))\<bullet>k \<ge> (f x)\<bullet>k \<and> (f (x + d *\<^sub>R j))\<bullet>k \<ge> (f x)\<bullet>k)"
-    using ball by auto
-  have ***: "\<And>y y1 y2 d dx :: real. y1 \<le> y \<and> y2 \<le> y \<or> y \<le> y1 \<and> y \<le> y2 \<Longrightarrow>
-      d < abs dx \<Longrightarrow> abs (y1 - y - - dx) \<le> d \<Longrightarrow> abs (y2 - y - dx) \<le> d \<Longrightarrow> False"
-    by arith
-  show False
-    apply (rule ***[OF **, where dx="d * (?D k \<bullet> j)" and d="\<bar>?D k \<bullet> j\<bar> / 2 * \<bar>d\<bar>"])
-    using *[of "-d"] and *[of d] and d(1) and j
-    unfolding mult_minus_left
-    unfolding abs_mult diff_minus_eq_add scaleR_minus_left
-    unfolding algebra_simps
-    apply (auto intro: mult_pos_pos)
-    done
+  fix h :: 'a
+  interpret f': bounded_linear f'
+    using deriv by (rule FDERIV_bounded_linear)
+  show "f' h = 0"
+  proof (cases "h = 0")
+    assume "h \<noteq> 0"
+    from min obtain d where d1: "0 < d" and d2: "\<forall>y\<in>ball x d. f x \<le> f y"
+      unfolding eventually_at by (force simp: dist_commute)
+    have "FDERIV (\<lambda>r. x + r *\<^sub>R h) 0 :> (\<lambda>r. r *\<^sub>R h)"
+      by (intro FDERIV_eq_intros, auto)
+    then have "FDERIV (\<lambda>r. f (x + r *\<^sub>R h)) 0 :> (\<lambda>k. f' (k *\<^sub>R h))"
+      by (rule FDERIV_compose, simp add: deriv)
+    then have "DERIV (\<lambda>r. f (x + r *\<^sub>R h)) 0 :> f' h"
+      unfolding deriv_fderiv by (simp add: f'.scaleR)
+    moreover have "0 < d / norm h"
+      using d1 and `h \<noteq> 0` by (simp add: divide_pos_pos)
+    moreover have "\<forall>y. \<bar>0 - y\<bar> < d / norm h \<longrightarrow> f (x + 0 *\<^sub>R h) \<le> f (x + y *\<^sub>R h)"
+      using `h \<noteq> 0` by (auto simp add: d2 dist_norm pos_less_divide_eq)
+    ultimately show "f' h = 0"
+      by (rule DERIV_local_min)
+  qed (simp add: f'.zero)
 qed
 
-text {* In particular if we have a mapping into @{typ "real"}. *}
+lemma has_derivative_local_max:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> real"
+  assumes "(f has_derivative f') (at x)"
+  assumes "eventually (\<lambda>y. f y \<le> f x) (at x)"
+  shows "f' = (\<lambda>h. 0)"
+  using has_derivative_local_min [of "\<lambda>x. - f x" "\<lambda>h. - f' h" "x"]
+  using assms unfolding fun_eq_iff by simp
 
 lemma differential_zero_maxmin:
-  fixes f::"'a::euclidean_space \<Rightarrow> real"
+  fixes f::"'a::real_normed_vector \<Rightarrow> real"
   assumes "x \<in> s"
     and "open s"
     and deriv: "(f has_derivative f') (at x)"
     and mono: "(\<forall>y\<in>s. f y \<le> f x) \<or> (\<forall>y\<in>s. f x \<le> f y)"
   shows "f' = (\<lambda>v. 0)"
+  using mono
+proof
+  assume "\<forall>y\<in>s. f y \<le> f x"
+  with `x \<in> s` and `open s` have "eventually (\<lambda>y. f y \<le> f x) (at x)"
+    unfolding eventually_at_topological by auto
+  with deriv show ?thesis
+    by (rule has_derivative_local_max)
+next
+  assume "\<forall>y\<in>s. f x \<le> f y"
+  with `x \<in> s` and `open s` have "eventually (\<lambda>y. f x \<le> f y) (at x)"
+    unfolding eventually_at_topological by auto
+  with deriv show ?thesis
+    by (rule has_derivative_local_min)
+qed
+
+lemma differential_zero_maxmin_component: (* TODO: delete? *)
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes k: "k \<in> Basis"
+    and ball: "0 < e" "(\<forall>y \<in> ball x e. (f y)\<bullet>k \<le> (f x)\<bullet>k) \<or> (\<forall>y\<in>ball x e. (f x)\<bullet>k \<le> (f y)\<bullet>k)"
+    and diff: "f differentiable (at x)"
+  shows "(\<Sum>j\<in>Basis. (frechet_derivative f (at x) j \<bullet> k) *\<^sub>R j) = (0::'a)" (is "?D k = 0")
 proof -
-  obtain e where e: "e > 0" "ball x e \<subseteq> s"
-    using `open s`[unfolded open_contains_ball] and `x \<in> s` by auto
-  with differential_zero_maxmin_component[where 'b=real, of 1 e x f] mono deriv
-  have "(\<Sum>j\<in>Basis. frechet_derivative f (at x) j *\<^sub>R j) = (0::'a)"
-    by (auto simp: Basis_real_def differentiable_def)
-  with frechet_derivative_at[OF deriv, symmetric]
-  have "\<forall>i\<in>Basis. f' i = 0"
-    by (simp add: euclidean_eq_iff[of _ "0::'a"] inner_setsum_left_Basis)
-  with derivative_is_linear[OF deriv, THEN linear_componentwise, of _ 1]
-  show ?thesis
-    by (simp add: fun_eq_iff)
+  let ?f' = "frechet_derivative f (at x)"
+  have "x \<in> ball x e" using `0 < e` by simp
+  moreover have "open (ball x e)" by simp
+  moreover have "((\<lambda>x. f x \<bullet> k) has_derivative (\<lambda>h. ?f' h \<bullet> k)) (at x)"
+    using bounded_linear_inner_left diff[unfolded frechet_derivative_works]
+    by (rule bounded_linear.FDERIV)
+  ultimately have "(\<lambda>h. frechet_derivative f (at x) h \<bullet> k) = (\<lambda>v. 0)"
+    using ball(2) by (rule differential_zero_maxmin)
+  then show ?thesis
+    unfolding fun_eq_iff by simp
 qed
 
 lemma rolle:
