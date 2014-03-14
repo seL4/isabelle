@@ -154,12 +154,8 @@ Among the ATPs, AgsyHOL, Alt-Ergo, E, LEO-II, Satallax, SPASS, and Vampire can
 be run locally; in addition, AgsyHOL, E, E-SInE, E-ToFoF, iProver, iProver-Eq,
 LEO-II, Satallax, SNARK, Vampire, and Waldmeister are available remotely via
 System\-On\-TPTP \cite{sutcliffe-2000}. If you want better performance, you
-should at least install E and SPASS locally.
-
-The SMT solvers CVC3, Yices, and Z3 can be run locally, and CVC3 and
-Z3 can be run remotely on a TU M\"unchen server. If you want better performance
-and get the ability to replay proofs that rely on the \emph{smt} proof method
-without an Internet connection, you should at least have Z3 locally installed.
+should at least install E and SPASS locally. The SMT solvers CVC3, Yices, and Z3
+can be run locally.
 
 There are three main ways to install automatic provers on your machine:
 
@@ -171,9 +167,10 @@ already include properly setup executables for CVC3, E, SPASS, and Z3, ready to 
 these otherwise remarkable tools.}
 For Z3, you must additionally set the variable
 \texttt{Z3\_NON\_COMMERCIAL} to ``yes'' to confirm that you are a
-noncommercial user, either in the environment in which Isabelle is
-launched or in your
-\texttt{\$ISABELLE\_HOME\_USER/etc/settings} file.
+noncommercial user---either in the environment in which Isabelle is
+launched, in your \texttt{\$ISABELLE\_HOME\_USER/etc/settings} file, or
+via the ``z3\_non\_commercial'' option under ``Plugins > Plugin Options
+> Isabelle > General'' in Isabelle/jEdit.
 
 \item[\labelitemi] Alternatively, you can download the Isabelle-aware CVC3, E,
 SPASS, and Z3 binary packages from \download. Extract the archives, then add a
@@ -913,8 +910,11 @@ file name. Sledgehammer has been tested with version 1.0.28.
 Microsoft Research \cite{z3}. To use Z3, set the environment variable
 \texttt{Z3\_SOLVER} to the complete path of the executable, including the file
 name, and set \texttt{Z3\_NON\_COMMERCIAL} to ``yes'' to confirm that you are a
-noncommercial user. Sledgehammer has been tested with versions 3.0, 3.1, 3.2,
-and 4.0.
+noncommercial user---either in the environment in which Isabelle is
+launched, in your \texttt{\$ISABELLE\_HOME\_USER/etc/settings} file, or
+via the ``z3\_non\_commercial'' option under ``Plugins > Plugin Options
+> Isabelle > General'' in Isabelle/jEdit. Sledgehammer has been tested with
+versions 3.0, 3.1, 3.2, and 4.0.
 \end{enum}
 \end{sloppy}
 
