@@ -211,7 +211,7 @@ fun id_ord ((id1, _), (id2, _)) = int_ord (id1, id2)
 structure Parsers = Generic_Data
 (
   type T = (int * type_parser) list * (int * term_parser) list
-  val empty = ([(serial (), core_type_parser)], [(serial (), core_term_parser)])
+  val empty : T = ([(serial (), core_type_parser)], [(serial (), core_term_parser)])
   val extend = I
   fun merge ((tys1, ts1), (tys2, ts2)) =
     (Ord_List.merge id_ord (tys1, tys2), Ord_List.merge id_ord (ts1, ts2))
