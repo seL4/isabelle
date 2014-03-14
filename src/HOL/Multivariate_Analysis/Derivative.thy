@@ -293,20 +293,6 @@ lemma linear_frechet_derivative: "f differentiable net \<Longrightarrow> linear(
 
 subsection {* Differentiability implies continuity *}
 
-lemma Lim_mul_norm_within:
-  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
-  shows "(f ---> 0) (at a within s) \<Longrightarrow> ((\<lambda>x. norm(x - a) *\<^sub>R f x) ---> 0) (at a within s)"
-  unfolding Lim_within
-  apply (auto simp: )
-  apply (erule_tac x=e in allE)
-  apply (auto simp: )
-  apply (rule_tac x="min d 1" in exI)
-  apply (auto simp: )
-  apply (erule_tac x=x in ballE)
-  unfolding dist_norm diff_0_right
-  apply (auto intro!: mult_strict_mono[of _ "1::real", unfolded mult_1_left])
-  done
-
 lemma differentiable_imp_continuous_within:
   "f differentiable (at x within s) \<Longrightarrow> continuous (at x within s) f"
   by (auto simp: differentiable_def intro: FDERIV_continuous)
