@@ -326,63 +326,30 @@ lemma differentiable_on_empty: "f differentiable_on {}"
   unfolding differentiable_on_def
   by auto
 
+text {* Results about neighborhoods filter. *}
+
+lemma eventually_nhds_metric_le:
+  "eventually P (nhds a) = (\<exists>d>0. \<forall>x. dist x a \<le> d \<longrightarrow> P x)"
+  unfolding eventually_nhds_metric by (safe, rule_tac x="d / 2" in exI, auto)
+
+lemma le_nhds: "F \<le> nhds a \<longleftrightarrow> (\<forall>S. open S \<and> a \<in> S \<longrightarrow> eventually (\<lambda>x. x \<in> S) F)"
+  unfolding le_filter_def eventually_nhds by (fast elim: eventually_elim1)
+
+lemma le_nhds_metric: "F \<le> nhds a \<longleftrightarrow> (\<forall>e>0. eventually (\<lambda>x. dist x a < e) F)"
+  unfolding le_filter_def eventually_nhds_metric by (fast elim: eventually_elim1)
+
+lemma le_nhds_metric_le: "F \<le> nhds a \<longleftrightarrow> (\<forall>e>0. eventually (\<lambda>x. dist x a \<le> e) F)"
+  unfolding le_filter_def eventually_nhds_metric_le by (fast elim: eventually_elim1)
+
 text {* Several results are easier using a "multiplied-out" variant.
 (I got this idea from Dieudonne's proof of the chain rule). *}
 
 lemma has_derivative_within_alt:
   "(f has_derivative f') (at x within s) \<longleftrightarrow> bounded_linear f' \<and>
     (\<forall>e>0. \<exists>d>0. \<forall>y\<in>s. norm(y - x) < d \<longrightarrow> norm (f y - f x - f' (y - x)) \<le> e * norm (y - x))"
-  (is "?lhs \<longleftrightarrow> ?rhs")
-proof
-  assume ?lhs
-  then show ?rhs
-    unfolding has_derivative_within Lim_within
-    apply clarify
-    apply (erule_tac x=e in allE)
-    apply safe
-    apply (rule_tac x=d in exI)
-    apply clarify
-  proof-
-    fix x y e d
-    assume as:
-      "0 < e"
-      "0 < d"
-      "norm (y - x) < d"
-      "\<forall>xa\<in>s. 0 < dist xa x \<and> dist xa x < d \<longrightarrow>
-        dist ((1 / norm (xa - x)) *\<^sub>R (f xa - (f x + f' (xa - x)))) 0 < e"
-      "y \<in> s"
-      "bounded_linear f'"
-    then interpret bounded_linear f'
-      by auto
-    show "norm (f y - f x - f' (y - x)) \<le> e * norm (y - x)"
-    proof (cases "y = x")
-      case True
-      then show ?thesis
-        using `bounded_linear f'` by (auto simp add: zero)
-    next
-      case False
-        then have "norm (f y - (f x + f' (y - x))) < e * norm (y - x)"
-        using as(4)[rule_format, OF `y \<in> s`]
-        unfolding dist_norm diff_0_right
-        using as(3)
-        using pos_divide_less_eq[OF False[unfolded dist_nz], unfolded dist_norm]
-        by (auto simp add: linear_0 linear_sub)
-      then show ?thesis
-        by (auto simp add: algebra_simps)
-    qed
-  qed
-next
-  assume ?rhs
-  then show ?lhs
-    apply (auto simp: has_derivative_within Lim_within)
-    apply (erule_tac x="e/2" in allE, auto)
-    apply (rule_tac x=d in exI, auto)
-    unfolding dist_norm diff_0_right norm_scaleR
-    apply (erule_tac x=xa in ballE, auto)
-    apply (rule_tac y="e/2" in le_less_trans)
-    apply (auto intro!: mult_imp_div_pos_le simp add: algebra_simps)
-    done
-qed
+  unfolding has_derivative_within filterlim_def le_nhds_metric_le eventually_filtermap
+    eventually_at dist_norm diff_add_eq_diff_diff
+  by (force simp add: linear_0 bounded_linear_imp_linear pos_divide_le_eq)
 
 lemma has_derivative_at_alt:
   "(f has_derivative f') (at x) \<longleftrightarrow>
