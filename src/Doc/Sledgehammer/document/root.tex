@@ -228,7 +228,7 @@ with Sledgehammer. Ideally, also set \texttt{CVC3\_VERSION},
 
 To check whether E, SPASS, Vampire, and/or Z3 are successfully installed, try
 out the example in \S\ref{first-steps}. If the remote versions of any of these
-provers is used (identified by the prefix ``\emph{remote\_\/}''), or if the
+provers is used (identified by the prefix ``\textit{remote\_\/}''), or if the
 local versions fail to solve the easy goal presented there, something must be
 wrong with the installation.
 
@@ -294,7 +294,7 @@ Waldmeister is run only for unit equational problems, where the goal's
 conclusion is a (universally quantified) equation.
 
 For each successful prover, Sledgehammer gives a one-line \textit{metis} or
-\textit{smt} method call. Rough timings are shown in parentheses, indicating how
+\textit{smt2} method call. Rough timings are shown in parentheses, indicating how
 fast the call is. You can click the proof to insert it into the theory text.
 
 In addition, you can ask Sledgehammer for an Isar text proof by enabling the
@@ -305,8 +305,8 @@ In addition, you can ask Sledgehammer for an Isar text proof by enabling the
 \postw
 
 When Isar proof construction is successful, it can yield proofs that are more
-readable and also faster than the \textit{metis} or \textit{smt} one-line proofs.
-This feature is experimental and is only available for ATPs.
+readable and also faster than the \textit{metis} or \textit{smt2} one-line
+proofs. This feature is experimental and is only available for ATPs.
 
 \section{Hints}
 \label{hints}
@@ -357,7 +357,7 @@ if that helps.
 
 \item[\labelitemi] \textbf{\textit{isar\_proofs}} (\S\ref{output-format}) specifies
 that Isar proofs should be generated, in addition to one-line \textit{metis} or
-\textit{smt} proofs. The length of the Isar proofs can be controlled by setting
+\textit{smt2} proofs. The length of the Isar proofs can be controlled by setting
 \textit{compress\_isar} (\S\ref{output-format}).
 
 \item[\labelitemi] \textbf{\textit{timeout}} (\S\ref{timeouts}) controls the
@@ -463,10 +463,10 @@ solutions:
 obtain a step-by-step Isar proof. Since the steps are fairly small, \textit{metis}
 and the other Isabelle proof methods are more likely to be able to replay them.
 
-\item[\labelitemi] Try the \textit{smt} proof method instead of \textit{metis}.
+\item[\labelitemi] Try the \textit{smt2} proof method instead of \textit{metis}.
 It is usually stronger, but you need to either have Z3 available to replay the
 proofs, trust the SMT solver, or use certificates. See the documentation in the
-\emph{SMT} theory (\texttt{\$ISABELLE\_HOME/src/HOL/SMT.thy}) for details.
+\textit{SMT2} theory (\texttt{\$ISABELLE\_HOME/src/HOL/SMT2.thy}) for details.
 
 \item[\labelitemi] Try the \textit{blast} or \textit{auto} proof methods, passing
 the necessary facts via \textbf{unfolding}, \textbf{using}, \textit{intro}{:},
@@ -563,7 +563,7 @@ provers more rope to hang themselves. See the \textit{lam\_trans} option (\S\ref
 Automatic provers frequently use many more facts than are necessary.
 Sledgehammer inclues a minimization tool that takes a set of facts returned by a
 given prover and repeatedly calls the same prover, \textit{metis}, or
-\textit{smt} with subsets of those axioms in order to find a minimal set.
+\textit{smt2} with subsets of those axioms in order to find a minimal set.
 Reducing the number of axioms typically improves Metis's speed and success rate,
 while also removing superfluous clutter from the proof scripts.
 
@@ -882,7 +882,7 @@ support for the TPTP typed higher-order syntax (THF0). To use Satallax, set the
 environment variable \texttt{SATALLAX\_HOME} to the directory that contains the
 \texttt{satallax} executable. Sledgehammer requires version 2.2 or above.
 
-\item[\labelitemi] \textbf{\textit{smt}:} The \textit{smt} proof method with the
+\item[\labelitemi] \textbf{\textit{smt}:} The \textit{smt2} proof method with the
 current settings (usually:\ Z3 with proof reconstruction) can be used for proof
 search.
 
@@ -915,6 +915,13 @@ launched, in your \texttt{\$ISABELLE\_HOME\_USER/etc/settings} file, or
 via the ``z3\_non\_commercial'' option under ``Plugins > Plugin Options
 > Isabelle > General'' in Isabelle/jEdit. Sledgehammer has been tested with
 versions 3.0, 3.1, 3.2, and 4.0.
+
+\item[\labelitemi] \textbf{\textit{z3\_new}:} Newer versions of Z3 (e.g., 4.3)
+are treated as a different prover by Isabelle. To use these, set the environment
+variable \texttt{Z3\_NEW\_SOLVER} to the complete path of the executable,
+including the file name. You also need to set \texttt{Z3\_NON\_COMMERCIAL} to
+``yes'', as described above. Sledgehammer has been tested with versions 4.3.0 and
+4.3.1.
 \end{enum}
 \end{sloppy}
 
@@ -1168,7 +1175,7 @@ are unsound, meaning that they can give rise to spurious proofs
 (unreconstructible using \textit{metis}). The type encodings are
 listed below, with an indication of their soundness in parentheses.
 An asterisk (*) indicates that the encoding is slightly incomplete for
-reconstruction with \textit{metis}, unless the \emph{strict} option (described
+reconstruction with \textit{metis}, unless the \textit{strict} option (described
 below) is enabled.
 
 \begin{enum}
@@ -1317,9 +1324,9 @@ Specifies whether standard proof methods such as \textit{auto} and
 The collection of methods is roughly the same as for the \textbf{try0} command.
 
 \opsmart{smt\_proofs}{no\_smt\_proofs}
-Specifies whether the \textit{smt} proof method should be tried as an
+Specifies whether the \textit{smt2} proof method should be tried as an
 alternative to \textit{metis}.  If the option is set to \textit{smart} (the
-default), the \textit{smt} method is used for one-line proofs but not in Isar
+default), the \textit{smt2} method is used for one-line proofs but not in Isar
 proofs.
 \end{enum}
 
