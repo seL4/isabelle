@@ -354,8 +354,9 @@ in
 
 fun nicer_shortest ctxt =
   let
-    val space = Facts.space_of (Proof_Context.facts_of ctxt);
-    val extern_shortest = Name_Space.extern_shortest ctxt space;
+    fun extern_shortest name =
+      Name_Space.extern_shortest ctxt
+        (Facts.space_of (Proof_Context.facts_of_fact ctxt name)) name;
 
     fun nicer (Facts.Named ((x, _), i)) (Facts.Named ((y, _), j)) =
           nicer_name (extern_shortest x, i) (extern_shortest y, j)

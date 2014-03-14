@@ -346,7 +346,7 @@ fun facts_of_fact ctxt name =
     val local_facts = facts_of ctxt;
     val global_facts = Global_Theory.facts_of (theory_of ctxt);
   in
-    if is_some (Facts.lookup (Context.Proof ctxt) local_facts name)
+    if Facts.defined local_facts name
     then local_facts else global_facts
   end;
 
