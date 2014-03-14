@@ -456,7 +456,7 @@ lemma finprod_cong:
 text {*Usually, if this rule causes a failed congruence proof error,
   the reason is that the premise @{text "g \<in> B -> carrier G"} cannot be shown.
   Adding @{thm [source] Pi_def} to the simpset is often useful.
-  For this reason, @{thm [source] comm_monoid.finprod_cong}
+  For this reason, @{thm [source] finprod_cong}
   is not added to the simpset by default.
 *}
 
