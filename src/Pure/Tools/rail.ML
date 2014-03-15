@@ -40,6 +40,8 @@ fun print (Token ((pos, _), (k, x))) =
 fun print_keyword x = print_kind Keyword ^ " " ^ quote x;
 
 fun reports_of_token (Token ((pos, _), (String, _))) = [(pos, Markup.inner_string)]
+  | reports_of_token (Token ((pos, _), (Keyword, x))) =
+      map (pair pos) (Markup.keyword3 :: Completion.suppress_abbrevs x)
   | reports_of_token (Token (_, (Antiq antiq, _))) = Antiquote.antiq_reports antiq
   | reports_of_token _ = [];
 
