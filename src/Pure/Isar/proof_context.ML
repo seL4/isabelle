@@ -917,10 +917,9 @@ local
 fun retrieve_global context =
   Facts.retrieve context (Global_Theory.facts_of (Context.theory_of context));
 
-fun retrieve_generic (context as Context.Proof ctxt) (xname, pos) =
-      if can (fn () => Facts.retrieve context (facts_of ctxt) (xname, Position.none)) ()
-      then Facts.retrieve context (facts_of ctxt) (xname, pos)
-      else retrieve_global context (xname, pos)
+fun retrieve_generic (context as Context.Proof ctxt) arg =
+      (Facts.retrieve context (facts_of ctxt) arg handle ERROR local_msg =>
+        (retrieve_global context arg handle ERROR _ => error local_msg))
   | retrieve_generic context arg = retrieve_global context arg;
 
 fun retrieve pick context (Facts.Fact s) =
