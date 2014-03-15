@@ -386,7 +386,7 @@ fun all_facts_of ctxt =
     val global_facts = Global_Theory.facts_of (Proof_Context.theory_of ctxt);
   in
     maps Facts.selections
-     (Facts.dest_static false [] local_facts @  (* FIXME exclude global_facts *)
+     (Facts.dest_static false [global_facts] local_facts @
       Facts.dest_static false [] global_facts)
   end;
 
