@@ -10,6 +10,22 @@ struct
 
 (** lexical syntax **)
 
+(* singleton keywords *)
+
+val keywords =
+  Symtab.make [
+    ("|", Markup.keyword3),
+    ("*", Markup.keyword3),
+    ("+", Markup.keyword3),
+    ("?", Markup.keyword3),
+    ("(", Markup.empty),
+    (")", Markup.empty),
+    ("\<newline>", Markup.keyword2),
+    (";", Markup.keyword2),
+    (":", Markup.keyword2),
+    ("@", Markup.keyword1)];
+
+
 (* datatype token *)
 
 datatype kind =
@@ -41,7 +57,7 @@ fun print_keyword x = print_kind Keyword ^ " " ^ quote x;
 
 fun reports_of_token (Token ((pos, _), (String, _))) = [(pos, Markup.inner_string)]
   | reports_of_token (Token ((pos, _), (Keyword, x))) =
-      map (pair pos) (Markup.keyword3 :: Completion.suppress_abbrevs x)
+      map (pair pos) (the_list (Symtab.lookup keywords x) @ Completion.suppress_abbrevs x)
   | reports_of_token (Token (_, (Antiq antiq, _))) = Antiquote.antiq_reports antiq
   | reports_of_token _ = [];
 
@@ -67,8 +83,7 @@ fun token k ss = [Token (Symbol_Pos.range ss, (k, Symbol_Pos.content ss))];
 val scan_space = Scan.many1 (Symbol.is_blank o Symbol_Pos.symbol);
 
 val scan_keyword =
-  Scan.one
-    (member (op =) ["|", "*", "+", "?", "(", ")", "\<newline>", ";", ":", "@"] o Symbol_Pos.symbol);
+  Scan.one (Symtab.defined keywords o Symbol_Pos.symbol);
 
 val err_prefix = "Rail lexical error: ";
 
