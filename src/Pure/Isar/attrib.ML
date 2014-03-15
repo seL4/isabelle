@@ -213,7 +213,7 @@ val fact_name = Args.internal_fact >> K "<fact>" || Args.name;
 
 fun gen_thm pick = Scan.depend (fn context =>
   let
-    val get = Context.cases (Global_Theory.get_fact context) Proof_Context.get_fact context;
+    val get = Proof_Context.get_fact_generic context;
     val get_fact = get o Facts.Fact;
     fun get_named pos name = get (Facts.Named ((name, pos), NONE));
   in
@@ -248,6 +248,8 @@ end;
 
 
 (** partial evaluation -- observing rule/declaration/mixed attributes **)
+
+(*NB: result length may change due to rearrangement of symbolic expression*)
 
 local
 

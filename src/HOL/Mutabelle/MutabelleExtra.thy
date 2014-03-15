@@ -37,7 +37,7 @@ ML {* val mtds = [
 
 ML {*
 fun mutation_testing_of (name, thy) =
-  (MutabelleExtra.random_seed := 1.0;
+  (MutabelleExtra.init_random 1.0;
   MutabelleExtra.thms_of false thy
   |> MutabelleExtra.take_random 200
   |> (fn thms => MutabelleExtra.mutate_theorems_and_write_report
@@ -50,7 +50,7 @@ text {* Uncomment the following ML code to check the counterexample generation w
 (*
 ML {*
 
-      MutabelleExtra.random_seed := 1.0;
+      MutabelleExtra.init_random 1.0;
       MutabelleExtra.thms_of true @{theory Complex_Main}
       |> MutabelleExtra.take_random 1000000
       |> (fn thms => List.drop (thms, 1000))

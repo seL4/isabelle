@@ -246,10 +246,11 @@ fun gensym_char i =
 val char_vec = Vector.tabulate (62, gensym_char);
 fun newid n = implode (map (fn i => Vector.sub (char_vec, i)) (radixpand (62, n)));
 
-val gensym_seed = Unsynchronized.ref (0: int);
+val gensym_seed = Synchronized.var "gensym_seed" (0: int);
 
 in
-  fun gensym pre = pre ^ newid (CRITICAL (fn () => Unsynchronized.inc gensym_seed));
+  fun gensym pre =
+    Synchronized.change_result gensym_seed (fn i => (pre ^ newid i, i + 1));
 end;
 
 

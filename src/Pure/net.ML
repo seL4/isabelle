@@ -253,7 +253,7 @@ fun dest (Leaf xs) = map (pair []) xs
       maps (fn (a, net) => map (cons_fst (AtomK a)) (dest net)) (Symtab.dest atoms);
 
 fun merge eq (net1, net2) =
-  fold (insert_safe eq) (dest net2) net1;  (* FIXME non-standard merge order!?! *)
+  fold (insert_safe eq) (dest net2) net1;  (* FIXME non-canonical merge order!?! *)
 
 fun content net = map #2 (dest net);
 

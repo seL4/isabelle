@@ -354,8 +354,9 @@ in
 
 fun nicer_shortest ctxt =
   let
-    val space = Facts.space_of (Proof_Context.facts_of ctxt);
-    val extern_shortest = Name_Space.extern_shortest ctxt space;
+    fun extern_shortest name =
+      Name_Space.extern_shortest ctxt
+        (Facts.space_of (Proof_Context.facts_of_fact ctxt name)) name;
 
     fun nicer (Facts.Named ((x, _), i)) (Facts.Named ((y, _), j)) =
           nicer_name (extern_shortest x, i) (extern_shortest y, j)
@@ -454,7 +455,7 @@ fun pretty_ref ctxt thmref =
         Facts.Named ((name, _), sel) => (name, sel)
       | Facts.Fact _ => raise Fail "Illegal literal fact");
   in
-    [Pretty.mark (Proof_Context.markup_fact ctxt name) (Pretty.str name),
+    [Pretty.mark (#1 (Proof_Context.markup_extern_fact ctxt name)) (Pretty.str name),
       Pretty.str (Facts.string_of_selection sel), Pretty.str ":", Pretty.brk 1]
   end;
 

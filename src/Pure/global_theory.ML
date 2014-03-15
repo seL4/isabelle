@@ -11,7 +11,6 @@ sig
   val intern_fact: theory -> xstring -> string
   val defined_fact: theory -> string -> bool
   val hide_fact: bool -> string -> theory -> theory
-  val get_fact: Context.generic -> theory -> Facts.ref -> thm list
   val get_thms: theory -> xstring -> thm list
   val get_thm: theory -> xstring -> thm
   val all_thms_of: theory -> (string * thm) list
@@ -64,31 +63,13 @@ val defined_fact = Facts.defined o facts_of;
 fun hide_fact fully name = Data.map (Facts.hide fully name);
 
 
-(** retrieve theorems **)
+(* retrieve theorems *)
 
-fun get_fact context thy xthmref =
-  let
-    val facts = facts_of thy;
-    val xname = Facts.name_of_ref xthmref;
-    val pos = Facts.pos_of_ref xthmref;
+fun get_thms thy xname =
+  #2 (Facts.retrieve (Context.Theory thy) (facts_of thy) (xname, Position.none));
 
-    val name =
-      (case intern_fact thy xname of
-        "_" => "Pure.asm_rl"
-      | name => name);
-    val res = Facts.lookup context facts name;
-  in
-    (case res of
-      NONE => error ("Unknown fact " ^ quote name ^ Position.here pos)
-    | SOME (static, ths) =>
-        (Context_Position.report_generic context pos (Name_Space.markup (Facts.space_of facts) name);
-         if static then ()
-         else Context_Position.report_generic context pos (Markup.dynamic_fact name);
-         Facts.select xthmref (map (Thm.transfer thy) ths)))
-  end;
-
-fun get_thms thy = get_fact (Context.Theory thy) thy o Facts.named;
-fun get_thm thy name = Facts.the_single (name, Position.none) (get_thms thy name);
+fun get_thm thy xname =
+  Facts.the_single (xname, Position.none) (get_thms thy xname);
 
 fun all_thms_of thy =
   Facts.fold_static (fn (_, ths) => append (map (`(Thm.get_name_hint)) ths)) (facts_of thy) [];

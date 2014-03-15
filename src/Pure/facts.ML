@@ -26,7 +26,9 @@ sig
   val check: Context.generic -> T -> xstring * Position.T -> string
   val intern: T -> xstring -> string
   val extern: Proof.context -> T -> string -> xstring
+  val markup_extern: Proof.context -> T -> string -> Markup.T * xstring
   val lookup: Context.generic -> T -> string -> (bool * thm list) option
+  val retrieve: Context.generic -> T -> xstring * Position.T -> string * thm list
   val defined: T -> string -> bool
   val fold_static: (string * thm list -> 'a -> 'a) -> T -> 'a -> 'a
   val dest_static: T list -> T -> (string * thm list) list
@@ -155,6 +157,7 @@ fun check context facts (xname, pos) =
 
 val intern = Name_Space.intern o space_of;
 fun extern ctxt = Name_Space.extern ctxt o space_of;
+fun markup_extern ctxt = Name_Space.markup_extern ctxt o space_of
 
 val defined = is_some oo (Name_Space.lookup_key o facts_of);
 
@@ -163,6 +166,18 @@ fun lookup context facts name =
     NONE => NONE
   | SOME (_, Static ths) => SOME (true, ths)
   | SOME (_, Dynamic f) => SOME (false, f context));
+
+fun retrieve context facts (xname, pos) =
+  let
+    val name = check context facts (xname, pos);
+    val thms =
+      (case lookup context facts name of
+        SOME (static, thms) =>
+          (if static then ()
+           else Context_Position.report_generic context pos (Markup.dynamic_fact name);
+           thms)
+      | NONE => error ("Unknown fact " ^ quote name ^ Position.here pos));
+  in (name, map (Thm.transfer (Context.theory_of context)) thms) end;
 
 fun fold_static f =
   Name_Space.fold_table (fn (name, Static ths) => f (name, ths) | _ => I) o facts_of;
@@ -195,7 +210,10 @@ fun could_unify (Facts {props, ...}) = Net.unify_term props;
 fun merge (Facts {facts = facts1, props = props1}, Facts {facts = facts2, props = props2}) =
   let
     val facts' = Name_Space.merge_tables (facts1, facts2);
-    val props' = Net.merge (is_equal o prop_ord) (props1, props2);
+    val props' =
+      if Net.is_empty props2 then props1
+      else if Net.is_empty props1 then props2
+      else Net.merge (is_equal o prop_ord) (props1, props2);  (*beware of non-canonical merge*)
   in make_facts facts' props' end;
 
 

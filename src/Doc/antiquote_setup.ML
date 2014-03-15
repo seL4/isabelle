@@ -166,12 +166,12 @@ fun parse_named a (XML.Elem ((b, props), _)) =
   | parse_named _ _ = [];
 
 val jedit_actions =
-  (case XML.parse (File.read (Path.explode "~~/src/Tools/jEdit/src/actions.xml")) of
+  (case XML.parse (File.read @{path "~~/src/Tools/jEdit/src/actions.xml"}) of
     XML.Elem (("ACTIONS", _), body) => maps (parse_named "ACTION") body
   | _ => []);
 
 val jedit_dockables =
-  (case XML.parse (File.read (Path.explode "~~/src/Tools/jEdit/src/dockables.xml")) of
+  (case XML.parse (File.read @{path "~~/src/Tools/jEdit/src/dockables.xml"}) of
     XML.Elem (("DOCKABLES", _), body) => maps (parse_named "DOCKABLE") body
   | _ => []);
 
