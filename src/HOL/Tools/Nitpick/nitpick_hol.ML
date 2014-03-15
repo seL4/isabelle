@@ -2000,7 +2000,7 @@ fun inductive_intro_table ctxt subst def_tables =
 fun ground_theorem_table thy =
   fold ((fn @{const Trueprop} $ t1 =>
             is_ground_term t1 ? Inttab.map_default (hash_term t1, []) (cons t1)
-          | _ => I) o prop_of o snd) (Global_Theory.all_thms_of thy) Inttab.empty
+          | _ => I) o prop_of o snd) (Global_Theory.all_thms_of thy true) Inttab.empty
 
 fun ersatz_table ctxt =
  #ersatz_table (Data.get (Context.Proof ctxt))

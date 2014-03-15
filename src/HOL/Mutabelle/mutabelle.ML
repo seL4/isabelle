@@ -13,22 +13,10 @@ sig
   val mutate_sign : term -> theory -> (string * string) list -> int -> term list 
   val mutate_mix : term -> theory -> string list -> 
    (string * string) list -> int -> term list
-
-  val all_unconcealed_thms_of : theory -> (string * thm) list
 end;
 
 structure Mutabelle : MUTABELLE = 
 struct
-
-fun all_unconcealed_thms_of thy =
-  let
-    val facts = Global_Theory.facts_of thy
-  in
-    Facts.fold_static
-      (fn (s, ths) =>
-        if Facts.is_concealed facts s then I else append (map (`(Thm.get_name_hint)) ths))
-      facts []
-  end;
 
 fun consts_of thy =
  let

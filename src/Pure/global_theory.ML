@@ -13,7 +13,7 @@ sig
   val hide_fact: bool -> string -> theory -> theory
   val get_thms: theory -> xstring -> thm list
   val get_thm: theory -> xstring -> thm
-  val all_thms_of: theory -> (string * thm) list
+  val all_thms_of: theory -> bool -> (string * thm) list
   val map_facts: ('a -> 'b) -> ('c * ('a list * 'd) list) list -> ('c * ('b list * 'd) list) list
   val burrow_fact: ('a list -> 'b list) -> ('a list * 'c) list -> ('b list * 'c) list
   val burrow_facts: ('a list -> 'b list) ->
@@ -71,8 +71,13 @@ fun get_thms thy xname =
 fun get_thm thy xname =
   Facts.the_single (xname, Position.none) (get_thms thy xname);
 
-fun all_thms_of thy =
-  Facts.fold_static (fn (_, ths) => append (map (`(Thm.get_name_hint)) ths)) (facts_of thy) [];
+fun all_thms_of thy verbose =
+  let
+    val facts = facts_of thy;
+    fun add (name, ths) =
+      if not verbose andalso Facts.is_concealed facts name then I
+      else append (map (`(Thm.get_name_hint)) ths);
+  in Facts.fold_static add facts [] end;
 
 
 

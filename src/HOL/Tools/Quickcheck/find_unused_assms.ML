@@ -13,17 +13,7 @@ end
 structure Find_Unused_Assms : FIND_UNUSED_ASSMS =
 struct
 
-fun all_unconcealed_thms_of thy =
-  let
-    val facts = Global_Theory.facts_of thy
-  in
-    Facts.fold_static
-      (fn (s, ths) =>
-        if Facts.is_concealed facts s then I else append (map (`(Thm.get_name_hint)) ths))
-      facts []
-  end
-
-fun thms_of thy thy_name = all_unconcealed_thms_of thy
+fun thms_of thy thy_name = Global_Theory.all_thms_of thy false
   |> filter (fn (_, th) => Context.theory_name (theory_of_thm th) = thy_name)
 
 fun do_while P f s list =

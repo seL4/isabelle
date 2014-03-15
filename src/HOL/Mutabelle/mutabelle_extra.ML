@@ -336,7 +336,7 @@ fun thms_of all thy =
   filter
     (fn th => (all orelse Context.theory_name (theory_of_thm th) = Context.theory_name thy)
       (* andalso is_executable_thm thy th *))
-    (map snd (filter_out is_forbidden_theorem (Mutabelle.all_unconcealed_thms_of thy)))
+    (map snd (filter_out is_forbidden_theorem (Global_Theory.all_thms_of thy false)))
 
 fun elapsed_time description e =
   let val ({elapsed, ...}, result) = Timing.timing e ()

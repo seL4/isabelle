@@ -180,7 +180,7 @@ in
 
 fun theorems_in_proof_term thm =
   let
-    val all_thms = Global_Theory.all_thms_of (Thm.theory_of_thm thm)
+    val all_thms = Global_Theory.all_thms_of (Thm.theory_of_thm thm) true
     fun collect (s, _, _) = if s <> "" then insert (op =) s else I
     fun member_of xs (x, y) = if member (op =) xs x then SOME y else NONE
     fun resolve_thms names = map_filter (member_of names) all_thms
