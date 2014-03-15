@@ -224,9 +224,12 @@ fun pretty ctxt space name = Pretty.mark_str (markup_extern ctxt space name);
 fun completion context space (xname, pos) =
   if Position.is_reported pos andalso xname <> "" andalso xname <> "_" then
     let
-      fun result_ord ((s, _), (s', _)) =
-        (case int_ord (pairself Long_Name.qualification (s, s')) of
-          EQUAL => string_ord (s, s')
+      fun result_ord ((xname1, (_, name1)), (xname2, (_, name2))) =
+        (case bool_ord (pairself Long_Name.is_local (name2, name1)) of
+          EQUAL =>
+            (case int_ord (pairself Long_Name.qualification (xname1, xname2)) of
+              EQUAL => string_ord (xname1, xname2)
+            | ord => ord)
         | ord => ord);
       val x = Name.clean xname;
       val Name_Space {kind, internals, ...} = space;
@@ -338,7 +341,7 @@ fun qualified_path mandatory binding = map_path (fn path =>
   path @ #2 (Binding.dest (Binding.qualified mandatory "" binding)));
 
 val default_naming = make_naming (false, NONE, "", []);
-val local_naming = default_naming |> add_path "local";
+val local_naming = default_naming |> add_path Long_Name.localN;
 
 
 (* full name *)
