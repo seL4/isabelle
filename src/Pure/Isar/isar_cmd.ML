@@ -256,7 +256,7 @@ val _ = Theory.setup
 (* print theorems *)
 
 val print_theorems_proof =
-  Toplevel.keep (Proof_Context.print_lthms o Proof.context_of o Toplevel.proof_of);
+  Toplevel.keep (Proof_Context.print_local_facts o Proof.context_of o Toplevel.proof_of);
 
 fun print_theorems_theory verbose = Toplevel.keep (fn state =>
   Toplevel.theory_of state |>
