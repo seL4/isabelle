@@ -464,9 +464,8 @@ fun declare context strict binding space =
       |> fold (add_name name) accs
       |> new_entry strict (name, (accs', entry));
     val _ =
-      if proper_pos then
-        Context_Position.report_generic context pos
-          (entry_markup true (kind_of space) (name, entry))
+      if proper_pos andalso Context_Position.is_reported_generic context pos then
+        Position.report pos (entry_markup true (kind_of space) (name, entry))
       else ();
   in (name, space') end;
 
