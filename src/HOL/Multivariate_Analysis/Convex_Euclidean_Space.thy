@@ -280,10 +280,10 @@ proof -
   obtain f' where f': "linear f' \<and> f \<circ> f' = id \<and> f' \<circ> f = id"
     using assms linear_injective_isomorphism[of f] isomorphism_expand by auto
   then have "f' ` closure (f ` S) \<le> closure (S)"
-    using closure_linear_image[of f' "f ` S"] image_compose[of f' f] by auto
+    using closure_linear_image[of f' "f ` S"] image_comp[of f' f] by auto
   then have "f ` f' ` closure (f ` S) \<le> f ` closure S" by auto
   then have "closure (f ` S) \<le> f ` closure S"
-    using image_compose[of f f' "closure (f ` S)"] f' by auto
+    using image_comp[of f f' "closure (f ` S)"] f' by auto
   then show ?thesis using closure_linear_image[of f S] assms by auto
 qed
 

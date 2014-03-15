@@ -85,11 +85,11 @@ end
 
 lemma eval_INFI [simp]:
   "eval (INFI A f) = INFI A (eval \<circ> f)"
-  by (simp only: INF_def eval_Inf image_compose)
+  by (simp only: INF_def eval_Inf image_comp)
 
 lemma eval_SUPR [simp]:
   "eval (SUPR A f) = SUPR A (eval \<circ> f)"
-  by (simp only: SUP_def eval_Sup image_compose)
+  by (simp only: SUP_def eval_Sup image_comp)
 
 instantiation pred :: (type) complete_boolean_algebra
 begin

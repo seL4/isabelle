@@ -211,7 +211,7 @@ next
     proof (rule bij_betw_combine)
       show "bij_betw ?f (Suc ` {..<length xs}) (Suc ` {..<length ys})"
         using bij unfolding bij_betw_def
-        by (auto intro!: inj_onI imageI dest: inj_onD simp: image_compose[symmetric] comp_def)
+        by (auto intro!: inj_onI imageI dest: inj_onD simp: image_comp comp_def)
     qed (auto simp: bij_betw_def)
     fix i
     assume "i < length (z#xs)"

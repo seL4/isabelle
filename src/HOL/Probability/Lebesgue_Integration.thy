@@ -144,7 +144,7 @@ lemma simple_function_compose[intro, simp]:
   unfolding simple_function_def
 proof safe
   show "finite ((g \<circ> f) ` space M)"
-    using assms unfolding simple_function_def by (auto simp: image_compose)
+    using assms unfolding simple_function_def by (auto simp: image_comp [symmetric])
 next
   fix x assume "x \<in> space M"
   let ?G = "g -` {g (f x)} \<inter> (f`space M)"
@@ -2542,7 +2542,7 @@ next
   from f have "bij_betw (from_nat_into I) UNIV I"
     using bij_betw_from_nat_into[OF I] by simp
   then have "(\<Union>i\<in>I. X i) = (\<Union>i. (X \<circ> from_nat_into I) i)"
-    unfolding SUP_def image_compose by (simp add: bij_betw_def)
+    unfolding SUP_def image_comp [symmetric] by (simp add: bij_betw_def)
   then have "emeasure M (UNION I X) = emeasure M (\<Union>i. X (from_nat_into I i))"
     by simp
   also have "\<dots> = (\<Sum>i. emeasure M (X (from_nat_into I i)))"

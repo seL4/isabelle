@@ -98,6 +98,13 @@ differently).
 
 *** HOL ***
 
+* Swapped orientation of facts image_comp and vimage_comp:
+  image_compose ~> image_comp [symmetric]
+  image_comp ~> image_comp [symmetric]
+  vimage_compose ~> vimage_comp [symmetric]
+  vimage_comp ~> vimage_comp [symmetric]
+  INCOMPATIBILITY.
+
 * Simplifier: Enhanced solver of preconditions of rewrite rules
   can now deal with conjunctions.
   For help with converting proofs, the old behaviour of the simplifier

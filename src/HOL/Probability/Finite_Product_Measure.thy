@@ -936,7 +936,7 @@ proof -
 
   show ?B
     using IJ.measurable_emeasure_Pair1[OF merge]
-    by (simp add: vimage_compose[symmetric] comp_def space_pair_measure cong: measurable_cong)
+    by (simp add: vimage_comp comp_def space_pair_measure cong: measurable_cong)
 qed
 
 lemma (in product_sigma_finite) product_integral_insert:

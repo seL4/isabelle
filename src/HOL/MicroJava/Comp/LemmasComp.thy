@@ -68,7 +68,7 @@ next
 
     with fst_eq Cons 
     show "unique (map f (a # list)) = unique (a # list)"
-      by (simp add: unique_def fst_set image_compose)
+      by (simp add: unique_def fst_set image_comp)
   qed
 qed
 
@@ -95,7 +95,7 @@ lemma comp_class_None:
 "(class G C = None) = (class (comp G) C = None)"
 apply (simp add: class_def comp_def compClass_def)
 apply (simp add: map_of_in_set)
-apply (simp add: image_compose [THEN sym] o_def split_beta)
+apply (simp add: image_comp [THEN sym] o_def split_beta)
 done
 
 lemma comp_is_class: "is_class (comp G) C = is_class G C"
@@ -174,7 +174,7 @@ done
 
 lemma comp_wf_syscls: "wf_syscls (comp G) = wf_syscls G"
 apply (simp add: wf_syscls_def comp_def compClass_def split_beta)
-apply (simp only: image_compose [THEN sym])
+apply (simp add: image_comp)
 apply (subgoal_tac "(Fun.comp fst (\<lambda>(C, cno::cname, fdls::fdecl list, jmdls).
   (C, cno, fdls, map (compMethod G C) jmdls))) = fst")
 apply simp

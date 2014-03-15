@@ -4182,7 +4182,6 @@ proof -
     apply (rule continuous_on_compose assms)+
     apply ((rule continuous_on_subset)?, rule assms)+
     using assms(2,4,8)
-    unfolding image_compose
     apply auto
     apply blast
     done

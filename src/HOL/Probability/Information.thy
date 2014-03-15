@@ -1640,7 +1640,7 @@ proof (subst conditional_entropy_generic_eq[OF _ _
     using XY unfolding simple_distributed_def by auto
   from finite_imageI[OF this, of fst]
   have [simp]: "finite (X`space M)"
-    by (simp add: image_compose[symmetric] comp_def)
+    by (simp add: image_comp comp_def)
   note Y[THEN simple_distributed_finite, simp]
   show "sigma_finite_measure (count_space (X ` space M))"
     by (simp add: sigma_finite_measure_count_space_finite)

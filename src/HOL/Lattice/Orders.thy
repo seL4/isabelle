@@ -102,7 +102,7 @@ proof
     have "undual x' \<in> A"
     proof -
       from x' have "undual x' \<in> undual ` dual ` A" by simp
-      thus "undual x' \<in> A" by (simp add: image_compose [symmetric])
+      thus "undual x' \<in> A" by (simp add: image_comp)
     qed
     with a have "P (dual (undual x'))" ..
     also have "\<dots> = x'" by simp

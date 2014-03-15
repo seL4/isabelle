@@ -297,7 +297,7 @@ proof -
   qed
   have **: "range ?A' = range A"
     using surj_from_nat
-    by (auto simp: image_compose intro!: imageI)
+    by (auto simp: image_comp [symmetric] intro!: imageI)
   show ?thesis unfolding * ** ..
 qed
 
@@ -1493,12 +1493,13 @@ proof -
   have fab: "f \<in> (space a -> space b)"
    and ba: "\<And>y. y \<in> sets b \<Longrightarrow> (f -` y) \<inter> (space a) \<in> sets a" using f
      by (auto simp add: measurable_def)
-  have eq: "\<And>y. f -` g -` y \<inter> space a = f -` (g -` y \<inter> t) \<inter> space a" using t
+  have eq: "\<And>y. (g \<circ> f) -` y \<inter> space a = f -` (g -` y \<inter> t) \<inter> space a" using t
     by force
   show ?thesis
-    apply (auto simp add: measurable_def vimage_compose)
+    apply (auto simp add: measurable_def vimage_comp)
     apply (metis funcset_mem fab g)
-    apply (subst eq, metis ba cb)
+    apply (subst eq)
+    apply (metis ba cb)
     done
 qed
 

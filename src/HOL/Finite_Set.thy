@@ -395,7 +395,7 @@ proof -
     by (auto simp add: finite_conv_nat_seg_image)
   then have "fst ` (A \<times> B) = fst ` f ` {i::nat. i < n}" by simp
   with `B \<noteq> {}` have "A = (fst \<circ> f) ` {i::nat. i < n}"
-    by (simp add: image_compose)
+    by (simp add: image_comp)
   then have "\<exists>n f. A = f ` {i::nat. i < n}" by blast
   then show ?thesis
     by (auto simp add: finite_conv_nat_seg_image)
@@ -409,7 +409,7 @@ proof -
     by (auto simp add: finite_conv_nat_seg_image)
   then have "snd ` (A \<times> B) = snd ` f ` {i::nat. i < n}" by simp
   with `A \<noteq> {}` have "B = (snd \<circ> f) ` {i::nat. i < n}"
-    by (simp add: image_compose)
+    by (simp add: image_comp)
   then have "\<exists>n f. B = f ` {i::nat. i < n}" by blast
   then show ?thesis
     by (auto simp add: finite_conv_nat_seg_image)

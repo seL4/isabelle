@@ -302,7 +302,7 @@ proof -
   have "\<exists>s\<in>{- 1..1}. \<exists>t\<in>{- 1..1}. (f \<circ> iscale) s = (g \<circ> iscale) t"
   proof (rule fashoda_unit)
     show "(f \<circ> iscale) ` {- 1..1} \<subseteq> {- 1..1}" "(g \<circ> iscale) ` {- 1..1} \<subseteq> {- 1..1}"
-      using isc and assms(3-4) unfolding image_compose by auto
+      using isc and assms(3-4) by (auto simp add: image_comp [symmetric])
     have *: "continuous_on {- 1..1} iscale"
       unfolding iscale_def by (rule continuous_on_intros)+
     show "continuous_on {- 1..1} (f \<circ> iscale)" "continuous_on {- 1..1} (g \<circ> iscale)"

@@ -644,8 +644,7 @@ apply (case_tac s')
 apply (simp add: eff_def nth_append norm_eff_def)
 apply (frule_tac x="(pc', None)" and  f=fst and b=pc' in rev_image_eqI) 
   apply (simp (no_asm_simp))
-  apply (simp only: fst_conv image_compose [THEN sym] Fun.comp_def)
-  apply simp
+  apply (simp add: image_comp Fun.comp_def)
   apply (frule pc_succs_shift)
 apply (drule bspec, assumption)
 apply arith

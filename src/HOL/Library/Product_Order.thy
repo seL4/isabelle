@@ -225,10 +225,10 @@ lemma Sup_prod_alt_def: "Sup A = (Sup (fst ` A), Sup (snd ` A))"
 by (auto simp: Sup_prod_def SUP_def)
 
 lemma INFI_prod_alt_def: "INFI A f = (INFI A (fst o f), INFI A (snd o f))"
-by (auto simp: INF_def Inf_prod_def image_compose)
+by (auto simp: INF_def Inf_prod_def image_comp)
 
 lemma SUPR_prod_alt_def: "SUPR A f = (SUPR A (fst o f), SUPR A (snd o f))"
-by (auto simp: SUP_def Sup_prod_def image_compose)
+by (auto simp: SUP_def Sup_prod_def image_comp)
 
 lemma INF_prod_alt_def:
   "(INF x:A. f x) = (INF x:A. fst (f x), INF x:A. snd (f x))"

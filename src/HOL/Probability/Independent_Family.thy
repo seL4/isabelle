@@ -794,10 +794,10 @@ proof
     { fix A assume "A \<in> sets (N i)"
       then have "\<exists>B. (Y i \<circ> X i) -` A \<inter> space M = X i -` B \<inter> space M \<and> B \<in> sets (M' i)"
         by (intro exI[of _ "Y i -` A \<inter> space (M' i)"])
-           (auto simp: vimage_compose intro!: measurable_sets rv `i \<in> I` funcset_mem[OF X]) }
+           (auto simp: vimage_comp intro!: measurable_sets rv `i \<in> I` funcset_mem[OF X]) }
     then show "sigma_sets (space M) {(Y i \<circ> X i) -` A \<inter> space M |A. A \<in> sets (N i)} \<subseteq>
       sigma_sets (space M) {X i -` A \<inter> space M |A. A \<in> sets (M' i)}"
-      by (intro sigma_sets_subseteq) (auto simp: vimage_compose)
+      by (intro sigma_sets_subseteq) (auto simp: vimage_comp)
   qed
 qed
 

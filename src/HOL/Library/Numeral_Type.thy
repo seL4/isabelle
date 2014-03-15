@@ -418,7 +418,7 @@ proof(intro_classes)
 
   show univ_eq: "(UNIV :: 'a bit0 set) = set enum_class.enum"
     unfolding enum_bit0_def type_definition.Abs_image[OF type_definition_bit0, symmetric]
-    by(simp add: image_comp inj_on_Abs_bit0 card_image image_int_atLeastLessThan)
+    by(simp add: image_comp [symmetric] inj_on_Abs_bit0 card_image image_int_atLeastLessThan)
       (auto intro!: image_cong[OF refl] simp add: Abs_bit0'_def mod_pos_pos_trivial)
 
   fix P :: "'a bit0 \<Rightarrow> bool"
@@ -442,7 +442,7 @@ proof(intro_classes)
 
   show univ_eq: "(UNIV :: 'a bit1 set) = set enum_class.enum"
     unfolding enum_bit1_def type_definition.Abs_image[OF type_definition_bit1, symmetric]
-    by(simp add: image_comp inj_on_Abs_bit1 card_image image_int_atLeastLessThan)
+    by(simp add: image_comp [symmetric] inj_on_Abs_bit1 card_image image_int_atLeastLessThan)
       (auto intro!: image_cong[OF refl] simp add: Abs_bit1'_def mod_pos_pos_trivial)
 
   fix P :: "'a bit1 \<Rightarrow> bool"

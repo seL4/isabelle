@@ -5050,12 +5050,12 @@ proof-
      from simp_num_pair_ci[where bs="x#bs"] have 
     "\<forall>x. (?f o simp_num_pair) x = ?f x" by auto
      hence th: "?f o simp_num_pair = ?f" using ext by blast
-    have "(?f ` set ?Y) = ((?f o simp_num_pair) ` set ?S)" by (simp add: image_compose)
+    have "(?f ` set ?Y) = ((?f o simp_num_pair) ` set ?S)" by (simp add: image_comp comp_assoc)
     also have "\<dots> = (?f ` set ?S)" by (simp add: th)
     also have "\<dots> = ((?f o ?g) ` set ?Up)" 
-      by (simp only: set_map o_def image_compose[symmetric])
+      by (simp only: set_map o_def image_comp)
     also have "\<dots> = (?h ` (set ?U \<times> set ?U))"
-      using \<Upsilon>_cong_aux[OF U_l, where x="x" and bs="bs", simplified set_map image_compose[symmetric]] by blast
+      using \<Upsilon>_cong_aux[OF U_l, where x="x" and bs="bs", simplified set_map image_comp] by blast
     finally show ?thesis .
   qed
   have "\<forall> (t,n) \<in> set ?Y. bound0 (\<upsilon> ?q (t,n))"
@@ -5122,10 +5122,10 @@ proof-
     by (auto simp add: isint_def)
   from \<delta>[OF lq] have dp:"?d >0" and dd: "d_\<delta> ?q ?d" by blast+
   let ?N = "\<lambda> t. Inum (real (i::int)#bs) t"
-  have "?N ` set ?B' = ((?N o simpnum) ` ?B)" by (simp add:image_compose) 
+  have "?N ` set ?B' = ((?N o simpnum) ` ?B)" by (simp add:image_comp) 
   also have "\<dots> = ?N ` ?B" using simpnum_ci[where bs="real i #bs"] by auto
   finally have BB': "?N ` set ?B' = ?N ` ?B" .
-  have "?N ` set ?A' = ((?N o simpnum) ` ?A)" by (simp add:image_compose) 
+  have "?N ` set ?A' = ((?N o simpnum) ` ?A)" by (simp add:image_comp) 
   also have "\<dots> = ?N ` ?A" using simpnum_ci[where bs="real i #bs"] by auto
   finally have AA': "?N ` set ?A' = ?N ` ?A" .
   from \<beta>_numbound0[OF lq] have B_nb:"\<forall> b\<in> set ?B'. numbound0 b"
@@ -5327,13 +5327,13 @@ proof-
   have lq: "iszlfm ?q (real (i::int)#bs)" . 
   from \<delta>[OF lq] have dp:"?d >0" by blast
   let ?N = "\<lambda> (t,c). (Inum (real (i::int)#bs) t,c)"
-  have "?N ` set ?B' = ((?N o ?f) ` ?B)" by (simp add: split_def image_compose)
+  have "?N ` set ?B' = ((?N o ?f) ` ?B)" by (simp add: split_def image_comp)
   also have "\<dots> = ?N ` ?B"
-    by(simp add: split_def image_compose simpnum_ci[where bs="real i #bs"] image_def)
+    by(simp add: split_def image_comp simpnum_ci[where bs="real i #bs"] image_def)
   finally have BB': "?N ` set ?B' = ?N ` ?B" .
-  have "?N ` set ?A' = ((?N o ?f) ` ?A)" by (simp add: split_def image_compose) 
+  have "?N ` set ?A' = ((?N o ?f) ` ?A)" by (simp add: split_def image_comp) 
   also have "\<dots> = ?N ` ?A" using simpnum_ci[where bs="real i #bs"]
-    by(simp add: split_def image_compose simpnum_ci[where bs="real i #bs"] image_def) 
+    by(simp add: split_def image_comp simpnum_ci[where bs="real i #bs"] image_def) 
   finally have AA': "?N ` set ?A' = ?N ` ?A" .
   from \<rho>_l[OF lq] have B_nb:"\<forall> (e,c)\<in> set ?B'. numbound0 e \<and> c > 0"
     by (simp add: split_def)

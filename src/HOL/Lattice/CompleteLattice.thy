@@ -250,7 +250,7 @@ proof
   proof -
     have "\<exists>sup. is_Sup (undual ` A') sup" by (rule ex_Sup)
     then have "\<exists>sup. is_Inf (dual ` undual ` A') (dual sup)" by (simp only: dual_Inf)
-    then show ?thesis by (simp add: dual_ex [symmetric] image_compose [symmetric])
+    then show ?thesis by (simp add: dual_ex [symmetric] image_comp)
   qed
 qed
 

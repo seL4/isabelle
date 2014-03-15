@@ -1863,12 +1863,12 @@ proof-
      from simp_num_pair_ci[where bs="x#bs"] have 
     "\<forall>x. (?f o simp_num_pair) x = ?f x" by auto
      hence th: "?f o simp_num_pair = ?f" using ext by blast
-    have "(?f ` set ?Y) = ((?f o simp_num_pair) ` set ?S)" by (simp add: image_compose)
+    have "(?f ` set ?Y) = ((?f o simp_num_pair) ` set ?S)" by (simp add: comp_assoc image_comp)
     also have "\<dots> = (?f ` set ?S)" by (simp add: th)
     also have "\<dots> = ((?f o ?g) ` set ?Up)" 
-      by (simp only: set_map o_def image_compose[symmetric])
+      by (simp only: set_map o_def image_comp)
     also have "\<dots> = (?h ` (set ?U \<times> set ?U))"
-      using uset_cong_aux[OF U_l, where x="x" and bs="bs", simplified set_map image_compose[symmetric]] by blast
+      using uset_cong_aux[OF U_l, where x="x" and bs="bs", simplified set_map image_comp] by blast
     finally show ?thesis .
   qed
   have "\<forall> (t,n) \<in> set ?Y. bound0 (simpfm (usubst ?q (t,n)))"

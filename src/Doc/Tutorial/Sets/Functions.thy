@@ -100,8 +100,8 @@ text{*
 *}
 
 text{*
-@{thm[display] image_compose[no_vars]}
-\rulename{image_compose}
+@{thm[display] image_comp[no_vars]}
+\rulename{image_comp}
 
 @{thm[display] image_Int[no_vars]}
 \rulename{image_Int}

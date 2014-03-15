@@ -3798,8 +3798,10 @@ instance prod :: (heine_borel, heine_borel) heine_borel
 proof
   fix f :: "nat \<Rightarrow> 'a \<times> 'b"
   assume f: "bounded (range f)"
-  from f have s1: "bounded (range (fst \<circ> f))"
-    unfolding image_comp by (rule bounded_fst)
+  then have "bounded (fst ` range f)"
+    by (rule bounded_fst)
+  then have s1: "bounded (range (fst \<circ> f))"
+    by (simp add: image_comp)
   obtain l1 r1 where r1: "subseq r1" and l1: "(\<lambda>n. fst (f (r1 n))) ----> l1"
     using bounded_imp_convergent_subsequence [OF s1] unfolding o_def by fast
   from f have s2: "bounded (range (snd \<circ> f \<circ> r1))"

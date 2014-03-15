@@ -37,7 +37,7 @@ lemma image_zet_rep: "A \<in> zet \<Longrightarrow> ? z . g ` A = explode z"
   apply (rule_tac x="Repl z (g o (inv_into A f))" in exI)
   apply (simp add: explode_Repl_eq)
   apply (subgoal_tac "explode z = f ` A")
-  apply (simp_all add: image_compose)
+  apply (simp_all add: image_comp [symmetric])
   done
 
 lemma zet_image_mem:
@@ -58,7 +58,7 @@ proof -
     apply (auto simp add: subset injf)
     done
   show ?thesis
-    apply (simp add: zet_def' image_compose[symmetric])
+    apply (simp add: zet_def' image_comp)
     apply (rule exI[where x="?w"])
     apply (simp add: injw image_zet_rep Azet)
     done
@@ -110,7 +110,7 @@ lemma zin_zexplode_eq: "zin x (zexplode A) = Elem x A"
 lemma comp_zimage_eq: "zimage g (zimage f A) = zimage (g o f) A"
   apply (simp add: zimage_def)
   apply (subst Abs_zet_inverse)
-  apply (simp_all add: image_compose zet_image_mem Rep_zet)
+  apply (simp_all add: image_comp zet_image_mem Rep_zet)
   done
     
 definition zunion :: "'a zet \<Rightarrow> 'a zet \<Rightarrow> 'a zet" where
