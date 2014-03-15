@@ -391,7 +391,7 @@ fun setup_present_hook () = Toplevel.add_hook (fn _ => fn state => fn state' =>
     let
       val prev_facts = Global_Theory.facts_of (Toplevel.theory_of state);
       val facts = Global_Theory.facts_of (Toplevel.theory_of state');
-      val (names, deps) = get_thm_deps (maps #2 (Facts.dest_static [prev_facts] facts));
+      val (names, deps) = get_thm_deps (maps #2 (Facts.dest_static true [prev_facts] facts));
     in
       if null names orelse null deps then ()
       else thm_deps_message (spaces_quote names, spaces_quote deps)

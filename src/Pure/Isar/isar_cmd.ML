@@ -255,8 +255,9 @@ val _ = Theory.setup
 
 (* print theorems *)
 
-val print_theorems_proof =
-  Toplevel.keep (Proof_Context.print_local_facts o Proof.context_of o Toplevel.proof_of);
+fun print_theorems_proof verbose =
+  Toplevel.keep (fn st =>
+    Proof_Context.print_local_facts (Proof.context_of (Toplevel.proof_of st)) verbose);
 
 fun print_theorems_theory verbose = Toplevel.keep (fn state =>
   Toplevel.theory_of state |>
@@ -265,7 +266,7 @@ fun print_theorems_theory verbose = Toplevel.keep (fn state =>
   | NONE => Proof_Display.print_theorems verbose));
 
 fun print_theorems verbose =
-  Toplevel.unknown_context o print_theorems_theory verbose o print_theorems_proof;
+  Toplevel.unknown_context o print_theorems_theory verbose o print_theorems_proof verbose;
 
 
 (* display dependencies *)

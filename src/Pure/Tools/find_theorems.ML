@@ -382,13 +382,12 @@ end;
 
 fun all_facts_of ctxt =
   let
-    fun visible_facts facts =
-      Facts.dest_static [] facts
-      |> filter_out (Facts.is_concealed facts o #1);
+    val local_facts = Proof_Context.facts_of ctxt;
+    val global_facts = Global_Theory.facts_of (Proof_Context.theory_of ctxt);
   in
     maps Facts.selections
-     (visible_facts (Proof_Context.facts_of ctxt) @
-      visible_facts (Global_Theory.facts_of (Proof_Context.theory_of ctxt)))
+     (Facts.dest_static false [] local_facts @  (* FIXME exclude global_facts *)
+      Facts.dest_static false [] global_facts)
   end;
 
 fun filter_theorems ctxt theorems query =

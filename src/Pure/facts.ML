@@ -31,8 +31,7 @@ sig
   val retrieve: Context.generic -> T -> xstring * Position.T -> string * thm list
   val defined: T -> string -> bool
   val fold_static: (string * thm list -> 'a -> 'a) -> T -> 'a -> 'a
-  val dest_static: T list -> T -> (string * thm list) list
-  val extern_static: Proof.context -> T list -> T -> (xstring * thm list) list
+  val dest_static: bool -> T list -> T -> (string * thm list) list
   val props: T -> thm list
   val could_unify: T -> term -> thm list
   val merge: T * T -> T
@@ -159,6 +158,9 @@ val intern = Name_Space.intern o space_of;
 fun extern ctxt = Name_Space.extern ctxt o space_of;
 fun markup_extern ctxt = Name_Space.markup_extern ctxt o space_of
 
+
+(* retrieve *)
+
 val defined = is_some oo (Name_Space.lookup_key o facts_of);
 
 fun lookup context facts name =
@@ -179,22 +181,18 @@ fun retrieve context facts (xname, pos) =
       | NONE => error ("Unknown fact " ^ quote name ^ Position.here pos));
   in (name, map (Thm.transfer (Context.theory_of context)) thms) end;
 
+
+(* static content *)
+
 fun fold_static f =
   Name_Space.fold_table (fn (name, Static ths) => f (name, ths) | _ => I) o facts_of;
 
-
-(* content difference *)
-
-fun diff_table prev_facts facts =
+fun dest_static verbose prev_facts facts =
   fold_static (fn (name, ths) =>
-    if exists (fn prev => defined prev name) prev_facts then I
-    else cons (name, ths)) facts [];
-
-fun dest_static prev_facts facts =
-  sort_wrt #1 (diff_table prev_facts facts);
-
-fun extern_static ctxt prev_facts facts =
-  sort_wrt #1 (diff_table prev_facts facts |> map (apfst (extern ctxt facts)));
+    if exists (fn prev => defined prev name) prev_facts orelse
+      not verbose andalso is_concealed facts name then I
+    else cons (name, ths)) facts []
+  |> sort_wrt #1;
 
 
 (* indexed props *)

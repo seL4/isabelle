@@ -876,8 +876,8 @@ val _ =
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_facts"} "print facts of proof context"
-    (Scan.succeed (Toplevel.unknown_context o
-      Toplevel.keep (Proof_Context.print_local_facts o Toplevel.context_of)));
+    (opt_bang >> (fn verbose => Toplevel.unknown_context o
+      Toplevel.keep (fn st => Proof_Context.print_local_facts (Toplevel.context_of st) verbose)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_cases"} "print cases of proof context"

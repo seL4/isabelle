@@ -162,7 +162,7 @@ sig
   val print_syntax: Proof.context -> unit
   val print_abbrevs: Proof.context -> unit
   val print_binds: Proof.context -> unit
-  val print_local_facts: Proof.context -> unit
+  val print_local_facts: Proof.context -> bool -> unit
   val print_cases: Proof.context -> unit
   val debug: bool Config.T
   val verbose: bool Config.T
@@ -1268,13 +1268,13 @@ val print_binds = Pretty.writeln o Pretty.chunks o pretty_binds;
 
 (* local facts *)
 
-fun pretty_local_facts ctxt =
+fun pretty_local_facts ctxt verbose =
   let
     val facts = facts_of ctxt;
     val props = Facts.props facts;
     val local_facts =
       (if null props then [] else [("<unnamed>", props)]) @
-      Facts.dest_static [Global_Theory.facts_of (theory_of ctxt)] facts;
+      Facts.dest_static verbose [Global_Theory.facts_of (theory_of ctxt)] facts;
   in
     if null local_facts then []
     else
@@ -1282,7 +1282,8 @@ fun pretty_local_facts ctxt =
         (map #1 (sort_wrt (#1 o #2) (map (`(pretty_fact ctxt)) local_facts)))]
   end;
 
-val print_local_facts = Pretty.writeln o Pretty.chunks o pretty_local_facts;
+fun print_local_facts ctxt verbose =
+  Pretty.writeln (Pretty.chunks (pretty_local_facts ctxt verbose));
 
 
 (* local contexts *)
@@ -1406,7 +1407,7 @@ fun pretty_context ctxt =
     pretty_ctxt ctxt @
     verb (pretty_abbrevs false) (K ctxt) @
     verb pretty_binds (K ctxt) @
-    verb pretty_local_facts (K ctxt) @
+    verb (pretty_local_facts ctxt) (K true) @
     verb pretty_cases (K ctxt) @
     verb single (fn () => Pretty.big_list "type constraints:" (map prt_defT (Vartab.dest types))) @
     verb single (fn () => Pretty.big_list "default sorts:" (map prt_defS (Vartab.dest sorts)))

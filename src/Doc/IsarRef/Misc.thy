@@ -21,7 +21,7 @@ text {*
   \end{matharray}
 
   @{rail \<open>
-    (@@{command print_theory} | @@{command print_theorems}) ('!'?)
+    (@@{command print_theory} | @@{command print_theorems} | @@{command print_facts}) ('!'?)
     ;
 
     @@{command find_theorems} ('(' @{syntax nat}? 'with_dups'? ')')? \<newline> (thmcriterion * )
@@ -59,6 +59,13 @@ text {*
   theory resulting from the last command; the ``@{text "!"}'' option
   indicates extra verbosity.
   
+  \item @{command "print_facts"} prints all local facts of the
+  current context, both named and unnamed ones; the ``@{text "!"}''
+  option indicates extra verbosity.
+  
+  \item @{command "print_binds"} prints all term abbreviations
+  present in the context.
+
   \item @{command "find_theorems"}~@{text criteria} retrieves facts
   from the theory or proof context matching all of given search
   criteria.  The criterion @{text "name: p"} selects all theorems
@@ -102,12 +109,6 @@ text {*
   defaults to the current theory. If no range is specified,
   only the unused theorems in the current theory are displayed.
   
-  \item @{command "print_facts"} prints all local facts of the
-  current context, both named and unnamed ones.
-  
-  \item @{command "print_binds"} prints all term abbreviations
-  present in the context.
-
   \end{description}
 *}
 
