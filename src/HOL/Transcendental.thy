@@ -533,54 +533,28 @@ proof -
 qed
 
 lemma lemma_termdiff4:
-  fixes f :: "'a::{real_normed_field} \<Rightarrow>
-              'b::real_normed_vector"
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes k: "0 < (k::real)"
     and le: "\<And>h. \<lbrakk>h \<noteq> 0; norm h < k\<rbrakk> \<Longrightarrow> norm (f h) \<le> K * norm h"
   shows "f -- 0 --> 0"
-  unfolding LIM_eq diff_0_right
-proof safe
-  let ?h = "of_real (k / 2)::'a"
-  have "?h \<noteq> 0" and "norm ?h < k" using k by simp_all
-  hence "norm (f ?h) \<le> K * norm ?h" by (rule le)
-  hence "0 \<le> K * norm ?h" by (rule order_trans [OF norm_ge_zero])
-  hence zero_le_K: "0 \<le> K" using k by (simp add: zero_le_mult_iff)
-
-  fix r::real
-  assume r: "0 < r"
-  show "\<exists>s. 0 < s \<and> (\<forall>x. x \<noteq> 0 \<and> norm x < s \<longrightarrow> norm (f x) < r)"
-  proof cases
-    assume "K = 0"
-    with k r le have "0 < k \<and> (\<forall>x. x \<noteq> 0 \<and> norm x < k \<longrightarrow> norm (f x) < r)"
+proof (rule tendsto_norm_zero_cancel)
+  show "(\<lambda>h. norm (f h)) -- 0 --> 0"
+  proof (rule real_tendsto_sandwich)
+    show "eventually (\<lambda>h. 0 \<le> norm (f h)) (at 0)"
       by simp
-    thus "\<exists>s. 0 < s \<and> (\<forall>x. x \<noteq> 0 \<and> norm x < s \<longrightarrow> norm (f x) < r)" ..
-  next
-    assume K_neq_zero: "K \<noteq> 0"
-    with zero_le_K have K: "0 < K" by simp
-    show "\<exists>s. 0 < s \<and> (\<forall>x. x \<noteq> 0 \<and> norm x < s \<longrightarrow> norm (f x) < r)"
-    proof (rule exI, safe)
-      from k r K
-      show "0 < min k (r * inverse K / 2)"
-        by (simp add: mult_pos_pos positive_imp_inverse_positive)
-    next
-      fix x::'a
-      assume x1: "x \<noteq> 0" and x2: "norm x < min k (r * inverse K / 2)"
-      from x2 have x3: "norm x < k" and x4: "norm x < r * inverse K / 2"
-        by simp_all
-      from x1 x3 le have "norm (f x) \<le> K * norm x" by simp
-      also from x4 K have "K * norm x < K * (r * inverse K / 2)"
-        by (rule mult_strict_left_mono)
-      also have "\<dots> = r / 2"
-        using K_neq_zero by simp
-      also have "r / 2 < r"
-        using r by simp
-      finally show "norm (f x) < r" .
-    qed
+    show "eventually (\<lambda>h. norm (f h) \<le> K * norm h) (at 0)"
+      using k by (auto simp add: eventually_at dist_norm le)
+    show "(\<lambda>h. 0) -- (0::'a) --> (0::real)"
+      by (rule tendsto_const)
+    have "(\<lambda>h. K * norm h) -- (0::'a) --> K * norm (0::'a)"
+      by (intro tendsto_intros)
+    then show "(\<lambda>h. K * norm h) -- (0::'a) --> 0"
+      by simp
   qed
 qed
 
 lemma lemma_termdiff5:
-  fixes g :: "'a::real_normed_field \<Rightarrow> nat \<Rightarrow> 'b::banach"
+  fixes g :: "'a::real_normed_vector \<Rightarrow> nat \<Rightarrow> 'b::banach"
   assumes k: "0 < (k::real)"
   assumes f: "summable f"
   assumes le: "\<And>h n. \<lbrakk>h \<noteq> 0; norm h < k\<rbrakk> \<Longrightarrow> norm (g h n) \<le> f n * norm h"
@@ -685,34 +659,20 @@ proof (rule LIM_zero_cancel)
     show "0 < norm K - norm x" using 4 by (simp add: less_diff_eq)
   next
     fix h :: 'a
-    assume "h \<noteq> 0"
     assume "norm (h - 0) < norm K - norm x"
     hence "norm x + norm h < norm K" by simp
     hence 5: "norm (x + h) < norm K"
       by (rule norm_triangle_ineq [THEN order_le_less_trans])
-    have A: "summable (\<lambda>n. c n * x ^ n)"
-      by (rule powser_inside [OF 1 4])
-    have B: "summable (\<lambda>n. c n * (x + h) ^ n)"
-      by (rule powser_inside [OF 1 5])
-    have C: "summable (\<lambda>n. diffs c n * x ^ n)"
-      by (rule powser_inside [OF 2 4])
-    let ?dp = "(\<Sum>n. of_nat n * c n * x ^ (n - Suc 0))"
-    have "((\<Sum>n. c n * (x + h) ^ n) - (\<Sum>n. c n * x ^ n)) / h - (\<Sum>n. diffs c n * x ^ n) =
-          ((\<Sum>n. c n * (x + h) ^ n) - (\<Sum>n. c n * x ^ n)) / h - ?dp"  
-      by (metis sums_unique [OF diffs_equiv [OF C]])
-    also have "... = (\<Sum>n. c n * (x + h) ^ n - c n * x ^ n) / h - ?dp"  
-      by (metis suminf_diff [OF B A])
-    also have "... = (\<Sum>n. (c n * (x + h) ^ n - c n * x ^ n) / h)  - ?dp"
-      by (metis suminf_divide [OF summable_diff [OF B A]] )  
-    also have "... = (\<Sum>n. (c n * (x + h) ^ n - c n * x ^ n) / h - of_nat n * c n * x ^ (n - Suc 0))"
-      apply (subst suminf_diff)
-      apply (auto intro: summable_divide summable_diff [OF B A] sums_summable [OF diffs_equiv [OF C]])
-      done
-    also have "... = (\<Sum>n. c n * (((x + h) ^ n - x ^ n) / h - of_nat n * x ^ (n - Suc 0)))"
+    have "summable (\<lambda>n. c n * x ^ n)"
+      and "summable (\<lambda>n. c n * (x + h) ^ n)"
+      and "summable (\<lambda>n. diffs c n * x ^ n)"
+      using 1 2 4 5 by (auto elim: powser_inside)
+    then have "((\<Sum>n. c n * (x + h) ^ n) - (\<Sum>n. c n * x ^ n)) / h - (\<Sum>n. diffs c n * x ^ n) =
+          (\<Sum>n. (c n * (x + h) ^ n - c n * x ^ n) / h - of_nat n * c n * x ^ (n - Suc 0))"
+      by (intro sums_unique sums_diff sums_divide diffs_equiv summable_sums)
+    then show "((\<Sum>n. c n * (x + h) ^ n) - (\<Sum>n. c n * x ^ n)) / h - (\<Sum>n. diffs c n * x ^ n) =
+          (\<Sum>n. c n * (((x + h) ^ n - x ^ n) / h - of_nat n * x ^ (n - Suc 0)))"
       by (simp add: algebra_simps)
-    finally show "((\<Sum>n. c n * (x + h) ^ n) - (\<Sum>n. c n * x ^ n)) / h
-                   - (\<Sum>n. diffs c n * x ^ n) =
-                  (\<Sum>n. c n * (((x + h) ^ n - x ^ n) / h - of_nat n * x ^ (n - Suc 0)))" . 
   next
     show "(\<lambda>h. \<Sum>n. c n * (((x + h) ^ n - x ^ n) / h - of_nat n * x ^ (n - Suc 0))) -- 0 --> 0"
       by (rule termdiffs_aux [OF 3 4])
