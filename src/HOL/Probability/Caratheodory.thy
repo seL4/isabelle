@@ -975,7 +975,7 @@ proof -
     have "(\<Sum>n. \<mu>_r (A' n)) = (\<Sum>n. \<Sum>c\<in>C'. \<mu>_r (A' n \<inter> c))"
       using C' A'
       by (subst volume_finite_additive[symmetric, OF V(1)])
-         (auto simp: disjoint_def disjoint_family_on_def Union_image_eq[symmetric] simp del: Union_image_eq
+         (auto simp: disjoint_def disjoint_family_on_def Union_image_eq[symmetric] simp del: Sup_image_eq Union_image_eq
                intro!: G.Int G.finite_Union arg_cong[where f="\<lambda>X. suminf (\<lambda>i. \<mu>_r (X i))"] ext
                intro: generated_ringI_Basic)
     also have "\<dots> = (\<Sum>c\<in>C'. \<Sum>n. \<mu>_r (A' n \<inter> c))"
@@ -987,7 +987,7 @@ proof -
     also have "\<dots> = \<mu>_r (\<Union>C')"
       using C' Un_A
       by (subst volume_finite_additive[symmetric, OF V(1)])
-         (auto simp: disjoint_family_on_def disjoint_def Union_image_eq[symmetric] simp del: Union_image_eq 
+         (auto simp: disjoint_family_on_def disjoint_def Union_image_eq[symmetric] simp del: Sup_image_eq Union_image_eq 
                intro: generated_ringI_Basic)
     finally show "(\<Sum>n. \<mu>_r (A' n)) = \<mu>_r (\<Union>i. A' i)"
       using C' by simp

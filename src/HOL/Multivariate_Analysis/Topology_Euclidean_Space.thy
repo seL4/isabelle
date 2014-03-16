@@ -1548,7 +1548,7 @@ next
       fix y
       assume "y \<in> {x<..} \<inter> I"
       with False bnd have "Inf (f ` ({x<..} \<inter> I)) \<le> f y"
-        by (auto intro!: cInf_lower bdd_belowI2)
+        by (auto intro!: cInf_lower bdd_belowI2 simp del: Inf_image_eq)
       with a have "a < f y"
         by (blast intro: less_le_trans)
     }
@@ -3116,7 +3116,7 @@ next
     fix X
     assume "X \<subseteq> P' ` insert U A" "finite X" "Inf X = bot"
     then obtain B where "B \<subseteq> insert U A" "finite B" and B: "Inf (P' ` B) = bot"
-      unfolding subset_image_iff by (auto intro: inj_P' finite_imageD)
+      unfolding subset_image_iff by (auto intro: inj_P' finite_imageD simp del: Inf_image_eq)
     with A(2)[THEN spec, of "B - {U}"] have "U \<inter> \<Inter>(B - {U}) \<noteq> {}"
       by auto
     with B show False

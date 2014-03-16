@@ -178,7 +178,7 @@ end
 instance prod :: (conditionally_complete_lattice, conditionally_complete_lattice)
     conditionally_complete_lattice
   by default (force simp: less_eq_prod_def Inf_prod_def Sup_prod_def bdd_below_def bdd_above_def
-    INF_def SUP_def intro!: cInf_lower cSup_upper cInf_greatest cSup_least)+
+    INF_def SUP_def simp del: Inf_image_eq Sup_image_eq intro!: cInf_lower cSup_upper cInf_greatest cSup_least)+
 
 instance prod :: (complete_lattice, complete_lattice) complete_lattice
   by default (simp_all add: less_eq_prod_def Inf_prod_def Sup_prod_def
@@ -197,46 +197,46 @@ lemma snd_Inf: "snd (Inf A) = (INF x:A. snd x)"
   unfolding Inf_prod_def by simp
 
 lemma fst_SUP: "fst (SUP x:A. f x) = (SUP x:A. fst (f x))"
-  by (simp add: SUP_def fst_Sup image_image)
+  using fst_Sup [of "f ` A", symmetric] by (simp add: comp_def)
 
 lemma snd_SUP: "snd (SUP x:A. f x) = (SUP x:A. snd (f x))"
-  by (simp add: SUP_def snd_Sup image_image)
+  using snd_Sup [of "f ` A", symmetric] by (simp add: comp_def)
 
 lemma fst_INF: "fst (INF x:A. f x) = (INF x:A. fst (f x))"
-  by (simp add: INF_def fst_Inf image_image)
+  using fst_Inf [of "f ` A", symmetric] by (simp add: comp_def)
 
 lemma snd_INF: "snd (INF x:A. f x) = (INF x:A. snd (f x))"
-  by (simp add: INF_def snd_Inf image_image)
+  using snd_Inf [of "f ` A", symmetric] by (simp add: comp_def)
 
 lemma SUP_Pair: "(SUP x:A. (f x, g x)) = (SUP x:A. f x, SUP x:A. g x)"
-  by (simp add: SUP_def Sup_prod_def image_image)
+  unfolding SUP_def Sup_prod_def by (simp add: comp_def)
 
 lemma INF_Pair: "(INF x:A. (f x, g x)) = (INF x:A. f x, INF x:A. g x)"
-  by (simp add: INF_def Inf_prod_def image_image)
+  unfolding INF_def Inf_prod_def by (simp add: comp_def)
 
 
 text {* Alternative formulations for set infima and suprema over the product
 of two complete lattices: *}
 
 lemma Inf_prod_alt_def: "Inf A = (Inf (fst ` A), Inf (snd ` A))"
-by (auto simp: Inf_prod_def INF_def)
+by (auto simp: Inf_prod_def)
 
 lemma Sup_prod_alt_def: "Sup A = (Sup (fst ` A), Sup (snd ` A))"
-by (auto simp: Sup_prod_def SUP_def)
+by (auto simp: Sup_prod_def)
 
 lemma INFI_prod_alt_def: "INFI A f = (INFI A (fst o f), INFI A (snd o f))"
-by (auto simp: INF_def Inf_prod_def image_comp)
+  unfolding INF_def Inf_prod_def by simp
 
 lemma SUPR_prod_alt_def: "SUPR A f = (SUPR A (fst o f), SUPR A (snd o f))"
-by (auto simp: SUP_def Sup_prod_def image_comp)
+  unfolding SUP_def Sup_prod_def by simp
 
 lemma INF_prod_alt_def:
   "(INF x:A. f x) = (INF x:A. fst (f x), INF x:A. snd (f x))"
-by (metis fst_INF snd_INF surjective_pairing)
+  by (simp add: INFI_prod_alt_def comp_def)
 
 lemma SUP_prod_alt_def:
   "(SUP x:A. f x) = (SUP x:A. fst (f x), SUP x:A. snd (f x))"
-by (metis fst_SUP snd_SUP surjective_pairing)
+  by (simp add: SUPR_prod_alt_def comp_def)
 
 
 subsection {* Complete distributive lattices *}

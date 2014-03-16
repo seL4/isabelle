@@ -2709,7 +2709,7 @@ lemma infnorm_set_image:
 lemma infnorm_Max:
   fixes x :: "'a::euclidean_space"
   shows "infnorm x = Max ((\<lambda>i. abs (x \<bullet> i)) ` Basis)"
-  by (simp add: infnorm_def infnorm_set_image cSup_eq_Max)
+  by (simp add: infnorm_def infnorm_set_image cSup_eq_Max del: Sup_image_eq)
 
 lemma infnorm_set_lemma:
   fixes x :: "'a::euclidean_space"

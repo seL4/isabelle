@@ -257,7 +257,7 @@ apply (erule wens_set.induct)
  apply (simp add: progress_induction_step) 
 txt{*Disjunctive case*}
 apply (subgoal_tac "(\<Union>U\<in>W. T \<inter> U) \<in> C") 
- apply (simp add: Int_Union) 
+ apply simp 
 apply (blast intro: UN_in_lattice) 
 done
 

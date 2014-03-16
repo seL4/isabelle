@@ -162,8 +162,7 @@ lemma Union_disjoint:
 proof cases
   assume "finite C"
   from UNION_disjoint [OF this assms]
-  show ?thesis
-    by (simp add: SUP_def)
+  show ?thesis by simp
 qed (auto dest: finite_UnionD intro: infinite)
 
 lemma distrib:
@@ -1020,7 +1019,7 @@ lemma card_Union_disjoint:
    (ALL A:C. ALL B:C. A \<noteq> B --> A Int B = {})
    ==> card (Union C) = setsum card C"
 apply (frule card_UN_disjoint [of C id])
-apply (simp_all add: SUP_def id_def)
+apply simp_all
 done
 
 

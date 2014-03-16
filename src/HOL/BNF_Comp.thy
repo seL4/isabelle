@@ -25,7 +25,7 @@ lemma comp_single_set_bd:
     fset_bd: "\<And>x. |fset x| \<le>o fbd" and
     gset_bd: "\<And>x. |gset x| \<le>o gbd"
   shows "|\<Union>(fset ` gset x)| \<le>o gbd *c fbd"
-apply (subst sym[OF SUP_def])
+apply simp
 apply (rule ordLeq_transitive)
 apply (rule card_of_UNION_Sigma)
 apply (subst SIGMA_CSUM)
@@ -69,7 +69,7 @@ lemma UN_image_subset: "\<Union>(f ` g x) \<subseteq> X = (g x \<subseteq> {x. f
 by blast
 
 lemma comp_set_bd_Union_o_collect: "|\<Union>\<Union>((\<lambda>f. f x) ` X)| \<le>o hbd \<Longrightarrow> |(Union \<circ> collect X) x| \<le>o hbd"
-by (unfold comp_apply collect_def SUP_def)
+by (unfold comp_apply collect_def) simp
 
 lemma wpull_cong:
 "\<lbrakk>A' = A; B1' = B1; B2' = B2; wpull A B1 B2 f1 f2 p1 p2\<rbrakk> \<Longrightarrow> wpull A' B1' B2' f1 f2 p1 p2"

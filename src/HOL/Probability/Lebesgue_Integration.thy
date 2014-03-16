@@ -936,7 +936,7 @@ proof (rule ereal_le_mult_one_interval)
           by (intro ereal_mult_strict_right_mono) (auto simp: image_iff)
         also have "\<dots> \<le> (SUP i. f i x)" using u(2) by (auto simp: le_fun_def)
         finally obtain i where "a * u x < f i x" unfolding SUP_def
-          by (auto simp add: less_Sup_iff)
+          by (auto simp add: less_SUP_iff)
         hence "a * u x \<le> f i x" by auto
         thus ?thesis using `x \<in> space M` by auto
       qed

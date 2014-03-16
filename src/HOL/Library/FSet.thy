@@ -143,7 +143,7 @@ begin
 lift_definition uminus_fset :: "'a fset \<Rightarrow> 'a fset" is uminus 
   parametric right_total_Compl_transfer Compl_transfer by simp
 
-instance by (default, simp_all only: INF_def SUP_def) (transfer, auto)+
+instance by (default, simp_all only: INF_def SUP_def) (transfer, simp add: Compl_partition Diff_eq)+
 
 end
 

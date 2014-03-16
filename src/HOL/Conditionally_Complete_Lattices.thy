@@ -275,16 +275,16 @@ lemma cInf_atLeastAtMost[simp]: "y \<le> x \<Longrightarrow> Inf {y..x} = y"
   by (auto intro!: cInf_eq_minimum)
 
 lemma cINF_lower: "bdd_below (f ` A) \<Longrightarrow> x \<in> A \<Longrightarrow> INFI A f \<le> f x"
-  unfolding INF_def by (rule cInf_lower) auto
+  using cInf_lower [of _ "f ` A"] by simp
 
 lemma cINF_greatest: "A \<noteq> {} \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> m \<le> f x) \<Longrightarrow> m \<le> INFI A f"
-  unfolding INF_def by (rule cInf_greatest) auto
+  using cInf_greatest [of "f ` A"] by auto
 
 lemma cSUP_upper: "x \<in> A \<Longrightarrow> bdd_above (f ` A) \<Longrightarrow> f x \<le> SUPR A f"
-  unfolding SUP_def by (rule cSup_upper) auto
+  using cSup_upper [of _ "f ` A"] by simp
 
 lemma cSUP_least: "A \<noteq> {} \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> f x \<le> M) \<Longrightarrow> SUPR A f \<le> M"
-  unfolding SUP_def by (rule cSup_least) auto
+  using cSup_least [of "f ` A"] by auto
 
 lemma cINF_lower2: "bdd_below (f ` A) \<Longrightarrow> x \<in> A \<Longrightarrow> f x \<le> u \<Longrightarrow> INFI A f \<le> u"
   by (auto intro: cINF_lower assms order_trans)
@@ -311,16 +311,16 @@ lemma cSUP_lessD: "bdd_above (f`A) \<Longrightarrow> (SUP i:A. f i) < y \<Longri
   by (metis cSUP_upper le_less_trans)
 
 lemma cINF_insert: "A \<noteq> {} \<Longrightarrow> bdd_below (f ` A) \<Longrightarrow> INFI (insert a A) f = inf (f a) (INFI A f)"
-  by (metis INF_def cInf_insert assms empty_is_image image_insert)
+  by (metis cInf_insert Inf_image_eq image_insert image_is_empty)
 
 lemma cSUP_insert: "A \<noteq> {} \<Longrightarrow> bdd_above (f ` A) \<Longrightarrow> SUPR (insert a A) f = sup (f a) (SUPR A f)"
-  by (metis SUP_def cSup_insert assms empty_is_image image_insert)
+  by (metis cSup_insert Sup_image_eq image_insert image_is_empty)
 
 lemma cINF_mono: "B \<noteq> {} \<Longrightarrow> bdd_below (f ` A) \<Longrightarrow> (\<And>m. m \<in> B \<Longrightarrow> \<exists>n\<in>A. f n \<le> g m) \<Longrightarrow> INFI A f \<le> INFI B g"
-  unfolding INF_def by (auto intro: cInf_mono)
+  using cInf_mono [of "g ` B" "f ` A"] by auto
 
 lemma cSUP_mono: "A \<noteq> {} \<Longrightarrow> bdd_above (g ` B) \<Longrightarrow> (\<And>n. n \<in> A \<Longrightarrow> \<exists>m\<in>B. f n \<le> g m) \<Longrightarrow> SUPR A f \<le> SUPR B g"
-  unfolding SUP_def by (auto intro: cSup_mono)
+  using cSup_mono [of "f ` A" "g ` B"] by auto
 
 lemma cINF_superset_mono: "A \<noteq> {} \<Longrightarrow> bdd_below (g ` B) \<Longrightarrow> A \<subseteq> B \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> g x \<le> f x) \<Longrightarrow> INFI B g \<le> INFI A f"
   by (rule cINF_mono) auto
@@ -338,13 +338,13 @@ lemma cInf_union_distrib: "A \<noteq> {} \<Longrightarrow> bdd_below A \<Longrig
   by (intro antisym le_infI cInf_greatest cInf_lower) (auto intro: le_infI1 le_infI2 cInf_lower)
 
 lemma cINF_union: "A \<noteq> {} \<Longrightarrow> bdd_below (f`A) \<Longrightarrow> B \<noteq> {} \<Longrightarrow> bdd_below (f`B) \<Longrightarrow> INFI (A \<union> B) f = inf (INFI A f) (INFI B f)"
-  unfolding INF_def using assms by (auto simp add: image_Un intro: cInf_union_distrib)
+  using cInf_union_distrib [of "f ` A" "f ` B"] by (simp add: image_Un [symmetric])
 
 lemma cSup_union_distrib: "A \<noteq> {} \<Longrightarrow> bdd_above A \<Longrightarrow> B \<noteq> {} \<Longrightarrow> bdd_above B \<Longrightarrow> Sup (A \<union> B) = sup (Sup A) (Sup B)"
   by (intro antisym le_supI cSup_least cSup_upper) (auto intro: le_supI1 le_supI2 cSup_upper)
 
 lemma cSUP_union: "A \<noteq> {} \<Longrightarrow> bdd_above (f`A) \<Longrightarrow> B \<noteq> {} \<Longrightarrow> bdd_above (f`B) \<Longrightarrow> SUPR (A \<union> B) f = sup (SUPR A f) (SUPR B f)"
-  unfolding SUP_def by (auto simp add: image_Un intro: cSup_union_distrib)
+  using cSup_union_distrib [of "f ` A" "f ` B"] by (simp add: image_Un [symmetric])
 
 lemma cINF_inf_distrib: "A \<noteq> {} \<Longrightarrow> bdd_below (f`A) \<Longrightarrow> bdd_below (g`A) \<Longrightarrow> inf (INFI A f) (INFI A g) = (INF a:A. inf (f a) (g a))"
   by (intro antisym le_infI cINF_greatest cINF_lower2)
@@ -388,10 +388,10 @@ lemma cInf_less_iff: "X \<noteq> {} \<Longrightarrow> bdd_below X \<Longrightarr
   by (rule iffI) (metis cInf_greatest not_less, metis cInf_lower le_less_trans)
 
 lemma cINF_less_iff: "A \<noteq> {} \<Longrightarrow> bdd_below (f`A) \<Longrightarrow> (INF i:A. f i) < a \<longleftrightarrow> (\<exists>x\<in>A. f x < a)"
-  unfolding INF_def using cInf_less_iff[of "f`A"] by auto
+  using cInf_less_iff[of "f`A"] by auto
 
 lemma less_cSUP_iff: "A \<noteq> {} \<Longrightarrow> bdd_above (f`A) \<Longrightarrow> a < (SUP i:A. f i) \<longleftrightarrow> (\<exists>x\<in>A. a < f x)"
-  unfolding SUP_def using less_cSup_iff[of "f`A"] by auto
+  using less_cSup_iff[of "f`A"] by auto
 
 lemma less_cSupE:
   assumes "y < Sup X" "X \<noteq> {}" obtains x where "x \<in> X" "y < x"

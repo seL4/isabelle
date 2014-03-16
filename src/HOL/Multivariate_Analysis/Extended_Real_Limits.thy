@@ -917,8 +917,8 @@ lemma suminf_upper:
   fixes f :: "nat \<Rightarrow> ereal"
   assumes "\<And>n. 0 \<le> f n"
   shows "(\<Sum>n<N. f n) \<le> (\<Sum>n. f n)"
-  unfolding suminf_ereal_eq_SUPR[OF assms] SUP_def
-  by (auto intro: complete_lattice_class.Sup_upper)
+  unfolding suminf_ereal_eq_SUPR[OF assms]
+  by (auto intro: complete_lattice_class.SUP_upper)
 
 lemma suminf_0_le:
   fixes f :: "nat \<Rightarrow> ereal"
@@ -1215,8 +1215,9 @@ lemma min_Liminf_at:
   apply (subst SUP_inf)
   apply (intro SUP_cong[OF refl])
   apply (cut_tac A="ball x xa - {x}" and B="{x}" and M=f in INF_union)
-  apply (simp add: INF_def del: inf_ereal_def)
-  done
+  apply (drule sym)
+  apply auto
+  by (metis INF_absorb centre_in_ball)
 
 
 subsection {* monoset *}

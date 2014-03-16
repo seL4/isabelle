@@ -39,10 +39,12 @@ proof
   hence "\<And>i. (\<lambda>x. x \<bullet> i) ` X \<noteq> {}" by simp
   thus "(\<And>x. x \<in> X \<Longrightarrow> z \<le> x) \<Longrightarrow> z \<le> Inf X" "(\<And>x. x \<in> X \<Longrightarrow> x \<le> z) \<Longrightarrow> Sup X \<le> z"
     by (auto simp: eucl_Inf eucl_Sup eucl_le Inf_class.INF_def Sup_class.SUP_def
+      simp del: Inf_class.Inf_image_eq Sup_class.Sup_image_eq
       intro!: cInf_greatest cSup_least)
 qed (force intro!: cInf_lower cSup_upper
       simp: bdd_below_def bdd_above_def preorder_class.bdd_below_def preorder_class.bdd_above_def
-        eucl_Inf eucl_Sup eucl_le Inf_class.INF_def Sup_class.SUP_def)+
+        eucl_Inf eucl_Sup eucl_le Inf_class.INF_def Sup_class.SUP_def
+      simp del: Inf_class.Inf_image_eq Sup_class.Sup_image_eq)+
 
 lemma inner_Basis_inf_left: "i \<in> Basis \<Longrightarrow> inf x y \<bullet> i = inf (x \<bullet> i) (y \<bullet> i)"
   and inner_Basis_sup_left: "i \<in> Basis \<Longrightarrow> sup x y \<bullet> i = sup (x \<bullet> i) (y \<bullet> i)"
@@ -51,7 +53,7 @@ lemma inner_Basis_inf_left: "i \<in> Basis \<Longrightarrow> inf x y \<bullet> i
 
 lemma inner_Basis_INF_left: "i \<in> Basis \<Longrightarrow> (INF x:X. f x) \<bullet> i = (INF x:X. f x \<bullet> i)"
   and inner_Basis_SUP_left: "i \<in> Basis \<Longrightarrow> (SUP x:X. f x) \<bullet> i = (SUP x:X. f x \<bullet> i)"
-  by (simp_all add: INF_def SUP_def eucl_Sup eucl_Inf)
+  using eucl_Sup [of "f ` X"] eucl_Inf [of "f ` X"] by (simp_all add: comp_def)
 
 lemma abs_inner: "i \<in> Basis \<Longrightarrow> abs x \<bullet> i = abs (x \<bullet> i)"
   by (auto simp: eucl_abs)
@@ -87,7 +89,7 @@ lemma Sup_eq_maximum_componentwise:
   shows "Sup s = X"
   using assms
   unfolding eucl_Sup euclidean_representation_setsum
-  by (auto simp: Sup_class.SUP_def intro!: conditionally_complete_lattice_class.cSup_eq_maximum)
+  by (auto simp: Sup_class.SUP_def simp del: Sup_class.Sup_image_eq intro!: conditionally_complete_lattice_class.cSup_eq_maximum)
 
 lemma Inf_eq_minimum_componentwise:
   assumes i: "\<And>b. b \<in> Basis \<Longrightarrow> X \<bullet> b = i b \<bullet> b"
@@ -96,7 +98,7 @@ lemma Inf_eq_minimum_componentwise:
   shows "Inf s = X"
   using assms
   unfolding eucl_Inf euclidean_representation_setsum
-  by (auto simp: Inf_class.INF_def intro!: conditionally_complete_lattice_class.cInf_eq_minimum)
+  by (auto simp: Inf_class.INF_def simp del: Inf_class.Inf_image_eq intro!: conditionally_complete_lattice_class.cInf_eq_minimum)
 
 end
 
@@ -115,10 +117,11 @@ proof atomize_elim
       and x: "x \<in> X" "s = x \<bullet> b" "\<And>y. y \<in> X \<Longrightarrow> x \<bullet> b \<le> y \<bullet> b"
     by auto
   hence "Inf ?proj = x \<bullet> b"
-    by (auto intro!: conditionally_complete_lattice_class.cInf_eq_minimum)
+    by (auto intro!: conditionally_complete_lattice_class.cInf_eq_minimum simp del: Inf_class.Inf_image_eq)
   hence "x \<bullet> b = Inf X \<bullet> b"
-    by (auto simp: eucl_Inf Inf_class.INF_def inner_setsum_left inner_Basis if_distrib `b \<in> Basis`
-      setsum_delta cong: if_cong)
+    by (auto simp: eucl_Inf Inf_class.INF_def inner_setsum_left inner_Basis if_distrib `b \<in> Basis` setsum_delta
+      simp del: Inf_class.Inf_image_eq
+      cong: if_cong)
   with x show "\<exists>x. x \<in> X \<and> x \<bullet> b = Inf X \<bullet> b \<and> (\<forall>y. y \<in> X \<longrightarrow> x \<bullet> b \<le> y \<bullet> b)" by blast
 qed
 
@@ -137,10 +140,10 @@ proof atomize_elim
       and x: "x \<in> X" "s = x \<bullet> b" "\<And>y. y \<in> X \<Longrightarrow> y \<bullet> b \<le> x \<bullet> b"
     by auto
   hence "Sup ?proj = x \<bullet> b"
-    by (auto intro!: cSup_eq_maximum)
+    by (auto intro!: cSup_eq_maximum simp del: Sup_image_eq)
   hence "x \<bullet> b = Sup X \<bullet> b"
-    by (auto simp: eucl_Sup[where 'a='a] SUP_def inner_setsum_left inner_Basis if_distrib `b \<in> Basis`
-      setsum_delta cong: if_cong)
+    by (auto simp: eucl_Sup[where 'a='a] SUP_def inner_setsum_left inner_Basis if_distrib `b \<in> Basis` setsum_delta
+      simp del: Sup_image_eq cong: if_cong)
   with x show "\<exists>x. x \<in> X \<and> x \<bullet> b = Sup X \<bullet> b \<and> (\<forall>y. y \<in> X \<longrightarrow> y \<bullet> b \<le> x \<bullet> b)" by blast
 qed
 
@@ -715,7 +718,7 @@ lemma inter_interval_mixed_eq_empty:
 lemma diameter_closed_interval:
   fixes a b::"'a::ordered_euclidean_space"
   shows "a \<le> b \<Longrightarrow> diameter {a..b} = dist a b"
-  by (force simp add: diameter_def SUP_def intro!: cSup_eq_maximum setL2_mono
+  by (force simp add: diameter_def SUP_def simp del: Sup_image_eq intro!: cSup_eq_maximum setL2_mono
      simp: euclidean_dist_l2[where 'a='a] eucl_le[where 'a='a] dist_norm)
 
 text {* Intervals in general, including infinite and mixtures of open and closed. *}

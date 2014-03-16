@@ -1389,15 +1389,25 @@ proof
 qed
 
 lemma ereal_Sup_uminus_image_eq: "Sup (uminus ` S::ereal set) = - Inf S"
-  by (auto intro!: Sup_eqI
+  by (auto intro!: SUP_eqI
            simp: Ball_def[symmetric] ereal_uminus_le_reorder le_Inf_iff
            intro!: complete_lattice_class.Inf_lower2)
+
+lemma ereal_SUP_uminus_eq:
+  fixes f :: "'a \<Rightarrow> ereal"
+  shows "(SUP x:S. uminus (f x)) = - (INF x:S. f x)"
+  using ereal_Sup_uminus_image_eq [of "f ` S"] by (simp add: comp_def)
 
 lemma ereal_inj_on_uminus[intro, simp]: "inj_on uminus (A :: ereal set)"
   by (auto intro!: inj_onI)
 
 lemma ereal_Inf_uminus_image_eq: "Inf (uminus ` S::ereal set) = - Sup S"
   using ereal_Sup_uminus_image_eq[of "uminus ` S"] by simp
+
+lemma ereal_INF_uminus_eq:
+  fixes f :: "'a \<Rightarrow> ereal"
+  shows "(INF x:S. uminus (f x)) = - (SUP x:S. f x)"
+  using ereal_Inf_uminus_image_eq [of "f ` S"] by (simp add: comp_def)
 
 lemma ereal_SUP_not_infty:
   fixes f :: "_ \<Rightarrow> ereal"
@@ -1415,7 +1425,7 @@ lemma ereal_SUPR_uminus:
   fixes f :: "'a \<Rightarrow> ereal"
   shows "(SUP i : R. -(f i)) = -(INF i : R. f i)"
   using ereal_Sup_uminus_image_eq[of "f`R"]
-  by (simp add: SUP_def INF_def image_image)
+  by (simp add: image_image)
 
 lemma ereal_INFI_uminus:
   fixes f :: "'a \<Rightarrow> ereal"
@@ -1763,7 +1773,7 @@ qed
 lemma SUPR_countable_SUPR:
   "A \<noteq> {} \<Longrightarrow> \<exists>f::nat \<Rightarrow> ereal. range f \<subseteq> g`A \<and> SUPR A g = SUPR UNIV f"
   using Sup_countable_SUPR[of "g`A"]
-  by (auto simp: SUP_def)
+  by auto
 
 lemma Sup_ereal_cadd:
   fixes A :: "ereal set"
@@ -1772,7 +1782,7 @@ lemma Sup_ereal_cadd:
   shows "Sup ((\<lambda>x. a + x) ` A) = a + Sup A"
 proof (rule antisym)
   have *: "\<And>a::ereal. \<And>A. Sup ((\<lambda>x. a + x) ` A) \<le> a + Sup A"
-    by (auto intro!: add_mono complete_lattice_class.Sup_least complete_lattice_class.Sup_upper)
+    by (auto intro!: add_mono complete_lattice_class.SUP_least complete_lattice_class.Sup_upper)
   then show "Sup ((\<lambda>x. a + x) ` A) \<le> a + Sup A" .
   show "a + Sup A \<le> Sup ((\<lambda>x. a + x) ` A)"
   proof (cases a)
@@ -1794,8 +1804,8 @@ lemma Sup_ereal_cminus:
   assumes "A \<noteq> {}"
     and "a \<noteq> -\<infinity>"
   shows "Sup ((\<lambda>x. a - x) ` A) = a - Inf A"
-  using Sup_ereal_cadd[of "uminus ` A" a] assms
-  by (simp add: comp_def image_image minus_ereal_def ereal_Sup_uminus_image_eq)
+  using Sup_ereal_cadd [of "uminus ` A" a] assms
+  unfolding image_image minus_ereal_def by (simp add: ereal_SUP_uminus_eq)
 
 lemma SUPR_ereal_cminus:
   fixes f :: "'i \<Rightarrow> ereal"
@@ -1820,8 +1830,8 @@ proof -
   then have "(\<lambda>x. -a - x)`uminus`A = uminus ` (\<lambda>x. a - x) ` A"
     by (auto simp: image_image)
   with * show ?thesis
-    using Sup_ereal_cminus[of "uminus ` A" "-a"] assms
-    by (auto simp add: ereal_Sup_uminus_image_eq ereal_Inf_uminus_image_eq)
+    using Sup_ereal_cminus [of "uminus ` A" "- a"] assms
+    by (auto simp add: ereal_INF_uminus_eq ereal_SUP_uminus_eq)
 qed
 
 lemma INFI_ereal_cminus:

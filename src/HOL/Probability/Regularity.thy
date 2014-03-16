@@ -319,8 +319,8 @@ proof -
       by (rule INF_superset_mono) (auto simp add: compact_imp_closed)
     also have "(INF U:{U. U \<subseteq> B \<and> closed U}. M (space M - U)) =
         (INF U:{U. space M - B \<subseteq> U \<and> open U}. emeasure M U)"
-      by (subst INF_image[of "\<lambda>u. space M - u", symmetric])
-         (rule INF_cong, auto simp add: sU intro!: INF_cong)
+      by (subst INF_image [of "\<lambda>u. space M - u", symmetric, unfolded comp_def])
+        (rule INF_cong, auto simp add: sU intro!: INF_cong)
     finally have
       "(INF U:{U. space M - B \<subseteq> U \<and> open U}. emeasure M U) \<le> emeasure M (space M - B)" .
     moreover have
@@ -335,7 +335,7 @@ proof -
     also have "\<dots> = (SUP U:{U. B \<subseteq> U \<and> open U}. M (space M - U))"
       by (rule SUP_cong) (auto simp add: emeasure_compl sb compact_imp_closed)
     also have "\<dots> = (SUP K:{K. K \<subseteq> space M - B \<and> closed K}. emeasure M K)"
-      by (subst SUP_image[of "\<lambda>u. space M - u", symmetric])
+      by (subst SUP_image [of "\<lambda>u. space M - u", symmetric, simplified comp_def])
          (rule SUP_cong, auto simp: sU)
     also have "\<dots> = (SUP K:{K. K \<subseteq> space M - B \<and> compact K}. emeasure M K)"
     proof (safe intro!: antisym SUP_least)

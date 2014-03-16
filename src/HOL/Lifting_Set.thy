@@ -125,7 +125,7 @@ lemma image_transfer [transfer_rule]:
 
 lemma UNION_transfer [transfer_rule]:
   "(rel_set A ===> (A ===> rel_set B) ===> rel_set B) UNION UNION"
-  unfolding SUP_def [abs_def] by transfer_prover
+  unfolding Union_image_eq [symmetric, abs_def] by transfer_prover
 
 lemma Ball_transfer [transfer_rule]:
   "(rel_set A ===> (A ===> op =) ===> op =) Ball Ball"

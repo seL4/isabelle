@@ -386,7 +386,7 @@ proof -
   also have "\<dots> = ?y"
   proof (rule antisym)
     show "(SUP i. integral\<^sup>P M (?g i)) \<le> ?y"
-      using g_in_G by (auto intro: Sup_mono simp: SUP_def)
+      using g_in_G by (auto intro: SUP_mono)
     show "?y \<le> (SUP i. integral\<^sup>P M (?g i))" unfolding y_eq
       by (auto intro!: SUP_mono positive_integral_mono Max_ge)
   qed

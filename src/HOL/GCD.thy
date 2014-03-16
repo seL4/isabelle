@@ -1581,6 +1581,9 @@ proof -
   from gcd_lcm_complete_lattice_nat.SUP_def show "Sup.SUPR Lcm A f = Lcm (f ` A)" .
 qed
 
+declare gcd_lcm_complete_lattice_nat.Inf_image_eq [simp del]
+declare gcd_lcm_complete_lattice_nat.Sup_image_eq [simp del]
+
 lemma Lcm_empty_nat: "Lcm {} = (1::nat)"
   by (fact Lcm_nat_empty)
 
@@ -1736,11 +1739,11 @@ lemma dvd_Gcd_int[simp]:
 
 lemma Lcm_set_int [code, code_unfold]:
   "Lcm (set xs) = fold lcm xs (1::int)"
-  by (induct xs rule: rev_induct, simp_all add: lcm_commute_int)
+  by (induct xs rule: rev_induct) (simp_all add: lcm_commute_int)
 
 lemma Gcd_set_int [code, code_unfold]:
   "Gcd (set xs) = fold gcd xs (0::int)"
-  by (induct xs rule: rev_induct, simp_all add: gcd_commute_int)
+  by (induct xs rule: rev_induct) (simp_all add: gcd_commute_int)
 
 end
 

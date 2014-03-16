@@ -2877,13 +2877,13 @@ declare Sup_set_fold [where 'a = "'a set", code]
 
 lemma (in complete_lattice) INF_set_fold:
   "INFI (set xs) f = fold (inf \<circ> f) xs top"
-  unfolding INF_def set_map [symmetric] Inf_set_fold fold_map ..
+  using Inf_set_fold [of "map f xs "] by (simp add: fold_map)
 
 declare INF_set_fold [code]
 
 lemma (in complete_lattice) SUP_set_fold:
   "SUPR (set xs) f = fold (sup \<circ> f) xs bot"
-  unfolding SUP_def set_map [symmetric] Sup_set_fold fold_map ..
+  using Sup_set_fold [of "map f xs "] by (simp add: fold_map)
 
 declare SUP_set_fold [code]
 

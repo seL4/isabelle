@@ -31,13 +31,13 @@ lemma open_Un [intro]: "open S \<Longrightarrow> open T \<Longrightarrow> open (
   using open_Union [of "{S, T}"] by simp
 
 lemma open_UN [intro]: "\<forall>x\<in>A. open (B x) \<Longrightarrow> open (\<Union>x\<in>A. B x)"
-  unfolding SUP_def by (rule open_Union) auto
+  using open_Union [of "B ` A"] by simp
 
 lemma open_Inter [intro]: "finite S \<Longrightarrow> \<forall>T\<in>S. open T \<Longrightarrow> open (\<Inter>S)"
   by (induct set: finite) auto
 
 lemma open_INT [intro]: "finite A \<Longrightarrow> \<forall>x\<in>A. open (B x) \<Longrightarrow> open (\<Inter>x\<in>A. B x)"
-  unfolding INF_def by (rule open_Inter) auto
+  using open_Inter [of "B ` A"] by simp
 
 lemma openI:
   assumes "\<And>x. x \<in> S \<Longrightarrow> \<exists>T. open T \<and> x \<in> T \<and> T \<subseteq> S"
@@ -70,7 +70,7 @@ lemma closed_Union [intro]: "finite S \<Longrightarrow> \<forall>T\<in>S. closed
   by (induct set: finite) auto
 
 lemma closed_UN [intro]: "finite A \<Longrightarrow> \<forall>x\<in>A. closed (B x) \<Longrightarrow> closed (\<Union>x\<in>A. B x)"
-  unfolding SUP_def by (rule closed_Union) auto
+  using closed_Union [of "B ` A"] by simp
 
 lemma open_closed: "open S \<longleftrightarrow> closed (- S)"
   unfolding closed_def by simp
@@ -169,7 +169,7 @@ hide_fact (open) UNIV Int UN Basis
 
 lemma generate_topology_Union: 
   "(\<And>k. k \<in> I \<Longrightarrow> generate_topology S (K k)) \<Longrightarrow> generate_topology S (\<Union>k\<in>I. K k)"
-  unfolding SUP_def by (intro generate_topology.UN) auto
+  using generate_topology.UN [of "K ` I"] by auto
 
 lemma topological_space_generate_topology:
   "class.topological_space (generate_topology S)"
@@ -1952,10 +1952,25 @@ lemma compact_imp_fip:
   unfolding compact_fip by auto
 
 lemma compact_imp_fip_image:
-  "compact s \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> closed (f i)) \<Longrightarrow> (\<And>I'. finite I' \<Longrightarrow> I' \<subseteq> I \<Longrightarrow> (s \<inter> (\<Inter>i\<in>I'. f i) \<noteq> {})) \<Longrightarrow>
-    s \<inter> (\<Inter>i\<in>I. f i) \<noteq> {}"
-  using finite_subset_image[of _ f I] compact_imp_fip[of s "f`I"] unfolding ball_simps[symmetric] INF_def
-  by (metis image_iff)
+  assumes "compact s"
+    and P: "\<And>i. i \<in> I \<Longrightarrow> closed (f i)"
+    and Q: "\<And>I'. finite I' \<Longrightarrow> I' \<subseteq> I \<Longrightarrow> (s \<inter> (\<Inter>i\<in>I'. f i) \<noteq> {})"
+  shows "s \<inter> (\<Inter>i\<in>I. f i) \<noteq> {}"
+proof -
+  note `compact s`
+  moreover from P have "\<forall>i \<in> f ` I. closed i" by blast
+  moreover have "\<forall>A. finite A \<and> A \<subseteq> f ` I \<longrightarrow> (s \<inter> (\<Inter>A) \<noteq> {})"
+  proof (rule, rule, erule conjE)
+    fix A :: "'a set set"
+    assume "finite A"
+    moreover assume "A \<subseteq> f ` I"
+    ultimately obtain B where "B \<subseteq> I" and "finite B" and "A = f ` B"
+      using finite_subset_image [of A f I] by blast
+    with Q [of B] show "s \<inter> \<Inter>A \<noteq> {}" by simp
+  qed
+  ultimately have "s \<inter> (\<Inter>(f ` I)) \<noteq> {}" by (rule compact_imp_fip)
+  then show ?thesis by simp
+qed
 
 end
 

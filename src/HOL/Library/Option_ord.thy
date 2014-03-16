@@ -292,11 +292,11 @@ lemma Some_Sup:
 
 lemma Some_INF:
   "Some (\<Sqinter>x\<in>A. f x) = (\<Sqinter>x\<in>A. Some (f x))"
-  by (simp add: INF_def Some_Inf image_image)
+  using Some_Inf [of "f ` A"] by (simp add: comp_def)
 
 lemma Some_SUP:
   "A \<noteq> {} \<Longrightarrow> Some (\<Squnion>x\<in>A. f x) = (\<Squnion>x\<in>A. Some (f x))"
-  by (simp add: SUP_def Some_Sup image_image)
+  using Some_Sup [of "f ` A"] by (simp add: comp_def)
 
 instantiation option :: (complete_distrib_lattice) complete_distrib_lattice
 begin
@@ -319,7 +319,7 @@ instance proof
       case False then have B: "{x \<in> B. \<exists>y. x = Some y} = B" by auto (metis not_Some_eq)
       from sup_Inf have "Some c \<squnion> Some (\<Sqinter>Option.these B) = Some (\<Sqinter>b\<in>Option.these B. c \<squnion> b)" by simp
       then have "Some c \<squnion> \<Sqinter>(Some ` Option.these B) = (\<Sqinter>x\<in>Some ` Option.these B. Some c \<squnion> x)"
-        by (simp add: Some_INF Some_Inf)
+        by (simp add: Some_INF Some_Inf comp_def)
       with Some B show ?thesis by (simp add: Some_image_these_eq)
     qed
   qed
@@ -332,7 +332,7 @@ instance proof
     show ?thesis
     proof (cases "B = {} \<or> B = {None}")
       case True
-      then show ?thesis by (auto simp add: SUP_def)
+      then show ?thesis by auto
     next
       have B: "B = {x \<in> B. \<exists>y. x = Some y} \<union> {x \<in> B. x = None}"
         by auto
@@ -347,7 +347,7 @@ instance proof
       moreover from inf_Sup have "Some c \<sqinter> Some (\<Squnion>Option.these B) = Some (\<Squnion>b\<in>Option.these B. c \<sqinter> b)"
         by simp
       ultimately have "Some c \<sqinter> \<Squnion>(Some ` Option.these B) = (\<Squnion>x\<in>Some ` Option.these B. Some c \<sqinter> x)"
-        by (simp add: Some_SUP Some_Sup)
+        by (simp add: Some_SUP Some_Sup comp_def)
       with Some show ?thesis
         by (simp add: Some_image_these_eq Sup_B SUP_B Sup_None SUP_None SUP_union Sup_union_distrib)
     qed

@@ -1041,7 +1041,7 @@ proof (rule sym)
   interpret comp_fun_idem "inf \<circ> f" by (fact comp_comp_fun_idem)
   from `finite A` show "?fold = ?inf"
     by (induct A arbitrary: B)
-      (simp_all add: INF_def inf_left_commute)
+      (simp_all add: inf_left_commute)
 qed
 
 lemma sup_SUP_fold_sup:
@@ -1052,7 +1052,7 @@ proof (rule sym)
   interpret comp_fun_idem "sup \<circ> f" by (fact comp_comp_fun_idem)
   from `finite A` show "?fold = ?sup"
     by (induct A arbitrary: B)
-      (simp_all add: SUP_def sup_left_commute)
+      (simp_all add: sup_left_commute)
 qed
 
 lemma INF_fold_inf:

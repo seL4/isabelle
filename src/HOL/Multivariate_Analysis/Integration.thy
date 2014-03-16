@@ -18,7 +18,7 @@ lemma cSup_abs_le: (* TODO: is this really needed? *)
 lemma cInf_abs_ge: (* TODO: is this really needed? *)
   fixes S :: "real set"
   shows "S \<noteq> {} \<Longrightarrow> (\<forall>x\<in>S. \<bar>x\<bar> \<le> a) \<Longrightarrow> \<bar>Inf S\<bar> \<le> a"
-  by (simp add: Inf_real_def) (rule cSup_abs_le, auto)
+  by (simp add: Inf_real_def) (insert cSup_abs_le [of "uminus ` S"], auto)
 
 lemma cSup_asclose: (* TODO: is this really needed? *)
   fixes S :: "real set"
