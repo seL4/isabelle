@@ -11679,13 +11679,18 @@ proof (rule absolutely_integrable_onI, fact, rule)
       then show False
         using goal2 by auto
     qed
-    then guess K .. note * = this[unfolded image_iff not_le]
-    from this(1) guess d .. note this[unfolded mem_Collect_eq]
+    then obtain K where *: "\<exists>x\<in>{d. d division_of \<Union>d}. K = (\<Sum>k\<in>x. norm (integral k f))"
+      "SUPR {d. d division_of \<Union>d} (setsum (\<lambda>k. norm (integral k f))) - e < K"
+      by (auto simp add: image_iff not_le)
+    from this(1) obtain d where "d division_of \<Union>d"
+      and "K = (\<Sum>k\<in>d. norm (integral k f))"
+      by auto
     note d = this(1) *(2)[unfolded this(2)]
     note d'=division_ofD[OF this(1)]
     have "bounded (\<Union>d)"
       by (rule elementary_bounded,fact)
-    from this[unfolded bounded_pos] guess K .. note K=conjunctD2[OF this]
+    from this[unfolded bounded_pos] obtain K where
+       K: "0 < K" "\<forall>x\<in>\<Union>d. norm x \<le> K" by auto
     show ?case
       apply (rule_tac x="K + 1" in exI)
       apply safe
@@ -11742,10 +11747,18 @@ proof (rule absolutely_integrable_onI, fact, rule)
         note * = this(2)[unfolded has_integral_integral has_integral[of "\<lambda>x. norm (f x)"],rule_format]
         have "e/2>0"
           using `e > 0` by auto
-        from *[OF this] guess d1 .. note d1=conjunctD2[OF this]
-        from henstock_lemma[OF f(1) `e/2>0`] guess d2 . note d2=this
-        from fine_division_exists[OF gauge_inter[OF d1(1) d2(1)], of a b] guess p .
-        note p=this(1) conjunctD2[OF this(2)[unfolded fine_inter]]
+        from * [OF this] obtain d1 where
+          d1: "gauge d1" "\<forall>p. p tagged_division_of {a..b} \<and> d1 fine p \<longrightarrow>
+            norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R norm (f x)) - integral {a..b} (\<lambda>x. norm (f x))) < e / 2"
+          by auto
+        from henstock_lemma [OF f(1) `e/2>0`] obtain d2 where
+          d2: "gauge d2" "\<forall>p. p tagged_partial_division_of {a..b} \<and> d2 fine p \<longrightarrow>
+            (\<Sum>(x, k)\<in>p. norm (content k *\<^sub>R f x - integral k f)) < e / 2"
+          by blast
+        obtain p where
+          p: "p tagged_division_of {a..b}" "d1 fine p" "d2 fine p"
+          by (rule fine_division_exists [OF gauge_inter [OF d1(1) d2(1)], of a b])
+            (auto simp add: fine_inter)
         have *: "\<And>sf sf' si di. sf' = sf \<longrightarrow> si \<le> ?S \<longrightarrow> abs (sf - si) < e / 2 \<longrightarrow>
           abs (sf' - di) < e / 2 \<longrightarrow> di < ?S + e"
           by arith
