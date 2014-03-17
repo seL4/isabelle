@@ -139,10 +139,10 @@ object Completion_Popup
           if (line_range.contains(text_area.getCaretPosition)) {
             before_caret_range(rendering).try_restrict(line_range) match {
               case Some(range) if !range.is_singularity =>
-                rendering.completion_names(range) match {
-                  case Some(names) =>
-                    if (names.no_completion) None
-                    else Some(names.range)
+                rendering.semantic_completion(range) match {
+                  case Some(semantic) =>
+                    if (semantic.info.no_completion) None
+                    else Some(semantic.range)
                   case None =>
                     syntax_completion(false, Some(rendering)) match {
                       case Some(result) => Some(result.range)
@@ -178,7 +178,7 @@ object Completion_Popup
           val context =
             (opt_rendering orElse PIDE.document_view(text_area).map(_.get_rendering()) match {
               case Some(rendering) =>
-                rendering.completion_language(before_caret_range(rendering))
+                rendering.language_context(before_caret_range(rendering))
               case None => None
             }) getOrElse syntax.language_context
 
@@ -260,13 +260,14 @@ object Completion_Popup
         PIDE.document_view(text_area) match {
           case Some(doc_view) =>
             val rendering = doc_view.get_rendering()
-            rendering.completion_names(before_caret_range(rendering)) match {
-              case Some(names) =>
-                if (names.no_completion)
-                  Some(Completion.Result.empty(names.range))
+            rendering.semantic_completion(before_caret_range(rendering)) match {
+              case Some(semantic) =>
+                if (semantic.info.no_completion)
+                  Some(Completion.Result.empty(semantic.range))
                 else
-                  JEdit_Lib.try_get_text(buffer, names.range) match {
-                    case Some(original) => names.complete(history, decode, original)
+                  JEdit_Lib.try_get_text(buffer, semantic.range) match {
+                    case Some(original) =>
+                      semantic.info.complete(semantic.range, history, decode, original)
                     case None => None
                   }
               case None => None

@@ -128,10 +128,10 @@ object Rendering
 
   /* markup elements */
 
-  private val completion_names_elements =
+  private val semantic_completion_elements =
     Document.Elements(Markup.COMPLETION, Markup.NO_COMPLETION)
 
-  private val completion_language_elements =
+  private val language_context_elements =
     Document.Elements(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM,
       Markup.CARTOUCHE, Markup.COMMENT, Markup.LANGUAGE,
       Markup.ML_STRING, Markup.ML_COMMENT)
@@ -258,18 +258,18 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   /* completion */
 
-  def completion_names(range: Text.Range): Option[Completion.Names] =
+  def semantic_completion(range: Text.Range): Option[Text.Info[Completion.Semantic]] =
     if (snapshot.is_outdated) None
     else {
-      snapshot.select(range, Rendering.completion_names_elements, _ =>
+      snapshot.select(range, Rendering.semantic_completion_elements, _ =>
         {
-          case Completion.Names.Info(names) => Some(names)
+          case Completion.Semantic.Info(info) => Some(info)
           case _ => None
         }).headOption.map(_.info)
     }
 
-  def completion_language(range: Text.Range): Option[Completion.Language_Context] =
-    snapshot.select(range, Rendering.completion_language_elements, _ =>
+  def language_context(range: Text.Range): Option[Completion.Language_Context] =
+    snapshot.select(range, Rendering.language_context_elements, _ =>
       {
         case Text.Info(_, XML.Elem(Markup.Language(language, symbols, antiquotes, delimited), _)) =>
           if (delimited) Some(Completion.Language_Context(language, symbols, antiquotes))

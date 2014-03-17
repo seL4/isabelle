@@ -131,11 +131,11 @@ object Completion
 
   /** semantic completion **/
 
-  object Names
+  object Semantic
   {
     object Info
     {
-      def unapply(info: Text.Markup): Option[Names] =
+      def unapply(info: Text.Markup): Option[Text.Info[Semantic]] =
         info.info match {
           case XML.Elem(Markup(Markup.COMPLETION, _), body) =>
             try {
@@ -144,22 +144,32 @@ object Completion
                 import XML.Decode._
                 pair(int, list(pair(string, pair(string, string))))(body)
               }
-              Some(Names(info.range, total, names))
+              Some(Text.Info(info.range, Names(total, names)))
             }
             catch { case _: XML.Error => None }
           case XML.Elem(Markup(Markup.NO_COMPLETION, _), _) =>
-            Some(Names(info.range, 0, Nil))
+            Some(Text.Info(info.range, No_Completion))
           case _ => None
         }
     }
   }
 
-  sealed case class Names(
-    range: Text.Range, total: Int, names: List[(String, (String, String))])
+  sealed abstract class Semantic
   {
-    def no_completion: Boolean = total == 0 && names.isEmpty
-
+    def no_completion: Boolean = this == No_Completion
     def complete(
+      range: Text.Range,
+      history: Completion.History,
+      do_decode: Boolean,
+      original: String): Option[Completion.Result] = None
+  }
+  case object No_Completion extends Semantic
+  case class Names(
+    total: Int,
+    names: List[(String, (String, String))]) extends Semantic
+  {
+    override def complete(
+      range: Text.Range,
       history: Completion.History,
       do_decode: Boolean,
       original: String): Option[Completion.Result] =
