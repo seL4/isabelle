@@ -89,17 +89,6 @@ object Completion
           frequency(item2.name) compare frequency(item1.name)
       }
 
-    def name_ordering: Ordering[Item] =
-      new Ordering[Item] {
-        def compare(item1: Item, item2: Item): Int =
-        {
-          frequency(item2.name) compare frequency(item2.name) match {
-            case 0 => item1.name compare item2.name
-            case ord => ord
-          }
-        }
-      }
-
     def save()
     {
       Isabelle_System.mkdirs(COMPLETION_HISTORY.dir)
@@ -431,7 +420,9 @@ final class Completion private(
           yield Completion.Item(range, original, name1, description, s1 + s2, move, immediate)
 
         if (items.isEmpty) None
-        else Some(Completion.Result(range, original, unique, items.sorted(history.name_ordering)))
+        else
+          Some(Completion.Result(range, original, unique,
+            items.sortBy(_.name).sorted(history.ordering)))
 
       case _ => None
     }
