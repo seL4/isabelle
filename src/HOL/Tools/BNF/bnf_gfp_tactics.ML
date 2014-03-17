@@ -32,7 +32,7 @@ sig
     thm -> thm -> thm list -> thm list -> thm list list -> tactic
   val mk_dtor_o_ctor_tac: Proof.context -> thm -> thm -> thm -> thm -> thm list -> tactic
   val mk_equiv_lsbis_tac: thm -> thm -> thm -> thm -> thm -> thm -> tactic
-  val mk_hset_minimal_tac: Proof.context -> int -> thm -> tactic
+  val mk_Jset_minimal_tac: Proof.context -> int -> thm -> tactic
   val mk_col_minimal_tac: Proof.context -> int -> cterm option list -> thm list -> thm list ->
     tactic
   val mk_incl_lsbis_tac: int -> int -> thm -> tactic
@@ -75,10 +75,10 @@ sig
   val mk_set_Lev_tac: Proof.context -> cterm option list -> thm list -> thm list -> thm list ->
     thm list -> thm list list -> tactic
   val mk_set_bd_tac: thm -> thm -> tactic
-  val mk_set_hset_incl_hset_tac: int -> thm -> int -> tactic
+  val mk_set_Jset_incl_Jset_tac: int -> thm -> int -> tactic
   val mk_set_image_Lev_tac: Proof.context -> cterm option list -> thm list -> thm list ->
     thm list -> thm list -> thm list list -> thm list list -> tactic
-  val mk_set_incl_hset_tac: thm -> tactic
+  val mk_set_incl_Jset_tac: thm -> tactic
   val mk_set_ge_tac: int  -> thm -> thm list -> tactic
   val mk_set_le_tac: int -> thm -> thm list -> thm list list -> tactic
   val mk_set_map0_tac: thm -> tactic
@@ -162,11 +162,11 @@ fun mk_mor_str_tac ks mor_UNIV =
 fun mk_mor_case_sum_tac ks mor_UNIV =
   (rtac (mor_UNIV RS iffD2) THEN' CONJ_WRAP' (K (rtac @{thm case_sum_o_inj(1)[symmetric]})) ks) 1;
 
-fun mk_set_incl_hset_tac rec_Suc =
+fun mk_set_incl_Jset_tac rec_Suc =
   EVERY' (map rtac [@{thm SUP_upper2}, UNIV_I, @{thm ord_le_eq_trans}, @{thm Un_upper1}, sym,
     rec_Suc]) 1;
 
-fun mk_set_hset_incl_hset_tac n rec_Suc i =
+fun mk_set_Jset_incl_Jset_tac n rec_Suc i =
   EVERY' (map rtac [@{thm UN_least}, subsetI, @{thm UN_I}, UNIV_I, set_mp, equalityD2, rec_Suc,
       UnI2, mk_UnIN n i] @ [etac @{thm UN_I}, atac]) 1;
 
@@ -185,7 +185,7 @@ fun mk_col_minimal_tac ctxt m cts rec_0s rec_Sucs =
             rtac subset_trans, atac, Goal.assume_rule_tac ctxt])) rec_0s])
       rec_Sucs] 1;
 
-fun mk_hset_minimal_tac ctxt n col_minimal =
+fun mk_Jset_minimal_tac ctxt n col_minimal =
   (CONJ_WRAP' (K (EVERY' [rtac @{thm UN_least}, rtac rev_mp, rtac col_minimal,
     EVERY' (replicate ((n + 1) * n) (Goal.assume_rule_tac ctxt)), rtac impI,
     REPEAT_DETERM o eresolve_tac [allE, conjE], atac])) (1 upto n)) 1
@@ -777,20 +777,20 @@ fun mk_map_tac m n map_arg_cong unfold map_comp map_cong0 =
     REPEAT_DETERM_N n o rtac (@{thm comp_id} RS fun_cong),
     rtac map_arg_cong, rtac (o_apply RS sym)] 1;
 
-fun mk_set_le_tac n hset_minimal set_hsets set_hset_hsetss =
-  EVERY' [rtac hset_minimal,
+fun mk_set_le_tac n Jset_minimal set_Jsets set_Jset_Jsetss =
+  EVERY' [rtac Jset_minimal,
     REPEAT_DETERM_N n o rtac @{thm Un_upper1},
     REPEAT_DETERM_N n o
-      EVERY' (map3 (fn i => fn set_hset => fn set_hset_hsets =>
+      EVERY' (map3 (fn i => fn set_Jset => fn set_Jset_Jsets =>
         EVERY' [rtac subsetI, rtac @{thm UnI2}, rtac (mk_UnIN n i), etac @{thm UN_I},
-          etac UnE, etac set_hset, REPEAT_DETERM_N (n - 1) o etac UnE,
-          EVERY' (map (fn thm => EVERY' [etac @{thm UN_E}, etac thm, atac]) set_hset_hsets)])
-      (1 upto n) set_hsets set_hset_hsetss)] 1;
+          etac UnE, etac set_Jset, REPEAT_DETERM_N (n - 1) o etac UnE,
+          EVERY' (map (fn thm => EVERY' [etac @{thm UN_E}, etac thm, atac]) set_Jset_Jsets)])
+      (1 upto n) set_Jsets set_Jset_Jsetss)] 1;
 
-fun mk_set_ge_tac n set_incl_hset set_hset_incl_hsets =
-  EVERY' [rtac @{thm Un_least}, rtac set_incl_hset,
+fun mk_set_ge_tac n set_incl_Jset set_Jset_incl_Jsets =
+  EVERY' [rtac @{thm Un_least}, rtac set_incl_Jset,
     REPEAT_DETERM_N (n - 1) o rtac @{thm Un_least},
-    EVERY' (map (fn thm => rtac @{thm UN_least} THEN' etac thm) set_hset_incl_hsets)] 1;
+    EVERY' (map (fn thm => rtac @{thm UN_least} THEN' etac thm) set_Jset_incl_Jsets)] 1;
 
 fun mk_map_id0_tac maps unfold_unique unfold_dtor =
   EVERY' [rtac (unfold_unique RS trans), EVERY' (map (rtac o mk_sym) maps),
@@ -807,15 +807,15 @@ fun mk_map_comp0_tac maps map_comp0s map_unique =
         @{thm arg_cong2[of _ _ _ _ "op o"]} OF [map_comp0 RS sym, refl]]))
     maps map_comp0s)] 1;
 
-fun mk_mcong_tac ctxt m coinduct_tac map_comps dtor_maps map_cong0s set_map0ss set_hsetss
-  set_hset_hsetsss in_rels =
+fun mk_mcong_tac ctxt m coinduct_tac map_comps dtor_maps map_cong0s set_map0ss set_Jsetss
+  set_Jset_Jsetsss in_rels =
   let
     val n = length map_comps;
     val ks = 1 upto n;
   in
     EVERY' ([rtac rev_mp, coinduct_tac] @
-      maps (fn ((((((map_comp_trans, dtor_maps_trans), map_cong0), set_map0s), set_hsets),
-        set_hset_hsetss), in_rel) =>
+      maps (fn ((((((map_comp_trans, dtor_maps_trans), map_cong0), set_map0s), set_Jsets),
+        set_Jset_Jsetss), in_rel) =>
         [REPEAT_DETERM o resolve_tac [allI, impI, in_rel RS iffD2],
          REPEAT_DETERM o eresolve_tac [exE, conjE], hyp_subst_tac ctxt, rtac exI,
          rtac (Drule.rotate_prems 1 conjI),
@@ -823,25 +823,25 @@ fun mk_mcong_tac ctxt m coinduct_tac map_comps dtor_maps map_cong0s set_map0ss s
          REPEAT_DETERM_N m o (rtac o_apply_trans_sym THEN' rtac @{thm fst_conv}),
          REPEAT_DETERM_N n o rtac fst_convol_fun_cong_sym,
          rtac map_comp_trans, rtac sym, rtac dtor_maps_trans, rtac map_cong0,
-         EVERY' (maps (fn set_hset =>
+         EVERY' (maps (fn set_Jset =>
            [rtac o_apply_trans_sym, rtac (@{thm snd_conv} RS trans), etac CollectE,
-           REPEAT_DETERM o etac conjE, etac bspec, etac set_hset]) set_hsets),
+           REPEAT_DETERM o etac conjE, etac bspec, etac set_Jset]) set_Jsets),
          REPEAT_DETERM_N n o rtac snd_convol_fun_cong_sym,
          rtac CollectI,
          EVERY' (map (fn set_map0 => EVERY' [rtac conjI, rtac ord_eq_le_trans, rtac set_map0,
            rtac @{thm image_subsetI}, rtac CollectI, rtac @{thm case_prodI}, rtac refl])
         (take m set_map0s)),
-         CONJ_WRAP' (fn (set_map0, set_hset_hsets) =>
+         CONJ_WRAP' (fn (set_map0, set_Jset_Jsets) =>
            EVERY' [rtac ord_eq_le_trans, rtac set_map0,
              rtac @{thm image_subsetI}, rtac CollectI, rtac @{thm case_prodI}, rtac exI, rtac conjI,
              rtac CollectI, etac CollectE,
              REPEAT_DETERM o etac conjE,
-             CONJ_WRAP' (fn set_hset_hset =>
-               EVERY' [rtac ballI, etac bspec, etac set_hset_hset, atac]) set_hset_hsets,
+             CONJ_WRAP' (fn set_Jset_Jset =>
+               EVERY' [rtac ballI, etac bspec, etac set_Jset_Jset, atac]) set_Jset_Jsets,
              rtac (conjI OF [refl, refl])])
-           (drop m set_map0s ~~ set_hset_hsetss)])
+           (drop m set_map0s ~~ set_Jset_Jsetss)])
         (map (fn th => th RS trans) map_comps ~~ map (fn th => th RS trans) dtor_maps ~~
-          map_cong0s ~~ set_map0ss ~~ set_hsetss ~~ set_hset_hsetsss ~~ in_rels) @
+          map_cong0s ~~ set_map0ss ~~ set_Jsetss ~~ set_Jset_Jsetsss ~~ in_rels) @
       [rtac impI,
        CONJ_WRAP' (fn k =>
          EVERY' [rtac impI, dtac (mk_conjunctN n k), etac mp, rtac exI, rtac conjI, etac CollectI,
