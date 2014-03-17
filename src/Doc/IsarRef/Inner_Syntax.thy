@@ -1453,10 +1453,10 @@ text {*
     @{command_def "print_translation"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def "typed_print_translation"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def "print_ast_translation"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{ML_antiquotation_def "class_syntax"} & : & @{text ML_antiquotation} \\
-    @{ML_antiquotation_def "type_syntax"} & : & @{text ML_antiquotation} \\
-    @{ML_antiquotation_def "const_syntax"} & : & @{text ML_antiquotation} \\
-    @{ML_antiquotation_def "syntax_const"} & : & @{text ML_antiquotation} \\
+    @{ML_antiquotation_def "class_syntax"} & : & @{text "ML antiquotation"} \\
+    @{ML_antiquotation_def "type_syntax"} & : & @{text "ML antiquotation"} \\
+    @{ML_antiquotation_def "const_syntax"} & : & @{text "ML antiquotation"} \\
+    @{ML_antiquotation_def "syntax_const"} & : & @{text "ML antiquotation"} \\
   \end{matharray}
 
   Syntax translation functions written in ML admit almost arbitrary

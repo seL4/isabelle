@@ -190,7 +190,7 @@ local
 
 fun no_check _ _ = true;
 
-fun command_check (name, pos) =
+fun check_command (name, pos) =
   is_some (Keyword.command_keyword name) andalso
     let
       val markup =
@@ -213,13 +213,14 @@ fun check_tool (name, pos) =
 
 val arg = enclose "{" "}" o clean_string;
 
-fun entity check markup kind index =
+fun entity check markup binding index =
   Thy_Output.antiquotation
-    (Binding.name (translate (fn " " => "_" | c => c) kind ^
+    (binding |> Binding.map_name (fn name => name ^
       (case index of NONE => "" | SOME true => "_def" | SOME false => "_ref")))
     (Scan.lift (Scan.optional (Args.parens Args.name) "" -- Parse.position Args.name))
     (fn {context = ctxt, ...} => fn (logic, (name, pos)) =>
       let
+        val kind = translate (fn "_" => " " | c => c) (Binding.name_of binding);
         val hyper_name =
           "{" ^ Long_Name.append kind (Long_Name.append logic (clean_name name)) ^ "}";
         val hyper =
@@ -251,24 +252,24 @@ in
 
 val _ =
   Theory.setup
-   (entity_antiqs no_check "" "syntax" #>
-    entity_antiqs (K command_check) "isacommand" "command" #>
-    entity_antiqs (K (Keyword.is_keyword o #1)) "isakeyword" "keyword" #>
-    entity_antiqs (K (Keyword.is_keyword o #1)) "isakeyword" "element" #>
-    entity_antiqs (can o Method.check_name) "" "method" #>
-    entity_antiqs (can o Attrib.check_name) "" "attribute" #>
-    entity_antiqs no_check "" "fact" #>
-    entity_antiqs no_check "" "variable" #>
-    entity_antiqs no_check "" "case" #>
-    entity_antiqs (can o Thy_Output.check_command) "" "antiquotation" #>
-    entity_antiqs (can o Thy_Output.check_option) "" "antiquotation option" #>
-    entity_antiqs no_check "isatt" "setting" #>
-    entity_antiqs no_check "isatt" "system option" #>
-    entity_antiqs no_check "" "inference" #>
-    entity_antiqs no_check "isatt" "executable" #>
-    entity_antiqs (K check_tool) "isatool" "tool" #>
-    entity_antiqs (can o ML_Context.check_antiquotation) "" Markup.ML_antiquotationN #>
-    entity_antiqs (K (is_action o #1)) "isatt" "action");
+   (entity_antiqs no_check "" @{binding syntax} #>
+    entity_antiqs (K check_command) "isacommand" @{binding command} #>
+    entity_antiqs (K (Keyword.is_keyword o #1)) "isakeyword" @{binding keyword} #>
+    entity_antiqs (K (Keyword.is_keyword o #1)) "isakeyword" @{binding element} #>
+    entity_antiqs (can o Method.check_name) "" @{binding method} #>
+    entity_antiqs (can o Attrib.check_name) "" @{binding attribute} #>
+    entity_antiqs no_check "" @{binding fact} #>
+    entity_antiqs no_check "" @{binding variable} #>
+    entity_antiqs no_check "" @{binding case} #>
+    entity_antiqs (can o Thy_Output.check_command) "" @{binding antiquotation} #>
+    entity_antiqs (can o Thy_Output.check_option) "" @{binding antiquotation_option} #>
+    entity_antiqs no_check "isatt" @{binding setting} #>
+    entity_antiqs no_check "isatt" @{binding system_option} #>
+    entity_antiqs no_check "" @{binding inference} #>
+    entity_antiqs no_check "isatt" @{binding executable} #>
+    entity_antiqs (K check_tool) "isatool" @{binding tool} #>
+    entity_antiqs (can o ML_Context.check_antiquotation) "" @{binding ML_antiquotation} #>
+    entity_antiqs (K (is_action o #1)) "isatt" @{binding action});
 
 end;
 
