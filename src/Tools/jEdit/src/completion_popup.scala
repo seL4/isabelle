@@ -112,7 +112,7 @@ object Completion_Popup
       completion_popup match {
         case Some(completion) =>
           completion.active_range match {
-            case Some((range, _)) if completion.isDisplayable => Some(range)
+            case Some(range) if completion.isDisplayable => Some(range)
             case _ => None
           }
         case None => None
@@ -236,21 +236,35 @@ object Completion_Popup
 
           val items = result.items.map(new Item(_))
           val completion =
-            new Completion_Popup(Some((range, invalidate _)), layered, loc2, font, items)
+            new Completion_Popup(Some(range), layered, loc2, font, items)
             {
               override def complete(item: Completion.Item) {
                 PIDE.completion_history.update(item)
                 insert(item)
               }
               override def propagate(evt: KeyEvent) {
-                JEdit_Lib.propagate_key(view, evt)
+                if (view.getKeyEventInterceptor == inner_key_listener) {
+                  try {
+                    view.setKeyEventInterceptor(null)
+                    JEdit_Lib.propagate_key(view, evt)
+                  }
+                  finally {
+                    if (isDisplayable) view.setKeyEventInterceptor(inner_key_listener)
+                  }
+                }
                 if (evt.getID == KeyEvent.KEY_TYPED) input(evt)
               }
-              override def refocus() { text_area.requestFocus }
+              override def shutdown(focus: Boolean) {
+                if (view.getKeyEventInterceptor == inner_key_listener)
+                  view.setKeyEventInterceptor(null)
+                if (focus) text_area.requestFocus
+                invalidate()
+              }
             }
           completion_popup = Some(completion)
+          view.setKeyEventInterceptor(completion.inner_key_listener)
           invalidate()
-          completion.show_popup()
+          completion.show_popup(false)
         }
       }
 
@@ -448,10 +462,10 @@ object Completion_Popup
                   override def propagate(evt: KeyEvent) {
                     if (!evt.isConsumed) text_field.processKeyEvent(evt)
                   }
-                  override def refocus() { text_field.requestFocus }
+                  override def shutdown(focus: Boolean) { if (focus) text_field.requestFocus }
                 }
               completion_popup = Some(completion)
-              completion.show_popup()
+              completion.show_popup(true)
 
             case None =>
           }
@@ -506,7 +520,7 @@ object Completion_Popup
 
 
 class Completion_Popup private(
-  val active_range: Option[(Text.Range, () => Unit)],
+  val active_range: Option[Text.Range],
   layered: JLayeredPane,
   location: Point,
   font: Font,
@@ -524,7 +538,7 @@ class Completion_Popup private(
 
   def complete(item: Completion.Item) { }
   def propagate(evt: KeyEvent) { }
-  def refocus() { }
+  def shutdown(focus: Boolean) { }
 
 
   /* list view */
@@ -568,7 +582,7 @@ class Completion_Popup private(
 
   /* event handling */
 
-  private val inner_key_listener =
+  val inner_key_listener =
     JEdit_Lib.key_listener(
       key_pressed = (e: KeyEvent) =>
         {
@@ -639,27 +653,16 @@ class Completion_Popup private(
     new Popup(layered, completion, screen.relative(layered, size), size)
   }
 
-  private def show_popup()
+  private def show_popup(focus: Boolean)
   {
     popup.show
-    list_view.requestFocus
+    if (focus) list_view.requestFocus
   }
-
-  private val hide_popup_delay =
-    Swing_Thread.delay_last(PIDE.options.seconds("jedit_completion_dismiss_delay")) {
-      active_range match { case Some((_, invalidate)) => invalidate() case _ => }
-      popup.hide
-    }
 
   private def hide_popup()
   {
-    if (list_view.peer.isFocusOwner) refocus()
-
-    if (PIDE.options.seconds("jedit_completion_dismiss_delay").is_zero) {
-      active_range match { case Some((_, invalidate)) => invalidate() case _ => }
-      popup.hide
-    }
-    else hide_popup_delay.invoke()
+    shutdown(list_view.peer.isFocusOwner)
+    popup.hide
   }
 }
 
