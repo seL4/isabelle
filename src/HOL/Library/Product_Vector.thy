@@ -478,18 +478,18 @@ qed
 
 subsubsection {* Frechet derivatives involving pairs *}
 
-lemma FDERIV_Pair [FDERIV_intros]:
-  assumes f: "FDERIV f x : s :> f'" and g: "FDERIV g x : s :> g'"
-  shows "FDERIV (\<lambda>x. (f x, g x)) x : s :> (\<lambda>h. (f' h, g' h))"
-proof (rule FDERIV_I_sandwich[of 1])
+lemma has_derivative_Pair [has_derivative_intros]:
+  assumes f: "(f has_derivative f') (at x within s)" and g: "(g has_derivative g') (at x within s)"
+  shows "((\<lambda>x. (f x, g x)) has_derivative (\<lambda>h. (f' h, g' h))) (at x within s)"
+proof (rule has_derivativeI_sandwich[of 1])
   show "bounded_linear (\<lambda>h. (f' h, g' h))"
-    using f g by (intro bounded_linear_Pair FDERIV_bounded_linear)
+    using f g by (intro bounded_linear_Pair has_derivative_bounded_linear)
   let ?Rf = "\<lambda>y. f y - f x - f' (y - x)"
   let ?Rg = "\<lambda>y. g y - g x - g' (y - x)"
   let ?R = "\<lambda>y. ((f y, g y) - (f x, g x) - (f' (y - x), g' (y - x)))"
 
   show "((\<lambda>y. norm (?Rf y) / norm (y - x) + norm (?Rg y) / norm (y - x)) ---> 0) (at x within s)"
-    using f g by (intro tendsto_add_zero) (auto simp: FDERIV_iff_norm)
+    using f g by (intro tendsto_add_zero) (auto simp: has_derivative_iff_norm)
 
   fix y :: 'a assume "y \<noteq> x"
   show "norm (?R y) / norm (y - x) \<le> norm (?Rf y) / norm (y - x) + norm (?Rg y) / norm (y - x)"
@@ -497,10 +497,10 @@ proof (rule FDERIV_I_sandwich[of 1])
     by (simp add: norm_Pair divide_right_mono order_trans [OF sqrt_add_le_add_sqrt])
 qed simp
 
-lemmas FDERIV_fst [FDERIV_intros] = bounded_linear.FDERIV [OF bounded_linear_fst]
-lemmas FDERIV_snd [FDERIV_intros] = bounded_linear.FDERIV [OF bounded_linear_snd]
+lemmas has_derivative_fst [has_derivative_intros] = bounded_linear.has_derivative [OF bounded_linear_fst]
+lemmas has_derivative_snd [has_derivative_intros] = bounded_linear.has_derivative [OF bounded_linear_snd]
 
-lemma FDERIV_split [FDERIV_intros]:
+lemma has_derivative_split [has_derivative_intros]:
   "((\<lambda>p. f (fst p) (snd p)) has_derivative f') F \<Longrightarrow> ((\<lambda>(a, b). f a b) has_derivative f') F"
   unfolding split_beta' .
 

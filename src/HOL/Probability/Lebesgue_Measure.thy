@@ -1057,6 +1057,10 @@ proof cases
   qed
 qed simp
 
+lemma has_field_derivative_subset:
+  "(f has_field_derivative y) (at x within s) \<Longrightarrow> t \<subseteq> s \<Longrightarrow> (f has_field_derivative y) (at x within t)"
+  unfolding has_field_derivative_def by (rule has_derivative_subset)
+
 lemma integral_FTC_atLeastAtMost:
   fixes a b :: real
   assumes "a \<le> b"
@@ -1070,7 +1074,9 @@ proof -
     by (rule borel_integral_has_integral)
   moreover
   have "(f has_integral F b - F a) {a .. b}"
-    by (intro fundamental_theorem_of_calculus has_vector_derivative_withinI_DERIV ballI assms) auto
+    by (intro fundamental_theorem_of_calculus)
+       (auto simp: has_field_derivative_iff_has_vector_derivative[symmetric]
+             intro: has_field_derivative_subset[OF F] assms(1))
   then have "(?f has_integral F b - F a) {a .. b}"
     by (subst has_integral_eq_eq[where g=f]) auto
   then have "(?f has_integral F b - F a) UNIV"
@@ -1091,7 +1097,9 @@ lemma positive_integral_FTC_atLeastAtMost:
   shows "(\<integral>\<^sup>+x. f x * indicator {a .. b} x \<partial>lborel) = F b - F a"
 proof -
   have i: "(f has_integral F b - F a) {a..b}"
-    by (intro fundamental_theorem_of_calculus ballI has_vector_derivative_withinI_DERIV assms)
+    by (intro fundamental_theorem_of_calculus)
+       (auto simp: has_field_derivative_iff_has_vector_derivative[symmetric]
+             intro: has_field_derivative_subset[OF f(1)] `a \<le> b`)
   have i: "((\<lambda>x. f x * indicator {a..b} x) has_integral F b - F a) {a..b}"
     by (rule has_integral_eq[OF _ i]) auto
   have i: "((\<lambda>x. f x * indicator {a..b} x) has_integral F b - F a) UNIV"

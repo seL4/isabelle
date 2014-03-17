@@ -116,7 +116,7 @@ proof -
     by (rule DERIV_isCont [OF difg_Suc [rule_format]]) simp
 
   have differentiable_difg:
-    "\<And>m x. \<lbrakk>m < n; 0 \<le> x; x \<le> h\<rbrakk> \<Longrightarrow> difg m differentiable x"
+    "\<And>m x. \<lbrakk>m < n; 0 \<le> x; x \<le> h\<rbrakk> \<Longrightarrow> difg m differentiable (at x)"
     by (rule differentiableI [OF difg_Suc [rule_format]]) simp
 
   have difg_Suc_eq_0: "\<And>m t. \<lbrakk>m < n; 0 \<le> t; t \<le> h; DERIV (difg m) t :> 0\<rbrakk>
@@ -135,7 +135,7 @@ proof -
       show "difg 0 0 = difg 0 h" by (simp add: difg_0 g2)
       show "\<forall>x. 0 \<le> x \<and> x \<le> h \<longrightarrow> isCont (difg (0\<Colon>nat)) x"
         by (simp add: isCont_difg n)
-      show "\<forall>x. 0 < x \<and> x < h \<longrightarrow> difg (0\<Colon>nat) differentiable x"
+      show "\<forall>x. 0 < x \<and> x < h \<longrightarrow> difg (0\<Colon>nat) differentiable (at x)"
         by (simp add: differentiable_difg n)
     qed
   next
@@ -149,7 +149,7 @@ proof -
         using t `Suc m' < n` by (simp add: difg_Suc_eq_0 difg_eq_0)
       show "\<forall>x. 0 \<le> x \<and> x \<le> t \<longrightarrow> isCont (difg (Suc m')) x"
         using `t < h` `Suc m' < n` by (simp add: isCont_difg)
-      show "\<forall>x. 0 < x \<and> x < t \<longrightarrow> difg (Suc m') differentiable x"
+      show "\<forall>x. 0 < x \<and> x < t \<longrightarrow> difg (Suc m') differentiable (at x)"
         using `t < h` `Suc m' < n` by (simp add: differentiable_difg)
     qed
     thus ?case

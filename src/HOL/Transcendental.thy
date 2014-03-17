@@ -1383,7 +1383,7 @@ proof -
     hence "DERIV (\<lambda>x. suminf (?f x)) (x - 1) :> suminf (?f' x)"
       unfolding One_nat_def by auto
     hence "DERIV (\<lambda>x. suminf (?f (x - 1))) x :> suminf (?f' x)"
-      unfolding DERIV_iff repos .
+      unfolding deriv_def repos .
     ultimately have "DERIV (\<lambda>x. ln x - suminf (?f (x - 1))) x :> (suminf (?f' x) - suminf (?f' x))"
       by (rule DERIV_diff)
     thus "DERIV (\<lambda>x. ln x - suminf (?f (x - 1))) x :> 0" by auto
@@ -2485,8 +2485,8 @@ next
   fix x y
   assume x: "0 \<le> x \<and> x \<le> 2 \<and> cos x = 0"
   assume y: "0 \<le> y \<and> y \<le> 2 \<and> cos y = 0"
-  have [simp]: "\<forall>x. cos differentiable x"
-    unfolding differentiable_def by (auto intro: DERIV_cos)
+  have [simp]: "\<forall>x. cos differentiable (at x)"
+    unfolding real_differentiable_def by (auto intro: DERIV_cos)
   from x y show "x = y"
     apply (cut_tac less_linear [of x y], auto)
     apply (drule_tac f = cos in Rolle)
@@ -2661,8 +2661,8 @@ next
   fix a b
   assume a: "0 \<le> a \<and> a \<le> pi \<and> cos a = y"
   assume b: "0 \<le> b \<and> b \<le> pi \<and> cos b = y"
-  have [simp]: "\<forall>x. cos differentiable x"
-    unfolding differentiable_def by (auto intro: DERIV_cos)
+  have [simp]: "\<forall>x. cos differentiable (at x)"
+    unfolding real_differentiable_def by (auto intro: DERIV_cos)
   from a b show "a = b"
     apply (cut_tac less_linear [of a b], auto)
     apply (drule_tac f = cos in Rolle)
@@ -2949,7 +2949,7 @@ lemma tan_total: "EX! x. -(pi/2) < x & x < (pi/2) & tan x = y"
   apply (rule_tac [4] Rolle)
   apply (rule_tac [2] Rolle)
   apply (auto del: exI intro!: DERIV_tan DERIV_isCont exI
-              simp add: differentiable_def)
+              simp add: real_differentiable_def)
   txt{*Now, simulate TRYALL*}
   apply (rule_tac [!] DERIV_tan asm_rl)
   apply (auto dest!: DERIV_unique [OF _ DERIV_tan]

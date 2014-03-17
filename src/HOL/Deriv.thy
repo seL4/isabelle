@@ -12,8 +12,9 @@ theory Deriv
 imports Limits
 begin
 
+subsection {* Frechet derivative *}
+
 definition
-  -- {* Frechet derivative: D is derivative of function f at x within s *}
   has_derivative :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a filter \<Rightarrow>  bool"
   (infixl "(has'_derivative)" 12)
 where
@@ -21,37 +22,54 @@ where
     (bounded_linear f' \<and>
      ((\<lambda>y. ((f y - f (Lim F (\<lambda>x. x))) - f' (y - Lim F (\<lambda>x. x))) /\<^sub>R norm (y - Lim F (\<lambda>x. x))) ---> 0) F)"
 
-lemma FDERIV_eq_rhs: "(f has_derivative f') F \<Longrightarrow> f' = g' \<Longrightarrow> (f has_derivative g') F"
+text {*
+  Usually the filter @{term F} is @{term "at x within s"}.  @{term "(f has_derivative D)
+  (at x within s)"} means: @{term D} is the derivative of function @{term f} at point @{term x}
+  within the set @{term s}. Where @{term s} is used to express left or right sided derivatives. In
+  most cases @{term s} is either a variable or @{term UNIV}.
+*}
+
+text {*
+  The following syntax is only used as a legacy syntax.
+*}
+abbreviation (input)
+  FDERIV :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a \<Rightarrow>  ('a \<Rightarrow> 'b) \<Rightarrow> bool"
+  ("(FDERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60)
+where
+  "FDERIV f x :> f' \<equiv> (f has_derivative f') (at x)"
+
+
+lemma has_derivative_eq_rhs: "(f has_derivative f') F \<Longrightarrow> f' = g' \<Longrightarrow> (f has_derivative g') F"
   by simp
 
 ML {*
 
-structure FDERIV_Intros = Named_Thms
+structure has_derivative_Intros = Named_Thms
 (
-  val name = @{binding FDERIV_intros}
+  val name = @{binding has_derivative_intros}
   val description = "introduction rules for FDERIV"
 )
 
 *}
 
 setup {*
-  FDERIV_Intros.setup #>
-  Global_Theory.add_thms_dynamic (@{binding FDERIV_eq_intros},
-    map_filter (try (fn thm => @{thm FDERIV_eq_rhs} OF [thm])) o FDERIV_Intros.get o Context.proof_of);
+  has_derivative_Intros.setup #>
+  Global_Theory.add_thms_dynamic (@{binding has_derivative_eq_intros},
+    map_filter (try (fn thm => @{thm has_derivative_eq_rhs} OF [thm])) o has_derivative_Intros.get o Context.proof_of);
 *}
 
-lemma FDERIV_bounded_linear: "(f has_derivative f') F \<Longrightarrow> bounded_linear f'"
+lemma has_derivative_bounded_linear: "(f has_derivative f') F \<Longrightarrow> bounded_linear f'"
   by (simp add: has_derivative_def)
 
-lemma FDERIV_ident[FDERIV_intros, simp]: "((\<lambda>x. x) has_derivative (\<lambda>x. x)) F"
+lemma has_derivative_ident[has_derivative_intros, simp]: "((\<lambda>x. x) has_derivative (\<lambda>x. x)) F"
   by (simp add: has_derivative_def tendsto_const)
 
-lemma FDERIV_const[FDERIV_intros, simp]: "((\<lambda>x. c) has_derivative (\<lambda>x. 0)) F"
+lemma has_derivative_const[has_derivative_intros, simp]: "((\<lambda>x. c) has_derivative (\<lambda>x. 0)) F"
   by (simp add: has_derivative_def tendsto_const)
 
 lemma (in bounded_linear) bounded_linear: "bounded_linear f" ..
 
-lemma (in bounded_linear) FDERIV:
+lemma (in bounded_linear) has_derivative:
   "(g has_derivative g') F \<Longrightarrow> ((\<lambda>x. f (g x)) has_derivative (\<lambda>x. f (g' x))) F"
   using assms unfolding has_derivative_def
   apply safe
@@ -60,19 +78,19 @@ lemma (in bounded_linear) FDERIV:
   apply (simp add: local.scaleR local.diff local.add local.zero)
   done
 
-lemmas FDERIV_scaleR_right [FDERIV_intros] =
-  bounded_linear.FDERIV [OF bounded_linear_scaleR_right]
+lemmas has_derivative_scaleR_right [has_derivative_intros] =
+  bounded_linear.has_derivative [OF bounded_linear_scaleR_right]
 
-lemmas FDERIV_scaleR_left [FDERIV_intros] =
-  bounded_linear.FDERIV [OF bounded_linear_scaleR_left]
+lemmas has_derivative_scaleR_left [has_derivative_intros] =
+  bounded_linear.has_derivative [OF bounded_linear_scaleR_left]
 
-lemmas FDERIV_mult_right [FDERIV_intros] =
-  bounded_linear.FDERIV [OF bounded_linear_mult_right]
+lemmas has_derivative_mult_right [has_derivative_intros] =
+  bounded_linear.has_derivative [OF bounded_linear_mult_right]
 
-lemmas FDERIV_mult_left [FDERIV_intros] =
-  bounded_linear.FDERIV [OF bounded_linear_mult_left]
+lemmas has_derivative_mult_left [has_derivative_intros] =
+  bounded_linear.has_derivative [OF bounded_linear_mult_left]
 
-lemma FDERIV_add[simp, FDERIV_intros]:
+lemma has_derivative_add[simp, has_derivative_intros]:
   assumes f: "(f has_derivative f') F" and g: "(g has_derivative g') F"
   shows "((\<lambda>x. f x + g x) has_derivative (\<lambda>x. f' x + g' x)) F"
   unfolding has_derivative_def
@@ -83,9 +101,9 @@ proof safe
     using f g by (intro tendsto_add) (auto simp: has_derivative_def)
   then show "(?D (\<lambda>x. f x + g x) (\<lambda>x. f' x + g' x) ---> 0) F"
     by (simp add: field_simps scaleR_add_right scaleR_diff_right)
-qed (blast intro: bounded_linear_add f g FDERIV_bounded_linear)
+qed (blast intro: bounded_linear_add f g has_derivative_bounded_linear)
 
-lemma FDERIV_setsum[simp, FDERIV_intros]:
+lemma has_derivative_setsum[simp, has_derivative_intros]:
   assumes f: "\<And>i. i \<in> I \<Longrightarrow> (f i has_derivative f' i) F"
   shows "((\<lambda>x. \<Sum>i\<in>I. f i x) has_derivative (\<lambda>x. \<Sum>i\<in>I. f' i x)) F"
 proof cases
@@ -93,47 +111,33 @@ proof cases
     by induct (simp_all add: f)
 qed simp
 
-lemma FDERIV_minus[simp, FDERIV_intros]: "(f has_derivative f') F \<Longrightarrow> ((\<lambda>x. - f x) has_derivative (\<lambda>x. - f' x)) F"
-  using FDERIV_scaleR_right[of f f' F "-1"] by simp
+lemma has_derivative_minus[simp, has_derivative_intros]: "(f has_derivative f') F \<Longrightarrow> ((\<lambda>x. - f x) has_derivative (\<lambda>x. - f' x)) F"
+  using has_derivative_scaleR_right[of f f' F "-1"] by simp
 
-lemma FDERIV_diff[simp, FDERIV_intros]:
+lemma has_derivative_diff[simp, has_derivative_intros]:
   "(f has_derivative f') F \<Longrightarrow> (g has_derivative g') F \<Longrightarrow> ((\<lambda>x. f x - g x) has_derivative (\<lambda>x. f' x - g' x)) F"
-  by (simp only: diff_conv_add_uminus FDERIV_add FDERIV_minus)
+  by (simp only: diff_conv_add_uminus has_derivative_add has_derivative_minus)
 
-abbreviation
-  -- {* Frechet derivative: D is derivative of function f at x within s *}
-  FDERIV :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a \<Rightarrow> 'a set \<Rightarrow>  ('a \<Rightarrow> 'b) \<Rightarrow> bool"
-  ("(FDERIV (_)/ (_)/ : (_)/ :> (_))" [1000, 1000, 1000, 60] 60)
-where
-  "FDERIV f x : s :> f' \<equiv> (f has_derivative f') (at x within s)"
-
-abbreviation
-  fderiv_at ::
-    "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool"
-    ("(FDERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60)
-where
-  "FDERIV f x :> D \<equiv> FDERIV f x : UNIV :> D"
-
-lemma FDERIV_def:
-  "FDERIV f x : s :> f' \<longleftrightarrow>
+lemma has_derivative_at_within:
+  "(f has_derivative f') (at x within s) \<longleftrightarrow>
     (bounded_linear f' \<and> ((\<lambda>y. ((f y - f x) - f' (y - x)) /\<^sub>R norm (y - x)) ---> 0) (at x within s))"
   by (cases "at x within s = bot") (simp_all add: has_derivative_def Lim_ident_at)
 
-lemma FDERIV_iff_norm:
-  "FDERIV f x : s :> f' \<longleftrightarrow>
+lemma has_derivative_iff_norm:
+  "(f has_derivative f') (at x within s) \<longleftrightarrow>
     (bounded_linear f' \<and> ((\<lambda>y. norm ((f y - f x) - f' (y - x)) / norm (y - x)) ---> 0) (at x within s))"
   using tendsto_norm_zero_iff[of _ "at x within s", where 'b="'b", symmetric]
-  by (simp add: FDERIV_def divide_inverse ac_simps)
+  by (simp add: has_derivative_at_within divide_inverse ac_simps)
 
-lemma fderiv_def:
-  "FDERIV f x :> D = (bounded_linear D \<and> (\<lambda>h. norm (f (x + h) - f x - D h) / norm h) -- 0 --> 0)"
-  unfolding FDERIV_iff_norm LIM_offset_zero_iff[of _ _ x] by simp
+lemma has_derivative_at:
+  "(f has_derivative D) (at x) \<longleftrightarrow> (bounded_linear D \<and> (\<lambda>h. norm (f (x + h) - f x - D h) / norm h) -- 0 --> 0)"
+  unfolding has_derivative_iff_norm LIM_offset_zero_iff[of _ _ x] by simp
 
-lemma field_fderiv_def:
+lemma field_has_derivative_at:
   fixes x :: "'a::real_normed_field"
-  shows "FDERIV f x :> (\<lambda>h. h * D) = (\<lambda>h. (f (x + h) - f x) / h) -- 0 --> D"
-  apply (unfold fderiv_def)
-  apply (simp add: bounded_linear_mult_left)
+  shows "(f has_derivative op * D) (at x) \<longleftrightarrow> (\<lambda>h. (f (x + h) - f x) / h) -- 0 --> D"
+  apply (unfold has_derivative_at)
+  apply (simp add: bounded_linear_mult_right)
   apply (simp cong: LIM_cong add: nonzero_norm_divide [symmetric])
   apply (subst diff_divide_distrib)
   apply (subst times_divide_eq_left [symmetric])
@@ -141,17 +145,17 @@ lemma field_fderiv_def:
   apply (simp add: tendsto_norm_zero_iff LIM_zero_iff)
   done
 
-lemma FDERIV_I:
+lemma has_derivativeI:
   "bounded_linear f' \<Longrightarrow> ((\<lambda>y. ((f y - f x) - f' (y - x)) /\<^sub>R norm (y - x)) ---> 0) (at x within s) \<Longrightarrow>
-  FDERIV f x : s :> f'"
-  by (simp add: FDERIV_def)
+  (f has_derivative f') (at x within s)"
+  by (simp add: has_derivative_at_within)
 
-lemma FDERIV_I_sandwich:
+lemma has_derivativeI_sandwich:
   assumes e: "0 < e" and bounded: "bounded_linear f'"
     and sandwich: "(\<And>y. y \<in> s \<Longrightarrow> y \<noteq> x \<Longrightarrow> dist y x < e \<Longrightarrow> norm ((f y - f x) - f' (y - x)) / norm (y - x) \<le> H y)"
     and "(H ---> 0) (at x within s)"
-  shows "FDERIV f x : s :> f'"
-  unfolding FDERIV_iff_norm
+  shows "(f has_derivative f') (at x within s)"
+  unfolding has_derivative_iff_norm
 proof safe
   show "((\<lambda>y. norm (f y - f x - f' (y - x)) / norm (y - x)) ---> 0) (at x within s)"
   proof (rule tendsto_sandwich[where f="\<lambda>x. 0"])
@@ -161,20 +165,20 @@ proof safe
   qed (auto simp: le_divide_eq tendsto_const)
 qed fact
 
-lemma FDERIV_subset: "FDERIV f x : s :> f' \<Longrightarrow> t \<subseteq> s \<Longrightarrow> FDERIV f x : t :> f'"
-  by (auto simp add: FDERIV_iff_norm intro: tendsto_within_subset)
+lemma has_derivative_subset: "(f has_derivative f') (at x within s) \<Longrightarrow> t \<subseteq> s \<Longrightarrow> (f has_derivative f') (at x within t)"
+  by (auto simp add: has_derivative_iff_norm intro: tendsto_within_subset)
 
 subsection {* Continuity *}
 
-lemma FDERIV_continuous:
-  assumes f: "FDERIV f x : s :> f'"
+lemma has_derivative_continuous:
+  assumes f: "(f has_derivative f') (at x within s)"
   shows "continuous (at x within s) f"
 proof -
-  from f interpret F: bounded_linear f' by (rule FDERIV_bounded_linear)
+  from f interpret F: bounded_linear f' by (rule has_derivative_bounded_linear)
   note F.tendsto[tendsto_intros]
   let ?L = "\<lambda>f. (f ---> 0) (at x within s)"
   have "?L (\<lambda>y. norm ((f y - f x) - f' (y - x)) / norm (y - x))"
-    using f unfolding FDERIV_iff_norm by blast
+    using f unfolding has_derivative_iff_norm by blast
   then have "?L (\<lambda>y. norm ((f y - f x) - f' (y - x)) / norm (y - x) * norm (y - x))" (is ?m)
     by (rule tendsto_mult_zero) (auto intro!: tendsto_eq_intros)
   also have "?m \<longleftrightarrow> ?L (\<lambda>y. norm ((f y - f x) - f' (y - x)))"
@@ -195,13 +199,13 @@ lemma tendsto_at_iff_tendsto_nhds_within: "f x = y \<Longrightarrow> (f ---> y) 
   unfolding tendsto_def eventually_inf_principal eventually_at_filter
   by (intro ext all_cong imp_cong) (auto elim!: eventually_elim1)
 
-lemma FDERIV_in_compose:
-  assumes f: "FDERIV f x : s :> f'"
-  assumes g: "FDERIV g (f x) : (f`s) :> g'"
-  shows "FDERIV (\<lambda>x. g (f x)) x : s :> (\<lambda>x. g' (f' x))"
+lemma has_derivative_in_compose:
+  assumes f: "(f has_derivative f') (at x within s)"
+  assumes g: "(g has_derivative g') (at (f x) within (f`s))"
+  shows "((\<lambda>x. g (f x)) has_derivative (\<lambda>x. g' (f' x))) (at x within s)"
 proof -
-  from f interpret F: bounded_linear f' by (rule FDERIV_bounded_linear)
-  from g interpret G: bounded_linear g' by (rule FDERIV_bounded_linear)
+  from f interpret F: bounded_linear f' by (rule has_derivative_bounded_linear)
+  from g interpret G: bounded_linear g' by (rule has_derivative_bounded_linear)
   from F.bounded obtain kF where kF: "\<And>x. norm (f' x) \<le> norm x * kF" by fast
   from G.bounded obtain kG where kG: "\<And>x. norm (g' x) \<le> norm x * kG" by fast
   note G.tendsto[tendsto_intros]
@@ -214,9 +218,9 @@ proof -
   def Ng \<equiv> "\<lambda>y. ?N g g' (f x) (f y)"
 
   show ?thesis
-  proof (rule FDERIV_I_sandwich[of 1])
+  proof (rule has_derivativeI_sandwich[of 1])
     show "bounded_linear (\<lambda>x. g' (f' x))"
-      using f g by (blast intro: bounded_linear_compose FDERIV_bounded_linear)
+      using f g by (blast intro: bounded_linear_compose has_derivative_bounded_linear)
   next
     fix y::'a assume neq: "y \<noteq> x"
     have "?N ?gf ?gf' x y = norm (g' (?D f f' x y) + ?D g g' (f x) (f y)) / norm (y - x)"
@@ -237,15 +241,15 @@ proof -
     finally show "?N ?gf ?gf' x y \<le> Nf y * kG + Ng y * (Nf y + kF)" .
   next
     have [tendsto_intros]: "?L Nf"
-      using f unfolding FDERIV_iff_norm Nf_def ..
+      using f unfolding has_derivative_iff_norm Nf_def ..
     from f have "(f ---> f x) (at x within s)"
-      by (blast intro: FDERIV_continuous continuous_within[THEN iffD1])
+      by (blast intro: has_derivative_continuous continuous_within[THEN iffD1])
     then have f': "LIM x at x within s. f x :> inf (nhds (f x)) (principal (f`s))"
       unfolding filterlim_def
       by (simp add: eventually_filtermap eventually_at_filter le_principal)
 
     have "((?N g  g' (f x)) ---> 0) (at (f x) within f`s)"
-      using g unfolding FDERIV_iff_norm ..
+      using g unfolding has_derivative_iff_norm ..
     then have g': "((?N g  g' (f x)) ---> 0) (inf (nhds (f x)) (principal (f`s)))"
       by (rule tendsto_at_iff_tendsto_nhds_within[THEN iffD1, rotated]) simp
 
@@ -256,15 +260,16 @@ proof -
   qed simp
 qed
 
-lemma FDERIV_compose:
-  "FDERIV f x : s :> f' \<Longrightarrow> FDERIV g (f x) :> g' \<Longrightarrow> FDERIV (\<lambda>x. g (f x)) x : s :> (\<lambda>x. g' (f' x))"
-  by (blast intro: FDERIV_in_compose FDERIV_subset)
+lemma has_derivative_compose:
+  "(f has_derivative f') (at x within s) \<Longrightarrow> (g has_derivative g') (at (f x)) \<Longrightarrow>
+  ((\<lambda>x. g (f x)) has_derivative (\<lambda>x. g' (f' x))) (at x within s)"
+  by (blast intro: has_derivative_in_compose has_derivative_subset)
 
 lemma (in bounded_bilinear) FDERIV:
-  assumes f: "FDERIV f x : s :> f'" and g: "FDERIV g x : s :> g'"
-  shows "FDERIV (\<lambda>x. f x ** g x) x : s :> (\<lambda>h. f x ** g' h + f' h ** g x)"
+  assumes f: "(f has_derivative f') (at x within s)" and g: "(g has_derivative g') (at x within s)"
+  shows "((\<lambda>x. f x ** g x) has_derivative (\<lambda>h. f x ** g' h + f' h ** g x)) (at x within s)"
 proof -
-  from bounded_linear.bounded [OF FDERIV_bounded_linear [OF f]]
+  from bounded_linear.bounded [OF has_derivative_bounded_linear [OF f]]
   obtain KF where norm_F: "\<And>x. norm (f' x) \<le> norm x * KF" by fast
 
   from pos_bounded obtain K where K: "0 < K" and norm_prod:
@@ -278,16 +283,16 @@ proof -
   let ?F = "at x within s"
 
   show ?thesis
-  proof (rule FDERIV_I_sandwich[of 1])
+  proof (rule has_derivativeI_sandwich[of 1])
     show "bounded_linear (\<lambda>h. f x ** g' h + f' h ** g x)"
       by (intro bounded_linear_add
         bounded_linear_compose [OF bounded_linear_right] bounded_linear_compose [OF bounded_linear_left]
-        FDERIV_bounded_linear [OF g] FDERIV_bounded_linear [OF f])
+        has_derivative_bounded_linear [OF g] has_derivative_bounded_linear [OF f])
   next
     from g have "(g ---> g x) ?F"
-      by (intro continuous_within[THEN iffD1] FDERIV_continuous)
+      by (intro continuous_within[THEN iffD1] has_derivative_continuous)
     moreover from f g have "(Nf ---> 0) ?F" "(Ng ---> 0) ?F"
-      by (simp_all add: FDERIV_iff_norm Ng_def Nf_def)
+      by (simp_all add: has_derivative_iff_norm Ng_def Nf_def)
     ultimately have "(?fun2 ---> norm (f x) * 0 * K + 0 * norm (g x) * K + KF * norm (0::'b) * K) ?F"
       by (intro tendsto_intros) (simp_all add: LIM_zero_iff)
     then show "(?fun2 ---> 0) ?F"
@@ -309,20 +314,20 @@ proof -
   qed simp
 qed
 
-lemmas FDERIV_mult[simp, FDERIV_intros] = bounded_bilinear.FDERIV[OF bounded_bilinear_mult]
-lemmas FDERIV_scaleR[simp, FDERIV_intros] = bounded_bilinear.FDERIV[OF bounded_bilinear_scaleR]
+lemmas has_derivative_mult[simp, has_derivative_intros] = bounded_bilinear.FDERIV[OF bounded_bilinear_mult]
+lemmas has_derivative_scaleR[simp, has_derivative_intros] = bounded_bilinear.FDERIV[OF bounded_bilinear_scaleR]
 
-lemma FDERIV_setprod[simp, FDERIV_intros]:
+lemma has_derivative_setprod[simp, has_derivative_intros]:
   fixes f :: "'i \<Rightarrow> 'a :: real_normed_vector \<Rightarrow> 'b :: real_normed_field"
-  assumes f: "\<And>i. i \<in> I \<Longrightarrow> FDERIV (f i) x : s :> f' i"
-  shows "FDERIV (\<lambda>x. \<Prod>i\<in>I. f i x) x : s :> (\<lambda>y. \<Sum>i\<in>I. f' i y * (\<Prod>j\<in>I - {i}. f j x))"
+  assumes f: "\<And>i. i \<in> I \<Longrightarrow> (f i has_derivative f' i) (at x within s)"
+  shows "((\<lambda>x. \<Prod>i\<in>I. f i x) has_derivative (\<lambda>y. \<Sum>i\<in>I. f' i y * (\<Prod>j\<in>I - {i}. f j x))) (at x within s)"
 proof cases
   assume "finite I" from this f show ?thesis
   proof induct
     case (insert i I)
     let ?P = "\<lambda>y. f i x * (\<Sum>i\<in>I. f' i y * (\<Prod>j\<in>I - {i}. f j x)) + (f' i y) * (\<Prod>i\<in>I. f i x)"
-    have "FDERIV (\<lambda>x. f i x * (\<Prod>i\<in>I. f i x)) x : s :> ?P"
-      using insert by (intro FDERIV_mult) auto
+    have "((\<lambda>x. f i x * (\<Prod>i\<in>I. f i x)) has_derivative ?P) (at x within s)"
+      using insert by (intro has_derivative_mult) auto
     also have "?P = (\<lambda>y. \<Sum>i'\<in>insert i I. f' i' y * (\<Prod>j\<in>insert i I - {i'}. f j x))"
       using insert(1,2) by (auto simp add: setsum_right_distrib insert_Diff_if intro!: ext setsum_cong)
     finally show ?case
@@ -330,18 +335,18 @@ proof cases
   qed simp  
 qed simp
 
-lemma FDERIV_power[simp, FDERIV_intros]:
+lemma has_derivative_power[simp, has_derivative_intros]:
   fixes f :: "'a :: real_normed_vector \<Rightarrow> 'b :: real_normed_field"
-  assumes f: "FDERIV f x : s :> f'"
-  shows "FDERIV  (\<lambda>x. f x^n) x : s :> (\<lambda>y. of_nat n * f' y * f x^(n - 1))"
-  using FDERIV_setprod[OF f, of "{..< n}"] by (simp add: setprod_constant ac_simps)
+  assumes f: "(f has_derivative f') (at x within s)"
+  shows "((\<lambda>x. f x^n) has_derivative (\<lambda>y. of_nat n * f' y * f x^(n - 1))) (at x within s)"
+  using has_derivative_setprod[OF f, of "{..< n}"] by (simp add: setprod_constant ac_simps)
 
-lemma FDERIV_inverse':
+lemma has_derivative_inverse':
   fixes x :: "'a::real_normed_div_algebra"
   assumes x: "x \<noteq> 0"
-  shows "FDERIV inverse x : s :> (\<lambda>h. - (inverse x * h * inverse x))"
-        (is "FDERIV ?inv x : s :> ?f")
-proof (rule FDERIV_I_sandwich)
+  shows "(inverse has_derivative (\<lambda>h. - (inverse x * h * inverse x))) (at x within s)"
+        (is "(?inv has_derivative ?f) _")
+proof (rule has_derivativeI_sandwich)
   show "bounded_linear (\<lambda>h. - (?inv x * h * ?inv x))"
     apply (rule bounded_linear_minus)
     apply (rule bounded_linear_mult_const)
@@ -381,27 +386,27 @@ next
       norm (?inv y - ?inv x) * norm (?inv x)" .
 qed
 
-lemma FDERIV_inverse[simp, FDERIV_intros]:
+lemma has_derivative_inverse[simp, has_derivative_intros]:
   fixes f :: "_ \<Rightarrow> 'a::real_normed_div_algebra"
-  assumes x:  "f x \<noteq> 0" and f: "FDERIV f x : s :> f'"
-  shows "FDERIV (\<lambda>x. inverse (f x)) x : s :> (\<lambda>h. - (inverse (f x) * f' h * inverse (f x)))"
-  using FDERIV_compose[OF f FDERIV_inverse', OF x] .
+  assumes x:  "f x \<noteq> 0" and f: "(f has_derivative f') (at x within s)"
+  shows "((\<lambda>x. inverse (f x)) has_derivative (\<lambda>h. - (inverse (f x) * f' h * inverse (f x)))) (at x within s)"
+  using has_derivative_compose[OF f has_derivative_inverse', OF x] .
 
-lemma FDERIV_divide[simp, FDERIV_intros]:
+lemma has_derivative_divide[simp, has_derivative_intros]:
   fixes f :: "_ \<Rightarrow> 'a::real_normed_div_algebra"
-  assumes f: "FDERIV f x : s :> f'" and g: "FDERIV g x : s :> g'" 
+  assumes f: "(f has_derivative f') (at x within s)" and g: "(g has_derivative g') (at x within s)" 
   assumes x: "g x \<noteq> 0"
-  shows "FDERIV (\<lambda>x. f x / g x) x : s :>
-                (\<lambda>h. - f x * (inverse (g x) * g' h * inverse (g x)) + f' h / g x)"
-  using FDERIV_mult[OF f FDERIV_inverse[OF x g]]
+  shows "((\<lambda>x. f x / g x) has_derivative
+                (\<lambda>h. - f x * (inverse (g x) * g' h * inverse (g x)) + f' h / g x)) (at x within s)"
+  using has_derivative_mult[OF f has_derivative_inverse[OF x g]]
   by (simp add: divide_inverse field_simps)
 
 text{*Conventional form requires mult-AC laws. Types real and complex only.*}
-lemma FDERIV_divide'[FDERIV_intros]: 
+
+lemma has_derivative_divide'[has_derivative_intros]: 
   fixes f :: "_ \<Rightarrow> 'a::real_normed_field"
-  assumes f: "FDERIV f x : s :> f'" and g: "FDERIV g x : s :> g'" and x: "g x \<noteq> 0"
-  shows "FDERIV (\<lambda>x. f x / g x) x : s :>
-                (\<lambda>h. (f' h * g x - f x * g' h) / (g x * g x))"
+  assumes f: "(f has_derivative f') (at x within s)" and g: "(g has_derivative g') (at x within s)" and x: "g x \<noteq> 0"
+  shows "((\<lambda>x. f x / g x) has_derivative (\<lambda>h. (f' h * g x - f x * g' h) / (g x * g x))) (at x within s)"
 proof -
   { fix h
     have "f' h / g x - f x * (inverse (g x) * g' h * inverse (g x)) =
@@ -409,7 +414,7 @@ proof -
       by (simp add: divide_inverse field_simps nonzero_inverse_mult_distrib x)
    }
   then show ?thesis
-    using FDERIV_divide [OF f g] x
+    using has_derivative_divide [OF f g] x
     by simp
 qed
 
@@ -417,19 +422,19 @@ subsection {* Uniqueness *}
 
 text {*
 
-This can not generally shown for @{const FDERIV}, as we need to approach the point from
+This can not generally shown for @{const has_derivative}, as we need to approach the point from
 all directions. There is a proof in @{text Multivariate_Analysis} for @{text euclidean_space}.
 
 *}
 
-lemma FDERIV_zero_unique:
-  assumes "FDERIV (\<lambda>x. 0) x :> F" shows "F = (\<lambda>h. 0)"
+lemma has_derivative_zero_unique:
+  assumes "((\<lambda>x. 0) has_derivative F) (at x)" shows "F = (\<lambda>h. 0)"
 proof -
   interpret F: bounded_linear F
-    using assms by (rule FDERIV_bounded_linear)
+    using assms by (rule has_derivative_bounded_linear)
   let ?r = "\<lambda>h. norm (F h) / norm h"
   have *: "?r -- 0 --> 0"
-    using assms unfolding fderiv_def by simp
+    using assms unfolding has_derivative_at by simp
   show "F = (\<lambda>h. 0)"
   proof
     fix h show "F h = 0"
@@ -450,264 +455,286 @@ proof -
   qed
 qed
 
-lemma FDERIV_unique:
-  assumes "FDERIV f x :> F" and "FDERIV f x :> F'" shows "F = F'"
+lemma has_derivative_unique:
+  assumes "(f has_derivative F) (at x)" and "(f has_derivative F') (at x)" shows "F = F'"
 proof -
-  have "FDERIV (\<lambda>x. 0) x :> (\<lambda>h. F h - F' h)"
-    using FDERIV_diff [OF assms] by simp
+  have "((\<lambda>x. 0) has_derivative (\<lambda>h. F h - F' h)) (at x)"
+    using has_derivative_diff [OF assms] by simp
   hence "(\<lambda>h. F h - F' h) = (\<lambda>h. 0)"
-    by (rule FDERIV_zero_unique)
+    by (rule has_derivative_zero_unique)
   thus "F = F'"
     unfolding fun_eq_iff right_minus_eq .
 qed
 
 subsection {* Differentiability predicate *}
 
-definition isDiff :: "'a filter \<Rightarrow> ('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> bool" where
-  isDiff_def: "isDiff F f \<longleftrightarrow> (\<exists>D. (f has_derivative D) F)"
+definition
+  differentiable :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a filter \<Rightarrow> bool"
+  (infixr "differentiable" 30)
+where
+  "f differentiable F \<longleftrightarrow> (\<exists>D. (f has_derivative D) F)"
 
-abbreviation differentiable_in :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a \<Rightarrow> 'a set \<Rightarrow> bool"
-    ("(_) differentiable (_) in (_)"  [1000, 1000, 60] 60) where
-  "f differentiable x in s \<equiv> isDiff (at x within s) f"
+lemma differentiable_subset: "f differentiable (at x within s) \<Longrightarrow> t \<subseteq> s \<Longrightarrow> f differentiable (at x within t)"
+  unfolding differentiable_def by (blast intro: has_derivative_subset)
 
-abbreviation differentiable :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a \<Rightarrow> bool"
-    (infixl "differentiable" 60) where
-  "f differentiable x \<equiv> f differentiable x in UNIV"
+lemma differentiable_ident [simp]: "(\<lambda>x. x) differentiable F"
+  unfolding differentiable_def by (blast intro: has_derivative_ident)
 
-lemma differentiable_subset: "f differentiable x in s \<Longrightarrow> t \<subseteq> s \<Longrightarrow> f differentiable x in t"
-  unfolding isDiff_def by (blast intro: FDERIV_subset)
-
-lemma differentiable_ident [simp]: "isDiff F (\<lambda>x. x)"
-  unfolding isDiff_def by (blast intro: FDERIV_ident)
-
-lemma differentiable_const [simp]: "isDiff F (\<lambda>z. a)"
-  unfolding isDiff_def by (blast intro: FDERIV_const)
+lemma differentiable_const [simp]: "(\<lambda>z. a) differentiable F"
+  unfolding differentiable_def by (blast intro: has_derivative_const)
 
 lemma differentiable_in_compose:
-  "f differentiable (g x) in (g`s) \<Longrightarrow> g differentiable x in s \<Longrightarrow> (\<lambda>x. f (g x)) differentiable x in s"
-  unfolding isDiff_def by (blast intro: FDERIV_in_compose)
+  "f differentiable (at (g x) within (g`s)) \<Longrightarrow> g differentiable (at x within s) \<Longrightarrow> (\<lambda>x. f (g x)) differentiable (at x within s)"
+  unfolding differentiable_def by (blast intro: has_derivative_in_compose)
 
 lemma differentiable_compose:
-  "f differentiable (g x) \<Longrightarrow> g differentiable x in s \<Longrightarrow> (\<lambda>x. f (g x)) differentiable x in s"
+  "f differentiable (at (g x)) \<Longrightarrow> g differentiable (at x within s) \<Longrightarrow> (\<lambda>x. f (g x)) differentiable (at x within s)"
   by (blast intro: differentiable_in_compose differentiable_subset)
 
 lemma differentiable_sum [simp]:
-  "isDiff F f \<Longrightarrow> isDiff F g \<Longrightarrow> isDiff F (\<lambda>x. f x + g x)"
-  unfolding isDiff_def by (blast intro: FDERIV_add)
+  "f differentiable F \<Longrightarrow> g differentiable F \<Longrightarrow> (\<lambda>x. f x + g x) differentiable F"
+  unfolding differentiable_def by (blast intro: has_derivative_add)
 
 lemma differentiable_minus [simp]:
-  "isDiff F f \<Longrightarrow> isDiff F (\<lambda>x. - f x)"
-  unfolding isDiff_def by (blast intro: FDERIV_minus)
+  "f differentiable F \<Longrightarrow> (\<lambda>x. - f x) differentiable F"
+  unfolding differentiable_def by (blast intro: has_derivative_minus)
 
 lemma differentiable_diff [simp]:
-  "isDiff F f \<Longrightarrow> isDiff F g \<Longrightarrow> isDiff F (\<lambda>x. f x - g x)"
-  unfolding isDiff_def by (blast intro: FDERIV_diff)
+  "f differentiable F \<Longrightarrow> g differentiable F \<Longrightarrow> (\<lambda>x. f x - g x) differentiable F"
+  unfolding differentiable_def by (blast intro: has_derivative_diff)
 
 lemma differentiable_mult [simp]:
   fixes f g :: "'a :: real_normed_vector \<Rightarrow> 'b :: real_normed_algebra"
-  shows "f differentiable x in s \<Longrightarrow> g differentiable x in s \<Longrightarrow> (\<lambda>x. f x * g x) differentiable x in s"
-  unfolding isDiff_def by (blast intro: FDERIV_mult)
+  shows "f differentiable (at x within s) \<Longrightarrow> g differentiable (at x within s) \<Longrightarrow> (\<lambda>x. f x * g x) differentiable (at x within s)"
+  unfolding differentiable_def by (blast intro: has_derivative_mult)
 
 lemma differentiable_inverse [simp]:
   fixes f :: "'a :: real_normed_vector \<Rightarrow> 'b :: real_normed_field"
-  shows "f differentiable x in s \<Longrightarrow> f x \<noteq> 0 \<Longrightarrow> (\<lambda>x. inverse (f x)) differentiable x in s"
-  unfolding isDiff_def by (blast intro: FDERIV_inverse)
+  shows "f differentiable (at x within s) \<Longrightarrow> f x \<noteq> 0 \<Longrightarrow> (\<lambda>x. inverse (f x)) differentiable (at x within s)"
+  unfolding differentiable_def by (blast intro: has_derivative_inverse)
 
 lemma differentiable_divide [simp]:
   fixes f g :: "'a :: real_normed_vector \<Rightarrow> 'b :: real_normed_field"
-  shows "f differentiable x in s \<Longrightarrow> g differentiable x in s \<Longrightarrow> g x \<noteq> 0 \<Longrightarrow> (\<lambda>x. f x / g x) differentiable x in s"
+  shows "f differentiable (at x within s) \<Longrightarrow> g differentiable (at x within s) \<Longrightarrow> g x \<noteq> 0 \<Longrightarrow> (\<lambda>x. f x / g x) differentiable (at x within s)"
   unfolding divide_inverse using assms by simp
 
 lemma differentiable_power [simp]:
   fixes f g :: "'a :: real_normed_vector \<Rightarrow> 'b :: real_normed_field"
-  shows "f differentiable x in s \<Longrightarrow> (\<lambda>x. f x ^ n) differentiable x in s"
-  unfolding isDiff_def by (blast intro: FDERIV_power)
+  shows "f differentiable (at x within s) \<Longrightarrow> (\<lambda>x. f x ^ n) differentiable (at x within s)"
+  unfolding differentiable_def by (blast intro: has_derivative_power)
 
 lemma differentiable_scaleR [simp]:
-  "f differentiable x in s \<Longrightarrow> g differentiable x in s \<Longrightarrow> (\<lambda>x. f x *\<^sub>R g x) differentiable x in s"
-  unfolding isDiff_def by (blast intro: FDERIV_scaleR)
+  "f differentiable (at x within s) \<Longrightarrow> g differentiable (at x within s) \<Longrightarrow> (\<lambda>x. f x *\<^sub>R g x) differentiable (at x within s)"
+  unfolding differentiable_def by (blast intro: has_derivative_scaleR)
 
 definition 
-  -- {*Differentiation: D is derivative of function f at x*}
-  deriv ::
-    "('a::real_normed_field \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> bool"
-    ("(DERIV (_)/ (_)/ : (_)/ :> (_))" [1000, 1000, 1000, 60] 60)
+  has_field_derivative :: "('a::real_normed_field \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a filter \<Rightarrow> bool"
+  (infixl "(has'_field'_derivative)" 12)
 where
-  deriv_fderiv: "DERIV f x : s :> D = FDERIV f x : s :> (\<lambda>x. x * D)"
+  "(f has_field_derivative D) F \<longleftrightarrow> (f has_derivative op * D) F"
 
-abbreviation
-  -- {*Differentiation: D is derivative of function f at x*}
-  deriv_at ::
-    "('a::real_normed_field \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
-    ("(DERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60)
+lemma has_derivative_imp_has_field_derivative:
+  "(f has_derivative D) F \<Longrightarrow> (\<And>x. x * D' = D x) \<Longrightarrow> (f has_field_derivative D') F"
+  unfolding has_field_derivative_def 
+  by (rule has_derivative_eq_rhs[of f D]) (simp_all add: fun_eq_iff mult_commute)
+
+lemma has_field_derivative_imp_has_derivative: "(f has_field_derivative D) F \<Longrightarrow> (f has_derivative op * D) F"
+  by (simp add: has_field_derivative_def)
+
+abbreviation (input)
+  deriv :: "('a::real_normed_field \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
+  ("(DERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60)
 where
-  "DERIV f x :> D \<equiv> DERIV f x : UNIV :> D"
+  "DERIV f x :> D \<equiv> (f has_field_derivative D) (at x)"
 
-lemma differentiable_def: "(f::real \<Rightarrow> real) differentiable x in s \<longleftrightarrow> (\<exists>D. DERIV f x : s :> D)"
+abbreviation 
+  has_real_derivative :: "(real \<Rightarrow> real) \<Rightarrow> real \<Rightarrow> real filter \<Rightarrow> bool"
+  (infixl "(has'_real'_derivative)" 12)
+where
+  "(f has_real_derivative D) F \<equiv> (f has_field_derivative D) F"
+
+lemma real_differentiable_def:
+  "f differentiable at x within s \<longleftrightarrow> (\<exists>D. (f has_real_derivative D) (at x within s))"
 proof safe
-  assume "f differentiable x in s"
-  then obtain f' where *: "FDERIV f x : s :> f'"
-    unfolding isDiff_def by auto
-  then obtain c where "f' = (\<lambda>x. x * c)"
-    by (metis real_bounded_linear FDERIV_bounded_linear)
-  with * show "\<exists>D. DERIV f x : s :> D"
-    unfolding deriv_fderiv by auto
-qed (auto simp: isDiff_def deriv_fderiv)
+  assume "f differentiable at x within s"
+  then obtain f' where *: "(f has_derivative f') (at x within s)"
+    unfolding differentiable_def by auto
+  then obtain c where "f' = (op * c)"
+    by (metis real_bounded_linear has_derivative_bounded_linear mult_commute fun_eq_iff)
+  with * show "\<exists>D. (f has_real_derivative D) (at x within s)"
+    unfolding has_field_derivative_def by auto
+qed (auto simp: differentiable_def has_field_derivative_def)
 
-lemma differentiableE [elim?]:
-  fixes f :: "real \<Rightarrow> real"
-  assumes f: "f differentiable x in s" obtains df where "DERIV f x : s :> df"
-  using assms by (auto simp: differentiable_def)
+lemma real_differentiableE [elim?]:
+  assumes f: "f differentiable (at x within s)" obtains df where "(f has_real_derivative df) (at x within s)"
+  using assms by (auto simp: real_differentiable_def)
 
-lemma differentiableD: "(f::real \<Rightarrow> real) differentiable x in s \<Longrightarrow> \<exists>D. DERIV f x : s :> D"
-  by (auto elim: differentiableE)
+lemma differentiableD: "f differentiable (at x within s) \<Longrightarrow> \<exists>D. (f has_real_derivative D) (at x within s)"
+  by (auto elim: real_differentiableE)
 
-lemma differentiableI: "DERIV f x : s :> D \<Longrightarrow> (f::real \<Rightarrow> real) differentiable x in s"
-  by (force simp add: differentiable_def)
-
-lemma DERIV_I_FDERIV: "FDERIV f x : s :> F \<Longrightarrow> (\<And>x. x * F' = F x) \<Longrightarrow> DERIV f x : s :> F'"
-  by (simp add: deriv_fderiv)
-
-lemma DERIV_D_FDERIV: "DERIV f x : s :> F \<Longrightarrow> FDERIV f x : s :> (\<lambda>x. x * F)"
-  by (simp add: deriv_fderiv)
+lemma differentiableI: "(f has_real_derivative D) (at x within s) \<Longrightarrow> f differentiable (at x within s)"
+  by (force simp add: real_differentiable_def)
 
 lemma deriv_def:
   "DERIV f x :> D \<longleftrightarrow> (\<lambda>h. (f (x + h) - f x) / h) -- 0 --> D"
-  apply (simp add: deriv_fderiv fderiv_def bounded_linear_mult_left LIM_zero_iff[symmetric, of _ D])
+  apply (simp add: has_field_derivative_def has_derivative_at bounded_linear_mult_right LIM_zero_iff[symmetric, of _ D])
   apply (subst (2) tendsto_norm_zero_iff[symmetric])
   apply (rule filterlim_cong)
   apply (simp_all add: eventually_at_filter field_simps nonzero_norm_divide)
   done
 
-subsection {* Derivatives *}
+lemma mult_commute_abs: "(\<lambda>x. x * c) = op * (c::'a::ab_semigroup_mult)"
+  by (simp add: fun_eq_iff mult_commute)
 
-lemma DERIV_iff: "(DERIV f x :> D) \<longleftrightarrow> (\<lambda>h. (f (x + h) - f x) / h) -- 0 --> D"
-  by (simp add: deriv_def)
+subsection {* Derivatives *}
 
 lemma DERIV_D: "DERIV f x :> D \<Longrightarrow> (\<lambda>h. (f (x + h) - f x) / h) -- 0 --> D"
   by (simp add: deriv_def)
 
-lemma DERIV_const [simp]: "DERIV (\<lambda>x. k) x : s :> 0"
-  by (rule DERIV_I_FDERIV[OF FDERIV_const]) auto
+lemma DERIV_const [simp]: "((\<lambda>x. k) has_field_derivative 0) (at x within s)"
+  by (rule has_derivative_imp_has_field_derivative[OF has_derivative_const]) auto
 
-lemma DERIV_ident [simp]: "DERIV (\<lambda>x. x) x : s :> 1"
-  by (rule DERIV_I_FDERIV[OF FDERIV_ident]) auto
+lemma DERIV_ident [simp]: "((\<lambda>x. x) has_field_derivative 1) (at x within s)"
+  by (rule has_derivative_imp_has_field_derivative[OF has_derivative_ident]) auto
 
-lemma DERIV_add: "DERIV f x : s :> D \<Longrightarrow> DERIV g x : s :> E \<Longrightarrow> DERIV (\<lambda>x. f x + g x) x : s :> D + E"
-  by (rule DERIV_I_FDERIV[OF FDERIV_add]) (auto simp: field_simps dest: DERIV_D_FDERIV)
+lemma DERIV_add:
+  "(f has_field_derivative D) (at x within s) \<Longrightarrow> (g has_field_derivative E) (at x within s) \<Longrightarrow>
+  ((\<lambda>x. f x + g x) has_field_derivative D + E) (at x within s)"
+  by (rule has_derivative_imp_has_field_derivative[OF has_derivative_add])
+     (auto simp: field_simps mult_commute_abs dest: has_field_derivative_imp_has_derivative)
 
-lemma DERIV_minus: "DERIV f x : s :> D \<Longrightarrow> DERIV (\<lambda>x. - f x) x : s :> - D"
-  by (rule DERIV_I_FDERIV[OF FDERIV_minus]) (auto simp: field_simps dest: DERIV_D_FDERIV)
+lemma DERIV_minus: "(f has_field_derivative D) (at x within s) \<Longrightarrow> ((\<lambda>x. - f x) has_field_derivative -D) (at x within s)"
+  by (rule has_derivative_imp_has_field_derivative[OF has_derivative_minus]) 
+     (auto simp: field_simps mult_commute_abs dest: has_field_derivative_imp_has_derivative)
 
-lemma DERIV_diff: "DERIV f x : s :> D \<Longrightarrow> DERIV g x : s :> E \<Longrightarrow> DERIV (\<lambda>x. f x - g x) x : s :> D - E"
-  by (rule DERIV_I_FDERIV[OF FDERIV_diff]) (auto simp: field_simps dest: DERIV_D_FDERIV)
+lemma DERIV_diff:
+  "(f has_field_derivative D) (at x within s) \<Longrightarrow> (g has_field_derivative E) (at x within s) \<Longrightarrow>
+  ((\<lambda>x. f x - g x) has_field_derivative D - E) (at x within s)"
+  by (rule has_derivative_imp_has_field_derivative[OF has_derivative_diff])
+     (auto simp: field_simps dest: has_field_derivative_imp_has_derivative)
 
-lemma DERIV_add_minus: "DERIV f x : s :> D \<Longrightarrow> DERIV g x : s :> E \<Longrightarrow> DERIV (\<lambda>x. f x + - g x) x : s :> D + - E"
+lemma DERIV_add_minus:
+  "(f has_field_derivative D) (at x within s) \<Longrightarrow> (g has_field_derivative E) (at x within s) \<Longrightarrow>
+  ((\<lambda>x. f x + - g x) has_field_derivative D + - E) (at x within s)"
   by (simp only: DERIV_add DERIV_minus)
 
-lemma DERIV_continuous: "DERIV f x : s :> D \<Longrightarrow> continuous (at x within s) f"
-  by (drule FDERIV_continuous[OF DERIV_D_FDERIV]) simp
+lemma DERIV_continuous: "(f has_field_derivative D) (at x within s) \<Longrightarrow> continuous (at x within s) f"
+  by (drule has_derivative_continuous[OF has_field_derivative_imp_has_derivative]) simp
 
 lemma DERIV_isCont: "DERIV f x :> D \<Longrightarrow> isCont f x"
   by (auto dest!: DERIV_continuous)
 
-lemma DERIV_mult': "DERIV f x : s :> D \<Longrightarrow> DERIV g x : s :> E \<Longrightarrow> DERIV (\<lambda>x. f x * g x) x : s :> f x * E + D * g x"
-  by (rule DERIV_I_FDERIV[OF FDERIV_mult]) (auto simp: field_simps dest: DERIV_D_FDERIV)
+lemma DERIV_mult':
+  "(f has_field_derivative D) (at x within s) \<Longrightarrow> (g has_field_derivative E) (at x within s) \<Longrightarrow>
+  ((\<lambda>x. f x * g x) has_field_derivative f x * E + D * g x) (at x within s)"
+  by (rule has_derivative_imp_has_field_derivative[OF has_derivative_mult])
+     (auto simp: field_simps mult_commute_abs dest: has_field_derivative_imp_has_derivative)
 
-lemma DERIV_mult: "DERIV f x : s :> Da \<Longrightarrow> DERIV g x : s :> Db \<Longrightarrow> DERIV (\<lambda>x. f x * g x) x : s :> Da * g x + Db * f x"
-  by (rule DERIV_I_FDERIV[OF FDERIV_mult]) (auto simp: field_simps dest: DERIV_D_FDERIV)
+lemma DERIV_mult:
+  "(f has_field_derivative Da) (at x within s) \<Longrightarrow> (g has_field_derivative Db) (at x within s) \<Longrightarrow>
+  ((\<lambda>x. f x * g x) has_field_derivative Da * g x + Db * f x) (at x within s)"
+  by (rule has_derivative_imp_has_field_derivative[OF has_derivative_mult])
+     (auto simp: field_simps dest: has_field_derivative_imp_has_derivative)
 
 text {* Derivative of linear multiplication *}
 
 lemma DERIV_cmult:
-  "DERIV f x : s :> D ==> DERIV (%x. c * f x) x : s :> c*D"
+  "(f has_field_derivative D) (at x within s) ==> ((\<lambda>x. c * f x) has_field_derivative c * D) (at x within s)"
   by (drule DERIV_mult' [OF DERIV_const], simp)
 
 lemma DERIV_cmult_right:
-  "DERIV f x : s :> D ==> DERIV (%x. f x * c) x : s :> D * c"
+  "(f has_field_derivative D) (at x within s) ==> ((\<lambda>x. f x * c) has_field_derivative D * c) (at x within s)"
   using DERIV_cmult   by (force simp add: mult_ac)
 
-lemma DERIV_cmult_Id [simp]: "DERIV (op * c) x : s :> c"
+lemma DERIV_cmult_Id [simp]: "(op * c has_field_derivative c) (at x within s)"
   by (cut_tac c = c and x = x in DERIV_ident [THEN DERIV_cmult], simp)
 
-lemma DERIV_cdivide: "DERIV f x : s :> D ==> DERIV (%x. f x / c) x : s :> D / c"
-  apply (subgoal_tac "DERIV (%x. (1 / c) * f x) x : s :> (1 / c) * D", force)
-  apply (erule DERIV_cmult)
-  done
+lemma DERIV_cdivide:
+  "(f has_field_derivative D) (at x within s) \<Longrightarrow> ((\<lambda>x. f x / c) has_field_derivative D / c) (at x within s)"
+  using DERIV_cmult_right[of f D x s "1 / c"] by simp
 
 lemma DERIV_unique:
   "DERIV f x :> D \<Longrightarrow> DERIV f x :> E \<Longrightarrow> D = E"
   unfolding deriv_def by (rule LIM_unique) 
 
-lemma DERIV_setsum':
-  "(\<And> n. n \<in> S \<Longrightarrow> DERIV (%x. f x n) x : s :> (f' x n)) \<Longrightarrow> DERIV (\<lambda>x. setsum (f x) S) x : s :> setsum (f' x) S"
-  by (rule DERIV_I_FDERIV[OF FDERIV_setsum]) (auto simp: setsum_right_distrib dest: DERIV_D_FDERIV)
-
 lemma DERIV_setsum:
-  "finite S \<Longrightarrow> (\<And> n. n \<in> S \<Longrightarrow> DERIV (%x. f x n) x : s :> (f' x n)) \<Longrightarrow> DERIV (\<lambda>x. setsum (f x) S) x : s :> setsum (f' x) S"
-  by (rule DERIV_setsum')
-
-lemma DERIV_sumr [rule_format (no_asm)]: (* REMOVE *)
-     "(\<forall>r. m \<le> r & r < (m + n) --> DERIV (%x. f r x) x : s :> (f' r x))
-      --> DERIV (%x. \<Sum>n=m..<n::nat. f n x :: real) x : s :> (\<Sum>r=m..<n. f' r x)"
-  by (auto intro: DERIV_setsum)
+  "(\<And> n. n \<in> S \<Longrightarrow> ((\<lambda>x. f x n) has_field_derivative (f' x n)) F) \<Longrightarrow> 
+    ((\<lambda>x. setsum (f x) S) has_field_derivative setsum (f' x) S) F"
+  by (rule has_derivative_imp_has_field_derivative[OF has_derivative_setsum])
+     (auto simp: setsum_right_distrib mult_commute_abs dest: has_field_derivative_imp_has_derivative)
 
 lemma DERIV_inverse':
-  "DERIV f x : s :> D \<Longrightarrow> f x \<noteq> 0 \<Longrightarrow> DERIV (\<lambda>x. inverse (f x)) x : s :> - (inverse (f x) * D * inverse (f x))"
-  by (rule DERIV_I_FDERIV[OF FDERIV_inverse]) (auto dest: DERIV_D_FDERIV)
+  "(f has_field_derivative D) (at x within s) \<Longrightarrow> f x \<noteq> 0 \<Longrightarrow>
+  ((\<lambda>x. inverse (f x)) has_field_derivative - (inverse (f x) * D * inverse (f x))) (at x within s)"
+  by (rule has_derivative_imp_has_field_derivative[OF has_derivative_inverse])
+     (auto dest: has_field_derivative_imp_has_derivative)
 
 text {* Power of @{text "-1"} *}
 
 lemma DERIV_inverse:
-  "x \<noteq> 0 \<Longrightarrow> DERIV (\<lambda>x. inverse(x)) x : s :> - (inverse x ^ Suc (Suc 0))"
+  "x \<noteq> 0 \<Longrightarrow> ((\<lambda>x. inverse(x)) has_field_derivative - (inverse x ^ Suc (Suc 0))) (at x within s)"
   by (drule DERIV_inverse' [OF DERIV_ident]) simp
 
 text {* Derivative of inverse *}
 
 lemma DERIV_inverse_fun:
-  "DERIV f x : s :> d \<Longrightarrow> f x \<noteq> 0 \<Longrightarrow> DERIV (\<lambda>x. inverse (f x)) x : s :> (- (d * inverse(f x ^ Suc (Suc 0))))"
+  "(f has_field_derivative d) (at x within s) \<Longrightarrow> f x \<noteq> 0 \<Longrightarrow>
+  ((\<lambda>x. inverse (f x)) has_field_derivative (- (d * inverse(f x ^ Suc (Suc 0))))) (at x within s)"
   by (drule (1) DERIV_inverse') (simp add: mult_ac nonzero_inverse_mult_distrib)
 
 text {* Derivative of quotient *}
 
 lemma DERIV_divide:
-  "DERIV f x : s :> D \<Longrightarrow> DERIV g x : s :> E \<Longrightarrow> g x \<noteq> 0 \<Longrightarrow> DERIV (\<lambda>x. f x / g x) x : s :> (D * g x - f x * E) / (g x * g x)"
-  by (rule DERIV_I_FDERIV[OF FDERIV_divide])
-     (auto dest: DERIV_D_FDERIV simp: field_simps nonzero_inverse_mult_distrib divide_inverse)
+  "(f has_field_derivative D) (at x within s) \<Longrightarrow>
+  (g has_field_derivative E) (at x within s) \<Longrightarrow> g x \<noteq> 0 \<Longrightarrow>
+  ((\<lambda>x. f x / g x) has_field_derivative (D * g x - f x * E) / (g x * g x)) (at x within s)"
+  by (rule has_derivative_imp_has_field_derivative[OF has_derivative_divide])
+     (auto dest: has_field_derivative_imp_has_derivative simp: field_simps nonzero_inverse_mult_distrib divide_inverse)
 
 lemma DERIV_quotient:
-  "DERIV f x : s :> d \<Longrightarrow> DERIV g x : s :> e \<Longrightarrow> g x \<noteq> 0 \<Longrightarrow> DERIV (\<lambda>y. f y / g y) x : s :> (d * g x - (e * f x)) / (g x ^ Suc (Suc 0))"
+  "(f has_field_derivative d) (at x within s) \<Longrightarrow>
+  (g has_field_derivative e) (at x within s)\<Longrightarrow> g x \<noteq> 0 \<Longrightarrow> 
+  ((\<lambda>y. f y / g y) has_field_derivative (d * g x - (e * f x)) / (g x ^ Suc (Suc 0))) (at x within s)"
   by (drule (2) DERIV_divide) (simp add: mult_commute)
 
 lemma DERIV_power_Suc:
-  "DERIV f x : s :> D \<Longrightarrow> DERIV (\<lambda>x. f x ^ Suc n) x : s :> (1 + of_nat n) * (D * f x ^ n)"
-  by (rule DERIV_I_FDERIV[OF FDERIV_power]) (auto simp: deriv_fderiv)
+  "(f has_field_derivative D) (at x within s) \<Longrightarrow>
+  ((\<lambda>x. f x ^ Suc n) has_field_derivative (1 + of_nat n) * (D * f x ^ n)) (at x within s)"
+  by (rule has_derivative_imp_has_field_derivative[OF has_derivative_power])
+     (auto simp: has_field_derivative_def)
 
 lemma DERIV_power:
-  "DERIV f x : s :> D \<Longrightarrow> DERIV (\<lambda>x. f x ^ n) x : s :> of_nat n * (D * f x ^ (n - Suc 0))"
-  by (rule DERIV_I_FDERIV[OF FDERIV_power]) (auto simp: deriv_fderiv)
+  "(f has_field_derivative D) (at x within s) \<Longrightarrow>
+  ((\<lambda>x. f x ^ n) has_field_derivative of_nat n * (D * f x ^ (n - Suc 0))) (at x within s)"
+  by (rule has_derivative_imp_has_field_derivative[OF has_derivative_power])
+     (auto simp: has_field_derivative_def)
 
-lemma DERIV_pow: "DERIV (%x. x ^ n) x : s :> real n * (x ^ (n - Suc 0))"
+lemma DERIV_pow: "((\<lambda>x. x ^ n) has_field_derivative real n * (x ^ (n - Suc 0))) (at x within s)"
   apply (cut_tac DERIV_power [OF DERIV_ident])
   apply (simp add: real_of_nat_def)
   done
 
-lemma DERIV_chain': "DERIV f x : s :> D \<Longrightarrow> DERIV g (f x) :> E \<Longrightarrow> DERIV (\<lambda>x. g (f x)) x : s :> E * D"
-  using FDERIV_compose[of f "\<lambda>x. x * D" x s g "\<lambda>x. x * E"]
-  by (auto simp: deriv_fderiv ac_simps dest: FDERIV_subset)
+lemma DERIV_chain': "(f has_field_derivative D) (at x within s) \<Longrightarrow> DERIV g (f x) :> E \<Longrightarrow> 
+  ((\<lambda>x. g (f x)) has_field_derivative E * D) (at x within s)"
+  using has_derivative_compose[of f "op * D" x s g "op * E"]
+  unfolding has_field_derivative_def mult_commute_abs ac_simps .
 
-corollary DERIV_chain2: "DERIV f (g x) :> Da \<Longrightarrow> DERIV g x : s :> Db \<Longrightarrow> DERIV (%x. f (g x)) x : s :> Da * Db"
+corollary DERIV_chain2: "DERIV f (g x) :> Da \<Longrightarrow> (g has_field_derivative Db) (at x within s) \<Longrightarrow>
+  ((\<lambda>x. f (g x)) has_field_derivative Da * Db) (at x within s)"
   by (rule DERIV_chain')
 
 text {* Standard version *}
 
-lemma DERIV_chain: "DERIV f (g x) :> Da \<Longrightarrow> DERIV g x : s :> Db \<Longrightarrow> DERIV (f o g) x : s :> Da * Db"
+lemma DERIV_chain:
+  "DERIV f (g x) :> Da \<Longrightarrow> (g has_field_derivative Db) (at x within s) \<Longrightarrow> 
+  (f o g has_field_derivative Da * Db) (at x within s)"
   by (drule (1) DERIV_chain', simp add: o_def mult_commute)
 
 lemma DERIV_image_chain: 
-  "DERIV f (g x) : (g ` s) :> Da \<Longrightarrow> DERIV g x : s :> Db \<Longrightarrow> DERIV (f o g) x : s :> Da * Db"
-  using FDERIV_in_compose [of g "\<lambda>x. x * Db" x s f "\<lambda>x. x * Da "]
-  by (simp add: deriv_fderiv o_def  mult_ac)
+  "(f has_field_derivative Da) (at (g x) within (g ` s)) \<Longrightarrow> (g has_field_derivative Db) (at x within s) \<Longrightarrow>
+  (f o g has_field_derivative Da * Db) (at x within s)"
+  using has_derivative_in_compose [of g "op * Db" x s f "op * Da "]
+  by (simp add: has_field_derivative_def o_def mult_commute_abs ac_simps)
 
 (*These two are from HOL Light: HAS_COMPLEX_DERIVATIVE_CHAIN*)
 lemma DERIV_chain_s:
@@ -736,7 +763,7 @@ structure Deriv_Intros = Named_Thms
 
 setup Deriv_Intros.setup
 
-lemma DERIV_cong: "DERIV f x : s :> X \<Longrightarrow> X = Y \<Longrightarrow> DERIV f x : s :> Y"
+lemma DERIV_cong: "(f has_field_derivative X) (at x within s) \<Longrightarrow> X = Y \<Longrightarrow> (f has_field_derivative Y) (at x within s)"
   by simp
 
 declare
@@ -781,7 +808,7 @@ qed simp_all
 
 lemma DERIV_shift:
   "(DERIV f (x + z) :> y) \<longleftrightarrow> (DERIV (\<lambda>x. f (x + z)) x :> y)"
-  by (simp add: DERIV_iff field_simps)
+  by (simp add: deriv_def field_simps)
 
 lemma DERIV_mirror:
   "(DERIV f (- x) :> y) \<longleftrightarrow> (DERIV (\<lambda>x. f (- x::real) :: real) x :> - y)"
@@ -800,7 +827,7 @@ proof
     let ?g = "(%z. if z = x then l else (f z - f x) / (z-x))"
     show "\<forall>z. f z - f x = ?g z * (z-x)" by simp
     show "isCont ?g x" using der
-      by (simp add: isCont_iff DERIV_iff cong: LIM_equal [rule_format])
+      by (simp add: isCont_iff deriv_def cong: LIM_equal [rule_format])
     show "?g x = l" by simp
   qed
 next
@@ -808,7 +835,7 @@ next
   then obtain g where
     "(\<forall>z. f z - f x = g z * (z-x))" and "isCont g x" and "g x = l" by blast
   thus "(DERIV f x :> l)"
-     by (auto simp add: isCont_iff DERIV_iff cong: LIM_cong)
+     by (auto simp add: isCont_iff deriv_def cong: LIM_cong)
 qed
 
 text {*
@@ -881,14 +908,14 @@ qed
 lemma DERIV_pos_inc_left:
   fixes f :: "real => real"
   shows "DERIV f x :> l \<Longrightarrow> 0 < l \<Longrightarrow> \<exists>d > 0. \<forall>h > 0. h < d --> f(x - h) < f(x)"
-  apply (rule DERIV_neg_dec_left [of "%x. - f x" x "-l", simplified])
+  apply (rule DERIV_neg_dec_left [of "%x. - f x" "-l" x, simplified])
   apply (auto simp add: DERIV_minus)
   done
 
 lemma DERIV_neg_dec_right:
   fixes f :: "real => real"
   shows "DERIV f x :> l \<Longrightarrow> l < 0 \<Longrightarrow> \<exists>d > 0. \<forall>h > 0. h < d --> f(x) > f(x + h)"
-  apply (rule DERIV_pos_inc_right [of "%x. - f x" x "-l", simplified])
+  apply (rule DERIV_pos_inc_right [of "%x. - f x" "-l" x, simplified])
   apply (auto simp add: DERIV_minus)
   done
 
@@ -963,7 +990,7 @@ theorem Rolle:
   assumes lt: "a < b"
       and eq: "f(a) = f(b)"
       and con: "\<forall>x. a \<le> x & x \<le> b --> isCont f x"
-      and dif [rule_format]: "\<forall>x. a < x & x < b --> f differentiable x"
+      and dif [rule_format]: "\<forall>x. a < x & x < b --> f differentiable (at x)"
   shows "\<exists>z::real. a < z & z < b & DERIV f z :> 0"
 proof -
   have le: "a \<le> b" using lt by simp
@@ -1055,20 +1082,20 @@ lemma lemma_MVT:
 theorem MVT:
   assumes lt:  "a < b"
       and con: "\<forall>x. a \<le> x & x \<le> b --> isCont f x"
-      and dif [rule_format]: "\<forall>x. a < x & x < b --> f differentiable x"
+      and dif [rule_format]: "\<forall>x. a < x & x < b --> f differentiable (at x)"
   shows "\<exists>l z::real. a < z & z < b & DERIV f z :> l &
                    (f(b) - f(a) = (b-a) * l)"
 proof -
   let ?F = "%x. f x - ((f b - f a) / (b-a)) * x"
   have contF: "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont ?F x"
     using con by (fast intro: isCont_intros)
-  have difF: "\<forall>x. a < x \<and> x < b \<longrightarrow> ?F differentiable x"
+  have difF: "\<forall>x. a < x \<and> x < b \<longrightarrow> ?F differentiable (at x)"
   proof (clarify)
     fix x::real
     assume ax: "a < x" and xb: "x < b"
     from differentiableD [OF dif [OF conjI [OF ax xb]]]
     obtain l where der: "DERIV f x :> l" ..
-    show "?F differentiable x"
+    show "?F differentiable (at x)"
       by (rule differentiableI [where D = "l - (f b - f a)/(b-a)"],
           blast intro: DERIV_diff DERIV_cmult_Id der)
   qed
@@ -1094,7 +1121,7 @@ lemma MVT2:
       ==> \<exists>z::real. a < z & z < b & (f b - f a = (b - a) * f'(z))"
 apply (drule MVT)
 apply (blast intro: DERIV_isCont)
-apply (force dest: order_less_imp_le simp add: differentiable_def)
+apply (force dest: order_less_imp_le simp add: real_differentiable_def)
 apply (blast dest: DERIV_unique order_less_imp_le)
 done
 
@@ -1169,7 +1196,7 @@ lemma DERIV_const_ratio_const:
   shows "[|a \<noteq> b; \<forall>x. DERIV f x :> k |] ==> (f(b) - f(a)) = (b-a) * k"
 apply (rule linorder_cases [of a b], auto)
 apply (drule_tac [!] f = f in MVT)
-apply (auto dest: DERIV_isCont DERIV_unique simp add: differentiable_def)
+apply (auto dest: DERIV_isCont DERIV_unique simp add: real_differentiable_def)
 apply (auto dest: DERIV_unique simp add: ring_distribs)
 done
 
@@ -1355,9 +1382,9 @@ theorem GMVT:
   fixes a b :: real
   assumes alb: "a < b"
     and fc: "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x"
-    and fd: "\<forall>x. a < x \<and> x < b \<longrightarrow> f differentiable x"
+    and fd: "\<forall>x. a < x \<and> x < b \<longrightarrow> f differentiable (at x)"
     and gc: "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont g x"
-    and gd: "\<forall>x. a < x \<and> x < b \<longrightarrow> g differentiable x"
+    and gd: "\<forall>x. a < x \<and> x < b \<longrightarrow> g differentiable (at x)"
   shows "\<exists>g'c f'c c.
     DERIV g c :> g'c \<and> DERIV f c :> f'c \<and> a < c \<and> c < b \<and> ((f b - f a) * g'c) = ((g b - g a) * f'c)"
 proof -
@@ -1365,19 +1392,19 @@ proof -
   from assms have "a < b" by simp
   moreover have "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont ?h x"
     using fc gc by simp
-  moreover have "\<forall>x. a < x \<and> x < b \<longrightarrow> ?h differentiable x"
+  moreover have "\<forall>x. a < x \<and> x < b \<longrightarrow> ?h differentiable (at x)"
     using fd gd by simp
   ultimately have "\<exists>l z. a < z \<and> z < b \<and> DERIV ?h z :> l \<and> ?h b - ?h a = (b - a) * l" by (rule MVT)
   then obtain l where ldef: "\<exists>z. a < z \<and> z < b \<and> DERIV ?h z :> l \<and> ?h b - ?h a = (b - a) * l" ..
   then obtain c where cdef: "a < c \<and> c < b \<and> DERIV ?h c :> l \<and> ?h b - ?h a = (b - a) * l" ..
 
   from cdef have cint: "a < c \<and> c < b" by auto
-  with gd have "g differentiable c" by simp
+  with gd have "g differentiable (at c)" by simp
   hence "\<exists>D. DERIV g c :> D" by (rule differentiableD)
   then obtain g'c where g'cdef: "DERIV g c :> g'c" ..
 
   from cdef have "a < c \<and> c < b" by auto
-  with fd have "f differentiable c" by simp
+  with fd have "f differentiable (at c)" by simp
   hence "\<exists>D. DERIV f c :> D" by (rule differentiableD)
   then obtain f'c where f'cdef: "DERIV f c :> f'c" ..
 
@@ -1418,7 +1445,7 @@ lemma GMVT':
 proof -
   have "\<exists>g'c f'c c. DERIV g c :> g'c \<and> DERIV f c :> f'c \<and>
     a < c \<and> c < b \<and> (f b - f a) * g'c = (g b - g a) * f'c"
-    using assms by (intro GMVT) (force simp: differentiable_def)+
+    using assms by (intro GMVT) (force simp: real_differentiable_def)+
   then obtain c where "a < c" "c < b" "(f b - f a) * g' c = (g b - g a) * f' c"
     using DERIV_f DERIV_g by (force dest: DERIV_unique)
   then show ?thesis

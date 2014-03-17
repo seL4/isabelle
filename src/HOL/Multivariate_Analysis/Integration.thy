@@ -8634,8 +8634,8 @@ proof -
       apply (rule diff_chain_within)
       apply (rule has_derivative_add)
       unfolding scaleR_simps
-      apply (intro FDERIV_intros)
-      apply (intro FDERIV_intros)
+      apply (intro has_derivative_intros)
+      apply (intro has_derivative_intros)
       apply (rule has_derivative_within_subset,rule assms(6)[rule_format])
       apply (rule *)
       apply safe

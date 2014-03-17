@@ -180,7 +180,7 @@ lemmas tendsto_inner [tendsto_intros] =
 lemmas isCont_inner [simp] =
   bounded_bilinear.isCont [OF bounded_bilinear_inner]
 
-lemmas FDERIV_inner [FDERIV_intros] =
+lemmas has_derivative_inner [has_derivative_intros] =
   bounded_bilinear.FDERIV [OF bounded_bilinear_inner]
 
 lemmas bounded_linear_inner_left =
@@ -189,15 +189,15 @@ lemmas bounded_linear_inner_left =
 lemmas bounded_linear_inner_right =
   bounded_bilinear.bounded_linear_right [OF bounded_bilinear_inner]
 
-lemmas FDERIV_inner_right [FDERIV_intros] =
-  bounded_linear.FDERIV [OF bounded_linear_inner_right]
+lemmas has_derivative_inner_right [has_derivative_intros] =
+  bounded_linear.has_derivative [OF bounded_linear_inner_right]
 
-lemmas FDERIV_inner_left [FDERIV_intros] =
-  bounded_linear.FDERIV [OF bounded_linear_inner_left]
+lemmas has_derivative_inner_left [has_derivative_intros] =
+  bounded_linear.has_derivative [OF bounded_linear_inner_left]
 
 lemma differentiable_inner [simp]:
-  "f differentiable x in s \<Longrightarrow> g differentiable x in s \<Longrightarrow> (\<lambda>x. inner (f x) (g x)) differentiable x in s"
-  unfolding isDiff_def by (blast intro: FDERIV_inner)
+  "f differentiable (at x within s) \<Longrightarrow> g differentiable at x within s \<Longrightarrow> (\<lambda>x. inner (f x) (g x)) differentiable at x within s"
+  unfolding differentiable_def by (blast intro: has_derivative_inner)
 
 subsection {* Class instances *}
 
@@ -273,46 +273,46 @@ where
   "GDERIV f x :> D \<longleftrightarrow> FDERIV f x :> (\<lambda>h. inner h D)"
 
 lemma gderiv_deriv [simp]: "GDERIV f x :> D \<longleftrightarrow> DERIV f x :> D"
-  by (simp only: gderiv_def deriv_fderiv inner_real_def)
+  by (simp only: gderiv_def has_field_derivative_def inner_real_def mult_commute_abs)
 
 lemma GDERIV_DERIV_compose:
     "\<lbrakk>GDERIV f x :> df; DERIV g (f x) :> dg\<rbrakk>
      \<Longrightarrow> GDERIV (\<lambda>x. g (f x)) x :> scaleR dg df"
-  unfolding gderiv_def deriv_fderiv
-  apply (drule (1) FDERIV_compose)
+  unfolding gderiv_def has_field_derivative_def
+  apply (drule (1) has_derivative_compose)
   apply (simp add: mult_ac)
   done
 
-lemma FDERIV_subst: "\<lbrakk>FDERIV f x :> df; df = d\<rbrakk> \<Longrightarrow> FDERIV f x :> d"
+lemma has_derivative_subst: "\<lbrakk>FDERIV f x :> df; df = d\<rbrakk> \<Longrightarrow> FDERIV f x :> d"
   by simp
 
 lemma GDERIV_subst: "\<lbrakk>GDERIV f x :> df; df = d\<rbrakk> \<Longrightarrow> GDERIV f x :> d"
   by simp
 
 lemma GDERIV_const: "GDERIV (\<lambda>x. k) x :> 0"
-  unfolding gderiv_def inner_zero_right by (rule FDERIV_const)
+  unfolding gderiv_def inner_zero_right by (rule has_derivative_const)
 
 lemma GDERIV_add:
     "\<lbrakk>GDERIV f x :> df; GDERIV g x :> dg\<rbrakk>
      \<Longrightarrow> GDERIV (\<lambda>x. f x + g x) x :> df + dg"
-  unfolding gderiv_def inner_add_right by (rule FDERIV_add)
+  unfolding gderiv_def inner_add_right by (rule has_derivative_add)
 
 lemma GDERIV_minus:
     "GDERIV f x :> df \<Longrightarrow> GDERIV (\<lambda>x. - f x) x :> - df"
-  unfolding gderiv_def inner_minus_right by (rule FDERIV_minus)
+  unfolding gderiv_def inner_minus_right by (rule has_derivative_minus)
 
 lemma GDERIV_diff:
     "\<lbrakk>GDERIV f x :> df; GDERIV g x :> dg\<rbrakk>
      \<Longrightarrow> GDERIV (\<lambda>x. f x - g x) x :> df - dg"
-  unfolding gderiv_def inner_diff_right by (rule FDERIV_diff)
+  unfolding gderiv_def inner_diff_right by (rule has_derivative_diff)
 
 lemma GDERIV_scaleR:
     "\<lbrakk>DERIV f x :> df; GDERIV g x :> dg\<rbrakk>
      \<Longrightarrow> GDERIV (\<lambda>x. scaleR (f x) (g x)) x
       :> (scaleR (f x) dg + scaleR df (g x))"
-  unfolding gderiv_def deriv_fderiv inner_add_right inner_scaleR_right
-  apply (rule FDERIV_subst)
-  apply (erule (1) FDERIV_scaleR)
+  unfolding gderiv_def has_field_derivative_def inner_add_right inner_scaleR_right
+  apply (rule has_derivative_subst)
+  apply (erule (1) has_derivative_scaleR)
   apply (simp add: mult_ac)
   done
 
@@ -320,8 +320,8 @@ lemma GDERIV_mult:
     "\<lbrakk>GDERIV f x :> df; GDERIV g x :> dg\<rbrakk>
      \<Longrightarrow> GDERIV (\<lambda>x. f x * g x) x :> scaleR (f x) dg + scaleR (g x) df"
   unfolding gderiv_def
-  apply (rule FDERIV_subst)
-  apply (erule (1) FDERIV_mult)
+  apply (rule has_derivative_subst)
+  apply (erule (1) has_derivative_mult)
   apply (simp add: inner_add mult_ac)
   done
 
@@ -336,7 +336,7 @@ lemma GDERIV_norm:
   assumes "x \<noteq> 0" shows "GDERIV (\<lambda>x. norm x) x :> sgn x"
 proof -
   have 1: "FDERIV (\<lambda>x. inner x x) x :> (\<lambda>h. inner x h + inner h x)"
-    by (intro FDERIV_inner FDERIV_ident)
+    by (intro has_derivative_inner has_derivative_ident)
   have 2: "(\<lambda>h. inner x h + inner h x) = (\<lambda>h. inner h (scaleR 2 x))"
     by (simp add: fun_eq_iff inner_commute)
   have "0 < inner x x" using `x \<noteq> 0` by simp
@@ -349,12 +349,12 @@ proof -
     apply (rule GDERIV_subst [OF _ 4])
     apply (rule GDERIV_DERIV_compose [where g=sqrt and df="scaleR 2 x"])
     apply (subst gderiv_def)
-    apply (rule FDERIV_subst [OF _ 2])
+    apply (rule has_derivative_subst [OF _ 2])
     apply (rule 1)
     apply (rule 3)
     done
 qed
 
-lemmas FDERIV_norm = GDERIV_norm [unfolded gderiv_def]
+lemmas has_derivative_norm = GDERIV_norm [unfolded gderiv_def]
 
 end

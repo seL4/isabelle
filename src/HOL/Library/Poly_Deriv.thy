@@ -106,8 +106,8 @@ lemma poly_DERIV[simp]: "DERIV (%x. poly p x) x :> poly (pderiv p) x"
 
 text{* Consequences of the derivative theorem above*}
 
-lemma poly_differentiable[simp]: "(%x. poly p x) differentiable (x::real)"
-apply (simp add: differentiable_def)
+lemma poly_differentiable[simp]: "(%x. poly p x) differentiable (at x::real filter)"
+apply (simp add: real_differentiable_def)
 apply (blast intro: poly_DERIV)
 done
 
