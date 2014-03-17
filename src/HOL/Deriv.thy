@@ -16,7 +16,7 @@ subsection {* Frechet derivative *}
 
 definition
   has_derivative :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a filter \<Rightarrow>  bool"
-  (infixl "(has'_derivative)" 12)
+  (infix "(has'_derivative)" 50)
 where
   "(f has_derivative f') F \<longleftrightarrow>
     (bounded_linear f' \<and>
@@ -470,7 +470,7 @@ subsection {* Differentiability predicate *}
 
 definition
   differentiable :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a filter \<Rightarrow> bool"
-  (infixr "differentiable" 30)
+  (infix "differentiable" 50)
 where
   "f differentiable F \<longleftrightarrow> (\<exists>D. (f has_derivative D) F)"
 
@@ -529,7 +529,7 @@ lemma differentiable_scaleR [simp]:
 
 definition 
   has_field_derivative :: "('a::real_normed_field \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a filter \<Rightarrow> bool"
-  (infixl "(has'_field'_derivative)" 12)
+  (infix "(has'_field'_derivative)" 50)
 where
   "(f has_field_derivative D) F \<longleftrightarrow> (f has_derivative op * D) F"
 
@@ -549,7 +549,7 @@ where
 
 abbreviation 
   has_real_derivative :: "(real \<Rightarrow> real) \<Rightarrow> real \<Rightarrow> real filter \<Rightarrow> bool"
-  (infixl "(has'_real'_derivative)" 12)
+  (infix "(has'_real'_derivative)" 50)
 where
   "(f has_real_derivative D) F \<equiv> (f has_field_derivative D) F"
 

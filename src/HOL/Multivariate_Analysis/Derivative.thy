@@ -219,7 +219,7 @@ subsection {* Differentiability *}
 
 definition
   differentiable_on :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a set \<Rightarrow> bool"
-    (infixr "differentiable'_on" 30)
+    (infix "differentiable'_on" 50)
   where "f differentiable_on s \<longleftrightarrow> (\<forall>x\<in>s. f differentiable (at x within s))"
 
 lemma differentiableI: "(f has_derivative f') net \<Longrightarrow> f differentiable net"
@@ -567,18 +567,18 @@ lemma has_derivative_local_min:
 proof
   fix h :: 'a
   interpret f': bounded_linear f'
-    using deriv by (rule FDERIV_bounded_linear)
+    using deriv by (rule has_derivative_bounded_linear)
   show "f' h = 0"
   proof (cases "h = 0")
     assume "h \<noteq> 0"
     from min obtain d where d1: "0 < d" and d2: "\<forall>y\<in>ball x d. f x \<le> f y"
       unfolding eventually_at by (force simp: dist_commute)
     have "FDERIV (\<lambda>r. x + r *\<^sub>R h) 0 :> (\<lambda>r. r *\<^sub>R h)"
-      by (intro FDERIV_eq_intros, auto)
+      by (intro has_derivative_eq_intros, auto)
     then have "FDERIV (\<lambda>r. f (x + r *\<^sub>R h)) 0 :> (\<lambda>k. f' (k *\<^sub>R h))"
-      by (rule FDERIV_compose, simp add: deriv)
+      by (rule has_derivative_compose, simp add: deriv)
     then have "DERIV (\<lambda>r. f (x + r *\<^sub>R h)) 0 :> f' h"
-      unfolding deriv_fderiv by (simp add: f'.scaleR)
+      unfolding has_field_derivative_def by (simp add: f'.scaleR mult_commute_abs)
     moreover have "0 < d / norm h"
       using d1 and `h \<noteq> 0` by (simp add: divide_pos_pos)
     moreover have "\<forall>y. \<bar>0 - y\<bar> < d / norm h \<longrightarrow> f (x + 0 *\<^sub>R h) \<le> f (x + y *\<^sub>R h)"
@@ -630,7 +630,7 @@ proof -
   moreover have "open (ball x e)" by simp
   moreover have "((\<lambda>x. f x \<bullet> k) has_derivative (\<lambda>h. ?f' h \<bullet> k)) (at x)"
     using bounded_linear_inner_left diff[unfolded frechet_derivative_works]
-    by (rule bounded_linear.FDERIV)
+    by (rule bounded_linear.has_derivative)
   ultimately have "(\<lambda>h. frechet_derivative f (at x) h \<bullet> k) = (\<lambda>v. 0)"
     using ball(2) by (rule differential_zero_maxmin)
   then show ?thesis
@@ -2007,7 +2007,7 @@ lemma has_derivative_series:
 text {* Considering derivative @{typ "real \<Rightarrow> 'b\<Colon>real_normed_vector"} as a vector. *}
 
 definition has_vector_derivative :: "(real \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'b \<Rightarrow> real filter \<Rightarrow> bool"
-    (infixl "has'_vector'_derivative" 12)
+    (infix "has'_vector'_derivative" 50)
   where "(f has_vector_derivative f') net \<longleftrightarrow> (f has_derivative (\<lambda>x. x *\<^sub>R f')) net"
 
 definition "vector_derivative f net = (SOME f'. (f has_vector_derivative f') net)"
