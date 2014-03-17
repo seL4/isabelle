@@ -200,6 +200,7 @@ fun gen_def prep (raw_var, raw_spec) int lthy =
   let
     val (vars, [((raw_name, atts), prop)]) = fst (prep (the_list raw_var) [raw_spec] lthy);
     val (((x, T), rhs), prove) = Local_Defs.derived_def lthy true prop;
+    val _ = Name.reject_internal (x, []);
     val var as (b, _) =
       (case vars of
         [] => (Binding.name x, NoSyn)
@@ -240,6 +241,7 @@ fun gen_abbrev prep mode (raw_var, raw_prop) int lthy =
       prep (the_list raw_var) [(Attrib.empty_binding, raw_prop)]
         (lthy1 |> Proof_Context.set_mode Proof_Context.mode_abbrev);
     val ((x, T), rhs) = Local_Defs.abs_def (#2 (Local_Defs.cert_def lthy1 prop));
+    val _ = Name.reject_internal (x, []);
     val var =
       (case vars of
         [] => (Binding.name x, NoSyn)
