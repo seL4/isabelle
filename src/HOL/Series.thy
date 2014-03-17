@@ -562,6 +562,22 @@ apply (erule order_trans [OF norm_triangle_ineq add_left_mono])
 apply simp
 done
 
+lemma norm_bound_subset:
+  fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
+  assumes "finite s" "t \<subseteq> s"
+  assumes le: "(\<And>x. x \<in> s \<Longrightarrow> norm(f x) \<le> g x)"
+  shows "norm (setsum f t) \<le> setsum g s"
+proof -
+  have "norm (setsum f t) \<le> (\<Sum>i\<in>t. norm (f i))"
+    by (rule norm_setsum)
+  also have "\<dots> \<le> (\<Sum>i\<in>t. g i)"
+    using assms by (auto intro!: setsum_mono)
+  also have "\<dots> \<le> setsum g s"
+    using assms order.trans[OF norm_ge_zero le]
+    by (auto intro!: setsum_mono3)
+  finally show ?thesis .
+qed
+
 lemma summable_comparison_test:
   fixes f :: "nat \<Rightarrow> 'a::banach"
   shows "\<lbrakk>\<exists>N. \<forall>n\<ge>N. norm (f n) \<le> g n; summable g\<rbrakk> \<Longrightarrow> summable f"

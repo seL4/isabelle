@@ -186,6 +186,37 @@ corollary binomial: "(a+b::nat)^n = (\<Sum>k=0..n. (of_nat (n choose k)) * a^k *
            of_nat_setsum [symmetric]
            of_nat_eq_iff of_nat_id)
 
+lemma choose_row_sum: "(\<Sum>k=0..n. n choose k) = 2^n"
+  using binomial [of 1 "1" n]
+  by (simp add: numeral_2_eq_2)
+
+lemma sum_choose_lower: "(\<Sum>k=0..n. (r+k) choose k) = Suc (r+n) choose n"
+  by (induct n) auto
+
+lemma sum_choose_upper: "(\<Sum>k=0..n. k choose m) = Suc n choose Suc m"
+  by (induct n) auto
+
+lemma natsum_reverse_index:
+  fixes m::nat
+  assumes "\<And>k. m \<le> k \<Longrightarrow> k \<le> n \<Longrightarrow> g k = f (m + n - k)"
+  shows "(\<Sum>k=m..n. f k) = (\<Sum>k=m..n. g k)"
+apply (rule setsum_reindex_cong [where f = "\<lambda>k. m+n-k"])
+apply (auto simp add: inj_on_def image_def)
+apply (rule_tac x="m+n-x" in bexI, auto simp: assms)
+done
+
+lemma sum_choose_diagonal:
+  assumes "m\<le>n" shows "(\<Sum>k=0..m. (n-k) choose (m-k)) = Suc n choose m"
+proof -
+  have "(\<Sum>k=0..m. (n-k) choose (m-k)) = (\<Sum>k=0..m. (n-m+k) choose k)"
+    by (rule natsum_reverse_index) (simp add: assms)
+  also have "... = Suc (n-m+m) choose m"
+    by (rule sum_choose_lower)
+  also have "... = Suc n choose m" using assms
+    by simp
+  finally show ?thesis .
+qed
+
 subsection{* Pochhammer's symbol : generalized rising factorial *}
 
 text {* See @{url "http://en.wikipedia.org/wiki/Pochhammer_symbol"} *}
@@ -605,6 +636,42 @@ lemma binomial_altdef_nat: "(k::nat) \<le> n \<Longrightarrow>
     n choose k = fact n div (fact k * fact (n - k))"
  by (subst binomial_fact_lemma [symmetric]) auto
 
+lemma fact_fact_dvd_fact_m: fixes k::nat shows "k \<le> n \<Longrightarrow> fact k * fact (n - k) dvd fact n"
+  by (metis binomial_fact_lemma dvd_def)
+
+lemma fact_fact_dvd_fact: fixes k::nat shows "fact k * fact n dvd fact (n + k)"
+  by (metis fact_fact_dvd_fact_m diff_add_inverse2 le_add2)
+
+lemma choose_mult_lemma:
+     "((m+r+k) choose (m+k)) * ((m+k) choose k) = ((m+r+k) choose k) * ((m+r) choose m)"
+proof -
+  have "((m+r+k) choose (m+k)) * ((m+k) choose k) =
+        fact (m+r + k) div (fact (m + k) * fact (m+r - m)) * (fact (m + k) div (fact k * fact m))"
+    by (simp add: assms binomial_altdef_nat)
+  also have "... = fact (m+r+k) div (fact r * (fact k * fact m))"
+    apply (subst div_mult_div_if_dvd)
+    apply (auto simp: fact_fact_dvd_fact)
+    apply (metis ab_semigroup_add_class.add_ac(1) add_commute fact_fact_dvd_fact)
+    done
+  also have "... = (fact (m+r+k) * fact (m+r)) div (fact r * (fact k * fact m) * fact (m+r))"
+    apply (subst div_mult_div_if_dvd [symmetric])
+    apply (auto simp: fact_fact_dvd_fact)
+    apply (metis dvd_trans dvd.dual_order.refl fact_fact_dvd_fact mult_dvd_mono mult_left_commute)
+    done
+  also have "... = (fact (m+r+k) div (fact k * fact (m+r)) * (fact (m+r) div (fact r * fact m)))"
+    apply (subst div_mult_div_if_dvd)
+    apply (auto simp: fact_fact_dvd_fact)
+    apply(metis mult_left_commute)
+    done
+  finally show ?thesis
+    by (simp add: binomial_altdef_nat mult_commute)
+qed
+
+lemma choose_mult:
+  assumes "k\<le>m" "m\<le>n"
+    shows "(n choose m) * (m choose k) = (n choose k) * ((n-k) choose (m-k))"
+using assms choose_mult_lemma [of "m-k" "n-m" k]
+by simp
 
 
 subsection {* Binomial coefficients *}
