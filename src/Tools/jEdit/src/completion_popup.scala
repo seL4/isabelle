@@ -246,7 +246,7 @@ object Completion_Popup
               }
               override def propagate(evt: KeyEvent) {
                 JEdit_Lib.propagate_key(view, evt)
-                input(evt)
+                if (evt.getID == KeyEvent.KEY_TYPED) input(evt)
               }
               override def refocus() { text_area.requestFocus }
             }
