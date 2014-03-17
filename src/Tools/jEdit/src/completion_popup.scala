@@ -66,8 +66,9 @@ object Completion_Popup
       apply(text_area) match {
         case Some(text_area_completion) =>
           if (text_area_completion.active_range.isDefined)
+            text_area_completion.action()
+          else
             text_area_completion.action(immediate = true, explicit = true)
-          else text_area_completion.action()
           true
         case None => false
       }
