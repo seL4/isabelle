@@ -422,6 +422,7 @@ object Document
     val node_name: Node.Name
     val node: Node
     val thy_load_commands: List[Command]
+    def is_loaded: Boolean
     def eq_content(other: Snapshot): Boolean
 
     def cumulate[A](
@@ -680,6 +681,8 @@ object Document
         val thy_load_commands: List[Command] =
           if (node_name.is_theory) Nil
           else version.nodes.thy_load_commands(node_name)
+
+        val is_loaded: Boolean = node_name.is_theory || !thy_load_commands.isEmpty
 
         def eq_content(other: Snapshot): Boolean =
         {

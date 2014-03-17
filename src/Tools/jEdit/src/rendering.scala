@@ -599,7 +599,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   def background(range: Text.Range): List[Text.Info[Color]] =
   {
-    if (snapshot.is_outdated) List(Text.Info(range, outdated_color))
+    if (snapshot.is_outdated && snapshot.is_loaded) List(Text.Info(range, outdated_color))
     else
       for {
         Text.Info(r, result) <-
