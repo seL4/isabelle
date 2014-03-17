@@ -31,7 +31,6 @@ sig
   val markup_extern: Proof.context -> T -> string -> Markup.T * xstring
   val pretty: Proof.context -> T -> string -> Pretty.T
   val completion: Context.generic -> T -> xstring * Position.T -> Completion.T
-  val hide: bool -> string -> T -> T
   val merge: T * T -> T
   type naming
   val conceal: naming -> naming
@@ -50,6 +49,7 @@ sig
   val transform_binding: naming -> binding -> binding
   val full_name: naming -> binding -> string
   val base_name: binding -> string
+  val hide: bool -> string -> T -> T
   val alias: naming -> binding -> string -> T -> T
   val naming_of: Context.generic -> naming
   val map_naming: (naming -> naming) -> Context.generic -> Context.generic
@@ -258,25 +258,6 @@ fun completion context space (xname, pos) =
   else Completion.none;
 
 
-(* hide *)
-
-fun hide fully name space =
-  if not (Long_Name.is_qualified name) then
-    error ("Attempt to hide global name " ^ quote name)
-  else if Long_Name.is_hidden name then
-    error ("Attempt to hide hidden name " ^ quote name)
-  else
-    space |> map_name_space (fn (kind, internals, entries) =>
-      let
-        val names = valid_accesses space name;
-        val internals' = internals
-          |> add_name' name name
-          |> fold (del_name name)
-            (if fully then names else inter (op =) [Long_Name.base_name name] names)
-          |> fold (del_name_extra name) (get_accesses space name);
-      in (kind, internals', entries) end);
-
-
 (* merge *)
 
 fun merge
@@ -395,21 +376,33 @@ fun accesses naming binding =
   in pairself (map Long_Name.implode) (sfxs @ pfxs, sfxs) end;
 
 
+(* hide *)
+
+fun hide fully name space =
+  space |> map_name_space (fn (kind, internals, entries) =>
+    let
+      val _ = Change_Table.defined entries name orelse error (undefined kind name);
+      val names = valid_accesses space name;
+      val internals' = internals
+        |> add_name' name name
+        |> fold (del_name name)
+          (if fully then names else inter (op =) [Long_Name.base_name name] names)
+        |> fold (del_name_extra name) (get_accesses space name);
+    in (kind, internals', entries) end);
+
+
 (* alias *)
 
 fun alias naming binding name space =
-  let
-    val (accs, accs') = accesses naming binding;
-    val space' =
-      space |> map_name_space (fn (kind, internals, entries) =>
-        let
-          val _ = Change_Table.defined entries name orelse error (undefined kind name);
-          val internals' = internals |> fold (add_name name) accs;
-          val entries' = entries
-            |> Change_Table.map_entry name (fn (externals, entry) =>
-              (Library.merge (op =) (externals, accs'), entry))
-        in (kind, internals', entries') end);
-  in space' end;
+  space |> map_name_space (fn (kind, internals, entries) =>
+    let
+      val _ = Change_Table.defined entries name orelse error (undefined kind name);
+      val (accs, accs') = accesses naming binding;
+      val internals' = internals |> fold (add_name name) accs;
+      val entries' = entries
+        |> Change_Table.map_entry name (fn (externals, entry) =>
+          (Library.merge (op =) (externals, accs'), entry))
+    in (kind, internals', entries') end);
 
 
 
