@@ -26,6 +26,8 @@ object Text
   {
     def apply(start: Offset): Range = Range(start, start)
 
+    val offside: Range = apply(-1)
+
     object Ordering extends scala.math.Ordering[Text.Range]
     {
       def compare(r1: Text.Range, r2: Text.Range): Int = r1 compare r2

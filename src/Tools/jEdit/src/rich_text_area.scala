@@ -305,7 +305,7 @@ class Rich_Text_Area(
 
     val caret_range =
       if (caret_enabled) JEdit_Lib.point_range(buffer, text_area.getCaretPosition)
-      else Text.Range(-1)
+      else Text.Range.offside
 
     var w = 0.0f
     var chunk = head
