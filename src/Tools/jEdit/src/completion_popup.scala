@@ -62,6 +62,16 @@ object Completion_Popup
         case None => None
       }
 
+    def action(text_area: TextArea): Boolean =
+      apply(text_area) match {
+        case Some(text_area_completion) =>
+          if (text_area_completion.active_range.isDefined)
+            text_area_completion.action(immediate = true, explicit = true)
+          else text_area_completion.action()
+          true
+        case None => false
+      }
+
     def exit(text_area: JEditTextArea)
     {
       Swing_Thread.require()
@@ -180,7 +190,7 @@ object Completion_Popup
     }
 
 
-    /* completion action */
+    /* completion action: text area */
 
     private def insert(item: Completion.Item)
     {
@@ -247,25 +257,22 @@ object Completion_Popup
       }
 
       def semantic_completion(): Option[Completion.Result] =
-        if (explicit) {
-          PIDE.document_view(text_area) match {
-            case Some(doc_view) =>
-              val rendering = doc_view.get_rendering()
-              rendering.completion_names(before_caret_range(rendering)) match {
-                case Some(names) =>
-                  if (names.no_completion)
-                    Some(Completion.Result.empty(names.range))
-                  else
-                    JEdit_Lib.try_get_text(buffer, names.range) match {
-                      case Some(original) => names.complete(history, decode, original)
-                      case None => None
-                    }
-                case None => None
-              }
-            case None => None
-          }
+        PIDE.document_view(text_area) match {
+          case Some(doc_view) =>
+            val rendering = doc_view.get_rendering()
+            rendering.completion_names(before_caret_range(rendering)) match {
+              case Some(names) =>
+                if (names.no_completion)
+                  Some(Completion.Result.empty(names.range))
+                else
+                  JEdit_Lib.try_get_text(buffer, names.range) match {
+                    case Some(original) => names.complete(history, decode, original)
+                    case None => None
+                  }
+              case None => None
+            }
+          case None => None
         }
-        else None
 
       if (buffer.isEditable) {
         semantic_completion() orElse syntax_completion(explicit) match {
@@ -401,7 +408,7 @@ object Completion_Popup
     }
 
 
-    /* completion action */
+    /* completion action: text field */
 
     def action()
     {
