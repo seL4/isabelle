@@ -30,6 +30,17 @@ object Completion
   object Result
   {
     def empty(range: Text.Range): Result = Result(range, "", false, Nil)
+    def merge(history: History, result1: Option[Result], result2: Option[Result]): Option[Result] =
+      (result1, result2) match {
+        case (_, None) => result1
+        case (None, _) => result2
+        case (Some(res1), Some(res2)) =>
+          if (res1.range != res2.range || res1.original != res2.original) result1
+          else {
+            val items = (res1.items ::: res2.items).sorted(history.ordering)
+            Some(Result(res1.range, res1.original, false, items))
+          }
+      }
   }
 
   sealed case class Result(
@@ -144,20 +155,10 @@ object Completion
   }
 
   sealed abstract class Semantic
-  {
-    def no_completion: Boolean = this == No_Completion
-    def complete(
-      range: Text.Range,
-      history: Completion.History,
-      do_decode: Boolean,
-      original: String): Option[Completion.Result] = None
-  }
   case object No_Completion extends Semantic
-  case class Names(
-    total: Int,
-    names: List[(String, (String, String))]) extends Semantic
+  case class Names(total: Int, names: List[(String, (String, String))]) extends Semantic
   {
-    override def complete(
+    def complete(
       range: Text.Range,
       history: Completion.History,
       do_decode: Boolean,

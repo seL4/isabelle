@@ -140,14 +140,10 @@ object Completion_Popup
             before_caret_range(rendering).try_restrict(line_range) match {
               case Some(range) if !range.is_singularity =>
                 rendering.semantic_completion(range) match {
-                  case Some(semantic) =>
-                    if (semantic.info.no_completion) None
-                    else Some(semantic.range)
+                  case Some(Text.Info(_, Completion.No_Completion)) => None
+                  case Some(Text.Info(range1, _: Completion.Names)) => Some(range1)
                   case None =>
-                    syntax_completion(false, Some(rendering)) match {
-                      case Some(result) => Some(result.range)
-                      case None => None
-                    }
+                    syntax_completion(Completion.History.empty, false, Some(rendering)).map(_.range)
                 }
               case _ => None
             }
@@ -160,10 +156,11 @@ object Completion_Popup
     /* syntax completion */
 
     def syntax_completion(
-      explicit: Boolean, opt_rendering: Option[Rendering] = None): Option[Completion.Result] =
+      history: Completion.History,
+      explicit: Boolean,
+      opt_rendering: Option[Rendering]): Option[Completion.Result] =
     {
       val buffer = text_area.getBuffer
-      val history = PIDE.completion_history.value
       val decode = Isabelle_Encoding.is_active(buffer)
 
       Isabelle.mode_syntax(JEdit_Lib.buffer_mode(buffer)) match {
@@ -176,7 +173,7 @@ object Completion_Popup
           val line_text = buffer.getSegment(line_start, line_length)
 
           val context =
-            (opt_rendering orElse PIDE.document_view(text_area).map(_.get_rendering()) match {
+            (opt_rendering match {
               case Some(rendering) =>
                 rendering.language_context(before_caret_range(rendering))
               case None => None
@@ -256,36 +253,47 @@ object Completion_Popup
         }
       }
 
-      def semantic_completion(): Option[Completion.Result] =
-        PIDE.document_view(text_area) match {
-          case Some(doc_view) =>
-            val rendering = doc_view.get_rendering()
-            rendering.semantic_completion(before_caret_range(rendering)) match {
-              case Some(semantic) =>
-                if (semantic.info.no_completion)
-                  Some(Completion.Result.empty(semantic.range))
-                else
-                  JEdit_Lib.try_get_text(buffer, semantic.range) match {
-                    case Some(original) =>
-                      semantic.info.complete(semantic.range, history, decode, original)
-                    case None => None
-                  }
-              case None => None
-            }
-          case None => None
-        }
-
       if (buffer.isEditable) {
-        semantic_completion() orElse syntax_completion(explicit) match {
-          case Some(result) =>
-            result.items match {
-              case List(item) if result.unique && item.immediate && immediate =>
-                insert(item)
-              case _ :: _ =>
-                open_popup(result)
-              case _ =>
-            }
-          case None =>
+        val (no_completion, semantic_completion, opt_rendering) =
+        {
+          PIDE.document_view(text_area) match {
+            case Some(doc_view) =>
+              val rendering = doc_view.get_rendering()
+              val (no_completion, result) =
+                rendering.semantic_completion(before_caret_range(rendering)) match {
+                  case Some(Text.Info(_, Completion.No_Completion)) =>
+                    (true, None)
+                  case Some(Text.Info(range, names: Completion.Names)) =>
+                    val result =
+                      JEdit_Lib.try_get_text(buffer, range) match {
+                        case Some(original) => names.complete(range, history, decode, original)
+                        case None => None
+                      }
+                    (false, result)
+                  case None =>
+                    (false, None)
+                }
+              (no_completion, result, Some(rendering))
+            case None =>
+              (false, None, None)
+          }
+        }
+        if (!no_completion) {
+          val result =
+            Completion.Result.merge(history,
+              semantic_completion, syntax_completion(history, explicit, opt_rendering))
+
+          result match {
+            case Some(result) =>
+              result.items match {
+                case List(item) if result.unique && item.immediate && immediate =>
+                  insert(item)
+                case _ :: _ =>
+                  open_popup(result)
+                case _ =>
+              }
+            case None =>
+          }
         }
       }
     }
