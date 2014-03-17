@@ -1983,23 +1983,19 @@ qed
 
 subsection {* Differentiation of a series *}
 
-definition sums_seq :: "(nat \<Rightarrow> 'a::real_normed_vector) \<Rightarrow> 'a \<Rightarrow> nat set \<Rightarrow> bool"
-    (infixl "sums'_seq" 12)
-  where "(f sums_seq l) s \<longleftrightarrow> ((\<lambda>n. setsum f (s \<inter> {0..n})) ---> l) sequentially"
-
 lemma has_derivative_series:
   fixes f :: "nat \<Rightarrow> 'm::euclidean_space \<Rightarrow> 'n::euclidean_space"
   assumes "convex s"
-    and "\<forall>n. \<forall>x\<in>s. ((f n) has_derivative (f' n x)) (at x within s)"
-    and "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm (setsum (\<lambda>i. f' i x h) (k \<inter> {0..n}) - g' x h) \<le> e * norm h"
+    and "\<And>n x. x \<in> s \<Longrightarrow> ((f n) has_derivative (f' n x)) (at x within s)"
+    and "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm (setsum (\<lambda>i. f' i x h) {0..<n} - g' x h) \<le> e * norm h"
     and "x \<in> s"
-    and "((\<lambda>n. f n x) sums_seq l) k"
-  shows "\<exists>g. \<forall>x\<in>s. ((\<lambda>n. f n x) sums_seq (g x)) k \<and> (g has_derivative g' x) (at x within s)"
-  unfolding sums_seq_def
+    and "(\<lambda>n. f n x) sums l"
+  shows "\<exists>g. \<forall>x\<in>s. (\<lambda>n. f n x) sums (g x) \<and> (g has_derivative g' x) (at x within s)"
+  unfolding sums_def
   apply (rule has_derivative_sequence[OF assms(1) _ assms(3)])
   apply (metis assms(2) has_derivative_setsum)
   using assms(4-5)
-  unfolding sums_seq_def
+  unfolding sums_def
   apply auto
   done
 
