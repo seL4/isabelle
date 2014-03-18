@@ -354,7 +354,7 @@ proof -
     from this[THEN bspec, OF sets.top] show "integral\<^sup>P M g \<le> N (space M)"
       by (simp cong: positive_integral_cong)
   qed
-  from SUPR_countable_SUPR[OF `G \<noteq> {}`, of "integral\<^sup>P M"] guess ys .. note ys = this
+  from SUP_countable_SUP [OF `G \<noteq> {}`, of "integral\<^sup>P M"] guess ys .. note ys = this
   then have "\<forall>n. \<exists>g. g\<in>G \<and> integral\<^sup>P M g = ys n"
   proof safe
     fix n assume "range ys \<subseteq> integral\<^sup>P M ` G"
@@ -540,7 +540,7 @@ proof -
     by (auto intro!: SUP_least emeasure_mono)
   then have "?a \<noteq> \<infinity>" using finite_emeasure_space
     by auto
-  from SUPR_countable_SUPR[OF Q_not_empty, of "emeasure M"]
+  from SUP_countable_SUP [OF Q_not_empty, of "emeasure M"]
   obtain Q'' where "range Q'' \<subseteq> emeasure M ` ?Q" and a: "?a = (SUP i::nat. Q'' i)"
     by auto
   then have "\<forall>i. \<exists>Q'. Q'' i = emeasure M Q' \<and> Q' \<in> ?Q" by auto

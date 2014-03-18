@@ -1111,7 +1111,7 @@ lemma [measurable (raw)]:
   assumes "\<And>i. f i \<in> borel_measurable M"
   shows borel_measurable_liminf: "(\<lambda>x. liminf (\<lambda>i. f i x)) \<in> borel_measurable M"
     and borel_measurable_limsup: "(\<lambda>x. limsup (\<lambda>i. f i x)) \<in> borel_measurable M"
-  unfolding liminf_SUPR_INFI limsup_INFI_SUPR using assms by auto
+  unfolding liminf_SUP_INF limsup_INF_SUP using assms by auto
 
 lemma sets_Collect_eventually_sequentially[measurable]:
   "(\<And>i. {x\<in>space M. P x i} \<in> sets M) \<Longrightarrow> {x\<in>space M. eventually (P x) sequentially} \<in> sets M"

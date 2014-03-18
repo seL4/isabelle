@@ -55,7 +55,7 @@ proof -
     from this[of "Suc i"] show "f i \<le> y" by auto
   qed (insert assms, simp)
   ultimately show ?thesis using assms
-    by (subst suminf_ereal_eq_SUPR) (auto simp: indicator_def)
+    by (subst suminf_ereal_eq_SUP) (auto simp: indicator_def)
 qed
 
 lemma suminf_indicator:
@@ -375,7 +375,7 @@ next
     by auto
   ultimately have "(INF n. f (A n - (\<Inter>i. A i)) + f (\<Inter>i. A i)) = 0 + f (\<Inter>i. A i)"
     using A(4) f_fin f_Int_fin
-    by (subst INFI_ereal_add) (auto simp: decseq_f)
+    by (subst INF_ereal_add) (auto simp: decseq_f)
   moreover {
     fix n
     have "f (A n - (\<Inter>i. A i)) + f (\<Inter>i. A i) = f ((A n - (\<Inter>i. A i)) \<union> (\<Inter>i. A i))"
@@ -543,10 +543,10 @@ proof -
   have A0: "0 \<le> emeasure M (A 0)" using A by auto
 
   have "emeasure M (A 0) - (INF n. emeasure M (A n)) = emeasure M (A 0) + (SUP n. - emeasure M (A n))"
-    by (simp add: ereal_SUPR_uminus minus_ereal_def)
+    by (simp add: ereal_SUP_uminus minus_ereal_def)
   also have "\<dots> = (SUP n. emeasure M (A 0) - emeasure M (A n))"
     unfolding minus_ereal_def using A0 assms
-    by (subst SUPR_ereal_add) (auto simp add: decseq_emeasure)
+    by (subst SUP_ereal_add) (auto simp add: decseq_emeasure)
   also have "\<dots> = (SUP n. emeasure M (A 0 - A n))"
     using A finite `decseq A`[unfolded decseq_def] by (subst emeasure_Diff) auto
   also have "\<dots> = emeasure M (\<Union>i. A 0 - A i)"

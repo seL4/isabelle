@@ -98,8 +98,11 @@ differently).
 
 *** HOL ***
 
+* Consolidated theorem names containing INFI and SUPR: have INF
+and SUP instead uniformly.  INCOMPATIBILITY.
+
 * More aggressive normalization of expressions involving INF and Inf
-or SUP and Sup. INCOMPATIBILITY.
+or SUP and Sup.  INCOMPATIBILITY.
 
 * INF_image and SUP_image do not unfold composition.
 INCOMPATIBILITY.

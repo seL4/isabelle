@@ -1421,16 +1421,16 @@ lemma ereal_INF_not_infty:
   using INF_lower2[of _ A f u] INF_greatest[of A l f]
   by (cases "INFI A f") auto
 
-lemma ereal_SUPR_uminus:
+lemma ereal_SUP_uminus:
   fixes f :: "'a \<Rightarrow> ereal"
   shows "(SUP i : R. -(f i)) = -(INF i : R. f i)"
   using ereal_Sup_uminus_image_eq[of "f`R"]
   by (simp add: image_image)
 
-lemma ereal_INFI_uminus:
+lemma ereal_INF_uminus:
   fixes f :: "'a \<Rightarrow> ereal"
   shows "(INF i : R. - f i) = - (SUP i : R. f i)"
-  using ereal_SUPR_uminus[of _ "\<lambda>x. - f x"] by simp
+  using ereal_SUP_uminus [of _ "\<lambda>x. - f x"] by simp
 
 lemma ereal_image_uminus_shift:
   fixes X Y :: "ereal set"
@@ -1539,7 +1539,7 @@ proof (cases y)
     using real by (simp add: ereal_le_minus_iff)
 qed (insert assms, auto)
 
-lemma SUPR_ereal_add:
+lemma SUP_ereal_add:
   fixes f g :: "nat \<Rightarrow> ereal"
   assumes "incseq f"
     and "incseq g"
@@ -1575,18 +1575,18 @@ proof (rule SUP_eqI)
     by (simp add: ac_simps)
 qed (auto intro!: add_mono SUP_upper)
 
-lemma SUPR_ereal_add_pos:
+lemma SUP_ereal_add_pos:
   fixes f g :: "nat \<Rightarrow> ereal"
   assumes inc: "incseq f" "incseq g"
     and pos: "\<And>i. 0 \<le> f i" "\<And>i. 0 \<le> g i"
   shows "(SUP i. f i + g i) = SUPR UNIV f + SUPR UNIV g"
-proof (intro SUPR_ereal_add inc)
+proof (intro SUP_ereal_add inc)
   fix i
   show "f i \<noteq> -\<infinity>" "g i \<noteq> -\<infinity>"
     using pos[of i] by auto
 qed
 
-lemma SUPR_ereal_setsum:
+lemma SUP_ereal_setsum:
   fixes f g :: "'a \<Rightarrow> nat \<Rightarrow> ereal"
   assumes "\<And>n. n \<in> A \<Longrightarrow> incseq (f n)"
     and pos: "\<And>n i. n \<in> A \<Longrightarrow> 0 \<le> f n i"
@@ -1594,13 +1594,13 @@ lemma SUPR_ereal_setsum:
 proof (cases "finite A")
   case True
   then show ?thesis using assms
-    by induct (auto simp: incseq_setsumI2 setsum_nonneg SUPR_ereal_add_pos)
+    by induct (auto simp: incseq_setsumI2 setsum_nonneg SUP_ereal_add_pos)
 next
   case False
   then show ?thesis by simp
 qed
 
-lemma SUPR_ereal_cmult:
+lemma SUP_ereal_cmult:
   fixes f :: "nat \<Rightarrow> ereal"
   assumes "\<And>i. 0 \<le> f i"
     and "0 \<le> c"
@@ -1675,7 +1675,7 @@ proof safe
   qed
 qed
 
-lemma Sup_countable_SUPR:
+lemma Sup_countable_SUP:
   assumes "A \<noteq> {}"
   shows "\<exists>f::nat \<Rightarrow> ereal. range f \<subseteq> A \<and> Sup A = SUPR UNIV f"
 proof (cases "Sup A")
@@ -1770,9 +1770,9 @@ next
     using MInf by (auto intro!: exI[of _ "\<lambda>x. -\<infinity>"])
 qed
 
-lemma SUPR_countable_SUPR:
+lemma SUP_countable_SUP:
   "A \<noteq> {} \<Longrightarrow> \<exists>f::nat \<Rightarrow> ereal. range f \<subseteq> g`A \<and> SUPR A g = SUPR UNIV f"
-  using Sup_countable_SUPR[of "g`A"]
+  using Sup_countable_SUP [of "g`A"]
   by auto
 
 lemma Sup_ereal_cadd:
@@ -1807,7 +1807,7 @@ lemma Sup_ereal_cminus:
   using Sup_ereal_cadd [of "uminus ` A" a] assms
   unfolding image_image minus_ereal_def by (simp add: ereal_SUP_uminus_eq)
 
-lemma SUPR_ereal_cminus:
+lemma SUP_ereal_cminus:
   fixes f :: "'i \<Rightarrow> ereal"
   fixes A
   assumes "A \<noteq> {}"
@@ -1834,7 +1834,7 @@ proof -
     by (auto simp add: ereal_INF_uminus_eq ereal_SUP_uminus_eq)
 qed
 
-lemma INFI_ereal_cminus:
+lemma INF_ereal_cminus:
   fixes a :: ereal
   assumes "A \<noteq> {}"
     and "\<bar>a\<bar> \<noteq> \<infinity>"
@@ -1848,7 +1848,7 @@ lemma uminus_ereal_add_uminus_uminus:
   shows "a \<noteq> \<infinity> \<Longrightarrow> b \<noteq> \<infinity> \<Longrightarrow> - (- a + - b) = a + b"
   by (cases rule: ereal2_cases[of a b]) auto
 
-lemma INFI_ereal_add:
+lemma INF_ereal_add:
   fixes f :: "nat \<Rightarrow> ereal"
   assumes "decseq f" "decseq g"
     and fin: "\<And>i. f i \<noteq> \<infinity>" "\<And>i. g i \<noteq> \<infinity>"
@@ -1864,10 +1864,10 @@ proof -
   then have "(INF i. f i + g i) = (INF i. - ((- f i) + (- g i)))"
     by simp
   also have "\<dots> = INFI UNIV f + INFI UNIV g"
-    unfolding ereal_INFI_uminus
+    unfolding ereal_INF_uminus
     using assms INF_less
-    by (subst SUPR_ereal_add)
-       (auto simp: ereal_SUPR_uminus intro!: uminus_ereal_add_uminus_uminus)
+    by (subst SUP_ereal_add)
+       (auto simp: ereal_SUP_uminus intro!: uminus_ereal_add_uminus_uminus)
   finally show ?thesis .
 qed
 
@@ -2430,7 +2430,7 @@ qed
 lemma ereal_Limsup_uminus:
   fixes f :: "'a \<Rightarrow> ereal"
   shows "Limsup net (\<lambda>x. - (f x)) = - Liminf net f"
-  unfolding Limsup_def Liminf_def ereal_SUPR_uminus ereal_INFI_uminus ..
+  unfolding Limsup_def Liminf_def ereal_SUP_uminus ereal_INF_uminus ..
 
 lemma liminf_bounded_iff:
   fixes x :: "nat \<Rightarrow> ereal"

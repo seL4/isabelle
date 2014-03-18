@@ -218,25 +218,13 @@ lemma INF_Pair: "(INF x:A. (f x, g x)) = (INF x:A. f x, INF x:A. g x)"
 text {* Alternative formulations for set infima and suprema over the product
 of two complete lattices: *}
 
-lemma Inf_prod_alt_def: "Inf A = (Inf (fst ` A), Inf (snd ` A))"
-by (auto simp: Inf_prod_def)
-
-lemma Sup_prod_alt_def: "Sup A = (Sup (fst ` A), Sup (snd ` A))"
-by (auto simp: Sup_prod_def)
-
-lemma INFI_prod_alt_def: "INFI A f = (INFI A (fst o f), INFI A (snd o f))"
+lemma INF_prod_alt_def:
+  "INFI A f = (INFI A (fst o f), INFI A (snd o f))"
   unfolding INF_def Inf_prod_def by simp
 
-lemma SUPR_prod_alt_def: "SUPR A f = (SUPR A (fst o f), SUPR A (snd o f))"
-  unfolding SUP_def Sup_prod_def by simp
-
-lemma INF_prod_alt_def:
-  "(INF x:A. f x) = (INF x:A. fst (f x), INF x:A. snd (f x))"
-  by (simp add: INFI_prod_alt_def comp_def)
-
 lemma SUP_prod_alt_def:
-  "(SUP x:A. f x) = (SUP x:A. fst (f x), SUP x:A. snd (f x))"
-  by (simp add: SUPR_prod_alt_def comp_def)
+  "SUPR A f = (SUPR A (fst o f), SUPR A (snd o f))"
+  unfolding SUP_def Sup_prod_def by simp
 
 
 subsection {* Complete distributive lattices *}
@@ -247,10 +235,10 @@ instance prod ::
   (complete_distrib_lattice, complete_distrib_lattice) complete_distrib_lattice
 proof
   case goal1 thus ?case
-    by (auto simp: sup_prod_def Inf_prod_def INF_prod_alt_def sup_Inf sup_INF)
+    by (auto simp: sup_prod_def Inf_prod_def INF_prod_alt_def sup_Inf sup_INF comp_def)
 next
   case goal2 thus ?case
-    by (auto simp: inf_prod_def Sup_prod_def SUP_prod_alt_def inf_Sup inf_SUP)
+    by (auto simp: inf_prod_def Sup_prod_def SUP_prod_alt_def inf_Sup inf_SUP comp_def)
 qed
 
 end

@@ -83,11 +83,11 @@ qed (auto intro!: pred_eqI simp add: less_eq_pred_def less_pred_def le_fun_def l
 
 end
 
-lemma eval_INFI [simp]:
+lemma eval_INF [simp]:
   "eval (INFI A f) = INFI A (eval \<circ> f)"
   using eval_Inf [of "f ` A"] by simp
 
-lemma eval_SUPR [simp]:
+lemma eval_SUP [simp]:
   "eval (SUPR A f) = SUPR A (eval \<circ> f)"
   using eval_Sup [of "f ` A"] by simp
 

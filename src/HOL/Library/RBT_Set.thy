@@ -757,7 +757,7 @@ definition Inf' :: "'a :: {linorder, complete_lattice} set \<Rightarrow> 'a" whe
 declare Inf'_def[symmetric, code_unfold]
 declare Inf_Set_fold[folded Inf'_def, code]
 
-lemma INFI_Set_fold [code]:
+lemma INF_Set_fold [code]:
   fixes f :: "_ \<Rightarrow> 'a::complete_lattice"
   shows "INFI (Set t) f = fold_keys (inf \<circ> f) t top"
 proof -
@@ -798,7 +798,7 @@ definition Sup' :: "'a :: {linorder, complete_lattice} set \<Rightarrow> 'a" whe
 declare Sup'_def[symmetric, code_unfold]
 declare Sup_Set_fold[folded Sup'_def, code]
 
-lemma SUPR_Set_fold [code]:
+lemma SUP_Set_fold [code]:
   fixes f :: "_ \<Rightarrow> 'a::complete_lattice"
   shows "SUPR (Set t) f = fold_keys (sup \<circ> f) t bot"
 proof -

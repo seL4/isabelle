@@ -293,13 +293,13 @@ proof -
   ultimately show ?thesis by (rule Sup_upper2)
 qed
 
-lemma SUPR_eq:
+lemma SUP_eq:
   assumes "\<And>i. i \<in> A \<Longrightarrow> \<exists>j\<in>B. f i \<le> g j"
   assumes "\<And>j. j \<in> B \<Longrightarrow> \<exists>i\<in>A. g j \<le> f i"
   shows "(\<Squnion>i\<in>A. f i) = (\<Squnion>j\<in>B. g j)"
   by (intro antisym SUP_least) (blast intro: SUP_upper2 dest: assms)+
 
-lemma INFI_eq:
+lemma INF_eq:
   assumes "\<And>i. i \<in> A \<Longrightarrow> \<exists>j\<in>B. f i \<ge> g j"
   assumes "\<And>j. j \<in> B \<Longrightarrow> \<exists>i\<in>A. g j \<ge> f i"
   shows "(\<Sqinter>i\<in>A. f i) = (\<Sqinter>j\<in>B. g j)"

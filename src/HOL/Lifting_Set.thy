@@ -149,14 +149,14 @@ lemma rel_set_transfer [transfer_rule]:
     rel_set rel_set"
   unfolding rel_fun_def rel_set_def by fast
 
-lemma SUPR_parametric [transfer_rule]:
+lemma SUP_parametric [transfer_rule]:
   "(rel_set R ===> (R ===> op =) ===> op =) SUPR (SUPR :: _ \<Rightarrow> _ \<Rightarrow> _::complete_lattice)"
 proof(rule rel_funI)+
   fix A B f and g :: "'b \<Rightarrow> 'c"
   assume AB: "rel_set R A B"
     and fg: "(R ===> op =) f g"
   show "SUPR A f = SUPR B g"
-    by(rule SUPR_eq)(auto 4 4 dest: rel_setD1[OF AB] rel_setD2[OF AB] rel_funD[OF fg] intro: rev_bexI)
+    by (rule SUP_eq) (auto 4 4 dest: rel_setD1 [OF AB] rel_setD2 [OF AB] rel_funD [OF fg] intro: rev_bexI)
 qed
 
 lemma bind_transfer [transfer_rule]:

@@ -312,7 +312,7 @@ proof -
     case 2
     have "M (space M - B) = M (space M) - emeasure M B" by (auto simp: emeasure_compl)
     also have "\<dots> = (INF K:{K. K \<subseteq> B \<and> compact K}. M (space M) -  M K)"
-      unfolding inner by (subst INFI_ereal_cminus) force+
+      unfolding inner by (subst INF_ereal_cminus) force+
     also have "\<dots> = (INF U:{U. U \<subseteq> B \<and> compact U}. M (space M - U))"
       by (rule INF_cong) (auto simp add: emeasure_compl sb compact_imp_closed)
     also have "\<dots> \<ge> (INF U:{U. U \<subseteq> B \<and> closed U}. M (space M - U))"
@@ -331,7 +331,7 @@ proof -
     case 1
     have "M (space M - B) = M (space M) - emeasure M B" by (auto simp: emeasure_compl)
     also have "\<dots> = (SUP U: {U. B \<subseteq> U \<and> open U}. M (space M) -  M U)"
-      unfolding outer by (subst SUPR_ereal_cminus) auto
+      unfolding outer by (subst SUP_ereal_cminus) auto
     also have "\<dots> = (SUP U:{U. B \<subseteq> U \<and> open U}. M (space M - U))"
       by (rule SUP_cong) (auto simp add: emeasure_compl sb compact_imp_closed)
     also have "\<dots> = (SUP K:{K. K \<subseteq> space M - B \<and> closed K}. emeasure M K)"

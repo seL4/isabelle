@@ -537,10 +537,10 @@ proof (cases c)
 next
   case (real r)
   then show ?thesis
-    unfolding liminf_SUPR_INFI limsup_INFI_SUPR
-    apply (subst INFI_ereal_cminus)
+    unfolding liminf_SUP_INF limsup_INF_SUP
+    apply (subst INF_ereal_cminus)
     apply auto
-    apply (subst SUPR_ereal_cminus)
+    apply (subst SUP_ereal_cminus)
     apply auto
     done
 qed (insert `c \<noteq> -\<infinity>`, simp)
@@ -874,7 +874,7 @@ lemma summable_ereal_pos:
   unfolding summable_def
   by auto
 
-lemma suminf_ereal_eq_SUPR:
+lemma suminf_ereal_eq_SUP:
   fixes f :: "nat \<Rightarrow> ereal"
   assumes "\<And>i. 0 \<le> f i"
   shows "(\<Sum>x. f x) = (SUP n. \<Sum>i<n. f i)"
@@ -917,7 +917,7 @@ lemma suminf_upper:
   fixes f :: "nat \<Rightarrow> ereal"
   assumes "\<And>n. 0 \<le> f n"
   shows "(\<Sum>n<N. f n) \<le> (\<Sum>n. f n)"
-  unfolding suminf_ereal_eq_SUPR[OF assms]
+  unfolding suminf_ereal_eq_SUP [OF assms]
   by (auto intro: complete_lattice_class.SUP_upper)
 
 lemma suminf_0_le:
@@ -956,9 +956,9 @@ lemma suminf_add_ereal:
   assumes "\<And>i. 0 \<le> f i"
     and "\<And>i. 0 \<le> g i"
   shows "(\<Sum>i. f i + g i) = suminf f + suminf g"
-  apply (subst (1 2 3) suminf_ereal_eq_SUPR)
+  apply (subst (1 2 3) suminf_ereal_eq_SUP)
   unfolding setsum_addf
-  apply (intro assms ereal_add_nonneg_nonneg SUPR_ereal_add_pos incseq_setsumI setsum_nonneg ballI)+
+  apply (intro assms ereal_add_nonneg_nonneg SUP_ereal_add_pos incseq_setsumI setsum_nonneg ballI)+
   done
 
 lemma suminf_cmult_ereal:
@@ -967,8 +967,8 @@ lemma suminf_cmult_ereal:
     and "0 \<le> a"
   shows "(\<Sum>i. a * f i) = a * suminf f"
   by (auto simp: setsum_ereal_right_distrib[symmetric] assms
-       ereal_zero_le_0_iff setsum_nonneg suminf_ereal_eq_SUPR
-       intro!: SUPR_ereal_cmult )
+       ereal_zero_le_0_iff setsum_nonneg suminf_ereal_eq_SUP
+       intro!: SUP_ereal_cmult)
 
 lemma suminf_PInfty:
   fixes f :: "nat \<Rightarrow> ereal"
@@ -1107,12 +1107,12 @@ proof -
     fix n :: nat
     have "(\<Sum>i<n. SUP k. f k i) = (SUP k. \<Sum>i<n. f k i)"
       using assms
-      by (auto intro!: SUPR_ereal_setsum[symmetric])
+      by (auto intro!: SUP_ereal_setsum [symmetric])
   }
   note * = this
   show ?thesis
     using assms
-    apply (subst (1 2) suminf_ereal_eq_SUPR)
+    apply (subst (1 2) suminf_ereal_eq_SUP)
     unfolding *
     apply (auto intro!: SUP_upper2)
     apply (subst SUP_commute)
@@ -1161,7 +1161,7 @@ lemma Liminf_within:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::complete_lattice"
   shows "Liminf (at x within S) f = (SUP e:{0<..}. INF y:(S \<inter> ball x e - {x}). f y)"
   unfolding Liminf_def eventually_at
-proof (rule SUPR_eq, simp_all add: Ball_def Bex_def, safe)
+proof (rule SUP_eq, simp_all add: Ball_def Bex_def, safe)
   fix P d
   assume "0 < d" and "\<forall>y. y \<in> S \<longrightarrow> y \<noteq> x \<and> dist y x < d \<longrightarrow> P y"
   then have "S \<inter> ball x d - {x} \<subseteq> {x. P x}"
@@ -1181,7 +1181,7 @@ lemma Limsup_within:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::complete_lattice"
   shows "Limsup (at x within S) f = (INF e:{0<..}. SUP y:(S \<inter> ball x e - {x}). f y)"
   unfolding Limsup_def eventually_at
-proof (rule INFI_eq, simp_all add: Ball_def Bex_def, safe)
+proof (rule INF_eq, simp_all add: Ball_def Bex_def, safe)
   fix P d
   assume "0 < d" and "\<forall>y. y \<in> S \<longrightarrow> y \<noteq> x \<and> dist y x < d \<longrightarrow> P y"
   then have "S \<inter> ball x d - {x} \<subseteq> {x. P x}"

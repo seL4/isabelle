@@ -946,18 +946,18 @@ proof (rule ereal_le_mult_one_interval)
 
   have "integral\<^sup>S M u = (SUP i. integral\<^sup>S M (?uB i))"
     unfolding simple_integral_indicator[OF B `simple_function M u`]
-  proof (subst SUPR_ereal_setsum, safe)
+  proof (subst SUP_ereal_setsum, safe)
     fix x n assume "x \<in> space M"
     with u_range show "incseq (\<lambda>i. u x * (emeasure M) (?B' (u x) i))" "\<And>i. 0 \<le> u x * (emeasure M) (?B' (u x) i)"
       using B_mono B_u by (auto intro!: emeasure_mono ereal_mult_left_mono incseq_SucI simp: ereal_zero_le_0_iff)
   next
     show "integral\<^sup>S M u = (\<Sum>i\<in>u ` space M. SUP n. i * (emeasure M) (?B' i n))"
       using measure_conv u_range B_u unfolding simple_integral_def
-      by (auto intro!: setsum_cong SUPR_ereal_cmult[symmetric])
+      by (auto intro!: setsum_cong SUP_ereal_cmult [symmetric])
   qed
   moreover
   have "a * (SUP i. integral\<^sup>S M (?uB i)) \<le> ?S"
-    apply (subst SUPR_ereal_cmult[symmetric])
+    apply (subst SUP_ereal_cmult [symmetric])
   proof (safe intro!: SUP_mono bexI)
     fix i
     have "a * integral\<^sup>S M (?uB i) = (\<integral>\<^sup>Sx. a * ?uB i x \<partial>M)"
@@ -1120,8 +1120,8 @@ proof -
           by auto }
       then have "(SUP i. a * u i x + v i x) = a * (SUP i. u i x) + (SUP i. v i x)"
         using `0 \<le> a` u(3) v(3) u(6)[of _ x] v(6)[of _ x]
-        by (subst SUPR_ereal_cmult[symmetric, OF u(6) `0 \<le> a`])
-           (auto intro!: SUPR_ereal_add
+        by (subst SUP_ereal_cmult [symmetric, OF u(6) `0 \<le> a`])
+           (auto intro!: SUP_ereal_add
                  simp: incseq_Suc_iff le_fun_def add_mono ereal_mult_left_mono ereal_add_nonneg_nonneg) }
     then show "AE x in M. (SUP i. l i x) = (SUP i. ?L' i x)"
       unfolding l(5) using `0 \<le> a` u(5) v(5) l(5) f(2) g(2)
@@ -1132,8 +1132,8 @@ proof -
   finally have "(\<integral>\<^sup>+ x. max 0 (a * f x + g x) \<partial>M) = a * (\<integral>\<^sup>+x. max 0 (f x) \<partial>M) + (\<integral>\<^sup>+x. max 0 (g x) \<partial>M)"
     unfolding l(5)[symmetric] u(5)[symmetric] v(5)[symmetric]
     unfolding l(1)[symmetric] u(1)[symmetric] v(1)[symmetric]
-    apply (subst SUPR_ereal_cmult[symmetric, OF pos(1) `0 \<le> a`])
-    apply (subst SUPR_ereal_add[symmetric, OF inc not_MInf]) .
+    apply (subst SUP_ereal_cmult [symmetric, OF pos(1) `0 \<le> a`])
+    apply (subst SUP_ereal_add [symmetric, OF inc not_MInf]) .
   then show ?thesis by (simp add: positive_integral_max_0)
 qed
 
@@ -1277,14 +1277,14 @@ proof -
   have all_pos: "AE x in M. \<forall>i. 0 \<le> f i x"
     using assms by (auto simp: AE_all_countable)
   have "(\<Sum>i. integral\<^sup>P M (f i)) = (SUP n. \<Sum>i<n. integral\<^sup>P M (f i))"
-    using positive_integral_positive by (rule suminf_ereal_eq_SUPR)
+    using positive_integral_positive by (rule suminf_ereal_eq_SUP)
   also have "\<dots> = (SUP n. \<integral>\<^sup>+x. (\<Sum>i<n. f i x) \<partial>M)"
     unfolding positive_integral_setsum[OF f] ..
   also have "\<dots> = \<integral>\<^sup>+x. (SUP n. \<Sum>i<n. f i x) \<partial>M" using f all_pos
     by (intro positive_integral_monotone_convergence_SUP_AE[symmetric])
        (elim AE_mp, auto simp: setsum_nonneg simp del: setsum_lessThan_Suc intro!: AE_I2 setsum_mono3)
   also have "\<dots> = \<integral>\<^sup>+x. (\<Sum>i. f i x) \<partial>M" using all_pos
-    by (intro positive_integral_cong_AE) (auto simp: suminf_ereal_eq_SUPR)
+    by (intro positive_integral_cong_AE) (auto simp: suminf_ereal_eq_SUP)
   finally show ?thesis by simp
 qed
 
@@ -1297,11 +1297,11 @@ proof -
   have pos: "AE x in M. \<forall>i. 0 \<le> u i x" using u by (auto simp: AE_all_countable)
   have "(\<integral>\<^sup>+ x. liminf (\<lambda>n. u n x) \<partial>M) =
     (SUP n. \<integral>\<^sup>+ x. (INF i:{n..}. u i x) \<partial>M)"
-    unfolding liminf_SUPR_INFI using pos u
+    unfolding liminf_SUP_INF using pos u
     by (intro positive_integral_monotone_convergence_SUP_AE)
        (elim AE_mp, auto intro!: AE_I2 intro: INF_greatest INF_superset_mono)
   also have "\<dots> \<le> liminf (\<lambda>n. integral\<^sup>P M (u n))"
-    unfolding liminf_SUPR_INFI
+    unfolding liminf_SUP_INF
     by (auto intro!: SUP_mono exI INF_greatest positive_integral_mono INF_lower)
   finally show ?thesis .
 qed
@@ -2749,7 +2749,7 @@ next
 next
   case (seq U)
   from f(2) have eq: "AE x in M. f x * (SUP i. U i x) = (SUP i. f x * U i x)"
-    by eventually_elim (simp add: SUPR_ereal_cmult seq)
+    by eventually_elim (simp add: SUP_ereal_cmult seq)
   from seq f show ?case
     apply (simp add: positive_integral_monotone_convergence_SUP)
     apply (subst positive_integral_cong_AE[OF eq])

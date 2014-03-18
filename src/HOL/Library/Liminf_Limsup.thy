@@ -20,12 +20,12 @@ lemma Inf_le_iff_less:
   unfolding INF_le_iff
   by (blast intro: less_imp_le less_trans le_less_trans dest: dense)
 
-lemma SUPR_pair:
+lemma SUP_pair:
   fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _ :: complete_lattice"
   shows "(SUP i : A. SUP j : B. f i j) = (SUP p : A \<times> B. f (fst p) (snd p))"
   by (rule antisym) (auto intro!: SUP_least SUP_upper2)
 
-lemma INFI_pair:
+lemma INF_pair:
   fixes f :: "_ \<Rightarrow> _ \<Rightarrow> _ :: complete_lattice"
   shows "(INF i : A. INF j : B. f i j) = (INF p : A \<times> B. f (fst p) (snd p))"
   by (rule antisym) (auto intro!: INF_greatest INF_lower2)
@@ -52,13 +52,13 @@ lemma Limsup_eqI:
     (\<And>y. (\<And>P. eventually P F \<Longrightarrow> y \<le> SUPR (Collect P) f) \<Longrightarrow> y \<le> x) \<Longrightarrow> Limsup F f = x"
   unfolding Limsup_def by (auto intro!: INF_eqI)
 
-lemma liminf_SUPR_INFI: "liminf f = (SUP n. INF m:{n..}. f m)"
+lemma liminf_SUP_INF: "liminf f = (SUP n. INF m:{n..}. f m)"
   unfolding Liminf_def eventually_sequentially
-  by (rule SUPR_eq) (auto simp: atLeast_def intro!: INF_mono)
+  by (rule SUP_eq) (auto simp: atLeast_def intro!: INF_mono)
 
-lemma limsup_INFI_SUPR: "limsup f = (INF n. SUP m:{n..}. f m)"
+lemma limsup_INF_SUP: "limsup f = (INF n. SUP m:{n..}. f m)"
   unfolding Limsup_def eventually_sequentially
-  by (rule INFI_eq) (auto simp: atLeast_def intro!: SUP_mono)
+  by (rule INF_eq) (auto simp: atLeast_def intro!: SUP_mono)
 
 lemma Limsup_const: 
   assumes ntriv: "\<not> trivial_limit F"
@@ -292,7 +292,7 @@ proof-
     fix n m :: nat assume "n \<le> m" then show "\<exists>ma\<in>{n..}. X ma \<le> (X \<circ> r) m"
       using seq_suble[OF `subseq r`, of m] by (intro bexI[of _ "r m"]) auto
   qed
-  then show ?thesis by (auto intro!: SUP_mono simp: liminf_SUPR_INFI comp_def)
+  then show ?thesis by (auto intro!: SUP_mono simp: liminf_SUP_INF comp_def)
 qed
 
 lemma limsup_subseq_mono:
@@ -305,7 +305,7 @@ proof-
     fix n m :: nat assume "n \<le> m" then show "\<exists>ma\<in>{n..}. (X \<circ> r) m \<le> X ma"
       using seq_suble[OF `subseq r`, of m] by (intro bexI[of _ "r m"]) auto
   qed
-  then show ?thesis by (auto intro!: INF_mono simp: limsup_INFI_SUPR comp_def)
+  then show ?thesis by (auto intro!: INF_mono simp: limsup_INF_SUP comp_def)
 qed
 
 end
