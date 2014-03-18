@@ -239,6 +239,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val keyword2_color = color_value("keyword2_color")
   val keyword3_color = color_value("keyword3_color")
   val quasi_keyword_color = color_value("quasi_keyword_color")
+  val improper_color = color_value("improper_color")
   val operator_color = color_value("operator_color")
   val caret_invisible_color = color_value("caret_invisible_color")
   val completion_color = color_value("completion_color")
@@ -654,6 +655,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       Markup.KEYWORD2 -> keyword2_color,
       Markup.KEYWORD3 -> keyword3_color,
       Markup.QUASI_KEYWORD -> quasi_keyword_color,
+      Markup.IMPROPER -> improper_color,
       Markup.OPERATOR -> operator_color,
       Markup.STRING -> Color.BLACK,
       Markup.ALTSTRING -> Color.BLACK,

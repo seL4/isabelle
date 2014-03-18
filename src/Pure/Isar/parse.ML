@@ -38,6 +38,8 @@ sig
   val eof: string parser
   val command_name: string -> string parser
   val keyword_with: (string -> bool) -> string parser
+  val keyword_markup: bool * Markup.T -> string -> string parser
+  val keyword_improper: string -> string parser
   val $$$ : string -> string parser
   val reserved: string -> string parser
   val semicolon: string parser
@@ -198,17 +200,20 @@ val cartouche = kind Token.Cartouche;
 val sync = kind Token.Sync;
 val eof = kind Token.EOF;
 
-fun keyword_with pred = RESET_VALUE (Scan.one (Token.keyword_with pred) >> Token.content_of);
-
 fun command_name x =
   group (fn () => Token.str_of_kind Token.Command ^ " " ^ quote x)
     (RESET_VALUE (Scan.one (fn tok => Token.is_command tok andalso Token.content_of tok = x)))
   >> Token.content_of;
 
-fun $$$ x =
+fun keyword_with pred = RESET_VALUE (Scan.one (Token.keyword_with pred) >> Token.content_of);
+
+fun keyword_markup markup x =
   group (fn () => Token.str_of_kind Token.Keyword ^ " " ^ quote x)
     (Scan.ahead not_eof -- keyword_with (fn y => x = y))
-  >> (fn (tok, x) => (Token.assign (SOME (Token.Literal Markup.quasi_keyword)) tok; x));
+  >> (fn (tok, x) => (Token.assign (SOME (Token.Literal markup)) tok; x));
+
+val keyword_improper = keyword_markup (true, Markup.improper);
+val $$$ = keyword_markup (false, Markup.quasi_keyword);
 
 fun reserved x =
   group (fn () => "reserved identifier " ^ quote x)

@@ -105,7 +105,6 @@ sig
   val paragraphN: string val paragraph: T
   val text_foldN: string val text_fold: T
   val commandN: string val command: T
-  val operatorN: string val operator: T
   val stringN: string val string: T
   val altstringN: string val altstring: T
   val verbatimN: string val verbatim: T
@@ -117,6 +116,8 @@ sig
   val keyword2N: string val keyword2: T
   val keyword3N: string val keyword3: T
   val quasi_keywordN: string val quasi_keyword: T
+  val improperN: string val improper: T
+  val operatorN: string val operator: T
   val elapsedN: string
   val cpuN: string
   val gcN: string
@@ -427,6 +428,7 @@ val (keyword1N, keyword1) = markup_elem "keyword1";
 val (keyword2N, keyword2) = markup_elem "keyword2";
 val (keyword3N, keyword3) = markup_elem "keyword3";
 val (quasi_keywordN, quasi_keyword) = markup_elem "quasi_keyword";
+val (improperN, improper) = markup_elem "improper";
 val (operatorN, operator) = markup_elem "operator";
 val (stringN, string) = markup_elem "string";
 val (altstringN, altstring) = markup_elem "altstring";

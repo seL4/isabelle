@@ -159,7 +159,7 @@ fun $$$ x =
   (ident || Parse.token Parse.keyword) :|-- (fn tok =>
     let val y = Token.content_of tok in
       if x = y
-      then (Token.assign (SOME (Token.Literal Markup.quasi_keyword)) tok; Scan.succeed x)
+      then (Token.assign (SOME (Token.Literal (false, Markup.quasi_keyword))) tok; Scan.succeed x)
       else Scan.fail
     end);
 
@@ -251,7 +251,7 @@ val from_to =
   Parse.nat >> (fn i => fn tac => tac i) ||
   $$$ "!" >> K ALLGOALS;
 
-val goal = $$$ "[" |-- Parse.!!! (from_to --| $$$ "]");
+val goal = Parse.keyword_improper "[" |-- Parse.!!! (from_to --| Parse.keyword_improper "]");
 fun goal_spec x = Scan.lift (Scan.optional goal (fn tac => tac 1)) x;
 
 
