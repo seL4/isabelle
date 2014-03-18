@@ -14,13 +14,7 @@ import java.io.{File => JFile}
 
 object Resources
 {
-  /* paths */
-
   def thy_path(path: Path): Path = path.ext("thy")
-
-  def is_wellformed_thy_path(str: String): Boolean =
-    try { thy_path(Path.explode(str)); true }
-    catch { case ERROR(_) => false }
 }
 
 
