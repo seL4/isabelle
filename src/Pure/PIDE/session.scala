@@ -1,8 +1,8 @@
-/*  Title:      Pure/System/session.scala
+/*  Title:      Pure/PIDE/session.scala
     Author:     Makarius
     Options:    :folding=explicit:collapseFolds=1:
 
-Main Isabelle/Scala session, potentially with running prover process.
+PIDE editor session, potentially with running prover process.
 */
 
 package isabelle
@@ -480,14 +480,14 @@ class Session(val resources: Resources)
           output.properties match {
             case Position.Id(state_id) =>
               accumulate(state_id, output.message)
-  
+
             case _ if output.is_init =>
               phase = Session.Ready
-  
+
             case Markup.Return_Code(rc) if output.is_exit =>
               if (rc == 0) phase = Session.Inactive
               else phase = Session.Failed
-  
+
             case _ => raw_output_messages.event(output)
           }
         }

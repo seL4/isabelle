@@ -294,7 +294,7 @@ use "subgoal.ML";
 
 (* Isabelle/Isar system *)
 
-use "System/session.ML";
+use "PIDE/session.ML";
 use "System/command_line.ML";
 use "System/system_channel.ML";
 use "System/message_channel.ML";

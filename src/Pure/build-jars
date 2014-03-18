@@ -54,6 +54,7 @@ declare -a SOURCES=(
   PIDE/protocol.scala
   PIDE/query_operation.scala
   PIDE/resources.scala
+  PIDE/session.scala
   PIDE/text.scala
   PIDE/xml.scala
   PIDE/yxml.scala
@@ -67,7 +68,6 @@ declare -a SOURCES=(
   System/isabelle_system.scala
   System/options.scala
   System/platform.scala
-  System/session.scala
   System/system_channel.scala
   System/utf8.scala
   Thy/html.scala
