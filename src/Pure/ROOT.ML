@@ -211,12 +211,6 @@ use "type_infer_context.ML";
 use "Syntax/syntax_phases.ML";
 use "Isar/local_defs.ML";
 
-(*proof term operations*)
-use "Proof/reconstruct.ML";
-use "Proof/proof_syntax.ML";
-use "Proof/proof_rewrite_rules.ML";
-use "Proof/proof_checker.ML";
-
 (*outer syntax*)
 use "Isar/token.ML";
 use "Isar/keyword.ML";
@@ -271,6 +265,13 @@ use "Isar/typedecl.ML";
 use "Isar/proof_node.ML";
 use "Isar/toplevel.ML";
 
+(*proof term operations*)
+use "Proof/reconstruct.ML";
+use "Proof/proof_syntax.ML";
+use "Proof/proof_rewrite_rules.ML";
+use "Proof/proof_checker.ML";
+use "Proof/extraction.ML";
+
 (*theory documents*)
 use "System/isabelle_system.ML";
 use "Thy/term_style.ML";
@@ -289,8 +290,6 @@ use "Thy/thm_deps.ML";
 use "Isar/isar_cmd.ML";
 
 use "subgoal.ML";
-
-use "Proof/extraction.ML";
 
 
 (* Isabelle/Isar system *)
