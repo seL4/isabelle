@@ -229,11 +229,11 @@ fun file_antiq strict ctxt (name, pos) =
 in
 
 val _ = Theory.setup
- (Thy_Output.antiquotation (Binding.name "file") (Scan.lift (Parse.position Parse.path))
+ (Thy_Output.antiquotation @{binding file} (Scan.lift (Parse.position Parse.path))
     (file_antiq true o #context) #>
-  Thy_Output.antiquotation (Binding.name "file_unchecked") (Scan.lift (Parse.position Parse.path))
+  Thy_Output.antiquotation @{binding file_unchecked} (Scan.lift (Parse.position Parse.path))
     (file_antiq false o #context) #>
-  ML_Antiquotation.value (Binding.name "path")
+  ML_Antiquotation.value @{binding path}
     (Args.context -- Scan.lift (Parse.position Parse.path) >> (fn (ctxt, arg) =>
       let val path = check_path true ctxt Path.current arg
       in "Path.explode " ^ ML_Syntax.print_string (Path.implode path) end)));

@@ -84,10 +84,10 @@ fun sub_term (Free (n, T)) = Free (sub_name n, T)
   | sub_term t = t;
 
 val _ = Theory.setup
- (setup (Binding.name "lhs") (style_lhs_rhs fst) #>
-  setup (Binding.name "rhs") (style_lhs_rhs snd) #>
-  setup (Binding.name "prem") style_prem #>
-  setup (Binding.name "concl") (Scan.succeed (K Logic.strip_imp_concl)) #>
-  setup (Binding.name "sub") (Scan.succeed (K sub_term)));
+ (setup @{binding lhs} (style_lhs_rhs fst) #>
+  setup @{binding rhs} (style_lhs_rhs snd) #>
+  setup @{binding prem} style_prem #>
+  setup @{binding concl} (Scan.succeed (K Logic.strip_imp_concl)) #>
+  setup @{binding sub} (Scan.succeed (K sub_term)));
 
 end;

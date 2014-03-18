@@ -144,7 +144,7 @@ fun check_simproc ctxt = Name_Space.check (Context.Proof ctxt) (get_simprocs ctx
 val the_simproc = Name_Space.get o get_simprocs;
 
 val _ = Theory.setup
-  (ML_Antiquotation.value (Binding.name "simproc")
+  (ML_Antiquotation.value @{binding simproc}
     (Args.context -- Scan.lift (Parse.position Args.name)
       >> (fn (ctxt, name) =>
         "Simplifier.the_simproc ML_context " ^ ML_Syntax.print_string (check_simproc ctxt name))));
@@ -315,13 +315,13 @@ end;
 (* setup attributes *)
 
 val _ = Theory.setup
- (Attrib.setup (Binding.name simpN) (Attrib.add_del simp_add simp_del)
+ (Attrib.setup @{binding simp} (Attrib.add_del simp_add simp_del)
     "declaration of Simplifier rewrite rule" #>
-  Attrib.setup (Binding.name congN) (Attrib.add_del cong_add cong_del)
+  Attrib.setup @{binding cong} (Attrib.add_del cong_add cong_del)
     "declaration of Simplifier congruence rule" #>
-  Attrib.setup (Binding.name "simproc") simproc_att
+  Attrib.setup @{binding simproc} simproc_att
     "declaration of simplification procedures" #>
-  Attrib.setup (Binding.name "simplified") simplified "simplified rule");
+  Attrib.setup @{binding simplified} simplified "simplified rule");
 
 
 
@@ -362,12 +362,12 @@ fun simp_method more_mods meth =
 (** setup **)
 
 fun method_setup more_mods =
-  Method.setup (Binding.name simpN)
+  Method.setup @{binding simp}
     (simp_method more_mods (fn ctxt => fn tac => fn facts =>
       HEADGOAL (Method.insert_tac facts THEN'
         (CHANGED_PROP oo tac) ctxt)))
     "simplification" #>
-  Method.setup (Binding.name "simp_all")
+  Method.setup @{binding simp_all}
     (simp_method more_mods (fn ctxt => fn tac => fn facts =>
       ALLGOALS (Method.insert_tac facts) THEN
         (CHANGED_PROP o PARALLEL_GOALS o ALLGOALS o tac) ctxt))
