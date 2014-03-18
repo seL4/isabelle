@@ -284,7 +284,7 @@ proof -- "by contradiction"
   proof -
     have "\<forall>n. 0 \<le> ?f n" by simp
     with sf have "?s \<ge> 0"
-      by - (rule suminf_0_le, simp_all)
+      by - (rule suminf_ge_zero, simp_all)
     then have cgt0: "\<lceil>2*?s\<rceil> \<ge> 0" by simp
 
     from ndef have "n = nat \<lceil>(2*?s)\<rceil>" .
@@ -298,7 +298,7 @@ proof -- "by contradiction"
 
   obtain j where jdef: "j = (2::nat)^n" by simp
   have "\<forall>m\<ge>j. 0 < ?f m" by simp
-  with sf have "(\<Sum>i\<in>{0..<j}. ?f i) < ?s" by (rule series_pos_less)
+  with sf have "(\<Sum>i\<in>{0..<j}. ?f i) < ?s" unfolding atLeast0LessThan by (rule series_pos_less)
   then have "(\<Sum>i\<in>{1..<Suc j}. 1/(real i)) < ?s"
     apply -
     apply (subst(asm) setsum_shift_bounds_Suc_ivl [symmetric])

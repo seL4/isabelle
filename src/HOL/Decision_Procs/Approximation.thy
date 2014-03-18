@@ -371,7 +371,7 @@ proof -
 
     have "\<bar> real x \<bar> \<le> 1"  using `0 \<le> real x` `real x \<le> 1` by auto
     from mp[OF summable_Leibniz(2)[OF zeroseq_arctan_series[OF this] monoseq_arctan_series[OF this]] prem, THEN spec, of m, unfolded `2 * m = n`]
-    show ?thesis unfolding arctan_series[OF `\<bar> real x \<bar> \<le> 1`] Suc_eq_plus1  .
+    show ?thesis unfolding arctan_series[OF `\<bar> real x \<bar> \<le> 1`] Suc_eq_plus1 atLeast0LessThan .
   qed auto
   note arctan_bounds = this[unfolded atLeastAtMost_iff]
 
@@ -744,7 +744,7 @@ proof (cases "real x = 0")
     also have "\<dots> =
       (\<Sum> j = 0 ..< n. -1 ^ ((2 * j) div 2) / (real (fact (2 * j))) * x ^(2 * j)) + (\<Sum> j = 0 ..< n. 0)" by auto
     also have "\<dots> = (\<Sum> i = 0 ..< 2 * n. if even i then -1 ^ (i div 2) / (real (fact i)) * x ^ i else 0)"
-      unfolding sum_split_even_odd ..
+      unfolding sum_split_even_odd atLeast0LessThan ..
     also have "\<dots> = (\<Sum> i = 0 ..< 2 * n. (if even i then -1 ^ (i div 2) / (real (fact i)) else 0) * x ^ i)"
       by (rule setsum_cong2) auto
     finally show ?thesis by assumption
@@ -758,7 +758,7 @@ proof (cases "real x = 0")
       + (cos (t + 1/2 * (2 * n) * pi) / real (fact (2*n))) * (real x)^(2*n)"
       (is "_ = ?SUM + ?rest / ?fact * ?pow")
       using Maclaurin_cos_expansion2[OF `0 < real x` `0 < 2 * n`]
-      unfolding cos_coeff_def by auto
+      unfolding cos_coeff_def atLeast0LessThan by auto
 
     have "cos t * -1^n = cos t * cos (n * pi) + sin t * sin (n * pi)" by auto
     also have "\<dots> = cos (t + n * pi)"  using cos_add by auto
@@ -860,7 +860,7 @@ proof (cases "real x = 0")
       have pow: "!!i. x ^ (2 * i + 1) = x * x ^ (2 * i)" by auto
       have "?SUM = (\<Sum> j = 0 ..< n. 0) + ?SUM" by auto
       also have "\<dots> = (\<Sum> i = 0 ..< 2 * n. if even i then 0 else -1 ^ ((i - Suc 0) div 2) / (real (fact i)) * x ^ i)"
-        unfolding sum_split_even_odd ..
+        unfolding sum_split_even_odd atLeast0LessThan ..
       also have "\<dots> = (\<Sum> i = 0 ..< 2 * n. (if even i then 0 else -1 ^ ((i - Suc 0) div 2) / (real (fact i))) * x ^ i)"
         by (rule setsum_cong2) auto
       finally show ?thesis by assumption
@@ -873,7 +873,7 @@ proof (cases "real x = 0")
       + (sin (t + 1/2 * (2 * n + 1) * pi) / real (fact (2*n + 1))) * (real x)^(2*n + 1)"
       (is "_ = ?SUM + ?rest / ?fact * ?pow")
       using Maclaurin_sin_expansion3[OF `0 < 2 * n + 1` `0 < real x`]
-      unfolding sin_coeff_def by auto
+      unfolding sin_coeff_def atLeast0LessThan by auto
 
     have "?rest = cos t * -1^n" unfolding sin_add cos_add real_of_nat_add distrib_right distrib_left by auto
     moreover
@@ -1344,7 +1344,7 @@ proof -
     also have "\<dots> \<le> exp x"
     proof -
       obtain t where "\<bar>t\<bar> \<le> \<bar>real x\<bar>" and "exp x = (\<Sum>m = 0..<get_even n. real x ^ m / real (fact m)) + exp t / real (fact (get_even n)) * (real x) ^ (get_even n)"
-        using Maclaurin_exp_le by blast
+        using Maclaurin_exp_le unfolding atLeast0LessThan by blast
       moreover have "0 \<le> exp t / real (fact (get_even n)) * (real x) ^ (get_even n)"
         by (auto intro!: mult_nonneg_nonneg divide_nonneg_pos simp add: zero_le_even_power)
       ultimately show ?thesis
@@ -1364,7 +1364,7 @@ proof -
     qed
 
     obtain t where "\<bar>t\<bar> \<le> \<bar>real x\<bar>" and "exp x = (\<Sum>m = 0..<get_odd n. (real x) ^ m / real (fact m)) + exp t / real (fact (get_odd n)) * (real x) ^ (get_odd n)"
-      using Maclaurin_exp_le by blast
+      using Maclaurin_exp_le unfolding atLeast0LessThan by blast
     moreover have "exp t / real (fact (get_odd n)) * (real x) ^ (get_odd n) \<le> 0"
       by (auto intro!: mult_nonneg_nonpos divide_nonpos_pos simp add: x_less_zero)
     ultimately have "exp x \<le> (\<Sum>j = 0..<get_odd n. 1 / real (fact j) * real x ^ j)"
@@ -1603,7 +1603,7 @@ proof -
       thus "x ^ Suc (Suc n) \<le> x ^ Suc n" by auto
     qed auto }
   from summable_Leibniz'(2,4)[OF `?a ----> 0` `\<And>n. 0 \<le> ?a n`, OF `\<And>n. ?a (Suc n) \<le> ?a n`, unfolded ln_eq]
-  show "?lb" and "?ub" by auto
+  show "?lb" and "?ub" unfolding atLeast0LessThan by auto
 qed
 
 lemma ln_float_bounds:
@@ -3031,7 +3031,7 @@ proof -
         and fl_eq: "interpret_floatarith f (xs[x := xs ! x]) =
            (\<Sum>m = 0..<Suc n'. F m c / real (fact m) * (xs ! x - c) ^ m) +
            F (Suc n') t / real (fact (Suc n')) * (xs ! x - c) ^ Suc n'"
-        by blast
+        unfolding atLeast0LessThan by blast
 
       from t_bnd bnd_xs bnd_c have *: "t \<in> {lx .. ux}"
         by (cases "xs ! x < c", auto)
