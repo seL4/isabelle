@@ -1483,7 +1483,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val (Ibnf_consts, lthy) =
           fold_map8 (fn b => fn map_b => fn rel_b => fn set_bs => fn mapx => fn sets => fn wits =>
               fn T => fn lthy =>
-            define_bnf_consts Dont_Inline (user_policy Note_Some lthy) false (SOME deads)
+            define_bnf_consts Hardly_Inline (user_policy Note_Some lthy) false (SOME deads)
               map_b rel_b set_bs
               ((((((b, T), fold_rev Term.absfree fs' mapx), sets), sbd), wits), NONE) lthy)
           bs map_bs rel_bs set_bss fs_maps setss_by_bnf ctor_witss Ts lthy;
