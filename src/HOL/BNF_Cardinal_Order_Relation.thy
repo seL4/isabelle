@@ -98,7 +98,7 @@ proof(unfold card_order_on_def, auto)
   have 4: "p' =o ?p \<and> Well_order ?p"
   using 0 2 3 by (auto simp add: dir_image_ordIso Well_order_dir_image)
   moreover have "Field ?p =  Field r"
-  using 0 3 by (auto simp add: dir_image_Field2 order_on_defs)
+  using 0 3 by (auto simp add: dir_image_Field)
   ultimately have "well_order_on (Field r) ?p" by auto
   hence "r \<le>o ?p" using CO unfolding card_order_on_def by auto
   thus "r' \<le>o p'"
@@ -709,10 +709,6 @@ proof-
   thus ?thesis using card_of_ordLeq by blast
 qed
 
-corollary card_of_Sigma_Times:
-"\<forall>i \<in> I. |A i| \<le>o |B| \<Longrightarrow> |SIGMA i : I. A i| \<le>o |I \<times> B|"
-by (fact card_of_Sigma_mono1)
-
 lemma card_of_UNION_Sigma:
 "|\<Union>i \<in> I. A i| \<le>o |SIGMA i : I. A i|"
 using Ex_inj_on_UNION_Sigma[of I A] card_of_ordLeq by blast
@@ -789,6 +785,14 @@ proof-
   ultimately show ?thesis
   using card_of_Well_order[of A] card_of_Well_order[of B]
         ordLeq_total[of "|A|"] by blast
+qed
+
+lemma card_of_Times_Plus_distrib:
+  "|A <*> (B <+> C)| =o |A <*> B <+> A <*> C|" (is "|?RHS| =o |?LHS|")
+proof -
+  let ?f = "\<lambda>(a, bc). case bc of Inl b \<Rightarrow> Inl (a, b) | Inr c \<Rightarrow> Inr (a, c)"
+  have "bij_betw ?f ?RHS ?LHS" unfolding bij_betw_def inj_on_def by force
+  thus ?thesis using card_of_ordIso by blast
 qed
 
 lemma card_of_ordLeq_finite:
@@ -1011,7 +1015,7 @@ shows "|SIGMA i : I. A i| \<le>o |B|"
 proof(cases "I = {}", simp add: card_of_empty)
   assume *: "I \<noteq> {}"
   have "|SIGMA i : I. A i| \<le>o |I \<times> B|"
-  using LEQ card_of_Sigma_Times by blast
+  using card_of_Sigma_mono1[OF LEQ] by blast
   moreover have "|I \<times> B| =o |B|"
   using INF * LEQ_I by (auto simp add: card_of_Times_infinite)
   ultimately show ?thesis using ordLeq_ordIso_trans by blast
@@ -1654,6 +1658,29 @@ apply(rule ordIso_symmetric) proof(intro card_of_ordIsoI)
     hence "range f \<subseteq> B" using h unfolding Func_def by auto
     thus "h \<in> (\<lambda>f a. f a) ` {f. range f \<subseteq> B}" using f by auto
   qed(unfold Func_def fun_eq_iff, auto)
+qed
+
+lemma Func_Times_Range:
+  "|Func A (B <*> C)| =o |Func A B <*> Func A C|" (is "|?LHS| =o |?RHS|")
+proof -
+  let ?F = "\<lambda>fg. (\<lambda>x. if x \<in> A then fst (fg x) else undefined,
+                  \<lambda>x. if x \<in> A then snd (fg x) else undefined)"
+  let ?G = "\<lambda>(f, g) x. if x \<in> A then (f x, g x) else undefined"
+  have "bij_betw ?F ?LHS ?RHS" unfolding bij_betw_def inj_on_def
+  proof (intro conjI impI ballI equalityI subsetI)
+    fix f g assume *: "f \<in> Func A (B \<times> C)" "g \<in> Func A (B \<times> C)" "?F f = ?F g"
+    show "f = g"
+    proof
+      fix x from * have "fst (f x) = fst (g x) \<and> snd (f x) = snd (g x)"
+        by (case_tac "x \<in> A") (auto simp: Func_def fun_eq_iff split: if_splits)
+      then show "f x = g x" by (subst (1 2) surjective_pairing) simp
+    qed
+  next
+    fix fg assume "fg \<in> Func A B \<times> Func A C"
+    thus "fg \<in> ?F ` Func A (B \<times> C)"
+      by (intro image_eqI[of _ _ "?G fg"]) (auto simp: Func_def)
+  qed (auto simp: Func_def fun_eq_iff)
+  thus ?thesis using card_of_ordIso by blast
 qed
 
 end

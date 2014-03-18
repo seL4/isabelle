@@ -14,10 +14,6 @@ begin
 lemma dir_image: "\<lbrakk>\<And>x y. (f x = f y) = (x = y); Card_order r\<rbrakk> \<Longrightarrow> r =o dir_image r f"
 by (rule dir_image_ordIso) (auto simp add: inj_on_def card_order_on_def)
 
-(*should supersede a weaker lemma from the library*)
-lemma dir_image_Field: "Field (dir_image r f) = f ` Field r"
-unfolding dir_image_def Field_def Range_def Domain_def by fast
-
 lemma card_order_dir_image:
   assumes bij: "bij f" and co: "card_order r"
   shows "card_order (dir_image r f)"
@@ -41,37 +37,6 @@ by (simp only: ordIso_refl card_of_Card_order)
 
 lemma Field_card_order: "card_order r \<Longrightarrow> Field r = UNIV"
 using card_order_on_Card_order[of UNIV r] by simp
-
-lemma card_of_Times_Plus_distrib:
-  "|A <*> (B <+> C)| =o |A <*> B <+> A <*> C|" (is "|?RHS| =o |?LHS|")
-proof -
-  let ?f = "\<lambda>(a, bc). case bc of Inl b \<Rightarrow> Inl (a, b) | Inr c \<Rightarrow> Inr (a, c)"
-  have "bij_betw ?f ?RHS ?LHS" unfolding bij_betw_def inj_on_def by force
-  thus ?thesis using card_of_ordIso by blast
-qed
-
-lemma Func_Times_Range:
-  "|Func A (B <*> C)| =o |Func A B <*> Func A C|" (is "|?LHS| =o |?RHS|")
-proof -
-  let ?F = "\<lambda>fg. (\<lambda>x. if x \<in> A then fst (fg x) else undefined,
-                  \<lambda>x. if x \<in> A then snd (fg x) else undefined)"
-  let ?G = "\<lambda>(f, g) x. if x \<in> A then (f x, g x) else undefined"
-  have "bij_betw ?F ?LHS ?RHS" unfolding bij_betw_def inj_on_def
-  proof (intro conjI impI ballI equalityI subsetI)
-    fix f g assume *: "f \<in> Func A (B \<times> C)" "g \<in> Func A (B \<times> C)" "?F f = ?F g"
-    show "f = g"
-    proof
-      fix x from * have "fst (f x) = fst (g x) \<and> snd (f x) = snd (g x)"
-        by (case_tac "x \<in> A") (auto simp: Func_def fun_eq_iff split: if_splits)
-      then show "f x = g x" by (subst (1 2) surjective_pairing) simp
-    qed
-  next
-    fix fg assume "fg \<in> Func A B \<times> Func A C"
-    thus "fg \<in> ?F ` Func A (B \<times> C)"
-      by (intro image_eqI[of _ _ "?G fg"]) (auto simp: Func_def)
-  qed (auto simp: Func_def fun_eq_iff)
-  thus ?thesis using card_of_ordIso by blast
-qed
 
 
 subsection {* Zero *}
@@ -364,7 +329,7 @@ by (simp only: cprod_def card_of_Times_commute)
 
 lemma card_of_Csum_Times:
   "\<forall>i \<in> I. |A i| \<le>o |B| \<Longrightarrow> (CSUM i : |I|. |A i| ) \<le>o |I| *c |B|"
-by (simp only: Csum_def cprod_def Field_card_of card_of_Sigma_Times)
+by (simp only: Csum_def cprod_def Field_card_of card_of_Sigma_mono1)
 
 lemma card_of_Csum_Times':
   assumes "Card_order r" "\<forall>i \<in> I. |A i| \<le>o r"

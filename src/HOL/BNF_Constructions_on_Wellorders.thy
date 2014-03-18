@@ -894,8 +894,8 @@ where
 "dir_image r f = {(f a, f b)| a b. (a,b) \<in> r}"
 
 lemma dir_image_Field:
-"Field(dir_image r f) \<le> f ` (Field r)"
-unfolding dir_image_def Field_def by auto
+"Field(dir_image r f) = f ` (Field r)"
+unfolding dir_image_def Field_def Range_def Domain_def by fast
 
 lemma dir_image_minus_Id:
 "inj_on f (Field r) \<Longrightarrow> (dir_image r f) - Id = dir_image (r - Id) f"
@@ -965,7 +965,7 @@ proof(unfold total_on_def, intro ballI impI)
   fix a' b'
   assume "a' \<in> Field (dir_image r f)" "b' \<in> Field (dir_image r f)"
   then obtain a and b where 1: "a \<in> Field r \<and> b \<in> Field r \<and> f a = a' \<and> f b = b'"
-  using dir_image_Field[of r f] by blast
+    unfolding dir_image_Field[of r f] by blast
   moreover assume "a' \<noteq> b'"
   ultimately have "a \<noteq> b" using INJ unfolding inj_on_def by auto
   hence "(a,b) \<in> r \<or> (b,a) \<in> r" using 1 TOT unfolding total_on_def by auto
@@ -984,10 +984,9 @@ proof(unfold wf_eq_minimal2, intro allI impI, elim conjE)
   fix A'::"'b set"
   assume SUB: "A' \<le> Field(dir_image r f)" and NE: "A' \<noteq> {}"
   obtain A where A_def: "A = {a \<in> Field r. f a \<in> A'}" by blast
-  have "A \<noteq> {} \<and> A \<le> Field r"
-  using A_def dir_image_Field[of r f] SUB NE by blast
+  have "A \<noteq> {} \<and> A \<le> Field r" using A_def SUB NE by (auto simp: dir_image_Field)
   then obtain a where 1: "a \<in> A \<and> (\<forall>b \<in> A. (b,a) \<notin> r)"
-  using WF unfolding wf_eq_minimal2 by blast
+  using spec[OF WF[unfolded wf_eq_minimal2], of A] by blast
   have "\<forall>b' \<in> A'. (b',f a) \<notin> dir_image r f"
   proof(clarify)
     fix b' assume *: "b' \<in> A'" and **: "(b',f a) \<in> dir_image r f"
@@ -1010,14 +1009,9 @@ using Linear_order_dir_image[of r f] wf_dir_image[of "r - Id" f]
   subset_inj_on[of f "Field r" "Field(r - Id)"]
   mono_Field[of "r - Id" r] by auto
 
-lemma dir_image_Field2:
-"Refl r \<Longrightarrow> Field(dir_image r f) = f ` (Field r)"
-unfolding Field_def dir_image_def refl_on_def Domain_def Range_def by blast
-
 lemma dir_image_bij_betw:
-"\<lbrakk>Well_order r; inj_on f (Field r)\<rbrakk> \<Longrightarrow> bij_betw f (Field r) (Field (dir_image r f))"
-unfolding bij_betw_def
-by (simp add: dir_image_Field2 order_on_defs)
+"\<lbrakk>inj_on f (Field r)\<rbrakk> \<Longrightarrow> bij_betw f (Field r) (Field (dir_image r f))"
+unfolding bij_betw_def by (simp add: dir_image_Field order_on_defs)
 
 lemma dir_image_compat:
 "compat r (dir_image r f) f"

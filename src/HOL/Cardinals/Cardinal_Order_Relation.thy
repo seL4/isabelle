@@ -430,10 +430,6 @@ shows "|SIGMA i : I. Field(p(f i))| =o |SIGMA j : J. Field(r j)|"
 using assms card_of_cong card_of_Sigma_cong
       [of f I J "\<lambda> j. Field(p j)" "\<lambda> j. Field(r j)"] by blast
 
-corollary ordLeq_Sigma_Times:
-"\<forall>i \<in> I. p i \<le>o r \<Longrightarrow> |SIGMA i : I. Field (p i)| \<le>o |I \<times> (Field r)|"
-by (auto simp add: card_of_Sigma_Times)
-
 lemma card_of_UNION_Sigma2:
 assumes
 "!! i j. \<lbrakk>{i,j} <= I; i ~= j\<rbrakk> \<Longrightarrow> A i Int A j = {}"
