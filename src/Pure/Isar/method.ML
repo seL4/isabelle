@@ -458,7 +458,7 @@ and meth3 x =
         Select_Goals (combinator_info [pos1, pos2], n, m)) ||
   meth4) x
 and meth2 x =
- (Parse.position Parse.xname -- Args.parse1 is_symid_meth >> (Source o uncurry Args.src) ||
+ (Parse.position Parse.xname -- Parse.args1 is_symid_meth >> (Source o uncurry Args.src) ||
   meth3) x
 and meth1 x =
   (Parse.enum1_positions "," meth2

@@ -91,7 +91,7 @@ fun antiquotation name scan body =
 local
 
 val antiq =
-  Parse.!!! (Parse.position Parse.xname -- Args.parse --| Scan.ahead Parse.eof)
+  Parse.!!! (Parse.position Parse.xname -- Parse.args --| Scan.ahead Parse.eof)
   >> uncurry Args.src;
 
 val begin_env0 = ML_Lex.tokenize "structure Isabelle =\nstruct\n";

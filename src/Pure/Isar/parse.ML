@@ -15,6 +15,7 @@ sig
   val triple2: 'a * ('b * 'c) -> 'a * 'b * 'c
   val triple_swap: ('a * 'b) * 'c -> ('a * 'c) * 'b
   val not_eof: Token.T parser
+  val token: 'a parser -> Token.T parser
   val position: 'a parser -> ('a * Position.T) parser
   val source_position: 'a parser -> Symbol_Pos.source parser
   val inner_syntax: 'a parser -> string parser
@@ -104,6 +105,8 @@ sig
   val termp: (string * string list) parser
   val target: (xstring * Position.T) parser
   val opt_target: (xstring * Position.T) option parser
+  val args: Token.T list parser
+  val args1: (string -> bool) -> Token.T list parser
 end;
 
 structure Parse: PARSE =
@@ -167,6 +170,8 @@ fun RESET_VALUE atom = (*required for all primitive parsers*)
 
 
 val not_eof = RESET_VALUE (Scan.one Token.not_eof);
+
+fun token atom = Scan.ahead not_eof --| atom;
 
 fun position scan = (Scan.ahead not_eof >> Token.pos_of) -- scan >> Library.swap;
 fun source_position atom = Scan.ahead atom |-- not_eof >> Token.source_position_of;
@@ -392,6 +397,42 @@ val termp = term -- Scan.optional ($$$ "(" |-- !!! (is_terms --| $$$ ")")) [];
 
 val target = ($$$ "(" -- $$$ "in") |-- !!! (position xname --| $$$ ")");
 val opt_target = Scan.option target;
+
+
+(* arguments within outer syntax *)
+
+local
+
+val argument_kinds =
+ [Token.Ident, Token.LongIdent, Token.SymIdent, Token.Var, Token.TypeIdent, Token.TypeVar,
+  Token.Nat, Token.Float, Token.String, Token.AltString, Token.Cartouche, Token.Verbatim];
+
+fun arguments is_symid =
+  let
+    fun argument blk =
+      group (fn () => "argument")
+        (Scan.one (fn tok =>
+          let val kind = Token.kind_of tok in
+            member (op =) argument_kinds kind orelse
+            Token.keyword_with is_symid tok orelse
+            (blk andalso Token.keyword_with (fn s => s = ",") tok)
+          end));
+
+    fun args blk x = Scan.optional (args1 blk) [] x
+    and args1 blk x =
+      ((Scan.repeat1
+        (Scan.repeat1 (argument blk) ||
+          argsp "(" ")" ||
+          argsp "[" "]")) >> flat) x
+    and argsp l r x = (token ($$$ l) ::: !!! (args true @@@ (token ($$$ r) >> single))) x;
+  in (args, args1) end;
+
+in
+
+val args = #1 (arguments Token.ident_or_symbolic) false;
+fun args1 is_symid = #2 (arguments is_symid) false;
+
+end;
 
 end;
 

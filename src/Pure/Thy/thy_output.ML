@@ -151,7 +151,7 @@ in
 
 val antiq =
   Parse.!!!
-    (Parse.position Parse.liberal_name -- properties -- Args.parse --| Scan.ahead Parse.eof)
+    (Parse.position Parse.liberal_name -- properties -- Parse.args --| Scan.ahead Parse.eof)
   >> (fn ((name, props), args) => (props, Args.src name args));
 
 end;
