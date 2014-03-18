@@ -18,7 +18,7 @@ definition
 
 definition
   NSsums  :: "[nat=>real,real] => bool"     (infixr "NSsums" 80) where
-  "f NSsums s = (%n. setsum f {0..<n}) ----NS> s"
+  "f NSsums s = (%n. setsum f {..<n}) ----NS> s"
 
 definition
   NSsummable :: "(nat=>real) => bool" where
@@ -114,7 +114,11 @@ done
 lemma sumhr_minus_one_realpow_zero [simp]: 
      "!!N. sumhr(0, N + N, %i. (-1) ^ (i+1)) = 0"
 unfolding sumhr_app
-by transfer (simp del: power_Suc add: mult_2 [symmetric])
+apply transfer 
+apply (simp del: power_Suc add: mult_2 [symmetric])
+apply (induct_tac N)
+apply simp_all
+done
 
 lemma sumhr_interval_const:
      "(\<forall>n. m \<le> Suc n --> f n = r) & m \<le> na  
@@ -158,23 +162,22 @@ lemma NSsums_unique: "f NSsums s ==> (s = NSsuminf f)"
 by (simp add: suminf_NSsuminf_iff [symmetric] sums_NSsums_iff sums_unique)
 
 lemma NSseries_zero:
-  "\<forall>m. n \<le> Suc m --> f(m) = 0 ==> f NSsums (setsum f {0..<n})"
-by (simp add: sums_NSsums_iff [symmetric] series_zero)
+  "\<forall>m. n \<le> Suc m --> f(m) = 0 ==> f NSsums (setsum f {..<n})"
+by (auto simp add: sums_NSsums_iff [symmetric] not_le[symmetric] intro!: sums_finite)
 
 lemma NSsummable_NSCauchy:
      "NSsummable f =  
       (\<forall>M \<in> HNatInfinite. \<forall>N \<in> HNatInfinite. abs (sumhr(M,N,f)) @= 0)"
-apply (auto simp add: summable_NSsummable_iff [symmetric] 
-       summable_convergent_sumr_iff convergent_NSconvergent_iff 
+apply (auto simp add: summable_NSsummable_iff [symmetric]
+       summable_iff_convergent convergent_NSconvergent_iff atLeast0LessThan[symmetric]
        NSCauchy_NSconvergent_iff [symmetric] NSCauchy_def starfunNat_sumr)
 apply (cut_tac x = M and y = N in linorder_less_linear)
-apply (auto simp add: approx_refl)
+apply auto
 apply (rule approx_minus_iff [THEN iffD2, THEN approx_sym])
 apply (rule_tac [2] approx_minus_iff [THEN iffD2])
 apply (auto dest: approx_hrabs_zero_cancel 
-            simp add: sumhr_split_diff)
+            simp add: sumhr_split_diff atLeast0LessThan[symmetric])
 done
-
 
 text{*Terms of a convergent series tend to zero*}
 lemma NSsummable_NSLIMSEQ_zero: "NSsummable f ==> f ----NS> 0"

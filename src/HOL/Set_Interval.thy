@@ -1193,6 +1193,10 @@ lemma ivl_diff[simp]:
  "i \<le> n \<Longrightarrow> {i..<m} - {i..<n} = {n..<(m::'a::linorder)}"
 by(auto)
 
+lemma (in linorder) lessThan_minus_lessThan [simp]:
+  "{..< n} - {..< m} = {m ..< n}"
+  by auto
+
 
 subsubsection {* Some Subset Conditions *}
 
@@ -1409,6 +1413,11 @@ proof-
   finally show ?thesis by auto
 qed
 
+lemma setsum_nat_group: "(\<Sum>m<n::nat. setsum f {m * k ..< m*k + k}) = setsum f {..< n * k}"
+  apply (subgoal_tac "k = 0 | 0 < k", auto)
+  apply (induct "n")
+  apply (simp_all add: setsum_add_nat_ivl add_commute atLeast0LessThan[symmetric])
+  done
 
 subsection{* Shifting bounds *}
 

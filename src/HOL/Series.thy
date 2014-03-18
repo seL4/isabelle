@@ -13,74 +13,6 @@ theory Series
 imports Limits
 begin
 
-(* TODO: MOVE *)
-lemma Suc_less_iff: "Suc n < m \<longleftrightarrow> (\<exists>m'. m = Suc m' \<and> n < m')"
-  by (cases m) auto
-
-(* TODO: MOVE *)
-lemma norm_ratiotest_lemma:
-  fixes x y :: "'a::real_normed_vector"
-  shows "\<lbrakk>c \<le> 0; norm x \<le> c * norm y\<rbrakk> \<Longrightarrow> x = 0"
-apply (subgoal_tac "norm x \<le> 0", simp)
-apply (erule order_trans)
-apply (simp add: mult_le_0_iff)
-done
-
-(* TODO: MOVE *)
-lemma rabs_ratiotest_lemma: "[| c \<le> 0; abs x \<le> c * abs y |] ==> x = (0::real)"
-by (erule norm_ratiotest_lemma, simp)
-
-(* TODO: MOVE *)
-lemma le_Suc_ex: "(k::nat) \<le> l ==> (\<exists>n. l = k + n)"
-apply (drule le_imp_less_or_eq)
-apply (auto dest: less_imp_Suc_add)
-done
-
-(* MOVE *)
-lemma setsum_even_minus_one [simp]: "(\<Sum>i<2 * n. (-1) ^ Suc i) = (0::'a::ring_1)"
-  by (induct "n") auto
-
-(* MOVE *)
-lemma setsum_nat_group: "(\<Sum>m<n::nat. setsum f {m * k ..< m*k + k}) = setsum f {..< n * k}"
-  apply (subgoal_tac "k = 0 | 0 < k", auto)
-  apply (induct "n")
-  apply (simp_all add: setsum_add_nat_ivl add_commute atLeast0LessThan[symmetric])
-  done
-
-(* MOVE *)
-lemma norm_setsum:
-  fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
-  shows "norm (setsum f A) \<le> (\<Sum>i\<in>A. norm (f i))"
-  apply (case_tac "finite A")
-  apply (erule finite_induct)
-  apply simp
-  apply simp
-  apply (erule order_trans [OF norm_triangle_ineq add_left_mono])
-  apply simp
-  done
-
-(* MOVE *)
-lemma norm_bound_subset:
-  fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
-  assumes "finite s" "t \<subseteq> s"
-  assumes le: "(\<And>x. x \<in> s \<Longrightarrow> norm(f x) \<le> g x)"
-  shows "norm (setsum f t) \<le> setsum g s"
-proof -
-  have "norm (setsum f t) \<le> (\<Sum>i\<in>t. norm (f i))"
-    by (rule norm_setsum)
-  also have "\<dots> \<le> (\<Sum>i\<in>t. g i)"
-    using assms by (auto intro!: setsum_mono)
-  also have "\<dots> \<le> setsum g s"
-    using assms order.trans[OF norm_ge_zero le]
-    by (auto intro!: setsum_mono3)
-  finally show ?thesis .
-qed
-
-(* MOVE *)
-lemma (in linorder) lessThan_minus_lessThan [simp]:
-  "{..< n} - {..< m} = {m ..< n}"
-  by auto
-
 definition
   sums :: "(nat \<Rightarrow> 'a::{topological_space, comm_monoid_add}) \<Rightarrow> 'a \<Rightarrow> bool"
   (infixr "sums" 80)
@@ -455,8 +387,7 @@ begin
 
 text{*Absolute convergence imples normal convergence*}
 
-lemma summable_norm_cancel:
-  "summable (\<lambda>n. norm (f n)) \<Longrightarrow> summable f"
+lemma summable_norm_cancel: "summable (\<lambda>n. norm (f n)) \<Longrightarrow> summable f"
   apply (simp only: summable_Cauchy, safe)
   apply (drule_tac x="e" in spec, safe)
   apply (rule_tac x="N" in exI, safe)
@@ -471,7 +402,7 @@ lemma summable_norm: "summable (\<lambda>n. norm (f n)) \<Longrightarrow> norm (
 
 text {* Comparison tests *}
 
-lemma summable_comparison_test: "\<lbrakk>\<exists>N. \<forall>n\<ge>N. norm (f n) \<le> g n; summable g\<rbrakk> \<Longrightarrow> summable f"
+lemma summable_comparison_test: "\<exists>N. \<forall>n\<ge>N. norm (f n) \<le> g n \<Longrightarrow> summable g \<Longrightarrow> summable f"
   apply (simp add: summable_Cauchy, safe)
   apply (drule_tac x="e" in spec, safe)
   apply (rule_tac x = "N + Na" in exI, safe)
@@ -516,18 +447,15 @@ next
     finally have "f (Suc n) = 0"
       by auto }
   then show "summable f"
-    by (intro sums_summable[OF sums_finite, of "{.. Suc N}"]) (auto simp: not_le Suc_less_iff)
+    by (intro sums_summable[OF sums_finite, of "{.. Suc N}"]) (auto simp: not_le Suc_less_eq2)
 qed
 
 end
 
-lemma summable_norm_comparison_test:
-  "\<lbrakk>\<exists>N. \<forall>n\<ge>N. norm (f n) \<le> g n; summable g\<rbrakk> \<Longrightarrow> summable (\<lambda>n. norm (f n))"
+lemma summable_norm_comparison_test: "\<exists>N. \<forall>n\<ge>N. norm (f n) \<le> g n \<Longrightarrow> summable g \<Longrightarrow> summable (\<lambda>n. norm (f n))"
   by (rule summable_comparison_test) auto
 
-lemma summable_rabs_cancel:
-  fixes f :: "nat \<Rightarrow> real"
-  shows "summable (\<lambda>n. \<bar>f n\<bar>) \<Longrightarrow> summable f"
+lemma summable_rabs_cancel: "summable (\<lambda>n. \<bar>f n :: real\<bar>) \<Longrightarrow> summable f"
   by (rule summable_norm_cancel) simp
 
 text{*Summability of geometric series for real algebras*}

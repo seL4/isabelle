@@ -215,22 +215,21 @@ done
 lemma HFinite_exp [simp]:
      "sumhr (0, whn, %n. inverse (real (fact n)) * x ^ n) \<in> HFinite"
 unfolding sumhr_app
-apply (simp only: star_zero_def starfun2_star_of)
+apply (simp only: star_zero_def starfun2_star_of atLeast0LessThan)
 apply (rule NSBseqD2)
 apply (rule NSconvergent_NSBseq)
 apply (rule convergent_NSconvergent_iff [THEN iffD1])
-apply (rule summable_convergent_sumr_iff [THEN iffD1])
+apply (rule summable_iff_convergent [THEN iffD1])
 apply (rule summable_exp)
 done
 
 lemma exphr_zero [simp]: "exphr 0 = 1"
-apply (simp add: exphr_def sumhr_split_add
-                   [OF hypnat_one_less_hypnat_omega, symmetric])
+apply (simp add: exphr_def sumhr_split_add [OF hypnat_one_less_hypnat_omega, symmetric])
 apply (rule st_unique, simp)
 apply (rule subst [where P="\<lambda>x. 1 \<approx> x", OF _ approx_refl])
 apply (rule rev_mp [OF hypnat_one_less_hypnat_omega])
 apply (rule_tac x="whn" in spec)
-apply (unfold sumhr_app, transfer, simp)
+apply (unfold sumhr_app, transfer, simp add: power_0_left)
 done
 
 lemma coshr_zero [simp]: "coshr 0 = 1"
@@ -240,7 +239,7 @@ apply (rule st_unique, simp)
 apply (rule subst [where P="\<lambda>x. 1 \<approx> x", OF _ approx_refl])
 apply (rule rev_mp [OF hypnat_one_less_hypnat_omega])
 apply (rule_tac x="whn" in spec)
-apply (unfold sumhr_app, transfer, simp add: cos_coeff_def)
+apply (unfold sumhr_app, transfer, simp add: cos_coeff_def power_0_left)
 done
 
 lemma STAR_exp_zero_approx_one [simp]: "( *f* exp) (0::hypreal) @= 1"
@@ -271,6 +270,7 @@ lemma exphr_hypreal_of_real_exp_eq: "exphr x = hypreal_of_real (exp x)"
 apply (simp add: exphr_def)
 apply (rule st_unique, simp)
 apply (subst starfunNat_sumr [symmetric])
+unfolding atLeast0LessThan
 apply (rule NSLIMSEQ_D [THEN approx_sym])
 apply (rule LIMSEQ_NSLIMSEQ)
 apply (subst sums_def [symmetric])
@@ -406,11 +406,11 @@ Goalw [NSLIM_def] "(%h. ((x powr h) - 1) / h) -- 0 --NS> ln x"
 
 lemma HFinite_sin [simp]: "sumhr (0, whn, %n. sin_coeff n * x ^ n) \<in> HFinite"
 unfolding sumhr_app
-apply (simp only: star_zero_def starfun2_star_of)
+apply (simp only: star_zero_def starfun2_star_of atLeast0LessThan)
 apply (rule NSBseqD2)
 apply (rule NSconvergent_NSBseq)
 apply (rule convergent_NSconvergent_iff [THEN iffD1])
-apply (rule summable_convergent_sumr_iff [THEN iffD1])
+apply (rule summable_iff_convergent [THEN iffD1])
 apply (rule summable_sin)
 done
 
@@ -429,11 +429,11 @@ done
 
 lemma HFinite_cos [simp]: "sumhr (0, whn, %n. cos_coeff n * x ^ n) \<in> HFinite"
 unfolding sumhr_app
-apply (simp only: star_zero_def starfun2_star_of)
+apply (simp only: star_zero_def starfun2_star_of atLeast0LessThan)
 apply (rule NSBseqD2)
 apply (rule NSconvergent_NSBseq)
 apply (rule convergent_NSconvergent_iff [THEN iffD1])
-apply (rule summable_convergent_sumr_iff [THEN iffD1])
+apply (rule summable_iff_convergent [THEN iffD1])
 apply (rule summable_cos)
 done
 

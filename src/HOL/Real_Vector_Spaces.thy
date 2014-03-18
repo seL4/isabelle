@@ -747,6 +747,11 @@ lemma norm_triangle_mono:
   shows "\<lbrakk>norm a \<le> r; norm b \<le> s\<rbrakk> \<Longrightarrow> norm (a + b) \<le> r + s"
 by (metis add_mono_thms_linordered_semiring(1) norm_triangle_ineq order.trans)
 
+lemma norm_setsum:
+  fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
+  shows "norm (setsum f A) \<le> (\<Sum>i\<in>A. norm (f i))"
+  by (induct A rule: infinite_finite_induct) (auto intro: norm_triangle_mono)
+
 lemma abs_norm_cancel [simp]:
   fixes a :: "'a::real_normed_vector"
   shows "\<bar>norm a\<bar> = norm a"

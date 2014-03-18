@@ -445,6 +445,9 @@ lemma Suc_less_eq [iff]: "Suc m < Suc n \<longleftrightarrow> m < n"
 lemma less_Suc_eq_le [code]: "m < Suc n \<longleftrightarrow> m \<le> n"
   by (simp add: less_eq_Suc_le)
 
+lemma Suc_less_eq2: "Suc n < m \<longleftrightarrow> (\<exists>m'. m = Suc m' \<and> n < m')"
+  by (cases m) auto
+
 lemma le_SucI: "m \<le> n \<Longrightarrow> m \<le> Suc n"
   by (induct m arbitrary: n)
     (simp_all add: less_eq_nat.simps(2) split: nat.splits)
@@ -745,6 +748,9 @@ lemma less_imp_Suc_add: "m < n ==> (\<exists>k. n = Suc (m + k))"
   apply (blast elim!: less_SucE
                intro!: Nat.add_0_right [symmetric] add_Suc_right [symmetric])
   done
+
+lemma le_Suc_ex: "(k::nat) \<le> l \<Longrightarrow> (\<exists>n. l = k + n)"
+  by (auto simp: less_Suc_eq_le[symmetric] dest: less_imp_Suc_add)
 
 text {* strict, in 1st argument; proof is by induction on @{text "k > 0"} *}
 lemma mult_less_mono2: "(i::nat) < j ==> 0<k ==> k * i < k * j"
