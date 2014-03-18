@@ -68,8 +68,8 @@ val style_prem = Parse.nat >> (fn i => fn ctxt => fn t =>
   end);
 
 fun sub_symbols (d :: s :: ss) =
-      if Symbol.is_ascii_digit d andalso not (String.isPrefix ("\\<^") s)
-      then d :: "\\<^sub>" :: sub_symbols (s :: ss)
+      if Symbol.is_ascii_digit d andalso not (String.isPrefix ("\<^") s)
+      then d :: "\<^sub>" :: sub_symbols (s :: ss)
       else d :: s :: ss
   | sub_symbols cs = cs;
 

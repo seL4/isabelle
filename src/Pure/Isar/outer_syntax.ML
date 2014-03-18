@@ -288,7 +288,7 @@ type isar =
 fun isar in_stream term : isar =
   Source.tty in_stream
   |> Symbol.source
-  |> Source.map_filter (fn "\\<^newline>" => SOME "\n" | s => SOME s)  (*Proof General legacy*)
+  |> Source.map_filter (fn "\<^newline>" => SOME "\n" | s => SOME s)  (*Proof General legacy*)
   |> Token.source {do_recover = SOME true} Keyword.get_lexicons Position.none
   |> toplevel_source term (SOME true) lookup_commands_dynamic;
 

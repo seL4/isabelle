@@ -39,7 +39,7 @@ use "General/antiquote.ML";
 use "ML/ml_lex.ML";
 use "ML/ml_parse.ML";
 use "General/secure.ML";
-(*^^^^^ end of basic ML bootstrap ^^^^^*)
+(*^^^^^ end of ML bootstrap 0 ^^^^^*)
 use "General/integer.ML";
 use "General/stack.ML";
 use "General/queue.ML";
@@ -222,13 +222,17 @@ use "Isar/token.ML";
 use "Isar/keyword.ML";
 use "Isar/parse.ML";
 use "Isar/args.ML";
-use "ML/ml_context.ML";
 
 (*theory sources*)
 use "Thy/thy_header.ML";
 use "Thy/thy_syntax.ML";
 use "Thy/html.ML";
 use "Thy/latex.ML";
+
+(*ML with context and antiquotations*)
+use "ML/ml_context.ML";
+val use = ML_Context.eval_file true o Path.explode;
+(*^^^^^ end of ML bootstrap 1 ^^^^^*)
 
 (*basic proof engine*)
 use "Isar/proof_display.ML";

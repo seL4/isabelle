@@ -22,6 +22,7 @@ sig
   val eval_antiquotes: ML_Lex.token Antiquote.antiquote list * Position.T ->
     Context.generic option -> (ML_Lex.token list * ML_Lex.token list) * Context.generic option
   val eval: bool -> Position.T -> ML_Lex.token Antiquote.antiquote list -> unit
+  val eval_file: bool -> Path.T -> unit
   val eval_source: bool -> Symbol_Pos.source -> unit
   val eval_in: Proof.context option -> bool -> Position.T ->
     ML_Lex.token Antiquote.antiquote list -> unit
@@ -173,6 +174,10 @@ end;
 
 
 (* derived versions *)
+
+fun eval_file verbose path =
+  let val pos = Path.position path
+  in eval verbose pos (ML_Lex.read pos (File.read path)) end;
 
 fun eval_source verbose source =
   eval verbose (#pos source) (ML_Lex.read_source source);
