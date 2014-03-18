@@ -331,25 +331,6 @@ lemma setsum_norm_allsubsets_bound_cart:
   using setsum_norm_allsubsets_bound[OF assms]
   by (simp add: DIM_cart Basis_real_def)
 
-instantiation vec :: (ordered_euclidean_space, finite) ordered_euclidean_space
-begin
-
-definition "inf x y = (\<chi> i. inf (x $ i) (y $ i))"
-definition "sup x y = (\<chi> i. sup (x $ i) (y $ i))"
-definition "Inf X = (\<chi> i. (INF x:X. x $ i))"
-definition "Sup X = (\<chi> i. (SUP x:X. x $ i))"
-definition "abs x = (\<chi> i. abs (x $ i))"
-
-instance
-  apply default
-  unfolding euclidean_representation_setsum'
-  apply (auto simp: less_eq_vec_def inf_vec_def sup_vec_def Inf_vec_def Sup_vec_def inner_axis
-    Basis_vec_def inner_Basis_inf_left inner_Basis_sup_left inner_Basis_INF_left
-    inner_Basis_SUP_left eucl_le[where 'a='a] less_le_not_le abs_vec_def abs_inner)
-  done
-
-end
-
 subsection {* Matrix operations *}
 
 text{* Matrix notation. NB: an MxN matrix is of type @{typ "'a^'n^'m"}, not @{typ "'a^'m^'n"} *}

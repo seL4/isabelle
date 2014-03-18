@@ -7,7 +7,7 @@ header {* Convex sets, functions and related things. *}
 
 theory Convex_Euclidean_Space
 imports
-  Ordered_Euclidean_Space
+  Topology_Euclidean_Space
   "~~/src/HOL/Library/Convex"
   "~~/src/HOL/Library/Set_Algebras"
 begin
@@ -3369,7 +3369,7 @@ proof -
   have "box a b \<noteq> {}"
     using assms
     unfolding set_eq_iff
-    by (auto intro!: exI[of _ "(a + b) / 2"] simp: box)
+    by (auto intro!: exI[of _ "(a + b) / 2"] simp: box_def)
   then show ?thesis
     using interior_rel_interior_gen[of "cbox a b", symmetric]
     by (simp split: split_if_asm del: box_real add: box_real[symmetric] interior_cbox)
@@ -5672,7 +5672,7 @@ lemma is_interval_connected:
 
 lemma convex_box: "convex (cbox a b)" "convex (box a (b::'a::euclidean_space))"
   apply (rule_tac[!] is_interval_convex)+
-  using is_interval_interval
+  using is_interval_box is_interval_cbox
   apply auto
   done
 

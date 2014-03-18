@@ -740,7 +740,7 @@ proof -
       using ab startfin abab assms(3)
       using assms(9-)
       unfolding assms
-      apply (auto simp add: field_simps box)
+      apply (auto simp add: field_simps box_def)
       done
     then show "path_image ?P1 \<subseteq> cbox ?a ?b" .
     have "path_image ?P2 \<subseteq> cbox ?a ?b"
@@ -752,7 +752,7 @@ proof -
       using ab startfin abab assms(4)
       using assms(9-)
       unfolding assms
-      apply (auto simp add: field_simps box)
+      apply (auto simp add: field_simps box_def)
       done
     then show "path_image ?P2 \<subseteq> cbox ?a ?b" .
     show "a $ 1 - 2 = a $ 1 - 2"

@@ -1,5 +1,5 @@
 theory Multivariate_Analysis
-imports Fashoda Extended_Real_Limits Determinants
+imports Fashoda Extended_Real_Limits Determinants Ordered_Euclidean_Space
 begin
 
 end

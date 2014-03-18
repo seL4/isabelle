@@ -223,9 +223,6 @@ lemma empty_as_interval: "{} = cbox One (0::'a::euclidean_space)"
   using nonempty_Basis
   by (fastforce simp add: set_eq_iff mem_box)
 
-lemma One_nonneg: "0 \<le> (One::'a::ordered_euclidean_space)"
-  by (auto intro: setsum_nonneg)
-
 lemma interior_subset_union_intervals:
   assumes "i = cbox a b"
     and "j = cbox c d"
@@ -515,13 +512,6 @@ lemma content_cbox':
 
 lemma content_real: "a \<le> b \<Longrightarrow> content {a..b} = b - a"
   by (auto simp: interval_upperbound_def interval_lowerbound_def SUP_def INF_def content_def)
-
-lemma content_closed_interval:
-  fixes a :: "'a::ordered_euclidean_space"
-  assumes "a \<le> b"
-  shows "content {a .. b} = (\<Prod>i\<in>Basis. b\<bullet>i - a\<bullet>i)"
-  using content_cbox[of a b] assms
-  by (simp add: cbox_interval eucl_le[where 'a='a])
 
 lemma content_singleton[simp]: "content {a} = 0"
 proof -
@@ -1173,7 +1163,7 @@ qed
 lemma elementary_bounded[dest]:
   fixes s :: "'a::euclidean_space set"
   shows "p division_of s \<Longrightarrow> bounded s"
-  unfolding division_of_def by (metis bounded_Union bounded_interval)
+  unfolding division_of_def by (metis bounded_Union bounded_cbox)
 
 lemma elementary_subset_cbox:
   "p division_of s \<Longrightarrow> \<exists>a b. s \<subseteq> cbox a (b::'a::euclidean_space)"
@@ -1998,7 +1988,7 @@ qed
 subsection {* The set we're concerned with must be closed. *}
 
 lemma division_of_closed:
-  fixes i :: "'n::ordered_euclidean_space set"
+  fixes i :: "'n::euclidean_space set"
   shows "s division_of i \<Longrightarrow> closed i"
   unfolding division_of_def by fastforce
 
@@ -3759,7 +3749,7 @@ proof -
     apply (rule tagged_division_union[OF assms(1-2)])
     unfolding interval_split[OF k] interior_cbox
     using k
-    apply (auto simp add: box elim!: ballE[where x=k])
+    apply (auto simp add: box_def elim!: ballE[where x=k])
     done
 qed
 
@@ -7131,12 +7121,6 @@ lemma integrable_const[intro]: "(\<lambda>x. c) integrable_on cbox a b"
   apply (rule has_integral_const)
   done
 
-lemma integrable_const_ivl[intro]:
-  fixes a::"'a::ordered_euclidean_space"
-  shows "(\<lambda>x. c) integrable_on {a .. b}"
-  unfolding cbox_interval[symmetric]
-  by (rule integrable_const)
-
 lemma integral_has_vector_derivative:
   fixes f :: "real \<Rightarrow> 'a::banach"
   assumes "continuous_on {a .. b} f"
@@ -9046,7 +9030,7 @@ proof -
   }
   assume "\<exists>a b. s = cbox a b"
   then guess a b by (elim exE) note s=this
-  from bounded_interval[of a b, THEN conjunct1, unfolded bounded_pos] guess B ..
+  from bounded_cbox[of a b, unfolded bounded_pos] guess B ..
   note B = conjunctD2[OF this,rule_format] show ?thesis
     apply safe
   proof -
@@ -9602,14 +9586,6 @@ lemma integrable_on_subcbox:
   using assms(2)
   apply auto
   done
-
-lemma integrable_on_subinterval:
-  fixes f :: "'n::ordered_euclidean_space \<Rightarrow> 'a::banach"
-  assumes "f integrable_on s"
-    and "{a .. b} \<subseteq> s"
-  shows "f integrable_on {a .. b}"
-  using integrable_on_subcbox[of f s a b] assms
-  by (simp add: cbox_interval)
 
 
 subsection {* A straddling criterion for integrability *}
