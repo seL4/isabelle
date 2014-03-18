@@ -65,8 +65,6 @@ sig
   val parse1: (string -> bool) -> Token.T list parser
   val attribs: (xstring * Position.T -> string) -> src list parser
   val opt_attribs: (xstring * Position.T -> string) -> src list parser
-  val thm_name: (xstring * Position.T -> string) -> string -> (binding * src list) parser
-  val opt_thm_name: (xstring * Position.T -> string) -> string -> (binding * src list) parser
   val syntax_generic: 'a context_parser -> src -> Context.generic -> 'a * Context.generic
   val syntax: 'a context_parser -> src -> Proof.context -> 'a * Proof.context
 end;
@@ -302,16 +300,6 @@ fun attribs check =
   in $$$ "[" |-- Parse.!!! (Parse.list attrib --| $$$ "]") end;
 
 fun opt_attribs check = Scan.optional (attribs check) [];
-
-
-(* theorem specifications *)
-
-fun thm_name check_attrib s = binding -- opt_attribs check_attrib --| $$$ s;
-
-fun opt_thm_name check_attrib s =
-  Scan.optional
-    ((binding -- opt_attribs check_attrib || attribs check_attrib >> pair Binding.empty) --| $$$ s)
-    (Binding.empty, []);
 
 
 
