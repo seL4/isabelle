@@ -826,10 +826,23 @@ definition (in euclidean_space) eucl_less (infix "<e" 50)
   where "eucl_less a b \<longleftrightarrow> (\<forall>i\<in>Basis. a \<bullet> i < b \<bullet> i)"
 
 definition box_eucl_less: "box a b = {x. a <e x \<and> x <e b}"
+definition "cbox a b = {x. \<forall>i\<in>Basis. a \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> b \<bullet> i}"
 
 lemma box_def: "box a b = {x. \<forall>i\<in>Basis. a \<bullet> i < x \<bullet> i \<and> x \<bullet> i < b \<bullet> i}"
   and in_box_eucl_less: "x \<in> box a b \<longleftrightarrow> a <e x \<and> x <e b"
-  by (auto simp: box_eucl_less eucl_less_def)
+  and mem_box: "x \<in> box a b \<longleftrightarrow> (\<forall>i\<in>Basis. a \<bullet> i < x \<bullet> i \<and> x \<bullet> i < b \<bullet> i)"
+    "x \<in> cbox a b \<longleftrightarrow> (\<forall>i\<in>Basis. a \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> b \<bullet> i)"
+  by (auto simp: box_eucl_less eucl_less_def cbox_def)
+
+lemma mem_box_real[simp]:
+  "(x::real) \<in> box a b \<longleftrightarrow> a < x \<and> x < b"
+  "(x::real) \<in> cbox a b \<longleftrightarrow> a \<le> x \<and> x \<le> b"
+  by (auto simp: mem_box)
+
+lemma box_real[simp]:
+  fixes a b:: real
+  shows "box a b = {a <..< b}" "cbox a b = {a .. b}"
+  by auto
 
 lemma rational_boxes:
   fixes x :: "'a\<Colon>euclidean_space"

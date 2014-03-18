@@ -38,14 +38,14 @@ lemma infnorm_eq_1_imp:
 
 lemma fashoda_unit:
   fixes f g :: "real \<Rightarrow> real^2"
-  assumes "f ` {- 1..1} \<subseteq> {- 1..1}"
-    and "g ` {- 1..1} \<subseteq> {- 1..1}"
-    and "continuous_on {- 1..1} f"
-    and "continuous_on {- 1..1} g"
+  assumes "f ` {-1 .. 1} \<subseteq> cbox (-1) 1"
+    and "g ` {-1 .. 1} \<subseteq> cbox (-1) 1"
+    and "continuous_on {-1 .. 1} f"
+    and "continuous_on {-1 .. 1} g"
     and "f (- 1)$1 = - 1"
     and "f 1$1 = 1" "g (- 1) $2 = -1"
     and "g 1 $2 = 1"
-  shows "\<exists>s\<in>{- 1..1}. \<exists>t\<in>{- 1..1}. f s = g t"
+  shows "\<exists>s\<in>{-1 .. 1}. \<exists>t\<in>{-1 .. 1}. f s = g t"
 proof (rule ccontr)
   assume "\<not> ?thesis"
   note as = this[unfolded bex_simps,rule_format]
@@ -61,9 +61,9 @@ proof (rule ccontr)
     apply auto
     done
   let ?F = "\<lambda>w::real^2. (f \<circ> (\<lambda>x. x$1)) w - (g \<circ> (\<lambda>x. x$2)) w"
-  have *: "\<And>i. (\<lambda>x::real^2. x $ i) ` {- 1..1} = {- 1..1::real}"
+  have *: "\<And>i. (\<lambda>x::real^2. x $ i) ` cbox (- 1) 1 = {-1 .. 1}"
     apply (rule set_eqI)
-    unfolding image_iff Bex_def mem_interval_cart
+    unfolding image_iff Bex_def mem_interval_cart interval_cbox_cart
     apply rule
     defer
     apply (rule_tac x="vec x" in exI)
@@ -71,21 +71,21 @@ proof (rule ccontr)
     done
   {
     fix x
-    assume "x \<in> (\<lambda>w. (f \<circ> (\<lambda>x. x $ 1)) w - (g \<circ> (\<lambda>x. x $ 2)) w) ` {- 1..1::real^2}"
+    assume "x \<in> (\<lambda>w. (f \<circ> (\<lambda>x. x $ 1)) w - (g \<circ> (\<lambda>x. x $ 2)) w) ` (cbox (- 1) (1::real^2))"
     then obtain w :: "real^2" where w:
-        "w \<in> {- 1..1}"
+        "w \<in> cbox (- 1) 1"
         "x = (f \<circ> (\<lambda>x. x $ 1)) w - (g \<circ> (\<lambda>x. x $ 2)) w"
       unfolding image_iff ..
     then have "x \<noteq> 0"
       using as[of "w$1" "w$2"]
-      unfolding mem_interval_cart
+      unfolding mem_interval_cart atLeastAtMost_iff
       by auto
   } note x0 = this
   have 21: "\<And>i::2. i \<noteq> 1 \<Longrightarrow> i = 2"
     using UNIV_2 by auto
   have 1: "box (- 1) (1::real^2) \<noteq> {}"
     unfolding interval_eq_empty_cart by auto
-  have 2: "continuous_on {- 1..1} (negatex \<circ> sqprojection \<circ> ?F)"
+  have 2: "continuous_on (cbox -1 1) (negatex \<circ> sqprojection \<circ> ?F)"
     apply (intro continuous_on_intros continuous_on_component)
     unfolding *
     apply (rule assms)+
@@ -112,13 +112,13 @@ proof (rule ccontr)
         done
     qed
   qed
-  have 3: "(negatex \<circ> sqprojection \<circ> ?F) ` {- 1..1} \<subseteq> {- 1..1}"
+  have 3: "(negatex \<circ> sqprojection \<circ> ?F) ` cbox (-1) 1 \<subseteq> cbox (-1) 1"
     unfolding subset_eq
     apply rule
   proof -
     case goal1
     then obtain y :: "real^2" where y:
-        "y \<in> {- 1..1}"
+        "y \<in> cbox -1 1"
         "x = (negatex \<circ> sqprojection \<circ> (\<lambda>w. (f \<circ> (\<lambda>x. x $ 1)) w - (g \<circ> (\<lambda>x. x $ 2)) w)) y"
       unfolding image_iff ..
     have "?F y \<noteq> 0"
@@ -132,8 +132,8 @@ proof (rule ccontr)
     have "infnorm x = 1"
       unfolding *[symmetric] y o_def
       by (rule lem1[rule_format])
-    then show "x \<in> {- 1..1}"
-      unfolding mem_interval_cart infnorm_2
+    then show "x \<in> cbox (-1) 1"
+      unfolding mem_interval_cart interval_cbox_cart infnorm_2
       apply -
       apply rule
     proof -
@@ -147,11 +147,11 @@ proof (rule ccontr)
     qed
   qed
   obtain x :: "real^2" where x:
-      "x \<in> {- 1..1}"
+      "x \<in> cbox -1 1"
       "(negatex \<circ> sqprojection \<circ> (\<lambda>w. (f \<circ> (\<lambda>x. x $ 1)) w - (g \<circ> (\<lambda>x. x $ 2)) w)) x = x"
-    apply (rule brouwer_weak[of "{- 1..1::real^2}" "negatex \<circ> sqprojection \<circ> ?F"])
-    apply (rule compact_interval convex_interval)+
-    unfolding interior_closed_interval
+    apply (rule brouwer_weak[of "cbox -1 (1::real^2)" "negatex \<circ> sqprojection \<circ> ?F"])
+    apply (rule compact_cbox convex_box)+
+    unfolding interior_cbox
     apply (rule 1 2 3)+
     apply blast
     done
@@ -213,7 +213,7 @@ proof (rule ccontr)
       unfolding as negatex_def vector_2
       by auto
     moreover
-    from x1 have "g (x $ 2) \<in> {- 1..1}"
+    from x1 have "g (x $ 2) \<in> cbox (-1) 1"
       apply -
       apply (rule assms(2)[unfolded subset_eq,rule_format])
       apply auto
@@ -232,7 +232,7 @@ proof (rule ccontr)
       unfolding as negatex_def vector_2
       by auto
     moreover
-    from x1 have "g (x $ 2) \<in> {- 1..1}"
+    from x1 have "g (x $ 2) \<in> cbox (-1) 1"
       apply -
       apply (rule assms(2)[unfolded subset_eq,rule_format])
       apply auto
@@ -251,7 +251,7 @@ proof (rule ccontr)
       unfolding as negatex_def vector_2
       by auto
     moreover
-    from x1 have "f (x $ 1) \<in> {- 1..1}"
+    from x1 have "f (x $ 1) \<in> cbox (-1) 1"
       apply -
       apply (rule assms(1)[unfolded subset_eq,rule_format])
       apply auto
@@ -270,7 +270,7 @@ proof (rule ccontr)
       unfolding as negatex_def vector_2
       by auto
     moreover
-    from x1 have "f (x $ 1) \<in> {- 1..1}"
+    from x1 have "f (x $ 1) \<in> cbox (-1) 1"
       apply -
       apply (rule assms(1)[unfolded subset_eq,rule_format])
       apply auto
@@ -287,8 +287,8 @@ lemma fashoda_unit_path:
   fixes f g :: "real \<Rightarrow> real^2"
   assumes "path f"
     and "path g"
-    and "path_image f \<subseteq> {- 1..1}"
-    and "path_image g \<subseteq> {- 1..1}"
+    and "path_image f \<subseteq> cbox (-1) 1"
+    and "path_image g \<subseteq> cbox (-1) 1"
     and "(pathstart f)$1 = -1"
     and "(pathfinish f)$1 = 1"
     and "(pathstart g)$2 = -1"
@@ -301,7 +301,7 @@ proof -
     unfolding iscale_def by auto
   have "\<exists>s\<in>{- 1..1}. \<exists>t\<in>{- 1..1}. (f \<circ> iscale) s = (g \<circ> iscale) t"
   proof (rule fashoda_unit)
-    show "(f \<circ> iscale) ` {- 1..1} \<subseteq> {- 1..1}" "(g \<circ> iscale) ` {- 1..1} \<subseteq> {- 1..1}"
+    show "(f \<circ> iscale) ` {- 1..1} \<subseteq> cbox -1 1" "(g \<circ> iscale) ` {- 1..1} \<subseteq> cbox -1 1"
       using isc and assms(3-4) by (auto simp add: image_comp [symmetric])
     have *: "continuous_on {- 1..1} iscale"
       unfolding iscale_def by (rule continuous_on_intros)+
@@ -325,7 +325,7 @@ proof -
       "s \<in> {- 1..1}"
       "t \<in> {- 1..1}"
       "(f \<circ> iscale) s = (g \<circ> iscale) t"
-    by blast
+    by auto
   show thesis
     apply (rule_tac z = "f (iscale s)" in that)
     using st
@@ -343,8 +343,8 @@ lemma fashoda:
   fixes b :: "real^2"
   assumes "path f"
     and "path g"
-    and "path_image f \<subseteq> {a..b}"
-    and "path_image g \<subseteq> {a..b}"
+    and "path_image f \<subseteq> cbox a b"
+    and "path_image g \<subseteq> cbox a b"
     and "(pathstart f)$1 = a$1"
     and "(pathfinish f)$1 = b$1"
     and "(pathstart g)$2 = a$2"
@@ -356,7 +356,7 @@ proof -
   then show thesis
     by auto
 next
-  have "{a..b} \<noteq> {}"
+  have "cbox a b \<noteq> {}"
     using assms(3) using path_image_nonempty[of f] by auto
   then have "a \<le> b"
     unfolding interval_eq_empty_cart less_eq_vec_def by (auto simp add: not_less)
@@ -371,13 +371,13 @@ next
     apply (rule pathfinish_in_path_image)
     unfolding assms using assms(3)[unfolded path_image_def subset_eq,rule_format,of "f 0"]
     unfolding pathstart_def
-    apply (auto simp add: less_eq_vec_def)
+    apply (auto simp add: less_eq_vec_def mem_interval_cart)
     done
   then obtain z :: "real^2" where z: "z \<in> path_image g" "z $ 2 = pathstart f $ 2" ..
-  have "z \<in> {a..b}"
+  have "z \<in> cbox a b"
     using z(1) assms(4)
     unfolding path_image_def
-    by blast 
+    by blast
   then have "z = f 0"
     unfolding vec_eq_iff forall_2
     unfolding z(2) pathstart_def
@@ -403,13 +403,13 @@ next
     unfolding assms
     using assms(4)[unfolded path_image_def subset_eq,rule_format,of "g 0"]
     unfolding pathstart_def
-    apply (auto simp add: less_eq_vec_def)
+    apply (auto simp add: less_eq_vec_def mem_interval_cart)
     done
   then obtain z where z: "z \<in> path_image f" "z $ 1 = pathstart g $ 1" ..
-  have "z \<in> {a..b}"
+  have "z \<in> cbox a b"
     using z(1) assms(3)
     unfolding path_image_def
-    by blast 
+    by blast
   then have "z = g 0"
     unfolding vec_eq_iff forall_2
     unfolding z(2) pathstart_def
@@ -427,7 +427,7 @@ next
     done
 next
   assume as: "a $ 1 < b $ 1 \<and> a $ 2 < b $ 2"
-  have int_nem: "{- 1..1::real^2} \<noteq> {}"
+  have int_nem: "cbox (-1) (1::real^2) \<noteq> {}"
     unfolding interval_eq_empty_cart by auto
   obtain z :: "real^2" where z:
       "z \<in> (interval_bij (a, b) (- 1, 1) \<circ> f) ` {0..1}"
@@ -445,7 +445,7 @@ next
         "y \<in> {0..1}"
         "x = (interval_bij (a, b) (- 1, 1) \<circ> f) y"
       unfolding image_iff ..
-    show "x \<in> {- 1..1}"
+    show "x \<in> cbox -1 1"
       unfolding y o_def
       apply (rule in_interval_interval_bij)
       using y(1)
@@ -459,7 +459,7 @@ next
         "y \<in> {0..1}"
         "x = (interval_bij (a, b) (- 1, 1) \<circ> g) y"
       unfolding image_iff ..
-    show "x \<in> {- 1..1}"
+    show "x \<in> cbox -1 1"
       unfolding y o_def
       apply (rule in_interval_interval_bij)
       using y(1)
@@ -471,7 +471,7 @@ next
       and "(interval_bij (a, b) (- 1, 1) \<circ> f) 1 $ 1 = 1"
       and "(interval_bij (a, b) (- 1, 1) \<circ> g) 0 $ 2 = -1"
       and "(interval_bij (a, b) (- 1, 1) \<circ> g) 1 $ 2 = 1"
-      using assms as 
+      using assms as
       by (simp_all add: axis_in_Basis cart_eq_inner_axis pathstart_def pathfinish_def interval_bij_def)
          (simp_all add: inner_axis)
   qed
@@ -669,8 +669,8 @@ lemma fashoda_interlace:
   fixes a :: "real^2"
   assumes "path f"
     and "path g"
-    and "path_image f \<subseteq> {a..b}"
-    and "path_image g \<subseteq> {a..b}"
+    and "path_image f \<subseteq> cbox a b"
+    and "path_image g \<subseteq> cbox a b"
     and "(pathstart f)$2 = a$2"
     and "(pathfinish f)$2 = a$2"
     and "(pathstart g)$2 = a$2"
@@ -680,13 +680,13 @@ lemma fashoda_interlace:
     and "(pathfinish f)$1 < (pathfinish g)$1"
   obtains z where "z \<in> path_image f" and "z \<in> path_image g"
 proof -
-  have "{a..b} \<noteq> {}"
+  have "cbox a b \<noteq> {}"
     using path_image_nonempty[of f] using assms(3) by auto
   note ab=this[unfolded interval_eq_empty_cart not_ex forall_2 not_less]
-  have "pathstart f \<in> {a..b}"
-    and "pathfinish f \<in> {a..b}"
-    and "pathstart g \<in> {a..b}"
-    and "pathfinish g \<in> {a..b}"
+  have "pathstart f \<in> cbox a b"
+    and "pathfinish f \<in> cbox a b"
+    and "pathstart g \<in> cbox a b"
+    and "pathfinish g \<in> cbox a b"
     using pathstart_in_path_image pathfinish_in_path_image
     using assms(3-4)
     by auto
@@ -710,7 +710,8 @@ proof -
       path_image(linepath(vector[(pathfinish g)$1,a$2 - 1])(vector[b$1 + 1,a$2 - 1])) \<union>
       path_image(linepath(vector[b$1 + 1,a$2 - 1])(vector[b$1 + 1,b$2 + 3]))" using assms(1-2)
       by(auto simp add: path_image_join path_linepath)
-  have abab: "{a..b} \<subseteq> {?a..?b}"
+  have abab: "cbox a b \<subseteq> cbox ?a ?b"
+    unfolding interval_cbox_cart[symmetric]
     by (auto simp add:less_eq_vec_def forall_2 vector_2)
   obtain z where
     "z \<in> path_image
@@ -730,30 +731,30 @@ proof -
   proof -
     show "path ?P1" and "path ?P2"
       using assms by auto
-    have "path_image ?P1 \<subseteq> {?a .. ?b}"
+    have "path_image ?P1 \<subseteq> cbox ?a ?b"
       unfolding P1P2 path_image_linepath
       apply (rule Un_least)+
       defer 3
-      apply (rule_tac[1-4] convex_interval(1)[unfolded convex_contains_segment,rule_format])
+      apply (rule_tac[1-4] convex_box(1)[unfolded convex_contains_segment,rule_format])
       unfolding mem_interval_cart forall_2 vector_2
       using ab startfin abab assms(3)
       using assms(9-)
       unfolding assms
-      apply (auto simp add: field_simps interval)
+      apply (auto simp add: field_simps box)
       done
-    then show "path_image ?P1 \<subseteq> {?a .. ?b}" .
-    have "path_image ?P2 \<subseteq> {?a .. ?b}"
+    then show "path_image ?P1 \<subseteq> cbox ?a ?b" .
+    have "path_image ?P2 \<subseteq> cbox ?a ?b"
       unfolding P1P2 path_image_linepath
       apply (rule Un_least)+
       defer 2
-      apply (rule_tac[1-4] convex_interval(1)[unfolded convex_contains_segment,rule_format])
+      apply (rule_tac[1-4] convex_box(1)[unfolded convex_contains_segment,rule_format])
       unfolding mem_interval_cart forall_2 vector_2
       using ab startfin abab assms(4)
       using assms(9-)
       unfolding assms
-      apply (auto simp add: field_simps interval)
+      apply (auto simp add: field_simps box)
       done
-    then show "path_image ?P2 \<subseteq> {?a .. ?b}" .
+    then show "path_image ?P2 \<subseteq> cbox ?a ?b" .
     show "a $ 1 - 2 = a $ 1 - 2"
       and "b $ 1 + 2 = b $ 1 + 2"
       and "pathstart g $ 2 - 3 = a $ 2 - 3"
@@ -775,7 +776,7 @@ proof -
       apply (simp only: segment_vertical segment_horizontal vector_2)
     proof -
       case goal1 note as=this
-      have "pathfinish f \<in> {a..b}"
+      have "pathfinish f \<in> cbox a b"
         using assms(3) pathfinish_in_path_image[of f] by auto 
       then have "1 + b $ 1 \<le> pathfinish f $ 1 \<Longrightarrow> False"
         unfolding mem_interval_cart forall_2 by auto
@@ -783,7 +784,7 @@ proof -
         using as(2)
         using assms ab
         by (auto simp add: field_simps)
-      moreover have "pathstart f \<in> {a..b}"
+      moreover have "pathstart f \<in> cbox a b"
         using assms(3) pathstart_in_path_image[of f]
         by auto
       then have "1 + b $ 1 \<le> pathstart f $ 1 \<Longrightarrow> False"
@@ -799,7 +800,7 @@ proof -
         using as(2)
         using assms ab
         by (auto simp add: field_simps *)
-      moreover have "pathstart g \<in> {a..b}"
+      moreover have "pathstart g \<in> cbox a b"
         using assms(4) pathstart_in_path_image[of g]
         by auto 
       note this[unfolded mem_interval_cart forall_2]
@@ -816,7 +817,7 @@ proof -
     qed
     then have "z \<in> path_image f \<or> z \<in> path_image g"
       using z unfolding Un_iff by blast
-    then have z': "z \<in> {a..b}"
+    then have z': "z \<in> cbox a b"
       using assms(3-4)
       by auto
     have "a $ 2 = z $ 2 \<Longrightarrow> (z $ 1 = pathstart f $ 1 \<or> z $ 1 = pathfinish f $ 1) \<Longrightarrow>

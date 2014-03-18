@@ -48,10 +48,10 @@ lemma cube_subset[intro]: "n \<le> N \<Longrightarrow> cube n \<subseteq> cube N
   by (fastforce simp: eucl_le[where 'a='a] cube_def setsum_negf)
 
 lemma cube_subset_iff: "cube n \<subseteq> cube N \<longleftrightarrow> n \<le> N"
-  unfolding cube_def subset_interval by (simp add: setsum_negf ex_in_conv)
+  unfolding cube_def subset_box by (simp add: setsum_negf ex_in_conv eucl_le[where 'a='a])
 
 lemma ball_subset_cube: "ball (0::'a::ordered_euclidean_space) (real n) \<subseteq> cube n"
-  apply (simp add: cube_def subset_eq mem_interval setsum_negf eucl_le[where 'a='a])
+  apply (simp add: cube_def subset_eq mem_box setsum_negf eucl_le[where 'a='a])
 proof safe
   fix x i :: 'a assume x: "x \<in> ball 0 (real n)" and i: "i \<in> Basis" 
   thus "- real n \<le> x \<bullet> i" "real n \<ge> x \<bullet> i"
@@ -67,7 +67,7 @@ proof -
 qed
 
 lemma cube_subset_Suc[intro]: "cube n \<subseteq> cube (Suc n)"
-  unfolding cube_def subset_interval by (simp add: setsum_negf)
+  unfolding cube_def cbox_interval[symmetric] subset_box by (simp add: setsum_negf)
 
 lemma has_integral_interval_cube:
   fixes a b :: "'a::ordered_euclidean_space"
@@ -81,7 +81,7 @@ proof -
   also have "\<dots> \<longleftrightarrow> ((\<lambda>x. 1::real) has_integral content ?R *\<^sub>R 1) ?R"
     unfolding indicator_def [abs_def] has_integral_restrict_univ real_scaleR_def mult_1_right ..
   also have "((\<lambda>x. 1) has_integral content ?R *\<^sub>R 1) ?R"
-    unfolding cube_def inter_interval by (rule has_integral_const)
+    unfolding cube_def inter_interval cbox_interval[symmetric] by (rule has_integral_const)
   finally show ?thesis .
 qed
 
@@ -222,7 +222,7 @@ lemma borel_measurable_lebesgueI:
 
 lemma lebesgueI_negligible[dest]: fixes s::"'a::ordered_euclidean_space set"
   assumes "negligible s" shows "s \<in> sets lebesgue"
-  using assms by (force simp: cube_def integrable_on_def negligible_def intro!: lebesgueI)
+  using assms by (force simp: cbox_interval[symmetric] cube_def integrable_on_def negligible_def intro!: lebesgueI)
 
 lemma lmeasure_eq_0:
   fixes S :: "'a::ordered_euclidean_space set"
@@ -231,7 +231,7 @@ proof -
   have "\<And>n. integral (cube n) (indicator S :: 'a\<Rightarrow>real) = 0"
     unfolding lebesgue_integral_def using assms
     by (intro integral_unique some1_equality ex_ex1I)
-       (auto simp: cube_def negligible_def)
+       (auto simp: cube_def negligible_def cbox_interval[symmetric])
   then show ?thesis
     using assms by (simp add: emeasure_lebesgue lebesgueI_negligible)
 qed
@@ -381,15 +381,15 @@ next
   show "negligible A" unfolding negligible_def
   proof (intro allI)
     fix a b :: 'a
-    have integrable: "(indicator A :: _\<Rightarrow>real) integrable_on {a..b}"
-      by (intro integrable_on_subinterval has_integral_integrable) (auto intro: *)
-    then have "integral {a..b} (indicator A) \<le> (integral UNIV (indicator A) :: real)"
+    have integrable: "(indicator A :: _\<Rightarrow>real) integrable_on cbox a b"
+      by (intro integrable_on_subcbox has_integral_integrable) (auto intro: *)
+    then have "integral (cbox a b) (indicator A) \<le> (integral UNIV (indicator A) :: real)"
       using * by (auto intro!: integral_subset_le)
-    moreover have "(0::real) \<le> integral {a..b} (indicator A)"
+    moreover have "(0::real) \<le> integral (cbox a b) (indicator A)"
       using integrable by (auto intro!: integral_nonneg)
-    ultimately have "integral {a..b} (indicator A) = (0::real)"
+    ultimately have "integral (cbox a b) (indicator A) = (0::real)"
       using integral_unique[OF *] by auto
-    then show "(indicator A has_integral (0::real)) {a..b}"
+    then show "(indicator A has_integral (0::real)) (cbox a b)"
       using integrable_integral[OF integrable] by simp
   qed
 qed
@@ -412,7 +412,7 @@ proof (simp add: emeasure_lebesgue, intro SUP_PInfty bexI)
     qed }
   ultimately show "ereal (real n) \<le> ereal (integral (cube n) (indicator UNIV::'a\<Rightarrow>real))"
     using integral_const DIM_positive[where 'a='a]
-    by (auto simp: cube_def content_closed_interval_cases setprod_constant setsum_negf)
+    by (auto simp: cube_def content_cbox_cases setprod_constant setsum_negf cbox_interval[symmetric])
 qed simp
 
 lemma lmeasure_complete: "A \<subseteq> B \<Longrightarrow> B \<in> null_sets lebesgue \<Longrightarrow> A \<in> null_sets lebesgue"
@@ -423,9 +423,9 @@ lemma
   shows lmeasure_atLeastAtMost[simp]: "emeasure lebesgue {a..b} = ereal (content {a..b})"
 proof -
   have "(indicator (UNIV \<inter> {a..b})::_\<Rightarrow>real) integrable_on UNIV"
-    unfolding integrable_indicator_UNIV by (simp add: integrable_const indicator_def [abs_def])
+    unfolding integrable_indicator_UNIV by (simp add: integrable_const indicator_def [abs_def] cbox_interval[symmetric])
   from lmeasure_eq_integral[OF this] show ?thesis unfolding integral_indicator_UNIV
-    by (simp add: indicator_def [abs_def])
+    by (simp add: indicator_def [abs_def] cbox_interval[symmetric])
 qed
 
 lemma lmeasure_singleton[simp]:
@@ -505,7 +505,7 @@ qed
 lemma Int_stable_atLeastAtMost:
   fixes x::"'a::ordered_euclidean_space"
   shows "Int_stable (range (\<lambda>(a, b::'a). {a..b}))"
-  by (auto simp: inter_interval Int_stable_def)
+  by (auto simp: inter_interval Int_stable_def cbox_interval[symmetric])
 
 lemma lborel_eqI:
   fixes M :: "'a::ordered_euclidean_space measure"
@@ -959,9 +959,9 @@ proof (rule lborel_eqI)
   proof cases
     assume "{a..b} \<noteq> {}"
     then have "a \<le> b"
-      by (simp add: interval_ne_empty eucl_le[where 'a='a])
+      by (simp add: eucl_le[where 'a='a])
     then have "emeasure lborel {a..b} = (\<Prod>x\<in>Basis. emeasure lborel {a \<bullet> x .. b \<bullet> x})"
-      by (auto simp: content_closed_interval eucl_le[where 'a='a]
+      by (auto simp: eucl_le[where 'a='a] content_closed_interval
                intro!: setprod_ereal[symmetric])
     also have "\<dots> = emeasure ?P (p2e -` {a..b} \<inter> space ?P)"
       unfolding * by (subst lborel_space.measure_times) auto

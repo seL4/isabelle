@@ -458,11 +458,11 @@ lemma frechet_derivative_unique_at:
   by (rule has_derivative_unique)
 
 lemma frechet_derivative_unique_within_closed_interval:
-  fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'b::real_normed_vector"
+  fixes f::"'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
   assumes "\<forall>i\<in>Basis. a\<bullet>i < b\<bullet>i"
-    and "x \<in> {a..b}"
-    and "(f has_derivative f' ) (at x within {a..b})"
-    and "(f has_derivative f'') (at x within {a..b})"
+    and "x \<in> cbox a b"
+    and "(f has_derivative f' ) (at x within cbox a b)"
+    and "(f has_derivative f'') (at x within cbox a b)"
   shows "f' = f''"
   apply(rule frechet_derivative_unique_within)
   apply(rule assms(3,4))+
@@ -470,18 +470,18 @@ proof (rule, rule, rule)
   fix e :: real
   fix i :: 'a
   assume "e > 0" and i: "i \<in> Basis"
-  then show "\<exists>d. 0 < \<bar>d\<bar> \<and> \<bar>d\<bar> < e \<and> x + d *\<^sub>R i \<in> {a..b}"
+  then show "\<exists>d. 0 < \<bar>d\<bar> \<and> \<bar>d\<bar> < e \<and> x + d *\<^sub>R i \<in> cbox a b"
   proof (cases "x\<bullet>i = a\<bullet>i")
     case True
     then show ?thesis
       apply (rule_tac x="(min (b\<bullet>i - a\<bullet>i)  e) / 2" in exI)
       using assms(1)[THEN bspec[where x=i]] and `e>0` and assms(2)
-      unfolding mem_interval
+      unfolding mem_box
       using i
       apply (auto simp add: field_simps inner_simps inner_Basis)
       done
   next
-    note * = assms(2)[unfolded mem_interval, THEN bspec, OF i]
+    note * = assms(2)[unfolded mem_box, THEN bspec, OF i]
     case False
     moreover have "a \<bullet> i < x \<bullet> i"
       using False * by auto
@@ -502,7 +502,7 @@ proof (rule, rule, rule)
     ultimately show ?thesis
       apply (rule_tac x="- (min (x\<bullet>i - a\<bullet>i) e) / 2" in exI)
       using assms(1)[THEN bspec, OF i] and `e>0` and assms(2)
-      unfolding mem_interval
+      unfolding mem_box
       using i
       apply (auto simp add: field_simps inner_simps inner_Basis)
       done
@@ -510,14 +510,14 @@ proof (rule, rule, rule)
 qed
 
 lemma frechet_derivative_unique_within_open_interval:
-  fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'b::real_normed_vector"
+  fixes f::"'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
   assumes "x \<in> box a b"
     and "(f has_derivative f' ) (at x within box a b)"
     and "(f has_derivative f'') (at x within box a b)"
   shows "f' = f''"
 proof -
   from assms(1) have *: "at x within box a b = at x"
-    by (metis at_within_interior interior_open open_interval)
+    by (metis at_within_interior interior_open open_box)
   from assms(2,3) [unfolded *] show "f' = f''"
     by (rule frechet_derivative_unique_at)
 qed
@@ -531,12 +531,12 @@ lemma frechet_derivative_at:
   apply auto
   done
 
-lemma frechet_derivative_within_closed_interval:
-  fixes f :: "'a::ordered_euclidean_space \<Rightarrow> 'b::real_normed_vector"
+lemma frechet_derivative_within_cbox:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
   assumes "\<forall>i\<in>Basis. a\<bullet>i < b\<bullet>i"
-    and "x \<in> {a..b}"
-    and "(f has_derivative f') (at x within {a..b})"
-  shows "frechet_derivative f (at x within {a..b}) = f'"
+    and "x \<in> cbox a b"
+    and "(f has_derivative f') (at x within cbox a b)"
+  shows "frechet_derivative f (at x within cbox a b) = f'"
   using assms
   by (metis Derivative.differentiableI frechet_derivative_unique_within_closed_interval frechet_derivative_works)
 
@@ -641,34 +641,34 @@ lemma rolle:
   fixes f :: "real \<Rightarrow> real"
   assumes "a < b"
     and "f a = f b"
-    and "continuous_on {a..b} f"
-    and "\<forall>x\<in>box a b. (f has_derivative f' x) (at x)"
-  shows "\<exists>x\<in>box a b. f' x = (\<lambda>v. 0)"
+    and "continuous_on {a .. b} f"
+    and "\<forall>x\<in>{a <..< b}. (f has_derivative f' x) (at x)"
+  shows "\<exists>x\<in>{a <..< b}. f' x = (\<lambda>v. 0)"
 proof -
   have "\<exists>x\<in>box a b. (\<forall>y\<in>box a b. f x \<le> f y) \<or> (\<forall>y\<in>box a b. f y \<le> f x)"
   proof -
     have "(a + b) / 2 \<in> {a .. b}"
       using assms(1) by auto
-    then have *: "{a..b} \<noteq> {}"
+    then have *: "{a .. b} \<noteq> {}"
       by auto
     obtain d where d:
-        "d \<in> {a..b}"
-        "\<forall>y\<in>{a..b}. f y \<le> f d"
-      using continuous_attains_sup[OF compact_interval * assms(3)] ..
+        "d \<in>cbox a b"
+        "\<forall>y\<in>cbox a b. f y \<le> f d"
+      using continuous_attains_sup[OF compact_Icc * assms(3)] by auto
     obtain c where c:
-        "c \<in> {a..b}"
-        "\<forall>y\<in>{a..b}. f c \<le> f y"
-      using continuous_attains_inf[OF compact_interval * assms(3)] ..
+        "c \<in> cbox a b"
+        "\<forall>y\<in>cbox a b. f c \<le> f y"
+      using continuous_attains_inf[OF compact_Icc * assms(3)] by auto
     show ?thesis
     proof (cases "d \<in> box a b \<or> c \<in> box a b")
       case True
       then show ?thesis
-        by (metis c(2) d(2) interval_open_subset_closed subset_iff)
+        by (metis c(2) d(2) box_subset_cbox subset_iff)
     next
       def e \<equiv> "(a + b) /2"
       case False
       then have "f d = f c"
-        using d c assms(2) by (auto simp: box_real)
+        using d c assms(2) by auto
       then have "\<And>x. x \<in> {a..b} \<Longrightarrow> f x = f d"
         using c d
         by force
@@ -676,11 +676,12 @@ proof -
         apply (rule_tac x=e in bexI)
         unfolding e_def
         using assms(1)
-        apply (auto simp: box_real)
+        apply auto
         done
     qed
   qed
-  then obtain x where x: "x \<in> box a b" "(\<forall>y\<in>box a b. f x \<le> f y) \<or> (\<forall>y\<in>box a b. f y \<le> f x)" ..
+  then obtain x where x: "x \<in> {a <..< b}" "(\<forall>y\<in>{a <..< b}. f x \<le> f y) \<or> (\<forall>y\<in>{a <..< b}. f y \<le> f x)"
+    by auto
   then have "f' x = (\<lambda>v. 0)"
     apply (rule_tac differential_zero_maxmin[of x "box a b" f "f' x"])
     using assms
@@ -700,19 +701,21 @@ lemma mvt:
   assumes "\<forall>x\<in>{a<..<b}. (f has_derivative (f' x)) (at x)"
   shows "\<exists>x\<in>{a<..<b}. f b - f a = (f' x) (b - a)"
 proof -
-  have "\<exists>x\<in>box a b. (\<lambda>xa. f' x xa - (f b - f a) / (b - a) * xa) = (\<lambda>v. 0)"
+  have "\<exists>x\<in>{a <..< b}. (\<lambda>xa. f' x xa - (f b - f a) / (b - a) * xa) = (\<lambda>v. 0)"
   proof (intro rolle[OF assms(1), of "\<lambda>x. f x - (f b - f a) / (b - a) * x"] ballI)
     fix x
-    assume "x \<in> box a b" hence x: "x \<in> {a<..<b}" by (simp add: box_real)
+    assume x: "x \<in> {a <..< b}"
     show "((\<lambda>x. f x - (f b - f a) / (b - a) * x) has_derivative
         (\<lambda>xa. f' x xa - (f b - f a) / (b - a) * xa)) (at x)"
       by (intro has_derivative_intros assms(3)[rule_format,OF x] mult_right_has_derivative)
   qed (insert assms(1,2), auto intro!: continuous_on_intros simp: field_simps)
   then obtain x where
-    "x \<in> box a b"
+    "x \<in> {a <..< b}"
     "(\<lambda>xa. f' x xa - (f b - f a) / (b - a) * xa) = (\<lambda>v. 0)" ..
   then show ?thesis
-    by (metis (erased, hide_lams) assms(1) box_real diff_less_iff(1) eq_iff_diff_eq_0 linordered_field_class.sign_simps(41) nonzero_mult_divide_cancel_right not_real_square_gt_zero times_divide_eq_left)
+    by (metis (erased, hide_lams) assms(1) diff_less_iff(1) eq_iff_diff_eq_0
+      linordered_field_class.sign_simps(41) nonzero_mult_divide_cancel_right not_real_square_gt_zero
+      times_divide_eq_left)
 qed
 
 lemma mvt_simple:
@@ -727,21 +730,21 @@ lemma mvt_simple:
   defer
 proof
   fix x
-  assume x: "x \<in> {a<..<b}" hence x: "x \<in> box a b" by (simp add: box_real)
+  assume x: "x \<in> {a <..< b}"
   show "(f has_derivative f' x) (at x)"
-    unfolding has_derivative_within_open[OF x open_interval,symmetric]
+    unfolding has_derivative_within_open[OF x open_greaterThanLessThan,symmetric]
     apply (rule has_derivative_within_subset)
     apply (rule assms(2)[rule_format])
     using x
-    apply (auto simp: box_real)
+    apply auto
     done
 qed (insert assms(2), auto)
 
 lemma mvt_very_simple:
   fixes f :: "real \<Rightarrow> real"
   assumes "a \<le> b"
-    and "\<forall>x\<in>{a..b}. (f has_derivative f' x) (at x within {a..b})"
-  shows "\<exists>x\<in>{a..b}. f b - f a = f' x (b - a)"
+    and "\<forall>x\<in>{a .. b}. (f has_derivative f' x) (at x within {a .. b})"
+  shows "\<exists>x\<in>{a .. b}. f b - f a = f' x (b - a)"
 proof (cases "a = b")
   interpret bounded_linear "f' b"
     using assms(2) assms(1) by auto
@@ -767,7 +770,7 @@ text {* A nice generalization (see Havin's proof of 5.19 from Rudin's book). *}
 lemma mvt_general:
   fixes f :: "real \<Rightarrow> 'a::euclidean_space"
   assumes "a < b"
-    and "continuous_on {a..b} f"
+    and "continuous_on {a .. b} f"
     and "\<forall>x\<in>{a<..<b}. (f has_derivative f'(x)) (at x)"
   shows "\<exists>x\<in>{a<..<b}. norm (f b - f a) \<le> norm (f' x (b - a))"
 proof -
@@ -825,7 +828,7 @@ proof -
     using assms(1)[unfolded convex_alt,rule_format,OF x y]
     unfolding scaleR_left_diff_distrib scaleR_right_diff_distrib
     by (auto simp add: algebra_simps)
-  then have 1: "continuous_on {0..1} (f \<circ> ?p)"
+  then have 1: "continuous_on {0 .. 1} (f \<circ> ?p)"
     apply -
     apply (rule continuous_on_intros)+
     unfolding continuous_on_eq_continuous_within
@@ -837,12 +840,12 @@ proof -
     apply (rule assms(2)[rule_format])
     apply auto
     done
-  have 2: "\<forall>u\<in>{0<..<1}.
+  have 2: "\<forall>u\<in>{0 <..< 1}.
     ((f \<circ> ?p) has_derivative f' (x + u *\<^sub>R (y - x)) \<circ> (\<lambda>u. 0 + u *\<^sub>R (y - x))) (at u)"
   proof rule
     case goal1
     let ?u = "x + u *\<^sub>R (y - x)"
-    have "(f \<circ> ?p has_derivative (f' ?u) \<circ> (\<lambda>u. 0 + u *\<^sub>R (y - x))) (at u within {0<..<1})"
+    have "(f \<circ> ?p has_derivative (f' ?u) \<circ> (\<lambda>u. 0 + u *\<^sub>R (y - x))) (at u within box 0 1)"
       apply (rule diff_chain_within)
       apply (rule has_derivative_intros)+
       apply (rule has_derivative_within_subset)
@@ -851,7 +854,7 @@ proof -
       apply auto
       done
     then show ?case
-      unfolding has_derivative_within_open[OF goal1 open_greaterThanLessThan] .
+      by (simp add: has_derivative_within_open[OF goal1 open_greaterThanLessThan])
   qed
   obtain u where u:
       "u \<in> {0<..<1}"
@@ -2051,9 +2054,9 @@ qed
 
 lemma vector_derivative_unique_within_closed_interval:
   assumes "a < b"
-    and "x \<in> {a..b}"
-  assumes "(f has_vector_derivative f') (at x within {a..b})"
-  assumes "(f has_vector_derivative f'') (at x within {a..b})"
+    and "x \<in> cbox a b"
+  assumes "(f has_vector_derivative f') (at x within cbox a b)"
+  assumes "(f has_vector_derivative f'') (at x within cbox a b)"
   shows "f' = f''"
 proof -
   have *: "(\<lambda>x. x *\<^sub>R f') = (\<lambda>x. x *\<^sub>R f'')"
@@ -2084,9 +2087,9 @@ lemma vector_derivative_at:
 
 lemma vector_derivative_within_closed_interval:
   assumes "a < b"
-    and "x \<in> {a..b}"
-  assumes "(f has_vector_derivative f') (at x within {a..b})"
-  shows "vector_derivative f (at x within {a..b}) = f'"
+    and "x \<in> cbox a b"
+  assumes "(f has_vector_derivative f') (at x within cbox a b)"
+  shows "vector_derivative f (at x within cbox a b) = f'"
   apply (rule vector_derivative_unique_within_closed_interval)
   using vector_derivative_works[unfolded differentiable_def]
   using assms

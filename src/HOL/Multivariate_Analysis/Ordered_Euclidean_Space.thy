@@ -175,31 +175,31 @@ instance prod :: (ordered_euclidean_space, ordered_euclidean_space) ordered_eucl
       eucl_le[where 'a='b] abs_prod_def abs_inner)
 
 
-subsection {* Intervals *}
+subsection {* Boxes *}
 
-lemma interval:
-  fixes a :: "'a::ordered_euclidean_space"
+lemma box:
+  fixes a :: "'a::euclidean_space"
   shows "box a b = {x::'a. \<forall>i\<in>Basis. a\<bullet>i < x\<bullet>i \<and> x\<bullet>i < b\<bullet>i}"
-    and "{a .. b} = {x::'a. \<forall>i\<in>Basis. a\<bullet>i \<le> x\<bullet>i \<and> x\<bullet>i \<le> b\<bullet>i}"
-  by (auto simp add:set_eq_iff eucl_le[where 'a='a] box_def)
+    and "cbox a b = {x::'a. \<forall>i\<in>Basis. a\<bullet>i \<le> x\<bullet>i \<and> x\<bullet>i \<le> b\<bullet>i}"
+  by (auto simp add:set_eq_iff box_def cbox_def)
 
-lemma mem_interval:
-  fixes a :: "'a::ordered_euclidean_space"
+lemma mem_box:
+  fixes a :: "'a::euclidean_space"
   shows "x \<in> box a b \<longleftrightarrow> (\<forall>i\<in>Basis. a\<bullet>i < x\<bullet>i \<and> x\<bullet>i < b\<bullet>i)"
-    and "x \<in> {a .. b} \<longleftrightarrow> (\<forall>i\<in>Basis. a\<bullet>i \<le> x\<bullet>i \<and> x\<bullet>i \<le> b\<bullet>i)"
-  using interval[of a b]
+    and "x \<in> cbox a b \<longleftrightarrow> (\<forall>i\<in>Basis. a\<bullet>i \<le> x\<bullet>i \<and> x\<bullet>i \<le> b\<bullet>i)"
+  using box[of a b]
   by auto
 
-lemma interval_eq_empty:
-  fixes a :: "'a::ordered_euclidean_space"
+lemma box_eq_empty:
+  fixes a :: "'a::euclidean_space"
   shows "(box a b = {} \<longleftrightarrow> (\<exists>i\<in>Basis. b\<bullet>i \<le> a\<bullet>i))" (is ?th1)
-    and "({a  ..  b} = {} \<longleftrightarrow> (\<exists>i\<in>Basis. b\<bullet>i < a\<bullet>i))" (is ?th2)
+    and "(cbox a b = {} \<longleftrightarrow> (\<exists>i\<in>Basis. b\<bullet>i < a\<bullet>i))" (is ?th2)
 proof -
   {
     fix i x
     assume i: "i\<in>Basis" and as:"b\<bullet>i \<le> a\<bullet>i" and x:"x\<in>box a b"
     then have "a \<bullet> i < x \<bullet> i \<and> x \<bullet> i < b \<bullet> i"
-      unfolding mem_interval by auto
+      unfolding mem_box by (auto simp: box_def)
     then have "a\<bullet>i < b\<bullet>i" by auto
     then have False using as by auto
   }
@@ -216,15 +216,15 @@ proof -
         by (auto simp: inner_add_left)
     }
     then have "box a b \<noteq> {}"
-      using mem_interval(1)[of "?x" a b] by auto
+      using mem_box(1)[of "?x" a b] by auto
   }
   ultimately show ?th1 by blast
 
   {
     fix i x
-    assume i: "i \<in> Basis" and as:"b\<bullet>i < a\<bullet>i" and x:"x\<in>{a .. b}"
+    assume i: "i \<in> Basis" and as:"b\<bullet>i < a\<bullet>i" and x:"x\<in>cbox a b"
     then have "a \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> b \<bullet> i"
-      unfolding mem_interval by auto
+      unfolding mem_box by auto
     then have "a\<bullet>i \<le> b\<bullet>i" by auto
     then have False using as by auto
   }
@@ -240,57 +240,58 @@ proof -
       then have "a\<bullet>i \<le> ((1/2) *\<^sub>R (a+b)) \<bullet> i" "((1/2) *\<^sub>R (a+b)) \<bullet> i \<le> b\<bullet>i"
         by (auto simp: inner_add_left)
     }
-    then have "{a .. b} \<noteq> {}"
-      using mem_interval(2)[of "?x" a b] by auto
+    then have "cbox a b \<noteq> {}"
+      using mem_box(2)[of "?x" a b] by auto
   }
   ultimately show ?th2 by blast
 qed
 
-lemma interval_ne_empty:
-  fixes a :: "'a::ordered_euclidean_space"
-  shows "{a  ..  b} \<noteq> {} \<longleftrightarrow> (\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i)"
+lemma box_ne_empty:
+  fixes a :: "'a::euclidean_space"
+  shows "cbox a b \<noteq> {} \<longleftrightarrow> (\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i)"
   and "box a b \<noteq> {} \<longleftrightarrow> (\<forall>i\<in>Basis. a\<bullet>i < b\<bullet>i)"
-  unfolding interval_eq_empty[of a b] by fastforce+
+  unfolding box_eq_empty[of a b] by fastforce+
 
-lemma interval_sing:
-  fixes a :: "'a::ordered_euclidean_space"
-  shows "{a .. a} = {a}"
-    and "box a a = {}"
-  unfolding set_eq_iff mem_interval eq_iff [symmetric]
-  by (auto intro: euclidean_eqI simp: ex_in_conv)
+lemma
+  fixes a :: "'a::euclidean_space"
+  shows cbox_sing: "cbox a a = {a}"
+    and box_sing: "box a a = {}"
+  unfolding set_eq_iff mem_box eq_iff [symmetric]
+  by (auto intro!: euclidean_eqI[where 'a='a])
+     (metis all_not_in_conv nonempty_Basis)
 
-lemma subset_interval_imp:
-  fixes a :: "'a::ordered_euclidean_space"
-  shows "(\<forall>i\<in>Basis. a\<bullet>i \<le> c\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i) \<Longrightarrow> {c .. d} \<subseteq> {a .. b}"
-    and "(\<forall>i\<in>Basis. a\<bullet>i < c\<bullet>i \<and> d\<bullet>i < b\<bullet>i) \<Longrightarrow> {c .. d} \<subseteq> box a b"
-    and "(\<forall>i\<in>Basis. a\<bullet>i \<le> c\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i) \<Longrightarrow> box c d \<subseteq> {a .. b}"
-    and "(\<forall>i\<in>Basis. a\<bullet>i \<le> c\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i) \<Longrightarrow> box c d \<subseteq> box a b"
-  unfolding subset_eq[unfolded Ball_def] unfolding mem_interval
-  by (best intro: order_trans less_le_trans le_less_trans less_imp_le)+
+lemma subset_box_imp:
+  fixes a :: "'a::euclidean_space"
+  shows "(\<forall>i\<in>Basis. a\<bullet>i \<le> c\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i) \<Longrightarrow> cbox c d \<subseteq> cbox a b"
+    and "(\<forall>i\<in>Basis. a\<bullet>i < c\<bullet>i \<and> d\<bullet>i < b\<bullet>i) \<Longrightarrow> cbox c d \<subseteq> box a b"
+    and "(\<forall>i\<in>Basis. a\<bullet>i \<le> c\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i) \<Longrightarrow> box c d \<subseteq> cbox a b"
+     and "(\<forall>i\<in>Basis. a\<bullet>i \<le> c\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i) \<Longrightarrow> box c d \<subseteq> box a b"
+  unfolding subset_eq[unfolded Ball_def] unfolding mem_box
+   by (best intro: order_trans less_le_trans le_less_trans less_imp_le)+
 
-lemma interval_open_subset_closed:
-  fixes a :: "'a::ordered_euclidean_space"
-  shows "box a b \<subseteq> {a .. b}"
-  unfolding subset_eq [unfolded Ball_def] mem_interval
+lemma box_subset_cbox:
+  fixes a :: "'a::euclidean_space"
+  shows "box a b \<subseteq> cbox a b"
+  unfolding subset_eq [unfolded Ball_def] mem_box
   by (fast intro: less_imp_le)
 
-lemma subset_interval:
-  fixes a :: "'a::ordered_euclidean_space"
-  shows "{c .. d} \<subseteq> {a .. b} \<longleftrightarrow> (\<forall>i\<in>Basis. c\<bullet>i \<le> d\<bullet>i) --> (\<forall>i\<in>Basis. a\<bullet>i \<le> c\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i)" (is ?th1)
-    and "{c .. d} \<subseteq> box a b \<longleftrightarrow> (\<forall>i\<in>Basis. c\<bullet>i \<le> d\<bullet>i) --> (\<forall>i\<in>Basis. a\<bullet>i < c\<bullet>i \<and> d\<bullet>i < b\<bullet>i)" (is ?th2)
-    and "box c d \<subseteq> {a .. b} \<longleftrightarrow> (\<forall>i\<in>Basis. c\<bullet>i < d\<bullet>i) --> (\<forall>i\<in>Basis. a\<bullet>i \<le> c\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i)" (is ?th3)
+lemma subset_box:
+  fixes a :: "'a::euclidean_space"
+  shows "cbox c d \<subseteq> cbox a b \<longleftrightarrow> (\<forall>i\<in>Basis. c\<bullet>i \<le> d\<bullet>i) --> (\<forall>i\<in>Basis. a\<bullet>i \<le> c\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i)" (is ?th1)
+    and "cbox c d \<subseteq> box a b \<longleftrightarrow> (\<forall>i\<in>Basis. c\<bullet>i \<le> d\<bullet>i) --> (\<forall>i\<in>Basis. a\<bullet>i < c\<bullet>i \<and> d\<bullet>i < b\<bullet>i)" (is ?th2)
+    and "box c d \<subseteq> cbox a b \<longleftrightarrow> (\<forall>i\<in>Basis. c\<bullet>i < d\<bullet>i) --> (\<forall>i\<in>Basis. a\<bullet>i \<le> c\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i)" (is ?th3)
     and "box c d \<subseteq> box a b \<longleftrightarrow> (\<forall>i\<in>Basis. c\<bullet>i < d\<bullet>i) --> (\<forall>i\<in>Basis. a\<bullet>i \<le> c\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i)" (is ?th4)
 proof -
   show ?th1
-    unfolding subset_eq and Ball_def and mem_interval
+    unfolding subset_eq and Ball_def and mem_box
     by (auto intro: order_trans)
   show ?th2
-    unfolding subset_eq and Ball_def and mem_interval
+    unfolding subset_eq and Ball_def and mem_box
     by (auto intro: le_less_trans less_le_trans order_trans less_imp_le)
   {
-    assume as: "box c d \<subseteq> {a .. b}" "\<forall>i\<in>Basis. c\<bullet>i < d\<bullet>i"
+    assume as: "box c d \<subseteq> cbox a b" "\<forall>i\<in>Basis. c\<bullet>i < d\<bullet>i"
     then have "box c d \<noteq> {}"
-      unfolding interval_eq_empty by auto
+      unfolding box_eq_empty by auto
     fix i :: 'a
     assume i: "i \<in> Basis"
     (** TODO combine the following two parts as done in the HOL_light version. **)
@@ -307,10 +308,10 @@ proof -
           done
       }
       then have "?x\<in>box c d"
-        using i unfolding mem_interval by auto
+        using i unfolding mem_box by auto
       moreover
-      have "?x \<notin> {a .. b}"
-        unfolding mem_interval
+      have "?x \<notin> cbox a b"
+        unfolding mem_box
         apply auto
         apply (rule_tac x=i in bexI)
         using as(2)[THEN bspec[where x=i]] and as2 i
@@ -333,10 +334,10 @@ proof -
           done
       }
       then have "?x\<in>box c d"
-        unfolding mem_interval by auto
+        unfolding mem_box by auto
       moreover
-      have "?x\<notin>{a .. b}"
-        unfolding mem_interval
+      have "?x\<notin>cbox a b"
+        unfolding mem_box
         apply auto
         apply (rule_tac x=i in bexI)
         using as(2)[THEN bspec[where x=i]] and as2 using i
@@ -349,10 +350,10 @@ proof -
     have "a\<bullet>i \<le> c\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i" by auto
   } note part1 = this
   show ?th3
-    unfolding subset_eq and Ball_def and mem_interval
+    unfolding subset_eq and Ball_def and mem_box
     apply (rule, rule, rule, rule)
     apply (rule part1)
-    unfolding subset_eq and Ball_def and mem_interval
+    unfolding subset_eq and Ball_def and mem_box
     prefer 4
     apply auto
     apply (erule_tac x=xa in allE, erule_tac x=xa in allE, fastforce)+
@@ -361,16 +362,16 @@ proof -
     assume as: "box c d \<subseteq> box a b" "\<forall>i\<in>Basis. c\<bullet>i < d\<bullet>i"
     fix i :: 'a
     assume i:"i\<in>Basis"
-    from as(1) have "box c d \<subseteq> {a..b}"
-      using interval_open_subset_closed[of a b] by auto
+    from as(1) have "box c d \<subseteq> cbox a b"
+      using box_subset_cbox[of a b] by auto
     then have "a\<bullet>i \<le> c\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i"
       using part1 and as(2) using i by auto
   } note * = this
   show ?th4
-    unfolding subset_eq and Ball_def and mem_interval
+    unfolding subset_eq and Ball_def and mem_box
     apply (rule, rule, rule, rule)
     apply (rule *)
-    unfolding subset_eq and Ball_def and mem_interval
+    unfolding subset_eq and Ball_def and mem_box
     prefer 4
     apply auto
     apply (erule_tac x=xa in allE, simp)+
@@ -378,68 +379,68 @@ proof -
 qed
 
 lemma inter_interval:
-  fixes a :: "'a::ordered_euclidean_space"
-  shows "{a .. b} \<inter> {c .. d} =
-    {(\<Sum>i\<in>Basis. max (a\<bullet>i) (c\<bullet>i) *\<^sub>R i) .. (\<Sum>i\<in>Basis. min (b\<bullet>i) (d\<bullet>i) *\<^sub>R i)}"
-  unfolding set_eq_iff and Int_iff and mem_interval
+  fixes a :: "'a::euclidean_space"
+  shows "cbox a b \<inter> cbox c d =
+    cbox (\<Sum>i\<in>Basis. max (a\<bullet>i) (c\<bullet>i) *\<^sub>R i) (\<Sum>i\<in>Basis. min (b\<bullet>i) (d\<bullet>i) *\<^sub>R i)"
+  unfolding set_eq_iff and Int_iff and mem_box
   by auto
 
 lemma disjoint_interval:
-  fixes a::"'a::ordered_euclidean_space"
-  shows "{a .. b} \<inter> {c .. d} = {} \<longleftrightarrow> (\<exists>i\<in>Basis. (b\<bullet>i < a\<bullet>i \<or> d\<bullet>i < c\<bullet>i \<or> b\<bullet>i < c\<bullet>i \<or> d\<bullet>i < a\<bullet>i))" (is ?th1)
-    and "{a .. b} \<inter> box c d = {} \<longleftrightarrow> (\<exists>i\<in>Basis. (b\<bullet>i < a\<bullet>i \<or> d\<bullet>i \<le> c\<bullet>i \<or> b\<bullet>i \<le> c\<bullet>i \<or> d\<bullet>i \<le> a\<bullet>i))" (is ?th2)
-    and "box a b \<inter> {c .. d} = {} \<longleftrightarrow> (\<exists>i\<in>Basis. (b\<bullet>i \<le> a\<bullet>i \<or> d\<bullet>i < c\<bullet>i \<or> b\<bullet>i \<le> c\<bullet>i \<or> d\<bullet>i \<le> a\<bullet>i))" (is ?th3)
+  fixes a::"'a::euclidean_space"
+  shows "cbox a b \<inter> cbox c d = {} \<longleftrightarrow> (\<exists>i\<in>Basis. (b\<bullet>i < a\<bullet>i \<or> d\<bullet>i < c\<bullet>i \<or> b\<bullet>i < c\<bullet>i \<or> d\<bullet>i < a\<bullet>i))" (is ?th1)
+    and "cbox a b \<inter> box c d = {} \<longleftrightarrow> (\<exists>i\<in>Basis. (b\<bullet>i < a\<bullet>i \<or> d\<bullet>i \<le> c\<bullet>i \<or> b\<bullet>i \<le> c\<bullet>i \<or> d\<bullet>i \<le> a\<bullet>i))" (is ?th2)
+    and "box a b \<inter> cbox c d = {} \<longleftrightarrow> (\<exists>i\<in>Basis. (b\<bullet>i \<le> a\<bullet>i \<or> d\<bullet>i < c\<bullet>i \<or> b\<bullet>i \<le> c\<bullet>i \<or> d\<bullet>i \<le> a\<bullet>i))" (is ?th3)
     and "box a b \<inter> box c d = {} \<longleftrightarrow> (\<exists>i\<in>Basis. (b\<bullet>i \<le> a\<bullet>i \<or> d\<bullet>i \<le> c\<bullet>i \<or> b\<bullet>i \<le> c\<bullet>i \<or> d\<bullet>i \<le> a\<bullet>i))" (is ?th4)
 proof -
   let ?z = "(\<Sum>i\<in>Basis. (((max (a\<bullet>i) (c\<bullet>i)) + (min (b\<bullet>i) (d\<bullet>i))) / 2) *\<^sub>R i)::'a"
   have **: "\<And>P Q. (\<And>i :: 'a. i \<in> Basis \<Longrightarrow> Q ?z i \<Longrightarrow> P i) \<Longrightarrow>
       (\<And>i x :: 'a. i \<in> Basis \<Longrightarrow> P i \<Longrightarrow> Q x i) \<Longrightarrow> (\<forall>x. \<exists>i\<in>Basis. Q x i) \<longleftrightarrow> (\<exists>i\<in>Basis. P i)"
     by blast
-  note * = set_eq_iff Int_iff empty_iff mem_interval ball_conj_distrib[symmetric] eq_False ball_simps(10)
+  note * = set_eq_iff Int_iff empty_iff mem_box ball_conj_distrib[symmetric] eq_False ball_simps(10)
   show ?th1 unfolding * by (intro **) auto
   show ?th2 unfolding * by (intro **) auto
   show ?th3 unfolding * by (intro **) auto
   show ?th4 unfolding * by (intro **) auto
 qed
 
-(* Moved interval_open_subset_closed a bit upwards *)
+(* Moved box_subset_cbox a bit upwards *)
 
-lemma open_interval[intro]:
-  fixes a b :: "'a::ordered_euclidean_space"
+lemma open_box[intro]:
+  fixes a b :: "'a::euclidean_space"
   shows "open (box a b)"
 proof -
   have "open (\<Inter>i\<in>Basis. (\<lambda>x. x\<bullet>i) -` {a\<bullet>i<..<b\<bullet>i})"
     by (intro open_INT finite_lessThan ballI continuous_open_vimage allI
       linear_continuous_at open_real_greaterThanLessThan finite_Basis bounded_linear_inner_left)
   also have "(\<Inter>i\<in>Basis. (\<lambda>x. x\<bullet>i) -` {a\<bullet>i<..<b\<bullet>i}) = box a b"
-    by (auto simp add: interval)
+    by (auto simp add: box)
   finally show "open (box a b)" .
 qed
 
-lemma closed_interval[intro]:
-  fixes a b :: "'a::ordered_euclidean_space"
-  shows "closed {a .. b}"
+lemma closed_cbox[intro]:
+  fixes a b :: "'a::euclidean_space"
+  shows "closed (cbox a b)"
 proof -
   have "closed (\<Inter>i\<in>Basis. (\<lambda>x. x\<bullet>i) -` {a\<bullet>i .. b\<bullet>i})"
     by (intro closed_INT ballI continuous_closed_vimage allI
       linear_continuous_at closed_real_atLeastAtMost finite_Basis bounded_linear_inner_left)
-  also have "(\<Inter>i\<in>Basis. (\<lambda>x. x\<bullet>i) -` {a\<bullet>i .. b\<bullet>i}) = {a .. b}"
-    by (auto simp add: eucl_le [where 'a='a])
-  finally show "closed {a .. b}" .
+  also have "(\<Inter>i\<in>Basis. (\<lambda>x. x\<bullet>i) -` {a\<bullet>i .. b\<bullet>i}) = cbox a b"
+    by (auto simp add: cbox_def)
+  finally show "closed (cbox a b)" .
 qed
 
-lemma interior_closed_interval [intro]:
-  fixes a b :: "'a::ordered_euclidean_space"
-  shows "interior {a..b} = box a b" (is "?L = ?R")
+lemma interior_cbox [intro]:
+  fixes a b :: "'a::euclidean_space"
+  shows "interior (cbox a b) = box a b" (is "?L = ?R")
 proof(rule subset_antisym)
   show "?R \<subseteq> ?L"
-    using interval_open_subset_closed open_interval
+    using box_subset_cbox open_box
     by (rule interior_maximal)
   {
     fix x
-    assume "x \<in> interior {a..b}"
-    then obtain s where s: "open s" "x \<in> s" "s \<subseteq> {a..b}" ..
-    then obtain e where "e>0" and e:"\<forall>x'. dist x' x < e \<longrightarrow> x' \<in> {a..b}"
+    assume "x \<in> interior (cbox a b)"
+    then obtain s where s: "open s" "x \<in> s" "s \<subseteq> cbox a b" ..
+    then obtain e where "e>0" and e:"\<forall>x'. dist x' x < e \<longrightarrow> x' \<in> cbox a b"
       unfolding open_dist and subset_eq by auto
     {
       fix i :: 'a
@@ -455,7 +456,7 @@ proof(rule subset_antisym)
       then have "a \<bullet> i \<le> (x - (e / 2) *\<^sub>R i) \<bullet> i" and "(x + (e / 2) *\<^sub>R i) \<bullet> i \<le> b \<bullet> i"
         using e[THEN spec[where x="x - (e/2) *\<^sub>R i"]]
           and e[THEN spec[where x="x + (e/2) *\<^sub>R i"]]
-        unfolding mem_interval
+        unfolding mem_box
         using i
         by blast+
       then have "a \<bullet> i < x \<bullet> i" and "x \<bullet> i < b \<bullet> i"
@@ -463,14 +464,14 @@ proof(rule subset_antisym)
         by (auto simp: inner_diff_left inner_Basis inner_add_left)
     }
     then have "x \<in> box a b"
-      unfolding mem_interval by auto
+      unfolding mem_box by auto
   }
   then show "?L \<subseteq> ?R" ..
 qed
 
-lemma bounded_closed_interval:
-  fixes a :: "'a::ordered_euclidean_space"
-  shows "bounded {a .. b}"
+lemma bounded_cbox:
+  fixes a :: "'a::euclidean_space"
+  shows "bounded (cbox a b)"
 proof -
   let ?b = "\<Sum>i\<in>Basis. \<bar>a\<bullet>i\<bar> + \<bar>b\<bullet>i\<bar>"
   {
@@ -491,30 +492,30 @@ proof -
       using norm_le_l1[of x] by auto
   }
   then show ?thesis
-    unfolding interval and bounded_iff by auto
+    unfolding box and bounded_iff by auto
 qed
 
 lemma bounded_interval:
-  fixes a :: "'a::ordered_euclidean_space"
-  shows "bounded {a .. b} \<and> bounded (box a b)"
-  using bounded_closed_interval[of a b]
-  using interval_open_subset_closed[of a b]
-  using bounded_subset[of "{a..b}" "box a b"]
+  fixes a :: "'a::euclidean_space"
+  shows "bounded (cbox a b) \<and> bounded (box a b)"
+  using bounded_cbox[of a b]
+  using box_subset_cbox[of a b]
+  using bounded_subset[of "cbox a b" "box a b"]
   by simp
 
 lemma not_interval_univ:
-  fixes a :: "'a::ordered_euclidean_space"
-  shows "{a .. b} \<noteq> UNIV \<and> box a b \<noteq> UNIV"
+  fixes a :: "'a::euclidean_space"
+  shows "cbox a b \<noteq> UNIV \<and> box a b \<noteq> UNIV"
   using bounded_interval[of a b] by auto
 
-lemma compact_interval:
-  fixes a :: "'a::ordered_euclidean_space"
-  shows "compact {a .. b}"
-  using bounded_closed_imp_seq_compact[of "{a..b}"] using bounded_interval[of a b]
+lemma compact_cbox:
+  fixes a :: "'a::euclidean_space"
+  shows "compact (cbox a b)"
+  using bounded_closed_imp_seq_compact[of "cbox a b"] using bounded_interval[of a b]
   by (auto simp: compact_eq_seq_compact_metric)
 
 lemma open_interval_midpoint:
-  fixes a :: "'a::ordered_euclidean_space"
+  fixes a :: "'a::euclidean_space"
   assumes "box a b \<noteq> {}"
   shows "((1/2) *\<^sub>R (a + b)) \<in> box a b"
 proof -
@@ -522,15 +523,15 @@ proof -
     fix i :: 'a
     assume "i \<in> Basis"
     then have "a \<bullet> i < ((1 / 2) *\<^sub>R (a + b)) \<bullet> i \<and> ((1 / 2) *\<^sub>R (a + b)) \<bullet> i < b \<bullet> i"
-      using assms[unfolded interval_ne_empty, THEN bspec[where x=i]] by (auto simp: inner_add_left)
+      using assms[unfolded box_ne_empty, THEN bspec[where x=i]] by (auto simp: inner_add_left)
   }
-  then show ?thesis unfolding mem_interval by auto
+  then show ?thesis unfolding mem_box by auto
 qed
 
 lemma open_closed_interval_convex:
-  fixes x :: "'a::ordered_euclidean_space"
+  fixes x :: "'a::euclidean_space"
   assumes x: "x \<in> box a b"
-    and y: "y \<in> {a .. b}"
+    and y: "y \<in> cbox a b"
     and e: "0 < e" "e \<le> 1"
   shows "(e *\<^sub>R x + (1 - e) *\<^sub>R y) \<in> box a b"
 proof -
@@ -543,9 +544,9 @@ proof -
       apply (rule add_less_le_mono)
       using e unfolding mult_less_cancel_left and mult_le_cancel_left
       apply simp_all
-      using x unfolding mem_interval using i
+      using x unfolding mem_box using i
       apply simp
-      using y unfolding mem_interval using i
+      using y unfolding mem_box using i
       apply simp
       done
     finally have "a \<bullet> i < (e *\<^sub>R x + (1 - e) *\<^sub>R y) \<bullet> i"
@@ -559,11 +560,11 @@ proof -
         using e unfolding mult_less_cancel_left and mult_le_cancel_left
         apply simp_all
         using x
-        unfolding mem_interval
+        unfolding mem_box
         using i
         apply simp
         using y
-        unfolding mem_interval
+        unfolding mem_box
         using i
         apply simp
         done
@@ -574,23 +575,23 @@ proof -
       by auto
   }
   then show ?thesis
-    unfolding mem_interval by auto
+    unfolding mem_box by auto
 qed
 
 notation
   eucl_less (infix "<e" 50)
 
 lemma closure_open_interval:
-  fixes a :: "'a::ordered_euclidean_space"
-  assumes "box a b \<noteq> {}"
-  shows "closure (box a b) = {a .. b}"
+  fixes a :: "'a::euclidean_space"
+   assumes "box a b \<noteq> {}"
+  shows "closure (box a b) = cbox a b"
 proof -
   have ab: "a <e b"
-    using assms by (simp add: eucl_less_def interval_ne_empty)
+    using assms by (simp add: eucl_less_def box_ne_empty)
   let ?c = "(1 / 2) *\<^sub>R (a + b)"
   {
     fix x
-    assume as:"x \<in> {a .. b}"
+    assume as:"x \<in> cbox a b"
     def f \<equiv> "\<lambda>n::nat. x + (inverse (real n + 1)) *\<^sub>R (?c - x)"
     {
       fix n
@@ -602,7 +603,7 @@ proof -
         by (auto simp add: algebra_simps)
       then have "f n <e b" and "a <e f n"
         using open_closed_interval_convex[OF open_interval_midpoint[OF assms] as *]
-        unfolding f_def by (auto simp: interval eucl_less_def)
+        unfolding f_def by (auto simp: box eucl_less_def)
       then have False
         using fn unfolding f_def using xc by auto
     }
@@ -642,11 +643,11 @@ proof -
       by (cases "x=?c") (auto simp: in_box_eucl_less)
   }
   then show ?thesis
-    using closure_minimal[OF interval_open_subset_closed closed_interval, of a b] by blast
+    using closure_minimal[OF box_subset_cbox, of a b] by blast
 qed
 
 lemma bounded_subset_open_interval_symmetric:
-  fixes s::"('a::ordered_euclidean_space) set"
+  fixes s::"('a::euclidean_space) set"
   assumes "bounded s"
   shows "\<exists>a. s \<subseteq> box (-a) a"
 proof -
@@ -665,38 +666,38 @@ proof -
       by auto
   }
   then show ?thesis
-    by (auto intro: exI[where x=a] simp add: interval)
+    by (auto intro: exI[where x=a] simp add: box)
 qed
 
 lemma bounded_subset_open_interval:
-  fixes s :: "('a::ordered_euclidean_space) set"
+  fixes s :: "('a::euclidean_space) set"
   shows "bounded s \<Longrightarrow> (\<exists>a b. s \<subseteq> box a b)"
   by (auto dest!: bounded_subset_open_interval_symmetric)
 
-lemma bounded_subset_closed_interval_symmetric:
-  fixes s :: "('a::ordered_euclidean_space) set"
-  assumes "bounded s"
-  shows "\<exists>a. s \<subseteq> {-a .. a}"
+lemma bounded_subset_cbox_symmetric:
+  fixes s :: "('a::euclidean_space) set"
+   assumes "bounded s"
+  shows "\<exists>a. s \<subseteq> cbox (-a) a"
 proof -
   obtain a where "s \<subseteq> box (-a) a"
     using bounded_subset_open_interval_symmetric[OF assms] by auto
   then show ?thesis
-    using interval_open_subset_closed[of "-a" a] by auto
+    using box_subset_cbox[of "-a" a] by auto
 qed
 
-lemma bounded_subset_closed_interval:
-  fixes s :: "('a::ordered_euclidean_space) set"
-  shows "bounded s \<Longrightarrow> \<exists>a b. s \<subseteq> {a .. b}"
-  using bounded_subset_closed_interval_symmetric[of s] by auto
+lemma bounded_subset_cbox:
+  fixes s :: "('a::euclidean_space) set"
+  shows "bounded s \<Longrightarrow> \<exists>a b. s \<subseteq> cbox a b"
+  using bounded_subset_cbox_symmetric[of s] by auto
 
 lemma frontier_closed_interval:
-  fixes a b :: "'a::ordered_euclidean_space"
-  shows "frontier {a .. b} = {a .. b} - box a b"
-  unfolding frontier_def unfolding interior_closed_interval and closure_closed[OF closed_interval] ..
+  fixes a b :: "'a::euclidean_space"
+  shows "frontier (cbox a b) = cbox a b - box a b"
+  unfolding frontier_def unfolding interior_cbox and closure_closed[OF closed_cbox] ..
 
 lemma frontier_open_interval:
-  fixes a b :: "'a::ordered_euclidean_space"
-  shows "frontier (box a b) = (if box a b = {} then {} else {a .. b} - box a b)"
+  fixes a b :: "'a::euclidean_space"
+  shows "frontier (box a b) = (if box a b = {} then {} else cbox a b - box a b)"
 proof (cases "box a b = {}")
   case True
   then show ?thesis
@@ -704,16 +705,16 @@ proof (cases "box a b = {}")
 next
   case False
   then show ?thesis
-    unfolding frontier_def and closure_open_interval[OF False] and interior_open[OF open_interval]
+    unfolding frontier_def and closure_open_interval[OF False] and interior_open[OF open_box]
     by auto
 qed
 
 lemma inter_interval_mixed_eq_empty:
-  fixes a :: "'a::ordered_euclidean_space"
-  assumes "box c d \<noteq> {}"
-  shows "box a b \<inter> {c .. d} = {} \<longleftrightarrow> box a b \<inter> box c d = {}"
+  fixes a :: "'a::euclidean_space"
+   assumes "box c d \<noteq> {}"
+  shows "box a b \<inter> cbox c d = {} \<longleftrightarrow> box a b \<inter> box c d = {}"
   unfolding closure_open_interval[OF assms, symmetric]
-  unfolding open_inter_closure_eq_empty[OF open_interval] ..
+  unfolding open_inter_closure_eq_empty[OF open_box] ..
 
 lemma diameter_closed_interval:
   fixes a b::"'a::ordered_euclidean_space"
@@ -726,9 +727,9 @@ text {* Intervals in general, including infinite and mixtures of open and closed
 definition "is_interval (s::('a::euclidean_space) set) \<longleftrightarrow>
   (\<forall>a\<in>s. \<forall>b\<in>s. \<forall>x. (\<forall>i\<in>Basis. ((a\<bullet>i \<le> x\<bullet>i \<and> x\<bullet>i \<le> b\<bullet>i) \<or> (b\<bullet>i \<le> x\<bullet>i \<and> x\<bullet>i \<le> a\<bullet>i))) \<longrightarrow> x \<in> s)"
 
-lemma is_interval_interval: "is_interval {a .. b::'a::ordered_euclidean_space}" (is ?th1)
+lemma is_interval_interval: "is_interval (cbox a (b::'a::euclidean_space))" (is ?th1)
   "is_interval (box a b)" (is ?th2) proof -
-  show ?th1 ?th2  unfolding is_interval_def mem_interval Ball_def atLeastAtMost_iff
+  show ?th1 ?th2  unfolding is_interval_def mem_box Ball_def atLeastAtMost_iff
     by(meson order_trans le_less_trans less_le_trans less_trans)+ qed
 
 lemma is_interval_empty:
@@ -756,7 +757,7 @@ lemma interval_subst:
   shows "(\<Sum>i\<in>Basis. (if i = j then y i \<bullet> i else x \<bullet> i) *\<^sub>R i) \<in> S"
   by (rule mem_is_intervalI[OF assms(1,2)]) (auto simp: assms)
 
-lemma mem_interval_componentwiseI:
+lemma mem_box_componentwiseI:
   fixes S::"'a::ordered_euclidean_space set"
   assumes "is_interval S"
   assumes "\<And>i. i \<in> Basis \<Longrightarrow> x \<bullet> i \<in> ((\<lambda>x. x \<bullet> i) ` S)"
@@ -787,93 +788,72 @@ proof -
   finally show ?thesis .
 qed
 
-text{* Instantiation for intervals on @{text ordered_euclidean_space} *}
-
-lemma eucl_lessThan_eq_halfspaces:
-  fixes a :: "'a\<Colon>ordered_euclidean_space"
+lemma eucl_less_eq_halfspaces:
+  fixes a :: "'a\<Colon>euclidean_space"
   shows "{x. x <e a} = (\<Inter>i\<in>Basis. {x. x \<bullet> i < a \<bullet> i})"
+    "{x. a <e x} = (\<Inter>i\<in>Basis. {x. a \<bullet> i < x \<bullet> i})"
   by (auto simp: eucl_less_def)
 
-lemma eucl_greaterThan_eq_halfspaces:
-  fixes a :: "'a\<Colon>ordered_euclidean_space"
-  shows "{x. a <e x} = (\<Inter>i\<in>Basis. {x. a \<bullet> i < x \<bullet> i})"
-  by (auto simp: eucl_less_def)
+lemma eucl_le_eq_halfspaces:
+  fixes a :: "'a\<Colon>euclidean_space"
+  shows "{x. \<forall>i\<in>Basis. x \<bullet> i \<le> a \<bullet> i} = (\<Inter>i\<in>Basis. {x. x \<bullet> i \<le> a \<bullet> i})"
+    "{x. \<forall>i\<in>Basis. a \<bullet> i \<le> x \<bullet> i} = (\<Inter>i\<in>Basis. {x. a \<bullet> i \<le> x \<bullet> i})"
+  by auto
 
-lemma eucl_atMost_eq_halfspaces:
-  fixes a :: "'a\<Colon>ordered_euclidean_space"
-  shows "{.. a} = (\<Inter>i\<in>Basis. {x. x \<bullet> i \<le> a \<bullet> i})"
-  by (auto simp: eucl_le[where 'a='a])
-
-lemma eucl_atLeast_eq_halfspaces:
-  fixes a :: "'a\<Colon>ordered_euclidean_space"
-  shows "{a ..} = (\<Inter>i\<in>Basis. {x. a \<bullet> i \<le> x \<bullet> i})"
-  by (auto simp: eucl_le[where 'a='a])
-
-lemma open_eucl_lessThan[simp, intro]:
-  fixes a :: "'a\<Colon>ordered_euclidean_space"
+lemma open_Collect_eucl_less[simp, intro]:
+  fixes a :: "'a\<Colon>euclidean_space"
   shows "open {x. x <e a}"
-  by (auto simp: eucl_lessThan_eq_halfspaces open_halfspace_component_lt)
+    "open {x. a <e x}"
+  by (auto simp: eucl_less_eq_halfspaces open_halfspace_component_lt open_halfspace_component_gt)
 
-lemma open_eucl_greaterThan[simp, intro]:
-  fixes a :: "'a\<Colon>ordered_euclidean_space"
-  shows "open {x. a <e x}"
-  by (auto simp: eucl_greaterThan_eq_halfspaces open_halfspace_component_gt)
+lemma closed_Collect_eucl_le[simp, intro]:
+  fixes a :: "'a\<Colon>euclidean_space"
+  shows "closed {x. \<forall>i\<in>Basis. a \<bullet> i \<le> x \<bullet> i}"
+    "closed {x. \<forall>i\<in>Basis. x \<bullet> i \<le> a \<bullet> i}"
+  unfolding eucl_le_eq_halfspaces
+  by (simp_all add: closed_INT closed_Collect_le)
 
-lemma closed_eucl_atMost[simp, intro]:
-  fixes a :: "'a\<Colon>ordered_euclidean_space"
-  shows "closed {.. a}"
-  unfolding eucl_atMost_eq_halfspaces
-  by (simp add: closed_INT closed_Collect_le)
-
-lemma closed_eucl_atLeast[simp, intro]:
-  fixes a :: "'a\<Colon>ordered_euclidean_space"
-  shows "closed {a ..}"
-  unfolding eucl_atLeast_eq_halfspaces
-  by (simp add: closed_INT closed_Collect_le)
-
-
-lemma image_affinity_interval: fixes m::real
-  fixes a b c :: "'a::ordered_euclidean_space"
-  shows "(\<lambda>x. m *\<^sub>R x + c) ` {a .. b} =
-    (if {a .. b} = {} then {}
-     else (if 0 \<le> m then {m *\<^sub>R a + c .. m *\<^sub>R b + c}
-     else {m *\<^sub>R b + c .. m *\<^sub>R a + c}))"
+lemma image_affinity_cbox: fixes m::real
+  fixes a b c :: "'a::euclidean_space"
+  shows "(\<lambda>x. m *\<^sub>R x + c) ` cbox a b =
+    (if cbox a b = {} then {}
+     else (if 0 \<le> m then cbox (m *\<^sub>R a + c) (m *\<^sub>R b + c)
+     else cbox (m *\<^sub>R b + c) (m *\<^sub>R a + c)))"
 proof (cases "m = 0")
   case True
   {
     fix x
-    assume "x \<le> c" "c \<le> x"
+    assume "\<forall>i\<in>Basis. x \<bullet> i \<le> c \<bullet> i" "\<forall>i\<in>Basis. c \<bullet> i \<le> x \<bullet> i"
     then have "x = c"
-      unfolding eucl_le[where 'a='a]
       apply -
       apply (subst euclidean_eq_iff)
       apply (auto intro: order_antisym)
       done
   }
-  moreover have "c \<in> {m *\<^sub>R a + c..m *\<^sub>R b + c}"
-    unfolding True by (auto simp add: eucl_le[where 'a='a])
-  ultimately show ?thesis using True by auto
+  moreover have "c \<in> cbox (m *\<^sub>R a + c) (m *\<^sub>R b + c)"
+    unfolding True by (auto simp add: cbox_sing)
+  ultimately show ?thesis using True by (auto simp: cbox_def)
 next
   case False
   {
     fix y
-    assume "a \<le> y" "y \<le> b" "m > 0"
-    then have "m *\<^sub>R a + c \<le> m *\<^sub>R y + c" and "m *\<^sub>R y + c \<le> m *\<^sub>R b + c"
-      unfolding eucl_le[where 'a='a] by (auto simp: inner_distrib)
+    assume "\<forall>i\<in>Basis. a \<bullet> i \<le> y \<bullet> i" "\<forall>i\<in>Basis. y \<bullet> i \<le> b \<bullet> i" "m > 0"
+    then have "\<forall>i\<in>Basis. (m *\<^sub>R a + c) \<bullet> i \<le> (m *\<^sub>R y + c) \<bullet> i" and "\<forall>i\<in>Basis. (m *\<^sub>R y + c) \<bullet> i \<le> (m *\<^sub>R b + c) \<bullet> i"
+      by (auto simp: inner_distrib)
   }
   moreover
   {
     fix y
-    assume "a \<le> y" "y \<le> b" "m < 0"
-    then have "m *\<^sub>R b + c \<le> m *\<^sub>R y + c" and "m *\<^sub>R y + c \<le> m *\<^sub>R a + c"
-      unfolding eucl_le[where 'a='a] by (auto simp add: mult_left_mono_neg inner_distrib)
+    assume "\<forall>i\<in>Basis. a \<bullet> i \<le> y \<bullet> i" "\<forall>i\<in>Basis. y \<bullet> i \<le> b \<bullet> i" "m < 0"
+    then have "\<forall>i\<in>Basis. (m *\<^sub>R b + c) \<bullet> i \<le> (m *\<^sub>R y + c) \<bullet> i" and "\<forall>i\<in>Basis. (m *\<^sub>R y + c) \<bullet> i \<le> (m *\<^sub>R a + c) \<bullet> i"
+      by (auto simp add: mult_left_mono_neg inner_distrib)
   }
   moreover
   {
     fix y
-    assume "m > 0" and "m *\<^sub>R a + c \<le> y" and "y \<le> m *\<^sub>R b + c"
-    then have "y \<in> (\<lambda>x. m *\<^sub>R x + c) ` {a..b}"
-      unfolding image_iff Bex_def mem_interval eucl_le[where 'a='a]
+    assume "m > 0" and "\<forall>i\<in>Basis. (m *\<^sub>R a + c) \<bullet> i \<le> y \<bullet> i" and "\<forall>i\<in>Basis. y \<bullet> i \<le> (m *\<^sub>R b + c) \<bullet> i"
+    then have "y \<in> (\<lambda>x. m *\<^sub>R x + c) ` cbox a b"
+      unfolding image_iff Bex_def mem_box
       apply (intro exI[where x="(1 / m) *\<^sub>R (y - c)"])
       apply (auto simp add: pos_le_divide_eq pos_divide_le_eq mult_commute diff_le_iff inner_distrib inner_diff_left)
       done
@@ -881,19 +861,58 @@ next
   moreover
   {
     fix y
-    assume "m *\<^sub>R b + c \<le> y" "y \<le> m *\<^sub>R a + c" "m < 0"
-    then have "y \<in> (\<lambda>x. m *\<^sub>R x + c) ` {a..b}"
-      unfolding image_iff Bex_def mem_interval eucl_le[where 'a='a]
+    assume "\<forall>i\<in>Basis. (m *\<^sub>R b + c) \<bullet> i \<le> y \<bullet> i" "\<forall>i\<in>Basis. y \<bullet> i \<le> (m *\<^sub>R a + c) \<bullet> i" "m < 0"
+    then have "y \<in> (\<lambda>x. m *\<^sub>R x + c) ` cbox a b"
+      unfolding image_iff Bex_def mem_box
       apply (intro exI[where x="(1 / m) *\<^sub>R (y - c)"])
       apply (auto simp add: neg_le_divide_eq neg_divide_le_eq mult_commute diff_le_iff inner_distrib inner_diff_left)
       done
   }
-  ultimately show ?thesis using False by auto
+  ultimately show ?thesis using False by (auto simp: cbox_def)
 qed
 
-lemma image_smult_interval:"(\<lambda>x. m *\<^sub>R (x::_::ordered_euclidean_space)) ` {a..b} =
-  (if {a..b} = {} then {} else if 0 \<le> m then {m *\<^sub>R a..m *\<^sub>R b} else {m *\<^sub>R b..m *\<^sub>R a})"
-  using image_affinity_interval[of m 0 a b] by auto
+lemma image_smult_cbox:"(\<lambda>x. m *\<^sub>R (x::_::euclidean_space)) ` cbox a b =
+  (if cbox a b = {} then {} else if 0 \<le> m then cbox (m *\<^sub>R a) (m *\<^sub>R b) else cbox (m *\<^sub>R b) (m *\<^sub>R a))"
+  using image_affinity_cbox[of m 0 a b] by auto
+
+text{* Instantiation for intervals on @{text ordered_euclidean_space} *}
+
+lemma
+  fixes a :: "'a\<Colon>ordered_euclidean_space"
+  shows cbox_interval: "cbox a b = {a..b}"
+    and interval_cbox: "{a..b} = cbox a b"
+    and eucl_le_atMost: "{x. \<forall>i\<in>Basis. x \<bullet> i <= a \<bullet> i} = {..a}"
+    and eucl_le_atLeast: "{x. \<forall>i\<in>Basis. a \<bullet> i <= x \<bullet> i} = {a..}"
+    by (auto simp: eucl_le[where 'a='a] eucl_less_def box_def cbox_def)
+
+lemma closed_eucl_atLeastAtMost[simp, intro]:
+  fixes a :: "'a\<Colon>ordered_euclidean_space"
+  shows "closed {a..b}"
+  by (simp add: cbox_interval[symmetric] closed_cbox)
+
+lemma closed_eucl_atMost[simp, intro]:
+  fixes a :: "'a\<Colon>ordered_euclidean_space"
+  shows "closed {..a}"
+  by (simp add: eucl_le_atMost[symmetric])
+
+lemma closed_eucl_atLeast[simp, intro]:
+  fixes a :: "'a\<Colon>ordered_euclidean_space"
+  shows "closed {a..}"
+  by (simp add: eucl_le_atLeast[symmetric])
+
+lemma image_affinity_interval: fixes m::real
+  fixes a b c :: "'a::ordered_euclidean_space"
+  shows "(\<lambda>x. m *\<^sub>R x + c) ` {a..b} =
+    (if {a..b} = {} then {}
+     else (if 0 \<le> m then {m *\<^sub>R a + c .. m *\<^sub>R b + c}
+     else {m *\<^sub>R b + c .. m *\<^sub>R a + c}))"
+  using image_affinity_cbox[of m c a b]
+  by (simp add: cbox_interval)
+
+lemma image_smult_interval:"(\<lambda>x. m *\<^sub>R (x::_::ordered_euclidean_space)) ` {a .. b} =
+  (if {a .. b} = {} then {} else if 0 \<le> m then {m *\<^sub>R a .. m *\<^sub>R b} else {m *\<^sub>R b .. m *\<^sub>R a})"
+  using image_smult_cbox[of m a b]
+  by (simp add: cbox_interval)
 
 no_notation
   eucl_less (infix "<e" 50)

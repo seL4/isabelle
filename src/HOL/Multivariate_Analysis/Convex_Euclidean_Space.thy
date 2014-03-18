@@ -1336,14 +1336,14 @@ lemma connected_UNIV[intro]: "connected (UNIV :: 'a::real_normed_vector set)"
 
 text {* Balls, being convex, are connected. *}
 
-lemma convex_box:
+lemma convex_prod:
   assumes "\<And>i. i \<in> Basis \<Longrightarrow> convex {x. P i x}"
   shows "convex {x. \<forall>i\<in>Basis. P i (x\<bullet>i)}"
   using assms unfolding convex_def
   by (auto simp: inner_add_left)
 
 lemma convex_positive_orthant: "convex {x::'a::euclidean_space. (\<forall>i\<in>Basis. 0 \<le> x\<bullet>i)}"
-  by (rule convex_box) (simp add: atLeast_def[symmetric] convex_real_interval)
+  by (rule convex_prod) (simp add: atLeast_def[symmetric] convex_real_interval)
 
 lemma convex_local_global_minimum:
   fixes s :: "'a::real_normed_vector set"
@@ -3361,21 +3361,18 @@ proof -
   ultimately show ?thesis by auto
 qed
 
-lemma box_real: "box a b = {a<..<b::real}"
-  by (force simp add: box_def)
-
-lemma rel_interior_real_interval:
+lemma rel_interior_real_box:
   fixes a b :: real
   assumes "a < b"
-  shows "rel_interior {a..b} = {a<..<b}"
+  shows "rel_interior {a .. b} = {a <..< b}"
 proof -
   have "box a b \<noteq> {}"
     using assms
     unfolding set_eq_iff
-    by (auto intro!: exI[of _ "(a + b) / 2"] simp: box_def)
+    by (auto intro!: exI[of _ "(a + b) / 2"] simp: box)
   then show ?thesis
-    using interior_rel_interior_gen[of "{a..b}", symmetric]
-    by (simp split: split_if_asm add: interior_closed_interval box_real)
+    using interior_rel_interior_gen[of "cbox a b", symmetric]
+    by (simp split: split_if_asm del: box_real add: box_real[symmetric] interior_cbox)
 qed
 
 lemma rel_interior_real_semiline:
@@ -3825,12 +3822,12 @@ proof -
     apply simp
     apply auto
     done
-  have "continuous_on ({0..1} \<times> s \<times> t) (\<lambda>z. (1 - fst z) *\<^sub>R fst (snd z) + fst z *\<^sub>R snd (snd z))"
+  have "continuous_on ?X (\<lambda>z. (1 - fst z) *\<^sub>R fst (snd z) + fst z *\<^sub>R snd (snd z))"
     unfolding continuous_on by (rule ballI) (intro tendsto_intros)
   then show ?thesis
     unfolding *
     apply (rule compact_continuous_image)
-    apply (intro compact_Times compact_interval assms)
+    apply (intro compact_Times compact_Icc assms)
     done
 qed
 
@@ -3854,7 +3851,7 @@ next
     have "continuous_on ?T ?f"
       unfolding split_def continuous_on by (intro ballI tendsto_intros)
     moreover have "compact ?T"
-      by (intro compact_Times compact_interval insert)
+      by (intro compact_Times compact_Icc insert)
     ultimately have "compact (?f ` ?T)"
       by (rule compact_continuous_image)
     also have "?f ` ?T = convex hull (insert x A)"
@@ -5083,7 +5080,7 @@ proof -
     apply (rule continuous_at_imp_continuous_on)
     apply rule
     apply (intro continuous_intros)
-    apply (rule compact_interval)
+    apply (rule compact_Icc)
     done
   moreover have "{y. \<exists>u\<ge>0. u \<le> b / norm x \<and> y = u *\<^sub>R x} \<inter> s \<noteq> {}"
     apply(rule *[OF _ assms(2)])
@@ -5673,8 +5670,8 @@ lemma is_interval_connected:
   shows "is_interval s \<Longrightarrow> connected s"
   using is_interval_convex convex_connected by auto
 
-lemma convex_interval: "convex {a .. b}" "convex (box a (b::'a::ordered_euclidean_space))"
-  apply (rule_tac[!] is_interval_convex)
+lemma convex_box: "convex (cbox a b)" "convex (box a (b::'a::euclidean_space))"
+  apply (rule_tac[!] is_interval_convex)+
   using is_interval_interval
   apply auto
   done
@@ -5741,35 +5738,35 @@ subsection {* Another intermediate value theorem formulation *}
 lemma ivt_increasing_component_on_1:
   fixes f :: "real \<Rightarrow> 'a::euclidean_space"
   assumes "a \<le> b"
-    and "continuous_on {a .. b} f"
+    and "continuous_on (cbox a b) f"
     and "(f a)\<bullet>k \<le> y" "y \<le> (f b)\<bullet>k"
-  shows "\<exists>x\<in>{a..b}. (f x)\<bullet>k = y"
+  shows "\<exists>x\<in>cbox a b. (f x)\<bullet>k = y"
 proof -
-  have "f a \<in> f ` {a..b}" "f b \<in> f ` {a..b}"
+  have "f a \<in> f ` cbox a b" "f b \<in> f ` cbox a b"
     apply (rule_tac[!] imageI)
     using assms(1)
     apply auto
     done
   then show ?thesis
-    using connected_ivt_component[of "f ` {a..b}" "f a" "f b" k y]
-    using connected_continuous_image[OF assms(2) convex_connected[OF convex_real_interval(5)]]
+    using connected_ivt_component[of "f ` cbox a b" "f a" "f b" k y]
+    using connected_continuous_image[OF assms(2) convex_connected[OF convex_box(1)]]
     using assms
-    by (auto intro!: imageI)
+    by auto
 qed
 
 lemma ivt_increasing_component_1:
   fixes f :: "real \<Rightarrow> 'a::euclidean_space"
-  shows "a \<le> b \<Longrightarrow> \<forall>x\<in>{a .. b}. continuous (at x) f \<Longrightarrow>
-    f a\<bullet>k \<le> y \<Longrightarrow> y \<le> f b\<bullet>k \<Longrightarrow> \<exists>x\<in>{a..b}. (f x)\<bullet>k = y"
+  shows "a \<le> b \<Longrightarrow> \<forall>x\<in>cbox a b. continuous (at x) f \<Longrightarrow>
+    f a\<bullet>k \<le> y \<Longrightarrow> y \<le> f b\<bullet>k \<Longrightarrow> \<exists>x\<in>cbox a b. (f x)\<bullet>k = y"
   by (rule ivt_increasing_component_on_1) (auto simp add: continuous_at_imp_continuous_on)
 
 lemma ivt_decreasing_component_on_1:
   fixes f :: "real \<Rightarrow> 'a::euclidean_space"
   assumes "a \<le> b"
-    and "continuous_on {a .. b} f"
+    and "continuous_on (cbox a b) f"
     and "(f b)\<bullet>k \<le> y"
     and "y \<le> (f a)\<bullet>k"
-  shows "\<exists>x\<in>{a..b}. (f x)\<bullet>k = y"
+  shows "\<exists>x\<in>cbox a b. (f x)\<bullet>k = y"
   apply (subst neg_equal_iff_equal[symmetric])
   using ivt_increasing_component_on_1[of a b "\<lambda>x. - f x" k "- y"]
   using assms using continuous_on_minus
@@ -5778,8 +5775,8 @@ lemma ivt_decreasing_component_on_1:
 
 lemma ivt_decreasing_component_1:
   fixes f :: "real \<Rightarrow> 'a::euclidean_space"
-  shows "a \<le> b \<Longrightarrow> \<forall>x\<in>{a .. b}. continuous (at x) f \<Longrightarrow>
-    f b\<bullet>k \<le> y \<Longrightarrow> y \<le> f a\<bullet>k \<Longrightarrow> \<exists>x\<in>{a..b}. (f x)\<bullet>k = y"
+  shows "a \<le> b \<Longrightarrow> \<forall>x\<in>cbox a b. continuous (at x) f \<Longrightarrow>
+    f b\<bullet>k \<le> y \<Longrightarrow> y \<le> f a\<bullet>k \<Longrightarrow> \<exists>x\<in>cbox a b. (f x)\<bullet>k = y"
   by (rule ivt_decreasing_component_on_1) (auto simp: continuous_at_imp_continuous_on)
 
 
@@ -5886,32 +5883,33 @@ proof -
     by (simp add: f.add f.scaleR linear_iff)
 qed
 
-lemma convex_hull_eq_real_interval:
+lemma convex_hull_eq_real_cbox:
   fixes x y :: real assumes "x \<le> y"
-  shows "convex hull {x, y} = {x..y}"
+  shows "convex hull {x, y} = cbox x y"
 proof (rule hull_unique)
-  show "{x, y} \<subseteq> {x..y}" using `x \<le> y` by auto
-  show "convex {x..y}" by (rule convex_interval)
+  show "{x, y} \<subseteq> cbox x y" using `x \<le> y` by auto
+  show "convex (cbox x y)"
+    by (rule convex_box)
 next
   fix s assume "{x, y} \<subseteq> s" and "convex s"
-  then show "{x..y} \<subseteq> s"
+  then show "cbox x y \<subseteq> s"
     unfolding is_interval_convex_1 [symmetric] is_interval_def Basis_real_def
     by - (clarify, simp (no_asm_use), fast)
 qed
 
 lemma unit_interval_convex_hull:
   defines "One \<equiv> \<Sum>Basis"
-  shows "{0::'a::ordered_euclidean_space .. One} = convex hull {x. \<forall>i\<in>Basis. (x\<bullet>i = 0) \<or> (x\<bullet>i = 1)}"
+  shows "cbox (0::'a::euclidean_space) One = convex hull {x. \<forall>i\<in>Basis. (x\<bullet>i = 0) \<or> (x\<bullet>i = 1)}"
   (is "?int = convex hull ?points")
 proof -
   have One[simp]: "\<And>i. i \<in> Basis \<Longrightarrow> One \<bullet> i = 1"
     by (simp add: One_def inner_setsum_left setsum_cases inner_Basis)
-  have "?int = {x. \<forall>i\<in>Basis. x \<bullet> i \<in> {0..1}}"
-    by (auto simp add: eucl_le [where 'a='a])
-  also have "\<dots> = (\<Sum>i\<in>Basis. (\<lambda>x. x *\<^sub>R i) ` {0..1})"
+  have "?int = {x. \<forall>i\<in>Basis. x \<bullet> i \<in> cbox 0 1}"
+    by (auto simp: cbox_def)
+  also have "\<dots> = (\<Sum>i\<in>Basis. (\<lambda>x. x *\<^sub>R i) ` cbox 0 1)"
     by (simp only: box_eq_set_setsum_Basis)
   also have "\<dots> = (\<Sum>i\<in>Basis. (\<lambda>x. x *\<^sub>R i) ` (convex hull {0, 1}))"
-    by (simp only: convex_hull_eq_real_interval zero_le_one)
+    by (simp only: convex_hull_eq_real_cbox zero_le_one)
   also have "\<dots> = (\<Sum>i\<in>Basis. convex hull ((\<lambda>x. x *\<^sub>R i) ` {0, 1}))"
     by (simp only: convex_hull_linear_image linear_scaleR_left)
   also have "\<dots> = convex hull (\<Sum>i\<in>Basis. (\<lambda>x. x *\<^sub>R i) ` {0, 1})"
@@ -5926,8 +5924,8 @@ qed
 text {* And this is a finite set of vertices. *}
 
 lemma unit_cube_convex_hull:
-  obtains s :: "'a::ordered_euclidean_space set"
-    where "finite s" and "{0 .. \<Sum>Basis} = convex hull s"
+  obtains s :: "'a::euclidean_space set"
+    where "finite s" and "cbox 0 (\<Sum>Basis) = convex hull s"
   apply (rule that[of "{x::'a. \<forall>i\<in>Basis. x\<bullet>i=0 \<or> x\<bullet>i=1}"])
   apply (rule finite_subset[of _ "(\<lambda>s. (\<Sum>i\<in>Basis. (if i\<in>s then 1 else 0) *\<^sub>R i)::'a) ` Pow Basis"])
   prefer 3
@@ -5949,23 +5947,23 @@ text {* Hence any cube (could do any nonempty interval). *}
 
 lemma cube_convex_hull:
   assumes "d > 0"
-  obtains s :: "'a::ordered_euclidean_space set" where
-    "finite s" and "{x - (\<Sum>i\<in>Basis. d*\<^sub>Ri) .. x + (\<Sum>i\<in>Basis. d*\<^sub>Ri)} = convex hull s"
+  obtains s :: "'a::euclidean_space set" where
+    "finite s" and "cbox (x - (\<Sum>i\<in>Basis. d*\<^sub>Ri)) (x + (\<Sum>i\<in>Basis. d*\<^sub>Ri)) = convex hull s"
 proof -
   let ?d = "(\<Sum>i\<in>Basis. d*\<^sub>Ri)::'a"
-  have *: "{x - ?d .. x + ?d} = (\<lambda>y. x - ?d + (2 * d) *\<^sub>R y) ` {0 .. \<Sum>Basis}"
+  have *: "cbox (x - ?d) (x + ?d) = (\<lambda>y. x - ?d + (2 * d) *\<^sub>R y) ` cbox 0 (\<Sum>Basis)"
     apply (rule set_eqI, rule)
     unfolding image_iff
     defer
     apply (erule bexE)
   proof -
     fix y
-    assume as: "y\<in>{x - ?d .. x + ?d}"
+    assume as: "y\<in>cbox (x - ?d) (x + ?d)"
     {
       fix i :: 'a
       assume i: "i \<in> Basis"
       have "x \<bullet> i \<le> d + y \<bullet> i" "y \<bullet> i \<le> d + x \<bullet> i"
-        using as[unfolded mem_interval, THEN bspec[where x=i]] i
+        using as[unfolded mem_box, THEN bspec[where x=i]] i
         by (auto simp: inner_simps)
       then have "1 \<ge> inverse d * (x \<bullet> i - y \<bullet> i)" "1 \<ge> inverse d * (y \<bullet> i - x \<bullet> i)"
         apply (rule_tac[!] mult_left_le_imp_le[OF _ assms])
@@ -5975,10 +5973,10 @@ proof -
       then have "inverse d * (x \<bullet> i * 2) \<le> 2 + inverse d * (y \<bullet> i * 2)"
         "inverse d * (y \<bullet> i * 2) \<le> 2 + inverse d * (x \<bullet> i * 2)"
         by (auto simp add:field_simps) }
-    then have "inverse (2 * d) *\<^sub>R (y - (x - ?d)) \<in> {0..\<Sum>Basis}"
-      unfolding mem_interval using assms
+    then have "inverse (2 * d) *\<^sub>R (y - (x - ?d)) \<in> cbox 0 (\<Sum>Basis)"
+      unfolding mem_box using assms
       by (auto simp add: field_simps inner_simps)
-    then show "\<exists>z\<in>{0..\<Sum>Basis}. y = x - ?d + (2 * d) *\<^sub>R z"
+    then show "\<exists>z\<in>cbox 0 (\<Sum>Basis). y = x - ?d + (2 * d) *\<^sub>R z"
       apply -
       apply (rule_tac x="inverse (2 * d) *\<^sub>R (y - (x - ?d))" in bexI)
       using assms
@@ -5986,9 +5984,9 @@ proof -
       done
   next
     fix y z
-    assume as: "z\<in>{0..\<Sum>Basis}" "y = x - ?d + (2*d) *\<^sub>R z"
+    assume as: "z\<in>cbox 0 (\<Sum>Basis)" "y = x - ?d + (2*d) *\<^sub>R z"
     have "\<And>i. i\<in>Basis \<Longrightarrow> 0 \<le> d * (z \<bullet> i) \<and> d * (z \<bullet> i) \<le> d"
-      using assms as(1)[unfolded mem_interval]
+      using assms as(1)[unfolded mem_box]
       apply (erule_tac x=i in ballE)
       apply rule
       apply (rule mult_nonneg_nonneg)
@@ -5997,17 +5995,17 @@ proof -
       using assms
       apply auto
       done
-    then show "y \<in> {x - ?d..x + ?d}"
-      unfolding as(2) mem_interval
+    then show "y \<in> cbox (x - ?d) (x + ?d)"
+      unfolding as(2) mem_box
       apply -
       apply rule
-      using as(1)[unfolded mem_interval]
+      using as(1)[unfolded mem_box]
       apply (erule_tac x=i in ballE)
       using assms
       apply (auto simp: inner_simps)
       done
   qed
-  obtain s where "finite s" "{0::'a..\<Sum>Basis} = convex hull s"
+  obtain s where "finite s" "cbox 0 (\<Sum>Basis::'a) = convex hull s"
     using unit_cube_convex_hull by auto
   then show ?thesis
     apply (rule_tac that[of "(\<lambda>y. x - ?d + (2 * d) *\<^sub>R y)` s"])
@@ -6198,14 +6196,14 @@ proof
     def c \<equiv> "\<Sum>i\<in>Basis. (\<lambda>a. a *\<^sub>R i) ` {x\<bullet>i - d, x\<bullet>i + d}"
     show "finite c"
       unfolding c_def by (simp add: finite_set_setsum)
-    have 1: "convex hull c = {a. \<forall>i\<in>Basis. a \<bullet> i \<in> {x \<bullet> i - d..x \<bullet> i + d}}"
+    have 1: "convex hull c = {a. \<forall>i\<in>Basis. a \<bullet> i \<in> cbox (x \<bullet> i - d) (x \<bullet> i + d)}"
       unfolding box_eq_set_setsum_Basis
       unfolding c_def convex_hull_set_setsum
       apply (subst convex_hull_linear_image [symmetric])
       apply (simp add: linear_iff scaleR_add_left)
       apply (rule setsum_cong [OF refl])
       apply (rule image_cong [OF _ refl])
-      apply (rule convex_hull_eq_real_interval)
+      apply (rule convex_hull_eq_real_cbox)
       apply (cut_tac `0 < d`, simp)
       done
     then have 2: "convex hull c = {a. \<forall>i\<in>Basis. a \<bullet> i \<in> cball (x \<bullet> i) d}"

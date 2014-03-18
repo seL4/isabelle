@@ -4426,21 +4426,21 @@ lemma continuous_on_interval_bij: "continuous_on s (interval_bij (a, b) (u, v))"
   done
 
 lemma in_interval_interval_bij:
-  fixes a b u v x :: "'a::ordered_euclidean_space"
-  assumes "x \<in> {a..b}"
-    and "{u..v} \<noteq> {}"
-  shows "interval_bij (a, b) (u, v) x \<in> {u..v}"
-  apply (simp only: interval_bij_def split_conv mem_interval inner_setsum_left_Basis cong: ball_cong)
+  fixes a b u v x :: "'a::euclidean_space"
+  assumes "x \<in> cbox a b"
+    and "cbox u v \<noteq> {}"
+  shows "interval_bij (a, b) (u, v) x \<in> cbox u v"
+  apply (simp only: interval_bij_def split_conv mem_box inner_setsum_left_Basis cong: ball_cong)
   apply safe
 proof -
   fix i :: 'a
   assume i: "i \<in> Basis"
-  have "{a..b} \<noteq> {}"
+  have "cbox a b \<noteq> {}"
     using assms by auto
   with i have *: "a\<bullet>i \<le> b\<bullet>i" "u\<bullet>i \<le> v\<bullet>i"
-    using assms(2) by (auto simp add: interval_eq_empty interval)
+    using assms(2) by (auto simp add: box_eq_empty)
   have x: "a\<bullet>i\<le>x\<bullet>i" "x\<bullet>i\<le>b\<bullet>i"
-    using assms(1)[unfolded mem_interval] using i by auto
+    using assms(1)[unfolded mem_box] using i by auto
   have "0 \<le> (x \<bullet> i - a \<bullet> i) / (b \<bullet> i - a \<bullet> i) * (v \<bullet> i - u \<bullet> i)"
     using * x by (auto intro!: mult_nonneg_nonneg divide_nonneg_nonneg)
   then show "u \<bullet> i \<le> u \<bullet> i + (x \<bullet> i - a \<bullet> i) / (b \<bullet> i - a \<bullet> i) * (v \<bullet> i - u \<bullet> i)"

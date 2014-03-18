@@ -44,7 +44,7 @@ lemma injective_imp_simple_path: "injective_path g \<Longrightarrow> simple_path
   by auto
 
 lemma path_image_nonempty: "path_image g \<noteq> {}"
-  unfolding path_image_def image_is_empty interval_eq_empty
+  unfolding path_image_def image_is_empty box_eq_empty
   by auto
 
 lemma pathstart_in_path_image[intro]: "pathstart g \<in> path_image g"
@@ -64,7 +64,7 @@ lemma connected_path_image[intro]: "path g \<Longrightarrow> connected (path_ima
 lemma compact_path_image[intro]: "path g \<Longrightarrow> compact (path_image g)"
   unfolding path_def path_image_def
   apply (erule compact_continuous_image)
-  apply (rule compact_interval)
+  apply (rule compact_Icc)
   done
 
 lemma reversepath_reversepath[simp]: "reversepath (reversepath g) = g"
