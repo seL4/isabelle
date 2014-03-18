@@ -5231,6 +5231,14 @@ lemma integral_component_lbound:
   apply auto
   done
 
+lemma integral_component_lbound_real:
+  assumes "f integrable_on {a ::real .. b}"
+    and "\<forall>x\<in>{a .. b}. B \<le> f(x)\<bullet>k"
+    and "k \<in> Basis"
+  shows "B * content {a .. b} \<le> (integral {a .. b} f)\<bullet>k"
+  using assms
+  by (metis box_real(2) integral_component_lbound)
+
 lemma integral_component_ubound:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "f integrable_on cbox a b"
@@ -5243,6 +5251,14 @@ lemma integral_component_ubound:
   apply auto
   done
 
+lemma integral_component_ubound_real:
+  fixes f :: "real \<Rightarrow> 'a::euclidean_space"
+  assumes "f integrable_on {a .. b}"
+    and "\<forall>x\<in>{a .. b}. f x\<bullet>k \<le> B"
+    and "k \<in> Basis"
+  shows "(integral {a .. b} f)\<bullet>k \<le> B * content {a .. b}"
+  using assms
+  by (metis box_real(2) integral_component_ubound)
 
 subsection {* Uniform limit of integrable functions is integrable. *}
 

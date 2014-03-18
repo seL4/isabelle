@@ -205,6 +205,12 @@ lemma bounded_closed_interval:
   using bounded_cbox[of a b]
   by (metis interval_cbox)
 
+lemma convex_closed_interval:
+  fixes a :: "'a::ordered_euclidean_space"
+  shows "convex {a .. b}"
+  using convex_box[of a b]
+  by (metis interval_cbox)
+
 lemma image_affinity_interval: fixes m::real
   fixes a b c :: "'a::ordered_euclidean_space"
   shows "(\<lambda>x. m *\<^sub>R x + c) ` {a..b} =
@@ -222,6 +228,11 @@ lemma image_smult_interval:"(\<lambda>x. m *\<^sub>R (x::_::ordered_euclidean_sp
 lemma is_interval_closed_interval:
   "is_interval {a .. (b::'a::ordered_euclidean_space)}"
   by (metis cbox_interval is_interval_cbox)
+
+lemma compact_interval:
+  fixes a b::"'a::ordered_euclidean_space"
+  shows "compact {a .. b}"
+  by (metis compact_cbox interval_cbox)
 
 no_notation
   eucl_less (infix "<e" 50)
@@ -249,6 +260,16 @@ lemma integrable_on_subinterval:
   shows "f integrable_on {a .. b}"
   using integrable_on_subcbox[of f s a b] assms
   by (simp add: cbox_interval)
+
+lemma
+  fixes a b::"'a::ordered_euclidean_space"
+  shows bdd_above_cbox[intro, simp]: "bdd_above (cbox a b)"
+    and bdd_below_cbox[intro, simp]: "bdd_below (cbox a b)"
+    and bdd_above_box[intro, simp]: "bdd_above (box a b)"
+    and bdd_below_box[intro, simp]: "bdd_below (box a b)"
+  unfolding atomize_conj
+  by (metis bdd_above_Icc bdd_above_mono bdd_below_Icc bdd_below_mono bounded_box
+    bounded_subset_cbox interval_cbox)
 
 instantiation vec :: (ordered_euclidean_space, finite) ordered_euclidean_space
 begin
