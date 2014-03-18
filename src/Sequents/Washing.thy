@@ -32,10 +32,10 @@ where
 
 (* "activate" definitions for use in proof *)
 
-ML {* bind_thms ("changeI", [@{thm context1}] RL ([@{thm change}] RLN (2,[@{thm cut}]))) *}
-ML {* bind_thms ("load1I", [@{thm context1}] RL ([@{thm load1}] RLN (2,[@{thm cut}]))) *}
-ML {* bind_thms ("washI", [@{thm context1}] RL ([@{thm wash}] RLN (2,[@{thm cut}]))) *}
-ML {* bind_thms ("dryI", [@{thm context1}] RL ([@{thm dry}] RLN (2,[@{thm cut}]))) *}
+ML {* ML_Thms.bind_thms ("changeI", [@{thm context1}] RL ([@{thm change}] RLN (2,[@{thm cut}]))) *}
+ML {* ML_Thms.bind_thms ("load1I", [@{thm context1}] RL ([@{thm load1}] RLN (2,[@{thm cut}]))) *}
+ML {* ML_Thms.bind_thms ("washI", [@{thm context1}] RL ([@{thm wash}] RLN (2,[@{thm cut}]))) *}
+ML {* ML_Thms.bind_thms ("dryI", [@{thm context1}] RL ([@{thm dry}] RLN (2,[@{thm cut}]))) *}
 
 (* a load of dirty clothes and two dollars gives you clean clothes *)
 

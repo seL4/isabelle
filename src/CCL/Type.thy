@@ -101,7 +101,7 @@ lemma LiftXH: "a : [A] <-> (a=bot | a:A)"
   unfolding simp_type_defs by blast+
 
 ML {*
-bind_thms ("case_rls", XH_to_Es @{thms XHs});
+ML_Thms.bind_thms ("case_rls", XH_to_Es @{thms XHs});
 *}
 
 
@@ -262,7 +262,7 @@ lemma NatXH: "a : Nat <-> (a=zero | (EX x:Nat. a=succ(x)))"
 
 lemmas iXHs = NatXH ListXH
 
-ML {* bind_thms ("icase_rls", XH_to_Es @{thms iXHs}) *}
+ML {* ML_Thms.bind_thms ("icase_rls", XH_to_Es @{thms iXHs}) *}
 
 
 subsection {* Type Rules *}
@@ -340,7 +340,7 @@ lemma SgE2:
 (*         - intro rules are type rules for canonical terms                *)
 (*         - elim rules are case rules (no non-canonical terms appear)     *)
 
-ML {* bind_thms ("XHEs", XH_to_Es @{thms XHs}) *}
+ML {* ML_Thms.bind_thms ("XHEs", XH_to_Es @{thms XHs}) *}
 
 lemmas [intro!] = SubtypeI canTs icanTs
   and [elim!] = SubtypeE XHEs

@@ -4,25 +4,14 @@
 ML context and antiquotations.
 *)
 
-signature BASIC_ML_CONTEXT =
-sig
-  val bind_thm: string * thm -> unit
-  val bind_thms: string * thm list -> unit
-end
-
 signature ML_CONTEXT =
 sig
-  include BASIC_ML_CONTEXT
   val the_generic_context: unit -> Context.generic
   val the_global_context: unit -> theory
   val the_local_context: unit -> Proof.context
   val thm: xstring -> thm
   val thms: xstring -> thm list
   val exec: (unit -> unit) -> Context.generic -> Context.generic
-  val get_stored_thms: unit -> thm list
-  val get_stored_thm: unit -> thm
-  val ml_store_thms: string * thm list -> unit
-  val ml_store_thm: string * thm -> unit
   val check_antiquotation: Proof.context -> xstring * Position.T -> string
   val print_antiquotations: Proof.context -> unit
   type decl = Proof.context -> string * string
@@ -57,41 +46,6 @@ fun exec (e: unit -> unit) context =
   (case Context.setmp_thread_data (SOME context) (fn () => (e (); Context.thread_data ())) () of
     SOME context' => context'
   | NONE => error "Missing context after execution");
-
-
-(* theorem bindings *)
-
-structure Stored_Thms = Theory_Data
-(
-  type T = thm list;
-  val empty = [];
-  fun extend _ = [];
-  fun merge _ = [];
-);
-
-fun get_stored_thms () = Stored_Thms.get (the_global_context ());
-val get_stored_thm = hd o get_stored_thms;
-
-fun ml_store get (name, ths) =
-  let
-    val ths' = Context.>>> (Context.map_theory_result
-      (Global_Theory.store_thms (Binding.name name, ths)));
-    val _ = Theory.setup (Stored_Thms.put ths');
-    val _ =
-      if name = "" then ()
-      else if not (ML_Syntax.is_identifier name) then
-        error ("Cannot bind theorem(s) " ^ quote name ^ " as ML value")
-      else
-        ML_Compiler.eval true Position.none
-          (ML_Lex.tokenize ("val " ^ name ^ " = " ^ get ^ " ();"));
-    val _ = Theory.setup (Stored_Thms.put []);
-  in () end;
-
-val ml_store_thms = ml_store "ML_Context.get_stored_thms";
-fun ml_store_thm (name, th) = ml_store "ML_Context.get_stored_thm" (name, [th]);
-
-fun bind_thm (name, thm) = ml_store_thm (name, Drule.export_without_context thm);
-fun bind_thms (name, thms) = ml_store_thms (name, map Drule.export_without_context thms);
 
 
 
@@ -238,5 +192,3 @@ fun expression pos bind body ants =
 
 end;
 
-structure Basic_ML_Context: BASIC_ML_CONTEXT = ML_Context;
-open Basic_ML_Context;

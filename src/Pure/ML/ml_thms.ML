@@ -8,6 +8,12 @@ signature ML_THMS =
 sig
   val the_attributes: Proof.context -> int -> Args.src list
   val the_thmss: Proof.context -> thm list list
+  val get_stored_thms: unit -> thm list
+  val get_stored_thm: unit -> thm
+  val store_thms: string * thm list -> unit
+  val store_thm: string * thm -> unit
+  val bind_thm: string * thm -> unit
+  val bind_thms: string * thm list -> unit
 end;
 
 structure ML_Thms: ML_THMS =
@@ -99,6 +105,41 @@ val _ = Theory.setup
           Proof_Context.get_fact ctxt'
             (Facts.named (Proof_Context.full_name ctxt' (Binding.name Auto_Bind.thisN)));
       in thm_binding "lemma" (length (flat propss) = 1) thms ctxt end));
+
+
+(* old-style theorem bindings *)
+
+structure Stored_Thms = Theory_Data
+(
+  type T = thm list;
+  val empty = [];
+  fun extend _ = [];
+  fun merge _ = [];
+);
+
+fun get_stored_thms () = Stored_Thms.get (ML_Context.the_global_context ());
+val get_stored_thm = hd o get_stored_thms;
+
+fun ml_store get (name, ths) =
+  let
+    val ths' = Context.>>> (Context.map_theory_result
+      (Global_Theory.store_thms (Binding.name name, ths)));
+    val _ = Theory.setup (Stored_Thms.put ths');
+    val _ =
+      if name = "" then ()
+      else if not (ML_Syntax.is_identifier name) then
+        error ("Cannot bind theorem(s) " ^ quote name ^ " as ML value")
+      else
+        ML_Compiler.eval true Position.none
+          (ML_Lex.tokenize ("val " ^ name ^ " = " ^ get ^ " ();"));
+    val _ = Theory.setup (Stored_Thms.put []);
+  in () end;
+
+val store_thms = ml_store "ML_Thms.get_stored_thms";
+fun store_thm (name, th) = ml_store "ML_Thms.get_stored_thm" (name, [th]);
+
+fun bind_thm (name, thm) = store_thm (name, Drule.export_without_context thm);
+fun bind_thms (name, thms) = store_thms (name, map Drule.export_without_context thms);
 
 end;
 

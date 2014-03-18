@@ -262,7 +262,7 @@ definition
   is_stmt :: "term \<Rightarrow> bool"
   where "is_stmt t = (\<exists>c. t=In1r c)"
 
-ML {* bind_thms ("is_stmt_rews", sum3_instantiate @{context} @{thm is_stmt_def}) *}
+ML {* ML_Thms.bind_thms ("is_stmt_rews", sum3_instantiate @{context} @{thm is_stmt_def}) *}
 
 declare is_stmt_rews [simp]
 

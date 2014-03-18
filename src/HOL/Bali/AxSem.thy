@@ -1006,7 +1006,7 @@ apply (erule mp [THEN conseq12])
 apply  (auto simp add: type_ok_def)
 done
 
-ML {* bind_thms ("ax_Abrupts", sum3_instantiate @{context} @{thm ax_derivs.Abrupt}) *}
+ML {* ML_Thms.bind_thms ("ax_Abrupts", sum3_instantiate @{context} @{thm ax_derivs.Abrupt}) *}
 declare ax_Abrupts [intro!]
 
 lemmas ax_Normal_cases = ax_cases [of _ _ _ normal]

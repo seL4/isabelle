@@ -745,7 +745,7 @@ where
 *)
 
 ML {*
-bind_thm ("eval_induct", rearrange_prems 
+ML_Thms.bind_thm ("eval_induct", rearrange_prems 
 [0,1,2,8,4,30,31,27,15,16,
  17,18,19,20,21,3,5,25,26,23,6,
  7,11,9,13,14,12,22,10,28,
@@ -881,7 +881,7 @@ simproc_setup eval_stmt ("G\<turnstile>s \<midarrow>In1r t\<succ>\<rightarrow> (
     | _ => SOME (mk_meta_eq @{thm eval_stmt_eq})) *}
 
 ML {*
-bind_thms ("AbruptIs", sum3_instantiate @{context} @{thm eval.Abrupt})
+ML_Thms.bind_thms ("AbruptIs", sum3_instantiate @{context} @{thm eval.Abrupt})
 *}
 
 declare halloc.Abrupt [intro!] eval.Abrupt [intro!]  AbruptIs [intro!]
