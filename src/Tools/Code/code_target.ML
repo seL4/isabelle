@@ -380,7 +380,8 @@ fun assert_module_name "" = error "Empty module name not allowed here"
   | assert_module_name module_name = module_name;
 
 fun using_master_directory ctxt =
-  Option.map (Path.append (File.pwd ()) o Path.append (Thy_Load.master_directory (Proof_Context.theory_of ctxt)));
+  Option.map (Path.append (File.pwd ()) o
+    Path.append (Resources.master_directory (Proof_Context.theory_of ctxt)));
 
 in
 
@@ -646,7 +647,7 @@ fun parse_symbol_pragmas parse_const parse_tyco parse_class parse_classrel parse
   Parse.enum1 "|" (Parse.group (fn () => "code symbol pragma")
     (parse_symbol_pragma parse_const parse_tyco parse_class parse_classrel parse_inst parse_module));
 
-val code_expr_argsP = Scan.optional (@{keyword "("} |-- Args.parse --| @{keyword ")"}) [];
+val code_expr_argsP = Scan.optional (@{keyword "("} |-- Parse.args --| @{keyword ")"}) [];
 
 fun code_expr_inP all_public raw_cs =
   Scan.repeat (@{keyword "in"} |-- Parse.!!! (Parse.name

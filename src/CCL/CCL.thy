@@ -295,9 +295,9 @@ val XH_to_Is = map XH_to_I
 val XH_to_Ds = map XH_to_D
 val XH_to_Es = map XH_to_E;
 
-bind_thms ("ccl_rews", @{thms caseBs} @ @{thms ccl_injs} @ ccl_dstncts);
-bind_thms ("ccl_dstnctsEs", ccl_dstncts RL [@{thm notE}]);
-bind_thms ("ccl_injDs", XH_to_Ds @{thms ccl_injs});
+ML_Thms.bind_thms ("ccl_rews", @{thms caseBs} @ @{thms ccl_injs} @ ccl_dstncts);
+ML_Thms.bind_thms ("ccl_dstnctsEs", ccl_dstncts RL [@{thm notE}]);
+ML_Thms.bind_thms ("ccl_injDs", XH_to_Ds @{thms ccl_injs});
 *}
 
 lemmas [simp] = ccl_rews

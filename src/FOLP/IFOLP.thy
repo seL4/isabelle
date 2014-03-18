@@ -411,7 +411,7 @@ schematic_lemma ex_cong:
   done
 
 (*NOT PROVED
-bind_thm ("ex1_cong", prove_goal (the_context ())
+ML_Thms.bind_thm ("ex1_cong", prove_goal (the_context ())
     "(!!x.f(x):P(x) <-> Q(x)) ==> ?p:(EX! x.P(x)) <-> (EX! x.Q(x))"
  (fn prems =>
   [ (REPEAT   (eresolve_tac [ex1E, spec RS mp] 1 ORELSE ares_tac [iffI,ex1I] 1

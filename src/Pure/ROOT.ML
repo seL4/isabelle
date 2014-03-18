@@ -39,7 +39,7 @@ use "General/antiquote.ML";
 use "ML/ml_lex.ML";
 use "ML/ml_parse.ML";
 use "General/secure.ML";
-(*^^^^^ end of basic ML bootstrap ^^^^^*)
+(*^^^^^ end of ML bootstrap 0 ^^^^^*)
 use "General/integer.ML";
 use "General/stack.ML";
 use "General/queue.ML";
@@ -211,18 +211,11 @@ use "type_infer_context.ML";
 use "Syntax/syntax_phases.ML";
 use "Isar/local_defs.ML";
 
-(*proof term operations*)
-use "Proof/reconstruct.ML";
-use "Proof/proof_syntax.ML";
-use "Proof/proof_rewrite_rules.ML";
-use "Proof/proof_checker.ML";
-
 (*outer syntax*)
 use "Isar/token.ML";
 use "Isar/keyword.ML";
 use "Isar/parse.ML";
 use "Isar/args.ML";
-use "ML/ml_context.ML";
 
 (*theory sources*)
 use "Thy/thy_header.ML";
@@ -230,10 +223,15 @@ use "Thy/thy_syntax.ML";
 use "Thy/html.ML";
 use "Thy/latex.ML";
 
+(*ML with context and antiquotations*)
+use "ML/ml_context.ML";
+use "ML/ml_antiquotation.ML";
+val use = ML_Context.eval_file true o Path.explode;
+(*^^^^^ end of ML bootstrap 1 ^^^^^*)
+
 (*basic proof engine*)
 use "Isar/proof_display.ML";
 use "Isar/attrib.ML";
-use "ML/ml_antiquotation.ML";
 use "Isar/context_rules.ML";
 use "Isar/method.ML";
 use "Isar/proof.ML";
@@ -267,6 +265,13 @@ use "Isar/typedecl.ML";
 use "Isar/proof_node.ML";
 use "Isar/toplevel.ML";
 
+(*proof term operations*)
+use "Proof/reconstruct.ML";
+use "Proof/proof_syntax.ML";
+use "Proof/proof_rewrite_rules.ML";
+use "Proof/proof_checker.ML";
+use "Proof/extraction.ML";
+
 (*theory documents*)
 use "System/isabelle_system.ML";
 use "Thy/term_style.ML";
@@ -276,7 +281,7 @@ use "General/graph_display.ML";
 use "Thy/present.ML";
 use "PIDE/command.ML";
 use "PIDE/query_operation.ML";
-use "Thy/thy_load.ML";
+use "PIDE/resources.ML";
 use "Thy/thy_info.ML";
 use "PIDE/document.ML";
 
@@ -286,12 +291,10 @@ use "Isar/isar_cmd.ML";
 
 use "subgoal.ML";
 
-use "Proof/extraction.ML";
-
 
 (* Isabelle/Isar system *)
 
-use "System/session.ML";
+use "PIDE/session.ML";
 use "System/command_line.ML";
 use "System/system_channel.ML";
 use "System/message_channel.ML";

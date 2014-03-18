@@ -68,43 +68,43 @@ where
 
 subsection{* Degrees and heads and coefficients *}
 
-fun degree:: "poly \<Rightarrow> nat"
+fun degree :: "poly \<Rightarrow> nat"
 where
   "degree (CN c 0 p) = 1 + degree p"
 | "degree p = 0"
 
-fun head:: "poly \<Rightarrow> poly"
+fun head :: "poly \<Rightarrow> poly"
 where
   "head (CN c 0 p) = head p"
 | "head p = p"
 
 (* More general notions of degree and head *)
-fun degreen:: "poly \<Rightarrow> nat \<Rightarrow> nat"
+fun degreen :: "poly \<Rightarrow> nat \<Rightarrow> nat"
 where
   "degreen (CN c n p) = (\<lambda>m. if n = m then 1 + degreen p n else 0)"
 | "degreen p = (\<lambda>m. 0)"
 
-fun headn:: "poly \<Rightarrow> nat \<Rightarrow> poly"
+fun headn :: "poly \<Rightarrow> nat \<Rightarrow> poly"
 where
   "headn (CN c n p) = (\<lambda>m. if n \<le> m then headn p m else CN c n p)"
 | "headn p = (\<lambda>m. p)"
 
-fun coefficients:: "poly \<Rightarrow> poly list"
+fun coefficients :: "poly \<Rightarrow> poly list"
 where
   "coefficients (CN c 0 p) = c # coefficients p"
 | "coefficients p = [p]"
 
-fun isconstant:: "poly \<Rightarrow> bool"
+fun isconstant :: "poly \<Rightarrow> bool"
 where
   "isconstant (CN c 0 p) = False"
 | "isconstant p = True"
 
-fun behead:: "poly \<Rightarrow> poly"
+fun behead :: "poly \<Rightarrow> poly"
 where
   "behead (CN c 0 p) = (let p' = behead p in if p' = 0\<^sub>p then c else CN c 0 p')"
 | "behead p = 0\<^sub>p"
 
-fun headconst:: "poly \<Rightarrow> Num"
+fun headconst :: "poly \<Rightarrow> Num"
 where
   "headconst (CN c n p) = headconst p"
 | "headconst (C n) = n"
@@ -679,11 +679,11 @@ lemma polymul_eq0_iff:
   shows "isnpolyh p n0 \<Longrightarrow> isnpolyh q n1 \<Longrightarrow> p *\<^sub>p q = 0\<^sub>p \<longleftrightarrow> p = 0\<^sub>p \<or> q = 0\<^sub>p"
   using polymul_properties(2) by blast
 
-lemma polymul_degreen:  (* FIXME duplicate? *)
+lemma polymul_degreen:
   assumes "SORT_CONSTRAINT('a::{field_char_0,field_inverse_zero})"
   shows "isnpolyh p n0 \<Longrightarrow> isnpolyh q n1 \<Longrightarrow> m \<le> min n0 n1 \<Longrightarrow>
     degreen (p *\<^sub>p q) m = (if p = 0\<^sub>p \<or> q = 0\<^sub>p then 0 else degreen p m + degreen q m)"
-  using polymul_properties(3) by blast
+  by (fact polymul_properties(3))
 
 lemma polymul_norm:
   assumes "SORT_CONSTRAINT('a::{field_char_0,field_inverse_zero})"
@@ -852,10 +852,10 @@ lemma shift1: "Ipoly bs (shift1 p) = Ipoly bs (Mul (Bound 0) p)"
   by (simp add: shift1_def)
 
 lemma shift1_isnpoly:
-  assumes pn: "isnpoly p"
-    and pnz: "p \<noteq> 0\<^sub>p"
+  assumes "isnpoly p"
+    and "p \<noteq> 0\<^sub>p"
   shows "isnpoly (shift1 p) "
-  using pn pnz by (simp add: shift1_def isnpoly_def)
+  using assms by (simp add: shift1_def isnpoly_def)
 
 lemma shift1_nz[simp]:"shift1 p \<noteq> 0\<^sub>p"
   by (simp add: shift1_def)
@@ -864,10 +864,10 @@ lemma funpow_shift1_isnpoly: "isnpoly p \<Longrightarrow> p \<noteq> 0\<^sub>p \
   by (induct n arbitrary: p) (auto simp add: shift1_isnpoly funpow_swap1)
 
 lemma funpow_isnpolyh:
-  assumes f: "\<And>p. isnpolyh p n \<Longrightarrow> isnpolyh (f p) n"
-    and np: "isnpolyh p n"
+  assumes "\<And>p. isnpolyh p n \<Longrightarrow> isnpolyh (f p) n"
+    and "isnpolyh p n"
   shows "isnpolyh (funpow k f p) n"
-  using f np by (induct k arbitrary: p) auto
+  using assms by (induct k arbitrary: p) auto
 
 lemma funpow_shift1:
   "(Ipoly bs (funpow n shift1 p) :: 'a :: {field_char_0,field_inverse_zero}) =
@@ -886,10 +886,10 @@ lemma poly_cmul[simp]: "Ipoly bs (poly_cmul c p) = Ipoly bs (Mul (C c) p)"
   by (induct p rule: poly_cmul.induct) (auto simp add: field_simps)
 
 lemma behead:
-  assumes np: "isnpolyh p n"
+  assumes "isnpolyh p n"
   shows "Ipoly bs (Add (Mul (head p) (Pw (Bound 0) (degree p))) (behead p)) =
     (Ipoly bs p :: 'a :: {field_char_0,field_inverse_zero})"
-  using np
+  using assms
 proof (induct p arbitrary: n rule: behead.induct)
   case (1 c p n)
   then have pn: "isnpolyh p n" by simp
@@ -902,12 +902,12 @@ proof (induct p arbitrary: n rule: behead.induct)
 qed (auto simp add: Let_def)
 
 lemma behead_isnpolyh:
-  assumes np: "isnpolyh p n"
+  assumes "isnpolyh p n"
   shows "isnpolyh (behead p) n"
-  using np by (induct p rule: behead.induct) (auto simp add: Let_def isnpolyh_mono)
+  using assms by (induct p rule: behead.induct) (auto simp add: Let_def isnpolyh_mono)
 
 
-subsection{* Miscellaneous lemmas about indexes, decrementation, substitution  etc ... *}
+subsection {* Miscellaneous lemmas about indexes, decrementation, substitution  etc ... *}
 
 lemma isnpolyh_polybound0: "isnpolyh p (Suc n) \<Longrightarrow> polybound0 p"
 proof (induct p arbitrary: n rule: poly.induct, auto)
@@ -938,28 +938,27 @@ lemma head_polybound0: "isnpolyh p n0 \<Longrightarrow> polybound0 (head p)"
   by (induct p  arbitrary: n0 rule: head.induct) (auto intro: isnpolyh_polybound0)
 
 lemma polybound0_I:
-  assumes nb: "polybound0 a"
+  assumes "polybound0 a"
   shows "Ipoly (b # bs) a = Ipoly (b' # bs) a"
-  using nb
-  by (induct a rule: poly.induct) auto
+  using assms by (induct a rule: poly.induct) auto
 
 lemma polysubst0_I: "Ipoly (b # bs) (polysubst0 a t) = Ipoly ((Ipoly (b # bs) a) # bs) t"
   by (induct t) simp_all
 
 lemma polysubst0_I':
-  assumes nb: "polybound0 a"
+  assumes "polybound0 a"
   shows "Ipoly (b # bs) (polysubst0 a t) = Ipoly ((Ipoly (b' # bs) a) # bs) t"
-  by (induct t) (simp_all add: polybound0_I[OF nb, where b="b" and b'="b'"])
+  by (induct t) (simp_all add: polybound0_I[OF assms, where b="b" and b'="b'"])
 
 lemma decrpoly:
-  assumes nb: "polybound0 t"
+  assumes "polybound0 t"
   shows "Ipoly (x # bs) t = Ipoly bs (decrpoly t)"
-  using nb by (induct t rule: decrpoly.induct) simp_all
+  using assms by (induct t rule: decrpoly.induct) simp_all
 
 lemma polysubst0_polybound0:
-  assumes nb: "polybound0 t"
+  assumes "polybound0 t"
   shows "polybound0 (polysubst0 t a)"
-  using nb by (induct a rule: poly.induct) auto
+  using assms by (induct a rule: poly.induct) auto
 
 lemma degree0_polybound0: "isnpolyh p n \<Longrightarrow> degree p = 0 \<Longrightarrow> polybound0 p"
   by (induct p arbitrary: n rule: degree.induct) (auto simp add: isnpolyh_polybound0)
@@ -1034,10 +1033,10 @@ lemma decr_maxindex: "polybound0 p \<Longrightarrow> maxindex (decrpoly p) = max
 lemma wf_bs_insensitive: "length bs = length bs' \<Longrightarrow> wf_bs bs p = wf_bs bs' p"
   unfolding wf_bs_def by simp
 
-lemma wf_bs_insensitive': "wf_bs (x#bs) p = wf_bs (y#bs) p"
+lemma wf_bs_insensitive': "wf_bs (x # bs) p = wf_bs (y # bs) p"
   unfolding wf_bs_def by simp
 
-lemma wf_bs_coefficients': "\<forall>c \<in> set (coefficients p). wf_bs bs c \<Longrightarrow> wf_bs (x#bs) p"
+lemma wf_bs_coefficients': "\<forall>c \<in> set (coefficients p). wf_bs bs c \<Longrightarrow> wf_bs (x # bs) p"
   by (induct p rule: coefficients.induct) (auto simp add: wf_bs_def)
 
 lemma coefficients_Nil[simp]: "coefficients p \<noteq> []"
@@ -1046,11 +1045,11 @@ lemma coefficients_Nil[simp]: "coefficients p \<noteq> []"
 lemma coefficients_head: "last (coefficients p) = head p"
   by (induct p rule: coefficients.induct) auto
 
-lemma wf_bs_decrpoly: "wf_bs bs (decrpoly p) \<Longrightarrow> wf_bs (x#bs) p"
+lemma wf_bs_decrpoly: "wf_bs bs (decrpoly p) \<Longrightarrow> wf_bs (x # bs) p"
   unfolding wf_bs_def by (induct p rule: decrpoly.induct) auto
 
 lemma length_le_list_ex: "length xs \<le> n \<Longrightarrow> \<exists>ys. length (xs @ ys) = n"
-  apply (rule exI[where x="replicate (n - length xs) z"])
+  apply (rule exI[where x="replicate (n - length xs) z" for z])
   apply simp
   done
 
@@ -1481,7 +1480,8 @@ lemma shift1_head : "isnpolyh p n0 \<Longrightarrow> head (shift1 p) = head p"
 lemma funpow_shift1_head: "isnpolyh p n0 \<Longrightarrow> p\<noteq> 0\<^sub>p \<Longrightarrow> head (funpow k shift1 p) = head p"
 proof (induct k arbitrary: n0 p)
   case 0
-  then show ?case by auto
+  then show ?case
+    by auto
 next
   case (Suc k n0 p)
   then have "isnpolyh (shift1 p) 0"
@@ -1522,7 +1522,6 @@ lemma polyadd_head:
   shows "head (p +\<^sub>p q) = (if degree p < degree q then head q else head p)"
   using np nq deg
   apply (induct p q arbitrary: n0 n1 rule: polyadd.induct)
-  using np
   apply simp_all
   apply (case_tac n', simp, simp)
   apply (case_tac n, simp, simp)
@@ -1646,7 +1645,7 @@ lemma degree_polymul:
 lemma polyneg_degree: "isnpolyh p n \<Longrightarrow> degree (polyneg p) = degree p"
   by (induct p arbitrary: n rule: degree.induct) auto
 
-lemma polyneg_head: "isnpolyh p n \<Longrightarrow> head(polyneg p) = polyneg (head p)"
+lemma polyneg_head: "isnpolyh p n \<Longrightarrow> head (polyneg p) = polyneg (head p)"
   by (induct p arbitrary: n rule: degree.induct) auto
 
 
@@ -1657,8 +1656,9 @@ lemma polydivide_aux_properties:
     and np: "isnpolyh p n0"
     and ns: "isnpolyh s n1"
     and ap: "head p = a"
-    and ndp: "degree p = n" and pnz: "p \<noteq> 0\<^sub>p"
-  shows "polydivide_aux a n p k s = (k',r) \<longrightarrow> k' \<ge> k \<and> (degree r = 0 \<or> degree r < degree p) \<and>
+    and ndp: "degree p = n"
+    and pnz: "p \<noteq> 0\<^sub>p"
+  shows "polydivide_aux a n p k s = (k', r) \<longrightarrow> k' \<ge> k \<and> (degree r = 0 \<or> degree r < degree p) \<and>
     (\<exists>nr. isnpolyh r nr) \<and> (\<exists>q n1. isnpolyh q n1 \<and> (polypow (k' - k) a) *\<^sub>p s = p *\<^sub>p q +\<^sub>p r)"
   using ns
 proof (induct "degree s" arbitrary: s k k' r n1 rule: less_induct)
@@ -1718,7 +1718,8 @@ proof (induct "degree s" arbitrary: s k k' r n1 rule: less_induct)
         have nr: "isnpolyh (s -\<^sub>p ?p') 0"
           using polysub_normh[OF ns np'] by simp
         from degree_polysub_samehead[OF ns np' headsp' degsp']
-        have "degree (s -\<^sub>p ?p') < degree s \<or> s -\<^sub>p ?p' = 0\<^sub>p" by simp
+        have "degree (s -\<^sub>p ?p') < degree s \<or> s -\<^sub>p ?p' = 0\<^sub>p"
+          by simp
         moreover
         {
           assume deglt:"degree (s -\<^sub>p ?p') < degree s"
@@ -1798,7 +1799,7 @@ proof (induct "degree s" arbitrary: s k k' r n1 rule: less_induct)
             using isnpolyh_unique[OF ns polymul_normh[OF nxdn np]]
             by blast
           {
-            assume h1: "polydivide_aux a n p k s = (k',r)"
+            assume h1: "polydivide_aux a n p k s = (k', r)"
             from polydivide_aux.simps sz dn' ba
             have eq: "polydivide_aux a n p k s = polydivide_aux a n p k (s -\<^sub>p ?p')"
               by (simp add: Let_def)
@@ -1877,11 +1878,11 @@ proof (induct "degree s" arbitrary: s k k' r n1 rule: less_induct)
                 by (simp add: field_simps)
             }
             then have ieq:"\<forall>bs :: 'a::{field_char_0,field_inverse_zero} list.
-              Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) =
-              Ipoly bs (p *\<^sub>p (q +\<^sub>p (a ^\<^sub>p (k' - Suc k) *\<^sub>p ?b *\<^sub>p ?xdn)) +\<^sub>p r)"
+                Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) =
+                Ipoly bs (p *\<^sub>p (q +\<^sub>p (a ^\<^sub>p (k' - Suc k) *\<^sub>p ?b *\<^sub>p ?xdn)) +\<^sub>p r)"
               by auto
             let ?q = "q +\<^sub>p (a ^\<^sub>p (k' - Suc k) *\<^sub>p ?b *\<^sub>p ?xdn)"
-            from polyadd_normh[OF nq polymul_normh[OF polymul_normh[OF polypow_normh[OF head_isnpolyh[OF np], where k="k' - Suc k"] head_isnpolyh[OF ns], simplified ap ] nxdn]]
+            from polyadd_normh[OF nq polymul_normh[OF polymul_normh[OF polypow_normh[OF head_isnpolyh[OF np], where k="k' - Suc k"] head_isnpolyh[OF ns], simplified ap] nxdn]]
             have nqw: "isnpolyh ?q 0"
               by simp
             from ieq isnpolyh_unique[OF polymul_normh[OF polypow_normh[OF head_isnpolyh[OF np], where k="k' - k"] ns, simplified ap] polyadd_normh[OF polymul_normh[OF np nqw] nr]]
@@ -1979,13 +1980,13 @@ subsection {* More about polypoly and pnormal etc *}
 definition "isnonconstant p \<longleftrightarrow> \<not> isconstant p"
 
 lemma isnonconstant_pnormal_iff:
-  assumes nc: "isnonconstant p"
+  assumes "isnonconstant p"
   shows "pnormal (polypoly bs p) \<longleftrightarrow> Ipoly bs (head p) \<noteq> 0"
 proof
   let ?p = "polypoly bs p"
   assume H: "pnormal ?p"
   have csz: "coefficients p \<noteq> []"
-    using nc by (cases p) auto
+    using assms by (cases p) auto
   from coefficients_head[of p] last_map[OF csz, of "Ipoly bs"] pnormal_last_nonzero[OF H]
   show "Ipoly bs (head p) \<noteq> 0"
     by (simp add: polypoly_def)
@@ -1993,7 +1994,7 @@ next
   assume h: "\<lparr>head p\<rparr>\<^sub>p\<^bsup>bs\<^esup> \<noteq> 0"
   let ?p = "polypoly bs p"
   have csz: "coefficients p \<noteq> []"
-    using nc by (cases p) auto
+    using assms by (cases p) auto
   then have pz: "?p \<noteq> []"
     by (simp add: polypoly_def)
   then have lg: "length ?p > 0"
@@ -2013,18 +2014,18 @@ lemma isnonconstant_coefficients_length: "isnonconstant p \<Longrightarrow> leng
   done
 
 lemma isnonconstant_nonconstant:
-  assumes inc: "isnonconstant p"
+  assumes "isnonconstant p"
   shows "nonconstant (polypoly bs p) \<longleftrightarrow> Ipoly bs (head p) \<noteq> 0"
 proof
   let ?p = "polypoly bs p"
   assume nc: "nonconstant ?p"
-  from isnonconstant_pnormal_iff[OF inc, of bs] nc
+  from isnonconstant_pnormal_iff[OF assms, of bs] nc
   show "\<lparr>head p\<rparr>\<^sub>p\<^bsup>bs\<^esup> \<noteq> 0"
     unfolding nonconstant_def by blast
 next
   let ?p = "polypoly bs p"
   assume h: "\<lparr>head p\<rparr>\<^sub>p\<^bsup>bs\<^esup> \<noteq> 0"
-  from isnonconstant_pnormal_iff[OF inc, of bs] h
+  from isnonconstant_pnormal_iff[OF assms, of bs] h
   have pn: "pnormal ?p"
     by blast
   {
@@ -2032,8 +2033,8 @@ next
     assume H: "?p = [x]"
     from H have "length (coefficients p) = 1"
       unfolding polypoly_def by auto
-    with isnonconstant_coefficients_length[OF inc]
-      have False by arith
+    with isnonconstant_coefficients_length[OF assms]
+    have False by arith
   }
   then show "nonconstant ?p"
     using pn unfolding nonconstant_def by blast
@@ -2047,26 +2048,26 @@ lemma pnormal_length: "p \<noteq> [] \<Longrightarrow> pnormal p \<longleftright
   done
 
 lemma degree_degree:
-  assumes inc: "isnonconstant p"
+  assumes "isnonconstant p"
   shows "degree p = Polynomial_List.degree (polypoly bs p) \<longleftrightarrow> \<lparr>head p\<rparr>\<^sub>p\<^bsup>bs\<^esup> \<noteq> 0"
 proof
   let ?p = "polypoly bs p"
   assume H: "degree p = Polynomial_List.degree ?p"
-  from isnonconstant_coefficients_length[OF inc] have pz: "?p \<noteq> []"
+  from isnonconstant_coefficients_length[OF assms] have pz: "?p \<noteq> []"
     unfolding polypoly_def by auto
-  from H degree_coefficients[of p] isnonconstant_coefficients_length[OF inc]
+  from H degree_coefficients[of p] isnonconstant_coefficients_length[OF assms]
   have lg: "length (pnormalize ?p) = length ?p"
     unfolding Polynomial_List.degree_def polypoly_def by simp
   then have "pnormal ?p"
     using pnormal_length[OF pz] by blast
-  with isnonconstant_pnormal_iff[OF inc] show "\<lparr>head p\<rparr>\<^sub>p\<^bsup>bs\<^esup> \<noteq> 0"
+  with isnonconstant_pnormal_iff[OF assms] show "\<lparr>head p\<rparr>\<^sub>p\<^bsup>bs\<^esup> \<noteq> 0"
     by blast
 next
   let ?p = "polypoly bs p"
   assume H: "\<lparr>head p\<rparr>\<^sub>p\<^bsup>bs\<^esup> \<noteq> 0"
-  with isnonconstant_pnormal_iff[OF inc] have "pnormal ?p"
+  with isnonconstant_pnormal_iff[OF assms] have "pnormal ?p"
     by blast
-  with degree_coefficients[of p] isnonconstant_coefficients_length[OF inc]
+  with degree_coefficients[of p] isnonconstant_coefficients_length[OF assms]
   show "degree p = Polynomial_List.degree ?p"
     unfolding polypoly_def pnormal_def Polynomial_List.degree_def by auto
 qed
@@ -2077,7 +2078,7 @@ section {* Swaps ; Division by a certain variable *}
 primrec swap :: "nat \<Rightarrow> nat \<Rightarrow> poly \<Rightarrow> poly"
 where
   "swap n m (C x) = C x"
-| "swap n m (Bound k) = Bound (if k = n then m else if k=m then n else k)"
+| "swap n m (Bound k) = Bound (if k = n then m else if k = m then n else k)"
 | "swap n m (Neg t) = Neg (swap n m t)"
 | "swap n m (Add s t) = Add (swap n m s) (swap n m t)"
 | "swap n m (Sub s t) = Sub (swap n m s) (swap n m t)"

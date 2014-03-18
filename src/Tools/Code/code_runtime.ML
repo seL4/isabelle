@@ -325,7 +325,7 @@ fun process_reflection (code, (tyco_map, (constr_map, const_map))) module_name N
       let
         val preamble =
           "(* Generated from " ^
-            Path.implode (Thy_Load.thy_path (Path.basic (Context.theory_name thy))) ^
+            Path.implode (Resources.thy_path (Path.basic (Context.theory_name thy))) ^
           "; DO NOT EDIT! *)";
         val _ = File.write (Path.explode file_name) (preamble ^ "\n\n" ^ code);
       in
@@ -354,7 +354,7 @@ val code_reflect_cmd = gen_code_reflect Code_Target.read_tyco Code.read_const;
 (** Isar setup **)
 
 val _ =
-  Theory.setup (ML_Context.antiquotation @{binding code} Args.term (fn _ => ml_code_antiq));
+  Theory.setup (ML_Antiquotation.declaration @{binding code} Args.term (fn _ => ml_code_antiq));
 
 local
 

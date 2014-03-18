@@ -63,9 +63,9 @@ fun add_proof_syntax thy =
        ("", idtT --> paramsT, Delimfix "_"),
        ("", paramT --> paramsT, Delimfix "_")]
   |> Sign.add_modesyntax_i (Symbol.xsymbolsN, true)
-      [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1\\<^bold>\\<lambda>_./ _)", [0, 3], 3)),
-       (Lexicon.mark_const "Appt", [proofT, aT] ---> proofT, Mixfix ("(1_ \\<cdot>/ _)", [4, 5], 4)),
-       (Lexicon.mark_const "AppP", [proofT, proofT] ---> proofT, Mixfix ("(1_ \\<bullet>/ _)", [4, 5], 4))]
+      [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1\<^bold>\<lambda>_./ _)", [0, 3], 3)),
+       (Lexicon.mark_const "Appt", [proofT, aT] ---> proofT, Mixfix ("(1_ \<cdot>/ _)", [4, 5], 4)),
+       (Lexicon.mark_const "AppP", [proofT, proofT] ---> proofT, Mixfix ("(1_ \<bullet>/ _)", [4, 5], 4))]
   |> Sign.add_trrules (map Syntax.Parse_Print_Rule
       [(Ast.mk_appl (Ast.Constant "_Lam")
           [Ast.mk_appl (Ast.Constant "_Lam0")

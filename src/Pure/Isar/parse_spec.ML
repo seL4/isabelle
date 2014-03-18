@@ -37,7 +37,7 @@ struct
 
 (* theorem specifications *)
 
-val attrib = Parse.position Parse.liberal_name -- Parse.!!! Args.parse >> uncurry Args.src;
+val attrib = Parse.position Parse.liberal_name -- Parse.!!! Parse.args >> uncurry Args.src;
 val attribs = Parse.$$$ "[" |-- Parse.list attrib --| Parse.$$$ "]";
 val opt_attribs = Scan.optional attribs [];
 

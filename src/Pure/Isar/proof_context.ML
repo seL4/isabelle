@@ -1204,8 +1204,9 @@ val apply_case = apfst fst oo case_result;
 
 fun check_case ctxt (name, pos) fxs =
   let
-    val (_, ((Rule_Cases.Case {fixes, assumes, binds, cases}, _), _)) =
+    val (_, ((Rule_Cases.Case {fixes, assumes, binds, cases}, is_proper), _)) =
       Name_Space.check (Context.Proof ctxt) (cases_of ctxt) (name, pos);
+    val _ = if is_proper then () else Context_Position.report ctxt pos Markup.improper;
 
     fun replace (opt_x :: xs) ((y, T) :: ys) = (the_default y opt_x, T) :: replace xs ys
       | replace [] ys = ys

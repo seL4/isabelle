@@ -201,7 +201,7 @@ end;
 
 (* rule etc. -- single-step refinements *)
 
-val rule_trace = Attrib.setup_config_bool (Binding.name "rule_trace") (fn _ => false);
+val rule_trace = Attrib.setup_config_bool @{binding rule_trace} (fn _ => false);
 
 fun trace ctxt rules =
   if Config.get ctxt rule_trace andalso not (null rules) then
@@ -458,7 +458,7 @@ and meth3 x =
         Select_Goals (combinator_info [pos1, pos2], n, m)) ||
   meth4) x
 and meth2 x =
- (Parse.position Parse.xname -- Args.parse1 is_symid_meth >> (Source o uncurry Args.src) ||
+ (Parse.position Parse.xname -- Parse.args1 is_symid_meth >> (Source o uncurry Args.src) ||
   meth3) x
 and meth1 x =
   (Parse.enum1_positions "," meth2
@@ -478,38 +478,38 @@ end;
 (* theory setup *)
 
 val _ = Theory.setup
- (setup (Binding.name "fail") (Scan.succeed (K fail)) "force failure" #>
-  setup (Binding.name "succeed") (Scan.succeed (K succeed)) "succeed" #>
-  setup (Binding.name "-") (Scan.succeed (K insert_facts))
+ (setup @{binding fail} (Scan.succeed (K fail)) "force failure" #>
+  setup @{binding succeed} (Scan.succeed (K succeed)) "succeed" #>
+  setup @{binding "-"} (Scan.succeed (K insert_facts))
     "do nothing (insert current facts only)" #>
-  setup (Binding.name "insert") (Attrib.thms >> (K o insert))
+  setup @{binding insert} (Attrib.thms >> (K o insert))
     "insert theorems, ignoring facts (improper)" #>
-  setup (Binding.name "intro") (Attrib.thms >> (K o intro))
+  setup @{binding intro} (Attrib.thms >> (K o intro))
     "repeatedly apply introduction rules" #>
-  setup (Binding.name "elim") (Attrib.thms >> (K o elim))
+  setup @{binding elim} (Attrib.thms >> (K o elim))
     "repeatedly apply elimination rules" #>
-  setup (Binding.name "unfold") (Attrib.thms >> unfold_meth) "unfold definitions" #>
-  setup (Binding.name "fold") (Attrib.thms >> fold_meth) "fold definitions" #>
-  setup (Binding.name "atomize") (Scan.lift (Args.mode "full") >> atomize)
+  setup @{binding unfold} (Attrib.thms >> unfold_meth) "unfold definitions" #>
+  setup @{binding fold} (Attrib.thms >> fold_meth) "fold definitions" #>
+  setup @{binding atomize} (Scan.lift (Args.mode "full") >> atomize)
     "present local premises as object-level statements" #>
-  setup (Binding.name "rule") (Attrib.thms >> (fn ths => fn ctxt => some_rule ctxt ths))
+  setup @{binding rule} (Attrib.thms >> (fn ths => fn ctxt => some_rule ctxt ths))
     "apply some intro/elim rule" #>
-  setup (Binding.name "erule") (xrule_meth erule) "apply rule in elimination manner (improper)" #>
-  setup (Binding.name "drule") (xrule_meth drule) "apply rule in destruct manner (improper)" #>
-  setup (Binding.name "frule") (xrule_meth frule) "apply rule in forward manner (improper)" #>
-  setup (Binding.name "this") (Scan.succeed (K this)) "apply current facts as rules" #>
-  setup (Binding.name "fact") (Attrib.thms >> fact) "composition by facts from context" #>
-  setup (Binding.name "assumption") (Scan.succeed assumption)
+  setup @{binding erule} (xrule_meth erule) "apply rule in elimination manner (improper)" #>
+  setup @{binding drule} (xrule_meth drule) "apply rule in destruct manner (improper)" #>
+  setup @{binding frule} (xrule_meth frule) "apply rule in forward manner (improper)" #>
+  setup @{binding this} (Scan.succeed (K this)) "apply current facts as rules" #>
+  setup @{binding fact} (Attrib.thms >> fact) "composition by facts from context" #>
+  setup @{binding assumption} (Scan.succeed assumption)
     "proof by assumption, preferring facts" #>
-  setup (Binding.name "rename_tac") (Args.goal_spec -- Scan.lift (Scan.repeat1 Args.name) >>
+  setup @{binding rename_tac} (Args.goal_spec -- Scan.lift (Scan.repeat1 Args.name) >>
     (fn (quant, xs) => K (SIMPLE_METHOD'' quant (rename_tac xs))))
     "rename parameters of goal" #>
-  setup (Binding.name "rotate_tac") (Args.goal_spec -- Scan.lift (Scan.optional Parse.int 1) >>
+  setup @{binding rotate_tac} (Args.goal_spec -- Scan.lift (Scan.optional Parse.int 1) >>
     (fn (quant, i) => K (SIMPLE_METHOD'' quant (rotate_tac i))))
       "rotate assumptions of goal" #>
-  setup (Binding.name "tactic") (Scan.lift Args.name_source_position >> tactic)
+  setup @{binding tactic} (Scan.lift Args.name_source_position >> tactic)
     "ML tactic as proof method" #>
-  setup (Binding.name "raw_tactic") (Scan.lift Args.name_source_position >> raw_tactic)
+  setup @{binding raw_tactic} (Scan.lift Args.name_source_position >> raw_tactic)
     "ML tactic as raw proof method");
 
 

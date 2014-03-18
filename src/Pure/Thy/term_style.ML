@@ -33,7 +33,7 @@ fun setup binding style thy =
 (* style parsing *)
 
 fun parse_single ctxt =
-  Parse.position Parse.xname -- Args.parse >> (fn (name, args) =>
+  Parse.position Parse.xname -- Parse.args >> (fn (name, args) =>
     let
       val (src, parse) = Args.check_src ctxt (get_data ctxt) (Args.src name args);
       val (f, _) = Args.syntax (Scan.lift parse) src ctxt;
@@ -68,8 +68,8 @@ val style_prem = Parse.nat >> (fn i => fn ctxt => fn t =>
   end);
 
 fun sub_symbols (d :: s :: ss) =
-      if Symbol.is_ascii_digit d andalso not (String.isPrefix ("\\<^") s)
-      then d :: "\\<^sub>" :: sub_symbols (s :: ss)
+      if Symbol.is_ascii_digit d andalso not (String.isPrefix ("\<^") s)
+      then d :: "\<^sub>" :: sub_symbols (s :: ss)
       else d :: s :: ss
   | sub_symbols cs = cs;
 
@@ -84,10 +84,10 @@ fun sub_term (Free (n, T)) = Free (sub_name n, T)
   | sub_term t = t;
 
 val _ = Theory.setup
- (setup (Binding.name "lhs") (style_lhs_rhs fst) #>
-  setup (Binding.name "rhs") (style_lhs_rhs snd) #>
-  setup (Binding.name "prem") style_prem #>
-  setup (Binding.name "concl") (Scan.succeed (K Logic.strip_imp_concl)) #>
-  setup (Binding.name "sub") (Scan.succeed (K sub_term)));
+ (setup @{binding lhs} (style_lhs_rhs fst) #>
+  setup @{binding rhs} (style_lhs_rhs snd) #>
+  setup @{binding prem} style_prem #>
+  setup @{binding concl} (Scan.succeed (K Logic.strip_imp_concl)) #>
+  setup @{binding sub} (Scan.succeed (K sub_term)));
 
 end;

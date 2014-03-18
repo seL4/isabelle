@@ -61,12 +61,8 @@ sig
   val type_name: {proper: bool, strict: bool} -> string context_parser
   val const: {proper: bool, strict: bool} -> string context_parser
   val goal_spec: ((int -> tactic) -> tactic) context_parser
-  val parse: Token.T list parser
-  val parse1: (string -> bool) -> Token.T list parser
   val attribs: (xstring * Position.T -> string) -> src list parser
   val opt_attribs: (xstring * Position.T -> string) -> src list parser
-  val thm_name: (xstring * Position.T -> string) -> string -> (binding * src list) parser
-  val opt_thm_name: (xstring * Position.T -> string) -> string -> (binding * src list) parser
   val syntax_generic: 'a context_parser -> src -> Context.generic -> 'a * Context.generic
   val syntax: 'a context_parser -> src -> Proof.context -> 'a * Proof.context
 end;
@@ -151,21 +147,19 @@ fun theory x = (Scan.state >> Context.theory_of) x;
 
 (* basic *)
 
-fun token atom = Scan.ahead Parse.not_eof --| atom;
-
-val ident = token
+val ident = Parse.token
   (Parse.short_ident || Parse.long_ident || Parse.sym_ident || Parse.term_var ||
     Parse.type_ident || Parse.type_var || Parse.number);
 
-val string = token (Parse.string || Parse.verbatim);
-val alt_string = token Parse.alt_string;
-val symbolic = token (Parse.keyword_with Token.ident_or_symbolic);
+val string = Parse.token (Parse.string || Parse.verbatim);
+val alt_string = Parse.token Parse.alt_string;
+val symbolic = Parse.token (Parse.keyword_with Token.ident_or_symbolic);
 
 fun $$$ x =
-  (ident || token Parse.keyword) :|-- (fn tok =>
+  (ident || Parse.token Parse.keyword) :|-- (fn tok =>
     let val y = Token.content_of tok in
       if x = y
-      then (Token.assign (SOME (Token.Literal Markup.quasi_keyword)) tok; Scan.succeed x)
+      then (Token.assign (SOME (Token.Literal (false, Markup.quasi_keyword))) tok; Scan.succeed x)
       else Scan.fail
     end);
 
@@ -185,7 +179,7 @@ fun bracks scan = $$$ "[" |-- scan --| $$$ "]";
 fun mode s = Scan.optional (parens ($$$ s) >> K true) false;
 fun maybe scan = $$$ "_" >> K NONE || scan >> SOME;
 
-val cartouche = token Parse.cartouche;
+val cartouche = Parse.token Parse.cartouche;
 val cartouche_inner_syntax = cartouche >> Token.inner_syntax_of;
 val cartouche_source_position = cartouche >> Token.source_position_of;
 
@@ -257,39 +251,8 @@ val from_to =
   Parse.nat >> (fn i => fn tac => tac i) ||
   $$$ "!" >> K ALLGOALS;
 
-val goal = $$$ "[" |-- Parse.!!! (from_to --| $$$ "]");
+val goal = Parse.keyword_improper "[" |-- Parse.!!! (from_to --| Parse.keyword_improper "]");
 fun goal_spec x = Scan.lift (Scan.optional goal (fn tac => tac 1)) x;
-
-
-(* arguments within outer syntax *)
-
-val argument_kinds =
- [Token.Ident, Token.LongIdent, Token.SymIdent, Token.Var, Token.TypeIdent, Token.TypeVar,
-  Token.Nat, Token.Float, Token.String, Token.AltString, Token.Cartouche, Token.Verbatim];
-
-fun parse_args is_symid =
-  let
-    fun argument blk =
-      Parse.group (fn () => "argument")
-        (Scan.one (fn tok =>
-          let val kind = Token.kind_of tok in
-            member (op =) argument_kinds kind orelse
-            Token.keyword_with is_symid tok orelse
-            (blk andalso Token.keyword_with (fn s => s = ",") tok)
-          end));
-
-    fun args blk x = Scan.optional (args1 blk) [] x
-    and args1 blk x =
-      ((Scan.repeat1
-        (Scan.repeat1 (argument blk) ||
-          argsp "(" ")" ||
-          argsp "[" "]")) >> flat) x
-    and argsp l r x =
-      (token (Parse.$$$ l) ::: Parse.!!! (args true @@@ (token (Parse.$$$ r) >> single))) x;
-  in (args, args1) end;
-
-val parse = #1 (parse_args Token.ident_or_symbolic) false;
-fun parse1 is_symid = #2 (parse_args is_symid) false;
 
 
 (* attributes *)
@@ -298,20 +261,10 @@ fun attribs check =
   let
     fun intern tok = check (Token.content_of tok, Token.pos_of tok);
     val attrib_name = internal_text || (symbolic || named) >> evaluate Token.Text intern;
-    val attrib = Parse.position attrib_name -- Parse.!!! parse >> uncurry src;
+    val attrib = Parse.position attrib_name -- Parse.!!! Parse.args >> uncurry src;
   in $$$ "[" |-- Parse.!!! (Parse.list attrib --| $$$ "]") end;
 
 fun opt_attribs check = Scan.optional (attribs check) [];
-
-
-(* theorem specifications *)
-
-fun thm_name check_attrib s = binding -- opt_attribs check_attrib --| $$$ s;
-
-fun opt_thm_name check_attrib s =
-  Scan.optional
-    ((binding -- opt_attribs check_attrib || attribs check_attrib >> pair Binding.empty) --| $$$ s)
-    (Binding.empty, []);
 
 
 

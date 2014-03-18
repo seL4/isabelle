@@ -45,9 +45,6 @@ public option jedit_completion : bool = true
 public option jedit_completion_delay : real = 0.5
   -- "delay for completion popup (seconds)"
 
-public option jedit_completion_dismiss_delay : real = 0.0
-  -- "delay for dismissing obsolete completion popup (seconds)"
-
 public option jedit_completion_immediate : bool = false
   -- "insert unique completion immediately into buffer (if delay = 0)"
 
@@ -85,6 +82,7 @@ option keyword1_color : string = "006699FF"
 option keyword2_color : string = "009966FF"
 option keyword3_color : string = "0099FFFF"
 option quasi_keyword_color : string = "9966FFFF"
+option improper_color : string = "FF5050FF"
 option operator_color : string = "323232FF"
 option caret_invisible_color : string = "50000080"
 option completion_color : string = "0000FFFF"

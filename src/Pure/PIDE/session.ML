@@ -1,7 +1,7 @@
-(*  Title:      Pure/System/session.ML
+(*  Title:      Pure/PIDE/session.ML
     Author:     Makarius
 
-Session management -- internal state of logic images.
+Prover session: persistent state of logic image.
 *)
 
 signature SESSION =
@@ -59,6 +59,7 @@ fun finish () =
   Event_Timer.shutdown ();
   Future.shutdown ();
   session_finished := true);
+
 
 
 (** protocol handlers **)

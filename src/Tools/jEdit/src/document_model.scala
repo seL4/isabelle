@@ -70,7 +70,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
     if (is_theory) {
       JEdit_Lib.buffer_lock(buffer) {
         Exn.capture {
-          PIDE.thy_load.check_thy_text(node_name, buffer.getSegment(0, buffer.getLength))
+          PIDE.resources.check_thy_text(node_name, buffer.getSegment(0, buffer.getLength))
         } match {
           case Exn.Res(header) => header
           case Exn.Exn(exn) => Document.Node.bad_header(Exn.message(exn))
@@ -150,7 +150,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
           _blob match {
             case Some(x) => x
             case None =>
-              val bytes = PIDE.thy_load.file_content(buffer)
+              val bytes = PIDE.resources.file_content(buffer)
               val file = new Command.File(node_name.node, buffer.getSegment(0, buffer.getLength))
               _blob = Some((bytes, file))
               (bytes, file)

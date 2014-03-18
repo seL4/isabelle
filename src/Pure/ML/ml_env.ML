@@ -20,23 +20,26 @@ struct
 structure Env = Generic_Data
 (
   type T =
-    ML_Name_Space.valueVal Symtab.table *
-    ML_Name_Space.typeVal Symtab.table *
-    ML_Name_Space.fixityVal Symtab.table *
-    ML_Name_Space.structureVal Symtab.table *
-    ML_Name_Space.signatureVal Symtab.table *
-    ML_Name_Space.functorVal Symtab.table;
-  val empty = (Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty);
-  val extend = I;
+    bool * (*global bootstrap environment*)
+     (ML_Name_Space.valueVal Symtab.table *
+      ML_Name_Space.typeVal Symtab.table *
+      ML_Name_Space.fixityVal Symtab.table *
+      ML_Name_Space.structureVal Symtab.table *
+      ML_Name_Space.signatureVal Symtab.table *
+      ML_Name_Space.functorVal Symtab.table);
+  val empty : T =
+    (true, (Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty));
+  fun extend (_, tabs) : T = (false, tabs);
   fun merge
-   ((val1, type1, fixity1, structure1, signature1, functor1),
-    (val2, type2, fixity2, structure2, signature2, functor2)) : T =
-    (Symtab.merge (K true) (val1, val2),
-     Symtab.merge (K true) (type1, type2),
-     Symtab.merge (K true) (fixity1, fixity2),
-     Symtab.merge (K true) (structure1, structure2),
-     Symtab.merge (K true) (signature1, signature2),
-     Symtab.merge (K true) (functor1, functor2));
+   ((_, (val1, type1, fixity1, structure1, signature1, functor1)),
+    (_, (val2, type2, fixity2, structure2, signature2, functor2))) : T =
+    (false,
+     (Symtab.merge (K true) (val1, val2),
+      Symtab.merge (K true) (type1, type2),
+      Symtab.merge (K true) (fixity1, fixity2),
+      Symtab.merge (K true) (structure1, structure2),
+      Symtab.merge (K true) (signature1, signature2),
+      Symtab.merge (K true) (functor1, functor2)));
 );
 
 val inherit = Env.put o Env.get;
@@ -48,18 +51,22 @@ val name_space: ML_Name_Space.T =
   let
     fun lookup sel1 sel2 name =
       Context.thread_data ()
-      |> (fn NONE => NONE | SOME context => Symtab.lookup (sel1 (Env.get context)) name)
+      |> (fn NONE => NONE | SOME context => Symtab.lookup (sel1 (#2 (Env.get context))) name)
       |> (fn NONE => sel2 ML_Name_Space.global name | some => some);
 
     fun all sel1 sel2 () =
       Context.thread_data ()
-      |> (fn NONE => [] | SOME context => Symtab.dest (sel1 (Env.get context)))
+      |> (fn NONE => [] | SOME context => Symtab.dest (sel1 (#2 (Env.get context))))
       |> append (sel2 ML_Name_Space.global ())
       |> sort_distinct (string_ord o pairself #1);
 
     fun enter ap1 sel2 entry =
       if is_some (Context.thread_data ()) then
-        Context.>> (Env.map (ap1 (Symtab.update entry)))
+        Context.>> (Env.map (fn (global, tabs) =>
+          let
+            val _ = if global then sel2 ML_Name_Space.global entry else ();
+            val tabs' = ap1 (Symtab.update entry) tabs;
+          in (global, tabs') end))
       else sel2 ML_Name_Space.global entry;
   in
    {lookupVal    = lookup #1 #lookupVal,

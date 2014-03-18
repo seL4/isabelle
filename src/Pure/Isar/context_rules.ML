@@ -209,13 +209,13 @@ fun add a b c x =
     Scan.option Parse.nat) >> (fn (f, n) => f n)) x;
 
 val _ = Theory.setup
- (Attrib.setup (Binding.name "intro") (add intro_bang intro intro_query)
+ (Attrib.setup @{binding intro} (add intro_bang intro intro_query)
     "declaration of introduction rule" #>
-  Attrib.setup (Binding.name "elim") (add elim_bang elim elim_query)
+  Attrib.setup @{binding elim} (add elim_bang elim elim_query)
     "declaration of elimination rule" #>
-  Attrib.setup (Binding.name "dest") (add dest_bang dest dest_query)
+  Attrib.setup @{binding dest} (add dest_bang dest dest_query)
     "declaration of destruction rule" #>
-  Attrib.setup (Binding.name "rule") (Scan.lift Args.del >> K rule_del)
+  Attrib.setup @{binding rule} (Scan.lift Args.del >> K rule_del)
     "remove declaration of intro/elim/dest rule");
 
 end;

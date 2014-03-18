@@ -894,7 +894,7 @@ done
 
 declare member_is_static_simp [simp]
 declare wt.Skip [rule del] wt.Init [rule del]
-ML {* bind_thms ("wt_intros", map (rewrite_rule @{context} @{thms id_def}) @{thms wt.intros}) *}
+ML {* ML_Thms.bind_thms ("wt_intros", map (rewrite_rule @{context} @{thms id_def}) @{thms wt.intros}) *}
 lemmas wtIs = wt_Call wt_Super wt_FVar wt_StatRef wt_intros
 lemmas daIs = assigned.select_convs da_Skip da_NewC da_Lit da_Super da.intros
 
@@ -1187,7 +1187,7 @@ declare init_obj_def [simp] var_tys_def [simp] fields_table_def [simp]
 declare BaseCl_def [simp] ExtCl_def [simp] Ext_foo_def [simp]
         Base_foo_defs  [simp]
 
-ML {* bind_thms ("eval_intros", map 
+ML {* ML_Thms.bind_thms ("eval_intros", map 
         (simplify (@{context} delsimps @{thms Skip_eq} addsimps @{thms lvar_def}) o 
          rewrite_rule @{context} [@{thm assign_def}, @{thm Let_def}]) @{thms eval.intros}) *}
 lemmas eval_Is = eval_Init eval_StatRef AbruptIs eval_intros

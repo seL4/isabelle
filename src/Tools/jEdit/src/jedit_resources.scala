@@ -1,7 +1,8 @@
-/*  Title:      Tools/jEdit/src/jedit_thy_load.scala
+/*  Title:      Tools/jEdit/src/jedit_resources.scala
     Author:     Makarius
 
-Primitives for loading theory files, based on jEdit buffer content.
+Resources for theories and auxiliary files, based on jEdit buffer
+content and virtual file-systems.
 */
 
 package isabelle.jedit
@@ -17,8 +18,9 @@ import org.gjt.sp.jedit.MiscUtilities
 import org.gjt.sp.jedit.{jEdit, View, Buffer}
 import org.gjt.sp.jedit.bufferio.BufferIORequest
 
-class JEdit_Thy_Load(loaded_theories: Set[String] = Set.empty, base_syntax: Outer_Syntax)
-  extends Thy_Load(loaded_theories, base_syntax)
+
+class JEdit_Resources(loaded_theories: Set[String] = Set.empty, base_syntax: Outer_Syntax)
+  extends Resources(loaded_theories, base_syntax)
 {
   /* document node names */
 

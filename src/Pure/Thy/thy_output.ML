@@ -151,7 +151,7 @@ in
 
 val antiq =
   Parse.!!!
-    (Parse.position Parse.liberal_name -- properties -- Args.parse --| Scan.ahead Parse.eof)
+    (Parse.position Parse.liberal_name -- properties -- Parse.args --| Scan.ahead Parse.eof)
   >> (fn ((name, props), args) => (props, Args.src name args));
 
 end;
@@ -437,23 +437,23 @@ end;
 (* options *)
 
 val _ = Theory.setup
- (add_option (Binding.name "show_types") (Config.put show_types o boolean) #>
-  add_option (Binding.name "show_sorts") (Config.put show_sorts o boolean) #>
-  add_option (Binding.name "show_structs") (Config.put show_structs o boolean) #>
-  add_option (Binding.name "show_question_marks") (Config.put show_question_marks o boolean) #>
-  add_option (Binding.name "show_abbrevs") (Config.put show_abbrevs o boolean) #>
-  add_option (Binding.name "names_long") (Config.put Name_Space.names_long o boolean) #>
-  add_option (Binding.name "names_short") (Config.put Name_Space.names_short o boolean) #>
-  add_option (Binding.name "names_unique") (Config.put Name_Space.names_unique o boolean) #>
-  add_option (Binding.name "eta_contract") (Config.put Syntax_Trans.eta_contract o boolean) #>
-  add_option (Binding.name "display") (Config.put display o boolean) #>
-  add_option (Binding.name "break") (Config.put break o boolean) #>
-  add_option (Binding.name "quotes") (Config.put quotes o boolean) #>
-  add_option (Binding.name "mode") (add_wrapper o Print_Mode.with_modes o single) #>
-  add_option (Binding.name "margin") (add_wrapper o setmp_CRITICAL Pretty.margin_default o integer) #>
-  add_option (Binding.name "indent") (Config.put indent o integer) #>
-  add_option (Binding.name "source") (Config.put source o boolean) #>
-  add_option (Binding.name "goals_limit") (Config.put Goal_Display.goals_limit o integer));
+ (add_option @{binding show_types} (Config.put show_types o boolean) #>
+  add_option @{binding show_sorts} (Config.put show_sorts o boolean) #>
+  add_option @{binding show_structs} (Config.put show_structs o boolean) #>
+  add_option @{binding show_question_marks} (Config.put show_question_marks o boolean) #>
+  add_option @{binding show_abbrevs} (Config.put show_abbrevs o boolean) #>
+  add_option @{binding names_long} (Config.put Name_Space.names_long o boolean) #>
+  add_option @{binding names_short} (Config.put Name_Space.names_short o boolean) #>
+  add_option @{binding names_unique} (Config.put Name_Space.names_unique o boolean) #>
+  add_option @{binding eta_contract} (Config.put Syntax_Trans.eta_contract o boolean) #>
+  add_option @{binding display} (Config.put display o boolean) #>
+  add_option @{binding break} (Config.put break o boolean) #>
+  add_option @{binding quotes} (Config.put quotes o boolean) #>
+  add_option @{binding mode} (add_wrapper o Print_Mode.with_modes o single) #>
+  add_option @{binding margin} (add_wrapper o setmp_CRITICAL Pretty.margin_default o integer) #>
+  add_option @{binding indent} (Config.put indent o integer) #>
+  add_option @{binding source} (Config.put source o boolean) #>
+  add_option @{binding goals_limit} (Config.put Goal_Display.goals_limit o integer));
 
 
 (* basic pretty printing *)
@@ -565,20 +565,20 @@ fun basic_entity name scan = basic_entities name (scan >> single);
 in
 
 val _ = Theory.setup
- (basic_entities_style (Binding.name "thm") (Term_Style.parse -- Attrib.thms) pretty_thm_style #>
-  basic_entity (Binding.name "prop") (Term_Style.parse -- Args.prop) pretty_term_style #>
-  basic_entity (Binding.name "term") (Term_Style.parse -- Args.term) pretty_term_style #>
-  basic_entity (Binding.name "term_type") (Term_Style.parse -- Args.term) pretty_term_typ #>
-  basic_entity (Binding.name "typeof") (Term_Style.parse -- Args.term) pretty_term_typeof #>
-  basic_entity (Binding.name "const") (Args.const {proper = true, strict = false}) pretty_const #>
-  basic_entity (Binding.name "abbrev") (Scan.lift Args.name_inner_syntax) pretty_abbrev #>
-  basic_entity (Binding.name "typ") Args.typ_abbrev Syntax.pretty_typ #>
-  basic_entity (Binding.name "class") (Scan.lift Args.name_inner_syntax) pretty_class #>
-  basic_entity (Binding.name "type") (Scan.lift Args.name) pretty_type #>
-  basic_entity (Binding.name "text") (Scan.lift Args.name_source_position) pretty_text_report #>
-  basic_entities (Binding.name "prf") Attrib.thms (pretty_prf false) #>
-  basic_entities (Binding.name "full_prf") Attrib.thms (pretty_prf true) #>
-  basic_entity (Binding.name "theory") (Scan.lift (Parse.position Args.name)) pretty_theory);
+ (basic_entities_style @{binding thm} (Term_Style.parse -- Attrib.thms) pretty_thm_style #>
+  basic_entity @{binding prop} (Term_Style.parse -- Args.prop) pretty_term_style #>
+  basic_entity @{binding term} (Term_Style.parse -- Args.term) pretty_term_style #>
+  basic_entity @{binding term_type} (Term_Style.parse -- Args.term) pretty_term_typ #>
+  basic_entity @{binding typeof} (Term_Style.parse -- Args.term) pretty_term_typeof #>
+  basic_entity @{binding const} (Args.const {proper = true, strict = false}) pretty_const #>
+  basic_entity @{binding abbrev} (Scan.lift Args.name_inner_syntax) pretty_abbrev #>
+  basic_entity @{binding typ} Args.typ_abbrev Syntax.pretty_typ #>
+  basic_entity @{binding class} (Scan.lift Args.name_inner_syntax) pretty_class #>
+  basic_entity @{binding type} (Scan.lift Args.name) pretty_type #>
+  basic_entity @{binding text} (Scan.lift Args.name_source_position) pretty_text_report #>
+  basic_entities @{binding prf} Attrib.thms (pretty_prf false) #>
+  basic_entities @{binding full_prf} Attrib.thms (pretty_prf true) #>
+  basic_entity @{binding theory} (Scan.lift (Parse.position Args.name)) pretty_theory);
 
 end;
 
@@ -600,8 +600,8 @@ fun goal_state name main = antiquotation name (Scan.succeed ())
 in
 
 val _ = Theory.setup
- (goal_state (Binding.name "goals") true #>
-  goal_state (Binding.name "subgoals") false);
+ (goal_state @{binding goals} true #>
+  goal_state @{binding subgoals} false);
 
 end;
 
@@ -611,7 +611,7 @@ end;
 val _ = Keyword.define ("by", NONE);  (*overlap with command category*)
 
 val _ = Theory.setup
-  (antiquotation (Binding.name "lemma")
+  (antiquotation @{binding lemma}
     (Scan.lift (Scan.ahead Parse.not_eof) -- Args.prop --
       Scan.lift (Parse.position (Args.$$$ "by") -- Method.parse -- Scan.option Method.parse))
     (fn {source, context = ctxt, ...} => fn ((prop_token, prop), (((_, by_pos), m1), m2)) =>
@@ -654,18 +654,18 @@ fun ml_enclose bg en source =
 in
 
 val _ = Theory.setup
- (ml_text (Binding.name "ML") (ml_enclose "fn _ => (" ");") #>
-  ml_text (Binding.name "ML_op") (ml_enclose "fn _ => (op " ");") #>
-  ml_text (Binding.name "ML_type") (ml_enclose "val _ = NONE : (" ") option;") #>
-  ml_text (Binding.name "ML_structure")
+ (ml_text @{binding ML} (ml_enclose "fn _ => (" ");") #>
+  ml_text @{binding ML_op} (ml_enclose "fn _ => (op " ");") #>
+  ml_text @{binding ML_type} (ml_enclose "val _ = NONE : (" ") option;") #>
+  ml_text @{binding ML_structure}
     (ml_enclose "functor XXX() = struct structure XX = " " end;") #>
 
-  ml_text (Binding.name "ML_functor")   (* FIXME formal treatment of functor name (!?) *)
+  ml_text @{binding ML_functor}   (* FIXME formal treatment of functor name (!?) *)
     (fn source =>
       ML_Lex.read Position.none ("ML_Env.check_functor " ^
         ML_Syntax.print_string (#1 (Symbol_Pos.source_content source)))) #>
 
-  ml_text (Binding.name "ML_text") (K []));
+  ml_text @{binding ML_text} (K []));
 
 end;
 
@@ -673,7 +673,7 @@ end;
 (* URLs *)
 
 val _ = Theory.setup
-  (antiquotation (Binding.name "url") (Scan.lift (Parse.position Parse.name))
+  (antiquotation @{binding url} (Scan.lift (Parse.position Parse.name))
     (fn {context = ctxt, ...} => fn (name, pos) =>
       (Context_Position.reports ctxt [(pos, Markup.language_path), (pos, Markup.url name)];
        enclose "\\url{" "}" name)));

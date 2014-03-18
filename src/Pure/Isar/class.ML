@@ -666,9 +666,9 @@ fun default_tac rules ctxt facts =
     default_intro_tac ctxt facts;
 
 val _ = Theory.setup
- (Method.setup (Binding.name "intro_classes") (Scan.succeed (K (METHOD intro_classes_tac)))
+ (Method.setup @{binding intro_classes} (Scan.succeed (K (METHOD intro_classes_tac)))
     "back-chain introduction rules of classes" #>
-  Method.setup (Binding.name "default") (Attrib.thms >> (METHOD oo default_tac))
+  Method.setup @{binding default} (Attrib.thms >> (METHOD oo default_tac))
     "apply some intro/elim rule");
 
 end;

@@ -1,7 +1,7 @@
-/*  Title:      Pure/Thy/thy_load.scala
+/*  Title:      Pure/PIDE/resources.scala
     Author:     Makarius
 
-Primitives for loading theory files.
+Resources for theories and auxiliary files.
 */
 
 package isabelle
@@ -12,19 +12,13 @@ import scala.annotation.tailrec
 import java.io.{File => JFile}
 
 
-object Thy_Load
+object Resources
 {
-  /* paths */
-
   def thy_path(path: Path): Path = path.ext("thy")
-
-  def is_wellformed(str: String): Boolean =
-    try { thy_path(Path.explode(str)); true }
-    catch { case ERROR(_) => false }
 }
 
 
-class Thy_Load(val loaded_theories: Set[String] = Set.empty, val base_syntax: Outer_Syntax)
+class Resources(val loaded_theories: Set[String] = Set.empty, val base_syntax: Outer_Syntax)
 {
   /* document node names */
 
@@ -71,7 +65,7 @@ class Thy_Load(val loaded_theories: Set[String] = Set.empty, val base_syntax: Ou
     if (loaded_theories(theory)) Document.Node.Name(theory + ".thy", "", theory)
     else {
       val path = Path.explode(s)
-      val node = append(master.master_dir, Thy_Load.thy_path(path))
+      val node = append(master.master_dir, Resources.thy_path(path))
       val master_dir = append(master.master_dir, path.dir)
       Document.Node.Name(node, master_dir, theory)
     }
@@ -84,7 +78,7 @@ class Thy_Load(val loaded_theories: Set[String] = Set.empty, val base_syntax: Ou
 
       val name1 = header.name
       if (name.theory != name1)
-        error("Bad file name " + Thy_Load.thy_path(Path.basic(name.theory)) +
+        error("Bad file name " + Resources.thy_path(Path.basic(name.theory)) +
           " for theory " + quote(name1))
 
       val imports = header.imports.map(import_name(name, _))

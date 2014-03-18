@@ -8,6 +8,12 @@ signature ML_THMS =
 sig
   val the_attributes: Proof.context -> int -> Args.src list
   val the_thmss: Proof.context -> thm list list
+  val get_stored_thms: unit -> thm list
+  val get_stored_thm: unit -> thm
+  val store_thms: string * thm list -> unit
+  val store_thm: string * thm -> unit
+  val bind_thm: string * thm -> unit
+  val bind_thms: string * thm list -> unit
 end;
 
 structure ML_Thms: ML_THMS =
@@ -35,7 +41,7 @@ val cons_thms = Data.map o apsnd o cons;
 (* attribute source *)
 
 val _ = Theory.setup
-  (ML_Context.antiquotation @{binding attributes} (Scan.lift Parse_Spec.attribs)
+  (ML_Antiquotation.declaration @{binding attributes} (Scan.lift Parse_Spec.attribs)
     (fn _ => fn raw_srcs => fn ctxt =>
       let
         val i = serial ();
@@ -68,8 +74,8 @@ fun thm_binding kind is_single thms ctxt =
   in (decl, ctxt'') end;
 
 val _ = Theory.setup
-  (ML_Context.antiquotation @{binding thm} (Attrib.thm >> single) (K (thm_binding "thm" true)) #>
-   ML_Context.antiquotation @{binding thms} Attrib.thms (K (thm_binding "thms" false)));
+  (ML_Antiquotation.declaration @{binding thm} (Attrib.thm >> single) (K (thm_binding "thm" true)) #>
+   ML_Antiquotation.declaration @{binding thms} Attrib.thms (K (thm_binding "thms" false)));
 
 
 (* ad-hoc goals *)
@@ -79,7 +85,7 @@ val by = Args.$$$ "by";
 val goal = Scan.unless (by || and_) Args.name_inner_syntax;
 
 val _ = Theory.setup
-  (ML_Context.antiquotation @{binding lemma}
+  (ML_Antiquotation.declaration @{binding lemma}
     (Scan.lift (Args.mode "open" -- Parse.enum1 "and" (Scan.repeat1 goal) --
       (by |-- Method.parse -- Scan.option Method.parse)))
     (fn _ => fn ((is_open, raw_propss), (m1, m2)) => fn ctxt =>
@@ -99,6 +105,41 @@ val _ = Theory.setup
           Proof_Context.get_fact ctxt'
             (Facts.named (Proof_Context.full_name ctxt' (Binding.name Auto_Bind.thisN)));
       in thm_binding "lemma" (length (flat propss) = 1) thms ctxt end));
+
+
+(* old-style theorem bindings *)
+
+structure Stored_Thms = Theory_Data
+(
+  type T = thm list;
+  val empty = [];
+  fun extend _ = [];
+  fun merge _ = [];
+);
+
+fun get_stored_thms () = Stored_Thms.get (ML_Context.the_global_context ());
+val get_stored_thm = hd o get_stored_thms;
+
+fun ml_store get (name, ths) =
+  let
+    val ths' = Context.>>> (Context.map_theory_result
+      (Global_Theory.store_thms (Binding.name name, ths)));
+    val _ = Theory.setup (Stored_Thms.put ths');
+    val _ =
+      if name = "" then ()
+      else if not (ML_Syntax.is_identifier name) then
+        error ("Cannot bind theorem(s) " ^ quote name ^ " as ML value")
+      else
+        ML_Compiler.eval true Position.none
+          (ML_Lex.tokenize ("val " ^ name ^ " = " ^ get ^ " ();"));
+    val _ = Theory.setup (Stored_Thms.put []);
+  in () end;
+
+val store_thms = ml_store "ML_Thms.get_stored_thms";
+fun store_thm (name, th) = ml_store "ML_Thms.get_stored_thm" (name, [th]);
+
+fun bind_thm (name, thm) = store_thm (name, Drule.export_without_context thm);
+fun bind_thms (name, thms) = store_thms (name, map Drule.export_without_context thms);
 
 end;
 

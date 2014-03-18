@@ -239,6 +239,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val keyword2_color = color_value("keyword2_color")
   val keyword3_color = color_value("keyword3_color")
   val quasi_keyword_color = color_value("quasi_keyword_color")
+  val improper_color = color_value("improper_color")
   val operator_color = color_value("operator_color")
   val caret_invisible_color = color_value("caret_invisible_color")
   val completion_color = color_value("completion_color")
@@ -335,7 +336,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
         {
           case (links, Text.Info(info_range, XML.Elem(Markup.Path(name), _)))
           if Path.is_valid(name) =>
-            val jedit_file = PIDE.thy_load.append(snapshot.node_name.master_dir, Path.explode(name))
+            val jedit_file = PIDE.resources.append(snapshot.node_name.master_dir, Path.explode(name))
             val link = PIDE.editor.hyperlink_file(jedit_file)
             Some(links :+ Text.Info(snapshot.convert(info_range), link))
 
@@ -469,7 +470,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
             Some(add(prev, r, (true, XML.Text(txt1 + txt2))))
           case (prev, Text.Info(r, XML.Elem(Markup.Path(name), _)))
           if Path.is_valid(name) =>
-            val jedit_file = PIDE.thy_load.append(snapshot.node_name.master_dir, Path.explode(name))
+            val jedit_file = PIDE.resources.append(snapshot.node_name.master_dir, Path.explode(name))
             val text = "path " + quote(name) + "\nfile " + quote(jedit_file)
             Some(add(prev, r, (true, XML.Text(text))))
           case (prev, Text.Info(r, XML.Elem(Markup.Url(name), _))) =>
@@ -654,6 +655,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       Markup.KEYWORD2 -> keyword2_color,
       Markup.KEYWORD3 -> keyword3_color,
       Markup.QUASI_KEYWORD -> quasi_keyword_color,
+      Markup.IMPROPER -> improper_color,
       Markup.OPERATOR -> operator_color,
       Markup.STRING -> Color.BLACK,
       Markup.ALTSTRING -> Color.BLACK,

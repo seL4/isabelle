@@ -286,7 +286,7 @@ lemma term_injs:
 subsection {* Constructors are distinct *}
 
 ML {*
-bind_thms ("term_dstncts",
+ML_Thms.bind_thms ("term_dstncts",
   mkall_dstnct_thms @{context} @{thms data_defs} (@{thms ccl_injs} @ @{thms term_injs})
     [["bot","inl","inr"], ["bot","zero","succ"], ["bot","nil","cons"]]);
 *}
@@ -305,7 +305,7 @@ lemma term_porews:
 subsection {* Rewriting and Proving *}
 
 ML {*
-  bind_thms ("term_injDs", XH_to_Ds @{thms term_injs});
+  ML_Thms.bind_thms ("term_injDs", XH_to_Ds @{thms term_injs});
 *}
 
 lemmas term_rews = termBs term_injs term_dstncts ccl_porews term_porews

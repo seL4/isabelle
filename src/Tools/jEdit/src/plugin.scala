@@ -36,12 +36,12 @@ object PIDE
   @volatile var startup_notified = false
 
   @volatile var plugin: Plugin = null
-  @volatile var session: Session = new Session(new JEdit_Thy_Load(Set.empty, Outer_Syntax.empty))
+  @volatile var session: Session = new Session(new JEdit_Resources(Set.empty, Outer_Syntax.empty))
 
   def options_changed() { plugin.options_changed() }
 
-  def thy_load(): JEdit_Thy_Load =
-    session.thy_load.asInstanceOf[JEdit_Thy_Load]
+  def resources(): JEdit_Resources =
+    session.resources.asInstanceOf[JEdit_Resources]
 
   lazy val editor = new JEdit_Editor
 
@@ -109,7 +109,7 @@ object PIDE
         if buffer != null && !buffer.isLoading && !buffer.getBooleanProperty(Buffer.GZIPPED)
       } {
         JEdit_Lib.buffer_lock(buffer) {
-          val node_name = thy_load.node_name(buffer)
+          val node_name = resources.node_name(buffer)
           val model =
             document_model(buffer) match {
               case Some(model) if model.node_name == node_name => model
@@ -202,10 +202,10 @@ class Plugin extends EBPlugin
               if model.is_theory
             } yield (model.node_name, Position.none)
 
-          val thy_info = new Thy_Info(PIDE.thy_load)
+          val thy_info = new Thy_Info(PIDE.resources)
           // FIXME avoid I/O in Swing thread!?!
           val files = thy_info.dependencies(thys).deps.map(_.name.node).
-            filter(file => !loaded_buffer(file) && PIDE.thy_load.check_file(view, file))
+            filter(file => !loaded_buffer(file) && PIDE.resources.check_file(view, file))
 
           if (!files.isEmpty) {
             if (PIDE.options.bool("jedit_auto_load")) {
@@ -349,9 +349,9 @@ class Plugin extends EBPlugin
       JEdit_Lib.jedit_text_areas.foreach(Completion_Popup.Text_Area.init _)
 
       val content = Isabelle_Logic.session_content(false)
-      val thy_load = new JEdit_Thy_Load(content.loaded_theories, content.syntax)
+      val resources = new JEdit_Resources(content.loaded_theories, content.syntax)
 
-      PIDE.session = new Session(thy_load) {
+      PIDE.session = new Session(resources) {
         override def output_delay = PIDE.options.seconds("editor_output_delay")
         override def reparse_limit = PIDE.options.int("editor_reparse_limit")
       }

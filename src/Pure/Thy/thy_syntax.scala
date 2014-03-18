@@ -257,7 +257,7 @@ object Thy_Syntax
     }
 
   def resolve_files(
-      thy_load: Thy_Load,
+      resources: Resources,
       syntax: Outer_Syntax,
       node_name: Document.Node.Name,
       span: List[Token],
@@ -267,7 +267,7 @@ object Thy_Syntax
     span_files(syntax, span).map(file_name =>
       Exn.capture {
         val name =
-          Document.Node.Name(thy_load.append(node_name.master_dir, Path.explode(file_name)))
+          Document.Node.Name(resources.append(node_name.master_dir, Path.explode(file_name)))
         val blob = doc_blobs.get(name).map(blob => ((blob.bytes.sha1_digest, blob.file)))
         (name, blob)
       })
@@ -289,7 +289,7 @@ object Thy_Syntax
   }
 
   private def reparse_spans(
-    thy_load: Thy_Load,
+    resources: Resources,
     syntax: Outer_Syntax,
     doc_blobs: Document.Blobs,
     name: Document.Node.Name,
@@ -299,7 +299,7 @@ object Thy_Syntax
     val cmds0 = commands.iterator(first, last).toList
     val blobs_spans0 =
       parse_spans(syntax.scan(cmds0.iterator.map(_.source).mkString)).
-        map(span => (resolve_files(thy_load, syntax, name, span, doc_blobs), span))
+        map(span => (resolve_files(resources, syntax, name, span, doc_blobs), span))
 
     val (cmds1, blobs_spans1) = chop_common(cmds0, blobs_spans0)
 
@@ -324,7 +324,7 @@ object Thy_Syntax
 
   // FIXME somewhat slow
   private def recover_spans(
-    thy_load: Thy_Load,
+    resources: Resources,
     syntax: Outer_Syntax,
     doc_blobs: Document.Blobs,
     name: Document.Node.Name,
@@ -342,7 +342,7 @@ object Thy_Syntax
         case Some(first_unparsed) =>
           val first = next_invisible_command(cmds.reverse, first_unparsed)
           val last = next_invisible_command(cmds, first_unparsed)
-          recover(reparse_spans(thy_load, syntax, doc_blobs, name, cmds, first, last))
+          recover(reparse_spans(resources, syntax, doc_blobs, name, cmds, first, last))
         case None => cmds
       }
     recover(commands)
@@ -352,7 +352,7 @@ object Thy_Syntax
   /* consolidate unfinished spans */
 
   private def consolidate_spans(
-    thy_load: Thy_Load,
+    resources: Resources,
     syntax: Outer_Syntax,
     doc_blobs: Document.Blobs,
     reparse_limit: Int,
@@ -374,7 +374,7 @@ object Thy_Syntax
                 last = it.next
                 i += last.length
               }
-              reparse_spans(thy_load, syntax, doc_blobs, name, commands, first_unfinished, last)
+              reparse_spans(resources, syntax, doc_blobs, name, commands, first_unfinished, last)
             case None => commands
           }
         case None => commands
@@ -396,7 +396,7 @@ object Thy_Syntax
   }
 
   private def text_edit(
-    thy_load: Thy_Load,
+    resources: Resources,
     syntax: Outer_Syntax,
     doc_blobs: Document.Blobs,
     reparse_limit: Int,
@@ -413,7 +413,7 @@ object Thy_Syntax
           val commands0 = node.commands
           val commands1 = edit_text(text_edits, commands0)
           val commands2 =
-            recover_spans(thy_load, syntax, doc_blobs, name, node.perspective.visible, commands1)
+            recover_spans(resources, syntax, doc_blobs, name, node.perspective.visible, commands1)
           node.update_commands(commands2)
         }
 
@@ -426,13 +426,13 @@ object Thy_Syntax
         if (node.same_perspective(perspective)) node
         else
           node.update_perspective(perspective).update_commands(
-            consolidate_spans(thy_load, syntax, doc_blobs, reparse_limit,
+            consolidate_spans(resources, syntax, doc_blobs, reparse_limit,
               name, visible, node.commands))
     }
   }
 
   def text_edits(
-      thy_load: Thy_Load,
+      resources: Resources,
       reparse_limit: Int,
       previous: Document.Version,
       doc_blobs: Document.Blobs,
@@ -440,7 +440,7 @@ object Thy_Syntax
     : (Boolean, List[Document.Edit_Command], Document.Version) =
   {
     val ((syntax, syntax_changed), reparse0, nodes0, doc_edits0) =
-      header_edits(thy_load.base_syntax, previous, edits)
+      header_edits(resources.base_syntax, previous, edits)
 
     if (edits.isEmpty)
       (false, Nil, Document.Version.make(syntax, previous.nodes))
@@ -469,10 +469,10 @@ object Thy_Syntax
           val node1 =
             if (reparse_set(name) && !commands.isEmpty)
               node.update_commands(
-                reparse_spans(thy_load, syntax, doc_blobs,
+                reparse_spans(resources, syntax, doc_blobs,
                   name, commands, commands.head, commands.last))
             else node
-          val node2 = (node1 /: edits)(text_edit(thy_load, syntax, doc_blobs, reparse_limit, _, _))
+          val node2 = (node1 /: edits)(text_edit(resources, syntax, doc_blobs, reparse_limit, _, _))
 
           if (!(node.same_perspective(node2.perspective)))
             doc_edits += (name -> node2.perspective)

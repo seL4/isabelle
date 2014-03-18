@@ -627,8 +627,8 @@ text %mlref {*
   \begin{mldecls}
   @{index_ML ML_Context.the_generic_context: "unit -> Context.generic"} \\
   @{index_ML "Context.>>": "(Context.generic -> Context.generic) -> unit"} \\
-  @{index_ML bind_thms: "string * thm list -> unit"} \\
-  @{index_ML bind_thm: "string * thm -> unit"} \\
+  @{index_ML ML_Thms.bind_thms: "string * thm list -> unit"} \\
+  @{index_ML ML_Thms.bind_thm: "string * thm -> unit"} \\
   \end{mldecls}
 
   \begin{description}
@@ -642,12 +642,12 @@ text %mlref {*
   \item @{ML "Context.>>"}~@{text f} applies context transformation
   @{text f} to the implicit context of the ML toplevel.
 
-  \item @{ML bind_thms}~@{text "(name, thms)"} stores a list of
+  \item @{ML ML_Thms.bind_thms}~@{text "(name, thms)"} stores a list of
   theorems produced in ML both in the (global) theory context and the
   ML toplevel, associating it with the provided name.  Theorems are
   put into a global ``standard'' format before being stored.
 
-  \item @{ML bind_thm} is similar to @{ML bind_thms} but refers to a
+  \item @{ML ML_Thms.bind_thm} is similar to @{ML ML_Thms.bind_thms} but refers to a
   singleton fact.
 
   \end{description}

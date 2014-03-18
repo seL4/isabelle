@@ -466,9 +466,9 @@ val _ = Theory.setup
       "(realizes (r) (!!x. PROP P (x))) ==  \
     \  (!!x. PROP realizes (r (x)) (PROP P (x)))"] #>
 
-   Attrib.setup (Binding.name "extraction_expand") (Scan.succeed (extraction_expand false))
+   Attrib.setup @{binding extraction_expand} (Scan.succeed (extraction_expand false))
      "specify theorems to be expanded during extraction" #>
-   Attrib.setup (Binding.name "extraction_expand_def") (Scan.succeed (extraction_expand true))
+   Attrib.setup @{binding extraction_expand_def} (Scan.succeed (extraction_expand true))
      "specify definitions to be expanded during extraction");
 
 

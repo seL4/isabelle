@@ -133,7 +133,7 @@ class Isabelle_Sidekick_Structure(
 
 
 class Isabelle_Sidekick_Default extends
-  Isabelle_Sidekick_Structure("isabelle", PIDE.thy_load.theory_node_name)
+  Isabelle_Sidekick_Structure("isabelle", PIDE.resources.theory_node_name)
 
 
 class Isabelle_Sidekick_Options extends

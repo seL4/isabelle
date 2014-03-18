@@ -12,7 +12,7 @@ sig
     Error of string | Sync | EOF
   type file = {src_path: Path.T, lines: string list, digest: SHA1.digest, pos: Position.T}
   datatype value =
-    Literal of Markup.T | Text of string | Typ of typ | Term of term | Fact of thm list |
+    Literal of bool * Markup.T | Text of string | Typ of typ | Term of term | Fact of thm list |
     Attribute of morphism -> attribute | Files of file Exn.result list
   type T
   val str_of_kind: kind -> string
@@ -42,7 +42,7 @@ sig
   val inner_syntax_of: T -> string
   val source_position_of: T -> Symbol_Pos.source
   val content_of: T -> string
-  val keyword_markup: Markup.T -> string -> Markup.T
+  val keyword_markup: bool * Markup.T -> string -> Markup.T
   val completion_report: T -> Position.report_text list
   val report: T -> Position.report_text
   val markup: T -> Markup.T
@@ -87,7 +87,7 @@ struct
 type file = {src_path: Path.T, lines: string list, digest: SHA1.digest, pos: Position.T};
 
 datatype value =
-  Literal of Markup.T |
+  Literal of bool * Markup.T |
   Text of string |
   Typ of typ |
   Term of term |
@@ -255,8 +255,8 @@ val token_kind_markup =
 
 in
 
-fun keyword_markup keyword x =
-  if Symbol.is_ascii_identifier x then keyword else Markup.delimiter;
+fun keyword_markup (important, keyword) x =
+  if important orelse Symbol.is_ascii_identifier x then keyword else Markup.delimiter;
 
 fun completion_report tok =
   if is_kind Keyword tok
@@ -265,7 +265,7 @@ fun completion_report tok =
 
 fun report tok =
   if is_kind Keyword tok then
-    ((pos_of tok, keyword_markup Markup.keyword2 (content_of tok)), "")
+    ((pos_of tok, keyword_markup (false, Markup.keyword2) (content_of tok)), "")
   else
     let val (m, text) = token_kind_markup (kind_of tok)
     in ((pos_of tok, m), text) end;

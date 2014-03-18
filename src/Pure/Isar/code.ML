@@ -1285,7 +1285,7 @@ val _ = Theory.setup
       || Scan.succeed (mk_attribute add_eqn_maybe_abs);
   in
     Datatype_Interpretation.init
-    #> Attrib.setup (Binding.name "code") (Scan.lift code_attribute_parser)
+    #> Attrib.setup @{binding code} (Scan.lift code_attribute_parser)
         "declare theorems for code generation"
   end);
 

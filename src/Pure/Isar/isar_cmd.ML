@@ -247,9 +247,9 @@ fun diag_goal ctxt =
     handle Toplevel.UNDEF => error "No goal present";
 
 val _ = Theory.setup
-  (ML_Antiquotation.value (Binding.qualify true "Isar" (Binding.name "state"))
+  (ML_Antiquotation.value (Binding.qualify true "Isar" @{binding state})
     (Scan.succeed "Isar_Cmd.diag_state ML_context") #>
-   ML_Antiquotation.value (Binding.qualify true "Isar" (Binding.name "goal"))
+   ML_Antiquotation.value (Binding.qualify true "Isar" @{binding goal})
     (Scan.succeed "Isar_Cmd.diag_goal ML_context"));
 
 
