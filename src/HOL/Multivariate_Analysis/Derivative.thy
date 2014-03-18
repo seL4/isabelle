@@ -544,16 +544,14 @@ lemma frechet_derivative_within_cbox:
 subsection {* The traditional Rolle theorem in one dimension *}
 
 lemma linear_componentwise:
-  fixes f:: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  fixes f:: "'a::euclidean_space \<Rightarrow> 'b::real_inner"
   assumes lf: "linear f"
   shows "(f x) \<bullet> j = (\<Sum>i\<in>Basis. (x\<bullet>i) * (f i\<bullet>j))" (is "?lhs = ?rhs")
 proof -
-  have fA: "finite Basis"
-    by simp
   have "?rhs = (\<Sum>i\<in>Basis. (x\<bullet>i) *\<^sub>R (f i))\<bullet>j"
     by (simp add: inner_setsum_left)
   then show ?thesis
-    unfolding linear_setsum_mul[OF lf fA, symmetric]
+    unfolding linear_setsum_mul[OF lf, symmetric]
     unfolding euclidean_representation ..
 qed
 

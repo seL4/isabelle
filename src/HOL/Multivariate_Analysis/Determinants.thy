@@ -964,7 +964,7 @@ proof -
     by simp
   have thd0: "det (\<chi> i. if i = k then row k A + (\<Sum>i \<in> ?Uk. x $ i *s row i A) else row i A) = det A"
     apply (rule det_row_span)
-    apply (rule span_setsum[OF fUk])
+    apply (rule span_setsum)
     apply (rule ballI)
     apply (rule span_mul [where 'a="real^'n", folded scalar_mult_eq_scaleR])+
     apply (rule span_superset)

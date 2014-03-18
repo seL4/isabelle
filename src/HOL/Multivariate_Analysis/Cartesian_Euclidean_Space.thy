@@ -467,11 +467,10 @@ lemma linear_componentwise:
 proof -
   let ?M = "(UNIV :: 'm set)"
   let ?N = "(UNIV :: 'n set)"
-  have fM: "finite ?M" by simp
   have "?rhs = (setsum (\<lambda>i.(x$i) *\<^sub>R f (axis i 1) ) ?M)$j"
     unfolding setsum_component by simp
   then show ?thesis
-    unfolding linear_setsum_mul[OF lf fM, symmetric]
+    unfolding linear_setsum_mul[OF lf, symmetric]
     unfolding scalar_mult_eq_scaleR[symmetric]
     unfolding basis_expansion
     by simp
@@ -674,7 +673,7 @@ proof -
         where y: "setsum (\<lambda>i. (y$i) *s column i A) ?U = x" by blast
       have "x \<in> span (columns A)"
         unfolding y[symmetric]
-        apply (rule span_setsum[OF fU])
+        apply (rule span_setsum)
         apply clarify
         unfolding scalar_mult_eq_scaleR
         apply (rule span_mul)

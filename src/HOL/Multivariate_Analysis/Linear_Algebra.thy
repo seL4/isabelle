@@ -157,8 +157,7 @@ lemma setsum_norm_le:
 
 lemma setsum_norm_bound:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
-  assumes fS: "finite S"
-    and K: "\<forall>x \<in> S. norm (f x) \<le> K"
+  assumes K: "\<forall>x \<in> S. norm (f x) \<le> K"
   shows "norm (setsum f S) \<le> of_nat (card S) * K"
   using setsum_norm_le[OF K] setsum_constant[symmetric]
   by simp
@@ -250,13 +249,13 @@ lemma linear_zero: "linear (\<lambda>x. 0)"
   by (simp add: linear_iff)
 
 lemma linear_compose_setsum:
-  assumes fS: "finite S"
-    and lS: "\<forall>a \<in> S. linear (f a)"
+  assumes lS: "\<forall>a \<in> S. linear (f a)"
   shows "linear (\<lambda>x. setsum (\<lambda>a. f a x) S)"
-  using lS
-  apply (induct rule: finite_induct[OF fS])
-  apply (auto simp add: linear_zero intro: linear_compose_add)
-  done
+proof (cases "finite S")
+  case True
+  then show ?thesis
+    using lS by induct (simp_all add: linear_zero linear_compose_add)
+qed (simp add: linear_zero)
 
 lemma linear_0: "linear f \<Longrightarrow> f 0 = 0"
   unfolding linear_iff
@@ -278,30 +277,18 @@ lemma linear_sub: "linear f \<Longrightarrow> f (x - y) = f x - f y"
   using linear_add [of f x "- y"] by (simp add: linear_neg)
 
 lemma linear_setsum:
-  assumes lin: "linear f"
-    and fin: "finite S"
+  assumes f: "linear f"
   shows "f (setsum g S) = setsum (f \<circ> g) S"
-  using fin
-proof induct
-  case empty
-  then show ?case
-    by (simp add: linear_0[OF lin])
-next
-  case (insert x F)
-  have "f (setsum g (insert x F)) = f (g x + setsum g F)"
-    using insert.hyps by simp
-  also have "\<dots> = f (g x) + f (setsum g F)"
-    using linear_add[OF lin] by simp
-  also have "\<dots> = setsum (f \<circ> g) (insert x F)"
-    using insert.hyps by simp
-  finally show ?case .
-qed
+proof (cases "finite S")
+  case True
+  then show ?thesis
+    by induct (simp_all add: linear_0 [OF f] linear_add [OF f])
+qed (simp add: linear_0 [OF f])
 
 lemma linear_setsum_mul:
   assumes lin: "linear f"
-    and fin: "finite S"
   shows "f (setsum (\<lambda>i. c i *\<^sub>R v i) S) = setsum (\<lambda>i. c i *\<^sub>R f (v i)) S"
-  using linear_setsum[OF lin fin, of "\<lambda>i. c i *\<^sub>R v i" , unfolded o_def] linear_cmul[OF lin]
+  using linear_setsum[OF lin, of "\<lambda>i. c i *\<^sub>R v i" , unfolded o_def] linear_cmul[OF lin]
   by simp
 
 lemma linear_injective_0:
@@ -425,7 +412,7 @@ proof -
     have "f x \<bullet> y = f (\<Sum>i\<in>Basis. (x \<bullet> i) *\<^sub>R i) \<bullet> y"
       by (simp add: euclidean_representation)
     also have "\<dots> = (\<Sum>i\<in>Basis. (x \<bullet> i) *\<^sub>R f i) \<bullet> y"
-      unfolding linear_setsum[OF lf finite_Basis]
+      unfolding linear_setsum[OF lf]
       by (simp add: linear_cmul[OF lf])
     finally show "f x \<bullet> y = x \<bullet> ?w"
       by (simp add: inner_setsum_left inner_setsum_right mult_commute)
@@ -706,12 +693,13 @@ lemma subspace_sub: "subspace S \<Longrightarrow> x \<in> S \<Longrightarrow> y 
 
 lemma (in real_vector) subspace_setsum:
   assumes sA: "subspace A"
-    and fB: "finite B"
-    and f: "\<forall>x\<in> B. f x \<in> A"
+    and f: "\<forall>x\<in>B. f x \<in> A"
   shows "setsum f B \<in> A"
-  using  fB f sA
-  by (induct rule: finite_induct[OF fB])
-    (simp add: subspace_def sA, auto simp add: sA subspace_add)
+proof (cases "finite B")
+  case True
+  then show ?thesis
+    using f by induct (simp_all add: subspace_0 [OF sA] subspace_add [OF sA])
+qed (simp add: subspace_0 [OF sA])
 
 lemma subspace_linear_image:
   assumes lf: "linear f"
@@ -921,8 +909,8 @@ lemma span_neg: "x \<in> span S \<Longrightarrow> - x \<in> span S"
 lemma span_sub: "x \<in> span S \<Longrightarrow> y \<in> span S \<Longrightarrow> x - y \<in> span S"
   by (metis subspace_span subspace_sub)
 
-lemma (in real_vector) span_setsum: "finite A \<Longrightarrow> \<forall>x \<in> A. f x \<in> span S \<Longrightarrow> setsum f A \<in> span S"
-  by (rule subspace_setsum, rule subspace_span)
+lemma (in real_vector) span_setsum: "\<forall>x\<in>A. f x \<in> span S \<Longrightarrow> setsum f A \<in> span S"
+  by (rule subspace_setsum [OF subspace_span])
 
 lemma span_add_eq: "x \<in> span S \<Longrightarrow> x + y \<in> span S \<longleftrightarrow> y \<in> span S"
   by (metis add_minus_cancel scaleR_minus1_left subspace_def subspace_span)
@@ -1943,7 +1931,7 @@ next
       apply (simp only: scaleR_right_diff_distrib th0)
       apply (rule span_add_eq)
       apply (rule span_mul)
-      apply (rule span_setsum[OF C(1)])
+      apply (rule span_setsum)
       apply clarify
       apply (rule span_mul)
       apply (rule span_superset)
@@ -2030,7 +2018,7 @@ proof -
   let ?a = "a - setsum (\<lambda>b. (a \<bullet> b / (b \<bullet> b)) *\<^sub>R b) B"
   have "setsum (\<lambda>b. (a \<bullet> b / (b \<bullet> b)) *\<^sub>R b) B \<in> span S"
     unfolding sSB
-    apply (rule span_setsum[OF fB(1)])
+    apply (rule span_setsum)
     apply clarsimp
     apply (rule span_mul)
     apply (rule span_superset)
@@ -3030,4 +3018,3 @@ lemma norm_cauchy_schwarz_equal: "abs (x \<bullet> y) = norm x * norm y \<longle
   done
 
 end
-

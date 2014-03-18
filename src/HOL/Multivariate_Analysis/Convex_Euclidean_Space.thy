@@ -7057,10 +7057,7 @@ proof -
     fix i
     assume "i \<in> Basis" and "i \<notin> d"
     have "?a \<in> span d"
-      apply (rule span_setsum[of d "(\<lambda>b. b /\<^sub>R (2 * real (card d)))" d])
-      using finite_subset[OF assms(2) finite_Basis]
-      apply blast
-    proof -
+    proof (rule span_setsum[of d "(\<lambda>b. b /\<^sub>R (2 * real (card d)))" d])
       {
         fix x :: "'a::euclidean_space"
         assume "x \<in> d"
