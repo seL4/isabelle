@@ -41,7 +41,7 @@ val cons_thms = Data.map o apsnd o cons;
 (* attribute source *)
 
 val _ = Theory.setup
-  (ML_Context.antiquotation @{binding attributes} (Scan.lift Parse_Spec.attribs)
+  (ML_Antiquotation.declaration @{binding attributes} (Scan.lift Parse_Spec.attribs)
     (fn _ => fn raw_srcs => fn ctxt =>
       let
         val i = serial ();
@@ -74,8 +74,8 @@ fun thm_binding kind is_single thms ctxt =
   in (decl, ctxt'') end;
 
 val _ = Theory.setup
-  (ML_Context.antiquotation @{binding thm} (Attrib.thm >> single) (K (thm_binding "thm" true)) #>
-   ML_Context.antiquotation @{binding thms} Attrib.thms (K (thm_binding "thms" false)));
+  (ML_Antiquotation.declaration @{binding thm} (Attrib.thm >> single) (K (thm_binding "thm" true)) #>
+   ML_Antiquotation.declaration @{binding thms} Attrib.thms (K (thm_binding "thms" false)));
 
 
 (* ad-hoc goals *)
@@ -85,7 +85,7 @@ val by = Args.$$$ "by";
 val goal = Scan.unless (by || and_) Args.name_inner_syntax;
 
 val _ = Theory.setup
-  (ML_Context.antiquotation @{binding lemma}
+  (ML_Antiquotation.declaration @{binding lemma}
     (Scan.lift (Args.mode "open" -- Parse.enum1 "and" (Scan.repeat1 goal) --
       (by |-- Method.parse -- Scan.option Method.parse)))
     (fn _ => fn ((is_open, raw_propss), (m1, m2)) => fn ctxt =>

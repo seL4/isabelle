@@ -1,13 +1,15 @@
 (*  Title:      Pure/ML/ml_antiquotation.ML
     Author:     Makarius
 
-Convenience operations for common ML antiquotations.  Miscellaneous
-predefined antiquotations.
+ML antiquotations.
 *)
 
 signature ML_ANTIQUOTATION =
 sig
   val variant: string -> Proof.context -> string * Proof.context
+  val declaration: binding -> 'a context_parser ->
+    (Args.src -> 'a -> Proof.context -> ML_Context.decl * Proof.context) ->
+    theory -> theory
   val inline: binding -> string context_parser -> theory -> theory
   val value: binding -> string context_parser -> theory -> theory
 end;
@@ -15,9 +17,7 @@ end;
 structure ML_Antiquotation: ML_ANTIQUOTATION =
 struct
 
-(** generic tools **)
-
-(* ML names *)
+(* unique names *)
 
 val init_context = ML_Syntax.reserved |> Name.declare "ML_context";
 
@@ -35,13 +35,19 @@ fun variant a ctxt =
   in (b, ctxt') end;
 
 
-(* specific antiquotations *)
+(* define antiquotations *)
+
+fun declaration name scan body =
+  ML_Context.add_antiquotation name
+    (fn src => fn orig_ctxt =>
+      let val (x, _) = Args.syntax scan src orig_ctxt
+      in body src x orig_ctxt end);
 
 fun inline name scan =
-  ML_Context.antiquotation name scan (fn _ => fn s => fn ctxt => (K ("", s), ctxt));
+  declaration name scan (fn _ => fn s => fn ctxt => (K ("", s), ctxt));
 
 fun value name scan =
-  ML_Context.antiquotation name scan (fn _ => fn s => fn ctxt =>
+  declaration name scan (fn _ => fn s => fn ctxt =>
     let
       val (a, ctxt') = variant (Binding.name_of name) ctxt;
       val env = "val " ^ a ^ " = " ^ s ^ ";\n";
@@ -49,11 +55,10 @@ fun value name scan =
     in (K (env, body), ctxt') end);
 
 
-
-(** misc antiquotations **)
+(* basic antiquotations *)
 
 val _ = Theory.setup
- (ML_Context.antiquotation (Binding.name "here") (Scan.succeed ())
+ (declaration (Binding.name "here") (Scan.succeed ())
     (fn src => fn () => fn ctxt =>
       let
         val (a, ctxt') = variant "position" ctxt;
@@ -62,163 +67,8 @@ val _ = Theory.setup
         val body = "Isabelle." ^ a;
       in (K (env, body), ctxt') end) #>
 
-  inline (Binding.name "assert")
-    (Scan.succeed "(fn b => if b then () else raise General.Fail \"Assertion failed\")") #>
-
-  inline (Binding.name "make_string") (Scan.succeed ml_make_string) #>
-
-  value (Binding.name "option") (Scan.lift (Parse.position Args.name) >> (fn (name, pos) =>
-    (Options.default_typ name handle ERROR msg => error (msg ^ Position.here pos);
-     ML_Syntax.print_string name))) #>
-
   value (Binding.name "binding")
-    (Scan.lift (Parse.position Args.name) >> ML_Syntax.make_binding) #>
-
-  value (Binding.name "theory")
-    (Args.context -- Scan.lift (Parse.position Args.name) >> (fn (ctxt, (name, pos)) =>
-      (Context_Position.report ctxt pos
-        (Theory.get_markup (Context.get_theory (Proof_Context.theory_of ctxt) name));
-       "Context.get_theory (Proof_Context.theory_of ML_context) " ^ ML_Syntax.print_string name))
-    || Scan.succeed "Proof_Context.theory_of ML_context") #>
-
-  value (Binding.name "theory_context")
-    (Args.context -- Scan.lift (Parse.position Args.name) >> (fn (ctxt, (name, pos)) =>
-      (Context_Position.report ctxt pos
-        (Theory.get_markup (Context.get_theory (Proof_Context.theory_of ctxt) name));
-       "Proof_Context.get_global (Proof_Context.theory_of ML_context) " ^
-        ML_Syntax.print_string name))) #>
-
-  inline (Binding.name "context") (Scan.succeed "Isabelle.ML_context") #>
-
-  inline (Binding.name "typ") (Args.typ >> (ML_Syntax.atomic o ML_Syntax.print_typ)) #>
-  inline (Binding.name "term") (Args.term >> (ML_Syntax.atomic o ML_Syntax.print_term)) #>
-  inline (Binding.name "prop") (Args.prop >> (ML_Syntax.atomic o ML_Syntax.print_term)) #>
-
-  value (Binding.name "ctyp") (Args.typ >> (fn T =>
-    "Thm.ctyp_of (Proof_Context.theory_of ML_context) " ^
-      ML_Syntax.atomic (ML_Syntax.print_typ T))) #>
-
-  value (Binding.name "cterm") (Args.term >> (fn t =>
-    "Thm.cterm_of (Proof_Context.theory_of ML_context) " ^
-     ML_Syntax.atomic (ML_Syntax.print_term t))) #>
-
-  value (Binding.name "cprop") (Args.prop >> (fn t =>
-    "Thm.cterm_of (Proof_Context.theory_of ML_context) " ^
-     ML_Syntax.atomic (ML_Syntax.print_term t))) #>
-
-  value (Binding.name "cpat")
-    (Args.context --
-      Scan.lift Args.name_inner_syntax >> uncurry Proof_Context.read_term_pattern >> (fn t =>
-        "Thm.cterm_of (Proof_Context.theory_of ML_context) " ^
-          ML_Syntax.atomic (ML_Syntax.print_term t))));
-
-
-(* type classes *)
-
-fun class syn = Args.context -- Scan.lift Args.name_inner_syntax >> (fn (ctxt, s) =>
-  Proof_Context.read_class ctxt s
-  |> syn ? Lexicon.mark_class
-  |> ML_Syntax.print_string);
-
-val _ = Theory.setup
- (inline (Binding.name "class") (class false) #>
-  inline (Binding.name "class_syntax") (class true) #>
-
-  inline (Binding.name "sort")
-    (Args.context -- Scan.lift Args.name_inner_syntax >> (fn (ctxt, s) =>
-      ML_Syntax.atomic (ML_Syntax.print_sort (Syntax.read_sort ctxt s)))));
-
-
-(* type constructors *)
-
-fun type_name kind check = Args.context -- Scan.lift (Parse.position Args.name_inner_syntax)
-  >> (fn (ctxt, (s, pos)) =>
-    let
-      val Type (c, _) = Proof_Context.read_type_name {proper = true, strict = false} ctxt s;
-      val decl = Type.the_decl (Proof_Context.tsig_of ctxt) (c, pos);
-      val res =
-        (case try check (c, decl) of
-          SOME res => res
-        | NONE => error ("Not a " ^ kind ^ ": " ^ quote c ^ Position.here pos));
-    in ML_Syntax.print_string res end);
-
-val _ = Theory.setup
- (inline (Binding.name "type_name")
-    (type_name "logical type" (fn (c, Type.LogicalType _) => c)) #>
-  inline (Binding.name "type_abbrev")
-    (type_name "type abbreviation" (fn (c, Type.Abbreviation _) => c)) #>
-  inline (Binding.name "nonterminal")
-    (type_name "nonterminal" (fn (c, Type.Nonterminal) => c)) #>
-  inline (Binding.name "type_syntax")
-    (type_name "type" (fn (c, _) => Lexicon.mark_type c)));
-
-
-(* constants *)
-
-fun const_name check = Args.context -- Scan.lift (Parse.position Args.name_inner_syntax)
-  >> (fn (ctxt, (s, pos)) =>
-    let
-      val Const (c, _) = Proof_Context.read_const {proper = true, strict = false} ctxt s;
-      val res = check (Proof_Context.consts_of ctxt, c)
-        handle TYPE (msg, _, _) => error (msg ^ Position.here pos);
-    in ML_Syntax.print_string res end);
-
-val _ = Theory.setup
- (inline (Binding.name "const_name")
-    (const_name (fn (consts, c) => (Consts.the_const consts c; c))) #>
-  inline (Binding.name "const_abbrev")
-    (const_name (fn (consts, c) => (Consts.the_abbreviation consts c; c))) #>
-  inline (Binding.name "const_syntax")
-    (const_name (fn (_, c) => Lexicon.mark_const c)) #>
-
-  inline (Binding.name "syntax_const")
-    (Args.context -- Scan.lift (Parse.position Args.name) >> (fn (ctxt, (c, pos)) =>
-      if is_some (Syntax.lookup_const (Proof_Context.syn_of ctxt) c)
-      then ML_Syntax.print_string c
-      else error ("Unknown syntax const: " ^ quote c ^ Position.here pos))) #>
-
-  inline (Binding.name "const")
-    (Args.context -- Scan.lift Args.name_inner_syntax -- Scan.optional
-        (Scan.lift (Args.$$$ "(") |-- Parse.enum1' "," Args.typ --| Scan.lift (Args.$$$ ")")) []
-      >> (fn ((ctxt, raw_c), Ts) =>
-        let
-          val Const (c, _) =
-            Proof_Context.read_const {proper = true, strict = true} ctxt raw_c;
-          val consts = Proof_Context.consts_of ctxt;
-          val n = length (Consts.typargs consts (c, Consts.type_scheme consts c));
-          val _ = length Ts <> n andalso
-            error ("Constant requires " ^ string_of_int n ^ " type argument(s): " ^
-              quote c ^ enclose "(" ")" (commas (replicate n "_")));
-          val const = Const (c, Consts.instance consts (c, Ts));
-        in ML_Syntax.atomic (ML_Syntax.print_term const) end)));
-
-
-(* outer syntax *)
-
-fun with_keyword f =
-  Args.theory -- Scan.lift (Parse.position Parse.string) >> (fn (thy, (name, pos)) =>
-    (f ((name, Thy_Header.the_keyword thy name), pos)
-      handle ERROR msg => error (msg ^ Position.here pos)));
-
-val _ = Theory.setup
- (value (Binding.name "keyword")
-    (with_keyword
-      (fn ((name, NONE), _) => "Parse.$$$ " ^ ML_Syntax.print_string name
-        | ((name, SOME _), pos) =>
-            error ("Expected minor keyword " ^ quote name ^ Position.here pos))) #>
-  value (Binding.name "command_spec")
-    (with_keyword
-      (fn ((name, SOME kind), pos) =>
-          "Keyword.command_spec " ^ ML_Syntax.atomic
-            ((ML_Syntax.print_pair
-              (ML_Syntax.print_pair ML_Syntax.print_string
-                (ML_Syntax.print_pair
-                  (ML_Syntax.print_pair ML_Syntax.print_string
-                    (ML_Syntax.print_list ML_Syntax.print_string))
-                  (ML_Syntax.print_list ML_Syntax.print_string)))
-              ML_Syntax.print_position) ((name, kind), pos))
-        | ((name, NONE), pos) =>
-            error ("Expected command keyword " ^ quote name ^ Position.here pos))));
+    (Scan.lift (Parse.position Args.name) >> ML_Syntax.make_binding));
 
 end;
 

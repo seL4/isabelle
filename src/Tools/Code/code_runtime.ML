@@ -354,7 +354,7 @@ val code_reflect_cmd = gen_code_reflect Code_Target.read_tyco Code.read_const;
 (** Isar setup **)
 
 val _ =
-  Theory.setup (ML_Context.antiquotation @{binding code} Args.term (fn _ => ml_code_antiq));
+  Theory.setup (ML_Antiquotation.declaration @{binding code} Args.term (fn _ => ml_code_antiq));
 
 local
 

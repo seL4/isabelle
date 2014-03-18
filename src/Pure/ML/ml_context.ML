@@ -13,10 +13,10 @@ sig
   val thms: xstring -> thm list
   val exec: (unit -> unit) -> Context.generic -> Context.generic
   val check_antiquotation: Proof.context -> xstring * Position.T -> string
-  val print_antiquotations: Proof.context -> unit
   type decl = Proof.context -> string * string
-  val antiquotation: binding -> 'a context_parser ->
-    (Args.src -> 'a -> Proof.context -> decl * Proof.context) -> theory -> theory
+  val add_antiquotation: binding -> (Args.src -> Proof.context -> decl * Proof.context) ->
+    theory -> theory
+  val print_antiquotations: Proof.context -> unit
   val trace_raw: Config.raw
   val trace: bool Config.T
   val eval_antiquotes: ML_Lex.token Antiquote.antiquote list * Position.T ->
@@ -79,12 +79,6 @@ fun print_antiquotations ctxt =
 fun apply_antiquotation src ctxt =
   let val (src', f) = Args.check_src ctxt (get_antiquotations ctxt) src
   in f src' ctxt end;
-
-fun antiquotation name scan body =
-  add_antiquotation name
-    (fn src => fn orig_ctxt =>
-      let val (x, _) = Args.syntax scan src orig_ctxt
-      in body src x orig_ctxt end);
 
 
 (* parsing and evaluation *)

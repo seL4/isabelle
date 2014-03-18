@@ -231,13 +231,13 @@ use "Thy/latex.ML";
 
 (*ML with context and antiquotations*)
 use "ML/ml_context.ML";
+use "ML/ml_antiquotation.ML";
 val use = ML_Context.eval_file true o Path.explode;
 (*^^^^^ end of ML bootstrap 1 ^^^^^*)
 
 (*basic proof engine*)
 use "Isar/proof_display.ML";
 use "Isar/attrib.ML";
-use "ML/ml_antiquotation.ML";
 use "Isar/context_rules.ML";
 use "Isar/method.ML";
 use "Isar/proof.ML";
