@@ -16,7 +16,7 @@ lemma sums_def2:
   "f sums x \<longleftrightarrow> (\<lambda>n. (\<Sum>i\<le>n. f i)) ----> x"
   unfolding sums_def
   apply (subst LIMSEQ_Suc_iff[symmetric])
-  unfolding atLeastLessThanSuc_atLeastAtMost atLeast0AtMost ..
+  unfolding lessThan_Suc_atMost ..
 
 subsection "Relate extended reals and the indicator function"
 
@@ -304,12 +304,12 @@ proof safe
   with count_sum[THEN spec, of "disjointed A"] A(3)
   have f_UN: "(\<Sum>i. f (disjointed A i)) = f (\<Union>i. A i)"
     by (auto simp: UN_disjointed_eq disjoint_family_disjointed)
-  moreover have "(\<lambda>n. (\<Sum>i=0..<n. f (disjointed A i))) ----> (\<Sum>i. f (disjointed A i))"
+  moreover have "(\<lambda>n. (\<Sum>i<n. f (disjointed A i))) ----> (\<Sum>i. f (disjointed A i))"
     using f(1)[unfolded positive_def] dA
-    by (auto intro!: summable_sumr_LIMSEQ_suminf summable_ereal_pos)
+    by (auto intro!: summable_LIMSEQ summable_ereal_pos)
   from LIMSEQ_Suc[OF this]
   have "(\<lambda>n. (\<Sum>i\<le>n. f (disjointed A i))) ----> (\<Sum>i. f (disjointed A i))"
-    unfolding atLeastLessThanSuc_atLeastAtMost atLeast0AtMost .
+    unfolding lessThan_Suc_atMost .
   moreover have "\<And>n. (\<Sum>i\<le>n. f (disjointed A i)) = f (A n)"
     using disjointed_additive[OF f A(1,2)] .
   ultimately show "(\<lambda>i. f (A i)) ----> f (\<Union>i. A i)" by simp

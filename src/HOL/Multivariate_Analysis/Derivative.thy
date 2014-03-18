@@ -1990,7 +1990,7 @@ lemma has_derivative_series:
   fixes f :: "nat \<Rightarrow> 'm::euclidean_space \<Rightarrow> 'n::euclidean_space"
   assumes "convex s"
     and "\<And>n x. x \<in> s \<Longrightarrow> ((f n) has_derivative (f' n x)) (at x within s)"
-    and "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm (setsum (\<lambda>i. f' i x h) {0..<n} - g' x h) \<le> e * norm h"
+    and "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm (setsum (\<lambda>i. f' i x h) {..<n} - g' x h) \<le> e * norm h"
     and "x \<in> s"
     and "(\<lambda>n. f n x) sums l"
   shows "\<exists>g. \<forall>x\<in>s. (\<lambda>n. f n x) sums (g x) \<and> (g has_derivative g' x) (at x within s)"

@@ -355,10 +355,10 @@ proof -
           have "(\<Sum>i\<in>{1..n}. 2 powr - real i) = (\<Sum>i\<in>{1..<Suc n}. (1/2) ^ i)"
             by (rule setsum_cong)
                (auto simp: powr_realpow[symmetric] powr_minus powr_divide inverse_eq_divide)
-          also have "{1..<Suc n} = {0..<Suc n} - {0}" by auto
-          also have "setsum (op ^ (1 / 2::real)) ({0..<Suc n} - {0}) =
-            setsum (op ^ (1 / 2)) ({0..<Suc n}) - 1" by (auto simp: setsum_diff1)
-          also have "\<dots> < 1" by (subst sumr_geometric) auto
+          also have "{1..<Suc n} = {..<Suc n} - {0}" by auto
+          also have "setsum (op ^ (1 / 2::real)) ({..<Suc n} - {0}) =
+            setsum (op ^ (1 / 2)) ({..<Suc n}) - 1" by (auto simp: setsum_diff1)
+          also have "\<dots> < 1" by (subst geometric_sum) auto
           finally show "(\<Sum>i = 1..n. 2 powr - real i) < 1" .
         qed (auto simp:
           `0 < ?a` `?a \<noteq> \<infinity>` `?a \<noteq> - \<infinity>` ereal_less_real_iff zero_ereal_def[symmetric])

@@ -194,7 +194,7 @@ next
             ultimately show ?case
               using Suc A by (simp add: Integration.integral_add[symmetric])
           qed auto }
-        ultimately show "(\<lambda>m. \<Sum>x = 0..<m. ?m n x) ----> ?M n UNIV"
+        ultimately show "(\<lambda>m. \<Sum>x<m. ?m n x) ----> ?M n UNIV"
           by (simp add: atLeast0LessThan)
       qed
     qed

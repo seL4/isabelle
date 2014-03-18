@@ -23,7 +23,7 @@ lemma setsum_UNIV_sum:
 
 lemma setsum_mult_product:
   "setsum h {..<A * B :: nat} = (\<Sum>i\<in>{..<A}. \<Sum>j\<in>{..<B}. h (j + i * B))"
-  unfolding sumr_group[of h B A, unfolded atLeast0LessThan, symmetric]
+  unfolding setsum_nat_group[of h B A, unfolded atLeast0LessThan, symmetric]
 proof (rule setsum_cong, simp, rule setsum_reindex_cong)
   fix i
   show "inj_on (\<lambda>j. j + i * B) {..<B}" by (auto intro!: inj_onI)

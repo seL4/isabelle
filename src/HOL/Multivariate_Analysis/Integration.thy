@@ -6006,14 +6006,14 @@ next
           done
       qed
       have "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - 0) \<le> setsum (\<lambda>i. (real i + 1) *
-        norm (setsum (\<lambda>(x,k). content k *\<^sub>R indicator s x :: real) (q i))) {0..N+1}"
+        norm (setsum (\<lambda>(x,k). content k *\<^sub>R indicator s x :: real) (q i))) {..N+1}"
         unfolding real_norm_def setsum_right_distrib abs_of_nonneg[OF *] diff_0_right
         apply (rule order_trans)
         apply (rule norm_setsum)
         apply (subst sum_sum_product)
         prefer 3
       proof (rule **, safe)
-        show "finite {(i, j) |i j. i \<in> {0..N + 1} \<and> j \<in> q i}"
+        show "finite {(i, j) |i j. i \<in> {..N + 1} \<and> j \<in> q i}"
           apply (rule finite_product_dependent)
           using q
           apply auto
@@ -6068,7 +6068,7 @@ next
             using nfx True
             by (auto simp add: field_simps)
         qed
-        ultimately show "\<exists>y. (y, x, k) \<in> {(i, j) |i j. i \<in> {0..N + 1} \<and> j \<in> q i} \<and> norm (content k *\<^sub>R f x) \<le>
+        ultimately show "\<exists>y. (y, x, k) \<in> {(i, j) |i j. i \<in> {..N + 1} \<and> j \<in> q i} \<and> norm (content k *\<^sub>R f x) \<le>
           (real y + 1) * (content k *\<^sub>R indicator s x)"
           apply (rule_tac x=n in exI)
           apply safe
@@ -6078,7 +6078,7 @@ next
           apply auto
           done
       qed (insert as, auto)
-      also have "\<dots> \<le> setsum (\<lambda>i. e / 2 / 2 ^ i) {0..N+1}"
+      also have "\<dots> \<le> setsum (\<lambda>i. e / 2 / 2 ^ i) {..N+1}"
         apply (rule setsum_mono)
       proof -
         case goal1
@@ -6092,8 +6092,8 @@ next
       also have "\<dots> < e * inverse 2 * 2"
         unfolding divide_inverse setsum_right_distrib[symmetric]
         apply (rule mult_strict_left_mono)
-        unfolding power_inverse atLeastLessThanSuc_atLeastAtMost[symmetric]
-        apply (subst sumr_geometric)
+        unfolding power_inverse lessThan_Suc_atMost[symmetric]
+        apply (subst geometric_sum)
         using goal1
         apply auto
         done

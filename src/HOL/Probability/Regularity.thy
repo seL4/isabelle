@@ -351,9 +351,9 @@ proof -
     case (union D)
     then have "range D \<subseteq> sets M" by (auto simp: sb borel_eq_closed)
     with union have M[symmetric]: "(\<Sum>i. M (D i)) = M (\<Union>i. D i)" by (intro suminf_emeasure)
-    also have "(\<lambda>n. \<Sum>i\<in>{0..<n}. M (D i)) ----> (\<Sum>i. M (D i))"
-      by (intro summable_sumr_LIMSEQ_suminf summable_ereal_pos emeasure_nonneg)
-    finally have measure_LIMSEQ: "(\<lambda>n. \<Sum>i = 0..<n. measure M (D i)) ----> measure M (\<Union>i. D i)"
+    also have "(\<lambda>n. \<Sum>i<n. M (D i)) ----> (\<Sum>i. M (D i))"
+      by (intro summable_LIMSEQ summable_ereal_pos emeasure_nonneg)
+    finally have measure_LIMSEQ: "(\<lambda>n. \<Sum>i<n. measure M (D i)) ----> measure M (\<Union>i. D i)"
       by (simp add: emeasure_eq_measure)
     have "(\<Union>i. D i) \<in> sets M" using `range D \<subseteq> sets M` by auto
     
@@ -362,18 +362,17 @@ proof -
     proof (rule approx_inner)
       fix e::real assume "e > 0"
       with measure_LIMSEQ
-      have "\<exists>no. \<forall>n\<ge>no. \<bar>(\<Sum>i = 0..<n. measure M (D i)) -measure M (\<Union>x. D x)\<bar> < e/2"
+      have "\<exists>no. \<forall>n\<ge>no. \<bar>(\<Sum>i<n. measure M (D i)) -measure M (\<Union>x. D x)\<bar> < e/2"
         by (auto simp: LIMSEQ_def dist_real_def simp del: less_divide_eq_numeral1)
-      hence "\<exists>n0. \<bar>(\<Sum>i = 0..<n0. measure M (D i)) - measure M (\<Union>x. D x)\<bar> < e/2" by auto
-      then obtain n0 where n0: "\<bar>(\<Sum>i = 0..<n0. measure M (D i)) - measure M (\<Union>i. D i)\<bar> < e/2"
+      hence "\<exists>n0. \<bar>(\<Sum>i<n0. measure M (D i)) - measure M (\<Union>x. D x)\<bar> < e/2" by auto
+      then obtain n0 where n0: "\<bar>(\<Sum>i<n0. measure M (D i)) - measure M (\<Union>i. D i)\<bar> < e/2"
         unfolding choice_iff by blast
-      have "ereal (\<Sum>i = 0..<n0. measure M (D i)) = (\<Sum>i = 0..<n0. M (D i))"
+      have "ereal (\<Sum>i<n0. measure M (D i)) = (\<Sum>i<n0. M (D i))"
         by (auto simp add: emeasure_eq_measure)
-      also have "\<dots> = (\<Sum>i<n0. M (D i))" by (rule setsum_cong) auto
       also have "\<dots> \<le> (\<Sum>i. M (D i))" by (rule suminf_upper) (auto simp: emeasure_nonneg)
       also have "\<dots> = M (\<Union>i. D i)" by (simp add: M)
       also have "\<dots> = measure M (\<Union>i. D i)" by (simp add: emeasure_eq_measure)
-      finally have n0: "measure M (\<Union>i. D i) - (\<Sum>i = 0..<n0. measure M (D i)) < e/2"
+      finally have n0: "measure M (\<Union>i. D i) - (\<Sum>i<n0. measure M (D i)) < e/2"
         using n0 by auto
       have "\<forall>i. \<exists>K. K \<subseteq> D i \<and> compact K \<and> emeasure M (D i) \<le> emeasure M K + e/(2*Suc n0)"
       proof
@@ -388,20 +387,20 @@ proof -
       then obtain K where K: "\<And>i. K i \<subseteq> D i" "\<And>i. compact (K i)"
         "\<And>i. emeasure M (D i) \<le> emeasure M (K i) + e/(2*Suc n0)"
         unfolding choice_iff by blast
-      let ?K = "\<Union>i\<in>{0..<n0}. K i"
-      have "disjoint_family_on K {0..<n0}" using K `disjoint_family D`
+      let ?K = "\<Union>i\<in>{..<n0}. K i"
+      have "disjoint_family_on K {..<n0}" using K `disjoint_family D`
         unfolding disjoint_family_on_def by blast
-      hence mK: "measure M ?K = (\<Sum>i = 0..<n0. measure M (K i))" using K
+      hence mK: "measure M ?K = (\<Sum>i<n0. measure M (K i))" using K
         by (intro finite_measure_finite_Union) (auto simp: sb compact_imp_closed)
-      have "measure M (\<Union>i. D i) < (\<Sum>i = 0..<n0. measure M (D i)) + e/2" using n0 by simp
-      also have "(\<Sum>i = 0..<n0. measure M (D i)) \<le> (\<Sum>i = 0..<n0. measure M (K i) + e/(2*Suc n0))"
+      have "measure M (\<Union>i. D i) < (\<Sum>i<n0. measure M (D i)) + e/2" using n0 by simp
+      also have "(\<Sum>i<n0. measure M (D i)) \<le> (\<Sum>i<n0. measure M (K i) + e/(2*Suc n0))"
         using K by (auto intro: setsum_mono simp: emeasure_eq_measure)
-      also have "\<dots> = (\<Sum>i = 0..<n0. measure M (K i)) + (\<Sum>i = 0..<n0. e/(2*Suc n0))"
+      also have "\<dots> = (\<Sum>i<n0. measure M (K i)) + (\<Sum>i<n0. e/(2*Suc n0))"
         by (simp add: setsum.distrib)
-      also have "\<dots> \<le> (\<Sum>i = 0..<n0. measure M (K i)) +  e / 2" using `0 < e`
+      also have "\<dots> \<le> (\<Sum>i<n0. measure M (K i)) +  e / 2" using `0 < e`
         by (auto simp: real_of_nat_def[symmetric] field_simps intro!: mult_left_mono)
       finally
-      have "measure M (\<Union>i. D i) < (\<Sum>i = 0..<n0. measure M (K i)) + e / 2 + e / 2"
+      have "measure M (\<Union>i. D i) < (\<Sum>i<n0. measure M (K i)) + e / 2 + e / 2"
         by auto
       hence "M (\<Union>i. D i) < M ?K + e" by (auto simp: mK emeasure_eq_measure)
       moreover

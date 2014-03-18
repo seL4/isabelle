@@ -1472,10 +1472,10 @@ subsection {* The formula for geometric sums *}
 
 lemma geometric_sum:
   assumes "x \<noteq> 1"
-  shows "(\<Sum>i=0..<n. x ^ i) = (x ^ n - 1) / (x - 1::'a::field)"
+  shows "(\<Sum>i<n. x ^ i) = (x ^ n - 1) / (x - 1::'a::field)"
 proof -
   from assms obtain y where "y = x - 1" and "y \<noteq> 0" by simp_all
-  moreover have "(\<Sum>i=0..<n. (y + 1) ^ i) = ((y + 1) ^ n - 1) / y"
+  moreover have "(\<Sum>i<n. (y + 1) ^ i) = ((y + 1) ^ n - 1) / y"
   proof (induct n)
     case 0 then show ?case by simp
   next
@@ -1490,8 +1490,7 @@ qed
 subsection {* The formula for arithmetic sums *}
 
 lemma gauss_sum:
-  "(2::'a::comm_semiring_1)*(\<Sum>i\<in>{1..n}. of_nat i) =
-   of_nat n*((of_nat n)+1)"
+  "(2::'a::comm_semiring_1)*(\<Sum>i\<in>{1..n}. of_nat i) = of_nat n*((of_nat n)+1)"
 proof (induct n)
   case 0
   show ?case by simp
@@ -1575,8 +1574,8 @@ qed
 
 lemma nat_diff_setsum_reindex:
   fixes x :: "'a::{comm_ring,monoid_mult}"
-  shows "(\<Sum>i=0..<n. f (n - Suc i)) = (\<Sum>i=0..<n. f i)"
-apply (subst setsum_reindex_cong [of "%i. n - Suc i" "{0..< n}"])
+  shows "(\<Sum>i<n. f (n - Suc i)) = (\<Sum>i<n. f i)"
+apply (subst setsum_reindex_cong [of "%i. n - Suc i" "{..< n}"])
 apply (auto simp: inj_on_def)
 apply (rule_tac x="n - Suc x" in image_eqI, auto)
 done

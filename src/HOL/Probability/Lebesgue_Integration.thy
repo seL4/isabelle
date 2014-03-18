@@ -2231,21 +2231,21 @@ proof -
   obtain x where abs_sum: "(\<lambda>i. (\<integral>x. \<bar>f i x\<bar> \<partial>M)) sums x"
     using sums unfolding summable_def ..
 
-  have 1: "\<And>n. integrable M (\<lambda>x. \<Sum>i = 0..<n. f i x)"
+  have 1: "\<And>n. integrable M (\<lambda>x. \<Sum>i<n. f i x)"
     using integrable by auto
 
-  have 2: "\<And>j. AE x in M. \<bar>\<Sum>i = 0..<j. f i x\<bar> \<le> ?w x"
+  have 2: "\<And>j. AE x in M. \<bar>\<Sum>i<j. f i x\<bar> \<le> ?w x"
     using AE_space
   proof eventually_elim
     fix j x assume [simp]: "x \<in> space M"
-    have "\<bar>\<Sum>i = 0..< j. f i x\<bar> \<le> (\<Sum>i = 0..< j. \<bar>f i x\<bar>)" by (rule setsum_abs)
+    have "\<bar>\<Sum>i<j. f i x\<bar> \<le> (\<Sum>i<j. \<bar>f i x\<bar>)" by (rule setsum_abs)
     also have "\<dots> \<le> w x" using w[of x] series_pos_le[of "\<lambda>i. \<bar>f i x\<bar>"] unfolding sums_iff by auto
-    finally show "\<bar>\<Sum>i = 0..<j. f i x\<bar> \<le> ?w x" by simp
+    finally show "\<bar>\<Sum>i<j. f i x\<bar> \<le> ?w x" by simp
   qed
 
   have 3: "integrable M ?w"
   proof (rule integral_monotone_convergence(1))
-    let ?F = "\<lambda>n y. (\<Sum>i = 0..<n. \<bar>f i y\<bar>)"
+    let ?F = "\<lambda>n y. (\<Sum>i<n. \<bar>f i y\<bar>)"
     let ?w' = "\<lambda>n y. if y \<in> space M then ?F n y else 0"
     have "\<And>n. integrable M (?F n)"
       using integrable by (auto intro!: integrable_abs)
@@ -2254,15 +2254,15 @@ proof -
       by (auto simp: mono_def le_fun_def intro!: setsum_mono2)
     show "AE x in M. (\<lambda>n. ?w' n x) ----> ?w x"
         using w by (simp_all add: tendsto_const sums_def)
-    have *: "\<And>n. integral\<^sup>L M (?w' n) = (\<Sum>i = 0..< n. (\<integral>x. \<bar>f i x\<bar> \<partial>M))"
+    have *: "\<And>n. integral\<^sup>L M (?w' n) = (\<Sum>i< n. (\<integral>x. \<bar>f i x\<bar> \<partial>M))"
       using integrable by (simp add: integrable_abs cong: integral_cong)
     from abs_sum
     show "(\<lambda>i. integral\<^sup>L M (?w' i)) ----> x" unfolding * sums_def .
   qed (simp add: w_borel measurable_If_set)
 
   from summable[THEN summable_rabs_cancel]
-  have 4: "AE x in M. (\<lambda>n. \<Sum>i = 0..<n. f i x) ----> (\<Sum>i. f i x)"
-    by (auto intro: summable_sumr_LIMSEQ_suminf)
+  have 4: "AE x in M. (\<lambda>n. \<Sum>i<n. f i x) ----> (\<Sum>i. f i x)"
+    by (auto intro: summable_LIMSEQ)
 
   note int = integral_dominated_convergence(1,3)[OF 1 2 3 4
     borel_measurable_suminf[OF integrableD(1)[OF integrable]]]
