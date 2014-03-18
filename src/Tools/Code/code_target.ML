@@ -380,7 +380,8 @@ fun assert_module_name "" = error "Empty module name not allowed here"
   | assert_module_name module_name = module_name;
 
 fun using_master_directory ctxt =
-  Option.map (Path.append (File.pwd ()) o Path.append (Thy_Load.master_directory (Proof_Context.theory_of ctxt)));
+  Option.map (Path.append (File.pwd ()) o
+    Path.append (Resources.master_directory (Proof_Context.theory_of ctxt)));
 
 in
 

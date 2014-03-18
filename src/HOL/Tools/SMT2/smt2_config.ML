@@ -195,7 +195,7 @@ fun select_certificates name context = context |> Certificates.put (
   if name = "" then NONE
   else
     Path.explode name
-    |> Path.append (Thy_Load.master_directory (Context.theory_of context))
+    |> Path.append (Resources.master_directory (Context.theory_of context))
     |> SOME o Cache_IO.unsynchronized_init)
 
 val certificates_of = Certificates.get o Context.Proof

@@ -53,6 +53,7 @@ declare -a SOURCES=(
   PIDE/markup_tree.scala
   PIDE/protocol.scala
   PIDE/query_operation.scala
+  PIDE/resources.scala
   PIDE/text.scala
   PIDE/xml.scala
   PIDE/yxml.scala
@@ -73,7 +74,6 @@ declare -a SOURCES=(
   Thy/present.scala
   Thy/thy_header.scala
   Thy/thy_info.scala
-  Thy/thy_load.scala
   Thy/thy_syntax.scala
   Tools/build.scala
   Tools/doc.scala

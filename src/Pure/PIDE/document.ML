@@ -443,7 +443,7 @@ fun init_theory deps node span =
                 NONE => Toplevel.toplevel
               | SOME eval => Command.eval_result_state eval)));
     val _ = Position.reports (map #2 imports ~~ map Theory.get_markup parents);
-  in Thy_Load.begin_theory master_dir header parents end;
+  in Resources.begin_theory master_dir header parents end;
 
 fun check_theory full name node =
   is_some (loaded_theory name) orelse

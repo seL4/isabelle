@@ -317,7 +317,7 @@ fun boogie_prove thy lines =
 val _ =
   Outer_Syntax.command @{command_spec "boogie_file"}
     "prove verification condition from .b2i file"
-    (Thy_Load.provide_parse_files "boogie_file" >> (fn files =>
+    (Resources.provide_parse_files "boogie_file" >> (fn files =>
       Toplevel.theory (fn thy =>
         let
           val ([{lines, ...}], thy') = files thy;

@@ -131,7 +131,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
 
   private val context_entries =
     new Context_Entry("", "current context") ::
-      PIDE.thy_load.loaded_theories.toList.sorted.map(name => Context_Entry(name, name))
+      PIDE.resources.loaded_theories.toList.sorted.map(name => Context_Entry(name, name))
 
   private val context = new ComboBox[Context_Entry](context_entries) {
     tooltip = "Search in pre-loaded theory (default: context of current command)"

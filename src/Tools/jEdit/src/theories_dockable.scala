@@ -192,7 +192,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
       }).filter(_._1.is_theory)
     val nodes_status1 =
       (nodes_status /: iterator)({ case (status, (name, node)) =>
-          if (PIDE.thy_load.loaded_theories(name.theory)) status
+          if (PIDE.resources.loaded_theories(name.theory)) status
           else status + (name -> Protocol.node_status(snapshot.state, snapshot.version, node)) })
 
     if (nodes_status != nodes_status1) {

@@ -27,7 +27,7 @@ declare -a SOURCES=(
   "src/jedit_editor.scala"
   "src/jedit_lib.scala"
   "src/jedit_options.scala"
-  "src/jedit_thy_load.scala"
+  "src/jedit_resources.scala"
   "src/monitor_dockable.scala"
   "src/output_dockable.scala"
   "src/plugin.scala"

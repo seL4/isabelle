@@ -123,13 +123,13 @@ fun get_theory name =
     SOME theory => theory
   | _ => error ("Theory loader: undefined entry for theory " ^ quote name));
 
-val get_imports = Thy_Load.imports_of o get_theory;
+val get_imports = Resources.imports_of o get_theory;
 
 (*Proof General legacy*)
 fun loaded_files name = NAMED_CRITICAL "Thy_Info" (fn () =>
   (case get_deps name of
     NONE => []
-  | SOME {master = (thy_path, _), ...} => thy_path :: Thy_Load.loaded_files (get_theory name)));
+  | SOME {master = (thy_path, _), ...} => thy_path :: Resources.loaded_files (get_theory name)));
 
 
 
@@ -284,7 +284,7 @@ fun load_thy document last_timing initiators update_time deps text (name, pos) k
 
     val text_pos = Position.put_id (Document_ID.print exec_id) (Path.position thy_path);
     val (theory, present, weight) =
-      Thy_Load.load_thy document last_timing update_time dir header text_pos text
+      Resources.load_thy document last_timing update_time dir header text_pos text
         (if name = Context.PureN then [ML_Context.the_global_context ()] else parents);
     fun commit () = update_thy deps theory;
   in
@@ -295,18 +295,18 @@ fun check_deps dir name =
   (case lookup_deps name of
     SOME NONE => (true, NONE, Position.none, get_imports name, [])
   | NONE =>
-      let val {master, text, theory_pos, imports, keywords} = Thy_Load.check_thy dir name
+      let val {master, text, theory_pos, imports, keywords} = Resources.check_thy dir name
       in (false, SOME (make_deps master imports, text), theory_pos, imports, keywords) end
   | SOME (SOME {master, ...}) =>
       let
         val {master = master', text = text', theory_pos = theory_pos', imports = imports',
-          keywords = keywords'} = Thy_Load.check_thy dir name;
+          keywords = keywords'} = Resources.check_thy dir name;
         val deps' = SOME (make_deps master' imports', text');
         val current =
           #2 master = #2 master' andalso
             (case lookup_theory name of
               NONE => false
-            | SOME theory => Thy_Load.loaded_files_current theory);
+            | SOME theory => Resources.loaded_files_current theory);
       in (current, deps', theory_pos', imports', keywords') end);
 
 in
@@ -317,7 +317,7 @@ and require_thy document last_timing initiators dir (str, require_pos) tasks =
   let
     val path = Path.expand (Path.explode str);
     val name = Path.implode (Path.base path);
-    val node_name = File.full_path dir (Thy_Load.thy_path path);
+    val node_name = File.full_path dir (Resources.thy_path path);
     fun check_entry (Task (node_name', _, _)) =
           if node_name = node_name' then ()
           else
@@ -384,7 +384,7 @@ fun toplevel_begin_theory master_dir (header: Thy_Header.header) =
     val _ = use_theories {document = false, last_timing = K NONE, master_dir = master_dir} imports;
     val _ = Thy_Header.define_keywords header;
     val parents = map (get_theory o base_name o fst) imports;
-  in Thy_Load.begin_theory master_dir header parents end;
+  in Resources.begin_theory master_dir header parents end;
 
 
 (* register theory *)
@@ -392,8 +392,8 @@ fun toplevel_begin_theory master_dir (header: Thy_Header.header) =
 fun register_thy theory =
   let
     val name = Context.theory_name theory;
-    val {master, ...} = Thy_Load.check_thy (Thy_Load.master_directory theory) name;
-    val imports = Thy_Load.imports_of theory;
+    val {master, ...} = Resources.check_thy (Resources.master_directory theory) name;
+    val imports = Resources.imports_of theory;
   in
     NAMED_CRITICAL "Thy_Info" (fn () =>
      (kill_thy name;

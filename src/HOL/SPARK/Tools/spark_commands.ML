@@ -12,7 +12,7 @@ fun spark_open header (prfx, files) thy =
     val ([{src_path, lines = vc_lines, pos = vc_pos, ...}: Token.file,
       {lines = fdl_lines, pos = fdl_pos, ...},
       {lines = rls_lines, pos = rls_pos, ...}], thy') = files thy;
-    val base = fst (Path.split_ext (File.full_path (Thy_Load.master_directory thy') src_path));
+    val base = fst (Path.split_ext (File.full_path (Resources.master_directory thy') src_path));
   in
     SPARK_VCs.set_vcs
       (snd (Fdl_Parser.parse_declarations fdl_pos (cat_lines fdl_lines)))
@@ -24,7 +24,7 @@ fun spark_open header (prfx, files) thy =
 (* FIXME *)
 fun spark_open_old (vc_name, prfx) thy =
   let
-    val ((vc_path, vc_id), vc_text) = Thy_Load.load_file thy (Path.explode vc_name);
+    val ((vc_path, vc_id), vc_text) = Resources.load_file thy (Path.explode vc_name);
     val (base, header) =
       (case Path.split_ext vc_path of
         (base, "vcg") => (base, Fdl_Lexer.vcg_header >> K ())
@@ -117,13 +117,13 @@ val _ =
 val _ =
   Outer_Syntax.command @{command_spec "spark_open_vcg"}
     "open a new SPARK environment and load a SPARK-generated .vcg file"
-    (Parse.parname -- Thy_Load.provide_parse_files "spark_open_vcg"
+    (Parse.parname -- Resources.provide_parse_files "spark_open_vcg"
       >> (Toplevel.theory o spark_open Fdl_Lexer.vcg_header));
 
 val _ =
   Outer_Syntax.command @{command_spec "spark_open_siv"}
     "open a new SPARK environment and load a SPARK-generated .siv file"
-    (Parse.parname -- Thy_Load.provide_parse_files "spark_open_siv"
+    (Parse.parname -- Resources.provide_parse_files "spark_open_siv"
       >> (Toplevel.theory o spark_open Fdl_Lexer.siv_header));
 
 val pfun_type = Scan.option

@@ -1,10 +1,10 @@
-(*  Title:      Pure/Thy/thy_load.ML
+(*  Title:      Pure/PIDE/resources.ML
     Author:     Makarius
 
-Management of theory sources and auxiliary files.
+Resources for theories and auxiliary files.
 *)
 
-signature THY_LOAD =
+signature RESOURCES =
 sig
   val master_directory: theory -> Path.T
   val imports_of: theory -> (string * Position.T) list
@@ -23,7 +23,7 @@ sig
     Thy_Header.header -> Position.T -> string -> theory list -> theory * (unit -> unit) * int
 end;
 
-structure Thy_Load: THY_LOAD =
+structure Resources: RESOURCES =
 struct
 
 (* manage source files *)

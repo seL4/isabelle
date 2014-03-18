@@ -109,7 +109,7 @@ object Session
 }
 
 
-class Session(val thy_load: Thy_Load)
+class Session(val resources: Resources)
 {
   /* global flags */
 
@@ -180,8 +180,8 @@ class Session(val thy_load: Thy_Load)
         case Text_Edits(previous, doc_blobs, text_edits, version_result) =>
           val prev = previous.get_finished
           val (syntax_changed, doc_edits, version) =
-            Timing.timeit("Thy_Load.text_edits", timing) {
-              thy_load.text_edits(reparse_limit, prev, doc_blobs, text_edits)
+            Timing.timeit("text_edits", timing) {
+              resources.text_edits(reparse_limit, prev, doc_blobs, text_edits)
             }
           version_result.fulfill(version)
           sender ! Change(doc_blobs, syntax_changed, doc_edits, prev, version)
@@ -216,7 +216,7 @@ class Session(val thy_load: Thy_Load)
   def recent_syntax(): Outer_Syntax =
   {
     val version = current_state().recent_finished.version.get_finished
-    if (version.is_init) thy_load.base_syntax
+    if (version.is_init) resources.base_syntax
     else version.syntax
   }
 
@@ -238,7 +238,7 @@ class Session(val thy_load: Thy_Load)
   def header_edit(name: Document.Node.Name, header: Document.Node.Header): Document.Edit_Text =
   {
     val header1 =
-      if (thy_load.loaded_theories(name.theory))
+      if (resources.loaded_theories(name.theory))
         header.error("Cannot update finished theory " + quote(name.theory))
       else header
     (name, Document.Node.Deps(header1))
@@ -401,7 +401,7 @@ class Session(val thy_load: Thy_Load)
       global_state >> (_.define_version(version, assignment))
       prover.get.update(previous.id, version.id, doc_edits)
 
-      if (syntax_changed) thy_load.syntax_changed()
+      if (syntax_changed) resources.syntax_changed()
     }
     //}}}
 

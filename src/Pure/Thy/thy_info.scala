@@ -10,7 +10,7 @@ package isabelle
 import java.util.concurrent.{Future => JFuture}
 
 
-class Thy_Info(thy_load: Thy_Load)
+class Thy_Info(resources: Resources)
 {
   /* messages */
 
@@ -33,9 +33,9 @@ class Thy_Info(thy_load: Thy_Load)
   {
     def load_files(syntax: Outer_Syntax): List[String] =
     {
-      val string = thy_load.with_thy_text(name, _.toString)
-      if (thy_load.body_files_test(syntax, string))
-        thy_load.body_files(syntax, string)
+      val string = resources.with_thy_text(name, _.toString)
+      if (resources.body_files_test(syntax, string))
+        resources.body_files(syntax, string)
       else Nil
     }
   }
@@ -71,7 +71,7 @@ class Thy_Info(thy_load: Thy_Load)
       val import_errors =
         (for {
           (theory, names) <- seen_names.iterator_list
-          if !thy_load.loaded_theories(theory)
+          if !resources.loaded_theories(theory)
           if names.length > 1
         } yield
           "Incoherent imports for theory " + quote(theory) + ":\n" +
@@ -82,10 +82,10 @@ class Thy_Info(thy_load: Thy_Load)
       header_errors ::: import_errors
     }
 
-    lazy val syntax: Outer_Syntax = thy_load.base_syntax.add_keywords(keywords)
+    lazy val syntax: Outer_Syntax = resources.base_syntax.add_keywords(keywords)
 
     def loaded_theories: Set[String] =
-      (thy_load.loaded_theories /: rev_deps) { case (loaded, dep) => loaded + dep.name.theory }
+      (resources.loaded_theories /: rev_deps) { case (loaded, dep) => loaded + dep.name.theory }
 
     def load_files: List[Path] =
     {
@@ -115,13 +115,13 @@ class Thy_Info(thy_load: Thy_Load)
         required_by(initiators) + Position.here(require_pos)
 
     val required1 = required + thy
-    if (required.seen_names.isDefinedAt(theory) || thy_load.loaded_theories(theory))
+    if (required.seen_names.isDefinedAt(theory) || resources.loaded_theories(theory))
       required1
     else {
       try {
         if (initiators.contains(name)) error(cycle_msg(initiators))
         val header =
-          try { thy_load.check_thy(name).cat_errors(message) }
+          try { resources.check_thy(name).cat_errors(message) }
           catch { case ERROR(msg) => cat_error(msg, message) }
         val imports = header.imports.map((_, Position.File(name.node)))
         Dep(name, header) :: require_thys(name :: initiators, required1, imports)

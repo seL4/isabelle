@@ -325,7 +325,7 @@ fun process_reflection (code, (tyco_map, (constr_map, const_map))) module_name N
       let
         val preamble =
           "(* Generated from " ^
-            Path.implode (Thy_Load.thy_path (Path.basic (Context.theory_name thy))) ^
+            Path.implode (Resources.thy_path (Path.basic (Context.theory_name thy))) ^
           "; DO NOT EDIT! *)";
         val _ = File.write (Path.explode file_name) (preamble ^ "\n\n" ^ code);
       in
