@@ -1481,7 +1481,8 @@ lemma shift1_head : "isnpolyh p n0 \<Longrightarrow> head (shift1 p) = head p"
 lemma funpow_shift1_head: "isnpolyh p n0 \<Longrightarrow> p\<noteq> 0\<^sub>p \<Longrightarrow> head (funpow k shift1 p) = head p"
 proof (induct k arbitrary: n0 p)
   case 0
-  then show ?case by auto
+  then show ?case
+    by auto
 next
   case (Suc k n0 p)
   then have "isnpolyh (shift1 p) 0"
@@ -1522,7 +1523,6 @@ lemma polyadd_head:
   shows "head (p +\<^sub>p q) = (if degree p < degree q then head q else head p)"
   using np nq deg
   apply (induct p q arbitrary: n0 n1 rule: polyadd.induct)
-  using np
   apply simp_all
   apply (case_tac n', simp, simp)
   apply (case_tac n, simp, simp)
@@ -1657,8 +1657,9 @@ lemma polydivide_aux_properties:
     and np: "isnpolyh p n0"
     and ns: "isnpolyh s n1"
     and ap: "head p = a"
-    and ndp: "degree p = n" and pnz: "p \<noteq> 0\<^sub>p"
-  shows "polydivide_aux a n p k s = (k',r) \<longrightarrow> k' \<ge> k \<and> (degree r = 0 \<or> degree r < degree p) \<and>
+    and ndp: "degree p = n"
+    and pnz: "p \<noteq> 0\<^sub>p"
+  shows "polydivide_aux a n p k s = (k', r) \<longrightarrow> k' \<ge> k \<and> (degree r = 0 \<or> degree r < degree p) \<and>
     (\<exists>nr. isnpolyh r nr) \<and> (\<exists>q n1. isnpolyh q n1 \<and> (polypow (k' - k) a) *\<^sub>p s = p *\<^sub>p q +\<^sub>p r)"
   using ns
 proof (induct "degree s" arbitrary: s k k' r n1 rule: less_induct)
@@ -1979,13 +1980,13 @@ subsection {* More about polypoly and pnormal etc *}
 definition "isnonconstant p \<longleftrightarrow> \<not> isconstant p"
 
 lemma isnonconstant_pnormal_iff:
-  assumes nc: "isnonconstant p"
+  assumes "isnonconstant p"
   shows "pnormal (polypoly bs p) \<longleftrightarrow> Ipoly bs (head p) \<noteq> 0"
 proof
   let ?p = "polypoly bs p"
   assume H: "pnormal ?p"
   have csz: "coefficients p \<noteq> []"
-    using nc by (cases p) auto
+    using assms by (cases p) auto
   from coefficients_head[of p] last_map[OF csz, of "Ipoly bs"] pnormal_last_nonzero[OF H]
   show "Ipoly bs (head p) \<noteq> 0"
     by (simp add: polypoly_def)
@@ -1993,7 +1994,7 @@ next
   assume h: "\<lparr>head p\<rparr>\<^sub>p\<^bsup>bs\<^esup> \<noteq> 0"
   let ?p = "polypoly bs p"
   have csz: "coefficients p \<noteq> []"
-    using nc by (cases p) auto
+    using assms by (cases p) auto
   then have pz: "?p \<noteq> []"
     by (simp add: polypoly_def)
   then have lg: "length ?p > 0"
@@ -2013,18 +2014,18 @@ lemma isnonconstant_coefficients_length: "isnonconstant p \<Longrightarrow> leng
   done
 
 lemma isnonconstant_nonconstant:
-  assumes inc: "isnonconstant p"
+  assumes "isnonconstant p"
   shows "nonconstant (polypoly bs p) \<longleftrightarrow> Ipoly bs (head p) \<noteq> 0"
 proof
   let ?p = "polypoly bs p"
   assume nc: "nonconstant ?p"
-  from isnonconstant_pnormal_iff[OF inc, of bs] nc
+  from isnonconstant_pnormal_iff[OF assms, of bs] nc
   show "\<lparr>head p\<rparr>\<^sub>p\<^bsup>bs\<^esup> \<noteq> 0"
     unfolding nonconstant_def by blast
 next
   let ?p = "polypoly bs p"
   assume h: "\<lparr>head p\<rparr>\<^sub>p\<^bsup>bs\<^esup> \<noteq> 0"
-  from isnonconstant_pnormal_iff[OF inc, of bs] h
+  from isnonconstant_pnormal_iff[OF assms, of bs] h
   have pn: "pnormal ?p"
     by blast
   {
@@ -2032,8 +2033,8 @@ next
     assume H: "?p = [x]"
     from H have "length (coefficients p) = 1"
       unfolding polypoly_def by auto
-    with isnonconstant_coefficients_length[OF inc]
-      have False by arith
+    with isnonconstant_coefficients_length[OF assms]
+    have False by arith
   }
   then show "nonconstant ?p"
     using pn unfolding nonconstant_def by blast
@@ -2077,7 +2078,7 @@ section {* Swaps ; Division by a certain variable *}
 primrec swap :: "nat \<Rightarrow> nat \<Rightarrow> poly \<Rightarrow> poly"
 where
   "swap n m (C x) = C x"
-| "swap n m (Bound k) = Bound (if k = n then m else if k=m then n else k)"
+| "swap n m (Bound k) = Bound (if k = n then m else if k = m then n else k)"
 | "swap n m (Neg t) = Neg (swap n m t)"
 | "swap n m (Add s t) = Add (swap n m s) (swap n m t)"
 | "swap n m (Sub s t) = Sub (swap n m s) (swap n m t)"
