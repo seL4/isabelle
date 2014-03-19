@@ -677,6 +677,8 @@ session "HOL-Multivariate_Analysis" (main) in Multivariate_Analysis = HOL +
   theories
     Multivariate_Analysis
     Determinants
+    PolyRoots
+    Complex_Analysis_Basics
   files
     "document/root.tex"
 
