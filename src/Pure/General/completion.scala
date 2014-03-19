@@ -250,7 +250,8 @@ object Completion
       val reverse_in = new Library.Reverse(in)
       val parser =
         (reverse_symbol | reverse_symb | escape) ^^ (x => (x.reverse, "")) |
-        underscores ~ parse_word ^^ { case x ~ y => (y.reverse, x) }
+        underscores ~ parse_word ~ opt("?") ^^
+        { case x ~ y ~ z => (z.getOrElse("") + y.reverse, x) }
       parse(parser, reverse_in) match {
         case Success(result, _) => Some(result)
         case _ => None
