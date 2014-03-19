@@ -444,7 +444,7 @@ fun string_for_type ctxt = Syntax.string_of_typ ctxt o unarize_unbox_etc_type
 fun pretty_for_type ctxt = Syntax.pretty_typ ctxt o unarize_unbox_etc_type
 
 val prefix_name = Long_Name.qualify o Long_Name.base_name
-fun shortest_name s = List.last (space_explode "." s) handle List.Empty => ""
+val shortest_name = Long_Name.base_name
 val prefix_abs_vars = Term.map_abs_vars o prefix_name
 
 fun short_name s =

@@ -1309,7 +1309,7 @@ fun new_consts_between t1 t2 =
 fun mk_bind_eq prob_name params ((n, ty), t) =
   let
     val bnd =
-      Binding.name (List.last (space_explode "." n) ^ "_def")
+      Binding.name (Long_Name.base_name n ^ "_def")
       |> Binding.qualify false (TPTP_Problem_Name.mangle_problem_name prob_name)
     val t' =
       Term.list_comb (Const (n, ty), params)

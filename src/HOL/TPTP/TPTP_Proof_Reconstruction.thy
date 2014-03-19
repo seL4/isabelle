@@ -722,7 +722,7 @@ fun absorb_skolem_def ctxt prob_name_opt i = fn st =>
 
     val bnd_def = (*FIXME consts*)
       const_name
-      |> space_implode "." o tl o space_explode "." (*FIXME hack to drop theory-name prefix*)
+      |> Long_Name.implode o tl o Long_Name.explode (*FIXME hack to drop theory-name prefix*)
       |> Binding.qualified_name
       |> Binding.suffix_name "_def"
 

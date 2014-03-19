@@ -148,7 +148,7 @@ fun nth_atom_name thy atomss pool prefix T j =
 
 fun nth_atom thy atomss pool for_auto T j =
   if for_auto then
-    Free (nth_atom_name thy atomss pool (hd (space_explode "." nitpick_prefix))
+    Free (nth_atom_name thy atomss pool (hd (Long_Name.explode nitpick_prefix))
                         T j, T)
   else
     Const (nth_atom_name thy atomss pool "" T j, T)
