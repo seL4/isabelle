@@ -545,8 +545,8 @@ proof safe
   thus "Pi' I S \<in> range ?f" by simp
 next
   fix x and f::"'a \<Rightarrow>\<^sub>F nat"
-  show "\<exists>I S. (\<Pi>' i\<in>domain f. from_nat_into local.basis_proj ((f)\<^sub>F i)) = Pi' I S \<and>
-    finite I \<and> (\<forall>i\<in>I. S i \<in> local.basis_proj)"
+  show "\<exists>I S. (\<Pi>' i\<in>domain f. from_nat_into basis_proj ((f)\<^sub>F i)) = Pi' I S \<and>
+    finite I \<and> (\<forall>i\<in>I. S i \<in> basis_proj)"
     using assms by (auto intro: from_nat_into)
 qed
 
