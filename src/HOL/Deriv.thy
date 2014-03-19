@@ -73,9 +73,9 @@ lemma (in bounded_linear) has_derivative:
   "(g has_derivative g') F \<Longrightarrow> ((\<lambda>x. f (g x)) has_derivative (\<lambda>x. f (g' x))) F"
   using assms unfolding has_derivative_def
   apply safe
-  apply (erule bounded_linear_compose [OF local.bounded_linear])
-  apply (drule local.tendsto)
-  apply (simp add: local.scaleR local.diff local.add local.zero)
+  apply (erule bounded_linear_compose [OF bounded_linear])
+  apply (drule tendsto)
+  apply (simp add: scaleR diff add zero)
   done
 
 lemmas has_derivative_scaleR_right [has_derivative_intros] =
@@ -1355,7 +1355,7 @@ next
   hence 1: "(\<lambda>z. (f z - x) / (z - g x)) -- g x --> D"
     using inj a b by simp
   have 2: "\<exists>d>0. \<forall>y. y \<noteq> x \<and> norm (y - x) < d \<longrightarrow> g y \<noteq> g x"
-  proof (safe intro!: exI)
+  proof (rule exI, safe)
     show "0 < min (x - a) (b - x)"
       using a b by simp
   next
@@ -1492,7 +1492,7 @@ proof -
     and g'_neq_0: "\<And>x. 0 < x \<Longrightarrow> x < a \<Longrightarrow> g' x \<noteq> 0"
     and f0: "\<And>x. 0 < x \<Longrightarrow> x < a \<Longrightarrow> DERIV f0 x :> (f' x)"
     and g0: "\<And>x. 0 < x \<Longrightarrow> x < a \<Longrightarrow> DERIV g0 x :> (g' x)"
-    unfolding eventually_at eventually_at by (auto simp: dist_real_def)
+    unfolding eventually_at by (auto simp: dist_real_def)
 
   have g_neq_0: "\<And>x. 0 < x \<Longrightarrow> x < a \<Longrightarrow> g x \<noteq> 0"
     using g0_neq_0 by (simp add: g_def)
