@@ -281,7 +281,7 @@ lemma sym_INTER:
   by (fast intro: symI elim: symE)
 
 lemma symp_INF:
-  "\<forall>x\<in>S. symp (r x) \<Longrightarrow> symp (INFI S r)"
+  "\<forall>x\<in>S. symp (r x) \<Longrightarrow> symp (INFIMUM S r)"
   by (fact sym_INTER [to_pred])
 
 lemma sym_UNION:
@@ -289,7 +289,7 @@ lemma sym_UNION:
   by (fast intro: symI elim: symE)
 
 lemma symp_SUP:
-  "\<forall>x\<in>S. symp (r x) \<Longrightarrow> symp (SUPR S r)"
+  "\<forall>x\<in>S. symp (r x) \<Longrightarrow> symp (SUPREMUM S r)"
   by (fact sym_UNION [to_pred])
 
 

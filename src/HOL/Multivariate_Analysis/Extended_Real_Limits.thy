@@ -1166,13 +1166,13 @@ proof (rule SUP_eq, simp_all add: Ball_def Bex_def, safe)
   assume "0 < d" and "\<forall>y. y \<in> S \<longrightarrow> y \<noteq> x \<and> dist y x < d \<longrightarrow> P y"
   then have "S \<inter> ball x d - {x} \<subseteq> {x. P x}"
     by (auto simp: zero_less_dist_iff dist_commute)
-  then show "\<exists>r>0. INFI (Collect P) f \<le> INFI (S \<inter> ball x r - {x}) f"
+  then show "\<exists>r>0. INFIMUM (Collect P) f \<le> INFIMUM (S \<inter> ball x r - {x}) f"
     by (intro exI[of _ d] INF_mono conjI `0 < d`) auto
 next
   fix d :: real
   assume "0 < d"
   then show "\<exists>P. (\<exists>d>0. \<forall>xa. xa \<in> S \<longrightarrow> xa \<noteq> x \<and> dist xa x < d \<longrightarrow> P xa) \<and>
-    INFI (S \<inter> ball x d - {x}) f \<le> INFI (Collect P) f"
+    INFIMUM (S \<inter> ball x d - {x}) f \<le> INFIMUM (Collect P) f"
     by (intro exI[of _ "\<lambda>y. y \<in> S \<inter> ball x d - {x}"])
        (auto intro!: INF_mono exI[of _ d] simp: dist_commute)
 qed
@@ -1186,13 +1186,13 @@ proof (rule INF_eq, simp_all add: Ball_def Bex_def, safe)
   assume "0 < d" and "\<forall>y. y \<in> S \<longrightarrow> y \<noteq> x \<and> dist y x < d \<longrightarrow> P y"
   then have "S \<inter> ball x d - {x} \<subseteq> {x. P x}"
     by (auto simp: zero_less_dist_iff dist_commute)
-  then show "\<exists>r>0. SUPR (S \<inter> ball x r - {x}) f \<le> SUPR (Collect P) f"
+  then show "\<exists>r>0. SUPREMUM (S \<inter> ball x r - {x}) f \<le> SUPREMUM (Collect P) f"
     by (intro exI[of _ d] SUP_mono conjI `0 < d`) auto
 next
   fix d :: real
   assume "0 < d"
   then show "\<exists>P. (\<exists>d>0. \<forall>xa. xa \<in> S \<longrightarrow> xa \<noteq> x \<and> dist xa x < d \<longrightarrow> P xa) \<and>
-    SUPR (Collect P) f \<le> SUPR (S \<inter> ball x d - {x}) f"
+    SUPREMUM (Collect P) f \<le> SUPREMUM (S \<inter> ball x d - {x}) f"
     by (intro exI[of _ "\<lambda>y. y \<in> S \<inter> ball x d - {x}"])
        (auto intro!: SUP_mono exI[of _ d] simp: dist_commute)
 qed
@@ -1285,11 +1285,11 @@ proof (safe intro!: Liminf_eqI complete_lattice_class.Sup_upper complete_lattice
   fix P
   assume P: "eventually P net"
   fix S
-  assume S: "mono_set S" "INFI (Collect P) f \<in> S"
+  assume S: "mono_set S" "INFIMUM (Collect P) f \<in> S"
   {
     fix x
     assume "P x"
-    then have "INFI (Collect P) f \<le> f x"
+    then have "INFIMUM (Collect P) f \<le> f x"
       by (intro complete_lattice_class.INF_lower) simp
     with S have "f x \<in> S"
       by (simp add: mono_set)
@@ -1299,16 +1299,16 @@ proof (safe intro!: Liminf_eqI complete_lattice_class.Sup_upper complete_lattice
 next
   fix y l
   assume S: "\<forall>S. open S \<longrightarrow> mono_set S \<longrightarrow> l \<in> S \<longrightarrow> eventually  (\<lambda>x. f x \<in> S) net"
-  assume P: "\<forall>P. eventually P net \<longrightarrow> INFI (Collect P) f \<le> y"
+  assume P: "\<forall>P. eventually P net \<longrightarrow> INFIMUM (Collect P) f \<le> y"
   show "l \<le> y"
   proof (rule dense_le)
     fix B
     assume "B < l"
     then have "eventually (\<lambda>x. f x \<in> {B <..}) net"
       by (intro S[rule_format]) auto
-    then have "INFI {x. B < f x} f \<le> y"
+    then have "INFIMUM {x. B < f x} f \<le> y"
       using P by auto
-    moreover have "B \<le> INFI {x. B < f x} f"
+    moreover have "B \<le> INFIMUM {x. B < f x} f"
       by (intro INF_greatest) auto
     ultimately show "B \<le> y"
       by simp
@@ -1324,13 +1324,13 @@ proof (safe intro!: Limsup_eqI complete_lattice_class.Inf_lower complete_lattice
   fix P
   assume P: "eventually P net"
   fix S
-  assume S: "mono_set (uminus`S)" "SUPR (Collect P) f \<in> S"
+  assume S: "mono_set (uminus`S)" "SUPREMUM (Collect P) f \<in> S"
   {
     fix x
     assume "P x"
-    then have "f x \<le> SUPR (Collect P) f"
+    then have "f x \<le> SUPREMUM (Collect P) f"
       by (intro complete_lattice_class.SUP_upper) simp
-    with S(1)[unfolded mono_set, rule_format, of "- SUPR (Collect P) f" "- f x"] S(2)
+    with S(1)[unfolded mono_set, rule_format, of "- SUPREMUM (Collect P) f" "- f x"] S(2)
     have "f x \<in> S"
       by (simp add: inj_image_mem_iff) }
   with P show "eventually (\<lambda>x. f x \<in> S) net"
@@ -1338,16 +1338,16 @@ proof (safe intro!: Limsup_eqI complete_lattice_class.Inf_lower complete_lattice
 next
   fix y l
   assume S: "\<forall>S. open S \<longrightarrow> mono_set (uminus ` S) \<longrightarrow> l \<in> S \<longrightarrow> eventually  (\<lambda>x. f x \<in> S) net"
-  assume P: "\<forall>P. eventually P net \<longrightarrow> y \<le> SUPR (Collect P) f"
+  assume P: "\<forall>P. eventually P net \<longrightarrow> y \<le> SUPREMUM (Collect P) f"
   show "y \<le> l"
   proof (rule dense_ge)
     fix B
     assume "l < B"
     then have "eventually (\<lambda>x. f x \<in> {..< B}) net"
       by (intro S[rule_format]) auto
-    then have "y \<le> SUPR {x. f x < B} f"
+    then have "y \<le> SUPREMUM {x. f x < B} f"
       using P by auto
-    moreover have "SUPR {x. f x < B} f \<le> B"
+    moreover have "SUPREMUM {x. f x < B} f \<le> B"
       by (intro SUP_least) auto
     ultimately show "y \<le> B"
       by simp

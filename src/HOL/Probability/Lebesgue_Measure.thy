@@ -169,7 +169,7 @@ next
         by (auto intro!: SUP_upper2 integral_nonneg)
     next
       show "(SUP n. \<Sum>i. ereal (?m n i)) = (SUP n. ereal (?M n UNIV))"
-      proof (intro arg_cong[where f="SUPR UNIV"] ext sums_unique[symmetric] sums_ereal[THEN iffD2] sums_def[THEN iffD2])
+      proof (intro arg_cong[where f="SUPREMUM UNIV"] ext sums_unique[symmetric] sums_ereal[THEN iffD2] sums_def[THEN iffD2])
         fix n
         have "\<And>m. (UNION {..<m} A) \<in> sets lebesgue" using rA by auto
         from lebesgueD[OF this]

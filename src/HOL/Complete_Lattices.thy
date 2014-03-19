@@ -17,27 +17,27 @@ class Inf =
   fixes Inf :: "'a set \<Rightarrow> 'a" ("\<Sqinter>_" [900] 900)
 begin
 
-definition INFI :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
-  INF_def: "INFI A f = \<Sqinter>(f ` A)"
+definition INFIMUM :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
+  INF_def: "INFIMUM A f = \<Sqinter>(f ` A)"
 
 lemma Inf_image_eq [simp]:
-  "\<Sqinter>(f ` A) = INFI A f"
+  "\<Sqinter>(f ` A) = INFIMUM A f"
   by (simp add: INF_def)
 
 lemma INF_image [simp]:
-  "INFI (f ` A) g = INFI A (g \<circ> f)"
+  "INFIMUM (f ` A) g = INFIMUM A (g \<circ> f)"
   by (simp only: INF_def image_comp)
 
 lemma INF_identity_eq [simp]:
-  "INFI A (\<lambda>x. x) = \<Sqinter>A"
+  "INFIMUM A (\<lambda>x. x) = \<Sqinter>A"
   by (simp add: INF_def)
 
 lemma INF_id_eq [simp]:
-  "INFI A id = \<Sqinter>A"
+  "INFIMUM A id = \<Sqinter>A"
   by (simp add: id_def)
 
 lemma INF_cong:
-  "A = B \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> C x = D x) \<Longrightarrow> INFI A C = INFI B D"
+  "A = B \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> C x = D x) \<Longrightarrow> INFIMUM A C = INFIMUM B D"
   by (simp add: INF_def image_def)
 
 end
@@ -46,33 +46,33 @@ class Sup =
   fixes Sup :: "'a set \<Rightarrow> 'a" ("\<Squnion>_" [900] 900)
 begin
 
-definition SUPR :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
-  SUP_def: "SUPR A f = \<Squnion>(f ` A)"
+definition SUPREMUM :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
+  SUP_def: "SUPREMUM A f = \<Squnion>(f ` A)"
 
 lemma Sup_image_eq [simp]:
-  "\<Squnion>(f ` A) = SUPR A f"
+  "\<Squnion>(f ` A) = SUPREMUM A f"
   by (simp add: SUP_def)
 
 lemma SUP_image [simp]:
-  "SUPR (f ` A) g = SUPR A (g \<circ> f)"
+  "SUPREMUM (f ` A) g = SUPREMUM A (g \<circ> f)"
   by (simp only: SUP_def image_comp)
 
 lemma SUP_identity_eq [simp]:
-  "SUPR A (\<lambda>x. x) = \<Squnion>A"
+  "SUPREMUM A (\<lambda>x. x) = \<Squnion>A"
   by (simp add: SUP_def)
 
 lemma SUP_id_eq [simp]:
-  "SUPR A id = \<Squnion>A"
+  "SUPREMUM A id = \<Squnion>A"
   by (simp add: id_def)
 
 lemma SUP_cong:
-  "A = B \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> C x = D x) \<Longrightarrow> SUPR A C = SUPR B D"
+  "A = B \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> C x = D x) \<Longrightarrow> SUPREMUM A C = SUPREMUM B D"
   by (simp add: SUP_def image_def)
 
 end
 
 text {*
-  Note: must use names @{const INFI} and @{const SUPR} here instead of
+  Note: must use names @{const INFIMUM} and @{const SUPREMUM} here instead of
   @{text INF} and @{text SUP} to allow the following syntax coexist
   with the plain constant names.
 *}
@@ -91,17 +91,17 @@ syntax (xsymbols)
 
 translations
   "INF x y. B"   == "INF x. INF y. B"
-  "INF x. B"     == "CONST INFI CONST UNIV (%x. B)"
+  "INF x. B"     == "CONST INFIMUM CONST UNIV (%x. B)"
   "INF x. B"     == "INF x:CONST UNIV. B"
-  "INF x:A. B"   == "CONST INFI A (%x. B)"
+  "INF x:A. B"   == "CONST INFIMUM A (%x. B)"
   "SUP x y. B"   == "SUP x. SUP y. B"
-  "SUP x. B"     == "CONST SUPR CONST UNIV (%x. B)"
+  "SUP x. B"     == "CONST SUPREMUM CONST UNIV (%x. B)"
   "SUP x. B"     == "SUP x:CONST UNIV. B"
-  "SUP x:A. B"   == "CONST SUPR A (%x. B)"
+  "SUP x:A. B"   == "CONST SUPREMUM A (%x. B)"
 
 print_translation {*
-  [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax INFI} @{syntax_const "_INF"},
-    Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax SUPR} @{syntax_const "_SUP"}]
+  [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax INFIMUM} @{syntax_const "_INF"},
+    Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax SUPREMUM} @{syntax_const "_SUP"}]
 *} -- {* to avoid eta-contraction of body *}
 
 subsection {* Abstract complete lattices *}
@@ -139,11 +139,11 @@ context complete_lattice
 begin
 
 lemma INF_foundation_dual:
-  "Sup.SUPR Inf = INFI"
+  "Sup.SUPREMUM Inf = INFIMUM"
   by (simp add: fun_eq_iff Sup.SUP_def)
 
 lemma SUP_foundation_dual:
-  "Inf.INFI Sup = SUPR"
+  "Inf.INFIMUM Sup = SUPREMUM"
   by (simp add: fun_eq_iff Inf.INF_def)
 
 lemma Sup_eqI:
@@ -201,13 +201,13 @@ lemma SUP_le_iff: "(\<Squnion>i\<in>A. f i) \<sqsubseteq> u \<longleftrightarrow
 lemma Inf_insert [simp]: "\<Sqinter>insert a A = a \<sqinter> \<Sqinter>A"
   by (auto intro: le_infI le_infI1 le_infI2 antisym Inf_greatest Inf_lower)
 
-lemma INF_insert [simp]: "(\<Sqinter>x\<in>insert a A. f x) = f a \<sqinter> INFI A f"
+lemma INF_insert [simp]: "(\<Sqinter>x\<in>insert a A. f x) = f a \<sqinter> INFIMUM A f"
   unfolding INF_def Inf_insert by simp
 
 lemma Sup_insert [simp]: "\<Squnion>insert a A = a \<squnion> \<Squnion>A"
   by (auto intro: le_supI le_supI1 le_supI2 antisym Sup_least Sup_upper)
 
-lemma SUP_insert [simp]: "(\<Squnion>x\<in>insert a A. f x) = f a \<squnion> SUPR A f"
+lemma SUP_insert [simp]: "(\<Squnion>x\<in>insert a A. f x) = f a \<squnion> SUPREMUM A f"
   unfolding SUP_def Sup_insert by simp
 
 lemma INF_empty [simp]: "(\<Sqinter>x\<in>{}. f x) = \<top>"
@@ -444,23 +444,23 @@ lemma SUP_UNIV_bool_expand:
 lemma Inf_le_Sup: "A \<noteq> {} \<Longrightarrow> Inf A \<le> Sup A"
   by (blast intro: Sup_upper2 Inf_lower ex_in_conv)
 
-lemma INF_le_SUP: "A \<noteq> {} \<Longrightarrow> INFI A f \<le> SUPR A f"
+lemma INF_le_SUP: "A \<noteq> {} \<Longrightarrow> INFIMUM A f \<le> SUPREMUM A f"
   using Inf_le_Sup [of "f ` A"] by simp
 
 lemma SUP_eq_const:
-  "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> f i = x) \<Longrightarrow> SUPR I f = x"
+  "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> f i = x) \<Longrightarrow> SUPREMUM I f = x"
   by (auto intro: SUP_eqI)
 
 lemma INF_eq_const:
-  "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> f i = x) \<Longrightarrow> INFI I f = x"
+  "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> f i = x) \<Longrightarrow> INFIMUM I f = x"
   by (auto intro: INF_eqI)
 
 lemma SUP_eq_iff:
-  "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> c \<le> f i) \<Longrightarrow> (SUPR I f = c) \<longleftrightarrow> (\<forall>i\<in>I. f i = c)"
+  "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> c \<le> f i) \<Longrightarrow> (SUPREMUM I f = c) \<longleftrightarrow> (\<forall>i\<in>I. f i = c)"
   using SUP_eq_const[of I f c] SUP_upper[of _ I f] by (auto intro: antisym)
 
 lemma INF_eq_iff:
-  "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> f i \<le> c) \<Longrightarrow> (INFI I f = c) \<longleftrightarrow> (\<forall>i\<in>I. f i = c)"
+  "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> f i \<le> c) \<Longrightarrow> (INFIMUM I f = c) \<longleftrightarrow> (\<forall>i\<in>I. f i = c)"
   using INF_eq_const[of I f c] INF_lower[of _ I f] by (auto intro: antisym)
 
 end
@@ -645,7 +645,7 @@ proof safe
 qed (auto elim!: allE[of _ "\<Sqinter>A"] simp add: not_le[symmetric] Inf_lower)
 
 lemma INF_le_iff:
-  "INFI A f \<le> x \<longleftrightarrow> (\<forall>y>x. \<exists>i\<in>A. y > f i)"
+  "INFIMUM A f \<le> x \<longleftrightarrow> (\<forall>y>x. \<exists>i\<in>A. y > f i)"
   using Inf_le_iff [of "f ` A"] by simp
 
 lemma le_Sup_iff: "x \<le> \<Squnion>A \<longleftrightarrow> (\<forall>y<x. \<exists>a\<in>A. y < a)"
@@ -656,7 +656,7 @@ proof safe
     unfolding less_Sup_iff .
 qed (auto elim!: allE[of _ "\<Squnion>A"] simp add: not_le[symmetric] Sup_upper)
 
-lemma le_SUP_iff: "x \<le> SUPR A f \<longleftrightarrow> (\<forall>y<x. \<exists>i\<in>A. y < f i)"
+lemma le_SUP_iff: "x \<le> SUPREMUM A f \<longleftrightarrow> (\<forall>y<x. \<exists>i\<in>A. y < f i)"
   using le_Sup_iff [of _ "f ` A"] by simp
 
 subclass complete_distrib_lattice
@@ -696,11 +696,11 @@ lemma True_in_image_Bex [simp]:
   by auto
 
 lemma INF_bool_eq [simp]:
-  "INFI = Ball"
+  "INFIMUM = Ball"
   by (simp add: fun_eq_iff INF_def)
 
 lemma SUP_bool_eq [simp]:
-  "SUPR = Bex"
+  "SUPREMUM = Bex"
   by (simp add: fun_eq_iff SUP_def)
 
 instance bool :: complete_boolean_algebra proof
@@ -887,7 +887,7 @@ lemma Inter_anti_mono: "B \<subseteq> A \<Longrightarrow> \<Inter>A \<subseteq> 
 subsubsection {* Intersections of families *}
 
 abbreviation INTER :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set" where
-  "INTER \<equiv> INFI"
+  "INTER \<equiv> INFIMUM"
 
 text {*
   Note: must use name @{const INTER} here instead of @{text INT}
@@ -1067,7 +1067,7 @@ lemma Union_mono: "A \<subseteq> B \<Longrightarrow> \<Union>A \<subseteq> \<Uni
 subsubsection {* Unions of families *}
 
 abbreviation UNION :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set" where
-  "UNION \<equiv> SUPR"
+  "UNION \<equiv> SUPREMUM"
 
 text {*
   Note: must use name @{const UNION} here instead of @{text UN}

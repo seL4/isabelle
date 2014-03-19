@@ -367,7 +367,7 @@ lemma (in complete_lattice) SUP_upper':
 
 class kleene_by_complete_lattice = pre_kleene
   + complete_lattice + power + star +
-  assumes star_cont: "a * star b * c = SUPR UNIV (\<lambda>n. a * b ^ n * c)"
+  assumes star_cont: "a * star b * c = SUPREMUM UNIV (\<lambda>n. a * b ^ n * c)"
 begin
 
 subclass kleene

@@ -43,13 +43,13 @@ abbreviation "liminf \<equiv> Liminf sequentially"
 abbreviation "limsup \<equiv> Limsup sequentially"
 
 lemma Liminf_eqI:
-  "(\<And>P. eventually P F \<Longrightarrow> INFI (Collect P) f \<le> x) \<Longrightarrow>  
-    (\<And>y. (\<And>P. eventually P F \<Longrightarrow> INFI (Collect P) f \<le> y) \<Longrightarrow> x \<le> y) \<Longrightarrow> Liminf F f = x"
+  "(\<And>P. eventually P F \<Longrightarrow> INFIMUM (Collect P) f \<le> x) \<Longrightarrow>  
+    (\<And>y. (\<And>P. eventually P F \<Longrightarrow> INFIMUM (Collect P) f \<le> y) \<Longrightarrow> x \<le> y) \<Longrightarrow> Liminf F f = x"
   unfolding Liminf_def by (auto intro!: SUP_eqI)
 
 lemma Limsup_eqI:
-  "(\<And>P. eventually P F \<Longrightarrow> x \<le> SUPR (Collect P) f) \<Longrightarrow>  
-    (\<And>y. (\<And>P. eventually P F \<Longrightarrow> y \<le> SUPR (Collect P) f) \<Longrightarrow> y \<le> x) \<Longrightarrow> Limsup F f = x"
+  "(\<And>P. eventually P F \<Longrightarrow> x \<le> SUPREMUM (Collect P) f) \<Longrightarrow>  
+    (\<And>y. (\<And>P. eventually P F \<Longrightarrow> y \<le> SUPREMUM (Collect P) f) \<Longrightarrow> y \<le> x) \<Longrightarrow> Limsup F f = x"
   unfolding Limsup_def by (auto intro!: INF_eqI)
 
 lemma liminf_SUP_INF: "liminf f = (SUP n. INF m:{n..}. f m)"
@@ -93,7 +93,7 @@ lemma Liminf_mono:
 proof (safe intro!: SUP_mono)
   fix P assume "eventually P F"
   with ev have "eventually (\<lambda>x. f x \<le> g x \<and> P x) F" (is "eventually ?Q F") by (rule eventually_conj)
-  then show "\<exists>Q\<in>{P. eventually P F}. INFI (Collect P) f \<le> INFI (Collect Q) g"
+  then show "\<exists>Q\<in>{P. eventually P F}. INFIMUM (Collect P) f \<le> INFIMUM (Collect Q) g"
     by (intro bexI[of _ ?Q]) (auto intro!: INF_mono)
 qed
 
@@ -109,7 +109,7 @@ lemma Limsup_mono:
 proof (safe intro!: INF_mono)
   fix P assume "eventually P F"
   with ev have "eventually (\<lambda>x. f x \<le> g x \<and> P x) F" (is "eventually ?Q F") by (rule eventually_conj)
-  then show "\<exists>Q\<in>{P. eventually P F}. SUPR (Collect Q) f \<le> SUPR (Collect P) g"
+  then show "\<exists>Q\<in>{P. eventually P F}. SUPREMUM (Collect Q) f \<le> SUPREMUM (Collect P) g"
     by (intro bexI[of _ ?Q]) (auto intro!: SUP_mono)
 qed
 
@@ -129,13 +129,13 @@ proof safe
   then have "eventually (\<lambda>x. P x \<and> Q x) F" (is "eventually ?C F") by (rule eventually_conj)
   then have not_False: "(\<lambda>x. P x \<and> Q x) \<noteq> (\<lambda>x. False)"
     using ntriv by (auto simp add: eventually_False)
-  have "INFI (Collect P) f \<le> INFI (Collect ?C) f"
+  have "INFIMUM (Collect P) f \<le> INFIMUM (Collect ?C) f"
     by (rule INF_mono) auto
-  also have "\<dots> \<le> SUPR (Collect ?C) f"
+  also have "\<dots> \<le> SUPREMUM (Collect ?C) f"
     using not_False by (intro INF_le_SUP) auto
-  also have "\<dots> \<le> SUPR (Collect Q) f"
+  also have "\<dots> \<le> SUPREMUM (Collect Q) f"
     by (rule SUP_mono) auto
-  finally show "INFI (Collect P) f \<le> SUPR (Collect Q) f" .
+  finally show "INFIMUM (Collect P) f \<le> SUPREMUM (Collect Q) f" .
 qed
 
 lemma Liminf_bounded:
@@ -154,22 +154,22 @@ lemma le_Liminf_iff:
   fixes X :: "_ \<Rightarrow> _ :: complete_linorder"
   shows "C \<le> Liminf F X \<longleftrightarrow> (\<forall>y<C. eventually (\<lambda>x. y < X x) F)"
 proof -
-  { fix y P assume "eventually P F" "y < INFI (Collect P) X"
+  { fix y P assume "eventually P F" "y < INFIMUM (Collect P) X"
     then have "eventually (\<lambda>x. y < X x) F"
       by (auto elim!: eventually_elim1 dest: less_INF_D) }
   moreover
   { fix y P assume "y < C" and y: "\<forall>y<C. eventually (\<lambda>x. y < X x) F"
-    have "\<exists>P. eventually P F \<and> y < INFI (Collect P) X"
+    have "\<exists>P. eventually P F \<and> y < INFIMUM (Collect P) X"
     proof (cases "\<exists>z. y < z \<and> z < C")
       case True
       then obtain z where z: "y < z \<and> z < C" ..
-      moreover from z have "z \<le> INFI {x. z < X x} X"
+      moreover from z have "z \<le> INFIMUM {x. z < X x} X"
         by (auto intro!: INF_greatest)
       ultimately show ?thesis
         using y by (intro exI[of _ "\<lambda>x. z < X x"]) auto
     next
       case False
-      then have "C \<le> INFI {x. y < X x} X"
+      then have "C \<le> INFIMUM {x. y < X x} X"
         by (intro INF_greatest) auto
       with `y < C` show ?thesis
         using y by (intro exI[of _ "\<lambda>x. y < X x"]) auto
@@ -185,17 +185,17 @@ lemma lim_imp_Liminf:
   shows "Liminf F f = f0"
 proof (intro Liminf_eqI)
   fix P assume P: "eventually P F"
-  then have "eventually (\<lambda>x. INFI (Collect P) f \<le> f x) F"
+  then have "eventually (\<lambda>x. INFIMUM (Collect P) f \<le> f x) F"
     by eventually_elim (auto intro!: INF_lower)
-  then show "INFI (Collect P) f \<le> f0"
+  then show "INFIMUM (Collect P) f \<le> f0"
     by (rule tendsto_le[OF ntriv lim tendsto_const])
 next
-  fix y assume upper: "\<And>P. eventually P F \<Longrightarrow> INFI (Collect P) f \<le> y"
+  fix y assume upper: "\<And>P. eventually P F \<Longrightarrow> INFIMUM (Collect P) f \<le> y"
   show "f0 \<le> y"
   proof cases
     assume "\<exists>z. y < z \<and> z < f0"
     then obtain z where "y < z \<and> z < f0" ..
-    moreover have "z \<le> INFI {x. z < f x} f"
+    moreover have "z \<le> INFIMUM {x. z < f x} f"
       by (rule INF_greatest) simp
     ultimately show ?thesis
       using lim[THEN topological_tendstoD, THEN upper, of "{z <..}"] by auto
@@ -208,9 +208,9 @@ next
         using lim[THEN topological_tendstoD, of "{y <..}"] by auto
       then have "eventually (\<lambda>x. f0 \<le> f x) F"
         using discrete by (auto elim!: eventually_elim1)
-      then have "INFI {x. f0 \<le> f x} f \<le> y"
+      then have "INFIMUM {x. f0 \<le> f x} f \<le> y"
         by (rule upper)
-      moreover have "f0 \<le> INFI {x. f0 \<le> f x} f"
+      moreover have "f0 \<le> INFIMUM {x. f0 \<le> f x} f"
         by (intro INF_greatest) simp
       ultimately show "f0 \<le> y" by simp
     qed
@@ -224,17 +224,17 @@ lemma lim_imp_Limsup:
   shows "Limsup F f = f0"
 proof (intro Limsup_eqI)
   fix P assume P: "eventually P F"
-  then have "eventually (\<lambda>x. f x \<le> SUPR (Collect P) f) F"
+  then have "eventually (\<lambda>x. f x \<le> SUPREMUM (Collect P) f) F"
     by eventually_elim (auto intro!: SUP_upper)
-  then show "f0 \<le> SUPR (Collect P) f"
+  then show "f0 \<le> SUPREMUM (Collect P) f"
     by (rule tendsto_le[OF ntriv tendsto_const lim])
 next
-  fix y assume lower: "\<And>P. eventually P F \<Longrightarrow> y \<le> SUPR (Collect P) f"
+  fix y assume lower: "\<And>P. eventually P F \<Longrightarrow> y \<le> SUPREMUM (Collect P) f"
   show "y \<le> f0"
   proof (cases "\<exists>z. f0 < z \<and> z < y")
     case True
     then obtain z where "f0 < z \<and> z < y" ..
-    moreover have "SUPR {x. f x < z} f \<le> z"
+    moreover have "SUPREMUM {x. f x < z} f \<le> z"
       by (rule SUP_least) simp
     ultimately show ?thesis
       using lim[THEN topological_tendstoD, THEN lower, of "{..< z}"] by auto
@@ -247,9 +247,9 @@ next
         using lim[THEN topological_tendstoD, of "{..< y}"] by auto
       then have "eventually (\<lambda>x. f x \<le> f0) F"
         using False by (auto elim!: eventually_elim1 simp: not_less)
-      then have "y \<le> SUPR {x. f x \<le> f0} f"
+      then have "y \<le> SUPREMUM {x. f x \<le> f0} f"
         by (rule lower)
-      moreover have "SUPR {x. f x \<le> f0} f \<le> f0"
+      moreover have "SUPREMUM {x. f x \<le> f0} f \<le> f0"
         by (intro SUP_least) simp
       ultimately show "y \<le> f0" by simp
     qed
@@ -264,14 +264,14 @@ lemma Liminf_eq_Limsup:
 proof (rule order_tendstoI)
   fix a assume "f0 < a"
   with assms have "Limsup F f < a" by simp
-  then obtain P where "eventually P F" "SUPR (Collect P) f < a"
+  then obtain P where "eventually P F" "SUPREMUM (Collect P) f < a"
     unfolding Limsup_def INF_less_iff by auto
   then show "eventually (\<lambda>x. f x < a) F"
     by (auto elim!: eventually_elim1 dest: SUP_lessD)
 next
   fix a assume "a < f0"
   with assms have "a < Liminf F f" by simp
-  then obtain P where "eventually P F" "a < INFI (Collect P) f"
+  then obtain P where "eventually P F" "a < INFIMUM (Collect P) f"
     unfolding Liminf_def less_SUP_iff by auto
   then show "eventually (\<lambda>x. a < f x) F"
     by (auto elim!: eventually_elim1 dest: less_INF_D)

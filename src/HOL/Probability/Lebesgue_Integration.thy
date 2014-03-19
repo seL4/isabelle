@@ -781,7 +781,7 @@ lemma positive_integral_not_MInfty[simp]: "integral\<^sup>P M f \<noteq> -\<infi
 
 lemma positive_integral_def_finite:
   "integral\<^sup>P M f = (SUP g : {g. simple_function M g \<and> g \<le> max 0 \<circ> f \<and> range g \<subseteq> {0 ..< \<infinity>}}. integral\<^sup>S M g)"
-    (is "_ = SUPR ?A ?f")
+    (is "_ = SUPREMUM ?A ?f")
   unfolding positive_integral_def
 proof (safe intro!: antisym SUP_least)
   fix g assume g: "simple_function M g" "g \<le> max 0 \<circ> f"
@@ -793,7 +793,7 @@ proof (safe intro!: antisym SUP_least)
     apply (safe intro!: simple_function_max simple_function_If)
     apply (force simp: max_def le_fun_def split: split_if_asm)+
     done
-  show "integral\<^sup>S M g \<le> SUPR ?A ?f"
+  show "integral\<^sup>S M g \<le> SUPREMUM ?A ?f"
   proof cases
     have g0: "?g 0 \<in> ?A" by (intro g_in_A) auto
     assume "(emeasure M) ?G = 0"
@@ -804,7 +804,7 @@ proof (safe intro!: antisym SUP_least)
          (auto simp: max_def intro!: simple_function_If)
   next
     assume \<mu>_G: "(emeasure M) ?G \<noteq> 0"
-    have "SUPR ?A (integral\<^sup>S M) = \<infinity>"
+    have "SUPREMUM ?A (integral\<^sup>S M) = \<infinity>"
     proof (intro SUP_PInfty)
       fix n :: nat
       let ?y = "ereal (real n) / (if (emeasure M) ?G = \<infinity> then 1 else (emeasure M) ?G)"
@@ -1029,7 +1029,7 @@ proof -
         using N(1) by auto }
   qed
   also have "\<dots> = (SUP i. (\<integral>\<^sup>+ x. f i x \<partial>M))"
-    using f_eq by (force intro!: arg_cong[where f="SUPR UNIV"] positive_integral_cong_AE ext)
+    using f_eq by (force intro!: arg_cong[where f="SUPREMUM UNIV"] positive_integral_cong_AE ext)
   finally show ?thesis .
 qed
 
@@ -1045,7 +1045,7 @@ lemma positive_integral_monotone_convergence_simple:
   shows "(SUP i. integral\<^sup>S M (f i)) = (\<integral>\<^sup>+x. (SUP i. f i x) \<partial>M)"
   using assms unfolding positive_integral_monotone_convergence_SUP[OF f(1)
     f(3)[THEN borel_measurable_simple_function] f(2)]
-  by (auto intro!: positive_integral_eq_simple_integral[symmetric] arg_cong[where f="SUPR UNIV"] ext)
+  by (auto intro!: positive_integral_eq_simple_integral[symmetric] arg_cong[where f="SUPREMUM UNIV"] ext)
 
 lemma positive_integral_max_0:
   "(\<integral>\<^sup>+x. max 0 (f x) \<partial>M) = integral\<^sup>P M f"
@@ -1069,7 +1069,7 @@ lemma SUP_simple_integral_sequences:
   and g: "incseq g" "\<And>i x. 0 \<le> g i x" "\<And>i. simple_function M (g i)"
   and eq: "AE x in M. (SUP i. f i x) = (SUP i. g i x)"
   shows "(SUP i. integral\<^sup>S M (f i)) = (SUP i. integral\<^sup>S M (g i))"
-    (is "SUPR _ ?F = SUPR _ ?G")
+    (is "SUPREMUM _ ?F = SUPREMUM _ ?G")
 proof -
   have "(SUP i. integral\<^sup>S M (f i)) = (\<integral>\<^sup>+x. (SUP i. f i x) \<partial>M)"
     using f by (rule positive_integral_monotone_convergence_simple)
@@ -1128,7 +1128,7 @@ proof -
       by (intro AE_I2) (auto split: split_max simp add: ereal_add_nonneg_nonneg)
   qed
   also have "\<dots> = (SUP i. a * integral\<^sup>S M (u i) + integral\<^sup>S M (v i))"
-    using u(2, 6) v(2, 6) `0 \<le> a` by (auto intro!: arg_cong[where f="SUPR UNIV"] ext)
+    using u(2, 6) v(2, 6) `0 \<le> a` by (auto intro!: arg_cong[where f="SUPREMUM UNIV"] ext)
   finally have "(\<integral>\<^sup>+ x. max 0 (a * f x + g x) \<partial>M) = a * (\<integral>\<^sup>+x. max 0 (f x) \<partial>M) + (\<integral>\<^sup>+x. max 0 (g x) \<partial>M)"
     unfolding l(5)[symmetric] u(5)[symmetric] v(5)[symmetric]
     unfolding l(1)[symmetric] u(1)[symmetric] v(1)[symmetric]

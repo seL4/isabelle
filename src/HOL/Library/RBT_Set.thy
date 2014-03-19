@@ -112,7 +112,7 @@ lemma [code, code del]:
   "Inf_fin = Inf_fin" ..
 
 lemma [code, code del]:
-  "INFI = INFI" ..
+  "INFIMUM = INFIMUM" ..
 
 lemma [code, code del]:
   "Max = Max" ..
@@ -121,7 +121,7 @@ lemma [code, code del]:
   "Sup_fin = Sup_fin" ..
 
 lemma [code, code del]:
-  "SUPR = SUPR" ..
+  "SUPREMUM = SUPREMUM" ..
 
 lemma [code, code del]:
   "(Inf :: 'a set set \<Rightarrow> 'a set) = Inf" ..
@@ -759,7 +759,7 @@ declare Inf_Set_fold[folded Inf'_def, code]
 
 lemma INF_Set_fold [code]:
   fixes f :: "_ \<Rightarrow> 'a::complete_lattice"
-  shows "INFI (Set t) f = fold_keys (inf \<circ> f) t top"
+  shows "INFIMUM (Set t) f = fold_keys (inf \<circ> f) t top"
 proof -
   have "comp_fun_commute ((inf :: 'a \<Rightarrow> 'a \<Rightarrow> 'a) \<circ> f)" 
     by default (auto simp add: fun_eq_iff ac_simps)
@@ -800,7 +800,7 @@ declare Sup_Set_fold[folded Sup'_def, code]
 
 lemma SUP_Set_fold [code]:
   fixes f :: "_ \<Rightarrow> 'a::complete_lattice"
-  shows "SUPR (Set t) f = fold_keys (sup \<circ> f) t bot"
+  shows "SUPREMUM (Set t) f = fold_keys (sup \<circ> f) t bot"
 proof -
   have "comp_fun_commute ((sup :: 'a \<Rightarrow> 'a \<Rightarrow> 'a) \<circ> f)" 
     by default (auto simp add: fun_eq_iff ac_simps)

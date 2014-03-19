@@ -11842,7 +11842,7 @@ proof (rule absolutely_integrable_onI, fact, rule)
         using goal2 by auto
     qed
     then obtain K where *: "\<exists>x\<in>{d. d division_of \<Union>d}. K = (\<Sum>k\<in>x. norm (integral k f))"
-      "SUPR {d. d division_of \<Union>d} (setsum (\<lambda>k. norm (integral k f))) - e < K"
+      "SUPREMUM {d. d division_of \<Union>d} (setsum (\<lambda>k. norm (integral k f))) - e < K"
       by (auto simp add: image_iff not_le)
     from this(1) obtain d where "d division_of \<Union>d"
       and "K = (\<Sum>k\<in>d. norm (integral k f))"

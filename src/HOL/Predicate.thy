@@ -65,17 +65,17 @@ lemma eval_sup [simp]:
   by (simp add: sup_pred_def)
 
 definition
-  "\<Sqinter>A = Pred (INFI A eval)"
+  "\<Sqinter>A = Pred (INFIMUM A eval)"
 
 lemma eval_Inf [simp]:
-  "eval (\<Sqinter>A) = INFI A eval"
+  "eval (\<Sqinter>A) = INFIMUM A eval"
   by (simp add: Inf_pred_def)
 
 definition
-  "\<Squnion>A = Pred (SUPR A eval)"
+  "\<Squnion>A = Pred (SUPREMUM A eval)"
 
 lemma eval_Sup [simp]:
-  "eval (\<Squnion>A) = SUPR A eval"
+  "eval (\<Squnion>A) = SUPREMUM A eval"
   by (simp add: Sup_pred_def)
 
 instance proof
@@ -84,11 +84,11 @@ qed (auto intro!: pred_eqI simp add: less_eq_pred_def less_pred_def le_fun_def l
 end
 
 lemma eval_INF [simp]:
-  "eval (INFI A f) = INFI A (eval \<circ> f)"
+  "eval (INFIMUM A f) = INFIMUM A (eval \<circ> f)"
   using eval_Inf [of "f ` A"] by simp
 
 lemma eval_SUP [simp]:
-  "eval (SUPR A f) = SUPR A (eval \<circ> f)"
+  "eval (SUPREMUM A f) = SUPREMUM A (eval \<circ> f)"
   using eval_Sup [of "f ` A"] by simp
 
 instantiation pred :: (type) complete_boolean_algebra
@@ -121,10 +121,10 @@ lemma eval_single [simp]:
   by (simp add: single_def)
 
 definition bind :: "'a pred \<Rightarrow> ('a \<Rightarrow> 'b pred) \<Rightarrow> 'b pred" (infixl "\<guillemotright>=" 70) where
-  "P \<guillemotright>= f = (SUPR {x. eval P x} f)"
+  "P \<guillemotright>= f = (SUPREMUM {x. eval P x} f)"
 
 lemma eval_bind [simp]:
-  "eval (P \<guillemotright>= f) = eval (SUPR {x. eval P x} f)"
+  "eval (P \<guillemotright>= f) = eval (SUPREMUM {x. eval P x} f)"
   by (simp add: bind_def)
 
 lemma bind_bind:

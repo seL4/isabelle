@@ -1411,15 +1411,15 @@ lemma ereal_INF_uminus_eq:
 
 lemma ereal_SUP_not_infty:
   fixes f :: "_ \<Rightarrow> ereal"
-  shows "A \<noteq> {} \<Longrightarrow> l \<noteq> -\<infinity> \<Longrightarrow> u \<noteq> \<infinity> \<Longrightarrow> \<forall>a\<in>A. l \<le> f a \<and> f a \<le> u \<Longrightarrow> \<bar>SUPR A f\<bar> \<noteq> \<infinity>"
+  shows "A \<noteq> {} \<Longrightarrow> l \<noteq> -\<infinity> \<Longrightarrow> u \<noteq> \<infinity> \<Longrightarrow> \<forall>a\<in>A. l \<le> f a \<and> f a \<le> u \<Longrightarrow> \<bar>SUPREMUM A f\<bar> \<noteq> \<infinity>"
   using SUP_upper2[of _ A l f] SUP_least[of A f u]
-  by (cases "SUPR A f") auto
+  by (cases "SUPREMUM A f") auto
 
 lemma ereal_INF_not_infty:
   fixes f :: "_ \<Rightarrow> ereal"
-  shows "A \<noteq> {} \<Longrightarrow> l \<noteq> -\<infinity> \<Longrightarrow> u \<noteq> \<infinity> \<Longrightarrow> \<forall>a\<in>A. l \<le> f a \<and> f a \<le> u \<Longrightarrow> \<bar>INFI A f\<bar> \<noteq> \<infinity>"
+  shows "A \<noteq> {} \<Longrightarrow> l \<noteq> -\<infinity> \<Longrightarrow> u \<noteq> \<infinity> \<Longrightarrow> \<forall>a\<in>A. l \<le> f a \<and> f a \<le> u \<Longrightarrow> \<bar>INFIMUM A f\<bar> \<noteq> \<infinity>"
   using INF_lower2[of _ A f u] INF_greatest[of A l f]
-  by (cases "INFI A f") auto
+  by (cases "INFIMUM A f") auto
 
 lemma ereal_SUP_uminus:
   fixes f :: "'a \<Rightarrow> ereal"
@@ -1528,12 +1528,12 @@ lemma SUP_ereal_le_addI:
   fixes f :: "'i \<Rightarrow> ereal"
   assumes "\<And>i. f i + y \<le> z"
     and "y \<noteq> -\<infinity>"
-  shows "SUPR UNIV f + y \<le> z"
+  shows "SUPREMUM UNIV f + y \<le> z"
 proof (cases y)
   case (real r)
   then have "\<And>i. f i \<le> z - y"
     using assms by (simp add: ereal_le_minus_iff)
-  then have "SUPR UNIV f \<le> z - y"
+  then have "SUPREMUM UNIV f \<le> z - y"
     by (rule SUP_least)
   then show ?thesis
     using real by (simp add: ereal_le_minus_iff)
@@ -1544,11 +1544,11 @@ lemma SUP_ereal_add:
   assumes "incseq f"
     and "incseq g"
     and pos: "\<And>i. f i \<noteq> -\<infinity>" "\<And>i. g i \<noteq> -\<infinity>"
-  shows "(SUP i. f i + g i) = SUPR UNIV f + SUPR UNIV g"
+  shows "(SUP i. f i + g i) = SUPREMUM UNIV f + SUPREMUM UNIV g"
 proof (rule SUP_eqI)
   fix y
   assume *: "\<And>i. i \<in> UNIV \<Longrightarrow> f i + g i \<le> y"
-  have f: "SUPR UNIV f \<noteq> -\<infinity>"
+  have f: "SUPREMUM UNIV f \<noteq> -\<infinity>"
     using pos
     unfolding SUP_def Sup_eq_MInfty
     by (auto dest: image_eqD)
@@ -1565,13 +1565,13 @@ proof (rule SUP_eqI)
       also have "\<dots> \<le> y" using * by auto
       finally have "f i + g j \<le> y" .
     }
-    then have "SUPR UNIV f + g j \<le> y"
+    then have "SUPREMUM UNIV f + g j \<le> y"
       using assms(4)[of j] by (intro SUP_ereal_le_addI) auto
-    then have "g j + SUPR UNIV f \<le> y" by (simp add: ac_simps)
+    then have "g j + SUPREMUM UNIV f \<le> y" by (simp add: ac_simps)
   }
-  then have "SUPR UNIV g + SUPR UNIV f \<le> y"
+  then have "SUPREMUM UNIV g + SUPREMUM UNIV f \<le> y"
     using f by (rule SUP_ereal_le_addI)
-  then show "SUPR UNIV f + SUPR UNIV g \<le> y"
+  then show "SUPREMUM UNIV f + SUPREMUM UNIV g \<le> y"
     by (simp add: ac_simps)
 qed (auto intro!: add_mono SUP_upper)
 
@@ -1579,7 +1579,7 @@ lemma SUP_ereal_add_pos:
   fixes f g :: "nat \<Rightarrow> ereal"
   assumes inc: "incseq f" "incseq g"
     and pos: "\<And>i. 0 \<le> f i" "\<And>i. 0 \<le> g i"
-  shows "(SUP i. f i + g i) = SUPR UNIV f + SUPR UNIV g"
+  shows "(SUP i. f i + g i) = SUPREMUM UNIV f + SUPREMUM UNIV g"
 proof (intro SUP_ereal_add inc)
   fix i
   show "f i \<noteq> -\<infinity>" "g i \<noteq> -\<infinity>"
@@ -1590,7 +1590,7 @@ lemma SUP_ereal_setsum:
   fixes f g :: "'a \<Rightarrow> nat \<Rightarrow> ereal"
   assumes "\<And>n. n \<in> A \<Longrightarrow> incseq (f n)"
     and pos: "\<And>n i. n \<in> A \<Longrightarrow> 0 \<le> f n i"
-  shows "(SUP i. \<Sum>n\<in>A. f n i) = (\<Sum>n\<in>A. SUPR UNIV (f n))"
+  shows "(SUP i. \<Sum>n\<in>A. f n i) = (\<Sum>n\<in>A. SUPREMUM UNIV (f n))"
 proof (cases "finite A")
   case True
   then show ?thesis using assms
@@ -1604,20 +1604,20 @@ lemma SUP_ereal_cmult:
   fixes f :: "nat \<Rightarrow> ereal"
   assumes "\<And>i. 0 \<le> f i"
     and "0 \<le> c"
-  shows "(SUP i. c * f i) = c * SUPR UNIV f"
+  shows "(SUP i. c * f i) = c * SUPREMUM UNIV f"
 proof (rule SUP_eqI)
   fix i
-  have "f i \<le> SUPR UNIV f"
+  have "f i \<le> SUPREMUM UNIV f"
     by (rule SUP_upper) auto
-  then show "c * f i \<le> c * SUPR UNIV f"
+  then show "c * f i \<le> c * SUPREMUM UNIV f"
     using `0 \<le> c` by (rule ereal_mult_left_mono)
 next
   fix y
   assume *: "\<And>i. i \<in> UNIV \<Longrightarrow> c * f i \<le> y"
-  show "c * SUPR UNIV f \<le> y"
+  show "c * SUPREMUM UNIV f \<le> y"
   proof (cases "0 < c \<and> c \<noteq> \<infinity>")
     case True
-    with * have "SUPR UNIV f \<le> y / c"
+    with * have "SUPREMUM UNIV f \<le> y / c"
       by (intro SUP_least) (auto simp: ereal_le_divide_pos)
     with True show ?thesis
       by (auto simp: ereal_le_divide_pos)
@@ -1630,7 +1630,7 @@ next
         case True
         then have "range f = {0}"
           by auto
-        with True show "c * SUPR UNIV f \<le> y"
+        with True show "c * SUPREMUM UNIV f \<le> y"
           using * by (auto simp: SUP_def max.absorb1)
       next
         case False
@@ -1677,7 +1677,7 @@ qed
 
 lemma Sup_countable_SUP:
   assumes "A \<noteq> {}"
-  shows "\<exists>f::nat \<Rightarrow> ereal. range f \<subseteq> A \<and> Sup A = SUPR UNIV f"
+  shows "\<exists>f::nat \<Rightarrow> ereal. range f \<subseteq> A \<and> Sup A = SUPREMUM UNIV f"
 proof (cases "Sup A")
   case (real r)
   have "\<forall>n::nat. \<exists>x. x \<in> A \<and> Sup A < x + 1 / ereal (real n)"
@@ -1691,7 +1691,7 @@ proof (cases "Sup A")
   qed
   from choice[OF this] obtain f :: "nat \<Rightarrow> ereal"
     where f: "\<forall>x. f x \<in> A \<and> Sup A < f x + 1 / ereal (real x)" ..
-  have "SUPR UNIV f = Sup A"
+  have "SUPREMUM UNIV f = Sup A"
   proof (rule SUP_eqI)
     fix i
     show "f i \<le> Sup A"
@@ -1752,7 +1752,7 @@ next
     qed
     from choice[OF this] obtain f :: "nat \<Rightarrow> ereal"
       where f: "\<forall>z. f z \<in> A \<and> x + ereal (real z) \<le> f z" ..
-    have "SUPR UNIV f = \<infinity>"
+    have "SUPREMUM UNIV f = \<infinity>"
     proof (rule SUP_PInfty)
       fix n :: nat
       show "\<exists>i\<in>UNIV. ereal (real n) \<le> f i"
@@ -1771,7 +1771,7 @@ next
 qed
 
 lemma SUP_countable_SUP:
-  "A \<noteq> {} \<Longrightarrow> \<exists>f::nat \<Rightarrow> ereal. range f \<subseteq> g`A \<and> SUPR A g = SUPR UNIV f"
+  "A \<noteq> {} \<Longrightarrow> \<exists>f::nat \<Rightarrow> ereal. range f \<subseteq> g`A \<and> SUPREMUM A g = SUPREMUM UNIV f"
   using Sup_countable_SUP [of "g`A"]
   by auto
 
@@ -1852,7 +1852,7 @@ lemma INF_ereal_add:
   fixes f :: "nat \<Rightarrow> ereal"
   assumes "decseq f" "decseq g"
     and fin: "\<And>i. f i \<noteq> \<infinity>" "\<And>i. g i \<noteq> \<infinity>"
-  shows "(INF i. f i + g i) = INFI UNIV f + INFI UNIV g"
+  shows "(INF i. f i + g i) = INFIMUM UNIV f + INFIMUM UNIV g"
 proof -
   have INF_less: "(INF i. f i) < \<infinity>" "(INF i. g i) < \<infinity>"
     using assms unfolding INF_less_iff by auto
@@ -1863,7 +1863,7 @@ proof -
   }
   then have "(INF i. f i + g i) = (INF i. - ((- f i) + (- g i)))"
     by simp
-  also have "\<dots> = INFI UNIV f + INFI UNIV g"
+  also have "\<dots> = INFIMUM UNIV f + INFIMUM UNIV g"
     unfolding ereal_INF_uminus
     using assms INF_less
     by (subst SUP_ereal_add)

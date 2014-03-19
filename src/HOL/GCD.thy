@@ -1558,8 +1558,8 @@ qed simp
 interpretation gcd_lcm_complete_lattice_nat:
   complete_lattice Gcd Lcm gcd Rings.dvd "\<lambda>m n. m dvd n \<and> \<not> n dvd m" lcm 1 "0::nat"
 where
-  "Inf.INFI Gcd A f = Gcd (f ` A :: nat set)"
-  and "Sup.SUPR Lcm A f = Lcm (f ` A)"
+  "Inf.INFIMUM Gcd A f = Gcd (f ` A :: nat set)"
+  and "Sup.SUPREMUM Lcm A f = Lcm (f ` A)"
 proof -
   show "class.complete_lattice Gcd Lcm gcd Rings.dvd (\<lambda>m n. m dvd n \<and> \<not> n dvd m) lcm 1 (0::nat)"
   proof
@@ -1577,8 +1577,8 @@ proof -
   qed
   then interpret gcd_lcm_complete_lattice_nat:
     complete_lattice Gcd Lcm gcd Rings.dvd "\<lambda>m n. m dvd n \<and> \<not> n dvd m" lcm 1 "0::nat" .
-  from gcd_lcm_complete_lattice_nat.INF_def show "Inf.INFI Gcd A f = Gcd (f ` A)" .
-  from gcd_lcm_complete_lattice_nat.SUP_def show "Sup.SUPR Lcm A f = Lcm (f ` A)" .
+  from gcd_lcm_complete_lattice_nat.INF_def show "Inf.INFIMUM Gcd A f = Gcd (f ` A)" .
+  from gcd_lcm_complete_lattice_nat.SUP_def show "Sup.SUPREMUM Lcm A f = Lcm (f ` A)" .
 qed
 
 declare gcd_lcm_complete_lattice_nat.Inf_image_eq [simp del]

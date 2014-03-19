@@ -1035,7 +1035,7 @@ lemma Sup_fold_sup:
 
 lemma inf_INF_fold_inf:
   assumes "finite A"
-  shows "inf B (INFI A f) = fold (inf \<circ> f) B A" (is "?inf = ?fold") 
+  shows "inf B (INFIMUM A f) = fold (inf \<circ> f) B A" (is "?inf = ?fold") 
 proof (rule sym)
   interpret comp_fun_idem inf by (fact comp_fun_idem_inf)
   interpret comp_fun_idem "inf \<circ> f" by (fact comp_comp_fun_idem)
@@ -1046,7 +1046,7 @@ qed
 
 lemma sup_SUP_fold_sup:
   assumes "finite A"
-  shows "sup B (SUPR A f) = fold (sup \<circ> f) B A" (is "?sup = ?fold") 
+  shows "sup B (SUPREMUM A f) = fold (sup \<circ> f) B A" (is "?sup = ?fold") 
 proof (rule sym)
   interpret comp_fun_idem sup by (fact comp_fun_idem_sup)
   interpret comp_fun_idem "sup \<circ> f" by (fact comp_comp_fun_idem)
@@ -1057,12 +1057,12 @@ qed
 
 lemma INF_fold_inf:
   assumes "finite A"
-  shows "INFI A f = fold (inf \<circ> f) top A"
+  shows "INFIMUM A f = fold (inf \<circ> f) top A"
   using assms inf_INF_fold_inf [of A top] by simp
 
 lemma SUP_fold_sup:
   assumes "finite A"
-  shows "SUPR A f = fold (sup \<circ> f) bot A"
+  shows "SUPREMUM A f = fold (sup \<circ> f) bot A"
   using assms sup_SUP_fold_sup [of A bot] by simp
 
 end

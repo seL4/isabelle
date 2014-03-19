@@ -2876,13 +2876,13 @@ qed
 declare Sup_set_fold [where 'a = "'a set", code]
 
 lemma (in complete_lattice) INF_set_fold:
-  "INFI (set xs) f = fold (inf \<circ> f) xs top"
+  "INFIMUM (set xs) f = fold (inf \<circ> f) xs top"
   using Inf_set_fold [of "map f xs "] by (simp add: fold_map)
 
 declare INF_set_fold [code]
 
 lemma (in complete_lattice) SUP_set_fold:
-  "SUPR (set xs) f = fold (sup \<circ> f) xs bot"
+  "SUPREMUM (set xs) f = fold (sup \<circ> f) xs bot"
   using Sup_set_fold [of "map f xs "] by (simp add: fold_map)
 
 declare SUP_set_fold [code]

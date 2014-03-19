@@ -219,11 +219,11 @@ text {* Alternative formulations for set infima and suprema over the product
 of two complete lattices: *}
 
 lemma INF_prod_alt_def:
-  "INFI A f = (INFI A (fst o f), INFI A (snd o f))"
+  "INFIMUM A f = (INFIMUM A (fst o f), INFIMUM A (snd o f))"
   unfolding INF_def Inf_prod_def by simp
 
 lemma SUP_prod_alt_def:
-  "SUPR A f = (SUPR A (fst o f), SUPR A (snd o f))"
+  "SUPREMUM A f = (SUPREMUM A (fst o f), SUPREMUM A (snd o f))"
   unfolding SUP_def Sup_prod_def by simp
 
 

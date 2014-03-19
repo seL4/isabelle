@@ -98,6 +98,9 @@ differently).
 
 *** HOL ***
 
+* Elongated constants INFI and SUPR to INFIMUM and SUPREMUM.
+INCOMPATIBILITY.
+
 * Consolidated theorem names containing INFI and SUPR: have INF
 and SUP instead uniformly.  INCOMPATIBILITY.
 
