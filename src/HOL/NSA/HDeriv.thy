@@ -362,7 +362,7 @@ proof -
         nonzero_inverse_minus_eq [symmetric] ac_simps ring_distribs)
       apply (subst nonzero_inverse_minus_eq [symmetric])
       using distrib_right [symmetric, of h "star_of x" "star_of x"] apply simp
-      apply (simp add: field_simps) 
+      apply (simp add: field_simps)
       done
     ultimately have "(inverse (star_of x + h) - inverse (star_of x)) / h \<approx>
       - (inverse (star_of x) * inverse (star_of x))"
@@ -451,7 +451,7 @@ apply (frule_tac h = h in incrementI2, simp add: nsderiv_def)
 apply (drule bspec, auto)
 apply (drule bex_Infinitesimal_iff2 [THEN iffD2], clarify)
 apply (frule_tac b1 = "hypreal_of_real (D) + y"
-        in hypreal_mult_right_cancel [THEN iffD2])
+        in mult_right_cancel [THEN iffD2])
 apply (erule_tac [2] V = "(( *f* f) (hypreal_of_real (x) + h) - hypreal_of_real (f x)) / h = hypreal_of_real (D) + y" in thin_rl)
 apply assumption
 apply (simp add: times_divide_eq_right [symmetric])

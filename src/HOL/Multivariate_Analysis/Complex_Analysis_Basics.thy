@@ -1203,8 +1203,8 @@ lemma real_lim:
 proof -
   have 1: "((\<lambda>i. Im (f i)) ---> Im l) F"
     by (metis assms(1) tendsto_Im) 
-  then have  "((\<lambda>i. Im (f i)) ---> 0) F"
-    by (smt2 Lim_eventually assms(3) assms(4) complex_is_Real_iff eventually_elim2)
+  then have  "((\<lambda>i. Im (f i)) ---> 0) F" using assms
+    by (metis (mono_tags, lifting) Lim_eventually complex_is_Real_iff eventually_mono)
   then show ?thesis using 1
     by (metis 1 assms(2) complex_is_Real_iff tendsto_unique) 
 qed
@@ -1233,16 +1233,8 @@ lemma norm_setsum_bound:
 apply (induct n, auto)
 by (metis dual_order.trans le_cases le_neq_implies_less norm_triangle_mono)
 
-(*Replaces the one in Series*)
-lemma summable_comparison_test:
-  fixes f:: "nat \<Rightarrow> 'a::banach" 
-  shows "summable g \<Longrightarrow> (\<And>n. n \<ge> N \<Longrightarrow> norm(f n) \<le> g n) \<Longrightarrow> summable f"
-apply (auto simp: Series.summable_Cauchy)  
-apply (drule_tac x = e in spec, auto)
-apply (rule_tac x="max N Na" in exI, auto)
-by (smt2 norm_setsum_bound)
 
-(*MOVE TO Finite_Cartesian_Product*)
+(*MOVE? But not to Finite_Cartesian_Product*)
 lemma sums_vec_nth :
   assumes "f sums a"
   shows "(\<lambda>x. f x $ i) sums a $ i"
@@ -1254,23 +1246,6 @@ lemma summable_vec_nth :
   shows "summable (\<lambda>x. f x $ i)"
 using assms unfolding summable_def
 by (blast intro: sums_vec_nth)
-
-(*REPLACE THE ONES IN COMPLEX.THY*)
-lemma Re_setsum: "Re(setsum f s) = setsum (%x. Re(f x)) s"
-apply (cases "finite s")
-  by (induct s rule: finite_induct) auto
-
-lemma Im_setsum: "Im(setsum f s) = setsum (%x. Im(f x)) s"
-apply (cases "finite s")
-  by (induct s rule: finite_induct) auto
-
-lemma of_real_setsum: "of_real (setsum f s) = setsum (%x. of_real(f x)) s"
-apply (cases "finite s")
-  by (induct s rule: finite_induct) auto
-
-lemma of_real_setprod: "of_real (setprod f s) = setprod (%x. of_real(f x)) s"
-apply (cases "finite s")
-  by (induct s rule: finite_induct) auto
 
 lemma sums_Re:
   assumes "f sums a"
@@ -1306,7 +1281,7 @@ proof -
   have g: "\<And>n. cmod (g n) = Re (g n)" using assms
     by (metis abs_of_nonneg in_Reals_norm)
   show ?thesis
-    apply (rule summable_comparison_test [where g = "\<lambda>n. norm (g n)" and N=N])
+    apply (rule summable_comparison_test' [where g = "\<lambda>n. norm (g n)" and N=N])
     using sg
     apply (auto simp: summable_def)
     apply (rule_tac x="Re s" in exI)
@@ -1324,9 +1299,6 @@ apply (auto simp: of_real_setsum [symmetric])
 done
 
 
-(* ------------------------------------------------------------------------- *)
-(* A kind of complex Taylor theorem.                                         *)
-(* ------------------------------------------------------------------------- *)
 
 
 lemma setsum_Suc_reindex:
@@ -1334,17 +1306,8 @@ lemma setsum_Suc_reindex:
     shows  "setsum f {0..n} = f 0 - f (Suc n) + setsum (\<lambda>i. f (Suc i)) {0..n}"
 by (induct n) auto
 
-(*REPLACE THE REAL VERSIONS*)
-lemma mult_left_cancel:
-  fixes c:: "'a::ring_no_zero_divisors"
-  shows "c \<noteq> 0 \<Longrightarrow> (c*a=c*b) = (a=b)"
-by simp 
 
-lemma mult_right_cancel:
-  fixes c:: "'a::ring_no_zero_divisors"
-  shows "c \<noteq> 0 \<Longrightarrow> (a*c=b*c) = (a=b)"
-by simp 
-
+text{*A kind of complex Taylor theorem.*}
 lemma complex_taylor:
   assumes s: "convex s" 
       and f: "\<And>i x. x \<in> s \<Longrightarrow> i \<le> n \<Longrightarrow> (f i has_field_derivative f (Suc i) x) (at x within s)"

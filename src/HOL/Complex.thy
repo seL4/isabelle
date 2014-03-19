@@ -634,20 +634,32 @@ lemma re_complex_div_le_0: "Re(a / b) \<le> 0 \<longleftrightarrow> Re(a * cnj b
 lemma im_complex_div_le_0: "Im(a / b) \<le> 0 \<longleftrightarrow> Im(a * cnj b) \<le> 0"
   by (metis im_complex_div_gt_0 not_le)
 
-lemma Re_setsum: "finite s \<Longrightarrow> Re(setsum f s) = setsum (%x. Re(f x)) s"
+lemma Re_setsum: "Re(setsum f s) = setsum (%x. Re(f x)) s"
+apply (cases "finite s")
   by (induct s rule: finite_induct) auto
 
-lemma Im_setsum: "finite s \<Longrightarrow> Im(setsum f s) = setsum (%x. Im(f x)) s"
+lemma Im_setsum: "Im(setsum f s) = setsum (%x. Im(f x)) s"
+apply (cases "finite s")
   by (induct s rule: finite_induct) auto
 
-lemma Complex_setsum': "finite s \<Longrightarrow> setsum (%x. Complex (f x) 0) s = Complex (setsum f s) 0"
+lemma Complex_setsum': "setsum (%x. Complex (f x) 0) s = Complex (setsum f s) 0"
+apply (cases "finite s")
   by (induct s rule: finite_induct) auto
 
-lemma Complex_setsum: "finite s \<Longrightarrow> Complex (setsum f s) 0 = setsum (%x. Complex (f x) 0) s"
+lemma Complex_setsum: "Complex (setsum f s) 0 = setsum (%x. Complex (f x) 0) s"
   by (metis Complex_setsum')
 
-lemma cnj_setsum: "finite s \<Longrightarrow> cnj (setsum f s) = setsum (%x. cnj (f x)) s"
+lemma cnj_setsum: "cnj (setsum f s) = setsum (%x. cnj (f x)) s"
+apply (cases "finite s")
   by (induct s rule: finite_induct) (auto simp: complex_cnj_add)
+
+lemma of_real_setsum: "of_real (setsum f s) = setsum (%x. of_real(f x)) s"
+apply (cases "finite s")
+  by (induct s rule: finite_induct) auto
+
+lemma of_real_setprod: "of_real (setprod f s) = setprod (%x. of_real(f x)) s"
+apply (cases "finite s")
+  by (induct s rule: finite_induct) auto
 
 lemma Reals_cnj_iff: "z \<in> \<real> \<longleftrightarrow> cnj z = z"
 by (metis Reals_cases Reals_of_real complex.exhaust complex.inject complex_cnj 

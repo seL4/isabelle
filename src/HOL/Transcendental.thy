@@ -2396,15 +2396,6 @@ proof -
   thus ?thesis unfolding cos_coeff_def by (simp add: mult_ac)
 qed
 
-lemma real_mult_inverse_cancel:
-     "[|(0::real) < x; 0 < x1; x1 * y < x * u |]
-      ==> inverse x * y < inverse x1 * u"
-  by (metis field_divide_inverse mult_commute mult_assoc pos_divide_less_eq pos_less_divide_eq)
-
-lemma real_mult_inverse_cancel2:
-     "[|(0::real) < x;0 < x1; x1 * y < x * u |] ==> y * inverse x < u * inverse x1"
-  by (auto dest: real_mult_inverse_cancel simp add: mult_ac)
-
 lemmas realpow_num_eq_if = power_eq_if
 
 lemma sumr_pos_lt_pair:
@@ -3208,7 +3199,7 @@ lemma sin_arctan: "sin (arctan x) = x / sqrt (1 + x\<^sup>2)"
 
 lemma tan_sec: "cos x \<noteq> 0 ==> 1 + (tan x)\<^sup>2 = (inverse (cos x))\<^sup>2"
   apply (rule power_inverse [THEN subst])
-  apply (rule_tac c1 = "(cos x)\<^sup>2" in real_mult_right_cancel [THEN iffD1])
+  apply (rule_tac c1 = "(cos x)\<^sup>2" in mult_right_cancel [THEN iffD1])
   apply (auto dest: field_power_not_zero
           simp add: power_mult_distrib distrib_right power_divide tan_def
                     mult_assoc power_inverse [symmetric])

@@ -974,12 +974,6 @@ subsection{*More Lemmas*}
 text {* BH: These lemmas should not be necessary; they should be
 covered by existing simp rules and simplification procedures. *}
 
-lemma real_mult_left_cancel: "(c::real) \<noteq> 0 ==> (c*a=c*b) = (a=b)"
-by simp (* redundant with mult_cancel_left *)
-
-lemma real_mult_right_cancel: "(c::real) \<noteq> 0 ==> (a*c=b*c) = (a=b)"
-by simp (* redundant with mult_cancel_right *)
-
 lemma real_mult_less_iff1 [simp]: "(0::real) < z ==> (x*z < y*z) = (x < y)"
 by simp (* solved by linordered_ring_less_cancel_factor simproc *)
 

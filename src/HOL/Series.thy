@@ -461,6 +461,10 @@ lemma summable_comparison_test: "\<exists>N. \<forall>n\<ge>N. norm (f n) \<le> 
   apply (auto intro: setsum_mono simp add: abs_less_iff)
   done
 
+(*A better argument order*)
+lemma summable_comparison_test': "summable g \<Longrightarrow> (\<And>n. n \<ge> N \<Longrightarrow> norm(f n) \<le> g n) \<Longrightarrow> summable f"
+by (rule summable_comparison_test) auto
+
 subsection {* The Ratio Test*}
 
 lemma summable_ratio_test: 

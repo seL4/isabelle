@@ -799,7 +799,7 @@ proof -
       by (rule norm_cauchy_schwarz)
     finally show ?thesis
       using False x(1)
-      by (auto simp add: real_mult_left_cancel)
+      by (auto simp add: mult_left_cancel)
   next
     case True
     then show ?thesis

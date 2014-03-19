@@ -168,7 +168,7 @@ by (simp add: star_def starrel_def quotient_def, blast)
 declare Abs_star_inject [simp] Abs_star_inverse [simp]
 declare equiv_starrel [THEN eq_equiv_class_iff, simp]
 
-subsection{*@{term hypreal_of_real}: 
+subsection{*@{term hypreal_of_real}:
             the Injection from @{typ real} to @{typ hypreal}*}
 
 lemma inj_star_of: "inj star_of"
@@ -207,7 +207,7 @@ lemma star_n_inverse:
 by (simp only: star_inverse_def starfun_star_n)
 
 lemma star_n_le:
-      "star_n X \<le> star_n Y =  
+      "star_n X \<le> star_n Y =
        ({n. X n \<le> Y n} \<in> FreeUltrafilterNat)"
 by (simp only: star_le_def starP2_star_n)
 
@@ -233,12 +233,6 @@ by (auto)
 lemma hypreal_eq_minus_iff: "((x::hypreal) = y) = (x + - y = 0)"
 by auto
 
-lemma hypreal_mult_left_cancel: "(c::hypreal) \<noteq> 0 ==> (c*a=c*b) = (a=b)"
-by auto
-    
-lemma hypreal_mult_right_cancel: "(c::hypreal) \<noteq> 0 ==> (a*c=b*c) = (a=b)"
-by auto
-
 lemma hypreal_omega_gt_zero [simp]: "0 < omega"
 by (simp add: omega_def star_n_zero_num star_n_less)
 
@@ -250,18 +244,18 @@ Use assumption that member @{term FreeUltrafilterNat} is not finite.*}
 
 text{*A few lemmas first*}
 
-lemma lemma_omega_empty_singleton_disj: "{n::nat. x = real n} = {} |  
+lemma lemma_omega_empty_singleton_disj: "{n::nat. x = real n} = {} |
       (\<exists>y. {n::nat. x = real n} = {y})"
 by force
 
 lemma lemma_finite_omega_set: "finite {n::nat. x = real n}"
 by (cut_tac x = x in lemma_omega_empty_singleton_disj, auto)
 
-lemma not_ex_hypreal_of_real_eq_omega: 
+lemma not_ex_hypreal_of_real_eq_omega:
       "~ (\<exists>x. hypreal_of_real x = omega)"
 apply (simp add: omega_def)
 apply (simp add: star_of_def star_n_eq_iff)
-apply (auto simp add: real_of_nat_Suc diff_eq_eq [symmetric] 
+apply (auto simp add: real_of_nat_Suc diff_eq_eq [symmetric]
             lemma_finite_omega_set [THEN FreeUltrafilterNat.finite])
 done
 
@@ -272,7 +266,7 @@ text{*Existence of infinitesimal number also not corresponding to any
  real number*}
 
 lemma lemma_epsilon_empty_singleton_disj:
-     "{n::nat. x = inverse(real(Suc n))} = {} |  
+     "{n::nat. x = inverse(real(Suc n))} = {} |
       (\<exists>y. {n::nat. x = inverse(real(Suc n))} = {y})"
 by auto
 
@@ -389,7 +383,7 @@ apply (simp only: zero_le_square add_nonneg_nonneg hypreal_add_nonneg_eq_0_iff, 
 done
 
 lemma hrealpow_three_squares_add_zero_iff [simp]:
-     "(x ^ Suc (Suc 0) + y ^ Suc (Suc 0) + z ^ Suc (Suc 0) = (0::hypreal)) = 
+     "(x ^ Suc (Suc 0) + y ^ Suc (Suc 0) + z ^ Suc (Suc 0) = (0::hypreal)) =
       (x = 0 & y = 0 & z = 0)"
 by (simp only: hypreal_three_squares_add_zero_iff hrealpow_two)
 
@@ -462,7 +456,7 @@ lemma hyperpow_inverse:
   "\<And>r n. r \<noteq> (0::'a::field_inverse_zero star)
    \<Longrightarrow> inverse (r pow n) = (inverse r) pow n"
 by transfer (rule power_inverse)
-  
+
 lemma hyperpow_hrabs:
   "\<And>r n. abs (r::'a::{linordered_idom} star) pow n = abs (r pow n)"
 by transfer (rule power_abs [symmetric])

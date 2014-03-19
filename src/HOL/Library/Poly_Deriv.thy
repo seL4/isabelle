@@ -128,7 +128,7 @@ lemma poly_MVT: "(a::real) < b ==>
      \<exists>x. a < x & x < b & (poly p b - poly p a = (b - a) * poly (pderiv p) x)"
 apply (drule_tac f = "poly p" in MVT, auto)
 apply (rule_tac x = z in exI)
-apply (auto simp add: real_mult_left_cancel poly_DERIV [THEN DERIV_unique])
+apply (auto simp add: mult_left_cancel poly_DERIV [THEN DERIV_unique])
 done
 
 text{*Lemmas for Derivatives*}

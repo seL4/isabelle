@@ -376,6 +376,12 @@ proof -
   thus ?thesis by simp
 qed
 
+lemma mult_left_cancel: "c \<noteq> 0 \<Longrightarrow> (c*a=c*b) = (a=b)"
+by simp 
+
+lemma mult_right_cancel: "c \<noteq> 0 \<Longrightarrow> (a*c=b*c) = (a=b)"
+by simp 
+
 end
 
 class ring_1_no_zero_divisors = ring_1 + ring_no_zero_divisors

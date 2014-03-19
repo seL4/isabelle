@@ -1203,7 +1203,7 @@ done
 lemma DERIV_const_ratio_const2:
   fixes f :: "real => real"
   shows "[|a \<noteq> b; \<forall>x. DERIV f x :> k |] ==> (f(b) - f(a))/(b-a) = k"
-apply (rule_tac c1 = "b-a" in real_mult_right_cancel [THEN iffD1])
+apply (rule_tac c1 = "b-a" in mult_right_cancel [THEN iffD1])
 apply (auto dest!: DERIV_const_ratio_const simp add: mult_assoc)
 done
 
