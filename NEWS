@@ -412,6 +412,53 @@ more syntax-directed proof rules; the case of the empty chain
 shows up as additional case in fixpoint induction proofs.
 INCOMPATIBILITY
 
+* Removed and renamed theorems in Series:
+  summable_le         ~>  suminf_le
+  suminf_le           ~>  suminf_le_const
+  series_pos_le       ~>  setsum_le_suminf
+  series_pos_less     ~>  setsum_less_suminf
+  suminf_ge_zero      ~>  suminf_nonneg
+  suminf_gt_zero      ~>  suminf_pos
+  suminf_gt_zero_iff  ~>  suminf_pos_iff
+  summable_sumr_LIMSEQ_suminf  ~>  summable_LIMSEQ
+  suminf_0_le         ~>  suminf_nonneg [rotate]
+  pos_summable        ~>  summableI_nonneg_bounded
+  ratio_test          ~>  summable_ratio_test
+
+  removed series_zero, replaced by sums_finite
+
+  removed auxiliary lemmas:
+    sumr_offset, sumr_offset2, sumr_offset3, sumr_offset4, sumr_group,
+    half, le_Suc_ex_iff, lemma_realpow_diff_sumr, real_setsum_nat_ivl_bounded,
+    summable_le2, ratio_test_lemma2, sumr_minus_one_realpow_zerom,
+    sumr_one_lb_realpow_zero, summable_convergent_sumr_iff, sumr_diff_mult_const
+INCOMPATIBILITY.
+
+* Replace (F)DERIV syntax by has_derivative:
+  - "(f has_derivative f') (at x within s)" replaces "FDERIV f x : s : f'"
+
+  - "(f has_field_derivative f') (at x within s)" replaces "DERIV f x : s : f'"
+
+  - "f differentiable at x within s" replaces "_ differentiable _ in _" syntax
+
+  - removed constant isDiff
+
+  - "DERIV f x : f'" and "FDERIV f x : f'" syntax is only available as input
+    syntax.
+
+  - "DERIV f x : s : f'" and "FDERIV f x : s : f'" syntax removed
+
+  - Renamed FDERIV_... lemmas to has_derivative_...
+
+  - Other renamings:
+    differentiable_def        ~>  real_differentiable_def
+    differentiableE           ~>  real_differentiableE
+    fderiv_def                ~>  has_derivative_at
+    field_fderiv_def          ~>  field_has_derivative_at
+    isDiff_der                ~>  differentiable_def
+    deriv_fderiv              ~>  has_field_derivative_def
+INCOMPATIBILITY.
+
 * Removed solvers remote_cvc3 and remote_z3. Use cvc3 and z3 instead.
 
 * Nitpick:

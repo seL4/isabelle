@@ -2239,7 +2239,7 @@ proof -
   proof eventually_elim
     fix j x assume [simp]: "x \<in> space M"
     have "\<bar>\<Sum>i<j. f i x\<bar> \<le> (\<Sum>i<j. \<bar>f i x\<bar>)" by (rule setsum_abs)
-    also have "\<dots> \<le> w x" using w[of x] series_pos_le[of "\<lambda>i. \<bar>f i x\<bar>"] unfolding sums_iff by auto
+    also have "\<dots> \<le> w x" using w[of x] setsum_le_suminf[of "\<lambda>i. \<bar>f i x\<bar>"] unfolding sums_iff by auto
     finally show "\<bar>\<Sum>i<j. f i x\<bar> \<le> ?w x" by simp
   qed
 
