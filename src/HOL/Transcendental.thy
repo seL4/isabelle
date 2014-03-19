@@ -552,7 +552,7 @@ proof (rule lemma_termdiff4 [OF k])
   hence "norm (suminf (g h)) \<le> (\<Sum>n. norm (g h n))"
     by (rule summable_norm)
   also from A C B have "(\<Sum>n. norm (g h n)) \<le> (\<Sum>n. f n * norm h)"
-    by (rule summable_le)
+    by (rule suminf_le)
   also from f have "(\<Sum>n. f n * norm h) = suminf f * norm h"
     by (rule suminf_mult2 [symmetric])
   finally show "norm (suminf (g h)) \<le> suminf f * norm h" .
@@ -737,7 +737,7 @@ proof (rule LIM_I)
         using `x \<noteq> 0` by auto }
     note 1 = this and 2 = summable_rabs_comparison_test[OF _ ign[OF `summable L`]]
     then have "\<bar> \<Sum> i. ?diff (i + ?N) x \<bar> \<le> (\<Sum> i. L (i + ?N))"
-      by (metis (lifting) abs_idempotent order_trans[OF summable_rabs[OF 2] summable_le[OF _ 2 ign[OF `summable L`]]])
+      by (metis (lifting) abs_idempotent order_trans[OF summable_rabs[OF 2] suminf_le[OF _ 2 ign[OF `summable L`]]])
     then have "\<bar> \<Sum> i. ?diff (i + ?N) x \<bar> \<le> r / 3" (is "?L_part \<le> r/3")
       using L_estimate by auto
 
@@ -1006,22 +1006,17 @@ lemma powser_zero:
   shows "(\<Sum>n. f n * 0 ^ n) = f 0"
 proof -
   have "(\<Sum>n<1. f n * 0 ^ n) = (\<Sum>n. f n * 0 ^ n)"
-    by (rule sums_unique [OF series_zero], simp add: power_0_left)
+    by (subst suminf_finite[where N="{0}"]) (auto simp: power_0_left)
   thus ?thesis unfolding One_nat_def by simp
 qed
 
 lemma exp_zero [simp]: "exp 0 = 1"
   unfolding exp_def by (simp add: scaleR_conv_of_real powser_zero)
 
-lemma setsum_cl_ivl_Suc2:
-  "(\<Sum>i=m..Suc n. f i) = (if Suc n < m then 0 else f m + (\<Sum>i=m..n. f (Suc i)))"
-  by (simp add: setsum_head_Suc setsum_shift_bounds_cl_Suc_ivl
-           del: setsum_cl_ivl_Suc)
-
 lemma exp_series_add:
   fixes x y :: "'a::{real_field}"
   defines S_def: "S \<equiv> \<lambda>x n. x ^ n /\<^sub>R real (fact n)"
-  shows "S (x + y) n = (\<Sum>i=0..n. S x i * S y (n - i))"
+  shows "S (x + y) n = (\<Sum>i\<le>n. S x i * S y (n - i))"
 proof (induct n)
   case 0
   show ?case
@@ -1035,32 +1030,32 @@ next
 
   have "real (Suc n) *\<^sub>R S (x + y) (Suc n) = (x + y) * S (x + y) n"
     by (simp only: times_S)
-  also have "\<dots> = (x + y) * (\<Sum>i=0..n. S x i * S y (n-i))"
+  also have "\<dots> = (x + y) * (\<Sum>i\<le>n. S x i * S y (n-i))"
     by (simp only: Suc)
-  also have "\<dots> = x * (\<Sum>i=0..n. S x i * S y (n-i))
-                + y * (\<Sum>i=0..n. S x i * S y (n-i))"
+  also have "\<dots> = x * (\<Sum>i\<le>n. S x i * S y (n-i))
+                + y * (\<Sum>i\<le>n. S x i * S y (n-i))"
     by (rule distrib_right)
-  also have "\<dots> = (\<Sum>i=0..n. (x * S x i) * S y (n-i))
-                + (\<Sum>i=0..n. S x i * (y * S y (n-i)))"
+  also have "\<dots> = (\<Sum>i\<le>n. (x * S x i) * S y (n-i))
+                + (\<Sum>i\<le>n. S x i * (y * S y (n-i)))"
     by (simp only: setsum_right_distrib mult_ac)
-  also have "\<dots> = (\<Sum>i=0..n. real (Suc i) *\<^sub>R (S x (Suc i) * S y (n-i)))
-                + (\<Sum>i=0..n. real (Suc n-i) *\<^sub>R (S x i * S y (Suc n-i)))"
+  also have "\<dots> = (\<Sum>i\<le>n. real (Suc i) *\<^sub>R (S x (Suc i) * S y (n-i)))
+                + (\<Sum>i\<le>n. real (Suc n-i) *\<^sub>R (S x i * S y (Suc n-i)))"
     by (simp add: times_S Suc_diff_le)
-  also have "(\<Sum>i=0..n. real (Suc i) *\<^sub>R (S x (Suc i) * S y (n-i))) =
-             (\<Sum>i=0..Suc n. real i *\<^sub>R (S x i * S y (Suc n-i)))"
-    by (subst setsum_cl_ivl_Suc2, simp)
-  also have "(\<Sum>i=0..n. real (Suc n-i) *\<^sub>R (S x i * S y (Suc n-i))) =
-             (\<Sum>i=0..Suc n. real (Suc n-i) *\<^sub>R (S x i * S y (Suc n-i)))"
-    by (subst setsum_cl_ivl_Suc, simp)
-  also have "(\<Sum>i=0..Suc n. real i *\<^sub>R (S x i * S y (Suc n-i))) +
-             (\<Sum>i=0..Suc n. real (Suc n-i) *\<^sub>R (S x i * S y (Suc n-i))) =
-             (\<Sum>i=0..Suc n. real (Suc n) *\<^sub>R (S x i * S y (Suc n-i)))"
+  also have "(\<Sum>i\<le>n. real (Suc i) *\<^sub>R (S x (Suc i) * S y (n-i))) =
+             (\<Sum>i\<le>Suc n. real i *\<^sub>R (S x i * S y (Suc n-i)))"
+    by (subst setsum_atMost_Suc_shift) simp
+  also have "(\<Sum>i\<le>n. real (Suc n-i) *\<^sub>R (S x i * S y (Suc n-i))) =
+             (\<Sum>i\<le>Suc n. real (Suc n-i) *\<^sub>R (S x i * S y (Suc n-i)))"
+    by simp
+  also have "(\<Sum>i\<le>Suc n. real i *\<^sub>R (S x i * S y (Suc n-i))) +
+             (\<Sum>i\<le>Suc n. real (Suc n-i) *\<^sub>R (S x i * S y (Suc n-i))) =
+             (\<Sum>i\<le>Suc n. real (Suc n) *\<^sub>R (S x i * S y (Suc n-i)))"
     by (simp only: setsum_addf [symmetric] scaleR_left_distrib [symmetric]
-              real_of_nat_add [symmetric], simp)
-  also have "\<dots> = real (Suc n) *\<^sub>R (\<Sum>i=0..Suc n. S x i * S y (Suc n-i))"
+                   real_of_nat_add [symmetric]) simp
+  also have "\<dots> = real (Suc n) *\<^sub>R (\<Sum>i\<le>Suc n. S x i * S y (Suc n-i))"
     by (simp only: scaleR_right.setsum)
   finally show
-    "S (x + y) (Suc n) = (\<Sum>i=0..Suc n. S x i * S y (Suc n - i))"
+    "S (x + y) (Suc n) = (\<Sum>i\<le>Suc n. S x i * S y (Suc n - i))"
     by (simp del: setsum_cl_ivl_Suc)
 qed
 
@@ -1128,7 +1123,7 @@ proof
   have "1+x \<le> (\<Sum>n<2. inverse (real (fact n)) * x ^ n)"
     by (auto simp add: numeral_2_eq_2)
   also have "... \<le> (\<Sum>n. inverse (real (fact n)) * x ^ n)"
-    apply (rule series_pos_le [OF summable_exp])
+    apply (rule setsum_le_suminf [OF summable_exp])
     using `0 < x`
     apply (auto  simp add:  zero_le_mult_iff)
     done
@@ -1412,7 +1407,7 @@ proof -
   proof -
     have "suminf (\<lambda>n. inverse(fact (n+2)) * (x ^ (n+2))) <=
         suminf (\<lambda>n. (x\<^sup>2/2) * ((1/2)^n))"
-      apply (rule summable_le)
+      apply (rule suminf_le)
       apply (rule allI, rule aux1)
       apply (rule summable_exp [THEN summable_ignore_initial_segment])
       by (rule sums_summable, rule aux2)
@@ -2388,7 +2383,7 @@ proof -
   show "0 < sin x"
     unfolding sums_unique [OF sums]
     using sums_summable [OF sums] pos
-    by (rule suminf_gt_zero)
+    by (rule suminf_pos)
 qed
 
 lemma cos_double_less_one: "0 < x \<Longrightarrow> x < 2 \<Longrightarrow> cos (2 * x) < 1"
@@ -2427,7 +2422,7 @@ apply simp
 apply (frule sums_unique)
 apply (drule sums_summable)
 apply simp
-apply (erule suminf_gt_zero)
+apply (erule suminf_pos)
 apply (simp add: add_ac)
 done
 

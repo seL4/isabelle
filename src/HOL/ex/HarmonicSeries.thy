@@ -268,8 +268,8 @@ qed
 
 text {* The final theorem shows that as we take more and more elements
 (see @{thm [source] harmonic_aux3}) we get an ever increasing sum. By assuming
-the sum converges, the lemma @{thm [source] series_pos_less} ( @{thm
-series_pos_less} ) states that each sum is bounded above by the
+the sum converges, the lemma @{thm [source] setsum_less_suminf} ( @{thm
+setsum_less_suminf} ) states that each sum is bounded above by the
 series' limit. This contradicts our first statement and thus we prove
 that the harmonic series is divergent. *}
 
@@ -284,7 +284,7 @@ proof -- "by contradiction"
   proof -
     have "\<forall>n. 0 \<le> ?f n" by simp
     with sf have "?s \<ge> 0"
-      by - (rule suminf_ge_zero, simp_all)
+      by (rule suminf_nonneg)
     then have cgt0: "\<lceil>2*?s\<rceil> \<ge> 0" by simp
 
     from ndef have "n = nat \<lceil>(2*?s)\<rceil>" .
@@ -298,11 +298,9 @@ proof -- "by contradiction"
 
   obtain j where jdef: "j = (2::nat)^n" by simp
   have "\<forall>m\<ge>j. 0 < ?f m" by simp
-  with sf have "(\<Sum>i\<in>{0..<j}. ?f i) < ?s" unfolding atLeast0LessThan by (rule series_pos_less)
-  then have "(\<Sum>i\<in>{1..<Suc j}. 1/(real i)) < ?s"
-    apply -
-    apply (subst(asm) setsum_shift_bounds_Suc_ivl [symmetric])
-    by simp
+  with sf have "(\<Sum>i<j. ?f i) < ?s" by (rule setsum_less_suminf)
+  then have "(\<Sum>i\<in>{Suc 0..<Suc j}. 1/(real i)) < ?s"
+    unfolding setsum_shift_bounds_Suc_ivl by (simp add: atLeast0LessThan)
   with jdef have
     "(\<Sum>i\<in>{1..< Suc ((2::nat)^n)}. 1 / (real i)) < ?s" by simp
   then have
