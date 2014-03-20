@@ -3638,13 +3638,15 @@ method_setup fresh_guess_debug =
 (* tactics for generating fresh names and simplifying fresh_funs *)
 ML_file "nominal_fresh_fun.ML"
 
-method_setup generate_fresh = 
-  {* setup_generate_fresh *} 
-  {* tactic to generate a name fresh for all the variables in the goal *}
+method_setup generate_fresh = {*
+  Args.type_name {proper = true, strict = true} >>
+    (fn s => fn ctxt => SIMPLE_METHOD (generate_fresh_tac ctxt s))
+*} "generate a name fresh for all the variables in the goal"
 
-method_setup fresh_fun_simp = 
-  {* setup_fresh_fun_simp *} 
-  {* tactic to delete one inner occurence of fresh_fun *}
+method_setup fresh_fun_simp = {*
+  Scan.lift (Args.parens (Args.$$$ "no_asm") >> K true || Scan.succeed false) >>
+    (fn b => fn ctxt => SIMPLE_METHOD' (fresh_fun_tac ctxt b))
+*} "delete one inner occurence of fresh_fun"
 
 
 (************************************************)

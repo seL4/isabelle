@@ -174,7 +174,7 @@ fun no_order_msg ctxt ltable tl measure_funs =
 
 (** The Main Function **)
 
-fun lex_order_tac quiet ctxt solve_tac (st: thm) =
+fun lex_order_tac quiet ctxt solve_tac st = SUBGOAL (fn _ =>
   let
     val thy = Proof_Context.theory_of ctxt
     val ((_ $ (_ $ rel)) :: tl) = prems_of st
@@ -187,26 +187,27 @@ fun lex_order_tac quiet ctxt solve_tac (st: thm) =
     val table = (* 2: create table *)
       map (fn t => map (mk_cell thy solve_tac (dest_term t)) measure_funs) tl
   in
-    case search_table table of
-      NONE => if quiet then no_tac st else error (no_order_msg ctxt table tl measure_funs)
-    | SOME order =>
-      let
-        val clean_table = map (fn x => map (nth x) order) table
-        val relation = mk_measures domT (map (nth measure_funs) order)
-        val _ =
-          if not quiet then
-            Pretty.writeln (Pretty.block
-              [Pretty.str "Found termination order:", Pretty.brk 1,
-                Pretty.quote (Syntax.pretty_term ctxt relation)])
-          else ()
-
-      in (* 4: proof reconstruction *)
-        st |> (PRIMITIVE (cterm_instantiate [(cterm_of thy rel, cterm_of thy relation)])
-        THEN (REPEAT (rtac @{thm "wf_mlex"} 1))
-        THEN (rtac @{thm "wf_empty"} 1)
-        THEN EVERY (map prove_row clean_table))
-      end
-  end
+    fn st =>
+      case search_table table of
+        NONE => if quiet then no_tac st else error (no_order_msg ctxt table tl measure_funs)
+      | SOME order =>
+        let
+          val clean_table = map (fn x => map (nth x) order) table
+          val relation = mk_measures domT (map (nth measure_funs) order)
+          val _ =
+            if not quiet then
+              Pretty.writeln (Pretty.block
+                [Pretty.str "Found termination order:", Pretty.brk 1,
+                  Pretty.quote (Syntax.pretty_term ctxt relation)])
+            else ()
+  
+        in (* 4: proof reconstruction *)
+          st |> (PRIMITIVE (cterm_instantiate [(cterm_of thy rel, cterm_of thy relation)])
+          THEN (REPEAT (rtac @{thm "wf_mlex"} 1))
+          THEN (rtac @{thm "wf_empty"} 1)
+          THEN EVERY (map prove_row clean_table))
+        end
+  end) 1 st;
 
 fun lexicographic_order_tac quiet ctxt =
   TRY (Function_Common.apply_termination_rule ctxt 1) THEN

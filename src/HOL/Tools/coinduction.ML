@@ -40,19 +40,20 @@ fun DELETE_PREMS_AFTER skip tac i st =
     (THEN_ALL_NEW_SKIP skip tac (REPEAT_DETERM_N n o etac thin_rl)) i st
   end;
 
-fun coinduction_tac ctxt raw_vars opt_raw_thm prems st =
+fun coinduction_tac ctxt raw_vars opt_raw_thm prems = HEADGOAL (SUBGOAL_CASES (fn (goal, _, _) =>
   let
     val lhs_of_eq = HOLogic.dest_Trueprop #> HOLogic.dest_eq #> fst;
     fun find_coinduct t = 
       Induct.find_coinductP ctxt t @
       (try (Induct.find_coinductT ctxt o fastype_of o lhs_of_eq) t |> the_default [])
-    val raw_thm = case opt_raw_thm
-      of SOME raw_thm => raw_thm
-       | NONE => st |> prems_of |> hd |> Logic.strip_assums_concl |> find_coinduct |> hd;
+    val raw_thm =
+      (case opt_raw_thm of
+        SOME raw_thm => raw_thm
+      | NONE => goal |> Logic.strip_assums_concl |> find_coinduct |> hd);
     val skip = Integer.max 1 (Rule_Cases.get_consumes raw_thm) - 1
     val cases = Rule_Cases.get raw_thm |> fst
   in
-    NO_CASES (HEADGOAL (
+    HEADGOAL (
       Object_Logic.rulify_tac ctxt THEN'
       Method.insert_tac prems THEN'
       Object_Logic.atomize_prems_tac ctxt THEN'
@@ -110,10 +111,10 @@ fun coinduction_tac ctxt raw_vars opt_raw_thm prems st =
                         unfold_thms_tac ctxt eqs
                       end)) ctxt)))])
         end) ctxt) THEN'
-      K (prune_params_tac ctxt))) st
-    |> Seq.maps (fn (_, st) =>
+      K (prune_params_tac ctxt))
+    #> Seq.maps (fn st =>
       CASES (Rule_Cases.make_common (Proof_Context.theory_of ctxt, prop_of st) cases) all_tac st)
-  end;
+  end));
 
 local
 

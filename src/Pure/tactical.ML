@@ -334,15 +334,14 @@ fun ASSERT_SUBGOAL (tac: int -> tactic) i st = (Logic.get_goal (Thm.prop_of st) 
 (*Returns all states that have changed in subgoal i, counted from the LAST
   subgoal.  For stac, for example.*)
 fun CHANGED_GOAL tac i st =
-    let val np = Thm.nprems_of st
-        val d = np-i                 (*distance from END*)
-        val t = Thm.term_of (Thm.cprem_of st i)
-        fun diff st' =
-            Thm.nprems_of st' - d <= 0   (*the subgoal no longer exists*)
-            orelse
-             not (Envir.aeconv (t, Thm.term_of (Thm.cprem_of st' (Thm.nprems_of st' - d))))
-    in  Seq.filter diff (tac i st)  end
-    handle General.Subscript => Seq.empty  (*no subgoal i*);
+  SUBGOAL (fn (t, _) =>
+    let
+      val np = Thm.nprems_of st;
+      val d = np - i;  (*distance from END*)
+      fun diff st' =
+        Thm.nprems_of st' - d <= 0 orelse  (*the subgoal no longer exists*)
+        not (Envir.aeconv (t, Thm.term_of (Thm.cprem_of st' (Thm.nprems_of st' - d))));
+    in Seq.filter diff o tac i end) i st;
 
 (*Returns all states where some subgoals have been solved.  For
   subgoal-based tactics this means subgoal i has been solved

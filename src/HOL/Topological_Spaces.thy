@@ -373,7 +373,7 @@ proof -
 qed
 
 ML {*
-  fun eventually_elim_tac ctxt thms thm =
+  fun eventually_elim_tac ctxt thms = SUBGOAL_CASES (fn (_, _, st) =>
     let
       val thy = Proof_Context.theory_of ctxt
       val mp_thms = thms RL [@{thm eventually_rev_mp}]
@@ -381,11 +381,11 @@ ML {*
         (@{thm allI} RS @{thm always_eventually})
         |> fold (fn thm1 => fn thm2 => thm2 RS thm1) mp_thms
         |> fold (fn _ => fn thm => @{thm impI} RS thm) thms
-      val cases_prop = prop_of (raw_elim_thm RS thm)
+      val cases_prop = prop_of (raw_elim_thm RS st)
       val cases = (Rule_Cases.make_common (thy, cases_prop) [(("elim", []), [])])
     in
-      CASES cases (rtac raw_elim_thm 1) thm
-    end
+      CASES cases (rtac raw_elim_thm 1)
+    end) 1
 *}
 
 method_setup eventually_elim = {*
