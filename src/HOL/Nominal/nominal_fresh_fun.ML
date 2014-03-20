@@ -5,7 +5,7 @@ Provides a tactic to generate fresh names and
 a tactic to analyse instances of the fresh_fun.
 *)
 
-(* FIXME proper ML structure *)
+(* FIXME proper ML structure! *)
 
 (* FIXME res_inst_tac mostly obsolete, cf. Subgoal.FOCUS *)
 
@@ -52,12 +52,11 @@ val fresh_prod       = @{thm "fresh_prod"};
 (* A tactic to generate a name fresh for  all the free *)
 (* variables and parameters of the goal                *)
 
-fun generate_fresh_tac atom_name i thm =
+fun generate_fresh_tac ctxt atom_name = SUBGOAL (fn (goal, _) =>
  let
-   val thy = theory_of_thm thm;
+   val thy = Proof_Context.theory_of ctxt;
 (* the parsing function returns a qualified name, we get back the base name *)
    val atom_basename = Long_Name.base_name atom_name;
-   val goal = nth (prems_of thm) (i - 1);
    val ps = Logic.strip_params goal;
    val Ts = rev (map snd ps);
    fun is_of_fs_name T = Sign.of_sort thy (T, [Sign.intern_class thy ("fs_"^atom_basename)]);
@@ -76,11 +75,12 @@ fun generate_fresh_tac atom_name i thm =
 (* find the variable we want to instantiate *)
    val x = hd (Misc_Legacy.term_vars (prop_of exists_fresh'));
  in
+   fn st =>
    (cut_inst_tac_term' [(x,s)] exists_fresh' 1 THEN
    rtac fs_name_thm 1 THEN
-   etac exE 1) thm
-  handle List.Empty  => all_tac thm (* if we collected no variables then we do nothing *)
-  end;
+   etac exE 1) st
+  handle List.Empty  => all_tac st (* if we collected no variables then we do nothing *)
+ end) 1;
 
 fun get_inner_fresh_fun (Bound j) = NONE
   | get_inner_fresh_fun (v as Free _) = NONE
@@ -97,15 +97,14 @@ fun get_inner_fresh_fun (Bound j) = NONE
 (* This tactic generates a fresh name of the atom type *)
 (* given by the innermost fresh_fun                    *)
 
-fun generate_fresh_fun_tac i thm =
+fun generate_fresh_fun_tac ctxt = SUBGOAL (fn (goal, _) =>
   let
-    val goal = nth (prems_of thm) (i - 1);
     val atom_name_opt = get_inner_fresh_fun goal;
   in
   case atom_name_opt of
-    NONE => all_tac thm
-  | SOME atom_name  => generate_fresh_tac atom_name i thm
-  end
+    NONE => all_tac
+  | SOME atom_name  => generate_fresh_tac ctxt atom_name
+  end) 1;
 
 (* Two substitution tactics which looks for the innermost occurence in
    one assumption or in the conclusion *)
@@ -123,24 +122,23 @@ fun subst_inner_asm_tac ctxt th =
   curry (curry (FIRST' (map uncurry (map uncurry (map subst_inner_asm_tac_aux
             (1 upto Thm.nprems_of th)))))) ctxt th;
 
-fun fresh_fun_tac ctxt no_asm i thm =
+fun fresh_fun_tac ctxt no_asm = SUBGOAL (fn (goal, i) =>
   (* Find the variable we instantiate *)
   let
-    val thy = theory_of_thm thm;
+    val thy = Proof_Context.theory_of ctxt;
     val abs_fresh = Global_Theory.get_thms thy "abs_fresh";
     val fresh_perm_app = Global_Theory.get_thms thy "fresh_perm_app";
     val simp_ctxt =
       ctxt addsimps (fresh_prod :: abs_fresh)
       addsimps fresh_perm_app;
     val x = hd (tl (Misc_Legacy.term_vars (prop_of exI)));
-    val goal = nth (prems_of thm) (i-1);
     val atom_name_opt = get_inner_fresh_fun goal;
     val n = length (Logic.strip_params goal);
     (* Here we rely on the fact that the variable introduced by generate_fresh_tac *)
     (* is the last one in the list, the inner one *)
   in
   case atom_name_opt of
-    NONE => all_tac thm
+    NONE => all_tac
   | SOME atom_name =>
   let
     val atom_basename = Long_Name.base_name atom_name;
@@ -173,21 +171,7 @@ fun fresh_fun_tac ctxt no_asm i thm =
     (subst_inner_asm_tac ctxt fresh_fun_app' i THEN (RANGE post_rewrite_tacs i)))
     ORELSE
     (subst_inner_tac ctxt fresh_fun_app' i THEN (RANGE post_rewrite_tacs i))) st
-  end)) thm
-
+  end))
   end
-  end
-
-(* syntax for options, given "(no_asm)" will give back true, without
-   gives back false *)
-val options_syntax =
-    (Args.parens (Args.$$$ "no_asm") >> (K true)) ||
-     (Scan.succeed false);
-
-fun setup_generate_fresh x =
-  (Args.goal_spec -- Args.type_name {proper = true, strict = true} >>
-    (fn (quant, s) => K (SIMPLE_METHOD'' quant (generate_fresh_tac s)))) x;
-
-fun setup_fresh_fun_simp x =
-  (Scan.lift options_syntax >> (fn b => fn ctxt => SIMPLE_METHOD' (fresh_fun_tac ctxt b))) x;
+  end)
 

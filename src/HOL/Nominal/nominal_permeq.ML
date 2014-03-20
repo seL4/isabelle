@@ -142,7 +142,7 @@ val perm_simproc_fun = Simplifier.simproc_global @{theory} "perm_simproc_fun"
 (* stac contains the simplifiation tactic that is *)
 (* applied (see (no_asm) options below            *)
 fun perm_simp_gen stac dyn_thms eqvt_thms ctxt i = 
-    ("general simplification of permutations", fn st =>
+    ("general simplification of permutations", fn st => SUBGOAL (fn _ =>
     let
        val ctxt' = ctxt
          addsimps (maps (dynamic_thms st) dyn_thms @ eqvt_thms)
@@ -150,8 +150,8 @@ fun perm_simp_gen stac dyn_thms eqvt_thms ctxt i =
          |> fold Simplifier.del_cong weak_congs
          |> fold Simplifier.add_cong strong_congs
     in
-      stac ctxt' i st
-    end);
+      stac ctxt' i
+    end) i st);
 
 (* general simplification of permutations and permutation that arose from eqvt-problems *)
 fun perm_simp stac ctxt = 
