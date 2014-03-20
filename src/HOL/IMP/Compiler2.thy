@@ -4,6 +4,11 @@ theory Compiler2
 imports Compiler
 begin
 
+text {*
+The preservation of the source code semantics is already shown in the 
+parent theory @{theory Compiler}. This here shows the second direction.
+*}
+
 section {* Compiler Correctness, Reverse Direction *}
 
 subsection {* Definitions *}
