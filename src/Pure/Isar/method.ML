@@ -64,7 +64,6 @@ sig
   val finish_text: text option * bool -> text
   val print_methods: Proof.context -> unit
   val check_name: Proof.context -> xstring * Position.T -> string
-  val check_src: Proof.context -> src -> src
   val method: Proof.context -> src -> Proof.context -> method
   val method_cmd: Proof.context -> src -> Proof.context -> method
   val setup: binding -> (Proof.context -> method) context_parser -> string -> theory -> theory
@@ -339,7 +338,7 @@ fun add_method name meth comment thy = thy
 (* check *)
 
 fun check_name ctxt = #1 o Name_Space.check (Context.Proof ctxt) (get_methods ctxt);
-fun check_src ctxt src = #1 (Args.check_src ctxt (get_methods ctxt) src);
+fun check_src ctxt src = Args.check_src ctxt (get_methods ctxt) src;
 
 
 (* get methods *)
@@ -348,7 +347,14 @@ fun method ctxt =
   let val table = get_methods ctxt
   in fn src => #1 (Name_Space.get table (#1 (Args.name_of_src src))) src end;
 
-fun method_cmd ctxt = method ctxt o check_src ctxt;
+fun method_closure ctxt src0 =
+  let
+    val (src1, meth) = check_src ctxt src0;
+    val src2 = Args.init_assignable src1;
+    val _ = Seq.pull (apply (method ctxt src2) ctxt [] (Goal.protect 0 Drule.dummy_thm));
+  in Args.closure src2 end;
+
+fun method_cmd ctxt = method ctxt o method_closure ctxt;
 
 
 (* method setup *)

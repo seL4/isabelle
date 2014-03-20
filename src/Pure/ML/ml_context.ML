@@ -191,3 +191,7 @@ fun expression pos bind body ants =
 
 end;
 
+fun use s =
+  ML_Context.eval_file true (Path.explode s)
+    handle ERROR msg => (writeln msg; error "ML error");
+

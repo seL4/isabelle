@@ -20,6 +20,8 @@ val prop = Simple_Syntax.read_prop;
 val tycon = Lexicon.mark_type;
 val const = Lexicon.mark_const;
 
+val qualify = Binding.qualify true Context.PureN;
+
 
 (* application syntax variants *)
 
@@ -207,11 +209,11 @@ val _ = Theory.setup
   #> Sign.parse_ast_translation Syntax_Trans.pure_parse_ast_translation
   #> Sign.parse_translation Syntax_Trans.pure_parse_translation
   #> Sign.print_ast_translation Syntax_Trans.pure_print_ast_translation
-  #> Sign.local_path
   #> Sign.add_consts_i
-   [(Binding.name "term", typ "'a => prop", NoSyn),
-    (Binding.name "sort_constraint", typ "'a itself => prop", NoSyn),
-    (Binding.name "conjunction", typ "prop => prop => prop", NoSyn)]
+   [(qualify (Binding.name "term"), typ "'a => prop", NoSyn),
+    (qualify (Binding.name "sort_constraint"), typ "'a itself => prop", NoSyn),
+    (qualify (Binding.name "conjunction"), typ "prop => prop => prop", NoSyn)]
+  #> Sign.local_path
   #> (Global_Theory.add_defs false o map Thm.no_attributes)
    [(Binding.name "prop_def", prop "(CONST prop :: prop => prop) (A::prop) == A::prop"),
     (Binding.name "term_def", prop "(CONST Pure.term :: 'a => prop) (x::'a) == (!!A::prop. A ==> A)"),
@@ -219,9 +221,6 @@ val _ = Theory.setup
       prop "(CONST Pure.sort_constraint :: 'a itself => prop) (CONST TYPE :: 'a itself) ==\
       \ (CONST Pure.term :: 'a itself => prop) (CONST TYPE :: 'a itself)"),
     (Binding.name "conjunction_def", prop "(A &&& B) == (!!C::prop. (A ==> B ==> C) ==> C)")] #> snd
-  #> Sign.hide_const false "Pure.term"
-  #> Sign.hide_const false "Pure.sort_constraint"
-  #> Sign.hide_const false "Pure.conjunction"
   #> Global_Theory.add_thmss [((Binding.name "nothing", []), [])] #> snd
   #> fold (fn (a, prop) =>
       snd o Thm.add_axiom_global (Binding.name a, prop)) Proofterm.equality_axms);

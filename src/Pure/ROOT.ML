@@ -226,7 +226,6 @@ use "Thy/latex.ML";
 (*ML with context and antiquotations*)
 use "ML/ml_context.ML";
 use "ML/ml_antiquotation.ML";
-val use = ML_Context.eval_file true o Path.explode;
 (*^^^^^ end of ML bootstrap 1 ^^^^^*)
 
 (*basic proof engine*)

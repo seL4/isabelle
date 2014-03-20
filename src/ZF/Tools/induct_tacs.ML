@@ -89,7 +89,7 @@ fun find_tname ctxt var As =
       (2) exhaustion works for VARIABLES in the premises, not general terms
 **)
 
-fun exhaust_induct_tac exh ctxt var i state =
+fun exhaust_induct_tac exh ctxt var i state = SUBGOAL (fn _ =>
   let
     val thy = Proof_Context.theory_of ctxt
     val ({context = ctxt', asms, ...}, _) = Subgoal.focus ctxt i state
@@ -102,12 +102,12 @@ fun exhaust_induct_tac exh ctxt var i state =
              [] => error "induction is not available for this datatype"
            | major::_ => FOLogic.dest_Trueprop major)
   in
-    eres_inst_tac ctxt [(ixn, var)] rule i state
+    eres_inst_tac ctxt [(ixn, var)] rule i
   end
   handle Find_tname msg =>
             if exh then (*try boolean case analysis instead*)
-                case_tac ctxt var i state
-            else error msg;
+                case_tac ctxt var i
+            else error msg) i state;
 
 val exhaust_tac = exhaust_induct_tac true;
 val induct_tac = exhaust_induct_tac false;

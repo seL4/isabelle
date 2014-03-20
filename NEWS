@@ -25,6 +25,15 @@ arbitrary nesting, and without escapes of quotes etc.  The Prover IDE
 supports input methods via ` (backquote), or << and >> (double angle
 brackets).
 
+* More static checking of proof methods, which allows the system to
+form a closure over the concrete syntax.  Method arguments should be
+processed in the original proof context as far as possible, before
+operating on the goal state.  In any case, the standard discipline for
+subgoal-addressing needs to be observed: no subgoals or a subgoal
+number that is out of range produces an empty result sequence, not an
+exception.  Potential INCOMPATIBILITY for non-conformant tactical
+proof tools.
+
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
