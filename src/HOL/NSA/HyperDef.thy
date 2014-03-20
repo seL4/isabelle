@@ -225,14 +225,6 @@ lemma star_n_abs:
      "abs (star_n X) = star_n (%n. abs (X n))"
 by (simp only: star_abs_def starfun_star_n)
 
-subsection{*Misc Others*}
-
-lemma hypreal_not_refl2: "!!(x::hypreal). x < y ==> x \<noteq> y"
-by (auto)
-
-lemma hypreal_eq_minus_iff: "((x::hypreal) = y) = (x + - y = 0)"
-by auto
-
 lemma hypreal_omega_gt_zero [simp]: "0 < omega"
 by (simp add: omega_def star_n_zero_num star_n_less)
 

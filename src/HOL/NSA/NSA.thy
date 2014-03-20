@@ -1084,13 +1084,8 @@ done
 lemma hypreal_of_real_isLub2:
       "isLub (UNIV :: real set) Q Y
        ==> isLub Reals (hypreal_of_real ` Q) (hypreal_of_real Y)"
-apply (simp add: isLub_def leastP_def)
-apply (auto simp add: hypreal_of_real_isUb_iff setge_def)
-apply (frule_tac x2 = x in isUbD2a [THEN SReal_iff [THEN iffD1], THEN exE])
- prefer 2 apply assumption
-apply (drule_tac x = xa in spec)
-apply (auto simp add: hypreal_of_real_isUb_iff)
-done
+apply (auto simp add: isLub_def leastP_def hypreal_of_real_isUb_iff setge_def)
+by (metis SReal_iff hypreal_of_real_isUb_iff isUbD2a star_of_le)
 
 lemma hypreal_of_real_isLub_iff:
      "(isLub Reals (hypreal_of_real ` Q) (hypreal_of_real Y)) =
@@ -1119,12 +1114,6 @@ apply (auto intro!: reals_complete lemma_isLub_hypreal_of_real2
 done
 
 (* lemma about lubs *)
-lemma hypreal_isLub_unique:
-     "[| isLub R S x; isLub R S y |] ==> x = (y::hypreal)"
-apply (frule isLub_isUb)
-apply (frule_tac x = y in isLub_isUb)
-apply (blast intro!: order_antisym dest!: isLub_le_isUb)
-done
 
 lemma lemma_st_part_ub:
      "(x::hypreal) \<in> HFinite ==> \<exists>u. isUb Reals {s. s \<in> Reals & s < x} u"
@@ -1141,19 +1130,9 @@ apply (rule_tac x = "-t" in exI)
 apply (auto simp add: abs_less_iff)
 done
 
-lemma lemma_st_part_subset: "{s. s \<in> Reals & s < x} \<subseteq> Reals"
-by auto
-
 lemma lemma_st_part_lub:
      "(x::hypreal) \<in> HFinite ==> \<exists>t. isLub Reals {s. s \<in> Reals & s < x} t"
-by (blast intro!: SReal_complete lemma_st_part_ub lemma_st_part_nonempty lemma_st_part_subset)
-
-lemma lemma_hypreal_le_left_cancel: "((t::hypreal) + r \<le> t) = (r \<le> 0)"
-apply safe
-apply (drule_tac c = "-t" in add_left_mono)
-apply (drule_tac [2] c = t in add_left_mono)
-apply (auto simp add: add_assoc [symmetric])
-done
+by (blast intro!: SReal_complete lemma_st_part_ub lemma_st_part_nonempty Collect_restrict)
 
 lemma lemma_st_part_le1:
      "[| (x::hypreal) \<in> HFinite;  isLub Reals {s. s \<in> Reals & s < x} t;
@@ -1244,7 +1223,7 @@ apply auto
 apply (frule isLubD1a [THEN Reals_minus])
 using Reals_add_cancel [of x "- t"] apply simp
 apply (drule_tac x = x in lemma_SReal_lub)
-apply (drule hypreal_isLub_unique, assumption, auto)
+apply (drule isLub_unique, assumption, auto)
 done
 
 lemma lemma_st_part_not_eq2:
@@ -1256,7 +1235,7 @@ apply (auto)
 apply (frule isLubD1a)
 using Reals_add_cancel [of "- x" t] apply simp
 apply (drule_tac x = x in lemma_SReal_lub)
-apply (drule hypreal_isLub_unique, assumption, auto)
+apply (drule isLub_unique, assumption, auto)
 done
 
 lemma lemma_st_part_major:
@@ -1360,7 +1339,7 @@ lemma HFinite_not_Infinitesimal_inverse:
   shows "x \<in> HFinite - Infinitesimal ==> inverse x \<in> HFinite - Infinitesimal"
 apply (auto intro: Infinitesimal_inverse_HFinite)
 apply (drule Infinitesimal_HFinite_mult2, assumption)
-apply (simp add: not_Infinitesimal_not_zero right_inverse)
+apply (simp add: not_Infinitesimal_not_zero)
 done
 
 lemma approx_inverse:
@@ -1802,9 +1781,7 @@ apply (auto intro: approx_unique_real)
 done
 
 lemma st_SReal_eq: "x \<in> Reals ==> st x = x"
-apply (erule st_unique)
-apply (rule approx_refl)
-done
+  by (metis approx_refl st_unique) 
 
 lemma st_hypreal_of_real [simp]: "st (hypreal_of_real x) = hypreal_of_real x"
 by (rule SReal_hypreal_of_real [THEN st_SReal_eq])
@@ -1912,13 +1889,7 @@ apply (auto dest: Infinitesimal_add_st_less)
 done
 
 lemma st_le: "[| x \<in> HFinite; y \<in> HFinite; x \<le> y |] ==> st(x) \<le> st(y)"
-apply (frule HFinite_st_Infinitesimal_add)
-apply (rotate_tac 1)
-apply (frule HFinite_st_Infinitesimal_add, safe)
-apply (rule Infinitesimal_add_st_le_cancel)
-apply (rule_tac [3] x = ea and y = e in Infinitesimal_diff)
-apply (auto simp add: add_assoc [symmetric])
-done
+by (metis approx_le_bound approx_sym linear st_SReal st_approx_self st_part_Ex1)
 
 lemma st_zero_le: "[| 0 \<le> x;  x \<in> HFinite |] ==> 0 \<le> st x"
 apply (subst st_0 [symmetric])
@@ -1967,19 +1938,18 @@ by (blast intro!: HFinite_FreeUltrafilterNat FreeUltrafilterNat_HFinite)
 
 subsubsection {* @{term HInfinite} *}
 
-lemma lemma_Compl_eq: "- {n. u < norm (xa n)} = {n. norm (xa n) \<le> u}"
+lemma lemma_Compl_eq: "- {n. u < norm (f n)} = {n. norm (f n) \<le> u}"
 by auto
 
-lemma lemma_Compl_eq2: "- {n. norm (xa n) < u} = {n. u \<le> norm (xa n)}"
+lemma lemma_Compl_eq2: "- {n. norm (f n) < u} = {n. u \<le> norm (f n)}"
 by auto
 
 lemma lemma_Int_eq1:
-     "{n. norm (xa n) \<le> u} Int {n. u \<le> norm (xa n)}
-          = {n. norm(xa n) = u}"
+     "{n. norm (f n) \<le> u} Int {n. u \<le> norm (f n)} = {n. norm(f n) = u}"
 by auto
 
 lemma lemma_FreeUltrafilterNat_one:
-     "{n. norm (xa n) = u} \<le> {n. norm (xa n) < u + (1::real)}"
+     "{n. norm (f n) = u} \<le> {n. norm (f n) < u + (1::real)}"
 by auto
 
 (*-------------------------------------
@@ -2146,7 +2116,7 @@ done
 theorem HInfinite_omega [simp]: "omega \<in> HInfinite"
 apply (simp add: omega_def)
 apply (rule FreeUltrafilterNat_HInfinite)
-apply (simp (no_asm) add: real_norm_def real_of_nat_Suc diff_less_eq [symmetric] FreeUltrafilterNat_omega)
+apply (simp add: real_of_nat_Suc diff_less_eq [symmetric] FreeUltrafilterNat_omega)
 done
 
 (*-----------------------------------------------
@@ -2190,19 +2160,9 @@ lemma lemma_real_le_Un_eq2:
 apply (auto dest: order_le_imp_less_or_eq simp add: order_less_imp_le)
 done
 
-lemma real_of_nat_inverse_eq_iff:
-     "(u = inverse (real(Suc n))) = (real(Suc n) = inverse u)"
-by (auto simp add: real_of_nat_Suc_gt_zero less_imp_neq [THEN not_sym])
-
-lemma lemma_finite_omega_set2: "finite {n::nat. u = inverse(real(Suc n))}"
-apply (simp (no_asm_simp) add: real_of_nat_inverse_eq_iff)
-apply (cut_tac x = "inverse u - 1" in lemma_finite_omega_set)
-apply (simp add: real_of_nat_Suc diff_eq_eq [symmetric] eq_commute)
-done
-
 lemma finite_inverse_real_of_posnat_ge_real:
      "0 < u ==> finite {n. u \<le> inverse(real(Suc n))}"
-by (auto simp add: lemma_real_le_Un_eq2 lemma_finite_omega_set2 finite_inverse_real_of_posnat_gt_real)
+by (auto simp add: lemma_real_le_Un_eq2 lemma_finite_epsilon_set finite_inverse_real_of_posnat_gt_real)
 
 lemma inverse_real_of_posnat_ge_real_FreeUltrafilterNat:
      "0 < u ==> {n. u \<le> inverse(real(Suc n))} \<notin> FreeUltrafilterNat"
@@ -2214,17 +2174,14 @@ by (blast intro!: FreeUltrafilterNat.finite finite_inverse_real_of_posnat_ge_rea
     by property of (free) ultrafilters
  --------------------------------------------------------------*)
 lemma Compl_le_inverse_eq:
-     "- {n. u \<le> inverse(real(Suc n))} =
-      {n. inverse(real(Suc n)) < u}"
-apply (auto dest!: order_le_less_trans simp add: linorder_not_le)
-done
+     "- {n. u \<le> inverse(real(Suc n))} = {n. inverse(real(Suc n)) < u}"
+by (auto dest!: order_le_less_trans simp add: linorder_not_le)
+
 
 lemma FreeUltrafilterNat_inverse_real_of_posnat:
      "0 < u ==>
       {n. inverse(real(Suc n)) < u} \<in> FreeUltrafilterNat"
-apply (cut_tac u = u in inverse_real_of_posnat_ge_real_FreeUltrafilterNat)
-apply (auto dest: FreeUltrafilterNat.not_memD simp add: Compl_le_inverse_eq)
-done
+by (metis Compl_le_inverse_eq FreeUltrafilterNat.ultra inverse_real_of_posnat_ge_real_FreeUltrafilterNat)
 
 text{* Example of an hypersequence (i.e. an extended standard sequence)
    whose term with an hypernatural suffix is an infinitesimal i.e.
@@ -2250,33 +2207,25 @@ text{* Example where we get a hyperreal from a real sequence
 lemma real_seq_to_hypreal_Infinitesimal:
      "\<forall>n. norm(X n - x) < inverse(real(Suc n))
      ==> star_n X - star_of x \<in> Infinitesimal"
-apply (auto intro!: bexI dest: FreeUltrafilterNat_inverse_real_of_posnat FreeUltrafilterNat.Int intro: order_less_trans FreeUltrafilterNat.subset simp add: star_n_diff star_of_def Infinitesimal_FreeUltrafilterNat_iff star_n_inverse)
-done
+unfolding star_n_diff star_of_def Infinitesimal_FreeUltrafilterNat_iff star_n_inverse
+by (auto dest: FreeUltrafilterNat_inverse_real_of_posnat FreeUltrafilterNat.Int 
+         intro: order_less_trans FreeUltrafilterNat.subset)
 
 lemma real_seq_to_hypreal_approx:
      "\<forall>n. norm(X n - x) < inverse(real(Suc n))
       ==> star_n X @= star_of x"
-apply (subst approx_minus_iff)
-apply (rule mem_infmal_iff [THEN subst])
-apply (erule real_seq_to_hypreal_Infinitesimal)
-done
+by (metis bex_Infinitesimal_iff real_seq_to_hypreal_Infinitesimal)
 
 lemma real_seq_to_hypreal_approx2:
      "\<forall>n. norm(x - X n) < inverse(real(Suc n))
                ==> star_n X @= star_of x"
-apply (rule real_seq_to_hypreal_approx)
-apply (subst norm_minus_cancel [symmetric])
-apply (simp del: norm_minus_cancel)
-done
+by (metis norm_minus_commute real_seq_to_hypreal_approx)
 
 lemma real_seq_to_hypreal_Infinitesimal2:
      "\<forall>n. norm(X n - Y n) < inverse(real(Suc n))
       ==> star_n X - star_n Y \<in> Infinitesimal"
-by (auto intro!: bexI
-         dest: FreeUltrafilterNat_inverse_real_of_posnat
-               FreeUltrafilterNat.Int
-         intro: order_less_trans FreeUltrafilterNat.subset
-         simp add: Infinitesimal_FreeUltrafilterNat_iff star_n_diff
-                   star_n_inverse)
+unfolding Infinitesimal_FreeUltrafilterNat_iff star_n_diff
+by (auto dest: FreeUltrafilterNat_inverse_real_of_posnat
+         intro: order_less_trans FreeUltrafilterNat.subset)
 
 end

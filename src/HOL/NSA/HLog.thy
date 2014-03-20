@@ -40,7 +40,7 @@ lemma powhr_gt_zero [simp]: "!!a x. 0 < x powhr a"
 by (transfer, simp)
 
 lemma powhr_not_zero [simp]: "x powhr a \<noteq> 0"
-by (rule powhr_gt_zero [THEN hypreal_not_refl2, THEN not_sym])
+by (metis less_numeral_extra(3) powhr_gt_zero)
 
 lemma powhr_divide:
   "!!a x y. [| 0 < x; 0 < y |] ==> (x / y) powhr a = (x powhr a)/(y powhr a)"
@@ -122,7 +122,7 @@ apply (frule HInfinite_gt_zero_gt_one)
 apply (auto intro!: starfun_ln_HFinite_not_Infinitesimal
             HInfinite_inverse_Infinitesimal Infinitesimal_HFinite_mult2 
         simp add: starfun_ln_HInfinite not_Infinitesimal_not_zero 
-          hlog_as_starfun hypreal_not_refl2 [THEN not_sym] divide_inverse)
+          hlog_as_starfun divide_inverse)
 done
 
 lemma hlog_HInfinite_as_starfun:
