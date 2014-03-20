@@ -14,8 +14,8 @@ text {*
 *}
 
 syntax
-  "_quote" :: "'b => ('a => 'b)"    ("\<guillemotleft>_\<guillemotright>" [0] 1000)
-  "_antiquote" :: "('a => 'b) => 'b"    ("\<acute>_" [1000] 1000)
+  "_quote" :: "'b \<Rightarrow> ('a \<Rightarrow> 'b)"    ("\<guillemotleft>_\<guillemotright>" [0] 1000)
+  "_antiquote" :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b"    ("\<acute>_" [1000] 1000)
 
 parse_translation {*
   let
@@ -43,8 +43,8 @@ term "\<guillemotleft>f \<acute>x \<acute>y z\<guillemotright>"
 
 text {* advanced examples *}
 term "\<guillemotleft>\<guillemotleft>\<acute>\<acute>x + \<acute>y\<guillemotright>\<guillemotright>"
-term "\<guillemotleft>\<guillemotleft>\<acute>\<acute>x + \<acute>y\<guillemotright> o \<acute>f\<guillemotright>"
-term "\<guillemotleft>\<acute>(f o \<acute>g)\<guillemotright>"
-term "\<guillemotleft>\<guillemotleft>\<acute>\<acute>(f o \<acute>g)\<guillemotright>\<guillemotright>"
+term "\<guillemotleft>\<guillemotleft>\<acute>\<acute>x + \<acute>y\<guillemotright> \<circ> \<acute>f\<guillemotright>"
+term "\<guillemotleft>\<acute>(f \<circ> \<acute>g)\<guillemotright>"
+term "\<guillemotleft>\<guillemotleft>\<acute>\<acute>(f \<circ> \<acute>g)\<guillemotright>\<guillemotright>"
 
 end
