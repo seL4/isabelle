@@ -888,7 +888,7 @@ qed
 text {* In particular. *}
 
 lemma has_derivative_zero_constant:
-  fixes f :: "real \<Rightarrow> real"
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_inner"
   assumes "convex s"
     and "\<forall>x\<in>s. (f has_derivative (\<lambda>h. 0)) (at x within s)"
   shows "\<exists>c. \<forall>x\<in>s. f x = c"
@@ -914,7 +914,7 @@ next
 qed
 
 lemma has_derivative_zero_unique:
-  fixes f :: "real \<Rightarrow> real"
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_inner"
   assumes "convex s"
     and "a \<in> s"
     and "f a = c"
@@ -1184,7 +1184,7 @@ lemma brouwer_surjective_cball:
 text {* See Sussmann: "Multidifferential calculus", Theorem 2.1.1 *}
 
 lemma sussmann_open_mapping:
-  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::euclidean_space"
   assumes "open s"
     and "continuous_on s f"
     and "x \<in> s"
