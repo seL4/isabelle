@@ -41,7 +41,7 @@ next
 qed
 
 lemma brouwer_compactness_lemma:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::euclidean_space"
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
   assumes "compact s"
     and "continuous_on s f"
     and "\<not> (\<exists>x\<in>s. f x = 0)"

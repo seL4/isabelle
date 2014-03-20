@@ -929,7 +929,7 @@ lemma has_derivative_zero_unique:
 subsection {* Differentiability of inverse function (most basic form) *}
 
 lemma has_derivative_inverse_basic:
-  fixes f :: "'b::euclidean_space \<Rightarrow> 'c::euclidean_space"
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes "(f has_derivative f') (at (g y))"
     and "bounded_linear g'"
     and "g' \<circ> f' = id"
@@ -1075,7 +1075,7 @@ qed
 text {* Simply rewrite that based on the domain point x. *}
 
 lemma has_derivative_inverse_basic_x:
-  fixes f :: "'b::euclidean_space \<Rightarrow> 'c::euclidean_space"
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes "(f has_derivative f') (at x)"
     and "bounded_linear g'"
     and "g' \<circ> f' = id"
@@ -1093,7 +1093,7 @@ lemma has_derivative_inverse_basic_x:
 text {* This is the version in Dieudonne', assuming continuity of f and g. *}
 
 lemma has_derivative_inverse_dieudonne:
-  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes "open s"
     and "open (f ` s)"
     and "continuous_on s f"
@@ -1113,7 +1113,7 @@ lemma has_derivative_inverse_dieudonne:
 text {* Here's the simplest way of not assuming much about g. *}
 
 lemma has_derivative_inverse:
-  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes "compact s"
     and "x \<in> s"
     and "f x \<in> interior (f ` s)"
