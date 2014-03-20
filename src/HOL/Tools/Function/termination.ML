@@ -272,10 +272,10 @@ val Un_aci_simps =
 
 in
 
-fun wf_union_tac ctxt st =
+fun wf_union_tac ctxt st = SUBGOAL (fn _ =>
   let
     val thy = Proof_Context.theory_of ctxt
-    val cert = cterm_of (theory_of_thm st)
+    val cert = cterm_of thy
     val ((_ $ (_ $ rel)) :: ineqs) = prems_of st
 
     fun mk_compr ineq =
@@ -304,8 +304,8 @@ fun wf_union_tac ctxt st =
   in
     (PRIMITIVE (Drule.cterm_instantiate [(cert rel, cert relation)])
      THEN ALLGOALS (fn i => if i = 1 then all_tac else solve_membership_tac i)
-     THEN rewrite_goal_tac ctxt Un_aci_simps 1) st  (* eliminate duplicates *)
-  end
+     THEN rewrite_goal_tac ctxt Un_aci_simps 1)  (* eliminate duplicates *)
+  end) 1 st
 
 end
 

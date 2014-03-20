@@ -12,7 +12,7 @@ sig
   type cases_tactic
   val CASES: cases -> tactic -> cases_tactic
   val NO_CASES: tactic -> cases_tactic
-  val SUBGOAL_CASES: ((term * int) -> cases_tactic) -> int -> cases_tactic
+  val SUBGOAL_CASES: ((term * int * thm) -> cases_tactic) -> int -> cases_tactic
   val THEN_ALL_NEW_CASES: (int -> cases_tactic) * (int -> tactic) -> int -> cases_tactic
 end
 
@@ -190,7 +190,7 @@ fun NO_CASES tac = CASES [] tac;
 
 fun SUBGOAL_CASES tac i st =
   (case try Logic.nth_prem (i, Thm.prop_of st) of
-    SOME goal => tac (goal, i) st
+    SOME goal => tac (goal, i, st) st
   | NONE => Seq.empty);
 
 fun (tac1 THEN_ALL_NEW_CASES tac2) i st =
