@@ -269,7 +269,7 @@ proof (cases "s={}")
     case goal1
     then show ?case
       using differentiable_bound[OF assms(1) d0', of 0 x y] and `x \<in> s`
-      unfolding onorm_const
+      unfolding onorm_zero
       by auto
   qed
   then show ?thesis 
@@ -1128,11 +1128,10 @@ lemma complex_differentiable_bound:
       and "x \<in> s"  "y \<in> s"
     shows "norm(f x - f y) \<le> B * norm(x - y)"
   apply (rule differentiable_bound [OF cvs])
-  using assms
-  apply (auto simp: has_field_derivative_def Ball_def onorm_def)
-  apply (rule cSUP_least)
-  apply (auto simp: norm_mult)
-  apply (metis norm_one)
+  apply (rule ballI, erule df [unfolded has_field_derivative_def])
+  apply (rule ballI, rule onorm_le, simp add: norm_mult mult_right_mono dn)
+  apply fact
+  apply fact
   done
 
 subsection{*Inverse function theorem for complex derivatives.*}
@@ -1405,4 +1404,3 @@ proof -
 qed
 
 end
-

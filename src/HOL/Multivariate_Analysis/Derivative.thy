@@ -766,7 +766,7 @@ qed
 text {* A nice generalization (see Havin's proof of 5.19 from Rudin's book). *}
 
 lemma mvt_general:
-  fixes f :: "real \<Rightarrow> 'a::euclidean_space"
+  fixes f :: "real \<Rightarrow> 'a::real_inner"
   assumes "a < b"
     and "continuous_on {a .. b} f"
     and "\<forall>x\<in>{a<..<b}. (f has_derivative f'(x)) (at x)"
@@ -813,7 +813,7 @@ qed
 text {* Still more general bound theorem. *}
 
 lemma differentiable_bound:
-  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_inner"
   assumes "convex s"
     and "\<forall>x\<in>s. (f has_derivative f' x) (at x within s)"
     and "\<forall>x\<in>s. onorm (f' x) \<le> B"
@@ -863,7 +863,7 @@ proof -
   proof -
     case goal1
     have "norm (f' x y) \<le> onorm (f' x) * norm y"
-      by (rule onorm(1)[OF derivative_is_linear[OF assms(2)[rule_format,OF goal1]]])
+      by (rule onorm[OF derivative_linear[OF assms(2)[rule_format,OF goal1]]])
     also have "\<dots> \<le> B * norm y"
       apply (rule mult_right_mono)
       using assms(3)[rule_format,OF goal1]
@@ -885,19 +885,6 @@ proof -
     by (auto simp add: norm_minus_commute)
 qed
 
-lemma differentiable_bound_real:
-  fixes f :: "real \<Rightarrow> real"
-  assumes "convex s"
-    and "\<forall>x\<in>s. (f has_derivative f' x) (at x within s)"
-    and "\<forall>x\<in>s. onorm (f' x) \<le> B"
-    and x: "x \<in> s"
-    and y: "y \<in> s"
-  shows "norm (f x - f y) \<le> B * norm (x - y)"
-  using differentiable_bound[of s f f' B x y]
-  unfolding Ball_def image_iff o_def
-  using assms
-  by auto
-
 text {* In particular. *}
 
 lemma has_derivative_zero_constant:
@@ -913,8 +900,8 @@ proof (cases "s={}")
   proof -
     case goal1
     then show ?case
-      using differentiable_bound_real[OF assms(1-2), of 0 x y] and `x \<in> s`
-      unfolding onorm_const
+      using differentiable_bound[OF assms(1-2), of 0 x y] and `x \<in> s`
+      unfolding onorm_zero
       by auto
   qed
   then show ?thesis
@@ -1526,7 +1513,7 @@ proof -
     apply auto
     done
   then have *: "0 < onorm g'"
-    unfolding onorm_pos_lt[OF assms(3)[unfolded linear_linear]]
+    unfolding onorm_pos_lt[OF assms(3)]
     by fastforce
   def k \<equiv> "1 / onorm g' / 2"
   have *: "k > 0"
@@ -1590,14 +1577,13 @@ proof -
         have "onorm (\<lambda>v. v - g' (f' u v)) \<le> onorm g' * onorm (\<lambda>w. f' a w - f' u w)"
           unfolding *
           apply (rule onorm_compose)
-          unfolding linear_conv_bounded_linear
           apply (rule assms(3) **)+
           done
         also have "\<dots> \<le> onorm g' * k"
           apply (rule mult_left_mono)
           using d1(2)[of u]
-          using onorm_neg[OF **(1)[unfolded linear_linear]]
-          using d and u and onorm_pos_le[OF assms(3)[unfolded linear_linear]]
+          using onorm_neg[where f="\<lambda>x. f' u x - f' a x"]
+          using d and u and onorm_pos_le[OF assms(3)]
           apply (auto simp add: algebra_simps)
           done
         also have "\<dots> \<le> 1 / 2"
@@ -1652,10 +1638,7 @@ proof rule+
     }
     then show "onorm (\<lambda>h. f' m x h - f' n x h) \<le> 2 * e"
       apply -
-      apply (rule onorm(2))
-      apply (rule linear_compose_sub)
-      unfolding linear_conv_bounded_linear
-      using assms(2)[rule_format,OF `x \<in> s`, THEN derivative_linear]
+      apply (rule onorm_le)
       apply auto
       done
   qed
