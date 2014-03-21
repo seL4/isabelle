@@ -850,7 +850,7 @@ text {* Theory @{text "Pure"} provides a few auxiliary connectives
   @{text "#A \<equiv> A"} \\[1ex]
   @{text "term :: \<alpha> \<Rightarrow> prop"} & (prefix @{text "TERM"}) \\
   @{text "term x \<equiv> (\<And>A. A \<Longrightarrow> A)"} \\[1ex]
-  @{text "TYPE :: \<alpha> itself"} & (prefix @{text "TYPE"}) \\
+  @{text "type :: \<alpha> itself"} & (prefix @{text "TYPE"}) \\
   @{text "(unspecified)"} \\
   \end{tabular}
   \caption{Definitions of auxiliary connectives}\label{fig:pure-aux}

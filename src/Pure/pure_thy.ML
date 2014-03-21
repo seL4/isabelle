@@ -199,12 +199,12 @@ val _ = Theory.setup
     (Binding.name "==>", typ "prop => prop => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
     (Binding.name "all", typ "('a => prop) => prop", Binder ("!!", 0, 0)),
     (Binding.name "prop", typ "prop => prop", NoSyn),
-    (Binding.name "TYPE", typ "'a itself", NoSyn),
+    (qualify (Binding.name "type"), typ "'a itself", NoSyn),
     (qualify (Binding.name "dummy_pattern"), typ "'a", Delimfix "'_")]
   #> Theory.add_deps_global "==" ("==", typ "'a => 'a => prop") []
   #> Theory.add_deps_global "==>" ("==>", typ "prop => prop => prop") []
   #> Theory.add_deps_global "all" ("all", typ "('a => prop) => prop") []
-  #> Theory.add_deps_global "TYPE" ("TYPE", typ "'a itself") []
+  #> Theory.add_deps_global "Pure.type" ("Pure.type", typ "'a itself") []
   #> Theory.add_deps_global "Pure.dummy_pattern" ("Pure.dummy_pattern", typ "'a") []
   #> Sign.parse_ast_translation Syntax_Trans.pure_parse_ast_translation
   #> Sign.parse_translation Syntax_Trans.pure_parse_translation
@@ -218,8 +218,8 @@ val _ = Theory.setup
    [(Binding.name "prop_def", prop "(CONST prop :: prop => prop) (A::prop) == A::prop"),
     (Binding.name "term_def", prop "(CONST Pure.term :: 'a => prop) (x::'a) == (!!A::prop. A ==> A)"),
     (Binding.name "sort_constraint_def",
-      prop "(CONST Pure.sort_constraint :: 'a itself => prop) (CONST TYPE :: 'a itself) ==\
-      \ (CONST Pure.term :: 'a itself => prop) (CONST TYPE :: 'a itself)"),
+      prop "(CONST Pure.sort_constraint :: 'a itself => prop) (CONST Pure.type :: 'a itself) ==\
+      \ (CONST Pure.term :: 'a itself => prop) (CONST Pure.type :: 'a itself)"),
     (Binding.name "conjunction_def", prop "(A &&& B) == (!!C::prop. (A ==> B ==> C) ==> C)")] #> snd
   #> Global_Theory.add_thmss [((Binding.name "nothing", []), [])] #> snd
   #> fold (fn (a, prop) =>

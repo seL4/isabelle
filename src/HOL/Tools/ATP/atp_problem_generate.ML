@@ -437,7 +437,7 @@ val tvar_a_z = ((tvar_a_str, 0), HOLogic.typeS)
 val tvar_a = TVar tvar_a_z
 val tvar_a_name = tvar_name tvar_a_z
 val itself_name = `make_fixed_type_const @{type_name itself}
-val TYPE_name = `(make_fixed_const NONE) @{const_name TYPE}
+val TYPE_name = `(make_fixed_const NONE) @{const_name Pure.type}
 val tvar_a_atype = AType ((tvar_a_name, []), [])
 val a_itself_atype = AType ((itself_name, []), [tvar_a_atype])
 

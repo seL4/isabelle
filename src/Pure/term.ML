@@ -816,7 +816,7 @@ fun subst_vars ([], []) tm = tm
 
 fun close_schematic_term t =
   let
-    val extra_types = map (fn v => Const ("TYPE", itselfT (TVar v))) (hidden_polymorphism t);
+    val extra_types = map (fn v => Const ("Pure.type", itselfT (TVar v))) (hidden_polymorphism t);
     val extra_terms = map Var (add_vars t []);
   in fold lambda (extra_terms @ extra_types) t end;
 

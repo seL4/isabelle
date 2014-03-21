@@ -979,7 +979,7 @@ fun axioms_for_term
                                             (Const (mate_of_rep_fun ctxt x))
                      |> fold (add_def_axiom depth)
                              (inverse_axioms_for_rep_fun ctxt x)
-             else if s = @{const_name TYPE} then
+             else if s = @{const_name Pure.type} then
                accum
              else case def_of_const thy def_tables x of
                SOME _ =>

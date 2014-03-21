@@ -208,9 +208,9 @@ fun dest_conjunctions t =
 
 (** types as terms **)
 
-fun mk_type ty = Const ("TYPE", Term.itselfT ty);
+fun mk_type ty = Const ("Pure.type", Term.itselfT ty);
 
-fun dest_type (Const ("TYPE", Type ("itself", [ty]))) = ty
+fun dest_type (Const ("Pure.type", Type ("itself", [ty]))) = ty
   | dest_type t = raise TERM ("dest_type", [t]);
 
 fun type_map f = dest_type o f o mk_type;

@@ -234,7 +234,7 @@ val forbidden_thms =
   "nibble"]
 
 val forbidden_consts =
- [@{const_name "TYPE"}, @{const_name Datatype.dsum}, @{const_name Datatype.usum}]
+ [@{const_name Pure.type}, @{const_name Datatype.dsum}, @{const_name Datatype.usum}]
 
 fun is_forbidden_theorem (s, th) =
   let val consts = Term.add_const_names (prop_of th) [] in

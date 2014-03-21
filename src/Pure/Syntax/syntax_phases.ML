@@ -568,7 +568,7 @@ fun mark_aprop tm =
       | mark Ts (t as Var _) = if is_prop Ts t then aprop t else t
       | mark Ts (t as Bound _) = if is_prop Ts t then aprop t else t
       | mark Ts (Abs (x, T, t)) = Abs (x, T, mark (T :: Ts) t)
-      | mark Ts (t as t1 $ (t2 as Const ("TYPE", Type ("itself", [T])))) =
+      | mark Ts (t as t1 $ (t2 as Const ("Pure.type", Type ("itself", [T])))) =
           if is_prop Ts t andalso not (is_term t) then Const ("_type_prop", T) $ mark Ts t1
           else mark Ts t1 $ mark Ts t2
       | mark Ts (t as t1 $ t2) =
@@ -834,7 +834,7 @@ val _ = Theory.setup
     ("_context_xconst", const_ast_tr false)] #>
   Sign.typed_print_translation
    [("_type_prop", type_prop_tr'),
-    ("\\<^const>TYPE", type_tr'),
+    ("\\<^const>Pure.type", type_tr'),
     ("_type_constraint_", type_constraint_tr')]);
 
 

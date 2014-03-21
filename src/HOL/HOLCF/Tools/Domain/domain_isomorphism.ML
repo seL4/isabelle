@@ -143,7 +143,7 @@ fun add_fixdefs
         case lhs of
           Const (@{const_name Rep_cfun}, _) $ f $ (x as Free _) =>
             mk_eqn (f, big_lambda x rhs)
-        | f $ Const (@{const_name TYPE}, T) =>
+        | f $ Const (@{const_name Pure.type}, T) =>
             mk_eqn (f, Abs ("t", T, rhs))
         | Const _ => Logic.mk_equals (lhs, rhs)
         | _ => raise TERM ("lhs not of correct form", [lhs, rhs])

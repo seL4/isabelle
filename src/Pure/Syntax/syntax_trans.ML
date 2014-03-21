@@ -152,7 +152,7 @@ fun mk_binder_tr (syn, name) =
 
 fun mk_type ty =
   Syntax.const "_constrain" $
-    Syntax.const "\\<^const>TYPE" $ (Syntax.const "\\<^type>itself" $ ty);
+    Syntax.const "\\<^const>Pure.type" $ (Syntax.const "\\<^type>itself" $ ty);
 
 fun ofclass_tr [ty, cls] = cls $ mk_type ty
   | ofclass_tr ts = raise TERM ("ofclass_tr", ts);

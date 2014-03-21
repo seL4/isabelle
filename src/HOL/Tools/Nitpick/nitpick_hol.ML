@@ -1444,7 +1444,7 @@ fun def_props_for_const thy table (x as (s, _)) =
 fun normalized_rhs_of t =
   let
     fun aux (v as Var _) (SOME t) = SOME (lambda v t)
-      | aux (c as Const (@{const_name TYPE}, _)) (SOME t) = SOME (lambda c t)
+      | aux (c as Const (@{const_name Pure.type}, _)) (SOME t) = SOME (lambda c t)
       | aux _ _ = NONE
     val (lhs, rhs) =
       case t of

@@ -37,7 +37,7 @@ fun dest_def ctxt check_head is_fixed is_fixedT eq =
 
     fun check_arg (Bound _) = true
       | check_arg (Free (x, _)) = not (is_fixed x)
-      | check_arg (Const ("TYPE", Type ("itself", [TFree _]))) = true
+      | check_arg (Const ("Pure.type", Type ("itself", [TFree _]))) = true
       | check_arg _ = false;
     fun close_arg (Bound _) t = t
       | close_arg x t = Logic.all x t;

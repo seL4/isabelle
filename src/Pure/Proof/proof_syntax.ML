@@ -133,7 +133,7 @@ fun proof_of_term thy ty =
             Proofterm.incr_pboundvars 0 (~1) (prf_of [] prf))
       | prf_of [] (Const ("AppP", _) $ prf1 $ prf2) =
           prf_of [] prf1 %% prf_of [] prf2
-      | prf_of Ts (Const ("Appt", _) $ prf $ Const ("TYPE", Type (_, [T]))) =
+      | prf_of Ts (Const ("Appt", _) $ prf $ Const ("Pure.type", Type (_, [T]))) =
           prf_of (T::Ts) prf
       | prf_of [] (Const ("Appt", _) $ prf $ t) = prf_of [] prf %
           (case t of Const ("Pure.dummy_pattern", _) => NONE | _ => SOME (mk_term t))

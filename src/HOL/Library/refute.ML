@@ -548,7 +548,7 @@ fun unfold_defs thy t =
         Const (@{const_name all}, _) => t
       | Const (@{const_name "=="}, _) => t
       | Const (@{const_name "==>"}, _) => t
-      | Const (@{const_name TYPE}, _) => t  (* axiomatic type classes *)
+      | Const (@{const_name Pure.type}, _) => t  (* axiomatic type classes *)
       (* HOL *)
       | Const (@{const_name Trueprop}, _) => t
       | Const (@{const_name Not}, _) => t
@@ -713,7 +713,7 @@ fun collect_axioms ctxt t =
       | Const (@{const_name "=="}, _) => axs
       | Const (@{const_name "==>"}, _) => axs
       (* axiomatic type classes *)
-      | Const (@{const_name TYPE}, T) => collect_type_axioms T axs
+      | Const (@{const_name Pure.type}, T) => collect_type_axioms T axs
       (* HOL *)
       | Const (@{const_name Trueprop}, _) => axs
       | Const (@{const_name Not}, _) => axs
