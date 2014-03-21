@@ -36,6 +36,22 @@ lemma continuous_Im: "continuous_on UNIV Im"
   by (metis (poly_guards_query) bounded_linear.continuous_on bounded_linear_Im 
             continuous_on_cong continuous_on_id)
 
+lemma open_closed_segment: "u \<in> open_segment w z \<Longrightarrow> u \<in> closed_segment w z"
+  by (auto simp add: closed_segment_def open_segment_def)
+
+lemma has_derivative_Re [has_derivative_intros] : "(Re has_derivative Re) F"
+  by (auto simp add: has_derivative_def bounded_linear_Re)
+
+lemma has_derivative_Im [has_derivative_intros] : "(Im has_derivative Im) F"
+  by (auto simp add: has_derivative_def bounded_linear_Im)
+
+lemma fact_cancel:
+  fixes c :: "'a::real_field"
+  shows "of_nat (Suc n) * c / of_nat (fact (Suc n)) = c / of_nat (fact n)"
+  apply (subst frac_eq_eq [OF of_nat_fact_not_zero of_nat_fact_not_zero])
+  apply (simp add: algebra_simps of_nat_mult)
+  done
+
 lemma open_halfspace_Re_lt: "open {z. Re(z) < b}"
 proof -
   have "{z. Re(z) < b} = Re -`{..<b}"
@@ -1402,5 +1418,98 @@ proof -
     by (simp add: algebra_simps norm_minus_commute real_of_nat_def)
   finally show ?thesis .
 qed
+
+text{* Something more like the traditional MVT for real components.*}
+lemma complex_mvt_line:
+  assumes "\<And>u. u \<in> closed_segment w z ==> (f has_field_derivative f'(u)) (at u)"
+    shows "\<exists>u. u \<in> open_segment w z \<and> Re(f z) - Re(f w) = Re(f'(u) * (z - w))"
+proof -
+  have twz: "\<And>t. (1 - t) *\<^sub>R w + t *\<^sub>R z = w + t *\<^sub>R (z - w)"
+    by (simp add: real_vector.scale_left_diff_distrib real_vector.scale_right_diff_distrib)
+  show ?thesis
+    apply (cut_tac mvt_simple
+                     [of 0 1 "Re o f o (\<lambda>t. (1 - t) *\<^sub>R w +  t *\<^sub>R z)"
+                      "\<lambda>u. Re o (\<lambda>h. f'((1 - u) *\<^sub>R w + u *\<^sub>R z) * h) o (\<lambda>t. t *\<^sub>R (z - w))"])
+    apply auto
+    apply (rule_tac x="(1 - x) *\<^sub>R w + x *\<^sub>R z" in exI)
+    apply (simp add: open_segment_def)
+    apply (auto simp add: twz)
+    apply (rule has_derivative_at_within)
+    apply (intro has_derivative_intros has_derivative_add [OF has_derivative_const, simplified])+
+    apply (rule assms [unfolded has_field_derivative_def])
+    apply (force simp add: twz closed_segment_def)
+    done
+qed
+
+lemma complex_taylor_mvt:
+  assumes "\<And>i x. \<lbrakk>x \<in> closed_segment w z; i \<le> n\<rbrakk> \<Longrightarrow> ((f i) has_field_derivative f (Suc i) x) (at x)"
+    shows "\<exists>u. u \<in> closed_segment w z \<and>
+            Re (f 0 z) =
+            Re ((\<Sum>i = 0..n. f i w * (z - w) ^ i / of_nat (fact i)) +
+                (f (Suc n) u * (z-u)^n / of_nat (fact n)) * (z - w))"
+proof -
+  { fix u
+    assume u: "u \<in> closed_segment w z"
+    have "(\<Sum>i = 0..n.
+               (f (Suc i) u * (z-u) ^ i - of_nat i * (f i u * (z-u) ^ (i - Suc 0))) /
+               of_nat (fact i)) =
+          f (Suc 0) u -
+             (f (Suc (Suc n)) u * ((z-u) ^ Suc n) - (of_nat (Suc n)) * (z-u) ^ n * f (Suc n) u) /
+             of_nat (fact (Suc n)) +
+             (\<Sum>i = 0..n.
+                 (f (Suc (Suc i)) u * ((z-u) ^ Suc i) - of_nat (Suc i) * (f (Suc i) u * (z-u) ^ i)) /
+                 of_nat (fact (Suc i)))"
+       by (subst setsum_Suc_reindex) simp
+    also have "... = f (Suc 0) u -
+             (f (Suc (Suc n)) u * ((z-u) ^ Suc n) - (of_nat (Suc n)) * (z-u) ^ n * f (Suc n) u) /
+             of_nat (fact (Suc n)) +
+             (\<Sum>i = 0..n.
+                 f (Suc (Suc i)) u * ((z-u) ^ Suc i) / of_nat (fact (Suc i))  - 
+                 f (Suc i) u * (z-u) ^ i / of_nat (fact i))"
+      by (simp only: diff_divide_distrib fact_cancel mult_ac)
+    also have "... = f (Suc 0) u -
+             (f (Suc (Suc n)) u * (z-u) ^ Suc n - of_nat (Suc n) * (z-u) ^ n * f (Suc n) u) /
+             of_nat (fact (Suc n)) +
+             f (Suc (Suc n)) u * (z-u) ^ Suc n / of_nat (fact (Suc n)) - f (Suc 0) u"
+      by (subst setsum_Suc_diff) auto
+    also have "... = f (Suc n) u * (z-u) ^ n / of_nat (fact n)"
+      by (simp only: algebra_simps diff_divide_distrib fact_cancel)
+    finally have "(\<Sum>i = 0..n. (f (Suc i) u * (z - u) ^ i 
+                             - of_nat i * (f i u * (z-u) ^ (i - Suc 0))) / of_nat (fact i)) =
+                  f (Suc n) u * (z - u) ^ n / of_nat (fact n)" .
+    then have "((\<lambda>u. \<Sum>i = 0..n. f i u * (z - u) ^ i / of_nat (fact i)) has_field_derivative
+                f (Suc n) u * (z - u) ^ n / of_nat (fact n))  (at u)"
+      apply (intro DERIV_intros)+
+      apply (force intro: u assms)
+      apply (rule refl)+
+      apply (auto simp: mult_ac)
+      done
+  }
+  then show ?thesis
+    apply (cut_tac complex_mvt_line [of w z "\<lambda>u. \<Sum>i = 0..n. f i u * (z-u) ^ i / of_nat (fact i)"
+               "\<lambda>u. (f (Suc n) u * (z-u)^n / of_nat (fact n))"])
+    apply (auto simp add: intro: open_closed_segment)
+    done
+qed
+
+text{*Relations among convergence and absolute convergence for power series.*}
+lemma abel_lemma:
+  fixes a :: "nat \<Rightarrow> 'a::real_normed_vector"
+  assumes r: "0 \<le> r" and r0: "r < r0" and M: "\<And>n. norm(a n) * r0^n \<le> M"
+    shows "summable (\<lambda>n. norm(a(n)) * r^n)"
+proof (rule summable_comparison_test' [of "\<lambda>n. M * (r / r0)^n"])
+  show "summable (\<lambda>n. M * (r / r0) ^ n)"
+    using assms 
+    by (auto simp add: summable_mult summable_geometric)
+  next
+    fix n
+    show "norm (norm (a n) * r ^ n) \<le> M * (r / r0) ^ n"
+      using r r0 M [of n]
+      apply (auto simp add: abs_mult field_simps power_divide)
+      apply (cases "r=0", simp)
+      apply (cases n, auto)
+      done
+qed
+
 
 end

@@ -1468,9 +1468,14 @@ next
   finally show ?case .
 qed
 
-lemma setsum_last_plus: "n \<noteq> 0 \<Longrightarrow> (\<Sum>i = 0..n. f i) = f n + (\<Sum>i = 0..n - Suc 0. f i)"
-  using atLeastAtMostSuc_conv [of 0 "n - 1"]
-  by auto
+lemma setsum_last_plus: fixes n::nat shows "m <= n \<Longrightarrow> (\<Sum>i = m..n. f i) = f n + (\<Sum>i = m..<n. f i)"
+  by (cases n) (auto simp: atLeastLessThanSuc_atLeastAtMost add_commute)
+
+lemma setsum_Suc_diff:
+  fixes f :: "nat \<Rightarrow> 'a::ab_group_add"
+  assumes "m \<le> Suc n"
+  shows "(\<Sum>i = m..n. f(Suc i) - f i) = f (Suc n) - f m"
+using assms by (induct n) (auto simp: le_Suc_eq)
 
 lemma nested_setsum_swap:
      "(\<Sum>i = 0..n. (\<Sum>j = 0..<i. a i j)) = (\<Sum>j = 0..<n. \<Sum>i = Suc j..n. a i j)"
@@ -1485,6 +1490,12 @@ lemma setsum_zero_power [simp]:
   shows "(\<Sum>i\<in>A. c i * 0^i) = (if finite A \<and> 0 \<in> A then c 0 else 0)"
 apply (cases "finite A")
   by (induction A rule: finite_induct) auto
+
+lemma setsum_zero_power' [simp]:
+  fixes c :: "nat \<Rightarrow> 'a::field"
+  shows "(\<Sum>i\<in>A. c i * 0^i / d i) = (if finite A \<and> 0 \<in> A then c 0 / d 0 else 0)"
+  using setsum_zero_power [of "\<lambda>i. c i / d i" A]
+  by auto
 
 
 subsection {* The formula for geometric sums *}

@@ -270,7 +270,7 @@ next
   show ?thesis
   proof (cases rule: linorder_cases)
     assume "x = 0" with `n \<noteq> 0` `diff 0 = f` DERIV
-    have "\<bar>0\<bar> \<le> \<bar>x\<bar> \<and> f x = ?f x 0" by (force simp add: Maclaurin_bi_le_lemma)
+    have "\<bar>0\<bar> \<le> \<bar>x\<bar> \<and> f x = ?f x 0" by (auto simp add: Maclaurin_bi_le_lemma)
     thus ?thesis ..
   next
     assume "x < 0"

@@ -399,6 +399,10 @@ proof
     by (rule convergentI)
 qed
 
+declare
+  DERIV_power[where 'a=complex, THEN DERIV_cong,
+              unfolded of_nat_def[symmetric], DERIV_intros]
+
 
 subsection {* The Complex Number $i$ *}
 
