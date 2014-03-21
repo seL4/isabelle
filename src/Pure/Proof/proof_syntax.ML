@@ -54,7 +54,7 @@ fun add_proof_syntax thy =
        ((Binding.name "OfClass", (Term.a_itselfT --> propT) --> proofT), NoSyn),
        ((Binding.name "MinProof", proofT), Delimfix "?")]
   |> Sign.add_nonterminals_global [Binding.name "param", Binding.name "params"]
-  |> Sign.add_syntax
+  |> Sign.add_syntax Syntax.mode_default
       [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1Lam _./ _)", [0, 3], 3)),
        ("_Lam0", [paramT, paramsT] ---> paramsT, Mixfix ("_/ _", [1, 0], 0)),
        ("_Lam0", [idtT, paramsT] ---> paramsT, Mixfix ("_/ _", [1, 0], 0)),
@@ -62,7 +62,7 @@ fun add_proof_syntax thy =
        ("", paramT --> paramT, Delimfix "'(_')"),
        ("", idtT --> paramsT, Delimfix "_"),
        ("", paramT --> paramsT, Delimfix "_")]
-  |> Sign.add_modesyntax (Symbol.xsymbolsN, true)
+  |> Sign.add_syntax (Symbol.xsymbolsN, true)
       [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1\<^bold>\<lambda>_./ _)", [0, 3], 3)),
        (Lexicon.mark_const "Appt", [proofT, aT] ---> proofT, Mixfix ("(1_ \<cdot>/ _)", [4, 5], 4)),
        (Lexicon.mark_const "AppP", [proofT, proofT] ---> proofT, Mixfix ("(1_ \<bullet>/ _)", [4, 5], 4))]

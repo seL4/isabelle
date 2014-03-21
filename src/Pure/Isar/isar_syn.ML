@@ -120,12 +120,12 @@ val opt_mode =
 val _ =
   Outer_Syntax.command @{command_spec "syntax"} "add raw syntax clauses"
     (opt_mode -- Scan.repeat1 Parse.const_decl
-      >> (Toplevel.theory o uncurry Sign.add_modesyntax_cmd));
+      >> (Toplevel.theory o uncurry Sign.add_syntax_cmd));
 
 val _ =
   Outer_Syntax.command @{command_spec "no_syntax"} "delete raw syntax clauses"
     (opt_mode -- Scan.repeat1 Parse.const_decl
-      >> (Toplevel.theory o uncurry Sign.del_modesyntax_cmd));
+      >> (Toplevel.theory o uncurry Sign.del_syntax_cmd));
 
 
 (* translations *)

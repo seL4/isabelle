@@ -12,10 +12,10 @@ setup {*
 let
   val typ = Simple_Syntax.read_typ;
 in
-  Sign.del_modesyntax (Symbol.xsymbolsN, false)
+  Sign.del_syntax (Symbol.xsymbolsN, false)
    [("_constrain", typ "logic => type => logic", Mixfix ("_\<Colon>_", [4, 0], 3)),
     ("_constrain", typ "prop' => type => prop'", Mixfix ("_\<Colon>_", [4, 0], 3))] #>
-  Sign.add_modesyntax (Symbol.xsymbolsN, false)
+  Sign.add_syntax (Symbol.xsymbolsN, false)
    [("_constrain", typ "logic => type => logic", Mixfix ("_ \<Colon>  _", [4, 0], 3)),
     ("_constrain", typ "prop' => type => prop'", Mixfix ("_ \<Colon> _", [4, 0], 3))]
 end

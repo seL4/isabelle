@@ -73,12 +73,10 @@ sig
   val add_nonterminals: Proof.context -> binding list -> theory -> theory
   val add_nonterminals_global: binding list -> theory -> theory
   val add_type_abbrev: Proof.context -> binding * string list * typ -> theory -> theory
-  val add_syntax: (string * typ * mixfix) list -> theory -> theory
-  val add_syntax_cmd: (string * string * mixfix) list -> theory -> theory
-  val add_modesyntax: Syntax.mode -> (string * typ * mixfix) list -> theory -> theory
-  val add_modesyntax_cmd: Syntax.mode -> (string * string * mixfix) list -> theory -> theory
-  val del_modesyntax: Syntax.mode -> (string * typ * mixfix) list -> theory -> theory
-  val del_modesyntax_cmd: Syntax.mode -> (string * string * mixfix) list -> theory -> theory
+  val add_syntax: Syntax.mode -> (string * typ * mixfix) list -> theory -> theory
+  val add_syntax_cmd: Syntax.mode -> (string * string * mixfix) list -> theory -> theory
+  val del_syntax: Syntax.mode -> (string * typ * mixfix) list -> theory -> theory
+  val del_syntax_cmd: Syntax.mode -> (string * string * mixfix) list -> theory -> theory
   val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> theory -> theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> theory -> theory
   val declare_const: Proof.context -> (binding * typ) * mixfix -> theory -> term * theory
@@ -375,12 +373,10 @@ fun gen_syntax change_gram parse_typ mode args thy =
 
 fun gen_add_syntax x = gen_syntax (Syntax.update_const_gram true) x;
 
-val add_modesyntax = gen_add_syntax (K I);
-val add_modesyntax_cmd = gen_add_syntax Syntax.read_typ;
-val add_syntax = add_modesyntax Syntax.mode_default;
-val add_syntax_cmd = add_modesyntax_cmd Syntax.mode_default;
-val del_modesyntax = gen_syntax (Syntax.update_const_gram false) (K I);
-val del_modesyntax_cmd = gen_syntax (Syntax.update_const_gram false) Syntax.read_typ;
+val add_syntax = gen_add_syntax (K I);
+val add_syntax_cmd = gen_add_syntax Syntax.read_typ;
+val del_syntax = gen_syntax (Syntax.update_const_gram false) (K I);
+val del_syntax_cmd = gen_syntax (Syntax.update_const_gram false) Syntax.read_typ;
 
 fun type_notation add mode args =
   let
@@ -417,7 +413,7 @@ fun gen_add_consts prep_typ ctxt raw_args thy =
   in
     thy
     |> map_consts (fold (Consts.declare (inherit_naming thy ctxt) o #1) args)
-    |> add_syntax (map #2 args)
+    |> add_syntax Syntax.mode_default (map #2 args)
     |> pair (map #3 args)
   end;
 
