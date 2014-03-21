@@ -320,7 +320,7 @@ val _ =
     |> apfst the_single
 end
 
-(*like strip_top_All_vars but for "all" instead of "All"*)
+(*like strip_top_All_vars but for "Pure.all" instead of "HOL.All"*)
 fun strip_top_all_vars acc t =
   if Logic.is_all t then
     let

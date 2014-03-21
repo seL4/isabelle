@@ -293,7 +293,7 @@ in
 fun GEN v th =
    let val gth = Thm.forall_intr v th
        val thy = Thm.theory_of_thm gth
-       val Const("all",_)$Abs(x,ty,rst) = Thm.prop_of gth
+       val Const(@{const_name Pure.all},_)$Abs(x,ty,rst) = Thm.prop_of gth
        val P' = Abs(x,ty, HOLogic.dest_Trueprop rst)  (* get rid of trueprop *)
        val theta = Pattern.match thy (P,P') (Vartab.empty, Vartab.empty);
        val allI2 = Drule.instantiate_normalize (certify thy theta) allI
@@ -441,21 +441,22 @@ fun Forall v M = USyntax.mk_forall{Bvar=v, Body=M};
 
 (* Fragile: it's a cong if it is not "R y x ==> cut f R x y = f y" *)
 fun is_cong thm =
-  case (Thm.prop_of thm)
-     of (Const("==>",_)$(Const(@{const_name Trueprop},_)$ _) $
-         (Const("==",_) $ (Const (@{const_name Wfrec.cut},_) $ f $ R $ a $ x) $ _)) => false
-      | _ => true;
+  case (Thm.prop_of thm) of
+    (Const(@{const_name Pure.imp},_)$(Const(@{const_name Trueprop},_)$ _) $
+      (Const(@{const_name Pure.eq},_) $ (Const (@{const_name Wfrec.cut},_) $ f $ R $ a $ x) $ _)) =>
+        false
+  | _ => true;
 
 
-fun dest_equal(Const ("==",_) $
+fun dest_equal(Const (@{const_name Pure.eq},_) $
                (Const (@{const_name Trueprop},_) $ lhs)
                $ (Const (@{const_name Trueprop},_) $ rhs)) = {lhs=lhs, rhs=rhs}
-  | dest_equal(Const ("==",_) $ lhs $ rhs)  = {lhs=lhs, rhs=rhs}
+  | dest_equal(Const (@{const_name Pure.eq},_) $ lhs $ rhs) = {lhs=lhs, rhs=rhs}
   | dest_equal tm = USyntax.dest_eq tm;
 
 fun get_lhs tm = #lhs(dest_equal (HOLogic.dest_Trueprop tm));
 
-fun dest_all used (Const("all",_) $ (a as Abs _)) = USyntax.dest_abs used a
+fun dest_all used (Const(@{const_name Pure.all},_) $ (a as Abs _)) = USyntax.dest_abs used a
   | dest_all _ _ = raise RULES_ERR "dest_all" "not a !!";
 
 val is_all = can (dest_all []);
@@ -468,10 +469,10 @@ fun strip_all used fm =
         end
    else ([], fm, used);
 
-fun break_all(Const("all",_) $ Abs (_,_,body)) = body
+fun break_all(Const(@{const_name Pure.all},_) $ Abs (_,_,body)) = body
   | break_all _ = raise RULES_ERR "break_all" "not a !!";
 
-fun list_break_all(Const("all",_) $ Abs (s,ty,body)) =
+fun list_break_all(Const(@{const_name Pure.all},_) $ Abs (s,ty,body)) =
      let val (L,core) = list_break_all body
      in ((s,ty)::L, core)
      end
@@ -725,7 +726,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
 
              fun eliminate thm =
                case Thm.prop_of thm
-               of Const("==>",_) $ imp $ _ =>
+               of Const(@{const_name Pure.imp},_) $ imp $ _ =>
                    eliminate
                     (if not(is_all imp)
                      then uq_eliminate (thm, imp, Thm.theory_of_thm thm)
@@ -740,7 +741,8 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
               val cntxt = rev (Simplifier.prems_of ctxt)
               val dummy = print_thms ctxt "cntxt:" cntxt
               val thy = Thm.theory_of_thm thm
-              val Const("==>",_) $ (Const(@{const_name Trueprop},_) $ A) $ _ = Thm.prop_of thm
+              val Const(@{const_name Pure.imp},_) $ (Const(@{const_name Trueprop},_) $ A) $ _ =
+                Thm.prop_of thm
               fun genl tm = let val vlist = subtract (op aconv) globals
                                            (Misc_Legacy.add_term_frees(tm,[]))
                             in fold_rev Forall vlist tm

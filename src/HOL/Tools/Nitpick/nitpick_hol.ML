@@ -363,9 +363,9 @@ val disjuncts_of = strip_connective @{const HOL.disj}
    "Nitpick_Nut.nut_from_term", and perhaps in "Nitpick_Mono.consider_term" as
    well. *)
 val built_in_consts =
-  [(@{const_name all}, 1),
-   (@{const_name "=="}, 2),
-   (@{const_name "==>"}, 2),
+  [(@{const_name Pure.all}, 1),
+   (@{const_name Pure.eq}, 2),
+   (@{const_name Pure.imp}, 2),
    (@{const_name Pure.conjunction}, 2),
    (@{const_name Trueprop}, 1),
    (@{const_name Not}, 1),
@@ -973,7 +973,7 @@ val close_form =
       fold (fn (z as ((s, _), T)) => fn t' =>
                Logic.all_const T $ Abs (s, T, abstract_over (Var z, t')))
            (take (length zs' - length zs) zs')
-    fun aux zs (@{const "==>"} $ t1 $ t2) =
+    fun aux zs (@{const Pure.imp} $ t1 $ t2) =
         let val zs' = Term.add_vars t1 zs in
           close_up zs zs' (Logic.mk_implies (t1, aux zs' t2))
         end
@@ -1178,7 +1178,7 @@ fun loose_bvar1_count (Bound i, k) = if i = k then 1 else 0
   | loose_bvar1_count (Abs (_, _, t), k) = loose_bvar1_count (t, k + 1)
   | loose_bvar1_count _ = 0
 
-fun s_betapply _ (t1 as Const (@{const_name "=="}, _) $ t1', t2) =
+fun s_betapply _ (t1 as Const (@{const_name Pure.eq}, _) $ t1', t2) =
     if t1' aconv t2 then @{prop True} else t1 $ t2
   | s_betapply _ (t1 as Const (@{const_name HOL.eq}, _) $ t1', t2) =
     if t1' aconv t2 then @{term True} else t1 $ t2
@@ -1422,8 +1422,8 @@ val is_built_in_const = is_some o arity_of_built_in_const
    simplification rules (equational specifications). *)
 fun term_under_def t =
   case t of
-    @{const "==>"} $ _ $ t2 => term_under_def t2
-  | Const (@{const_name "=="}, _) $ t1 $ _ => term_under_def t1
+    @{const Pure.imp} $ _ $ t2 => term_under_def t2
+  | Const (@{const_name Pure.eq}, _) $ t1 $ _ => term_under_def t1
   | @{const Trueprop} $ t1 => term_under_def t1
   | Const (@{const_name HOL.eq}, _) $ t1 $ _ => term_under_def t1
   | Abs (_, _, t') => term_under_def t'
@@ -1444,11 +1444,11 @@ fun def_props_for_const thy table (x as (s, _)) =
 fun normalized_rhs_of t =
   let
     fun aux (v as Var _) (SOME t) = SOME (lambda v t)
-      | aux (c as Const (@{const_name TYPE}, _)) (SOME t) = SOME (lambda c t)
+      | aux (c as Const (@{const_name Pure.type}, _)) (SOME t) = SOME (lambda c t)
       | aux _ _ = NONE
     val (lhs, rhs) =
       case t of
-        Const (@{const_name "=="}, _) $ t1 $ t2 => (t1, t2)
+        Const (@{const_name Pure.eq}, _) $ t1 $ t2 => (t1, t2)
       | @{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ t1 $ t2) =>
         (t1, t2)
       | _ => raise TERM ("Nitpick_HOL.normalized_rhs_of", [t])
@@ -1527,9 +1527,9 @@ fun is_inductive_pred hol_ctxt (x as (s, _)) =
 
 fun lhs_of_equation t =
   case t of
-    Const (@{const_name all}, _) $ Abs (_, _, t1) => lhs_of_equation t1
-  | Const (@{const_name "=="}, _) $ t1 $ _ => SOME t1
-  | @{const "==>"} $ _ $ t2 => lhs_of_equation t2
+    Const (@{const_name Pure.all}, _) $ Abs (_, _, t1) => lhs_of_equation t1
+  | Const (@{const_name Pure.eq}, _) $ t1 $ _ => SOME t1
+  | @{const Pure.imp} $ _ $ t2 => lhs_of_equation t2
   | @{const Trueprop} $ t1 => lhs_of_equation t1
   | Const (@{const_name All}, _) $ Abs (_, _, t1) => lhs_of_equation t1
   | Const (@{const_name HOL.eq}, _) $ t1 $ _ => SOME t1
@@ -1947,7 +1947,7 @@ fun equationalize_term ctxt tag t =
           @{const Trueprop} $ extensional_equal j T t1 t2
         | @{const Trueprop} $ t' =>
           @{const Trueprop} $ HOLogic.mk_eq (t', @{const True})
-        | Const (@{const_name "=="}, Type (_, [T, _])) $ t1 $ t2 =>
+        | Const (@{const_name Pure.eq}, Type (_, [T, _])) $ t1 $ t2 =>
           @{const Trueprop} $ extensional_equal j T t1 t2
         | _ => (warning ("Ignoring " ^ quote tag ^ " for non-equation " ^
                          quote (Syntax.string_of_term ctxt t) ^ ".");

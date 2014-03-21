@@ -579,11 +579,11 @@ val a_itselfT = itselfT (TFree (Name.aT, []));
 val propT : typ = Type ("prop",[]);
 
 (* maps  !!x1...xn. t   to   t  *)
-fun strip_all_body (Const("all",_)$Abs(_,_,t))  =  strip_all_body t
+fun strip_all_body (Const("Pure.all",_)$Abs(_,_,t))  =  strip_all_body t
   | strip_all_body t  =  t;
 
 (* maps  !!x1...xn. t   to   [x1, ..., xn]  *)
-fun strip_all_vars (Const("all",_)$Abs(a,T,t))  =
+fun strip_all_vars (Const("Pure.all",_)$Abs(a,T,t))  =
                 (a,T) :: strip_all_vars t
   | strip_all_vars t  =  [] : (string*typ) list;
 
@@ -816,7 +816,7 @@ fun subst_vars ([], []) tm = tm
 
 fun close_schematic_term t =
   let
-    val extra_types = map (fn v => Const ("TYPE", itselfT (TVar v))) (hidden_polymorphism t);
+    val extra_types = map (fn v => Const ("Pure.type", itselfT (TVar v))) (hidden_polymorphism t);
     val extra_terms = map Var (add_vars t []);
   in fold lambda (extra_terms @ extra_types) t end;
 
@@ -924,18 +924,18 @@ fun dest_abs (x, T, body) =
 
 (* dummy patterns *)
 
-fun dummy_pattern T = Const ("dummy_pattern", T);
+fun dummy_pattern T = Const ("Pure.dummy_pattern", T);
 val dummy = dummy_pattern dummyT;
 val dummy_prop = dummy_pattern propT;
 
-fun is_dummy_pattern (Const ("dummy_pattern", _)) = true
+fun is_dummy_pattern (Const ("Pure.dummy_pattern", _)) = true
   | is_dummy_pattern _ = false;
 
 fun no_dummy_patterns tm =
   if not (fold_aterms (fn t => fn b => b orelse is_dummy_pattern t) tm false) then tm
   else raise TERM ("Illegal occurrence of '_' dummy pattern", [tm]);
 
-fun free_dummy_patterns (Const ("dummy_pattern", T)) used =
+fun free_dummy_patterns (Const ("Pure.dummy_pattern", T)) used =
       let val [x] = Name.invent used Name.uu 1
       in (Free (Name.internal x, T), Name.declare x used) end
   | free_dummy_patterns (Abs (x, T, b)) used =
@@ -948,7 +948,7 @@ fun free_dummy_patterns (Const ("dummy_pattern", T)) used =
       in (t' $ u', used'') end
   | free_dummy_patterns a used = (a, used);
 
-fun replace_dummy Ts (Const ("dummy_pattern", T)) i =
+fun replace_dummy Ts (Const ("Pure.dummy_pattern", T)) i =
       (list_comb (Var (("_dummy_", i), Ts ---> T), map_range Bound (length Ts)), i + 1)
   | replace_dummy Ts (Abs (x, T, t)) i =
       let val (t', i') = replace_dummy (T :: Ts) t i

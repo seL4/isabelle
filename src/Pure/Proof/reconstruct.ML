@@ -155,7 +155,7 @@ fun make_constraints_cprf thy env cprf =
               | SOME T => (T, env));
             val (t, prf, cnstrts, env'', vTs') =
               mk_cnstrts env' (T::Ts) (map (incr_boundvars 1) Hs) vTs cprf;
-          in (Const ("all", (T --> propT) --> propT) $ Abs (s, T, t), Abst (s, SOME T, prf),
+          in (Const ("Pure.all", (T --> propT) --> propT) $ Abs (s, T, t), Abst (s, SOME T, prf),
             cnstrts, env'', vTs')
           end
       | mk_cnstrts env Ts Hs vTs (AbsP (s, SOME t, cprf)) =
@@ -173,7 +173,7 @@ fun make_constraints_cprf thy env cprf =
       | mk_cnstrts env Ts Hs vTs (cprf1 %% cprf2) =
           let val (u, prf2, cnstrts, env', vTs') = mk_cnstrts env Ts Hs vTs cprf2
           in (case head_norm (mk_cnstrts env' Ts Hs vTs' cprf1) of
-              (Const ("==>", _) $ u' $ t', prf1, cnstrts', env'', vTs'') =>
+              (Const ("Pure.imp", _) $ u' $ t', prf1, cnstrts', env'', vTs'') =>
                 add_cnstrt Ts t' (prf1 %% prf2) (cnstrts' @ cnstrts)
                   env'' vTs'' (u, u')
             | (t, prf1, cnstrts', env'', vTs'') =>
@@ -185,7 +185,7 @@ fun make_constraints_cprf thy env cprf =
       | mk_cnstrts env Ts Hs vTs (cprf % SOME t) =
           let val (t', U, vTs1, env1) = infer_type thy env Ts vTs t
           in (case head_norm (mk_cnstrts env1 Ts Hs vTs1 cprf) of
-             (Const ("all", Type ("fun", [Type ("fun", [T, _]), _])) $ f,
+             (Const ("Pure.all", Type ("fun", [Type ("fun", [T, _]), _])) $ f,
                  prf, cnstrts, env2, vTs2) =>
                let val env3 = unifyT thy env2 T U
                in (betapply (f, t'), prf % SOME t', cnstrts, env3, vTs2)
@@ -194,12 +194,12 @@ fun make_constraints_cprf thy env cprf =
                let val (v, env3) = mk_var env2 Ts (U --> propT);
                in
                  add_cnstrt Ts (v $ t') (prf % SOME t') cnstrts env3 vTs2
-                   (u, Const ("all", (U --> propT) --> propT) $ v)
+                   (u, Const ("Pure.all", (U --> propT) --> propT) $ v)
                end)
           end
       | mk_cnstrts env Ts Hs vTs (cprf % NONE) =
           (case head_norm (mk_cnstrts env Ts Hs vTs cprf) of
-             (Const ("all", Type ("fun", [Type ("fun", [T, _]), _])) $ f,
+             (Const ("Pure.all", Type ("fun", [Type ("fun", [T, _]), _])) $ f,
                  prf, cnstrts, env', vTs') =>
                let val (t, env'') = mk_var env' Ts T
                in (betapply (f, t), prf % SOME t, cnstrts, env'', vTs')
@@ -211,7 +211,7 @@ fun make_constraints_cprf thy env cprf =
                  val (t, env3) = mk_var env2 Ts T
                in
                  add_cnstrt Ts (v $ t) (prf % SOME t) cnstrts env3 vTs'
-                   (u, Const ("all", (T --> propT) --> propT) $ v)
+                   (u, Const ("Pure.all", (T --> propT) --> propT) $ v)
                end)
       | mk_cnstrts env _ _ vTs (prf as PThm (_, ((_, prop, opTs), _))) =
           mk_cnstrts_atom env vTs prop opTs prf
@@ -309,10 +309,10 @@ fun prop_of0 Hs (PBound i) = nth Hs i
   | prop_of0 Hs (AbsP (s, SOME t, prf)) =
       Logic.mk_implies (t, prop_of0 (t :: Hs) prf)
   | prop_of0 Hs (prf % SOME t) = (case head_norm (prop_of0 Hs prf) of
-      Const ("all", _) $ f => f $ t
+      Const ("Pure.all", _) $ f => f $ t
     | _ => error "prop_of: all expected")
   | prop_of0 Hs (prf1 %% prf2) = (case head_norm (prop_of0 Hs prf1) of
-      Const ("==>", _) $ P $ Q => Q
+      Const ("Pure.imp", _) $ P $ Q => Q
     | _ => error "prop_of: ==> expected")
   | prop_of0 Hs (Hyp t) = t
   | prop_of0 Hs (PThm (_, ((_, prop, SOME Ts), _))) = prop_of_atom prop Ts

@@ -97,8 +97,8 @@ fun gen_add_judgment add_consts (b, T, mx) thy =
 
 in
 
-val add_judgment = gen_add_judgment Sign.add_consts_i;
-val add_judgment_cmd = gen_add_judgment Sign.add_consts;
+val add_judgment = gen_add_judgment Sign.add_consts;
+val add_judgment_cmd = gen_add_judgment Sign.add_consts_cmd;
 
 end;
 

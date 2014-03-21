@@ -687,7 +687,7 @@ fun implies_elim thAB thA =
     fun err () = raise THM ("implies_elim: major premise", 0, [thAB, thA]);
   in
     case prop of
-      Const ("==>", _) $ A $ B =>
+      Const ("Pure.imp", _) $ A $ B =>
         if A aconv propA then
           Thm (deriv_rule2 (curry Proofterm.%%) der derA,
            {thy = merge_thys2 thAB thA,
@@ -741,7 +741,7 @@ fun forall_elim
     (ct as Cterm {t, T, maxidx = maxt, sorts, ...})
     (th as Thm (der, {maxidx, shyps, hyps, tpairs, prop, ...})) =
   (case prop of
-    Const ("all", Type ("fun", [Type ("fun", [qary, _]), _])) $ A =>
+    Const ("Pure.all", Type ("fun", [Type ("fun", [qary, _]), _])) $ A =>
       if T <> qary then
         raise THM ("forall_elim: type mismatch", 0, [th])
       else
@@ -778,7 +778,7 @@ fun reflexive (Cterm {thy, t, T = _, maxidx, sorts}) =
 *)
 fun symmetric (th as Thm (der, {thy, maxidx, shyps, hyps, tpairs, prop, ...})) =
   (case prop of
-    (eq as Const ("==", _)) $ t $ u =>
+    (eq as Const ("Pure.eq", _)) $ t $ u =>
       Thm (deriv_rule1 Proofterm.symmetric der,
        {thy = thy,
         tags = [],
@@ -803,7 +803,7 @@ fun transitive th1 th2 =
     fun err msg = raise THM ("transitive: " ^ msg, 0, [th1, th2]);
   in
     case (prop1, prop2) of
-      ((eq as Const ("==", Type (_, [T, _]))) $ t1 $ u, Const ("==", _) $ u' $ t2) =>
+      ((eq as Const ("Pure.eq", Type (_, [T, _]))) $ t1 $ u, Const ("Pure.eq", _) $ u' $ t2) =>
         if not (u aconv u') then err "middle term"
         else
           Thm (deriv_rule2 (Proofterm.transitive u T) der1 der2,
@@ -911,8 +911,8 @@ fun combination th1 th2 =
       | _ => raise THM ("combination: not function type", 0, [th1, th2]));
   in
     (case (prop1, prop2) of
-      (Const ("==", Type ("fun", [fT, _])) $ f $ g,
-       Const ("==", Type ("fun", [tT, _])) $ t $ u) =>
+      (Const ("Pure.eq", Type ("fun", [fT, _])) $ f $ g,
+       Const ("Pure.eq", Type ("fun", [tT, _])) $ t $ u) =>
         (chktypes fT tT;
           Thm (deriv_rule2 (Proofterm.combination f g t u fT) der1 der2,
            {thy = merge_thys2 th1 th2,
@@ -939,7 +939,7 @@ fun equal_intr th1 th2 =
     fun err msg = raise THM ("equal_intr: " ^ msg, 0, [th1, th2]);
   in
     (case (prop1, prop2) of
-      (Const("==>", _) $ A $ B, Const("==>", _) $ B' $ A') =>
+      (Const("Pure.imp", _) $ A $ B, Const("Pure.imp", _) $ B' $ A') =>
         if A aconv A' andalso B aconv B' then
           Thm (deriv_rule2 (Proofterm.equal_intr A B) der1 der2,
            {thy = merge_thys2 th1 th2,
@@ -967,7 +967,7 @@ fun equal_elim th1 th2 =
     fun err msg = raise THM ("equal_elim: " ^ msg, 0, [th1, th2]);
   in
     (case prop1 of
-      Const ("==", _) $ A $ B =>
+      Const ("Pure.eq", _) $ A $ B =>
         if prop2 aconv A then
           Thm (deriv_rule2 (Proofterm.equal_elim A B) der1 der2,
            {thy = merge_thys2 th1 th2,
@@ -1472,17 +1472,17 @@ fun rename_boundvars pat obj (thm as Thm (der, {thy, tags, maxidx, shyps, hyps, 
 (* strip_apply f B A strips off all assumptions/parameters from A
    introduced by lifting over B, and applies f to remaining part of A*)
 fun strip_apply f =
-  let fun strip (Const ("==>", _) $ _  $ B1)
-                (Const ("==>", _) $ A2 $ B2) = Logic.mk_implies (A2, strip B1 B2)
-        | strip ((c as Const ("all", _)) $ Abs (_, _, t1))
-                (      Const ("all", _)  $ Abs (a, T, t2)) = c $ Abs (a, T, strip t1 t2)
+  let fun strip (Const ("Pure.imp", _) $ _  $ B1)
+                (Const ("Pure.imp", _) $ A2 $ B2) = Logic.mk_implies (A2, strip B1 B2)
+        | strip ((c as Const ("Pure.all", _)) $ Abs (_, _, t1))
+                (      Const ("Pure.all", _)  $ Abs (a, T, t2)) = c $ Abs (a, T, strip t1 t2)
         | strip _ A = f A
   in strip end;
 
-fun strip_lifted (Const ("==>", _) $ _ $ B1)
-                 (Const ("==>", _) $ _ $ B2) = strip_lifted B1 B2
-  | strip_lifted (Const ("all", _) $ Abs (_, _, t1))
-                 (Const ("all", _) $ Abs (_, _, t2)) = strip_lifted t1 t2
+fun strip_lifted (Const ("Pure.imp", _) $ _ $ B1)
+                 (Const ("Pure.imp", _) $ _ $ B2) = strip_lifted B1 B2
+  | strip_lifted (Const ("Pure.all", _) $ Abs (_, _, t1))
+                 (Const ("Pure.all", _) $ Abs (_, _, t2)) = strip_lifted t1 t2
   | strip_lifted _ A = A;
 
 (*Use the alist to rename all bound variables and some unknowns in a term
@@ -1532,10 +1532,10 @@ fun rename_bvars dpairs =
 
 (*strip off pairs of assumptions/parameters in parallel -- they are
   identical because of lifting*)
-fun strip_assums2 (Const("==>", _) $ _ $ B1,
-                   Const("==>", _) $ _ $ B2) = strip_assums2 (B1,B2)
-  | strip_assums2 (Const("all",_)$Abs(a,T,t1),
-                   Const("all",_)$Abs(_,_,t2)) =
+fun strip_assums2 (Const("Pure.imp", _) $ _ $ B1,
+                   Const("Pure.imp", _) $ _ $ B2) = strip_assums2 (B1,B2)
+  | strip_assums2 (Const("Pure.all",_)$Abs(a,T,t1),
+                   Const("Pure.all",_)$Abs(_,_,t2)) =
       let val (B1,B2) = strip_assums2 (t1,t2)
       in  (Abs(a,T,B1), Abs(a,T,B2))  end
   | strip_assums2 BB = BB;
@@ -1543,13 +1543,13 @@ fun strip_assums2 (Const("==>", _) $ _ $ B1,
 
 (*Faster normalization: skip assumptions that were lifted over*)
 fun norm_term_skip env 0 t = Envir.norm_term env t
-  | norm_term_skip env n (Const ("all", _) $ Abs (a, T, t)) =
+  | norm_term_skip env n (Const ("Pure.all", _) $ Abs (a, T, t)) =
       let
         val T' = Envir.subst_type (Envir.type_env env) T
         (*Must instantiate types of parameters because they are flattened;
           this could be a NEW parameter*)
       in Logic.all_const T' $ Abs (a, T', norm_term_skip env n t) end
-  | norm_term_skip env n (Const ("==>", _) $ A $ B) =
+  | norm_term_skip env n (Const ("Pure.imp", _) $ A $ B) =
       Logic.mk_implies (A, norm_term_skip env (n - 1) B)
   | norm_term_skip _ _ _ = error "norm_term_skip: too few assumptions??";
 

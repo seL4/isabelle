@@ -280,8 +280,8 @@ val default_config =
 fun split_def ctxt check_head geq =
   let
     fun input_error msg = cat_lines [msg, Syntax.string_of_term ctxt geq]
-    val qs = Term.strip_qnt_vars "all" geq
-    val imp = Term.strip_qnt_body "all" geq
+    val qs = Term.strip_qnt_vars @{const_name Pure.all} geq
+    val imp = Term.strip_qnt_body @{const_name Pure.all} geq
     val (gs, eq) = Logic.strip_horn imp
 
     val (f_args, rhs) = HOLogic.dest_eq (HOLogic.dest_Trueprop eq)

@@ -419,11 +419,12 @@ fun instVars t =
 
 
 (* A1==>...An==>B  goes to  [A1,...,An], where B is not an implication *)
-fun strip_imp_prems (Const ("==>", _) $ A $ B) = strip_Trueprop A :: strip_imp_prems B
+fun strip_imp_prems (Const (@{const_name Pure.imp}, _) $ A $ B) =
+      strip_Trueprop A :: strip_imp_prems B
   | strip_imp_prems _ = [];
 
 (* A1==>...An==>B  goes to B, where B is not an implication *)
-fun strip_imp_concl (Const ("==>", _) $ A $ B) = strip_imp_concl B
+fun strip_imp_concl (Const (@{const_name Pure.imp}, _) $ A $ B) = strip_imp_concl B
   | strip_imp_concl A = strip_Trueprop A;
 
 
@@ -443,7 +444,7 @@ fun delete_concl [] = raise ElimBadPrem
           else P :: delete_concl Ps
       | _ => P :: delete_concl Ps);
 
-fun skoPrem state vars (Const ("all", _) $ Abs (_, P)) =
+fun skoPrem state vars (Const (@{const_name Pure.all}, _) $ Abs (_, P)) =
         skoPrem state vars (subst_bound (Skolem (gensym state "S", vars), P))
   | skoPrem _ _ P = P;
 
@@ -1177,7 +1178,7 @@ fun initBranch (ts,lim) =
 (*Make a list of all the parameters in a subgoal, even if nested*)
 local open Term
 in
-fun discard_foralls (Const("all",_)$Abs(a,T,t)) = discard_foralls t
+fun discard_foralls (Const(@{const_name Pure.all},_)$Abs(a,T,t)) = discard_foralls t
   | discard_foralls t = t;
 end;
 

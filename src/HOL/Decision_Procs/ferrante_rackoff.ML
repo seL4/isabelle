@@ -184,9 +184,9 @@ val grab_atom_bop =
    | Const (@{const_name HOL.conj}, _) $ _ $ _ => find_args bounds tm
    | Const (@{const_name HOL.disj}, _) $ _ $ _ => find_args bounds tm
    | Const (@{const_name HOL.implies}, _) $ _ $ _ => find_args bounds tm
-   | Const ("==>", _) $ _ $ _ => find_args bounds tm
-   | Const ("==", _) $ _ $ _ => find_args bounds tm
-   | Const ("all", _) $ _ => find_body bounds (Thm.dest_arg tm)
+   | Const (@{const_name Pure.imp}, _) $ _ $ _ => find_args bounds tm
+   | Const (@{const_name Pure.eq}, _) $ _ $ _ => find_args bounds tm
+   | Const (@{const_name Pure.all}, _) $ _ => find_body bounds (Thm.dest_arg tm)
    | Const (@{const_name Trueprop}, _) $ _ => h bounds (Thm.dest_arg tm)
    | _ => Thm.dest_fun2 tm)
   and find_args bounds tm =

@@ -149,7 +149,7 @@ fun case_tr err ctxt [t, u] =
           | abs_pat _ _ = I;
 
         (* replace occurrences of dummy_pattern by distinct variables *)
-        fun replace_dummies (Const (@{const_syntax dummy_pattern}, T)) used =
+        fun replace_dummies (Const (@{const_syntax Pure.dummy_pattern}, T)) used =
               let val (x, used') = variant_free "x" used
               in (Free (x, T), used') end
           | replace_dummies (t $ u) used =

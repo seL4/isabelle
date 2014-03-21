@@ -1062,7 +1062,7 @@ fun pick_nits_in_term state (params as {timeout, expect, ...}) mode i n step
   end
 
 fun is_fixed_equation ctxt
-                      (Const (@{const_name "=="}, _) $ Free (s, _) $ Const _) =
+                      (Const (@{const_name Pure.eq}, _) $ Free (s, _) $ Const _) =
     Variable.is_fixed ctxt s
   | is_fixed_equation _ _ = false
 

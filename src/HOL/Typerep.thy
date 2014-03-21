@@ -24,7 +24,7 @@ parse_translation {*
   let
     fun typerep_tr (*"_TYPEREP"*) [ty] =
           Syntax.const @{const_syntax typerep} $
-            (Syntax.const @{syntax_const "_constrain"} $ Syntax.const @{const_syntax "TYPE"} $
+            (Syntax.const @{syntax_const "_constrain"} $ Syntax.const @{const_syntax Pure.type} $
               (Syntax.const @{type_syntax itself} $ ty))
       | typerep_tr (*"_TYPEREP"*) ts = raise TERM ("typerep_tr", ts);
   in [(@{syntax_const "_TYPEREP"}, K typerep_tr)] end
@@ -34,7 +34,7 @@ typed_print_translation {*
   let
     fun typerep_tr' ctxt (*"typerep"*)
             (Type (@{type_name fun}, [Type (@{type_name itself}, [T]), _]))
-            (Const (@{const_syntax TYPE}, _) :: ts) =
+            (Const (@{const_syntax Pure.type}, _) :: ts) =
           Term.list_comb
             (Syntax.const @{syntax_const "_TYPEREP"} $ Syntax_Phases.term_of_typ ctxt T, ts)
       | typerep_tr' _ T ts = raise Match;

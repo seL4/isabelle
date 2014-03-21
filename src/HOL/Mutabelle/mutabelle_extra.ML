@@ -218,7 +218,7 @@ val forbidden =
   (@{const_name induct_conj}, "'a"),*)
   (@{const_name "undefined"}, "'a"),
   (@{const_name "default"}, "'a"),
-  (@{const_name "dummy_pattern"}, "'a::{}"),
+  (@{const_name "Pure.dummy_pattern"}, "'a::{}"),
   (@{const_name "HOL.simp_implies"}, "prop => prop => prop"),
   (@{const_name "bot_fun_inst.bot_fun"}, "'a"),
   (@{const_name "top_fun_inst.top_fun"}, "'a"),
@@ -234,7 +234,7 @@ val forbidden_thms =
   "nibble"]
 
 val forbidden_consts =
- [@{const_name "TYPE"}, @{const_name Datatype.dsum}, @{const_name Datatype.usum}]
+ [@{const_name Pure.type}, @{const_name Datatype.dsum}, @{const_name Datatype.usum}]
 
 fun is_forbidden_theorem (s, th) =
   let val consts = Term.add_const_names (prop_of th) [] in
@@ -254,7 +254,7 @@ val forbidden_mutant_constnames =
   "HOL.induct_forall",
  @{const_name undefined},
  @{const_name default},
- @{const_name dummy_pattern},
+ @{const_name Pure.dummy_pattern},
  @{const_name "HOL.simp_implies"},
  @{const_name "bot_fun_inst.bot_fun"},
  @{const_name "top_fun_inst.top_fun"},
@@ -275,7 +275,7 @@ val forbidden_mutant_constnames =
  @{const_name Quickcheck_Random.catch_match},
  @{const_name Quickcheck_Exhaustive.unknown},
  @{const_name Num.Bit0}, @{const_name Num.Bit1}
- (*@{const_name "==>"}, @{const_name "=="}*)]
+ (*@{const_name Pure.imp}, @{const_name Pure.eq}*)]
 
 val forbidden_mutant_consts =
   [

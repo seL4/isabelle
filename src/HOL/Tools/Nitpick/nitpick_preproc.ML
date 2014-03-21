@@ -36,9 +36,9 @@ val binary_int_threshold = 3
 
 val may_use_binary_ints =
   let
-    fun aux def (Const (@{const_name "=="}, _) $ t1 $ t2) =
+    fun aux def (Const (@{const_name Pure.eq}, _) $ t1 $ t2) =
         aux def t1 andalso aux false t2
-      | aux def (@{const "==>"} $ t1 $ t2) = aux false t1 andalso aux def t2
+      | aux def (@{const Pure.imp} $ t1 $ t2) = aux false t1 andalso aux def t2
       | aux def (Const (@{const_name HOL.eq}, _) $ t1 $ t2) =
         aux def t1 andalso aux false t2
       | aux def (@{const HOL.implies} $ t1 $ t2) = aux false t1 andalso aux def t2
@@ -145,7 +145,7 @@ fun box_fun_and_pair_in_term (hol_ctxt as {ctxt, ...}) def orig_t =
       case t of
         @{const Trueprop} $ t1 => box_var_in_def new_Ts old_Ts t1 z
       | Const (s0, _) $ t1 $ _ =>
-        if s0 = @{const_name "=="} orelse s0 = @{const_name HOL.eq} then
+        if s0 = @{const_name Pure.eq} orelse s0 = @{const_name HOL.eq} then
           let
             val (t', args) = strip_comb t1
             val T' = fastype_of1 (new_Ts, do_term new_Ts old_Ts Neut t')
@@ -187,12 +187,12 @@ fun box_fun_and_pair_in_term (hol_ctxt as {ctxt, ...}) def orig_t =
       end
     and do_term new_Ts old_Ts polar t =
       case t of
-        Const (s0 as @{const_name all}, T0) $ Abs (s1, T1, t1) =>
+        Const (s0 as @{const_name Pure.all}, T0) $ Abs (s1, T1, t1) =>
         do_quantifier new_Ts old_Ts polar s0 T0 s1 T1 t1
-      | Const (s0 as @{const_name "=="}, T0) $ t1 $ t2 =>
+      | Const (s0 as @{const_name Pure.eq}, T0) $ t1 $ t2 =>
         do_equals new_Ts old_Ts s0 T0 t1 t2
-      | @{const "==>"} $ t1 $ t2 =>
-        @{const "==>"} $ do_term new_Ts old_Ts (flip_polarity polar) t1
+      | @{const Pure.imp} $ t1 $ t2 =>
+        @{const Pure.imp} $ do_term new_Ts old_Ts (flip_polarity polar) t1
         $ do_term new_Ts old_Ts polar t2
       | @{const Pure.conjunction} $ t1 $ t2 =>
         @{const Pure.conjunction} $ do_term new_Ts old_Ts polar t1
@@ -334,9 +334,9 @@ fun pull_out_universal_constrs hol_ctxt def t =
     val k = maxidx_of_term t + 1
     fun do_term Ts def t args seen =
       case t of
-        (t0 as Const (@{const_name "=="}, _)) $ t1 $ t2 =>
+        (t0 as Const (@{const_name Pure.eq}, _)) $ t1 $ t2 =>
         do_eq_or_imp Ts true def t0 t1 t2 seen
-      | (t0 as @{const "==>"}) $ t1 $ t2 =>
+      | (t0 as @{const Pure.imp}) $ t1 $ t2 =>
         if def then (t, []) else do_eq_or_imp Ts false def t0 t1 t2 seen
       | (t0 as Const (@{const_name HOL.eq}, _)) $ t1 $ t2 =>
         do_eq_or_imp Ts true def t0 t1 t2 seen
@@ -401,9 +401,9 @@ fun destroy_pulled_out_constrs (hol_ctxt as {ctxt, ...}) axiom strong t =
     val num_occs_of_var =
       fold_aterms (fn Var z => (fn f => fn z' => f z' |> z = z' ? Integer.add 1)
                     | _ => I) t (K 0)
-    fun aux Ts careful ((t0 as Const (@{const_name "=="}, _)) $ t1 $ t2) =
+    fun aux Ts careful ((t0 as Const (@{const_name Pure.eq}, _)) $ t1 $ t2) =
         aux_eq Ts careful true t0 t1 t2
-      | aux Ts careful ((t0 as @{const "==>"}) $ t1 $ t2) =
+      | aux Ts careful ((t0 as @{const Pure.imp}) $ t1 $ t2) =
         t0 $ aux Ts false t1 $ aux Ts careful t2
       | aux Ts careful ((t0 as Const (@{const_name HOL.eq}, _)) $ t1 $ t2) =
         aux_eq Ts careful true t0 t1 t2
@@ -455,22 +455,22 @@ fun destroy_pulled_out_constrs (hol_ctxt as {ctxt, ...}) axiom strong t =
 
 (** Destruction of universal and existential equalities **)
 
-fun curry_assms (@{const "==>"} $ (@{const Trueprop}
+fun curry_assms (@{const Pure.imp} $ (@{const Trueprop}
                                    $ (@{const HOL.conj} $ t1 $ t2)) $ t3) =
     curry_assms (Logic.list_implies ([t1, t2] |> map HOLogic.mk_Trueprop, t3))
-  | curry_assms (@{const "==>"} $ t1 $ t2) =
-    @{const "==>"} $ curry_assms t1 $ curry_assms t2
+  | curry_assms (@{const Pure.imp} $ t1 $ t2) =
+    @{const Pure.imp} $ curry_assms t1 $ curry_assms t2
   | curry_assms t = t
 
 val destroy_universal_equalities =
   let
     fun aux prems zs t =
       case t of
-        @{const "==>"} $ t1 $ t2 => aux_implies prems zs t1 t2
+        @{const Pure.imp} $ t1 $ t2 => aux_implies prems zs t1 t2
       | _ => Logic.list_implies (rev prems, t)
     and aux_implies prems zs t1 t2 =
       case t1 of
-        Const (@{const_name "=="}, _) $ Var z $ t' => aux_eq prems zs z t' t1 t2
+        Const (@{const_name Pure.eq}, _) $ Var z $ t' => aux_eq prems zs z t' t1 t2
       | @{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ Var z $ t') =>
         aux_eq prems zs z t' t1 t2
       | @{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ t' $ Var z) =>
@@ -591,10 +591,10 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_tables, skolems, ...})
                              not (is_higher_order_type abs_T)) polar t)
       in
         case t of
-          Const (s0 as @{const_name all}, T0) $ Abs (s1, T1, t1) =>
+          Const (s0 as @{const_name Pure.all}, T0) $ Abs (s1, T1, t1) =>
           do_quantifier s0 T0 s1 T1 t1
-        | @{const "==>"} $ t1 $ t2 =>
-          @{const "==>"} $ aux ss Ts js skolemizable (flip_polarity polar) t1
+        | @{const Pure.imp} $ t1 $ t2 =>
+          @{const Pure.imp} $ aux ss Ts js skolemizable (flip_polarity polar) t1
           $ aux ss Ts js skolemizable polar t2
         | @{const Pure.conjunction} $ t1 $ t2 =>
           @{const Pure.conjunction} $ aux ss Ts js skolemizable polar t1
@@ -654,7 +654,7 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_tables, skolems, ...})
 
 (** Function specialization **)
 
-fun params_in_equation (@{const "==>"} $ _ $ t2) = params_in_equation t2
+fun params_in_equation (@{const Pure.imp} $ _ $ t2) = params_in_equation t2
   | params_in_equation (@{const Trueprop} $ t1) = params_in_equation t1
   | params_in_equation (Const (@{const_name HOL.eq}, _) $ t1 $ _) =
     snd (strip_comb t1)
@@ -866,7 +866,7 @@ fun defined_free_by_assumption t =
       if exists_subterm (curry (op aconv) u) def then NONE else SOME u
   in
     case t of
-      Const (@{const_name "=="}, _) $ (u as Free _) $ def => do_equals u def
+      Const (@{const_name Pure.eq}, _) $ (u as Free _) $ def => do_equals u def
     | @{const Trueprop}
       $ (Const (@{const_name HOL.eq}, _) $ (u as Free _) $ def) =>
       do_equals u def
@@ -918,7 +918,7 @@ fun axioms_for_term
     and add_def_axiom depth = add_axiom fst apfst true depth
     and add_nondef_axiom depth = add_axiom snd apsnd false depth
     and add_maybe_def_axiom depth t =
-      (if head_of t <> @{const "==>"} then add_def_axiom
+      (if head_of t <> @{const Pure.imp} then add_def_axiom
        else add_nondef_axiom) depth t
     and add_eq_axiom depth t =
       (if is_constr_pattern_formula ctxt t then add_def_axiom
@@ -979,7 +979,7 @@ fun axioms_for_term
                                             (Const (mate_of_rep_fun ctxt x))
                      |> fold (add_def_axiom depth)
                              (inverse_axioms_for_rep_fun ctxt x)
-             else if s = @{const_name TYPE} then
+             else if s = @{const_name Pure.type} then
                accum
              else case def_of_const thy def_tables x of
                SOME _ =>

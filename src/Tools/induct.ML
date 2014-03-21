@@ -162,7 +162,7 @@ fun mk_swap_rrule ctxt ct =
   | SOME (i, k, j) => SOME (swap_params_conv ctxt k j (K (swap_prems_conv i)) ct));
 
 val rearrange_eqs_simproc =
-  Simplifier.simproc_global Pure.thy "rearrange_eqs" ["all t"]
+  Simplifier.simproc_global Pure.thy "rearrange_eqs" ["Pure.all t"]
     (fn ctxt => fn t => mk_swap_rrule ctxt (cterm_of (Proof_Context.theory_of ctxt) t));
 
 
@@ -644,14 +644,16 @@ fun special_rename_params ctxt [[SOME (Free (z, Type (T, _)))]] [thm] =
 
 local
 
-fun goal_prefix k ((c as Const ("all", _)) $ Abs (a, T, B)) = c $ Abs (a, T, goal_prefix k B)
+fun goal_prefix k ((c as Const (@{const_name Pure.all}, _)) $ Abs (a, T, B)) =
+      c $ Abs (a, T, goal_prefix k B)
   | goal_prefix 0 _ = Term.dummy_prop
-  | goal_prefix k ((c as Const ("==>", _)) $ A $ B) = c $ A $ goal_prefix (k - 1) B
+  | goal_prefix k ((c as Const (@{const_name Pure.imp}, _)) $ A $ B) =
+      c $ A $ goal_prefix (k - 1) B
   | goal_prefix _ _ = Term.dummy_prop;
 
-fun goal_params k (Const ("all", _) $ Abs (_, _, B)) = goal_params k B + 1
+fun goal_params k (Const (@{const_name Pure.all}, _) $ Abs (_, _, B)) = goal_params k B + 1
   | goal_params 0 _ = 0
-  | goal_params k (Const ("==>", _) $ _ $ B) = goal_params (k - 1) B
+  | goal_params k (Const (@{const_name Pure.imp}, _) $ _ $ B) = goal_params (k - 1) B
   | goal_params _ _ = 0;
 
 fun meta_spec_tac ctxt n (x, T) = SUBGOAL (fn (goal, i) =>
@@ -670,11 +672,13 @@ fun meta_spec_tac ctxt n (x, T) = SUBGOAL (fn (goal, i) =>
           [(cert (Term.head_of pred), cert (Logic.rlist_abs (xs, body))),
            (cert (Term.head_of arg), cert (Logic.rlist_abs (xs, v)))]);
 
-    fun goal_concl k xs (Const ("all", _) $ Abs (a, T, B)) = goal_concl k ((a, T) :: xs) B
+    fun goal_concl k xs (Const (@{const_name Pure.all}, _) $ Abs (a, T, B)) =
+          goal_concl k ((a, T) :: xs) B
       | goal_concl 0 xs B =
           if not (Term.exists_subterm (fn t => t aconv v) B) then NONE
           else SOME (xs, absfree (x, T) (Term.incr_boundvars 1 B))
-      | goal_concl k xs (Const ("==>", _) $ _ $ B) = goal_concl (k - 1) xs B
+      | goal_concl k xs (Const (@{const_name Pure.imp}, _) $ _ $ B) =
+          goal_concl (k - 1) xs B
       | goal_concl _ _ _ = NONE;
   in
     (case goal_concl n [] goal of

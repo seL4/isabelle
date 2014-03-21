@@ -439,7 +439,7 @@ parse_translation {*
         val case1 = Syntax.const @{syntax_const "_case1"} $ p $ e;
         val case2 =
           Syntax.const @{syntax_const "_case1"} $
-            Syntax.const @{const_syntax dummy_pattern} $ NilC;
+            Syntax.const @{const_syntax Pure.dummy_pattern} $ NilC;
         val cs = Syntax.const @{syntax_const "_case2"} $ case1 $ case2;
       in Syntax_Trans.abs_tr [x, Case_Translation.case_tr false ctxt [x, cs]] end;
 

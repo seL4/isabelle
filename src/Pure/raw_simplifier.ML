@@ -599,7 +599,7 @@ fun is_full_cong_prems [] [] = true
   | is_full_cong_prems [] _ = false
   | is_full_cong_prems (p :: prems) varpairs =
       (case Logic.strip_assums_concl p of
-        Const ("==", _) $ lhs $ rhs =>
+        Const ("Pure.eq", _) $ lhs $ rhs =>
           let val (x, xs) = strip_comb lhs and (y, ys) = strip_comb rhs in
             is_Var x andalso forall is_Bound xs andalso
             not (has_duplicates (op =) xs) andalso xs = ys andalso
@@ -981,7 +981,7 @@ fun rewritec (prover, maxt) ctxt t =
       let
         fun is_simple ({thm, ...}: rrule) =
           (case Thm.prop_of thm of
-            Const ("==", _) $ _ $ _ => true
+            Const ("Pure.eq", _) $ _ $ _ => true
           | _ => false);
         fun sort [] (re1, re2) = re1 @ re2
           | sort (rr :: rrs) (re1, re2) =
@@ -1099,7 +1099,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, maxidx) =
                 end
             | t $ _ =>
               (case t of
-                Const ("==>", _) $ _  => impc t0 ctxt
+                Const ("Pure.imp", _) $ _  => impc t0 ctxt
               | Abs _ =>
                   let val thm = Thm.beta_conversion false t0
                   in

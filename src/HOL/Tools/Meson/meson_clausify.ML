@@ -242,7 +242,7 @@ fun rename_bound_vars_to_be_zapped ax_no =
     fun aux (cluster as (cluster_no, cluster_skolem)) index_no pos t =
       case t of
         (t1 as Const (s, _)) $ Abs (s', T, t') =>
-        if s = @{const_name all} orelse s = @{const_name All} orelse
+        if s = @{const_name Pure.all} orelse s = @{const_name All} orelse
            s = @{const_name Ex} then
           let
             val skolem = (pos = (s = @{const_name Ex}))
@@ -254,7 +254,7 @@ fun rename_bound_vars_to_be_zapped ax_no =
         else
           t
       | (t1 as Const (s, _)) $ t2 $ t3 =>
-        if s = @{const_name "==>"} orelse s = @{const_name HOL.implies} then
+        if s = @{const_name Pure.imp} orelse s = @{const_name HOL.implies} then
           t1 $ aux cluster index_no (not pos) t2 $ aux cluster index_no pos t3
         else if s = @{const_name HOL.conj} orelse
                 s = @{const_name HOL.disj} then
@@ -275,13 +275,13 @@ fun zap pos ct =
   ct
   |> (case term_of ct of
         Const (s, _) $ Abs (s', _, _) =>
-        if s = @{const_name all} orelse s = @{const_name All} orelse
+        if s = @{const_name Pure.all} orelse s = @{const_name All} orelse
            s = @{const_name Ex} then
           Thm.dest_comb #> snd #> Thm.dest_abs (SOME s') #> snd #> zap pos
         else
           Conv.all_conv
       | Const (s, _) $ _ $ _ =>
-        if s = @{const_name "==>"} orelse s = @{const_name implies} then
+        if s = @{const_name Pure.imp} orelse s = @{const_name implies} then
           Conv.combination_conv (Conv.arg_conv (zap (not pos))) (zap pos)
         else if s = @{const_name conj} orelse s = @{const_name disj} then
           Conv.combination_conv (Conv.arg_conv (zap pos)) (zap pos)

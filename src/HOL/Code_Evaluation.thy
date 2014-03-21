@@ -85,8 +85,9 @@ instantiation "fun" :: (typerep, typerep) term_of
 begin
 
 definition
-  "term_of (f \<Colon> 'a \<Rightarrow> 'b) = Const (STR ''dummy_pattern'') (Typerep.Typerep (STR ''fun'')
-     [Typerep.typerep TYPE('a), Typerep.typerep TYPE('b)])"
+  "term_of (f \<Colon> 'a \<Rightarrow> 'b) =
+    Const (STR ''Pure.dummy_pattern'')
+      (Typerep.Typerep (STR ''fun'') [Typerep.typerep TYPE('a), Typerep.typerep TYPE('b)])"
 
 instance ..
 

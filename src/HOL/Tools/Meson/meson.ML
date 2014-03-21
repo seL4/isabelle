@@ -105,7 +105,7 @@ fun first_order_resolve thA thB =
     try (fn () =>
       let val thy = theory_of_thm thA
           val tmA = concl_of thA
-          val Const("==>",_) $ tmB $ _ = prop_of thB
+          val Const(@{const_name Pure.imp},_) $ tmB $ _ = prop_of thB
           val tenv =
             Pattern.first_order_match thy (tmB, tmA)
                                           (Vartab.empty, Vartab.empty) |> snd
@@ -472,7 +472,7 @@ val neg_clauses = filter is_negative;
 
 (***** MESON PROOF PROCEDURE *****)
 
-fun rhyps (Const("==>",_) $ (Const(@{const_name Trueprop},_) $ A) $ phi,
+fun rhyps (Const(@{const_name Pure.imp},_) $ (Const(@{const_name Trueprop},_) $ A) $ phi,
            As) = rhyps(phi, A::As)
   | rhyps (_, As) = As;
 

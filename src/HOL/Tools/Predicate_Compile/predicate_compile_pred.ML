@@ -87,7 +87,7 @@ fun flatten constname atom (defs, thy) =
       val lhs = list_comb (Const (full_constname, constT), params @ args)
       val def = Logic.mk_equals (lhs, atom)
       val ([definition], thy') = thy
-        |> Sign.add_consts_i [(Binding.name constname, constT, NoSyn)]
+        |> Sign.add_consts [(Binding.name constname, constT, NoSyn)]
         |> Global_Theory.add_defs false [((Binding.name (Thm.def_name constname), def), [])]
     in
       (lhs, ((full_constname, [definition]) :: defs, thy'))
@@ -119,7 +119,7 @@ fun flatten constname atom (defs, thy) =
                 Logic.mk_equals (fold Envir.expand_term_frees (map single subst) lhs, rhs)
               val new_defs = map mk_def srs
               val (definition, thy') = thy
-              |> Sign.add_consts_i [(Binding.name constname, constT, NoSyn)]
+              |> Sign.add_consts [(Binding.name constname, constT, NoSyn)]
               |> fold_map Specification.axiom  (* FIXME !?!?!?! *)
                 (map_index (fn (i, t) =>
                   ((Binding.name (constname ^ "_def" ^ string_of_int i), []), t)) new_defs)
@@ -245,7 +245,7 @@ fun flat_higher_order_arguments (intross, thy) =
             val lhs = list_comb (const, frees)
             val def = Logic.mk_equals (lhs, abs_arg')
             val ([definition], thy') = thy
-              |> Sign.add_consts_i [(Binding.name constname, constT, NoSyn)]
+              |> Sign.add_consts [(Binding.name constname, constT, NoSyn)]
               |> Global_Theory.add_defs false [((Binding.name (Thm.def_name constname), def), [])]
           in
             (list_comb (Logic.varify_global const, vars),

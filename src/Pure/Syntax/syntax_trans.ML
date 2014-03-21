@@ -152,7 +152,7 @@ fun mk_binder_tr (syn, name) =
 
 fun mk_type ty =
   Syntax.const "_constrain" $
-    Syntax.const "\\<^const>TYPE" $ (Syntax.const "\\<^type>itself" $ ty);
+    Syntax.const "\\<^const>Pure.type" $ (Syntax.const "\\<^type>itself" $ ty);
 
 fun ofclass_tr [ty, cls] = cls $ mk_type ty
   | ofclass_tr ts = raise TERM ("ofclass_tr", ts);
@@ -174,7 +174,7 @@ fun bigimpl_ast_tr (asts as [asms, concl]) =
         (case Ast.unfold_ast_p "_asms" asms of
           (asms', Ast.Appl [Ast.Constant "_asm", asm']) => asms' @ [asm']
         | _ => raise Ast.AST ("bigimpl_ast_tr", asts))
-      in Ast.fold_ast_p "\\<^const>==>" (prems, concl) end
+      in Ast.fold_ast_p "\\<^const>Pure.imp" (prems, concl) end
   | bigimpl_ast_tr asts = raise Ast.AST ("bigimpl_ast_tr", asts);
 
 
@@ -382,7 +382,8 @@ fun idtyp_ast_tr' a [Ast.Appl [Ast.Constant "_constrain", x, ty], xs] =
 fun impl_ast_tr' asts =
   if no_brackets () then raise Match
   else
-    (case Ast.unfold_ast_p "\\<^const>==>" (Ast.Appl (Ast.Constant "\\<^const>==>" :: asts)) of
+    (case Ast.unfold_ast_p "\\<^const>Pure.imp"
+        (Ast.Appl (Ast.Constant "\\<^const>Pure.imp" :: asts)) of
       (prems as _ :: _ :: _, concl) =>
         let
           val (asms, asm) = split_last prems;
@@ -498,7 +499,7 @@ val pure_print_ast_translation =
   ("_abs", fn _ => abs_ast_tr'),
   ("_idts", fn _ => idtyp_ast_tr' "_idts"),
   ("_pttrns", fn _ => idtyp_ast_tr' "_pttrns"),
-  ("\\<^const>==>", fn _ => impl_ast_tr'),
+  ("\\<^const>Pure.imp", fn _ => impl_ast_tr'),
   ("_index", fn _ => index_ast_tr')];
 
 end;

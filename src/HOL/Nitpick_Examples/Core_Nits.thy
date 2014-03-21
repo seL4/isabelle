@@ -292,7 +292,7 @@ by auto
 
 subsection {* Known Constants *}
 
-lemma "x \<equiv> all \<Longrightarrow> False"
+lemma "x \<equiv> Pure.all \<Longrightarrow> False"
 nitpick [card = 1, expect = genuine]
 nitpick [card = 1, box "('a \<Rightarrow> prop) \<Rightarrow> prop", expect = genuine]
 nitpick [card = 6, expect = genuine]
@@ -306,15 +306,15 @@ lemma "\<And>x. f x y = f y x"
 nitpick [expect = genuine]
 oops
 
-lemma "all (\<lambda>x. Trueprop (f x y = f x y)) \<equiv> Trueprop True"
+lemma "Pure.all (\<lambda>x. Trueprop (f x y = f x y)) \<equiv> Trueprop True"
 nitpick [expect = none]
 by auto
 
-lemma "all (\<lambda>x. Trueprop (f x y = f x y)) \<equiv> Trueprop False"
+lemma "Pure.all (\<lambda>x. Trueprop (f x y = f x y)) \<equiv> Trueprop False"
 nitpick [expect = genuine]
 oops
 
-lemma "I = (\<lambda>x. x) \<Longrightarrow> all P \<equiv> all (\<lambda>x. P (I x))"
+lemma "I = (\<lambda>x. x) \<Longrightarrow> Pure.all P \<equiv> Pure.all (\<lambda>x. P (I x))"
 nitpick [expect = none]
 by auto
 

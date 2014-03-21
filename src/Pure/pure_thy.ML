@@ -49,8 +49,8 @@ val old_appl_syntax = Old_Appl_Syntax.get;
 
 val old_appl_syntax_setup =
   Old_Appl_Syntax.put true #>
-  Sign.del_modesyntax_i Syntax.mode_default applC_syntax #>
-  Sign.add_syntax_i appl_syntax;
+  Sign.del_syntax Syntax.mode_default applC_syntax #>
+  Sign.add_syntax Syntax.mode_default appl_syntax;
 
 
 (* main content *)
@@ -75,8 +75,8 @@ val _ = Theory.setup
         "tvar_position", "id_position", "longid_position", "var_position",
         "str_position", "string_position", "cartouche_position", "type_name",
         "class_name"]))
-  #> Sign.add_syntax_i (map (fn x => (x, typ "'a", NoSyn)) token_markers)
-  #> Sign.add_syntax_i
+  #> Sign.add_syntax Syntax.mode_default (map (fn x => (x, typ "'a", NoSyn)) token_markers)
+  #> Sign.add_syntax Syntax.mode_default
    [("",            typ "prop' => prop",               Delimfix "_"),
     ("",            typ "logic => any",                Delimfix "_"),
     ("",            typ "prop' => any",                Delimfix "_"),
@@ -169,13 +169,13 @@ val _ = Theory.setup
     ("_context_xconst", typ "id_position => aprop",    Delimfix "XCONST _"),
     ("_context_xconst", typ "longid_position => logic", Delimfix "XCONST _"),
     ("_context_xconst", typ "longid_position => aprop", Delimfix "XCONST _"),
-    (const "==>",   typ "prop => prop => prop",        Delimfix "op ==>"),
-    (const "dummy_pattern", typ "aprop",               Delimfix "'_"),
+    (const "Pure.imp",  typ "prop => prop => prop",     Delimfix "op ==>"),
+    (const "Pure.dummy_pattern", typ "aprop",          Delimfix "'_"),
     ("_sort_constraint", typ "type => prop",           Delimfix "(1SORT'_CONSTRAINT/(1'(_')))"),
     (const "Pure.term", typ "logic => prop",           Delimfix "TERM _"),
     (const "Pure.conjunction", typ "prop => prop => prop", Infixr ("&&&", 2))]
-  #> Sign.add_syntax_i applC_syntax
-  #> Sign.add_modesyntax_i (Symbol.xsymbolsN, true)
+  #> Sign.add_syntax Syntax.mode_default applC_syntax
+  #> Sign.add_syntax (Symbol.xsymbolsN, true)
    [(tycon "fun",         typ "type => type => type",   Mixfix ("(_/ \\<Rightarrow> _)", [1, 0], 0)),
     ("_bracket",          typ "types => type => type",  Mixfix ("([_]/ \\<Rightarrow> _)", [0, 0], 0)),
     ("_ofsort",           typ "tid_position => sort => type", Mixfix ("_\\<Colon>_", [1000, 0], 1000)),
@@ -184,42 +184,42 @@ val _ = Theory.setup
     ("_idtyp",            typ "id_position => type => idt", Mixfix ("_\\<Colon>_", [], 0)),
     ("_idtypdummy",       typ "type => idt",            Mixfix ("'_()\\<Colon>_", [], 0)),
     ("_lambda",           typ "pttrns => 'a => logic",  Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3)),
-    (const "==",          typ "'a => 'a => prop",       Infix ("\\<equiv>", 2)),
-    (const "all_binder",  typ "idts => prop => prop",   Mixfix ("(3\\<And>_./ _)", [0, 0], 0)),
-    (const "==>",         typ "prop => prop => prop",   Infixr ("\\<Longrightarrow>", 1)),
+    (const "Pure.eq",     typ "'a => 'a => prop",       Infix ("\\<equiv>", 2)),
+    (const "Pure.all_binder", typ "idts => prop => prop", Mixfix ("(3\\<And>_./ _)", [0, 0], 0)),
+    (const "Pure.imp",    typ "prop => prop => prop",   Infixr ("\\<Longrightarrow>", 1)),
     ("_DDDOT",            typ "aprop",                  Delimfix "\\<dots>"),
     ("_bigimpl",          typ "asms => prop => prop",   Mixfix ("((1\\<lbrakk>_\\<rbrakk>)/ \\<Longrightarrow> _)", [0, 1], 1)),
     ("_DDDOT",            typ "logic",                  Delimfix "\\<dots>")]
-  #> Sign.add_modesyntax_i ("", false)
-   [(const "prop", typ "prop => prop", Mixfix ("_", [0], 0))]
-  #> Sign.add_modesyntax_i ("HTML", false)
+  #> Sign.add_syntax ("", false)
+   [(const "Pure.prop", typ "prop => prop", Mixfix ("_", [0], 0))]
+  #> Sign.add_syntax ("HTML", false)
    [("_lambda", typ "pttrns => 'a => logic", Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3))]
-  #> Sign.add_consts_i
-   [(Binding.name "==", typ "'a => 'a => prop", Infix ("==", 2)),
-    (Binding.name "==>", typ "prop => prop => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
-    (Binding.name "all", typ "('a => prop) => prop", Binder ("!!", 0, 0)),
-    (Binding.name "prop", typ "prop => prop", NoSyn),
-    (Binding.name "TYPE", typ "'a itself", NoSyn),
-    (Binding.name "dummy_pattern", typ "'a", Delimfix "'_")]
-  #> Theory.add_deps_global "==" ("==", typ "'a => 'a => prop") []
-  #> Theory.add_deps_global "==>" ("==>", typ "prop => prop => prop") []
-  #> Theory.add_deps_global "all" ("all", typ "('a => prop) => prop") []
-  #> Theory.add_deps_global "TYPE" ("TYPE", typ "'a itself") []
-  #> Theory.add_deps_global "dummy_pattern" ("dummy_pattern", typ "'a") []
+  #> Sign.add_consts
+   [(qualify (Binding.name "eq"), typ "'a => 'a => prop", Infix ("==", 2)),
+    (qualify (Binding.name "imp"), typ "prop => prop => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
+    (qualify (Binding.name "all"), typ "('a => prop) => prop", Binder ("!!", 0, 0)),
+    (qualify (Binding.name "prop"), typ "prop => prop", NoSyn),
+    (qualify (Binding.name "type"), typ "'a itself", NoSyn),
+    (qualify (Binding.name "dummy_pattern"), typ "'a", Delimfix "'_")]
+  #> Theory.add_deps_global "Pure.eq" ("Pure.eq", typ "'a => 'a => prop") []
+  #> Theory.add_deps_global "Pure.imp" ("Pure.imp", typ "prop => prop => prop") []
+  #> Theory.add_deps_global "Pure.all" ("Pure.all", typ "('a => prop) => prop") []
+  #> Theory.add_deps_global "Pure.type" ("Pure.type", typ "'a itself") []
+  #> Theory.add_deps_global "Pure.dummy_pattern" ("Pure.dummy_pattern", typ "'a") []
   #> Sign.parse_ast_translation Syntax_Trans.pure_parse_ast_translation
   #> Sign.parse_translation Syntax_Trans.pure_parse_translation
   #> Sign.print_ast_translation Syntax_Trans.pure_print_ast_translation
-  #> Sign.add_consts_i
+  #> Sign.add_consts
    [(qualify (Binding.name "term"), typ "'a => prop", NoSyn),
     (qualify (Binding.name "sort_constraint"), typ "'a itself => prop", NoSyn),
     (qualify (Binding.name "conjunction"), typ "prop => prop => prop", NoSyn)]
   #> Sign.local_path
   #> (Global_Theory.add_defs false o map Thm.no_attributes)
-   [(Binding.name "prop_def", prop "(CONST prop :: prop => prop) (A::prop) == A::prop"),
+   [(Binding.name "prop_def", prop "(CONST Pure.prop :: prop => prop) (A::prop) == A::prop"),
     (Binding.name "term_def", prop "(CONST Pure.term :: 'a => prop) (x::'a) == (!!A::prop. A ==> A)"),
     (Binding.name "sort_constraint_def",
-      prop "(CONST Pure.sort_constraint :: 'a itself => prop) (CONST TYPE :: 'a itself) ==\
-      \ (CONST Pure.term :: 'a itself => prop) (CONST TYPE :: 'a itself)"),
+      prop "(CONST Pure.sort_constraint :: 'a itself => prop) (CONST Pure.type :: 'a itself) ==\
+      \ (CONST Pure.term :: 'a itself => prop) (CONST Pure.type :: 'a itself)"),
     (Binding.name "conjunction_def", prop "(A &&& B) == (!!C::prop. (A ==> B ==> C) ==> C)")] #> snd
   #> Global_Theory.add_thmss [((Binding.name "nothing", []), [])] #> snd
   #> fold (fn (a, prop) =>

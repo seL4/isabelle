@@ -307,7 +307,8 @@ fun translate_prem ensure_groundness ctxt constant_table t =
 
 fun imp_prems_conv cv ct =
   (case Thm.term_of ct of
-    Const ("==>", _) $ _ $ _ => Conv.combination_conv (Conv.arg_conv cv) (imp_prems_conv cv) ct
+    Const (@{const_name Pure.imp}, _) $ _ $ _ =>
+      Conv.combination_conv (Conv.arg_conv cv) (imp_prems_conv cv) ct
   | _ => Conv.all_conv ct)
 
 fun preprocess_intro thy rule =

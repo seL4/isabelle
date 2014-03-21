@@ -1146,7 +1146,7 @@ fun create_definitions options preds (name, modes) thy =
         val lhs = Const (mode_cname, funT)
         val def = Logic.mk_equals (lhs, predterm)
         val ([definition], thy') = thy |>
-          Sign.add_consts_i [(Binding.name mode_cbasename, funT, NoSyn)] |>
+          Sign.add_consts [(Binding.name mode_cbasename, funT, NoSyn)] |>
           Global_Theory.add_defs false [((Binding.name (Thm.def_name mode_cbasename), def), [])]
         val ctxt' = Proof_Context.init_global thy'
         val rules as ((intro, elim), _) =
@@ -1171,7 +1171,7 @@ fun define_functions comp_modifiers _ options preds (name, modes) thy =
         val mode_cname = create_constname_of_mode options thy function_name_prefix name T mode
         val funT = Comp_Mod.funT_of comp_modifiers mode T
       in
-        thy |> Sign.add_consts_i [(Binding.name (Long_Name.base_name mode_cname), funT, NoSyn)]
+        thy |> Sign.add_consts [(Binding.name (Long_Name.base_name mode_cname), funT, NoSyn)]
         |> set_function_name (Comp_Mod.compilation comp_modifiers) name mode mode_cname
       end;
   in

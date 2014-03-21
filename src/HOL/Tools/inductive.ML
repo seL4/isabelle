@@ -258,7 +258,7 @@ fun mk_mono ctxt thm =
       handle THM _ => thm RS @{thm le_boolD}
   in
     (case concl_of thm of
-      Const ("==", _) $ _ $ _ => eq_to_mono (thm RS meta_eq_to_obj_eq)
+      Const (@{const_name Pure.eq}, _) $ _ $ _ => eq_to_mono (thm RS meta_eq_to_obj_eq)
     | _ $ (Const (@{const_name HOL.eq}, _) $ _ $ _) => eq_to_mono thm
     | _ $ (Const (@{const_name Orderings.less_eq}, _) $ _ $ _) =>
       dest_less_concl (Seq.hd (REPEAT (FIRSTGOAL

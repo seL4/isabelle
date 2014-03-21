@@ -284,7 +284,7 @@ fun define_predicates specs thy =
           end
       val intr_tss = map mk_intros ((funs ~~ preds) ~~ (argss' ~~ rhss))
       val (intrs, thy') = thy
-        |> Sign.add_consts_i
+        |> Sign.add_consts
           (map (fn Const (name, T) => (Binding.name (Long_Name.base_name name), T, NoSyn))
            dst_preds)
         |> fold_map Specification.axiom  (* FIXME !?!?!?! *)

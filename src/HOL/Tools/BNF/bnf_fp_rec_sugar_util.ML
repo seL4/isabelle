@@ -86,8 +86,8 @@ fun retype_free T (Free (s, _)) = Free (s, T)
   | retype_free _ t = raise TERM ("retype_free", [t]);
 
 fun drop_all t =
-  subst_bounds (strip_qnt_vars @{const_name all} t |> map Free |> rev,
-    strip_qnt_body @{const_name all} t);
+  subst_bounds (strip_qnt_vars @{const_name Pure.all} t |> map Free |> rev,
+    strip_qnt_body @{const_name Pure.all} t);
 
 fun permute_args n t =
   list_comb (t, map Bound (0 :: (n downto 1))) |> fold (K (Term.abs (Name.uu, dummyT))) (0 upto n);

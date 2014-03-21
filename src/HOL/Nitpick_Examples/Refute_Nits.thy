@@ -326,7 +326,7 @@ lemma "\<lbrakk>P; Q; R\<rbrakk> \<Longrightarrow> S"
 nitpick [expect = genuine]
 oops
 
-lemma "(x \<equiv> all) \<Longrightarrow> False"
+lemma "(x \<equiv> Pure.all) \<Longrightarrow> False"
 nitpick [expect = genuine]
 oops
 

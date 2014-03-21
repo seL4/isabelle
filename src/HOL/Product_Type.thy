@@ -457,7 +457,7 @@ lemmas split_tupled_all = split_paired_all unit_all_eq2
 ML {*
   (* replace parameters of product type by individual component parameters *)
   local (* filtering with exists_paired_all is an essential optimization *)
-    fun exists_paired_all (Const ("all", _) $ Abs (_, T, t)) =
+    fun exists_paired_all (Const (@{const_name Pure.all}, _) $ Abs (_, T, t)) =
           can HOLogic.dest_prodT T orelse exists_paired_all t
       | exists_paired_all (t $ u) = exists_paired_all t orelse exists_paired_all u
       | exists_paired_all (Abs (_, _, t)) = exists_paired_all t

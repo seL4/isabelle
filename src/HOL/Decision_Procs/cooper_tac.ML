@@ -84,7 +84,7 @@ fun linz_tac ctxt q = Object_Logic.atomize_prems_tac ctxt THEN' SUBGOAL (fn (g, 
     (* The result of the quantifier elimination *)
     val (th, tac) =
       (case (prop_of pre_thm) of
-        Const ("==>", _) $ (Const (@{const_name Trueprop}, _) $ t1) $ _ =>
+        Const (@{const_name Pure.imp}, _) $ (Const (@{const_name Trueprop}, _) $ t1) $ _ =>
           let
             val pth = linzqe_oracle (cterm_of thy (Envir.eta_long [] t1))
           in

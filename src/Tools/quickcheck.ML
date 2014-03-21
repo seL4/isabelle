@@ -358,7 +358,7 @@ fun test_goal (time_limit, is_interactive) (insts, eval_terms) i state =
     val lthy = Proof.context_of state;
     val thy = Proof.theory_of state;
     val _ = message lthy "Quickchecking..."
-    fun strip (Const ("all", _) $ Abs (_, _, t)) = strip t
+    fun strip (Const (@{const_name Pure.all}, _) $ Abs (_, _, t)) = strip t
       | strip t = t;
     val {goal = st, ...} = Proof.raw_goal state;
     val (gi, frees) = Logic.goal_params (prop_of st) i;

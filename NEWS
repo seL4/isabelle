@@ -71,6 +71,34 @@ simplification process, enabled by the newly-introduced
 
 *** Pure ***
 
+* Basic constants of Pure use more conventional names and are always
+qualified.  Rare INCOMPATIBILITY, but with potentially serious
+consequences, notably for tools in Isabelle/ML.  The following
+renaming needs to be applied:
+
+  ==             ~>  Pure.eq
+  ==>            ~>  Pure.imp
+  all            ~>  Pure.all
+  TYPE           ~>  Pure.type
+  dummy_pattern  ~>  Pure.dummy_pattern
+
+Systematic porting works by using the following theory setup on a
+*previous* Isabelle version to introduce the new name accesses for the
+old constants:
+
+setup {*
+  fn thy => thy
+    |> Sign.root_path
+    |> Sign.const_alias (Binding.qualify true "Pure" @{binding eq}) "=="
+    |> Sign.const_alias (Binding.qualify true "Pure" @{binding imp}) "==>"
+    |> Sign.const_alias (Binding.qualify true "Pure" @{binding all}) "all"
+    |> Sign.restore_naming thy
+*}
+
+Thus ML antiquotations like @{const_name Pure.eq} may be used already.
+Later the application is moved to the current Isabelle version, and
+the auxiliary aliases are deleted.
+
 * Low-level type-class commands 'classes', 'classrel', 'arities' have
 been discontinued to avoid the danger of non-trivial axiomatization
 that is not immediately visible.  INCOMPATIBILITY, use regular

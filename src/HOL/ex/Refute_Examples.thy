@@ -325,7 +325,7 @@ lemma "\<lbrakk> P; Q; R \<rbrakk> \<Longrightarrow> S"
 refute [expect = genuine]
 oops
 
-lemma "(x == all) \<Longrightarrow> False"
+lemma "(x == Pure.all) \<Longrightarrow> False"
 refute [expect = genuine]
 oops
 

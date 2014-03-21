@@ -127,7 +127,7 @@ fun all_name (x, t) A =
   let
     val cert = Thm.cterm_of (Thm.theory_of_cterm t);
     val T = #T (Thm.rep_cterm t);
-  in Thm.apply (cert (Const ("all", (T --> propT) --> propT))) (Thm.lambda_name (x, t) A) end;
+  in Thm.apply (cert (Const ("Pure.all", (T --> propT) --> propT))) (Thm.lambda_name (x, t) A) end;
 
 fun all t A = all_name ("", t) A;
 
@@ -136,22 +136,22 @@ fun dest_binop ct = (Thm.dest_arg1 ct, Thm.dest_arg ct);
 
 fun dest_implies ct =
   (case Thm.term_of ct of
-    Const ("==>", _) $ _ $ _ => dest_binop ct
+    Const ("Pure.imp", _) $ _ $ _ => dest_binop ct
   | _ => raise TERM ("dest_implies", [Thm.term_of ct]));
 
 fun dest_equals ct =
   (case Thm.term_of ct of
-    Const ("==", _) $ _ $ _ => dest_binop ct
+    Const ("Pure.eq", _) $ _ $ _ => dest_binop ct
   | _ => raise TERM ("dest_equals", [Thm.term_of ct]));
 
 fun dest_equals_lhs ct =
   (case Thm.term_of ct of
-    Const ("==", _) $ _ $ _ => Thm.dest_arg1 ct
+    Const ("Pure.eq", _) $ _ $ _ => Thm.dest_arg1 ct
   | _ => raise TERM ("dest_equals_lhs", [Thm.term_of ct]));
 
 fun dest_equals_rhs ct =
   (case Thm.term_of ct of
-    Const ("==", _) $ _ $ _ => Thm.dest_arg ct
+    Const ("Pure.eq", _) $ _ $ _ => Thm.dest_arg ct
   | _ => raise TERM ("dest_equals_rhs", [Thm.term_of ct]));
 
 val lhs_of = dest_equals_lhs o Thm.cprop_of;
@@ -337,7 +337,7 @@ val forall_elim_vars = forall_elim_vars_aux Term.strip_all_vars;
 
 fun forall_elim_var i th =
   forall_elim_vars_aux
-    (fn Const ("all", _) $ Abs (a, T, _) => [(a, T)]
+    (fn Const ("Pure.all", _) $ Abs (a, T, _) => [(a, T)]
       | _ => raise THM ("forall_elim_vars", i, [th])) i th;
 
 end;

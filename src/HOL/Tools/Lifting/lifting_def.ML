@@ -547,11 +547,11 @@ end
 
 fun rename_to_tnames ctxt term =
   let
-    fun all_typs (Const ("all", _) $ Abs (_, T, t)) = T :: all_typs t
+    fun all_typs (Const (@{const_name Pure.all}, _) $ Abs (_, T, t)) = T :: all_typs t
       | all_typs _ = []
 
-    fun rename (Const ("all", T1) $ Abs (_, T2, t)) (new_name :: names) = 
-        (Const ("all", T1) $ Abs (new_name, T2, rename t names)) 
+    fun rename (Const (@{const_name Pure.all}, T1) $ Abs (_, T2, t)) (new_name :: names) = 
+        (Const (@{const_name Pure.all}, T1) $ Abs (new_name, T2, rename t names)) 
       | rename t _ = t
 
     val (fixed_def_t, _) = yield_singleton (Variable.importT_terms) term ctxt

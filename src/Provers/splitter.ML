@@ -57,7 +57,7 @@ val const_Trueprop = Object_Logic.judgment_name Data.thy;
 fun split_format_err () = error "Wrong format for split rule";
 
 fun split_thm_info thm = case concl_of (Data.mk_eq thm) of
-     Const("==", _) $ (Var _ $ t) $ c => (case strip_comb t of
+     Const(@{const_name Pure.eq}, _) $ (Var _ $ t) $ c => (case strip_comb t of
        (Const p, _) => (p, case c of (Const (s, _) $ _) => s = const_not | _ => false)
      | _ => split_format_err ())
    | _ => split_format_err ();
@@ -393,9 +393,9 @@ fun split_asm_tac [] = K no_tac
       fun tac (t,i) =
           let val n = find_index (exists_Const (member (op =) cname_list o #1))
                                  (Logic.strip_assums_hyp t);
-              fun first_prem_is_disj (Const ("==>", _) $ (Const (c, _)
+              fun first_prem_is_disj (Const (@{const_name Pure.imp}, _) $ (Const (c, _)
                     $ (Const (s, _) $ _ $ _ )) $ _ ) = c = const_Trueprop andalso s = const_or
-              |   first_prem_is_disj (Const("all",_)$Abs(_,_,t)) =
+              |   first_prem_is_disj (Const(@{const_name Pure.all},_)$Abs(_,_,t)) =
                                         first_prem_is_disj t
               |   first_prem_is_disj _ = false;
       (* does not work properly if the split variable is bound by a quantifier *)

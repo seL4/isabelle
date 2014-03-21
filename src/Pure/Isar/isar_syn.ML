@@ -108,7 +108,7 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_spec "consts"} "declare constants"
-    (Scan.repeat1 Parse.const_binding >> (Toplevel.theory o Sign.add_consts));
+    (Scan.repeat1 Parse.const_binding >> (Toplevel.theory o Sign.add_consts_cmd));
 
 val mode_spec =
   (@{keyword "output"} >> K ("", false)) ||
@@ -119,11 +119,13 @@ val opt_mode =
 
 val _ =
   Outer_Syntax.command @{command_spec "syntax"} "add raw syntax clauses"
-    (opt_mode -- Scan.repeat1 Parse.const_decl >> (Toplevel.theory o uncurry Sign.add_modesyntax));
+    (opt_mode -- Scan.repeat1 Parse.const_decl
+      >> (Toplevel.theory o uncurry Sign.add_syntax_cmd));
 
 val _ =
   Outer_Syntax.command @{command_spec "no_syntax"} "delete raw syntax clauses"
-    (opt_mode -- Scan.repeat1 Parse.const_decl >> (Toplevel.theory o uncurry Sign.del_modesyntax));
+    (opt_mode -- Scan.repeat1 Parse.const_decl
+      >> (Toplevel.theory o uncurry Sign.del_syntax_cmd));
 
 
 (* translations *)

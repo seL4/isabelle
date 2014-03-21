@@ -1001,7 +1001,7 @@ fun add_const prfx (s, ty) ((tab, ctxt), thy) =
   in
     (c,
      ((Symtab.update (s, (c, ty)) tab, Name.declare s ctxt),
-      Sign.add_consts_i [(b, T, NoSyn)] thy))
+      Sign.add_consts [(b, T, NoSyn)] thy))
   end;
 
 fun add_def prfx types pfuns consts (id, (s, e)) (ids as (tab, ctxt), thy) =

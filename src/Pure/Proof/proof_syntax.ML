@@ -35,7 +35,7 @@ val aT = TFree (Name.aT, []);
 fun add_proof_atom_consts names thy =
   thy
   |> Sign.root_path
-  |> Sign.add_consts_i (map (fn name => (Binding.qualified_name name, proofT, NoSyn)) names);
+  |> Sign.add_consts (map (fn name => (Binding.qualified_name name, proofT, NoSyn)) names);
 
 (** constants for application and abstraction **)
 
@@ -54,7 +54,7 @@ fun add_proof_syntax thy =
        ((Binding.name "OfClass", (Term.a_itselfT --> propT) --> proofT), NoSyn),
        ((Binding.name "MinProof", proofT), Delimfix "?")]
   |> Sign.add_nonterminals_global [Binding.name "param", Binding.name "params"]
-  |> Sign.add_syntax_i
+  |> Sign.add_syntax Syntax.mode_default
       [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1Lam _./ _)", [0, 3], 3)),
        ("_Lam0", [paramT, paramsT] ---> paramsT, Mixfix ("_/ _", [1, 0], 0)),
        ("_Lam0", [idtT, paramsT] ---> paramsT, Mixfix ("_/ _", [1, 0], 0)),
@@ -62,7 +62,7 @@ fun add_proof_syntax thy =
        ("", paramT --> paramT, Delimfix "'(_')"),
        ("", idtT --> paramsT, Delimfix "_"),
        ("", paramT --> paramsT, Delimfix "_")]
-  |> Sign.add_modesyntax_i (Symbol.xsymbolsN, true)
+  |> Sign.add_syntax (Symbol.xsymbolsN, true)
       [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1\<^bold>\<lambda>_./ _)", [0, 3], 3)),
        (Lexicon.mark_const "Appt", [proofT, aT] ---> proofT, Mixfix ("(1_ \<cdot>/ _)", [4, 5], 4)),
        (Lexicon.mark_const "AppP", [proofT, proofT] ---> proofT, Mixfix ("(1_ \<bullet>/ _)", [4, 5], 4))]
@@ -127,16 +127,16 @@ fun proof_of_term thy ty =
             Proofterm.incr_pboundvars (~1) 0 (prf_of [] prf))
       | prf_of [] (Const ("AbsP", _) $ t $ Abs (s, _, prf)) =
           AbsP (s, case t of
-                Const ("dummy_pattern", _) => NONE
-              | _ $ Const ("dummy_pattern", _) => NONE
+                Const ("Pure.dummy_pattern", _) => NONE
+              | _ $ Const ("Pure.dummy_pattern", _) => NONE
               | _ => SOME (mk_term t),
             Proofterm.incr_pboundvars 0 (~1) (prf_of [] prf))
       | prf_of [] (Const ("AppP", _) $ prf1 $ prf2) =
           prf_of [] prf1 %% prf_of [] prf2
-      | prf_of Ts (Const ("Appt", _) $ prf $ Const ("TYPE", Type (_, [T]))) =
+      | prf_of Ts (Const ("Appt", _) $ prf $ Const ("Pure.type", Type (_, [T]))) =
           prf_of (T::Ts) prf
       | prf_of [] (Const ("Appt", _) $ prf $ t) = prf_of [] prf %
-          (case t of Const ("dummy_pattern", _) => NONE | _ => SOME (mk_term t))
+          (case t of Const ("Pure.dummy_pattern", _) => NONE | _ => SOME (mk_term t))
       | prf_of _ t = error ("Not a proof term:\n" ^
           Syntax.string_of_term_global thy t)
 

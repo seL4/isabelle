@@ -865,9 +865,9 @@ fun lift_proof Bi inc prop prf =
     fun mk_app b (i, j, prf) =
           if b then (i-1, j, prf %% PBound i) else (i, j-1, prf %> Bound j);
 
-    fun lift Us bs i j (Const ("==>", _) $ A $ B) =
+    fun lift Us bs i j (Const ("Pure.imp", _) $ A $ B) =
             AbsP ("H", NONE (*A*), lift Us (true::bs) (i+1) j B)
-      | lift Us bs i j (Const ("all", _) $ Abs (a, T, t)) =
+      | lift Us bs i j (Const ("Pure.all", _) $ Abs (a, T, t)) =
             Abst (a, NONE (*T*), lift (T::Us) (false::bs) i (j+1) t)
       | lift Us bs i j _ = proof_combP (lifth' (rev Us) [] prf,
             map (fn k => (#3 (fold_rev mk_app bs (i-1, j-1, PBound k))))
@@ -886,9 +886,9 @@ fun incr_indexes i =
 fun mk_asm_prf t i m =
   let
     fun imp_prf _ i 0 = PBound i
-      | imp_prf (Const ("==>", _) $ A $ B) i m = AbsP ("H", NONE (*A*), imp_prf B (i+1) (m-1))
+      | imp_prf (Const ("Pure.imp", _) $ A $ B) i m = AbsP ("H", NONE (*A*), imp_prf B (i+1) (m-1))
       | imp_prf _ i _ = PBound i;
-    fun all_prf (Const ("all", _) $ Abs (a, T, t)) = Abst (a, NONE (*T*), all_prf t)
+    fun all_prf (Const ("Pure.all", _) $ Abs (a, T, t)) = Abst (a, NONE (*T*), all_prf t)
       | all_prf t = imp_prf t (~i) m
   in all_prf t end;
 
@@ -899,9 +899,9 @@ fun assumption_proof Bs Bi n prf =
 
 (***** Composition of object rule with proof state *****)
 
-fun flatten_params_proof i j n (Const ("==>", _) $ A $ B, k) =
+fun flatten_params_proof i j n (Const ("Pure.imp", _) $ A $ B, k) =
       AbsP ("H", NONE (*A*), flatten_params_proof (i+1) j n (B, k))
-  | flatten_params_proof i j n (Const ("all", _) $ Abs (a, T, t), k) =
+  | flatten_params_proof i j n (Const ("Pure.all", _) $ Abs (a, T, t), k) =
       Abst (a, NONE (*T*), flatten_params_proof i (j+1) n (t, k))
   | flatten_params_proof i j n (_, k) = proof_combP (proof_combt (PBound (k+i),
       map Bound (j-1 downto 0)), map PBound (remove (op =) (i-n) (i-1 downto 0)));
@@ -1091,9 +1091,9 @@ fun add_funvars Ts (vs, t) =
       if is_fun T then SOME ixn else NONE | _ => NONE) (vars_of t))
   else vs;
 
-fun add_npvars q p Ts (vs, Const ("==>", _) $ t $ u) =
+fun add_npvars q p Ts (vs, Const ("Pure.imp", _) $ t $ u) =
       add_npvars q p Ts (add_npvars q (not p) Ts (vs, t), u)
-  | add_npvars q p Ts (vs, Const ("all", Type (_, [Type (_, [T, _]), _])) $ t) =
+  | add_npvars q p Ts (vs, Const ("Pure.all", Type (_, [Type (_, [T, _]), _])) $ t) =
       add_npvars q p Ts (vs, if p andalso q then betapply (t, Var (("",0), T)) else t)
   | add_npvars q p Ts (vs, Abs (_, T, t)) = add_npvars q p (T::Ts) (vs, t)
   | add_npvars _ _ Ts (vs, t) = add_npvars' Ts (vs, t)
@@ -1105,8 +1105,8 @@ and add_npvars' Ts (vs, t) = (case strip_comb t of
   | (Abs (_, T, u), ts) => Library.foldl (add_npvars' (T::Ts)) (vs, u :: ts)
   | (_, ts) => Library.foldl (add_npvars' Ts) (vs, ts));
 
-fun prop_vars (Const ("==>", _) $ P $ Q) = union (op =) (prop_vars P) (prop_vars Q)
-  | prop_vars (Const ("all", _) $ Abs (_, _, t)) = prop_vars t
+fun prop_vars (Const ("Pure.imp", _) $ P $ Q) = union (op =) (prop_vars P) (prop_vars Q)
+  | prop_vars (Const ("Pure.all", _) $ Abs (_, _, t)) = prop_vars t
   | prop_vars t = (case strip_comb t of
       (Var (ixn, _), _) => [ixn] | _ => []);
 
@@ -1196,7 +1196,7 @@ fun shrink_proof thy =
               (fn (ixn, x as SOME _) => if member (op =) nvs ixn then (false, x) else (true, NONE)
                 | (_, x) => (false, x)) insts
           in ([], false, insts' @ map (pair false) ts'', prf) end
-    and needed (Const ("==>", _) $ t $ u) ts ((b, _, _, _)::prfs) =
+    and needed (Const ("Pure.imp", _) $ t $ u) ts ((b, _, _, _)::prfs) =
           union (op =) (if b then map (fst o dest_Var) (vars_of t) else []) (needed u ts prfs)
       | needed (Var (ixn, _)) (_::_) _ = [ixn]
       | needed _ _ _ = [];
