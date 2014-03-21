@@ -218,7 +218,7 @@ val forbidden =
   (@{const_name induct_conj}, "'a"),*)
   (@{const_name "undefined"}, "'a"),
   (@{const_name "default"}, "'a"),
-  (@{const_name "dummy_pattern"}, "'a::{}"),
+  (@{const_name "Pure.dummy_pattern"}, "'a::{}"),
   (@{const_name "HOL.simp_implies"}, "prop => prop => prop"),
   (@{const_name "bot_fun_inst.bot_fun"}, "'a"),
   (@{const_name "top_fun_inst.top_fun"}, "'a"),
@@ -254,7 +254,7 @@ val forbidden_mutant_constnames =
   "HOL.induct_forall",
  @{const_name undefined},
  @{const_name default},
- @{const_name dummy_pattern},
+ @{const_name Pure.dummy_pattern},
  @{const_name "HOL.simp_implies"},
  @{const_name "bot_fun_inst.bot_fun"},
  @{const_name "top_fun_inst.top_fun"},

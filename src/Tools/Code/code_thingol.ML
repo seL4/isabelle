@@ -800,8 +800,8 @@ fun ensure_value ctxt algbr eqngr t =
     val ty = fastype_of t;
     val vs = fold_term_types (K (fold_atyps (insert (eq_fst op =)
       o dest_TFree))) t [];
-    val t' = annotate ctxt algbr eqngr (@{const_name dummy_pattern}, ty) [] t;
-    val dummy_constant = Constant @{const_name dummy_pattern};
+    val t' = annotate ctxt algbr eqngr (@{const_name Pure.dummy_pattern}, ty) [] t;
+    val dummy_constant = Constant @{const_name Pure.dummy_pattern};
     val stmt_value =
       fold_map (translate_tyvar_sort ctxt algbr eqngr false) vs
       ##>> translate_typ ctxt algbr eqngr false ty
@@ -818,7 +818,7 @@ fun ensure_value ctxt algbr eqngr t =
         val program3 = Code_Symbol.Graph.restrict (member (op =) deps_all) program2;
       in ((program3, ((vs_ty, t), deps')), (deps, program2)) end;
   in
-    ensure_stmt Constant stmt_value @{const_name dummy_pattern}
+    ensure_stmt Constant stmt_value @{const_name Pure.dummy_pattern}
     #> snd
     #> term_value
   end;

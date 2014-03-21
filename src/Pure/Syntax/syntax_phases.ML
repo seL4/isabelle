@@ -177,7 +177,7 @@ fun parsetree_to_ast ctxt trf parsetree =
           in [Ast.Constant (Lexicon.mark_type c)] end
       | asts_of (Parser.Node ("_position", [Parser.Tip tok])) = asts_of_position "_constrain" tok
       | asts_of (Parser.Node ("_position_sort", [Parser.Tip tok])) = asts_of_position "_ofsort" tok
-      | asts_of (Parser.Node (a as "\\<^const>dummy_pattern", [Parser.Tip tok])) =
+      | asts_of (Parser.Node (a as "\\<^const>Pure.dummy_pattern", [Parser.Tip tok])) =
           [ast_of_dummy a tok]
       | asts_of (Parser.Node (a as "_idtdummy", [Parser.Tip tok])) =
           [ast_of_dummy a tok]

@@ -924,18 +924,18 @@ fun dest_abs (x, T, body) =
 
 (* dummy patterns *)
 
-fun dummy_pattern T = Const ("dummy_pattern", T);
+fun dummy_pattern T = Const ("Pure.dummy_pattern", T);
 val dummy = dummy_pattern dummyT;
 val dummy_prop = dummy_pattern propT;
 
-fun is_dummy_pattern (Const ("dummy_pattern", _)) = true
+fun is_dummy_pattern (Const ("Pure.dummy_pattern", _)) = true
   | is_dummy_pattern _ = false;
 
 fun no_dummy_patterns tm =
   if not (fold_aterms (fn t => fn b => b orelse is_dummy_pattern t) tm false) then tm
   else raise TERM ("Illegal occurrence of '_' dummy pattern", [tm]);
 
-fun free_dummy_patterns (Const ("dummy_pattern", T)) used =
+fun free_dummy_patterns (Const ("Pure.dummy_pattern", T)) used =
       let val [x] = Name.invent used Name.uu 1
       in (Free (Name.internal x, T), Name.declare x used) end
   | free_dummy_patterns (Abs (x, T, b)) used =
@@ -948,7 +948,7 @@ fun free_dummy_patterns (Const ("dummy_pattern", T)) used =
       in (t' $ u', used'') end
   | free_dummy_patterns a used = (a, used);
 
-fun replace_dummy Ts (Const ("dummy_pattern", T)) i =
+fun replace_dummy Ts (Const ("Pure.dummy_pattern", T)) i =
       (list_comb (Var (("_dummy_", i), Ts ---> T), map_range Bound (length Ts)), i + 1)
   | replace_dummy Ts (Abs (x, T, t)) i =
       let val (t', i') = replace_dummy (T :: Ts) t i

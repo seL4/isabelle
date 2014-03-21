@@ -428,7 +428,7 @@ fun mk_validator_expr ctxt t =
 fun mk_bounded_forall_generator_expr ctxt (t, eval_terms) = 
   let
     val frees = Term.add_free_names t []
-    val dummy_term = @{term "Code_Evaluation.Const (STR ''dummy_pattern'')
+    val dummy_term = @{term "Code_Evaluation.Const (STR ''Pure.dummy_pattern'')
       (Typerep.Typerep (STR ''dummy'') [])"}
     val return = @{term "Some :: term list => term list option"} $
       (HOLogic.mk_list @{typ "term"}

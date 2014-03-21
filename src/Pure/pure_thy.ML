@@ -170,7 +170,7 @@ val _ = Theory.setup
     ("_context_xconst", typ "longid_position => logic", Delimfix "XCONST _"),
     ("_context_xconst", typ "longid_position => aprop", Delimfix "XCONST _"),
     (const "==>",   typ "prop => prop => prop",        Delimfix "op ==>"),
-    (const "dummy_pattern", typ "aprop",               Delimfix "'_"),
+    (const "Pure.dummy_pattern", typ "aprop",          Delimfix "'_"),
     ("_sort_constraint", typ "type => prop",           Delimfix "(1SORT'_CONSTRAINT/(1'(_')))"),
     (const "Pure.term", typ "logic => prop",           Delimfix "TERM _"),
     (const "Pure.conjunction", typ "prop => prop => prop", Infixr ("&&&", 2))]
@@ -200,12 +200,12 @@ val _ = Theory.setup
     (Binding.name "all", typ "('a => prop) => prop", Binder ("!!", 0, 0)),
     (Binding.name "prop", typ "prop => prop", NoSyn),
     (Binding.name "TYPE", typ "'a itself", NoSyn),
-    (Binding.name "dummy_pattern", typ "'a", Delimfix "'_")]
+    (qualify (Binding.name "dummy_pattern"), typ "'a", Delimfix "'_")]
   #> Theory.add_deps_global "==" ("==", typ "'a => 'a => prop") []
   #> Theory.add_deps_global "==>" ("==>", typ "prop => prop => prop") []
   #> Theory.add_deps_global "all" ("all", typ "('a => prop) => prop") []
   #> Theory.add_deps_global "TYPE" ("TYPE", typ "'a itself") []
-  #> Theory.add_deps_global "dummy_pattern" ("dummy_pattern", typ "'a") []
+  #> Theory.add_deps_global "Pure.dummy_pattern" ("Pure.dummy_pattern", typ "'a") []
   #> Sign.parse_ast_translation Syntax_Trans.pure_parse_ast_translation
   #> Sign.parse_translation Syntax_Trans.pure_parse_translation
   #> Sign.print_ast_translation Syntax_Trans.pure_print_ast_translation
