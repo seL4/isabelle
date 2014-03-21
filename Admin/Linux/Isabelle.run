@@ -26,5 +26,6 @@ exec "$ISABELLE_HOME/contrib/jdk/${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM32}/bi
   "-Disabelle.home=$ISABELLE_HOME" \
   {JAVA_ARGS} \
   -classpath "{CLASSPATH}" \
+  "-splash:$ISABELLE_HOME/lib/logo/isabelle.gif" \
   isabelle.Main "$@"
 
