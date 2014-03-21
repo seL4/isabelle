@@ -37,7 +37,7 @@ val typ = Simple_Syntax.read_typ;
 val add_syntax =
   Sign.root_path
   #> Sign.add_types_global [(Binding.name "Type", 0, NoSyn), (Binding.name "Null", 0, NoSyn)]
-  #> Sign.add_consts_i
+  #> Sign.add_consts
       [(Binding.name "typeof", typ "'b => Type", NoSyn),
        (Binding.name "Type", typ "'a itself => Type", NoSyn),
        (Binding.name "Null", typ "Null", NoSyn),
@@ -791,7 +791,7 @@ fun extract thms thy =
              val fu = Type.legacy_freeze u;
              val (def_thms, thy') = if t = nullt then ([], thy) else
                thy
-               |> Sign.add_consts_i [(Binding.qualified_name (extr_name s vs), fastype_of ft, NoSyn)]
+               |> Sign.add_consts [(Binding.qualified_name (extr_name s vs), fastype_of ft, NoSyn)]
                |> Global_Theory.add_defs false
                   [((Binding.qualified_name (Thm.def_name (extr_name s vs)),
                     Logic.mk_equals (head_of (strip_abs_body fu), ft)), [])]

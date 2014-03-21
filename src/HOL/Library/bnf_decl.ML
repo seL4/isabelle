@@ -57,7 +57,7 @@ fun prepare_decl prepare_constraint prepare_typ raw_vars b mx user_mapb user_rel
       (if nwits = 1 then [0] else 1 upto nwits);
 
     val lthy = Local_Theory.background_theory
-      (Sign.add_consts_i ((mapb, mapT, NoSyn) :: (bdb, bdT, NoSyn) ::
+      (Sign.add_consts ((mapb, mapT, NoSyn) :: (bdb, bdT, NoSyn) ::
         map2 (fn b => fn T => (b, T, NoSyn)) setbs setTs @
         map2 (fn b => fn T => (b, T, NoSyn)) witbs witTs))
       lthy;

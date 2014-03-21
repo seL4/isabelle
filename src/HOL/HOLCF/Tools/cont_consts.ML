@@ -80,7 +80,7 @@ fun gen_add_consts prep_typ raw_decls thy =
     val transformed_decls = map (transform thy) contconst_decls
   in
     thy
-    |> Sign.add_consts_i (normal_decls @ map #1 transformed_decls @ map #2 transformed_decls)
+    |> Sign.add_consts (normal_decls @ map #1 transformed_decls @ map #2 transformed_decls)
     |> Sign.add_trrules (maps #3 transformed_decls)
   end
 

@@ -1212,7 +1212,7 @@ fun define_quickcheck_predicate t thy =
     val constname = "quickcheck"
     val full_constname = Sign.full_bname thy constname
     val constT = map snd vs' ---> @{typ bool}
-    val thy1 = Sign.add_consts_i [(Binding.name constname, constT, NoSyn)] thy
+    val thy1 = Sign.add_consts [(Binding.name constname, constT, NoSyn)] thy
     val const = Const (full_constname, constT)
     val t =
       Logic.list_implies

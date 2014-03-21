@@ -94,7 +94,7 @@ fun specialise_intros black_list (pred, intros) pats thy =
       end handle Pattern.Unif => NONE)
     val specialised_intros_t = map_filter I (map specialise_intro intros)
     val thy' =
-      Sign.add_consts_i [(Binding.name (Long_Name.base_name constname), constT, NoSyn)] thy
+      Sign.add_consts [(Binding.name (Long_Name.base_name constname), constT, NoSyn)] thy
     val specialised_intros = map (Skip_Proof.make_thm thy') specialised_intros_t
     val exported_intros = Variable.exportT ctxt' ctxt specialised_intros
     val [t, specialised_t] = Variable.exportT_terms ctxt' ctxt

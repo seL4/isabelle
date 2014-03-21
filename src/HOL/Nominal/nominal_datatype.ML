@@ -761,7 +761,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
           (Const (rep_name, T --> T') $ lhs, rhs));
         val def_name = (Long_Name.base_name cname) ^ "_def";
         val ([def_thm], thy') = thy |>
-          Sign.add_consts_i [(cname', constrT, mx)] |>
+          Sign.add_consts [(cname', constrT, mx)] |>
           (Global_Theory.add_defs false o map Thm.no_attributes) [(Binding.name def_name, def)];
       in (thy', defs @ [def_thm], eqns @ [eqn]) end;
 
@@ -1993,7 +1993,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
 
     val (reccomb_defs, thy12) =
       thy11
-      |> Sign.add_consts_i (map (fn ((name, T), T') =>
+      |> Sign.add_consts (map (fn ((name, T), T') =>
           (Binding.name (Long_Name.base_name name), rec_fn_Ts @ [T] ---> T', NoSyn))
           (reccomb_names ~~ recTs ~~ rec_result_Ts))
       |> (Global_Theory.add_defs false o map Thm.no_attributes) (map (fn ((((name, comb), set), T), T') =>

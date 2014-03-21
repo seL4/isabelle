@@ -237,7 +237,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
           HOLogic.mk_Trueprop (HOLogic.mk_eq (Const (Rep_name, T --> Univ_elT) $ lhs, rhs));
         val ([def_thm], thy') =
           thy
-          |> Sign.add_consts_i [(cname', constrT, mx)]
+          |> Sign.add_consts [(cname', constrT, mx)]
           |> (Global_Theory.add_defs false o map Thm.no_attributes) [(Binding.name def_name, def)];
 
       in (thy', defs @ [def_thm], eqns @ [eqn], i + 1) end;
@@ -262,7 +262,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
     val (thy4, constr_defs, constr_rep_eqns, rep_congs, dist_lemmas) =
       fold dt_constr_defs
         (hd descr ~~ new_type_names ~~ map #2 typedefs ~~ newTs ~~ constr_syntax)
-        (thy3 |> Sign.add_consts_i iso_decls |> Sign.parent_path, [], [], [], []);
+        (thy3 |> Sign.add_consts iso_decls |> Sign.parent_path, [], [], [], []);
 
 
     (*********** isomorphisms for new types (introduced by typedef) ***********)

@@ -49,8 +49,8 @@ val old_appl_syntax = Old_Appl_Syntax.get;
 
 val old_appl_syntax_setup =
   Old_Appl_Syntax.put true #>
-  Sign.del_modesyntax_i Syntax.mode_default applC_syntax #>
-  Sign.add_syntax_i appl_syntax;
+  Sign.del_modesyntax Syntax.mode_default applC_syntax #>
+  Sign.add_syntax appl_syntax;
 
 
 (* main content *)
@@ -75,8 +75,8 @@ val _ = Theory.setup
         "tvar_position", "id_position", "longid_position", "var_position",
         "str_position", "string_position", "cartouche_position", "type_name",
         "class_name"]))
-  #> Sign.add_syntax_i (map (fn x => (x, typ "'a", NoSyn)) token_markers)
-  #> Sign.add_syntax_i
+  #> Sign.add_syntax (map (fn x => (x, typ "'a", NoSyn)) token_markers)
+  #> Sign.add_syntax
    [("",            typ "prop' => prop",               Delimfix "_"),
     ("",            typ "logic => any",                Delimfix "_"),
     ("",            typ "prop' => any",                Delimfix "_"),
@@ -174,8 +174,8 @@ val _ = Theory.setup
     ("_sort_constraint", typ "type => prop",           Delimfix "(1SORT'_CONSTRAINT/(1'(_')))"),
     (const "Pure.term", typ "logic => prop",           Delimfix "TERM _"),
     (const "Pure.conjunction", typ "prop => prop => prop", Infixr ("&&&", 2))]
-  #> Sign.add_syntax_i applC_syntax
-  #> Sign.add_modesyntax_i (Symbol.xsymbolsN, true)
+  #> Sign.add_syntax applC_syntax
+  #> Sign.add_modesyntax (Symbol.xsymbolsN, true)
    [(tycon "fun",         typ "type => type => type",   Mixfix ("(_/ \\<Rightarrow> _)", [1, 0], 0)),
     ("_bracket",          typ "types => type => type",  Mixfix ("([_]/ \\<Rightarrow> _)", [0, 0], 0)),
     ("_ofsort",           typ "tid_position => sort => type", Mixfix ("_\\<Colon>_", [1000, 0], 1000)),
@@ -190,11 +190,11 @@ val _ = Theory.setup
     ("_DDDOT",            typ "aprop",                  Delimfix "\\<dots>"),
     ("_bigimpl",          typ "asms => prop => prop",   Mixfix ("((1\\<lbrakk>_\\<rbrakk>)/ \\<Longrightarrow> _)", [0, 1], 1)),
     ("_DDDOT",            typ "logic",                  Delimfix "\\<dots>")]
-  #> Sign.add_modesyntax_i ("", false)
+  #> Sign.add_modesyntax ("", false)
    [(const "prop", typ "prop => prop", Mixfix ("_", [0], 0))]
-  #> Sign.add_modesyntax_i ("HTML", false)
+  #> Sign.add_modesyntax ("HTML", false)
    [("_lambda", typ "pttrns => 'a => logic", Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3))]
-  #> Sign.add_consts_i
+  #> Sign.add_consts
    [(Binding.name "==", typ "'a => 'a => prop", Infix ("==", 2)),
     (Binding.name "==>", typ "prop => prop => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
     (Binding.name "all", typ "('a => prop) => prop", Binder ("!!", 0, 0)),
@@ -209,7 +209,7 @@ val _ = Theory.setup
   #> Sign.parse_ast_translation Syntax_Trans.pure_parse_ast_translation
   #> Sign.parse_translation Syntax_Trans.pure_parse_translation
   #> Sign.print_ast_translation Syntax_Trans.pure_print_ast_translation
-  #> Sign.add_consts_i
+  #> Sign.add_consts
    [(qualify (Binding.name "term"), typ "'a => prop", NoSyn),
     (qualify (Binding.name "sort_constraint"), typ "'a itself => prop", NoSyn),
     (qualify (Binding.name "conjunction"), typ "prop => prop => prop", NoSyn)]

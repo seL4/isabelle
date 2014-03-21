@@ -226,7 +226,7 @@ fun prove_primrec_thms (config : Datatype_Aux.config) new_type_names descr
 
     val (reccomb_defs, thy2) =
       thy1
-      |> Sign.add_consts_i (map (fn ((name, T), T') =>
+      |> Sign.add_consts (map (fn ((name, T), T') =>
             (Binding.name (Long_Name.base_name name), reccomb_fn_Ts @ [T] ---> T', NoSyn))
             (reccomb_names ~~ recTs ~~ rec_result_Ts))
       |> (Global_Theory.add_defs false o map Thm.no_attributes)

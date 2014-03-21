@@ -73,18 +73,18 @@ sig
   val add_nonterminals: Proof.context -> binding list -> theory -> theory
   val add_nonterminals_global: binding list -> theory -> theory
   val add_type_abbrev: Proof.context -> binding * string list * typ -> theory -> theory
-  val add_syntax: (string * string * mixfix) list -> theory -> theory
-  val add_syntax_i: (string * typ * mixfix) list -> theory -> theory
-  val add_modesyntax: Syntax.mode -> (string * string * mixfix) list -> theory -> theory
-  val add_modesyntax_i: Syntax.mode -> (string * typ * mixfix) list -> theory -> theory
-  val del_modesyntax: Syntax.mode -> (string * string * mixfix) list -> theory -> theory
-  val del_modesyntax_i: Syntax.mode -> (string * typ * mixfix) list -> theory -> theory
+  val add_syntax: (string * typ * mixfix) list -> theory -> theory
+  val add_syntax_cmd: (string * string * mixfix) list -> theory -> theory
+  val add_modesyntax: Syntax.mode -> (string * typ * mixfix) list -> theory -> theory
+  val add_modesyntax_cmd: Syntax.mode -> (string * string * mixfix) list -> theory -> theory
+  val del_modesyntax: Syntax.mode -> (string * typ * mixfix) list -> theory -> theory
+  val del_modesyntax_cmd: Syntax.mode -> (string * string * mixfix) list -> theory -> theory
   val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> theory -> theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> theory -> theory
   val declare_const: Proof.context -> (binding * typ) * mixfix -> theory -> term * theory
   val declare_const_global: (binding * typ) * mixfix -> theory -> term * theory
-  val add_consts: (binding * string * mixfix) list -> theory -> theory
-  val add_consts_i: (binding * typ * mixfix) list -> theory -> theory
+  val add_consts: (binding * typ * mixfix) list -> theory -> theory
+  val add_consts_cmd: (binding * string * mixfix) list -> theory -> theory
   val add_abbrev: string -> binding * term -> theory -> (term * term) * theory
   val revert_abbrev: string -> string -> theory -> theory
   val add_const_constraint: string * typ option -> theory -> theory
@@ -375,12 +375,12 @@ fun gen_syntax change_gram parse_typ mode args thy =
 
 fun gen_add_syntax x = gen_syntax (Syntax.update_const_gram true) x;
 
-val add_modesyntax = gen_add_syntax Syntax.read_typ;
-val add_modesyntax_i = gen_add_syntax (K I);
+val add_modesyntax = gen_add_syntax (K I);
+val add_modesyntax_cmd = gen_add_syntax Syntax.read_typ;
 val add_syntax = add_modesyntax Syntax.mode_default;
-val add_syntax_i = add_modesyntax_i Syntax.mode_default;
-val del_modesyntax = gen_syntax (Syntax.update_const_gram false) Syntax.read_typ;
-val del_modesyntax_i = gen_syntax (Syntax.update_const_gram false) (K I);
+val add_syntax_cmd = add_modesyntax_cmd Syntax.mode_default;
+val del_modesyntax = gen_syntax (Syntax.update_const_gram false) (K I);
+val del_modesyntax_cmd = gen_syntax (Syntax.update_const_gram false) Syntax.read_typ;
 
 fun type_notation add mode args =
   let
@@ -417,17 +417,17 @@ fun gen_add_consts prep_typ ctxt raw_args thy =
   in
     thy
     |> map_consts (fold (Consts.declare (inherit_naming thy ctxt) o #1) args)
-    |> add_syntax_i (map #2 args)
+    |> add_syntax (map #2 args)
     |> pair (map #3 args)
   end;
 
 in
 
 fun add_consts args thy =
-  #2 (gen_add_consts Syntax.read_typ (Proof_Context.init_global thy) args thy);
-
-fun add_consts_i args thy =
   #2 (gen_add_consts (K I) (Proof_Context.init_global thy) args thy);
+
+fun add_consts_cmd args thy =
+  #2 (gen_add_consts Syntax.read_typ (Proof_Context.init_global thy) args thy);
 
 fun declare_const ctxt ((b, T), mx) = yield_singleton (gen_add_consts (K I) ctxt) (b, T, mx);
 fun declare_const_global arg thy = declare_const (Proof_Context.init_global thy) arg thy;
@@ -468,7 +468,7 @@ fun primitive_class (bclass, classes) thy =
   |> map_sign (fn (syn, tsig, consts) =>
       let val tsig' = Type.add_class (Context.Theory thy) (bclass, classes) tsig;
       in (syn, tsig', consts) end)
-  |> add_consts_i [(Binding.map_name Logic.const_of_class bclass, Term.a_itselfT --> propT, NoSyn)];
+  |> add_consts [(Binding.map_name Logic.const_of_class bclass, Term.a_itselfT --> propT, NoSyn)];
 
 fun primitive_classrel arg thy =
   thy |> map_tsig (Type.add_classrel (Context.pretty_global thy) arg);

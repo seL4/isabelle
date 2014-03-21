@@ -244,21 +244,20 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   fun add_recursor thy =
     if need_recursor then
       thy
-      |> Sign.add_consts_i
-        [(Binding.name recursor_base_name, recursor_typ, NoSyn)]
+      |> Sign.add_consts [(Binding.name recursor_base_name, recursor_typ, NoSyn)]
       |> (snd o Global_Theory.add_defs false [(Thm.no_attributes o apfst Binding.name) recursor_def])
     else thy;
 
   val (con_defs, thy0) = thy_path
-             |> Sign.add_consts_i
-                 (map (fn (c, T, mx) => (Binding.name c, T, mx))
-                  ((case_base_name, case_typ, NoSyn) :: map #1 (flat con_ty_lists)))
-             |> Global_Theory.add_defs false
-                 (map (Thm.no_attributes o apfst Binding.name)
-                  (case_def ::
-                   flat (ListPair.map mk_con_defs (1 upto npart, con_ty_lists))))
-             ||> add_recursor
-             ||> Sign.parent_path
+    |> Sign.add_consts
+        (map (fn (c, T, mx) => (Binding.name c, T, mx))
+         ((case_base_name, case_typ, NoSyn) :: map #1 (flat con_ty_lists)))
+    |> Global_Theory.add_defs false
+        (map (Thm.no_attributes o apfst Binding.name)
+         (case_def ::
+          flat (ListPair.map mk_con_defs (1 upto npart, con_ty_lists))))
+    ||> add_recursor
+    ||> Sign.parent_path;
 
   val intr_names = map (Binding.name o #2) (flat con_ty_lists);
   val (thy1, ind_result) =
