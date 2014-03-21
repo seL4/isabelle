@@ -60,88 +60,19 @@ proof -
   moreover have "\<dots> \<longleftrightarrow> <g, h> = f" by (subst (2) *[symmetric]) (auto simp: convol_def fun_eq_iff)
   ultimately show ?thesis by simp
 qed
-
-definition inver where
-  "inver g f A = (ALL a : A. g (f a) = a)"
-
-lemma bij_betw_iff_ex:
-  "bij_betw f A B = (EX g. g ` B = A \<and> inver g f A \<and> inver f g B)" (is "?L = ?R")
-proof (rule iffI)
-  assume ?L
-  hence f: "f ` A = B" and inj_f: "inj_on f A" unfolding bij_betw_def by auto
-  let ?phi = "% b a. a : A \<and> f a = b"
-  have "ALL b : B. EX a. ?phi b a" using f by blast
-  then obtain g where g: "ALL b : B. g b : A \<and> f (g b) = b"
-    using bchoice[of B ?phi] by blast
-  hence gg: "ALL b : f ` A. g b : A \<and> f (g b) = b" using f by blast
-  have gf: "inver g f A" unfolding inver_def
-  proof
-    fix a assume "a \<in> A"
-    then show "g (f a) = a" using the_inv_into_f_f[OF inj_f, of "g (f a)"]
-      the_inv_into_f_f[OF inj_f, of a] gg imageI[of a A f] by auto
-  qed
-  moreover have "g ` B \<le> A \<and> inver f g B" using g unfolding inver_def by blast
-  moreover have "A \<le> g ` B"
-  proof safe
-    fix a assume a: "a : A"
-    hence "f a : B" using f by auto
-    moreover have "a = g (f a)" using a gf unfolding inver_def by auto
-    ultimately show "a : g ` B" by blast
-  qed
-  ultimately show ?R by blast
-next
-  assume ?R
-  then obtain g where g: "g ` B = A \<and> inver g f A \<and> inver f g B" by blast
-  show ?L unfolding bij_betw_def
-  proof safe
-    show "inj_on f A" unfolding inj_on_def
-    proof safe
-      fix a1 a2 assume a: "a1 : A"  "a2 : A" and "f a1 = f a2"
-      hence "g (f a1) = g (f a2)" by simp
-      thus "a1 = a2" using a g unfolding inver_def by simp
-    qed
-  next
-    fix a assume "a : A"
-    then obtain b where b: "b : B" and a: "a = g b" using g by blast
-    hence "b = f (g b)" using g unfolding inver_def by auto
-    thus "f a : B" unfolding a using b by simp
-  next
-    fix b assume "b : B"
-    hence "g b : A \<and> b = f (g b)" using g unfolding inver_def by auto
-    thus "b : f ` A" by auto
-  qed
-qed
-
-lemma bij_betw_ex_weakE:
-  "\<lbrakk>bij_betw f A B\<rbrakk> \<Longrightarrow> \<exists>g. g ` B \<subseteq> A \<and> inver g f A \<and> inver f g B"
-by (auto simp only: bij_betw_iff_ex)
-
-lemma inver_surj: "\<lbrakk>g ` B \<subseteq> A; f ` A \<subseteq> B; inver g f A\<rbrakk> \<Longrightarrow> g ` B = A"
-unfolding inver_def by auto (rule rev_image_eqI, auto)
-
-lemma inver_mono: "\<lbrakk>A \<subseteq> B; inver f g B\<rbrakk> \<Longrightarrow> inver f g A"
-unfolding inver_def by auto
-
-lemma inver_pointfree: "inver f g A = (\<forall>a \<in> A. (f o g) a = a)"
-unfolding inver_def by simp
-
 lemma bij_betwE: "bij_betw f A B \<Longrightarrow> \<forall>a\<in>A. f a \<in> B"
 unfolding bij_betw_def by auto
 
 lemma bij_betw_imageE: "bij_betw f A B \<Longrightarrow> f ` A = B"
 unfolding bij_betw_def by auto
 
-lemma inverE: "\<lbrakk>inver f f' A; x \<in> A\<rbrakk> \<Longrightarrow> f (f' x) = x"
-unfolding inver_def by auto
+lemma f_the_inv_into_f_bij_betw: "bij_betw f A B \<Longrightarrow>
+  (bij_betw f A B \<Longrightarrow> x \<in> B) \<Longrightarrow> f (the_inv_into A f x) = x"
+  unfolding bij_betw_def by (blast intro: f_the_inv_into_f)
 
-lemma bij_betw_inver1: "bij_betw f A B \<Longrightarrow> inver (inv_into A f) f A"
-unfolding bij_betw_def inver_def by auto
-
-lemma bij_betw_inver2: "bij_betw f A B \<Longrightarrow> inver f (inv_into A f) B"
-unfolding bij_betw_def inver_def by auto
-
-lemma bij_betwI: "\<lbrakk>bij_betw g B A; inver g f A; inver f g B\<rbrakk> \<Longrightarrow> bij_betw f A B"
-by (drule bij_betw_imageE, unfold bij_betw_iff_ex) blast
+lemma ex_bij_betw: "|A| \<le>o (r :: 'b rel) \<Longrightarrow> \<exists>f B :: 'b set. bij_betw f B A"
+  by (subst (asm) internalize_card_of_ordLeq)
+    (auto dest!: iffD2[OF card_of_ordIso ordIso_symmetric])
 
 lemma bij_betwI':
   "\<lbrakk>\<And>x y. \<lbrakk>x \<in> X; y \<in> X\<rbrakk> \<Longrightarrow> (f x = f y) = (x = y);

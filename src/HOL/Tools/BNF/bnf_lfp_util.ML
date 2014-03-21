@@ -12,7 +12,6 @@ sig
 
   val mk_bij_betw: term -> term -> term -> term
   val mk_cardSuc: term -> term
-  val mk_inver: term -> term -> term -> term
   val mk_not_empty: term -> term
   val mk_not_eq: term -> term -> term
   val mk_rapp: term -> typ -> term
@@ -51,10 +50,6 @@ fun mk_cardSuc r =
 fun mk_bij_betw f A B =
  Const (@{const_name bij_betw},
    fastype_of f --> fastype_of A --> fastype_of B --> HOLogic.boolT) $ f $ A $ B;
-
-fun mk_inver f g A =
- Const (@{const_name inver}, fastype_of f --> fastype_of g --> fastype_of A --> HOLogic.boolT) $
-   f $ g $ A;
 
 fun mk_not_eq x y = HOLogic.mk_not (HOLogic.mk_eq (x, y));
 

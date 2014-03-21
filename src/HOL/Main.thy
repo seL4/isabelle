@@ -31,7 +31,7 @@ no_notation
 hide_const (open)
   czero cinfinite cfinite csum cone ctwo Csum cprod cexp
   image2 image2p vimage2p Gr Grp collect fsts snds setl setr
-  convol pick_middlep fstOp sndOp csquare inver relImage relInvImage
+  convol pick_middlep fstOp sndOp csquare relImage relInvImage
   Succ Shift shift proj
 
 no_syntax (xsymbols)

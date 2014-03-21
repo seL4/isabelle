@@ -16,8 +16,7 @@ sig
   val mk_bd_card_order_tac: thm list -> tactic
   val mk_bd_limit_tac: int -> thm -> tactic
   val mk_card_of_min_alg_tac: thm -> thm -> thm -> thm -> thm -> tactic
-  val mk_copy_alg_tac: Proof.context -> thm list list -> thm list -> thm -> thm -> thm -> tactic
-  val mk_copy_str_tac: thm list list -> thm -> thm list -> tactic
+  val mk_copy_tac: int -> thm -> thm -> thm list -> thm list list -> tactic
   val mk_ctor_induct_tac: Proof.context -> int -> thm list list -> thm -> thm list -> thm ->
     thm list -> thm list -> thm list -> tactic
   val mk_ctor_induct2_tac: Proof.context -> ctyp option list -> cterm option list -> thm ->
@@ -26,13 +25,11 @@ sig
   val mk_ctor_rel_tac: Proof.context -> thm list -> int -> thm -> thm -> thm -> thm -> thm list ->
     thm -> thm -> thm list -> thm list -> thm list list -> tactic
   val mk_dtor_o_ctor_tac: thm -> thm -> thm -> thm -> thm list -> tactic
-  val mk_ex_copy_alg_tac: int -> thm -> thm -> tactic
-  val mk_init_ex_mor_tac: Proof.context -> thm -> thm -> thm -> thm list -> thm -> thm -> thm ->
+  val mk_init_ex_mor_tac: Proof.context -> thm -> thm -> thm list -> thm -> thm -> thm -> thm ->
     tactic
   val mk_init_induct_tac: int -> thm -> thm -> thm list -> thm list -> tactic
   val mk_init_unique_mor_tac: int -> thm -> thm -> thm list -> thm list -> thm list -> thm list ->
     thm list -> tactic
-  val mk_iso_alt_tac: thm list -> thm -> tactic
   val mk_fold_unique_mor_tac: thm list -> thm list -> thm list -> thm -> thm -> thm -> tactic
   val mk_fold_transfer_tac: Proof.context -> int -> thm -> thm list -> thm list -> tactic
   val mk_least_min_alg_tac: thm -> thm -> tactic
@@ -49,14 +46,15 @@ sig
   val mk_min_algs_least_tac: ctyp -> cterm -> thm -> thm list -> thm list -> tactic
   val mk_min_algs_mono_tac: Proof.context -> thm -> tactic
   val mk_min_algs_tac: thm -> thm list -> tactic
-  val mk_mor_Abs_tac: thm -> thm list -> thm list -> tactic
-  val mk_mor_Rep_tac: Proof.context -> thm list -> thm -> thm list -> thm list -> thm list -> tactic
+  val mk_mor_Abs_tac: Proof.context -> cterm option list -> thm list -> thm list -> thm list ->
+    thm list -> tactic
+  val mk_mor_Rep_tac: Proof.context -> int -> thm list -> thm list -> thm list -> thm -> thm list ->
+    thm list list -> tactic
   val mk_mor_UNIV_tac: int -> thm list -> thm -> tactic
   val mk_mor_comp_tac: thm -> thm list list -> thm list -> tactic
   val mk_mor_convol_tac: 'a list -> thm -> tactic
   val mk_mor_elim_tac: thm -> tactic
   val mk_mor_incl_tac: thm -> thm list -> tactic
-  val mk_mor_inv_tac: thm -> thm -> thm list list -> thm list -> thm list -> thm list -> tactic
   val mk_mor_fold_tac: ctyp -> cterm -> thm list -> thm -> thm -> tactic
   val mk_mor_select_tac: thm -> thm -> thm -> thm -> thm -> thm -> thm list -> thm list list ->
     thm list -> tactic
@@ -138,32 +136,6 @@ fun mk_mor_comp_tac mor_def set_maps map_comp_ids =
     CONJ_WRAP' mor_tac (set_maps ~~ map_comp_ids)) 1
   end;
 
-fun mk_mor_inv_tac alg_def mor_def set_maps morEs map_comp_ids map_cong0Ls =
-  let
-    val fbetw_tac = EVERY' [rtac ballI, etac set_mp, etac imageI];
-    fun Collect_tac set_map =
-      CONJ_WRAP' (fn thm =>
-        FIRST' [rtac subset_UNIV,
-          (EVERY' [rtac ord_eq_le_trans, rtac thm, rtac subset_trans,
-            etac @{thm image_mono}, atac])]) set_map;
-    fun mor_tac (set_map, ((morE, map_comp_id), map_cong0L)) =
-      EVERY' [rtac ballI, ftac rev_bspec, atac,
-         REPEAT o eresolve_tac [CollectE, conjE], rtac sym, rtac trans, rtac sym,
-         etac @{thm inverE}, etac bspec, rtac CollectI, Collect_tac set_map,
-         rtac trans, etac (morE RS arg_cong), rtac CollectI, Collect_tac set_map,
-         rtac trans, rtac (map_comp_id RS arg_cong), rtac (map_cong0L RS arg_cong),
-         REPEAT_DETERM_N (length morEs) o
-           (EVERY' [rtac iffD1, rtac @{thm inver_pointfree}, etac @{thm inver_mono}, atac])];
-  in
-    (rtac (mor_def RS iffD2) THEN'
-    dtac (alg_def RS iffD1) THEN'
-    dtac (alg_def RS iffD1) THEN'
-    REPEAT o etac conjE THEN'
-    rtac conjI THEN'
-    CONJ_WRAP' (K fbetw_tac) set_maps THEN'
-    CONJ_WRAP' mor_tac (set_maps ~~ (morEs ~~ map_comp_ids ~~ map_cong0Ls))) 1
-  end;
-
 fun mk_mor_str_tac ks mor_def =
   (rtac (mor_def RS iffD2) THEN' rtac conjI THEN'
   CONJ_WRAP' (K (EVERY' [rtac ballI, rtac UNIV_I])) ks THEN'
@@ -188,73 +160,29 @@ fun mk_mor_UNIV_tac m morEs mor_def =
       etac (o_apply RS sym RS trans), rtac o_apply])) morEs] 1
   end;
 
-fun mk_iso_alt_tac mor_images mor_inv =
-  let
-    val n = length mor_images;
-    fun if_wrap_tac thm =
-      EVERY' [rtac iffD2, rtac @{thm bij_betw_iff_ex}, rtac exI, rtac conjI,
-        rtac @{thm inver_surj}, etac thm, etac thm, atac, etac conjI, atac]
-    val if_tac =
-      EVERY' [etac thin_rl, etac thin_rl, REPEAT o eresolve_tac [conjE, exE],
-        rtac conjI, atac, CONJ_WRAP' if_wrap_tac mor_images];
-    val only_if_tac =
-      EVERY' [rtac conjI, etac conjunct1, EVERY' (map (fn thm =>
-        EVERY' [rtac exE, rtac @{thm bij_betw_ex_weakE}, etac (conjunct2 RS thm)])
-        (map (mk_conjunctN n) (1 upto n))), REPEAT o rtac exI, rtac conjI, rtac mor_inv,
-        etac conjunct1, atac, atac, REPEAT_DETERM_N n o atac,
-        CONJ_WRAP' (K (etac conjunct2)) mor_images];
-  in
-    (rtac iffI THEN' if_tac THEN' only_if_tac) 1
-  end;
-
-fun mk_copy_str_tac set_maps alg_def alg_sets =
+fun mk_copy_tac m alg_def mor_def alg_sets set_mapss =
   let
     val n = length alg_sets;
-    val bij_betw_inv_tac =
-      EVERY' [etac thin_rl, REPEAT_DETERM_N n o EVERY' [dtac @{thm bij_betwI}, atac, atac],
-        REPEAT_DETERM_N (2 * n) o etac thin_rl, REPEAT_DETERM_N (n - 1) o etac conjI, atac];
-    fun set_tac thms =
-      EVERY' [rtac ord_eq_le_trans, resolve_tac thms, rtac subset_trans,
-          etac @{thm image_mono}, rtac equalityD1, etac @{thm bij_betw_imageE}];
-    val copy_str_tac =
-      CONJ_WRAP' (fn (thms, thm) =>
-        EVERY' [rtac ballI, REPEAT_DETERM o eresolve_tac [CollectE, conjE], rtac set_mp,
-          rtac equalityD1, etac @{thm bij_betw_imageE},
-          REPEAT_DETERM_N 2 o rtac @{thm ssubst_mem[OF o_apply]}, rtac imageI, etac thm,
-          REPEAT_DETERM_N n o set_tac thms])
-      (set_maps ~~ alg_sets);
-  in
-    (rtac rev_mp THEN' DETERM o bij_betw_inv_tac THEN' rtac impI THEN'
-    rtac (alg_def RS iffD2) THEN' copy_str_tac) 1
-  end;
-
-fun mk_copy_alg_tac ctxt set_maps alg_sets mor_def iso_alt copy_str =
-  let
-    val n = length alg_sets;
-    val fbetw_tac = CONJ_WRAP' (K (etac @{thm bij_betwE})) alg_sets;
-    fun set_tac thms =
-      EVERY' [rtac ord_eq_le_trans, resolve_tac thms, rtac subset_trans,
-        REPEAT_DETERM o etac conjE, etac @{thm image_mono},
+    fun set_tac thm =
+      EVERY' [rtac ord_eq_le_trans, rtac thm, rtac subset_trans, etac @{thm image_mono},
         rtac equalityD1, etac @{thm bij_betw_imageE}];
-    val mor_tac =
-      CONJ_WRAP' (fn (thms, thm) =>
-        EVERY' [rtac ballI, etac CollectE, SELECT_GOAL (unfold_thms_tac ctxt [o_apply]),
-          etac @{thm inverE}, etac thm, REPEAT_DETERM_N n o set_tac thms])
-      (set_maps ~~ alg_sets);
-  in
-    (rtac (iso_alt RS iffD2) THEN' etac copy_str THEN' REPEAT_DETERM o atac THEN'
-    rtac conjI THEN' rtac (mor_def RS iffD2) THEN' rtac conjI THEN' fbetw_tac THEN' mor_tac THEN'
-    CONJ_WRAP' (K atac) alg_sets) 1
-  end;
+    val alg_tac =
+      CONJ_WRAP' (fn (set_maps, alg_set) =>
+        EVERY' [rtac ballI, REPEAT_DETERM o eresolve_tac [CollectE, conjE], rtac set_mp,
+          rtac equalityD1, etac @{thm bij_betw_imageE[OF bij_betw_the_inv_into]},
+          rtac imageI, etac alg_set, EVERY' (map set_tac (drop m set_maps))])
+      (set_mapss ~~ alg_sets);
 
-fun mk_ex_copy_alg_tac n copy_str copy_alg =
-  EVERY' [REPEAT_DETERM_N n o rtac exI, rtac conjI, etac copy_str,
-    REPEAT_DETERM_N n o atac,
-    REPEAT_DETERM_N n o etac @{thm bij_betw_inver2},
-    REPEAT_DETERM_N n o etac @{thm bij_betw_inver1}, etac copy_alg,
-    REPEAT_DETERM_N n o atac,
-    REPEAT_DETERM_N n o etac @{thm bij_betw_inver2},
-    REPEAT_DETERM_N n o etac @{thm bij_betw_inver1}] 1;
+    val mor_tac = rtac conjI THEN' CONJ_WRAP' (K (etac @{thm bij_betwE})) alg_sets THEN'
+      CONJ_WRAP' (fn (set_maps, alg_set) =>
+        EVERY' [rtac ballI, REPEAT_DETERM o eresolve_tac [CollectE, conjE],
+          etac @{thm f_the_inv_into_f_bij_betw}, etac alg_set,
+          EVERY' (map set_tac (drop m set_maps))])
+      (set_mapss ~~ alg_sets);
+  in
+    (REPEAT_DETERM_N n o rtac exI THEN' rtac conjI THEN'
+    rtac (alg_def RS iffD2) THEN' alg_tac THEN' rtac (mor_def RS iffD2) THEN' mor_tac) 1
+  end;
 
 fun mk_bd_limit_tac n bd_Cinfinite =
   EVERY' [REPEAT_DETERM o etac conjE, rtac rev_mp, rtac @{thm Cinfinite_limit_finite},
@@ -408,30 +336,17 @@ fun mk_mor_select_tac mor_def mor_cong mor_comp mor_incl_min_alg alg_def alg_sel
       rtac (alg_def RS iffD2), CONJ_WRAP' alg_epi_tac ((alg_sets ~~ str_init_defs) ~~ set_maps)] 1
   end;
 
-fun mk_init_ex_mor_tac ctxt Abs_inverse copy_alg_ex alg_min_alg card_of_min_algs
-    mor_comp mor_select mor_incl_min_alg =
+fun mk_init_ex_mor_tac ctxt Abs_inverse copy card_of_min_algs mor_Rep mor_comp mor_select mor_incl =
   let
     val n = length card_of_min_algs;
-    val card_of_ordIso_tac = EVERY' [rtac iffD2, rtac @{thm card_of_ordIso},
-      rtac @{thm ordIso_symmetric}, rtac conjunct1, rtac conjunct2, atac];
-    fun internalize_tac card_of = EVERY' [rtac iffD1, rtac @{thm internalize_card_of_ordLeq2},
-      rtac @{thm ordLeq_ordIso_trans}, rtac card_of, rtac iffD1,
-      rtac @{thm Card_order_iff_ordIso_card_of}, rtac @{thm Card_order_cexp}];
   in
-    (rtac rev_mp THEN'
-    REPEAT_DETERM_N (2 * n) o (rtac mp THEN' rtac @{thm ex_mono} THEN' rtac impI) THEN'
-    REPEAT_DETERM_N (n + 1) o etac thin_rl THEN' rtac (alg_min_alg RS copy_alg_ex) THEN'
-    REPEAT_DETERM_N n o atac THEN'
-    REPEAT_DETERM_N n o card_of_ordIso_tac THEN'
-    EVERY' (map internalize_tac card_of_min_algs) THEN'
-    rtac impI THEN'
-    REPEAT_DETERM o eresolve_tac [exE, conjE] THEN'
-    REPEAT_DETERM o rtac exI THEN'
-    rtac mor_select THEN' atac THEN' rtac CollectI THEN'
-    REPEAT_DETERM o rtac exI THEN'
-    rtac conjI THEN' rtac refl THEN' atac THEN'
-    K (unfold_thms_tac ctxt (Abs_inverse :: fst_snd_convs)) THEN'
-    etac mor_comp THEN' etac mor_incl_min_alg) 1
+    EVERY' [Method.insert_tac (map (fn thm => thm RS @{thm ex_bij_betw}) card_of_min_algs),
+      REPEAT_DETERM o etac exE, rtac rev_mp, rtac copy, REPEAT_DETERM_N n o atac,
+      rtac impI, REPEAT_DETERM o eresolve_tac [exE, conjE], REPEAT_DETERM_N n o rtac exI,
+      rtac mor_comp, rtac mor_Rep, rtac mor_select, rtac CollectI, REPEAT_DETERM o rtac exI,
+      rtac conjI, rtac refl, atac,
+      SELECT_GOAL (unfold_thms_tac ctxt (Abs_inverse :: fst_snd_convs)),
+      etac mor_comp, rtac mor_incl, REPEAT_DETERM_N n o rtac subset_UNIV] 1
   end;
 
 fun mk_init_unique_mor_tac m
@@ -482,17 +397,28 @@ fun mk_init_induct_tac m alg_def alg_min_alg least_min_algs alg_sets =
     CONJ_WRAP' mk_induct_tac least_min_algs 1
   end;
 
-fun mk_mor_Rep_tac ctxt ctor_defs copy bijs inver_Abss inver_Reps =
-  (K (unfold_thms_tac ctxt ctor_defs) THEN' rtac conjunct1 THEN' rtac copy THEN'
-  EVERY' (map (fn bij => EVERY' [rtac bij, atac, etac bexI, rtac UNIV_I]) bijs) THEN'
-  EVERY' (map rtac inver_Abss) THEN'
-  EVERY' (map rtac inver_Reps)) 1;
+fun mk_mor_Rep_tac ctxt m defs Reps Abs_inverses alg_min_alg alg_sets set_mapss =
+  unfold_thms_tac ctxt (@{thm o_apply} :: defs) THEN
+  EVERY' [rtac conjI,
+    CONJ_WRAP' (fn thm => rtac ballI THEN' rtac thm) Reps,
+    CONJ_WRAP' (fn (Abs_inverse, (set_maps, alg_set)) =>
+      EVERY' [rtac ballI, rtac Abs_inverse, rtac (alg_min_alg RS alg_set),
+        EVERY' (map2 (fn Rep => fn set_map =>
+          EVERY' [rtac (set_map RS ord_eq_le_trans), rtac @{thm image_subsetI}, rtac Rep])
+        Reps (drop m set_maps))])
+    (Abs_inverses ~~ (set_mapss ~~ alg_sets))] 1;
 
-fun mk_mor_Abs_tac inv inver_Abss inver_Reps =
-  (rtac inv THEN'
-  EVERY' (map2 (fn inver_Abs => fn inver_Rep =>
-    EVERY' [rtac conjI, rtac subset_UNIV, rtac conjI, rtac inver_Rep, rtac inver_Abs])
-    inver_Abss inver_Reps)) 1;
+fun mk_mor_Abs_tac ctxt cts defs Abs_inverses map_comp_ids map_congLs =
+  unfold_thms_tac ctxt (@{thm o_apply} :: defs) THEN
+  EVERY' [rtac conjI,
+    CONJ_WRAP' (K (rtac ballI THEN' rtac UNIV_I)) Abs_inverses,
+    CONJ_WRAP' (fn (ct, thm) =>
+      EVERY' [rtac ballI, REPEAT_DETERM o eresolve_tac [CollectE, conjE],
+        rtac (thm RS (cterm_instantiate_pos [NONE, NONE, ct] arg_cong) RS sym),
+        EVERY' (map (fn Abs_inverse =>
+          EVERY' [rtac (o_apply RS trans RS ballI), etac (set_mp RS Abs_inverse), atac])
+        Abs_inverses)])
+    (cts ~~ map2 mk_trans map_comp_ids map_congLs)] 1;;
 
 fun mk_mor_fold_tac cT ct fold_defs ex_mor mor =
   (EVERY' (map stac fold_defs) THEN' EVERY' [rtac rev_mp, rtac ex_mor, rtac impI] THEN'
