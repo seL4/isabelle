@@ -34,7 +34,7 @@ val ghc_options = Attrib.setup_config_string @{binding quickcheck_narrowing_ghc_
 fun mk_partial_term_of (x, T) =
   Const (@{const_name Quickcheck_Narrowing.partial_term_of_class.partial_term_of},
     Term.itselfT T --> @{typ narrowing_term} --> @{typ Code_Evaluation.term})
-      $ Const ("TYPE", Term.itselfT T) $ x
+      $ Logic.mk_type T $ x
 
 (** formal definition **)
 
