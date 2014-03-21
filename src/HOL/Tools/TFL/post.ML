@@ -63,7 +63,7 @@ fun id_thm th =
    
 val P_imp_P_eq_True = @{thm eqTrueI} RS eq_reflection;
 fun mk_meta_eq r = case concl_of r of
-     Const("==",_)$_$_ => r
+     Const(@{const_name Pure.eq},_)$_$_ => r
   |   _ $(Const(@{const_name HOL.eq},_)$_$_) => r RS eq_reflection
   |   _ => r RS P_imp_P_eq_True
 

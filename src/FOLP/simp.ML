@@ -405,10 +405,10 @@ fun pr_rew (i,n,thm,thm',not_asms) =
     else ();
 
 (* Skip the first n hyps of a goal, and return the rest in generalized form *)
-fun strip_varify(Const("==>", _) $ H $ B, n, vs) =
+fun strip_varify(Const(@{const_name Pure.imp}, _) $ H $ B, n, vs) =
         if n=0 then subst_bounds(vs,H)::strip_varify(B,0,vs)
         else strip_varify(B,n-1,vs)
-  | strip_varify(Const("all",_)$Abs(_,T,t), n, vs) =
+  | strip_varify(Const(@{const_name Pure.all},_)$Abs(_,T,t), n, vs) =
         strip_varify(t,n,Var(("?",length vs),T)::vs)
   | strip_varify  _  = [];
 

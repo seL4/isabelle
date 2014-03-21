@@ -435,7 +435,8 @@ let
              val ty = type_of a
              val (encoding, a) = remove_types encoding a
              val (encoding, b) = remove_types encoding b
-             val (eq, encoding) = Encode.insert (Const ("==", ty --> ty --> @{typ "prop"})) encoding 
+             val (eq, encoding) =
+              Encode.insert (Const (@{const_name Pure.eq}, ty --> ty --> @{typ "prop"})) encoding 
          in
              (encoding, EqPrem (a, b, ty, eq))
          end handle TERM _ => let val (encoding, t) = remove_types encoding t in (encoding, Prem t) end)

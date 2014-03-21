@@ -77,10 +77,10 @@ val is_exhaustive_finite =
     fun do_formula pos t =
       (case (pos, t) of
         (_, @{const Trueprop} $ t1) => do_formula pos t1
-      | (true, Const (@{const_name all}, _) $ Abs (_, _, t')) => do_formula pos t'
+      | (true, Const (@{const_name Pure.all}, _) $ Abs (_, _, t')) => do_formula pos t'
       | (true, Const (@{const_name All}, _) $ Abs (_, _, t')) => do_formula pos t'
       | (false, Const (@{const_name Ex}, _) $ Abs (_, _, t')) => do_formula pos t'
-      | (_, @{const "==>"} $ t1 $ t2) =>
+      | (_, @{const Pure.imp} $ t1 $ t2) =>
         do_formula (not pos) t1 andalso (t2 = @{prop False} orelse do_formula pos t2)
       | (_, @{const HOL.implies} $ t1 $ t2) =>
         do_formula (not pos) t1 andalso (t2 = @{const False} orelse do_formula pos t2)
@@ -88,7 +88,7 @@ val is_exhaustive_finite =
       | (true, @{const HOL.disj} $ t1 $ t2) => forall (do_formula pos) [t1, t2]
       | (false, @{const HOL.conj} $ t1 $ t2) => forall (do_formula pos) [t1, t2]
       | (true, Const (@{const_name HOL.eq}, _) $ t1 $ t2) => do_equals t1 t2
-      | (true, Const (@{const_name "=="}, _) $ t1 $ t2) => do_equals t1 t2
+      | (true, Const (@{const_name Pure.eq}, _) $ t1 $ t2) => do_equals t1 t2
       | _ => false)
   in do_formula true end
 

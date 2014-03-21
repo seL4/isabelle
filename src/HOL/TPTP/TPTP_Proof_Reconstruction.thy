@@ -1670,7 +1670,7 @@ val interpreted_consts =
    (* @{const_name HOL.not_equal}, *)
    @{const_name HOL.False},
    @{const_name HOL.True},
-   @{const_name "==>"}]
+   @{const_name Pure.imp}]
 
 fun strip_qtfrs_tac ctxt =
   REPEAT_DETERM (HEADGOAL (rtac @{thm allI}))

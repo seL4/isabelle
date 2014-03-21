@@ -126,7 +126,7 @@ fun strip_imp_prems ct =
 (* A1==>...An==>B  goes to B, where B is not an implication *)
 fun strip_imp_concl ct =
   (case Thm.term_of ct of
-    Const ("==>", _) $ _ $ _ => strip_imp_concl (Thm.dest_arg ct)
+    Const ("Pure.imp", _) $ _ $ _ => strip_imp_concl (Thm.dest_arg ct)
   | _ => ct);
 
 (*The premises of a theorem, as a cterm list*)
@@ -706,7 +706,7 @@ val norm_hhf_prop = Logic.dest_equals (Thm.prop_of norm_hhf_eq);
 val norm_hhf_eqs = [norm_hhf_eq, sort_constraint_eq];
 
 fun is_norm_hhf (Const ("Pure.sort_constraint", _)) = false
-  | is_norm_hhf (Const ("==>", _) $ _ $ (Const ("all", _) $ _)) = false
+  | is_norm_hhf (Const ("Pure.imp", _) $ _ $ (Const ("Pure.all", _) $ _)) = false
   | is_norm_hhf (Abs _ $ _) = false
   | is_norm_hhf (t $ u) = is_norm_hhf t andalso is_norm_hhf u
   | is_norm_hhf (Abs (_, _, t)) = is_norm_hhf t

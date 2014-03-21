@@ -204,13 +204,13 @@ val grab_atom_bop =
           else Thm.dest_fun2 tm
       | Const (@{const_name Not}, _) $ _ => h bounds (Thm.dest_arg tm)
       | Const (@{const_name All}, _) $ _ => find_body bounds (Thm.dest_arg tm)
-      | Const ("all", _) $ _ => find_body bounds (Thm.dest_arg tm)
+      | Const (@{const_name Pure.all}, _) $ _ => find_body bounds (Thm.dest_arg tm)
       | Const (@{const_name Ex}, _) $ _ => find_body bounds (Thm.dest_arg tm)
       | Const (@{const_name HOL.conj}, _) $ _ $ _ => find_args bounds tm
       | Const (@{const_name HOL.disj}, _) $ _ $ _ => find_args bounds tm
       | Const (@{const_name HOL.implies}, _) $ _ $ _ => find_args bounds tm
-      | Const ("==>", _) $ _ $ _ => find_args bounds tm
-      | Const ("==", _) $ _ $ _ => find_args bounds tm
+      | Const (@{const_name Pure.imp}, _) $ _ $ _ => find_args bounds tm
+      | Const (@{const_name Pure.eq}, _) $ _ $ _ => find_args bounds tm
       | Const (@{const_name Trueprop}, _) $ _ => h bounds (Thm.dest_arg tm)
       | _ => Thm.dest_fun2 tm)
     and find_args bounds tm =
@@ -230,7 +230,7 @@ fun dlo_conv ctxt tm =
 
 fun generalize_tac f = CSUBGOAL (fn (p, _) => PRIMITIVE (fn st =>
   let
-    fun all T = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat "all"}
+    fun all T = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat "Pure.all"}
     fun gen x t = Thm.apply (all (ctyp_of_term x)) (Thm.lambda x t)
     val ts = sort (fn (a,b) => Term_Ord.fast_term_ord (term_of a, term_of b)) (f p)
     val p' = fold_rev gen ts p

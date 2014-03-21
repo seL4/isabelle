@@ -1287,7 +1287,7 @@ fun split_simproc P =
     (fn ctxt => fn t =>
       (case t of
         Const (quantifier, Type (_, [Type (_, [T, _]), _])) $ _ =>
-          if quantifier = @{const_name all} orelse
+          if quantifier = @{const_name Pure.all} orelse
             quantifier = @{const_name All} orelse
             quantifier = @{const_name Ex}
           then
@@ -1301,7 +1301,7 @@ fun split_simproc P =
                     | SOME (all_thm, All_thm, Ex_thm, _) =>
                         SOME
                           (case quantifier of
-                            @{const_name all} => all_thm
+                            @{const_name Pure.all} => all_thm
                           | @{const_name All} => All_thm RS @{thm eq_reflection}
                           | @{const_name Ex} => Ex_thm RS @{thm eq_reflection}
                           | _ => raise Fail "split_simproc"))
@@ -1368,8 +1368,8 @@ fun split_simp_tac ctxt thms P = CSUBGOAL (fn (cgoal, i) =>
 
     val has_rec = exists_Const
       (fn (s, Type (_, [Type (_, [T, _]), _])) =>
-          (s = @{const_name all} orelse s = @{const_name All} orelse s = @{const_name Ex}) andalso
-          is_recT T
+          (s = @{const_name Pure.all} orelse s = @{const_name All} orelse s = @{const_name Ex})
+            andalso is_recT T
         | _ => false);
 
     fun mk_split_free_tac free induct_thm i =
@@ -1418,10 +1418,10 @@ fun split_tac ctxt = CSUBGOAL (fn (cgoal, i) =>
 
     val has_rec = exists_Const
       (fn (s, Type (_, [Type (_, [T, _]), _])) =>
-          (s = @{const_name all} orelse s = @{const_name All}) andalso is_recT T
+          (s = @{const_name Pure.all} orelse s = @{const_name All}) andalso is_recT T
         | _ => false);
 
-    fun is_all (Const (@{const_name all}, _) $ _) = ~1
+    fun is_all (Const (@{const_name Pure.all}, _) $ _) = ~1
       | is_all (Const (@{const_name All}, _) $ _) = ~1
       | is_all _ = 0;
   in

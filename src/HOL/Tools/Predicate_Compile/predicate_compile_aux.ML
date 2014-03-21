@@ -460,14 +460,14 @@ fun map_indprem f (Prem t) = Prem (f t)
 
 (* general syntactic functions *)
 
-fun is_equationlike_term (Const ("==", _) $ _ $ _) = true
+fun is_equationlike_term (Const (@{const_name Pure.eq}, _) $ _ $ _) = true
   | is_equationlike_term
       (Const (@{const_name Trueprop}, _) $ (Const (@{const_name HOL.eq}, _) $ _ $ _)) = true
   | is_equationlike_term _ = false
 
 val is_equationlike = is_equationlike_term o prop_of
 
-fun is_pred_equation_term (Const ("==", _) $ u $ v) =
+fun is_pred_equation_term (Const (@{const_name Pure.eq}, _) $ u $ v) =
       (fastype_of u = @{typ bool}) andalso (fastype_of v = @{typ bool})
   | is_pred_equation_term _ = false
 
@@ -620,7 +620,7 @@ fun map_term thy f th =
 (*
 fun equals_conv lhs_cv rhs_cv ct =
   case Thm.term_of ct of
-    Const ("==", _) $ _ $ _ => Conv.arg_conv cv ct
+    Const (@{const_name Pure.eq}, _) $ _ $ _ => Conv.arg_conv cv ct
   | _ => error "equals_conv"
 *)
 
@@ -973,7 +973,8 @@ fun case_betapply thy t =
 
 fun imp_prems_conv cv ct =
   (case Thm.term_of ct of
-    Const ("==>", _) $ _ $ _ => Conv.combination_conv (Conv.arg_conv cv) (imp_prems_conv cv) ct
+    Const (@{const_name Pure.imp}, _) $ _ $ _ =>
+      Conv.combination_conv (Conv.arg_conv cv) (imp_prems_conv cv) ct
   | _ => Conv.all_conv ct)
 
 

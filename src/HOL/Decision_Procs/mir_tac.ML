@@ -112,7 +112,7 @@ fun mir_tac ctxt q =
     fun assm_tac i = REPEAT_DETERM_N nh (assume_tac i)
     (* The result of the quantifier elimination *)
     val (th, tac) = case (prop_of pre_thm) of
-        Const ("==>", _) $ (Const (@{const_name Trueprop}, _) $ t1) $ _ =>
+        Const (@{const_name Pure.imp}, _) $ (Const (@{const_name Trueprop}, _) $ t1) $ _ =>
     let val pth =
           (* If quick_and_dirty then run without proof generation as oracle*)
              if Config.get ctxt quick_and_dirty

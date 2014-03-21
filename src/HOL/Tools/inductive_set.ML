@@ -50,7 +50,7 @@ val collect_mem_simproc =
                         addsimps [@{thm split_paired_all}, @{thm split_conv}]) 1
                     in
                       SOME (Goal.prove ctxt [] []
-                        (Const ("==", T --> T --> propT) $ S $ S')
+                        (Const (@{const_name Pure.eq}, T --> T --> propT) $ S $ S')
                         (K (EVERY
                           [rtac eq_reflection 1, rtac @{thm subset_antisym} 1,
                            rtac subsetI 1, dtac CollectD 1, simp,

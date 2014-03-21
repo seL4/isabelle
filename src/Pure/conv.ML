@@ -140,17 +140,17 @@ fun top_sweep_conv conv ctxt ct =
 
 fun forall_conv cv ctxt ct =
   (case Thm.term_of ct of
-    Const ("all", _) $ Abs _ => arg_conv (abs_conv cv ctxt) ct
+    Const ("Pure.all", _) $ Abs _ => arg_conv (abs_conv cv ctxt) ct
   | _ => raise CTERM ("forall_conv", [ct]));
 
 fun implies_conv cv1 cv2 ct =
   (case Thm.term_of ct of
-    Const ("==>", _) $ _ $ _ => combination_conv (arg_conv cv1) cv2 ct
+    Const ("Pure.imp", _) $ _ $ _ => combination_conv (arg_conv cv1) cv2 ct
   | _ => raise CTERM ("implies_conv", [ct]));
 
 fun implies_concl_conv cv ct =
   (case Thm.term_of ct of
-    Const ("==>", _) $ _ $ _ => arg_conv cv ct
+    Const ("Pure.imp", _) $ _ $ _ => arg_conv cv ct
   | _ => raise CTERM ("implies_concl_conv", [ct]));
 
 

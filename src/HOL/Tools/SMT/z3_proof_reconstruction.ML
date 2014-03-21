@@ -614,7 +614,7 @@ end
 (* |- (EX x. P x) = P c     |- ~(ALL x. P x) = ~ P c *)
 local
   val forall =
-    SMT_Utils.mk_const_pat @{theory} @{const_name all}
+    SMT_Utils.mk_const_pat @{theory} @{const_name Pure.all}
       (SMT_Utils.destT1 o SMT_Utils.destT1)
   fun mk_forall cv ct =
     Thm.apply (SMT_Utils.instT' cv forall) (Thm.lambda cv ct)

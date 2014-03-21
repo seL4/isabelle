@@ -63,7 +63,7 @@ fun rew b _ _ =
 
       | rew' (PAxm ("Pure.equal_elim", _, _) % SOME X % SOME Y %%
         (PAxm ("Pure.combination", _, _) % _ % _ % _ % _ %%
-          (PAxm ("Pure.combination", _, _) % SOME (Const ("==>", _)) % _ % _ % _ %%
+          (PAxm ("Pure.combination", _, _) % SOME (Const ("Pure.imp", _)) % _ % _ % _ %%
              (PAxm ("Pure.reflexive", _, _) % _) %% prf1) %% prf2)) =
         let
           val _ $ A $ C = Envir.beta_norm X;
@@ -78,7 +78,7 @@ fun rew b _ _ =
       | rew' (PAxm ("Pure.equal_elim", _, _) % SOME X % SOME Y %%
         (PAxm ("Pure.symmetric", _, _) % _ % _ %%
           (PAxm ("Pure.combination", _, _) % _ % _ % _ % _ %%
-            (PAxm ("Pure.combination", _, _) % SOME (Const ("==>", _)) % _ % _ % _ %%
+            (PAxm ("Pure.combination", _, _) % SOME (Const ("Pure.imp", _)) % _ % _ % _ %%
                (PAxm ("Pure.reflexive", _, _) % _) %% prf1) %% prf2))) =
         let
           val _ $ A $ C = Envir.beta_norm Y;
@@ -91,7 +91,7 @@ fun rew b _ _ =
         end
 
       | rew' (PAxm ("Pure.equal_elim", _, _) % SOME X % SOME Y %%
-        (PAxm ("Pure.combination", _, _) % SOME (Const ("all", _)) % _ % _ % _ %%
+        (PAxm ("Pure.combination", _, _) % SOME (Const ("Pure.all", _)) % _ % _ % _ %%
           (PAxm ("Pure.reflexive", _, _) % _) %%
             (PAxm ("Pure.abstract_rule", _, _) % _ % _ %% prf))) =
         let
@@ -104,7 +104,7 @@ fun rew b _ _ =
 
       | rew' (PAxm ("Pure.equal_elim", _, _) % SOME X % SOME Y %%
         (PAxm ("Pure.symmetric", _, _) % _ % _ %%        
-          (PAxm ("Pure.combination", _, _) % SOME (Const ("all", _)) % _ % _ % _ %%
+          (PAxm ("Pure.combination", _, _) % SOME (Const ("Pure.all", _)) % _ % _ % _ %%
             (PAxm ("Pure.reflexive", _, _) % _) %%
               (PAxm ("Pure.abstract_rule", _, _) % _ % _ %% prf)))) =
         let
@@ -140,7 +140,7 @@ fun rew b _ _ =
       | rew' (PAxm ("Pure.equal_elim", _, _) % _ % _ %%
         (PAxm ("Pure.equal_elim", _, _) % SOME (_ $ A $ C) % SOME (_ $ B $ D) %%
           (PAxm ("Pure.combination", _, _) % _ % _ % _ % _ %%
-            (PAxm ("Pure.combination", _, _) % SOME (Const ("==", _)) % _ % _ % _ %%
+            (PAxm ("Pure.combination", _, _) % SOME (Const ("Pure.eq", _)) % _ % _ % _ %%
               (PAxm ("Pure.reflexive", _, _) % _) %% prf1) %% prf2) %% prf3) %% prf4) =
           SOME (equal_elim_axm %> C %> D %% prf2 %%
             (equal_elim_axm %> A %> C %% prf3 %%
@@ -150,7 +150,7 @@ fun rew b _ _ =
         (PAxm ("Pure.symmetric", _, _) % _ % _ %%
           (PAxm ("Pure.equal_elim", _, _) % SOME (_ $ A $ C) % SOME (_ $ B $ D) %%
             (PAxm ("Pure.combination", _, _) % _ % _ % _ % _ %%
-              (PAxm ("Pure.combination", _, _) % SOME (Const ("==", _)) % _ % _ % _ %%
+              (PAxm ("Pure.combination", _, _) % SOME (Const ("Pure.eq", _)) % _ % _ % _ %%
                 (PAxm ("Pure.reflexive", _, _) % _) %% prf1) %% prf2) %% prf3)) %% prf4) =
           SOME (equal_elim_axm %> A %> B %% prf1 %%
             (equal_elim_axm %> C %> A %% (symmetric_axm % ?? A % ?? C %% prf3) %%
@@ -160,7 +160,7 @@ fun rew b _ _ =
         (PAxm ("Pure.equal_elim", _, _) % SOME (_ $ B $ D) % SOME (_ $ A $ C) %%
           (PAxm ("Pure.symmetric", _, _) % _ % _ %%
             (PAxm ("Pure.combination", _, _) % _ % _ % _ % _ %%
-              (PAxm ("Pure.combination", _, _) % SOME (Const ("==", _)) % _ % _ % _ %%
+              (PAxm ("Pure.combination", _, _) % SOME (Const ("Pure.eq", _)) % _ % _ % _ %%
                 (PAxm ("Pure.reflexive", _, _) % _) %% prf1) %% prf2)) %% prf3) %% prf4) =
           SOME (equal_elim_axm %> D %> C %% (symmetric_axm % ?? C % ?? D %% prf2) %%
             (equal_elim_axm %> B %> D %% prf3 %%
@@ -171,14 +171,14 @@ fun rew b _ _ =
           (PAxm ("Pure.equal_elim", _, _) % SOME (_ $ B $ D) % SOME (_ $ A $ C) %%
             (PAxm ("Pure.symmetric", _, _) % _ % _ %%
               (PAxm ("Pure.combination", _, _) % _ % _ % _ % _ %%
-                (PAxm ("Pure.combination", _, _) % SOME (Const ("==", _)) % _ % _ % _ %%
+                (PAxm ("Pure.combination", _, _) % SOME (Const ("Pure.eq", _)) % _ % _ % _ %%
                   (PAxm ("Pure.reflexive", _, _) % _) %% prf1) %% prf2)) %% prf3)) %% prf4) =
           SOME (equal_elim_axm %> B %> A %% (symmetric_axm % ?? A % ?? B %% prf1) %%
             (equal_elim_axm %> D %> B %% (symmetric_axm % ?? B % ?? D %% prf3) %%
               (equal_elim_axm %> C %> D %% prf2 %% prf4)))
 
       | rew' ((prf as PAxm ("Pure.combination", _, _) %
-        SOME ((eq as Const ("==", T)) $ t) % _ % _ % _) %%
+        SOME ((eq as Const ("Pure.eq", T)) $ t) % _ % _ % _) %%
           (PAxm ("Pure.reflexive", _, _) % _)) =
         let val (U, V) = (case T of
           Type (_, [U, V]) => (U, V) | _ => (dummyT, dummyT))
@@ -307,9 +307,9 @@ fun hhf_proof P Q prf =
     val Hs' = Logic.strip_assums_hyp Q;
     val k = length Hs;
     val l = length params;
-    fun mk_prf i j Hs Hs' (Const ("all", _) $ Abs (_, _, P)) prf =
+    fun mk_prf i j Hs Hs' (Const ("Pure.all", _) $ Abs (_, _, P)) prf =
           mk_prf i (j - 1) Hs Hs' P (prf %> Bound j)
-      | mk_prf i j (H :: Hs) (H' :: Hs') (Const ("==>", _) $ _ $ P) prf =
+      | mk_prf i j (H :: Hs) (H' :: Hs') (Const ("Pure.imp", _) $ _ $ P) prf =
           mk_prf (i - 1) j Hs Hs' P (prf %% un_hhf_proof H' H (PBound i))
       | mk_prf _ _ _ _ _ prf = prf
   in
@@ -324,9 +324,9 @@ and un_hhf_proof P Q prf =
     val Hs' = Logic.strip_assums_hyp Q;
     val k = length Hs;
     val l = length params;
-    fun mk_prf (Const ("all", _) $ Abs (s, T, P)) prf =
+    fun mk_prf (Const ("Pure.all", _) $ Abs (s, T, P)) prf =
           Abst (s, SOME T, mk_prf P prf)
-      | mk_prf (Const ("==>", _) $ P $ Q) prf =
+      | mk_prf (Const ("Pure.imp", _) $ P $ Q) prf =
           AbsP ("H", SOME P, mk_prf Q prf)
       | mk_prf _ prf = prf
   in

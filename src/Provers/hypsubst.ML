@@ -104,8 +104,8 @@ fun inspect_pair bnd novars (t, u) =
 (*Locates a substitutable variable on the left (resp. right) of an equality
    assumption.  Returns the number of intervening assumptions. *)
 fun eq_var bnd novars =
-  let fun eq_var_aux k (Const("all",_) $ Abs(_,_,t)) = eq_var_aux k t
-        | eq_var_aux k (Const("==>",_) $ A $ B) =
+  let fun eq_var_aux k (Const(@{const_name Pure.all},_) $ Abs(_,_,t)) = eq_var_aux k t
+        | eq_var_aux k (Const(@{const_name Pure.imp},_) $ A $ B) =
               ((k, inspect_pair bnd novars
                     (Data.dest_eq (Data.dest_Trueprop A)))
                handle TERM _ => eq_var_aux (k+1) B

@@ -169,7 +169,7 @@ val _ = Theory.setup
     ("_context_xconst", typ "id_position => aprop",    Delimfix "XCONST _"),
     ("_context_xconst", typ "longid_position => logic", Delimfix "XCONST _"),
     ("_context_xconst", typ "longid_position => aprop", Delimfix "XCONST _"),
-    (const "==>",   typ "prop => prop => prop",        Delimfix "op ==>"),
+    (const "Pure.imp",  typ "prop => prop => prop",     Delimfix "op ==>"),
     (const "Pure.dummy_pattern", typ "aprop",          Delimfix "'_"),
     ("_sort_constraint", typ "type => prop",           Delimfix "(1SORT'_CONSTRAINT/(1'(_')))"),
     (const "Pure.term", typ "logic => prop",           Delimfix "TERM _"),
@@ -184,9 +184,9 @@ val _ = Theory.setup
     ("_idtyp",            typ "id_position => type => idt", Mixfix ("_\\<Colon>_", [], 0)),
     ("_idtypdummy",       typ "type => idt",            Mixfix ("'_()\\<Colon>_", [], 0)),
     ("_lambda",           typ "pttrns => 'a => logic",  Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3)),
-    (const "==",          typ "'a => 'a => prop",       Infix ("\\<equiv>", 2)),
-    (const "all_binder",  typ "idts => prop => prop",   Mixfix ("(3\\<And>_./ _)", [0, 0], 0)),
-    (const "==>",         typ "prop => prop => prop",   Infixr ("\\<Longrightarrow>", 1)),
+    (const "Pure.eq",     typ "'a => 'a => prop",       Infix ("\\<equiv>", 2)),
+    (const "Pure.all_binder", typ "idts => prop => prop", Mixfix ("(3\\<And>_./ _)", [0, 0], 0)),
+    (const "Pure.imp",    typ "prop => prop => prop",   Infixr ("\\<Longrightarrow>", 1)),
     ("_DDDOT",            typ "aprop",                  Delimfix "\\<dots>"),
     ("_bigimpl",          typ "asms => prop => prop",   Mixfix ("((1\\<lbrakk>_\\<rbrakk>)/ \\<Longrightarrow> _)", [0, 1], 1)),
     ("_DDDOT",            typ "logic",                  Delimfix "\\<dots>")]
@@ -195,15 +195,15 @@ val _ = Theory.setup
   #> Sign.add_syntax ("HTML", false)
    [("_lambda", typ "pttrns => 'a => logic", Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3))]
   #> Sign.add_consts
-   [(Binding.name "==", typ "'a => 'a => prop", Infix ("==", 2)),
-    (Binding.name "==>", typ "prop => prop => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
-    (Binding.name "all", typ "('a => prop) => prop", Binder ("!!", 0, 0)),
+   [(qualify (Binding.name "eq"), typ "'a => 'a => prop", Infix ("==", 2)),
+    (qualify (Binding.name "imp"), typ "prop => prop => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
+    (qualify (Binding.name "all"), typ "('a => prop) => prop", Binder ("!!", 0, 0)),
     (qualify (Binding.name "prop"), typ "prop => prop", NoSyn),
     (qualify (Binding.name "type"), typ "'a itself", NoSyn),
     (qualify (Binding.name "dummy_pattern"), typ "'a", Delimfix "'_")]
-  #> Theory.add_deps_global "==" ("==", typ "'a => 'a => prop") []
-  #> Theory.add_deps_global "==>" ("==>", typ "prop => prop => prop") []
-  #> Theory.add_deps_global "all" ("all", typ "('a => prop) => prop") []
+  #> Theory.add_deps_global "Pure.eq" ("Pure.eq", typ "'a => 'a => prop") []
+  #> Theory.add_deps_global "Pure.imp" ("Pure.imp", typ "prop => prop => prop") []
+  #> Theory.add_deps_global "Pure.all" ("Pure.all", typ "('a => prop) => prop") []
   #> Theory.add_deps_global "Pure.type" ("Pure.type", typ "'a itself") []
   #> Theory.add_deps_global "Pure.dummy_pattern" ("Pure.dummy_pattern", typ "'a") []
   #> Sign.parse_ast_translation Syntax_Trans.pure_parse_ast_translation

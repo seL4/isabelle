@@ -13,9 +13,9 @@ fun isD t = case t of
     Const(@{const_name Trueprop},_)$t     => isD t
   | Const(@{const_name HOL.conj}  ,_)$l$r     => isD l andalso isD r
   | Const(@{const_name HOL.implies},_)$l$r     => isG l andalso isD r
-  | Const(   "==>",_)$l$r     => isG l andalso isD r
+  | Const(@{const_name Pure.imp},_)$l$r     => isG l andalso isD r
   | Const(@{const_name All},_)$Abs(s,_,t) => isD t
-  | Const("all",_)$Abs(s,_,t) => isD t
+  | Const(@{const_name Pure.all},_)$Abs(s,_,t) => isD t
   | Const(@{const_name HOL.disj},_)$_$_       => false
   | Const(@{const_name Ex} ,_)$_          => false
   | Const(@{const_name Not},_)$_          => false
@@ -33,9 +33,9 @@ and
   | Const(@{const_name HOL.conj}  ,_)$l$r     => isG l andalso isG r
   | Const(@{const_name HOL.disj}  ,_)$l$r     => isG l andalso isG r
   | Const(@{const_name HOL.implies},_)$l$r     => isD l andalso isG r
-  | Const(   "==>",_)$l$r     => isD l andalso isG r
+  | Const(@{const_name Pure.imp},_)$l$r     => isD l andalso isG r
   | Const(@{const_name All},_)$Abs(_,_,t) => isG t
-  | Const("all",_)$Abs(_,_,t) => isG t
+  | Const(@{const_name Pure.all},_)$Abs(_,_,t) => isG t
   | Const(@{const_name Ex} ,_)$Abs(_,_,t) => isG t
   | Const(@{const_name True},_)           => true
   | Const(@{const_name Not},_)$_          => false
@@ -79,8 +79,8 @@ val hyp_resolve_tac = SUBGOAL (fn (subgoal, i) =>
         |   ap (Const(@{const_name HOL.implies},_)$_$t)    =(case ap t of (k,_,t) => (k,true ,t))
         |   ap t                          =                         (0,false,t);
 (*
-        fun rep_goal (Const ("all",_)$Abs (_,_,t)) = rep_goal t
-        |   rep_goal (Const ("==>",_)$s$t)         =
+        fun rep_goal (Const (@{const_name Pure.all},_)$Abs (_,_,t)) = rep_goal t
+        |   rep_goal (Const (@{const_name Pure.imp},_)$s$t)         =
                         (case rep_goal t of (l,t) => (s::l,t))
         |   rep_goal t                             = ([]  ,t);
         val (prems, Const(@{const_name Trueprop}, _)$concl) = rep_goal

@@ -84,7 +84,7 @@ fun is_introlike_term _ = true
 
 val is_introlike = is_introlike_term o prop_of
 
-fun check_equation_format_term (t as (Const ("==", _) $ u $ _)) =
+fun check_equation_format_term (t as (Const (@{const_name Pure.eq}, _) $ u $ _)) =
       (case strip_comb u of
         (Const (_, T), args) =>
           if (length (binder_types T) = length args) then
@@ -98,7 +98,7 @@ fun check_equation_format_term (t as (Const ("==", _) $ u $ _)) =
 val check_equation_format = check_equation_format_term o prop_of
 
 
-fun defining_term_of_equation_term (Const ("==", _) $ u $ _) = fst (strip_comb u)
+fun defining_term_of_equation_term (Const (@{const_name Pure.eq}, _) $ u $ _) = fst (strip_comb u)
   | defining_term_of_equation_term t =
       raise TERM ("defining_const_of_equation_term failed: Not an equation", [t])
 
@@ -224,8 +224,8 @@ fun get_specification options thy t =
   end
 
 val logic_operator_names =
-  [@{const_name "=="},
-   @{const_name "==>"},
+  [@{const_name Pure.eq},
+   @{const_name Pure.imp},
    @{const_name Trueprop},
    @{const_name Not},
    @{const_name HOL.eq},

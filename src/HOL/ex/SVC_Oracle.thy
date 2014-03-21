@@ -100,7 +100,7 @@ fun svc_abstract t =
       | fm t = replace t
     (*entry point, and abstraction of a meta-formula*)
     fun mt ((c as Const(@{const_name Trueprop}, _)) $ p) = c $ (fm p)
-      | mt ((c as Const("==>", _)) $ p $ q)  = c $ (mt p) $ (mt q)
+      | mt ((c as Const(@{const_name Pure.imp}, _)) $ p $ q)  = c $ (mt p) $ (mt q)
       | mt t = fm t  (*it might be a formula*)
   in (Logic.list_all (params, mt body), !pairs) end;
 

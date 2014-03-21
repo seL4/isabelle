@@ -187,9 +187,9 @@ fun add_pconsts_in_term thy =
       if T = HOLogic.boolT then do_formula else do_term ext_arg
     and do_formula t =
       (case t of
-        Const (@{const_name all}, _) $ Abs (_, _, t') => do_formula t'
-      | @{const "==>"} $ t1 $ t2 => do_formula t1 #> do_formula t2
-      | Const (@{const_name "=="}, Type (_, [T, _])) $ t1 $ t2 =>
+        Const (@{const_name Pure.all}, _) $ Abs (_, _, t') => do_formula t'
+      | @{const Pure.imp} $ t1 $ t2 => do_formula t1 #> do_formula t2
+      | Const (@{const_name Pure.eq}, Type (_, [T, _])) $ t1 $ t2 =>
         do_term_or_formula false T t1 #> do_term_or_formula true T t2
       | @{const Trueprop} $ t1 => do_formula t1
       | @{const False} => I

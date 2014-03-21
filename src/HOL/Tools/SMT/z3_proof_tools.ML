@@ -199,7 +199,7 @@ fun abstract depth (ext_logic, with_theories) =
     and abstr (dcvs as (d, cvs)) ct =
       (case Thm.term_of ct of
         @{const Trueprop} $ _ => abstr1 dcvs ct
-      | @{const "==>"} $ _ $ _ => abstr2 dcvs ct
+      | @{const Pure.imp} $ _ $ _ => abstr2 dcvs ct
       | @{const True} => pair ct
       | @{const False} => pair ct
       | @{const Not} $ _ => abstr1 dcvs ct
@@ -229,7 +229,7 @@ fun abstract depth (ext_logic, with_theories) =
             | _ => fresh_abstraction dcvs ct cx)))
   in abstr (depth, []) end
 
-val cimp = Thm.cterm_of @{theory} @{const "==>"}
+val cimp = Thm.cterm_of @{theory} @{const Pure.imp}
 
 fun deepen depth f x =
   if depth = 0 then f depth x

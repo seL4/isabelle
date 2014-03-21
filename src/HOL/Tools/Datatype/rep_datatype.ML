@@ -434,7 +434,7 @@ fun prove_case_congs new_type_names case_names descr nchotomys case_thms thy =
   let
     fun prove_case_cong ((t, nchotomy), case_rewrites) =
       let
-        val Const ("==>", _) $ tm $ _ = t;
+        val Const (@{const_name Pure.imp}, _) $ tm $ _ = t;
         val Const (@{const_name Trueprop}, _) $ (Const (@{const_name HOL.eq}, _) $ _ $ Ma) = tm;
         val cert = cterm_of thy;
         val nchotomy' = nchotomy RS spec;

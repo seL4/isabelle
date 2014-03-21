@@ -93,14 +93,14 @@ struct
 
 (** all **)
 
-fun all_const T = Const ("all", (T --> propT) --> propT);
+fun all_const T = Const ("Pure.all", (T --> propT) --> propT);
 
 fun all v t = all_const (Term.fastype_of v) $ lambda v t;
 
-fun is_all (Const ("all", _) $ Abs _) = true
+fun is_all (Const ("Pure.all", _) $ Abs _) = true
   | is_all _ = false;
 
-fun dest_all (Const ("all", _) $ Abs (abs as (_, T, _))) =
+fun dest_all (Const ("Pure.all", _) $ Abs (abs as (_, T, _))) =
       let val (x, b) = Term.dest_abs abs  (*potentially slow*)
       in ((x, T), b) end
   | dest_all t = raise TERM ("dest_all", [t]);
@@ -113,19 +113,19 @@ fun list_all ([], t) = t
 
 fun mk_equals (t, u) =
   let val T = Term.fastype_of t
-  in Const ("==", T --> T --> propT) $ t $ u end;
+  in Const ("Pure.eq", T --> T --> propT) $ t $ u end;
 
-fun dest_equals (Const ("==", _) $ t $ u) = (t, u)
+fun dest_equals (Const ("Pure.eq", _) $ t $ u) = (t, u)
   | dest_equals t = raise TERM ("dest_equals", [t]);
 
 
 (** implies **)
 
-val implies = Const ("==>", propT --> propT --> propT);
+val implies = Const ("Pure.imp", propT --> propT --> propT);
 
 fun mk_implies (A, B) = implies $ A $ B;
 
-fun dest_implies (Const ("==>", _) $ A $ B) = (A, B)
+fun dest_implies (Const ("Pure.imp", _) $ A $ B) = (A, B)
   | dest_implies A = raise TERM ("dest_implies", [A]);
 
 
@@ -136,28 +136,28 @@ fun list_implies ([], B) = B
   | list_implies (A::As, B) = implies $ A $ list_implies(As,B);
 
 (* A1==>...An==>B  goes to  [A1,...,An], where B is not an implication *)
-fun strip_imp_prems (Const("==>", _) $ A $ B) = A :: strip_imp_prems B
+fun strip_imp_prems (Const("Pure.imp", _) $ A $ B) = A :: strip_imp_prems B
   | strip_imp_prems _ = [];
 
 (* A1==>...An==>B  goes to B, where B is not an implication *)
-fun strip_imp_concl (Const("==>", _) $ A $ B) = strip_imp_concl B
+fun strip_imp_concl (Const("Pure.imp", _) $ A $ B) = strip_imp_concl B
   | strip_imp_concl A = A : term;
 
 (*Strip and return premises: (i, [], A1==>...Ai==>B)
     goes to   ([Ai, A(i-1),...,A1] , B)         (REVERSED)
   if  i<0 or else i too big then raises  TERM*)
 fun strip_prems (0, As, B) = (As, B)
-  | strip_prems (i, As, Const("==>", _) $ A $ B) =
+  | strip_prems (i, As, Const("Pure.imp", _) $ A $ B) =
         strip_prems (i-1, A::As, B)
   | strip_prems (_, As, A) = raise TERM("strip_prems", A::As);
 
 (*Count premises -- quicker than (length o strip_prems) *)
-fun count_prems (Const ("==>", _) $ _ $ B) = 1 + count_prems B
+fun count_prems (Const ("Pure.imp", _) $ _ $ B) = 1 + count_prems B
   | count_prems _ = 0;
 
 (*Select Ai from A1 ==>...Ai==>B*)
-fun nth_prem (1, Const ("==>", _) $ A $ _) = A
-  | nth_prem (i, Const ("==>", _) $ _ $ B) = nth_prem (i - 1, B)
+fun nth_prem (1, Const ("Pure.imp", _) $ A $ _) = A
+  | nth_prem (i, Const ("Pure.imp", _) $ _ $ B) = nth_prem (i - 1, B)
   | nth_prem (_, A) = raise TERM ("nth_prem", [A]);
 
 (*strip a proof state (Horn clause):
@@ -395,46 +395,46 @@ fun incr_indexes arg t = incr_indexes_same arg t handle Same.SAME => t;
 
 fun lift_abs inc =
   let
-    fun lift Ts (Const ("==>", _) $ _ $ B) t = lift Ts B t
-      | lift Ts (Const ("all", _) $ Abs (a, T, B)) t = Abs (a, T, lift (T :: Ts) B t)
+    fun lift Ts (Const ("Pure.imp", _) $ _ $ B) t = lift Ts B t
+      | lift Ts (Const ("Pure.all", _) $ Abs (a, T, B)) t = Abs (a, T, lift (T :: Ts) B t)
       | lift Ts _ t = incr_indexes (rev Ts, inc) t;
   in lift [] end;
 
 fun lift_all inc =
   let
-    fun lift Ts ((c as Const ("==>", _)) $ A $ B) t = c $ A $ lift Ts B t
-      | lift Ts ((c as Const ("all", _)) $ Abs (a, T, B)) t = c $ Abs (a, T, lift (T :: Ts) B t)
+    fun lift Ts ((c as Const ("Pure.imp", _)) $ A $ B) t = c $ A $ lift Ts B t
+      | lift Ts ((c as Const ("Pure.all", _)) $ Abs (a, T, B)) t = c $ Abs (a, T, lift (T :: Ts) B t)
       | lift Ts _ t = incr_indexes (rev Ts, inc) t;
   in lift [] end;
 
 (*Strips assumptions in goal, yielding list of hypotheses.   *)
 fun strip_assums_hyp B =
   let
-    fun strip Hs (Const ("==>", _) $ H $ B) = strip (H :: Hs) B
-      | strip Hs (Const ("all", _) $ Abs (a, T, t)) =
+    fun strip Hs (Const ("Pure.imp", _) $ H $ B) = strip (H :: Hs) B
+      | strip Hs (Const ("Pure.all", _) $ Abs (a, T, t)) =
           strip (map (incr_boundvars 1) Hs) t
       | strip Hs B = rev Hs
   in strip [] B end;
 
 (*Strips assumptions in goal, yielding conclusion.   *)
-fun strip_assums_concl (Const("==>", _) $ H $ B) = strip_assums_concl B
-  | strip_assums_concl (Const("all",_)$Abs(a,T,t)) = strip_assums_concl t
+fun strip_assums_concl (Const("Pure.imp", _) $ H $ B) = strip_assums_concl B
+  | strip_assums_concl (Const("Pure.all",_)$Abs(a,T,t)) = strip_assums_concl t
   | strip_assums_concl B = B;
 
 (*Make a list of all the parameters in a subgoal, even if nested*)
-fun strip_params (Const("==>", _) $ H $ B) = strip_params B
-  | strip_params (Const("all",_)$Abs(a,T,t)) = (a,T) :: strip_params t
+fun strip_params (Const("Pure.imp", _) $ H $ B) = strip_params B
+  | strip_params (Const("Pure.all",_)$Abs(a,T,t)) = (a,T) :: strip_params t
   | strip_params B = [];
 
 (*test for nested meta connectives in prems*)
 val has_meta_prems =
   let
-    fun is_meta (Const ("==", _) $ _ $ _) = true
-      | is_meta (Const ("==>", _) $ _ $ _) = true
-      | is_meta (Const ("all", _) $ _) = true
+    fun is_meta (Const ("Pure.eq", _) $ _ $ _) = true
+      | is_meta (Const ("Pure.imp", _) $ _ $ _) = true
+      | is_meta (Const ("Pure.all", _) $ _) = true
       | is_meta _ = false;
-    fun ex_meta (Const ("==>", _) $ A $ B) = is_meta A orelse ex_meta B
-      | ex_meta (Const ("all", _) $ Abs (_, _, B)) = ex_meta B
+    fun ex_meta (Const ("Pure.imp", _) $ A $ B) = is_meta A orelse ex_meta B
+      | ex_meta (Const ("Pure.all", _) $ Abs (_, _, B)) = ex_meta B
       | ex_meta _ = false;
   in ex_meta end;
 
@@ -444,10 +444,10 @@ val has_meta_prems =
 fun remove_params j n A =
     if j=0 andalso n<=0 then A  (*nothing left to do...*)
     else case A of
-        Const("==>", _) $ H $ B =>
+        Const("Pure.imp", _) $ H $ B =>
           if n=1 then                           (remove_params j (n-1) B)
           else implies $ (incr_boundvars j H) $ (remove_params j (n-1) B)
-      | Const("all",_)$Abs(a,T,t) => remove_params (j-1) n t
+      | Const("Pure.all",_)$Abs(a,T,t) => remove_params (j-1) n t
       | _ => if n>0 then raise TERM("remove_params", [A])
              else A;
 
@@ -460,9 +460,9 @@ fun flatten_params n A =
     in list_all (vars, remove_params (length vars) n A) end;
 
 (*Makes parameters in a goal have the names supplied by the list cs.*)
-fun list_rename_params cs (Const ("==>", _) $ A $ B) =
+fun list_rename_params cs (Const ("Pure.imp", _) $ A $ B) =
       implies $ A $ list_rename_params cs B
-  | list_rename_params (c :: cs) ((a as Const ("all", _)) $ Abs (_, T, t)) =
+  | list_rename_params (c :: cs) ((a as Const ("Pure.all", _)) $ Abs (_, T, t)) =
       a $ Abs (c, T, list_rename_params cs t)
   | list_rename_params cs B = B;
 
@@ -480,12 +480,12 @@ fun list_rename_params cs (Const ("==>", _) $ A $ B) =
       Unless nasms<0, it can terminate the recursion early; that allows
   erule to work on assumptions of the form P==>Q.*)
 fun strip_assums_imp (0, Hs, B) = (Hs, B)  (*recursion terminated by nasms*)
-  | strip_assums_imp (nasms, Hs, Const("==>", _) $ H $ B) =
+  | strip_assums_imp (nasms, Hs, Const("Pure.imp", _) $ H $ B) =
       strip_assums_imp (nasms-1, H::Hs, B)
   | strip_assums_imp (_, Hs, B) = (Hs, B); (*recursion terminated by B*)
 
 (*Strips OUTER parameters only.*)
-fun strip_assums_all (params, Const("all",_)$Abs(a,T,t)) =
+fun strip_assums_all (params, Const("Pure.all",_)$Abs(a,T,t)) =
       strip_assums_all ((a,T)::params, t)
   | strip_assums_all (params, B) = (params, B);
 

@@ -48,7 +48,7 @@ fun norm_def thm =
   (case Thm.prop_of thm of
     @{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ _ $ Abs _) =>
       norm_def (thm RS @{thm fun_cong})
-  | Const (@{const_name "=="}, _) $ _ $ Abs _ => norm_def (thm RS @{thm meta_eq_to_obj_eq})
+  | Const (@{const_name Pure.eq}, _) $ _ $ Abs _ => norm_def (thm RS @{thm meta_eq_to_obj_eq})
   | _ => thm)
 
 
@@ -56,17 +56,17 @@ fun norm_def thm =
 
 fun atomize_conv ctxt ct =
   (case Thm.term_of ct of
-    @{const "==>"} $ _ $ _ =>
+    @{const Pure.imp} $ _ $ _ =>
       Conv.binop_conv (atomize_conv ctxt) then_conv Conv.rewr_conv @{thm atomize_imp}
-  | Const (@{const_name "=="}, _) $ _ $ _ =>
+  | Const (@{const_name Pure.eq}, _) $ _ $ _ =>
       Conv.binop_conv (atomize_conv ctxt) then_conv Conv.rewr_conv @{thm atomize_eq}
-  | Const (@{const_name all}, _) $ Abs _ =>
+  | Const (@{const_name Pure.all}, _) $ Abs _ =>
       Conv.binder_conv (atomize_conv o snd) ctxt then_conv Conv.rewr_conv @{thm atomize_all}
   | _ => Conv.all_conv) ct
 
 val setup_atomize =
-  fold SMT2_Builtin.add_builtin_fun_ext'' [@{const_name "==>"}, @{const_name "=="},
-    @{const_name all}, @{const_name Trueprop}]
+  fold SMT2_Builtin.add_builtin_fun_ext'' [@{const_name Pure.imp}, @{const_name Pure.eq},
+    @{const_name Pure.all}, @{const_name Trueprop}]
 
 
 (** unfold special quantifiers **)

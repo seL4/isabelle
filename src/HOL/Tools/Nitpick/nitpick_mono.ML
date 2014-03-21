@@ -844,8 +844,8 @@ fun consider_term (mdata as {hol_ctxt = {ctxt, ...}, alpha_T, max_fresh, ...}) =
             if not (could_exist_alpha_subtype alpha_T T) then
               (mtype_for T, accum)
             else case s of
-              @{const_name all} => do_all T accum
-            | @{const_name "=="} => do_equals T accum
+              @{const_name Pure.all} => do_all T accum
+            | @{const_name Pure.eq} => do_equals T accum
             | @{const_name All} => do_all T accum
             | @{const_name Ex} =>
               let val set_T = domain_type T in
@@ -1057,9 +1057,9 @@ fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, max_fresh,
                             " \<turnstile> " ^ Syntax.string_of_term ctxt t ^
                             " : o\<^sup>" ^ string_for_sign sn ^ "?");
         case t of
-          Const (s as @{const_name all}, _) $ Abs (_, T1, t1) =>
+          Const (s as @{const_name Pure.all}, _) $ Abs (_, T1, t1) =>
           do_quantifier s T1 t1
-        | Const (@{const_name "=="}, _) $ t1 $ t2 => do_equals t1 t2
+        | Const (@{const_name Pure.eq}, _) $ t1 $ t2 => do_equals t1 t2
         | @{const Trueprop} $ t1 => do_formula sn t1 accum
         | Const (s as @{const_name All}, _) $ Abs (_, T1, t1) =>
           do_quantifier s T1 t1
@@ -1076,7 +1076,7 @@ fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, max_fresh,
           do_formula sn (betapply (t2, t1)) accum
         | @{const Pure.conjunction} $ t1 $ t2 =>
           do_connect meta_conj_spec false t1 t2 accum
-        | @{const "==>"} $ t1 $ t2 => do_connect meta_imp_spec true t1 t2 accum
+        | @{const Pure.imp} $ t1 $ t2 => do_connect meta_imp_spec true t1 t2 accum
         | @{const Not} $ t1 => do_connect imp_spec true t1 @{const False} accum
         | @{const conj} $ t1 $ t2 => do_connect conj_spec false t1 t2 accum
         | @{const disj} $ t1 $ t2 => do_connect disj_spec false t1 t2 accum
@@ -1122,11 +1122,11 @@ fun consider_definitional_axiom (mdata as {hol_ctxt = {ctxt, ...}, ...} : mdata)
       and do_implies t1 t2 = do_term t1 #> do_formula t2
       and do_formula t accum =
         case t of
-          Const (@{const_name all}, _) $ Abs (_, T1, t1) => do_all T1 t1 accum
+          Const (@{const_name Pure.all}, _) $ Abs (_, T1, t1) => do_all T1 t1 accum
         | @{const Trueprop} $ t1 => do_formula t1 accum
-        | Const (@{const_name "=="}, _) $ t1 $ t2 =>
+        | Const (@{const_name Pure.eq}, _) $ t1 $ t2 =>
           consider_general_equals mdata true t1 t2 accum
-        | @{const "==>"} $ t1 $ t2 => do_implies t1 t2 accum
+        | @{const Pure.imp} $ t1 $ t2 => do_implies t1 t2 accum
         | @{const Pure.conjunction} $ t1 $ t2 =>
           fold (do_formula) [t1, t2] accum
         | Const (@{const_name All}, _) $ Abs (_, T1, t1) => do_all T1 t1 accum

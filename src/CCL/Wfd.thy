@@ -423,10 +423,10 @@ val type_rls =
   @{thms canTs} @ @{thms icanTs} @ @{thms applyT2} @ @{thms ncanTs} @ @{thms incanTs} @
   @{thms precTs} @ @{thms letrecTs} @ @{thms letT} @ @{thms Subtype_canTs};
 
-fun bvars (Const(@{const_name all},_) $ Abs(s,_,t)) l = bvars t (s::l)
+fun bvars (Const(@{const_name Pure.all},_) $ Abs(s,_,t)) l = bvars t (s::l)
   | bvars _ l = l
 
-fun get_bno l n (Const(@{const_name all},_) $ Abs(s,_,t)) = get_bno (s::l) n t
+fun get_bno l n (Const(@{const_name Pure.all},_) $ Abs(s,_,t)) = get_bno (s::l) n t
   | get_bno l n (Const(@{const_name Trueprop},_) $ t) = get_bno l n t
   | get_bno l n (Const(@{const_name Ball},_) $ _ $ Abs(s,_,t)) = get_bno (s::l) (n+1) t
   | get_bno l n (Const(@{const_name mem},_) $ t $ _) = get_bno l n t

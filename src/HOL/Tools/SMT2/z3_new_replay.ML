@@ -14,7 +14,7 @@ end
 structure Z3_New_Replay: Z3_NEW_REPLAY =
 struct
 
-fun params_of t = Term.strip_qnt_vars @{const_name all} t
+fun params_of t = Term.strip_qnt_vars @{const_name Pure.all} t
 
 fun varify ctxt thm =
   let
@@ -32,7 +32,7 @@ fun new_fixes ctxt nTs =
     fun mk (n, T) n' = (n, SMT2_Util.certify ctxt' (Free (n', T)))
   in (ctxt', Symtab.make (map2 mk nTs ns)) end
 
-fun forall_elim_term ct (Const (@{const_name all}, _) $ (a as Abs _)) =
+fun forall_elim_term ct (Const (@{const_name Pure.all}, _) $ (a as Abs _)) =
       Term.betapply (a, Thm.term_of ct)
   | forall_elim_term _ qt = raise TERM ("forall_elim'", [qt])
 

@@ -795,7 +795,7 @@ end;
 
 fun generalize_tac f = CSUBGOAL (fn (p, _) => PRIMITIVE (fn st =>
  let 
-   fun all T = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat "all"}
+   fun all T = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat "Pure.all"}
    fun gen x t = Thm.apply (all (ctyp_of_term x)) (Thm.lambda x t)
    val ts = sort (fn (a,b) => Term_Ord.fast_term_ord (term_of a, term_of b)) (f p)
    val p' = fold_rev gen ts p

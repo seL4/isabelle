@@ -46,7 +46,7 @@ val sumprod_thms_rel = @{thms rel_prod_apply rel_sum_simps id_apply};
 
 fun hhf_concl_conv cv ctxt ct =
   (case Thm.term_of ct of
-    Const (@{const_name all}, _) $ Abs _ =>
+    Const (@{const_name Pure.all}, _) $ Abs _ =>
     Conv.arg_conv (Conv.abs_conv (hhf_concl_conv cv o snd) ctxt) ct
   | _ => Conv.concl_conv ~1 cv ct);
 

@@ -13,7 +13,7 @@ consts DUMMY :: 'a ("\<^raw:\_>")
 
 (* THEOREMS *)
 notation (Rule output)
-  "==>"  ("\<^raw:\mbox{}\inferrule{\mbox{>_\<^raw:}}>\<^raw:{\mbox{>_\<^raw:}}>")
+  Pure.imp  ("\<^raw:\mbox{}\inferrule{\mbox{>_\<^raw:}}>\<^raw:{\mbox{>_\<^raw:}}>")
 
 syntax (Rule output)
   "_bigimpl" :: "asms \<Rightarrow> prop \<Rightarrow> prop"
@@ -28,7 +28,7 @@ notation (Axiom output)
   "Trueprop"  ("\<^raw:\mbox{}\inferrule{\mbox{}}{\mbox{>_\<^raw:}}>")
 
 notation (IfThen output)
-  "==>"  ("\<^raw:{\normalsize{}>If\<^raw:\,}> _/ \<^raw:{\normalsize \,>then\<^raw:\,}>/ _.")
+  Pure.imp  ("\<^raw:{\normalsize{}>If\<^raw:\,}> _/ \<^raw:{\normalsize \,>then\<^raw:\,}>/ _.")
 syntax (IfThen output)
   "_bigimpl" :: "asms \<Rightarrow> prop \<Rightarrow> prop"
   ("\<^raw:{\normalsize{}>If\<^raw:\,}> _ /\<^raw:{\normalsize \,>then\<^raw:\,}>/ _.")
@@ -36,7 +36,7 @@ syntax (IfThen output)
   "_asm" :: "prop \<Rightarrow> asms" ("\<^raw:\mbox{>_\<^raw:}>")
 
 notation (IfThenNoBox output)
-  "==>"  ("\<^raw:{\normalsize{}>If\<^raw:\,}> _/ \<^raw:{\normalsize \,>then\<^raw:\,}>/ _.")
+  Pure.imp  ("\<^raw:{\normalsize{}>If\<^raw:\,}> _/ \<^raw:{\normalsize \,>then\<^raw:\,}>/ _.")
 syntax (IfThenNoBox output)
   "_bigimpl" :: "asms \<Rightarrow> prop \<Rightarrow> prop"
   ("\<^raw:{\normalsize{}>If\<^raw:\,}> _ /\<^raw:{\normalsize \,>then\<^raw:\,}>/ _.")

@@ -14,7 +14,7 @@ fun mk_meta_eq th = case concl_of th of
   error("conclusion must be a =-equality or <->");;
 
 fun mk_eq th = case concl_of th of
-    Const("==",_)$_$_           => th
+    Const(@{const_name Pure.eq},_)$_$_ => th
   | _ $ (Const(@{const_name eq},_)$_$_)   => mk_meta_eq th
   | _ $ (Const(@{const_name iff},_)$_$_) => mk_meta_eq th
   | _ $ (Const(@{const_name Not},_)$_)      => th RS @{thm iff_reflection_F}

@@ -185,7 +185,7 @@ fun dest_cprop ct =
     @{const Trueprop} $ _ => Thm.dest_arg ct
   | _ => raise CTERM ("not a property", [ct]))
 
-val equals = mk_const_pat @{theory} @{const_name "=="} destT1
+val equals = mk_const_pat @{theory} @{const_name Pure.eq} destT1
 fun mk_cequals ct cu = Thm.mk_binop (instT' ct equals) ct cu
 
 val dest_prop = (fn @{const Trueprop} $ t => t | t => t)

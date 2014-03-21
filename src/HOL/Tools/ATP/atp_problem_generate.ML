@@ -404,8 +404,9 @@ fun new_skolem_var_name_of_const s =
 (* These are ignored anyway by the relevance filter (unless they appear in
    higher-order places) but not by the monomorphizer. *)
 val atp_logical_consts =
-  [@{const_name Pure.prop}, @{const_name Pure.conjunction}, @{const_name all}, @{const_name "==>"},
-   @{const_name "=="}, @{const_name Trueprop}, @{const_name All}, @{const_name Ex},
+  [@{const_name Pure.prop}, @{const_name Pure.conjunction},
+   @{const_name Pure.all}, @{const_name Pure.imp}, @{const_name Pure.eq},
+   @{const_name Trueprop}, @{const_name All}, @{const_name Ex},
    @{const_name Ex1}, @{const_name Ball}, @{const_name Bex}]
 
 (* These are either simplified away by "Meson.presimplify" (most of the time) or
@@ -1879,8 +1880,8 @@ val pull_and_reorder_definitions =
   in List.partition (curry (op =) Definition o #role) #>> reorder [] #> op @ end
 
 fun s_not_prop (@{const Trueprop} $ t) = @{const Trueprop} $ s_not t
-  | s_not_prop (@{const "==>"} $ t $ @{prop False}) = t
-  | s_not_prop t = @{const "==>"} $ t $ @{prop False}
+  | s_not_prop (@{const Pure.imp} $ t $ @{prop False}) = t
+  | s_not_prop t = @{const Pure.imp} $ t $ @{prop False}
 
 fun translate_formulas ctxt prem_role format type_enc lam_trans presimp hyp_ts
                        concl_t facts =

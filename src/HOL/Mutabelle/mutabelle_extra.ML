@@ -275,7 +275,7 @@ val forbidden_mutant_constnames =
  @{const_name Quickcheck_Random.catch_match},
  @{const_name Quickcheck_Exhaustive.unknown},
  @{const_name Num.Bit0}, @{const_name Num.Bit1}
- (*@{const_name "==>"}, @{const_name "=="}*)]
+ (*@{const_name Pure.imp}, @{const_name Pure.eq}*)]
 
 val forbidden_mutant_consts =
   [

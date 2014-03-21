@@ -232,7 +232,7 @@ struct
       | fm pos t = var(t,[]);
       (*entry point, and translation of a meta-formula*)
       fun mt pos ((c as Const(@{const_name Trueprop}, _)) $ p) = fm pos (iff_tag p)
-        | mt pos ((c as Const("==>", _)) $ p $ q) =
+        | mt pos ((c as Const(@{const_name Pure.imp}, _)) $ p $ q) =
             Buildin("=>", [mt (not pos) p, mt pos q])
         | mt pos t = fm pos (iff_tag t)  (*it might be a formula*)
 

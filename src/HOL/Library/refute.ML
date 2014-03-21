@@ -545,9 +545,9 @@ fun unfold_defs thy t =
     fun unfold_loop t =
       case t of
       (* Pure *)
-        Const (@{const_name all}, _) => t
-      | Const (@{const_name "=="}, _) => t
-      | Const (@{const_name "==>"}, _) => t
+        Const (@{const_name Pure.all}, _) => t
+      | Const (@{const_name Pure.eq}, _) => t
+      | Const (@{const_name Pure.imp}, _) => t
       | Const (@{const_name Pure.type}, _) => t  (* axiomatic type classes *)
       (* HOL *)
       | Const (@{const_name Trueprop}, _) => t
@@ -709,9 +709,9 @@ fun collect_axioms ctxt t =
     and collect_term_axioms t axs =
       case t of
       (* Pure *)
-        Const (@{const_name all}, _) => axs
-      | Const (@{const_name "=="}, _) => axs
-      | Const (@{const_name "==>"}, _) => axs
+        Const (@{const_name Pure.all}, _) => axs
+      | Const (@{const_name Pure.eq}, _) => axs
+      | Const (@{const_name Pure.imp}, _) => axs
       (* axiomatic type classes *)
       | Const (@{const_name Pure.type}, T) => collect_type_axioms T axs
       (* HOL *)
@@ -1183,7 +1183,7 @@ fun refute_term ctxt params assm_ts t =
     (* interpretation which includes values for the (formerly)           *)
     (* quantified variables.                                             *)
     (* maps  !!x1...xn. !xk...xm. t   to   t  *)
-    fun strip_all_body (Const (@{const_name all}, _) $ Abs (_, _, t)) =
+    fun strip_all_body (Const (@{const_name Pure.all}, _) $ Abs (_, _, t)) =
           strip_all_body t
       | strip_all_body (Const (@{const_name Trueprop}, _) $ t) =
           strip_all_body t
@@ -1191,7 +1191,7 @@ fun refute_term ctxt params assm_ts t =
           strip_all_body t
       | strip_all_body t = t
     (* maps  !!x1...xn. !xk...xm. t   to   [x1, ..., xn, xk, ..., xm]  *)
-    fun strip_all_vars (Const (@{const_name all}, _) $ Abs (a, T, t)) =
+    fun strip_all_vars (Const (@{const_name Pure.all}, _) $ Abs (a, T, t)) =
           (a, T) :: strip_all_vars t
       | strip_all_vars (Const (@{const_name Trueprop}, _) $ t) =
           strip_all_vars t
@@ -1569,7 +1569,7 @@ fun stlc_interpreter ctxt model args t =
 
 fun Pure_interpreter ctxt model args t =
   case t of
-    Const (@{const_name all}, _) $ t1 =>
+    Const (@{const_name Pure.all}, _) $ t1 =>
       let
         val (i, m, a) = interpret ctxt model args t1
       in
@@ -1584,11 +1584,11 @@ fun Pure_interpreter ctxt model args t =
             end
         | _ =>
           raise REFUTE ("Pure_interpreter",
-            "\"all\" is followed by a non-function")
+            "\"Pure.all\" is followed by a non-function")
       end
-  | Const (@{const_name all}, _) =>
+  | Const (@{const_name Pure.all}, _) =>
       SOME (interpret ctxt model args (eta_expand t 1))
-  | Const (@{const_name "=="}, _) $ t1 $ t2 =>
+  | Const (@{const_name Pure.eq}, _) $ t1 $ t2 =>
       let
         val (i1, m1, a1) = interpret ctxt model args t1
         val (i2, m2, a2) = interpret ctxt m1 a1 t2
@@ -1597,11 +1597,11 @@ fun Pure_interpreter ctxt model args t =
         SOME ((if #def_eq args then make_def_equality else make_equality)
           (i1, i2), m2, a2)
       end
-  | Const (@{const_name "=="}, _) $ _ =>
+  | Const (@{const_name Pure.eq}, _) $ _ =>
       SOME (interpret ctxt model args (eta_expand t 1))
-  | Const (@{const_name "=="}, _) =>
+  | Const (@{const_name Pure.eq}, _) =>
       SOME (interpret ctxt model args (eta_expand t 2))
-  | Const (@{const_name "==>"}, _) $ t1 $ t2 =>
+  | Const (@{const_name Pure.imp}, _) $ t1 $ t2 =>
       (* 3-valued logic *)
       let
         val (i1, m1, a1) = interpret ctxt model args t1
@@ -1611,9 +1611,9 @@ fun Pure_interpreter ctxt model args t =
       in
         SOME (Leaf [fmTrue, fmFalse], m2, a2)
       end
-  | Const (@{const_name "==>"}, _) $ _ =>
+  | Const (@{const_name Pure.imp}, _) $ _ =>
       SOME (interpret ctxt model args (eta_expand t 1))
-  | Const (@{const_name "==>"}, _) =>
+  | Const (@{const_name Pure.imp}, _) =>
       SOME (interpret ctxt model args (eta_expand t 2))
   | _ => NONE;
 
@@ -1632,7 +1632,7 @@ fun HOLogic_interpreter ctxt model args t =
   (* redundant, since 'False' is also an IDT constructor *)
   | Const (@{const_name False}, _) =>
       SOME (FF, model, args)
-  | Const (@{const_name All}, _) $ t1 =>  (* similar to "all" (Pure) *)
+  | Const (@{const_name All}, _) $ t1 =>  (* similar to "Pure.all" *)
       let
         val (i, m, a) = interpret ctxt model args t1
       in
@@ -1670,7 +1670,7 @@ fun HOLogic_interpreter ctxt model args t =
       end
   | Const (@{const_name Ex}, _) =>
       SOME (interpret ctxt model args (eta_expand t 1))
-  | Const (@{const_name HOL.eq}, _) $ t1 $ t2 =>  (* similar to "==" (Pure) *)
+  | Const (@{const_name HOL.eq}, _) $ t1 $ t2 =>  (* similar to Pure.eq *)
       let
         val (i1, m1, a1) = interpret ctxt model args t1
         val (i2, m2, a2) = interpret ctxt m1 a1 t2
@@ -1715,7 +1715,7 @@ fun HOLogic_interpreter ctxt model args t =
       (* this would make "undef" propagate, even for formulae like *)
       (* "True | undef":                                           *)
       (* SOME (Node [Node [TT, TT], Node [TT, FF]], model, args) *)
-  | Const (@{const_name HOL.implies}, _) $ t1 $ t2 =>  (* similar to "==>" (Pure) *)
+  | Const (@{const_name HOL.implies}, _) $ t1 $ t2 =>  (* similar to Pure.imp *)
       (* 3-valued logic *)
       let
         val (i1, m1, a1) = interpret ctxt model args t1

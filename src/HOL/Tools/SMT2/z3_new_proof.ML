@@ -463,7 +463,7 @@ fun subst_types ctxt env bounds t =
     val match = Sign.typ_match (Proof_Context.theory_of ctxt)
 
     val t' = singleton (Variable.polymorphic ctxt) t
-    val patTs = map snd (Term.strip_qnt_vars @{const_name all} t')
+    val patTs = map snd (Term.strip_qnt_vars @{const_name Pure.all} t')
     val objTs = map (the o Symtab.lookup env) bounds
     val subst = subst_of (fold match (patTs ~~ objTs) Vartab.empty)
   in Same.commit (Term_Subst.map_types_same (substTs_same subst)) t' end
@@ -501,7 +501,7 @@ fun strip_match ctxt pat i obj =
     SOME (tyenv, _) => subst_of tyenv
   | NONE => strip_match ctxt pat (i + 1) (dest_quant i obj))
 
-fun dest_all i (Const (@{const_name all}, _) $ (a as Abs (_, T, _))) =
+fun dest_all i (Const (@{const_name Pure.all}, _) $ (a as Abs (_, T, _))) =
       dest_all (i + 1) (Term.betapply (a, Var (("", i), T)))
   | dest_all i t = (i, t)
 
@@ -517,7 +517,7 @@ fun match_rule ctxt env (Z3_Node {bounds=bs', concl=t', ...}) bs t =
     | SOME subst =>
         let
           val applyT = Same.commit (substTs_same subst)
-          val patTs = map snd (Term.strip_qnt_vars @{const_name all} t'')
+          val patTs = map snd (Term.strip_qnt_vars @{const_name Pure.all} t'')
         in SOME (Symtab.make (bs' ~~ map applyT patTs)) end)
   end
 

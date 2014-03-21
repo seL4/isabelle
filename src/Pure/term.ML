@@ -579,11 +579,11 @@ val a_itselfT = itselfT (TFree (Name.aT, []));
 val propT : typ = Type ("prop",[]);
 
 (* maps  !!x1...xn. t   to   t  *)
-fun strip_all_body (Const("all",_)$Abs(_,_,t))  =  strip_all_body t
+fun strip_all_body (Const("Pure.all",_)$Abs(_,_,t))  =  strip_all_body t
   | strip_all_body t  =  t;
 
 (* maps  !!x1...xn. t   to   [x1, ..., xn]  *)
-fun strip_all_vars (Const("all",_)$Abs(a,T,t))  =
+fun strip_all_vars (Const("Pure.all",_)$Abs(a,T,t))  =
                 (a,T) :: strip_all_vars t
   | strip_all_vars t  =  [] : (string*typ) list;
 

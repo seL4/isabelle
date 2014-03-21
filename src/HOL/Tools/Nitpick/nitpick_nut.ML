@@ -474,12 +474,12 @@ fun nut_from_term (hol_ctxt as {ctxt, ...}) eq =
           | k => sub (eta_expand Ts t k)
       in
         case strip_comb t of
-          (Const (@{const_name all}, _), [Abs (s, T, t1)]) =>
+          (Const (@{const_name Pure.all}, _), [Abs (s, T, t1)]) =>
           do_quantifier All s T t1
-        | (t0 as Const (@{const_name all}, _), [t1]) =>
+        | (t0 as Const (@{const_name Pure.all}, _), [t1]) =>
           sub' (t0 $ eta_expand Ts t1 1)
-        | (Const (@{const_name "=="}, T), [t1, t2]) => sub_equals T t1 t2
-        | (Const (@{const_name "==>"}, _), [t1, t2]) =>
+        | (Const (@{const_name Pure.eq}, T), [t1, t2]) => sub_equals T t1 t2
+        | (Const (@{const_name Pure.imp}, _), [t1, t2]) =>
           Op2 (Or, prop_T, Any, Op1 (Not, prop_T, Any, sub t1), sub' t2)
         | (Const (@{const_name Pure.conjunction}, _), [t1, t2]) =>
           Op2 (And, prop_T, Any, sub' t1, sub' t2)

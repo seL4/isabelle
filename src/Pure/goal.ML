@@ -327,8 +327,8 @@ fun norm_hhf_tac ctxt =
 
 (* non-atomic goal assumptions *)
 
-fun non_atomic (Const ("==>", _) $ _ $ _) = true
-  | non_atomic (Const ("all", _) $ _) = true
+fun non_atomic (Const ("Pure.imp", _) $ _ $ _) = true
+  | non_atomic (Const ("Pure.all", _) $ _) = true
   | non_atomic _ = false;
 
 fun assume_rule_tac ctxt = norm_hhf_tac ctxt THEN' CSUBGOAL (fn (goal, i) =>
