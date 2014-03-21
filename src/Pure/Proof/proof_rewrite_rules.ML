@@ -48,14 +48,14 @@ fun rew b _ _ =
             SOME (equal_intr_axm % B % A %% prf2 %% prf1)
 
       | rew' (PAxm ("Pure.equal_elim", _, _) % SOME (_ $ A) % SOME (_ $ B) %%
-        (PAxm ("Pure.combination", _, _) % SOME (Const ("prop", _)) %
+        (PAxm ("Pure.combination", _, _) % SOME (Const ("Pure.prop", _)) %
           _ % _ % _ %% (PAxm ("Pure.reflexive", _, _) % _) %% prf1) %%
         ((tg as PThm (_, (("Pure.protectI", _, _), _))) % _ %% prf2)) =
         SOME (tg %> B %% (equal_elim_axm %> A %> B %% prf1 %% prf2))
 
       | rew' (PAxm ("Pure.equal_elim", _, _) % SOME (_ $ A) % SOME (_ $ B) %%
         (PAxm ("Pure.symmetric", _, _) % _ % _ %%
-          (PAxm ("Pure.combination", _, _) % SOME (Const ("prop", _)) %
+          (PAxm ("Pure.combination", _, _) % SOME (Const ("Pure.prop", _)) %
              _ % _ % _ %% (PAxm ("Pure.reflexive", _, _) % _) %% prf1)) %%
         ((tg as PThm (_, (("Pure.protectI", _, _), _))) % _ %% prf2)) =
         SOME (tg %> B %% (equal_elim_axm %> A %> B %%

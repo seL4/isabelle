@@ -191,14 +191,14 @@ val _ = Theory.setup
     ("_bigimpl",          typ "asms => prop => prop",   Mixfix ("((1\\<lbrakk>_\\<rbrakk>)/ \\<Longrightarrow> _)", [0, 1], 1)),
     ("_DDDOT",            typ "logic",                  Delimfix "\\<dots>")]
   #> Sign.add_syntax ("", false)
-   [(const "prop", typ "prop => prop", Mixfix ("_", [0], 0))]
+   [(const "Pure.prop", typ "prop => prop", Mixfix ("_", [0], 0))]
   #> Sign.add_syntax ("HTML", false)
    [("_lambda", typ "pttrns => 'a => logic", Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3))]
   #> Sign.add_consts
    [(Binding.name "==", typ "'a => 'a => prop", Infix ("==", 2)),
     (Binding.name "==>", typ "prop => prop => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
     (Binding.name "all", typ "('a => prop) => prop", Binder ("!!", 0, 0)),
-    (Binding.name "prop", typ "prop => prop", NoSyn),
+    (qualify (Binding.name "prop"), typ "prop => prop", NoSyn),
     (qualify (Binding.name "type"), typ "'a itself", NoSyn),
     (qualify (Binding.name "dummy_pattern"), typ "'a", Delimfix "'_")]
   #> Theory.add_deps_global "==" ("==", typ "'a => 'a => prop") []
@@ -215,7 +215,7 @@ val _ = Theory.setup
     (qualify (Binding.name "conjunction"), typ "prop => prop => prop", NoSyn)]
   #> Sign.local_path
   #> (Global_Theory.add_defs false o map Thm.no_attributes)
-   [(Binding.name "prop_def", prop "(CONST prop :: prop => prop) (A::prop) == A::prop"),
+   [(Binding.name "prop_def", prop "(CONST Pure.prop :: prop => prop) (A::prop) == A::prop"),
     (Binding.name "term_def", prop "(CONST Pure.term :: 'a => prop) (x::'a) == (!!A::prop. A ==> A)"),
     (Binding.name "sort_constraint_def",
       prop "(CONST Pure.sort_constraint :: 'a itself => prop) (CONST Pure.type :: 'a itself) ==\

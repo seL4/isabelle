@@ -323,10 +323,10 @@ fun unconstrainT shyps prop =
 
 (** protected propositions and embedded terms **)
 
-val protectC = Const ("prop", propT --> propT);
+val protectC = Const ("Pure.prop", propT --> propT);
 fun protect t = protectC $ t;
 
-fun unprotect (Const ("prop", _) $ t) = t
+fun unprotect (Const ("Pure.prop", _) $ t) = t
   | unprotect t = raise TERM ("unprotect", [t]);
 
 
