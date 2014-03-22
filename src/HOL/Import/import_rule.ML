@@ -409,7 +409,7 @@ fun process_line str tstate =
           end
       | process (thy, state) (#"Y", [name, _, _]) = setth (mtydef name thy) (thy, state)
       | process (thy, state) (#"t", [n]) =
-          setty (ctyp_of thy (TFree ("'" ^ (transl_qm n), ["HOL.type"]))) (thy, state)
+          setty (ctyp_of thy (TFree ("'" ^ (transl_qm n), @{sort type}))) (thy, state)
       | process (thy, state) (#"a", n :: l) =
           fold_map getty l (thy, state) |>>
             (fn tys => ctyp_of thy (Type (gettyname n thy, map typ_of tys))) |-> setty

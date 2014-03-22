@@ -199,10 +199,10 @@ struct
             Buildin("NOT", [fm (not pos) p])
       | fm pos (Const(@{const_name True}, _)) = TrueExpr
       | fm pos (Const(@{const_name False}, _)) = FalseExpr
-      | fm pos (Const("SVC_Oracle.iff_keep", _) $ p $ q) =
+      | fm pos (Const(@{const_name iff_keep}, _) $ p $ q) =
              (*polarity doesn't matter*)
             Buildin("=", [fm pos p, fm pos q])
-      | fm pos (Const("SVC_Oracle.iff_unfold", _) $ p $ q) =
+      | fm pos (Const(@{const_name iff_unfold}, _) $ p $ q) =
             Buildin("AND",   (*unfolding uses both polarities*)
                          [Buildin("=>", [fm (not pos) p, fm pos q]),
                           Buildin("=>", [fm (not pos) q, fm pos p])])

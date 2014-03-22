@@ -11,11 +11,11 @@ theory SVC_Oracle
 imports Main
 begin
 
-ML_file "svc_funcs.ML"
-
 consts
   iff_keep :: "[bool, bool] => bool"
   iff_unfold :: "[bool, bool] => bool"
+
+ML_file "svc_funcs.ML"
 
 hide_const iff_keep iff_unfold
 
