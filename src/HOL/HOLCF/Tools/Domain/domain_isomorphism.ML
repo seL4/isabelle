@@ -404,7 +404,7 @@ fun gen_domain_isomorphism
     : (Domain_Take_Proofs.iso_info list
        * Domain_Take_Proofs.take_induct_info) * theory =
   let
-    val _ = Theory.requires thy "Domain" "domain isomorphisms"
+    val _ = Theory.requires thy (Context.theory_name @{theory}) "domain isomorphisms"
 
     (* this theory is used just for parsing *)
     val tmp_thy = thy |>

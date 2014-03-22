@@ -707,7 +707,7 @@ end;
 
 fun gen_add_datatype prep_specs config raw_specs thy =
   let
-    val _ = Theory.requires thy "Datatype" "datatype definitions";
+    val _ = Theory.requires thy (Context.theory_name @{theory}) "datatype definitions";
 
     val (dts, spec_ctxt) = prep_specs raw_specs thy;
     val ((_, tyvars, _), _) :: _ = dts;
