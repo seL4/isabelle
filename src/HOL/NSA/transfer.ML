@@ -35,7 +35,7 @@ structure TransferData = Generic_Data
     consts = Library.merge (op =) (consts1, consts2)};
 );
 
-fun unstar_typ (Type ("StarDef.star",[t])) = unstar_typ t
+fun unstar_typ (Type (@{type_name star}, [t])) = unstar_typ t
   | unstar_typ (Type (a, Ts)) = Type (a, map unstar_typ Ts)
   | unstar_typ T = T
 

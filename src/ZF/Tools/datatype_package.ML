@@ -65,7 +65,7 @@ fun data_domain co (rec_tms, con_ty_lists) =
 fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elims) thy =
  let
   val dummy = (*has essential ancestors?*)
-    Theory.requires thy "Datatype_ZF" "(co)datatype definitions";
+    Theory.requires thy (Context.theory_name @{theory}) "(co)datatype definitions";
 
   val rec_hds = map head_of rec_tms;
 

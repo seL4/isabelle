@@ -347,7 +347,7 @@ fun check_defs ctxt fixes eqs =
         plural " " "s " not_defined ^ commas_quote not_defined)
 
     fun check_sorts ((fname, fT), _) =
-      Sorts.of_sort (Sign.classes_of (Proof_Context.theory_of ctxt)) (fT, HOLogic.typeS)
+      Sorts.of_sort (Sign.classes_of (Proof_Context.theory_of ctxt)) (fT, @{sort type})
       orelse error (cat_lines
       ["Type of " ^ quote fname ^ " is not of sort " ^ quote "type" ^ ":",
        Syntax.string_of_typ (Config.put show_sorts true ctxt) fT])

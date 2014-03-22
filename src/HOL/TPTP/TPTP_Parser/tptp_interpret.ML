@@ -256,11 +256,11 @@ fun interpret_type config thy type_map thf_ty =
   in
     case thf_ty of
        Prod_type (thf_ty1, thf_ty2) =>
-         Type ("Product_Type.prod",
+         Type (@{type_name prod},
           [interpret_type config thy type_map thf_ty1,
            interpret_type config thy type_map thf_ty2])
      | Fn_type (thf_ty1, thf_ty2) =>
-         Type ("fun",
+         Type (@{type_name fun},
           [interpret_type config thy type_map thf_ty1,
            interpret_type config thy type_map thf_ty2])
      | Atom_type _ =>
@@ -398,8 +398,7 @@ fun mapply' (args, thy) f =
 (*As above, but for products*)
 fun mtimes thy =
   fold (fn x => fn y =>
-    Sign.mk_const thy
-    ("Product_Type.Pair", [dummyT, dummyT]) $ y $ x)
+    Sign.mk_const thy (@{const_name Pair}, [dummyT, dummyT]) $ y $ x)
 
 fun mtimes' (args, thy) f =
   let
@@ -456,11 +455,11 @@ fun add_interp_symbols_to_thy config type_map thy =
   end
 
 (*Next batch of functions give info about Isabelle/HOL types*)
-fun is_fun (Type ("fun", _)) = true
+fun is_fun (Type (@{type_name fun}, _)) = true
   | is_fun _ = false
-fun is_prod (Type ("Product_Type.prod", _)) = true
+fun is_prod (Type (@{type_name prod}, _)) = true
   | is_prod _ = false
-fun dom_type (Type ("fun", [ty1, _])) = ty1
+fun dom_type (Type (@{type_name fun}, [ty1, _])) = ty1
 fun is_prod_typed thy config symb =
   let
     fun symb_type const_name =

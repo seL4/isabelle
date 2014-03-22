@@ -53,8 +53,8 @@ fun relevant_vars prop = fold (fn ((a, i), T) => fn vs =>
       | _ => vs)) (Term.add_vars prop []) [];
 
 val attach_typeS = map_types (map_atyps
-  (fn TFree (s, []) => TFree (s, HOLogic.typeS)
-    | TVar (ixn, []) => TVar (ixn, HOLogic.typeS)
+  (fn TFree (s, []) => TFree (s, @{sort type})
+    | TVar (ixn, []) => TVar (ixn, @{sort type})
     | T => T));
 
 fun dt_of_intrs thy vs nparms intrs =

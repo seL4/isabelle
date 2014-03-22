@@ -446,30 +446,35 @@ local
     let
       val assms = map (perhaps (try HOLogic.dest_Trueprop)) (prems_of rule)
       val concl = (perhaps (try HOLogic.dest_Trueprop)) (concl_of rule);
-      val (lhs, rhs) = case concl of
-        Const ("Orderings.ord_class.less_eq", _) $ (lhs as Const ("Relation.relcompp",_) $ _ $ _) $ rhs => 
-          (lhs, rhs)
-        | Const ("Orderings.ord_class.less_eq", _) $ rhs $ (lhs as Const ("Relation.relcompp",_) $ _ $ _) => 
-          (lhs, rhs)
-        | Const ("HOL.eq", _) $ (lhs as Const ("Relation.relcompp",_) $ _ $ _) $ rhs => (lhs, rhs)
-        | _ => error "The rule has a wrong format."
+      val (lhs, rhs) =
+        (case concl of
+          Const (@{const_name less_eq}, _) $ (lhs as Const (@{const_name relcompp},_) $ _ $ _) $ rhs =>
+            (lhs, rhs)
+        | Const (@{const_name less_eq}, _) $ rhs $ (lhs as Const (@{const_name relcompp},_) $ _ $ _) =>
+            (lhs, rhs)
+        | Const (@{const_name HOL.eq}, _) $ (lhs as Const (@{const_name relcompp},_) $ _ $ _) $ rhs =>
+            (lhs, rhs)
+        | _ => error "The rule has a wrong format.")
       
       val lhs_vars = Term.add_vars lhs []
       val rhs_vars = Term.add_vars rhs []
       val assms_vars = fold Term.add_vars assms [];
-      val _ = if has_duplicates op= lhs_vars then error "Left-hand side has variable duplicates" else ()
-      val _ = if subset op= (rhs_vars, lhs_vars) then () 
+      val _ =
+        if has_duplicates op= lhs_vars
+        then error "Left-hand side has variable duplicates" else ()
+      val _ =
+        if subset op= (rhs_vars, lhs_vars) then () 
         else error "Extra variables in the right-hand side of the rule"
-      val _ = if subset op= (assms_vars, lhs_vars) then () 
+      val _ =
+        if subset op= (assms_vars, lhs_vars) then () 
         else error "Extra variables in the assumptions of the rule"
       val rhs_args = (snd o strip_comb) rhs;
-      fun check_comp t = case t of 
-        Const ("Relation.relcompp", _) $ Var (_, _) $ Var (_,_) => ()
-        | _ => error "There is an argument on the rhs that is not a composition."
+      fun check_comp t =
+        (case t of
+          Const (@{const_name relcompp}, _) $ Var _ $ Var _ => ()
+        | _ => error "There is an argument on the rhs that is not a composition.")
       val _ = map check_comp rhs_args
-    in
-      ()
-    end
+    in () end
 in
 
   fun add_distr_rule distr_rule ctxt = 
@@ -477,13 +482,13 @@ in
       val _ = sanity_check distr_rule
       val concl = (perhaps (try HOLogic.dest_Trueprop)) (concl_of distr_rule)
     in
-      case concl of
-        Const ("Orderings.ord_class.less_eq", _) $ (Const ("Relation.relcompp",_) $ _ $ _) $ _ => 
+      (case concl of
+        Const (@{const_name less_eq}, _) $ (Const (@{const_name relcompp},_) $ _ $ _) $ _ =>
           add_pos_distr_rule distr_rule ctxt
-        | Const ("Orderings.ord_class.less_eq", _) $ _ $ (Const ("Relation.relcompp",_) $ _ $ _) => 
+      | Const (@{const_name less_eq}, _) $ _ $ (Const (@{const_name relcompp},_) $ _ $ _) =>
           add_neg_distr_rule distr_rule ctxt
-        | Const ("HOL.eq", _) $ (Const ("Relation.relcompp",_) $ _ $ _) $ _ =>
-          add_eq_distr_rule distr_rule ctxt
+      | Const (@{const_name HOL.eq}, _) $ (Const (@{const_name relcompp},_) $ _ $ _) $ _ =>
+          add_eq_distr_rule distr_rule ctxt)
     end
 end
 

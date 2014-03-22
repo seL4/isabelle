@@ -434,7 +434,7 @@ val add_schematic_consts_of =
 fun atp_schematic_consts_of t = add_schematic_consts_of t Symtab.empty
 
 val tvar_a_str = "'a"
-val tvar_a_z = ((tvar_a_str, 0), HOLogic.typeS)
+val tvar_a_z = ((tvar_a_str, 0), @{sort type})
 val tvar_a = TVar tvar_a_z
 val tvar_a_name = tvar_name tvar_a_z
 val itself_name = `make_fixed_type_const @{type_name itself}
@@ -2404,7 +2404,7 @@ fun result_type_of_decl (_, _, T, _, ary, _) = chop_fun ary T |> snd
 
 fun rationalize_decls thy (decls as decl :: (decls' as _ :: _)) =
     let
-      val T = result_type_of_decl decl |> map_type_tvar (fn (z, _) => TVar (z, HOLogic.typeS))
+      val T = result_type_of_decl decl |> map_type_tvar (fn (z, _) => TVar (z, @{sort type}))
     in
       if forall (type_generalization thy T o result_type_of_decl) decls' then [decl]
       else decls

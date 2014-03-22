@@ -1053,7 +1053,7 @@ fun prove_hol_model (scope as {hol_ctxt = {thy, ctxt, debug, ...},
                     (Object_Logic.atomize_term thy prop)
         val prop = HOLogic.mk_Trueprop (HOLogic.mk_imp (assm, concl))
                    |> map_types (map_type_tfree
-                                     (fn (s, []) => TFree (s, HOLogic.typeS)
+                                     (fn (s, []) => TFree (s, @{sort type})
                                        | x => TFree x))
         val _ =
           if debug then

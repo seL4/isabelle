@@ -94,7 +94,7 @@ fun exists_of v t = HOLogic.exists_const (fastype_of v) $ lambda' v t
 
 fun make_tfree ctxt w =
   let val ww = "'" ^ w in
-    TFree (ww, the_default HOLogic.typeS (Variable.def_sort ctxt (ww, ~1)))
+    TFree (ww, the_default @{sort type} (Variable.def_sort ctxt (ww, ~1)))
   end
 
 exception ATP_CLASS of string list
@@ -126,7 +126,7 @@ fun typ_of_atp_type ctxt (ty as AType ((a, clss), tys)) =
              Sometimes variables from the ATP are indistinguishable from Isabelle variables, which
              forces us to use a type parameter in all cases. *)
           Type_Infer.param 0 ("'" ^ perhaps (unprefix_and_unascii tvar_prefix) a,
-            (if null clss then HOLogic.typeS else map class_of_atp_class clss))))
+            (if null clss then @{sort type} else map class_of_atp_class clss))))
   end
 
 fun atp_type_of_atp_term (ATerm ((s, _), us)) = AType ((s, []), map atp_type_of_atp_term us)
@@ -175,7 +175,7 @@ fun robust_const_num_type_args thy s =
   else
     (s, Sign.the_const_type thy s) |> Sign.const_typargs thy |> length
 
-fun slack_fastype_of t = fastype_of t handle TERM _ => HOLogic.typeT
+fun slack_fastype_of t = fastype_of t handle TERM _ => Type_Infer.anyT @{sort type}
 
 (* Cope with "tt(X) = X" atoms, where "X" is existentially quantified. *)
 fun loose_aconv (Free (s, _), Free (s', _)) = s = s'
@@ -184,8 +184,8 @@ fun loose_aconv (Free (s, _), Free (s', _)) = s = s'
 val spass_skolem_prefix = "sk" (* "skc" or "skf" *)
 val vampire_skolem_prefix = "sK"
 
-(* First-order translation. No types are known for variables. "HOLogic.typeT" should allow them to
-   be inferred. *)
+(* First-order translation. No types are known for variables. "Type_Infer.anyT @{sort type}"
+   should allow them to be inferred. *)
 fun term_of_atp ctxt textual sym_tab =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -206,7 +206,7 @@ fun term_of_atp ctxt textual sym_tab =
             if textual andalso length ts = 2 andalso loose_aconv (hd ts, List.last ts) then
               @{const True}
             else
-              list_comb (Const (@{const_name HOL.eq}, HOLogic.typeT), ts)
+              list_comb (Const (@{const_name HOL.eq}, Type_Infer.anyT @{sort type}), ts)
           end
         else
           (case unprefix_and_unascii const_prefix s of
@@ -248,7 +248,8 @@ fun term_of_atp ctxt textual sym_tab =
                        NONE)
                     |> (fn SOME T => T
                          | NONE =>
-                           map slack_fastype_of term_ts ---> the_default HOLogic.typeT opt_T)
+                           map slack_fastype_of term_ts --->
+                            the_default (Type_Infer.anyT @{sort type}) opt_T)
                   val t =
                     if new_skolem then Var ((new_skolem_var_name_of_const s'', var_index), T)
                     else Const (unproxify_const s', T)
@@ -274,7 +275,7 @@ fun term_of_atp ctxt textual sym_tab =
                   SOME T => map slack_fastype_of term_ts ---> T
                 | NONE =>
                   map slack_fastype_of ts --->
-                  (case tys of [ty] => typ_of_atp_type ctxt ty | _ => HOLogic.typeT))
+                  (case tys of [ty] => typ_of_atp_type ctxt ty | _ => Type_Infer.anyT @{sort type}))
               val t =
                 (case unprefix_and_unascii fixed_var_prefix s of
                   SOME s => Free (s, T)

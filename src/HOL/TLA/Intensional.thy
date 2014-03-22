@@ -283,7 +283,7 @@ fun flatten t =
 
 fun int_use ctxt th =
     case (concl_of th) of
-      Const _ $ (Const ("Intensional.Valid", _) $ _) =>
+      Const _ $ (Const (@{const_name Valid}, _) $ _) =>
               (flatten (int_unlift ctxt th) handle THM _ => th)
     | _ => th
 *}

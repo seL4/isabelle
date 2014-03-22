@@ -180,7 +180,7 @@ fun prepare_hints_i thy () =
 
 (** add_recdef(_i) **)
 
-fun requires_recdef thy = Theory.requires thy "Old_Recdef" "recursive functions";
+fun requires_recdef thy = Theory.requires thy (Context.theory_name @{theory}) "recursive functions";
 
 fun gen_add_recdef tfl_fn prep_att prep_hints not_permissive raw_name R eq_srcs hints thy =
   let

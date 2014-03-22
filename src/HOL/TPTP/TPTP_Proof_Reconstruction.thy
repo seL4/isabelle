@@ -999,15 +999,15 @@ fun extuni_dec_n ctxt arity =
     val is =
       upto (1, arity)
       |> map Int.toString
-    val arg_tys = map (fn i => TFree ("arg" ^ i ^ "_ty", HOLogic.typeS)) is
-    val res_ty = TFree ("res" ^ "_ty", HOLogic.typeS)
+    val arg_tys = map (fn i => TFree ("arg" ^ i ^ "_ty", @{sort type})) is
+    val res_ty = TFree ("res" ^ "_ty", @{sort type})
     val f_ty = arg_tys ---> res_ty
     val f = Free ("f", f_ty)
     val xs = map (fn i =>
-      Free ("x" ^ i, TFree ("arg" ^ i ^ "_ty", HOLogic.typeS))) is
+      Free ("x" ^ i, TFree ("arg" ^ i ^ "_ty", @{sort type}))) is
     (*FIXME DRY principle*)
     val ys = map (fn i =>
-      Free ("y" ^ i, TFree ("arg" ^ i ^ "_ty", HOLogic.typeS))) is
+      Free ("y" ^ i, TFree ("arg" ^ i ^ "_ty", @{sort type}))) is
 
     val hyp_lhs = list_comb (f, xs)
     val hyp_rhs = list_comb (f, ys)
@@ -1018,7 +1018,7 @@ fun extuni_dec_n ctxt arity =
       |> HOLogic.mk_Trueprop
     fun conc_eq i =
       let
-        val ty = TFree ("arg" ^ i ^ "_ty", HOLogic.typeS)
+        val ty = TFree ("arg" ^ i ^ "_ty", @{sort type})
         val x = Free ("x" ^ i, ty)
         val y = Free ("y" ^ i, ty)
         val eq = HOLogic.eq_const ty $ x $ y

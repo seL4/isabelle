@@ -447,7 +447,7 @@ fun prepare_primrec nonexhaustive fixes specs lthy0 =
       | is_only_old_datatype _ = false;
 
     val _ = if exists is_only_old_datatype arg_Ts then raise OLD_PRIMREC () else ();
-    val _ = (case filter_out (fn (_, T) => Sign.of_sort thy (T, HOLogic.typeS)) (bs ~~ res_Ts) of
+    val _ = (case filter_out (fn (_, T) => Sign.of_sort thy (T, @{sort type})) (bs ~~ res_Ts) of
         [] => ()
       | (b, _) :: _ => raise PRIMREC ("type of " ^ Binding.print b ^ " contains top sort", []));
 

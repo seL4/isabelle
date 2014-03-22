@@ -963,7 +963,7 @@ fun add_primcorec_ursive auto opts fixes specs of_specs_opt lthy =
     val (bs, mxs) = map_split (apfst fst) fixes;
     val (arg_Ts, res_Ts) = map (strip_type o snd o fst #>> mk_tupleT_balanced) fixes |> split_list;
 
-    val _ = (case filter_out (fn (_, T) => Sign.of_sort thy (T, HOLogic.typeS)) (bs ~~ arg_Ts) of
+    val _ = (case filter_out (fn (_, T) => Sign.of_sort thy (T, @{sort type})) (bs ~~ arg_Ts) of
         [] => ()
       | (b, _) :: _ => primcorec_error ("type of " ^ Binding.print b ^ " contains top sort"));
 

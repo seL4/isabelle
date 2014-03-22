@@ -176,8 +176,10 @@ fun mk_full_equations functerms =
         val (Ts, fns) = split_list xs
         val constr = Const (c, Ts ---> simpleT)
         val bounds = map (fn x => Bound (2 * x + 1)) (((length xs) - 1) downto 0)
-        val Eval_App = Const ("Code_Evaluation.App", HOLogic.termT --> HOLogic.termT --> HOLogic.termT)
-        val Eval_Const = Const ("Code_Evaluation.Const", HOLogic.literalT --> @{typ typerep} --> HOLogic.termT)
+        val Eval_App =
+          Const (@{const_name Code_Evaluation.App}, HOLogic.termT --> HOLogic.termT --> HOLogic.termT)
+        val Eval_Const =
+          Const (@{const_name Code_Evaluation.Const}, HOLogic.literalT --> @{typ typerep} --> HOLogic.termT)
         val term = fold (fn u => fn t => Eval_App $ t $ (u $ @{term "()"}))
           bounds (Eval_Const $ HOLogic.mk_literal c $ HOLogic.mk_typerep (Ts ---> simpleT))
         val start_term = test_function simpleT $ 

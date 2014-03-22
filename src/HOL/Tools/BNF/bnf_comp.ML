@@ -138,15 +138,15 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
                    forall inner from inners. idead = dead  *)
 
     val (oDs, lthy1) = apfst (map TFree)
-      (Variable.invent_types (replicate odead HOLogic.typeS) lthy);
+      (Variable.invent_types (replicate odead @{sort type}) lthy);
     val (Dss, lthy2) = apfst (map (map TFree))
-      (fold_map Variable.invent_types (map (fn n => replicate n HOLogic.typeS) ideads) lthy1);
+      (fold_map Variable.invent_types (map (fn n => replicate n @{sort type}) ideads) lthy1);
     val (Ass, lthy3) = apfst (replicate ilive o map TFree)
-      (Variable.invent_types (replicate ilive HOLogic.typeS) lthy2);
+      (Variable.invent_types (replicate ilive @{sort type}) lthy2);
     val As = if ilive > 0 then hd Ass else [];
     val Ass_repl = replicate olive As;
     val (Bs, names_lthy) = apfst (map TFree)
-      (Variable.invent_types (replicate ilive HOLogic.typeS) lthy3);
+      (Variable.invent_types (replicate ilive @{sort type}) lthy3);
     val Bss_repl = replicate olive Bs;
 
     val ((((fs', Qs'), Asets), xs), _) = names_lthy
@@ -363,11 +363,11 @@ fun raw_kill_bnf qualify n bnf (accum as (unfold_set, lthy)) =
     (* TODO: check 0 < n <= live *)
 
     val (Ds, lthy1) = apfst (map TFree)
-      (Variable.invent_types (replicate dead HOLogic.typeS) lthy);
+      (Variable.invent_types (replicate dead @{sort type}) lthy);
     val ((killedAs, As), lthy2) = apfst (`(take n) o map TFree)
-      (Variable.invent_types (replicate live HOLogic.typeS) lthy1);
+      (Variable.invent_types (replicate live @{sort type}) lthy1);
     val (Bs, _(*lthy3*)) = apfst (append killedAs o map TFree)
-      (Variable.invent_types (replicate (live - n) HOLogic.typeS) lthy2);
+      (Variable.invent_types (replicate (live - n) @{sort type}) lthy2);
 
     val ((Asets, lives), _(*names_lthy*)) = lthy
       |> mk_Frees "A" (map HOLogic.mk_setT (drop n As))
@@ -462,11 +462,11 @@ fun raw_lift_bnf qualify n bnf (accum as (unfold_set, lthy)) =
     (* TODO: check 0 < n *)
 
     val (Ds, lthy1) = apfst (map TFree)
-      (Variable.invent_types (replicate dead HOLogic.typeS) lthy);
+      (Variable.invent_types (replicate dead @{sort type}) lthy);
     val ((newAs, As), lthy2) = apfst (chop n o map TFree)
-      (Variable.invent_types (replicate (n + live) HOLogic.typeS) lthy1);
+      (Variable.invent_types (replicate (n + live) @{sort type}) lthy1);
     val ((newBs, Bs), _(*lthy3*)) = apfst (chop n o map TFree)
-      (Variable.invent_types (replicate (n + live) HOLogic.typeS) lthy2);
+      (Variable.invent_types (replicate (n + live) @{sort type}) lthy2);
 
     val (Asets, _(*names_lthy*)) = lthy
       |> mk_Frees "A" (map HOLogic.mk_setT (newAs @ As));
@@ -553,11 +553,11 @@ fun raw_permute_bnf qualify src dest bnf (accum as (unfold_set, lthy)) =
     fun unpermute xs = permute_like_unique (op =) dest src xs;
 
     val (Ds, lthy1) = apfst (map TFree)
-      (Variable.invent_types (replicate dead HOLogic.typeS) lthy);
+      (Variable.invent_types (replicate dead @{sort type}) lthy);
     val (As, lthy2) = apfst (map TFree)
-      (Variable.invent_types (replicate live HOLogic.typeS) lthy1);
+      (Variable.invent_types (replicate live @{sort type}) lthy1);
     val (Bs, _(*lthy3*)) = apfst (map TFree)
-      (Variable.invent_types (replicate live HOLogic.typeS) lthy2);
+      (Variable.invent_types (replicate live @{sort type}) lthy2);
 
     val (Asets, _(*names_lthy*)) = lthy
       |> mk_Frees "A" (map HOLogic.mk_setT (permute As));
@@ -757,9 +757,9 @@ fun seal_bnf qualify (unfold_set : unfold_set) b Ds bnf lthy =
     val nwits = nwits_of_bnf bnf;
 
     val (As, lthy1) = apfst (map TFree)
-      (Variable.invent_types (replicate live HOLogic.typeS) (fold Variable.declare_typ Ds lthy));
+      (Variable.invent_types (replicate live @{sort type}) (fold Variable.declare_typ Ds lthy));
     val (Bs, _) = apfst (map TFree)
-      (Variable.invent_types (replicate live HOLogic.typeS) lthy1);
+      (Variable.invent_types (replicate live @{sort type}) lthy1);
 
     val (((fs, fs'), (Rs, Rs')), _(*names_lthy*)) = lthy
       |> mk_Frees' "f" (map2 (curry op -->) As Bs)

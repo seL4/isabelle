@@ -4,11 +4,6 @@
 Finite model generation for HOL formulas, using a SAT solver.
 *)
 
-(* ------------------------------------------------------------------------- *)
-(* Declares the 'REFUTE' signature as well as a structure 'Refute'.          *)
-(* Documentation is available in the Isabelle/Isar theory 'HOL/Refute.thy'.  *)
-(* ------------------------------------------------------------------------- *)
-
 signature REFUTE =
 sig
 
@@ -579,7 +574,7 @@ fun unfold_defs thy t =
           Type ("fun", [@{typ nat}, @{typ nat}])])) => t
       | Const (@{const_name Groups.times}, Type ("fun", [@{typ nat},
           Type ("fun", [@{typ nat}, @{typ nat}])])) => t
-      | Const (@{const_name List.append}, _) => t
+      | Const (@{const_name append}, _) => t
 (* UNSOUND
       | Const (@{const_name lfp}, _) => t
       | Const (@{const_name gfp}, _) => t
@@ -638,6 +633,16 @@ fun unfold_defs thy t =
 (* To avoid collecting the same axiom multiple times, we use an           *)
 (* accumulator 'axs' which contains all axioms collected so far.          *)
 
+local
+
+fun get_axiom thy xname =
+  Name_Space.check (Context.Theory thy) (Theory.axiom_table thy) (xname, Position.none);
+
+val the_eq_trivial = get_axiom @{theory HOL} "the_eq_trivial";
+val someI = get_axiom @{theory Hilbert_Choice} "someI";
+
+in
+
 fun collect_axioms ctxt t =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -684,11 +689,11 @@ fun collect_axioms ctxt t =
     and collect_type_axioms T axs =
       case T of
       (* simple types *)
-        Type ("prop", []) => axs
-      | Type ("fun", [T1, T2]) => collect_type_axioms T2 (collect_type_axioms T1 axs)
+        Type (@{type_name prop}, []) => axs
+      | Type (@{type_name fun}, [T1, T2]) => collect_type_axioms T2 (collect_type_axioms T1 axs)
       | Type (@{type_name set}, [T1]) => collect_type_axioms T1 axs
       (* axiomatic type classes *)
-      | Type ("itself", [T1]) => collect_type_axioms T1 axs
+      | Type (@{type_name itself}, [T1]) => collect_type_axioms T1 axs
       | Type (s, Ts) =>
         (case Datatype.get_info thy s of
           SOME _ =>  (* inductive datatype *)
@@ -724,17 +729,15 @@ fun collect_axioms ctxt t =
       | Const (@{const_name undefined}, T) => collect_type_axioms T axs
       | Const (@{const_name The}, T) =>
           let
-            val ax = specialize_type thy (@{const_name The}, T)
-              (the (AList.lookup (op =) axioms "HOL.the_eq_trivial"))
+            val ax = specialize_type thy (@{const_name The}, T) (#2 the_eq_trivial)
           in
-            collect_this_axiom ("HOL.the_eq_trivial", ax) axs
+            collect_this_axiom (#1 the_eq_trivial, ax) axs
           end
       | Const (@{const_name Hilbert_Choice.Eps}, T) =>
           let
-            val ax = specialize_type thy (@{const_name Hilbert_Choice.Eps}, T)
-              (the (AList.lookup (op =) axioms "Hilbert_Choice.someI"))
+            val ax = specialize_type thy (@{const_name Hilbert_Choice.Eps}, T) (#2 someI)
           in
-            collect_this_axiom ("Hilbert_Choice.someI", ax) axs
+            collect_this_axiom (#1 someI, ax) axs
           end
       | Const (@{const_name All}, T) => collect_type_axioms T axs
       | Const (@{const_name Ex}, T) => collect_type_axioms T axs
@@ -761,7 +764,7 @@ fun collect_axioms ctxt t =
       | Const (@{const_name Groups.times}, T as Type ("fun", [@{typ nat},
         Type ("fun", [@{typ nat}, @{typ nat}])])) =>
           collect_type_axioms T axs
-      | Const (@{const_name List.append}, T) => collect_type_axioms T axs
+      | Const (@{const_name append}, T) => collect_type_axioms T axs
 (* UNSOUND
       | Const (@{const_name lfp}, T) => collect_type_axioms T axs
       | Const (@{const_name gfp}, T) => collect_type_axioms T axs
@@ -806,6 +809,8 @@ fun collect_axioms ctxt t =
     result
   end;
 
+end;
+
 (* ------------------------------------------------------------------------- *)
 (* ground_types: collects all ground types in a term (including argument     *)
 (*               types of other types), suppressing duplicates.  Does not    *)
@@ -819,8 +824,8 @@ fun ground_types ctxt t =
     val thy = Proof_Context.theory_of ctxt
     fun collect_types T acc =
       (case T of
-        Type ("fun", [T1, T2]) => collect_types T1 (collect_types T2 acc)
-      | Type ("prop", []) => acc
+        Type (@{type_name fun}, [T1, T2]) => collect_types T1 (collect_types T2 acc)
+      | Type (@{type_name prop}, []) => acc
       | Type (@{type_name set}, [T1]) => collect_types T1 acc
       | Type (s, Ts) =>
           (case Datatype.get_info thy s of
@@ -2620,11 +2625,12 @@ fun Nat_times_interpreter ctxt model args t =
 
 fun List_append_interpreter ctxt model args t =
   case t of
-    Const (@{const_name List.append}, Type ("fun", [Type ("List.list", [T]), Type ("fun",
-        [Type ("List.list", [_]), Type ("List.list", [_])])])) =>
+    Const (@{const_name append},
+      Type (@{type_name fun}, [Type (@{type_name list}, [T]),
+        Type (@{type_name fun}, [Type (@{type_name list}, [_]), Type (@{type_name list}, [_])])])) =>
       let
         val size_elem = size_of_type ctxt model T
-        val size_list = size_of_type ctxt model (Type ("List.list", [T]))
+        val size_list = size_of_type ctxt model (Type (@{type_name list}, [T]))
         (* maximal length of lists; 0 if we only consider the empty list *)
         val list_length =
           let
@@ -2866,7 +2872,7 @@ fun stlc_printer ctxt model T intr assignment =
         in
           SOME (fold_rev (fn pair => fn acc => HOLogic_insert $ pair $ acc) pairs HOLogic_empty_set)
         end
-    | Type ("prop", []) =>
+    | Type (@{type_name prop}, []) =>
         (case index_from_interpretation intr of
           ~1 => SOME (HOLogic.mk_Trueprop (Const (@{const_name undefined}, HOLogic.boolT)))
         | 0  => SOME (HOLogic.mk_Trueprop @{term True})
@@ -3031,7 +3037,7 @@ fun IDT_printer ctxt model T intr assignment =
 (*       applied before the 'stlc_interpreter' breaks the term apart into    *)
 (*       subterms that are then passed to other interpreters!                *)
 (* ------------------------------------------------------------------------- *)
-
+(* FIXME formal @{const_name} for some entries (!??) *)
 val setup =
    add_interpreter "stlc"    stlc_interpreter #>
    add_interpreter "Pure"    Pure_interpreter #>

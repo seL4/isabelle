@@ -6,8 +6,6 @@ Abstract syntax operations for HOL.
 
 signature HOLOGIC =
 sig
-  val typeS: sort
-  val typeT: typ
   val id_const: typ -> term
   val mk_comp: term * term -> term
   val boolN: string
@@ -140,12 +138,6 @@ end;
 
 structure HOLogic: HOLOGIC =
 struct
-
-(* HOL syntax *)
-
-val typeS: sort = ["HOL.type"];
-val typeT = Type_Infer.anyT typeS;
-
 
 (* functions *)
 

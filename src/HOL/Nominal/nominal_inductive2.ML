@@ -45,7 +45,7 @@ fun mk_perm_bool pi th = th RS Drule.cterm_instantiate
 
 fun mk_perm_bool_simproc names = Simplifier.simproc_global_i
   (theory_of_thm perm_bool) "perm_bool" [@{term "perm pi x"}] (fn ctxt =>
-    fn Const ("Nominal.perm", _) $ _ $ t =>
+    fn Const (@{const_name Nominal.perm}, _) $ _ $ t =>
          if member (op =) names (the_default "" (try (head_of #> dest_Const #> fst) t))
          then SOME perm_bool else NONE
      | _ => NONE);
@@ -97,13 +97,13 @@ fun inst_conj_all names ps pis (Const (@{const_name HOL.conj}, _) $ p $ q) _ =
       (case head_of p of
          Const (name, _) =>
            if member (op =) names name then SOME (HOLogic.mk_conj (p,
-             Const ("Fun.id", HOLogic.boolT --> HOLogic.boolT) $
+             Const (@{const_name Fun.id}, HOLogic.boolT --> HOLogic.boolT) $
                (subst_bounds (pis, strip_all pis q))))
            else NONE
        | _ => NONE)
   | inst_conj_all names ps pis t u =
       if member (op aconv) ps (head_of u) then
-        SOME (Const ("Fun.id", HOLogic.boolT --> HOLogic.boolT) $
+        SOME (Const (@{const_name Fun.id}, HOLogic.boolT --> HOLogic.boolT) $
           (subst_bounds (pis, strip_all pis t)))
       else NONE
   | inst_conj_all _ _ _ _ _ = NONE;
@@ -222,7 +222,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
 
     val atomTs = distinct op = (maps (map snd o #2) prems);
     val atoms = map (fst o dest_Type) atomTs;
-    val ind_sort = if null atomTs then HOLogic.typeS
+    val ind_sort = if null atomTs then @{sort type}
       else Sign.minimize_sort thy (Sign.certify_sort thy (map (fn a => Sign.intern_class thy
         ("fs_" ^ Long_Name.base_name a)) atoms));
     val (fs_ctxt_tyname, _) = Name.variant "'n" (Variable.names_of ctxt');
@@ -292,7 +292,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
       ("pt_" ^ Long_Name.base_name a ^ "2")) atoms;
     val eqvt_ss = simpset_of (put_simpset HOL_basic_ss (Proof_Context.init_global thy)
       addsimps (eqvt_thms @ perm_pi_simp @ pt2_atoms)
-      addsimprocs [mk_perm_bool_simproc ["Fun.id"],
+      addsimprocs [mk_perm_bool_simproc [@{const_name Fun.id}],
         NominalPermeq.perm_simproc_app, NominalPermeq.perm_simproc_fun]);
     val fresh_star_bij = Global_Theory.get_thms thy "fresh_star_bij";
     val pt_insts = map (NominalAtoms.pt_inst_of thy) atoms;
@@ -312,7 +312,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
         (** protect terms to avoid that fresh_star_prod_set interferes with  **)
         (** pairs used in introduction rules of inductive predicate          **)
         fun protect t =
-          let val T = fastype_of t in Const ("Fun.id", T --> T) $ t end;
+          let val T = fastype_of t in Const (@{const_name Fun.id}, T --> T) $ t end;
         val p = foldr1 HOLogic.mk_prod (map protect ts);
         val atom = fst (dest_Type T);
         val {at_inst, ...} = NominalAtoms.the_atom_info thy atom;
@@ -393,7 +393,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
                  fun concat_perm pi1 pi2 =
                    let val T = fastype_of pi1
                    in if T = fastype_of pi2 then
-                       Const ("List.append", T --> T --> T) $ pi1 $ pi2
+                       Const (@{const_name append}, T --> T --> T) $ pi1 $ pi2
                      else pi2
                    end;
                  val pis'' = fold_rev (concat_perm #> map) pis' pis;

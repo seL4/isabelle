@@ -87,8 +87,8 @@ fun get_inner_fresh_fun (Bound j) = NONE
   | get_inner_fresh_fun (v as Var _)  = NONE
   | get_inner_fresh_fun (Const _) = NONE
   | get_inner_fresh_fun (Abs (_, _, t)) = get_inner_fresh_fun t
-  | get_inner_fresh_fun (Const ("Nominal.fresh_fun",Type("fun",[Type ("fun",[Type (T,_),_]),_])) $ u)
-                           = SOME T
+  | get_inner_fresh_fun (Const (@{const_name Nominal.fresh_fun},
+      Type(@{type_name fun},[Type (@{type_name fun},[Type (T,_),_]),_])) $ u) = SOME T
   | get_inner_fresh_fun (t $ u) =
      let val a = get_inner_fresh_fun u in
      if a = NONE then get_inner_fresh_fun t else a

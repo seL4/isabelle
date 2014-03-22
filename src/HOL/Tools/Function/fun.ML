@@ -73,7 +73,7 @@ fun mk_catchall fixes arity_of =
         val qs = map Free (Name.invent Name.context "a" n ~~ argTs)
       in
         HOLogic.mk_eq(list_comb (Free (fname, fT), qs),
-          Const ("HOL.undefined", rT))
+          Const (@{const_name undefined}, rT))
         |> HOLogic.mk_Trueprop
         |> fold_rev Logic.all qs
       end

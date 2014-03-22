@@ -131,7 +131,7 @@ fun process_spec axiomatic cos alt_props thy =
         fun proc_single prop =
             let
                 val frees = Misc_Legacy.term_frees prop
-                val _ = forall (fn v => Sign.of_sort thy (type_of v,HOLogic.typeS)) frees
+                val _ = forall (fn v => Sign.of_sort thy (type_of v,@{sort type})) frees
                   orelse error "Specificaton: Only free variables of sort 'type' allowed"
                 val prop_closed = close_form prop
             in

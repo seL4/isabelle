@@ -901,7 +901,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
       end;
 
     val Ass0 = map (map prepare_type_arg o type_args_named_constrained_of_spec) specs;
-    val unsorted_Ass0 = map (map (resort_tfree HOLogic.typeS)) Ass0;
+    val unsorted_Ass0 = map (map (resort_tfree @{sort type})) Ass0;
     val unsorted_As = Library.foldr1 (merge_type_args fp) unsorted_Ass0;
     val num_As = length unsorted_As;
 

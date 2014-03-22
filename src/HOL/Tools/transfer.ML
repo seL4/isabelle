@@ -467,7 +467,7 @@ fun skeleton (is_atom : term -> bool) ctxt t =
       | go _ ctxt = dummy ctxt
   in
     go t ctxt |> fst |> Syntax.check_term ctxt |>
-      map_types (map_type_tfree (fn (a, _) => TFree (a, HOLogic.typeS)))
+      map_types (map_type_tfree (fn (a, _) => TFree (a, @{sort type})))
   end
 
 (** Monotonicity analysis **)
@@ -544,7 +544,7 @@ fun transfer_rule_of_term ctxt equiv t : thm =
     val relT = @{typ "bool => bool => bool"}
     val idx = Thm.maxidx_of thm + 1
     val thy = Proof_Context.theory_of ctxt
-    fun tinst (a, _) = (ctyp_of thy (TVar ((a, idx), HOLogic.typeS)), cbool)
+    fun tinst (a, _) = (ctyp_of thy (TVar ((a, idx), @{sort type})), cbool)
     fun inst (a, t) = (cterm_of thy (Var (Name.clean_index (prep a, idx), relT)), cterm_of thy t)
   in
     thm
@@ -569,7 +569,7 @@ fun transfer_rule_of_lhs ctxt t : thm =
     val relT = @{typ "bool => bool => bool"}
     val idx = Thm.maxidx_of thm + 1
     val thy = Proof_Context.theory_of ctxt
-    fun tinst (a, _) = (ctyp_of thy (TVar ((a, idx), HOLogic.typeS)), cbool)
+    fun tinst (a, _) = (ctyp_of thy (TVar ((a, idx), @{sort type})), cbool)
     fun inst (a, t) = (cterm_of thy (Var (Name.clean_index (prep a, idx), relT)), cterm_of thy t)
   in
     thm

@@ -1819,7 +1819,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
     val all_vars = parent_vars @ vars;
     val all_named_vars = (parent_names ~~ parent_vars) @ named_vars;
 
-    val zeta = (singleton (Name.variant_list (map #1 alphas)) "'z", HOLogic.typeS);
+    val zeta = (singleton (Name.variant_list (map #1 alphas)) "'z", @{sort type});
     val moreT = TFree zeta;
     val more = Free (moreN, moreT);
     val full_moreN = full (Binding.name moreN);
@@ -2245,7 +2245,7 @@ in
 
 fun add_record (params, binding) raw_parent raw_fields thy =
   let
-    val _ = Theory.requires thy "Record" "record definitions";
+    val _ = Theory.requires thy (Context.theory_name @{theory}) "record definitions";
 
     val ctxt = Proof_Context.init_global thy;
     fun cert_typ T = Type.no_tvars (Proof_Context.cert_typ ctxt T)

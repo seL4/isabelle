@@ -328,9 +328,9 @@ ML {*
 
 local
 
-fun is_rigid_elem (Const("CTT.Elem",_) $ a $ _) = not(is_Var (head_of a))
-  | is_rigid_elem (Const("CTT.Eqelem",_) $ a $ _ $ _) = not(is_Var (head_of a))
-  | is_rigid_elem (Const("CTT.Type",_) $ a) = not(is_Var (head_of a))
+fun is_rigid_elem (Const(@{const_name Elem},_) $ a $ _) = not(is_Var (head_of a))
+  | is_rigid_elem (Const(@{const_name Eqelem},_) $ a $ _ $ _) = not(is_Var (head_of a))
+  | is_rigid_elem (Const(@{const_name Type},_) $ a) = not(is_Var (head_of a))
   | is_rigid_elem _ = false
 
 in

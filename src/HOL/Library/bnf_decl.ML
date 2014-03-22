@@ -94,7 +94,7 @@ fun prepare_decl prepare_constraint prepare_typ raw_vars b mx user_mapb user_rel
 
 val bnf_decl = prepare_decl (K I) (K I);
 
-fun read_constraint _ NONE = HOLogic.typeS
+fun read_constraint _ NONE = @{sort type}
   | read_constraint ctxt (SOME s) = Syntax.read_sort ctxt s;
 
 val bnf_decl_cmd = prepare_decl read_constraint Syntax.read_typ;

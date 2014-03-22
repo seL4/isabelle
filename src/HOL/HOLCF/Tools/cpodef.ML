@@ -140,7 +140,7 @@ fun prove_pcpo
 
 fun prepare prep_term name (tname, raw_args, _) raw_set opt_morphs thy =
   let
-    val _ = Theory.requires thy "Cpodef" "cpodefs"
+    val _ = Theory.requires thy (Context.theory_name @{theory}) "cpodefs"
 
     (*rhs*)
     val tmp_ctxt =

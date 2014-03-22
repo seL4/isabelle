@@ -85,16 +85,16 @@ local
   val eq_OO_meta = mk_meta_eq @{thm eq_OO} 
 
   fun print_generate_pcr_cr_eq_error ctxt term = 
-  let
-    val goal = (Const ("HOL.eq", dummyT)) $ term $ Const ("HOL.eq", dummyT)
-    val error_msg = cat_lines 
-      ["Generation of a pcr_cr_eq failed.",
-      (Pretty.string_of (Pretty.block
-         [Pretty.str "Reason: Cannot prove this: ", Pretty.brk 2, Syntax.pretty_term ctxt goal])),
-       "Most probably a relator_eq rule for one of the involved types is missing."]
-  in
-    error error_msg
-  end
+    let
+      val goal = Const (@{const_name HOL.eq}, dummyT) $ term $ Const (@{const_name HOL.eq}, dummyT)
+      val error_msg = cat_lines 
+        ["Generation of a pcr_cr_eq failed.",
+        (Pretty.string_of (Pretty.block
+           [Pretty.str "Reason: Cannot prove this: ", Pretty.brk 2, Syntax.pretty_term ctxt goal])),
+         "Most probably a relator_eq rule for one of the involved types is missing."]
+    in
+      error error_msg
+    end
 in
   fun define_pcr_cr_eq lthy pcr_rel_def =
     let
@@ -121,15 +121,15 @@ in
           (Transfer.bottom_rewr_conv (Transfer.get_relator_eq lthy))))
   in
     case (term_of o Thm.rhs_of) pcr_cr_eq of
-      Const (@{const_name "relcompp"}, _) $ Const ("HOL.eq", _) $ _ => 
+      Const (@{const_name "relcompp"}, _) $ Const (@{const_name HOL.eq}, _) $ _ =>
         let
           val thm = 
             pcr_cr_eq
             |> Conv.fconv_rule (Conv.arg_conv (Conv.rewr_conv eq_OO_meta))
             |> mk_HOL_eq
             |> singleton (Variable.export lthy orig_lthy)
-          val ((_, [thm]), lthy) = Local_Theory.note ((Binding.qualified true "pcr_cr_eq" qty_name, []), 
-            [thm]) lthy
+          val ((_, [thm]), lthy) =
+            Local_Theory.note ((Binding.qualified true "pcr_cr_eq" qty_name, []), [thm]) lthy
         in
           (thm, lthy)
         end
@@ -626,7 +626,7 @@ fun setup_by_typedef_thm gen_code typedef_thm lthy =
     val T_def = Morphism.thm (Local_Theory.target_morphism lthy) T_def
     (**)    
     val quot_thm = case typedef_set of
-      Const ("Orderings.top_class.top", _) => 
+      Const (@{const_name top}, _) => 
         [typedef_thm, T_def] MRSL @{thm UNIV_typedef_to_Quotient}
       | Const (@{const_name "Collect"}, _) $ Abs (_, _, _) => 
         [typedef_thm, T_def] MRSL @{thm open_typedef_to_Quotient}
@@ -638,7 +638,7 @@ fun setup_by_typedef_thm gen_code typedef_thm lthy =
     fun qualify suffix = Binding.qualified true suffix qty_name
     val opt_reflp_thm = 
       case typedef_set of
-        Const ("Orderings.top_class.top", _) => 
+        Const (@{const_name top}, _) => 
           SOME ((typedef_thm RS @{thm UNIV_typedef_to_equivp}) RS @{thm equivp_reflp2})
         | _ =>  NONE
     val dom_thm = get_Domainp_thm quot_thm
@@ -819,7 +819,7 @@ fun lifting_restore_sanity_check ctxt (qinfo:Lifting_Info.quotient) =
                     Pretty.brk 1,
                     Display.pretty_thm ctxt pcr_cr_eq]]
             val (pcr_const_eq, eqs) = strip_comb eq_lhs
-            fun is_eq (Const ("HOL.eq", _)) = true
+            fun is_eq (Const (@{const_name HOL.eq}, _)) = true
               | is_eq _ = false
             fun eq_Const (Const (name1, _)) (Const (name2, _)) = (name1 = name2)
               | eq_Const _ _ = false

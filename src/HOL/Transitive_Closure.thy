@@ -1239,8 +1239,8 @@ structure Trancl_Tac = Trancl_Tac
 
   fun decomp (@{const Trueprop} $ t) =
     let fun dec (Const (@{const_name Set.member}, _) $ (Const (@{const_name Pair}, _) $ a $ b) $ rel ) =
-        let fun decr (Const ("Transitive_Closure.rtrancl", _ ) $ r) = (r,"r*")
-              | decr (Const ("Transitive_Closure.trancl", _ ) $ r)  = (r,"r+")
+        let fun decr (Const (@{const_name rtrancl}, _ ) $ r) = (r,"r*")
+              | decr (Const (@{const_name trancl}, _ ) $ r)  = (r,"r+")
               | decr r = (r,"r");
             val (rel,r) = decr (Envir.beta_eta_contract rel);
         in SOME (a,b,rel,r) end
@@ -1262,8 +1262,8 @@ structure Tranclp_Tac = Trancl_Tac
 
   fun decomp (@{const Trueprop} $ t) =
     let fun dec (rel $ a $ b) =
-        let fun decr (Const ("Transitive_Closure.rtranclp", _ ) $ r) = (r,"r*")
-              | decr (Const ("Transitive_Closure.tranclp", _ ) $ r)  = (r,"r+")
+        let fun decr (Const (@{const_name rtranclp}, _ ) $ r) = (r,"r*")
+              | decr (Const (@{const_name tranclp}, _ ) $ r)  = (r,"r+")
               | decr r = (r,"r");
             val (rel,r) = decr rel;
         in SOME (a, b, rel, r) end
