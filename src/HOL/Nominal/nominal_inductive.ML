@@ -196,7 +196,7 @@ fun prove_strong_ind s avoids ctxt =
       end) (Logic.strip_imp_prems raw_induct' ~~ avoids');
 
     val atomTs = distinct op = (maps (map snd o #2) prems);
-    val ind_sort = if null atomTs then HOLogic.typeS
+    val ind_sort = if null atomTs then @{sort type}
       else Sign.minimize_sort thy (Sign.certify_sort thy (map (fn T => Sign.intern_class thy
         ("fs_" ^ Long_Name.base_name (fst (dest_Type T)))) atomTs));
     val (fs_ctxt_tyname, _) = Name.variant "'n" (Variable.names_of ctxt');
@@ -332,7 +332,7 @@ fun prove_strong_ind s avoids ctxt =
                  fun concat_perm pi1 pi2 =
                    let val T = fastype_of pi1
                    in if T = fastype_of pi2 then
-                       Const (@{const_name List.append}, T --> T --> T) $ pi1 $ pi2
+                       Const (@{const_name append}, T --> T --> T) $ pi1 $ pi2
                      else pi2
                    end;
                  val pis'' = fold (concat_perm #> map) pis' pis;
