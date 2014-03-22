@@ -156,7 +156,7 @@ fun gen_add_function do_print prep default_constraint fixspec eqns config tac lt
   end
 
 val add_function =
-  gen_add_function false Specification.check_spec (Type_Infer.anyT HOLogic.typeS)
+  gen_add_function false Specification.check_spec (Type_Infer.anyT @{sort type})
 fun add_function_cmd a b c d int = gen_add_function int Specification.read_spec "_::type" a b c d
 
 fun gen_function do_print prep default_constraint fixspec eqns config lthy =
@@ -170,7 +170,7 @@ fun gen_function do_print prep default_constraint fixspec eqns config lthy =
   end
 
 val function =
-  gen_function false Specification.check_spec (Type_Infer.anyT HOLogic.typeS)
+  gen_function false Specification.check_spec (Type_Infer.anyT @{sort type})
 fun function_cmd a b c int = gen_function int Specification.read_spec "_::type" a b c
 
 fun prepare_termination_proof prep_term raw_term_opt lthy =

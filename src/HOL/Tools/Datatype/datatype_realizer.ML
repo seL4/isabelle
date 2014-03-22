@@ -36,7 +36,7 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Datatype.info) is 
       else map (fn i => "P" ^ string_of_int i) (1 upto length descr);
 
     val rec_result_Ts = map (fn ((i, _), P) =>
-        if member (op =) is i then TFree ("'" ^ P, HOLogic.typeS) else HOLogic.unitT)
+        if member (op =) is i then TFree ("'" ^ P, @{sort type}) else HOLogic.unitT)
       (descr ~~ pnames);
 
     fun make_pred i T U r x =
@@ -163,8 +163,8 @@ fun make_casedists ({index, descr, case_name, case_rewrites, exhaust, ...} : Dat
   let
     val ctxt = Proof_Context.init_global thy;
     val cert = cterm_of thy;
-    val rT = TFree ("'P", HOLogic.typeS);
-    val rT' = TVar (("'P", 0), HOLogic.typeS);
+    val rT = TFree ("'P", @{sort type});
+    val rT' = TVar (("'P", 0), @{sort type});
 
     fun make_casedist_prem T (cname, cargs) =
       let

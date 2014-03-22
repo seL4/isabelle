@@ -182,7 +182,7 @@ fun make_primrec_Ts descr used =
     val rec_result_Ts =
       map TFree
         (Name.variant_list used (replicate (length descr') "'t") ~~
-          replicate (length descr') HOLogic.typeS);
+          replicate (length descr') @{sort type});
 
     val reccomb_fn_Ts = maps (fn (i, (_, _, constrs)) =>
       map (fn (_, cargs) =>
@@ -251,7 +251,7 @@ fun make_case_combs case_names descr thy fname =
     val recTs = Datatype_Aux.get_rec_types descr';
     val used = fold Term.add_tfree_namesT recTs [];
     val newTs = take (length (hd descr)) recTs;
-    val T' = TFree (singleton (Name.variant_list used) "'t", HOLogic.typeS);
+    val T' = TFree (singleton (Name.variant_list used) "'t", @{sort type});
 
     val case_fn_Ts = map (fn (i, (_, _, constrs)) =>
       map (fn (_, cargs) =>
@@ -296,7 +296,7 @@ fun make_splits case_names descr thy =
     val recTs = Datatype_Aux.get_rec_types descr';
     val used' = fold Term.add_tfree_namesT recTs [];
     val newTs = take (length (hd descr)) recTs;
-    val T' = TFree (singleton (Name.variant_list used') "'t", HOLogic.typeS);
+    val T' = TFree (singleton (Name.variant_list used') "'t", @{sort type});
     val P = Free ("P", T' --> HOLogic.boolT);
 
     fun make_split (((_, (_, _, constrs)), T), comb_t) =

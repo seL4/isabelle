@@ -1819,7 +1819,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
     val all_vars = parent_vars @ vars;
     val all_named_vars = (parent_names ~~ parent_vars) @ named_vars;
 
-    val zeta = (singleton (Name.variant_list (map #1 alphas)) "'z", HOLogic.typeS);
+    val zeta = (singleton (Name.variant_list (map #1 alphas)) "'z", @{sort type});
     val moreT = TFree zeta;
     val more = Free (moreN, moreT);
     val full_moreN = full (Binding.name moreN);

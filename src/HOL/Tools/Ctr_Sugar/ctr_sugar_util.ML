@@ -148,7 +148,7 @@ fun mk_fresh_names ctxt = (fn xs => Variable.variant_fixes xs ctxt) oo mk_names;
 
 val mk_TFrees' = apfst (map TFree) oo Variable.invent_types;
 
-fun mk_TFrees n = mk_TFrees' (replicate n HOLogic.typeS);
+fun mk_TFrees n = mk_TFrees' (replicate n @{sort type});
 
 fun mk_Frees' x Ts ctxt = mk_fresh_names ctxt (length Ts) x |>> (fn xs => `(map Free) (xs ~~ Ts));
 fun mk_Freess' x Tss = fold_map2 mk_Frees' (mk_names (length Tss) x) Tss #>> split_list;
@@ -169,7 +169,7 @@ fun variant_types ss Ss ctxt =
 
 fun variant_tfrees ss =
   apfst (map TFree) o
-    variant_types (map (ensure_prefix "'") ss) (replicate (length ss) HOLogic.typeS);
+    variant_types (map (ensure_prefix "'") ss) (replicate (length ss) @{sort type});
 
 (*Replace each Ti by Ui (starting from the leaves); inst = [(T1, U1), ..., (Tn, Un)].*)
 fun typ_subst_nonatomic [] = I

@@ -373,7 +373,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
 
         fun mk_thm i =
           let
-            val Ts = map (TFree o rpair HOLogic.typeS) (Name.variant_list used (replicate i "'t"));
+            val Ts = map (TFree o rpair @{sort type}) (Name.variant_list used (replicate i "'t"));
             val f = Free ("f", Ts ---> U);
           in
             Goal.prove_sorry_global thy [] []

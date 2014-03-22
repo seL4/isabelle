@@ -577,7 +577,7 @@ val pat_tvar_prefix = "_"
 val pat_var_prefix = "_"
 
 (* try "Long_Name.base_name" for shorter names *)
-fun massage_long_name s = if s = hd HOLogic.typeS then "T" else s
+fun massage_long_name s = if s = @{class type} then "T" else s
 
 val crude_str_of_sort =
   space_implode ":" o map massage_long_name o subtract (op =) @{sort type}
