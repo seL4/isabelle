@@ -196,7 +196,7 @@ fun mk_bd_limit_tac n bd_Cinfinite =
 
 fun mk_min_algs_tac worel in_congs =
   let
-    val minG_tac = EVERY' [rtac @{thm UN_cong}, rtac refl, dtac bspec, atac, etac arg_cong];
+    val minG_tac = EVERY' [rtac @{thm SUP_cong}, rtac refl, dtac bspec, atac, etac arg_cong];
     fun minH_tac thm =
       EVERY' [rtac Un_cong, minG_tac, rtac @{thm image_cong}, rtac thm,
         REPEAT_DETERM_N (length in_congs) o minG_tac, rtac refl];
@@ -530,8 +530,8 @@ fun mk_set_nat_tac ctxt m induct_tac set_mapss ctor_maps csets ctor_sets i =
   let
     val n = length ctor_maps;
 
-    fun useIH set_nat = EVERY' [rtac trans, rtac @{thm image_UN}, rtac trans, rtac @{thm UN_cong},
-      rtac refl, Goal.assume_rule_tac ctxt, rtac sym, rtac trans, rtac @{thm UN_cong},
+    fun useIH set_nat = EVERY' [rtac trans, rtac @{thm image_UN}, rtac trans, rtac @{thm SUP_cong},
+      rtac refl, Goal.assume_rule_tac ctxt, rtac sym, rtac trans, rtac @{thm SUP_cong},
       rtac set_nat, rtac refl, rtac @{thm UN_simps(10)}];
 
     fun mk_set_nat cset ctor_map ctor_set set_nats =
@@ -672,7 +672,7 @@ fun mk_ctor_rel_tac ctxt in_Irels i in_rel map_comp0 map_cong0 ctor_map ctor_set
             rtac passive_set_map0, rtac trans_fun_cong_image_id_id_apply, atac,
             CONJ_WRAP_GEN' (rtac (Thm.permute_prems 0 1 @{thm Un_least}))
               (fn (active_set_map0, in_Irel) => EVERY' [rtac ord_eq_le_trans,
-                rtac @{thm UN_cong[OF _ refl]}, rtac active_set_map0, rtac @{thm UN_least},
+                rtac @{thm SUP_cong[OF _ refl]}, rtac active_set_map0, rtac @{thm UN_least},
                 dtac set_rev_mp, etac @{thm image_mono}, etac imageE,
                 dtac @{thm ssubst_mem[OF pair_collapse]},
                 REPEAT_DETERM o eresolve_tac (CollectE :: conjE ::

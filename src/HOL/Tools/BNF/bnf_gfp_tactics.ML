@@ -204,9 +204,9 @@ fun mk_mor_col_tac m n cts j rec_0s rec_Sucs morEs set_map0ss coalg_setss =
             rtac trans_fun_cong_image_id_id_apply, etac (morE RS arg_cong), atac],
           CONJ_WRAP_GEN' (rtac (Thm.permute_prems 0 1 Un_cong))
             (fn (i, (set_map0, coalg_set)) =>
-              EVERY' [rtac sym, rtac trans, rtac (refl RSN (2, @{thm UN_cong})),
+              EVERY' [rtac sym, rtac trans, rtac (refl RSN (2, @{thm SUP_cong})),
                 etac (morE RS sym RS arg_cong RS trans), atac, rtac set_map0,
-                rtac (@{thm UN_simps(10)} RS trans), rtac (refl RS @{thm UN_cong}),
+                rtac (@{thm UN_simps(10)} RS trans), rtac (refl RS @{thm SUP_cong}),
                 ftac coalg_set, atac, dtac set_mp, atac, rtac mp, rtac (mk_conjunctN n i),
                 REPEAT_DETERM o etac allE, atac, atac])
             (rev ((1 upto n) ~~ (active_set_map0s ~~ coalg_sets)))])
@@ -866,14 +866,14 @@ fun mk_col_natural_tac ctxt cts rec_0s rec_Sucs dtor_maps set_map0ss =
           (rec_Suc :: dtor_map :: set_nats @ @{thms image_Un image_UN UN_simps(10)})),
         rtac Un_cong, rtac refl,
         CONJ_WRAP_GEN' (rtac (Thm.permute_prems 0 1 Un_cong))
-          (fn i => EVERY' [rtac @{thm UN_cong[OF refl]},
+          (fn i => EVERY' [rtac @{thm SUP_cong[OF refl]},
             REPEAT_DETERM o etac allE, etac (mk_conjunctN n i)]) (n downto 1)])
       (rec_Sucs ~~ (dtor_maps ~~ set_map0ss))] 1
   end;
 
 fun mk_set_map0_tac col_natural =
   EVERY' (map rtac [@{thm ext}, o_apply RS trans, sym, o_apply RS trans, @{thm image_UN} RS trans,
-    refl RS @{thm UN_cong}, col_natural]) 1;
+    refl RS @{thm SUP_cong}, col_natural]) 1;
 
 fun mk_col_bd_tac m j cts rec_0s rec_Sucs sbd_Card_order sbd_Cinfinite set_sbdss =
   let
@@ -964,7 +964,7 @@ fun mk_dtor_rel_tac ctxt in_Jrels i in_rel map_comp0 map_cong0 dtor_map dtor_set
             rtac (dtor_ctor RS sym RS arg_cong), rtac trans_fun_cong_image_id_id_apply, atac,
             CONJ_WRAP_GEN' (rtac (Thm.permute_prems 0 1 @{thm Un_least}))
               (fn (active_set_map0, in_Jrel) => EVERY' [rtac ord_eq_le_trans,
-                rtac @{thm UN_cong[OF _ refl]}, rtac @{thm box_equals[OF _ _ refl]},
+                rtac @{thm SUP_cong[OF _ refl]}, rtac @{thm box_equals[OF _ _ refl]},
                 rtac active_set_map0, rtac (dtor_ctor RS sym RS arg_cong), rtac @{thm UN_least},
                 dtac set_rev_mp, etac @{thm image_mono}, etac imageE,
                 dtac @{thm ssubst_mem[OF pair_collapse]},

@@ -346,7 +346,7 @@ lemma wens_single_Un_eq:
 apply (rule equalityI)
  apply (simp_all add: Un_upper1) 
 apply (simp add: wens_single_def wp_UN_eq, clarify) 
-apply (rule_tac a="Suc(i)" in UN_I, auto) 
+apply (rule_tac a="Suc xa" in UN_I, auto) 
 done
 
 lemma atMost_nat_nonempty: "atMost (k::nat) \<noteq> {}"

@@ -117,11 +117,11 @@ apply(rule Parallel)
     apply simp
    apply clarify
    apply simp
-   apply(subgoal_tac "j=0")
-    apply (simp)
+   apply(subgoal_tac "xa=0")
+    apply simp
    apply arith
   apply clarify
-  apply(case_tac i,simp,simp)
+  apply(case_tac xaa, simp, simp)
  apply clarify
  apply simp
  apply(erule_tac x=0 in all_dupE)
@@ -319,11 +319,10 @@ lemma Example3_list: "m mod n=0 \<Longrightarrow> \<turnstile> (COBEGIN SCHEME [
       \<lbrace>True\<rbrace>,
       \<lbrace>\<forall>i<n. (\<acute>X!i) mod n=i \<and> (\<forall>j<\<acute>X!i. j mod n=i \<longrightarrow> \<not>P(B!j)) \<and> 
         (\<acute>Y!i<m \<longrightarrow> P(B!(\<acute>Y!i)) \<and> \<acute>Y!i\<le> m+i) \<and> (\<exists>j<n. \<acute>Y!j \<le> \<acute>X!i)\<rbrace>]"
-apply(rule Parallel)
---{* 5 subgoals left *}
-apply auto
-apply force+
-apply(rule While)
+apply (rule Parallel)
+apply (auto cong del: strong_INF_cong strong_SUP_cong) 
+apply force
+apply (rule While)
     apply force
    apply force
   apply force

@@ -77,7 +77,7 @@ lemmas [recdef_simp] =
   less_Suc_eq [THEN iffD2]
 
 lemmas [recdef_cong] =
-  if_cong let_cong image_cong INT_cong UN_cong bex_cong ball_cong imp_cong
+  if_cong let_cong image_cong INF_cong SUP_cong bex_cong ball_cong imp_cong
   map_cong filter_cong takeWhile_cong dropWhile_cong foldl_cong foldr_cong 
 
 lemmas [recdef_wf] =

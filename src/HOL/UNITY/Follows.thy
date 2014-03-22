@@ -94,7 +94,7 @@ lemma Always_Follows1:
 
 apply (simp add: Follows_def Increasing_def Stable_def, auto)
 apply (erule_tac [3] Always_LeadsTo_weaken)
-apply (erule_tac A = "{s. z \<le> f s}" and A' = "{s. z \<le> f s}" 
+apply (erule_tac A = "{s. x \<le> f s}" and A' = "{s. x \<le> f s}" 
        in Always_Constrains_weaken, auto)
 apply (drule Always_Int_I, assumption)
 apply (force intro: Always_weaken)
@@ -104,7 +104,7 @@ lemma Always_Follows2:
      "[| F \<in> Always {s. g s = g' s}; F \<in> f Fols g |] ==> F \<in> f Fols g'"
 apply (simp add: Follows_def Increasing_def Stable_def, auto)
 apply (erule_tac [3] Always_LeadsTo_weaken)
-apply (erule_tac A = "{s. z \<le> g s}" and A' = "{s. z \<le> g s}"
+apply (erule_tac A = "{s. x \<le> g s}" and A' = "{s. x \<le> g s}"
        in Always_Constrains_weaken, auto)
 apply (drule Always_Int_I, assumption)
 apply (force intro: Always_weaken)
@@ -114,12 +114,13 @@ done
 subsection{*Union properties (with the subset ordering)*}
 
 (*Can replace "Un" by any sup.  But existing max only works for linorders.*)
+
 lemma increasing_Un: 
     "[| F \<in> increasing f;  F \<in> increasing g |]  
      ==> F \<in> increasing (%s. (f s) \<union> (g s))"
 apply (simp add: increasing_def stable_def constrains_def, auto)
-apply (drule_tac x = "f xa" in spec)
-apply (drule_tac x = "g xa" in spec)
+apply (drule_tac x = "f xb" in spec)
+apply (drule_tac x = "g xb" in spec)
 apply (blast dest!: bspec)
 done
 
@@ -128,8 +129,8 @@ lemma Increasing_Un:
      ==> F \<in> Increasing (%s. (f s) \<union> (g s))"
 apply (auto simp add: Increasing_def Stable_def Constrains_def
                       stable_def constrains_def)
-apply (drule_tac x = "f xa" in spec)
-apply (drule_tac x = "g xa" in spec)
+apply (drule_tac x = "f xb" in spec)
+apply (drule_tac x = "g xb" in spec)
 apply (blast dest!: bspec)
 done
 
@@ -172,8 +173,8 @@ lemma increasing_union:
     "[| F \<in> increasing f;  F \<in> increasing g |]  
      ==> F \<in> increasing (%s. (f s) + (g s :: ('a::order) multiset))"
 apply (simp add: increasing_def stable_def constrains_def, auto)
-apply (drule_tac x = "f xa" in spec)
-apply (drule_tac x = "g xa" in spec)
+apply (drule_tac x = "f xb" in spec)
+apply (drule_tac x = "g xb" in spec)
 apply (drule bspec, assumption) 
 apply (blast intro: add_mono order_trans)
 done
@@ -183,8 +184,8 @@ lemma Increasing_union:
      ==> F \<in> Increasing (%s. (f s) + (g s :: ('a::order) multiset))"
 apply (auto simp add: Increasing_def Stable_def Constrains_def
                       stable_def constrains_def)
-apply (drule_tac x = "f xa" in spec)
-apply (drule_tac x = "g xa" in spec)
+apply (drule_tac x = "f xb" in spec)
+apply (drule_tac x = "g xb" in spec)
 apply (drule bspec, assumption) 
 apply (blast intro: add_mono order_trans)
 done

@@ -404,16 +404,16 @@ lemma safety_prop_stable [iff]: "safety_prop (stable A)"
 by (simp add: stable_def)
 
 lemma safety_prop_Int [simp]:
-     "[| safety_prop X; safety_prop Y |] ==> safety_prop (X \<inter> Y)"
-by (simp add: safety_prop_def, blast)
-
-lemma safety_prop_INTER1 [simp]:
-     "(!!i. safety_prop (X i)) ==> safety_prop (\<Inter>i. X i)"
-by (auto simp add: safety_prop_def, blast)
+  "safety_prop X \<Longrightarrow> safety_prop Y \<Longrightarrow> safety_prop (X \<inter> Y)"
+  by (simp add: safety_prop_def) blast
 
 lemma safety_prop_INTER [simp]:
-     "(!!i. i \<in> I ==> safety_prop (X i)) ==> safety_prop (\<Inter>i \<in> I. X i)"
-by (auto simp add: safety_prop_def, blast)
+  "(\<And>i. i \<in> I \<Longrightarrow> safety_prop (X i)) \<Longrightarrow> safety_prop (\<Inter>i\<in>I. X i)"
+  by (simp add: safety_prop_def) blast
+
+lemma safety_prop_INTER1 [simp]:
+  "(\<And>i. safety_prop (X i)) \<Longrightarrow> safety_prop (\<Inter>i. X i)"
+  by (rule safety_prop_INTER) simp
 
 lemma def_prg_Allowed:
      "[| F == mk_program (init, acts, UNION X Acts) ; safety_prop X |]  

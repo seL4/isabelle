@@ -40,6 +40,10 @@ lemma INF_cong:
   "A = B \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> C x = D x) \<Longrightarrow> INFIMUM A C = INFIMUM B D"
   by (simp add: INF_def image_def)
 
+lemma strong_INF_cong [cong]:
+  "A = B \<Longrightarrow> (\<And>x. x \<in> B =simp=> C x = D x) \<Longrightarrow> INFIMUM A C = INFIMUM B D"
+  unfolding simp_implies_def by (fact INF_cong)
+
 end
 
 class Sup =
@@ -68,6 +72,10 @@ lemma SUP_id_eq [simp]:
 lemma SUP_cong:
   "A = B \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> C x = D x) \<Longrightarrow> SUPREMUM A C = SUPREMUM B D"
   by (simp add: SUP_def image_def)
+
+lemma strong_SUP_cong [cong]:
+  "A = B \<Longrightarrow> (\<And>x. x \<in> B =simp=> C x = D x) \<Longrightarrow> SUPREMUM A C = SUPREMUM B D"
+  unfolding simp_implies_def by (fact SUP_cong)
 
 end
 
@@ -447,21 +455,23 @@ lemma Inf_le_Sup: "A \<noteq> {} \<Longrightarrow> Inf A \<le> Sup A"
 lemma INF_le_SUP: "A \<noteq> {} \<Longrightarrow> INFIMUM A f \<le> SUPREMUM A f"
   using Inf_le_Sup [of "f ` A"] by simp
 
-lemma SUP_eq_const:
-  "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> f i = x) \<Longrightarrow> SUPREMUM I f = x"
-  by (auto intro: SUP_eqI)
-
 lemma INF_eq_const:
   "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> f i = x) \<Longrightarrow> INFIMUM I f = x"
   by (auto intro: INF_eqI)
 
-lemma SUP_eq_iff:
-  "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> c \<le> f i) \<Longrightarrow> (SUPREMUM I f = c) \<longleftrightarrow> (\<forall>i\<in>I. f i = c)"
-  using SUP_eq_const[of I f c] SUP_upper[of _ I f] by (auto intro: antisym)
+lemma SUP_eq_const:
+  "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> f i = x) \<Longrightarrow> SUPREMUM I f = x"
+  by (auto intro: SUP_eqI)
 
 lemma INF_eq_iff:
   "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> f i \<le> c) \<Longrightarrow> (INFIMUM I f = c) \<longleftrightarrow> (\<forall>i\<in>I. f i = c)"
-  using INF_eq_const[of I f c] INF_lower[of _ I f] by (auto intro: antisym)
+  using INF_eq_const [of I f c] INF_lower [of _ I f]
+  by (auto intro: antisym cong del: strong_INF_cong)
+
+lemma SUP_eq_iff:
+  "I \<noteq> {} \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> c \<le> f i) \<Longrightarrow> (SUPREMUM I f = c) \<longleftrightarrow> (\<forall>i\<in>I. f i = c)"
+  using SUP_eq_const [of I f c] SUP_upper [of _ I f]
+  by (auto intro: antisym cong del: strong_SUP_cong)
 
 end
 
@@ -937,10 +947,6 @@ lemma INT_E [elim]: "b \<in> (\<Inter>x\<in>A. B x) \<Longrightarrow> (b \<in> B
   -- {* "Classical" elimination -- by the Excluded Middle on @{prop "a\<in>A"}. *}
   by (auto simp add: INF_def image_def)
 
-lemma INT_cong [cong]:
-  "A = B \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> C x = D x) \<Longrightarrow> (\<Inter>x\<in>A. C x) = (\<Inter>x\<in>B. D x)"
-  by (fact INF_cong)
-
 lemma Collect_ball_eq: "{x. \<forall>y\<in>A. P x y} = (\<Inter>y\<in>A. {x. P x y})"
   by blast
 
@@ -1131,14 +1137,6 @@ lemma UN_I [intro]: "a \<in> A \<Longrightarrow> b \<in> B a \<Longrightarrow> b
 
 lemma UN_E [elim!]: "b \<in> (\<Union>x\<in>A. B x) \<Longrightarrow> (\<And>x. x\<in>A \<Longrightarrow> b \<in> B x \<Longrightarrow> R) \<Longrightarrow> R"
   by (auto simp add: SUP_def image_def)
-
-lemma UN_cong [cong]:
-  "A = B \<Longrightarrow> (\<And>x. x \<in> B \<Longrightarrow> C x = D x) \<Longrightarrow> (\<Union>x\<in>A. C x) = (\<Union>x\<in>B. D x)"
-  by (fact SUP_cong)
-
-lemma strong_UN_cong:
-  "A = B \<Longrightarrow> (\<And>x. x \<in> B =simp=> C x = D x) \<Longrightarrow> (\<Union>x\<in>A. C x) = (\<Union>x\<in>B. D x)"
-  by (unfold simp_implies_def) (fact UN_cong)
 
 lemma image_eq_UN: "f ` A = (\<Union>x\<in>A. {f x})"
   by blast

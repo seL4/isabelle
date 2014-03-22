@@ -1613,7 +1613,8 @@ proof (rule SUP_eqI)
     using `0 \<le> c` by (rule ereal_mult_left_mono)
 next
   fix y
-  assume *: "\<And>i. i \<in> UNIV \<Longrightarrow> c * f i \<le> y"
+  assume "\<And>i. i \<in> UNIV \<Longrightarrow> c * f i \<le> y"
+  then have *: "\<And>i. c * f i \<le> y" by simp
   show "c * SUPREMUM UNIV f \<le> y"
   proof (cases "0 < c \<and> c \<noteq> \<infinity>")
     case True
@@ -1631,7 +1632,7 @@ next
         then have "range f = {0}"
           by auto
         with True show "c * SUPREMUM UNIV f \<le> y"
-          using * by (auto simp: SUP_def max.absorb1)
+          using * by auto
       next
         case False
         then obtain i where "f i \<noteq> 0"
