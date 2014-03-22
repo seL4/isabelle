@@ -239,6 +239,6 @@ lemmas floatarith[simplified norm_0_1] = float_add float_add_l0 float_add_r0 flo
 lemmas arith = arith_simps rel_simps diff_nat_numeral nat_0
   nat_neg_numeral powerarith floatarith not_false_eq_true not_true_eq_false
 
-ML_file "~~/src/HOL/Tools/float_arith.ML"
+ML_file "float_arith.ML"
 
 end

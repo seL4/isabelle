@@ -1,5 +1,5 @@
-(*  Title:  HOL/Tools/float_arith.ML
-    Author: Steven Obua
+(*  Title:      HOL/Matrix_LP/float_arith.ML
+    Author:     Steven Obua
 *)
 
 signature FLOAT_ARITH =
@@ -206,7 +206,7 @@ fun approx_decstr_by_bin n decstr =
 fun mk_float (a, b) = @{term "float"} $
   HOLogic.mk_prod (pairself (HOLogic.mk_number HOLogic.intT) (a, b));
 
-fun dest_float (Const ("Float.float", _) $ (Const (@{const_name Pair}, _) $ a $ b)) =
+fun dest_float (Const (@{const_name float}, _) $ (Const (@{const_name Pair}, _) $ a $ b)) =
       pairself (snd o HOLogic.dest_number) (a, b)
   | dest_float t = ((snd o HOLogic.dest_number) t, 0);
 
