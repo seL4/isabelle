@@ -121,9 +121,9 @@ val _ = Theory.setup
       else error ("Unknown syntax const: " ^ quote c ^ Position.here pos))) #>
 
   ML_Antiquotation.inline @{binding const}
-    (Args.context -- Scan.lift Args.name_inner_syntax -- Scan.optional
+    (Args.context -- Scan.lift (Parse.position Args.name_inner_syntax) -- Scan.optional
         (Scan.lift (Args.$$$ "(") |-- Parse.enum1' "," Args.typ --| Scan.lift (Args.$$$ ")")) []
-      >> (fn ((ctxt, raw_c), Ts) =>
+      >> (fn ((ctxt, (raw_c, pos)), Ts) =>
         let
           val Const (c, _) =
             Proof_Context.read_const {proper = true, strict = true} ctxt raw_c;
@@ -131,7 +131,7 @@ val _ = Theory.setup
           val n = length (Consts.typargs consts (c, Consts.type_scheme consts c));
           val _ = length Ts <> n andalso
             error ("Constant requires " ^ string_of_int n ^ " type argument(s): " ^
-              quote c ^ enclose "(" ")" (commas (replicate n "_")));
+              quote c ^ enclose "(" ")" (commas (replicate n "_")) ^ Position.here pos);
           val const = Const (c, Consts.instance consts (c, Ts));
         in ML_Syntax.atomic (ML_Syntax.print_term const) end)));
 
