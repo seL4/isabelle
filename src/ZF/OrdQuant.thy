@@ -357,9 +357,8 @@ by auto
 ML
 {*
 val Ord_atomize =
-    atomize ([("OrdQuant.oall", [@{thm ospec}]),("OrdQuant.rall", [@{thm rspec}])]@
-                 ZF_conn_pairs,
-             ZF_mem_pairs);
+  atomize ([(@{const_name oall}, @{thms ospec}), (@{const_name rall}, @{thms rspec})] @
+    ZF_conn_pairs, ZF_mem_pairs);
 *}
 declaration {* fn _ =>
   Simplifier.map_ss (Simplifier.set_mksimps (K (map mk_eq o Ord_atomize o gen_all)))
