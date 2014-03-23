@@ -944,17 +944,17 @@ fun instantiated_case_rewrite thy Tcon =
   let
     val th = case_rewrite thy Tcon
     val ctxt = Proof_Context.init_global thy
-    val f = (fst (strip_comb (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (prop_of th))))))
+    val f = fst (strip_comb (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (prop_of th)))))
     val Type ("fun", [uninst_T, uninst_T']) = fastype_of f
-    val ([_, tname', uname, yname], ctxt') = Variable.add_fixes ["'t", "'t'", "'u", "y"] ctxt
-    val T' = TFree (tname', @{sort type})
-    val U = TFree (uname, @{sort type})
+    val ([yname], ctxt') = Variable.add_fixes ["y"] ctxt
+    val T' = TFree ("'t'", @{sort type})
+    val U = TFree ("'u", @{sort type})
     val y = Free (yname, U)
     val f' = absdummy (U --> T') (Bound 0 $ y)
     val th' = Thm.certify_instantiate
       ([(dest_TVar uninst_T, U --> T'), (dest_TVar uninst_T', T')],
        [((fst (dest_Var f), (U --> T') --> T'), f')]) th
-    val [th'] = Variable.export ctxt' ctxt [th']
+    val [th'] = Variable.export (Variable.declare_thm th' ctxt') ctxt [th']
   in
     th'
   end
