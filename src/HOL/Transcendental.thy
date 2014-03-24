@@ -3745,7 +3745,7 @@ proof -
             have "DERIV (\<lambda> x. suminf (?c x)) x :> (inverse (1 + x\<^sup>2))"
               unfolding suminf_c'_eq_geom
               by (rule DERIV_arctan_suminf[OF `0 < r` `r < 1` `\<bar>x\<bar> < r`])
-            from DERIV_add_minus[OF this DERIV_arctan]
+            from DERIV_diff [OF this DERIV_arctan]
             show "DERIV (\<lambda> x. suminf (?c x) - arctan x) x :> 0"
               by auto
           qed

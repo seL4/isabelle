@@ -289,20 +289,6 @@ lemma differentiable_imp_continuous_on:
   unfolding differentiable_on_def continuous_on_eq_continuous_within
   using differentiable_imp_continuous_within by blast
 
-lemma has_derivative_within_subset:
-  "(f has_derivative f') (at x within s) \<Longrightarrow> t \<subseteq> s \<Longrightarrow>
-    (f has_derivative f') (at x within t)"
-  unfolding has_derivative_within
-  using tendsto_within_subset
-  by blast
-
-lemma differentiable_within_subset:
-  "f differentiable (at x within t) \<Longrightarrow> s \<subseteq> t \<Longrightarrow>
-    f differentiable (at x within s)"
-  unfolding differentiable_def
-  using has_derivative_within_subset
-  by blast
-
 lemma differentiable_on_subset:
   "f differentiable_on t \<Longrightarrow> s \<subseteq> t \<Longrightarrow> f differentiable_on s"
   unfolding differentiable_on_def

@@ -253,16 +253,6 @@ lemma continuous_on_norm_id [continuous_intros]: "continuous_on S norm"
 
 subsection{*DERIV stuff*}
 
-(*move some premises to a sensible order. Use more \<And> symbols.*)
-
-lemma DERIV_continuous_on: "\<lbrakk>\<And>x. x \<in> s \<Longrightarrow> DERIV f x :> D\<rbrakk> \<Longrightarrow> continuous_on s f"
-  by (metis DERIV_continuous continuous_at_imp_continuous_on)
-
-lemma DERIV_subset: 
-  "(f has_field_derivative f') (at x within s) \<Longrightarrow> t \<subseteq> s 
-   \<Longrightarrow> (f has_field_derivative f') (at x within t)"
-  by (simp add: has_field_derivative_def has_derivative_within_subset)
-
 lemma lambda_zero: "(\<lambda>h::'a::mult_zero. 0) = op * 0"
   by auto
 
@@ -495,28 +485,6 @@ lemma complex_differentiable_id:
   apply (rule exI [where x=1])
   apply (simp add: lambda_one [symmetric])
   done
-
-(*DERIV_minus*)
-lemma field_differentiable_minus:
-  assumes "(f has_field_derivative f') F" 
-    shows "((\<lambda>z. - (f z)) has_field_derivative -f') F"
-  apply (rule has_derivative_imp_has_field_derivative[OF has_derivative_minus])
-  using assms 
-  by (auto simp: has_field_derivative_def field_simps mult_commute_abs)
-
-(*DERIV_add*)
-lemma field_differentiable_add:
-  assumes "(f has_field_derivative f') F" "(g has_field_derivative g') F"
-    shows "((\<lambda>z. f z + g z) has_field_derivative f' + g') F"
-  apply (rule has_derivative_imp_has_field_derivative[OF has_derivative_add])
-  using assms 
-  by (auto simp: has_field_derivative_def field_simps mult_commute_abs)
-
-(*DERIV_diff*)
-lemma field_differentiable_diff:
-  assumes "(f has_field_derivative f') F" "(g has_field_derivative g') F"
-    shows "((\<lambda>z. f z - g z) has_field_derivative f' - g') F"
-by (simp only: assms diff_conv_add_uminus field_differentiable_add field_differentiable_minus)
 
 lemma complex_differentiable_minus:
     "f complex_differentiable F \<Longrightarrow> (\<lambda>z. -(f z)) complex_differentiable F"

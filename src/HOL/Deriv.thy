@@ -168,6 +168,9 @@ qed fact
 lemma has_derivative_subset: "(f has_derivative f') (at x within s) \<Longrightarrow> t \<subseteq> s \<Longrightarrow> (f has_derivative f') (at x within t)"
   by (auto simp add: has_derivative_iff_norm intro: tendsto_within_subset)
 
+lemmas has_derivative_within_subset = has_derivative_subset 
+
+
 subsection {* Continuity *}
 
 lemma has_derivative_continuous:
@@ -477,6 +480,8 @@ where
 lemma differentiable_subset: "f differentiable (at x within s) \<Longrightarrow> t \<subseteq> s \<Longrightarrow> f differentiable (at x within t)"
   unfolding differentiable_def by (blast intro: has_derivative_subset)
 
+lemmas differentiable_within_subset = differentiable_subset
+
 lemma differentiable_ident [simp]: "(\<lambda>x. x) differentiable F"
   unfolding differentiable_def by (blast intro: has_derivative_ident)
 
@@ -541,6 +546,11 @@ lemma has_derivative_imp_has_field_derivative:
 lemma has_field_derivative_imp_has_derivative: "(f has_field_derivative D) F \<Longrightarrow> (f has_derivative op * D) F"
   by (simp add: has_field_derivative_def)
 
+lemma DERIV_subset: 
+  "(f has_field_derivative f') (at x within s) \<Longrightarrow> t \<subseteq> s 
+   \<Longrightarrow> (f has_field_derivative f') (at x within t)"
+  by (simp add: has_field_derivative_def has_derivative_within_subset)
+
 abbreviation (input)
   deriv :: "('a::real_normed_field \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
   ("(DERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60)
@@ -597,32 +607,47 @@ lemma DERIV_const [simp]: "((\<lambda>x. k) has_field_derivative 0) (at x within
 lemma DERIV_ident [simp]: "((\<lambda>x. x) has_field_derivative 1) (at x within s)"
   by (rule has_derivative_imp_has_field_derivative[OF has_derivative_ident]) auto
 
-lemma DERIV_add:
+lemma field_differentiable_add:
+  assumes "(f has_field_derivative f') F" "(g has_field_derivative g') F"
+    shows "((\<lambda>z. f z + g z) has_field_derivative f' + g') F"
+  apply (rule has_derivative_imp_has_field_derivative[OF has_derivative_add])
+  using assms 
+  by (auto simp: has_field_derivative_def field_simps mult_commute_abs)
+
+corollary DERIV_add:
   "(f has_field_derivative D) (at x within s) \<Longrightarrow> (g has_field_derivative E) (at x within s) \<Longrightarrow>
   ((\<lambda>x. f x + g x) has_field_derivative D + E) (at x within s)"
-  by (rule has_derivative_imp_has_field_derivative[OF has_derivative_add])
-     (auto simp: field_simps mult_commute_abs dest: has_field_derivative_imp_has_derivative)
+  by (rule field_differentiable_add)
 
-lemma DERIV_minus: "(f has_field_derivative D) (at x within s) \<Longrightarrow> ((\<lambda>x. - f x) has_field_derivative -D) (at x within s)"
-  by (rule has_derivative_imp_has_field_derivative[OF has_derivative_minus]) 
-     (auto simp: field_simps mult_commute_abs dest: has_field_derivative_imp_has_derivative)
+lemma field_differentiable_minus:
+  assumes "(f has_field_derivative f') F" 
+    shows "((\<lambda>z. - (f z)) has_field_derivative -f') F"
+  apply (rule has_derivative_imp_has_field_derivative[OF has_derivative_minus])
+  using assms 
+  by (auto simp: has_field_derivative_def field_simps mult_commute_abs)
 
-lemma DERIV_diff:
+corollary DERIV_minus: "(f has_field_derivative D) (at x within s) \<Longrightarrow> ((\<lambda>x. - f x) has_field_derivative -D) (at x within s)"
+  by (rule field_differentiable_minus)
+
+lemma field_differentiable_diff:
+  assumes "(f has_field_derivative f') F" "(g has_field_derivative g') F"
+    shows "((\<lambda>z. f z - g z) has_field_derivative f' - g') F"
+by (simp only: assms diff_conv_add_uminus field_differentiable_add field_differentiable_minus)
+
+corollary DERIV_diff:
   "(f has_field_derivative D) (at x within s) \<Longrightarrow> (g has_field_derivative E) (at x within s) \<Longrightarrow>
   ((\<lambda>x. f x - g x) has_field_derivative D - E) (at x within s)"
-  by (rule has_derivative_imp_has_field_derivative[OF has_derivative_diff])
-     (auto simp: field_simps dest: has_field_derivative_imp_has_derivative)
-
-lemma DERIV_add_minus:
-  "(f has_field_derivative D) (at x within s) \<Longrightarrow> (g has_field_derivative E) (at x within s) \<Longrightarrow>
-  ((\<lambda>x. f x + - g x) has_field_derivative D + - E) (at x within s)"
-  by (simp only: DERIV_add DERIV_minus)
+  by (rule field_differentiable_diff)
 
 lemma DERIV_continuous: "(f has_field_derivative D) (at x within s) \<Longrightarrow> continuous (at x within s) f"
   by (drule has_derivative_continuous[OF has_field_derivative_imp_has_derivative]) simp
 
-lemma DERIV_isCont: "DERIV f x :> D \<Longrightarrow> isCont f x"
-  by (auto dest!: DERIV_continuous)
+corollary DERIV_isCont: "DERIV f x :> D \<Longrightarrow> isCont f x"
+  by (rule DERIV_continuous)
+
+lemma DERIV_continuous_on:
+  "(\<And>x. x \<in> s \<Longrightarrow> (f has_field_derivative D) (at x)) \<Longrightarrow> continuous_on s f"
+  by (metis DERIV_continuous continuous_at_imp_continuous_on)
 
 lemma DERIV_mult':
   "(f has_field_derivative D) (at x within s) \<Longrightarrow> (g has_field_derivative E) (at x within s) \<Longrightarrow>
@@ -1243,19 +1268,18 @@ qed
 (* A function with positive derivative is increasing. 
    A simple proof using the MVT, by Jeremy Avigad. And variants.
 *)
-lemma DERIV_pos_imp_increasing:
+lemma DERIV_pos_imp_increasing_open:
   fixes a::real and b::real and f::"real => real"
-  assumes "a < b" and "\<forall>x. a \<le> x & x \<le> b --> (EX y. DERIV f x :> y & y > 0)"
+  assumes "a < b" and "\<And>x. a < x \<Longrightarrow> x < b \<Longrightarrow> (EX y. DERIV f x :> y & y > 0)"
+      and con: "\<And>x. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> isCont f x"
   shows "f a < f b"
 proof (rule ccontr)
   assume f: "~ f a < f b"
   have "EX l z. a < z & z < b & DERIV f z :> l
       & f b - f a = (b - a) * l"
     apply (rule MVT)
-      using assms
-      apply auto
-      apply (metis DERIV_isCont)
-     apply (metis differentiableI less_le)
+      using assms Deriv.differentiableI
+      apply force+
     done
   then obtain l z where z: "a < z" "z < b" "DERIV f z :> l"
       and "f b - f a = (b - a) * l"
@@ -1263,8 +1287,14 @@ proof (rule ccontr)
   with assms f have "~(l > 0)"
     by (metis linorder_not_le mult_le_0_iff diff_le_0_iff_le)
   with assms z show False
-    by (metis DERIV_unique less_le)
+    by (metis DERIV_unique)
 qed
+
+lemma DERIV_pos_imp_increasing:
+  fixes a::real and b::real and f::"real => real"
+  assumes "a < b" and "\<forall>x. a \<le> x & x \<le> b --> (EX y. DERIV f x :> y & y > 0)"
+  shows "f a < f b"
+by (metis DERIV_pos_imp_increasing_open [of a b f] assms DERIV_continuous less_imp_le)
 
 lemma DERIV_nonneg_imp_nondecreasing:
   fixes a::real and b::real and f::"real => real"
@@ -1295,21 +1325,28 @@ next
     by (metis DERIV_unique order_less_imp_le)
 qed
 
+lemma DERIV_neg_imp_decreasing_open:
+  fixes a::real and b::real and f::"real => real"
+  assumes "a < b" and "\<And>x. a < x \<Longrightarrow> x < b \<Longrightarrow> (EX y. DERIV f x :> y & y < 0)"
+      and con: "\<And>x. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> isCont f x"
+  shows "f a > f b"
+proof -
+  have "(%x. -f x) a < (%x. -f x) b"
+    apply (rule DERIV_pos_imp_increasing_open [of a b "%x. -f x"])
+    using assms
+    apply auto
+    apply (metis field_differentiable_minus neg_0_less_iff_less)
+    done
+  thus ?thesis
+    by simp
+qed
+
 lemma DERIV_neg_imp_decreasing:
   fixes a::real and b::real and f::"real => real"
   assumes "a < b" and
     "\<forall>x. a \<le> x & x \<le> b --> (\<exists>y. DERIV f x :> y & y < 0)"
   shows "f a > f b"
-proof -
-  have "(%x. -f x) a < (%x. -f x) b"
-    apply (rule DERIV_pos_imp_increasing [of a b "%x. -f x"])
-    using assms
-    apply auto
-    apply (metis DERIV_minus neg_0_less_iff_less)
-    done
-  thus ?thesis
-    by simp
-qed
+by (metis DERIV_neg_imp_decreasing_open [of a b f] assms DERIV_continuous less_imp_le)
 
 lemma DERIV_nonpos_imp_nonincreasing:
   fixes a::real and b::real and f::"real => real"
