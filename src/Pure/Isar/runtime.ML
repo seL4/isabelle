@@ -10,15 +10,16 @@ sig
   exception TERMINATE
   exception EXCURSION_FAIL of exn * string
   exception TOPLEVEL_ERROR
-  val debug: bool Unsynchronized.ref
   val exn_context: Proof.context option -> exn -> exn
   type exn_info = {exn_position: exn -> Position.T, pretty_exn: exn -> Pretty.T}
   type error = ((serial * string) * string option)
   val exn_messages_ids: exn_info -> exn -> error list
   val exn_messages: exn_info -> exn -> (serial * string) list
   val exn_message: exn_info -> exn -> string
-  val debugging: (exn -> string) -> ('a -> 'b) -> 'a -> 'b
-  val controlled_execution: (exn -> string) -> ('a -> 'b) -> 'a -> 'b
+  val exception_trace_raw: Config.raw
+  val exception_trace: bool Config.T
+  val debugging: (exn -> string) -> Context.generic option -> ('a -> 'b) -> 'a -> 'b
+  val controlled_execution: (exn -> string) -> Context.generic option -> ('a -> 'b) -> 'a -> 'b
   val toplevel_error: (exn -> unit) -> ('a -> 'b) -> 'a -> 'b
 end;
 
@@ -31,8 +32,6 @@ exception UNDEF;
 exception TERMINATE;
 exception EXCURSION_FAIL of exn * string;
 exception TOPLEVEL_ERROR;
-
-val debug = Unsynchronized.ref false;
 
 
 (* exn_context *)
@@ -137,13 +136,20 @@ fun exn_message exn_info exn =
 
 (** controlled execution **)
 
-fun debugging exn_message f x =
-  if ! debug
+val exception_trace_raw = Config.declare_option "exception_trace";
+val exception_trace = Config.bool exception_trace_raw;
+
+fun exception_trace_enabled NONE =
+      (Options.default_bool (Config.name_of exception_trace_raw) handle ERROR _ => false)
+  | exception_trace_enabled (SOME context) = Config.get_generic context exception_trace;
+
+fun debugging exn_message opt_context f x =
+  if exception_trace_enabled opt_context
   then print_exception_trace exn_message (fn () => f x)
   else f x;
 
-fun controlled_execution exn_message f x =
-  (f |> debugging exn_message |> Future.interruptible_task) x;
+fun controlled_execution exn_message opt_context f x =
+  (f |> debugging exn_message opt_context |> Future.interruptible_task) x;
 
 fun toplevel_error output_exn f x = f x
   handle exn =>

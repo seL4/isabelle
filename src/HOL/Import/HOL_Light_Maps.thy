@@ -97,11 +97,11 @@ lemma CURRY_DEF[import_const CURRY]:
   "curry = (\<lambda>(f\<Colon>'A \<times> 'B \<Rightarrow> 'C) x y. f (x, y))"
   using curry_def .
 
-lemma [import_const ONE_ONE : Fun.inj]:
+lemma [import_const ONE_ONE : inj]:
   "inj = (\<lambda>(f\<Colon>'A \<Rightarrow> 'B). \<forall>x1 x2. f x1 = f x2 \<longrightarrow> x1 = x2)"
   by (auto simp add: fun_eq_iff inj_on_def)
 
-lemma [import_const ONTO : Fun.surj]:
+lemma [import_const ONTO : surj]:
   "surj = (\<lambda>(f\<Colon>'A \<Rightarrow> 'B). \<forall>y. \<exists>x. y = f x)"
   by (auto simp add: fun_eq_iff)
 
@@ -109,9 +109,9 @@ lemma hl_ax3: "\<exists>f\<Colon>ind \<Rightarrow> ind. inj f \<and> \<not> surj
   by (rule_tac x="Suc_Rep" in exI)
      (metis Suc_Rep_inject' injI Suc_Rep_not_Zero_Rep surjD)
 
-import_type_map num : Nat.nat
-import_const_map "_0" : Groups.zero_class.zero
-import_const_map SUC : Nat.Suc
+import_type_map num : nat
+import_const_map "_0" : zero_class.zero
+import_const_map SUC : Suc
 
 lemma NOT_SUC: "\<forall>n. Suc n \<noteq> 0"
   by simp
@@ -141,35 +141,35 @@ definition [import_const BIT1, simp]:
 
 definition [simp]: "pred n = n - 1"
 
-lemma PRE[import_const PRE : HOL_Light_Maps.pred]:
+lemma PRE[import_const PRE : pred]:
   "pred (id (0\<Colon>nat)) = id (0\<Colon>nat) \<and> (\<forall>n\<Colon>nat. pred (Suc n) = n)"
   by simp
 
-lemma ADD[import_const "+" : Groups.plus_class.plus]:
+lemma ADD[import_const "+" : plus]:
   "(\<forall>n :: nat. (id 0) + n = n) \<and> (\<forall>m n. (Suc m) + n = Suc (m + n))"
   by simp
 
-lemma MULT[import_const "*" : Groups.times_class.times]:
+lemma MULT[import_const "*" : times]:
   "(\<forall>n :: nat. (id 0) * n = id 0) \<and> (\<forall>m n. (Suc m) * n = (m * n) + n)"
   by simp
 
-lemma EXP[import_const EXP : Power.power_class.power]:
+lemma EXP[import_const EXP : power]:
   "(\<forall>m. m ^ (id 0) = id (bit1 0)) \<and> (\<forall>(m :: nat) n. m ^ (Suc n) = m * (m ^ n))"
   by simp
 
-lemma LE[import_const "<=" : Orderings.ord_class.less_eq]:
+lemma LE[import_const "<=" : less_eq]:
   "(\<forall>m :: nat. m \<le> (id 0) = (m = id 0)) \<and> (\<forall>m n. m \<le> (Suc n) = (m = Suc n \<or> m \<le> n))"
   by auto
 
-lemma LT[import_const "<" : Orderings.ord_class.less]:
+lemma LT[import_const "<" : less]:
   "(\<forall>m :: nat. m < (id 0) = False) \<and> (\<forall>m n. m < (Suc n) = (m = n \<or> m < n))"
   by auto
 
-lemma DEF_GE[import_const ">=" : "Orderings.ord_class.greater_eq"]:
+lemma DEF_GE[import_const ">=" : greater_eq]:
   "(op \<ge>) = (\<lambda>x y :: nat. y \<le> x)"
   by simp
 
-lemma DEF_GT[import_const ">" : "Orderings.ord_class.greater"]:
+lemma DEF_GT[import_const ">" : greater]:
   "(op >) = (\<lambda>x y :: nat. y < x)"
   by simp
 
@@ -181,28 +181,28 @@ lemma DEF_MIN[import_const "MIN"]:
   "min = (\<lambda>x y :: nat. if x \<le> y then x else y)"
   by (auto simp add: min.absorb_iff1 fun_eq_iff)
 
-lemma EVEN[import_const "EVEN" : "Parity.even_odd_class.even"]:
+lemma EVEN[import_const "EVEN" : even]:
   "even (id 0\<Colon>nat) = True \<and> (\<forall>n. even (Suc n) = (\<not> even n))"
   by simp
 
-lemma SUB[import_const "-" : "Groups.minus_class.minus"]:
+lemma SUB[import_const "-" : minus]:
   "(\<forall>m\<Colon>nat. m - (id 0) = m) \<and> (\<forall>m n. m - (Suc n) = pred (m - n))"
   by simp
 
-lemma FACT[import_const "FACT" : "Fact.fact_class.fact"]:
+lemma FACT[import_const "FACT" : fact]:
   "fact (id 0) = id (bit1 0) \<and> (\<forall>n. fact (Suc n) = Suc n * fact n)"
   by simp
 
-import_const_map MOD : Divides.div_class.mod
-import_const_map DIV : Divides.div_class.div
+import_const_map MOD : mod
+import_const_map DIV : div
 
 lemma DIVISION_0:
   "\<forall>m n\<Colon>nat. if n = id 0 then m div n = id 0 \<and> m mod n = m else m = m div n * n + m mod n \<and> m mod n < n"
   by simp
 
 lemmas [import_type sum "_dest_sum" "_mk_sum"] = type_definition_sum[where 'a="'A" and 'b="'B"]
-import_const_map INL : Sum_Type.Inl
-import_const_map INR : Sum_Type.Inr
+import_const_map INL : Inl
+import_const_map INR : Inr
 
 lemma sum_INDUCT:
   "\<forall>P. (\<forall>a :: 'A. P (Inl a)) \<and> (\<forall>a :: 'B. P (Inr a)) \<longrightarrow> (\<forall>x. P x)"
@@ -212,17 +212,17 @@ lemma sum_RECURSION:
   "\<forall>Inl' Inr'. \<exists>fn. (\<forall>a :: 'A. fn (Inl a) = (Inl' a :: 'Z)) \<and> (\<forall>a :: 'B. fn (Inr a) = Inr' a)"
   by (intro allI, rule_tac x="case_sum Inl' Inr'" in exI) auto
 
-lemma OUTL[import_const "OUTL" : "Sum_Type.projl"]:
+lemma OUTL[import_const "OUTL" : projl]:
   "Sum_Type.projl (Inl x) = x"
   by simp
 
-lemma OUTR[import_const "OUTR" : "Sum_Type.projr"]:
+lemma OUTR[import_const "OUTR" : projr]:
   "Sum_Type.projr (Inr y) = y"
   by simp
 
-import_type_map list : List.list
-import_const_map NIL : List.list.Nil
-import_const_map CONS : List.list.Cons
+import_type_map list : list
+import_const_map NIL : Nil
+import_const_map CONS : Cons
 
 lemma list_INDUCT:
   "\<forall>P\<Colon>'A list \<Rightarrow> bool. P [] \<and> (\<forall>a0 a1. P a1 \<longrightarrow> P (a0 # a1)) \<longrightarrow> (\<forall>x. P x)"
@@ -232,41 +232,41 @@ lemma list_RECURSION:
  "\<forall>nil' cons'. \<exists>fn\<Colon>'A list \<Rightarrow> 'Z. fn [] = nil' \<and> (\<forall>(a0\<Colon>'A) a1\<Colon>'A list. fn (a0 # a1) = cons' a0 a1 (fn a1))"
   by (intro allI, rule_tac x="rec_list nil' cons'" in exI) auto
 
-lemma HD[import_const HD : List.list.hd]:
+lemma HD[import_const HD : hd]:
   "hd ((h\<Colon>'A) # t) = h"
   by simp
 
-lemma TL[import_const TL : List.list.tl]:
+lemma TL[import_const TL : tl]:
   "tl ((h\<Colon>'A) # t) = t"
   by simp
 
-lemma APPEND[import_const APPEND : List.append]:
+lemma APPEND[import_const APPEND : append]:
   "(\<forall>l\<Colon>'A list. [] @ l = l) \<and> (\<forall>(h\<Colon>'A) t l. (h # t) @ l = h # t @ l)"
   by simp
 
-lemma REVERSE[import_const REVERSE : List.rev]:
+lemma REVERSE[import_const REVERSE : rev]:
   "rev [] = ([] :: 'A list) \<and> rev ((x\<Colon>'A) # l) = rev l @ [x]"
   by simp
 
-lemma LENGTH[import_const LENGTH : List.length]:
+lemma LENGTH[import_const LENGTH : length]:
   "length ([] :: 'A list) = id 0 \<and> (\<forall>(h\<Colon>'A) t. length (h # t) = Suc (length t))"
   by simp
 
-lemma MAP[import_const MAP : List.list.map]:
+lemma MAP[import_const MAP : map]:
   "(\<forall>f\<Colon>'A \<Rightarrow> 'B. map f [] = []) \<and>
        (\<forall>(f\<Colon>'A \<Rightarrow> 'B) h t. map f (h # t) = f h # map f t)"
   by simp
 
-lemma LAST[import_const LAST : List.last]:
+lemma LAST[import_const LAST : last]:
   "last ((h\<Colon>'A) # t) = (if t = [] then h else last t)"
   by simp
 
-lemma BUTLAST[import_const BUTLAST : List.butlast]:
+lemma BUTLAST[import_const BUTLAST : butlast]:
     "butlast [] = ([] :: 't18337 list) \<and>
      butlast ((h :: 't18337) # t) = (if t = [] then [] else h # butlast t)"
   by simp
 
-lemma REPLICATE[import_const REPLICATE : List.replicate]:
+lemma REPLICATE[import_const REPLICATE : replicate]:
   "replicate (id (0\<Colon>nat)) (x\<Colon>'t18358) = [] \<and>
    replicate (Suc n) x = x # replicate n x"
   by simp
@@ -275,38 +275,38 @@ lemma NULL[import_const NULL : List.null]:
   "List.null ([]\<Colon>'t18373 list) = True \<and> List.null ((h\<Colon>'t18373) # t) = False"
   unfolding null_def by simp
 
-lemma ALL[import_const ALL : List.list_all]:
+lemma ALL[import_const ALL : list_all]:
   "list_all (P\<Colon>'t18393 \<Rightarrow> bool) [] = True \<and>
   list_all P (h # t) = (P h \<and> list_all P t)"
   by simp
 
-lemma EX[import_const EX : List.list_ex]:
+lemma EX[import_const EX : list_ex]:
   "list_ex (P\<Colon>'t18414 \<Rightarrow> bool) [] = False \<and>
   list_ex P (h # t) = (P h \<or> list_ex P t)"
   by simp
 
-lemma ITLIST[import_const ITLIST : List.foldr]:
+lemma ITLIST[import_const ITLIST : foldr]:
   "foldr (f\<Colon>'t18437 \<Rightarrow> 't18436 \<Rightarrow> 't18436) [] b = b \<and>
   foldr f (h # t) b = f h (foldr f t b)"
   by simp
 
-lemma ALL2_DEF[import_const ALL2 : List.list.list_all2]:
+lemma ALL2_DEF[import_const ALL2 : list_all2]:
   "list_all2 (P\<Colon>'t18495 \<Rightarrow> 't18502 \<Rightarrow> bool) [] (l2\<Colon>'t18502 list) = (l2 = []) \<and>
   list_all2 P ((h1\<Colon>'t18495) # (t1\<Colon>'t18495 list)) l2 =
   (if l2 = [] then False else P h1 (hd l2) \<and> list_all2 P t1 (tl l2))"
   by simp (induct_tac l2, simp_all)
 
-lemma FILTER[import_const FILTER : List.filter]:
+lemma FILTER[import_const FILTER : filter]:
   "filter (P\<Colon>'t18680 \<Rightarrow> bool) [] = [] \<and>
   filter P ((h\<Colon>'t18680) # t) = (if P h then h # filter P t else filter P t)"
   by simp
 
-lemma ZIP[import_const ZIP : List.zip]:
+lemma ZIP[import_const ZIP : zip]:
  "zip [] [] = ([] :: ('t18824 \<times> 't18825) list) \<and>
   zip ((h1\<Colon>'t18849) # t1) ((h2\<Colon>'t18850) # t2) = (h1, h2) # zip t1 t2"
   by simp
 
-lemma WF[import_const WF : Wellfounded.wfP]:
+lemma WF[import_const WF : wfP]:
   "\<forall>u. wfP u \<longleftrightarrow> (\<forall>P. (\<exists>x :: 'A. P x) \<longrightarrow> (\<exists>x. P x \<and> (\<forall>y. u y x \<longrightarrow> \<not> P y)))"
 proof (intro allI iffI impI wfI_min[to_pred], elim exE wfE_min[to_pred])
   fix x :: "'a \<Rightarrow> 'a \<Rightarrow> bool" and xa :: "'a" and Q

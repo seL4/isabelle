@@ -29,9 +29,8 @@ sig
   val interact: bool Unsynchronized.ref
   val timing: bool Unsynchronized.ref
   val profiling: int Unsynchronized.ref
-  val debug: bool Unsynchronized.ref
-  val debugging: ('a -> 'b) -> 'a -> 'b
-  val controlled_execution: ('a -> 'b) -> 'a -> 'b
+  val debugging: Context.generic option -> ('a -> 'b) -> 'a -> 'b
+  val controlled_execution: Context.generic option -> ('a -> 'b) -> 'a -> 'b
   val program: (unit -> 'a) -> 'a
   val thread: bool -> (unit -> unit) -> Thread.thread
   type transition
@@ -235,19 +234,18 @@ val profiling = Unsynchronized.ref 0;
 
 (* controlled execution *)
 
-val debug = Runtime.debug;
-fun debugging f = Runtime.debugging ML_Compiler.exn_message f;
-fun controlled_execution f = Runtime.controlled_execution ML_Compiler.exn_message f;
+fun debugging arg = Runtime.debugging ML_Compiler.exn_message arg;
+fun controlled_execution arg = Runtime.controlled_execution ML_Compiler.exn_message arg;
 
 fun program body =
  (body
-  |> controlled_execution
+  |> controlled_execution NONE
   |> Runtime.toplevel_error ML_Compiler.exn_error_message) ();
 
 fun thread interrupts body =
   Thread.fork
     (((fn () => body () handle exn => if Exn.is_interrupt exn then () else reraise exn)
-        |> debugging
+        |> debugging NONE
         |> Runtime.toplevel_error
           (fn exn =>
             Output.urgent_message ("## INTERNAL ERROR ##\n" ^ ML_Compiler.exn_message exn))),
@@ -272,11 +270,12 @@ in
 fun apply_transaction f g node =
   let
     val cont_node = reset_presentation node;
+    val context = cases_node I (Context.Proof o Proof.context_of) cont_node;
     fun state_error e nd = (State (SOME nd, SOME node), e);
 
     val (result, err) =
       cont_node
-      |> controlled_execution f
+      |> controlled_execution (SOME context) f
       |> state_error NONE
       handle exn => state_error (SOME exn) cont_node;
   in
@@ -305,11 +304,11 @@ datatype trans =
 local
 
 fun apply_tr _ (Init f) (State (NONE, _)) =
-      State (SOME (Theory (Context.Theory (controlled_execution f ()), NONE)), NONE)
+      State (SOME (Theory (Context.Theory (controlled_execution NONE f ()), NONE)), NONE)
   | apply_tr _ Exit (State (SOME (state as Theory (Context.Theory _, _)), _)) =
       exit_transaction state
   | apply_tr int (Keep f) state =
-      controlled_execution (fn x => tap (f int) x) state
+      controlled_execution (try generic_theory_of state) (fn x => tap (f int) x) state
   | apply_tr int (Transaction (f, g)) (State (SOME state, _)) =
       apply_transaction (fn x => f int x) g state
   | apply_tr _ _ _ = raise UNDEF;

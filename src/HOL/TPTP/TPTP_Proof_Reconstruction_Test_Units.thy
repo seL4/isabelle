@@ -11,9 +11,9 @@ theory TPTP_Proof_Reconstruction_Test
 imports TPTP_Test TPTP_Proof_Reconstruction
 begin
 
+declare [[exception_trace]]
 ML {*
 print_depth 200;
-Toplevel.debug := true;
 PolyML.Compiler.maxInlineSize := 0;
 (* FIXME doesn't work with Isabelle?
    PolyML.Compiler.debug := true *)
