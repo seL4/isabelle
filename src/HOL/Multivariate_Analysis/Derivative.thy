@@ -707,22 +707,24 @@ lemma mvt_simple:
   assumes "a < b"
     and "\<forall>x\<in>{a..b}. (f has_derivative f' x) (at x within {a..b})"
   shows "\<exists>x\<in>{a<..<b}. f b - f a = f' x (b - a)"
-  apply (rule mvt)
-  apply (rule assms(1))
-  apply (rule differentiable_imp_continuous_on)
-  unfolding differentiable_on_def differentiable_def
-  defer
-proof
-  fix x
-  assume x: "x \<in> {a <..< b}"
-  show "(f has_derivative f' x) (at x)"
-    unfolding has_derivative_within_open[OF x open_greaterThanLessThan,symmetric]
-    apply (rule has_derivative_within_subset)
-    apply (rule assms(2)[rule_format])
-    using x
-    apply auto
-    done
-qed (insert assms(2), auto)
+proof (rule mvt)
+  have "f differentiable_on {a..b}"
+    using assms(2) unfolding differentiable_on_def differentiable_def by fast
+  then show "continuous_on {a..b} f"
+    by (rule differentiable_imp_continuous_on)
+  show "\<forall>x\<in>{a<..<b}. (f has_derivative f' x) (at x)"
+  proof
+    fix x
+    assume x: "x \<in> {a <..< b}"
+    show "(f has_derivative f' x) (at x)"
+      unfolding at_within_open[OF x open_greaterThanLessThan,symmetric]
+      apply (rule has_derivative_within_subset)
+      apply (rule assms(2)[rule_format])
+      using x
+      apply auto
+      done
+  qed
+qed (rule assms(1))
 
 lemma mvt_very_simple:
   fixes f :: "real \<Rightarrow> real"
@@ -758,18 +760,16 @@ lemma mvt_general:
     and "\<forall>x\<in>{a<..<b}. (f has_derivative f'(x)) (at x)"
   shows "\<exists>x\<in>{a<..<b}. norm (f b - f a) \<le> norm (f' x (b - a))"
 proof -
-  have "\<exists>x\<in>{a<..<b}. (op \<bullet> (f b - f a) \<circ> f) b - (op \<bullet> (f b - f a) \<circ> f) a = (f b - f a) \<bullet> f' x (b - a)"
+  have "\<exists>x\<in>{a<..<b}. (f b - f a) \<bullet> f b - (f b - f a) \<bullet> f a = (f b - f a) \<bullet> f' x (b - a)"
     apply (rule mvt)
     apply (rule assms(1))
-    apply (rule continuous_on_inner continuous_on_intros assms(2) ballI)+
-    unfolding o_def
-    apply (rule has_derivative_inner_right)
+    apply (intro continuous_on_intros assms(2))
     using assms(3)
-    apply auto
+    apply (fast intro: has_derivative_inner_right)
     done
   then obtain x where x:
     "x \<in> {a<..<b}"
-    "(op \<bullet> (f b - f a) \<circ> f) b - (op \<bullet> (f b - f a) \<circ> f) a = (f b - f a) \<bullet> f' x (b - a)" ..
+    "(f b - f a) \<bullet> f b - (f b - f a) \<bullet> f a = (f b - f a) \<bullet> f' x (b - a)" ..
   show ?thesis
   proof (cases "f a = f b")
     case False
@@ -778,9 +778,7 @@ proof -
     also have "\<dots> = (f b - f a) \<bullet> (f b - f a)"
       unfolding power2_norm_eq_inner ..
     also have "\<dots> = (f b - f a) \<bullet> f' x (b - a)"
-      using x
-      unfolding inner_simps
-      by (auto simp add: inner_diff_left)
+      using x(2) by (simp only: inner_diff_right)
     also have "\<dots> \<le> norm (f b - f a) * norm (f' x (b - a))"
       by (rule norm_cauchy_schwarz)
     finally show ?thesis
