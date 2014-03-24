@@ -172,10 +172,11 @@ fun def' constname rhs thy =
   let
     val rhs = term_of rhs
     val typ = type_of rhs
-    val thy1 = Sign.add_consts [(Binding.name constname, typ, NoSyn)] thy
-    val eq = Logic.mk_equals (Const (Sign.intern_const thy1 constname, typ), rhs)
+    val constbinding = Binding.name constname
+    val thy1 = Sign.add_consts [(constbinding, typ, NoSyn)] thy
+    val eq = Logic.mk_equals (Const (Sign.full_name thy1 constbinding, typ), rhs)
     val (thms, thy2) = Global_Theory.add_defs false
-      [((Binding.suffix_name "_hldef" (Binding.name constname), eq), [])] thy1
+      [((Binding.suffix_name "_hldef" constbinding, eq), [])] thy1
     val def_thm = freezeT (hd thms)
   in
     (meta_eq_to_obj_eq def_thm, thy2)
