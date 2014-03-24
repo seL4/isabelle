@@ -7,7 +7,7 @@ header {* Hilbert's Epsilon-Operator and the Axiom of Choice *}
 
 theory Hilbert_Choice
 imports Nat Wellfounded
-keywords "specification" "ax_specification" :: thy_goal
+keywords "specification" :: thy_goal
 begin
 
 subsection {* Hilbert's epsilon *}

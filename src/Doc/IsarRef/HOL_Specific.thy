@@ -1386,20 +1386,18 @@ text {*
 *}
 
 
-
 section {* Definition by specification \label{sec:hol-specification} *}
 
 text {*
   \begin{matharray}{rcl}
     @{command_def (HOL) "specification"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
-    @{command_def (HOL) "ax_specification"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
   \end{matharray}
 
   @{rail \<open>
-    (@@{command (HOL) specification} | @@{command (HOL) ax_specification})
-      '(' (decl +) ')' \<newline> (@{syntax thmdecl}? @{syntax prop} +)
+    @@{command (HOL) specification} '(' (decl +) ')' \<newline>
+      (@{syntax thmdecl}? @{syntax prop} +)
     ;
-    decl: ((@{syntax name} ':')? @{syntax term} '(' @'overloaded' ')'?)
+    decl: (@{syntax name} ':')? @{syntax term} ('(' @'overloaded' ')')?
   \<close>}
 
   \begin{description}
@@ -1411,30 +1409,14 @@ text {*
   constants, as well as with theorems stating the properties for these
   constants.
 
-  \item @{command (HOL) "ax_specification"}~@{text "decls \<phi>"} sets up
-  a goal stating the existence of terms with the properties specified
-  to hold for the constants given in @{text decls}.  After finishing
-  the proof, the theory will be augmented with axioms expressing the
-  properties given in the first place.
-
-  \item @{text decl} declares a constant to be defined by the
+  @{text decl} declares a constant to be defined by the
   specification given.  The definition for the constant @{text c} is
   bound to the name @{text c_def} unless a theorem name is given in
   the declaration.  Overloaded constants should be declared as such.
 
   \end{description}
-
-  Whether to use @{command (HOL) "specification"} or @{command (HOL)
-  "ax_specification"} is to some extent a matter of style.  @{command
-  (HOL) "specification"} introduces no new axioms, and so by
-  construction cannot introduce inconsistencies, whereas @{command
-  (HOL) "ax_specification"} does introduce axioms, but only after the
-  user has explicitly proven it to be safe.  A practical issue must be
-  considered, though: After introducing two constants with the same
-  properties using @{command (HOL) "specification"}, one can prove
-  that the two constants are, in fact, equal.  If this might be a
-  problem, one should use @{command (HOL) "ax_specification"}.
 *}
+
 
 section {* Adhoc overloading of constants *}
 

@@ -28,7 +28,6 @@
     "assume"
     "atom_decl"
     "attribute_setup"
-    "ax_specification"
     "axiomatization"
     "back"
     "bnf"
@@ -243,8 +242,8 @@
     "simps_of_case"
     "sledgehammer"
     "sledgehammer_params"
-    "smt_status"
     "smt2_status"
+    "smt_status"
     "solve_direct"
     "sorry"
     "spark_end"
@@ -447,8 +446,8 @@
     "quickcheck"
     "refute"
     "sledgehammer"
-    "smt_status"
     "smt2_status"
+    "smt_status"
     "solve_direct"
     "spark_status"
     "term"
@@ -597,8 +596,7 @@
   '())
 
 (defconst isar-keywords-theory-goal
-  '("ax_specification"
-    "bnf"
+  '("bnf"
     "code_pred"
     "corollary"
     "cpodef"
