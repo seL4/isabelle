@@ -28,8 +28,8 @@ sig
   val mk_init_ex_mor_tac: Proof.context -> thm -> thm -> thm list -> thm -> thm -> thm -> thm ->
     tactic
   val mk_init_induct_tac: int -> thm -> thm -> thm list -> thm list -> tactic
-  val mk_init_unique_mor_tac: int -> thm -> thm -> thm list -> thm list -> thm list -> thm list ->
-    thm list -> tactic
+  val mk_init_unique_mor_tac: cterm list -> int -> thm -> thm -> thm list -> thm list -> thm list ->
+    thm list -> thm list -> tactic
   val mk_fold_unique_mor_tac: thm list -> thm list -> thm list -> thm -> thm -> thm -> tactic
   val mk_fold_transfer_tac: Proof.context -> int -> thm -> thm list -> thm list -> tactic
   val mk_least_min_alg_tac: thm -> thm -> tactic
@@ -46,8 +46,8 @@ sig
   val mk_min_algs_least_tac: ctyp -> cterm -> thm -> thm list -> thm list -> tactic
   val mk_min_algs_mono_tac: Proof.context -> thm -> tactic
   val mk_min_algs_tac: thm -> thm list -> tactic
-  val mk_mor_Abs_tac: Proof.context -> cterm option list -> thm list -> thm list -> thm list ->
-    thm list -> tactic
+  val mk_mor_Abs_tac: Proof.context -> cterm list -> thm list -> thm list -> thm list -> thm list ->
+    tactic
   val mk_mor_Rep_tac: Proof.context -> int -> thm list -> thm list -> thm list -> thm -> thm list ->
     thm list list -> tactic
   val mk_mor_UNIV_tac: int -> thm list -> thm -> tactic
@@ -349,7 +349,7 @@ fun mk_init_ex_mor_tac ctxt Abs_inverse copy card_of_min_algs mor_Rep mor_comp m
       etac mor_comp, rtac mor_incl, REPEAT_DETERM_N n o rtac subset_UNIV] 1
   end;
 
-fun mk_init_unique_mor_tac m
+fun mk_init_unique_mor_tac cts m
     alg_def alg_min_alg least_min_algs in_monos alg_sets morEs map_cong0s =
   let
     val n = length least_min_algs;
@@ -358,21 +358,23 @@ fun mk_init_unique_mor_tac m
     fun mor_tac morE in_mono = EVERY' [etac morE, rtac set_mp, rtac in_mono,
       REPEAT_DETERM_N n o rtac @{thm Collect_restrict}, rtac CollectI,
       REPEAT_DETERM_N (m + n) o (TRY o rtac conjI THEN' atac)];
-    fun cong_tac map_cong0 = EVERY' [rtac (map_cong0 RS arg_cong),
+    fun cong_tac ct map_cong0 = EVERY'
+      [rtac (map_cong0 RS cterm_instantiate_pos [NONE, NONE, SOME ct] arg_cong),
       REPEAT_DETERM_N m o rtac refl,
       REPEAT_DETERM_N n o (etac @{thm prop_restrict} THEN' atac)];
 
-    fun mk_alg_tac (alg_set, (in_mono, (morE, map_cong0))) = EVERY' [rtac ballI, rtac CollectI,
-      REPEAT_DETERM o eresolve_tac [CollectE, conjE], rtac conjI, rtac (alg_min_alg RS alg_set),
-      REPEAT_DETERM_N n o (etac subset_trans THEN' rtac @{thm Collect_restrict}),
-      rtac trans, mor_tac morE in_mono,
-      rtac trans, cong_tac map_cong0,
-      rtac sym, mor_tac morE in_mono];
+    fun mk_alg_tac (ct, (alg_set, (in_mono, (morE, map_cong0)))) =
+      EVERY' [rtac ballI, rtac CollectI,
+        REPEAT_DETERM o eresolve_tac [CollectE, conjE], rtac conjI, rtac (alg_min_alg RS alg_set),
+        REPEAT_DETERM_N n o (etac subset_trans THEN' rtac @{thm Collect_restrict}),
+        rtac trans, mor_tac morE in_mono,
+        rtac trans, cong_tac ct map_cong0,
+        rtac sym, mor_tac morE in_mono];
 
     fun mk_unique_tac (k, least_min_alg) =
       select_prem_tac n (etac @{thm prop_restrict}) k THEN' rtac least_min_alg THEN'
       rtac (alg_def RS iffD2) THEN'
-      CONJ_WRAP' mk_alg_tac (alg_sets ~~ (in_monos ~~ (morEs ~~ map_cong0s)));
+      CONJ_WRAP' mk_alg_tac (cts ~~ (alg_sets ~~ (in_monos ~~ (morEs ~~ map_cong0s))));
   in
     CONJ_WRAP' mk_unique_tac (ks ~~ least_min_algs) 1
   end;
@@ -414,7 +416,7 @@ fun mk_mor_Abs_tac ctxt cts defs Abs_inverses map_comp_ids map_congLs =
     CONJ_WRAP' (K (rtac ballI THEN' rtac UNIV_I)) Abs_inverses,
     CONJ_WRAP' (fn (ct, thm) =>
       EVERY' [rtac ballI, REPEAT_DETERM o eresolve_tac [CollectE, conjE],
-        rtac (thm RS (cterm_instantiate_pos [NONE, NONE, ct] arg_cong) RS sym),
+        rtac (thm RS (cterm_instantiate_pos [NONE, NONE, SOME ct] arg_cong) RS sym),
         EVERY' (map (fn Abs_inverse =>
           EVERY' [rtac (o_apply RS trans RS ballI), etac (set_mp RS Abs_inverse), atac])
         Abs_inverses)])

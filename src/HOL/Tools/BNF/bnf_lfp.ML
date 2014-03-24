@@ -819,12 +819,14 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         fun mk_fun_eq f g x = HOLogic.mk_eq (f $ x, g $ x);
         val unique = HOLogic.mk_Trueprop
           (Library.foldr1 HOLogic.mk_conj (map3 mk_fun_eq init_fs init_fs_copy init_xs));
-        val unique_mor = Goal.prove_sorry lthy [] []
-          (fold_rev Logic.all (init_xs @ Bs @ ss @ init_fs @ init_fs_copy)
-            (Logic.list_implies (prems @ mor_prems, unique)))
-          (K (mk_init_unique_mor_tac m alg_def alg_init_thm least_min_alg_thms
-            in_mono'_thms alg_set_thms morE_thms map_cong0s))
-          |> Thm.close_derivation;
+        val cts = map (certify lthy) ss;
+        val unique_mor = singleton (Proof_Context.export names_lthy lthy)
+          (Goal.prove_sorry lthy [] []
+            (fold_rev Logic.all (init_xs @ Bs @ init_fs @ init_fs_copy)
+              (Logic.list_implies (prems @ mor_prems, unique)))
+            (K (mk_init_unique_mor_tac cts m alg_def alg_init_thm least_min_alg_thms
+              in_mono'_thms alg_set_thms morE_thms map_cong0s))
+          |> Thm.close_derivation);
       in
         split_conj_thm unique_mor
       end;
@@ -951,7 +953,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           |> Thm.close_derivation;
 
         fun mk_ct initFT str abs = Term.absdummy initFT (abs $ (str $ Bound 0))
-        val cts = map3 (SOME o certify lthy ooo mk_ct) init_FTs str_inits Abs_Ts;
+        val cts = map3 (certify lthy ooo mk_ct) init_FTs str_inits Abs_Ts;
 
         val mor_Abs =
           Goal.prove_sorry lthy [] []
