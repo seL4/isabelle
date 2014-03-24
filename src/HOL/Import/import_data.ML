@@ -13,7 +13,9 @@ sig
   val get_typ_def : string -> theory -> thm option
 
   val add_const_map : string -> string -> theory -> theory
+  val add_const_map_cmd : string -> string -> theory -> theory
   val add_typ_map : string -> string -> theory -> theory
+  val add_typ_map_cmd : string -> string -> theory -> theory
   val add_const_def : string -> thm -> string option -> theory -> theory
   val add_typ_def : string -> string -> string -> thm -> theory -> theory
 end
@@ -49,10 +51,22 @@ fun add_const_map s1 s2 thy =
     {const_map = (Symtab.update (s1, s2) const_map), ty_map = ty_map,
      const_def = const_def, ty_def = ty_def}) thy
 
+fun add_const_map_cmd s1 raw_s2 thy =
+  let
+    val ctxt = Proof_Context.init_global thy
+    val Const (s2, _) = Proof_Context.read_const {proper = true, strict = false} ctxt raw_s2
+  in add_const_map s1 s2 thy end
+
 fun add_typ_map s1 s2 thy =
   Data.map (fn {const_map, ty_map, const_def, ty_def} =>
     {const_map = const_map, ty_map = (Symtab.update (s1, s2) ty_map),
      const_def = const_def, ty_def = ty_def}) thy
+
+fun add_typ_map_cmd s1 raw_s2 thy =
+  let
+    val ctxt = Proof_Context.init_global thy
+    val Type (s2, _) = Proof_Context.read_type_name {proper = true, strict = false} ctxt raw_s2
+  in add_typ_map s1 s2 thy end
 
 fun add_const_def s th name_opt thy =
   let
@@ -89,7 +103,8 @@ fun add_typ_def tyname absname repname th thy =
 
 val _ = Theory.setup
   (Attrib.setup @{binding import_const}
-    (Scan.lift (Parse.name -- Scan.option (@{keyword ":"} |-- Parse.xname)) >>
+    (Scan.lift Parse.name --
+      Scan.option (Scan.lift @{keyword ":"} |-- Args.const {proper = true, strict = false}) >>
       (fn (s1, s2) => Thm.declaration_attribute
         (fn th => Context.mapping (add_const_def s1 th s2) I)))
   "declare a theorem as an equality that maps the given constant")
@@ -104,14 +119,14 @@ val _ = Theory.setup
 val _ =
   Outer_Syntax.command @{command_spec "import_type_map"}
     "map external type name to existing Isabelle/HOL type name"
-    ((Parse.name --| @{keyword ":"}) -- Parse.xname >>
-      (fn (ty_name1, ty_name2) => Toplevel.theory (add_typ_map ty_name1 ty_name2)))
+    ((Parse.name --| @{keyword ":"}) -- Parse.type_const >>
+      (fn (ty_name1, ty_name2) => Toplevel.theory (add_typ_map_cmd ty_name1 ty_name2)))
 
 val _ =
   Outer_Syntax.command @{command_spec "import_const_map"}
     "map external const name to existing Isabelle/HOL const name"
-    ((Parse.name --| @{keyword ":"}) -- Parse.xname >>
-      (fn (cname1, cname2) => Toplevel.theory (add_const_map cname1 cname2)))
+    ((Parse.name --| @{keyword ":"}) -- Parse.const >>
+      (fn (cname1, cname2) => Toplevel.theory (add_const_map_cmd cname1 cname2)))
 
 (* Initial type and constant maps, for types and constants that are not
    defined, which means their definitions do not appear in the proof dump *)
