@@ -8,8 +8,6 @@ Library for the datatype construction.
 
 signature BNF_LFP_UTIL =
 sig
-  val HOL_arg_cong: cterm -> thm
-
   val mk_bij_betw: term -> term -> term -> term
   val mk_cardSuc: term -> term
   val mk_not_empty: term -> term
@@ -24,9 +22,6 @@ structure BNF_LFP_Util : BNF_LFP_UTIL =
 struct
 
 open BNF_Util
-
-fun HOL_arg_cong ct = Drule.instantiate'
-  (map SOME (Thm.dest_ctyp (Thm.ctyp_of_term ct))) [NONE, NONE, SOME ct] arg_cong;
 
 (*reverse application*)
 fun mk_rapp arg T = Term.absdummy (fastype_of arg --> T) (Bound 0 $ arg);

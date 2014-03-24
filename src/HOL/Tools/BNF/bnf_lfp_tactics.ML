@@ -535,8 +535,9 @@ fun mk_set_nat_tac ctxt m induct_tac set_mapss ctor_maps csets ctor_sets i =
       rtac set_nat, rtac refl, rtac @{thm UN_simps(10)}];
 
     fun mk_set_nat cset ctor_map ctor_set set_nats =
-      EVERY' [rtac trans, rtac @{thm image_cong}, rtac ctor_set, rtac refl,
-        rtac sym, rtac (trans OF [ctor_map RS HOL_arg_cong cset, ctor_set RS trans]),
+      EVERY' [rtac trans, rtac @{thm image_cong}, rtac ctor_set, rtac refl, rtac sym,
+        rtac (trans OF [ctor_map RS cterm_instantiate_pos [NONE, NONE, SOME cset] arg_cong,
+          ctor_set RS trans]),
         rtac sym, EVERY' (map rtac [trans, @{thm image_Un}, Un_cong]),
         rtac sym, rtac (nth set_nats (i - 1)),
         REPEAT_DETERM_N (n - 1) o EVERY' (map rtac [trans, @{thm image_Un}, Un_cong]),
