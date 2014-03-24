@@ -34,6 +34,10 @@ number that is out of range produces an empty result sequence, not an
 exception.  Potential INCOMPATIBILITY for non-conformant tactical
 proof tools.
 
+* Discontinued old Toplevel.debug in favour of system option
+"exception_trace", which may be also declared within the context via
+"declare [[exception_trace = true]]".  Minor INCOMPATIBILITY.
+
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 

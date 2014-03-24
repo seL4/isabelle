@@ -52,7 +52,6 @@ text %mlref {*
   @{index_ML Toplevel.is_toplevel: "Toplevel.state -> bool"} \\
   @{index_ML Toplevel.theory_of: "Toplevel.state -> theory"} \\
   @{index_ML Toplevel.proof_of: "Toplevel.state -> Proof.state"} \\
-  @{index_ML Toplevel.debug: "bool Unsynchronized.ref"} \\
   @{index_ML Toplevel.timing: "bool Unsynchronized.ref"} \\
   @{index_ML Toplevel.profiling: "int Unsynchronized.ref"} \\
   \end{mldecls}
@@ -78,9 +77,6 @@ text %mlref {*
 
   \item @{ML Toplevel.proof_of}~@{text "state"} selects the Isar proof
   state if available, otherwise raises @{ML Toplevel.UNDEF}.
-
-  \item @{ML "Toplevel.debug := true"} enables exception trace of the
-  ML runtime system.
 
   \item @{ML "Toplevel.timing := true"} makes the toplevel print timing
   information for each Isar command being executed.

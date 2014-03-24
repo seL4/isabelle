@@ -42,7 +42,7 @@ declare [[
 ML {*
   if test_all @{context} then ()
   else
-    (Toplevel.debug := true;
+    (Options.default_put_bool @{option exception_trace} true;
      PolyML.print_depth 200;
      PolyML.Compiler.maxInlineSize := 0)
 *}

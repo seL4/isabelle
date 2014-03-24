@@ -271,8 +271,8 @@ local
 val print_functions =
   Synchronized.var "Command.print_functions" ([]: (string * print_function) list);
 
-fun print_error tr e =
-  (Toplevel.setmp_thread_position tr o Toplevel.controlled_execution) e ()
+fun print_error tr opt_context e =
+  (Toplevel.setmp_thread_position tr o Toplevel.controlled_execution opt_context) e ()
     handle exn =>
       if Exn.is_interrupt exn then reraise exn
       else List.app (Future.error_msg (Toplevel.pos_of tr)) (ML_Compiler.exn_messages_ids exn);
@@ -298,9 +298,10 @@ fun print command_visible command_overlays command_name eval old_prints =
           let
             val {failed, command, state = st', ...} = eval_result eval;
             val tr = Toplevel.exec_id exec_id command;
+            val opt_context = try Toplevel.generic_theory_of st';
           in
             if failed andalso strict then ()
-            else print_error tr (fn () => print_fn tr st')
+            else print_error tr opt_context (fn () => print_fn tr st')
           end;
       in
         Print {
@@ -316,7 +317,7 @@ fun print command_visible command_overlays command_name eval old_prints =
       let
         val params = {command_name = command_name, args = args};
       in
-        (case Exn.capture (Toplevel.controlled_execution get_pr) params of
+        (case Exn.capture (Toplevel.controlled_execution NONE get_pr) params of
           Exn.Res NONE => NONE
         | Exn.Res (SOME pr) => SOME (make_print name args pr)
         | Exn.Exn exn => SOME (bad_print name args exn))

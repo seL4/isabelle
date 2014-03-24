@@ -121,11 +121,11 @@ val _ =
     "Whether to enable timing in Isabelle";
 
 val _ =
-  ProofGeneral.preference_bool ProofGeneral.category_tracing
+  ProofGeneral.preference_option ProofGeneral.category_tracing
     NONE
-    Toplevel.debug
+    @{option exception_trace}
     "debugging"
-    "Whether to enable debugging";
+    "Whether to enable exception trace for toplevel command execution";
 
 val _ =
   ProofGeneral.preference_bool ProofGeneral.category_tracing

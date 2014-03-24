@@ -78,6 +78,7 @@ fun eval verbose pos toks =
   let
     val _ = Secure.secure_mltext ();
     val space = ML_Env.name_space;
+    val opt_context = Context.thread_data ();
 
 
     (* input *)
@@ -168,7 +169,7 @@ fun eval verbose pos toks =
       | SOME code =>
           apply_result
             ((code
-              |> Runtime.debugging exn_message
+              |> Runtime.debugging exn_message opt_context
               |> Runtime.toplevel_error (err o exn_message)) ())));
 
 

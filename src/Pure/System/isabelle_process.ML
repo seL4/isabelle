@@ -48,7 +48,7 @@ fun run_command name args =
   (case Symtab.lookup (Synchronized.value commands) name of
     NONE => error ("Undefined Isabelle protocol command " ^ quote name)
   | SOME cmd =>
-      (Toplevel.debugging cmd args handle exn =>
+      (Toplevel.debugging NONE cmd args handle exn =>
         error ("Isabelle protocol command failure: " ^ quote name ^ "\n" ^
           ML_Compiler.exn_message exn)));
 
