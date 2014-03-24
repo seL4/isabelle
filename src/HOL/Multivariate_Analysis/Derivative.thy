@@ -1591,10 +1591,11 @@ qed
 subsection {* Uniformly convergent sequence of derivatives *}
 
 lemma has_derivative_sequence_lipschitz_lemma:
-  fixes f :: "nat \<Rightarrow> 'm::euclidean_space \<Rightarrow> 'n::euclidean_space"
+  fixes f :: "nat \<Rightarrow> 'a::real_normed_vector \<Rightarrow> 'b::real_inner"
   assumes "convex s"
     and "\<forall>n. \<forall>x\<in>s. ((f n) has_derivative (f' n x)) (at x within s)"
     and "\<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm (f' n x h - g' x h) \<le> e * norm h"
+    and "0 \<le> e"
   shows "\<forall>m\<ge>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>y\<in>s. norm ((f m x - f n x) - (f m y - f n y)) \<le> 2 * e * norm (x - y)"
 proof rule+
   fix m n x y
@@ -1607,7 +1608,8 @@ proof rule+
     assume "x \<in> s"
     show "((\<lambda>a. f m a - f n a) has_derivative (\<lambda>h. f' m x h - f' n x h)) (at x within s)"
       by (rule has_derivative_intros assms(2)[rule_format] `x\<in>s`)+
-    {
+    show "onorm (\<lambda>h. f' m x h - f' n x h) \<le> 2 * e"
+    proof (rule onorm_bound)
       fix h
       have "norm (f' m x h - f' n x h) \<le> norm (f' m x h - g' x h) + norm (f' n x h - g' x h)"
         using norm_triangle_ineq[of "f' m x h - g' x h" "- f' n x h + g' x h"]
@@ -1617,23 +1619,17 @@ proof rule+
         using assms(3)[rule_format,OF `N \<le> m` `x \<in> s`, of h]
         using assms(3)[rule_format,OF `N \<le> n` `x \<in> s`, of h]
         by (auto simp add: field_simps)
-      finally have "norm (f' m x h - f' n x h) \<le> 2 * e * norm h"
+      finally show "norm (f' m x h - f' n x h) \<le> 2 * e * norm h"
         by auto
-    }
-    then show "onorm (\<lambda>h. f' m x h - f' n x h) \<le> 2 * e"
-      apply -
-      apply (rule onorm_le)
-      apply auto
-      done
+    qed (simp add: `0 \<le> e`)
   qed
 qed
 
 lemma has_derivative_sequence_lipschitz:
-  fixes f :: "nat \<Rightarrow> 'm::euclidean_space \<Rightarrow> 'n::euclidean_space"
+  fixes f :: "nat \<Rightarrow> 'a::real_normed_vector \<Rightarrow> 'b::real_inner"
   assumes "convex s"
     and "\<forall>n. \<forall>x\<in>s. ((f n) has_derivative (f' n x)) (at x within s)"
     and "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm (f' n x h - g' x h) \<le> e * norm h"
-    and "e > 0"
   shows "\<forall>e>0. \<exists>N. \<forall>m\<ge>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>y\<in>s.
     norm ((f m x - f n x) - (f m y - f n y)) \<le> e * norm (x - y)"
 proof (rule, rule)
@@ -1644,13 +1640,13 @@ proof (rule, rule)
   then show ?case
     apply (rule_tac x=N in exI)
     apply (rule has_derivative_sequence_lipschitz_lemma[where e="1/2 *e", unfolded *])
-    using assms
+    using assms `e > 0`
     apply auto
     done
 qed
 
 lemma has_derivative_sequence:
-  fixes f::"nat\<Rightarrow> 'm::euclidean_space \<Rightarrow> 'n::euclidean_space"
+  fixes f :: "nat \<Rightarrow> 'a::real_normed_vector \<Rightarrow> 'b::{real_inner, complete_space}"
   assumes "convex s"
     and "\<forall>n. \<forall>x\<in>s. ((f n) has_derivative (f' n x)) (at x within s)"
     and "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm (f' n x h - g' x h) \<le> e * norm h"
@@ -1660,9 +1656,8 @@ lemma has_derivative_sequence:
 proof -
   have lem1: "\<forall>e>0. \<exists>N. \<forall>m\<ge>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>y\<in>s.
       norm ((f m x - f n x) - (f m y - f n y)) \<le> e * norm (x - y)"
-    apply (rule has_derivative_sequence_lipschitz[where e="42::nat"])
+    apply (rule has_derivative_sequence_lipschitz)
     apply (rule assms)+
-    apply auto
     done
   have "\<exists>g. \<forall>x\<in>s. ((\<lambda>n. f n x) ---> g x) sequentially"
     apply (rule bchoice)
@@ -1798,15 +1793,8 @@ proof -
       qed
     qed
     show "bounded_linear (g' x)"
-      unfolding linear_linear linear_iff
-      apply rule
-      apply rule
-      apply rule
-      defer
-      apply rule
-      apply rule
-    proof -
-      fix x' y z :: 'm
+    proof
+      fix x' y z :: 'a
       fix c :: real
       note lin = assms(2)[rule_format,OF `x\<in>s`,THEN derivative_linear]
       show "g' x (c *\<^sub>R x') = c *\<^sub>R g' x x'"
@@ -1823,6 +1811,24 @@ proof -
         apply (rule tendsto_add)
         apply (rule lem3[rule_format])+
         done
+      obtain N where N: "\<forall>h. norm (f' N x h - g' x h) \<le> 1 * norm h"
+        using assms(3) `x \<in> s` by (fast intro: zero_less_one order_refl)
+      have "bounded_linear (f' N x)"
+        using assms(2) `x \<in> s` by (fast dest: has_derivative_bounded_linear)
+      from bounded_linear.bounded [OF this]
+      obtain K where K: "\<forall>h. norm (f' N x h) \<le> norm h * K" ..
+      {
+        fix h
+        have "norm (g' x h) = norm (f' N x h - (f' N x h - g' x h))"
+          by simp
+        also have "\<dots> \<le> norm (f' N x h) + norm (f' N x h - g' x h)"
+          by (rule norm_triangle_ineq4)
+        also have "\<dots> \<le> norm h * K + 1 * norm h"
+          using N K by (fast intro: add_mono)
+        finally have "norm (g' x h) \<le> norm h * (K + 1)"
+          by (simp add: ring_distribs)
+      }
+      then show "\<exists>K. \<forall>h. norm (g' x h) \<le> norm h * K" by fast
     qed
     show "\<forall>e>0. \<exists>d>0. \<forall>y\<in>s. norm (y - x) < d \<longrightarrow> norm (g y - g x - g' x (y - x)) \<le> e * norm (y - x)"
     proof (rule, rule)
@@ -1879,7 +1885,7 @@ qed
 text {* Can choose to line up antiderivatives if we want. *}
 
 lemma has_antiderivative_sequence:
-  fixes f :: "nat \<Rightarrow> 'm::euclidean_space \<Rightarrow> 'n::euclidean_space"
+  fixes f :: "nat \<Rightarrow> 'a::real_normed_vector \<Rightarrow> 'b::{real_inner, complete_space}"
   assumes "convex s"
     and "\<forall>n. \<forall>x\<in>s. ((f n) has_derivative (f' n x)) (at x within s)"
     and "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm (f' n x h - g' x h) \<le> e * norm h"
@@ -1900,7 +1906,7 @@ proof (cases "s = {}")
 qed auto
 
 lemma has_antiderivative_limit:
-  fixes g' :: "'m::euclidean_space \<Rightarrow> 'm \<Rightarrow> 'n::euclidean_space"
+  fixes g' :: "'a::real_normed_vector \<Rightarrow> 'a \<Rightarrow> 'b::{real_inner, complete_space}"
   assumes "convex s"
     and "\<forall>e>0. \<exists>f f'. \<forall>x\<in>s.
       (f has_derivative (f' x)) (at x within s) \<and> (\<forall>h. norm (f' x h - g' x h) \<le> e * norm h)"
@@ -1952,7 +1958,7 @@ qed
 subsection {* Differentiation of a series *}
 
 lemma has_derivative_series:
-  fixes f :: "nat \<Rightarrow> 'm::euclidean_space \<Rightarrow> 'n::euclidean_space"
+  fixes f :: "nat \<Rightarrow> 'a::real_normed_vector \<Rightarrow> 'b::{real_inner, complete_space}"
   assumes "convex s"
     and "\<And>n x. x \<in> s \<Longrightarrow> ((f n) has_derivative (f' n x)) (at x within s)"
     and "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm (setsum (\<lambda>i. f' i x h) {..<n} - g' x h) \<le> e * norm h"
