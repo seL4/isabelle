@@ -12,3 +12,5 @@ fun print_exception_trace exn_message e =
         val _ = tracing (cat_lines (title :: trace));
       in reraise exn end);
 
+PolyML.Compiler.reportExhaustiveHandlers := true;
+

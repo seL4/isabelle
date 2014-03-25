@@ -118,7 +118,6 @@ use "ML-Systems/compiler_polyml.ML";
 PolyML.Compiler.reportUnreferencedIds := true;
 PolyML.Compiler.printInAlphabeticalOrder := false;
 PolyML.Compiler.maxInlineSize := 80;
-(*PolyML.Compiler.reportExhaustiveHandlers := true;*)
 
 fun ml_prompts p1 p2 = (PolyML.Compiler.prompt1 := p1; PolyML.Compiler.prompt2 := p2);
 
