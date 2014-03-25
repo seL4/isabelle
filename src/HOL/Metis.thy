@@ -10,7 +10,9 @@ theory Metis
 imports ATP
 begin
 
+declare [[ML_print_depth = 0]]
 ML_file "~~/src/Tools/Metis/metis.ML"
+declare [[ML_print_depth = 10]]
 
 subsection {* Literal selection and lambda-lifting helpers *}
 

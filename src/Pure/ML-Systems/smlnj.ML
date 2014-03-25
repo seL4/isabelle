@@ -56,11 +56,12 @@ fun quit () = exit 0;
 local
   val depth = ref (10: int);
 in
-  fun get_print_depth () = ! depth;
-  fun print_depth n =
+  fun get_default_print_depth () = ! depth;
+  fun put_default_print_depth n =
    (depth := n;
     Control.Print.printDepth := dest_int n div 2;
     Control.Print.printLength := dest_int n);
+  val _ = put_default_print_depth 10;
 end;
 
 val ml_make_string = "(fn _ => \"?\")";

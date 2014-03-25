@@ -11,12 +11,17 @@ sig
   val exn_message: exn -> string
   val exn_error_message: exn -> unit
   val exn_trace: (unit -> 'a) -> 'a
+  val print_depth_raw: Config.raw
+  val print_depth: int Config.T
+  val get_print_depth: unit -> int
   type flags = {SML: bool, verbose: bool}
   val eval: flags -> Position.T -> ML_Lex.token list -> unit
 end
 
 structure ML_Compiler: ML_COMPILER =
 struct
+
+(* exceptions *)
 
 val exn_info =
  {exn_position = fn _: exn => Position.none,
@@ -28,6 +33,21 @@ val exn_message = Runtime.exn_message exn_info;
 
 val exn_error_message = Output.error_message o exn_message;
 fun exn_trace e = print_exception_trace exn_message e;
+
+
+(* print depth *)
+
+val print_depth_raw =
+  Config.declare "ML_print_depth" (fn _ => Config.Int (get_default_print_depth ()));
+val print_depth = Config.int print_depth_raw;
+
+fun get_print_depth () =
+  (case Context.thread_data () of
+    NONE => get_default_print_depth ()
+  | SOME context => Config.get_generic context print_depth);
+
+
+(* eval *)
 
 type flags = {SML: bool, verbose: bool};
 

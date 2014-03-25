@@ -130,8 +130,9 @@ use "ML-Systems/ml_pretty.ML";
 local
   val depth = Unsynchronized.ref 10;
 in
-  fun get_print_depth () = ! depth;
-  fun print_depth n = (depth := n; PolyML.print_depth n);
+  fun get_default_print_depth () = ! depth;
+  fun put_default_print_depth n = (depth := n; PolyML.print_depth n);
+  val _ = put_default_print_depth 10;
 end;
 
 val error_depth = PolyML.error_depth;
@@ -175,5 +176,5 @@ fun toplevel_pp context (_: string list) pp =
     ("PolyML.addPrettyPrinter (fn _ => fn _ => ml_pretty o Pretty.to_ML o (" ^ pp ^ "))");
 
 val ml_make_string =
-  "(fn x => Pretty.string_of (Pretty.from_ML (pretty_ml (PolyML.prettyRepresentation (x, get_print_depth ())))))";
+  "(fn x => Pretty.string_of (Pretty.from_ML (pretty_ml (PolyML.prettyRepresentation (x, ML_Compiler.get_print_depth ())))))";
 

@@ -20,8 +20,6 @@ echo "Generating ml_yacc_lib.ML"
 (* GENERATED FILE -- DO NOT EDIT -- GENERATED FILE -- DO NOT EDIT *)
 (******************************************************************)
 
-print_depth 0;
-
 (*
   This file is generated from the contents of ML-Yacc's lib directory.
   ML-Yacc's COPYRIGHT-file contents follow:
@@ -48,7 +46,6 @@ do
 
   cat <<EOF
 ;
-print_depth 10;
 EOF
 
 ) > ml_yacc_lib.ML

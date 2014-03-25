@@ -6,8 +6,6 @@ struct
   val is_official = false;
 end;
 
-print_depth 10;
-
 
 (* library of general tools *)
 

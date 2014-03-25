@@ -42,8 +42,8 @@ declare [[
 ML {*
   if test_all @{context} then ()
   else
-    (Options.default_put_bool @{option exception_trace} true;
-     PolyML.print_depth 200;
+    (Options.default_put_bool @{option ML_exception_trace} true;
+     put_default_print_depth 200;  (* FIXME proper ML_print_depth within context!? *)
      PolyML.Compiler.maxInlineSize := 0)
 *}
 
@@ -186,8 +186,9 @@ val the_tactics =
      prob_names;
 *}
 
+declare [[ML_print_depth = 2000]]
+
 ML {*
-print_depth 2000;
 the_tactics
 |> map (filter (fn (_, _, x) => is_none x)
         #> map (fn (x, SOME y, _) => (x, cterm_of @{theory} y)))

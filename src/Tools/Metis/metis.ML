@@ -14,8 +14,6 @@
 (* GENERATED FILE -- DO NOT EDIT -- GENERATED FILE -- DO NOT EDIT *)
 (******************************************************************)
 
-print_depth 0;
-
 
 (**** Original file: src/Random.sig ****)
 
@@ -21462,4 +21460,3 @@ fun loop res =
 
 end
 ;
-print_depth 10;

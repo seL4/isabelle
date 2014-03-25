@@ -11,9 +11,8 @@ theory TPTP_Proof_Reconstruction_Test
 imports TPTP_Test TPTP_Proof_Reconstruction
 begin
 
-declare [[exception_trace]]
+declare [[ML_exception_trace, ML_print_depth = 200]]
 ML {*
-print_depth 200;
 PolyML.Compiler.maxInlineSize := 0;
 (* FIXME doesn't work with Isabelle?
    PolyML.Compiler.debug := true *)
@@ -2025,8 +2024,7 @@ by (tactic {*rtac (leo2_tac @{context} (hd prob_names) "4") 1*})
 
 (*SYN044^4*)
 (*
-ML {*
-print_depth 1400;
+declare [[ML_print_depth = 1400]]
 (* the_tactics *)
 *}
 

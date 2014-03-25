@@ -285,7 +285,7 @@ datatype tptp_line =
 
 type tptp_problem = tptp_line list
 
-fun debug f x = if Options.default_bool @{option exception_trace} then (f x; ()) else ()
+fun debug f x = if Options.default_bool @{option ML_exception_trace} then (f x; ()) else ()
 
 fun nameof_tff_atom_type (Atom_type str) = str
   | nameof_tff_atom_type _ = raise TPTP_SYNTAX "nameof_tff_atom_type called on non-atom type"

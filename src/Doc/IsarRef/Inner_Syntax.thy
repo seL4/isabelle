@@ -320,10 +320,11 @@ subsection {* Printing limits *}
 text {*
   \begin{mldecls}
     @{index_ML Pretty.margin_default: "int Unsynchronized.ref"} \\
-    @{index_ML print_depth: "int -> unit"} \\
   \end{mldecls}
 
-  These ML functions set limits for pretty printed text.
+  \begin{tabular}{rcll}
+    @{attribute_def ML_print_depth} & : & @{text attribute} & default 10 \\ %FIXME move?
+  \end{tabular}
 
   \begin{description}
 
@@ -334,9 +335,9 @@ text {*
   engine of Isabelle/ML altogether and do it within the front end via
   Isabelle/Scala.
 
-  \item @{ML print_depth}~@{text n} limits the printing depth of the
+  \item @{attribute ML_print_depth} limits the printing depth of the
   ML toplevel pretty printer; the precise effect depends on the ML
-  compiler and run-time system.  Typically @{text n} should be less
+  compiler and run-time system.  Typically the limit should be less
   than 10.  Bigger values such as 100--1000 are useful for debugging.
 
   \end{description}

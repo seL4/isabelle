@@ -7,6 +7,9 @@ Advanced runtime compilation for Poly/ML.
 structure ML_Compiler: ML_COMPILER =
 struct
 
+open ML_Compiler;
+
+
 (* source locations *)
 
 fun position_of (loc: PolyML.location) =
@@ -73,8 +76,6 @@ fun report_parse_tree depth space =
 
 
 (* eval ML source tokens *)
-
-type flags = {SML: bool, verbose: bool};
 
 fun eval {SML, verbose} pos toks =
   let
@@ -184,6 +185,7 @@ fun eval {SML, verbose} pos toks =
       PolyML.Compiler.CPLineNo (the_default 0 o Position.line_of o get_pos),
       PolyML.Compiler.CPLineOffset (the_default 0 o Position.offset_of o get_pos),
       PolyML.Compiler.CPFileName location_props,
+      PolyML.Compiler.CPPrintDepth get_print_depth,
       PolyML.Compiler.CPCompilerResultFun result_fun,
       PolyML.Compiler.CPPrintInAlphabeticalOrder false];
     val _ =

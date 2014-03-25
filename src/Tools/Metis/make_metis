@@ -28,8 +28,6 @@ FILES=$(cat "$THIS/FILES")
 (* GENERATED FILE -- DO NOT EDIT -- GENERATED FILE -- DO NOT EDIT *)
 (******************************************************************)
 
-print_depth 0;
-
 EOF
 
   for FILE in $FILES
@@ -51,7 +49,6 @@ EOF
 
   cat <<EOF
 ;
-print_depth 10;
 EOF
 
 ) > metis.ML
