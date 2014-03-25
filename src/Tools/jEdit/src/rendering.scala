@@ -681,7 +681,9 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       Markup.ML_NUMERAL -> inner_numeral_color,
       Markup.ML_CHAR -> inner_quoted_color,
       Markup.ML_STRING -> inner_quoted_color,
-      Markup.ML_COMMENT -> inner_comment_color)
+      Markup.ML_COMMENT -> inner_comment_color,
+      Markup.SML_STRING -> inner_quoted_color,
+      Markup.SML_COMMENT -> inner_comment_color)
 
   private lazy val text_color_elements =
     Document.Elements(text_colors.keySet)

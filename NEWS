@@ -34,9 +34,11 @@ number that is out of range produces an empty result sequence, not an
 exception.  Potential INCOMPATIBILITY for non-conformant tactical
 proof tools.
 
-* Discontinued old Toplevel.debug in favour of system option
-"exception_trace", which may be also declared within the context via
-"declare [[exception_trace = true]]".  Minor INCOMPATIBILITY.
+* Command 'SML_file' reads and evaluates the given Standard ML file.
+Toplevel bindings are stored within the theory context; the initial
+environment is restricted to the Standard ML implementation of
+Poly/ML, without the add-ons of Isabelle/ML.  See also
+~~/src/Tools/SML/Examples.thy for some basic examples.
 
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
@@ -538,6 +540,18 @@ guard is mandatory and checked precisely.  Subtle INCOMPATIBILITY.
 
 
 *** ML ***
+
+* Discontinued old Toplevel.debug in favour of system option
+"ML_exception_trace", which may be also declared within the context via
+"declare [[ML_exception_trace = true]]".  Minor INCOMPATIBILITY.
+
+* Renamed configuration option "ML_trace" to "ML_source_trace". Minor
+INCOMPATIBILITY.
+
+* Configuration option "ML_print_depth" controls the pretty-printing
+depth of the ML compiler within the context.  The old print_depth in
+ML is still available as put_default_print_depth, but rarely used.
+Minor INCOMPATIBILITY.
 
 * Proper context discipline for read_instantiate and instantiate_tac:
 variables that are meant to become schematic need to be given as

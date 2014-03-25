@@ -4,6 +4,24 @@
 Compatibility wrapper for Poly/ML.
 *)
 
+(* ML name space *)
+
+structure ML_Name_Space =
+struct
+  open PolyML.NameSpace;
+  type T = PolyML.NameSpace.nameSpace;
+  val global = PolyML.globalNameSpace;
+  val initial_val =
+    List.filter (fn (a, _) => a <> "use" andalso a <> "exit" andalso a <> "commit")
+      (#allVal global ());
+  val initial_type = #allType global ();
+  val initial_fixity = #allFix global ();
+  val initial_structure = #allStruct global ();
+  val initial_signature = #allSig global ();
+  val initial_functor = #allFunct global ();
+end;
+
+
 (* ML system operations *)
 
 use "ML-Systems/ml_system.ML";
@@ -94,20 +112,12 @@ val pointer_eq = PolyML.pointerEq;
 
 (* ML compiler *)
 
-structure ML_Name_Space =
-struct
-  open PolyML.NameSpace;
-  type T = PolyML.NameSpace.nameSpace;
-  val global = PolyML.globalNameSpace;
-end;
-
 use "ML-Systems/use_context.ML";
 use "ML-Systems/compiler_polyml.ML";
 
 PolyML.Compiler.reportUnreferencedIds := true;
 PolyML.Compiler.printInAlphabeticalOrder := false;
 PolyML.Compiler.maxInlineSize := 80;
-(*PolyML.Compiler.reportExhaustiveHandlers := true;*)
 
 fun ml_prompts p1 p2 = (PolyML.Compiler.prompt1 := p1; PolyML.Compiler.prompt2 := p2);
 
@@ -119,8 +129,9 @@ use "ML-Systems/ml_pretty.ML";
 local
   val depth = Unsynchronized.ref 10;
 in
-  fun get_print_depth () = ! depth;
-  fun print_depth n = (depth := n; PolyML.print_depth n);
+  fun get_default_print_depth () = ! depth;
+  fun put_default_print_depth n = (depth := n; PolyML.print_depth n);
+  val _ = put_default_print_depth 10;
 end;
 
 val error_depth = PolyML.error_depth;
@@ -164,5 +175,5 @@ fun toplevel_pp context (_: string list) pp =
     ("PolyML.addPrettyPrinter (fn _ => fn _ => ml_pretty o Pretty.to_ML o (" ^ pp ^ "))");
 
 val ml_make_string =
-  "(fn x => Pretty.string_of (Pretty.from_ML (pretty_ml (PolyML.prettyRepresentation (x, get_print_depth ())))))";
+  "(fn x => Pretty.string_of (Pretty.from_ML (pretty_ml (PolyML.prettyRepresentation (x, ML_Compiler.get_print_depth ())))))";
 

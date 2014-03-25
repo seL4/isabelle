@@ -61,6 +61,7 @@ declare -a RESOURCES=(
   "src/modes/isabelle-options.xml"
   "src/modes/isabelle-root.xml"
   "src/modes/isabelle.xml"
+  "src/modes/sml.xml"
 )
 
 
@@ -277,15 +278,17 @@ then
   cp -p -R -f src/modes/. dist/modes/.
 
   perl -i -e 'while (<>) {
-    if (m/FILE_NAME_GLOB="\*\.{sml,ml}"/) {
-      print qq,\t\t\t\tFILE_NAME_GLOB="*.sml" />\n,;
-    }
+    if (m/FILE="ml.xml"/ or m/FILE_NAME_GLOB="\*\.{sml,ml}"/) { }
     elsif (m/NAME="javacc"/) {
       print qq,<MODE NAME="isabelle" FILE="isabelle.xml" FILE_NAME_GLOB="*.thy"/>\n\n,;
       print qq,<MODE NAME="isabelle-ml" FILE="isabelle-ml.xml" FILE_NAME_GLOB="*.ML"/>\n\n,;
       print qq,<MODE NAME="isabelle-news" FILE="isabelle-news.xml"/>\n\n,;
       print qq,<MODE NAME="isabelle-options" FILE="isabelle-options.xml"/>\n\n,;
       print qq,<MODE NAME="isabelle-root" FILE="isabelle-root.xml" FILE_NAME_GLOB="ROOT"/>\n\n,;
+      print;
+    }
+    elsif (m/NAME="sqr"/) {
+      print qq!<MODE NAME="sml" FILE="sml.xml" FILE_NAME_GLOB="*.{sml,sig}"/>\n\n!;
       print;
     }
     else { print; }

@@ -101,6 +101,7 @@ object Markup
   object Language
   {
     val ML = "ML"
+    val SML = "SML"
     val UNKNOWN = "unknown"
 
     def unapply(markup: Markup): Option[(String, Boolean, Boolean, Boolean)] =
@@ -202,6 +203,8 @@ object Markup
   val ML_CHAR = "ML_char"
   val ML_STRING = "ML_string"
   val ML_COMMENT = "ML_comment"
+  val SML_STRING = "SML_string"
+  val SML_COMMENT = "SML_comment"
 
   val ML_DEF = "ML_def"
   val ML_OPEN = "ML_open"

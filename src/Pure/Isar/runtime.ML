@@ -136,7 +136,7 @@ fun exn_message exn_info exn =
 
 (** controlled execution **)
 
-val exception_trace_raw = Config.declare_option "exception_trace";
+val exception_trace_raw = Config.declare_option "ML_exception_trace";
 val exception_trace = Config.bool exception_trace_raw;
 
 fun exception_trace_enabled NONE =

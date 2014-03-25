@@ -5,8 +5,6 @@
 (* GENERATED FILE -- DO NOT EDIT -- GENERATED FILE -- DO NOT EDIT *)
 (******************************************************************)
 
-print_depth 0;
-
 (*
   This file is generated from the contents of ML-Yacc's lib directory.
   ML-Yacc's COPYRIGHT-file contents follow:
@@ -1061,4 +1059,3 @@ fun mkFixError({is_keyword,terms,errtermvalue,
  end;
 
 ;
-print_depth 10;

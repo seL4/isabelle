@@ -25,7 +25,7 @@ val _ =
           val source = {delimited = true, text = cat_lines lines, pos = pos};
         in
           gthy
-          |> ML_Context.exec (fn () => ML_Context.eval_source true source)
+          |> ML_Context.exec (fn () => ML_Context.eval_source {SML = false, verbose = true} source)
           |> Local_Theory.propagate_ml_env
           |> Context.mapping provide (Local_Theory.background_theory provide)
         end)));

@@ -181,7 +181,7 @@ fun attribute_setup name source cmt =
     "val (name, scan, comment): binding * attribute context_parser * string"
     "Context.map_theory (Attrib.setup name scan comment)"
     (ML_Lex.read Position.none ("(" ^ ML_Syntax.make_binding name ^ ", ") @
-      ML_Lex.read_source source @
+      ML_Lex.read_source false source @
       ML_Lex.read Position.none (", " ^ ML_Syntax.print_string cmt ^ ")")));
 
 
@@ -457,7 +457,8 @@ val _ = Theory.setup
   register_config Name_Space.names_long_raw #>
   register_config Name_Space.names_short_raw #>
   register_config Name_Space.names_unique_raw #>
-  register_config ML_Context.trace_raw #>
+  register_config ML_Context.source_trace_raw #>
+  register_config ML_Compiler.print_depth_raw #>
   register_config Runtime.exception_trace_raw #>
   register_config Proof_Context.show_abbrevs_raw #>
   register_config Goal_Display.goals_limit_raw #>

@@ -269,7 +269,7 @@ fun ml_tactic source ctxt =
     val ctxt' = ctxt |> Context.proof_map
       (ML_Context.expression (#pos source)
         "fun tactic (facts: thm list) : tactic"
-        "Context.map_proof (Method.set_tactic tactic)" (ML_Lex.read_source source));
+        "Context.map_proof (Method.set_tactic tactic)" (ML_Lex.read_source false source));
   in Context.setmp_thread_data (SOME (Context.Proof ctxt)) (ML_Tactic.get ctxt') end;
 
 fun tactic source ctxt = METHOD (ml_tactic source ctxt);
@@ -368,7 +368,7 @@ fun method_setup name source cmt =
     "val (name, scan, comment): binding * (Proof.context -> Proof.method) context_parser * string"
     "Context.map_theory (Method.setup name scan comment)"
     (ML_Lex.read Position.none ("(" ^ ML_Syntax.make_binding name ^ ", ") @
-      ML_Lex.read_source source @
+      ML_Lex.read_source false source @
       ML_Lex.read Position.none (", " ^ ML_Syntax.print_string cmt ^ ")")));
 
 
