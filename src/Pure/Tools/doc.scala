@@ -61,7 +61,8 @@ object Doc
         "src/HOL/ex/Seq.thy",
         "src/HOL/ex/ML.thy",
         "src/HOL/Unix/Unix.thy",
-        "src/HOL/Isar_Examples/Drinker.thy")
+        "src/HOL/Isar_Examples/Drinker.thy",
+        "src/Tools/SML/Examples.thy")
     Section("Examples") :: names.map(name => text_file(name).get)
   }
 

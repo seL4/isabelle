@@ -7,3 +7,8 @@ session Spec_Check in Spec_Check = Pure +
   theories [condition = ISABELLE_POLYML]
     Examples
 
+session SML in SML = Pure +
+  options [condition = ISABELLE_POLYML]
+  theories
+    Examples
+
