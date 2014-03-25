@@ -118,7 +118,7 @@ setup -- "document antiquotation"
       let
         val toks =
           ML_Lex.read Position.none "fn _ => (" @
-          ML_Lex.read_source source @
+          ML_Lex.read_source false source @
           ML_Lex.read Position.none ");";
         val _ = ML_Context.eval_in (SOME context) {SML = false, verbose = false} (#pos source) toks;
       in "" end);
@@ -189,7 +189,7 @@ struct
       val ctxt' = ctxt |> Context.proof_map
         (ML_Context.expression (#pos source)
           "fun tactic (ctxt : Proof.context) : tactic"
-          "Context.map_proof (ML_Tactic.set tactic)" (ML_Lex.read_source source));
+          "Context.map_proof (ML_Tactic.set tactic)" (ML_Lex.read_source false source));
     in Data.get ctxt' ctxt end;
 end;
 *}

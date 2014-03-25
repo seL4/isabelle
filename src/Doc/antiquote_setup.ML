@@ -78,7 +78,7 @@ fun ml_name txt =
   | _ => error ("Single ML name expected in input: " ^ quote txt));
 
 fun prep_ml source =
-  (#1 (Symbol_Pos.source_content source), ML_Lex.read_source source);
+  (#1 (Symbol_Pos.source_content source), ML_Lex.read_source false source);
 
 fun index_ml name kind ml = Thy_Output.antiquotation name
   (Scan.lift (Args.name_source_position -- Scan.option (Args.colon |-- Args.name_source_position)))

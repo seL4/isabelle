@@ -648,7 +648,7 @@ fun ml_text name ml = antiquotation name (Scan.lift Args.name_source_position)
 
 fun ml_enclose bg en source =
   ML_Lex.read Position.none bg @
-  ML_Lex.read_source source @
+  ML_Lex.read_source false source @
   ML_Lex.read Position.none en;
 
 in

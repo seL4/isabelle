@@ -67,12 +67,12 @@ struct
 (* generic setup *)
 
 fun global_setup source =
-  ML_Lex.read_source source
+  ML_Lex.read_source false source
   |> ML_Context.expression (#pos source) "val setup: theory -> theory" "Context.map_theory setup"
   |> Context.theory_map;
 
 fun local_setup source =
-  ML_Lex.read_source source
+  ML_Lex.read_source false source
   |> ML_Context.expression (#pos source) "val setup: local_theory -> local_theory" "Context.map_proof setup"
   |> Context.proof_map;
 
@@ -80,35 +80,35 @@ fun local_setup source =
 (* translation functions *)
 
 fun parse_ast_translation source =
-  ML_Lex.read_source source
+  ML_Lex.read_source false source
   |> ML_Context.expression (#pos source)
     "val parse_ast_translation: (string * (Proof.context -> Ast.ast list -> Ast.ast)) list"
     "Context.map_theory (Sign.parse_ast_translation parse_ast_translation)"
   |> Context.theory_map;
 
 fun parse_translation source =
-  ML_Lex.read_source source
+  ML_Lex.read_source false source
   |> ML_Context.expression (#pos source)
     "val parse_translation: (string * (Proof.context -> term list -> term)) list"
     "Context.map_theory (Sign.parse_translation parse_translation)"
   |> Context.theory_map;
 
 fun print_translation source =
-  ML_Lex.read_source source
+  ML_Lex.read_source false source
   |> ML_Context.expression (#pos source)
     "val print_translation: (string * (Proof.context -> term list -> term)) list"
     "Context.map_theory (Sign.print_translation print_translation)"
   |> Context.theory_map;
 
 fun typed_print_translation source =
-  ML_Lex.read_source source
+  ML_Lex.read_source false source
   |> ML_Context.expression (#pos source)
     "val typed_print_translation: (string * (Proof.context -> typ -> term list -> term)) list"
     "Context.map_theory (Sign.typed_print_translation typed_print_translation)"
   |> Context.theory_map;
 
 fun print_ast_translation source =
-  ML_Lex.read_source source
+  ML_Lex.read_source false source
   |> ML_Context.expression (#pos source)
     "val print_ast_translation: (string * (Proof.context -> Ast.ast list -> Ast.ast)) list"
     "Context.map_theory (Sign.print_ast_translation print_ast_translation)"
@@ -135,7 +135,7 @@ fun no_translations args thy = Sign.del_trrules (read_trrules thy args) thy;
 
 fun oracle (name, pos) source =
   let
-    val body = ML_Lex.read_source source;
+    val body = ML_Lex.read_source false source;
     val ants =
       ML_Lex.read Position.none
        ("local\n\
@@ -162,7 +162,7 @@ fun add_defs ((unchecked, overloaded), args) thy =
 (* declarations *)
 
 fun declaration {syntax, pervasive} source =
-  ML_Lex.read_source source
+  ML_Lex.read_source false source
   |> ML_Context.expression (#pos source)
     "val declaration: Morphism.declaration"
     ("Context.map_proof (Local_Theory.declaration {syntax = " ^ Bool.toString syntax ^ ", \
@@ -173,7 +173,7 @@ fun declaration {syntax, pervasive} source =
 (* simprocs *)
 
 fun simproc_setup name lhss source identifier =
-  ML_Lex.read_source source
+  ML_Lex.read_source false source
   |> ML_Context.expression (#pos source)
     "val proc: Morphism.morphism -> Proof.context -> cterm -> thm option"
     ("Context.map_proof (Simplifier.def_simproc_cmd {name = " ^ ML_Syntax.make_binding name ^ ", \

@@ -26,7 +26,7 @@ sig
       Source.source) Source.source
   val tokenize: string -> token list
   val read: Position.T -> Symbol_Pos.text -> token Antiquote.antiquote list
-  val read_source: Symbol_Pos.source -> token Antiquote.antiquote list
+  val read_source: bool -> Symbol_Pos.source -> token Antiquote.antiquote list
 end;
 
 structure ML_Lex: ML_LEX =
@@ -132,7 +132,7 @@ val flatten = implode o flatten_content;
 
 local
 
-val token_kind_markup =
+fun token_kind_markup SML =
  fn Keyword   => (Markup.empty, "")
   | Ident     => (Markup.empty, "")
   | LongIdent => (Markup.empty, "")
@@ -141,18 +141,18 @@ val token_kind_markup =
   | Int       => (Markup.ML_numeral, "")
   | Real      => (Markup.ML_numeral, "")
   | Char      => (Markup.ML_char, "")
-  | String    => (Markup.ML_string, "")
+  | String    => (if SML then Markup.SML_string else Markup.ML_string, "")
   | Space     => (Markup.empty, "")
-  | Comment   => (Markup.ML_comment, "")
+  | Comment   => (if SML then Markup.SML_comment else Markup.ML_comment, "")
   | Error msg => (Markup.bad, msg)
   | EOF       => (Markup.empty, "");
 
 in
 
-fun report_of_token (tok as Token ((pos, _), (kind, x))) =
+fun report_of_token SML (tok as Token ((pos, _), (kind, x))) =
   let
     val (markup, txt) =
-      if not (is_keyword tok) then token_kind_markup kind
+      if not (is_keyword tok) then token_kind_markup SML kind
       else if is_delimiter tok then (Markup.ML_delimiter, "")
       else if member (op =) keywords2 x then (Markup.ML_keyword2, "")
       else if member (op =) keywords3 x then (Markup.ML_keyword3, "")
@@ -291,15 +291,7 @@ fun recover msg =
   Scan.one (Symbol.not_eof o Symbol_Pos.symbol) >> single)
   >> (single o token (Error msg));
 
-in
-
-fun source src =
-  Symbol_Pos.source (Position.line 1) src
-  |> Source.source Symbol_Pos.stopper (Scan.bulk (!!! "bad input" scan_ml)) (SOME (false, recover));
-
-val tokenize = Source.of_string #> Symbol.source #> source #> Source.exhaust;
-
-fun read pos text =
+fun gen_read SML pos text =
   let
     val syms = Symbol_Pos.explode (text, pos);
     val termination =
@@ -309,17 +301,32 @@ fun read pos text =
           val pos1 = List.last syms |-> Position.advance;
           val pos2 = Position.advance Symbol.space pos1;
         in [Antiquote.Text (Token (Position.range pos1 pos2, (Space, Symbol.space)))] end;
+
+    val scan = if SML then scan_ml >> Antiquote.Text else scan_antiq;
+    fun check (Antiquote.Text tok) = (check_content_of tok; if SML then () else warn tok)
+      | check _ = ();
     val input =
-      (Source.of_list syms
-        |> Source.source Symbol_Pos.stopper (Scan.bulk (!!! "bad input" scan_antiq))
-          (SOME (false, fn msg => recover msg >> map Antiquote.Text))
-        |> Source.exhaust
-        |> tap (Position.reports_text o Antiquote.antiquote_reports (single o report_of_token))
-        |> tap (List.app (fn Antiquote.Text tok => (check_content_of tok; warn tok) | _ => ())));
+      Source.of_list syms
+      |> Source.source Symbol_Pos.stopper (Scan.bulk (!!! "bad input" scan))
+        (SOME (false, fn msg => recover msg >> map Antiquote.Text))
+      |> Source.exhaust
+      |> tap (Position.reports_text o Antiquote.antiquote_reports (single o report_of_token SML))
+      |> tap (List.app check);
   in input @ termination end;
 
-fun read_source {delimited, text, pos} =
-  (Position.report pos (Markup.language_ML delimited); read pos text);
+in
+
+fun source src =
+  Symbol_Pos.source (Position.line 1) src
+  |> Source.source Symbol_Pos.stopper (Scan.bulk (!!! "bad input" scan_ml)) (SOME (false, recover));
+
+val tokenize = Source.of_string #> Symbol.source #> source #> Source.exhaust;
+
+val read = gen_read false;
+
+fun read_source SML {delimited, text, pos} =
+  (Position.report pos ((if SML then Markup.language_SML else Markup.language_ML) delimited);
+   gen_read SML pos text);
 
 end;
 

@@ -239,13 +239,15 @@ object ML_Lex
 
     def token: Parser[Token] = delimited_token | other_token
 
-    def token_line(ctxt: Scan.Line_Context): Parser[(Token, Scan.Line_Context)] =
+    def token_line(SML: Boolean, ctxt: Scan.Line_Context): Parser[(Token, Scan.Line_Context)] =
     {
       val other = (ml_char | other_token) ^^ (x => (x, Scan.Finished))
 
-      ml_string_line(ctxt) |
-        (ml_comment_line(ctxt) |
-          (ml_antiq_start(ctxt) | (ml_antiq_stop(ctxt) | (ml_antiq_body(ctxt) | other))))
+      if (SML) ml_string_line(ctxt) | (ml_comment_line(ctxt) | other)
+      else
+        ml_string_line(ctxt) |
+          (ml_comment_line(ctxt) |
+            (ml_antiq_start(ctxt) | (ml_antiq_stop(ctxt) | (ml_antiq_body(ctxt) | other))))
     }
   }
 
@@ -260,14 +262,14 @@ object ML_Lex
     }
   }
 
-  def tokenize_line(input: CharSequence, context: Scan.Line_Context)
+  def tokenize_line(SML: Boolean, input: CharSequence, context: Scan.Line_Context)
     : (List[Token], Scan.Line_Context) =
   {
     var in: Reader[Char] = new CharSequenceReader(input)
     val toks = new mutable.ListBuffer[Token]
     var ctxt = context
     while (!in.atEnd) {
-      Parsers.parse(Parsers.token_line(ctxt), in) match {
+      Parsers.parse(Parsers.token_line(SML, ctxt), in) match {
         case Parsers.Success((x, c), rest) => { toks += x; ctxt = c; in = rest }
         case Parsers.NoSuccess(_, rest) =>
           error("Unexpected failure of tokenizing input:\n" + rest.source.toString)

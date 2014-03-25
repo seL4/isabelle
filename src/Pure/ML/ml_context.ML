@@ -176,7 +176,7 @@ fun eval_file flags path =
   in eval flags pos (ML_Lex.read pos (File.read path)) end;
 
 fun eval_source flags source =
-  eval flags (#pos source) (ML_Lex.read_source source);
+  eval flags (#pos source) (ML_Lex.read_source (#SML flags) source);
 
 fun eval_in ctxt flags pos ants =
   Context.setmp_thread_data (Option.map Context.Proof ctxt)

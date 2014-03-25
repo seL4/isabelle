@@ -36,6 +36,10 @@ object Isabelle
     Outer_Syntax.init().no_tokens.
       set_language_context(Completion.Language_Context.ML_outer)
 
+  private lazy val sml_syntax: Outer_Syntax =
+    Outer_Syntax.init().no_tokens.
+      set_language_context(Completion.Language_Context.SML_outer)
+
   private lazy val news_syntax: Outer_Syntax =
     Outer_Syntax.init().no_tokens
 
@@ -49,6 +53,7 @@ object Isabelle
       case "isabelle-ml" => Some(ml_syntax)
       case "isabelle-news" => Some(news_syntax)
       case "isabelle-output" => None
+      case "sml" => Some(sml_syntax)
       case _ => None
     }
 

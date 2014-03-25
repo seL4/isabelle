@@ -193,6 +193,7 @@ object Completion
     val inner = Language_Context(Markup.Language.UNKNOWN, true, false)
     val ML_outer = Language_Context(Markup.Language.ML, false, true)
     val ML_inner = Language_Context(Markup.Language.ML, true, false)
+    val SML_outer = Language_Context(Markup.Language.SML, false, false)
   }
 
   sealed case class Language_Context(language: String, symbols: Boolean, antiquotes: Boolean)

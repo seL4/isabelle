@@ -33,6 +33,7 @@ sig
   val language_term: bool -> T
   val language_prop: bool -> T
   val language_ML: bool -> T
+  val language_SML: bool -> T
   val language_document: bool -> T
   val language_antiquotation: T
   val language_text: bool -> T
@@ -93,6 +94,8 @@ sig
   val ML_charN: string val ML_char: T
   val ML_stringN: string val ML_string: T
   val ML_commentN: string val ML_comment: T
+  val SML_stringN: string val SML_string: T
+  val SML_commentN: string val SML_comment: T
   val ML_defN: string
   val ML_openN: string
   val ML_structureN: string
@@ -287,6 +290,7 @@ val language_type = language' {name = "type", symbols = true, antiquotes = false
 val language_term = language' {name = "term", symbols = true, antiquotes = false};
 val language_prop = language' {name = "prop", symbols = true, antiquotes = false};
 val language_ML = language' {name = "ML", symbols = false, antiquotes = true};
+val language_SML = language' {name = "SML", symbols = false, antiquotes = false};
 val language_document = language' {name = "document", symbols = false, antiquotes = true};
 val language_antiquotation =
   language {name = "antiquotation", symbols = true, antiquotes = false, delimited = true};
@@ -398,6 +402,8 @@ val (ML_numeralN, ML_numeral) = markup_elem "ML_numeral";
 val (ML_charN, ML_char) = markup_elem "ML_char";
 val (ML_stringN, ML_string) = markup_elem "ML_string";
 val (ML_commentN, ML_comment) = markup_elem "ML_comment";
+val (SML_stringN, SML_string) = markup_elem "SML_string";
+val (SML_commentN, SML_comment) = markup_elem "SML_comment";
 
 val ML_defN = "ML_def";
 val ML_openN = "ML_open";
