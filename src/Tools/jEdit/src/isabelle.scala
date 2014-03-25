@@ -29,7 +29,8 @@ object Isabelle
       "isabelle-news",    // NEWS
       "isabelle-options", // etc/options
       "isabelle-output",  // pretty text area output
-      "isabelle-root")    // session ROOT
+      "isabelle-root",    // session ROOT
+      "sml")              // Standard ML (not Isabelle/ML)
 
   private lazy val ml_syntax: Outer_Syntax =
     Outer_Syntax.init().no_tokens.

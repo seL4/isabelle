@@ -203,7 +203,7 @@ object Token_Markup
       val context1 =
       {
         val (styled_tokens, context1) =
-          if (mode == "isabelle-ml") {
+          if (mode == "isabelle-ml" || mode == "sml") {
             val (tokens, ctxt1) = ML_Lex.tokenize_line(line, line_ctxt.get)
             val styled_tokens = tokens.map(tok => (Rendering.ml_token_markup(tok), tok.source))
             (styled_tokens, new Line_Context(Some(ctxt1)))
