@@ -207,10 +207,10 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val rhs = Term.list_comb (mapAsCs,
           take m all_gs @ map HOLogic.mk_comp (drop m all_gs ~~ fs)) $ x;
       in
-        Goal.prove_sorry lthy [] []
-          (fold_rev Logic.all (x :: fs @ all_gs) (mk_Trueprop_eq (lhs, rhs)))
+        Goal.prove_sorry lthy [] [] (mk_Trueprop_eq (lhs, rhs))
           (fn {context = ctxt, prems = _} => mk_map_comp_id_tac ctxt map_comp0)
         |> Thm.close_derivation
+        |> singleton (Proof_Context.export names_lthy lthy)
       end;
 
     val map_comp_id_thms = map5 mk_map_comp_id xFs mapsAsBs mapsBsCs' mapsAsCs' map_comps;
@@ -224,10 +224,10 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val prems = map4 mk_prem (drop m sets) self_fs zs zs';
         val goal = mk_Trueprop_eq (Term.list_comb (mapAsAs, passive_ids @ self_fs) $ x, x);
       in
-        Goal.prove_sorry lthy [] []
-          (fold_rev Logic.all (x :: self_fs) (Logic.list_implies (prems, goal)))
+        Goal.prove_sorry lthy [] [] (Logic.list_implies (prems, goal))
           (K (mk_map_cong0L_tac m map_cong0 map_id))
         |> Thm.close_derivation
+        |> singleton (Proof_Context.export names_lthy lthy)
       end;
 
     val map_cong0L_thms = map5 mk_map_cong0L xFs mapsAsAs setssAs map_cong0s map_ids;
@@ -278,12 +278,13 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         fun mk_concl s x B = HOLogic.mk_Trueprop (HOLogic.mk_mem (s $ x, B));
         val premss = map2 ((fn x => fn sets => map2 (mk_prem x) (drop m sets) Bs)) xFs setssAs;
         val concls = map3 mk_concl ss xFs Bs;
-        val goals = map3 (fn x => fn prems => fn concl =>
-          fold_rev Logic.all (x :: Bs @ ss)
-            (Logic.list_implies (alg_prem :: prems, concl))) xFs premss concls;
+        val goals = map2 (fn prems => fn concl =>
+          Logic.list_implies (alg_prem :: prems, concl)) premss concls;
       in
         map (fn goal =>
-          Goal.prove_sorry lthy [] [] goal (K (mk_alg_set_tac alg_def)) |> Thm.close_derivation)
+          Goal.prove_sorry lthy [] [] goal (K (mk_alg_set_tac alg_def))
+          |> Thm.close_derivation
+          |> singleton (Proof_Context.export names_lthy lthy))
         goals
       end;
 
@@ -295,13 +296,13 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           HOLogic.mk_Trueprop (mk_alg Bs ss);
         val concls = map (HOLogic.mk_Trueprop o mk_not_empty) Bs;
         val goals =
-          map (fn concl =>
-            fold_rev Logic.all (Bs @ ss) (Logic.mk_implies (alg_prem, concl))) concls;
+          map (fn concl => Logic.mk_implies (alg_prem, concl)) concls;
       in
         map2 (fn goal => fn alg_set =>
-          Goal.prove_sorry lthy [] []
-            goal (K (mk_alg_not_empty_tac lthy alg_set alg_set_thms wit_thms))
-          |> Thm.close_derivation)
+          Goal.prove_sorry lthy [] [] goal
+            (K (mk_alg_not_empty_tac lthy alg_set alg_set_thms wit_thms))
+          |> Thm.close_derivation
+          |> singleton (Proof_Context.export names_lthy lthy))
         goals alg_set_thms
       end;
 
@@ -355,12 +356,12 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         fun mk_elim_prem sets x T = HOLogic.mk_Trueprop
           (HOLogic.mk_mem (x, mk_in (passive_UNIVs @ Bs) sets T));
         fun mk_elim_goal sets mapAsBs f s s' x T =
-          fold_rev Logic.all (x :: Bs @ ss @ B's @ s's @ fs)
-            (Logic.list_implies ([prem, mk_elim_prem sets x T],
-              mk_Trueprop_eq (f $ (s $ x), s' $ Term.list_comb (mapAsBs, passive_ids @ fs @ [x]))));
+          Logic.list_implies ([prem, mk_elim_prem sets x T],
+            mk_Trueprop_eq (f $ (s $ x), s' $ Term.list_comb (mapAsBs, passive_ids @ fs @ [x])));
         val elim_goals = map7 mk_elim_goal setssAs mapsAsBs fs ss s's xFs FTsAs;
-        fun prove goal =
-          Goal.prove_sorry lthy [] [] goal (K (mk_mor_elim_tac mor_def)) |> Thm.close_derivation;
+        fun prove goal = Goal.prove_sorry lthy [] [] goal (K (mk_mor_elim_tac mor_def))
+          |> Thm.close_derivation
+          |> singleton (Proof_Context.export names_lthy lthy);
       in
         map prove elim_goals
       end;
@@ -370,10 +371,10 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val prems = map2 (HOLogic.mk_Trueprop oo mk_leq) Bs Bs_copy;
         val concl = HOLogic.mk_Trueprop (mk_mor Bs ss Bs_copy ss active_ids);
       in
-        Goal.prove_sorry lthy [] []
-          (fold_rev Logic.all (Bs @ ss @ Bs_copy) (Logic.list_implies (prems, concl)))
+        Goal.prove_sorry lthy [] [] (Logic.list_implies (prems, concl))
           (K (mk_mor_incl_tac mor_def map_ids))
         |> Thm.close_derivation
+        |> singleton (Proof_Context.export names_lthy lthy)
       end;
 
     val mor_comp_thm =
@@ -384,11 +385,10 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val concl =
           HOLogic.mk_Trueprop (mk_mor Bs ss B''s s''s (map2 (curry HOLogic.mk_comp) gs fs));
       in
-        Goal.prove_sorry lthy [] []
-          (fold_rev Logic.all (Bs @ ss @ B's @ s's @ B''s @ s''s @ fs @ gs)
-             (Logic.list_implies (prems, concl)))
+        Goal.prove_sorry lthy [] [] (Logic.list_implies (prems, concl))
           (K (mk_mor_comp_tac mor_def set_mapss map_comp_id_thms))
         |> Thm.close_derivation
+        |> singleton (Proof_Context.export names_lthy lthy)
       end;
 
     val mor_cong_thm =
@@ -397,11 +397,10 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
          (map2 (curry HOLogic.mk_eq) fs_copy fs @ [mk_mor Bs ss B's s's fs])
         val concl = HOLogic.mk_Trueprop (mk_mor Bs ss B's s's fs_copy);
       in
-        Goal.prove_sorry lthy [] []
-          (fold_rev Logic.all (Bs @ ss @ B's @ s's @ fs @ fs_copy)
-             (Logic.list_implies (prems, concl)))
+        Goal.prove_sorry lthy [] [] (Logic.list_implies (prems, concl))
           (K ((hyp_subst_tac lthy THEN' atac) 1))
         |> Thm.close_derivation
+        |> singleton (Proof_Context.export names_lthy lthy)
       end;
 
     val mor_str_thm =
@@ -410,10 +409,11 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           (mk_map_of_bnf Ds (passiveAs @ FTsAs) allAs bnf, passive_ids @ ss)) Dss bnfs;
       in
         Goal.prove_sorry lthy [] []
-          (fold_rev Logic.all ss (HOLogic.mk_Trueprop
-            (mk_mor (map HOLogic.mk_UNIV FTsAs) maps active_UNIVs ss ss)))
+          (HOLogic.mk_Trueprop
+            (mk_mor (map HOLogic.mk_UNIV FTsAs) maps active_UNIVs ss ss))
           (K (mk_mor_str_tac ks mor_def))
         |> Thm.close_derivation
+        |> singleton (Proof_Context.export names_lthy lthy)
       end;
 
     val mor_convol_thm =
@@ -423,10 +423,11 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           s's prod_ss map_fsts;
       in
         Goal.prove_sorry lthy [] []
-          (fold_rev Logic.all (s's @ prod_ss) (HOLogic.mk_Trueprop
-            (mk_mor prod_UNIVs maps (map HOLogic.mk_UNIV activeBs) s's fsts)))
+          (HOLogic.mk_Trueprop
+            (mk_mor prod_UNIVs maps (map HOLogic.mk_UNIV activeBs) s's fsts))
           (K (mk_mor_convol_tac ks mor_def))
         |> Thm.close_derivation
+        |> singleton (Proof_Context.export names_lthy lthy)
       end;
 
     val mor_UNIV_thm =
@@ -437,9 +438,10 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val lhs = mk_mor active_UNIVs ss (map HOLogic.mk_UNIV activeBs) s's fs;
         val rhs = Library.foldr1 HOLogic.mk_conj (map4 mk_conjunct mapsAsBs fs ss s's);
       in
-        Goal.prove_sorry lthy [] [] (fold_rev Logic.all (ss @ s's @ fs) (mk_Trueprop_eq (lhs, rhs)))
+        Goal.prove_sorry lthy [] [] (mk_Trueprop_eq (lhs, rhs))
           (K (mk_mor_UNIV_tac m morE_thms mor_def))
         |> Thm.close_derivation
+        |> singleton (Proof_Context.export names_lthy lthy)
       end;
 
     val timer = time (timer "Morphism definition & thms");
@@ -553,10 +555,10 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val concl = HOLogic.mk_Trueprop (mk_Bex field_suc_bd
           (Term.absfree jdx' (Library.foldr1 HOLogic.mk_conj (map mk_conjunct idxs))));
       in
-        Goal.prove_sorry lthy [] []
-          (fold_rev Logic.all idxs (Logic.list_implies ([prem], concl)))
+        Goal.prove_sorry lthy [] [] (Logic.list_implies ([prem], concl))
           (K (mk_bd_limit_tac n suc_bd_Cinfinite))
         |> Thm.close_derivation
+        |> singleton (Proof_Context.export names_lthy lthy)
       end;
 
     val timer = time (timer "Bounds");
@@ -592,23 +594,23 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val concl = HOLogic.mk_Trueprop
           (HOLogic.mk_eq (min_algs $ idx, HOLogic.mk_tuple
             (map4 (mk_minH_component min_algs idx) setssAs FTsAs ss ks)));
-        val goal = fold_rev Logic.all (idx :: ss)
-          (Logic.mk_implies (HOLogic.mk_Trueprop i_field, concl));
+        val goal = Logic.mk_implies (HOLogic.mk_Trueprop i_field, concl);
 
         val min_algs_thm = Goal.prove_sorry lthy [] [] goal
           (K (mk_min_algs_tac suc_bd_worel in_cong'_thms))
-          |> Thm.close_derivation;
+          |> Thm.close_derivation
+          |> singleton (Proof_Context.export names_lthy lthy);
 
         val min_algs_thms = map (fn k => min_algs_thm RS mk_nthI n k) ks;
 
         fun mk_mono_goal min_alg =
-          fold_rev Logic.all ss (HOLogic.mk_Trueprop (mk_relChain suc_bd
-            (Term.absfree idx' min_alg)));
+          HOLogic.mk_Trueprop (mk_relChain suc_bd (Term.absfree idx' min_alg));
 
         val monos =
           map2 (fn goal => fn min_algs =>
             Goal.prove_sorry lthy [] [] goal (K (mk_min_algs_mono_tac lthy min_algs))
-            |> Thm.close_derivation)
+            |> Thm.close_derivation
+            |> singleton (Proof_Context.export names_lthy lthy))
           (map mk_mono_goal min_algss) min_algs_thms;
 
         fun mk_card_conjunct min_alg = mk_ordLeq (mk_card_of min_alg) Asuc_bd;
@@ -616,27 +618,29 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val card_cT = certifyT lthy suc_bdT;
         val card_ct = certify lthy (Term.absfree idx' card_conjunction);
 
-        val card_of = singleton (Proof_Context.export names_lthy lthy)
-          (Goal.prove_sorry lthy [] []
+        val card_of =
+          Goal.prove_sorry lthy [] []
             (HOLogic.mk_Trueprop (HOLogic.mk_imp (i_field, card_conjunction)))
             (K (mk_min_algs_card_of_tac card_cT card_ct
               m suc_bd_worel min_algs_thms in_sbds
               sbd_Card_order sbd_Cnotzero suc_bd_Card_order suc_bd_Cinfinite suc_bd_Cnotzero
-              suc_bd_Asuc_bd Asuc_bd_Cinfinite)))
-          |> Thm.close_derivation;
+              suc_bd_Asuc_bd Asuc_bd_Cinfinite))
+          |> Thm.close_derivation
+          |> singleton (Proof_Context.export names_lthy lthy);
 
         val least_prem = HOLogic.mk_Trueprop (mk_alg Bs ss);
         val least_conjunction = Library.foldr1 HOLogic.mk_conj (map2 mk_leq min_algss Bs);
         val least_cT = certifyT lthy suc_bdT;
         val least_ct = certify lthy (Term.absfree idx' least_conjunction);
 
-        val least = singleton (Proof_Context.export names_lthy lthy)
+        val least =
           (Goal.prove_sorry lthy [] []
             (Logic.mk_implies (least_prem,
               HOLogic.mk_Trueprop (HOLogic.mk_imp (i_field, least_conjunction))))
             (K (mk_min_algs_least_tac least_cT least_ct
               suc_bd_worel min_algs_thms alg_set_thms)))
-          |> Thm.close_derivation;
+          |> Thm.close_derivation
+          |> singleton (Proof_Context.export names_lthy lthy);
       in
         (min_algs_thms, monos, card_of, least)
       end;
@@ -680,11 +684,12 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
     val (alg_min_alg_thm, card_of_min_alg_thms, least_min_alg_thms, mor_incl_min_alg_thm) =
       let
-        val goal = fold_rev Logic.all ss (HOLogic.mk_Trueprop (mk_alg min_algs ss));
+        val goal = HOLogic.mk_Trueprop (mk_alg min_algs ss);
         val alg_min_alg = Goal.prove_sorry lthy [] [] goal
           (K (mk_alg_min_alg_tac m alg_def min_alg_defs suc_bd_limit_thm sbd_Cinfinite
             set_sbdss min_algs_thms min_algs_mono_thms))
-          |> Thm.close_derivation;
+          |> Thm.close_derivation
+          |> singleton (Proof_Context.export names_lthy lthy);
 
         fun mk_card_of_thm min_alg def = Goal.prove_sorry lthy [] []
           (HOLogic.mk_Trueprop (mk_ordLeq (mk_card_of min_alg) Asuc_bd))
@@ -694,20 +699,20 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
         val least_prem = HOLogic.mk_Trueprop (mk_alg Bs ss);
         fun mk_least_thm min_alg B def = Goal.prove_sorry lthy [] []
-          (fold_rev Logic.all (Bs @ ss)
-            (Logic.mk_implies (least_prem, HOLogic.mk_Trueprop (mk_leq min_alg B))))
+          (Logic.mk_implies (least_prem, HOLogic.mk_Trueprop (mk_leq min_alg B)))
           (K (mk_least_min_alg_tac def least_min_algs_thm))
-          |> Thm.close_derivation;
+          |> Thm.close_derivation
+          |> singleton (Proof_Context.export names_lthy lthy);
 
         val leasts = map3 mk_least_thm min_algs Bs min_alg_defs;
 
         val incl_prem = HOLogic.mk_Trueprop (mk_alg Bs ss);
         val incl = Goal.prove_sorry lthy [] []
-          (fold_rev Logic.all (Bs @ ss)
-            (Logic.mk_implies (incl_prem,
-              HOLogic.mk_Trueprop (mk_mor min_algs ss Bs ss active_ids))))
+          (Logic.mk_implies (incl_prem,
+              HOLogic.mk_Trueprop (mk_mor min_algs ss Bs ss active_ids)))
           (K (EVERY' (rtac mor_incl_thm :: map etac leasts) 1))
-          |> Thm.close_derivation;
+          |> Thm.close_derivation
+          |> singleton (Proof_Context.export names_lthy lthy);
       in
         (alg_min_alg, map2 mk_card_of_thm min_algs min_alg_defs, leasts, incl)
       end;
@@ -803,11 +808,11 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           (mk_mor car_inits str_inits active_UNIVs ss
             (map (fn f => HOLogic.mk_comp (f, mk_rapp iidx Asuc_bdT)) Asuc_fs));
       in
-        Goal.prove_sorry lthy [] []
-          (fold_rev Logic.all (iidx :: ss @ Asuc_fs) (Logic.list_implies (prems, concl)))
+        Goal.prove_sorry lthy [] [] (Logic.list_implies (prems, concl))
           (K (mk_mor_select_tac mor_def mor_cong_thm mor_comp_thm mor_incl_min_alg_thm alg_def
             alg_select_thm alg_set_thms set_mapss str_init_defs))
         |> Thm.close_derivation
+        |> singleton (Proof_Context.export names_lthy lthy)
       end;
 
     val init_unique_mor_thms =
@@ -820,13 +825,12 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val unique = HOLogic.mk_Trueprop
           (Library.foldr1 HOLogic.mk_conj (map3 mk_fun_eq init_fs init_fs_copy init_xs));
         val cts = map (certify lthy) ss;
-        val unique_mor = singleton (Proof_Context.export names_lthy lthy)
-          (Goal.prove_sorry lthy [] []
-            (fold_rev Logic.all (init_xs @ Bs @ init_fs @ init_fs_copy)
-              (Logic.list_implies (prems @ mor_prems, unique)))
+        val unique_mor =
+          Goal.prove_sorry lthy [] [] (Logic.list_implies (prems @ mor_prems, unique))
             (K (mk_init_unique_mor_tac cts m alg_def alg_init_thm least_min_alg_thms
               in_mono'_thms alg_set_thms morE_thms map_cong0s))
-          |> Thm.close_derivation);
+          |> Thm.close_derivation
+          |> singleton (Proof_Context.export names_lthy lthy);
       in
         split_conj_thm unique_mor
       end;
@@ -856,10 +860,10 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val concl = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
           (map2 mk_Ball car_inits init_phis));
       in
-        Goal.prove_sorry lthy [] []
-          (fold_rev Logic.all init_phis (Logic.mk_implies (prem, concl)))
+        Goal.prove_sorry lthy [] [] (Logic.mk_implies (prem, concl))
           (K (mk_init_induct_tac m alg_def alg_init_thm least_min_alg_thms alg_set_thms))
         |> Thm.close_derivation
+        |> singleton (Proof_Context.export names_lthy lthy)
       end;
 
     val timer = time (timer "Initiality definition & thms");
@@ -1005,10 +1009,10 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val concl = HOLogic.mk_Trueprop (list_exists_free s's
           (HOLogic.mk_conj (mk_alg B's s's, mk_mor B's s's Bs ss inv_fs)));
       in
-        Goal.prove_sorry lthy [] []
-          (fold_rev Logic.all (Bs @ ss @ B's @ inv_fs) (Logic.list_implies (prems, concl)))
+        Goal.prove_sorry lthy [] [] (Logic.list_implies (prems, concl))
           (K (mk_copy_tac m alg_def mor_def alg_set_thms set_mapss))
           |> Thm.close_derivation
+          |> singleton (Proof_Context.export names_lthy lthy)
       end;
 
     val init_ex_mor_thm =
@@ -1016,12 +1020,12 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val goal = HOLogic.mk_Trueprop
           (list_exists_free fs (mk_mor UNIVs ctors active_UNIVs ss fs));
       in
-        singleton (Proof_Context.export names_lthy lthy)
-          (Goal.prove_sorry lthy [] [] goal
-            (fn {context = ctxt, prems = _} =>
-              mk_init_ex_mor_tac ctxt Abs_IIT_inverse_thm (alg_min_alg_thm RS copy_thm)
-                card_of_min_alg_thms mor_Rep_thm mor_comp_thm mor_select_thm mor_incl_thm)
-            |> Thm.close_derivation)
+        Goal.prove_sorry lthy [] [] goal
+          (fn {context = ctxt, prems = _} =>
+            mk_init_ex_mor_tac ctxt Abs_IIT_inverse_thm (alg_min_alg_thm RS copy_thm)
+              card_of_min_alg_thms mor_Rep_thm mor_comp_thm mor_select_thm mor_incl_thm)
+        |> Thm.close_derivation
+        |> singleton (Proof_Context.export names_lthy lthy)
       end;
 
     val mor_fold_thm =
@@ -1030,11 +1034,11 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val cT = certifyT lthy foldT;
         val ct = certify lthy fold_fun
       in
-        singleton (Proof_Context.export names_lthy lthy)
-          (Goal.prove_sorry lthy [] []
-            (HOLogic.mk_Trueprop (mk_mor UNIVs ctors active_UNIVs ss (map (mk_fold Ts ss) ks)))
-            (K (mk_mor_fold_tac cT ct fold_defs init_ex_mor_thm mor_cong)))
+        Goal.prove_sorry lthy [] []
+          (HOLogic.mk_Trueprop (mk_mor UNIVs ctors active_UNIVs ss (map (mk_fold Ts ss) ks)))
+          (K (mk_mor_fold_tac cT ct fold_defs init_ex_mor_thm mor_cong))
         |> Thm.close_derivation
+        |> singleton (Proof_Context.export names_lthy lthy)
       end;
 
     val ctor_fold_thms = map (fn morE => rule_by_tactic lthy
@@ -1046,11 +1050,11 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val prem = HOLogic.mk_Trueprop (mk_mor UNIVs ctors active_UNIVs ss fs);
         fun mk_fun_eq f i = HOLogic.mk_eq (f, mk_fold Ts ss i);
         val unique = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj (map2 mk_fun_eq fs ks));
-        val unique_mor = Goal.prove_sorry lthy [] []
-          (fold_rev Logic.all (ss @ fs) (Logic.mk_implies (prem, unique)))
+        val unique_mor = Goal.prove_sorry lthy [] [] (Logic.mk_implies (prem, unique))
           (K (mk_fold_unique_mor_tac type_defs init_unique_mor_thms Reps
             mor_comp_thm mor_Abs_thm mor_fold_thm))
-          |> Thm.close_derivation;
+          |> Thm.close_derivation
+          |> singleton (Proof_Context.export names_lthy lthy);
       in
         `split_conj_thm unique_mor
       end;
@@ -1175,14 +1179,15 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
             val lhs = mk_rec rec_ss i $ (ctor $ x);
             val rhs = rec_s $ (Term.list_comb (rec_map, passive_ids @ convols) $ x);
           in
-            fold_rev Logic.all (x :: rec_ss) (mk_Trueprop_eq (lhs, rhs))
+            mk_Trueprop_eq (lhs, rhs)
           end;
         val goals = map5 mk_goal ks rec_ss rec_maps_rev ctors xFs;
       in
         map2 (fn goal => fn foldx =>
           Goal.prove_sorry lthy [] [] goal
             (fn {context = ctxt, prems = _} => mk_rec_tac ctxt rec_defs foldx fst_rec_pair_thms)
-          |> Thm.close_derivation)
+          |> Thm.close_derivation
+          |> singleton (Proof_Context.export names_lthy lthy))
         goals ctor_fold_thms
       end;
 
@@ -1193,11 +1198,11 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         fun mk_fun_eq f i = HOLogic.mk_eq (f, mk_rec rec_ss i);
         val unique = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj (map2 mk_fun_eq fs ks));
       in
-        Goal.prove_sorry lthy [] []
-          (fold_rev Logic.all (rec_ss @ fs) (Logic.mk_implies (prem, unique)))
+        Goal.prove_sorry lthy [] [] (Logic.mk_implies (prem, unique))
           (fn {context = ctxt, prems = _} => mk_rec_unique_mor_tac ctxt rec_defs fst_rec_pair_thms
             fold_unique_mor_thm)
           |> Thm.close_derivation
+          |> singleton (Proof_Context.export names_lthy lthy)
       end;
 
     val (ctor_rec_unique_thms, ctor_rec_unique_thm) =
@@ -1234,11 +1239,11 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
         val goal = Logic.list_implies (prems, concl);
       in
-        (Goal.prove_sorry lthy [] []
-          (fold_rev Logic.all (phis @ Izs) goal)
+        (Goal.prove_sorry lthy [] [] goal
           (K (mk_ctor_induct_tac lthy m set_mapss init_induct_thm morE_thms mor_Abs_thm
             Rep_inverses Abs_inverses Reps))
-        |> Thm.close_derivation,
+        |> Thm.close_derivation
+        |> singleton (Proof_Context.export names_lthy lthy),
         rev (Term.add_tfrees goal []))
       end;
 
@@ -1277,11 +1282,11 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
         val cts = map3 (SOME o certify lthy ooo mk_t) phi2s (Izs1 ~~ Izs1') (Izs2 ~~ Izs2');
         val goal = Logic.list_implies (prems, concl);
       in
-        (singleton (Proof_Context.export names_lthy lthy)
-          (Goal.prove_sorry lthy [] [] goal
-            (fn {context = ctxt, prems = _} => mk_ctor_induct2_tac ctxt cTs cts ctor_induct_thm
-              weak_ctor_induct_thms))
-          |> Thm.close_derivation,
+        (Goal.prove_sorry lthy [] [] goal
+          (fn {context = ctxt, prems = _} => mk_ctor_induct2_tac ctxt cTs cts ctor_induct_thm
+            weak_ctor_induct_thms)
+        |> Thm.close_derivation
+        |> singleton (Proof_Context.export names_lthy lthy),
         rev (Term.add_tfrees goal []))
       end;
 
@@ -1415,16 +1420,17 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
         val (ctor_Imap_thms, ctor_Imap_o_thms) =
           let
-            fun mk_goal fs_map map ctor ctor' = fold_rev Logic.all fs
-              (mk_Trueprop_eq (HOLogic.mk_comp (fs_map, ctor),
-                HOLogic.mk_comp (ctor', Term.list_comb (map, fs @ fs_Imaps))));
+            fun mk_goal fs_map map ctor ctor' =
+              mk_Trueprop_eq (HOLogic.mk_comp (fs_map, ctor),
+                HOLogic.mk_comp (ctor', Term.list_comb (map, fs @ fs_Imaps)));
             val goals = map4 mk_goal fs_Imaps map_FTFT's ctors ctor's;
             val maps =
               map4 (fn goal => fn foldx => fn map_comp_id => fn map_cong0 =>
                 Goal.prove_sorry lthy [] [] goal
                   (fn {context = ctxt, prems = _} => unfold_thms_tac ctxt Imap_defs THEN
                     mk_map_tac m n foldx map_comp_id map_cong0)
-                |> Thm.close_derivation)
+                |> Thm.close_derivation
+                 |> singleton (Proof_Context.export names_lthy lthy))
               goals ctor_fold_thms map_comp_id_thms map_cong0s;
           in
             `(map (fn thm => thm RS @{thm comp_eq_dest})) maps
@@ -1439,11 +1445,11 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
             val goal =
               HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
                 (map2 (curry HOLogic.mk_eq) us fs_Imaps));
-            val unique = Goal.prove_sorry lthy [] []
-              (fold_rev Logic.all (us @ fs) (Logic.list_implies (prems, goal)))
+            val unique = Goal.prove_sorry lthy [] [] (Logic.list_implies (prems, goal))
               (fn {context = ctxt, prems = _} => unfold_thms_tac ctxt Imap_defs THEN
                 mk_ctor_map_unique_tac ctxt ctor_fold_unique_thm sym_map_comps)
-              |> Thm.close_derivation;
+              |> Thm.close_derivation
+              |> singleton (Proof_Context.export names_lthy lthy);
           in
             `split_conj_thm unique
           end;
@@ -1464,9 +1470,9 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
               ctor_fold_thms) goalss;
 
             fun mk_simp_goal pas_set act_sets sets ctor z set =
-              Logic.all z (mk_Trueprop_eq (set $ (ctor $ z),
+              mk_Trueprop_eq (set $ (ctor $ z),
                 mk_union (pas_set $ z,
-                  Library.foldl1 mk_union (map2 (fn X => mk_UNION (X $ z)) act_sets sets))));
+                  Library.foldl1 mk_union (map2 (fn X => mk_UNION (X $ z)) act_sets sets)));
             val simp_goalss =
               map2 (fn i => fn sets =>
                 map4 (fn Fsets => mk_simp_goal (nth Fsets (i - 1)) (drop m Fsets) sets)
@@ -1476,7 +1482,8 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
             val ctor_setss = map3 (fn i => map3 (fn set_nats => fn goal => fn set =>
                 Goal.prove_sorry lthy [] [] goal
                   (K (mk_ctor_set_tac set (nth set_nats (i - 1)) (drop m set_nats)))
-                |> Thm.close_derivation)
+                |> Thm.close_derivation
+                |> singleton (Proof_Context.export names_lthy lthy))
               set_mapss) ls simp_goalss setss;
           in
             ctor_setss
@@ -1520,10 +1527,10 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
             fun mk_tac ctxt induct = mk_set_nat_tac ctxt m (rtac induct) set_mapss ctor_Imap_thms;
             val thms =
               map5 (fn goal => fn csets => fn ctor_sets => fn induct => fn i =>
-                singleton (Proof_Context.export names_lthy lthy)
-                  (Goal.prove_sorry lthy [] [] goal
-                    (fn {context = ctxt, prems = _} => mk_tac ctxt induct csets ctor_sets i))
-                |> Thm.close_derivation)
+                Goal.prove_sorry lthy [] [] goal
+                  (fn {context = ctxt, prems = _} => mk_tac ctxt induct csets ctor_sets i)
+                |> Thm.close_derivation
+                |> singleton (Proof_Context.export names_lthy lthy))
               goals csetss ctor_Iset_thmss inducts ls;
           in
             map split_conj_thm thms
@@ -1548,11 +1555,11 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
             fun mk_tac ctxt induct = mk_set_bd_tac ctxt m (rtac induct) sbd_Cinfinite set_sbdss;
             val thms =
               map4 (fn goal => fn ctor_sets => fn induct => fn i =>
-                singleton (Proof_Context.export names_lthy lthy)
-                  (Goal.prove_sorry lthy [] [] goal
+                Goal.prove_sorry lthy [] [] goal
                     (fn {context = ctxt, prems = _} => unfold_thms_tac ctxt Ibd_defs THEN
-                      mk_tac ctxt induct ctor_sets i))
-                |> Thm.close_derivation)
+                      mk_tac ctxt induct ctor_sets i)
+                |> Thm.close_derivation
+                |> singleton (Proof_Context.export names_lthy lthy))
               goals ctor_Iset_thmss inducts ls;
           in
             map split_conj_thm thms
@@ -1579,11 +1586,11 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
               HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
                 (map4 mk_map_cong0 Isetss_by_bnf Izs fs_Imaps fs_copy_Imaps));
 
-            val thm = singleton (Proof_Context.export names_lthy lthy)
-              (Goal.prove_sorry lthy [] [] goal
-              (fn {context = ctxt, prems = _} => mk_mcong_tac ctxt (rtac induct) set_Iset_thmsss
-                map_cong0s ctor_Imap_thms))
-              |> Thm.close_derivation;
+            val thm = Goal.prove_sorry lthy [] [] goal
+                (fn {context = ctxt, prems = _} => mk_mcong_tac ctxt (rtac induct) set_Iset_thmsss
+                  map_cong0s ctor_Imap_thms)
+              |> Thm.close_derivation
+              |> singleton (Proof_Context.export names_lthy lthy);
           in
             split_conj_thm thm
           end;
@@ -1606,8 +1613,8 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
         val ctor_Irel_thms =
           let
-            fun mk_goal xF yF ctor ctor' Irelphi relphi = fold_rev Logic.all (xF :: yF :: Iphis)
-              (mk_Trueprop_eq (Irelphi $ (ctor $ xF) $ (ctor' $ yF), relphi $ xF $ yF));
+            fun mk_goal xF yF ctor ctor' Irelphi relphi =
+              mk_Trueprop_eq (Irelphi $ (ctor $ xF) $ (ctor' $ yF), relphi $ xF $ yF);
             val goals = map6 mk_goal xFs yFs ctors ctor's Irelphis relphis;
           in
             map12 (fn i => fn goal => fn in_rel => fn map_comp0 => fn map_cong0 =>
@@ -1616,7 +1623,8 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
               Goal.prove_sorry lthy [] [] goal
                (K (mk_ctor_rel_tac lthy in_Irels i in_rel map_comp0 map_cong0 ctor_map ctor_sets
                  ctor_inject ctor_dtor set_map0s ctor_set_incls ctor_set_set_inclss))
-              |> Thm.close_derivation)
+              |> Thm.close_derivation
+              |> singleton (Proof_Context.export names_lthy lthy))
             ks goals in_rels map_comps map_cong0s ctor_Imap_thms ctor_Iset_thmss'
               ctor_inject_thms ctor_dtor_thms set_mapss ctor_Iset_incl_thmss
               ctor_set_Iset_incl_thmsss
@@ -1637,11 +1645,11 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
             val goal = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj goals);
           in
-            singleton (Proof_Context.export names_lthy lthy)
-              (Goal.prove_sorry lthy [] [] goal
-                (fn {context = ctxt, prems = _} => mk_le_rel_OO_tac ctxt m induct ctor_nchotomy_thms
-                  ctor_Irel_thms rel_mono_strongs rel_OOs))
-              |> Thm.close_derivation
+            Goal.prove_sorry lthy [] [] goal
+              (fn {context = ctxt, prems = _} => mk_le_rel_OO_tac ctxt m induct ctor_nchotomy_thms
+                ctor_Irel_thms rel_mono_strongs rel_OOs)
+            |> Thm.close_derivation
+            |> singleton (Proof_Context.export names_lthy lthy)
           end;
 
         val timer = time (timer "helpers for BNF properties");
