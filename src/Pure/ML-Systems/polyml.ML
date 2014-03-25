@@ -4,6 +4,24 @@
 Compatibility wrapper for Poly/ML.
 *)
 
+(* ML name space *)
+
+structure ML_Name_Space =
+struct
+  open PolyML.NameSpace;
+  type T = PolyML.NameSpace.nameSpace;
+  val global = PolyML.globalNameSpace;
+  val initial_val =
+    List.filter (fn (a, _) => a <> "use" andalso a <> "exit" andalso a <> "commit")
+      (#allVal global ());
+  val initial_type = #allType global ();
+  val initial_fixity = #allFix global ();
+  val initial_structure = #allStruct global ();
+  val initial_signature = #allSig global ();
+  val initial_functor = #allFunct global ();
+end;
+
+
 (* ML system operations *)
 
 use "ML-Systems/ml_system.ML";
@@ -93,13 +111,6 @@ val pointer_eq = PolyML.pointerEq;
 
 
 (* ML compiler *)
-
-structure ML_Name_Space =
-struct
-  open PolyML.NameSpace;
-  type T = PolyML.NameSpace.nameSpace;
-  val global = PolyML.globalNameSpace;
-end;
 
 use "ML-Systems/use_context.ML";
 use "ML-Systems/compiler_polyml.ML";

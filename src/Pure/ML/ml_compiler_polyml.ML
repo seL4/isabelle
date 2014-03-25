@@ -74,10 +74,12 @@ fun report_parse_tree depth space =
 
 (* eval ML source tokens *)
 
-fun eval verbose pos toks =
+type flags = {SML: bool, verbose: bool};
+
+fun eval {SML, verbose} pos toks =
   let
     val _ = Secure.secure_mltext ();
-    val space = ML_Env.name_space;
+    val space = if SML then ML_Env.SML_name_space else ML_Env.name_space;
     val opt_context = Context.thread_data ();
 
 

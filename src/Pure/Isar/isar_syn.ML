@@ -268,17 +268,28 @@ end;
 (* use ML text *)
 
 val _ =
+  Outer_Syntax.command @{command_spec "SML_file"} "read and evaluate Standard ML file"
+    (Resources.provide_parse_files "SML_file" >> (fn files => Toplevel.theory (fn thy =>
+        let
+          val ([{lines, pos, ...}], thy') = files thy;
+          val source = {delimited = true, text = cat_lines lines, pos = pos};
+        in
+          thy' |> Context.theory_map
+            (ML_Context.exec (fn () => ML_Context.eval_source {SML = true, verbose = true} source))
+        end)));
+
+val _ =
   Outer_Syntax.command @{command_spec "ML"} "ML text within theory or local theory"
     (Parse.ML_source >> (fn source =>
       Toplevel.generic_theory
-        (ML_Context.exec (fn () => ML_Context.eval_source true source) #>
+        (ML_Context.exec (fn () => ML_Context.eval_source {SML = false, verbose = true} source) #>
           Local_Theory.propagate_ml_env)));
 
 val _ =
   Outer_Syntax.command @{command_spec "ML_prf"} "ML text within proof"
     (Parse.ML_source >> (fn source =>
       Toplevel.proof (Proof.map_context (Context.proof_map
-        (ML_Context.exec (fn () => ML_Context.eval_source true source))) #>
+        (ML_Context.exec (fn () => ML_Context.eval_source {SML = false, verbose = true} source))) #>
           Proof.propagate_ml_env)));
 
 val _ =

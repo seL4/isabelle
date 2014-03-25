@@ -1000,6 +1000,7 @@ section {* Incorporating ML code \label{sec:ML} *}
 
 text {*
   \begin{matharray}{rcl}
+    @{command_def "SML_file"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def "ML_file"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def "ML"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def "ML_prf"} & : & @{text "proof \<rightarrow> proof"} \\
@@ -1011,7 +1012,7 @@ text {*
   \end{matharray}
 
   @{rail \<open>
-    @@{command ML_file} @{syntax name}
+    (@@{command SML_file} | @@{command ML_file}) @{syntax name}
     ;
     (@@{command ML} | @@{command ML_prf} | @@{command ML_val} |
       @@{command ML_command} | @@{command setup} | @@{command local_setup}) @{syntax text}
@@ -1020,6 +1021,14 @@ text {*
   \<close>}
 
   \begin{description}
+
+  \item @{command "SML_file"}~@{text "name"} reads and evaluates the
+  given Standard ML file.  Top-level SML bindings are stored within
+  the theory context; the initial environment is restricted to the
+  Standard ML implementation of Poly/ML, without the many add-ons of
+  Isabelle/ML.  Multiple @{command "SML_file"} commands may be used to
+  build larger Standard ML projects, independently of the regular
+  Isabelle/ML environment.
 
   \item @{command "ML_file"}~@{text "name"} reads and evaluates the
   given ML file.  The current theory context is passed down to the ML

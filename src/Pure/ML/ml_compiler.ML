@@ -11,7 +11,8 @@ sig
   val exn_message: exn -> string
   val exn_error_message: exn -> unit
   val exn_trace: (unit -> 'a) -> 'a
-  val eval: bool -> Position.T -> ML_Lex.token list -> unit
+  type flags = {SML: bool, verbose: bool}
+  val eval: flags -> Position.T -> ML_Lex.token list -> unit
 end
 
 structure ML_Compiler: ML_COMPILER =
@@ -28,8 +29,11 @@ val exn_message = Runtime.exn_message exn_info;
 val exn_error_message = Output.error_message o exn_message;
 fun exn_trace e = print_exception_trace exn_message e;
 
-fun eval verbose pos toks =
+type flags = {SML: bool, verbose: bool};
+
+fun eval {SML, verbose} pos toks =
   let
+    val _ = if SML then error ("Standard ML is unsupported on " ^ ML_System.name) else ();
     val line = the_default 1 (Position.line_of pos);
     val file = the_default "ML" (Position.file_of pos);
     val text = ML_Lex.flatten toks;

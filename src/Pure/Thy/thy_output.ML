@@ -639,7 +639,7 @@ local
 
 fun ml_text name ml = antiquotation name (Scan.lift Args.name_source_position)
   (fn {context, ...} => fn source =>
-   (ML_Context.eval_in (SOME context) false (#pos source) (ml source);
+   (ML_Context.eval_in (SOME context) {SML = false, verbose = false} (#pos source) (ml source);
     Symbol_Pos.source_content source
     |> #1
     |> (if Config.get context quotes then quote else I)

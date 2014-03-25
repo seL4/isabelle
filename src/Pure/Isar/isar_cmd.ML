@@ -145,7 +145,8 @@ fun oracle (name, pos) source =
         \  val " ^ name ^
         " = snd (Context.>>> (Context.map_theory_result (Thm.add_oracle (binding, body))));\n\
         \end;\n");
-  in Context.theory_map (ML_Context.exec (fn () => ML_Context.eval false (#pos source) ants)) end;
+    val flags = {SML = false, verbose = false};
+  in Context.theory_map (ML_Context.exec (fn () => ML_Context.eval flags (#pos source) ants)) end;
 
 
 (* old-style defs *)
@@ -238,7 +239,7 @@ fun ml_diag verbose source = Toplevel.keep (fn state =>
   let val opt_ctxt =
     try Toplevel.generic_theory_of state
     |> Option.map (Context.proof_of #> Diag_State.put state)
-  in ML_Context.eval_source_in opt_ctxt verbose source end);
+  in ML_Context.eval_source_in opt_ctxt {SML = false, verbose = verbose} source end);
 
 val diag_state = Diag_State.get;
 

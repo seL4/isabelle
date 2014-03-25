@@ -20,6 +20,7 @@
     "ProofGeneral\\.process_pgip"
     "ProofGeneral\\.restart"
     "ProofGeneral\\.undo"
+    "SML_file"
     "abbreviation"
     "adhoc_overloading"
     "also"
@@ -482,6 +483,7 @@
 (defconst isar-keywords-theory-decl
   '("ML"
     "ML_file"
+    "SML_file"
     "abbreviation"
     "adhoc_overloading"
     "atom_decl"

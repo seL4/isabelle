@@ -120,7 +120,7 @@ setup -- "document antiquotation"
           ML_Lex.read Position.none "fn _ => (" @
           ML_Lex.read_source source @
           ML_Lex.read Position.none ");";
-        val _ = ML_Context.eval_in (SOME context) false (#pos source) toks;
+        val _ = ML_Context.eval_in (SOME context) {SML = false, verbose = false} (#pos source) toks;
       in "" end);
 *}
 

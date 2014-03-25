@@ -14,7 +14,7 @@ theory Pure
     "infixr" "is" "keywords" "notes" "obtains" "open" "output"
     "overloaded" "pervasive" "shows" "structure" "unchecked" "where" "|"
   and "theory" :: thy_begin % "theory"
-  and "ML_file" :: thy_load % "ML"
+  and "SML_file" "ML_file" :: thy_load % "ML"
   and "header" :: diag
   and "chapter" :: thy_heading1
   and "section" :: thy_heading2
