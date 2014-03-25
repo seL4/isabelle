@@ -121,7 +121,7 @@ where
 term "factorial 4"  -- "symbolic term"
 value "factorial 4"  -- "evaluation via ML code generation in the background"
 
-declare [[ML_trace]]
+declare [[ML_source_trace]]
 ML {* @{term "factorial 4"} *}  -- "symbolic term in ML"
 ML {* @{code "factorial"} *}  -- "ML code from function specification"
 

@@ -97,8 +97,11 @@ option timeout : real = 0
 option process_output_limit : int = 100
   -- "build process output limit in million characters (0 = unlimited)"
 
-public option exception_trace : bool = false
-  -- "exception trace for toplevel command execution"
+
+section "ML System"
+
+public option ML_exception_trace : bool = false
+  -- "ML exception trace for toplevel command execution"
 
 
 section "Editor Reactivity"

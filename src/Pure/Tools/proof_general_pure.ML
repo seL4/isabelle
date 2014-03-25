@@ -123,7 +123,7 @@ val _ =
 val _ =
   ProofGeneral.preference_option ProofGeneral.category_tracing
     NONE
-    @{option exception_trace}
+    @{option ML_exception_trace}
     "debugging"
     "Whether to enable exception trace for toplevel command execution";
 
