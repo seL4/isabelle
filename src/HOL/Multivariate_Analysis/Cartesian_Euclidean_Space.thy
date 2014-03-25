@@ -1319,8 +1319,4 @@ lemma interval_split_cart:
   unfolding vec_lambda_beta
   by auto
 
-lemma interval_bij_bij_cart: fixes x::"real^'n" assumes "\<forall>i. a$i < b$i \<and> u$i < v$i" 
-  shows "interval_bij (a,b) (u,v) (interval_bij (u,v) (a,b) x) = x"
-  using assms by (intro interval_bij_bij) (auto simp: Basis_vec_def inner_axis)
-
 end

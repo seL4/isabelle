@@ -16,6 +16,72 @@ lemma cart_eq_inner_axis: "a $ i = a \<bullet> axis i 1"
 lemma axis_in_Basis: "a \<in> Basis \<Longrightarrow> axis i a \<in> Basis"
   by (auto simp add: Basis_vec_def axis_eq_axis)
 
+lemma divide_nonneg_nonneg:
+  fixes a b :: "'a :: {linordered_field, field_inverse_zero}"
+  shows "a \<ge> 0 \<Longrightarrow> b \<ge> 0 \<Longrightarrow> 0 \<le> a / b"
+  by (cases "b = 0") (auto intro!: divide_nonneg_pos)
+
+subsection {*Bijections between intervals. *}
+
+definition interval_bij :: "'a \<times> 'a \<Rightarrow> 'a \<times> 'a \<Rightarrow> 'a \<Rightarrow> 'a::euclidean_space"
+  where "interval_bij =
+    (\<lambda>(a, b) (u, v) x. (\<Sum>i\<in>Basis. (u\<bullet>i + (x\<bullet>i - a\<bullet>i) / (b\<bullet>i - a\<bullet>i) * (v\<bullet>i - u\<bullet>i)) *\<^sub>R i))"
+
+lemma interval_bij_affine:
+  "interval_bij (a,b) (u,v) = (\<lambda>x. (\<Sum>i\<in>Basis. ((v\<bullet>i - u\<bullet>i) / (b\<bullet>i - a\<bullet>i) * (x\<bullet>i)) *\<^sub>R i) +
+    (\<Sum>i\<in>Basis. (u\<bullet>i - (v\<bullet>i - u\<bullet>i) / (b\<bullet>i - a\<bullet>i) * (a\<bullet>i)) *\<^sub>R i))"
+  by (auto simp: setsum_addf[symmetric] scaleR_add_left[symmetric] interval_bij_def fun_eq_iff
+    field_simps inner_simps add_divide_distrib[symmetric] intro!: setsum_cong)
+
+lemma continuous_interval_bij:
+  fixes a b :: "'a::euclidean_space"
+  shows "continuous (at x) (interval_bij (a, b) (u, v))"
+  by (auto simp add: divide_inverse interval_bij_def intro!: continuous_setsum continuous_intros)
+
+lemma continuous_on_interval_bij: "continuous_on s (interval_bij (a, b) (u, v))"
+  apply(rule continuous_at_imp_continuous_on)
+  apply (rule, rule continuous_interval_bij)
+  done
+
+lemma in_interval_interval_bij:
+  fixes a b u v x :: "'a::euclidean_space"
+  assumes "x \<in> cbox a b"
+    and "cbox u v \<noteq> {}"
+  shows "interval_bij (a, b) (u, v) x \<in> cbox u v"
+  apply (simp only: interval_bij_def split_conv mem_box inner_setsum_left_Basis cong: ball_cong)
+  apply safe
+proof -
+  fix i :: 'a
+  assume i: "i \<in> Basis"
+  have "cbox a b \<noteq> {}"
+    using assms by auto
+  with i have *: "a\<bullet>i \<le> b\<bullet>i" "u\<bullet>i \<le> v\<bullet>i"
+    using assms(2) by (auto simp add: box_eq_empty)
+  have x: "a\<bullet>i\<le>x\<bullet>i" "x\<bullet>i\<le>b\<bullet>i"
+    using assms(1)[unfolded mem_box] using i by auto
+  have "0 \<le> (x \<bullet> i - a \<bullet> i) / (b \<bullet> i - a \<bullet> i) * (v \<bullet> i - u \<bullet> i)"
+    using * x by (auto intro!: mult_nonneg_nonneg divide_nonneg_nonneg)
+  then show "u \<bullet> i \<le> u \<bullet> i + (x \<bullet> i - a \<bullet> i) / (b \<bullet> i - a \<bullet> i) * (v \<bullet> i - u \<bullet> i)"
+    using * by auto
+  have "((x \<bullet> i - a \<bullet> i) / (b \<bullet> i - a \<bullet> i)) * (v \<bullet> i - u \<bullet> i) \<le> 1 * (v \<bullet> i - u \<bullet> i)"
+    apply (rule mult_right_mono)
+    unfolding divide_le_eq_1
+    using * x
+    apply auto
+    done
+  then show "u \<bullet> i + (x \<bullet> i - a \<bullet> i) / (b \<bullet> i - a \<bullet> i) * (v \<bullet> i - u \<bullet> i) \<le> v \<bullet> i"
+    using * by auto
+qed
+
+lemma interval_bij_bij:
+  "\<forall>(i::'a::euclidean_space)\<in>Basis. a\<bullet>i < b\<bullet>i \<and> u\<bullet>i < v\<bullet>i \<Longrightarrow>
+    interval_bij (a, b) (u, v) (interval_bij (u, v) (a, b) x) = x"
+  by (auto simp: interval_bij_def euclidean_eq_iff[where 'a='a])
+
+lemma interval_bij_bij_cart: fixes x::"real^'n" assumes "\<forall>i. a$i < b$i \<and> u$i < v$i" 
+  shows "interval_bij (a,b) (u,v) (interval_bij (u,v) (a,b) x) = x"
+  using assms by (intro interval_bij_bij) (auto simp: Basis_vec_def inner_axis)
+
 
 subsection {* Fashoda meet theorem *}
 
