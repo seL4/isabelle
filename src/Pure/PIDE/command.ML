@@ -20,7 +20,7 @@ sig
     eval -> print list -> print list option
   type print_fn = Toplevel.transition -> Toplevel.state -> unit
   type print_function =
-    {command_name: string, args: string list} ->
+    {command_name: string, args: string list, exec_id: Document_ID.exec} ->
       {delay: Time.time option, pri: int, persistent: bool, strict: bool, print_fn: print_fn} option
   val print_function: string -> print_function -> unit
   val no_print_function: string -> unit
@@ -172,9 +172,10 @@ val init_eval_state =
 
 datatype eval = Eval of {exec_id: Document_ID.exec, eval_process: eval_state memo};
 
-fun eval_eq (Eval {exec_id, ...}, Eval {exec_id = exec_id', ...}) = exec_id = exec_id';
+fun eval_exec_id (Eval {exec_id, ...}) = exec_id;
+val eval_eq = op = o pairself eval_exec_id;
 
-fun eval_running (Eval {exec_id, ...}) = Execution.is_running_exec exec_id;
+val eval_running = Execution.is_running_exec o eval_exec_id;
 fun eval_finished (Eval {eval_process, ...}) = memo_finished eval_process;
 
 fun eval_result (Eval {eval_process, ...}) = memo_result eval_process;
@@ -260,10 +261,13 @@ datatype print = Print of
  {name: string, args: string list, delay: Time.time option, pri: int, persistent: bool,
   exec_id: Document_ID.exec, print_process: unit memo};
 
+fun print_exec_id (Print {exec_id, ...}) = exec_id;
+val print_eq = op = o pairself print_exec_id;
+
 type print_fn = Toplevel.transition -> Toplevel.state -> unit;
 
 type print_function =
-  {command_name: string, args: string list} ->
+  {command_name: string, args: string list, exec_id: Document_ID.exec} ->
     {delay: Time.time option, pri: int, persistent: bool, strict: bool, print_fn: print_fn} option;
 
 local
@@ -276,8 +280,6 @@ fun print_error tr opt_context e =
     handle exn =>
       if Exn.is_interrupt exn then reraise exn
       else List.app (Future.error_msg (Toplevel.pos_of tr)) (ML_Compiler.exn_messages_ids exn);
-
-fun print_eq (Print {exec_id, ...}, Print {exec_id = exec_id', ...}) = exec_id = exec_id';
 
 fun print_finished (Print {print_process, ...}) = memo_finished print_process;
 
@@ -315,7 +317,7 @@ fun print command_visible command_overlays command_name eval old_prints =
 
     fun new_print name args get_pr =
       let
-        val params = {command_name = command_name, args = args};
+        val params = {command_name = command_name, args = args, exec_id = eval_exec_id eval};
       in
         (case Exn.capture (Toplevel.controlled_execution NONE get_pr) params of
           Exn.Res NONE => NONE
@@ -353,6 +355,14 @@ fun no_print_function name =
 end;
 
 val _ =
+  print_function "Execution.print"
+    (fn {args, exec_id, ...} =>
+      if null args then
+        SOME {delay = NONE, pri = 1, persistent = false, strict = true,
+          print_fn = fn _ => fn _ => Execution.apply_prints exec_id}
+      else NONE);
+
+val _ =
   print_function "print_state"
     (fn {command_name, ...} =>
       SOME {delay = NONE, pri = 1, persistent = false, strict = true,
@@ -373,8 +383,7 @@ val no_exec: exec =
   (Eval {exec_id = Document_ID.none, eval_process = memo_value init_eval_state}, []);
 
 fun exec_ids NONE = []
-  | exec_ids (SOME (Eval {exec_id, ...}, prints)) =
-      exec_id :: map (fn Print {exec_id, ...} => exec_id) prints;
+  | exec_ids (SOME (eval, prints)) = eval_exec_id eval :: map print_exec_id prints;
 
 local
 
