@@ -1,4 +1,6 @@
-(** Pure Isabelle **)
+(*** Isabelle/Pure bootstrap from "RAW" environment ***)
+
+(** bootstrap phase 0: towards secure ML barrier *)
 
 structure Distribution =     (*filled-in by makedist*)
 struct
@@ -35,7 +37,13 @@ use "General/antiquote.ML";
 use "ML/ml_lex.ML";
 use "ML/ml_parse.ML";
 use "General/secure.ML";
-(*^^^^^ end of ML bootstrap 0 ^^^^^*)
+
+
+
+(** bootstrap phase 1: towards ML within Isar context *)
+
+(* library of general tools *)
+
 use "General/integer.ML";
 use "General/stack.ML";
 use "General/queue.ML";
@@ -224,7 +232,10 @@ use "Thy/latex.ML";
 (*ML with context and antiquotations*)
 use "ML/ml_context.ML";
 use "ML/ml_antiquotation.ML";
-(*^^^^^ end of ML bootstrap 1 ^^^^^*)
+
+
+
+(** bootstrap phase 2: towards Pure.thy and final ML toplevel setup *)
 
 (*basic proof engine*)
 use "Isar/proof_display.ML";
