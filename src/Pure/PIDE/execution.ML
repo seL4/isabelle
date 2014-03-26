@@ -15,9 +15,10 @@ sig
   val peek: Document_ID.exec -> Future.group list
   val cancel: Document_ID.exec -> unit
   val terminate: Document_ID.exec -> unit
-  val fork: {name: string, pos: Position.T, pri: int} -> (unit -> 'a) -> 'a future
-  val print: (serial -> unit) -> unit
-  val apply_prints: Document_ID.exec -> unit
+  type params = {name: string, pos: Position.T, pri: int}
+  val fork: params -> (unit -> 'a) -> 'a future
+  val print: params -> (serial -> unit) -> unit
+  val fork_prints: Document_ID.exec -> unit
   val purge: Document_ID.exec list -> unit
   val reset: unit -> Future.group list
   val shutdown: unit -> unit
@@ -28,7 +29,8 @@ struct
 
 (* global state *)
 
-type exec_state = Future.group list * (unit -> unit) list;  (*active forks, prints*)
+type print = {name: string, pri: int, body: unit -> unit};
+type exec_state = Future.group list * print list;  (*active forks, prints*)
 type state =
   Document_ID.execution * (*overall document execution*)
   exec_state Inttab.table;  (*running command execs*)
@@ -88,7 +90,9 @@ fun status task markups =
   let val props = Markup.properties [(Markup.taskN, Task_Queue.str_of_task task)]
   in Output.status (implode (map (Markup.markup_only o props) markups)) end;
 
-fun fork {name, pos, pri} e =
+type params = {name: string, pos: Position.T, pri: int};
+
+fun fork ({name, pos, pri}: params) e =
   uninterruptible (fn _ => Position.setmp_thread_data pos (fn () =>
     let
       val exec_id = the_default 0 (Position.parse_id pos);
@@ -128,23 +132,23 @@ fun fork {name, pos, pri} e =
 
 (* print *)
 
-fun print pr =
+fun print ({name, pos, pri}: params) pr =
   change_state (apsnd (fn execs =>
     let
-      val exec_id = the_default 0 (Position.parse_id (Position.thread_data ()));
+      val exec_id = the_default 0 (Position.parse_id pos);
       val i = serial ();
+      val print = {name = name, pri = pri, body = fn () => pr i};
     in
       (case Inttab.lookup execs exec_id of
-        SOME (groups, prints) =>
-          Inttab.update (exec_id, (groups, (fn () => pr i) :: prints)) execs
+        SOME (groups, prints) => Inttab.update (exec_id, (groups, print :: prints)) execs
       | NONE => raise Fail (unregistered exec_id))
     end));
 
-fun apply_prints exec_id =
+fun fork_prints exec_id =
   (case Inttab.lookup (#2 (get_state ())) exec_id of
     SOME (_, prints) =>
       if null prints orelse null (tl prints) orelse not (Multithreading.enabled ())
-      then List.app (fn e => e ()) (rev prints)
+      then List.app (fn {body, ...} => body ()) (rev prints)
       else
         let
           val pos = Position.thread_data ();
@@ -152,8 +156,10 @@ fun apply_prints exec_id =
             (case Future.worker_task () of
               SOME task => Task_Queue.pri_of_task task
             | NONE => 0);
-          val futures = map (fork {name = "Execution.print", pos = pos, pri = pri}) (rev prints);
-        in ignore (Future.joins futures) end
+        in
+          List.app (fn {name, pri, body} =>
+            ignore (fork {name = name, pos = pos, pri = pri} body)) (rev prints)
+        end
   | NONE => raise Fail (unregistered exec_id));
 
 

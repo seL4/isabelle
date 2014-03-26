@@ -359,7 +359,7 @@ val _ =
     (fn {args, exec_id, ...} =>
       if null args then
         SOME {delay = NONE, pri = 1, persistent = false, strict = true,
-          print_fn = fn _ => fn _ => Execution.apply_prints exec_id}
+          print_fn = fn _ => fn _ => Execution.fork_prints exec_id}
       else NONE);
 
 val _ =
