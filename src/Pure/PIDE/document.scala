@@ -521,15 +521,19 @@ object Document
     def the_dynamic_state(id: Document_ID.Exec): Command.State = execs.getOrElse(id, fail)
     def the_assignment(version: Version): State.Assignment = assignments.getOrElse(version.id, fail)
 
+    def valid_id(st: Command.State)(id: Document_ID.Generic): Boolean =
+      id == st.command.id ||
+      (execs.get(id) match { case Some(st1) => st1.command.id == st.command.id case None => false })
+
     def accumulate(id: Document_ID.Generic, message: XML.Elem): (Command.State, State) =
       execs.get(id) match {
         case Some(st) =>
-          val new_st = st + (id, message)
+          val new_st = st + (valid_id(st), message)
           (new_st, copy(execs = execs + (id -> new_st)))
         case None =>
           commands.get(id) match {
             case Some(st) =>
-              val new_st = st + (id, message)
+              val new_st = st + (valid_id(st), message)
               (new_st, copy(commands = commands + (id -> new_st)))
             case None => fail
           }

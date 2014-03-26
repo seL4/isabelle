@@ -280,15 +280,14 @@ object Protocol
     Document.Elements(Markup.BINDING, Markup.ENTITY, Markup.REPORT, Markup.POSITION)
 
   def message_positions(
-    command_id: Document_ID.Command,
-    alt_id: Document_ID.Generic,
+    valid_id: Document_ID.Generic => Boolean,
     chunk: Command.Chunk,
     message: XML.Elem): Set[Text.Range] =
   {
     def elem_positions(props: Properties.T, set: Set[Text.Range]): Set[Text.Range] =
       props match {
         case Position.Reported(id, file_name, symbol_range)
-        if (id == command_id || id == alt_id) && file_name == chunk.file_name =>
+        if valid_id(id) && file_name == chunk.file_name =>
           chunk.incorporate(symbol_range) match {
             case Some(range) => set + range
             case _ => set

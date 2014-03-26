@@ -132,7 +132,7 @@ object Command
       copy(markups = markups1.add(Markup_Index(false, file_name), m))
     }
 
-    def + (alt_id: Document_ID.Generic, message: XML.Elem): State =
+    def + (valid_id: Document_ID.Generic => Boolean, message: XML.Elem): State =
       message match {
         case XML.Elem(Markup(Markup.STATUS, _), msgs) =>
           (this /: msgs)((state, msg) =>
@@ -154,7 +154,7 @@ object Command
               msg match {
                 case XML.Elem(Markup(name,
                   atts @ Position.Reported(id, file_name, symbol_range)), args)
-                if id == command.id || id == alt_id =>
+                if valid_id(id) =>
                   command.chunks.get(file_name) match {
                     case Some(chunk) =>
                       chunk.incorporate(symbol_range) match {
@@ -187,7 +187,7 @@ object Command
               if (Protocol.is_inlined(message)) {
                 for {
                   (file_name, chunk) <- command.chunks
-                  range <- Protocol.message_positions(command.id, alt_id, chunk, message)
+                  range <- Protocol.message_positions(valid_id, chunk, message)
                 } st = st.add_markup(false, file_name, Text.Info(range, message2))
               }
               st
@@ -196,7 +196,7 @@ object Command
               System.err.println("Ignored message without serial number: " + message)
               this
           }
-      }
+    }
 
     def ++ (other: State): State =
       copy(
