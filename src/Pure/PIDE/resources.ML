@@ -108,6 +108,7 @@ fun load_file thy src_path =
     val full_path = check_file (master_directory thy) src_path;
     val text = File.read full_path;
     val id = SHA1.digest text;
+    val _ = legacy_feature ("Raw file-system access to load file " ^ Path.print full_path);
   in ((full_path, id), text) end;
 
 fun loaded_files_current thy =
