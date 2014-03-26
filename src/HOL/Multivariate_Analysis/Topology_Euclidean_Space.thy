@@ -1958,39 +1958,13 @@ lemma Lim_dist_ubound:
     and "(f ---> l) net"
     and "eventually (\<lambda>x. dist a (f x) \<le> e) net"
   shows "dist a l \<le> e"
-proof -
-  have "dist a l \<in> {..e}"
-  proof (rule Lim_in_closed_set)
-    show "closed {..e}"
-      by simp
-    show "eventually (\<lambda>x. dist a (f x) \<in> {..e}) net"
-      by (simp add: assms)
-    show "\<not> trivial_limit net"
-      by fact
-    show "((\<lambda>x. dist a (f x)) ---> dist a l) net"
-      by (intro tendsto_intros assms)
-  qed
-  then show ?thesis by simp
-qed
+  using assms by (fast intro: tendsto_le tendsto_intros)
 
 lemma Lim_norm_ubound:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
   assumes "\<not>(trivial_limit net)" "(f ---> l) net" "eventually (\<lambda>x. norm(f x) \<le> e) net"
   shows "norm(l) \<le> e"
-proof -
-  have "norm l \<in> {..e}"
-  proof (rule Lim_in_closed_set)
-    show "closed {..e}"
-      by simp
-    show "eventually (\<lambda>x. norm (f x) \<in> {..e}) net"
-      by (simp add: assms)
-    show "\<not> trivial_limit net"
-      by fact
-    show "((\<lambda>x. norm (f x)) ---> norm l) net"
-      by (intro tendsto_intros assms)
-  qed
-  then show ?thesis by simp
-qed
+  using assms by (fast intro: tendsto_le tendsto_intros)
 
 lemma Lim_norm_lbound:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
@@ -1998,20 +1972,7 @@ lemma Lim_norm_lbound:
     and "(f ---> l) net"
     and "eventually (\<lambda>x. e \<le> norm (f x)) net"
   shows "e \<le> norm l"
-proof -
-  have "norm l \<in> {e..}"
-  proof (rule Lim_in_closed_set)
-    show "closed {e..}"
-      by simp
-    show "eventually (\<lambda>x. norm (f x) \<in> {e..}) net"
-      by (simp add: assms)
-    show "\<not> trivial_limit net"
-      by fact
-    show "((\<lambda>x. norm (f x)) ---> norm l) net"
-      by (intro tendsto_intros assms)
-  qed
-  then show ?thesis by simp
-qed
+  using assms by (fast intro: tendsto_le tendsto_intros)
 
 text{* Limit under bilinear function *}
 
