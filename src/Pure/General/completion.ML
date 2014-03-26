@@ -10,7 +10,6 @@ sig
   val names: Position.T -> (string * (string * string)) list -> T
   val none: T
   val reported_text: T -> string
-  val report: T -> unit
   val suppress_abbrevs: string -> Markup.T list
 end;
 
@@ -45,8 +44,6 @@ fun reported_text completion =
       in YXML.string_of (XML.Elem (markup, body)) end
     else ""
   end;
-
-val report = Output.report o reported_text;
 
 
 (* suppress short abbreviations *)
