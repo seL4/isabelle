@@ -87,8 +87,11 @@ fun terminate exec_id = List.app Future.terminate (peek exec_id);
 (* fork *)
 
 fun status task markups =
-  let val props = Markup.properties [(Markup.taskN, Task_Queue.str_of_task task)]
-  in Output.status (implode (map (Markup.markup_only o props) markups)) end;
+  let
+    val props =
+      if ! Multithreading.trace >= 2
+      then [(Markup.taskN, Task_Queue.str_of_task task)] else [];
+  in Output.status (implode (map (Markup.markup_only o Markup.properties props) markups)) end;
 
 type params = {name: string, pos: Position.T, pri: int};
 
@@ -150,13 +153,7 @@ fun fork_prints exec_id =
       if null prints orelse null (tl prints) orelse not (Multithreading.enabled ())
       then List.app (fn {body, ...} => body ()) (rev prints)
       else
-        let
-          val pos = Position.thread_data ();
-          val pri =
-            (case Future.worker_task () of
-              SOME task => Task_Queue.pri_of_task task
-            | NONE => 0);
-        in
+        let val pos = Position.thread_data () in
           List.app (fn {name, pri, body} =>
             ignore (fork {name = name, pos = pos, pri = pri} body)) (rev prints)
         end
