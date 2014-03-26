@@ -607,8 +607,8 @@ fun hounifiers (thy, env, tus : (term * term) list) : (Envir.env * (term * term)
             [] => SOME (fold_rev (add_ffpair thy) flexflex (env', []), reseq)
           | dp :: frigid' =>
               if tdepth > search_bound then
-                (Context_Position.if_visible_global thy warning "Unification bound exceeded";
-                 Seq.pull reseq)
+                (if Context_Position.is_visible_global thy
+                 then warning "Unification bound exceeded" else (); Seq.pull reseq)
               else
                (if tdepth > trace_bound then
                   print_dpairs thy "Enter MATCH" (env',flexrigid@flexflex)
@@ -617,7 +617,8 @@ fun hounifiers (thy, env, tus : (term * term) list) : (Envir.env * (term * term)
                     (add_unify (tdepth + 1)) (MATCH thy (env',dp, frigid'@flexflex), reseq))))
         end
         handle CANTUNIFY =>
-         (if tdepth > trace_bound then Context_Position.if_visible_global thy tracing "Failure node"
+         (if tdepth > trace_bound andalso Context_Position.is_visible_global thy
+          then tracing "Failure node"
           else (); Seq.pull reseq));
     val dps = map (fn (t, u) => ([], t, u)) tus;
   in add_unify 1 ((env, dps), Seq.empty) end;

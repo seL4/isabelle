@@ -18,8 +18,9 @@ struct
 (* report *)
 
 fun report ctxt =
-  Context_Position.if_visible ctxt Output.report
-    (Markup.markup Markup.bad "Skipped proof");
+  if Context_Position.is_visible ctxt then
+    Output.report (Markup.markup Markup.bad "Skipped proof")
+  else ();
 
 
 (* oracle setup *)

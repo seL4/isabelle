@@ -149,9 +149,8 @@ fun eval flags pos ants =
     val _ =
       (case Option.map Context.proof_of env_ctxt of
         SOME ctxt =>
-          if Config.get ctxt source_trace then
-            Context_Position.if_visible ctxt
-              tracing (cat_lines [ML_Lex.flatten env, ML_Lex.flatten body])
+          if Config.get ctxt source_trace andalso Context_Position.is_visible ctxt
+          then tracing (cat_lines [ML_Lex.flatten env, ML_Lex.flatten body])
           else ()
       | NONE => ());
 

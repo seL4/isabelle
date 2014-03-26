@@ -143,7 +143,8 @@ val global_outer_syntax = Unsynchronized.ref empty_outer_syntax;
 
 fun add_command (name, kind) cmd = CRITICAL (fn () =>
   let
-    val thy = ML_Context.the_global_context ();
+    val context = ML_Context.the_generic_context ();
+    val thy = Context.theory_of context;
     val Command {pos, ...} = cmd;
     val _ =
       (case try (Thy_Header.the_keyword thy) name of
@@ -155,7 +156,7 @@ fun add_command (name, kind) cmd = CRITICAL (fn () =>
           if Context.theory_name thy = Context.PureN
           then Keyword.define (name, SOME kind)
           else error ("Undeclared outer syntax command " ^ quote name ^ Position.here pos));
-    val _ = Position.report pos (command_markup true (name, cmd));
+    val _ = Context_Position.report_generic context pos (command_markup true (name, cmd));
 
     fun redefining () =
       "Redefining outer syntax command " ^ quote name ^ Position.here (Position.thread_data ());
