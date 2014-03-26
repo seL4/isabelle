@@ -43,7 +43,7 @@ ML {*
   if test_all @{context} then ()
   else
     (Options.default_put_bool @{option ML_exception_trace} true;
-     put_default_print_depth 200;  (* FIXME proper ML_print_depth within context!? *)
+     default_print_depth 200;  (* FIXME proper ML_print_depth within context!? *)
      PolyML.Compiler.maxInlineSize := 0)
 *}
 

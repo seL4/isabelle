@@ -77,7 +77,7 @@ val _ =
   ProofGeneral.preference ProofGeneral.category_advanced_display
     NONE
     (Markup.print_int o get_default_print_depth)
-    (put_default_print_depth o Markup.parse_int)
+    (default_print_depth o Markup.parse_int)
     ProofGeneral.pgipint
     "print-depth"
     "Setting for the ML print depth";

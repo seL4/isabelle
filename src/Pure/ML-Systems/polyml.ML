@@ -130,8 +130,8 @@ local
   val depth = Unsynchronized.ref 10;
 in
   fun get_default_print_depth () = ! depth;
-  fun put_default_print_depth n = (depth := n; PolyML.print_depth n);
-  val _ = put_default_print_depth 10;
+  fun default_print_depth n = (depth := n; PolyML.print_depth n);
+  val _ = default_print_depth 10;
 end;
 
 val error_depth = PolyML.error_depth;

@@ -550,8 +550,8 @@ INCOMPATIBILITY.
 
 * Configuration option "ML_print_depth" controls the pretty-printing
 depth of the ML compiler within the context.  The old print_depth in
-ML is still available as put_default_print_depth, but rarely used.
-Minor INCOMPATIBILITY.
+ML is still available as default_print_depth, but rarely used.  Minor
+INCOMPATIBILITY.
 
 * Proper context discipline for read_instantiate and instantiate_tac:
 variables that are meant to become schematic need to be given as
