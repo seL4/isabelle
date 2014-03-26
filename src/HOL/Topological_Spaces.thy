@@ -615,6 +615,14 @@ lemma eventually_gt_at_bot:
   "eventually (\<lambda>x. x < (c::_::unbounded_dense_linorder)) at_bot"
   unfolding eventually_at_bot_dense by auto
 
+lemma trivial_limit_at_bot_linorder: "\<not> trivial_limit (at_bot ::('a::linorder) filter)"
+  unfolding trivial_limit_def
+  by (metis eventually_at_bot_linorder order_refl)
+
+lemma trivial_limit_at_top_linorder: "\<not> trivial_limit (at_top ::('a::linorder) filter)"
+  unfolding trivial_limit_def
+  by (metis eventually_at_top_linorder order_refl)
+
 subsection {* Sequentially *}
 
 abbreviation sequentially :: "nat filter"
@@ -1034,9 +1042,16 @@ qed
 lemma tendsto_le_const:
   fixes f :: "'a \<Rightarrow> 'b::linorder_topology"
   assumes F: "\<not> trivial_limit F"
-  assumes x: "(f ---> x) F" and a: "eventually (\<lambda>x. a \<le> f x) F"
+  assumes x: "(f ---> x) F" and a: "eventually (\<lambda>i. a \<le> f i) F"
   shows "a \<le> x"
   using F x tendsto_const a by (rule tendsto_le)
+
+lemma tendsto_ge_const:
+  fixes f :: "'a \<Rightarrow> 'b::linorder_topology"
+  assumes F: "\<not> trivial_limit F"
+  assumes x: "(f ---> x) F" and a: "eventually (\<lambda>i. a \<ge> f i) F"
+  shows "a \<ge> x"
+  by (rule tendsto_le [OF F tendsto_const x a])
 
 subsubsection {* Rules about @{const Lim} *}
 

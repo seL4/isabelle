@@ -1364,6 +1364,33 @@ proof -
     by simp
 qed
 
+lemma DERIV_pos_imp_increasing_at_bot:
+  fixes f :: "real => real"
+  assumes "\<And>x. x \<le> b \<Longrightarrow> (EX y. DERIV f x :> y & y > 0)"
+      and lim: "(f ---> flim) at_bot"
+  shows "flim < f b"
+proof -
+  have "flim \<le> f (b - 1)"
+    apply (rule tendsto_ge_const [OF _ lim])
+    apply (auto simp: trivial_limit_at_bot_linorder eventually_at_bot_linorder)
+    apply (rule_tac x="b - 2" in exI)
+    apply (force intro: order.strict_implies_order DERIV_pos_imp_increasing [where f=f] assms)
+    done
+  also have "... < f b"
+    by (force intro: DERIV_pos_imp_increasing [where f=f] assms)
+  finally show ?thesis .
+qed
+
+lemma DERIV_neg_imp_decreasing_at_top:
+  fixes f :: "real => real"
+  assumes der: "\<And>x. x \<ge> b \<Longrightarrow> (EX y. DERIV f x :> y & y < 0)"
+      and lim: "(f ---> flim) at_top"
+  shows "flim < f b"
+  apply (rule DERIV_pos_imp_increasing_at_bot [where f = "\<lambda>i. f (-i)" and b = "-b", simplified])
+  apply (metis DERIV_mirror der le_minus_iff neg_0_less_iff_less)
+  apply (metis filterlim_at_top_mirror lim)
+  done
+
 text {* Derivative of inverse function *}
 
 lemma DERIV_inverse_function:
