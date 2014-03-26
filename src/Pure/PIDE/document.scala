@@ -429,13 +429,13 @@ object Document
       range: Text.Range,
       info: A,
       elements: Elements,
-      result: Command.State => (A, Text.Markup) => Option[A],
+      result: Command.Results => (A, Text.Markup) => Option[A],
       status: Boolean = false): List[Text.Info[A]]
 
     def select[A](
       range: Text.Range,
       elements: Elements,
-      result: Command.State => Text.Markup => Option[A],
+      result: Command.Results => Text.Markup => Option[A],
       status: Boolean = false): List[Text.Info[A]]
   }
 
@@ -708,7 +708,7 @@ object Document
           range: Text.Range,
           info: A,
           elements: Elements,
-          result: Command.State => (A, Text.Markup) => Option[A],
+          result: Command.Results => (A, Text.Markup) => Option[A],
           status: Boolean = false): List[Text.Info[A]] =
         {
           val former_range = revert(range)
@@ -719,7 +719,7 @@ object Document
               (for {
                 chunk <- thy_load_command.chunks.get(file_name).iterator
                 st = state.command_state(version, thy_load_command)
-                res = result(st)
+                res = result(st.results)
                 Text.Info(r0, a) <- st.markup(markup_index).cumulate[A](
                   former_range.restrict(chunk.range), info, elements,
                   { case (a, Text.Info(r0, b)) => res(a, Text.Info(convert(r0), b)) }
@@ -731,7 +731,7 @@ object Document
               (for {
                 (command, command_start) <- node.command_range(former_range)
                 st = state.command_state(version, command)
-                res = result(st)
+                res = result(st.results)
                 Text.Info(r0, a) <- st.markup(markup_index).cumulate[A](
                   (former_range - command_start).restrict(command.range), info, elements,
                   {
@@ -744,12 +744,12 @@ object Document
         def select[A](
           range: Text.Range,
           elements: Elements,
-          result: Command.State => Text.Markup => Option[A],
+          result: Command.Results => Text.Markup => Option[A],
           status: Boolean = false): List[Text.Info[A]] =
         {
-          def result1(st: Command.State): (Option[A], Text.Markup) => Option[Option[A]] =
+          def result1(results: Command.Results): (Option[A], Text.Markup) => Option[Option[A]] =
           {
-            val res = result(st)
+            val res = result(results)
             (_: Option[A], x: Text.Markup) =>
               res(x) match {
                 case None => None
