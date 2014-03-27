@@ -132,7 +132,7 @@ ML {*
           if Exn.is_interrupt exn then reraise exn
           else
             (warning (" test: file " ^ Path.print file ^
-             " raised exception: " ^ ML_Compiler.exn_message exn);
+             " raised exception: " ^ Runtime.exn_message exn);
              {gc = Time.zeroTime, cpu = Time.zeroTime, elapsed = Time.zeroTime})
       val to_real = Time.toReal
       val diff_elapsed =

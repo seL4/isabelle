@@ -20,6 +20,9 @@ object Markup_Tree
 
   val empty: Markup_Tree = new Markup_Tree(Branches.empty)
 
+  def merge(trees: List[Markup_Tree], range: Text.Range, elements: Document.Elements): Markup_Tree =
+    (empty /: trees)(_.merge(_, range, elements))
+
   def merge_disjoint(trees: List[Markup_Tree]): Markup_Tree =
     trees match {
       case Nil => empty
@@ -113,12 +116,6 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
   private def this(branches: Markup_Tree.Branches.T, entry: Markup_Tree.Entry) =
     this(branches + (entry.range -> entry))
 
-  override def toString =
-    branches.toList.map(_._2) match {
-      case Nil => "Empty"
-      case list => list.mkString("Tree(", ",", ")")
-    }
-
   private def overlapping(range: Text.Range): Branches.T =
   {
     val start = Text.Range(range.start)
@@ -129,6 +126,11 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
       case _ => bs
     }
   }
+
+  def restrict(range: Text.Range): Markup_Tree =
+    new Markup_Tree(overlapping(range))
+
+  def is_empty: Boolean = branches.isEmpty
 
   def + (new_markup: Text.Markup): Markup_Tree =
   {
@@ -156,43 +158,25 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
     }
   }
 
-  def ++ (other: Markup_Tree): Markup_Tree =
-    (this /: other.branches)({ case (tree, (range, entry)) =>
-      ((tree ++ entry.subtree) /: entry.markup)({ case (t, elem) => t + Text.Info(range, elem) }) })
-
-  def to_XML(root_range: Text.Range, text: CharSequence, filter: XML.Elem => Boolean): XML.Body =
+  def merge(other: Markup_Tree, root_range: Text.Range, elements: Document.Elements): Markup_Tree =
   {
-    def make_text(start: Text.Offset, stop: Text.Offset): XML.Body =
-      if (start == stop) Nil
-      else List(XML.Text(text.subSequence(start, stop).toString))
+    def merge_trees(tree1: Markup_Tree, tree2: Markup_Tree): Markup_Tree =
+      (tree1 /: tree2.branches)(
+        { case (tree, (range, entry)) =>
+            if (!range.overlaps(root_range)) tree
+            else
+              (merge_trees(tree, entry.subtree) /: entry.filter_markup(elements))(
+                { case (t, elem) => t + Text.Info(range, elem) })
+        })
 
-    def make_elems(rev_markups: List[XML.Elem], body: XML.Body): XML.Body =
-      (body /: rev_markups) {
-        case (b, elem) =>
-          if (!filter(elem)) b
-          else if (elem.body.isEmpty) List(XML.Elem(elem.markup, b))
-          else List(XML.Wrapped_Elem(elem.markup, elem.body, b))
-      }
-
-    def make_body(elem_range: Text.Range, elem_markup: List[XML.Elem], entries: Branches.T)
-      : XML.Body =
-    {
-      val body = new mutable.ListBuffer[XML.Tree]
-      var last = elem_range.start
-      for ((range, entry) <- entries) {
-        val subrange = range.restrict(elem_range)
-        body ++= make_text(last, subrange.start)
-        body ++= make_body(subrange, entry.rev_markup, entry.subtree.overlapping(subrange))
-        last = subrange.stop
-      }
-      body ++= make_text(last, elem_range.stop)
-      make_elems(elem_markup, body.toList)
+    if (this eq other) this
+    else {
+      val tree1 = this.restrict(root_range)
+      val tree2 = other.restrict(root_range)
+      if (tree1.is_empty) tree2
+      else merge_trees(tree1, tree2)
     }
-   make_body(root_range, Nil, overlapping(root_range))
   }
-
-  def to_XML(text: CharSequence): XML.Body =
-    to_XML(Text.Range(0, text.length), text, (_: XML.Elem) => true)
 
   def cumulate[A](root_range: Text.Range, root_info: A, elements: Document.Elements,
     result: (A, Text.Markup) => Option[A]): List[Text.Info[A]] =
@@ -242,5 +226,42 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
     traverse(root_range.start,
       List((Text.Info(root_range, root_info), overlapping(root_range).toList)))
   }
+
+  def to_XML(root_range: Text.Range, text: CharSequence, elements: Document.Elements): XML.Body =
+  {
+    def make_text(start: Text.Offset, stop: Text.Offset): XML.Body =
+      if (start == stop) Nil
+      else List(XML.Text(text.subSequence(start, stop).toString))
+
+    def make_elems(rev_markups: List[XML.Elem], body: XML.Body): XML.Body =
+      (body /: rev_markups) {
+        case (b, elem) =>
+          if (!elements(elem.name)) b
+          else if (elem.body.isEmpty) List(XML.Elem(elem.markup, b))
+          else List(XML.Wrapped_Elem(elem.markup, elem.body, b))
+      }
+
+    def make_body(elem_range: Text.Range, elem_markup: List[XML.Elem], entries: Branches.T)
+      : XML.Body =
+    {
+      val body = new mutable.ListBuffer[XML.Tree]
+      var last = elem_range.start
+      for ((range, entry) <- entries) {
+        val subrange = range.restrict(elem_range)
+        body ++= make_text(last, subrange.start)
+        body ++= make_body(subrange, entry.rev_markup, entry.subtree.overlapping(subrange))
+        last = subrange.stop
+      }
+      body ++= make_text(last, elem_range.stop)
+      make_elems(elem_markup, body.toList)
+    }
+   make_body(root_range, Nil, overlapping(root_range))
+  }
+
+  override def toString =
+    branches.toList.map(_._2) match {
+      case Nil => "Empty"
+      case list => list.mkString("Tree(", ",", ")")
+    }
 }
 

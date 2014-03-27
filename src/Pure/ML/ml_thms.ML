@@ -130,7 +130,7 @@ fun ml_store get (name, ths) =
       else if not (ML_Syntax.is_identifier name) then
         error ("Cannot bind theorem(s) " ^ quote name ^ " as ML value")
       else
-        ML_Compiler.eval {SML = false, verbose = true} Position.none
+        ML_Compiler.eval (ML_Compiler.verbose true ML_Compiler.flags) Position.none
           (ML_Lex.tokenize ("val " ^ name ^ " = " ^ get ^ " ();"));
     val _ = Theory.setup (Stored_Thms.put []);
   in () end;

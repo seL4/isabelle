@@ -100,8 +100,7 @@ fun index_ml name kind ml = Thy_Output.antiquotation name
       val txt' = if kind = "" then txt else kind ^ " " ^ txt;
 
       val _ =
-        ML_Context.eval_in (SOME ctxt) {SML = false, verbose = false} (#pos source1)
-          (ml (toks1, toks2));
+        ML_Context.eval_in (SOME ctxt) ML_Compiler.flags (#pos source1) (ml (toks1, toks2));
       val kind' = if kind = "" then "ML" else "ML " ^ kind;
     in
       "\\indexdef{}{" ^ kind' ^ "}{" ^ clean_string (ml_name txt1) ^ "}" ^
@@ -192,17 +191,17 @@ local
 
 fun no_check _ _ = true;
 
-fun check_command (name, pos) =
+fun check_command ctxt (name, pos) =
   is_some (Keyword.command_keyword name) andalso
     let
       val markup =
         Outer_Syntax.scan Position.none name
         |> maps (Outer_Syntax.command_reports (#2 (Outer_Syntax.get_syntax ())))
         |> map (snd o fst);
-      val _ = List.app (Position.report pos) markup;
+      val _ = Context_Position.reports ctxt (map (pair pos) markup);
     in true end;
 
-fun check_tool (name, pos) =
+fun check_tool ctxt (name, pos) =
   let
     fun tool dir =
       let val path = Path.append dir (Path.basic name)
@@ -210,7 +209,7 @@ fun check_tool (name, pos) =
   in
     (case get_first tool (Path.split (getenv "ISABELLE_TOOLS")) of
       NONE => false
-    | SOME path => (Position.report pos (Markup.path (Path.implode path)); true))
+    | SOME path => (Context_Position.report ctxt pos (Markup.path (Path.implode path)); true))
   end;
 
 val arg = enclose "{" "}" o clean_string;
@@ -255,7 +254,7 @@ in
 val _ =
   Theory.setup
    (entity_antiqs no_check "" @{binding syntax} #>
-    entity_antiqs (K check_command) "isacommand" @{binding command} #>
+    entity_antiqs check_command "isacommand" @{binding command} #>
     entity_antiqs (K (Keyword.is_keyword o #1)) "isakeyword" @{binding keyword} #>
     entity_antiqs (K (Keyword.is_keyword o #1)) "isakeyword" @{binding element} #>
     entity_antiqs (can o Method.check_name) "" @{binding method} #>
@@ -269,7 +268,7 @@ val _ =
     entity_antiqs no_check "isatt" @{binding system_option} #>
     entity_antiqs no_check "" @{binding inference} #>
     entity_antiqs no_check "isatt" @{binding executable} #>
-    entity_antiqs (K check_tool) "isatool" @{binding tool} #>
+    entity_antiqs check_tool "isatool" @{binding tool} #>
     entity_antiqs (can o ML_Context.check_antiquotation) "" @{binding ML_antiquotation} #>
     entity_antiqs (K (is_action o #1)) "isatt" @{binding action});
 

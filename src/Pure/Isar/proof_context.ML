@@ -718,7 +718,7 @@ fun prepare_sorts ctxt tms =
 fun check_tfree ctxt v =
   let
     val (sorting_report, [TFree a]) = prepare_sortsT ctxt [TFree v];
-    val _ = Context_Position.if_visible ctxt Output.report sorting_report;
+    val _ = if Context_Position.is_visible ctxt then Output.report sorting_report else ();
   in a end;
 
 end;

@@ -211,9 +211,10 @@ fun check_path strict ctxt dir (name, pos) =
           val msg = "Bad file: " ^ Path.print path' ^ Position.here pos;
         in
           if strict then error msg
-          else
-            Context_Position.if_visible ctxt Output.report
+          else if Context_Position.is_visible ctxt then
+            Output.report
               (Markup.markup (Markup.bad |> Markup.properties (Position.properties_of pos)) msg)
+          else ()
         end;
   in path end;
 

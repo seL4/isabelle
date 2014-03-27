@@ -74,8 +74,11 @@ object Protocol
       case _ => status
     }
 
-  def command_status(markups: List[Markup]): Status =
-    (Status.init /: markups)(command_status(_, _))
+  def command_status(status: Status, state: Command.State): Status =
+    (status /: state.status)(command_status(_, _))
+
+  def command_status(status: Status, states: List[Command.State]): Status =
+    (status /: states)(command_status(_, _))
 
   val command_status_elements =
     Document.Elements(Markup.ACCEPTED, Markup.FORKED, Markup.JOINED, Markup.RUNNING,
@@ -117,18 +120,19 @@ object Protocol
     var finished = 0
     var warned = 0
     var failed = 0
-    node.commands.foreach(command =>
-      {
-        val st = state.command_state(version, command)
-        val status = command_status(st.status)
-        if (status.is_running) running += 1
-        else if (status.is_finished) {
-          if (st.results.entries.exists(p => is_warning(p._2))) warned += 1
-          else finished += 1
-        }
-        else if (status.is_failed) failed += 1
-        else unprocessed += 1
-      })
+    for {
+      command <- node.commands
+      states = state.command_states(version, command)
+      status = command_status(Status.init, states)
+    } {
+      if (status.is_running) running += 1
+      else if (status.is_finished) {
+        val warning = states.exists(st => st.results.entries.exists(p => is_warning(p._2)))
+        if (warning) warned += 1 else finished += 1
+      }
+      else if (status.is_failed) failed += 1
+      else unprocessed += 1
+    }
     Node_Status(unprocessed, running, finished, warned, failed)
   }
 
@@ -149,7 +153,7 @@ object Protocol
     var commands = Map.empty[Command, Double]
     for {
       command <- node.commands.iterator
-      st = state.command_state(version, command)
+      st <- state.command_states(version, command)
       command_timing =
         (0.0 /: st.status)({
           case (timing, Markup.Timing(t)) => timing + t.elapsed.seconds
@@ -280,15 +284,14 @@ object Protocol
     Document.Elements(Markup.BINDING, Markup.ENTITY, Markup.REPORT, Markup.POSITION)
 
   def message_positions(
-    command_id: Document_ID.Command,
-    alt_id: Document_ID.Generic,
+    valid_id: Document_ID.Generic => Boolean,
     chunk: Command.Chunk,
     message: XML.Elem): Set[Text.Range] =
   {
     def elem_positions(props: Properties.T, set: Set[Text.Range]): Set[Text.Range] =
       props match {
         case Position.Reported(id, file_name, symbol_range)
-        if (id == command_id || id == alt_id) && file_name == chunk.file_name =>
+        if valid_id(id) && file_name == chunk.file_name =>
           chunk.incorporate(symbol_range) match {
             case Some(range) => set + range
             case _ => set

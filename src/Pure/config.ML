@@ -131,8 +131,9 @@ fun declare_generic global name default =
               print_value (get_value (Context.Theory (Context.theory_of context'))) <>
                 print_value (get_value context')
             then
-              (Context_Position.if_visible ctxt warning
-                ("Ignoring local change of global option " ^ quote name); context)
+             (if Context_Position.is_visible ctxt then
+                warning ("Ignoring local change of global option " ^ quote name)
+              else (); context)
             else context'
           end
       | map_value f context = update_value f context;

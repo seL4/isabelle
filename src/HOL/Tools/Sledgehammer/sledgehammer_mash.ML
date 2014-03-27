@@ -337,7 +337,7 @@ fun try_graph ctxt when def f =
          else
            (trace_msg ctxt (fn () =>
                 "Internal error when " ^ when ^ ":\n" ^
-                ML_Compiler.exn_message exn); def)
+                Runtime.exn_message exn); def)
 
 fun graph_info G =
   string_of_int (length (Graph.keys G)) ^ " node(s), " ^

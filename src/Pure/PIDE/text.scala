@@ -45,8 +45,8 @@ object Text
     def length: Int = stop - start
 
     def map(f: Offset => Offset): Range = Range(f(start), f(stop))
-    def +(i: Offset): Range = map(_ + i)
-    def -(i: Offset): Range = map(_ - i)
+    def +(i: Offset): Range = if (i == 0) this else map(_ + i)
+    def -(i: Offset): Range = if (i == 0) this else map(_ - i)
 
     def is_singularity: Boolean = start == stop
 

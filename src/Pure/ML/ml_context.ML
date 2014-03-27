@@ -17,8 +17,6 @@ sig
   val add_antiquotation: binding -> (Args.src -> Proof.context -> decl * Proof.context) ->
     theory -> theory
   val print_antiquotations: Proof.context -> unit
-  val source_trace_raw: Config.raw
-  val source_trace: bool Config.T
   val eval_antiquotes: ML_Lex.token Antiquote.antiquote list * Position.T ->
     Context.generic option -> (ML_Lex.token list * ML_Lex.token list) * Context.generic option
   val eval: ML_Compiler.flags -> Position.T -> ML_Lex.token Antiquote.antiquote list -> unit
@@ -137,21 +135,17 @@ fun eval_antiquotes (ants, pos) opt_context =
         in ((begin_env visible @ ml_env, ml_body), SOME (Context.Proof ctxt')) end;
   in ((ml_env @ end_env, ml_body), opt_ctxt') end;
 
-val source_trace_raw = Config.declare "ML_source_trace" (fn _ => Config.Bool false);
-val source_trace = Config.bool source_trace_raw;
-
 fun eval flags pos ants =
   let
-    val non_verbose = {SML = #SML flags, verbose = false};
+    val non_verbose = ML_Compiler.verbose false flags;
 
     (*prepare source text*)
     val ((env, body), env_ctxt) = eval_antiquotes (ants, pos) (Context.thread_data ());
     val _ =
       (case Option.map Context.proof_of env_ctxt of
         SOME ctxt =>
-          if Config.get ctxt source_trace then
-            Context_Position.if_visible ctxt
-              tracing (cat_lines [ML_Lex.flatten env, ML_Lex.flatten body])
+          if Config.get ctxt ML_Options.source_trace andalso Context_Position.is_visible ctxt
+          then tracing (cat_lines [ML_Lex.flatten env, ML_Lex.flatten body])
           else ()
       | NONE => ());
 
@@ -187,13 +181,14 @@ fun eval_source_in ctxt flags source =
     (fn () => eval_source flags source) ();
 
 fun expression pos bind body ants =
-  exec (fn () => eval {SML = false, verbose = false} pos
-    (ML_Lex.read Position.none ("Context.set_thread_data (SOME (let " ^ bind ^ " = ") @ ants @
+  exec (fn () =>
+    eval ML_Compiler.flags pos
+     (ML_Lex.read Position.none ("Context.set_thread_data (SOME (let " ^ bind ^ " = ") @ ants @
       ML_Lex.read Position.none (" in " ^ body ^ " end (ML_Context.the_generic_context ())));")));
 
 end;
 
 fun use s =
-  ML_Context.eval_file {SML = false, verbose = true} (Path.explode s)
+  ML_Context.eval_file (ML_Compiler.verbose true ML_Compiler.flags) (Path.explode s)
     handle ERROR msg => (writeln msg; error "ML error");
 

@@ -429,13 +429,13 @@ object Document
       range: Text.Range,
       info: A,
       elements: Elements,
-      result: Command.State => (A, Text.Markup) => Option[A],
+      result: Command.Results => (A, Text.Markup) => Option[A],
       status: Boolean = false): List[Text.Info[A]]
 
     def select[A](
       range: Text.Range,
       elements: Elements,
-      result: Command.State => Text.Markup => Option[A],
+      result: Command.Results => Text.Markup => Option[A],
       status: Boolean = false): List[Text.Info[A]]
   }
 
@@ -521,15 +521,19 @@ object Document
     def the_dynamic_state(id: Document_ID.Exec): Command.State = execs.getOrElse(id, fail)
     def the_assignment(version: Version): State.Assignment = assignments.getOrElse(version.id, fail)
 
+    def valid_id(st: Command.State)(id: Document_ID.Generic): Boolean =
+      id == st.command.id ||
+      (execs.get(id) match { case Some(st1) => st1.command.id == st.command.id case None => false })
+
     def accumulate(id: Document_ID.Generic, message: XML.Elem): (Command.State, State) =
       execs.get(id) match {
         case Some(st) =>
-          val new_st = st + (id, message)
+          val new_st = st + (valid_id(st), message)
           (new_st, copy(execs = execs + (id -> new_st)))
         case None =>
           commands.get(id) match {
             case Some(st) =>
-              val new_st = st + (id, message)
+              val new_st = st + (valid_id(st), message)
               (new_st, copy(commands = commands + (id -> new_st)))
             case None => fail
           }
@@ -626,25 +630,37 @@ object Document
         assignments = assignments1)
     }
 
-    def command_state(version: Version, command: Command): Command.State =
+    def command_states(version: Version, command: Command): List[Command.State] =
     {
       require(is_assigned(version))
       try {
         the_assignment(version).check_finished.command_execs.getOrElse(command.id, Nil)
           .map(the_dynamic_state(_)) match {
-            case eval_state :: print_states => (eval_state /: print_states)(_ ++ _)
             case Nil => fail
+            case states => states
           }
       }
       catch {
         case _: State.Fail =>
-          try { the_static_state(command.id) }
-          catch { case _: State.Fail => command.init_state }
+          try { List(the_static_state(command.id)) }
+          catch { case _: State.Fail => List(command.init_state) }
       }
     }
 
-    def markup_to_XML(version: Version, node: Node, filter: XML.Elem => Boolean): XML.Body =
-      node.commands.toList.map(cmd => command_state(version, cmd).markup_to_XML(filter)).flatten
+    def command_results(version: Version, command: Command): Command.Results =
+      Command.State.merge_results(command_states(version, command))
+
+    def command_markup(version: Version, command: Command, index: Command.Markup_Index,
+        range: Text.Range, elements: Elements): Markup_Tree =
+      Command.State.merge_markup(command_states(version, command), index, range, elements)
+
+    def markup_to_XML(version: Version, node: Node, elements: Elements): XML.Body =
+      (for {
+        command <- node.commands.iterator
+        markup =
+          command_markup(version, command, Command.Markup_Index.markup, command.range, elements)
+        tree <- markup.to_XML(command.range, command.source, elements)
+      } yield tree).toList
 
     // persistent user-view
     def snapshot(name: Node.Name = Node.Name.empty, pending_edits: List[Text.Edit] = Nil)
@@ -687,8 +703,12 @@ object Document
         def eq_content(other: Snapshot): Boolean =
         {
           def eq_commands(commands: (Command, Command)): Boolean =
-            state.command_state(version, commands._1) eq_content
-              other.state.command_state(other.version, commands._2)
+          {
+            val states1 = state.command_states(version, commands._1)
+            val states2 = other.state.command_states(other.version, commands._2)
+            states1.length == states2.length &&
+            (states1 zip states2).forall({ case (st1, st2) => st1 eq_content st2 })
+          }
 
           !is_outdated && !other.is_outdated &&
           node.commands.size == other.node.commands.size &&
@@ -704,48 +724,39 @@ object Document
           range: Text.Range,
           info: A,
           elements: Elements,
-          result: Command.State => (A, Text.Markup) => Option[A],
+          result: Command.Results => (A, Text.Markup) => Option[A],
           status: Boolean = false): List[Text.Info[A]] =
         {
           val former_range = revert(range)
-          thy_load_commands match {
-            case thy_load_command :: _ =>
-              val file_name = node_name.node
-              val markup_index = Command.Markup_Index(status, file_name)
-              (for {
-                chunk <- thy_load_command.chunks.get(file_name).iterator
-                st = state.command_state(version, thy_load_command)
-                res = result(st)
-                Text.Info(r0, a) <- st.markup(markup_index).cumulate[A](
-                  former_range.restrict(chunk.range), info, elements,
-                  { case (a, Text.Info(r0, b)) => res(a, Text.Info(convert(r0), b)) }
-                ).iterator
-              } yield Text.Info(convert(r0), a)).toList
-
-            case _ =>
-              val markup_index = Command.Markup_Index(status, "")
-              (for {
-                (command, command_start) <- node.command_range(former_range)
-                st = state.command_state(version, command)
-                res = result(st)
-                Text.Info(r0, a) <- st.markup(markup_index).cumulate[A](
-                  (former_range - command_start).restrict(command.range), info, elements,
-                  {
-                    case (a, Text.Info(r0, b)) => res(a, Text.Info(convert(r0 + command_start), b))
-                  }).iterator
-              } yield Text.Info(convert(r0 + command_start), a)).toList
-          }
+          val (file_name, command_range_iterator) =
+            thy_load_commands match {
+              case command :: _ => (node_name.node, Iterator((command, 0)))
+              case _ => ("", node.command_range(former_range))
+            }
+          val markup_index = Command.Markup_Index(status, file_name)
+          (for {
+            (command, command_start) <- command_range_iterator
+            chunk <- command.chunks.get(file_name).iterator
+            states = state.command_states(version, command)
+            res = result(Command.State.merge_results(states))
+            range = (former_range - command_start).restrict(chunk.range)
+            markup = Command.State.merge_markup(states, markup_index, range, elements)
+            Text.Info(r0, a) <- markup.cumulate[A](range, info, elements,
+              {
+                case (a, Text.Info(r0, b)) => res(a, Text.Info(convert(r0 + command_start), b))
+              }).iterator
+          } yield Text.Info(convert(r0 + command_start), a)).toList
         }
 
         def select[A](
           range: Text.Range,
           elements: Elements,
-          result: Command.State => Text.Markup => Option[A],
+          result: Command.Results => Text.Markup => Option[A],
           status: Boolean = false): List[Text.Info[A]] =
         {
-          def result1(st: Command.State): (Option[A], Text.Markup) => Option[Option[A]] =
+          def result1(results: Command.Results): (Option[A], Text.Markup) => Option[Option[A]] =
           {
-            val res = result(st)
+            val res = result(results)
             (_: Option[A], x: Text.Markup) =>
               res(x) match {
                 case None => None

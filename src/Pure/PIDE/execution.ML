@@ -15,7 +15,10 @@ sig
   val peek: Document_ID.exec -> Future.group list
   val cancel: Document_ID.exec -> unit
   val terminate: Document_ID.exec -> unit
-  val fork: {name: string, pos: Position.T, pri: int} -> (unit -> 'a) -> 'a future
+  type params = {name: string, pos: Position.T, pri: int}
+  val fork: params -> (unit -> 'a) -> 'a future
+  val print: params -> (unit -> unit) -> unit
+  val fork_prints: Document_ID.exec -> unit
   val purge: Document_ID.exec list -> unit
   val reset: unit -> Future.group list
   val shutdown: unit -> unit
@@ -26,18 +29,20 @@ struct
 
 (* global state *)
 
-datatype state = State of
-  {execution: Document_ID.execution,  (*overall document execution*)
-   execs: Future.group list Inttab.table};  (*command execs with registered forks*)
+type print = {name: string, pri: int, body: unit -> unit};
+type exec_state = Future.group list * print list;  (*active forks, prints*)
+type state =
+  Document_ID.execution * (*overall document execution*)
+  exec_state Inttab.table;  (*running command execs*)
 
-fun make_state (execution, execs) = State {execution = execution, execs = execs};
-fun map_state f (State {execution, execs}) = make_state (f (execution, execs));
-
-val init_state = make_state (Document_ID.none, Inttab.make [(Document_ID.none, [])]);
+val init_state: state = (Document_ID.none, Inttab.make [(Document_ID.none, ([], []))]);
 val state = Synchronized.var "Execution.state" init_state;
 
-fun get_state () = let val State args = Synchronized.value state in args end;
-fun change_state f = Synchronized.change state (map_state f);
+fun get_state () = Synchronized.value state;
+fun change_state_result f = Synchronized.change_result state f;
+fun change_state f = Synchronized.change state f;
+
+fun unregistered exec_id = "Unregistered execution: " ^ Document_ID.print exec_id;
 
 
 (* unique running execution *)
@@ -50,29 +55,30 @@ fun start () =
 
 fun discontinue () = change_state (apfst (K Document_ID.none));
 
-fun is_running execution_id = execution_id = #execution (get_state ());
+fun is_running execution_id = execution_id = #1 (get_state ());
 
 
 (* execs *)
 
 fun is_running_exec exec_id =
-  Inttab.defined (#execs (get_state ())) exec_id;
+  Inttab.defined (#2 (get_state ())) exec_id;
 
 fun running execution_id exec_id groups =
-  Synchronized.change_result state
-    (fn State {execution = execution_id', execs} =>
-      let
-        val continue = execution_id = execution_id';
-        val execs' =
-          if continue then
-            Inttab.update_new (exec_id, groups) execs
-              handle Inttab.DUP dup =>
-                raise Fail ("Execution already registered: " ^ Document_ID.print dup)
-          else execs;
-      in (continue, make_state (execution_id', execs')) end);
+  change_state_result (fn (execution_id', execs) =>
+    let
+      val continue = execution_id = execution_id';
+      val execs' =
+        if continue then
+          Inttab.update_new (exec_id, (groups, [])) execs
+            handle Inttab.DUP dup =>
+              raise Fail ("Execution already registered: " ^ Document_ID.print dup)
+        else execs;
+    in (continue, (execution_id', execs')) end);
 
 fun peek exec_id =
-  Inttab.lookup_list (#execs (get_state ())) exec_id;
+  (case Inttab.lookup (#2 (get_state ())) exec_id of
+    SOME (groups, _) => groups
+  | NONE => []);
 
 fun cancel exec_id = List.app Future.cancel_group (peek exec_id);
 fun terminate exec_id = List.app Future.terminate (peek exec_id);
@@ -81,18 +87,24 @@ fun terminate exec_id = List.app Future.terminate (peek exec_id);
 (* fork *)
 
 fun status task markups =
-  let val props = Markup.properties [(Markup.taskN, Task_Queue.str_of_task task)]
-  in Output.status (implode (map (Markup.markup_only o props) markups)) end;
+  let
+    val props =
+      if ! Multithreading.trace >= 2
+      then [(Markup.taskN, Task_Queue.str_of_task task)] else [];
+  in Output.status (implode (map (Markup.markup_only o Markup.properties props) markups)) end;
 
-fun fork {name, pos, pri} e =
+type params = {name: string, pos: Position.T, pri: int};
+
+fun fork ({name, pos, pri}: params) e =
   uninterruptible (fn _ => Position.setmp_thread_data pos (fn () =>
     let
       val exec_id = the_default 0 (Position.parse_id pos);
       val group = Future.worker_subgroup ();
       val _ = change_state (apsnd (fn execs =>
-        if Inttab.defined execs exec_id
-        then Inttab.cons_list (exec_id, group) execs
-        else raise Fail ("Cannot fork from unregistered execution: " ^ Document_ID.print exec_id)));
+        (case Inttab.lookup execs exec_id of
+          SOME (groups, prints) =>
+            Inttab.update (exec_id, (group :: groups, prints)) execs
+        | NONE => raise Fail (unregistered exec_id))));
 
       val future =
         (singleton o Future.forks)
@@ -112,13 +124,39 @@ fun fork {name, pos, pri} e =
                     status task [Markup.finished];
                     Output.report (Markup.markup_only Markup.bad);
                     if exec_id = 0 then ()
-                    else List.app (Future.error_msg pos) (ML_Compiler.exn_messages_ids exn))
+                    else List.app (Future.error_msg pos) (Runtime.exn_messages_ids exn))
                 | Exn.Res _ =>
                     status task [Markup.finished])
             in Exn.release result end);
 
       val _ = status (Future.task_of future) [Markup.forked];
     in future end)) ();
+
+
+(* print *)
+
+fun print ({name, pos, pri}: params) e =
+  change_state (apsnd (fn execs =>
+    let
+      val exec_id = the_default 0 (Position.parse_id pos);
+      val print = {name = name, pri = pri, body = e};
+    in
+      (case Inttab.lookup execs exec_id of
+        SOME (groups, prints) => Inttab.update (exec_id, (groups, print :: prints)) execs
+      | NONE => raise Fail (unregistered exec_id))
+    end));
+
+fun fork_prints exec_id =
+  (case Inttab.lookup (#2 (get_state ())) exec_id of
+    SOME (_, prints) =>
+      if null prints orelse null (tl prints) orelse not (Multithreading.enabled ())
+      then List.app (fn {body, ...} => body ()) (rev prints)
+      else
+        let val pos = Position.thread_data () in
+          List.app (fn {name, pri, body} =>
+            ignore (fork {name = name, pos = pos, pri = pri} body)) (rev prints)
+        end
+  | NONE => raise Fail (unregistered exec_id));
 
 
 (* cleanup *)
@@ -128,7 +166,7 @@ fun purge exec_ids =
     let
       val execs' = fold Inttab.delete_safe exec_ids execs;
       val () =
-        (execs', ()) |-> Inttab.fold (fn (exec_id, groups) => fn () =>
+        (execs', ()) |-> Inttab.fold (fn (exec_id, (groups, _)) => fn () =>
           if Inttab.defined execs' exec_id then ()
           else groups |> List.app (fn group =>
             if Task_Queue.is_canceled group then ()
@@ -136,8 +174,8 @@ fun purge exec_ids =
     in execs' end);
 
 fun reset () =
-  Synchronized.change_result state (fn State {execs, ...} =>
-    let val groups = Inttab.fold (append o #2) execs []
+  change_state_result (fn (_, execs) =>
+    let val groups = Inttab.fold (append o #1 o #2) execs []
     in (groups, init_state) end);
 
 fun shutdown () =

@@ -26,7 +26,8 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
   /* component state -- owned by Swing thread */
 
   private var current_snapshot = Document.State.init.snapshot()
-  private var current_state = Command.empty.init_state
+  private var current_command = Command.empty
+  private var current_results = Command.Results.empty
   private var current_id = 0L
   private var do_update = true
   private var do_auto_reply = false
@@ -77,7 +78,7 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
 
   private def show_trace()
   {
-    val trace = Simplifier_Trace.generate_trace(current_state.results)
+    val trace = Simplifier_Trace.generate_trace(current_results)
     new Simplifier_Trace_Window(view, current_snapshot, trace)
   }
 
@@ -92,7 +93,7 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
   {
     set_context(
       current_snapshot,
-      Simplifier_Trace.handle_results(PIDE.session, current_id, current_state.results)
+      Simplifier_Trace.handle_results(PIDE.session, current_id, current_results)
     )
   }
 
@@ -103,23 +104,24 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
 
   private def handle_update(follow: Boolean)
   {
-    val (new_snapshot, new_state, new_id) =
+    val (new_snapshot, new_command, new_results, new_id) =
       PIDE.editor.current_node_snapshot(view) match {
         case Some(snapshot) =>
           if (follow && !snapshot.is_outdated) {
             PIDE.editor.current_command(view, snapshot) match {
               case Some(cmd) =>
-                (snapshot, snapshot.state.command_state(snapshot.version, cmd), cmd.id)
+                (snapshot, cmd, snapshot.state.command_results(snapshot.version, cmd), cmd.id)
               case None =>
-                (Document.State.init.snapshot(), Command.empty.init_state, 0L)
+                (Document.State.init.snapshot(), Command.empty, Command.Results.empty, 0L)
             }
           }
-          else (current_snapshot, current_state, current_id)
-        case None => (current_snapshot, current_state, current_id)
+          else (current_snapshot, current_command, current_results, current_id)
+        case None => (current_snapshot, current_command, current_results, current_id)
       }
 
     current_snapshot = new_snapshot
-    current_state = new_state
+    current_command = new_command
+    current_results = new_results
     current_id = new_id
     update_contents()
   }

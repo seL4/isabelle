@@ -48,9 +48,9 @@ fun run_command name args =
   (case Symtab.lookup (Synchronized.value commands) name of
     NONE => error ("Undefined Isabelle protocol command " ^ quote name)
   | SOME cmd =>
-      (Toplevel.debugging NONE cmd args handle exn =>
+      (Runtime.debugging NONE cmd args handle exn =>
         error ("Isabelle protocol command failure: " ^ quote name ^ "\n" ^
-          ML_Compiler.exn_message exn)));
+          Runtime.exn_message exn)));
 
 end;
 
@@ -170,7 +170,7 @@ fun loop channel =
       [] => (Output.error_message "Isabelle process: no input"; true)
     | name :: args => (task_context (fn () => run_command name args); true))
     handle Runtime.TERMINATE => false
-      | exn => (ML_Compiler.exn_error_message exn handle crash => recover crash; true);
+      | exn => (Runtime.exn_error_message exn handle crash => recover crash; true);
   in
     if continue then loop channel
     else (Future.shutdown (); Execution.reset (); ())

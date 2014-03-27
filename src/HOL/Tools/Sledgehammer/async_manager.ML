@@ -130,7 +130,7 @@ fun print_new_messages () =
 fun check_thread_manager () = Synchronized.change global_state
   (fn state as {manager, timeout_heap, active, canceling, messages, store} =>
     if (case manager of SOME thread => Thread.isActive thread | NONE => false) then state
-    else let val manager = SOME (Toplevel.thread false (fn () =>
+    else let val manager = SOME (Runtime.thread false (fn () =>
       let
         fun time_limit timeout_heap =
           (case try Thread_Heap.min timeout_heap of
@@ -183,7 +183,7 @@ fun register tool birth_time death_time desc thread =
 
 
 fun thread tool birth_time death_time desc f =
-  (Toplevel.thread true
+  (Runtime.thread true
        (fn () =>
            let
              val self = Thread.self ()

@@ -102,11 +102,12 @@ fun read_abbrev b ctxt raw_rhs =
     val rhs = Proof_Context.read_typ_syntax (ctxt |> Proof_Context.set_defsort []) raw_rhs;
     val ignored = Term.fold_atyps_sorts (fn (_, []) => I | (T, _) => insert (op =) T) rhs [];
     val _ =
-      if null ignored then ()
-      else Context_Position.if_visible ctxt warning
-        ("Ignoring sort constraints in type variables(s): " ^
-          commas_quote (map (Syntax.string_of_typ ctxt) (rev ignored)) ^
-          "\nin type abbreviation " ^ Binding.print b);
+      if not (null ignored) andalso Context_Position.is_visible ctxt then
+        warning
+          ("Ignoring sort constraints in type variables(s): " ^
+            commas_quote (map (Syntax.string_of_typ ctxt) (rev ignored)) ^
+            "\nin type abbreviation " ^ Binding.print b)
+      else ();
   in rhs end;
 
 in

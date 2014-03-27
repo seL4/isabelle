@@ -380,13 +380,13 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   /* active elements */
 
   def active(range: Text.Range): Option[Text.Info[XML.Elem]] =
-    snapshot.select(range, Rendering.active_elements, command_state =>
+    snapshot.select(range, Rendering.active_elements, command_results =>
       {
         case Text.Info(info_range, elem) =>
           if (elem.name == Markup.DIALOG) {
             elem match {
               case Protocol.Dialog(_, serial, _)
-              if !command_state.results.defined(serial) =>
+              if !command_results.defined(serial) =>
                 Some(Text.Info(snapshot.convert(info_range), elem))
               case _ => None
             }
@@ -397,8 +397,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   def command_results(range: Text.Range): Command.Results =
   {
     val results =
-      snapshot.select[Command.Results](range, Document.Elements.full, command_state =>
-        { case _ => Some(command_state.results) }).map(_.info)
+      snapshot.select[Command.Results](range, Document.Elements.full, command_results =>
+        { case _ => Some(command_results) }).map(_.info)
     (Command.Results.empty /: results)(_ ++ _)
   }
 
@@ -592,8 +592,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     message_colors.get(pri).map((_, is_separator))
   }
 
-  def output_messages(st: Command.State): List[XML.Tree] =
-    st.results.entries.map(_._2).filterNot(Protocol.is_result(_)).toList
+  def output_messages(results: Command.Results): List[XML.Tree] =
+    results.entries.map(_._2).filterNot(Protocol.is_result(_)).toList
 
 
   /* text background */
@@ -606,7 +606,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
         Text.Info(r, result) <-
           snapshot.cumulate[(Option[Protocol.Status], Option[Color])](
             range, (Some(Protocol.Status.init), None), Rendering.background_elements,
-            command_state =>
+            command_results =>
               {
                 case (((Some(status), color), Text.Info(_, XML.Elem(markup, _))))
                 if (Protocol.command_status_elements(markup.name)) =>
@@ -616,7 +616,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
                 case (_, Text.Info(_, XML.Elem(Markup(Markup.INTENSIFY, _), _))) =>
                   Some((None, Some(intensify_color)))
                 case (acc, Text.Info(_, Protocol.Dialog(_, serial, result))) =>
-                  command_state.results.get(serial) match {
+                  command_results.get(serial) match {
                     case Some(Protocol.Dialog_Result(res)) if res == result =>
                       Some((None, Some(active_result_color)))
                     case _ =>

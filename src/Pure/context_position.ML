@@ -9,8 +9,6 @@ sig
   val is_visible_generic: Context.generic -> bool
   val is_visible: Proof.context -> bool
   val is_visible_global: theory -> bool
-  val if_visible: Proof.context -> ('a -> unit) -> 'a -> unit
-  val if_visible_global: theory -> ('a -> unit) -> 'a -> unit
   val set_visible: bool -> Proof.context -> Proof.context
   val set_visible_global: bool -> theory -> theory
   val restore_visible: Proof.context -> Proof.context -> Proof.context
@@ -39,9 +37,6 @@ structure Data = Generic_Data
 val is_visible_generic = the_default true o Data.get;
 val is_visible = is_visible_generic o Context.Proof;
 val is_visible_global = is_visible_generic o Context.Theory;
-
-fun if_visible ctxt f x = if is_visible ctxt then f x else ();
-fun if_visible_global thy f x = if is_visible_global thy then f x else ();
 
 val set_visible = Context.proof_map o Data.put o SOME;
 val set_visible_global = Context.theory_map o Data.put o SOME;

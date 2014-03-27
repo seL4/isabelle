@@ -27,8 +27,8 @@ object Command
   {
     type Entry = (Long, XML.Tree)
     val empty = new Results(SortedMap.empty)
-    def make(es: Iterable[Results.Entry]): Results = (empty /: es.iterator)(_ + _)
-    def merge(rs: Iterable[Results]): Results = (empty /: rs.iterator)(_ ++ _)
+    def make(es: List[Results.Entry]): Results = (empty /: es)(_ + _)
+    def merge(rs: List[Results]): Results = (empty /: rs)(_ ++ _)
   }
 
   final class Results private(private val rep: SortedMap[Long, XML.Tree])
@@ -81,11 +81,6 @@ object Command
     def add(index: Markup_Index, markup: Text.Markup): Markups =
       new Markups(rep + (index -> (this(index) + markup)))
 
-    def ++ (other: Markups): Markups =
-      new Markups(
-        (rep.keySet ++ other.rep.keySet)
-          .map(index => index -> (this(index) ++ other(index))).toMap)
-
     override def hashCode: Int = rep.hashCode
     override def equals(that: Any): Boolean =
       that match {
@@ -98,6 +93,16 @@ object Command
 
   /* state */
 
+  object State
+  {
+    def merge_results(states: List[State]): Command.Results =
+      Results.merge(states.map(_.results))
+
+    def merge_markup(states: List[State], index: Markup_Index,
+        range: Text.Range, elements: Document.Elements): Markup_Tree =
+      Markup_Tree.merge(states.map(_.markup(index)), range, elements)
+  }
+
   sealed case class State(
     command: Command,
     status: List[Markup] = Nil,
@@ -107,9 +112,6 @@ object Command
     /* markup */
 
     def markup(index: Markup_Index): Markup_Tree = markups(index)
-
-    def markup_to_XML(filter: XML.Elem => Boolean): XML.Body =
-      markup(Markup_Index.markup).to_XML(command.range, command.source, filter)
 
 
     /* content */
@@ -132,7 +134,7 @@ object Command
       copy(markups = markups1.add(Markup_Index(false, file_name), m))
     }
 
-    def + (alt_id: Document_ID.Generic, message: XML.Elem): State =
+    def + (valid_id: Document_ID.Generic => Boolean, message: XML.Elem): State =
       message match {
         case XML.Elem(Markup(Markup.STATUS, _), msgs) =>
           (this /: msgs)((state, msg) =>
@@ -154,7 +156,7 @@ object Command
               msg match {
                 case XML.Elem(Markup(name,
                   atts @ Position.Reported(id, file_name, symbol_range)), args)
-                if id == command.id || id == alt_id =>
+                if valid_id(id) =>
                   command.chunks.get(file_name) match {
                     case Some(chunk) =>
                       chunk.incorporate(symbol_range) match {
@@ -187,7 +189,7 @@ object Command
               if (Protocol.is_inlined(message)) {
                 for {
                   (file_name, chunk) <- command.chunks
-                  range <- Protocol.message_positions(command.id, alt_id, chunk, message)
+                  range <- Protocol.message_positions(valid_id, chunk, message)
                 } st = st.add_markup(false, file_name, Text.Info(range, message2))
               }
               st
@@ -196,14 +198,7 @@ object Command
               System.err.println("Ignored message without serial number: " + message)
               this
           }
-      }
-
-    def ++ (other: State): State =
-      copy(
-        status = other.status ::: status,
-        results = results ++ other.results,
-        markups = markups ++ other.markups
-      )
+    }
   }
 
 

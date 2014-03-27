@@ -19,7 +19,7 @@ fun tool body =
       restore_attributes body () handle exn =>
         let
           val _ =
-            ML_Compiler.exn_error_message exn
+            Runtime.exn_error_message exn
               handle _ => Output.error_message "Exception raised, but failed to print details!";
         in if Exn.is_interrupt exn then 130 else 1 end;
     in if rc = 0 then () else exit rc end) ();
