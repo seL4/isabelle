@@ -116,6 +116,10 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
   private def this(branches: Markup_Tree.Branches.T, entry: Markup_Tree.Entry) =
     this(branches + (entry.range -> entry))
 
+  def overlaps(range: Text.Range): Boolean =
+    !branches.isEmpty &&
+    Text.Range(branches.firstKey.start, branches.lastKey.stop).overlaps(range)
+
   private def overlapping(range: Text.Range): Branches.T =
   {
     val start = Text.Range(range.start)
@@ -156,19 +160,18 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
   def merge(other: Markup_Tree, root_range: Text.Range, elements: Document.Elements): Markup_Tree =
   {
     def merge_trees(tree1: Markup_Tree, tree2: Markup_Tree): Markup_Tree =
-      if (tree1 eq tree2) tree1
-      else if (tree1.branches.isEmpty) tree2
+      if (tree1.eq(tree2) || !tree2.overlaps(root_range)) tree1
       else
         (tree1 /: tree2.branches)(
           { case (tree, (range, entry)) =>
-              if (range overlaps root_range) {
+              if (!range.overlaps(root_range)) tree
+              else
                 (merge_trees(tree, entry.subtree) /: entry.filter_markup(elements))(
                   { case (t, elem) => t + Text.Info(range, elem) })
-              }
-              else tree
           })
 
-    merge_trees(this, other)
+    if (!this.overlaps(root_range)) other
+    else merge_trees(this, other)
   }
 
   def cumulate[A](root_range: Text.Range, root_info: A, elements: Document.Elements,
