@@ -167,7 +167,7 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
         ((tree ++ entry.subtree) /: entry.markup)(
           { case (t, elem) => t + Text.Info(range, elem) }) })
 
-  def to_XML(root_range: Text.Range, text: CharSequence, filter: XML.Elem => Boolean): XML.Body =
+  def to_XML(root_range: Text.Range, text: CharSequence, elements: Document.Elements): XML.Body =
   {
     def make_text(start: Text.Offset, stop: Text.Offset): XML.Body =
       if (start == stop) Nil
@@ -176,7 +176,7 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
     def make_elems(rev_markups: List[XML.Elem], body: XML.Body): XML.Body =
       (body /: rev_markups) {
         case (b, elem) =>
-          if (!filter(elem)) b
+          if (!elements(elem.name)) b
           else if (elem.body.isEmpty) List(XML.Elem(elem.markup, b))
           else List(XML.Wrapped_Elem(elem.markup, elem.body, b))
       }
@@ -197,9 +197,6 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
     }
    make_body(root_range, Nil, overlapping(root_range))
   }
-
-  def to_XML(text: CharSequence): XML.Body =
-    to_XML(Text.Range(0, text.length), text, (_: XML.Elem) => true)
 
   def cumulate[A](root_range: Text.Range, root_info: A, elements: Document.Elements,
     result: (A, Text.Markup) => Option[A]): List[Text.Info[A]] =

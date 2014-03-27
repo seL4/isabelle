@@ -653,11 +653,11 @@ object Document
     def command_markup(version: Version, command: Command, index: Command.Markup_Index): Markup_Tree =
       Command.State.merge_markup(command_states(version, command), index)
 
-    def markup_to_XML(version: Version, node: Node, filter: XML.Elem => Boolean): XML.Body =
+    def markup_to_XML(version: Version, node: Node, elements: Elements): XML.Body =
       (for {
         command <- node.commands.iterator
         markup = command_markup(version, command, Command.Markup_Index.markup)
-        tree <- markup.to_XML(command.range, command.source, filter)
+        tree <- markup.to_XML(command.range, command.source, elements)
       } yield tree).toList
 
     // persistent user-view
