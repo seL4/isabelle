@@ -650,13 +650,15 @@ object Document
     def command_results(version: Version, command: Command): Command.Results =
       Command.State.merge_results(command_states(version, command))
 
-    def command_markup(version: Version, command: Command, index: Command.Markup_Index): Markup_Tree =
-      Command.State.merge_markup(command_states(version, command), index)
+    def command_markup(version: Version, command: Command, index: Command.Markup_Index,
+        range: Text.Range, elements: Elements): Markup_Tree =
+      Command.State.merge_markup(command_states(version, command), index, range, elements)
 
     def markup_to_XML(version: Version, node: Node, elements: Elements): XML.Body =
       (for {
         command <- node.commands.iterator
-        markup = command_markup(version, command, Command.Markup_Index.markup)
+        markup =
+          command_markup(version, command, Command.Markup_Index.markup, command.range, elements)
         tree <- markup.to_XML(command.range, command.source, elements)
       } yield tree).toList
 
@@ -734,8 +736,9 @@ object Document
                 chunk <- thy_load_command.chunks.get(file_name).iterator
                 states = state.command_states(version, thy_load_command)
                 res = result(Command.State.merge_results(states))
-                Text.Info(r0, a) <- Command.State.merge_markup(states, markup_index).cumulate[A](
-                  former_range.restrict(chunk.range), info, elements,
+                range = former_range.restrict(chunk.range)
+                markup = Command.State.merge_markup(states, markup_index, range, elements)
+                Text.Info(r0, a) <- markup.cumulate[A](range, info, elements,
                   { case (a, Text.Info(r0, b)) => res(a, Text.Info(convert(r0), b)) }
                 ).iterator
               } yield Text.Info(convert(r0), a)).toList
@@ -746,8 +749,9 @@ object Document
                 (command, command_start) <- node.command_range(former_range)
                 states = state.command_states(version, command)
                 res = result(Command.State.merge_results(states))
-                Text.Info(r0, a) <- Command.State.merge_markup(states, markup_index).cumulate[A](
-                  (former_range - command_start).restrict(command.range), info, elements,
+                range = (former_range - command_start).restrict(command.range)
+                markup = Command.State.merge_markup(states, markup_index, range, elements)
+                Text.Info(r0, a) <- markup.cumulate[A](range, info, elements,
                   {
                     case (a, Text.Info(r0, b)) => res(a, Text.Info(convert(r0 + command_start), b))
                   }).iterator

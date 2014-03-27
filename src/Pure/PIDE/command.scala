@@ -81,11 +81,6 @@ object Command
     def add(index: Markup_Index, markup: Text.Markup): Markups =
       new Markups(rep + (index -> (this(index) + markup)))
 
-    def ++ (other: Markups): Markups =
-      new Markups(
-        (rep.keySet ++ other.rep.keySet)
-          .map(index => index -> (this(index) ++ other(index))).toMap)
-
     override def hashCode: Int = rep.hashCode
     override def equals(that: Any): Boolean =
       that match {
@@ -103,8 +98,9 @@ object Command
     def merge_results(states: List[State]): Command.Results =
       Results.merge(states.map(_.results))
 
-    def merge_markup(states: List[State], index: Markup_Index): Markup_Tree =
-      Markup_Tree.merge(states.map(_.markup(index)))
+    def merge_markup(states: List[State], index: Markup_Index,
+        range: Text.Range, elements: Document.Elements): Markup_Tree =
+      Markup_Tree.merge(states.map(_.markup(index)), range, elements)
   }
 
   sealed case class State(
@@ -203,13 +199,6 @@ object Command
               this
           }
     }
-
-    def ++ (other: State): State =
-      copy(
-        status = other.status ::: status,
-        results = results ++ other.results,
-        markups = markups ++ other.markups
-      )
   }
 
 
