@@ -29,10 +29,6 @@ sig
   val interact: bool Unsynchronized.ref
   val timing: bool Unsynchronized.ref
   val profiling: int Unsynchronized.ref
-  val debugging: Context.generic option -> ('a -> 'b) -> 'a -> 'b
-  val controlled_execution: Context.generic option -> ('a -> 'b) -> 'a -> 'b
-  val program: (unit -> 'a) -> 'a
-  val thread: bool -> (unit -> unit) -> Thread.thread
   type transition
   val empty: transition
   val print_of: transition -> bool
@@ -232,26 +228,6 @@ val timing = Unsynchronized.ref false;  (*Proof General legacy*)
 val profiling = Unsynchronized.ref 0;
 
 
-(* controlled execution *)
-
-fun debugging arg = Runtime.debugging ML_Compiler.exn_message arg;
-fun controlled_execution arg = Runtime.controlled_execution ML_Compiler.exn_message arg;
-
-fun program body =
- (body
-  |> controlled_execution NONE
-  |> Runtime.toplevel_error ML_Compiler.exn_error_message) ();
-
-fun thread interrupts body =
-  Thread.fork
-    (((fn () => body () handle exn => if Exn.is_interrupt exn then () else reraise exn)
-        |> debugging NONE
-        |> Runtime.toplevel_error
-          (fn exn =>
-            Output.urgent_message ("## INTERNAL ERROR ##\n" ^ ML_Compiler.exn_message exn))),
-      Simple_Thread.attributes interrupts);
-
-
 (* node transactions -- maintaining stable checkpoints *)
 
 exception FAILURE of state * exn;
@@ -275,7 +251,7 @@ fun apply_transaction f g node =
 
     val (result, err) =
       cont_node
-      |> controlled_execution (SOME context) f
+      |> Runtime.controlled_execution (SOME context) f
       |> state_error NONE
       handle exn => state_error (SOME exn) cont_node;
   in
@@ -304,11 +280,11 @@ datatype trans =
 local
 
 fun apply_tr _ (Init f) (State (NONE, _)) =
-      State (SOME (Theory (Context.Theory (controlled_execution NONE f ()), NONE)), NONE)
+      State (SOME (Theory (Context.Theory (Runtime.controlled_execution NONE f ()), NONE)), NONE)
   | apply_tr _ Exit (State (SOME (state as Theory (Context.Theory _, _)), _)) =
       exit_transaction state
   | apply_tr int (Keep f) state =
-      controlled_execution (try generic_theory_of state) (fn x => tap (f int) x) state
+      Runtime.controlled_execution (try generic_theory_of state) (fn x => tap (f int) x) state
   | apply_tr int (Transaction (f, g)) (State (SOME state, _)) =
       apply_transaction (fn x => f int x) g state
   | apply_tr _ _ _ = raise UNDEF;
@@ -649,8 +625,8 @@ end;
 fun command_errors int tr st =
   (case transition int tr st of
     SOME (st', NONE) => ([], SOME st')
-  | SOME (_, SOME (exn, _)) => (ML_Compiler.exn_messages_ids exn, NONE)
-  | NONE => (ML_Compiler.exn_messages_ids Runtime.TERMINATE, NONE));
+  | SOME (_, SOME (exn, _)) => (Runtime.exn_messages_ids exn, NONE)
+  | NONE => (Runtime.exn_messages_ids Runtime.TERMINATE, NONE));
 
 fun command_exception int tr st =
   (case transition int tr st of

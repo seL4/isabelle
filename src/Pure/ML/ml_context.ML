@@ -17,8 +17,6 @@ sig
   val add_antiquotation: binding -> (Args.src -> Proof.context -> decl * Proof.context) ->
     theory -> theory
   val print_antiquotations: Proof.context -> unit
-  val source_trace_raw: Config.raw
-  val source_trace: bool Config.T
   val eval_antiquotes: ML_Lex.token Antiquote.antiquote list * Position.T ->
     Context.generic option -> (ML_Lex.token list * ML_Lex.token list) * Context.generic option
   val eval: ML_Compiler.flags -> Position.T -> ML_Lex.token Antiquote.antiquote list -> unit
@@ -137,9 +135,6 @@ fun eval_antiquotes (ants, pos) opt_context =
         in ((begin_env visible @ ml_env, ml_body), SOME (Context.Proof ctxt')) end;
   in ((ml_env @ end_env, ml_body), opt_ctxt') end;
 
-val source_trace_raw = Config.declare "ML_source_trace" (fn _ => Config.Bool false);
-val source_trace = Config.bool source_trace_raw;
-
 fun eval flags pos ants =
   let
     val non_verbose = {SML = #SML flags, verbose = false};
@@ -149,7 +144,7 @@ fun eval flags pos ants =
     val _ =
       (case Option.map Context.proof_of env_ctxt of
         SOME ctxt =>
-          if Config.get ctxt source_trace andalso Context_Position.is_visible ctxt
+          if Config.get ctxt ML_Options.source_trace andalso Context_Position.is_visible ctxt
           then tracing (cat_lines [ML_Lex.flatten env, ML_Lex.flatten body])
           else ()
       | NONE => ());

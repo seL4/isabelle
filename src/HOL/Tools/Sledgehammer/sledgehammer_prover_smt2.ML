@@ -160,7 +160,7 @@ fun smt2_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instan
             if Exn.is_interrupt exn orelse debug then
               reraise exn
             else
-              {outcome = SOME (SMT2_Failure.Other_Failure (ML_Compiler.exn_message exn)),
+              {outcome = SOME (SMT2_Failure.Other_Failure (Runtime.exn_message exn)),
                rewrite_rules = [], conjecture_id = ~1, helper_ids = [], fact_ids = [],
                z3_proof = []}
 

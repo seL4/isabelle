@@ -24,7 +24,7 @@ fun register name f =
               fun status m = result (Markup.markup_only m);
               fun output_result s = result (Markup.markup (Markup.writelnN, []) s);
               fun toplevel_error exn =
-                result (Markup.markup (Markup.errorN, []) (ML_Compiler.exn_message exn));
+                result (Markup.markup (Markup.errorN, []) (Runtime.exn_message exn));
 
               val _ = status Markup.running;
               fun run () = f {state = state, args = args, output_result = output_result};

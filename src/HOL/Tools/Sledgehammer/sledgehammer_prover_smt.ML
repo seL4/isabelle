@@ -159,7 +159,7 @@ fun smt_filter_loop name ({debug, overlord, max_mono_iters, max_new_mono_instanc
           |> (fn {outcome, used_facts} => (outcome, used_facts))
           handle exn =>
             if Exn.is_interrupt exn then reraise exn
-            else (ML_Compiler.exn_message exn |> SMT_Failure.Other_Failure |> SOME, [])
+            else (Runtime.exn_message exn |> SMT_Failure.Other_Failure |> SOME, [])
 
         val death = Timer.checkRealTimer timer
         val outcome0 = if is_none outcome0 then SOME outcome else outcome0

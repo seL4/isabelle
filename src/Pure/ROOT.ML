@@ -69,6 +69,7 @@ use "General/sha1_samples.ML";
 
 use "PIDE/xml.ML";
 use "PIDE/yxml.ML";
+use "PIDE/document_id.ML";
 
 use "General/change_table.ML";
 use "General/graph.ML";
@@ -193,16 +194,18 @@ use "display.ML";
 
 (* Isar -- Intelligible Semi-Automated Reasoning *)
 
-(*ML support*)
+(*ML support and global execution*)
 use "ML/ml_syntax.ML";
 use "ML/ml_env.ML";
+use "ML/ml_options.ML";
+use "ML/exn_output.ML";
+if ML_System.is_polyml then use "ML/exn_output_polyml.ML" else ();
+use "ML/ml_options.ML";
 use "Isar/runtime.ML";
+use "PIDE/execution.ML";
 use "ML/ml_compiler.ML";
 if ML_System.is_polyml then use "ML/ml_compiler_polyml.ML" else ();
 
-(*global execution*)
-use "PIDE/document_id.ML";
-use "PIDE/execution.ML";
 use "skip_proof.ML";
 use "goal.ML";
 
@@ -346,7 +349,7 @@ if ML_System.is_polyml then use "ML/install_pp_polyml.ML" else ();
 (* the Pure theory *)
 
 use "pure_syn.ML";
-Toplevel.program (fn () => Thy_Info.use_thy ("Pure", Position.none));
+Runtime.toplevel_program (fn () => Thy_Info.use_thy ("Pure", Position.none));
 Context.set_thread_data NONE;
 structure Pure = struct val thy = Thy_Info.get_theory "Pure" end;
 
@@ -355,7 +358,8 @@ toplevel_pp ["typ"] "Proof_Display.pp_typ Pure.thy";
 
 (* ML toplevel commands *)
 
-fun use_thys args = Toplevel.program (fn () => Thy_Info.use_thys (map (rpair Position.none) args));
+fun use_thys args =
+  Runtime.toplevel_program (fn () => Thy_Info.use_thys (map (rpair Position.none) args));
 val use_thy = use_thys o single;
 
 val cd = File.cd o Path.explode;

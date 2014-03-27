@@ -1163,7 +1163,7 @@ text %mlref {*
   @{index_ML_exception Fail: string} \\
   @{index_ML Exn.is_interrupt: "exn -> bool"} \\
   @{index_ML reraise: "exn -> 'a"} \\
-  @{index_ML ML_Compiler.exn_trace: "(unit -> 'a) -> 'a"} \\
+  @{index_ML Runtime.exn_trace: "(unit -> 'a) -> 'a"} \\
   \end{mldecls}
 
   \begin{description}
@@ -1191,12 +1191,12 @@ text %mlref {*
   while preserving its implicit position information (if possible,
   depending on the ML platform).
 
-  \item @{ML ML_Compiler.exn_trace}~@{ML_text "(fn () =>"}~@{text
+  \item @{ML Runtime.exn_trace}~@{ML_text "(fn () =>"}~@{text
   "e"}@{ML_text ")"} evaluates expression @{text "e"} while printing
   a full trace of its stack of nested exceptions (if possible,
   depending on the ML platform).
 
-  Inserting @{ML ML_Compiler.exn_trace} into ML code temporarily is
+  Inserting @{ML Runtime.exn_trace} into ML code temporarily is
   useful for debugging, but not suitable for production code.
 
   \end{description}

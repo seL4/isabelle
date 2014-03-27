@@ -541,6 +541,9 @@ guard is mandatory and checked precisely.  Subtle INCOMPATIBILITY.
 
 *** ML ***
 
+* Moved ML_Compiler.exn_trace and other operations on exceptions to
+structure Runtime.  Minor INCOMPATIBILITY.
+
 * Discontinued old Toplevel.debug in favour of system option
 "ML_exception_trace", which may be also declared within the context via
 "declare [[ML_exception_trace = true]]".  Minor INCOMPATIBILITY.

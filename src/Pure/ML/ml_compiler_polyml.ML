@@ -1,47 +1,13 @@
 (*  Title:      Pure/ML/ml_compiler_polyml.ML
     Author:     Makarius
 
-Advanced runtime compilation for Poly/ML.
+Runtime compilation and evaluation -- Poly/ML version.
 *)
 
 structure ML_Compiler: ML_COMPILER =
 struct
 
 open ML_Compiler;
-
-
-(* source locations *)
-
-fun position_of (loc: PolyML.location) =
-  let
-    val {startLine = line, startPosition = offset, endPosition = end_offset, ...} = loc;
-    val props = Exn_Properties.of_location loc;
-  in
-    Position.make {line = line, offset = offset, end_offset = end_offset, props = props}
-  end;
-
-
-(* exn_info *)
-
-fun exn_position exn =
-  (case PolyML.exceptionLocation exn of
-    NONE => Position.none
-  | SOME loc => position_of loc);
-
-fun pretty_exn (exn: exn) =
-  Pretty.from_ML (pretty_ml (PolyML.prettyRepresentation (exn, get_print_depth ())));
-
-val exn_info = {exn_position = exn_position, pretty_exn = pretty_exn};
-
-
-(* exn_message *)
-
-val exn_messages_ids = Runtime.exn_messages_ids exn_info;
-val exn_messages = Runtime.exn_messages exn_info;
-val exn_message = Runtime.exn_message exn_info;
-
-val exn_error_message = Output.error_message o exn_message;
-fun exn_trace e = print_exception_trace exn_message e;
 
 
 (* parse trees *)
@@ -54,14 +20,15 @@ fun report_parse_tree depth space =
       | _ => Position.reported_text);
 
     fun reported_entity kind loc decl =
-      reported_text (position_of loc)
-        (Markup.entityN, (Markup.kindN, kind) :: Position.def_properties_of (position_of decl)) "";
+      reported_text (Exn_Properties.position_of loc)
+        (Markup.entityN,
+          (Markup.kindN, kind) :: Position.def_properties_of (Exn_Properties.position_of decl)) "";
 
     fun reported loc (PolyML.PTtype types) =
           cons
             (PolyML.NameSpace.displayTypeExpression (types, depth, space)
               |> pretty_ml |> Pretty.from_ML |> Pretty.string_of
-              |> reported_text (position_of loc) Markup.ML_typing)
+              |> reported_text (Exn_Properties.position_of loc) Markup.ML_typing)
       | reported loc (PolyML.PTdeclaredAt decl) =
           cons (reported_entity Markup.ML_defN loc decl)
       | reported loc (PolyML.PTopenedAt decl) =
@@ -122,7 +89,7 @@ fun eval {SML, verbose} pos toks =
 
     fun message {message = msg, hard, location = loc, context = _} =
       let
-        val pos = position_of loc;
+        val pos = Exn_Properties.position_of loc;
         val txt =
           (if hard then "ML error" else "ML warning") ^ Position.here pos ^ ":\n" ^
           Pretty.string_of (Pretty.from_ML (pretty_ml msg));
@@ -131,7 +98,7 @@ fun eval {SML, verbose} pos toks =
 
     (* results *)
 
-    val depth = get_print_depth ();
+    val depth = ML_Options.get_print_depth ();
 
     fun apply_result {fixes, types, signatures, structures, functors, values} =
       let
@@ -172,8 +139,8 @@ fun eval {SML, verbose} pos toks =
       | SOME code =>
           apply_result
             ((code
-              |> Runtime.debugging exn_message opt_context
-              |> Runtime.toplevel_error (err o exn_message)) ())));
+              |> Runtime.debugging opt_context
+              |> Runtime.toplevel_error (err o Runtime.exn_message)) ())));
 
 
     (* compiler invocation *)
@@ -185,7 +152,7 @@ fun eval {SML, verbose} pos toks =
       PolyML.Compiler.CPLineNo (the_default 0 o Position.line_of o get_pos),
       PolyML.Compiler.CPLineOffset (the_default 0 o Position.offset_of o get_pos),
       PolyML.Compiler.CPFileName location_props,
-      PolyML.Compiler.CPPrintDepth get_print_depth,
+      PolyML.Compiler.CPPrintDepth ML_Options.get_print_depth,
       PolyML.Compiler.CPCompilerResultFun result_fun,
       PolyML.Compiler.CPPrintInAlphabeticalOrder false];
     val _ =
@@ -199,7 +166,7 @@ fun eval {SML, verbose} pos toks =
               (case exn of
                 STATIC_ERRORS () => ""
               | Runtime.TOPLEVEL_ERROR => ""
-              | _ => "Exception- " ^ Pretty.string_of (pretty_exn exn) ^ " raised");
+              | _ => "Exception- " ^ Pretty.string_of (Exn_Output.pretty exn) ^ " raised");
             val _ = output_warnings ();
             val _ = output_writeln ();
           in raise_error exn_msg end;

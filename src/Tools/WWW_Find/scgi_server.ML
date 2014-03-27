@@ -53,7 +53,7 @@ fun server server_prefix port =
              ConditionVar.wait (thread_wait, thread_wait_mutex));
        add_thread
          (Thread.fork   (* FIXME avoid low-level Poly/ML thread primitives *)
-            (fn () => ML_Compiler.exn_trace threadf,
+            (fn () => Runtime.exn_trace threadf,
              [Thread.EnableBroadcastInterrupt true,
               Thread.InterruptState
               Thread.InterruptAsynchOnce])))

@@ -157,7 +157,7 @@ fun launch_prover (params as {debug, verbose, spy, blocking, max_facts, timeout,
                       reraise exn
                     else
                       (unknownN, fn () => "Internal error:\n" ^
-                                          ML_Compiler.exn_message exn ^ "\n"))
+                                          Runtime.exn_message exn ^ "\n"))
         val _ =
           (* The "expect" argument is deliberately ignored if the prover is
              missing so that the "Metis_Examples" can be processed on any

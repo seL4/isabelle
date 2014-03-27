@@ -63,7 +63,7 @@ ML {*
          reraise exn
        else
          (report ctxt (msg ^ " test: file " ^ Path.print file_name ^
-          " raised exception: " ^ ML_Compiler.exn_message exn);
+          " raised exception: " ^ Runtime.exn_message exn);
           default_val)
     end
 

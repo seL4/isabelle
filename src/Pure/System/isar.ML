@@ -97,7 +97,7 @@ fun op >> tr =
   | SOME (_, SOME exn_info) =>
      (set_exn (SOME exn_info);
       Toplevel.setmp_thread_position tr
-        ML_Compiler.exn_error_message (Runtime.EXCURSION_FAIL exn_info);
+        Runtime.exn_error_message (Runtime.EXCURSION_FAIL exn_info);
       true)
   | SOME (st', NONE) =>
       let
@@ -144,7 +144,7 @@ fun raw_loop secure src =
       NONE => if secure then quit () else ()
     | SOME (tr, src') => if op >> tr orelse check_secure () then raw_loop secure src' else ())
     handle exn =>
-      (ML_Compiler.exn_error_message exn
+      (Runtime.exn_error_message exn
         handle crash =>
           (Synchronized.change crashes (cons crash);
             warning "Recovering from Isar toplevel crash -- see also Isar.crashes");
