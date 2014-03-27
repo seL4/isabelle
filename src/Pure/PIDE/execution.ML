@@ -17,7 +17,7 @@ sig
   val terminate: Document_ID.exec -> unit
   type params = {name: string, pos: Position.T, pri: int}
   val fork: params -> (unit -> 'a) -> 'a future
-  val print: params -> (serial -> unit) -> unit
+  val print: params -> (unit -> unit) -> unit
   val fork_prints: Document_ID.exec -> unit
   val purge: Document_ID.exec list -> unit
   val reset: unit -> Future.group list
@@ -135,12 +135,11 @@ fun fork ({name, pos, pri}: params) e =
 
 (* print *)
 
-fun print ({name, pos, pri}: params) pr =
+fun print ({name, pos, pri}: params) e =
   change_state (apsnd (fn execs =>
     let
       val exec_id = the_default 0 (Position.parse_id pos);
-      val i = serial ();
-      val print = {name = name, pri = pri, body = fn () => pr i};
+      val print = {name = name, pri = pri, body = e};
     in
       (case Inttab.lookup execs exec_id of
         SOME (groups, prints) => Inttab.update (exec_id, (groups, print :: prints)) execs

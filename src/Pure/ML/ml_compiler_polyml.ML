@@ -59,8 +59,8 @@ fun report_parse_tree redirect depth space parse_tree =
   in
     if not (null persistent_reports) andalso redirect andalso Multithreading.enabled ()
     then
-      Execution.print {name = "ML_Compiler.report", pos = Position.thread_data (), pri = 1}
-        (fn _ => output ())
+      Execution.print
+        {name = "ML_Compiler.report", pos = Position.thread_data (), pri = 1} output
     else output ()
   end;
 
