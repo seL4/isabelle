@@ -12,42 +12,65 @@ open ML_Compiler;
 
 (* parse trees *)
 
-fun report_parse_tree depth space =
+fun report_parse_tree redirect depth space parse_tree =
   let
-    val reported_text =
+    val is_visible =
       (case Context.thread_data () of
-        SOME (Context.Proof ctxt) => Context_Position.reported_text ctxt
-      | _ => Position.reported_text);
+        SOME context => Context_Position.is_visible_generic context
+      | NONE => true);
+    fun is_reported pos = is_visible andalso Position.is_reported pos;
+
+    fun reported_types loc types =
+      let val pos = Exn_Properties.position_of loc in
+        is_reported pos ?
+          let
+            val xml =
+              PolyML.NameSpace.displayTypeExpression (types, depth, space)
+              |> pretty_ml |> Pretty.from_ML |> Pretty.string_of
+              |> Output.output |> YXML.parse_body;
+          in cons (pos, fn () => Markup.ML_typing, fn () => YXML.string_of_body xml) end
+      end;
 
     fun reported_entity kind loc decl =
-      reported_text (Exn_Properties.position_of loc)
-        (Markup.entityN,
-          (Markup.kindN, kind) :: Position.def_properties_of (Exn_Properties.position_of decl)) "";
+      let val pos = Exn_Properties.position_of loc in
+        is_reported pos ?
+          let
+            val def_pos = Exn_Properties.position_of decl;
+            fun markup () =
+              (Markup.entityN, (Markup.kindN, kind) :: Position.def_properties_of def_pos);
+          in cons (pos, markup, fn () => "") end
+      end;
 
-    fun reported loc (PolyML.PTtype types) =
-          cons
-            (PolyML.NameSpace.displayTypeExpression (types, depth, space)
-              |> pretty_ml |> Pretty.from_ML |> Pretty.string_of
-              |> reported_text (Exn_Properties.position_of loc) Markup.ML_typing)
-      | reported loc (PolyML.PTdeclaredAt decl) =
-          cons (reported_entity Markup.ML_defN loc decl)
-      | reported loc (PolyML.PTopenedAt decl) =
-          cons (reported_entity Markup.ML_openN loc decl)
-      | reported loc (PolyML.PTstructureAt decl) =
-          cons (reported_entity Markup.ML_structureN loc decl)
+    fun reported loc (PolyML.PTtype types) = reported_types loc types
+      | reported loc (PolyML.PTdeclaredAt decl) = reported_entity Markup.ML_defN loc decl
+      | reported loc (PolyML.PTopenedAt decl) = reported_entity Markup.ML_openN loc decl
+      | reported loc (PolyML.PTstructureAt decl) = reported_entity Markup.ML_structureN loc decl
       | reported _ (PolyML.PTnextSibling tree) = reported_tree (tree ())
       | reported _ (PolyML.PTfirstChild tree) = reported_tree (tree ())
       | reported _ _ = I
     and reported_tree (loc, props) = fold (reported loc) props;
-  in fn tree => Output.report (implode (reported_tree tree [])) end;
+
+    val persistent_reports = reported_tree parse_tree [];
+
+    fun output () =
+      persistent_reports
+      |> map (fn (pos, markup, text) => Position.reported_text pos (markup ()) (text ()))
+      |> implode |> Output.report;
+  in
+    if not (null persistent_reports) andalso redirect andalso Multithreading.enabled ()
+    then
+      Execution.print {name = "ML_Compiler.report", pos = Position.thread_data (), pri = 1}
+        (fn _ => output ())
+    else output ()
+  end;
 
 
 (* eval ML source tokens *)
 
-fun eval {SML, verbose} pos toks =
+fun eval (flags: flags) pos toks =
   let
     val _ = Secure.secure_mltext ();
-    val space = if SML then ML_Env.SML_name_space else ML_Env.name_space;
+    val space = if #SML flags then ML_Env.SML_name_space else ML_Env.name_space;
     val opt_context = Context.thread_data ();
 
 
@@ -133,7 +156,7 @@ fun eval {SML, verbose} pos toks =
     fun result_fun (phase1, phase2) () =
      ((case phase1 of
         NONE => ()
-      | SOME parse_tree => report_parse_tree depth space parse_tree);
+      | SOME parse_tree => report_parse_tree (#redirect flags) depth space parse_tree);
       (case phase2 of
         NONE => raise STATIC_ERRORS ()
       | SOME code =>
@@ -171,7 +194,7 @@ fun eval {SML, verbose} pos toks =
             val _ = output_writeln ();
           in raise_error exn_msg end;
   in
-    if verbose then (output_warnings (); flush_error (); output_writeln ())
+    if #verbose flags then (output_warnings (); flush_error (); output_writeln ())
     else ()
   end;
 

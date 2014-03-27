@@ -18,7 +18,6 @@ sig
   type params = {name: string, pos: Position.T, pri: int}
   val fork: params -> (unit -> 'a) -> 'a future
   val print: params -> (serial -> unit) -> unit
-  val print_report: string -> unit
   val fork_prints: Document_ID.exec -> unit
   val purge: Document_ID.exec list -> unit
   val reset: unit -> Future.group list
@@ -147,14 +146,6 @@ fun print ({name, pos, pri}: params) pr =
         SOME (groups, prints) => Inttab.update (exec_id, (groups, print :: prints)) execs
       | NONE => raise Fail (unregistered exec_id))
     end));
-
-fun print_report s =
-  if s = "" orelse not (Multithreading.enabled ()) then Output.direct_report s
-  else
-    let
-      val body = YXML.parse_body s  (*sharable closure!*)
-      val params = {name = "", pos = Position.thread_data (), pri = 0};
-    in print params (fn _ => Output.direct_report (YXML.string_of_body body)) end;
 
 fun fork_prints exec_id =
   (case Inttab.lookup (#2 (get_state ())) exec_id of

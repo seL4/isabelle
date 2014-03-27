@@ -30,8 +30,6 @@ sig
   val error_message: string -> unit
   val prompt: string -> unit
   val status: string -> unit
-  val direct_report: string -> unit
-  val redirect_report: (string -> unit) -> ('a -> 'b) -> 'a -> 'b
   val report: string -> unit
   val result: Properties.T -> string -> unit
   val protocol_message: Properties.T -> string -> unit
@@ -117,17 +115,7 @@ fun error_message' (i, s) = ! error_message_fn (i, output s);
 fun error_message s = error_message' (serial (), s);
 fun prompt s = ! prompt_fn (output s);
 fun status s = ! status_fn (output s);
-
-fun direct_report s = ! report_fn (output s);
-
-local
-  val tag = Universal.tag () : (string -> unit) Universal.tag;
-  fun thread_data () = the_default direct_report (Thread.getLocal tag);
-in
-  fun redirect_report rep = Library.setmp_thread_data tag (thread_data ()) rep;
-  fun report s = thread_data () s;
-end;
-
+fun report s = ! report_fn (output s);
 fun result props s = ! result_fn props (output s);
 fun protocol_message props s = ! protocol_message_fn props (output s);
 fun try_protocol_message props s = protocol_message props s handle Protocol_Message _ => ();

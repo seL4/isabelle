@@ -23,9 +23,10 @@ val _ =
           val [{src_path, lines, digest, pos}] = files (Context.theory_of gthy);
           val provide = Resources.provide (src_path, digest);
           val source = {delimited = true, text = cat_lines lines, pos = pos};
+          val flags = {SML = false, redirect = true, verbose = true};
         in
           gthy
-          |> ML_Context.exec (fn () => ML_Context.eval_source {SML = false, verbose = true} source)
+          |> ML_Context.exec (fn () => ML_Context.eval_source flags source)
           |> Local_Theory.propagate_ml_env
           |> Context.mapping provide (Local_Theory.background_theory provide)
         end)));

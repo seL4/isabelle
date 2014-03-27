@@ -137,7 +137,7 @@ fun eval_antiquotes (ants, pos) opt_context =
 
 fun eval flags pos ants =
   let
-    val non_verbose = {SML = #SML flags, verbose = false};
+    val non_verbose = ML_Compiler.verbose false flags;
 
     (*prepare source text*)
     val ((env, body), env_ctxt) = eval_antiquotes (ants, pos) (Context.thread_data ());
@@ -181,13 +181,14 @@ fun eval_source_in ctxt flags source =
     (fn () => eval_source flags source) ();
 
 fun expression pos bind body ants =
-  exec (fn () => eval {SML = false, verbose = false} pos
-    (ML_Lex.read Position.none ("Context.set_thread_data (SOME (let " ^ bind ^ " = ") @ ants @
+  exec (fn () =>
+    eval ML_Compiler.flags pos
+     (ML_Lex.read Position.none ("Context.set_thread_data (SOME (let " ^ bind ^ " = ") @ ants @
       ML_Lex.read Position.none (" in " ^ body ^ " end (ML_Context.the_generic_context ())));")));
 
 end;
 
 fun use s =
-  ML_Context.eval_file {SML = false, verbose = true} (Path.explode s)
+  ML_Context.eval_file (ML_Compiler.verbose true ML_Compiler.flags) (Path.explode s)
     handle ERROR msg => (writeln msg; error "ML error");
 
