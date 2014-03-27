@@ -728,35 +728,24 @@ object Document
           status: Boolean = false): List[Text.Info[A]] =
         {
           val former_range = revert(range)
-          thy_load_commands match {
-            case thy_load_command :: _ =>
-              val file_name = node_name.node
-              val markup_index = Command.Markup_Index(status, file_name)
-              (for {
-                chunk <- thy_load_command.chunks.get(file_name).iterator
-                states = state.command_states(version, thy_load_command)
-                res = result(Command.State.merge_results(states))
-                range = former_range.restrict(chunk.range)
-                markup = Command.State.merge_markup(states, markup_index, range, elements)
-                Text.Info(r0, a) <- markup.cumulate[A](range, info, elements,
-                  { case (a, Text.Info(r0, b)) => res(a, Text.Info(convert(r0), b)) }
-                ).iterator
-              } yield Text.Info(convert(r0), a)).toList
-
-            case _ =>
-              val markup_index = Command.Markup_Index(status, "")
-              (for {
-                (command, command_start) <- node.command_range(former_range)
-                states = state.command_states(version, command)
-                res = result(Command.State.merge_results(states))
-                range = (former_range - command_start).restrict(command.range)
-                markup = Command.State.merge_markup(states, markup_index, range, elements)
-                Text.Info(r0, a) <- markup.cumulate[A](range, info, elements,
-                  {
-                    case (a, Text.Info(r0, b)) => res(a, Text.Info(convert(r0 + command_start), b))
-                  }).iterator
-              } yield Text.Info(convert(r0 + command_start), a)).toList
-          }
+          val (file_name, command_range_iterator) =
+            thy_load_commands match {
+              case command :: _ => (node_name.node, Iterator((command, 0)))
+              case _ => ("", node.command_range(former_range))
+            }
+          val markup_index = Command.Markup_Index(status, file_name)
+          (for {
+            (command, command_start) <- command_range_iterator
+            chunk <- command.chunks.get(file_name).iterator
+            states = state.command_states(version, command)
+            res = result(Command.State.merge_results(states))
+            range = (former_range - command_start).restrict(chunk.range)
+            markup = Command.State.merge_markup(states, markup_index, range, elements)
+            Text.Info(r0, a) <- markup.cumulate[A](range, info, elements,
+              {
+                case (a, Text.Info(r0, b)) => res(a, Text.Info(convert(r0 + command_start), b))
+              }).iterator
+          } yield Text.Info(convert(r0 + command_start), a)).toList
         }
 
         def select[A](
