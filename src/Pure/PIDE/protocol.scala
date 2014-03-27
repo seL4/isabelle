@@ -74,8 +74,11 @@ object Protocol
       case _ => status
     }
 
-  def command_status(markups: List[Markup]): Status =
-    (Status.init /: markups)(command_status(_, _))
+  def command_status(status: Status, state: Command.State): Status =
+    (status /: state.status)(command_status(_, _))
+
+  def command_status(status: Status, states: List[Command.State]): Status =
+    (status /: states)(command_status(_, _))
 
   val command_status_elements =
     Document.Elements(Markup.ACCEPTED, Markup.FORKED, Markup.JOINED, Markup.RUNNING,
@@ -119,13 +122,13 @@ object Protocol
     var failed = 0
     for {
       command <- node.commands
-      st <- state.command_states(version, command)
-      status = command_status(st.status)
+      states = state.command_states(version, command)
+      status = command_status(Status.init, states)
     } {
       if (status.is_running) running += 1
       else if (status.is_finished) {
-        if (st.results.entries.exists(p => is_warning(p._2))) warned += 1
-        else finished += 1
+        val warning = states.exists(st => st.results.entries.exists(p => is_warning(p._2)))
+        if (warning) warned += 1 else finished += 1
       }
       else if (status.is_failed) failed += 1
       else unprocessed += 1
