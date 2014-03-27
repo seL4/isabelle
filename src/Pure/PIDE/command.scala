@@ -27,8 +27,8 @@ object Command
   {
     type Entry = (Long, XML.Tree)
     val empty = new Results(SortedMap.empty)
-    def make(es: Iterable[Results.Entry]): Results = (empty /: es.iterator)(_ + _)
-    def merge(rs: Iterable[Results]): Results = (empty /: rs.iterator)(_ ++ _)
+    def make(es: List[Results.Entry]): Results = (empty /: es)(_ + _)
+    def merge(rs: List[Results]): Results = (empty /: rs)(_ ++ _)
   }
 
   final class Results private(private val rep: SortedMap[Long, XML.Tree])
@@ -98,6 +98,15 @@ object Command
 
   /* state */
 
+  object State
+  {
+    def merge_results(states: List[State]): Command.Results =
+      Results.merge(states.map(_.results))
+
+    def merge_markup(states: List[State], index: Markup_Index): Markup_Tree =
+      Markup_Tree.merge(states.map(_.markup(index)))
+  }
+
   sealed case class State(
     command: Command,
     status: List[Markup] = Nil,
@@ -107,9 +116,6 @@ object Command
     /* markup */
 
     def markup(index: Markup_Index): Markup_Tree = markups(index)
-
-    def markup_to_XML(filter: XML.Elem => Boolean): XML.Body =
-      markup(Markup_Index.markup).to_XML(command.range, command.source, filter)
 
 
     /* content */

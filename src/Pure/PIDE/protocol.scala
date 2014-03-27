@@ -117,18 +117,19 @@ object Protocol
     var finished = 0
     var warned = 0
     var failed = 0
-    node.commands.foreach(command =>
-      {
-        val st = state.command_state(version, command)
-        val status = command_status(st.status)
-        if (status.is_running) running += 1
-        else if (status.is_finished) {
-          if (st.results.entries.exists(p => is_warning(p._2))) warned += 1
-          else finished += 1
-        }
-        else if (status.is_failed) failed += 1
-        else unprocessed += 1
-      })
+    for {
+      command <- node.commands
+      st <- state.command_states(version, command)
+      status = command_status(st.status)
+    } {
+      if (status.is_running) running += 1
+      else if (status.is_finished) {
+        if (st.results.entries.exists(p => is_warning(p._2))) warned += 1
+        else finished += 1
+      }
+      else if (status.is_failed) failed += 1
+      else unprocessed += 1
+    }
     Node_Status(unprocessed, running, finished, warned, failed)
   }
 
@@ -149,7 +150,7 @@ object Protocol
     var commands = Map.empty[Command, Double]
     for {
       command <- node.commands.iterator
-      st = state.command_state(version, command)
+      st <- state.command_states(version, command)
       command_timing =
         (0.0 /: st.status)({
           case (timing, Markup.Timing(t)) => timing + t.elapsed.seconds

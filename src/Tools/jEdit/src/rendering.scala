@@ -592,8 +592,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     message_colors.get(pri).map((_, is_separator))
   }
 
-  def output_messages(st: Command.State): List[XML.Tree] =
-    st.results.entries.map(_._2).filterNot(Protocol.is_result(_)).toList
+  def output_messages(results: Command.Results): List[XML.Tree] =
+    results.entries.map(_._2).filterNot(Protocol.is_result(_)).toList
 
 
   /* text background */

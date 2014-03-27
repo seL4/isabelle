@@ -27,7 +27,8 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   private var zoom_factor = 100
   private var do_update = true
   private var current_snapshot = Document.Snapshot.init
-  private var current_state = Command.empty.init_state
+  private var current_command = Command.empty
+  private var current_results = Command.Results.empty
   private var current_output: List[XML.Tree] = Nil
 
 
@@ -49,33 +50,34 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   {
     Swing_Thread.require()
 
-    val (new_snapshot, new_state) =
+    val (new_snapshot, new_command, new_results) =
       PIDE.editor.current_node_snapshot(view) match {
         case Some(snapshot) =>
           if (follow && !snapshot.is_outdated) {
             PIDE.editor.current_command(view, snapshot) match {
               case Some(cmd) =>
-                (snapshot, snapshot.state.command_state(snapshot.version, cmd))
+                (snapshot, cmd, snapshot.state.command_results(snapshot.version, cmd))
               case None =>
-                (Document.Snapshot.init, Command.empty.init_state)
+                (Document.Snapshot.init, Command.empty, Command.Results.empty)
             }
           }
-          else (current_snapshot, current_state)
-        case None => (current_snapshot, current_state)
+          else (current_snapshot, current_command, current_results)
+        case None => (current_snapshot, current_command, current_results)
       }
 
     val new_output =
-      if (!restriction.isDefined || restriction.get.contains(new_state.command)) {
+      if (!restriction.isDefined || restriction.get.contains(new_command)) {
         val rendering = Rendering(new_snapshot, PIDE.options.value)
-        rendering.output_messages(new_state)
+        rendering.output_messages(new_results)
       }
       else current_output
 
     if (new_output != current_output)
-      pretty_text_area.update(new_snapshot, new_state.results, Pretty.separate(new_output))
+      pretty_text_area.update(new_snapshot, new_results, Pretty.separate(new_output))
 
     current_snapshot = new_snapshot
-    current_state = new_state
+    current_command = new_command
+    current_results = new_results
     current_output = new_output
   }
 
@@ -149,8 +151,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     tooltip = "Detach window with static copy of current output"
     reactions += {
       case ButtonClicked(_) =>
-        Info_Dockable(view, current_snapshot,
-          current_state.results, Pretty.separate(current_output))
+        Info_Dockable(view, current_snapshot, current_results, Pretty.separate(current_output))
     }
   }
 

@@ -70,20 +70,20 @@ class Query_Operation[Editor_Context](
 
     /* snapshot */
 
-    val (snapshot, state, removed) =
+    val (snapshot, command_results, removed) =
       current_location match {
         case Some(cmd) =>
           val snapshot = editor.node_snapshot(cmd.node_name)
-          val state = snapshot.state.command_state(snapshot.version, cmd)
+          val command_results = snapshot.state.command_results(snapshot.version, cmd)
           val removed = !snapshot.version.nodes(cmd.node_name).commands.contains(cmd)
-          (snapshot, state, removed)
+          (snapshot, command_results, removed)
         case None =>
-          (Document.Snapshot.init, Command.empty.init_state, true)
+          (Document.Snapshot.init, Command.Results.empty, true)
       }
 
     val results =
       (for {
-        (_, elem @ XML.Elem(Markup(Markup.RESULT, props), _)) <- state.results.entries
+        (_, elem @ XML.Elem(Markup(Markup.RESULT, props), _)) <- command_results.entries
         if props.contains((Markup.INSTANCE, instance))
       } yield elem).toList
 
@@ -154,7 +154,7 @@ class Query_Operation[Editor_Context](
         current_update_pending = false
         if (current_output != new_output && !removed) {
           current_output = new_output
-          consume_output(snapshot, state.results, new_output)
+          consume_output(snapshot, command_results, new_output)
         }
         if (current_status != new_status) {
           current_status = new_status

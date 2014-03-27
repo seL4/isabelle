@@ -20,6 +20,9 @@ object Markup_Tree
 
   val empty: Markup_Tree = new Markup_Tree(Branches.empty)
 
+  def merge(trees: List[Markup_Tree]): Markup_Tree =
+    (empty /: trees)(_ ++ _)
+
   def merge_disjoint(trees: List[Markup_Tree]): Markup_Tree =
     trees match {
       case Nil => empty
@@ -157,8 +160,12 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
   }
 
   def ++ (other: Markup_Tree): Markup_Tree =
-    (this /: other.branches)({ case (tree, (range, entry)) =>
-      ((tree ++ entry.subtree) /: entry.markup)({ case (t, elem) => t + Text.Info(range, elem) }) })
+    if (this eq other) this
+    else if (branches.isEmpty) other
+    else
+      (this /: other.branches)({ case (tree, (range, entry)) =>
+        ((tree ++ entry.subtree) /: entry.markup)(
+          { case (t, elem) => t + Text.Info(range, elem) }) })
 
   def to_XML(root_range: Text.Range, text: CharSequence, filter: XML.Elem => Boolean): XML.Body =
   {
