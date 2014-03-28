@@ -117,15 +117,18 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
     this(branches + (entry.range -> entry))
 
   private def overlapping(range: Text.Range): Branches.T =
-  {
-    val start = Text.Range(range.start)
-    val stop = Text.Range(range.stop)
-    val bs = branches.range(start, stop)
-    branches.get(stop) match {
-      case Some(end) if range overlaps end.range => bs + (end.range -> end)
-      case _ => bs
+    if (branches.isEmpty ||
+        (range.contains(branches.firstKey.start) && range.contains(branches.lastKey.stop)))
+      branches
+    else {
+      val start = Text.Range(range.start)
+      val stop = Text.Range(range.stop)
+      val bs = branches.range(start, stop)
+      branches.get(stop) match {
+        case Some(end) if range overlaps end.range => bs + (end.range -> end)
+        case _ => bs
+      }
     }
-  }
 
   def restrict(range: Text.Range): Markup_Tree =
     new Markup_Tree(overlapping(range))
