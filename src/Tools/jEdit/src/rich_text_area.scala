@@ -10,10 +10,11 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{Graphics2D, Shape, Color, Point, Toolkit, Cursor}
+import java.awt.{Graphics2D, Shape, Color, Point, Toolkit, Cursor, MouseInfo}
 import java.awt.event.{MouseMotionAdapter, MouseAdapter, MouseEvent,
   FocusAdapter, FocusEvent, WindowEvent, WindowAdapter}
 import java.awt.font.TextAttribute
+import javax.swing.SwingUtilities
 import java.text.AttributedString
 import java.util.ArrayList
 
@@ -180,6 +181,16 @@ class Rich_Text_Area(
     }
   }
 
+  private def mouse_inside_painter(): Boolean =
+    MouseInfo.getPointerInfo match {
+      case null => false
+      case info =>
+        val point = info.getLocation
+        val painter = text_area.getPainter
+        SwingUtilities.convertPointFromScreen(point, painter)
+        painter.contains(point)
+    }
+
   private val mouse_motion_listener = new MouseMotionAdapter {
     override def mouseDragged(evt: MouseEvent) {
       robust_body(()) {
@@ -213,23 +224,25 @@ class Rich_Text_Area(
         if (evt.getSource == text_area.getPainter) {
           Pretty_Tooltip.invoke(() =>
             robust_body(()) {
-              val rendering = get_rendering()
-              val snapshot = rendering.snapshot
-              if (!snapshot.is_outdated) {
-                JEdit_Lib.pixel_range(text_area, x, y) match {
-                  case None =>
-                  case Some(range) =>
-                    val result =
-                      if (control) rendering.tooltip(range)
-                      else rendering.tooltip_message(range)
-                    result match {
-                      case None =>
-                      case Some(tip) =>
-                        val painter = text_area.getPainter
-                        val loc = new Point(x, y + painter.getFontMetrics.getHeight / 2)
-                        val results = rendering.command_results(range)
-                        Pretty_Tooltip(view, painter, loc, rendering, results, tip)
-                    }
+              if (mouse_inside_painter()) {
+                val rendering = get_rendering()
+                val snapshot = rendering.snapshot
+                if (!snapshot.is_outdated) {
+                  JEdit_Lib.pixel_range(text_area, x, y) match {
+                    case None =>
+                    case Some(range) =>
+                      val result =
+                        if (control) rendering.tooltip(range)
+                        else rendering.tooltip_message(range)
+                      result match {
+                        case None =>
+                        case Some(tip) =>
+                          val painter = text_area.getPainter
+                          val loc = new Point(x, y + painter.getFontMetrics.getHeight / 2)
+                          val results = rendering.command_results(range)
+                          Pretty_Tooltip(view, painter, loc, rendering, results, tip)
+                      }
+                  }
                 }
               }
           })
