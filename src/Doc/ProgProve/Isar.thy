@@ -203,18 +203,17 @@ proof -
   thus "False" by blast
 qed
 
-text{* In the \isacom{have} step the assumption @{prop"surj f"} is now
+text{*
+\begin{warn}
+Note the hyphen after the \isacom{proof} command.
+It is the null method that does nothing to the goal. Leaving it out would ask
+Isabelle to try some suitable introduction rule on the goal @{const False}---but
+there is no such rule and \isacom{proof} would fail.
+\end{warn}
+In the \isacom{have} step the assumption @{prop"surj f"} is now
 referenced by its name @{text s}. The duplication of @{prop"surj f"} in the
 above proofs (once in the statement of the lemma, once in its proof) has been
 eliminated.
-
-\begin{warn}
-Note the dash after the \isacom{proof}
-command.  It is the null method that does nothing to the goal. Leaving it out
-would ask Isabelle to try some suitable introduction rule on the goal @{const
-False}---but there is no suitable introduction rule and \isacom{proof}
-would fail.
-\end{warn}
 
 Stating a lemma with \isacom{assumes}-\isacom{shows} implicitly introduces the
 name \indexed{@{text assms}}{assms} that stands for the list of all assumptions. You can refer
