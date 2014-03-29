@@ -85,7 +85,7 @@ class JEdit_Editor extends Editor[View]
       case _ =>
         PIDE.document_model(buffer) match {
           case Some(model) if !model.is_theory =>
-            snapshot.version.nodes.thy_load_commands(model.node_name) match {
+            snapshot.version.nodes.load_commands(model.node_name) match {
               case cmd :: _ => Some(cmd)
               case Nil => None
             }

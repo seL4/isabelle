@@ -210,17 +210,17 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
               if (model.buffer == text_area.getBuffer) {
                 val snapshot = model.snapshot()
 
-                val thy_load_changed =
-                  snapshot.thy_load_commands.exists(changed.commands.contains)
+                val load_changed =
+                  snapshot.load_commands.exists(changed.commands.contains)
 
-                if (changed.assignment || thy_load_changed ||
+                if (changed.assignment || load_changed ||
                     (changed.nodes.contains(model.node_name) &&
                      changed.commands.exists(snapshot.node.commands.contains)))
                   Swing_Thread.later { overview.delay_repaint.invoke() }
 
                 val visible_lines = text_area.getVisibleLines
                 if (visible_lines > 0) {
-                  if (changed.assignment || thy_load_changed)
+                  if (changed.assignment || load_changed)
                     text_area.invalidateScreenLineRange(0, visible_lines)
                   else {
                     val visible_range = JEdit_Lib.visible_range(text_area).get

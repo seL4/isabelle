@@ -51,7 +51,7 @@ class Resources(val loaded_theories: Set[String] = Set.empty, val base_syntax: O
   /* theory files */
 
   def body_files_test(syntax: Outer_Syntax, text: String): Boolean =
-    syntax.thy_load_commands.exists({ case (cmd, _) => text.containsSlice(cmd) })
+    syntax.load_commands.exists({ case (cmd, _) => text.containsSlice(cmd) })
 
   def body_files(syntax: Outer_Syntax, text: String): List[String] =
   {

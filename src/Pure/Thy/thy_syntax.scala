@@ -245,7 +245,7 @@ object Thy_Syntax
   }
 
   def span_files(syntax: Outer_Syntax, span: List[Token]): List[String] =
-    syntax.thy_load(span) match {
+    syntax.load(span) match {
       case Some(exts) =>
         find_file(span) match {
           case Some(file) =>
@@ -448,7 +448,7 @@ object Thy_Syntax
       val reparse =
         (reparse0 /: nodes0.entries)({
           case (reparse, (name, node)) =>
-            if (node.thy_load_commands.exists(_.blobs_changed(doc_blobs)))
+            if (node.load_commands.exists(_.blobs_changed(doc_blobs)))
               name :: reparse
             else reparse
           })
