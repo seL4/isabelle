@@ -91,15 +91,15 @@ class Resources(val loaded_theories: Set[String] = Set.empty, val base_syntax: O
     with_thy_text(name, check_thy_text(name, _))
 
 
-  /* theory text edits */
+  /* document changes */
 
-  def parse_edits(
+  def parse_change(
       reparse_limit: Int,
       previous: Document.Version,
       doc_blobs: Document.Blobs,
       edits: List[Document.Edit_Text]): Session.Change =
-    Thy_Syntax.parse_edits(this, reparse_limit, previous, doc_blobs, edits)
+    Thy_Syntax.parse_change(this, reparse_limit, previous, doc_blobs, edits)
 
-  def syntax_changed() { }
+  def commit(change: Session.Change) { }
 }
 

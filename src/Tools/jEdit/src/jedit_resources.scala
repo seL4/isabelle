@@ -117,7 +117,10 @@ class JEdit_Resources(loaded_theories: Set[String] = Set.empty, base_syntax: Out
 
   /* theory text edits */
 
-  override def syntax_changed(): Unit =
-    Swing_Thread.later { jEdit.propertiesChanged() }
+  override def commit(change: Session.Change)
+  {
+    if (change.syntax_changed) Swing_Thread.later { jEdit.propertiesChanged() }
+    if (change.deps_changed) PIDE.deps_changed()
+  }
 }
 

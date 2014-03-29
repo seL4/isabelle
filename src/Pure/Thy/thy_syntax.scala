@@ -156,7 +156,8 @@ object Thy_Syntax
     base_syntax: Outer_Syntax,
     previous: Document.Version,
     edits: List[Document.Edit_Text]):
-    ((Outer_Syntax, Boolean), List[Document.Node.Name], Document.Nodes, List[Document.Edit_Command]) =
+    (Outer_Syntax, Boolean, Boolean, List[Document.Node.Name], Document.Nodes,
+      List[Document.Edit_Command]) =
   {
     var updated_imports = false
     var updated_keywords = false
@@ -178,7 +179,7 @@ object Thy_Syntax
       case _ =>
     }
 
-    val syntax =
+    val (syntax, syntax_changed) =
       if (previous.is_init || updated_keywords) {
         val syntax =
           (base_syntax /: nodes.entries) {
@@ -193,7 +194,7 @@ object Thy_Syntax
         nodes.descendants(doc_edits.iterator.map(_._1).toList)
       else Nil
 
-    (syntax, reparse, nodes, doc_edits.toList)
+    (syntax, syntax_changed, updated_imports, reparse, nodes, doc_edits.toList)
   }
 
 
@@ -431,62 +432,59 @@ object Thy_Syntax
     }
   }
 
-  def parse_edits(
+  def parse_change(
       resources: Resources,
       reparse_limit: Int,
       previous: Document.Version,
       doc_blobs: Document.Blobs,
       edits: List[Document.Edit_Text]): Session.Change =
   {
-    val ((syntax, syntax_changed), reparse0, nodes0, doc_edits0) =
+    val (syntax, syntax_changed, deps_changed, reparse0, nodes0, doc_edits0) =
       header_edits(resources.base_syntax, previous, edits)
 
-    if (edits.isEmpty)
-      Session.Change(previous, doc_blobs, false, Nil, Document.Version.make(syntax, previous.nodes))
-    else {
-      val reparse =
-        (reparse0 /: nodes0.entries)({
-          case (reparse, (name, node)) =>
-            if (node.load_commands.exists(_.blobs_changed(doc_blobs)))
-              name :: reparse
-            else reparse
-          })
-      val reparse_set = reparse.toSet
+    val (doc_edits, version) =
+      if (edits.isEmpty) (Nil, Document.Version.make(syntax, previous.nodes))
+      else {
+        val reparse =
+          (reparse0 /: nodes0.entries)({
+            case (reparse, (name, node)) =>
+              if (node.load_commands.exists(_.blobs_changed(doc_blobs)))
+                name :: reparse
+              else reparse
+            })
+        val reparse_set = reparse.toSet
 
-      var nodes = nodes0
-      val doc_edits = new mutable.ListBuffer[Document.Edit_Command]; doc_edits ++= doc_edits0
+        var nodes = nodes0
+        val doc_edits = new mutable.ListBuffer[Document.Edit_Command]; doc_edits ++= doc_edits0
 
-      val node_edits =
-        (edits ::: reparse.map((_, Document.Node.Edits(Nil)))).groupBy(_._1)
-          .asInstanceOf[Map[Document.Node.Name, List[Document.Edit_Text]]]  // FIXME ???
+        val node_edits =
+          (edits ::: reparse.map((_, Document.Node.Edits(Nil)))).groupBy(_._1)
+            .asInstanceOf[Map[Document.Node.Name, List[Document.Edit_Text]]]  // FIXME ???
 
-      node_edits foreach {
-        case (name, edits) =>
-          val node = nodes(name)
-          val commands = node.commands
+        node_edits foreach {
+          case (name, edits) =>
+            val node = nodes(name)
+            val commands = node.commands
 
-          val node1 =
-            if (reparse_set(name) && !commands.isEmpty)
-              node.update_commands(
-                reparse_spans(resources, syntax, doc_blobs,
-                  name, commands, commands.head, commands.last))
-            else node
-          val node2 = (node1 /: edits)(text_edit(resources, syntax, doc_blobs, reparse_limit, _, _))
+            val node1 =
+              if (reparse_set(name) && !commands.isEmpty)
+                node.update_commands(
+                  reparse_spans(resources, syntax, doc_blobs,
+                    name, commands, commands.head, commands.last))
+              else node
+            val node2 =
+              (node1 /: edits)(text_edit(resources, syntax, doc_blobs, reparse_limit, _, _))
 
-          if (!(node.same_perspective(node2.perspective)))
-            doc_edits += (name -> node2.perspective)
+            if (!(node.same_perspective(node2.perspective)))
+              doc_edits += (name -> node2.perspective)
 
-          doc_edits += (name -> Document.Node.Edits(diff_commands(commands, node2.commands)))
+            doc_edits += (name -> Document.Node.Edits(diff_commands(commands, node2.commands)))
 
-          nodes += (name -> node2)
+            nodes += (name -> node2)
+        }
+        (doc_edits.toList, Document.Version.make(syntax, nodes))
       }
 
-      Session.Change(
-        previous,
-        doc_blobs,
-        syntax_changed,
-        doc_edits.toList,
-        Document.Version.make(syntax, nodes))
-    }
+    Session.Change(previous, doc_blobs, syntax_changed, deps_changed, doc_edits, version)
   }
 }

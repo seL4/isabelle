@@ -24,6 +24,7 @@ object Session
     previous: Document.Version,
     doc_blobs: Document.Blobs,
     syntax_changed: Boolean,
+    deps_changed: Boolean,
     doc_edits: List[Document.Edit_Command],
     version: Document.Version)
 
@@ -190,8 +191,8 @@ class Session(val resources: Resources)
         case Text_Edits(previous, doc_blobs, text_edits, version_result) =>
           val prev = previous.get_finished
           val change =
-            Timing.timeit("parse_edits", timing) {
-              resources.parse_edits(reparse_limit, prev, doc_blobs, text_edits)
+            Timing.timeit("parse_change", timing) {
+              resources.parse_change(reparse_limit, prev, doc_blobs, text_edits)
             }
           version_result.fulfill(change.version)
           sender ! change
@@ -402,8 +403,7 @@ class Session(val resources: Resources)
       val assignment = global_state().the_assignment(change.previous).check_finished
       global_state >> (_.define_version(change.version, assignment))
       prover.get.update(change.previous.id, change.version.id, change.doc_edits)
-
-      if (change.syntax_changed) resources.syntax_changed()
+      resources.commit(change)
     }
     //}}}
 
