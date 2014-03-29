@@ -6,7 +6,7 @@
 header {* Operator Norm *}
 
 theory Operator_Norm
-imports Linear_Algebra
+imports Complex_Main
 begin
 
 text {* This formulation yields zero if @{text 'a} is the trivial vector space. *}
