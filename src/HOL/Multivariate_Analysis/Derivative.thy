@@ -324,6 +324,13 @@ lemma has_derivative_within_alt:
     eventually_at dist_norm diff_add_eq_diff_diff
   by (force simp add: linear_0 bounded_linear_imp_linear pos_divide_le_eq)
 
+lemma has_derivative_within_alt2:
+  "(f has_derivative f') (at x within s) \<longleftrightarrow> bounded_linear f' \<and>
+    (\<forall>e>0. eventually (\<lambda>y. norm (f y - f x - f' (y - x)) \<le> e * norm (y - x)) (at x within s))"
+  unfolding has_derivative_within filterlim_def le_nhds_metric_le eventually_filtermap
+    eventually_at dist_norm diff_add_eq_diff_diff
+  by (force simp add: linear_0 bounded_linear_imp_linear pos_divide_le_eq)
+
 lemma has_derivative_at_alt:
   "(f has_derivative f') (at x) \<longleftrightarrow>
     bounded_linear f' \<and>
@@ -1656,9 +1663,7 @@ lemma has_derivative_sequence:
 proof -
   have lem1: "\<forall>e>0. \<exists>N. \<forall>m\<ge>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>y\<in>s.
       norm ((f m x - f n x) - (f m y - f n y)) \<le> e * norm (x - y)"
-    apply (rule has_derivative_sequence_lipschitz)
-    apply (rule assms)+
-    done
+    using assms(1,2,3) by (rule has_derivative_sequence_lipschitz)
   have "\<exists>g. \<forall>x\<in>s. ((\<lambda>n. f n x) ---> g x) sequentially"
     apply (rule bchoice)
     unfolding convergent_eq_cauchy
@@ -1725,7 +1730,9 @@ proof -
     proof rule+
       fix n x y
       assume as: "N \<le> n" "x \<in> s" "y \<in> s"
-      have "eventually (\<lambda>xa. norm (f n x - f n y - (f xa x - f xa y)) \<le> e * norm (x - y)) sequentially"
+      have "((\<lambda>m. norm (f n x - f n y - (f m x - f m y))) ---> norm (f n x - f n y - (g x - g y))) sequentially"
+        by (intro tendsto_intros g[rule_format] as)
+      moreover have "eventually (\<lambda>m. norm (f n x - f n y - (f m x - f m y)) \<le> e * norm (x - y)) sequentially"
         unfolding eventually_sequentially
         apply (rule_tac x=N in exI)
         apply rule
@@ -1737,59 +1744,40 @@ proof -
           using N[rule_format, of n m x y] and as
           by (auto simp add: algebra_simps)
       qed
-      then show "norm (f n x - f n y - (g x - g y)) \<le> e * norm (x - y)"
-        apply -
-        apply (rule Lim_norm_ubound[OF trivial_limit_sequentially, where f="\<lambda>m. (f n x - f n y) - (f m x - f m y)"])
-        apply (rule tendsto_intros g[rule_format] as)+
-        apply assumption
-        done
+      ultimately show "norm (f n x - f n y - (g x - g y)) \<le> e * norm (x - y)"
+        by (rule tendsto_ge_const[OF trivial_limit_sequentially])
     qed
   qed
-  show ?thesis
-    unfolding has_derivative_within_alt
-    apply (rule_tac x=g in exI)
-    apply rule
-    apply rule
-    apply (rule g[rule_format])
-    apply assumption
-  proof
+  have "\<forall>x\<in>s. ((\<lambda>n. f n x) ---> g x) sequentially \<and> (g has_derivative g' x) (at x within s)"
+    unfolding has_derivative_within_alt2
+  proof (intro ballI conjI)
     fix x
     assume "x \<in> s"
+    then show "((\<lambda>n. f n x) ---> g x) sequentially"
+      by (simp add: g)
     have lem3: "\<forall>u. ((\<lambda>n. f' n x u) ---> g' x u) sequentially"
-      unfolding LIMSEQ_def
-    proof (rule, rule, rule)
+      unfolding filterlim_def le_nhds_metric_le eventually_filtermap dist_norm
+    proof (intro allI impI)
       fix u
       fix e :: real
       assume "e > 0"
-      show "\<exists>N. \<forall>n\<ge>N. dist (f' n x u) (g' x u) < e"
+      show "eventually (\<lambda>n. norm (f' n x u - g' x u) \<le> e) sequentially"
       proof (cases "u = 0")
         case True
-        obtain N where N: "\<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm (f' n x h - g' x h) \<le> e * norm h"
-          using assms(3) `e>0` by blast
-        show ?thesis
-          apply (rule_tac x=N in exI)
-          unfolding True
-          using N[rule_format,OF _ `x\<in>s`,of _ 0] and `e>0`
-          apply auto
-          done
+        have "eventually (\<lambda>n. norm (f' n x u - g' x u) \<le> e * norm u) sequentially"
+          using assms(3)[folded eventually_sequentially] and `0 < e` and `x \<in> s`
+          by (fast elim: eventually_elim1)
+        then show ?thesis
+          using `u = 0` and `0 < e` by (auto elim: eventually_elim1)
       next
         case False
-        then have *: "e / 2 / norm u > 0"
-          using `e > 0`
-          by (auto intro!: divide_pos_pos)
-        obtain N where N: "\<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm (f' n x h - g' x h) \<le> e / 2 / norm u * norm h"
-          using assms(3) * by blast
-        show ?thesis
-          apply (rule_tac x=N in exI)
-          apply rule
-          apply rule
-        proof -
-          case goal1
-          show ?case
-            unfolding dist_norm
-            using N[rule_format,OF goal1 `x\<in>s`, of u] False `e>0`
-            by (auto simp add: field_simps)
-        qed
+        with `0 < e` have "0 < e / norm u"
+          by (simp add: divide_pos_pos)
+        then have "eventually (\<lambda>n. norm (f' n x u - g' x u) \<le> e / norm u * norm u) sequentially"
+          using assms(3)[folded eventually_sequentially] and `x \<in> s`
+          by (fast elim: eventually_elim1)
+        then show ?thesis
+          using `u \<noteq> 0` by simp
       qed
     qed
     show "bounded_linear (g' x)"
@@ -1830,7 +1818,7 @@ proof -
       }
       then show "\<exists>K. \<forall>h. norm (g' x h) \<le> norm h * K" by fast
     qed
-    show "\<forall>e>0. \<exists>d>0. \<forall>y\<in>s. norm (y - x) < d \<longrightarrow> norm (g y - g x - g' x (y - x)) \<le> e * norm (y - x)"
+    show "\<forall>e>0. eventually (\<lambda>y. norm (g y - g x - g' x (y - x)) \<le> e * norm (y - x)) (at x within s)"
     proof (rule, rule)
       case goal1
       have *: "e / 3 > 0"
@@ -1840,35 +1828,20 @@ proof -
       obtain N2 where
           N2: "\<forall>n\<ge>N2. \<forall>x\<in>s. \<forall>y\<in>s. norm (f n x - f n y - (g x - g y)) \<le> e / 3 * norm (x - y)"
         using lem2 * by blast
-      obtain d1 where d1:
-          "0 < d1"
-          "\<forall>y\<in>s. norm (y - x) < d1 \<longrightarrow>
-            norm (f (max N1 N2) y - f (max N1 N2) x - f' (max N1 N2) x (y - x)) \<le>
-            e / 3 * norm (y - x)"
-        using assms(2)[unfolded has_derivative_within_alt, rule_format,
-            OF `x\<in>s`, of "max N1 N2", THEN conjunct2, rule_format, OF *]
-        by blast
-      show ?case
-        apply (rule_tac x=d1 in exI)
-        apply rule
-        apply (rule d1(1))
-        apply rule
-        apply rule
-      proof -
+      let ?N = "max N1 N2"
+      have "eventually (\<lambda>y. norm (f ?N y - f ?N x - f' ?N x (y - x)) \<le> e / 3 * norm (y - x)) (at x within s)"
+        using assms(2)[unfolded has_derivative_within_alt2] and `x \<in> s` and * by fast
+      moreover have "eventually (\<lambda>y. y \<in> s) (at x within s)"
+        unfolding eventually_at by (fast intro: zero_less_one)
+      ultimately show ?case
+      proof (rule eventually_elim2)
         fix y
-        assume as: "y \<in> s" "norm (y - x) < d1"
-        let ?N = "max N1 N2"
-        have "norm (g y - g x - (f ?N y - f ?N x)) \<le> e /3 * norm (y - x)"
-          apply (subst norm_minus_cancel[symmetric])
-          using N2[rule_format, OF _ `y \<in> s` `x \<in> s`, of ?N]
-          apply auto
-          done
-        moreover
-        have "norm (f ?N y - f ?N x - f' ?N x (y - x)) \<le> e / 3 * norm (y - x)"
-          using d1 and as
-          by auto
-        ultimately
-        have "norm (g y - g x - f' ?N x (y - x)) \<le> 2 * e / 3 * norm (y - x)"
+        assume "y \<in> s"
+        assume "norm (f ?N y - f ?N x - f' ?N x (y - x)) \<le> e / 3 * norm (y - x)"
+        moreover have "norm (g y - g x - (f ?N y - f ?N x)) \<le> e / 3 * norm (y - x)"
+          using N2[rule_format, OF _ `y \<in> s` `x \<in> s`]
+          by (simp add: norm_minus_commute)
+        ultimately have "norm (g y - g x - f' ?N x (y - x)) \<le> 2 * e / 3 * norm (y - x)"
           using norm_triangle_le[of "g y - g x - (f ?N y - f ?N x)" "f ?N y - f ?N x - f' ?N x (y - x)" "2 * e / 3 * norm (y - x)"]
           by (auto simp add: algebra_simps)
         moreover
@@ -1880,6 +1853,7 @@ proof -
       qed
     qed
   qed
+  then show ?thesis by fast
 qed
 
 text {* Can choose to line up antiderivatives if we want. *}
