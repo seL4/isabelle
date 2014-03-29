@@ -10,7 +10,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{Graphics2D, Shape, Color, Point, Toolkit}
+import java.awt.{Graphics2D, Shape, Color, Point, Toolkit, Cursor}
 import java.awt.event.{MouseMotionAdapter, MouseAdapter, MouseEvent,
   FocusAdapter, FocusEvent, WindowEvent, WindowAdapter}
 import java.awt.font.TextAttribute
@@ -100,7 +100,9 @@ class Rich_Text_Area(
 
   /* active areas within the text */
 
-  private class Active_Area[A](rendering: Rendering => Text.Range => Option[Text.Info[A]])
+  private class Active_Area[A](
+    rendering: Rendering => Text.Range => Option[Text.Info[A]],
+    cursor: Option[Int])
   {
     private var the_text_info: Option[(String, Text.Info[A])] = None
 
@@ -115,6 +117,12 @@ class Rich_Text_Area(
         new_info.map(info => (text_area.getText(info.range.start, info.range.length), info))
 
       if (new_text_info != old_text_info) {
+        if (cursor.isDefined) {
+          if (new_text_info.isDefined)
+            text_area.getPainter.setCursor(Cursor.getPredefinedCursor(cursor.get))
+          else
+            text_area.getPainter.resetCursor
+        }
         for {
           r0 <- JEdit_Lib.visible_range(text_area)
           opt <- List(old_text_info, new_text_info)
@@ -133,10 +141,13 @@ class Rich_Text_Area(
 
   // owned by Swing thread
 
-  private val highlight_area = new Active_Area[Color]((r: Rendering) => r.highlight _)
+  private val highlight_area =
+    new Active_Area[Color]((r: Rendering) => r.highlight _, None)
   private val hyperlink_area =
-    new Active_Area[PIDE.editor.Hyperlink]((r: Rendering) => r.hyperlink _)
-  private val active_area = new Active_Area[XML.Elem]((r: Rendering) => r.active _)
+    new Active_Area[PIDE.editor.Hyperlink](
+      (r: Rendering) => r.hyperlink _, Some(Cursor.HAND_CURSOR))
+  private val active_area =
+    new Active_Area[XML.Elem]((r: Rendering) => r.active _, Some(Cursor.DEFAULT_CURSOR))
 
   private val active_areas =
     List((highlight_area, true), (hyperlink_area, true), (active_area, false))
