@@ -118,7 +118,7 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
 
   private def overlapping(range: Text.Range): Branches.T =
     if (branches.isEmpty ||
-        (range.contains(branches.firstKey.start) && range.contains(branches.lastKey.stop)))
+        (range.contains(branches.firstKey.start) && branches.lastKey.stop <= range.stop))
       branches
     else {
       val start = Text.Range(range.start)

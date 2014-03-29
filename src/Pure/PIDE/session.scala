@@ -18,6 +18,17 @@ import scala.actors.Actor._
 
 object Session
 {
+  /* change */
+
+  sealed case class Change(
+    previous: Document.Version,
+    doc_blobs: Document.Blobs,
+    syntax_changed: Boolean,
+    deps_changed: Boolean,
+    doc_edits: List[Document.Edit_Command],
+    version: Document.Version)
+
+
   /* events */
 
   //{{{
@@ -179,12 +190,12 @@ class Session(val resources: Resources)
 
         case Text_Edits(previous, doc_blobs, text_edits, version_result) =>
           val prev = previous.get_finished
-          val (syntax_changed, doc_edits, version) =
-            Timing.timeit("text_edits", timing) {
-              resources.text_edits(reparse_limit, prev, doc_blobs, text_edits)
+          val change =
+            Timing.timeit("parse_change", timing) {
+              resources.parse_change(reparse_limit, prev, doc_blobs, text_edits)
             }
-          version_result.fulfill(version)
-          sender ! Change(doc_blobs, syntax_changed, doc_edits, prev, version)
+          version_result.fulfill(change.version)
+          sender ! change
 
         case bad => System.err.println("change_parser: ignoring bad message " + bad)
       }
@@ -249,12 +260,6 @@ class Session(val resources: Resources)
 
   private case class Start(args: List[String])
   private case class Cancel_Exec(exec_id: Document_ID.Exec)
-  private case class Change(
-    doc_blobs: Document.Blobs,
-    syntax_changed: Boolean,
-    doc_edits: List[Document.Edit_Command],
-    previous: Document.Version,
-    version: Document.Version)
   private case class Protocol_Command(name: String, args: List[String])
   private case class Messages(msgs: List[Isabelle_Process.Message])
   private case class Update_Options(options: Options)
@@ -367,18 +372,16 @@ class Session(val resources: Resources)
 
     /* resulting changes */
 
-    def handle_change(change: Change)
+    def handle_change(change: Session.Change)
     //{{{
     {
-      val Change(doc_blobs, syntax_changed, doc_edits, previous, version) = change
-
       def id_command(command: Command)
       {
         for {
           digest <- command.blobs_digests
           if !global_state().defined_blob(digest)
         } {
-          doc_blobs.get(digest) match {
+          change.doc_blobs.get(digest) match {
             case Some(blob) =>
               global_state >> (_.define_blob(digest))
               prover.get.define_blob(blob)
@@ -392,16 +395,15 @@ class Session(val resources: Resources)
           prover.get.define_command(command)
         }
       }
-      doc_edits foreach {
+      change.doc_edits foreach {
         case (_, edit) =>
           edit foreach { case (c1, c2) => c1 foreach id_command; c2 foreach id_command }
       }
 
-      val assignment = global_state().the_assignment(previous).check_finished
-      global_state >> (_.define_version(version, assignment))
-      prover.get.update(previous.id, version.id, doc_edits)
-
-      if (syntax_changed) resources.syntax_changed()
+      val assignment = global_state().the_assignment(change.previous).check_finished
+      global_state >> (_.define_version(change.version, assignment))
+      prover.get.update(change.previous.id, change.version.id, change.doc_edits)
+      resources.commit(change)
     }
     //}}}
 
@@ -556,11 +558,11 @@ class Session(val resources: Resources)
               all_messages.event(output)
           }
 
-        case change: Change
+        case change: Session.Change
         if prover.isDefined && global_state().is_assigned(change.previous) =>
           handle_change(change)
 
-        case bad if !bad.isInstanceOf[Change] =>
+        case bad if !bad.isInstanceOf[Session.Change] =>
           System.err.println("session_actor: ignoring bad message " + bad)
       }
     }

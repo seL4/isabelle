@@ -57,13 +57,13 @@ final class Outer_Syntax private(
   def keyword_kind_files(name: String): Option[(String, List[String])] = keywords.get(name)
   def keyword_kind(name: String): Option[String] = keyword_kind_files(name).map(_._1)
 
-  def thy_load(span: List[Token]): Option[List[String]] =
+  def load(span: List[Token]): Option[List[String]] =
     keywords.get(Command.name(span)) match {
       case Some((Keyword.THY_LOAD, exts)) => Some(exts)
       case _ => None
     }
 
-  val thy_load_commands: List[(String, List[String])] =
+  val load_commands: List[(String, List[String])] =
     (for ((name, (Keyword.THY_LOAD, files)) <- keywords.iterator) yield (name, files)).toList
 
   def + (name: String, kind: (String, List[String]), replace: Option[String]): Outer_Syntax =

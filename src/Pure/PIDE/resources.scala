@@ -51,7 +51,7 @@ class Resources(val loaded_theories: Set[String] = Set.empty, val base_syntax: O
   /* theory files */
 
   def body_files_test(syntax: Outer_Syntax, text: String): Boolean =
-    syntax.thy_load_commands.exists({ case (cmd, _) => text.containsSlice(cmd) })
+    syntax.load_commands.exists({ case (cmd, _) => text.containsSlice(cmd) })
 
   def body_files(syntax: Outer_Syntax, text: String): List[String] =
   {
@@ -91,15 +91,15 @@ class Resources(val loaded_theories: Set[String] = Set.empty, val base_syntax: O
     with_thy_text(name, check_thy_text(name, _))
 
 
-  /* theory text edits */
+  /* document changes */
 
-  def text_edits(
-    reparse_limit: Int,
-    previous: Document.Version,
-    doc_blobs: Document.Blobs,
-    edits: List[Document.Edit_Text]): (Boolean, List[Document.Edit_Command], Document.Version) =
-    Thy_Syntax.text_edits(this, reparse_limit, previous, doc_blobs, edits)
+  def parse_change(
+      reparse_limit: Int,
+      previous: Document.Version,
+      doc_blobs: Document.Blobs,
+      edits: List[Document.Edit_Text]): Session.Change =
+    Thy_Syntax.parse_change(this, reparse_limit, previous, doc_blobs, edits)
 
-  def syntax_changed() { }
+  def commit(change: Session.Change) { }
 }
 

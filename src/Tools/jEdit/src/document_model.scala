@@ -115,9 +115,9 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
         }
         else Nil
 
-      val thy_load_ranges =
+      val load_ranges =
         for {
-          cmd <- snapshot.node.thy_load_commands
+          cmd <- snapshot.node.load_commands
           blob_name <- cmd.blobs_names
           blob_buffer <- JEdit_Lib.jedit_buffer(blob_name.node)
           if !JEdit_Lib.jedit_text_areas(blob_buffer).isEmpty
@@ -125,11 +125,11 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
           range = snapshot.convert(cmd.proper_range + start)
         } yield range
 
-      val reparse = snapshot.node.thy_load_commands.exists(_.blobs_changed(doc_blobs))
+      val reparse = snapshot.node.load_commands.exists(_.blobs_changed(doc_blobs))
 
       (reparse,
         Document.Node.Perspective(node_required,
-          Text.Perspective(document_view_ranges ::: thy_load_ranges),
+          Text.Perspective(document_view_ranges ::: load_ranges),
           PIDE.editor.node_overlays(node_name)))
     }
     else (false, empty_perspective)

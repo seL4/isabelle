@@ -39,6 +39,7 @@ object PIDE
   @volatile var session: Session = new Session(new JEdit_Resources(Set.empty, Outer_Syntax.empty))
 
   def options_changed() { plugin.options_changed() }
+  def deps_changed() { plugin.deps_changed() }
 
   def resources(): JEdit_Resources =
     session.resources.asInstanceOf[JEdit_Resources]
@@ -168,10 +169,16 @@ object PIDE
 
 class Plugin extends EBPlugin
 {
-  /* options */
+  /* global changes */
 
-  def options_changed() {
+  def options_changed()
+  {
     PIDE.session.global_options.event(Session.Global_Options(PIDE.options.value))
+    Swing_Thread.later { delay_load.invoke() }
+  }
+
+  def deps_changed()
+  {
     Swing_Thread.later { delay_load.invoke() }
   }
 

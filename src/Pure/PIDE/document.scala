@@ -189,7 +189,7 @@ object Document
 
     final class Commands private(val commands: Linear_Set[Command])
     {
-      lazy val thy_load_commands: List[Command] =
+      lazy val load_commands: List[Command] =
         commands.iterator.filter(cmd => !cmd.blobs.isEmpty).toList
 
       private lazy val full_index: (Array[(Command, Text.Offset)], Text.Range) =
@@ -244,7 +244,7 @@ object Document
       perspective.overlays == other_perspective.overlays
 
     def commands: Linear_Set[Command] = _commands.commands
-    def thy_load_commands: List[Command] = _commands.thy_load_commands
+    def load_commands: List[Command] = _commands.load_commands
 
     def update_commands(new_commands: Linear_Set[Command]): Node =
       if (new_commands eq _commands.commands) this
@@ -290,10 +290,10 @@ object Document
     def entries: Iterator[(Node.Name, Node)] =
       graph.entries.map({ case (name, (node, _)) => (name, node) })
 
-    def thy_load_commands(file_name: Node.Name): List[Command] =
+    def load_commands(file_name: Node.Name): List[Command] =
       (for {
         (_, node) <- entries
-        cmd <- node.thy_load_commands.iterator
+        cmd <- node.load_commands.iterator
         name <- cmd.blobs_names.iterator
         if name == file_name
       } yield cmd).toList
@@ -421,7 +421,7 @@ object Document
 
     val node_name: Node.Name
     val node: Node
-    val thy_load_commands: List[Command]
+    val load_commands: List[Command]
     def is_loaded: Boolean
     def eq_content(other: Snapshot): Boolean
 
@@ -694,11 +694,11 @@ object Document
         val node_name = name
         val node = version.nodes(name)
 
-        val thy_load_commands: List[Command] =
+        val load_commands: List[Command] =
           if (node_name.is_theory) Nil
-          else version.nodes.thy_load_commands(node_name)
+          else version.nodes.load_commands(node_name)
 
-        val is_loaded: Boolean = node_name.is_theory || !thy_load_commands.isEmpty
+        val is_loaded: Boolean = node_name.is_theory || !load_commands.isEmpty
 
         def eq_content(other: Snapshot): Boolean =
         {
@@ -713,8 +713,8 @@ object Document
           !is_outdated && !other.is_outdated &&
           node.commands.size == other.node.commands.size &&
           (node.commands.iterator zip other.node.commands.iterator).forall(eq_commands) &&
-          thy_load_commands.length == other.thy_load_commands.length &&
-          (thy_load_commands zip other.thy_load_commands).forall(eq_commands)
+          load_commands.length == other.load_commands.length &&
+          (load_commands zip other.load_commands).forall(eq_commands)
         }
 
 
@@ -729,7 +729,7 @@ object Document
         {
           val former_range = revert(range)
           val (file_name, command_range_iterator) =
-            thy_load_commands match {
+            load_commands match {
               case command :: _ => (node_name.node, Iterator((command, 0)))
               case _ => ("", node.command_range(former_range))
             }
