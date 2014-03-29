@@ -431,19 +431,18 @@ object Thy_Syntax
     }
   }
 
-  def text_edits(
+  def parse_edits(
       resources: Resources,
       reparse_limit: Int,
       previous: Document.Version,
       doc_blobs: Document.Blobs,
-      edits: List[Document.Edit_Text])
-    : (Boolean, List[Document.Edit_Command], Document.Version) =
+      edits: List[Document.Edit_Text]): Session.Change =
   {
     val ((syntax, syntax_changed), reparse0, nodes0, doc_edits0) =
       header_edits(resources.base_syntax, previous, edits)
 
     if (edits.isEmpty)
-      (false, Nil, Document.Version.make(syntax, previous.nodes))
+      Session.Change(previous, doc_blobs, false, Nil, Document.Version.make(syntax, previous.nodes))
     else {
       val reparse =
         (reparse0 /: nodes0.entries)({
@@ -482,7 +481,12 @@ object Thy_Syntax
           nodes += (name -> node2)
       }
 
-      (syntax_changed, doc_edits.toList, Document.Version.make(syntax, nodes))
+      Session.Change(
+        previous,
+        doc_blobs,
+        syntax_changed,
+        doc_edits.toList,
+        Document.Version.make(syntax, nodes))
     }
   }
 }

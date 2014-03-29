@@ -93,12 +93,12 @@ class Resources(val loaded_theories: Set[String] = Set.empty, val base_syntax: O
 
   /* theory text edits */
 
-  def text_edits(
-    reparse_limit: Int,
-    previous: Document.Version,
-    doc_blobs: Document.Blobs,
-    edits: List[Document.Edit_Text]): (Boolean, List[Document.Edit_Command], Document.Version) =
-    Thy_Syntax.text_edits(this, reparse_limit, previous, doc_blobs, edits)
+  def parse_edits(
+      reparse_limit: Int,
+      previous: Document.Version,
+      doc_blobs: Document.Blobs,
+      edits: List[Document.Edit_Text]): Session.Change =
+    Thy_Syntax.parse_edits(this, reparse_limit, previous, doc_blobs, edits)
 
   def syntax_changed() { }
 }
