@@ -231,7 +231,8 @@ object Completion_Popup
       }
     }
 
-    def action(immediate: Boolean = false, explicit: Boolean = false)
+    def action(immediate: Boolean = false, explicit: Boolean = false, delayed: Boolean = false)
+      : Boolean =
     {
       val view = text_area.getView
       val layered = view.getLayeredPane
@@ -315,7 +316,8 @@ object Completion_Popup
               (false, None, None)
           }
         }
-        if (!no_completion) {
+        if (no_completion) false
+        else {
           val result =
             Completion.Result.merge(history,
               semantic_completion, syntax_completion(history, explicit, opt_rendering))
@@ -325,14 +327,17 @@ object Completion_Popup
               result.items match {
                 case List(item) if result.unique && item.immediate && immediate =>
                   insert(item)
-                case _ :: _ =>
+                  true
+                case _ :: _ if !delayed =>
                   open_popup(result)
-                case _ =>
+                  false
+                case _ => false
               }
-            case None =>
+            case None => false
           }
         }
       }
+      else false
     }
 
 
@@ -347,11 +352,17 @@ object Completion_Popup
           dismissed()
           if (evt.getKeyChar != '\b') {
             val special = JEdit_Lib.special_key(evt)
+            val immediate = PIDE.options.bool("jedit_completion_immediate")
             if (PIDE.options.seconds("jedit_completion_delay").is_zero && !special) {
               input_delay.revoke()
-              action(immediate = PIDE.options.bool("jedit_completion_immediate"))
+              action(immediate = immediate)
             }
-            else input_delay.invoke()
+            else {
+              if (!special && action(immediate = immediate, delayed = true))
+                input_delay.revoke()
+              else
+                input_delay.invoke()
+            }
           }
         }
       }
