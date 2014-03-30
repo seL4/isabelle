@@ -19,7 +19,7 @@ import scala.swing.{ListView, ScrollPane}
 import scala.swing.event.MouseClicked
 
 import org.gjt.sp.jedit.View
-import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
+import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, Selection}
 import org.gjt.sp.jedit.gui.{HistoryTextField, KeyEventWorkaround}
 
 
@@ -200,9 +200,31 @@ object Completion_Popup
         JEdit_Lib.buffer_edit(buffer) {
           JEdit_Lib.try_get_text(buffer, range) match {
             case Some(text) if text == item.original =>
-              buffer.remove(range.start, range.length)
-              buffer.insert(range.start, item.replacement)
-              text_area.moveCaretPosition(range.start + item.replacement.length + item.move)
+              text_area.getSelectionAtOffset(text_area.getCaretPosition) match {
+
+                /*rectangular selection as "tall caret"*/
+                case selection : Selection.Rect
+                if selection.getStart(buffer, text_area.getCaretLine) == range.stop =>
+                  text_area.moveCaretPosition(range.stop)
+                  (0 until Character.codePointCount(item.original, 0, item.original.length))
+                    .foreach(_ => text_area.backspace())
+                  text_area.setSelectedText(selection, item.replacement)
+                  text_area.moveCaretPosition(text_area.getCaretPosition + item.move)
+
+                /*other selections: rectangular, multiple range, ...*/
+                case selection
+                if selection != null &&
+                    selection.getStart(buffer, text_area.getCaretLine) == range.start &&
+                    selection.getEnd(buffer, text_area.getCaretLine) == range.stop =>
+                  text_area.moveCaretPosition(range.stop + item.move)
+                  text_area.getSelection.foreach(text_area.setSelectedText(_, item.replacement))
+
+                /*no selection*/
+                case _ =>
+                  buffer.remove(range.start, range.length)
+                  buffer.insert(range.start, item.replacement)
+                  text_area.moveCaretPosition(range.start + item.replacement.length + item.move)
+              }
             case _ =>
           }
         }
