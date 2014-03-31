@@ -52,27 +52,23 @@ object Document
 
   object Blobs
   {
-    def apply(blobs: Map[Node.Name, Blob]): Blobs = new Blobs(blobs, Nodes.empty)
+    def apply(blobs: Map[Node.Name, Blob]): Blobs = new Blobs(blobs)
     val empty: Blobs = apply(Map.empty)
   }
 
-  final class Blobs private(blobs: Map[Node.Name, Blob], default_nodes: Nodes)
+  final class Blobs private(blobs: Map[Node.Name, Blob])
   {
     private lazy val digests: Map[SHA1.Digest, Blob] =
       for ((_, blob) <- blobs) yield (blob.bytes.sha1_digest, blob)
 
     def get(digest: SHA1.Digest): Option[Blob] = digests.get(digest)
-
-    def get(name: Node.Name): Option[Blob] =
-      blobs.get(name) orElse default_nodes(name).get_blob
+    def get(name: Node.Name): Option[Blob] = blobs.get(name)
 
     def changed(name: Node.Name): Boolean =
       get(name) match {
         case Some(blob) => blob.changed
         case None => false
       }
-
-    def default(nodes: Nodes): Blobs = new Blobs(blobs, nodes)
 
     override def toString: String = blobs.mkString("Blobs(", ",", ")")
   }
