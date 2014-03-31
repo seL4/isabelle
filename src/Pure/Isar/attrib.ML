@@ -105,7 +105,7 @@ fun print_attributes ctxt =
             (Pretty.mark_str name :: Pretty.str ":" :: Pretty.brk 2 :: Pretty.text comment);
   in
     [Pretty.big_list "attributes:" (map prt_attr (Name_Space.markup_table ctxt attribs))]
-    |> Pretty.chunks |> Pretty.writeln
+    |> Pretty.writeln_chunks
   end;
 
 val attribute_space = Name_Space.space_of_table o get_attributes o Context.Proof;

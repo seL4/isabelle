@@ -232,7 +232,7 @@ fun print_inductives ctxt =
         (Pretty.str "(co)inductives:" ::
           map (Pretty.mark_str o #1) (Name_Space.markup_entries ctxt space (Symtab.dest infos)))),
      Pretty.big_list "monotonicity rules:" (map (Display.pretty_thm_item ctxt) monos)]
-  end |> Pretty.chunks |> Pretty.writeln;
+  end |> Pretty.writeln_chunks;
 
 
 (* inductive info *)

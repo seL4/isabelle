@@ -277,8 +277,7 @@ fun syntax_generic scan (Src {name = (name, pos), args = args0, output_info}) co
       if Context_Position.is_visible_generic context then
         ((pos, Markup.operator) :: maps (Token.reports_of_value o Token.closure) args1)
         |> map (fn (p, m) => Position.reported_text p m "")
-        |> implode
-      else "";
+      else [];
   in
     (case Scan.error (Scan.finite' Token.stopper (Scan.option scan)) (context, args1) of
       (SOME x, (context', [])) =>
@@ -294,7 +293,7 @@ fun syntax_generic scan (Src {name = (name, pos), args = args0, output_info}) co
             if null args2 then "" else ":\n  " ^ space_implode " " (map Token.print args2);
         in
           error ("Bad arguments for " ^ print_name ^ Position.here pos ^ print_args ^
-            Markup.markup_report (reported_text ()))
+            Markup.markup_report (implode (reported_text ())))
         end)
   end;
 

@@ -134,7 +134,7 @@ fun print_bundles ctxt =
         Pretty.breaks (Pretty.str " =" :: maps prt_fact bundle));
   in
     map prt_bundle (Name_Space.markup_table ctxt (get_bundles ctxt))
-  end |> Pretty.chunks |> Pretty.writeln;
+  end |> Pretty.writeln_chunks;
 
 end;
 

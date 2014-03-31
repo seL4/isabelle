@@ -45,10 +45,6 @@ sig
   val text: string -> T list
   val paragraph: T list -> T
   val para: string -> T
-  val markup_chunks: Markup.T -> T list -> T
-  val chunks: T list -> T
-  val chunks2: T list -> T
-  val block_enclose: T * T -> T list -> T
   val quote: T -> T
   val backquote: T -> T
   val cartouche: T -> T
@@ -72,6 +68,12 @@ sig
   val symbolic_output: T -> Output.output
   val symbolic_string_of: T -> string
   val str_of: T -> string
+  val markup_chunks: Markup.T -> T list -> T
+  val chunks: T list -> T
+  val chunks2: T list -> T
+  val block_enclose: T * T -> T list -> T
+  val writeln_chunks: T list -> unit
+  val writeln_chunks2: T list -> unit
   val to_ML: T -> ML_Pretty.pretty
   val from_ML: ML_Pretty.pretty -> T
 end;
@@ -169,17 +171,6 @@ fun keyword2 name = mark_str (Markup.keyword2, name);
 val text = breaks o map str o Symbol.explode_words;
 val paragraph = markup Markup.paragraph;
 val para = paragraph o text;
-
-fun markup_chunks m prts = markup m (fbreaks (map (text_fold o single) prts));
-val chunks = markup_chunks Markup.empty;
-
-fun chunks2 prts =
-  (case try split_last prts of
-    NONE => blk (0, [])
-  | SOME (prefix, last) =>
-      blk (0, maps (fn prt => [text_fold [prt, fbrk], fbrk]) prefix @ [text_fold [last]]));
-
-fun block_enclose (prt1, prt2) prts = chunks [block (fbreaks (prt1 :: prts)), prt2];
 
 fun quote prt = blk (1, [str "\"", prt, str "\""]);
 fun backquote prt = blk (1, [str "`", prt, str "`"]);
@@ -353,6 +344,33 @@ val symbolic_output = Buffer.content o symbolic;
 val symbolic_string_of = Output.escape o symbolic_output;
 
 val str_of = Output.escape o Buffer.content o unformatted;
+
+
+(* chunks *)
+
+fun markup_chunks m prts = markup m (fbreaks (map (text_fold o single) prts));
+val chunks = markup_chunks Markup.empty;
+
+fun chunks2 prts =
+  (case try split_last prts of
+    NONE => blk (0, [])
+  | SOME (prefix, last) =>
+      blk (0, maps (fn prt => [text_fold [prt, fbrk], fbrk]) prefix @ [text_fold [last]]));
+
+fun block_enclose (prt1, prt2) prts = chunks [block (fbreaks (prt1 :: prts)), prt2];
+
+fun string_of_text_fold prt = string_of prt |> Markup.markup Markup.text_fold;
+
+fun writeln_chunks prts =
+  Output.writelns (Library.separate "\n" (map string_of_text_fold prts));
+
+fun writeln_chunks2 prts =
+  (case try split_last prts of
+    NONE => ()
+  | SOME (prefix, last) =>
+      (map (fn prt => Markup.markup Markup.text_fold (string_of prt ^ "\n") ^ "\n") prefix @
+        [string_of_text_fold last])
+      |> Output.writelns);
 
 
 

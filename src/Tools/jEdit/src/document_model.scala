@@ -164,28 +164,25 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
   /* edits */
 
   def node_edits(
-    clear: Boolean,
-    text_edits: List[Text.Edit],
-    perspective: Document.Node.Perspective_Text): List[Document.Edit_Text] =
-  {
-    Swing_Thread.require()
-
-    if (is_theory) {
-      val header_edit = session.header_edit(node_name, node_header())
-      if (clear)
-        List(header_edit,
-          node_name -> Document.Node.Clear(),
-          node_name -> Document.Node.Edits(text_edits),
-          node_name -> perspective)
-      else
-        List(header_edit,
-          node_name -> Document.Node.Edits(text_edits),
-          node_name -> perspective)
+      clear: Boolean,
+      text_edits: List[Text.Edit],
+      perspective: Document.Node.Perspective_Text): List[Document.Edit_Text] =
+    get_blob() match {
+      case None =>
+        val header_edit = session.header_edit(node_name, node_header())
+        if (clear)
+          List(header_edit,
+            node_name -> Document.Node.Clear(),
+            node_name -> Document.Node.Edits(text_edits),
+            node_name -> perspective)
+        else
+          List(header_edit,
+            node_name -> Document.Node.Edits(text_edits),
+            node_name -> perspective)
+      case Some(blob) =>
+        List(node_name -> Document.Node.Blob(blob),
+          node_name -> Document.Node.Edits(text_edits))
     }
-    else
-      List(node_name -> Document.Node.Blob(),
-        node_name -> Document.Node.Edits(text_edits))
-  }
 
 
   /* pending edits */

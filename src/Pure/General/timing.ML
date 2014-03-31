@@ -105,7 +105,7 @@ fun timeap f x = timeit (fn () => f x);
 fun timeap_msg msg f x = cond_timeit true msg (fn () => f x);
 
 fun protocol_message props t =
-  Output.try_protocol_message (props @ Markup.timing_properties t) "";
+  Output.try_protocol_message (props @ Markup.timing_properties t) [];
 
 fun protocol props f x =
   let

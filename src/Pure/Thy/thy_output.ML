@@ -109,7 +109,7 @@ fun print_antiquotations ctxt =
   in
     [Pretty.big_list "document antiquotations:" (map Pretty.mark_str command_names),
       Pretty.big_list "document antiquotation options:" (map Pretty.mark_str option_names)]
-    |> Pretty.chunks |> Pretty.writeln
+    |> Pretty.writeln_chunks
   end;
 
 fun antiquotation name scan body =

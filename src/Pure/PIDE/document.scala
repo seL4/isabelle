@@ -46,6 +46,9 @@ object Document
   /* document blobs: auxiliary files */
 
   sealed case class Blob(bytes: Bytes, file: Command.File, changed: Boolean)
+  {
+    def unchanged: Blob = copy(changed = false)
+  }
 
   object Blobs
   {
@@ -157,7 +160,7 @@ object Document
       }
     }
     case class Clear[A, B]() extends Edit[A, B]
-    case class Blob[A, B]() extends Edit[A, B]
+    case class Blob[A, B](blob: Document.Blob) extends Edit[A, B]
 
     case class Edits[A, B](edits: List[A]) extends Edit[A, B]
     case class Deps[A, B](header: Header) extends Edit[A, B]
@@ -222,7 +225,7 @@ object Document
   }
 
   final class Node private(
-    val is_blob: Boolean = false,
+    val get_blob: Option[Document.Blob] = None,
     val header: Node.Header = Node.bad_header("Bad theory header"),
     val perspective: Node.Perspective_Command =
       Node.Perspective(false, Command.Perspective.empty, Node.Overlays.empty),
@@ -230,13 +233,13 @@ object Document
   {
     def clear: Node = new Node(header = header)
 
-    def init_blob: Node = new Node(is_blob = true)
+    def init_blob(blob: Document.Blob): Node = new Node(Some(blob.unchanged))
 
     def update_header(new_header: Node.Header): Node =
-      new Node(is_blob, new_header, perspective, _commands)
+      new Node(get_blob, new_header, perspective, _commands)
 
     def update_perspective(new_perspective: Node.Perspective_Command): Node =
-      new Node(is_blob, header, new_perspective, _commands)
+      new Node(get_blob, header, new_perspective, _commands)
 
     def same_perspective(other_perspective: Node.Perspective_Command): Boolean =
       perspective.required == other_perspective.required &&
@@ -248,7 +251,7 @@ object Document
 
     def update_commands(new_commands: Linear_Set[Command]): Node =
       if (new_commands eq _commands.commands) this
-      else new Node(is_blob, header, perspective, Node.Commands(new_commands))
+      else new Node(get_blob, header, perspective, Node.Commands(new_commands))
 
     def command_range(i: Text.Offset = 0): Iterator[(Command, Text.Offset)] =
       _commands.range(i)
@@ -300,6 +303,8 @@ object Document
 
     def descendants(names: List[Node.Name]): List[Node.Name] = graph.all_succs(names)
     def topological_order: List[Node.Name] = graph.topological_order
+
+    override def toString: String = topological_order.mkString("Nodes(", ",", ")")
   }
 
 

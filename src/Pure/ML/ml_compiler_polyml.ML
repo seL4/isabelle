@@ -55,7 +55,7 @@ fun report_parse_tree redirect depth space parse_tree =
     fun output () =
       persistent_reports
       |> map (fn (pos, markup, text) => Position.reported_text pos (markup ()) (text ()))
-      |> implode |> Output.report;
+      |> Output.report;
   in
     if not (null persistent_reports) andalso redirect andalso Multithreading.enabled ()
     then

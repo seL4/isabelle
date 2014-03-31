@@ -213,7 +213,7 @@ fun check_path strict ctxt dir (name, pos) =
           if strict then error msg
           else if Context_Position.is_visible ctxt then
             Output.report
-              (Markup.markup (Markup.bad |> Markup.properties (Position.properties_of pos)) msg)
+              [Markup.markup (Markup.bad |> Markup.properties (Position.properties_of pos)) msg]
           else ()
         end;
   in path end;

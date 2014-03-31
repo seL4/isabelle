@@ -333,7 +333,7 @@ fun unused_thms opt_range = Toplevel.keep (fn state =>
         NONE => (Theory.parents_of thy, [thy])
       | SOME (xs, NONE) => (map get_theory xs, [thy])
       | SOME (xs, SOME ys) => (map get_theory xs, map get_theory ys))
-    |> map pretty_thm |> Pretty.chunks |> Pretty.writeln
+    |> map pretty_thm |> Pretty.writeln_chunks
   end);
 
 

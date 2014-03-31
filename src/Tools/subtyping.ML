@@ -1085,7 +1085,7 @@ fun print_coercions ctxt =
    [Pretty.big_list "coercions between base types:" (map show_coercion simple),
     Pretty.big_list "other coercions:" (map show_coercion complex),
     Pretty.big_list "coercion maps:" (map show_map tmaps)]
-  end |> Pretty.chunks |> Pretty.writeln;
+  end |> Pretty.writeln_chunks;
 
 
 (* theory setup *)

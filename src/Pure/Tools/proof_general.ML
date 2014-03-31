@@ -258,8 +258,8 @@ end;
 
 (* hooks *)
 
-fun message bg en prfx text =
-  (case render text of
+fun message bg en prfx body =
+  (case render (implode body) of
     "" => ()
   | s => Output.physical_writeln (enclose bg en (prefix_lines prfx s)));
 
@@ -276,7 +276,7 @@ fun setup_messages () =
 
 (* notification *)
 
-val emacs_notify = message (special "I") (special "J") "";
+fun emacs_notify s = message (special "I") (special "J") "" [s];
 
 fun tell_clear_goals () =
   emacs_notify "Proof General, please clear the goals buffer.";

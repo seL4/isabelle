@@ -110,6 +110,22 @@ object Pretty_Tooltip
 
   /* dismiss */
 
+  private lazy val focus_delay = Swing_Thread.delay_last(PIDE.options.seconds("editor_input_delay"))
+  {
+    dismiss_unfocused()
+  }
+
+  def dismiss_unfocused()
+  {
+    stack.span(tip => !tip.pretty_text_area.isFocusOwner) match {
+      case (Nil, _) =>
+      case (unfocused, rest) =>
+        deactivate()
+        unfocused.foreach(_.hide_popup)
+        stack = rest
+    }
+  }
+
   def dismiss(tip: Pretty_Tooltip)
   {
     deactivate()
@@ -189,13 +205,12 @@ class Pretty_Tooltip private(
     override def focusGained(e: FocusEvent)
     {
       tip_border(true)
+      Pretty_Tooltip.focus_delay.invoke()
     }
     override def focusLost(e: FocusEvent)
     {
-      Pretty_Tooltip.hierarchy(tip) match {
-        case Some((Nil, _)) => Pretty_Tooltip.dismiss(tip)
-        case _ => tip_border(false)
-      }
+      tip_border(false)
+      Pretty_Tooltip.focus_delay.invoke()
     }
   })
 

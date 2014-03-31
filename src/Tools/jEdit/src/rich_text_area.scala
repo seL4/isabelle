@@ -122,7 +122,7 @@ class Rich_Text_Area(
           if (new_text_info.isDefined)
             text_area.getPainter.setCursor(Cursor.getPredefinedCursor(cursor.get))
           else
-            text_area.getPainter.resetCursor
+            text_area.getPainter.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR))
         }
         for {
           r0 <- JEdit_Lib.visible_range(text_area)
@@ -590,6 +590,7 @@ class Rich_Text_Area(
 
   def deactivate()
   {
+    active_reset()
     val painter = text_area.getPainter
     view.removeWindowListener(window_listener)
     text_area.removeFocusListener(focus_listener)

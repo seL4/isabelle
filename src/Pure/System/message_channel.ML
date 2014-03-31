@@ -7,7 +7,7 @@ Preferably asynchronous channel for Isabelle messages.
 signature MESSAGE_CHANNEL =
 sig
   type message
-  val message: string -> Properties.T -> string -> message
+  val message: string -> Properties.T -> string list -> message
   type T
   val send: T -> message -> unit
   val shutdown: T -> unit
@@ -21,13 +21,14 @@ struct
 
 datatype message = Message of string list;
 
-fun chunk s = [string_of_int (size s), "\n", s];
+fun chunk ss =
+  string_of_int (fold (Integer.add o size) ss 0) :: "\n" :: ss;
 
 fun message name raw_props body =
   let
     val robust_props = map (pairself YXML.embed_controls) raw_props;
     val header = YXML.string_of (XML.Elem ((name, robust_props), []));
-  in Message (chunk header @ chunk body) end;
+  in Message (chunk [header] @ chunk body) end;
 
 fun output_message channel (Message ss) =
   List.app (System_Channel.output channel) ss;
@@ -37,7 +38,7 @@ fun output_message channel (Message ss) =
 
 fun flush channel = ignore (try System_Channel.flush channel);
 
-val flush_message = message Markup.protocolN Markup.flush "";
+val flush_message = message Markup.protocolN Markup.flush [];
 fun flush_output channel = (output_message channel flush_message; flush channel);
 
 

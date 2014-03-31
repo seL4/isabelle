@@ -106,7 +106,7 @@ fun show_status thy (p, f) =
          Pretty.big_list (name ^ " " ^ f status)
            (Element.pretty_ctxt ctxt context' @
             Element.pretty_stmt ctxt stmt)) vcs'') vcs')] |>
-    Pretty.chunks2 |> Pretty.writeln
+    Pretty.writeln_chunks2
   end;
 
 val _ =
