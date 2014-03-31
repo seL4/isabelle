@@ -166,7 +166,8 @@ object Symbol
     }
     def decode(symbol_range: Range): Text.Range = symbol_range.map(decode(_))
 
-    override def hashCode: Int = index.hashCode
+    private val hash: Int = index.toList.hashCode
+    override def hashCode: Int = hash
     override def equals(that: Any): Boolean =
       that match {
         case other: Index => index.sameElements(other.index)
