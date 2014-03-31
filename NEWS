@@ -43,24 +43,58 @@ Poly/ML, without the add-ons of Isabelle/ML.  See also
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 
+* Improved syntactic and semantic completion mechanism:
+
+  - No completion for Isar keywords that have already been recognized
+    by the prover, e.g. ":" within accepted Isar syntax looses its
+    meaning as abbreviation for symbol "\<in>".
+
+  - Completion context provides information about embedded languages
+    of Isabelle: keywords are only completed for outer syntax, symbols
+    or antiquotations for languages that support them.  E.g. no symbol
+    completion for ML source, but within ML strings, comments,
+    antiquotations.
+
+  - Support for semantic completion based on failed name space lookup.
+    The error produced by the prover contains information about
+    alternative names that are accessible in a particular position.
+    This may be used with explicit completion (C+b) or implicit
+    completion after some delay.
+
+  - Semantic completions may get extended by appending a suffix of
+    underscores to an already recognized name, e.g. "foo_" to complete
+    "foo" or "foobar" if these are known in the context.  The special
+    identifier "__" serves as a wild-card in this respect: it
+    completes to the full collection of names from the name space
+    (truncated according to the system option "completion_limit").
+
+  - Syntax completion of the editor and semantic completion of the
+    prover are merged.  Since the latter requires a full round-trip of
+    document update to arrive, the default for option
+    jedit_completion_delay has been changed to 0.5s to improve the
+    user experience.
+
+  - Option jedit_completion_immediate may now get used with
+    jedit_completion_delay > 0, to complete symbol abbreviations
+    aggressively while benefiting from combined syntactic and semantic
+    completion.
+
+  - Support for simple completion templates (with single
+    place-holder), e.g. "`" for text cartouche, or "@{" for
+    antiquotation.
+
+  - Improved treatment of completion vs. various forms of jEdit text
+    selection (multiple selections, rectangular selections,
+    rectangular selection as "tall caret").
+
+  - More reliable treatment of GUI events vs. completion popups: avoid
+    loosing keystrokes with slow / remote graphics displays.
+
 * Auxiliary files ('ML_file' etc.) are managed by the Prover IDE.
 Open text buffers take precedence over copies within the file-system.
 
 * Improved support for Isabelle/ML, with jEdit mode "isabelle-ml" for
 auxiliary ML files.
-
-* Improved completion based on context information about embedded
-languages: keywords are only completed for outer syntax, symbols or
-antiquotations for languages that support them.  E.g. no symbol
-completion for ML source, but within ML strings, comments,
-antiquotations.
-
-* Semantic completions may get extended by appending a suffix of
-underscores to an already recognized name, e.g. "foo_" to complete
-"foo" or "foobar" if these are known in the context.  The special
-identifier "__" serves as a wild-card in this respect: it completes to
-the full collection of names from the name space (truncated according
-to the system option "completion_limit").
 
 * Document panel: simplied interaction where every single mouse click
 (re)opens document via desktop environment or as jEdit buffer.
