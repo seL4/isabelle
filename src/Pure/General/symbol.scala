@@ -165,6 +165,13 @@ object Symbol
       else index(i).chr + sym - index(i).sym
     }
     def decode(symbol_range: Range): Text.Range = symbol_range.map(decode(_))
+
+    override def hashCode: Int = index.hashCode
+    override def equals(that: Any): Boolean =
+      that match {
+        case other: Index => index.sameElements(other.index)
+        case _ => false
+      }
   }
 
 

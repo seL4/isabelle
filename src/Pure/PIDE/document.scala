@@ -46,26 +46,33 @@ object Document
   /* document blobs: auxiliary files */
 
   sealed case class Blob(bytes: Bytes, file: Command.File, changed: Boolean)
+  {
+    def unchanged: Blob = copy(changed = false)
+  }
 
   object Blobs
   {
-    def apply(blobs: Map[Node.Name, Blob]): Blobs = new Blobs(blobs)
+    def apply(blobs: Map[Node.Name, Blob]): Blobs = new Blobs(blobs, Nodes.empty)
     val empty: Blobs = apply(Map.empty)
   }
 
-  final class Blobs private(blobs: Map[Node.Name, Blob])
+  final class Blobs private(blobs: Map[Node.Name, Blob], default_nodes: Nodes)
   {
     private lazy val digests: Map[SHA1.Digest, Blob] =
       for ((_, blob) <- blobs) yield (blob.bytes.sha1_digest, blob)
 
     def get(digest: SHA1.Digest): Option[Blob] = digests.get(digest)
-    def get(name: Node.Name): Option[Blob] = blobs.get(name)
+
+    def get(name: Node.Name): Option[Blob] =
+      blobs.get(name) orElse default_nodes(name).get_blob
 
     def changed(name: Node.Name): Boolean =
       get(name) match {
         case Some(blob) => blob.changed
         case None => false
       }
+
+    def default(nodes: Nodes): Blobs = new Blobs(blobs, nodes)
 
     override def toString: String = blobs.mkString("Blobs(", ",", ")")
   }
@@ -157,7 +164,7 @@ object Document
       }
     }
     case class Clear[A, B]() extends Edit[A, B]
-    case class Blob[A, B]() extends Edit[A, B]
+    case class Blob[A, B](blob: Document.Blob) extends Edit[A, B]
 
     case class Edits[A, B](edits: List[A]) extends Edit[A, B]
     case class Deps[A, B](header: Header) extends Edit[A, B]
@@ -222,7 +229,7 @@ object Document
   }
 
   final class Node private(
-    val is_blob: Boolean = false,
+    val get_blob: Option[Document.Blob] = None,
     val header: Node.Header = Node.bad_header("Bad theory header"),
     val perspective: Node.Perspective_Command =
       Node.Perspective(false, Command.Perspective.empty, Node.Overlays.empty),
@@ -230,13 +237,13 @@ object Document
   {
     def clear: Node = new Node(header = header)
 
-    def init_blob: Node = new Node(is_blob = true)
+    def init_blob(blob: Document.Blob): Node = new Node(Some(blob.unchanged))
 
     def update_header(new_header: Node.Header): Node =
-      new Node(is_blob, new_header, perspective, _commands)
+      new Node(get_blob, new_header, perspective, _commands)
 
     def update_perspective(new_perspective: Node.Perspective_Command): Node =
-      new Node(is_blob, header, new_perspective, _commands)
+      new Node(get_blob, header, new_perspective, _commands)
 
     def same_perspective(other_perspective: Node.Perspective_Command): Boolean =
       perspective.required == other_perspective.required &&
@@ -248,7 +255,7 @@ object Document
 
     def update_commands(new_commands: Linear_Set[Command]): Node =
       if (new_commands eq _commands.commands) this
-      else new Node(is_blob, header, perspective, Node.Commands(new_commands))
+      else new Node(get_blob, header, perspective, Node.Commands(new_commands))
 
     def command_range(i: Text.Offset = 0): Iterator[(Command, Text.Offset)] =
       _commands.range(i)

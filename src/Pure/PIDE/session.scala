@@ -384,7 +384,7 @@ class Session(val resources: Resources)
           change.doc_blobs.get(digest) match {
             case Some(blob) =>
               global_state >> (_.define_blob(digest))
-              prover.get.define_blob(blob)
+              prover.get.define_blob(digest, blob.bytes)
             case None =>
               System.err.println("Missing blob for SHA1 digest " + digest)
           }

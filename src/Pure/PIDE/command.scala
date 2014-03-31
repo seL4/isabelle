@@ -225,6 +225,7 @@ object Command
     }
   }
 
+  // file name and position information, *without* persistent text
   class File(val file_name: String, text: CharSequence) extends Chunk
   {
     val length = text.length
@@ -232,6 +233,17 @@ object Command
     private val symbol_index = Symbol.Index(text)
     def decode(symbol_range: Symbol.Range): Text.Range = symbol_index.decode(symbol_range)
 
+    private val hash: Int = (file_name, length, symbol_index).hashCode
+    override def hashCode: Int = hash
+    override def equals(that: Any): Boolean =
+      that match {
+        case other: File =>
+          hash == other.hash &&
+          file_name == other.file_name &&
+          length == other.length &&
+          symbol_index == other.symbol_index
+        case _ => false
+      }
     override def toString: String = "Command.File(" + file_name + ")"
   }
 
