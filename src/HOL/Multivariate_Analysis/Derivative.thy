@@ -883,25 +883,14 @@ lemma has_derivative_zero_constant:
   assumes "convex s"
     and "\<forall>x\<in>s. (f has_derivative (\<lambda>h. 0)) (at x within s)"
   shows "\<exists>c. \<forall>x\<in>s. f x = c"
-proof (cases "s={}")
-  case False
-  then obtain x where "x \<in> s"
-    by auto
-  have "\<And>y. y \<in> s \<Longrightarrow> f x = f y"
-  proof -
-    case goal1
-    then show ?case
-      using differentiable_bound[OF assms(1-2), of 0 x y] and `x \<in> s`
-      unfolding onorm_zero
-      by auto
-  qed
+proof -
+  { fix x y assume "x \<in> s" "y \<in> s"
+    then have "norm (f x - f y) \<le> 0 * norm (x - y)"
+      using assms by (intro differentiable_bound[of s]) (auto simp: onorm_zero)
+    then have "f x = f y"
+      by simp }
   then show ?thesis
-    apply (rule_tac x="f x" in exI)
-    apply auto
-    done
-next
-  case True
-  then show ?thesis by auto
+    by metis
 qed
 
 lemma has_derivative_zero_unique:

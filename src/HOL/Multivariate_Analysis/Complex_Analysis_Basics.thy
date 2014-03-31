@@ -6,7 +6,6 @@ header {* Complex Analysis Basics *}
 
 theory Complex_Analysis_Basics
 imports  "~~/src/HOL/Multivariate_Analysis/Cartesian_Euclidean_Space"
-
 begin
 
 subsection {*Complex number lemmas *}
@@ -28,11 +27,11 @@ proof (cases z)
     done
 qed
 
-lemma continuous_Re: "continuous_on UNIV Re"
+lemma continuous_Re: "continuous_on X Re"
   by (metis (poly_guards_query) bounded_linear.continuous_on bounded_linear_Re 
             continuous_on_cong continuous_on_id)
 
-lemma continuous_Im: "continuous_on UNIV Im"
+lemma continuous_Im: "continuous_on X Im"
   by (metis (poly_guards_query) bounded_linear.continuous_on bounded_linear_Im 
             continuous_on_cong continuous_on_id)
 
@@ -52,95 +51,29 @@ lemma fact_cancel:
   apply (simp add: algebra_simps of_nat_mult)
   done
 
-lemma open_halfspace_Re_lt: "open {z. Re(z) < b}"
-proof -
-  have "{z. Re(z) < b} = Re -`{..<b}"
-    by blast
-  then show ?thesis
-    by (auto simp: continuous_Re continuous_imp_open_vimage [of UNIV])
-qed
-
-lemma open_halfspace_Re_gt: "open {z. Re(z) > b}"
-proof -
-  have "{z. Re(z) > b} = Re -`{b<..}"
-    by blast
-  then show ?thesis
-    by (auto simp: continuous_Re continuous_imp_open_vimage [of UNIV])
-qed
-
-lemma closed_halfspace_Re_ge: "closed {z. Re(z) \<ge> b}"
-proof -
-  have "{z. Re(z) \<ge> b} = - {z. Re(z) < b}"
-    by auto
-  then show ?thesis
-    by (simp add: closed_def open_halfspace_Re_lt)
-qed
-
-lemma closed_halfspace_Re_le: "closed {z. Re(z) \<le> b}"
-proof -
-  have "{z. Re(z) \<le> b} = - {z. Re(z) > b}"
-    by auto
-  then show ?thesis
-    by (simp add: closed_def open_halfspace_Re_gt)
-qed
-
-lemma closed_halfspace_Re_eq: "closed {z. Re(z) = b}"
-proof -
-  have "{z. Re(z) = b} = {z. Re(z) \<le> b} \<inter> {z. Re(z) \<ge> b}"
-    by auto
-  then show ?thesis
-    by (auto simp: closed_Int closed_halfspace_Re_le closed_halfspace_Re_ge)
-qed
-
-lemma open_halfspace_Im_lt: "open {z. Im(z) < b}"
-proof -
-  have "{z. Im(z) < b} = Im -`{..<b}"
-    by blast
-  then show ?thesis
-    by (auto simp: continuous_Im continuous_imp_open_vimage [of UNIV])
-qed
-
-lemma open_halfspace_Im_gt: "open {z. Im(z) > b}"
-proof -
-  have "{z. Im(z) > b} = Im -`{b<..}"
-    by blast
-  then show ?thesis
-    by (auto simp: continuous_Im continuous_imp_open_vimage [of UNIV])
-qed
-
-lemma closed_halfspace_Im_ge: "closed {z. Im(z) \<ge> b}"
-proof -
-  have "{z. Im(z) \<ge> b} = - {z. Im(z) < b}"
-    by auto
-  then show ?thesis
-    by (simp add: closed_def open_halfspace_Im_lt)
-qed
-
-lemma closed_halfspace_Im_le: "closed {z. Im(z) \<le> b}"
-proof -
-  have "{z. Im(z) \<le> b} = - {z. Im(z) > b}"
-    by auto
-  then show ?thesis
-    by (simp add: closed_def open_halfspace_Im_gt)
-qed
-
-lemma closed_halfspace_Im_eq: "closed {z. Im(z) = b}"
-proof -
-  have "{z. Im(z) = b} = {z. Im(z) \<le> b} \<inter> {z. Im(z) \<ge> b}"
-    by auto
-  then show ?thesis
-    by (auto simp: closed_Int closed_halfspace_Im_le closed_halfspace_Im_ge)
-qed
+lemma
+  shows open_halfspace_Re_lt: "open {z. Re(z) < b}"
+    and open_halfspace_Re_gt: "open {z. Re(z) > b}"
+    and closed_halfspace_Re_ge: "closed {z. Re(z) \<ge> b}"
+    and closed_halfspace_Re_le: "closed {z. Re(z) \<le> b}"
+    and closed_halfspace_Re_eq: "closed {z. Re(z) = b}"
+    and open_halfspace_Im_lt: "open {z. Im(z) < b}"
+    and open_halfspace_Im_gt: "open {z. Im(z) > b}"
+    and closed_halfspace_Im_ge: "closed {z. Im(z) \<ge> b}"
+    and closed_halfspace_Im_le: "closed {z. Im(z) \<le> b}"
+    and closed_halfspace_Im_eq: "closed {z. Im(z) = b}"
+  by (intro open_Collect_less closed_Collect_le closed_Collect_eq isCont_Re
+            isCont_Im isCont_ident isCont_const)+
 
 lemma complex_is_Real_iff: "z \<in> \<real> \<longleftrightarrow> Im z = 0"
   by (metis Complex_in_Reals Im_complex_of_real Reals_cases complex_surj)
 
 lemma closed_complex_Reals: "closed (Reals :: complex set)"
 proof -
-  have "-(Reals :: complex set) = {z. Im(z) < 0} \<union> {z. 0 < Im(z)}"
+  have "(Reals :: complex set) = {z. Im z = 0}"
     by (auto simp: complex_is_Real_iff)
   then show ?thesis
-    by (metis closed_def open_Un open_halfspace_Im_gt open_halfspace_Im_lt)
+    by (metis closed_halfspace_Im_eq)
 qed
 
 
@@ -218,25 +151,8 @@ by (rule continuous_on_mult [OF _ continuous_on_const])
 
 lemma uniformly_continuous_on_cmul_right [continuous_on_intros]:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_algebra"
-  assumes "uniformly_continuous_on s f"
-  shows "uniformly_continuous_on s (\<lambda>x. f x * c)"
-proof (cases "c=0")
-  case True then show ?thesis
-    by (simp add: uniformly_continuous_on_const)
-next
-  case False show ?thesis
-    apply (rule bounded_linear.uniformly_continuous_on)
-    apply (metis bounded_linear_ident)
-    using assms
-    apply (auto simp: uniformly_continuous_on_def dist_norm)
-    apply (drule_tac x = "e / norm c" in spec, auto)
-    apply (metis divide_pos_pos zero_less_norm_iff False)
-    apply (rule_tac x=d in exI, auto)
-    apply (drule_tac x = x in bspec, assumption)
-    apply (drule_tac x = "x'" in bspec)
-    apply (auto simp: False less_divide_eq)
-    by (metis dual_order.strict_trans2 left_diff_distrib norm_mult_ineq)
-qed
+  shows "uniformly_continuous_on s f \<Longrightarrow> uniformly_continuous_on s (\<lambda>x. f x * c)"
+  by (metis bounded_linear.uniformly_continuous_on[of "\<lambda>x. x * c"] bounded_linear_mult_left) 
 
 lemma uniformly_continuous_on_cmul_left[continuous_on_intros]:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_algebra"
@@ -258,62 +174,6 @@ lemma lambda_zero: "(\<lambda>h::'a::mult_zero. 0) = op * 0"
 
 lemma lambda_one: "(\<lambda>x::'a::monoid_mult. x) = op * 1"
   by auto
-
-lemma has_derivative_zero_constant:
-  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
-  assumes "convex s"
-      and d0: "\<And>x. x\<in>s \<Longrightarrow> (f has_derivative (\<lambda>h. 0)) (at x within s)"
-    shows "\<exists>c. \<forall>x\<in>s. f x = c"
-proof (cases "s={}")
-  case False
-  then obtain x where "x \<in> s"
-    by auto
-  have d0': "\<forall>x\<in>s. (f has_derivative (\<lambda>h. 0)) (at x within s)"
-    by (metis d0)
-  have "\<And>y. y \<in> s \<Longrightarrow> f x = f y"
-  proof -
-    case goal1
-    then show ?case
-      using differentiable_bound[OF assms(1) d0', of 0 x y] and `x \<in> s`
-      unfolding onorm_zero
-      by auto
-  qed
-  then show ?thesis 
-    by metis
-next
-  case True
-  then show ?thesis by auto
-qed
-
-lemma has_derivative_zero_unique:
-  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
-  assumes "convex s"
-      and "\<And>x. x\<in>s \<Longrightarrow> (f has_derivative (\<lambda>h. 0)) (at x within s)"
-      and "a \<in> s"
-      and "x \<in> s"
-    shows "f x = f a"
-  using assms
-  by (metis has_derivative_zero_constant)
-
-lemma has_derivative_zero_connected_constant:
-  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::banach"
-  assumes "connected s"
-      and "open s"
-      and "finite k"
-      and "continuous_on s f"
-      and "\<forall>x\<in>(s - k). (f has_derivative (\<lambda>h. 0)) (at x within s)"
-    obtains c where "\<And>x. x \<in> s \<Longrightarrow> f(x) = c"
-proof (cases "s = {}")
-  case True
-  then show ?thesis
-by (metis empty_iff that)
-next
-  case False
-  then obtain c where "c \<in> s"
-    by (metis equals0I)
-  then show ?thesis
-    by (metis has_derivative_zero_unique_strong_connected assms that)
-qed
 
 lemma DERIV_zero_connected_constant:
   fixes f :: "'a::{real_normed_field,euclidean_space} \<Rightarrow> 'a"
@@ -342,8 +202,8 @@ lemma DERIV_zero_unique:
       and "a \<in> s"
       and "x \<in> s"
     shows "f x = f a"
-apply (rule has_derivative_zero_unique [where f=f, OF assms(1) _ assms(3,4)])
-by (metis d0 has_field_derivative_imp_has_derivative lambda_zero)
+  by (rule has_derivative_zero_unique [where f=f, OF assms(1,3) refl _ assms(4)])
+     (metis d0 has_field_derivative_imp_has_derivative lambda_zero)
 
 lemma DERIV_zero_connected_unique:
   fixes f :: "'a::{real_normed_field,euclidean_space} \<Rightarrow> 'a"
@@ -353,7 +213,7 @@ lemma DERIV_zero_connected_unique:
       and "a \<in> s"
       and "x \<in> s"
     shows "f x = f a" 
-    apply (rule Integration.has_derivative_zero_unique_strong_connected [of s "{}" f])
+    apply (rule has_derivative_zero_unique_strong_connected [of s "{}" f])
     using assms
     apply auto
     apply (metis DERIV_continuous_on)
@@ -365,7 +225,7 @@ lemma DERIV_transform_within:
       and "\<And>x. x\<in>s \<Longrightarrow> dist x a < d \<Longrightarrow> f x = g x"
     shows "(g has_field_derivative f') (at a within s)"
   using assms unfolding has_field_derivative_def
-  by (blast intro: Derivative.has_derivative_transform_within)
+  by (blast intro: has_derivative_transform_within)
 
 lemma DERIV_transform_within_open:
   assumes "DERIV f a :> f'"
@@ -1177,21 +1037,18 @@ by (metis bounded_linear_cnj linear_continuous_within)
 lemma continuous_on_cnj: "continuous_on s cnj"
 by (metis bounded_linear_cnj linear_continuous_on)
 
-subsection{*Some limit theorems about real part of real series etc.*}
+subsection {*Some limit theorems about real part of real series etc.*}
 
 lemma real_lim:
   fixes l::complex
-  assumes "(f ---> l) F" and " ~(trivial_limit F)" and "eventually P F" and "\<And>a. P a \<Longrightarrow> f a \<in> \<real>"
+  assumes "(f ---> l) F" and "~(trivial_limit F)" and "eventually P F" and "\<And>a. P a \<Longrightarrow> f a \<in> \<real>"
   shows  "l \<in> \<real>"
-proof -
-  have 1: "((\<lambda>i. Im (f i)) ---> Im l) F"
-    by (metis assms(1) tendsto_Im) 
-  then have  "((\<lambda>i. Im (f i)) ---> 0) F" using assms
-    by (metis (mono_tags, lifting) Lim_eventually complex_is_Real_iff eventually_mono)
-  then show ?thesis using 1
-    by (metis 1 assms(2) complex_is_Real_iff tendsto_unique) 
-qed
-
+proof (rule Lim_in_closed_set)
+  show "closed (\<real>::complex set)"
+    by (rule closed_complex_Reals)
+  show "eventually (\<lambda>x. f x \<in> \<real>) F"
+    using assms(3, 4) by (auto intro: eventually_mono)
+qed fact+
 lemma real_lim_sequentially:
   fixes l::complex
   shows "(f ---> l) sequentially \<Longrightarrow> (\<exists>N. \<forall>n\<ge>N. f n \<in> \<real>) \<Longrightarrow> l \<in> \<real>"
@@ -1207,14 +1064,6 @@ by (metis real_lim_sequentially setsum_in_Reals)
 lemma Lim_null_comparison_Re:
    "eventually (\<lambda>x. norm(f x) \<le> Re(g x)) F \<Longrightarrow>  (g ---> 0) F \<Longrightarrow> (f ---> 0) F"
   by (metis Lim_null_comparison complex_Re_zero tendsto_Re)
-
-
-lemma norm_setsum_bound:
-  fixes n::nat
-  shows" \<lbrakk>\<And>n. N \<le> n \<Longrightarrow> norm (f n) \<le> g n; N \<le> m\<rbrakk>
-       \<Longrightarrow> norm (setsum f {m..<n}) \<le> setsum g {m..<n}"
-apply (induct n, auto)
-by (metis dual_order.trans le_cases le_neq_implies_less norm_triangle_mono)
 
 
 (*MOVE? But not to Finite_Cartesian_Product*)

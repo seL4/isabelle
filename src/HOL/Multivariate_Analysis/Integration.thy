@@ -8869,6 +8869,26 @@ proof -
     using `x \<in> s` `f c = y` `c \<in> s` by auto
 qed
 
+lemma has_derivative_zero_connected_constant:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::banach"
+  assumes "connected s"
+      and "open s"
+      and "finite k"
+      and "continuous_on s f"
+      and "\<forall>x\<in>(s - k). (f has_derivative (\<lambda>h. 0)) (at x within s)"
+    obtains c where "\<And>x. x \<in> s \<Longrightarrow> f(x) = c"
+proof (cases "s = {}")
+  case True
+  then show ?thesis
+by (metis empty_iff that)
+next
+  case False
+  then obtain c where "c \<in> s"
+    by (metis equals0I)
+  then show ?thesis
+    by (metis has_derivative_zero_unique_strong_connected assms that)
+qed
+
 
 subsection {* Integrating characteristic function of an interval *}
 
