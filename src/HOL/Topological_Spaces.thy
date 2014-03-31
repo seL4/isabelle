@@ -2134,7 +2134,36 @@ lemma connectedI:
 lemma connected_empty[simp]: "connected {}"
   by (auto intro!: connectedI)
 
+lemma connectedD:
+  "connected A \<Longrightarrow> open U \<Longrightarrow> open V \<Longrightarrow> U \<inter> V \<inter> A = {} \<Longrightarrow> A \<subseteq> U \<union> V \<Longrightarrow> U \<inter> A = {} \<or> V \<inter> A = {}" 
+  by (auto simp: connected_def)
+
 end
+
+lemma connected_local_const:
+  assumes "connected A" "a \<in> A" "b \<in> A"
+  assumes *: "\<forall>a\<in>A. eventually (\<lambda>b. f a = f b) (at a within A)"
+  shows "f a = f b"
+proof -
+  obtain S where S: "\<And>a. a \<in> A \<Longrightarrow> a \<in> S a" "\<And>a. a \<in> A \<Longrightarrow> open (S a)"
+    "\<And>a x. a \<in> A \<Longrightarrow> x \<in> S a \<Longrightarrow> x \<in> A \<Longrightarrow> f a = f x"
+    using * unfolding eventually_at_topological by metis
+
+  let ?P = "\<Union>b\<in>{b\<in>A. f a = f b}. S b" and ?N = "\<Union>b\<in>{b\<in>A. f a \<noteq> f b}. S b"
+  have "?P \<inter> A = {} \<or> ?N \<inter> A = {}"
+    using `connected A` S `a\<in>A`
+    by (intro connectedD) (auto, metis)
+  then show "f a = f b"
+  proof
+    assume "?N \<inter> A = {}"
+    then have "\<forall>x\<in>A. f a = f x"
+      using S(1) by auto
+    with `b\<in>A` show ?thesis by auto
+  next
+    assume "?P \<inter> A = {}" then show ?thesis
+      using `a \<in> A` S(1)[of a] by auto
+  qed
+qed
 
 lemma (in linorder_topology) connectedD_interval:
   assumes "connected U" and xy: "x \<in> U" "y \<in> U" and "x \<le> z" "z \<le> y"
