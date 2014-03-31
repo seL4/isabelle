@@ -232,6 +232,8 @@ subsection{* Properties of Embedding from Reals *}
 abbreviation complex_of_real :: "real \<Rightarrow> complex"
   where "complex_of_real \<equiv> of_real"
 
+declare [[coercion complex_of_real]]
+
 lemma complex_of_real_def: "complex_of_real r = Complex r 0"
   by (simp add: of_real_def complex_scaleR_def)
 
