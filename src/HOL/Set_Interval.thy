@@ -414,6 +414,11 @@ lemma greaterThanLessThan_subseteq_atLeastLessThan_iff:
   using dense[of "a" "min c b"] dense[of "max a d" "b"]
   by (force simp: subset_eq Ball_def not_less[symmetric])
 
+lemma greaterThanLessThan_subseteq_greaterThanAtMost_iff:
+  "{a <..< b} \<subseteq> { c <.. d } \<longleftrightarrow> (a < b \<longrightarrow> c \<le> a \<and> b \<le> d)"
+  using dense[of "a" "min c b"] dense[of "max a d" "b"]
+  by (force simp: subset_eq Ball_def not_less[symmetric])
+
 end
 
 context no_top
@@ -462,6 +467,88 @@ lemma (in bounded_lattice) atLeastAtMost_eq_UNIV_iff:
   "{x..y} = UNIV \<longleftrightarrow> (x = bot \<and> y = top)"
 by (auto simp: set_eq_iff intro: top_le le_bot)
 
+
+subsection {* Infinite intervals *}
+
+context dense_linorder
+begin
+
+lemma infinite_Ioo:
+  assumes "a < b"
+  shows "\<not> finite {a<..<b}"
+proof
+  assume fin: "finite {a<..<b}"
+  moreover have ne: "{a<..<b} \<noteq> {}"
+    using `a < b` by auto
+  ultimately have "a < Max {a <..< b}" "Max {a <..< b} < b"
+    using Max_in[of "{a <..< b}"] by auto
+  then obtain x where "Max {a <..< b} < x" "x < b"
+    using dense[of "Max {a<..<b}" b] by auto
+  then have "x \<in> {a <..< b}"
+    using `a < Max {a <..< b}` by auto
+  then have "x \<le> Max {a <..< b}"
+    using fin by auto
+  with `Max {a <..< b} < x` show False by auto
+qed
+
+lemma infinite_Icc: "a < b \<Longrightarrow> \<not> finite {a .. b}"
+  using greaterThanLessThan_subseteq_atLeastAtMost_iff[of a b a b] infinite_Ioo[of a b]
+  by (auto dest: finite_subset)
+
+lemma infinite_Ico: "a < b \<Longrightarrow> \<not> finite {a ..< b}"
+  using greaterThanLessThan_subseteq_atLeastLessThan_iff[of a b a b] infinite_Ioo[of a b]
+  by (auto dest: finite_subset)
+
+lemma infinite_Ioc: "a < b \<Longrightarrow> \<not> finite {a <.. b}"
+  using greaterThanLessThan_subseteq_greaterThanAtMost_iff[of a b a b] infinite_Ioo[of a b]
+  by (auto dest: finite_subset)
+
+end
+
+lemma infinite_Iio: "\<not> finite {..< a :: 'a :: {no_bot, linorder}}"
+proof
+  assume "finite {..< a}"
+  then have *: "\<And>x. x < a \<Longrightarrow> Min {..< a} \<le> x"
+    by auto
+  obtain x where "x < a"
+    using lt_ex by auto
+
+  obtain y where "y < Min {..< a}"
+    using lt_ex by auto
+  also have "Min {..< a} \<le> x"
+    using `x < a` by fact
+  also note `x < a`
+  finally have "Min {..< a} \<le> y"
+    by fact
+  with `y < Min {..< a}` show False by auto
+qed
+
+lemma infinite_Iic: "\<not> finite {.. a :: 'a :: {no_bot, linorder}}"
+  using infinite_Iio[of a] finite_subset[of "{..< a}" "{.. a}"]
+  by (auto simp: subset_eq less_imp_le)
+
+lemma infinite_Ioi: "\<not> finite {a :: 'a :: {no_top, linorder} <..}"
+proof
+  assume "finite {a <..}"
+  then have *: "\<And>x. a < x \<Longrightarrow> x \<le> Max {a <..}"
+    by auto
+
+  obtain y where "Max {a <..} < y"
+    using gt_ex by auto
+
+  obtain x where "a < x"
+    using gt_ex by auto
+  also then have "x \<le> Max {a <..}"
+    by fact
+  also note `Max {a <..} < y`
+  finally have "y \<le> Max { a <..}"
+    by fact
+  with `Max {a <..} < y` show False by auto
+qed
+
+lemma infinite_Ici: "\<not> finite {a :: 'a :: {no_top, linorder} ..}"
+  using infinite_Ioi[of a] finite_subset[of "{a <..}" "{a ..}"]
+  by (auto simp: subset_eq less_imp_le)
 
 subsubsection {* Intersection *}
 
@@ -822,6 +909,7 @@ done
 lemma finite_less_ub:
      "!!f::nat=>nat. (!!n. n \<le> f n) ==> finite {n. f n \<le> u}"
 by (rule_tac B="{..u}" in finite_subset, auto intro: order_trans)
+
 
 text{* Any subset of an interval of natural numbers the size of the
 subset is exactly that interval. *}
