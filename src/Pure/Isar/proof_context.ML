@@ -78,8 +78,8 @@ sig
   val read_arity: Proof.context -> xstring * string list * string -> arity
   val cert_arity: Proof.context -> arity -> arity
   val allow_dummies: Proof.context -> Proof.context
-  val prepare_sortsT: Proof.context -> typ list -> string * typ list
-  val prepare_sorts: Proof.context -> term list -> string * term list
+  val prepare_sortsT: Proof.context -> typ list -> string list * typ list
+  val prepare_sorts: Proof.context -> term list -> string list * term list
   val check_tfree: Proof.context -> string * sort -> string * sort
   val read_term_pattern: Proof.context -> string -> term
   val read_term_schematic: Proof.context -> string -> term
@@ -691,7 +691,7 @@ fun prepare_sorts_env ctxt tys =
             | TVar (xi, raw_S) => get_sort_reports xi raw_S
             | _ => I)) tys [];
 
-  in (implode (map #2 reports), get_sort) end;
+  in (map #2 reports, get_sort) end;
 
 fun replace_sortsT get_sort =
   map_atyps

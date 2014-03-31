@@ -56,7 +56,7 @@ sig
   val interruptible_task: ('a -> 'b) -> 'a -> 'b
   val cancel_group: group -> unit
   val cancel: 'a future -> unit
-  val error_msg: Position.T -> (serial * string) * string option -> unit
+  val error_message: Position.T -> (serial * string) * string option -> unit
   val identify_result: Position.T -> 'a Exn.result -> 'a Exn.result
   type params = {name: string, group: group option, deps: task list, pri: int, interrupts: bool}
   val default_params: params
@@ -210,7 +210,7 @@ fun report_status () = (*requires SYNCHRONIZED*)
         ("workers_active", Markup.print_int active),
         ("workers_waiting", Markup.print_int waiting)] @
         ML_Statistics.get ();
-    in Output.try_protocol_message (Markup.ML_statistics :: stats) "" end
+    in Output.try_protocol_message (Markup.ML_statistics :: stats) [] end
   else ();
 
 
@@ -257,7 +257,7 @@ fun worker_exec (task, jobs) =
           fold (fn job => fn ok => job valid andalso ok) jobs true) ());
     val _ =
       if ! Multithreading.trace >= 2 then
-        Output.try_protocol_message (Markup.task_statistics :: Task_Queue.task_statistics task) ""
+        Output.try_protocol_message (Markup.task_statistics :: Task_Queue.task_statistics task) []
       else ();
     val _ = SYNCHRONIZED "finish" (fn () =>
       let
@@ -434,7 +434,7 @@ fun cancel x = cancel_group (Task_Queue.group_of_task (task_of x));
 
 (* results *)
 
-fun error_msg pos ((serial, msg), exec_id) =
+fun error_message pos ((serial, msg), exec_id) =
   Position.setmp_thread_data pos (fn () =>
     let val id = Position.get_id pos in
       if is_none id orelse is_none exec_id orelse id = exec_id

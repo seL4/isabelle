@@ -106,7 +106,7 @@ fun init_channels channel =
       Message_Channel.send msg_channel (Message_Channel.message name props body);
 
     fun standard_message props name body =
-      if body = "" then ()
+      if forall (fn s => s = "") body then ()
       else
         message name
           (fold_rev Properties.put props (Position.properties_of (Position.thread_data ()))) body;
@@ -124,7 +124,7 @@ fun init_channels channel =
     Output.protocol_message_fn := message Markup.protocolN;
     Output.urgent_message_fn := ! Output.writeln_fn;
     Output.prompt_fn := ignore;
-    message Markup.initN [] (Session.welcome ());
+    message Markup.initN [] [Session.welcome ()];
     msg_channel
   end;
 

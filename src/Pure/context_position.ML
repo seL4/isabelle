@@ -49,13 +49,13 @@ fun is_reported ctxt pos = is_visible ctxt andalso Position.is_reported pos;
 
 fun report_generic context pos markup =
   if is_reported_generic context pos then
-    Output.report (Position.reported_text pos markup "")
+    Output.report [Position.reported_text pos markup ""]
   else ();
 
 fun reported_text ctxt pos markup txt =
   if is_reported ctxt pos then Position.reported_text pos markup txt else "";
 
-fun report_text ctxt pos markup txt = Output.report (reported_text ctxt pos markup txt);
+fun report_text ctxt pos markup txt = Output.report [reported_text ctxt pos markup txt];
 fun report ctxt pos markup = report_text ctxt pos markup "";
 
 fun reports_text ctxt reps = if is_visible ctxt then Position.reports_text reps else ();

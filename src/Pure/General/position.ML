@@ -166,7 +166,7 @@ val markup = Markup.properties o properties_of;
 fun is_reported pos = is_some (offset_of pos) andalso is_some (get_id pos);
 
 fun reported_text pos m txt = if is_reported pos then Markup.markup (markup pos m) txt else "";
-fun report_text pos markup txt = Output.report (reported_text pos markup txt);
+fun report_text pos markup txt = Output.report [reported_text pos markup txt];
 fun report pos markup = report_text pos markup "";
 
 type report = T * Markup.T;
@@ -174,7 +174,7 @@ type report_text = report * string;
 
 val reports_text =
   map (fn ((pos, m), txt) => if is_reported pos then Markup.markup (markup pos m) txt else "")
-  #> implode #> Output.report;
+  #> Output.report;
 
 val reports = map (rpair "") #> reports_text;
 

@@ -133,7 +133,7 @@ val futures =
 (** markup **)
 
 fun output_result (id, data) =
-  Output.result (Markup.serial_properties id) data
+  Output.result (Markup.serial_properties id) [data]
 
 val parentN = "parent"
 val textN = "text"
@@ -184,7 +184,7 @@ fun mk_generic_result markup text triggered (payload : unit -> payload) ctxt =
 fun send_request (result_id, content) =
   let
     fun break () =
-      (Output.protocol_message (Markup.simp_trace_cancel result_id) "";
+      (Output.protocol_message (Markup.simp_trace_cancel result_id) [];
        Synchronized.change futures (Inttab.delete_safe result_id))
     val promise = Future.promise break : string future
   in

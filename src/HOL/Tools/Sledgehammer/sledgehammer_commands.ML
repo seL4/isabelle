@@ -505,6 +505,6 @@ val _ = Isabelle_Process.protocol_command "Sledgehammer.provers"
     let
       val this_thy = @{theory}
       val provers = space_implode " " (#provers (default_params this_thy []))
-    in Output.protocol_message Markup.sledgehammer_provers provers end)
+    in Output.protocol_message Markup.sledgehammer_provers [provers] end)
 
 end;

@@ -85,10 +85,10 @@ val _ =
 
         val _ =
           Output.protocol_message Markup.assign_update
-            ((new_id, assign_update) |>
+            [(new_id, assign_update) |>
               let open XML.Encode
               in pair int (list (pair int (list int))) end
-              |> YXML.string_of_body);
+              |> YXML.string_of_body];
       in Document.start_execution state' end));
 
 val _ =
@@ -99,7 +99,7 @@ val _ =
           YXML.parse_body versions_yxml |>
             let open XML.Decode in list int end;
         val state1 = Document.remove_versions versions state;
-        val _ = Output.protocol_message Markup.removed_versions versions_yxml;
+        val _ = Output.protocol_message Markup.removed_versions [versions_yxml];
       in state1 end));
 
 val _ =

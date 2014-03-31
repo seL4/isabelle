@@ -199,7 +199,7 @@ fun check_cmts span tr st' =
             else Runtime.exn_messages_ids exn)) ();
 
 fun report tr m =
-  Toplevel.setmp_thread_position tr (fn () => Output.report (Markup.markup_only m)) ();
+  Toplevel.setmp_thread_position tr (fn () => Output.report [Markup.markup_only m]) ();
 
 fun status tr m =
   Toplevel.setmp_thread_position tr (fn () => Output.status (Markup.markup_only m)) ();
@@ -223,7 +223,7 @@ fun eval_state span tr ({malformed, state = st, ...}: eval_state) =
       val (errs1, result) = run (is_init orelse is_proof) (Toplevel.set_print false tr) st;
       val errs2 = (case result of NONE => [] | SOME st' => check_cmts span tr st');
       val errs = errs1 @ errs2;
-      val _ = List.app (Future.error_msg (Toplevel.pos_of tr)) errs;
+      val _ = List.app (Future.error_message (Toplevel.pos_of tr)) errs;
     in
       (case result of
         NONE =>
@@ -279,7 +279,7 @@ fun print_error tr opt_context e =
   (Toplevel.setmp_thread_position tr o Runtime.controlled_execution opt_context) e ()
     handle exn =>
       if Exn.is_interrupt exn then reraise exn
-      else List.app (Future.error_msg (Toplevel.pos_of tr)) (Runtime.exn_messages_ids exn);
+      else List.app (Future.error_message (Toplevel.pos_of tr)) (Runtime.exn_messages_ids exn);
 
 fun print_finished (Print {print_process, ...}) = memo_finished print_process;
 

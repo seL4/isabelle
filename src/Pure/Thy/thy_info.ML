@@ -269,7 +269,7 @@ fun load_thy document last_timing initiators update_time deps text (name, pos) k
   let
     val _ = kill_thy name;
     val _ = Output.urgent_message ("Loading theory " ^ quote name ^ required_by " " initiators);
-    val _ = Output.try_protocol_message (Markup.loading_theory name) "";
+    val _ = Output.try_protocol_message (Markup.loading_theory name) [];
 
     val {master = (thy_path, _), imports} = deps;
     val dir = Path.dir thy_path;

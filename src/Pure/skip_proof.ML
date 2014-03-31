@@ -19,7 +19,7 @@ struct
 
 fun report ctxt =
   if Context_Position.is_visible ctxt then
-    Output.report (Markup.markup Markup.bad "Skipped proof")
+    Output.report [Markup.markup Markup.bad "Skipped proof"]
   else ();
 
 

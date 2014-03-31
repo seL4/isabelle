@@ -949,11 +949,10 @@ fun check_terms ctxt raw_ts =
         if Position.is_reported pos then
           cons (Position.reported_text pos Markup.typing
             (Syntax.string_of_typ ctxt (Logic.dest_type ty)))
-        else I) ps tys' []
-      |> implode;
+        else I) ps tys' [];
 
     val _ =
-      if Context_Position.is_visible ctxt then Output.report (sorting_report ^ typing_report)
+      if Context_Position.is_visible ctxt then Output.report (sorting_report @ typing_report)
       else ();
   in Term_Sharing.terms (Proof_Context.theory_of ctxt) ts' end;
 
