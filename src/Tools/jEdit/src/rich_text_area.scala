@@ -590,6 +590,7 @@ class Rich_Text_Area(
 
   def deactivate()
   {
+    active_reset()
     val painter = text_area.getPainter
     view.removeWindowListener(window_listener)
     text_area.removeFocusListener(focus_listener)
