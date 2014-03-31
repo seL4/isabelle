@@ -1164,6 +1164,25 @@ lemma filterlim_tendsto_pos_mult_at_bot:
   using filterlim_tendsto_pos_mult_at_top[OF assms(1,2), of "\<lambda>x. - g x"] assms(3)
   unfolding filterlim_uminus_at_bot by simp
 
+lemma filterlim_pow_at_top:
+  fixes f :: "real \<Rightarrow> real"
+  assumes "0 < n" and f: "LIM x F. f x :> at_top"
+  shows "LIM x F. (f x)^n :: real :> at_top"
+using `0 < n` proof (induct n)
+  case (Suc n) with f show ?case
+    by (cases "n = 0") (auto intro!: filterlim_at_top_mult_at_top)
+qed simp
+
+lemma filterlim_pow_at_bot_even:
+  fixes f :: "real \<Rightarrow> real"
+  shows "0 < n \<Longrightarrow> LIM x F. f x :> at_bot \<Longrightarrow> even n \<Longrightarrow> LIM x F. (f x)^n :> at_top"
+  using filterlim_pow_at_top[of n "\<lambda>x. - f x" F] by (simp add: filterlim_uminus_at_top)
+
+lemma filterlim_pow_at_bot_odd:
+  fixes f :: "real \<Rightarrow> real"
+  shows "0 < n \<Longrightarrow> LIM x F. f x :> at_bot \<Longrightarrow> odd n \<Longrightarrow> LIM x F. (f x)^n :> at_bot"
+  using filterlim_pow_at_top[of n "\<lambda>x. - f x" F] by (simp add: filterlim_uminus_at_bot)
+
 lemma filterlim_tendsto_add_at_top: 
   assumes f: "(f ---> c) F"
   assumes g: "LIM x F. g x :> at_top"
