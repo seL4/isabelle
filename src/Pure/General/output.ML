@@ -25,6 +25,7 @@ sig
   val physical_stderr: output -> unit
   val physical_writeln: output -> unit
   exception Protocol_Message of Properties.T
+  val writelns: string list -> unit
   val urgent_message: string -> unit
   val error_message': serial * string -> unit
   val error_message: string -> unit
@@ -107,7 +108,8 @@ val result_fn = Unsynchronized.ref (fn _: Properties.T => fn _: output list => (
 val protocol_message_fn: (Properties.T -> output list -> unit) Unsynchronized.ref =
   Unsynchronized.ref (fn props => fn _ => raise Protocol_Message props);
 
-fun writeln s = ! writeln_fn [output s];
+fun writelns ss = ! writeln_fn (map output ss);
+fun writeln s = writelns [s];
 fun urgent_message s = ! urgent_message_fn [output s];  (*Proof General legacy*)
 fun tracing s = ! tracing_fn [output s];
 fun warning s = ! warning_fn [output s];

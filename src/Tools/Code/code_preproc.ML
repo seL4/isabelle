@@ -181,7 +181,7 @@ fun print_codeproc ctxt =
     val post = (#post o the_thmproc) thy;
     val functrans = (map fst o #functrans o the_thmproc) thy;
   in
-    (Pretty.writeln o Pretty.chunks) [
+    Pretty.writeln_chunks [
       Pretty.block [
         Pretty.str "preprocessing simpset:",
         Pretty.fbrk,

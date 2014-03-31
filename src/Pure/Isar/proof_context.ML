@@ -1250,7 +1250,7 @@ fun pretty_abbrevs show_globals ctxt =
     else [Pretty.big_list "abbreviations:" (map (pretty_term_abbrev ctxt o #2) abbrevs)]
   end;
 
-val print_abbrevs = Pretty.writeln o Pretty.chunks o pretty_abbrevs true;
+val print_abbrevs = Pretty.writeln_chunks o pretty_abbrevs true;
 
 
 (* term bindings *)
@@ -1264,7 +1264,7 @@ fun pretty_binds ctxt =
     else [Pretty.big_list "term bindings:" (map prt_bind (Vartab.dest binds))]
   end;
 
-val print_binds = Pretty.writeln o Pretty.chunks o pretty_binds;
+val print_binds = Pretty.writeln_chunks o pretty_binds;
 
 
 (* local facts *)
@@ -1284,7 +1284,7 @@ fun pretty_local_facts ctxt verbose =
   end;
 
 fun print_local_facts ctxt verbose =
-  Pretty.writeln (Pretty.chunks (pretty_local_facts ctxt verbose));
+  Pretty.writeln_chunks (pretty_local_facts ctxt verbose);
 
 
 (* local contexts *)
@@ -1331,7 +1331,7 @@ fun pretty_cases ctxt =
     else [Pretty.big_list "cases:" (map pretty_case cases)]
   end;
 
-val print_cases = Pretty.writeln o Pretty.chunks o pretty_cases;
+val print_cases = Pretty.writeln_chunks o pretty_cases;
 
 end;
 

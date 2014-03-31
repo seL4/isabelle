@@ -328,7 +328,7 @@ fun print_methods ctxt =
             (Pretty.mark_str name :: Pretty.str ":" :: Pretty.brk 2 :: Pretty.text comment);
   in
     [Pretty.big_list "methods:" (map prt_meth (Name_Space.markup_table ctxt meths))]
-    |> Pretty.chunks |> Pretty.writeln
+    |> Pretty.writeln_chunks
   end;
 
 fun add_method name meth comment thy = thy

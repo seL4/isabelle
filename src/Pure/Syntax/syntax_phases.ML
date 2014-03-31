@@ -878,7 +878,7 @@ fun print_checks ctxt =
     pretty_checks "term_checks" term_checks @
     pretty_checks "typ_unchecks" typ_unchecks @
     pretty_checks "term_unchecks" term_unchecks
-  end |> Pretty.chunks |> Pretty.writeln;
+  end |> Pretty.writeln_chunks;
 
 
 local

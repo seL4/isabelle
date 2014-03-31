@@ -254,7 +254,7 @@ fun print_rules ctxt =
     pretty_rules ctxt "induct pred:" inductP,
     pretty_rules ctxt "cases type:" casesT,
     pretty_rules ctxt "cases pred:" casesP]
-    |> Pretty.chunks |> Pretty.writeln
+    |> Pretty.writeln_chunks
   end;
 
 val _ =

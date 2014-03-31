@@ -205,7 +205,7 @@ fun print_state_context state =
   | SOME (Theory (gthy, _)) => pretty_context gthy
   | SOME (Proof (_, (_, gthy))) => pretty_context gthy
   | SOME (Skipped_Proof (_, (gthy, _))) => pretty_context gthy)
-  |> Pretty.chunks |> Pretty.writeln;
+  |> Pretty.writeln_chunks;
 
 fun print_state prf_only state =
   (case try node_of state of

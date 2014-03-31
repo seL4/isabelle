@@ -46,7 +46,7 @@ fun print_rules ctxt =
   in
    [Pretty.big_list "transitivity rules:" (map pretty_thm (Item_Net.content trans)),
     Pretty.big_list "symmetry rules:" (map pretty_thm sym)]
-  end |> Pretty.chunks |> Pretty.writeln;
+  end |> Pretty.writeln_chunks;
 
 
 (* access calculation *)

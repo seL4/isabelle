@@ -1036,7 +1036,7 @@ fun print_codesetup thy =
     val cases = Symtab.dest ((fst o the_cases o the_exec) thy);
     val undefineds = Symtab.keys ((snd o the_cases o the_exec) thy);
   in
-    (Pretty.writeln o Pretty.chunks) [
+    Pretty.writeln_chunks [
       Pretty.block (
         Pretty.str "code equations:" :: Pretty.fbrk
         :: (Pretty.fbreaks o map pretty_function) functions

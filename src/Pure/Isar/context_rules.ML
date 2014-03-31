@@ -120,7 +120,7 @@ fun print_rules ctxt =
         (map_filter (fn (_, (k, th)) =>
             if k = (i, b) then SOME (Display.pretty_thm_item ctxt th) else NONE)
           (sort (int_ord o pairself fst) rules));
-  in Pretty.writeln (Pretty.chunks (map prt_kind rule_kinds)) end;
+  in Pretty.writeln_chunks (map prt_kind rule_kinds) end;
 
 
 (* access data *)

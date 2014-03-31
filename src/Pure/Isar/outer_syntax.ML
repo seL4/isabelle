@@ -219,7 +219,7 @@ fun help_outer_syntax pats =
   dest_commands (#2 (get_syntax ()))
   |> filter (fn (name, _) => forall (fn pat => match_string pat name) pats)
   |> map pretty_command
-  |> Pretty.chunks |> Pretty.writeln;
+  |> Pretty.writeln_chunks;
 
 fun print_outer_syntax () =
   let
@@ -231,7 +231,7 @@ fun print_outer_syntax () =
     [Pretty.strs ("syntax keywords:" :: map quote keywords),
       Pretty.big_list "commands:" (map pretty_command cmds),
       Pretty.big_list "interactive-only commands:" (map pretty_command int_cmds)]
-    |> Pretty.chunks |> Pretty.writeln
+    |> Pretty.writeln_chunks
   end;
 
 
