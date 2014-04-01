@@ -380,13 +380,13 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   /* active elements */
 
   def active(range: Text.Range): Option[Text.Info[XML.Elem]] =
-    snapshot.select(range, Rendering.active_elements, command_results =>
+    snapshot.select(range, Rendering.active_elements, command_states =>
       {
         case Text.Info(info_range, elem) =>
           if (elem.name == Markup.DIALOG) {
             elem match {
               case Protocol.Dialog(_, serial, _)
-              if !command_results.defined(serial) =>
+              if !command_states.exists(st => st.results.defined(serial)) =>
                 Some(Text.Info(snapshot.convert(info_range), elem))
               case _ => None
             }
@@ -395,12 +395,9 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       }).headOption.map(_.info)
 
   def command_results(range: Text.Range): Command.Results =
-  {
-    val results =
-      snapshot.select[Command.Results](range, Document.Elements.full, command_results =>
-        { case _ => Some(command_results) }).map(_.info)
-    (Command.Results.empty /: results)(_ ++ _)
-  }
+    Command.State.merge_results(
+      snapshot.select[List[Command.State]](range, Document.Elements.full, command_states =>
+        { case _ => Some(command_states) }).flatMap(_.info))
 
 
   /* tooltip messages */
@@ -606,7 +603,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
         Text.Info(r, result) <-
           snapshot.cumulate[(List[Markup], Option[Color])](
             range, (List(Markup.Empty), None), Rendering.background_elements,
-            command_results =>
+            command_states =>
               {
                 case (((status, color), Text.Info(_, XML.Elem(markup, _))))
                 if !status.isEmpty && Protocol.command_status_elements(markup.name) =>
@@ -616,7 +613,9 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
                 case (_, Text.Info(_, XML.Elem(Markup(Markup.INTENSIFY, _), _))) =>
                   Some((Nil, Some(intensify_color)))
                 case (acc, Text.Info(_, Protocol.Dialog(_, serial, result))) =>
-                  command_results.get(serial) match {
+                  command_states.collectFirst(
+                    { case st if st.results.defined(serial) => st.results.get(serial).get }) match
+                  {
                     case Some(Protocol.Dialog_Result(res)) if res == result =>
                       Some((Nil, Some(active_result_color)))
                     case _ =>

@@ -434,13 +434,13 @@ object Document
       range: Text.Range,
       info: A,
       elements: Elements,
-      result: Command.Results => (A, Text.Markup) => Option[A],
+      result: List[Command.State] => (A, Text.Markup) => Option[A],
       status: Boolean = false): List[Text.Info[A]]
 
     def select[A](
       range: Text.Range,
       elements: Elements,
-      result: Command.Results => Text.Markup => Option[A],
+      result: List[Command.State] => Text.Markup => Option[A],
       status: Boolean = false): List[Text.Info[A]]
   }
 
@@ -729,7 +729,7 @@ object Document
           range: Text.Range,
           info: A,
           elements: Elements,
-          result: Command.Results => (A, Text.Markup) => Option[A],
+          result: List[Command.State] => (A, Text.Markup) => Option[A],
           status: Boolean = false): List[Text.Info[A]] =
         {
           val former_range = revert(range)
@@ -743,7 +743,7 @@ object Document
             (command, command_start) <- command_range_iterator
             chunk <- command.chunks.get(file_name).iterator
             states = state.command_states(version, command)
-            res = result(Command.State.merge_results(states))
+            res = result(states)
             range = (former_range - command_start).restrict(chunk.range)
             markup = Command.State.merge_markup(states, markup_index, range, elements)
             Text.Info(r0, a) <- markup.cumulate[A](range, info, elements,
@@ -756,12 +756,12 @@ object Document
         def select[A](
           range: Text.Range,
           elements: Elements,
-          result: Command.Results => Text.Markup => Option[A],
+          result: List[Command.State] => Text.Markup => Option[A],
           status: Boolean = false): List[Text.Info[A]] =
         {
-          def result1(results: Command.Results): (Option[A], Text.Markup) => Option[Option[A]] =
+          def result1(states: List[Command.State]): (Option[A], Text.Markup) => Option[Option[A]] =
           {
-            val res = result(results)
+            val res = result(states)
             (_: Option[A], x: Text.Markup) =>
               res(x) match {
                 case None => None
