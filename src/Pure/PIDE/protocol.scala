@@ -61,8 +61,8 @@ object Protocol
     var failed = false
     var forks = 0
     var runs = 0
-    for { markup <- markups; name = markup.name }
-      name match {
+    for (markup <- markups) {
+      markup.name match {
         case Markup.ACCEPTED => accepted = true
         case Markup.FORKED => touched = true; forks += 1
         case Markup.JOINED => forks -= 1
@@ -71,6 +71,7 @@ object Protocol
         case Markup.FAILED => failed = true
         case _ =>
       }
+    }
     Status(touched, accepted, failed, forks, runs)
   }
 
@@ -114,8 +115,7 @@ object Protocol
     var finished = 0
     var warned = 0
     var failed = 0
-    for { command <- node.commands }
-    {
+    for (command <- node.commands.iterator) {
       val states = state.command_states(version, command)
       val status = command_status(states.iterator.flatMap(st => st.status.iterator))
 
@@ -148,12 +148,12 @@ object Protocol
     for {
       command <- node.commands.iterator
       st <- state.command_states(version, command)
-      command_timing =
+    } {
+      val command_timing =
         (0.0 /: st.status)({
           case (timing, Markup.Timing(t)) => timing + t.elapsed.seconds
           case (timing, _) => timing
         })
-    } {
       total += command_timing
       if (command_timing >= threshold) commands += (command -> command_timing)
     }

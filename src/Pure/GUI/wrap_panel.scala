@@ -62,7 +62,7 @@ object Wrap_Panel
         }
 
         for {
-          i <- 0 until target.getComponentCount
+          i <- (0 until target.getComponentCount).iterator
           m = target.getComponent(i)
           if m.isVisible
           d = if (preferred) m.getPreferredSize else m.getMinimumSize()

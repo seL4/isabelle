@@ -94,7 +94,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     val buffer_range = JEdit_Lib.buffer_range(model.buffer)
     val visible_lines =
       (for {
-        i <- 0 until text_area.getVisibleLines
+        i <- (0 until text_area.getVisibleLines).iterator
         start = text_area.getScreenLineStartOffset(i)
         stop = text_area.getScreenLineEndOffset(i)
         if start >= 0 && stop >= 0
@@ -228,7 +228,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
                       snapshot.node.command_range(snapshot.revert(visible_range)).map(_._1)
                     if (visible_cmds.exists(changed.commands)) {
                       for {
-                        line <- 0 until visible_lines
+                        line <- (0 until visible_lines).iterator
                         start = text_area.getScreenLineStartOffset(line) if start >= 0
                         end = text_area.getScreenLineEndOffset(line) if end >= 0
                         range = Text.Range(start, end)
