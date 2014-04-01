@@ -114,11 +114,11 @@ object Protocol
     var finished = 0
     var warned = 0
     var failed = 0
-    for {
-      command <- node.commands
-      states = state.command_states(version, command)
-      status = command_status(states.iterator.flatMap(st => st.status.iterator))
-    } {
+    for { command <- node.commands }
+    {
+      val states = state.command_states(version, command)
+      val status = command_status(states.iterator.flatMap(st => st.status.iterator))
+
       if (status.is_running) running += 1
       else if (status.is_finished) {
         val warning = states.exists(st => st.results.entries.exists(p => is_warning(p._2)))
