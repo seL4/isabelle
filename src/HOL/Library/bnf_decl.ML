@@ -88,8 +88,10 @@ fun prepare_decl prepare_constraint prepare_typ raw_vars b mx user_mapb user_rel
       |> map (map (Thm.close_derivation o Thm.forall_elim_vars 0));
     val phi = Proof_Context.export_morphism lthy_old lthy;
     val thms = unflat all_goalss (Morphism.fact phi raw_thms);
+
+    val (bnf, lthy') = after_qed mk_wit_thms thms lthy
   in
-    BNF_Def.register_bnf key (after_qed mk_wit_thms thms lthy)
+    (bnf, BNF_Def.register_bnf key bnf lthy')
   end;
 
 val bnf_decl = prepare_decl (K I) (K I);
