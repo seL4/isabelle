@@ -2433,10 +2433,10 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
         val (Jbnfs, lthy) =
           fold_map7 (fn b => fn tacs => fn map_b => fn rel_b => fn set_bs => fn wit_thms =>
-              fn consts => fn lthy =>
+              fn consts =>
             bnf_def Hardly_Inline (user_policy Note_Some) false I tacs (wit_tac wit_thms)
-              (SOME deads) map_b rel_b set_bs consts lthy
-            |> (fn (bnf, lthy) => (bnf, register_bnf (Local_Theory.full_name lthy b) bnf lthy)))
+              (SOME deads) map_b rel_b set_bs consts
+            #> (fn (bnf, lthy) => (bnf, register_bnf (Local_Theory.full_name lthy b) bnf lthy)))
           bs tacss map_bs rel_bs set_bss wit_thmss
           ((((((bs ~~ Ts) ~~ Jmaps) ~~ Jsetss_by_bnf) ~~ Jbds) ~~ all_witss) ~~ map SOME Jrels)
           lthy;
