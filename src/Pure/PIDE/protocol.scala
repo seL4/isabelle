@@ -48,10 +48,6 @@ object Protocol
     forks: Int,
     runs: Int)
   {
-    def + (that: Status): Status =
-      Status(touched || that.touched, accepted || that.accepted, failed || that.failed,
-        forks + that.forks, runs + that.runs)
-
     def is_unprocessed: Boolean = accepted && !failed && (!touched || (forks != 0 && runs == 0))
     def is_running: Boolean = runs != 0
     def is_finished: Boolean = !failed && touched && forks == 0 && runs == 0
