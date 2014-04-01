@@ -2248,6 +2248,64 @@ text {*
 
   These option can be given within square brackets.
 
+  Using the following type classes, the testers generate values and convert
+  them back into Isabelle terms for displaying counterexamples.
+    \begin{description}
+    \item[@{text exhaustive}] The parameters of the type classes @{class exhaustive}
+      and @{class full_exhaustive} implement the testing. They take a 
+      testing function as a parameter, which takes a value of type @{typ "'a"}
+      and optionally produces a counterexample, and a size parameter for the test values.
+      In @{class full_exhaustive}, the testing function parameter additionally 
+      expects a lazy term reconstruction in the type @{typ Code_Evaluation.term}
+      of the tested value.
+
+      The canonical implementation for @{text exhaustive} testers calls the given
+      testing function on all values up to the given size and stops as soon
+      as a counterexample is found.
+
+    \item[@{text random}] The operation @{const Quickcheck_Random.random}
+      of the type class @{class random} generates a pseudo-random
+      value of the given size and a lazy term reconstruction of the value
+      in the type @{typ Code_Evaluation.term}. A pseudo-randomness generator
+      is defined in theory @{theory Random}.
+      
+    \item[@{text narrowing}] implements Haskell's Lazy Smallcheck~\cite{runciman-naylor-lindblad}
+      using the type classes @{class narrowing} and @{class partial_term_of}.
+      Variables in the current goal are initially represented as symbolic variables.
+      If the execution of the goal tries to evaluate one of them, the test engine
+      replaces it with refinements provided by @{const narrowing}.
+      Narrowing views every value as a sum-of-products which is expressed using the operations
+      @{const Quickcheck_Narrowing.cons} (embedding a value),
+      @{const Quickcheck_Narrowing.apply} (product) and @{const Quickcheck_Narrowing.sum} (sum).
+      The refinement should enable further evaluation of the goal.
+
+      For example, @{const narrowing} for the list type @{typ "'a :: narrowing list"}
+      can be recursively defined as
+      @{term "Quickcheck_Narrowing.sum (Quickcheck_Narrowing.cons [])
+                (Quickcheck_Narrowing.apply
+                  (Quickcheck_Narrowing.apply
+                    (Quickcheck_Narrowing.cons (op #))
+                    narrowing)
+                  narrowing)"}.
+      If a symbolic variable of type @{typ "_ list"} is evaluated, it is replaced by (i)~the empty
+      list @{term "[]"} and (ii)~by a non-empty list whose head and tail can then be recursively
+      refined if needed.
+
+      To reconstruct counterexamples, the operation @{const partial_term_of} transforms
+      @{text narrowing}'s deep representation of terms to the type @{typ Code_Evaluation.term}.
+      The deep representation models symbolic variables as
+      @{const Quickcheck_Narrowing.Narrowing_variable}, which are normally converted to
+      @{const Code_Evaluation.Free}, and refined values as
+      @{term "Quickcheck_Narrowing.Narrowing_constructor i args"}, where @{term "i :: integer"}
+      denotes the index in the sum of refinements. In the above example for lists,
+      @{term "0"} corresponds to @{term "[]"} and @{term "1"}
+      to @{term "op #"}.
+
+      The command @{command (HOL) "code_datatype"} sets up @{const partial_term_of}
+      such that the @{term "i"}-th refinement is interpreted as the @{term "i"}-th constructor,
+      but it does not ensures consistency with @{const narrowing}.
+    \end{description}
+
   \item @{command (HOL) "quickcheck_params"} changes @{command (HOL)
   "quickcheck"} configuration options persistently.
 
