@@ -21,7 +21,7 @@ object Time
     String.format(Locale.ROOT, "%.3f", s.asInstanceOf[AnyRef])
 }
 
-final class Time private(val ms: Long)
+final class Time private(val ms: Long) extends AnyVal
 {
   def + (t: Time): Time = new Time(ms + t.ms)
 
@@ -32,13 +32,6 @@ final class Time private(val ms: Long)
 
   def is_zero: Boolean = ms == 0
   def is_relevant: Boolean = ms >= 1
-
-  override def hashCode: Int = ms.hashCode
-  override def equals(that: Any): Boolean =
-    that match {
-      case other: Time => ms == other.ms
-      case _ => false
-    }
 
   override def toString = Time.print_seconds(seconds)
 
