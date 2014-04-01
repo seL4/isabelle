@@ -32,6 +32,8 @@ sig
   val transfer_fp_sugar: Proof.context -> fp_sugar -> fp_sugar
   val fp_sugar_of: Proof.context -> string -> fp_sugar option
   val fp_sugars_of: Proof.context -> fp_sugar list
+  val fp_sugar_interpretation: (fp_sugar -> theory -> theory) -> theory -> theory
+  val register_fp_sugar: string -> fp_sugar -> local_theory -> local_theory
 
   val co_induct_of: 'a list -> 'a
   val strong_co_induct_of: 'a list -> 'a
@@ -75,7 +77,7 @@ sig
     (term * thm) * Proof.context
   val define_corec: 'a * term list * term list list
       * ((term list list * term list list list) * typ list) -> (string -> binding) -> 'b list ->
-    typ list -> term list -> term -> Proof.context -> (term * thm) * local_theory
+    typ list -> term list -> term -> local_theory -> (term * thm) * local_theory
   val derive_induct_recs_thms_for_types: BNF_Def.bnf list ->
      ('a * typ list list list list * term list list * 'b) option -> thm -> thm list ->
      BNF_Def.bnf list -> BNF_Def.bnf list -> typ list -> typ list -> typ list ->
@@ -86,7 +88,7 @@ sig
     thm -> thm list -> thm list -> thm list -> BNF_Def.bnf list -> typ list -> typ list ->
     typ list -> typ list list list -> int list list -> int list list -> int list -> thm list ->
     thm list -> (thm -> thm) -> thm list list -> Ctr_Sugar.ctr_sugar list -> term list ->
-    thm list -> (thm list -> thm list) -> local_theory -> gfp_sugar_thms
+    thm list -> (thm list -> thm list) -> Proof.context -> gfp_sugar_thms
 
   type co_datatype_spec =
     ((((binding option * (typ * sort)) list * binding) * (binding * binding)) * mixfix)
@@ -162,8 +164,7 @@ fun morph_fp_sugar phi ({T, X, fp, fp_res, fp_res_index, pre_bnf, absT_info, nes
    disc_co_recs = map (Morphism.thm phi) disc_co_recs,
    sel_co_recss = map (map (Morphism.thm phi)) sel_co_recss};
 
-val transfer_fp_sugar =
-  morph_fp_sugar o Morphism.transfer_morphism o Proof_Context.theory_of;
+val transfer_fp_sugar = morph_fp_sugar o Morphism.transfer_morphism o Proof_Context.theory_of;
 
 structure Data = Generic_Data
 (
@@ -183,9 +184,18 @@ fun fp_sugars_of ctxt =
 fun co_induct_of (i :: _) = i;
 fun strong_co_induct_of [_, s] = s;
 
+structure FP_Sugar_Interpretation = Interpretation
+(
+  type T = fp_sugar;
+  val eq: T * T -> bool = op = o pairself #T;
+);
+
+val fp_sugar_interpretation = FP_Sugar_Interpretation.interpretation;
+
 fun register_fp_sugar key fp_sugar =
   Local_Theory.declaration {syntax = false, pervasive = true}
-    (fn phi => Data.map (Symtab.update (key, morph_fp_sugar phi fp_sugar)));
+    (fn phi => Data.map (Symtab.update (key, morph_fp_sugar phi fp_sugar)))
+  #> Local_Theory.background_theory (FP_Sugar_Interpretation.data fp_sugar);
 
 fun register_fp_sugars Xs fp pre_bnfs absT_infos nested_bnfs nesting_bnfs (fp_res as {Ts, ...})
     ctrXs_Tsss ctr_defss ctr_sugars co_recs mapss common_co_inducts co_inductss co_rec_thmss
