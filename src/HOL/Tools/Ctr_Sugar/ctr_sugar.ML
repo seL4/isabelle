@@ -38,6 +38,7 @@ sig
   val ctr_sugar_of: Proof.context -> string -> ctr_sugar option
   val ctr_sugars_of: Proof.context -> ctr_sugar list
   val ctr_sugar_of_case: Proof.context -> string -> ctr_sugar option
+  val ctr_sugar_interpretation: (ctr_sugar -> theory -> theory) -> theory -> theory
   val register_ctr_sugar: string -> ctr_sugar -> local_theory -> local_theory
   val default_register_ctr_sugar_global: string -> ctr_sugar -> theory -> theory
 
@@ -151,12 +152,28 @@ fun ctr_sugars_of ctxt =
 fun ctr_sugar_of_case ctxt s =
   find_first (fn {casex = Const (s', _), ...} => s' = s | _ => false) (ctr_sugars_of ctxt);
 
+structure Ctr_Sugar_Interpretation = Interpretation
+(
+  type T = ctr_sugar;
+  val eq: T * T -> bool = op = o pairself #ctrs;
+);
+
+val ctr_sugar_interpretation = Ctr_Sugar_Interpretation.interpretation;
+
 fun register_ctr_sugar key ctr_sugar =
   Local_Theory.declaration {syntax = false, pervasive = true}
-    (fn phi => Data.map (Symtab.update (key, morph_ctr_sugar phi ctr_sugar)));
+    (fn phi => Data.map (Symtab.update (key, morph_ctr_sugar phi ctr_sugar)))
+  #> Local_Theory.background_theory (Ctr_Sugar_Interpretation.data ctr_sugar);
 
-fun default_register_ctr_sugar_global key ctr_sugar =
-  Context.theory_map (Data.map (Symtab.default (key, ctr_sugar)));
+fun default_register_ctr_sugar_global key ctr_sugar thy =
+  let val tab = Data.get (Context.Theory thy) in
+    if Symtab.defined tab key then
+      thy
+    else
+      thy
+      |> Context.theory_map (Data.put (Symtab.update_new (key, ctr_sugar) tab))
+      |> Ctr_Sugar_Interpretation.data ctr_sugar
+  end;
 
 val isN = "is_";
 val unN = "un_";
