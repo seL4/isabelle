@@ -14,7 +14,8 @@ sig
   val morph_bnf: morphism -> bnf -> bnf
   val morph_bnf_defs: morphism -> bnf -> bnf
   val bnf_of: Proof.context -> string -> bnf option
-  val register_bnf: string -> (bnf * local_theory) -> (bnf * local_theory)
+  val bnf_interpretation: (bnf -> theory -> theory) -> theory -> theory
+  val register_bnf: string -> bnf -> local_theory -> local_theory
 
   val name_of_bnf: bnf -> binding
   val T_of_bnf: bnf -> typ
@@ -22,6 +23,7 @@ sig
   val lives_of_bnf: bnf -> typ list
   val dead_of_bnf: bnf -> int
   val deads_of_bnf: bnf -> typ list
+  val bd_of_bnf: bnf -> term
   val nwits_of_bnf: bnf -> int
 
   val mapN: string
@@ -1307,9 +1309,18 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
     (key, goals, wit_goalss, after_qed, lthy, one_step_defs)
   end;
 
-fun register_bnf key (bnf, lthy) =
-  (bnf, Local_Theory.declaration {syntax = false, pervasive = true}
-    (fn phi => Data.map (Symtab.update (key, morph_bnf phi bnf))) lthy);
+structure BNF_Interpretation = Interpretation
+(
+  type T = bnf;
+  val eq: T * T -> bool = op = o pairself T_of_bnf;
+);
+
+val bnf_interpretation = BNF_Interpretation.interpretation;
+
+fun register_bnf key bnf =
+  Local_Theory.declaration {syntax = false, pervasive = true}
+    (fn phi => Data.map (Symtab.update (key, morph_bnf phi bnf)))
+  #> Local_Theory.background_theory (BNF_Interpretation.data bnf);
 
 fun bnf_def const_policy fact_policy internal qualify tacs wit_tac Ds map_b rel_b set_bs =
   (fn (_, goals, (triv_tac_opt, wit_goalss), after_qed, lthy, one_step_defs) =>
@@ -1348,7 +1359,7 @@ val bnf_cmd = (fn (key, goals, (triv_tac_opt, wit_goalss), after_qed, lthy, defs
       | SOME tac => (mk_triv_wit_thms tac, []));
   in
     Proof.unfolding ([[(defs, [])]])
-      (Proof.theorem NONE (snd o register_bnf key oo after_qed mk_wit_thms)
+      (Proof.theorem NONE (uncurry (register_bnf key) oo after_qed mk_wit_thms)
         (map (single o rpair []) goals @ nontriv_wit_goals) lthy)
   end) oo prepare_def Do_Inline (user_policy Note_Some) false I Syntax.read_typ Syntax.read_term
     NONE Binding.empty Binding.empty [];

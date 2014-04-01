@@ -2436,7 +2436,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
               fn consts => fn lthy =>
             bnf_def Hardly_Inline (user_policy Note_Some) false I tacs (wit_tac wit_thms)
               (SOME deads) map_b rel_b set_bs consts lthy
-            |> register_bnf (Local_Theory.full_name lthy b))
+            |> (fn (bnf, lthy) => (bnf, register_bnf (Local_Theory.full_name lthy b) bnf lthy)))
           bs tacss map_bs rel_bs set_bss wit_thmss
           ((((((bs ~~ Ts) ~~ Jmaps) ~~ Jsetss_by_bnf) ~~ Jbds) ~~ all_witss) ~~ map SOME Jrels)
           lthy;

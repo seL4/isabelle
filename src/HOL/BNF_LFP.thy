@@ -19,8 +19,7 @@ begin
 lemma subset_emptyI: "(\<And>x. x \<in> A \<Longrightarrow> False) \<Longrightarrow> A \<subseteq> {}"
 by blast
 
-lemma image_Collect_subsetI:
-  "(\<And>x. P x \<Longrightarrow> f x \<in> B) \<Longrightarrow> f ` {x. P x} \<subseteq> B"
+lemma image_Collect_subsetI: "(\<And>x. P x \<Longrightarrow> f x \<in> B) \<Longrightarrow> f ` {x. P x} \<subseteq> B"
 by blast
 
 lemma Collect_restrict: "{x. x \<in> X \<and> P x} \<subseteq> X"
