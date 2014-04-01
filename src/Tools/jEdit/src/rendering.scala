@@ -292,20 +292,20 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     if (snapshot.is_outdated) None
     else {
       val results =
-        snapshot.cumulate[(Protocol.Status, Int)](
-          range, (Protocol.Status.init, 0), Protocol.status_elements, _ =>
+        snapshot.cumulate[(List[Markup], Int)](
+          range, (Nil, 0), Protocol.status_elements, _ =>
           {
             case ((status, pri), Text.Info(_, elem)) =>
               if (Protocol.command_status_elements(elem.name))
-                Some((Protocol.command_status(status, elem.markup), pri))
+                Some((elem.markup :: status), pri)
               else
                 Some((status, pri max Rendering.message_pri(elem.name)))
           }, status = true)
       if (results.isEmpty) None
       else {
-        val (status, pri) =
-          ((Protocol.Status.init, 0) /: results) {
-            case ((s1, p1), Text.Info(_, (s2, p2))) => (s1 + s2, p1 max p2) }
+        val status =
+          Protocol.command_status(results.iterator.flatMap(info => info.info._1.iterator))
+        val pri = (0 /: results.iterator.map(info => info.info._2))(_ max _)
 
         if (status.is_running) Some(running_color)
         else if (pri == Rendering.warning_pri) Some(warning_color)
@@ -604,31 +604,32 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     else
       for {
         Text.Info(r, result) <-
-          snapshot.cumulate[(Option[Protocol.Status], Option[Color])](
-            range, (Some(Protocol.Status.init), None), Rendering.background_elements,
+          snapshot.cumulate[(List[Markup], Option[Color])](
+            range, (List(Markup.Empty), None), Rendering.background_elements,
             command_results =>
               {
-                case (((Some(status), color), Text.Info(_, XML.Elem(markup, _))))
-                if (Protocol.command_status_elements(markup.name)) =>
-                  Some((Some(Protocol.command_status(status, markup)), color))
+                case (((status, color), Text.Info(_, XML.Elem(markup, _))))
+                if !status.isEmpty && Protocol.command_status_elements(markup.name) =>
+                  Some((markup :: status, color))
                 case (_, Text.Info(_, XML.Elem(Markup(Markup.BAD, _), _))) =>
-                  Some((None, Some(bad_color)))
+                  Some((Nil, Some(bad_color)))
                 case (_, Text.Info(_, XML.Elem(Markup(Markup.INTENSIFY, _), _))) =>
-                  Some((None, Some(intensify_color)))
+                  Some((Nil, Some(intensify_color)))
                 case (acc, Text.Info(_, Protocol.Dialog(_, serial, result))) =>
                   command_results.get(serial) match {
                     case Some(Protocol.Dialog_Result(res)) if res == result =>
-                      Some((None, Some(active_result_color)))
+                      Some((Nil, Some(active_result_color)))
                     case _ =>
-                      Some((None, Some(active_color)))
+                      Some((Nil, Some(active_color)))
                   }
                 case (_, Text.Info(_, elem)) =>
-                  if (Rendering.active_elements(elem.name)) Some((None, Some(active_color)))
+                  if (Rendering.active_elements(elem.name)) Some((Nil, Some(active_color)))
                   else None
               })
         color <-
           (result match {
-            case (Some(status), opt_color) =>
+            case (markups, opt_color) if !markups.isEmpty =>
+              val status = Protocol.command_status(markups.iterator)
               if (status.is_unprocessed) Some(unprocessed1_color)
               else if (status.is_running) Some(running1_color)
               else opt_color
