@@ -404,6 +404,10 @@ lemmas Zfun_mult_left = bounded_bilinear.Zfun_left [OF bounded_bilinear_mult]
 lemma tendsto_Zfun_iff: "(f ---> a) F = Zfun (\<lambda>x. f x - a) F"
   by (simp only: tendsto_iff Zfun_def dist_norm)
 
+lemma tendsto_0_le: "\<lbrakk>(f ---> 0) F; eventually (\<lambda>x. norm (g x) \<le> norm (f x) * K) F\<rbrakk> 
+                     \<Longrightarrow> (g ---> 0) F"
+  by (simp add: Zfun_imp_Zfun tendsto_Zfun_iff)
+
 subsubsection {* Distance and norms *}
 
 lemma tendsto_dist [tendsto_intros]:
