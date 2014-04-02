@@ -8747,7 +8747,7 @@ proof -
   assume "x \<noteq> c"
   note conv = assms(1)[unfolded convex_alt,rule_format]
   have as1: "continuous_on {0 ..1} (f \<circ> (\<lambda>t. (1 - t) *\<^sub>R c + t *\<^sub>R x))"
-    apply (rule continuous_on_intros)+
+    apply (rule continuous_intros)+
     apply (rule continuous_on_subset[OF assms(3)])
     apply safe
     apply (rule conv)

@@ -110,7 +110,7 @@ lemma
 proof atomize_elim
   let ?proj = "(\<lambda>x. x \<bullet> b) ` X"
   from assms have "compact ?proj" "?proj \<noteq> {}"
-    by (auto intro!: compact_continuous_image continuous_on_intros)
+    by (auto intro!: compact_continuous_image continuous_intros)
   from compact_attains_inf[OF this]
   obtain s x
     where s: "s\<in>(\<lambda>x. x \<bullet> b) ` X" "\<And>t. t\<in>(\<lambda>x. x \<bullet> b) ` X \<Longrightarrow> s \<le> t"
@@ -133,7 +133,7 @@ lemma
 proof atomize_elim
   let ?proj = "(\<lambda>x. x \<bullet> b) ` X"
   from assms have "compact ?proj" "?proj \<noteq> {}"
-    by (auto intro!: compact_continuous_image continuous_on_intros)
+    by (auto intro!: compact_continuous_image continuous_intros)
   from compact_attains_sup[OF this]
   obtain s x
     where s: "s\<in>(\<lambda>x. x \<bullet> b) ` X" "\<And>t. t\<in>(\<lambda>x. x \<bullet> b) ` X \<Longrightarrow> t \<le> s"

@@ -994,7 +994,7 @@ lemma continuous_exp [continuous_intros]:
   "continuous F f \<Longrightarrow> continuous F (\<lambda>x. exp (f x))"
   unfolding continuous_def by (rule tendsto_exp)
 
-lemma continuous_on_exp [continuous_on_intros]:
+lemma continuous_on_exp [continuous_intros]:
   "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. exp (f x))"
   unfolding continuous_on_def by (auto intro: tendsto_exp)
 
@@ -1303,7 +1303,7 @@ lemma continuous_within_ln [continuous_intros]:
   "continuous (at x within s) f \<Longrightarrow> 0 < f x \<Longrightarrow> continuous (at x within s) (\<lambda>x. ln (f x))"
   unfolding continuous_within by (rule tendsto_ln)
 
-lemma continuous_on_ln [continuous_on_intros]:
+lemma continuous_on_ln [continuous_intros]:
   "continuous_on s f \<Longrightarrow> (\<forall>x\<in>s. 0 < f x) \<Longrightarrow> continuous_on s (\<lambda>x. ln (f x))"
   unfolding continuous_on_def by (auto intro: tendsto_ln)
 
@@ -1747,7 +1747,7 @@ lemma isCont_log[continuous_intros, simp]:
   shows "isCont (\<lambda>x. log (f x) (g x)) a"
   using assms unfolding continuous_at by (rule tendsto_log)
 
-lemma continuous_on_log[continuous_on_intros]:
+lemma continuous_on_log[continuous_intros]:
   assumes "continuous_on s f" "continuous_on s g"
     and "\<forall>x\<in>s. 0 < f x" "\<forall>x\<in>s. f x \<noteq> 1" "\<forall>x\<in>s. 0 < g x"
   shows "continuous_on s (\<lambda>x. log (f x) (g x))"
@@ -2076,7 +2076,7 @@ lemma isCont_powr[continuous_intros, simp]:
   shows "isCont (\<lambda>x. (f x) powr g x) a"
   using assms unfolding continuous_at by (rule tendsto_powr)
 
-lemma continuous_on_powr[continuous_on_intros]:
+lemma continuous_on_powr[continuous_intros]:
   assumes "continuous_on s f" "continuous_on s g" and "\<forall>x\<in>s. 0 < f x"
   shows "continuous_on s (\<lambda>x. (f x) powr (g x))"
   using assms unfolding continuous_on_def by (fast intro: tendsto_powr)
@@ -2215,7 +2215,7 @@ lemma continuous_sin [continuous_intros]:
   "continuous F f \<Longrightarrow> continuous F (\<lambda>x. sin (f x))"
   unfolding continuous_def by (rule tendsto_sin)
 
-lemma continuous_on_sin [continuous_on_intros]:
+lemma continuous_on_sin [continuous_intros]:
   "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. sin (f x))"
   unfolding continuous_on_def by (auto intro: tendsto_sin)
 
@@ -2223,7 +2223,7 @@ lemma continuous_cos [continuous_intros]:
   "continuous F f \<Longrightarrow> continuous F (\<lambda>x. cos (f x))"
   unfolding continuous_def by (rule tendsto_cos)
 
-lemma continuous_on_cos [continuous_on_intros]:
+lemma continuous_on_cos [continuous_intros]:
   "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. cos (f x))"
   unfolding continuous_on_def by (auto intro: tendsto_cos)
 
@@ -2884,7 +2884,7 @@ lemma continuous_within_tan [continuous_intros]:
   "continuous (at x within s) f \<Longrightarrow> cos (f x) \<noteq> 0 \<Longrightarrow> continuous (at x within s) (\<lambda>x. tan (f x))"
   unfolding continuous_within by (rule tendsto_tan)
 
-lemma continuous_on_tan [continuous_on_intros]:
+lemma continuous_on_tan [continuous_intros]:
   "continuous_on s f \<Longrightarrow> (\<forall>x\<in>s. cos (f x) \<noteq> 0) \<Longrightarrow> continuous_on s (\<lambda>x. tan (f x))"
   unfolding continuous_on_def by (auto intro: tendsto_tan)
 
@@ -3232,7 +3232,7 @@ lemma arctan_eq_zero_iff [simp]: "arctan x = 0 \<longleftrightarrow> x = 0"
 lemma continuous_on_arcsin': "continuous_on {-1 .. 1} arcsin"
 proof -
   have "continuous_on (sin ` {- pi / 2 .. pi / 2}) arcsin"
-    by (rule continuous_on_inv) (auto intro: continuous_on_intros simp: arcsin_sin)
+    by (rule continuous_on_inv) (auto intro: continuous_intros simp: arcsin_sin)
   also have "sin ` {- pi / 2 .. pi / 2} = {-1 .. 1}"
   proof safe
     fix x :: real
@@ -3244,7 +3244,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma continuous_on_arcsin [continuous_on_intros]:
+lemma continuous_on_arcsin [continuous_intros]:
   "continuous_on s f \<Longrightarrow> (\<forall>x\<in>s. -1 \<le> f x \<and> f x \<le> 1) \<Longrightarrow> continuous_on s (\<lambda>x. arcsin (f x))"
   using continuous_on_compose[of s f, OF _ continuous_on_subset[OF  continuous_on_arcsin']]
   by (auto simp: comp_def subset_eq)
@@ -3256,7 +3256,7 @@ lemma isCont_arcsin: "-1 < x \<Longrightarrow> x < 1 \<Longrightarrow> isCont ar
 lemma continuous_on_arccos': "continuous_on {-1 .. 1} arccos"
 proof -
   have "continuous_on (cos ` {0 .. pi}) arccos"
-    by (rule continuous_on_inv) (auto intro: continuous_on_intros simp: arccos_cos)
+    by (rule continuous_on_inv) (auto intro: continuous_intros simp: arccos_cos)
   also have "cos ` {0 .. pi} = {-1 .. 1}"
   proof safe
     fix x :: real
@@ -3268,7 +3268,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma continuous_on_arccos [continuous_on_intros]:
+lemma continuous_on_arccos [continuous_intros]:
   "continuous_on s f \<Longrightarrow> (\<forall>x\<in>s. -1 \<le> f x \<and> f x \<le> 1) \<Longrightarrow> continuous_on s (\<lambda>x. arccos (f x))"
   using continuous_on_compose[of s f, OF _ continuous_on_subset[OF  continuous_on_arccos']]
   by (auto simp: comp_def subset_eq)
@@ -3292,7 +3292,7 @@ lemma tendsto_arctan [tendsto_intros]: "(f ---> x) F \<Longrightarrow> ((\<lambd
 lemma continuous_arctan [continuous_intros]: "continuous F f \<Longrightarrow> continuous F (\<lambda>x. arctan (f x))"
   unfolding continuous_def by (rule tendsto_arctan)
 
-lemma continuous_on_arctan [continuous_on_intros]: "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. arctan (f x))"
+lemma continuous_on_arctan [continuous_intros]: "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. arctan (f x))"
   unfolding continuous_on_def by (auto intro: tendsto_arctan)
 
 lemma DERIV_arcsin:

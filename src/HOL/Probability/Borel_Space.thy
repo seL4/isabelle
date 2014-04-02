@@ -221,7 +221,7 @@ lemma borel_measurable_inner[measurable (raw)]:
   assumes "g \<in> borel_measurable M"
   shows "(\<lambda>x. f x \<bullet> g x) \<in> borel_measurable M"
   using assms
-  by (rule borel_measurable_continuous_Pair) (intro continuous_on_intros)
+  by (rule borel_measurable_continuous_Pair) (intro continuous_intros)
 
 lemma [measurable]:
   fixes a b :: "'a\<Colon>linorder_topology"
@@ -287,7 +287,7 @@ proof -
     by auto
   also have "\<dots> \<in> sets M"
     by (intro measurable_sets[OF borel_measurable_Pair borel_open, OF assms open_Collect_less]
-              continuous_on_intros)
+              continuous_intros)
   finally show ?thesis .
 qed
 
@@ -659,14 +659,14 @@ lemma borel_measurable_uminus[measurable (raw)]:
   fixes g :: "'a \<Rightarrow> 'b::{second_countable_topology, real_normed_vector}"
   assumes g: "g \<in> borel_measurable M"
   shows "(\<lambda>x. - g x) \<in> borel_measurable M"
-  by (rule borel_measurable_continuous_on[OF _ g]) (intro continuous_on_intros)
+  by (rule borel_measurable_continuous_on[OF _ g]) (intro continuous_intros)
 
 lemma borel_measurable_add[measurable (raw)]:
   fixes f g :: "'a \<Rightarrow> 'b::{second_countable_topology, real_normed_vector}"
   assumes f: "f \<in> borel_measurable M"
   assumes g: "g \<in> borel_measurable M"
   shows "(\<lambda>x. f x + g x) \<in> borel_measurable M"
-  using f g by (rule borel_measurable_continuous_Pair) (intro continuous_on_intros)
+  using f g by (rule borel_measurable_continuous_Pair) (intro continuous_intros)
 
 lemma borel_measurable_setsum[measurable (raw)]:
   fixes f :: "'c \<Rightarrow> 'a \<Rightarrow> 'b::{second_countable_topology, real_normed_vector}"
@@ -689,7 +689,7 @@ lemma borel_measurable_times[measurable (raw)]:
   assumes f: "f \<in> borel_measurable M"
   assumes g: "g \<in> borel_measurable M"
   shows "(\<lambda>x. f x * g x) \<in> borel_measurable M"
-  using f g by (rule borel_measurable_continuous_Pair) (intro continuous_on_intros)
+  using f g by (rule borel_measurable_continuous_Pair) (intro continuous_intros)
 
 lemma borel_measurable_setprod[measurable (raw)]:
   fixes f :: "'c \<Rightarrow> 'a \<Rightarrow> 'b::{second_countable_topology, real_normed_field}"
@@ -705,14 +705,14 @@ lemma borel_measurable_dist[measurable (raw)]:
   assumes f: "f \<in> borel_measurable M"
   assumes g: "g \<in> borel_measurable M"
   shows "(\<lambda>x. dist (f x) (g x)) \<in> borel_measurable M"
-  using f g by (rule borel_measurable_continuous_Pair) (intro continuous_on_intros)
+  using f g by (rule borel_measurable_continuous_Pair) (intro continuous_intros)
   
 lemma borel_measurable_scaleR[measurable (raw)]:
   fixes g :: "'a \<Rightarrow> 'b::{second_countable_topology, real_normed_vector}"
   assumes f: "f \<in> borel_measurable M"
   assumes g: "g \<in> borel_measurable M"
   shows "(\<lambda>x. f x *\<^sub>R g x) \<in> borel_measurable M"
-  using f g by (rule borel_measurable_continuous_Pair) (intro continuous_on_intros)
+  using f g by (rule borel_measurable_continuous_Pair) (intro continuous_intros)
 
 lemma affine_borel_measurable_vector:
   fixes f :: "'a \<Rightarrow> 'x::real_normed_vector"
@@ -749,7 +749,7 @@ lemma borel_measurable_inverse[measurable (raw)]:
   shows "(\<lambda>x. inverse (f x)) \<in> borel_measurable M"
 proof -
   have "(\<lambda>x::'b. if x \<in> UNIV - {0} then inverse x else inverse 0) \<in> borel_measurable borel"
-    by (intro borel_measurable_continuous_on_open' continuous_on_intros) auto
+    by (intro borel_measurable_continuous_on_open' continuous_intros) auto
   also have "(\<lambda>x::'b. if x \<in> UNIV - {0} then inverse x else inverse 0) = inverse"
     by (intro ext) auto
   finally show ?thesis using f by simp

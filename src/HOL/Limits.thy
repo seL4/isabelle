@@ -436,7 +436,7 @@ lemma continuous_dist[continuous_intros]:
   shows "continuous F f \<Longrightarrow> continuous F g \<Longrightarrow> continuous F (\<lambda>x. dist (f x) (g x))"
   unfolding continuous_def by (rule tendsto_dist)
 
-lemma continuous_on_dist[continuous_on_intros]:
+lemma continuous_on_dist[continuous_intros]:
   fixes f g :: "_ \<Rightarrow> 'a :: metric_space"
   shows "continuous_on s f \<Longrightarrow> continuous_on s g \<Longrightarrow> continuous_on s (\<lambda>x. dist (f x) (g x))"
   unfolding continuous_on_def by (auto intro: tendsto_dist)
@@ -449,7 +449,7 @@ lemma continuous_norm [continuous_intros]:
   "continuous F f \<Longrightarrow> continuous F (\<lambda>x. norm (f x))"
   unfolding continuous_def by (rule tendsto_norm)
 
-lemma continuous_on_norm [continuous_on_intros]:
+lemma continuous_on_norm [continuous_intros]:
   "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. norm (f x))"
   unfolding continuous_on_def by (auto intro: tendsto_norm)
 
@@ -473,7 +473,7 @@ lemma continuous_rabs [continuous_intros]:
   "continuous F f \<Longrightarrow> continuous F (\<lambda>x. \<bar>f x :: real\<bar>)"
   unfolding real_norm_def[symmetric] by (rule continuous_norm)
 
-lemma continuous_on_rabs [continuous_on_intros]:
+lemma continuous_on_rabs [continuous_intros]:
   "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. \<bar>f x :: real\<bar>)"
   unfolding real_norm_def[symmetric] by (rule continuous_on_norm)
 
@@ -501,7 +501,7 @@ lemma continuous_add [continuous_intros]:
   shows "continuous F f \<Longrightarrow> continuous F g \<Longrightarrow> continuous F (\<lambda>x. f x + g x)"
   unfolding continuous_def by (rule tendsto_add)
 
-lemma continuous_on_add [continuous_on_intros]:
+lemma continuous_on_add [continuous_intros]:
   fixes f g :: "_ \<Rightarrow> 'b::real_normed_vector"
   shows "continuous_on s f \<Longrightarrow> continuous_on s g \<Longrightarrow> continuous_on s (\<lambda>x. f x + g x)"
   unfolding continuous_on_def by (auto intro: tendsto_add)
@@ -521,7 +521,7 @@ lemma continuous_minus [continuous_intros]:
   shows "continuous F f \<Longrightarrow> continuous F (\<lambda>x. - f x)"
   unfolding continuous_def by (rule tendsto_minus)
 
-lemma continuous_on_minus [continuous_on_intros]:
+lemma continuous_on_minus [continuous_intros]:
   fixes f :: "_ \<Rightarrow> 'b::real_normed_vector"
   shows "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. - f x)"
   unfolding continuous_on_def by (auto intro: tendsto_minus)
@@ -546,7 +546,7 @@ lemma continuous_diff [continuous_intros]:
   shows "continuous F f \<Longrightarrow> continuous F g \<Longrightarrow> continuous F (\<lambda>x. f x - g x)"
   unfolding continuous_def by (rule tendsto_diff)
 
-lemma continuous_on_diff [continuous_on_intros]:
+lemma continuous_on_diff [continuous_intros]:
   fixes f g :: "'a::t2_space \<Rightarrow> 'b::real_normed_vector"
   shows "continuous_on s f \<Longrightarrow> continuous_on s g \<Longrightarrow> continuous_on s (\<lambda>x. f x - g x)"
   unfolding continuous_on_def by (auto intro: tendsto_diff)
@@ -638,13 +638,13 @@ lemmas continuous_scaleR [continuous_intros] =
 lemmas continuous_mult [continuous_intros] =
   bounded_bilinear.continuous [OF bounded_bilinear_mult]
 
-lemmas continuous_on_of_real [continuous_on_intros] =
+lemmas continuous_on_of_real [continuous_intros] =
   bounded_linear.continuous_on [OF bounded_linear_of_real]
 
-lemmas continuous_on_scaleR [continuous_on_intros] =
+lemmas continuous_on_scaleR [continuous_intros] =
   bounded_bilinear.continuous_on [OF bounded_bilinear_scaleR]
 
-lemmas continuous_on_mult [continuous_on_intros] =
+lemmas continuous_on_mult [continuous_intros] =
   bounded_bilinear.continuous_on [OF bounded_bilinear_mult]
 
 lemmas tendsto_mult_zero =
@@ -666,7 +666,7 @@ lemma continuous_power [continuous_intros]:
   shows "continuous F f \<Longrightarrow> continuous F (\<lambda>x. (f x)^n)"
   unfolding continuous_def by (rule tendsto_power)
 
-lemma continuous_on_power [continuous_on_intros]:
+lemma continuous_on_power [continuous_intros]:
   fixes f :: "_ \<Rightarrow> 'b::{power,real_normed_algebra}"
   shows "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. (f x)^n)"
   unfolding continuous_on_def by (auto intro: tendsto_power)
@@ -820,7 +820,7 @@ lemma isCont_inverse[continuous_intros, simp]:
   shows "isCont (\<lambda>x. inverse (f x)) a"
   using assms unfolding continuous_at by (rule tendsto_inverse)
 
-lemma continuous_on_inverse[continuous_on_intros]:
+lemma continuous_on_inverse[continuous_intros]:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_div_algebra"
   assumes "continuous_on s f" and "\<forall>x\<in>s. f x \<noteq> 0"
   shows "continuous_on s (\<lambda>x. inverse (f x))"
@@ -850,7 +850,7 @@ lemma isCont_divide[continuous_intros, simp]:
   shows "isCont (\<lambda>x. (f x) / g x) a"
   using assms unfolding continuous_at by (rule tendsto_divide)
 
-lemma continuous_on_divide[continuous_on_intros]:
+lemma continuous_on_divide[continuous_intros]:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_field"
   assumes "continuous_on s f" "continuous_on s g" and "\<forall>x\<in>s. g x \<noteq> 0"
   shows "continuous_on s (\<lambda>x. (f x) / (g x))"
@@ -879,7 +879,7 @@ lemma isCont_sgn[continuous_intros]:
   shows "isCont (\<lambda>x. sgn (f x)) a"
   using assms unfolding continuous_at by (rule tendsto_sgn)
 
-lemma continuous_on_sgn[continuous_on_intros]:
+lemma continuous_on_sgn[continuous_intros]:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   assumes "continuous_on s f" and "\<forall>x\<in>s. f x \<noteq> 0"
   shows "continuous_on s (\<lambda>x. sgn (f x))"
@@ -1684,11 +1684,6 @@ lemma isCont_setsum [simp]:
   fixes f :: "'a \<Rightarrow> 'b::t2_space \<Rightarrow> 'c::real_normed_vector"
   shows "\<forall>i\<in>A. isCont (f i) a \<Longrightarrow> isCont (\<lambda>x. \<Sum>i\<in>A. f i x) a"
   by (auto intro: continuous_setsum)
-
-lemmas isCont_intros =
-  isCont_ident isCont_const isCont_norm isCont_rabs isCont_add isCont_minus
-  isCont_diff isCont_mult isCont_inverse isCont_divide isCont_scaleR
-  isCont_of_real isCont_power isCont_sgn isCont_setsum
 
 subsection {* Uniform Continuity *}
 

@@ -152,11 +152,11 @@ proof (rule ccontr)
   have 1: "box (- 1) (1::real^2) \<noteq> {}"
     unfolding interval_eq_empty_cart by auto
   have 2: "continuous_on (cbox -1 1) (negatex \<circ> sqprojection \<circ> ?F)"
-    apply (intro continuous_on_intros continuous_on_component)
+    apply (intro continuous_intros continuous_on_component)
     unfolding *
     apply (rule assms)+
     apply (subst sqprojection_def)
-    apply (intro continuous_on_intros)
+    apply (intro continuous_intros)
     apply (simp add: infnorm_eq_0 x0)
     apply (rule linear_continuous_on)
   proof -
@@ -370,7 +370,7 @@ proof -
     show "(f \<circ> iscale) ` {- 1..1} \<subseteq> cbox -1 1" "(g \<circ> iscale) ` {- 1..1} \<subseteq> cbox -1 1"
       using isc and assms(3-4) by (auto simp add: image_comp [symmetric])
     have *: "continuous_on {- 1..1} iscale"
-      unfolding iscale_def by (rule continuous_on_intros)+
+      unfolding iscale_def by (rule continuous_intros)+
     show "continuous_on {- 1..1} (f \<circ> iscale)" "continuous_on {- 1..1} (g \<circ> iscale)"
       apply -
       apply (rule_tac[!] continuous_on_compose[OF *])

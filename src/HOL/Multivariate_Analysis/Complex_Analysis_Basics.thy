@@ -119,12 +119,12 @@ lemma continuous_on_mult_right:
   shows "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. f x * c)"
 by (rule continuous_on_mult [OF _ continuous_on_const])
 
-lemma uniformly_continuous_on_cmul_right [continuous_on_intros]:
+lemma uniformly_continuous_on_cmul_right [continuous_intros]:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_algebra"
   shows "uniformly_continuous_on s f \<Longrightarrow> uniformly_continuous_on s (\<lambda>x. f x * c)"
   using bounded_linear.uniformly_continuous_on[OF bounded_linear_mult_left] . 
 
-lemma uniformly_continuous_on_cmul_left[continuous_on_intros]:
+lemma uniformly_continuous_on_cmul_left[continuous_intros]:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_algebra"
   assumes "uniformly_continuous_on s f"
     shows "uniformly_continuous_on s (\<lambda>x. c * f x)"

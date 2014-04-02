@@ -678,7 +678,7 @@ proof -
     show "((\<lambda>x. f x - (f b - f a) / (b - a) * x) has_derivative
         (\<lambda>xa. f' x xa - (f b - f a) / (b - a) * xa)) (at x)"
       by (intro has_derivative_intros assms(3)[rule_format,OF x] mult_right_has_derivative)
-  qed (insert assms(1,2), auto intro!: continuous_on_intros simp: field_simps)
+  qed (insert assms(1,2), auto intro!: continuous_intros simp: field_simps)
   then obtain x where
     "x \<in> {a <..< b}"
     "(\<lambda>xa. f' x xa - (f b - f a) / (b - a) * xa) = (\<lambda>v. 0)" ..
@@ -749,7 +749,7 @@ proof -
   have "\<exists>x\<in>{a<..<b}. (f b - f a) \<bullet> f b - (f b - f a) \<bullet> f a = (f b - f a) \<bullet> f' x (b - a)"
     apply (rule mvt)
     apply (rule assms(1))
-    apply (intro continuous_on_intros assms(2))
+    apply (intro continuous_intros assms(2))
     using assms(3)
     apply (fast intro: has_derivative_inner_right)
     done
@@ -798,7 +798,7 @@ proof -
     by (auto simp add: algebra_simps)
   then have 1: "continuous_on {0 .. 1} (f \<circ> ?p)"
     apply -
-    apply (rule continuous_on_intros)+
+    apply (rule continuous_intros)+
     unfolding continuous_on_eq_continuous_within
     apply rule
     apply (rule differentiable_imp_continuous_within)
@@ -1138,7 +1138,7 @@ proof -
   show ?thesis
     unfolding *
     apply (rule brouwer[OF assms(1-3), of "\<lambda>y. x + (y - f y)"])
-    apply (rule continuous_on_intros assms)+
+    apply (rule continuous_intros assms)+
     using assms(4-6)
     apply auto
     done
@@ -1209,7 +1209,7 @@ proof -
     show "continuous_on (cball (f x) e) (\<lambda>y. f (x + g' (y - f x)))"
       unfolding g'.diff
       apply (rule continuous_on_compose[of _ _ f, unfolded o_def])
-      apply (rule continuous_on_intros linear_continuous_on[OF assms(5)])+
+      apply (rule continuous_intros linear_continuous_on[OF assms(5)])+
       apply (rule continuous_on_subset[OF assms(2)])
       apply rule
       apply (unfold image_iff)

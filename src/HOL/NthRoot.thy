@@ -255,7 +255,7 @@ proof cases
   assume n: "0 < n"
   let ?f = "\<lambda>y::real. sgn y * \<bar>y\<bar>^n"
   have "continuous_on ({0..} \<union> {.. 0}) (\<lambda>x. if 0 < x then x ^ n else - ((-x) ^ n) :: real)"
-    using n by (intro continuous_on_If continuous_on_intros) auto
+    using n by (intro continuous_on_If continuous_intros) auto
   then have "continuous_on UNIV ?f"
     by (rule continuous_on_cong[THEN iffD1, rotated 2]) (auto simp: not_less real_sgn_neg le_less n)
   then have [simp]: "\<And>x. isCont ?f x"
@@ -275,7 +275,7 @@ lemma continuous_real_root[continuous_intros]:
   "continuous F f \<Longrightarrow> continuous F (\<lambda>x. root n (f x))"
   unfolding continuous_def by (rule tendsto_real_root)
   
-lemma continuous_on_real_root[continuous_on_intros]:
+lemma continuous_on_real_root[continuous_intros]:
   "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. root n (f x))"
   unfolding continuous_on_def by (auto intro: tendsto_real_root)
 
@@ -454,7 +454,7 @@ lemma continuous_real_sqrt[continuous_intros]:
   "continuous F f \<Longrightarrow> continuous F (\<lambda>x. sqrt (f x))"
   unfolding sqrt_def by (rule continuous_real_root)
   
-lemma continuous_on_real_sqrt[continuous_on_intros]:
+lemma continuous_on_real_sqrt[continuous_intros]:
   "continuous_on s f \<Longrightarrow> 0 < n \<Longrightarrow> continuous_on s (\<lambda>x. sqrt (f x))"
   unfolding sqrt_def by (rule continuous_on_real_root)
 

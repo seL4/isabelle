@@ -543,6 +543,9 @@ INCOMPATIBILITY.
     deriv_fderiv              ~>  has_field_derivative_def
 INCOMPATIBILITY.
 
+* Include more theorems in continuous_intros. Remove the continuous_on_intros,
+  isCont_intros collections, these facts are now in continuous_intros.
+
 * Removed solvers remote_cvc3 and remote_z3. Use cvc3 and z3 instead.
 
 * Nitpick:

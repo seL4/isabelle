@@ -1116,7 +1116,7 @@ theorem MVT:
 proof -
   let ?F = "%x. f x - ((f b - f a) / (b-a)) * x"
   have contF: "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont ?F x"
-    using con by (fast intro: isCont_intros)
+    using con by (fast intro: continuous_intros)
   have difF: "\<forall>x. a < x \<and> x < b \<longrightarrow> ?F differentiable (at x)"
   proof (clarify)
     fix x::real

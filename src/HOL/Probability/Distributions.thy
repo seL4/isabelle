@@ -180,7 +180,7 @@ proof (rule integral_monotone_convergence)
       show "DERIV (\<lambda>x. x * exp (-x)) x :> exp (-x) - x * exp (-x)"
         by (auto intro!: DERIV_intros)
       show "isCont (\<lambda>x. exp (- x) - x * exp (- x)) x "
-        by (intro isCont_intros isCont_exp')
+        by (intro continuous_intros)
     qed fact
     also have "(\<integral>x. (exp (-x)) * indicator {0 .. b} x \<partial>lborel) = - exp (- b) - - exp (- 0)"
       by (rule integral_FTC_atLeastAtMost) (auto intro!: DERIV_intros)

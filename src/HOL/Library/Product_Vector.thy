@@ -204,13 +204,13 @@ lemma continuous_snd[continuous_intros]: "continuous F f \<Longrightarrow> conti
 lemma continuous_Pair[continuous_intros]: "continuous F f \<Longrightarrow> continuous F g \<Longrightarrow> continuous F (\<lambda>x. (f x, g x))"
   unfolding continuous_def by (rule tendsto_Pair)
 
-lemma continuous_on_fst[continuous_on_intros]: "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. fst (f x))"
+lemma continuous_on_fst[continuous_intros]: "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. fst (f x))"
   unfolding continuous_on_def by (auto intro: tendsto_fst)
 
-lemma continuous_on_snd[continuous_on_intros]: "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. snd (f x))"
+lemma continuous_on_snd[continuous_intros]: "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. snd (f x))"
   unfolding continuous_on_def by (auto intro: tendsto_snd)
 
-lemma continuous_on_Pair[continuous_on_intros]: "continuous_on s f \<Longrightarrow> continuous_on s g \<Longrightarrow> continuous_on s (\<lambda>x. (f x, g x))"
+lemma continuous_on_Pair[continuous_intros]: "continuous_on s f \<Longrightarrow> continuous_on s g \<Longrightarrow> continuous_on s (\<lambda>x. (f x, g x))"
   unfolding continuous_on_def by (auto intro: tendsto_Pair)
 
 lemma isCont_fst [simp]: "isCont f a \<Longrightarrow> isCont (\<lambda>x. fst (f x)) a"

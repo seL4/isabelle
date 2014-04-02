@@ -108,7 +108,7 @@ proof -
   have *: "\<And>g. path g \<Longrightarrow> path (reversepath g)"
     unfolding path_def reversepath_def
     apply (rule continuous_on_compose[unfolded o_def, of _ "\<lambda>x. 1 - x"])
-    apply (intro continuous_on_intros)
+    apply (intro continuous_intros)
     apply (rule continuous_on_subset[of "{0..1}"])
     apply assumption
     apply auto
@@ -135,7 +135,7 @@ proof safe
     by (intro continuous_on_cong refl) (auto simp: joinpaths_def pathfinish_def pathstart_def)
   show "continuous_on {0..1} g1" and "continuous_on {0..1} g2"
     unfolding g1 g2
-    by (auto intro!: continuous_on_intros continuous_on_subset[OF cont] simp del: o_apply)
+    by (auto intro!: continuous_intros continuous_on_subset[OF cont] simp del: o_apply)
 next
   assume g1g2: "continuous_on {0..1} g1" "continuous_on {0..1} g2"
   have 01: "{0 .. 1} = {0..1/2} \<union> {1/2 .. 1::real}"
@@ -157,7 +157,7 @@ next
   show "continuous_on {0..1} (g1 +++ g2)"
     using assms
     unfolding joinpaths_def 01
-    apply (intro continuous_on_cases closed_atLeastAtMost g1g2[THEN continuous_on_compose2] continuous_on_intros)
+    apply (intro continuous_on_cases closed_atLeastAtMost g1g2[THEN continuous_on_compose2] continuous_intros)
     apply (auto simp: field_simps pathfinish_def pathstart_def intro!: 1 2)
     done
 qed
@@ -423,9 +423,9 @@ proof -
     apply (rule continuous_on_eq[of _ "g \<circ> (\<lambda>x. a - 1 + x)"])
     defer
     prefer 3
-    apply (rule continuous_on_intros)+
+    apply (rule continuous_intros)+
     prefer 2
-    apply (rule continuous_on_intros)+
+    apply (rule continuous_intros)+
     apply (rule_tac[1-2] continuous_on_subset[OF assms(1)[unfolded path_def]])
     using assms(3) and **
     apply auto
@@ -589,7 +589,7 @@ lemma path_component_refl:
   unfolding path_defs
   apply (rule_tac x="\<lambda>u. x" in exI)
   using assms
-  apply (auto intro!: continuous_on_intros)
+  apply (auto intro!: continuous_intros)
   done
 
 lemma path_component_refl_eq: "path_component s x x \<longleftrightarrow> x \<in> s"
@@ -977,11 +977,11 @@ next
     done
   have "continuous_on (UNIV - {0}) (\<lambda>x::'a. 1 / norm x)"
     unfolding field_divide_inverse
-    by (simp add: continuous_on_intros)
+    by (simp add: continuous_intros)
   then show ?thesis
     unfolding * **
     using path_connected_punctured_universe[OF assms]
-    by (auto intro!: path_connected_continuous_image continuous_on_intros)
+    by (auto intro!: path_connected_continuous_image continuous_intros)
 qed
 
 lemma connected_sphere: "2 \<le> DIM('a::euclidean_space) \<Longrightarrow> connected {x::'a. norm (x - a) = r}"

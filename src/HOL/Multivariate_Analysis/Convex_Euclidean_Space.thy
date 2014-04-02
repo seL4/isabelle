@@ -1316,7 +1316,7 @@ proof (rule connectedI)
   then obtain a b where a: "a \<in> A" "a \<in> s" and b: "b \<in> B" "b \<in> s" by auto
   def f \<equiv> "\<lambda>u. u *\<^sub>R a + (1 - u) *\<^sub>R b"
   then have "continuous_on {0 .. 1} f"
-    by (auto intro!: continuous_on_intros)
+    by (auto intro!: continuous_intros)
   then have "connected (f ` {0 .. 1})"
     by (auto intro!: connected_continuous_image)
   note connectedD[OF this, of A B]

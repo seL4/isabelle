@@ -107,7 +107,7 @@ proof (cases "s = {}")
 next
   case False
   have "continuous_on s (norm \<circ> f)"
-    by (rule continuous_on_intros continuous_on_norm assms(2))+
+    by (rule continuous_intros continuous_on_norm assms(2))+
   with False obtain x where x: "x \<in> s" "\<forall>y\<in>s. (norm \<circ> f) x \<le> (norm \<circ> f) y"
     using continuous_attains_inf[OF assms(1), of "norm \<circ> f"]
     unfolding o_def
@@ -1460,7 +1460,7 @@ proof (rule ccontr)
   obtain d where
       d: "d > 0" "\<And>x. x \<in> unit_cube \<Longrightarrow> d \<le> norm (f x - x)"
     apply (rule brouwer_compactness_lemma[OF compact_unit_cube _ *])
-    apply (rule continuous_on_intros assms)+
+    apply (rule continuous_intros assms)+
     apply blast
     done
   have *: "\<forall>x. x \<in> unit_cube \<longrightarrow> f x \<in> unit_cube"
@@ -2023,7 +2023,7 @@ proof
     apply assumption+
     apply (rule_tac x=x in bexI)
     apply assumption+
-    apply (rule continuous_on_intros)+
+    apply (rule continuous_intros)+
     unfolding frontier_cball subset_eq Ball_def image_iff
     apply rule
     apply rule

@@ -9,6 +9,18 @@ theory Topological_Spaces
 imports Main Conditionally_Complete_Lattices
 begin
 
+ML {*
+
+structure Continuous_Intros = Named_Thms
+(
+  val name = @{binding continuous_intros}
+  val description = "Structural introduction rules for continuity"
+)
+
+*}
+
+setup Continuous_Intros.setup
+
 subsection {* Topological space *}
 
 class "open" =
@@ -24,19 +36,19 @@ definition
   closed :: "'a set \<Rightarrow> bool" where
   "closed S \<longleftrightarrow> open (- S)"
 
-lemma open_empty [intro, simp]: "open {}"
+lemma open_empty [continuous_intros, intro, simp]: "open {}"
   using open_Union [of "{}"] by simp
 
-lemma open_Un [intro]: "open S \<Longrightarrow> open T \<Longrightarrow> open (S \<union> T)"
+lemma open_Un [continuous_intros, intro]: "open S \<Longrightarrow> open T \<Longrightarrow> open (S \<union> T)"
   using open_Union [of "{S, T}"] by simp
 
-lemma open_UN [intro]: "\<forall>x\<in>A. open (B x) \<Longrightarrow> open (\<Union>x\<in>A. B x)"
+lemma open_UN [continuous_intros, intro]: "\<forall>x\<in>A. open (B x) \<Longrightarrow> open (\<Union>x\<in>A. B x)"
   using open_Union [of "B ` A"] by simp
 
-lemma open_Inter [intro]: "finite S \<Longrightarrow> \<forall>T\<in>S. open T \<Longrightarrow> open (\<Inter>S)"
+lemma open_Inter [continuous_intros, intro]: "finite S \<Longrightarrow> \<forall>T\<in>S. open T \<Longrightarrow> open (\<Inter>S)"
   by (induct set: finite) auto
 
-lemma open_INT [intro]: "finite A \<Longrightarrow> \<forall>x\<in>A. open (B x) \<Longrightarrow> open (\<Inter>x\<in>A. B x)"
+lemma open_INT [continuous_intros, intro]: "finite A \<Longrightarrow> \<forall>x\<in>A. open (B x) \<Longrightarrow> open (\<Inter>x\<in>A. B x)"
   using open_Inter [of "B ` A"] by simp
 
 lemma openI:
@@ -48,28 +60,28 @@ proof -
   ultimately show "open S" by simp
 qed
 
-lemma closed_empty [intro, simp]:  "closed {}"
+lemma closed_empty [continuous_intros, intro, simp]:  "closed {}"
   unfolding closed_def by simp
 
-lemma closed_Un [intro]: "closed S \<Longrightarrow> closed T \<Longrightarrow> closed (S \<union> T)"
+lemma closed_Un [continuous_intros, intro]: "closed S \<Longrightarrow> closed T \<Longrightarrow> closed (S \<union> T)"
   unfolding closed_def by auto
 
-lemma closed_UNIV [intro, simp]: "closed UNIV"
+lemma closed_UNIV [continuous_intros, intro, simp]: "closed UNIV"
   unfolding closed_def by simp
 
-lemma closed_Int [intro]: "closed S \<Longrightarrow> closed T \<Longrightarrow> closed (S \<inter> T)"
+lemma closed_Int [continuous_intros, intro]: "closed S \<Longrightarrow> closed T \<Longrightarrow> closed (S \<inter> T)"
   unfolding closed_def by auto
 
-lemma closed_INT [intro]: "\<forall>x\<in>A. closed (B x) \<Longrightarrow> closed (\<Inter>x\<in>A. B x)"
+lemma closed_INT [continuous_intros, intro]: "\<forall>x\<in>A. closed (B x) \<Longrightarrow> closed (\<Inter>x\<in>A. B x)"
   unfolding closed_def by auto
 
-lemma closed_Inter [intro]: "\<forall>S\<in>K. closed S \<Longrightarrow> closed (\<Inter> K)"
+lemma closed_Inter [continuous_intros, intro]: "\<forall>S\<in>K. closed S \<Longrightarrow> closed (\<Inter> K)"
   unfolding closed_def uminus_Inf by auto
 
-lemma closed_Union [intro]: "finite S \<Longrightarrow> \<forall>T\<in>S. closed T \<Longrightarrow> closed (\<Union>S)"
+lemma closed_Union [continuous_intros, intro]: "finite S \<Longrightarrow> \<forall>T\<in>S. closed T \<Longrightarrow> closed (\<Union>S)"
   by (induct set: finite) auto
 
-lemma closed_UN [intro]: "finite A \<Longrightarrow> \<forall>x\<in>A. closed (B x) \<Longrightarrow> closed (\<Union>x\<in>A. B x)"
+lemma closed_UN [continuous_intros, intro]: "finite A \<Longrightarrow> \<forall>x\<in>A. closed (B x) \<Longrightarrow> closed (\<Union>x\<in>A. B x)"
   using closed_Union [of "B ` A"] by simp
 
 lemma open_closed: "open S \<longleftrightarrow> closed (- S)"
@@ -78,16 +90,16 @@ lemma open_closed: "open S \<longleftrightarrow> closed (- S)"
 lemma closed_open: "closed S \<longleftrightarrow> open (- S)"
   unfolding closed_def by simp
 
-lemma open_Diff [intro]: "open S \<Longrightarrow> closed T \<Longrightarrow> open (S - T)"
+lemma open_Diff [continuous_intros, intro]: "open S \<Longrightarrow> closed T \<Longrightarrow> open (S - T)"
   unfolding closed_open Diff_eq by (rule open_Int)
 
-lemma closed_Diff [intro]: "closed S \<Longrightarrow> open T \<Longrightarrow> closed (S - T)"
+lemma closed_Diff [continuous_intros, intro]: "closed S \<Longrightarrow> open T \<Longrightarrow> closed (S - T)"
   unfolding open_closed Diff_eq by (rule closed_Int)
 
-lemma open_Compl [intro]: "closed S \<Longrightarrow> open (- S)"
+lemma open_Compl [continuous_intros, intro]: "closed S \<Longrightarrow> open (- S)"
   unfolding closed_open .
 
-lemma closed_Compl [intro]: "open S \<Longrightarrow> closed (- S)"
+lemma closed_Compl [continuous_intros, intro]: "open S \<Longrightarrow> closed (- S)"
   unfolding open_closed .
 
 end
@@ -119,7 +131,7 @@ proof -
   finally show "closed {a}" unfolding closed_def .
 qed
 
-lemma closed_insert [simp]:
+lemma closed_insert [continuous_intros, simp]:
   fixes a :: "'a::t1_space"
   assumes "closed S" shows "closed (insert a S)"
 proof -
@@ -185,26 +197,26 @@ subclass topological_space
   unfolding open_generated_order
   by (rule topological_space_generate_topology)
 
-lemma open_greaterThan [simp]: "open {a <..}"
+lemma open_greaterThan [continuous_intros, simp]: "open {a <..}"
   unfolding open_generated_order by (auto intro: generate_topology.Basis)
 
-lemma open_lessThan [simp]: "open {..< a}"
+lemma open_lessThan [continuous_intros, simp]: "open {..< a}"
   unfolding open_generated_order by (auto intro: generate_topology.Basis)
 
-lemma open_greaterThanLessThan [simp]: "open {a <..< b}"
+lemma open_greaterThanLessThan [continuous_intros, simp]: "open {a <..< b}"
    unfolding greaterThanLessThan_eq by (simp add: open_Int)
 
 end
 
 class linorder_topology = linorder + order_topology
 
-lemma closed_atMost [simp]: "closed {.. a::'a::linorder_topology}"
+lemma closed_atMost [continuous_intros, simp]: "closed {.. a::'a::linorder_topology}"
   by (simp add: closed_open)
 
-lemma closed_atLeast [simp]: "closed {a::'a::linorder_topology ..}"
+lemma closed_atLeast [continuous_intros, simp]: "closed {a::'a::linorder_topology ..}"
   by (simp add: closed_open)
 
-lemma closed_atLeastAtMost [simp]: "closed {a::'a::linorder_topology .. b}"
+lemma closed_atLeastAtMost [continuous_intros, simp]: "closed {a::'a::linorder_topology .. b}"
 proof -
   have "{a .. b} = {a ..} \<inter> {.. b}"
     by auto
@@ -1725,7 +1737,7 @@ corollary continuous_imp_open_vimage:
     shows "open (f -` B)"
 by (metis assms continuous_on_open_vimage le_iff_inf)
 
-corollary open_vimage:
+corollary open_vimage[continuous_intros]:
   assumes "open s" and "continuous_on UNIV f"
   shows "open (f -` s)"
   using assms unfolding continuous_on_open_vimage [OF open_UNIV]
@@ -1744,6 +1756,12 @@ lemma continuous_on_closed_vimage:
   "closed s \<Longrightarrow> continuous_on s f \<longleftrightarrow> (\<forall>B. closed B \<longrightarrow> closed (f -` B \<inter> s))"
   unfolding continuous_on_closed_invariant
   by (metis closed_Int Int_absorb Int_commute[of s] Int_assoc[of _ _ s])
+
+corollary closed_vimage[continuous_intros]:
+  assumes "closed s" and "continuous_on UNIV f"
+  shows "closed (f -` s)"
+  using assms unfolding continuous_on_closed_vimage [OF closed_UNIV]
+  by simp
 
 lemma continuous_on_open_Union:
   "(\<And>s. s \<in> S \<Longrightarrow> open s) \<Longrightarrow> (\<And>s. s \<in> S \<Longrightarrow> continuous_on s f) \<Longrightarrow> continuous_on (\<Union>S) f"
@@ -1770,25 +1788,13 @@ proof-
     by (rule continuous_on_closed_Un)
 qed
 
-ML {*
-
-structure Continuous_On_Intros = Named_Thms
-(
-  val name = @{binding continuous_on_intros}
-  val description = "Structural introduction rules for setwise continuity"
-)
-
-*}
-
-setup Continuous_On_Intros.setup
-
-lemma continuous_on_id[continuous_on_intros]: "continuous_on s (\<lambda>x. x)"
+lemma continuous_on_id[continuous_intros]: "continuous_on s (\<lambda>x. x)"
   unfolding continuous_on_def by (fast intro: tendsto_ident_at)
 
-lemma continuous_on_const[continuous_on_intros]: "continuous_on s (\<lambda>x. c)"
+lemma continuous_on_const[continuous_intros]: "continuous_on s (\<lambda>x. c)"
   unfolding continuous_on_def by (auto intro: tendsto_const)
 
-lemma continuous_on_compose[continuous_on_intros]:
+lemma continuous_on_compose[continuous_intros]:
   "continuous_on s f \<Longrightarrow> continuous_on (f ` s) g \<Longrightarrow> continuous_on s (g o f)"
   unfolding continuous_on_topological by simp metis
 
@@ -1800,18 +1806,6 @@ subsubsection {* Continuity at a point *}
 
 definition continuous :: "'a::t2_space filter \<Rightarrow> ('a \<Rightarrow> 'b::topological_space) \<Rightarrow> bool" where
   "continuous F f \<longleftrightarrow> (f ---> f (Lim F (\<lambda>x. x))) F"
-
-ML {*
-
-structure Continuous_Intros = Named_Thms
-(
-  val name = @{binding continuous_intros}
-  val description = "Structural introduction rules for pointwise continuity"
-)
-
-*}
-
-setup Continuous_Intros.setup
 
 lemma continuous_bot[continuous_intros, simp]: "continuous bot f"
   unfolding continuous_def by auto

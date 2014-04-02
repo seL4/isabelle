@@ -791,7 +791,7 @@ lemma diff_le_iff:
 lemma open_ball [intro, simp]: "open (ball x e)"
 proof -
   have "open (dist x -` {..<e})"
-    by (intro open_vimage open_lessThan continuous_on_intros)
+    by (intro open_vimage open_lessThan continuous_intros)
   also have "dist x -` {..<e} = ball x e"
     by auto
   finally show ?thesis .
@@ -2375,7 +2375,7 @@ lemma closed_vimage: (* TODO: move to Topological_Spaces.thy *)
 lemma closed_cball: "closed (cball x e)"
 proof -
   have "closed (dist x -` {..e})"
-    by (intro closed_vimage closed_atMost continuous_on_intros)
+    by (intro closed_vimage closed_atMost continuous_intros)
   also have "dist x -` {..e} = cball x e"
     by auto
   finally show ?thesis .
@@ -4931,11 +4931,11 @@ lemmas continuous_at_inverse = isCont_inverse
 
 subsubsection {* Structural rules for setwise continuity *}
 
-lemma continuous_on_infnorm[continuous_on_intros]:
+lemma continuous_on_infnorm[continuous_intros]:
   "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. infnorm (f x))"
   unfolding continuous_on by (fast intro: tendsto_infnorm)
 
-lemma continuous_on_inner[continuous_on_intros]:
+lemma continuous_on_inner[continuous_intros]:
   fixes g :: "'a::topological_space \<Rightarrow> 'b::real_inner"
   assumes "continuous_on s f"
     and "continuous_on s g"
@@ -4945,15 +4945,15 @@ lemma continuous_on_inner[continuous_on_intros]:
 
 subsubsection {* Structural rules for uniform continuity *}
 
-lemma uniformly_continuous_on_id[continuous_on_intros]:
+lemma uniformly_continuous_on_id[continuous_intros]:
   "uniformly_continuous_on s (\<lambda>x. x)"
   unfolding uniformly_continuous_on_def by auto
 
-lemma uniformly_continuous_on_const[continuous_on_intros]:
+lemma uniformly_continuous_on_const[continuous_intros]:
   "uniformly_continuous_on s (\<lambda>x. c)"
   unfolding uniformly_continuous_on_def by simp
 
-lemma uniformly_continuous_on_dist[continuous_on_intros]:
+lemma uniformly_continuous_on_dist[continuous_intros]:
   fixes f g :: "'a::metric_space \<Rightarrow> 'b::metric_space"
   assumes "uniformly_continuous_on s f"
     and "uniformly_continuous_on s g"
@@ -4979,20 +4979,20 @@ proof -
     unfolding dist_real_def by simp
 qed
 
-lemma uniformly_continuous_on_norm[continuous_on_intros]:
+lemma uniformly_continuous_on_norm[continuous_intros]:
   assumes "uniformly_continuous_on s f"
   shows "uniformly_continuous_on s (\<lambda>x. norm (f x))"
   unfolding norm_conv_dist using assms
   by (intro uniformly_continuous_on_dist uniformly_continuous_on_const)
 
-lemma (in bounded_linear) uniformly_continuous_on[continuous_on_intros]:
+lemma (in bounded_linear) uniformly_continuous_on[continuous_intros]:
   assumes "uniformly_continuous_on s g"
   shows "uniformly_continuous_on s (\<lambda>x. f (g x))"
   using assms unfolding uniformly_continuous_on_sequentially
   unfolding dist_norm tendsto_norm_zero_iff diff[symmetric]
   by (auto intro: tendsto_zero)
 
-lemma uniformly_continuous_on_cmul[continuous_on_intros]:
+lemma uniformly_continuous_on_cmul[continuous_intros]:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
   assumes "uniformly_continuous_on s f"
   shows "uniformly_continuous_on s (\<lambda>x. c *\<^sub>R f(x))"
@@ -5004,12 +5004,12 @@ lemma dist_minus:
   shows "dist (- x) (- y) = dist x y"
   unfolding dist_norm minus_diff_minus norm_minus_cancel ..
 
-lemma uniformly_continuous_on_minus[continuous_on_intros]:
+lemma uniformly_continuous_on_minus[continuous_intros]:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
   shows "uniformly_continuous_on s f \<Longrightarrow> uniformly_continuous_on s (\<lambda>x. - f x)"
   unfolding uniformly_continuous_on_def dist_minus .
 
-lemma uniformly_continuous_on_add[continuous_on_intros]:
+lemma uniformly_continuous_on_add[continuous_intros]:
   fixes f g :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
   assumes "uniformly_continuous_on s f"
     and "uniformly_continuous_on s g"
@@ -5019,7 +5019,7 @@ lemma uniformly_continuous_on_add[continuous_on_intros]:
   unfolding dist_norm tendsto_norm_zero_iff add_diff_add
   by (auto intro: tendsto_add_zero)
 
-lemma uniformly_continuous_on_diff[continuous_on_intros]:
+lemma uniformly_continuous_on_diff[continuous_intros]:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
   assumes "uniformly_continuous_on s f"
     and "uniformly_continuous_on s g"
@@ -5031,7 +5031,7 @@ text{* Continuity of all kinds is preserved under composition. *}
 
 lemmas continuous_at_compose = isCont_o
 
-lemma uniformly_continuous_on_compose[continuous_on_intros]:
+lemma uniformly_continuous_on_compose[continuous_intros]:
   assumes "uniformly_continuous_on s f"  "uniformly_continuous_on (f ` s) g"
   shows "uniformly_continuous_on s (g \<circ> f)"
 proof -
@@ -6972,7 +6972,7 @@ lemma homeomorphic_scaling:
   apply (rule_tac x="\<lambda>x. c *\<^sub>R x" in exI)
   apply (rule_tac x="\<lambda>x. (1 / c) *\<^sub>R x" in exI)
   using assms
-  apply (auto simp add: continuous_on_intros)
+  apply (auto simp add: continuous_intros)
   done
 
 lemma homeomorphic_translation:
@@ -7010,14 +7010,14 @@ proof -
     apply(rule_tac x="\<lambda>x. b + (e/d) *\<^sub>R (x - a)" in exI)
     apply(rule_tac x="\<lambda>x. a + (d/e) *\<^sub>R (x - b)" in exI)
     using assms
-    apply (auto intro!: continuous_on_intros
+    apply (auto intro!: continuous_intros
       simp: dist_commute dist_norm pos_divide_less_eq mult_strict_left_mono)
     done
   show ?cth unfolding homeomorphic_minimal
     apply(rule_tac x="\<lambda>x. b + (e/d) *\<^sub>R (x - a)" in exI)
     apply(rule_tac x="\<lambda>x. a + (d/e) *\<^sub>R (x - b)" in exI)
     using assms
-    apply (auto intro!: continuous_on_intros
+    apply (auto intro!: continuous_intros
       simp: dist_commute dist_norm pos_divide_le_eq mult_strict_left_mono)
     done
 qed
