@@ -391,6 +391,9 @@ lemma divide_divide_eq_left [simp]:
   "(a / b) / c = a / (b * c)"
   by (simp add: divide_inverse mult_assoc)
 
+lemma divide_divide_times_eq:
+  "(x / y) / (z / w) = (x * w) / (y * z)"
+  by simp
 
 text {*Special Cancellation Simprules for Division*}
 
@@ -707,6 +710,14 @@ proof -
     by (simp add: less_imp_not_eq [OF less] divide_inverse mult_assoc) 
   finally show ?thesis .
 qed
+
+lemma frac_less_eq:
+  "y \<noteq> 0 \<Longrightarrow> z \<noteq> 0 \<Longrightarrow> x / y < w / z \<longleftrightarrow> (x * z - w * y) / (y * z) < 0"
+  by (subst less_iff_diff_less_0) (simp add: diff_frac_eq )
+
+lemma frac_le_eq:
+  "y \<noteq> 0 \<Longrightarrow> z \<noteq> 0 \<Longrightarrow> x / y \<le> w / z \<longleftrightarrow> (x * z - w * y) / (y * z) \<le> 0"
+  by (subst le_iff_diff_le_0) (simp add: diff_frac_eq )
 
 text{* Lemmas @{text sign_simps} is a first attempt to automate proofs
 of positivity/negativity needed for @{text field_simps}. Have not added @{text
