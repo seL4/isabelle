@@ -463,7 +463,7 @@ lemma summable_comparison_test: "\<exists>N. \<forall>n\<ge>N. norm (f n) \<le> 
 
 (*A better argument order*)
 lemma summable_comparison_test': "summable g \<Longrightarrow> (\<And>n. n \<ge> N \<Longrightarrow> norm(f n) \<le> g n) \<Longrightarrow> summable f"
-by (rule summable_comparison_test) auto
+  by (rule summable_comparison_test) auto
 
 subsection {* The Ratio Test*}
 
@@ -501,6 +501,27 @@ next
 qed
 
 end
+
+text{*Relations among convergence and absolute convergence for power series.*}
+
+lemma abel_lemma:
+  fixes a :: "nat \<Rightarrow> 'a::real_normed_vector"
+  assumes r: "0 \<le> r" and r0: "r < r0" and M: "\<And>n. norm (a n) * r0^n \<le> M"
+    shows "summable (\<lambda>n. norm (a n) * r^n)"
+proof (rule summable_comparison_test')
+  show "summable (\<lambda>n. M * (r / r0) ^ n)"
+    using assms 
+    by (auto simp add: summable_mult summable_geometric)
+next
+  fix n
+  show "norm (norm (a n) * r ^ n) \<le> M * (r / r0) ^ n"
+    using r r0 M [of n]
+    apply (auto simp add: abs_mult field_simps power_divide)
+    apply (cases "r=0", simp)
+    apply (cases n, auto)
+    done
+qed
+
 
 text{*Summability of geometric series for real algebras*}
 

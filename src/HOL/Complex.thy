@@ -339,6 +339,21 @@ lemma abs_Re_le_cmod: "\<bar>Re x\<bar> \<le> cmod x"
 lemma abs_Im_le_cmod: "\<bar>Im x\<bar> \<le> cmod x"
   by (cases x) simp
 
+
+lemma abs_sqrt_wlog:
+  fixes x::"'a::linordered_idom"
+  assumes "\<And>x::'a. x \<ge> 0 \<Longrightarrow> P x (x\<^sup>2)" shows "P \<bar>x\<bar> (x\<^sup>2)"
+by (metis abs_ge_zero assms power2_abs)
+
+lemma complex_abs_le_norm: "\<bar>Re z\<bar> + \<bar>Im z\<bar> \<le> sqrt 2 * norm z"
+  unfolding complex_norm_def
+  apply (rule abs_sqrt_wlog [where x="Re z"])
+  apply (rule abs_sqrt_wlog [where x="Im z"])
+  apply (rule power2_le_imp_le)
+  apply (simp_all add: power2_sum add_commute sum_squares_bound real_sqrt_mult [symmetric])
+  done
+
+
 text {* Properties of complex signum. *}
 
 lemma sgn_eq: "sgn z = z / complex_of_real (cmod z)"
@@ -370,6 +385,20 @@ lemmas isCont_Im [simp] = bounded_linear.isCont [OF bounded_linear_Im]
 lemmas Cauchy_Re = bounded_linear.Cauchy [OF bounded_linear_Re]
 lemmas Cauchy_Im = bounded_linear.Cauchy [OF bounded_linear_Im]
 
+lemma continuous_Re: "continuous_on X Re"
+  by (metis (poly_guards_query) bounded_linear.continuous_on bounded_linear_Re 
+            continuous_on_cong continuous_on_id)
+
+lemma continuous_Im: "continuous_on X Im"
+  by (metis (poly_guards_query) bounded_linear.continuous_on bounded_linear_Im 
+            continuous_on_cong continuous_on_id)
+
+lemma has_derivative_Re [has_derivative_intros] : "(Re has_derivative Re) F"
+  by (auto simp add: has_derivative_def bounded_linear_Re tendsto_const)
+
+lemma has_derivative_Im [has_derivative_intros] : "(Im has_derivative Im) F"
+  by (auto simp add: has_derivative_def bounded_linear_Im tendsto_const)
+
 lemma tendsto_Complex [tendsto_intros]:
   assumes "(f ---> a) F" and "(g ---> b) F"
   shows "((\<lambda>x. Complex (f x) (g x)) ---> Complex a b) F"
@@ -385,6 +414,20 @@ proof (rule tendstoI)
   show "eventually (\<lambda>x. dist (Complex (f x) (g x)) (Complex a b) < r) F"
     by (rule eventually_elim2)
        (simp add: dist_norm real_sqrt_sum_squares_less)
+qed
+
+
+lemma tendsto_complex_iff:
+  "(f ---> x) F \<longleftrightarrow> (((\<lambda>x. Re (f x)) ---> Re x) F \<and> ((\<lambda>x. Im (f x)) ---> Im x) F)"
+proof -
+  have f: "f = (\<lambda>x. Complex (Re (f x)) (Im (f x)))" and x: "x = Complex (Re x) (Im x)"
+    by simp_all
+  show ?thesis
+    apply (subst f)
+    apply (subst x)
+    apply (intro iffI tendsto_Complex conjI)
+    apply (simp_all add: tendsto_Re tendsto_Im)
+    done
 qed
 
 instance complex :: banach
@@ -489,6 +532,9 @@ lemma complex_cnj_zero_iff [iff]: "(cnj z = 0) = (z = 0)"
 lemma complex_cnj_add: "cnj (x + y) = cnj x + cnj y"
   by (simp add: complex_eq_iff)
 
+lemma cnj_setsum: "cnj (setsum f s) = (\<Sum>x\<in>s. cnj (f x))"
+  by (induct s rule: infinite_finite_induct) (auto simp: complex_cnj_add)
+
 lemma complex_cnj_diff: "cnj (x - y) = cnj x - cnj y"
   by (simp add: complex_eq_iff)
 
@@ -500,6 +546,9 @@ lemma complex_cnj_one [simp]: "cnj 1 = 1"
 
 lemma complex_cnj_mult: "cnj (x * y) = cnj x * cnj y"
   by (simp add: complex_eq_iff)
+
+lemma cnj_setprod: "cnj (setprod f s) = (\<Prod>x\<in>s. cnj (f x))"
+  by (induct s rule: infinite_finite_induct) (auto simp: complex_cnj_mult)
 
 lemma complex_cnj_inverse: "cnj (inverse x) = inverse (cnj x)"
   by (simp add: complex_inverse_def)
@@ -561,6 +610,12 @@ lemmas tendsto_cnj [tendsto_intros] =
 
 lemmas isCont_cnj [simp] =
   bounded_linear.isCont [OF bounded_linear_cnj]
+
+lemma lim_cnj: "((\<lambda>x. cnj(f x)) ---> cnj l) F \<longleftrightarrow> (f ---> l) F"
+  by (simp add: tendsto_iff dist_complex_def Complex.complex_cnj_diff [symmetric])
+
+lemma sums_cnj: "((\<lambda>x. cnj(f x)) sums cnj l) \<longleftrightarrow> (f sums l)"
+  by (simp add: sums_def lim_cnj cnj_setsum [symmetric])
 
 
 subsection{*Basic Lemmas*}
@@ -641,31 +696,43 @@ lemma im_complex_div_le_0: "Im(a / b) \<le> 0 \<longleftrightarrow> Im(a * cnj b
   by (metis im_complex_div_gt_0 not_le)
 
 lemma Re_setsum: "Re(setsum f s) = setsum (%x. Re(f x)) s"
-apply (cases "finite s")
-  by (induct s rule: finite_induct) auto
+  by (induct s rule: infinite_finite_induct) auto
 
 lemma Im_setsum: "Im(setsum f s) = setsum (%x. Im(f x)) s"
-apply (cases "finite s")
-  by (induct s rule: finite_induct) auto
+  by (induct s rule: infinite_finite_induct) auto
+
+lemma sums_complex_iff: "f sums x \<longleftrightarrow> ((\<lambda>x. Re (f x)) sums Re x) \<and> ((\<lambda>x. Im (f x)) sums Im x)"
+  unfolding sums_def tendsto_complex_iff Im_setsum Re_setsum ..
+  
+lemma sums_Re: "f sums a \<Longrightarrow> (\<lambda>x. Re (f x)) sums Re a"
+  unfolding sums_complex_iff by blast
+
+lemma sums_Im: "f sums a \<Longrightarrow> (\<lambda>x. Im (f x)) sums Im a"
+  unfolding sums_complex_iff by blast
+
+lemma summable_complex_iff: "summable f \<longleftrightarrow> summable (\<lambda>x. Re (f x)) \<and>  summable (\<lambda>x. Im (f x))"
+  unfolding summable_def sums_complex_iff[abs_def] by (metis Im.simps Re.simps)
+
+lemma summable_complex_of_real [simp]: "summable (\<lambda>n. complex_of_real (f n)) \<longleftrightarrow> summable f"
+  unfolding summable_complex_iff by simp
+
+lemma summable_Re: "summable f \<Longrightarrow> summable (\<lambda>x. Re (f x))"
+  unfolding summable_complex_iff by blast
+
+lemma summable_Im: "summable f \<Longrightarrow> summable (\<lambda>x. Im (f x))"
+  unfolding summable_complex_iff by blast
 
 lemma Complex_setsum': "setsum (%x. Complex (f x) 0) s = Complex (setsum f s) 0"
-apply (cases "finite s")
-  by (induct s rule: finite_induct) auto
+  by (induct s rule: infinite_finite_induct) auto
 
 lemma Complex_setsum: "Complex (setsum f s) 0 = setsum (%x. Complex (f x) 0) s"
   by (metis Complex_setsum')
 
-lemma cnj_setsum: "cnj (setsum f s) = setsum (%x. cnj (f x)) s"
-apply (cases "finite s")
-  by (induct s rule: finite_induct) (auto simp: complex_cnj_add)
-
 lemma of_real_setsum: "of_real (setsum f s) = setsum (%x. of_real(f x)) s"
-apply (cases "finite s")
-  by (induct s rule: finite_induct) auto
+  by (induct s rule: infinite_finite_induct) auto
 
 lemma of_real_setprod: "of_real (setprod f s) = setprod (%x. of_real(f x)) s"
-apply (cases "finite s")
-  by (induct s rule: finite_induct) auto
+  by (induct s rule: infinite_finite_induct) auto
 
 lemma Reals_cnj_iff: "z \<in> \<real> \<longleftrightarrow> cnj z = z"
 by (metis Reals_cases Reals_of_real complex.exhaust complex.inject complex_cnj 
@@ -677,6 +744,27 @@ lemma Complex_in_Reals: "Complex x 0 \<in> \<real>"
 lemma in_Reals_norm: "z \<in> \<real> \<Longrightarrow> norm(z) = abs(Re z)"
   by (metis Re_complex_of_real Reals_cases norm_of_real)
 
+lemma complex_is_Real_iff: "z \<in> \<real> \<longleftrightarrow> Im z = 0"
+  by (metis Complex_in_Reals Im_complex_of_real Reals_cases complex_surj)
+
+lemma series_comparison_complex:
+  fixes f:: "nat \<Rightarrow> 'a::banach"
+  assumes sg: "summable g"
+     and "\<And>n. g n \<in> \<real>" "\<And>n. Re (g n) \<ge> 0"
+     and fg: "\<And>n. n \<ge> N \<Longrightarrow> norm(f n) \<le> norm(g n)"
+  shows "summable f"
+proof -
+  have g: "\<And>n. cmod (g n) = Re (g n)" using assms
+    by (metis abs_of_nonneg in_Reals_norm)
+  show ?thesis
+    apply (rule summable_comparison_test' [where g = "\<lambda>n. norm (g n)" and N=N])
+    using sg
+    apply (auto simp: summable_def)
+    apply (rule_tac x="Re s" in exI)
+    apply (auto simp: g sums_Re)
+    apply (metis fg g)
+    done
+qed
 
 subsection{*Finally! Polar Form for Complex Numbers*}
 
@@ -887,5 +975,6 @@ text {* Legacy theorem names *}
 lemmas expand_complex_eq = complex_eq_iff
 lemmas complex_Re_Im_cancel_iff = complex_eq_iff
 lemmas complex_equality = complex_eqI
+
 
 end

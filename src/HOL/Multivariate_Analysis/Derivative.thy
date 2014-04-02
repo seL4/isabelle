@@ -9,16 +9,6 @@ theory Derivative
 imports Brouwer_Fixpoint Operator_Norm
 begin
 
-lemma bounded_linear_imp_linear: (* TODO: move elsewhere *)
-  assumes "bounded_linear f"
-  shows "linear f"
-proof -
-  interpret f: bounded_linear f
-    using assms .
-  show ?thesis
-    by (simp add: f.add f.scaleR linear_iff)
-qed
-
 lemma netlimit_at_vector: (* TODO: move *)
   fixes a :: "'a::real_normed_vector"
   shows "netlimit (at a) = a"
@@ -37,22 +27,15 @@ qed simp
 (* Because I do not want to type this all the time *)
 lemmas linear_linear = linear_conv_bounded_linear[symmetric]
 
-lemma derivative_linear[dest]: "(f has_derivative f') net \<Longrightarrow> bounded_linear f'"
-  unfolding has_derivative_def by auto
-
-lemma derivative_is_linear: "(f has_derivative f') net \<Longrightarrow> linear f'"
-  by (rule derivative_linear [THEN bounded_linear_imp_linear])
+declare has_derivative_bounded_linear[dest]
 
 subsection {* Derivatives *}
 
 subsubsection {* Combining theorems. *}
 
 lemmas has_derivative_id = has_derivative_ident
-lemmas has_derivative_const = has_derivative_const
 lemmas has_derivative_neg = has_derivative_minus
-lemmas has_derivative_add = has_derivative_add
 lemmas has_derivative_sub = has_derivative_diff
-lemmas has_derivative_setsum = has_derivative_setsum
 lemmas scaleR_right_has_derivative = has_derivative_scaleR_right
 lemmas scaleR_left_has_derivative = has_derivative_scaleR_left
 lemmas inner_right_has_derivative = has_derivative_inner_right
@@ -176,11 +159,6 @@ next
     by (auto simp add: continuous_within DERIV_within_iff cong: Lim_cong_within)
 qed
 
-lemma CARAT_DERIV: (*FIXME: REPLACES THE ONE IN Deriv.thy*)
-  "(DERIV f x :> l) \<longleftrightarrow> (\<exists>g. (\<forall>z. f z - f x = g z * (z - x)) \<and> isCont g x \<and> g x = l)"
-by (rule DERIV_caratheodory_within)
-
-
 subsubsection {* Limit transformation for derivatives *}
 
 lemma has_derivative_transform_within:
@@ -275,7 +253,7 @@ lemma frechet_derivative_works:
 
 lemma linear_frechet_derivative: "f differentiable net \<Longrightarrow> linear (frechet_derivative f net)"
   unfolding frechet_derivative_works has_derivative_def
-  by (auto intro: bounded_linear_imp_linear)
+  by (auto intro: bounded_linear.linear)
 
 
 subsection {* Differentiability implies continuity *}
@@ -322,14 +300,14 @@ lemma has_derivative_within_alt:
     (\<forall>e>0. \<exists>d>0. \<forall>y\<in>s. norm(y - x) < d \<longrightarrow> norm (f y - f x - f' (y - x)) \<le> e * norm (y - x))"
   unfolding has_derivative_within filterlim_def le_nhds_metric_le eventually_filtermap
     eventually_at dist_norm diff_add_eq_diff_diff
-  by (force simp add: linear_0 bounded_linear_imp_linear pos_divide_le_eq)
+  by (force simp add: linear_0 bounded_linear.linear pos_divide_le_eq)
 
 lemma has_derivative_within_alt2:
   "(f has_derivative f') (at x within s) \<longleftrightarrow> bounded_linear f' \<and>
     (\<forall>e>0. eventually (\<lambda>y. norm (f y - f x - f' (y - x)) \<le> e * norm (y - x)) (at x within s))"
   unfolding has_derivative_within filterlim_def le_nhds_metric_le eventually_filtermap
     eventually_at dist_norm diff_add_eq_diff_diff
-  by (force simp add: linear_0 bounded_linear_imp_linear pos_divide_le_eq)
+  by (force simp add: linear_0 bounded_linear.linear pos_divide_le_eq)
 
 lemma has_derivative_at_alt:
   "(f has_derivative f') (at x) \<longleftrightarrow>
@@ -371,6 +349,7 @@ lemma differentiable_chain_within:
 
 
 subsection {* Uniqueness of derivative *}
+
 
 text {*
  The general result is a bit messy because we need approachability of the
@@ -854,7 +833,7 @@ proof -
   proof -
     case goal1
     have "norm (f' x y) \<le> onorm (f' x) * norm y"
-      by (rule onorm[OF derivative_linear[OF assms(2)[rule_format,OF goal1]]])
+      by (rule onorm[OF has_derivative_bounded_linear[OF assms(2)[rule_format,OF goal1]]])
     also have "\<dots> \<le> B * norm y"
       apply (rule mult_right_mono)
       using assms(3)[rule_format,OF goal1]
@@ -881,7 +860,7 @@ text {* In particular. *}
 lemma has_derivative_zero_constant:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_inner"
   assumes "convex s"
-    and "\<forall>x\<in>s. (f has_derivative (\<lambda>h. 0)) (at x within s)"
+    and "\<And>x. x \<in> s \<Longrightarrow> (f has_derivative (\<lambda>h. 0)) (at x within s)"
   shows "\<exists>c. \<forall>x\<in>s. f x = c"
 proof -
   { fix x y assume "x \<in> s" "y \<in> s"
@@ -896,14 +875,34 @@ qed
 lemma has_derivative_zero_unique:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_inner"
   assumes "convex s"
-    and "a \<in> s"
-    and "f a = c"
-    and "\<forall>x\<in>s. (f has_derivative (\<lambda>h. 0)) (at x within s)"
-    and "x \<in> s"
-  shows "f x = c"
-  using has_derivative_zero_constant[OF assms(1,4)]
-  using assms(2-3,5)
-  by auto
+    and "\<And>x. x \<in> s \<Longrightarrow> (f has_derivative (\<lambda>h. 0)) (at x within s)"
+    and "x \<in> s" "y \<in> s"
+  shows "f x = f y"
+  using has_derivative_zero_constant[OF assms(1,2)] assms(3-) by force
+
+lemma has_derivative_zero_unique_connected:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_inner"
+  assumes "open s" "connected s"
+  assumes f: "\<And>x. x \<in> s \<Longrightarrow> (f has_derivative (\<lambda>x. 0)) (at x)"
+  assumes "x \<in> s" "y \<in> s"
+  shows "f x = f y"
+proof (rule connected_local_const[where f=f, OF `connected s` `x\<in>s` `y\<in>s`])
+  show "\<forall>a\<in>s. eventually (\<lambda>b. f a = f b) (at a within s)"
+  proof
+    fix a assume "a \<in> s"
+    with `open s` obtain e where "0 < e" "ball a e \<subseteq> s"
+      by (rule openE)
+    then have "\<exists>c. \<forall>x\<in>ball a e. f x = c"
+      by (intro has_derivative_zero_constant)
+         (auto simp: at_within_open[OF _ open_ball] f convex_ball)
+    with `0<e` have "\<forall>x\<in>ball a e. f a = f x"
+      by auto
+    then show "eventually (\<lambda>b. f a = f b) (at a within s)"
+      using `0<e` unfolding eventually_at_topological
+      by (intro exI[of _ "ball a e"]) auto
+  qed
+qed
+
 
 
 subsection {* Differentiability of inverse function (most basic form) *}
@@ -1546,11 +1545,11 @@ proof -
           apply (rule has_derivative_sub[where g'="\<lambda>x.0",unfolded diff_0_right])
           apply (rule has_derivative_at_within)
           using assms(5) and `u \<in> s` `a \<in> s`
-          apply (auto intro!: has_derivative_intros bounded_linear.has_derivative[of _ "\<lambda>x. x"] derivative_linear)
+          apply (auto intro!: has_derivative_intros bounded_linear.has_derivative[of _ "\<lambda>x. x"] has_derivative_bounded_linear)
           done
         have **: "bounded_linear (\<lambda>x. f' u x - f' a x)" "bounded_linear (\<lambda>x. f' a x - f' u x)"
           apply (rule_tac[!] bounded_linear_sub)
-          apply (rule_tac[!] derivative_linear)
+          apply (rule_tac[!] has_derivative_bounded_linear)
           using assms(5) `u \<in> s` `a \<in> s`
           apply auto
           done
@@ -1773,18 +1772,18 @@ proof -
     proof
       fix x' y z :: 'a
       fix c :: real
-      note lin = assms(2)[rule_format,OF `x\<in>s`,THEN derivative_linear]
+      note lin = assms(2)[rule_format,OF `x\<in>s`,THEN has_derivative_bounded_linear]
       show "g' x (c *\<^sub>R x') = c *\<^sub>R g' x x'"
         apply (rule tendsto_unique[OF trivial_limit_sequentially])
         apply (rule lem3[rule_format])
-        unfolding lin[THEN bounded_linear_imp_linear, THEN linear_cmul]
+        unfolding lin[THEN bounded_linear.linear, THEN linear_cmul]
         apply (intro tendsto_intros)
         apply (rule lem3[rule_format])
         done
       show "g' x (y + z) = g' x y + g' x z"
         apply (rule tendsto_unique[OF trivial_limit_sequentially])
         apply (rule lem3[rule_format])
-        unfolding lin[THEN bounded_linear_imp_linear, THEN linear_add]
+        unfolding lin[THEN bounded_linear.linear, THEN linear_add]
         apply (rule tendsto_add)
         apply (rule lem3[rule_format])+
         done

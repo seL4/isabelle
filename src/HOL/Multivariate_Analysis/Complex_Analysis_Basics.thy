@@ -10,46 +10,10 @@ begin
 
 subsection {*Complex number lemmas *}
 
-lemma abs_sqrt_wlog:
-  fixes x::"'a::linordered_idom"
-  assumes "!!x::'a. x\<ge>0 \<Longrightarrow> P x (x\<^sup>2)" shows "P \<bar>x\<bar> (x\<^sup>2)"
-by (metis abs_ge_zero assms power2_abs)
-
-lemma complex_abs_le_norm: "abs(Re z) + abs(Im z) \<le> sqrt(2) * norm z"
-proof (cases z)
-  case (Complex x y)
-  show ?thesis
-    apply (rule power2_le_imp_le)
-    apply (auto simp: real_sqrt_mult [symmetric] Complex)
-    apply (rule abs_sqrt_wlog [where x=x])
-    apply (rule abs_sqrt_wlog [where x=y])
-    apply (simp add: power2_sum add_commute sum_squares_bound)
-    done
-qed
-
-lemma continuous_Re: "continuous_on X Re"
-  by (metis (poly_guards_query) bounded_linear.continuous_on bounded_linear_Re 
-            continuous_on_cong continuous_on_id)
-
-lemma continuous_Im: "continuous_on X Im"
-  by (metis (poly_guards_query) bounded_linear.continuous_on bounded_linear_Im 
-            continuous_on_cong continuous_on_id)
-
-lemma open_closed_segment: "u \<in> open_segment w z \<Longrightarrow> u \<in> closed_segment w z"
-  by (auto simp add: closed_segment_def open_segment_def)
-
-lemma has_derivative_Re [has_derivative_intros] : "(Re has_derivative Re) F"
-  by (auto simp add: has_derivative_def bounded_linear_Re)
-
-lemma has_derivative_Im [has_derivative_intros] : "(Im has_derivative Im) F"
-  by (auto simp add: has_derivative_def bounded_linear_Im)
-
 lemma fact_cancel:
   fixes c :: "'a::real_field"
   shows "of_nat (Suc n) * c / of_nat (fact (Suc n)) = c / of_nat (fact n)"
-  apply (subst frac_eq_eq [OF of_nat_fact_not_zero of_nat_fact_not_zero])
-  apply (simp add: algebra_simps of_nat_mult)
-  done
+  by (simp add: of_nat_mult del: of_nat_Suc times_nat.simps)
 
 lemma
   shows open_halfspace_Re_lt: "open {z. Re(z) < b}"
@@ -65,9 +29,6 @@ lemma
   by (intro open_Collect_less closed_Collect_le closed_Collect_eq isCont_Re
             isCont_Im isCont_ident isCont_const)+
 
-lemma complex_is_Real_iff: "z \<in> \<real> \<longleftrightarrow> Im z = 0"
-  by (metis Complex_in_Reals Im_complex_of_real Reals_cases complex_surj)
-
 lemma closed_complex_Reals: "closed (Reals :: complex set)"
 proof -
   have "(Reals :: complex set) = {z. Im z = 0}"
@@ -78,16 +39,15 @@ qed
 
 
 lemma linear_times:
-  fixes c::"'a::{real_algebra,real_vector}" shows "linear (\<lambda>x. c * x)"
+  fixes c::"'a::real_algebra" shows "linear (\<lambda>x. c * x)"
   by (auto simp: linearI distrib_left)
 
 lemma bilinear_times:
-  fixes c::"'a::{real_algebra,real_vector}" shows "bilinear (\<lambda>x y::'a. x*y)"
-  unfolding bilinear_def
-  by (auto simp: distrib_left distrib_right intro!: linearI)
+  fixes c::"'a::real_algebra" shows "bilinear (\<lambda>x y::'a. x*y)"
+  by (auto simp: bilinear_def distrib_left distrib_right intro!: linearI)
 
 lemma linear_cnj: "linear cnj"
-  by (auto simp: linearI cnj_def)
+  using bounded_linear.linear[OF bounded_linear_cnj] .
 
 lemma tendsto_mult_left:
   fixes c::"'a::real_normed_algebra" 
@@ -152,7 +112,7 @@ by (rule continuous_on_mult [OF _ continuous_on_const])
 lemma uniformly_continuous_on_cmul_right [continuous_on_intros]:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_algebra"
   shows "uniformly_continuous_on s f \<Longrightarrow> uniformly_continuous_on s (\<lambda>x. f x * c)"
-  by (metis bounded_linear.uniformly_continuous_on[of "\<lambda>x. x * c"] bounded_linear_mult_left) 
+  using bounded_linear.uniformly_continuous_on[OF bounded_linear_mult_left] . 
 
 lemma uniformly_continuous_on_cmul_left[continuous_on_intros]:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_algebra"
@@ -164,8 +124,7 @@ lemma continuous_within_norm_id [continuous_intros]: "continuous (at x within S)
   by (rule continuous_norm [OF continuous_ident])
 
 lemma continuous_on_norm_id [continuous_intros]: "continuous_on S norm"
-  by (metis continuous_on_eq continuous_on_id continuous_on_norm)
-
+  by (intro continuous_on_id continuous_on_norm)
 
 subsection{*DERIV stuff*}
 
@@ -184,8 +143,7 @@ lemma DERIV_zero_connected_constant:
       and "\<forall>x\<in>(s - k). DERIV f x :> 0"
     obtains c where "\<And>x. x \<in> s \<Longrightarrow> f(x) = c"
 using has_derivative_zero_connected_constant [OF assms(1-4)] assms
-by (metis DERIV_const Derivative.has_derivative_const Diff_iff at_within_open 
-          frechet_derivative_at has_field_derivative_def)
+by (metis DERIV_const has_derivative_const Diff_iff at_within_open frechet_derivative_at has_field_derivative_def)
 
 lemma DERIV_zero_constant:
   fixes f :: "'a::{real_normed_field,euclidean_space} \<Rightarrow> 'a"
@@ -255,7 +213,7 @@ lemma has_real_derivative:
     obtains c where "(f has_derivative (\<lambda>x. x * c)) F"
 proof -
   obtain c where "f' = (\<lambda>x. x * c)"
-    by (metis assms derivative_linear real_bounded_linear)
+    by (metis assms has_derivative_bounded_linear real_bounded_linear)
   then show ?thesis
     by (metis assms that)
 qed
@@ -336,15 +294,14 @@ qed
 lemma complex_differentiable_const:
   "(\<lambda>z. c) complex_differentiable F"
   unfolding complex_differentiable_def has_field_derivative_def
-  apply (rule exI [where x=0])
-  by (metis Derivative.has_derivative_const lambda_zero) 
+  by (rule exI [where x=0])
+     (metis has_derivative_const lambda_zero) 
 
 lemma complex_differentiable_id:
   "(\<lambda>z. z) complex_differentiable F"
   unfolding complex_differentiable_def has_field_derivative_def
-  apply (rule exI [where x=1])
-  apply (simp add: lambda_one [symmetric])
-  done
+  by (rule exI [where x=1])
+     (simp add: lambda_one [symmetric])
 
 lemma complex_differentiable_minus:
     "f complex_differentiable F \<Longrightarrow> (\<lambda>z. -(f z)) complex_differentiable F"
@@ -484,10 +441,9 @@ lemma holomorphic_on_power:
   by (metis DERIV_power)
 
 lemma holomorphic_on_setsum:
-  "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> (f i) holomorphic_on s)
-           \<Longrightarrow> (\<lambda>x. setsum (\<lambda>i. f i x) I) holomorphic_on s"
+  "(\<And>i. i \<in> I \<Longrightarrow> (f i) holomorphic_on s) \<Longrightarrow> (\<lambda>x. setsum (\<lambda>i. f i x) I) holomorphic_on s"
   unfolding holomorphic_on_def
-  apply (induct I rule: finite_induct) 
+  apply (induct I rule: infinite_finite_induct) 
   apply (force intro: DERIV_const DERIV_add)+
   done
 
@@ -579,9 +535,6 @@ apply (metis DERIV_chain' DERIV_cmult_Id comm_semiring_1_class.normalizing_semir
 done
 
 subsection{*Caratheodory characterization.*}
-
-(*REPLACE the original version. BUT IN WHICH FILE??*)
-thm Deriv.CARAT_DERIV
 
 lemma complex_differentiable_caratheodory_at:
   "f complex_differentiable (at z) \<longleftrightarrow>
@@ -796,9 +749,8 @@ lemma analytic_on_power:
 by (induct n) (auto simp: analytic_on_const analytic_on_mult)
 
 lemma analytic_on_setsum:
-  "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> (f i) analytic_on s)
-           \<Longrightarrow> (\<lambda>x. setsum (\<lambda>i. f i x) I) analytic_on s"
-  by (induct I rule: finite_induct) (auto simp: analytic_on_const analytic_on_add)
+  "(\<And>i. i \<in> I \<Longrightarrow> (f i) analytic_on s) \<Longrightarrow> (\<lambda>x. setsum (\<lambda>i. f i x) I) analytic_on s"
+  by (induct I rule: infinite_finite_induct) (auto simp: analytic_on_const analytic_on_add)
 
 subsection{*analyticity at a point.*}
 
@@ -1025,12 +977,6 @@ lemma has_complex_derivative_inverse_strong_x:
 
 subsection{*Further useful properties of complex conjugation*}
 
-lemma lim_cnj: "((\<lambda>x. cnj(f x)) ---> cnj l) F \<longleftrightarrow> (f ---> l) F"
-  by (simp add: tendsto_iff dist_complex_def Complex.complex_cnj_diff [symmetric])
-
-lemma sums_cnj: "((\<lambda>x. cnj(f x)) sums cnj l) \<longleftrightarrow> (f sums l)"
-  by (simp add: sums_def lim_cnj cnj_setsum [symmetric])
-
 lemma continuous_within_cnj: "continuous (at z within s) cnj"
 by (metis bounded_linear_cnj linear_continuous_within)
 
@@ -1043,12 +989,11 @@ lemma real_lim:
   fixes l::complex
   assumes "(f ---> l) F" and "~(trivial_limit F)" and "eventually P F" and "\<And>a. P a \<Longrightarrow> f a \<in> \<real>"
   shows  "l \<in> \<real>"
-proof (rule Lim_in_closed_set)
-  show "closed (\<real>::complex set)"
-    by (rule closed_complex_Reals)
+proof (rule Lim_in_closed_set[OF closed_complex_Reals _ assms(2,1)])
   show "eventually (\<lambda>x. f x \<in> \<real>) F"
     using assms(3, 4) by (auto intro: eventually_mono)
-qed fact+
+qed
+
 lemma real_lim_sequentially:
   fixes l::complex
   shows "(f ---> l) sequentially \<Longrightarrow> (\<exists>N. \<forall>n\<ge>N. f n \<in> \<real>) \<Longrightarrow> l \<in> \<real>"
@@ -1079,65 +1024,10 @@ lemma summable_vec_nth :
 using assms unfolding summable_def
 by (blast intro: sums_vec_nth)
 
-lemma sums_Re:
-  assumes "f sums a"
-  shows "(\<lambda>x. Re (f x)) sums Re a"
-using assms 
-by (auto simp: sums_def Re_setsum [symmetric] isCont_tendsto_compose [of a Re])
-
-lemma sums_Im:
-  assumes "f sums a"
-  shows "(\<lambda>x. Im (f x)) sums Im a"
-using assms 
-by (auto simp: sums_def Im_setsum [symmetric] isCont_tendsto_compose [of a Im])
-
-lemma summable_Re:
-  assumes "summable f"
-  shows "summable (\<lambda>x. Re (f x))"
-using assms unfolding summable_def
-by (blast intro: sums_Re)
-
-lemma summable_Im:
-  assumes "summable f"
-  shows "summable (\<lambda>x. Im (f x))"
-using assms unfolding summable_def
-by (blast intro: sums_Im)
-
-lemma series_comparison_complex:
-  fixes f:: "nat \<Rightarrow> 'a::banach"
-  assumes sg: "summable g"
-     and "\<And>n. g n \<in> \<real>" "\<And>n. Re (g n) \<ge> 0"
-     and fg: "\<And>n. n \<ge> N \<Longrightarrow> norm(f n) \<le> norm(g n)"
-  shows "summable f"
-proof -
-  have g: "\<And>n. cmod (g n) = Re (g n)" using assms
-    by (metis abs_of_nonneg in_Reals_norm)
-  show ?thesis
-    apply (rule summable_comparison_test' [where g = "\<lambda>n. norm (g n)" and N=N])
-    using sg
-    apply (auto simp: summable_def)
-    apply (rule_tac x="Re s" in exI)
-    apply (auto simp: g sums_Re)
-    apply (metis fg g)
-    done
-qed
-
-lemma summable_complex_of_real [simp]:
-  "summable (\<lambda>n. complex_of_real (f n)) = summable f"
-apply (auto simp: Series.summable_Cauchy)  
-apply (drule_tac x = e in spec, auto)
-apply (rule_tac x=N in exI)
-apply (auto simp: of_real_setsum [symmetric])
-done
-
-
-
-
 lemma setsum_Suc_reindex:
   fixes f :: "nat \<Rightarrow> 'a::ab_group_add"
     shows  "setsum f {0..n} = f 0 - f (Suc n) + setsum (\<lambda>i. f (Suc i)) {0..n}"
 by (induct n) auto
-
 
 text{*A kind of complex Taylor theorem.*}
 lemma complex_taylor:
@@ -1238,22 +1128,22 @@ qed
 
 text{* Something more like the traditional MVT for real components.*}
 lemma complex_mvt_line:
-  assumes "\<And>u. u \<in> closed_segment w z ==> (f has_field_derivative f'(u)) (at u)"
+  assumes "\<And>u. u \<in> closed_segment w z \<Longrightarrow> (f has_field_derivative f'(u)) (at u)"
     shows "\<exists>u. u \<in> open_segment w z \<and> Re(f z) - Re(f w) = Re(f'(u) * (z - w))"
 proof -
   have twz: "\<And>t. (1 - t) *\<^sub>R w + t *\<^sub>R z = w + t *\<^sub>R (z - w)"
     by (simp add: real_vector.scale_left_diff_distrib real_vector.scale_right_diff_distrib)
+  note assms[unfolded has_field_derivative_def, has_derivative_intros]
   show ?thesis
     apply (cut_tac mvt_simple
                      [of 0 1 "Re o f o (\<lambda>t. (1 - t) *\<^sub>R w +  t *\<^sub>R z)"
                       "\<lambda>u. Re o (\<lambda>h. f'((1 - u) *\<^sub>R w + u *\<^sub>R z) * h) o (\<lambda>t. t *\<^sub>R (z - w))"])
     apply auto
     apply (rule_tac x="(1 - x) *\<^sub>R w + x *\<^sub>R z" in exI)
-    apply (simp add: open_segment_def)
-    apply (auto simp add: twz)
-    apply (rule has_derivative_at_within)
-    apply (intro has_derivative_intros has_derivative_add [OF has_derivative_const, simplified])+
-    apply (rule assms [unfolded has_field_derivative_def])
+    apply (auto simp add: open_segment_def twz) []
+    apply (intro has_derivative_eq_intros has_derivative_at_within)
+    apply simp_all
+    apply (simp add: fun_eq_iff real_vector.scale_right_diff_distrib)
     apply (force simp add: twz closed_segment_def)
     done
 qed
@@ -1308,25 +1198,5 @@ proof -
     apply (auto simp add: intro: open_closed_segment)
     done
 qed
-
-text{*Relations among convergence and absolute convergence for power series.*}
-lemma abel_lemma:
-  fixes a :: "nat \<Rightarrow> 'a::real_normed_vector"
-  assumes r: "0 \<le> r" and r0: "r < r0" and M: "\<And>n. norm(a n) * r0^n \<le> M"
-    shows "summable (\<lambda>n. norm(a(n)) * r^n)"
-proof (rule summable_comparison_test' [of "\<lambda>n. M * (r / r0)^n"])
-  show "summable (\<lambda>n. M * (r / r0) ^ n)"
-    using assms 
-    by (auto simp add: summable_mult summable_geometric)
-  next
-    fix n
-    show "norm (norm (a n) * r ^ n) \<le> M * (r / r0) ^ n"
-      using r r0 M [of n]
-      apply (auto simp add: abs_mult field_simps power_divide)
-      apply (cases "r=0", simp)
-      apply (cases n, auto)
-      done
-qed
-
 
 end

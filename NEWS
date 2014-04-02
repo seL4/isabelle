@@ -563,6 +563,11 @@ INCOMPATIBILITY.
     explicit set-comprehensions with eucl_less for other (half-) open
     intervals.
 
+  - renamed theorems:
+    derivative_linear         ~>  has_derivative_bounded_linear
+    derivative_is_linear      ~>  has_derivative_linear
+    bounded_linear_imp_linear ~>  bounded_linear.linear
+
 
 *** Scala ***
 

@@ -5875,14 +5875,6 @@ proof (cases "finite A")
     by (induct set: finite, simp, simp add: convex_hull_set_plus)
 qed simp
 
-lemma bounded_linear_imp_linear: "bounded_linear f \<Longrightarrow> linear f" (* TODO: move elsewhere *)
-proof -
-  assume "bounded_linear f"
-  then interpret f: bounded_linear f .
-  show "linear f"
-    by (simp add: f.add f.scaleR linear_iff)
-qed
-
 lemma convex_hull_eq_real_cbox:
   fixes x y :: real assumes "x \<le> y"
   shows "convex hull {x, y} = cbox x y"
@@ -6294,6 +6286,9 @@ definition closed_segment :: "'a::real_vector \<Rightarrow> 'a \<Rightarrow> 'a 
 definition "between = (\<lambda>(a,b) x. x \<in> closed_segment a b)"
 
 lemmas segment = open_segment_def closed_segment_def
+
+lemma open_closed_segment: "u \<in> open_segment w z \<Longrightarrow> u \<in> closed_segment w z"
+  by (auto simp add: closed_segment_def open_segment_def)
 
 definition "starlike s \<longleftrightarrow> (\<exists>a\<in>s. \<forall>x\<in>s. closed_segment a x \<subseteq> s)"
 

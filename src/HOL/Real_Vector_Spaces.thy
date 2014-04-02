@@ -752,6 +752,12 @@ lemma norm_setsum:
   shows "norm (setsum f A) \<le> (\<Sum>i\<in>A. norm (f i))"
   by (induct A rule: infinite_finite_induct) (auto intro: norm_triangle_mono)
 
+lemma setsum_norm_le:
+  fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
+  assumes fg: "\<forall>x \<in> S. norm (f x) \<le> g x"
+  shows "norm (setsum f S) \<le> setsum g S"
+  by (rule order_trans [OF norm_setsum setsum_mono]) (simp add: fg)
+
 lemma abs_norm_cancel [simp]:
   fixes a :: "'a::real_normed_vector"
   shows "\<bar>norm a\<bar> = norm a"
@@ -1157,6 +1163,8 @@ proof -
   from pos_bounded
   show ?thesis by (auto intro: order_less_imp_le)
 qed
+
+lemma linear: "linear f" ..
 
 end
 

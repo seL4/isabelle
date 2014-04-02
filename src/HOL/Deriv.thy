@@ -61,6 +61,9 @@ setup {*
 lemma has_derivative_bounded_linear: "(f has_derivative f') F \<Longrightarrow> bounded_linear f'"
   by (simp add: has_derivative_def)
 
+lemma has_derivative_linear: "(f has_derivative f') F \<Longrightarrow> linear f'"
+  using bounded_linear.linear[OF has_derivative_bounded_linear] .
+
 lemma has_derivative_ident[has_derivative_intros, simp]: "((\<lambda>x. x) has_derivative (\<lambda>x. x)) F"
   by (simp add: has_derivative_def tendsto_const)
 
