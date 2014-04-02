@@ -109,12 +109,10 @@ object Command
     results: Results = Results.empty,
     markups: Markups = Markups.empty)
   {
-    /* markup */
+    lazy val protocol_status: Protocol.Status = Protocol.Status.make(status.iterator)
 
     def markup(index: Markup_Index): Markup_Tree = markups(index)
 
-
-    /* content */
 
     def eq_content(other: State): Boolean =
       command.source == other.command.source &&

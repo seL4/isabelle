@@ -304,7 +304,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       if (results.isEmpty) None
       else {
         val status =
-          Protocol.command_status(results.iterator.flatMap(info => info.info._1.iterator))
+          Protocol.Status.make(results.iterator.flatMap(info => info.info._1.iterator))
         val pri = (0 /: results.iterator.map(info => info.info._2))(_ max _)
 
         if (status.is_running) Some(running_color)
@@ -628,7 +628,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
         color <-
           (result match {
             case (markups, opt_color) if !markups.isEmpty =>
-              val status = Protocol.command_status(markups.iterator)
+              val status = Protocol.Status.make(markups.iterator)
               if (status.is_unprocessed) Some(unprocessed1_color)
               else if (status.is_running) Some(running1_color)
               else opt_color

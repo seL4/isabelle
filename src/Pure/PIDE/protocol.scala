@@ -41,6 +41,39 @@ object Protocol
 
   /* command status */
 
+  object Status
+  {
+    def make(markup_iterator: Iterator[Markup]): Status =
+    {
+      var touched = false
+      var accepted = false
+      var failed = false
+      var forks = 0
+      var runs = 0
+      for (markup <- markup_iterator) {
+        markup.name match {
+          case Markup.ACCEPTED => accepted = true
+          case Markup.FORKED => touched = true; forks += 1
+          case Markup.JOINED => forks -= 1
+          case Markup.RUNNING => touched = true; runs += 1
+          case Markup.FINISHED => runs -= 1
+          case Markup.FAILED => failed = true
+          case _ =>
+        }
+      }
+      Status(touched, accepted, failed, forks, runs)
+    }
+
+    val empty = make(Iterator.empty)
+
+    def merge(status_iterator: Iterator[Status]): Status =
+      if (status_iterator.hasNext) {
+        val status0 = status_iterator.next
+        (status0 /: status_iterator)(_ + _)
+      }
+      else empty
+  }
+
   sealed case class Status(
     private val touched: Boolean,
     private val accepted: Boolean,
@@ -48,31 +81,14 @@ object Protocol
     forks: Int,
     runs: Int)
   {
+    def + (that: Status): Status =
+      Status(touched || that.touched, accepted || that.accepted, failed || that.failed,
+        forks + that.forks, runs + that.runs)
+
     def is_unprocessed: Boolean = accepted && !failed && (!touched || (forks != 0 && runs == 0))
     def is_running: Boolean = runs != 0
     def is_finished: Boolean = !failed && touched && forks == 0 && runs == 0
     def is_failed: Boolean = failed
-  }
-
-  def command_status(markups: Iterator[Markup]): Status =
-  {
-    var touched = false
-    var accepted = false
-    var failed = false
-    var forks = 0
-    var runs = 0
-    for (markup <- markups) {
-      markup.name match {
-        case Markup.ACCEPTED => accepted = true
-        case Markup.FORKED => touched = true; forks += 1
-        case Markup.JOINED => forks -= 1
-        case Markup.RUNNING => touched = true; runs += 1
-        case Markup.FINISHED => runs -= 1
-        case Markup.FAILED => failed = true
-        case _ =>
-      }
-    }
-    Status(touched, accepted, failed, forks, runs)
   }
 
   val command_status_elements =
@@ -117,7 +133,7 @@ object Protocol
     var failed = 0
     for (command <- node.commands.iterator) {
       val states = state.command_states(version, command)
-      val status = command_status(states.iterator.flatMap(st => st.status.iterator))
+      val status = Status.merge(states.iterator.map(_.protocol_status))
 
       if (status.is_running) running += 1
       else if (status.is_finished) {
