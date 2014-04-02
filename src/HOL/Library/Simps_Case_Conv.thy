@@ -4,7 +4,7 @@
 
 theory Simps_Case_Conv
   imports Main
-  keywords "simps_of_case" "case_of_simps" :: thy_decl
+  keywords "simps_of_case" :: thy_decl == "" and "case_of_simps" :: thy_decl
 begin
 
 ML_file "simps_case_conv.ML"
