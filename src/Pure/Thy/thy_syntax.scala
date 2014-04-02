@@ -182,7 +182,7 @@ object Thy_Syntax
     val (syntax, syntax_changed) =
       if (previous.is_init || updated_keywords) {
         val syntax =
-          (base_syntax /: nodes.entries) {
+          (base_syntax /: nodes.iterator) {
             case (syn, (_, node)) => syn.add_keywords(node.header.keywords)
           }
         (syntax, true)
@@ -449,7 +449,7 @@ object Thy_Syntax
       if (edits.isEmpty) (Nil, Document.Version.make(syntax, previous.nodes))
       else {
         val reparse =
-          (reparse0 /: nodes0.entries)({
+          (reparse0 /: nodes0.iterator)({
             case (reparse, (name, node)) =>
               if (node.load_commands.exists(_.blobs_changed(doc_blobs)))
                 name :: reparse

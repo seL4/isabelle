@@ -83,7 +83,7 @@ class Query_Operation[Editor_Context](
 
     val results =
       (for {
-        (_, elem @ XML.Elem(Markup(Markup.RESULT, props), _)) <- command_results.entries
+        (_, elem @ XML.Elem(Markup(Markup.RESULT, props), _)) <- command_results.iterator
         if props.contains((Markup.INSTANCE, instance))
       } yield elem).toList
 

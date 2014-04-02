@@ -274,7 +274,7 @@ object Document
   final class Nodes private(graph: Graph[Node.Name, Node])
   {
     def get_name(s: String): Option[Node.Name] =
-      graph.keys.find(name => name.node == s)
+      graph.keys_iterator.find(name => name.node == s)
 
     def apply(name: Node.Name): Node =
       graph.default_node(name, Node.empty).get_node(name)
@@ -290,12 +290,12 @@ object Document
       new Nodes(graph3.map_node(name, _ => node))
     }
 
-    def entries: Iterator[(Node.Name, Node)] =
-      graph.entries.map({ case (name, (node, _)) => (name, node) })
+    def iterator: Iterator[(Node.Name, Node)] =
+      graph.iterator.map({ case (name, (node, _)) => (name, node) })
 
     def load_commands(file_name: Node.Name): List[Command] =
       (for {
-        (_, node) <- entries
+        (_, node) <- iterator
         cmd <- node.load_commands.iterator
         name <- cmd.blobs_names.iterator
         if name == file_name
@@ -617,7 +617,7 @@ object Document
       for {
         (version_id, version) <- versions1.iterator
         command_execs = assignments1(version_id).command_execs
-        (_, node) <- version.nodes.entries
+        (_, node) <- version.nodes.iterator
         command <- node.commands.iterator
       } {
         for (digest <- command.blobs_digests; if !blobs1.contains(digest))

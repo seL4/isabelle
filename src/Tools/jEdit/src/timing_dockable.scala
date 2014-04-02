@@ -182,7 +182,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
     val iterator =
       restriction match {
         case Some(names) => names.iterator.map(name => (name, snapshot.version.nodes(name)))
-        case None => snapshot.version.nodes.entries
+        case None => snapshot.version.nodes.iterator
       }
     val nodes_timing1 =
       (nodes_timing /: iterator)({ case (timing1, (name, node)) =>

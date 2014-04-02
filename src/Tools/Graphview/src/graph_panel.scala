@@ -47,7 +47,7 @@ class Graph_Panel(
   verticalScrollBarPolicy = ScrollPane.BarPolicy.Always
 
   def node(at: Point2D): Option[String] =
-    visualizer.model.visible_nodes()
+    visualizer.model.visible_nodes_iterator
       .find(name => visualizer.Drawer.shape(visualizer.gfx, Some(name)).contains(at))
 
   def refresh()
@@ -139,7 +139,7 @@ class Graph_Panel(
     }
 
     def fit_to_window() {
-      if (visualizer.model.visible_nodes().isEmpty)
+      if (visualizer.model.visible_nodes_iterator.isEmpty)
         rescale(1.0)
       else {
         val (minX, minY, maxX, maxY) = visualizer.Coordinates.bounds()
@@ -197,7 +197,7 @@ class Graph_Panel(
       }
 
       def dummy(at: Point2D): Option[Dummy] =
-        visualizer.model.visible_edges().map({
+        visualizer.model.visible_edges_iterator.map({
             i => visualizer.Coordinates(i).zipWithIndex.map((i, _))
           }).flatten.find({
             case (_, ((x, y), _)) =>

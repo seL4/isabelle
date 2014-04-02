@@ -35,7 +35,7 @@ object Command
   {
     def defined(serial: Long): Boolean = rep.isDefinedAt(serial)
     def get(serial: Long): Option[XML.Tree] = rep.get(serial)
-    def entries: Iterator[Results.Entry] = rep.iterator
+    def iterator: Iterator[Results.Entry] = rep.iterator
 
     def + (entry: Results.Entry): Results =
       if (defined(entry._1)) this
@@ -44,7 +44,7 @@ object Command
     def ++ (other: Results): Results =
       if (this eq other) this
       else if (rep.isEmpty) other
-      else (this /: other.entries)(_ + _)
+      else (this /: other.iterator)(_ + _)
 
     override def hashCode: Int = rep.hashCode
     override def equals(that: Any): Boolean =
@@ -52,7 +52,7 @@ object Command
         case other: Results => rep == other.rep
         case _ => false
       }
-    override def toString: String = entries.mkString("Results(", ", ", ")")
+    override def toString: String = iterator.mkString("Results(", ", ", ")")
   }
 
 

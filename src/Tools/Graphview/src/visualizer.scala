@@ -122,7 +122,7 @@ class Visualizer(val model: Model)
         if (model.current.is_empty) Layout_Pendulum.empty_layout
         else {
           val max_width =
-            model.current.entries.map({ case (_, (info, _)) =>
+            model.current.iterator.map({ case (_, (info, _)) =>
               font_metrics.stringWidth(info.name).toDouble }).max
           val box_distance = max_width + pad_x + gap_x
           def box_height(n: Int): Double =
@@ -132,7 +132,7 @@ class Visualizer(val model: Model)
     }
 
     def bounds(): (Double, Double, Double, Double) =
-      model.visible_nodes().toList match {
+      model.visible_nodes_iterator.toList match {
         case Nil => (0, 0, 0, 0)
         case nodes =>
           val X: (String => Double) = (n => apply(n)._1)
@@ -164,11 +164,11 @@ class Visualizer(val model: Model)
 
       g.setRenderingHints(rendering_hints)
 
-      model.visible_edges().foreach(e => {
+      model.visible_edges_iterator.foreach(e => {
           apply(g, e, arrow_heads, dummies)
         })
 
-      model.visible_nodes().foreach(l => {
+      model.visible_nodes_iterator.foreach(l => {
           apply(g, Some(l))
         })
     }

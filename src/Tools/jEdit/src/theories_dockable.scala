@@ -188,7 +188,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     val iterator =
       (restriction match {
         case Some(names) => names.iterator.map(name => (name, snapshot.version.nodes(name)))
-        case None => snapshot.version.nodes.entries
+        case None => snapshot.version.nodes.iterator
       }).filter(_._1.is_theory)
     val nodes_status1 =
       (nodes_status /: iterator)({ case (status, (name, node)) =>

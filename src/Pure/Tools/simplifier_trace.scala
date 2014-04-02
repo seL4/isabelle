@@ -184,7 +184,7 @@ object Simplifier_Trace
           var new_context = contexts.getOrElse(id, Context())
           var new_serial = new_context.last_serial
 
-          for ((serial, result) <- results.entries if serial > new_context.last_serial)
+          for ((serial, result) <- results.iterator if serial > new_context.last_serial)
           {
             result match {
               case Item(markup, data) =>
@@ -253,10 +253,10 @@ object Simplifier_Trace
           // current results.
 
           val items =
-            for { (_, Item(_, data)) <- results.entries }
-              yield data
+            (for { (_, Item(_, data)) <- results.iterator }
+              yield data).toList
 
-          reply(Trace(items.toList))
+          reply(Trace(items))
 
         case Cancel(serial) =>
           find_question(serial) match {

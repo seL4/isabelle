@@ -32,7 +32,7 @@ object Layout_Pendulum
       val initial_levels = level_map(graph)
 
       val (dummy_graph, dummies, dummy_levels) =
-        ((graph, Map.empty[(Key, Key), List[Key]], initial_levels) /: graph.keys) {
+        ((graph, Map.empty[(Key, Key), List[Key]], initial_levels) /: graph.keys_iterator) {
           case ((graph, dummies, levels), from) =>
             ((graph, dummies, levels) /: graph.imm_succs(from)) {
               case ((graph, dummies, levels), to) =>

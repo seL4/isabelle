@@ -122,7 +122,7 @@ object Build
             else graph.new_node(name, info)
         }
       val graph2 =
-        (graph1 /: graph1.entries) {
+        (graph1 /: graph1.iterator) {
           case (graph, (name, (info, _))) =>
             info.parent match {
               case None => graph
@@ -159,12 +159,12 @@ object Build
 
       val pre_selected =
       {
-        if (all_sessions) graph.keys.toList
+        if (all_sessions) graph.keys
         else {
           val select_group = session_groups.toSet
           val select = sessions.toSet
           (for {
-            (name, (info, _)) <- graph.entries
+            (name, (info, _)) <- graph.iterator
             if info.select || select(name) || apply(name).groups.exists(select_group)
           } yield name).toList
         }
@@ -180,7 +180,7 @@ object Build
     def topological_order: List[(String, Session_Info)] =
       graph.topological_order.map(name => (name, apply(name)))
 
-    override def toString: String = graph.entries.map(_._1).toList.sorted.mkString(",")
+    override def toString: String = graph.keys_iterator.mkString("Session_Tree(", ", ", ")")
   }
 
 
@@ -323,7 +323,7 @@ object Build
     def apply(tree: Session_Tree, load_timings: String => (List[Properties.T], Double)): Queue =
     {
       val graph = tree.graph
-      val sessions = graph.keys.toList
+      val sessions = graph.keys
 
       val timings =
         sessions.par.map((name: String) =>

@@ -426,7 +426,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     else {
       val r = Text.Range(results.head.range.start, results.last.range.stop)
       val msgs = Command.Results.make(results.map(_.info))
-      Some(Text.Info(r, Pretty.separate(msgs.entries.map(_._2).toList)))
+      Some(Text.Info(r, Pretty.separate(msgs.iterator.map(_._2).toList)))
     }
   }
 
@@ -590,7 +590,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   }
 
   def output_messages(results: Command.Results): List[XML.Tree] =
-    results.entries.map(_._2).filterNot(Protocol.is_result(_)).toList
+    results.iterator.map(_._2).filterNot(Protocol.is_result(_)).toList
 
 
   /* text background */

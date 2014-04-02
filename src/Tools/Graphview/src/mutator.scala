@@ -148,7 +148,7 @@ object Mutators {
         def add_edges(g: Model.Graph, keys: SortedSet[String], succs: Boolean) =
           (g /: keys) {
             (graph, end) => {
-              if (!graph.keys.contains(end)) graph
+              if (!graph.keys_iterator.contains(end)) graph
               else {
                 if (succs) graph.add_edge(key, end)
                 else graph.add_edge(end, key)
@@ -186,13 +186,12 @@ object Mutators {
     (complete, sub) => {     
       val withparents = 
         if (parents)
-          add_node_group(complete, sub, complete.all_preds(sub.keys.toList))
+          add_node_group(complete, sub, complete.all_preds(sub.keys))
         else
           sub
       
       if (children)
-        add_node_group(complete, withparents,
-                       complete.all_succs(sub.keys.toList))
+        add_node_group(complete, withparents, complete.all_succs(sub.keys))
       else 
         withparents
     }

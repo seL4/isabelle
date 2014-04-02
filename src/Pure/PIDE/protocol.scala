@@ -137,7 +137,7 @@ object Protocol
 
       if (status.is_running) running += 1
       else if (status.is_finished) {
-        val warning = states.exists(st => st.results.entries.exists(p => is_warning(p._2)))
+        val warning = states.exists(st => st.results.iterator.exists(p => is_warning(p._2)))
         if (warning) warned += 1 else finished += 1
       }
       else if (status.is_failed) failed += 1

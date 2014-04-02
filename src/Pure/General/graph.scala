@@ -67,11 +67,13 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
   def is_empty: Boolean = rep.isEmpty
   def defined(x: Key): Boolean = rep.isDefinedAt(x)
 
-  def entries: Iterator[(Key, Entry)] = rep.iterator
-  def keys: Iterator[Key] = entries.map(_._1)
+  def iterator: Iterator[(Key, Entry)] = rep.iterator
+
+  def keys_iterator: Iterator[Key] = iterator.map(_._1)
+  def keys: List[Key] = keys_iterator.toList
 
   def dest: List[((Key, A), List[Key])] =
-    (for ((x, (i, (_, succs))) <- entries) yield ((x, i), succs.toList)).toList
+    (for ((x, (i, (_, succs))) <- iterator) yield ((x, i), succs.toList)).toList
 
   override def toString: String =
     dest.map({ case ((x, _), ys) =>
@@ -130,7 +132,7 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
   /*strongly connected components; see: David King and John Launchbury,
     "Structuring Depth First Search Algorithms in Haskell"*/
   def strong_conn: List[List[Key]] =
-    reachable(imm_preds, all_succs(keys.toList))._1.filterNot(_.isEmpty).reverse
+    reachable(imm_preds, all_succs(keys))._1.filterNot(_.isEmpty).reverse
 
 
   /* minimal and maximal elements */
@@ -174,7 +176,7 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
   }
 
   def restrict(pred: Key => Boolean): Graph[Key, A] =
-    (this /: entries){ case (graph, (x, _)) => if (!pred(x)) graph.del_node(x) else graph }
+    (this /: iterator){ case (graph, (x, _)) => if (!pred(x)) graph.del_node(x) else graph }
 
 
   /* edge operations */
@@ -232,17 +234,17 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
     graph
   }
 
-  def transitive_closure: Graph[Key, A] = (this /: keys)(_.transitive_step(_))
+  def transitive_closure: Graph[Key, A] = (this /: keys_iterator)(_.transitive_step(_))
 
   def transitive_reduction_acyclic: Graph[Key, A] =
   {
     val trans = this.transitive_closure
-    if (trans.entries.exists({ case (x, (_, (_, succs))) => succs.contains(x) }))
+    if (trans.iterator.exists({ case (x, (_, (_, succs))) => succs.contains(x) }))
       error("Cyclic graph")
 
     var graph = this
     for {
-      (x, (_, (_, succs))) <- this.entries
+      (x, (_, (_, succs))) <- iterator
       y <- succs
       if trans.imm_preds(y).exists(z => trans.is_edge(x, z))
     } graph = graph.del_edge(x, y)

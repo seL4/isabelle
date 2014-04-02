@@ -75,10 +75,10 @@ class Model(private val graph: Model.Graph) {
       Node_List(Nil, false, false, false)
     ))  
   
-  def visible_nodes(): Iterator[String] = current.keys
+  def visible_nodes_iterator: Iterator[String] = current.keys_iterator
   
-  def visible_edges(): Iterator[(String, String)] =
-    current.keys.map(k => current.imm_succs(k).map((k, _))).flatten  // FIXME iterator
+  def visible_edges_iterator: Iterator[(String, String)] =
+    current.keys_iterator.flatMap(k => current.imm_succs(k).iterator.map((k, _)))
   
   def complete = graph
   def current: Model.Graph =
@@ -96,7 +96,7 @@ class Model(private val graph: Model.Graph) {
     _colors = 
       (Map.empty[String, Color] /: Colors()) ({
           case (colors, (enabled, color, mutator)) => {
-              (colors /: mutator.mutate(graph, graph).keys) ({
+              (colors /: mutator.mutate(graph, graph).keys_iterator) ({
                   case (colors, k) => colors + (k -> color)
                 })
             }
