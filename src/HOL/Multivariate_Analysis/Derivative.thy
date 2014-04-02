@@ -903,8 +903,6 @@ proof (rule connected_local_const[where f=f, OF `connected s` `x\<in>s` `y\<in>s
   qed
 qed
 
-
-
 subsection {* Differentiability of inverse function (most basic form) *}
 
 lemma has_derivative_inverse_basic:

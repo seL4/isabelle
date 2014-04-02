@@ -8,36 +8,26 @@ theory Complex_Analysis_Basics
 imports  "~~/src/HOL/Multivariate_Analysis/Cartesian_Euclidean_Space"
 begin
 
-subsection {*Complex number lemmas *}
+subsection{*General lemmas*}
+
+lemma has_derivative_mult_right:
+  fixes c:: "'a :: real_normed_algebra"
+  shows "((op * c) has_derivative (op * c)) F"
+by (rule has_derivative_mult_right [OF has_derivative_id])
+
+lemma has_derivative_of_real[has_derivative_intros, simp]: 
+  "(f has_derivative f') F \<Longrightarrow> ((\<lambda>x. of_real (f x)) has_derivative (\<lambda>x. of_real (f' x))) F"
+  using bounded_linear.has_derivative[OF bounded_linear_of_real] .
+
+lemma has_vector_derivative_real_complex:
+  "DERIV f (of_real a) :> f' \<Longrightarrow> ((\<lambda>x. f (of_real x)) has_vector_derivative f') (at a)"
+  using has_derivative_compose[of of_real of_real a UNIV f "op * f'"]
+  by (simp add: scaleR_conv_of_real ac_simps has_vector_derivative_def has_field_derivative_def)
 
 lemma fact_cancel:
   fixes c :: "'a::real_field"
   shows "of_nat (Suc n) * c / of_nat (fact (Suc n)) = c / of_nat (fact n)"
   by (simp add: of_nat_mult del: of_nat_Suc times_nat.simps)
-
-lemma
-  shows open_halfspace_Re_lt: "open {z. Re(z) < b}"
-    and open_halfspace_Re_gt: "open {z. Re(z) > b}"
-    and closed_halfspace_Re_ge: "closed {z. Re(z) \<ge> b}"
-    and closed_halfspace_Re_le: "closed {z. Re(z) \<le> b}"
-    and closed_halfspace_Re_eq: "closed {z. Re(z) = b}"
-    and open_halfspace_Im_lt: "open {z. Im(z) < b}"
-    and open_halfspace_Im_gt: "open {z. Im(z) > b}"
-    and closed_halfspace_Im_ge: "closed {z. Im(z) \<ge> b}"
-    and closed_halfspace_Im_le: "closed {z. Im(z) \<le> b}"
-    and closed_halfspace_Im_eq: "closed {z. Im(z) = b}"
-  by (intro open_Collect_less closed_Collect_le closed_Collect_eq isCont_Re
-            isCont_Im isCont_ident isCont_const)+
-
-lemma closed_complex_Reals: "closed (Reals :: complex set)"
-proof -
-  have "(Reals :: complex set) = {z. Im z = 0}"
-    by (auto simp: complex_is_Real_iff)
-  then show ?thesis
-    by (metis closed_halfspace_Im_eq)
-qed
-
-
 lemma linear_times:
   fixes c::"'a::real_algebra" shows "linear (\<lambda>x. c * x)"
   by (auto simp: linearI distrib_left)
@@ -87,7 +77,27 @@ lemma tendsto_Im_lower:
     shows  "b \<le> Im(l)"
   by (metis assms tendsto_le [OF _ _ tendsto_const]  tendsto_Im)
 
-subsection{*General lemmas*}
+lemma lambda_zero: "(\<lambda>h::'a::mult_zero. 0) = op * 0"
+  by auto
+
+lemma lambda_one: "(\<lambda>x::'a::monoid_mult. x) = op * 1"
+  by auto
+
+lemma has_real_derivative:
+  fixes f :: "real \<Rightarrow> real" 
+  assumes "(f has_derivative f') F"
+  obtains c where "(f has_real_derivative c) F"
+proof -
+  obtain c where "f' = (\<lambda>x. x * c)"
+    by (metis assms has_derivative_bounded_linear real_bounded_linear)
+  then show ?thesis
+    by (metis assms that has_field_derivative_def mult_commute_abs)
+qed
+
+lemma has_real_derivative_iff:
+  fixes f :: "real \<Rightarrow> real" 
+  shows "(\<exists>c. (f has_real_derivative c) F) = (\<exists>D. (f has_derivative D) F)"
+  by (metis has_field_derivative_def has_real_derivative)
 
 lemma continuous_mult_left:
   fixes c::"'a::real_normed_algebra" 
@@ -128,12 +138,6 @@ lemma continuous_on_norm_id [continuous_intros]: "continuous_on S norm"
 
 subsection{*DERIV stuff*}
 
-lemma lambda_zero: "(\<lambda>h::'a::mult_zero. 0) = op * 0"
-  by auto
-
-lemma lambda_one: "(\<lambda>x::'a::monoid_mult. x) = op * 1"
-  by auto
-
 lemma DERIV_zero_connected_constant:
   fixes f :: "'a::{real_normed_field,euclidean_space} \<Rightarrow> 'a"
   assumes "connected s"
@@ -146,36 +150,32 @@ using has_derivative_zero_connected_constant [OF assms(1-4)] assms
 by (metis DERIV_const has_derivative_const Diff_iff at_within_open frechet_derivative_at has_field_derivative_def)
 
 lemma DERIV_zero_constant:
-  fixes f :: "'a::{real_normed_field,euclidean_space} \<Rightarrow> 'a"
+  fixes f :: "'a::{real_normed_field, real_inner} \<Rightarrow> 'a"
   shows    "\<lbrakk>convex s;
              \<And>x. x\<in>s \<Longrightarrow> (f has_field_derivative 0) (at x within s)\<rbrakk> 
              \<Longrightarrow> \<exists>c. \<forall>x \<in> s. f(x) = c"
-  unfolding has_field_derivative_def
-  by (auto simp: lambda_zero intro: has_derivative_zero_constant)
+  by (auto simp: has_field_derivative_def lambda_zero intro: has_derivative_zero_constant)
 
 lemma DERIV_zero_unique:
-  fixes f :: "'a::{real_normed_field,euclidean_space} \<Rightarrow> 'a"
+  fixes f :: "'a::{real_normed_field, real_inner} \<Rightarrow> 'a"
   assumes "convex s"
       and d0: "\<And>x. x\<in>s \<Longrightarrow> (f has_field_derivative 0) (at x within s)"
       and "a \<in> s"
       and "x \<in> s"
     shows "f x = f a"
-  by (rule has_derivative_zero_unique [where f=f, OF assms(1,3) refl _ assms(4)])
+  by (rule has_derivative_zero_unique [OF assms(1) _ assms(4,3)])
      (metis d0 has_field_derivative_imp_has_derivative lambda_zero)
 
 lemma DERIV_zero_connected_unique:
-  fixes f :: "'a::{real_normed_field,euclidean_space} \<Rightarrow> 'a"
+  fixes f :: "'a::{real_normed_field, real_inner} \<Rightarrow> 'a"
   assumes "connected s"
       and "open s"
       and d0: "\<And>x. x\<in>s \<Longrightarrow> DERIV f x :> 0"
       and "a \<in> s"
       and "x \<in> s"
     shows "f x = f a" 
-    apply (rule has_derivative_zero_unique_strong_connected [of s "{}" f])
-    using assms
-    apply auto
-    apply (metis DERIV_continuous_on)
-  by (metis at_within_open has_field_derivative_def lambda_zero)
+    by (rule has_derivative_zero_unique_connected [OF assms(2,1) _ assms(5,4)])
+       (metis has_field_derivative_def lambda_zero d0)
 
 lemma DERIV_transform_within:
   assumes "(f has_field_derivative f') (at a within s)"
@@ -200,74 +200,91 @@ lemma DERIV_transform_at:
     shows "DERIV g a :> f'"
   by (blast intro: assms DERIV_transform_within)
 
+subsection{*Further useful properties of complex conjugation*}
 
-subsection{*Holomorphic functions*}
+lemma continuous_within_cnj: "continuous (at z within s) cnj"
+by (metis bounded_linear_cnj linear_continuous_within)
 
-lemma has_derivative_ident[has_derivative_intros, simp]: 
-     "FDERIV complex_of_real x :> complex_of_real"
-  by (simp add: has_derivative_def tendsto_const bounded_linear_of_real)
+lemma continuous_on_cnj: "continuous_on s cnj"
+by (metis bounded_linear_cnj linear_continuous_on)
 
-lemma has_real_derivative:
-  fixes f :: "real\<Rightarrow>real" 
-  assumes "(f has_derivative f') F"
-    obtains c where "(f has_derivative (\<lambda>x. x * c)) F"
+subsection {*Some limit theorems about real part of real series etc.*}
+
+(*MOVE? But not to Finite_Cartesian_Product*)
+lemma sums_vec_nth :
+  assumes "f sums a"
+  shows "(\<lambda>x. f x $ i) sums a $ i"
+using assms unfolding sums_def
+by (auto dest: tendsto_vec_nth [where i=i])
+
+lemma summable_vec_nth :
+  assumes "summable f"
+  shows "summable (\<lambda>x. f x $ i)"
+using assms unfolding summable_def
+by (blast intro: sums_vec_nth)
+
+subsection {*Complex number lemmas *}
+
+lemma
+  shows open_halfspace_Re_lt: "open {z. Re(z) < b}"
+    and open_halfspace_Re_gt: "open {z. Re(z) > b}"
+    and closed_halfspace_Re_ge: "closed {z. Re(z) \<ge> b}"
+    and closed_halfspace_Re_le: "closed {z. Re(z) \<le> b}"
+    and closed_halfspace_Re_eq: "closed {z. Re(z) = b}"
+    and open_halfspace_Im_lt: "open {z. Im(z) < b}"
+    and open_halfspace_Im_gt: "open {z. Im(z) > b}"
+    and closed_halfspace_Im_ge: "closed {z. Im(z) \<ge> b}"
+    and closed_halfspace_Im_le: "closed {z. Im(z) \<le> b}"
+    and closed_halfspace_Im_eq: "closed {z. Im(z) = b}"
+  by (intro open_Collect_less closed_Collect_le closed_Collect_eq isCont_Re
+            isCont_Im isCont_ident isCont_const)+
+
+lemma closed_complex_Reals: "closed (Reals :: complex set)"
 proof -
-  obtain c where "f' = (\<lambda>x. x * c)"
-    by (metis assms has_derivative_bounded_linear real_bounded_linear)
+  have "(Reals :: complex set) = {z. Im z = 0}"
+    by (auto simp: complex_is_Real_iff)
   then show ?thesis
-    by (metis assms that)
+    by (metis closed_halfspace_Im_eq)
 qed
 
-lemma has_real_derivative_iff:
-  fixes f :: "real\<Rightarrow>real" 
-  shows "(\<exists>f'. (f has_derivative (\<lambda>x. x * f')) F) = (\<exists>D. (f has_derivative D) F)"
-by (auto elim: has_real_derivative)
+lemma real_lim:
+  fixes l::complex
+  assumes "(f ---> l) F" and "~(trivial_limit F)" and "eventually P F" and "\<And>a. P a \<Longrightarrow> f a \<in> \<real>"
+  shows  "l \<in> \<real>"
+proof (rule Lim_in_closed_set[OF closed_complex_Reals _ assms(2,1)])
+  show "eventually (\<lambda>x. f x \<in> \<real>) F"
+    using assms(3, 4) by (auto intro: eventually_mono)
+qed
+
+lemma real_lim_sequentially:
+  fixes l::complex
+  shows "(f ---> l) sequentially \<Longrightarrow> (\<exists>N. \<forall>n\<ge>N. f n \<in> \<real>) \<Longrightarrow> l \<in> \<real>"
+by (rule real_lim [where F=sequentially]) (auto simp: eventually_sequentially)
+
+lemma real_series: 
+  fixes l::complex
+  shows "f sums l \<Longrightarrow> (\<And>n. f n \<in> \<real>) \<Longrightarrow> l \<in> \<real>"
+unfolding sums_def
+by (metis real_lim_sequentially setsum_in_Reals)
+
+lemma Lim_null_comparison_Re:
+   "eventually (\<lambda>x. norm(f x) \<le> Re(g x)) F \<Longrightarrow>  (g ---> 0) F \<Longrightarrow> (f ---> 0) F"
+  by (metis Lim_null_comparison complex_Re_zero tendsto_Re)
+
+subsection{*Holomorphic functions*}
 
 definition complex_differentiable :: "[complex \<Rightarrow> complex, complex filter] \<Rightarrow> bool"
            (infixr "(complex'_differentiable)" 50)  
   where "f complex_differentiable F \<equiv> \<exists>f'. (f has_field_derivative f') F"
 
-definition DD :: "['a \<Rightarrow> 'a::real_normed_field, 'a] \<Rightarrow> 'a" --{*for real, complex?*}
-  where "DD f x \<equiv> THE f'. (f has_derivative (\<lambda>x. x * f')) (at x)"
-
-definition holomorphic_on :: "[complex \<Rightarrow> complex, complex set] \<Rightarrow> bool"
-           (infixl "(holomorphic'_on)" 50)
-  where "f holomorphic_on s \<equiv> \<forall>x \<in> s. \<exists>f'. (f has_field_derivative f') (at x within s)"
-  
-lemma holomorphic_on_empty: "f holomorphic_on {}"
-  by (simp add: holomorphic_on_def)
-
-lemma holomorphic_on_differentiable:
-     "f holomorphic_on s \<longleftrightarrow> (\<forall>x \<in> s. f complex_differentiable (at x within s))"
-unfolding holomorphic_on_def complex_differentiable_def has_field_derivative_def
-by (metis mult_commute_abs)
-
-lemma holomorphic_on_open:
-    "open s \<Longrightarrow> f holomorphic_on s \<longleftrightarrow> (\<forall>x \<in> s. \<exists>f'. DERIV f x :> f')"
-  by (auto simp: holomorphic_on_def has_field_derivative_def at_within_open [of _ s])
-
-lemma complex_differentiable_imp_continuous_at: 
-    "f complex_differentiable (at x) \<Longrightarrow> continuous (at x) f"
+lemma complex_differentiable_imp_continuous_at:
+    "f complex_differentiable (at x within s) \<Longrightarrow> continuous (at x within s) f"
   by (metis DERIV_continuous complex_differentiable_def)
-
-lemma holomorphic_on_imp_continuous_on: 
-    "f holomorphic_on s \<Longrightarrow> continuous_on s f"
-  by (metis DERIV_continuous continuous_on_eq_continuous_within holomorphic_on_def) 
-
-lemma has_derivative_within_open:
-  "a \<in> s \<Longrightarrow> open s \<Longrightarrow> (f has_field_derivative f') (at a within s) \<longleftrightarrow> DERIV f a :> f'"
-  by (simp add: has_field_derivative_def) (metis has_derivative_within_open)
-
-lemma holomorphic_on_subset:
-    "f holomorphic_on s \<Longrightarrow> t \<subseteq> s \<Longrightarrow> f holomorphic_on t"
-  unfolding holomorphic_on_def
-  by (metis DERIV_subset subsetD)
 
 lemma complex_differentiable_within_subset:
     "\<lbrakk>f complex_differentiable (at x within s); t \<subseteq> s\<rbrakk>
      \<Longrightarrow> f complex_differentiable (at x within t)"
-  unfolding complex_differentiable_def
-  by (metis DERIV_subset)
+  by (metis DERIV_subset complex_differentiable_def)
 
 lemma complex_differentiable_at_within:
     "\<lbrakk>f complex_differentiable (at x)\<rbrakk>
@@ -275,36 +292,28 @@ lemma complex_differentiable_at_within:
   unfolding complex_differentiable_def
   by (metis DERIV_subset top_greatest)
 
-
-lemma has_derivative_mult_right:
-  fixes c:: "'a :: real_normed_algebra"
-  shows "((op * c) has_derivative (op * c)) F"
-by (rule has_derivative_mult_right [OF has_derivative_id])
-
-lemma complex_differentiable_linear:
-     "(op * c) complex_differentiable F"
+lemma complex_differentiable_linear: "(op * c) complex_differentiable F"
 proof -
-  have "\<And>u::complex. (\<lambda>x. x * u) = op * u"
-    by (rule ext) (simp add: mult_ac)
-  then show ?thesis
-    unfolding complex_differentiable_def has_field_derivative_def
+  show ?thesis
+    unfolding complex_differentiable_def has_field_derivative_def mult_commute_abs
     by (force intro: has_derivative_mult_right)
 qed
 
-lemma complex_differentiable_const:
-  "(\<lambda>z. c) complex_differentiable F"
+lemma complex_differentiable_const: "(\<lambda>z. c) complex_differentiable F"
   unfolding complex_differentiable_def has_field_derivative_def
   by (rule exI [where x=0])
      (metis has_derivative_const lambda_zero) 
 
-lemma complex_differentiable_id:
-  "(\<lambda>z. z) complex_differentiable F"
+lemma complex_differentiable_ident: "(\<lambda>z. z) complex_differentiable F"
   unfolding complex_differentiable_def has_field_derivative_def
   by (rule exI [where x=1])
      (simp add: lambda_one [symmetric])
 
+lemma complex_differentiable_id: "id complex_differentiable F"
+  unfolding id_def by (rule complex_differentiable_ident)
+
 lemma complex_differentiable_minus:
-    "f complex_differentiable F \<Longrightarrow> (\<lambda>z. -(f z)) complex_differentiable F"
+  "f complex_differentiable F \<Longrightarrow> (\<lambda>z. - (f z)) complex_differentiable F"
   using assms unfolding complex_differentiable_def
   by (metis field_differentiable_minus)
 
@@ -313,6 +322,11 @@ lemma complex_differentiable_add:
     shows "(\<lambda>z. f z + g z) complex_differentiable F"
   using assms unfolding complex_differentiable_def
   by (metis field_differentiable_add)
+
+lemma complex_differentiable_setsum:
+  "(\<And>i. i \<in> I \<Longrightarrow> (f i) complex_differentiable F) \<Longrightarrow> (\<lambda>z. \<Sum>i\<in>I. f i z) complex_differentiable F"
+  by (induct I rule: infinite_finite_induct)
+     (auto intro: complex_differentiable_add complex_differentiable_const)
 
 lemma complex_differentiable_diff:
   assumes "f complex_differentiable F" "g complex_differentiable F"
@@ -363,176 +377,16 @@ lemma complex_differentiable_compose_within:
   using assms unfolding complex_differentiable_def
   by (metis DERIV_image_chain)
 
-lemma complex_differentiable_within_open:
-     "\<lbrakk>a \<in> s; open s\<rbrakk> \<Longrightarrow> f complex_differentiable at a within s \<longleftrightarrow> 
-                          f complex_differentiable at a"
-  unfolding complex_differentiable_def
-  by (metis at_within_open)
-
-lemma holomorphic_transform:
-     "\<lbrakk>f holomorphic_on s; \<And>x. x \<in> s \<Longrightarrow> f x = g x\<rbrakk> \<Longrightarrow> g holomorphic_on s"
-  apply (auto simp: holomorphic_on_def has_field_derivative_def)
-  by (metis complex_differentiable_def complex_differentiable_transform_within has_field_derivative_def linordered_field_no_ub)
-
-lemma holomorphic_eq:
-     "(\<And>x. x \<in> s \<Longrightarrow> f x = g x) \<Longrightarrow> f holomorphic_on s \<longleftrightarrow> g holomorphic_on s"
-  by (metis holomorphic_transform)
-
-subsection{*Holomorphic*}
-
-lemma holomorphic_on_linear:
-     "(op * c) holomorphic_on s"
-  unfolding holomorphic_on_def  by (metis DERIV_cmult_Id)
-
-lemma holomorphic_on_const:
-     "(\<lambda>z. c) holomorphic_on s"
-  unfolding holomorphic_on_def  
-  by (metis DERIV_const)
-
-lemma holomorphic_on_id:
-     "id holomorphic_on s"
-  unfolding holomorphic_on_def id_def  
-  by (metis DERIV_ident)
-
-lemma holomorphic_on_compose:
-  "f holomorphic_on s \<Longrightarrow> g holomorphic_on (f ` s)
-           \<Longrightarrow> (g o f) holomorphic_on s"
-  unfolding holomorphic_on_def
-  by (metis DERIV_image_chain imageI)
-
-lemma holomorphic_on_compose_gen:
-  "\<lbrakk>f holomorphic_on s; g holomorphic_on t; f ` s \<subseteq> t\<rbrakk> \<Longrightarrow> (g o f) holomorphic_on s"
-  unfolding holomorphic_on_def
-  by (metis DERIV_image_chain DERIV_subset image_subset_iff)
-
-lemma holomorphic_on_minus:
-  "f holomorphic_on s \<Longrightarrow> (\<lambda>z. -(f z)) holomorphic_on s"
-  unfolding holomorphic_on_def
-by (metis DERIV_minus)
-
-lemma holomorphic_on_add:
-  "\<lbrakk>f holomorphic_on s; g holomorphic_on s\<rbrakk> \<Longrightarrow> (\<lambda>z. f z + g z) holomorphic_on s"
-  unfolding holomorphic_on_def
-  by (metis DERIV_add)
-
-lemma holomorphic_on_diff:
-  "\<lbrakk>f holomorphic_on s; g holomorphic_on s\<rbrakk> \<Longrightarrow> (\<lambda>z. f z - g z) holomorphic_on s"
-  unfolding holomorphic_on_def
-  by (metis DERIV_diff)
-
-lemma holomorphic_on_mult:
-  "\<lbrakk>f holomorphic_on s; g holomorphic_on s\<rbrakk> \<Longrightarrow> (\<lambda>z. f z * g z) holomorphic_on s"
-  unfolding holomorphic_on_def
-  by auto (metis DERIV_mult)
-
-lemma holomorphic_on_inverse:
-  "\<lbrakk>f holomorphic_on s; \<And>z. z \<in> s \<Longrightarrow> f z \<noteq> 0\<rbrakk> \<Longrightarrow> (\<lambda>z. inverse (f z)) holomorphic_on s"
-  unfolding holomorphic_on_def
-  by (metis DERIV_inverse')
-
-lemma holomorphic_on_divide:
-  "\<lbrakk>f holomorphic_on s; g holomorphic_on s; \<And>z. z \<in> s \<Longrightarrow> g z \<noteq> 0\<rbrakk> \<Longrightarrow> (\<lambda>z. f z / g z) holomorphic_on s"
-  unfolding holomorphic_on_def
-  by (metis (full_types) DERIV_divide)
-
-lemma holomorphic_on_power:
-  "f holomorphic_on s \<Longrightarrow> (\<lambda>z. (f z)^n) holomorphic_on s"
-  unfolding holomorphic_on_def
-  by (metis DERIV_power)
-
-lemma holomorphic_on_setsum:
-  "(\<And>i. i \<in> I \<Longrightarrow> (f i) holomorphic_on s) \<Longrightarrow> (\<lambda>x. setsum (\<lambda>i. f i x) I) holomorphic_on s"
-  unfolding holomorphic_on_def
-  apply (induct I rule: infinite_finite_induct) 
-  apply (force intro: DERIV_const DERIV_add)+
-  done
-
-lemma DERIV_imp_DD: "DERIV f x :> f' \<Longrightarrow> DD f x = f'"
-    apply (simp add: DD_def has_field_derivative_def mult_commute_abs)
-    apply (rule the_equality, assumption)
-    apply (metis DERIV_unique has_field_derivative_def)
-    done
-
-lemma DD_iff_derivative_differentiable:
-  fixes f :: "real\<Rightarrow>real" 
-  shows   "DERIV f x :> DD f x \<longleftrightarrow> f differentiable at x"
-unfolding DD_def differentiable_def 
-by (metis (full_types) DD_def DERIV_imp_DD has_field_derivative_def has_real_derivative_iff 
-          mult_commute_abs)
-
-lemma DD_iff_derivative_complex_differentiable:
-  fixes f :: "complex\<Rightarrow>complex" 
-  shows "DERIV f x :> DD f x \<longleftrightarrow> f complex_differentiable at x"
-unfolding DD_def complex_differentiable_def
-by (metis DD_def DERIV_imp_DD)
-
 lemma complex_differentiable_compose:
   "f complex_differentiable at z \<Longrightarrow> g complex_differentiable at (f z)
           \<Longrightarrow> (g o f) complex_differentiable at z"
 by (metis complex_differentiable_at_within complex_differentiable_compose_within)
 
-lemma complex_derivative_chain:
-  fixes z::complex
-  shows
-  "f complex_differentiable at z \<Longrightarrow> g complex_differentiable at (f z)
-          \<Longrightarrow> DD (g o f) z = DD g (f z) * DD f z"
-by (metis DD_iff_derivative_complex_differentiable DERIV_chain DERIV_imp_DD)
-
-lemma comp_derivative_chain:
-  fixes z::real
-  shows "\<lbrakk>f differentiable at z; g differentiable at (f z)\<rbrakk> 
-         \<Longrightarrow> DD (g o f) z = DD g (f z) * DD f z"
-by (metis DD_iff_derivative_differentiable DERIV_chain DERIV_imp_DD)
-
-lemma complex_derivative_linear: "DD (\<lambda>w. c * w) = (\<lambda>z. c)"
-by (metis DERIV_imp_DD DERIV_cmult_Id)
-
-lemma complex_derivative_ident: "DD (\<lambda>w. w) = (\<lambda>z. 1)"
-by (metis DERIV_imp_DD DERIV_ident)
-
-lemma complex_derivative_const: "DD (\<lambda>w. c) = (\<lambda>z. 0)"
-by (metis DERIV_imp_DD DERIV_const)
-
-lemma complex_derivative_add:
-  "\<lbrakk>f complex_differentiable at z; g complex_differentiable at z\<rbrakk>  
-   \<Longrightarrow> DD (\<lambda>w. f w + g w) z = DD f z + DD g z"
+lemma complex_differentiable_within_open:
+     "\<lbrakk>a \<in> s; open s\<rbrakk> \<Longrightarrow> f complex_differentiable at a within s \<longleftrightarrow> 
+                          f complex_differentiable at a"
   unfolding complex_differentiable_def
-  by (rule DERIV_imp_DD) (metis (poly_guards_query) DERIV_add DERIV_imp_DD)  
-
-lemma complex_derivative_diff:
-  "\<lbrakk>f complex_differentiable at z; g complex_differentiable at z\<rbrakk>  
-   \<Longrightarrow> DD (\<lambda>w. f w - g w) z = DD f z - DD g z"
-  unfolding complex_differentiable_def
-  by (rule DERIV_imp_DD) (metis (poly_guards_query) DERIV_diff DERIV_imp_DD)
-
-lemma complex_derivative_mult:
-  "\<lbrakk>f complex_differentiable at z; g complex_differentiable at z\<rbrakk>  
-   \<Longrightarrow> DD (\<lambda>w. f w * g w) z = f z * DD g z + DD f z * g z"
-  unfolding complex_differentiable_def
-  by (rule DERIV_imp_DD) (metis DERIV_imp_DD DERIV_mult')
-
-lemma complex_derivative_cmult:
-  "f complex_differentiable at z \<Longrightarrow> DD (\<lambda>w. c * f w) z = c * DD f z"
-  unfolding complex_differentiable_def
-  by (metis DERIV_cmult DERIV_imp_DD)
-
-lemma complex_derivative_cmult_right:
-  "f complex_differentiable at z \<Longrightarrow> DD (\<lambda>w. f w * c) z = DD f z * c"
-  unfolding complex_differentiable_def
-  by (metis DERIV_cmult_right DERIV_imp_DD)
-
-lemma complex_derivative_transform_within_open:
-  "\<lbrakk>f holomorphic_on s; g holomorphic_on s; open s; z \<in> s; \<And>w. w \<in> s \<Longrightarrow> f w = g w\<rbrakk> 
-   \<Longrightarrow> DD f z = DD g z"
-  unfolding holomorphic_on_def
-  by (rule DERIV_imp_DD) (metis has_derivative_within_open DERIV_imp_DD DERIV_transform_within_open)
-
-lemma complex_derivative_compose_linear:
-    "f complex_differentiable at (c * z) \<Longrightarrow> DD (\<lambda>w. f (c * w)) z = c * DD f (c * z)"
-apply (rule DERIV_imp_DD)
-apply (simp add: DD_iff_derivative_complex_differentiable [symmetric])
-apply (metis DERIV_chain' DERIV_cmult_Id comm_semiring_1_class.normalizing_semiring_rules(7))  
-done
+  by (metis at_within_open)
 
 subsection{*Caratheodory characterization.*}
 
@@ -548,40 +402,193 @@ lemma complex_differentiable_caratheodory_within:
   using DERIV_caratheodory_within [of f]
   by (simp add: complex_differentiable_def has_field_derivative_def)
 
+subsection{*Holomorphic*}
+
+definition holomorphic_on :: "[complex \<Rightarrow> complex, complex set] \<Rightarrow> bool"
+           (infixl "(holomorphic'_on)" 50)
+  where "f holomorphic_on s \<equiv> \<forall>x\<in>s. f complex_differentiable (at x within s)"
+  
+lemma holomorphic_on_empty: "f holomorphic_on {}"
+  by (simp add: holomorphic_on_def)
+
+lemma holomorphic_on_open:
+    "open s \<Longrightarrow> f holomorphic_on s \<longleftrightarrow> (\<forall>x \<in> s. \<exists>f'. DERIV f x :> f')"
+  by (auto simp: holomorphic_on_def complex_differentiable_def has_field_derivative_def at_within_open [of _ s])
+
+lemma holomorphic_on_imp_continuous_on: 
+    "f holomorphic_on s \<Longrightarrow> continuous_on s f"
+  by (metis complex_differentiable_imp_continuous_at continuous_on_eq_continuous_within holomorphic_on_def) 
+
+lemma holomorphic_on_subset:
+    "f holomorphic_on s \<Longrightarrow> t \<subseteq> s \<Longrightarrow> f holomorphic_on t"
+  unfolding holomorphic_on_def
+  by (metis complex_differentiable_within_subset subsetD)
+
+lemma holomorphic_transform: "\<lbrakk>f holomorphic_on s; \<And>x. x \<in> s \<Longrightarrow> f x = g x\<rbrakk> \<Longrightarrow> g holomorphic_on s"
+  by (metis complex_differentiable_transform_within linordered_field_no_ub holomorphic_on_def)
+
+lemma holomorphic_cong: "s = t ==> (\<And>x. x \<in> s \<Longrightarrow> f x = g x) \<Longrightarrow> f holomorphic_on s \<longleftrightarrow> g holomorphic_on t"
+  by (metis holomorphic_transform)
+
+lemma holomorphic_on_linear: "(op * c) holomorphic_on s"
+  unfolding holomorphic_on_def by (metis complex_differentiable_linear)
+
+lemma holomorphic_on_const: "(\<lambda>z. c) holomorphic_on s"
+  unfolding holomorphic_on_def by (metis complex_differentiable_const)
+
+lemma holomorphic_on_ident: "(\<lambda>x. x) holomorphic_on s"
+  unfolding holomorphic_on_def by (metis complex_differentiable_ident)
+
+lemma holomorphic_on_id: "id holomorphic_on s"
+  unfolding id_def by (rule holomorphic_on_ident)
+
+lemma holomorphic_on_compose:
+  "f holomorphic_on s \<Longrightarrow> g holomorphic_on (f ` s) \<Longrightarrow> (g o f) holomorphic_on s"
+  using complex_differentiable_compose_within[of f _ s g]
+  by (auto simp: holomorphic_on_def)
+
+lemma holomorphic_on_compose_gen:
+  "f holomorphic_on s \<Longrightarrow> g holomorphic_on t \<Longrightarrow> f ` s \<subseteq> t \<Longrightarrow> (g o f) holomorphic_on s"
+  by (metis holomorphic_on_compose holomorphic_on_subset)
+
+lemma holomorphic_on_minus: "f holomorphic_on s \<Longrightarrow> (\<lambda>z. -(f z)) holomorphic_on s"
+  by (metis complex_differentiable_minus holomorphic_on_def)
+
+lemma holomorphic_on_add:
+  "\<lbrakk>f holomorphic_on s; g holomorphic_on s\<rbrakk> \<Longrightarrow> (\<lambda>z. f z + g z) holomorphic_on s"
+  unfolding holomorphic_on_def by (metis complex_differentiable_add)
+
+lemma holomorphic_on_diff:
+  "\<lbrakk>f holomorphic_on s; g holomorphic_on s\<rbrakk> \<Longrightarrow> (\<lambda>z. f z - g z) holomorphic_on s"
+  unfolding holomorphic_on_def by (metis complex_differentiable_diff)
+
+lemma holomorphic_on_mult:
+  "\<lbrakk>f holomorphic_on s; g holomorphic_on s\<rbrakk> \<Longrightarrow> (\<lambda>z. f z * g z) holomorphic_on s"
+  unfolding holomorphic_on_def by (metis complex_differentiable_mult)
+
+lemma holomorphic_on_inverse:
+  "\<lbrakk>f holomorphic_on s; \<And>z. z \<in> s \<Longrightarrow> f z \<noteq> 0\<rbrakk> \<Longrightarrow> (\<lambda>z. inverse (f z)) holomorphic_on s"
+  unfolding holomorphic_on_def by (metis complex_differentiable_inverse)
+
+lemma holomorphic_on_divide:
+  "\<lbrakk>f holomorphic_on s; g holomorphic_on s; \<And>z. z \<in> s \<Longrightarrow> g z \<noteq> 0\<rbrakk> \<Longrightarrow> (\<lambda>z. f z / g z) holomorphic_on s"
+  unfolding holomorphic_on_def by (metis complex_differentiable_divide)
+
+lemma holomorphic_on_power:
+  "f holomorphic_on s \<Longrightarrow> (\<lambda>z. (f z)^n) holomorphic_on s"
+  unfolding holomorphic_on_def by (metis complex_differentiable_power)
+
+lemma holomorphic_on_setsum:
+  "(\<And>i. i \<in> I \<Longrightarrow> (f i) holomorphic_on s) \<Longrightarrow> (\<lambda>x. setsum (\<lambda>i. f i x) I) holomorphic_on s"
+  unfolding holomorphic_on_def by (metis complex_differentiable_setsum)
+
+definition deriv :: "('a \<Rightarrow> 'a::real_normed_field) \<Rightarrow> 'a \<Rightarrow> 'a" where
+  "deriv f x \<equiv> THE D. DERIV f x :> D"
+
+lemma DERIV_imp_deriv: "DERIV f x :> f' \<Longrightarrow> deriv f x = f'"
+  unfolding deriv_def by (metis the_equality DERIV_unique)
+
+lemma DERIV_deriv_iff_real_differentiable:
+  fixes x :: real
+  shows "DERIV f x :> deriv f x \<longleftrightarrow> f differentiable at x"
+  unfolding differentiable_def by (metis DERIV_imp_deriv has_real_derivative_iff)
+
+lemma real_derivative_chain:
+  fixes x :: real
+  shows "f differentiable at x \<Longrightarrow> g differentiable at (f x)
+    \<Longrightarrow> deriv (g o f) x = deriv g (f x) * deriv f x"
+  by (metis DERIV_deriv_iff_real_differentiable DERIV_chain DERIV_imp_deriv)
+
+lemma DERIV_deriv_iff_complex_differentiable:
+  "DERIV f x :> deriv f x \<longleftrightarrow> f complex_differentiable at x"
+  unfolding complex_differentiable_def by (metis DERIV_imp_deriv)
+
+lemma complex_derivative_chain:
+  "f complex_differentiable at x \<Longrightarrow> g complex_differentiable at (f x)
+    \<Longrightarrow> deriv (g o f) x = deriv g (f x) * deriv f x"
+  by (metis DERIV_deriv_iff_complex_differentiable DERIV_chain DERIV_imp_deriv)
+
+lemma complex_derivative_linear: "deriv (\<lambda>w. c * w) = (\<lambda>z. c)"
+  by (metis DERIV_imp_deriv DERIV_cmult_Id)
+
+lemma complex_derivative_ident: "deriv (\<lambda>w. w) = (\<lambda>z. 1)"
+  by (metis DERIV_imp_deriv DERIV_ident)
+
+lemma complex_derivative_const: "deriv (\<lambda>w. c) = (\<lambda>z. 0)"
+  by (metis DERIV_imp_deriv DERIV_const)
+
+lemma complex_derivative_add:
+  "\<lbrakk>f complex_differentiable at z; g complex_differentiable at z\<rbrakk>  
+   \<Longrightarrow> deriv (\<lambda>w. f w + g w) z = deriv f z + deriv g z"
+  unfolding DERIV_deriv_iff_complex_differentiable[symmetric]
+  by (auto intro!: DERIV_imp_deriv DERIV_intros)
+
+lemma complex_derivative_diff:
+  "\<lbrakk>f complex_differentiable at z; g complex_differentiable at z\<rbrakk>  
+   \<Longrightarrow> deriv (\<lambda>w. f w - g w) z = deriv f z - deriv g z"
+  unfolding DERIV_deriv_iff_complex_differentiable[symmetric]
+  by (auto intro!: DERIV_imp_deriv DERIV_intros)
+
+lemma complex_derivative_mult:
+  "\<lbrakk>f complex_differentiable at z; g complex_differentiable at z\<rbrakk>  
+   \<Longrightarrow> deriv (\<lambda>w. f w * g w) z = f z * deriv g z + deriv f z * g z"
+  unfolding DERIV_deriv_iff_complex_differentiable[symmetric]
+  by (auto intro!: DERIV_imp_deriv DERIV_intros)
+
+lemma complex_derivative_cmult:
+  "f complex_differentiable at z \<Longrightarrow> deriv (\<lambda>w. c * f w) z = c * deriv f z"
+  unfolding DERIV_deriv_iff_complex_differentiable[symmetric]
+  by (auto intro!: DERIV_imp_deriv DERIV_intros)
+
+lemma complex_derivative_cmult_right:
+  "f complex_differentiable at z \<Longrightarrow> deriv (\<lambda>w. f w * c) z = deriv f z * c"
+  unfolding DERIV_deriv_iff_complex_differentiable[symmetric]
+  by (auto intro!: DERIV_imp_deriv DERIV_intros)
+
+lemma complex_derivative_transform_within_open:
+  "\<lbrakk>f holomorphic_on s; g holomorphic_on s; open s; z \<in> s; \<And>w. w \<in> s \<Longrightarrow> f w = g w\<rbrakk> 
+   \<Longrightarrow> deriv f z = deriv g z"
+  unfolding holomorphic_on_def
+  by (rule DERIV_imp_deriv)
+     (metis DERIV_deriv_iff_complex_differentiable DERIV_transform_within_open at_within_open)
+
+lemma complex_derivative_compose_linear:
+  "f complex_differentiable at (c * z) \<Longrightarrow> deriv (\<lambda>w. f (c * w)) z = c * deriv f (c * z)"
+apply (rule DERIV_imp_deriv)
+apply (simp add: DERIV_deriv_iff_complex_differentiable [symmetric])
+apply (metis DERIV_chain' DERIV_cmult_Id comm_semiring_1_class.normalizing_semiring_rules(7))  
+done
+
 subsection{*analyticity on a set*}
 
 definition analytic_on (infixl "(analytic'_on)" 50)  
   where
    "f analytic_on s \<equiv> \<forall>x \<in> s. \<exists>e. 0 < e \<and> f holomorphic_on (ball x e)"
 
-lemma analytic_imp_holomorphic:
-     "f analytic_on s \<Longrightarrow> f holomorphic_on s"
-  unfolding analytic_on_def holomorphic_on_def
-  apply (simp add: has_derivative_within_open [OF _ open_ball])
-  apply (metis DERIV_subset dist_self mem_ball top_greatest)
-  done
+lemma analytic_imp_holomorphic: "f analytic_on s \<Longrightarrow> f holomorphic_on s"
+  by (simp add: at_within_open [OF _ open_ball] analytic_on_def holomorphic_on_def)
+     (metis centre_in_ball complex_differentiable_at_within)
 
-lemma analytic_on_open:
-     "open s \<Longrightarrow> f analytic_on s \<longleftrightarrow> f holomorphic_on s"
+lemma analytic_on_open: "open s \<Longrightarrow> f analytic_on s \<longleftrightarrow> f holomorphic_on s"
 apply (auto simp: analytic_imp_holomorphic)
 apply (auto simp: analytic_on_def holomorphic_on_def)
 by (metis holomorphic_on_def holomorphic_on_subset open_contains_ball)
 
 lemma analytic_on_imp_differentiable_at:
   "f analytic_on s \<Longrightarrow> x \<in> s \<Longrightarrow> f complex_differentiable (at x)"
- apply (auto simp: analytic_on_def holomorphic_on_differentiable)
+ apply (auto simp: analytic_on_def holomorphic_on_def)
 by (metis Topology_Euclidean_Space.open_ball centre_in_ball complex_differentiable_within_open)
 
-lemma analytic_on_subset:
-     "f analytic_on s \<Longrightarrow> t \<subseteq> s \<Longrightarrow> f analytic_on t"
+lemma analytic_on_subset: "f analytic_on s \<Longrightarrow> t \<subseteq> s \<Longrightarrow> f analytic_on t"
   by (auto simp: analytic_on_def)
 
-lemma analytic_on_Un:
-    "f analytic_on (s \<union> t) \<longleftrightarrow> f analytic_on s \<and> f analytic_on t"
+lemma analytic_on_Un: "f analytic_on (s \<union> t) \<longleftrightarrow> f analytic_on s \<and> f analytic_on t"
   by (auto simp: analytic_on_def)
 
-lemma analytic_on_Union:
-  "f analytic_on (\<Union> s) \<longleftrightarrow> (\<forall>t \<in> s. f analytic_on t)"
+lemma analytic_on_Union: "f analytic_on (\<Union> s) \<longleftrightarrow> (\<forall>t \<in> s. f analytic_on t)"
+  by (auto simp: analytic_on_def)
+
+lemma analytic_on_UN: "f analytic_on (\<Union>i\<in>I. s i) \<longleftrightarrow> (\<forall>i\<in>I. f analytic_on (s i))"
   by (auto simp: analytic_on_def)
   
 lemma analytic_on_holomorphic:
@@ -608,17 +615,16 @@ proof -
 qed
 
 lemma analytic_on_linear: "(op * c) analytic_on s"
-  apply (simp add: analytic_on_holomorphic holomorphic_on_linear)
-  by (metis open_UNIV top_greatest)
+  by (auto simp add: analytic_on_holomorphic holomorphic_on_linear)
 
 lemma analytic_on_const: "(\<lambda>z. c) analytic_on s"
-  unfolding analytic_on_def
-  by (metis holomorphic_on_const zero_less_one)
+  by (metis analytic_on_def holomorphic_on_const zero_less_one)
+
+lemma analytic_on_ident: "(\<lambda>x. x) analytic_on s"
+  by (simp add: analytic_on_def holomorphic_on_ident gt_ex)
 
 lemma analytic_on_id: "id analytic_on s"
-  unfolding analytic_on_def
-  apply (simp add: holomorphic_on_id)
-  by (metis gt_ex)
+  unfolding id_def by (rule analytic_on_ident)
 
 lemma analytic_on_compose:
   assumes f: "f analytic_on s"
@@ -791,46 +797,37 @@ subsection{*Combining theorems for derivative with ``analytic at'' hypotheses*}
 
 lemma 
   assumes "f analytic_on {z}" "g analytic_on {z}"
-  shows complex_derivative_add_at: "DD (\<lambda>w. f w + g w) z = DD f z + DD g z"
-    and complex_derivative_diff_at: "DD (\<lambda>w. f w - g w) z = DD f z - DD g z"
-    and complex_derivative_mult_at: "DD (\<lambda>w. f w * g w) z =
-           f z * DD g z + DD f z * g z"
+  shows complex_derivative_add_at: "deriv (\<lambda>w. f w + g w) z = deriv f z + deriv g z"
+    and complex_derivative_diff_at: "deriv (\<lambda>w. f w - g w) z = deriv f z - deriv g z"
+    and complex_derivative_mult_at: "deriv (\<lambda>w. f w * g w) z =
+           f z * deriv g z + deriv f z * g z"
 proof -
   obtain s where s: "open s" "z \<in> s" "f holomorphic_on s" "g holomorphic_on s"
     using assms by (metis analytic_at_two)
-  show "DD (\<lambda>w. f w + g w) z = DD f z + DD g z"
-    apply (rule DERIV_imp_DD [OF DERIV_add])
+  show "deriv (\<lambda>w. f w + g w) z = deriv f z + deriv g z"
+    apply (rule DERIV_imp_deriv [OF DERIV_add])
     using s
-    apply (auto simp: holomorphic_on_open complex_differentiable_def DD_iff_derivative_complex_differentiable)
+    apply (auto simp: holomorphic_on_open complex_differentiable_def DERIV_deriv_iff_complex_differentiable)
     done
-  show "DD (\<lambda>w. f w - g w) z = DD f z - DD g z"
-    apply (rule DERIV_imp_DD [OF DERIV_diff])
+  show "deriv (\<lambda>w. f w - g w) z = deriv f z - deriv g z"
+    apply (rule DERIV_imp_deriv [OF DERIV_diff])
     using s
-    apply (auto simp: holomorphic_on_open complex_differentiable_def DD_iff_derivative_complex_differentiable)
+    apply (auto simp: holomorphic_on_open complex_differentiable_def DERIV_deriv_iff_complex_differentiable)
     done
-  show "DD (\<lambda>w. f w * g w) z = f z * DD g z + DD f z * g z"
-    apply (rule DERIV_imp_DD [OF DERIV_mult'])
+  show "deriv (\<lambda>w. f w * g w) z = f z * deriv g z + deriv f z * g z"
+    apply (rule DERIV_imp_deriv [OF DERIV_mult'])
     using s
-    apply (auto simp: holomorphic_on_open complex_differentiable_def DD_iff_derivative_complex_differentiable)
+    apply (auto simp: holomorphic_on_open complex_differentiable_def DERIV_deriv_iff_complex_differentiable)
     done
 qed
 
 lemma complex_derivative_cmult_at:
-  "f analytic_on {z} \<Longrightarrow>  DD (\<lambda>w. c * f w) z = c * DD f z"
+  "f analytic_on {z} \<Longrightarrow>  deriv (\<lambda>w. c * f w) z = c * deriv f z"
 by (auto simp: complex_derivative_mult_at complex_derivative_const analytic_on_const)
 
 lemma complex_derivative_cmult_right_at:
-  "f analytic_on {z} \<Longrightarrow>  DD (\<lambda>w. f w * c) z = DD f z * c"
+  "f analytic_on {z} \<Longrightarrow>  deriv (\<lambda>w. f w * c) z = deriv f z * c"
 by (auto simp: complex_derivative_mult_at complex_derivative_const analytic_on_const)
-
-text{*A composition lemma for functions of mixed type*}
-lemma has_vector_derivative_real_complex:
-  fixes f :: "complex \<Rightarrow> complex"
-  assumes "DERIV f (of_real a) :> f'"
-  shows "((\<lambda>x. f (of_real x)) has_vector_derivative f') (at a)"
-  using diff_chain_at [OF has_derivative_ident, of f "op * f'" a] assms
-  unfolding has_field_derivative_def has_vector_derivative_def o_def
-  by (auto simp: mult_ac scaleR_conv_of_real)
 
 subsection{*Complex differentiation of sequences and series*}
 
@@ -975,61 +972,13 @@ lemma has_complex_derivative_inverse_strong_x:
   using assms 
   by auto
 
-subsection{*Further useful properties of complex conjugation*}
-
-lemma continuous_within_cnj: "continuous (at z within s) cnj"
-by (metis bounded_linear_cnj linear_continuous_within)
-
-lemma continuous_on_cnj: "continuous_on s cnj"
-by (metis bounded_linear_cnj linear_continuous_on)
-
-subsection {*Some limit theorems about real part of real series etc.*}
-
-lemma real_lim:
-  fixes l::complex
-  assumes "(f ---> l) F" and "~(trivial_limit F)" and "eventually P F" and "\<And>a. P a \<Longrightarrow> f a \<in> \<real>"
-  shows  "l \<in> \<real>"
-proof (rule Lim_in_closed_set[OF closed_complex_Reals _ assms(2,1)])
-  show "eventually (\<lambda>x. f x \<in> \<real>) F"
-    using assms(3, 4) by (auto intro: eventually_mono)
-qed
-
-lemma real_lim_sequentially:
-  fixes l::complex
-  shows "(f ---> l) sequentially \<Longrightarrow> (\<exists>N. \<forall>n\<ge>N. f n \<in> \<real>) \<Longrightarrow> l \<in> \<real>"
-by (rule real_lim [where F=sequentially]) (auto simp: eventually_sequentially)
-
-lemma real_series: 
-  fixes l::complex
-  shows "f sums l \<Longrightarrow> (\<And>n. f n \<in> \<real>) \<Longrightarrow> l \<in> \<real>"
-unfolding sums_def
-by (metis real_lim_sequentially setsum_in_Reals)
-
-
-lemma Lim_null_comparison_Re:
-   "eventually (\<lambda>x. norm(f x) \<le> Re(g x)) F \<Longrightarrow>  (g ---> 0) F \<Longrightarrow> (f ---> 0) F"
-  by (metis Lim_null_comparison complex_Re_zero tendsto_Re)
-
-
-(*MOVE? But not to Finite_Cartesian_Product*)
-lemma sums_vec_nth :
-  assumes "f sums a"
-  shows "(\<lambda>x. f x $ i) sums a $ i"
-using assms unfolding sums_def
-by (auto dest: tendsto_vec_nth [where i=i])
-
-lemma summable_vec_nth :
-  assumes "summable f"
-  shows "summable (\<lambda>x. f x $ i)"
-using assms unfolding summable_def
-by (blast intro: sums_vec_nth)
+subsection {* Taylor on Complex Numbers *}
 
 lemma setsum_Suc_reindex:
   fixes f :: "nat \<Rightarrow> 'a::ab_group_add"
     shows  "setsum f {0..n} = f 0 - f (Suc n) + setsum (\<lambda>i. f (Suc i)) {0..n}"
 by (induct n) auto
 
-text{*A kind of complex Taylor theorem.*}
 lemma complex_taylor:
   assumes s: "convex s" 
       and f: "\<And>i x. x \<in> s \<Longrightarrow> i \<le> n \<Longrightarrow> (f i has_field_derivative f (Suc i) x) (at x within s)"
@@ -1127,6 +1076,7 @@ proof -
 qed
 
 text{* Something more like the traditional MVT for real components.*}
+
 lemma complex_mvt_line:
   assumes "\<And>u. u \<in> closed_segment w z \<Longrightarrow> (f has_field_derivative f'(u)) (at u)"
     shows "\<exists>u. u \<in> open_segment w z \<and> Re(f z) - Re(f w) = Re(f'(u) * (z - w))"
