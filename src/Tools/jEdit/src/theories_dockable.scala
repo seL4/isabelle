@@ -127,7 +127,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
     val label = new Label {
       opaque = false
-      border = BorderFactory.createEmptyBorder()
+      border = BorderFactory.createLineBorder(Color.GRAY, 1)
       xAlignment = Alignment.Leading
 
       override def paintComponent(gfx: Graphics2D)
