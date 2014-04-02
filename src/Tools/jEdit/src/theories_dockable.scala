@@ -16,7 +16,7 @@ import scala.swing.event.{MouseClicked, MouseMoved}
 
 import java.awt.{BorderLayout, Graphics2D, Color, Point, Dimension}
 import javax.swing.{JList, BorderFactory}
-import javax.swing.border.{BevelBorder, SoftBevelBorder}
+import javax.swing.border.{BevelBorder, SoftBevelBorder, EtchedBorder}
 
 import org.gjt.sp.jedit.{View, jEdit}
 
@@ -127,7 +127,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
     val label = new Label {
       opaque = false
-      border = BorderFactory.createLineBorder(Color.GRAY, 1)
+      border = new EtchedBorder(EtchedBorder.RAISED)
       xAlignment = Alignment.Leading
 
       override def paintComponent(gfx: Graphics2D)
