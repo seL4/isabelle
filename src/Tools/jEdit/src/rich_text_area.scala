@@ -447,13 +447,14 @@ class Rich_Text_Area(
             val screen_line = first_line + i
             val chunks = text_area.getChunksOfScreenLine(screen_line)
             if (chunks != null) {
-              val line_start = buffer.getLineStartOffset(line)
-              gfx.clipRect(x0, y + line_height * i, Integer.MAX_VALUE, line_height)
-              val w = paint_chunk_list(rendering, gfx, line_start, chunks, x0, y0).toInt
-              gfx.clipRect(x0 + w.toInt, 0, Integer.MAX_VALUE, Integer.MAX_VALUE)
-              orig_text_painter.paintValidLine(gfx,
-                screen_line, line, start(i), end(i), y + line_height * i)
-              gfx.setClip(clip)
+              try {
+                val line_start = buffer.getLineStartOffset(line)
+                gfx.clipRect(x0, y + line_height * i, Integer.MAX_VALUE, line_height)
+                val w = paint_chunk_list(rendering, gfx, line_start, chunks, x0, y0).toInt
+                gfx.clipRect(x0 + w.toInt, 0, Integer.MAX_VALUE, Integer.MAX_VALUE)
+                orig_text_painter.paintValidLine(gfx,
+                  screen_line, line, start(i), end(i), y + line_height * i)
+              } finally { gfx.setClip(clip) }
             }
           }
           y0 += line_height
@@ -553,12 +554,22 @@ class Rich_Text_Area(
           if (caret_enabled && start <= caret && caret == end - 1) {
             val painter = text_area.getPainter
             val fm = painter.getFontMetrics
-            val metric = JEdit_Lib.pretty_metric(painter)
 
             val offset = caret - text_area.getLineStartOffset(physical_line)
             val x = text_area.offsetToXY(physical_line, offset).x
-            gfx.setColor(caret_color(rendering))
-            gfx.drawRect(x, y, (metric.unit * metric.average).round.toInt - 1, fm.getHeight - 1)
+            val y1 = y + fm.getHeight - (fm.getLeading + 1) - fm.getDescent
+
+            val astr = new AttributedString(" ")
+            astr.addAttribute(TextAttribute.FONT, painter.getFont)
+            astr.addAttribute(TextAttribute.FOREGROUND, caret_color(rendering))
+            astr.addAttribute(TextAttribute.SWAP_COLORS, TextAttribute.SWAP_COLORS_ON)
+
+            val clip = gfx.getClip
+            try {
+              gfx.clipRect(x, y, Integer.MAX_VALUE, painter.getLineHeight)
+              gfx.drawString(astr.getIterator, x, y1)
+            }
+            finally { gfx.setClip(clip) }
           }
         }
       }
