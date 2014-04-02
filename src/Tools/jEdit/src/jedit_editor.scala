@@ -74,9 +74,9 @@ class JEdit_Editor extends Editor[View]
         val node = snapshot.version.nodes(doc_view.model.node_name)
         val caret = snapshot.revert(text_area.getCaretPosition)
         if (caret < buffer.getLength) {
-          val caret_commands = node.command_range(caret)
-          if (caret_commands.hasNext) {
-            val (cmd0, _) = caret_commands.next
+          val caret_command_iterator = node.command_iterator(caret)
+          if (caret_command_iterator.hasNext) {
+            val (cmd0, _) = caret_command_iterator.next
             node.commands.reverse.iterator(cmd0).find(cmd => !cmd.is_ignored)
           }
           else None
@@ -154,11 +154,11 @@ class JEdit_Editor extends Editor[View]
         case None => None
         case Some((node, _)) =>
           val file_name = command.node_name.node
-          val sources =
+          val sources_iterator =
             node.commands.iterator.takeWhile(_ != command).map(_.source) ++
               (if (offset == 0) Iterator.empty
                else Iterator.single(command.source(Text.Range(0, command.decode(offset)))))
-          val (line, column) = ((1, 1) /: sources)(Symbol.advance_line_column)
+          val (line, column) = ((1, 1) /: sources_iterator)(Symbol.advance_line_column)
           Some(new Hyperlink { def follow(view: View) { goto_file(view, file_name, line, column) } })
       }
     }

@@ -359,7 +359,7 @@ class Rich_Text_Area(
             r2 <- r1.try_restrict(chunk_range)
           } yield r2
 
-        val padded_markup =
+        val padded_markup_iterator =
           if (markup.isEmpty)
             Iterator(Text.Info(chunk_range, chunk_color))
           else
@@ -370,7 +370,7 @@ class Rich_Text_Area(
 
         var x1 = x + w
         gfx.setFont(chunk_font)
-        for (Text.Info(range, color) <- padded_markup if !range.is_singularity) {
+        for (Text.Info(range, color) <- padded_markup_iterator if !range.is_singularity) {
           val str = chunk_str.substring(range.start - chunk_offset, range.stop - chunk_offset)
           gfx.setColor(color)
 

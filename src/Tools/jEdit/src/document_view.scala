@@ -224,15 +224,15 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
                     text_area.invalidateScreenLineRange(0, visible_lines)
                   else {
                     val visible_range = JEdit_Lib.visible_range(text_area).get
-                    val visible_cmds =
-                      snapshot.node.command_range(snapshot.revert(visible_range)).map(_._1)
-                    if (visible_cmds.exists(changed.commands)) {
+                    val visible_iterator =
+                      snapshot.node.command_iterator(snapshot.revert(visible_range)).map(_._1)
+                    if (visible_iterator.exists(changed.commands)) {
                       for {
                         line <- (0 until visible_lines).iterator
                         start = text_area.getScreenLineStartOffset(line) if start >= 0
                         end = text_area.getScreenLineEndOffset(line) if end >= 0
                         range = Text.Range(start, end)
-                        line_cmds = snapshot.node.command_range(snapshot.revert(range)).map(_._1)
+                        line_cmds = snapshot.node.command_iterator(snapshot.revert(range)).map(_._1)
                         if line_cmds.exists(changed.commands)
                       } text_area.invalidateScreenLineRange(line, line)
                     }

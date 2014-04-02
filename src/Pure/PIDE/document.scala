@@ -212,7 +212,7 @@ object Document
 
       private def full_range: Text.Range = full_index._2
 
-      def range(i: Text.Offset = 0): Iterator[(Command, Text.Offset)] =
+      def iterator(i: Text.Offset = 0): Iterator[(Command, Text.Offset)] =
       {
         if (!commands.isEmpty && full_range.contains(i)) {
           val (cmd0, start0) = full_index._1(i / Commands.block_size)
@@ -253,11 +253,11 @@ object Document
       if (new_commands eq _commands.commands) this
       else new Node(get_blob, header, perspective, Node.Commands(new_commands))
 
-    def command_range(i: Text.Offset = 0): Iterator[(Command, Text.Offset)] =
-      _commands.range(i)
+    def command_iterator(i: Text.Offset = 0): Iterator[(Command, Text.Offset)] =
+      _commands.iterator(i)
 
-    def command_range(range: Text.Range): Iterator[(Command, Text.Offset)] =
-      command_range(range.start) takeWhile { case (_, start) => start < range.stop }
+    def command_iterator(range: Text.Range): Iterator[(Command, Text.Offset)] =
+      command_iterator(range.start) takeWhile { case (_, start) => start < range.stop }
 
     def command_start(cmd: Command): Option[Text.Offset] =
       Node.Commands.starts(commands.iterator).find(_._1 == cmd).map(_._2)
@@ -733,14 +733,14 @@ object Document
           status: Boolean = false): List[Text.Info[A]] =
         {
           val former_range = revert(range)
-          val (file_name, command_range_iterator) =
+          val (file_name, command_iterator) =
             load_commands match {
               case command :: _ => (node_name.node, Iterator((command, 0)))
-              case _ => ("", node.command_range(former_range))
+              case _ => ("", node.command_iterator(former_range))
             }
           val markup_index = Command.Markup_Index(status, file_name)
           (for {
-            (command, command_start) <- command_range_iterator
+            (command, command_start) <- command_iterator
             chunk <- command.chunks.get(file_name).iterator
             states = state.command_states(version, command)
             res = result(states)

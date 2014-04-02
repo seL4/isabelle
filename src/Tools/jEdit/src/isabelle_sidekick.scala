@@ -158,7 +158,7 @@ class Isabelle_Sidekick_Markup extends Isabelle_Sidekick("isabelle-markup")
     opt_snapshot match {
       case Some(snapshot) =>
         val root = data.root
-        for ((command, command_start) <- snapshot.node.command_range() if !stopped) {
+        for ((command, command_start) <- snapshot.node.command_iterator() if !stopped) {
           val markup =
             snapshot.state.command_markup(
               snapshot.version, command, Command.Markup_Index.markup,

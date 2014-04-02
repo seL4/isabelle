@@ -141,9 +141,9 @@ object Thy_Syntax
       }
 
       val commands =
-        if (overlays.is_empty) node.command_range(perspective.range)
-        else node.command_range()
-      check_ranges(perspective.ranges, commands.toStream)
+        (if (overlays.is_empty) node.command_iterator(perspective.range)
+         else node.command_iterator()).toStream
+      check_ranges(perspective.ranges, commands)
       (Command.Perspective(visible.toList), Command.Perspective(visible_overlay.toList))
     }
   }
