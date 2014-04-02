@@ -85,6 +85,7 @@ class Pretty_Text_Area(
     getPainter.setFractionalFontMetricsEnabled(jEdit.getBooleanProperty("view.fracFontMetrics"))
     getPainter.setStyles(
       SyntaxUtilities.loadStyles(current_font_info.family, current_font_info.size.round))
+		getPainter.setLineExtraSpacing(jEdit.getIntegerProperty("options.textarea.lineSpacing", 0))
 
     val fold_line_style = new Array[SyntaxStyle](4)
     for (i <- 0 to 3) {
