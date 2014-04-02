@@ -599,7 +599,7 @@ fun uncheck_case ctxt ts =
   then map (fn t => if can Term.type_of t then strip_case_full ctxt true t else t) ts
   else ts;
 
-val _ = Context.>>  (Syntax_Phases.term_uncheck 1 "case" uncheck_case);
+val _ = Context.>> (Syntax_Phases.term_uncheck 1 "case" uncheck_case);
 
 
 (* outer syntax commands *)
