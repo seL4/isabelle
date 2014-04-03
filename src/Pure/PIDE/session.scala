@@ -51,8 +51,6 @@ object Session
 
   /* protocol handlers */
 
-  type Prover = Isabelle_Process with Protocol
-
   abstract class Protocol_Handler
   {
     def stop(prover: Prover): Unit = {}
@@ -258,7 +256,7 @@ class Session(val resources: Resources)
 
   /* actor messages */
 
-  private case class Start(args: List[String])
+  private case class Start(name: String, args: List[String])
   private case class Cancel_Exec(exec_id: Document_ID.Exec)
   private case class Protocol_Command(name: String, args: List[String])
   private case class Messages(msgs: List[Prover.Message])
@@ -307,7 +305,7 @@ class Session(val resources: Resources)
       def cancel() { timer.cancel() }
     }
 
-    var prover: Option[Session.Prover] = None
+    var prover: Option[Prover] = None
 
 
     /* delayed command changes */
@@ -505,10 +503,10 @@ class Session(val resources: Resources)
       receiveWithin(delay_commands_changed.flush_timeout) {
         case TIMEOUT => delay_commands_changed.flush()
 
-        case Start(args) if prover.isEmpty =>
+        case Start(name, args) if prover.isEmpty =>
           if (phase == Session.Inactive || phase == Session.Failed) {
             phase = Session.Startup
-            prover = Some(new Isabelle_Process(receiver.invoke _, args) with Protocol)
+            prover = Some(resources.start_prover(receiver.invoke _, name, args))
           }
 
         case Stop =>
@@ -572,9 +570,9 @@ class Session(val resources: Resources)
 
   /* actions */
 
-  def start(args: List[String])
+  def start(name: String, args: List[String])
   {
-    session_actor ! Start(args)
+    session_actor ! Start(name, args)
   }
 
   def stop()

@@ -8,11 +8,11 @@ structure Protocol: sig end =
 struct
 
 val _ =
-  Isabelle_Process.protocol_command "Isabelle_Process.echo"
+  Isabelle_Process.protocol_command "Prover.echo"
     (fn args => List.app writeln args);
 
 val _ =
-  Isabelle_Process.protocol_command "Isabelle_Process.options"
+  Isabelle_Process.protocol_command "Prover.options"
     (fn [options_yxml] =>
       let val options = Options.decode (YXML.parse_body options_yxml) in
         Options.set_default options;

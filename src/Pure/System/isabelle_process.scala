@@ -17,23 +17,18 @@ import Actor._
 
 
 class Isabelle_Process(
-    receiver: Prover.Message => Unit = Console.println(_),
-    arguments: List[String] = Nil)
+  receiver: Prover.Message => Unit = Console.println(_),
+  prover_args: List[String] = Nil)
 {
-  /* text representation */
+  /* text and tree data */
 
   def encode(s: String): String = Symbol.encode(s)
   def decode(s: String): String = Symbol.decode(s)
 
-  object Encode
-  {
-    val string: XML.Encode.T[String] = (s => XML.Encode.string(encode(s)))
-  }
+  val xml_cache = new XML.Cache()
 
 
   /* output */
-
-  val xml_cache = new XML.Cache()
 
   private def system_output(text: String)
   {
@@ -76,21 +71,21 @@ class Isabelle_Process(
   @volatile private var command_input: (Thread, Actor) = null
 
 
-  /** process manager **/
 
-  def command_line(channel: System_Channel, args: List[String]): List[String] =
-    Isabelle_System.getenv_strict("ISABELLE_PROCESS") :: (channel.isabelle_args ::: args)
+  /** process manager **/
 
   private val system_channel = System_Channel()
 
   private val process =
     try {
-      val cmdline = command_line(system_channel, arguments)
+      val cmdline =
+        Isabelle_System.getenv_strict("ISABELLE_PROCESS") ::
+          (system_channel.isabelle_args ::: prover_args)
       new Isabelle_System.Managed_Process(null, null, false, cmdline: _*)
     }
     catch { case e: IOException => system_channel.accepted(); throw(e) }
 
-  val (_, process_result) =
+  private val (_, process_result) =
     Simple_Thread.future("process_result") { process.join }
 
   private def terminate_process()
@@ -322,17 +317,15 @@ class Isabelle_Process(
   }
 
 
-  /** main methods **/
 
-  def protocol_command_raw(name: String, args: Bytes*): Unit =
+  /** protocol commands **/
+
+  def protocol_command_bytes(name: String, args: Bytes*): Unit =
     command_input._2 ! Input_Chunks(Bytes(name) :: args.toList)
 
   def protocol_command(name: String, args: String*)
   {
     receiver(new Prover.Input(name, args.toList))
-    protocol_command_raw(name, args.map(Bytes(_)): _*)
+    protocol_command_bytes(name, args.map(Bytes(_)): _*)
   }
-
-  def options(opts: Options): Unit =
-    protocol_command("Isabelle_Process.options", YXML.string_of_body(opts.encode))
 }

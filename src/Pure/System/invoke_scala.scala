@@ -72,24 +72,22 @@ class Invoke_Scala extends Session.Protocol_Handler
 {
   private var futures = Map.empty[String, java.util.concurrent.Future[Unit]]
 
-  private def fulfill(prover: Session.Prover,
-    id: String, tag: Invoke_Scala.Tag.Value, res: String): Unit = synchronized
-  {
-    if (futures.isDefinedAt(id)) {
-      prover.protocol_command("Invoke_Scala.fulfill", id, tag.toString, res)
-      futures -= id
+  private def fulfill(prover: Prover, id: String, tag: Invoke_Scala.Tag.Value, res: String): Unit =
+    synchronized
+    {
+      if (futures.isDefinedAt(id)) {
+        prover.protocol_command("Invoke_Scala.fulfill", id, tag.toString, res)
+        futures -= id
+      }
     }
-  }
 
-  private def cancel(prover: Session.Prover,
-    id: String, future: java.util.concurrent.Future[Unit])
+  private def cancel(prover: Prover, id: String, future: java.util.concurrent.Future[Unit])
   {
     future.cancel(true)
     fulfill(prover, id, Invoke_Scala.Tag.INTERRUPT, "")
   }
 
-  private def invoke_scala(
-    prover: Session.Prover, msg: Prover.Protocol_Output): Boolean = synchronized
+  private def invoke_scala(prover: Prover, msg: Prover.Protocol_Output): Boolean = synchronized
   {
     msg.properties match {
       case Markup.Invoke_Scala(name, id) =>
@@ -104,8 +102,7 @@ class Invoke_Scala extends Session.Protocol_Handler
     }
   }
 
-  private def cancel_scala(
-    prover: Session.Prover, msg: Prover.Protocol_Output): Boolean = synchronized
+  private def cancel_scala(prover: Prover, msg: Prover.Protocol_Output): Boolean = synchronized
   {
     msg.properties match {
       case Markup.Cancel_Scala(id) =>
@@ -118,7 +115,7 @@ class Invoke_Scala extends Session.Protocol_Handler
     }
   }
 
-  override def stop(prover: Session.Prover): Unit = synchronized
+  override def stop(prover: Prover): Unit = synchronized
   {
     for ((id, future) <- futures) cancel(prover, id, future)
     futures = Map.empty

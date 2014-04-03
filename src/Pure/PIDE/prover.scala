@@ -56,3 +56,44 @@ object Prover
   }
 }
 
+trait Prover
+{
+  /* text and tree data */
+
+  def encode(s: String): String
+  def decode(s: String): String
+
+  object Encode
+  {
+    val string: XML.Encode.T[String] = (s => XML.Encode.string(encode(s)))
+  }
+
+  def xml_cache: XML.Cache
+
+
+  /* process management */
+
+  def join(): Unit
+  def terminate(): Unit
+
+  def protocol_command_bytes(name: String, args: Bytes*): Unit
+  def protocol_command(name: String, args: String*): Unit
+
+
+  /* PIDE protocol commands */
+
+  def options(opts: Options): Unit
+
+  def define_blob(digest: SHA1.Digest, bytes: Bytes): Unit
+  def define_command(command: Command): Unit
+
+  def discontinue_execution(): Unit
+  def cancel_exec(id: Document_ID.Exec): Unit
+
+  def update(old_id: Document_ID.Version, new_id: Document_ID.Version,
+    edits: List[Document.Edit_Command]): Unit
+  def remove_versions(versions: List[Document.Version]): Unit
+
+  def dialog_result(serial: Long, result: String): Unit
+}
+

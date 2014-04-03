@@ -325,15 +325,18 @@ object Protocol
 }
 
 
-trait Protocol extends Isabelle_Process
+trait Protocol extends Prover
 {
-  /* inlined files */
+  /* options */
+
+  def options(opts: Options): Unit =
+    protocol_command("Prover.options", YXML.string_of_body(opts.encode))
+
+
+  /* interned items */
 
   def define_blob(digest: SHA1.Digest, bytes: Bytes): Unit =
-    protocol_command_raw("Document.define_blob", Bytes(digest.toString), bytes)
-
-
-  /* commands */
+    protocol_command_bytes("Document.define_blob", Bytes(digest.toString), bytes)
 
   def define_command(command: Command): Unit =
   {

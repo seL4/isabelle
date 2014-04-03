@@ -101,5 +101,11 @@ class Resources(val loaded_theories: Set[String] = Set.empty, val base_syntax: O
     Thy_Syntax.parse_change(this, reparse_limit, previous, doc_blobs, edits)
 
   def commit(change: Session.Change) { }
+
+
+  /* prover process */
+
+  def start_prover(receiver: Prover.Message => Unit, name: String, args: List[String]): Prover =
+    new Isabelle_Process(receiver, args) with Protocol
 }
 
