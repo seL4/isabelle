@@ -31,12 +31,10 @@ class Thy_Info(resources: Resources)
     name: Document.Node.Name,
     header: Document.Node.Header)
   {
-    def load_files(syntax: Outer_Syntax): List[String] =
+    def loaded_files(syntax: Prover.Syntax): List[String] =
     {
       val string = resources.with_thy_text(name, _.toString)
-      if (resources.body_files_test(syntax, string))
-        resources.body_files(syntax, string)
-      else Nil
+      resources.loaded_files(syntax, string)
     }
   }
 
@@ -82,17 +80,17 @@ class Thy_Info(resources: Resources)
       header_errors ::: import_errors
     }
 
-    lazy val syntax: Outer_Syntax = resources.base_syntax.add_keywords(keywords)
+    lazy val syntax: Prover.Syntax = resources.base_syntax.add_keywords(keywords)
 
     def loaded_theories: Set[String] =
       (resources.loaded_theories /: rev_deps) { case (loaded, dep) => loaded + dep.name.theory }
 
-    def load_files: List[Path] =
+    def loaded_files: List[Path] =
     {
       val dep_files =
         rev_deps.par.map(dep =>
           Exn.capture {
-            dep.load_files(syntax).map(a => Path.explode(dep.name.master_dir) + Path.explode(a))
+            dep.loaded_files(syntax).map(a => Path.explode(dep.name.master_dir) + Path.explode(a))
           }).toList
       ((Nil: List[Path]) /: dep_files) {
         case (acc_files, files) => Exn.release(files) ::: acc_files

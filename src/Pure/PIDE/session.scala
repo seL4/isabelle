@@ -51,17 +51,15 @@ object Session
 
   /* protocol handlers */
 
-  type Prover = Isabelle_Process with Protocol
-
   abstract class Protocol_Handler
   {
     def stop(prover: Prover): Unit = {}
-    val functions: Map[String, (Prover, Isabelle_Process.Protocol_Output) => Boolean]
+    val functions: Map[String, (Prover, Prover.Protocol_Output) => Boolean]
   }
 
   class Protocol_Handlers(
     handlers: Map[String, Session.Protocol_Handler] = Map.empty,
-    functions: Map[String, Isabelle_Process.Protocol_Output => Boolean] = Map.empty)
+    functions: Map[String, Prover.Protocol_Output => Boolean] = Map.empty)
   {
     def get(name: String): Option[Protocol_Handler] = handlers.get(name)
 
@@ -81,7 +79,7 @@ object Session
           val new_handler = Class.forName(name).newInstance.asInstanceOf[Protocol_Handler]
           val new_functions =
             for ((a, f) <- new_handler.functions.toList) yield
-              (a, (msg: Isabelle_Process.Protocol_Output) => f(prover, msg))
+              (a, (msg: Prover.Protocol_Output) => f(prover, msg))
 
           val dups = for ((a, _) <- new_functions if functions1.isDefinedAt(a)) yield a
           if (!dups.isEmpty) error("Duplicate protocol functions: " + commas_quote(dups))
@@ -98,7 +96,7 @@ object Session
       new Protocol_Handlers(handlers2, functions2)
     }
 
-    def invoke(msg: Isabelle_Process.Protocol_Output): Boolean =
+    def invoke(msg: Prover.Protocol_Output): Boolean =
       msg.properties match {
         case Markup.Function(a) if functions.isDefinedAt(a) =>
           try { functions(a)(msg) }
@@ -146,9 +144,9 @@ class Session(val resources: Resources)
   val raw_edits = new Event_Bus[Session.Raw_Edits]
   val commands_changed = new Event_Bus[Session.Commands_Changed]
   val phase_changed = new Event_Bus[Session.Phase]
-  val syslog_messages = new Event_Bus[Isabelle_Process.Output]
-  val raw_output_messages = new Event_Bus[Isabelle_Process.Output]
-  val all_messages = new Event_Bus[Isabelle_Process.Message]  // potential bottle-neck
+  val syslog_messages = new Event_Bus[Prover.Output]
+  val raw_output_messages = new Event_Bus[Prover.Output]
+  val all_messages = new Event_Bus[Prover.Message]  // potential bottle-neck
   val trace_events = new Event_Bus[Simplifier_Trace.Event.type]
 
 
@@ -224,11 +222,10 @@ class Session(val resources: Resources)
   private val global_state = Volatile(Document.State.init)
   def current_state(): Document.State = global_state()
 
-  def recent_syntax(): Outer_Syntax =
+  def recent_syntax(): Prover.Syntax =
   {
     val version = current_state().recent_finished.version.get_finished
-    if (version.is_init) resources.base_syntax
-    else version.syntax
+    version.syntax getOrElse resources.base_syntax
   }
 
   def snapshot(name: Document.Node.Name = Document.Node.Name.empty,
@@ -258,10 +255,10 @@ class Session(val resources: Resources)
 
   /* actor messages */
 
-  private case class Start(args: List[String])
+  private case class Start(name: String, args: List[String])
   private case class Cancel_Exec(exec_id: Document_ID.Exec)
   private case class Protocol_Command(name: String, args: List[String])
-  private case class Messages(msgs: List[Isabelle_Process.Message])
+  private case class Messages(msgs: List[Prover.Message])
   private case class Update_Options(options: Options)
 
   private val (_, session_actor) = Simple_Thread.actor("session_actor", daemon = true)
@@ -275,22 +272,22 @@ class Session(val resources: Resources)
 
     object receiver
     {
-      private var buffer = new mutable.ListBuffer[Isabelle_Process.Message]
+      private var buffer = new mutable.ListBuffer[Prover.Message]
 
       private def flush(): Unit = synchronized {
         if (!buffer.isEmpty) {
           val msgs = buffer.toList
           this_actor ! Messages(msgs)
-          buffer = new mutable.ListBuffer[Isabelle_Process.Message]
+          buffer = new mutable.ListBuffer[Prover.Message]
         }
       }
-      def invoke(msg: Isabelle_Process.Message): Unit = synchronized {
+      def invoke(msg: Prover.Message): Unit = synchronized {
         msg match {
-          case _: Isabelle_Process.Input =>
+          case _: Prover.Input =>
             buffer += msg
-          case output: Isabelle_Process.Protocol_Output if output.properties == Markup.Flush =>
+          case output: Prover.Protocol_Output if output.properties == Markup.Flush =>
             flush()
-          case output: Isabelle_Process.Output =>
+          case output: Prover.Output =>
             buffer += msg
             if (output.is_syslog)
               syslog >> (queue =>
@@ -307,7 +304,7 @@ class Session(val resources: Resources)
       def cancel() { timer.cancel() }
     }
 
-    var prover: Option[Session.Prover] = None
+    var prover: Option[Prover] = None
 
 
     /* delayed command changes */
@@ -410,7 +407,7 @@ class Session(val resources: Resources)
 
     /* prover output */
 
-    def handle_output(output: Isabelle_Process.Output)
+    def handle_output(output: Prover.Output)
     //{{{
     {
       def bad_output()
@@ -431,7 +428,7 @@ class Session(val resources: Resources)
       }
 
       output match {
-        case msg: Isabelle_Process.Protocol_Output =>
+        case msg: Prover.Protocol_Output =>
           val handled = _protocol_handlers.invoke(msg)
           if (!handled) {
             msg.properties match {
@@ -505,10 +502,10 @@ class Session(val resources: Resources)
       receiveWithin(delay_commands_changed.flush_timeout) {
         case TIMEOUT => delay_commands_changed.flush()
 
-        case Start(args) if prover.isEmpty =>
+        case Start(name, args) if prover.isEmpty =>
           if (phase == Session.Inactive || phase == Session.Failed) {
             phase = Session.Startup
-            prover = Some(new Isabelle_Process(receiver.invoke _, args) with Protocol)
+            prover = Some(resources.start_prover(receiver.invoke _, name, args))
           }
 
         case Stop =>
@@ -541,17 +538,17 @@ class Session(val resources: Resources)
 
         case Session.Dialog_Result(id, serial, result) if prover.isDefined =>
           prover.get.dialog_result(serial, result)
-          handle_output(new Isabelle_Process.Output(Protocol.Dialog_Result(id, serial, result)))
+          handle_output(new Prover.Output(Protocol.Dialog_Result(id, serial, result)))
 
         case Protocol_Command(name, args) if prover.isDefined =>
           prover.get.protocol_command(name, args:_*)
 
         case Messages(msgs) =>
           msgs foreach {
-            case input: Isabelle_Process.Input =>
+            case input: Prover.Input =>
               all_messages.event(input)
 
-            case output: Isabelle_Process.Output =>
+            case output: Prover.Output =>
               if (output.is_stdout || output.is_stderr) raw_output_messages.event(output)
               else handle_output(output)
               if (output.is_syslog) syslog_messages.event(output)
@@ -572,9 +569,9 @@ class Session(val resources: Resources)
 
   /* actions */
 
-  def start(args: List[String])
+  def start(name: String, args: List[String])
   {
-    session_actor ! Start(args)
+    session_actor ! Start(name, args)
   }
 
   def stop()

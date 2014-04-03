@@ -44,7 +44,7 @@ final class Outer_Syntax private(
   lexicon: Scan.Lexicon = Scan.Lexicon.empty,
   val completion: Completion = Completion.empty,
   val language_context: Completion.Language_Context = Completion.Language_Context.outer,
-  val has_tokens: Boolean = true)
+  val has_tokens: Boolean = true) extends Prover.Syntax
 {
   override def toString: String =
     (for ((name, (kind, files)) <- keywords) yield {
@@ -65,6 +65,9 @@ final class Outer_Syntax private(
 
   val load_commands: List[(String, List[String])] =
     (for ((name, (Keyword.THY_LOAD, files)) <- keywords.iterator) yield (name, files)).toList
+
+  def load_commands_in(text: String): Boolean =
+    load_commands.exists({ case (cmd, _) => text.containsSlice(cmd) })
 
   def + (name: String, kind: (String, List[String]), replace: Option[String]): Outer_Syntax =
   {

@@ -109,7 +109,18 @@ object Command
     results: Results = Results.empty,
     markups: Markups = Markups.empty)
   {
-    lazy val protocol_status: Protocol.Status = Protocol.Status.make(status.iterator)
+    lazy val protocol_status: Protocol.Status =
+    {
+      val warnings =
+        if (results.iterator.exists(p => Protocol.is_warning(p._2)))
+          List(Markup(Markup.WARNING, Nil))
+        else Nil
+      val errors =
+        if (results.iterator.exists(p => Protocol.is_error(p._2)))
+          List(Markup(Markup.ERROR, Nil))
+        else Nil
+      Protocol.Status.make((warnings ::: errors ::: status).iterator)
+    }
 
     def markup(index: Markup_Index): Markup_Tree = markups(index)
 
@@ -126,7 +137,7 @@ object Command
     private def add_markup(status: Boolean, file_name: String, m: Text.Markup): State =
     {
       val markups1 =
-        if (status || Protocol.status_elements(m.info.name))
+        if (status || Protocol.liberal_status_elements(m.info.name))
           markups.add(Markup_Index(true, file_name), m)
         else markups
       copy(markups = markups1.add(Markup_Index(false, file_name), m))

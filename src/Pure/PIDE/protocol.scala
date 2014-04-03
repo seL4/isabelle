@@ -47,6 +47,7 @@ object Protocol
     {
       var touched = false
       var accepted = false
+      var warned = false
       var failed = false
       var forks = 0
       var runs = 0
@@ -57,11 +58,12 @@ object Protocol
           case Markup.JOINED => forks -= 1
           case Markup.RUNNING => touched = true; runs += 1
           case Markup.FINISHED => runs -= 1
-          case Markup.FAILED => failed = true
+          case Markup.WARNING => warned = true
+          case Markup.FAILED | Markup.ERROR => failed = true
           case _ =>
         }
       }
-      Status(touched, accepted, failed, forks, runs)
+      Status(touched, accepted, warned, failed, forks, runs)
     }
 
     val empty = make(Iterator.empty)
@@ -77,26 +79,33 @@ object Protocol
   sealed case class Status(
     private val touched: Boolean,
     private val accepted: Boolean,
+    private val warned: Boolean,
     private val failed: Boolean,
     forks: Int,
     runs: Int)
   {
     def + (that: Status): Status =
-      Status(touched || that.touched, accepted || that.accepted, failed || that.failed,
-        forks + that.forks, runs + that.runs)
+      Status(
+        touched || that.touched,
+        accepted || that.accepted,
+        warned || that.warned,
+        failed || that.failed,
+        forks + that.forks,
+        runs + that.runs)
 
     def is_unprocessed: Boolean = accepted && !failed && (!touched || (forks != 0 && runs == 0))
     def is_running: Boolean = runs != 0
     def is_finished: Boolean = !failed && touched && forks == 0 && runs == 0
+    def is_warned: Boolean = is_finished && warned
     def is_failed: Boolean = failed
   }
 
-  val command_status_elements =
+  val proper_status_elements =
     Document.Elements(Markup.ACCEPTED, Markup.FORKED, Markup.JOINED, Markup.RUNNING,
       Markup.FINISHED, Markup.FAILED)
 
-  val status_elements =
-    command_status_elements + Markup.WARNING + Markup.ERROR
+  val liberal_status_elements =
+    proper_status_elements + Markup.WARNING + Markup.ERROR
 
 
   /* command timing */
@@ -136,10 +145,8 @@ object Protocol
       val status = Status.merge(states.iterator.map(_.protocol_status))
 
       if (status.is_running) running += 1
-      else if (status.is_finished) {
-        val warning = states.exists(st => st.results.iterator.exists(p => is_warning(p._2)))
-        if (warning) warned += 1 else finished += 1
-      }
+      else if (status.is_warned) warned += 1
+      else if (status.is_finished) finished += 1
       else if (status.is_failed) failed += 1
       else unprocessed += 1
     }
@@ -325,15 +332,18 @@ object Protocol
 }
 
 
-trait Protocol extends Isabelle_Process
+trait Protocol extends Prover
 {
-  /* inlined files */
+  /* options */
+
+  def options(opts: Options): Unit =
+    protocol_command("Prover.options", YXML.string_of_body(opts.encode))
+
+
+  /* interned items */
 
   def define_blob(digest: SHA1.Digest, bytes: Bytes): Unit =
-    protocol_command_raw("Document.define_blob", Bytes(digest.toString), bytes)
-
-
-  /* commands */
+    protocol_command_bytes("Document.define_blob", Bytes(digest.toString), bytes)
 
   def define_command(command: Command): Unit =
   {

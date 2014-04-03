@@ -153,10 +153,10 @@ object Thy_Syntax
   /** header edits: structure and outer syntax **/
 
   private def header_edits(
-    base_syntax: Outer_Syntax,
+    resources: Resources,
     previous: Document.Version,
     edits: List[Document.Edit_Text]):
-    (Outer_Syntax, Boolean, Boolean, List[Document.Node.Name], Document.Nodes,
+    (Prover.Syntax, Boolean, Boolean, List[Document.Node.Name], Document.Nodes,
       List[Document.Edit_Command]) =
   {
     var updated_imports = false
@@ -180,14 +180,16 @@ object Thy_Syntax
     }
 
     val (syntax, syntax_changed) =
-      if (previous.is_init || updated_keywords) {
-        val syntax =
-          (base_syntax /: nodes.iterator) {
-            case (syn, (_, node)) => syn.add_keywords(node.header.keywords)
-          }
-        (syntax, true)
+      previous.syntax match {
+        case Some(syntax) if !updated_keywords =>
+          (syntax, false)
+        case _ =>
+          val syntax =
+            (resources.base_syntax /: nodes.iterator) {
+              case (syn, (_, node)) => syn.add_keywords(node.header.keywords)
+            }
+          (syntax, true)
       }
-      else (previous.syntax, false)
 
     val reparse =
       if (updated_imports || updated_keywords)
@@ -245,7 +247,7 @@ object Thy_Syntax
     }
   }
 
-  def span_files(syntax: Outer_Syntax, span: List[Token]): List[String] =
+  def span_files(syntax: Prover.Syntax, span: List[Token]): List[String] =
     syntax.load(span) match {
       case Some(exts) =>
         find_file(span) match {
@@ -259,7 +261,7 @@ object Thy_Syntax
 
   def resolve_files(
       resources: Resources,
-      syntax: Outer_Syntax,
+      syntax: Prover.Syntax,
       node_name: Document.Node.Name,
       span: List[Token],
       get_blob: Document.Node.Name => Option[Document.Blob])
@@ -291,7 +293,7 @@ object Thy_Syntax
 
   private def reparse_spans(
     resources: Resources,
-    syntax: Outer_Syntax,
+    syntax: Prover.Syntax,
     get_blob: Document.Node.Name => Option[Document.Blob],
     name: Document.Node.Name,
     commands: Linear_Set[Command],
@@ -326,7 +328,7 @@ object Thy_Syntax
   // FIXME somewhat slow
   private def recover_spans(
     resources: Resources,
-    syntax: Outer_Syntax,
+    syntax: Prover.Syntax,
     get_blob: Document.Node.Name => Option[Document.Blob],
     name: Document.Node.Name,
     perspective: Command.Perspective,
@@ -354,7 +356,7 @@ object Thy_Syntax
 
   private def consolidate_spans(
     resources: Resources,
-    syntax: Outer_Syntax,
+    syntax: Prover.Syntax,
     get_blob: Document.Node.Name => Option[Document.Blob],
     reparse_limit: Int,
     name: Document.Node.Name,
@@ -398,7 +400,7 @@ object Thy_Syntax
 
   private def text_edit(
     resources: Resources,
-    syntax: Outer_Syntax,
+    syntax: Prover.Syntax,
     get_blob: Document.Node.Name => Option[Document.Blob],
     reparse_limit: Int,
     node: Document.Node, edit: Document.Edit_Text): Document.Node =
@@ -443,10 +445,10 @@ object Thy_Syntax
       doc_blobs.get(name) orElse previous.nodes(name).get_blob
 
     val (syntax, syntax_changed, deps_changed, reparse0, nodes0, doc_edits0) =
-      header_edits(resources.base_syntax, previous, edits)
+      header_edits(resources, previous, edits)
 
     val (doc_edits, version) =
-      if (edits.isEmpty) (Nil, Document.Version.make(syntax, previous.nodes))
+      if (edits.isEmpty) (Nil, Document.Version.make(Some(syntax), previous.nodes))
       else {
         val reparse =
           (reparse0 /: nodes0.iterator)({
@@ -485,7 +487,7 @@ object Thy_Syntax
 
             nodes += (name -> node2)
         }
-        (doc_edits.toList, Document.Version.make(syntax, nodes))
+        (doc_edits.toList, Document.Version.make(Some(syntax), nodes))
       }
 
     Session.Change(previous, doc_blobs, syntax_changed, deps_changed, doc_edits, version)

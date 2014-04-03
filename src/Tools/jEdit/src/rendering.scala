@@ -182,7 +182,7 @@ object Rendering
     Document.Elements(Markup.SEPARATOR)
 
   private val background_elements =
-    Protocol.command_status_elements + Markup.WRITELN_MESSAGE +
+    Protocol.proper_status_elements + Markup.WRITELN_MESSAGE +
       Markup.TRACING_MESSAGE + Markup.WARNING_MESSAGE +
       Markup.ERROR_MESSAGE + Markup.BAD + Markup.INTENSIFY ++
       active_elements
@@ -292,26 +292,18 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     if (snapshot.is_outdated) None
     else {
       val results =
-        snapshot.cumulate[(List[Markup], Int)](
-          range, (Nil, 0), Protocol.status_elements, _ =>
+        snapshot.cumulate[List[Markup]](range, Nil, Protocol.liberal_status_elements, _ =>
           {
-            case ((status, pri), Text.Info(_, elem)) =>
-              if (Protocol.command_status_elements(elem.name))
-                Some((elem.markup :: status), pri)
-              else
-                Some((status, pri max Rendering.message_pri(elem.name)))
+            case (status, Text.Info(_, elem)) => Some(elem.markup :: status)
           }, status = true)
       if (results.isEmpty) None
       else {
-        val status =
-          Protocol.Status.make(results.iterator.flatMap(info => info.info._1.iterator))
-        val pri = (0 /: results.iterator.map(info => info.info._2))(_ max _)
+        val status = Protocol.Status.make(results.iterator.flatMap(_.info))
 
         if (status.is_running) Some(running_color)
-        else if (pri == Rendering.warning_pri) Some(warning_color)
-        else if (pri == Rendering.error_pri) Some(error_color)
-        else if (status.is_unprocessed) Some(unprocessed_color)
+        else if (status.is_warned) Some(warning_color)
         else if (status.is_failed) Some(error_color)
+        else if (status.is_unprocessed) Some(unprocessed_color)
         else None
       }
     }
@@ -606,7 +598,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
             command_states =>
               {
                 case (((status, color), Text.Info(_, XML.Elem(markup, _))))
-                if !status.isEmpty && Protocol.command_status_elements(markup.name) =>
+                if !status.isEmpty && Protocol.proper_status_elements(markup.name) =>
                   Some((markup :: status, color))
                 case (_, Text.Info(_, XML.Elem(Markup(Markup.BAD, _), _))) =>
                   Some((Nil, Some(bad_color)))

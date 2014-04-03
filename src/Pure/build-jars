@@ -52,6 +52,7 @@ declare -a SOURCES=(
   PIDE/markup.scala
   PIDE/markup_tree.scala
   PIDE/protocol.scala
+  PIDE/prover.scala
   PIDE/query_operation.scala
   PIDE/resources.scala
   PIDE/session.scala

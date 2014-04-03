@@ -16,86 +16,28 @@ import scala.actors.Actor
 import Actor._
 
 
-object Isabelle_Process
-{
-  /* messages */
-
-  sealed abstract class Message
-
-  class Input(name: String, args: List[String]) extends Message
-  {
-    override def toString: String =
-      XML.Elem(Markup(Markup.PROVER_COMMAND, List((Markup.NAME, name))),
-        args.map(s =>
-          List(XML.Text("\n"), XML.elem(Markup.PROVER_ARG, YXML.parse_body(s)))).flatten).toString
-  }
-
-  class Output(val message: XML.Elem) extends Message
-  {
-    def kind: String = message.markup.name
-    def properties: Properties.T = message.markup.properties
-    def body: XML.Body = message.body
-
-    def is_init = kind == Markup.INIT
-    def is_exit = kind == Markup.EXIT
-    def is_stdout = kind == Markup.STDOUT
-    def is_stderr = kind == Markup.STDERR
-    def is_system = kind == Markup.SYSTEM
-    def is_status = kind == Markup.STATUS
-    def is_report = kind == Markup.REPORT
-    def is_syslog = is_init || is_exit || is_system || is_stderr
-
-    override def toString: String =
-    {
-      val res =
-        if (is_status || is_report) message.body.map(_.toString).mkString
-        else Pretty.string_of(message.body)
-      if (properties.isEmpty)
-        kind.toString + " [[" + res + "]]"
-      else
-        kind.toString + " " +
-          (for ((x, y) <- properties) yield x + "=" + y).mkString("{", ",", "}") + " [[" + res + "]]"
-    }
-  }
-
-  class Protocol_Output(props: Properties.T, val bytes: Bytes)
-    extends Output(XML.Elem(Markup(Markup.PROTOCOL, props), Nil))
-  {
-    lazy val text: String = bytes.toString
-  }
-}
-
-
 class Isabelle_Process(
-    receiver: Isabelle_Process.Message => Unit = Console.println(_),
-    arguments: List[String] = Nil)
+  receiver: Prover.Message => Unit = Console.println(_),
+  prover_args: List[String] = Nil)
 {
-  import Isabelle_Process._
-
-
-  /* text representation */
+  /* text and tree data */
 
   def encode(s: String): String = Symbol.encode(s)
   def decode(s: String): String = Symbol.decode(s)
 
-  object Encode
-  {
-    val string: XML.Encode.T[String] = (s => XML.Encode.string(encode(s)))
-  }
+  val xml_cache = new XML.Cache()
 
 
   /* output */
 
-  val xml_cache = new XML.Cache()
-
   private def system_output(text: String)
   {
-    receiver(new Output(XML.Elem(Markup(Markup.SYSTEM, Nil), List(XML.Text(text)))))
+    receiver(new Prover.Output(XML.Elem(Markup(Markup.SYSTEM, Nil), List(XML.Text(text)))))
   }
 
   private def protocol_output(props: Properties.T, bytes: Bytes)
   {
-    receiver(new Protocol_Output(props, bytes))
+    receiver(new Prover.Protocol_Output(props, bytes))
   }
 
   private def output(kind: String, props: Properties.T, body: XML.Body)
@@ -104,7 +46,7 @@ class Isabelle_Process(
 
     val main = XML.Elem(Markup(kind, props), Protocol.clean_message(body))
     val reports = Protocol.message_reports(props, body)
-    for (msg <- main :: reports) receiver(new Output(xml_cache.elem(msg)))
+    for (msg <- main :: reports) receiver(new Prover.Output(xml_cache.elem(msg)))
   }
 
   private def exit_message(rc: Int)
@@ -129,6 +71,7 @@ class Isabelle_Process(
   @volatile private var command_input: (Thread, Actor) = null
 
 
+
   /** process manager **/
 
   def command_line(channel: System_Channel, args: List[String]): List[String] =
@@ -138,12 +81,12 @@ class Isabelle_Process(
 
   private val process =
     try {
-      val cmdline = command_line(system_channel, arguments)
+      val cmdline = command_line(system_channel, prover_args)
       new Isabelle_System.Managed_Process(null, null, false, cmdline: _*)
     }
     catch { case e: IOException => system_channel.accepted(); throw(e) }
 
-  val (_, process_result) =
+  private val (_, process_result) =
     Simple_Thread.future("process_result") { process.join }
 
   private def terminate_process()
@@ -375,17 +318,15 @@ class Isabelle_Process(
   }
 
 
-  /** main methods **/
 
-  def protocol_command_raw(name: String, args: Bytes*): Unit =
+  /** protocol commands **/
+
+  def protocol_command_bytes(name: String, args: Bytes*): Unit =
     command_input._2 ! Input_Chunks(Bytes(name) :: args.toList)
 
   def protocol_command(name: String, args: String*)
   {
-    receiver(new Input(name, args.toList))
-    protocol_command_raw(name, args.map(Bytes(_)): _*)
+    receiver(new Prover.Input(name, args.toList))
+    protocol_command_bytes(name, args.map(Bytes(_)): _*)
   }
-
-  def options(opts: Options): Unit =
-    protocol_command("Isabelle_Process.options", YXML.string_of_body(opts.encode))
 }

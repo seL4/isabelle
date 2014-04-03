@@ -293,7 +293,7 @@ class Plugin extends EBPlugin
     if (PIDE.startup_failure.isEmpty) {
       message match {
         case msg: EditorStarted =>
-          PIDE.session.start(Isabelle_Logic.session_args())
+          PIDE.session.start("Isabelle", Isabelle_Logic.session_args())
 
         case msg: BufferUpdate
         if msg.getWhat == BufferUpdate.LOADED || msg.getWhat == BufferUpdate.PROPERTIES_CHANGED =>

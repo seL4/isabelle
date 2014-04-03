@@ -26,7 +26,7 @@ class Raw_Output_Dockable(view: View, position: String) extends Dockable(view, p
   private val main_actor = actor {
     loop {
       react {
-        case output: Isabelle_Process.Output =>
+        case output: Prover.Output =>
           Swing_Thread.later {
             text_area.append(XML.content(output.message))
             if (!output.is_stdout && !output.is_stderr) text_area.append("\n")
