@@ -859,7 +859,7 @@ lemma size_bool [code]:
 lemma nat_size [simp, code]: "size (n\<Colon>nat) = n"
   by (induct n) simp_all
 
-declare "prod.size" [no_atp]
+declare prod.size [no_atp]
 
 
 hide_const (open) acc accp

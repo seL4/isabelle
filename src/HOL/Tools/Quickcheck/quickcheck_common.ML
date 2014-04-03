@@ -405,9 +405,9 @@ fun ensure_sort (((sort_vs, aux_sort), sort), (the_descr, instantiate)) config r
     val algebra = Sign.classes_of thy;
     val (descr, raw_vs, tycos, prfx, (names, auxnames), raw_TUs) = the_descr thy raw_tycos
     val vs = (map o apsnd) (curry (Sorts.inter_sort algebra) sort_vs) raw_vs
-    fun insts_of sort constr  = (map (rpair sort) o flat o maps snd o maps snd)
+    fun insts_of sort constr = (map (rpair sort) o flat o maps snd o maps snd)
       (Datatype_Aux.interpret_construction descr vs constr)
-    val insts = insts_of sort  { atyp = single, dtyp = (K o K o K) [] }
+    val insts = insts_of sort { atyp = single, dtyp = (K o K o K) [] }
       @ insts_of aux_sort { atyp = K [], dtyp = K o K }
     val has_inst = exists (fn tyco => Sorts.has_instance algebra tyco sort) tycos;
   in if has_inst then thy

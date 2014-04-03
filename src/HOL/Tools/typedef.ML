@@ -73,7 +73,15 @@ fun put_info name info = Data.map (Symtab.cons_list (name, info));
 (* global interpretation *)
 
 structure Typedef_Interpretation = Interpretation(type T = string val eq = op =);
-val interpretation = Typedef_Interpretation.interpretation;
+
+fun with_repaired_path f name thy =
+  thy
+  |> Sign.root_path
+  |> Sign.add_path (Long_Name.qualifier name)
+  |> f name
+  |> Sign.restore_naming thy;
+
+fun interpretation f = Typedef_Interpretation.interpretation (with_repaired_path f);
 
 val setup = Typedef_Interpretation.init;
 
@@ -154,8 +162,7 @@ fun prepare_typedef prep_term (name, raw_args, mx) raw_set opt_morphs lthy =
       |> Typedecl.typedecl (name, args, mx)
       ||> Variable.declare_term set;
 
-    val Type (full_name, type_args) = newT;
-    val lhs_tfrees = map Term.dest_TFree type_args;
+    val Type (full_name, _) = newT;
 
 
     (* axiomatization *)
@@ -183,7 +190,6 @@ fun prepare_typedef prep_term (name, raw_args, mx) raw_set opt_morphs lthy =
 
     fun typedef_result inhabited lthy1 =
       let
-        val cert = Thm.cterm_of (Proof_Context.theory_of lthy1);
         val typedef' = inhabited RS typedef;
         fun make th = Goal.norm_result lthy1 (typedef' RS th);
         val (((((((((((_, [type_definition]), Rep), Rep_inverse), Abs_inverse), Rep_inject),

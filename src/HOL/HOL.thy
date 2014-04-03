@@ -2017,4 +2017,3 @@ end
 hide_const (open) eq equal
 
 end
-

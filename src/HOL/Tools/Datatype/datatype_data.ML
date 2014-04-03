@@ -265,7 +265,15 @@ structure Datatype_Interpretation = Interpretation
   type T = Datatype_Aux.config * string list;
   val eq: T * T -> bool = eq_snd (op =);
 );
-fun interpretation f = Datatype_Interpretation.interpretation (uncurry f);
+
+fun with_repaired_path f config (type_names as name :: _) thy =
+  thy
+  |> Sign.root_path
+  |> Sign.add_path (Long_Name.qualifier name)
+  |> f config type_names
+  |> Sign.restore_naming thy;
+
+fun interpretation f = Datatype_Interpretation.interpretation (uncurry (with_repaired_path f));
 val interpretation_data = Datatype_Interpretation.data;
 
 

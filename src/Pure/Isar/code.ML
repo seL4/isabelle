@@ -1232,8 +1232,15 @@ fun unoverload_const_typ thy (c, ty) = (Axclass.unoverload_const thy (c, ty), ty
 structure Datatype_Interpretation =
   Interpretation(type T = string * serial val eq = eq_snd (op =) : T * T -> bool);
 
+fun with_repaired_path f (tyco, serial) thy =
+  thy
+  |> Sign.root_path
+  |> Sign.add_path (Long_Name.qualifier tyco)
+  |> f (tyco, serial)
+  |> Sign.restore_naming thy;
+
 fun datatype_interpretation f = Datatype_Interpretation.interpretation
-  (fn (tyco, _) => fn thy => f (tyco, fst (get_type thy tyco)) thy);
+  (fn (tyco, _) => fn thy => with_repaired_path f (tyco, fst (get_type thy tyco)) thy);
 
 fun add_datatype proto_constrs thy =
   let

@@ -220,8 +220,7 @@ fun prove_size_thms (info : Datatype_Aux.info) new_type_names thy =
 fun add_size_thms config (new_type_names as name :: _) thy =
   let
     val info as {descr, ...} = Datatype_Data.the_info thy name;
-    val prefix =
-      Long_Name.map_base_name (K (space_implode "_" (map Long_Name.base_name new_type_names))) name;
+    val prefix = space_implode "_" (map Long_Name.base_name new_type_names);
     val no_size = exists (fn (_, (_, _, constrs)) => exists (fn (_, cargs) => exists (fn dt =>
       Datatype_Aux.is_rec_type dt andalso
         not (null (fst (Datatype_Aux.strip_dtyp dt)))) cargs) constrs) descr
@@ -229,7 +228,6 @@ fun add_size_thms config (new_type_names as name :: _) thy =
     if no_size then thy
     else
       thy
-      |> Sign.root_path
       |> Sign.add_path prefix
       |> prove_size_thms info new_type_names
       |> Sign.restore_naming thy
