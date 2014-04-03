@@ -143,15 +143,6 @@ ML {*
 val preproc_timeout = seconds 5.0
 val mono_timeout = seconds 1.0
 
-fun all_unconcealed_theorems_of thy =
-  let val facts = Global_Theory.facts_of thy in
-    Facts.fold_static
-        (fn (name, ths) =>
-            if Facts.is_concealed facts name then I
-            else append (map (`(Thm.get_name_hint)) ths))
-        facts []
-  end
-
 fun is_forbidden_theorem name =
   length (Long_Name.explode name) <> 2 orelse
   String.isPrefix "type_definition" (List.last (Long_Name.explode name)) orelse
@@ -163,7 +154,7 @@ fun theorems_of thy =
   filter (fn (name, th) =>
              not (is_forbidden_theorem name) andalso
              (theory_of_thm th, thy) |> pairself Context.theory_name |> op =)
-         (all_unconcealed_theorems_of thy)
+         (Global_Theory.all_thms_of thy true)
 
 fun check_formulas tsp =
   let
