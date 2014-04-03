@@ -2678,16 +2678,16 @@ proof (induct f arbitrary: x)
 next
   case (Cos a)
   thus ?case
-    by (auto intro!: derivative_intros
+    by (auto intro!: derivative_eq_intros
            simp del: interpret_floatarith.simps(5)
            simp add: interpret_floatarith_sin interpret_floatarith.simps(5)[of a])
 next
   case (Power a n)
   thus ?case
-    by (cases n) (auto intro!: derivative_intros simp del: power_Suc)
+    by (cases n) (auto intro!: derivative_eq_intros simp del: power_Suc simp add: real_of_nat_def)
 next
   case (Ln a)
-  thus ?case by (auto intro!: derivative_intros simp add: divide_inverse)
+  thus ?case by (auto intro!: derivative_eq_intros simp add: divide_inverse)
 next
   case (Var i)
   thus ?case using `n < length vs` by auto
