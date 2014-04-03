@@ -153,10 +153,10 @@ object Thy_Syntax
   /** header edits: structure and outer syntax **/
 
   private def header_edits(
-    base_syntax: Outer_Syntax,
+    base_syntax: Prover.Syntax,
     previous: Document.Version,
     edits: List[Document.Edit_Text]):
-    (Outer_Syntax, Boolean, Boolean, List[Document.Node.Name], Document.Nodes,
+    (Prover.Syntax, Boolean, Boolean, List[Document.Node.Name], Document.Nodes,
       List[Document.Edit_Command]) =
   {
     var updated_imports = false
@@ -245,7 +245,7 @@ object Thy_Syntax
     }
   }
 
-  def span_files(syntax: Outer_Syntax, span: List[Token]): List[String] =
+  def span_files(syntax: Prover.Syntax, span: List[Token]): List[String] =
     syntax.load(span) match {
       case Some(exts) =>
         find_file(span) match {
@@ -259,7 +259,7 @@ object Thy_Syntax
 
   def resolve_files(
       resources: Resources,
-      syntax: Outer_Syntax,
+      syntax: Prover.Syntax,
       node_name: Document.Node.Name,
       span: List[Token],
       get_blob: Document.Node.Name => Option[Document.Blob])
@@ -291,7 +291,7 @@ object Thy_Syntax
 
   private def reparse_spans(
     resources: Resources,
-    syntax: Outer_Syntax,
+    syntax: Prover.Syntax,
     get_blob: Document.Node.Name => Option[Document.Blob],
     name: Document.Node.Name,
     commands: Linear_Set[Command],
@@ -326,7 +326,7 @@ object Thy_Syntax
   // FIXME somewhat slow
   private def recover_spans(
     resources: Resources,
-    syntax: Outer_Syntax,
+    syntax: Prover.Syntax,
     get_blob: Document.Node.Name => Option[Document.Blob],
     name: Document.Node.Name,
     perspective: Command.Perspective,
@@ -354,7 +354,7 @@ object Thy_Syntax
 
   private def consolidate_spans(
     resources: Resources,
-    syntax: Outer_Syntax,
+    syntax: Prover.Syntax,
     get_blob: Document.Node.Name => Option[Document.Blob],
     reparse_limit: Int,
     name: Document.Node.Name,
@@ -398,7 +398,7 @@ object Thy_Syntax
 
   private def text_edit(
     resources: Resources,
-    syntax: Outer_Syntax,
+    syntax: Prover.Syntax,
     get_blob: Document.Node.Name => Option[Document.Blob],
     reparse_limit: Int,
     node: Document.Node, edit: Document.Edit_Text): Document.Node =

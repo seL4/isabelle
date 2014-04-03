@@ -222,10 +222,10 @@ class Session(val resources: Resources)
   private val global_state = Volatile(Document.State.init)
   def current_state(): Document.State = global_state()
 
-  def recent_syntax(): Outer_Syntax =
+  def recent_syntax(): Prover.Syntax =
   {
     val version = current_state().recent_finished.version.get_finished
-    if (version.is_init) resources.base_syntax
+    if (version.is_init) resources.base_syntax  // FIXME
     else version.syntax
   }
 

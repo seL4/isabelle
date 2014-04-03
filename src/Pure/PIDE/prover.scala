@@ -9,6 +9,22 @@ package isabelle
 
 object Prover
 {
+  /* syntax */
+
+  object Syntax
+  {
+    val empty: Syntax = Outer_Syntax.empty
+  }
+
+  trait Syntax
+  {
+    def add_keywords(keywords: Thy_Header.Keywords): Syntax
+    def scan(input: CharSequence): List[Token]
+    def load(span: List[Token]): Option[List[String]]
+    def load_commands_in(text: String): Boolean
+  }
+
+
   /* messages */
 
   sealed abstract class Message
@@ -55,6 +71,7 @@ object Prover
     lazy val text: String = bytes.toString
   }
 }
+
 
 trait Prover
 {

@@ -31,7 +31,7 @@ class Thy_Info(resources: Resources)
     name: Document.Node.Name,
     header: Document.Node.Header)
   {
-    def loaded_files(syntax: Outer_Syntax): List[String] =
+    def loaded_files(syntax: Prover.Syntax): List[String] =
     {
       val string = resources.with_thy_text(name, _.toString)
       resources.loaded_files(syntax, string)
@@ -80,7 +80,7 @@ class Thy_Info(resources: Resources)
       header_errors ::: import_errors
     }
 
-    lazy val syntax: Outer_Syntax = resources.base_syntax.add_keywords(keywords)
+    lazy val syntax: Prover.Syntax = resources.base_syntax.add_keywords(keywords)
 
     def loaded_theories: Set[String] =
       (resources.loaded_theories /: rev_deps) { case (loaded, dep) => loaded + dep.name.theory }

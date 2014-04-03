@@ -441,7 +441,7 @@ object Build
 
             val loaded_theories = thy_deps.loaded_theories
             val keywords = thy_deps.keywords
-            val syntax = thy_deps.syntax
+            val syntax = thy_deps.syntax.asInstanceOf[Outer_Syntax]
 
             val loaded_files = if (inlined_files) thy_deps.loaded_files else Nil
 

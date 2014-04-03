@@ -46,8 +46,10 @@ object Isabelle
   def mode_syntax(name: String): Option[Outer_Syntax] =
     name match {
       case "isabelle" | "isabelle-markup" =>
-        val syntax = PIDE.session.recent_syntax
-        if (syntax == Outer_Syntax.empty) None else Some(syntax)
+        PIDE.session.recent_syntax match {
+          case syntax : Outer_Syntax if syntax != Outer_Syntax.empty => Some(syntax)
+          case _ => None
+        }
       case "isabelle-options" => Some(Options.options_syntax)
       case "isabelle-root" => Some(Build.root_syntax)
       case "isabelle-ml" => Some(ml_syntax)
