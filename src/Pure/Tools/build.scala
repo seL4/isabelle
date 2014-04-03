@@ -443,10 +443,10 @@ object Build
             val keywords = thy_deps.keywords
             val syntax = thy_deps.syntax
 
-            val body_files = if (inlined_files) thy_deps.load_files else Nil
+            val loaded_files = if (inlined_files) thy_deps.loaded_files else Nil
 
             val all_files =
-              (thy_deps.deps.map(dep => Path.explode(dep.name.node)) ::: body_files :::
+              (thy_deps.deps.map(dep => Path.explode(dep.name.node)) ::: loaded_files :::
                 info.files.map(file => info.dir + file)).map(_.expand)
 
             if (list_files) {

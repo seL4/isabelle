@@ -50,13 +50,13 @@ class Resources(val loaded_theories: Set[String] = Set.empty, val base_syntax: O
 
   /* theory files */
 
-  def body_files_test(syntax: Outer_Syntax, text: String): Boolean =
-    syntax.load_commands.exists({ case (cmd, _) => text.containsSlice(cmd) })
-
-  def body_files(syntax: Outer_Syntax, text: String): List[String] =
+  def loaded_files(syntax: Outer_Syntax, text: String): List[String] =
   {
-    val spans = Thy_Syntax.parse_spans(syntax.scan(text))
-    spans.iterator.map(Thy_Syntax.span_files(syntax, _)).flatten.toList
+    if (syntax.load_commands.exists({ case (cmd, _) => text.containsSlice(cmd) })) {
+      val spans = Thy_Syntax.parse_spans(syntax.scan(text))
+      spans.iterator.map(Thy_Syntax.span_files(syntax, _)).flatten.toList
+    }
+    else Nil
   }
 
   def import_name(master: Document.Node.Name, s: String): Document.Node.Name =
