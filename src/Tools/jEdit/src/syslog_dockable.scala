@@ -37,7 +37,7 @@ class Syslog_Dockable(view: View, position: String) extends Dockable(view, posit
   private val main_actor = actor {
     loop {
       react {
-        case output: Isabelle_Process.Output =>
+        case output: Prover.Output =>
           if (output.is_syslog) Swing_Thread.later { update_syslog() }
 
         case bad => System.err.println("Syslog_Dockable: ignoring bad message " + bad)

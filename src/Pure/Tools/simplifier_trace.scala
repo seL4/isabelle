@@ -300,7 +300,7 @@ object Simplifier_Trace
 
   class Handler extends Session.Protocol_Handler
   {
-    private def cancel(prover: Session.Prover, msg: Isabelle_Process.Protocol_Output): Boolean =
+    private def cancel(prover: Session.Prover, msg: Prover.Protocol_Output): Boolean =
       msg.properties match {
         case Markup.Simp_Trace_Cancel(serial) =>
           manager ! Cancel(serial)

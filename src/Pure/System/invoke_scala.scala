@@ -89,7 +89,7 @@ class Invoke_Scala extends Session.Protocol_Handler
   }
 
   private def invoke_scala(
-    prover: Session.Prover, msg: Isabelle_Process.Protocol_Output): Boolean = synchronized
+    prover: Session.Prover, msg: Prover.Protocol_Output): Boolean = synchronized
   {
     msg.properties match {
       case Markup.Invoke_Scala(name, id) =>
@@ -105,7 +105,7 @@ class Invoke_Scala extends Session.Protocol_Handler
   }
 
   private def cancel_scala(
-    prover: Session.Prover, msg: Isabelle_Process.Protocol_Output): Boolean = synchronized
+    prover: Session.Prover, msg: Prover.Protocol_Output): Boolean = synchronized
   {
     msg.properties match {
       case Markup.Cancel_Scala(id) =>

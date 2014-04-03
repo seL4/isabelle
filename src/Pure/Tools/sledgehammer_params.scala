@@ -37,7 +37,7 @@ object Sledgehammer_Params
     def get_provers: String = synchronized { _provers }
 
     private def sledgehammer_provers(
-      prover: Session.Prover, msg: Isabelle_Process.Protocol_Output): Boolean =
+      prover: Session.Prover, msg: Prover.Protocol_Output): Boolean =
     {
       update_provers(msg.text)
       true
