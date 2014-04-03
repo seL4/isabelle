@@ -619,11 +619,10 @@ val vampire = (vampireN, fn () => vampire_config)
 val z3_tff0 = TFF Monomorphic
 
 val z3_tptp_config : atp_config =
-  {exec = K (["Z3_HOME"], ["z3"]),
+  {exec = K (["Z3_TPTP_HOME"], ["z3_tptp"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
-       "MBQI=true DISPLAY_UNSAT_CORE=true -tptp -t:" ^
-       string_of_int (to_secs 1 timeout) ^ " " ^ file_name,
-   proof_delims = [("\ncore(", ").")],
+     "-proof -t:" ^ string_of_int (to_secs 1 timeout) ^ " -file:" ^ file_name,
+   proof_delims = [],
    known_failures = known_szs_status_failures,
    prem_role = Hypothesis,
    best_slices =
