@@ -74,13 +74,14 @@ class Isabelle_Process(
 
   /** process manager **/
 
+  def command_line(channel: System_Channel, args: List[String]): List[String] =
+    Isabelle_System.getenv_strict("ISABELLE_PROCESS") :: (channel.isabelle_args ::: args)
+
   private val system_channel = System_Channel()
 
   private val process =
     try {
-      val cmdline =
-        Isabelle_System.getenv_strict("ISABELLE_PROCESS") ::
-          (system_channel.isabelle_args ::: prover_args)
+      val cmdline = command_line(system_channel, prover_args)
       new Isabelle_System.Managed_Process(null, null, false, cmdline: _*)
     }
     catch { case e: IOException => system_channel.accepted(); throw(e) }
