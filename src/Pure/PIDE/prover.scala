@@ -11,11 +11,6 @@ object Prover
 {
   /* syntax */
 
-  object Syntax
-  {
-    val empty: Syntax = Outer_Syntax.empty
-  }
-
   trait Syntax
   {
     def add_keywords(keywords: Thy_Header.Keywords): Syntax

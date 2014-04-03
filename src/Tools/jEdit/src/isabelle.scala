@@ -47,7 +47,7 @@ object Isabelle
     name match {
       case "isabelle" | "isabelle-markup" =>
         PIDE.session.recent_syntax match {
-          case syntax : Outer_Syntax if syntax != Outer_Syntax.empty => Some(syntax)
+          case syntax: Outer_Syntax if syntax != Outer_Syntax.empty => Some(syntax)
           case _ => None
         }
       case "isabelle-options" => Some(Options.options_syntax)

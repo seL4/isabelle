@@ -153,7 +153,7 @@ object Thy_Syntax
   /** header edits: structure and outer syntax **/
 
   private def header_edits(
-    base_syntax: Prover.Syntax,
+    resources: Resources,
     previous: Document.Version,
     edits: List[Document.Edit_Text]):
     (Prover.Syntax, Boolean, Boolean, List[Document.Node.Name], Document.Nodes,
@@ -180,14 +180,16 @@ object Thy_Syntax
     }
 
     val (syntax, syntax_changed) =
-      if (previous.is_init || updated_keywords) {
-        val syntax =
-          (base_syntax /: nodes.iterator) {
-            case (syn, (_, node)) => syn.add_keywords(node.header.keywords)
-          }
-        (syntax, true)
+      previous.syntax match {
+        case Some(syntax) if !updated_keywords =>
+          (syntax, false)
+        case _ =>
+          val syntax =
+            (resources.base_syntax /: nodes.iterator) {
+              case (syn, (_, node)) => syn.add_keywords(node.header.keywords)
+            }
+          (syntax, true)
       }
-      else (previous.syntax, false)
 
     val reparse =
       if (updated_imports || updated_keywords)
@@ -443,10 +445,10 @@ object Thy_Syntax
       doc_blobs.get(name) orElse previous.nodes(name).get_blob
 
     val (syntax, syntax_changed, deps_changed, reparse0, nodes0, doc_edits0) =
-      header_edits(resources.base_syntax, previous, edits)
+      header_edits(resources, previous, edits)
 
     val (doc_edits, version) =
-      if (edits.isEmpty) (Nil, Document.Version.make(syntax, previous.nodes))
+      if (edits.isEmpty) (Nil, Document.Version.make(Some(syntax), previous.nodes))
       else {
         val reparse =
           (reparse0 /: nodes0.iterator)({
@@ -485,7 +487,7 @@ object Thy_Syntax
 
             nodes += (name -> node2)
         }
-        (doc_edits.toList, Document.Version.make(syntax, nodes))
+        (doc_edits.toList, Document.Version.make(Some(syntax), nodes))
       }
 
     Session.Change(previous, doc_blobs, syntax_changed, deps_changed, doc_edits, version)

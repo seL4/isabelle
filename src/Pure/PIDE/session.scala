@@ -225,8 +225,7 @@ class Session(val resources: Resources)
   def recent_syntax(): Prover.Syntax =
   {
     val version = current_state().recent_finished.version.get_finished
-    if (version.is_init) resources.base_syntax  // FIXME
-    else version.syntax
+    version.syntax getOrElse resources.base_syntax
   }
 
   def snapshot(name: Document.Node.Name = Document.Node.Name.empty,

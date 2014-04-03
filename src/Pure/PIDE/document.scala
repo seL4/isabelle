@@ -317,17 +317,15 @@ object Document
   {
     val init: Version = new Version()
 
-    def make(syntax: Prover.Syntax, nodes: Nodes): Version =
+    def make(syntax: Option[Prover.Syntax], nodes: Nodes): Version =
       new Version(Document_ID.make(), syntax, nodes)
   }
 
   final class Version private(
     val id: Document_ID.Version = Document_ID.none,
-    val syntax: Prover.Syntax = Prover.Syntax.empty,
+    val syntax: Option[Prover.Syntax] = None,
     val nodes: Nodes = Nodes.empty)
   {
-    def is_init: Boolean = id == Document_ID.none
-
     override def toString: String = "Version(" + id + ")"
   }
 
