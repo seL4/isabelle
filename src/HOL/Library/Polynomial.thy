@@ -1747,12 +1747,9 @@ qed
 lemma order_root: "poly p a = 0 \<longleftrightarrow> p = 0 \<or> order a p \<noteq> 0"
 apply (cases "p = 0", simp_all)
 apply (rule iffI)
-apply (rule ccontr, simp)
-apply (frule order_2 [where a=a], simp)
-apply (simp add: poly_eq_0_iff_dvd)
-apply (simp add: poly_eq_0_iff_dvd)
-apply (simp only: order_def)
-apply (drule not_less_Least, simp)
+apply (metis order_2 not_gr0 poly_eq_0_iff_dvd power_0 power_Suc_0 power_one_right)
+unfolding poly_eq_0_iff_dvd
+apply (metis dvd_power dvd_trans order_1)
 done
 
 

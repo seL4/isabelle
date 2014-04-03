@@ -28,9 +28,8 @@ lemma pderiv_pCons:
   by (simp add: pderiv.simps)
 
 lemma coeff_pderiv: "coeff (pderiv p) n = of_nat (Suc n) * coeff p (Suc n)"
-  apply (induct p arbitrary: n, simp)
-  apply (simp add: pderiv_pCons coeff_pCons algebra_simps split: nat.split)
-  done
+  by (induct p arbitrary: n) 
+     (auto simp add: pderiv_pCons coeff_pCons algebra_simps split: nat.split)
 
 primrec pderiv_coeffs :: "'a::comm_monoid_add list \<Rightarrow> 'a list"
 where
@@ -54,8 +53,7 @@ lemma degree_pderiv: "degree (pderiv p) = degree p - 1"
   apply (cases "degree p", simp)
   apply (rule le_degree)
   apply (simp add: coeff_pderiv del: of_nat_Suc)
-  apply (rule subst, assumption)
-  apply (rule leading_coeff_neq_0, clarsimp)
+  apply (metis degree_0 leading_coeff_0_iff nat.distinct(1))
   done
 
 lemma pderiv_singleton [simp]: "pderiv [:a:] = 0"
@@ -74,10 +72,7 @@ lemma pderiv_smult: "pderiv (smult a p) = smult a (pderiv p)"
 by (rule poly_eqI, simp add: coeff_pderiv algebra_simps)
 
 lemma pderiv_mult: "pderiv (p * q) = p * pderiv q + q * pderiv p"
-apply (induct p)
-apply simp
-apply (simp add: pderiv_add pderiv_smult pderiv_pCons algebra_simps)
-done
+by (induct p) (auto simp: pderiv_add pderiv_smult pderiv_pCons algebra_simps)
 
 lemma pderiv_power_Suc:
   "pderiv (p ^ Suc n) = smult (of_nat (Suc n)) (p ^ n) * pderiv p"
@@ -87,12 +82,8 @@ apply (subst power_Suc)
 apply (subst pderiv_mult)
 apply (erule ssubst)
 apply (simp only: of_nat_Suc smult_add_left smult_1_left)
-apply (simp add: algebra_simps) (* FIXME *)
+apply (simp add: algebra_simps)
 done
-
-
-lemma DERIV_cmult2: "DERIV f x :> D ==> DERIV (%x. (f x) * c :: real) x :> D * c"
-by (simp add: DERIV_cmult mult_commute [of _ c])
 
 lemma DERIV_pow2: "DERIV (%x. x ^ Suc n) x :> real (Suc n) * (x ^ n)"
 by (rule DERIV_cong, rule DERIV_pow, simp)
@@ -116,9 +107,8 @@ by (rule poly_DERIV [THEN DERIV_isCont])
 
 lemma poly_IVT_pos: "[| a < b; poly p (a::real) < 0; 0 < poly p b |]
       ==> \<exists>x. a < x & x < b & (poly p x = 0)"
-apply (cut_tac f = "%x. poly p x" and a = a and b = b and y = 0 in IVT_objl)
-apply (auto simp add: order_le_less)
-done
+using IVT_objl [of "poly p" a 0 b]
+by (auto simp add: order_le_less)
 
 lemma poly_IVT_neg: "[| (a::real) < b; 0 < poly p a; poly p b < 0 |]
       ==> \<exists>x. a < x & x < b & (poly p x = 0)"
@@ -126,7 +116,8 @@ by (insert poly_IVT_pos [where p = "- p" ]) simp
 
 lemma poly_MVT: "(a::real) < b ==>
      \<exists>x. a < x & x < b & (poly p b - poly p a = (b - a) * poly (pderiv p) x)"
-apply (drule_tac f = "poly p" in MVT, auto)
+using MVT [of a b "poly p"]
+apply auto
 apply (rule_tac x = z in exI)
 apply (auto simp add: mult_left_cancel poly_DERIV [THEN DERIV_unique])
 done
@@ -135,16 +126,12 @@ text{*Lemmas for Derivatives*}
 
 lemma order_unique_lemma:
   fixes p :: "'a::idom poly"
-  assumes "[:-a, 1:] ^ n dvd p \<and> \<not> [:-a, 1:] ^ Suc n dvd p"
+  assumes "[:-a, 1:] ^ n dvd p" "\<not> [:-a, 1:] ^ Suc n dvd p"
   shows "n = order a p"
 unfolding Polynomial.order_def
 apply (rule Least_equality [symmetric])
-apply (rule assms [THEN conjunct2])
-apply (erule contrapos_np)
-apply (rule power_le_dvd)
-apply (rule assms [THEN conjunct1])
-apply simp
-done
+apply (rule assms)
+by (metis assms not_less_eq_eq power_le_dvd)
 
 lemma lemma_order_pderiv1:
   "pderiv ([:- a, 1:] ^ Suc n * q) = [:- a, 1:] ^ Suc n * pderiv q +
@@ -158,45 +145,43 @@ lemma dvd_add_cancel1:
   shows "a dvd b + c \<Longrightarrow> a dvd b \<Longrightarrow> a dvd c"
   by (drule (1) Rings.dvd_diff, simp)
 
-lemma lemma_order_pderiv [rule_format]:
-     "\<forall>p q a. 0 < n &
-       pderiv p \<noteq> 0 &
-       p = [:- a, 1:] ^ n * q & ~ [:- a, 1:] dvd q
-       --> n = Suc (order a (pderiv p))"
- apply (cases "n", safe, rename_tac n p q a)
- apply (rule order_unique_lemma)
- apply (rule conjI)
-  apply (subst lemma_order_pderiv1)
-  apply (rule dvd_add)
-   apply (rule dvd_mult2)
-   apply (rule le_imp_power_dvd, simp)
-  apply (rule dvd_smult)
-  apply (rule dvd_mult)
-  apply (rule dvd_refl)
- apply (subst lemma_order_pderiv1)
- apply (erule contrapos_nn) back
- apply (subgoal_tac "[:- a, 1:] ^ Suc n dvd q * [:- a, 1:] ^ n")
-  apply (simp del: mult_pCons_left)
- apply (drule dvd_add_cancel1)
-  apply (simp del: mult_pCons_left)
- apply (drule dvd_smult_cancel, simp del: of_nat_Suc)
- apply assumption
-done
+lemma lemma_order_pderiv:
+  assumes n: "0 < n" 
+      and pd: "pderiv p \<noteq> 0" 
+      and pe: "p = [:- a, 1:] ^ n * q" 
+      and nd: "~ [:- a, 1:] dvd q"
+    shows "n = Suc (order a (pderiv p))"
+using n 
+proof -
+  have "pderiv ([:- a, 1:] ^ n * q) \<noteq> 0"
+    using assms by auto
+  obtain n' where "n = Suc n'" "0 < Suc n'" "pderiv ([:- a, 1:] ^ Suc n' * q) \<noteq> 0"
+    using assms by (cases n) auto
+  then have *: "!!k l. k dvd k * pderiv q + smult (of_nat (Suc n')) l \<Longrightarrow> k dvd l"
+    by (metis dvd_add_cancel1 dvd_smult_iff dvd_triv_left of_nat_eq_0_iff old.nat.distinct(2))
+  have "n' = order a (pderiv ([:- a, 1:] ^ Suc n' * q))" 
+  proof (rule order_unique_lemma)
+    show "[:- a, 1:] ^ n' dvd pderiv ([:- a, 1:] ^ Suc n' * q)"
+      apply (subst lemma_order_pderiv1)
+      apply (rule dvd_add)
+      apply (metis dvdI dvd_mult2 power_Suc2)
+      apply (metis dvd_smult dvd_triv_right)
+      done
+  next
+    show "\<not> [:- a, 1:] ^ Suc n' dvd pderiv ([:- a, 1:] ^ Suc n' * q)"
+     apply (subst lemma_order_pderiv1)
+     by (metis * nd dvd_mult_cancel_right field_power_not_zero pCons_eq_0_iff power_Suc zero_neq_one)
+  qed
+  then show ?thesis
+    by (metis `n = Suc n'` pe)
+qed
 
 lemma order_decomp:
      "p \<noteq> 0
       ==> \<exists>q. p = [:-a, 1:] ^ (order a p) * q &
                 ~([:-a, 1:] dvd q)"
 apply (drule order [where a=a])
-apply (erule conjE)
-apply (erule dvdE)
-apply (rule exI)
-apply (rule conjI, assumption)
-apply (erule contrapos_nn)
-apply (erule ssubst) back
-apply (subst power_Suc2)
-apply (erule mult_dvd_mono [OF dvd_refl])
-done
+by (metis dvdE dvd_mult_cancel_left power_Suc2)
 
 lemma order_pderiv: "[| pderiv p \<noteq> 0; order a p \<noteq> 0 |]
       ==> (order a p = Suc (order a (pderiv p)))"
@@ -219,9 +204,9 @@ proof -
     apply (drule order [where a=a and p=p, folded i_def t_def])
     apply (drule order [where a=a and p=q, folded j_def t_def])
     apply clarify
-    apply (rule order_unique_lemma [symmetric], fold t_def)
     apply (erule dvdE)+
-    apply (simp add: power_add t_dvd_iff)
+    apply (rule order_unique_lemma [symmetric], fold t_def)
+    apply (simp_all add: power_add t_dvd_iff)
     done
 qed
 
@@ -230,9 +215,7 @@ text{*Now justify the standard squarefree decomposition, i.e. f / gcd(f,f'). *}
 lemma order_divides: "[:-a, 1:] ^ n dvd p \<longleftrightarrow> p = 0 \<or> n \<le> order a p"
 apply (cases "p = 0", auto)
 apply (drule order_2 [where a=a and p=p])
-apply (erule contrapos_np)
-apply (erule power_le_dvd)
-apply simp
+apply (metis not_less_eq_eq power_le_dvd)
 apply (erule power_le_dvd [OF order_1])
 done
 
@@ -277,13 +260,11 @@ lemma poly_squarefree_decomp_order2: "[| pderiv p \<noteq> 0;
          pderiv p = e * d;
          d = r * p + s * pderiv p
       |] ==> \<forall>a. order a q = (if order a p = 0 then 0 else 1)"
-apply (blast intro: poly_squarefree_decomp_order)
-done
+by (blast intro: poly_squarefree_decomp_order)
 
 lemma order_pderiv2: "[| pderiv p \<noteq> 0; order a p \<noteq> 0 |]
       ==> (order a (pderiv p) = n) = (order a p = Suc n)"
-apply (auto dest: order_pderiv)
-done
+by (auto dest: order_pderiv)
 
 definition
   rsquarefree :: "'a::idom poly => bool" where
@@ -300,13 +281,9 @@ apply (simp add: rsquarefree_def)
 apply (case_tac "p = 0", simp, simp)
 apply (case_tac "pderiv p = 0")
 apply simp
-apply (drule pderiv_iszero, clarify)
-apply simp
-apply (rule allI)
-apply (cut_tac p = "[:h:]" and a = a in order_root)
-apply simp
-apply (auto simp add: order_root order_pderiv2)
-apply (erule_tac x="a" in allE, simp)
+apply (drule pderiv_iszero, clarsimp)
+apply (metis coeff_0 coeff_pCons_0 degree_pCons_0 le0 le_antisym order_degree)
+apply (force simp add: order_root order_pderiv2)
 done
 
 lemma poly_squarefree_decomp:
