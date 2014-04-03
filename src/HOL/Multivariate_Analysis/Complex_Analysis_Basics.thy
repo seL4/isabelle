@@ -15,7 +15,7 @@ lemma has_derivative_mult_right:
   shows "((op * c) has_derivative (op * c)) F"
 by (rule has_derivative_mult_right [OF has_derivative_id])
 
-lemma has_derivative_of_real[has_derivative_intros, simp]: 
+lemma has_derivative_of_real[derivative_intros, simp]: 
   "(f has_derivative f') F \<Longrightarrow> ((\<lambda>x. of_real (f x)) has_derivative (\<lambda>x. of_real (f' x))) F"
   using bounded_linear.has_derivative[OF bounded_linear_of_real] .
 
@@ -199,14 +199,6 @@ lemma DERIV_transform_at:
       and "\<And>x. dist x a < d \<Longrightarrow> f x = g x"
     shows "DERIV g a :> f'"
   by (blast intro: assms DERIV_transform_within)
-
-subsection{*Further useful properties of complex conjugation*}
-
-lemma continuous_within_cnj: "continuous (at z within s) cnj"
-by (metis bounded_linear_cnj linear_continuous_within)
-
-lemma continuous_on_cnj: "continuous_on s cnj"
-by (metis bounded_linear_cnj linear_continuous_on)
 
 subsection {*Some limit theorems about real part of real series etc.*}
 
@@ -521,29 +513,29 @@ lemma complex_derivative_add:
   "\<lbrakk>f complex_differentiable at z; g complex_differentiable at z\<rbrakk>  
    \<Longrightarrow> deriv (\<lambda>w. f w + g w) z = deriv f z + deriv g z"
   unfolding DERIV_deriv_iff_complex_differentiable[symmetric]
-  by (auto intro!: DERIV_imp_deriv DERIV_intros)
+  by (auto intro!: DERIV_imp_deriv derivative_intros)
 
 lemma complex_derivative_diff:
   "\<lbrakk>f complex_differentiable at z; g complex_differentiable at z\<rbrakk>  
    \<Longrightarrow> deriv (\<lambda>w. f w - g w) z = deriv f z - deriv g z"
   unfolding DERIV_deriv_iff_complex_differentiable[symmetric]
-  by (auto intro!: DERIV_imp_deriv DERIV_intros)
+  by (auto intro!: DERIV_imp_deriv derivative_intros)
 
 lemma complex_derivative_mult:
   "\<lbrakk>f complex_differentiable at z; g complex_differentiable at z\<rbrakk>  
    \<Longrightarrow> deriv (\<lambda>w. f w * g w) z = f z * deriv g z + deriv f z * g z"
   unfolding DERIV_deriv_iff_complex_differentiable[symmetric]
-  by (auto intro!: DERIV_imp_deriv DERIV_intros)
+  by (auto intro!: DERIV_imp_deriv derivative_eq_intros)
 
 lemma complex_derivative_cmult:
   "f complex_differentiable at z \<Longrightarrow> deriv (\<lambda>w. c * f w) z = c * deriv f z"
   unfolding DERIV_deriv_iff_complex_differentiable[symmetric]
-  by (auto intro!: DERIV_imp_deriv DERIV_intros)
+  by (auto intro!: DERIV_imp_deriv derivative_eq_intros)
 
 lemma complex_derivative_cmult_right:
   "f complex_differentiable at z \<Longrightarrow> deriv (\<lambda>w. f w * c) z = deriv f z * c"
   unfolding DERIV_deriv_iff_complex_differentiable[symmetric]
-  by (auto intro!: DERIV_imp_deriv DERIV_intros)
+  by (auto intro!: DERIV_imp_deriv derivative_eq_intros)
 
 lemma complex_derivative_transform_within_open:
   "\<lbrakk>f holomorphic_on s; g holomorphic_on s; open s; z \<in> s; \<And>w. w \<in> s \<Longrightarrow> f w = g w\<rbrakk> 
@@ -1037,7 +1029,7 @@ proof -
     then have "((\<lambda>v. (\<Sum>i\<le>n. f i v * (z - v)^i / of_nat (fact i))) 
                 has_field_derivative f (Suc n) u * (z-u) ^ n / of_nat (fact n))
                (at u within s)"
-      apply (intro DERIV_intros DERIV_power[THEN DERIV_cong])
+      apply (intro derivative_eq_intros)
       apply (blast intro: assms `u \<in> s`)
       apply (rule refl)+
       apply (auto simp: field_simps)
@@ -1083,7 +1075,7 @@ lemma complex_mvt_line:
 proof -
   have twz: "\<And>t. (1 - t) *\<^sub>R w + t *\<^sub>R z = w + t *\<^sub>R (z - w)"
     by (simp add: real_vector.scale_left_diff_distrib real_vector.scale_right_diff_distrib)
-  note assms[unfolded has_field_derivative_def, has_derivative_intros]
+  note assms[unfolded has_field_derivative_def, derivative_intros]
   show ?thesis
     apply (cut_tac mvt_simple
                      [of 0 1 "Re o f o (\<lambda>t. (1 - t) *\<^sub>R w +  t *\<^sub>R z)"
@@ -1091,7 +1083,7 @@ proof -
     apply auto
     apply (rule_tac x="(1 - x) *\<^sub>R w + x *\<^sub>R z" in exI)
     apply (auto simp add: open_segment_def twz) []
-    apply (intro has_derivative_eq_intros has_derivative_at_within)
+    apply (intro derivative_eq_intros has_derivative_at_within)
     apply simp_all
     apply (simp add: fun_eq_iff real_vector.scale_right_diff_distrib)
     apply (force simp add: twz closed_segment_def)
@@ -1136,7 +1128,7 @@ proof -
                   f (Suc n) u * (z - u) ^ n / of_nat (fact n)" .
     then have "((\<lambda>u. \<Sum>i = 0..n. f i u * (z - u) ^ i / of_nat (fact i)) has_field_derivative
                 f (Suc n) u * (z - u) ^ n / of_nat (fact n))  (at u)"
-      apply (intro DERIV_intros)+
+      apply (intro derivative_eq_intros)+
       apply (force intro: u assms)
       apply (rule refl)+
       apply (auto simp: mult_ac)

@@ -34,10 +34,10 @@ subsection {* Derivatives *}
 
 lemma DERIV_NS_iff:
       "(DERIV f x :> D) = ((%h. (f(x + h) - f(x))/h) -- 0 --NS> D)"
-by (simp add: deriv_def LIM_NSLIM_iff)
+by (simp add: DERIV_def LIM_NSLIM_iff)
 
 lemma NS_DERIV_D: "DERIV f x :> D ==> (%h. (f(x + h) - f(x))/h) -- 0 --NS> D"
-by (simp add: deriv_def LIM_NSLIM_iff)
+by (simp add: DERIV_def LIM_NSLIM_iff)
 
 lemma hnorm_of_hypreal:
   "\<And>r. hnorm (( *f* of_real) r::'a::real_normed_div_algebra star) = \<bar>r\<bar>"
@@ -377,7 +377,7 @@ by (simp add: divide_inverse mult_commute)
 
 text{*Now equivalence between NSDERIV and DERIV*}
 lemma NSDERIV_DERIV_iff: "(NSDERIV f x :> D) = (DERIV f x :> D)"
-by (simp add: deriv_def NSDERIV_NSLIM_iff LIM_NSLIM_iff)
+by (simp add: DERIV_def NSDERIV_NSLIM_iff LIM_NSLIM_iff)
 
 (* NS version *)
 lemma NSDERIV_pow: "NSDERIV (%x. x ^ n) x :> real n * (x ^ (n - Suc 0))"

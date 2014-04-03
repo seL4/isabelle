@@ -478,7 +478,7 @@ qed
 
 subsubsection {* Frechet derivatives involving pairs *}
 
-lemma has_derivative_Pair [has_derivative_intros]:
+lemma has_derivative_Pair [derivative_intros]:
   assumes f: "(f has_derivative f') (at x within s)" and g: "(g has_derivative g') (at x within s)"
   shows "((\<lambda>x. (f x, g x)) has_derivative (\<lambda>h. (f' h, g' h))) (at x within s)"
 proof (rule has_derivativeI_sandwich[of 1])
@@ -497,10 +497,10 @@ proof (rule has_derivativeI_sandwich[of 1])
     by (simp add: norm_Pair divide_right_mono order_trans [OF sqrt_add_le_add_sqrt])
 qed simp
 
-lemmas has_derivative_fst [has_derivative_intros] = bounded_linear.has_derivative [OF bounded_linear_fst]
-lemmas has_derivative_snd [has_derivative_intros] = bounded_linear.has_derivative [OF bounded_linear_snd]
+lemmas has_derivative_fst [derivative_intros] = bounded_linear.has_derivative [OF bounded_linear_fst]
+lemmas has_derivative_snd [derivative_intros] = bounded_linear.has_derivative [OF bounded_linear_snd]
 
-lemma has_derivative_split [has_derivative_intros]:
+lemma has_derivative_split [derivative_intros]:
   "((\<lambda>p. f (fst p) (snd p)) has_derivative f') F \<Longrightarrow> ((\<lambda>(a, b). f a b) has_derivative f') F"
   unfolding split_beta' .
 

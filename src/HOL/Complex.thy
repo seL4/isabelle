@@ -374,30 +374,20 @@ lemma bounded_linear_Re: "bounded_linear Re"
 lemma bounded_linear_Im: "bounded_linear Im"
   by (rule bounded_linear_intro [where K=1], simp_all add: complex_norm_def)
 
-lemmas tendsto_Re [tendsto_intros] =
-  bounded_linear.tendsto [OF bounded_linear_Re]
-
-lemmas tendsto_Im [tendsto_intros] =
-  bounded_linear.tendsto [OF bounded_linear_Im]
-
-lemmas isCont_Re [simp] = bounded_linear.isCont [OF bounded_linear_Re]
-lemmas isCont_Im [simp] = bounded_linear.isCont [OF bounded_linear_Im]
 lemmas Cauchy_Re = bounded_linear.Cauchy [OF bounded_linear_Re]
 lemmas Cauchy_Im = bounded_linear.Cauchy [OF bounded_linear_Im]
-
-lemma continuous_Re: "continuous_on X Re"
-  by (metis (poly_guards_query) bounded_linear.continuous_on bounded_linear_Re 
-            continuous_on_cong continuous_on_id)
-
-lemma continuous_Im: "continuous_on X Im"
-  by (metis (poly_guards_query) bounded_linear.continuous_on bounded_linear_Im 
-            continuous_on_cong continuous_on_id)
-
-lemma has_derivative_Re [has_derivative_intros] : "(Re has_derivative Re) F"
-  by (auto simp add: has_derivative_def bounded_linear_Re tendsto_const)
-
-lemma has_derivative_Im [has_derivative_intros] : "(Im has_derivative Im) F"
-  by (auto simp add: has_derivative_def bounded_linear_Im tendsto_const)
+lemmas tendsto_Re [tendsto_intros] = bounded_linear.tendsto [OF bounded_linear_Re]
+lemmas tendsto_Im [tendsto_intros] = bounded_linear.tendsto [OF bounded_linear_Im]
+lemmas isCont_Re [simp] = bounded_linear.isCont [OF bounded_linear_Re]
+lemmas isCont_Im [simp] = bounded_linear.isCont [OF bounded_linear_Im]
+lemmas continuous_Re [simp] = bounded_linear.continuous [OF bounded_linear_Re]
+lemmas continuous_Im [simp] = bounded_linear.continuous [OF bounded_linear_Im]
+lemmas continuous_on_Re [continuous_intros] = bounded_linear.continuous_on[OF bounded_linear_Re]
+lemmas continuous_on_Im [continuous_intros] = bounded_linear.continuous_on[OF bounded_linear_Im]
+lemmas has_derivative_Re [derivative_intros] = bounded_linear.has_derivative[OF bounded_linear_Re]
+lemmas has_derivative_Im [derivative_intros] = bounded_linear.has_derivative[OF bounded_linear_Im]
+lemmas sums_Re = bounded_linear.sums [OF bounded_linear_Re]
+lemmas sums_Im = bounded_linear.sums [OF bounded_linear_Im]
 
 lemma tendsto_Complex [tendsto_intros]:
   assumes "(f ---> a) F" and "(g ---> b) F"
@@ -445,8 +435,7 @@ proof
 qed
 
 declare
-  DERIV_power[where 'a=complex, THEN DERIV_cong,
-              unfolded of_nat_def[symmetric], DERIV_intros]
+  DERIV_power[where 'a=complex, unfolded of_nat_def[symmetric], derivative_intros]
 
 
 subsection {* The Complex Number $i$ *}
@@ -605,11 +594,11 @@ lemma bounded_linear_cnj: "bounded_linear cnj"
   using complex_cnj_add complex_cnj_scaleR
   by (rule bounded_linear_intro [where K=1], simp)
 
-lemmas tendsto_cnj [tendsto_intros] =
-  bounded_linear.tendsto [OF bounded_linear_cnj]
-
-lemmas isCont_cnj [simp] =
-  bounded_linear.isCont [OF bounded_linear_cnj]
+lemmas tendsto_cnj [tendsto_intros] = bounded_linear.tendsto [OF bounded_linear_cnj]
+lemmas isCont_cnj [simp] = bounded_linear.isCont [OF bounded_linear_cnj]
+lemmas continuous_cnj [simp, continuous_intros] = bounded_linear.continuous [OF bounded_linear_cnj]
+lemmas continuous_on_cnj [simp, continuous_intros] = bounded_linear.continuous_on [OF bounded_linear_cnj]
+lemmas has_derivative_cnj [simp, derivative_intros] = bounded_linear.has_derivative [OF bounded_linear_cnj]
 
 lemma lim_cnj: "((\<lambda>x. cnj(f x)) ---> cnj l) F \<longleftrightarrow> (f ---> l) F"
   by (simp add: tendsto_iff dist_complex_def Complex.complex_cnj_diff [symmetric])
@@ -704,12 +693,6 @@ lemma Im_setsum: "Im(setsum f s) = setsum (%x. Im(f x)) s"
 lemma sums_complex_iff: "f sums x \<longleftrightarrow> ((\<lambda>x. Re (f x)) sums Re x) \<and> ((\<lambda>x. Im (f x)) sums Im x)"
   unfolding sums_def tendsto_complex_iff Im_setsum Re_setsum ..
   
-lemma sums_Re: "f sums a \<Longrightarrow> (\<lambda>x. Re (f x)) sums Re a"
-  unfolding sums_complex_iff by blast
-
-lemma sums_Im: "f sums a \<Longrightarrow> (\<lambda>x. Im (f x)) sums Im a"
-  unfolding sums_complex_iff by blast
-
 lemma summable_complex_iff: "summable f \<longleftrightarrow> summable (\<lambda>x. Re (f x)) \<and>  summable (\<lambda>x. Im (f x))"
   unfolding summable_def sums_complex_iff[abs_def] by (metis Im.simps Re.simps)
 
@@ -975,6 +958,5 @@ text {* Legacy theorem names *}
 lemmas expand_complex_eq = complex_eq_iff
 lemmas complex_Re_Im_cancel_iff = complex_eq_iff
 lemmas complex_equality = complex_eqI
-
 
 end

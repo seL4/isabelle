@@ -180,7 +180,7 @@ lemmas tendsto_inner [tendsto_intros] =
 lemmas isCont_inner [simp] =
   bounded_bilinear.isCont [OF bounded_bilinear_inner]
 
-lemmas has_derivative_inner [has_derivative_intros] =
+lemmas has_derivative_inner [derivative_intros] =
   bounded_bilinear.FDERIV [OF bounded_bilinear_inner]
 
 lemmas bounded_linear_inner_left =
@@ -189,10 +189,10 @@ lemmas bounded_linear_inner_left =
 lemmas bounded_linear_inner_right =
   bounded_bilinear.bounded_linear_right [OF bounded_bilinear_inner]
 
-lemmas has_derivative_inner_right [has_derivative_intros] =
+lemmas has_derivative_inner_right [derivative_intros] =
   bounded_linear.has_derivative [OF bounded_linear_inner_right]
 
-lemmas has_derivative_inner_left [has_derivative_intros] =
+lemmas has_derivative_inner_left [derivative_intros] =
   bounded_linear.has_derivative [OF bounded_linear_inner_left]
 
 lemma differentiable_inner [simp]:

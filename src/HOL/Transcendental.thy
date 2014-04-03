@@ -630,7 +630,7 @@ lemma termdiffs:
       and 3: "summable (\<lambda>n. (diffs (diffs c)) n * K ^ n)"
       and 4: "norm x < norm K"
   shows "DERIV (\<lambda>x. \<Sum>n. c n * x ^ n) x :> (\<Sum>n. (diffs c) n * x ^ n)"
-  unfolding deriv_def
+  unfolding DERIV_def
 proof (rule LIM_zero_cancel)
   show "(\<lambda>h. (suminf (\<lambda>n. c n * (x + h) ^ n) - suminf (\<lambda>n. c n * x ^ n)) / h
             - suminf (\<lambda>n. diffs c n * x ^ n)) -- 0 --> 0"
@@ -669,7 +669,7 @@ lemma DERIV_series':
     and "summable L"
     and L_def: "\<And>n x y. \<lbrakk> x \<in> { a <..< b} ; y \<in> { a <..< b} \<rbrakk> \<Longrightarrow> \<bar>f x n - f y n\<bar> \<le> L n * \<bar>x - y\<bar>"
   shows "DERIV (\<lambda> x. suminf (f x)) x0 :> (suminf (f' x0))"
-  unfolding deriv_def
+  unfolding DERIV_def
 proof (rule LIM_I)
   fix r :: real
   assume "0 < r" hence "0 < r/3" by auto
@@ -863,7 +863,7 @@ proof -
       {
         fix n
         show "DERIV (\<lambda> x. ?f x n) x0 :> (?f' x0 n)"
-          by (auto intro!: DERIV_intros simp del: power_Suc)
+          by (auto intro!: derivative_eq_intros simp del: power_Suc simp: real_of_nat_def)
       }
       {
         fix x
@@ -978,7 +978,7 @@ lemma DERIV_exp [simp]: "DERIV exp x :> exp(x)"
   apply (simp del: of_real_add)
   done
 
-declare DERIV_exp[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
+declare DERIV_exp[THEN DERIV_chain2, derivative_intros]
 
 lemma isCont_exp: "isCont exp x"
   by (rule DERIV_exp [THEN DERIV_isCont])
@@ -1315,7 +1315,7 @@ lemma DERIV_ln: "0 < x \<Longrightarrow> DERIV ln x :> inverse x"
 lemma DERIV_ln_divide: "0 < x \<Longrightarrow> DERIV ln x :> 1 / x"
   by (rule DERIV_ln[THEN DERIV_cong], simp, simp add: divide_inverse)
 
-declare DERIV_ln_divide[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
+declare DERIV_ln_divide[THEN DERIV_chain2, derivative_intros]
 
 lemma ln_series:
   assumes "0 < x" and "x < 2"
@@ -1356,7 +1356,7 @@ proof -
     hence "DERIV (\<lambda>x. suminf (?f x)) (x - 1) :> suminf (?f' x)"
       unfolding One_nat_def by auto
     hence "DERIV (\<lambda>x. suminf (?f (x - 1))) x :> suminf (?f' x)"
-      unfolding deriv_def repos .
+      unfolding DERIV_def repos .
     ultimately have "DERIV (\<lambda>x. ln x - suminf (?f (x - 1))) x :> (suminf (?f' x) - suminf (?f' x))"
       by (rule DERIV_diff)
     thus "DERIV (\<lambda>x. ln x - suminf (?f (x - 1))) x :> 0" by auto
@@ -1621,7 +1621,7 @@ lemma ln_eq_minus_one:
 proof -
   let ?l = "\<lambda>y. ln y - y + 1"
   have D: "\<And>x. 0 < x \<Longrightarrow> DERIV ?l x :> (1 / x - 1)"
-    by (auto intro!: DERIV_intros)
+    by (auto intro!: derivative_eq_intros)
 
   show ?thesis
   proof (cases rule: linorder_cases)
@@ -1699,9 +1699,9 @@ next
   show ?case
   proof (rule lhospital_at_top_at_top)
     show "eventually (\<lambda>x. DERIV (\<lambda>x. x ^ Suc k) x :> (real (Suc k) * x^k)) at_top"
-      by eventually_elim (intro DERIV_intros, simp, simp)
+      by eventually_elim (intro derivative_eq_intros, auto)
     show "eventually (\<lambda>x. DERIV exp x :> exp x) at_top"
-      by eventually_elim (auto intro!: DERIV_intros)
+      by eventually_elim auto
     show "eventually (\<lambda>x. exp x \<noteq> 0) at_top"
       by auto
     from tendsto_mult[OF tendsto_const Suc, of "real (Suc k)"]
@@ -1825,12 +1825,12 @@ lemma DERIV_log:
 proof -
   def lb \<equiv> "1 / ln b"
   moreover have "DERIV (\<lambda>y. lb * ln y) x :> lb / x"
-    using `x > 0` by (auto intro!: DERIV_intros)
+    using `x > 0` by (auto intro!: derivative_eq_intros)
   ultimately show ?thesis
     by (simp add: log_def)
 qed
 
-lemmas DERIV_log[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
+lemmas DERIV_log[THEN DERIV_chain2, derivative_intros]
 
 lemma powr_log_cancel [simp]: "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> 0 < x \<Longrightarrow> a powr (log a x) = x"
   by (simp add: powr_def log_def)
@@ -2180,7 +2180,7 @@ lemma DERIV_sin [simp]: "DERIV sin x :> cos(x)"
     summable_minus summable_sin summable_cos)
   done
 
-declare DERIV_sin[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
+declare DERIV_sin[THEN DERIV_chain2, derivative_intros]
 
 lemma DERIV_cos [simp]: "DERIV cos x :> -sin(x)"
   unfolding cos_def sin_def
@@ -2189,7 +2189,7 @@ lemma DERIV_cos [simp]: "DERIV cos x :> -sin(x)"
     summable_minus summable_sin summable_cos suminf_minus)
   done
 
-declare DERIV_cos[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
+declare DERIV_cos[THEN DERIV_chain2, derivative_intros]
 
 lemma isCont_sin: "isCont sin x"
   by (rule DERIV_sin [THEN DERIV_isCont])
@@ -2238,7 +2238,7 @@ lemma cos_zero [simp]: "cos 0 = 1"
 lemma sin_cos_squared_add [simp]: "(sin x)\<^sup>2 + (cos x)\<^sup>2 = 1"
 proof -
   have "\<forall>x. DERIV (\<lambda>x. (sin x)\<^sup>2 + (cos x)\<^sup>2) x :> 0"
-    by (auto intro!: DERIV_intros)
+    by (auto intro!: derivative_eq_intros)
   hence "(sin x)\<^sup>2 + (cos x)\<^sup>2 = (sin 0)\<^sup>2 + (cos 0)\<^sup>2"
     by (rule DERIV_isconst_all)
   thus "(sin x)\<^sup>2 + (cos x)\<^sup>2 = 1" by simp
@@ -2276,19 +2276,19 @@ lemma cos_le_one [simp]: "cos x \<le> 1"
 
 lemma DERIV_fun_pow: "DERIV g x :> m ==>
       DERIV (\<lambda>x. (g x) ^ n) x :> real n * (g x) ^ (n - 1) * m"
-  by (auto intro!: DERIV_intros)
+  by (auto intro!: derivative_eq_intros simp: real_of_nat_def)
 
 lemma DERIV_fun_exp:
      "DERIV g x :> m ==> DERIV (\<lambda>x. exp(g x)) x :> exp(g x) * m"
-  by (auto intro!: DERIV_intros)
+  by (auto intro!: derivative_intros)
 
 lemma DERIV_fun_sin:
      "DERIV g x :> m ==> DERIV (\<lambda>x. sin(g x)) x :> cos(g x) * m"
-  by (auto intro!: DERIV_intros)
+  by (auto intro!: derivative_intros)
 
 lemma DERIV_fun_cos:
      "DERIV g x :> m ==> DERIV (\<lambda>x. cos(g x)) x :> -sin(g x) * m"
-  by (auto intro!: DERIV_intros)
+  by (auto intro!: derivative_eq_intros simp: real_of_nat_def)
 
 lemma sin_cos_add_lemma:
   "(sin (x + y) - (sin x * cos y + cos x * sin y))\<^sup>2 +
@@ -2296,7 +2296,7 @@ lemma sin_cos_add_lemma:
   (is "?f x = 0")
 proof -
   have "\<forall>x. DERIV (\<lambda>x. ?f x) x :> 0"
-    by (auto intro!: DERIV_intros simp add: algebra_simps)
+    by (auto intro!: derivative_eq_intros simp add: algebra_simps)
   hence "?f x = ?f 0"
     by (rule DERIV_isconst_all)
   thus ?thesis by simp
@@ -2312,7 +2312,7 @@ lemma sin_cos_minus_lemma:
   "(sin(-x) + sin(x))\<^sup>2 + (cos(-x) - cos(x))\<^sup>2 = 0" (is "?f x = 0")
 proof -
   have "\<forall>x. DERIV (\<lambda>x. ?f x) x :> 0"
-    by (auto intro!: DERIV_intros simp add: algebra_simps)
+    by (auto intro!: derivative_eq_intros simp add: algebra_simps)
   hence "?f x = ?f 0"
     by (rule DERIV_isconst_all)
   thus ?thesis by simp
@@ -2859,7 +2859,7 @@ lemma tan_half: "tan x = sin (2 * x) / (cos (2 * x) + 1)"
 
 lemma DERIV_tan [simp]: "cos x \<noteq> 0 \<Longrightarrow> DERIV tan x :> inverse ((cos x)\<^sup>2)"
   unfolding tan_def
-  by (auto intro!: DERIV_intros, simp add: divide_inverse power2_eq_square)
+  by (auto intro!: derivative_eq_intros, simp add: divide_inverse power2_eq_square)
 
 lemma isCont_tan: "cos x \<noteq> 0 \<Longrightarrow> isCont tan x"
   by (rule DERIV_tan [THEN DERIV_isCont])
@@ -3332,9 +3332,9 @@ lemma DERIV_arctan: "DERIV arctan x :> inverse (1 + x\<^sup>2)"
   done
 
 declare
-  DERIV_arcsin[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
-  DERIV_arccos[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
-  DERIV_arctan[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
+  DERIV_arcsin[THEN DERIV_chain2, derivative_intros]
+  DERIV_arccos[THEN DERIV_chain2, derivative_intros]
+  DERIV_arctan[THEN DERIV_chain2, derivative_intros]
 
 lemma filterlim_tan_at_right: "filterlim tan at_bot (at_right (- pi/2))"
   by (rule filterlim_at_bot_at_right[where Q="\<lambda>x. - pi/2 < x \<and> x < pi/2" and P="\<lambda>x. True" and g=arctan])
@@ -3465,7 +3465,7 @@ lemma cos_pi_eq_zero [simp]: "cos (pi * real (Suc (2 * m)) / 2) = 0"
   done
 
 lemma DERIV_cos_add [simp]: "DERIV (\<lambda>x. cos (x + k)) xa :> - sin (xa + k)"
-  by (auto intro!: DERIV_intros)
+  by (auto intro!: derivative_eq_intros)
 
 lemma sin_zero_abs_cos_one: "sin x = 0 ==> \<bar>cos x\<bar> = 1"
   by (auto simp add: sin_zero_iff even_mult_two_ex)

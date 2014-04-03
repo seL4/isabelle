@@ -40,7 +40,8 @@ proof (rule allI impI)+
   have "DERIV (difg m) t :> diff (Suc m) t -
     ((\<Sum>x<n - m. real x * t ^ (x - Suc 0) * diff (m + x) 0 / real (fact x)) +
      real (n - m) * t ^ (n - Suc m) * B / real (fact (n - m)))" unfolding difg_def
-    by (auto intro!: DERIV_intros DERIV[rule_format, OF INIT2])
+    by (auto intro!: derivative_eq_intros DERIV[rule_format, OF INIT2]
+             simp: real_of_nat_def[symmetric])
   moreover
   from INIT2 have intvl: "{..<n - m} = insert 0 (Suc ` {..<n - Suc m})" and "0 < n - m"
     unfolding atLeast0LessThan[symmetric] by auto
@@ -209,7 +210,7 @@ lemma Maclaurin_minus:
          f h = (\<Sum>m<n. diff m 0 / real (fact m) * h ^ m) +
          diff n t / real (fact n) * h ^ n"
 proof -
-  txt "Transform @{text ABL'} into @{text DERIV_intros} format."
+  txt "Transform @{text ABL'} into @{text derivative_intros} format."
   note DERIV' = DERIV_chain'[OF _ DERIV[rule_format], THEN DERIV_cong]
   from assms
   have "\<exists>t>0. t < - h \<and>
@@ -217,7 +218,7 @@ proof -
     (\<Sum>m<n.
     (- 1) ^ m * diff m (- 0) / real (fact m) * (- h) ^ m) +
     (- 1) ^ n * diff n (- t) / real (fact n) * (- h) ^ n"
-    by (intro Maclaurin) (auto intro!: DERIV_intros DERIV')
+    by (intro Maclaurin) (auto intro!: derivative_eq_intros DERIV')
   then guess t ..
   moreover
   have "-1 ^ n * diff n (- t) * (- h) ^ n / real (fact n) = diff n (- t) * h ^ n / real (fact n)"
@@ -417,7 +418,7 @@ apply (cut_tac f = sin and n = n and x = x
 apply safe
 apply (simp (no_asm))
 apply (simp (no_asm) add: sin_expansion_lemma)
-apply (force intro!: DERIV_intros)
+apply (force intro!: derivative_eq_intros)
 apply (subst (asm) setsum_0', clarify, case_tac "x", simp, simp)
 apply (cases n, simp, simp)
 apply (rule ccontr, simp)
@@ -446,7 +447,7 @@ apply (cut_tac f = sin and n = n and h = x and diff = "%n x. sin (x + 1/2*real (
 apply safe
 apply simp
 apply (simp (no_asm) add: sin_expansion_lemma)
-apply (force intro!: DERIV_intros)
+apply (force intro!: derivative_eq_intros)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
 apply (rule setsum_cong[OF refl])
@@ -463,7 +464,7 @@ apply (cut_tac f = sin and n = n and h = x and diff = "%n x. sin (x + 1/2*real (
 apply safe
 apply simp
 apply (simp (no_asm) add: sin_expansion_lemma)
-apply (force intro!: DERIV_intros)
+apply (force intro!: derivative_eq_intros)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
 apply (rule setsum_cong[OF refl])
@@ -553,7 +554,7 @@ proof -
     apply (clarify)
     apply (subst (1 2 3) mod_Suc_eq_Suc_mod)
     apply (cut_tac m=m in mod_exhaust_less_4)
-    apply (safe, auto intro!: DERIV_intros)
+    apply (safe, auto intro!: derivative_eq_intros)
     done
   from Maclaurin_all_le [OF diff_0 DERIV_diff]
   obtain t where t1: "\<bar>t\<bar> \<le> \<bar>x\<bar>" and

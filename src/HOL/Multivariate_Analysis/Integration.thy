@@ -8793,11 +8793,10 @@ proof -
       by (auto simp add: algebra_simps)
     have "(f \<circ> (\<lambda>t. (1 - t) *\<^sub>R c + t *\<^sub>R x) has_derivative (\<lambda>x. 0) \<circ> (\<lambda>z. (0 - z *\<^sub>R c) + z *\<^sub>R x))
       (at t within {0 .. 1})"
-      apply (rule diff_chain_within)
-      apply (rule has_derivative_add)
+      apply (intro derivative_eq_intros)
+      apply simp_all
+      apply (simp add: field_simps)
       unfolding scaleR_simps
-      apply (intro has_derivative_intros)
-      apply (intro has_derivative_intros)
       apply (rule has_derivative_within_subset,rule assms(6)[rule_format])
       apply (rule *)
       apply safe

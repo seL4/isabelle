@@ -52,7 +52,7 @@ proof -
   let ?F = "\<lambda>x. - exp (- x * l)"
 
   have deriv: "\<And>x. DERIV ?F x :> ?f x" "\<And>x. 0 \<le> l * exp (- x * l)"
-    by (auto intro!: DERIV_intros simp: zero_le_mult_iff)
+    by (auto intro!: derivative_eq_intros simp: zero_le_mult_iff)
 
   have "emeasure ?D (space ?D) = (\<integral>\<^sup>+ x. ereal (?f x) * indicator {0..} x \<partial>lborel)"
     by (auto simp: emeasure_density exponential_density_def
@@ -178,12 +178,12 @@ proof (rule integral_monotone_convergence)
     proof (rule integral_FTC_atLeastAtMost)
       fix x assume "0 \<le> x" "x \<le> b"
       show "DERIV (\<lambda>x. x * exp (-x)) x :> exp (-x) - x * exp (-x)"
-        by (auto intro!: DERIV_intros)
+        by (auto intro!: derivative_eq_intros)
       show "isCont (\<lambda>x. exp (- x) - x * exp (- x)) x "
         by (intro continuous_intros)
     qed fact
     also have "(\<integral>x. (exp (-x)) * indicator {0 .. b} x \<partial>lborel) = - exp (- b) - - exp (- 0)"
-      by (rule integral_FTC_atLeastAtMost) (auto intro!: DERIV_intros)
+      by (rule integral_FTC_atLeastAtMost) (auto intro!: derivative_eq_intros)
     finally show "1 - (inverse (exp b) + b / exp b) = integral\<^sup>L lborel (?f b)"
       by (auto simp: field_simps exp_minus inverse_eq_divide)
   qed
@@ -374,7 +374,7 @@ proof (subst distributed_integral[OF D, of "\<lambda>x. x", symmetric])
     fix x
     show "DERIV (\<lambda>x. x\<^sup>2 / (2 * measure lborel {a..b})) x :> x / measure lborel {a..b}"
       using uniform_distributed_params[OF D]
-      by (auto intro!: DERIV_intros)
+      by (auto intro!: derivative_eq_intros)
     show "isCont (\<lambda>x. x / Sigma_Algebra.measure lborel {a..b}) x"
       using uniform_distributed_params[OF D]
       by (auto intro!: isCont_divide)

@@ -326,7 +326,7 @@ next
   qed
 next
   show "DERIV (\<lambda>x. - (x ^ n)) (root n x) :> - real n * root n x ^ (n - Suc 0)"
-    by  (auto intro!: DERIV_intros)
+    by  (auto intro!: derivative_eq_intros simp: real_of_nat_def)
   show "- real n * root n x ^ (n - Suc 0) \<noteq> 0"
     using n x by simp
 qed (rule isCont_real_root)
@@ -471,8 +471,8 @@ lemma DERIV_real_sqrt:
   using DERIV_real_sqrt_generic by simp
 
 declare
-  DERIV_real_sqrt_generic[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
-  DERIV_real_root_generic[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
+  DERIV_real_sqrt_generic[THEN DERIV_chain2, derivative_intros]
+  DERIV_real_root_generic[THEN DERIV_chain2, derivative_intros]
 
 lemma not_real_square_gt_zero [simp]: "(~ (0::real) < x*x) = (x = 0)"
 apply auto

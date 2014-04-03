@@ -102,7 +102,7 @@ lemma DERIV_add_const: "DERIV f x :> D ==>  DERIV (%x. a + f x :: 'a::real_norme
 by (rule DERIV_cong, rule DERIV_add, auto)
 
 lemma poly_DERIV[simp]: "DERIV (%x. poly p x) x :> poly (pderiv p) x"
-  by (induct p, auto intro!: DERIV_intros simp add: pderiv_pCons)
+  by (induct p, auto intro!: derivative_eq_intros simp add: pderiv_pCons)
 
 text{* Consequences of the derivative theorem above*}
 

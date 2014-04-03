@@ -534,6 +534,13 @@ INCOMPATIBILITY.
 
   - Renamed FDERIV_... lemmas to has_derivative_...
 
+  - renamed deriv (the syntax constant used for "DERIV _ _ :> _") to DERIV
+
+  - removed DERIV_intros, has_derivative_eq_intros
+
+  - introduced derivative_intros and deriative_eq_intros which includes now rules for
+    DERIV, has_derivative and has_vector_derivative.
+
   - Other renamings:
     differentiable_def        ~>  real_differentiable_def
     differentiableE           ~>  real_differentiableE
@@ -541,6 +548,7 @@ INCOMPATIBILITY.
     field_fderiv_def          ~>  field_has_derivative_at
     isDiff_der                ~>  differentiable_def
     deriv_fderiv              ~>  has_field_derivative_def
+    deriv_def                 ~>  DERIV_def
 INCOMPATIBILITY.
 
 * Include more theorems in continuous_intros. Remove the continuous_on_intros,
