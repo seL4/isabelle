@@ -559,7 +559,7 @@ val spass = (spassN, fn () => spass_config)
 
 (* Vampire *)
 
-(* Vampire 1.8 has TFF support, but the support was buggy until revision
+(* Vampire 1.8 has TFF0 support, but the support was buggy until revision
    1435 (or shortly before). *)
 fun is_vampire_at_least_1_8 () = string_ord (getenv "VAMPIRE_VERSION", "1.8") <> LESS
 fun is_vampire_beyond_1_8 () = string_ord (getenv "VAMPIRE_VERSION", "1.8") = GREATER
@@ -574,9 +574,8 @@ val vampire_config : atp_config =
        " --proof tptp --output_axiom_names on" ^
        (if is_vampire_at_least_1_8 () then
           (* Cf. p. 20 of http://www.complang.tuwien.ac.at/lkovacs/Cade23_Tutorial_Slides/Session2_Slides.pdf *)
-          " --forced_options propositional_to_bdd=off" ^
           (if full_proof then
-             ":splitting=off:equality_proxy=off:general_splitting=off\
+             "--forced_options splitting=off:equality_proxy=off:general_splitting=off\
              \:inequality_splitting=0:naming=0"
            else
              "")
