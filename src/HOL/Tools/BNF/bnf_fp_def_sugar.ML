@@ -190,7 +190,14 @@ structure FP_Sugar_Interpretation = Interpretation
   val eq: T * T -> bool = op = o pairself #T;
 );
 
-val fp_sugar_interpretation = FP_Sugar_Interpretation.interpretation;
+fun with_repaired_path f (fp_sugar as {T, ...} : fp_sugar) thy =
+  thy
+  |> Sign.root_path
+  |> Sign.add_path (Long_Name.qualifier (fst (dest_Type T)))
+  |> f fp_sugar
+  |> Sign.restore_naming thy;
+
+val fp_sugar_interpretation = FP_Sugar_Interpretation.interpretation o with_repaired_path;
 
 fun register_fp_sugar key fp_sugar =
   Local_Theory.declaration {syntax = false, pervasive = true}
