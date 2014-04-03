@@ -15,8 +15,8 @@ import scala.swing.{Button, TextArea, Label, ListView, Alignment,
 import scala.swing.event.{MouseClicked, MouseMoved}
 
 import java.awt.{BorderLayout, Graphics2D, Color, Point, Dimension}
-import javax.swing.{JList, BorderFactory}
-import javax.swing.border.{BevelBorder, SoftBevelBorder, EtchedBorder}
+import javax.swing.{JList, BorderFactory, UIManager}
+import javax.swing.border.{BevelBorder, SoftBevelBorder}
 
 import org.gjt.sp.jedit.{View, jEdit}
 
@@ -26,6 +26,12 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   /* status */
 
   private val status = new ListView(Nil: List[Document.Node.Name]) {
+    background =
+    {
+      // enforce default value
+      val c = UIManager.getDefaults.getColor("Panel.background")
+      new Color(c.getRed, c.getGreen, c.getBlue, c.getAlpha)
+    }
     listenTo(mouse.clicks)
     listenTo(mouse.moves)
     reactions += {
@@ -109,7 +115,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private object Node_Renderer_Component extends BorderPanel
   {
-    opaque = false
+    opaque = true
     border = BorderFactory.createEmptyBorder(2, 2, 2, 2)
 
     var node_name = Document.Node.Name.empty
@@ -126,8 +132,13 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     }
 
     val label = new Label {
+      background = view.getTextArea.getPainter.getBackground
+      foreground = view.getTextArea.getPainter.getForeground
+      border =
+        BorderFactory.createCompoundBorder(
+          BorderFactory.createLineBorder(foreground, 1),
+          BorderFactory.createEmptyBorder(1, 1, 1, 1))
       opaque = false
-      border = new EtchedBorder(EtchedBorder.RAISED)
       xAlignment = Alignment.Leading
 
       override def paintComponent(gfx: Graphics2D)
@@ -138,6 +149,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
           gfx.fillRect(x, 0, w, size.height)
         }
 
+        paint_segment(0, size.width, background)
         nodes_status.get(node_name) match {
           case Some(st) if st.total > 0 =>
             val segments =
