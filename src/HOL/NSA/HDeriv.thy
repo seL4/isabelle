@@ -359,7 +359,7 @@ proof -
       have "inverse (- (h * star_of x) + - (star_of x * star_of x)) =
         (inverse (star_of x + h) - inverse (star_of x)) / h"
       apply (simp add: division_ring_inverse_diff nonzero_inverse_mult_distrib [symmetric]
-        nonzero_inverse_minus_eq [symmetric] ac_simps ring_distribs)
+        nonzero_inverse_minus_eq [symmetric] ac_simps ring_distribs divide_minus_left)
       apply (subst nonzero_inverse_minus_eq [symmetric])
       using distrib_right [symmetric, of h "star_of x" "star_of x"] apply simp
       apply (simp add: field_simps)

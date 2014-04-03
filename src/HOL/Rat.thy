@@ -665,7 +665,7 @@ lemma of_rat_add: "of_rat (a + b) = of_rat a + of_rat b"
   by transfer (simp add: add_frac_eq)
 
 lemma of_rat_minus: "of_rat (- a) = - of_rat a"
-  by transfer simp
+  by transfer (simp add: divide_minus_left)
 
 lemma of_rat_neg_one [simp]:
   "of_rat (- 1) = - 1"

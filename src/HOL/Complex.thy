@@ -145,7 +145,7 @@ lemma complex_Im_inverse:
   by (simp add: complex_inverse_def)
 
 instance
-  by intro_classes (simp_all add: complex_mult_def
+  by intro_classes (simp_all add: complex_mult_def divide_minus_left
     distrib_left distrib_right right_diff_distrib left_diff_distrib
     complex_inverse_def complex_divide_def
     power2_eq_square add_divide_distrib [symmetric]
@@ -656,7 +656,7 @@ next
     moreover have "!!u v. u / (x\<^sup>2 + y\<^sup>2) + v / (x\<^sup>2 + y\<^sup>2) = (u + v) / (x\<^sup>2 + y\<^sup>2)"
       by (metis add_divide_distrib)
     ultimately show ?thesis using Complex False `0 < x\<^sup>2 + y\<^sup>2`
-      apply (simp add: complex_divide_def  zero_less_divide_iff less_divide_eq)
+      apply (simp add: complex_divide_def divide_minus_left zero_less_divide_iff less_divide_eq)
       apply (metis less_divide_eq mult_zero_left diff_conv_add_uminus minus_divide_left)
       done
   qed
@@ -844,7 +844,7 @@ proof (rule complex_eqI)
     real (fact n) *\<^sub>R Complex (cos_coeff n * b ^ n) (sin_coeff n * b ^ n)"
       apply (induct n)
       apply (simp add: cos_coeff_def sin_coeff_def)
-      apply (simp add: sin_coeff_Suc cos_coeff_Suc del: mult_Suc)
+      apply (simp add: sin_coeff_Suc cos_coeff_Suc divide_minus_left del: mult_Suc)
       done } note * = this
   show "Re (cis b) = Re (exp (Complex 0 b))"
     unfolding exp_def cis_def cos_def

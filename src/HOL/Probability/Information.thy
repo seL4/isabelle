@@ -945,7 +945,7 @@ proof (subst entropy_distr[OF X])
   show "- (\<integral> x. indicator A x / measure MX A * log b (indicator A x / measure MX A) \<partial>MX) =
     log b (measure MX A)"
     unfolding eq using uniform_distributed_params[OF X]
-    by (subst lebesgue_integral_cmult) (auto simp: measure_def)
+    by (subst lebesgue_integral_cmult) (auto simp: divide_minus_left measure_def)
 qed
 
 lemma (in information_space) entropy_simple_distributed:

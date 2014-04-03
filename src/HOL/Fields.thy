@@ -152,11 +152,11 @@ lemma nonzero_minus_divide_right: "b \<noteq> 0 ==> - (a / b) = a / (- b)"
 lemma nonzero_minus_divide_divide: "b \<noteq> 0 ==> (-a) / (-b) = a / b"
   by (simp add: divide_inverse nonzero_inverse_minus_eq)
 
-lemma divide_minus_left [simp]: "(-a) / b = - (a / b)"
+lemma divide_minus_left: "(-a) / b = - (a / b)"
   by (simp add: divide_inverse)
 
 lemma diff_divide_distrib: "(a - b) / c = a / c - b / c"
-  using add_divide_distrib [of a "- b" c] by simp
+  using add_divide_distrib [of a "- b" c] by (simp add: divide_inverse)
 
 lemma nonzero_eq_divide_eq [field_simps]: "c \<noteq> 0 \<Longrightarrow> a = b / c \<longleftrightarrow> a * c = b"
 proof -
@@ -408,7 +408,7 @@ lemma minus_divide_right:
   "- (a / b) = a / - b"
   by (simp add: divide_inverse)
 
-lemma divide_minus_right [simp]:
+lemma divide_minus_right:
   "a / - b = - (a / b)"
   by (simp add: divide_inverse)
 
@@ -1045,13 +1045,13 @@ by (force simp add: divide_strict_right_mono le_less)
 lemma divide_right_mono_neg: "a <= b 
     ==> c <= 0 ==> b / c <= a / c"
 apply (drule divide_right_mono [of _ _ "- c"])
-apply auto
+apply (auto simp: divide_minus_right)
 done
 
 lemma divide_left_mono_neg: "a <= b 
     ==> c <= 0 ==> 0 < a * b ==> c / a <= c / b"
   apply (drule divide_left_mono [of _ _ "- c"])
-  apply (auto simp add: mult_commute)
+  apply (auto simp add: divide_minus_left mult_commute)
 done
 
 lemma inverse_le_iff:

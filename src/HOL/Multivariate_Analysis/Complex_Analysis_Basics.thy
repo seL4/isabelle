@@ -998,7 +998,7 @@ proof -
            f (Suc n) u * (z-u) ^ n / of_nat (fact n) +
            f (Suc (Suc n)) u * ((z-u) * (z-u) ^ n) / of_nat (fact (Suc n)) -
            f (Suc n) u * ((1 + of_nat n) * (z-u) ^ n) / of_nat (fact (Suc n))"
-        using Suc by simp
+        using Suc by (simp add: divide_minus_left)
       also have "... = f (Suc (Suc n)) u * (z-u) ^ Suc n / of_nat (fact (Suc n))"
       proof -
         have "of_nat(fact(Suc n)) *

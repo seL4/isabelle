@@ -1139,7 +1139,7 @@ proof -
       setsum (\<lambda>v. (- (inverse (u ?a))) *\<^sub>R (u v *\<^sub>R v)) S - ?u v *\<^sub>R v"
       using fS vS uv by (simp add: setsum_diff1 divide_inverse field_simps)
     also have "\<dots> = ?a"
-      unfolding scaleR_right.setsum [symmetric] u using uv by simp
+      unfolding scaleR_right.setsum [symmetric] u using uv by (simp add: divide_minus_left)
     finally have "setsum (\<lambda>v. ?u v *\<^sub>R v) ?S = ?a" .
     with th0 have ?lhs
       unfolding dependent_def span_explicit
@@ -2131,7 +2131,7 @@ next
     case False
     with span_mul[OF th, of "- 1/ k"]
     have th1: "f a \<in> span (f ` b)"
-      by auto
+      by (auto simp: divide_minus_left)
     from inj_on_image_set_diff[OF "2.prems"(3), of "insert a b " "{a}", symmetric]
     have tha: "f ` insert a b - f ` {a} = f ` (insert a b - {a})" by blast
     from "2.prems"(2) [unfolded dependent_def bex_simps(8), rule_format, of "f a"]

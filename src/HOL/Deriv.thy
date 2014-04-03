@@ -825,7 +825,7 @@ lemma DERIV_shift:
 
 lemma DERIV_mirror:
   "(DERIV f (- x) :> y) \<longleftrightarrow> (DERIV (\<lambda>x. f (- x::real) :: real) x :> - y)"
-  by (simp add: DERIV_def filterlim_at_split filterlim_at_left_to_right
+  by (simp add: DERIV_def filterlim_at_split filterlim_at_left_to_right divide_minus_right
                 tendsto_minus_cancel_left field_simps conj_commute)
 
 text {* Caratheodory formulation of derivative at a point *}
@@ -908,8 +908,8 @@ proof -
     fix h::real
     assume "0 < h" "h < s"
     with all [of "-h"] show "f x < f (x-h)"
-    proof (simp add: abs_if pos_less_divide_eq split add: split_if_asm)
-      assume " - ((f (x-h) - f x) / h) < l" and h: "0 < h"
+    proof (simp add: abs_if pos_less_divide_eq divide_minus_right split add: split_if_asm)
+      assume "- ((f (x-h) - f x) / h) < l" and h: "0 < h"
       with l
       have "0 < (f (x-h) - f x) / h" by arith
       thus "f x < f (x-h)"
@@ -1628,7 +1628,8 @@ lemma lhopital_left:
     ((\<lambda> x. (f' x / g' x)) ---> y) (at_left x) \<Longrightarrow>
   ((\<lambda> x. f x / g x) ---> y) (at_left x)"
   unfolding eventually_at_left_to_right filterlim_at_left_to_right DERIV_mirror
-  by (rule lhopital_right[where f'="\<lambda>x. - f' (- x)"]) (auto simp: DERIV_mirror)
+  by (rule lhopital_right[where f'="\<lambda>x. - f' (- x)"]) 
+     (auto simp: DERIV_mirror divide_minus_left divide_minus_right)
 
 lemma lhopital:
   "((f::real \<Rightarrow> real) ---> 0) (at x) \<Longrightarrow> (g ---> 0) (at x) \<Longrightarrow>
@@ -1739,7 +1740,8 @@ lemma lhopital_left_at_top:
     ((\<lambda> x. (f' x / g' x)) ---> y) (at_left x) \<Longrightarrow>
     ((\<lambda> x. f x / g x) ---> y) (at_left x)"
   unfolding eventually_at_left_to_right filterlim_at_left_to_right DERIV_mirror
-  by (rule lhopital_right_at_top[where f'="\<lambda>x. - f' (- x)"]) (auto simp: DERIV_mirror)
+  by (rule lhopital_right_at_top[where f'="\<lambda>x. - f' (- x)"])
+     (auto simp: divide_minus_left divide_minus_right DERIV_mirror)
 
 lemma lhopital_at_top:
   "LIM x at x. (g::real \<Rightarrow> real) x :> at_top \<Longrightarrow>
@@ -1796,7 +1798,7 @@ proof (rule lhopital_right_0_at_top)
     unfolding filterlim_at_right_to_top
     apply (intro filterlim_cong[THEN iffD2, OF refl refl _ lim])
     using eventually_ge_at_top[where c="1::real"]
-    by eventually_elim simp
+    by eventually_elim (simp add: divide_minus_left divide_minus_right)
 qed
 
 end

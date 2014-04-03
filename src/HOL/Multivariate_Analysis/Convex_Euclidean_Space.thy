@@ -2277,9 +2277,7 @@ proof (rule, rule)
       using Min_ge_iff[of i 0 ] and obt(1)
       unfolding t_def i_def
       using obt(4)[unfolded le_less]
-      apply auto
-      unfolding divide_le_0_iff
-      apply auto
+      apply (auto simp: divide_le_0_iff divide_minus_right)
       done
     have t: "\<forall>v\<in>s. u v + t * w v \<ge> 0"
     proof
@@ -2316,7 +2314,7 @@ proof (rule, rule)
 
     obtain a where "a \<in> s" and "t = (\<lambda>v. (u v) / (- w v)) a" and "w a < 0"
       using Min_in[OF _ `i\<noteq>{}`] and obt(1) unfolding i_def t_def by auto
-    then have a: "a \<in> s" "u a + t * w a = 0" by auto
+    then have a: "a \<in> s" "u a + t * w a = 0" by (auto simp: divide_minus_right)
     have *: "\<And>f. setsum f (s - {a}) = setsum f s - ((f a)::'b::ab_group_add)"
       unfolding setsum_diff1'[OF obt(1) `a\<in>s`] by auto
     have "(\<Sum>v\<in>s. u v + t * w v) = 1"
