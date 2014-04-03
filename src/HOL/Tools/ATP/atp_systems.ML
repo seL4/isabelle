@@ -237,7 +237,7 @@ val alt_ergo_tff1 = TFF Polymorphic
 val alt_ergo_config : atp_config =
   {exec = K (["WHY3_HOME"], ["why3"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
-       "--format tptp --prover 'Alt-Ergo,0.95,' --timelimit " ^
+       "--format tptp --prover 'Alt-Ergo,0.95.2,' --timelimit " ^
        string_of_int (to_secs 1 timeout) ^ " " ^ file_name,
    proof_delims = [],
    known_failures =
