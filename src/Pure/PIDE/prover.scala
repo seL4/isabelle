@@ -13,7 +13,7 @@ object Prover
 
   sealed abstract class Message
 
-  class Input(name: String, args: List[String]) extends Message
+  class Input(val name: String, val args: List[String]) extends Message
   {
     override def toString: String =
       XML.Elem(Markup(Markup.PROVER_COMMAND, List((Markup.NAME, name))),
