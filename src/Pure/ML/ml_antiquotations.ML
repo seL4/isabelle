@@ -73,7 +73,6 @@ val _ = Theory.setup
             "(fn x => (Isabelle." ^ a ^ " (" ^ ml_make_string ^ " x); x))";
         in (K (env, body), ctxt') end));
 
-  
 
 (* type classes *)
 

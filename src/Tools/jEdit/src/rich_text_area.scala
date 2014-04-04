@@ -122,7 +122,7 @@ class Rich_Text_Area(
           if (new_text_info.isDefined)
             text_area.getPainter.setCursor(Cursor.getPredefinedCursor(cursor.get))
           else
-            text_area.getPainter.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR))
+            text_area.getPainter.resetCursor()
         }
         for {
           r0 <- JEdit_Lib.visible_range(text_area)

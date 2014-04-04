@@ -160,8 +160,8 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
                 (st.failed, PIDE.options.color_value("error_color"))
               ).filter(_._1 > 0)
 
-            (size.width /: segments)({ case (last, (n, color)) =>
-              val w = (n * (size.width - segments.length) / st.total) max 4
+            ((size.width - 1) /: segments)({ case (last, (n, color)) =>
+              val w = (n * ((size.width - 2) - segments.length) / st.total) max 4
               paint_segment(last - w, w, color)
               last - w - 1
             })
