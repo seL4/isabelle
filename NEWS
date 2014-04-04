@@ -642,6 +642,10 @@ some PIDE markup.  Note that unlike theory source, ML does not have a
 well-defined master directory, so an absolute symbolic path
 specification is usually required, e.g. "~~/src/HOL".
 
+* ML antiquotation @{print} inlines a function to print an arbitrary
+ML value, which is occasionally useful for diagnostic or demonstration
+purposes.
+
 
 *** System ***
 
