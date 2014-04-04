@@ -521,8 +521,8 @@ class Session(val resources: Resources)
           receiver.cancel()
           reply(())
 
-        case Update_Options(options) if prover.isDefined =>
-          if (is_ready) {
+        case Update_Options(options) =>
+          if (prover.isDefined && is_ready) {
             prover.get.options(options)
             handle_raw_edits(Document.Blobs.empty, Nil)
           }
