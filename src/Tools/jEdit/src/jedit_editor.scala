@@ -111,9 +111,23 @@ class JEdit_Editor extends Editor[View]
 
   /* navigation */
 
+  def push_position(view: View)
+  {
+    val navigator = jEdit.getPlugin("ise.plugin.nav.NavigatorPlugin")
+    if (navigator != null) {
+      try {
+        val m = navigator.getClass.getDeclaredMethod("pushPosition", view.getClass)
+        m.invoke(null, view)
+      }
+      catch { case _: NoSuchMethodException => }
+    }
+  }
+
   def goto_file(view: View, name: String, line: Int = 0, column: Int = 0)
   {
     Swing_Thread.require()
+
+    push_position(view)
 
     JEdit_Lib.jedit_buffer(name) match {
       case Some(buffer) =>
