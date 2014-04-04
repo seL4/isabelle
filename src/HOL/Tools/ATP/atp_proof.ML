@@ -46,7 +46,6 @@ sig
   val spass_input_rule : string
   val spass_pre_skolemize_rule : string
   val spass_skolemize_rule : string
-  val z3_tptp_core_rule : string
 
   val short_output : bool -> string -> string
   val string_of_atp_failure : atp_failure -> string
@@ -76,7 +75,6 @@ val satallax_core_rule = "__satallax_core" (* arbitrary *)
 val spass_input_rule = "Inp"
 val spass_pre_skolemize_rule = "__Sko0" (* arbitrary *)
 val spass_skolemize_rule = "__Sko" (* arbitrary *)
-val z3_tptp_core_rule = "__z3_tptp_core" (* arbitrary *)
 
 exception UNRECOGNIZED_ATP_PROOF of unit
 
@@ -148,10 +146,18 @@ fun string_of_atp_failure Unprovable = "The generated problem is unprovable."
      else ":\n" ^ s)
 
 fun extract_delimited (begin_delim, end_delim) output =
-  output |> first_field begin_delim |> the |> snd
-         |> first_field end_delim |> the |> fst
-         |> perhaps (try (first_field "\n" #> the #> snd))
-  handle Option.Option => ""
+  (case first_field begin_delim output of
+    SOME (_, tail) =>
+    (case first_field "\n" tail of
+      SOME (_, tail') =>
+      if end_delim = "" then
+        tail'
+      else
+        (case first_field end_delim tail' of
+          SOME (body, _) => body
+        | NONE => "")
+    | NONE => "")
+  | NONE => "")
 
 val tstp_important_message_delims =
   ("% SZS start RequiredInformation", "% SZS end RequiredInformation")
@@ -166,8 +172,7 @@ fun extract_important_message output =
 
 (* Splits by the first possible of a list of delimiters. *)
 fun extract_tstplike_proof delims output =
-  (case pairself (find_first (fn s => String.isSubstring s output))
-                (ListPair.unzip delims) of
+  (case pairself (find_first (fn s => String.isSubstring s output)) (ListPair.unzip delims) of
     (SOME begin_delim, SOME end_delim) => extract_delimited (begin_delim, end_delim) output
   | _ => "")
 
@@ -179,7 +184,7 @@ fun extract_known_atp_failure known_failures output =
 fun extract_tstplike_proof_and_outcome verbose proof_delims known_failures
                                        output =
   (case (extract_tstplike_proof proof_delims output,
-        extract_known_atp_failure known_failures output) of
+      extract_known_atp_failure known_failures output) of
     (_, SOME ProofIncomplete) => ("", NONE)
   | ("", SOME ProofMissing) => ("", NONE)
   | ("", NONE) => ("", SOME (UnknownError (short_output verbose output)))
@@ -218,9 +223,9 @@ val skip_term =
       | skip n accum (ss as s :: ss') =
         if s = "," andalso n = 0 then
           (accum, ss)
-        else if member (op =) [")", "]", ">", "}"] s then
+        else if member (op =) [")", "]"] s then
           if n = 0 then (accum, ss) else skip (n - 1) (s :: accum) ss'
-        else if member (op =) ["(", "[", "<", "{"] s then
+        else if member (op =) ["(", "["] s then
           skip (n + 1) (s :: accum) ss'
         else
           skip n (s :: accum) ss'
@@ -240,7 +245,7 @@ fun parse_dependency x =
   (parse_inference_source >> snd
    || scan_general_id --| skip_term >> single) x
 and parse_dependencies x =
-  (parse_dependency ::: Scan.repeat ($$ "," |-- parse_dependency) >> flat) x
+  (Scan.repeat (Scan.option ($$ ",") |-- parse_dependency) >> flat) x
 and parse_file_source x =
   (Scan.this_string "file" |-- $$ "(" |-- scan_general_id
    -- Scan.option ($$ "," |-- scan_general_id) --| $$ ")") x
@@ -277,7 +282,9 @@ and parse_arg x =
        -- Scan.optional ($$ "<" |-- parse_types --| $$ ">") []
        -- Scan.optional ($$ "(" |-- parse_terms --| $$ ")") []
      >> ATerm) x
-and parse_term x = (parse_arg -- Scan.repeat ($$ tptp_app |-- parse_arg) >> list_app) x
+and parse_term x =
+  (parse_arg -- Scan.repeat ($$ tptp_app |-- parse_arg)
+   --| Scan.option parse_type_signature >> list_app) x
 and parse_terms x = (parse_term ::: Scan.repeat ($$ "," |-- parse_term)) x
 
 fun parse_atom x =
@@ -316,8 +323,7 @@ and parse_quantified_formula x =
    >> (fn ((q, ts), phi) => AQuant (q, map (fn ATerm ((s, []), _) => (s, NONE)) ts, phi))) x
 
 val parse_tstp_extra_arguments =
-  Scan.optional ($$ "," |-- parse_source --| Scan.option ($$ "," |-- skip_term))
-                dummy_inference
+  Scan.optional ($$ "," |-- parse_source --| Scan.option ($$ "," |-- skip_term)) dummy_inference
 
 val waldmeister_conjecture_name = "conjecture_1"
 
@@ -488,18 +494,12 @@ fun parse_spass_pirate_line x =
 
 fun core_inference inf fact = ((fact, [fact]), Unknown, dummy_phi, inf, [])
 
-(* Syntax: core(<name>,[<name>,...,<name>]). *)
-fun parse_z3_tptp_line x =
-  (scan_general_id --| $$ "," --| $$ "[" -- parse_dependencies --| $$ "]"
-   >> (fn (name, names) => (("", name :: names), Unknown, dummy_phi, z3_tptp_core_rule, []))) x
-
 (* Syntax: <name> *)
 fun parse_satallax_line x =
   (scan_general_id --| Scan.option ($$ " ") >> core_inference satallax_core_rule) x
 
 fun parse_line problem =
-  parse_tstp_line problem || parse_spass_line || parse_spass_pirate_line || parse_z3_tptp_line
-  || parse_satallax_line
+  parse_tstp_line problem || parse_spass_line || parse_spass_pirate_line || parse_satallax_line
 fun parse_proof problem =
   strip_spaces_except_between_idents
   #> raw_explode
@@ -540,13 +540,11 @@ fun map_term_names_in_atp_proof f =
       | map_term (AAbs (((s, ty), tm), args)) =
         AAbs (((f s, map_type ty), map_term tm), map map_term args)
 
-    fun map_formula (AQuant (q, xs, phi)) =
-        AQuant (q, map (apfst f) xs, map_formula phi)
+    fun map_formula (AQuant (q, xs, phi)) = AQuant (q, map (apfst f) xs, map_formula phi)
       | map_formula (AConn (c, phis)) = AConn (c, map map_formula phis)
       | map_formula (AAtom t) = AAtom (map_term t)
 
-    fun map_step (name, role, phi, rule, deps) =
-      (name, role, map_formula phi, rule, deps)
+    fun map_step (name, role, phi, rule, deps) = (name, role, map_formula phi, rule, deps)
   in
     map map_step
   end
