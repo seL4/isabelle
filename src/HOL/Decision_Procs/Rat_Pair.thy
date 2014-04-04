@@ -227,7 +227,7 @@ proof -
     let ?g = "gcd a b"
     from a b have g: "?g \<noteq> 0"by simp
     from of_int_div[OF g, where ?'a = 'a]
-    have ?thesis by (auto simp add: x INum_def normNum_def split_def Let_def) }
+    have ?thesis by (auto simp: divide_minus_left divide_minus_right x INum_def normNum_def split_def Let_def) }
   ultimately show ?thesis by blast
 qed
 
@@ -300,13 +300,13 @@ proof -
 qed
 
 lemma Nneg[simp]: "INum (~\<^sub>N x) = - (INum x ::'a:: field)"
-  by (simp add: Nneg_def split_def INum_def)
+  by (simp add: divide_minus_left Nneg_def split_def INum_def)
 
 lemma Nsub[simp]: "INum (x -\<^sub>N y) = INum x - (INum y:: 'a :: {field_char_0, field_inverse_zero})"
   by (simp add: Nsub_def split_def)
 
 lemma Ninv[simp]: "INum (Ninv x) = (1::'a :: field_inverse_zero) / (INum x)"
-  by (simp add: Ninv_def INum_def split_def)
+  by (simp add: divide_minus_left divide_minus_right Ninv_def INum_def split_def)
 
 lemma Ndiv[simp]: "INum (x \<div>\<^sub>N y) = INum x / (INum y ::'a :: {field_char_0, field_inverse_zero})"
   by (simp add: Ndiv_def)

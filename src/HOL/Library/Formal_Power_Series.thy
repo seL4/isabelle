@@ -3635,7 +3635,7 @@ lemma fps_cos_add: "fps_cos (a + b) = fps_cos a * fps_cos b - fps_sin a * fps_si
   done
 
 lemma fps_sin_even: "fps_sin (- c) = - fps_sin c"
-  by (auto simp add: fps_eq_iff fps_sin_def)
+  by (auto simp add: divide_minus_left fps_eq_iff fps_sin_def)
 
 lemma fps_cos_odd: "fps_cos (- c) = fps_cos c"
   by (auto simp add: fps_eq_iff fps_cos_def)

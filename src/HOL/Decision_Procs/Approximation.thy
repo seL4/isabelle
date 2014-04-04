@@ -1466,7 +1466,8 @@ proof -
         using float_divr_nonpos_pos_upper_bound[OF `real x \<le> 0` `0 < real (- floor_fl x)`]
         unfolding less_eq_float_def zero_float.rep_eq .
 
-      have "exp x = exp (?num * (x / ?num))" using `real ?num \<noteq> 0` by auto
+      have "exp x = exp (?num * (x / ?num))" using `real ?num \<noteq> 0`
+        by (auto simp: divide_minus_left divide_minus_right)
       also have "\<dots> = exp (x / ?num) ^ ?num" unfolding exp_real_of_nat_mult ..
       also have "\<dots> \<le> exp (float_divr prec x (- floor_fl x)) ^ ?num" unfolding num_eq fl_eq
         by (rule power_mono, rule exp_le_cancel_iff[THEN iffD2], rule float_divr) auto
@@ -1486,15 +1487,16 @@ proof -
         case False hence "0 \<le> real ?horner" by auto
 
         have div_less_zero: "real (float_divl prec x (- floor_fl x)) \<le> 0"
-          using `real (floor_fl x) < 0` `real x \<le> 0` by (auto intro!: order_trans[OF float_divl] divide_nonpos_neg)
-
+          using `real (floor_fl x) < 0` `real x \<le> 0` 
+            by (auto simp: field_simps intro!: order_trans[OF float_divl])
         have "(?lb_exp_horner (float_divl prec x (- floor_fl x))) ^ ?num \<le>
           exp (float_divl prec x (- floor_fl x)) ^ ?num"
           using `0 \<le> real ?horner`[unfolded floor_fl_def[symmetric]] bnds_exp_horner[OF div_less_zero, unfolded atLeastAtMost_iff, THEN conjunct1] by (auto intro!: power_mono)
         also have "\<dots> \<le> exp (x / ?num) ^ ?num" unfolding num_eq fl_eq
           using float_divl by (auto intro!: power_mono simp del: uminus_float.rep_eq)
         also have "\<dots> = exp (?num * (x / ?num))" unfolding exp_real_of_nat_mult ..
-        also have "\<dots> = exp x" using `real ?num \<noteq> 0` by auto
+        also have "\<dots> = exp x" using `real ?num \<noteq> 0` 
+          by (auto simp: field_simps)
         finally show ?thesis
           unfolding lb_exp.simps if_not_P[OF `\<not> 0 < x`] if_P[OF `x < - 1`] int_floor_fl_def Let_def if_not_P[OF False] by auto
       next
@@ -1506,7 +1508,8 @@ proof -
         have "Float 1 -2 \<le> exp (x / (- floor_fl x))" unfolding Float_num .
         hence "real (Float 1 -2) ^ ?num \<le> exp (x / (- floor_fl x)) ^ ?num"
           by (auto intro!: power_mono)
-        also have "\<dots> = exp x" unfolding num_eq fl_eq exp_real_of_nat_mult[symmetric] using `real (floor_fl x) \<noteq> 0` by auto
+        also have "\<dots> = exp x" unfolding num_eq fl_eq exp_real_of_nat_mult[symmetric] 
+          using `real (floor_fl x) \<noteq> 0` by (auto simp: field_simps)
         finally show ?thesis
           unfolding lb_exp.simps if_not_P[OF `\<not> 0 < x`] if_P[OF `x < - 1`] int_floor_fl_def Let_def if_P[OF True] real_of_float_power .
       qed

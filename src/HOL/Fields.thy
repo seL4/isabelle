@@ -152,7 +152,7 @@ lemma nonzero_minus_divide_right: "b \<noteq> 0 ==> - (a / b) = a / (- b)"
 lemma nonzero_minus_divide_divide: "b \<noteq> 0 ==> (-a) / (-b) = a / b"
   by (simp add: divide_inverse nonzero_inverse_minus_eq)
 
-lemma divide_minus_left: "(-a) / b = - (a / b)"
+lemma divide_minus_left [field_simps]: "(-a) / b = - (a / b)"
   by (simp add: divide_inverse)
 
 lemma diff_divide_distrib: "(a - b) / c = a / c - b / c"
@@ -408,7 +408,7 @@ lemma minus_divide_right:
   "- (a / b) = a / - b"
   by (simp add: divide_inverse)
 
-lemma divide_minus_right:
+lemma divide_minus_right [field_simps]:
   "a / - b = - (a / b)"
   by (simp add: divide_inverse)
 

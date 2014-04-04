@@ -2708,7 +2708,7 @@ proof -
     have "?rhs = Ifm vs (-?s / (2*?d) # bs) (Eq (CNP 0 a r))"
       by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a * (-?s / (2*?d)) + ?r = 0"
-      by (simp add: r[of "- (Itm vs (x # bs) s / (2 * \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>))"])
+      by (simp add: field_simps r[of "- (Itm vs (x # bs) s / (2 * \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>))"])
     also have "\<dots> \<longleftrightarrow> 2 * ?d * (?a * (-?s / (2*?d)) + ?r) = 0"
       using d mult_cancel_left[of "2*?d" "(?a * (-?s / (2*?d)) + ?r)" 0] by simp
     also have "\<dots> \<longleftrightarrow> (- ?a * ?s) * (2*?d / (2*?d)) + 2 * ?d * ?r= 0"
@@ -2728,12 +2728,12 @@ proof -
     have "?rhs = Ifm vs (-?t / (2*?c) # bs) (Eq (CNP 0 a r))"
       by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a * (-?t / (2*?c)) + ?r = 0"
-      by (simp add: r[of "- (?t/ (2 * ?c))"])
+      by (simp add: field_simps r[of "- (?t/ (2 * ?c))"])
     also have "\<dots> \<longleftrightarrow> 2 * ?c * (?a * (-?t / (2 * ?c)) + ?r) = 0"
       using c mult_cancel_left[of "2 * ?c" "(?a * (-?t / (2 * ?c)) + ?r)" 0] by simp
     also have "\<dots> \<longleftrightarrow> (?a * -?t)* (2 * ?c) / (2 * ?c) + 2 * ?c * ?r= 0"
       by (simp add: field_simps distrib_left[of "2 * ?c"] del: distrib_left)
-    also have "\<dots> \<longleftrightarrow> - (?a * ?t) + 2 * ?c * ?r = 0" using c by simp
+    also have "\<dots> \<longleftrightarrow> - (?a * ?t) + 2 * ?c * ?r = 0" using c by (simp add: field_simps)
     finally have ?thesis using c d
       by (simp add: r[of "- (?t/ (2 * ?c))"] msubsteq_def Let_def evaldjf_ex)
   }
@@ -2755,7 +2755,7 @@ proof -
       by simp
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )) + 2 * ?c * ?d * ?r = 0"
       using nonzero_mult_divide_cancel_left [OF dc] c d
-      by (simp add: algebra_simps diff_divide_distrib del: distrib_right)
+      by (simp add: divide_minus_left algebra_simps diff_divide_distrib del: distrib_right)
     finally  have ?thesis using c d
       by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"]
           msubsteq_def Let_def evaldjf_ex field_simps)
@@ -2825,7 +2825,7 @@ proof -
     have "?rhs = Ifm vs (-?s / (2*?d) # bs) (NEq (CNP 0 a r))"
       by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a * (-?s / (2*?d)) + ?r \<noteq> 0"
-      by (simp add: r[of "- (Itm vs (x # bs) s / (2 * \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>))"])
+      by (simp add: field_simps r[of "- (Itm vs (x # bs) s / (2 * \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>))"])
     also have "\<dots> \<longleftrightarrow> 2*?d * (?a * (-?s / (2*?d)) + ?r) \<noteq> 0"
       using d mult_cancel_left[of "2*?d" "(?a * (-?s / (2*?d)) + ?r)" 0] by simp
     also have "\<dots> \<longleftrightarrow> (- ?a * ?s) * (2*?d / (2*?d)) + 2*?d*?r\<noteq> 0"
@@ -2845,13 +2845,13 @@ proof -
     have "?rhs = Ifm vs (-?t / (2*?c) # bs) (NEq (CNP 0 a r))"
       by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a * (-?t / (2*?c)) + ?r \<noteq> 0"
-      by (simp add: r[of "- (?t/ (2 * ?c))"])
+      by (simp add: field_simps r[of "- (?t/ (2 * ?c))"])
     also have "\<dots> \<longleftrightarrow> 2*?c * (?a * (-?t / (2*?c)) + ?r) \<noteq> 0"
       using c mult_cancel_left[of "2*?c" "(?a * (-?t / (2*?c)) + ?r)" 0] by simp
     also have "\<dots> \<longleftrightarrow> (?a * -?t)* (2*?c) / (2*?c) + 2*?c*?r \<noteq> 0"
       by (simp add: field_simps distrib_left[of "2*?c"] del: distrib_left)
     also have "\<dots> \<longleftrightarrow> - (?a * ?t) + 2*?c*?r \<noteq> 0"
-      using c by simp
+      using c by (simp add: field_simps)
     finally have ?thesis
       using c d by (simp add: r[of "- (?t/ (2*?c))"] msubstneq_def Let_def evaldjf_ex)
   }
@@ -2873,7 +2873,7 @@ proof -
       by simp
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )) + 2*?c*?d*?r \<noteq> 0"
       using nonzero_mult_divide_cancel_left[OF dc] c d
-      by (simp add: algebra_simps diff_divide_distrib del: distrib_right)
+      by (simp add: divide_minus_left algebra_simps diff_divide_distrib del: distrib_right)
     finally have ?thesis
       using c d
       by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"]
@@ -2963,7 +2963,7 @@ proof -
       by simp
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )) + 2*?c*?d*?r < 0"
       using nonzero_mult_divide_cancel_left[of "2*?c*?d"] c d
-      by (simp add: algebra_simps diff_divide_distrib del: distrib_right)
+      by (simp add: divide_minus_left algebra_simps diff_divide_distrib del: distrib_right)
     finally  have ?thesis using dc c d  nc nd dc'
       by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"]
           msubstlt_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
@@ -2988,7 +2988,7 @@ proof -
       by simp
     also have "\<dots> \<longleftrightarrow> ?a * ((?d * ?t + ?c* ?s )) - 2 * ?c * ?d * ?r < 0"
       using nonzero_mult_divide_cancel_left[of "2 * ?c * ?d"] c d
-      by (simp add: algebra_simps diff_divide_distrib del: distrib_right)
+      by (simp add: divide_minus_left algebra_simps diff_divide_distrib del: distrib_right)
     finally have ?thesis using dc c d nc nd
       by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"]
           msubstlt_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
@@ -3005,14 +3005,14 @@ proof -
     have "?rhs \<longleftrightarrow> Ifm vs (- ?t / (2 * ?c) # bs) (Lt (CNP 0 a r))"
       by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a * (- ?t / (2 * ?c))+ ?r < 0"
-      by (simp add: r[of "- (?t / (2 * ?c))"])
+      by (simp add: field_simps r[of "- (?t / (2 * ?c))"])
     also have "\<dots> \<longleftrightarrow> 2 * ?c * (?a * (- ?t / (2 * ?c))+ ?r) < 0"
       using c mult_less_cancel_left_disj[of "2 * ?c" "?a* (- ?t / (2*?c))+ ?r" 0] c' c''
         order_less_not_sym[OF c'']
       by simp
     also have "\<dots> \<longleftrightarrow> - ?a * ?t + 2 * ?c * ?r < 0"
       using nonzero_mult_divide_cancel_left[OF c'] c
-      by (simp add: algebra_simps diff_divide_distrib less_le del: distrib_right)
+      by (simp add: divide_minus_left algebra_simps diff_divide_distrib less_le del: distrib_right)
     finally have ?thesis using c d nc nd
       by (simp add: r[of "- (?t / (2*?c))"] msubstlt_def Let_def evaldjf_ex field_simps
           lt polyneg_norm polymul_norm)
@@ -3029,7 +3029,7 @@ proof -
     have "?rhs \<longleftrightarrow> Ifm vs (- ?t / (2*?c) # bs) (Lt (CNP 0 a r))"
       by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a * (- ?t / (2*?c))+ ?r < 0"
-      by (simp add: r[of "- (?t / (2*?c))"])
+      by (simp add: field_simps r[of "- (?t / (2*?c))"])
     also have "\<dots> \<longleftrightarrow> 2 * ?c * (?a * (- ?t / (2 * ?c))+ ?r) > 0"
       using c order_less_not_sym[OF c''] less_imp_neq[OF c''] c''
         mult_less_cancel_left_disj[of "2 * ?c" 0 "?a* (- ?t / (2*?c))+ ?r"]
@@ -3037,7 +3037,7 @@ proof -
     also have "\<dots> \<longleftrightarrow> ?a*?t -  2*?c *?r < 0"
       using nonzero_mult_divide_cancel_left[OF c'] c order_less_not_sym[OF c'']
           less_imp_neq[OF c''] c''
-        by (simp add: algebra_simps diff_divide_distrib del: distrib_right)
+        by (simp add: divide_minus_left algebra_simps diff_divide_distrib del: distrib_right)
     finally have ?thesis using c d nc nd
       by (simp add: r[of "- (?t / (2*?c))"] msubstlt_def Let_def evaldjf_ex field_simps
           lt polyneg_norm polymul_norm)
@@ -3054,14 +3054,14 @@ proof -
     have "?rhs \<longleftrightarrow> Ifm vs (- ?s / (2 * ?d) # bs) (Lt (CNP 0 a r))"
       by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a * (- ?s / (2 * ?d))+ ?r < 0"
-      by (simp add: r[of "- (?s / (2 * ?d))"])
+      by (simp add: field_simps r[of "- (?s / (2 * ?d))"])
     also have "\<dots> \<longleftrightarrow> 2 * ?d * (?a * (- ?s / (2 * ?d))+ ?r) < 0"
       using d mult_less_cancel_left_disj[of "2 * ?d" "?a * (- ?s / (2 * ?d))+ ?r" 0] d' d''
         order_less_not_sym[OF d'']
       by simp
     also have "\<dots> \<longleftrightarrow> - ?a * ?s+  2 * ?d * ?r < 0"
       using nonzero_mult_divide_cancel_left[OF d'] d
-      by (simp add: algebra_simps diff_divide_distrib less_le del: distrib_right)
+      by (simp add: divide_minus_left algebra_simps diff_divide_distrib less_le del: distrib_right)
     finally have ?thesis using c d nc nd
       by (simp add: r[of "- (?s / (2*?d))"] msubstlt_def Let_def evaldjf_ex field_simps
           lt polyneg_norm polymul_norm)
@@ -3078,7 +3078,7 @@ proof -
     have "?rhs \<longleftrightarrow> Ifm vs (- ?s / (2 * ?d) # bs) (Lt (CNP 0 a r))"
       by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a * (- ?s / (2 * ?d)) + ?r < 0"
-      by (simp add: r[of "- (?s / (2 * ?d))"])
+      by (simp add: field_simps r[of "- (?s / (2 * ?d))"])
     also have "\<dots> \<longleftrightarrow> 2 * ?d * (?a * (- ?s / (2 * ?d)) + ?r) > 0"
       using d order_less_not_sym[OF d''] less_imp_neq[OF d''] d''
         mult_less_cancel_left_disj[of "2 * ?d" 0 "?a* (- ?s / (2*?d))+ ?r"]
@@ -3086,7 +3086,7 @@ proof -
     also have "\<dots> \<longleftrightarrow> ?a * ?s -  2 * ?d * ?r < 0"
       using nonzero_mult_divide_cancel_left[OF d'] d order_less_not_sym[OF d'']
           less_imp_neq[OF d''] d''
-        by (simp add: algebra_simps diff_divide_distrib del: distrib_right)
+        by (simp add: divide_minus_left algebra_simps diff_divide_distrib del: distrib_right)
     finally have ?thesis using c d nc nd
       by (simp add: r[of "- (?s / (2*?d))"] msubstlt_def Let_def evaldjf_ex field_simps
           lt polyneg_norm polymul_norm)
@@ -3177,7 +3177,7 @@ proof -
       by simp
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )) + 2*?c*?d*?r \<le> 0"
       using nonzero_mult_divide_cancel_left[of "2*?c*?d"] c d
-      by (simp add: algebra_simps diff_divide_distrib del: distrib_right)
+      by (simp add: divide_minus_left algebra_simps diff_divide_distrib del: distrib_right)
     finally  have ?thesis using dc c d  nc nd dc'
       by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"] msubstle_def
           Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
@@ -3202,7 +3202,7 @@ proof -
       by simp
     also have "\<dots> \<longleftrightarrow> ?a * ((?d * ?t + ?c* ?s )) - 2 * ?c * ?d * ?r \<le> 0"
       using nonzero_mult_divide_cancel_left[of "2 * ?c * ?d"] c d
-      by (simp add: algebra_simps diff_divide_distrib del: distrib_right)
+      by (simp add: divide_minus_left algebra_simps diff_divide_distrib del: distrib_right)
     finally  have ?thesis using dc c d  nc nd
       by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"] msubstle_def
           Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
@@ -3219,14 +3219,14 @@ proof -
     have "?rhs \<longleftrightarrow> Ifm vs (- ?t / (2 * ?c) # bs) (Le (CNP 0 a r))"
       by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a * (- ?t / (2 * ?c))+ ?r \<le> 0"
-      by (simp add: r[of "- (?t / (2 * ?c))"])
+      by (simp add: field_simps r[of "- (?t / (2 * ?c))"])
     also have "\<dots> \<longleftrightarrow> 2 * ?c * (?a * (- ?t / (2 * ?c))+ ?r) \<le> 0"
       using c mult_le_cancel_left[of "2 * ?c" "?a* (- ?t / (2*?c))+ ?r" 0] c' c''
         order_less_not_sym[OF c'']
       by simp
     also have "\<dots> \<longleftrightarrow> - ?a*?t+  2*?c *?r \<le> 0"
       using nonzero_mult_divide_cancel_left[OF c'] c
-      by (simp add: algebra_simps diff_divide_distrib less_le del: distrib_right)
+      by (simp add: divide_minus_left algebra_simps diff_divide_distrib less_le del: distrib_right)
     finally have ?thesis using c d nc nd
       by (simp add: r[of "- (?t / (2*?c))"] msubstle_def Let_def
           evaldjf_ex field_simps lt polyneg_norm polymul_norm)
@@ -3243,7 +3243,7 @@ proof -
     have "?rhs \<longleftrightarrow> Ifm vs (- ?t / (2 * ?c) # bs) (Le (CNP 0 a r))"
       by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a * (- ?t / (2*?c))+ ?r \<le> 0"
-      by (simp add: r[of "- (?t / (2*?c))"])
+      by (simp add: field_simps r[of "- (?t / (2*?c))"])
     also have "\<dots> \<longleftrightarrow> 2 * ?c * (?a * (- ?t / (2 * ?c))+ ?r) \<ge> 0"
       using c order_less_not_sym[OF c''] less_imp_neq[OF c''] c''
         mult_le_cancel_left[of "2 * ?c" 0 "?a* (- ?t / (2*?c))+ ?r"]
@@ -3251,7 +3251,7 @@ proof -
     also have "\<dots> \<longleftrightarrow> ?a * ?t - 2 * ?c * ?r \<le> 0"
       using nonzero_mult_divide_cancel_left[OF c'] c order_less_not_sym[OF c'']
           less_imp_neq[OF c''] c''
-        by (simp add: algebra_simps diff_divide_distrib del: distrib_right)
+        by (simp add: divide_minus_left algebra_simps diff_divide_distrib del: distrib_right)
     finally have ?thesis using c d nc nd
       by (simp add: r[of "- (?t / (2*?c))"] msubstle_def Let_def
           evaldjf_ex field_simps lt polyneg_norm polymul_norm)
@@ -3268,14 +3268,14 @@ proof -
     have "?rhs \<longleftrightarrow> Ifm vs (- ?s / (2 * ?d) # bs) (Le (CNP 0 a r))"
       by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a * (- ?s / (2 * ?d))+ ?r \<le> 0"
-      by (simp add: r[of "- (?s / (2*?d))"])
+      by (simp add: field_simps r[of "- (?s / (2*?d))"])
     also have "\<dots> \<longleftrightarrow> 2 * ?d * (?a * (- ?s / (2 * ?d)) + ?r) \<le> 0"
       using d mult_le_cancel_left[of "2 * ?d" "?a* (- ?s / (2*?d))+ ?r" 0] d' d''
         order_less_not_sym[OF d'']
       by simp
     also have "\<dots> \<longleftrightarrow> - ?a * ?s + 2 * ?d * ?r \<le> 0"
       using nonzero_mult_divide_cancel_left[OF d'] d
-      by (simp add: algebra_simps diff_divide_distrib less_le del: distrib_right)
+      by (simp add: divide_minus_left algebra_simps diff_divide_distrib less_le del: distrib_right)
     finally have ?thesis using c d nc nd
       by (simp add: r[of "- (?s / (2*?d))"] msubstle_def Let_def
           evaldjf_ex field_simps lt polyneg_norm polymul_norm)
@@ -3292,7 +3292,7 @@ proof -
     have "?rhs \<longleftrightarrow> Ifm vs (- ?s / (2*?d) # bs) (Le (CNP 0 a r))"
       by (simp only: th)
     also have "\<dots> \<longleftrightarrow> ?a* (- ?s / (2*?d))+ ?r \<le> 0"
-      by (simp add: r[of "- (?s / (2*?d))"])
+      by (simp add: field_simps r[of "- (?s / (2*?d))"])
     also have "\<dots> \<longleftrightarrow> 2*?d * (?a* (- ?s / (2*?d))+ ?r) \<ge> 0"
       using d order_less_not_sym[OF d''] less_imp_neq[OF d''] d''
         mult_le_cancel_left[of "2 * ?d" 0 "?a* (- ?s / (2*?d))+ ?r"]
@@ -3300,7 +3300,7 @@ proof -
     also have "\<dots> \<longleftrightarrow> ?a * ?s -  2 * ?d * ?r \<le> 0"
       using nonzero_mult_divide_cancel_left[OF d'] d order_less_not_sym[OF d'']
           less_imp_neq[OF d''] d''
-        by (simp add: algebra_simps diff_divide_distrib del: distrib_right)
+        by (simp add: divide_minus_left algebra_simps diff_divide_distrib del: distrib_right)
     finally have ?thesis using c d nc nd
       by (simp add: r[of "- (?s / (2*?d))"] msubstle_def Let_def
           evaldjf_ex field_simps lt polyneg_norm polymul_norm)
@@ -3326,10 +3326,10 @@ lemma msubst_I:
     Ifm vs (((- Itm vs (x#bs) t /  Ipoly vs c + - Itm vs (x#bs) s / Ipoly vs d) /2)#bs) p"
   using lp
   by (induct p rule: islin.induct)
-    (auto simp add: tmbound0_I
+    (auto simp add: tmbound0_I 
       [where b = "(- (Itm vs (x # bs) t / \<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup>) - (Itm vs (x # bs) s / \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>)) / 2"
         and b' = x and bs = bs and vs = vs]
-      msubsteq msubstneq msubstlt [OF nc nd] msubstle [OF nc nd])
+      msubsteq msubstneq msubstlt [OF nc nd] msubstle [OF nc nd] divide_minus_left)
 
 lemma msubst_nb:
   assumes lp: "islin p"
@@ -3767,7 +3767,7 @@ proof -
         by (auto simp add: msubst2_def lt zero_less_mult_iff mult_less_0_iff)
       from msubst2[OF lp nn nn2(1), of x bs t]
       have "\<lparr>n\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0 \<and> Ifm vs (- Itm vs (x # bs) t / (\<lparr>n\<rparr>\<^sub>p\<^bsup>vs\<^esup> * 2) # bs) p"
-        using H(2) nn2 by (simp add: mult_minus2_right)
+        using H(2) nn2 by (simp add: divide_minus_left divide_minus_right mult_minus2_right)
     }
     moreover
     {
@@ -3780,7 +3780,7 @@ proof -
       then have nn: "isnpoly (n *\<^sub>p (C (-2,1)))" "\<lparr>n *\<^sub>p(C (-2,1)) \<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0"
         using H(2) by (simp_all add: polymul_norm n2)
       from msubst2[OF lp nn, of x bs t] have "?I (msubst2 p (n *\<^sub>p (C (-2,1))) t)"
-        using H(2,3) by (simp add: mult_minus2_right)
+        using H(2,3) by (simp add: divide_minus_left divide_minus_right mult_minus2_right)
     }
     ultimately show ?thesis by blast
   qed
@@ -3811,7 +3811,7 @@ proof -
       from msubst2[OF lp nn nn'(1), of x bs ] H(3) nn'
       have "\<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0 \<and> \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup> \<noteq> 0 \<and>
           Ifm vs ((- Itm vs (x # bs) t / \<lparr>c\<rparr>\<^sub>p\<^bsup>vs\<^esup> + - Itm vs (x # bs) s / \<lparr>d\<rparr>\<^sub>p\<^bsup>vs\<^esup>) / 2 # bs) p"
-        by (simp add: add_divide_distrib diff_divide_distrib mult_minus2_left mult_commute)
+        by (simp add: divide_minus_left divide_minus_right add_divide_distrib diff_divide_distrib mult_minus2_left mult_commute)
     }
     moreover
     {
@@ -3828,7 +3828,7 @@ proof -
         using H(3,4) by (simp_all add: polymul_norm n2)
       from msubst2[OF lp nn, of x bs ] H(3,4,5)
       have "Ifm vs (x#bs) (msubst2 p (C (-2, 1) *\<^sub>p c*\<^sub>p d) (Add (Mul d t) (Mul c s)))"
-        by (simp add: diff_divide_distrib add_divide_distrib mult_minus2_left mult_commute)
+        by (simp add: divide_minus_left divide_minus_right diff_divide_distrib add_divide_distrib mult_minus2_left mult_commute)
     }
     ultimately show ?thesis by blast
   qed

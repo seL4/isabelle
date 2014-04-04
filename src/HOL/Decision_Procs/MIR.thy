@@ -2068,7 +2068,7 @@ next
   from 3 have nbe: "numbound0 e" by simp
   fix y
   have "\<forall> x < (floor (- (Inum (y#bs) e) / (real c))). ?I x (?M (Eq (CN 0 c e))) = ?I x (Eq (CN 0 c e))"
-  proof (simp add: less_floor_eq , rule allI, rule impI) 
+  proof (simp add: divide_minus_left less_floor_eq , rule allI, rule impI) 
     fix x :: int
     assume A: "real x + 1 \<le> - (Inum (y # bs) e / real c)"
     hence th1:"real x < - (Inum (y # bs) e / real c)" by simp
@@ -2085,7 +2085,7 @@ next
   from 4 have nbe: "numbound0 e" by simp
   fix y
   have "\<forall> x < (floor (- (Inum (y#bs) e) / (real c))). ?I x (?M (NEq (CN 0 c e))) = ?I x (NEq (CN 0 c e))"
-  proof (simp add: less_floor_eq , rule allI, rule impI) 
+  proof (simp add: divide_minus_left less_floor_eq , rule allI, rule impI) 
     fix x :: int
     assume A: "real x + 1 \<le> - (Inum (y # bs) e / real c)"
     hence th1:"real x < - (Inum (y # bs) e / real c)" by simp
@@ -2102,7 +2102,7 @@ next
   from 5 have nbe: "numbound0 e" by simp
   fix y
   have "\<forall> x < (floor (- (Inum (y#bs) e) / (real c))). ?I x (?M (Lt (CN 0 c e))) = ?I x (Lt (CN 0 c e))"
-  proof (simp add: less_floor_eq , rule allI, rule impI) 
+  proof (simp add: divide_minus_left less_floor_eq , rule allI, rule impI) 
     fix x :: int
     assume A: "real x + 1 \<le> - (Inum (y # bs) e / real c)"
     hence th1:"real x < - (Inum (y # bs) e / real c)" by simp
@@ -2118,7 +2118,7 @@ next
   from 6 have nbe: "numbound0 e" by simp
   fix y
   have "\<forall> x < (floor (- (Inum (y#bs) e) / (real c))). ?I x (?M (Le (CN 0 c e))) = ?I x (Le (CN 0 c e))"
-  proof (simp add: less_floor_eq , rule allI, rule impI) 
+  proof (simp add: divide_minus_left less_floor_eq , rule allI, rule impI) 
     fix x :: int
     assume A: "real x + 1 \<le> - (Inum (y # bs) e / real c)"
     hence th1:"real x < - (Inum (y # bs) e / real c)" by simp
@@ -2134,7 +2134,7 @@ next
   from 7 have nbe: "numbound0 e" by simp
   fix y
   have "\<forall> x < (floor (- (Inum (y#bs) e) / (real c))). ?I x (?M (Gt (CN 0 c e))) = ?I x (Gt (CN 0 c e))"
-  proof (simp add: less_floor_eq , rule allI, rule impI) 
+  proof (simp add: divide_minus_left less_floor_eq , rule allI, rule impI) 
     fix x :: int
     assume A: "real x + 1 \<le> - (Inum (y # bs) e / real c)"
     hence th1:"real x < - (Inum (y # bs) e / real c)" by simp
@@ -2150,7 +2150,7 @@ next
   from 8 have nbe: "numbound0 e" by simp
   fix y
   have "\<forall> x < (floor (- (Inum (y#bs) e) / (real c))). ?I x (?M (Ge (CN 0 c e))) = ?I x (Ge (CN 0 c e))"
-  proof (simp add: less_floor_eq , rule allI, rule impI) 
+  proof (simp add: divide_minus_left less_floor_eq , rule allI, rule impI) 
     fix x :: int
     assume A: "real x + 1 \<le> - (Inum (y # bs) e / real c)"
     hence th1:"real x < - (Inum (y # bs) e / real c)" by simp
@@ -4267,7 +4267,7 @@ next
   {fix x
     assume xz: "x > ?z"
     with mult_strict_right_mono [OF xz cp] cp
-    have "(real c * x > - ?e)" by (simp add: mult_ac)
+    have "(real c * x > - ?e)" by (simp add: divide_minus_left mult_ac)
     hence "real c * x + ?e > 0" by arith
     hence "real c * x + ?e \<noteq> 0" by simp
     with xz have "?P ?z x (Eq (CN 0 c e))"
@@ -4284,7 +4284,7 @@ next
   {fix x
     assume xz: "x > ?z"
     with mult_strict_right_mono [OF xz cp] cp
-    have "(real c * x > - ?e)" by (simp add: mult_ac)
+    have "(real c * x > - ?e)" by (simp add: divide_minus_left mult_ac)
     hence "real c * x + ?e > 0" by arith
     hence "real c * x + ?e \<noteq> 0" by simp
     with xz have "?P ?z x (NEq (CN 0 c e))"
@@ -4301,7 +4301,7 @@ next
   {fix x
     assume xz: "x > ?z"
     with mult_strict_right_mono [OF xz cp] cp
-    have "(real c * x > - ?e)" by (simp add: mult_ac)
+    have "(real c * x > - ?e)" by (simp add: divide_minus_left mult_ac)
     hence "real c * x + ?e > 0" by arith
     with xz have "?P ?z x (Lt (CN 0 c e))"
       using numbound0_I[OF nb, where b="x" and bs="bs" and b'="a"] by simp }
@@ -4317,7 +4317,7 @@ next
   {fix x
     assume xz: "x > ?z"
     with mult_strict_right_mono [OF xz cp] cp
-    have "(real c * x > - ?e)" by (simp add: mult_ac)
+    have "(real c * x > - ?e)" by (simp add: divide_minus_left mult_ac)
     hence "real c * x + ?e > 0" by arith
     with xz have "?P ?z x (Le (CN 0 c e))"
       using numbound0_I[OF nb, where b="x" and bs="bs" and b'="a"] by simp }
@@ -4333,7 +4333,7 @@ next
   {fix x
     assume xz: "x > ?z"
     with mult_strict_right_mono [OF xz cp] cp
-    have "(real c * x > - ?e)" by (simp add: mult_ac)
+    have "(real c * x > - ?e)" by (simp add: divide_minus_left mult_ac)
     hence "real c * x + ?e > 0" by arith
     with xz have "?P ?z x (Gt (CN 0 c e))"
       using numbound0_I[OF nb, where b="x" and bs="bs" and b'="a"] by simp }
@@ -4349,7 +4349,7 @@ next
   {fix x
     assume xz: "x > ?z"
     with mult_strict_right_mono [OF xz cp] cp
-    have "(real c * x > - ?e)" by (simp add: mult_ac)
+    have "(real c * x > - ?e)" by (simp add: divide_minus_left mult_ac)
     hence "real c * x + ?e > 0" by arith
     with xz have "?P ?z x (Ge (CN 0 c e))"
       using numbound0_I[OF nb, where b="x" and bs="bs" and b'="a"]   by simp }
