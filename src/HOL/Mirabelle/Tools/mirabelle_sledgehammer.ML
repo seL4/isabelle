@@ -26,6 +26,7 @@ val max_factsK = "max_facts" (*=NUM: max. relevant clauses to use*)
 val max_relevantK = "max_relevant" (*=NUM: max. relevant clauses to use*)
 val max_callsK = "max_calls" (*=NUM: max. no. of calls to sledgehammer*)
 val preplay_timeoutK = "preplay_timeout" (*=TIME: timeout for finding reconstructed proof*)
+val isar_proofsK = "isar_proofs" (*: enable Isar proof generation*)
 val sh_minimizeK = "sh_minimize" (*: instruct sledgehammer to run its minimizer*)
 
 val check_trivialK = "check_trivial" (*: check if goals are "trivial" (false by default)*)
@@ -410,7 +411,7 @@ datatype sh_result =
 
 fun run_sh prover_name fact_filter type_enc strict max_facts slice
       lam_trans uncurried_aliases e_selection_heuristic term_order force_sos
-      hard_timeout timeout preplay_timeout sh_minimizeLST
+      hard_timeout timeout preplay_timeout isar_proofsLST sh_minimizeLST
       max_new_mono_instancesLST max_mono_itersLST dir pos st =
   let
     val thy = Proof.theory_of st
@@ -446,6 +447,7 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
            ("slice", slice),
            ("timeout", string_of_int timeout),
            ("preplay_timeout", preplay_timeout)]
+          |> isar_proofsLST
           |> sh_minimizeLST (*don't confuse the two minimization flags*)
           |> max_new_mono_instancesLST
           |> max_mono_itersLST)
@@ -531,6 +533,7 @@ fun run_sledgehammer trivial args proof_method named_thms id
        minimizer has a chance to do its magic *)
     val preplay_timeout = AList.lookup (op =) args preplay_timeoutK
       |> the_default preplay_timeout_default
+    val isar_proofsLST = available_parameter args isar_proofsK "isar_proofs"
     val sh_minimizeLST = available_parameter args sh_minimizeK "minimize"
     val max_new_mono_instancesLST =
       available_parameter args max_new_mono_instancesK max_new_mono_instancesK
@@ -539,7 +542,7 @@ fun run_sledgehammer trivial args proof_method named_thms id
     val (msg, result) =
       run_sh prover_name fact_filter type_enc strict max_facts slice lam_trans
         uncurried_aliases e_selection_heuristic term_order force_sos
-        hard_timeout timeout preplay_timeout sh_minimizeLST
+        hard_timeout timeout preplay_timeout isar_proofsLST sh_minimizeLST
         max_new_mono_instancesLST max_mono_itersLST dir pos st
   in
     (case result of
@@ -585,6 +588,7 @@ fun run_minimize args meth named_thms id ({pre = st, log, ...} : Mirabelle.run_a
       |> the_default minimize_timeout_default
     val preplay_timeout = AList.lookup (op =) args preplay_timeoutK
       |> the_default preplay_timeout_default
+    val isar_proofsLST = available_parameter args isar_proofsK "isar_proofs"
     val sh_minimizeLST = available_parameter args sh_minimizeK "minimize"
     val max_new_mono_instancesLST =
       available_parameter args max_new_mono_instancesK max_new_mono_instancesK
@@ -596,6 +600,7 @@ fun run_minimize args meth named_thms id ({pre = st, log, ...} : Mirabelle.run_a
        ("strict", strict),
        ("timeout", string_of_int timeout),
        ("preplay_timeout", preplay_timeout)]
+      |> isar_proofsLST
       |> sh_minimizeLST (*don't confuse the two minimization flags*)
       |> max_new_mono_instancesLST
       |> max_mono_itersLST)
