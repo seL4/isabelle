@@ -187,7 +187,7 @@ object Document
         }
       }
 
-      private val block_size = 1024
+      private val block_size = 256
     }
 
     final class Commands private(val commands: Linear_Set[Command])
