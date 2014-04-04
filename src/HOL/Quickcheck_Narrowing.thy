@@ -275,6 +275,26 @@ lemma [code]:
      else Code_Evaluation.term_of ((i + 1) div 2))"
   by (rule partial_term_of_anything)+
 
+code_printing constant "Code_Evaluation.term_of :: integer \<Rightarrow> term" \<rightharpoonup> (Haskell_Quickcheck) 
+  "(let { t = Typerep.Typerep \"Code'_Numeral.integer\" [];
+     mkFunT s t = Typerep.Typerep \"fun\" [s, t];
+     numT = Typerep.Typerep \"Num.num\" [];
+     mkBit 0 = Generated'_Code.Const \"Num.num.Bit0\" (mkFunT numT numT);
+     mkBit 1 = Generated'_Code.Const \"Num.num.Bit1\" (mkFunT numT numT);
+     mkNumeral 1 = Generated'_Code.Const \"Num.num.One\" numT;
+     mkNumeral i = let { q = i `Prelude.div` 2; r = i `Prelude.mod` 2 }
+       in Generated'_Code.App (mkBit r) (mkNumeral q);
+     mkNumber 0 = Generated'_Code.Const \"Groups.zero'_class.zero\" t;
+     mkNumber 1 = Generated'_Code.Const \"Groups.one'_class.one\" t;
+     mkNumber i = if i > 0 then
+         Generated'_Code.App
+           (Generated'_Code.Const \"Num.numeral'_class.numeral\"
+              (mkFunT numT t))
+           (mkNumeral i)
+       else
+         Generated'_Code.App
+           (Generated'_Code.Const \"Groups.uminus'_class.uminus\" (mkFunT t t))
+           (mkNumber (- i)); } in mkNumber)"
 
 subsection {* The @{text find_unused_assms} command *}
 
