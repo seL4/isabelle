@@ -516,10 +516,10 @@ proof(induct p arbitrary: a d)
     {fix z::'a
       assume h: "(\<bar>d\<bar> + norm a) / norm c \<le> norm z"
       from c0 have "norm c > 0" by simp
-      from h c0 have th0: "\<bar>d\<bar> + norm a \<le> norm (z*c)"
+      from h c0 have th0: "\<bar>d\<bar> + norm a \<le> norm (z * c)"
         by (simp add: field_simps norm_mult)
       have ath: "\<And>mzh mazh ma. mzh <= mazh + ma ==> abs(d) + ma <= mzh ==> d <= mazh" by arith
-      from norm_diff_ineq[of "z*c" a ]
+      from norm_diff_ineq[of "z * c" a ]
       have th1: "norm (z * c) \<le> norm (a + z * c) + norm a"
         by (simp add: algebra_simps)
       from ath[OF th1 th0] have "d \<le> norm (poly (pCons a (pCons c cs)) z)"
@@ -720,7 +720,7 @@ proof(induct "psize p" arbitrary: p rule: less_induct)
       with norm_triangle_ineq[of "complex_of_real (1 - t^k)" "?w^k * ?w * poly s ?w"]
       have th11: "cmod (1 + ?w^k * (a + ?w * poly s ?w)) \<le> \<bar>1 - t^k\<bar> + cmod (?w^k * ?w * poly s ?w)" unfolding norm_of_real by simp
       have ath: "\<And>x (t::real). 0\<le> x \<Longrightarrow> x < t \<Longrightarrow> t\<le>1 \<Longrightarrow> \<bar>1 - t\<bar> + x < 1" by arith
-      have "t *cmod w \<le> 1 * cmod w" apply (rule mult_mono) using t(1,2) by auto
+      have "t * cmod w \<le> 1 * cmod w" apply (rule mult_mono) using t(1,2) by auto
       then have tw: "cmod ?w \<le> cmod w" using t(1) by (simp add: norm_mult)
       from t inv0 have "t* (cmod w ^ (k + 1) * m) < 1"
         by (simp add: inverse_eq_divide field_simps)
@@ -1074,4 +1074,3 @@ lemma poly_const_conv:
   shows "poly [:c:] x = y \<longleftrightarrow> c = y" by simp
 
 end
-
