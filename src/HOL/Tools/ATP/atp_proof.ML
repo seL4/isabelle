@@ -46,6 +46,7 @@ sig
   val spass_input_rule : string
   val spass_pre_skolemize_rule : string
   val spass_skolemize_rule : string
+  val z3_tptp_core_rule : string
 
   val short_output : bool -> string -> string
   val string_of_atp_failure : atp_failure -> string
@@ -75,6 +76,7 @@ val satallax_core_rule = "__satallax_core" (* arbitrary *)
 val spass_input_rule = "Inp"
 val spass_pre_skolemize_rule = "__Sko0" (* arbitrary *)
 val spass_skolemize_rule = "__Sko" (* arbitrary *)
+val z3_tptp_core_rule = "__z3_tptp_core" (* arbitrary *)
 
 exception UNRECOGNIZED_ATP_PROOF of unit
 
@@ -211,11 +213,13 @@ type 'a atp_proof = (('a, 'a, ('a, 'a atp_type) atp_term, 'a) atp_formula, strin
 
 (**** PARSING OF TSTP FORMAT ****)
 
-(* Strings enclosed in single quotes (e.g., file names) *)
+(* Strings enclosed in single quotes (e.g., file names), identifiers possibly starting
+   with "$" and possibly with "!" in them (for "z3_tptp"). *)
 val scan_general_id =
   $$ "'" |-- Scan.repeat (~$$ "'") --| $$ "'" >> implode
-  || Scan.repeat ($$ "$") -- Scan.many1 Symbol.is_letdig
-     >> (fn (ss1, ss2) => implode ss1 ^ implode ss2)
+  || (Scan.repeat ($$ "$") -- Scan.many1 Symbol.is_letdig >> (op ^ o pairself implode))
+    -- Scan.optional (Scan.repeat ($$ "!") -- Scan.many1 Symbol.is_letdig >> (op ^ o pairself implode)) ""
+    >> op ^
 
 val skip_term =
   let
@@ -416,14 +420,14 @@ fun parse_tstp_line problem =
               | Inference_Source (rule, deps) => (((num, []), phi), rule, deps))
             fun mk_step () = (name, role_of_tptp_string role, phi, rule, map (rpair []) deps)
           in
-            (case role_of_tptp_string role of
-              Definition =>
-              (case phi of
-                 AAtom (ATerm (("equal", _), _)) =>
-                 (* Vampire's equality proxy axiom *)
-                 (name, Definition, phi, rule, map (rpair []) deps)
-               | _ => mk_step ())
-            | _ => mk_step ())
+            [(case role_of_tptp_string role of
+               Definition =>
+               (case phi of
+                  AAtom (ATerm (("equal", _), _)) =>
+                  (* Vampire's equality proxy axiom *)
+                  (name, Definition, phi, rule, map (rpair []) deps)
+                | _ => mk_step ())
+             | _ => mk_step ())]
           end)
 
 (**** PARSING OF SPASS OUTPUT ****)
@@ -464,7 +468,7 @@ fun parse_spass_line x =
      -- Scan.option (Scan.this_string "derived from formulae "
                      |-- Scan.repeat (scan_general_id --| Scan.option ($$ " ")))
    >> (fn ((((num, rule), deps), u), names) =>
-          ((num, these names), Unknown, u, rule, map (rpair []) deps))) x
+          [((num, these names), Unknown, u, rule, map (rpair []) deps)])) x
 
 fun parse_spass_pirate_dependency x = (Scan.option ($$ "-") |-- scan_general_id) x
 fun parse_spass_pirate_dependencies x =
@@ -489,23 +493,28 @@ fun parse_spass_pirate_line x =
            File_Source (_, SOME s) => ([s], spass_input_rule, [])
          | Inference_Source (rule, deps) => ([], rule, deps))
      in
-       ((num, names), Unknown, u, rule, map (rpair []) deps)
+       [((num, names), Unknown, u, rule, map (rpair []) deps)]
      end)) x
 
 fun core_inference inf fact = ((fact, [fact]), Unknown, dummy_phi, inf, [])
 
 (* Syntax: <name> *)
-fun parse_satallax_line x =
-  (scan_general_id --| Scan.option ($$ " ") >> core_inference satallax_core_rule) x
+fun parse_satallax_core_line x =
+  (scan_general_id --| Scan.option ($$ " ") >> (single o core_inference satallax_core_rule)) x
+
+(* Syntax: SZS core <name> ... <name> *)
+fun parse_z3_tptp_core_line x =
+  (Scan.this_string "SZS core" |-- Scan.repeat ($$ " " |-- scan_general_id)
+   >> map (core_inference z3_tptp_core_rule)) x
 
 fun parse_line problem =
-  parse_tstp_line problem || parse_spass_line || parse_spass_pirate_line || parse_satallax_line
+  parse_tstp_line problem || parse_z3_tptp_core_line || parse_spass_line || parse_spass_pirate_line
+  || parse_satallax_core_line
 fun parse_proof problem =
   strip_spaces_except_between_idents
   #> raw_explode
   #> Scan.error (!! (fn _ => raise UNRECOGNIZED_ATP_PROOF ())
-         (Scan.finite Symbol.stopper
-                         (Scan.repeat1 (parse_line problem))))
+       (Scan.finite Symbol.stopper (Scan.repeat1 (parse_line problem) >> flat)))
   #> fst
 
 fun core_of_agsyhol_proof s =
