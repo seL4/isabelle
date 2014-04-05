@@ -412,7 +412,7 @@ lemma divide_minus_right [field_simps]:
   "a / - b = - (a / b)"
   by (simp add: divide_inverse)
 
-lemma minus_divide_divide:
+lemma minus_divide_divide [simp]:
   "(- a) / (- b) = a / b"
 apply (cases "b=0", simp) 
 apply (simp add: nonzero_minus_divide_divide) 
