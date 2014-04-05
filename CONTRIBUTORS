@@ -9,6 +9,9 @@ Contributions to this Isabelle version
 * March 2014: René Thiemann
   Improved code generation for multisets.
 
+* February 2014: Florian Haftmann, TUM
+  Permanent interpretation inside theory, locale and class targets with mixin definitions.
+
 * Fall 2013 and Winter 2014: Lorenz Panny, Dmitriy Traytel, and
   Jasmin Blanchette, TUM
   Various improvements to the BNF-based (co)datatype package, including
@@ -21,6 +24,12 @@ Contributions to this Isabelle version
 * January 2014: Lars Hupel, TUM
   An improved, interactive simplifier trace with integration into the
   Isabelle/jEdit Prover IDE.
+
+* December 2013: Florian Haftmann, TUM
+  Consolidation of abstract interpretations concerning min and max.
+
+* November 2013: Florian Haftmann, TUM
+  Abolishment of negative numeral literals in the logic.
 
 
 Contributions to Isabelle2013-1
