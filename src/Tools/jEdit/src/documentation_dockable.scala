@@ -35,7 +35,7 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
 
   private val root = new DefaultMutableTreeNode
   docs foreach {
-    case Doc.Section(text) =>
+    case Doc.Section(text, _) =>
       root.add(new DefaultMutableTreeNode(text))
     case Doc.Doc(name, title, path) =>
       root.getLastChild.asInstanceOf[DefaultMutableTreeNode]
@@ -83,9 +83,23 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
       }
     }
   })
-  tree.setRootVisible(false)
-  tree.setVisibleRowCount(docs.length)
-  (0 until docs.length).foreach(tree.expandRow)
+
+  {
+    var expand = true
+    var visible = 0
+    def make_visible(row: Int) { visible += 1; tree.expandRow(row) }
+    for ((entry, row) <- docs.zipWithIndex) {
+      entry match {
+        case Doc.Section(_, important) =>
+          expand = important
+          make_visible(row)
+        case _ =>
+          if (expand) make_visible(row)
+      }
+    }
+    tree.setRootVisible(false)
+    tree.setVisibleRowCount(visible)
+  }
 
   private val tree_view = new JScrollPane(tree)
   tree_view.setMinimumSize(new Dimension(100, 50))

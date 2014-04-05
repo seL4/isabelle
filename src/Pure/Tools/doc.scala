@@ -31,7 +31,7 @@ object Doc
     } yield (dir, line)
 
   sealed abstract class Entry
-  case class Section(text: String) extends Entry
+  case class Section(text: String, important: Boolean) extends Entry
   case class Doc(name: String, title: String, path: Path) extends Entry
   case class Text_File(name: String, path: Path) extends Entry
 
@@ -50,7 +50,7 @@ object Doc
     val names =
       List("ANNOUNCE", "README", "NEWS", "COPYRIGHT", "CONTRIBUTORS",
         "contrib/README", "README_REPOSITORY")
-    Section("Release notes") ::
+    Section("Release notes", true) ::
       (for (name <- names; entry <- text_file(name)) yield entry)
   }
 
@@ -63,7 +63,7 @@ object Doc
         "src/HOL/Unix/Unix.thy",
         "src/HOL/Isar_Examples/Drinker.thy",
         "src/Tools/SML/Examples.thy")
-    Section("Examples") :: names.map(name => text_file(name).get)
+    Section("Examples", true) :: names.map(name => text_file(name).get)
   }
 
   def contents(): List[Entry] =
@@ -71,7 +71,11 @@ object Doc
       (dir, line) <- contents_lines()
       entry <-
         line match {
-          case Section_Entry(text) => Some(Section(text))
+          case Section_Entry(text) =>
+            Library.try_unsuffix("!", text) match {
+              case None => Some(Section(text, false))
+              case Some(txt) => Some(Section(txt, true))
+            }
           case Doc_Entry(name, title) => Some(Doc(name, title, dir + Path.basic(name)))
           case _ => None
         }
