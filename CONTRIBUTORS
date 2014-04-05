@@ -29,7 +29,7 @@ Contributions to this Isabelle version
   Consolidation of abstract interpretations concerning min and max.
 
 * November 2013: Florian Haftmann, TUM
-  Abolishment of negative numeral literals in the logic.
+  Abolition of negative numeral literals in the logic.
 
 
 Contributions to Isabelle2013-1
