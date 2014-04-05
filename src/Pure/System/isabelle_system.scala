@@ -11,6 +11,7 @@ package isabelle
 import java.util.regex.Pattern
 import java.io.{File => JFile, BufferedReader, InputStreamReader,
   BufferedWriter, OutputStreamWriter}
+import java.nio.file.Files
 
 import scala.util.matching.Regex
 
@@ -91,7 +92,10 @@ object Isabelle_System
           }
 
       val settings =
-        File.with_tmp_file("settings") { dump =>
+      {
+        val dump = JFile.createTempFile("settings", null)
+        dump.deleteOnExit
+        try {
           val shell_prefix =
             if (Platform.is_windows) List(find_cygwin_root(cygwin_root) + "\\bin\\bash", "-l")
             else Nil
@@ -108,6 +112,8 @@ object Isabelle_System
             }).toMap
           entries + ("PATH" -> entries("PATH_JVM")) - "PATH_JVM"
         }
+        finally { dump.delete }
+      }
       _settings = Some(settings)
       set_cygwin_root()
     }
@@ -201,6 +207,9 @@ object Isabelle_System
     else if (s.startsWith("\\\\")) "file:" + s.replace('\\', '/')
     else "file:///" + s.replace('\\', '/')
   }
+
+  def shell_path(path: Path): String = "'" + standard_path(path) + "'"
+  def shell_path(file: JFile): String = "'" + posix_path(file) + "'"
 
 
   /* source files of Isabelle/ML bootstrap */
@@ -351,6 +360,30 @@ object Isabelle_System
   }
 
 
+  /* tmp files */
+
+  private def isabelle_tmp_prefix(): JFile =
+  {
+    val path = Path.explode("$ISABELLE_TMP_PREFIX")
+    mkdirs(path)
+    platform_file(path)
+  }
+
+  def tmp_file[A](name: String, ext: String = ""): JFile =
+  {
+    val suffix = if (ext == "") "" else "." + ext
+    val file = Files.createTempFile(isabelle_tmp_prefix().toPath, name, suffix).toFile
+    file.deleteOnExit
+    file
+  }
+
+  def with_tmp_file[A](name: String, ext: String = "")(body: JFile => A): A =
+  {
+    val file = tmp_file(name, ext)
+    try { body(file) } finally { file.delete }
+  }
+
+
   /* bash */
 
   final case class Bash_Result(out_lines: List[String], err_lines: List[String], rc: Int)
@@ -366,7 +399,7 @@ object Isabelle_System
     progress_stderr: String => Unit = (_: String) => (),
     progress_limit: Option[Long] = None): Bash_Result =
   {
-    File.with_tmp_file("isabelle_script") { script_file =>
+    with_tmp_file("isabelle_script") { script_file =>
       File.write(script_file, script)
       val proc = new Managed_Process(cwd, env, false, "bash", posix_path(script_file))
       proc.stdin.close
@@ -399,6 +432,35 @@ object Isabelle_System
   }
 
   def bash(script: String): Bash_Result = bash_env(null, null, script)
+
+
+  /* tmp dirs */
+
+  private def system_command(cmd: String)
+  {
+    val res = bash(cmd)
+    if (res.rc != 0)
+      error(cat_lines(("System command failed: " + cmd) :: res.out_lines ::: res.err_lines))
+  }
+
+  def rm_tree(dir: JFile)
+  {
+    dir.delete
+    if (dir.isDirectory) system_command("rm -r -f " + shell_path(dir))
+  }
+
+  def tmp_dir(name: String): JFile =
+  {
+    val dir = Files.createTempDirectory(isabelle_tmp_prefix().toPath, name).toFile
+    dir.deleteOnExit
+    dir
+  }
+
+  def with_tmp_dir[A](name: String)(body: JFile => A): A =
+  {
+    val dir = tmp_dir(name)
+    try { body(dir) } finally { rm_tree(dir) }
+  }
 
 
   /* system tools */

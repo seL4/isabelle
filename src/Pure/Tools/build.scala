@@ -508,7 +508,7 @@ object Build
 
     private val parent = info.parent.getOrElse("")
 
-    private val args_file = File.tmp_file("args")
+    private val args_file = Isabelle_System.tmp_file("args")
     File.write(args_file, YXML.string_of_body(
       if (is_pure(name)) Options.encode(info.options)
       else
