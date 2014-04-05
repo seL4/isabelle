@@ -101,6 +101,9 @@ ISABELLE_LOGIC=HOL
 # Where to look for docs (multiple dirs separated by ':').
 ISABELLE_DOCS="$ISABELLE_HOME/doc"
 
+ISABELLE_DOCS_RELEASE_NOTES="ANNOUNCE:README:NEWS:COPYRIGHT:CONTRIBUTORS:contrib/README:README_REPOSITORY"
+ISABELLE_DOCS_EXAMPLES="src/HOL/ex/Seq.thy:src/HOL/ex/ML.thy:src/HOL/Unix/Unix.thy:src/HOL/Isar_Examples/Drinker.thy:src/Tools/SML/Examples.thy"
+
 # "open" within desktop environment (potentially asynchronous)
 case "$ISABELLE_PLATFORM_FAMILY" in
   linux)

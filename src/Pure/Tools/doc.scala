@@ -1,7 +1,7 @@
 /*  Title:      Pure/Tools/doc.scala
     Author:     Makarius
 
-View Isabelle documentation.
+Access to Isabelle documentation.
 */
 
 package isabelle
@@ -35,10 +35,10 @@ object Doc
   case class Doc(name: String, title: String, path: Path) extends Entry
   case class Text_File(name: String, path: Path) extends Entry
 
-  def text_file(name: String): Option[Text_File] =
+  def text_file(name: Path): Option[Text_File] =
   {
-    val path = Path.variable("ISABELLE_HOME") + Path.explode(name)
-    if (path.is_file) Some(Text_File(name, path))
+    val path = Path.variable("ISABELLE_HOME") + name
+    if (path.is_file) Some(Text_File(name.implode, path))
     else None
   }
 
@@ -46,25 +46,16 @@ object Doc
   private val Doc_Entry = new Regex("""^\s+(\S+)\s+(.+)\s*$""")
 
   private def release_notes(): List[Entry] =
-  {
-    val names =
-      List("ANNOUNCE", "README", "NEWS", "COPYRIGHT", "CONTRIBUTORS",
-        "contrib/README", "README_REPOSITORY")
     Section("Release notes", true) ::
-      (for (name <- names; entry <- text_file(name)) yield entry)
-  }
+      Path.split(Isabelle_System.getenv_strict("ISABELLE_DOCS_RELEASE_NOTES")).flatMap(text_file(_))
 
   private def examples(): List[Entry] =
-  {
-    val names =
-      List(
-        "src/HOL/ex/Seq.thy",
-        "src/HOL/ex/ML.thy",
-        "src/HOL/Unix/Unix.thy",
-        "src/HOL/Isar_Examples/Drinker.thy",
-        "src/Tools/SML/Examples.thy")
-    Section("Examples", true) :: names.map(name => text_file(name).get)
-  }
+    Section("Examples", true) ::
+      Path.split(Isabelle_System.getenv_strict("ISABELLE_DOCS_EXAMPLES")).map(file =>
+        text_file(file) match {
+          case Some(entry) => entry
+          case None => error("Bad ISABELLE_DOCS_EXAMPLES entry: " + file)
+        })
 
   def contents(): List[Entry] =
     (for {
