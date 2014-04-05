@@ -54,7 +54,7 @@ object Doc
       Path.split(Isabelle_System.getenv_strict("ISABELLE_DOCS_EXAMPLES")).map(file =>
         text_file(file) match {
           case Some(entry) => entry
-          case None => error("Bad ISABELLE_DOCS_EXAMPLES entry: " + file)
+          case None => error("Bad entry in ISABELLE_DOCS_EXAMPLES: " + file)
         })
 
   def contents(): List[Entry] =
@@ -91,9 +91,9 @@ object Doc
   def main(args: Array[String])
   {
     Command_Line.tool {
+      val entries = contents()
       if (args.isEmpty) Console.println(cat_lines(contents_lines().map(_._2)))
       else {
-        val entries = contents()
         args.foreach(arg =>
           entries.collectFirst { case Doc(name, _, path) if arg == name => path } match {
             case Some(path) => view(path)
