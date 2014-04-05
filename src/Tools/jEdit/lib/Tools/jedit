@@ -207,10 +207,14 @@ pushd "$JEDIT_HOME" >/dev/null || failed
 JEDIT_JAR="$ISABELLE_JEDIT_BUILD_HOME/contrib/$ISABELLE_JEDIT_BUILD_VERSION/jedit.jar"
 
 JEDIT_JARS=(
+  "$ISABELLE_JEDIT_BUILD_HOME/contrib/Code2HTML.jar"
+  "$ISABELLE_JEDIT_BUILD_HOME/contrib/CommonControls.jar"
   "$ISABELLE_JEDIT_BUILD_HOME/contrib/Console.jar"
   "$ISABELLE_JEDIT_BUILD_HOME/contrib/ErrorList.jar"
   "$ISABELLE_JEDIT_BUILD_HOME/contrib/Highlight.jar"
+  "$ISABELLE_JEDIT_BUILD_HOME/contrib/kappalayout.jar"
   "$ISABELLE_JEDIT_BUILD_HOME/contrib/MacOSX.jar"
+  "$ISABELLE_JEDIT_BUILD_HOME/contrib/Navigator.jar"
   "$ISABELLE_JEDIT_BUILD_HOME/contrib/SideKick.jar"
   "$ISABELLE_JEDIT_BUILD_HOME/contrib/idea-icons.jar"
   "$ISABELLE_JEDIT_BUILD_HOME/contrib/jsr305-2.0.0.jar"
