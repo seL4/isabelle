@@ -142,21 +142,5 @@ object File
   }
 
   def copy(path1: Path, path2: Path): Unit = copy(path1.file, path2.file)
-
-
-  /* tmp files */
-
-  def tmp_file(prefix: String): JFile =
-  {
-    val file = JFile.createTempFile(prefix, null)
-    file.deleteOnExit
-    file
-  }
-
-  def with_tmp_file[A](prefix: String)(body: JFile => A): A =
-  {
-    val file = tmp_file(prefix)
-    try { body(file) } finally { file.delete }
-  }
 }
 

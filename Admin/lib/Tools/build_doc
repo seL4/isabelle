@@ -12,14 +12,15 @@ PRG="$(basename "$0")"
 function usage()
 {
   echo
-  echo "Usage: isabelle $PRG [OPTIONS] [SESSIONS ...]"
+  echo "Usage: isabelle $PRG [OPTIONS] [DOCS ...]"
   echo
   echo "  Options are:"
   echo "    -a           select all doc sessions"
   echo "    -j INT       maximum number of parallel jobs (default 1)"
   echo "    -s           system build mode"
   echo
-  echo "  Build Isabelle documentation from (doc) sessions."
+  echo "  Build Isabelle documentation from doc sessions with suitable"
+  echo "  document_variants."
   echo
   exit 1
 }
@@ -38,12 +39,9 @@ function check_number()
 
 ## process command line
 
-declare -a BUILD_ARGS=()
-
-
-# options
-
 ALL_DOCS="false"
+MAX_JOBS="1"
+SYSTEM_MODE="false"
 
 while getopts "aj:s" OPT
 do
@@ -53,11 +51,10 @@ do
       ;;
     j)
       check_number "$OPTARG"
-      BUILD_ARGS["${#BUILD_ARGS[@]}"]="-j"
-      BUILD_ARGS["${#BUILD_ARGS[@]}"]="$OPTARG"
+      MAX_JOBS="$OPTARG"
       ;;
     s)
-      BUILD_ARGS["${#BUILD_ARGS[@]}"]="-s"
+      SYSTEM_MODE="true"
       ;;
     \?)
       usage
@@ -67,42 +64,15 @@ done
 
 shift $(($OPTIND - 1))
 
-
-# arguments
-
-if [ "$ALL_DOCS" = true ]; then
-  BUILD_ARGS["${#BUILD_ARGS[@]}"]="-g"
-  BUILD_ARGS["${#BUILD_ARGS[@]}"]="doc"
-else
-  [ "$#" -eq 0 ] && usage
-fi
-
-BUILD_ARGS["${#BUILD_ARGS[@]}"]="--"
-
-while [ "$#" -ne 0 ]; do
-  BUILD_ARGS["${#BUILD_ARGS[@]}"]="$1"
-  shift
-done
+[ "$ALL_DOCS" = false -a "$#" -eq 0 ] && usage
 
 
 ## main
 
-OUTPUT="$ISABELLE_TMP_PREFIX$$"
-mkdir -p "$OUTPUT" || fail "Bad directory: \"$OUTPUT\""
+isabelle_admin_build jars || exit $?
 
-"$ISABELLE_TOOL" build -R -b "${BUILD_ARGS[@]}"
-RC=$?
+declare -a JAVA_ARGS; eval "JAVA_ARGS=($ISABELLE_BUILD_JAVA_OPTIONS)"
 
-if [ "$RC" = 0 ]; then
-  "$ISABELLE_TOOL" build -o browser_info=false -o "document=pdf" \
-    -o "document_output=$OUTPUT" -c "${BUILD_ARGS[@]}"
-  RC=$?
-fi
+"$ISABELLE_TOOL" java "${JAVA_ARGS[@]}" isabelle.Build_Doc \
+  "$ALL_DOCS" "$MAX_JOBS" "$SYSTEM_MODE" "$@"
 
-if [ "$RC" = 0 ]; then
-  cp -f "$OUTPUT"/*.pdf "$ISABELLE_HOME/doc"
-fi
-
-rm -rf "$OUTPUT"
-
-exit $RC
