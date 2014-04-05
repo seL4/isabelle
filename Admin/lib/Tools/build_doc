@@ -15,12 +15,12 @@ function usage()
   echo "Usage: isabelle $PRG [OPTIONS] [DOCS ...]"
   echo
   echo "  Options are:"
-  echo "    -a           select all doc sessions"
+  echo "    -a           select all documentation sessions"
   echo "    -j INT       maximum number of parallel jobs (default 1)"
   echo "    -s           system build mode"
   echo
-  echo "  Build Isabelle documentation from doc sessions with suitable"
-  echo "  document_variants."
+  echo "  Build Isabelle documentation from documentation sessions with"
+  echo "  suitable document_variants entry."
   echo
   exit 1
 }

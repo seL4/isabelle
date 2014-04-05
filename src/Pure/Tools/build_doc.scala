@@ -35,11 +35,11 @@ object Build_Doc
 
     docs.filter(doc => !selected_docs.contains(doc)) match {
       case Nil =>
-      case bad => error("No doc session for " + commas_quote(bad))
+      case bad => error("No documentation session for " + commas_quote(bad))
     }
 
-
     progress.echo("Build started for documentation " + commas_quote(selected_docs))
+
     val rc1 =
       Build.build(options, progress, requirements = true, build_heap = true,
         max_jobs = max_jobs, system_mode = system_mode, sessions = sessions)
