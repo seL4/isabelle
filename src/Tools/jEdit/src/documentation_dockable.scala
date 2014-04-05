@@ -22,7 +22,7 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
 {
   private val docs = Doc.contents()
 
-  private case class Documentation(name: String, title: String)
+  private case class Documentation(name: String, title: String, path: Path)
   {
     override def toString =
       "<html><b>" + HTML.encode(name) + "</b>:  " + HTML.encode(title) + "</html>"
@@ -37,9 +37,9 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
   docs foreach {
     case Doc.Section(text) =>
       root.add(new DefaultMutableTreeNode(text))
-    case Doc.Doc(name, title) =>
+    case Doc.Doc(name, title, path) =>
       root.getLastChild.asInstanceOf[DefaultMutableTreeNode]
-        .add(new DefaultMutableTreeNode(Documentation(name, title)))
+        .add(new DefaultMutableTreeNode(Documentation(name, title, path)))
     case Doc.Text_File(name: String, path: Path) =>
       root.getLastChild.asInstanceOf[DefaultMutableTreeNode]
         .add(new DefaultMutableTreeNode(Text_File(name, path.expand)))
@@ -62,16 +62,20 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
         (click.getLastPathComponent, tree.getLastSelectedPathComponent) match {
           case (node: DefaultMutableTreeNode, node1: DefaultMutableTreeNode) if node == node1 =>
             node.getUserObject match {
-              case Documentation(name, _) =>
-                default_thread_pool.submit(() =>
-                  try { Doc.view(name) }
-                  catch {
-                    case exn: Throwable =>
-                      GUI.error_dialog(view,
-                        "Documentation error", GUI.scrollable_text(Exn.message(exn)))
-                  })
               case Text_File(_, path) =>
                 PIDE.editor.goto_file(view, Isabelle_System.platform_path(path))
+              case Documentation(_, _, path) =>
+                if (path.is_file)
+                  PIDE.editor.goto_file(view, Isabelle_System.platform_path(path))
+                else {
+                  default_thread_pool.submit(() =>
+                    try { Doc.view(path) }
+                    catch {
+                      case exn: Throwable =>
+                        GUI.error_dialog(view,
+                          "Documentation error", GUI.scrollable_text(Exn.message(exn)))
+                    })
+                }
               case _ =>
             }
           case _ =>
