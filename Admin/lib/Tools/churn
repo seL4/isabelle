@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+#
+# Author: Florian Haftmann, TU Muenchen
+#
+# DESCRIPTION: mercurial churn statistics for specified aliases file
+
+ALIAS="${1:-$ISABELLE_HOME/Admin/user-aliases}"
+shift
+
+cd "$(dirname "$ALIAS")"
+
+hg churn --aliases "$ALIAS" "$@"

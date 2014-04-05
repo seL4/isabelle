@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+#
+# Author: Florian Haftmann, TU Muenchen
+#
+# DESCRIPTION: pie chart with mercurial churn statistics for specified aliases file
+
+ALIAS="${1:-$ISABELLE_HOME/Admin/user-aliases}"
+shift
+
+SCRIPT="$ISABELLE_HOME/Admin/lib/scripts/churn_pie"
+
+cd "$(dirname "$ALIAS")"
+
+hg churn --aliases "$ALIAS" | "$SCRIPT" "$@" 

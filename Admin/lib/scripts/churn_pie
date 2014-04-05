@@ -1,0 +1,23 @@
+#!/usr/bin/python
+
+import re
+from pychart import theme, pie_plot, area, fill_style, arrow, legend
+import sys
+
+re_entry = re.compile(R'^(.*\S+)\s+(\d+)\s*\**\s*$')
+
+theme.get_options()
+
+data = []
+
+for line in sys.stdin.readlines():
+    match = re_entry.match(line)
+    data.append((match.group(1), int(match.group(2))))
+
+plot = pie_plot.T(data = data, arc_offsets = [],
+  shadow = (2, -2, fill_style.gray50), label_offset = 10, arrow_style = arrow.a3)
+
+ar = area.T(size = (500, 500), legend = legend.T(), x_grid_style = None, y_grid_style = None)
+ar.add_plot(plot)
+
+ar.draw()
