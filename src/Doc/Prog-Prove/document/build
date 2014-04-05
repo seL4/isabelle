@@ -7,7 +7,7 @@ VARIANT="$2"
 
 "$ISABELLE_TOOL" logo HOL
 
-cp "$ISABELLE_HOME/src/Doc/ProgProve/MyList.thy" .
+cp "$ISABELLE_HOME/src/Doc/Prog-Prove/MyList.thy" .
 
 "$ISABELLE_HOME/src/Doc/prepare_document" "$FORMAT"
 

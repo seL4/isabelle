@@ -82,7 +82,7 @@ session Intro (doc) in "Intro" = Pure +
     "document/build"
     "document/root.tex"
 
-session IsarImplementation (doc) in "IsarImplementation" = "HOL-Proofs" +
+session Implementation (doc) in "Implementation" = "HOL-Proofs" +
   options [document_variants = "implementation"]
   theories
     Eq
@@ -109,7 +109,7 @@ session IsarImplementation (doc) in "IsarImplementation" = "HOL-Proofs" +
     "document/root.tex"
     "document/style.sty"
 
-session IsarRef (doc) in "IsarRef" = HOL +
+session "Isar-Ref" (doc) in "Isar-Ref" = HOL +
   options [document_variants = "isar-ref", quick_and_dirty, thy_output_source]
   theories
     Preface
@@ -148,7 +148,7 @@ session JEdit (doc) in "JEdit" = HOL +
   theories
     JEdit
   files
-    "../IsarRef/document/style.sty"
+    "../Isar-Ref/document/style.sty"
     "../extra.sty"
     "../iman.sty"
     "../isar.sty"
@@ -163,7 +163,7 @@ session JEdit (doc) in "JEdit" = HOL +
     "document/popup2.png"
     "document/root.tex"
 
-session LaTeXsugar (doc) in "LaTeXsugar" = HOL +
+session Sugar (doc) in "Sugar" = HOL +
   options [document_variants = "sugar"]
   theories [document = ""]
     "~~/src/HOL/Library/LaTeXsugar"
@@ -208,7 +208,7 @@ session Logics (doc) in "Logics" = Pure +
     "document/root.tex"
     "document/syntax.tex"
 
-session "Logics-ZF" (doc) in "ZF" = ZF +
+session "Logics-ZF" (doc) in "Logics-ZF" = ZF +
   options [document_variants = "logics-ZF", print_mode = "brackets",
     thy_output_source]
   theories
@@ -247,7 +247,7 @@ session Nitpick (doc) in "Nitpick" = Pure +
     "document/build"
     "document/root.tex"
 
-session ProgProve (doc) in "ProgProve" = HOL +
+session "Prog-Prove" (doc) in "Prog-Prove" = HOL +
   options [document_variants = "prog-prove", show_question_marks = false]
   theories
     Basics
@@ -290,7 +290,7 @@ session System (doc) in "System" = Pure +
     Misc
   files
     "../prepare_document"
-    "../IsarRef/document/style.sty"
+    "../Isar-Ref/document/style.sty"
     "../pdfsetup.sty"
     "../iman.sty"
     "../extra.sty"
