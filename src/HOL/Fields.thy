@@ -188,6 +188,22 @@ lemma divide_eq_imp: "c \<noteq> 0 \<Longrightarrow> b = a * c \<Longrightarrow>
 lemma eq_divide_imp: "c \<noteq> 0 \<Longrightarrow> a * c = b \<Longrightarrow> a = b / c"
   by (drule sym) (simp add: divide_inverse mult_assoc)
 
+lemma add_divide_eq_iff [field_simps]:
+  "z \<noteq> 0 \<Longrightarrow> x + y / z = (x * z + y) / z"
+  by (simp add: add_divide_distrib nonzero_eq_divide_eq)
+
+lemma divide_add_eq_iff [field_simps]:
+  "z \<noteq> 0 \<Longrightarrow> x / z + y = (x + y * z) / z"
+  by (simp add: add_divide_distrib nonzero_eq_divide_eq)
+
+lemma diff_divide_eq_iff [field_simps]:
+  "z \<noteq> 0 \<Longrightarrow> x - y / z = (x * z - y) / z"
+  by (simp add: diff_divide_distrib nonzero_eq_divide_eq eq_diff_eq)
+
+lemma divide_diff_eq_iff [field_simps]:
+  "z \<noteq> 0 \<Longrightarrow> x / z - y = (x - y * z) / z"
+  by (simp add: field_simps)
+
 end
 
 class division_ring_inverse_zero = division_ring +
@@ -322,22 +338,6 @@ using nonzero_mult_divide_mult_cancel_left [of b c a] by (simp add: mult_ac)
 lemma nonzero_mult_divide_mult_cancel_right2 [simp]:
   "\<lbrakk>b \<noteq> 0; c \<noteq> 0\<rbrakk> \<Longrightarrow> (a * c) / (c * b) = a / b"
 using nonzero_mult_divide_mult_cancel_right [of b c a] by (simp add: mult_ac)
-
-lemma add_divide_eq_iff [field_simps]:
-  "z \<noteq> 0 \<Longrightarrow> x + y / z = (z * x + y) / z"
-  by (simp add: add_divide_distrib)
-
-lemma divide_add_eq_iff [field_simps]:
-  "z \<noteq> 0 \<Longrightarrow> x / z + y = (x + z * y) / z"
-  by (simp add: add_divide_distrib)
-
-lemma diff_divide_eq_iff [field_simps]:
-  "z \<noteq> 0 \<Longrightarrow> x - y / z = (z * x - y) / z"
-  by (simp add: diff_divide_distrib)
-
-lemma divide_diff_eq_iff [field_simps]:
-  "z \<noteq> 0 \<Longrightarrow> x / z - y = (x - z * y) / z"
-  by (simp add: diff_divide_distrib)
 
 lemma diff_frac_eq:
   "y \<noteq> 0 \<Longrightarrow> z \<noteq> 0 \<Longrightarrow> x / y - w / z = (x * z - w * y) / (y * z)"
