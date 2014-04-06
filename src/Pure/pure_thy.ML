@@ -62,12 +62,12 @@ val _ = Theory.setup
   (Sign.map_naming (Name_Space.set_theory_name Context.PureN) #>
    Old_Appl_Syntax.put false #>
    Sign.add_types_global
-   [(Binding.name "fun", 2, NoSyn),
-    (Binding.name "prop", 0, NoSyn),
-    (Binding.name "itself", 1, NoSyn),
-    (Binding.name "dummy", 0, NoSyn)]
+   [(Binding.make ("fun", @{here}), 2, NoSyn),
+    (Binding.make ("prop", @{here}), 0, NoSyn),
+    (Binding.make ("itself", @{here}), 1, NoSyn),
+    (Binding.make ("dummy", @{here}), 0, NoSyn)]
   #> Sign.add_nonterminals_global
-    (map Binding.name
+    (map (fn name => Binding.make (name, @{here}))
       (Lexicon.terminals @ ["logic", "type", "types", "sort", "classes",
         "args", "cargs", "pttrn", "pttrns", "idt", "idts", "aprop", "asms",
         "any", "prop'", "num_const", "float_const", "xnum_const", "num_position",
@@ -195,12 +195,12 @@ val _ = Theory.setup
   #> Sign.add_syntax ("HTML", false)
    [("_lambda", typ "pttrns => 'a => logic", Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3))]
   #> Sign.add_consts
-   [(qualify (Binding.name "eq"), typ "'a => 'a => prop", Infix ("==", 2)),
-    (qualify (Binding.name "imp"), typ "prop => prop => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
-    (qualify (Binding.name "all"), typ "('a => prop) => prop", Binder ("!!", 0, 0)),
-    (qualify (Binding.name "prop"), typ "prop => prop", NoSyn),
-    (qualify (Binding.name "type"), typ "'a itself", NoSyn),
-    (qualify (Binding.name "dummy_pattern"), typ "'a", Delimfix "'_")]
+   [(qualify (Binding.make ("eq", @{here})), typ "'a => 'a => prop", Infix ("==", 2)),
+    (qualify (Binding.make ("imp", @{here})), typ "prop => prop => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
+    (qualify (Binding.make ("all", @{here})), typ "('a => prop) => prop", Binder ("!!", 0, 0)),
+    (qualify (Binding.make ("prop", @{here})), typ "prop => prop", NoSyn),
+    (qualify (Binding.make ("type", @{here})), typ "'a itself", NoSyn),
+    (qualify (Binding.make ("dummy_pattern", @{here})), typ "'a", Delimfix "'_")]
   #> Theory.add_deps_global "Pure.eq" ("Pure.eq", typ "'a => 'a => prop") []
   #> Theory.add_deps_global "Pure.imp" ("Pure.imp", typ "prop => prop => prop") []
   #> Theory.add_deps_global "Pure.all" ("Pure.all", typ "('a => prop) => prop") []
@@ -210,19 +210,22 @@ val _ = Theory.setup
   #> Sign.parse_translation Syntax_Trans.pure_parse_translation
   #> Sign.print_ast_translation Syntax_Trans.pure_print_ast_translation
   #> Sign.add_consts
-   [(qualify (Binding.name "term"), typ "'a => prop", NoSyn),
-    (qualify (Binding.name "sort_constraint"), typ "'a itself => prop", NoSyn),
-    (qualify (Binding.name "conjunction"), typ "prop => prop => prop", NoSyn)]
+   [(qualify (Binding.make ("term", @{here})), typ "'a => prop", NoSyn),
+    (qualify (Binding.make ("sort_constraint", @{here})), typ "'a itself => prop", NoSyn),
+    (qualify (Binding.make ("conjunction", @{here})), typ "prop => prop => prop", NoSyn)]
   #> Sign.local_path
   #> (Global_Theory.add_defs false o map Thm.no_attributes)
-   [(Binding.name "prop_def", prop "(CONST Pure.prop :: prop => prop) (A::prop) == A::prop"),
-    (Binding.name "term_def", prop "(CONST Pure.term :: 'a => prop) (x::'a) == (!!A::prop. A ==> A)"),
-    (Binding.name "sort_constraint_def",
+   [(Binding.make ("prop_def", @{here}),
+      prop "(CONST Pure.prop :: prop => prop) (A::prop) == A::prop"),
+    (Binding.make ("term_def", @{here}),
+      prop "(CONST Pure.term :: 'a => prop) (x::'a) == (!!A::prop. A ==> A)"),
+    (Binding.make ("sort_constraint_def", @{here}),
       prop "(CONST Pure.sort_constraint :: 'a itself => prop) (CONST Pure.type :: 'a itself) ==\
       \ (CONST Pure.term :: 'a itself => prop) (CONST Pure.type :: 'a itself)"),
-    (Binding.name "conjunction_def", prop "(A &&& B) == (!!C::prop. (A ==> B ==> C) ==> C)")] #> snd
-  #> Global_Theory.add_thmss [((Binding.name "nothing", []), [])] #> snd
+    (Binding.make ("conjunction_def", @{here}),
+      prop "(A &&& B) == (!!C::prop. (A ==> B ==> C) ==> C)")] #> snd
+  #> Global_Theory.add_thmss [((Binding.make ("nothing", @{here}), []), [])] #> snd
   #> fold (fn (a, prop) =>
-      snd o Thm.add_axiom_global (Binding.name a, prop)) Proofterm.equality_axms);
+      snd o Thm.add_axiom_global (Binding.make (a, @{here}), prop)) Proofterm.equality_axms);
 
 end;

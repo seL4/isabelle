@@ -26,7 +26,8 @@ fun report ctxt =
 (* oracle setup *)
 
 val (_, make_thm_cterm) =
-  Context.>>> (Context.map_theory_result (Thm.add_oracle (Binding.name "skip_proof", I)));
+  Context.>>>
+    (Context.map_theory_result (Thm.add_oracle (Binding.make ("skip_proof", @{here}), I)));
 
 fun make_thm thy prop = make_thm_cterm (Thm.cterm_of thy prop);
 

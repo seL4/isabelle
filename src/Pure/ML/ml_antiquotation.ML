@@ -58,7 +58,7 @@ fun value name scan =
 (* basic antiquotations *)
 
 val _ = Theory.setup
- (declaration (Binding.name "here") (Scan.succeed ())
+ (declaration (Binding.make ("here", @{here})) (Scan.succeed ())
     (fn src => fn () => fn ctxt =>
       let
         val (a, ctxt') = variant "position" ctxt;
@@ -67,7 +67,7 @@ val _ = Theory.setup
         val body = "Isabelle." ^ a;
       in (K (env, body), ctxt') end) #>
 
-  value (Binding.name "binding")
+  value (Binding.make ("binding", @{here}))
     (Scan.lift (Parse.position Args.name) >> ML_Syntax.make_binding));
 
 end;

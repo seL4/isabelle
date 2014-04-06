@@ -43,44 +43,47 @@ fun add_proof_syntax thy =
   thy
   |> Sign.root_path
   |> Sign.set_defsort []
-  |> Sign.add_types_global [(Binding.name "proof", 0, NoSyn)]
+  |> Sign.add_types_global
+    [(Binding.make ("proof", @{here}), 0, NoSyn)]
   |> fold (snd oo Sign.declare_const_global)
-      [((Binding.name "Appt", [proofT, aT] ---> proofT), Mixfix ("(1_ %/ _)", [4, 5], 4)),
-       ((Binding.name "AppP", [proofT, proofT] ---> proofT), Mixfix ("(1_ %%/ _)", [4, 5], 4)),
-       ((Binding.name "Abst", (aT --> proofT) --> proofT), NoSyn),
-       ((Binding.name "AbsP", [propT, proofT --> proofT] ---> proofT), NoSyn),
-       ((Binding.name "Hyp", propT --> proofT), NoSyn),
-       ((Binding.name "Oracle", propT --> proofT), NoSyn),
-       ((Binding.name "OfClass", (Term.a_itselfT --> propT) --> proofT), NoSyn),
-       ((Binding.name "MinProof", proofT), Delimfix "?")]
-  |> Sign.add_nonterminals_global [Binding.name "param", Binding.name "params"]
+    [((Binding.make ("Appt", @{here}), [proofT, aT] ---> proofT), Mixfix ("(1_ %/ _)", [4, 5], 4)),
+     ((Binding.make ("AppP", @{here}), [proofT, proofT] ---> proofT), Mixfix ("(1_ %%/ _)", [4, 5], 4)),
+     ((Binding.make ("Abst", @{here}), (aT --> proofT) --> proofT), NoSyn),
+     ((Binding.make ("AbsP", @{here}), [propT, proofT --> proofT] ---> proofT), NoSyn),
+     ((Binding.make ("Hyp", @{here}), propT --> proofT), NoSyn),
+     ((Binding.make ("Oracle", @{here}), propT --> proofT), NoSyn),
+     ((Binding.make ("OfClass", @{here}), (Term.a_itselfT --> propT) --> proofT), NoSyn),
+     ((Binding.make ("MinProof", @{here}), proofT), Delimfix "?")]
+  |> Sign.add_nonterminals_global
+    [Binding.make ("param", @{here}),
+     Binding.make ("params", @{here})]
   |> Sign.add_syntax Syntax.mode_default
-      [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1Lam _./ _)", [0, 3], 3)),
-       ("_Lam0", [paramT, paramsT] ---> paramsT, Mixfix ("_/ _", [1, 0], 0)),
-       ("_Lam0", [idtT, paramsT] ---> paramsT, Mixfix ("_/ _", [1, 0], 0)),
-       ("_Lam1", [idtT, propT] ---> paramT, Mixfix ("_: _", [0, 0], 0)),
-       ("", paramT --> paramT, Delimfix "'(_')"),
-       ("", idtT --> paramsT, Delimfix "_"),
-       ("", paramT --> paramsT, Delimfix "_")]
+    [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1Lam _./ _)", [0, 3], 3)),
+     ("_Lam0", [paramT, paramsT] ---> paramsT, Mixfix ("_/ _", [1, 0], 0)),
+     ("_Lam0", [idtT, paramsT] ---> paramsT, Mixfix ("_/ _", [1, 0], 0)),
+     ("_Lam1", [idtT, propT] ---> paramT, Mixfix ("_: _", [0, 0], 0)),
+     ("", paramT --> paramT, Delimfix "'(_')"),
+     ("", idtT --> paramsT, Delimfix "_"),
+     ("", paramT --> paramsT, Delimfix "_")]
   |> Sign.add_syntax (Symbol.xsymbolsN, true)
-      [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1\<^bold>\<lambda>_./ _)", [0, 3], 3)),
-       (Lexicon.mark_const "Appt", [proofT, aT] ---> proofT, Mixfix ("(1_ \<cdot>/ _)", [4, 5], 4)),
-       (Lexicon.mark_const "AppP", [proofT, proofT] ---> proofT, Mixfix ("(1_ \<bullet>/ _)", [4, 5], 4))]
+    [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1\<^bold>\<lambda>_./ _)", [0, 3], 3)),
+     (Lexicon.mark_const "Appt", [proofT, aT] ---> proofT, Mixfix ("(1_ \<cdot>/ _)", [4, 5], 4)),
+     (Lexicon.mark_const "AppP", [proofT, proofT] ---> proofT, Mixfix ("(1_ \<bullet>/ _)", [4, 5], 4))]
   |> Sign.add_trrules (map Syntax.Parse_Print_Rule
-      [(Ast.mk_appl (Ast.Constant "_Lam")
-          [Ast.mk_appl (Ast.Constant "_Lam0")
-            [Ast.Variable "l", Ast.Variable "m"], Ast.Variable "A"],
-        Ast.mk_appl (Ast.Constant "_Lam")
-          [Ast.Variable "l",
-            Ast.mk_appl (Ast.Constant "_Lam") [Ast.Variable "m", Ast.Variable "A"]]),
-       (Ast.mk_appl (Ast.Constant "_Lam")
-          [Ast.mk_appl (Ast.Constant "_Lam1")
-            [Ast.Variable "x", Ast.Variable "A"], Ast.Variable "B"],
-        Ast.mk_appl (Ast.Constant (Lexicon.mark_const "AbsP")) [Ast.Variable "A",
-          (Ast.mk_appl (Ast.Constant "_abs") [Ast.Variable "x", Ast.Variable "B"])]),
-       (Ast.mk_appl (Ast.Constant "_Lam") [Ast.Variable "x", Ast.Variable "A"],
-        Ast.mk_appl (Ast.Constant (Lexicon.mark_const "Abst"))
-          [(Ast.mk_appl (Ast.Constant "_abs") [Ast.Variable "x", Ast.Variable "A"])])]);
+    [(Ast.mk_appl (Ast.Constant "_Lam")
+        [Ast.mk_appl (Ast.Constant "_Lam0")
+          [Ast.Variable "l", Ast.Variable "m"], Ast.Variable "A"],
+      Ast.mk_appl (Ast.Constant "_Lam")
+        [Ast.Variable "l",
+          Ast.mk_appl (Ast.Constant "_Lam") [Ast.Variable "m", Ast.Variable "A"]]),
+     (Ast.mk_appl (Ast.Constant "_Lam")
+        [Ast.mk_appl (Ast.Constant "_Lam1")
+          [Ast.Variable "x", Ast.Variable "A"], Ast.Variable "B"],
+      Ast.mk_appl (Ast.Constant (Lexicon.mark_const "AbsP")) [Ast.Variable "A",
+        (Ast.mk_appl (Ast.Constant "_abs") [Ast.Variable "x", Ast.Variable "B"])]),
+     (Ast.mk_appl (Ast.Constant "_Lam") [Ast.Variable "x", Ast.Variable "A"],
+      Ast.mk_appl (Ast.Constant (Lexicon.mark_const "Abst"))
+        [(Ast.mk_appl (Ast.Constant "_abs") [Ast.Variable "x", Ast.Variable "A"])])]);
 
 
 (**** translation between proof terms and pure terms ****)

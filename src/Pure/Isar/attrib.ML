@@ -190,7 +190,8 @@ fun attribute_setup name source cmt =
 fun internal att = Args.src ("Pure.attribute", Position.none) [Token.mk_attribute att];
 
 val _ = Theory.setup
- (setup (Binding.name "attribute") (Scan.lift Args.internal_attribute >> Morphism.form)
+  (setup (Binding.make ("attribute", @{here}))
+    (Scan.lift Args.internal_attribute >> Morphism.form)
     "internal attribute");
 
 

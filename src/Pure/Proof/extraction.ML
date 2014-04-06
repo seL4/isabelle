@@ -36,12 +36,14 @@ val typ = Simple_Syntax.read_typ;
 
 val add_syntax =
   Sign.root_path
-  #> Sign.add_types_global [(Binding.name "Type", 0, NoSyn), (Binding.name "Null", 0, NoSyn)]
+  #> Sign.add_types_global
+    [(Binding.make ("Type", @{here}), 0, NoSyn),
+     (Binding.make ("Null", @{here}), 0, NoSyn)]
   #> Sign.add_consts
-      [(Binding.name "typeof", typ "'b => Type", NoSyn),
-       (Binding.name "Type", typ "'a itself => Type", NoSyn),
-       (Binding.name "Null", typ "Null", NoSyn),
-       (Binding.name "realizes", typ "'a => 'b => 'b", NoSyn)];
+    [(Binding.make ("typeof", @{here}), typ "'b => Type", NoSyn),
+     (Binding.make ("Type", @{here}), typ "'a itself => Type", NoSyn),
+     (Binding.make ("Null", @{here}), typ "Null", NoSyn),
+     (Binding.make ("realizes", @{here}), typ "'a => 'b => 'b", NoSyn)];
 
 val nullT = Type ("Null", []);
 val nullt = Const ("Null", nullT);
