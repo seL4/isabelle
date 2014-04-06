@@ -20,8 +20,9 @@ sig
   val file_name: string -> Properties.T
   val file_only: string -> T
   val file: string -> T
-  val line: int -> T
+  val line_file_only: int -> string -> T
   val line_file: int -> string -> T
+  val line: int -> T
   val id: string -> T
   val id_only: string -> T
   val get_id: T -> string option
@@ -117,6 +118,7 @@ fun file_name "" = []
 fun file_only name = Pos ((0, 0, 0), file_name name);
 fun file name = Pos ((1, 1, 0), file_name name);
 
+fun line_file_only i name = Pos ((i, 0, 0), file_name name);
 fun line_file i name = Pos ((i, 1, 0), file_name name);
 fun line i = line_file i "";
 
