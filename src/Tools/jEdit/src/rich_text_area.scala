@@ -167,7 +167,13 @@ class Rich_Text_Area(
     override def mouseClicked(e: MouseEvent) {
       robust_body(()) {
         hyperlink_area.info match {
-          case Some(Text.Info(_, link)) =>
+          case Some(Text.Info(range, link)) =>
+            try { text_area.moveCaretPosition(range.start) }
+            catch {
+              case _: ArrayIndexOutOfBoundsException =>
+              case _: IllegalArgumentException =>
+            }
+            text_area.requestFocus
             link.follow(view)
           case None =>
         }
