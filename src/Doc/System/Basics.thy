@@ -22,7 +22,7 @@ text {* This manual describes Isabelle together with related tools and
   and user interfaces).
 
   \item The raw \emph{Isabelle process} (@{executable_ref
-  "isabelle-process"}) runs logic sessions either interactively or in
+  "isabelle_process"}) runs logic sessions either interactively or in
   batch mode.  In particular, this view abstracts over the invocation
   of the actual ML system to be used.  Regular users rarely need to
   care about the low-level process.
@@ -122,7 +122,7 @@ text {* Isabelle executables need to be run within a proper settings
 
   \item @{setting_def ISABELLE_PROCESS} and @{setting_def ISABELLE_TOOL} are set
   automatically to the absolute path names of the @{executable
-  "isabelle-process"} and @{executable isabelle} executables,
+  "isabelle_process"} and @{executable isabelle} executables,
   respectively.
   
   \item @{setting_ref ISABELLE_OUTPUT} will have the identifiers of
@@ -193,7 +193,7 @@ text {*
 
   \item[@{setting_def ISABELLE_PROCESS}@{text "\<^sup>*"}, @{setting
   ISABELLE_TOOL}@{text "\<^sup>*"}] are automatically set to the full path
-  names of the @{executable "isabelle-process"} and @{executable
+  names of the @{executable "isabelle_process"} and @{executable
   isabelle} executables, respectively.  Thus other tools and scripts
   need not assume that the @{file "$ISABELLE_HOME/bin"} directory is
   on the current search path of the shell.
@@ -271,7 +271,7 @@ text {*
   for displaying @{verbatim dvi} files.
   
   \item[@{setting_def ISABELLE_TMP_PREFIX}@{text "\<^sup>*"}] is the
-  prefix from which any running @{executable "isabelle-process"}
+  prefix from which any running @{executable "isabelle_process"}
   derives an individual directory for temporary files.  The default is
   somewhere in @{file_unchecked "/tmp"}.
   
@@ -353,13 +353,13 @@ init_components "$HOME/my_component_store" "some_catalog_file"
 section {* The raw Isabelle process *}
 
 text {*
-  The @{executable_def "isabelle-process"} executable runs bare-bones
+  The @{executable_def "isabelle_process"} executable runs bare-bones
   Isabelle logic sessions --- either interactively or in batch mode.
   It provides an abstraction over the underlying ML system, and over
   the actual heap file locations.  Its usage is:
 
 \begin{ttbox}
-Usage: isabelle-process [OPTIONS] [INPUT] [OUTPUT]
+Usage: isabelle_process [OPTIONS] [INPUT] [OUTPUT]
 
   Options are:
     -I           startup Isar interaction mode
@@ -455,7 +455,7 @@ text {*
   Run an interactive session of the default object-logic (as specified
   by the @{setting ISABELLE_LOGIC} setting) like this:
 \begin{ttbox}
-isabelle-process
+isabelle_process
 \end{ttbox}
 
   Usually @{setting ISABELLE_LOGIC} refers to one of the standard
@@ -464,7 +464,7 @@ isabelle-process
   directory specified by the @{setting ISABELLE_OUTPUT} setting) ---
   may be invoked as follows:
 \begin{ttbox}
-isabelle-process HOL Test
+isabelle_process HOL Test
 \end{ttbox}
   Ending this session normally (e.g.\ by typing control-D) dumps the
   whole ML system state into @{verbatim Test} (be prepared for more
@@ -473,11 +473,11 @@ isabelle-process HOL Test
   The @{verbatim Test} session may be continued later (still in
   writable state) by:
 \begin{ttbox}
-isabelle-process Test
+isabelle_process Test
 \end{ttbox}
   A read-only @{verbatim Test} session may be started by:
 \begin{ttbox}
-isabelle-process -r Test
+isabelle_process -r Test
 \end{ttbox}
 
   \bigskip The next example demonstrates batch execution of Isabelle.
@@ -485,7 +485,7 @@ isabelle-process -r Test
   within ML (observe the delicate quoting rules for the Bash shell
   vs.\ ML):
 \begin{ttbox}
-isabelle-process -e 'Thy_Info.get_theory "Main";' -q -r HOL
+isabelle_process -e 'Thy_Info.get_theory "Main";' -q -r HOL
 \end{ttbox}
   Note that the output text will be interspersed with additional junk
   messages by the ML runtime environment.  The @{verbatim "-W"} option

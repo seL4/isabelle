@@ -200,7 +200,7 @@ Usage: isabelle install [OPTIONS] BINDIR
   distribution directory as determined by @{setting ISABELLE_HOME}.
 
   The @{text BINDIR} argument tells where executable wrapper scripts
-  for @{executable "isabelle-process"} and @{executable isabelle}
+  for @{executable "isabelle_process"} and @{executable isabelle}
   should be placed, which is typically a directory in the shell's
   @{setting PATH}, such as @{verbatim "$HOME/bin"}.
 

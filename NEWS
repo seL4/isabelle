@@ -662,6 +662,13 @@ INCOMPATIBILITY with ambitious private settings.
 repeated invocation in PIDE front-end: re-use single file
 $ISABELLE_HOME_USER/tmp/drafts.pdf and corresponding views.
 
+* The raw Isabelle process executable has been renamed from
+"isabelle-process" to "isabelle_process", which conforms to common
+shell naming conventions, and allows to define a shell function within
+the Isabelle environment to avoid dynamic path lookup.  Rare
+incompatibility for old tools that do not use the $ISABELLE_PROCESS
+settings variable yet.
+
 
 
 New in Isabelle2013-2 (December 2013)

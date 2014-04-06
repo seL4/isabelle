@@ -63,7 +63,7 @@ echo "referring to distribution at \"$DISTDIR\""
 
 mkdir -p "$BINDIR" || fail "Bad directory: \"$BINDIR\""
 
-for NAME in isabelle isabelle-process isabelle_scala_script
+for NAME in isabelle isabelle_process isabelle_scala_script
 do
   BIN="$BINDIR/$NAME"
   DIST="$DISTDIR/bin/$NAME"
