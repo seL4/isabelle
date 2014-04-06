@@ -174,6 +174,14 @@ proof -
   finally show ?thesis .
 qed
 
+lemma nonzero_neg_divide_eq_eq[field_simps]:
+  "b \<noteq> 0 \<Longrightarrow> -(a/b) = c \<longleftrightarrow> -a = c*b"
+using nonzero_divide_eq_eq[of b "-a" c] by (simp add: divide_minus_left)
+
+lemma nonzero_neg_divide_eq_eq2[field_simps]:
+  "b \<noteq> 0 \<Longrightarrow> c = -(a/b) \<longleftrightarrow> c*b = -a"
+using nonzero_neg_divide_eq_eq[of b a c] by auto
+
 lemma divide_eq_imp: "c \<noteq> 0 \<Longrightarrow> b = a * c \<Longrightarrow> b / c = a"
   by (simp add: divide_inverse mult_assoc)
 
