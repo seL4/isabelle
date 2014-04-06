@@ -27,7 +27,7 @@ qed
 
 lemma square_continuous:
   fixes e :: real
-  shows "e > 0 \<Longrightarrow> \<exists>d. 0 < d \<and> (\<forall>y. abs (y - x) < d \<longrightarrow> abs (y * y - x * x) < e)"
+  shows "e > 0 \<Longrightarrow> \<exists>d. 0 < d \<and> (\<forall>y. \<bar>y - x\<bar> < d \<longrightarrow> \<bar>y * y - x * x\<bar> < e)"
   using isCont_power[OF isCont_ident, of x, unfolded isCont_def LIM_eq, rule_format, of e 2]
   apply (auto simp add: power2_eq_square)
   apply (rule_tac x="s" in exI)
@@ -221,10 +221,12 @@ lemma linear_iff:
   "linear f \<longleftrightarrow> (\<forall>x y. f (x + y) = f x + f y) \<and> (\<forall>c x. f (c *\<^sub>R x) = c *\<^sub>R f x)"
   (is "linear f \<longleftrightarrow> ?rhs")
 proof
-  assume "linear f" then interpret f: linear f .
+  assume "linear f"
+  then interpret f: linear f .
   show "?rhs" by (simp add: f.add f.scaleR)
 next
-  assume "?rhs" then show "linear f" by unfold_locales simp_all
+  assume "?rhs"
+  then show "linear f" by unfold_locales simp_all
 qed
 
 lemma linear_compose_cmul: "linear f \<Longrightarrow> linear (\<lambda>x. c *\<^sub>R f x)"
@@ -255,7 +257,11 @@ proof (cases "finite S")
   case True
   then show ?thesis
     using lS by induct (simp_all add: linear_zero linear_compose_add)
-qed (simp add: linear_zero)
+next
+  case False
+  then show ?thesis
+    by (simp add: linear_zero)
+qed
 
 lemma linear_0: "linear f \<Longrightarrow> f 0 = 0"
   unfolding linear_iff
@@ -283,7 +289,11 @@ proof (cases "finite S")
   case True
   then show ?thesis
     by induct (simp_all add: linear_0 [OF f] linear_add [OF f])
-qed (simp add: linear_0 [OF f])
+next
+  case False
+  then show ?thesis
+    by (simp add: linear_0 [OF f])
+qed
 
 lemma linear_setsum_mul:
   assumes lin: "linear f"
@@ -401,7 +411,7 @@ Hilbert space (i.e. complete inner product space).
 *}
 
 lemma adjoint_works:
-  fixes f:: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
+  fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   assumes lf: "linear f"
   shows "x \<bullet> adjoint f y = f x \<bullet> y"
 proof -
@@ -423,21 +433,21 @@ proof -
 qed
 
 lemma adjoint_clauses:
-  fixes f:: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
+  fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   assumes lf: "linear f"
   shows "x \<bullet> adjoint f y = f x \<bullet> y"
     and "adjoint f y \<bullet> x = y \<bullet> f x"
   by (simp_all add: adjoint_works[OF lf] inner_commute)
 
 lemma adjoint_linear:
-  fixes f:: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
+  fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   assumes lf: "linear f"
   shows "linear (adjoint f)"
   by (simp add: lf linear_iff euclidean_eq_iff[where 'a='n] euclidean_eq_iff[where 'a='m]
     adjoint_clauses[OF lf] inner_distrib)
 
 lemma adjoint_adjoint:
-  fixes f:: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
+  fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   assumes lf: "linear f"
   shows "adjoint (adjoint f) = f"
   by (rule adjoint_unique, simp add: adjoint_clauses [OF lf])
@@ -462,7 +472,7 @@ lemma infinite_enumerate:
   unfolding subseq_def
   using enumerate_in_set[OF fS] enumerate_mono[of _ _ S] fS by auto
 
-lemma approachable_lt_le: "(\<exists>(d::real)>0. \<forall>x. f x < d \<longrightarrow> P x) \<longleftrightarrow> (\<exists>d>0. \<forall>x. f x \<le> d \<longrightarrow> P x)"
+lemma approachable_lt_le: "(\<exists>(d::real) > 0. \<forall>x. f x < d \<longrightarrow> P x) \<longleftrightarrow> (\<exists>d>0. \<forall>x. f x \<le> d \<longrightarrow> P x)"
   apply auto
   apply (rule_tac x="d/2" in exI)
   apply auto
@@ -476,7 +486,7 @@ lemma triangle_lemma:
     and xy: "x\<^sup>2 \<le> y\<^sup>2 + z\<^sup>2"
   shows "x \<le> y + z"
 proof -
-  have "y\<^sup>2 + z\<^sup>2 \<le> y\<^sup>2 + 2 *y * z + z\<^sup>2"
+  have "y\<^sup>2 + z\<^sup>2 \<le> y\<^sup>2 + 2 * y * z + z\<^sup>2"
     using z y by (simp add: mult_nonneg_nonneg)
   with xy have th: "x\<^sup>2 \<le> (y + z)\<^sup>2"
     by (simp add: power2_eq_square field_simps)
@@ -546,16 +556,16 @@ lemma hull_union:
   apply (metis hull_in T)
   done
 
-lemma hull_redundant_eq: "a \<in> (S hull s) \<longleftrightarrow> (S hull (insert a s) = S hull s)"
+lemma hull_redundant_eq: "a \<in> (S hull s) \<longleftrightarrow> S hull (insert a s) = S hull s"
   unfolding hull_def by blast
 
-lemma hull_redundant: "a \<in> (S hull s) \<Longrightarrow> (S hull (insert a s) = S hull s)"
+lemma hull_redundant: "a \<in> (S hull s) \<Longrightarrow> S hull (insert a s) = S hull s"
   by (metis hull_redundant_eq)
 
 
 subsection {* Archimedean properties and useful consequences *}
 
-lemma real_arch_simple: "\<exists>n. x \<le> real (n::nat)"
+lemma real_arch_simple: "\<exists>n::nat. x \<le> real n"
   unfolding real_of_nat_def by (rule ex_le_of_nat)
 
 lemma real_arch_inv: "0 < e \<longleftrightarrow> (\<exists>n::nat. n \<noteq> 0 \<and> 0 < inverse (real n) \<and> inverse (real n) < e)"
@@ -647,7 +657,7 @@ lemma forall_pos_mono_1:
 lemma real_archimedian_rdiv_eq_0:
   assumes x0: "x \<ge> 0"
     and c: "c \<ge> 0"
-    and xc: "\<forall>(m::nat)>0. real m * x \<le> c"
+    and xc: "\<forall>(m::nat) > 0. real m * x \<le> c"
   shows "x = 0"
 proof (rule ccontr)
   assume "x \<noteq> 0"
@@ -665,7 +675,7 @@ qed
 subsection{* A bit of linear algebra. *}
 
 definition (in real_vector) subspace :: "'a set \<Rightarrow> bool"
-  where "subspace S \<longleftrightarrow> 0 \<in> S \<and> (\<forall>x\<in> S. \<forall>y \<in>S. x + y \<in> S) \<and> (\<forall>c. \<forall>x \<in>S. c *\<^sub>R x \<in>S )"
+  where "subspace S \<longleftrightarrow> 0 \<in> S \<and> (\<forall>x \<in> S. \<forall>y \<in> S. x + y \<in> S) \<and> (\<forall>c. \<forall>x \<in> S. c *\<^sub>R x \<in> S)"
 
 definition (in real_vector) "span S = (subspace hull S)"
 definition (in real_vector) "dependent S \<longleftrightarrow> (\<exists>a \<in> S. a \<in> span (S - {a}))"
@@ -797,7 +807,7 @@ lemma (in real_vector) span_induct':
   shows "\<forall>x \<in> span S. P x"
   using span_induct SP P by blast
 
-inductive_set (in real_vector) span_induct_alt_help for S:: "'a set"
+inductive_set (in real_vector) span_induct_alt_help for S :: "'a set"
 where
   span_induct_alt_help_0: "0 \<in> span_induct_alt_help S"
 | span_induct_alt_help_S:
@@ -919,7 +929,7 @@ text {* Mapping under linear image. *}
 
 lemma span_linear_image:
   assumes lf: "linear f"
-  shows "span (f ` S) = f ` (span S)"
+  shows "span (f ` S) = f ` span S"
 proof (rule span_unique)
   show "f ` S \<subseteq> f ` span S"
     by (intro image_mono span_inc)
@@ -1414,7 +1424,7 @@ lemma norm_le_l1: "norm x \<le> (\<Sum>b\<in>Basis. \<bar>x \<bullet> b\<bar>)"
   done
 
 lemma setsum_norm_allsubsets_bound:
-  fixes f:: "'a \<Rightarrow> 'n::euclidean_space"
+  fixes f :: "'a \<Rightarrow> 'n::euclidean_space"
   assumes fP: "finite P"
     and fPs: "\<And>Q. Q \<subseteq> P \<Longrightarrow> norm (setsum f Q) \<le> e"
   shows "(\<Sum>x\<in>P. norm (f x)) \<le> 2 * real DIM('n) * e"
@@ -1429,7 +1439,8 @@ proof -
     assume i: "i \<in> Basis"
     have "norm (\<Sum>x\<in>P. \<bar>f x \<bullet> i\<bar>) \<le>
       norm ((\<Sum>x\<in>P \<inter> - {x. f x \<bullet> i < 0}. f x) \<bullet> i) + norm ((\<Sum>x\<in>P \<inter> {x. f x \<bullet> i < 0}. f x) \<bullet> i)"
-      by (simp add: abs_real_def setsum_cases[OF fP] setsum_negf norm_triangle_ineq4 inner_setsum_left del: real_norm_def)
+      by (simp add: abs_real_def setsum_cases[OF fP] setsum_negf norm_triangle_ineq4 inner_setsum_left
+        del: real_norm_def)
     also have "\<dots> \<le> e + e"
       unfolding real_norm_def
       by (intro add_mono norm_bound_Basis_le i fPs) auto
@@ -1444,7 +1455,7 @@ qed
 subsection {* Linearity and Bilinearity continued *}
 
 lemma linear_bounded:
-  fixes f:: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
   assumes lf: "linear f"
   shows "\<exists>B. \<forall>x. norm (f x) \<le> B * norm x"
 proof
@@ -1496,7 +1507,7 @@ next
 qed
 
 lemma linear_bounded_pos:
-  fixes f:: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
   assumes lf: "linear f"
   shows "\<exists>B > 0. \<forall>x. norm (f x) \<le> B * norm x"
 proof -
@@ -1508,7 +1519,7 @@ proof -
 qed
 
 lemma bounded_linearI':
-  fixes f::"'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
+  fixes f ::"'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
   assumes "\<And>x y. f (x + y) = f x + f y"
     and "\<And>c x. f (c *\<^sub>R x) = c *\<^sub>R f x"
   shows "bounded_linear f"
@@ -1516,7 +1527,7 @@ lemma bounded_linearI':
   by (rule linearI[OF assms])
 
 lemma bilinear_bounded:
-  fixes h:: "'m::euclidean_space \<Rightarrow> 'n::euclidean_space \<Rightarrow> 'k::real_normed_vector"
+  fixes h :: "'m::euclidean_space \<Rightarrow> 'n::euclidean_space \<Rightarrow> 'k::real_normed_vector"
   assumes bh: "bilinear h"
   shows "\<exists>B. \<forall>x y. norm (h x y) \<le> B * norm x * norm y"
 proof (clarify intro!: exI[of _ "\<Sum>i\<in>Basis. \<Sum>j\<in>Basis. norm (h i j)"])
@@ -1582,7 +1593,7 @@ next
 qed
 
 lemma bilinear_bounded_pos:
-  fixes h:: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space \<Rightarrow> 'c::real_normed_vector"
+  fixes h :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space \<Rightarrow> 'c::real_normed_vector"
   assumes bh: "bilinear h"
   shows "\<exists>B > 0. \<forall>x y. norm (h x y) \<le> B * norm x * norm y"
 proof -
@@ -1602,7 +1613,8 @@ lemma independent_bound:
   using independent_span_bound[OF finite_Basis, of S] by auto
 
 lemma dependent_biggerset:
-  "(finite (S::('a::euclidean_space) set) \<Longrightarrow> card S > DIM('a)) \<Longrightarrow> dependent S"
+  fixes S :: "'a::euclidean_space set"
+  shows "(finite S \<Longrightarrow> card S > DIM('a)) \<Longrightarrow> dependent S"
   by (metis independent_bound not_less)
 
 text {* Hence we can create a maximal independent subset. *}
@@ -1816,7 +1828,7 @@ lemma subset_le_dim:
   by (metis dim_span dim_subset)
 
 lemma span_eq_dim:
-  fixes S:: "'a::euclidean_space set"
+  fixes S :: "'a::euclidean_space set"
   shows "span S = span T \<Longrightarrow> dim S = dim T"
   by (metis dim_span)
 
@@ -2003,7 +2015,7 @@ text {* Low-dimensional subset is in a hyperplane (weak orthogonal complement). 
 lemma span_not_univ_orthogonal:
   fixes S :: "'a::euclidean_space set"
   assumes sU: "span S \<noteq> UNIV"
-  shows "\<exists>(a::'a). a \<noteq>0 \<and> (\<forall>x \<in> span S. a \<bullet> x = 0)"
+  shows "\<exists>a::'a. a \<noteq> 0 \<and> (\<forall>x \<in> span S. a \<bullet> x = 0)"
 proof -
   from sU obtain a where a: "a \<notin> span S"
     by blast
@@ -2066,7 +2078,7 @@ lemma span_not_univ_subset_hyperplane:
 lemma lowdim_subset_hyperplane:
   fixes S :: "'a::euclidean_space set"
   assumes d: "dim S < DIM('a)"
-  shows "\<exists>(a::'a). a  \<noteq> 0 \<and> span S \<subseteq> {x. a \<bullet> x = 0}"
+  shows "\<exists>a::'a. a \<noteq> 0 \<and> span S \<subseteq> {x. a \<bullet> x = 0}"
 proof -
   {
     assume "span S = UNIV"
@@ -2382,7 +2394,8 @@ proof -
 qed
 
 lemma linear_eq_stdbasis:
-  assumes lf: "linear (f::'a::euclidean_space \<Rightarrow> _)"
+  fixes f :: "'a::euclidean_space \<Rightarrow> _"
+  assumes lf: "linear f"
     and lg: "linear g"
     and fg: "\<forall>b\<in>Basis. f b = g b"
   shows "f = g"
@@ -2429,18 +2442,19 @@ lemma bilinear_eq_stdbasis:
 text {* Detailed theorems about left and right invertibility in general case. *}
 
 lemma linear_injective_left_inverse:
-  fixes f::"'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
-  assumes lf: "linear f" and fi: "inj f"
-  shows "\<exists>g. linear g \<and> g o f = id"
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes lf: "linear f"
+    and fi: "inj f"
+  shows "\<exists>g. linear g \<and> g \<circ> f = id"
 proof -
   from linear_independent_extend[OF independent_injective_image, OF independent_Basis, OF lf fi]
-  obtain h:: "'b \<Rightarrow> 'a" where h: "linear h" "\<forall>x \<in> f ` Basis. h x = inv f x"
+  obtain h :: "'b \<Rightarrow> 'a" where h: "linear h" "\<forall>x \<in> f ` Basis. h x = inv f x"
     by blast
   from h(2) have th: "\<forall>i\<in>Basis. (h \<circ> f) i = id i"
     using inv_o_cancel[OF fi, unfolded fun_eq_iff id_def o_def]
     by auto
   from linear_eq_stdbasis[OF linear_compose[OF lf h(1)] linear_id th]
-  have "h o f = id" .
+  have "h \<circ> f = id" .
   then show ?thesis
     using h(1) by blast
 qed
@@ -2449,15 +2463,15 @@ lemma linear_surjective_right_inverse:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes lf: "linear f"
     and sf: "surj f"
-  shows "\<exists>g. linear g \<and> f o g = id"
+  shows "\<exists>g. linear g \<and> f \<circ> g = id"
 proof -
   from linear_independent_extend[OF independent_Basis[where 'a='b],of "inv f"]
-  obtain h:: "'b \<Rightarrow> 'a" where h: "linear h" "\<forall>x\<in>Basis. h x = inv f x"
+  obtain h :: "'b \<Rightarrow> 'a" where h: "linear h" "\<forall>x\<in>Basis. h x = inv f x"
     by blast
-  from h(2) have th: "\<forall>i\<in>Basis. (f o h) i = id i"
+  from h(2) have th: "\<forall>i\<in>Basis. (f \<circ> h) i = id i"
     using sf by (auto simp add: surj_iff_all)
   from linear_eq_stdbasis[OF linear_compose[OF h(1) lf] linear_id th]
-  have "f o h = id" .
+  have "f \<circ> h = id" .
   then show ?thesis
     using h(1) by blast
 qed
@@ -2465,7 +2479,7 @@ qed
 text {* An injective map @{typ "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"} is also surjective. *}
 
 lemma linear_injective_imp_surjective:
-  fixes f::"'a::euclidean_space \<Rightarrow> 'a::euclidean_space"
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'a::euclidean_space"
   assumes lf: "linear f"
     and fi: "inj f"
   shows "surj f"
@@ -2617,7 +2631,7 @@ lemma isomorphism_expand:
   by (simp add: fun_eq_iff o_def id_def)
 
 lemma linear_injective_isomorphism:
-  fixes f::"'a::euclidean_space \<Rightarrow> 'a::euclidean_space"
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'a::euclidean_space"
   assumes lf: "linear f"
     and fi: "inj f"
   shows "\<exists>f'. linear f' \<and> (\<forall>x. f' (f x) = x) \<and> (\<forall>x. f (f' x) = x)"
@@ -2687,22 +2701,22 @@ qed
 
 subsection {* Infinity norm *}
 
-definition "infnorm (x::'a::euclidean_space) = Sup {abs (x \<bullet> b) |b. b \<in> Basis}"
+definition "infnorm (x::'a::euclidean_space) = Sup {\<bar>x \<bullet> b\<bar> |b. b \<in> Basis}"
 
 lemma infnorm_set_image:
   fixes x :: "'a::euclidean_space"
-  shows "{abs (x \<bullet> i) |i. i \<in> Basis} = (\<lambda>i. abs (x \<bullet> i)) ` Basis"
+  shows "{\<bar>x \<bullet> i\<bar> |i. i \<in> Basis} = (\<lambda>i. \<bar>x \<bullet> i\<bar>) ` Basis"
   by blast
 
 lemma infnorm_Max:
   fixes x :: "'a::euclidean_space"
-  shows "infnorm x = Max ((\<lambda>i. abs (x \<bullet> i)) ` Basis)"
+  shows "infnorm x = Max ((\<lambda>i. \<bar>x \<bullet> i\<bar>) ` Basis)"
   by (simp add: infnorm_def infnorm_set_image cSup_eq_Max del: Sup_image_eq)
 
 lemma infnorm_set_lemma:
   fixes x :: "'a::euclidean_space"
-  shows "finite {abs (x \<bullet> i) |i. i \<in> Basis}"
-    and "{abs (x \<bullet> i) |i. i \<in> Basis} \<noteq> {}"
+  shows "finite {\<bar>x \<bullet> i\<bar> |i. i \<in> Basis}"
+    and "{\<bar>x \<bullet> i\<bar> |i. i \<in> Basis} \<noteq> {}"
   unfolding infnorm_set_image
   by auto
 
@@ -2750,7 +2764,7 @@ qed
 
 lemma real_abs_sub_infnorm: "\<bar>infnorm x - infnorm y\<bar> \<le> infnorm (x - y)"
 proof -
-  have th: "\<And>(nx::real) n ny. nx \<le> n + ny \<Longrightarrow> ny <= n + nx \<Longrightarrow> \<bar>nx - ny\<bar> \<le> n"
+  have th: "\<And>(nx::real) n ny. nx \<le> n + ny \<Longrightarrow> ny \<le> n + nx \<Longrightarrow> \<bar>nx - ny\<bar> \<le> n"
     by arith
   from infnorm_triangle[of "x - y" " y"] infnorm_triangle[of "x - y" "-x"]
   have ths: "infnorm x \<le> infnorm (x - y) + infnorm y"
@@ -2767,7 +2781,7 @@ lemma Basis_le_infnorm:
   shows "b \<in> Basis \<Longrightarrow> \<bar>x \<bullet> b\<bar> \<le> infnorm x"
   by (simp add: infnorm_Max)
 
-lemma infnorm_mul: "infnorm (a *\<^sub>R x) = abs a * infnorm x"
+lemma infnorm_mul: "infnorm (a *\<^sub>R x) = \<bar>a\<bar> * infnorm x"
   unfolding infnorm_Max
 proof (safe intro!: Max_eqI)
   let ?B = "(\<lambda>i. \<bar>x \<bullet> i\<bar>) ` Basis"
@@ -2876,11 +2890,11 @@ proof -
 qed
 
 lemma norm_cauchy_schwarz_abs_eq:
-  "abs (x \<bullet> y) = norm x * norm y \<longleftrightarrow>
+  "\<bar>x \<bullet> y\<bar> = norm x * norm y \<longleftrightarrow>
     norm x *\<^sub>R y = norm y *\<^sub>R x \<or> norm x *\<^sub>R y = - norm y *\<^sub>R x"
   (is "?lhs \<longleftrightarrow> ?rhs")
 proof -
-  have th: "\<And>(x::real) a. a \<ge> 0 \<Longrightarrow> abs x = a \<longleftrightarrow> x = a \<or> x = - a"
+  have th: "\<And>(x::real) a. a \<ge> 0 \<Longrightarrow> \<bar>x\<bar> = a \<longleftrightarrow> x = a \<or> x = - a"
     by arith
   have "?rhs \<longleftrightarrow> norm x *\<^sub>R y = norm y *\<^sub>R x \<or> norm (- x) *\<^sub>R y = norm y *\<^sub>R (- x)"
     by simp
@@ -2945,7 +2959,7 @@ lemma collinear_2: "collinear {x, y}"
   apply (rule exI[where x="- 1"], simp)
   done
 
-lemma collinear_lemma: "collinear {0,x,y} \<longleftrightarrow> x = 0 \<or> y = 0 \<or> (\<exists>c. y = c *\<^sub>R x)"
+lemma collinear_lemma: "collinear {0, x, y} \<longleftrightarrow> x = 0 \<or> y = 0 \<or> (\<exists>c. y = c *\<^sub>R x)"
   (is "?lhs \<longleftrightarrow> ?rhs")
 proof -
   {
@@ -2990,7 +3004,7 @@ proof -
   ultimately show ?thesis by blast
 qed
 
-lemma norm_cauchy_schwarz_equal: "abs (x \<bullet> y) = norm x * norm y \<longleftrightarrow> collinear {0, x, y}"
+lemma norm_cauchy_schwarz_equal: "\<bar>x \<bullet> y\<bar> = norm x * norm y \<longleftrightarrow> collinear {0, x, y}"
   unfolding norm_cauchy_schwarz_abs_eq
   apply (cases "x=0", simp_all add: collinear_2)
   apply (cases "y=0", simp_all add: collinear_2 insert_commute)
