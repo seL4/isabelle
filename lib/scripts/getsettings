@@ -44,17 +44,22 @@ fi
 export ISABELLE_HOME
 
 #key executables
-ISABELLE_PROCESS="$ISABELLE_HOME/bin/isabelle_process"
 ISABELLE_TOOL="$ISABELLE_HOME/bin/isabelle"
+ISABELLE_PROCESS="$ISABELLE_HOME/bin/isabelle_process"
+
+function isabelle ()
+{
+  "$ISABELLE_TOOL" "$@"
+}
 
 function isabelle_process ()
 {
   "$ISABELLE_PROCESS" "$@"
 }
 
-function isabelle ()
+function isabelle_scala_script ()
 {
-  "$ISABELLE_TOOL" "$@"
+  "$ISABELLE_HOME/bin/isabelle_scala_script" "$@"
 }
 
 #platform
