@@ -188,7 +188,3 @@ fun expression pos bind body ants =
 
 end;
 
-fun use s =
-  ML_Context.eval_file (ML_Compiler.verbose true ML_Compiler.flags) (Path.explode s)
-    handle ERROR msg => (writeln msg; error "ML error");
-

@@ -38,6 +38,16 @@ use "ML/ml_lex.ML";
 use "ML/ml_parse.ML";
 use "General/secure.ML";
 
+val use_text = Secure.use_text;
+val use_file = Secure.use_file;
+
+fun use s =
+  Position.setmp_thread_data (Position.file_only s)
+    (fn () =>
+      Secure.use_file ML_Parse.global_context true s
+        handle ERROR msg => (writeln msg; error "ML error")) ();
+
+val toplevel_pp = Secure.toplevel_pp;
 
 
 (** bootstrap phase 1: towards ML within Isar context *)
@@ -235,6 +245,10 @@ use "Thy/latex.ML";
 (*ML with context and antiquotations*)
 use "ML/ml_context.ML";
 use "ML/ml_antiquotation.ML";
+
+fun use s =
+  ML_Context.eval_file (ML_Compiler.verbose true ML_Compiler.flags) (Path.explode s)
+    handle ERROR msg => (writeln msg; error "ML error");
 
 
 
