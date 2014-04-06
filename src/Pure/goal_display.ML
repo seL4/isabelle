@@ -23,13 +23,13 @@ end;
 structure Goal_Display: GOAL_DISPLAY =
 struct
 
-val goals_limit_raw = Config.declare_option "goals_limit";
+val goals_limit_raw = Config.declare_option ("goals_limit", @{here});
 val goals_limit = Config.int goals_limit_raw;
 
-val show_main_goal_raw = Config.declare_option "show_main_goal";
+val show_main_goal_raw = Config.declare_option ("show_main_goal", @{here});
 val show_main_goal = Config.bool show_main_goal_raw;
 
-val show_consts_raw = Config.declare_option "show_consts";
+val show_consts_raw = Config.declare_option ("show_consts", @{here});
 val show_consts = Config.bool show_consts_raw;
 
 fun pretty_flexpair ctxt (t, u) = Pretty.block

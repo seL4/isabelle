@@ -295,7 +295,7 @@ fun eta_abs (Abs (a, T, t)) =
       | t' => Abs (a, T, t'))
   | eta_abs t = t;
 
-val eta_contract_raw = Config.declare_option "eta_contract";
+val eta_contract_raw = Config.declare_option ("eta_contract", @{here});
 val eta_contract = Config.bool eta_contract_raw;
 
 fun eta_contr ctxt tm =

@@ -58,14 +58,14 @@ sig
   val setup_config_int: Binding.binding -> (Context.generic -> int) -> int Config.T
   val setup_config_real: Binding.binding -> (Context.generic -> real) -> real Config.T
   val setup_config_string: Binding.binding -> (Context.generic -> string) -> string Config.T
-  val option_bool: string -> bool Config.T * (theory -> theory)
-  val option_int: string -> int Config.T * (theory -> theory)
-  val option_real: string -> real Config.T * (theory -> theory)
-  val option_string: string -> string Config.T * (theory -> theory)
-  val setup_option_bool: string -> bool Config.T
-  val setup_option_int: string -> int Config.T
-  val setup_option_real: string -> real Config.T
-  val setup_option_string: string -> string Config.T
+  val option_bool: string * Position.T -> bool Config.T * (theory -> theory)
+  val option_int: string * Position.T -> int Config.T * (theory -> theory)
+  val option_real: string * Position.T -> real Config.T * (theory -> theory)
+  val option_string: string * Position.T -> string Config.T * (theory -> theory)
+  val setup_option_bool: string * Position.T -> bool Config.T
+  val setup_option_int: string * Position.T -> int Config.T
+  val setup_option_real: string * Position.T -> real Config.T
+  val setup_option_string: string * Position.T -> string Config.T
 end;
 
 structure Attrib: ATTRIB =
@@ -374,13 +374,15 @@ fun register binding config thy =
 fun declare make coerce binding default =
   let
     val name = Binding.name_of binding;
-    val config_value = Config.declare name (make o default);
+    val pos = Binding.pos_of binding;
+    val config_value = Config.declare (name, pos) (make o default);
     val config = coerce config_value;
   in (config, register binding config_value) end;
 
 in
 
-fun register_config config = register (Binding.name (Config.name_of config)) config;
+fun register_config config =
+  register (Binding.make (Config.name_of config, Config.pos_of config)) config;
 
 val config_bool = declare Config.Bool Config.bool;
 val config_int = declare Config.Int Config.int;
@@ -414,14 +416,14 @@ end;
 
 local
 
-fun declare_option coerce name =
+fun declare_option coerce (name, pos) =
   let
-    val config = Config.declare_option name;
+    val config = Config.declare_option (name, pos);
   in (coerce config, register_config config) end;
 
-fun setup_option coerce name =
+fun setup_option coerce (name, pos) =
   let
-    val config = Config.declare_option name;
+    val config = Config.declare_option (name, pos);
     val _ = Theory.setup (register_config config);
   in coerce config end;
 

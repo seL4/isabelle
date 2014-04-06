@@ -21,13 +21,14 @@ struct
 
 (* source trace *)
 
-val source_trace_raw = Config.declare "ML_source_trace" (fn _ => Config.Bool false);
+val source_trace_raw =
+  Config.declare ("ML_source_trace", @{here}) (fn _ => Config.Bool false);
 val source_trace = Config.bool source_trace_raw;
 
 
 (* exception trace *)
 
-val exception_trace_raw = Config.declare_option "ML_exception_trace";
+val exception_trace_raw = Config.declare_option ("ML_exception_trace", @{here});
 val exception_trace = Config.bool exception_trace_raw;
 
 fun exception_trace_enabled NONE =
@@ -38,7 +39,7 @@ fun exception_trace_enabled NONE =
 (* print depth *)
 
 val print_depth_raw =
-  Config.declare "ML_print_depth" (fn _ => Config.Int (get_default_print_depth ()));
+  Config.declare ("ML_print_depth", @{here}) (fn _ => Config.Int (get_default_print_depth ()));
 val print_depth = Config.int print_depth_raw;
 
 fun get_print_depth () =

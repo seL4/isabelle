@@ -626,7 +626,8 @@ fun movedot_lambda [] _ = []
 
 
 (*trigger value for warnings*)
-val branching_level = Config.int (Config.declare "syntax_branching_level" (fn _ => Config.Int 600));
+val branching_level =
+  Config.int (Config.declare ("syntax_branching_level", @{here}) (fn _ => Config.Int 600));
 
 (*get all productions of a NT and NTs chained to it which can
   be started by specified token*)

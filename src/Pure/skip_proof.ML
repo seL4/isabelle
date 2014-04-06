@@ -4,6 +4,9 @@
 Skip proof via oracle invocation.
 *)
 
+val quick_and_dirty_raw = Config.declare_option ("quick_and_dirty", @{here});
+val quick_and_dirty = Config.bool quick_and_dirty_raw;
+
 signature SKIP_PROOF =
 sig
   val report: Proof.context -> unit

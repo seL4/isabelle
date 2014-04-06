@@ -42,7 +42,8 @@ exception Pattern;
 
 val unify_trace_failure_default = Unsynchronized.ref false;
 val unify_trace_failure_raw =
-  Config.declare_global "unify_trace_failure" (fn _ => Config.Bool (! unify_trace_failure_default));
+  Config.declare_global ("unify_trace_failure", @{here})
+    (fn _ => Config.Bool (! unify_trace_failure_default));
 val unify_trace_failure = Config.bool unify_trace_failure_raw;
 
 fun string_of_term thy env binders t =

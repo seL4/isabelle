@@ -35,10 +35,10 @@ struct
 
 val show_consts = Goal_Display.show_consts;
 
-val show_hyps_raw = Config.declare "show_hyps" (fn _ => Config.Bool false);
+val show_hyps_raw = Config.declare ("show_hyps", @{here}) (fn _ => Config.Bool false);
 val show_hyps = Config.bool show_hyps_raw;
 
-val show_tags_raw = Config.declare "show_tags" (fn _ => Config.Bool false);
+val show_tags_raw = Config.declare ("show_tags", @{here}) (fn _ => Config.Bool false);
 val show_tags = Config.bool show_tags_raw;
 
 

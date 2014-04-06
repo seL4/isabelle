@@ -148,12 +148,14 @@ fun operation which ctxt x =
 
 (* configuration options *)
 
-val root = Config.string (Config.declare "syntax_root" (K (Config.String "any")));
+val root = Config.string (Config.declare ("syntax_root", @{here}) (K (Config.String "any")));
 
-val ambiguity_warning_raw = Config.declare "syntax_ambiguity_warning" (fn _ => Config.Bool true);
+val ambiguity_warning_raw =
+  Config.declare ("syntax_ambiguity_warning", @{here}) (fn _ => Config.Bool true);
 val ambiguity_warning = Config.bool ambiguity_warning_raw;
 
-val ambiguity_limit_raw = Config.declare "syntax_ambiguity_limit" (fn _ => Config.Int 10);
+val ambiguity_limit_raw =
+  Config.declare ("syntax_ambiguity_limit", @{here}) (fn _ => Config.Int 10);
 val ambiguity_limit = Config.int ambiguity_limit_raw;
 
 
@@ -305,7 +307,8 @@ val string_of_arity = Pretty.string_of oo pretty_arity;
 
 (* global pretty printing *)
 
-val pretty_global = Config.bool (Config.declare "Syntax.pretty_global" (K (Config.Bool false)));
+val pretty_global =
+  Config.bool (Config.declare ("Syntax.pretty_global", @{here}) (K (Config.Bool false)));
 fun is_pretty_global ctxt = Config.get ctxt pretty_global;
 val set_pretty_global = Config.put pretty_global;
 val init_pretty_global = set_pretty_global true o Proof_Context.init_global;

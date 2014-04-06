@@ -164,10 +164,10 @@ fun match ast pat =
 
 (* normalize *)
 
-val trace_raw = Config.declare "syntax_ast_trace" (fn _ => Config.Bool false);
+val trace_raw = Config.declare ("syntax_ast_trace", @{here}) (fn _ => Config.Bool false);
 val trace = Config.bool trace_raw;
 
-val stats_raw = Config.declare "syntax_ast_stats" (fn _ => Config.Bool false);
+val stats_raw = Config.declare ("syntax_ast_stats", @{here}) (fn _ => Config.Bool false);
 val stats = Config.bool stats_raw;
 
 fun message head body =

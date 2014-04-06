@@ -43,12 +43,12 @@ struct
 
 (** options **)
 
-val display = Attrib.setup_option_bool "thy_output_display";
-val break = Attrib.setup_option_bool "thy_output_break";
-val quotes = Attrib.setup_option_bool "thy_output_quotes";
-val indent = Attrib.setup_option_int "thy_output_indent";
-val source = Attrib.setup_option_bool "thy_output_source";
-val modes = Attrib.setup_option_string "thy_output_modes";
+val display = Attrib.setup_option_bool ("thy_output_display", @{here});
+val break = Attrib.setup_option_bool ("thy_output_break", @{here});
+val quotes = Attrib.setup_option_bool ("thy_output_quotes", @{here});
+val indent = Attrib.setup_option_int ("thy_output_indent", @{here});
+val source = Attrib.setup_option_bool ("thy_output_source", @{here});
+val modes = Attrib.setup_option_string ("thy_output_modes", @{here});
 
 
 structure Wrappers = Proof_Data

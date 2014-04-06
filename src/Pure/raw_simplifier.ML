@@ -394,12 +394,13 @@ val clear_simpset =
 
 (* simp depth *)
 
-val simp_depth_limit_raw = Config.declare "simp_depth_limit" (K (Config.Int 100));
+val simp_depth_limit_raw = Config.declare ("simp_depth_limit", @{here}) (K (Config.Int 100));
 val simp_depth_limit = Config.int simp_depth_limit_raw;
 
 val simp_trace_depth_limit_default = Unsynchronized.ref 1;
-val simp_trace_depth_limit_raw = Config.declare "simp_trace_depth_limit"
-  (fn _ => Config.Int (! simp_trace_depth_limit_default));
+val simp_trace_depth_limit_raw =
+  Config.declare ("simp_trace_depth_limit", @{here})
+    (fn _ => Config.Int (! simp_trace_depth_limit_default));
 val simp_trace_depth_limit = Config.int simp_trace_depth_limit_raw;
 
 fun inc_simp_depth ctxt =
@@ -418,11 +419,12 @@ fun simp_depth ctxt =
 
 exception SIMPLIFIER of string * thm list;
 
-val simp_debug_raw = Config.declare "simp_debug" (K (Config.Bool false));
+val simp_debug_raw = Config.declare ("simp_debug", @{here}) (K (Config.Bool false));
 val simp_debug = Config.bool simp_debug_raw;
 
 val simp_trace_default = Unsynchronized.ref false;
-val simp_trace_raw = Config.declare "simp_trace" (fn _ => Config.Bool (! simp_trace_default));
+val simp_trace_raw =
+  Config.declare ("simp_trace", @{here}) (fn _ => Config.Bool (! simp_trace_default));
 val simp_trace = Config.bool simp_trace_raw;
 
 fun cond_warning ctxt msg =

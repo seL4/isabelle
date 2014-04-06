@@ -572,7 +572,7 @@ fun expand_abbrevs ctxt = certify_consts ctxt #> expand_binds ctxt;
 
 end;
 
-val show_abbrevs_raw = Config.declare "show_abbrevs" (fn _ => Config.Bool true);
+val show_abbrevs_raw = Config.declare ("show_abbrevs", @{here}) (fn _ => Config.Bool true);
 val show_abbrevs = Config.bool show_abbrevs_raw;
 
 fun contract_abbrevs ctxt t =
@@ -605,7 +605,8 @@ fun prepare_patternT ctxt T =
 
 local
 
-val dummies = Config.bool (Config.declare "Proof_Context.dummies" (K (Config.Bool false)));
+val dummies =
+  Config.bool (Config.declare ("Proof_Context.dummies", @{here}) (K (Config.Bool false)));
 
 fun check_dummies ctxt t =
   if Config.get ctxt dummies then t
@@ -1338,8 +1339,11 @@ end;
 
 (* core context *)
 
-val debug = Config.bool (Config.declare "Proof_Context.debug" (K (Config.Bool false)));
-val verbose = Config.bool (Config.declare "Proof_Context.verbose" (K (Config.Bool false)));
+val debug =
+  Config.bool (Config.declare ("Proof_Context.debug", @{here}) (K (Config.Bool false)));
+
+val verbose =
+  Config.bool (Config.declare ("Proof_Context.verbose", @{here}) (K (Config.Bool false)));
 
 fun pretty_ctxt ctxt =
   if not (Config.get ctxt debug) then []

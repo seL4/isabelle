@@ -20,7 +20,8 @@ struct
 
 (* constraints *)
 
-val const_sorts = Config.bool (Config.declare "const_sorts" (K (Config.Bool true)));
+val const_sorts =
+  Config.bool (Config.declare ("const_sorts", @{here}) (K (Config.Bool true)));
 
 fun const_type ctxt =
   try ((not (Config.get ctxt const_sorts) ? Type.strip_sorts) o
