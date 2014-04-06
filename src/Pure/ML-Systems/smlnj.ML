@@ -20,6 +20,7 @@ use "ML-Systems/ml_pretty.ML";
 structure PolyML = struct end;
 use "ML-Systems/pp_dummy.ML";
 use "ML-Systems/use_context.ML";
+use "ML-Systems/ml_positions.ML";
 
 
 val seconds = Time.fromReal;
@@ -91,9 +92,10 @@ fun use_text ({tune_source, print, error, ...}: use_context) (line, name) verbos
       in String.substring (str, 0, Int.max (0, size str - 1)) end;
   in
     Control.Print.out := out;
-    Backend.Interact.useStream (TextIO.openString (tune_source txt)) handle exn =>
-      (Control.Print.out := out_orig;
-        error ((if name = "" then "" else "Error in " ^ name ^ "\n") ^ output ()); raise exn);
+    Backend.Interact.useStream (TextIO.openString (tune_source (ml_positions line name txt)))
+      handle exn =>
+        (Control.Print.out := out_orig;
+          error ((if name = "" then "" else "Error in " ^ name ^ "\n") ^ output ()); raise exn);
     Control.Print.out := out_orig;
     if verbose then print (output ()) else ()
   end;

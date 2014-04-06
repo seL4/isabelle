@@ -113,6 +113,7 @@ val pointer_eq = PolyML.pointerEq;
 (* ML compiler *)
 
 use "ML-Systems/use_context.ML";
+use "ML-Systems/ml_positions.ML";
 use "ML-Systems/compiler_polyml.ML";
 
 PolyML.Compiler.reportUnreferencedIds := true;
