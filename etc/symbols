@@ -154,7 +154,7 @@
 \<rat>                  code: 0x00211a  group: letter
 \<real>                 code: 0x00211d  group: letter
 \<int>                  code: 0x002124  group: letter
-\<leftarrow>            code: 0x002190  group: arrow  abbrev: <.  abbrev: <-
+\<leftarrow>            code: 0x002190  group: arrow  abbrev: <.
 \<longleftarrow>        code: 0x0027f5  group: arrow  abbrev: <.
 \<rightarrow>           code: 0x002192  group: arrow  abbrev: .>  abbrev: ->
 \<longrightarrow>       code: 0x0027f6  group: arrow  abbrev: .>  abbrev: -->
