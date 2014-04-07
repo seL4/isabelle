@@ -34,7 +34,7 @@ val _ =
           YXML.parse_body blobs_yxml |>
             let open XML.Decode in
               list (variant
-               [fn ([], a) => Exn.Res (pair string (option string) a),
+               [fn ([], a) => Exn.Res (triple string string (option string) a),
                 fn ([], a) => Exn.Exn (ERROR (string a))])
             end;
       in
