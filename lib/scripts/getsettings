@@ -46,6 +46,7 @@ export ISABELLE_HOME
 #key executables
 ISABELLE_TOOL="$ISABELLE_HOME/bin/isabelle"
 ISABELLE_PROCESS="$ISABELLE_HOME/bin/isabelle_process"
+ISABELLE_SCALA_SCRIPT="$ISABELLE_HOME/bin/isabelle_scala_script"
 
 function isabelle ()
 {
@@ -59,7 +60,7 @@ function isabelle_process ()
 
 function isabelle_scala_script ()
 {
-  "$ISABELLE_HOME/bin/isabelle_scala_script" "$@"
+  "$ISABELLE_SCALA_SCRIPT" "$@"
 }
 
 #platform
