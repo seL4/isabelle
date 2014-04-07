@@ -119,7 +119,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
         for {
           cmd <- snapshot.node.load_commands
           blob_name <- cmd.blobs_names
-          blob_buffer <- JEdit_Lib.jedit_buffer(blob_name.node)
+          blob_buffer <- JEdit_Lib.jedit_buffer(blob_name)
           if !JEdit_Lib.jedit_text_areas(blob_buffer).isEmpty
           start <- snapshot.node.command_start(cmd)
           range = snapshot.convert(cmd.proper_range + start)

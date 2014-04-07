@@ -52,7 +52,7 @@ class JEdit_Editor extends Editor[View]
   {
     Swing_Thread.require()
 
-    JEdit_Lib.jedit_buffer(name.node) match {
+    JEdit_Lib.jedit_buffer(name) match {
       case Some(buffer) =>
         PIDE.document_model(buffer) match {
           case Some(model) => model.snapshot

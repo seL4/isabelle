@@ -41,7 +41,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
           if (in_checkbox(peer.indexToLocation(index), point)) {
             if (clicks == 1) {
               for {
-                buffer <- JEdit_Lib.jedit_buffer(listData(index).node)
+                buffer <- JEdit_Lib.jedit_buffer(listData(index))
                 model <- PIDE.document_model(buffer)
               } model.node_required = !model.node_required
             }

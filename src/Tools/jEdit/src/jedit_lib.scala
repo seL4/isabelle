@@ -120,6 +120,9 @@ object JEdit_Lib
   def jedit_buffer(name: String): Option[Buffer] =
     jedit_buffers().find(buffer => buffer_name(buffer) == name)
 
+  def jedit_buffer(name: Document.Node.Name): Option[Buffer] =
+    jedit_buffer(name.node)
+
   def jedit_views(): Iterator[View] = jEdit.getViews().iterator
 
   def jedit_text_areas(view: View): Iterator[JEditTextArea] =
