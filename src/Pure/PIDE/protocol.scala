@@ -353,7 +353,7 @@ trait Protocol extends Prover
         variant(List(
           { case Exn.Res((a, b)) =>
               (Nil, triple(string, string, option(string))(
-                (a.node, Isabelle_System.posix_path(a.node), b.map(p => p._1.toString)))) },
+                (a.node, Isabelle_System.posix_path_url(a.node), b.map(p => p._1.toString)))) },
           { case Exn.Exn(e) => (Nil, string(Exn.message(e))) }))
       YXML.string_of_body(list(encode_blob)(command.blobs))
     }
@@ -384,7 +384,7 @@ trait Protocol extends Prover
         variant(List(
           { case Document.Node.Edits(a) => (Nil, list(pair(option(id), option(id)))(a)) },
           { case Document.Node.Deps(header) =>
-              val master_dir = Isabelle_System.posix_path(name.master_dir)
+              val master_dir = Isabelle_System.posix_path_url(name.master_dir)
               val imports = header.imports.map(_.node)
               val keywords = header.keywords.map({ case (a, b, _) => (a, b) })
               (Nil,

@@ -12,6 +12,7 @@ import java.util.regex.Pattern
 import java.io.{File => JFile, BufferedReader, InputStreamReader,
   BufferedWriter, OutputStreamWriter}
 import java.nio.file.Files
+import java.net.{URL, URLDecoder, MalformedURLException}
 
 import scala.util.matching.Regex
 
@@ -189,6 +190,15 @@ object Isabelle_System
     else jvm_path
 
   def posix_path(file: JFile): String = posix_path(file.getPath)
+
+  def posix_path_url(name: String): String =
+    try {
+      val url = new URL(name)
+      if (url.getProtocol == "file")
+        posix_path(URLDecoder.decode(url.getPath, UTF8.charset_name))
+      else name
+    }
+    catch { case _: MalformedURLException => posix_path(name) }
 
 
   /* misc path specifications */
