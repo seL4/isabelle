@@ -18,7 +18,7 @@ sig
   type state
   val init_state: state
   val define_blob: string -> string -> state -> state
-  type blob_digest = (string * string * string option) Exn.result
+  type blob_digest = (string * string option) Exn.result
   val define_command: Document_ID.command -> string -> blob_digest list -> string ->
     state -> state
   val remove_versions: Document_ID.version list -> state -> state
@@ -219,8 +219,7 @@ end;
 
 (** main state -- document structure and execution process **)
 
-type blob_digest =
-  (string * string * string option) Exn.result;  (* file node name, path, raw digest*)
+type blob_digest = (string * string option) Exn.result;  (*file node name, raw digest*)
 
 type execution =
  {version_id: Document_ID.version,  (*static version id*)
@@ -293,8 +292,8 @@ fun the_blob (State {blobs, ...}) digest =
   | SOME content => content);
 
 fun resolve_blob state (blob_digest: blob_digest) =
-  blob_digest |> Exn.map_result (fn (file, path, raw_digest) =>
-    (file, path, Option.map (the_blob state) raw_digest));
+  blob_digest |> Exn.map_result (fn (file_node, raw_digest) =>
+    (file_node, Option.map (the_blob state) raw_digest));
 
 
 (* commands *)
@@ -343,7 +342,7 @@ fun remove_versions version_ids state = state |> map_state (fn (versions, _, _, 
     val blobs' =
       (commands', Symtab.empty) |->
         Inttab.fold (fn (_, (_, blobs, _)) => blobs |>
-          fold (fn Exn.Res (_, _, SOME b) => Symtab.update (b, the_blob state b) | _ => I));
+          fold (fn Exn.Res (_, SOME b) => Symtab.update (b, the_blob state b) | _ => I));
 
   in (versions', blobs', commands', execution) end);
 

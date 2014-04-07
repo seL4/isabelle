@@ -195,26 +195,32 @@ class JEdit_Editor extends Editor[View]
   def hyperlink_source_file(source_name: String, line: Int, offset: Symbol.Offset)
     : Option[Hyperlink] =
   {
-    if (Path.is_valid(source_name)) {
-      Isabelle_System.source_file(Path.explode(source_name)) match {
-        case Some(path) =>
-          val name = Isabelle_System.platform_path(path)
-          JEdit_Lib.jedit_buffer(name) match {
-            case Some(buffer) if offset > 0 =>
-              val (line, column) =
-                JEdit_Lib.buffer_lock(buffer) {
-                  ((1, 1) /:
-                    (Symbol.iterator(JEdit_Lib.buffer_text(buffer)).
-                      zipWithIndex.takeWhile(p => p._2 < offset - 1).map(_._1)))(
-                        Symbol.advance_line_column)
-                }
-              Some(hyperlink_file(name, line, column))
-            case _ => Some(hyperlink_file(name, line))
-          }
-        case None => None
+    val opt_name =
+      if (Path.is_wellformed(source_name)) {
+        if (Path.is_valid(source_name)) {
+          val path = Path.explode(source_name)
+          Some(Isabelle_System.platform_path(Isabelle_System.source_file(path) getOrElse path))
+        }
+        else None
       }
+      else Some(source_name)
+
+    opt_name match {
+      case Some(name) =>
+        JEdit_Lib.jedit_buffer(name) match {
+          case Some(buffer) if offset > 0 =>
+            val (line, column) =
+              JEdit_Lib.buffer_lock(buffer) {
+                ((1, 1) /:
+                  (Symbol.iterator(JEdit_Lib.buffer_text(buffer)).
+                    zipWithIndex.takeWhile(p => p._2 < offset - 1).map(_._1)))(
+                      Symbol.advance_line_column)
+              }
+            Some(hyperlink_file(name, line, column))
+          case _ => Some(hyperlink_file(name, line))
+        }
+      case None => None
     }
-    else None
   }
 
   def hyperlink_url(name: String): Hyperlink =

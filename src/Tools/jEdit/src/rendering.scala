@@ -321,15 +321,18 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   /* hyperlinks */
 
+  private def jedit_file(name: String): String =
+    if (Path.is_valid(name))
+      PIDE.resources.append(snapshot.node_name.master_dir, Path.explode(name))
+    else name
+
   def hyperlink(range: Text.Range): Option[Text.Info[PIDE.editor.Hyperlink]] =
   {
     snapshot.cumulate[Vector[Text.Info[PIDE.editor.Hyperlink]]](
       range, Vector.empty, Rendering.hyperlink_elements, _ =>
         {
-          case (links, Text.Info(info_range, XML.Elem(Markup.Path(name), _)))
-          if Path.is_valid(name) =>
-            val jedit_file = PIDE.resources.append(snapshot.node_name.master_dir, Path.explode(name))
-            val link = PIDE.editor.hyperlink_file(jedit_file)
+          case (links, Text.Info(info_range, XML.Elem(Markup.Path(name), _))) =>
+            val link = PIDE.editor.hyperlink_file(jedit_file(name))
             Some(links :+ Text.Info(snapshot.convert(info_range), link))
 
           case (links, Text.Info(info_range, XML.Elem(Markup.Url(name), _))) =>
@@ -457,10 +460,11 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
                 "\n" + t.message
               else ""
             Some(add(prev, r, (true, XML.Text(txt1 + txt2))))
-          case (prev, Text.Info(r, XML.Elem(Markup.Path(name), _)))
-          if Path.is_valid(name) =>
-            val jedit_file = PIDE.resources.append(snapshot.node_name.master_dir, Path.explode(name))
-            val text = "path " + quote(name) + "\nfile " + quote(jedit_file)
+          case (prev, Text.Info(r, XML.Elem(Markup.Path(name), _))) =>
+            val file = jedit_file(name)
+            val text =
+              if (name == file) "file " + quote(file)
+              else "path " + quote(name) + "\nfile " + quote(file)
             Some(add(prev, r, (true, XML.Text(text))))
           case (prev, Text.Info(r, XML.Elem(Markup.Url(name), _))) =>
             Some(add(prev, r, (true, XML.Text("URL " + quote(name)))))

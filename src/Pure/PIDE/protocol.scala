@@ -352,8 +352,7 @@ trait Protocol extends Prover
       val encode_blob: T[Command.Blob] =
         variant(List(
           { case Exn.Res((a, b)) =>
-              (Nil, triple(string, string, option(string))(
-                (a.node, Isabelle_System.posix_path_url(a.node), b.map(p => p._1.toString)))) },
+              (Nil, pair(string, option(string))((a.node, b.map(p => p._1.toString)))) },
           { case Exn.Exn(e) => (Nil, string(Exn.message(e))) }))
       YXML.string_of_body(list(encode_blob)(command.blobs))
     }
