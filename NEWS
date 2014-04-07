@@ -108,8 +108,7 @@ process, without requiring old-fashioned command-line invocation of
 simplification process, enabled by the newly-introduced
 "simplifier_trace" declaration.
 
-* Support for Navigator plugin, with toolbar buttons and keyboard
-shortcuts similar to major web browsers.
+* Support for Navigator plugin (with toolbar buttons).
 
 
 *** Pure ***
