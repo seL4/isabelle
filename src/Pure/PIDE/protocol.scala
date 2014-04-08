@@ -302,13 +302,14 @@ object Protocol
 
   def message_positions(
     valid_id: Document_ID.Generic => Boolean,
+    chunk_name: Text.Chunk.Name,
     chunk: Text.Chunk,
     message: XML.Elem): Set[Text.Range] =
   {
     def elem_positions(props: Properties.T, set: Set[Text.Range]): Set[Text.Range] =
       props match {
-        case Position.Reported(id, chunk_name, symbol_range)
-        if valid_id(id) && chunk_name == chunk.name =>
+        case Position.Reported(id, name, symbol_range)
+        if valid_id(id) && name == chunk_name =>
           chunk.incorporate(symbol_range) match {
             case Some(range) => set + range
             case _ => set

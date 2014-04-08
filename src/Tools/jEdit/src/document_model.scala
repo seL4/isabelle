@@ -151,7 +151,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
             case Some(x) => x
             case None =>
               val bytes = PIDE.resources.file_content(buffer)
-              val file = new Text.Chunk.File(node_name.node, buffer.getSegment(0, buffer.getLength))
+              val file = new Text.Chunk.File(buffer.getSegment(0, buffer.getLength))
               _blob = Some((bytes, file))
               (bytes, file)
           }

@@ -197,8 +197,8 @@ object Command
               var st = copy(results = results + (i -> message1))
               if (Protocol.is_inlined(message)) {
                 for {
-                  (chunk_name, chunk) <- command.chunks
-                  range <- Protocol.message_positions(valid_id, chunk, message)
+                  (chunk_name, chunk) <- command.chunks.iterator
+                  range <- Protocol.message_positions(valid_id, chunk_name, chunk, message)
                 } st = st.add_markup(false, chunk_name, Text.Info(range, message2))
               }
               st
@@ -342,7 +342,6 @@ final class Command private(
 
   val chunk: Text.Chunk =
     new Text.Chunk {
-      def name: Text.Chunk.Name = Text.Chunk.Default
       def range: Text.Range = Command.this.range
       lazy val symbol_index = Symbol.Index(source)
     }

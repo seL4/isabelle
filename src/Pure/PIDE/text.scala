@@ -71,26 +71,23 @@ object Text
   }
 
 
-  /* named chunks */
+  /* chunks with symbol index */
 
   abstract class Chunk
   {
-    def name: Chunk.Name
     def range: Range
     def symbol_index: Symbol.Index
 
-    private lazy val hash: Int = (name, range, symbol_index).hashCode
+    private lazy val hash: Int = (range, symbol_index).hashCode
     override def hashCode: Int = hash
     override def equals(that: Any): Boolean =
       that match {
         case other: Chunk =>
           hash == other.hash &&
-          name == other.name &&
           range == other.range &&
           symbol_index == other.symbol_index
         case _ => false
       }
-    override def toString: String = "Text.Chunk(" + name + ")"
 
     def decode(symbol_offset: Symbol.Offset): Offset = symbol_index.decode(symbol_offset)
     def decode(symbol_range: Symbol.Range): Range = symbol_index.decode(symbol_range)
@@ -111,9 +108,8 @@ object Text
     case object Default extends Name
     case class File_Name(file_name: String) extends Name
 
-    class File(file_name: String, text: CharSequence) extends Chunk
+    class File(text: CharSequence) extends Chunk
     {
-      val name = File_Name(file_name)
       val range = Range(0, text.length)
       val symbol_index = Symbol.Index(text)
     }
