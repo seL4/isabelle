@@ -52,14 +52,12 @@ fun f_mylist where
 | "f_mylist (MyCons _ xs) = Suc (f_mylist xs)"
 
 datatype_new foo' = FooNil | FooCons bar' foo' and bar' = Bar
-(* FIXME
 datatype_compat bar' foo'
 
 fun f_foo and f_bar where
   "f_foo FooNil = 0"
 | "f_foo (FooCons bar foo) = Suc (f_foo foo) + f_bar bar"
 | "f_bar Bar = Suc 0"
-*)
 
 locale opt begin
 
