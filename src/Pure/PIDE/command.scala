@@ -198,7 +198,13 @@ object Command
                           state.add_markup(false, target_name, info)
                         case None => bad(); state
                       }
-                    case None => /* FIXME bad(); */ state
+                    case None =>
+                      chunk_name match {
+                        // FIXME workaround for static positions stemming from batch build
+                        case Text.Chunk.File(name) if name.endsWith(".thy") =>
+                        case _ => bad()
+                      }
+                      state
                   }
 
                 case XML.Elem(Markup(name, atts), args)
