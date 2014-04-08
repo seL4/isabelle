@@ -13,7 +13,7 @@ sig
   val unknownT: string
   type T
   val empty: T
-  val position: T -> string -> Position.T
+  val markup: T -> string * Position.T -> Markup.T
   val typ: T -> string -> string
   val bool: T -> string -> bool
   val int: T -> string -> int
@@ -27,7 +27,7 @@ sig
   val update: string -> string -> T -> T
   val decode: XML.body -> T
   val default: unit -> T
-  val default_position: string -> Position.T
+  val default_markup: string * Position.T -> Markup.T
   val default_typ: string -> string
   val default_bool: string -> bool
   val default_int: string -> int
@@ -75,9 +75,19 @@ fun check_type options name typ =
   end;
 
 
-(* declaration *)
+(* markup *)
 
-fun position options name = #pos (check_name options name);
+fun markup options (name, pos) =
+  let
+    val opt =
+      check_name options name
+        handle ERROR msg => error (msg ^ Position.here pos);
+    val props = Position.def_properties_of (#pos opt);
+  in Markup.properties props (Markup.entity Markup.system_optionN name) end;
+
+
+(* typ *)
+
 fun typ options name = #typ (check_name options name);
 
 
@@ -173,7 +183,7 @@ fun default () =
     SOME options => options
   | NONE => err_no_default ());
 
-fun default_position name = position (default ()) name;
+fun default_markup arg = markup (default ()) arg;
 fun default_typ name = typ (default ()) name;
 fun default_bool name = bool (default ()) name;
 fun default_int name = int (default ()) name;

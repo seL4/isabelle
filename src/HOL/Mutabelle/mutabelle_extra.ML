@@ -124,7 +124,7 @@ fun invoke_quickcheck change_options thy t =
             | SOME _ => (GenuineCex, Quickcheck.timings_of result)
           end) ()
   handle TimeLimit.TimeOut =>
-         (Timeout, [("timelimit", Real.floor (Options.default_real @{option auto_time_limit}))])
+         (Timeout, [("timelimit", Real.floor (Options.default_real @{system_option auto_time_limit}))])
 
 fun quickcheck_mtd change_options quickcheck_generator =
   ("quickcheck_" ^ quickcheck_generator, invoke_quickcheck change_options)

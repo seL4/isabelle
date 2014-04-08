@@ -2,7 +2,7 @@
     Author:   David von Oheimb (based on a lecture on Lambda Prolog by Nadathur)
 *)
 
-Options.default_put_bool @{option show_main_goal} true;
+Options.default_put_bool @{system_option show_main_goal} true;
 
 structure Prolog =
 struct

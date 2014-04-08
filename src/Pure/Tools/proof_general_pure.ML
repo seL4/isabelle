@@ -17,49 +17,49 @@ struct
 val _ =
   ProofGeneral.preference_option ProofGeneral.category_display
     NONE
-    @{option show_types}
+    @{system_option show_types}
     "show-types"
     "Include types in display of Isabelle terms";
 
 val _ =
   ProofGeneral.preference_option ProofGeneral.category_display
     NONE
-    @{option show_sorts}
+    @{system_option show_sorts}
     "show-sorts"
     "Include sorts in display of Isabelle types";
 
 val _ =
   ProofGeneral.preference_option ProofGeneral.category_display
     NONE
-    @{option show_consts}
+    @{system_option show_consts}
     "show-consts"
     "Show types of consts in Isabelle goal display";
 
 val _ =
   ProofGeneral.preference_option ProofGeneral.category_display
     NONE
-    @{option names_long}
+    @{system_option names_long}
     "long-names"
     "Show fully qualified names in Isabelle terms";
 
 val _ =
   ProofGeneral.preference_option ProofGeneral.category_display
     NONE
-    @{option show_brackets}
+    @{system_option show_brackets}
     "show-brackets"
     "Show full bracketing in Isabelle terms";
 
 val _ =
   ProofGeneral.preference_option ProofGeneral.category_display
     NONE
-    @{option show_main_goal}
+    @{system_option show_main_goal}
     "show-main-goal"
     "Show main goal in proof state display";
 
 val _ =
   ProofGeneral.preference_option ProofGeneral.category_display
     NONE
-    @{option eta_contract}
+    @{system_option eta_contract}
     "eta-contract"
     "Print terms eta-contracted";
 
@@ -69,7 +69,7 @@ val _ =
 val _ =
   ProofGeneral.preference_option ProofGeneral.category_advanced_display
     NONE
-    @{option goals_limit}
+    @{system_option goals_limit}
     "goals-limit"
     "Setting for maximum number of subgoals to be printed";
 
@@ -85,7 +85,7 @@ val _ =
 val _ =
   ProofGeneral.preference_option ProofGeneral.category_advanced_display
     NONE
-    @{option show_question_marks}
+    @{system_option show_question_marks}
     "show-question-marks"
     "Show leading question mark of variable name";
 
@@ -123,7 +123,7 @@ val _ =
 val _ =
   ProofGeneral.preference_option ProofGeneral.category_tracing
     NONE
-    @{option ML_exception_trace}
+    @{system_option ML_exception_trace}
     "debugging"
     "Whether to enable exception trace for toplevel command execution";
 
@@ -140,14 +140,14 @@ val _ =
 val _ =
   ProofGeneral.preference_option ProofGeneral.category_proof
     (SOME "true")
-    @{option quick_and_dirty}
+    @{system_option quick_and_dirty}
     "quick-and-dirty"
     "Take a few short cuts";
 
 val _ =
   ProofGeneral.preference_option ProofGeneral.category_proof
     NONE
-    @{option skip_proofs}
+    @{system_option skip_proofs}
     "skip-proofs"
     "Skip over proofs";
 

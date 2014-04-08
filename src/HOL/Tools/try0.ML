@@ -25,7 +25,7 @@ datatype mode = Auto_Try | Try | Normal;
 val _ =
   ProofGeneral.preference_option ProofGeneral.category_tracing
     NONE
-    @{option auto_methods}
+    @{system_option auto_methods}
     "auto-try0"
     "Try standard proof methods";
 
@@ -193,6 +193,6 @@ val _ =
 
 fun try_try0 auto = generic_try0 (if auto then Auto_Try else Try) NONE ([], [], [], []);
 
-val _ = Try.tool_setup (try0N, (30, @{option auto_methods}, try_try0));
+val _ = Try.tool_setup (try0N, (30, @{system_option auto_methods}, try_try0));
 
 end;

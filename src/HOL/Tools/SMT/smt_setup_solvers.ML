@@ -100,7 +100,7 @@ in
 
 fun z3_non_commercial () =
   let
-    val flag1 = Options.default_string @{option z3_non_commercial}
+    val flag1 = Options.default_string @{system_option z3_non_commercial}
     val flag2 = getenv "Z3_NON_COMMERCIAL"
   in
     if accepted flag1 then Z3_Non_Commercial_Accepted

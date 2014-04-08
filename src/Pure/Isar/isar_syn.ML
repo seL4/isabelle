@@ -984,7 +984,7 @@ val _ = (*Proof General legacy, e.g. for ProofGeneral-3.7.x*)
     (opt_modes -- Scan.option Parse.nat >> (fn (modes, limit) =>
       Toplevel.keep (fn state =>
        (if Isabelle_Process.is_active () then error "Illegal TTY command" else ();
-        case limit of NONE => () | SOME n => Options.default_put_int @{option goals_limit} n;
+        case limit of NONE => () | SOME n => Options.default_put_int @{system_option goals_limit} n;
         Toplevel.quiet := false;
         Print_Mode.with_modes modes (Toplevel.print_state true) state))));
 

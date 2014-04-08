@@ -43,7 +43,7 @@ val refresh_tptpN = "refresh_tptp"
 val _ =
   ProofGeneral.preference_option ProofGeneral.category_tracing
     NONE
-    @{option auto_sledgehammer}
+    @{system_option auto_sledgehammer}
     "auto-sledgehammer"
     "Run Sledgehammer automatically"
 
@@ -72,7 +72,7 @@ val _ =
 val _ =
   ProofGeneral.preference_option ProofGeneral.category_proof
     NONE
-    @{option sledgehammer_timeout}
+    @{system_option sledgehammer_timeout}
     "Sledgehammer: Time Limit"
     "ATPs will be interrupted after this time (in seconds)"
 
@@ -229,7 +229,7 @@ fun default_raw_params mode thy =
     |> fold (AList.default (op =))
          [("provers", [(case !provers of "" => default_provers_param_value mode ctxt | s => s)]),
           ("timeout",
-           let val timeout = Options.default_int @{option sledgehammer_timeout} in
+           let val timeout = Options.default_int @{system_option sledgehammer_timeout} in
              [if timeout <= 0 then "none" else string_of_int timeout]
            end)]
   end
@@ -472,7 +472,7 @@ fun try_sledgehammer auto state =
       state
   end
 
-val _ = Try.tool_setup (sledgehammerN, (40, @{option auto_sledgehammer}, try_sledgehammer))
+val _ = Try.tool_setup (sledgehammerN, (40, @{system_option auto_sledgehammer}, try_sledgehammer))
 
 val _ =
   Query_Operation.register sledgehammerN (fn {state = st, args, output_result} =>

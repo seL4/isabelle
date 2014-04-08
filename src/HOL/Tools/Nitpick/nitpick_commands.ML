@@ -34,7 +34,7 @@ val auto_try_max_scopes = 6
 val _ =
   ProofGeneral.preference_option ProofGeneral.category_tracing
     NONE
-    @{option auto_nitpick}
+    @{system_option auto_nitpick}
     "auto-nitpick"
     "Run Nitpick automatically"
 
@@ -396,6 +396,6 @@ val _ =
 
 fun try_nitpick auto = pick_nits [] (if auto then Auto_Try else Try) 1 0
 
-val _ = Try.tool_setup (nitpickN, (50, @{option auto_nitpick}, try_nitpick))
+val _ = Try.tool_setup (nitpickN, (50, @{system_option auto_nitpick}, try_nitpick))
 
 end;

@@ -201,6 +201,10 @@ fun check_command ctxt (name, pos) =
       val _ = Context_Position.reports ctxt (map (pair pos) markup);
     in true end;
 
+fun check_system_option ctxt (name, pos) =
+  (Context_Position.report ctxt pos (Options.default_markup (name, pos)); true)
+    handle ERROR _ => false;
+
 fun check_tool ctxt (name, pos) =
   let
     fun tool dir =
@@ -265,7 +269,7 @@ val _ =
     entity_antiqs (can o Thy_Output.check_command) "" @{binding antiquotation} #>
     entity_antiqs (can o Thy_Output.check_option) "" @{binding antiquotation_option} #>
     entity_antiqs no_check "isatt" @{binding setting} #>
-    entity_antiqs no_check "isatt" @{binding system_option} #>
+    entity_antiqs check_system_option "isatt" @{binding system_option} #>
     entity_antiqs no_check "" @{binding inference} #>
     entity_antiqs no_check "isatt" @{binding executable} #>
     entity_antiqs check_tool "isatool" @{binding tool} #>
