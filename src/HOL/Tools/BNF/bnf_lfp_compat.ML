@@ -47,8 +47,8 @@ fun datatype_compat_cmd raw_fpT_names lthy =
 
     val _ = eq_set (op =) (fpT_names, fpT_names') orelse not_mutually_recursive fpT_names;
 
-    val (unsorted_As, _) = lthy |> mk_TFrees (length var_As);
-    val As = map2 (resort_tfree o Type.sort_of_atyp) var_As unsorted_As;
+    val (As_names, _) = lthy |> Variable.variant_fixes (map (fn TVar ((s, _), _) => s) var_As);
+    val As = map2 (fn s => fn TVar (_, S) => TFree (s, S)) As_names var_As;
     val fpTs as fpT1 :: _ = map (fn s => Type (s, As)) fpT_names';
 
     fun nested_Tparentss_indicessss_of parent_Tkks (T as Type (s, _)) kk =
