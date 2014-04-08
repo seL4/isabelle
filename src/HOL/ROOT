@@ -720,6 +720,7 @@ session "HOL-BNF_Examples" in BNF_Examples = HOL +
   *}
   options [document = false]
   theories
+    Compat
     Lambda_Term
     Process
     TreeFsetI
