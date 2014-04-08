@@ -2,11 +2,10 @@ theory Compat
 imports Main
 begin
 
-
 datatype_new 'a lst = Nl | Cns 'a "'a lst"
 datatype_compat lst
 
-datatype_new 'b w = W | W' "'b w * 'b list"
+datatype_new 'b w = W | W' "'b w \<times> 'b list"
 (* no support for sums of products
 datatype_compat w
 *)
@@ -70,7 +69,7 @@ datatype funky = Funky "funky tre" | Funky'
 datatype fnky = Fnky "nat tre"
 
 datatype_new tree = Tree "tree foo"
-datatype_compat tree
+(* FIXME: datatype_compat tree *)
 
 ML {* Datatype_Data.get_info @{theory} @{type_name tree} *}
 
