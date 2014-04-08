@@ -127,7 +127,7 @@ object Symbol
   {
     private sealed case class Entry(chr: Int, sym: Int)
 
-    val empty: Index = new Index(Array())
+    val empty: Index = new Index(Nil)
 
     def apply(text: CharSequence): Index =
     {
@@ -141,12 +141,15 @@ object Symbol
         sym += 1
         if (n > 1) buf += Entry(chr, sym)
       }
-      if (buf.isEmpty) empty else new Index(buf.toArray)
+      if (buf.isEmpty) empty else new Index(buf.toList)
     }
   }
 
-  final class Index private(private val index: Array[Index.Entry])
+  final class Index private(entries: List[Index.Entry])
   {
+    private val hash: Int = entries.hashCode
+    private val index: Array[Index.Entry] = entries.toArray
+
     def decode(symbol_offset: Offset): Text.Offset =
     {
       val sym = symbol_offset - 1
@@ -167,7 +170,6 @@ object Symbol
     }
     def decode(symbol_range: Range): Text.Range = symbol_range.map(decode(_))
 
-    private val hash: Int = index.toList.hashCode
     override def hashCode: Int = hash
     override def equals(that: Any): Boolean =
       that match {
