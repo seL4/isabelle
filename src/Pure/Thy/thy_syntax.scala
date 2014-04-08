@@ -271,7 +271,7 @@ object Thy_Syntax
       Exn.capture {
         val name =
           Document.Node.Name(resources.append(node_name.master_dir, Path.explode(file_name)))
-        val blob = get_blob(name).map(blob => ((blob.bytes.sha1_digest, blob.file)))
+        val blob = get_blob(name).map(blob => ((blob.bytes.sha1_digest, blob.chunk)))
         (name, blob)
       })
   }

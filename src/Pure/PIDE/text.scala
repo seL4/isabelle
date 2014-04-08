@@ -71,19 +71,25 @@ object Text
   }
 
 
-  /* chunks with symbol index */
+  /* named chunks with sparse symbol index */
 
-  abstract class Chunk
+  object Chunk
   {
-    def range: Range
-    def symbol_index: Symbol.Index
+    sealed abstract class Name
+    case object Default extends Name
+    case class Id(id: Document_ID.Generic) extends Name
+    case class File(name: String) extends Name
 
-    private lazy val hash: Int = (range, symbol_index).hashCode
-    override def hashCode: Int = hash
+    def apply(text: CharSequence): Chunk =
+      new Chunk(Range(0, text.length), Symbol.Index(text))
+  }
+
+  final class Chunk private(val range: Range, private val symbol_index: Symbol.Index)
+  {
+    override def hashCode: Int = (range, symbol_index).hashCode
     override def equals(that: Any): Boolean =
       that match {
         case other: Chunk =>
-          hash == other.hash &&
           range == other.range &&
           symbol_index == other.symbol_index
         case _ => false
@@ -99,20 +105,6 @@ object Text
           case _ => None
         }
      in(symbol_range) orElse in(symbol_range - 1)
-    }
-  }
-
-  object Chunk
-  {
-    sealed abstract class Name
-    case object Default extends Name
-    case class Id(id: Document_ID.Generic) extends Name
-    case class File_Name(file_name: String) extends Name
-
-    class File(text: CharSequence) extends Chunk
-    {
-      val range = Range(0, text.length)
-      val symbol_index = Symbol.Index(text)
     }
   }
 

@@ -45,7 +45,7 @@ object Document
 
   /* document blobs: auxiliary files */
 
-  sealed case class Blob(bytes: Bytes, file: Text.Chunk.File, changed: Boolean)
+  sealed case class Blob(bytes: Bytes, chunk: Text.Chunk, changed: Boolean)
   {
     def unchanged: Blob = copy(changed = false)
   }
@@ -774,7 +774,7 @@ object Document
           val former_range = revert(range)
           val (chunk_name, command_iterator) =
             load_commands match {
-              case command :: _ => (Text.Chunk.File_Name(node_name.node), Iterator((command, 0)))
+              case command :: _ => (Text.Chunk.File(node_name.node), Iterator((command, 0)))
               case _ => (Text.Chunk.Default, node.command_iterator(former_range))
             }
           val markup_index = Command.Markup_Index(status, chunk_name)

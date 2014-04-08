@@ -15,7 +15,7 @@ import scala.collection.immutable.SortedMap
 object Command
 {
   type Edit = (Option[Command], Option[Command])
-  type Blob = Exn.Result[(Document.Node.Name, Option[(SHA1.Digest, Text.Chunk.File)])]
+  type Blob = Exn.Result[(Document.Node.Name, Option[(SHA1.Digest, Text.Chunk)])]
 
 
 
@@ -355,24 +355,20 @@ final class Command private(
 
   /* source chunks */
 
+  val chunk: Text.Chunk = Text.Chunk(source)
+
+  val chunks: Map[Text.Chunk.Name, Text.Chunk] =
+    ((Text.Chunk.Default -> chunk) ::
+      (for (Exn.Res((name, Some((_, file)))) <- blobs)
+        yield (Text.Chunk.File(name.node) -> file))).toMap
+
   def length: Int = source.length
-  val range: Text.Range = Text.Range(0, length)
+  def range: Text.Range = chunk.range
 
   val proper_range: Text.Range =
     Text.Range(0, (length /: span.reverse.iterator.takeWhile(_.is_improper))(_ - _.source.length))
 
   def source(range: Text.Range): String = source.substring(range.start, range.stop)
-
-  val chunk: Text.Chunk =
-    new Text.Chunk {
-      def range: Text.Range = Command.this.range
-      lazy val symbol_index = Symbol.Index(source)
-    }
-
-  val chunks: Map[Text.Chunk.Name, Text.Chunk] =
-    ((Text.Chunk.Default -> chunk) ::
-      (for (Exn.Res((name, Some((_, file)))) <- blobs)
-        yield (Text.Chunk.File_Name(name.node) -> file))).toMap
 
 
   /* accumulated results */

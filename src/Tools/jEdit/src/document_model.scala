@@ -138,7 +138,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
 
   /* blob */
 
-  private var _blob: Option[(Bytes, Text.Chunk.File)] = None  // owned by Swing thread
+  private var _blob: Option[(Bytes, Text.Chunk)] = None  // owned by Swing thread
 
   private def reset_blob(): Unit = Swing_Thread.require { _blob = None }
 
@@ -146,17 +146,17 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
     Swing_Thread.require {
       if (is_theory) None
       else {
-        val (bytes, file) =
+        val (bytes, chunk) =
           _blob match {
             case Some(x) => x
             case None =>
               val bytes = PIDE.resources.file_content(buffer)
-              val file = new Text.Chunk.File(buffer.getSegment(0, buffer.getLength))
-              _blob = Some((bytes, file))
-              (bytes, file)
+              val chunk = Text.Chunk(buffer.getSegment(0, buffer.getLength))
+              _blob = Some((bytes, chunk))
+              (bytes, chunk)
           }
         val changed = pending_edits.is_pending()
-        Some(Document.Blob(bytes, file, changed))
+        Some(Document.Blob(bytes, chunk, changed))
       }
     }
 

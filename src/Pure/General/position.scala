@@ -88,7 +88,7 @@ object Position
         case (Id(id), Range(range)) =>
           val chunk_name =
             pos match {
-              case File(name) => Text.Chunk.File_Name(name)
+              case File(name) => Text.Chunk.File(name)
               case _ => Text.Chunk.Default
             }
           Some((id, chunk_name, range))
