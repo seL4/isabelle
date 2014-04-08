@@ -109,7 +109,7 @@ session Implementation (doc) in "Implementation" = "HOL-Proofs" +
     "document/root.tex"
     "document/style.sty"
 
-session "Isar-Ref" (doc) in "Isar-Ref" = HOL +
+session Isar_Ref (doc) in "Isar_Ref" = HOL +
   options [document_variants = "isar-ref", quick_and_dirty, thy_output_source]
   theories
     Preface
@@ -148,7 +148,7 @@ session JEdit (doc) in "JEdit" = HOL +
   theories
     JEdit
   files
-    "../Isar-Ref/document/style.sty"
+    "../Isar_Ref/document/style.sty"
     "../extra.sty"
     "../iman.sty"
     "../isar.sty"
@@ -208,7 +208,7 @@ session Logics (doc) in "Logics" = Pure +
     "document/root.tex"
     "document/syntax.tex"
 
-session "Logics-ZF" (doc) in "Logics-ZF" = ZF +
+session Logics_ZF (doc) in "Logics_ZF" = ZF +
   options [document_variants = "logics-ZF", print_mode = "brackets",
     thy_output_source]
   theories
@@ -247,7 +247,7 @@ session Nitpick (doc) in "Nitpick" = Pure +
     "document/build"
     "document/root.tex"
 
-session "Prog-Prove" (doc) in "Prog-Prove" = HOL +
+session Prog_Prove (doc) in "Prog_Prove" = HOL +
   options [document_variants = "prog-prove", show_question_marks = false]
   theories
     Basics
@@ -290,7 +290,7 @@ session System (doc) in "System" = Pure +
     Misc
   files
     "../prepare_document"
-    "../Isar-Ref/document/style.sty"
+    "../Isar_Ref/document/style.sty"
     "../pdfsetup.sty"
     "../iman.sty"
     "../extra.sty"
