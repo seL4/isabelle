@@ -120,7 +120,6 @@ class JEdit_Resources(loaded_theories: Set[String] = Set.empty, base_syntax: Out
   override def commit(change: Session.Change)
   {
     if (change.syntax_changed) Swing_Thread.later { jEdit.propertiesChanged() }
-    if (change.deps_changed) PIDE.deps_changed()
   }
 }
 
