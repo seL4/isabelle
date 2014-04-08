@@ -13,6 +13,7 @@ sig
   val unknownT: string
   type T
   val empty: T
+  val position: T -> string -> Position.T
   val typ: T -> string -> string
   val bool: T -> string -> bool
   val int: T -> string -> int
@@ -22,10 +23,11 @@ sig
   val put_int: string -> int -> T -> T
   val put_real: string -> real -> T -> T
   val put_string: string -> string -> T -> T
-  val declare: {name: string, typ: string, value: string} -> T -> T
+  val declare: {pos: Position.T, name: string, typ: string, value: string} -> T -> T
   val update: string -> string -> T -> T
   val decode: XML.body -> T
   val default: unit -> T
+  val default_position: string -> Position.T
   val default_typ: string -> string
   val default_bool: string -> bool
   val default_int: string -> int
@@ -53,7 +55,7 @@ val realT = "real";
 val stringT = "string";
 val unknownT = "unknown";
 
-datatype T = Options of {typ: string, value: string} Symtab.table;
+datatype T = Options of {pos: Position.T, typ: string, value: string} Symtab.table;
 
 val empty = Options Symtab.empty;
 
@@ -73,8 +75,9 @@ fun check_type options name typ =
   end;
 
 
-(* typ *)
+(* declaration *)
 
+fun position options name = #pos (check_name options name);
 fun typ options name = #typ (check_name options name);
 
 
@@ -82,7 +85,7 @@ fun typ options name = #typ (check_name options name);
 
 fun put T print name x (options as Options tab) =
   let val opt = check_type options name T
-  in Options (Symtab.update (name, {typ = #typ opt, value = print x}) tab) end;
+  in Options (Symtab.update (name, {pos = #pos opt, typ = #typ opt, value = print x}) tab) end;
 
 fun get T parse options name =
   let val opt = check_type options name T in
@@ -118,29 +121,39 @@ fun check_value options name =
     else ()
   end;
 
-fun declare {name, typ, value} (Options tab) =
+fun declare {pos, name, typ, value} (Options tab) =
   let
-    val options' = Options (Symtab.update_new (name, {typ = typ, value = value}) tab)
-      handle Symtab.DUP _ => error ("Duplicate declaration of system option " ^ quote name);
+    val options' =
+      (case Symtab.lookup tab name of
+        SOME other =>
+          error ("Duplicate declaration of system option " ^ quote name ^ Position.here pos ^
+            Position.here (#pos other))
+      | NONE => Options (Symtab.update (name, {pos = pos, typ = typ, value = value}) tab));
     val _ =
       typ = boolT orelse typ = intT orelse typ = realT orelse typ = stringT orelse
-        error ("Unknown type for system option " ^ quote name ^ " : " ^ quote typ);
+        error ("Unknown type for system option " ^ quote name ^ " : " ^ quote typ ^
+          Position.here pos);
     val _ = check_value options' name;
   in options' end;
 
 fun update name value (options as Options tab) =
   let
     val opt = check_name options name;
-    val options' = Options (Symtab.update (name, {typ = #typ opt, value = value}) tab);
+    val options' =
+      Options (Symtab.update (name, {pos = #pos opt, typ = #typ opt, value = value}) tab);
     val _ = check_value options' name;
   in options' end;
 
 
 (* decode *)
 
-fun decode body =
-  fold (declare o (fn (name, typ, value) => {name = name, typ = typ, value = value}))
-    (let open XML.Decode in list (triple string string string) end body) empty;
+fun decode_opt body =
+  let open XML.Decode
+  in list (pair properties (pair string (pair string string))) end body
+  |> map (fn (props, (name, (typ, value))) =>
+      {pos = Position.of_properties props, name = name, typ = typ, value = value});
+
+fun decode body = fold declare (decode_opt body) empty;
 
 
 
@@ -160,6 +173,7 @@ fun default () =
     SOME options => options
   | NONE => err_no_default ());
 
+fun default_position name = position (default ()) name;
 fun default_typ name = typ (default ()) name;
 fun default_bool name = bool (default ()) name;
 fun default_int name = int (default ()) name;
