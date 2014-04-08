@@ -302,7 +302,7 @@ object Protocol
 
   def message_positions(
     valid_id: Document_ID.Generic => Boolean,
-    chunk: Command.Chunk,
+    chunk: Text.Chunk,
     message: XML.Elem): Set[Text.Range] =
   {
     def elem_positions(props: Properties.T, set: Set[Text.Range]): Set[Text.Range] =

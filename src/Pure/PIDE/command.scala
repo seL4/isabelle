@@ -15,7 +15,7 @@ import scala.collection.immutable.SortedMap
 object Command
 {
   type Edit = (Option[Command], Option[Command])
-  type Blob = Exn.Result[(Document.Node.Name, Option[(SHA1.Digest, Chunk.File)])]
+  type Blob = Exn.Result[(Document.Node.Name, Option[(SHA1.Digest, Text.Chunk.File)])]
 
 
 
@@ -56,63 +56,14 @@ object Command
   }
 
 
-  /* source chunks */
-
-  abstract class Chunk
-  {
-    def name: Chunk.Name
-    def range: Text.Range
-    def symbol_index: Symbol.Index
-
-    private lazy val hash: Int = (name, range, symbol_index).hashCode
-    override def hashCode: Int = hash
-    override def equals(that: Any): Boolean =
-      that match {
-        case other: Chunk =>
-          hash == other.hash &&
-          name == other.name &&
-          range == other.range &&
-          symbol_index == other.symbol_index
-        case _ => false
-      }
-    override def toString: String = "Command.Chunk(" + name + ")"
-
-    def decode(symbol_offset: Symbol.Offset): Text.Offset = symbol_index.decode(symbol_offset)
-    def decode(symbol_range: Symbol.Range): Text.Range = symbol_index.decode(symbol_range)
-    def incorporate(symbol_range: Symbol.Range): Option[Text.Range] =
-    {
-      def in(r: Symbol.Range): Option[Text.Range] =
-        range.try_restrict(decode(r)) match {
-          case Some(r1) if !r1.is_singularity => Some(r1)
-          case _ => None
-        }
-     in(symbol_range) orElse in(symbol_range - 1)
-    }
-  }
-
-  object Chunk
-  {
-    sealed abstract class Name
-    case object Self extends Name
-    case class File_Name(file_name: String) extends Name
-
-    class File(file_name: String, text: CharSequence) extends Chunk
-    {
-      val name = Chunk.File_Name(file_name)
-      val range = Text.Range(0, text.length)
-      val symbol_index = Symbol.Index(text)
-    }
-  }
-
-
   /* markup */
 
   object Markup_Index
   {
-    val markup: Markup_Index = Markup_Index(false, Chunk.Self)
+    val markup: Markup_Index = Markup_Index(false, Text.Chunk.Default)
   }
 
-  sealed case class Markup_Index(status: Boolean, chunk_name: Chunk.Name)
+  sealed case class Markup_Index(status: Boolean, chunk_name: Text.Chunk.Name)
 
   object Markups
   {
@@ -183,7 +134,7 @@ object Command
     private def add_status(st: Markup): State =
       copy(status = st :: status)
 
-    private def add_markup(status: Boolean, chunk_name: Command.Chunk.Name, m: Text.Markup): State =
+    private def add_markup(status: Boolean, chunk_name: Text.Chunk.Name, m: Text.Markup): State =
     {
       val markups1 =
         if (status || Protocol.liberal_status_elements(m.info.name))
@@ -200,7 +151,7 @@ object Command
               case elem @ XML.Elem(markup, Nil) =>
                 state.
                   add_status(markup).
-                  add_markup(true, Command.Chunk.Self, Text.Info(command.proper_range, elem))
+                  add_markup(true, Text.Chunk.Default, Text.Info(command.proper_range, elem))
               case _ =>
                 System.err.println("Ignored status message: " + msg)
                 state
@@ -232,7 +183,7 @@ object Command
                   val range = command.proper_range
                   val props = Position.purge(atts)
                   val info: Text.Markup = Text.Info(range, XML.Elem(Markup(name, props), args))
-                  state.add_markup(false, Command.Chunk.Self, info)
+                  state.add_markup(false, Text.Chunk.Default, info)
 
                 case _ => /* FIXME bad(); */ state
               }
@@ -389,17 +340,17 @@ final class Command private(
 
   def source(range: Text.Range): String = source.substring(range.start, range.stop)
 
-  val chunk: Command.Chunk =
-    new Command.Chunk {
-      def name: Command.Chunk.Name = Command.Chunk.Self
+  val chunk: Text.Chunk =
+    new Text.Chunk {
+      def name: Text.Chunk.Name = Text.Chunk.Default
       def range: Text.Range = Command.this.range
       lazy val symbol_index = Symbol.Index(source)
     }
 
-  val chunks: Map[Command.Chunk.Name, Command.Chunk] =
-    ((Command.Chunk.Self -> chunk) ::
+  val chunks: Map[Text.Chunk.Name, Text.Chunk] =
+    ((Text.Chunk.Default -> chunk) ::
       (for (Exn.Res((name, Some((_, file)))) <- blobs)
-        yield (Command.Chunk.File_Name(name.node) -> file))).toMap
+        yield (Text.Chunk.File_Name(name.node) -> file))).toMap
 
 
   /* accumulated results */
