@@ -10,8 +10,9 @@ package isabelle
 
 import java.util.regex.Pattern
 import java.io.{File => JFile, BufferedReader, InputStreamReader,
-  BufferedWriter, OutputStreamWriter}
-import java.nio.file.Files
+  BufferedWriter, OutputStreamWriter, IOException}
+import java.nio.file.{Path => JPath, Files, SimpleFileVisitor, FileVisitResult}
+import java.nio.file.attribute.BasicFileAttributes
 import java.net.{URL, URLDecoder, MalformedURLException}
 
 import scala.util.matching.Regex
@@ -104,7 +105,7 @@ object Isabelle_System
             shell_prefix ::: List(system_home + "/bin/isabelle", "getenv", "-d", dump.toString)
           val (output, rc) = process_output(raw_execute(null, env, true, cmdline: _*))
           if (rc != 0) error(output)
-  
+
           val entries =
             (for (entry <- File.read(dump) split "\0" if entry != "") yield {
               val i = entry.indexOf('=')
@@ -394,6 +395,47 @@ object Isabelle_System
   }
 
 
+  /* tmp dirs */
+
+  def rm_tree(root: JFile)
+  {
+    root.delete
+    if (root.isDirectory) {
+      Files.walkFileTree(root.toPath,
+        new SimpleFileVisitor[JPath] {
+          override def visitFile(file: JPath, attrs: BasicFileAttributes): FileVisitResult =
+          {
+            Files.delete(file)
+            FileVisitResult.CONTINUE
+          }
+
+          override def postVisitDirectory(dir: JPath, e: IOException): FileVisitResult =
+          {
+            if (e == null) {
+              Files.delete(dir)
+              FileVisitResult.CONTINUE
+            }
+            else throw e
+          }
+        }
+      )
+    }
+  }
+
+  def tmp_dir(name: String): JFile =
+  {
+    val dir = Files.createTempDirectory(isabelle_tmp_prefix().toPath, name).toFile
+    dir.deleteOnExit
+    dir
+  }
+
+  def with_tmp_dir[A](name: String)(body: JFile => A): A =
+  {
+    val dir = tmp_dir(name)
+    try { body(dir) } finally { rm_tree(dir) }
+  }
+
+
   /* bash */
 
   final case class Bash_Result(out_lines: List[String], err_lines: List[String], rc: Int)
@@ -442,35 +484,6 @@ object Isabelle_System
   }
 
   def bash(script: String): Bash_Result = bash_env(null, null, script)
-
-
-  /* tmp dirs */
-
-  private def system_command(cmd: String)
-  {
-    val res = bash(cmd)
-    if (res.rc != 0)
-      error(cat_lines(("System command failed: " + cmd) :: res.out_lines ::: res.err_lines))
-  }
-
-  def rm_tree(dir: JFile)
-  {
-    dir.delete
-    if (dir.isDirectory) system_command("rm -r -f " + shell_path(dir))
-  }
-
-  def tmp_dir(name: String): JFile =
-  {
-    val dir = Files.createTempDirectory(isabelle_tmp_prefix().toPath, name).toFile
-    dir.deleteOnExit
-    dir
-  }
-
-  def with_tmp_dir[A](name: String)(body: JFile => A): A =
-  {
-    val dir = tmp_dir(name)
-    try { body(dir) } finally { rm_tree(dir) }
-  }
 
 
   /* system tools */
