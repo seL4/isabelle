@@ -61,9 +61,21 @@ object Command
   abstract class Chunk
   {
     def name: Chunk.Name
-    def length: Int
     def range: Text.Range
     def symbol_index: Symbol.Index
+
+    private lazy val hash: Int = (name, range, symbol_index).hashCode
+    override def hashCode: Int = hash
+    override def equals(that: Any): Boolean =
+      that match {
+        case other: Chunk =>
+          hash == other.hash &&
+          name == other.name &&
+          range == other.range &&
+          symbol_index == other.symbol_index
+        case _ => false
+      }
+    override def toString: String = "Command.Chunk(" + name + ")"
 
     def decode(symbol_offset: Symbol.Offset): Text.Offset = symbol_index.decode(symbol_offset)
     def decode(symbol_range: Symbol.Range): Text.Range = symbol_index.decode(symbol_range)
@@ -84,28 +96,11 @@ object Command
     case object Self extends Name
     case class File_Name(file_name: String) extends Name
 
-    class File(
-      file_name: String,
-      text: CharSequence  // non-persistent!
-    ) extends Chunk
+    class File(file_name: String, text: CharSequence) extends Chunk
     {
       val name = Chunk.File_Name(file_name)
-      val length = text.length
-      val range = Text.Range(0, length)
+      val range = Text.Range(0, text.length)
       val symbol_index = Symbol.Index(text)
-
-      private val hash: Int = (name, length, symbol_index).hashCode
-      override def hashCode: Int = hash
-      override def equals(that: Any): Boolean =
-        that match {
-          case other: File =>
-            hash == other.hash &&
-            name == other.name &&
-            length == other.length &&
-            symbol_index == other.symbol_index
-          case _ => false
-        }
-      override def toString: String = "Command.Chunk.File(" + file_name + ")"
     }
   }
 
@@ -397,7 +392,6 @@ final class Command private(
   val chunk: Command.Chunk =
     new Command.Chunk {
       def name: Command.Chunk.Name = Command.Chunk.Self
-      def length: Int = Command.this.length
       def range: Text.Range = Command.this.range
       lazy val symbol_index = Symbol.Index(source)
     }
