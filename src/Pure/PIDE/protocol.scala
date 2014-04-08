@@ -95,9 +95,9 @@ object Protocol
 
     def is_unprocessed: Boolean = accepted && !failed && (!touched || (forks != 0 && runs == 0))
     def is_running: Boolean = runs != 0
-    def is_finished: Boolean = !failed && touched && forks == 0 && runs == 0
-    def is_warned: Boolean = is_finished && warned
+    def is_warned: Boolean = warned
     def is_failed: Boolean = failed
+    def is_finished: Boolean = !failed && touched && forks == 0 && runs == 0
   }
 
   val proper_status_elements =
@@ -127,9 +127,9 @@ object Protocol
   /* node status */
 
   sealed case class Node_Status(
-    unprocessed: Int, running: Int, finished: Int, warned: Int, failed: Int)
+    unprocessed: Int, running: Int, warned: Int, failed: Int, finished: Int)
   {
-    def total: Int = unprocessed + running + finished + warned + failed
+    def total: Int = unprocessed + running + warned + failed + finished
   }
 
   def node_status(
@@ -137,20 +137,20 @@ object Protocol
   {
     var unprocessed = 0
     var running = 0
-    var finished = 0
     var warned = 0
     var failed = 0
+    var finished = 0
     for (command <- node.commands.iterator) {
       val states = state.command_states(version, command)
       val status = Status.merge(states.iterator.map(_.protocol_status))
 
       if (status.is_running) running += 1
       else if (status.is_warned) warned += 1
-      else if (status.is_finished) finished += 1
       else if (status.is_failed) failed += 1
+      else if (status.is_finished) finished += 1
       else unprocessed += 1
     }
-    Node_Status(unprocessed, running, finished, warned, failed)
+    Node_Status(unprocessed, running, warned, failed, finished)
   }
 
 
