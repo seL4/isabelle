@@ -325,8 +325,12 @@ val tokenize = Source.of_string #> Symbol.source #> source #> Source.exhaust;
 val read = gen_read false;
 
 fun read_source SML {delimited, text, pos} =
-  (Position.report pos ((if SML then Markup.language_SML else Markup.language_ML) delimited);
-   gen_read SML pos text);
+  let
+    val language = if SML then Markup.language_SML else Markup.language_ML;
+    val _ =
+      if Position.is_reported_range pos then Position.report pos (language delimited)
+      else ();
+  in gen_read SML pos text end;
 
 end;
 
