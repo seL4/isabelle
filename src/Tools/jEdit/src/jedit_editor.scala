@@ -159,38 +159,23 @@ class JEdit_Editor extends Editor[View]
 
   /* hyperlinks */
 
-  override def hyperlink_command(
-    snapshot: Document.Snapshot, command: Command, offset: Symbol.Offset = 0): Option[Hyperlink] =
-  {
-    if (snapshot.is_outdated) None
-    else {
-      snapshot.state.find_command(snapshot.version, command.id) match {
-        case None => None
-        case Some((node, _)) =>
-          val file_name = command.node_name.node
-          val sources_iterator =
-            node.commands.iterator.takeWhile(_ != command).map(_.source) ++
-              (if (offset == 0) Iterator.empty
-               else Iterator.single(command.source(Text.Range(0, command.decode(offset)))))
-          val (line, column) = ((1, 1) /: sources_iterator)(Symbol.advance_line_column)
-          Some(new Hyperlink { def follow(view: View) { goto_file(view, file_name, line, column) } })
-      }
+  def hyperlink_url(name: String): Hyperlink =
+    new Hyperlink {
+      def follow(view: View) =
+        default_thread_pool.submit(() =>
+          try { Isabelle_System.open(name) }
+          catch {
+            case exn: Throwable =>
+              GUI.error_dialog(view, "System error", GUI.scrollable_text(Exn.message(exn)))
+          })
+      override def toString: String = "URL " + quote(name)
     }
-  }
-
-  def hyperlink_command_id(
-    snapshot: Document.Snapshot,
-    id: Document_ID.Generic,
-    offset: Symbol.Offset): Option[Hyperlink] =
-  {
-    snapshot.state.find_command(snapshot.version, id) match {
-      case Some((node, command)) => hyperlink_command(snapshot, command, offset)
-      case None => None
-    }
-  }
 
   def hyperlink_file(name: String, line: Int = 0, column: Int = 0): Hyperlink =
-    new Hyperlink { def follow(view: View) = goto_file(view, name, line, column) }
+    new Hyperlink {
+      def follow(view: View) = goto_file(view, name, line, column)
+      override def toString: String = "file " + quote(name)
+    }
 
   def hyperlink_source_file(source_name: String, line: Int, offset: Symbol.Offset)
     : Option[Hyperlink] =
@@ -223,14 +208,33 @@ class JEdit_Editor extends Editor[View]
     }
   }
 
-  def hyperlink_url(name: String): Hyperlink =
-    new Hyperlink {
-      def follow(view: View) =
-        default_thread_pool.submit(() =>
-          try { Isabelle_System.open(name) }
-          catch {
-            case exn: Throwable =>
-              GUI.error_dialog(view, "System error", GUI.scrollable_text(Exn.message(exn)))
-          })
+  override def hyperlink_command(
+    snapshot: Document.Snapshot, command: Command, offset: Symbol.Offset = 0): Option[Hyperlink] =
+  {
+    if (snapshot.is_outdated) None
+    else {
+      snapshot.state.find_command(snapshot.version, command.id) match {
+        case None => None
+        case Some((node, _)) =>
+          val file_name = command.node_name.node
+          val sources_iterator =
+            node.commands.iterator.takeWhile(_ != command).map(_.source) ++
+              (if (offset == 0) Iterator.empty
+               else Iterator.single(command.source(Text.Range(0, command.decode(offset)))))
+          val (line, column) = ((1, 1) /: sources_iterator)(Symbol.advance_line_column)
+          Some(hyperlink_file(file_name, line, column))
+      }
     }
+  }
+
+  def hyperlink_command_id(
+    snapshot: Document.Snapshot,
+    id: Document_ID.Generic,
+    offset: Symbol.Offset): Option[Hyperlink] =
+  {
+    snapshot.state.find_command(snapshot.version, id) match {
+      case Some((node, command)) => hyperlink_command(snapshot, command, offset)
+      case None => None
+    }
+  }
 }
