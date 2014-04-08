@@ -30,6 +30,10 @@ object Position
 
   object Line_File
   {
+    def apply(line: Int, file: String): T =
+      (if (line > 0) Line(line) else Nil) :::
+      (if (file != "") File(file) else Nil)
+
     def unapply(pos: T): Option[(Int, String)] =
       (pos, pos) match {
         case (Line(i), File(name)) => Some((i, name))

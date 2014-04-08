@@ -25,31 +25,37 @@ object Parse
       if (!filter_proper || in.atEnd || in.first.is_proper) in
       else proper(in.rest)
 
-    def token(s: String, pred: Elem => Boolean): Parser[Elem] = new Parser[Elem]
-    {
-      def apply(raw_input: Input) =
-      {
-        val in = proper(raw_input)
-        if (in.atEnd) Failure(s + " expected,\nbut end-of-input was found", in)
-        else {
-          val token = in.first
-          if (pred(token)) Success(token, proper(in.rest))
-          else
-            token.text match {
-              case (txt, "") =>
-                Failure(s + " expected,\nbut " + txt + " was found", in)
-              case (txt1, txt2) =>
-                Failure(s + " expected,\nbut " + txt1 + " was found:\n" + txt2, in)
-            }
+    def token(s: String, pred: Elem => Boolean): Parser[(Elem, Token.Pos)] =
+      new Parser[(Elem, Token.Pos)] {
+        def apply(raw_input: Input) =
+        {
+          val in = proper(raw_input)
+          if (in.atEnd) Failure(s + " expected,\nbut end-of-input was found", in)
+          else {
+            val pos =
+              in.pos match {
+                case pos: Token.Pos => pos
+                case _ => Token.Pos.none
+              }
+            val token = in.first
+            if (pred(token)) Success((token, pos), proper(in.rest))
+            else
+              token.text match {
+                case (txt, "") =>
+                  Failure(s + " expected,\nbut " + txt + " was found", in)
+                case (txt1, txt2) =>
+                  Failure(s + " expected,\nbut " + txt1 + " was found:\n" + txt2, in)
+              }
+          }
         }
       }
-    }
 
     def atom(s: String, pred: Elem => Boolean): Parser[String] =
-      token(s, pred) ^^ (_.content)
+      token(s, pred) ^^ { case (tok, _) => tok.content }
 
-    def command(name: String): Parser[String] =
-      atom("command " + quote(name), tok => tok.is_command && tok.source == name)
+    def command(name: String): Parser[Position.T] =
+      token("command " + quote(name), tok => tok.is_command && tok.source == name) ^^
+        { case (_, pos) => pos.position }
 
     def keyword(name: String): Parser[String] =
       atom("keyword " + quote(name), tok => tok.is_keyword && tok.source == name)
