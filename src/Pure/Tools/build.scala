@@ -203,16 +203,14 @@ object Build
 
   private object Parser extends Parse.Parser
   {
-    def entry(pos: Position.T): Parser[Entry] = chapter(pos) | session_entry(pos)
-
-    def chapter(pos: Position.T): Parser[Chapter] =
+    val chapter: Parser[Chapter] =
     {
       val chapter_name = atom("chapter name", _.is_name)
 
       command(CHAPTER) ~! chapter_name ^^ { case _ ~ a => Chapter(a) }
     }
 
-    def session_entry(pos: Position.T): Parser[Session_Entry] =
+    val session_entry: Parser[Session_Entry] =
     {
       val session_name = atom("session name", _.is_name)
 
@@ -234,7 +232,7 @@ object Build
               ((keyword(OPTIONS) ~! options ^^ { case _ ~ x => x }) | success(Nil)) ~
               rep1(theories) ~
               ((keyword(FILES) ~! rep1(path) ^^ { case _ ~ x => x }) | success(Nil))))) ^^
-        { case _ ~ (a ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h))) =>
+        { case pos ~ (a ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h))) =>
             Session_Entry(pos, a, b, c, d, e, f, g, h) }
     }
 
@@ -242,7 +240,7 @@ object Build
     {
       val toks = root_syntax.scan(File.read(root))
 
-      parse_all(rep(entry(root.position)), Token.reader(toks, root.implode)) match {
+      parse_all(rep(chapter | session_entry), Token.reader(toks, root.implode)) match {
         case Success(result, _) =>
           var chapter = chapter_default
           val entries = new mutable.ListBuffer[(String, Session_Entry)]

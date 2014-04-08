@@ -95,9 +95,9 @@ object Protocol
 
     def is_unprocessed: Boolean = accepted && !failed && (!touched || (forks != 0 && runs == 0))
     def is_running: Boolean = runs != 0
-    def is_finished: Boolean = !failed && touched && forks == 0 && runs == 0
-    def is_warned: Boolean = is_finished && warned
+    def is_warned: Boolean = warned
     def is_failed: Boolean = failed
+    def is_finished: Boolean = !failed && touched && forks == 0 && runs == 0
   }
 
   val proper_status_elements =
@@ -127,9 +127,9 @@ object Protocol
   /* node status */
 
   sealed case class Node_Status(
-    unprocessed: Int, running: Int, finished: Int, warned: Int, failed: Int)
+    unprocessed: Int, running: Int, warned: Int, failed: Int, finished: Int)
   {
-    def total: Int = unprocessed + running + finished + warned + failed
+    def total: Int = unprocessed + running + warned + failed + finished
   }
 
   def node_status(
@@ -137,20 +137,20 @@ object Protocol
   {
     var unprocessed = 0
     var running = 0
-    var finished = 0
     var warned = 0
     var failed = 0
+    var finished = 0
     for (command <- node.commands.iterator) {
       val states = state.command_states(version, command)
       val status = Status.merge(states.iterator.map(_.protocol_status))
 
       if (status.is_running) running += 1
       else if (status.is_warned) warned += 1
-      else if (status.is_finished) finished += 1
       else if (status.is_failed) failed += 1
+      else if (status.is_finished) finished += 1
       else unprocessed += 1
     }
-    Node_Status(unprocessed, running, finished, warned, failed)
+    Node_Status(unprocessed, running, warned, failed, finished)
   }
 
 
@@ -301,14 +301,15 @@ object Protocol
     Document.Elements(Markup.BINDING, Markup.ENTITY, Markup.REPORT, Markup.POSITION)
 
   def message_positions(
-    valid_id: Document_ID.Generic => Boolean,
-    chunk: Command.Chunk,
+    self_id: Document_ID.Generic => Boolean,
+    chunk_name: Text.Chunk.Name,
+    chunk: Text.Chunk,
     message: XML.Elem): Set[Text.Range] =
   {
     def elem_positions(props: Properties.T, set: Set[Text.Range]): Set[Text.Range] =
       props match {
-        case Position.Reported(id, file_name, symbol_range)
-        if valid_id(id) && file_name == chunk.file_name =>
+        case Position.Reported(id, name, symbol_range)
+        if self_id(id) && name == chunk_name =>
           chunk.incorporate(symbol_range) match {
             case Some(range) => set + range
             case _ => set
@@ -352,8 +353,7 @@ trait Protocol extends Prover
       val encode_blob: T[Command.Blob] =
         variant(List(
           { case Exn.Res((a, b)) =>
-              (Nil, triple(string, string, option(string))(
-                (a.node, Isabelle_System.posix_path_url(a.node), b.map(p => p._1.toString)))) },
+              (Nil, pair(string, option(string))((a.node, b.map(p => p._1.toString)))) },
           { case Exn.Exn(e) => (Nil, string(Exn.message(e))) }))
       YXML.string_of_body(list(encode_blob)(command.blobs))
     }

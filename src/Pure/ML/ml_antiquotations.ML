@@ -8,9 +8,10 @@ structure ML_Antiquotations: sig end =
 struct
 
 val _ = Theory.setup
- (ML_Antiquotation.value @{binding option} (Scan.lift (Parse.position Args.name) >> (fn (name, pos) =>
-    (Options.default_typ name handle ERROR msg => error (msg ^ Position.here pos);
-     ML_Syntax.print_string name))) #>
+ (ML_Antiquotation.value @{binding system_option}
+    (Args.context -- Scan.lift (Parse.position Args.name) >> (fn (ctxt, (name, pos)) =>
+      (Context_Position.report ctxt pos (Options.default_markup (name, pos));
+        ML_Syntax.print_string name))) #>
 
   ML_Antiquotation.value @{binding theory}
     (Args.context -- Scan.lift (Parse.position Args.name) >> (fn (ctxt, (name, pos)) =>

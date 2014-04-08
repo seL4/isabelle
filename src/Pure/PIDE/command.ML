@@ -6,7 +6,7 @@ Prover command execution: read -- eval -- print.
 
 signature COMMAND =
 sig
-  type blob = (string * string * (SHA1.digest * string list) option) Exn.result
+  type blob = (string * (SHA1.digest * string list) option) Exn.result
   val read_file: Path.T -> Position.T -> Path.T -> Token.file
   val read: (unit -> theory) -> Path.T -> blob list -> Token.T list -> Toplevel.transition
   type eval
@@ -87,7 +87,7 @@ end;
 (* read *)
 
 type blob =
-  (string * string * (SHA1.digest * string list) option) Exn.result;  (*file, path, digest, lines*)
+  (string * (SHA1.digest * string list) option) Exn.result;  (*file node name, digest, lines*)
 
 fun read_file master_dir pos src_path =
   let
@@ -115,16 +115,16 @@ fun resolve_files master_dir blobs toks =
     [span] => span
       |> Thy_Syntax.resolve_files (fn cmd => fn (path, pos) =>
         let
-          fun make_file src_path (Exn.Res (_, _, NONE)) =
+          fun make_file src_path (Exn.Res (_, NONE)) =
                 Exn.interruptible_capture (fn () => read_file master_dir pos src_path) ()
-            | make_file src_path (Exn.Res (file_node, file_path, SOME (digest, lines))) =
-               (Position.reports [(pos, Markup.language_path), (pos, Markup.path file_path)];
+            | make_file src_path (Exn.Res (file_node, SOME (digest, lines))) =
+               (Position.reports [(pos, Markup.language_path), (pos, Markup.path file_node)];
                 Exn.Res (blob_file src_path lines digest file_node))
             | make_file _ (Exn.Exn e) = Exn.Exn e;
           val src_paths = Keyword.command_files cmd path;
         in
           if null blobs then
-            map2 make_file src_paths (map (K (Exn.Res ("", "", NONE))) src_paths)
+            map2 make_file src_paths (map (K (Exn.Res ("", NONE))) src_paths)
           else if length src_paths = length blobs then
             map2 make_file src_paths blobs
           else error ("Misalignment of inlined files" ^ Position.here pos)

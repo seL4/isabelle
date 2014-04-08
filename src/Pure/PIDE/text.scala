@@ -71,6 +71,44 @@ object Text
   }
 
 
+  /* named chunks with sparse symbol index */
+
+  object Chunk
+  {
+    sealed abstract class Name
+    case object Default extends Name
+    case class Id(id: Document_ID.Generic) extends Name
+    case class File(name: String) extends Name
+
+    def apply(text: CharSequence): Chunk =
+      new Chunk(Range(0, text.length), Symbol.Index(text))
+  }
+
+  final class Chunk private(val range: Range, private val symbol_index: Symbol.Index)
+  {
+    override def hashCode: Int = (range, symbol_index).hashCode
+    override def equals(that: Any): Boolean =
+      that match {
+        case other: Chunk =>
+          range == other.range &&
+          symbol_index == other.symbol_index
+        case _ => false
+      }
+
+    def decode(symbol_offset: Symbol.Offset): Offset = symbol_index.decode(symbol_offset)
+    def decode(symbol_range: Symbol.Range): Range = symbol_index.decode(symbol_range)
+    def incorporate(symbol_range: Symbol.Range): Option[Range] =
+    {
+      def in(r: Symbol.Range): Option[Range] =
+        range.try_restrict(decode(r)) match {
+          case Some(r1) if !r1.is_singularity => Some(r1)
+          case _ => None
+        }
+     in(symbol_range) orElse in(symbol_range - 1)
+    }
+  }
+
+
   /* perspective */
 
   object Perspective

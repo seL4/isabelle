@@ -30,6 +30,10 @@ object Position
 
   object Line_File
   {
+    def apply(line: Int, file: String): T =
+      (if (line > 0) Line(line) else Nil) :::
+      (if (file != "") File(file) else Nil)
+
     def unapply(pos: T): Option[(Int, String)] =
       (pos, pos) match {
         case (Line(i), File(name)) => Some((i, name))
@@ -79,10 +83,15 @@ object Position
 
   object Reported
   {
-    def unapply(pos: T): Option[(Long, String, Symbol.Range)] =
+    def unapply(pos: T): Option[(Long, Text.Chunk.Name, Symbol.Range)] =
       (pos, pos) match {
         case (Id(id), Range(range)) =>
-          Some((id, File.unapply(pos).getOrElse(""), range))
+          val chunk_name =
+            pos match {
+              case File(name) => Text.Chunk.File(name)
+              case _ => Text.Chunk.Default
+            }
+          Some((id, chunk_name, range))
         case _ => None
       }
   }

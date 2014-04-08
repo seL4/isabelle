@@ -63,6 +63,7 @@ sig
   val fbreakN: string val fbreak: T
   val itemN: string val item: T
   val hiddenN: string val hidden: T
+  val system_optionN: string
   val theoryN: string
   val classN: string
   val type_nameN: string
@@ -358,7 +359,9 @@ val (itemN, item) = markup_elem "item";
 val (hiddenN, hidden) = markup_elem "hidden";
 
 
-(* logical entities *)
+(* formal entities *)
+
+val system_optionN = "system_option";
 
 val theoryN = "theory";
 val classN = "class";

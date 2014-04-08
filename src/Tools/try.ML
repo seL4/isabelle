@@ -32,7 +32,7 @@ val tryN = "try"
 val _ =
   ProofGeneral.preference_option ProofGeneral.category_tracing
     (SOME "4.0")
-    @{option auto_time_limit}
+    @{system_option auto_time_limit}
     "auto-try-time-limit"
     "Time limit for automatically tried tools (in seconds)"
 
@@ -103,7 +103,7 @@ fun auto_try state =
 
 val _ = Context.>> (Specification.add_theorem_hook (fn interact => fn state =>
   let
-    val auto_time_limit = Options.default_real @{option auto_time_limit}
+    val auto_time_limit = Options.default_real @{system_option auto_time_limit}
   in
     if interact andalso not (!Toplevel.quiet) andalso auto_time_limit > 0.0 then
       TimeLimit.timeLimit (seconds auto_time_limit) auto_try state
@@ -120,7 +120,7 @@ fun print_function ((name, (weight, auto, tool)): tool) =
     (fn {command_name, ...} =>
       if Keyword.is_theory_goal command_name andalso Options.default_bool auto then
         SOME
-         {delay = SOME (seconds (Options.default_real @{option auto_time_start})),
+         {delay = SOME (seconds (Options.default_real @{system_option auto_time_start})),
           pri = ~ weight,
           persistent = true,
           strict = true,
@@ -128,7 +128,7 @@ fun print_function ((name, (weight, auto, tool)): tool) =
             let
               val state = Toplevel.proof_of st
                 |> Proof.map_context (Context_Position.set_visible false)
-              val auto_time_limit = Options.default_real @{option auto_time_limit}
+              val auto_time_limit = Options.default_real @{system_option auto_time_limit}
             in
               if auto_time_limit > 0.0 then
                 (case TimeLimit.timeLimit (seconds auto_time_limit) (fn () => tool true state) () of

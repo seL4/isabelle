@@ -206,7 +206,7 @@ fun filter_solves ctxt goal =
     val goal' = Thm.transfer thy' goal;
 
     fun limited_etac thm i =
-      Seq.take (Options.default_int @{option find_theorems_tac_limit}) o etac thm i;
+      Seq.take (Options.default_int @{system_option find_theorems_tac_limit}) o etac thm i;
     fun try_thm thm =
       if Thm.no_prems thm then rtac thm 1 goal'
       else
@@ -405,7 +405,7 @@ fun filter_theorems ctxt theorems query =
           else raw_matches;
 
         val len = length matches;
-        val lim = the_default (Options.default_int @{option find_theorems_limit}) opt_limit;
+        val lim = the_default (Options.default_int @{system_option find_theorems_limit}) opt_limit;
       in (SOME len, drop (Int.max (len - lim, 0)) matches) end;
 
     val find =

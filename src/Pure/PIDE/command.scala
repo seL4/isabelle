@@ -15,7 +15,7 @@ import scala.collection.immutable.SortedMap
 object Command
 {
   type Edit = (Option[Command], Option[Command])
-  type Blob = Exn.Result[(Document.Node.Name, Option[(SHA1.Digest, File)])]
+  type Blob = Exn.Result[(Document.Node.Name, Option[(SHA1.Digest, Text.Chunk)])]
 
 
 
@@ -60,10 +60,10 @@ object Command
 
   object Markup_Index
   {
-    val markup: Markup_Index = Markup_Index(false, "")
+    val markup: Markup_Index = Markup_Index(false, Text.Chunk.Default)
   }
 
-  sealed case class Markup_Index(status: Boolean, file_name: String)
+  sealed case class Markup_Index(status: Boolean, chunk_name: Text.Chunk.Name)
 
   object Markups
   {
@@ -80,6 +80,17 @@ object Command
 
     def add(index: Markup_Index, markup: Text.Markup): Markups =
       new Markups(rep + (index -> (this(index) + markup)))
+
+    def redirection_iterator: Iterator[Document_ID.Generic] =
+      for (Markup_Index(_, Text.Chunk.Id(id)) <- rep.keysIterator)
+        yield id
+
+    def redirect(other_id: Document_ID.Generic): Markups =
+      new Markups(
+        (for {
+          (Markup_Index(status, Text.Chunk.Id(id)), markup) <- rep.iterator
+          if other_id == id
+        } yield (Markup_Index(status, Text.Chunk.Default), markup)).toMap)
 
     override def hashCode: Int = rep.hashCode
     override def equals(that: Any): Boolean =
@@ -124,6 +135,9 @@ object Command
 
     def markup(index: Markup_Index): Markup_Tree = markups(index)
 
+    def redirect(other_command: Command): State =
+      new State(other_command, Nil, Results.empty, markups.redirect(other_command.id))
+
 
     def eq_content(other: State): Boolean =
       command.source == other.command.source &&
@@ -134,16 +148,19 @@ object Command
     private def add_status(st: Markup): State =
       copy(status = st :: status)
 
-    private def add_markup(status: Boolean, file_name: String, m: Text.Markup): State =
+    private def add_markup(status: Boolean, chunk_name: Text.Chunk.Name, m: Text.Markup): State =
     {
       val markups1 =
         if (status || Protocol.liberal_status_elements(m.info.name))
-          markups.add(Markup_Index(true, file_name), m)
+          markups.add(Markup_Index(true, chunk_name), m)
         else markups
-      copy(markups = markups1.add(Markup_Index(false, file_name), m))
+      copy(markups = markups1.add(Markup_Index(false, chunk_name), m))
     }
 
-    def + (valid_id: Document_ID.Generic => Boolean, message: XML.Elem): State =
+    def accumulate(
+        self_id: Document_ID.Generic => Boolean,
+        other_id: Document_ID.Generic => Option[(Text.Chunk.Id, Text.Chunk)],
+        message: XML.Elem): State =
       message match {
         case XML.Elem(Markup(Markup.STATUS, _), msgs) =>
           (this /: msgs)((state, msg) =>
@@ -151,7 +168,7 @@ object Command
               case elem @ XML.Elem(markup, Nil) =>
                 state.
                   add_status(markup).
-                  add_markup(true, "", Text.Info(command.proper_range, elem))
+                  add_markup(true, Text.Chunk.Default, Text.Info(command.proper_range, elem))
               case _ =>
                 System.err.println("Ignored status message: " + msg)
                 state
@@ -163,19 +180,31 @@ object Command
               def bad(): Unit = System.err.println("Ignored report message: " + msg)
 
               msg match {
-                case XML.Elem(Markup(name,
-                  atts @ Position.Reported(id, file_name, symbol_range)), args)
-                if valid_id(id) =>
-                  command.chunks.get(file_name) match {
-                    case Some(chunk) =>
-                      chunk.incorporate(symbol_range) match {
+                case XML.Elem(
+                    Markup(name, atts @ Position.Reported(id, chunk_name, symbol_range)), args) =>
+
+                  val target =
+                    if (self_id(id) && command.chunks.isDefinedAt(chunk_name))
+                      Some((chunk_name, command.chunks(chunk_name)))
+                    else if (chunk_name == Text.Chunk.Default) other_id(id)
+                    else None
+
+                  target match {
+                    case Some((target_name, target_chunk)) =>
+                      target_chunk.incorporate(symbol_range) match {
                         case Some(range) =>
                           val props = Position.purge(atts)
                           val info = Text.Info(range, XML.Elem(Markup(name, props), args))
-                          state.add_markup(false, file_name, info)
+                          state.add_markup(false, target_name, info)
                         case None => bad(); state
                       }
-                    case None => bad(); state
+                    case None =>
+                      chunk_name match {
+                        // FIXME workaround for static positions stemming from batch build
+                        case Text.Chunk.File(name) if name.endsWith(".thy") =>
+                        case _ => bad()
+                      }
+                      state
                   }
 
                 case XML.Elem(Markup(name, atts), args)
@@ -183,9 +212,9 @@ object Command
                   val range = command.proper_range
                   val props = Position.purge(atts)
                   val info: Text.Markup = Text.Info(range, XML.Elem(Markup(name, props), args))
-                  state.add_markup(false, "", info)
+                  state.add_markup(false, Text.Chunk.Default, info)
 
-                case _ => /* FIXME bad(); */ state
+                case _ => bad(); state
               }
             })
         case XML.Elem(Markup(name, props), body) =>
@@ -197,9 +226,9 @@ object Command
               var st = copy(results = results + (i -> message1))
               if (Protocol.is_inlined(message)) {
                 for {
-                  (file_name, chunk) <- command.chunks
-                  range <- Protocol.message_positions(valid_id, chunk, message)
-                } st = st.add_markup(false, file_name, Text.Info(range, message2))
+                  (chunk_name, chunk) <- command.chunks.iterator
+                  range <- Protocol.message_positions(self_id, chunk_name, chunk, message)
+                } st = st.add_markup(false, chunk_name, Text.Info(range, message2))
               }
               st
 
@@ -213,49 +242,6 @@ object Command
 
 
   /** static content **/
-
-  /* text chunks */
-
-  abstract class Chunk
-  {
-    def file_name: String
-    def length: Int
-    def range: Text.Range
-    def decode(symbol_range: Symbol.Range): Text.Range
-
-    def incorporate(symbol_range: Symbol.Range): Option[Text.Range] =
-    {
-      def inc(r: Symbol.Range): Option[Text.Range] =
-        range.try_restrict(decode(r)) match {
-          case Some(r1) if !r1.is_singularity => Some(r1)
-          case _ => None
-        }
-     inc(symbol_range) orElse inc(symbol_range - 1)
-    }
-  }
-
-  // file name and position information, *without* persistent text
-  class File(val file_name: String, text: CharSequence) extends Chunk
-  {
-    val length = text.length
-    val range = Text.Range(0, length)
-    private val symbol_index = Symbol.Index(text)
-    def decode(symbol_range: Symbol.Range): Text.Range = symbol_index.decode(symbol_range)
-
-    private val hash: Int = (file_name, length, symbol_index).hashCode
-    override def hashCode: Int = hash
-    override def equals(that: Any): Boolean =
-      that match {
-        case other: File =>
-          hash == other.hash &&
-          file_name == other.file_name &&
-          length == other.length &&
-          symbol_index == other.symbol_index
-        case _ => false
-      }
-    override def toString: String = "Command.File(" + file_name + ")"
-  }
-
 
   /* make commands */
 
@@ -344,7 +330,6 @@ final class Command private(
     val source: String,
     val init_results: Command.Results,
     val init_markup: Markup_Tree)
-  extends Command.Chunk
 {
   /* classification */
 
@@ -373,26 +358,23 @@ final class Command private(
   def blobs_digests: List[SHA1.Digest] =
     for (Exn.Res((_, Some((digest, _)))) <- blobs) yield digest
 
-  val chunks: Map[String, Command.Chunk] =
-    (("" -> this) ::
-      (for (Exn.Res((name, Some((_, file)))) <- blobs) yield (name.node -> file))).toMap
 
+  /* source chunks */
 
-  /* source */
+  val chunk: Text.Chunk = Text.Chunk(source)
 
-  def file_name: String = ""
+  val chunks: Map[Text.Chunk.Name, Text.Chunk] =
+    ((Text.Chunk.Default -> chunk) ::
+      (for (Exn.Res((name, Some((_, file)))) <- blobs)
+        yield (Text.Chunk.File(name.node) -> file))).toMap
 
   def length: Int = source.length
-  val range: Text.Range = Text.Range(0, length)
+  def range: Text.Range = chunk.range
 
   val proper_range: Text.Range =
     Text.Range(0, (length /: span.reverse.iterator.takeWhile(_.is_improper))(_ - _.source.length))
 
   def source(range: Text.Range): String = source.substring(range.start, range.stop)
-
-  private lazy val symbol_index = Symbol.Index(source)
-  def decode(symbol_offset: Symbol.Offset): Text.Offset = symbol_index.decode(symbol_offset)
-  def decode(symbol_range: Symbol.Range): Text.Range = symbol_index.decode(symbol_range)
 
 
   /* accumulated results */

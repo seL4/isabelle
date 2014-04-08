@@ -119,7 +119,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
         for {
           cmd <- snapshot.node.load_commands
           blob_name <- cmd.blobs_names
-          blob_buffer <- JEdit_Lib.jedit_buffer(blob_name.node)
+          blob_buffer <- JEdit_Lib.jedit_buffer(blob_name)
           if !JEdit_Lib.jedit_text_areas(blob_buffer).isEmpty
           start <- snapshot.node.command_start(cmd)
           range = snapshot.convert(cmd.proper_range + start)
@@ -138,7 +138,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
 
   /* blob */
 
-  private var _blob: Option[(Bytes, Command.File)] = None  // owned by Swing thread
+  private var _blob: Option[(Bytes, Text.Chunk)] = None  // owned by Swing thread
 
   private def reset_blob(): Unit = Swing_Thread.require { _blob = None }
 
@@ -146,17 +146,17 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
     Swing_Thread.require {
       if (is_theory) None
       else {
-        val (bytes, file) =
+        val (bytes, chunk) =
           _blob match {
             case Some(x) => x
             case None =>
               val bytes = PIDE.resources.file_content(buffer)
-              val file = new Command.File(node_name.node, buffer.getSegment(0, buffer.getLength))
-              _blob = Some((bytes, file))
-              (bytes, file)
+              val chunk = Text.Chunk(buffer.getSegment(0, buffer.getLength))
+              _blob = Some((bytes, chunk))
+              (bytes, chunk)
           }
         val changed = pending_edits.is_pending()
-        Some(Document.Blob(bytes, file, changed))
+        Some(Document.Blob(bytes, chunk, changed))
       }
     }
 

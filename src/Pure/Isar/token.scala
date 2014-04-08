@@ -121,25 +121,31 @@ object Token
 
   /* token reader */
 
-  class Position(val line: Int, val file: String) extends scala.util.parsing.input.Position
+  object Pos
+  {
+    val none: Pos = new Pos(0, "")
+  }
+
+  final class Pos private[Token](val line: Int, val file: String)
+    extends scala.util.parsing.input.Position
   {
     def column = 0
     def lineContents = ""
-    override def toString =
-      if (file == "") ("line " + line.toString)
-      else ("line " + line.toString + " of " + quote(file))
 
-    def advance(token: Token): Position =
+    def advance(token: Token): Pos =
     {
       var n = 0
       for (c <- token.content if c == '\n') n += 1
-      if (n == 0) this else new Position(line + n, file)
+      if (n == 0) this else new Pos(line + n, file)
     }
+
+    def position: Position.T = Position.Line_File(line, file)
+    override def toString: String = Position.here(position)
   }
 
   abstract class Reader extends scala.util.parsing.input.Reader[Token]
 
-  private class Token_Reader(tokens: List[Token], val pos: Position) extends Reader
+  private class Token_Reader(tokens: List[Token], val pos: Pos) extends Reader
   {
     def first = tokens.head
     def rest = new Token_Reader(tokens.tail, pos.advance(first))
@@ -147,7 +153,7 @@ object Token
   }
 
   def reader(tokens: List[Token], file: String = ""): Reader =
-    new Token_Reader(tokens, new Position(1, file))
+    new Token_Reader(tokens, new Pos(1, file))
 }
 
 

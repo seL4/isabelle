@@ -95,7 +95,7 @@ val unknownN = "unknown";
 val _ =
   ProofGeneral.preference_option ProofGeneral.category_tracing
     NONE
-    @{option auto_quickcheck}
+    @{system_option auto_quickcheck}
     "auto-quickcheck"
     "Run Quickcheck automatically";
 
@@ -584,7 +584,7 @@ fun try_quickcheck auto state =
   end
   |> `(fn (outcome_code, _) => outcome_code = genuineN);
 
-val _ = Try.tool_setup (quickcheckN, (20, @{option auto_quickcheck}, try_quickcheck));
+val _ = Try.tool_setup (quickcheckN, (20, @{system_option auto_quickcheck}, try_quickcheck));
 
 end;
 

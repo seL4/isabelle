@@ -57,7 +57,7 @@ class JEdit_Resources(loaded_theories: Set[String] = Set.empty, base_syntax: Out
   override def with_thy_text[A](name: Document.Node.Name, f: CharSequence => A): A =
   {
     Swing_Thread.now {
-      JEdit_Lib.jedit_buffer(name.node) match {
+      JEdit_Lib.jedit_buffer(name) match {
         case Some(buffer) =>
           JEdit_Lib.buffer_lock(buffer) {
             Some(f(buffer.getSegment(0, buffer.getLength)))
@@ -120,7 +120,6 @@ class JEdit_Resources(loaded_theories: Set[String] = Set.empty, base_syntax: Out
   override def commit(change: Session.Change)
   {
     if (change.syntax_changed) Swing_Thread.later { jEdit.propertiesChanged() }
-    if (change.deps_changed) PIDE.deps_changed()
   }
 }
 

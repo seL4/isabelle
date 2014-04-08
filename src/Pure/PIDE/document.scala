@@ -45,7 +45,7 @@ object Document
 
   /* document blobs: auxiliary files */
 
-  sealed case class Blob(bytes: Bytes, file: Command.File, changed: Boolean)
+  sealed case class Blob(bytes: Bytes, chunk: Text.Chunk, changed: Boolean)
   {
     def unchanged: Blob = copy(changed = false)
   }
@@ -483,11 +483,19 @@ object Document
   }
 
   final case class State private(
+    /*reachable versions*/
     val versions: Map[Document_ID.Version, Version] = Map.empty,
-    val blobs: Set[SHA1.Digest] = Set.empty,   // inlined files
-    val commands: Map[Document_ID.Command, Command.State] = Map.empty,  // static markup from define_command
-    val execs: Map[Document_ID.Exec, Command.State] = Map.empty,  // dynamic markup from execution
+    /*inlined auxiliary files*/
+    val blobs: Set[SHA1.Digest] = Set.empty,
+    /*static markup from define_command*/
+    val commands: Map[Document_ID.Command, Command.State] = Map.empty,
+    /*dynamic markup from execution*/
+    val execs: Map[Document_ID.Exec, Command.State] = Map.empty,
+    /*command-exec assignment for each version*/
     val assignments: Map[Document_ID.Version, State.Assignment] = Map.empty,
+    /*commands with markup produced by other commands (imm_succs)*/
+    val commands_redirection: Graph[Document_ID.Command, Unit] = Graph.long,
+    /*explicit (linear) history*/
     val history: History = History.init)
   {
     private def fail[A]: A = throw new State.Fail(this)
@@ -524,23 +532,35 @@ object Document
     def the_dynamic_state(id: Document_ID.Exec): Command.State = execs.getOrElse(id, fail)
     def the_assignment(version: Version): State.Assignment = assignments.getOrElse(version.id, fail)
 
-    def valid_id(st: Command.State)(id: Document_ID.Generic): Boolean =
+    private def self_id(st: Command.State)(id: Document_ID.Generic): Boolean =
       id == st.command.id ||
       (execs.get(id) match { case Some(st1) => st1.command.id == st.command.id case None => false })
 
+    private def other_id(id: Document_ID.Generic): Option[(Text.Chunk.Id, Text.Chunk)] =
+      (execs.get(id) orElse commands.get(id)).map(st =>
+        ((Text.Chunk.Id(st.command.id), st.command.chunk)))
+
+    private def redirection(st: Command.State): Graph[Document_ID.Command, Unit] =
+      (commands_redirection /: st.markups.redirection_iterator)({ case (graph, id) =>
+        graph.default_node(id, ()).default_node(st.command.id, ()).add_edge(id, st.command.id) })
+
     def accumulate(id: Document_ID.Generic, message: XML.Elem): (Command.State, State) =
+    {
       execs.get(id) match {
         case Some(st) =>
-          val new_st = st + (valid_id(st), message)
-          (new_st, copy(execs = execs + (id -> new_st)))
+          val new_st = st.accumulate(self_id(st), other_id _, message)
+          val execs1 = execs + (id -> new_st)
+          (new_st, copy(execs = execs1, commands_redirection = redirection(new_st)))
         case None =>
           commands.get(id) match {
             case Some(st) =>
-              val new_st = st + (valid_id(st), message)
-              (new_st, copy(commands = commands + (id -> new_st)))
+              val new_st = st.accumulate(self_id(st), other_id _, message)
+              val commands1 = commands + (id -> new_st)
+              (new_st, copy(commands = commands1, commands_redirection = redirection(new_st)))
             case None => fail
           }
       }
+    }
 
     def assign(id: Document_ID.Version, update: Assign_Update): (List[Command], State) =
     {
@@ -629,25 +649,46 @@ object Document
             execs.get(exec_id).foreach(st => execs1 += (exec_id -> st))
         }
       }
-      copy(versions = versions1, blobs = blobs1, commands = commands1, execs = execs1,
+      copy(
+        versions = versions1,
+        blobs = blobs1,
+        commands = commands1,
+        execs = execs1,
+        commands_redirection = commands_redirection.restrict(commands1.isDefinedAt(_)),
         assignments = assignments1)
     }
 
-    def command_states(version: Version, command: Command): List[Command.State] =
+    private def command_states_self(version: Version, command: Command)
+      : List[(Document_ID.Generic, Command.State)] =
     {
       require(is_assigned(version))
       try {
         the_assignment(version).check_finished.command_execs.getOrElse(command.id, Nil)
-          .map(the_dynamic_state(_)) match {
+          .map(id => id -> the_dynamic_state(id)) match {
             case Nil => fail
-            case states => states
+            case res => res
           }
       }
       catch {
         case _: State.Fail =>
-          try { List(the_static_state(command.id)) }
-          catch { case _: State.Fail => List(command.init_state) }
+          try { List(command.id -> the_static_state(command.id)) }
+          catch { case _: State.Fail => List(command.id -> command.init_state) }
       }
+    }
+
+    def command_states(version: Version, command: Command): List[Command.State] =
+    {
+      val self = command_states_self(version, command)
+      val others =
+        if (commands_redirection.defined(command.id)) {
+          (for {
+            command_id <- commands_redirection.imm_succs(command.id).iterator
+            (id, st) <- command_states_self(version, the_static_state(command_id).command)
+            if !self.exists(_._1 == id)
+          } yield (id, st)).toMap.valuesIterator.toList
+        }
+        else Nil
+      self.map(_._2) ::: others.map(_.redirect(command))
     }
 
     def command_results(version: Version, command: Command): Command.Results =
@@ -731,15 +772,15 @@ object Document
           status: Boolean = false): List[Text.Info[A]] =
         {
           val former_range = revert(range)
-          val (file_name, command_iterator) =
+          val (chunk_name, command_iterator) =
             load_commands match {
-              case command :: _ => (node_name.node, Iterator((command, 0)))
-              case _ => ("", node.command_iterator(former_range))
+              case command :: _ => (Text.Chunk.File(node_name.node), Iterator((command, 0)))
+              case _ => (Text.Chunk.Default, node.command_iterator(former_range))
             }
-          val markup_index = Command.Markup_Index(status, file_name)
+          val markup_index = Command.Markup_Index(status, chunk_name)
           (for {
             (command, command_start) <- command_iterator
-            chunk <- command.chunks.get(file_name).iterator
+            chunk <- command.chunks.get(chunk_name).iterator
             states = state.command_states(version, command)
             res = result(states)
             range = (former_range - command_start).restrict(chunk.range)

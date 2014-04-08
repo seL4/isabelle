@@ -52,7 +52,7 @@ class JEdit_Editor extends Editor[View]
   {
     Swing_Thread.require()
 
-    JEdit_Lib.jedit_buffer(name.node) match {
+    JEdit_Lib.jedit_buffer(name) match {
       case Some(buffer) =>
         PIDE.document_model(buffer) match {
           case Some(model) => model.snapshot
@@ -159,6 +159,55 @@ class JEdit_Editor extends Editor[View]
 
   /* hyperlinks */
 
+  def hyperlink_url(name: String): Hyperlink =
+    new Hyperlink {
+      def follow(view: View) =
+        default_thread_pool.submit(() =>
+          try { Isabelle_System.open(name) }
+          catch {
+            case exn: Throwable =>
+              GUI.error_dialog(view, "System error", GUI.scrollable_text(Exn.message(exn)))
+          })
+      override def toString: String = "URL " + quote(name)
+    }
+
+  def hyperlink_file(name: String, line: Int = 0, column: Int = 0): Hyperlink =
+    new Hyperlink {
+      def follow(view: View) = goto_file(view, name, line, column)
+      override def toString: String = "file " + quote(name)
+    }
+
+  def hyperlink_source_file(source_name: String, line: Int, offset: Symbol.Offset)
+    : Option[Hyperlink] =
+  {
+    val opt_name =
+      if (Path.is_wellformed(source_name)) {
+        if (Path.is_valid(source_name)) {
+          val path = Path.explode(source_name)
+          Some(Isabelle_System.platform_path(Isabelle_System.source_file(path) getOrElse path))
+        }
+        else None
+      }
+      else Some(source_name)
+
+    opt_name match {
+      case Some(name) =>
+        JEdit_Lib.jedit_buffer(name) match {
+          case Some(buffer) if offset > 0 =>
+            val (line, column) =
+              JEdit_Lib.buffer_lock(buffer) {
+                ((1, 1) /:
+                  (Symbol.iterator(JEdit_Lib.buffer_text(buffer)).
+                    zipWithIndex.takeWhile(p => p._2 < offset - 1).map(_._1)))(
+                      Symbol.advance_line_column)
+              }
+            Some(hyperlink_file(name, line, column))
+          case _ => Some(hyperlink_file(name, line))
+        }
+      case None => None
+    }
+  }
+
   override def hyperlink_command(
     snapshot: Document.Snapshot, command: Command, offset: Symbol.Offset = 0): Option[Hyperlink] =
   {
@@ -171,9 +220,9 @@ class JEdit_Editor extends Editor[View]
           val sources_iterator =
             node.commands.iterator.takeWhile(_ != command).map(_.source) ++
               (if (offset == 0) Iterator.empty
-               else Iterator.single(command.source(Text.Range(0, command.decode(offset)))))
+               else Iterator.single(command.source(Text.Range(0, command.chunk.decode(offset)))))
           val (line, column) = ((1, 1) /: sources_iterator)(Symbol.advance_line_column)
-          Some(new Hyperlink { def follow(view: View) { goto_file(view, file_name, line, column) } })
+          Some(hyperlink_file(file_name, line, column))
       }
     }
   }
@@ -188,43 +237,4 @@ class JEdit_Editor extends Editor[View]
       case None => None
     }
   }
-
-  def hyperlink_file(name: String, line: Int = 0, column: Int = 0): Hyperlink =
-    new Hyperlink { def follow(view: View) = goto_file(view, name, line, column) }
-
-  def hyperlink_source_file(source_name: String, line: Int, offset: Symbol.Offset)
-    : Option[Hyperlink] =
-  {
-    if (Path.is_valid(source_name)) {
-      Isabelle_System.source_file(Path.explode(source_name)) match {
-        case Some(path) =>
-          val name = Isabelle_System.platform_path(path)
-          JEdit_Lib.jedit_buffer(name) match {
-            case Some(buffer) if offset > 0 =>
-              val (line, column) =
-                JEdit_Lib.buffer_lock(buffer) {
-                  ((1, 1) /:
-                    (Symbol.iterator(JEdit_Lib.buffer_text(buffer)).
-                      zipWithIndex.takeWhile(p => p._2 < offset - 1).map(_._1)))(
-                        Symbol.advance_line_column)
-                }
-              Some(hyperlink_file(name, line, column))
-            case _ => Some(hyperlink_file(name, line))
-          }
-        case None => None
-      }
-    }
-    else None
-  }
-
-  def hyperlink_url(name: String): Hyperlink =
-    new Hyperlink {
-      def follow(view: View) =
-        default_thread_pool.submit(() =>
-          try { Isabelle_System.open(name) }
-          catch {
-            case exn: Throwable =>
-              GUI.error_dialog(view, "System error", GUI.scrollable_text(Exn.message(exn)))
-          })
-    }
 }

@@ -29,8 +29,15 @@ object Options
   case object String extends Type
   case object Unknown extends Type
 
-  case class Opt(public: Boolean, name: String, typ: Type, value: String, default_value: String,
-    description: String, section: String)
+  case class Opt(
+    public: Boolean,
+    pos: Position.T,
+    name: String,
+    typ: Type,
+    value: String,
+    default_value: String,
+    description: String,
+    section: String)
   {
     private def print(default: Boolean): String =
     {
@@ -88,8 +95,8 @@ object Options
         { case _ ~ a => (options: Options) => options.set_section(a) } |
       opt(command(PUBLIC)) ~ command(OPTION) ~! (option_name ~ keyword(":") ~ option_type ~
       keyword("=") ~ option_value ~ (keyword("--") ~! text ^^ { case _ ~ x => x } | success(""))) ^^
-        { case a ~ _ ~ (b ~ _ ~ c ~ _ ~ d ~ e) =>
-            (options: Options) => options.declare(a.isDefined, b, c, d, e) }
+        { case a ~ pos ~ (b ~ _ ~ c ~ _ ~ d ~ e) =>
+            (options: Options) => options.declare(a.isDefined, pos, b, c, d, e) }
     }
 
     val prefs_entry: Parser[Options => Options] =
@@ -260,11 +267,18 @@ final class Options private(
     }
   }
 
-  def declare(public: Boolean, name: String, typ_name: String, value: String, description: String)
-    : Options =
+  def declare(
+    public: Boolean,
+    pos: Position.T,
+    name: String,
+    typ_name: String,
+    value: String,
+    description: String): Options =
   {
     options.get(name) match {
-      case Some(_) => error("Duplicate declaration of option " + quote(name))
+      case Some(other) =>
+        error("Duplicate declaration of option " + quote(name) + Position.here(pos) +
+          Position.here(other.pos))
       case None =>
         val typ =
           typ_name match {
@@ -272,9 +286,11 @@ final class Options private(
             case "int" => Options.Int
             case "real" => Options.Real
             case "string" => Options.String
-            case _ => error("Unknown type for option " + quote(name) + " : " + quote(typ_name))
+            case _ =>
+              error("Unknown type for option " + quote(name) + " : " + quote(typ_name) +
+                Position.here(pos))
           }
-        val opt = Options.Opt(public, name, typ, value, value, description, section)
+        val opt = Options.Opt(public, pos, name, typ, value, value, description, section)
         (new Options(options + (name -> opt), section)).check_value(name)
     }
   }
@@ -282,10 +298,10 @@ final class Options private(
   def add_permissive(name: String, value: String): Options =
   {
     if (options.isDefinedAt(name)) this + (name, value)
-    else
-      new Options(
-        options +
-          (name -> Options.Opt(false, name, Options.Unknown, value, value, "", "")), section)
+    else {
+      val opt = Options.Opt(false, Position.none, name, Options.Unknown, value, value, "", "")
+      new Options(options + (name -> opt), section)
+    }
   }
 
   def + (name: String, value: String): Options =
@@ -330,11 +346,11 @@ final class Options private(
   def encode: XML.Body =
   {
     val opts =
-      for ((name, opt) <- options.toList; if !opt.unknown)
-        yield (name, opt.typ.print, opt.value)
+      for ((_, opt) <- options.toList; if !opt.unknown)
+        yield (opt.pos, (opt.name, (opt.typ.print, opt.value)))
 
-    import XML.Encode.{string => str, _}
-    list(triple(str, str, str))(opts)
+    import XML.Encode.{string => string_, _}
+    list(pair(properties, pair(string_, pair(string_, string_))))(opts)
   }
 
 

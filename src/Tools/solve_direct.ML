@@ -37,7 +37,7 @@ val max_solutions = Unsynchronized.ref 5;
 val _ =
   ProofGeneral.preference_option ProofGeneral.category_tracing
     NONE
-    @{option auto_solve_direct}
+    @{system_option auto_solve_direct}
     "auto-solve-direct"
     ("Run " ^ quote solve_directN ^ " automatically");
 
@@ -115,6 +115,6 @@ val _ =
 
 fun try_solve_direct auto = do_solve_direct (if auto then Auto_Try else Try)
 
-val _ = Try.tool_setup (solve_directN, (10, @{option auto_solve_direct}, try_solve_direct));
+val _ = Try.tool_setup (solve_directN, (10, @{system_option auto_solve_direct}, try_solve_direct));
 
 end;

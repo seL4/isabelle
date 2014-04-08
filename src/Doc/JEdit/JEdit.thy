@@ -564,13 +564,6 @@ text {* \paragraph{Completion tables} are determined statically from
   determines an additional delay (0.0 by default), before opening a
   completion popup.
 
-  \item The system option @{system_option
-  jedit_completion_dismiss_delay} determines an additional delay (0.0
-  by default), before dismissing an earlier completion popup.  A value
-  like 0.1 is occasionally useful to reduce the chance of loosing key
-  strokes when the speed of typing exceeds that of repainting GUI
-  components.
-
   \item The system option @{system_option jedit_completion_immediate}
   (disabled by default) controls whether replacement text should be
   inserted immediately without popup.  This is restricted to Isabelle
