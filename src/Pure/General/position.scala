@@ -79,10 +79,15 @@ object Position
 
   object Reported
   {
-    def unapply(pos: T): Option[(Long, String, Symbol.Range)] =
+    def unapply(pos: T): Option[(Long, Command.Chunk.Name, Symbol.Range)] =
       (pos, pos) match {
         case (Id(id), Range(range)) =>
-          Some((id, File.unapply(pos).getOrElse(""), range))
+          val chunk_name =
+            pos match {
+              case File(name) => Command.Chunk.File_Name(name)
+              case _ => Command.Chunk.Self
+            }
+          Some((id, chunk_name, range))
         case _ => None
       }
   }

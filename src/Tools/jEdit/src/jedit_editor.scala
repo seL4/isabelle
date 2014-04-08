@@ -220,7 +220,7 @@ class JEdit_Editor extends Editor[View]
           val sources_iterator =
             node.commands.iterator.takeWhile(_ != command).map(_.source) ++
               (if (offset == 0) Iterator.empty
-               else Iterator.single(command.source(Text.Range(0, command.decode(offset)))))
+               else Iterator.single(command.source(Text.Range(0, command.chunk.decode(offset)))))
           val (line, column) = ((1, 1) /: sources_iterator)(Symbol.advance_line_column)
           Some(hyperlink_file(file_name, line, column))
       }

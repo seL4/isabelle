@@ -138,7 +138,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
 
   /* blob */
 
-  private var _blob: Option[(Bytes, Command.File)] = None  // owned by Swing thread
+  private var _blob: Option[(Bytes, Command.Chunk.File)] = None  // owned by Swing thread
 
   private def reset_blob(): Unit = Swing_Thread.require { _blob = None }
 
@@ -151,7 +151,8 @@ class Document_Model(val session: Session, val buffer: Buffer, val node_name: Do
             case Some(x) => x
             case None =>
               val bytes = PIDE.resources.file_content(buffer)
-              val file = new Command.File(node_name.node, buffer.getSegment(0, buffer.getLength))
+              val file =
+                new Command.Chunk.File(node_name.node, buffer.getSegment(0, buffer.getLength))
               _blob = Some((bytes, file))
               (bytes, file)
           }

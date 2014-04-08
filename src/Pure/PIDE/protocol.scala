@@ -307,8 +307,8 @@ object Protocol
   {
     def elem_positions(props: Properties.T, set: Set[Text.Range]): Set[Text.Range] =
       props match {
-        case Position.Reported(id, file_name, symbol_range)
-        if valid_id(id) && file_name == chunk.file_name =>
+        case Position.Reported(id, chunk_name, symbol_range)
+        if valid_id(id) && chunk_name == chunk.name =>
           chunk.incorporate(symbol_range) match {
             case Some(range) => set + range
             case _ => set
