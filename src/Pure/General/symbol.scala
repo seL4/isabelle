@@ -125,16 +125,14 @@ object Symbol
 
   object Index
   {
-    def apply(text: CharSequence): Index = new Index(text)
-  }
-
-  final class Index private(text: CharSequence)
-  {
     private sealed case class Entry(chr: Int, sym: Int)
-    private val index: Array[Entry] =
+
+    val empty: Index = new Index(Array())
+
+    def apply(text: CharSequence): Index =
     {
       val matcher = new Matcher(text)
-      val buf = new mutable.ArrayBuffer[Entry]
+      val buf = new mutable.ListBuffer[Entry]
       var chr = 0
       var sym = 0
       while (chr < text.length) {
@@ -143,9 +141,12 @@ object Symbol
         sym += 1
         if (n > 1) buf += Entry(chr, sym)
       }
-      buf.toArray
+      if (buf.isEmpty) empty else new Index(buf.toArray)
     }
+  }
 
+  final class Index private(private val index: Array[Index.Entry])
+  {
     def decode(symbol_offset: Offset): Text.Offset =
     {
       val sym = symbol_offset - 1
