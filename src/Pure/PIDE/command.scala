@@ -81,11 +81,11 @@ object Command
     def add(index: Markup_Index, markup: Text.Markup): Markups =
       new Markups(rep + (index -> (this(index) + markup)))
 
-    def other_id_iterator: Iterator[Document_ID.Generic] =
-      for (Markup_Index(_, Text.Chunk.Id(other_id)) <- rep.keysIterator)
-        yield other_id
+    def redirection_iterator: Iterator[Document_ID.Generic] =
+      for (Markup_Index(_, Text.Chunk.Id(id)) <- rep.keysIterator)
+        yield id
 
-    def retarget(other_id: Document_ID.Generic): Markups =
+    def redirect(other_id: Document_ID.Generic): Markups =
       new Markups(
         (for {
           (Markup_Index(status, Text.Chunk.Id(id)), markup) <- rep.iterator
@@ -135,8 +135,8 @@ object Command
 
     def markup(index: Markup_Index): Markup_Tree = markups(index)
 
-    def retarget(other_command: Command): State =
-      new State(other_command, Nil, Results.empty, markups.retarget(other_command.id))
+    def redirect(other_command: Command): State =
+      new State(other_command, Nil, Results.empty, markups.redirect(other_command.id))
 
 
     def eq_content(other: State): Boolean =

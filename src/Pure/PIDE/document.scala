@@ -494,7 +494,7 @@ object Document
     /*command-exec assignment for each version*/
     val assignments: Map[Document_ID.Version, State.Assignment] = Map.empty,
     /*commands with markup produced by other commands (imm_succs)*/
-    val augmented_commands: Graph[Document_ID.Command, Unit] = Graph.long,
+    val commands_redirection: Graph[Document_ID.Command, Unit] = Graph.long,
     /*explicit (linear) history*/
     val history: History = History.init)
   {
@@ -540,8 +540,8 @@ object Document
       (execs.get(id) orElse commands.get(id)).map(st =>
         ((Text.Chunk.Id(st.command.id), st.command.chunk)))
 
-    private def augmented(st: Command.State): Graph[Document_ID.Command, Unit] =
-      (augmented_commands /: st.markups.other_id_iterator)({ case (graph, id) =>
+    private def redirection(st: Command.State): Graph[Document_ID.Command, Unit] =
+      (commands_redirection /: st.markups.redirection_iterator)({ case (graph, id) =>
         graph.default_node(id, ()).default_node(st.command.id, ()).add_edge(id, st.command.id) })
 
     def accumulate(id: Document_ID.Generic, message: XML.Elem): (Command.State, State) =
@@ -550,13 +550,13 @@ object Document
         case Some(st) =>
           val new_st = st.accumulate(self_id(st), other_id _, message)
           val execs1 = execs + (id -> new_st)
-          (new_st, copy(execs = execs1, augmented_commands = augmented(new_st)))
+          (new_st, copy(execs = execs1, commands_redirection = redirection(new_st)))
         case None =>
           commands.get(id) match {
             case Some(st) =>
               val new_st = st.accumulate(self_id(st), other_id _, message)
               val commands1 = commands + (id -> new_st)
-              (new_st, copy(commands = commands1, augmented_commands = augmented(new_st)))
+              (new_st, copy(commands = commands1, commands_redirection = redirection(new_st)))
             case None => fail
           }
       }
@@ -654,7 +654,7 @@ object Document
         blobs = blobs1,
         commands = commands1,
         execs = execs1,
-        augmented_commands = augmented_commands.restrict(commands1.isDefinedAt(_)),
+        commands_redirection = commands_redirection.restrict(commands1.isDefinedAt(_)),
         assignments = assignments1)
     }
 
@@ -680,15 +680,15 @@ object Document
     {
       val self = command_states_self(version, command)
       val others =
-        if (augmented_commands.defined(command.id)) {
+        if (commands_redirection.defined(command.id)) {
           (for {
-            command_id <- augmented_commands.imm_succs(command.id).iterator
+            command_id <- commands_redirection.imm_succs(command.id).iterator
             (id, st) <- command_states_self(version, the_static_state(command_id).command)
             if !self.exists(_._1 == id)
           } yield (id, st)).toMap.valuesIterator.toList
         }
         else Nil
-      self.map(_._2) ::: others.map(_.retarget(command))
+      self.map(_._2) ::: others.map(_.redirect(command))
     }
 
     def command_results(version: Version, command: Command): Command.Results =
