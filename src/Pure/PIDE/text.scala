@@ -106,6 +106,7 @@ object Text
   {
     sealed abstract class Name
     case object Default extends Name
+    case class Id(id: Document_ID.Generic) extends Name
     case class File_Name(file_name: String) extends Name
 
     class File(text: CharSequence) extends Chunk

@@ -301,7 +301,7 @@ object Protocol
     Document.Elements(Markup.BINDING, Markup.ENTITY, Markup.REPORT, Markup.POSITION)
 
   def message_positions(
-    valid_id: Document_ID.Generic => Boolean,
+    self_id: Document_ID.Generic => Boolean,
     chunk_name: Text.Chunk.Name,
     chunk: Text.Chunk,
     message: XML.Elem): Set[Text.Range] =
@@ -309,7 +309,7 @@ object Protocol
     def elem_positions(props: Properties.T, set: Set[Text.Range]): Set[Text.Range] =
       props match {
         case Position.Reported(id, name, symbol_range)
-        if valid_id(id) && name == chunk_name =>
+        if self_id(id) && name == chunk_name =>
           chunk.incorporate(symbol_range) match {
             case Some(range) => set + range
             case _ => set

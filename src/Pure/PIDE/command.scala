@@ -81,6 +81,17 @@ object Command
     def add(index: Markup_Index, markup: Text.Markup): Markups =
       new Markups(rep + (index -> (this(index) + markup)))
 
+    def other_id_iterator: Iterator[Document_ID.Generic] =
+      for (Markup_Index(_, Text.Chunk.Id(other_id)) <- rep.keysIterator)
+        yield other_id
+
+    def retarget(other_id: Document_ID.Generic): Markups =
+      new Markups(
+        (for {
+          (Markup_Index(status, Text.Chunk.Id(id)), markup) <- rep.iterator
+          if other_id == id
+        } yield (Markup_Index(status, Text.Chunk.Default), markup)).toMap)
+
     override def hashCode: Int = rep.hashCode
     override def equals(that: Any): Boolean =
       that match {
@@ -124,6 +135,9 @@ object Command
 
     def markup(index: Markup_Index): Markup_Tree = markups(index)
 
+    def retarget(other_command: Command): State =
+      new State(other_command, Nil, Results.empty, markups.retarget(other_command.id))
+
 
     def eq_content(other: State): Boolean =
       command.source == other.command.source &&
@@ -143,7 +157,10 @@ object Command
       copy(markups = markups1.add(Markup_Index(false, chunk_name), m))
     }
 
-    def + (valid_id: Document_ID.Generic => Boolean, message: XML.Elem): State =
+    def accumulate(
+        self_id: Document_ID.Generic => Boolean,
+        other_id: Document_ID.Generic => Option[(Text.Chunk.Id, Text.Chunk)],
+        message: XML.Elem): State =
       message match {
         case XML.Elem(Markup(Markup.STATUS, _), msgs) =>
           (this /: msgs)((state, msg) =>
@@ -163,19 +180,25 @@ object Command
               def bad(): Unit = System.err.println("Ignored report message: " + msg)
 
               msg match {
-                case XML.Elem(Markup(name,
-                  atts @ Position.Reported(id, chunk_name, symbol_range)), args)
-                if valid_id(id) =>
-                  command.chunks.get(chunk_name) match {
-                    case Some(chunk) =>
-                      chunk.incorporate(symbol_range) match {
+                case XML.Elem(
+                    Markup(name, atts @ Position.Reported(id, chunk_name, symbol_range)), args) =>
+
+                  val target =
+                    if (self_id(id) && command.chunks.isDefinedAt(chunk_name))
+                      Some((chunk_name, command.chunks(chunk_name)))
+                    else if (chunk_name == Text.Chunk.Default) other_id(id)
+                    else None
+
+                  target match {
+                    case Some((target_name, target_chunk)) =>
+                      target_chunk.incorporate(symbol_range) match {
                         case Some(range) =>
                           val props = Position.purge(atts)
                           val info = Text.Info(range, XML.Elem(Markup(name, props), args))
-                          state.add_markup(false, chunk_name, info)
+                          state.add_markup(false, target_name, info)
                         case None => bad(); state
                       }
-                    case None => bad(); state
+                    case None => /* FIXME bad(); */ state
                   }
 
                 case XML.Elem(Markup(name, atts), args)
@@ -185,7 +208,7 @@ object Command
                   val info: Text.Markup = Text.Info(range, XML.Elem(Markup(name, props), args))
                   state.add_markup(false, Text.Chunk.Default, info)
 
-                case _ => /* FIXME bad(); */ state
+                case _ => bad(); state
               }
             })
         case XML.Elem(Markup(name, props), body) =>
@@ -198,7 +221,7 @@ object Command
               if (Protocol.is_inlined(message)) {
                 for {
                   (chunk_name, chunk) <- command.chunks.iterator
-                  range <- Protocol.message_positions(valid_id, chunk_name, chunk, message)
+                  range <- Protocol.message_positions(self_id, chunk_name, chunk, message)
                 } st = st.add_markup(false, chunk_name, Text.Info(range, message2))
               }
               st
