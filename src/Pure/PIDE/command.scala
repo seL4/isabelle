@@ -75,6 +75,8 @@ object Command
 
   final class Markups private(private val rep: Map[Markup_Index, Markup_Tree])
   {
+    def is_empty: Boolean = rep.isEmpty
+
     def apply(index: Markup_Index): Markup_Tree =
       rep.getOrElse(index, Markup_Tree.empty)
 
@@ -86,11 +88,14 @@ object Command
         yield id
 
     def redirect(other_id: Document_ID.Generic): Markups =
-      new Markups(
+    {
+      val rep1 =
         (for {
           (Markup_Index(status, Text.Chunk.Id(id)), markup) <- rep.iterator
           if other_id == id
-        } yield (Markup_Index(status, Text.Chunk.Default), markup)).toMap)
+        } yield (Markup_Index(status, Text.Chunk.Default), markup)).toMap
+      if (rep1.isEmpty) Markups.empty else new Markups(rep1)
+    }
 
     override def hashCode: Int = rep.hashCode
     override def equals(that: Any): Boolean =
@@ -135,9 +140,12 @@ object Command
 
     def markup(index: Markup_Index): Markup_Tree = markups(index)
 
-    def redirect(other_command: Command): State =
-      new State(other_command, Nil, Results.empty, markups.redirect(other_command.id))
-
+    def redirect(other_command: Command): Option[State] =
+    {
+      val markups1 = markups.redirect(other_command.id)
+      if (markups1.is_empty) None
+      else Some(new State(other_command, Nil, Results.empty, markups1))
+    }
 
     def eq_content(other: State): Boolean =
       command.source == other.command.source &&

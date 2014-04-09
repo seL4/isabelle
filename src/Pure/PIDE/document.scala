@@ -688,7 +688,7 @@ object Document
           } yield (id, st)).toMap.valuesIterator.toList
         }
         else Nil
-      self.map(_._2) ::: others.map(_.redirect(command))
+      self.map(_._2) ::: others.flatMap(_.redirect(command))
     }
 
     def command_results(version: Version, command: Command): Command.Results =
