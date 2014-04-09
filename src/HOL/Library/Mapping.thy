@@ -10,25 +10,29 @@ begin
 
 subsection {* Parametricity transfer rules *}
 
+lemma map_of_foldr: -- {* FIXME move *}
+  "map_of xs = foldr (\<lambda>(k, v) m. m(k \<mapsto> v)) xs Map.empty"
+  using map_add_map_of_foldr [of Map.empty] by auto
+
 context
 begin
 
 interpretation lifting_syntax .
 
-lemma empty_transfer:
+lemma empty_parametric:
   "(A ===> rel_option B) Map.empty Map.empty"
   by transfer_prover
 
-lemma lookup_transfer: "((A ===> B) ===> A ===> B) (\<lambda>m k. m k) (\<lambda>m k. m k)"
+lemma lookup_parametric: "((A ===> B) ===> A ===> B) (\<lambda>m k. m k) (\<lambda>m k. m k)"
   by transfer_prover
 
-lemma update_transfer:
+lemma update_parametric:
   assumes [transfer_rule]: "bi_unique A"
   shows "(A ===> B ===> (A ===> rel_option B) ===> A ===> rel_option B)
     (\<lambda>k v m. m(k \<mapsto> v)) (\<lambda>k v m. m(k \<mapsto> v))"
   by transfer_prover
 
-lemma delete_transfer:
+lemma delete_parametric:
   assumes [transfer_rule]: "bi_unique A"
   shows "(A ===> (A ===> rel_option B) ===> A ===> rel_option B) 
     (\<lambda>k m. m(k := None)) (\<lambda>k m. m(k := None))"
@@ -38,23 +42,31 @@ lemma is_none_parametric [transfer_rule]:
   "(rel_option A ===> HOL.eq) Option.is_none Option.is_none"
   by (auto simp add: is_none_def rel_fun_def rel_option_iff split: option.split)
 
-lemma dom_transfer:
+lemma dom_parametric:
   assumes [transfer_rule]: "bi_total A"
   shows "((A ===> rel_option B) ===> rel_set A) dom dom" 
   unfolding dom_def [abs_def] is_none_def [symmetric] by transfer_prover
 
-lemma map_of_transfer [transfer_rule]:
+lemma map_of_parametric [transfer_rule]:
   assumes [transfer_rule]: "bi_unique R1"
   shows "(list_all2 (rel_prod R1 R2) ===> R1 ===> rel_option R2) map_of map_of"
   unfolding map_of_def by transfer_prover
 
-lemma tabulate_transfer: 
+lemma map_entry_parametric [transfer_rule]:
+  assumes [transfer_rule]: "bi_unique A"
+  shows "(A ===> (B ===> B) ===> (A ===> rel_option B) ===> A ===> rel_option B) 
+    (\<lambda>k f m. (case m k of None \<Rightarrow> m
+      | Some v \<Rightarrow> m (k \<mapsto> (f v)))) (\<lambda>k f m. (case m k of None \<Rightarrow> m
+      | Some v \<Rightarrow> m (k \<mapsto> (f v))))"
+  by transfer_prover
+
+lemma tabulate_parametric: 
   assumes [transfer_rule]: "bi_unique A"
   shows "(list_all2 A ===> (A ===> B) ===> A ===> rel_option B) 
     (\<lambda>ks f. (map_of (map (\<lambda>k. (k, f k)) ks))) (\<lambda>ks f. (map_of (map (\<lambda>k. (k, f k)) ks)))"
   by transfer_prover
 
-lemma bulkload_transfer: 
+lemma bulkload_parametric: 
   "(list_all2 A ===> HOL.eq ===> rel_option A) 
     (\<lambda>xs k. if k < length xs then Some (xs ! k) else None) (\<lambda>xs k. if k < length xs then Some (xs ! k) else None)"
 proof
@@ -72,20 +84,13 @@ proof
     done
 qed
 
-lemma map_transfer: 
+lemma map_parametric: 
   "((A ===> B) ===> (C ===> D) ===> (B ===> rel_option C) ===> A ===> rel_option D) 
      (\<lambda>f g m. (map_option g \<circ> m \<circ> f)) (\<lambda>f g m. (map_option g \<circ> m \<circ> f))"
   by transfer_prover
 
-lemma map_entry_transfer:
-  assumes [transfer_rule]: "bi_unique A"
-  shows "(A ===> (B ===> B) ===> (A ===> rel_option B) ===> A ===> rel_option B) 
-    (\<lambda>k f m. (case m k of None \<Rightarrow> m
-      | Some v \<Rightarrow> m (k \<mapsto> (f v)))) (\<lambda>k f m. (case m k of None \<Rightarrow> m
-      | Some v \<Rightarrow> m (k \<mapsto> (f v))))"
-  by transfer_prover
-
 end
+
 
 subsection {* Type definition and primitive operations *}
 
@@ -96,28 +101,28 @@ typedef ('a, 'b) mapping = "UNIV :: ('a \<rightharpoonup> 'b) set"
 setup_lifting (no_code) type_definition_mapping
 
 lift_definition empty :: "('a, 'b) mapping"
-  is Map.empty parametric empty_transfer .
+  is Map.empty parametric empty_parametric .
 
 lift_definition lookup :: "('a, 'b) mapping \<Rightarrow> 'a \<Rightarrow> 'b option"
-  is "\<lambda>m k. m k" parametric lookup_transfer .
+  is "\<lambda>m k. m k" parametric lookup_parametric .
 
 lift_definition update :: "'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) mapping \<Rightarrow> ('a, 'b) mapping"
-  is "\<lambda>k v m. m(k \<mapsto> v)" parametric update_transfer .
+  is "\<lambda>k v m. m(k \<mapsto> v)" parametric update_parametric .
 
 lift_definition delete :: "'a \<Rightarrow> ('a, 'b) mapping \<Rightarrow> ('a, 'b) mapping"
-  is "\<lambda>k m. m(k := None)" parametric delete_transfer .
+  is "\<lambda>k m. m(k := None)" parametric delete_parametric .
 
 lift_definition keys :: "('a, 'b) mapping \<Rightarrow> 'a set"
-  is dom parametric dom_transfer .
+  is dom parametric dom_parametric .
 
 lift_definition tabulate :: "'a list \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) mapping"
-  is "\<lambda>ks f. (map_of (List.map (\<lambda>k. (k, f k)) ks))" parametric tabulate_transfer .
+  is "\<lambda>ks f. (map_of (List.map (\<lambda>k. (k, f k)) ks))" parametric tabulate_parametric .
 
 lift_definition bulkload :: "'a list \<Rightarrow> (nat, 'a) mapping"
-  is "\<lambda>xs k. if k < length xs then Some (xs ! k) else None" parametric bulkload_transfer .
+  is "\<lambda>xs k. if k < length xs then Some (xs ! k) else None" parametric bulkload_parametric .
 
 lift_definition map :: "('c \<Rightarrow> 'a) \<Rightarrow> ('b \<Rightarrow> 'd) \<Rightarrow> ('a, 'b) mapping \<Rightarrow> ('c, 'd) mapping"
-  is "\<lambda>f g m. (map_option g \<circ> m \<circ> f)" parametric map_transfer .
+  is "\<lambda>f g m. (map_option g \<circ> m \<circ> f)" parametric map_parametric .
 
 
 subsection {* Functorial structure *}
@@ -148,11 +153,14 @@ definition default :: "'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) mapping \<Righ
 where
   "default k v m = (if k \<in> keys m then m else update k v m)"
 
+text {* Manual derivation of transfer rule is non-trivial *}
+
 lift_definition map_entry :: "'a \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) mapping \<Rightarrow> ('a, 'b) mapping" is
   "\<lambda>k f m. (case m k of None \<Rightarrow> m
-    | Some v \<Rightarrow> m (k \<mapsto> (f v)))" parametric map_entry_transfer .
+    | Some v \<Rightarrow> m (k \<mapsto> (f v)))" parametric map_entry_parametric .
 
-lemma map_entry_code [code]: "map_entry k f m = (case lookup m k of None \<Rightarrow> m
+lemma map_entry_code [code]:
+  "map_entry k f m = (case lookup m k of None \<Rightarrow> m
     | Some v \<Rightarrow> update k (f v) m)"
   by transfer rule
 
@@ -160,12 +168,9 @@ definition map_default :: "'a \<Rightarrow> 'b \<Rightarrow> ('b \<Rightarrow> '
 where
   "map_default k v f m = map_entry k f (default k v m)" 
 
-lift_definition of_alist :: "('k \<times> 'v) list \<Rightarrow> ('k, 'v) mapping"
-  is map_of parametric map_of_transfer .
-
-lemma of_alist_code [code]:
+definition of_alist :: "('k \<times> 'v) list \<Rightarrow> ('k, 'v) mapping"
+where
   "of_alist xs = foldr (\<lambda>(k, v) m. update k v m) xs empty"
-  by transfer (simp add: map_add_map_of_foldr [symmetric])
 
 instantiation mapping :: (type, type) equal
 begin
@@ -188,6 +193,11 @@ lemma [transfer_rule]:
   assumes [transfer_rule]: "bi_unique B"
   shows "(pcr_mapping A B ===> pcr_mapping A B ===> op=) HOL.eq HOL.equal"
   by (unfold equal) transfer_prover
+
+lemma of_alist_transfer [transfer_rule]:
+  assumes [transfer_rule]: "bi_unique R1"
+  shows "(list_all2 (rel_prod R1 R2) ===> pcr_mapping R1 R2) map_of of_alist"
+  unfolding of_alist_def [abs_def] map_of_foldr [abs_def] by transfer_prover
 
 end
 
@@ -380,12 +390,8 @@ lemma tabulate_fold:
   "tabulate xs f = fold (\<lambda>k m. update k (f k) m) xs empty"
 proof transfer
   fix f :: "'a \<Rightarrow> 'b" and xs
-  from map_add_map_of_foldr
-  have "Map.empty ++ map_of (List.map (\<lambda>k. (k, f k)) xs) =
-    foldr (\<lambda>(k, v) m. m(k \<mapsto> v)) (List.map (\<lambda>k. (k, f k)) xs) Map.empty"
-    .
-  then have "map_of (List.map (\<lambda>k. (k, f k)) xs) = foldr (\<lambda>k m. m(k \<mapsto> f k)) xs Map.empty"
-    by (simp add: foldr_map comp_def)
+  have "map_of (List.map (\<lambda>k. (k, f k)) xs) = foldr (\<lambda>k m. m(k \<mapsto> f k)) xs Map.empty"
+    by (simp add: foldr_map comp_def map_of_foldr)
   also have "foldr (\<lambda>k m. m(k \<mapsto> f k)) xs = fold (\<lambda>k m. m(k \<mapsto> f k)) xs"
     by (rule foldr_fold) (simp add: fun_eq_iff)
   ultimately show "map_of (List.map (\<lambda>k. (k, f k)) xs) = fold (\<lambda>k m. m(k \<mapsto> f k)) xs Map.empty"
