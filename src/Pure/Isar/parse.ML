@@ -275,7 +275,7 @@ val xname = group (fn () => "name reference")
   (short_ident || long_ident || sym_ident || string || number);
 
 val text = group (fn () => "text")
-  (short_ident || long_ident || sym_ident || string || number || verbatim);
+  (short_ident || long_ident || sym_ident || string || number || verbatim || cartouche);
 
 val path = group (fn () => "file name/path specification") name;
 
@@ -386,7 +386,7 @@ val prop = inner_syntax prop_group;
 
 val const = inner_syntax (group (fn () => "constant") xname);
 
-val literal_fact = inner_syntax (group (fn () => "literal fact") alt_string);
+val literal_fact = inner_syntax (group (fn () => "literal fact") (alt_string || cartouche));
 
 
 (* patterns *)

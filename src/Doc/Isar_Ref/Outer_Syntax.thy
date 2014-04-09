@@ -265,14 +265,14 @@ subsection {* Comments \label{sec:comments} *}
 
 text {* Large chunks of plain @{syntax text} are usually given
   @{syntax verbatim}, i.e.\ enclosed in @{verbatim "{"}@{verbatim
-  "*"}~@{text "\<dots>"}~@{verbatim "*"}@{verbatim "}"}.  For convenience,
-  any of the smaller text units conforming to @{syntax nameref} are
-  admitted as well.  A marginal @{syntax comment} is of the form
-  @{verbatim "--"}~@{syntax text}.  Any number of these may occur
-  within Isabelle/Isar commands.
+  "*"}~@{text "\<dots>"}~@{verbatim "*"}@{verbatim "}"}, or as @{syntax
+  cartouche} @{text "\<open>\<dots>\<close>"}.  For convenience, any of the smaller text
+  units conforming to @{syntax nameref} are admitted as well.  A
+  marginal @{syntax comment} is of the form @{verbatim "--"}~@{syntax
+  text}.  Any number of these may occur within Isabelle/Isar commands.
 
   @{rail \<open>
-    @{syntax_def text}: @{syntax verbatim} | @{syntax nameref}
+    @{syntax_def text}: @{syntax verbatim} | @{syntax cartouche} | @{syntax nameref}
     ;
     @{syntax_def comment}: '--' @{syntax text}
   \<close>}
@@ -424,9 +424,9 @@ text {* Attributes have their own ``semi-inner'' syntax, in the sense
 
   \item selections from named facts @{text "a(i)"} or @{text "a(j - k)"},
 
-  \item literal fact propositions using @{syntax_ref altstring} syntax
-  @{verbatim "`"}@{text "\<phi>"}@{verbatim "`"} (see also method
-  @{method_ref fact}).
+  \item literal fact propositions using token syntax @{syntax_ref altstring}
+  @{verbatim "`"}@{text "\<phi>"}@{verbatim "`"} or @{syntax_ref cartouche}
+  @{text "\<open>\<phi>\<close>"} (see also method @{method_ref fact}).
 
   \end{enumerate}
 
@@ -451,7 +451,8 @@ text {* Attributes have their own ``semi-inner'' syntax, in the sense
     @{syntax_def thmdef}: thmbind '='
     ;
     @{syntax_def thmref}:
-      (@{syntax nameref} selection? | @{syntax altstring}) @{syntax attributes}? |
+      (@{syntax nameref} selection? | @{syntax altstring} | @{syntax cartouche})
+        @{syntax attributes}? |
       '[' @{syntax attributes} ']'
     ;
     @{syntax_def thmrefs}: @{syntax thmref} +

@@ -152,7 +152,7 @@ val ident = Parse.token
     Parse.type_ident || Parse.type_var || Parse.number);
 
 val string = Parse.token (Parse.string || Parse.verbatim);
-val alt_string = Parse.token Parse.alt_string;
+val alt_string = Parse.token (Parse.alt_string || Parse.cartouche);
 val symbolic = Parse.token (Parse.keyword_with Token.ident_or_symbolic);
 
 fun $$$ x =
