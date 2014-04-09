@@ -15,7 +15,6 @@ sig
   val show_consts: bool Config.T
   val pretty_flexpair: Proof.context -> term * term -> Pretty.T
   val pretty_goals: Proof.context -> thm -> Pretty.T list
-  val pretty_goals_without_context: thm -> Pretty.T list
   val pretty_goal: Proof.context -> thm -> Pretty.T
   val string_of_goal: Proof.context -> thm -> string
 end;
@@ -130,11 +129,6 @@ fun pretty_goals ctxt0 state =
     (if show_types then pretty_vars prop else []) @
     (if show_sorts0 then pretty_varsT prop else [])
   end;
-
-fun pretty_goals_without_context th =
-  let val ctxt =
-    Config.put show_main_goal true (Syntax.init_pretty_global (Thm.theory_of_thm th))
-  in pretty_goals ctxt th end;
 
 val pretty_goal = Pretty.chunks oo pretty_goals;
 val string_of_goal = Pretty.string_of oo pretty_goal;
