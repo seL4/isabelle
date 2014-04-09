@@ -81,9 +81,9 @@ val strong_congs = [@{thm "if_cong"}]
 val weak_congs   = [@{thm "if_weak_cong"}]
 
 (* debugging *)
-fun DEBUG_tac ctxt (msg,tac) = 
+fun DEBUG ctxt (msg,tac) = 
     CHANGED (EVERY [print_tac ctxt ("before "^msg), tac, print_tac ctxt ("after "^msg)]); 
-fun NO_DEBUG_tac _ (_,tac) = CHANGED tac; 
+fun NO_DEBUG _ (_,tac) = CHANGED tac; 
 
 
 (* simproc that deals with instances of permutations in front *)
@@ -370,19 +370,19 @@ fun fresh_guess_tac_i tactical ctxt i st =
     handle General.Subscript => Seq.empty;
 (* FIXME proper SUBGOAL/CSUBGOAL instead of cprems_of etc. *)
 
-val eqvt_simp_tac        = eqvt_asm_full_simp_tac_i NO_DEBUG_tac;
+val eqvt_simp_tac        = eqvt_asm_full_simp_tac_i NO_DEBUG;
 
-val perm_simp_tac        = perm_asm_full_simp_tac_i NO_DEBUG_tac;
-val perm_extend_simp_tac = perm_extend_simp_tac_i NO_DEBUG_tac;
-val supports_tac         = supports_tac_i NO_DEBUG_tac;
-val finite_guess_tac     = finite_guess_tac_i NO_DEBUG_tac;
-val fresh_guess_tac      = fresh_guess_tac_i NO_DEBUG_tac;
+val perm_simp_tac        = perm_asm_full_simp_tac_i NO_DEBUG;
+val perm_extend_simp_tac = perm_extend_simp_tac_i NO_DEBUG;
+val supports_tac         = supports_tac_i NO_DEBUG;
+val finite_guess_tac     = finite_guess_tac_i NO_DEBUG;
+val fresh_guess_tac      = fresh_guess_tac_i NO_DEBUG;
 
-val dperm_simp_tac        = perm_asm_full_simp_tac_i DEBUG_tac;
-val dperm_extend_simp_tac = perm_extend_simp_tac_i DEBUG_tac;
-val dsupports_tac         = supports_tac_i DEBUG_tac;
-val dfinite_guess_tac     = finite_guess_tac_i DEBUG_tac;
-val dfresh_guess_tac      = fresh_guess_tac_i DEBUG_tac;
+val dperm_simp_tac        = perm_asm_full_simp_tac_i DEBUG;
+val dperm_extend_simp_tac = perm_extend_simp_tac_i DEBUG;
+val dsupports_tac         = supports_tac_i DEBUG;
+val dfinite_guess_tac     = finite_guess_tac_i DEBUG;
+val dfresh_guess_tac      = fresh_guess_tac_i DEBUG;
 
 (* Code opied from the Simplifer for setting up the perm_simp method   *)
 (* behaves nearly identical to the simp-method, for example can handle *)
@@ -393,11 +393,11 @@ val no_asm_simpN = "no_asm_simp";
 val asm_lrN = "asm_lr";
 
 val perm_simp_options =
- (Args.parens (Args.$$$ no_asmN) >> K (perm_simp_tac_i NO_DEBUG_tac) ||
-  Args.parens (Args.$$$ no_asm_simpN) >> K (perm_asm_simp_tac_i NO_DEBUG_tac) ||
-  Args.parens (Args.$$$ no_asm_useN) >> K (perm_full_simp_tac_i NO_DEBUG_tac) ||
-  Args.parens (Args.$$$ asm_lrN) >> K (perm_asm_lr_simp_tac_i NO_DEBUG_tac) ||
-  Scan.succeed (perm_asm_full_simp_tac_i NO_DEBUG_tac));
+ (Args.parens (Args.$$$ no_asmN) >> K (perm_simp_tac_i NO_DEBUG) ||
+  Args.parens (Args.$$$ no_asm_simpN) >> K (perm_asm_simp_tac_i NO_DEBUG) ||
+  Args.parens (Args.$$$ no_asm_useN) >> K (perm_full_simp_tac_i NO_DEBUG) ||
+  Args.parens (Args.$$$ asm_lrN) >> K (perm_asm_lr_simp_tac_i NO_DEBUG) ||
+  Scan.succeed (perm_asm_full_simp_tac_i NO_DEBUG));
 
 val perm_simp_meth =
   Scan.lift perm_simp_options --| Method.sections (Simplifier.simp_modifiers') >>
