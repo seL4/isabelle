@@ -95,7 +95,7 @@ fun import_theorem ctxt thm = if is_too_generic thm then [] else
 
 fun add_thm (raw, lv) thm ctxt = add (if raw then [thm] else import_theorem ctxt thm) lv ctxt;
 
-fun debug_tac ctxt msg f = if Config.get ctxt debug then print_tac (msg ()) THEN f else f
+fun debug_tac ctxt msg f = if Config.get ctxt debug then print_tac ctxt (msg ()) THEN f else f
 
 fun nth_hol_goal thm i =
   HOLogic.dest_Trueprop (Logic.strip_imp_concl (strip_all_body (nth (prems_of thm) (i - 1))))

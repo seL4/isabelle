@@ -175,7 +175,7 @@ text %mlref {*
   @{index_ML_type tactic: "thm -> thm Seq.seq"} \\
   @{index_ML no_tac: tactic} \\
   @{index_ML all_tac: tactic} \\
-  @{index_ML print_tac: "string -> tactic"} \\[1ex]
+  @{index_ML print_tac: "Proof.context -> string -> tactic"} \\[1ex]
   @{index_ML PRIMITIVE: "(thm -> thm) -> tactic"} \\[1ex]
   @{index_ML SUBGOAL: "(term * int -> tactic) -> int -> tactic"} \\
   @{index_ML CSUBGOAL: "(cterm * int -> tactic) -> int -> tactic"} \\
@@ -200,7 +200,7 @@ text %mlref {*
   \item @{ML all_tac} is a tactic that always succeeds, returning a
   singleton sequence with unchanged goal state.
 
-  \item @{ML print_tac}~@{text "message"} is like @{ML all_tac}, but
+  \item @{ML print_tac}~@{text "ctxt message"} is like @{ML all_tac}, but
   prints a message together with the goal state on the tracing
   channel.
 

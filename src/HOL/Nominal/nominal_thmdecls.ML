@@ -47,7 +47,7 @@ val nominal_eqvt_debug = Attrib.setup_config_bool @{binding nominal_eqvt_debug} 
 
 fun tactic ctxt (msg, tac) =
   if Config.get ctxt nominal_eqvt_debug
-  then tac THEN' (K (print_tac ("after " ^ msg)))
+  then tac THEN' (K (print_tac ctxt ("after " ^ msg)))
   else tac
 
 fun prove_eqvt_tac ctxt orig_thm pi pi' =

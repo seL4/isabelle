@@ -196,7 +196,7 @@ fun repeat_goal_tac ctxt =
     val lastrestac = RESOLVE_THEN unsafes;
     fun gtac i =
       restac gtac i ORELSE
-       (if Config.get ctxt trace then print_tac "" THEN lastrestac gtac i
+       (if Config.get ctxt trace then print_tac ctxt "" THEN lastrestac gtac i
         else lastrestac gtac i)
   in gtac end;
 

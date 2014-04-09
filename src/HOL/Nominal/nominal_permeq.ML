@@ -81,9 +81,9 @@ val strong_congs = [@{thm "if_cong"}]
 val weak_congs   = [@{thm "if_weak_cong"}]
 
 (* debugging *)
-fun DEBUG_tac (msg,tac) = 
-    CHANGED (EVERY [print_tac ("before "^msg), tac, print_tac ("after "^msg)]); 
-fun NO_DEBUG_tac (_,tac) = CHANGED tac; 
+fun DEBUG_tac ctxt (msg,tac) = 
+    CHANGED (EVERY [print_tac ctxt ("before "^msg), tac, print_tac ctxt ("after "^msg)]); 
+fun NO_DEBUG_tac _ (_,tac) = CHANGED tac; 
 
 
 (* simproc that deals with instances of permutations in front *)
@@ -170,8 +170,8 @@ fun eqvt_simp stac ctxt =
 
 
 (* main simplification tactics for permutations *)
-fun perm_simp_tac_gen_i stac tactical ctxt i = DETERM (tactical (perm_simp stac ctxt i));
-fun eqvt_simp_tac_gen_i stac tactical ctxt i = DETERM (tactical (eqvt_simp stac ctxt i)); 
+fun perm_simp_tac_gen_i stac tactical ctxt i = DETERM (tactical ctxt (perm_simp stac ctxt i));
+fun eqvt_simp_tac_gen_i stac tactical ctxt i = DETERM (tactical ctxt (eqvt_simp stac ctxt i)); 
 
 val perm_simp_tac_i          = perm_simp_tac_gen_i simp_tac
 val perm_asm_simp_tac_i      = perm_simp_tac_gen_i asm_simp_tac
@@ -253,12 +253,12 @@ fun perm_extend_simp_tac_i tactical ctxt =
   let fun perm_extend_simp_tac_aux tactical ctxt n = 
           if n=0 then K all_tac
           else DETERM o 
-               (FIRST'[fn i => tactical ("splitting conjunctions on the rhs", rtac conjI i),
-                       fn i => tactical (perm_simp asm_full_simp_tac ctxt i),
-                       fn i => tactical (perm_compose_tac ctxt i),
-                       fn i => tactical (apply_cong_tac i), 
-                       fn i => tactical (unfold_perm_fun_def_tac i),
-                       fn i => tactical (ext_fun_tac i)]
+               (FIRST'[fn i => tactical ctxt ("splitting conjunctions on the rhs", rtac conjI i),
+                       fn i => tactical ctxt (perm_simp asm_full_simp_tac ctxt i),
+                       fn i => tactical ctxt (perm_compose_tac ctxt i),
+                       fn i => tactical ctxt (apply_cong_tac i), 
+                       fn i => tactical ctxt (unfold_perm_fun_def_tac i),
+                       fn i => tactical ctxt (ext_fun_tac i)]
                       THEN_ALL_NEW (TRY o (perm_extend_simp_tac_aux tactical ctxt (n-1))))
   in perm_extend_simp_tac_aux tactical ctxt 10 end;
 
@@ -270,11 +270,11 @@ fun supports_tac_i tactical ctxt i =
   let 
      val simps        = [supports_def, Thm.symmetric fresh_def, fresh_prod]
   in
-      EVERY [tactical ("unfolding of supports   ", simp_tac (put_simpset HOL_basic_ss ctxt addsimps simps) i),
-             tactical ("stripping of foralls    ", REPEAT_DETERM (rtac allI i)),
-             tactical ("geting rid of the imps  ", rtac impI i),
-             tactical ("eliminating conjuncts   ", REPEAT_DETERM (etac  conjE i)),
-             tactical ("applying eqvt_simp      ", eqvt_simp_tac_gen_i asm_full_simp_tac tactical ctxt i )]
+      EVERY [tactical ctxt ("unfolding of supports   ", simp_tac (put_simpset HOL_basic_ss ctxt addsimps simps) i),
+             tactical ctxt ("stripping of foralls    ", REPEAT_DETERM (rtac allI i)),
+             tactical ctxt ("geting rid of the imps  ", rtac impI i),
+             tactical ctxt ("eliminating conjuncts   ", REPEAT_DETERM (etac  conjE i)),
+             tactical ctxt ("applying eqvt_simp      ", eqvt_simp_tac_gen_i asm_full_simp_tac tactical ctxt i )]
   end;
 
 
@@ -314,7 +314,7 @@ fun finite_guess_tac_i tactical ctxt i st =
             val fin_supp = dynamic_thms st ("fin_supp")
             val ctxt' = ctxt addsimps [supp_prod,supp_unit,finite_Un,finite_emptyI,conj_absorb]@fin_supp
           in
-            (tactical ("guessing of the right supports-set",
+            (tactical ctxt ("guessing of the right supports-set",
                       EVERY [compose_tac (false, supports_rule'', 2) i,
                              asm_full_simp_tac ctxt' (i+1),
                              supports_tac_i tactical ctxt i])) st
@@ -356,7 +356,7 @@ fun fresh_guess_tac_i tactical ctxt i st =
             val supports_fresh_rule'' = Drule.cterm_instantiate
               [(cert (head_of S), cert s')] supports_fresh_rule'
           in
-            (tactical ("guessing of the right set that supports the goal", 
+            (tactical ctxt ("guessing of the right set that supports the goal", 
                       (EVERY [compose_tac (false, supports_fresh_rule'', 3) i,
                              asm_full_simp_tac ctxt1 (i+2),
                              asm_full_simp_tac ctxt2 (i+1), 
@@ -364,7 +364,7 @@ fun fresh_guess_tac_i tactical ctxt i st =
           end
           (* when a term-constructor contains more than one binder, it is useful    *) 
           (* in nominal_primrecs to try whether the goal can be solved by an hammer *)
-        | _ => (tactical ("if it is not of the form _\<sharp>_, then try the simplifier",   
+        | _ => (tactical ctxt ("if it is not of the form _\<sharp>_, then try the simplifier",   
                           (asm_full_simp_tac (put_simpset HOL_ss ctxt addsimps [fresh_prod]@fresh_atm) i))) st
     end
     handle General.Subscript => Seq.empty;
