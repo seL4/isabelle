@@ -67,7 +67,7 @@ fun copy_dir src dst =
   else (system_command ("cp -p -R -f " ^ File.shell_path src ^ "/. " ^ File.shell_path dst); ());
 
 
-(* unique tmp files *)
+(* tmp files *)
 
 fun create_tmp_path name ext =
   let
@@ -79,6 +79,9 @@ fun create_tmp_path name ext =
 fun with_tmp_file name ext f =
   let val path = create_tmp_path name ext
   in Exn.release (Exn.capture f path before ignore (try File.rm path)) end;
+
+
+(* tmp dirs *)
 
 fun rm_tree path = system_command ("rm -r -f " ^ File.shell_path path);
 
