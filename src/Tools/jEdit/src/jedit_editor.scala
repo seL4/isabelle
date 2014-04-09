@@ -161,6 +161,7 @@ class JEdit_Editor extends Editor[View]
 
   def hyperlink_url(name: String): Hyperlink =
     new Hyperlink {
+      val external = true
       def follow(view: View) =
         default_thread_pool.submit(() =>
           try { Isabelle_System.open(name) }
@@ -173,6 +174,7 @@ class JEdit_Editor extends Editor[View]
 
   def hyperlink_file(name: String, line: Int = 0, column: Int = 0): Hyperlink =
     new Hyperlink {
+      val external = false
       def follow(view: View) = goto_file(view, name, line, column)
       override def toString: String = "file " + quote(name)
     }
