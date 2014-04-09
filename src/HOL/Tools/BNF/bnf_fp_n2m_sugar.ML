@@ -353,14 +353,15 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts actual_callers actual_callssss0 
         fold (fold_subtype_pairs maybe_insert) (ctr_Ts ~~ gen_ctr_Ts) []
       end;
 
-    fun gather_types _ _ num_groups seen gen_seen [] = (num_groups, seen, gen_seen)
-      | gather_types lthy rho num_groups seen gen_seen ((T as Type (_, tyargs)) :: Ts) =
+    fun gather_types _ _ rev_seens gen_seen [] = (rev rev_seens, gen_seen)
+      | gather_types lthy rho rev_seens gen_seen ((T as Type (_, tyargs)) :: Ts) =
         let
           val {fp_res = {Ts = mutual_Ts0, ...}, ...} = the_fp_sugar_of T;
           val mutual_Ts = map (retypargs tyargs) mutual_Ts0;
 
-          val _ = seen = [] orelse exists (exists_strict_subtype_in seen) mutual_Ts orelse
-            not_mutually_nested_rec mutual_Ts seen;
+          val rev_seen = flat rev_seens;
+          val _ = null rev_seens orelse exists (exists_strict_subtype_in rev_seen) mutual_Ts orelse
+            not_mutually_nested_rec mutual_Ts rev_seen;
 
           fun fresh_tyargs () =
             let
@@ -374,7 +375,7 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts actual_callers actual_callssss0 
             end;
 
           val (rho', gen_tyargs, gen_seen', lthy') =
-            if exists (exists_subtype_in seen) mutual_Ts then
+            if exists (exists_subtype_in rev_seen) mutual_Ts then
               (case gen_rhss_in gen_seen rho mutual_Ts of
                 [] => fresh_tyargs ()
               | gen_tyargs :: gen_tyargss_tl =>
@@ -393,12 +394,14 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts actual_callers actual_callssss0 
           val other_mutual_Ts = remove1 (op =) T mutual_Ts;
           val Ts' = fold (remove1 (op =)) other_mutual_Ts Ts;
         in
-          gather_types lthy' rho' (num_groups + 1) (seen @ mutual_Ts) (gen_seen' @ gen_mutual_Ts)
-            Ts'
+          gather_types lthy' rho' (mutual_Ts :: rev_seens) (gen_seen' @ gen_mutual_Ts) Ts'
         end
-      | gather_types _ _ _ _ _ (T :: _) = not_co_datatype T;
+      | gather_types _ _ _ _ (T :: _) = not_co_datatype T;
 
-    val (num_groups, perm_Ts, perm_gen_Ts) = gather_types lthy [] 0 [] [] sorted_actual_Ts;
+    val (perm_Tss, perm_gen_Ts) = gather_types lthy [] [] [] sorted_actual_Ts;
+    val (perm_cliques, perm_Ts) =
+      split_list (flat (map_index (fn (i, perm_Ts) => map (pair i) perm_Ts) perm_Tss));
+
     val perm_frozen_gen_Ts = map Logic.unvarifyT_global perm_gen_Ts;
 
     val missing_Ts = fold (remove1 (op =)) actual_Ts perm_Ts;
@@ -416,6 +419,10 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts actual_callers actual_callssss0 
     fun permute xs = permute_like (op =) Ts perm_Ts xs;
     fun unpermute perm_xs = permute_like (op =) perm_Ts Ts perm_xs;
 
+    (* The assignment of callers to cliques is incorrect in general. This code would need to inspect
+       the actual calls to discover the correct cliques in the presence of type duplicates. However,
+       the naive scheme implemented here supports "prim(co)rec" specifications following reasonable
+       ordering of the duplicates (e.g., keeping the cliques together). *)
     val perm_bs = permute bs;
     val perm_callers = permute callers;
     val perm_kks = permute kks;
@@ -424,14 +431,12 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts actual_callers actual_callssss0 
 
     val perm_callssss = map2 (indexify_callsss o #ctrs o #ctr_sugar) perm_fp_sugars0 perm_callssss0;
 
-    val perm_cliques = [] (*###*)
-
     val ((perm_fp_sugars, fp_sugar_thms), lthy) =
-      if num_groups > 1 then
-        mutualize_fp_sugars fp perm_cliques perm_bs perm_frozen_gen_Ts perm_callers perm_callssss
-          perm_fp_sugars0 lthy
+      if can the_single perm_Tss then
+        ((perm_fp_sugars0, (NONE, NONE)), lthy)
       else
-        ((perm_fp_sugars0, (NONE, NONE)), lthy);
+        mutualize_fp_sugars fp perm_cliques perm_bs perm_frozen_gen_Ts perm_callers perm_callssss
+          perm_fp_sugars0 lthy;
 
     val fp_sugars = unpermute perm_fp_sugars;
   in
