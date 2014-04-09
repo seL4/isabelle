@@ -1968,19 +1968,23 @@ lemma powr_neg_numeral: "0 < x \<Longrightarrow> x powr - numeral n = 1 / x ^ nu
 lemma root_powr_inverse: "0 < n \<Longrightarrow> 0 < x \<Longrightarrow> root n x = x powr (1/n)"
   by (rule real_root_pos_unique) (auto simp: powr_realpow[symmetric] powr_powr)
 
-lemma ln_powr: "0 < x ==> 0 < y ==> ln(x powr y) = y * ln x"
-  unfolding powr_def by simp
+lemma ln_powr: "ln (x powr y) = y * ln x"
+  by (simp add: powr_def)
 
-lemma log_powr: "0 < x ==> 0 \<le> y ==> log b (x powr y) = y * log b x"
-  apply (cases "y = 0")
-  apply force
-  apply (auto simp add: log_def ln_powr field_simps)
-  done
+lemma log_powr: "log b (x powr y) = y * log b x"
+  by (simp add: log_def ln_powr)
 
-lemma log_nat_power: "0 < x ==> log b (x^n) = real n * log b x"
-  apply (subst powr_realpow [symmetric])
-  apply (auto simp add: log_powr)
-  done
+lemma log_nat_power: "0 < x \<Longrightarrow> log b (x ^ n) = real n * log b x"
+  by (simp add: log_powr powr_realpow [symmetric])
+
+lemma log_base_change: "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> log b x = log a x / log a b"
+  by (simp add: log_def)
+
+lemma log_base_pow: "0 < a \<Longrightarrow> log (a ^ n) x = log a x / n"
+  by (simp add: log_def ln_realpow)
+
+lemma log_base_powr: "log (a powr b) x = log a x / b"
+  by (simp add: log_def ln_powr)
 
 lemma ln_bound: "1 <= x ==> ln x <= x"
   apply (subgoal_tac "ln(1 + (x - 1)) <= x - 1")

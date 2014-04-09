@@ -1804,12 +1804,7 @@ proof -
     hence pow_gt0: "(0::real) < 2^nat (-e)" by auto
     hence inv_gt0: "(0::real) < inverse (2^nat (-e))" by auto
     show ?thesis using False unfolding bl_def[symmetric] using `0 < real m` `0 \<le> bl`
-      apply (simp add: ln_mult lne)
-      apply (cases "e=0")
-        apply (cases "bl = 0", simp_all add: powr_minus ln_inverse ln_powr)
-        apply (simp add: ln_inverse lne)
-        apply (cases "bl = 0", simp_all add: ln_inverse ln_powr field_simps)
-      done
+      by (auto simp add: lne ln_mult ln_powr ln_div field_simps)
   qed
 qed
 
