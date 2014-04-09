@@ -23,6 +23,19 @@ class inverse =
   fixes inverse :: "'a \<Rightarrow> 'a"
     and divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "'/" 70)
 
+text{* Lemmas @{text divide_simps} move division to the outside and eliminates them on (in)equalities. *}
+
+ML {*
+structure Divide_Simps = Named_Thms
+(
+  val name = @{binding divide_simps}
+  val description = "rewrite rules to eliminate divisions"
+)
+*}
+
+setup Divide_Simps.setup
+
+
 class division_ring = ring_1 + inverse +
   assumes left_inverse [simp]:  "a \<noteq> 0 \<Longrightarrow> inverse a * a = 1"
   assumes right_inverse [simp]: "a \<noteq> 0 \<Longrightarrow> a * inverse a = 1"
@@ -131,7 +144,7 @@ by (simp add: divide_inverse)
 lemma divide_zero_left [simp]: "0 / a = 0"
 by (simp add: divide_inverse)
 
-lemma inverse_eq_divide [field_simps]: "inverse a = 1 / a"
+lemma inverse_eq_divide [field_simps, divide_simps]: "inverse a = 1 / a"
 by (simp add: divide_inverse)
 
 lemma add_divide_distrib: "(a+b) / c = a/c + b/c"
@@ -253,6 +266,23 @@ lemma inverse_eq_imp_eq:
 lemma inverse_eq_iff_eq [simp]:
   "inverse a = inverse b \<longleftrightarrow> a = b"
   by (force dest!: inverse_eq_imp_eq)
+
+lemma add_divide_eq_if_simps [divide_simps]:
+    "a + b / z = (if z = 0 then a else (a * z + b) / z)"
+    "a / z + b = (if z = 0 then b else (a + b * z) / z)"
+    "- (a / z) + b = (if z = 0 then b else (-a + b * z) / z)"
+    "a - b / z = (if z = 0 then a else (a * z - b) / z)"
+    "a / z - b = (if z = 0 then -b else (a - b * z) / z)"
+    "- (a / z) - b = (if z = 0 then -b else (- a - b * z) / z)"
+  by (simp_all add: add_divide_eq_iff divide_add_eq_iff diff_divide_eq_iff divide_diff_eq_iff
+      minus_divide_diff_eq_iff)
+
+lemma [divide_simps]:
+  shows divide_eq_eq: "b / c = a \<longleftrightarrow> (if c \<noteq> 0 then b = a * c else a = 0)"
+    and eq_divide_eq: "a = b / c \<longleftrightarrow> (if c \<noteq> 0 then a * c = b else a = 0)"
+    and minus_divide_eq_eq: "- (b / c) = a \<longleftrightarrow> (if c \<noteq> 0 then - b = a * c else a = 0)"
+    and eq_minus_divide_eq: "a = - (b / c) \<longleftrightarrow> (if c \<noteq> 0 then a * c = - b else a = 0)"
+  by (auto simp add:  field_simps)
 
 end
 
@@ -431,14 +461,6 @@ lemma minus_divide_divide:
 apply (cases "b=0", simp) 
 apply (simp add: nonzero_minus_divide_divide) 
 done
-
-lemma eq_divide_eq:
-  "a = b / c \<longleftrightarrow> (if c \<noteq> 0 then a * c = b else a = 0)"
-  by (simp add: nonzero_eq_divide_eq)
-
-lemma divide_eq_eq:
-  "b / c = a \<longleftrightarrow> (if c \<noteq> 0 then b = a * c else a = 0)"
-  by (force simp add: nonzero_divide_eq_eq)
 
 lemma inverse_eq_1_iff [simp]:
   "inverse x = 1 \<longleftrightarrow> x = 1"
@@ -966,11 +988,15 @@ lemma inverse_less_1_iff: "inverse x < 1 \<longleftrightarrow> x \<le> 0 \<or> 1
 lemma inverse_le_1_iff: "inverse x \<le> 1 \<longleftrightarrow> x \<le> 0 \<or> 1 \<le> x"
   by (simp add: not_less [symmetric] one_less_inverse_iff) 
 
-lemma 
+lemma [divide_simps]:
   shows le_divide_eq: "a \<le> b / c \<longleftrightarrow> (if 0 < c then a * c \<le> b else if c < 0 then b \<le> a * c else a \<le> 0)"
     and divide_le_eq: "b / c \<le> a \<longleftrightarrow> (if 0 < c then b \<le> a * c else if c < 0 then a * c \<le> b else 0 \<le> a)"
     and less_divide_eq: "a < b / c \<longleftrightarrow> (if 0 < c then a * c < b else if c < 0 then b < a * c else a < 0)"
     and divide_less_eq: "b / c < a \<longleftrightarrow> (if 0 < c then b < a * c else if c < 0 then a * c < b else 0 < a)"
+    and le_minus_divide_eq: "a \<le> - (b / c) \<longleftrightarrow> (if 0 < c then a * c \<le> - b else if c < 0 then - b \<le> a * c else a \<le> 0)"
+    and minus_divide_le_eq: "- (b / c) \<le> a \<longleftrightarrow> (if 0 < c then - b \<le> a * c else if c < 0 then a * c \<le> - b else 0 \<le> a)"
+    and less_minus_divide_eq: "a < - (b / c) \<longleftrightarrow> (if 0 < c then a * c < - b else if c < 0 then - b < a * c else  a < 0)"
+    and minus_divide_less_eq: "- (b / c) < a \<longleftrightarrow> (if 0 < c then - b < a * c else if c < 0 then a * c < - b else 0 < a)"
   by (auto simp: field_simps not_less dest: antisym)
 
 text {*Division and Signs*}
@@ -980,7 +1006,7 @@ lemma
     and divide_less_0_iff: "a / b < 0 \<longleftrightarrow> 0 < a \<and> b < 0 \<or> a < 0 \<and> 0 < b"
     and zero_le_divide_iff: "0 \<le> a / b \<longleftrightarrow> 0 \<le> a \<and> 0 \<le> b \<or> a \<le> 0 \<and> b \<le> 0"
     and divide_le_0_iff: "a / b \<le> 0 \<longleftrightarrow> 0 \<le> a \<and> b \<le> 0 \<or> a \<le> 0 \<and> 0 \<le> b"
-  by (simp_all add: divide_inverse zero_less_mult_iff mult_less_0_iff zero_le_mult_iff mult_le_0_iff)
+  by (auto simp add: divide_simps)
 
 text {* Division and the Number One *}
 
