@@ -214,9 +214,6 @@ object Protocol
 
   /* specific messages */
 
-  def is_inlined(msg: XML.Tree): Boolean =
-    !(is_result(msg) || is_tracing(msg) || is_state(msg))
-
   def is_result(msg: XML.Tree): Boolean =
     msg match {
       case XML.Elem(Markup(Markup.RESULT, _), _) => true
@@ -239,8 +236,14 @@ object Protocol
       case _ => false
     }
 
-  def is_state(msg: XML.Tree): Boolean = is_writeln_markup(msg, Markup.STATE)
-  def is_information(msg: XML.Tree): Boolean = is_writeln_markup(msg, Markup.INFORMATION)
+  def is_warning_markup(msg: XML.Tree, name: String): Boolean =
+    msg match {
+      case XML.Elem(Markup(Markup.WARNING, _),
+        List(XML.Elem(markup, _))) => markup.name == name
+      case XML.Elem(Markup(Markup.WARNING_MESSAGE, _),
+        List(XML.Elem(markup, _))) => markup.name == name
+      case _ => false
+    }
 
   def is_warning(msg: XML.Tree): Boolean =
     msg match {
@@ -255,6 +258,13 @@ object Protocol
       case XML.Elem(Markup(Markup.ERROR_MESSAGE, _), _) => true
       case _ => false
     }
+
+  def is_state(msg: XML.Tree): Boolean = is_writeln_markup(msg, Markup.STATE)
+  def is_information(msg: XML.Tree): Boolean = is_writeln_markup(msg, Markup.INFORMATION)
+  def is_legacy(msg: XML.Tree): Boolean = is_warning_markup(msg, Markup.LEGACY)
+
+  def is_inlined(msg: XML.Tree): Boolean =
+    !(is_result(msg) || is_tracing(msg) || is_state(msg))
 
 
   /* dialogs */

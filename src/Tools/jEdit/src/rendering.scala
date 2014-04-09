@@ -495,7 +495,14 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   lazy val tooltip_detach_icon = JEdit_Lib.load_icon(options.string("tooltip_detach_icon"))
 
 
-  /* gutter icons */
+  /* gutter */
+
+  private def gutter_message_pri(msg: XML.Tree): Int =
+    if (Protocol.is_error(msg)) Rendering.error_pri
+    else if (Protocol.is_legacy(msg)) Rendering.legacy_pri
+    else if (Protocol.is_warning(msg)) Rendering.warning_pri
+    else if (Protocol.is_information(msg)) Rendering.information_pri
+    else 0
 
   private lazy val gutter_icons = Map(
     Rendering.information_pri -> JEdit_Lib.load_icon(options.string("gutter_information_icon")),
@@ -503,27 +510,17 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     Rendering.legacy_pri -> JEdit_Lib.load_icon(options.string("gutter_legacy_icon")),
     Rendering.error_pri -> JEdit_Lib.load_icon(options.string("gutter_error_icon")))
 
-  def gutter_message(range: Text.Range): Option[Icon] =
+  def gutter_icon(range: Text.Range): Option[Icon] =
   {
-    val results =
+    val pris =
       snapshot.cumulate[Int](range, 0, Rendering.gutter_elements, _ =>
         {
-          case (pri, Text.Info(_, XML.Elem(Markup(Markup.WRITELN, _),
-              List(XML.Elem(Markup(Markup.INFORMATION, _), _))))) =>
-            Some(pri max Rendering.information_pri)
-          case (pri, Text.Info(_, XML.Elem(Markup(Markup.WARNING, _), body))) =>
-            body match {
-              case List(XML.Elem(Markup(Markup.LEGACY, _), _)) =>
-                Some(pri max Rendering.legacy_pri)
-              case _ =>
-                Some(pri max Rendering.warning_pri)
-            }
-          case (pri, Text.Info(_, XML.Elem(Markup(Markup.ERROR, _), _))) =>
-            Some(pri max Rendering.error_pri)
+          case (pri, Text.Info(_, msg @ XML.Elem(Markup(_, Markup.Serial(serial)), _))) =>
+            Some(pri max gutter_message_pri(msg))
           case _ => None
-        })
-    val pri = (0 /: results) { case (p1, Text.Info(_, p2)) => p1 max p2 }
-    gutter_icons.get(pri)
+        }).map(_.info)
+
+    gutter_icons.get((0 /: pris)(_ max _))
   }
 
 
