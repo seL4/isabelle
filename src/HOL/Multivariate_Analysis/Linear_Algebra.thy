@@ -569,12 +569,8 @@ lemma real_arch_simple: "\<exists>n::nat. x \<le> real n"
   unfolding real_of_nat_def by (rule ex_le_of_nat)
 
 lemma real_arch_inv: "0 < e \<longleftrightarrow> (\<exists>n::nat. n \<noteq> 0 \<and> 0 < inverse (real n) \<and> inverse (real n) < e)"
-  using reals_Archimedean
-  apply (auto simp add: field_simps)
-  apply (subgoal_tac "inverse (real n) > 0")
-  apply arith
-  apply simp
-  done
+  using reals_Archimedean[of e] less_trans[of 0 "1 / real n" e for n::nat]
+  by (auto simp add: field_simps cong: conj_cong)
 
 lemma real_pow_lbound: "0 \<le> x \<Longrightarrow> 1 + real n * x \<le> (1 + x) ^ n"
 proof (induct n)
@@ -629,7 +625,7 @@ proof (cases "x > 0")
   from real_arch_pow[OF ix, of "1/y"]
   obtain n where n: "1/y < (1/x)^n" by blast
   then show ?thesis using y `x > 0`
-    by (auto simp add: field_simps power_divide)
+    by (auto simp add: field_simps)
 next
   case False
   with y x1 show ?thesis
@@ -1147,7 +1143,7 @@ proof -
       using fS SP vS by auto
     have "setsum (\<lambda>v. ?u v *\<^sub>R v) ?S =
       setsum (\<lambda>v. (- (inverse (u ?a))) *\<^sub>R (u v *\<^sub>R v)) S - ?u v *\<^sub>R v"
-      using fS vS uv by (simp add: setsum_diff1 divide_inverse field_simps)
+      using fS vS uv by (simp add: setsum_diff1 field_simps)
     also have "\<dots> = ?a"
       unfolding scaleR_right.setsum [symmetric] u using uv by simp
     finally have "setsum (\<lambda>v. ?u v *\<^sub>R v) ?S = ?a" .

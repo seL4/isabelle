@@ -830,22 +830,12 @@ proof
   then show "a * b \<noteq> 0" by (simp add: neq_iff)
 qed
 
-lemma zero_less_mult_iff:
-  "0 < a * b \<longleftrightarrow> 0 < a \<and> 0 < b \<or> a < 0 \<and> b < 0"
-  apply (auto simp add: mult_pos_pos mult_neg_neg)
-  apply (simp_all add: not_less le_less)
-  apply (erule disjE) apply assumption defer
-  apply (erule disjE) defer apply (drule sym) apply simp
-  apply (erule disjE) defer apply (drule sym) apply simp
-  apply (erule disjE) apply assumption apply (drule sym) apply simp
-  apply (drule sym) apply simp
-  apply (blast dest: zero_less_mult_pos)
-  apply (blast dest: zero_less_mult_pos2)
-  done
+lemma zero_less_mult_iff: "0 < a * b \<longleftrightarrow> 0 < a \<and> 0 < b \<or> a < 0 \<and> b < 0"
+  by (cases a 0 b 0 rule: linorder_cases[case_product linorder_cases])
+     (auto simp add: mult_pos_pos mult_neg_neg not_less le_less dest: zero_less_mult_pos zero_less_mult_pos2)
 
-lemma zero_le_mult_iff:
-  "0 \<le> a * b \<longleftrightarrow> 0 \<le> a \<and> 0 \<le> b \<or> a \<le> 0 \<and> b \<le> 0"
-by (auto simp add: eq_commute [of 0] le_less not_less zero_less_mult_iff)
+lemma zero_le_mult_iff: "0 \<le> a * b \<longleftrightarrow> 0 \<le> a \<and> 0 \<le> b \<or> a \<le> 0 \<and> b \<le> 0"
+  by (auto simp add: eq_commute [of 0] le_less not_less zero_less_mult_iff)
 
 lemma mult_less_0_iff:
   "a * b < 0 \<longleftrightarrow> 0 < a \<and> b < 0 \<or> a < 0 \<and> 0 < b"

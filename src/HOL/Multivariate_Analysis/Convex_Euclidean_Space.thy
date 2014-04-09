@@ -5964,10 +5964,10 @@ proof -
         by (auto simp add: field_simps)
       then have "inverse d * (x \<bullet> i * 2) \<le> 2 + inverse d * (y \<bullet> i * 2)"
         "inverse d * (y \<bullet> i * 2) \<le> 2 + inverse d * (x \<bullet> i * 2)"
-        by (auto simp add:field_simps) }
+        using `0<d` by (auto simp add: field_simps) }
     then have "inverse (2 * d) *\<^sub>R (y - (x - ?d)) \<in> cbox 0 (\<Sum>Basis)"
       unfolding mem_box using assms
-      by (auto simp add: field_simps inner_simps)
+      by (auto simp add: field_simps inner_simps simp del: inverse_eq_divide)
     then show "\<exists>z\<in>cbox 0 (\<Sum>Basis). y = x - ?d + (2 * d) *\<^sub>R z"
       apply -
       apply (rule_tac x="inverse (2 * d) *\<^sub>R (y - (x - ?d))" in bexI)

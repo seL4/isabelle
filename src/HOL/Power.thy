@@ -108,7 +108,7 @@ end
 context comm_monoid_mult
 begin
 
-lemma power_mult_distrib:
+lemma power_mult_distrib [field_simps]:
   "(a * b) ^ n = (a ^ n) * (b ^ n)"
   by (induct n) (simp_all add: mult_ac)
 
@@ -661,7 +661,7 @@ lemma power_one_over:
   "1 / (a::'a::{field_inverse_zero, power}) ^ n =  (1 / a) ^ n"
   by (simp add: divide_inverse) (rule power_inverse)
 
-lemma power_divide:
+lemma power_divide [field_simps]:
   "(a / b) ^ n = (a::'a::field_inverse_zero) ^ n / b ^ n"
 apply (cases "b = 0")
 apply (simp add: power_0_left)

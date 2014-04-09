@@ -427,7 +427,7 @@ lemma has_derivative_divide[simp, derivative_intros]:
   shows "((\<lambda>x. f x / g x) has_derivative
                 (\<lambda>h. - f x * (inverse (g x) * g' h * inverse (g x)) + f' h / g x)) (at x within s)"
   using has_derivative_mult[OF f has_derivative_inverse[OF x g]]
-  by (simp add: divide_inverse field_simps)
+  by (simp add: field_simps)
 
 text{*Conventional form requires mult-AC laws. Types real and complex only.*}
 
@@ -439,7 +439,7 @@ proof -
   { fix h
     have "f' h / g x - f x * (inverse (g x) * g' h * inverse (g x)) =
           (f' h * g x - f x * g' h) / (g x * g x)"
-      by (simp add: divide_inverse field_simps nonzero_inverse_mult_distrib x)
+      by (simp add: field_simps x)
    }
   then show ?thesis
     using has_derivative_divide [OF f g] x
@@ -728,7 +728,7 @@ lemma DERIV_divide[derivative_intros]:
   (g has_field_derivative E) (at x within s) \<Longrightarrow> g x \<noteq> 0 \<Longrightarrow>
   ((\<lambda>x. f x / g x) has_field_derivative (D * g x - f x * E) / (g x * g x)) (at x within s)"
   by (rule has_derivative_imp_has_field_derivative[OF has_derivative_divide])
-     (auto dest: has_field_derivative_imp_has_derivative simp: field_simps nonzero_inverse_mult_distrib divide_inverse)
+     (auto dest: has_field_derivative_imp_has_derivative simp: field_simps)
 
 lemma DERIV_quotient:
   "(f has_field_derivative d) (at x within s) \<Longrightarrow>

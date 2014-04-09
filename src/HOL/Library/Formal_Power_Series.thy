@@ -2006,17 +2006,8 @@ qed
 
 *)
 lemma eq_divide_imp':
-  assumes c0: "(c::'a::field) \<noteq> 0"
-    and eq: "a * c = b"
-  shows "a = b / c"
-proof -
-  from eq have "a * c * inverse c = b * inverse c"
-    by simp
-  then have "a * (inverse c * c) = b/c"
-    by (simp only: field_simps divide_inverse)
-  then show "a = b/c"
-    unfolding  field_inverse[OF c0] by simp
-qed
+  fixes c :: "'a::field" shows "c \<noteq> 0 \<Longrightarrow> a * c = b \<Longrightarrow> a = b / c"
+  by (simp add: field_simps)
 
 lemma radical_unique:
   assumes r0: "(r (Suc k) (b$0)) ^ Suc k = b$0"

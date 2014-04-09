@@ -1594,13 +1594,7 @@ lemma geometric_sum:
 proof -
   from assms obtain y where "y = x - 1" and "y \<noteq> 0" by simp_all
   moreover have "(\<Sum>i<n. (y + 1) ^ i) = ((y + 1) ^ n - 1) / y"
-  proof (induct n)
-    case 0 then show ?case by simp
-  next
-    case (Suc n)
-    moreover from Suc `y \<noteq> 0` have "(1 + y) ^ n = (y * inverse y) * (1 + y) ^ n" by simp 
-    ultimately show ?case by (simp add: field_simps divide_inverse)
-  qed
+    by (induct n) (simp_all add: field_simps `y \<noteq> 0`)
   ultimately show ?thesis by simp
 qed
 
