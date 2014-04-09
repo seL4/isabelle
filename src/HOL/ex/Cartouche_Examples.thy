@@ -27,6 +27,9 @@ begin
   txt \<open>Of course, this can be nested inside formal comments and
     antiquotations, e.g. like this @{thm \<open>x = y\<close>} or this @{thm sym
     [OF \<open>x = y\<close>]}.\<close>
+
+  have "x = y"
+    by (tactic \<open>rtac @{thm \<open>x = y\<close>} 1\<close>)  -- \<open>more cartouches involving ML\<close>
 end
 
 

@@ -33,6 +33,8 @@ sig
   val maybe: 'a parser -> 'a option parser
   val cartouche_inner_syntax: string parser
   val cartouche_source_position: Symbol_Pos.source parser
+  val text_source_position: Symbol_Pos.source parser
+  val text: string parser
   val name_inner_syntax: string parser
   val name_source_position: Symbol_Pos.source parser
   val name: string parser
@@ -151,7 +153,7 @@ val ident = Parse.token
   (Parse.short_ident || Parse.long_ident || Parse.sym_ident || Parse.term_var ||
     Parse.type_ident || Parse.type_var || Parse.number);
 
-val string = Parse.token (Parse.string || Parse.verbatim);
+val string = Parse.token Parse.string;
 val alt_string = Parse.token (Parse.alt_string || Parse.cartouche);
 val symbolic = Parse.token (Parse.keyword_with Token.ident_or_symbolic);
 
@@ -162,7 +164,6 @@ fun $$$ x =
       then (Token.assign (SOME (Token.Literal (false, Markup.quasi_keyword))) tok; Scan.succeed x)
       else Scan.fail
     end);
-
 
 val named = ident || string;
 
@@ -182,6 +183,10 @@ fun maybe scan = $$$ "_" >> K NONE || scan >> SOME;
 val cartouche = Parse.token Parse.cartouche;
 val cartouche_inner_syntax = cartouche >> Token.inner_syntax_of;
 val cartouche_source_position = cartouche >> Token.source_position_of;
+
+val text_token = named || Parse.token (Parse.verbatim || Parse.cartouche);
+val text_source_position = text_token >> Token.source_position_of;
+val text = text_token >> Token.content_of;
 
 val name_inner_syntax = named >> Token.inner_syntax_of;
 val name_source_position = named >> Token.source_position_of;
