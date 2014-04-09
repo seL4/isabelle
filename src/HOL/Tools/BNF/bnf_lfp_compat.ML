@@ -81,7 +81,9 @@ fun datatype_compat_cmd raw_fpT_names0 lthy =
       Datatype_Aux.unfold_datatypes lthy orig_descr all_infos orig_descr nn_fp;
 
     (* put nested types before the types that nest them, as needed for N2M *)
-    val descr = reindex_desc (orig_descr' @ flat (rev nested_descrs));
+    val descrs = burrow reindex_desc (orig_descr' :: rev nested_descrs);
+    val (cliques, descr) =
+      split_list (flat (map_index (fn (i, descr) => map (pair i) descr) descrs));
 
     val dest_dtyp = Datatype_Aux.typ_of_dtyp descr;
 
@@ -108,7 +110,7 @@ fun datatype_compat_cmd raw_fpT_names0 lthy =
 
     val ((fp_sugars, (lfp_sugar_thms, _)), lthy) =
       if nn > nn_fp then
-        mutualize_fp_sugars Least_FP compat_bs Ts callers callssss fp_sugars0 lthy
+        mutualize_fp_sugars Least_FP cliques compat_bs Ts callers callssss fp_sugars0 lthy
       else
         ((fp_sugars0, (NONE, NONE)), lthy);
 

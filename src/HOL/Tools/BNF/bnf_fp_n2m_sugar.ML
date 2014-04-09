@@ -10,7 +10,7 @@ sig
   val unfold_lets_splits: term -> term
   val dest_map: Proof.context -> string -> term -> term * term list
 
-  val mutualize_fp_sugars: BNF_Util.fp_kind -> binding list -> typ list -> term list ->
+  val mutualize_fp_sugars: BNF_Util.fp_kind -> int list -> binding list -> typ list -> term list ->
     term list list list list -> BNF_FP_Def_Sugar.fp_sugar list -> local_theory ->
     (BNF_FP_Def_Sugar.fp_sugar list
      * (BNF_FP_Def_Sugar.lfp_sugar_thms option * BNF_FP_Def_Sugar.gfp_sugar_thms option))
@@ -109,7 +109,7 @@ fun get_indices callers t =
   |> map_filter I;
 
 (* TODO: test with sort constraints on As *)
-fun mutualize_fp_sugars fp bs fpTs callers callssss fp_sugars0 no_defs_lthy0 =
+fun mutualize_fp_sugars fp cliques bs fpTs callers callssss fp_sugars0 no_defs_lthy0 =
   let
     val thy = Proof_Context.theory_of no_defs_lthy0;
 
@@ -225,7 +225,7 @@ fun mutualize_fp_sugars fp bs fpTs callers callssss fp_sugars0 no_defs_lthy0 =
 
         val ((pre_bnfs, absT_infos), (fp_res as {xtor_co_recs = xtor_co_recs0, xtor_co_induct,
                dtor_injects, dtor_ctors, xtor_co_rec_thms, ...}, lthy)) =
-          fp_bnf (construct_mutualized_fp fp fpTs fp_sugars0) fp_bs As' killed_As' fp_eqs
+          fp_bnf (construct_mutualized_fp fp cliques fpTs fp_sugars0) fp_bs As' killed_As' fp_eqs
             no_defs_lthy0;
 
         val fp_abs_inverses = map #abs_inverse fp_absT_infos;
@@ -401,7 +401,7 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts actual_callers actual_callssss0 
     val (num_groups, perm_Ts, perm_gen_Ts) = gather_types lthy [] 0 [] [] sorted_actual_Ts;
     val perm_frozen_gen_Ts = map Logic.unvarifyT_global perm_gen_Ts;
 
-    val missing_Ts = subtract (op =) actual_Ts perm_Ts;
+    val missing_Ts = fold (remove1 (op =)) actual_Ts perm_Ts;
     val Ts = actual_Ts @ missing_Ts;
 
     val nn = length Ts;
@@ -424,10 +424,12 @@ fun nested_to_mutual_fps fp actual_bs actual_Ts actual_callers actual_callssss0 
 
     val perm_callssss = map2 (indexify_callsss o #ctrs o #ctr_sugar) perm_fp_sugars0 perm_callssss0;
 
+    val perm_cliques = [] (*###*)
+
     val ((perm_fp_sugars, fp_sugar_thms), lthy) =
       if num_groups > 1 then
-        mutualize_fp_sugars fp perm_bs perm_frozen_gen_Ts perm_callers perm_callssss perm_fp_sugars0
-          lthy
+        mutualize_fp_sugars fp perm_cliques perm_bs perm_frozen_gen_Ts perm_callers perm_callssss
+          perm_fp_sugars0 lthy
       else
         ((perm_fp_sugars0, (NONE, NONE)), lthy);
 
