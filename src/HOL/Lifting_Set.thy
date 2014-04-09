@@ -145,23 +145,21 @@ lemma Pow_transfer [transfer_rule]:
   done
 
 lemma rel_set_transfer [transfer_rule]:
-  "((A ===> B ===> op =) ===> rel_set A ===> rel_set B ===> op =)
-    rel_set rel_set"
+  "((A ===> B ===> op =) ===> rel_set A ===> rel_set B ===> op =) rel_set rel_set"
   unfolding rel_fun_def rel_set_def by fast
-
-lemma SUP_parametric [transfer_rule]:
-  "(rel_set R ===> (R ===> op =) ===> op =) SUPREMUM (SUPREMUM :: _ \<Rightarrow> _ \<Rightarrow> _::complete_lattice)"
-proof(rule rel_funI)+
-  fix A B f and g :: "'b \<Rightarrow> 'c"
-  assume AB: "rel_set R A B"
-    and fg: "(R ===> op =) f g"
-  show "SUPREMUM A f = SUPREMUM B g"
-    by (rule SUP_eq) (auto 4 4 dest: rel_setD1 [OF AB] rel_setD2 [OF AB] rel_funD [OF fg] intro: rev_bexI)
-qed
 
 lemma bind_transfer [transfer_rule]:
   "(rel_set A ===> (A ===> rel_set B) ===> rel_set B) Set.bind Set.bind"
-unfolding bind_UNION[abs_def] by transfer_prover
+  unfolding bind_UNION [abs_def] by transfer_prover
+
+lemma INF_parametric [transfer_rule]:
+  "(rel_set A ===> (A ===> HOL.eq) ===> HOL.eq) INFIMUM INFIMUM"
+  unfolding INF_def [abs_def] by transfer_prover
+
+lemma SUP_parametric [transfer_rule]:
+  "(rel_set R ===> (R ===> HOL.eq) ===> HOL.eq) SUPREMUM SUPREMUM"
+  unfolding SUP_def [abs_def] by transfer_prover
+
 
 subsubsection {* Rules requiring bi-unique, bi-total or right-total relations *}
 
