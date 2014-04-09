@@ -36,6 +36,9 @@ object Pretty_Tooltip
     else None
   }
 
+  private def descendant(parent: JComponent): Option[Pretty_Tooltip] =
+    Swing_Thread.require { stack.find(tip => tip.original_parent == parent) }
+
   def apply(
     view: View,
     parent: JComponent,
@@ -60,7 +63,7 @@ object Pretty_Tooltip
             old.foreach(_.hide_popup)
 
             val loc = SwingUtilities.convertPoint(parent, location, layered)
-            val tip = new Pretty_Tooltip(view, layered, loc, rendering, results, info)
+            val tip = new Pretty_Tooltip(view, layered, parent, loc, rendering, results, info)
             stack = tip :: rest
             tip.show_popup
         }
@@ -142,6 +145,9 @@ object Pretty_Tooltip
     }
   }
 
+  def dismiss_descendant(parent: JComponent): Unit =
+    descendant(parent).foreach(dismiss(_))
+
   def dismissed_all(): Boolean =
   {
     deactivate()
@@ -159,6 +165,7 @@ object Pretty_Tooltip
 class Pretty_Tooltip private(
   view: View,
   layered: JLayeredPane,
+  val original_parent: JComponent,
   location: Point,
   rendering: Rendering,
   private val results: Command.Results,

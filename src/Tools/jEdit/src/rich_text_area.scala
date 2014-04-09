@@ -202,7 +202,8 @@ class Rich_Text_Area(
   private val mouse_motion_listener = new MouseMotionAdapter {
     override def mouseDragged(evt: MouseEvent) {
       robust_body(()) {
-        PIDE.dismissed_popups(view)
+        Completion_Popup.Text_Area.dismissed(text_area)
+        Pretty_Tooltip.dismiss_descendant(text_area.getPainter)
       }
     }
 
