@@ -247,7 +247,7 @@ class Rich_Text_Area(
                         case Some(tip) =>
                           val painter = text_area.getPainter
                           val loc = new Point(x, y + painter.getFontMetrics.getHeight / 2)
-                          val results = rendering.command_results(range)
+                          val results = rendering.command_results(tip.range)
                           Pretty_Tooltip(view, painter, loc, rendering, results, tip)
                       }
                   }
