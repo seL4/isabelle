@@ -241,7 +241,7 @@ proof -
       by (auto simp: finite_measure_restricted N.finite_measure_restricted sets_eq)
     from finite_measure.Radon_Nikodym_aux_epsilon[OF this] guess X .. note X = this
     with S have "?P (S \<inter> X) S n"
-      by (simp add: divide_minus_left measure_restricted sets_eq sets.Int) (metis inf_absorb2)
+      by (simp add: measure_restricted sets_eq sets.Int) (metis inf_absorb2)
     hence "\<exists>A. ?P A S n" .. }
   note Ex_P = this
   def A \<equiv> "rec_nat (space M) (\<lambda>n A. SOME B. ?P B A n)"
@@ -280,7 +280,7 @@ proof -
       hence "0 < - ?d B" by auto
       from ex_inverse_of_nat_Suc_less[OF this]
       obtain n where *: "?d B < - 1 / real (Suc n)"
-        by (auto simp: divide_minus_left real_eq_of_nat inverse_eq_divide field_simps)
+        by (auto simp: real_eq_of_nat inverse_eq_divide field_simps)
       have "B \<subseteq> A (Suc n)" using B by (auto simp del: nat.rec(2))
       from epsilon[OF B(1) this] *
       show False by auto

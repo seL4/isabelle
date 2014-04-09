@@ -656,7 +656,7 @@ lemma minus_log_convex:
 proof -
   have "\<And>z. z > 0 \<Longrightarrow> DERIV (log b) z :> 1 / (ln b * z)" using DERIV_log by auto
   then have f': "\<And>z. z > 0 \<Longrightarrow> DERIV (\<lambda> z. - log b z) z :> - 1 / (ln b * z)"
-    by (auto simp: divide_minus_left DERIV_minus)
+    by (auto simp: DERIV_minus)
   have "\<And>z :: real. z > 0 \<Longrightarrow> DERIV inverse z :> - (inverse z ^ Suc (Suc 0))"
     using less_imp_neq[THEN not_sym, THEN DERIV_inverse] by auto
   from this[THEN DERIV_cmult, of _ "- 1 / ln b"]
@@ -664,7 +664,7 @@ proof -
     DERIV (\<lambda> z. (- 1 / ln b) * inverse z) z :> (- 1 / ln b) * (- (inverse z ^ Suc (Suc 0)))"
     by auto
   then have f''0: "\<And>z :: real. z > 0 \<Longrightarrow> DERIV (\<lambda> z. - 1 / (ln b * z)) z :> 1 / (ln b * z * z)"
-    by (auto simp add: inverse_eq_divide divide_minus_left mult_assoc)
+    unfolding inverse_eq_divide by (auto simp add: mult_assoc)
   have f''_ge0: "\<And>z :: real. z > 0 \<Longrightarrow> 1 / (ln b * z * z) \<ge> 0"
     using `b > 1` by (auto intro!:less_imp_le simp add: divide_pos_pos[of 1] mult_pos_pos)
   from f''_ge0_imp_convex[OF pos_is_convex,

@@ -637,7 +637,7 @@ proof cases
   qed
   thus ?thesis using `\<not> b dvd a` by simp
 qed (simp add: ceiling_def real_of_int_minus[symmetric] divide_minus_left[symmetric]
-               floor_divide_eq_div dvd_neg_div del: real_of_int_minus)
+  floor_divide_eq_div dvd_neg_div del: divide_minus_left real_of_int_minus)
 
 lemma compute_float_up[code]:
   "float_up p (Float m e) =
@@ -1004,7 +1004,7 @@ lemma compute_lapprox_rat[code]:
       else (if 0 < y
         then - (rapprox_posrat prec (nat (-x)) (nat y))
         else lapprox_posrat prec (nat (-x)) (nat (-y))))"
-  by transfer (auto simp: round_up_def divide_minus_left divide_minus_right round_down_def ceiling_def ac_simps)
+  by transfer (auto simp: round_up_def round_down_def ceiling_def ac_simps)
 hide_fact (open) compute_lapprox_rat
 
 lift_definition rapprox_rat :: "nat \<Rightarrow> int \<Rightarrow> int \<Rightarrow> float" is
@@ -1019,7 +1019,7 @@ lemma compute_rapprox_rat[code]:
       else (if 0 < y
         then - (lapprox_posrat prec (nat (-x)) (nat y))
         else rapprox_posrat prec (nat (-x)) (nat (-y))))"
-  by transfer (auto simp: round_up_def round_down_def divide_minus_left divide_minus_right ceiling_def ac_simps)
+  by transfer (auto simp: round_up_def round_down_def ceiling_def ac_simps)
 hide_fact (open) compute_rapprox_rat
 
 subsection {* Division *}

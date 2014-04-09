@@ -2145,7 +2145,7 @@ lemma sin_coeff_Suc: "sin_coeff (Suc n) = cos_coeff n / real (Suc n)"
 
 lemma cos_coeff_Suc: "cos_coeff (Suc n) = - sin_coeff n / real (Suc n)"
   unfolding cos_coeff_def sin_coeff_def
-  by (simp del: mult_Suc, auto simp add: divide_minus_left odd_Suc_mult_two_ex)
+  by (simp del: mult_Suc, auto simp add: odd_Suc_mult_two_ex)
 
 lemma summable_sin: "summable (\<lambda>n. sin_coeff n * x ^ n)"
   unfolding sin_coeff_def
@@ -2169,7 +2169,7 @@ lemma diffs_sin_coeff: "diffs sin_coeff = cos_coeff"
   by (simp add: diffs_def sin_coeff_Suc real_of_nat_def del: of_nat_Suc)
 
 lemma diffs_cos_coeff: "diffs cos_coeff = (\<lambda>n. - sin_coeff n)"
-  by (simp add: divide_minus_left diffs_def cos_coeff_Suc real_of_nat_def del: of_nat_Suc)
+  by (simp add: diffs_def cos_coeff_Suc real_of_nat_def del: of_nat_Suc)
 
 text{*Now at last we can get the derivatives of exp, sin and cos*}
 
@@ -3239,7 +3239,7 @@ proof -
     assume "x \<in> {-1..1}"
     then show "x \<in> sin ` {- pi / 2..pi / 2}"
       using arcsin_lbound arcsin_ubound
-      by (intro image_eqI[where x="arcsin x"]) (auto simp: divide_minus_left)
+      by (intro image_eqI[where x="arcsin x"]) auto
   qed simp
   finally show ?thesis .
 qed
@@ -3338,14 +3338,12 @@ declare
 
 lemma filterlim_tan_at_right: "filterlim tan at_bot (at_right (- pi/2))"
   by (rule filterlim_at_bot_at_right[where Q="\<lambda>x. - pi/2 < x \<and> x < pi/2" and P="\<lambda>x. True" and g=arctan])
-     (auto simp: le_less eventually_at dist_real_def divide_minus_left 
-           simp del: less_divide_eq_numeral1
+     (auto simp: le_less eventually_at dist_real_def simp del: less_divide_eq_numeral1
            intro!: tan_monotone exI[of _ "pi/2"])
 
 lemma filterlim_tan_at_left: "filterlim tan at_top (at_left (pi/2))"
   by (rule filterlim_at_top_at_left[where Q="\<lambda>x. - pi/2 < x \<and> x < pi/2" and P="\<lambda>x. True" and g=arctan])
-     (auto simp: le_less eventually_at dist_real_def divide_minus_left 
-           simp del: less_divide_eq_numeral1
+     (auto simp: le_less eventually_at dist_real_def simp del: less_divide_eq_numeral1
            intro!: tan_monotone exI[of _ "pi/2"])
 
 lemma tendsto_arctan_at_top: "(arctan ---> (pi/2)) at_top"
@@ -3967,7 +3965,7 @@ proof (rule arctan_unique)
   show "tan (sgn x * pi / 2 - arctan x) = 1 / x"
     unfolding tan_inverse [of "arctan x", unfolded tan_arctan]
     unfolding sgn_real_def
-    by (simp add: divide_minus_left tan_def cos_arctan sin_arctan sin_diff cos_diff)
+    by (simp add: tan_def cos_arctan sin_arctan sin_diff cos_diff)
 qed
 
 theorem pi_series: "pi / 4 = (\<Sum> k. (-1)^k * 1 / real (k*2+1))" (is "_ = ?SUM")

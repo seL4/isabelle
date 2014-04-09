@@ -1116,10 +1116,10 @@ lemma real_sgn_eq: "sgn (x::real) = x / \<bar>x\<bar>"
 by (simp add: sgn_div_norm divide_inverse)
 
 lemma real_sgn_pos: "0 < (x::real) \<Longrightarrow> sgn x = 1"
-  by (rule sgn_pos)
+unfolding real_sgn_eq by simp
 
 lemma real_sgn_neg: "(x::real) < 0 \<Longrightarrow> sgn x = -1"
-  by (rule sgn_neg)
+unfolding real_sgn_eq by simp
 
 lemma norm_conv_dist: "norm x = dist x 0"
   unfolding dist_norm by simp
