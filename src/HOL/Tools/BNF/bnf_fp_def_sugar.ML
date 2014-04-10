@@ -193,12 +193,13 @@ structure FP_Sugar_Interpretation = Interpretation
   val eq: T * T -> bool = op = o pairself #T;
 );
 
+(* FIXME naming *)
 fun with_repaired_path f (fp_sugar as {T, ...} : fp_sugar) thy =
   thy
-  |> Sign.root_path
-  |> Sign.add_path (Long_Name.qualifier (fst (dest_Type T)))
+  (*|> Sign.root_path*)
+  (*|> Sign.add_path (Long_Name.qualifier (fst (dest_Type T)))*)
   |> (fn thy => f (morph_fp_sugar (Morphism.transfer_morphism thy) fp_sugar) thy)
-  |> Sign.restore_naming thy;
+  (*|> Sign.restore_naming thy*);
 
 val fp_sugar_interpretation = FP_Sugar_Interpretation.interpretation o with_repaired_path;
 

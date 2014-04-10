@@ -1315,6 +1315,7 @@ structure BNF_Interpretation = Interpretation
   val eq: T * T -> bool = op = o pairself T_of_bnf;
 );
 
+(* FIXME naming *)
 fun with_repaired_path f bnf thy =
   let
     val qualifiers =
@@ -1324,10 +1325,10 @@ fun with_repaired_path f bnf thy =
       | (_, qs, _) => qs)
   in
     thy
-    |> Sign.root_path
-    |> fold (uncurry (fn true => Sign.mandatory_path | false => Sign.add_path) o swap) qualifiers
+    (*|> Sign.root_path*)
+    (*|> fold (uncurry (fn true => Sign.mandatory_path | false => Sign.add_path) o swap) qualifiers*)
     |> (fn thy => f (morph_bnf (Morphism.transfer_morphism thy) bnf) thy)
-    |> Sign.restore_naming thy
+    (*|> Sign.restore_naming thy*)
   end;
 
 val bnf_interpretation = BNF_Interpretation.interpretation o with_repaired_path;
