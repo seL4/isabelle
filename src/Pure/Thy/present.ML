@@ -313,33 +313,36 @@ fun finish () =
         else ())
       else ();
 
-    fun prepare_sources doc_copy doc_dir =
-     (Isabelle_System.mkdirs doc_dir;
-      if doc_copy then Isabelle_System.copy_dir document_path doc_dir else ();
-      Isabelle_System.isabelle_tool "latex"
-        ("-o sty " ^ File.shell_path (Path.append doc_dir (Path.basic "root.tex")));
-      (case opt_graphs of NONE => () | SOME (pdf, eps) =>
-        (File.write (Path.append doc_dir graph_pdf_path) pdf;
-          File.write (Path.append doc_dir graph_eps_path) eps));
-      write_tex_index tex_index doc_dir;
-      List.app (fn (a, {tex_source, ...}) =>
-        write_tex (Buffer.add tex_source Buffer.empty) a doc_dir) thys);
-
     fun document_job doc_prefix backdrop (name, tags) =
       let
         val _ =
           File.eq (document_path, doc_prefix) andalso
             error ("Overlap of document input and output directory " ^ Path.print doc_prefix);
-        val dir = Path.append doc_prefix (Path.basic name);
-        val copy = not (File.eq (document_path, dir));
-        val _ = prepare_sources copy dir;
-        fun inform doc =
-          if verbose orelse not backdrop then
-            Output.physical_stderr ("Document at " ^ show_path doc ^ "\n")
-          else ();
+        val doc_dir = Path.append doc_prefix (Path.basic name);
+        val _ = Isabelle_System.mkdirs doc_dir;
+        val _ =
+          if File.eq (document_path, doc_dir) then ()
+          else Isabelle_System.copy_dir document_path doc_dir;
+        val _ =
+          Isabelle_System.isabelle_tool "latex"
+            ("-o sty " ^ File.shell_path (Path.append doc_dir (Path.basic "root.tex")));
+        val _ =
+          (case opt_graphs of
+            NONE => ()
+          | SOME (pdf, eps) =>
+              (File.write (Path.append doc_dir graph_pdf_path) pdf;
+                File.write (Path.append doc_dir graph_eps_path) eps));
+        val _ = write_tex_index tex_index doc_dir;
+        val _ =
+          List.app (fn (a, {tex_source, ...}) =>
+            write_tex (Buffer.add tex_source Buffer.empty) a doc_dir) thys;
       in
         fn () =>
-          (isabelle_document {verbose = true, purge = backdrop} doc_format name tags dir, inform)
+          (isabelle_document {verbose = true, purge = backdrop} doc_format name tags doc_dir,
+            fn doc =>
+              if verbose orelse not backdrop then
+                Output.physical_stderr ("Document at " ^ show_path doc ^ "\n")
+              else ())
       end;
 
     val jobs =
