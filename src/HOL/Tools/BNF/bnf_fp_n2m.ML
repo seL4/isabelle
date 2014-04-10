@@ -272,12 +272,15 @@ fun construct_mutualized_fp fp cliques fpTs (fp_sugars : fp_sugar list) bs resBs
         val fold_pre_deads_only_Ts =
           map (typ_subst_nonatomic_sorted (map (rpair dummyT) (As @ fpTs))) fold_preTs';
 
-        val TUs = map_split dest_co_algT (binder_fun_types (foldT_of_recT (fastype_of approx_rec)))
+        val (clique, TUs) =
+          map_split dest_co_algT (binder_fun_types (foldT_of_recT (fastype_of approx_rec)))
           |>> map subst
-          |> uncurry (map2 mk_co_algT);
-        val cands = map2 mk_co_algT fold_preTs' Xs;
-
-        val js = find_indices Type.could_unify TUs cands;
+          |> `(fn (_, Ys) =>
+            nth cliques (find_index (fn X => X = the (find_first (can dest_TFree) Ys)) Xs))
+          ||> uncurry (map2 mk_co_algT);
+        val cands = cliques ~~ map2 mk_co_algT fold_preTs' Xs;
+        val js = find_indices (fn ((cl, cand), TU) =>
+          cl = clique andalso Type.could_unify (TU, cand)) TUs cands;
         val Tpats = map (fn j => mk_co_algT (nth fold_pre_deads_only_Ts j) (nth Xs j)) js;
       in
         force_typ names_lthy (Tpats ---> TU) raw_rec
