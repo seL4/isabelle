@@ -207,11 +207,7 @@ object Command
                         case None => bad(); state
                       }
                     case None =>
-                      chunk_name match {
-                        // FIXME workaround for static positions stemming from batch build
-                        case Text.Chunk.File(name) if name.endsWith(".thy") =>
-                        case _ => bad()
-                      }
+                      // silently ignore excessive reports
                       state
                   }
 
