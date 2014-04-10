@@ -25,41 +25,10 @@ sig
   val mono_add: attribute
   val mono_del: attribute
   val codegen_preproc: theory -> thm list -> thm list
-  val setup: theory -> theory
 end;
 
 structure Inductive_Set: INDUCTIVE_SET =
 struct
-
-(**** simplify {(x1, ..., xn). (x1, ..., xn) : S} to S ****)
-
-val collect_mem_simproc =
-  Simplifier.simproc_global @{theory Set} "Collect_mem" ["Collect t"] (fn ctxt =>
-    fn S as Const (@{const_name Collect}, Type ("fun", [_, T])) $ t =>
-         let val (u, _, ps) = HOLogic.strip_psplits t
-         in case u of
-           (c as Const (@{const_name Set.member}, _)) $ q $ S' =>
-             (case try (HOLogic.strip_ptuple ps) q of
-                NONE => NONE
-              | SOME ts =>
-                  if not (Term.is_open S') andalso
-                    ts = map Bound (length ps downto 0)
-                  then
-                    let val simp =
-                      full_simp_tac (put_simpset HOL_basic_ss ctxt
-                        addsimps [@{thm split_paired_all}, @{thm split_conv}]) 1
-                    in
-                      SOME (Goal.prove ctxt [] []
-                        (Const (@{const_name Pure.eq}, T --> T --> propT) $ S $ S')
-                        (K (EVERY
-                          [rtac eq_reflection 1, rtac @{thm subset_antisym} 1,
-                           rtac subsetI 1, dtac CollectD 1, simp,
-                           rtac subsetI 1, rtac CollectI 1, simp])))
-                    end
-                  else NONE)
-         | _ => NONE
-         end
-     | _ => NONE);
 
 (***********************************************************************************)
 (* simplifies (%x y. (x, y) : S & P x y) to (%x y. (x, y) : S Int {(x, y). P x y}) *)
@@ -206,7 +175,7 @@ fun lookup_rule thy f rules = find_most_specific
   (swap #> Pattern.matches thy) (f #> fst) (op aconv) rules;
 
 fun infer_arities thy arities (optf, t) fs = case strip_comb t of
-    (Abs (s, T, u), []) => infer_arities thy arities (NONE, u) fs
+    (Abs (_, _, u), []) => infer_arities thy arities (NONE, u) fs
   | (Abs _, _) => infer_arities thy arities (NONE, Envir.beta_norm t) fs
   | (u, ts) => (case Option.map (lookup_arity thy arities) (name_type_of u) of
       SOME (SOME (_, (arity, _))) =>
@@ -266,7 +235,7 @@ fun mk_to_pred_eq ctxt p fs optfs' T thm =
           end)
   in
     Simplifier.simplify (put_simpset HOL_basic_ss ctxt addsimps [mem_Collect_eq, @{thm split_conv}]
-      addsimprocs [collect_mem_simproc]) thm'' |>
+      addsimprocs [@{simproc Collect_mem}]) thm'' |>
         zero_var_indexes |> eta_contract_thm (equal p)
   end;
 
@@ -397,7 +366,7 @@ fun to_set thms context thm =
     thm |>
     Thm.instantiate ([], insts) |>
     Simplifier.full_simplify (put_simpset HOL_basic_ss ctxt addsimps to_set_simps
-        addsimprocs [strong_ind_simproc pred_arities, collect_mem_simproc]) |>
+        addsimprocs [strong_ind_simproc pred_arities, @{simproc Collect_mem}]) |>
     Rule_Cases.save thm
   end;
 
@@ -424,8 +393,6 @@ fun codegen_preproc thy =  (* FIXME proper context!? *)
         eta_contract_thm (is_pred pred_arities)
       else thm
   in map preproc end;
-
-fun code_ind_att optmod = to_pred_att [];
 
 
 (**** definition of inductive sets ****)
@@ -569,21 +536,21 @@ val mono_del = mono_att Inductive.mono_del;
 
 (** package setup **)
 
-(* setup theory *)
+(* attributes *)
 
-val setup =
-  Attrib.setup @{binding pred_set_conv} (Scan.succeed pred_set_conv_att)
-    "declare rules for converting between predicate and set notation" #>
-  Attrib.setup @{binding to_set} (Attrib.thms >> to_set_att)
-    "convert rule to set notation" #>
-  Attrib.setup @{binding to_pred} (Attrib.thms >> to_pred_att)
-    "convert rule to predicate notation" #>
-  Attrib.setup @{binding mono_set} (Attrib.add_del mono_add mono_del)
-    "declaration of monotonicity rule for set operators" #>
-  map_theory_simpset (fn ctxt => ctxt addsimprocs [collect_mem_simproc]);
+val _ =
+  Theory.setup
+   (Attrib.setup @{binding pred_set_conv} (Scan.succeed pred_set_conv_att)
+      "declare rules for converting between predicate and set notation" #>
+    Attrib.setup @{binding to_set} (Attrib.thms >> to_set_att)
+      "convert rule to set notation" #>
+    Attrib.setup @{binding to_pred} (Attrib.thms >> to_pred_att)
+      "convert rule to predicate notation" #>
+    Attrib.setup @{binding mono_set} (Attrib.add_del mono_add mono_del)
+      "declare of monotonicity rule for set operators");
 
 
-(* outer syntax *)
+(* commands *)
 
 val ind_set_decl = Inductive.gen_ind_decl add_ind_set_def;
 
