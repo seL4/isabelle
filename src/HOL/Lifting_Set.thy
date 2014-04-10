@@ -75,7 +75,7 @@ lemma right_unique_rel_set [transfer_rule]:
 
 lemma bi_total_rel_set [transfer_rule]:
   "bi_total A \<Longrightarrow> bi_total (rel_set A)"
-by(simp add: bi_total_conv_left_right left_total_rel_set right_total_rel_set)
+by(simp add: bi_total_alt_def left_total_rel_set right_total_rel_set)
 
 lemma bi_unique_rel_set [transfer_rule]:
   "bi_unique A \<Longrightarrow> bi_unique (rel_set A)"

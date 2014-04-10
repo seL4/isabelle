@@ -534,7 +534,7 @@ fun mk_readable_rsp_thm_eq tm lthy =
       end
     
     val unfold_ret_val_invs = Conv.bottom_conv 
-      (K (Conv.try_conv (Conv.rewr_conv @{thm eq_onp_same_args}))) lthy
+      (K (Conv.try_conv (Conv.rewr_conv @{thm eq_onp_same_args[THEN eq_reflection]}))) lthy
     val cr_to_pcr_conv = Raw_Simplifier.rewrite lthy false (get_cr_pcr_eqs lthy)
     val unfold_inv_conv = 
       Conv.top_sweep_conv (K (Conv.rewr_conv @{thm eq_onp_def[THEN eq_reflection]})) lthy

@@ -161,6 +161,11 @@ lemma Quotient_alt_def4:
     (\<forall>a b. T a b \<longrightarrow> Abs a = b) \<and> (\<forall>b. T (Rep b) b) \<and> R = T OO conversep T"
   unfolding Quotient_alt_def3 fun_eq_iff by auto
 
+lemma Quotient_alt_def5:
+  "Quotient R Abs Rep T \<longleftrightarrow>
+    T \<le> BNF_Util.Grp UNIV Abs \<and> BNF_Util.Grp UNIV Rep \<le> T\<inverse>\<inverse> \<and> R = T OO T\<inverse>\<inverse>"
+  unfolding Quotient_alt_def4 Grp_def by blast
+
 lemma fun_quotient:
   assumes 1: "Quotient R1 abs1 rep1 T1"
   assumes 2: "Quotient R2 abs2 rep2 T2"
@@ -209,32 +214,6 @@ definition Respects :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> '
 
 lemma in_respects: "x \<in> Respects R \<longleftrightarrow> R x x"
   unfolding Respects_def by simp
-
-subsection {* Invariant *}
-
-definition eq_onp :: "('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" 
-  where "eq_onp R = (\<lambda>x y. R x \<and> x = y)"
-
-lemma eq_onp_to_eq:
-  assumes "eq_onp P x y"
-  shows "x = y"
-using assms by (simp add: eq_onp_def)
-
-lemma rel_fun_eq_eq_onp: "(op= ===> eq_onp P) = eq_onp (\<lambda>f. \<forall>x. P(f x))"
-unfolding eq_onp_def rel_fun_def by auto
-
-lemma rel_fun_eq_onp_rel:
-  shows "((eq_onp R) ===> S) = (\<lambda>f g. \<forall>x. R x \<longrightarrow> S (f x) (g x))"
-by (auto simp add: eq_onp_def rel_fun_def)
-
-lemma eq_onp_same_args:
-  shows "eq_onp P x x \<equiv> P x"
-using assms by (auto simp add: eq_onp_def)
-
-lemma eq_onp_transfer [transfer_rule]:
-  assumes [transfer_rule]: "bi_unique A"
-  shows "((A ===> op=) ===> A ===> A ===> op=) eq_onp eq_onp"
-unfolding eq_onp_def[abs_def] by transfer_prover
 
 lemma UNIV_typedef_to_Quotient:
   assumes "type_definition Rep Abs UNIV"
@@ -573,6 +552,8 @@ setup Lifting_Info.setup
 declare fun_quotient[quot_map]
 declare fun_mono[relator_mono]
 lemmas [relator_distr] = pos_fun_distr neg_fun_distr1 neg_fun_distr2
+
+ML_file "Tools/Lifting/lifting_bnf.ML"
 
 ML_file "Tools/Lifting/lifting_term.ML"
 

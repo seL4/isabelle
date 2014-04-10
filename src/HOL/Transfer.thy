@@ -6,8 +6,12 @@
 header {* Generic theorem transfer using relations *}
 
 theory Transfer
-imports Hilbert_Choice Basic_BNFs Metis
+imports Hilbert_Choice Basic_BNFs BNF_FP_Base Metis Option
 begin
+
+(* We include Option here altough it's not needed here. 
+   By doing this, we avoid a diamond problem for BNF and 
+   FP sugar interpretation defined in this file. *)
 
 subsection {* Relator for function space *}
 
@@ -105,33 +109,6 @@ lemma Rel_abs:
   shows "Rel (A ===> B) (\<lambda>x. f x) (\<lambda>y. g y)"
   using assms unfolding Rel_def rel_fun_def by fast
 
-end
-
-ML_file "Tools/transfer.ML"
-setup Transfer.setup
-
-declare refl [transfer_rule]
-
-declare rel_fun_eq [relator_eq]
-
-hide_const (open) Rel
-
-context
-begin
-interpretation lifting_syntax .
-
-text {* Handling of domains *}
-
-lemma Domainp_iff: "Domainp T x \<longleftrightarrow> (\<exists>y. T x y)"
-  by auto
-
-lemma Domaimp_refl[transfer_domain_rule]:
-  "Domainp T = Domainp T" ..
-
-lemma Domainp_prod_fun_eq[relator_domain]:
-  "Domainp (op= ===> T) = (\<lambda>f. \<forall>x. (Domainp T) (f x))"
-by (auto intro: choice simp: Domainp_iff rel_fun_def fun_eq_iff)
-
 subsection {* Predicates on relations, i.e. ``class constraints'' *}
 
 definition left_total :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool"
@@ -181,7 +158,7 @@ unfolding right_unique_def by fast
 lemma right_uniqueD: "\<lbrakk> right_unique A; A x y; A x z \<rbrakk> \<Longrightarrow> y = z"
 unfolding right_unique_def by fast
 
-lemma right_total_alt_def:
+lemma right_total_alt_def2:
   "right_total R \<longleftrightarrow> ((R ===> op \<longrightarrow>) ===> op \<longrightarrow>) All All"
   unfolding right_total_def rel_fun_def
   apply (rule iffI, fast)
@@ -191,11 +168,11 @@ lemma right_total_alt_def:
   apply fast
   done
 
-lemma right_unique_alt_def:
+lemma right_unique_alt_def2:
   "right_unique R \<longleftrightarrow> (R ===> R ===> op \<longrightarrow>) (op =) (op =)"
   unfolding right_unique_def rel_fun_def by auto
 
-lemma bi_total_alt_def:
+lemma bi_total_alt_def2:
   "bi_total R \<longleftrightarrow> ((R ===> op =) ===> op =) All All"
   unfolding bi_total_def rel_fun_def
   apply (rule iffI, fast)
@@ -208,7 +185,7 @@ lemma bi_total_alt_def:
   apply fast
   done
 
-lemma bi_unique_alt_def:
+lemma bi_unique_alt_def2:
   "bi_unique R \<longleftrightarrow> (R ===> R ===> op =) (op =) (op =)"
   unfolding bi_unique_def rel_fun_def by auto
 
@@ -228,24 +205,72 @@ by(auto simp add: bi_unique_def)
 lemma bi_total_conversep [simp]: "bi_total R\<inverse>\<inverse> = bi_total R"
 by(auto simp add: bi_total_def)
 
-lemma bi_total_iff: "bi_total A = (right_total A \<and> left_total A)"
+lemma right_unique_alt_def: "right_unique R = (conversep R OO R \<le> op=)" unfolding right_unique_def by blast
+lemma left_unique_alt_def: "left_unique R = (R OO (conversep R) \<le> op=)" unfolding left_unique_def by blast
+
+lemma right_total_alt_def: "right_total R = (conversep R OO R \<ge> op=)" unfolding right_total_def by blast
+lemma left_total_alt_def: "left_total R = (R OO conversep R \<ge> op=)" unfolding left_total_def by blast
+
+lemma bi_total_alt_def: "bi_total A = (left_total A \<and> right_total A)"
 unfolding left_total_def right_total_def bi_total_def by blast
 
-lemma bi_total_conv_left_right: "bi_total R \<longleftrightarrow> left_total R \<and> right_total R"
-by(simp add: left_total_def right_total_def bi_total_def)
-
-lemma bi_unique_iff: "bi_unique A  \<longleftrightarrow> right_unique A \<and> left_unique A"
+lemma bi_unique_alt_def: "bi_unique A = (left_unique A \<and> right_unique A)"
 unfolding left_unique_def right_unique_def bi_unique_def by blast
 
-lemma bi_unique_conv_left_right: "bi_unique R \<longleftrightarrow> left_unique R \<and> right_unique R"
-by(auto simp add: left_unique_def right_unique_def bi_unique_def)
-
 lemma bi_totalI: "left_total R \<Longrightarrow> right_total R \<Longrightarrow> bi_total R"
-unfolding bi_total_iff ..
+unfolding bi_total_alt_def ..
 
 lemma bi_uniqueI: "left_unique R \<Longrightarrow> right_unique R \<Longrightarrow> bi_unique R"
-unfolding bi_unique_iff ..
+unfolding bi_unique_alt_def ..
 
+end
+
+subsection {* Equality restricted by a predicate *}
+
+definition eq_onp :: "('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" 
+  where "eq_onp R = (\<lambda>x y. R x \<and> x = y)"
+
+lemma eq_onp_Grp: "eq_onp P = BNF_Util.Grp (Collect P) id" 
+unfolding eq_onp_def Grp_def by auto 
+
+lemma eq_onp_to_eq:
+  assumes "eq_onp P x y"
+  shows "x = y"
+using assms by (simp add: eq_onp_def)
+
+lemma eq_onp_same_args:
+  shows "eq_onp P x x = P x"
+using assms by (auto simp add: eq_onp_def)
+
+lemma Ball_Collect: "Ball A P = (A \<subseteq> (Collect P))"
+by (metis mem_Collect_eq subset_eq)
+
+ML_file "Tools/Transfer/transfer.ML"
+setup Transfer.setup
+declare refl [transfer_rule]
+
+ML_file "Tools/Transfer/transfer_bnf.ML" 
+
+declare pred_fun_def [simp]
+declare rel_fun_eq [relator_eq]
+
+hide_const (open) Rel
+
+context
+begin
+interpretation lifting_syntax .
+
+text {* Handling of domains *}
+
+lemma Domainp_iff: "Domainp T x \<longleftrightarrow> (\<exists>y. T x y)"
+  by auto
+
+lemma Domaimp_refl[transfer_domain_rule]:
+  "Domainp T = Domainp T" ..
+
+lemma Domainp_prod_fun_eq[relator_domain]:
+  "Domainp (op= ===> T) = (\<lambda>f. \<forall>x. (Domainp T) (f x))"
+by (auto intro: choice simp: Domainp_iff rel_fun_def fun_eq_iff)
 
 text {* Properties are preserved by relation composition. *}
 
@@ -333,12 +358,12 @@ lemma right_unique_fun [transfer_rule]:
 
 lemma bi_total_fun[transfer_rule]:
   "\<lbrakk>bi_unique A; bi_total B\<rbrakk> \<Longrightarrow> bi_total (A ===> B)"
-  unfolding bi_unique_iff bi_total_iff
+  unfolding bi_unique_alt_def bi_total_alt_def
   by (blast intro: right_total_fun left_total_fun)
 
 lemma bi_unique_fun[transfer_rule]:
   "\<lbrakk>bi_total A; bi_unique B\<rbrakk> \<Longrightarrow> bi_unique (A ===> B)"
-  unfolding bi_unique_iff bi_total_iff
+  unfolding bi_unique_alt_def bi_total_alt_def
   by (blast intro: right_unique_fun left_unique_fun)
 
 subsection {* Transfer rules *}
@@ -376,7 +401,7 @@ lemma transfer_implies_transfer [transfer_rule]:
 
 lemma eq_imp_transfer [transfer_rule]:
   "right_unique A \<Longrightarrow> (A ===> A ===> op \<longrightarrow>) (op =) (op =)"
-  unfolding right_unique_alt_def .
+  unfolding right_unique_alt_def2 .
 
 text {* Transfer rules using equality. *}
 
@@ -489,6 +514,18 @@ lemma right_unique_transfer [transfer_rule]:
   shows "((A ===> B ===> op=) ===> implies) right_unique right_unique"
 using assms unfolding right_unique_def[abs_def] right_total_def bi_unique_def rel_fun_def
 by metis
+
+lemma rel_fun_eq_eq_onp: "(op= ===> eq_onp P) = eq_onp (\<lambda>f. \<forall>x. P(f x))"
+unfolding eq_onp_def rel_fun_def by auto
+
+lemma rel_fun_eq_onp_rel:
+  shows "((eq_onp R) ===> S) = (\<lambda>f g. \<forall>x. R x \<longrightarrow> S (f x) (g x))"
+by (auto simp add: eq_onp_def rel_fun_def)
+
+lemma eq_onp_transfer [transfer_rule]:
+  assumes [transfer_rule]: "bi_unique A"
+  shows "((A ===> op=) ===> A ===> A ===> op=) eq_onp eq_onp"
+unfolding eq_onp_def[abs_def] by transfer_prover
 
 end
 

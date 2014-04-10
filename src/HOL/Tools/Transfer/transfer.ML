@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/transfer.ML
+(*  Title:      HOL/Tools/Transfer/transfer.ML
     Author:     Brian Huffman, TU Muenchen
     Author:     Ondrej Kuncar, TU Muenchen
 
@@ -7,6 +7,9 @@ Generic theorem transfer method.
 
 signature TRANSFER =
 sig
+  type pred_data
+  val rel_eq_onp: pred_data -> thm
+
   val bottom_rewr_conv: thm list -> conv
   val top_rewr_conv: thm list -> conv
 
@@ -17,6 +20,9 @@ sig
   val get_sym_relator_eq: Proof.context -> thm list
   val get_relator_eq_raw: Proof.context -> thm list
   val get_relator_domain: Proof.context -> thm list
+  val morph_pred_data: morphism -> pred_data -> pred_data
+  val lookup_pred_data: Proof.context -> string -> pred_data option
+  val update_pred_data: string -> pred_data -> Context.generic -> Context.generic
   val get_compound_lhs: Proof.context -> (term * thm) Item_Net.T
   val get_compound_rhs: Proof.context -> (term * thm) Item_Net.T
   val transfer_add: attribute
@@ -47,6 +53,10 @@ val compound_xhs_empty_net = Item_Net.init (Thm.eq_thm_prop o pairself snd) (sin
 val rewr_rules = Item_Net.init Thm.eq_thm_prop (single o fst o HOLogic.dest_eq 
   o HOLogic.dest_Trueprop o Thm.concl_of);
 
+type pred_data = {rel_eq_onp: thm}
+
+val rel_eq_onp = #rel_eq_onp
+
 structure Data = Generic_Data
 (
   type T =
@@ -56,7 +66,8 @@ structure Data = Generic_Data
       compound_rhs : (term * thm) Item_Net.T,
       relator_eq : thm Item_Net.T,
       relator_eq_raw : thm Item_Net.T,
-      relator_domain : thm Item_Net.T }
+      relator_domain : thm Item_Net.T,
+      pred_data : pred_data Symtab.table }
   val empty =
     { transfer_raw = Thm.intro_rules,
       known_frees = [],
@@ -64,24 +75,28 @@ structure Data = Generic_Data
       compound_rhs = compound_xhs_empty_net,
       relator_eq = rewr_rules,
       relator_eq_raw = Thm.full_rules,
-      relator_domain = Thm.full_rules }
+      relator_domain = Thm.full_rules,
+      pred_data = Symtab.empty }
   val extend = I
   fun merge
     ( { transfer_raw = t1, known_frees = k1,
         compound_lhs = l1,
         compound_rhs = c1, relator_eq = r1,
-        relator_eq_raw = rw1, relator_domain = rd1 },
+        relator_eq_raw = rw1, relator_domain = rd1,
+        pred_data = pd1 },
       { transfer_raw = t2, known_frees = k2,
         compound_lhs = l2,
         compound_rhs = c2, relator_eq = r2,
-        relator_eq_raw = rw2, relator_domain = rd2 } ) =
+        relator_eq_raw = rw2, relator_domain = rd2,
+        pred_data = pd2 } ) =
     { transfer_raw = Item_Net.merge (t1, t2),
       known_frees = Library.merge (op =) (k1, k2),
       compound_lhs = Item_Net.merge (l1, l2),
       compound_rhs = Item_Net.merge (c1, c2),
       relator_eq = Item_Net.merge (r1, r2),
       relator_eq_raw = Item_Net.merge (rw1, rw2),
-      relator_domain = Item_Net.merge (rd1, rd2) }
+      relator_domain = Item_Net.merge (rd1, rd2),
+      pred_data = Symtab.merge (K true) (pd1, pd2) }
 )
 
 fun get_transfer_raw ctxt = ctxt
@@ -112,24 +127,29 @@ fun get_relator_eq_raw ctxt = ctxt
 fun get_relator_domain ctxt = ctxt
   |> (Item_Net.content o #relator_domain o Data.get o Context.Proof)
 
-fun map_data f1 f2 f3 f4 f5 f6 f7
+fun get_pred_data ctxt = ctxt
+  |> (#pred_data o Data.get o Context.Proof)
+
+fun map_data f1 f2 f3 f4 f5 f6 f7 f8
   { transfer_raw, known_frees, compound_lhs, compound_rhs,
-    relator_eq, relator_eq_raw, relator_domain } =
+    relator_eq, relator_eq_raw, relator_domain, pred_data } =
   { transfer_raw = f1 transfer_raw,
     known_frees = f2 known_frees,
     compound_lhs = f3 compound_lhs,
     compound_rhs = f4 compound_rhs,
     relator_eq = f5 relator_eq,
     relator_eq_raw = f6 relator_eq_raw,
-    relator_domain = f7 relator_domain }
+    relator_domain = f7 relator_domain,
+    pred_data = f8 pred_data }
 
-fun map_transfer_raw   f = map_data f I I I I I I
-fun map_known_frees    f = map_data I f I I I I I
-fun map_compound_lhs   f = map_data I I f I I I I
-fun map_compound_rhs   f = map_data I I I f I I I
-fun map_relator_eq     f = map_data I I I I f I I
-fun map_relator_eq_raw f = map_data I I I I I f I
-fun map_relator_domain f = map_data I I I I I I f
+fun map_transfer_raw   f = map_data f I I I I I I I
+fun map_known_frees    f = map_data I f I I I I I I
+fun map_compound_lhs   f = map_data I I f I I I I I
+fun map_compound_rhs   f = map_data I I I f I I I I
+fun map_relator_eq     f = map_data I I I I f I I I
+fun map_relator_eq_raw f = map_data I I I I I f I I
+fun map_relator_domain f = map_data I I I I I I f I
+fun map_pred_data      f = map_data I I I I I I I f
 
 fun add_transfer_thm thm = Data.map
   (map_transfer_raw (Item_Net.update thm) o
@@ -768,6 +788,14 @@ val transferred_attribute_parser =
 
 val untransferred_attribute_parser =
   Attrib.thms >> untransferred_attribute
+
+fun morph_pred_data phi {rel_eq_onp} = {rel_eq_onp = Morphism.thm phi rel_eq_onp}
+
+fun lookup_pred_data ctxt type_name = Symtab.lookup (get_pred_data ctxt) type_name
+  |> Option.map (morph_pred_data (Morphism.transfer_morphism (Proof_Context.theory_of ctxt)))
+
+fun update_pred_data type_name qinfo ctxt = 
+  Data.map (map_pred_data (Symtab.update (type_name, qinfo))) ctxt
 
 (* Theory setup *)
 

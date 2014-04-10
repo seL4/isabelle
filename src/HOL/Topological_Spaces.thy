@@ -2508,7 +2508,7 @@ using left_total_rel_filter[of "A\<inverse>\<inverse>"] by simp
 lemma bi_total_rel_filter [transfer_rule]:
   assumes "bi_total A" "bi_unique A"
   shows "bi_total (rel_filter A)"
-unfolding bi_total_conv_left_right using assms
+unfolding bi_total_alt_def using assms
 by(simp add: left_total_rel_filter right_total_rel_filter)
 
 lemma left_unique_rel_filter [transfer_rule]:
@@ -2535,7 +2535,7 @@ using left_unique_rel_filter[of "A\<inverse>\<inverse>"] by simp
 
 lemma bi_unique_rel_filter [transfer_rule]:
   "bi_unique A \<Longrightarrow> bi_unique (rel_filter A)"
-by(simp add: bi_unique_conv_left_right left_unique_rel_filter right_unique_rel_filter)
+by(simp add: bi_unique_alt_def left_unique_rel_filter right_unique_rel_filter)
 
 lemma top_filter_parametric [transfer_rule]:
   "bi_total A \<Longrightarrow> (rel_filter A) top top"

@@ -846,10 +846,10 @@ lemmas left_unique_rel_fset[transfer_rule] = left_unique_rel_set[Transfer.transf
 thm right_unique_rel_fset left_unique_rel_fset
 
 lemma bi_unique_rel_fset[transfer_rule]: "bi_unique A \<Longrightarrow> bi_unique (rel_fset A)"
-by (auto intro: right_unique_rel_fset left_unique_rel_fset iff: bi_unique_iff)
+by (auto intro: right_unique_rel_fset left_unique_rel_fset iff: bi_unique_alt_def)
 
 lemma bi_total_rel_fset[transfer_rule]: "bi_total A \<Longrightarrow> bi_total (rel_fset A)"
-by (auto intro: right_total_rel_fset left_total_rel_fset iff: bi_total_iff)
+by (auto intro: right_total_rel_fset left_total_rel_fset iff: bi_total_alt_def)
 
 lemmas fset_relator_eq_onp [relator_eq_onp] = set_relator_eq_onp[Transfer.transferred]
 
