@@ -8,6 +8,11 @@ theory Lifting_Sum
 imports Lifting Basic_BNFs
 begin
 
+(* The following lemma can be deleted when sum is added to FP sugar *)
+lemma sum_pred_inject [simp]:
+  "pred_sum P1 P2 (Inl a) = P1 a" and "pred_sum P1 P2 (Inr a) = P2 a"
+  unfolding pred_sum_def fun_eq_iff sum_set_simps by auto
+
 subsection {* Transfer rules for the Transfer package *}
 
 context

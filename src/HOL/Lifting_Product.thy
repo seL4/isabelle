@@ -8,6 +8,11 @@ theory Lifting_Product
 imports Lifting Basic_BNFs
 begin
 
+(* The following lemma can be deleted when product is added to FP sugar *)
+lemma prod_pred_inject [simp]:
+  "pred_prod P1 P2 (a, b) = (P1 a \<and> P2 b)"
+  unfolding pred_prod_def fun_eq_iff prod_set_simps by blast
+
 subsection {* Transfer rules for the Transfer package *}
 
 context
