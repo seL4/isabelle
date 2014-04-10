@@ -112,7 +112,6 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
     fun mk_FTs Ts = map2 (fn Ds => mk_T_of_bnf Ds Ts) Dss bnfs;
     val (params, params') = `(map Term.dest_TFree) (mk_params passiveAs);
-    val (dead_params, dead_params') = `(map Term.dest_TFree) (subtract (op =) passiveAs params');
     val FTsAs = mk_FTs allAs;
     val FTsBs = mk_FTs allBs;
     val FTsCs = mk_FTs allCs;
@@ -157,6 +156,7 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
     val bds = map3 mk_bd_of_bnf Dss Ass bnfs;
     val sum_bd = Library.foldr1 (uncurry mk_csum) bds;
     val sum_bdT = fst (dest_relT (fastype_of sum_bd));
+    val (sum_bdT_params, sum_bdT_params') = `(map TFree) (Term.add_tfreesT sum_bdT []);
 
     val ((((((((((((((((((((((((((((((((zs, zs'), zs_copy), zs_copy2), z's), (ys, ys')),
       Bs), Bs_copy), B's), B''s), ss), sum_ss), s's), s''s), fs), fs_copy),
@@ -718,10 +718,10 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           val sbdT_bind = mk_internal_b sum_bdTN;
 
           val ((sbdT_name, (sbdT_glob_info, sbdT_loc_info)), lthy) =
-            typedef (sbdT_bind, dead_params, NoSyn)
+            typedef (sbdT_bind, sum_bdT_params', NoSyn)
               (HOLogic.mk_UNIV sum_bdT) NONE (EVERY' [rtac exI, rtac UNIV_I] 1) lthy;
 
-          val sbdT = Type (sbdT_name, dead_params');
+          val sbdT = Type (sbdT_name, sum_bdT_params);
           val Abs_sbdT = Const (#Abs_name sbdT_glob_info, sum_bdT --> sbdT);
 
           val sbd_bind = mk_internal_b sum_bdN;

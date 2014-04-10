@@ -82,7 +82,6 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
     fun mk_FTs Ts = map2 (fn Ds => mk_T_of_bnf Ds Ts) Dss bnfs;
     val (params, params') = `(map Term.dest_TFree) (mk_params passiveAs);
-    val (dead_params, dead_params') = `(map Term.dest_TFree) (subtract (op =) passiveAs params');
     val FTsAs = mk_FTs allAs;
     val FTsBs = mk_FTs allBs;
     val FTsCs = mk_FTs allCs;
@@ -448,6 +447,7 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
 
     val sum_bd = Library.foldr1 (uncurry mk_csum) bds;
     val sum_bdT = fst (dest_relT (fastype_of sum_bd));
+    val (sum_bdT_params, sum_bdT_params') = `(map TFree) (Term.add_tfreesT sum_bdT []);
 
     val (lthy, sbd, sbd_Cinfinite, sbd_Card_order, set_sbdss, in_sbds) =
       if n = 1
@@ -457,10 +457,10 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
           val sbdT_bind = mk_internal_b sum_bdTN;
 
           val ((sbdT_name, (sbdT_glob_info, sbdT_loc_info)), lthy) =
-            typedef (sbdT_bind, dead_params, NoSyn)
+            typedef (sbdT_bind, sum_bdT_params', NoSyn)
               (HOLogic.mk_UNIV sum_bdT) NONE (EVERY' [rtac exI, rtac UNIV_I] 1) lthy;
 
-          val sbdT = Type (sbdT_name, dead_params');
+          val sbdT = Type (sbdT_name, sum_bdT_params);
           val Abs_sbdT = Const (#Abs_name sbdT_glob_info, sum_bdT --> sbdT);
 
           val sbd_bind = mk_internal_b sum_bdN;
@@ -1381,14 +1381,15 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss0 bs resBs (resDs, Dss) bnfs _ l
             let
               val sum_bd0 = Library.foldr1 (uncurry mk_csum) bd0s;
               val sum_bd0T = fst (dest_relT (fastype_of sum_bd0));
+              val (sum_bd0T_params, sum_bd0T_params') = `(map TFree) (Term.add_tfreesT sum_bd0T []);
 
               val sbd0T_bind = mk_internal_b (sum_bdTN ^ "0");
     
               val ((sbd0T_name, (sbd0T_glob_info, sbd0T_loc_info)), lthy) =
-                typedef (sbd0T_bind, dead_params, NoSyn)
+                typedef (sbd0T_bind, sum_bd0T_params', NoSyn)
                   (HOLogic.mk_UNIV sum_bd0T) NONE (EVERY' [rtac exI, rtac UNIV_I] 1) lthy;
     
-              val sbd0T = Type (sbd0T_name, dead_params');
+              val sbd0T = Type (sbd0T_name, sum_bd0T_params);
               val Abs_sbd0T = Const (#Abs_name sbd0T_glob_info, sum_bd0T --> sbd0T);
     
               val sbd0_bind = mk_internal_b (sum_bdN ^ "0");
