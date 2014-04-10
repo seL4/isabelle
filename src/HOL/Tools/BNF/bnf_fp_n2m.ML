@@ -373,7 +373,8 @@ fun construct_mutualized_fp fp cliques fpTs (fp_sugars : fp_sugar list) bs resBs
 
     val co_recs = map (Morphism.term phi) raw_co_recs;
 
-    val fp_rec_o_maps = of_fp_res #xtor_co_rec_o_map_thms;
+    val fp_rec_o_maps = of_fp_res #xtor_co_rec_o_map_thms
+      |> maps (fn thm => [thm, thm RS rewrite_comp_comp]);
 
     val xtor_co_rec_thms =
       let
