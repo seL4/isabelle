@@ -772,14 +772,6 @@ apply transfer'
 apply (subst rel_set_def[unfolded fun_eq_iff]) 
 by blast
 
-lemma rel_fset_conversep: "rel_fset (conversep R) = conversep (rel_fset R)"
-  unfolding rel_fset_alt_def by auto
-
-lemmas rel_fset_eq [relator_eq] = rel_set_eq[Transfer.transferred]
-
-lemma rel_fset_mono[relator_mono]: "A \<le> B \<Longrightarrow> rel_fset A \<le> rel_fset B"
-unfolding rel_fset_alt_def by blast
-
 lemma finite_rel_set:
   assumes fin: "finite X" "finite Z"
   assumes R_S: "rel_set (R OO S) X Z"
@@ -805,63 +797,6 @@ proof -
     using f g by clarsimp blast
   ultimately show ?thesis by metis
 qed
-
-lemma rel_fset_OO[relator_distr]: "rel_fset R OO rel_fset S = rel_fset (R OO S)"
-apply (rule ext)+
-by transfer (auto intro: finite_rel_set rel_set_OO[unfolded fun_eq_iff, rule_format, THEN iffD1])
-
-lemma Domainp_fset[relator_domain]: "Domainp (rel_fset T) = (\<lambda>A. fBall A (Domainp T))"
-proof -
-  obtain f where f: "\<forall>x\<in>Collect (Domainp T). T x (f x)"
-    unfolding Domainp_iff[abs_def]
-    apply atomize_elim
-    by (subst bchoice_iff[symmetric]) (auto iff: bchoice_iff[symmetric])
-  from f show ?thesis
-    unfolding fun_eq_iff rel_fset_alt_def Domainp_iff
-    apply clarify
-    apply (rule iffI)
-      apply blast
-    by (rename_tac A, rule_tac x="f |`| A" in exI, blast)
-qed
-
-lemma right_total_rel_fset[transfer_rule]: "right_total A \<Longrightarrow> right_total (rel_fset A)"
-unfolding right_total_def 
-apply transfer
-apply (subst(asm) choice_iff)
-apply clarsimp
-apply (rename_tac A f y, rule_tac x = "f ` y" in exI)
-by (auto simp add: rel_set_def)
-
-lemma left_total_rel_fset[transfer_rule]: "left_total A \<Longrightarrow> left_total (rel_fset A)"
-unfolding left_total_def 
-apply transfer
-apply (subst(asm) choice_iff)
-apply clarsimp
-apply (rename_tac A f y, rule_tac x = "f ` y" in exI)
-by (auto simp add: rel_set_def)
-
-lemmas right_unique_rel_fset[transfer_rule] = right_unique_rel_set[Transfer.transferred]
-lemmas left_unique_rel_fset[transfer_rule] = left_unique_rel_set[Transfer.transferred]
-
-thm right_unique_rel_fset left_unique_rel_fset
-
-lemma bi_unique_rel_fset[transfer_rule]: "bi_unique A \<Longrightarrow> bi_unique (rel_fset A)"
-by (auto intro: right_unique_rel_fset left_unique_rel_fset iff: bi_unique_alt_def)
-
-lemma bi_total_rel_fset[transfer_rule]: "bi_total A \<Longrightarrow> bi_total (rel_fset A)"
-by (auto intro: right_total_rel_fset left_total_rel_fset iff: bi_total_alt_def)
-
-lemmas fset_relator_eq_onp [relator_eq_onp] = set_relator_eq_onp[Transfer.transferred]
-
-
-subsubsection {* Quotient theorem for the Lifting package *}
-
-lemma Quotient_fset_map[quot_map]:
-  assumes "Quotient R Abs Rep T"
-  shows "Quotient (rel_fset R) (fimage Abs) (fimage Rep) (rel_fset T)"
-  using assms unfolding Quotient_alt_def4
-  by (simp add: rel_fset_OO[symmetric] rel_fset_conversep) (simp add: rel_fset_alt_def, blast)
-
 
 subsubsection {* Transfer rules for the Transfer package *}
 

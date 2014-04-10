@@ -8,58 +8,6 @@ theory Lifting_Sum
 imports Lifting Basic_BNFs
 begin
 
-subsection {* Relator and predicator properties *}
-
-abbreviation (input) "sum_pred \<equiv> case_sum"
-
-lemmas rel_sum_eq[relator_eq] = sum.rel_eq
-lemmas rel_sum_mono[relator_mono] = sum.rel_mono
-
-lemma rel_sum_OO[relator_distr]:
-  "(rel_sum A B) OO (rel_sum C D) = rel_sum (A OO C) (B OO D)"
-  by (rule ext)+ (auto simp add: rel_sum_def OO_def split_sum_ex split: sum.split)
-
-lemma Domainp_sum[relator_domain]:
-  "Domainp (rel_sum R1 R2) = (sum_pred (Domainp R1) (Domainp R2))"
-by (auto simp add: Domainp_iff split_sum_ex iff: fun_eq_iff split: sum.split)
-
-lemma left_total_rel_sum[transfer_rule]:
-  "left_total R1 \<Longrightarrow> left_total R2 \<Longrightarrow> left_total (rel_sum R1 R2)"
-  using assms unfolding left_total_def split_sum_all split_sum_ex by simp
-
-lemma left_unique_rel_sum [transfer_rule]:
-  "left_unique R1 \<Longrightarrow> left_unique R2 \<Longrightarrow> left_unique (rel_sum R1 R2)"
-  using assms unfolding left_unique_def split_sum_all by simp
-
-lemma right_total_rel_sum [transfer_rule]:
-  "right_total R1 \<Longrightarrow> right_total R2 \<Longrightarrow> right_total (rel_sum R1 R2)"
-  unfolding right_total_def split_sum_all split_sum_ex by simp
-
-lemma right_unique_rel_sum [transfer_rule]:
-  "right_unique R1 \<Longrightarrow> right_unique R2 \<Longrightarrow> right_unique (rel_sum R1 R2)"
-  unfolding right_unique_def split_sum_all by simp
-
-lemma bi_total_rel_sum [transfer_rule]:
-  "bi_total R1 \<Longrightarrow> bi_total R2 \<Longrightarrow> bi_total (rel_sum R1 R2)"
-  using assms unfolding bi_total_def split_sum_all split_sum_ex by simp
-
-lemma bi_unique_rel_sum [transfer_rule]:
-  "bi_unique R1 \<Longrightarrow> bi_unique R2 \<Longrightarrow> bi_unique (rel_sum R1 R2)"
-  using assms unfolding bi_unique_def split_sum_all by simp
-
-lemma sum_relator_eq_onp [relator_eq_onp]: 
-  "rel_sum (eq_onp P1) (eq_onp P2) = eq_onp (sum_pred P1 P2)"
-  by (auto simp add: fun_eq_iff eq_onp_def rel_sum_def split: sum.split)
-
-subsection {* Quotient theorem for the Lifting package *}
-
-lemma Quotient_sum[quot_map]:
-  assumes "Quotient R1 Abs1 Rep1 T1"
-  assumes "Quotient R2 Abs2 Rep2 T2"
-  shows "Quotient (rel_sum R1 R2) (map_sum Abs1 Abs2) (map_sum Rep1 Rep2) (rel_sum T1 T2)"
-  using assms unfolding Quotient_alt_def
-  by (simp add: split_sum_all)
-
 subsection {* Transfer rules for the Transfer package *}
 
 context

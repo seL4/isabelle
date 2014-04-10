@@ -20,7 +20,7 @@ lemma rel_option_map2:
 
 declare
   map_option.id [id_simps]
-  rel_option_eq [id_simps]
+  option.rel_eq [id_simps]
 
 lemma reflp_rel_option:
   "reflp R \<Longrightarrow> reflp (rel_option R)"
@@ -44,7 +44,7 @@ lemma option_quotient [quot_thm]:
   assumes "Quotient3 R Abs Rep"
   shows "Quotient3 (rel_option R) (map_option Abs) (map_option Rep)"
   apply (rule Quotient3I)
-  apply (simp_all add: option.map_comp comp_def option.map_id[unfolded id_def] rel_option_eq rel_option_map1 rel_option_map2 Quotient3_abs_rep [OF assms] Quotient3_rel_rep [OF assms])
+  apply (simp_all add: option.map_comp comp_def option.map_id[unfolded id_def] option.rel_eq rel_option_map1 rel_option_map2 Quotient3_abs_rep [OF assms] Quotient3_rel_rep [OF assms])
   using Quotient3_rel [OF assms]
   apply (simp add: rel_option_iff split: option.split)
   done
