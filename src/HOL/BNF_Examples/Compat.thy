@@ -69,7 +69,7 @@ datatype funky = Funky "funky tre" | Funky'
 datatype fnky = Fnky "nat tre"
 
 datatype_new tree = Tree "tree foo"
-(* FIXME: datatype_compat tree *)
+datatype_compat tree
 
 ML {* Datatype_Data.get_info @{theory} @{type_name tree} *}
 
