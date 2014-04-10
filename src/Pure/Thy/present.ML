@@ -9,7 +9,7 @@ sig
   val session_name: theory -> string
   val read_variant: string -> string * string
   val init: bool -> bool -> Path.T -> string -> bool -> string -> (string * string) list ->
-    string * string -> bool * string -> bool -> theory list -> unit  (*not thread-safe!*)
+    string * string -> bool -> theory list -> unit  (*not thread-safe!*)
   val finish: unit -> unit  (*not thread-safe!*)
   val theory_output: string -> string -> unit
   val begin_theory: int -> (unit -> HTML.text) -> theory -> theory
@@ -168,17 +168,17 @@ fun add_graph_entry entry =
 (* session_info *)
 
 type session_info =
-  {name: string, chapter: string, info_path: Path.T,
-    info: bool, doc_format: string, doc_graph: bool, doc_output: Path.T option,
-    documents: (string * string) list, doc_dump: (bool * string), verbose: bool,
+  {name: string, chapter: string, info_path: Path.T, info: bool,
+    doc_format: string, doc_graph: bool, doc_output: Path.T option,
+    documents: (string * string) list, verbose: bool,
     readme: Path.T option};
 
 fun make_session_info
   (name, chapter, info_path, info, doc_format, doc_graph, doc_output,
-    documents, doc_dump, verbose, readme) =
+    documents, verbose, readme) =
   {name = name, chapter = chapter, info_path = info_path, info = info,
     doc_format = doc_format, doc_graph = doc_graph, doc_output = doc_output,
-    documents = documents, doc_dump = doc_dump, verbose = verbose,
+    documents = documents, verbose = verbose,
     readme = readme}: session_info;
 
 
@@ -204,8 +204,8 @@ fun read_variant str =
 (* init session *)
 
 fun init build info info_path doc doc_graph document_output doc_variants
-    (chapter, name) (doc_dump as (_, dump_prefix)) verbose thys =
-  if not build andalso not info andalso doc = "" andalso dump_prefix = "" then
+    (chapter, name) verbose thys =
+  if not build andalso not info andalso doc = "" then
     (browser_info := empty_browser_info; session_info := NONE)
   else
     let
@@ -227,7 +227,7 @@ fun init build info info_path doc doc_graph document_output doc_variants
     in
       session_info :=
         SOME (make_session_info (name, chapter, info_path, info, doc,
-          doc_graph, doc_output, documents, doc_dump, verbose, readme));
+          doc_graph, doc_output, documents, verbose, readme));
       browser_info := init_browser_info (chapter, name) thys;
       add_html_index (0, HTML.begin_session_index name docs (Url.explode "medium.html"))
     end;
@@ -278,7 +278,7 @@ fun write_tex_index tex_index path =
 
 fun finish () =
   with_session_info () (fn {name, chapter, info, info_path, doc_format, doc_graph, doc_output,
-    documents, doc_dump = (dump_copy, dump_prefix), verbose, readme, ...} =>
+    documents, verbose, readme, ...} =>
   let
     val {theories, tex_index, html_index, graph} = ! browser_info;
     val thys = Symtab.dest theories;
@@ -291,7 +291,7 @@ fun finish () =
 
     val sorted_graph = sorted_index graph;
     val opt_graphs =
-      if doc_graph andalso (not (null documents) orelse dump_prefix <> "") then
+      if doc_graph andalso not (null documents) then
         SOME (isabelle_browser sorted_graph)
       else NONE;
 
@@ -324,18 +324,6 @@ fun finish () =
       write_tex_index tex_index doc_dir;
       List.app (fn (a, {tex_source, ...}) =>
         write_tex (Buffer.add tex_source Buffer.empty) a doc_dir) thys);
-
-    val _ =
-      if dump_prefix = "" then ()
-      else
-        let
-          val path = Path.explode dump_prefix;
-          val _ = prepare_sources dump_copy path;
-        in
-          if verbose then
-            Output.physical_stderr ("Document sources at " ^ show_path path ^ "\n")
-          else ()
-        end;
 
     fun document_job doc_prefix backdrop (name, tags) =
       let
