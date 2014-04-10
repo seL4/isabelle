@@ -6022,8 +6022,10 @@ lemma in_set_member (* FIXME delete candidate *):
   "x \<in> set xs \<longleftrightarrow> member xs x"
   by (simp add: member_def)
 
-definition list_all :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
-list_all_iff [code_abbrev]: "list_all P xs \<longleftrightarrow> Ball (set xs) P"
+abbreviation "list_all == pred_list"
+
+lemma list_all_iff [code_abbrev]: "list_all P xs \<longleftrightarrow> Ball (set xs) P"
+unfolding pred_list_def ..
 
 definition list_ex :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
 list_ex_iff [code_abbrev]: "list_ex P xs \<longleftrightarrow> Bex (set xs) P"
@@ -6037,7 +6039,7 @@ text {*
   and @{const list_ex1} in specifications.
 *}
 
-lemma list_all_simps [simp, code]:
+lemma list_all_simps [code]:
   "list_all P (x # xs) \<longleftrightarrow> P x \<and> list_all P xs"
   "list_all P [] \<longleftrightarrow> True"
   by (simp_all add: list_all_iff)
