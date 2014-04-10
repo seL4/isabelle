@@ -89,15 +89,25 @@ end;
 type blob =
   (string * (SHA1.digest * string list) option) Exn.result;  (*file node name, digest, lines*)
 
-fun read_file master_dir pos src_path =
+fun read_file_node file_node master_dir pos src_path =
   let
     val _ = Position.report pos Markup.language_path;
+    val _ =
+      (case try Url.explode file_node of
+        NONE => ()
+      | SOME (Url.File _) => ()
+      | _ =>
+         (Position.report pos (Markup.path file_node);
+          error ("Prover cannot load remote file " ^
+            Markup.markup (Markup.path file_node) (quote file_node) ^ Position.here pos)));
     val full_path = File.check_file (File.full_path master_dir src_path);
     val _ = Position.report pos (Markup.path (Path.implode full_path));
     val text = File.read full_path;
     val lines = split_lines text;
     val digest = SHA1.digest text;
   in {src_path = src_path, lines = lines, digest = digest, pos = Path.position full_path} end;
+
+val read_file = read_file_node "";
 
 local
 
@@ -115,8 +125,9 @@ fun resolve_files master_dir blobs toks =
     [span] => span
       |> Thy_Syntax.resolve_files (fn cmd => fn (path, pos) =>
         let
-          fun make_file src_path (Exn.Res (_, NONE)) =
-                Exn.interruptible_capture (fn () => read_file master_dir pos src_path) ()
+          fun make_file src_path (Exn.Res (file_node, NONE)) =
+                Exn.interruptible_capture (fn () =>
+                  read_file_node file_node master_dir pos src_path) ()
             | make_file src_path (Exn.Res (file_node, SOME (digest, lines))) =
                (Position.reports [(pos, Markup.language_path), (pos, Markup.path file_node)];
                 Exn.Res (blob_file src_path lines digest file_node))
