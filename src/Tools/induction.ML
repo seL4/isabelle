@@ -17,7 +17,7 @@ fun preds_of t =
   | (p as Free _, _) => [p]
   | (_, ts) => flat(map preds_of ts))
 
-fun name_hyps thy (arg as ((cases,consumes),th)) =
+fun name_hyps (arg as ((cases, consumes), th)) =
   if not(forall (null o #2 o #1) cases) then arg
   else
     let
@@ -35,7 +35,7 @@ fun name_hyps thy (arg as ((cases,consumes),th)) =
         (take n cases ~~ take n hnamess)
     in ((cases',consumes),th) end
 
-val induction_tac = Induct.gen_induct_tac name_hyps
+val induction_tac = Induct.gen_induct_tac (K name_hyps)
 
 val setup = Induct.gen_induct_setup @{binding induction} induction_tac
 
