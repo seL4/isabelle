@@ -48,9 +48,9 @@ definition left_unique :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow
   where "left_unique R \<longleftrightarrow> (\<forall>x y z. R x z \<longrightarrow> R y z \<longrightarrow> x = y)"
 
 lemma left_unique_transfer [transfer_rule]:
-  assumes [transfer_rule]: "right_total A"
-  assumes [transfer_rule]: "right_total B"
-  assumes [transfer_rule]: "bi_unique A"
+  assumes "right_total A"
+  assumes "right_total B"
+  assumes "bi_unique A"
   shows "((A ===> B ===> op=) ===> implies) left_unique left_unique"
 using assms unfolding left_unique_def[abs_def] right_total_def bi_unique_def rel_fun_def
 by metis
