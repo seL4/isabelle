@@ -467,7 +467,7 @@ fun get_pcrel_info ctxt qty_full_name =
   #pcr_info (the (Lifting_Info.lookup_quotients ctxt qty_full_name))
 
 fun get_Domainp_thm quot_thm =
-   the (get_first (try(curry op RS quot_thm)) [@{thm invariant_to_Domainp}, @{thm Quotient_to_Domainp}])
+   the (get_first (try(curry op RS quot_thm)) [@{thm eq_onp_to_Domainp}, @{thm Quotient_to_Domainp}])
 
 (*
   Sets up the Lifting package by a quotient theorem.
@@ -646,7 +646,6 @@ fun setup_by_typedef_thm gen_code typedef_thm lthy =
           SOME ((typedef_thm RS @{thm UNIV_typedef_to_equivp}) RS @{thm equivp_reflp2})
         | _ =>  NONE
     val dom_thm = get_Domainp_thm quot_thm
-    val reflexivity_rule_attr = Attrib.internal (K Lifting_Info.add_reflexivity_rule_attribute)
 
     fun setup_transfer_rules_nonpar lthy =
       let

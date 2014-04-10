@@ -640,7 +640,7 @@ lemma subset_Coset_empty_Set_empty [code]:
 proof -
   have *: "\<And>t. RBT.impl_of t = rbt.Empty \<Longrightarrow> t = RBT rbt.Empty"
     by (subst(asm) RBT_inverse[symmetric]) (auto simp: impl_of_inject)
-  have **: "Lifting.invariant is_rbt rbt.Empty rbt.Empty" unfolding Lifting.invariant_def by simp
+  have **: "eq_onp is_rbt rbt.Empty rbt.Empty" unfolding eq_onp_def by simp
   show ?thesis  
     by (auto simp: Set_def lookup.abs_eq[OF **] dest!: * split: rbt.split)
 qed
@@ -672,7 +672,7 @@ proof -
     fix x :: "'a :: linorder"
     let ?t = "Branch RBT_Impl.B RBT_Impl.Empty x () RBT_Impl.Empty" 
     have *:"?t \<in> {t. is_rbt t}" unfolding is_rbt_def by auto
-    then have **:"Lifting.invariant is_rbt ?t ?t" unfolding Lifting.invariant_def by auto
+    then have **:"eq_onp is_rbt ?t ?t" unfolding eq_onp_def by auto
 
     have "RBT.impl_of t = ?t \<Longrightarrow> the_elem (Set t) = x" 
       by (subst(asm) RBT_inverse[symmetric, OF *])

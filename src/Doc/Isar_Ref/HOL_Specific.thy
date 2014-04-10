@@ -1596,7 +1596,7 @@ text {*
     @{command_def (HOL) "print_quot_maps"} & : & @{text "context \<rightarrow>"}\\
     @{command_def (HOL) "print_quotients"} & : & @{text "context \<rightarrow>"}\\
     @{attribute_def (HOL) "quot_map"} & : & @{text attribute} \\
-    @{attribute_def (HOL) "invariant_commute"} & : & @{text attribute} \\
+    @{attribute_def (HOL) "relator_eq_onp"} & : & @{text attribute} \\
     @{attribute_def (HOL) "relator_mono"} & : & @{text attribute} \\
     @{attribute_def (HOL) "relator_distr"} & : & @{text attribute} \\
     @{attribute_def (HOL) "quot_del"} & : & @{text attribute} \\
@@ -1733,11 +1733,11 @@ text {*
     "~~/src/HOL/List.thy"} or @{file "~~/src/HOL/Lifting.thy"} or Lifting_*.thy files
     in the same directory.
 
-  \item @{attribute (HOL) invariant_commute} registers a theorem that
+  \item @{attribute (HOL) relator_eq_onp} registers a theorem that
     shows a relationship between the constant @{text
-    Lifting.invariant} (used for internal encoding of proper subtypes)
+    eq_onp} (used for internal encoding of proper subtypes)
     and a relator.  Such theorems allows the package to hide @{text
-    Lifting.invariant} from a user in a user-readable form of a
+    eq_onp} from a user in a user-readable form of a
     respectfulness theorem. For examples see @{file
     "~~/src/HOL/List.thy"} or Lifting_*.thy files in the same directory.
 

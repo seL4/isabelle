@@ -61,9 +61,9 @@ lemma bi_unique_rel_prod [transfer_rule]:
   shows "bi_unique (rel_prod R1 R2)"
   using assms unfolding bi_unique_def rel_prod_def by auto
 
-lemma prod_invariant_commute [invariant_commute]: 
-  "rel_prod (Lifting.invariant P1) (Lifting.invariant P2) = Lifting.invariant (pred_prod P1 P2)"
-  by (simp add: fun_eq_iff rel_prod_def pred_prod_def Lifting.invariant_def) blast
+lemma prod_relator_eq_onp [relator_eq_onp]: 
+  "rel_prod (eq_onp P1) (eq_onp P2) = eq_onp (pred_prod P1 P2)"
+  by (simp add: fun_eq_iff rel_prod_def pred_prod_def eq_onp_def) blast
 
 subsection {* Quotient theorem for the Lifting package *}
 

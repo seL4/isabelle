@@ -853,7 +853,7 @@ by (auto intro: right_unique_rel_fset left_unique_rel_fset iff: bi_unique_iff)
 lemma bi_total_rel_fset[transfer_rule]: "bi_total A \<Longrightarrow> bi_total (rel_fset A)"
 by (auto intro: right_total_rel_fset left_total_rel_fset iff: bi_total_iff)
 
-lemmas fset_invariant_commute [invariant_commute] = set_invariant_commute[Transfer.transferred]
+lemmas fset_relator_eq_onp [relator_eq_onp] = set_relator_eq_onp[Transfer.transferred]
 
 
 subsubsection {* Quotient theorem for the Lifting package *}

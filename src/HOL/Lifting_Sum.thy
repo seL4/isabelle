@@ -50,9 +50,9 @@ lemma bi_unique_rel_sum [transfer_rule]:
   "bi_unique R1 \<Longrightarrow> bi_unique R2 \<Longrightarrow> bi_unique (rel_sum R1 R2)"
   using assms unfolding bi_unique_def split_sum_all by simp
 
-lemma sum_invariant_commute [invariant_commute]: 
-  "rel_sum (Lifting.invariant P1) (Lifting.invariant P2) = Lifting.invariant (sum_pred P1 P2)"
-  by (auto simp add: fun_eq_iff Lifting.invariant_def rel_sum_def split: sum.split)
+lemma sum_relator_eq_onp [relator_eq_onp]: 
+  "rel_sum (eq_onp P1) (eq_onp P2) = eq_onp (sum_pred P1 P2)"
+  by (auto simp add: fun_eq_iff eq_onp_def rel_sum_def split: sum.split)
 
 subsection {* Quotient theorem for the Lifting package *}
 

@@ -6665,9 +6665,9 @@ lemma bi_unique_list_all2 [transfer_rule]:
   apply (simp, force simp add: list_all2_Cons2)
   done
 
-lemma list_invariant_commute [invariant_commute]:
-  "list_all2 (Lifting.invariant P) = Lifting.invariant (list_all P)"
-  apply (simp add: fun_eq_iff list_all2_iff list_all_iff Lifting.invariant_def Ball_def) 
+lemma list_relator_eq_onp [relator_eq_onp]:
+  "list_all2 (eq_onp P) = eq_onp (list_all P)"
+  apply (simp add: fun_eq_iff list_all2_iff list_all_iff eq_onp_def Ball_def) 
   apply (intro allI) 
   apply (induct_tac rule: list_induct2') 
   apply simp_all 

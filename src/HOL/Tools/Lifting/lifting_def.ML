@@ -262,7 +262,7 @@ fun simplify_code_eq ctxt def_thm =
 fun can_generate_code_cert quot_thm  =
   case quot_thm_rel quot_thm of
     Const (@{const_name HOL.eq}, _) => true
-    | Const (@{const_name invariant}, _) $ _  => true
+    | Const (@{const_name eq_onp}, _) $ _  => true
     | _ => false
 
 fun generate_rep_eq ctxt def_thm rsp_thm (rty, qty) =
@@ -450,7 +450,7 @@ fun add_lift_def var qty rhs rsp_thm par_thms lthy =
   end
 
 local
-  val invariant_assms_tac_fixed_rules = map (Transfer.prep_transfer_domain_thm @{context})
+  val eq_onp_assms_tac_fixed_rules = map (Transfer.prep_transfer_domain_thm @{context})
     [@{thm pcr_Domainp_total}, @{thm pcr_Domainp_par_left_total}, @{thm pcr_Domainp_par}, 
       @{thm pcr_Domainp}]
 in
@@ -511,33 +511,33 @@ fun mk_readable_rsp_thm_eq tm lthy =
     fun simp_arrows_conv ctm =
       let
         val unfold_conv = Conv.rewrs_conv 
-          [@{thm rel_fun_eq_invariant[THEN eq_reflection]}, 
-            @{thm rel_fun_invariant_rel[THEN eq_reflection]},
+          [@{thm rel_fun_eq_eq_onp[THEN eq_reflection]}, 
+            @{thm rel_fun_eq_onp_rel[THEN eq_reflection]},
             @{thm rel_fun_eq[THEN eq_reflection]},
             @{thm rel_fun_eq_rel[THEN eq_reflection]}, 
             @{thm rel_fun_def[THEN eq_reflection]}]
         fun binop_conv2 cv1 cv2 = Conv.combination_conv (Conv.arg_conv cv1) cv2
-        val invariant_assms_tac_rules = @{thm left_unique_OO} :: 
-            invariant_assms_tac_fixed_rules @ (Transfer.get_transfer_raw lthy)
-        val invariant_assms_tac = (TRY o REPEAT_ALL_NEW (resolve_tac invariant_assms_tac_rules) 
+        val eq_onp_assms_tac_rules = @{thm left_unique_OO} :: 
+            eq_onp_assms_tac_fixed_rules @ (Transfer.get_transfer_raw lthy)
+        val eq_onp_assms_tac = (TRY o REPEAT_ALL_NEW (resolve_tac eq_onp_assms_tac_rules) 
           THEN_ALL_NEW (DETERM o Transfer.eq_tac lthy)) 1
-        val invariant_commute_conv = Conv.bottom_conv
-          (K (Conv.try_conv (assms_rewrs_conv invariant_assms_tac
-            (Lifting_Info.get_invariant_commute_rules lthy)))) lthy
+        val relator_eq_onp_conv = Conv.bottom_conv
+          (K (Conv.try_conv (assms_rewrs_conv eq_onp_assms_tac
+            (Lifting_Info.get_relator_eq_onp_rules lthy)))) lthy
         val relator_eq_conv = Conv.bottom_conv
           (K (Conv.try_conv (Conv.rewrs_conv (Transfer.get_relator_eq lthy)))) lthy
       in
         case (Thm.term_of ctm) of
           Const (@{const_name "rel_fun"}, _) $ _ $ _ => 
             (binop_conv2 simp_arrows_conv simp_arrows_conv then_conv unfold_conv) ctm
-          | _ => (invariant_commute_conv then_conv relator_eq_conv) ctm
+          | _ => (relator_eq_onp_conv then_conv relator_eq_conv) ctm
       end
     
     val unfold_ret_val_invs = Conv.bottom_conv 
-      (K (Conv.try_conv (Conv.rewr_conv @{thm invariant_same_args}))) lthy
+      (K (Conv.try_conv (Conv.rewr_conv @{thm eq_onp_same_args}))) lthy
     val cr_to_pcr_conv = Raw_Simplifier.rewrite lthy false (get_cr_pcr_eqs lthy)
     val unfold_inv_conv = 
-      Conv.top_sweep_conv (K (Conv.rewr_conv @{thm invariant_def[THEN eq_reflection]})) lthy
+      Conv.top_sweep_conv (K (Conv.rewr_conv @{thm eq_onp_def[THEN eq_reflection]})) lthy
     val simp_conv = HOLogic.Trueprop_conv (Conv.fun2_conv 
       (cr_to_pcr_conv then_conv simp_arrows_conv))
     val univq_conv = Conv.rewr_conv @{thm HOL.all_simps(6)[symmetric, THEN eq_reflection]}

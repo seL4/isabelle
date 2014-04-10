@@ -63,9 +63,9 @@ lemma bi_unique_rel_option [transfer_rule]:
   "bi_unique R \<Longrightarrow> bi_unique (rel_option R)"
   unfolding bi_unique_def split_option_all by simp
 
-lemma option_invariant_commute [invariant_commute]:
-  "rel_option (Lifting.invariant P) = Lifting.invariant (pred_option P)"
-  by (auto simp add: fun_eq_iff Lifting.invariant_def split_option_all)
+lemma option_relator_eq_onp [relator_eq_onp]:
+  "rel_option (eq_onp P) = eq_onp (pred_option P)"
+  by (auto simp add: fun_eq_iff eq_onp_def split_option_all)
 
 subsection {* Quotient theorem for the Lifting package *}
 

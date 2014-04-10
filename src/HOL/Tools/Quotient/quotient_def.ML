@@ -109,7 +109,7 @@ fun mk_readable_rsp_thm_eq tm lthy =
     fun simp_arrows_conv ctm =
       let
         val unfold_conv = Conv.rewrs_conv 
-          [@{thm rel_fun_eq_invariant[THEN eq_reflection]}, @{thm rel_fun_eq_rel[THEN eq_reflection]}, 
+          [@{thm rel_fun_eq_eq_onp[THEN eq_reflection]}, @{thm rel_fun_eq_rel[THEN eq_reflection]}, 
             @{thm rel_fun_def[THEN eq_reflection]}]
         val left_conv = simp_arrows_conv then_conv Conv.try_conv norm_fun_eq
         fun binop_conv2 cv1 cv2 = Conv.combination_conv (Conv.arg_conv cv1) cv2
@@ -121,7 +121,7 @@ fun mk_readable_rsp_thm_eq tm lthy =
       end
 
     val unfold_ret_val_invs = Conv.bottom_conv 
-      (K (Conv.try_conv (Conv.rewr_conv @{thm invariant_same_args}))) lthy 
+      (K (Conv.try_conv (Conv.rewr_conv @{thm eq_onp_same_args}))) lthy 
     val simp_conv = Conv.arg_conv (Conv.fun2_conv simp_arrows_conv)
     val univq_conv = Conv.rewr_conv @{thm HOL.all_simps(6)[symmetric, THEN eq_reflection]}
     val univq_prenex_conv = Conv.top_conv (K (Conv.try_conv univq_conv)) lthy

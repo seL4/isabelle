@@ -25,7 +25,7 @@ sig
   val init_restore_data: string -> quotient -> Context.generic -> Context.generic
   val add_transfer_rules_in_restore_data: string -> thm Item_Net.T -> Context.generic -> Context.generic  
 
-  val get_invariant_commute_rules: Proof.context -> thm list
+  val get_relator_eq_onp_rules: Proof.context -> thm list
   
   val get_reflexivity_rules: Proof.context -> thm list
   val add_reflexivity_rule_attribute: attribute
@@ -262,15 +262,15 @@ fun add_transfer_rules_in_restore_data bundle_name transfer_rules ctxt =
       transfer_rules = Item_Net.merge ((#transfer_rules restore_data), transfer_rules) } ctxt
     | NONE => error ("The restore data " ^ quote bundle_name ^ " is not defined.")
 
-(* theorems that a relator of an invariant is an invariant of the corresponding predicate *)
+(* theorems that a relator of an eq_onp is an eq_onp of the corresponding predicate *)
 
-structure Invariant_Commute = Named_Thms
+structure Relator_Eq_Onp = Named_Thms
 (
-  val name = @{binding invariant_commute}
-  val description = "theorems that a relator of an invariant is an invariant of the corresponding predicate"
+  val name = @{binding relator_eq_onp}
+  val description = "theorems that a relator of an eq_onp is an eq_onp of the corresponding predicate"
 )
 
-fun get_invariant_commute_rules ctxt = map safe_mk_meta_eq (Invariant_Commute.get ctxt)
+fun get_relator_eq_onp_rules ctxt = map safe_mk_meta_eq (Relator_Eq_Onp.get ctxt)
 
 (* info about reflexivity rules *)
 
@@ -505,18 +505,18 @@ val relator_distr_attribute_setup =
 val setup =
   quot_map_attribute_setup
   #> quot_del_attribute_setup
-  #> Invariant_Commute.setup
+  #> Relator_Eq_Onp.setup
   #> relator_distr_attribute_setup
 
-(* setup fixed invariant rules *)
+(* setup fixed eq_onp rules *)
 
-val _ = Context.>> (fold (Invariant_Commute.add_thm o Transfer.prep_transfer_domain_thm @{context}) 
-  @{thms composed_equiv_rel_invariant composed_equiv_rel_eq_invariant})
+val _ = Context.>> (fold (Relator_Eq_Onp.add_thm o Transfer.prep_transfer_domain_thm @{context}) 
+  @{thms composed_equiv_rel_eq_onp composed_equiv_rel_eq_eq_onp})
 
 (* setup fixed reflexivity rules *)
 
 val _ = Context.>> (fold add_reflexivity_rule 
-  @{thms order_refl[of "op="] invariant_le_eq Quotient_composition_le_eq Quotient_composition_ge_eq
+  @{thms order_refl[of "op="] eq_onp_le_eq Quotient_composition_le_eq Quotient_composition_ge_eq
     bi_unique_OO bi_total_OO right_unique_OO right_total_OO left_unique_OO left_total_OO})
 
 (* outer syntax commands *)

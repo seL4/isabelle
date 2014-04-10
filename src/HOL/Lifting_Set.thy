@@ -82,9 +82,9 @@ lemma bi_unique_rel_set [transfer_rule]:
   "bi_unique A \<Longrightarrow> bi_unique (rel_set A)"
   unfolding bi_unique_def rel_set_def by fast
 
-lemma set_invariant_commute [invariant_commute]:
-  "rel_set (Lifting.invariant P) = Lifting.invariant (\<lambda>A. Ball A P)"
-  unfolding fun_eq_iff rel_set_def Lifting.invariant_def Ball_def by fast
+lemma set_relator_eq_onp [relator_eq_onp]:
+  "rel_set (eq_onp P) = eq_onp (\<lambda>A. Ball A P)"
+  unfolding fun_eq_iff rel_set_def eq_onp_def Ball_def by fast
 
 subsection {* Quotient theorem for the Lifting package *}
 

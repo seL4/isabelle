@@ -212,29 +212,29 @@ lemma in_respects: "x \<in> Respects R \<longleftrightarrow> R x x"
 
 subsection {* Invariant *}
 
-definition invariant :: "('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" 
-  where "invariant R = (\<lambda>x y. R x \<and> x = y)"
+definition eq_onp :: "('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" 
+  where "eq_onp R = (\<lambda>x y. R x \<and> x = y)"
 
-lemma invariant_to_eq:
-  assumes "invariant P x y"
+lemma eq_onp_to_eq:
+  assumes "eq_onp P x y"
   shows "x = y"
-using assms by (simp add: invariant_def)
+using assms by (simp add: eq_onp_def)
 
-lemma rel_fun_eq_invariant: "(op= ===> Lifting.invariant P) = Lifting.invariant (\<lambda>f. \<forall>x. P(f x))"
-unfolding invariant_def rel_fun_def by auto
+lemma rel_fun_eq_eq_onp: "(op= ===> eq_onp P) = eq_onp (\<lambda>f. \<forall>x. P(f x))"
+unfolding eq_onp_def rel_fun_def by auto
 
-lemma rel_fun_invariant_rel:
-  shows "((invariant R) ===> S) = (\<lambda>f g. \<forall>x. R x \<longrightarrow> S (f x) (g x))"
-by (auto simp add: invariant_def rel_fun_def)
+lemma rel_fun_eq_onp_rel:
+  shows "((eq_onp R) ===> S) = (\<lambda>f g. \<forall>x. R x \<longrightarrow> S (f x) (g x))"
+by (auto simp add: eq_onp_def rel_fun_def)
 
-lemma invariant_same_args:
-  shows "invariant P x x \<equiv> P x"
-using assms by (auto simp add: invariant_def)
+lemma eq_onp_same_args:
+  shows "eq_onp P x x \<equiv> P x"
+using assms by (auto simp add: eq_onp_def)
 
-lemma invariant_transfer [transfer_rule]:
+lemma eq_onp_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
-  shows "((A ===> op=) ===> A ===> A ===> op=) Lifting.invariant Lifting.invariant"
-unfolding invariant_def[abs_def] by transfer_prover
+  shows "((A ===> op=) ===> A ===> A ===> op=) eq_onp eq_onp"
+unfolding eq_onp_def[abs_def] by transfer_prover
 
 lemma UNIV_typedef_to_Quotient:
   assumes "type_definition Rep Abs UNIV"
@@ -256,34 +256,34 @@ by (rule identity_equivp)
 lemma typedef_to_Quotient:
   assumes "type_definition Rep Abs S"
   and T_def: "T \<equiv> (\<lambda>x y. x = Rep y)"
-  shows "Quotient (invariant (\<lambda>x. x \<in> S)) Abs Rep T"
+  shows "Quotient (eq_onp (\<lambda>x. x \<in> S)) Abs Rep T"
 proof -
   interpret type_definition Rep Abs S by fact
   from Rep Abs_inject Rep_inverse Abs_inverse T_def show ?thesis
-    by (auto intro!: QuotientI simp: invariant_def fun_eq_iff)
+    by (auto intro!: QuotientI simp: eq_onp_def fun_eq_iff)
 qed
 
 lemma typedef_to_part_equivp:
   assumes "type_definition Rep Abs S"
-  shows "part_equivp (invariant (\<lambda>x. x \<in> S))"
+  shows "part_equivp (eq_onp (\<lambda>x. x \<in> S))"
 proof (intro part_equivpI)
   interpret type_definition Rep Abs S by fact
-  show "\<exists>x. invariant (\<lambda>x. x \<in> S) x x" using Rep by (auto simp: invariant_def)
+  show "\<exists>x. eq_onp (\<lambda>x. x \<in> S) x x" using Rep by (auto simp: eq_onp_def)
 next
-  show "symp (invariant (\<lambda>x. x \<in> S))" by (auto intro: sympI simp: invariant_def)
+  show "symp (eq_onp (\<lambda>x. x \<in> S))" by (auto intro: sympI simp: eq_onp_def)
 next
-  show "transp (invariant (\<lambda>x. x \<in> S))" by (auto intro: transpI simp: invariant_def)
+  show "transp (eq_onp (\<lambda>x. x \<in> S))" by (auto intro: transpI simp: eq_onp_def)
 qed
 
 lemma open_typedef_to_Quotient:
   assumes "type_definition Rep Abs {x. P x}"
   and T_def: "T \<equiv> (\<lambda>x y. x = Rep y)"
-  shows "Quotient (invariant P) Abs Rep T"
+  shows "Quotient (eq_onp P) Abs Rep T"
   using typedef_to_Quotient [OF assms] by simp
 
 lemma open_typedef_to_part_equivp:
   assumes "type_definition Rep Abs {x. P x}"
-  shows "part_equivp (invariant P)"
+  shows "part_equivp (eq_onp P)"
   using typedef_to_part_equivp [OF assms] by simp
 
 text {* Generating transfer rules for quotients. *}
@@ -391,8 +391,8 @@ lemma Quotient_composition_le_eq:
   shows "(T OO R OO T\<inverse>\<inverse>) \<le> op="
 using assms unfolding left_unique_def by blast
 
-lemma invariant_le_eq:
-  "invariant P \<le> op=" unfolding invariant_def by blast
+lemma eq_onp_le_eq:
+  "eq_onp P \<le> op=" unfolding eq_onp_def by blast
 
 lemma reflp_ge_eq:
   "reflp R \<Longrightarrow> R \<ge> op=" unfolding reflp_def by blast
@@ -503,19 +503,19 @@ shows "(R OO R' ===> S OO S') \<le> ((R ===> S) OO (R' ===> S'))"
 
 subsection {* Domains *}
 
-lemma composed_equiv_rel_invariant:
+lemma composed_equiv_rel_eq_onp:
   assumes "left_unique R"
   assumes "(R ===> op=) P P'"
   assumes "Domainp R = P''"
-  shows "(R OO Lifting.invariant P' OO R\<inverse>\<inverse>) = Lifting.invariant (inf P'' P)"
-using assms unfolding OO_def conversep_iff Domainp_iff[abs_def] left_unique_def rel_fun_def invariant_def
+  shows "(R OO eq_onp P' OO R\<inverse>\<inverse>) = eq_onp (inf P'' P)"
+using assms unfolding OO_def conversep_iff Domainp_iff[abs_def] left_unique_def rel_fun_def eq_onp_def
 fun_eq_iff by blast
 
-lemma composed_equiv_rel_eq_invariant:
+lemma composed_equiv_rel_eq_eq_onp:
   assumes "left_unique R"
   assumes "Domainp R = P"
-  shows "(R OO op= OO R\<inverse>\<inverse>) = Lifting.invariant P"
-using assms unfolding OO_def conversep_iff Domainp_iff[abs_def] left_unique_def invariant_def
+  shows "(R OO op= OO R\<inverse>\<inverse>) = eq_onp P"
+using assms unfolding OO_def conversep_iff Domainp_iff[abs_def] left_unique_def eq_onp_def
 fun_eq_iff is_equality_def by metis
 
 lemma pcr_Domainp_par_left_total:
@@ -555,10 +555,10 @@ lemma Quotient_to_Domainp:
   shows "Domainp T = (\<lambda>x. R x x)"  
 by (simp add: Domainp_iff[abs_def] Quotient_cr_rel[OF assms])
 
-lemma invariant_to_Domainp:
-  assumes "Quotient (Lifting.invariant P) Abs Rep T"
+lemma eq_onp_to_Domainp:
+  assumes "Quotient (eq_onp P) Abs Rep T"
   shows "Domainp T = P"
-by (simp add: invariant_def Domainp_iff[abs_def] Quotient_cr_rel[OF assms])
+by (simp add: eq_onp_def Domainp_iff[abs_def] Quotient_cr_rel[OF assms])
 
 end
 
@@ -580,6 +580,6 @@ ML_file "Tools/Lifting/lifting_def.ML"
 
 ML_file "Tools/Lifting/lifting_setup.ML"
                            
-hide_const (open) invariant POS NEG
+hide_const (open) POS NEG
 
 end
