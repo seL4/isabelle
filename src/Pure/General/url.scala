@@ -29,7 +29,7 @@ object Url
   def read(name: String): String =
   {
     val stream = Url(name).openStream
-    try { File.read_stream(stream) }  // FIXME proper text encoding!?
+    try { File.read_stream(stream) }
     finally { stream.close }
   }
 }
