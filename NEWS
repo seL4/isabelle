@@ -114,6 +114,9 @@ simplification process, enabled by the newly-introduced
 
 * Support for Navigator plugin (with toolbar buttons).
 
+* More support for remote files (e.g. http) using standard Java
+networking operations instead of jEdit virtual file-systems.
+
 
 *** Pure ***
 
