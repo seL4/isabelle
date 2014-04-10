@@ -45,9 +45,8 @@ lemma rel_set_OO[relator_distr]: "rel_set R OO rel_set S = rel_set (R OO S)"
   done
 
 lemma Domainp_set[relator_domain]:
-  assumes "Domainp T = R"
-  shows "Domainp (rel_set T) = (\<lambda>A. Ball A R)"
-using assms unfolding rel_set_def Domainp_iff[abs_def]
+  "Domainp (rel_set T) = (\<lambda>A. Ball A (Domainp T))"
+unfolding rel_set_def Domainp_iff[abs_def]
 apply (intro ext)
 apply (rule iffI) 
 apply blast

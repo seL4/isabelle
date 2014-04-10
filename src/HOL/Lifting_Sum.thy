@@ -20,10 +20,7 @@ lemma rel_sum_OO[relator_distr]:
   by (rule ext)+ (auto simp add: rel_sum_def OO_def split_sum_ex split: sum.split)
 
 lemma Domainp_sum[relator_domain]:
-  assumes "Domainp R1 = P1"
-  assumes "Domainp R2 = P2"
-  shows "Domainp (rel_sum R1 R2) = (sum_pred P1 P2)"
-using assms
+  "Domainp (rel_sum R1 R2) = (sum_pred (Domainp R1) (Domainp R2))"
 by (auto simp add: Domainp_iff split_sum_ex iff: fun_eq_iff split: sum.split)
 
 lemma left_total_rel_sum[transfer_rule]:

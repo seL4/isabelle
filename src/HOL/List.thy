@@ -6605,13 +6605,12 @@ next
 qed
 
 lemma Domainp_list[relator_domain]:
-  assumes "Domainp A = P"
-  shows "Domainp (list_all2 A) = (list_all P)"
+  "Domainp (list_all2 A) = (list_all (Domainp A))"
 proof -
   {
     fix x
-    have *: "\<And>x. (\<exists>y. A x y) = P x" using assms unfolding Domainp_iff by blast
-    have "(\<exists>y. (list_all2 A x y)) = list_all P x"
+    have *: "\<And>x. (\<exists>y. A x y) = Domainp A x" unfolding Domainp_iff by blast
+    have "(\<exists>y. (list_all2 A x y)) = list_all (Domainp A) x"
     by (induction x) (simp_all add: * list_all2_Cons1)
   }
   then show ?thesis

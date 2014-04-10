@@ -810,15 +810,13 @@ lemma rel_fset_OO[relator_distr]: "rel_fset R OO rel_fset S = rel_fset (R OO S)"
 apply (rule ext)+
 by transfer (auto intro: finite_rel_set rel_set_OO[unfolded fun_eq_iff, rule_format, THEN iffD1])
 
-lemma Domainp_fset[relator_domain]:
-  assumes "Domainp T = P"
-  shows "Domainp (rel_fset T) = (\<lambda>A. fBall A P)"
+lemma Domainp_fset[relator_domain]: "Domainp (rel_fset T) = (\<lambda>A. fBall A (Domainp T))"
 proof -
-  from assms obtain f where f: "\<forall>x\<in>Collect P. T x (f x)"
+  obtain f where f: "\<forall>x\<in>Collect (Domainp T). T x (f x)"
     unfolding Domainp_iff[abs_def]
     apply atomize_elim
-    by (subst bchoice_iff[symmetric]) auto
-  from assms f show ?thesis
+    by (subst bchoice_iff[symmetric]) (auto iff: bchoice_iff[symmetric])
+  from f show ?thesis
     unfolding fun_eq_iff rel_fset_alt_def Domainp_iff
     apply clarify
     apply (rule iffI)

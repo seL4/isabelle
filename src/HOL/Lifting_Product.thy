@@ -24,11 +24,9 @@ lemma rel_prod_OO[relator_distr]:
   "(rel_prod A B) OO (rel_prod C D) = rel_prod (A OO C) (B OO D)"
 by (rule ext)+ (auto simp: rel_prod_def OO_def)
 
-lemma Domainp_prod[relator_domain]:
-  assumes "Domainp T1 = P1"
-  assumes "Domainp T2 = P2"
-  shows "Domainp (rel_prod T1 T2) = (pred_prod P1 P2)"
-using assms unfolding rel_prod_def pred_prod_def by blast
+lemma Domainp_prod[relator_domain]: 
+  "Domainp (rel_prod T1 T2) = (pred_prod (Domainp T1) (Domainp T2))"
+unfolding rel_prod_def pred_prod_def by blast
 
 lemma left_total_rel_prod [transfer_rule]:
   assumes "left_total R1"

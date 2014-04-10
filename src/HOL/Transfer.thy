@@ -128,10 +128,9 @@ lemma Domainp_iff: "Domainp T x \<longleftrightarrow> (\<exists>y. T x y)"
 lemma Domaimp_refl[transfer_domain_rule]:
   "Domainp T = Domainp T" ..
 
-lemma Domainp_prod_fun_eq[transfer_domain_rule]:
-  assumes "Domainp T = P"
-  shows "Domainp (op= ===> T) = (\<lambda>f. \<forall>x. P (f x))"
-by (auto intro: choice simp: assms[symmetric] Domainp_iff rel_fun_def fun_eq_iff)
+lemma Domainp_prod_fun_eq[relator_domain]:
+  "Domainp (op= ===> T) = (\<lambda>f. \<forall>x. (Domainp T) (f x))"
+by (auto intro: choice simp: Domainp_iff rel_fun_def fun_eq_iff)
 
 subsection {* Predicates on relations, i.e. ``class constraints'' *}
 

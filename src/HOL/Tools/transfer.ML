@@ -335,6 +335,21 @@ fun abstract_domains_transfer ctxt thm =
     gen_abstract_domains ctxt dest thm
   end
 
+fun abstract_domains_relator_domain ctxt thm =
+  let
+    fun dest prop =
+      let
+        val prems = Logic.strip_imp_prems prop
+        val concl = HOLogic.dest_Trueprop (Logic.strip_imp_concl prop)
+        val ((rel, x), y) = apfst Term.dest_comb (Term.dest_comb concl)
+      in
+        (y, fn y' =>
+          Logic.list_implies (prems, HOLogic.mk_Trueprop (rel $ x $ y')))
+      end
+  in
+    gen_abstract_domains ctxt dest thm
+  end
+
 fun detect_transfer_rules thm =
   let
     fun is_transfer_rule tm = case (HOLogic.dest_Trueprop tm) of
@@ -779,10 +794,18 @@ val relator_eq_setup =
 val relator_domain_setup =
   let
     val name = @{binding relator_domain}
-    fun add_thm thm = Data.map (map_relator_domain (Item_Net.update thm))
-      #> add_transfer_domain_thm thm
-    fun del_thm thm = Data.map (map_relator_domain (Item_Net.remove thm))
-      #> del_transfer_domain_thm thm
+    fun add_thm thm context = 
+      let
+        val thm = abstract_domains_relator_domain (Context.proof_of context) thm
+      in
+        context |> Data.map (map_relator_domain (Item_Net.update thm)) |> add_transfer_domain_thm thm
+      end
+    fun del_thm thm context = 
+      let
+        val thm = abstract_domains_relator_domain (Context.proof_of context) thm
+      in
+        context |> Data.map (map_relator_domain (Item_Net.remove thm)) |> del_transfer_domain_thm thm
+      end
     val add = Thm.declaration_attribute add_thm
     val del = Thm.declaration_attribute del_thm
     val text = "declaration of relator domain rule (used by transfer method)"
@@ -791,7 +814,6 @@ val relator_domain_setup =
     Attrib.setup name (Attrib.add_del add del) text
     #> Global_Theory.add_thms_dynamic (name, content)
   end
-
 
 val setup =
   relator_eq_setup

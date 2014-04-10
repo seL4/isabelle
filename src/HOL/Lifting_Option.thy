@@ -33,10 +33,9 @@ lemma rel_option_OO[relator_distr]:
   "(rel_option A) OO (rel_option B) = rel_option (A OO B)"
 by (rule ext)+ (auto simp: rel_option_iff OO_def split: option.split)
 
-lemma Domainp_option[relator_domain]:
-  assumes "Domainp A = P"
-  shows "Domainp (rel_option A) = (pred_option P)"
-using assms unfolding Domainp_iff[abs_def] rel_option_iff[abs_def]
+lemma Domainp_option[relator_domain]: 
+  "Domainp (rel_option A) = (pred_option (Domainp A))"
+unfolding Domainp_iff[abs_def] rel_option_iff[abs_def]
 by (auto iff: fun_eq_iff split: option.split)
 
 lemma left_total_rel_option[transfer_rule]:
