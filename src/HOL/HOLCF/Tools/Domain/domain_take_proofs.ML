@@ -61,7 +61,6 @@ sig
   val get_deflation_thms : theory -> thm list
   val map_ID_add : attribute
   val get_map_ID_thms : theory -> thm list
-  val setup : theory -> theory
 end
 
 structure Domain_Take_Proofs : DOMAIN_TAKE_PROOFS =
@@ -148,7 +147,7 @@ fun get_deflation_thms thy = DeflMapData.get (Proof_Context.init_global thy)
 val map_ID_add = Map_Id_Data.add
 val get_map_ID_thms = Map_Id_Data.get o Proof_Context.init_global
 
-val setup = DeflMapData.setup #> Map_Id_Data.setup
+val _ = Theory.setup (DeflMapData.setup #> Map_Id_Data.setup)
 
 (******************************************************************************)
 (************************** building types and terms **************************)
