@@ -24,82 +24,6 @@ lemma map_fun_id:
   "(id ---> id) = id"
   by (simp add: fun_eq_iff)
 
-subsection {* Other predicates on relations *}
-
-definition left_total :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool"
-  where "left_total R \<longleftrightarrow> (\<forall>x. \<exists>y. R x y)"
-
-lemma left_totalI:
-  "(\<And>x. \<exists>y. R x y) \<Longrightarrow> left_total R"
-unfolding left_total_def by blast
-
-lemma left_totalE:
-  assumes "left_total R"
-  obtains "(\<And>x. \<exists>y. R x y)"
-using assms unfolding left_total_def by blast
-
-lemma bi_total_iff: "bi_total A = (right_total A \<and> left_total A)"
-unfolding left_total_def right_total_def bi_total_def by blast
-
-lemma bi_total_conv_left_right: "bi_total R \<longleftrightarrow> left_total R \<and> right_total R"
-by(simp add: left_total_def right_total_def bi_total_def)
-
-definition left_unique :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool"
-  where "left_unique R \<longleftrightarrow> (\<forall>x y z. R x z \<longrightarrow> R y z \<longrightarrow> x = y)"
-
-lemma left_unique_transfer [transfer_rule]:
-  assumes "right_total A"
-  assumes "right_total B"
-  assumes "bi_unique A"
-  shows "((A ===> B ===> op=) ===> implies) left_unique left_unique"
-using assms unfolding left_unique_def[abs_def] right_total_def bi_unique_def rel_fun_def
-by metis
-
-lemma bi_unique_iff: "bi_unique A = (right_unique A \<and> left_unique A)"
-unfolding left_unique_def right_unique_def bi_unique_def by blast
-
-lemma bi_unique_conv_left_right: "bi_unique R \<longleftrightarrow> left_unique R \<and> right_unique R"
-by(auto simp add: left_unique_def right_unique_def bi_unique_def)
-
-lemma left_uniqueI: "(\<And>x y z. \<lbrakk> A x z; A y z \<rbrakk> \<Longrightarrow> x = y) \<Longrightarrow> left_unique A"
-unfolding left_unique_def by blast
-
-lemma left_uniqueD: "\<lbrakk> left_unique A; A x z; A y z \<rbrakk> \<Longrightarrow> x = y"
-unfolding left_unique_def by blast
-
-lemma left_total_fun:
-  "\<lbrakk>left_unique A; left_total B\<rbrakk> \<Longrightarrow> left_total (A ===> B)"
-  unfolding left_total_def rel_fun_def
-  apply (rule allI, rename_tac f)
-  apply (rule_tac x="\<lambda>y. SOME z. B (f (THE x. A x y)) z" in exI)
-  apply clarify
-  apply (subgoal_tac "(THE x. A x y) = x", simp)
-  apply (rule someI_ex)
-  apply (simp)
-  apply (rule the_equality)
-  apply assumption
-  apply (simp add: left_unique_def)
-  done
-
-lemma left_unique_fun:
-  "\<lbrakk>left_total A; left_unique B\<rbrakk> \<Longrightarrow> left_unique (A ===> B)"
-  unfolding left_total_def left_unique_def rel_fun_def
-  by (clarify, rule ext, fast)
-
-lemma left_total_eq: "left_total op=" unfolding left_total_def by blast
-
-lemma left_unique_eq: "left_unique op=" unfolding left_unique_def by blast
-
-lemma [simp]:
-  shows left_unique_conversep: "left_unique A\<inverse>\<inverse> \<longleftrightarrow> right_unique A"
-  and right_unique_conversep: "right_unique A\<inverse>\<inverse> \<longleftrightarrow> left_unique A"
-by(auto simp add: left_unique_def right_unique_def)
-
-lemma [simp]:
-  shows left_total_conversep: "left_total A\<inverse>\<inverse> \<longleftrightarrow> right_total A"
-  and right_total_conversep: "right_total A\<inverse>\<inverse> \<longleftrightarrow> left_total A"
-by(simp_all add: left_total_def right_total_def)
-
 subsection {* Quotient Predicate *}
 
 definition
@@ -391,6 +315,9 @@ context
   assumes 1: "Quotient R Abs Rep T" and 2: "reflp R"
 begin
 
+lemma Quotient_left_total: "left_total T"
+  using 1 2 unfolding Quotient_alt_def left_total_def reflp_def by auto
+
 lemma Quotient_bi_total: "bi_total T"
   using 1 2 unfolding Quotient_alt_def bi_total_def reflp_def by auto
 
@@ -464,12 +391,6 @@ lemma Quotient_composition_le_eq:
   shows "(T OO R OO T\<inverse>\<inverse>) \<le> op="
 using assms unfolding left_unique_def by blast
 
-lemma left_total_composition: "left_total R \<Longrightarrow> left_total S \<Longrightarrow> left_total (R OO S)"
-unfolding left_total_def OO_def by fast
-
-lemma left_unique_composition: "left_unique R \<Longrightarrow> left_unique S \<Longrightarrow> left_unique (R OO S)"
-unfolding left_unique_def OO_def by blast
-
 lemma invariant_le_eq:
   "invariant P \<le> op=" unfolding invariant_def by blast
 
@@ -486,18 +407,6 @@ definition POS :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a \<
 
 definition  NEG :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool" where
 "NEG A B \<equiv> B \<le> A"
-
-(*
-  The following two rules are here because we don't have any proper
-  left-unique ant left-total relations. Left-unique and left-total
-  assumptions show up in distributivity rules for the function type.
-*)
-
-lemma bi_unique_left_unique[transfer_rule]: "bi_unique R \<Longrightarrow> left_unique R"
-unfolding bi_unique_def left_unique_def by blast
-
-lemma bi_total_left_total[transfer_rule]: "bi_total R \<Longrightarrow> left_total R"
-unfolding bi_total_def left_total_def by blast
 
 lemma pos_OO_eq:
   shows "POS (A OO op=) A"
@@ -635,10 +544,10 @@ shows "Domainp (A OO B) = (\<lambda>x. \<exists>y. A x y \<and> P y)"
 using assms by blast
 
 lemma pcr_Domainp_total:
-  assumes "bi_total B"
+  assumes "left_total B"
   assumes "Domainp A = P"
   shows "Domainp (A OO B) = P"
-using assms unfolding bi_total_def 
+using assms unfolding left_total_def 
 by fast
 
 lemma Quotient_to_Domainp:
@@ -660,12 +569,6 @@ ML_file "Tools/Lifting/lifting_util.ML"
 ML_file "Tools/Lifting/lifting_info.ML"
 setup Lifting_Info.setup
 
-lemmas [reflexivity_rule] = 
-  order_refl[of "op="] invariant_le_eq Quotient_composition_le_eq
-  Quotient_composition_ge_eq
-  left_total_eq left_unique_eq left_total_composition left_unique_composition
-  left_total_fun left_unique_fun
-
 (* setup for the function type *)
 declare fun_quotient[quot_map]
 declare fun_mono[relator_mono]
@@ -676,7 +579,7 @@ ML_file "Tools/Lifting/lifting_term.ML"
 ML_file "Tools/Lifting/lifting_def.ML"
 
 ML_file "Tools/Lifting/lifting_setup.ML"
-
+                           
 hide_const (open) invariant POS NEG
 
 end

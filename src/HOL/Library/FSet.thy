@@ -834,7 +834,7 @@ apply clarsimp
 apply (rename_tac A f y, rule_tac x = "f ` y" in exI)
 by (auto simp add: rel_set_def)
 
-lemma left_total_rel_fset[reflexivity_rule]: "left_total A \<Longrightarrow> left_total (rel_fset A)"
+lemma left_total_rel_fset[transfer_rule]: "left_total A \<Longrightarrow> left_total (rel_fset A)"
 unfolding left_total_def 
 apply transfer
 apply (subst(asm) choice_iff)
@@ -843,7 +843,7 @@ apply (rename_tac A f y, rule_tac x = "f ` y" in exI)
 by (auto simp add: rel_set_def)
 
 lemmas right_unique_rel_fset[transfer_rule] = right_unique_rel_set[Transfer.transferred]
-lemmas left_unique_rel_fset[reflexivity_rule] = left_unique_rel_set[Transfer.transferred]
+lemmas left_unique_rel_fset[transfer_rule] = left_unique_rel_set[Transfer.transferred]
 
 thm right_unique_rel_fset left_unique_rel_fset
 

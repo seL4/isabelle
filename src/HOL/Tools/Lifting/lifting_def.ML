@@ -29,12 +29,18 @@ infix 0 MRSL
 
 fun mono_eq_prover ctxt prop =
   let
-    val rules = Lifting_Info.get_reflexivity_rules ctxt
+    val refl_rules = Lifting_Info.get_reflexivity_rules ctxt
+    val transfer_rules = Transfer.get_transfer_raw ctxt
+    
+    fun main_tac (t, i) =
+      case HOLogic.dest_Trueprop t of 
+        Const (@{const_name "less_eq"}, _) $ _ $ _ => REPEAT_ALL_NEW (resolve_tac refl_rules) i
+        |  _ => REPEAT_ALL_NEW (resolve_tac transfer_rules) i
   in
-    SOME (Goal.prove ctxt [] [] prop (K (REPEAT_ALL_NEW (resolve_tac rules) 1)))
+    SOME (Goal.prove ctxt [] [] prop (K (SUBGOAL main_tac 1)))
       handle ERROR _ => NONE
   end
-   
+
 fun try_prove_reflexivity ctxt prop =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -511,7 +517,7 @@ fun mk_readable_rsp_thm_eq tm lthy =
             @{thm rel_fun_eq_rel[THEN eq_reflection]}, 
             @{thm rel_fun_def[THEN eq_reflection]}]
         fun binop_conv2 cv1 cv2 = Conv.combination_conv (Conv.arg_conv cv1) cv2
-        val invariant_assms_tac_rules = @{thm left_unique_composition} :: 
+        val invariant_assms_tac_rules = @{thm left_unique_OO} :: 
             invariant_assms_tac_fixed_rules @ (Transfer.get_transfer_raw lthy)
         val invariant_assms_tac = (TRY o REPEAT_ALL_NEW (resolve_tac invariant_assms_tac_rules) 
           THEN_ALL_NEW (DETERM o Transfer.eq_tac lthy)) 1

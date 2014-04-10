@@ -30,13 +30,13 @@ lemma Domainp_prod[relator_domain]:
   shows "Domainp (rel_prod T1 T2) = (pred_prod P1 P2)"
 using assms unfolding rel_prod_def pred_prod_def by blast
 
-lemma left_total_rel_prod [reflexivity_rule]:
+lemma left_total_rel_prod [transfer_rule]:
   assumes "left_total R1"
   assumes "left_total R2"
   shows "left_total (rel_prod R1 R2)"
   using assms unfolding left_total_def rel_prod_def by auto
 
-lemma left_unique_rel_prod [reflexivity_rule]:
+lemma left_unique_rel_prod [transfer_rule]:
   assumes "left_unique R1" and "left_unique R2"
   shows "left_unique (rel_prod R1 R2)"
   using assms unfolding left_unique_def rel_prod_def by auto

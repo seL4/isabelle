@@ -6619,14 +6619,14 @@ proof -
   by (auto iff: fun_eq_iff)
 qed 
 
-lemma left_total_list_all2[reflexivity_rule]:
+lemma left_total_list_all2[transfer_rule]:
   "left_total R \<Longrightarrow> left_total (list_all2 R)"
   unfolding left_total_def
   apply safe
   apply (rename_tac xs, induct_tac xs, simp, simp add: list_all2_Cons1)
 done
 
-lemma left_unique_list_all2 [reflexivity_rule]:
+lemma left_unique_list_all2 [transfer_rule]:
   "left_unique R \<Longrightarrow> left_unique (list_all2 R)"
   unfolding left_unique_def
   apply (subst (2) all_comm, subst (1) all_comm)

@@ -279,18 +279,6 @@ fun get_reflexivity_rules ctxt = Item_Net.content (get_reflexivity_rules' (Conte
 fun add_reflexivity_rule thm = Data.map (map_reflexivity_rules (Item_Net.update thm))
 val add_reflexivity_rule_attribute = Thm.declaration_attribute add_reflexivity_rule
 
-val relfexivity_rule_setup =
-  let
-    val name = @{binding reflexivity_rule}
-    fun del_thm thm = Data.map (map_reflexivity_rules (Item_Net.remove thm))
-    val del = Thm.declaration_attribute del_thm
-    val text = "rules that are used to prove that a relation is reflexive"
-    val content = Item_Net.content o get_reflexivity_rules'
-  in
-    Attrib.setup name (Attrib.add_del add_reflexivity_rule_attribute del) text
-    #> Global_Theory.add_thms_dynamic (name, content)
-  end
-
 (* info about relator distributivity theorems *)
 
 fun map_relator_distr_data' f1 f2 f3 f4
@@ -518,13 +506,18 @@ val setup =
   quot_map_attribute_setup
   #> quot_del_attribute_setup
   #> Invariant_Commute.setup
-  #> relfexivity_rule_setup
   #> relator_distr_attribute_setup
 
 (* setup fixed invariant rules *)
 
 val _ = Context.>> (fold (Invariant_Commute.add_thm o Transfer.prep_transfer_domain_thm @{context}) 
-  [@{thm composed_equiv_rel_invariant}, @{thm composed_equiv_rel_eq_invariant}])
+  @{thms composed_equiv_rel_invariant composed_equiv_rel_eq_invariant})
+
+(* setup fixed reflexivity rules *)
+
+val _ = Context.>> (fold add_reflexivity_rule 
+  @{thms order_refl[of "op="] invariant_le_eq Quotient_composition_le_eq Quotient_composition_ge_eq
+    bi_unique_OO bi_total_OO right_unique_OO right_total_OO left_unique_OO left_total_OO})
 
 (* outer syntax commands *)
 

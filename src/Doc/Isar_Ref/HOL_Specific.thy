@@ -1597,7 +1597,6 @@ text {*
     @{command_def (HOL) "print_quotients"} & : & @{text "context \<rightarrow>"}\\
     @{attribute_def (HOL) "quot_map"} & : & @{text attribute} \\
     @{attribute_def (HOL) "invariant_commute"} & : & @{text attribute} \\
-    @{attribute_def (HOL) "reflexivity_rule"} & : & @{text attribute} \\
     @{attribute_def (HOL) "relator_mono"} & : & @{text attribute} \\
     @{attribute_def (HOL) "relator_distr"} & : & @{text attribute} \\
     @{attribute_def (HOL) "quot_del"} & : & @{text attribute} \\
@@ -1741,13 +1740,6 @@ text {*
     Lifting.invariant} from a user in a user-readable form of a
     respectfulness theorem. For examples see @{file
     "~~/src/HOL/List.thy"} or Lifting_*.thy files in the same directory.
-
-  \item @{attribute (HOL) reflexivity_rule} registers a theorem that shows
-    that a relator respects left-totality and left_uniqueness. For examples 
-    see @{file "~~/src/HOL/List.thy"} or @{file "~~/src/HOL/Lifting.thy"} or Lifting_*.thy files 
-    in the same directory.
-    The property is used in a reflexivity prover, which is used for discharging respectfulness
-    theorems for type copies and also for discharging assumptions of abstraction function equations.
 
   \item @{attribute (HOL) "relator_mono"} registers a property describing a monotonicity of a relator.
     E.g., @{text "A \<le> B \<Longrightarrow> list_all2 A \<le> list_all2 B"}. For examples 

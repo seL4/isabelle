@@ -135,6 +135,12 @@ by (auto intro: choice simp: assms[symmetric] Domainp_iff rel_fun_def fun_eq_iff
 
 subsection {* Predicates on relations, i.e. ``class constraints'' *}
 
+definition left_total :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool"
+  where "left_total R \<longleftrightarrow> (\<forall>x. \<exists>y. R x y)"
+
+definition left_unique :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool"
+  where "left_unique R \<longleftrightarrow> (\<forall>x y z. R x z \<longrightarrow> R y z \<longrightarrow> x = y)"
+
 definition right_total :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool"
   where "right_total R \<longleftrightarrow> (\<forall>y. \<exists>x. R x y)"
 
@@ -148,6 +154,21 @@ definition bi_unique :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 
   where "bi_unique R \<longleftrightarrow>
     (\<forall>x y z. R x y \<longrightarrow> R x z \<longrightarrow> y = z) \<and>
     (\<forall>x y z. R x z \<longrightarrow> R y z \<longrightarrow> x = y)"
+
+lemma left_uniqueI: "(\<And>x y z. \<lbrakk> A x z; A y z \<rbrakk> \<Longrightarrow> x = y) \<Longrightarrow> left_unique A"
+unfolding left_unique_def by blast
+
+lemma left_uniqueD: "\<lbrakk> left_unique A; A x z; A y z \<rbrakk> \<Longrightarrow> x = y"
+unfolding left_unique_def by blast
+
+lemma left_totalI:
+  "(\<And>x. \<exists>y. R x y) \<Longrightarrow> left_total R"
+unfolding left_total_def by blast
+
+lemma left_totalE:
+  assumes "left_total R"
+  obtains "(\<And>x. \<exists>y. R x y)"
+using assms unfolding left_total_def by blast
 
 lemma bi_uniqueDr: "\<lbrakk> bi_unique A; A x y; A x z \<rbrakk> \<Longrightarrow> y = z"
 by(simp add: bi_unique_def)
@@ -192,11 +213,40 @@ lemma bi_unique_alt_def:
   "bi_unique R \<longleftrightarrow> (R ===> R ===> op =) (op =) (op =)"
   unfolding bi_unique_def rel_fun_def by auto
 
+lemma [simp]:
+  shows left_unique_conversep: "left_unique A\<inverse>\<inverse> \<longleftrightarrow> right_unique A"
+  and right_unique_conversep: "right_unique A\<inverse>\<inverse> \<longleftrightarrow> left_unique A"
+by(auto simp add: left_unique_def right_unique_def)
+
+lemma [simp]:
+  shows left_total_conversep: "left_total A\<inverse>\<inverse> \<longleftrightarrow> right_total A"
+  and right_total_conversep: "right_total A\<inverse>\<inverse> \<longleftrightarrow> left_total A"
+by(simp_all add: left_total_def right_total_def)
+
 lemma bi_unique_conversep [simp]: "bi_unique R\<inverse>\<inverse> = bi_unique R"
 by(auto simp add: bi_unique_def)
 
 lemma bi_total_conversep [simp]: "bi_total R\<inverse>\<inverse> = bi_total R"
 by(auto simp add: bi_total_def)
+
+lemma bi_total_iff: "bi_total A = (right_total A \<and> left_total A)"
+unfolding left_total_def right_total_def bi_total_def by blast
+
+lemma bi_total_conv_left_right: "bi_total R \<longleftrightarrow> left_total R \<and> right_total R"
+by(simp add: left_total_def right_total_def bi_total_def)
+
+lemma bi_unique_iff: "bi_unique A  \<longleftrightarrow> right_unique A \<and> left_unique A"
+unfolding left_unique_def right_unique_def bi_unique_def by blast
+
+lemma bi_unique_conv_left_right: "bi_unique R \<longleftrightarrow> left_unique R \<and> right_unique R"
+by(auto simp add: left_unique_def right_unique_def bi_unique_def)
+
+lemma bi_totalI: "left_total R \<Longrightarrow> right_total R \<Longrightarrow> bi_total R"
+unfolding bi_total_iff ..
+
+lemma bi_uniqueI: "left_unique R \<Longrightarrow> right_unique R \<Longrightarrow> bi_unique R"
+unfolding bi_unique_iff ..
+
 
 text {* Properties are preserved by relation composition. *}
 
@@ -217,20 +267,51 @@ lemma right_unique_OO:
   "\<lbrakk>right_unique A; right_unique B\<rbrakk> \<Longrightarrow> right_unique (A OO B)"
   unfolding right_unique_def OO_def by fast
 
+lemma left_total_OO: "left_total R \<Longrightarrow> left_total S \<Longrightarrow> left_total (R OO S)"
+unfolding left_total_def OO_def by fast
+
+lemma left_unique_OO: "left_unique R \<Longrightarrow> left_unique S \<Longrightarrow> left_unique (R OO S)"
+unfolding left_unique_def OO_def by blast
+
 
 subsection {* Properties of relators *}
 
-lemma right_total_eq [transfer_rule]: "right_total (op =)"
+lemma left_total_eq[transfer_rule]: "left_total op=" 
+  unfolding left_total_def by blast
+
+lemma left_unique_eq[transfer_rule]: "left_unique op=" 
+  unfolding left_unique_def by blast
+
+lemma right_total_eq [transfer_rule]: "right_total op="
   unfolding right_total_def by simp
 
-lemma right_unique_eq [transfer_rule]: "right_unique (op =)"
+lemma right_unique_eq [transfer_rule]: "right_unique op="
   unfolding right_unique_def by simp
 
-lemma bi_total_eq [transfer_rule]: "bi_total (op =)"
+lemma bi_total_eq[transfer_rule]: "bi_total (op =)"
   unfolding bi_total_def by simp
 
-lemma bi_unique_eq [transfer_rule]: "bi_unique (op =)"
+lemma bi_unique_eq[transfer_rule]: "bi_unique (op =)"
   unfolding bi_unique_def by simp
+
+lemma left_total_fun[transfer_rule]:
+  "\<lbrakk>left_unique A; left_total B\<rbrakk> \<Longrightarrow> left_total (A ===> B)"
+  unfolding left_total_def rel_fun_def
+  apply (rule allI, rename_tac f)
+  apply (rule_tac x="\<lambda>y. SOME z. B (f (THE x. A x y)) z" in exI)
+  apply clarify
+  apply (subgoal_tac "(THE x. A x y) = x", simp)
+  apply (rule someI_ex)
+  apply (simp)
+  apply (rule the_equality)
+  apply assumption
+  apply (simp add: left_unique_def)
+  done
+
+lemma left_unique_fun[transfer_rule]:
+  "\<lbrakk>left_total A; left_unique B\<rbrakk> \<Longrightarrow> left_unique (A ===> B)"
+  unfolding left_total_def left_unique_def rel_fun_def
+  by (clarify, rule ext, fast)
 
 lemma right_total_fun [transfer_rule]:
   "\<lbrakk>right_unique A; right_total B\<rbrakk> \<Longrightarrow> right_total (A ===> B)"
@@ -251,35 +332,15 @@ lemma right_unique_fun [transfer_rule]:
   unfolding right_total_def right_unique_def rel_fun_def
   by (clarify, rule ext, fast)
 
-lemma bi_total_fun [transfer_rule]:
+lemma bi_total_fun[transfer_rule]:
   "\<lbrakk>bi_unique A; bi_total B\<rbrakk> \<Longrightarrow> bi_total (A ===> B)"
-  unfolding bi_total_def rel_fun_def
-  apply safe
-  apply (rename_tac f)
-  apply (rule_tac x="\<lambda>y. SOME z. B (f (THE x. A x y)) z" in exI)
-  apply clarify
-  apply (subgoal_tac "(THE x. A x y) = x", simp)
-  apply (rule someI_ex)
-  apply (simp)
-  apply (rule the_equality)
-  apply assumption
-  apply (simp add: bi_unique_def)
-  apply (rename_tac g)
-  apply (rule_tac x="\<lambda>x. SOME z. B z (g (THE y. A x y))" in exI)
-  apply clarify
-  apply (subgoal_tac "(THE y. A x y) = y", simp)
-  apply (rule someI_ex)
-  apply (simp)
-  apply (rule the_equality)
-  apply assumption
-  apply (simp add: bi_unique_def)
-  done
+  unfolding bi_unique_iff bi_total_iff
+  by (blast intro: right_total_fun left_total_fun)
 
-lemma bi_unique_fun [transfer_rule]:
+lemma bi_unique_fun[transfer_rule]:
   "\<lbrakk>bi_total A; bi_unique B\<rbrakk> \<Longrightarrow> bi_unique (A ===> B)"
-  unfolding bi_total_def bi_unique_def rel_fun_def fun_eq_iff
-  by fast+
-
+  unfolding bi_unique_iff bi_total_iff
+  by (blast intro: right_unique_fun left_unique_fun)
 
 subsection {* Transfer rules *}
 
@@ -317,6 +378,16 @@ lemma transfer_implies_transfer [transfer_rule]:
 lemma eq_imp_transfer [transfer_rule]:
   "right_unique A \<Longrightarrow> (A ===> A ===> op \<longrightarrow>) (op =) (op =)"
   unfolding right_unique_alt_def .
+
+text {* Transfer rules using equality. *}
+
+lemma left_unique_transfer [transfer_rule]:
+  assumes "right_total A"
+  assumes "right_total B"
+  assumes "bi_unique A"
+  shows "((A ===> B ===> op=) ===> implies) left_unique left_unique"
+using assms unfolding left_unique_def[abs_def] right_total_def bi_unique_def rel_fun_def
+by metis
 
 lemma eq_transfer [transfer_rule]:
   assumes "bi_unique A"

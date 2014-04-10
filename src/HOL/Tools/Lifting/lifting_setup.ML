@@ -253,8 +253,6 @@ fun setup_lifting_infr gen_code quot_thm opt_reflp_thm lthy =
       SOME reflp_thm => lthy
         |> (snd oo Local_Theory.note) ((Binding.empty, [reflexivity_rule_attr]),
               [reflp_thm RS @{thm reflp_ge_eq}])
-        |> (snd oo Local_Theory.note) ((Binding.empty, [reflexivity_rule_attr]),
-              [[quot_thm, reflp_thm] MRSL @{thm Quotient_to_left_total}])
         |> define_code_constr gen_code quot_thm
       | NONE => lthy
         |> define_abs_type gen_code quot_thm
@@ -298,7 +296,8 @@ in
 end
 
 local 
-  val OO_rules = [@{thm bi_total_OO}, @{thm bi_unique_OO}, @{thm right_total_OO}, @{thm right_unique_OO}]
+  val OO_rules = @{thms left_total_OO left_unique_OO right_total_OO right_unique_OO bi_total_OO
+    bi_unique_OO}
 in
   fun parametrize_class_constraint ctxt pcr_def constraint =
     let
@@ -325,7 +324,8 @@ in
       
       val check_assms =
         let 
-          val right_names = ["bi_total", "bi_unique", "right_total", "right_unique"]
+          val right_names = ["right_total", "right_unique", "left_total", "left_unique", "bi_total",
+            "bi_unique"]
       
           fun is_right_name name = member op= right_names (Long_Name.base_name name)
       
@@ -451,10 +451,10 @@ in
       thms
     end
 
-  fun parametrize_total_domain bi_total pcrel_def ctxt =
+  fun parametrize_total_domain left_total pcrel_def ctxt =
     let
       val thm =
-        (bi_total RS @{thm pcr_Domainp_total})
+        (left_total RS @{thm pcr_Domainp_total})
           |> fold_Domainp_pcrel pcrel_def 
           |> reduce_Domainp ctxt (Transfer.get_relator_domain ctxt)
     in
@@ -521,7 +521,8 @@ fun setup_by_quotient gen_code quot_thm opt_reflp_thm opt_par_thm lthy =
               let 
                 val thms =
                   [("id_abs_transfer",@{thm Quotient_id_abs_transfer}),
-                   ("bi_total",       @{thm Quotient_bi_total}       )]
+                   ("left_total",     @{thm Quotient_left_total}     ),
+                   ("bi_total",       @{thm Quotient_bi_total})]
               in
                 fold (fn (name, thm) => (snd oo Local_Theory.note) ((qualify name, [transfer_attr]), 
                     [[quot_thm, reflp_thm] MRSL thm])) thms lthy
@@ -559,14 +560,17 @@ fun setup_by_quotient gen_code quot_thm opt_reflp_thm opt_par_thm lthy =
           case opt_reflp_thm of
             SOME reflp_thm =>
               let
+                val left_total = ([quot_thm, reflp_thm] MRSL @{thm Quotient_left_total})
                 val bi_total = ([quot_thm, reflp_thm] MRSL @{thm Quotient_bi_total})
-                val domain_thms = parametrize_total_domain bi_total pcrel_def lthy
+                val domain_thms = parametrize_total_domain left_total pcrel_def lthy
                 val id_abs_transfer = generate_parametric_id lthy rty
                   (Lifting_Term.parametrize_transfer_rule lthy
                     ([quot_thm, reflp_thm] MRSL @{thm Quotient_id_abs_transfer}))
+                val left_total = parametrize_class_constraint lthy pcrel_def left_total
                 val bi_total = parametrize_class_constraint lthy pcrel_def bi_total
                 val thms = 
                   [("id_abs_transfer",id_abs_transfer),
+                   ("left_total",     left_total     ),  
                    ("bi_total",       bi_total       )]
               in
                 lthy
@@ -652,7 +656,8 @@ fun setup_by_typedef_thm gen_code typedef_thm lthy =
               let 
                 val thms =
                   [("id_abs_transfer",@{thm Quotient_id_abs_transfer}),
-                   ("bi_total",       @{thm Quotient_bi_total}       )]
+                   ("left_total",     @{thm Quotient_left_total}     ),
+                   ("bi_total",     @{thm Quotient_bi_total}         )]
               in
                 fold (fn (name, thm) => (snd oo Local_Theory.note) ((qualify name, [transfer_attr]), 
                     [[quot_thm, reflp_thm] MRSL thm])) thms lthy
@@ -662,9 +667,10 @@ fun setup_by_typedef_thm gen_code typedef_thm lthy =
               |> (snd oo Local_Theory.note) ((qualify "domain", [transfer_domain_attr]), [dom_thm])
         val thms = 
           [("rep_transfer", @{thm typedef_rep_transfer}),
-           ("bi_unique",    @{thm typedef_bi_unique}   ),
+           ("left_unique",  @{thm typedef_left_unique} ),
            ("right_unique", @{thm typedef_right_unique}), 
-           ("right_total",  @{thm typedef_right_total} )]
+           ("right_total",  @{thm typedef_right_total} ),
+           ("bi_unique",    @{thm typedef_bi_unique}   )]
       in
         fold (fn (name, thm) => (snd oo Local_Theory.note) ((qualify name, [transfer_attr]), 
           [[typedef_thm, T_def] MRSL thm])) thms lthy
@@ -679,14 +685,17 @@ fun setup_by_typedef_thm gen_code typedef_thm lthy =
           case opt_reflp_thm of
             SOME reflp_thm =>
               let
+                val left_total = ([quot_thm, reflp_thm] MRSL @{thm Quotient_left_total})
                 val bi_total = ([quot_thm, reflp_thm] MRSL @{thm Quotient_bi_total})
-                val domain_thms = parametrize_total_domain bi_total pcrel_def lthy
+                val domain_thms = parametrize_total_domain left_total pcrel_def lthy
+                val left_total = parametrize_class_constraint lthy pcrel_def left_total
                 val bi_total = parametrize_class_constraint lthy pcrel_def bi_total
                 val id_abs_transfer = generate_parametric_id lthy rty
                   (Lifting_Term.parametrize_transfer_rule lthy
                     ([quot_thm, reflp_thm] MRSL @{thm Quotient_id_abs_transfer}))
                 val thms = 
-                  [("bi_total",       bi_total       ),
+                  [("left_total",     left_total     ),
+                   ("bi_total",       bi_total       ),
                    ("id_abs_transfer",id_abs_transfer)]              
               in
                 lthy
@@ -708,8 +717,9 @@ fun setup_by_typedef_thm gen_code typedef_thm lthy =
             (Lifting_Term.parametrize_transfer_rule lthy ([typedef_thm, T_def] MRSL @{thm typedef_rep_transfer})))
           ::
           (map_snd (fn thm => parametrize_class_constraint lthy pcrel_def ([typedef_thm, T_def] MRSL thm))
-          [("bi_unique",    @{thm typedef_bi_unique} ),
-           ("right_unique", @{thm typedef_right_unique}), 
+          [("left_unique",  @{thm typedef_left_unique} ),
+           ("right_unique", @{thm typedef_right_unique}),
+           ("bi_unique",    @{thm typedef_bi_unique} ),
            ("right_total",  @{thm typedef_right_total} )])
       in
         fold (fn (name, thm) => (snd oo Local_Theory.note) ((qualify name, [transfer_attr]), 
@@ -724,8 +734,6 @@ fun setup_by_typedef_thm gen_code typedef_thm lthy =
     lthy
       |> (snd oo Local_Theory.note) ((Binding.prefix_name "Quotient_" qty_name, []), 
             [quot_thm])
-      |> (snd oo Local_Theory.note) ((Binding.empty, [reflexivity_rule_attr]),
-           [[typedef_thm, T_def] MRSL @{thm typedef_left_unique}])
       |> setup_lifting_infr gen_code quot_thm opt_reflp_thm
       |> setup_transfer_rules
   end

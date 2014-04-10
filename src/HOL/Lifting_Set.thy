@@ -54,14 +54,14 @@ apply blast
 apply (rename_tac A, rule_tac x="{y. \<exists>x\<in>A. T x y}" in exI, fast)
 done
 
-lemma left_total_rel_set[reflexivity_rule]: 
+lemma left_total_rel_set[transfer_rule]: 
   "left_total A \<Longrightarrow> left_total (rel_set A)"
   unfolding left_total_def rel_set_def
   apply safe
   apply (rename_tac X, rule_tac x="{y. \<exists>x\<in>X. A x y}" in exI, fast)
 done
 
-lemma left_unique_rel_set[reflexivity_rule]: 
+lemma left_unique_rel_set[transfer_rule]: 
   "left_unique A \<Longrightarrow> left_unique (rel_set A)"
   unfolding left_unique_def rel_set_def
   by fast

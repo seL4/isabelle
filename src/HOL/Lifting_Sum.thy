@@ -26,11 +26,11 @@ lemma Domainp_sum[relator_domain]:
 using assms
 by (auto simp add: Domainp_iff split_sum_ex iff: fun_eq_iff split: sum.split)
 
-lemma left_total_rel_sum[reflexivity_rule]:
+lemma left_total_rel_sum[transfer_rule]:
   "left_total R1 \<Longrightarrow> left_total R2 \<Longrightarrow> left_total (rel_sum R1 R2)"
   using assms unfolding left_total_def split_sum_all split_sum_ex by simp
 
-lemma left_unique_rel_sum [reflexivity_rule]:
+lemma left_unique_rel_sum [transfer_rule]:
   "left_unique R1 \<Longrightarrow> left_unique R2 \<Longrightarrow> left_unique (rel_sum R1 R2)"
   using assms unfolding left_unique_def split_sum_all by simp
 

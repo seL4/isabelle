@@ -2486,7 +2486,7 @@ apply(erule is_filter_parametric_aux[where A="conversep A"])
 apply(auto simp add: rel_fun_def)
 done
 
-lemma left_total_rel_filter [reflexivity_rule]:
+lemma left_total_rel_filter [transfer_rule]:
   assumes [transfer_rule]: "bi_total A" "bi_unique A"
   shows "left_total (rel_filter A)"
 proof(rule left_totalI)
@@ -2511,7 +2511,7 @@ lemma bi_total_rel_filter [transfer_rule]:
 unfolding bi_total_conv_left_right using assms
 by(simp add: left_total_rel_filter right_total_rel_filter)
 
-lemma left_unique_rel_filter [reflexivity_rule]:
+lemma left_unique_rel_filter [transfer_rule]:
   assumes "left_unique A"
   shows "left_unique (rel_filter A)"
 proof(rule left_uniqueI)
