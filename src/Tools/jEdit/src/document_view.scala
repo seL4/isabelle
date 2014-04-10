@@ -144,7 +144,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
                 val line_range = Text.Range(start(i), end(i))
 
                 // gutter icons
-                rendering.gutter_message(line_range) match {
+                rendering.gutter_icon(line_range) match {
                   case Some(icon) =>
                     val x0 = (FOLD_MARKER_SIZE + width - border_width - icon.getIconWidth) max 10
                     val y0 = y + i * line_height + (((line_height - icon.getIconHeight) / 2) max 0)

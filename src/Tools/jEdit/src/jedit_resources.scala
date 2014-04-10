@@ -10,10 +10,10 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.io.{File => JFile, IOException, ByteArrayOutputStream}
+import java.io.{File => JFile, ByteArrayOutputStream}
 import javax.swing.text.Segment
 
-import org.gjt.sp.jedit.io.{VFS, FileVFS, VFSFile, VFSManager}
+import org.gjt.sp.jedit.io.{VFS, FileVFS, VFSManager}
 import org.gjt.sp.jedit.MiscUtilities
 import org.gjt.sp.jedit.{jEdit, View, Buffer}
 import org.gjt.sp.jedit.bufferio.BufferIORequest
@@ -45,6 +45,7 @@ class JEdit_Resources(loaded_theories: Set[String] = Set.empty, base_syntax: Out
   {
     val path = source_path.expand
     if (dir == "" || path.is_absolute) Isabelle_System.platform_path(path)
+    else if (path.is_current) dir
     else {
       val vfs = VFSManager.getVFSForPath(dir)
       if (vfs.isInstanceOf[FileVFS])
@@ -54,42 +55,32 @@ class JEdit_Resources(loaded_theories: Set[String] = Set.empty, base_syntax: Out
     }
   }
 
-  override def with_thy_text[A](name: Document.Node.Name, f: CharSequence => A): A =
+  override def with_thy_text[A](name: Document.Node.Name, consume: CharSequence => A): A =
   {
     Swing_Thread.now {
       JEdit_Lib.jedit_buffer(name) match {
         case Some(buffer) =>
           JEdit_Lib.buffer_lock(buffer) {
-            Some(f(buffer.getSegment(0, buffer.getLength)))
+            Some(consume(buffer.getSegment(0, buffer.getLength)))
           }
         case None => None
       }
     } getOrElse {
-      val file = new JFile(name.node)  // FIXME load URL via jEdit VFS (!?)
-      if (!file.exists || !file.isFile) error("No such file: " + quote(file.toString))
-      f(File.read(file))
-    }
-  }
-
-  def check_file(view: View, path: String): Boolean =
-  {
-    val vfs = VFSManager.getVFSForPath(path)
-    val session = vfs.createVFSSession(path, view)
-
-    try {
-      session != null && {
-        try {
-          val file = vfs._getFile(session, path, view)
-          file != null && file.isReadable && file.getType == VFSFile.FILE
-        }
-        catch { case _: IOException => false }
+      if (Url.is_wellformed(name.node)) consume(Url.read(name.node))
+      else {
+        val file = new JFile(name.node)
+        if (file.isFile) consume(File.read(file))
+        else error("No such file: " + quote(file.toString))
       }
     }
-    finally {
-      try { vfs._endVFSSession(session, view) }
-      catch { case _: IOException => }
-    }
   }
+
+  def check_file(view: View, file: String): Boolean =
+    try {
+      if (Url.is_wellformed(file)) Url.is_readable(file)
+      else (new JFile(file)).isFile
+    }
+    catch { case ERROR(_) => false }
 
 
   /* file content */

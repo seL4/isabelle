@@ -350,6 +350,4 @@ ML_file "Tools/cont_proc.ML"
 ML_file "Tools/Domain/domain_constructors.ML"
 ML_file "Tools/Domain/domain_induction.ML"
 
-setup Domain_Take_Proofs.setup
-
 end

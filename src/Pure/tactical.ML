@@ -30,7 +30,7 @@ sig
   val FIRST': ('a -> tactic) list -> 'a -> tactic
   val FIRST1: (int -> tactic) list -> tactic
   val RANGE: (int -> tactic) list -> int -> tactic
-  val print_tac: string -> tactic
+  val print_tac: Proof.context -> string -> tactic
   val pause_tac: tactic
   val trace_REPEAT: bool Unsynchronized.ref
   val suppress_tracing: bool Unsynchronized.ref
@@ -182,9 +182,8 @@ fun RANGE [] _ = all_tac
 (*** Tracing tactics ***)
 
 (*Print the current proof state and pass it on.*)
-fun print_tac msg st =
- (tracing (msg ^ "\n" ^
-    Pretty.string_of (Pretty.chunks (Goal_Display.pretty_goals_without_context st)));
+fun print_tac ctxt msg st =
+ (tracing (msg ^ "\n" ^ Pretty.string_of (Pretty.chunks (Goal_Display.pretty_goals ctxt st)));
   Seq.single st);
 
 (*Pause until a line is typed -- if non-empty then fail. *)
@@ -223,7 +222,7 @@ fun exec_trace_command flag (tac, st) =
 fun tracify flag tac st =
   if !flag andalso not (!suppress_tracing) then
     (tracing (Pretty.string_of (Pretty.chunks
-        (Goal_Display.pretty_goals_without_context st @
+        (Goal_Display.pretty_goals (Syntax.init_pretty_global (Thm.theory_of_thm st)) st @
           [Pretty.str "** Press RETURN to continue:"])));
      exec_trace_command flag (tac, st))
   else tac st;

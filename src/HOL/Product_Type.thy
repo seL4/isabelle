@@ -1219,8 +1219,37 @@ setup {*
 
 subsection {* Inductively defined sets *}
 
+(* simplify {(x1, ..., xn). (x1, ..., xn) : S} to S *)
+simproc_setup Collect_mem ("Collect t") = {*
+  fn _ => fn ctxt => fn ct =>
+    (case term_of ct of
+      S as Const (@{const_name Collect}, Type (@{type_name fun}, [_, T])) $ t =>
+        let val (u, _, ps) = HOLogic.strip_psplits t in
+          (case u of
+            (c as Const (@{const_name Set.member}, _)) $ q $ S' =>
+              (case try (HOLogic.strip_ptuple ps) q of
+                NONE => NONE
+              | SOME ts =>
+                  if not (Term.is_open S') andalso
+                    ts = map Bound (length ps downto 0)
+                  then
+                    let val simp =
+                      full_simp_tac (put_simpset HOL_basic_ss ctxt
+                        addsimps [@{thm split_paired_all}, @{thm split_conv}]) 1
+                    in
+                      SOME (Goal.prove ctxt [] []
+                        (Const (@{const_name Pure.eq}, T --> T --> propT) $ S $ S')
+                        (K (EVERY
+                          [rtac eq_reflection 1, rtac @{thm subset_antisym} 1,
+                           rtac subsetI 1, dtac CollectD 1, simp,
+                           rtac subsetI 1, rtac CollectI 1, simp])))
+                    end
+                  else NONE)
+          | _ => NONE)
+        end
+    | _ => NONE)
+*}
 ML_file "Tools/inductive_set.ML"
-setup Inductive_Set.setup
 
 
 subsection {* Legacy theorem bindings and duplicates *}

@@ -7,6 +7,32 @@ keywords
   "text_cartouche" :: thy_decl
 begin
 
+subsection {* Regular outer syntax *}
+
+text \<open>Text cartouches may be used in the outer syntax category "text",
+  as alternative to the traditional "verbatim" tokens.  An example is
+  this text block.\<close>  -- \<open>The same works for small side-comments.\<close>
+
+notepad
+begin
+  txt \<open>Moreover, cartouches work as additional syntax in the
+    "altstring" category, for literal fact references.  For example:\<close>
+
+  fix x y :: 'a
+  assume "x = y"
+  note \<open>x = y\<close>
+  have "x = y" by (rule \<open>x = y\<close>)
+  from \<open>x = y\<close> have "x = y" .
+
+  txt \<open>Of course, this can be nested inside formal comments and
+    antiquotations, e.g. like this @{thm \<open>x = y\<close>} or this @{thm sym
+    [OF \<open>x = y\<close>]}.\<close>
+
+  have "x = y"
+    by (tactic \<open>rtac @{thm \<open>x = y\<close>} 1\<close>)  -- \<open>more cartouches involving ML\<close>
+end
+
+
 subsection {* Outer syntax: cartouche within command syntax *}
 
 ML {*

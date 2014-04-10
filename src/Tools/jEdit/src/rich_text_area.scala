@@ -168,12 +168,14 @@ class Rich_Text_Area(
       robust_body(()) {
         hyperlink_area.info match {
           case Some(Text.Info(range, link)) =>
-            try { text_area.moveCaretPosition(range.start) }
-            catch {
-              case _: ArrayIndexOutOfBoundsException =>
-              case _: IllegalArgumentException =>
+            if (!link.external) {
+              try { text_area.moveCaretPosition(range.start) }
+              catch {
+                case _: ArrayIndexOutOfBoundsException =>
+                case _: IllegalArgumentException =>
+              }
+              text_area.requestFocus
             }
-            text_area.requestFocus
             link.follow(view)
           case None =>
         }
@@ -200,7 +202,8 @@ class Rich_Text_Area(
   private val mouse_motion_listener = new MouseMotionAdapter {
     override def mouseDragged(evt: MouseEvent) {
       robust_body(()) {
-        PIDE.dismissed_popups(view)
+        Completion_Popup.Text_Area.dismissed(text_area)
+        Pretty_Tooltip.dismiss_descendant(text_area.getPainter)
       }
     }
 
@@ -245,7 +248,7 @@ class Rich_Text_Area(
                         case Some(tip) =>
                           val painter = text_area.getPainter
                           val loc = new Point(x, y + painter.getFontMetrics.getHeight / 2)
-                          val results = rendering.command_results(range)
+                          val results = rendering.command_results(tip.range)
                           Pretty_Tooltip(view, painter, loc, rendering, results, tip)
                       }
                   }

@@ -344,21 +344,19 @@ end
 subsection {* Reasoning tools setup *}
 
 ML {*
-
 signature ORDERS =
 sig
   val print_structures: Proof.context -> unit
-  val attrib_setup: theory -> theory
   val order_tac: Proof.context -> thm list -> int -> tactic
 end;
 
 structure Orders: ORDERS =
 struct
 
-(** Theory and context data **)
+(* context data *)
 
 fun struct_eq ((s1: string, ts1), (s2, ts2)) =
-  (s1 = s2) andalso eq_list (op aconv) (ts1, ts2);
+  s1 = s2 andalso eq_list (op aconv) (ts1, ts2);
 
 structure Data = Generic_Data
 (
@@ -386,44 +384,52 @@ fun print_structures ctxt =
     Pretty.writeln (Pretty.big_list "order structures:" (map pretty_struct structs))
   end;
 
+val _ =
+  Outer_Syntax.improper_command @{command_spec "print_orders"}
+    "print order structures available to transitivity reasoner"
+    (Scan.succeed (Toplevel.unknown_context o
+      Toplevel.keep (print_structures o Toplevel.context_of)));
 
-(** Method **)
 
-fun struct_tac ((s, [eq, le, less]), thms) ctxt prems =
+(* tactics *)
+
+fun struct_tac ((s, ops), thms) ctxt facts =
   let
+    val [eq, le, less] = ops;
     fun decomp thy (@{const Trueprop} $ t) =
-      let
-        fun excluded t =
-          (* exclude numeric types: linear arithmetic subsumes transitivity *)
-          let val T = type_of t
-          in
-            T = HOLogic.natT orelse T = HOLogic.intT orelse T = HOLogic.realT
-          end;
-        fun rel (bin_op $ t1 $ t2) =
-              if excluded t1 then NONE
-              else if Pattern.matches thy (eq, bin_op) then SOME (t1, "=", t2)
-              else if Pattern.matches thy (le, bin_op) then SOME (t1, "<=", t2)
-              else if Pattern.matches thy (less, bin_op) then SOME (t1, "<", t2)
-              else NONE
-          | rel _ = NONE;
-        fun dec (Const (@{const_name Not}, _) $ t) = (case rel t
-              of NONE => NONE
-               | SOME (t1, rel, t2) => SOME (t1, "~" ^ rel, t2))
-          | dec x = rel x;
-      in dec t end
-      | decomp thy _ = NONE;
+          let
+            fun excluded t =
+              (* exclude numeric types: linear arithmetic subsumes transitivity *)
+              let val T = type_of t
+              in
+                T = HOLogic.natT orelse T = HOLogic.intT orelse T = HOLogic.realT
+              end;
+            fun rel (bin_op $ t1 $ t2) =
+                  if excluded t1 then NONE
+                  else if Pattern.matches thy (eq, bin_op) then SOME (t1, "=", t2)
+                  else if Pattern.matches thy (le, bin_op) then SOME (t1, "<=", t2)
+                  else if Pattern.matches thy (less, bin_op) then SOME (t1, "<", t2)
+                  else NONE
+              | rel _ = NONE;
+            fun dec (Const (@{const_name Not}, _) $ t) =
+                  (case rel t of NONE =>
+                    NONE
+                  | SOME (t1, rel, t2) => SOME (t1, "~" ^ rel, t2))
+              | dec x = rel x;
+          in dec t end
+      | decomp _ _ = NONE;
   in
-    case s of
-      "order" => Order_Tac.partial_tac decomp thms ctxt prems
-    | "linorder" => Order_Tac.linear_tac decomp thms ctxt prems
-    | _ => error ("Unknown kind of order `" ^ s ^ "' encountered in transitivity reasoner.")
+    (case s of
+      "order" => Order_Tac.partial_tac decomp thms ctxt facts
+    | "linorder" => Order_Tac.linear_tac decomp thms ctxt facts
+    | _ => error ("Unknown order kind " ^ quote s ^ " encountered in transitivity reasoner"))
   end
 
-fun order_tac ctxt prems =
-  FIRST' (map (fn s => CHANGED o struct_tac s ctxt prems) (Data.get (Context.Proof ctxt)));
+fun order_tac ctxt facts =
+  FIRST' (map (fn s => CHANGED o struct_tac s ctxt facts) (Data.get (Context.Proof ctxt)));
 
 
-(** Attribute **)
+(* attributes *)
 
 fun add_struct_thm s tag =
   Thm.declaration_attribute
@@ -432,29 +438,18 @@ fun del_struct s =
   Thm.declaration_attribute
     (fn _ => Data.map (AList.delete struct_eq s));
 
-val attrib_setup =
-  Attrib.setup @{binding order}
-    (Scan.lift ((Args.add -- Args.name >> (fn (_, s) => SOME s) || Args.del >> K NONE) --|
-      Args.colon (* FIXME || Scan.succeed true *) ) -- Scan.lift Args.name --
-      Scan.repeat Args.term
-      >> (fn ((SOME tag, n), ts) => add_struct_thm (n, ts) tag
-           | ((NONE, n), ts) => del_struct (n, ts)))
-    "theorems controlling transitivity reasoner";
-
-
-(** Diagnostic command **)
-
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_orders"}
-    "print order structures available to transitivity reasoner"
-    (Scan.succeed (Toplevel.unknown_context o
-      Toplevel.keep (print_structures o Toplevel.context_of)));
+  Theory.setup
+    (Attrib.setup @{binding order}
+      (Scan.lift ((Args.add -- Args.name >> (fn (_, s) => SOME s) || Args.del >> K NONE) --|
+        Args.colon (* FIXME || Scan.succeed true *) ) -- Scan.lift Args.name --
+        Scan.repeat Args.term
+        >> (fn ((SOME tag, n), ts) => add_struct_thm (n, ts) tag
+             | ((NONE, n), ts) => del_struct (n, ts)))
+      "theorems controlling transitivity reasoner");
 
 end;
-
 *}
-
-setup Orders.attrib_setup
 
 method_setup order = {*
   Scan.succeed (fn ctxt => SIMPLE_METHOD' (Orders.order_tac ctxt []))
@@ -546,63 +541,63 @@ declare not_sym [order add not_sym: linorder "op = :: 'a => 'a => bool" "op <=" 
 
 end
 
-
 setup {*
-let
-
-fun prp t thm = Thm.prop_of thm = t;  (* FIXME aconv!? *)
-
-fun prove_antisym_le ctxt ((le as Const(_,T)) $ r $ s) =
-  let val prems = Simplifier.prems_of ctxt;
-      val less = Const (@{const_name less}, T);
-      val t = HOLogic.mk_Trueprop(le $ s $ r);
-  in case find_first (prp t) prems of
-       NONE =>
-         let val t = HOLogic.mk_Trueprop(HOLogic.Not $ (less $ r $ s))
-         in case find_first (prp t) prems of
-              NONE => NONE
-            | SOME thm => SOME(mk_meta_eq(thm RS @{thm linorder_class.antisym_conv1}))
-         end
-     | SOME thm => SOME(mk_meta_eq(thm RS @{thm order_class.antisym_conv}))
-  end
-  handle THM _ => NONE;
-
-fun prove_antisym_less ctxt (NotC $ ((less as Const(_,T)) $ r $ s)) =
-  let val prems = Simplifier.prems_of ctxt;
-      val le = Const (@{const_name less_eq}, T);
-      val t = HOLogic.mk_Trueprop(le $ r $ s);
-  in case find_first (prp t) prems of
-       NONE =>
-         let val t = HOLogic.mk_Trueprop(NotC $ (less $ s $ r))
-         in case find_first (prp t) prems of
-              NONE => NONE
-            | SOME thm => SOME(mk_meta_eq(thm RS @{thm linorder_class.antisym_conv3}))
-         end
-     | SOME thm => SOME(mk_meta_eq(thm RS @{thm linorder_class.antisym_conv2}))
-  end
-  handle THM _ => NONE;
-
-fun add_simprocs procs thy =
-  map_theory_simpset (fn ctxt => ctxt
-    addsimprocs (map (fn (name, raw_ts, proc) =>
-      Simplifier.simproc_global thy name raw_ts proc) procs)) thy;
-
-fun add_solver name tac =
   map_theory_simpset (fn ctxt0 => ctxt0 addSolver
-    mk_solver name (fn ctxt => tac ctxt (Simplifier.prems_of ctxt)));
-
-in
-  add_simprocs [
-       ("antisym le", ["(x::'a::order) <= y"], prove_antisym_le),
-       ("antisym less", ["~ (x::'a::linorder) < y"], prove_antisym_less)
-     ]
-  #> add_solver "Transitivity" Orders.order_tac
-  (* Adding the transitivity reasoners also as safe solvers showed a slight
-     speed up, but the reasoning strength appears to be not higher (at least
-     no breaking of additional proofs in the entire HOL distribution, as
-     of 5 March 2004, was observed). *)
-end
+    mk_solver "Transitivity" (fn ctxt => Orders.order_tac ctxt (Simplifier.prems_of ctxt)))
+  (*Adding the transitivity reasoners also as safe solvers showed a slight
+    speed up, but the reasoning strength appears to be not higher (at least
+    no breaking of additional proofs in the entire HOL distribution, as
+    of 5 March 2004, was observed).*)
 *}
+
+ML {*
+local
+  fun prp t thm = Thm.prop_of thm = t;  (* FIXME proper aconv!? *)
+in
+
+fun antisym_le_simproc ctxt ct =
+  (case term_of ct of
+    (le as Const (_, T)) $ r $ s =>
+     (let
+        val prems = Simplifier.prems_of ctxt;
+        val less = Const (@{const_name less}, T);
+        val t = HOLogic.mk_Trueprop(le $ s $ r);
+      in
+        (case find_first (prp t) prems of
+          NONE =>
+            let val t = HOLogic.mk_Trueprop(HOLogic.Not $ (less $ r $ s)) in
+              (case find_first (prp t) prems of
+                NONE => NONE
+              | SOME thm => SOME(mk_meta_eq(thm RS @{thm linorder_class.antisym_conv1})))
+             end
+         | SOME thm => SOME (mk_meta_eq (thm RS @{thm order_class.antisym_conv})))
+      end handle THM _ => NONE)
+  | _ => NONE);
+
+fun antisym_less_simproc ctxt ct =
+  (case term_of ct of
+    NotC $ ((less as Const(_,T)) $ r $ s) =>
+     (let
+       val prems = Simplifier.prems_of ctxt;
+       val le = Const (@{const_name less_eq}, T);
+       val t = HOLogic.mk_Trueprop(le $ r $ s);
+      in
+        (case find_first (prp t) prems of
+          NONE =>
+            let val t = HOLogic.mk_Trueprop (NotC $ (less $ s $ r)) in
+              (case find_first (prp t) prems of
+                NONE => NONE
+              | SOME thm => SOME (mk_meta_eq(thm RS @{thm linorder_class.antisym_conv3})))
+            end
+        | SOME thm => SOME (mk_meta_eq (thm RS @{thm linorder_class.antisym_conv2})))
+      end handle THM _ => NONE)
+  | _ => NONE);
+
+end;
+*}
+
+simproc_setup antisym_le ("(x::'a::order) \<le> y") = "K antisym_le_simproc"
+simproc_setup antisym_less ("\<not> (x::'a::linorder) < y") = "K antisym_less_simproc"
 
 
 subsection {* Bounded quantifiers *}

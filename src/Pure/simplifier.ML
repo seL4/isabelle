@@ -29,6 +29,19 @@ signature SIMPLIFIER =
 sig
   include BASIC_SIMPLIFIER
   val map_ss: (Proof.context -> Proof.context) -> Context.generic -> Context.generic
+  val attrib: (thm -> Proof.context -> Proof.context) -> attribute
+  val simp_add: attribute
+  val simp_del: attribute
+  val cong_add: attribute
+  val cong_del: attribute
+  val check_simproc: Proof.context -> xstring * Position.T -> string
+  val the_simproc: Proof.context -> string -> simproc
+  val def_simproc: {name: binding, lhss: term list,
+    proc: morphism -> Proof.context -> cterm -> thm option, identifier: thm list} ->
+    local_theory -> local_theory
+  val def_simproc_cmd: {name: binding, lhss: string list,
+    proc: morphism -> Proof.context -> cterm -> thm option, identifier: thm list} ->
+    local_theory -> local_theory
   val pretty_simpset: Proof.context -> Pretty.T
   val default_mk_sym: Proof.context -> thm -> thm option
   val prems_of: Proof.context -> thm list
@@ -57,19 +70,6 @@ sig
   val full_rewrite: Proof.context -> conv
   val asm_lr_rewrite: Proof.context -> conv
   val asm_full_rewrite: Proof.context -> conv
-  val attrib: (thm -> Proof.context -> Proof.context) -> attribute
-  val simp_add: attribute
-  val simp_del: attribute
-  val cong_add: attribute
-  val cong_del: attribute
-  val check_simproc: Proof.context -> xstring * Position.T -> string
-  val the_simproc: Proof.context -> string -> simproc
-  val def_simproc: {name: binding, lhss: term list,
-    proc: morphism -> Proof.context -> cterm -> thm option, identifier: thm list} ->
-    local_theory -> local_theory
-  val def_simproc_cmd: {name: binding, lhss: string list,
-    proc: morphism -> Proof.context -> cterm -> thm option, identifier: thm list} ->
-    local_theory -> local_theory
   val cong_modifiers: Method.modifier parser list
   val simp_modifiers': Method.modifier parser list
   val simp_modifiers: Method.modifier parser list
@@ -81,36 +81,6 @@ structure Simplifier: SIMPLIFIER =
 struct
 
 open Raw_Simplifier;
-
-
-(** pretty printing **)
-
-fun pretty_simpset ctxt =
-  let
-    val pretty_term = Syntax.pretty_term ctxt;
-    val pretty_thm = Display.pretty_thm ctxt;
-    val pretty_thm_item = Display.pretty_thm_item ctxt;
-
-    fun pretty_proc (name, lhss) =
-      Pretty.big_list (name ^ ":") (map (Pretty.item o single o pretty_term o Thm.term_of) lhss);
-
-    fun pretty_cong_name (const, name) =
-      pretty_term ((if const then Const else Free) (name, dummyT));
-    fun pretty_cong (name, thm) =
-      Pretty.block [pretty_cong_name name, Pretty.str ":", Pretty.brk 1, pretty_thm thm];
-
-    val {simps, procs, congs, loopers, unsafe_solvers, safe_solvers, ...} =
-      dest_ss (simpset_of ctxt);
-  in
-    [Pretty.big_list "simplification rules:" (map (pretty_thm_item o #2) simps),
-      Pretty.big_list "simplification procedures:" (map pretty_proc (sort_wrt #1 procs)),
-      Pretty.big_list "congruences:" (map pretty_cong congs),
-      Pretty.strs ("loopers:" :: map quote loopers),
-      Pretty.strs ("unsafe solvers:" :: map quote unsafe_solvers),
-      Pretty.strs ("safe solvers:" :: map quote safe_solvers)]
-    |> Pretty.chunks
-  end;
-
 
 
 (** declarations **)
@@ -184,6 +154,40 @@ val def_simproc = gen_simproc Syntax.check_terms;
 val def_simproc_cmd = gen_simproc Syntax.read_terms;
 
 end;
+
+
+
+(** pretty_simpset **)
+
+fun pretty_simpset ctxt =
+  let
+    val pretty_term = Syntax.pretty_term ctxt;
+    val pretty_thm = Display.pretty_thm ctxt;
+    val pretty_thm_item = Display.pretty_thm_item ctxt;
+
+    fun pretty_simproc (name, lhss) =
+      Pretty.block
+        (Pretty.mark_str name :: Pretty.str ":" :: Pretty.fbrk ::
+          Pretty.fbreaks (map (Pretty.item o single o pretty_term o Thm.term_of) lhss));
+
+    fun pretty_cong_name (const, name) =
+      pretty_term ((if const then Const else Free) (name, dummyT));
+    fun pretty_cong (name, thm) =
+      Pretty.block [pretty_cong_name name, Pretty.str ":", Pretty.brk 1, pretty_thm thm];
+
+    val {simps, procs, congs, loopers, unsafe_solvers, safe_solvers, ...} =
+      dest_ss (simpset_of ctxt);
+    val simprocs =
+      Name_Space.markup_entries ctxt (Name_Space.space_of_table (get_simprocs ctxt)) procs;
+  in
+    [Pretty.big_list "simplification rules:" (map (pretty_thm_item o #2) simps),
+      Pretty.big_list "simplification procedures:" (map pretty_simproc simprocs),
+      Pretty.big_list "congruences:" (map pretty_cong congs),
+      Pretty.strs ("loopers:" :: map quote loopers),
+      Pretty.strs ("unsafe solvers:" :: map quote unsafe_solvers),
+      Pretty.strs ("safe solvers:" :: map quote safe_solvers)]
+    |> Pretty.chunks
+  end;
 
 
 

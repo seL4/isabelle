@@ -207,9 +207,9 @@ fun make_nnf_thm thy (Const (@{const_name HOL.conj}, _) $ x $ y) =
       in
         make_nnf_iff OF [thm1, thm2, thm3, thm4]
       end
-  | make_nnf_thm thy (Const (@{const_name Not}, _) $ Const (@{const_name False}, _)) =
+  | make_nnf_thm _ (Const (@{const_name Not}, _) $ Const (@{const_name False}, _)) =
       make_nnf_not_false
-  | make_nnf_thm thy (Const (@{const_name Not}, _) $ Const (@{const_name True}, _)) =
+  | make_nnf_thm _ (Const (@{const_name Not}, _) $ Const (@{const_name True}, _)) =
       make_nnf_not_true
   | make_nnf_thm thy (Const (@{const_name Not}, _) $ (Const (@{const_name HOL.conj}, _) $ x $ y)) =
       let

@@ -513,9 +513,9 @@ val _ = Theory.setup
   setup @{binding rotate_tac} (Args.goal_spec -- Scan.lift (Scan.optional Parse.int 1) >>
     (fn (quant, i) => K (SIMPLE_METHOD'' quant (rotate_tac i))))
       "rotate assumptions of goal" #>
-  setup @{binding tactic} (Scan.lift Args.name_source_position >> tactic)
+  setup @{binding tactic} (Scan.lift Args.text_source_position >> tactic)
     "ML tactic as proof method" #>
-  setup @{binding raw_tactic} (Scan.lift Args.name_source_position >> raw_tactic)
+  setup @{binding raw_tactic} (Scan.lift Args.text_source_position >> raw_tactic)
     "ML tactic as raw proof method");
 
 

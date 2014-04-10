@@ -22,7 +22,10 @@ abstract class Editor[Context]
   def insert_overlay(command: Command, fn: String, args: List[String]): Unit
   def remove_overlay(command: Command, fn: String, args: List[String]): Unit
 
-  abstract class Hyperlink { def follow(context: Context): Unit }
+  abstract class Hyperlink {
+    def external: Boolean
+    def follow(context: Context): Unit
+  }
   def hyperlink_command(
     snapshot: Document.Snapshot, command: Command, offset: Symbol.Offset = 0): Option[Hyperlink]
 }
