@@ -541,63 +541,63 @@ declare not_sym [order add not_sym: linorder "op = :: 'a => 'a => bool" "op <=" 
 
 end
 
-
 setup {*
-let
-
-fun prp t thm = Thm.prop_of thm = t;  (* FIXME aconv!? *)
-
-fun prove_antisym_le ctxt ((le as Const(_,T)) $ r $ s) =
-  let val prems = Simplifier.prems_of ctxt;
-      val less = Const (@{const_name less}, T);
-      val t = HOLogic.mk_Trueprop(le $ s $ r);
-  in case find_first (prp t) prems of
-       NONE =>
-         let val t = HOLogic.mk_Trueprop(HOLogic.Not $ (less $ r $ s))
-         in case find_first (prp t) prems of
-              NONE => NONE
-            | SOME thm => SOME(mk_meta_eq(thm RS @{thm linorder_class.antisym_conv1}))
-         end
-     | SOME thm => SOME(mk_meta_eq(thm RS @{thm order_class.antisym_conv}))
-  end
-  handle THM _ => NONE;
-
-fun prove_antisym_less ctxt (NotC $ ((less as Const(_,T)) $ r $ s)) =
-  let val prems = Simplifier.prems_of ctxt;
-      val le = Const (@{const_name less_eq}, T);
-      val t = HOLogic.mk_Trueprop(le $ r $ s);
-  in case find_first (prp t) prems of
-       NONE =>
-         let val t = HOLogic.mk_Trueprop(NotC $ (less $ s $ r))
-         in case find_first (prp t) prems of
-              NONE => NONE
-            | SOME thm => SOME(mk_meta_eq(thm RS @{thm linorder_class.antisym_conv3}))
-         end
-     | SOME thm => SOME(mk_meta_eq(thm RS @{thm linorder_class.antisym_conv2}))
-  end
-  handle THM _ => NONE;
-
-fun add_simprocs procs thy =
-  map_theory_simpset (fn ctxt => ctxt
-    addsimprocs (map (fn (name, raw_ts, proc) =>
-      Simplifier.simproc_global thy name raw_ts proc) procs)) thy;
-
-fun add_solver name tac =
   map_theory_simpset (fn ctxt0 => ctxt0 addSolver
-    mk_solver name (fn ctxt => tac ctxt (Simplifier.prems_of ctxt)));
-
-in
-  add_simprocs [
-       ("antisym le", ["(x::'a::order) <= y"], prove_antisym_le),
-       ("antisym less", ["~ (x::'a::linorder) < y"], prove_antisym_less)
-     ]
-  #> add_solver "Transitivity" Orders.order_tac
-  (* Adding the transitivity reasoners also as safe solvers showed a slight
-     speed up, but the reasoning strength appears to be not higher (at least
-     no breaking of additional proofs in the entire HOL distribution, as
-     of 5 March 2004, was observed). *)
-end
+    mk_solver "Transitivity" (fn ctxt => Orders.order_tac ctxt (Simplifier.prems_of ctxt)))
+  (*Adding the transitivity reasoners also as safe solvers showed a slight
+    speed up, but the reasoning strength appears to be not higher (at least
+    no breaking of additional proofs in the entire HOL distribution, as
+    of 5 March 2004, was observed).*)
 *}
+
+ML {*
+local
+  fun prp t thm = Thm.prop_of thm = t;  (* FIXME proper aconv!? *)
+in
+
+fun antisym_le_simproc ctxt ct =
+  (case term_of ct of
+    (le as Const (_, T)) $ r $ s =>
+     (let
+        val prems = Simplifier.prems_of ctxt;
+        val less = Const (@{const_name less}, T);
+        val t = HOLogic.mk_Trueprop(le $ s $ r);
+      in
+        (case find_first (prp t) prems of
+          NONE =>
+            let val t = HOLogic.mk_Trueprop(HOLogic.Not $ (less $ r $ s)) in
+              (case find_first (prp t) prems of
+                NONE => NONE
+              | SOME thm => SOME(mk_meta_eq(thm RS @{thm linorder_class.antisym_conv1})))
+             end
+         | SOME thm => SOME (mk_meta_eq (thm RS @{thm order_class.antisym_conv})))
+      end handle THM _ => NONE)
+  | _ => NONE);
+
+fun antisym_less_simproc ctxt ct =
+  (case term_of ct of
+    NotC $ ((less as Const(_,T)) $ r $ s) =>
+     (let
+       val prems = Simplifier.prems_of ctxt;
+       val le = Const (@{const_name less_eq}, T);
+       val t = HOLogic.mk_Trueprop(le $ r $ s);
+      in
+        (case find_first (prp t) prems of
+          NONE =>
+            let val t = HOLogic.mk_Trueprop (NotC $ (less $ s $ r)) in
+              (case find_first (prp t) prems of
+                NONE => NONE
+              | SOME thm => SOME (mk_meta_eq(thm RS @{thm linorder_class.antisym_conv3})))
+            end
+        | SOME thm => SOME (mk_meta_eq (thm RS @{thm linorder_class.antisym_conv2})))
+      end handle THM _ => NONE)
+  | _ => NONE);
+
+end;
+*}
+
+simproc_setup antisym_le ("(x::'a::order) \<le> y") = "K antisym_le_simproc"
+simproc_setup antisym_less ("\<not> (x::'a::linorder) < y") = "K antisym_less_simproc"
 
 
 subsection {* Bounded quantifiers *}
