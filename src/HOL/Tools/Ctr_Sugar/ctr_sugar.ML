@@ -162,7 +162,7 @@ fun with_repaired_path f (ctr_sugar as {ctrs = ctr1 :: _, ...} : ctr_sugar) thy 
   thy
   |> Sign.root_path
   |> Sign.add_path (Long_Name.qualifier (fst (dest_Type (body_type (fastype_of ctr1)))))
-  |> f ctr_sugar
+  |> (fn thy => f (morph_ctr_sugar (Morphism.transfer_morphism thy) ctr_sugar) thy)
   |> Sign.restore_naming thy;
 
 val ctr_sugar_interpretation = Ctr_Sugar_Interpretation.interpretation o with_repaired_path;
@@ -1018,5 +1018,7 @@ val _ =
     "register an existing freely generated type's constructors"
     (parse_ctr_options -- parse_binding --| @{keyword "for"} -- parse_ctr_specs
      >> free_constructors_cmd);
+
+val _ = Context.>> (Context.map_theory Ctr_Sugar_Interpretation.init);
 
 end;

@@ -197,7 +197,7 @@ fun with_repaired_path f (fp_sugar as {T, ...} : fp_sugar) thy =
   thy
   |> Sign.root_path
   |> Sign.add_path (Long_Name.qualifier (fst (dest_Type T)))
-  |> f fp_sugar
+  |> (fn thy => f (morph_fp_sugar (Morphism.transfer_morphism thy) fp_sugar) thy)
   |> Sign.restore_naming thy;
 
 val fp_sugar_interpretation = FP_Sugar_Interpretation.interpretation o with_repaired_path;
@@ -1444,5 +1444,7 @@ val parse_spec =
 val parse_co_datatype = parse_ctr_options -- Parse.and_list1 parse_spec;
 
 fun parse_co_datatype_cmd fp construct_fp = parse_co_datatype >> co_datatype_cmd fp construct_fp;
+
+val _ = Context.>> (Context.map_theory FP_Sugar_Interpretation.init);
 
 end;

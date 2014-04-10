@@ -1326,7 +1326,7 @@ fun with_repaired_path f bnf thy =
     thy
     |> Sign.root_path
     |> fold (uncurry (fn true => Sign.mandatory_path | false => Sign.add_path) o swap) qualifiers
-    |> f bnf
+    |> (fn thy => f (morph_bnf (Morphism.transfer_morphism thy) bnf) thy)
     |> Sign.restore_naming thy
   end;
 
@@ -1421,5 +1421,7 @@ val _ =
          Scan.repeat1 (Scan.unless (Parse.reserved "rel") Parse.term)) >> the_default []) --
        Scan.option ((Parse.reserved "rel" -- @{keyword ":"}) |-- Parse.term)
        >> bnf_cmd);
+
+val _ = Context.>> (Context.map_theory BNF_Interpretation.init);
 
 end;
