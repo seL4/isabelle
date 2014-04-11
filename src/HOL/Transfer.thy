@@ -249,11 +249,6 @@ ML_file "Tools/Transfer/transfer.ML"
 setup Transfer.setup
 declare refl [transfer_rule]
 
-ML_file "Tools/Transfer/transfer_bnf.ML" 
-
-declare pred_fun_def [simp]
-declare rel_fun_eq [relator_eq]
-
 hide_const (open) Rel
 
 context
@@ -366,7 +361,18 @@ lemma bi_unique_fun[transfer_rule]:
   unfolding bi_unique_alt_def bi_total_alt_def
   by (blast intro: right_unique_fun left_unique_fun)
 
+end
+
+ML_file "Tools/Transfer/transfer_bnf.ML" 
+
+declare pred_fun_def [simp]
+declare rel_fun_eq [relator_eq]
+
 subsection {* Transfer rules *}
+
+context
+begin
+interpretation lifting_syntax .
 
 lemma Domainp_forall_transfer [transfer_rule]:
   assumes "right_total A"
