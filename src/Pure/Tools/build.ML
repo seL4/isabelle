@@ -130,12 +130,12 @@ fun build args_file = Command_Line.tool (fn () =>
       val _ = SHA1_Samples.test ();
 
       val (command_timings, (do_output, (options, (verbose, (browser_info,
-          (parent_name, (chapter, (name, theories)))))))) =
+          (document_files, (parent_name, (chapter, (name, theories))))))))) =
         File.read (Path.explode args_file) |> YXML.parse_body |>
           let open XML.Decode in
             pair (list properties) (pair bool (pair Options.decode (pair bool (pair string
-              (pair string (pair string (pair string
-                ((list (pair Options.decode (list string)))))))))))
+              (pair (list (pair string string)) (pair string (pair string (pair string
+                ((list (pair Options.decode (list string))))))))))))
           end;
 
       val _ = Options.set_default options;
@@ -156,6 +156,7 @@ fun build args_file = Command_Line.tool (fn () =>
           (Options.bool options "document_graph")
           (Options.string options "document_output")
           document_variants
+          (map (pairself Path.explode) document_files)
           parent_name (chapter, name)
           verbose;
 

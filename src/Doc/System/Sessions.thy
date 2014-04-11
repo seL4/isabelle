@@ -54,7 +54,7 @@ text {* Session specifications reside in files called @{verbatim ROOT}
 
     @{syntax_def session_entry}: @'session' spec '=' (@{syntax name} '+')? body
     ;
-    body: description? options? ( theories + ) files?
+    body: description? options? (theories+) \<newline> files? (document_files*)
     ;
     spec: @{syntax name} groups? dir?
     ;
@@ -72,7 +72,9 @@ text {* Session specifications reside in files called @{verbatim ROOT}
     ;
     theories: @'theories' opts? ( @{syntax name} * )
     ;
-    files: @'files' ( @{syntax name} + )
+    files: @'files' (@{syntax name}+)
+    ;
+    document_files: @'document_files' ('(' dir ')')? (@{syntax name}+)
   \<close>}
 
   \begin{description}
@@ -123,10 +125,23 @@ text {* Session specifications reside in files called @{verbatim ROOT}
   \item \isakeyword{files}~@{text "files"} lists additional source
   files that are involved in the processing of this session.  This
   should cover anything outside the formal content of the theory
-  sources, say some auxiliary {\TeX} files that are required for
-  document processing.  In contrast, files that are loaded formally
+  sources.  In contrast, files that are loaded formally
   within a theory, e.g.\ via @{keyword "ML_file"}, need not be
   declared again.
+
+  \item \isakeyword{document_files}~@{text "("}\isakeyword{in}~@{text
+  "base_dir) files"} lists source files for document preparation,
+  typically @{verbatim ".tex"} and @{verbatim ".sty"} for {\LaTeX}.
+  Only these explicitly given files are copied from the base directory
+  to the document output directory, before formal document processing
+  is started (see also \secref{sec:tool-document}).  The local path
+  structure of the @{text files} is preserved, which allows to
+  reconstruct the original directory hierarchy of @{text "base_dir"}.
+
+  \item \isakeyword{document_files}~@{text "files"} abbreviates
+  \isakeyword{document_files}~@{text "("}\isakeyword{in}~@{text
+  "document) files"}, i.e.\ document sources are taken from the base
+  directory @{verbatim document} within the session root directory.
 
   \end{description}
 *}
