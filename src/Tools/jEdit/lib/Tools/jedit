@@ -42,6 +42,7 @@ declare -a SOURCES=(
   "src/sledgehammer_dockable.scala"
   "src/simplifier_trace_dockable.scala"
   "src/simplifier_trace_window.scala"
+  "src/spell_checker.scala"
   "src/symbols_dockable.scala"
   "src/syslog_dockable.scala"
   "src/text_overview.scala"
