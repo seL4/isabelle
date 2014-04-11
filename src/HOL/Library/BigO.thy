@@ -851,8 +851,7 @@ lemma bigo_LIMSEQ1: "f =o O(g) \<Longrightarrow> g ----> 0 \<Longrightarrow> f -
   apply clarify
   apply (drule_tac x = "r / c" in spec)
   apply (drule mp)
-  apply (erule divide_pos_pos)
-  apply assumption
+  apply simp
   apply clarify
   apply (rule_tac x = no in exI)
   apply (rule allI)

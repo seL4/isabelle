@@ -687,9 +687,7 @@ proof (rule LIM_I)
   let ?diff = "\<lambda>i x. (f (x0 + x) i - f x0 i) / x"
 
   let ?r = "r / (3 * real ?N)"
-  have "0 < 3 * real ?N" by auto
-  from divide_pos_pos[OF `0 < r` this]
-  have "0 < ?r" .
+  from `0 < r` have "0 < ?r" by simp
 
   let ?s = "\<lambda>n. SOME s. 0 < s \<and> (\<forall> x. x \<noteq> 0 \<and> \<bar> x \<bar> < s \<longrightarrow> \<bar> ?diff n x - f' x0 n \<bar> < ?r)"
   def S' \<equiv> "Min (?s ` {..< ?N })"

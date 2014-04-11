@@ -2631,11 +2631,7 @@ proof -
     from pos_bounded
     obtain B where B: "0 < B" "\<And>x. norm (h x) \<le> norm x * B"
       by blast
-    have *: "e / B > 0"
-      apply (rule divide_pos_pos)
-      using goal1(2) B
-      apply auto
-      done
+    have *: "e / B > 0" using goal1(2) B by simp
     obtain g where g:
       "gauge g"
       "\<And>p. p tagged_division_of (cbox a b) \<Longrightarrow> g fine p \<Longrightarrow>
@@ -2684,8 +2680,7 @@ proof -
   proof -
     fix e :: real
     assume e: "e > 0"
-    have *: "0 < e/B"
-      by (rule divide_pos_pos,rule e,rule B(1))
+    have *: "0 < e/B" using e B(1) by simp
     obtain M where M:
       "M > 0"
       "\<And>a b. ball 0 M \<subseteq> cbox a b \<Longrightarrow>
@@ -8354,12 +8349,7 @@ proof -
   have "\<exists>w>0. \<forall>t. c - w < t \<and> t < c \<longrightarrow> norm (f c) * norm(c - t) < e / 3"
   proof (cases "f c = 0")
     case False
-    then have "0 < e / 3 / norm (f c)"
-      apply -
-      apply (rule divide_pos_pos)
-      using `e>0`
-      apply auto
-      done
+    hence "0 < e / 3 / norm (f c)" using `e>0` by simp
     then show ?thesis
       apply -
       apply rule
@@ -10101,11 +10091,7 @@ proof -
     then have i: "i \<in> q"
       unfolding r_def by auto
     from q'(4)[OF this] guess u v by (elim exE) note uv=this
-    have *: "k / (real (card r) + 1) > 0"
-      apply (rule divide_pos_pos)
-      apply (rule k)
-      apply auto
-      done
+    have *: "k / (real (card r) + 1) > 0" using k by simp
     have "f integrable_on cbox u v"
       apply (rule integrable_subinterval[OF assms(1)])
       using q'(2)[OF i]
@@ -10359,11 +10345,7 @@ lemma henstock_lemma:
     and "\<forall>p. p tagged_partial_division_of (cbox a b) \<and> d fine p \<longrightarrow>
       setsum (\<lambda>(x,k). norm(content k *\<^sub>R f x - integral k f)) p < e"
 proof -
-  have *: "e / (2 * (real DIM('n) + 1)) > 0"
-    apply (rule divide_pos_pos)
-    using assms(2)
-    apply auto
-    done
+  have *: "e / (2 * (real DIM('n) + 1)) > 0" using assms(2) by simp
   from integrable_integral[OF assms(1),unfolded has_integral[of f],rule_format,OF this]
   guess d .. note d = conjunctD2[OF this]
   show thesis
@@ -10533,7 +10515,6 @@ next
       apply -
       apply rule
       apply (rule assms(1)[unfolded has_integral_integral has_integral,rule_format])
-      apply (rule divide_pos_pos)
       apply auto
       done
     from choice[OF this] guess c .. note c=conjunctD2[OF this[rule_format],rule_format]
@@ -10561,11 +10542,7 @@ next
     proof
       case goal1
       have "e / (4 * content (cbox a b)) > 0"
-        apply (rule divide_pos_pos)
-        apply fact
-        using False content_pos_le[of a b]
-        apply auto
-        done
+        using `e>0` False content_pos_le[of a b] by auto
       from assms(3)[rule_format, OF goal1, THEN LIMSEQ_D, OF this]
       guess n .. note n=this
       then show ?case
@@ -10669,9 +10646,7 @@ next
               defer
               apply (rule henstock_lemma_part1)
               apply (rule assms(1)[rule_format])
-              apply (rule divide_pos_pos)
-              apply (rule e)
-              defer
+              apply (simp add: e)
               apply safe
               apply (rule c)+
               apply rule

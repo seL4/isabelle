@@ -468,10 +468,8 @@ proof -
     fix h show "F h = 0"
     proof (rule ccontr)
       assume **: "F h \<noteq> 0"
-      then have h: "h \<noteq> 0"
-        by (clarsimp simp add: F.zero)
-      with ** have "0 < ?r h"
-        by (simp add: divide_pos_pos)
+      hence h: "h \<noteq> 0" by (clarsimp simp add: F.zero)
+      with ** have "0 < ?r h" by simp
       from LIM_D [OF * this] obtain s where s: "0 < s"
         and r: "\<And>x. x \<noteq> 0 \<Longrightarrow> norm x < s \<Longrightarrow> ?r x < ?r h" by auto
       from dense [OF s] obtain t where t: "0 < t \<and> t < s" ..

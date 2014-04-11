@@ -549,8 +549,7 @@ proof
       by (rule has_derivative_compose, simp add: deriv)
     then have "DERIV (\<lambda>r. f (x + r *\<^sub>R h)) 0 :> f' h"
       unfolding has_field_derivative_def by (simp add: f'.scaleR mult_commute_abs)
-    moreover have "0 < d / norm h"
-      using d1 and `h \<noteq> 0` by (simp add: divide_pos_pos)
+    moreover have "0 < d / norm h" using d1 and `h \<noteq> 0` by simp
     moreover have "\<forall>y. \<bar>0 - y\<bar> < d / norm h \<longrightarrow> f (x + 0 *\<^sub>R h) \<le> f (x + y *\<^sub>R h)"
       using `h \<noteq> 0` by (auto simp add: d2 dist_norm pos_less_divide_eq)
     ultimately show "f' h = 0"
@@ -926,11 +925,7 @@ proof -
     norm (z - y) < d \<longrightarrow> norm (g z - g y - g'(z - y)) \<le> e * norm (g z - g y)"
   proof (rule, rule)
     case goal1
-    have *: "e / C > 0"
-      apply (rule divide_pos_pos)
-      using `e > 0` C(1)
-      apply auto
-      done
+    have *: "e / C > 0" using `e > 0` C(1) by auto
     obtain d0 where d0:
         "0 < d0"
         "\<forall>ya. norm (ya - g y) < d0 \<longrightarrow> norm (f ya - f (g y) - f' (ya - g y)) \<le> e / C * norm (ya - g y)"
@@ -1022,8 +1017,7 @@ proof -
     apply rule
   proof -
     case goal1
-    then have *: "e / B >0"
-      by (metis `0 < B` divide_pos_pos)
+    hence *: "e / B >0" by (metis `0 < B` divide_pos_pos)
     obtain d' where d':
         "0 < d'"
         "\<forall>z. norm (z - y) < d' \<longrightarrow> norm (g z - g y - g' (z - y)) \<le> e / B * norm (g z - g y)"
@@ -1180,8 +1174,7 @@ proof -
     by auto
   obtain B where B: "0 < B" "\<forall>x. norm (g' x) \<le> norm x * B"
     using bounded_linear.pos_bounded[OF assms(5)] by blast
-  then have *: "1 / (2 * B) > 0"
-    by (auto intro!: divide_pos_pos)
+  hence *: "1 / (2 * B) > 0" by auto
   obtain e0 where e0:
       "0 < e0"
       "\<forall>y. norm (y - x) < e0 \<longrightarrow> norm (f y - f x - f' (y - x)) \<le> 1 / (2 * B) * norm (y - x)"
@@ -1192,11 +1185,7 @@ proof -
     using assms(8)
     unfolding mem_interior_cball
     by blast
-  have *: "0 < e0 / B" "0 < e1 / B"
-    apply (rule_tac[!] divide_pos_pos)
-    using e0 e1 B
-    apply auto
-    done
+  have *: "0 < e0 / B" "0 < e1 / B" using e0 e1 B by auto
   obtain e where e: "0 < e" "e < e0 / B" "e < e1 / B"
     using real_lbound_gt_zero[OF *] by blast
   have "\<forall>z\<in>cball (f x) (e / 2). \<exists>y\<in>cball (f x) e. f (x + g' (y - f x)) = z"
@@ -1668,8 +1657,7 @@ proof -
       proof (rule, rule)
         fix e :: real
         assume "e > 0"
-        then have *: "e / 2 > 0" "e / 2 / norm (x - x0) > 0"
-          using False by (auto intro!: divide_pos_pos)
+        hence *: "e / 2 > 0" "e / 2 / norm (x - x0) > 0" using False by auto
         obtain M where M: "\<forall>m\<ge>M. \<forall>n\<ge>M. dist (f m x0) (f n x0) < e / 2"
           using LIMSEQ_imp_Cauchy[OF assms(5)]
           unfolding Cauchy_def
@@ -1757,8 +1745,7 @@ proof -
           using `u = 0` and `0 < e` by (auto elim: eventually_elim1)
       next
         case False
-        with `0 < e` have "0 < e / norm u"
-          by (simp add: divide_pos_pos)
+        with `0 < e` have "0 < e / norm u" by simp
         then have "eventually (\<lambda>n. norm (f' n x u - g' x u) \<le> e / norm u * norm u) sequentially"
           using assms(3)[folded eventually_sequentially] and `x \<in> s`
           by (fast elim: eventually_elim1)

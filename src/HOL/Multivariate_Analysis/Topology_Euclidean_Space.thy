@@ -854,7 +854,7 @@ lemma rational_boxes:
 proof -
   def e' \<equiv> "e / (2 * sqrt (real (DIM ('a))))"
   then have e: "e' > 0"
-    using assms by (auto intro!: divide_pos_pos simp: DIM_positive)
+    using assms by (auto simp: DIM_positive)
   have "\<forall>i. \<exists>y. y \<in> \<rat> \<and> y < x \<bullet> i \<and> x \<bullet> i - y < e'" (is "\<forall>i. ?th i")
   proof
     fix i
@@ -2538,7 +2538,7 @@ proof (rule islimptI)
     apply (simp only: dist_norm [symmetric])
     apply (subgoal_tac "\<bar>1 - k\<bar> * dist x y < 1 * dist x y", simp)
     apply (rule mult_strict_right_mono)
-    apply (simp add: k_def divide_pos_pos zero_less_dist_iff `0 < r` `x \<noteq> y`)
+    apply (simp add: k_def zero_less_dist_iff `0 < r` `x \<noteq> y`)
     apply (simp add: zero_less_dist_iff `x \<noteq> y`)
     done
   then have "z \<in> ball x (dist x y)"
@@ -2620,9 +2620,8 @@ next
       then have *: "y + (d / 2 / dist y x) *\<^sub>R (y - x) \<in> cball x e"
         using d as(1)[unfolded subset_eq] by blast
       have "y - x \<noteq> 0" using `x \<noteq> y` by auto
-      then have **:"d / (2 * norm (y - x)) > 0"
-        unfolding zero_less_norm_iff[symmetric]
-        using `d>0` divide_pos_pos[of d "2*norm (y - x)"] by auto
+      hence **:"d / (2 * norm (y - x)) > 0"
+        unfolding zero_less_norm_iff[symmetric] using `d>0` by auto
       have "dist (y + (d / 2 / dist y x) *\<^sub>R (y - x)) x =
         norm (y + (d / (2 * norm (y - x))) *\<^sub>R y - (d / (2 * norm (y - x))) *\<^sub>R x - x)"
         by (auto simp add: dist_norm algebra_simps)
@@ -4012,8 +4011,7 @@ proof
   {
     fix e::real
     assume "e > 0"
-    then have "e / real_of_nat DIM('a) > 0"
-      by (auto intro!: divide_pos_pos DIM_positive)
+    hence "e / real_of_nat DIM('a) > 0" by (simp add: DIM_positive)
     with l have "eventually (\<lambda>n. \<forall>i\<in>Basis. dist (f (r n) \<bullet> i) (l \<bullet> i) < e / (real_of_nat DIM('a))) sequentially"
       by simp
     moreover
@@ -4142,7 +4140,7 @@ proof atomize_elim
   have " 1 / real (Suc (nat (ceiling (1/e)))) < 1 / (ceiling (1/e))"
     by (rule divide_strict_left_mono) (auto intro!: mult_pos_pos simp: `0 < e`)
   also have "1 / (ceiling (1/e)) \<le> 1 / (1/e)"
-    by (rule divide_left_mono) (auto intro!: divide_pos_pos simp: `0 < e`)
+    by (rule divide_left_mono) (auto simp: `0 < e`)
   also have "\<dots> = e" by simp
   finally show  "\<exists>n. 1 / real (Suc n) < e" ..
 qed
@@ -7141,8 +7139,7 @@ next
     using `norm b >0`
     unfolding zero_less_norm_iff
     by auto
-  ultimately have "0 < norm (f b) / norm b"
-    by (simp only: divide_pos_pos)
+  ultimately have "0 < norm (f b) / norm b" by simp
   moreover
   {
     fix x
@@ -7155,8 +7152,7 @@ next
       case False
       then have *: "0 < norm a / norm x"
         using `a\<noteq>0`
-        unfolding zero_less_norm_iff[symmetric]
-        by (simp only: divide_pos_pos)
+        unfolding zero_less_norm_iff[symmetric] by simp
       have "\<forall>c. \<forall>x\<in>s. c *\<^sub>R x \<in> s"
         using s[unfolded subspace_def] by auto
       then have "(norm a / norm x) *\<^sub>R x \<in> {x \<in> s. norm x = norm a}"
@@ -7403,10 +7399,8 @@ proof -
       case False
       then have "d>0" unfolding d_def using zero_le_dist[of "z 0" "z 1"]
         by (metis False d_def less_le)
-      then have "0 < e * (1 - c) / d"
-        using `e>0` and `1-c>0`
-        using divide_pos_pos[of "e * (1 - c)" d] and mult_pos_pos[of e "1 - c"]
-        by auto
+      hence "0 < e * (1 - c) / d"
+        using `e>0` and `1-c>0` mult_pos_pos[of e "1 - c"] by auto
       then obtain N where N:"c ^ N < e * (1 - c) / d"
         using real_arch_pow_inv[of "e * (1 - c) / d" c] and c by auto
       {
@@ -7416,11 +7410,8 @@ proof -
           using power_decreasing[OF `n\<ge>N`, of c] by auto
         have "1 - c ^ (m - n) > 0"
           using c and power_strict_mono[of c 1 "m - n"] using `m>n` by auto
-        then have **: "d * (1 - c ^ (m - n)) / (1 - c) > 0"
-          using mult_pos_pos[OF `d>0`, of "1 - c ^ (m - n)"]
-          using divide_pos_pos[of "d * (1 - c ^ (m - n))" "1 - c"]
-          using `0 < 1 - c`
-          by auto
+        hence **: "d * (1 - c ^ (m - n)) / (1 - c) > 0"
+          using mult_pos_pos[OF `d>0`, of "1 - c ^ (m - n)"] `0 < 1 - c` by auto
 
         have "dist (z m) (z n) \<le> c ^ n * d * (1 - c ^ (m - n)) / (1 - c)"
           using cf_z2[of n "m - n"] and `m>n`

@@ -310,7 +310,7 @@ next
         using * by fast
       def r \<equiv> "\<lambda>i::'b. e / sqrt (of_nat CARD('b))"
       from `0 < e` have r: "\<forall>i. 0 < r i"
-        unfolding r_def by (simp_all add: divide_pos_pos)
+        unfolding r_def by simp_all
       from `0 < e` have e: "e = setL2 r UNIV"
         unfolding r_def by (simp add: setL2_constant)
       def A \<equiv> "\<lambda>i. {y. dist (x $ i) y < r i}"
@@ -336,8 +336,7 @@ lemma vec_CauchyI:
   shows "Cauchy (\<lambda>n. X n)"
 proof (rule metric_CauchyI)
   fix r :: real assume "0 < r"
-  then have "0 < r / of_nat CARD('n)" (is "0 < ?s")
-    by (simp add: divide_pos_pos)
+  hence "0 < r / of_nat CARD('n)" (is "0 < ?s") by simp
   def N \<equiv> "\<lambda>i. LEAST N. \<forall>m\<ge>N. \<forall>n\<ge>N. dist (X m $ i) (X n $ i) < ?s"
   def M \<equiv> "Max (range N)"
   have "\<And>i. \<exists>N. \<forall>m\<ge>N. \<forall>n\<ge>N. dist (X m $ i) (X n $ i) < ?s"

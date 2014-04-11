@@ -1359,9 +1359,7 @@ proof (rule ccontr)
     by (auto simp add: dist_nz[symmetric])
 
   then obtain u where "0 < u" "u \<le> 1" and u: "u < e / dist x y"
-    using real_lbound_gt_zero[of 1 "e / dist x y"]
-    using xy `e>0` and divide_pos_pos[of e "dist x y"]
-    by auto
+    using real_lbound_gt_zero[of 1 "e / dist x y"] xy `e>0` by auto
   then have "f ((1-u) *\<^sub>R x + u *\<^sub>R y) \<le> (1-u) * f x + u * f y"
     using `x\<in>s` `y\<in>s`
     using assms(2)[unfolded convex_on_def,
@@ -4227,7 +4225,7 @@ proof -
     then show "norm (v *\<^sub>R z - y) < norm y"
       unfolding norm_lt using z and assms
       by (simp add: field_simps inner_diff inner_commute mult_strict_left_mono[OF _ `0<v`])
-  qed (rule divide_pos_pos, auto)
+  qed auto
 qed
 
 lemma closer_point_lemma:
@@ -5104,7 +5102,7 @@ proof -
     fix e
     assume "e > 0" and as: "(u + e / 2 / norm x) *\<^sub>R x \<in> s"
     then have "u + e / 2 / norm x > u"
-      using `norm x > 0` by (auto simp del:zero_less_norm_iff intro!: divide_pos_pos)
+      using `norm x > 0` by (auto simp del:zero_less_norm_iff)
     then show False using u_max[OF _ as] by auto
   qed (insert `y\<in>s`, auto simp add: dist_norm scaleR_left_distrib obt(3))
   then show ?thesis by(metis that[of u] u_max obt(1))
@@ -6148,10 +6146,7 @@ proof
     using assms(1) unfolding open_contains_cball by auto
   def d \<equiv> "e / real DIM('a)"
   have "0 < d"
-    unfolding d_def using `e > 0` dimge1
-    apply (rule_tac divide_pos_pos)
-    apply auto
-    done
+    unfolding d_def using `e > 0` dimge1 by auto
   let ?d = "(\<Sum>i\<in>Basis. d *\<^sub>R i)::'a"
   obtain c
     where c: "finite c"
@@ -6737,10 +6732,7 @@ next
     apply auto
     done
   moreover have "?d > 0"
-    apply (rule divide_pos_pos)
-    using as(2)
-    apply (auto simp add: Suc_le_eq DIM_positive)
-    done
+    using as(2) by (auto simp: Suc_le_eq DIM_positive)
   ultimately show "\<exists>e>0. \<forall>y. dist x y < e \<longrightarrow> (\<forall>i\<in>Basis. 0 \<le> y \<bullet> i) \<and> setsum (op \<bullet> y) Basis \<le> 1"
     apply (rule_tac x="min (Min ((op \<bullet> x) ` Basis)) ?D" in exI)
     apply rule
@@ -6915,9 +6907,7 @@ proof -
         by (simp add: card_gt_0_iff)
       have "Min ((op \<bullet> x) ` d) > 0"
         using as `d \<noteq> {}` `finite d` by (simp add: Min_grI)
-      moreover have "?d > 0"
-        apply (rule divide_pos_pos)
-        using as using `0 < card d` by auto
+      moreover have "?d > 0" using as using `0 < card d` by auto
       ultimately have h3: "min (Min ((op \<bullet> x) ` d)) ?d > 0"
         by auto
 
@@ -7185,7 +7175,7 @@ proof -
            assume "e > 0"
            def e1 \<equiv> "min 1 (e/norm (x - a))"
            then have e1: "e1 > 0" "e1 \<le> 1" "e1 * norm (x - a) \<le> e"
-             using `x \<noteq> a` `e > 0` divide_pos_pos[of e] le_divide_eq[of e1 e "norm (x - a)"]
+             using `x \<noteq> a` `e > 0` le_divide_eq[of e1 e "norm (x - a)"]
              by simp_all
            then have *: "x - e1 *\<^sub>R (x - a) : rel_interior S"
              using rel_interior_closure_convex_shrink[of S a x e1] assms x a e1_def
@@ -7265,12 +7255,9 @@ proof -
     done
   finally have "z = y - e *\<^sub>R (y-x)"
     by auto
-  moreover have "e > 0"
-    using e_def assms divide_pos_pos[of a "a+b"] by auto
-  moreover have "e \<le> 1"
-    using e_def assms by auto
-  ultimately show ?thesis
-    using that[of e] by auto
+  moreover have "e > 0" using e_def assms by auto
+  moreover have "e \<le> 1" using e_def assms by auto
+  ultimately show ?thesis using that[of e] by auto
 qed
 
 lemma convex_rel_interior_closure:
@@ -7300,8 +7287,7 @@ next
       case False
       obtain e where e: "e > 0" "cball z e \<inter> affine hull closure S \<le> closure S"
         using z rel_interior_cball[of "closure S"] by auto
-      then have *: "0 < e/norm(z-x)"
-        using e False divide_pos_pos[of e "norm(z-x)"] by auto
+      hence *: "0 < e/norm(z-x)" using e False by auto
       def y \<equiv> "z + (e/norm(z-x)) *\<^sub>R (z-x)"
       have yball: "y \<in> cball z e"
         using mem_cball y_def dist_norm[of z y] e by auto
@@ -7459,8 +7445,7 @@ proof -
     {
       assume "x \<noteq> z"
       def m \<equiv> "1 + e1/norm(x-z)"
-      then have "m > 1"
-        using e1 `x \<noteq> z` divide_pos_pos[of e1 "norm (x - z)"] by auto
+      hence "m > 1" using e1 `x \<noteq> z` by auto
       {
         fix e
         assume e: "e > 1 \<and> e \<le> m"
@@ -7730,7 +7715,7 @@ proof -
         assume e: "e > 0"
         def e1 \<equiv> "min 1 (e/norm (y - x))"
         then have e1: "e1 > 0" "e1 \<le> 1" "e1 * norm (y - x) \<le> e"
-          using `y \<noteq> x` `e > 0` divide_pos_pos[of e] le_divide_eq[of e1 e "norm (y - x)"]
+          using `y \<noteq> x` `e > 0` le_divide_eq[of e1 e "norm (y - x)"]
           by simp_all
         def z \<equiv> "y - e1 *\<^sub>R (y - x)"
         {

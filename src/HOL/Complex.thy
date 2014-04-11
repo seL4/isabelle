@@ -394,7 +394,7 @@ lemma tendsto_Complex [tendsto_intros]:
   shows "((\<lambda>x. Complex (f x) (g x)) ---> Complex a b) F"
 proof (rule tendstoI)
   fix r :: real assume "0 < r"
-  hence "0 < r / sqrt 2" by (simp add: divide_pos_pos)
+  hence "0 < r / sqrt 2" by simp
   have "eventually (\<lambda>x. dist (f x) a < r / sqrt 2) F"
     using `(f ---> a) F` and `0 < r / sqrt 2` by (rule tendstoD)
   moreover

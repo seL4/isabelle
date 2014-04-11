@@ -110,7 +110,7 @@ proof (rule vanishesI)
     using X by fast
   obtain b where b: "0 < b" "r = a * b"
   proof
-    show "0 < r / a" using r a by (simp add: divide_pos_pos)
+    show "0 < r / a" using r a by simp
     show "r = a * (r / a)" using a by simp
   qed
   obtain k where k: "\<forall>n\<ge>k. \<bar>Y n\<bar> < b"
@@ -215,8 +215,8 @@ proof (rule cauchyI)
     using cauchy_imp_bounded [OF Y] by fast
   obtain s t where s: "0 < s" and t: "0 < t" and r: "r = a * t + s * b"
   proof
-    show "0 < v/b" using v b(1) by (rule divide_pos_pos)
-    show "0 < u/a" using u a(1) by (rule divide_pos_pos)
+    show "0 < v/b" using v b(1) by simp
+    show "0 < u/a" using u a(1) by simp
     show "r = a * (u/a) + (v/b) * b"
       using a(1) b(1) `r = u + v` by simp
   qed
