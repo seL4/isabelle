@@ -10,6 +10,8 @@ sig
   val mkdirs: Path.T -> unit
   val mkdir: Path.T -> unit
   val copy_dir: Path.T -> Path.T -> unit
+  val copy_file: Path.T -> Path.T -> unit
+  val copy_file_base: Path.T * Path.T -> Path.T -> unit
   val create_tmp_path: string -> string -> Path.T
   val with_tmp_file: string -> string -> (Path.T -> 'a) -> 'a
   val with_tmp_dir: string -> (Path.T -> 'a) -> 'a
@@ -65,6 +67,30 @@ fun mkdir path =
 fun copy_dir src dst =
   if File.eq (src, dst) then ()
   else (system_command ("cp -p -R -f " ^ File.shell_path src ^ "/. " ^ File.shell_path dst); ());
+
+fun copy_file src0 dst0 =
+  let
+    val src = Path.expand src0;
+    val dst = Path.expand dst0;
+    val (target_dir, target) =
+      if File.is_dir dst then (dst, Path.append dst (Path.base src))
+      else (Path.dir dst, dst);
+  in
+    if File.eq (src, target) then ()
+    else
+      (ignore o system_command)
+        ("cp -p -f " ^ File.shell_path src ^ " " ^ File.shell_path target_dir ^ "/.")
+  end;
+
+fun copy_file_base (base_dir, src0) target_dir =
+  let
+    val src = Path.expand src0;
+    val src_dir = Path.dir src;
+    val _ =
+      if Path.starts_basic src then ()
+      else error ("Illegal path specification " ^ Path.print src ^ " beyond base directory");
+    val _ = mkdirs (Path.append target_dir src_dir);
+  in copy_file (Path.append base_dir src) (Path.append target_dir src) end;
 
 
 (* tmp files *)

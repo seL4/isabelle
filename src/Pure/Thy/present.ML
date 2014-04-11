@@ -9,7 +9,7 @@ sig
   val session_name: theory -> string
   val read_variant: string -> string * string
   val init: bool -> bool -> Path.T -> string -> bool -> string -> (string * string) list ->
-    string * string -> bool * string -> bool -> theory list -> unit  (*not thread-safe!*)
+    (Path.T * Path.T) list -> string * string -> bool -> theory list -> unit  (*not thread-safe!*)
   val finish: unit -> unit  (*not thread-safe!*)
   val theory_output: string -> string -> unit
   val begin_theory: int -> (unit -> HTML.text) -> theory -> theory
@@ -168,17 +168,17 @@ fun add_graph_entry entry =
 (* session_info *)
 
 type session_info =
-  {name: string, chapter: string, info_path: Path.T,
-    info: bool, doc_format: string, doc_graph: bool, doc_output: Path.T option,
-    documents: (string * string) list, doc_dump: (bool * string), verbose: bool,
-    readme: Path.T option};
+  {name: string, chapter: string, info_path: Path.T, info: bool,
+    doc_format: string, doc_graph: bool, doc_output: Path.T option,
+    doc_files: (Path.T * Path.T) list, documents: (string * string) list,
+    verbose: bool, readme: Path.T option};
 
 fun make_session_info
   (name, chapter, info_path, info, doc_format, doc_graph, doc_output,
-    documents, doc_dump, verbose, readme) =
+    doc_files, documents, verbose, readme) =
   {name = name, chapter = chapter, info_path = info_path, info = info,
     doc_format = doc_format, doc_graph = doc_graph, doc_output = doc_output,
-    documents = documents, doc_dump = doc_dump, verbose = verbose,
+    doc_files = doc_files, documents = documents, verbose = verbose,
     readme = readme}: session_info;
 
 
@@ -203,9 +203,9 @@ fun read_variant str =
 
 (* init session *)
 
-fun init build info info_path doc doc_graph document_output doc_variants
-    (chapter, name) (doc_dump as (_, dump_prefix)) verbose thys =
-  if not build andalso not info andalso doc = "" andalso dump_prefix = "" then
+fun init build info info_path doc doc_graph document_output doc_variants doc_files
+    (chapter, name) verbose thys =
+  if not build andalso not info andalso doc = "" then
     (browser_info := empty_browser_info; session_info := NONE)
   else
     let
@@ -214,7 +214,7 @@ fun init build info info_path doc doc_graph document_output doc_variants
 
       val documents =
         if doc = "" then []
-        else if not (can File.check_dir document_path) then
+        else if null doc_files andalso not (can File.check_dir document_path) then
           (if verbose then Output.physical_stderr "Warning: missing document directory\n"
            else (); [])
         else doc_variants;
@@ -227,7 +227,7 @@ fun init build info info_path doc doc_graph document_output doc_variants
     in
       session_info :=
         SOME (make_session_info (name, chapter, info_path, info, doc,
-          doc_graph, doc_output, documents, doc_dump, verbose, readme));
+          doc_graph, doc_output, doc_files, documents, verbose, readme));
       browser_info := init_browser_info (chapter, name) thys;
       add_html_index (0, HTML.begin_session_index name docs (Url.explode "medium.html"))
     end;
@@ -275,10 +275,9 @@ fun write_tex src name path =
 fun write_tex_index tex_index path =
   write_tex (index_buffer tex_index |> Buffer.add Latex.tex_trailer) doc_indexN path;
 
-
 fun finish () =
-  with_session_info () (fn {name, chapter, info, info_path, doc_format, doc_graph, doc_output,
-    documents, doc_dump = (dump_copy, dump_prefix), verbose, readme, ...} =>
+  with_session_info () (fn {name, chapter, info, info_path, doc_format, doc_graph,
+    doc_output, doc_files, documents, verbose, readme, ...} =>
   let
     val {theories, tex_index, html_index, graph} = ! browser_info;
     val thys = Symtab.dest theories;
@@ -291,7 +290,7 @@ fun finish () =
 
     val sorted_graph = sorted_index graph;
     val opt_graphs =
-      if doc_graph andalso (not (null documents) orelse dump_prefix <> "") then
+      if doc_graph andalso not (null documents) then
         SOME (isabelle_browser sorted_graph)
       else NONE;
 
@@ -300,58 +299,46 @@ fun finish () =
        (Isabelle_System.mkdirs session_prefix;
         File.write_buffer (Path.append session_prefix index_path)
           (index_buffer html_index |> Buffer.add HTML.end_document);
-        (case readme of NONE => () | SOME path => File.copy path session_prefix);
+        (case readme of NONE => () | SOME path => Isabelle_System.copy_file path session_prefix);
         Graph_Display.write_graph_browser (Path.append session_prefix graph_path) sorted_graph;
         Isabelle_System.isabelle_tool "browser" "-b";
-        File.copy (Path.explode "~~/lib/browser/GraphBrowser.jar") session_prefix;
+        Isabelle_System.copy_file (Path.explode "~~/lib/browser/GraphBrowser.jar") session_prefix;
         List.app (fn (a, txt) => File.write (Path.append session_prefix (Path.basic a)) txt)
           (HTML.applet_pages name (Url.File index_path, name));
-        File.copy (Path.explode "~~/etc/isabelle.css") session_prefix;
+        Isabelle_System.copy_file (Path.explode "~~/etc/isabelle.css") session_prefix;
         List.app finish_html thys;
         if verbose
         then Output.physical_stderr ("Browser info at " ^ show_path session_prefix ^ "\n")
         else ())
       else ();
 
-    fun prepare_sources doc_copy doc_dir =
-     (Isabelle_System.mkdirs doc_dir;
-      if doc_copy then Isabelle_System.copy_dir document_path doc_dir else ();
-      Isabelle_System.isabelle_tool "latex"
-        ("-o sty " ^ File.shell_path (Path.append doc_dir (Path.basic "root.tex")));
-      (case opt_graphs of NONE => () | SOME (pdf, eps) =>
-        (File.write (Path.append doc_dir graph_pdf_path) pdf;
-          File.write (Path.append doc_dir graph_eps_path) eps));
-      write_tex_index tex_index doc_dir;
-      List.app (fn (a, {tex_source, ...}) =>
-        write_tex (Buffer.add tex_source Buffer.empty) a doc_dir) thys);
-
-    val _ =
-      if dump_prefix = "" then ()
-      else
-        let
-          val path = Path.explode dump_prefix;
-          val _ = prepare_sources dump_copy path;
-        in
-          if verbose then
-            Output.physical_stderr ("Document sources at " ^ show_path path ^ "\n")
-          else ()
-        end;
-
-    fun document_job doc_prefix backdrop (name, tags) =
+    fun document_job doc_prefix backdrop (doc_name, tags) =
       let
+        val doc_dir = Path.append doc_prefix (Path.basic doc_name);
+        val _ = Isabelle_System.mkdirs doc_dir;
         val _ =
-          File.eq (document_path, doc_prefix) andalso
-            error ("Overlap of document input and output directory " ^ Path.print doc_prefix);
-        val dir = Path.append doc_prefix (Path.basic name);
-        val copy = not (File.eq (document_path, dir));
-        val _ = prepare_sources copy dir;
-        fun inform doc =
-          if verbose orelse not backdrop then
-            Output.physical_stderr ("Document at " ^ show_path doc ^ "\n")
-          else ();
+          Isabelle_System.isabelle_tool "latex"
+            ("-o sty " ^ File.shell_path (Path.append doc_dir (Path.basic "root.tex")));
+        val _ =
+          if null doc_files then Isabelle_System.copy_dir document_path doc_dir
+          else List.app (fn file => Isabelle_System.copy_file_base file doc_dir) doc_files;
+        val _ =
+          (case opt_graphs of
+            NONE => ()
+          | SOME (pdf, eps) =>
+              (File.write (Path.append doc_dir graph_pdf_path) pdf;
+                File.write (Path.append doc_dir graph_eps_path) eps));
+        val _ = write_tex_index tex_index doc_dir;
+        val _ =
+          List.app (fn (a, {tex_source, ...}) =>
+            write_tex (Buffer.add tex_source Buffer.empty) a doc_dir) thys;
       in
         fn () =>
-          (isabelle_document {verbose = true, purge = backdrop} doc_format name tags dir, inform)
+          (isabelle_document {verbose = true, purge = backdrop} doc_format doc_name tags doc_dir,
+            fn doc =>
+              if verbose orelse not backdrop then
+                Output.physical_stderr ("Document at " ^ show_path doc ^ "\n")
+              else ())
       end;
 
     val jobs =
@@ -361,6 +348,12 @@ fun finish () =
       (case doc_output of
         NONE => []
       | SOME path => map (document_job path false) documents);
+
+    val _ =
+      if not (null jobs) andalso null doc_files then
+        Output.physical_stderr ("### Document preparation for session " ^ quote name ^
+          " without 'document_files'\n")
+      else ();
 
     val _ = jobs |> Par_List.map (fn job => job ()) |> List.app (op |>);
   in
@@ -425,7 +418,7 @@ fun display_drafts src_paths = Isabelle_System.with_tmp_dir "drafts" (fn dir =>
     val doc_path = Path.append dir document_path;
     val _ = Isabelle_System.mkdirs doc_path;
     val root_path = Path.append doc_path (Path.basic "root.tex");
-    val _ = File.copy (Path.explode "~~/lib/texinputs/draft.tex") root_path;
+    val _ = Isabelle_System.copy_file (Path.explode "~~/lib/texinputs/draft.tex") root_path;
     val _ = Isabelle_System.isabelle_tool "latex" ("-o sty " ^ File.shell_path root_path);
     val _ = Isabelle_System.isabelle_tool "latex" ("-o syms " ^ File.shell_path root_path);
 
@@ -447,7 +440,7 @@ fun display_drafts src_paths = Isabelle_System.with_tmp_dir "drafts" (fn dir =>
     val target_dir = Path.explode "$ISABELLE_HOME_USER/tmp";
     val target = Path.explode "$ISABELLE_HOME_USER/tmp/drafts.pdf"
     val _ = Isabelle_System.mkdirs target_dir;
-    val _ = File.copy result target;
+    val _ = Isabelle_System.copy_file result target;
   in
     Isabelle_System.isabelle_tool "display" (File.shell_path target ^ " &")
   end);

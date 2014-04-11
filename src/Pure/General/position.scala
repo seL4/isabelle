@@ -99,13 +99,21 @@ object Position
   def purge(props: T): T = props.filterNot(p => Markup.POSITION_PROPERTIES(p._1))
 
 
-  /* here: inlined formal markup */
+  /* here: user output */
 
   def here(pos: T): String =
     (Line.unapply(pos), File.unapply(pos)) match {
       case (Some(i), None) => " (line " + i.toString + ")"
       case (Some(i), Some(name)) => " (line " + i.toString + " of " + quote(name) + ")"
       case (None, Some(name)) => " (file " + quote(name) + ")"
+      case _ => ""
+    }
+
+  def here_undelimited(pos: T): String =
+    (Line.unapply(pos), File.unapply(pos)) match {
+      case (Some(i), None) => "line " + i.toString
+      case (Some(i), Some(name)) => "line " + i.toString + " of " + quote(name)
+      case (None, Some(name)) => "file " + quote(name)
       case _ => ""
     }
 }

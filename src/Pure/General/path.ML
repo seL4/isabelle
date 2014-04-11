@@ -17,6 +17,7 @@ sig
   val variable: string -> T
   val is_absolute: T -> bool
   val is_basic: T -> bool
+  val starts_basic: T -> bool
   val append: T -> T -> T
   val appends: T list -> T
   val make: string list -> T
@@ -92,6 +93,11 @@ fun is_absolute (Path xs) =
 
 fun is_basic (Path [Basic _]) = true
   | is_basic _ = false;
+
+fun starts_basic (Path xs) =
+  (case try List.last xs of
+    SOME (Basic _) => true
+  | _ => false);
 
 
 (* append and norm *)

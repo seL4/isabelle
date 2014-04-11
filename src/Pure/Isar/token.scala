@@ -140,7 +140,7 @@ object Token
     }
 
     def position: Position.T = Position.Line_File(line, file)
-    override def toString: String = Position.here(position)
+    override def toString: String = Position.here_undelimited(position)
   }
 
   abstract class Reader extends scala.util.parsing.input.Reader[Token]

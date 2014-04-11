@@ -58,7 +58,8 @@ object Build
     description: String,
     options: List[Options.Spec],
     theories: List[(List[Options.Spec], List[String])],
-    files: List[String]) extends Entry
+    files: List[String],
+    document_files: List[(String, String)]) extends Entry
 
   // internal version
   sealed case class Session_Info(
@@ -72,6 +73,7 @@ object Build
     options: Options,
     theories: List[(Options, List[Path])],
     files: List[Path],
+    document_files: List[(Path, Path)],
     entry_digest: SHA1.Digest)
 
   def is_pure(name: String): Boolean = name == "RAW" || name == "Pure"
@@ -91,12 +93,17 @@ object Build
         entry.theories.map({ case (opts, thys) =>
           (session_options ++ opts, thys.map(Path.explode(_))) })
       val files = entry.files.map(Path.explode(_))
+      val document_files =
+        entry.document_files.map({ case (s1, s2) => (Path.explode(s1), Path.explode(s2)) })
+
       val entry_digest =
-        SHA1.digest((chapter, name, entry.parent, entry.options, entry.theories).toString)
+        SHA1.digest((chapter, name, entry.parent, entry.options,
+          entry.theories, entry.files, entry.document_files).toString)
 
       val info =
         Session_Info(chapter, select, entry.pos, entry.groups, dir + Path.explode(entry.path),
-          entry.parent, entry.description, session_options, theories, files, entry_digest)
+          entry.parent, entry.description, session_options, theories, files,
+          document_files, entry_digest)
 
       (name, info)
     }
@@ -195,11 +202,12 @@ object Build
   private val OPTIONS = "options"
   private val THEORIES = "theories"
   private val FILES = "files"
+  private val DOCUMENT_FILES = "document_files"
 
   lazy val root_syntax =
     Outer_Syntax.init() + "(" + ")" + "+" + "," + "=" + "[" + "]" +
       (CHAPTER, Keyword.THY_DECL) + (SESSION, Keyword.THY_DECL) +
-      IN + DESCRIPTION + OPTIONS + THEORIES + FILES
+      IN + DESCRIPTION + OPTIONS + THEORIES + FILES + DOCUMENT_FILES
 
   private object Parser extends Parse.Parser
   {
@@ -222,6 +230,12 @@ object Build
         keyword(THEORIES) ~! ((options | success(Nil)) ~ rep(theory_name)) ^^
           { case _ ~ (x ~ y) => (x, y) }
 
+      val document_files =
+        keyword(DOCUMENT_FILES) ~!
+          ((keyword("(") ~! (keyword(IN) ~! (path ~ keyword(")"))) ^^
+              { case _ ~ (_ ~ (x ~ _)) => x } | success("document")) ~
+            rep1(path)) ^^ { case _ ~ (x ~ y) => y.map((x, _)) }
+
       command(SESSION) ~!
         (session_name ~
           ((keyword("(") ~! (rep1(name) <~ keyword(")")) ^^ { case _ ~ x => x }) | success(Nil)) ~
@@ -231,9 +245,10 @@ object Build
               ((keyword(DESCRIPTION) ~! text ^^ { case _ ~ x => x }) | success("")) ~
               ((keyword(OPTIONS) ~! options ^^ { case _ ~ x => x }) | success(Nil)) ~
               rep1(theories) ~
-              ((keyword(FILES) ~! rep1(path) ^^ { case _ ~ x => x }) | success(Nil))))) ^^
-        { case pos ~ (a ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h))) =>
-            Session_Entry(pos, a, b, c, d, e, f, g, h) }
+              ((keyword(FILES) ~! rep1(path) ^^ { case _ ~ x => x }) | success(Nil)) ~
+              (rep(document_files) ^^ (x => x.flatten))))) ^^
+        { case pos ~ (a ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h ~ i))) =>
+            Session_Entry(pos, a, b, c, d, e, f, g, h, i) }
     }
 
     def parse_entries(root: Path): List[(String, Session_Entry)] =
@@ -445,7 +460,8 @@ object Build
 
             val all_files =
               (thy_deps.deps.map(dep => Path.explode(dep.name.node)) ::: loaded_files :::
-                info.files.map(file => info.dir + file)).map(_.expand)
+                info.files.map(file => info.dir + file) :::
+                info.document_files.map(file => info.dir + file._1 + file._2)).map(_.expand)
 
             if (list_files) {
               progress.echo(cat_lines(all_files.map(_.implode).sorted.map("  " + _)))
@@ -513,10 +529,10 @@ object Build
         {
           import XML.Encode._
               pair(list(properties), pair(bool, pair(Options.encode, pair(bool, pair(Path.encode,
-                pair(string, pair(string, pair(string,
-                  list(pair(Options.encode, list(Path.encode)))))))))))(
+                pair(list(pair(Path.encode, Path.encode)), pair(string, pair(string, pair(string,
+                  list(pair(Options.encode, list(Path.encode))))))))))))(
               (command_timings, (do_output, (info.options, (verbose, (browser_info,
-                (parent, (info.chapter, (name, info.theories)))))))))
+                (info.document_files, (parent, (info.chapter, (name, info.theories))))))))))
         }))
 
     private val env =
