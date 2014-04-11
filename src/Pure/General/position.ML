@@ -191,7 +191,7 @@ fun append_reports (r: report_text list Unsynchronized.ref) reports =
   Unsynchronized.change r (append (map (rpair "") reports));
 
 
-(* here: inlined formal markup *)
+(* here: user output *)
 
 fun here pos =
   let
