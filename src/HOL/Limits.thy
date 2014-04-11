@@ -283,8 +283,7 @@ proof (cases)
   show ?thesis
   proof (rule ZfunI)
     fix r::real assume "0 < r"
-    hence "0 < r / K"
-      using K by (rule divide_pos_pos)
+    hence "0 < r / K" using K by simp
     then have "eventually (\<lambda>x. norm (f x) < r / K) F"
       using ZfunD [OF f] by fast
     with g show "eventually (\<lambda>x. norm (g x) < r) F"
@@ -1711,7 +1710,7 @@ proof (intro allI impI)
     using pos_bounded by fast
   show "\<exists>s>0. \<forall>x y. norm (x - y) < s \<longrightarrow> norm (f x - f y) < r"
   proof (rule exI, safe)
-    from r K show "0 < r / K" by (rule divide_pos_pos)
+    from r K show "0 < r / K" by simp
   next
     fix x y :: 'a
     assume xy: "norm (x - y) < r / K"

@@ -1538,11 +1538,7 @@ proof (rule ccontr)
       abs ((f(z) - z)\<bullet>i) < d / (real n)"
   proof -
     have d': "d / real n / 8 > 0"
-      apply (rule divide_pos_pos)+
-      using d(1)
-      unfolding n_def
-      apply (auto simp:  DIM_positive)
-      done
+      using d(1) by (simp add: n_def DIM_positive)
     have *: "uniformly_continuous_on unit_cube f"
       by (rule compact_uniformly_continuous[OF assms(1) compact_unit_cube])
     obtain e where e:
@@ -1627,12 +1623,7 @@ proof (rule ccontr)
   obtain p :: nat where p: "1 + real n / e \<le> real p"
     using real_arch_simple ..
   have "1 + real n / e > 0"
-    apply (rule add_pos_pos)
-    defer
-    apply (rule divide_pos_pos)
-    using e(1) n
-    apply auto
-    done
+    using e(1) n by (simp add: add_pos_pos)
   then have "p > 0"
     using p by auto
 

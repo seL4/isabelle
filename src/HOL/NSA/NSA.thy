@@ -388,9 +388,9 @@ apply (subgoal_tac "0 < t")
 apply (subgoal_tac "hnorm (x * y) < (r / t) * t", simp)
 apply (subgoal_tac "0 < r / t")
 apply (rule hnorm_mult_less)
-apply (simp add: InfinitesimalD Reals_divide)
+apply (simp add: InfinitesimalD)
 apply assumption
-apply (simp only: divide_pos_pos)
+apply simp
 apply (erule order_le_less_trans [OF hnorm_ge_zero])
 done
 
@@ -404,7 +404,6 @@ apply (subgoal_tac "0 < t")
 apply (subgoal_tac "\<bar>x\<bar> * hnorm y < (r / t) * t", simp)
 apply (subgoal_tac "0 < r / t")
 apply (rule mult_strict_mono', simp_all)
-apply (simp only: divide_pos_pos)
 apply (erule order_le_less_trans [OF hnorm_ge_zero])
 done
 
@@ -418,8 +417,8 @@ apply (subgoal_tac "hnorm (y * x) < t * (r / t)", simp)
 apply (subgoal_tac "0 < r / t")
 apply (rule hnorm_mult_less)
 apply assumption
-apply (simp add: InfinitesimalD Reals_divide)
-apply (simp only: divide_pos_pos)
+apply (simp add: InfinitesimalD)
+apply simp
 apply (erule order_le_less_trans [OF hnorm_ge_zero])
 done
 
@@ -430,7 +429,7 @@ apply (rule InfinitesimalI)
 apply (drule InfinitesimalD)
 apply (drule_tac x="r / \<bar>star_of a\<bar>" in bspec)
 apply (simp add: Reals_eq_Standard)
-apply (simp add: divide_pos_pos)
+apply simp
 apply (simp add: hnorm_scaleR pos_less_divide_eq mult_commute)
 done
 

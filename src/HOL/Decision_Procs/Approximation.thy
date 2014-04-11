@@ -1635,7 +1635,7 @@ proof -
   have "x \<noteq> 0" using assms by auto
   have "x + y = x * (1 + y / x)" unfolding distrib_left times_divide_eq_right nonzero_mult_divide_cancel_left[OF `x \<noteq> 0`] by auto
   moreover
-  have "0 < y / x" using assms divide_pos_pos by auto
+  have "0 < y / x" using assms by auto
   hence "0 < 1 + y / x" by auto
   ultimately show ?thesis using ln_mult assms by auto
 qed

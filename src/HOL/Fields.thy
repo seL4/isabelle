@@ -801,7 +801,7 @@ apply(simp add:field_simps)
 done
 *)
 
-lemma divide_pos_pos:
+lemma divide_pos_pos[simp]:
   "0 < x ==> 0 < y ==> 0 < x / y"
 by(simp add:field_simps)
 

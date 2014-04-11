@@ -319,7 +319,7 @@ next
         using * by fast
       def r \<equiv> "e / sqrt 2" and s \<equiv> "e / sqrt 2"
       from `0 < e` have "0 < r" and "0 < s"
-        unfolding r_def s_def by (simp_all add: divide_pos_pos)
+        unfolding r_def s_def by simp_all
       from `0 < e` have "e = sqrt (r\<^sup>2 + s\<^sup>2)"
         unfolding r_def s_def by (simp add: power_divide)
       def A \<equiv> "{y. dist (fst x) y < r}" and B \<equiv> "{y. dist (snd x) y < s}"
@@ -359,8 +359,7 @@ lemma Cauchy_Pair:
   shows "Cauchy (\<lambda>n. (X n, Y n))"
 proof (rule metric_CauchyI)
   fix r :: real assume "0 < r"
-  then have "0 < r / sqrt 2" (is "0 < ?s")
-    by (simp add: divide_pos_pos)
+  hence "0 < r / sqrt 2" (is "0 < ?s") by simp
   obtain M where M: "\<forall>m\<ge>M. \<forall>n\<ge>M. dist (X m) (X n) < ?s"
     using metric_CauchyD [OF `Cauchy X` `0 < ?s`] ..
   obtain N where N: "\<forall>m\<ge>N. \<forall>n\<ge>N. dist (Y m) (Y n) < ?s"

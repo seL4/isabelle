@@ -377,7 +377,7 @@ proof -
       have "\<forall>i. \<exists>K. K \<subseteq> D i \<and> compact K \<and> emeasure M (D i) \<le> emeasure M K + e/(2*Suc n0)"
       proof
         fix i
-        from `0 < e` have "0 < e/(2*Suc n0)" by (auto intro: divide_pos_pos)
+        from `0 < e` have "0 < e/(2*Suc n0)" by simp
         have "emeasure M (D i) = (SUP K:{K. K \<subseteq> (D i) \<and> compact K}. emeasure M K)"
           using union by blast
         from SUP_approx_ereal[OF `0 < e/(2*Suc n0)` this]
@@ -418,7 +418,7 @@ proof -
       have "\<forall>i::nat. \<exists>U. D i \<subseteq> U \<and> open U \<and> e/(2 powr Suc i) > emeasure M U - emeasure M (D i)"
       proof
         fix i::nat
-        from `0 < e` have "0 < e/(2 powr Suc i)" by (auto intro: divide_pos_pos)
+        from `0 < e` have "0 < e/(2 powr Suc i)" by simp
         have "emeasure M (D i) = (INF U:{U. (D i) \<subseteq> U \<and> open U}. emeasure M U)"
           using union by blast
         from INF_approx_ereal[OF `0 < e/(2 powr Suc i)` this]

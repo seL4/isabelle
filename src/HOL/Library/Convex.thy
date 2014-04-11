@@ -666,7 +666,7 @@ proof -
   then have f''0: "\<And>z :: real. z > 0 \<Longrightarrow> DERIV (\<lambda> z. - 1 / (ln b * z)) z :> 1 / (ln b * z * z)"
     unfolding inverse_eq_divide by (auto simp add: mult_assoc)
   have f''_ge0: "\<And>z :: real. z > 0 \<Longrightarrow> 1 / (ln b * z * z) \<ge> 0"
-    using `b > 1` by (auto intro!:less_imp_le simp add: divide_pos_pos[of 1] mult_pos_pos)
+    using `b > 1` by (auto intro!:less_imp_le simp add: mult_pos_pos)
   from f''_ge0_imp_convex[OF pos_is_convex,
     unfolded greaterThan_iff, OF f' f''0 f''_ge0]
   show ?thesis by auto

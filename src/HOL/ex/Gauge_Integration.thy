@@ -352,7 +352,7 @@ lemma Integral_mult:
 apply (auto simp add: order_le_less)
 apply (cases "c = 0", simp add: Integral_zero_fun)
 apply (rule IntegralI)
-apply (erule_tac e="e / \<bar>c\<bar>" in IntegralE, simp add: divide_pos_pos)
+apply (erule_tac e="e / \<bar>c\<bar>" in IntegralE, simp)
 apply (rule_tac x="\<delta>" in exI, clarify)
 apply (drule_tac x="D" in spec, clarify)
 apply (simp add: pos_less_divide_eq abs_mult [symmetric]
@@ -581,7 +581,7 @@ next
   show ?thesis
   proof (simp add: Integral_def2, clarify)
     fix e :: real assume "0 < e"
-    with `a < b` have "0 < e / (b - a)" by (simp add: divide_pos_pos)
+    with `a < b` have "0 < e / (b - a)" by simp
 
     from lemma_straddle [OF f' this]
     obtain \<delta> where "gauge {a..b} \<delta>"

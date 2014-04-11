@@ -1174,7 +1174,7 @@ proof -
     show "AE x in ?P. ?f x \<in> {0<..}"
       unfolding AE_density[OF distributed_borel_measurable[OF Pxyz]]
       using ae1 ae2 ae3 ae4 ae5 ae6 ae7 ae8 Pxyz[THEN distributed_real_AE]
-      by eventually_elim (auto simp: divide_pos_pos mult_pos_pos)
+      by eventually_elim (auto simp: mult_pos_pos)
     show "integrable ?P ?f"
       unfolding integrable_def 
       using fin neg by (auto simp: split_beta')
@@ -1419,9 +1419,9 @@ proof -
     show "AE x in ?P. ?f x \<in> {0<..}"
       unfolding AE_density[OF distributed_borel_measurable[OF Pxyz]]
       using ae1 ae2 ae3 ae4 ae5 ae6 ae7 ae8 Pxyz[THEN distributed_real_AE]
-      by eventually_elim (auto simp: divide_pos_pos mult_pos_pos)
+      by eventually_elim (auto simp: mult_pos_pos)
     show "integrable ?P ?f"
-      unfolding integrable_def 
+      unfolding integrable_def
       using fin neg by (auto simp: split_beta')
     show "integrable ?P (\<lambda>x. - log b (?f x))"
       apply (subst integral_density)
