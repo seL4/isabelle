@@ -307,29 +307,26 @@ fun prove_pred_inject lthy (fp_sugar:fp_sugar) =
     val cts = map (SOME o certify lthy) args
     fun get_rhs thm = thm |> concl_of |> HOLogic.dest_Trueprop |> HOLogic.dest_eq |> snd
     fun is_eqn thm = can get_rhs thm
+    val dead_step = @{lemma "x = y \<Longrightarrow> ((a = a) \<and> x) = y" by blast}
+    val live_step = @{lemma "x = y \<Longrightarrow> (eq_onp P a a \<and> x) = (P a \<and> y)" by (simp only: eq_onp_same_args)}
     fun rel2pred_massage thm =
       let
-        fun pred_eq_onp_conj 0 = error "not defined"
-          | pred_eq_onp_conj 1 = @{thm eq_onp_same_args}
-          | pred_eq_onp_conj n = 
-            let
-              val conj_cong = @{thm arg_cong2[of _ _ _ _ "op \<and>"]}
-              val start = @{thm eq_onp_same_args} RS conj_cong
-            in
-              @{thm eq_onp_same_args} RS (funpow (n - 2) (fn thm => start RS thm) start)
-            end
-        val n = if is_eqn thm then thm |> get_rhs |> HOLogic.dest_conj |> length else 0
+        fun pred_eq_onp_conj conjs = List.foldr (fn (conj, thm) => 
+          if can HOLogic.dest_eq conj then thm RS dead_step else thm RS live_step) @{thm refl[of True]} conjs
+        val conjuncts = if is_eqn thm then thm |> get_rhs |> HOLogic.dest_conj else []
+        val kill_True = Local_Defs.unfold lthy [@{thm HOL.simp_thms(21)}]
       in
         thm
         |> Drule.instantiate' cTs cts
         |> Local_Defs.unfold lthy eq_onps
-        |> (fn thm => if n > 0 then @{thm box_equals} 
-              OF [thm, @{thm eq_onp_same_args}, pred_eq_onp_conj n]
+        |> (fn thm => if conjuncts <> [] then @{thm box_equals} 
+              OF [thm, @{thm eq_onp_same_args}, pred_eq_onp_conj conjuncts |> kill_True]
             else thm RS (@{thm eq_onp_same_args} RS iffD1))
       end
     val rel_injects = #rel_injects fp_sugar
   in
     rel_injects
+    |> map (Local_Defs.unfold lthy [@{thm conj_assoc}])
     |> map rel2pred_massage
     |> Variable.export lthy old_lthy
     |> map Drule.zero_var_indexes
