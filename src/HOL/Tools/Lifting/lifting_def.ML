@@ -32,12 +32,10 @@ fun mono_eq_prover ctxt prop =
     val refl_rules = Lifting_Info.get_reflexivity_rules ctxt
     val transfer_rules = Transfer.get_transfer_raw ctxt
     
-    fun main_tac (t, i) =
-      case HOLogic.dest_Trueprop t of 
-        Const (@{const_name "less_eq"}, _) $ _ $ _ => REPEAT_ALL_NEW (resolve_tac refl_rules) i
-        |  _ => REPEAT_ALL_NEW (resolve_tac transfer_rules) i
+    fun main_tac i = (REPEAT_ALL_NEW (DETERM o resolve_tac refl_rules) THEN_ALL_NEW 
+      (REPEAT_ALL_NEW (DETERM o resolve_tac transfer_rules))) i
   in
-    SOME (Goal.prove ctxt [] [] prop (K (SUBGOAL main_tac 1)))
+    SOME (Goal.prove ctxt [] [] prop (K (main_tac 1)))
       handle ERROR _ => NONE
   end
 
@@ -458,19 +456,6 @@ fun mk_readable_rsp_thm_eq tm lthy =
   let
     val ctm = cterm_of (Proof_Context.theory_of lthy) tm
     
-    (* This is not very cheap way of getting the rules but we have only few active
-      liftings in the current setting *)
-    fun get_cr_pcr_eqs ctxt =
-      let
-        fun collect (data : Lifting_Info.quotient) l =
-          if is_some (#pcr_info data) 
-          then ((Thm.symmetric o safe_mk_meta_eq o #pcr_cr_eq o the o #pcr_info) data :: l) 
-          else l
-        val table = Lifting_Info.get_quotients ctxt
-      in
-        Symtab.fold (fn (_, data) => fn l => collect data l) table []
-      end
-
     fun assms_rewr_conv tactic rule ct =
       let
         fun prove_extra_assms thm =
@@ -535,11 +520,9 @@ fun mk_readable_rsp_thm_eq tm lthy =
     
     val unfold_ret_val_invs = Conv.bottom_conv 
       (K (Conv.try_conv (Conv.rewr_conv @{thm eq_onp_same_args[THEN eq_reflection]}))) lthy
-    val cr_to_pcr_conv = Raw_Simplifier.rewrite lthy false (get_cr_pcr_eqs lthy)
     val unfold_inv_conv = 
       Conv.top_sweep_conv (K (Conv.rewr_conv @{thm eq_onp_def[THEN eq_reflection]})) lthy
-    val simp_conv = HOLogic.Trueprop_conv (Conv.fun2_conv 
-      (cr_to_pcr_conv then_conv simp_arrows_conv))
+    val simp_conv = HOLogic.Trueprop_conv (Conv.fun2_conv simp_arrows_conv)
     val univq_conv = Conv.rewr_conv @{thm HOL.all_simps(6)[symmetric, THEN eq_reflection]}
     val univq_prenex_conv = Conv.top_conv (K (Conv.try_conv univq_conv)) lthy
     val beta_conv = Thm.beta_conversion true
@@ -566,6 +549,19 @@ fun rename_to_tnames ctxt term =
     rename term new_names
   end
 
+(* This is not very cheap way of getting the rules but we have only few active
+  liftings in the current setting *)
+fun get_cr_pcr_eqs ctxt =
+  let
+    fun collect (data : Lifting_Info.quotient) l =
+      if is_some (#pcr_info data) 
+      then ((Thm.symmetric o safe_mk_meta_eq o #pcr_cr_eq o the o #pcr_info) data :: l) 
+      else l
+    val table = Lifting_Info.get_quotients ctxt
+  in
+    Symtab.fold (fn (_, data) => fn l => collect data l) table []
+  end
+
 (*
 
   lifting_definition command. It opens a proof of a corresponding respectfulness 
@@ -580,25 +576,32 @@ fun lift_def_cmd (raw_var, rhs_raw, par_xthms) lthy =
     val rsp_rel = Lifting_Term.equiv_relation lthy (fastype_of rhs, qty)
     val rty_forced = (domain_type o fastype_of) rsp_rel;
     val forced_rhs = force_rty_type lthy rty_forced rhs;
-    val internal_rsp_tm = HOLogic.mk_Trueprop (rsp_rel $ forced_rhs $ forced_rhs)
-    val opt_proven_rsp_thm = try_prove_reflexivity lthy internal_rsp_tm
+    val cr_to_pcr_conv = HOLogic.Trueprop_conv (Conv.fun2_conv 
+      (Raw_Simplifier.rewrite lthy false (get_cr_pcr_eqs lthy)))
+    val (prsp_tm, rsp_prsp_eq) = HOLogic.mk_Trueprop (rsp_rel $ forced_rhs $ forced_rhs)
+      |> cterm_of (Proof_Context.theory_of lthy)
+      |> cr_to_pcr_conv
+      |> ` concl_of
+      |>> Logic.dest_equals
+      |>> snd
+    val to_rsp = rsp_prsp_eq RS Drule.equal_elim_rule2
+    val opt_proven_rsp_thm = try_prove_reflexivity lthy prsp_tm
     val par_thms = Attrib.eval_thms lthy par_xthms
     
     fun after_qed internal_rsp_thm lthy = 
-      add_lift_def (binding, mx) qty rhs internal_rsp_thm par_thms lthy
-
+      add_lift_def (binding, mx) qty rhs (internal_rsp_thm RS to_rsp) par_thms lthy
   in
     case opt_proven_rsp_thm of
       SOME thm => Proof.theorem NONE (K (after_qed thm)) [] lthy
       | NONE =>  
         let
-          val readable_rsp_thm_eq = mk_readable_rsp_thm_eq internal_rsp_tm lthy
+          val readable_rsp_thm_eq = mk_readable_rsp_thm_eq prsp_tm lthy
           val (readable_rsp_tm, _) = Logic.dest_implies (prop_of readable_rsp_thm_eq)
           val readable_rsp_tm_tnames = rename_to_tnames lthy readable_rsp_tm
       
           fun after_qed' thm_list lthy = 
             let
-              val internal_rsp_thm = Goal.prove lthy [] [] internal_rsp_tm 
+              val internal_rsp_thm = Goal.prove lthy [] [] prsp_tm 
                   (fn {context = ctxt, ...} =>
                     rtac readable_rsp_thm_eq 1 THEN Proof_Context.fact_tac ctxt (hd thm_list) 1)
             in
