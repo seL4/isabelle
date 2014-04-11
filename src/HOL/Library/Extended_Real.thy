@@ -536,7 +536,7 @@ lemma
 lemma incseq_ereal: "incseq f \<Longrightarrow> incseq (\<lambda>x. ereal (f x))"
   unfolding incseq_def by auto
 
-lemma ereal_add_nonneg_nonneg:
+lemma ereal_add_nonneg_nonneg[simp]:
   fixes a b :: ereal
   shows "0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> 0 \<le> a + b"
   using add_mono[of 0 a 0 b] by simp
