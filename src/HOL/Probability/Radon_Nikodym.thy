@@ -483,8 +483,7 @@ proof -
         using f_le_v N.emeasure_eq_measure[of A] positive_integral_positive[of M "?F A"]
         by (cases "\<integral>\<^sup>+x. ?F A x \<partial>M", cases "N A") auto
       finally have "(\<integral>\<^sup>+x. ?f0 x * indicator A x \<partial>M) \<le> N A" . }
-    hence "?f0 \<in> G" using `A0 \<in> sets M` b `f \<in> G`
-      by (auto intro!: ereal_add_nonneg_nonneg simp: G_def)
+    hence "?f0 \<in> G" using `A0 \<in> sets M` b `f \<in> G` by (auto simp: G_def)
     have int_f_finite: "integral\<^sup>P M f \<noteq> \<infinity>"
       by (metis N.emeasure_finite ereal_infty_less_eq2(1) int_f_eq_y y_le)
     have  "0 < ?M (space M) - emeasure ?Mb (space M)"

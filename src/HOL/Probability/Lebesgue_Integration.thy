@@ -1114,7 +1114,7 @@ proof -
   proof (rule SUP_simple_integral_sequences[OF l(3,6,2)])
     show "incseq ?L'" "\<And>i x. 0 \<le> ?L' i x" "\<And>i. simple_function M (?L' i)"
       using u v  `0 \<le> a` unfolding incseq_Suc_iff le_fun_def
-      by (auto intro!: add_mono ereal_mult_left_mono ereal_add_nonneg_nonneg)
+      by (auto intro!: add_mono ereal_mult_left_mono)
     { fix x
       { fix i have "a * u i x \<noteq> -\<infinity>" "v i x \<noteq> -\<infinity>" "u i x \<noteq> -\<infinity>" using `0 \<le> a` u(6)[of i x] v(6)[of i x]
           by auto }
@@ -1122,10 +1122,10 @@ proof -
         using `0 \<le> a` u(3) v(3) u(6)[of _ x] v(6)[of _ x]
         by (subst SUP_ereal_cmult [symmetric, OF u(6) `0 \<le> a`])
            (auto intro!: SUP_ereal_add
-                 simp: incseq_Suc_iff le_fun_def add_mono ereal_mult_left_mono ereal_add_nonneg_nonneg) }
+                 simp: incseq_Suc_iff le_fun_def add_mono ereal_mult_left_mono) }
     then show "AE x in M. (SUP i. l i x) = (SUP i. ?L' i x)"
       unfolding l(5) using `0 \<le> a` u(5) v(5) l(5) f(2) g(2)
-      by (intro AE_I2) (auto split: split_max simp add: ereal_add_nonneg_nonneg)
+      by (intro AE_I2) (auto split: split_max)
   qed
   also have "\<dots> = (SUP i. a * integral\<^sup>S M (u i) + integral\<^sup>S M (v i))"
     using u(2, 6) v(2, 6) `0 \<le> a` by (auto intro!: arg_cong[where f="SUPREMUM UNIV"] ext)
@@ -1182,7 +1182,7 @@ lemma positive_integral_add:
   shows "(\<integral>\<^sup>+ x. f x + g x \<partial>M) = integral\<^sup>P M f + integral\<^sup>P M g"
 proof -
   have ae: "AE x in M. max 0 (f x) + max 0 (g x) = max 0 (f x + g x)"
-    using assms by (auto split: split_max simp: ereal_add_nonneg_nonneg)
+    using assms by (auto split: split_max)
   have "(\<integral>\<^sup>+ x. f x + g x \<partial>M) = (\<integral>\<^sup>+ x. max 0 (f x + g x) \<partial>M)"
     by (simp add: positive_integral_max_0)
   also have "\<dots> = (\<integral>\<^sup>+ x. max 0 (f x) + max 0 (g x) \<partial>M)"
