@@ -301,7 +301,7 @@ lemma zero_less_power [simp]:
 
 lemma zero_le_power [simp]:
   "0 \<le> a \<Longrightarrow> 0 \<le> a ^ n"
-  by (induct n) (simp_all add: mult_nonneg_nonneg)
+  by (induct n) simp_all
 
 lemma power_mono:
   "a \<le> b \<Longrightarrow> 0 \<le> a \<Longrightarrow> a ^ n \<le> b ^ n"

@@ -717,7 +717,7 @@ lemma zero_less_one_ereal[simp]: "0 \<le> (1::ereal)"
   by (simp add: one_ereal_def zero_ereal_def)
 
 lemma ereal_0_le_mult[simp]: "0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> 0 \<le> a * (b :: ereal)"
-  by (cases rule: ereal2_cases[of a b]) (auto simp: mult_nonneg_nonneg)
+  by (cases rule: ereal2_cases[of a b]) auto
 
 lemma ereal_right_distrib:
   fixes r a b :: ereal

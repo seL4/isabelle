@@ -618,7 +618,7 @@ lemma abs_round_up_le: "\<bar>f - (round_up e f)\<bar> \<le> 2 powr -e"
   using round_up_correct[of e f] by simp
 
 lemma round_down_nonneg: "0 \<le> s \<Longrightarrow> 0 \<le> round_down p s"
-  by (auto simp: round_down_def intro!: mult_nonneg_nonneg)
+  by (auto simp: round_down_def)
 
 lemma ceil_divide_floor_conv:
 assumes "b \<noteq> 0"
@@ -1418,20 +1418,20 @@ proof -
     by simp
   moreover
   have "0 \<le> \<lfloor>x * 2 powr (- real \<lfloor>log 2 x\<rfloor> - 1)\<rfloor>"
-    using `x > 0` by (auto intro: mult_nonneg_nonneg)
+    using `x > 0` by auto
   ultimately have "\<lfloor>x * 2 powr (- real \<lfloor>log 2 x\<rfloor> - 1)\<rfloor> \<in> {0 ..< 1}"
     by simp
   also have "\<dots> \<subseteq> {0}" by auto
   finally have "\<lfloor>x * 2 powr (- real \<lfloor>log 2 x\<rfloor> - 1)\<rfloor> = 0" by simp
   with assms show ?thesis
-    by (auto simp: truncate_down_def round_down_def intro!: mult_nonneg_nonneg)
+    by (auto simp: truncate_down_def round_down_def)
 qed
 
 lemma truncate_down_nonneg: "0 \<le> y \<Longrightarrow> 0 \<le> truncate_down prec y"
-  by (auto simp: truncate_down_def round_down_def intro!: mult_nonneg_nonneg)
+  by (auto simp: truncate_down_def round_down_def)
 
 lemma truncate_down_zero: "truncate_down prec 0 = 0"
-  by (auto simp: truncate_down_def round_down_def intro!: mult_nonneg_nonneg)
+  by (auto simp: truncate_down_def round_down_def)
 
 lemma truncate_down_switch_sign_mono:
   assumes "x \<le> 0" "0 \<le> y"
@@ -1485,7 +1485,7 @@ proof -
       by simp
     also have "\<dots> \<le> y * 2 powr real prec / (2 powr (real \<lfloor>log 2 y\<rfloor> + 1))"
       using `0 \<le> y` `0 \<le> x` assms(2)
-      by (auto intro!: powr_mono mult_nonneg_nonneg mult_pos_pos divide_left_mono
+      by (auto intro!: powr_mono mult_pos_pos divide_left_mono
         simp: real_of_nat_diff powr_add
         powr_divide2[symmetric])
     also have "\<dots> = y * 2 powr real prec / (2 powr real \<lfloor>log 2 y\<rfloor> * 2)"

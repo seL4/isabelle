@@ -622,7 +622,7 @@ proof -
       subdensity_real[OF measurable_snd Pxy Py Y]
       distributed_real_AE[OF Pxy]
     by eventually_elim
-       (auto simp: f_def log_divide_eq log_mult_eq field_simps zero_less_mult_iff mult_nonneg_nonneg)
+       (auto simp: f_def log_divide_eq log_mult_eq field_simps zero_less_mult_iff)
 
   show "0 \<le> ?M" unfolding M
   proof (rule ST.KL_density_density_nonneg
@@ -1102,7 +1102,7 @@ proof -
     apply (rule positive_integral_mono_AE)
     using ae5 ae6 ae7 ae8
     apply eventually_elim
-    apply (auto intro!: divide_nonneg_nonneg mult_nonneg_nonneg)
+    apply (auto intro!: divide_nonneg_nonneg)
     done
   also have "\<dots> = (\<integral>\<^sup>+(y, z). \<integral>\<^sup>+ x. ereal (Pxz (x, z)) * ereal (Pyz (y, z) / Pz z) \<partial>S \<partial>T \<Otimes>\<^sub>M P)"
     by (subst STP.positive_integral_snd_measurable[symmetric]) (auto simp add: split_beta')
@@ -1151,7 +1151,7 @@ proof -
     apply simp
     using ae5 ae6 ae7 ae8
     apply eventually_elim
-    apply (auto intro!: mult_nonneg_nonneg divide_nonneg_nonneg)
+    apply (auto intro!: divide_nonneg_nonneg)
     done
 
   have I3: "integrable (S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) (\<lambda>(x, y, z). Pxyz (x, y, z) * log b (Pxyz (x, y, z) / (Pxz (x, z) * (Pyz (y,z) / Pz z))))"
@@ -1296,7 +1296,7 @@ proof -
     apply (rule integrable_cong_AE_imp)
     using ae1 ae4 ae5 ae6 ae9
     by eventually_elim
-       (auto simp: log_divide_eq log_mult_eq mult_nonneg_nonneg field_simps zero_less_mult_iff)
+       (auto simp: log_divide_eq log_mult_eq field_simps zero_less_mult_iff)
 
   have "integrable (S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P)
     (\<lambda>x. Pxyz x * log b (Pxz (fst x, snd (snd x))) - Pxyz x * log b (Px (fst x)) - Pxyz x * log b (Pz (snd (snd x))))"
@@ -1311,7 +1311,7 @@ proof -
     apply (rule integrable_cong_AE_imp)
     using ae1 ae2 ae3 ae4 ae5 ae6 ae7 ae8 ae9
     by eventually_elim
-       (auto simp: log_divide_eq log_mult_eq mult_nonneg_nonneg field_simps zero_less_mult_iff)
+       (auto simp: log_divide_eq log_mult_eq field_simps zero_less_mult_iff)
 
   from ae I1 I2 show ?eq
     unfolding conditional_mutual_information_def
@@ -1347,7 +1347,7 @@ proof -
     apply (rule positive_integral_mono_AE)
     using ae5 ae6 ae7 ae8
     apply eventually_elim
-    apply (auto intro!: divide_nonneg_nonneg mult_nonneg_nonneg)
+    apply (auto intro!: divide_nonneg_nonneg)
     done
   also have "\<dots> = (\<integral>\<^sup>+(y, z). \<integral>\<^sup>+ x. ereal (Pxz (x, z)) * ereal (Pyz (y, z) / Pz z) \<partial>S \<partial>T \<Otimes>\<^sub>M P)"
     by (subst STP.positive_integral_snd_measurable[symmetric])
@@ -1396,7 +1396,7 @@ proof -
     apply (auto simp: split_beta') []
     using ae5 ae6 ae7 ae8
     apply eventually_elim
-    apply (auto intro!: mult_nonneg_nonneg divide_nonneg_nonneg)
+    apply (auto intro!: divide_nonneg_nonneg)
     done
 
   have I3: "integrable (S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) (\<lambda>(x, y, z). Pxyz (x, y, z) * log b (Pxyz (x, y, z) / (Pxz (x, z) * (Pyz (y,z) / Pz z))))"

@@ -109,7 +109,7 @@ qed
 lemma sqrt_sum_squares_le_sum:
   "\<lbrakk>0 \<le> x; 0 \<le> y\<rbrakk> \<Longrightarrow> sqrt (x\<^sup>2 + y\<^sup>2) \<le> x + y"
   apply (rule power2_le_imp_le)
-  apply (simp add: power2_sum mult_nonneg_nonneg)
+  apply (simp add: power2_sum)
   apply simp
   done
 
@@ -127,7 +127,7 @@ lemma setL2_le_setsum [rule_format]:
 
 lemma sqrt_sum_squares_le_sum_abs: "sqrt (x\<^sup>2 + y\<^sup>2) \<le> \<bar>x\<bar> + \<bar>y\<bar>"
   apply (rule power2_le_imp_le)
-  apply (simp add: power2_sum mult_nonneg_nonneg)
+  apply (simp add: power2_sum)
   apply simp
   done
 
@@ -162,15 +162,13 @@ lemma setL2_mult_ineq: "(\<Sum>i\<in>A. \<bar>f i\<bar> * \<bar>g i\<bar>) \<le>
   apply (rule order_trans)
   apply (rule power_mono)
   apply (erule add_left_mono)
-  apply (simp add: mult_nonneg_nonneg setsum_nonneg)
+  apply (simp add: setsum_nonneg)
   apply (simp add: power2_sum)
   apply (simp add: power_mult_distrib)
   apply (simp add: distrib_left distrib_right)
   apply (rule ord_le_eq_trans)
   apply (rule setL2_mult_ineq_lemma)
-  apply simp
-  apply (intro mult_nonneg_nonneg setL2_nonneg)
-  apply simp
+  apply simp_all
   done
 
 lemma member_le_setL2: "\<lbrakk>finite A; i \<in> A\<rbrakk> \<Longrightarrow> f i \<le> setL2 f A"

@@ -492,7 +492,7 @@ begin
 
 subclass semiring_0_cancel ..
 
-lemma mult_nonneg_nonneg: "0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> 0 \<le> a * b"
+lemma mult_nonneg_nonneg[simp]: "0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> 0 \<le> a * b"
 using mult_left_mono [of 0 b a] by simp
 
 lemma mult_nonneg_nonpos: "0 \<le> a \<Longrightarrow> b \<le> 0 \<Longrightarrow> a * b \<le> 0"
@@ -759,7 +759,7 @@ using mult_right_mono_neg [of a 0 b] by simp
 
 lemma split_mult_pos_le:
   "(0 \<le> a \<and> 0 \<le> b) \<or> (a \<le> 0 \<and> b \<le> 0) \<Longrightarrow> 0 \<le> a * b"
-by (auto simp add: mult_nonneg_nonneg mult_nonpos_nonpos)
+by (auto simp add: mult_nonpos_nonpos)
 
 end
 
@@ -777,7 +777,7 @@ qed (auto simp add: abs_if)
 
 lemma zero_le_square [simp]: "0 \<le> a * a"
   using linear [of 0 a]
-  by (auto simp add: mult_nonneg_nonneg mult_nonpos_nonpos)
+  by (auto simp add: mult_nonpos_nonpos)
 
 lemma not_square_less_zero [simp]: "\<not> (a * a < 0)"
   by (simp add: not_less)

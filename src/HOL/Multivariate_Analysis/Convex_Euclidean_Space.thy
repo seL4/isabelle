@@ -1173,8 +1173,7 @@ proof -
     then have "c *\<^sub>R x = (c * cx) *\<^sub>R xx"
       using x by (simp add: algebra_simps)
     moreover
-    have "c * cx \<ge> 0"
-      using c x using mult_nonneg_nonneg by auto
+    have "c * cx \<ge> 0" using c x by auto
     ultimately
     have "c *\<^sub>R x \<in> ?rhs" using x by auto
   }
@@ -1603,13 +1602,7 @@ next
         by simp
       finally have **:"1 - (u * u1 + v * u2) = u * v1 + v * v2" by auto
       have "0 \<le> u * v1 + v * v2" "0 \<le> u * v1" "0 \<le> u * v1 + v * v2" "0 \<le> v * v2"
-        apply (rule add_nonneg_nonneg)
-        prefer 4
-        apply (rule add_nonneg_nonneg)
-        apply (rule_tac [!] mult_nonneg_nonneg)
-        using as(1,2) obt1(1,2) obt2(1,2)
-        apply auto
-        done
+        using as(1,2) obt1(1,2) obt2(1,2) by auto
       then show ?thesis
         unfolding obt1(5) obt2(5)
         unfolding * and **
@@ -1643,7 +1636,7 @@ next
       apply (rule_tac x="1 - u * u1 - v * u2" in exI)
       unfolding Bex_def
       using as(1,2) obt1(1,2) obt2(1,2) **
-      apply (auto intro!: mult_nonneg_nonneg add_nonneg_nonneg simp add: algebra_simps)
+      apply (auto simp add: algebra_simps)
       done
   qed
 qed
@@ -1728,19 +1721,15 @@ next
     proof (cases "i\<in>{1..k1}")
       case True
       then show ?thesis
-        using mult_nonneg_nonneg[of u "u1 i"] and uv(1) x(1)[THEN bspec[where x=i]]
-        by auto
+        using uv(1) x(1)[THEN bspec[where x=i]] by auto
     next
       case False
       def j \<equiv> "i - k1"
       from i False have "j \<in> {1..k2}"
         unfolding j_def by auto
       then show ?thesis
-        unfolding j_def[symmetric]
-        using False
-        using mult_nonneg_nonneg[of v "u2 j"] and uv(2) y(1)[THEN bspec[where x=j]]
-        apply auto
-        done
+        using False uv(2) y(1)[THEN bspec[where x=j]]
+        by (auto simp: j_def[symmetric])
     qed
   qed (auto simp add: not_le x(2,3) y(2,3) uv(3))
 qed
@@ -1770,9 +1759,7 @@ next
     assume "x\<in>s"
     then have "0 \<le> u * ux x + v * uy x"
       using ux(1)[THEN bspec[where x=x]] uy(1)[THEN bspec[where x=x]] and uv(1,2)
-      apply auto
-      apply (metis add_nonneg_nonneg mult_nonneg_nonneg uv(1) uv(2))
-      done
+      by auto
   }
   moreover
   have "(\<Sum>x\<in>s. u * ux x + v * uy x) = 1"
@@ -2290,14 +2277,7 @@ proof (rule, rule)
       show "0 \<le> u v + t * w v"
       proof (cases "w v < 0")
         case False
-        then show ?thesis
-          apply (rule_tac add_nonneg_nonneg)
-          using v
-          apply simp
-          apply (rule mult_nonneg_nonneg)
-          using `t\<ge>0`
-          apply auto
-          done
+        thus ?thesis using v `t\<ge>0` by auto
       next
         case True
         then have "t \<le> u v / (- w v)"
@@ -4585,13 +4565,7 @@ proof -
       apply (rule_tac x = "inverse(norm a) *\<^sub>R a" in exI)
       using hull_subset[of c convex]
       unfolding subset_eq and inner_scaleR
-      apply -
-      apply rule
-      defer
-      apply rule
-      apply (rule mult_nonneg_nonneg)
-      apply (auto simp add: inner_commute del: ballE elim!: ballE)
-      done
+      by (auto simp add: inner_commute del: ballE elim!: ballE)
     then show "frontier (cball 0 1) \<inter> \<Inter>f \<noteq> {}"
       unfolding c(1) frontier_cball dist_norm by auto
   qed (insert closed_halfspace_ge, auto)
@@ -5981,8 +5955,7 @@ proof -
       using assms as(1)[unfolded mem_box]
       apply (erule_tac x=i in ballE)
       apply rule
-      apply (rule mult_nonneg_nonneg)
-      prefer 3
+      prefer 2
       apply (rule mult_right_le_one_le)
       using assms
       apply auto
@@ -8481,7 +8454,7 @@ proof -
       by auto
     def e \<equiv> "\<lambda>i. u * c i + v * d i"
     have ge0: "\<forall>i\<in>I. e i \<ge> 0"
-      using e_def xc yc uv by (simp add: mult_nonneg_nonneg)
+      using e_def xc yc uv by simp
     have "setsum (\<lambda>i. u * c i) I = u * setsum c I"
       by (simp add: setsum_right_distrib)
     moreover have "setsum (\<lambda>i. v * d i) I = v * setsum d I"
@@ -8502,7 +8475,7 @@ proof -
           using mem_convex_alt[of "S i" "s i" "t i" "u * (c i)" "v * (d i)"]
             mult_nonneg_nonneg[of u "c i"] mult_nonneg_nonneg[of v "d i"]
             assms q_def e_def i False xc yc uv
-          by auto
+          by (auto simp del: mult_nonneg_nonneg)
       qed
     }
     then have qs: "\<forall>i\<in>I. q i \<in> S i" by auto
@@ -8513,7 +8486,7 @@ proof -
       proof (cases "e i = 0")
         case True
         have ge: "u * (c i) \<ge> 0 \<and> v * d i \<ge> 0"
-          using xc yc uv i by (simp add: mult_nonneg_nonneg)
+          using xc yc uv i by simp
         moreover from ge have "u * c i \<le> 0 \<and> v * d i \<le> 0"
           using True e_def i by simp
         ultimately have "u * c i = 0 \<and> v * d i = 0" by auto

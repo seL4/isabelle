@@ -446,7 +446,6 @@ lemma sqrt_add_le_add_sqrt:
   shows "sqrt (x + y) \<le> sqrt x + sqrt y"
 apply (rule power2_le_imp_le)
 apply (simp add: power2_sum x y)
-apply (simp add: mult_nonneg_nonneg x y)
 apply (simp add: x y)
 done
 

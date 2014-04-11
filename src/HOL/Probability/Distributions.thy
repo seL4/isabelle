@@ -148,7 +148,7 @@ proof (rule distributedI_borel_atMost)
   show "emeasure M {x\<in>space M. X x \<le> a} = ereal (if 0 \<le> a then 1 - exp (- a * l) else 0)"
     using X_distr[of a] eq_0 by (auto simp: one_ereal_def)
   show "AE x in lborel. 0 \<le> exponential_density l x "
-    by (auto simp: exponential_density_def intro!: AE_I2 mult_nonneg_nonneg)
+    by (auto simp: exponential_density_def)
 qed simp_all
 
 lemma (in prob_space) exponential_distributed_iff:

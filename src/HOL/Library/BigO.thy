@@ -115,7 +115,6 @@ lemma bigo_plus_subset [intro]: "O(f + g) \<subseteq> O(f) + O(g)"
   apply (rule conjI)
   apply (rule_tac x = "c + c" in exI)
   apply (clarsimp)
-  apply (auto)
   apply (subgoal_tac "c * abs (f xa + g xa) \<le> (c + c) * abs (f xa)")
   apply (erule_tac x = xa in allE)
   apply (erule order_trans)
@@ -126,8 +125,6 @@ lemma bigo_plus_subset [intro]: "O(f + g) \<subseteq> O(f) + O(g)"
   apply (rule mult_left_mono)
   apply (simp add: abs_triangle_ineq)
   apply (simp add: order_less_le)
-  apply (rule mult_nonneg_nonneg)
-  apply auto
   apply (rule_tac x = "\<lambda>n. if (abs (f n)) < abs (g n) then x n else 0" in exI)
   apply (rule conjI)
   apply (rule_tac x = "c + c" in exI)
@@ -142,9 +139,6 @@ lemma bigo_plus_subset [intro]: "O(f + g) \<subseteq> O(f) + O(g)"
   apply (rule mult_left_mono)
   apply (rule abs_triangle_ineq)
   apply (simp add: order_less_le)
-  apply (rule mult_nonneg_nonneg)
-  apply (erule order_less_imp_le)
-  apply simp
   done
 
 lemma bigo_plus_subset2 [intro]: "A \<subseteq> O(f) \<Longrightarrow> B \<subseteq> O(f) \<Longrightarrow> A + B \<subseteq> O(f)"
@@ -293,7 +287,6 @@ lemma bigo_mult [intro]: "O(f)*O(g) \<subseteq> O(f * g)"
   apply (subst abs_mult)
   apply (rule mult_mono)
   apply assumption+
-  apply (rule mult_nonneg_nonneg)
   apply auto
   apply (simp add: mult_ac abs_mult)
   done
@@ -651,7 +644,6 @@ lemma bigo_setsum5: "f =o O(h) \<Longrightarrow> \<forall>x y. 0 \<le> l x y \<L
   apply (rule ext)
   apply (rule setsum_cong2)
   apply (subst abs_of_nonneg)
-  apply (rule mult_nonneg_nonneg)
   apply auto
   done
 
@@ -705,9 +697,6 @@ lemma bigo_fix: "(\<lambda>x::nat. f (x + 1)) =o O(\<lambda>x. h (x + 1)) \<Long
   apply auto
   apply (case_tac "x = 0")
   apply simp
-  apply (rule mult_nonneg_nonneg)
-  apply force
-  apply force
   apply (subgoal_tac "x = Suc (x - 1)")
   apply (erule ssubst) back
   apply (erule spec)

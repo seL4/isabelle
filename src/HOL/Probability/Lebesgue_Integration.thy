@@ -236,9 +236,9 @@ proof -
     proof (split split_if, intro conjI impI)
       assume "\<not> real j \<le> u x"
       then have "natfloor (real (u x) * 2 ^ j) \<le> natfloor (j * 2 ^ j)"
-         by (cases "u x") (auto intro!: natfloor_mono simp: mult_nonneg_nonneg)
+         by (cases "u x") (auto intro!: natfloor_mono)
       moreover have "real (natfloor (j * 2 ^ j)) \<le> j * 2^j"
-        by (intro real_natfloor_le) (auto simp: mult_nonneg_nonneg)
+        by (intro real_natfloor_le) auto
       ultimately show "natfloor (real (u x) * 2 ^ j) \<le> j * 2 ^ j"
         unfolding real_of_nat_le_iff by auto
     qed auto }
@@ -300,7 +300,7 @@ proof -
     proof (rule SUP_eqI)
       fix i show "?g i x \<le> max 0 (u x)" unfolding max_def f_def
         by (cases "u x") (auto simp: field_simps real_natfloor_le natfloor_neg
-                                     mult_nonpos_nonneg mult_nonneg_nonneg)
+                                     mult_nonpos_nonneg)
     next
       fix y assume *: "\<And>i. i \<in> UNIV \<Longrightarrow> ?g i x \<le> y"
       have "\<And>i. 0 \<le> ?g i x" by (auto simp: divide_nonneg_pos)
@@ -317,12 +317,12 @@ proof -
         proof (rule ccontr)
           assume "\<not> p \<le> r"
           with LIMSEQ_inverse_realpow_zero[unfolded LIMSEQ_iff, rule_format, of 2 "p - r"]
-          obtain N where "\<forall>n\<ge>N. r * 2^n < p * 2^n - 1" by (auto simp: inverse_eq_divide field_simps)
+          obtain N where "\<forall>n\<ge>N. r * 2^n < p * 2^n - 1" by (auto simp: field_simps)
           then have "r * 2^max N m < p * 2^max N m - 1" by simp
           moreover
           have "real (natfloor (p * 2 ^ max N m)) \<le> r * 2 ^ max N m"
             using *[of "max N m"] m unfolding real_f using ux
-            by (cases "0 \<le> u x") (simp_all add: max_def mult_nonneg_nonneg split: split_if_asm)
+            by (cases "0 \<le> u x") (simp_all add: max_def split: split_if_asm)
           then have "p * 2 ^ max N m - 1 < r * 2 ^ max N m"
             by (metis real_natfloor_gt_diff_one less_le_trans)
           ultimately show False by auto

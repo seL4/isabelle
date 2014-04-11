@@ -1395,7 +1395,7 @@ proof -
       by (simp add: power_inverse)
     hence "inverse (fact (n + 2)) * (x^n * x\<^sup>2) \<le> 1/2 * (1/2)^n * (1 * x\<^sup>2)"
       by (rule mult_mono)
-        (rule mult_mono, simp_all add: power_le_one a b mult_nonneg_nonneg)
+        (rule mult_mono, simp_all add: power_le_one a b)
     hence "inverse (fact (n + 2)) * x ^ (n + 2) \<le> (x\<^sup>2/2) * ((1/2)^n)"
       unfolding power_add by (simp add: mult_ac del: fact_Suc) }
   note aux1 = this

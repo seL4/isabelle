@@ -575,8 +575,7 @@ proof -
 
   let ?g = "\<lambda>(i,j). a i * b j"
   let ?f = "\<lambda>(i,j). norm (a i) * norm (b j)"
-  have f_nonneg: "\<And>x. 0 \<le> ?f x"
-    by (auto simp add: mult_nonneg_nonneg)
+  have f_nonneg: "\<And>x. 0 \<le> ?f x" by (auto)
   hence norm_setsum_f: "\<And>A. norm (setsum ?f A) = setsum ?f A"
     unfolding real_norm_def
     by (simp only: abs_of_nonneg setsum_nonneg [rule_format])

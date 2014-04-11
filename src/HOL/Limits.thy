@@ -1239,7 +1239,7 @@ lemma linear_plus_1_le_power:
 proof (induct n)
   case (Suc n)
   have "real (Suc n) * x + 1 \<le> (x + 1) * (real n * x + 1)"
-    by (simp add: field_simps real_of_nat_Suc mult_nonneg_nonneg x)
+    by (simp add: field_simps real_of_nat_Suc x)
   also have "\<dots> \<le> (x + 1)^Suc n"
     using Suc x by (simp add: mult_left_mono)
   finally show ?case .

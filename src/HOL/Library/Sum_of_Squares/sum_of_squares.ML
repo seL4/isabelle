@@ -1047,8 +1047,11 @@ fun elim_one_denom_tac ctxt = CSUBGOAL (fn (P, i) =>
 fun elim_denom_tac ctxt i = REPEAT (elim_one_denom_tac ctxt i);
 
 fun sos_tac print_cert prover ctxt =
-  Object_Logic.full_atomize_tac ctxt THEN'
-  elim_denom_tac ctxt THEN'
-  core_sos_tac print_cert prover ctxt;
+  (* The SOS prover breaks if mult_nonneg_nonneg is in the simpset *)
+  let val ctxt' = ctxt delsimps [@{thm mult_nonneg_nonneg}]
+  in Object_Logic.full_atomize_tac ctxt' THEN'
+     elim_denom_tac ctxt' THEN'
+     core_sos_tac print_cert prover ctxt'
+  end;
 
 end;

@@ -487,7 +487,7 @@ lemma triangle_lemma:
   shows "x \<le> y + z"
 proof -
   have "y\<^sup>2 + z\<^sup>2 \<le> y\<^sup>2 + 2 * y * z + z\<^sup>2"
-    using z y by (simp add: mult_nonneg_nonneg)
+    using z y by simp
   with xy have th: "x\<^sup>2 \<le> (y + z)\<^sup>2"
     by (simp add: power2_eq_square field_simps)
   from y z have yz: "y + z \<ge> 0"

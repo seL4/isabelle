@@ -779,7 +779,7 @@ proof (cases "real x = 0")
       also have "\<dots> \<le> cos x"
       proof -
         from even[OF `even n`] `0 < ?fact` `0 < ?pow`
-        have "0 \<le> (?rest / ?fact) * ?pow" by (metis mult_nonneg_nonneg divide_nonneg_pos less_imp_le)
+        have "0 \<le> (?rest / ?fact) * ?pow" by (simp add: divide_nonneg_pos)
         thus ?thesis unfolding cos_eq by auto
       qed
       finally have "(lb_sin_cos_aux prec n 1 1 (x * x)) \<le> cos x" .
@@ -893,7 +893,7 @@ proof (cases "real x = 0")
       also have "\<dots> \<le> sin x"
       proof -
         from even[OF `even n`] `0 < ?fact` `0 < ?pow`
-        have "0 \<le> (?rest / ?fact) * ?pow" by (metis mult_nonneg_nonneg divide_nonneg_pos less_imp_le)
+        have "0 \<le> (?rest / ?fact) * ?pow" by (simp add: divide_nonneg_pos less_imp_le)
         thus ?thesis unfolding sin_eq by auto
       qed
       finally have "(x * lb_sin_cos_aux prec n 2 1 (x * x)) \<le> sin x" .
@@ -1346,9 +1346,8 @@ proof -
       obtain t where "\<bar>t\<bar> \<le> \<bar>real x\<bar>" and "exp x = (\<Sum>m = 0..<get_even n. real x ^ m / real (fact m)) + exp t / real (fact (get_even n)) * (real x) ^ (get_even n)"
         using Maclaurin_exp_le unfolding atLeast0LessThan by blast
       moreover have "0 \<le> exp t / real (fact (get_even n)) * (real x) ^ (get_even n)"
-        by (auto intro!: mult_nonneg_nonneg divide_nonneg_pos simp add: zero_le_even_power)
-      ultimately show ?thesis
-        using get_odd exp_gt_zero by (auto intro!: mult_nonneg_nonneg)
+        by (auto simp: divide_nonneg_pos zero_le_even_power)
+      ultimately show ?thesis using get_odd exp_gt_zero by auto
     qed
     finally have "lb_exp_horner prec (get_even n) 1 1 x \<le> exp x" .
   } moreover
@@ -1368,7 +1367,7 @@ proof -
     moreover have "exp t / real (fact (get_odd n)) * (real x) ^ (get_odd n) \<le> 0"
       by (auto intro!: mult_nonneg_nonpos divide_nonpos_pos simp add: x_less_zero)
     ultimately have "exp x \<le> (\<Sum>j = 0..<get_odd n. 1 / real (fact j) * real x ^ j)"
-      using get_odd exp_gt_zero by (auto intro!: mult_nonneg_nonneg)
+      using get_odd exp_gt_zero by auto
     also have "\<dots> \<le> ub_exp_horner prec (get_odd n) 1 1 x"
       using bounds(2) by auto
     finally have "exp x \<le> ub_exp_horner prec (get_odd n) 1 1 x" .
@@ -1594,12 +1593,12 @@ proof -
   have "norm x < 1" using assms by auto
   have "?a ----> 0" unfolding Suc_eq_plus1[symmetric] inverse_eq_divide[symmetric]
     using tendsto_mult[OF LIMSEQ_inverse_real_of_nat LIMSEQ_Suc[OF LIMSEQ_power_zero[OF `norm x < 1`]]] by auto
-  { fix n have "0 \<le> ?a n" by (rule mult_nonneg_nonneg, auto intro!: mult_nonneg_nonneg simp add: `0 \<le> x`) }
+  { fix n have "0 \<le> ?a n" by (rule mult_nonneg_nonneg, auto simp: `0 \<le> x`) }
   { fix n have "?a (Suc n) \<le> ?a n" unfolding inverse_eq_divide[symmetric]
     proof (rule mult_mono)
-      show "0 \<le> x ^ Suc (Suc n)" by (auto intro!: mult_nonneg_nonneg simp add: `0 \<le> x`)
+      show "0 \<le> x ^ Suc (Suc n)" by (auto simp add: `0 \<le> x`)
       have "x ^ Suc (Suc n) \<le> x ^ Suc n * 1" unfolding power_Suc2 mult_assoc[symmetric]
-        by (rule mult_left_mono, fact less_imp_le[OF `x < 1`], auto intro!: mult_nonneg_nonneg simp add: `0 \<le> x`)
+        by (rule mult_left_mono, fact less_imp_le[OF `x < 1`], auto simp: `0 \<le> x`)
       thus "x ^ Suc (Suc n) \<le> x ^ Suc n" by auto
     qed auto }
   from summable_Leibniz'(2,4)[OF `?a ----> 0` `\<And>n. 0 \<le> ?a n`, OF `\<And>n. ?a (Suc n) \<le> ?a n`, unfolded ln_eq]

@@ -333,7 +333,7 @@ proof (rule vanishesI)
       by (simp add: inverse_diff_inverse abs_mult)
     also have "\<dots> < inverse a * s * inverse b"
       apply (intro mult_strict_mono' less_imp_inverse_less)
-      apply (simp_all add: a b i j k n mult_nonneg_nonneg)
+      apply (simp_all add: a b i j k n)
       done
     also note `inverse a * s * inverse b = r`
     finally show "\<bar>inverse (X n) - inverse (Y n)\<bar> < r" .
@@ -1927,7 +1927,7 @@ qed
 lemma le_mult_natfloor:
   shows "natfloor a * natfloor b \<le> natfloor (a * b)"
   by (cases "0 <= a & 0 <= b")
-    (auto simp add: le_natfloor_eq mult_nonneg_nonneg mult_mono' real_natfloor_le natfloor_neg)
+    (auto simp add: le_natfloor_eq mult_mono' real_natfloor_le natfloor_neg)
 
 lemma natceiling_zero [simp]: "natceiling 0 = 0"
   by (unfold natceiling_def, simp)

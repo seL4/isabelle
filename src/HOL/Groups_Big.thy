@@ -1240,7 +1240,7 @@ by (subst setprod_Un_Int [symmetric], auto)
 
 lemma setprod_nonneg [rule_format]:
    "(ALL x: A. (0::'a::linordered_semidom) \<le> f x) --> 0 \<le> setprod f A"
-by (cases "finite A", induct set: finite, simp_all add: mult_nonneg_nonneg)
+by (cases "finite A", induct set: finite, simp_all)
 
 lemma setprod_pos [rule_format]: "(ALL x: A. (0::'a::linordered_semidom) < f x)
   --> 0 < setprod f A"
@@ -1318,7 +1318,7 @@ proof (cases "finite A")
     thus "setprod f (insert a F) \<le> setprod g (insert a F)" "0 \<le> setprod f (insert a F)"
       unfolding setprod_insert[OF insert(1,3)]
       using assms[rule_format,OF insert(2)] insert
-      by (auto intro: mult_mono mult_nonneg_nonneg)
+      by (auto intro: mult_mono)
   qed auto
   thus ?thesis by simp
 qed auto

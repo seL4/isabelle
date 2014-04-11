@@ -5986,9 +5986,8 @@ next
         apply (rule setsum_nonneg)
         apply safe
         unfolding real_scaleR_def
-        apply (rule mult_nonneg_nonneg)
         apply (drule tagged_division_ofD(4)[OF q(1)])
-        apply auto
+        apply (auto intro: mult_nonneg_nonneg)
         done
       have **: "\<And>f g s t. finite s \<Longrightarrow> finite t \<Longrightarrow> (\<forall>(x,y) \<in> t. (0::real) \<le> g(x,y)) \<Longrightarrow>
         (\<forall>y\<in>s. \<exists>x. (x,y) \<in> t \<and> f(y) \<le> g(x,y)) \<Longrightarrow> setsum f s \<le> setsum g t"
@@ -6022,12 +6021,8 @@ next
         assume as'': "(a, b) \<in> q i"
         show "0 \<le> (real i + 1) * (content b *\<^sub>R indicator s a)"
           unfolding real_scaleR_def
-          apply (rule mult_nonneg_nonneg)
-          defer
-          apply (rule mult_nonneg_nonneg)
           using tagged_division_ofD(4)[OF q(1) as'']
-          apply auto
-          done
+          by (auto intro!: mult_nonneg_nonneg)
       next
         fix i :: nat
         show "finite (q i)"
@@ -7818,11 +7813,7 @@ proof -
     have "\<exists>l. 0 < l \<and> norm(l *\<^sub>R f' a) \<le> (e * (b - a)) / 8"
     proof (cases "f' a = 0")
       case True
-      then show ?thesis
-        apply (rule_tac x=1 in exI)
-        using ab e
-        apply (auto intro!:mult_nonneg_nonneg)
-        done
+      thus ?thesis using ab e by auto
     next
       case False
       then show ?thesis
@@ -7885,11 +7876,7 @@ proof -
     have "\<exists>l. 0 < l \<and> norm (l *\<^sub>R f' b) \<le> (e * (b - a)) / 8"
     proof (cases "f' b = 0")
       case True
-      then show ?thesis
-        apply (rule_tac x=1 in exI)
-        using ab e
-        apply (auto intro!: mult_nonneg_nonneg)
-        done
+      thus ?thesis using ab e by auto
     next
       case False
       then show ?thesis

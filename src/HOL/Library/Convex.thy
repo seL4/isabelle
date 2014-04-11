@@ -606,7 +606,7 @@ proof -
     have "z3 \<in> C" using z3 asm atMostAtLeast_subset_convex
       `convex C` `x \<in> C` `z1 \<in> C` `x < z1` by fastforce
     then have B': "f'' z3 \<ge> 0" using assms by auto
-    from A' B' have "(y - z1) * f'' z3 \<ge> 0" using mult_nonneg_nonneg by auto
+    from A' B' have "(y - z1) * f'' z3 \<ge> 0" by auto
     from cool' this have "f' y - (f x - f y) / (x - y) \<ge> 0" by auto
     from mult_right_mono_neg[OF this le(2)]
     have "f' y * (x - y) - (f x - f y) / (x - y) * (x - y) \<le> 0 * (x - y)"
@@ -621,7 +621,7 @@ proof -
     have "z2 \<in> C" using z2 z1 asm atMostAtLeast_subset_convex
       `convex C` `z1 \<in> C` `y \<in> C` `z1 < y` by fastforce
     then have B: "f'' z2 \<ge> 0" using assms by auto
-    from A B have "(z1 - x) * f'' z2 \<ge> 0" using mult_nonneg_nonneg by auto
+    from A B have "(z1 - x) * f'' z2 \<ge> 0" by auto
     from cool this have "(f y - f x) / (y - x) - f' x \<ge> 0" by auto
     from mult_right_mono[OF this ge(2)]
     have "(f y - f x) / (y - x) * (y - x) - f' x * (y - x) \<ge> 0 * (y - x)"

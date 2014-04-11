@@ -602,7 +602,7 @@ apply (subgoal_tac "0 \<le> b\<^sup>2 * c\<^sup>2 + a\<^sup>2 * d\<^sup>2 - 2 * 
 apply (rule_tac b="(a * d - b * c)\<^sup>2" in ord_le_eq_trans)
 apply (rule zero_le_power2)
 apply (simp add: power2_diff power_mult_distrib)
-apply (simp add: mult_nonneg_nonneg)
+apply (simp)
 apply simp
 apply (simp add: add_increasing)
 done

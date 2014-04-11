@@ -164,28 +164,24 @@ apply (rule_tac x = "\<lambda>n. if abs (g n) <= (abs (f n)) then x n else 0" in
 apply (rule conjI)
  apply (rule_tac x = "c + c" in exI)
  apply clarsimp
- apply auto
-  apply (subgoal_tac "c * abs (f xa + g xa) <= (c + c) * abs (f xa)")
-   apply (metis mult_2 order_trans)
-  apply (subgoal_tac "c * abs (f xa + g xa) <= c * (abs (f xa) + abs (g xa))")
-   apply (erule order_trans)
-   apply (simp add: ring_distribs)
-  apply (rule mult_left_mono)
-   apply (simp add: abs_triangle_ineq)
-  apply (simp add: order_less_le)
- apply (rule mult_nonneg_nonneg)
-  apply auto
+ apply (subgoal_tac "c * abs (f xa + g xa) <= (c + c) * abs (f xa)")
+  apply (metis mult_2 order_trans)
+ apply (subgoal_tac "c * abs (f xa + g xa) <= c * (abs (f xa) + abs (g xa))")
+  apply (erule order_trans)
+  apply (simp add: ring_distribs)
+ apply (rule mult_left_mono)
+  apply (simp add: abs_triangle_ineq)
+ apply (simp add: order_less_le)
 apply (rule_tac x = "\<lambda>n. if (abs (f n)) < abs (g n) then x n else 0" in exI)
 apply (rule conjI)
  apply (rule_tac x = "c + c" in exI)
  apply auto
- apply (subgoal_tac "c * abs (f xa + g xa) <= (c + c) * abs (g xa)")
-  apply (metis order_trans mult_2)
- apply (subgoal_tac "c * abs (f xa + g xa) <= c * (abs (f xa) + abs (g xa))")
-  apply (erule order_trans)
-  apply (simp add: ring_distribs)
- apply (metis abs_triangle_ineq mult_le_cancel_left_pos)
-by (metis abs_ge_zero abs_of_pos zero_le_mult_iff)
+apply (subgoal_tac "c * abs (f xa + g xa) <= (c + c) * abs (g xa)")
+ apply (metis order_trans mult_2)
+apply (subgoal_tac "c * abs (f xa + g xa) <= c * (abs (f xa) + abs (g xa))")
+ apply (erule order_trans)
+ apply (simp add: ring_distribs)
+by (metis abs_triangle_ineq mult_le_cancel_left_pos)
 
 lemma bigo_plus_subset2 [intro]: "A <= O(f) \<Longrightarrow> B <= O(f) \<Longrightarrow> A + B <= O(f)"
 by (metis bigo_plus_idemp set_plus_mono2)
@@ -713,6 +709,6 @@ by (auto simp add: func_plus fun_diff_def algebra_simps
 lemma bigo_lesso5: "f <o g =o O(h) \<Longrightarrow> \<exists>C. \<forall>x. f x <= g x + C * abs (h x)"
 apply (simp only: lesso_def bigo_alt_def)
 apply clarsimp
-by (metis abs_if abs_mult add_commute diff_le_eq less_not_permute)
+by (metis add_commute diff_le_eq)
 
 end
