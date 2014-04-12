@@ -225,6 +225,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val tracing_message_color = color_value("tracing_message_color")
   val warning_message_color = color_value("warning_message_color")
   val error_message_color = color_value("error_message_color")
+  val spell_checker_color = color_value("spell_checker_color")
   val bad_color = color_value("bad_color")
   val intensify_color = color_value("intensify_color")
   val quoted_color = color_value("quoted_color")
@@ -281,6 +282,15 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
         case Text.Info(_, _) =>
           Some(Completion.Language_Context.inner)
       }).headOption.map(_.info)
+
+
+  /* spell checker */
+
+  private lazy val spell_checker_elements =
+    Document.Elements(space_explode(',', options.string("spell_checker_elements")): _*)
+
+  def spell_checker_ranges(range: Text.Range): List[Text.Range] =
+    snapshot.select(range, spell_checker_elements, _ => _ => Some(())).map(_.range)
 
 
   /* command status overview */

@@ -85,7 +85,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
         }
       reactions += { case ValueChanged(`search`) => delay_search.invoke() }
     }, "Search Symbols")
-    pages map (p => p.title = (space_explode('_', p.title) map Library.capitalize).mkString(" ") )
+    pages.map(p => p.title = space_explode('_', p.title).map(Library.capitalize(_)).mkString(" "))
   }
   set_content(group_tabs)
 }

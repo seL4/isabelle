@@ -316,6 +316,19 @@ class Rich_Text_Area(
                 gfx.drawLine(x1, y1, x1 + 1, y1)
               }
             }
+
+            // spell-checker
+            for {
+              spell_checker <- PIDE.get_spell_checker
+              range0 <- rendering.spell_checker_ranges(line_range)
+              text <- JEdit_Lib.try_get_text(buffer, range0)
+              range <- spell_checker.bad_words(text)
+              r <- JEdit_Lib.gfx_range(text_area, range + range0.start)
+            } {
+              gfx.setColor(rendering.spell_checker_color)
+              val y0 = r.y + fm.getAscent + 2
+              gfx.drawLine(r.x, y0, r.x + r.length, y0)
+            }
           }
         }
       }

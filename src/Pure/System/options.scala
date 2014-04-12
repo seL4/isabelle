@@ -58,7 +58,7 @@ object Options
           case word :: rest if word == strip => rest
           case _ => words
         }
-      words1.map(Library.capitalize).mkString(" ")
+      words1.map(Library.capitalize(_)).mkString(" ")
     }
 
     def unknown: Boolean = typ == Unknown

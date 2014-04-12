@@ -47,6 +47,28 @@ object PIDE
   lazy val editor = new JEdit_Editor
 
 
+  /* spell checker */
+
+  private val no_spell_checker: (String, Exn.Result[Spell_Checker]) =
+    ("", Exn.Exn(ERROR("No spell checker")))
+
+  @volatile private var current_spell_checker = no_spell_checker
+
+  def get_spell_checker: Option[Spell_Checker] =
+    current_spell_checker match {
+      case (_, Exn.Res(spell_checker)) => Some(spell_checker)
+      case _ => None
+    }
+
+  def update_spell_checker(): Unit =
+    if (options.bool("spell_checker")) {
+      val lang = options.string("spell_checker_language")
+      if (current_spell_checker._1 != lang)
+        current_spell_checker = (lang, Exn.capture { Spell_Checker(lang) })
+    }
+    else current_spell_checker = no_spell_checker
+
+
   /* popups */
 
   def dismissed_popups(view: View): Boolean =
@@ -330,6 +352,7 @@ class Plugin extends EBPlugin
           }
 
         case msg: PropertiesChanged =>
+          PIDE.update_spell_checker()
           PIDE.session.update_options(PIDE.options.value)
 
         case _ =>
@@ -348,6 +371,7 @@ class Plugin extends EBPlugin
 
       PIDE.options.update(Options.init())
       PIDE.completion_history.load()
+      PIDE.update_spell_checker()
 
       SyntaxUtilities.setStyleExtender(new Token_Markup.Style_Extender)
       if (ModeProvider.instance.isInstanceOf[ModeProvider])

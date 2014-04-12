@@ -103,12 +103,19 @@ object Library
 
   /* strings */
 
-  def lowercase(str: String): String = str.toLowerCase(Locale.ENGLISH)
-  def uppercase(str: String): String = str.toUpperCase(Locale.ENGLISH)
+  def lowercase(str: String, locale: Locale = Locale.ENGLISH): String = str.toLowerCase(locale)
+  def uppercase(str: String, locale: Locale = Locale.ENGLISH): String = str.toUpperCase(locale)
 
-  def capitalize(str: String): String =
+  def capitalize(str: String, locale: Locale = Locale.ENGLISH): String =
     if (str.length == 0) str
-    else uppercase(str.substring(0, 1)) + str.substring(1)
+    else uppercase(str.substring(0, 1), locale) + str.substring(1)
+
+  def is_capitalized(str: String): Boolean =
+    str.length > 0 &&
+    Character.isUpperCase(str(0)) && str.substring(1).forall(Character.isLowerCase(_))
+
+  def is_all_caps(str: String): Boolean =
+    str.length > 0 && str.forall(Character.isUpperCase(_))
 
   def try_unprefix(prfx: String, s: String): Option[String] =
     if (s.startsWith(prfx)) Some(s.substring(prfx.length)) else None

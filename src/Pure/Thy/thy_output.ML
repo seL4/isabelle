@@ -24,7 +24,6 @@ sig
   val integer: string -> int
   datatype markup = Markup | MarkupEnv | Verbatim
   val eval_antiq: Scan.lexicon -> Toplevel.state -> Antiquote.antiq -> string
-  val eval_antiquote: Scan.lexicon -> Toplevel.state -> Symbol_Pos.text * Position.T -> string
   val check_text: Symbol_Pos.source -> Toplevel.state -> unit
   val present_thy: Scan.lexicon -> (string -> string list) -> (markup -> string -> bool) ->
     (Toplevel.transition * Toplevel.state) list -> Token.T list -> Buffer.T
@@ -157,7 +156,7 @@ val antiq =
 end;
 
 
-(* eval_antiquote *)
+(* eval_antiq *)
 
 fun eval_antiq lex state ((ss, {range = (pos, _), ...}): Antiquote.antiq) =
   let
@@ -169,17 +168,24 @@ fun eval_antiq lex state ((ss, {range = (pos, _), ...}): Antiquote.antiq) =
     val print_modes = space_explode "," (Config.get print_ctxt modes) @ Latex.modes;
   in Print_Mode.with_modes print_modes (fn () => cmd print_ctxt) () end;
 
+
+(* check_text *)
+
 fun eval_antiquote lex state (txt, pos) =
   let
+    fun words (Antiquote.Text ss) = [(#1 (Symbol_Pos.range ss), Markup.words)]
+      | words (Antiquote.Antiq _) = [];
+
     fun expand (Antiquote.Text ss) = Symbol_Pos.content ss
       | expand (Antiquote.Antiq antiq) = eval_antiq lex state antiq;
+
     val ants = Antiquote.read (Symbol_Pos.explode (txt, pos), pos);
+    val _ = Position.reports (maps words ants);
   in
     if Toplevel.is_toplevel state andalso not (forall Antiquote.is_text ants) then
       error ("Unknown context -- cannot expand document antiquotations" ^ Position.here pos)
     else implode (map expand ants)
   end;
-
 
 fun check_text {delimited, text, pos} state =
  (Position.report pos (Markup.language_document delimited);
