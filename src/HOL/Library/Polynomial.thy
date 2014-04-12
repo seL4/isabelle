@@ -1109,7 +1109,7 @@ lemma pos_poly_add: "\<lbrakk>pos_poly p; pos_poly q\<rbrakk> \<Longrightarrow> 
 lemma pos_poly_mult: "\<lbrakk>pos_poly p; pos_poly q\<rbrakk> \<Longrightarrow> pos_poly (p * q)"
   unfolding pos_poly_def
   apply (subgoal_tac "p \<noteq> 0 \<and> q \<noteq> 0")
-  apply (simp add: degree_mult_eq coeff_mult_degree_sum mult_pos_pos)
+  apply (simp add: degree_mult_eq coeff_mult_degree_sum)
   apply auto
   done
 

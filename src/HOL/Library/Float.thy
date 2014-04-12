@@ -751,7 +751,7 @@ lemma bitlen_pow2[simp]:
   assumes "b > 0"
   shows "bitlen (b * 2 ^ c) = bitlen b + c"
 proof -
-  from assms have "b * 2 ^ c > 0" by (auto intro: mult_pos_pos)
+  from assms have "b * 2 ^ c > 0" by auto
   thus ?thesis
     using floor_add[of "log 2 b" c] assms
     by (auto simp add: log_mult log_nat_power bitlen_def)
@@ -1108,7 +1108,7 @@ lemma lapprox_rat_nonneg:
   shows "0 \<le> real (lapprox_rat n x y)"
 using assms unfolding lapprox_rat_def p_def[symmetric] round_down_def real_of_int_minus[symmetric]
    powr_int[of 2, simplified]
-  by (auto simp add: inverse_eq_divide intro!: mult_nonneg_nonneg divide_nonneg_pos mult_pos_pos)
+  by (auto simp add: inverse_eq_divide intro!: mult_nonneg_nonneg divide_nonneg_pos)
 
 lemma rapprox_rat: "real x / real y \<le> real (rapprox_rat prec x y)"
   using round_up by (simp add: rapprox_rat_def)
@@ -1230,10 +1230,10 @@ proof (unfold real_divl_def)
       by (intro powr_mono) auto
     also have "\<dots> \<le> \<lfloor>2 powr 0\<rfloor>" by simp
     also have "\<dots> \<le> \<lfloor>2 powr real p / x\<rfloor>" unfolding real_of_int_le_iff
-      using x x_le by (intro floor_mono) (simp add:  pos_le_divide_eq mult_pos_pos)
+      using x x_le by (intro floor_mono) (simp add:  pos_le_divide_eq)
     finally show ?thesis
       using prec x unfolding p_def[symmetric]
-      by (simp add: round_down_def powr_minus_divide pos_le_divide_eq mult_pos_pos)
+      by (simp add: round_down_def powr_minus_divide pos_le_divide_eq)
   qed
 qed
 
@@ -1485,7 +1485,7 @@ proof -
       by simp
     also have "\<dots> \<le> y * 2 powr real prec / (2 powr (real \<lfloor>log 2 y\<rfloor> + 1))"
       using `0 \<le> y` `0 \<le> x` assms(2)
-      by (auto intro!: powr_mono mult_pos_pos divide_left_mono
+      by (auto intro!: powr_mono divide_left_mono
         simp: real_of_nat_diff powr_add
         powr_divide2[symmetric])
     also have "\<dots> = y * 2 powr real prec / (2 powr real \<lfloor>log 2 y\<rfloor> * 2)"

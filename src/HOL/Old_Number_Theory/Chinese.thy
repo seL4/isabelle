@@ -68,10 +68,7 @@ definition
 text {* \medskip @{term funprod} and @{term funsum} *}
 
 lemma funprod_pos: "(\<forall>i. i \<le> n --> 0 < mf i) ==> 0 < funprod mf 0 n"
-  apply (induct n)
-   apply auto
-  apply (simp add: zero_less_mult_iff)
-  done
+by (induct n) auto
 
 lemma funprod_zgcd [rule_format (no_asm)]:
   "(\<forall>i. k \<le> i \<and> i \<le> k + l --> zgcd (mf i) (mf m) = 1) -->

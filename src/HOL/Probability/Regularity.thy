@@ -144,7 +144,7 @@ proof -
   } note M_space = this
   {
     fix e ::real and n :: nat assume "e > 0" "n > 0"
-    hence "1/n > 0" "e * 2 powr - n > 0" by (auto intro: mult_pos_pos)
+    hence "1/n > 0" "e * 2 powr - n > 0" by (auto)
     from M_space[OF `1/n>0`]
     have "(\<lambda>k. measure M (\<Union>i\<in>{0..k}. cball (from_nat_into X i) (1/real n))) ----> measure M (space M)"
       unfolding emeasure_eq_measure by simp
@@ -271,7 +271,7 @@ proof -
         show "?G (1 / real (Suc i)) \<in> sets M" by (simp add: sb borel_open)
       next
         show "decseq (\<lambda>i. {x. infdist x A < 1 / real (Suc i)})"
-          by (auto intro: less_trans intro!: divide_strict_left_mono mult_pos_pos
+          by (auto intro: less_trans intro!: divide_strict_left_mono
             simp: decseq_def le_eq_less_or_eq)
       qed simp
       finally

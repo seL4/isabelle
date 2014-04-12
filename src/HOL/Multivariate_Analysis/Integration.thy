@@ -6738,7 +6738,7 @@ next
         defer
         apply (erule exE,rule_tac x=d in exI)
         using F e
-        apply (auto simp add:field_simps intro:mult_pos_pos)
+        apply (auto simp add:field_simps)
         done
     }
     {
@@ -6749,7 +6749,7 @@ next
         defer
         apply (erule exE,rule_tac x=d in exI)
         using F e
-        apply (auto simp add: field_simps intro: mult_pos_pos)
+        apply (auto simp add: field_simps)
         done
     }
   qed
@@ -7342,8 +7342,7 @@ proof -
   proof safe
     fix e :: real
     assume e: "e > 0"
-    then have "e * r > 0"
-      using assms(1) by (rule mult_pos_pos)
+    with assms(1) have "e * r > 0" by simp
     from assms(8)[unfolded has_integral,rule_format,OF this] guess d by (elim exE conjE) note d=this[rule_format]
     def d' \<equiv> "\<lambda>x. {y. g y \<in> d (g x)}"
     have d': "\<And>x. d' x = {y. g y \<in> (d (g x))}"

@@ -175,7 +175,7 @@ lemma B_ncong_p: "x \<in> B ==> ~[x = 0](mod p)"
   done
 
 lemma B_greater_zero: "x \<in> B ==> 0 < x"
-  using a_nonzero by (auto simp add: B_def mult_pos_pos A_greater_zero)
+  using a_nonzero by (auto simp add: B_def A_greater_zero)
 
 lemma C_ncong_p: "x \<in> C ==>  ~[x = 0](mod p)"
   apply (auto simp add: C_def)

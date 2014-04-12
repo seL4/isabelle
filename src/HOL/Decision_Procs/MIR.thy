@@ -3096,15 +3096,15 @@ next
   from 5 mult_strict_left_mono[OF dp cp, simplified real_of_int_less_iff[symmetric] 
     real_of_int_mult]
   show ?case using 5 dp 
-    by (simp add: add: numbound0_I[where bs="bs" and b="real i - real d" and b'="real i"] 
-      algebra_simps)
+    by (simp add: numbound0_I[where bs="bs" and b="real i - real d" and b'="real i"] 
+      algebra_simps del: mult_pos_pos)
 next
   case (6 c e) hence cp: "c > 0" by simp
   from 6 mult_strict_left_mono[OF dp cp, simplified real_of_int_less_iff[symmetric] 
     real_of_int_mult]
   show ?case using 6 dp 
-    by (simp add: add: numbound0_I[where bs="bs" and b="real i - real d" and b'="real i"] 
-      algebra_simps)
+    by (simp add: numbound0_I[where bs="bs" and b="real i - real d" and b'="real i"] 
+      algebra_simps del: mult_pos_pos)
 next
   case (7 c e) hence cp: "c >0" and nb: "numbound0 e" and ei: "isint e (real i#bs)"
     and nob: "\<forall> j\<in> {1 .. c*d}. real (c*i) \<noteq> - ?N i e + real j"
@@ -4747,8 +4747,7 @@ proof
       with \<Upsilon>_l[OF lp] have tnb: "numbound0 t" and np:"real n > 0" and snb: "numbound0 s" and mp:"real m > 0"
         by auto
       let ?st = "Add (Mul m t) (Mul n s)"
-      from mult_pos_pos[OF np mp] have mnp: "real (2*n*m) > 0" 
-        by (simp add: mult_commute)
+      from np mp have mnp: "real (2*n*m) > 0" by (simp add: mult_commute)
       from tnb snb have st_nb: "numbound0 ?st" by simp
       have st: "(?N t / real n + ?N s / real m)/2 = ?N ?st / real (2*n*m)"
         using mnp mp np by (simp add: algebra_simps add_divide_distrib)
@@ -4764,8 +4763,7 @@ next
     and px:"?I x (\<upsilon> p (Add (Mul l t) (Mul k s), 2*k*l))"
     with \<Upsilon>_l[OF lp] have tnb: "numbound0 t" and np:"real k > 0" and snb: "numbound0 s" and mp:"real l > 0" by auto
     let ?st = "Add (Mul l t) (Mul k s)"
-    from mult_pos_pos[OF np mp] have mnp: "real (2*k*l) > 0" 
-      by (simp add: mult_commute)
+    from np mp have mnp: "real (2*k*l) > 0" by (simp add: mult_commute)
     from tnb snb have st_nb: "numbound0 ?st" by simp
     from \<upsilon>_I[OF lp mnp st_nb, where bs="bs"] px have "?E" by auto}
   ultimately show "?E" by blast
@@ -4885,8 +4883,7 @@ proof-
     from aU bU \<Upsilon>_l[OF lrq] have tnb: "numbound0 t" and np:"real n > 0" and snb: "numbound0 s" and mp:"real m > 0" by (auto simp add: split_def)
     let ?st = "Add (Mul m t) (Mul n s)"
     from tnb snb have stnb: "numbound0 ?st" by simp
-    from mult_pos_pos[OF np mp] have mnp: "real (2*n*m) > 0" 
-      by (simp add: mult_commute)
+    from np mp have mnp: "real (2*n*m) > 0" by (simp add: mult_commute)
     from conjunct1[OF \<upsilon>_I[OF lrq mnp stnb, where bs="bs" and x="x"], symmetric] rqx
     have "\<exists> x. ?I x ?rq" by auto
     thus "?E" 
@@ -4966,7 +4963,7 @@ proof
   from tnU smU U have tnb: "numbound0 t" and np: "n > 0" 
     and snb: "numbound0 s" and mp:"m > 0"  by auto
   let ?st= "Add (Mul m t) (Mul n s)"
-  from mult_pos_pos[OF np mp] have mnp: "real (2*n*m) > 0" 
+  from np mp have mnp: "real (2*n*m) > 0" 
       by (simp add: mult_commute real_of_int_mult[symmetric] del: real_of_int_mult)
     from tnb snb have stnb: "numbound0 ?st" by simp
   have st: "(?N t / real n + ?N s / real m)/2 = ?N ?st / real (2*n*m)"
@@ -4994,7 +4991,7 @@ next
   from tnU smU U have tnb: "numbound0 t" and np: "n > 0" 
     and snb: "numbound0 s" and mp:"m > 0"  by auto
   let ?st= "Add (Mul m t) (Mul n s)"
-  from mult_pos_pos[OF np mp] have mnp: "real (2*n*m) > 0" 
+  from np mp have mnp: "real (2*n*m) > 0" 
       by (simp add: mult_commute real_of_int_mult[symmetric] del: real_of_int_mult)
     from tnb snb have stnb: "numbound0 ?st" by simp
   have st: "(?N t / real n + ?N s / real m)/2 = ?N ?st / real (2*n*m)"
@@ -5030,7 +5027,7 @@ proof-
   from U_l UpU 
   have "\<forall> ((t,n),(s,m)) \<in> set ?Up. numbound0 t \<and> n> 0 \<and> numbound0 s \<and> m > 0" by auto
   hence Snb: "\<forall> (t,n) \<in> set ?S. numbound0 t \<and> n > 0 "
-    by (auto simp add: mult_pos_pos)
+    by (auto)
   have Y_l: "\<forall> (t,n) \<in> set ?Y. numbound0 t \<and> n > 0" 
   proof-
     { fix t n assume tnY: "(t,n) \<in> set ?Y" 

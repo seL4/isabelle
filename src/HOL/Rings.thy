@@ -568,7 +568,7 @@ lemma mult_right_le_imp_le:
   "a * c \<le> b * c \<Longrightarrow> 0 < c \<Longrightarrow> a \<le> b"
 by (force simp add: mult_strict_right_mono not_less [symmetric])
 
-lemma mult_pos_pos: "0 < a \<Longrightarrow> 0 < b \<Longrightarrow> 0 < a * b"
+lemma mult_pos_pos[simp]: "0 < a \<Longrightarrow> 0 < b \<Longrightarrow> 0 < a * b"
 using mult_strict_left_mono [of 0 b a] by simp
 
 lemma mult_pos_neg: "0 < a \<Longrightarrow> b < 0 \<Longrightarrow> a * b < 0"
@@ -602,7 +602,7 @@ lemma mult_strict_mono:
   assumes "a < b" and "c < d" and "0 < b" and "0 \<le> c"
   shows "a * c < b * d"
   using assms apply (cases "c=0")
-  apply (simp add: mult_pos_pos)
+  apply (simp)
   apply (erule mult_strict_right_mono [THEN less_trans])
   apply (force simp add: le_less)
   apply (erule mult_strict_left_mono, assumption)
@@ -824,7 +824,7 @@ proof
       show ?thesis by (auto dest: mult_strict_right_mono_neg)
     next
       case False with B have "0 < b" by auto
-      with A' show ?thesis by (auto dest: mult_pos_pos)
+      with A' show ?thesis by auto
     qed
   qed
   then show "a * b \<noteq> 0" by (simp add: neq_iff)
@@ -832,7 +832,7 @@ qed
 
 lemma zero_less_mult_iff: "0 < a * b \<longleftrightarrow> 0 < a \<and> 0 < b \<or> a < 0 \<and> b < 0"
   by (cases a 0 b 0 rule: linorder_cases[case_product linorder_cases])
-     (auto simp add: mult_pos_pos mult_neg_neg not_less le_less dest: zero_less_mult_pos zero_less_mult_pos2)
+     (auto simp add: mult_neg_neg not_less le_less dest: zero_less_mult_pos zero_less_mult_pos2)
 
 lemma zero_le_mult_iff: "0 \<le> a * b \<longleftrightarrow> 0 \<le> a \<and> 0 \<le> b \<or> a \<le> 0 \<and> b \<le> 0"
   by (auto simp add: eq_commute [of 0] le_less not_less zero_less_mult_iff)

@@ -297,7 +297,7 @@ begin
 
 lemma zero_less_power [simp]:
   "0 < a \<Longrightarrow> 0 < a ^ n"
-  by (induct n) (simp_all add: mult_pos_pos)
+  by (induct n) simp_all
 
 lemma zero_le_power [simp]:
   "0 \<le> a \<Longrightarrow> 0 \<le> a ^ n"

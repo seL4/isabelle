@@ -2832,9 +2832,7 @@ proof -
   then show ?thesis
     unfolding bounded_pos
     apply (rule_tac x="b*B" in exI)
-    using b B mult_pos_pos [of b B]
-    apply (auto simp add: mult_commute)
-    done
+    using b B by (auto simp add: mult_commute)
 qed
 
 lemma bounded_scaling:
@@ -4138,7 +4136,7 @@ lemma nat_approx_posE:
   obtains n :: nat where "1 / (Suc n) < e"
 proof atomize_elim
   have " 1 / real (Suc (nat (ceiling (1/e)))) < 1 / (ceiling (1/e))"
-    by (rule divide_strict_left_mono) (auto intro!: mult_pos_pos simp: `0 < e`)
+    by (rule divide_strict_left_mono) (auto simp: `0 < e`)
   also have "1 / (ceiling (1/e)) \<le> 1 / (1/e)"
     by (rule divide_left_mono) (auto simp: `0 < e`)
   also have "\<dots> = e" by simp
@@ -5321,9 +5319,7 @@ proof -
       and e:"\<forall>x'. dist x' x < e \<longrightarrow> x' \<in> s" using assms(2)[unfolded open_dist, THEN bspec[where x=x]]
       by auto
     have "e * abs c > 0"
-      using assms(1)[unfolded zero_less_abs_iff[symmetric]]
-      using mult_pos_pos[OF `e>0`]
-      by auto
+      using assms(1)[unfolded zero_less_abs_iff[symmetric]] `e>0` by auto
     moreover
     {
       fix y
@@ -7036,8 +7032,7 @@ proof -
     fix d :: real
     assume "d > 0"
     then obtain N where N:"\<forall>n\<ge>N. norm (f (x n) - f (x N)) < e * d"
-      using cf[unfolded cauchy o_def dist_norm, THEN spec[where x="e*d"]]
-        and e and mult_pos_pos[of e d]
+      using cf[unfolded cauchy o_def dist_norm, THEN spec[where x="e*d"]] e
       by auto
     {
       fix n
@@ -7400,7 +7395,7 @@ proof -
       then have "d>0" unfolding d_def using zero_le_dist[of "z 0" "z 1"]
         by (metis False d_def less_le)
       hence "0 < e * (1 - c) / d"
-        using `e>0` and `1-c>0` mult_pos_pos[of e "1 - c"] by auto
+        using `e>0` and `1-c>0` by auto
       then obtain N where N:"c ^ N < e * (1 - c) / d"
         using real_arch_pow_inv[of "e * (1 - c) / d" c] and c by auto
       {
@@ -7411,7 +7406,7 @@ proof -
         have "1 - c ^ (m - n) > 0"
           using c and power_strict_mono[of c 1 "m - n"] using `m>n` by auto
         hence **: "d * (1 - c ^ (m - n)) / (1 - c) > 0"
-          using mult_pos_pos[OF `d>0`, of "1 - c ^ (m - n)"] `0 < 1 - c` by auto
+          using `d>0` `0 < 1 - c` by auto
 
         have "dist (z m) (z n) \<le> c ^ n * d * (1 - c ^ (m - n)) / (1 - c)"
           using cf_z2[of n "m - n"] and `m>n`

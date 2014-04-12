@@ -1062,7 +1062,7 @@ proof -
       with goal1 have "0 < Px (fst x)" "0 < Pz (snd (snd x))" "0 < Pxz (fst x, snd (snd x))" "0 < Pyz (snd x)" "0 < Pxyz x"
         by auto
       then show ?thesis
-        using b_gt_1 by (simp add: log_simps mult_pos_pos less_imp_le field_simps)
+        using b_gt_1 by (simp add: log_simps less_imp_le field_simps)
     qed simp
   qed
   with I1 I2 show ?eq
@@ -1174,7 +1174,7 @@ proof -
     show "AE x in ?P. ?f x \<in> {0<..}"
       unfolding AE_density[OF distributed_borel_measurable[OF Pxyz]]
       using ae1 ae2 ae3 ae4 ae5 ae6 ae7 ae8 Pxyz[THEN distributed_real_AE]
-      by eventually_elim (auto simp: mult_pos_pos)
+      by eventually_elim (auto)
     show "integrable ?P ?f"
       unfolding integrable_def 
       using fin neg by (auto simp: split_beta')
@@ -1280,7 +1280,7 @@ proof -
       with goal1 have "0 < Px (fst x)" "0 < Pz (snd (snd x))" "0 < Pxz (fst x, snd (snd x))" "0 < Pyz (snd x)" "0 < Pxyz x"
         by auto
       then show ?thesis
-        using b_gt_1 by (simp add: log_simps mult_pos_pos less_imp_le field_simps)
+        using b_gt_1 by (simp add: log_simps less_imp_le field_simps)
     qed simp
   qed
 
@@ -1419,7 +1419,7 @@ proof -
     show "AE x in ?P. ?f x \<in> {0<..}"
       unfolding AE_density[OF distributed_borel_measurable[OF Pxyz]]
       using ae1 ae2 ae3 ae4 ae5 ae6 ae7 ae8 Pxyz[THEN distributed_real_AE]
-      by eventually_elim (auto simp: mult_pos_pos)
+      by eventually_elim (auto)
     show "integrable ?P ?f"
       unfolding integrable_def
       using fin neg by (auto simp: split_beta')
@@ -1601,7 +1601,7 @@ proof -
     by eventually_elim auto
   then have ae: "AE x in S \<Otimes>\<^sub>M T.
      Pxy x * log b (Pxy x) - Pxy x * log b (Py (snd x)) = Pxy x * log b (Pxy x / Py (snd x))"
-    by eventually_elim (auto simp: log_simps mult_pos_pos field_simps b_gt_1)
+    by eventually_elim (auto simp: log_simps field_simps b_gt_1)
   have "conditional_entropy b S T X Y = 
     - (\<integral>x. Pxy x * log b (Pxy x) - Pxy x * log b (Py (snd x)) \<partial>(S \<Otimes>\<^sub>M T))"
     unfolding conditional_entropy_generic_eq[OF S T Py Pxy] neg_equal_iff_equal
@@ -1752,7 +1752,7 @@ proof -
       with goal1 have "0 < Px (fst x)" "0 < Py (snd x)" "0 < Pxy x"
         by auto
       then show ?thesis
-        using b_gt_1 by (simp add: log_simps mult_pos_pos less_imp_le field_simps)
+        using b_gt_1 by (simp add: log_simps less_imp_le field_simps)
     qed simp
   qed
 

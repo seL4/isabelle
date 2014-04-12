@@ -282,8 +282,7 @@ proof (rule cauchyI)
   from b i have nz: "\<forall>n\<ge>i. X n \<noteq> 0" by auto
   obtain s where s: "0 < s" and r: "r = inverse b * s * inverse b"
   proof
-    show "0 < b * r * b"
-      by (simp add: `0 < r` b mult_pos_pos)
+    show "0 < b * r * b" by (simp add: `0 < r` b)
     show "r = inverse b * (b * r * b) * inverse b"
       using b by simp
   qed
@@ -297,7 +296,7 @@ proof (rule cauchyI)
       by (simp add: inverse_diff_inverse nz * abs_mult)
     also have "\<dots> < inverse b * s * inverse b"
       by (simp add: mult_strict_mono less_imp_inverse_less
-                    mult_pos_pos i j b * s)
+                    i j b * s)
     finally show "\<bar>inverse (X m) - inverse (X n)\<bar> < r" unfolding r .
   qed
   thus "\<exists>k. \<forall>m\<ge>k. \<forall>n\<ge>k. \<bar>inverse (X m) - inverse (X n)\<bar> < r" ..
@@ -317,7 +316,7 @@ proof (rule vanishesI)
   obtain s where s: "0 < s" and "inverse a * s * inverse b = r"
   proof
     show "0 < a * r * b"
-      using a r b by (simp add: mult_pos_pos)
+      using a r b by simp
     show "inverse a * (a * r * b) * inverse b = r"
       using a r b by simp
   qed
@@ -564,7 +563,7 @@ lemma positive_mult:
   "positive x \<Longrightarrow> positive y \<Longrightarrow> positive (x * y)"
 apply transfer
 apply (clarify, rename_tac a b i j)
-apply (rule_tac x="a * b" in exI, simp add: mult_pos_pos)
+apply (rule_tac x="a * b" in exI, simp)
 apply (rule_tac x="max i j" in exI, clarsimp)
 apply (rule mult_strict_mono, auto)
 done
@@ -907,7 +906,7 @@ proof -
       have "\<bar>(b - a) / 2 ^ n\<bar> = \<bar>b - a\<bar> / 2 ^ n"
         by simp
       also have "\<dots> \<le> \<bar>b - a\<bar> / 2 ^ k"
-        using n by (simp add: divide_left_mono mult_pos_pos)
+        using n by (simp add: divide_left_mono)
       also note k
       finally show "\<bar>(b - a) / 2 ^ n\<bar> < r" .
     qed

@@ -429,7 +429,7 @@ lemma positive_add:
 apply transfer
 apply (simp add: zero_less_mult_iff)
 apply (elim disjE, simp_all add: add_pos_pos add_neg_neg
-  mult_pos_pos mult_pos_neg mult_neg_pos mult_neg_neg)
+  mult_pos_neg mult_neg_pos mult_neg_neg)
 done
 
 lemma positive_mult:
@@ -726,7 +726,7 @@ lemma of_rat_less:
 proof (induct r, induct s)
   fix a b c d :: int
   assume not_zero: "b > 0" "d > 0"
-  then have "b * d > 0" by (rule mult_pos_pos)
+  then have "b * d > 0" by simp
   have of_int_divide_less_eq:
     "(of_int a :: 'a) / of_int b < of_int c / of_int d
       \<longleftrightarrow> (of_int a :: 'a) * of_int d < of_int c * of_int b"

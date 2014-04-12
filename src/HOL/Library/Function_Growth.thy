@@ -223,7 +223,7 @@ proof -
         with * show "f m \<le> (c\<^sub>1 * c\<^sub>2) * h m" by (rule order_trans)
       qed
       then have "\<exists>n. \<forall>m>n. f m \<le> (c\<^sub>1 * c\<^sub>2) * h m" by rule
-      moreover from `c\<^sub>1 > 0` `c\<^sub>2 > 0` have "c\<^sub>1 * c\<^sub>2 > 0" by (rule mult_pos_pos)
+      moreover from `c\<^sub>1 > 0` `c\<^sub>2 > 0` have "c\<^sub>1 * c\<^sub>2 > 0" by simp
       ultimately show "\<exists>c>0. \<exists>n. \<forall>m>n. f m \<le> c * h m" by blast
     qed
   qed

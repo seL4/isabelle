@@ -62,8 +62,7 @@ lemma bigo_elt_subset [intro]: "f \<in> O(g) \<Longrightarrow> O(f) \<le> O(g)"
   apply (auto simp add: bigo_alt_def)
   apply (rule_tac x = "ca * c" in exI)
   apply (rule conjI)
-  apply (rule mult_pos_pos)
-  apply assumption+
+  apply simp
   apply (rule allI)
   apply (drule_tac x = "xa" in spec)+
   apply (subgoal_tac "ca * abs (f xa) \<le> ca * (c * abs (g xa))")

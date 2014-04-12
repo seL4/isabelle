@@ -570,7 +570,7 @@ apply (unfold Infinitesimal_def, clarify, rename_tac r s)
 apply (simp only: linorder_not_less hnorm_mult)
 apply (drule_tac x = "r * s" in bspec)
 apply (fast intro: Reals_mult)
-apply (drule mp, blast intro: mult_pos_pos)
+apply (simp)
 apply (drule_tac c = s and d = "hnorm y" and a = r and b = "hnorm x" in mult_mono)
 apply (simp_all (no_asm_simp))
 done

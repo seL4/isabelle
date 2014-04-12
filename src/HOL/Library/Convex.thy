@@ -391,7 +391,7 @@ proof safe
   { assume "\<mu> \<noteq> 1" "\<mu> \<noteq> 0"
     then have "\<mu> > 0" "(1 - \<mu>) > 0" using asms by auto
     then have "\<mu> *\<^sub>R x + (1 - \<mu>) *\<^sub>R y > 0" using asms
-      by (auto simp add: add_pos_pos mult_pos_pos) }
+      by (auto simp add: add_pos_pos) }
   ultimately show "(1 - \<mu>) *\<^sub>R y + \<mu> *\<^sub>R x > 0" using assms by fastforce
 qed
 
@@ -666,7 +666,7 @@ proof -
   then have f''0: "\<And>z :: real. z > 0 \<Longrightarrow> DERIV (\<lambda> z. - 1 / (ln b * z)) z :> 1 / (ln b * z * z)"
     unfolding inverse_eq_divide by (auto simp add: mult_assoc)
   have f''_ge0: "\<And>z :: real. z > 0 \<Longrightarrow> 1 / (ln b * z * z) \<ge> 0"
-    using `b > 1` by (auto intro!:less_imp_le simp add: mult_pos_pos)
+    using `b > 1` by (auto intro!:less_imp_le)
   from f''_ge0_imp_convex[OF pos_is_convex,
     unfolded greaterThan_iff, OF f' f''0 f''_ge0]
   show ?thesis by auto

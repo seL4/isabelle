@@ -1244,7 +1244,7 @@ by (cases "finite A", induct set: finite, simp_all)
 
 lemma setprod_pos [rule_format]: "(ALL x: A. (0::'a::linordered_semidom) < f x)
   --> 0 < setprod f A"
-by (cases "finite A", induct set: finite, simp_all add: mult_pos_pos)
+by (cases "finite A", induct set: finite, simp_all)
 
 lemma setprod_diff1: "finite A ==> f a \<noteq> 0 ==>
   (setprod f (A - {a}) :: 'a :: {field}) =

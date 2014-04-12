@@ -174,7 +174,7 @@ lemma B_ncong_p: "x \<in> B \<Longrightarrow> [x \<noteq> 0](mod p)"
   by (auto simp add: B_def) (metis cong_prime_prod_zero_int A_ncong_p p_a_relprime p_prime)
 
 lemma B_greater_zero: "x \<in> B \<Longrightarrow> 0 < x"
-  using a_nonzero by (auto simp add: B_def mult_pos_pos A_greater_zero)
+  using a_nonzero by (auto simp add: B_def A_greater_zero)
 
 lemma C_greater_zero: "y \<in> C \<Longrightarrow> 0 < y"
 proof (auto simp add: C_def)

@@ -114,7 +114,7 @@ proof -
   moreover
   { assume a: "a \<noteq>0" and a': "a'\<noteq>0"
     hence bp: "b > 0" "b' > 0" using xn yn x y by (simp_all add: isnormNum_def)
-    from mult_pos_pos[OF bp] have "x *\<^sub>N y = normNum (a * a', b * b')"
+    from bp have "x *\<^sub>N y = normNum (a * a', b * b')"
       using x y a a' bp by (simp add: Nmul_def Let_def split_def normNum_def)
     hence ?thesis by simp }
   ultimately show ?thesis by blast

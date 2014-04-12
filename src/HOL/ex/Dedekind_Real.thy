@@ -368,7 +368,7 @@ proof -
   from preal_exists_bound [OF B] obtain y where 2 [simp]: "0 < y" "y \<notin> B" by blast
   show ?thesis
   proof (intro exI conjI)
-    show "0 < x*y" by (simp add: mult_pos_pos)
+    show "0 < x*y" by simp
     show "x * y \<notin> mult_set A B"
     proof -
       {

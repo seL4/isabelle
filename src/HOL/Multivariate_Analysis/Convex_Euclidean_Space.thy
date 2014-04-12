@@ -3299,7 +3299,7 @@ proof -
   then have "ball (x - e *\<^sub>R (x - c)) (e*d) \<inter> affine hull S \<subseteq> S"
     by auto
   moreover have "e * d > 0"
-    using `e > 0` `d > 0` by (rule mult_pos_pos)
+    using `e > 0` `d > 0` by simp
   moreover have c: "c \<in> S"
     using assms rel_interior_subset by auto
   moreover from c have "x - e *\<^sub>R (x - c) \<in> S"
@@ -3453,7 +3453,7 @@ proof -
     case True
     then show ?thesis using `e > 0` `d > 0`
       apply (rule_tac bexI[where x=x])
-      apply (auto intro!: mult_pos_pos)
+      apply (auto)
       done
   next
     case False
@@ -3473,8 +3473,7 @@ proof -
     next
       case False
       then have "0 < e * d / (1 - e)" and *: "1 - e > 0"
-        using `e \<le> 1` `e > 0` `d > 0`
-        by (auto intro!:mult_pos_pos divide_pos_pos)
+        using `e \<le> 1` `e > 0` `d > 0` by (auto)
       then obtain y where "y \<in> S" "y \<noteq> x" "dist y x < e * d / (1 - e)"
         using x[unfolded islimpt_approachable,THEN spec[where x="e*d / (1 - e)"]] by auto
       then show ?thesis
@@ -3602,7 +3601,7 @@ proof -
     then have e1: "e1 > 0" "\<And>x. e1 * norm (f x) \<le> norm x"
       using K pos_le_divide_eq[of e1] by auto
     def e \<equiv> "e1 * e2"
-    then have "e > 0" using e1 e2 mult_pos_pos by auto
+    then have "e > 0" using e1 e2 by auto
     {
       fix y
       assume y: "y \<in> cball x e \<inter> affine hull S"
@@ -3645,8 +3644,7 @@ proof -
         subspace_span[of S] closed_subspace[of "span S"]
       by auto
     def e \<equiv> "e1 * e2"
-    then have "e > 0"
-      using e1 e2 mult_pos_pos by auto
+    hence "e > 0" using e1 e2 by auto
     {
       fix y
       assume y: "y \<in> cball (f x) e \<inter> affine hull (f ` S)"
@@ -6091,7 +6089,7 @@ proof (rule,rule,rule)
       }
       ultimately show ?thesis by auto
     qed (insert `0<e`, auto)
-  qed (insert `0<e` `0<k` `0<B`, auto simp add:field_simps intro!:mult_pos_pos)
+  qed (insert `0<e` `0<k` `0<B`, auto simp: field_simps)
 qed
 
 
@@ -6513,7 +6511,7 @@ proof -
       using assms(3-5)
       apply auto
       done
-  qed (rule mult_pos_pos, insert `e>0` `d>0`, auto)
+  qed (insert `e>0` `d>0`, auto)
 qed
 
 lemma mem_interior_closure_convex_shrink:
@@ -6533,7 +6531,7 @@ proof -
     then show ?thesis
       using `e > 0` `d > 0`
       apply (rule_tac bexI[where x=x])
-      apply (auto intro!: mult_pos_pos)
+      apply (auto)
       done
   next
     case False
@@ -6553,8 +6551,7 @@ proof -
     next
       case False
       then have "0 < e * d / (1 - e)" and *: "1 - e > 0"
-        using `e \<le> 1` `e > 0` `d > 0`
-        by (auto intro!:mult_pos_pos divide_pos_pos)
+        using `e \<le> 1` `e > 0` `d > 0` by auto
       then obtain y where "y \<in> s" "y \<noteq> x" "dist y x < e * d / (1 - e)"
         using x[unfolded islimpt_approachable,THEN spec[where x="e*d / (1 - e)"]] by auto
       then show ?thesis

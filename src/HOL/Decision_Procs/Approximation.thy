@@ -734,8 +734,7 @@ lemma cos_boundaries: assumes "0 \<le> real x" and "x \<le> pi / 2"
 proof (cases "real x = 0")
   case False hence "real x \<noteq> 0" by auto
   hence "0 < x" and "0 < real x" using `0 \<le> real x` by auto
-  have "0 < x * x" using `0 < x`
-    using mult_pos_pos[where a="real x" and b="real x"] by auto
+  have "0 < x * x" using `0 < x` by simp
 
   { fix x n have "(\<Sum> i=0..<n. -1^i * (1/real (fact (2 * i))) * x ^ (2 * i))
     = (\<Sum> i = 0 ..< 2 * n. (if even(i) then (-1 ^ (i div 2))/(real (fact i)) else 0) * x ^ i)" (is "?sum = ?ifsum")
@@ -851,8 +850,7 @@ lemma sin_boundaries: assumes "0 \<le> real x" and "x \<le> pi / 2"
 proof (cases "real x = 0")
   case False hence "real x \<noteq> 0" by auto
   hence "0 < x" and "0 < real x" using `0 \<le> real x` by auto
-  have "0 < x * x" using `0 < x`
-    using mult_pos_pos[where a="real x" and b="real x"] by auto
+  have "0 < x * x" using `0 < x` by simp
 
   { fix x n have "(\<Sum> j = 0 ..< n. -1 ^ (((2 * j + 1) - Suc 0) div 2) / (real (fact (2 * j + 1))) * x ^(2 * j + 1))
     = (\<Sum> i = 0 ..< 2 * n. (if even(i) then 0 else (-1 ^ ((i - Suc 0) div 2))/(real (fact i))) * x ^ i)" (is "?SUM = _")

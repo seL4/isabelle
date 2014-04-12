@@ -361,7 +361,7 @@ proof-
     from real_lbound_gt_zero[OF one0 em0]
     obtain d where d: "d >0" "d < 1" "d < e / m" by blast
     from d(1,3) m(1) have dm: "d*m > 0" "d*m < e"
-      by (simp_all add: field_simps mult_pos_pos)
+      by (simp_all add: field_simps)
     show ?case
       proof(rule ex_forward[OF real_lbound_gt_zero[OF one0 em0]], clarsimp simp add: norm_mult)
         fix d w

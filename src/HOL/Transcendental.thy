@@ -1465,7 +1465,7 @@ proof -
   also have "... <= (1 + x + x\<^sup>2) / exp (x \<^sup>2)"
     by (metis a b divide_right_mono exp_bound exp_ge_zero)
   also have "... <= (1 + x + x\<^sup>2) / (1 + x\<^sup>2)"
-    by (simp add: a divide_left_mono mult_pos_pos add_pos_nonneg)
+    by (simp add: a divide_left_mono add_pos_nonneg)
   also from a have "... <= 1 + x"
     by (simp add: field_simps add_strict_increasing zero_le_mult_iff)
   finally have "exp (x - x\<^sup>2) <= 1 + x" .
@@ -2378,7 +2378,7 @@ proof -
       by (intro mult_strict_right_mono zero_less_power `0 < x`)
     thus "0 < ?f n"
       by (simp del: mult_Suc,
-        simp add: less_divide_eq mult_pos_pos field_simps del: mult_Suc)
+        simp add: less_divide_eq field_simps del: mult_Suc)
   qed
   have sums: "?f sums sin x"
     by (rule sin_paired [THEN sums_group], simp)
@@ -2962,8 +2962,7 @@ proof -
   hence "0 < cos z" using cos_gt_zero_pi by auto
   hence inv_pos: "0 < inverse ((cos z)\<^sup>2)" by auto
   have "0 < x - y" using `y < x` by auto
-  from mult_pos_pos [OF this inv_pos]
-  have "0 < tan x - tan y" unfolding tan_diff by auto
+  with inv_pos have "0 < tan x - tan y" unfolding tan_diff by auto
   thus ?thesis by auto
 qed
 
