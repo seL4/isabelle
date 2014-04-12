@@ -136,6 +136,8 @@ object Rendering
       Markup.CARTOUCHE, Markup.COMMENT, Markup.LANGUAGE,
       Markup.ML_STRING, Markup.ML_COMMENT)
 
+  private val prose_words_elements = Document.Elements(Markup.WORDS)
+
   private val highlight_elements =
     Document.Elements(Markup.LANGUAGE, Markup.ML_TYPING, Markup.TOKEN_RANGE,
       Markup.ENTITY, Markup.PATH, Markup.URL, Markup.SORTING,
@@ -281,6 +283,12 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
         case Text.Info(_, _) =>
           Some(Completion.Language_Context.inner)
       }).headOption.map(_.info)
+
+
+  /* prose words */
+
+  def prose_words(range: Text.Range): List[Text.Range] =
+    snapshot.select(range, Rendering.prose_words_elements, _ => _ => Some(())).map(_.range)
 
 
   /* command status overview */

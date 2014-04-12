@@ -137,7 +137,9 @@ object Markup
   val SEPARATOR = "separator"
 
 
-  /* hidden text */
+  /* text properties */
+
+  val WORDS = "words"
 
   val HIDDEN = "hidden"
 

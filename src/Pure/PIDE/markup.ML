@@ -62,6 +62,7 @@ sig
   val breakN: string val break: int -> T
   val fbreakN: string val fbreak: T
   val itemN: string val item: T
+  val wordsN: string val words: T
   val hiddenN: string val hidden: T
   val system_optionN: string
   val theoryN: string
@@ -354,7 +355,9 @@ val (fbreakN, fbreak) = markup_elem "fbreak";
 val (itemN, item) = markup_elem "item";
 
 
-(* hidden text *)
+(* text properties *)
+
+val (wordsN, words) = markup_elem "words";
 
 val (hiddenN, hidden) = markup_elem "hidden";
 
