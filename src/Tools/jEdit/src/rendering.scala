@@ -136,8 +136,6 @@ object Rendering
       Markup.CARTOUCHE, Markup.COMMENT, Markup.LANGUAGE,
       Markup.ML_STRING, Markup.ML_COMMENT)
 
-  private val prose_words_elements = Document.Elements(Markup.WORDS)
-
   private val highlight_elements =
     Document.Elements(Markup.LANGUAGE, Markup.ML_TYPING, Markup.TOKEN_RANGE,
       Markup.ENTITY, Markup.PATH, Markup.URL, Markup.SORTING,
@@ -286,10 +284,13 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       }).headOption.map(_.info)
 
 
-  /* prose words */
+  /* spell checker */
 
-  def prose_words(range: Text.Range): List[Text.Range] =
-    snapshot.select(range, Rendering.prose_words_elements, _ => _ => Some(())).map(_.range)
+  private lazy val spell_checker_elements =
+    Document.Elements(space_explode(',', options.string("spell_checker_elements")): _*)
+
+  def spell_checker_ranges(range: Text.Range): List[Text.Range] =
+    snapshot.select(range, spell_checker_elements, _ => _ => Some(())).map(_.range)
 
 
   /* command status overview */

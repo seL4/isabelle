@@ -320,7 +320,7 @@ class Rich_Text_Area(
             // spell-checker
             for {
               spell_checker <- PIDE.get_spell_checker
-              range0 <- rendering.prose_words(line_range).iterator
+              range0 <- rendering.spell_checker_ranges(line_range)
               text <- JEdit_Lib.try_get_text(buffer, range0)
               range <- spell_checker.bad_words(text)
               r <- JEdit_Lib.gfx_range(text_area, range + range0.start)

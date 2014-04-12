@@ -57,6 +57,9 @@ public option spell_checker : bool = true
 public option spell_checker_language : string = "en"
   -- "language for spell-checker locale and dictionary (en, de, fr)"
 
+public option spell_checker_elements : string = "words,ML_comment,SML_comment"
+  -- "relevant markup elements for spell-checker, separated by commas"
+
 
 section "Rendering of Document Content"
 
