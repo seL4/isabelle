@@ -954,6 +954,26 @@ lemma apsnd_apfst_commute:
   "apsnd f (apfst g p) = apfst g (apsnd f p)"
   by simp
 
+definition swap :: "'a \<times> 'b \<Rightarrow> 'b \<times> 'a"
+where
+  "swap p = (snd p, fst p)"
+
+lemma swap_simp [simp]:
+  "swap (x, y) = (y, x)"
+  by (simp add: swap_def)
+
+lemma pair_in_swap_image [simp]:
+  "(y, x) \<in> swap ` A \<longleftrightarrow> (x, y) \<in> A"
+  by (auto intro!: image_eqI)
+
+lemma inj_swap [simp]:
+  "inj_on swap A"
+  by (rule inj_onI) (auto simp add: swap_def)
+
+lemma case_swap [simp]:
+  "(case swap p of (y, x) \<Rightarrow> f x y) = (case p of (x, y) \<Rightarrow> f x y)"
+  by (cases p) simp
+
 text {*
   Disjoint union of a family of sets -- Sigma.
 *}
@@ -1085,13 +1105,13 @@ text {*
 *}
 
 lemma Times_Un_distrib1: "(A Un B) <*> C = (A <*> C) Un (B <*> C)"
-by blast
+  by (fact Sigma_Un_distrib1)
 
 lemma Times_Int_distrib1: "(A Int B) <*> C = (A <*> C) Int (B <*> C)"
-by blast
+  by (fact Sigma_Int_distrib1)
 
 lemma Times_Diff_distrib1: "(A - B) <*> C = (A <*> C) - (B <*> C)"
-by blast
+  by (fact Sigma_Diff_distrib1)
 
 lemma Times_empty[simp]: "A \<times> B = {} \<longleftrightarrow> A = {} \<or> B = {}"
   by auto
@@ -1104,6 +1124,14 @@ lemma fst_image_times[simp]: "fst ` (A \<times> B) = (if B = {} then {} else A)"
 
 lemma snd_image_times[simp]: "snd ` (A \<times> B) = (if A = {} then {} else B)"
   by force
+
+lemma vimage_fst:
+  "fst -` A = A \<times> UNIV"
+  by auto
+
+lemma vimage_snd:
+  "snd -` A = UNIV \<times> A"
+  by auto
 
 lemma insert_times_insert[simp]:
   "insert a A \<times> insert b B =

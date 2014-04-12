@@ -270,6 +270,35 @@ by (intro_locales, rule dual_preorder) (unfold_locales, rule antisym)
 end
 
 
+text {* Alternative introduction rule with bias towards strict order *}
+
+lemma order_strictI:
+  fixes less (infix "\<sqsubset>" 50)
+    and less_eq (infix "\<sqsubseteq>" 50)
+  assumes less_eq_less: "\<And>a b. a \<sqsubseteq> b \<longleftrightarrow> a \<sqsubset> b \<or> a = b"
+    assumes asym: "\<And>a b. a \<sqsubset> b \<Longrightarrow> \<not> b \<sqsubset> a"
+  assumes irrefl: "\<And>a. \<not> a \<sqsubset> a"
+  assumes trans: "\<And>a b c. a \<sqsubset> b \<Longrightarrow> b \<sqsubset> c \<Longrightarrow> a \<sqsubset> c"
+  shows "class.order less_eq less"
+proof
+  fix a b
+  show "a \<sqsubset> b \<longleftrightarrow> a \<sqsubseteq> b \<and> \<not> b \<sqsubseteq> a"
+    by (auto simp add: less_eq_less asym irrefl)
+next
+  fix a
+  show "a \<sqsubseteq> a"
+    by (auto simp add: less_eq_less)
+next
+  fix a b c
+  assume "a \<sqsubseteq> b" and "b \<sqsubseteq> c" then show "a \<sqsubseteq> c"
+    by (auto simp add: less_eq_less intro: trans)
+next
+  fix a b
+  assume "a \<sqsubseteq> b" and "b \<sqsubseteq> a" then show "a = b"
+    by (auto simp add: less_eq_less asym)
+qed
+
+
 subsection {* Linear (total) orders *}
 
 class linorder = order +
@@ -339,6 +368,26 @@ lemma dual_linorder:
 by (rule class.linorder.intro, rule dual_order) (unfold_locales, rule linear)
 
 end
+
+
+text {* Alternative introduction rule with bias towards strict order *}
+
+lemma linorder_strictI:
+  fixes less (infix "\<sqsubset>" 50)
+    and less_eq (infix "\<sqsubseteq>" 50)
+  assumes "class.order less_eq less"
+  assumes trichotomy: "\<And>a b. a \<sqsubset> b \<or> a = b \<or> b \<sqsubset> a"
+  shows "class.linorder less_eq less"
+proof -
+  interpret order less_eq less
+    by (fact `class.order less_eq less`)
+  show ?thesis
+  proof
+    fix a b
+    show "a \<sqsubseteq> b \<or> b \<sqsubseteq> a"
+      using trichotomy by (auto simp add: le_less)
+  qed
+qed
 
 
 subsection {* Reasoning tools setup *}

@@ -292,6 +292,10 @@ lemma is_empty_map_default [simp]:
   "\<not> is_empty (map_default k v f m)"
   by (simp add: map_default_def)
 
+lemma keys_dom_lookup:
+  "keys m = dom (Mapping.lookup m)"
+  by transfer rule
+
 lemma keys_empty [simp]:
   "keys empty = {}"
   by transfer simp

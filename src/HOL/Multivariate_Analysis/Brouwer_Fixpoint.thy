@@ -47,10 +47,10 @@ lemma swap_image:
   done
 
 lemma swap_apply1: "Fun.swap x y f x = f y"
-  by (simp add: swap_def)
+  by (simp add: Fun.swap_def)
   
 lemma swap_apply2: "Fun.swap x y f y = f x"
-  by (simp add: swap_def)
+  by (simp add: Fun.swap_def)
 
 lemma (in -) lessThan_empty_iff: "{..< n::nat} = {} \<longleftrightarrow> n = 0"
   by auto

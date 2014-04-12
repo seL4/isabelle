@@ -249,6 +249,10 @@ lemma dom_map_option:
   "dom (\<lambda>k. map_option (f k) (m k)) = dom m"
   by (simp add: dom_def)
 
+lemma dom_map_option_comp [simp]:
+  "dom (map_option g \<circ> m) = dom m"
+  using dom_map_option [of "\<lambda>_. g" m] by (simp add: comp_def)
+
 
 subsection {* @{const map_option} related *}
 

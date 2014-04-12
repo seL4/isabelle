@@ -211,11 +211,42 @@ subsubsection {* Irreflexivity *}
 
 definition irrefl :: "'a rel \<Rightarrow> bool"
 where
-  "irrefl r \<longleftrightarrow> (\<forall>x. (x, x) \<notin> r)"
+  "irrefl r \<longleftrightarrow> (\<forall>a. (a, a) \<notin> r)"
+
+definition irreflp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
+where
+  "irreflp R \<longleftrightarrow> (\<forall>a. \<not> R a a)"
+
+lemma irreflp_irrefl_eq [pred_set_conv]:
+  "irreflp (\<lambda>a b. (a, b) \<in> R) \<longleftrightarrow> irrefl R" 
+  by (simp add: irrefl_def irreflp_def)
+
+lemma irreflI:
+  "(\<And>a. (a, a) \<notin> R) \<Longrightarrow> irrefl R"
+  by (simp add: irrefl_def)
+
+lemma irreflpI:
+  "(\<And>a. \<not> R a a) \<Longrightarrow> irreflp R"
+  by (fact irreflI [to_pred])
 
 lemma irrefl_distinct [code]:
-  "irrefl r \<longleftrightarrow> (\<forall>(x, y) \<in> r. x \<noteq> y)"
+  "irrefl r \<longleftrightarrow> (\<forall>(a, b) \<in> r. a \<noteq> b)"
   by (auto simp add: irrefl_def)
+
+
+subsubsection {* Asymmetry *}
+
+inductive asym :: "'a rel \<Rightarrow> bool"
+where
+  asymI: "irrefl R \<Longrightarrow> (\<And>a b. (a, b) \<in> R \<Longrightarrow> (b, a) \<notin> R) \<Longrightarrow> asym R"
+
+inductive asymp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
+where
+  asympI: "irreflp R \<Longrightarrow> (\<And>a b. R a b \<Longrightarrow> \<not> R b a) \<Longrightarrow> asymp R"
+
+lemma asymp_asym_eq [pred_set_conv]:
+  "asymp (\<lambda>a b. (a, b) \<in> R) \<longleftrightarrow> asym R" 
+  by (auto intro!: asymI asympI elim: asym.cases asymp.cases simp add: irreflp_irrefl_eq)
 
 
 subsubsection {* Symmetry *}

@@ -99,6 +99,23 @@ proof -
   ultimately show ?thesis by simp
 qed
 
+lemma setdiff_irrelevant:
+  assumes "finite A"
+  shows "F g (A - {x. g x = z}) = F g A"
+  using assms by (induct A) (simp_all add: insert_Diff_if) 
+  
+lemma not_neutral_contains_not_neutral:
+  assumes "F g A \<noteq> z"
+  obtains a where "a \<in> A" and "g a \<noteq> z"
+proof -
+  from assms have "\<exists>a\<in>A. g a \<noteq> z"
+  proof (induct A rule: infinite_finite_induct)
+    case (insert a A)
+    then show ?case by simp (rule, simp)
+  qed simp_all
+  with that show thesis by blast
+qed
+
 lemma reindex:
   assumes "inj_on h A"
   shows "F g (h ` A) = F (g \<circ> h) A"

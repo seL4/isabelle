@@ -10,17 +10,17 @@ begin
 
 subsection {* Transpositions *}
 
-lemma swapid_sym: "Fun.swap a b id = Fun.swap b a id"
-  by (auto simp add: fun_eq_iff swap_def fun_upd_def)
-
 lemma swap_id_refl: "Fun.swap a a id = id"
-  by simp
+  by (fact swap_self)
 
 lemma swap_id_sym: "Fun.swap a b id = Fun.swap b a id"
-  by (rule ext, simp add: swap_def)
+  by (fact swap_commute)
+
+lemma swapid_sym: "Fun.swap a b id = Fun.swap b a id"
+  by (fact swap_commute)
 
 lemma swap_id_idempotent[simp]: "Fun.swap a b id \<circ> Fun.swap a b id = id"
-  by (rule ext, auto simp add: swap_def)
+  by (rule ext, auto simp add: Fun.swap_def)
 
 lemma inv_unique_comp:
   assumes fg: "f \<circ> g = id"
@@ -32,7 +32,7 @@ lemma inverse_swap_id: "inv (Fun.swap a b id) = Fun.swap a b id"
   by (rule inv_unique_comp) simp_all
 
 lemma swap_id_eq: "Fun.swap a b id x = (if x = a then b else if x = b then a else x)"
-  by (simp add: swap_def)
+  by (simp add: Fun.swap_def)
 
 
 subsection {* Basic consequences of the definition *}
@@ -95,7 +95,7 @@ lemma permutes_inv_eq: "p permutes S \<Longrightarrow> inv p y = x \<longleftrig
   done
 
 lemma permutes_swap_id: "a \<in> S \<Longrightarrow> b \<in> S \<Longrightarrow> Fun.swap a b id permutes S"
-  unfolding permutes_def swap_def fun_upd_def by auto metis
+  unfolding permutes_def Fun.swap_def fun_upd_def by auto metis
 
 lemma permutes_superset: "p permutes S \<Longrightarrow> (\<forall>x \<in> S - T. p x = x) \<Longrightarrow> p permutes T"
   by (simp add: Ball_def permutes_def) metis
@@ -131,7 +131,7 @@ lemma permutes_insert_lemma:
   apply (rule permutes_swap_id, simp)
   using permutes_in_image[OF pS, of a]
   apply simp
-  apply (auto simp add: Ball_def swap_def)
+  apply (auto simp add: Ball_def Fun.swap_def)
   done
 
 lemma permutes_insert: "{p. p permutes (insert a S)} =
@@ -215,14 +215,14 @@ next
           by auto
         from ths(4) `x \<notin> F` eq have "b = ?g (b,p) x"
           unfolding permutes_def
-          by (auto simp add: swap_def fun_upd_def fun_eq_iff)
+          by (auto simp add: Fun.swap_def fun_upd_def fun_eq_iff)
         also have "\<dots> = ?g (c,q) x"
           using ths(5) `x \<notin> F` eq
           by (auto simp add: swap_def fun_upd_def fun_eq_iff)
         also have "\<dots> = c"
           using ths(5) `x \<notin> F`
           unfolding permutes_def
-          by (auto simp add: swap_def fun_upd_def fun_eq_iff)
+          by (auto simp add: Fun.swap_def fun_upd_def fun_eq_iff)
         finally have bc: "b = c" .
         then have "Fun.swap x b id = Fun.swap x c id"
           by simp
@@ -310,15 +310,15 @@ subsection {* Various combinations of transpositions with 2, 1 and 0 common elem
 
 lemma swap_id_common:" a \<noteq> c \<Longrightarrow> b \<noteq> c \<Longrightarrow>
   Fun.swap a b id \<circ> Fun.swap a c id = Fun.swap b c id \<circ> Fun.swap a b id"
-  by (simp add: fun_eq_iff swap_def)
+  by (simp add: fun_eq_iff Fun.swap_def)
 
 lemma swap_id_common': "a \<noteq> b \<Longrightarrow> a \<noteq> c \<Longrightarrow>
   Fun.swap a c id \<circ> Fun.swap b c id = Fun.swap b c id \<circ> Fun.swap a b id"
-  by (simp add: fun_eq_iff swap_def)
+  by (simp add: fun_eq_iff Fun.swap_def)
 
 lemma swap_id_independent: "a \<noteq> c \<Longrightarrow> a \<noteq> d \<Longrightarrow> b \<noteq> c \<Longrightarrow> b \<noteq> d \<Longrightarrow>
   Fun.swap a b id \<circ> Fun.swap c d id = Fun.swap c d id \<circ> Fun.swap a b id"
-  by (simp add: swap_def fun_eq_iff)
+  by (simp add: fun_eq_iff Fun.swap_def)
 
 
 subsection {* Permutations as transposition sequences *}
@@ -437,7 +437,7 @@ proof -
       (\<exists>x y z. x \<noteq> a \<and> y \<noteq> a \<and> z \<noteq> a \<and> x \<noteq> y \<and>
         Fun.swap a b id \<circ> Fun.swap c d id = Fun.swap x y id \<circ> Fun.swap a z id))"
     apply (rule symmetry_lemma[where a=a and b=b and c=c and d=d])
-    apply (simp_all only: swapid_sym)
+    apply (simp_all only: swap_commute)
     apply (case_tac "a = c \<and> b = d")
     apply (clarsimp simp only: swapid_sym swap_id_idempotent)
     apply (case_tac "a = c \<and> b \<noteq> d")
@@ -445,18 +445,18 @@ proof -
     apply (rule_tac x="b" in exI)
     apply (rule_tac x="d" in exI)
     apply (rule_tac x="b" in exI)
-    apply (clarsimp simp add: fun_eq_iff swap_def)
+    apply (clarsimp simp add: fun_eq_iff Fun.swap_def)
     apply (case_tac "a \<noteq> c \<and> b = d")
     apply (rule disjI2)
     apply (rule_tac x="c" in exI)
     apply (rule_tac x="d" in exI)
     apply (rule_tac x="c" in exI)
-    apply (clarsimp simp add: fun_eq_iff swap_def)
+    apply (clarsimp simp add: fun_eq_iff Fun.swap_def)
     apply (rule disjI2)
     apply (rule_tac x="c" in exI)
     apply (rule_tac x="d" in exI)
     apply (rule_tac x="b" in exI)
-    apply (clarsimp simp add: fun_eq_iff swap_def)
+    apply (clarsimp simp add: fun_eq_iff Fun.swap_def)
     done
   with H show ?thesis by metis
 qed
@@ -489,7 +489,7 @@ lemma fixing_swapidseq_decrease:
 proof (induct n arbitrary: p a b)
   case 0
   then show ?case
-    by (auto simp add: swap_def fun_upd_def)
+    by (auto simp add: Fun.swap_def fun_upd_def)
 next
   case (Suc n p a b)
   from Suc.prems(1) swapidseq_cases[of "Suc n" p]
@@ -511,7 +511,7 @@ next
     {
       fix h
       have "(Fun.swap x y id \<circ> h) a = a \<longleftrightarrow> h a = a"
-        using H by (simp add: swap_def)
+        using H by (simp add: Fun.swap_def)
     }
     note th3 = this
     from cdqm(2) have "Fun.swap a b id \<circ> p = Fun.swap a b id \<circ> (Fun.swap c d id \<circ> q)"
@@ -673,7 +673,7 @@ proof -
     from comp_Suc.hyps(2) have fS: "finite ?S"
       by simp
     from `a \<noteq> b` have th: "{x. (Fun.swap a b id \<circ> p) x \<noteq> x} \<subseteq> ?S"
-      by (auto simp add: swap_def)
+      by (auto simp add: Fun.swap_def)
     from finite_subset[OF th fS] show ?case  .
   qed
 qed
@@ -685,7 +685,7 @@ lemma bij_swap_comp:
   assumes bp: "bij p"
   shows "Fun.swap a b id \<circ> p = Fun.swap (inv p a) (inv p b) p"
   using surj_f_inv_f[OF bij_is_surj[OF bp]]
-  by (simp add: fun_eq_iff swap_def bij_inv_eq_iff[OF bp])
+  by (simp add: fun_eq_iff Fun.swap_def bij_inv_eq_iff[OF bp])
 
 lemma bij_swap_ompose_bij: "bij p \<Longrightarrow> bij (Fun.swap a b id \<circ> p)"
 proof -
@@ -709,12 +709,12 @@ next
   let ?r = "Fun.swap a (p a) id \<circ> p"
   let ?q = "Fun.swap a (p a) id \<circ> ?r"
   have raa: "?r a = a"
-    by (simp add: swap_def)
+    by (simp add: Fun.swap_def)
   from bij_swap_ompose_bij[OF insert(4)]
   have br: "bij ?r"  .
 
   from insert raa have th: "\<forall>x. x \<notin> F \<longrightarrow> ?r x = x"
-    apply (clarsimp simp add: swap_def)
+    apply (clarsimp simp add: Fun.swap_def)
     apply (erule_tac x="x" in allE)
     apply auto
     unfolding bij_iff
@@ -1054,7 +1054,7 @@ proof -
       from eq have "(Fun.swap a b id \<circ> p) a  = (Fun.swap a c id \<circ> q) a"
         by simp
       then have bc: "b = c"
-        by (simp add: permutes_def pa qa o_def fun_upd_def swap_def id_def
+        by (simp add: permutes_def pa qa o_def fun_upd_def Fun.swap_def id_def
             cong del: if_weak_cong split: split_if_asm)
       from eq[unfolded bc] have "(\<lambda>p. Fun.swap a c id \<circ> p) (Fun.swap a c id \<circ> p) =
         (\<lambda>p. Fun.swap a c id \<circ> p) (Fun.swap a c id \<circ> q)" by simp

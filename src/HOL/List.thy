@@ -5432,6 +5432,40 @@ lemma lexord_linear: "(! a b. (a,b)\<in> r | a = b | (b,a) \<in> r) \<Longrighta
   apply (rule allI, case_tac x, simp, simp) 
   by blast
 
+lemma lexord_irrefl:
+  "irrefl R \<Longrightarrow> irrefl (lexord R)"
+  by (simp add: irrefl_def lexord_irreflexive)
+  
+lemma lexord_asym:
+  assumes "asym R"
+  shows "asym (lexord R)"
+proof
+  from assms obtain "irrefl R" by (blast elim: asym.cases)
+  then show "irrefl (lexord R)" by (rule lexord_irrefl)
+next
+  fix xs ys
+  assume "(xs, ys) \<in> lexord R"
+  then show "(ys, xs) \<notin> lexord R"
+  proof (induct xs arbitrary: ys)
+    case Nil
+    then show ?case by simp
+  next
+    case (Cons x xs)
+    then obtain z zs where ys: "ys = z # zs" by (cases ys) auto
+    with assms Cons show ?case by (auto elim: asym.cases)
+  qed
+qed
+   
+lemma lexord_asymmetric:
+  assumes "asym R"
+  assumes hyp: "(a, b) \<in> lexord R"
+  shows "(b, a) \<notin> lexord R"
+proof -
+  from `asym R` have "asym (lexord R)" by (rule lexord_asym)
+  then show ?thesis by (rule asym.cases) (auto simp add: hyp)
+qed
+
+
 text {*
   Predicate version of lexicographic order integrated with Isabelle's order type classes.
   Author: Andreas Lochbihler

@@ -359,7 +359,7 @@ proof-
   have th1: "of_int (-1) = - 1" by simp
   let ?p = "Fun.swap i j id"
   let ?A = "\<chi> i. A $ ?p i"
-  from r have "A = ?A" by (simp add: vec_eq_iff row_def swap_def)
+  from r have "A = ?A" by (simp add: vec_eq_iff row_def Fun.swap_def)
   then have "det A = det ?A" by simp
   moreover have "det A = - det ?A"
     by (simp add: det_permute_rows[OF permutes_swap_id] sign_swap_id ij th1)
