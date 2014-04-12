@@ -74,12 +74,18 @@ class Spell_Checker private(lang: String, locale: Locale, dict: URL)
     m.invoke(dictionary, word)
   }
 
-  def check(word: String): Boolean =
+  def contains(word: String): Boolean =
   {
     val m = dictionary.getClass.getSuperclass.getDeclaredMethod("exist", classOf[String])
     m.setAccessible(true)
     m.invoke(dictionary, word).asInstanceOf[java.lang.Boolean].booleanValue
   }
+
+  def check(word: String): Boolean =
+    contains(word) ||
+    Library.is_all_caps(word) && contains(Library.lowercase(word, locale)) ||
+    Library.is_capitalized(word) &&
+      (contains(Library.lowercase(word, locale)) || contains(Library.uppercase(word, locale)))
 
   def complete(word: String): List[String] =
   {
