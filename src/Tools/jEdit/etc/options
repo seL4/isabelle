@@ -49,6 +49,15 @@ public option jedit_completion_immediate : bool = false
   -- "insert uniquely completed abbreviation immediately into buffer"
 
 
+section "Spell Checker"
+
+public option spell_checker : bool = true
+  -- "enable spell-checker for prose words within document text"
+
+public option spell_checker_language : string = "en"
+  -- "language for spell-checker locale and dictionary (en, de, fr)"
+
+
 section "Rendering of Document Content"
 
 option outdated_color : string = "EEE3E3FF"
@@ -68,6 +77,7 @@ option information_message_color : string = "C1DFEE32"
 option tracing_message_color : string = "F0F8FFFF"
 option warning_message_color : string = "EEE8AAFF"
 option error_message_color : string = "FFC1C1FF"
+option spell_checker_color : string = "B22222FF"
 option bad_color : string = "FF6A6A64"
 option intensify_color : string = "FFCC6664"
 option quoted_color : string = "8B8B8B19"
