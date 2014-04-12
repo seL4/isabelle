@@ -11,6 +11,10 @@ import isabelle._
 
 import java.lang.Class
 import java.net.URL
+import java.util.Locale
+import java.text.BreakIterator
+
+import scala.collection.mutable
 
 
 object Spell_Checker
@@ -18,19 +22,20 @@ object Spell_Checker
   def known_dictionaries: List[String] =
     space_explode(',', Isabelle_System.getenv_strict("JORTHO_DICTIONARIES"))
 
-  def apply(dict: String): Spell_Checker =
-    if (known_dictionaries.contains(dict))
+  def apply(lang: String): Spell_Checker =
+    if (known_dictionaries.contains(lang))
       new Spell_Checker(
-        dict, classOf[com.inet.jortho.SpellChecker].getResource("dictionary_" + dict + ".ortho"))
-    else error("Unknown spell-checker dictionary " + quote(dict))
+        lang, Locale.forLanguageTag(lang),
+        classOf[com.inet.jortho.SpellChecker].getResource("dictionary_" + lang + ".ortho"))
+    else error("Unknown spell-checker dictionary for " + quote(lang))
 
-  def apply(dict: URL): Spell_Checker =
-    new Spell_Checker(dict.toString, dict)
+  def apply(lang: String, locale: Locale, dict: URL): Spell_Checker =
+    new Spell_Checker(lang, locale, dict)
 }
 
-class Spell_Checker private(dict_name: String, dict: URL)
+class Spell_Checker private(lang: String, locale: Locale, dict: URL)
 {
-  override def toString: String = "Spell_Checker(" + dict_name + ")"
+  override def toString: String = "Spell_Checker(" + lang + ")"
 
   private val dictionary =
   {
@@ -82,6 +87,25 @@ class Spell_Checker private(dict_name: String, dict: URL)
       getDeclaredMethod("searchSuggestions", classOf[String])
     m.setAccessible(true)
     m.invoke(dictionary, word).asInstanceOf[java.util.List[AnyRef]].toArray.toList.map(_.toString)
+  }
+
+  def bad_words(text: String): List[Text.Range] =
+  {
+    val result = new mutable.ListBuffer[Text.Range]
+
+    val it = BreakIterator.getWordInstance(locale)
+    it.setText(text)
+
+    var i = 0
+    var j = it.next
+    while (j != BreakIterator.DONE) {
+      val word = text.substring(i, j)
+      if (word.length >= 2 && Character.isLetter(word(0)) && !check(word))
+        result += Text.Range(i, j)
+      i = j
+      j = it.next
+    }
+    result.toList
   }
 }
 
