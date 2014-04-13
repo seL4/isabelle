@@ -162,11 +162,12 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
        contains(Library.uppercase(word, dictionary.locale)))
 
   def complete(word: String): List[String] =
-  {
-    val m = dict.getClass.getSuperclass. getDeclaredMethod("searchSuggestions", classOf[String])
-    m.setAccessible(true)
-    m.invoke(dict, word).asInstanceOf[java.util.List[AnyRef]].toArray.toList.map(_.toString)
-  }
+    if (check(word)) Nil
+    else {
+      val m = dict.getClass.getSuperclass. getDeclaredMethod("searchSuggestions", classOf[String])
+      m.setAccessible(true)
+      m.invoke(dict, word).asInstanceOf[java.util.List[AnyRef]].toArray.toList.map(_.toString)
+    }
 
   def marked_words(base: Text.Offset, text: String): List[Text.Info[String]] =
     Spell_Checker.marked_words(base, text, info => !check(info.info))
