@@ -63,8 +63,12 @@ object PIDE
   def update_spell_checker(): Unit =
     if (options.bool("spell_checker")) {
       val lang = options.string("spell_checker_language")
-      if (current_spell_checker._1 != lang)
-        current_spell_checker = (lang, Exn.capture { Spell_Checker(lang) })
+      if (current_spell_checker._1 != lang) {
+        Spell_Checker.dictionaries.find(_.lang == lang) match {
+          case Some(dict) => current_spell_checker = (lang, Exn.capture { Spell_Checker(dict) })
+          case None => current_spell_checker = no_spell_checker
+        }
+      }
     }
     else current_spell_checker = no_spell_checker
 
