@@ -15,6 +15,7 @@ import java.text.BreakIterator
 
 import scala.collection.mutable
 import scala.swing.ComboBox
+import scala.annotation.tailrec
 
 
 object Spell_Checker
@@ -135,18 +136,26 @@ class Spell_Checker private(dict: Spell_Checker.Dictionary)
   def bad_words(text: String): List[Text.Range] =
   {
     val result = new mutable.ListBuffer[Text.Range]
+    var offset = 0
 
-    val it = BreakIterator.getWordInstance(dict.locale)
-    it.setText(text)
+    @tailrec def scan(pred: Int => Boolean)
+    {
+      if (offset < text.length) {
+        val c = text.codePointAt(offset)
+        if (pred(c)) {
+          offset += Character.charCount(c)
+          scan(pred)
+        }
+      }
+    }
 
-    var i = 0
-    var j = it.next
-    while (j != BreakIterator.DONE) {
-      val word = text.substring(i, j)
-      if (word.length >= 2 && Character.isLetter(word(0)) && !check(word))
-        result += Text.Range(i, j)
-      i = j
-      j = it.next
+    while (offset < text.length) {
+      scan(c => !Character.isLetter(c))
+      val start = offset
+      scan(c => Character.isLetterOrDigit(c) || c == '\'')
+      val stop = offset
+      if (stop - start >= 2 && !check(text.substring(start, stop)))
+        result += Text.Range(start, stop)
     }
     result.toList
   }
