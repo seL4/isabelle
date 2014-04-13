@@ -20,6 +20,39 @@ import scala.annotation.tailrec
 
 object Spell_Checker
 {
+  /* marked words within text */
+
+  def marked_words(text: String, mark: String => Boolean): List[Text.Range] =
+  {
+    val result = new mutable.ListBuffer[Text.Range]
+    var offset = 0
+
+    def apostrophe(c: Int): Boolean =
+      c == '\'' && (offset + 1 == text.length || text(offset + 1) != '\'')
+
+    @tailrec def scan(pred: Int => Boolean)
+    {
+      if (offset < text.length) {
+        val c = text.codePointAt(offset)
+        if (pred(c)) {
+          offset += Character.charCount(c)
+          scan(pred)
+        }
+      }
+    }
+
+    while (offset < text.length) {
+      scan(c => !Character.isLetter(c))
+      val start = offset
+      scan(c => Character.isLetterOrDigit(c) || apostrophe(c))
+      val stop = offset
+      if (stop - start >= 2 && mark(text.substring(start, stop)))
+        result += Text.Range(start, stop)
+    }
+    result.toList
+  }
+
+
   /* dictionary consisting of word list */
 
   class Dictionary private [Spell_Checker](path: Path)
@@ -133,35 +166,8 @@ class Spell_Checker private(dict: Spell_Checker.Dictionary)
     m.invoke(dictionary, word).asInstanceOf[java.util.List[AnyRef]].toArray.toList.map(_.toString)
   }
 
-  def bad_words(text: String): List[Text.Range] =
-  {
-    val result = new mutable.ListBuffer[Text.Range]
-    var offset = 0
-
-    def apostrophe(c: Int): Boolean =
-      c == '\'' && (offset + 1 == text.length || text(offset + 1) != '\'')
-
-    @tailrec def scan(pred: Int => Boolean)
-    {
-      if (offset < text.length) {
-        val c = text.codePointAt(offset)
-        if (pred(c)) {
-          offset += Character.charCount(c)
-          scan(pred)
-        }
-      }
-    }
-
-    while (offset < text.length) {
-      scan(c => !Character.isLetter(c))
-      val start = offset
-      scan(c => Character.isLetterOrDigit(c) || apostrophe(c))
-      val stop = offset
-      if (stop - start >= 2 && !check(text.substring(start, stop)))
-        result += Text.Range(start, stop)
-    }
-    result.toList
-  }
+  def marked_words(text: String): List[Text.Range] =
+    Spell_Checker.marked_words(text, w => !check(w))
 }
 
 
