@@ -165,7 +165,7 @@ final class Path private(private val elems: List[Path.Elem]) // reversed element
     val (prefix, base) = split_path
     base match {
       case Ext(b, e) => (prefix + Path.basic(b), e)
-      case _ => (Path.basic(base), "")
+      case _ => (prefix + Path.basic(base), "")
     }
   }
 
