@@ -320,10 +320,10 @@ class Rich_Text_Area(
             // spell checker
             for {
               spell_checker <- PIDE.spell_checker.get
-              range0 <- rendering.spell_checker_ranges(line_range)
-              text <- JEdit_Lib.try_get_text(buffer, range0)
-              info <- spell_checker.marked_words(text)
-              r <- JEdit_Lib.gfx_range(text_area, info.range + range0.start)
+              spell_range <- rendering.spell_checker_ranges(line_range)
+              text <- JEdit_Lib.try_get_text(buffer, spell_range)
+              info <- spell_checker.marked_words(spell_range.start, text)
+              r <- JEdit_Lib.gfx_range(text_area, info.range)
             } {
               gfx.setColor(rendering.spell_checker_color)
               val y0 = r.y + ((fm.getAscent + 4) min (line_height - 2))

@@ -200,11 +200,10 @@ object Completion_Popup
             for {
               spell_range <- rendering.spell_checker_point(caret_range)
               text <- JEdit_Lib.try_get_text(text_area.getBuffer, spell_range)
-              caret_range0 = caret_range - spell_range.start
-              Text.Info(range0, word) <-
-                Spell_Checker.marked_words(text,
-                  info => info.range.overlaps(caret_range0)).headOption
-            } yield Text.Info(range0 + spell_range.start, word)
+              info <-
+                Spell_Checker.marked_words(spell_range.start, text,
+                  info => info.range.overlaps(caret_range)).headOption
+            } yield info
 
           result match {
             case Some(Text.Info(range, original)) =>

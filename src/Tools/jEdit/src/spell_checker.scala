@@ -22,7 +22,8 @@ object Spell_Checker
 {
   /* marked words within text */
 
-  def marked_words(text: String, mark: Text.Info[String] => Boolean): List[Text.Info[String]] =
+  def marked_words(base: Text.Offset, text: String, mark: Text.Info[String] => Boolean)
+    : List[Text.Info[String]] =
   {
     val result = new mutable.ListBuffer[Text.Info[String]]
     var offset = 0
@@ -47,7 +48,7 @@ object Spell_Checker
       scan(c => Character.isLetterOrDigit(c) || apostrophe(c))
       val stop = offset
       if (stop - start >= 2) {
-        val info = Text.Info(Text.Range(start, stop), text.substring(start, stop))
+        val info = Text.Info(Text.Range(base + start, base + stop), text.substring(start, stop))
         if (mark(info)) result += info
       }
     }
@@ -167,8 +168,8 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
     m.invoke(dict, word).asInstanceOf[java.util.List[AnyRef]].toArray.toList.map(_.toString)
   }
 
-  def marked_words(text: String): List[Text.Info[String]] =
-    Spell_Checker.marked_words(text, info => !check(info.info))
+  def marked_words(base: Text.Offset, text: String): List[Text.Info[String]] =
+    Spell_Checker.marked_words(base, text, info => !check(info.info))
 }
 
 
