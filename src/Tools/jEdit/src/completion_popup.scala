@@ -188,6 +188,41 @@ object Completion_Popup
     }
 
 
+    /* spell-checker completion */
+
+    def spell_checker_completion(rendering: Rendering): Option[Completion.Result] =
+    {
+      PIDE.spell_checker.get match {
+        case Some(spell_checker) =>
+          val caret_range = before_caret_range(rendering)
+
+          val result =
+            for {
+              spell_range <- rendering.spell_checker_point(caret_range)
+              text <- JEdit_Lib.try_get_text(text_area.getBuffer, spell_range)
+              caret_range0 = caret_range - spell_range.start
+              Text.Info(range0, word) <-
+                Spell_Checker.marked_words(text,
+                  info => info.range.overlaps(caret_range0)).headOption
+            } yield Text.Info(range0 + spell_range.start, word)
+
+          result match {
+            case Some(Text.Info(range, original)) =>
+              val words = spell_checker.complete(original)
+              if (words.isEmpty) None
+              else {
+                val descr = "(from dictionary " + quote(spell_checker.toString) + ")"
+                val items = words.map(word =>
+                  Completion.Item(range, original, "", List(word, descr), word, 0, false))
+                Some(Completion.Result(range, original, false, items))
+              }
+            case None => None
+          }
+        case None => None
+      }
+    }
+
+
     /* completion action: text area */
 
     private def insert(item: Completion.Item)
@@ -318,9 +353,15 @@ object Completion_Popup
         }
         if (no_completion) false
         else {
-          val result =
+          val result0 =
             Completion.Result.merge(history,
               semantic_completion, syntax_completion(history, explicit, opt_rendering))
+          val result =
+            opt_rendering match {
+              case None => result0
+              case Some(rendering) =>
+                Completion.Result.merge(history, result0, spell_checker_completion(rendering))
+            }
 
           result match {
             case Some(result) =>

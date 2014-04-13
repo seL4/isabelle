@@ -91,7 +91,8 @@ object Completion
     def + (entry: (String, Int)): History =
     {
       val (name, freq) = entry
-      new History(rep + (name -> (frequency(name) + freq)))
+      if (name == "") this
+      else new History(rep + (name -> (frequency(name) + freq)))
     }
 
     def ordering: Ordering[Item] =

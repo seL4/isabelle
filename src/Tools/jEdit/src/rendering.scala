@@ -292,6 +292,12 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   def spell_checker_ranges(range: Text.Range): List[Text.Range] =
     snapshot.select(range, spell_checker_elements, _ => _ => Some(())).map(_.range)
 
+  def spell_checker_point(range: Text.Range): Option[Text.Range] =
+    snapshot.select(range, spell_checker_elements, _ =>
+      {
+        case info => Some(snapshot.convert(info.range))
+      }).headOption.map(_.info)
+
 
   /* command status overview */
 

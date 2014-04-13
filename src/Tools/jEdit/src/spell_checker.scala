@@ -22,9 +22,9 @@ object Spell_Checker
 {
   /* marked words within text */
 
-  def marked_words(text: String, mark: String => Boolean): List[Text.Range] =
+  def marked_words(text: String, mark: Text.Info[String] => Boolean): List[Text.Info[String]] =
   {
-    val result = new mutable.ListBuffer[Text.Range]
+    val result = new mutable.ListBuffer[Text.Info[String]]
     var offset = 0
 
     def apostrophe(c: Int): Boolean =
@@ -46,8 +46,10 @@ object Spell_Checker
       val start = offset
       scan(c => Character.isLetterOrDigit(c) || apostrophe(c))
       val stop = offset
-      if (stop - start >= 2 && mark(text.substring(start, stop)))
-        result += Text.Range(start, stop)
+      if (stop - start >= 2) {
+        val info = Text.Info(Text.Range(start, stop), text.substring(start, stop))
+        if (mark(info)) result += info
+      }
     }
     result.toList
   }
@@ -113,15 +115,15 @@ object Spell_Checker
 
   /* create spell checker */
 
-  def apply(dict: Dictionary): Spell_Checker = new Spell_Checker(dict)
+  def apply(dictionary: Dictionary): Spell_Checker = new Spell_Checker(dictionary)
 }
 
 
-class Spell_Checker private(dict: Spell_Checker.Dictionary)
+class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
 {
-  override def toString: String = dict.toString
+  override def toString: String = dictionary.toString
 
-  private val dictionary =
+  private val dict =
   {
     val factory_class = Class.forName("com.inet.jortho.DictionaryFactory")
     val factory_cons = factory_class.getConstructor()
@@ -130,7 +132,7 @@ class Spell_Checker private(dict: Spell_Checker.Dictionary)
 
     val add = factory_class.getDeclaredMethod("add", classOf[String])
     add.setAccessible(true)
-    dict.load_words.foreach(add.invoke(factory, _))
+    dictionary.load_words.foreach(add.invoke(factory, _))
 
     val create = factory_class.getDeclaredMethod("create")
     create.setAccessible(true)
@@ -139,35 +141,34 @@ class Spell_Checker private(dict: Spell_Checker.Dictionary)
 
   def add(word: String)
   {
-    val m = dictionary.getClass.getDeclaredMethod("add", classOf[String])
+    val m = dict.getClass.getDeclaredMethod("add", classOf[String])
     m.setAccessible(true)
-    m.invoke(dictionary, word)
+    m.invoke(dict, word)
   }
 
   def contains(word: String): Boolean =
   {
-    val m = dictionary.getClass.getSuperclass.getDeclaredMethod("exist", classOf[String])
+    val m = dict.getClass.getSuperclass.getDeclaredMethod("exist", classOf[String])
     m.setAccessible(true)
-    m.invoke(dictionary, word).asInstanceOf[java.lang.Boolean].booleanValue
+    m.invoke(dict, word).asInstanceOf[java.lang.Boolean].booleanValue
   }
 
   def check(word: String): Boolean =
     contains(word) ||
-    Library.is_all_caps(word) && contains(Library.lowercase(word, dict.locale)) ||
+    Library.is_all_caps(word) && contains(Library.lowercase(word, dictionary.locale)) ||
     Library.is_capitalized(word) &&
-      (contains(Library.lowercase(word, dict.locale)) ||
-       contains(Library.uppercase(word, dict.locale)))
+      (contains(Library.lowercase(word, dictionary.locale)) ||
+       contains(Library.uppercase(word, dictionary.locale)))
 
   def complete(word: String): List[String] =
   {
-    val m = dictionary.getClass.getSuperclass.
-      getDeclaredMethod("searchSuggestions", classOf[String])
+    val m = dict.getClass.getSuperclass. getDeclaredMethod("searchSuggestions", classOf[String])
     m.setAccessible(true)
-    m.invoke(dictionary, word).asInstanceOf[java.util.List[AnyRef]].toArray.toList.map(_.toString)
+    m.invoke(dict, word).asInstanceOf[java.util.List[AnyRef]].toArray.toList.map(_.toString)
   }
 
-  def marked_words(text: String): List[Text.Range] =
-    Spell_Checker.marked_words(text, w => !check(w))
+  def marked_words(text: String): List[Text.Info[String]] =
+    Spell_Checker.marked_words(text, info => !check(info.info))
 }
 
 
@@ -183,9 +184,9 @@ class Spell_Checker_Variable
       val lang = options.string("spell_checker_language")
       if (current_spell_checker._1 != lang) {
         Spell_Checker.dictionaries.find(_.lang == lang) match {
-          case Some(dict) =>
+          case Some(dictionary) =>
             val spell_checker =
-              Exn.capture { Spell_Checker(dict) } match {
+              Exn.capture { Spell_Checker(dictionary) } match {
                 case Exn.Res(spell_checker) => Some(spell_checker)
                 case Exn.Exn(_) => None
               }
