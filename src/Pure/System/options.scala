@@ -50,7 +50,7 @@ object Options
     def print: String = print(false)
     def print_default: String = print(true)
 
-    def title(strip: String): String =
+    def title(strip: String = ""): String =
     {
       val words = space_explode('_', name)
       val words1 =

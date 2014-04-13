@@ -54,8 +54,8 @@ section "Spell Checker"
 public option spell_checker : bool = true
   -- "enable spell-checker for prose words within document text, comments etc."
 
-public option spell_checker_language : string = "en"
-  -- "language for spell-checker locale and dictionary (en, de, fr)"
+public option spell_checker_language : string = "en_US"
+  -- "language for spell-checker locale and dictionary"
 
 public option spell_checker_elements : string = "words,comment,inner_comment,ML_comment,SML_comment"
   -- "relevant markup elements for spell-checker, separated by commas"

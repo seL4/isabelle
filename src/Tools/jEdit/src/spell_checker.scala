@@ -14,10 +14,13 @@ import java.util.Locale
 import java.text.BreakIterator
 
 import scala.collection.mutable
+import scala.swing.ComboBox
 
 
 object Spell_Checker
 {
+  /* dictionary consisting of word list */
+
   class Dictionary private [Spell_Checker](path: Path)
   {
     val lang = path.split_ext._1.base.implode
@@ -25,7 +28,7 @@ object Spell_Checker
 
     val locale: Locale =
       space_explode('_', lang) match {
-        case a :: _ => Locale.forLanguageTag(a)
+        case l :: _ => Locale.forLanguageTag(l)
         case Nil => Locale.ENGLISH
       }
 
@@ -37,14 +40,48 @@ object Spell_Checker
       }
   }
 
-  def dictionaries: List[Dictionary] =
+
+  /* known dictionaries */
+
+  def dictionaries(): List[Dictionary] =
     for {
       path <- Path.split(Isabelle_System.getenv("JORTHO_DICTIONARIES"))
       if path.is_file
     } yield new Dictionary(path)
 
+  def dictionaries_selector(): Option_Component =
+  {
+    Swing_Thread.require()
+
+    val option_name = "spell_checker_language"
+    val opt = PIDE.options.value.check_name(option_name)
+
+    val entries = dictionaries()
+    val component = new ComboBox(entries) with Option_Component {
+      name = option_name
+      val title = opt.title()
+      def load: Unit =
+      {
+        val lang = PIDE.options.string(option_name)
+        entries.find(_.lang == lang) match {
+          case Some(entry) => selection.item = entry
+          case None =>
+        }
+      }
+      def save: Unit = PIDE.options.string(option_name) = selection.item.lang
+    }
+
+    component.load()
+    component.tooltip = opt.print_default
+    component
+  }
+
+
+  /* create spell checker */
+
   def apply(dict: Dictionary): Spell_Checker = new Spell_Checker(dict)
 }
+
 
 class Spell_Checker private(dict: Spell_Checker.Dictionary)
 {

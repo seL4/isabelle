@@ -40,8 +40,12 @@ abstract class Isabelle_Options(name: String) extends AbstractOptionPane(name)
 class Isabelle_Options1 extends Isabelle_Options("isabelle-general")
 {
   val options = PIDE.options
+
+  private val predefined =
+    List(Isabelle_Logic.logic_selector(false), Spell_Checker.dictionaries_selector())
+
   protected val components =
-    options.make_components(List(Isabelle_Logic.logic_selector(false)),
+    options.make_components(predefined,
       (for ((name, opt) <- options.value.options.iterator if opt.public) yield name).toSet)
 }
 
