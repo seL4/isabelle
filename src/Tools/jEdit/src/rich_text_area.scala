@@ -317,7 +317,7 @@ class Rich_Text_Area(
               }
             }
 
-            // spell-checker
+            // spell checker
             for {
               spell_checker <- PIDE.spell_checker.get
               range0 <- rendering.spell_checker_ranges(line_range)
@@ -326,7 +326,7 @@ class Rich_Text_Area(
               r <- JEdit_Lib.gfx_range(text_area, range + range0.start)
             } {
               gfx.setColor(rendering.spell_checker_color)
-              val y0 = r.y + fm.getAscent + 2
+              val y0 = r.y + ((fm.getAscent + 4) min (line_height - 2))
               gfx.drawLine(r.x, y0, r.x + r.length, y0)
             }
           }
