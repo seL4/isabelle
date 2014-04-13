@@ -1,7 +1,8 @@
 /*  Title:      Tools/jEdit/src/spell_checker.scala
     Author:     Makarius
 
-Spell checker based on JOrtho (see http://sourceforge.net/projects/jortho).
+Spell checker with completion, based on JOrtho (see
+http://sourceforge.net/projects/jortho).
 */
 
 package isabelle.jedit
@@ -11,7 +12,6 @@ import isabelle._
 
 import java.lang.Class
 import java.util.Locale
-import java.text.BreakIterator
 
 import scala.collection.mutable
 import scala.swing.ComboBox
