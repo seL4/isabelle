@@ -115,3 +115,31 @@ class Spell_Checker private(dict: Spell_Checker.Dictionary)
   }
 }
 
+
+class Spell_Checker_Variable
+{
+  private val no_spell_checker: (String, Option[Spell_Checker]) = ("", None)
+  private var current_spell_checker = no_spell_checker
+
+  def get: Option[Spell_Checker] = synchronized { current_spell_checker._2 }
+
+  def update(options: Options): Unit = synchronized {
+    if (options.bool("spell_checker")) {
+      val lang = options.string("spell_checker_language")
+      if (current_spell_checker._1 != lang) {
+        Spell_Checker.dictionaries.find(_.lang == lang) match {
+          case Some(dict) =>
+            val spell_checker =
+              Exn.capture { Spell_Checker(dict) } match {
+                case Exn.Res(spell_checker) => Some(spell_checker)
+                case Exn.Exn(_) => None
+              }
+            current_spell_checker = (lang, spell_checker)
+          case None =>
+            current_spell_checker = no_spell_checker
+        }
+      }
+    }
+    else current_spell_checker = no_spell_checker
+  }
+}

@@ -31,6 +31,7 @@ object PIDE
 
   val options = new JEdit_Options
   val completion_history = new Completion.History_Variable
+  val spell_checker = new Spell_Checker_Variable
 
   @volatile var startup_failure: Option[Throwable] = None
   @volatile var startup_notified = false
@@ -45,32 +46,6 @@ object PIDE
     session.resources.asInstanceOf[JEdit_Resources]
 
   lazy val editor = new JEdit_Editor
-
-
-  /* spell checker */
-
-  private val no_spell_checker: (String, Exn.Result[Spell_Checker]) =
-    ("", Exn.Exn(ERROR("No spell checker")))
-
-  @volatile private var current_spell_checker = no_spell_checker
-
-  def get_spell_checker: Option[Spell_Checker] =
-    current_spell_checker match {
-      case (_, Exn.Res(spell_checker)) => Some(spell_checker)
-      case _ => None
-    }
-
-  def update_spell_checker(): Unit =
-    if (options.bool("spell_checker")) {
-      val lang = options.string("spell_checker_language")
-      if (current_spell_checker._1 != lang) {
-        Spell_Checker.dictionaries.find(_.lang == lang) match {
-          case Some(dict) => current_spell_checker = (lang, Exn.capture { Spell_Checker(dict) })
-          case None => current_spell_checker = no_spell_checker
-        }
-      }
-    }
-    else current_spell_checker = no_spell_checker
 
 
   /* popups */
@@ -356,7 +331,7 @@ class Plugin extends EBPlugin
           }
 
         case msg: PropertiesChanged =>
-          PIDE.update_spell_checker()
+          PIDE.spell_checker.update(PIDE.options.value)
           PIDE.session.update_options(PIDE.options.value)
 
         case _ =>
@@ -375,7 +350,7 @@ class Plugin extends EBPlugin
 
       PIDE.options.update(Options.init())
       PIDE.completion_history.load()
-      PIDE.update_spell_checker()
+      PIDE.spell_checker.update(PIDE.options.value)
 
       SyntaxUtilities.setStyleExtender(new Token_Markup.Style_Extender)
       if (ModeProvider.instance.isInstanceOf[ModeProvider])

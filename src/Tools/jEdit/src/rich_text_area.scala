@@ -319,7 +319,7 @@ class Rich_Text_Area(
 
             // spell-checker
             for {
-              spell_checker <- PIDE.get_spell_checker
+              spell_checker <- PIDE.spell_checker.get
               range0 <- rendering.spell_checker_ranges(line_range)
               text <- JEdit_Lib.try_get_text(buffer, range0)
               range <- spell_checker.bad_words(text)
