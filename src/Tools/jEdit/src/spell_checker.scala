@@ -15,6 +15,7 @@ import java.lang.Class
 import scala.collection.mutable
 import scala.swing.ComboBox
 import scala.annotation.tailrec
+import scala.collection.immutable.{SortedSet, SortedMap}
 
 
 object Spell_Checker
@@ -55,19 +56,57 @@ object Spell_Checker
   }
 
 
-  /* dictionary consisting of word list */
+  /* dictionary -- include/exclude word list */
+
+  private val USER_DICTIONARIES = Path.explode("$ISABELLE_HOME_USER/dictionaries")
 
   class Dictionary private [Spell_Checker](path: Path)
   {
     val lang = path.split_ext._1.base.implode
     override def toString: String = lang
 
-    def load_words: List[String] =
-      path.split_ext._2 match {
-        case "gz" => split_lines(File.read_gzip(path))
-        case "" => split_lines(File.read(path))
-        case ext => error("Bad file extension for dictionary " + path)
+    private val user_path = USER_DICTIONARIES + Path.basic(lang)
+
+    def load(): (List[String], List[String], List[String]) =
+    {
+      val main = split_lines(File.read_gzip(path))
+
+      val user_entries =
+        if (user_path.is_file)
+          for {
+            raw_line <- split_lines(File.read(user_path))
+            line = raw_line.trim
+            if line != "" && !line.startsWith("#")
+            entry =
+              Library.try_unprefix("-", line) match {
+                case Some(s) => (s, false)
+                case None => (line, true)
+              }
+          } yield entry
+        else Nil
+      val user = SortedMap.empty[String, Boolean] ++ user_entries
+      val include = user.toList.filter(_._2).map(_._1)
+      val exclude = user.toList.filterNot(_._2).map(_._1)
+
+      (main, include, exclude)
+    }
+
+    def save(include: List[String], exclude: List[String])
+    {
+      if (!include.isEmpty || !exclude.isEmpty || user_path.is_file) {
+        val header = """# Spell-checker dictionary
+#
+#   * each line contains at most one word
+#   * extra blanks are ignored
+#   * lines starting with "#" are ignored
+#   * lines starting with "-" indicate excluded words
+#   * later entries take precedence
+#
+"""
+        Isabelle_System.mkdirs(USER_DICTIONARIES)
+        File.write(user_path, header + cat_lines(include ::: exclude.map("-" + _)))
       }
+    }
   }
 
 
@@ -117,7 +156,11 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
 {
   override def toString: String = dictionary.toString
 
-  private val dict =
+  private var dict = new Object
+  private var include_set = SortedSet.empty[String]
+  private var exclude_set = SortedSet.empty[String]
+
+  private def make_dict()
   {
     val factory_class = Class.forName("com.inet.jortho.DictionaryFactory")
     val factory_cons = factory_class.getConstructor()
@@ -126,18 +169,46 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
 
     val add = factory_class.getDeclaredMethod("add", classOf[String])
     add.setAccessible(true)
-    dictionary.load_words.foreach(add.invoke(factory, _))
+
+    val (main, include, exclude) = dictionary.load()
+    include_set = SortedSet.empty[String] ++ include
+    exclude_set = SortedSet.empty[String] ++ exclude
+
+    for {
+      word <- main.iterator ++ include.iterator
+      if !exclude_set.contains(word)
+    } add.invoke(factory, word)
 
     val create = factory_class.getDeclaredMethod("create")
     create.setAccessible(true)
-    create.invoke(factory)
+    dict = create.invoke(factory)
+  }
+  make_dict()
+
+  def save()
+  {
+    dictionary.save(include_set.toList, exclude_set.toList)
   }
 
-  def add(word: String)
+  def include(word: String)
   {
+    include_set += word
+    exclude_set -= word
+
     val m = dict.getClass.getDeclaredMethod("add", classOf[String])
     m.setAccessible(true)
     m.invoke(dict, word)
+
+    save()
+  }
+
+  def exclude(word: String)
+  {
+    include_set -= word
+    exclude_set += word
+
+    save()
+    make_dict()
   }
 
   def contains(word: String): Boolean =
