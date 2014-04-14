@@ -94,7 +94,8 @@ Poly/ML, without the add-ons of Isabelle/ML.  See also
   - More reliable treatment of GUI events vs. completion popups: avoid
     loosing keystrokes with slow / remote graphics displays.
 
-* Spell-checker support for document text, comments etc.
+* Integrated spell-checker for document text, comments etc. with
+completion popup and context-menu.
 
 * Auxiliary files ('ML_file' etc.) are managed by the Prover IDE.
 Open text buffers take precedence over copies within the file-system.
