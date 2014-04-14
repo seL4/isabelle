@@ -83,7 +83,7 @@ object Spell_Checker
   {
     Swing_Thread.require()
 
-    val option_name = "spell_checker_language"
+    val option_name = "spell_checker_dictionary"
     val opt = PIDE.options.value.check_name(option_name)
 
     val entries = dictionaries()
@@ -175,7 +175,7 @@ class Spell_Checker_Variable
 
   def update(options: Options): Unit = synchronized {
     if (options.bool("spell_checker")) {
-      val lang = options.string("spell_checker_language")
+      val lang = options.string("spell_checker_dictionary")
       if (current_spell_checker._1 != lang) {
         Spell_Checker.dictionaries.find(_.lang == lang) match {
           case Some(dictionary) =>
