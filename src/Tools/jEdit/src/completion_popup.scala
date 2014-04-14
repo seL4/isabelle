@@ -119,16 +119,6 @@ object Completion_Popup
       }
 
 
-    /* caret */
-
-    def before_caret_range(rendering: Rendering): Text.Range =
-    {
-      val snapshot = rendering.snapshot
-      val former_caret = snapshot.revert(text_area.getCaretPosition)
-      snapshot.convert(Text.Range(former_caret - 1, former_caret))
-    }
-
-
     /* rendering */
 
     def rendering(rendering: Rendering, line_range: Text.Range): Option[Text.Info[Color]] =
@@ -138,7 +128,7 @@ object Completion_Popup
         case None =>
           val buffer = text_area.getBuffer
           if (line_range.contains(text_area.getCaretPosition)) {
-            before_caret_range(rendering).try_restrict(line_range) match {
+            JEdit_Lib.before_caret_range(text_area, rendering).try_restrict(line_range) match {
               case Some(range) if !range.is_singularity =>
                 rendering.semantic_completion(range) match {
                   case Some(Text.Info(_, Completion.No_Completion)) => None
@@ -176,7 +166,7 @@ object Completion_Popup
           val context =
             (opt_rendering match {
               case Some(rendering) =>
-                rendering.language_context(before_caret_range(rendering))
+                rendering.language_context(JEdit_Lib.before_caret_range(text_area, rendering))
               case None => None
             }) getOrElse syntax.language_context
 
@@ -191,21 +181,9 @@ object Completion_Popup
     /* spell-checker completion */
 
     def spell_checker_completion(rendering: Rendering): Option[Completion.Result] =
-    {
       PIDE.spell_checker.get match {
         case Some(spell_checker) =>
-          val caret_range = before_caret_range(rendering)
-
-          val result =
-            for {
-              spell_range <- rendering.spell_checker_point(caret_range)
-              text <- JEdit_Lib.try_get_text(text_area.getBuffer, spell_range)
-              info <-
-                Spell_Checker.marked_words(spell_range.start, text,
-                  info => info.range.overlaps(caret_range)).headOption
-            } yield info
-
-          result match {
+          Spell_Checker.current_word(text_area, rendering) match {
             case Some(Text.Info(range, original)) =>
               val words = spell_checker.complete(original)
               if (words.isEmpty) None
@@ -219,7 +197,6 @@ object Completion_Popup
           }
         case None => None
       }
-    }
 
 
     /* completion action: text area */
@@ -332,7 +309,8 @@ object Completion_Popup
             case Some(doc_view) =>
               val rendering = doc_view.get_rendering()
               val (no_completion, result) =
-                rendering.semantic_completion(before_caret_range(rendering)) match {
+                rendering.semantic_completion(JEdit_Lib.before_caret_range(text_area, rendering))
+                match {
                   case Some(Text.Info(_, Completion.No_Completion)) =>
                     (true, None)
                   case Some(Text.Info(range, names: Completion.Names)) =>

@@ -17,10 +17,12 @@ import scala.swing.ComboBox
 import scala.annotation.tailrec
 import scala.collection.immutable.SortedMap
 
+import org.gjt.sp.jedit.textarea.TextArea
+
 
 object Spell_Checker
 {
-  /* marked words within text */
+  /* words within text */
 
   def marked_words(base: Text.Offset, text: String, mark: Text.Info[String] => Boolean)
     : List[Text.Info[String]] =
@@ -53,6 +55,16 @@ object Spell_Checker
       }
     }
     result.toList
+  }
+
+  def current_word(text_area: TextArea, rendering: Rendering): Option[Text.Info[String]] =
+  {
+    val caret = JEdit_Lib.before_caret_range(text_area, rendering)
+    for {
+      spell_range <- rendering.spell_checker_point(caret)
+      text <- JEdit_Lib.try_get_text(text_area.getBuffer, spell_range)
+      info <- marked_words(spell_range.start, text, info => info.range.overlaps(caret)).headOption
+    } yield info
   }
 
 
@@ -180,7 +192,7 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
   }
   load()
 
-  def save()
+  private def save()
   {
     val permanent_decls =
       (for {
@@ -195,30 +207,35 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
 #
 #   * each line contains at most one word
 #   * extra blanks are ignored
-#   * lines starting with "#" are ignored
+#   * lines starting with "#" are stripped
 #   * lines starting with "-" indicate excluded words
-#   * later entries take precedence
 #
+#:mode=text:encoding=UTF-8:
+
 """
       Isabelle_System.mkdirs(dictionary.user_path.expand.dir)
       File.write(dictionary.user_path, header + cat_lines(permanent_decls))
     }
   }
 
-  def include(word: String, permanent: Boolean)
+  def update(word: String, include: Boolean, permanent: Boolean)
   {
-    declarations += (word -> Spell_Checker.Declaration(true, permanent))
-    if (permanent) save()
+    declarations += (word -> Spell_Checker.Declaration(include, permanent))
 
-    val m = dict.getClass.getDeclaredMethod("add", classOf[String])
-    m.setAccessible(true)
-    m.invoke(dict, word)
+    if (include) {
+      if (permanent) save()
+
+      val m = dict.getClass.getDeclaredMethod("add", classOf[String])
+      m.setAccessible(true)
+      m.invoke(dict, word)
+    }
+    else { save(); load() }
   }
 
-  def exclude(word: String, permanent: Boolean)
+  def reset()
   {
-    declarations += (word -> Spell_Checker.Declaration(false, permanent))
-    save()
+    declarations =
+      declarations -- (for ((name, d) <- declarations.iterator; if !d.permanent) yield name)
     load()
   }
 

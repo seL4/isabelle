@@ -92,4 +92,29 @@
 	    isabelle.jedit.Isabelle.input_bsup(textArea);
 	  </CODE>
 	</ACTION>
+	<ACTION NAME="isabelle.include-word">
+	  <CODE>
+	    isabelle.jedit.Isabelle.update_dictionary(textArea, true, false);
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.include-word-permanently">
+	  <CODE>
+	    isabelle.jedit.Isabelle.update_dictionary(textArea, true, true);
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.exclude-word">
+	  <CODE>
+	    isabelle.jedit.Isabelle.update_dictionary(textArea, false, false);
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.exclude-word-permanently">
+	  <CODE>
+	    isabelle.jedit.Isabelle.update_dictionary(textArea, false, true);
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.reset-words">
+	  <CODE>
+	    isabelle.jedit.Isabelle.reset_dictionary();
+	  </CODE>
+	</ACTION>
 </ACTIONS>

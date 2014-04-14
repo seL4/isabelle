@@ -289,5 +289,19 @@ object Isabelle
 
   def input_bsup(text_area: JEditTextArea)
   { enclose_input(text_area, Symbol.bsup_decoded, Symbol.esup_decoded) }
+
+
+  /* spell-checker dictionary */
+
+  def update_dictionary(text_area: JEditTextArea, include: Boolean, permanent: Boolean)
+  {
+    for {
+      spell_checker <- PIDE.spell_checker.get
+      doc_view <- PIDE.document_view(text_area)
+      Text.Info(_, word) <- Spell_Checker.current_word(text_area, doc_view.get_rendering())
+    } spell_checker.update(word, include, permanent)
+  }
+
+  def reset_dictionary(): Unit = PIDE.spell_checker.get.foreach(_.reset())
 }
 

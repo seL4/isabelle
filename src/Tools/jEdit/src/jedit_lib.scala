@@ -176,6 +176,16 @@ object JEdit_Lib
     }
 
 
+  /* caret */
+
+  def before_caret_range(text_area: TextArea, rendering: Rendering): Text.Range =
+  {
+    val snapshot = rendering.snapshot
+    val former_caret = snapshot.revert(text_area.getCaretPosition)
+    snapshot.convert(Text.Range(former_caret - 1, former_caret))
+  }
+
+
   /* text ranges */
 
   def buffer_range(buffer: JEditBuffer): Text.Range =
