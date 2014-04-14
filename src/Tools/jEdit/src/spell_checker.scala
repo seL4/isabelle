@@ -321,9 +321,15 @@ class Spell_Checker_Menu extends DynamicContextMenuService
             new EnhancedMenuItem(context.getAction(action).getLabel, action, context)
 
           if (known_word)
-            Array(item("isabelle.exclude-word"), item("isabelle.exclude-word-permanently"))
+            Array(
+              item("isabelle.exclude-word"),
+              item("isabelle.exclude-word-permanently"),
+              item("isabelle.reset-words"))
           else
-            Array(item("isabelle.include-word"), item("isabelle.include-word-permanently"))
+            Array(
+              item("isabelle.include-word"),
+              item("isabelle.include-word-permanently"),
+              item("isabelle.reset-words"))
 
         case None => null
       }
