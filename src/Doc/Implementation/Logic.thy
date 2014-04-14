@@ -297,7 +297,7 @@ text {*
 
   The inductive relation @{text "t :: \<tau>"} assigns a (unique) type to a
   term according to the structure of atomic terms, abstractions, and
-  applicatins:
+  applications:
   \[
   \infer{@{text "a\<^sub>\<tau> :: \<tau>"}}{}
   \qquad

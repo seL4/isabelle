@@ -115,7 +115,7 @@ text %mlref {*
   \item @{ML Proof.raw_goal}~@{text "state"} returns the structured
   Isar goal (if available) in the raw internal form seen by ``raw''
   methods (like @{method induct}).  This form is rarely appropriate
-  for dignostic tools; @{ML Proof.simple_goal} or @{ML Proof.goal}
+  for diagnostic tools; @{ML Proof.simple_goal} or @{ML Proof.goal}
   should be used in most situations.
 
   \item @{ML Proof.theorem}~@{text "before_qed after_qed statement ctxt"}
@@ -355,7 +355,7 @@ text %mlex {* See also @{command method_setup} in
   \cite{isabelle-isar-ref} which includes some abstract examples.
 
   \medskip The following toy examples illustrate how the goal facts
-  and state are passed to proof methods.  The pre-defined proof method
+  and state are passed to proof methods.  The predefined proof method
   called ``@{method tactic}'' wraps ML source of type @{ML_type
   tactic} (abstracted over @{ML_text facts}).  This allows immediate
   experimentation without parsing of concrete syntax. *}

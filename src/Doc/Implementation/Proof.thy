@@ -63,7 +63,7 @@ begin
   {
     fix x  -- {* all potential occurrences of some @{text "x::\<tau>"} are fixed *}
     {
-      have "x::'a \<equiv> x"  -- {* implicit type assigment by concrete occurrence *}
+      have "x::'a \<equiv> x"  -- {* implicit type assignment by concrete occurrence *}
         by (rule reflexive)
     }
     thm this  -- {* result still with fixed type @{text "'a"} *}
@@ -75,7 +75,7 @@ text {* The Isabelle/Isar proof context manages the details of term
   vs.\ type variables, with high-level principles for moving the
   frontier between fixed and schematic variables.
 
-  The @{text "add_fixes"} operation explictly declares fixed
+  The @{text "add_fixes"} operation explicitly declares fixed
   variables; the @{text "declare_term"} operation absorbs a term into
   a context by fixing new type variables and adding syntactic
   constraints.
@@ -198,7 +198,7 @@ text {* The following ML code can now work with the invented names of
   @{text x1}, @{text x2}, @{text x3}, without depending on
   the details on the system policy for introducing these variants.
   Recall that within a proof body the system always invents fresh
-  ``skolem constants'', e.g.\ as follows: *}
+  ``Skolem constants'', e.g.\ as follows: *}
 
 notepad
 begin
@@ -437,7 +437,7 @@ text %mlref {*
   it.  The latter may depend on the local assumptions being presented
   as facts.  The result is in HHF normal form.
 
-  \item @{ML Goal.prove_multi} is simular to @{ML Goal.prove}, but
+  \item @{ML Goal.prove_multi} is similar to @{ML Goal.prove}, but
   states several conclusions simultaneously.  The goal is encoded by
   means of Pure conjunction; @{ML Goal.conjunction_tac} will turn this
   into a collection of individual subgoals.

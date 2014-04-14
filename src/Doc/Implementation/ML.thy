@@ -229,7 +229,7 @@ text {* Since ML is the primary medium to express the meaning of the
   \end{itemize}
 
   Variations with primed or decimal numbers are always possible, as
-  well as sematic prefixes like @{ML_text foo_thy} or @{ML_text
+  well as semantic prefixes like @{ML_text foo_thy} or @{ML_text
   bar_ctxt}, but the base conventions above need to be preserved.
   This allows to visualize the their data flow via plain regular
   expressions in the editor.
@@ -764,7 +764,7 @@ text {* Standard ML is a language in the tradition of @{text
   etc.  How well this works in practice depends on the order of
   arguments.  In the worst case, arguments are arranged erratically,
   and using a function in a certain situation always requires some
-  glue code.  Thus we would get exponentially many oppurtunities to
+  glue code.  Thus we would get exponentially many opportunities to
   decorate the code with meaningless permutations of arguments.
 
   This can be avoided by \emph{canonical argument order}, which
@@ -1148,7 +1148,7 @@ text {* The Standard ML semantics of strict functional evaluation
   producing a console interrupt manually etc.  An Isabelle/ML program
   that intercepts interrupts becomes dependent on physical effects of
   the environment.  Even worse, exception handling patterns that are
-  too general by accident, e.g.\ by mispelled exception constructors,
+  too general by accident, e.g.\ by misspelled exception constructors,
   will cover interrupts unintentionally and thus render the program
   semantics ill-defined.
 
@@ -1246,7 +1246,7 @@ text {* A \emph{symbol} constitutes the smallest textual unit in
   \item a single ASCII character ``@{text "c"}'', for example
   ``\verb,a,'',
 
-  \item a codepoint according to UTF8 (non-ASCII byte sequence),
+  \item a codepoint according to UTF-8 (non-ASCII byte sequence),
 
   \item a regular symbol ``\verb,\,\verb,<,@{text "ident"}\verb,>,'',
   for example ``\verb,\,\verb,<alpha>,'',

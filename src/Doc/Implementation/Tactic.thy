@@ -431,7 +431,7 @@ text %mlref {*
 
   \item @{ML rename_tac}~@{text "names i"} renames the innermost
   parameters of subgoal @{text i} according to the provided @{text
-  names} (which need to be distinct indentifiers).
+  names} (which need to be distinct identifiers).
 
   \end{description}
 
