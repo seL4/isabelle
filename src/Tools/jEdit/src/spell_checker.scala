@@ -11,7 +11,6 @@ package isabelle.jedit
 import isabelle._
 
 import java.lang.Class
-import java.util.Locale
 
 import scala.collection.mutable
 import scala.swing.ComboBox
@@ -62,12 +61,6 @@ object Spell_Checker
   {
     val lang = path.split_ext._1.base.implode
     override def toString: String = lang
-
-    val locale: Locale =
-      space_explode('_', lang) match {
-        case l :: _ => Locale.forLanguageTag(l)
-        case Nil => Locale.ENGLISH
-      }
 
     def load_words: List[String] =
       path.split_ext._2 match {
@@ -156,10 +149,9 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
 
   def check(word: String): Boolean =
     contains(word) ||
-    Library.is_all_caps(word) && contains(Library.lowercase(word, dictionary.locale)) ||
+    Library.is_all_caps(word) && contains(Library.lowercase(word)) ||
     Library.is_capitalized(word) &&
-      (contains(Library.lowercase(word, dictionary.locale)) ||
-       contains(Library.uppercase(word, dictionary.locale)))
+      (contains(Library.lowercase(word)) || contains(Library.uppercase(word)))
 
   def complete(word: String): List[String] =
     if (check(word)) Nil

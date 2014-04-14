@@ -103,12 +103,12 @@ object Library
 
   /* strings */
 
-  def lowercase(str: String, locale: Locale = Locale.ENGLISH): String = str.toLowerCase(locale)
-  def uppercase(str: String, locale: Locale = Locale.ENGLISH): String = str.toUpperCase(locale)
+  def lowercase(str: String): String = str.toLowerCase(Locale.ROOT)
+  def uppercase(str: String): String = str.toUpperCase(Locale.ROOT)
 
-  def capitalize(str: String, locale: Locale = Locale.ENGLISH): String =
+  def capitalize(str: String): String =
     if (str.length == 0) str
-    else uppercase(str.substring(0, 1), locale) + str.substring(1)
+    else uppercase(str.substring(0, 1)) + str.substring(1)
 
   def is_capitalized(str: String): Boolean =
     str.length > 0 &&
