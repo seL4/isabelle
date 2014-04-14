@@ -299,9 +299,19 @@ object Isabelle
       spell_checker <- PIDE.spell_checker.get
       doc_view <- PIDE.document_view(text_area)
       Text.Info(_, word) <- Spell_Checker.current_word(text_area, doc_view.get_rendering())
-    } spell_checker.update(word, include, permanent)
+    } {
+      spell_checker.update(word, include, permanent)
+      JEdit_Lib.jedit_views().foreach(_.repaint())
+    }
   }
 
-  def reset_dictionary(): Unit = PIDE.spell_checker.get.foreach(_.reset())
+  def reset_dictionary(view: View)
+  {
+    for (spell_checker <- PIDE.spell_checker.get)
+    {
+      spell_checker.reset()
+      JEdit_Lib.jedit_views().foreach(_.repaint())
+    }
+  }
 }
 
