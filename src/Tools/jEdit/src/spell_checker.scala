@@ -99,8 +99,6 @@ object Spell_Checker
     }
   }
 
-  private sealed case class Declaration(include: Boolean, permanent: Boolean)
-
 
   /* known dictionaries */
 
@@ -141,6 +139,8 @@ object Spell_Checker
   /* create spell checker */
 
   def apply(dictionary: Dictionary): Spell_Checker = new Spell_Checker(dictionary)
+
+  private sealed case class Update(include: Boolean, permanent: Boolean)
 }
 
 
@@ -149,17 +149,17 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
   override def toString: String = dictionary.toString
 
   private var dict = new Object
-  private var declarations = SortedMap.empty[String, Spell_Checker.Declaration]
+  private var updates = SortedMap.empty[String, Spell_Checker.Update]
 
   private def included_iterator(): Iterator[String] =
     for {
-      (word, d) <- declarations.iterator
-      if d.include
+      (word, upd) <- updates.iterator
+      if upd.include
     } yield word
 
   private def excluded(word: String): Boolean =
-    declarations.get(word) match {
-      case Some(d) => !d.include
+    updates.get(word) match {
+      case Some(upd) => !upd.include
       case None => false
     }
 
@@ -167,16 +167,16 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
   {
     val main_dictionary = split_lines(File.read_gzip(dictionary.path))
 
-    val user_declarations =
+    val permanent_updates =
       if (dictionary.user_path.is_file)
         for {
           Spell_Checker.Decl(word, include) <- split_lines(File.read(dictionary.user_path))
-        } yield (word, Spell_Checker.Declaration(include, true))
+        } yield (word, Spell_Checker.Update(include, true))
       else Nil
 
-    declarations =
-      declarations -- (for ((name, d) <- declarations.iterator; if d.permanent) yield name) ++
-        user_declarations
+    updates =
+      updates -- (for ((name, upd) <- updates.iterator; if upd.permanent) yield name) ++
+        permanent_updates
 
     val factory_class = Class.forName("com.inet.jortho.DictionaryFactory")
     val factory_cons = factory_class.getConstructor()
@@ -201,13 +201,13 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
   {
     val permanent_decls =
       (for {
-        (word, d) <- declarations.iterator
-        if d.permanent
-      } yield Spell_Checker.Decl(word, d.include)).toList
+        (word, upd) <- updates.iterator
+        if upd.permanent
+      } yield Spell_Checker.Decl(word, upd.include)).toList
 
     if (!permanent_decls.isEmpty || dictionary.user_path.is_file) {
       val header =
-        "# User declarations for spell-checker dictionary " + quote(dictionary.lang) +
+        "# Permanent updates for spell-checker dictionary " + quote(dictionary.lang) +
 """
 #
 #   * each line contains at most one word
@@ -225,7 +225,7 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
 
   def update(word: String, include: Boolean, permanent: Boolean)
   {
-    declarations += (word -> Spell_Checker.Declaration(include, permanent))
+    updates += (word -> Spell_Checker.Update(include, permanent))
 
     if (include) {
       if (permanent) save()
@@ -239,8 +239,7 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
 
   def reset()
   {
-    declarations =
-      declarations -- (for ((name, d) <- declarations.iterator; if !d.permanent) yield name)
+    updates = SortedMap.empty
     load()
   }
 
