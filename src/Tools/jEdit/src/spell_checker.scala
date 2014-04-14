@@ -15,7 +15,7 @@ import java.lang.Class
 import scala.collection.mutable
 import scala.swing.ComboBox
 import scala.annotation.tailrec
-import scala.collection.immutable.{SortedSet, SortedMap}
+import scala.collection.immutable.SortedMap
 
 
 object Spell_Checker
@@ -56,58 +56,33 @@ object Spell_Checker
   }
 
 
-  /* dictionary -- include/exclude word list */
+  /* dictionary declarations */
 
-  private val USER_DICTIONARIES = Path.explode("$ISABELLE_HOME_USER/dictionaries")
-
-  class Dictionary private [Spell_Checker](path: Path)
+  class Dictionary private[Spell_Checker](val path: Path)
   {
     val lang = path.split_ext._1.base.implode
+    val user_path = Path.explode("$ISABELLE_HOME_USER/dictionaries") + Path.basic(lang)
     override def toString: String = lang
+  }
 
-    private val user_path = USER_DICTIONARIES + Path.basic(lang)
+  private object Decl
+  {
+    def apply(name: String, include: Boolean): String =
+      if (include) name else "-" + name
 
-    def load(): (List[String], List[String], List[String]) =
+    def unapply(decl: String): Option[(String, Boolean)] =
     {
-      val main = split_lines(File.read_gzip(path))
-
-      val user_entries =
-        if (user_path.is_file)
-          for {
-            raw_line <- split_lines(File.read(user_path))
-            line = raw_line.trim
-            if line != "" && !line.startsWith("#")
-            entry =
-              Library.try_unprefix("-", line) match {
-                case Some(s) => (s, false)
-                case None => (line, true)
-              }
-          } yield entry
-        else Nil
-      val user = SortedMap.empty[String, Boolean] ++ user_entries
-      val include = user.toList.filter(_._2).map(_._1)
-      val exclude = user.toList.filterNot(_._2).map(_._1)
-
-      (main, include, exclude)
-    }
-
-    def save(include: List[String], exclude: List[String])
-    {
-      if (!include.isEmpty || !exclude.isEmpty || user_path.is_file) {
-        val header = """# Spell-checker dictionary
-#
-#   * each line contains at most one word
-#   * extra blanks are ignored
-#   * lines starting with "#" are ignored
-#   * lines starting with "-" indicate excluded words
-#   * later entries take precedence
-#
-"""
-        Isabelle_System.mkdirs(USER_DICTIONARIES)
-        File.write(user_path, header + cat_lines(include ::: exclude.map("-" + _)))
-      }
+      val decl1 = decl.trim
+      if (decl1 == "" || decl1.startsWith("#")) None
+      else
+        Library.try_unprefix("-", decl1.trim) match {
+          case None => Some((decl1, true))
+          case Some(decl2) => Some((decl2, false))
+        }
     }
   }
+
+  private sealed case class Declaration(include: Boolean, permanent: Boolean)
 
 
   /* known dictionaries */
@@ -157,11 +132,35 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
   override def toString: String = dictionary.toString
 
   private var dict = new Object
-  private var include_set = SortedSet.empty[String]
-  private var exclude_set = SortedSet.empty[String]
+  private var declarations = SortedMap.empty[String, Spell_Checker.Declaration]
 
-  private def make_dict()
+  private def included_iterator(): Iterator[String] =
+    for {
+      (word, d) <- declarations.iterator
+      if d.include
+    } yield word
+
+  private def excluded(word: String): Boolean =
+    declarations.get(word) match {
+      case Some(d) => !d.include
+      case None => false
+    }
+
+  private def load()
   {
+    val main_dictionary = split_lines(File.read_gzip(dictionary.path))
+
+    val user_declarations =
+      if (dictionary.user_path.is_file)
+        for {
+          Spell_Checker.Decl(word, include) <- split_lines(File.read(dictionary.user_path))
+        } yield (word, Spell_Checker.Declaration(include, true))
+      else Nil
+
+    declarations =
+      declarations -- (for ((name, d) <- declarations.iterator; if d.permanent) yield name) ++
+        user_declarations
+
     val factory_class = Class.forName("com.inet.jortho.DictionaryFactory")
     val factory_cons = factory_class.getConstructor()
     factory_cons.setAccessible(true)
@@ -170,45 +169,57 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
     val add = factory_class.getDeclaredMethod("add", classOf[String])
     add.setAccessible(true)
 
-    val (main, include, exclude) = dictionary.load()
-    include_set = SortedSet.empty[String] ++ include
-    exclude_set = SortedSet.empty[String] ++ exclude
-
     for {
-      word <- main.iterator ++ include.iterator
-      if !exclude_set.contains(word)
+      word <- main_dictionary.iterator ++ included_iterator()
+      if !excluded(word)
     } add.invoke(factory, word)
 
     val create = factory_class.getDeclaredMethod("create")
     create.setAccessible(true)
     dict = create.invoke(factory)
   }
-  make_dict()
+  load()
 
   def save()
   {
-    dictionary.save(include_set.toList, exclude_set.toList)
+    val permanent_decls =
+      (for {
+        (word, d) <- declarations.iterator
+        if d.permanent
+      } yield Spell_Checker.Decl(word, d.include)).toList
+
+    if (!permanent_decls.isEmpty || dictionary.user_path.is_file) {
+      val header =
+        "# User declarations for spell-checker dictionary " + quote(dictionary.lang) +
+"""
+#
+#   * each line contains at most one word
+#   * extra blanks are ignored
+#   * lines starting with "#" are ignored
+#   * lines starting with "-" indicate excluded words
+#   * later entries take precedence
+#
+"""
+      Isabelle_System.mkdirs(dictionary.user_path.expand.dir)
+      File.write(dictionary.user_path, header + cat_lines(permanent_decls))
+    }
   }
 
-  def include(word: String)
+  def include(word: String, permanent: Boolean)
   {
-    include_set += word
-    exclude_set -= word
+    declarations += (word -> Spell_Checker.Declaration(true, permanent))
+    if (permanent) save()
 
     val m = dict.getClass.getDeclaredMethod("add", classOf[String])
     m.setAccessible(true)
     m.invoke(dict, word)
-
-    save()
   }
 
-  def exclude(word: String)
+  def exclude(word: String, permanent: Boolean)
   {
-    include_set -= word
-    exclude_set += word
-
+    declarations += (word -> Spell_Checker.Declaration(false, permanent))
     save()
-    make_dict()
+    load()
   }
 
   def contains(word: String): Boolean =
