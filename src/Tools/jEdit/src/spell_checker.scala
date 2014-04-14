@@ -21,8 +21,8 @@ import scala.collection.immutable.SortedMap
 
 import org.gjt.sp.jedit.jEdit
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
-import org.gjt.sp.jedit.menu.EnhancedMenuItem;
-import org.gjt.sp.jedit.gui.DynamicContextMenuService;
+import org.gjt.sp.jedit.menu.EnhancedMenuItem
+import org.gjt.sp.jedit.gui.DynamicContextMenuService
 
 
 object Spell_Checker
