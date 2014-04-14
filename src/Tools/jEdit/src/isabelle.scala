@@ -307,7 +307,7 @@ object Isabelle
     }
   }
 
-  def reset_dictionary(view: View)
+  def reset_dictionary()
   {
     for (spell_checker <- PIDE.spell_checker.get)
     {
