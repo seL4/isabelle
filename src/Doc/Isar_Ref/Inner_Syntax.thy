@@ -1119,7 +1119,7 @@ text {* The ML datatype @{ML_type Ast.ast} explicitly represents the
 subsubsection {* AST constants versus variables *}
 
 text {* Depending on the situation --- input syntax, output syntax,
-  translation patterns --- the distinction of atomic asts as @{ML
+  translation patterns --- the distinction of atomic ASTs as @{ML
   Ast.Constant} versus @{ML Ast.Variable} serves slightly different
   purposes.
 
@@ -1266,7 +1266,7 @@ text {*
   \end{itemize}
 
   Each @{text "A\<^sub>i"} is decorated by priority @{text "p\<^sub>i"} from the
-  given list @{text "ps"}; misssing priorities default to 0.
+  given list @{text "ps"}; missing priorities default to 0.
 
   The resulting nonterminal of the production is determined similarly
   from type @{text "\<tau>"}, with priority @{text "q"} and default 1000.

@@ -133,7 +133,7 @@ text {*
 
   \item @{command "pwd"} prints the current working directory.
 
-  \item @{command "use_thy"}~@{text A} preload theory @{text A}.
+  \item @{command "use_thy"}~@{text A} preloads theory @{text A}.
   These system commands are scarcely used when working interactively,
   since loading of theories is done automatically as required.
 

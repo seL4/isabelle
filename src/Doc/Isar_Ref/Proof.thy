@@ -495,7 +495,7 @@ text {*
   resulting error as a warning beforehand.  Watch out for the
   following message:
 
-  %FIXME proper antiquitation
+  %FIXME proper antiquotation
   \begin{ttbox}
   Problem! Local statement will fail to solve any pending goal
   \end{ttbox}
