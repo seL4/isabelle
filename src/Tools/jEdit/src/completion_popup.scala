@@ -183,7 +183,8 @@ object Completion_Popup
     def spell_checker_completion(rendering: Rendering): Option[Completion.Result] =
       PIDE.spell_checker.get match {
         case Some(spell_checker) =>
-          Spell_Checker.current_word(text_area, rendering) match {
+          val caret_range = JEdit_Lib.before_caret_range(text_area, rendering)
+          Spell_Checker.current_word(text_area, rendering, caret_range) match {
             case Some(Text.Info(range, original)) =>
               val words = spell_checker.complete(original)
               if (words.isEmpty) None

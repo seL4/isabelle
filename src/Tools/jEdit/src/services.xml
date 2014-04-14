@@ -2,25 +2,28 @@
 <!DOCTYPE SERVICES SYSTEM "services.dtd">
 
 <SERVICES>
-	<SERVICE NAME="UTF-8-Isabelle" CLASS="org.gjt.sp.jedit.io.Encoding">
-		new isabelle.jedit.Isabelle_Encoding();
-	</SERVICE>
-	<SERVICE NAME="isabelle" CLASS="sidekick.SideKickParser">
-		new isabelle.jedit.Isabelle_Sidekick_Default();
-	</SERVICE>
-	<SERVICE NAME="isabelle-markup" CLASS="sidekick.SideKickParser">
-		new isabelle.jedit.Isabelle_Sidekick_Markup();
-	</SERVICE>
-	<SERVICE NAME="isabelle-news" CLASS="sidekick.SideKickParser">
-		new isabelle.jedit.Isabelle_Sidekick_News();
-	</SERVICE>
-	<SERVICE NAME="isabelle-options" CLASS="sidekick.SideKickParser">
-		new isabelle.jedit.Isabelle_Sidekick_Options();
-	</SERVICE>
-	<SERVICE NAME="isabelle-root" CLASS="sidekick.SideKickParser">
-		new isabelle.jedit.Isabelle_Sidekick_Root();
-	</SERVICE>
- 	<SERVICE CLASS="console.Shell" NAME="Scala">
-		new isabelle.jedit.Scala_Console();
-	</SERVICE>
+  <SERVICE CLASS="org.gjt.sp.jedit.gui.DynamicContextMenuService" NAME="Spell_Checker">
+    new isabelle.jedit.Spell_Checker_Menu();
+  </SERVICE>
+  <SERVICE NAME="UTF-8-Isabelle" CLASS="org.gjt.sp.jedit.io.Encoding">
+    new isabelle.jedit.Isabelle_Encoding();
+  </SERVICE>
+  <SERVICE NAME="isabelle" CLASS="sidekick.SideKickParser">
+    new isabelle.jedit.Isabelle_Sidekick_Default();
+  </SERVICE>
+  <SERVICE NAME="isabelle-markup" CLASS="sidekick.SideKickParser">
+    new isabelle.jedit.Isabelle_Sidekick_Markup();
+  </SERVICE>
+  <SERVICE NAME="isabelle-news" CLASS="sidekick.SideKickParser">
+    new isabelle.jedit.Isabelle_Sidekick_News();
+  </SERVICE>
+  <SERVICE NAME="isabelle-options" CLASS="sidekick.SideKickParser">
+    new isabelle.jedit.Isabelle_Sidekick_Options();
+  </SERVICE>
+  <SERVICE NAME="isabelle-root" CLASS="sidekick.SideKickParser">
+    new isabelle.jedit.Isabelle_Sidekick_Root();
+  </SERVICE>
+  <SERVICE CLASS="console.Shell" NAME="Scala">
+    new isabelle.jedit.Scala_Console();
+  </SERVICE>
 </SERVICES>
