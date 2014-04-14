@@ -2262,10 +2262,7 @@ proof (rule, rule)
       using Min_ge_iff[of i 0 ] and obt(1)
       unfolding t_def i_def
       using obt(4)[unfolded le_less]
-      apply auto
-      unfolding divide_le_0_iff
-      apply auto
-      done
+      by (auto simp: divide_le_0_iff)
     have t: "\<forall>v\<in>s. u v + t * w v \<ge> 0"
     proof
       fix v
@@ -5056,7 +5053,7 @@ proof -
     apply(rule *[OF _ assms(2)])
     unfolding mem_Collect_eq
     using `b > 0` assms(3)
-    apply (auto intro!: divide_nonneg_pos)
+    apply auto
     done
   ultimately obtain u y where obt: "u\<ge>0" "u \<le> b / norm x" "y = u *\<^sub>R x"
     "y \<in> ?A" "y \<in> s" "\<forall>z\<in>?A \<inter> s. dist 0 z \<le> dist 0 y"
@@ -5218,8 +5215,6 @@ proof -
     from nor have y: "y = norm y *\<^sub>R ((inverse (norm x)) *\<^sub>R x)"
       unfolding as(3)[unfolded pi_def] by auto
     have "0 \<le> norm y * inverse (norm x)" and "0 \<le> norm x * inverse (norm y)"
-      unfolding divide_inverse[symmetric]
-      apply (rule_tac[!] divide_nonneg_pos)
       using nor
       apply auto
       done
@@ -5230,7 +5225,7 @@ proof -
       using x y and front_smul[THEN bspec, OF as(1), THEN spec[where x="norm y * (inverse (norm x))"]]
       using front_smul[THEN bspec, OF as(2), THEN spec[where x="norm x * (inverse (norm y))"]]
       using xys nor
-      apply (auto simp add:field_simps divide_le_eq_1 divide_inverse[symmetric])
+      apply (auto simp add: field_simps)
       done
     then show "x = y"
       apply (subst injpi[symmetric])
@@ -6412,9 +6407,7 @@ next
   next
     assume as: "dist a b = dist a x + dist x b"
     have "norm (a - x) / norm (a - b) \<le> 1"
-      unfolding divide_le_eq_1_pos[OF Fal2]
-      unfolding as[unfolded dist_norm] norm_ge_zero
-      by auto
+      using Fal2 unfolding as[unfolded dist_norm] norm_ge_zero by auto
     then show "\<exists>u. x = (1 - u) *\<^sub>R a + u *\<^sub>R b \<and> 0 \<le> u \<and> u \<le> 1"
       apply (rule_tac x="dist a x / dist a b" in exI)
       unfolding dist_norm
@@ -6422,8 +6415,7 @@ next
       apply rule
       defer
       apply rule
-      apply (rule divide_nonneg_pos)
-      prefer 4
+      prefer 3
       apply rule
     proof -
       fix i :: 'a

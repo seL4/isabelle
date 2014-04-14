@@ -778,7 +778,7 @@ proof (cases "real x = 0")
       also have "\<dots> \<le> cos x"
       proof -
         from even[OF `even n`] `0 < ?fact` `0 < ?pow`
-        have "0 \<le> (?rest / ?fact) * ?pow" by (simp add: divide_nonneg_pos)
+        have "0 \<le> (?rest / ?fact) * ?pow" by simp
         thus ?thesis unfolding cos_eq by auto
       qed
       finally have "(lb_sin_cos_aux prec n 1 1 (x * x)) \<le> cos x" .
@@ -891,7 +891,7 @@ proof (cases "real x = 0")
       also have "\<dots> \<le> sin x"
       proof -
         from even[OF `even n`] `0 < ?fact` `0 < ?pow`
-        have "0 \<le> (?rest / ?fact) * ?pow" by (simp add: divide_nonneg_pos less_imp_le)
+        have "0 \<le> (?rest / ?fact) * ?pow" by simp
         thus ?thesis unfolding sin_eq by auto
       qed
       finally have "(x * lb_sin_cos_aux prec n 2 1 (x * x)) \<le> sin x" .
@@ -1344,7 +1344,7 @@ proof -
       obtain t where "\<bar>t\<bar> \<le> \<bar>real x\<bar>" and "exp x = (\<Sum>m = 0..<get_even n. real x ^ m / real (fact m)) + exp t / real (fact (get_even n)) * (real x) ^ (get_even n)"
         using Maclaurin_exp_le unfolding atLeast0LessThan by blast
       moreover have "0 \<le> exp t / real (fact (get_even n)) * (real x) ^ (get_even n)"
-        by (auto simp: divide_nonneg_pos zero_le_even_power)
+        by (auto simp: zero_le_even_power)
       ultimately show ?thesis using get_odd exp_gt_zero by auto
     qed
     finally have "lb_exp_horner prec (get_even n) 1 1 x \<le> exp x" .

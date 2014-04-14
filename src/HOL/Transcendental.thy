@@ -1494,10 +1494,7 @@ proof -
   also have "- (x / (1 - x)) <= ..."
   proof -
     have "ln (1 + x / (1 - x)) <= x / (1 - x)"
-      apply (rule ln_add_one_self_le_self)
-      apply (rule divide_nonneg_pos)
-      using a c apply auto
-      done
+      using a c by (intro ln_add_one_self_le_self) auto
     thus ?thesis
       by auto
   qed
@@ -1586,11 +1583,8 @@ proof -
   also have "... = 1 + (y - x) / x"
     using x a by (simp add: field_simps)
   also have "x * ln(1 + (y - x) / x) <= x * ((y - x) / x)"
-    apply (rule mult_left_mono)
-    apply (rule ln_add_one_self_le_self)
-    apply (rule divide_nonneg_pos)
-    using x a apply simp_all
-    done
+    using x a 
+    by (intro mult_left_mono ln_add_one_self_le_self) simp_all
   also have "... = y - x" using a by simp
   also have "... = (y - x) * ln (exp 1)" by simp
   also have "... <= (y - x) * ln x"
@@ -3906,9 +3900,6 @@ proof -
   hence low2: "- (pi / 2) < y / 2" and high2: "y / 2 < pi / 2"
     by auto
 
-  have divide_nonzero_divide: "\<And>A B C :: real. C \<noteq> 0 \<Longrightarrow> A / B = (A / C) / (B / C)"
-    by auto
-
   have "0 < cos y" using cos_gt_zero_pi[OF low high] .
   hence "cos y \<noteq> 0" and cos_sqrt: "sqrt ((cos y)\<^sup>2) = cos y"
     by auto
@@ -3922,7 +3913,7 @@ proof -
   finally have "1 + (tan y)\<^sup>2 = 1 / (cos y)\<^sup>2" .
 
   have "sin y / (cos y + 1) = tan y / ((cos y + 1) / cos y)"
-    unfolding tan_def divide_nonzero_divide[OF `cos y \<noteq> 0`, symmetric] ..
+    unfolding tan_def using `cos y \<noteq> 0` by (simp add: field_simps)
   also have "\<dots> = tan y / (1 + 1 / cos y)"
     using `cos y \<noteq> 0` unfolding add_divide_distrib by auto
   also have "\<dots> = tan y / (1 + 1 / sqrt ((cos y)\<^sup>2))"

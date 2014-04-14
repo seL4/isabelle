@@ -16,11 +16,6 @@ lemma cart_eq_inner_axis: "a $ i = a \<bullet> axis i 1"
 lemma axis_in_Basis: "a \<in> Basis \<Longrightarrow> axis i a \<in> Basis"
   by (auto simp add: Basis_vec_def axis_eq_axis)
 
-lemma divide_nonneg_nonneg:
-  fixes a b :: "'a :: {linordered_field, field_inverse_zero}"
-  shows "a \<ge> 0 \<Longrightarrow> b \<ge> 0 \<Longrightarrow> 0 \<le> a / b"
-  by (cases "b = 0") (auto intro!: divide_nonneg_pos)
-
 subsection {*Bijections between intervals. *}
 
 definition interval_bij :: "'a \<times> 'a \<Rightarrow> 'a \<times> 'a \<Rightarrow> 'a \<Rightarrow> 'a::euclidean_space"
@@ -60,7 +55,7 @@ proof -
   have x: "a\<bullet>i\<le>x\<bullet>i" "x\<bullet>i\<le>b\<bullet>i"
     using assms(1)[unfolded mem_box] using i by auto
   have "0 \<le> (x \<bullet> i - a \<bullet> i) / (b \<bullet> i - a \<bullet> i) * (v \<bullet> i - u \<bullet> i)"
-    using * x by (auto intro!: mult_nonneg_nonneg divide_nonneg_nonneg)
+    using * x by auto
   then show "u \<bullet> i \<le> u \<bullet> i + (x \<bullet> i - a \<bullet> i) / (b \<bullet> i - a \<bullet> i) * (v \<bullet> i - u \<bullet> i)"
     using * by auto
   have "((x \<bullet> i - a \<bullet> i) / (b \<bullet> i - a \<bullet> i)) * (v \<bullet> i - u \<bullet> i) \<le> 1 * (v \<bullet> i - u \<bullet> i)"

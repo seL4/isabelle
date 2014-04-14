@@ -64,11 +64,6 @@ lemma atMost_Suc_eq_insert_0: "{.. Suc n} = insert 0 (Suc ` {.. n})"
   apply auto
   done
 
-lemma divide_nonneg_nonneg:
-  fixes a b :: "'a :: {linordered_field, field_inverse_zero}"
-  shows "a \<ge> 0 \<Longrightarrow> b \<ge> 0 \<Longrightarrow> 0 \<le> a / b"
-  by (cases "b = 0") (auto intro!: divide_nonneg_pos)
-
 lemma setsum_Un_disjoint':
   assumes "finite A"
     and "finite B"

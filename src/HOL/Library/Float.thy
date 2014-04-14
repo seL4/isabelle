@@ -1108,7 +1108,7 @@ lemma lapprox_rat_nonneg:
   shows "0 \<le> real (lapprox_rat n x y)"
 using assms unfolding lapprox_rat_def p_def[symmetric] round_down_def real_of_int_minus[symmetric]
    powr_int[of 2, simplified]
-  by (auto simp add: inverse_eq_divide intro!: mult_nonneg_nonneg divide_nonneg_pos)
+  by auto
 
 lemma rapprox_rat: "real x / real y \<le> real (rapprox_rat prec x y)"
   using round_up by (simp add: rapprox_rat_def)

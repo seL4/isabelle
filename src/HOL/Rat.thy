@@ -578,7 +578,7 @@ proof -
     by (cases "b = 0", simp, simp add: of_int_rat)
   moreover have "0 \<le> Fract (a mod b) b \<and> Fract (a mod b) b < 1"
     unfolding Fract_of_int_quotient
-    by (rule linorder_cases [of b 0]) (simp add: divide_nonpos_neg, simp, simp add: divide_nonneg_pos)
+    by (rule linorder_cases [of b 0]) (simp_all add: divide_nonpos_neg)
   ultimately show ?thesis by simp
 qed
 

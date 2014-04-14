@@ -1083,6 +1083,21 @@ lemma divide_less_eq_1:
   "(b / a < 1) = ((0 < a & b < a) | (a < 0 & a < b) | a=0)"
 by (auto simp add: divide_less_eq)
 
+lemma divide_nonneg_nonneg [simp]:
+  "0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> 0 \<le> x / y"
+  by (auto simp add: divide_simps)
+
+lemma divide_nonpos_nonpos:
+  "x \<le> 0 \<Longrightarrow> y \<le> 0 \<Longrightarrow> 0 \<le> x / y"
+  by (auto simp add: divide_simps)
+
+lemma divide_nonneg_nonpos:
+  "0 \<le> x \<Longrightarrow> y \<le> 0 \<Longrightarrow> x / y \<le> 0"
+  by (auto simp add: divide_simps)
+
+lemma divide_nonpos_nonneg:
+  "x \<le> 0 \<Longrightarrow> 0 \<le> y \<Longrightarrow> x / y \<le> 0"
+  by (auto simp add: divide_simps)
 
 text {*Conditional Simplification Rules: No Case Splits*}
 

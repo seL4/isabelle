@@ -130,7 +130,7 @@ proof -
     KL_divergence b (density M f) (density (density M f) (\<lambda>x. g x / f x))"
     using f g ac by (subst density_density_divide) simp_all
   also have "\<dots> = (\<integral>x. (g x / f x) * log b (g x / f x) \<partial>density M f)"
-    using f g `1 < b` by (intro Mf.KL_density) (auto simp: AE_density divide_nonneg_nonneg)
+    using f g `1 < b` by (intro Mf.KL_density) (auto simp: AE_density)
   also have "\<dots> = (\<integral>x. g x * log b (g x / f x) \<partial>M)"
     using ac f g `1 < b` by (subst integral_density) (auto intro!: integral_cong_AE)
   finally show ?thesis .
@@ -332,7 +332,7 @@ proof -
     from f g show "(\<lambda>x. g x / f x) \<in> borel_measurable (density M f)"
       by auto
     show "AE x in density M f. 0 \<le> g x / f x"
-      using f g by (auto simp: AE_density divide_nonneg_nonneg)
+      using f g by (auto simp: AE_density)
     show "integrable (density M f) (\<lambda>x. g x / f x * log b (g x / f x))"
       using `1 < b` f g ac
       by (subst integral_density)
@@ -804,8 +804,7 @@ proof -
     using D
     apply (subst eq_commute)
     apply (intro RN_deriv_unique_sigma_finite)
-    apply (auto intro: divide_nonneg_nonneg measure_nonneg
-             simp: distributed_distr_eq_density[symmetric, OF X] sf)
+    apply (auto simp: distributed_distr_eq_density[symmetric, OF X] sf measure_nonneg)
     done
 qed
 
@@ -1102,7 +1101,7 @@ proof -
     apply (rule positive_integral_mono_AE)
     using ae5 ae6 ae7 ae8
     apply eventually_elim
-    apply (auto intro!: divide_nonneg_nonneg)
+    apply auto
     done
   also have "\<dots> = (\<integral>\<^sup>+(y, z). \<integral>\<^sup>+ x. ereal (Pxz (x, z)) * ereal (Pyz (y, z) / Pz z) \<partial>S \<partial>T \<Otimes>\<^sub>M P)"
     by (subst STP.positive_integral_snd_measurable[symmetric]) (auto simp add: split_beta')
@@ -1115,7 +1114,7 @@ proof -
       "(\<integral>\<^sup>+ x. ereal (Pxz (x, b)) \<partial>S) = ereal (Pz b)" "0 \<le> Pyz (a, b)" 
     then show "(\<integral>\<^sup>+ x. ereal (Pxz (x, b)) * ereal (Pyz (a, b) / Pz b) \<partial>S) = ereal (Pyz (a, b))"
       by (subst positive_integral_multc)
-         (auto intro!: divide_nonneg_nonneg split: prod.split)
+         (auto split: prod.split)
   qed
   also have "\<dots> = 1"
     using Q.emeasure_space_1 distributed_AE[OF Pyz] distributed_distr_eq_density[OF Pyz]
@@ -1151,7 +1150,7 @@ proof -
     apply simp
     using ae5 ae6 ae7 ae8
     apply eventually_elim
-    apply (auto intro!: divide_nonneg_nonneg)
+    apply auto
     done
 
   have I3: "integrable (S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) (\<lambda>(x, y, z). Pxyz (x, y, z) * log b (Pxyz (x, y, z) / (Pxz (x, z) * (Pyz (y,z) / Pz z))))"
@@ -1347,7 +1346,7 @@ proof -
     apply (rule positive_integral_mono_AE)
     using ae5 ae6 ae7 ae8
     apply eventually_elim
-    apply (auto intro!: divide_nonneg_nonneg)
+    apply auto
     done
   also have "\<dots> = (\<integral>\<^sup>+(y, z). \<integral>\<^sup>+ x. ereal (Pxz (x, z)) * ereal (Pyz (y, z) / Pz z) \<partial>S \<partial>T \<Otimes>\<^sub>M P)"
     by (subst STP.positive_integral_snd_measurable[symmetric])
@@ -1360,7 +1359,7 @@ proof -
     fix a b assume "Pz b = 0 \<longrightarrow> Pyz (a, b) = 0" "0 \<le> Pz b" "a \<in> space T \<and> b \<in> space P"
       "(\<integral>\<^sup>+ x. ereal (Pxz (x, b)) \<partial>S) = ereal (Pz b)" "0 \<le> Pyz (a, b)" 
     then show "(\<integral>\<^sup>+ x. ereal (Pxz (x, b)) * ereal (Pyz (a, b) / Pz b) \<partial>S) = ereal (Pyz (a, b))"
-      by (subst positive_integral_multc) (auto intro!: divide_nonneg_nonneg)
+      by (subst positive_integral_multc) auto
   qed
   also have "\<dots> = 1"
     using Q.emeasure_space_1 distributed_AE[OF Pyz] distributed_distr_eq_density[OF Pyz]
@@ -1396,7 +1395,7 @@ proof -
     apply (auto simp: split_beta') []
     using ae5 ae6 ae7 ae8
     apply eventually_elim
-    apply (auto intro!: divide_nonneg_nonneg)
+    apply auto
     done
 
   have I3: "integrable (S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) (\<lambda>(x, y, z). Pxyz (x, y, z) * log b (Pxyz (x, y, z) / (Pxz (x, z) * (Pyz (y,z) / Pz z))))"

@@ -277,7 +277,7 @@ proof (rule distributedI_borel_atMost)
     unfolding emeasure_eq_ereal_measure[OF fin] using A by (simp add: measure_def)
   finally show "(\<integral>\<^sup>+ x. ereal (indicator A x / measure lborel A * indicator {..a} x) \<partial>lborel) =
     ereal (measure lborel (A \<inter> {..a}) / r)" .
-qed (auto intro!: divide_nonneg_nonneg measure_nonneg)
+qed (auto simp: measure_nonneg)
 
 lemma (in prob_space) uniform_distrI_borel_atLeastAtMost:
   fixes a b :: real

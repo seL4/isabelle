@@ -303,7 +303,7 @@ proof -
                                      mult_nonpos_nonneg)
     next
       fix y assume *: "\<And>i. i \<in> UNIV \<Longrightarrow> ?g i x \<le> y"
-      have "\<And>i. 0 \<le> ?g i x" by (auto simp: divide_nonneg_pos)
+      have "\<And>i. 0 \<le> ?g i x" by auto
       from order_trans[OF this *] have "0 \<le> y" by simp
       show "max 0 (u x) \<le> y"
       proof (cases y)
@@ -330,7 +330,7 @@ proof -
         then show "max 0 (u x) \<le> y" using real ux by simp
       qed (insert `0 \<le> y`, auto)
     qed
-  qed (auto simp: divide_nonneg_pos)
+  qed auto
 qed
 
 lemma borel_measurable_implies_simple_function_sequence':

@@ -138,7 +138,7 @@ next
     with `0 \<le> setsum a s` have "0 < setsum a s" by simp
     then have "(\<Sum>j\<in>s. (a j / setsum a s) *\<^sub>R y j) \<in> C"
       using `\<forall>j\<in>s. 0 \<le> a j` and `\<forall>j\<in>s. y j \<in> C`
-      by (simp add: IH divide_nonneg_pos setsum_divide_distrib [symmetric])
+      by (simp add: IH setsum_divide_distrib [symmetric])
     from `convex C` and `y i \<in> C` and this and `0 \<le> a i`
       and `0 \<le> setsum a s` and `a i + setsum a s = 1`
     have "a i *\<^sub>R y i + setsum a s *\<^sub>R (\<Sum>j\<in>s. (a j / setsum a s) *\<^sub>R y j) \<in> C"
@@ -432,9 +432,7 @@ next
     then have "a i < 1" using asm by auto
     then have i0: "1 - a i > 0" by auto
     let ?a = "\<lambda>j. a j / (1 - a i)"
-    { fix j assume "j \<in> s"
-      then have "?a j \<ge> 0"
-        using i0 asms divide_nonneg_pos
+    { fix j assume "j \<in> s" with i0 asms have "?a j \<ge> 0"
         by fastforce }
     note a_nonneg = this
     have "(\<Sum> j \<in> insert i s. a j) = 1" using asms by auto

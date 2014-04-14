@@ -1136,8 +1136,6 @@ lemma real_of_int_div2:
   apply (simp add: algebra_simps)
   apply (subst real_of_int_div_aux)
   apply simp
-  apply (subst zero_le_divide_iff)
-  apply auto
   apply (simp add: algebra_simps)
   apply (subst real_of_int_div_aux)
   apply simp
@@ -1268,8 +1266,6 @@ lemma real_of_nat_div2:
   "0 <= real (n::nat) / real (x) - real (n div x)"
 apply (simp add: algebra_simps)
 apply (subst real_of_nat_div_aux)
-apply simp
-apply (subst zero_le_divide_iff)
 apply simp
 done
 
