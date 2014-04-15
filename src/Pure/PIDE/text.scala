@@ -49,6 +49,7 @@ object Text
     def -(i: Offset): Range = if (i == 0) this else map(_ - i)
 
     def is_singularity: Boolean = start == stop
+    def inflate_singularity: Range = if (is_singularity) Range(start, start + 1) else this
 
     def contains(i: Offset): Boolean = start == i || start < i && i < stop
     def contains(that: Range): Boolean = this.contains(that.start) && that.stop <= this.stop

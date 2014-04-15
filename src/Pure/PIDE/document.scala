@@ -773,7 +773,7 @@ object Document
           result: List[Command.State] => (A, Text.Markup) => Option[A],
           status: Boolean = false): List[Text.Info[A]] =
         {
-          val former_range = revert(range)
+          val former_range = revert(range).inflate_singularity
           val (chunk_name, command_iterator) =
             load_commands match {
               case command :: _ => (Text.Chunk.File(node_name.node), Iterator((command, 0)))
@@ -785,13 +785,14 @@ object Document
             chunk <- command.chunks.get(chunk_name).iterator
             states = state.command_states(version, command)
             res = result(states)
-            range = (former_range - command_start).restrict(chunk.range)
-            markup = Command.State.merge_markup(states, markup_index, range, elements)
-            Text.Info(r0, a) <- markup.cumulate[A](range, info, elements,
+            markup_range <- (former_range - command_start).try_restrict(chunk.range).iterator
+            markup = Command.State.merge_markup(states, markup_index, markup_range, elements)
+            Text.Info(r0, a) <- markup.cumulate[A](markup_range, info, elements,
               {
                 case (a, Text.Info(r0, b)) => res(a, Text.Info(convert(r0 + command_start), b))
               }).iterator
-          } yield Text.Info(convert(r0 + command_start), a)).toList
+            r1 <- convert(r0 + command_start).try_restrict(range).iterator
+          } yield Text.Info(r1, a)).toList
         }
 
         def select[A](
