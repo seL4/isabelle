@@ -126,9 +126,8 @@ object Completion_Popup
       active_range match {
         case Some(range) => range.try_restrict(line_range)
         case None =>
-          val buffer = text_area.getBuffer
           if (line_range.contains(text_area.getCaretPosition)) {
-            JEdit_Lib.before_caret_range(text_area, rendering).try_restrict(line_range) match {
+            JEdit_Lib.before_caret_range(text_area, rendering) match {
               case Some(range) if !range.is_singularity =>
                 rendering.semantic_completion(range) match {
                   case Some(Text.Info(_, Completion.No_Completion)) => None
@@ -164,11 +163,11 @@ object Completion_Popup
           val line_text = buffer.getSegment(line_start, line_length)
 
           val context =
-            (opt_rendering match {
-              case Some(rendering) =>
-                rendering.language_context(JEdit_Lib.before_caret_range(text_area, rendering))
-              case None => None
-            }) getOrElse syntax.language_context
+            (for {
+              rendering <- opt_rendering
+              range <- JEdit_Lib.before_caret_range(text_area, rendering)
+              context <- rendering.language_context(range)
+            } yield context) getOrElse syntax.language_context
 
           syntax.completion.complete(
             history, decode, explicit, line_start, line_text, caret - line_start, false, context)
@@ -181,23 +180,17 @@ object Completion_Popup
     /* spell-checker completion */
 
     def spell_checker_completion(rendering: Rendering): Option[Completion.Result] =
-      PIDE.spell_checker.get match {
-        case Some(spell_checker) =>
-          val caret_range = JEdit_Lib.before_caret_range(text_area, rendering)
-          Spell_Checker.current_word(text_area, rendering, caret_range) match {
-            case Some(Text.Info(range, original)) =>
-              val words = spell_checker.complete(original)
-              if (words.isEmpty) None
-              else {
-                val descr = "(from dictionary " + quote(spell_checker.toString) + ")"
-                val items = words.map(word =>
-                  Completion.Item(range, original, "", List(word, descr), word, 0, false))
-                Some(Completion.Result(range, original, false, items))
-              }
-            case None => None
-          }
-        case None => None
-      }
+    {
+      for {
+        spell_checker <- PIDE.spell_checker.get
+        caret_range <- JEdit_Lib.before_caret_range(text_area, rendering)
+        Text.Info(range, original) <- Spell_Checker.current_word(text_area, rendering, caret_range)
+        words = spell_checker.complete(original)
+        if !words.isEmpty
+        descr = "(from dictionary " + quote(spell_checker.toString) + ")"
+        items = words.map(w => Completion.Item(range, original, "", List(w, descr), w, 0, false))
+      } yield Completion.Result(range, original, false, items)
+    }
 
 
     /* completion action: text area */
@@ -313,23 +306,24 @@ object Completion_Popup
             case Some(doc_view) =>
               val rendering = doc_view.get_rendering()
               val (no_completion, result) =
-                rendering.semantic_completion(JEdit_Lib.before_caret_range(text_area, rendering))
-                match {
-                  case Some(Text.Info(_, Completion.No_Completion)) =>
-                    (true, None)
-                  case Some(Text.Info(range, names: Completion.Names)) =>
-                    val result =
-                      JEdit_Lib.try_get_text(buffer, range) match {
-                        case Some(original) => names.complete(range, history, decode, original)
-                        case None => None
-                      }
-                    (false, result)
-                  case None =>
-                    (false, None)
+                JEdit_Lib.before_caret_range(text_area, rendering) match {
+                  case Some(caret_range) =>
+                    rendering.semantic_completion(caret_range) match {
+                      case Some(Text.Info(_, Completion.No_Completion)) =>
+                        (true, None)
+                      case Some(Text.Info(range, names: Completion.Names)) =>
+                        val result =
+                          JEdit_Lib.try_get_text(buffer, range) match {
+                            case Some(original) => names.complete(range, history, decode, original)
+                            case None => None
+                          }
+                        (false, result)
+                      case None => (false, None)
+                    }
+                  case None => (false, None)
                 }
               (no_completion, result, Some(rendering))
-            case None =>
-              (false, None, None)
+            case None => (false, None, None)
           }
         }
         if (no_completion) false
@@ -339,8 +333,8 @@ object Completion_Popup
             val result0 =
               if (word_only) None
               else
-                Completion.Result.merge(history,
-                  semantic_completion, syntax_completion(history, explicit, opt_rendering))
+                Completion.Result.merge(history, semantic_completion,
+                  syntax_completion(history, explicit, opt_rendering))
             opt_rendering match {
               case None => result0
               case Some(rendering) =>

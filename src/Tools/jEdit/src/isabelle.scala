@@ -299,7 +299,7 @@ object Isabelle
       spell_checker <- PIDE.spell_checker.get
       doc_view <- PIDE.document_view(text_area)
       rendering = doc_view.get_rendering()
-      range = JEdit_Lib.before_caret_range(text_area, rendering)
+      range <- JEdit_Lib.before_caret_range(text_area, rendering)
       Text.Info(_, word) <- Spell_Checker.current_word(text_area, rendering, range)
     } {
       spell_checker.update(word, include, permanent)

@@ -126,7 +126,8 @@ object JEdit_Lib
   def jedit_views(): Iterator[View] = jEdit.getViews().iterator
 
   def jedit_text_areas(view: View): Iterator[JEditTextArea] =
-    view.getEditPanes().iterator.map(_.getTextArea)
+    if (view == null) Iterator.empty
+    else view.getEditPanes().iterator.filter(_ != null).map(_.getTextArea).filter(_ != null)
 
   def jedit_text_areas(): Iterator[JEditTextArea] =
     jedit_views().flatMap(jedit_text_areas(_))
@@ -176,20 +177,21 @@ object JEdit_Lib
     }
 
 
-  /* caret */
-
-  def before_caret_range(text_area: TextArea, rendering: Rendering): Text.Range =
-  {
-    val snapshot = rendering.snapshot
-    val former_caret = snapshot.revert(text_area.getCaretPosition)
-    snapshot.convert(Text.Range(former_caret - 1, former_caret))
-  }
-
-
   /* text ranges */
 
   def buffer_range(buffer: JEditBuffer): Text.Range =
     Text.Range(0, buffer.getLength)
+
+  def line_range(buffer: JEditBuffer, line: Int): Text.Range =
+    Text.Range(buffer.getLineStartOffset(line), buffer.getLineEndOffset(line))
+
+  def before_caret_range(text_area: TextArea, rendering: Rendering): Option[Text.Range] =
+  {
+    val range = line_range(text_area.getBuffer, text_area.getCaretLine)
+    val snapshot = rendering.snapshot
+    val former_caret = snapshot.revert(text_area.getCaretPosition)
+    snapshot.convert(Text.Range(former_caret - 1, former_caret)).try_restrict(range)
+  }
 
   def visible_range(text_area: TextArea): Option[Text.Range] =
   {
