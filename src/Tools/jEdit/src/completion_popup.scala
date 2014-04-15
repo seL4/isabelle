@@ -62,13 +62,13 @@ object Completion_Popup
         case None => None
       }
 
-    def action(text_area: TextArea): Boolean =
+    def action(text_area: TextArea, word_only: Boolean): Boolean =
       apply(text_area) match {
         case Some(text_area_completion) =>
           if (text_area_completion.active_range.isDefined)
-            text_area_completion.action()
+            text_area_completion.action(word_only = word_only)
           else
-            text_area_completion.action(immediate = true, explicit = true)
+            text_area_completion.action(immediate = true, explicit = true, word_only = word_only)
           true
         case None => false
       }
@@ -243,8 +243,11 @@ object Completion_Popup
       }
     }
 
-    def action(immediate: Boolean = false, explicit: Boolean = false, delayed: Boolean = false)
-      : Boolean =
+    def action(
+      immediate: Boolean = false,
+      explicit: Boolean = false,
+      delayed: Boolean = false,
+      word_only: Boolean = false): Boolean =
     {
       val view = text_area.getView
       val layered = view.getLayeredPane
@@ -331,16 +334,19 @@ object Completion_Popup
         }
         if (no_completion) false
         else {
-          val result0 =
-            Completion.Result.merge(history,
-              semantic_completion, syntax_completion(history, explicit, opt_rendering))
           val result =
+          {
+            val result0 =
+              if (word_only) None
+              else
+                Completion.Result.merge(history,
+                  semantic_completion, syntax_completion(history, explicit, opt_rendering))
             opt_rendering match {
               case None => result0
               case Some(rendering) =>
                 Completion.Result.merge(history, result0, spell_checker_completion(rendering))
             }
-
+          }
           result match {
             case Some(result) =>
               result.items match {

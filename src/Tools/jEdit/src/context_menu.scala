@@ -43,6 +43,7 @@ class Context_Menu extends DynamicContextMenuService
     result match {
       case Some(false) =>
         List(
+          action_item("isabelle.complete-word"),
           action_item("isabelle.include-word"),
           action_item("isabelle.include-word-permanently"),
           action_item("isabelle.reset-words"))

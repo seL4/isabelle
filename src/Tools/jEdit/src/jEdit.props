@@ -194,6 +194,7 @@ isabelle-symbols.dock-position=bottom
 isabelle-theories.dock-position=right
 isabelle.complete.label=Complete Isabelle text
 isabelle.complete.shortcut2=C+b
+isabelle.complete-word.label=Complete word
 isabelle.control-bold.label=Control bold
 isabelle.control-bold.shortcut=C+e RIGHT
 isabelle.control-reset.label=Control reset

@@ -59,7 +59,12 @@
 	</ACTION>
 	<ACTION NAME="isabelle.complete">
 	  <CODE>
-	    isabelle.jedit.Isabelle.complete(view);
+	    isabelle.jedit.Isabelle.complete(view, false);
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.complete-word">
+	  <CODE>
+	    isabelle.jedit.Isabelle.complete(view, true);
 	  </CODE>
 	</ACTION>
 	<ACTION NAME="isabelle.control-sub">
