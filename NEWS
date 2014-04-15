@@ -22,8 +22,7 @@ string token.  Minor INCOMPATIBILITY.
 
 * Lexical syntax (inner and outer) supports text cartouches with
 arbitrary nesting, and without escapes of quotes etc.  The Prover IDE
-supports input methods via ` (backquote), or << and >> (double angle
-brackets).
+supports input via ` (backquote).
 
 * The outer syntax categories "text" (for formal comments and document
 markup commands) and "altstring" (for literal fact references) allow

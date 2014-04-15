@@ -267,7 +267,7 @@ object Completion
   private val caret_indicator = '\007'
   private val antiquote = "@{"
   private val default_abbrs =
-    Map("@{" -> "@{\007}", "`" -> "\\<open>\007\\<close>")
+    List("@{" -> "@{\007}", "`" -> "\\<open>\007\\<close>", "`" -> "\\<open>", "`" -> "\\<close>")
 }
 
 final class Completion private(
@@ -309,7 +309,7 @@ final class Completion private(
         yield (y, x)).toList
 
     val abbrs =
-      for ((a, b) <- symbol_abbrs ::: Completion.default_abbrs.toList)
+      for ((a, b) <- symbol_abbrs ::: Completion.default_abbrs)
         yield (a.reverse, (a, b))
 
     new Completion(
@@ -347,7 +347,7 @@ final class Completion private(
             case (a, _) :: _ =>
               val ok =
                 if (a == Completion.antiquote) language_context.antiquotes
-                else language_context.symbols || Completion.default_abbrs.isDefinedAt(a)
+                else language_context.symbols || Completion.default_abbrs.exists(_._1 == a)
               if (ok) Some(((a, abbrevs), caret))
               else None
           }
