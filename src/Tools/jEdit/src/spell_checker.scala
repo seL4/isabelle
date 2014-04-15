@@ -206,9 +206,7 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
       } yield Spell_Checker.Decl(word, upd.include)).toList
 
     if (!permanent_decls.isEmpty || dictionary.user_path.is_file) {
-      val header =
-        "# Permanent updates for spell-checker dictionary " + quote(dictionary.lang) +
-"""
+      val header = """# User updates for spell-checker dictionary
 #
 #   * each line contains at most one word
 #   * extra blanks are ignored
