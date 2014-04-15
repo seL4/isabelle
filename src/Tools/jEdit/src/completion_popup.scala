@@ -155,13 +155,6 @@ object Completion_Popup
 
       Isabelle.mode_syntax(JEdit_Lib.buffer_mode(buffer)) match {
         case Some(syntax) =>
-          val caret = text_area.getCaretPosition
-
-          val line = buffer.getLineOfOffset(caret)
-          val line_start = buffer.getLineStartOffset(line)
-          val line_length = (buffer.getLineEndOffset(line) min buffer.getLength) - line_start
-          val line_text = buffer.getSegment(line_start, line_length)
-
           val context =
             (for {
               rendering <- opt_rendering
@@ -169,8 +162,15 @@ object Completion_Popup
               context <- rendering.language_context(range)
             } yield context) getOrElse syntax.language_context
 
-          syntax.completion.complete(
-            history, decode, explicit, line_start, line_text, caret - line_start, false, context)
+          val caret = text_area.getCaretPosition
+          val line_range = JEdit_Lib.line_range(buffer, text_area.getCaretLine)
+          val line_start = line_range.start
+          for {
+            line_text <- JEdit_Lib.try_get_text(buffer, line_range)
+            result <-
+              syntax.completion.complete(
+                history, decode, explicit, line_start, line_text, caret - line_start, false, context)
+          } yield result
 
         case None => None
       }

@@ -183,7 +183,7 @@ object JEdit_Lib
     Text.Range(0, buffer.getLength)
 
   def line_range(buffer: JEditBuffer, line: Int): Text.Range =
-    Text.Range(buffer.getLineStartOffset(line), buffer.getLineEndOffset(line))
+    Text.Range(buffer.getLineStartOffset(line), buffer.getLineEndOffset(line) min buffer.getLength)
 
   def before_caret_range(text_area: TextArea, rendering: Rendering): Option[Text.Range] =
   {

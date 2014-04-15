@@ -38,9 +38,8 @@ object Fold_Handling
 
       if (line <= 0) 0
       else {
-        val start = buffer.getLineStartOffset(line - 1)
-        val end = buffer.getLineEndOffset(line - 1)
-        buffer.getFoldLevel(line - 1) - depth(start - 1) + depth(end - 1)
+        val range = JEdit_Lib.line_range(buffer, line - 1)
+        buffer.getFoldLevel(line - 1) - depth(range.start - 1) + depth(range.stop - 1)
       }
     }
   }
