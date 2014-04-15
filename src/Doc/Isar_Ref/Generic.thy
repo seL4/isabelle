@@ -682,7 +682,7 @@ text {*
   assumptions: @{text [display] "?P\<^sub>1 \<longleftrightarrow> ?Q\<^sub>1 \<Longrightarrow> (?Q\<^sub>1 \<Longrightarrow> ?P\<^sub>2 \<longleftrightarrow> ?Q\<^sub>2) \<Longrightarrow>
   (?P\<^sub>1 \<longrightarrow> ?P\<^sub>2) \<longleftrightarrow> (?Q\<^sub>1 \<longrightarrow> ?Q\<^sub>2)"}
 
-  Given this rule, the simplifier assumes @{text "?Q\<^sub>1"} and extracts
+  Given this rule, the Simplifier assumes @{text "?Q\<^sub>1"} and extracts
   rewrite rules from it when simplifying @{text "?P\<^sub>2"}.  Such local
   assumptions are effective for rewriting formulae such as @{text "x =
   0 \<longrightarrow> y + x = y"}.
@@ -843,7 +843,7 @@ end
 
 text {* Martin and Nipkow \cite{martin-nipkow} discuss the theory and
   give many examples; other algebraic structures are amenable to
-  ordered rewriting, such as boolean rings.  The Boyer-Moore theorem
+  ordered rewriting, such as Boolean rings.  The Boyer-Moore theorem
   prover \cite{bm88book} also employs ordered rewriting.
 *}
 
@@ -961,7 +961,7 @@ text {* The following simplification procedure for @{thm
   [source=false, show_types] unit_eq} in HOL performs fine-grained
   control over rule application, beyond higher-order pattern matching.
   Declaring @{thm unit_eq} as @{attribute simp} directly would make
-  the simplifier loop!  Note that a version of this simplification
+  the Simplifier loop!  Note that a version of this simplification
   procedure is already active in Isabelle/HOL.  *}
 
 simproc_setup unit ("x::unit") = {*
@@ -1239,7 +1239,7 @@ text {*
   conclusion; the options @{text no_asm} etc.\ tune the Simplifier in
   the same way as the for the @{text simp} method.
 
-  Note that forward simplification restricts the simplifier to its
+  Note that forward simplification restricts the Simplifier to its
   most basic operation of term rewriting; solver and looper tactics
   (\secref{sec:simp-strategies}) are \emph{not} involved here.  The
   @{attribute simplified} attribute should be only rarely required

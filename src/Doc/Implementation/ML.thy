@@ -758,7 +758,7 @@ text {* Standard ML is a language in the tradition of @{text
   the redundant tuple structure needs to be accommodated by formal
   reasoning.}
 
-  Currying gives some flexiblity due to \emph{partial application}.  A
+  Currying gives some flexibility due to \emph{partial application}.  A
   function @{text "f: \<tau>\<^sub>1 \<rightarrow> \<tau>\<^sub>2 \<rightarrow> \<tau>"} can be applied to @{text "x: \<tau>\<^sub>1"}
   and the remaining @{text "(f x): \<tau>\<^sub>2 \<rightarrow> \<tau>"} passed to another function
   etc.  How well this works in practice depends on the order of

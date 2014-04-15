@@ -154,7 +154,7 @@ text_raw {*\end{minipage}*}
 text {*
   \medskip\noindent This Isar reasoning pattern again refers to the
   primitive rule depicted above.  The system determines it in the
-  ``@{command proof}'' step, which could have been spelt out more
+  ``@{command proof}'' step, which could have been spelled out more
   explicitly as ``@{command proof}~@{text "(rule InterI)"}''.  Note
   that the rule involves both a local parameter @{term "A"} and an
   assumption @{prop "A \<in> \<A>"} in the nested reasoning.  This kind of

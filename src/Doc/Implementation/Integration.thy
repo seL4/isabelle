@@ -184,6 +184,8 @@ text %mlref {*
 section {* Theory database \label{sec:theory-database} *}
 
 text {*
+  %FIXME update
+
   The theory database maintains a collection of theories, together
   with some administrative information about their original sources,
   which are held in an external store (i.e.\ some directory within the

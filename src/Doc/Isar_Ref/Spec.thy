@@ -861,11 +861,11 @@ text {*
   @{text d} is proven to be subclass @{text c} and the locale @{text
   c} is interpreted into @{text d} simultaneously.
 
-  A weakend form of this is available through a further variant of
+  A weakened form of this is available through a further variant of
   @{command instance}:  @{command instance}~@{text "c\<^sub>1 \<subseteq> c\<^sub>2"} opens
   a proof that class @{text "c\<^sub>2"} implies @{text "c\<^sub>1"} without reference
   to the underlying locales;  this is useful if the properties to prove
-  the logical connection are not sufficent on the locale level but on
+  the logical connection are not sufficient on the locale level but on
   the theory level.
 
   \item @{command "print_classes"} prints all classes in the current
@@ -961,7 +961,7 @@ text {*
   constant being declared as @{text "c :: \<alpha> decl"} may be
   defined separately on type instances
   @{text "c :: (\<beta>\<^sub>1, \<dots>, \<beta>\<^sub>n) t decl"}
-  for each type constructor @{text t}.  At most occassions
+  for each type constructor @{text t}.  At most occasions
   overloading will be used in a Haskell-like fashion together with
   type classes by means of @{command "instantiation"} (see
   \secref{sec:class}).  Sometimes low-level overloading is desirable.

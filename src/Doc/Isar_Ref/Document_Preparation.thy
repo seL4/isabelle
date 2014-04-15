@@ -394,7 +394,7 @@ text {* The following options are available to tune the printed output
 
   \end{description}
 
-  For boolean flags, ``@{text "name = true"}'' may be abbreviated as
+  For Boolean flags, ``@{text "name = true"}'' may be abbreviated as
   ``@{text name}''.  All of the above flags are disabled by default,
   unless changed specifically for a logic session in the corresponding
   @{verbatim "ROOT"} file.  *}

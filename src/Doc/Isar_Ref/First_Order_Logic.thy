@@ -20,7 +20,7 @@ judgment
   Trueprop :: "o \<Rightarrow> prop"    ("_" 5)
 
 text {*
-  \noindent Note that the object-logic judgement is implicit in the
+  \noindent Note that the object-logic judgment is implicit in the
   syntax: writing @{prop A} produces @{term "Trueprop A"} internally.
   From the Pure perspective this means ``@{prop A} is derivable in the
   object-logic''.
@@ -145,6 +145,7 @@ text {*
 theorem "\<And>A. PROP A \<Longrightarrow> PROP A"
 proof -
   assume [symmetric, defn]: "\<And>x y. (x \<equiv> y) \<equiv> Trueprop (x = y)"
+  fix x
 (*>*)
   have "x \<circ> 1 = x \<circ> (x\<inverse> \<circ> x)" unfolding left_inv ..
   also have "\<dots> = (x \<circ> x\<inverse>) \<circ> x" unfolding assoc ..
