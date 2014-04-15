@@ -236,6 +236,9 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
     load()
   }
 
+  def reset_enabled(): Int =
+    updates.valuesIterator.filter(upd => !upd.permanent).length
+
   def contains(word: String): Boolean =
   {
     val m = dict.getClass.getSuperclass.getDeclaredMethod("exist", classOf[String])
@@ -256,6 +259,8 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
       m.setAccessible(true)
       m.invoke(dict, word).asInstanceOf[java.util.List[AnyRef]].toArray.toList.map(_.toString)
     }
+
+  def complete_enabled(word: String): Boolean = !complete(word).isEmpty
 
   def marked_words(base: Text.Offset, text: String): List[Text.Info[String]] =
     Spell_Checker.marked_words(base, text, info => !check(info.info))

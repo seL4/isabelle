@@ -23,12 +23,6 @@ class Context_Menu extends DynamicContextMenuService
 {
   /* spell checker menu */
 
-  private def action_item(name: String): JMenuItem =
-  {
-    val context = jEdit.getActionContext()
-    new EnhancedMenuItem(context.getAction(name).getLabel, name, context)
-  }
-
   private def spell_checker_menu(text_area: JEditTextArea, offset: Text.Offset): List[JMenuItem] =
   {
     val result =
@@ -38,20 +32,36 @@ class Context_Menu extends DynamicContextMenuService
         rendering = doc_view.get_rendering()
         range = JEdit_Lib.point_range(text_area.getBuffer, offset)
         Text.Info(_, word) <- Spell_Checker.current_word(text_area, rendering, range)
-      } yield spell_checker.check(word)
+      } yield (spell_checker, word)
 
     result match {
-      case Some(false) =>
-        List(
-          action_item("isabelle.complete-word"),
-          action_item("isabelle.include-word"),
-          action_item("isabelle.include-word-permanently"),
-          action_item("isabelle.reset-words"))
-      case Some(true) =>
-        List(
-          action_item("isabelle.exclude-word"),
-          action_item("isabelle.exclude-word-permanently"),
-          action_item("isabelle.reset-words"))
+      case Some((spell_checker, word)) =>
+
+        val context = jEdit.getActionContext()
+        def item(name: String): JMenuItem =
+          new EnhancedMenuItem(context.getAction(name).getLabel, name, context)
+
+        val complete_items =
+          if (spell_checker.complete_enabled(word)) List(item("isabelle.complete-word"))
+          else Nil
+
+        val update_items =
+          if (spell_checker.check(word))
+            List(item("isabelle.exclude-word"), item("isabelle.exclude-word-permanently"))
+          else
+            List(item("isabelle.include-word"), item("isabelle.include-word-permanently"))
+
+        val reset_items =
+          spell_checker.reset_enabled() match {
+            case 0 => Nil
+            case n =>
+              val name = "isabelle.reset-words"
+              val label = context.getAction(name).getLabel
+              List(new EnhancedMenuItem(label + " (" + n + ")", name, context))
+          }
+
+        complete_items ::: update_items ::: reset_items
+
       case None => Nil
     }
   }
