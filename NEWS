@@ -94,7 +94,8 @@ Poly/ML, without the add-ons of Isabelle/ML.  See also
     loosing keystrokes with slow / remote graphics displays.
 
 * Integrated spell-checker for document text, comments etc. with
-completion popup and context-menu.
+completion popup and context-menu.  See also "Plugin Options /
+Isabelle / General / Spell Checker" for some system options.
 
 * Auxiliary files ('ML_file' etc.) are managed by the Prover IDE.
 Open text buffers take precedence over copies within the file-system.
