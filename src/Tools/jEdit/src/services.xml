@@ -3,7 +3,7 @@
 
 <SERVICES>
   <SERVICE CLASS="org.gjt.sp.jedit.gui.DynamicContextMenuService" NAME="Spell_Checker">
-    new isabelle.jedit.Spell_Checker_Menu();
+    new isabelle.jedit.Context_Menu();
   </SERVICE>
   <SERVICE NAME="UTF-8-Isabelle" CLASS="org.gjt.sp.jedit.io.Encoding">
     new isabelle.jedit.Isabelle_Encoding();

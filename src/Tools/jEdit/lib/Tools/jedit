@@ -10,6 +10,7 @@
 declare -a SOURCES=(
   "src/active.scala"
   "src/completion_popup.scala"
+  "src/context_menu.scala"
   "src/dockable.scala"
   "src/document_model.scala"
   "src/document_view.scala"

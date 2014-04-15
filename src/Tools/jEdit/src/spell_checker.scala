@@ -11,18 +11,13 @@ package isabelle.jedit
 import isabelle._
 
 import java.lang.Class
-import java.awt.event.MouseEvent
-import javax.swing.JMenuItem
 
 import scala.collection.mutable
 import scala.swing.ComboBox
 import scala.annotation.tailrec
 import scala.collection.immutable.SortedMap
 
-import org.gjt.sp.jedit.jEdit
-import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
-import org.gjt.sp.jedit.menu.EnhancedMenuItem
-import org.gjt.sp.jedit.gui.DynamicContextMenuService
+import org.gjt.sp.jedit.textarea.TextArea
 
 
 object Spell_Checker
@@ -295,43 +290,3 @@ class Spell_Checker_Variable
   }
 }
 
-
-class Spell_Checker_Menu extends DynamicContextMenuService
-{
-  def createMenu(text_area: JEditTextArea, evt: MouseEvent): Array[JMenuItem] =
-  {
-    if (evt != null && evt.getSource == text_area.getPainter) {
-      val result =
-        for {
-          spell_checker <- PIDE.spell_checker.get
-          doc_view <- PIDE.document_view(text_area)
-          rendering = doc_view.get_rendering()
-          offset = text_area.xyToOffset(evt.getX, evt.getY)
-          if offset >= 0
-          range = JEdit_Lib.point_range(text_area.getBuffer, offset)
-          Text.Info(_, word) <- Spell_Checker.current_word(text_area, rendering, range)
-        } yield spell_checker.check(word)
-
-      result match {
-        case Some(known_word) =>
-          val context = jEdit.getActionContext()
-          def item(action: String) =
-            new EnhancedMenuItem(context.getAction(action).getLabel, action, context)
-
-          if (known_word)
-            Array(
-              item("isabelle.exclude-word"),
-              item("isabelle.exclude-word-permanently"),
-              item("isabelle.reset-words"))
-          else
-            Array(
-              item("isabelle.include-word"),
-              item("isabelle.include-word-permanently"),
-              item("isabelle.reset-words"))
-
-        case None => null
-      }
-    }
-    else null
-  }
-}
