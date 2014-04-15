@@ -162,19 +162,21 @@ object JEdit_Lib
   /* point range */
 
   def point_range(buffer: JEditBuffer, offset: Text.Offset): Text.Range =
-    buffer_lock(buffer) {
-      def text(i: Text.Offset): Char = buffer.getText(i, 1).charAt(0)
-      try {
-        val c = text(offset)
-        if (Character.isHighSurrogate(c) && Character.isLowSurrogate(text(offset + 1)))
-          Text.Range(offset, offset + 2)
-        else if (Character.isLowSurrogate(c) && Character.isHighSurrogate(text(offset - 1)))
-          Text.Range(offset - 1, offset + 1)
-        else
-          Text.Range(offset, offset + 1)
+    if (offset < 0) Text.Range.offside
+    else
+      buffer_lock(buffer) {
+        def text(i: Text.Offset): Char = buffer.getText(i, 1).charAt(0)
+        try {
+          val c = text(offset)
+          if (Character.isHighSurrogate(c) && Character.isLowSurrogate(text(offset + 1)))
+            Text.Range(offset, offset + 2)
+          else if (Character.isLowSurrogate(c) && Character.isHighSurrogate(text(offset - 1)))
+            Text.Range(offset - 1, offset + 1)
+          else
+            Text.Range(offset, offset + 1)
+        }
+        catch { case _: ArrayIndexOutOfBoundsException => Text.Range(offset, offset + 1) }
       }
-      catch { case _: ArrayIndexOutOfBoundsException => Text.Range(offset, offset + 1) }
-    }
 
 
   /* text ranges */
@@ -184,6 +186,9 @@ object JEdit_Lib
 
   def line_range(buffer: JEditBuffer, line: Int): Text.Range =
     Text.Range(buffer.getLineStartOffset(line), buffer.getLineEndOffset(line) min buffer.getLength)
+
+  def caret_range(text_area: TextArea): Text.Range =
+    point_range(text_area.getBuffer, text_area.getCaretPosition)
 
   def before_caret_range(text_area: TextArea, rendering: Rendering): Option[Text.Range] =
   {

@@ -356,7 +356,7 @@ class Rich_Text_Area(
     val font_context = painter.getFontRenderContext
 
     val caret_range =
-      if (caret_enabled) JEdit_Lib.point_range(buffer, text_area.getCaretPosition)
+      if (caret_enabled) JEdit_Lib.caret_range(text_area)
       else Text.Range.offside
 
     var w = 0.0f

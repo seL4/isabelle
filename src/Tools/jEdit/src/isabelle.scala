@@ -212,7 +212,7 @@ object Isabelle
           def pad(range: Text.Range): String =
             if (JEdit_Lib.try_get_text(buffer, range) == Some("\n")) "" else "\n"
 
-          val caret = JEdit_Lib.point_range(buffer, text_area.getCaretPosition)
+          val caret = JEdit_Lib.caret_range(text_area)
           val before_caret = JEdit_Lib.point_range(buffer, caret.start - 1)
           pad(before_caret) + text + pad(caret)
         }
@@ -299,7 +299,7 @@ object Isabelle
       spell_checker <- PIDE.spell_checker.get
       doc_view <- PIDE.document_view(text_area)
       rendering = doc_view.get_rendering()
-      range <- JEdit_Lib.before_caret_range(text_area, rendering)
+      range = JEdit_Lib.caret_range(text_area)
       Text.Info(_, word) <- Spell_Checker.current_word(text_area, rendering, range)
     } {
       spell_checker.update(word, include, permanent)
