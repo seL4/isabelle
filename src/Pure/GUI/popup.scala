@@ -24,7 +24,7 @@ class Popup(
     component.setSize(size)
     component.setPreferredSize(size)
     component.setOpaque(true)
-    layered.add(component, JLayeredPane.POPUP_LAYER)
+    layered.add(component, JLayeredPane.DEFAULT_LAYER)
     layered.moveToFront(component)
     layered.repaint(component.getBounds())
   }

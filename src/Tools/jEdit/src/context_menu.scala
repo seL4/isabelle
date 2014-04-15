@@ -61,6 +61,7 @@ class Context_Menu extends DynamicContextMenuService
 
   def createMenu(text_area: JEditTextArea, evt: MouseEvent): Array[JMenuItem] =
   {
+    PIDE.dismissed_popups(text_area.getView)
     if (evt != null && evt.getSource == text_area.getPainter) {
       val offset = text_area.xyToOffset(evt.getX, evt.getY)
       if (offset >= 0) {
