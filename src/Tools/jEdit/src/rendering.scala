@@ -468,7 +468,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
           case (Text.Info(r, (t1, info)), Text.Info(_, XML.Elem(Markup.Timing(t2), _))) =>
             Some(Text.Info(r, (t1 + t2, info)))
           case (prev, Text.Info(r, XML.Elem(Markup.Entity(kind, name), _))) =>
-            val kind1 = Library.plain_words(kind)
+            val kind1 = Word.plain_words(kind)
             val txt1 = kind1 + " " + quote(name)
             val t = prev.info._1
             val txt2 =

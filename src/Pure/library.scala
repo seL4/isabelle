@@ -10,7 +10,6 @@ package isabelle
 
 import scala.collection.mutable
 
-import java.util.Locale
 import java.util.concurrent.{Future => JFuture, TimeUnit}
 
 
@@ -97,25 +96,8 @@ object Library
     else ""
   }
 
-  def plain_words(str: String): String =
-    space_explode('_', str).mkString(" ")
-
 
   /* strings */
-
-  def lowercase(str: String): String = str.toLowerCase(Locale.ROOT)
-  def uppercase(str: String): String = str.toUpperCase(Locale.ROOT)
-
-  def capitalize(str: String): String =
-    if (str.length == 0) str
-    else uppercase(str.substring(0, 1)) + str.substring(1)
-
-  def is_capitalized(str: String): Boolean =
-    str.length > 0 &&
-    Character.isUpperCase(str(0)) && str.substring(1).forall(Character.isLowerCase(_))
-
-  def is_all_caps(str: String): Boolean =
-    str.length > 0 && str.forall(Character.isUpperCase(_))
 
   def try_unprefix(prfx: String, s: String): Option[String] =
     if (s.startsWith(prfx)) Some(s.substring(prfx.length)) else None

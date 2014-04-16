@@ -21,7 +21,7 @@ object Options
 
   sealed abstract class Type
   {
-    def print: String = Library.lowercase(toString)
+    def print: String = Word.lowercase(toString)
   }
   case object Bool extends Type
   case object Int extends Type
@@ -58,7 +58,7 @@ object Options
           case word :: rest if word == strip => rest
           case _ => words
         }
-      words1.map(Library.capitalize(_)).mkString(" ")
+      words1.map(Word.capitalize(_)).mkString(" ")
     }
 
     def unknown: Boolean = typ == Unknown

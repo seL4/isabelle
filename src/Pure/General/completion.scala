@@ -173,7 +173,7 @@ object Completion
           if xname1 != original
           (full_name, descr_name) =
             if (kind == "") (name, quote(decode(name)))
-            else (kind + "." + name, Library.plain_words(kind) + " " + quote(decode(name)))
+            else (kind + "." + name, Word.plain_words(kind) + " " + quote(decode(name)))
           description = List(xname1, "(" + descr_name + ")")
         } yield Item(range, original, full_name, description, xname1, 0, true)
 

@@ -201,7 +201,7 @@ class Isabelle_Sidekick_News extends Isabelle_Sidekick("isabelle-news")
     for (line <- split_lines(JEdit_Lib.buffer_text(buffer)) if !stopped) {
       line match {
         case Heading1(s) =>
-          data.root.add(make_node(Library.capitalize(s), offset, offset + line.length))
+          data.root.add(make_node(Word.capitalize(s), offset, offset + line.length))
         case Heading2(s) =>
           data.root.getLastChild.asInstanceOf[DefaultMutableTreeNode]
             .add(make_node(s, offset, offset + line.length))

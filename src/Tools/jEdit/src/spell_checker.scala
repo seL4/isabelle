@@ -248,9 +248,9 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
 
   def check(word: String): Boolean =
     contains(word) ||
-    Library.is_all_caps(word) && contains(Library.lowercase(word)) ||
-    Library.is_capitalized(word) &&
-      (contains(Library.lowercase(word)) || contains(Library.uppercase(word)))
+    Word.is_all_caps(word) && contains(Word.lowercase(word)) ||
+    Word.is_capitalized(word) &&
+      (contains(Word.lowercase(word)) || contains(Word.uppercase(word)))
 
   def complete(word: String): List[String] =
     if (check(word)) Nil

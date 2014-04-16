@@ -149,7 +149,7 @@ object Isabelle_System
       val rest =
         posix_path match {
           case Cygdrive(drive, rest) =>
-            result_path ++= (Library.uppercase(drive) + ":" + JFile.separator)
+            result_path ++= (Word.uppercase(drive) + ":" + JFile.separator)
             rest
           case Named_Root(root, rest) =>
             result_path ++= JFile.separator
@@ -183,7 +183,7 @@ object Isabelle_System
       jvm_path.replace('/', '\\') match {
         case Platform_Root(rest) => "/" + rest.replace('\\', '/')
         case Drive(letter, rest) =>
-          "/cygdrive/" + Library.lowercase(letter) +
+          "/cygdrive/" + Word.lowercase(letter) +
             (if (rest == "") "" else "/" + rest.replace('\\', '/'))
         case path => path.replace('\\', '/')
       }

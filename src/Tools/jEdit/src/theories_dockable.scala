@@ -66,7 +66,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   /* controls */
 
   def phase_text(phase: Session.Phase): String =
-    "Prover: " + Library.lowercase(phase.toString)
+    "Prover: " + Word.lowercase(phase.toString)
 
   private val session_phase = new Label(phase_text(PIDE.session.phase))
   session_phase.border = new SoftBevelBorder(BevelBorder.LOWERED)
