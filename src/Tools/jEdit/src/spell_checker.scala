@@ -247,15 +247,17 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
   }
 
   def check(word: String): Boolean =
-    contains(word) ||
-    Word.is_all_caps(word) && contains(Word.lowercase(word)) ||
-    Word.is_capitalized(word) &&
-      (contains(Word.lowercase(word)) || contains(Word.uppercase(word)))
+    word match {
+      case Word.Case(Word.Uppercase) => contains(Word.lowercase(word))
+      case Word.Case(Word.Capitalized) =>
+        contains(Word.lowercase(word)) || contains(Word.uppercase(word))
+      case _ => contains(word)
+    }
 
   def complete(word: String): List[String] =
     if (check(word)) Nil
     else {
-      val m = dict.getClass.getSuperclass. getDeclaredMethod("searchSuggestions", classOf[String])
+      val m = dict.getClass.getSuperclass.getDeclaredMethod("searchSuggestions", classOf[String])
       m.setAccessible(true)
       m.invoke(dict, word).asInstanceOf[java.util.List[AnyRef]].toArray.toList.map(_.toString)
     }
