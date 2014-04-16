@@ -254,7 +254,6 @@ object Completion_Popup
             Font_Info.main_size(PIDE.options.real("jedit_popup_font_scale")))
 
         val range = result.range
-        def invalidate(): Unit = JEdit_Lib.invalidate_range(text_area, range)
 
         val loc1 = text_area.offsetToXY(range.start)
         if (loc1 != null) {
@@ -286,12 +285,12 @@ object Completion_Popup
                 if (view.getKeyEventInterceptor == inner_key_listener)
                   view.setKeyEventInterceptor(null)
                 if (focus) text_area.requestFocus
-                invalidate()
+                JEdit_Lib.invalidate_range(text_area, range)
               }
             }
           completion_popup = Some(completion)
           view.setKeyEventInterceptor(completion.inner_key_listener)
-          invalidate()
+          JEdit_Lib.invalidate_range(text_area, range)
           completion.show_popup(false)
         }
       }
