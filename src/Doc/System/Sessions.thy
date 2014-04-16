@@ -165,7 +165,7 @@ text {* See @{file "~~/etc/options"} for the main defaults provided by
   includes a simple editing mode @{verbatim "isabelle-options"} for
   this file-format.
 
-  The following options are particulary relevant to build Isabelle
+  The following options are particularly relevant to build Isabelle
   sessions, in particular with document preparation
   (\chref{ch:present}).
 

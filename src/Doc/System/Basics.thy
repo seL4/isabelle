@@ -416,7 +416,7 @@ text {*
   \medskip Using the @{verbatim "-e"} option, arbitrary ML code may be
   passed to the Isabelle session from the command line. Multiple
   @{verbatim "-e"}'s are evaluated in the given order. Strange things
-  may happen when errorneous ML code is provided. Also make sure that
+  may happen when erroneous ML code is provided. Also make sure that
   the ML commands are terminated properly by semicolon.
 
   \medskip The @{verbatim "-m"} option adds identifiers of print modes

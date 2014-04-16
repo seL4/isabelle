@@ -149,7 +149,7 @@ Usage: isabelle browser [OPTIONS] [GRAPHFILE]
     -c           cleanup -- remove GRAPHFILE after use
     -o FILE      output to FILE (ps, eps, pdf)
 \end{ttbox}
-  When no filename is specified, the browser automatically changes to
+  When no file name is specified, the browser automatically changes to
   the directory @{setting ISABELLE_BROWSER_INFO}.
 
   \medskip The @{verbatim "-b"} option indicates that this is for
