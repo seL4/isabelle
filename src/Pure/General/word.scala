@@ -37,7 +37,7 @@ object Word
     if (str.length == 0) str
     else {
       val n = Character.charCount(str.codePointAt(0))
-      uppercase(str.substring(0, n)) + str.substring(n)
+      uppercase(str.substring(0, n)) + lowercase(str.substring(n))
     }
 
   sealed abstract class Case
