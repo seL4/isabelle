@@ -18,6 +18,10 @@ object YXML
 
   val X = '\5'
   val Y = '\6'
+
+  val is_X = (c: Char) => c == X
+  val is_Y = (c: Char) => c == Y
+
   val X_string = X.toString
   val Y_string = Y.toString
 
@@ -93,10 +97,10 @@ object YXML
 
     /* parse chunks */
 
-    for (chunk <- Library.separated_chunks(X, source) if chunk.length != 0) {
+    for (chunk <- Library.separated_chunks(is_X, source) if chunk.length != 0) {
       if (chunk.length == 1 && chunk.charAt(0) == Y) pop()
       else {
-        Library.separated_chunks(Y, chunk).toList match {
+        Library.separated_chunks(is_Y, chunk).toList match {
           case ch :: name :: atts if ch.length == 0 =>
             push(name.toString, atts.map(parse_attrib))
           case txts => for (txt <- txts) add(XML.Text(txt.toString))

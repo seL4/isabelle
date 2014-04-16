@@ -13,6 +13,8 @@ import java.util.Locale
 
 object Word
 {
+  /* case */
+
   def lowercase(str: String): String = str.toLowerCase(Locale.ROOT)
   def uppercase(str: String): String = str.toUpperCase(Locale.ROOT)
 
@@ -27,7 +29,18 @@ object Word
   def is_all_caps(str: String): Boolean =
     str.length > 0 && str.forall(Character.isUpperCase(_))
 
-  def plain_words(str: String): String =
-    space_explode('_', str).mkString(" ")
+
+  /* sequence of words */
+
+  def implode(words: Iterable[String]): String = words.iterator.mkString(" ")
+
+  def explode(sep: Char => Boolean, text: String): List[String] =
+    Library.separated_chunks(sep, text).map(_.toString).filter(_ != "").toList
+
+  def explode(sep: Char, text: String): List[String] =
+    explode(_ == sep, text)
+
+  def explode(text: String): List[String] =
+    explode(Symbol.is_ascii_blank(_), text)
 }
 

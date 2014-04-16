@@ -52,13 +52,13 @@ object Options
 
     def title(strip: String = ""): String =
     {
-      val words = space_explode('_', name)
+      val words = Word.explode('_', name)
       val words1 =
         words match {
           case word :: rest if word == strip => rest
           case _ => words
         }
-      words1.map(Word.capitalize(_)).mkString(" ")
+      Word.implode(words1.map(Word.capitalize(_)))
     }
 
     def unknown: Boolean = typ == Unknown

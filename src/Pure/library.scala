@@ -52,13 +52,13 @@ object Library
     result.toList
   }
 
-  def separated_chunks(sep: Char, source: CharSequence): Iterator[CharSequence] =
+  def separated_chunks(sep: Char => Boolean, source: CharSequence): Iterator[CharSequence] =
     new Iterator[CharSequence] {
       private val end = source.length
       private def next_chunk(i: Int): Option[(CharSequence, Int)] =
       {
         if (i < end) {
-          var j = i; do j += 1 while (j < end && source.charAt(j) != sep)
+          var j = i; do j += 1 while (j < end && !sep(source.charAt(j)))
           Some((source.subSequence(i + 1, j), j))
         }
         else None
@@ -74,7 +74,7 @@ object Library
     }
 
   def space_explode(sep: Char, str: String): List[String] =
-    separated_chunks(sep, str).map(_.toString).toList
+    separated_chunks(_ == sep, str).map(_.toString).toList
 
 
   /* lines */
@@ -91,7 +91,7 @@ object Library
 
   def first_line(source: CharSequence): String =
   {
-    val lines = separated_chunks('\n', source)
+    val lines = separated_chunks(_ == '\n', source)
     if (lines.hasNext) lines.next.toString
     else ""
   }

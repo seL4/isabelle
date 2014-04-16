@@ -75,7 +75,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
           results_panel.contents.clear
           val results =
             (searchspace filter
-              (Word.lowercase(search.text).split("\\s+") forall _._2.contains)
+              (Word.explode(Word.lowercase(search.text)) forall _._2.contains)
               take (max_results + 1)).toList
           for ((sym, _) <- results)
             results_panel.contents += new Symbol_Component(sym)
@@ -85,7 +85,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
         }
       reactions += { case ValueChanged(`search`) => delay_search.invoke() }
     }, "Search Symbols")
-    pages.map(p => p.title = space_explode('_', p.title).map(Word.capitalize(_)).mkString(" "))
+    pages.map(p => p.title = Word.implode(Word.explode('_', p.title).map(Word.capitalize(_))))
   }
   set_content(group_tabs)
 }
