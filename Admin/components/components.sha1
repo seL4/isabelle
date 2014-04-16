@@ -23,6 +23,7 @@ d765bc4ad2f34d494429b2a8c1563c49db224944  jdk-7u13.tar.gz
 dd24d63afd6d17b29ec9cb2b2464d4ff2e02de2c  jdk-7u40.tar.gz
 ec740ee9ffd43551ddf1e5b91641405116af6291  jdk-7u6.tar.gz
 7d5b152ac70f720bb9e783fa45ecadcf95069584  jdk-7u9.tar.gz
+c95ebf7777beb3e7ef10c0cf3f734cb78f9828e4  jdk-8u5.tar.gz
 44775a22f42a9d665696bfb49e53c79371c394b0  jedit_build-20111217.tar.gz
 a242a688810f2bccf24587b0062ce8027bf77fa2  jedit_build-20120304.tar.gz
 4c948dee53f74361c097c08f49a1a5ff9b17bd1d  jedit_build-20120307.tar.gz
@@ -42,8 +43,8 @@ c63189cbe39eb8104235a0928f579d9523de78a9  jedit_build-20130925.tar.gz
 054c1300128f8abd0f46a3e92c756ccdb96ff2af  jedit_build-20140405.tar.gz
 0bd2bc2d9a491ba5fc8dd99df27c04f11a72e8fa  jfreechart-1.0.14-1.tar.gz
 8122526f1fc362ddae1a328bdbc2152853186fee  jfreechart-1.0.14.tar.gz
-2155e0bdbd29cd3d2905454de2e7203b9661d239  jortho-1.0-2.tar.gz
 c8a19a36adf6cefa779d85f22ded2f4654e68ea5  jortho-1.0-1.tar.gz
+2155e0bdbd29cd3d2905454de2e7203b9661d239  jortho-1.0-2.tar.gz
 ffe179867cf5ffaabbb6bb096db9bdc0d7110065  jortho-1.0.tar.gz
 6c737137cc597fc920943783382e928ea79e3feb  kodkodi-1.2.16.tar.gz
 5f95c96bb99927f3a026050f85bd056f37a9189e  kodkodi-1.5.2.tar.gz
