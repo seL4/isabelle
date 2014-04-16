@@ -143,6 +143,9 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
 {
   override def toString: String = dictionary.toString
 
+
+  /* main dictionary content */
+
   private var dict = new Object
   private var updates = SortedMap.empty[String, Spell_Checker.Update]
 
@@ -239,6 +242,9 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
   def reset_enabled(): Int =
     updates.valuesIterator.filter(upd => !upd.permanent).length
 
+
+  /* check known words */
+
   def contains(word: String): Boolean =
   {
     val m = dict.getClass.getSuperclass.getDeclaredMethod("exist", classOf[String])
@@ -248,24 +254,47 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary)
 
   def check(word: String): Boolean =
     word match {
-      case Word.Case(Word.Uppercase) => contains(Word.lowercase(word))
-      case Word.Case(Word.Capitalized) =>
-        contains(Word.lowercase(word)) || contains(Word.uppercase(word))
-      case _ => contains(word)
+      case Word.Case(c) if c != Word.Lowercase =>
+        contains(word) || contains(Word.lowercase(word))
+      case _ =>
+        contains(word)
     }
+
+  def marked_words(base: Text.Offset, text: String): List[Text.Info[String]] =
+    Spell_Checker.marked_words(base, text, info => !check(info.info))
+
+
+  /* suggestions for unknown words */
+
+  private def suggestions(word: String): Option[List[String]] =
+  {
+    val m = dict.getClass.getSuperclass.getDeclaredMethod("searchSuggestions", classOf[String])
+    m.setAccessible(true)
+    val res =
+      m.invoke(dict, word).asInstanceOf[java.util.List[AnyRef]].toArray.toList.map(_.toString)
+    if (res.isEmpty) None else Some(res)
+  }
 
   def complete(word: String): List[String] =
     if (check(word)) Nil
     else {
-      val m = dict.getClass.getSuperclass.getDeclaredMethod("searchSuggestions", classOf[String])
-      m.setAccessible(true)
-      m.invoke(dict, word).asInstanceOf[java.util.List[AnyRef]].toArray.toList.map(_.toString)
+      val word_case = Word.Case.unapply(word)
+      def recover_case(s: String) =
+        word_case match {
+          case Some(c) => Word.Case(c, s)
+          case None => s
+        }
+      val result =
+        word_case match {
+          case Some(c) if c != Word.Lowercase =>
+            suggestions(word) orElse suggestions(Word.lowercase(word))
+          case _ =>
+            suggestions(word)
+        }
+      result.getOrElse(Nil).map(recover_case)
     }
 
   def complete_enabled(word: String): Boolean = !complete(word).isEmpty
-
-  def marked_words(base: Text.Offset, text: String): List[Text.Info[String]] =
-    Spell_Checker.marked_words(base, text, info => !check(info.info))
 }
 
 
