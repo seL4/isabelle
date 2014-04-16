@@ -409,6 +409,13 @@ proof
   by auto
 qed
 
+lemma inv_unique_comp:
+  assumes fg: "f \<circ> g = id"
+    and gf: "g \<circ> f = id"
+  shows "inv f = g"
+  using fg gf inv_equality[of g f] by (auto simp add: fun_eq_iff)
+
+
 subsection {* The Cantor-Bernstein Theorem *}
 
 lemma Cantor_Bernstein_aux:

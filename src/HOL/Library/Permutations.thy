@@ -10,28 +10,16 @@ begin
 
 subsection {* Transpositions *}
 
-lemma swap_id_refl: "Fun.swap a a id = id"
-  by (fact swap_self)
-
-lemma swap_id_sym: "Fun.swap a b id = Fun.swap b a id"
-  by (fact swap_commute)
-
-lemma swapid_sym: "Fun.swap a b id = Fun.swap b a id"
-  by (fact swap_commute)
-
-lemma swap_id_idempotent[simp]: "Fun.swap a b id \<circ> Fun.swap a b id = id"
+lemma swap_id_idempotent [simp]:
+  "Fun.swap a b id \<circ> Fun.swap a b id = id"
   by (rule ext, auto simp add: Fun.swap_def)
 
-lemma inv_unique_comp:
-  assumes fg: "f \<circ> g = id"
-    and gf: "g \<circ> f = id"
-  shows "inv f = g"
-  using fg gf inv_equality[of g f] by (auto simp add: fun_eq_iff)
-
-lemma inverse_swap_id: "inv (Fun.swap a b id) = Fun.swap a b id"
+lemma inv_swap_id:
+  "inv (Fun.swap a b id) = Fun.swap a b id"
   by (rule inv_unique_comp) simp_all
 
-lemma swap_id_eq: "Fun.swap a b id x = (if x = a then b else if x = b then a else x)"
+lemma swap_id_eq:
+  "Fun.swap a b id x = (if x = a then b else if x = b then a else x)"
   by (simp add: Fun.swap_def)
 
 
@@ -439,7 +427,7 @@ proof -
     apply (rule symmetry_lemma[where a=a and b=b and c=c and d=d])
     apply (simp_all only: swap_commute)
     apply (case_tac "a = c \<and> b = d")
-    apply (clarsimp simp only: swapid_sym swap_id_idempotent)
+    apply (clarsimp simp only: swap_commute swap_id_idempotent)
     apply (case_tac "a = c \<and> b \<noteq> d")
     apply (rule disjI2)
     apply (rule_tac x="b" in exI)

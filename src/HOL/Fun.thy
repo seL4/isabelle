@@ -641,17 +641,31 @@ by(simp add:override_on_def)
 
 subsection {* @{text swap} *}
 
-definition swap :: "'a \<Rightarrow> 'a \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)" where
+definition swap :: "'a \<Rightarrow> 'a \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)"
+where
   "swap a b f = f (a := f b, b:= f a)"
 
-lemma swap_self [simp]: "swap a a f = f"
-by (simp add: swap_def)
+lemma swap_apply [simp]:
+  "swap a b f a = f b"
+  "swap a b f b = f a"
+  "c \<noteq> a \<Longrightarrow> c \<noteq> b \<Longrightarrow> swap a b f c = f c"
+  by (simp_all add: swap_def)
 
-lemma swap_commute: "swap a b f = swap b a f"
-by (rule ext, simp add: fun_upd_def swap_def)
+lemma swap_self [simp]:
+  "swap a a f = f"
+  by (simp add: swap_def)
 
-lemma swap_nilpotent [simp]: "swap a b (swap a b f) = f"
-by (rule ext, simp add: fun_upd_def swap_def)
+lemma swap_commute:
+  "swap a b f = swap b a f"
+  by (simp add: fun_upd_def swap_def fun_eq_iff)
+
+lemma swap_nilpotent [simp]:
+  "swap a b (swap a b f) = f"
+  by (rule ext, simp add: fun_upd_def swap_def)
+
+lemma swap_comp_involutory [simp]:
+  "swap a b \<circ> swap a b = id"
+  by (rule ext) simp
 
 lemma swap_triple:
   assumes "a \<noteq> c" and "b \<noteq> c"
@@ -659,7 +673,7 @@ lemma swap_triple:
   using assms by (simp add: fun_eq_iff swap_def)
 
 lemma comp_swap: "f \<circ> swap a b g = swap a b (f \<circ> g)"
-by (rule ext, simp add: fun_upd_def swap_def)
+  by (rule ext, simp add: fun_upd_def swap_def)
 
 lemma swap_image_eq [simp]:
   assumes "a \<in> A" "b \<in> A" shows "swap a b f ` A = f ` A"
@@ -700,6 +714,7 @@ lemma bij_swap_iff [simp]: "bij (swap a b f) \<longleftrightarrow> bij f"
   by simp
 
 hide_const (open) swap
+
 
 subsection {* Inversion of injective functions *}
 
