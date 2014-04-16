@@ -110,11 +110,7 @@ object Completion_Popup
 
     def active_range: Option[Text.Range] =
       completion_popup match {
-        case Some(completion) =>
-          completion.active_range match {
-            case Some(range) if completion.isDisplayable => Some(range)
-            case _ => None
-          }
+        case Some(completion) => completion.active_range
         case None => None
       }
 
@@ -571,7 +567,7 @@ object Completion_Popup
 
 
 class Completion_Popup private(
-  val active_range: Option[Text.Range],
+  opt_range: Option[Text.Range],
   layered: JLayeredPane,
   location: Point,
   font: Font,
@@ -689,6 +685,9 @@ class Completion_Popup private(
 
 
   /* popup */
+
+  def active_range: Option[Text.Range] =
+    if (isDisplayable) opt_range else None
 
   private val popup =
   {
