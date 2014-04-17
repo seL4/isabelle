@@ -73,13 +73,6 @@ object Word
       else None
   }
 
-  def is_capitalized(str: String): Boolean =
-    str.length > 0 &&
-    Character.isUpperCase(str(0)) && str.substring(1).forall(Character.isLowerCase(_))
-
-  def is_all_caps(str: String): Boolean =
-    str.length > 0 && str.forall(Character.isUpperCase(_))
-
 
   /* sequence of words */
 
