@@ -147,6 +147,12 @@ class Isabelle_Process(
 
   def join() { process_manager.join() }
 
+  def interrupt()
+  {
+    try { process.interrupt }
+    catch { case e: IOException => system_output("Failed to interrupt Isabelle: " + e.getMessage) }
+  }
+
   def terminate()
   {
     close(command_input)
