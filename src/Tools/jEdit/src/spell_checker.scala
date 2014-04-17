@@ -126,7 +126,7 @@ object Spell_Checker
     }
 
     component.load()
-    component.tooltip = opt.print_default
+    component.tooltip = GUI.tooltip_lines(List(opt.print_default))
     component
   }
 
