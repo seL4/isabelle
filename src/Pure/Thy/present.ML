@@ -7,6 +7,7 @@ Theory presentation: HTML, graph files, (PDF)LaTeX documents.
 signature PRESENT =
 sig
   val session_name: theory -> string
+  val document_enabled: string -> bool
   val document_variants: string -> (string * string) list
   val init: bool -> bool -> Path.T -> string -> bool -> string -> (string * string) list ->
     (Path.T * Path.T) list -> string * string -> bool -> theory list -> unit  (*not thread-safe!*)
@@ -192,7 +193,9 @@ fun with_session_info x f = (case ! session_info of NONE => x | SOME info => f i
 
 (** document preparation **)
 
-(* document variants *)
+(* options *)
+
+fun document_enabled s = s <> "" andalso s <> "false";
 
 fun document_variants str =
   let

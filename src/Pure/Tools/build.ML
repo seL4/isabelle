@@ -99,8 +99,7 @@ local
 
 fun use_theories last_timing options =
   Thy_Info.use_theories {
-      document =
-        (case Options.string options "document" of "" => false | "false" => false | _ => true),
+      document = Present.document_enabled (Options.string options "document"),
       last_timing = last_timing,
       master_dir = Path.current}
     |> Unsynchronized.setmp print_mode
