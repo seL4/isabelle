@@ -184,6 +184,7 @@ sig
   val command_timing: Properties.entry
   val loading_theory: string -> Properties.T
   val dest_loading_theory: Properties.T -> string option
+  val use_theories_result: string -> bool -> Properties.T
   val simp_trace_logN: string
   val simp_trace_stepN: string
   val simp_trace_recurseN: string
@@ -579,6 +580,9 @@ fun loading_theory name = [("function", "loading_theory"), ("name", name)];
 
 fun dest_loading_theory [("function", "loading_theory"), ("name", name)] = SOME name
   | dest_loading_theory _ = NONE;
+
+fun use_theories_result id ok =
+  [("function", "use_theories_result"), ("id", id), ("ok", print_bool ok)];
 
 
 (* simplifier trace *)

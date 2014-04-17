@@ -420,6 +420,25 @@ object Markup
       }
   }
 
+  object Loading_Theory
+  {
+    def unapply(props: Properties.T): Option[String] =
+      props match {
+        case List((FUNCTION, "loading_theory"), (NAME, name)) => Some(name)
+        case _ => None
+      }
+  }
+
+  object Use_Theories_Result
+  {
+    def unapply(props: Properties.T): Option[(String, Boolean)] =
+      props match {
+        case List((FUNCTION, "use_theories_result"),
+          ("id", id), ("ok", Properties.Value.Boolean(ok))) => Some((id, ok))
+        case _ => None
+      }
+  }
+
 
   /* simplifier trace */
 

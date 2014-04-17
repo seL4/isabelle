@@ -428,4 +428,10 @@ trait Protocol extends Prover
 
   def dialog_result(serial: Long, result: String): Unit =
     protocol_command("Document.dialog_result", Properties.Value.Long(serial), result)
+
+
+  /* use_theories */
+
+  def use_theories(id: String, master_dir: Path, thys: List[Path]): Unit =
+    protocol_command("use_theories", (id :: master_dir.implode :: thys.map(_.implode)): _*)
 }

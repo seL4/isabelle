@@ -108,5 +108,20 @@ val _ =
       Active.dialog_result (Markup.parse_int serial) result
         handle exn => if Exn.is_interrupt exn then () (*sic!*) else reraise exn);
 
+val _ =
+  Isabelle_Process.protocol_command "use_theories"
+    (fn id :: master_dir :: thys =>
+      let
+        val result =
+          Exn.capture (fn () =>
+            Thy_Info.use_theories
+              {document = false, last_timing = K NONE, master_dir = Path.explode master_dir}
+              (map (rpair Position.none) thys)) ();
+        val ok =
+          (case result of
+            Exn.Res _ => true
+          | Exn.Exn exn => (Runtime.exn_error_message exn; false));
+    in Output.protocol_message (Markup.use_theories_result id ok) [] end);
+
 end;
 
