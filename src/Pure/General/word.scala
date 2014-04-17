@@ -40,6 +40,12 @@ object Word
       uppercase(str.substring(0, n)) + lowercase(str.substring(n))
     }
 
+  def perhaps_capitalize(str: String): String =
+    str match {
+      case Case(c) if c != Lowercase => str
+      case _ => capitalize(str)
+    }
+
   sealed abstract class Case
   case object Lowercase extends Case
   case object Uppercase extends Case

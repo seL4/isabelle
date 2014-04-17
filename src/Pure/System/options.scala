@@ -58,7 +58,7 @@ object Options
           case word :: rest if word == strip => rest
           case _ => words
         }
-      Word.implode(words1.map(Word.capitalize(_)))
+      Word.implode(words1.map(Word.perhaps_capitalize(_)))
     }
 
     def unknown: Boolean = typ == Unknown
