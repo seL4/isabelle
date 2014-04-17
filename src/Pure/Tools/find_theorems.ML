@@ -206,7 +206,7 @@ fun filter_solves ctxt goal =
     val goal' = Thm.transfer thy' goal;
 
     fun limited_etac thm i =
-      Seq.take (Options.default_int @{system_option find_theorems_tac_limit}) o etac thm i;
+      Seq.take (Options.default_int @{system_option find_theorems_tactic_limit}) o etac thm i;
     fun try_thm thm =
       if Thm.no_prems thm then rtac thm 1 goal'
       else

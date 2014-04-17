@@ -139,7 +139,7 @@ section "Miscellaneous Tools"
 public option find_theorems_limit : int = 40
   -- "limit of displayed results"
 
-public option find_theorems_tac_limit : int = 5
+public option find_theorems_tactic_limit : int = 5
   -- "limit of tactic search for 'solves' criterion"
 
 
