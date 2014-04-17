@@ -14,7 +14,7 @@ struct
 
 (* command timings *)
 
-type timings = ((string * Time.time) Inttab.table) Symtab.table;  (*file -> offset -> name * time *)
+type timings = ((string * Time.time) Inttab.table) Symtab.table;  (*file -> offset -> name, time*)
 
 val empty_timings: timings = Symtab.empty;
 
