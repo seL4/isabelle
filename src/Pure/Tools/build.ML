@@ -140,13 +140,6 @@ fun build args_file = Command_Line.tool (fn () =>
 
       val _ = Options.set_default options;
 
-      val document_variants =
-        map Present.read_variant (space_explode ":" (Options.string options "document_variants"));
-      val _ =
-        (case duplicates (op =) (map fst document_variants) of
-          [] => ()
-        | dups => error ("Duplicate document variants: " ^ commas_quote dups));
-
       val _ = writeln ("\fSession.name = " ^ name);
       val _ =
         Session.init do_output
@@ -155,7 +148,7 @@ fun build args_file = Command_Line.tool (fn () =>
           (Options.string options "document")
           (Options.bool options "document_graph")
           (Options.string options "document_output")
-          document_variants
+          (Present.document_variants (Options.string options "document_variants"))
           (map (pairself Path.explode) document_files)
           parent_name (chapter, name)
           verbose;

@@ -7,7 +7,7 @@ Theory presentation: HTML, graph files, (PDF)LaTeX documents.
 signature PRESENT =
 sig
   val session_name: theory -> string
-  val read_variant: string -> string * string
+  val document_variants: string -> (string * string) list
   val init: bool -> bool -> Path.T -> string -> bool -> string -> (string * string) list ->
     (Path.T * Path.T) list -> string * string -> bool -> theory list -> unit  (*not thread-safe!*)
   val finish: unit -> unit  (*not thread-safe!*)
@@ -194,11 +194,19 @@ fun with_session_info x f = (case ! session_info of NONE => x | SOME info => f i
 
 (* document variants *)
 
-fun read_variant str =
-  (case space_explode "=" str of
-    [name] => (name, "")
-  | [name, tags] => (name, tags)
-  | _ => error ("Malformed document variant specification: " ^ quote str));
+fun document_variants str =
+  let
+    fun read_variant s =
+      (case space_explode "=" s of
+        [name] => (name, "")
+      | [name, tags] => (name, tags)
+      | _ => error ("Malformed document variant specification: " ^ quote s));
+    val variants = map read_variant (space_explode ":" str);
+    val _ =
+      (case duplicates (op =) (map #1 variants) of
+        [] => ()
+      | dups => error ("Duplicate document variants: " ^ commas_quote dups));
+  in variants end;
 
 
 (* init session *)
