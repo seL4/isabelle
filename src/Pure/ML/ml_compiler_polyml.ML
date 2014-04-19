@@ -70,7 +70,7 @@ fun report_parse_tree redirect depth space parse_tree =
 fun eval (flags: flags) pos toks =
   let
     val _ = Secure.secure_mltext ();
-    val space = if #SML flags then ML_Env.SML_name_space else ML_Env.name_space;
+    val space = ML_Env.name_space {SML = #SML flags, exchange = #exchange flags}
     val opt_context = Context.thread_data ();
 
 

@@ -6,7 +6,7 @@ Runtime compilation and evaluation -- generic version.
 
 signature ML_COMPILER =
 sig
-  type flags = {SML: bool, redirect: bool, verbose: bool}
+  type flags = {SML: bool, exchange: bool, redirect: bool, verbose: bool}
   val flags: flags
   val verbose: bool -> flags -> flags
   val eval: flags -> Position.T -> ML_Lex.token list -> unit
@@ -15,9 +15,11 @@ end
 structure ML_Compiler: ML_COMPILER =
 struct
 
-type flags = {SML: bool, redirect: bool, verbose: bool};
-val flags = {SML = false, redirect = false, verbose = false};
-fun verbose v (flags: flags) = {SML = #SML flags, redirect = #redirect flags, verbose = v};
+type flags = {SML: bool, exchange: bool, redirect: bool, verbose: bool};
+val flags = {SML = false, exchange = false, redirect = false, verbose = false};
+
+fun verbose b (flags: flags) =
+  {SML = #SML flags, exchange = #exchange flags, redirect = #redirect flags, verbose = b};
 
 fun eval (flags: flags) pos toks =
   let

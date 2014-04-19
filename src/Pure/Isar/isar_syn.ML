@@ -273,11 +273,28 @@ val _ =
         let
           val ([{lines, pos, ...}], thy') = files thy;
           val source = {delimited = true, text = cat_lines lines, pos = pos};
-          val flags = {SML = true, redirect = true, verbose = true};
+          val flags = {SML = true, exchange = false, redirect = true, verbose = true};
         in
           thy' |> Context.theory_map
             (ML_Context.exec (fn () => ML_Context.eval_source flags source))
         end)));
+
+val _ =
+  Outer_Syntax.command @{command_spec "SML_export"} "evaluate SML within Isabelle/ML environment"
+    (Parse.ML_source >> (fn source =>
+      let val flags = {SML = true, exchange = true, redirect = false, verbose = true} in
+        Toplevel.theory
+          (Context.theory_map (ML_Context.exec (fn () => ML_Context.eval_source flags source)))
+      end));
+
+val _ =
+  Outer_Syntax.command @{command_spec "SML_import"} "evaluate Isabelle/ML within SML environment"
+    (Parse.ML_source >> (fn source =>
+      let val flags = {SML = false, exchange = true, redirect = false, verbose = true} in
+        Toplevel.generic_theory
+          (ML_Context.exec (fn () => ML_Context.eval_source flags source) #>
+            Local_Theory.propagate_ml_env)
+      end));
 
 val _ =
   Outer_Syntax.command @{command_spec "ML"} "ML text within theory or local theory"

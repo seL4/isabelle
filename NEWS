@@ -37,11 +37,14 @@ number that is out of range produces an empty result sequence, not an
 exception.  Potential INCOMPATIBILITY for non-conformant tactical
 proof tools.
 
-* Command 'SML_file' reads and evaluates the given Standard ML file.
+* Support for official Standard ML within the Isabelle context.
+Command 'SML_file' reads and evaluates the given Standard ML file.
 Toplevel bindings are stored within the theory context; the initial
 environment is restricted to the Standard ML implementation of
-Poly/ML, without the add-ons of Isabelle/ML.  See also
-~~/src/Tools/SML/Examples.thy for some basic examples.
+Poly/ML, without the add-ons of Isabelle/ML.  Commands 'SML_import'
+and 'SML_export' allow to exchange toplevel bindings between the two
+separate environments.  See also ~~/src/Tools/SML/Examples.thy for
+some examples.
 
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***

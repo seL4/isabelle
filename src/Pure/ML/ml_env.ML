@@ -8,9 +8,9 @@ implicit context.
 signature ML_ENV =
 sig
   val inherit: Context.generic -> Context.generic -> Context.generic
-  val SML_name_space: ML_Name_Space.T
-  val name_space: ML_Name_Space.T
+  val name_space: {SML: bool, exchange: bool} -> ML_Name_Space.T
   val local_context: use_context
+  val local_name_space: ML_Name_Space.T
   val check_functor: string -> unit
 end
 
@@ -64,62 +64,35 @@ structure Env = Generic_Data
 val inherit = Env.put o Env.get;
 
 
-(* SML name space *)
+(* name space *)
 
-val SML_name_space: ML_Name_Space.T =
-  let
-    fun lookup which name =
-      Context.the_thread_data ()
-      |> (fn context => Symtab.lookup (which (#sml_tables (Env.get context))) name);
-
-    fun all which () =
-      Context.the_thread_data ()
-      |> (fn context => Symtab.dest (which (#sml_tables (Env.get context))))
-      |> sort_distinct (string_ord o pairself #1);
-
-    fun enter which entry =
-      Context.>> (Env.map (fn {bootstrap, tables, sml_tables} =>
-        let val sml_tables' = which (Symtab.update entry) sml_tables
-        in make_data (bootstrap, tables, sml_tables') end));
-  in
-   {lookupVal    = lookup #1,
-    lookupType   = lookup #2,
-    lookupFix    = lookup #3,
-    lookupStruct = lookup #4,
-    lookupSig    = lookup #5,
-    lookupFunct  = lookup #6,
-    enterVal     = enter (fn h => fn (a, b, c, d, e, f) => (h a, b, c, d, e, f)),
-    enterType    = enter (fn h => fn (a, b, c, d, e, f) => (a, h b, c, d, e, f)),
-    enterFix     = enter (fn h => fn (a, b, c, d, e, f) => (a, b, h c, d, e, f)),
-    enterStruct  = enter (fn h => fn (a, b, c, d, e, f) => (a, b, c, h d, e, f)),
-    enterSig     = enter (fn h => fn (a, b, c, d, e, f) => (a, b, c, d, h e, f)),
-    enterFunct   = enter (fn h => fn (a, b, c, d, e, f) => (a, b, c, d, e, h f)),
-    allVal       = all #1,
-    allType      = all #2,
-    allFix       = all #3,
-    allStruct    = all #4,
-    allSig       = all #5,
-    allFunct     = all #6}
-  end;
-
-
-(* Isabelle/ML name space *)
-
-val name_space: ML_Name_Space.T =
+fun name_space {SML, exchange} : ML_Name_Space.T =
   let
     fun lookup sel1 sel2 name =
-      Context.thread_data ()
-      |> (fn NONE => NONE | SOME context => Symtab.lookup (sel1 (#tables (Env.get context))) name)
-      |> (fn NONE => sel2 ML_Name_Space.global name | some => some);
+      if SML then
+        Context.the_thread_data ()
+        |> (fn context => Symtab.lookup (sel1 (#sml_tables (Env.get context))) name)
+      else
+        Context.thread_data ()
+        |> (fn NONE => NONE | SOME context => Symtab.lookup (sel1 (#tables (Env.get context))) name)
+        |> (fn NONE => sel2 ML_Name_Space.global name | some => some);
 
     fun all sel1 sel2 () =
-      Context.thread_data ()
-      |> (fn NONE => [] | SOME context => Symtab.dest (sel1 (#tables (Env.get context))))
-      |> append (sel2 ML_Name_Space.global ())
+      (if SML then
+        Context.the_thread_data ()
+        |> (fn context => Symtab.dest (sel1 (#sml_tables (Env.get context))))
+      else
+        Context.thread_data ()
+        |> (fn NONE => [] | SOME context => Symtab.dest (sel1 (#tables (Env.get context))))
+        |> append (sel2 ML_Name_Space.global ()))
       |> sort_distinct (string_ord o pairself #1);
 
     fun enter ap1 sel2 entry =
-      if is_some (Context.thread_data ()) then
+      if SML <> exchange then
+        Context.>> (Env.map (fn {bootstrap, tables, sml_tables} =>
+          let val sml_tables' = ap1 (Symtab.update entry) sml_tables
+          in make_data (bootstrap, tables, sml_tables') end))
+      else if is_some (Context.thread_data ()) then
         Context.>> (Env.map (fn {bootstrap, tables, sml_tables} =>
           let
             val _ = if bootstrap then sel2 ML_Name_Space.global entry else ();
@@ -149,12 +122,14 @@ val name_space: ML_Name_Space.T =
 
 val local_context: use_context =
  {tune_source = ML_Parse.fix_ints,
-  name_space = name_space,
+  name_space = name_space {SML = false, exchange = false},
   str_of_pos = Position.here oo Position.line_file,
   print = writeln,
   error = error};
 
-val is_functor = is_some o #lookupFunct name_space;
+val local_name_space = #name_space local_context;
+
+val is_functor = is_some o #lookupFunct local_name_space;
 
 fun check_functor name =
   if not (is_functor "Table") (*mask dummy version of name_space*) orelse is_functor name then ()

@@ -392,7 +392,7 @@ structure Loaded_Values = Theory_Data
 
 fun notify_val (string, value) = 
   let
-    val _ = #enterVal ML_Env.name_space (string, value);
+    val _ = #enterVal ML_Env.local_name_space (string, value);
     val _ = Theory.setup (Loaded_Values.map (insert (op =) string));
   in () end;
 
@@ -401,24 +401,24 @@ fun abort _ = error "Only value bindings allowed.";
 val notifying_context : use_context =
  {tune_source = #tune_source ML_Env.local_context,
   name_space =
-   {lookupVal    = #lookupVal ML_Env.name_space,
-    lookupType   = #lookupType ML_Env.name_space,
-    lookupFix    = #lookupFix ML_Env.name_space,
-    lookupStruct = #lookupStruct ML_Env.name_space,
-    lookupSig    = #lookupSig ML_Env.name_space,
-    lookupFunct  = #lookupFunct ML_Env.name_space,
+   {lookupVal    = #lookupVal ML_Env.local_name_space,
+    lookupType   = #lookupType ML_Env.local_name_space,
+    lookupFix    = #lookupFix ML_Env.local_name_space,
+    lookupStruct = #lookupStruct ML_Env.local_name_space,
+    lookupSig    = #lookupSig ML_Env.local_name_space,
+    lookupFunct  = #lookupFunct ML_Env.local_name_space,
     enterVal     = notify_val,
     enterType    = abort,
     enterFix     = abort,
     enterStruct  = abort,
     enterSig     = abort,
     enterFunct   = abort,
-    allVal       = #allVal ML_Env.name_space,
-    allType      = #allType ML_Env.name_space,
-    allFix       = #allFix ML_Env.name_space,
-    allStruct    = #allStruct ML_Env.name_space,
-    allSig       = #allSig ML_Env.name_space,
-    allFunct     = #allFunct ML_Env.name_space},
+    allVal       = #allVal ML_Env.local_name_space,
+    allType      = #allType ML_Env.local_name_space,
+    allFix       = #allFix ML_Env.local_name_space,
+    allStruct    = #allStruct ML_Env.local_name_space,
+    allSig       = #allSig ML_Env.local_name_space,
+    allFunct     = #allFunct ML_Env.local_name_space},
   str_of_pos = #str_of_pos ML_Env.local_context,
   print = #print ML_Env.local_context,
   error = #error ML_Env.local_context};
