@@ -99,9 +99,9 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
 
   /* controls */
 
-  private def clicked {
-    find_theorems.apply_query(
-      List(limit.text, allow_dups.selected.toString, context.selection.item.name, query.getText))
+  private def clicked
+  {
+    find_theorems.apply_query(List(limit.text, allow_dups.selected.toString, query.getText))
   }
 
   private val query_label = new Label("Search criteria:") {
@@ -122,19 +122,6 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
     setColumns(40)
     setToolTipText(query_label.tooltip)
     setFont(GUI.imitate_font(Font_Info.main_family(), getFont, 1.2))
-  }
-
-  private case class Context_Entry(val name: String, val description: String)
-  {
-    override def toString = description
-  }
-
-  private val context_entries =
-    new Context_Entry("", "current context") ::
-      PIDE.resources.loaded_theories.toList.sorted.map(name => Context_Entry(name, name))
-
-  private val context = new ComboBox[Context_Entry](context_entries) {
-    tooltip = "Search in pre-loaded theory (default: context of current command)"
   }
 
   private val limit = new TextField(PIDE.options.int("find_theorems_limit").toString, 5) {
@@ -159,7 +146,7 @@ class Find_Dockable(view: View, position: String) extends Dockable(view, positio
 
   private val controls =
     new Wrap_Panel(Wrap_Panel.Alignment.Right)(
-      query_label, Component.wrap(query), context, limit, allow_dups,
+      query_label, Component.wrap(query), limit, allow_dups,
       process_indicator.component, apply_query, zoom)
   add(controls.peer, BorderLayout.NORTH)
 

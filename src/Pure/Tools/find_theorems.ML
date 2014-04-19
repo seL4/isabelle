@@ -546,10 +546,8 @@ val _ =
   Query_Operation.register "find_theorems" (fn {state = st, args, output_result} =>
     if can Toplevel.context_of st then
       let
-        val [limit_arg, allow_dups_arg, context_arg, query_arg] = args;
-        val state =
-          if context_arg = "" then proof_state st
-          else Proof.init (Proof_Context.init_global (Thy_Info.get_theory context_arg));
+        val [limit_arg, allow_dups_arg, query_arg] = args;
+        val state = proof_state st;
         val opt_limit = Int.fromString limit_arg;
         val rem_dups = allow_dups_arg = "false";
         val criteria = read_query Position.none query_arg;
