@@ -85,7 +85,6 @@ declare -a SOURCES=(
   Tools/main.scala
   Tools/ml_statistics.scala
   Tools/simplifier_trace.scala
-  Tools/sledgehammer_params.scala
   Tools/task_statistics.scala
   library.scala
   package.scala

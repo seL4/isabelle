@@ -69,39 +69,13 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
   })
 
 
-  /* provers according to ML */
-
-  private def update_provers()
-  {
-    val new_provers = Sledgehammer_Params.get_provers(PIDE.session)
-    if (new_provers != "" && provers.getText == "") {
-      provers.setText(new_provers)
-      if (provers.getCaret != null)
-        provers.getCaret.setDot(0)
-    }
-  }
-
-  private def query_provers()
-  {
-    if (PIDE.session.is_ready)
-      PIDE.session.protocol_command("Sledgehammer.provers")
-  }
-
-
   /* main actor */
 
   private val main_actor = actor {
     loop {
       react {
         case _: Session.Global_Options =>
-          Swing_Thread.later { handle_resize() }
-          query_provers()
-
-        case Session.Ready =>
-          query_provers()
-
-        case Sledgehammer_Params.Provers =>
-          Swing_Thread.later { update_provers() }
+          Swing_Thread.later { update_provers(); handle_resize() }
 
         case bad =>
           System.err.println("Sledgehammer_Dockable: ignoring bad message " + bad)
@@ -113,8 +87,6 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
   {
     PIDE.session.phase_changed += main_actor
     PIDE.session.global_options += main_actor
-    Sledgehammer_Params.provers += main_actor
-    query_provers()
     handle_resize()
     sledgehammer.activate()
   }
@@ -124,7 +96,6 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
     sledgehammer.deactivate()
     PIDE.session.phase_changed -= main_actor
     PIDE.session.global_options -= main_actor
-    Sledgehammer_Params.provers -= main_actor
     delay_resize.revoke()
   }
 
@@ -132,6 +103,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
   /* controls */
 
   private def clicked {
+    PIDE.options.string("sledgehammer_provers") = provers.getText
     sledgehammer.apply_query(List(provers.getText, isar_proofs.selected.toString))
   }
 
@@ -149,6 +121,16 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
     }
     setToolTipText(provers_label.tooltip)
     setColumns(30)
+  }
+
+  private def update_provers()
+  {
+    val new_provers = PIDE.options.string("sledgehammer_provers")
+    if (new_provers != provers.getText) {
+      provers.setText(new_provers)
+      if (provers.getCaret != null)
+        provers.getCaret.setDot(0)
+    }
   }
 
   private val isar_proofs = new CheckBox("Isar proofs") {

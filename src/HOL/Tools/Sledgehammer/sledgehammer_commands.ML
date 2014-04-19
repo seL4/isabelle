@@ -498,13 +498,4 @@ val _ =
         in () end
     | NONE => error "Unknown proof context"))
 
-val _ = Session.protocol_handler "isabelle.Sledgehammer_Params$Handler"
-
-val _ = Isabelle_Process.protocol_command "Sledgehammer.provers"
-  (fn [] =>
-    let
-      val this_thy = @{theory}
-      val provers = space_implode " " (#provers (default_params this_thy []))
-    in Output.protocol_message Markup.sledgehammer_provers [provers] end)
-
 end;

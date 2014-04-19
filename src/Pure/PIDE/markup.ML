@@ -178,7 +178,6 @@ sig
   val protocol_handler: string -> Properties.T
   val invoke_scala: string -> string -> Properties.T
   val cancel_scala: string -> Properties.T
-  val sledgehammer_provers: Properties.T
   val ML_statistics: Properties.entry
   val task_statistics: Properties.entry
   val command_timing: Properties.entry
@@ -567,8 +566,6 @@ fun protocol_handler name = [(functionN, "protocol_handler"), (nameN, name)];
 
 fun invoke_scala name id = [(functionN, "invoke_scala"), (nameN, name), (idN, id)];
 fun cancel_scala id = [(functionN, "cancel_scala"), (idN, id)];
-
-val sledgehammer_provers = [(functionN, "sledgehammer_provers")];
 
 val ML_statistics = (functionN, "ML_statistics");
 

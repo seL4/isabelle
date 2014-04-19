@@ -26,6 +26,9 @@ public option auto_solve_direct : bool = true
 
 section "Miscellaneous Tools"
 
+public option sledgehammer_provers : string = "e spass remote_vampire"
+  -- "ATPs for Sledgehammer (separated by blanks)"
+
 public option sledgehammer_timeout : int = 30
   -- "ATPs will be interrupted after this time (in seconds)"
 
