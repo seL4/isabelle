@@ -129,8 +129,8 @@ fun call_solver ctxt opt_name =
 (* certificate output *)
 
 fun output_line cert =
-  "To repeat this proof with a certifiate use this command:\n" ^
-    Active.sendback_markup [] ("by (sos_cert \"" ^ cert ^ "\")")
+  "To repeat this proof with a certificate use this command:\n" ^
+    Active.sendback_markup [] ("apply (sos_cert \"" ^ cert ^ "\")")
 
 val print_cert = warning o output_line o PositivstellensatzTools.pss_tree_to_cert
 
