@@ -41,7 +41,9 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
         else text_area.setSelectedText(decoded)
         text_area.requestFocus
       }
-    tooltip = GUI.tooltip_lines(symbol :: Symbol.abbrevs.get_list(symbol).map(a => "abbrev: " + a))
+    tooltip =
+      GUI.tooltip_lines(
+        cat_lines(symbol :: Symbol.abbrevs.get_list(symbol).map(a => "abbrev: " + a)))
   }
 
   private class Reset_Component extends Button

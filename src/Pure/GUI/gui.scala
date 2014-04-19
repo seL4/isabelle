@@ -137,9 +137,9 @@ object GUI
 
   /* tooltip with multi-line support */
 
-  def tooltip_lines(lines: List[String]): String =
-    if (lines.isEmpty) null
-    else "<html><pre>" + HTML.encode(cat_lines(lines)) + "</pre></html>"
+  def tooltip_lines(text: String): String =
+    if (text == null || text == "") null
+    else "<html>" + HTML.encode(text) + "</html>"
 
 
   /* screen resolution */

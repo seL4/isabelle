@@ -49,7 +49,7 @@ class JEdit_Options extends Options_Variable
       def load = button.setSelectedColor(Color_Value(string(opt_name)))
       def save = string(opt_name) = Color_Value.print(button.getSelectedColor)
     }
-    component.tooltip = GUI.tooltip_lines(List(opt.print_default))
+    component.tooltip = GUI.tooltip_lines(opt.print_default)
     component
   }
 
@@ -96,7 +96,7 @@ class JEdit_Options extends Options_Variable
         text_area
       }
     component.load()
-    component.tooltip = GUI.tooltip_lines(List(opt.print_default))
+    component.tooltip = GUI.tooltip_lines(opt.print_default)
     component
   }
 

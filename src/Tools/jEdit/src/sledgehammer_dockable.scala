@@ -137,10 +137,8 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
 
   private val provers_label = new Label("Provers:") {
     tooltip =
-      GUI.tooltip_lines(List(
-        "Automatic provers as space-separated list, e.g.",
-        "",
-        "  e spass remote_vampire"))
+      GUI.tooltip_lines(
+        "Automatic provers as space-separated list, e.g.\ne spass remote_vampire")
   }
 
   private val provers = new HistoryTextField("isabelle-sledgehammer-provers") {
