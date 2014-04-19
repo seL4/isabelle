@@ -72,8 +72,6 @@ val _ = PolyML.Compiler.forgetType "ref";
 
 (* pervasive environment *)
 
-fun op before (a, _: unit) = a;
-
 val _ = PolyML.Compiler.forgetValue "isSome";
 val _ = PolyML.Compiler.forgetValue "getOpt";
 val _ = PolyML.Compiler.forgetValue "valOf";
