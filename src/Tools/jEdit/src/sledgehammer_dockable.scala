@@ -69,37 +69,6 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
   })
 
 
-  /* main actor */
-
-  private val main_actor = actor {
-    loop {
-      react {
-        case _: Session.Global_Options =>
-          Swing_Thread.later { update_provers(); handle_resize() }
-
-        case bad =>
-          System.err.println("Sledgehammer_Dockable: ignoring bad message " + bad)
-      }
-    }
-  }
-
-  override def init()
-  {
-    PIDE.session.phase_changed += main_actor
-    PIDE.session.global_options += main_actor
-    handle_resize()
-    sledgehammer.activate()
-  }
-
-  override def exit()
-  {
-    sledgehammer.deactivate()
-    PIDE.session.phase_changed -= main_actor
-    PIDE.session.global_options -= main_actor
-    delay_resize.revoke()
-  }
-
-
   /* controls */
 
   private def clicked {
@@ -164,4 +133,34 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
   add(controls.peer, BorderLayout.NORTH)
 
   override def focusOnDefaultComponent { provers.requestFocus }
+
+
+  /* main actor */
+
+  private val main_actor = actor {
+    loop {
+      react {
+        case _: Session.Global_Options =>
+          Swing_Thread.later { update_provers(); handle_resize() }
+
+        case bad =>
+          System.err.println("Sledgehammer_Dockable: ignoring bad message " + bad)
+      }
+    }
+  }
+
+  override def init()
+  {
+    PIDE.session.global_options += main_actor
+    update_provers()
+    handle_resize()
+    sledgehammer.activate()
+  }
+
+  override def exit()
+  {
+    sledgehammer.deactivate()
+    PIDE.session.global_options -= main_actor
+    delay_resize.revoke()
+  }
 }
