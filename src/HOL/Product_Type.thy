@@ -954,24 +954,35 @@ lemma apsnd_apfst_commute:
   "apsnd f (apfst g p) = apfst g (apsnd f p)"
   by simp
 
+context
+begin
+
+local_setup {* Local_Theory.map_naming (Name_Space.mandatory_path "prod") *}
+
 definition swap :: "'a \<times> 'b \<Rightarrow> 'b \<times> 'a"
 where
   "swap p = (snd p, fst p)"
 
+end
+
 lemma swap_simp [simp]:
-  "swap (x, y) = (y, x)"
-  by (simp add: swap_def)
+  "prod.swap (x, y) = (y, x)"
+  by (simp add: prod.swap_def)
 
 lemma pair_in_swap_image [simp]:
-  "(y, x) \<in> swap ` A \<longleftrightarrow> (x, y) \<in> A"
+  "(y, x) \<in> prod.swap ` A \<longleftrightarrow> (x, y) \<in> A"
   by (auto intro!: image_eqI)
 
 lemma inj_swap [simp]:
-  "inj_on swap A"
-  by (rule inj_onI) (auto simp add: swap_def)
+  "inj_on prod.swap A"
+  by (rule inj_onI) auto
+
+lemma swap_inj_on:
+  "inj_on (\<lambda>(i, j). (j, i)) A"
+  by (rule inj_onI) auto
 
 lemma case_swap [simp]:
-  "(case swap p of (y, x) \<Rightarrow> f x y) = (case p of (x, y) \<Rightarrow> f x y)"
+  "(case prod.swap p of (y, x) \<Rightarrow> f x y) = (case p of (x, y) \<Rightarrow> f x y)"
   by (cases p) simp
 
 text {*
@@ -1147,13 +1158,13 @@ lemma vimage_Times: "f -` (A \<times> B) = ((fst \<circ> f) -` A) \<inter> ((snd
 lemma times_Int_times: "A \<times> B \<inter> C \<times> D = (A \<inter> C) \<times> (B \<inter> D)"
   by auto
 
-lemma swap_inj_on:
-  "inj_on (\<lambda>(i, j). (j, i)) A"
-  by (auto intro!: inj_onI)
+lemma product_swap:
+  "prod.swap ` (A \<times> B) = B \<times> A"
+  by (auto simp add: set_eq_iff)
 
 lemma swap_product:
-  "(%(i, j). (j, i)) ` (A \<times> B) = B \<times> A"
-  by (simp add: split_def image_def set_eq_iff)
+  "(\<lambda>(i, j). (j, i)) ` (A \<times> B) = B \<times> A"
+  by (auto simp add: set_eq_iff)
 
 lemma image_split_eq_Sigma:
   "(\<lambda>x. (f x, g x)) ` A = Sigma (f ` A) (\<lambda>x. g ` (f -` {x} \<inter> A))"
