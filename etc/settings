@@ -17,11 +17,11 @@ ISABELLE_SCALA_BUILD_OPTIONS="-nowarn -target:jvm-1.5 -Xmax-classfile-name 130"
 ISABELLE_JAVA_SYSTEM_OPTIONS="-Dfile.encoding=UTF-8 -server"
 
 classpath "$ISABELLE_HOME/lib/classes/Pure.jar"
-classpath "$ISABELLE_HOME/lib/classes/scala-library.jar"
-classpath "$ISABELLE_HOME/lib/classes/scala-swing.jar"
-classpath "$ISABELLE_HOME/lib/classes/scala-actors.jar"
-classpath "$ISABELLE_HOME/lib/classes/scala-compiler.jar"
-classpath "$ISABELLE_HOME/lib/classes/scala-reflect.jar"
+classpath "$SCALA_HOME/lib/scala-library.jar"
+classpath "$SCALA_HOME/lib/scala-swing.jar"
+classpath "$SCALA_HOME/lib/scala-actors.jar"
+classpath "$SCALA_HOME/lib/scala-compiler.jar"
+classpath "$SCALA_HOME/lib/scala-reflect.jar"
 
 #paranoia setting -- avoid problems of Java/Swing versus XIM/IBus etc.
 unset XMODIFIERS
