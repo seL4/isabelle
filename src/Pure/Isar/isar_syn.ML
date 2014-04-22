@@ -1021,7 +1021,7 @@ val _ =
     (Parse.opt_unit >> K (Toplevel.imperative Secure.commit));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "quit"} "quit Isabelle"
+  Outer_Syntax.improper_command @{command_spec "quit"} "quit Isabelle process"
     (Parse.opt_unit >> (K (Toplevel.imperative quit)));
 
 val _ =
