@@ -238,7 +238,7 @@ object Scan
         var rest = in
         def try_parse[A](p: Parser[A]): Boolean =
         {
-          parse(p ^^^ (), rest) match {
+          parse(p ^^^ (()), rest) match {
             case Success(_, next) => { rest = next; true }
             case _ => false
           }

@@ -68,7 +68,7 @@ private class Pending_Future[A](body: => A) extends Future[A]
     Exn.release {
       peek match {
         case Some(res) => res
-        case None => (evaluator !? ()).asInstanceOf[Exn.Result[A]]
+        case None => (evaluator !? (())).asInstanceOf[Exn.Result[A]]
       }
     }
 }
