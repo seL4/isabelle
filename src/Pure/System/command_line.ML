@@ -18,7 +18,7 @@ fun tool body =
     let
       val rc =
         restore_attributes body () handle exn =>
-          Exn.capture_exit 1 (fn () => (Runtime.exn_error_message exn; raise exn)) ();
+          Exn.capture_exit 2 (fn () => (Runtime.exn_error_message exn; raise exn)) ();
     in if rc = 0 then () else exit rc end) ();
 
 fun tool0 body = tool (fn () => (body (); 0));
