@@ -10,16 +10,18 @@ package isabelle
 
 
 import scala.collection.SetLike
-import scala.collection.generic.{ImmutableSetFactory, CanBuildFrom,
-  GenericSetTemplate, GenericCompanion}
+import scala.collection.generic.{SetFactory, CanBuildFrom, GenericSetTemplate, GenericCompanion}
+import scala.collection.mutable.{Builder, SetBuilder}
+import scala.language.higherKinds
 
 
-object Linear_Set extends ImmutableSetFactory[Linear_Set]
+object Linear_Set extends SetFactory[Linear_Set]
 {
   private val empty_val: Linear_Set[Nothing] = new Linear_Set[Nothing](None, None, Map(), Map())
   override def empty[A] = empty_val.asInstanceOf[Linear_Set[A]]
 
   implicit def canBuildFrom[A]: CanBuildFrom[Coll, A, Linear_Set[A]] = setCanBuildFrom[A]
+  def newBuilder[A]: Builder[A, Linear_Set[A]] = new SetBuilder[A, Linear_Set[A]](empty[A])
 
   class Duplicate[A](x: A) extends Exception
   class Undefined[A](x: A) extends Exception
