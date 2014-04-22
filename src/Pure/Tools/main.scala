@@ -195,7 +195,7 @@ object Main
           val path = (new JFile(isabelle_home, link)).toPath
 
           val writer = Files.newBufferedWriter(path, UTF8.charset)
-          try { writer.write("!<symlink>" + content + "\0") }
+          try { writer.write("!<symlink>" + content + "\u0000") }
           finally { writer.close }
 
           Files.setAttribute(path, "dos:system", true)

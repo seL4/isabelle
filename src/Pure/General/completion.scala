@@ -266,10 +266,10 @@ object Completion
 
   /* abbreviations */
 
-  private val caret_indicator = '\007'
+  private val caret_indicator = '\u0007'
   private val antiquote = "@{"
   private val default_abbrs =
-    List("@{" -> "@{\007}", "`" -> "\\<open>\007\\<close>", "`" -> "\\<open>", "`" -> "\\<close>")
+    List("@{" -> "@{\u0007}", "`" -> "\\<open>\u0007\\<close>", "`" -> "\\<open>", "`" -> "\\<close>")
 }
 
 final class Completion private(

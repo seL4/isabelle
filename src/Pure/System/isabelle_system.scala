@@ -107,7 +107,7 @@ object Isabelle_System
           if (rc != 0) error(output)
 
           val entries =
-            (for (entry <- File.read(dump) split "\0" if entry != "") yield {
+            (for (entry <- File.read(dump) split "\u0000" if entry != "") yield {
               val i = entry.indexOf('=')
               if (i <= 0) (entry -> "")
               else (entry.substring(0, i) -> entry.substring(i + 1))
