@@ -124,7 +124,7 @@ fun use_theories_condition last_timing (options, thys) =
 
 in
 
-fun build args_file = Command_Line.tool (fn () =>
+fun build args_file = Command_Line.tool0 (fn () =>
     let
       val _ = SHA1_Samples.test ();
 
@@ -167,7 +167,7 @@ fun build args_file = Command_Line.tool (fn () =>
 
       val _ = Options.reset_default ();
       val _ = if do_output then () else exit 0;
-    in 0 end);
+    in () end);
 
 end;
 

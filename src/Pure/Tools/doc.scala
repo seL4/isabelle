@@ -90,7 +90,7 @@ object Doc
 
   def main(args: Array[String])
   {
-    Command_Line.tool {
+    Command_Line.tool0 {
       val entries = contents()
       if (args.isEmpty) Console.println(cat_lines(contents_lines().map(_._2)))
       else {
@@ -101,7 +101,6 @@ object Doc
           }
         )
       }
-      0
     }
   }
 }

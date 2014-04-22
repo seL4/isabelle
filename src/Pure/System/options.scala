@@ -141,7 +141,7 @@ object Options
 
   def main(args: Array[String])
   {
-    Command_Line.tool {
+    Command_Line.tool0 {
       args.toList match {
         case get_option :: export_file :: more_options =>
           val options = (Options.init() /: more_options)(_ + _)
@@ -155,7 +155,6 @@ object Options
           if (get_option == "" && export_file == "")
             System.out.println(options.print)
 
-          0
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }
     }

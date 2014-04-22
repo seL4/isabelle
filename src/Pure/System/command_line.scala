@@ -35,5 +35,7 @@ object Command_Line
       }
     sys.exit(rc)
   }
+
+  def tool0(body: => Unit): Nothing = tool { body; 0 }
 }
 

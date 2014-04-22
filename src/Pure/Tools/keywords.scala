@@ -164,14 +164,12 @@ object Keywords
 
   def main(args: Array[String])
   {
-    Command_Line.tool {
+    Command_Line.tool0 {
       args.toList match {
         case "keywords" :: name :: Command_Line.Chunks(dirs, sessions) =>
           keywords(Options.init(), name, dirs.map(Path.explode), sessions)
-          0
         case "update_keywords" :: Nil =>
           update_keywords(Options.init())
-          0
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }
     }
