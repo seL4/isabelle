@@ -24,7 +24,7 @@ class JEdit_Editor extends Editor[View]
 
   override def flush()
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
 
     val doc_blobs = PIDE.document_blobs()
     val edits = PIDE.document_models().flatMap(_.flushed_edits(doc_blobs))
@@ -50,7 +50,7 @@ class JEdit_Editor extends Editor[View]
 
   override def node_snapshot(name: Document.Node.Name): Document.Snapshot =
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
 
     JEdit_Lib.jedit_buffer(name) match {
       case Some(buffer) =>
@@ -64,7 +64,7 @@ class JEdit_Editor extends Editor[View]
 
   override def current_command(view: View, snapshot: Document.Snapshot): Option[Command] =
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
 
     val text_area = view.getTextArea
     val buffer = view.getBuffer
@@ -125,7 +125,7 @@ class JEdit_Editor extends Editor[View]
 
   def goto_file(view: View, name: String, line: Int = 0, column: Int = 0)
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
 
     push_position(view)
 

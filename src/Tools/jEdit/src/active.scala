@@ -16,7 +16,7 @@ object Active
 {
   def action(view: View, text: String, elem: XML.Elem)
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
 
     Document_View(view.getTextArea) match {
       case Some(doc_view) =>

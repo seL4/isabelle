@@ -59,7 +59,7 @@ class Pretty_Text_Area(
 {
   text_area =>
 
-  Swing_Thread.require()
+  Swing_Thread.require {}
 
   private var current_font_info: Font_Info = Font_Info.main()
   private var current_body: XML.Body = Nil
@@ -77,7 +77,7 @@ class Pretty_Text_Area(
 
   def refresh()
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
 
     val font = current_font_info.font
     getPainter.setFont(font)
@@ -142,7 +142,7 @@ class Pretty_Text_Area(
 
   def resize(font_info: Font_Info)
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
 
     current_font_info = font_info
     refresh()
@@ -150,7 +150,7 @@ class Pretty_Text_Area(
 
   def update(base_snapshot: Document.Snapshot, base_results: Command.Results, body: XML.Body)
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
     require(!base_snapshot.is_outdated)
 
     current_base_snapshot = base_snapshot

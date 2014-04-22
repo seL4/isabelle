@@ -29,7 +29,7 @@ object Document_View
 
   def apply(text_area: TextArea): Option[Document_View] =
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
     text_area.getClientProperty(key) match {
       case doc_view: Document_View => Some(doc_view)
       case _ => None
@@ -38,7 +38,7 @@ object Document_View
 
   def exit(text_area: JEditTextArea)
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
     apply(text_area) match {
       case None =>
       case Some(doc_view) =>
@@ -73,7 +73,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
   def perspective(snapshot: Document.Snapshot): Text.Perspective =
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
 
     val active_command =
     {
@@ -127,7 +127,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
       rich_text_area.robust_body(()) {
-        Swing_Thread.assert()
+        Swing_Thread.assert {}
 
         val gutter = text_area.getGutter
         val width = GutterOptionPane.getSelectionAreaWidth

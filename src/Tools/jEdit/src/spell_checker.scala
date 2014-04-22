@@ -105,7 +105,7 @@ object Spell_Checker
 
   def dictionaries_selector(): Option_Component =
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
 
     val option_name = "spell_checker_dictionary"
     val opt = PIDE.options.value.check_name(option_name)

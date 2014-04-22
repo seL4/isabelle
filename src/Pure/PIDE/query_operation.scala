@@ -65,7 +65,7 @@ class Query_Operation[Editor_Context](
 
   private def content_update()
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
 
 
     /* snapshot */
@@ -174,7 +174,7 @@ class Query_Operation[Editor_Context](
 
   def apply_query(query: List[String])
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
 
     editor.current_node_snapshot(editor_context) match {
       case Some(snapshot) =>
@@ -199,7 +199,7 @@ class Query_Operation[Editor_Context](
 
   def locate_query()
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
 
     for {
       command <- current_location

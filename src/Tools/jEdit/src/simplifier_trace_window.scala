@@ -150,7 +150,7 @@ private object Simplifier_Trace_Window
 class Simplifier_Trace_Window(
   view: View, snapshot: Document.Snapshot, trace: Simplifier_Trace.Trace) extends Frame
 {
-  Swing_Thread.require()
+  Swing_Thread.require {}
 
   val area = new Pretty_Text_Area(view)
 

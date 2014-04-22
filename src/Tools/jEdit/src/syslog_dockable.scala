@@ -23,7 +23,7 @@ class Syslog_Dockable(view: View, position: String) extends Dockable(view, posit
 
   private def update_syslog()
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
 
     val text = PIDE.session.current_syslog()
     if (text != syslog.text) syslog.text = text

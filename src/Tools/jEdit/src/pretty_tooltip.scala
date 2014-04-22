@@ -30,7 +30,7 @@ object Pretty_Tooltip
 
   private def hierarchy(tip: Pretty_Tooltip): Option[(List[Pretty_Tooltip], List[Pretty_Tooltip])] =
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
 
     if (stack.contains(tip)) Some(stack.span(_ != tip))
     else None
@@ -47,7 +47,7 @@ object Pretty_Tooltip
     results: Command.Results,
     info: Text.Info[XML.Body])
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
 
     stack match {
       case top :: _ if top.results == results && top.info == info =>
@@ -173,7 +173,7 @@ class Pretty_Tooltip private(
 {
   tip =>
 
-  Swing_Thread.require()
+  Swing_Thread.require {}
 
 
   /* controls */

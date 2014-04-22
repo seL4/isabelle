@@ -21,7 +21,7 @@ import org.gjt.sp.jedit.View
 
 class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(view, position)
 {
-  Swing_Thread.require()
+  Swing_Thread.require {}
 
   /* component state -- owned by Swing thread */
 
@@ -61,7 +61,7 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
 
   private def set_context(snapshot: Document.Snapshot, context: Simplifier_Trace.Context)
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
     val questions = context.questions.values
     if (do_auto_reply && !questions.isEmpty)
     {
@@ -147,7 +147,7 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
 
   override def init()
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
 
     PIDE.session.global_options += main_actor
     PIDE.session.commands_changed += main_actor
@@ -158,7 +158,7 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
 
   override def exit()
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
 
     PIDE.session.global_options -= main_actor
     PIDE.session.commands_changed -= main_actor

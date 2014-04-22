@@ -55,7 +55,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
 
   private def handle_resize()
   {
-    Swing_Thread.require()
+    Swing_Thread.require {}
 
     pretty_text_area.resize(
       Font_Info.main(PIDE.options.real("jedit_font_scale") * zoom_factor / 100))

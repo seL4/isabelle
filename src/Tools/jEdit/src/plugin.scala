@@ -278,7 +278,7 @@ class Plugin extends EBPlugin
 
   override def handleMessage(message: EBMessage)
   {
-    Swing_Thread.assert()
+    Swing_Thread.assert {}
 
     if (PIDE.startup_failure.isDefined && !PIDE.startup_notified) {
       message match {
