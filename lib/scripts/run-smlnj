@@ -54,7 +54,7 @@ eval $("$ARCH_N_OPSYS")
 ## prepare databases
 
 if [ -z "$INFILE" ]; then
-  EXIT="fun exit rc : unit = Posix.Process.exit (Word8.fromInt rc);"
+  EXIT="fun exit rc = Posix.Process.exit (Word8.fromInt rc);"
   DB=""
 else
   EXIT=""

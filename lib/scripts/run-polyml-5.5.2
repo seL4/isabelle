@@ -42,7 +42,7 @@ librarypath "$ML_HOME"
 
 if [ -z "$INFILE" ]; then
   INIT=""
-  EXIT="fun exit rc : unit = Posix.Process.exit (Word8.fromInt rc);"
+  EXIT="fun exit rc = Posix.Process.exit (Word8.fromInt rc);"
 else
   check_file "$INFILE"
   INIT="(Signal.signal (2, Signal.SIG_HANDLE (fn _ => Process.interruptConsoleProcesses ())); PolyML.SaveState.loadState \"$INFILE\" handle exn => (TextIO.output (TextIO.stdErr, General.exnMessage exn ^ \": $INFILE\\n\"); Posix.Process.exit 0w1));"

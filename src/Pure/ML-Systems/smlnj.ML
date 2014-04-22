@@ -9,6 +9,9 @@ use "ML-Systems/proper_int.ML";
 exception Interrupt;
 fun reraise exn = raise exn;
 
+fun exit rc = Posix.Process.exit (Word8.fromInt rc);
+fun quit () = exit 0;
+
 use "ML-Systems/overloading_smlnj.ML";
 use "General/exn.ML";
 use "ML-Systems/single_assignment.ML";
@@ -49,9 +52,6 @@ val _ =
 
 
 (* Poly/ML emulation *)
-
-val exit = exit o dest_int;
-fun quit () = exit 0;
 
 (*limit the printing depth -- divided by 2 for comparibility with Poly/ML*)
 local
