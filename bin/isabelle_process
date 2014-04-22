@@ -223,7 +223,7 @@ else
   "$ISABELLE_TOOL" options -x "$ISABELLE_PROCESS_OPTIONS" -- "${SYSTEM_OPTIONS[@]}" || \
     fail "Failed to retrieve Isabelle system options"
   if [ "$INPUT" != RAW_ML_SYSTEM -a "$INPUT" != RAW ]; then
-    MLTEXT="Options.load_default () handle _ => exit 2; $MLTEXT"
+    MLTEXT="Exn.capture_exit 2 Options.load_default (); $MLTEXT"
   fi
   if [ -n "$PROOFGENERAL" ]; then
     MLTEXT="$MLTEXT; ProofGeneral.init ();"

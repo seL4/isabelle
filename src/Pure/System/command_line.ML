@@ -15,13 +15,10 @@ struct
 
 fun tool body =
   uninterruptible (fn restore_attributes => fn () =>
-    let val rc =
-      restore_attributes body () handle exn =>
-        let
-          val _ =
-            Runtime.exn_error_message exn
-              handle _ => Output.error_message "Exception raised, but failed to print details!";
-        in if Exn.is_interrupt exn then 130 else 1 end;
+    let
+      val rc =
+        restore_attributes body () handle exn =>
+          Exn.capture_exit 1 (fn () => (Runtime.exn_error_message exn; raise exn)) ();
     in if rc = 0 then () else exit rc end) ();
 
 fun tool0 body = tool (fn () => (body (); 0));
