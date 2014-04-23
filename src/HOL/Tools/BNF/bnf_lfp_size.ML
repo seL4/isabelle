@@ -236,6 +236,7 @@ fun generate_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs),
       T_names gen_size_names)
   end;
 
-val _ = Theory.setup (fp_sugar_interpretation generate_size);
+(* FIXME: get rid of "perhaps o try" once the code is stable *)
+val _ = Theory.setup (fp_sugar_interpretation (perhaps o try o generate_size));
 
 end;
