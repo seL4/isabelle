@@ -130,7 +130,7 @@ fun with_repaired_path f (fp_sugars as ({T = Type (s, _), ...} : fp_sugar) :: _)
   |> f fp_sugars
   (*|> Sign.restore_naming thy*);
 
-val fp_sugar_interpretation = FP_Sugar_Interpretation.interpretation o with_repaired_path;
+fun fp_sugar_interpretation f = FP_Sugar_Interpretation.interpretation (with_repaired_path f);
 
 fun register_fp_sugars (fp_sugars as {fp, ...} :: _) =
   fold (fn fp_sugar as {T = Type (s, _), ...} =>

@@ -166,7 +166,7 @@ fun with_repaired_path f (ctr_sugar as {ctrs = ctr1 :: _, ...} : ctr_sugar) thy 
   (*|> (fn thy => f (morph_ctr_sugar (Morphism.transfer_morphism thy) ctr_sugar) thy)*)
   (*|> Sign.restore_naming thy*);
 
-val ctr_sugar_interpretation = Ctr_Sugar_Interpretation.interpretation o with_repaired_path;
+fun ctr_sugar_interpretation f = Ctr_Sugar_Interpretation.interpretation (with_repaired_path f);
 
 fun register_ctr_sugar key ctr_sugar =
   Local_Theory.declaration {syntax = false, pervasive = true}

@@ -1352,7 +1352,7 @@ fun with_repaired_path f bnf thy =
     (*|> Sign.restore_naming thy*)
   end;
 
-val bnf_interpretation = BNF_Interpretation.interpretation o with_repaired_path;
+fun bnf_interpretation f = BNF_Interpretation.interpretation (with_repaired_path f);
 
 fun register_bnf key bnf =
   Local_Theory.declaration {syntax = false, pervasive = true}
