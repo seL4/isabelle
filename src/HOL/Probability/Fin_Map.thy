@@ -267,12 +267,6 @@ begin
 definition dist_finmap where
   "dist P Q = Max (range (\<lambda>i. dist ((P)\<^sub>F i) ((Q)\<^sub>F i))) + (if domain P = domain Q then 0 else 1)"
 
-lemma add_eq_zero_iff[simp]:
-  fixes a b::real
-  assumes "a \<ge> 0" "b \<ge> 0"
-  shows "a + b = 0 \<longleftrightarrow> a = 0 \<and> b = 0"
-using assms by auto
-
 lemma finite_proj_image': "x \<notin> domain P \<Longrightarrow> finite ((P)\<^sub>F ` S)"
   by (rule finite_subset[of _ "proj P ` (domain P \<inter> S \<union> {x})"]) auto
 
@@ -406,6 +400,7 @@ next
     by (auto intro: Max_in Max_eqI)
   show "dist P Q = 0 \<longleftrightarrow> P = Q"
     by (auto simp: finmap_eq_iff dist_finmap_def Max_ge_iff finite_proj_diag Max_eq_iff
+        add_nonneg_eq_0_iff
       intro!: Max_eqI image_eqI[where x=undefined])
 next
   fix P Q R::"'a \<Rightarrow>\<^sub>F 'b"
