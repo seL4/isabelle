@@ -2708,8 +2708,6 @@ text {*
 %* in a locale, cannot use locally fixed types (because of limitation in typedef)?
 %
 % *names of variables suboptimal
-%
-% * in a locale, size is half broken
 *}
 *)
 
