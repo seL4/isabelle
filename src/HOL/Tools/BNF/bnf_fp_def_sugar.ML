@@ -75,7 +75,7 @@ sig
     typ list list
     * (typ list list list list * typ list list list * typ list list list list * typ list)
   val define_rec:
-    (typ list list * typ list list list list * term list list * term list list list list) option ->
+    typ list list * typ list list list list * term list list * term list list list list ->
     (string -> binding) -> typ list -> typ list -> term list -> term -> Proof.context ->
     (term * thm) * Proof.context
   val define_corec: 'a * term list * term list list
@@ -458,11 +458,8 @@ fun mk_co_recs_prelims fp ctr_Tsss fpTs Cs absTs repTs ns mss xtor_co_recs0 lthy
 
     val ((recs_args_types, corecs_args_types), lthy') =
       if fp = Least_FP then
-        if nn = 1 andalso forall (forall (forall (not o exists_subtype_in fpTs))) ctr_Tsss then
-          ((NONE, NONE), lthy)
-        else
-          mk_recs_args_types ctr_Tsss Cs absTs repTs ns mss xtor_co_rec_fun_Ts lthy
-          |>> (rpair NONE o SOME)
+        mk_recs_args_types ctr_Tsss Cs absTs repTs ns mss xtor_co_rec_fun_Ts lthy
+        |>> (rpair NONE o SOME)
       else
         mk_corecs_args_types ctr_Tsss Cs absTs repTs ns mss xtor_co_rec_fun_Ts lthy
         |>> (pair NONE o SOME);
@@ -497,20 +494,19 @@ fun define_co_rec fp fpT Cs b rhs lthy0 =
     ((cst', def'), lthy')
   end;
 
-fun define_rec NONE _ _ _ _ _ = pair (Term.dummy, refl)
-  | define_rec (SOME (_, _, fss, xssss)) mk_binding fpTs Cs reps ctor_rec =
-    let
-      val nn = length fpTs;
-      val (ctor_rec_absTs, fpT) = strip_typeN nn (fastype_of ctor_rec)
-        |>> map domain_type ||> domain_type;
-    in
-      define_co_rec Least_FP fpT Cs (mk_binding recN)
-        (fold_rev (fold_rev Term.lambda) fss (Term.list_comb (ctor_rec,
-           map4 (fn ctor_rec_absT => fn rep => fn fs => fn xsss =>
-               mk_case_absumprod ctor_rec_absT rep fs (map (map HOLogic.mk_tuple) xsss)
-                 (map flat_rec_arg_args xsss))
-             ctor_rec_absTs reps fss xssss)))
-    end;
+fun define_rec (_, _, fss, xssss) mk_binding fpTs Cs reps ctor_rec =
+  let
+    val nn = length fpTs;
+    val (ctor_rec_absTs, fpT) = strip_typeN nn (fastype_of ctor_rec)
+      |>> map domain_type ||> domain_type;
+  in
+    define_co_rec Least_FP fpT Cs (mk_binding recN)
+      (fold_rev (fold_rev Term.lambda) fss (Term.list_comb (ctor_rec,
+         map4 (fn ctor_rec_absT => fn rep => fn fs => fn xsss =>
+             mk_case_absumprod ctor_rec_absT rep fs (map (map HOLogic.mk_tuple) xsss)
+               (map flat_rec_arg_args xsss))
+           ctor_rec_absTs reps fss xssss)))
+  end;
 
 fun define_corec (_, cs, cpss, ((pgss, cqgsss), f_absTs)) mk_binding fpTs Cs abss dtor_corec =
   let
@@ -670,10 +666,7 @@ fun derive_induct_recs_thms_for_types pre_bnfs rec_args_typess ctor_induct ctor_
         map2 (map2 prove) goalss tacss
       end;
 
-    val rec_thmss =
-      (case rec_args_typess of
-        SOME types => mk_rec_thmss types recs rec_defs ctor_rec_thms
-      | NONE => replicate nn []);
+    val rec_thmss = mk_rec_thmss (the rec_args_typess) recs rec_defs ctor_rec_thms;
   in
     ((induct_thms, induct_thm, [induct_case_names_attr]),
      (rec_thmss, code_nitpicksimp_attrs @ simp_attrs))
@@ -1312,7 +1305,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
         (wrap_ctrs
          #> derive_maps_sets_rels
          ##>>
-           (if fp = Least_FP then define_rec recs_args_types mk_binding fpTs Cs reps
+           (if fp = Least_FP then define_rec (the recs_args_types) mk_binding fpTs Cs reps
            else define_corec (the corecs_args_types) mk_binding fpTs Cs abss) xtor_co_rec
          #> massage_res, lthy')
       end;
@@ -1337,10 +1330,6 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
 
         val induct_type_attr = Attrib.internal o K o Induct.induct_type;
 
-        val (recs', rec_thmss') =
-          if is_some recs_args_types then (recs, rec_thmss)
-          else (map #casex ctr_sugars, map #case_thms ctr_sugars);
-
         val simp_thmss =
           map6 mk_simp_thms ctr_sugars rec_thmss mapss rel_injects rel_distincts setss;
 
@@ -1355,14 +1344,11 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
           |> massage_multi_notes;
       in
         lthy
-        |> (if is_some recs_args_types then
-              Spec_Rules.add Spec_Rules.Equational (recs, flat rec_thmss)
-            else
-              I)
+        |> Spec_Rules.add Spec_Rules.Equational (recs, flat rec_thmss)
         |> Local_Theory.notes (common_notes @ notes) |> snd
         |> register_as_fp_sugars Xs Least_FP pre_bnfs absT_infos nested_bnfs nesting_bnfs fp_res
-          ctrXs_Tsss ctr_defss ctr_sugars recs' mapss [induct_thm] (map single induct_thms)
-          rec_thmss' (replicate nn []) (replicate nn []) rel_injects
+          ctrXs_Tsss ctr_defss ctr_sugars recs mapss [induct_thm] (map single induct_thms)
+          rec_thmss (replicate nn []) (replicate nn []) rel_injects
       end;
 
     fun derive_note_coinduct_corecs_thms_for_types

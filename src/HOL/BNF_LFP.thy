@@ -218,6 +218,9 @@ ML_file "Tools/BNF/bnf_lfp_size.ML"
 
 hide_fact (open) id_transfer
 
+datatype_new 'a i = I 'a
+thm i.size i.rec_o_map i.size_o_map
+
 datatype_new ('a, 'b) j = J0 | J 'a "('a, 'b) j"
 thm j.size j.rec_o_map j.size_o_map
 
@@ -249,11 +252,9 @@ thm v.size v.rec_o_map v.size_o_map
 thm w.size w.rec_o_map w.size_o_map
 
 (*TODO:
-* deal with *unused* dead variables and other odd cases (e.g. recursion through fun)
 * what happens if recursion through arbitrary bnf, like 'fsize'?
   * by default
   * offer possibility to register size function and theorems
-* non-recursive types use 'case' instead of 'rec', causes trouble (revert?)
 * compat with old size?
   * recursion of old through new (e.g. through list)?
   * recursion of new through old?

@@ -247,7 +247,7 @@ fun mutualize_fp_sugars fp cliques bs fpTs callers callssss fp_sugars0 no_defs_l
 
         val ((co_recs, co_rec_defs), lthy) =
           fold_map2 (fn b =>
-              if fp = Least_FP then define_rec recs_args_types (mk_binding b) fpTs Cs reps
+              if fp = Least_FP then define_rec (the recs_args_types) (mk_binding b) fpTs Cs reps
               else define_corec (the corecs_args_types) (mk_binding b) fpTs Cs abss)
             fp_bs xtor_co_recs lthy
           |>> split_list;
