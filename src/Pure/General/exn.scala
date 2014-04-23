@@ -30,7 +30,15 @@ object Exn
   /* interrupts */
 
   def is_interrupt(exn: Throwable): Boolean =
-    exn.isInstanceOf[InterruptedException]
+  {
+    var found_interrupt = false
+    var e = exn
+    while (!found_interrupt && e != null) {
+      found_interrupt |= e.isInstanceOf[InterruptedException]
+      e = e.getCause
+    }
+    found_interrupt
+  }
 
   object Interrupt
   {
