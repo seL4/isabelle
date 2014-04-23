@@ -112,7 +112,9 @@ fun generate_lfp_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs),
     val fsB = map2 (curry Free) f_names f_TsB;
     val As_fs = As ~~ fs;
 
-    val size_bs = map (Binding.name o prefix size_N o Long_Name.base_name) T_names;
+    val size_bs =
+      map ((fn base => Binding.qualify false base (Binding.name (prefix size_N base))) o
+        Long_Name.base_name) T_names;
 
     fun is_pair_C @{type_name prod} [_, T'] = member (op =) Cs T'
       | is_pair_C _ _ = false;
