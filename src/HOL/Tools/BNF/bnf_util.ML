@@ -101,6 +101,7 @@ sig
   val mk_rel_fun: term -> term -> term
   val mk_image: term -> term
   val mk_in: term list -> term list -> typ -> term
+  val mk_inj: term -> term
   val mk_leq: term -> term -> term
   val mk_ordLeq: term -> term -> term
   val mk_rel_comp: term * term -> term
@@ -468,6 +469,12 @@ fun mk_in As sets T =
     if length sets > 0
     then HOLogic.mk_Collect ("x", T, foldr1 (HOLogic.mk_conj) (map2 in_single sets As))
     else HOLogic.mk_UNIV T
+  end;
+
+fun mk_inj t =
+  let val T as Type (@{type_name fun}, [domT, ranT]) = fastype_of t in
+    Const (@{const_name inj_on}, T --> HOLogic.mk_setT domT --> HOLogic.boolT) $ t
+      $ HOLogic.mk_UNIV domT
   end;
 
 fun mk_leq t1 t2 =

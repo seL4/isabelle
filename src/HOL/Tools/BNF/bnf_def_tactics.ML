@@ -9,10 +9,11 @@ Tactics for definition of bounded natural functors.
 signature BNF_DEF_TACTICS =
 sig
   val mk_collect_set_map_tac: thm list -> tactic
+  val mk_in_mono_tac: int -> tactic
+  val mk_inj_map_tac: int -> thm -> thm -> thm -> thm -> tactic
   val mk_map_id: thm -> thm
   val mk_map_comp: thm -> thm
   val mk_map_cong_tac: Proof.context -> thm -> tactic
-  val mk_in_mono_tac: int -> tactic
   val mk_set_map: thm -> thm
 
   val mk_rel_Grp_tac: Proof.context -> thm list -> thm -> thm -> thm -> thm -> thm list -> tactic
@@ -54,6 +55,16 @@ fun mk_in_mono_tac n = if n = 0 then rtac subset_UNIV 1
   REPEAT_DETERM_N (n - 1)
     ((rtac conjI THEN' etac subset_trans THEN' atac) 1) THEN
   (etac subset_trans THEN' atac) 1;
+
+fun mk_inj_map_tac n map_id map_comp map_cong0 map_cong =
+  let
+    val map_cong' = map_cong OF (asm_rl :: replicate n refl);
+    val map_cong0' = map_cong0 OF (replicate n @{thm the_inv_f_o_f_id});
+  in
+    HEADGOAL (rtac @{thm injI} THEN' etac (map_cong' RS box_equals) THEN'
+      REPEAT_DETERM_N 2 o (rtac (box_equals OF [map_cong0', map_comp RS sym, map_id]) THEN'
+        REPEAT_DETERM_N n o atac))
+  end;
 
 fun mk_collect_set_map_tac set_map0s =
   (rtac (@{thm collect_comp} RS trans) THEN' rtac @{thm arg_cong[of _ _ collect]} THEN'

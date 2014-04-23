@@ -14,19 +14,19 @@ keywords
   "bnf" :: thy_goal
 begin
 
-lemma collect_comp: "collect F o g = collect ((\<lambda>f. f o g) ` F)"
+lemma collect_comp: "collect F \<circ> g = collect ((\<lambda>f. f \<circ> g) ` F)"
   by (rule ext) (auto simp only: comp_apply collect_def)
 
 definition convol ("<_ , _>") where
 "<f , g> \<equiv> %a. (f a, g a)"
 
 lemma fst_convol:
-"fst o <f , g> = f"
+"fst \<circ> <f , g> = f"
 apply(rule ext)
 unfolding convol_def by simp
 
 lemma snd_convol:
-"snd o <f , g> = g"
+"snd \<circ> <f , g> = g"
 apply(rule ext)
 unfolding convol_def by simp
 
@@ -97,10 +97,10 @@ lemma csquare_fstOp_sndOp:
 "csquare (Collect (split (P OO Q))) snd fst (fstOp P Q) (sndOp P Q)"
 unfolding csquare_def fstOp_def sndOp_def using pick_middlep by simp
 
-lemma snd_fst_flip: "snd xy = (fst o (%(x, y). (y, x))) xy"
+lemma snd_fst_flip: "snd xy = (fst \<circ> (%(x, y). (y, x))) xy"
 by (simp split: prod.split)
 
-lemma fst_snd_flip: "fst xy = (snd o (%(x, y). (y, x))) xy"
+lemma fst_snd_flip: "fst xy = (snd \<circ> (%(x, y). (y, x))) xy"
 by (simp split: prod.split)
 
 lemma flip_pred: "A \<subseteq> Collect (split (R ^--1)) \<Longrightarrow> (%(x, y). (y, x)) ` A \<subseteq> Collect (split R)"
@@ -134,8 +134,11 @@ unfolding Func_def by (auto dest: the_inv_into_into)
 
 lemma If_the_inv_into_f_f:
   "\<lbrakk>i \<in> C; inj_on g C\<rbrakk> \<Longrightarrow>
-  ((\<lambda>i. if i \<in> g ` C then the_inv_into C g i else x) o g) i = id i"
+  ((\<lambda>i. if i \<in> g ` C then the_inv_into C g i else x) \<circ> g) i = id i"
 unfolding Func_def by (auto elim: the_inv_into_f_f)
+
+lemma the_inv_f_o_f_id: "inj f \<Longrightarrow> (the_inv f \<circ> f) z = id z"
+  by (simp add: the_inv_f_f)
 
 lemma vimage2pI: "R (f x) (g y) \<Longrightarrow> vimage2p f g R x y"
   unfolding vimage2p_def by -
@@ -143,7 +146,7 @@ lemma vimage2pI: "R (f x) (g y) \<Longrightarrow> vimage2p f g R x y"
 lemma rel_fun_iff_leq_vimage2p: "(rel_fun R S) f g = (R \<le> vimage2p f g S)"
   unfolding rel_fun_def vimage2p_def by auto
 
-lemma convol_image_vimage2p: "<f o fst, g o snd> ` Collect (split (vimage2p f g R)) \<subseteq> Collect (split R)"
+lemma convol_image_vimage2p: "<f \<circ> fst, g \<circ> snd> ` Collect (split (vimage2p f g R)) \<subseteq> Collect (split R)"
   unfolding vimage2p_def convol_def by auto
 
 lemma vimage2p_Grp: "vimage2p f g P = Grp UNIV f OO P OO (Grp UNIV g)\<inverse>\<inverse>"
