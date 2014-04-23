@@ -9,6 +9,7 @@ signature BNF_FP_DEF_SUGAR =
 sig
   type fp_sugar =
     {T: typ,
+     BT: typ,
      X: typ,
      fp: BNF_Util.fp_kind,
      fp_res_index: int,
@@ -123,6 +124,7 @@ val EqN = "Eq_";
 
 type fp_sugar =
   {T: typ,
+   BT: typ,
    X: typ,
    fp: fp_kind,
    fp_res_index: int,
@@ -1086,6 +1088,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
     val dtors = map (mk_dtor As) dtors0;
 
     val fpTs = map (domain_type o fastype_of) dtors;
+    val fpBTs = map B_ify fpTs;
 
     fun massage_simple_notes base =
       filter_out (null o #2)
@@ -1215,7 +1218,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term fp construct
                 end;
 
               val cxIns = map2 (mk_cIn ctor) ks xss;
-              val cyIns = map2 (mk_cIn (map_types B_ify ctor)) ks yss;
+              val cyIns = map2 (mk_cIn (Term.map_types B_ify ctor)) ks yss;
 
               fun mk_map_thm ctr_def' cxIn =
                 fold_thms lthy [ctr_def']

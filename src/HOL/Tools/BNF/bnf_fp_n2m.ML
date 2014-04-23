@@ -25,7 +25,7 @@ open BNF_Tactics
 open BNF_FP_N2M_Tactics
 
 fun force_typ ctxt T =
-  map_types Type_Infer.paramify_vars
+  Term.map_types Type_Infer.paramify_vars
   #> Type.constraint T
   #> Syntax.check_term ctxt
   #> singleton (Variable.polymorphic ctxt);

@@ -3,7 +3,7 @@
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2013
 
-More recursor sugar.
+More new-style recursor sugar.
 *)
 
 structure BNF_LFP_Rec_Sugar_More : sig end =
@@ -141,14 +141,14 @@ fun rewrite_map_arg get_ctr_pos rec_type res_type =
         in
           if ctr_pos >= 0 then
             if d = SOME ~1 andalso length vs = ctr_pos then
-              list_comb (permute_args ctr_pos (snd_const pT), vs)
+              Term.list_comb (permute_args ctr_pos (snd_const pT), vs)
             else if length vs > ctr_pos andalso is_some d andalso
                 d = try (fn Bound n => n) (nth vs ctr_pos) then
-              list_comb (snd_const pT $ nth vs ctr_pos, map (subst d) (nth_drop ctr_pos vs))
+              Term.list_comb (snd_const pT $ nth vs ctr_pos, map (subst d) (nth_drop ctr_pos vs))
             else
               raise PRIMREC ("recursive call not directly applied to constructor argument", [t])
           else
-            list_comb (u, map (subst (d |> d = SOME ~1 ? K NONE)) vs)
+            Term.list_comb (u, map (subst (d |> d = SOME ~1 ? K NONE)) vs)
         end
   in
     subst (SOME ~1)

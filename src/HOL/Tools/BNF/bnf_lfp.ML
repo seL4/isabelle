@@ -3,7 +3,7 @@
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
-Datatype construction.
+New-style datatype construction.
 *)
 
 signature BNF_LFP =

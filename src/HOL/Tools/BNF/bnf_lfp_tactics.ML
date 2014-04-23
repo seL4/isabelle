@@ -3,7 +3,7 @@
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
-Tactics for the datatype construction.
+Tactics for the new-style datatype construction.
 *)
 
 signature BNF_LFP_TACTICS =

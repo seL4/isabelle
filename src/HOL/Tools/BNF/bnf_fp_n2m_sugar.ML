@@ -276,10 +276,11 @@ fun mutualize_fp_sugars fp cliques bs fpTs callers callssss fp_sugars0 no_defs_l
 
         fun mk_target_fp_sugar T X kk pre_bnf absT_info ctrXs_Tss ctr_defs ctr_sugar co_rec maps
             co_inducts co_rec_thms disc_corec_thms sel_corec_thmss rel_injects =
-          {T = T, X = X, fp = fp, fp_res = fp_res, fp_res_index = kk, pre_bnf = pre_bnf,
-           absT_info = absT_info, nested_bnfs = nested_bnfs, nesting_bnfs = nesting_bnfs,
-           ctrXs_Tss = ctrXs_Tss, ctr_defs = ctr_defs, ctr_sugar = ctr_sugar, co_rec = co_rec,
-           maps = maps, common_co_inducts = common_co_inducts, co_inducts = co_inducts,
+          {T = T, BT = Term.dummyT (*wrong but harmless*), X = X, fp = fp, fp_res = fp_res,
+           fp_res_index = kk, pre_bnf = pre_bnf, absT_info = absT_info, nested_bnfs = nested_bnfs,
+           nesting_bnfs = nesting_bnfs, ctrXs_Tss = ctrXs_Tss, ctr_defs = ctr_defs,
+           ctr_sugar = ctr_sugar, co_rec = co_rec, maps = maps,
+           common_co_inducts = common_co_inducts, co_inducts = co_inducts,
            co_rec_thms = co_rec_thms, disc_co_recs = disc_corec_thms,
            sel_co_recss = sel_corec_thmss, rel_injects = rel_injects}
           |> morph_fp_sugar phi;

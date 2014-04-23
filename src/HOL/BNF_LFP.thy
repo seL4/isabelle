@@ -186,12 +186,78 @@ lemma id_transfer: "rel_fun A A id id"
 lemma ssubst_Pair_rhs: "\<lbrakk>(r, s) \<in> R; s' = s\<rbrakk> \<Longrightarrow> (r, s') \<in> R"
   by (rule ssubst)
 
+lemma snd_o_convol: "(snd \<circ> (\<lambda>x. (f x, g x))) = g"
+  by (rule ext) simp
+
+lemma inj_on_convol_id: "inj_on (\<lambda>x. (x, f x)) X"
+  unfolding inj_on_def by simp
+
 ML_file "Tools/BNF/bnf_lfp_util.ML"
 ML_file "Tools/BNF/bnf_lfp_tactics.ML"
 ML_file "Tools/BNF/bnf_lfp.ML"
 ML_file "Tools/BNF/bnf_lfp_compat.ML"
 ML_file "Tools/BNF/bnf_lfp_rec_sugar_more.ML"
+ML_file "Tools/BNF/bnf_lfp_size.ML"
 
 hide_fact (open) id_transfer
+
+datatype_new x = X nat
+thm x.size
+
+datatype_new 'a l = N | C 'a "'a l"
+thm l.size
+thm l.size_map
+thm size_l_def size_l_overloaded_def
+
+datatype_new
+  'a tl = TN | TC "'a mt" "'a tl" and
+  'a mt = MT 'a "'a tl"
+
+thm size_tl_def size_tl_overloaded_def
+thm size_mt_def size_mt_overloaded_def
+
+datatype_new 'a t = T 'a "'a t l"
+thm t.size
+
+lemma size_l_cong: "(ALL x : set_l t. f x = g x) --> size_l f t = size_l g t"
+  apply (induct_tac t)
+  apply (simp only: l.size simp_thms)
+  apply (simp add: l.set l.size simp_thms)
+  done
+
+lemma t_size_map_t: "size_t g (map_t f t) = size_t (g \<circ> f) t"
+  apply (rule t.induct)
+  apply (simp_all only: t.map t.size comp_def l.size_map)
+  apply (auto intro: size_l_cong)
+  apply (subst size_l_cong[rule_format], assumption)
+  apply (rule refl)
+  done
+
+
+thm t.size
+
+lemmas size_t_def' =
+  size_t_def[THEN meta_eq_to_obj_eq, THEN fun_cong, THEN fun_cong]
+
+thm trans[OF size_t_def' t.rec(1), unfolded l.size_map snd_o_convol, folded size_t_def']
+
+lemma "size_t f (T x ts) = f x + size_l (size_t f) ts + Suc 0"
+  unfolding size_t_def t.rec l.size_map snd_o_convol
+  by rule
+
+
+lemma "       (\<And>x2aa. x2aa \<in> set_l x2a \<Longrightarrow>
+                size_t f1 (map_t g1 x2aa) = size_t (f1 \<circ> g1) x2aa) \<Longrightarrow>
+       f1 (g1 x1a) +
+       size_l snd (map_l (\<lambda>t. (t, size_t f1 t)) (map_l (map_t g1) x2a)) +
+       Suc 0 =
+       f1 (g1 x1a) + size_l snd (map_l (\<lambda>t. (t, size_t (\<lambda>x1. f1 (g1 x1)) t)) x2a) +
+       Suc 0"
+apply (simp only: l.size_map comp_def snd_conv t.size_map snd_o_convol)
+
+thm size_t_def size_t_overloaded_def
+
+xdatatype_new ('a, 'b, 'c) x = XN 'c | XC 'a "('a, 'b, 'c) x"
+thm size_x_def size_x_overloaded_def
 
 end
