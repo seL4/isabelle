@@ -572,47 +572,65 @@ lemma set_of_mono: "A \<le> B \<Longrightarrow> set_of A \<subseteq> set_of B"
 
 subsubsection {* Size *}
 
-instantiation multiset :: (type) size
-begin
+definition wcount where "wcount f M = (\<lambda>x. count M x * Suc (f x))"
 
-definition size_def:
-  "size M = setsum (count M) (set_of M)"
+lemma wcount_union: "wcount f (M + N) a = wcount f M a + wcount f N a"
+  by (auto simp: wcount_def add_mult_distrib)
 
+definition size_multiset :: "('a \<Rightarrow> nat) \<Rightarrow> 'a multiset \<Rightarrow> nat" where
+  "size_multiset f M = setsum (wcount f M) (set_of M)"
+
+lemmas size_multiset_eq = size_multiset_def[unfolded wcount_def]
+
+instantiation multiset :: (type) size begin
+definition size_multiset where
+  size_multiset_overloaded_def: "size_multiset = Multiset.size_multiset (\<lambda>_. 0)"
 instance ..
-
 end
 
+lemmas size_multiset_overloaded_eq =
+  size_multiset_overloaded_def[THEN fun_cong, unfolded size_multiset_eq, simplified]
+
+lemma size_multiset_empty [simp]: "size_multiset f {#} = 0"
+by (simp add: size_multiset_def)
+
 lemma size_empty [simp]: "size {#} = 0"
-by (simp add: size_def)
+by (simp add: size_multiset_overloaded_def)
+
+lemma size_multiset_single [simp]: "size_multiset f {#b#} = Suc (f b)"
+by (simp add: size_multiset_eq)
 
 lemma size_single [simp]: "size {#b#} = 1"
-by (simp add: size_def)
+by (simp add: size_multiset_overloaded_def)
 
-lemma setsum_count_Int:
-  "finite A ==> setsum (count N) (A \<inter> set_of N) = setsum (count N) A"
+lemma setsum_wcount_Int:
+  "finite A \<Longrightarrow> setsum (wcount f N) (A \<inter> set_of N) = setsum (wcount f N) A"
 apply (induct rule: finite_induct)
  apply simp
-apply (simp add: Int_insert_left set_of_def)
+apply (simp add: Int_insert_left set_of_def wcount_def)
+done
+
+lemma size_multiset_union [simp]:
+  "size_multiset f (M + N::'a multiset) = size_multiset f M + size_multiset f N"
+apply (simp add: size_multiset_def setsum_Un_nat setsum_addf setsum_wcount_Int wcount_union)
+apply (subst Int_commute)
+apply (simp add: setsum_wcount_Int)
 done
 
 lemma size_union [simp]: "size (M + N::'a multiset) = size M + size N"
-apply (unfold size_def)
-apply (subgoal_tac "count (M + N) = (\<lambda>a. count M a + count N a)")
- prefer 2
- apply (rule ext, simp)
-apply (simp (no_asm_simp) add: setsum_Un_nat setsum_addf setsum_count_Int)
-apply (subst Int_commute)
-apply (simp (no_asm_simp) add: setsum_count_Int)
-done
+by (auto simp add: size_multiset_overloaded_def)
+
+lemma size_multiset_eq_0_iff_empty [iff]: "(size_multiset f M = 0) = (M = {#})"
+by (auto simp add: size_multiset_eq multiset_eq_iff)
 
 lemma size_eq_0_iff_empty [iff]: "(size M = 0) = (M = {#})"
-by (auto simp add: size_def multiset_eq_iff)
+by (auto simp add: size_multiset_overloaded_def)
 
 lemma nonempty_has_size: "(S \<noteq> {#}) = (0 < size S)"
 by (metis gr0I gr_implies_not0 size_empty size_eq_0_iff_empty)
 
 lemma size_eq_Suc_imp_elem: "size M = Suc n ==> \<exists>a. a :# M"
-apply (unfold size_def)
+apply (unfold size_multiset_overloaded_eq)
 apply (drule setsum_SucD)
 apply auto
 done
@@ -1309,7 +1327,7 @@ qed
 
 lemma size_eq_mcard:
   "size = mcard"
-  by (simp add: fun_eq_iff size_def mcard_unfold_setsum)
+  by (simp add: fun_eq_iff size_multiset_overloaded_eq mcard_unfold_setsum)
 
 lemma mcard_multiset_of:
   "mcard (multiset_of xs) = length xs"
@@ -3016,5 +3034,24 @@ using  rel_multiset_imp_rel_multiset' rel_multiset'_imp_rel_multiset by auto
 (* The main end product for rel_multiset: inductive characterization *)
 theorems rel_multiset_induct[case_names empty add, induct pred: rel_multiset] =
          rel_multiset'.induct[unfolded rel_multiset_rel_multiset'[symmetric]]
+
+
+subsection {* Size setup *}
+
+lemma multiset_size_o_map: "size_multiset g \<circ> mmap f = size_multiset (g \<circ> f)"
+apply (rule ext)
+apply (unfold o_apply)
+apply (induct_tac x)
+apply auto
+done
+
+setup {*
+BNF_LFP_Size.register_size_global @{type_name multiset} @{const_name size_multiset}
+  @{thms size_multiset_empty size_multiset_single size_multiset_union size_empty size_single
+    size_union}
+  @{thms multiset_size_o_map}
+*}
+
+hide_const (open) wcount
 
 end
