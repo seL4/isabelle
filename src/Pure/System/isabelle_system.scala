@@ -446,6 +446,19 @@ object Isabelle_System
     def set_rc(i: Int): Bash_Result = copy(rc = i)
   }
 
+  private class Limited_Progress(proc: Managed_Process, progress_limit: Option[Long])
+  {
+    private var count = 0L
+    def apply(progress: String => Unit)(line: String): Unit = synchronized {
+      progress(line)
+      count = count + line.length + 1
+      progress_limit match {
+        case Some(limit) if count > limit => proc.terminate
+        case _ =>
+      }
+    }
+  }
+
   def bash_env(cwd: JFile, env: Map[String, String], script: String,
     progress_stdout: String => Unit = (_: String) => (),
     progress_stderr: String => Unit = (_: String) => (),
@@ -456,17 +469,7 @@ object Isabelle_System
       val proc = new Managed_Process(cwd, env, false, "bash", posix_path(script_file))
       proc.stdin.close
 
-      val limited = new Object {
-        private var count = 0L
-        def apply(progress: String => Unit)(line: String): Unit = synchronized {
-          progress(line)
-          count = count + line.length + 1
-          progress_limit match {
-            case Some(limit) if count > limit => proc.terminate
-            case _ =>
-          }
-        }
-      }
+      val limited = new Limited_Progress(proc, progress_limit)
       val (_, stdout) =
         Simple_Thread.future("bash_stdout") {
           File.read_lines(proc.stdout, limited(progress_stdout))
