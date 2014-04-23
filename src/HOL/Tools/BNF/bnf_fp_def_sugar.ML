@@ -7,37 +7,10 @@ Sugared datatype and codatatype constructions.
 
 signature BNF_FP_DEF_SUGAR =
 sig
-  type fp_sugar =
-    {T: typ,
-     BT: typ,
-     X: typ,
-     fp: BNF_Util.fp_kind,
-     fp_res_index: int,
-     fp_res: BNF_FP_Util.fp_result,
-     pre_bnf: BNF_Def.bnf,
-     absT_info: BNF_Comp.absT_info,
-     nested_bnfs: BNF_Def.bnf list,
-     nesting_bnfs: BNF_Def.bnf list,
-     ctrXs_Tss: typ list list,
-     ctr_defs: thm list,
-     ctr_sugar: Ctr_Sugar.ctr_sugar,
-     co_rec: term,
-     co_rec_def: thm,
-     maps: thm list,
-     common_co_inducts: thm list,
-     co_inducts: thm list,
-     co_rec_thms: thm list,
-     disc_co_recs: thm list,
-     sel_co_recss: thm list list,
-     rel_injects: thm list,
-     rel_distincts: thm list};
-
-  val morph_fp_sugar: morphism -> fp_sugar -> fp_sugar
-  val transfer_fp_sugar: Proof.context -> fp_sugar -> fp_sugar
-  val fp_sugar_of: Proof.context -> string -> fp_sugar option
-  val fp_sugars_of: Proof.context -> fp_sugar list
-  val fp_sugar_interpretation: (fp_sugar list -> theory -> theory) -> theory -> theory
-  val register_fp_sugars: fp_sugar list -> local_theory -> local_theory
+  val fp_sugar_of: Proof.context -> string -> BNF_FP_Util.fp_sugar option
+  val fp_sugars_of: Proof.context -> BNF_FP_Util.fp_sugar list
+  val fp_sugar_interpretation: (BNF_FP_Util.fp_sugar list -> theory -> theory) -> theory -> theory
+  val register_fp_sugars: BNF_FP_Util.fp_sugar list -> local_theory -> local_theory
 
   val co_induct_of: 'a list -> 'a
   val strong_co_induct_of: 'a list -> 'a
@@ -121,62 +94,9 @@ open BNF_Comp
 open BNF_Def
 open BNF_FP_Util
 open BNF_FP_Def_Sugar_Tactics
+open BNF_LFP_Size
 
 val EqN = "Eq_";
-
-type fp_sugar =
-  {T: typ,
-   BT: typ,
-   X: typ,
-   fp: fp_kind,
-   fp_res_index: int,
-   fp_res: fp_result,
-   pre_bnf: bnf,
-   absT_info: absT_info,
-   nested_bnfs: bnf list,
-   nesting_bnfs: bnf list,
-   ctrXs_Tss: typ list list,
-   ctr_defs: thm list,
-   ctr_sugar: Ctr_Sugar.ctr_sugar,
-   co_rec: term,
-   co_rec_def: thm,
-   maps: thm list,
-   common_co_inducts: thm list,
-   co_inducts: thm list,
-   co_rec_thms: thm list,
-   disc_co_recs: thm list,
-   sel_co_recss: thm list list,
-   rel_injects: thm list,
-   rel_distincts: thm list};
-
-fun morph_fp_sugar phi ({T, BT, X, fp, fp_res, fp_res_index, pre_bnf, absT_info, nested_bnfs,
-    nesting_bnfs, ctrXs_Tss, ctr_defs, ctr_sugar, co_rec, co_rec_def, maps, common_co_inducts,
-    co_inducts, co_rec_thms, disc_co_recs, sel_co_recss, rel_injects, rel_distincts} : fp_sugar) =
-  {T = Morphism.typ phi T,
-   BT = Morphism.typ phi BT,
-   X = Morphism.typ phi X,
-   fp = fp,
-   fp_res = morph_fp_result phi fp_res,
-   fp_res_index = fp_res_index,
-   pre_bnf = morph_bnf phi pre_bnf,
-   absT_info = morph_absT_info phi absT_info,
-   nested_bnfs = map (morph_bnf phi) nested_bnfs,
-   nesting_bnfs = map (morph_bnf phi) nesting_bnfs,
-   ctrXs_Tss = map (map (Morphism.typ phi)) ctrXs_Tss,
-   ctr_defs = map (Morphism.thm phi) ctr_defs,
-   ctr_sugar = morph_ctr_sugar phi ctr_sugar,
-   co_rec = Morphism.term phi co_rec,
-   co_rec_def = Morphism.thm phi co_rec_def,
-   maps = map (Morphism.thm phi) maps,
-   common_co_inducts = map (Morphism.thm phi) common_co_inducts,
-   co_inducts = map (Morphism.thm phi) co_inducts,
-   co_rec_thms = map (Morphism.thm phi) co_rec_thms,
-   disc_co_recs = map (Morphism.thm phi) disc_co_recs,
-   sel_co_recss = map (map (Morphism.thm phi)) sel_co_recss,
-   rel_injects = map (Morphism.thm phi) rel_injects,
-   rel_distincts = map (Morphism.thm phi) rel_distincts};
-
-val transfer_fp_sugar = morph_fp_sugar o Morphism.transfer_morphism o Proof_Context.theory_of;
 
 structure Data = Generic_Data
 (
@@ -211,11 +131,12 @@ fun with_repaired_path f (fp_sugars as ({T = Type (s, _), ...} : fp_sugar) :: _)
 
 val fp_sugar_interpretation = FP_Sugar_Interpretation.interpretation o with_repaired_path;
 
-fun register_fp_sugars fp_sugars =
+fun register_fp_sugars (fp_sugars as {fp, ...} :: _) =
   fold (fn fp_sugar as {T = Type (s, _), ...} =>
       Local_Theory.declaration {syntax = false, pervasive = true}
         (fn phi => Data.map (Symtab.update (s, morph_fp_sugar phi fp_sugar))))
     fp_sugars
+  #> Local_Theory.background_theory (generate_lfp_size fp_sugars)
   #> Local_Theory.background_theory (FP_Sugar_Interpretation.data fp_sugars);
 
 fun register_as_fp_sugars Ts BTs Xs fp pre_bnfs absT_infos nested_bnfs nesting_bnfs fp_res

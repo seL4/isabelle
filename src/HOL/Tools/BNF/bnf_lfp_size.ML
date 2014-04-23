@@ -9,6 +9,7 @@ signature BNF_LFP_SIZE =
 sig
   val register_size: string -> string -> thm list -> thm list -> theory -> theory
   val lookup_size: theory -> string -> (string * (thm list * thm list)) option
+  val generate_lfp_size: BNF_FP_Util.fp_sugar list -> theory -> theory
 end;
 
 structure BNF_LFP_Size : BNF_LFP_SIZE =
@@ -17,7 +18,7 @@ struct
 open BNF_Util
 open BNF_Tactics
 open BNF_Def
-open BNF_FP_Def_Sugar
+open BNF_FP_Util
 
 val size_N = "size_"
 
@@ -53,8 +54,7 @@ fun mk_unabs_def_unused_0 n =
   funpow n (fn thm => thm RS @{thm fun_cong_unused_0} handle THM _ => thm RS fun_cong);
 
 val rec_o_map_simp_thms =
-  @{thms o_def id_apply case_prod_app case_sum_o_map_sum case_prod_o_map_prod
-      BNF_Comp.id_bnf_comp_def};
+  @{thms o_def id_apply case_prod_app case_sum_map_sum case_prod_map_prod BNF_Comp.id_bnf_comp_def};
 
 fun mk_rec_o_map_tac ctxt rec_def pre_map_defs abs_inverses ctor_rec_o_map =
   unfold_thms_tac ctxt [rec_def] THEN
@@ -71,7 +71,7 @@ fun mk_size_o_map_tac ctxt size_def rec_o_map inj_maps size_maps =
     asm_simp_tac (ss_only (inj_maps @ size_maps @ size_o_map_simp_thms) ctxt)) THEN
   IF_UNSOLVED (unfold_thms_tac ctxt @{thms o_def} THEN HEADGOAL (rtac refl));
 
-fun generate_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), fp = Least_FP,
+fun generate_lfp_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), fp = Least_FP,
       fp_res = {bnfs = fp_bnfs, xtor_co_rec_o_map_thms = ctor_rec_o_maps, ...}, nested_bnfs,
       nesting_bnfs, ...} : fp_sugar) :: _) thy =
     let
@@ -335,8 +335,6 @@ fun generate_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), fp = Leas
           Symtab.update_new (T_name, (size_name, (size_simps, flat size_o_map_thmss))))
         T_names size_names)
     end
-  | generate_size _ thy = thy;
-
-val _ = Theory.setup (fp_sugar_interpretation generate_size);
+  | generate_lfp_size _ thy = thy;
 
 end;

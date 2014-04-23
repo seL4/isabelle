@@ -28,6 +28,34 @@ sig
 
   val morph_fp_result: morphism -> fp_result -> fp_result
 
+  type fp_sugar =
+    {T: typ,
+     BT: typ,
+     X: typ,
+     fp: BNF_Util.fp_kind,
+     fp_res_index: int,
+     fp_res: fp_result,
+     pre_bnf: BNF_Def.bnf,
+     absT_info: BNF_Comp.absT_info,
+     nested_bnfs: BNF_Def.bnf list,
+     nesting_bnfs: BNF_Def.bnf list,
+     ctrXs_Tss: typ list list,
+     ctr_defs: thm list,
+     ctr_sugar: Ctr_Sugar.ctr_sugar,
+     co_rec: term,
+     co_rec_def: thm,
+     maps: thm list,
+     common_co_inducts: thm list,
+     co_inducts: thm list,
+     co_rec_thms: thm list,
+     disc_co_recs: thm list,
+     sel_co_recss: thm list list,
+     rel_injects: thm list,
+     rel_distincts: thm list};
+
+  val morph_fp_sugar: morphism -> fp_sugar -> fp_sugar
+  val transfer_fp_sugar: Proof.context -> fp_sugar -> fp_sugar
+
   val time: Proof.context -> Timer.real_timer -> string -> Timer.real_timer
 
   val fixpoint: ('a * 'a -> bool) -> ('a list -> 'a list) -> 'a list -> 'a list
@@ -184,6 +212,7 @@ end;
 structure BNF_FP_Util : BNF_FP_UTIL =
 struct
 
+open Ctr_Sugar
 open BNF_Comp
 open BNF_Def
 open BNF_Util
@@ -225,6 +254,60 @@ fun morph_fp_result phi {Ts, bnfs, ctors, dtors, xtor_co_recs, xtor_co_induct,
    xtor_co_rec_thms = map (Morphism.thm phi) xtor_co_rec_thms,
    xtor_co_rec_o_map_thms = map (Morphism.thm phi) xtor_co_rec_o_map_thms,
    rel_xtor_co_induct_thm = Morphism.thm phi rel_xtor_co_induct_thm};
+
+type fp_sugar =
+  {T: typ,
+   BT: typ,
+   X: typ,
+   fp: fp_kind,
+   fp_res_index: int,
+   fp_res: fp_result,
+   pre_bnf: bnf,
+   absT_info: absT_info,
+   nested_bnfs: bnf list,
+   nesting_bnfs: bnf list,
+   ctrXs_Tss: typ list list,
+   ctr_defs: thm list,
+   ctr_sugar: Ctr_Sugar.ctr_sugar,
+   co_rec: term,
+   co_rec_def: thm,
+   maps: thm list,
+   common_co_inducts: thm list,
+   co_inducts: thm list,
+   co_rec_thms: thm list,
+   disc_co_recs: thm list,
+   sel_co_recss: thm list list,
+   rel_injects: thm list,
+   rel_distincts: thm list};
+
+fun morph_fp_sugar phi ({T, BT, X, fp, fp_res, fp_res_index, pre_bnf, absT_info, nested_bnfs,
+    nesting_bnfs, ctrXs_Tss, ctr_defs, ctr_sugar, co_rec, co_rec_def, maps, common_co_inducts,
+    co_inducts, co_rec_thms, disc_co_recs, sel_co_recss, rel_injects, rel_distincts} : fp_sugar) =
+  {T = Morphism.typ phi T,
+   BT = Morphism.typ phi BT,
+   X = Morphism.typ phi X,
+   fp = fp,
+   fp_res = morph_fp_result phi fp_res,
+   fp_res_index = fp_res_index,
+   pre_bnf = morph_bnf phi pre_bnf,
+   absT_info = morph_absT_info phi absT_info,
+   nested_bnfs = map (morph_bnf phi) nested_bnfs,
+   nesting_bnfs = map (morph_bnf phi) nesting_bnfs,
+   ctrXs_Tss = map (map (Morphism.typ phi)) ctrXs_Tss,
+   ctr_defs = map (Morphism.thm phi) ctr_defs,
+   ctr_sugar = morph_ctr_sugar phi ctr_sugar,
+   co_rec = Morphism.term phi co_rec,
+   co_rec_def = Morphism.thm phi co_rec_def,
+   maps = map (Morphism.thm phi) maps,
+   common_co_inducts = map (Morphism.thm phi) common_co_inducts,
+   co_inducts = map (Morphism.thm phi) co_inducts,
+   co_rec_thms = map (Morphism.thm phi) co_rec_thms,
+   disc_co_recs = map (Morphism.thm phi) disc_co_recs,
+   sel_co_recss = map (map (Morphism.thm phi)) sel_co_recss,
+   rel_injects = map (Morphism.thm phi) rel_injects,
+   rel_distincts = map (Morphism.thm phi) rel_distincts};
+
+val transfer_fp_sugar = morph_fp_sugar o Morphism.transfer_morphism o Proof_Context.theory_of;
 
 fun time ctxt timer msg = (if Config.get ctxt bnf_timing
   then warning (msg ^ ": " ^ string_of_int (Time.toMilliseconds (Timer.checkRealTimer timer)) ^

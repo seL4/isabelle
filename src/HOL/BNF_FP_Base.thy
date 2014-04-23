@@ -163,11 +163,58 @@ lemma vimage2p_id: "vimage2p id id R = R"
 lemma vimage2p_comp: "vimage2p (f1 \<circ> f2) (g1 \<circ> g2) = vimage2p f2 g2 \<circ> vimage2p f1 g1"
   unfolding fun_eq_iff vimage2p_def o_apply by simp
 
+lemma fun_cong_unused_0: "f = (\<lambda>x. g) \<Longrightarrow> f (\<lambda>x. 0) = g"
+  by (erule arg_cong)
+
+lemma snd_o_convol: "(snd \<circ> (\<lambda>x. (f x, g x))) = g"
+  by (rule ext) simp
+
+lemma inj_on_convol_id: "inj_on (\<lambda>x. (x, f x)) X"
+  unfolding inj_on_def by simp
+
+lemma case_prod_app: "case_prod f x y = case_prod (\<lambda>l r. f l r y) x"
+  by (case_tac x) simp
+
+lemma case_sum_map_sum: "case_sum l r (map_sum f g x) = case_sum (l \<circ> f) (r \<circ> g) x"
+  by (case_tac x) simp+
+
+lemma case_prod_map_prod: "case_prod h (map_prod f g x) = case_prod (\<lambda>l r. h (f l) (g r)) x"
+  by (case_tac x) simp+
+
+lemma prod_inj_map: "inj f \<Longrightarrow> inj g \<Longrightarrow> inj (map_prod f g)"
+  by (simp add: inj_on_def)
+
+
 ML_file "Tools/BNF/bnf_fp_util.ML"
 ML_file "Tools/BNF/bnf_fp_def_sugar_tactics.ML"
+ML_file "Tools/BNF/bnf_lfp_size.ML"
 ML_file "Tools/BNF/bnf_fp_def_sugar.ML"
 ML_file "Tools/BNF/bnf_fp_n2m_tactics.ML"
 ML_file "Tools/BNF/bnf_fp_n2m.ML"
 ML_file "Tools/BNF/bnf_fp_n2m_sugar.ML"
+
+ML_file "Tools/Function/size.ML"
+setup Size.setup
+
+lemma size_bool[code]: "size (b\<Colon>bool) = 0"
+  by (cases b) auto
+
+lemma nat_size[simp, code]: "size (n\<Colon>nat) = n"
+  by (induct n) simp_all
+
+declare prod.size[no_atp]
+
+lemma sum_size_o_map: "sum_size g1 g2 \<circ> map_sum f1 f2 = sum_size (g1 \<circ> f1) (g2 \<circ> f2)"
+  by (rule ext) (case_tac x, auto)
+
+lemma prod_size_o_map: "prod_size g1 g2 \<circ> map_prod f1 f2 = prod_size (g1 \<circ> f1) (g2 \<circ> f2)"
+  by (rule ext) auto
+
+setup {*
+BNF_LFP_Size.register_size @{type_name sum} @{const_name sum_size} @{thms sum.size}
+  @{thms sum_size_o_map}
+#> BNF_LFP_Size.register_size @{type_name prod} @{const_name prod_size} @{thms prod.size}
+  @{thms prod_size_o_map}
+*}
 
 end
