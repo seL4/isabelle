@@ -728,7 +728,6 @@ session "HOL-BNF_Examples" in BNF_Examples = HOL +
     "Derivation_Trees/Parallel"
     Koenig
     Stream_Processor
-  theories [condition = ISABELLE_FULL_TEST]
     Misc_Codatatype
     Misc_Datatype
     Misc_Primcorec
