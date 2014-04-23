@@ -72,8 +72,8 @@ fun mk_size_o_map_tac ctxt size_def rec_o_map inj_maps size_maps =
   IF_UNSOLVED (unfold_thms_tac ctxt @{thms o_def} THEN HEADGOAL (rtac refl));
 
 fun generate_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), fp = Least_FP,
-        fp_res = {bnfs = fp_bnfs, xtor_co_rec_o_map_thms = ctor_rec_o_maps, ...}, nested_bnfs, ...}
-      : fp_sugar) :: _) thy =
+      fp_res = {bnfs = fp_bnfs, xtor_co_rec_o_map_thms = ctor_rec_o_maps, ...}, nested_bnfs,
+      nesting_bnfs, ...} : fp_sugar) :: _) thy =
     let
       val data = Data.get thy;
 
@@ -200,7 +200,7 @@ fun generate_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), fp = Leas
         map (mk_unabs_def 1 o (fn thm => thm RS meta_eq_to_obj_eq)) overloaded_size_defs;
 
       val nested_size_maps = map (pointfill thy3_ctxt) nested_size_o_maps @ nested_size_o_maps;
-      val all_inj_maps = map inj_map_of_bnf (fp_bnfs @ nested_bnfs);
+      val all_inj_maps = map inj_map_of_bnf (fp_bnfs @ nested_bnfs @ nesting_bnfs);
 
       fun derive_size_simp size_def' simp0 =
         (trans OF [size_def', simp0])
