@@ -570,8 +570,8 @@ associated with other constructors. The specified default value must be of type
 *}
 
 
-subsubsection {* \keyw{datatype\_new\_compat}
-  \label{sssec:datatype-new-compat} *}
+subsubsection {* \keyw{datatype\_compat}
+  \label{sssec:datatype-compat} *}
 
 text {*
 \begin{matharray}{rcl}
@@ -590,10 +590,6 @@ old-style datatypes. For example:
 *}
 
     datatype_compat even_nat odd_nat
-
-text {* \blankline *}
-
-    thm even_nat_odd_nat.size
 
 text {* \blankline *}
 
@@ -971,8 +967,8 @@ interfaces. Little has been done so far in this direction. Whenever possible, it
 is recommended to use @{command datatype_compat} or \keyw{rep\_datatype}
 to register new-style datatypes as old-style datatypes.
 
-\item \emph{The constants @{text t_case} and @{text t_rec} are now called
-@{text case_t} and @{text rec_t}.}
+\item \emph{The constants @{text t_case}, @{text t_rec}, and @{text t_size} are
+now called @{text case_t}, @{text rec_t}, and @{text size_t}.}
 
 \item \emph{The recursor @{text rec_t} has a different signature for nested
 recursive datatypes.} In the old package, nested recursion through non-functions
@@ -994,12 +990,14 @@ new-style datatypes.
 that unfold the definition of constants introduced by \keyw{datatype} will be
 difficult to port.
 
-\item \emph{Some induction rules have different names.}
+\item \emph{Some theorems have different names.}
 For non-mutually recursive datatypes,
 the alias @{text t.inducts} for @{text t.induct} is no longer generated.
 For $m > 1$ mutually recursive datatypes,
 @{text "t\<^sub>1_\<dots>_t\<^sub>m.inducts(i)"} has been renamed
-@{text "t\<^sub>i.induct"} for each @{text "i \<in> {1, \<dots>, t}"}.
+@{text "t\<^sub>i.induct"} for each @{text "i \<in> {1, \<dots>, t}"}, and similarly the
+collection @{text "t\<^sub>1_\<dots>_t\<^sub>m.size"} has been divided into @{text "t\<^sub>1.size"},
+\ldots, @{text "t\<^sub>m.size"}.
 
 \item \emph{The @{text t.simps} collection has been extended.}
 Previously available theorems are available at the same index.
@@ -1129,7 +1127,7 @@ The next example is defined using \keyw{fun} to escape the syntactic
 restrictions imposed on primitively recursive functions. The
 @{command datatype_compat} command is needed to register new-style datatypes
 for use with \keyw{fun} and \keyw{function}
-(Section~\ref{sssec:datatype-new-compat}):
+(Section~\ref{sssec:datatype-compat}):
 *}
 
     datatype_compat nat
@@ -2696,11 +2694,7 @@ Known open issues of the package.
 *}
 
 text {*
-%* primcorecursive and primcorec is unfinished
-%
 %* slow n-ary mutual (co)datatype, avoid as much as possible (e.g. using nesting)
-%
-%* issues with HOL-Proofs?
 %
 %* partial documentation
 %
@@ -2714,6 +2708,8 @@ text {*
 %* in a locale, cannot use locally fixed types (because of limitation in typedef)?
 %
 % *names of variables suboptimal
+%
+% * in a locale, size is half broken
 *}
 *)
 
