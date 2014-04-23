@@ -175,7 +175,7 @@ qed
 end %quote
 
 text {*
-  \noindent Note the occurence of the name @{text mult_nat} in the
+  \noindent Note the occurrence of the name @{text mult_nat} in the
   primrec declaration; by default, the local name of a class operation
   @{text f} to be instantiated on type constructor @{text \<kappa>} is
   mangled as @{text f_\<kappa>}.  In case of uncertainty, these names may be
