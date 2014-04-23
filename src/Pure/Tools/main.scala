@@ -60,7 +60,9 @@ object Main
                     build_heap = true, more_dirs = more_dirs,
                     system_mode = system_mode, sessions = List(session)))
               }
-              catch { case exn: Throwable => (Exn.message(exn) + "\n", Exn.return_code(exn, 2)) }
+              catch {
+                case exn: Throwable => (Exn.error_message(exn) + "\n", Exn.return_code(exn, 2))
+              }
 
             system_dialog.echo(out + (if (rc == 0) "OK\n" else "Return code: " + rc + "\n"))
             system_dialog.return_code(rc)

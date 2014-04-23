@@ -88,8 +88,8 @@ object Session
         }
         catch {
           case exn: Throwable =>
-            System.err.println("Failed to initialize protocol handler: " +
-              name + "\n" + Exn.message(exn))
+            System.err.println(Exn.error_message(
+              "Failed to initialize protocol handler: " + quote(name) + "\n" + Exn.message(exn)))
             (handlers1, functions1)
         }
 
@@ -102,8 +102,8 @@ object Session
           try { functions(a)(msg) }
           catch {
             case exn: Throwable =>
-              System.err.println("Failed invocation of protocol function: " +
-                quote(a) + "\n" + Exn.message(exn))
+              System.err.println(Exn.error_message(
+                "Failed invocation of protocol function: " + quote(a) + "\n" + Exn.message(exn)))
             false
           }
         case _ => false

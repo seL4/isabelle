@@ -34,7 +34,7 @@ object Graphview extends SwingApplication
           case _ => error("Bad arguments:\n" + cat_lines(args))
         }
       }
-      catch { case exn: Throwable => println(Exn.message(exn)); sys.exit(1) }
+      catch { case exn: Throwable => println(Exn.error_message(exn)); sys.exit(1) }
 
     val top = new MainFrame {
       iconImage = GUI.isabelle_image()
