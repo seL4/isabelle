@@ -279,6 +279,10 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
 
 * New (co)datatype package:
   * "primcorec" is fully implemented.
+  * "datatype_new" generates size functions ("size_xxx" and "size") as
+    required by "fun".
+  * BNFs are integrated with the Lifting tool and new-style (co)datatypes
+    with Transfer.
   * Renamed commands:
       datatype_new_compat ~> datatype_compat
       primrec_new ~> primrec
@@ -306,12 +310,13 @@ spurious crashes and other surprises.  Potential INCOMPATIBILITY.
     Option.set ~> set_option
     Option.map ~> map_option
     option_rel ~> rel_option
-    option_rec ~> case_option
+    list_size ~> size_list
+    option_size ~> size_option
   Renamed theorems:
     set_def ~> set_rec[abs_def]
     map_def ~> map_rec[abs_def]
     Option.map_def ~> map_option_case[abs_def] (with "case_option" instead of "rec_option")
-    option.recs ~> option.case
+    option.recs ~> option.rec
     list_all2_def ~> list_all2_iff
     set.simps ~> set_simps (or the slightly different "list.set")
     map.simps ~> list.map
