@@ -112,7 +112,7 @@ proof
   fix X :: "'a fset set"
   {
     assume "x \<in> X" "bdd_below X" 
-    then show "Inf X |\<subseteq>| x"  by transfer auto
+    then show "Inf X |\<subseteq>| x" by transfer auto
   next
     assume "X \<noteq> {}" "(\<And>x. x \<in> X \<Longrightarrow> z |\<subseteq>| x)"
     then show "z |\<subseteq>| Inf X" by transfer (clarsimp, blast)
@@ -149,6 +149,8 @@ end
 
 abbreviation fUNIV :: "'a::finite fset" where "fUNIV \<equiv> top"
 abbreviation fuminus :: "'a::finite fset \<Rightarrow> 'a fset" ("|-| _" [81] 80) where "|-| x \<equiv> uminus x"
+
+declare top_fset.rep_eq[simp]
 
 
 subsection {* Other operations *}
@@ -643,7 +645,7 @@ begin
     by (transfer fixing: f) (rule fold_fun_left_comm)
 
   lemma ffold_finsert2:
-    "x |\<notin>| A \<Longrightarrow> ffold f z (finsert x A)  = ffold f (f x z) A"
+    "x |\<notin>| A \<Longrightarrow> ffold f z (finsert x A) = ffold f (f x z) A"
     by (transfer fixing: f) (rule fold_insert2)
 
   lemma ffold_rec:
@@ -672,7 +674,7 @@ context comp_fun_idem
 begin
 
   lemma ffold_finsert_idem:
-    "ffold f z (finsert x A)  = f x (ffold f z A)"
+    "ffold f z (finsert x A) = f x (ffold f z A)"
     by (transfer fixing: f) (rule fold_insert_idem)
   
   declare ffold_finsert [simp del] ffold_finsert_idem [simp]
@@ -782,7 +784,7 @@ proof -
   apply (subst bchoice_iff[symmetric])
   using R_S[unfolded rel_set_def OO_def] by blast
   
-  obtain g where g: "\<forall>z\<in>Z. S (g z) z \<and> (\<exists>x\<in>X. R  x (g z))"
+  obtain g where g: "\<forall>z\<in>Z. S (g z) z \<and> (\<exists>x\<in>X. R x (g z))"
   apply atomize_elim
   apply (subst bchoice_iff[symmetric])
   using R_S[unfolded rel_set_def OO_def] by blast
@@ -976,6 +978,36 @@ lemma rel_fset_fset: "rel_set \<chi> (fset A1) (fset A2) = rel_fset \<chi> A1 A2
 end
 
 lemmas [simp] = fset.map_comp fset.map_id fset.set_map
+
+
+subsection {* Size setup *}
+
+context includes fset.lifting begin
+lift_definition size_fset :: "('a \<Rightarrow> nat) \<Rightarrow> 'a fset \<Rightarrow> nat" is "\<lambda>f. setsum (Suc \<circ> f)" .
+end
+
+instantiation fset :: (type) size begin
+definition size_fset where
+  size_fset_overloaded_def: "size_fset = FSet.size_fset (\<lambda>_. 0)"
+instance ..
+end
+
+lemmas size_fset_simps[simp] =
+  size_fset_def[THEN meta_eq_to_obj_eq, THEN fun_cong, THEN fun_cong,
+    unfolded map_fun_def comp_def id_apply]
+
+lemmas size_fset_overloaded_simps[simp] =
+  size_fset_simps[of "\<lambda>_. 0", unfolded add_0_left add_0_right,
+    folded size_fset_overloaded_def]
+
+lemma fset_size_o_map: "inj f \<Longrightarrow> size_fset g \<circ> fimage f = size_fset (g \<circ> f)"
+  unfolding size_fset_def fimage_def
+  by (auto simp: Abs_fset_inverse setsum_reindex_cong[OF subset_inj_on[OF _ top_greatest]])
+
+setup {*
+BNF_LFP_Size.register_size @{type_name fset} @{const_name size_fset}
+  @{thms size_fset_simps size_fset_overloaded_simps} @{thms fset_size_o_map}
+*}
 
 
 subsection {* Advanced relator customization *}
