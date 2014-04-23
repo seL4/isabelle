@@ -6,22 +6,11 @@ Size functions for datatypes.
 
 signature SIZE =
 sig
-  val size_thms: theory -> string -> thm list
   val setup: theory -> theory
 end;
 
 structure Size: SIZE =
 struct
-
-structure Data = Theory_Data
-(
-  type T = (string * thm list) Symtab.table;
-  val empty = Symtab.empty;
-  val extend = I
-  fun merge data = Symtab.merge (K true) data;
-);
-
-val lookup_size = Data.get #> Symtab.lookup;
 
 fun plus (t1, t2) = Const (@{const_name Groups.plus},
   HOLogic.natT --> HOLogic.natT --> HOLogic.natT) $ t1 $ t2;
@@ -35,15 +24,13 @@ fun size_of_type f g h (T as Type (s, Ts)) =
                map (fn U => U --> HOLogic.natT) Ts @ [T] ---> HOLogic.natT),
                  map (size_of_type' f g h) Ts))
          | NONE => NONE))
-  | size_of_type f g h (TFree (s, _)) = h s
+  | size_of_type _ _ h (TFree (s, _)) = h s
 and size_of_type' f g h T = (case size_of_type f g h T of
       NONE => Abs ("x", T, HOLogic.zero)
     | SOME t => t);
 
 fun is_poly thy (Datatype_Aux.DtType (name, dts)) =
-      (case lookup_size thy name of
-         NONE => false
-       | SOME _ => exists (is_poly thy) dts)
+      is_some (BNF_LFP_Size.lookup_size thy name) andalso exists (is_poly thy) dts
   | is_poly _ _ = true;
 
 fun constrs_of thy name =
@@ -66,7 +53,6 @@ fun prove_size_thms (info : Datatype_Aux.info) new_type_names thy =
       thy
     else
       let
-        val (rec_names1, rec_names2) = chop l rec_names;
         val recTs = Datatype_Aux.get_rec_types descr;
         val (recTs1, recTs2) = chop l recTs;
         val (_, (_, paramdts, _)) :: _ = descr;
@@ -82,8 +68,8 @@ fun prove_size_thms (info : Datatype_Aux.info) new_type_names thy =
         val param_size = AList.lookup op = param_size_fs;
 
         val extra_rewrites = descr |> map (#1 o snd) |> distinct op = |>
-          map_filter (Option.map snd o lookup_size thy) |> flat;
-        val extra_size = Option.map fst o lookup_size thy;
+          map_filter (Option.map (fst o snd) o BNF_LFP_Size.lookup_size thy) |> flat;
+        val extra_size = Option.map fst o BNF_LFP_Size.lookup_size thy;
 
         val (((size_names, size_fns), def_names), def_names') =
           recTs1 |> map (fn T as Type (s, _) =>
@@ -160,7 +146,7 @@ fun prove_size_thms (info : Datatype_Aux.info) new_type_names thy =
             size_def_thms @ size_def_thms' @ rec_rewrites @ extra_rewrites;
         val xs = map (fn i => "x" ^ string_of_int i) (1 upto length recTs2);
 
-        fun mk_unfolded_size_eq tab size_ofp fs (p as (x, T), r) =
+        fun mk_unfolded_size_eq tab size_ofp fs (p as (_, T), r) =
           HOLogic.mk_eq (app fs r $ Free p,
             the (size_of_type tab extra_size size_ofp T) $ Free p);
 
@@ -181,7 +167,7 @@ fun prove_size_thms (info : Datatype_Aux.info) new_type_names thy =
           let
             val Ts = map (Datatype_Aux.typ_of_dtyp descr) cargs;
             val tnames = Name.variant_list f_names (Datatype_Prop.make_tnames Ts);
-            val ts = map_filter (fn (sT as (s, T), dt) =>
+            val ts = map_filter (fn (sT as (_, T), dt) =>
               Option.map (fn sz => sz $ Free sT)
                 (if p dt then size_of_type size_of extra_size size_ofp T
                  else NONE)) (tnames ~~ Ts ~~ cargs)
@@ -220,12 +206,13 @@ fun prove_size_thms (info : Datatype_Aux.info) new_type_names thy =
               [(size_eqns, [])])];
 
       in
-        Data.map (fold (Symtab.update_new o apsnd (rpair size_thms))
-          (new_type_names ~~ size_names)) thy''
+        fold2 (fn new_type_name => fn size_name =>
+            BNF_LFP_Size.register_size new_type_name size_name [] size_thms)
+          new_type_names size_names thy''
       end
   end;
 
-fun add_size_thms config (new_type_names as name :: _) thy =
+fun add_size_thms _ (new_type_names as name :: _) thy =
   let
     val info as {descr, ...} = Datatype_Data.the_info thy name;
     val prefix = space_implode "_" (map Long_Name.base_name new_type_names);
@@ -240,8 +227,6 @@ fun add_size_thms config (new_type_names as name :: _) thy =
       |> prove_size_thms info new_type_names
       |> Sign.restore_naming thy
   end;
-
-val size_thms = snd oo (the oo lookup_size);
 
 val setup = Datatype_Data.interpretation add_size_thms;
 

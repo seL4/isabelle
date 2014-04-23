@@ -111,7 +111,8 @@ setup {*
   #> Function_Fun.setup
 *}
 
-subsection {* Measure Functions *}
+
+subsection {* Measure functions *}
 
 inductive is_measure :: "('a \<Rightarrow> nat) \<Rightarrow> bool"
 where is_measure_trivial: "is_measure f"
@@ -137,7 +138,7 @@ method_setup lexicographic_order = {*
 setup Lexicographic_Order.setup
 
 
-subsection {* Congruence Rules *}
+subsection {* Congruence rules *}
 
 lemma let_cong [fundef_cong]:
   "M = N \<Longrightarrow> (\<And>x. x = N \<Longrightarrow> f x = g x) \<Longrightarrow> Let M f = Let N g"
@@ -156,21 +157,21 @@ lemma comp_cong [fundef_cong]:
   "f (g x) = f' (g' x') \<Longrightarrow> (f o g) x = (f' o g') x'"
   unfolding o_apply .
 
+
 subsection {* Simp rules for termination proofs *}
 
-lemma termination_basic_simps[termination_simp]:
-  "x < (y::nat) \<Longrightarrow> x < y + z"
-  "x < z \<Longrightarrow> x < y + z"
-  "x \<le> y \<Longrightarrow> x \<le> y + (z::nat)"
-  "x \<le> z \<Longrightarrow> x \<le> y + (z::nat)"
-  "x < y \<Longrightarrow> x \<le> (y::nat)"
-by arith+
-
-declare le_imp_less_Suc[termination_simp]
+declare
+  trans_less_add1[termination_simp]
+  trans_less_add2[termination_simp]
+  trans_le_add1[termination_simp]
+  trans_le_add2[termination_simp]
+  less_imp_le_nat[termination_simp]
+  le_imp_less_Suc[termination_simp]
 
 lemma prod_size_simp[termination_simp]:
   "prod_size f g p = f (fst p) + g (snd p) + Suc 0"
 by (induct p) auto
+
 
 subsection {* Decomposition *}
 
@@ -185,7 +186,7 @@ and wf_no_loop:
 by (auto simp add: wf_comp_self[of R])
 
 
-subsection {* Reduction Pairs *}
+subsection {* Reduction pairs *}
 
 definition
   "reduction_pair P = (wf (fst P) \<and> fst P O snd P \<subseteq> fst P)"

@@ -113,9 +113,8 @@ by (cases n) auto
 
 declare nat.case [nitpick_simp del]
 
-lemma list_size_simp [nitpick_simp]:
-"list_size f xs = (if xs = [] then 0
-                   else Suc (f (hd xs) + list_size f (tl xs)))"
+lemma size_list_simp [nitpick_simp]:
+"size_list f xs = (if xs = [] then 0 else Suc (f (hd xs) + size_list f (tl xs)))"
 "size xs = (if xs = [] then 0 else Suc (size (tl xs)))"
 by (cases xs) auto
 
@@ -145,8 +144,9 @@ definition int_lcm :: "int \<Rightarrow> int \<Rightarrow> int" where
 definition Frac :: "int \<times> int \<Rightarrow> bool" where
 "Frac \<equiv> \<lambda>(a, b). b > 0 \<and> int_gcd a b = 1"
 
-axiomatization Abs_Frac :: "int \<times> int \<Rightarrow> 'a"
-           and Rep_Frac :: "'a \<Rightarrow> int \<times> int"
+axiomatization
+  Abs_Frac :: "int \<times> int \<Rightarrow> 'a" and
+  Rep_Frac :: "'a \<Rightarrow> int \<times> int"
 
 definition zero_frac :: 'a where
 "zero_frac \<equiv> Abs_Frac (0, 1)"
@@ -244,7 +244,7 @@ hide_type (open) bisim_iterator fun_box pair_box unsigned_bit signed_bit word
 hide_fact (open) Ex1_unfold rtrancl_unfold rtranclp_unfold tranclp_unfold
     prod_def refl'_def wf'_def card'_def setsum'_def
     fold_graph'_def The_psimp Eps_psimp case_unit_unfold case_nat_unfold
-    list_size_simp nat_gcd_def nat_lcm_def int_gcd_def int_lcm_def Frac_def
+    size_list_simp nat_gcd_def nat_lcm_def int_gcd_def int_lcm_def Frac_def
     zero_frac_def one_frac_def num_def denom_def norm_frac_def frac_def
     plus_frac_def times_frac_def uminus_frac_def number_of_frac_def
     inverse_frac_def less_frac_def less_eq_frac_def of_frac_def wf_wfrec'_def

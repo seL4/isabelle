@@ -848,20 +848,6 @@ apply (blast intro: card_mono finite_subset psubset_card_mono dest: psubset_eq[T
 done
 
 
-subsection {* size of a datatype value *}
-
-ML_file "Tools/Function/size.ML"
-setup Size.setup
-
-lemma size_bool [code]:
-  "size (b\<Colon>bool) = 0" by (cases b) auto
-
-lemma nat_size [simp, code]: "size (n\<Colon>nat) = n"
-  by (induct n) simp_all
-
-declare prod.size [no_atp]
-
-
 hide_const (open) acc accp
 
 end

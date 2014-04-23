@@ -8,6 +8,7 @@ Generation of size functions for new-style datatypes.
 signature BNF_LFP_SIZE =
 sig
   val register_size: string -> string -> thm list -> thm list -> theory -> theory
+  val lookup_size: theory -> string -> (string * (thm list * thm list)) option
 end;
 
 structure BNF_LFP_Size : BNF_LFP_SIZE =
@@ -33,7 +34,9 @@ structure Data = Theory_Data
 );
 
 fun register_size T_name size_name size_simps size_o_maps =
-  Data.map (Symtab.update_new (T_name, (size_name, (size_simps, size_o_maps))));
+  Data.map (Symtab.update (T_name, (size_name, (size_simps, size_o_maps))));
+
+val lookup_size = Symtab.lookup o Data.get;
 
 val zero_nat = @{const zero_class.zero (nat)};
 
@@ -224,8 +227,13 @@ fun generate_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), fp = Leas
 
       val maps0 = map map_of_bnf fp_bnfs;
 
+      (* This disables much of the functionality of the size extension within a locale. It is not
+         clear how to make the code below work with locales, given that interpretations are based on
+         theories. *)
+      val has_hyps = not (null (Thm.hyps_of (hd (hd rec_thmss))));
+
       val (rec_o_map_thmss, size_o_map_thmss) =
-        if live = 0 then
+        if has_hyps orelse live = 0 then
           `I (replicate nn [])
         else
           let
@@ -306,16 +314,19 @@ fun generate_size (fp_sugars as ({T = Type (_, As), BT = Type (_, Bs), fp = Leas
 
       val (_, thy4) = thy3
         |> fold_map4 (fn T_name => fn size_simps => fn rec_o_map_thms => fn size_o_map_thms =>
-            let val qualify = Binding.qualify true (Long_Name.base_name T_name) in
-              Global_Theory.note_thmss ""
-                ([((qualify (Binding.name rec_o_mapN), []), [(rec_o_map_thms, [])]),
-                  ((qualify (Binding.name sizeN),
-                     [Simplifier.simp_add, Nitpick_Simps.add, Thm.declaration_attribute
-                        (fn thm => Context.mapping (Code.add_default_eqn thm) I)]),
-                   [(size_simps, [])]),
-                  ((qualify (Binding.name size_o_mapN), []), [(size_o_map_thms, [])])]
-                 |> filter_out (forall (null o fst) o snd))
-            end)
+            if has_hyps then
+              pair []
+            else
+              let val qualify = Binding.qualify true (Long_Name.base_name T_name) in
+                Global_Theory.note_thmss ""
+                  ([((qualify (Binding.name rec_o_mapN), []), [(rec_o_map_thms, [])]),
+                    ((qualify (Binding.name sizeN),
+                       [Simplifier.simp_add, Nitpick_Simps.add, Thm.declaration_attribute
+                          (fn thm => Context.mapping (Code.add_default_eqn thm) I)]),
+                     [(size_simps, [])]),
+                    ((qualify (Binding.name size_o_mapN), []), [(size_o_map_thms, [])])]
+                   |> filter_out (forall (null o fst) o snd))
+              end)
           T_names (map2 append size_simpss overloaded_size_simpss) rec_o_map_thmss size_o_map_thmss
         ||> Spec_Rules.add_global Spec_Rules.Equational (size_consts, size_simps);
     in

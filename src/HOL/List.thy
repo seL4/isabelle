@@ -3488,8 +3488,8 @@ lemma (in comm_monoid_add) listsum_map_remove1:
   "x \<in> set xs \<Longrightarrow> listsum (map f xs) = f x + listsum (map f (remove1 x xs))"
   by (induct xs) (auto simp add: ac_simps)
 
-lemma (in monoid_add) list_size_conv_listsum:
-  "list_size f xs = listsum (map f xs) + size xs"
+lemma (in monoid_add) size_list_conv_listsum:
+  "size_list f xs = listsum (map f xs) + size xs"
   by (induct xs) auto
 
 lemma (in monoid_add) length_concat:
@@ -5945,28 +5945,28 @@ by(fast intro:rtrancl_listrel1_if_listrel)
 
 subsection {* Size function *}
 
-lemma [measure_function]: "is_measure f \<Longrightarrow> is_measure (list_size f)"
+lemma [measure_function]: "is_measure f \<Longrightarrow> is_measure (size_list f)"
 by (rule is_measure_trivial)
 
-lemma [measure_function]: "is_measure f \<Longrightarrow> is_measure (option_size f)"
+lemma [measure_function]: "is_measure f \<Longrightarrow> is_measure (size_option f)"
 by (rule is_measure_trivial)
 
-lemma list_size_estimation[termination_simp]: 
-  "x \<in> set xs \<Longrightarrow> y < f x \<Longrightarrow> y < list_size f xs"
+lemma size_list_estimation[termination_simp]: 
+  "x \<in> set xs \<Longrightarrow> y < f x \<Longrightarrow> y < size_list f xs"
 by (induct xs) auto
 
-lemma list_size_estimation'[termination_simp]: 
-  "x \<in> set xs \<Longrightarrow> y \<le> f x \<Longrightarrow> y \<le> list_size f xs"
+lemma size_list_estimation'[termination_simp]: 
+  "x \<in> set xs \<Longrightarrow> y \<le> f x \<Longrightarrow> y \<le> size_list f xs"
 by (induct xs) auto
 
-lemma list_size_map[simp]: "list_size f (map g xs) = list_size (f o g) xs"
+lemma size_list_map[simp]: "size_list f (map g xs) = size_list (f o g) xs"
 by (induct xs) auto
 
-lemma list_size_append[simp]: "list_size f (xs @ ys) = list_size f xs + list_size f ys"
+lemma size_list_append[simp]: "size_list f (xs @ ys) = size_list f xs + size_list f ys"
 by (induct xs, auto)
 
-lemma list_size_pointwise[termination_simp]: 
-  "(\<And>x. x \<in> set xs \<Longrightarrow> f x \<le> g x) \<Longrightarrow> list_size f xs \<le> list_size g xs"
+lemma size_list_pointwise[termination_simp]: 
+  "(\<And>x. x \<in> set xs \<Longrightarrow> f x \<le> g x) \<Longrightarrow> size_list f xs \<le> size_list g xs"
 by (induct xs) force+
 
 
@@ -6757,7 +6757,7 @@ lemma replicate_transfer [transfer_rule]:
 
 lemma length_transfer [transfer_rule]:
   "(list_all2 A ===> op =) length length"
-  unfolding list_size_overloaded_def by transfer_prover
+  unfolding size_list_overloaded_def size_list_def by transfer_prover
 
 lemma rotate1_transfer [transfer_rule]:
   "(list_all2 A ===> list_all2 A) rotate1 rotate1"

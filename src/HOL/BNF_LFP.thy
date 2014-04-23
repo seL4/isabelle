@@ -212,7 +212,35 @@ ML_file "Tools/BNF/bnf_lfp_tactics.ML"
 ML_file "Tools/BNF/bnf_lfp.ML"
 ML_file "Tools/BNF/bnf_lfp_compat.ML"
 ML_file "Tools/BNF/bnf_lfp_rec_sugar_more.ML"
+
+
+subsection {* Size of a datatype value *}
+
 ML_file "Tools/BNF/bnf_lfp_size.ML"
+ML_file "Tools/Function/size.ML"
+setup Size.setup
+
+lemma size_bool[code]: "size (b\<Colon>bool) = 0"
+  by (cases b) auto
+
+lemma nat_size[simp, code]: "size (n\<Colon>nat) = n"
+  by (induct n) simp_all
+
+declare prod.size[no_atp]
+
+lemma sum_size_o_map: "sum_size g1 g2 \<circ> map_sum f1 f2 = sum_size (g1 \<circ> f1) (g2 \<circ> f2)"
+  by (rule ext) (case_tac x, auto)
+
+lemma prod_size_o_map: "prod_size g1 g2 \<circ> map_prod f1 f2 = prod_size (g1 \<circ> f1) (g2 \<circ> f2)"
+  by (rule ext) auto
+
+setup {*
+BNF_LFP_Size.register_size @{type_name sum} @{const_name sum_size} @{thms sum.size}
+  @{thms sum_size_o_map}
+#> BNF_LFP_Size.register_size @{type_name prod} @{const_name prod_size} @{thms prod.size}
+  @{thms prod_size_o_map}
+*}
+
 
 hide_fact (open) id_transfer
 

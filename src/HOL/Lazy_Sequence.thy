@@ -28,7 +28,7 @@ lemma lazy_sequence_eq_iff:
   by (auto intro: lazy_sequence_eqI)
 
 lemma lazy_sequence_size_eq:
-  "lazy_sequence_size f xq = Suc (list_size f (list_of_lazy_sequence xq))"
+  "lazy_sequence_size f xq = Suc (size_list f (list_of_lazy_sequence xq))"
   by (cases xq) simp
 
 lemma size_lazy_sequence_eq [code]:

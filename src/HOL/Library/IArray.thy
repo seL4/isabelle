@@ -59,7 +59,7 @@ lemma [code]:
 by (cases as) simp
 
 lemma [code]:
-"iarray_size f as = Suc (list_size f (IArray.list_of as))"
+"iarray_size f as = Suc (size_list f (IArray.list_of as))"
 by (cases as) simp
 
 lemma [code]:
