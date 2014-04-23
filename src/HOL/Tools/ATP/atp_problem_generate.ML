@@ -1286,8 +1286,7 @@ fun make_formula ctxt format type_enc iff_for_eq name stature role t =
 fun is_format_with_defs (THF _) = true
   | is_format_with_defs _ = false
 
-fun make_fact ctxt format type_enc iff_for_eq
-              ((name, stature as (_, status)), t) =
+fun make_fact ctxt format type_enc iff_for_eq ((name, stature as (_, status)), t) =
   let
     val role =
       if is_format_with_defs format andalso status = Non_Rec_Def andalso
@@ -1742,8 +1741,7 @@ fun could_specialize_helpers type_enc =
 fun should_specialize_helper type_enc t =
   could_specialize_helpers type_enc andalso not (null (Term.hidden_polymorphism t))
 
-fun add_helper_facts_of_sym ctxt format type_enc completish
-                            (s, {types, ...} : sym_info) =
+fun add_helper_facts_of_sym ctxt format type_enc completish (s, {types, ...} : sym_info) =
   (case unprefix_and_unascii const_prefix s of
     SOME mangled_s =>
     let
@@ -1785,8 +1783,7 @@ fun add_helper_facts_of_sym ctxt format type_enc completish
     end
   | NONE => I)
 fun helper_facts_of_sym_table ctxt format type_enc completish sym_tab =
-  Symtab.fold_rev (add_helper_facts_of_sym ctxt format type_enc completish)
-                  sym_tab []
+  Symtab.fold_rev (add_helper_facts_of_sym ctxt format type_enc completish) sym_tab []
 
 (***************************************************************)
 (* Type Classes Present in the Axiom or Conjecture Clauses     *)
@@ -2438,24 +2435,31 @@ fun lines_of_sym_decl_table ctxt mono type_enc mono_Ts sym_decl_tab =
     val decl_lines = maps (lines_of_sym_decls ctxt mono type_enc) syms
   in mono_lines @ decl_lines end
 
-fun datatypes_of_sym_table ctxt ctrss (DFG Polymorphic) (type_enc as Native _)
-                           uncurried_aliases sym_tab =
+fun datatypes_of_sym_table ctxt ctrss (DFG Polymorphic) (type_enc as Native _) uncurried_aliases
+      sym_tab =
     if is_type_enc_polymorphic type_enc then
       let
         val thy = Proof_Context.theory_of ctxt
+
         fun do_ctr (s, T) =
           let
             val s' = make_fixed_const (SOME type_enc) s
             val ary = ary_of T
-            fun mk name = mk_aterm type_enc name (robust_const_type_args thy (s, T)) []
+            fun mk name = SOME (mk_aterm type_enc name (robust_const_type_args thy (s, T)) [])
           in
-            (case Symtab.lookup sym_tab s' of
-              NONE => NONE
-            | SOME ({min_ary, ...} : sym_info) =>
-              if ary = min_ary then SOME (mk (s', s))
-              else if uncurried_aliases then SOME (mk (aliased_uncurried ary (s', s)))
-              else NONE)
+            if T = HOLogic.boolT then
+              (case proxify_const s' of
+                SOME proxy_base => mk (proxy_base |>> prefix const_prefix)
+              | NONE => NONE)
+            else
+              (case Symtab.lookup sym_tab s' of
+                NONE => NONE
+              | SOME ({min_ary, ...} : sym_info) =>
+                if ary = min_ary then mk (s', s)
+                else if uncurried_aliases then mk (aliased_uncurried ary (s', s))
+                else NONE)
           end
+
         fun datatype_of_ctrs (ctrs as (_, T1) :: _) =
           let val ctrs' = map do_ctr ctrs in
             if forall is_some ctrs' then
@@ -2610,8 +2614,7 @@ fun declare_undeclared_in_problem heading problem =
                     | (s, (sym, ty)) => cons (Sym_Decl (sym_decl_prefix ^ s, sym, ty ()))) syms []
   in (heading, decls) :: problem end
 
-fun all_ctrss_of_datatypes ctxt =
-  map (map_filter (try dest_Const) o #ctrs) (Ctr_Sugar.ctr_sugars_of ctxt)
+val all_ctrss_of_datatypes = map (map_filter (try dest_Const) o #ctrs) o Ctr_Sugar.ctr_sugars_of
 
 val app_op_and_predicator_threshold = 45
 
