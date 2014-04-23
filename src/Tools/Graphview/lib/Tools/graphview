@@ -139,7 +139,7 @@ then
   rm -rf classes && mkdir classes
 
   (
-    #workaround for scalac 2.10.2
+    #FIXME workaround for scalac 2.11.0
     function stty() { :; }
     export -f stty
 

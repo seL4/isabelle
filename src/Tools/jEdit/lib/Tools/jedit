@@ -312,7 +312,7 @@ then
 
   cp -p -R -f "${JEDIT_JARS[@]}" dist/jars/. || failed
   (
-    #workaround for scalac 2.10.2
+    #FIXME workaround for scalac 2.11.0
     function stty() { :; }
     export -f stty
 
